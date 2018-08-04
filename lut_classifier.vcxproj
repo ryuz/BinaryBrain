@@ -166,6 +166,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BinaryNet.h" />
     <ClInclude Include="Lut6ModelAvx2.h" />
     <ClInclude Include="LutModel.h" />
   </ItemGroup>

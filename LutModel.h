@@ -4,7 +4,7 @@
 #pragma once
 
 #include <array>
-
+#include "BinaryNet.h"
 
 template <int N=6>
 class LutModel
@@ -18,7 +18,13 @@ public:
 	{
 	}
 
-	bool &operator[](size_t i) {
+	bool &operator[](size_t i)
+	{
+		return m_lut[i];
+	}
+
+	bool operator[](size_t i) const
+	{
 		return m_lut[i];
 	}
 
@@ -76,8 +82,12 @@ public:
 		}
 	}
 
-protected:
-	int GetIndex(void)
+	bool GetInputValue(int index) const
+	{
+		return m_input[index]->GetValue();
+	}
+
+	int GetIndex(void) const
 	{
 		int index = 0;
 		for (int i = 0; i < N; i++) {
@@ -87,6 +97,7 @@ protected:
 		return index;
 	}
 
+protected:
 	std::array< bool, (1<<N) >					m_lut;
 	std::array< const LutModel*, N >			m_input;
 	bool										m_output;
@@ -99,10 +110,9 @@ protected:
 
 
 template <int N = 6>
-class LutNet
+class LutNet : public BinaryNet
 {
 public:
-//	LutNet(std::vector<int> layer_num, std::mt19937& mt)
 	LutNet(std::vector<int> layer_num)
 	{
 		// LUT\’z
@@ -112,40 +122,25 @@ public:
 			l.resize(*n++);
 		}
 
-		/*
-		// LUT‚ğ—”‚Å‰Šú‰»
-		std::uniform_int_distribution<int>	distribution(0, 1);
-		for (auto& ll : m_lut) {
-			for (auto& l : ll) {
-				for (int i = 0; i < (1<<N); i++) {
-					l[i] = distribution(mt) == 1 ? true : false;
-				}
-			}
-		}
-
-		// ƒ‰ƒ“ƒ_ƒ€‚ÉÚ‘±
-		for (size_t i = 1; i < m_lut.size(); i++) {
-			auto vec = MakeInitVec(m_lut[i - 1].size());
-			for (auto& l : m_lut[i]) {
-				ShuffleVec(mt, vec, N);
-				for (int j = 0; j < N; j++) {
-					l.SetConnection(j, &m_lut[i - 1][vec[j]]);
-				}
-			}
-		}
-		*/
+		Reset();
 	}
 
-	int					n;
-	std::vector<int>	count;
-	void Reset(void) {
-		n = 0;
-		count.resize(Output().size(), 0);
-		for (auto& c : count) {
-			c = 0;
-		}
+	int  GetLayerNum(void) const
+	{
+		return (int)m_lut.size();
+	}
+
+	int  GetNodeNum(int layer) const
+	{
+		return (int)m_lut[layer].size();
 	}
 	
+	int  GetInputNum(int layer, int node) const
+	{
+		return N;
+	}
+
+	// ŒvZ
 	void CalcForward(void)
 	{
 		for (int i = 1; i < (int)m_lut.size(); i++) {
@@ -166,6 +161,51 @@ public:
 		}
 	}
 	
+	// Ú‘±
+	void SetConnection(int layer, int node, int input_num, int input_node)
+	{
+		m_lut[layer][node].SetConnection(input_num, &m_lut[layer - 1][input_node]);
+	}
+
+	bool GetValue(int layer, int node) const
+	{
+		return m_lut[layer][node].GetValue();
+	}
+
+	void SetValue(int layer, int node, bool value)
+	{
+		m_lut[layer][node].SetValue(value);
+	}
+	
+	bool GetInputValue(int layer, int node, int index) const
+	{
+		return m_lut[layer][node].GetInputValue(index);
+	}
+
+	bool GetLutBit(int layer, int node, int bit) const
+	{
+		return m_lut[layer][node][bit];
+	}
+	
+	void SetLutBit(int layer, int node, int bit, bool value)
+	{
+		m_lut[layer][node][bit] = value;
+	}
+
+
+	/////////////////////
+
+
+	int					n;
+	std::vector<int>	count;
+	void Reset(void) {
+		n = 0;
+		count.resize(Output().size(), 0);
+		for (auto& c : count) {
+			c = 0;
+		}
+	}
+
 	double GetScore(int exp)
 	{
 		auto& out = Output();
@@ -194,9 +234,8 @@ public:
 	}
 
 
-
-
 protected:
+	
 	std::vector<int> MakeInitVec(size_t n)
 	{
 		std::vector<int>	vec(n);
@@ -214,6 +253,7 @@ protected:
 			std::swap(vec[i], vec[distribution(mt)]);
 		}
 	}
+	
 
 	std::vector< std::vector< LutModel<N> > >	m_lut;
 };
