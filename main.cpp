@@ -10,17 +10,29 @@
 #include "Lut6NetAvx2.h"
 
 
-#define	LUT_SIZE		6
+#define	LUT_SIZE				6
 
+#define	INPUT_NUM				(28*28)
+#define	OUTPUT_NUM				10
 
-#define	INPUT_NUM		28*28
-#define	OUTPUT_NUM		10
+#define	BATCH_SIZE				4000
+
+#define UPDATE_FIX_TH_LOOP		2
+#define UPDATE_RAND_LOOP		2
+
+//#define UPDATE_GAIN				2.0
+#define UPDATE_GAIN				100.0
+
+//#define IMG_RAND_TH_MIN			(0   - 10)
+//#define IMG_RAND_TH_MAX			(255 + 10)
+#define IMG_RAND_TH_MIN			(0)
+#define IMG_RAND_TH_MAX			(254)
 
 
 
 //std::vector<int>	layer_num{ INPUT_NUM, 200, 50, OUTPUT_NUM };
 //std::vector<int>	layer_num{ INPUT_NUM, 360, 60, OUTPUT_NUM };
-std::vector<int>	layer_num{ INPUT_NUM, 400, 200, 50, OUTPUT_NUM };
+std::vector<int>	layer_num{ INPUT_NUM, 200, 100, 50, OUTPUT_NUM };
 //std::vector<int>	layer_num{INPUT_NUM, 4096, 512, 128, 32, OUTPUT_NUM};
 
 
@@ -53,7 +65,7 @@ int main()
 		train_idx[i] = i;
 	}
 	std::uniform_int_distribution<int>	distribution(0, (int)train_image.size() - 1);
-	int batch_size = 1000;
+	int batch_size = BATCH_SIZE;
 	auto batch_image = train_image;
 	auto batch_label = train_label;
 	batch_image.resize(batch_size);
@@ -136,7 +148,7 @@ int main()
 	//	printf("avx:%d[ms]\n", (int)(tm1_e - tm1_s));
 #endif
 
-		if (x % 2 == 0) {
+		if (x % 1 == 0) {
 #if USE_LUT
 			printf("lut:%f\n", evaluate_net(net_lut, test_image, test_label));
 #endif
@@ -146,6 +158,8 @@ int main()
 		}
 	}
 	
+	getchar();
+
 	return 0;
 }
 
@@ -159,7 +173,7 @@ std::vector<bool> make_input_random(std::vector<uint8_t> img, unsigned int seed)
 	std::vector<bool> input_vector(img.size());
 
 	std::mt19937						mt(seed);
-	std::uniform_int_distribution<int>	distribution(-10, 255 + 10);
+	std::uniform_int_distribution<int>	distribution(IMG_RAND_TH_MIN, IMG_RAND_TH_MAX);
 
 	for (int i = 0; i < (int)img.size(); i++) {
 		input_vector[i] = (img[i] > distribution(mt));
@@ -199,6 +213,64 @@ double calc_score(int exp, std::vector<bool> out_vec)
 }
 
 
+// ネットを更新
+void update_net(BinaryNet& net, std::vector< std::vector<uint8_t> > image, std::vector<uint8_t> label, std::mt19937& mt)
+{
+	std::uniform_int_distribution<int>	distribution(IMG_RAND_TH_MIN, IMG_RAND_TH_MAX);
+
+	for (int layer = net.GetLayerNum() - 1; layer > 0; layer--) {
+		int node_num = net.GetNodeNum(layer);
+		for (int node = 0; node < node_num; node++) {
+			double  score_val[64] = { 0 };
+			int     score_n[64] = { 0 };
+
+			for (int i = 0; i < (int)image.size(); i++) {
+				// 固定閾値
+				for (int j = 0; j < UPDATE_FIX_TH_LOOP; j++) {
+					//		int th = 127; //  distribution(mt);
+					int th = distribution(mt);
+					net.SetInput(make_input_th(image[i], th));
+					net.CalcForward();
+					int  idx = net.GetInputLutIndex(layer, node);
+					score_val[idx] += calc_score(label[i], net.GetOutput());
+					score_n[idx]++;
+
+					net.InvertLut(layer, node);
+					net.CalcForward(layer);
+					score_val[idx] -= calc_score(label[i], net.GetOutput());
+					score_n[idx]++;
+					net.InvertLut(layer, node);
+				}
+
+				// 乱数ディザ
+				for (int j = 0; j < UPDATE_RAND_LOOP; j++) {
+					net.SetInput(make_input_random(image[i], mt()));
+					net.CalcForward();
+					int  idx = net.GetInputLutIndex(layer, node);
+					score_val[idx] += calc_score(label[i], net.GetOutput());
+					score_n[idx]++;
+
+					net.InvertLut(layer, node);
+					net.CalcForward(layer);
+					score_val[idx] -= calc_score(label[i], net.GetOutput());
+					score_n[idx]++;
+					net.InvertLut(layer, node);
+				}
+			}
+
+			// LUT更新
+			std::uniform_real_distribution<double> score_th(-1.0, 0.0);
+			for (int i = 0; i < 64; i++) {
+				double score = score_val[i] / (double)score_n[i];
+				if (score * UPDATE_GAIN < score_th(mt)) {
+					net.SetLutBit(layer, node, i, !net.GetLutBit(layer, node, i));
+				}
+			}
+		}
+	}
+}
+
+
 
 
 // ネットを評価
@@ -212,7 +284,6 @@ float evaluate_net(BinaryNet& net, std::vector< std::vector<uint8_t> > image, st
 	int out_layer = net.GetLayerNum() - 1;
 	auto label_it = label.begin();
 	for (auto& img : image) {
-
 		std::vector<int> count(10, 0);
 		for (int i = 0; i < 16; i++) {
 			auto in_vec = make_input_random(img, mt());
@@ -235,68 +306,3 @@ float evaluate_net(BinaryNet& net, std::vector< std::vector<uint8_t> > image, st
 
 	return (float)ok / (float)n;
 }
-
-
-
-// ネットを更新
-void update_net(BinaryNet& net, std::vector< std::vector<uint8_t> > image, std::vector<uint8_t> label, std::mt19937& mt)
-{
-	std::uniform_int_distribution<int>	distribution(0 + 16, 254 - 16);
-
-	for (int layer = net.GetLayerNum() - 1; layer > 0; layer--) {
-		int node_num = net.GetNodeNum(layer);
-		for (int node = 0; node < node_num; node++) {
-			double  score_val[64] = { 0 };
-			int     score_n[64] = { 0 };
-
-			for (int i = 0; i < (int)image.size(); i++) {
-#if 1			
-				// 固定閾値
-				for (int j = 0; j < 2; j++) {
-					//		int th = 127; //  distribution(mt);
-					int th = distribution(mt);
-					net.SetInput(make_input_th(image[i], th));
-					net.CalcForward();
-					int  idx = net.GetInputLutIndex(layer, node);
-					score_val[idx] += calc_score(label[i], net.GetOutput());
-					score_n[idx]++;
-
-					net.InvertLut(layer, node);
-					net.CalcForward(layer);
-					score_val[idx] -= calc_score(label[i], net.GetOutput());
-					score_n[idx]++;
-					net.InvertLut(layer, node);
-				}
-#endif
-
-#if 1
-				// 乱数ディザ
-				for (int j = 0; j < 2; j++) {
-					net.SetInput(make_input_random(image[i], mt()));
-					net.CalcForward();
-					int  idx = net.GetInputLutIndex(layer, node);
-					score_val[idx] += calc_score(label[i], net.GetOutput());
-					score_n[idx]++;
-
-					net.InvertLut(layer, node);
-					net.CalcForward(layer);
-					score_val[idx] -= calc_score(label[i], net.GetOutput());
-					score_n[idx]++;
-					net.InvertLut(layer, node);
-				}
-#endif
-			}
-
-			// LUT更新
-			double score_gain = 10.0;
-			std::uniform_real_distribution<double> score_th(-1.0, 0.0);
-			for (int i = 0; i < 64; i++) {
-				double score = score_val[i] / (double)score_n[i];
-				if (score * score_gain < score_th(mt)) {
-					net.SetLutBit(layer, node, i, !net.GetLutBit(layer, node, i));
-				}
-			}
-		}
-	}
-}
-
