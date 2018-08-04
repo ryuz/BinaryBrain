@@ -18,7 +18,9 @@
 
 
 
-std::vector<int>	layer_num{ INPUT_NUM, 200, 50, OUTPUT_NUM };
+//std::vector<int>	layer_num{ INPUT_NUM, 200, 50, OUTPUT_NUM };
+//std::vector<int>	layer_num{ INPUT_NUM, 360, 60, OUTPUT_NUM };
+std::vector<int>	layer_num{ INPUT_NUM, 400, 200, 50, OUTPUT_NUM };
 //std::vector<int>	layer_num{INPUT_NUM, 4096, 512, 128, 32, OUTPUT_NUM};
 
 
@@ -286,7 +288,7 @@ void update_net(BinaryNet& net, std::vector< std::vector<uint8_t> > image, std::
 			}
 
 			// LUTçXêV
-			double score_gain = 2.0;
+			double score_gain = 10.0;
 			std::uniform_real_distribution<double> score_th(-1.0, 0.0);
 			for (int i = 0; i < 64; i++) {
 				double score = score_val[i] / (double)score_n[i];
