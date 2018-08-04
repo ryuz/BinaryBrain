@@ -164,11 +164,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="mnist_read.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BinaryNet.h" />
     <ClInclude Include="Lut6ModelAvx2.h" />
     <ClInclude Include="LutModel.h" />
+    <ClInclude Include="mnist_read.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

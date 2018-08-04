@@ -5,6 +5,7 @@
 #include <vector>
 #include <random>
 #include <utility>
+#include "mnist_read.h"
 #include "LutModel.h"
 #include "Lut6ModelAvx2.h"
 
@@ -17,10 +18,11 @@
 
 
 
-std::vector<int>	layer_num{ INPUT_NUM, 200, 50, OUTPUT_NUM };
-//std::vector<int>	layer_num{INPUT_NUM, 300, 100, 50, OUTPUT_NUM};
+//std::vector<int>	layer_num{ INPUT_NUM, 200, 50, OUTPUT_NUM };
+std::vector<int>	layer_num{INPUT_NUM, 4096, 512, 128, 32, OUTPUT_NUM};
 
 
+#if 0
 std::vector<int> get_randum_num(size_t n, size_t size, std::mt19937& mt)
 {
 	std::vector<int>	idx(size);
@@ -62,68 +64,8 @@ std::vector<T> get_randum_data(std::vector<T> data, size_t n, std::mt19937& mt)
 
 	return vec;
 }
+#endif
 
-
-
-
-// ---------------------------------------------
-//  MNIST
-// ---------------------------------------------
-
-inline int mnist_read_word(unsigned char *p)
-{
-	return (p[0] << 24) + (p[1] << 16) + (p[2] << 8) + (p[3] << 0);
-}
-
-std::vector< std::vector<uint8_t> > mnist_read_image(const char* filename)
-{
-	std::vector< std::vector<uint8_t> >	vec;
-
-	FILE* fp;
-	if (fopen_s(&fp, filename, "rb") != 0) {
-		return vec;
-	}
-
-	unsigned char header[16];
-	fread(header, 16, 1, fp);
-
-	int magic = mnist_read_word(&header[0]);
-	int num   = mnist_read_word(&header[4]);
-	int rows  = mnist_read_word(&header[8]);
-	int cols  = mnist_read_word(&header[12]);
-
-	vec.resize(num);
-	for (auto& v : vec) {
-		v.resize(cols*rows);
-		fread(&v[0], cols*rows, 1, fp);
-	}
-	
-	fclose(fp);
-
-	return vec;
-}
-
-
-std::vector< uint8_t> mnist_read_labels(const char* filename)
-{
-	std::vector<uint8_t>	vec;
-
-	FILE* fp;
-	if (fopen_s(&fp, filename, "rb") != 0) {
-		return vec;
-	}
-
-	unsigned char header[8];
-	fread(header, 8, 1, fp);
-
-	int magic = mnist_read_word(&header[0]);
-	int num = mnist_read_word(&header[4]);
-	vec.resize(num);
-	fread(&vec[0], num, 1, fp);
-	fclose(fp);
-
-	return vec;
-}
 
 
 
@@ -159,7 +101,7 @@ std::vector<bool> make_input_th(std::vector<uint8_t> img, uint8_t th)
 }
 
 
-#if 1
+#if 0
 
 void set_input_random(LutNet<LUT_SIZE>& net, std::vector<uint8_t> img, std::mt19937& mt)
 {
@@ -225,7 +167,7 @@ float test_net2(BinaryNet& net,
 }
 
 
-
+#if 0
 float test_net(LutNet<LUT_SIZE>& net, 
 	std::vector< std::vector<uint8_t> > image, std::vector<uint8_t> label)
 {
@@ -254,6 +196,7 @@ float test_net(LutNet<LUT_SIZE>& net,
 
 	return (float)ok / (float)n;
 }
+#endif
 
 
 
@@ -300,7 +243,7 @@ void update2(BinaryNet& net, std::vector< std::vector<uint8_t> > image, std::vec
 				}
 #endif
 
-#if 1
+#if 0
 				for (int j = 0; j < 1; j++) {
 					net.SetInput(make_input_random(image[i], mt()));
 					net.CalcForward();
@@ -334,7 +277,7 @@ void update2(BinaryNet& net, std::vector< std::vector<uint8_t> > image, std::vec
 }
 
 
-
+#if 0
 void update(LutNet<LUT_SIZE>& net,
 	std::vector< std::vector<uint8_t> > image, std::vector<uint8_t> label, std::mt19937& mt)
 {
@@ -411,12 +354,15 @@ void test01(void)
 	net6.CalcForward();
 	net.CalcForward();
 }
+#endif
 
 
+#include <omp.h>
 
 int main()
 {
-	test01();
+	omp_set_num_threads(4);
+//	test01();
 
 	std::mt19937	mt(1);
 
@@ -432,7 +378,7 @@ int main()
 		train_idx[i] = i;
 	}
 	std::uniform_int_distribution<int>	distribution(0, (int)train_image.size() - 1);
-	int batch_size = 1000;
+	int batch_size = 100;
 	auto batch_image = train_image;
 	auto batch_label = train_label;
 	batch_image.resize(batch_size);
@@ -481,33 +427,10 @@ int main()
 		}
 	}
 
-	/*
-	auto vec = make_input_th(test_image[0], 127);
-	net.SetInput(vec);
-	net6.SetInput(vec);
-	for (int i = 0; i < 28 * 28; i++) {
-		if (net.GetValue(0, i) != net6.GetValue(0, i)) {
-			printf("error\n");
-		}
-	}
-
-	net.CalcForward();
-	net6.CalcForward();
-	for (int i = 1; i < net.GetNodeNum(1); i++) {
-		bool v0 = net.GetValue(1, i);
-		bool v1 = net6.GetValue(1, i);
-		if( v0 != v1 ) {
-			printf("error\n");
-		}
-	}
-	*/
 
 
 	printf("start\n");
 	
-//	printf("%f\n", test_net(net, test_image, test_label));
-//	printf("ref0:%f\n", test_net2(net,  test_image, test_label));
-//	printf("lut6:%f\n", test_net2(net6, test_image, test_label));
 
 	std::mt19937	mt2(2);
 	std::mt19937	mt6(2);
@@ -525,22 +448,20 @@ int main()
 //		printf("%f\n", test_net(net, train_image, train_label));
 		
 		DWORD tm0_s = timeGetTime();
-		update2(net,  batch_image, batch_label, mt2);
+	//	update2(net, batch_image, batch_label, mt2);
 		DWORD tm0_e = timeGetTime();
-	//	printf("net0:%d[s]\n", (int)(tm0_e - tm0_s));
+		printf("net0:%d[ms]\n", (int)(tm0_e - tm0_s));
 
 		DWORD tm1_s = timeGetTime();
 		update2(net6, batch_image, batch_label, mt6);
 		DWORD tm1_e = timeGetTime();
-	//	printf("net1:%d[s]\n", (int)(tm1_e - tm1_s));
+		printf("net1:%d[ms]\n", (int)(tm1_e - tm1_s));
 
-		printf("ref0:%f\n", test_net2(net,  test_image, test_label));
-		printf("net6:%f\n", test_net2(net6, test_image, test_label));
+		if (x % 2 == 0) {
+	//		printf("ref0:%f\n", test_net2(net, test_image, test_label));
+			printf("net6:%f\n", test_net2(net6, test_image, test_label));
+		}
 	}
-
-	printf("ref0:%f\n", test_net(net, test_image, test_label));
-	printf("ref1:%f\n", test_net2(net, test_image, test_label));
-	printf("lut6:%f\n", test_net2(net6, test_image, test_label));
 
 	//	printf("%f\n", test_net(net, test_image, test_label));
 //	update(net, train_image, train_label, mt);
@@ -550,77 +471,3 @@ int main()
 }
 
 
-
-
-/*
-void calc_forward(std::vector< std::vector< LutModel<LUT_SIZE> > >& lut)
-{
-	for ( size_t i = 1; i < lut.size(); i++ ) {
-		for (auto &l : lut[i]) {
-			l.CalcForward();
-		}
-	}
-}
-
-int max_param(std::vector< std::vector< LutModel<LUT_SIZE> > >& lut)
-{
-
-}
-
-
-float eval_lut(
-		std::vector< std::vector< LutModel<LUT_SIZE> > >& lut,
-		std::vector< std::vector<uint8_t> > image, std::vector<uint8_t> label)
-{
-	auto l = label.begin();
-	for (auto& i : image) {
-
-	}
-}
-
-
-
-int main()
-{
-	// MNISTデータ読み込み
-	auto train_image = mnist_read_image("train-images-idx3-ubyte");
-	auto train_label = mnist_read_labels("train-labels-idx1-ubyte");
-	auto test_image  = mnist_read_image("t10k-images-idx3-ubyte");
-	auto test_label  = mnist_read_labels("t10k-labels-idx1-ubyte");
-
-
-	// LUT構築
-	std::vector< std::vector< LutModel<LUT_SIZE> > > lut;
-	lut.resize(layers);
-	for (int i = 0; i < layers; i++) {
-		lut[i].resize(layer_num[i]);
-	}
-
-	// LUTを乱数で初期化
-	std::mt19937						mt(1);
-	std::uniform_int_distribution<int>	distribution(0, 1);
-	for ( auto& ll : lut ) {
-		for (auto& l : ll) {
-			for (int i = 0; i < LUT_SIZE; i++) {
-				l[i] = distribution(mt) == 0 ? true : false;
-			}
-		}
-	}
-
-	// ランダムに接続
-	for (int i = 1; i < layers; i++) {
-		auto vec = make_init_vec(lut[i - 1].size());
-		for (auto& l : lut[i]) {
-			shuffle_vec(mt, vec, LUT_SIZE);
-			for (int j = 0; j < LUT_SIZE; j++) {
-				l.SetConnection(j, &lut[i-1][vec[j]]);
-			}
-		}
-	}
-
-
-
-	return 0;
-}
-
-*/

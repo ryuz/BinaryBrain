@@ -153,37 +153,72 @@ public:
 	
 	void CalcForward(void)
 	{
-//#pragma omp parallel for
-		for (int i = 0; i < m_size; i++) {
-			__m256i in5_val = _mm256_i32gather_epi32(m_input_vector, _mm256_load_si256(&m_input_index[5][i]), 4);
-			__m256i lut_lo = _mm256_load_si256(&m_lut_lo[i]);
-			__m256i lut_hi = _mm256_load_si256(&m_lut_hi[i]);
-			__m256i lut_val = _mm256_blendv_epi8(lut_lo, lut_hi, in5_val);
+		if (m_size >= 512) {
+#pragma omp parallel for
+			for (int i = 0; i < m_size; i++) {
+				__m256i in5_val = _mm256_i32gather_epi32(m_input_vector, _mm256_load_si256(&m_input_index[5][i]), 4);
+				__m256i lut_lo = _mm256_load_si256(&m_lut_lo[i]);
+				__m256i lut_hi = _mm256_load_si256(&m_lut_hi[i]);
+				__m256i lut_val = _mm256_blendv_epi8(lut_lo, lut_hi, in5_val);
 
-			__m256i in4_val = _mm256_i32gather_epi32(m_input_vector, _mm256_load_si256(&m_input_index[4][i]), 4);
-			__m256i in4_msk = _mm256_xor_si256(in4_val, _mm256_set1_epi32(0x0000ffff));
-					lut_val = _mm256_and_si256(lut_val, in4_msk);
+				__m256i in4_val = _mm256_i32gather_epi32(m_input_vector, _mm256_load_si256(&m_input_index[4][i]), 4);
+				__m256i in4_msk = _mm256_xor_si256(in4_val, _mm256_set1_epi32(0x0000ffff));
+				lut_val = _mm256_and_si256(lut_val, in4_msk);
 
-			__m256i in3_val = _mm256_i32gather_epi32(m_input_vector, _mm256_load_si256(&m_input_index[3][i]), 4);
-			__m256i in3_msk = _mm256_xor_si256(in3_val, _mm256_set1_epi32(0x00ff00ff));
-					lut_val = _mm256_and_si256(lut_val, in3_msk);
+				__m256i in3_val = _mm256_i32gather_epi32(m_input_vector, _mm256_load_si256(&m_input_index[3][i]), 4);
+				__m256i in3_msk = _mm256_xor_si256(in3_val, _mm256_set1_epi32(0x00ff00ff));
+				lut_val = _mm256_and_si256(lut_val, in3_msk);
 
-			__m256i in2_val = _mm256_i32gather_epi32(m_input_vector, _mm256_load_si256(&m_input_index[2][i]), 4);
-			__m256i in2_msk = _mm256_xor_si256(in2_val, _mm256_set1_epi32(0x0f0f0f0f));
-					lut_val = _mm256_and_si256(lut_val, in2_msk);
+				__m256i in2_val = _mm256_i32gather_epi32(m_input_vector, _mm256_load_si256(&m_input_index[2][i]), 4);
+				__m256i in2_msk = _mm256_xor_si256(in2_val, _mm256_set1_epi32(0x0f0f0f0f));
+				lut_val = _mm256_and_si256(lut_val, in2_msk);
 
-			__m256i in1_val = _mm256_i32gather_epi32(m_input_vector, _mm256_load_si256(&m_input_index[1][i]), 4);
-			__m256i in1_msk = _mm256_xor_si256(in1_val, _mm256_set1_epi32(0x33333333));
-					lut_val = _mm256_and_si256(lut_val, in1_msk);
+				__m256i in1_val = _mm256_i32gather_epi32(m_input_vector, _mm256_load_si256(&m_input_index[1][i]), 4);
+				__m256i in1_msk = _mm256_xor_si256(in1_val, _mm256_set1_epi32(0x33333333));
+				lut_val = _mm256_and_si256(lut_val, in1_msk);
 
-			__m256i in0_val = _mm256_i32gather_epi32(m_input_vector, _mm256_load_si256(&m_input_index[0][i]), 4);
-			__m256i in0_msk = _mm256_xor_si256(in0_val, _mm256_set1_epi32(0x55555555));
-					lut_val = _mm256_and_si256(lut_val, in0_msk);
+				__m256i in0_val = _mm256_i32gather_epi32(m_input_vector, _mm256_load_si256(&m_input_index[0][i]), 4);
+				__m256i in0_msk = _mm256_xor_si256(in0_val, _mm256_set1_epi32(0x55555555));
+				lut_val = _mm256_and_si256(lut_val, in0_msk);
 
-			__m256i out_val = _mm256_cmpeq_epi32(lut_val, _mm256_set1_epi32(0x00000000));
-					out_val = _mm256_andnot_si256(out_val, _mm256_set1_epi32(0xffffffff));
+				__m256i out_val = _mm256_cmpeq_epi32(lut_val, _mm256_set1_epi32(0x00000000));
+				out_val = _mm256_andnot_si256(out_val, _mm256_set1_epi32(0xffffffff));
 
-					_mm256_store_si256(&m_output_vector[i], out_val);
+				_mm256_store_si256(&m_output_vector[i], out_val);
+			}
+		}
+		else {
+			for (int i = 0; i < m_size; i++) {
+				__m256i in5_val = _mm256_i32gather_epi32(m_input_vector, _mm256_load_si256(&m_input_index[5][i]), 4);
+				__m256i lut_lo = _mm256_load_si256(&m_lut_lo[i]);
+				__m256i lut_hi = _mm256_load_si256(&m_lut_hi[i]);
+				__m256i lut_val = _mm256_blendv_epi8(lut_lo, lut_hi, in5_val);
+
+				__m256i in4_val = _mm256_i32gather_epi32(m_input_vector, _mm256_load_si256(&m_input_index[4][i]), 4);
+				__m256i in4_msk = _mm256_xor_si256(in4_val, _mm256_set1_epi32(0x0000ffff));
+				lut_val = _mm256_and_si256(lut_val, in4_msk);
+
+				__m256i in3_val = _mm256_i32gather_epi32(m_input_vector, _mm256_load_si256(&m_input_index[3][i]), 4);
+				__m256i in3_msk = _mm256_xor_si256(in3_val, _mm256_set1_epi32(0x00ff00ff));
+				lut_val = _mm256_and_si256(lut_val, in3_msk);
+
+				__m256i in2_val = _mm256_i32gather_epi32(m_input_vector, _mm256_load_si256(&m_input_index[2][i]), 4);
+				__m256i in2_msk = _mm256_xor_si256(in2_val, _mm256_set1_epi32(0x0f0f0f0f));
+				lut_val = _mm256_and_si256(lut_val, in2_msk);
+
+				__m256i in1_val = _mm256_i32gather_epi32(m_input_vector, _mm256_load_si256(&m_input_index[1][i]), 4);
+				__m256i in1_msk = _mm256_xor_si256(in1_val, _mm256_set1_epi32(0x33333333));
+				lut_val = _mm256_and_si256(lut_val, in1_msk);
+
+				__m256i in0_val = _mm256_i32gather_epi32(m_input_vector, _mm256_load_si256(&m_input_index[0][i]), 4);
+				__m256i in0_msk = _mm256_xor_si256(in0_val, _mm256_set1_epi32(0x55555555));
+				lut_val = _mm256_and_si256(lut_val, in0_msk);
+
+				__m256i out_val = _mm256_cmpeq_epi32(lut_val, _mm256_set1_epi32(0x00000000));
+				out_val = _mm256_andnot_si256(out_val, _mm256_set1_epi32(0xffffffff));
+
+				_mm256_store_si256(&m_output_vector[i], out_val);
+			}
 		}
 	}
 };
