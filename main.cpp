@@ -3,6 +3,8 @@
 #include <random>
 #include <utility>
 #include "LutModel.h"
+#include "Lut6ModelAvx2.h"
+
 
 #define	LUT_SIZE		6
 
@@ -12,7 +14,27 @@
 
 
 
-std::vector<int>	layer_num{INPUT_NUM, 200, 50, OUTPUT_NUM};
+std::vector<int>	layer_num{ INPUT_NUM, 200, 50, OUTPUT_NUM };
+//std::vector<int>	layer_num{INPUT_NUM, 300, 100, 50, OUTPUT_NUM};
+
+
+std::vector<int> get_randum_num(size_t n, size_t size, std::mt19937& mt)
+{
+	std::vector<int>	idx(size);
+
+	for (size_t i = 0; i < size; i++) {
+		idx[i] = (int)i;
+	}
+
+	std::uniform_int_distribution<size_t>	distribution(0, size - 1);
+	for (int i = 0; i < n; i++) {
+		std::swap(idx[i], idx[distribution(mt)]);
+	}
+
+	idx.resize(n);
+
+	return idx;
+}
 
 
 template<class T>
@@ -130,11 +152,6 @@ float test_net(LutNet<LUT_SIZE>& net,
 	auto label_it = label.begin();
 	for (auto& img : image) {
 		net.Reset();
-	//	int th = 127;
-	//	for (int th = 0; th < 255; th += 32 ) {
-	//		set_input_th(net, img, (uint8_t)th);
-	//		net.CalcForward();
-	//	}
 
 		for ( int i = 0; i < 16; i++) {
 			set_input_random(net, img, mt);
@@ -174,7 +191,7 @@ void update(LutNet<LUT_SIZE>& net,
 
 	net.Reset();
 
-	for (int layer = layer_num.size() - 1; layer > 0; layer--) {
+	for (size_t layer = layer_num.size() - 1; layer > 0; layer--) {
 		for (auto& lut : net[layer]) {
 			lut.ResetScore();
 			
@@ -221,29 +238,65 @@ int main()
 	auto test_image = mnist_read_image("t10k-images-idx3-ubyte");
 	auto test_label = mnist_read_labels("t10k-labels-idx1-ubyte");
 
-	// trainデータ再構築
-	/*
-	std::array< std::vector< std::vector<uint8_t> >, 10>	tain_data;
-	for (size_t i = 0; i < train_image.size(); i++) {
-		tain_data[train_label[i]].push_back(train_image[i]);
-	}
-	*/
-
 	// データ選択用
 	std::vector<size_t> train_idx(train_image.size());
 	for (size_t i = 0; i < train_image.size(); i++) {
 		train_idx[i] = i;
 	}
-	std::uniform_int_distribution<int>	distribution(0, train_image.size() - 1);
+	std::uniform_int_distribution<int>	distribution(0, (int)train_image.size() - 1);
 	int batch_size = 2000;
 	auto batch_image = train_image;
 	auto batch_label = train_label;
 	batch_image.resize(batch_size);
 	batch_label.resize(batch_size);
 
+	printf("init\n");
+
 	// LUT構築
-	LutNet<LUT_SIZE> net(layer_num, mt);
-	
+	LutNet<LUT_SIZE> net(layer_num);// , mt);
+	Lut6Net net6(layer_num);
+
+	// LUTを乱数で初期化
+	std::uniform_int_distribution<int>	rand_0_1(0, 1);
+	for (size_t layer = 1; layer < layer_num.size(); layer++ ) {
+		for (size_t node = 0; node <  layer_num[layer]; node++) {
+			for ( int i = 0; i < (1<<LUT_SIZE); i++) {
+				bool val = rand_0_1(mt) == 1 ? true : false;
+				net[layer][node][i] = val;
+				net6[layer].SetLutBit(node, i, val);
+			}
+		}
+	}
+
+	// ランダムに接続
+	for (size_t layer = 1; layer < layer_num.size(); layer++) {
+
+		// テーブル作成
+		int input_num = layer_num[layer - 1];
+		std::uniform_int_distribution<size_t>	rand_con(0, input_num - 1);
+		std::vector<int>	idx(input_num);
+		for (size_t i = 0; i < input_num; i++) {
+			idx[i] = (int)i;
+		}
+
+		for (size_t node = 0; node < layer_num[layer]; node++) {
+			// シャッフル
+			for (int i = 0; i < LUT_SIZE; i++) {
+				std::swap(idx[i], idx[rand_con(mt)]);
+			}
+
+			// 接続
+			for (int i = 0; i < LUT_SIZE; i++) {
+				net[layer][node].SetConnection(i, &net[layer - 1][idx[i]]);
+				net6[layer].SetInputConnection(node, i, idx[i]);
+			}
+		}
+	}
+
+	printf("start\n");
+
+
+	printf("%f\n", test_net(net, train_image, train_label));
 	for (int x = 0; x < 1000; x++) {
 		// 学習データ選択
 		for (int i = 0; i < batch_size; i++) {
@@ -256,6 +309,7 @@ int main()
 		
 //		printf("%f\n", test_net(net, train_image, train_label));
 		update(net, batch_image, batch_label, mt);
+		
 		printf("%f\n", test_net(net, test_image, test_label));
 	}
 	printf("%f\n", test_net(net, train_image, train_label));

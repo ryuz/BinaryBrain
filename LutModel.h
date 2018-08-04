@@ -18,7 +18,7 @@ public:
 	{
 	}
 
-	bool &operator[](int i) {
+	bool &operator[](size_t i) {
 		return m_lut[i];
 	}
 
@@ -102,7 +102,8 @@ template <int N = 6>
 class LutNet
 {
 public:
-	LutNet(std::vector<int> layer_num, std::mt19937& mt)
+//	LutNet(std::vector<int> layer_num, std::mt19937& mt)
+	LutNet(std::vector<int> layer_num)
 	{
 		// LUT\’z
 		m_lut.resize(layer_num.size());
@@ -111,6 +112,7 @@ public:
 			l.resize(*n++);
 		}
 
+		/*
 		// LUT‚ğ—”‚Å‰Šú‰»
 		std::uniform_int_distribution<int>	distribution(0, 1);
 		for (auto& ll : m_lut) {
@@ -131,6 +133,7 @@ public:
 				}
 			}
 		}
+		*/
 	}
 
 	int					n;
@@ -145,9 +148,11 @@ public:
 	
 	void CalcForward(void)
 	{
-		for (size_t i = 1; i < m_lut.size(); i++) {
-			for (auto &l : m_lut[i]) {
-				l.CalcForward();
+		for (int i = 1; i < (int)m_lut.size(); i++) {
+			int len = (int)m_lut[i].size();
+// #pragma omp parallel for 
+			for (int j = 0; j < len; j++) {
+				m_lut[i][j].CalcForward();
 			}
 		}
 
@@ -176,7 +181,7 @@ public:
 		return score;
 	}
 
-	std::vector< LutModel<N> >& operator[](int i) {
+	std::vector< LutModel<N> >& operator[](size_t i) {
 		return m_lut[i];
 	}
 
@@ -192,7 +197,7 @@ public:
 
 
 protected:
-	std::vector<int> MakeInitVec(int n)
+	std::vector<int> MakeInitVec(size_t n)
 	{
 		std::vector<int>	vec(n);
 		for (int i = 0; i < n; i++) {
