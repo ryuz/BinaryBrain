@@ -18,7 +18,7 @@ public:
 
 	virtual void SetConnection(int layer, int node, int input_num, int input_node) = 0;
 
-	virtual void CalcForward(int start_layer = 0) = 0;
+	virtual void CalcForward(int layer = 0) = 0;
 
 	virtual bool GetValue(int layer, int node) const = 0;
 	virtual void SetValue(int layer, int node, bool value) = 0;
@@ -31,7 +31,8 @@ public:
 	virtual void InvertLut(int layer, int node)
 	{
 		int n = GetInputNum(layer, node);
-		for (int i = 0; i < n; i++) {
+		int size = (1 << n);
+		for (int i = 0; i < size; i++) {
 			SetLutBit(layer, node, i, !GetLutBit(layer, node, i));
 		}
 		SetValue(layer, node, !GetValue(layer, node));

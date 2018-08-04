@@ -293,7 +293,7 @@ void update2(BinaryNet& net, std::vector< std::vector<uint8_t> > image, std::vec
 					score_n[idx]++;
 
 					net.InvertLut(layer, node);
-					net.CalcForward();
+					net.CalcForward(layer);
 					score_val[idx] -= calc_score(label[i], net.GetOutput());
 					score_n[idx]++;
 					net.InvertLut(layer, node);
@@ -309,7 +309,7 @@ void update2(BinaryNet& net, std::vector< std::vector<uint8_t> > image, std::vec
 					score_n[idx]++;
 
 					net.InvertLut(layer, node);
-					net.CalcForward();
+					net.CalcForward(layer);
 					score_val[idx] -= calc_score(label[i], net.GetOutput());
 					score_n[idx]++;
 					net.InvertLut(layer, node);
