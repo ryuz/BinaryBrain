@@ -229,8 +229,15 @@ public:
 
 	void CalcForward(void)
 	{
-		for (int i = 1; i < (int)m_layer.size(); i++) {
-			m_layer[i]->CalcForward();
+		for (int layer = 1; layer < (int)m_layer.size(); layer++) {
+			m_layer[layer]->CalcForward();
+			
+			// Žw’èƒm[ƒh‚Ìo—Í‚ð”½“]
+			if (m_inv_en) {
+				if (layer == m_inv_layer) {
+					m_layer[layer]->SetValue(m_inv_node, !m_layer[layer]->GetValue(m_inv_node));
+				}
+			}
 		}
 	}
 
@@ -259,7 +266,23 @@ public:
 		m_layer[layer]->SetLutBit(node, bit, value);
 	}
 
+	void SetOutputInverse(int layer, int node)
+	{
+		m_inv_en    = true;
+		m_inv_layer = layer;
+		m_inv_node = node;
+	}
+
+	void ReleaseOutputInverse(void)
+	{
+		m_inv_en = false;
+	}
+
 protected:
 	std::vector< std::unique_ptr<Lut6LayerAvx2> >	m_layer;
+
+	bool	m_inv_en    = false;
+	int		m_inv_layer;
+	int		m_inv_node;
 };
 

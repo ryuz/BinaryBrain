@@ -254,14 +254,70 @@ float test_net(LutNet<LUT_SIZE>& net,
 
 
 
-void update(LutNet<LUT_SIZE>& net,
-	std::array< std::vector< std::vector<uint8_t> >, 10> image, std::mt19937& mt)
+void update(BinaryNet& net, std::vector< std::vector<uint8_t> > image, std::vector<uint8_t> label, std::mt19937& mt)
 {
-	net.Reset();
-	for (int i = 0; i < 10; i++) {
+	std::uniform_int_distribution<int>	distribution(0 + 16, 254 - 16);
 
+	net.Reset();
+
+	for ( int layer = net.GetLayerNum() - 1; layer > 0; layer-- ) {
+		int node_num = net.GetNodeNum(layer);
+		for (int node = 0; node < node_num; node++ ) {
+			lut.ResetScore();
+
+			for (size_t i = 0; i < image.size(); i++) {
+#if 1			
+				for (int j = 0; j < 2; j++) {
+					//		int th = 127; //  distribution(mt);
+					int th = distribution(mt);
+					lut.SetReverse(false);
+					set_input_th(net, image[i], th);
+					net.CalcForward();
+					lut.AddScore(net.GetScore(label[i]));
+
+					lut.SetReverse(true);
+					//		set_input_th(net, image[i], th);
+					net.CalcForward();
+					lut.AddScore(-net.GetScore(label[i]));
+				}
+#endif
+
+#if 1
+				for (int j = 0; j < 2; j++) {
+					lut.SetReverse(false);
+					set_input_random(net, image[i], mt);
+					net.CalcForward();
+					lut.AddScore(net.GetScore(label[i]));
+
+					lut.SetReverse(true);
+					//	set_input_random(net, image[i], mt);
+					net.CalcForward();
+					lut.AddScore(-net.GetScore(label[i]));
+				}
+#endif
+			}
+			lut.SetReverse(false);
+
+			lut.Update(mt);
+		}
 	}
 
+
+}
+
+
+double calc_score(int exp, std::vector<bool> out_vec)
+{
+	double score = 0;
+	for (int i = 0; i < (int)out_vec.size(); i++) {
+		if (i == exp) {
+			score += out_vec[i] ? +20.0 : -20.0;
+		}
+		else {
+			score += out_vec[i] ? -1.0 : +1.0;
+		}
+	}
+	return score;
 }
 
 
@@ -270,29 +326,31 @@ void update(LutNet<LUT_SIZE>& net,
 {
 	std::uniform_int_distribution<int>	distribution(0+16, 254-16);
 
-	net.Reset();
-
 	for (size_t layer = layer_num.size() - 1; layer > 0; layer--) {
 		for (auto& lut : net[layer]) {
-			lut.ResetScore();
+			std::vector<double> score_val(10, 0);
+			std::vector<int>    score_n(10, 0);
 			
 			for (size_t i = 0; i < image.size(); i++ ) {
 #if 1			
-	//			int th = 127; //  distribution(mt);
-				int th = distribution(mt);
-				lut.SetReverse(false);
-				set_input_th(net, image[i], th);
-				net.CalcForward();
-				lut.AddScore(net.GetScore(label[i]));
+				for (int j = 0; j < 2; j++) {
+			//		int th = 127; //  distribution(mt);
+					int th = distribution(mt);
+					lut.SetReverse(false);
+					set_input_th(net, image[i], th);
+					net.CalcForward();
 
-				lut.SetReverse(true);
-	//			set_input_th(net, image[i], th);
-				net.CalcForward();
-				lut.AddScore(-net.GetScore(label[i]));
+					lut.AddScore(net.GetScore(label[i]));
+
+					lut.SetReverse(true);
+			//		set_input_th(net, image[i], th);
+					net.CalcForward();
+					lut.AddScore(-net.GetScore(label[i]));
+				}
 #endif
 
-#if 0
-				for (int j = 0; j < 1; j++) {
+#if 1
+				for (int j = 0; j < 2; j++) {
 					lut.SetReverse(false);
 					set_input_random(net, image[i], mt);
 					net.CalcForward();
