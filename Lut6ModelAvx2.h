@@ -153,6 +153,7 @@ public:
 	
 	void CalcForward(void)
 	{
+//#pragma omp parallel for
 		for (int i = 0; i < m_size; i++) {
 			__m256i in5_val = _mm256_i32gather_epi32(m_input_vector, _mm256_load_si256(&m_input_index[5][i]), 4);
 			__m256i lut_lo = _mm256_load_si256(&m_lut_lo[i]);
@@ -227,17 +228,10 @@ public:
 		m_layer[layer]->SetInputConnection(node, input_index, input_node);
 	}
 
-	void CalcForward(void)
+	void CalcForward(int start_layer = 0)
 	{
-		for (int layer = 1; layer < (int)m_layer.size(); layer++) {
+		for (int layer = start_layer+1; layer < (int)m_layer.size(); layer++) {
 			m_layer[layer]->CalcForward();
-			
-			// Žw’èƒm[ƒh‚Ìo—Í‚ð”½“]
-			if (m_inv_en) {
-				if (layer == m_inv_layer) {
-					m_layer[layer]->SetValue(m_inv_node, !m_layer[layer]->GetValue(m_inv_node));
-				}
-			}
 		}
 	}
 
@@ -266,23 +260,7 @@ public:
 		m_layer[layer]->SetLutBit(node, bit, value);
 	}
 
-	void SetOutputInverse(int layer, int node)
-	{
-		m_inv_en    = true;
-		m_inv_layer = layer;
-		m_inv_node = node;
-	}
-
-	void ReleaseOutputInverse(void)
-	{
-		m_inv_en = false;
-	}
-
 protected:
 	std::vector< std::unique_ptr<Lut6LayerAvx2> >	m_layer;
-
-	bool	m_inv_en    = false;
-	int		m_inv_layer;
-	int		m_inv_node;
 };
 

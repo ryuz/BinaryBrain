@@ -141,7 +141,7 @@ public:
 	}
 
 	// ŒvŽZ
-	void CalcForward(void)
+	void CalcForward(int start_layer = 0)
 	{
 		for (int i = 1; i < (int)m_lut.size(); i++) {
 			int len = (int)m_lut[i].size();

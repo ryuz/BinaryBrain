@@ -1,3 +1,6 @@
+#include <windows.h>
+#pragma comment(lib, "winmm.lib")
+
 #include <stdio.h>
 #include <vector>
 #include <random>
@@ -254,58 +257,6 @@ float test_net(LutNet<LUT_SIZE>& net,
 
 
 
-void update(BinaryNet& net, std::vector< std::vector<uint8_t> > image, std::vector<uint8_t> label, std::mt19937& mt)
-{
-	std::uniform_int_distribution<int>	distribution(0 + 16, 254 - 16);
-
-	net.Reset();
-
-	for ( int layer = net.GetLayerNum() - 1; layer > 0; layer-- ) {
-		int node_num = net.GetNodeNum(layer);
-		for (int node = 0; node < node_num; node++ ) {
-			lut.ResetScore();
-
-			for (size_t i = 0; i < image.size(); i++) {
-#if 1			
-				for (int j = 0; j < 2; j++) {
-					//		int th = 127; //  distribution(mt);
-					int th = distribution(mt);
-					lut.SetReverse(false);
-					set_input_th(net, image[i], th);
-					net.CalcForward();
-					lut.AddScore(net.GetScore(label[i]));
-
-					lut.SetReverse(true);
-					//		set_input_th(net, image[i], th);
-					net.CalcForward();
-					lut.AddScore(-net.GetScore(label[i]));
-				}
-#endif
-
-#if 1
-				for (int j = 0; j < 2; j++) {
-					lut.SetReverse(false);
-					set_input_random(net, image[i], mt);
-					net.CalcForward();
-					lut.AddScore(net.GetScore(label[i]));
-
-					lut.SetReverse(true);
-					//	set_input_random(net, image[i], mt);
-					net.CalcForward();
-					lut.AddScore(-net.GetScore(label[i]));
-				}
-#endif
-			}
-			lut.SetReverse(false);
-
-			lut.Update(mt);
-		}
-	}
-
-
-}
-
-
 double calc_score(int exp, std::vector<bool> out_vec)
 {
 	double score = 0;
@@ -320,20 +271,85 @@ double calc_score(int exp, std::vector<bool> out_vec)
 	return score;
 }
 
+void update2(BinaryNet& net, std::vector< std::vector<uint8_t> > image, std::vector<uint8_t> label, std::mt19937& mt)
+{
+	std::uniform_int_distribution<int>	distribution(0 + 16, 254 - 16);
+
+	for ( int layer = net.GetLayerNum() - 1; layer > 0; layer-- ) {
+		int node_num = net.GetNodeNum(layer);
+		for (int node = 0; node < node_num; node++ ) {
+			double  score_val[64] = { 0 };
+			int     score_n[64] = { 0 };
+
+			for ( int i = 0; i < (int)image.size(); i++) {
+#if 1			
+				for (int j = 0; j < 1; j++) {
+					//		int th = 127; //  distribution(mt);
+					int th = distribution(mt);
+					net.SetInput(make_input_th(image[i], th));
+					net.CalcForward();
+					int  idx     = net.GetInputLutIndex(layer, node);
+					score_val[idx] += calc_score(label[i], net.GetOutput());
+					score_n[idx]++;
+
+					net.InvertLut(layer, node);
+					net.CalcForward();
+					score_val[idx] -= calc_score(label[i], net.GetOutput());
+					score_n[idx]++;
+					net.InvertLut(layer, node);
+				}
+#endif
+
+#if 1
+				for (int j = 0; j < 1; j++) {
+					net.SetInput(make_input_random(image[i], mt()));
+					net.CalcForward();
+					int  idx = net.GetInputLutIndex(layer, node);
+					score_val[idx] += calc_score(label[i], net.GetOutput());
+					score_n[idx]++;
+
+					net.InvertLut(layer, node);
+					net.CalcForward();
+					score_val[idx] -= calc_score(label[i], net.GetOutput());
+					score_n[idx]++;
+					net.InvertLut(layer, node);
+				}
+#endif
+			}
+
+			std::uniform_int_distribution<int>	distribution(-20, 0);
+			int th = distribution(mt);
+			for ( int i = 0; i < 64; i++ ) {
+				double score = score_val[i] / (double)score_n[i];
+				if ( score * 10 < th ) {
+					net.SetLutBit(layer, node, i, !net.GetLutBit(layer, node, i));
+				}
+			}
+
+//			lut.Update(mt);
+		}
+	}
+
+
+}
+
+
 
 void update(LutNet<LUT_SIZE>& net,
 	std::vector< std::vector<uint8_t> > image, std::vector<uint8_t> label, std::mt19937& mt)
 {
 	std::uniform_int_distribution<int>	distribution(0+16, 254-16);
 
+	net.Reset();
+
 	for (size_t layer = layer_num.size() - 1; layer > 0; layer--) {
 		for (auto& lut : net[layer]) {
-			std::vector<double> score_val(10, 0);
-			std::vector<int>    score_n(10, 0);
 			
+			lut.ResetScore();
+
 			for (size_t i = 0; i < image.size(); i++ ) {
 #if 1			
-				for (int j = 0; j < 2; j++) {
+				for (int j = 0; j < 1; j++) {
 			//		int th = 127; //  distribution(mt);
 					int th = distribution(mt);
 					lut.SetReverse(false);
@@ -350,7 +366,7 @@ void update(LutNet<LUT_SIZE>& net,
 #endif
 
 #if 1
-				for (int j = 0; j < 2; j++) {
+				for (int j = 0; j < 1; j++) {
 					lut.SetReverse(false);
 					set_input_random(net, image[i], mt);
 					net.CalcForward();
@@ -416,7 +432,7 @@ int main()
 		train_idx[i] = i;
 	}
 	std::uniform_int_distribution<int>	distribution(0, (int)train_image.size() - 1);
-	int batch_size = 5000;
+	int batch_size = 1000;
 	auto batch_image = train_image;
 	auto batch_label = train_label;
 	batch_image.resize(batch_size);
@@ -425,7 +441,7 @@ int main()
 	printf("init\n");
 
 	// LUT構築
-	LutNet<LUT_SIZE>	net(layer_num);// , mt);
+	LutNet<LUT_SIZE>	net(layer_num);
 	Lut6Net				net6(layer_num);
 
 	// LUTを乱数で初期化
@@ -490,8 +506,11 @@ int main()
 	printf("start\n");
 	
 //	printf("%f\n", test_net(net, test_image, test_label));
-	printf("lut6:%f\n", test_net2(net6, test_image, test_label));
-	printf("lut:%f\n", test_net2(net, test_image, test_label));
+//	printf("ref0:%f\n", test_net2(net,  test_image, test_label));
+//	printf("lut6:%f\n", test_net2(net6, test_image, test_label));
+
+	std::mt19937	mt2(2);
+	std::mt19937	mt6(2);
 
 	for (int x = 0; x < 1000; x++) {
 		// 学習データ選択
@@ -504,11 +523,24 @@ int main()
 		}
 		
 //		printf("%f\n", test_net(net, train_image, train_label));
-		update(net, batch_image, batch_label, mt);
 		
-		printf("%f\n", test_net(net, test_image, test_label));
+		DWORD tm0_s = timeGetTime();
+		update2(net,  batch_image, batch_label, mt2);
+		DWORD tm0_e = timeGetTime();
+	//	printf("net0:%d[s]\n", (int)(tm0_e - tm0_s));
+
+		DWORD tm1_s = timeGetTime();
+		update2(net6, batch_image, batch_label, mt6);
+		DWORD tm1_e = timeGetTime();
+	//	printf("net1:%d[s]\n", (int)(tm1_e - tm1_s));
+
+		printf("ref0:%f\n", test_net2(net,  test_image, test_label));
+		printf("net6:%f\n", test_net2(net6, test_image, test_label));
 	}
-	printf("%f\n", test_net(net, train_image, train_label));
+
+	printf("ref0:%f\n", test_net(net, test_image, test_label));
+	printf("ref1:%f\n", test_net2(net, test_image, test_label));
+	printf("lut6:%f\n", test_net2(net6, test_image, test_label));
 
 	//	printf("%f\n", test_net(net, test_image, test_label));
 //	update(net, train_image, train_label, mt);
