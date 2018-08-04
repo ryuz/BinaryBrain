@@ -4,11 +4,11 @@
 #pragma once
 
 #include<memory>
-//#include <memory.h>
 #include <intrin.h>
 #include "BinaryNet.h"
 
 
+// 6“ü—ÍLUTŒÅ’è AVX2–½—ß”Å
 class Lut6LayerAvx2
 {
 public:
@@ -225,10 +225,10 @@ public:
 
 
 
-class Lut6Net : public BinaryNet
+class Lut6NetAvx2 : public BinaryNet
 {
 public:
-	Lut6Net(std::vector<int> layer_num)
+	Lut6NetAvx2(std::vector<int> layer_num)
 	{
 		const int* in_vec = nullptr;
 		for (size_t i = 0; i < layer_num.size(); i++ ) {
@@ -236,6 +236,10 @@ public:
 			m_layer[i]->SetInputVector(in_vec);
 			in_vec = m_layer[i]->GetOutputVector();
 		}
+	}
+
+	~Lut6NetAvx2()
+	{
 	}
 
 	Lut6LayerAvx2& operator[](size_t i) {

@@ -6,7 +6,7 @@
 #include <vector>
 
 
-
+// LUT想定のバイナリネットの抽象クラス
 class BinaryNet
 {
 public:

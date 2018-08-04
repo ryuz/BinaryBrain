@@ -168,8 +168,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BinaryNet.h" />
-    <ClInclude Include="Lut6ModelAvx2.h" />
-    <ClInclude Include="LutModel.h" />
+    <ClInclude Include="Lut6NetAvx2.h" />
+    <ClInclude Include="LutNet.h" />
     <ClInclude Include="mnist_read.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
