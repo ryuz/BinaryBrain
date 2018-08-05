@@ -10,6 +10,7 @@
 #include "mnist_read.h"
 #include "LutNet.h"
 #include "Lut6NetAvx2.h"
+#include "ShuffleSet.h"
 
 
 #define	LUT_SIZE				6
@@ -97,7 +98,7 @@ int main()
 
 	// ランダムに接続
 	for (int layer = 1; layer < (int)layer_num.size(); layer++) {
-
+#if 0
 		// テーブル作成
 		int input_num = layer_num[layer - 1];
 		std::uniform_int_distribution<size_t>	rand_con(0, input_num - 1);
@@ -118,6 +119,16 @@ int main()
 				net_avx.SetConnection(layer, node, i, idx[i]);
 			}
 		}
+#else
+		ShuffleSet	ss(layer_num[layer - 1], mt());
+		for (int node = 0; node < layer_num[layer]; node++) {
+			auto set = ss.GetSet(LUT_SIZE);
+			for (int i = 0; i < LUT_SIZE; i++) {
+				net_lut.SetConnection(layer, node, i, set[i]);
+				net_avx.SetConnection(layer, node, i, set[i]);
+			}
+		}
+#endif
 	}
 
 	{
@@ -167,22 +178,40 @@ int main()
 			printf("lut:%f\n", evaluate_net(net_lut, test_image, test_label));
 #endif
 #if USE_AVX
+			auto NetData = net_avx.ExportData();
+
+			char rtl_name[64];
+			sprintf_s<64>(rtl_name, "rtl_%04d.v", iteration);
+			std::ofstream ofs(rtl_name);
+			WriteRtl(ofs, NetData);
+
+			WriteRtl(std::ofstream("rtl_last.v"), NetData);
+
 			double rate = evaluate_net(net_avx, test_image, test_label);
 			if (rate >= max_rate) {
 				max_rate = rate;
-				std::ofstream ofs("net_max.json");
+				std::ofstream("net_max.json");
 				cereal::JSONOutputArchive o_archive(ofs);
-				o_archive(net_avx.ExportData());
+				o_archive(NetData);
+
+				WriteRtl(std::ofstream("rtl_max.v"), NetData);
 			}
 
+			char fname[64];
 			{
-				char fname[64];
 				sprintf_s<64>(fname, "net_%04d.json", iteration);
 				std::ofstream ofs(fname);
 				cereal::JSONOutputArchive o_archive(ofs);
-				o_archive(net_avx.ExportData());
+				o_archive(NetData);
 			}
-			printf("avx:%f (max:%f)\n", rate, max_rate);
+			
+			{
+				std::ofstream ofs("net_last.json");
+				cereal::JSONOutputArchive o_archive(ofs);
+				o_archive(NetData);
+			}
+
+			printf("avx:%f (max:%f) : %s\n", rate, max_rate, fname);
 #endif
 		}
 	}

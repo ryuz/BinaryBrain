@@ -170,6 +170,7 @@
     <ClInclude Include="Lut6NetAvx2.h" />
     <ClInclude Include="LutNet.h" />
     <ClInclude Include="mnist_read.h" />
+    <ClInclude Include="ShuffleSet.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
