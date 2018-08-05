@@ -24,7 +24,8 @@
 #define UPDATE_RAND_LOOP		1
 
 //#define UPDATE_GAIN				2.0
-#define UPDATE_GAIN				100.0
+//#define UPDATE_GAIN				100.0
+#define UPDATE_GAIN				10.0
 
 //#define IMG_RAND_TH_MIN			(0   - 10)
 //#define IMG_RAND_TH_MAX			(255 + 10)
@@ -37,7 +38,8 @@
 //std::vector<int>	layer_num{ INPUT_NUM, 360, 60, OUTPUT_NUM };
 //std::vector<int>	layer_num{ INPUT_NUM, 200, 100, 50, OUTPUT_NUM };
 //std::vector<int>	layer_num{ INPUT_NUM, 300, 200, 50, OUTPUT_NUM };
-std::vector<int>	layer_num{ INPUT_NUM, 400, 300, 200, 50, OUTPUT_NUM };
+//std::vector<int>	layer_num{ INPUT_NUM, 400, 300, 200, 50, OUTPUT_NUM };
+std::vector<int>	layer_num{ INPUT_NUM, 400, 600, 200, 50, OUTPUT_NUM };
 
 //std::vector<int>	layer_num{INPUT_NUM, 4096, 512, 128, 32, OUTPUT_NUM};
 
@@ -339,16 +341,24 @@ float evaluate_net(BinaryNet& net, std::vector< std::vector<uint8_t> > image, st
 	int		ok = 0;
 
 	std::mt19937	mt(1);
+	std::uniform_int_distribution<int>	distribution(IMG_RAND_TH_MIN, IMG_RAND_TH_MAX);
 
 	int out_layer = net.GetLayerNum() - 1;
 	auto label_it = label.begin();
 	for (auto& img : image) {
 		std::vector<int> count(10, 0);
-		for (int i = 0; i < 16; i++) {
+		for (int i = 0; i < 32; i++) {
 			auto in_vec = make_input_random(img, mt());
 			net.SetInput(in_vec);
 			net.CalcForward();
 
+			for (int j = 0; j < 10; j++) {
+				count[j] += net.GetValue(out_layer, j) ? 1 : 0;
+			}
+			
+
+			net.SetInput(make_input_th(img, distribution(mt)));
+			net.CalcForward();
 			for (int j = 0; j < 10; j++) {
 				count[j] += net.GetValue(out_layer, j) ? 1 : 0;
 			}
