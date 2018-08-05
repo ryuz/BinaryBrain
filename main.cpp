@@ -2,6 +2,8 @@
 #pragma comment(lib, "winmm.lib")
 
 #include <stdio.h>
+#include <iostream>
+#include <fstream>
 #include <vector>
 #include <random>
 #include <utility>
@@ -15,10 +17,10 @@
 #define	INPUT_NUM				(28*28)
 #define	OUTPUT_NUM				10
 
-#define	BATCH_SIZE				4000
+#define	BATCH_SIZE				10000
 
-#define UPDATE_FIX_TH_LOOP		2
-#define UPDATE_RAND_LOOP		2
+#define UPDATE_FIX_TH_LOOP		0
+#define UPDATE_RAND_LOOP		1
 
 //#define UPDATE_GAIN				2.0
 #define UPDATE_GAIN				100.0
@@ -32,7 +34,10 @@
 
 //std::vector<int>	layer_num{ INPUT_NUM, 200, 50, OUTPUT_NUM };
 //std::vector<int>	layer_num{ INPUT_NUM, 360, 60, OUTPUT_NUM };
-std::vector<int>	layer_num{ INPUT_NUM, 200, 100, 50, OUTPUT_NUM };
+//std::vector<int>	layer_num{ INPUT_NUM, 200, 100, 50, OUTPUT_NUM };
+//std::vector<int>	layer_num{ INPUT_NUM, 300, 200, 50, OUTPUT_NUM };
+std::vector<int>	layer_num{ INPUT_NUM, 400, 300, 200, 50, OUTPUT_NUM };
+
 //std::vector<int>	layer_num{INPUT_NUM, 4096, 512, 128, 32, OUTPUT_NUM};
 
 
@@ -45,6 +50,9 @@ float evaluate_net(BinaryNet& net, std::vector< std::vector<uint8_t> > image, st
 
 #define		USE_LUT		0
 #define		USE_AVX		1
+
+
+void WriteRtl(std::ostream& os, BinaryNetData& bnd);
 
 
 int main()
@@ -112,6 +120,11 @@ int main()
 		}
 	}
 
+	{
+		std::ofstream ofs("rtl.v");
+		WriteRtl(ofs, net_avx.ExportData());
+	}
+	
 	// 初期評価
 #if USE_LUT
 	printf("lut:%f\n", evaluate_net(net_lut, test_image, test_label));
@@ -124,7 +137,8 @@ int main()
 	std::mt19937	mt_lut(2);
 	std::mt19937	mt_avx(2);
 
-	for (int x = 0; x < 1000; x++) {
+	double	max_rate = 0;
+	for (int iteration = 0; iteration < 1000; iteration++) {
 		// 学習データ選択
 		for (int i = 0; i < batch_size; i++) {
 			std::swap(train_idx[i], train_idx[distribution(mt)]);
@@ -148,12 +162,27 @@ int main()
 	//	printf("avx:%d[ms]\n", (int)(tm1_e - tm1_s));
 #endif
 
-		if (x % 1 == 0) {
+		if (iteration % 1 == 0) {
 #if USE_LUT
 			printf("lut:%f\n", evaluate_net(net_lut, test_image, test_label));
 #endif
 #if USE_AVX
-			printf("avx:%f\n", evaluate_net(net_avx, test_image, test_label));
+			double rate = evaluate_net(net_avx, test_image, test_label);
+			if (rate >= max_rate) {
+				max_rate = rate;
+				std::ofstream ofs("net_max.json");
+				cereal::JSONOutputArchive o_archive(ofs);
+				o_archive(net_avx.ExportData());
+			}
+
+			{
+				char fname[64];
+				sprintf_s<64>(fname, "net_%04d.json", iteration);
+				std::ofstream ofs(fname);
+				cereal::JSONOutputArchive o_archive(ofs);
+				o_archive(net_avx.ExportData());
+			}
+			printf("avx:%f (max:%f)\n", rate, max_rate);
 #endif
 		}
 	}
@@ -262,7 +291,8 @@ void update_net(BinaryNet& net, std::vector< std::vector<uint8_t> > image, std::
 			std::uniform_real_distribution<double> score_th(-1.0, 0.0);
 			for (int i = 0; i < 64; i++) {
 				double score = score_val[i] / (double)score_n[i];
-				if (score * UPDATE_GAIN < score_th(mt)) {
+	//			if (score * UPDATE_GAIN < score_th(mt)) {
+				if (score < 0.0) {
 					net.SetLutBit(layer, node, i, !net.GetLutBit(layer, node, i));
 				}
 			}

@@ -120,6 +120,11 @@ public:
 		m_lut[layer][node].SetConnection(input_num, &m_lut[layer - 1][input_node]);
 	}
 
+	int GetConnection(int layer, int node, int input_num) const
+	{
+		return 0;	// Žb’è
+	}
+
 	bool GetValue(int layer, int node) const
 	{
 		return m_lut[layer][node].GetValue();

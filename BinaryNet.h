@@ -3,7 +3,9 @@
 
 #pragma once
 
+
 #include <vector>
+#include "BinaryNetData.h"
 
 
 // LUT想定のバイナリネットの抽象クラス
@@ -17,6 +19,7 @@ public:
 	virtual int  GetInputNum(int layer, int node) const = 0;
 
 	virtual void SetConnection(int layer, int node, int input_num, int input_node) = 0;
+	virtual int  GetConnection(int layer, int node, int input_num) const = 0;
 
 	virtual void CalcForward(int layer = 0) = 0;
 
@@ -68,8 +71,37 @@ public:
 
 		return idx;
 	}
+	
 
-protected:
-	std::vector<int>	m_OutputConter;
+	// データエクスポート
+	BinaryNetData ExportData(void) {
+		BinaryNetData	bnd;
+		for (int layer = 0; layer < GetLayerNum(); layer++) {
+			if (layer == 0) {
+				bnd.input_num = GetNodeNum(layer);
+			}
+			else {
+				int node_num = GetNodeNum(layer);
+				BinaryLayerData bld;
+				bld.node.reserve(node_num);
+				for (int node = 0; node < node_num; node++) {
+					LutData ld;
+					int num = GetInputNum(layer, node);
+					ld.connect.reserve(num);
+					for (int i = 0; i < num; i++) {
+						ld.connect.push_back(GetConnection(layer, node, i));
+					}
+					ld.lut.reserve(1<<num);
+					for (int i = 0; i < (1<<num); i++) {
+						ld.lut.push_back(GetLutBit(layer, node, i));
+					}
+					bld.node.push_back(ld);
+				}
+				bnd.layer.push_back(bld);
+			}
+		}
+
+		return bnd;
+	}
 };
 

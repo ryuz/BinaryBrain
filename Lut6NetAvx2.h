@@ -75,12 +75,18 @@ public:
 		return (int *)m_output_vector;
 	}
 	
-	void SetConnection(int n, int idx, int in_inx)
+	void SetInputConnection(int n, int idx, int in_inx)
 	{
 		int* input_index = (int*)m_input_index[idx];
 		input_index[n] = in_inx;
 	}
-	
+
+	int GetInputConnection(int n, int idx) const
+	{
+		int* input_index = (int*)m_input_index[idx];
+		return input_index[n];
+	}
+
 	bool GetValue(int n) const
 	{
 		int* output_vector = (int*)m_output_vector;
@@ -145,11 +151,7 @@ public:
 		}
 	}
 
-	void SetInputConnection(int n, int idx, int in_inx)
-	{
-		int* input_index = (int*)m_input_index[idx];
-		input_index[n] = in_inx;
-	}
+
 	
 	void CalcForward(void)
 	{
@@ -265,6 +267,11 @@ public:
 	void SetConnection(int layer, int node, int input_index, int input_node)
 	{
 		m_layer[layer]->SetInputConnection(node, input_index, input_node);
+	}
+
+	int GetConnection(int layer, int node, int input_index) const
+	{
+		return m_layer[layer]->GetInputConnection(node, input_index);
 	}
 
 	void CalcForward(int start_layer = 0)
