@@ -166,9 +166,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BinaryNet.h" />
+    <ClInclude Include="BinaryNetBatch.h" />
     <ClInclude Include="BinaryNetData.h" />
     <ClInclude Include="Lut6NetAvx2.h" />
     <ClInclude Include="LutNet.h" />
+    <ClInclude Include="LutNetBatch.h" />
     <ClInclude Include="mnist_read.h" />
     <ClInclude Include="ShuffleSet.h" />
   </ItemGroup>
