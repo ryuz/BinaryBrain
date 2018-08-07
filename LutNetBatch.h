@@ -21,6 +21,11 @@ protected:
 	std::vector< std::vector<LutNode> >		m_lut;
 	std::vector<bool*>						m_value;
 
+	inline bool& at(int frame, int layer, int node) const
+	{
+		return m_value[layer][node*m_batch_size + frame];
+	}
+
 public:
 	LutNetBatch()
 	{
@@ -124,18 +129,13 @@ public:
 		int layer_num = GetLayerNum();
 		for (int layer = start_layer + 1; layer < layer_num; layer++) {
 			int node_num = GetNodeNum(layer);
+#pragma omp parallel for
 			for (int node = 0; node < node_num; node++) {
 				for (int frame = 0; frame < m_batch_size; frame++) {
 					at(frame, layer, node) = m_lut[layer][node].table[GetInputLutIndex(frame, layer, node)];
 				}
 			}
 		}
-	}
-	
-protected:
-	bool& at(int frame, int layer, int node) const
-	{
-		return m_value[layer][node*m_batch_size + frame];
 	}
 };
 

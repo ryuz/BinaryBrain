@@ -169,6 +169,9 @@
     <ClInclude Include="BinaryNetBatch.h" />
     <ClInclude Include="BinaryNetData.h" />
     <ClInclude Include="Lut6NetAvx2.h" />
+    <ClInclude Include="Lut6NetBatchAvx2.h" />
+    <ClInclude Include="Lut6NetBatchAvx2Bit.h" />
+    <ClInclude Include="Lut6NetBatchAvx2Byte.h" />
     <ClInclude Include="LutNet.h" />
     <ClInclude Include="LutNetBatch.h" />
     <ClInclude Include="mnist_read.h" />
