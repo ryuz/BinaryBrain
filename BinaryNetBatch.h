@@ -79,7 +79,15 @@ public:
 
 		return idx;
 	}
-	
+
+	virtual void CalcForwardNode(int layer, int node)
+	{
+		int batch_size = GetBatchSize();
+		for (int frame = 0; frame < batch_size; frame++) {
+			SetValue(frame, layer, node, GetLutBit(layer, node, GetInputLutIndex(frame, layer, node)));
+		}
+	}
+
 
 	// データエクスポート
 	BinaryNetData ExportData(void) {

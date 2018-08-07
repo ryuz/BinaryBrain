@@ -22,20 +22,19 @@
 #define	USE_NET_LUT				0
 #define	USE_NET_AVX				0
 
-#define	USE_NET_BATCH0			1
+#define	USE_NET_BATCH0			0
 #define	USE_NET_BATCH1			1
 
 
 #define	INPUT_NUM				(28*28)
 #define	OUTPUT_NUM				10
 
-#define	EVA_RATE				1
+#define	EVA_RATE				4
 
-//#define	BATCH_SIZE				128
-#define	BATCH_SIZE				4096
+#define	BATCH_SIZE				(8192)
 
-#define UPDATE_FIX_TH_LOOP		0
-#define UPDATE_RAND_LOOP		1
+#define UPDATE_FIX_TH_LOOP		1
+#define UPDATE_RAND_LOOP		2
 
 //#define UPDATE_GAIN				2.0
 //#define UPDATE_GAIN				100.0
@@ -53,8 +52,8 @@
 //std::vector<int>	layer_num{ INPUT_NUM, 200, 100, 50, OUTPUT_NUM };
 //std::vector<int>	layer_num{ INPUT_NUM, 300, 200, 50, OUTPUT_NUM };
 //std::vector<int>	layer_num{ INPUT_NUM, 400, 300, 200, 50, OUTPUT_NUM };
-std::vector<int>	layer_num{ INPUT_NUM, 400, 600, 200, 50, OUTPUT_NUM };
-//std::vector<int>	layer_num{ INPUT_NUM, 600, 600, 300, 50, OUTPUT_NUM };
+//std::vector<int>	layer_num{ INPUT_NUM, 400, 600, 200, 50, OUTPUT_NUM };
+std::vector<int>	layer_num{ INPUT_NUM, 600, 600, 300, 50, OUTPUT_NUM };
 
 //std::vector<int>	layer_num{INPUT_NUM, 4096, 512, 128, 32, OUTPUT_NUM};
 
@@ -71,6 +70,78 @@ float evaluate_net(BinaryNetBatch& net, std::vector< std::vector<uint8_t> > imag
 
 
 void WriteRtl(std::ostream& os, BinaryNetData& bnd);
+
+
+class WriteLog
+{
+protected:
+	int				m_serial_num = 0;
+	double			m_max_accuracy = 0;
+	std::string		m_prefix;
+	DWORD			m_start_time;
+
+public:
+	WriteLog(std::string prefix = "")
+	{
+		m_prefix = prefix;
+		m_start_time = timeGetTime();
+	}
+
+	void Write(BinaryNetData& bnd, double accuracy)
+	{
+		char fname[64];
+		DWORD tm = (timeGetTime() - m_start_time) / 1000;
+
+		// 精度更新なら保存
+		if (accuracy > m_max_accuracy) {
+			// RTL保存
+			m_max_accuracy = accuracy;
+			WriteRtl(std::ofstream(m_prefix + "rtl_max.v"), bnd);
+
+			// JSON保存
+			std::ofstream ofsJson(m_prefix + "net_max.json");
+			cereal::JSONOutputArchive o_archive(ofsJson);
+			o_archive(bnd);
+		}
+
+		{
+			// RTL保存
+			sprintf_s<64>(fname, "%srtl_last.v", m_prefix.c_str());
+			WriteRtl(std::ofstream(fname), bnd);
+
+			// JSON保存
+			sprintf_s<64>(fname, "%snet_last.json", m_prefix.c_str());
+			std::ofstream ofsJson(fname);
+			cereal::JSONOutputArchive o_archive(ofsJson);
+			o_archive(bnd);
+		}
+
+		{
+			// RTL保存
+			sprintf_s<64>(fname, "%srtl_%04d.v", m_prefix.c_str(), m_serial_num);
+			WriteRtl(std::ofstream(fname), bnd);
+
+			// JSON保存
+			sprintf_s<64>(fname, "%snet_%04d.json", m_prefix.c_str(), m_serial_num);
+			std::ofstream ofsJson(fname);
+			cereal::JSONOutputArchive o_archive(ofsJson);
+			o_archive(bnd);
+		}
+
+
+		// ログ
+		std::ofstream ofsLog(m_prefix + "log.txt", std::ios::app);
+
+		std::stringstream ss_log;
+		ss_log << tm << "[s] " << m_prefix << m_serial_num << " : " << accuracy << " (max : " << m_max_accuracy << ")";
+
+		std::cout << ss_log.str() << std::endl;
+		ofsLog    << ss_log.str() << std::endl;
+
+		m_serial_num++;
+	}
+};
+
 
 
 int main()
@@ -111,6 +182,8 @@ int main()
 //	Lut6NetBatchAvx2		net_batch1(layer_num);
 	Lut6NetBatchAvx2Byte	net_batch0(layer_num);
 	Lut6NetBatchAvx2Bit		net_batch1(layer_num);
+
+	WriteLog	log_batch1("batch1_");
 
 	// LUTを乱数で初期化
 	std::uniform_int_distribution<int>	rand_0_1(0, 1);
@@ -170,7 +243,8 @@ int main()
 #endif
 
 #if USE_NET_BATCH1
-	printf("batch1:%f\n", evaluate_net(net_batch1, test_image, test_label));
+	auto batch1_accuracy = evaluate_net(net_batch1, test_image, test_label);
+	log_batch1.Write(net_batch1.ExportData(), batch1_accuracy);
 #endif
 
 #if USE_NET_LUT
@@ -226,18 +300,22 @@ int main()
 		printf("avx:%d[ms]\n", (int)(tm1_e - tm1_s));
 #endif
 
-		if (iteration % EVA_RATE == 0) {
+		// 定期的に評価して記録
+		if ( (iteration % EVA_RATE) == (EVA_RATE - 1) ) {
 #if USE_NET_BATCH0
 			printf("batch0:%f\n", evaluate_net(net_batch0, test_image, test_label));
 #endif
 
 #if USE_NET_BATCH1
-			printf("batch1:%f\n", evaluate_net(net_batch1, test_image, test_label));
+	//		printf("batch1:%f\n", evaluate_net(net_batch1, test_image, test_label));
+			auto batch1_accuracy = evaluate_net(net_batch1, test_image, test_label);
+			log_batch1.Write(net_batch1.ExportData(), batch1_accuracy); 
 #endif
 
 #if USE_NET_LUT
 			printf("lut:%f\n", evaluate_net(net_lut, test_image, test_label));
 #endif
+
 #if USE_NET_AVX
 			auto NetData = net_avx.ExportData();
 
@@ -281,6 +359,7 @@ int main()
 
 	return 0;
 }
+
 
 
 
@@ -480,6 +559,7 @@ void update_net(BinaryNetBatch& net, std::vector< std::vector<uint8_t> > image, 
 			}
 		}
 	}
+
 	net.CalcForward();
 
 	for (int layer = net.GetLayerNum() - 1; layer > 0; layer--) {
@@ -489,7 +569,7 @@ void update_net(BinaryNetBatch& net, std::vector< std::vector<uint8_t> > image, 
 			int     score_n[64] = { 0 };
 
 			// 計算実行
-			net.CalcForward();
+	//		net.CalcForward();
 
 			// 集計
 			int frame = 0;
@@ -531,13 +611,14 @@ void update_net(BinaryNetBatch& net, std::vector< std::vector<uint8_t> > image, 
 			for (int i = 0; i < 64; i++) {
 				double score = score_val[i] / (double)score_n[i];
 				//			if (score * UPDATE_GAIN < score_th(mt)) {
-	//			if ( !(score < 0.0) ) {
-				if ( (score < 0.0) ) {
-	//				net.InvertLut(layer, node);	// 元に戻す
-	//				net.CalcForward(layer);
+				if ( score < 0.0 ) {
 					net.SetLutBit(layer, node, i, !net.GetLutBit(layer, node, i));
 				}
 			}
+
+			// 書き換えた以降を再計算
+			net.CalcForwardNode(layer, node);
+			net.CalcForward(layer);
 		}
 	}
 }

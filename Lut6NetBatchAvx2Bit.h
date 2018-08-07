@@ -274,5 +274,11 @@ public:
 			}
 		}
 	}
+
+	void CalcForwardNode(int layer, int node)
+	{
+		CalcForwardUnit(layer, node);
+	}
+
 };
 
