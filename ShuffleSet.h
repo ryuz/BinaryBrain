@@ -15,12 +15,12 @@ public:
 	{
 	}
 	
-	ShuffleSet(int size, std::uint32_t seed = 1)
+	ShuffleSet(int size, std::uint64_t seed = 1)
 	{
 		Setup(size, seed);
 	}
 	
-	void Setup(int size, std::uint32_t seed = 1)
+	void Setup(int size, std::uint64_t seed = 1)
 	{
 		// ‰Šú‰»
 		m_mt.seed(seed);
@@ -67,7 +67,7 @@ public:
 	}
 
 protected:
-	std::mt19937	m_mt;	
+	std::mt19937_64	m_mt;	
 	std::list<int>	m_heap;
 	std::list<int>	m_reserve;
 };

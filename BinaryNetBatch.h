@@ -56,6 +56,18 @@ public:
 		}
 	}
 
+	std::vector<bool> GetInput(int frame)
+	{
+		std::vector<bool> input_vector;
+		
+		int node_num = GetNodeNum(0);
+		input_vector.reserve(node_num);
+		for (int i = 0; i < node_num; i++) {
+			input_vector.push_back(GetValue(frame, 0, i));
+		}
+		return input_vector;
+	}
+
 	std::vector<bool> GetOutput(int frame)
 	{
 		int layer = GetLayerNum() - 1;
