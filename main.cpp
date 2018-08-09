@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <tchar.h>
 #pragma comment(lib, "winmm.lib")
 
 #include <omp.h>
@@ -27,15 +28,15 @@
 
 #define	EVA_RATE					2
 
-#define	BATCH_SIZE					(32*1024)
+#define	BATCH_SIZE					(8*1024)
 
 #define UPDATE_FIX_TH_LOOP			1
-#define UPDATE_RAND_TH_LOOP			0
-#define UPDATE_RAND_PIX_LOOP		0
+#define UPDATE_RAND_TH_LOOP			2
+#define UPDATE_RAND_PIX_LOOP		2
 
 #define EVALUATION_FIX_TH_LOOP		1
-#define EVALUATION_RAND_TH_LOOP		0 //32
-#define EVALUATION_RAND_PIX_LOOP	0 //32
+#define EVALUATION_RAND_TH_LOOP		8 //32
+#define EVALUATION_RAND_PIX_LOOP	8 //32
 
 
 
@@ -44,14 +45,14 @@
 //#define UPDATE_GAIN				100.0
 #define UPDATE_GAIN					10.0
 
-//#define IMG_RAND_TH_MIN			(0   - 10)
-//#define IMG_RAND_TH_MAX			(255 + 10)
-#define IMG_RAND_TH_MIN				(0)
-#define IMG_RAND_TH_MAX				(254)
+#define IMG_RAND_TH_MIN			(0   - 127)
+#define IMG_RAND_TH_MAX			(255 + 127)
+//#define IMG_RAND_TH_MIN				(0)
+//#define IMG_RAND_TH_MAX				(254)
 
 
 
-//std::vector<int>	net_definition{ INPUT_NUM, 200, 50, OUTPUT_NUM };
+std::vector<int>	net_definition{ INPUT_NUM, 200, 50, OUTPUT_NUM };
 //std::vector<int>	net_definition{ INPUT_NUM, 360, 60, OUTPUT_NUM };
 //std::vector<int>	net_definition{ INPUT_NUM, 200, 100, 50, OUTPUT_NUM };
 //std::vector<int>	net_definition{ INPUT_NUM, 300, 200, 50, OUTPUT_NUM };
@@ -65,7 +66,8 @@
 //std::vector<int>	net_definition{ INPUT_NUM, 1600, 360, 60, OUTPUT_NUM };
 //std::vector<int>	net_definition{ INPUT_NUM, 2000, 360, 360, 360, 60, OUTPUT_NUM };
 //std::vector<int>	net_definition{ INPUT_NUM, 360*3, 60*3, OUTPUT_NUM*7 };
-std::vector<int>	net_definition{ INPUT_NUM, 360*2, 60 * 2, OUTPUT_NUM*4 };
+//std::vector<int>	net_definition{ INPUT_NUM, 2000, 2000, 360 * 3, 60*3, OUTPUT_NUM*3 };
+//std::vector<int>	net_definition{ INPUT_NUM, 2048, 360 * 3, 60 * 3, OUTPUT_NUM*3};
 
 //std::vector<int>	layer_num{INPUT_NUM, 4096, 512, 128, 32, OUTPUT_NUM};
 
@@ -209,96 +211,173 @@ int main()
 	auto test_image = mnist_read_image("t10k-images-idx3-ubyte");
 	auto test_label = mnist_read_labels("t10k-labels-idx1-ubyte");
 
+	// trainデータに10%ほど、ランダム画像を追加
+	int add_num = (int)train_image.size() / 10;
+	for (int i = 0; i < add_num; i++ ) {
+		std::uniform_int_distribution<int> dis(0, 255);
+		std::vector<std::uint8_t> img(28 * 28);
+		for (auto& v : img) {
+			v = dis(mt);
+		}
+		train_image.push_back(img);
+		train_label.push_back(10);
+	}
+
+	// ディレクトリを作成
+	SYSTEMTIME	systim;
+	GetLocalTime(&systim);
+	TCHAR	date_buf[64];
+	GetDateFormat(LOCALE_USER_DEFAULT, 0, &systim, _T("yyyyMMdd"), date_buf, 64);
+	TCHAR	time_buf[64];
+	GetTimeFormat(LOCALE_USER_DEFAULT, 0, &systim, _T("hhmmss"), time_buf, 64);
+	TCHAR	dir_buf[64];
+	_stprintf_s<64>(dir_buf, _T("%s_%s"), date_buf, time_buf);
+	::CreateDirectory(dir_buf, NULL);
+	::SetCurrentDirectory(dir_buf);
+
+
 #ifdef _DEBUG
-	test_image.resize(10);
-	test_label.resize(10);
+test_image.resize(10);
+test_label.resize(10);
 #endif
 
 
-	// データ選択用
-	std::vector<size_t> train_idx(train_image.size());
-	for (size_t i = 0; i < train_image.size(); i++) {
-		train_idx[i] = i;
-	}
-	std::uniform_int_distribution<int>	distribution(0, (int)train_image.size() - 1);
-	int batch_size = BATCH_SIZE;
-	auto batch_image = train_image;
-	auto batch_label = train_label;
-	batch_image.resize(batch_size);
-	batch_label.resize(batch_size);
-	
-	// ネット構築(暫くは複数種類まわして、結果一致を見ながらバグ取り)
+// データ選択用
+std::vector<size_t> train_idx(train_image.size());
+for (size_t i = 0; i < train_image.size(); i++) {
+	train_idx[i] = i;
+}
+std::uniform_int_distribution<int>	distribution(0, (int)train_image.size() - 1);
+int batch_size = BATCH_SIZE;
+auto batch_image = train_image;
+auto batch_label = train_label;
+batch_image.resize(batch_size);
+batch_label.resize(batch_size);
+
+// ネット構築(暫くは複数種類まわして、結果一致を見ながらバグ取り)
 //	Lut6NetBatchAvx2		net_batch0(net_definition);
 //	Lut6NetBatchAvx2		net_batch1(net_definition);
 //	Lut6NetBatchAvx2Byte	net_batch0(net_definition);
-	
-	std::vector<ManageNet> mng_nets;
 
-	mng_nets.push_back(ManageNet(4, "net0", 1));
-	Lut6NetBatchAvx2Bit		net00(net_definition);
-	Lut6NetBatchAvx2Bit		net01(net_definition);
-	Lut6NetBatchAvx2Bit		net02(net_definition);
-	Lut6NetBatchAvx2Bit		net03(net_definition);
-	mng_nets[0][0] = &net00;
-	mng_nets[0][1] = &net01;
-	mng_nets[0][2] = &net02;
-	mng_nets[0][3] = &net03;
+std::vector<ManageNet> mng_nets;
+
+mng_nets.push_back(ManageNet(2, "net0", 1));
+Lut6NetBatchAvx2Bit		net00(net_definition);
+Lut6NetBatchAvx2Bit		net01(net_definition);
+Lut6NetBatchAvx2Bit		net02(net_definition);
+Lut6NetBatchAvx2Bit		net03(net_definition);
+mng_nets[0][0] = &net00;
+mng_nets[0][1] = &net01;
+//	mng_nets[0][2] = &net02;
+//	mng_nets[0][3] = &net03;
 
 
 	// ネットワークを初期化
-	for (auto& nets : mng_nets) {
-		for (auto& net : nets.nets ) {
-			init_net(*net, nets.mt());
-		}
+for (auto& nets : mng_nets) {
+	for (auto& net : nets.nets) {
+		init_net(*net, nets.mt());
 	}
-	
-	// 初期評価
+}
+
+// 初期評価
 //	for (auto& nets : mng_nets) {
 //		for ( int i = 0; i < nets.size(); i++ ) {
 //			std::cout << nets.name << "[" << i << "] " << evaluate_net(*nets[i], test_image, test_label) << std::endl;
 //		}
 //	}
 
-	double	max_rate = 0;
-	for (int iteration = 0; iteration < 1000; iteration++) {
-		// 定期的に評価して記録
-		if ((iteration % EVA_RATE) == 0) {
-			for (auto& nets : mng_nets) {
-				std::vector<double> unit_accuracy;
-				auto accuracy = evaluate_net(nets.nets, test_image, test_label, unit_accuracy);
-				nets.WriteLog(accuracy, unit_accuracy);
-				//			std::cout << nets.name << "[all] : "  << accuracy << std::endl;
-			}
-		}
-
-		// 学習実施
+double	max_rate = 0;
+for (int iteration = 0; iteration < 1000; iteration++) {
+	// 定期的に評価して記録
+	if ((iteration % EVA_RATE) == 0) {
 		for (auto& nets : mng_nets) {
-			for (int i = 0; i < nets.size(); i++) {
-
-				// 学習データ選択
-				for (int i = 0; i < batch_size; i++) {
-					std::swap(train_idx[i], train_idx[distribution(mt)]);
-				}
-				for (int i = 0; i < batch_size; i++) {
-					batch_image[i] = train_image[train_idx[i]];
-					batch_label[i] = train_label[train_idx[i]];
-				}
-
-
-				DWORD tm_b0_s = timeGetTime();
-				update_net(*nets[i], batch_image, batch_label, nets.mt());
-				DWORD tm_b0_e = timeGetTime();
-
-				std::cout << nets.name << "[" << i << "] : " << (int)(tm_b0_e - tm_b0_s) << " sec" << std::endl;
-			}
+			std::vector<double> unit_accuracy;
+			auto accuracy = evaluate_net(nets.nets, test_image, test_label, unit_accuracy);
+			nets.WriteLog(accuracy, unit_accuracy);
+			//			std::cout << nets.name << "[all] : "  << accuracy << std::endl;
 		}
 	}
-	
-	getchar();
 
-	return 0;
+	// 学習実施
+	for (auto& nets : mng_nets) {
+		for (int i = 0; i < nets.size(); i++) {
+
+			// 学習データ選択
+			for (int i = 0; i < batch_size; i++) {
+				std::swap(train_idx[i], train_idx[distribution(mt)]);
+			}
+			for (int i = 0; i < batch_size; i++) {
+				batch_image[i] = train_image[train_idx[i]];
+				batch_label[i] = train_label[train_idx[i]];
+			}
+
+
+			DWORD tm_b0_s = timeGetTime();
+			update_net(*nets[i], batch_image, batch_label, nets.mt());
+			DWORD tm_b0_e = timeGetTime();
+
+			std::cout << nets.name << "[" << i << "] : " << (int)(tm_b0_e - tm_b0_s) << " sec" << std::endl;
+		}
+	}
 }
 
+getchar();
+
+return 0;
+}
+
+
+
+std::array<bool, LUT_SIZE> TestLutBitValidity(BinaryNetBatch& net, int layer, int node)
+{
+	std::array<bool, LUT_SIZE>	validity;
+
+	std::array<bool, (1 << LUT_SIZE) >	table;
+	for (int bit = 0; bit < (1 << LUT_SIZE); bit++ ) {
+		table[bit] = net.GetLutBit(layer, node, bit);
+	}
+
+	int mask = 1;
+	for (int i = 0; i < LUT_SIZE; i++) {
+		std::vector<bool>	table0;
+		std::vector<bool>	table1;
+		table0.reserve(1 << (LUT_SIZE - 1));
+		table1.reserve(1 << (LUT_SIZE - 1));
+		for (int bit = 0; bit < (1 << LUT_SIZE); bit++) {
+			if (bit & mask) {
+				table1.push_back(table[bit]);
+			}
+			else {
+				table0.push_back(table[bit]);
+			}
+		}
+
+		validity[i] = !std::equal(table0.cbegin(), table0.cend(), table1.cbegin());
+
+		mask <<= 1;
+	}
+
+	return validity;
+}
+
+
+void evaluate_validity(BinaryNetBatch& net)
+{
+	int layer_num = net.GetLayerNum();
+	for (int layer = 1; layer < layer_num; layer++) {
+		int input_n = 0;
+		int input_valid = 0;
+		int node_num = net.GetNodeNum(layer);
+		for (int node = 0; node < node_num; node++) {
+			auto vec = TestLutBitValidity(net, layer, node);
+			for (auto v : vec) {
+				input_valid += v ? 1 : 0;
+				input_n++;
+			}
+		}
+		printf("layer[%d]: %d/%d = %f\n", layer, input_valid, input_n, (double)input_valid / input_n);
+	}
+}
 
 
 // ネットの初期化
@@ -399,6 +478,7 @@ double calc_score(int exp, std::vector<bool> out_vec)
 		}
 		else {
 			score += out_vec[i] ? -0.1 : +0.1;
+//			score += out_vec[i] ? -1.0 : +1.0;
 		}
 	}
 	return score;
@@ -430,6 +510,19 @@ void update_net(BinaryNetBatch& net, std::vector< std::vector<uint8_t> > image, 
 			net.SetInput(frame++, make_input_random(image[i], mt()));
 		}
 	}
+
+#if 1
+	// 気まぐれにデータをネガポジ反転
+	for (int i = 0; i < batch_size; i++) {
+		if ( mt() % 2 == 0 ) {
+			auto data = net.GetInput(i);
+			for (auto& d : data) {
+				d = !d;
+			}
+			net.SetInput(i, data);
+		}
+	}
+#endif
 
 	// 初回計算
 	net.CalcForward();
@@ -495,11 +588,15 @@ void update_net(BinaryNetBatch& net, std::vector< std::vector<uint8_t> > image, 
 
 double evaluate_net(std::vector<BinaryNetBatch*>& nets, std::vector< std::vector<uint8_t> > image, std::vector<uint8_t> label, std::vector<double>& vec_accuracy)
 {
+	static int serial = 0;
+	serial++;
+
 	std::mt19937	mt(1);
 	std::uniform_int_distribution<int>	distribution(IMG_RAND_TH_MIN, IMG_RAND_TH_MAX);
 
 	int image_size = (int)image.size();
 	int loop_num = EVALUATION_FIX_TH_LOOP + EVALUATION_RAND_TH_LOOP + EVALUATION_RAND_PIX_LOOP;
+	int batch_size = image_size * loop_num;
 
 	// データ設定
 	for (auto& net : nets) {
@@ -533,6 +630,19 @@ double evaluate_net(std::vector<BinaryNetBatch*>& nets, std::vector< std::vector
 			}
 			frame++;
 		}	
+	}
+
+	// 気まぐれにデータをネガポジ反転
+	for (auto& net : nets) {
+		for (int i = 0; i < batch_size; i++) {
+			if (mt() % 2 == 0) {
+				auto data = net->GetInput(i);
+				for (auto& d : data) {
+					d = !d;
+				}
+				net->SetInput(i, data);
+			}
+		}
 	}
 
 	// 計算
@@ -591,24 +701,62 @@ double evaluate_net(std::vector<BinaryNetBatch*>& nets, std::vector< std::vector
 		}
 		n++;
 
-		if (0) {
+#if 0
+		if (serial > 4 && label[img_idx] != max_idx) {
 			printf("ok:%d ng:%d\n", label[img_idx], max_idx);
 
 			cv::Mat img(28, 28, CV_8UC1);
-			auto input_vector = nets[0]->GetInput(img_idx * 64 + 0);
+			auto input_vector = nets[0]->GetInput(img_idx * loop_num + 0);
 			for (int i = 0; i < input_vector.size(); i++) {
 				img.data[i] = input_vector[i] ? 255 : 0;
 			}
 			cv::imshow("img0", img);
 
-			input_vector = nets[0]->GetInput(img_idx * 64 + 32);
+			input_vector = nets[0]->GetInput(img_idx * loop_num + 1);
 			for (int i = 0; i < input_vector.size(); i++) {
 				img.data[i] = input_vector[i] ? 255 : 0;
 			}
 			cv::imshow("img32", img);
 			cv::waitKey();
 		}
+#endif
 	}
+
+	// LUT使用率チェック
+	if (0) {
+		for (auto& net : nets) {
+			int layer_num = net->GetLayerNum();
+			for (int layer = 1; layer < layer_num; layer++) {
+				int  hist[65] = { 0 };
+
+				int node_num = net->GetNodeNum(layer);
+				for (int node = 0; node < node_num; node++) {
+					int  look_n[64] = { 0 };
+					for (int frame = 0; frame < batch_size; frame++) {
+						int  idx = net->GetInputLutIndex(frame, layer, node);
+						look_n[idx]++;
+					}
+
+					int nn = 0;
+					for (int i = 0; i < 64; i++) {
+						nn += look_n[i] > 0 ? 1 : 0;
+					}
+					hist[nn]++;
+				}
+
+				printf("layer%d\n", layer);
+				for (int i = 0; i < 65; i++) {
+					printf("%d:%d\n", i, hist[i]);
+				}
+			}
+		}
+	}
+
+	/*
+	for (auto& net : nets) {
+		evaluate_validity(*net);
+	}
+	*/
 
 	return (double)ok / (double)n;
 }
