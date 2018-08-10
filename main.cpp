@@ -52,7 +52,7 @@
 
 
 
-std::vector<int>	net_definition{ INPUT_NUM, 200, 50, OUTPUT_NUM };
+//std::vector<int>	net_definition{ INPUT_NUM, 200, 50, OUTPUT_NUM };
 //std::vector<int>	net_definition{ INPUT_NUM, 360, 60, OUTPUT_NUM };
 //std::vector<int>	net_definition{ INPUT_NUM, 200, 100, 50, OUTPUT_NUM };
 //std::vector<int>	net_definition{ INPUT_NUM, 300, 200, 50, OUTPUT_NUM };
@@ -67,7 +67,8 @@ std::vector<int>	net_definition{ INPUT_NUM, 200, 50, OUTPUT_NUM };
 //std::vector<int>	net_definition{ INPUT_NUM, 2000, 360, 360, 360, 60, OUTPUT_NUM };
 //std::vector<int>	net_definition{ INPUT_NUM, 360*3, 60*3, OUTPUT_NUM*7 };
 //std::vector<int>	net_definition{ INPUT_NUM, 2000, 2000, 360 * 3, 60*3, OUTPUT_NUM*3 };
-//std::vector<int>	net_definition{ INPUT_NUM, 2048, 360 * 3, 60 * 3, OUTPUT_NUM*3};
+std::vector<int>	net_definition{ INPUT_NUM, 2048, 360 * 3, 60 * 3, OUTPUT_NUM*3};
+//std::vector<int>	net_definition{ INPUT_NUM, 360*3, 60*3, OUTPUT_NUM*3 };
 
 //std::vector<int>	layer_num{INPUT_NUM, 4096, 512, 128, 32, OUTPUT_NUM};
 
@@ -229,7 +230,7 @@ int main()
 	TCHAR	date_buf[64];
 	GetDateFormat(LOCALE_USER_DEFAULT, 0, &systim, _T("yyyyMMdd"), date_buf, 64);
 	TCHAR	time_buf[64];
-	GetTimeFormat(LOCALE_USER_DEFAULT, 0, &systim, _T("hhmmss"), time_buf, 64);
+	GetTimeFormat(LOCALE_USER_DEFAULT, 0, &systim, _T("HHmmss"), time_buf, 64);
 	TCHAR	dir_buf[64];
 	_stprintf_s<64>(dir_buf, _T("%s_%s"), date_buf, time_buf);
 	::CreateDirectory(dir_buf, NULL);
@@ -242,49 +243,49 @@ test_label.resize(10);
 #endif
 
 
-// データ選択用
-std::vector<size_t> train_idx(train_image.size());
-for (size_t i = 0; i < train_image.size(); i++) {
-	train_idx[i] = i;
-}
-std::uniform_int_distribution<int>	distribution(0, (int)train_image.size() - 1);
-int batch_size = BATCH_SIZE;
-auto batch_image = train_image;
-auto batch_label = train_label;
-batch_image.resize(batch_size);
-batch_label.resize(batch_size);
-
-// ネット構築(暫くは複数種類まわして、結果一致を見ながらバグ取り)
-//	Lut6NetBatchAvx2		net_batch0(net_definition);
-//	Lut6NetBatchAvx2		net_batch1(net_definition);
-//	Lut6NetBatchAvx2Byte	net_batch0(net_definition);
-
-std::vector<ManageNet> mng_nets;
-
-mng_nets.push_back(ManageNet(2, "net0", 1));
-Lut6NetBatchAvx2Bit		net00(net_definition);
-Lut6NetBatchAvx2Bit		net01(net_definition);
-Lut6NetBatchAvx2Bit		net02(net_definition);
-Lut6NetBatchAvx2Bit		net03(net_definition);
-mng_nets[0][0] = &net00;
-mng_nets[0][1] = &net01;
-//	mng_nets[0][2] = &net02;
-//	mng_nets[0][3] = &net03;
-
-
-	// ネットワークを初期化
-for (auto& nets : mng_nets) {
-	for (auto& net : nets.nets) {
-		init_net(*net, nets.mt());
+	// データ選択用
+	std::vector<size_t> train_idx(train_image.size());
+	for (size_t i = 0; i < train_image.size(); i++) {
+		train_idx[i] = i;
 	}
-}
+	std::uniform_int_distribution<int>	distribution(0, (int)train_image.size() - 1);
+	int batch_size = BATCH_SIZE;
+	auto batch_image = train_image;
+	auto batch_label = train_label;
+	batch_image.resize(batch_size);
+	batch_label.resize(batch_size);
 
-// 初期評価
-//	for (auto& nets : mng_nets) {
-//		for ( int i = 0; i < nets.size(); i++ ) {
-//			std::cout << nets.name << "[" << i << "] " << evaluate_net(*nets[i], test_image, test_label) << std::endl;
-//		}
-//	}
+	// ネット構築(暫くは複数種類まわして、結果一致を見ながらバグ取り)
+	//	Lut6NetBatchAvx2		net_batch0(net_definition);
+	//	Lut6NetBatchAvx2		net_batch1(net_definition);
+	//	Lut6NetBatchAvx2Byte	net_batch0(net_definition);
+
+	std::vector<ManageNet> mng_nets;
+
+	mng_nets.push_back(ManageNet(2, "net0", 1));
+	Lut6NetBatchAvx2Bit		net00(net_definition);
+	Lut6NetBatchAvx2Bit		net01(net_definition);
+	Lut6NetBatchAvx2Bit		net02(net_definition);
+	Lut6NetBatchAvx2Bit		net03(net_definition);
+	mng_nets[0][0] = &net00;
+	mng_nets[0][1] = &net01;
+	//	mng_nets[0][2] = &net02;
+	//	mng_nets[0][3] = &net03;
+
+
+		// ネットワークを初期化
+	for (auto& nets : mng_nets) {
+		for (auto& net : nets.nets) {
+			init_net(*net, nets.mt());
+		}
+	}
+
+	// 初期評価
+	//	for (auto& nets : mng_nets) {
+	//		for ( int i = 0; i < nets.size(); i++ ) {
+	//			std::cout << nets.name << "[" << i << "] " << evaluate_net(*nets[i], test_image, test_label) << std::endl;
+	//		}
+	//	}
 
 double	max_rate = 0;
 for (int iteration = 0; iteration < 1000; iteration++) {
@@ -678,6 +679,8 @@ double evaluate_net(std::vector<BinaryNetBatch*>& nets, std::vector< std::vector
 	}
 
 
+	int error_count[10][10] = { 0 };
+
 	// 総合評価
 	int		n = 0;
 	int		ok = 0;
@@ -700,6 +703,8 @@ double evaluate_net(std::vector<BinaryNetBatch*>& nets, std::vector< std::vector
 			ok++;
 		}
 		n++;
+
+		error_count[label[img_idx]][max_idx]++;
 
 #if 0
 		if (serial > 4 && label[img_idx] != max_idx) {
@@ -752,6 +757,14 @@ double evaluate_net(std::vector<BinaryNetBatch*>& nets, std::vector< std::vector
 		}
 	}
 
+	std::ofstream ofs("err_matrix.txt");
+	for (int i = 0; i < 10; i++) {
+		for (int j = 0; j < 10; j++) {
+			ofs << error_count[i][j] << "\t";
+		}
+		ofs << std::endl;
+	}
+	
 	/*
 	for (auto& net : nets) {
 		evaluate_validity(*net);
