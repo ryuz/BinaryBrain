@@ -43,15 +43,45 @@ protected:
 		return ((ptr[node * (m_batch_size * 32) + (frame / 8)] & bit) != 0);
 	}
 
+	inline __m256i my_andnot_si256(__m256i& val, __m256i& lut)
+	{
+#ifdef __AVX2__
+		return _mm256_andnot_si256(val, lut);
+#else
+		__m256 res = _mm256_andnot_ps(*(__m256 *)&val, *(__m256 *)&lut);
+		return *(__m256i *)&res;
+#endif
+	}
+
+	inline __m256i my_and_si256(__m256i& val, __m256i& lut)
+	{
+#ifdef __AVX2__
+		return _mm256_and_si256(val, lut);
+#else
+		__m256 res = _mm256_and_ps(*(__m256 *)&val, *(__m256 *)&lut);
+		return *(__m256i *)&res;
+#endif
+	}
+
+	inline __m256i my_or_si256(__m256i& val, __m256i& lut)
+	{
+#ifdef __AVX2__
+		return _mm256_or_si256(val, lut);
+#else
+		__m256 res = _mm256_or_ps(*(__m256 *)&val, *(__m256 *)&lut);
+		return *(__m256i *)&res;
+#endif
+	}
+
 
 	template<int LUT, int VAL>
 	inline __m256i lut_mask_unit(__m256i& val, __m256i& lut)
 	{
 		if ((LUT & (1 << VAL)) == 0 ) {
-			return _mm256_andnot_si256(val, lut);
+			return my_andnot_si256(val, lut);
 		}
 		else {
-			return _mm256_and_si256(val, lut);
+			return my_and_si256(val, lut);
 		}
 	}
 
@@ -64,7 +94,7 @@ protected:
 		lut = lut_mask_unit<LUT, 3>(val[3], lut);
 		lut = lut_mask_unit<LUT, 4>(val[4], lut);
 		lut = lut_mask_unit<LUT, 5>(val[5], lut);
-		msk = _mm256_or_si256(msk, lut);
+		msk = my_or_si256(msk, lut);
 	}
 
 	inline void CalcForwardUnit(int layer, int node) {
