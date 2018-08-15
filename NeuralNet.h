@@ -4,7 +4,9 @@
 
 #include <vector>
 #include <intrin.h>
+#include <assert.h>
 #include "NeuralNetLayer.h"
+
 
 // NeuralNetの抽象クラス
 template <typename T=float, typename INDEX=size_t>
@@ -30,7 +32,6 @@ public:
 		ClearBuffer();
 	}
 	
-	
 	void AddLayer(LAYER* layer)
 	{
 		if (m_layers.empty()) {
@@ -49,10 +50,72 @@ public:
 		return SetupBuffer();
 	}
 	
+	void Forward(void)
+	{
+		for (auto layer = m_layers.begin(); layer != m_layers.end(); ++layer) {
+			(*layer)->Forward();
+		}
+	}
+
+	void Backward(void)
+	{
+		for (auto layer = m_layers.rbegin(); layer != m_layers.rend(); ++layer) {
+			(*layer)->Backward();
+		}
+	}
+
+	void Update(double learning_rate)
+	{
+		for (auto layer = m_layers.begin(); layer != m_layers.end(); ++layer) {
+			(*layer)->Update(learning_rate);
+		}
+	}
+
+
+	void SetInputValue(INDEX frame, INDEX node, T value) {
+		T* buf = (T*)m_values.front();
+		INDEX stride = m_firstLayer->GetInputFrameSize();
+		buf[node*stride + frame] = value;
+	}
+
+	void SetInputValue(INDEX frame, std::vector<T> values) {
+		for (INDEX node = 0; node < (INDEX)values.size(); ++node) {
+			SetInputValue(frame, node, values[node]);
+		}
+	}
+	
+	T GetOutputValue(INDEX frame, INDEX node) {
+		T* buf = (T*)m_values.back();
+		INDEX stride = m_lastLayer->GetOutputFrameSize();
+		return buf[node*stride + frame];
+	}
+
+	std::vector<T> GetOutputValue(INDEX frame) {
+		std::vector<T> values(m_lastLayer->GetOutputNodeSize());
+		T* buf = (T*)m_values.back();
+		for (INDEX node = 0; node < (INDEX)values.size(); ++node) {
+			values[node] = GetOutputValue(frame, node);
+		}
+		return values;
+	}
+
+	void SetOutputError(INDEX frame, INDEX node, T error) {
+		T* buf = (T*)m_errors.back();
+		INDEX stride = m_lastLayer->GetOutputFrameSize();
+		buf[node*stride + frame] = error;
+	}
+
+	void SetOutputError(INDEX frame, std::vector<T> errors) {
+		for (INDEX node = 0; node < (INDEX)errors.size(); ++node) {
+			SetOutputError(frame, node, errors[node]);
+		}
+	}
+
+
 protected:
 	size_t CalcBufferSize(INDEX frame_size, INDEX node_size, int bit_size)
 	{
-		size_t mm256_size = ((frame_size * bit_size)) + 255 / 256;
+		size_t mm256_size = ((frame_size * bit_size) + 255) / 256;
 		return 32 * mm256_size * node_size;
 	}
 
@@ -67,21 +130,26 @@ protected:
 	bool SetupBuffer(void)
 	{
 		if (m_layers.empty()) {
+			assert(0);
 			return false;
 		}
 
 		// 整合性確認
 		for (size_t i = 1; i < m_layers.size(); ++i) {
 			if (m_layers[i - 1]->GetOutputFrameSize() != m_layers[i]->GetInputFrameSize()) {
+				assert(0);
 				return false;
 			}
 			if (m_layers[i - 1]->GetOutputNodeSize() != m_layers[i]->GetInputNodeSize()) {
+				assert(0);
 				return false;
 			}
 			if (m_layers[i - 1]->GetOutputValueBitSize() != m_layers[i]->GetInputValueBitSize()) {
+				assert(0);
 				return false;
 			}
 			if (m_layers[i - 1]->GetOutputErrorBitSize() != m_layers[i]->GetInputErrorBitSize()) {
+				assert(0);
 				return false;
 			}
 		}
@@ -133,6 +201,9 @@ protected:
 
 		return true;
 	}
+
+
+
 
 #if 0
 	virtual INDEX GetInputFrameSize(void) const = 0;	// 入力のフレーム数
@@ -244,4 +315,13 @@ protected:
 	}
 #endif
 };
+
+
+template <typename T = float, typename INDEX = int>
+INDEX argmax(std::vector<T> vec)
+{
+	auto maxIt = std::max_element(vec.begin(), vec.end());
+	return (INDEX)std::distance(vec.begin(), maxIt);
+}
+
 

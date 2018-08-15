@@ -1,28 +1,131 @@
 #include <iostream>
+#include <random>
+#include <opencv2/opencv.hpp>
 #include "NeuralNet.h"
 #include "NeuralNetAffine.h"
 #include "NeuralNetSigmoid.h"
 #include "NeuralNetSoftmax.h"
+#include "mnist_read.h"
+
+
+void evaluation_net(NeuralNet<>& net, std::vector< std::vector<float> >& images, std::vector<std::uint8_t>& labels);
+
+void img_show(std::vector<float>& image)
+{
+	cv::Mat img(28, 28, CV_32F);
+	memcpy(img.data, &image[0], sizeof(float) * 28 * 28);
+	cv::imshow("img", img);
+	cv::waitKey();
+}
 
 
 int main()
 {
+	std::mt19937_64 mt(1);
+
+#ifdef _DEBUG
+	int train_max_size = 3;
+	int test_max_size = 1;
+#else
+	int train_max_size = -1;
+	int test_max_size = -1;
+#endif
+
+	// MNISTデータ読み込み
+	auto train_image = mnist_read_images_real<float>("train-images-idx3-ubyte", train_max_size);
+	auto train_label = mnist_read_labels_real<float, 10>("train-labels-idx1-ubyte", train_max_size);
+	auto test_image = mnist_read_images_real<float>("t10k-images-idx3-ubyte", test_max_size);
+	auto test_label = mnist_read_labels("t10k-labels-idx1-ubyte", test_max_size);
+
+	// NET構築
 	NeuralNet<> net;
 	NeuralNetAffine<> affine0(28*28, 50);
 	NeuralNetSigmoid<> sigmoid0(50);
 	NeuralNetAffine<> affine1(50, 10);
 	NeuralNetSoftmax<> softmax1(10);
-
 	net.AddLayer(&affine0);
 	net.AddLayer(&sigmoid0);
 	net.AddLayer(&affine1);
 	net.AddLayer(&softmax1);
-	net.SetBatchSize(100);
+	
 
+	evaluation_net(net, test_image, test_label);
 
+	// インデックス作成
+	std::vector<size_t> train_index(train_image.size());
+	for (size_t i = 0; i < train_index.size(); ++i) {
+		train_index[i] = i;
+	}
+
+	size_t batch_size = 10000;
+
+	batch_size = std::min(batch_size, train_image.size());
+	
+	for (; ; ) {
+		std::shuffle(train_index.begin(), train_index.end(), mt);
+
+		net.SetBatchSize(batch_size);
+
+		for (size_t frame = 0; frame < batch_size; ++frame) {
+			net.SetInputValue(frame, train_image[train_index[frame]]);
+		}
+
+		net.Forward();
+
+		for (size_t frame = 0; frame < batch_size; ++frame) {
+			auto values = net.GetOutputValue(frame);
+
+			for (size_t node = 0; node < values.size(); ++node) {
+				values[node] -= train_label[train_index[frame]][node];
+				values[node] /= (float)batch_size;
+			
+	//			std::cout << train_label[train_index[frame]][node] << " ";
+			}
+	//		std::cout << std::endl;
+
+	//		img_show(train_image[train_index[frame]]);
+
+			net.SetOutputError(frame, values);
+		}
+
+		net.Backward();
+		net.Update(0.1);
+
+		evaluation_net(net, test_image, test_label);
+	}
 
 	return 0;
 }
+
+
+void evaluation_net(NeuralNet<>& net, std::vector< std::vector<float> >& images, std::vector<std::uint8_t>& labels)
+{
+	// 評価サイズ設定
+	net.SetBatchSize(images.size());
+	
+	// 評価画像設定
+	for ( size_t frame = 0; frame < images.size(); ++frame ){
+		net.SetInputValue(frame, images[frame]);
+	}
+
+	// 評価実施
+	net.Forward();
+
+	// 結果集計
+	int ok_count = 0;
+	for (size_t frame = 0; frame < images.size(); ++frame) {
+		int max_idx = argmax<float>(net.GetOutputValue(frame));
+		ok_count += (max_idx == (int)labels[frame] ? 1 : 0);
+
+//		std::cout << (int)labels[frame] << std::endl;
+//		img_show(images[frame]);
+
+	}
+
+	std::cout << ok_count << " / " << images.size() << std::endl;
+}
+
+
 
 
 #if 0

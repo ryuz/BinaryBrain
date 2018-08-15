@@ -171,6 +171,7 @@
     <ClCompile Include="WriteRtl.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="mnist_read.h" />
     <ClInclude Include="NeuralNet.h" />
     <ClInclude Include="NeuralNetAffine.h" />
     <ClInclude Include="NeuralNetLayer.h" />

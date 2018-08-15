@@ -10,7 +10,7 @@ inline int mnist_read_word(unsigned char *p)
 }
 
 
-std::vector< std::vector<uint8_t> > mnist_read_image(const char* filename)
+std::vector< std::vector<uint8_t> > mnist_read_images(const char* filename, int max_size)
 {
 	std::vector< std::vector<uint8_t> >	vec;
 
@@ -27,6 +27,10 @@ std::vector< std::vector<uint8_t> > mnist_read_image(const char* filename)
 	int rows  = mnist_read_word(&header[8]);
 	int cols  = mnist_read_word(&header[12]);
 
+	if (max_size > 0 && num > max_size ) {
+		num = max_size;
+	}
+
 	vec.resize(num);
 	for (auto& v : vec) {
 		v.resize(cols*rows);
@@ -39,7 +43,7 @@ std::vector< std::vector<uint8_t> > mnist_read_image(const char* filename)
 }
 
 
-std::vector< uint8_t> mnist_read_labels(const char* filename)
+std::vector< uint8_t> mnist_read_labels(const char* filename, int max_size)
 {
 	std::vector<uint8_t>	vec;
 
@@ -53,6 +57,11 @@ std::vector< uint8_t> mnist_read_labels(const char* filename)
 
 	int magic = mnist_read_word(&header[0]);
 	int num = mnist_read_word(&header[4]);
+
+	if (max_size > 0 && num > max_size) {
+		num = max_size;
+	}
+
 	vec.resize(num);
 	fread(&vec[0], num, 1, fp);
 	fclose(fp);
