@@ -33,16 +33,16 @@ protected:
 public:
 	NeuralNetAffine() {}
 
-	NeuralNetAffine(INDEX input_size, INDEX output_size, INDEX frame_size=1)
+	NeuralNetAffine(INDEX input_size, INDEX output_size, INDEX batch_size=1)
 	{
-		Setup(input_size, output_size, frame_size);
+		Setup(input_size, output_size, batch_size);
 	}
 
 	~NeuralNetAffine() {}		// デストラクタ
 
-	void Setup(INDEX input_size, INDEX output_size, INDEX frame_size=1)
+	void Setup(INDEX input_size, INDEX output_size, INDEX batch_size=1)
 	{
-		m_frame_size  = frame_size;
+		m_frame_size  = batch_size;
 		m_input_size = input_size;
 		m_output_size = output_size;
 		m_W = Matrix::Random(input_size, output_size);
@@ -51,6 +51,7 @@ public:
 		m_db = Vector::Zero(output_size);
 	}
 
+	void  SetBatchSize(INDEX batch_size) { m_frame_size = batch_size; }
 	void  SetInputValuePtr(const void* inputValue) { m_inputValue = (const T *)inputValue; }
 	void  SetOutputValuePtr(void* outputValue) { m_outputValue = (T *)outputValue; }
 	void  SetOutputErrorPtr(const void* outputError) { m_outputError = (const T *)outputError; }

@@ -3,10 +3,11 @@
 #include "gtest/gtest.h"
 #include "NeuralNetAffine.h"
 #include "NeuralNetSigmoid.h"
+#include "NeuralNetSoftmax.h"
 
 
 
-TEST(NeuralNetAffineTest, AffineForward)
+TEST(NeuralNetAffineTest, testAffine)
 {
 	NeuralNetAffine<> affine(2, 3);
 
@@ -54,7 +55,7 @@ TEST(NeuralNetAffineTest, AffineForward)
 }
 
 
-TEST(NeuralNetAffineTest, AffineForwardBatch)
+TEST(NeuralNetAffineTest, testAffineBatch)
 {
 	NeuralNetAffine<> affine(2, 3, 2);
 
@@ -95,7 +96,7 @@ TEST(NeuralNetAffineTest, AffineForwardBatch)
 }
 
 
-TEST(NeuralNetSigmoidTest, testSigmoidForward)
+TEST(NeuralNetSigmoidTest, testSigmoid)
 {
 	NeuralNetSigmoid<> sigmoid(2);
 	float in[2] = { 1, 2};
@@ -119,7 +120,7 @@ TEST(NeuralNetSigmoidTest, testSigmoidForward)
 }
 
 
-TEST(NeuralNetSigmoidTest, testSigmoidForwardBatch)
+TEST(NeuralNetSigmoidTest, testSigmoidBatch)
 {
 	NeuralNetSigmoid<> sigmoid(2, 2);
 	float in[2*2] = { 1, 2, 3, 4 };
@@ -144,5 +145,109 @@ TEST(NeuralNetSigmoidTest, testSigmoidForwardBatch)
 	EXPECT_EQ(outError[1] * (1.0f - out[1]) * out[1], inError[1]);
 	EXPECT_EQ(outError[2] * (1.0f - out[2]) * out[2], inError[2]);
 	EXPECT_EQ(outError[3] * (1.0f - out[3]) * out[3], inError[3]);
+}
+
+
+class NeuralNetSoftmaxTest : public ::testing::Test {
+protected:
+	Eigen::MatrixXf				m_src;
+	Eigen::Matrix<float, -1, 1> m_max;
+	Eigen::MatrixXf				m_norm;
+	Eigen::MatrixXf				m_exp;
+	Eigen::Matrix<float, -1, 1> m_sum;
+	Eigen::MatrixXf				m_softmax;
+
+	virtual void SetUp() {
+		m_src = Eigen::MatrixXf(2, 3);
+		m_src(0, 0) = 1010.0f;
+		m_src(0, 1) = 1000.0f;
+		m_src(0, 2) = 990.0f;
+		m_src(1, 0) = 0.2f;
+		m_src(1, 1) = 0.5f;
+		m_src(1, 2) = 0.1f;
+		m_max = m_src.rowwise().maxCoeff();
+		m_norm = m_src.colwise() - m_max;
+		m_exp = m_norm.array().exp();
+		m_sum = m_exp.rowwise().sum();
+		m_softmax = m_exp.array().colwise() / m_sum.array();
+
+#if 0
+		std::cout << "m_src = \n" << m_src << std::endl;
+		std::cout << "m_max = \n" << m_max << std::endl;
+		std::cout << "m_norm = \n" << m_norm << std::endl;
+		std::cout << "m_exp = \n" << m_exp << std::endl;
+		std::cout << "m_sum = \n" << m_sum << std::endl;
+		std::cout << "m_softmax = \n" << m_softmax << std::endl;
+#endif
+	}
+};
+
+
+TEST_F(NeuralNetSoftmaxTest, testSoftmax)
+{
+	NeuralNetSoftmax<> softmax(3);
+	float in[3];
+	float out[3];
+
+	in[0] = m_src(0, 0);
+	in[1] = m_src(0, 1);
+	in[2] = m_src(0, 2);
+
+	softmax.SetInputValuePtr(in);
+	softmax.SetOutputValuePtr(out);
+
+	softmax.Forward();
+	EXPECT_EQ(m_softmax(0, 0), out[0]);
+	EXPECT_EQ(m_softmax(0, 1), out[1]);
+	EXPECT_EQ(m_softmax(0, 2), out[2]);
+
+	float outError[3] = { 2, 3, 4 };
+	float inError[3];
+	softmax.SetOutputErrorPtr(outError);
+	softmax.SetInputErrorPtr(inError);
+	softmax.Backward();
+
+	EXPECT_EQ(2, inError[0]);
+	EXPECT_EQ(3, inError[1]);
+	EXPECT_EQ(4, inError[2]);
+}
+
+
+TEST_F(NeuralNetSoftmaxTest, testSoftmaxBatch)
+{
+	NeuralNetSoftmax<> softmax(3, 2);
+	float in[3*2];
+	float out[3*2];
+
+	in[0] = m_src(0, 0);
+	in[1] = m_src(1, 0);
+	in[2] = m_src(0, 1);
+	in[3] = m_src(1, 1);
+	in[4] = m_src(0, 2);
+	in[5] = m_src(1, 2);
+
+	softmax.SetInputValuePtr(in);
+	softmax.SetOutputValuePtr(out);
+
+	softmax.Forward();
+	EXPECT_EQ(m_softmax(0, 0), out[0]);
+	EXPECT_EQ(m_softmax(1, 0), out[1]);
+	EXPECT_EQ(m_softmax(0, 1), out[2]);
+	EXPECT_EQ(m_softmax(1, 1), out[3]);
+	EXPECT_EQ(m_softmax(0, 2), out[4]);
+	EXPECT_EQ(m_softmax(1, 2), out[5]);
+
+	float outError[3*2] = { 2, 3, 4, 5, 6, 7 };
+	float inError[3 * 2];
+	softmax.SetOutputErrorPtr(outError);
+	softmax.SetInputErrorPtr(inError);
+	softmax.Backward();
+
+	EXPECT_EQ(2, inError[0]);
+	EXPECT_EQ(3, inError[1]);
+	EXPECT_EQ(4, inError[2]);
+	EXPECT_EQ(5, inError[3]);
+	EXPECT_EQ(6, inError[4]);
+	EXPECT_EQ(7, inError[5]);
 }
 

@@ -1,20 +1,140 @@
 
 
-
 #pragma once
 
-
 #include <vector>
-
+#include <intrin.h>
+#include "NeuralNetLayer.h"
 
 // NeuralNetの抽象クラス
-template <typename T=float, typename ET = float, typename INDEX=size_t>
+template <typename T=float, typename INDEX=size_t>
 class NeuralNet
 {
+protected:
+	typedef	NeuralNetLayer<INDEX>	LAYER;
+
+	std::vector< LAYER* > m_layers;
+	std::vector< void* > m_values;
+	std::vector< void* > m_errors;
+	LAYER*				m_firstLayer;
+	LAYER*				m_lastLayer;
+
 public:
-	virtual ~NeuralNet() {}								// デストラクタ
+	// コンストラクタ
+	NeuralNet()
+	{
+	}
+
+	// デストラクタ
+	~NeuralNet() {
+		ClearBuffer();
+	}
 	
-	// 基本部分
+	
+	void AddLayer(LAYER* layer)
+	{
+		if (m_layers.empty()) {
+			m_firstLayer = layer;
+		}
+		m_layers.push_back(layer);
+		m_lastLayer = layer;
+	}
+	
+	bool SetBatchSize(INDEX batch_size)
+	{
+		for (auto layer : m_layers) {
+			layer->SetBatchSize(batch_size);
+		}
+
+		return SetupBuffer();
+	}
+	
+protected:
+	size_t CalcBufferSize(INDEX frame_size, INDEX node_size, int bit_size)
+	{
+		size_t mm256_size = ((frame_size * bit_size)) + 255 / 256;
+		return 32 * mm256_size * node_size;
+	}
+
+	void ClearBuffer(void) {
+		for (auto v : m_values) { if (v != nullptr) { _mm_free(v); } }
+		m_values.clear();
+
+		for (auto e : m_errors) { if (e != nullptr) { _mm_free(e); } }
+		m_errors.clear();
+	}
+
+	bool SetupBuffer(void)
+	{
+		if (m_layers.empty()) {
+			return false;
+		}
+
+		// 整合性確認
+		for (size_t i = 1; i < m_layers.size(); ++i) {
+			if (m_layers[i - 1]->GetOutputFrameSize() != m_layers[i]->GetInputFrameSize()) {
+				return false;
+			}
+			if (m_layers[i - 1]->GetOutputNodeSize() != m_layers[i]->GetInputNodeSize()) {
+				return false;
+			}
+			if (m_layers[i - 1]->GetOutputValueBitSize() != m_layers[i]->GetInputValueBitSize()) {
+				return false;
+			}
+			if (m_layers[i - 1]->GetOutputErrorBitSize() != m_layers[i]->GetInputErrorBitSize()) {
+				return false;
+			}
+		}
+
+		// メモリ再確保
+		ClearBuffer();
+
+		m_values.push_back(
+			_mm_malloc(
+				CalcBufferSize(
+					m_firstLayer->GetInputFrameSize(),
+					m_firstLayer->GetInputNodeSize(),
+					m_firstLayer->GetInputValueBitSize()),
+				32));
+
+		m_errors.push_back(
+			_mm_malloc(
+				CalcBufferSize(
+					m_firstLayer->GetInputFrameSize(),
+					m_firstLayer->GetInputNodeSize(),
+					m_firstLayer->GetInputErrorBitSize()),
+				32));
+
+		for (auto layer : m_layers) {
+			m_values.push_back(
+				_mm_malloc(
+					CalcBufferSize(
+						layer->GetOutputFrameSize(),
+						layer->GetOutputNodeSize(),
+						layer->GetOutputValueBitSize()),
+					32));
+
+			m_errors.push_back(
+				_mm_malloc(
+					CalcBufferSize(
+						layer->GetOutputFrameSize(),
+						layer->GetOutputNodeSize(),
+						layer->GetOutputErrorBitSize()),
+					32));
+		}
+
+		// バッファ設定
+		for (size_t i = 0; i < m_layers.size(); ++i) {
+			m_layers[i]->SetInputValuePtr(m_values[i]);
+			m_layers[i]->SetInputErrorPtr(m_errors[i]);
+			m_layers[i]->SetOutputValuePtr(m_values[i+1]);
+			m_layers[i]->SetOutputErrorPtr(m_errors[i+1]);
+		}
+
+		return true;
+	}
+
+#if 0
 	virtual INDEX GetInputFrameSize(void) const = 0;	// 入力のフレーム数
 	virtual INDEX GetInputNodeSize(void) const = 0;		// 入力のノード数
 	virtual INDEX GetOutputFrameSize(void) const = 0;	// 出力のフレーム数
@@ -122,5 +242,6 @@ public:
 
 		return bnd;
 	}
+#endif
 };
 

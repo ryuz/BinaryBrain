@@ -16,6 +16,7 @@ public:
 	virtual void  SetOutputErrorPtr(const void* ptr) = 0;	// 出力側誤差アドレス設定
 	virtual void  SetInputErrorPtr(void* ptr) = 0;			// 入力側誤差アドレス設定
 
+	virtual void  SetBatchSize(INDEX batch_size) = 0;		// バッチサイズの設定
 	virtual INDEX GetInputFrameSize(void) const = 0;		// 入力のフレーム数
 	virtual INDEX GetInputNodeSize(void) const = 0;			// 入力のノード数
 	virtual INDEX GetOutputFrameSize(void) const = 0;		// 出力のフレーム数

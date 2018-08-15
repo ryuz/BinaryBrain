@@ -1,3 +1,32 @@
+#include <iostream>
+#include "NeuralNet.h"
+#include "NeuralNetAffine.h"
+#include "NeuralNetSigmoid.h"
+#include "NeuralNetSoftmax.h"
+
+
+int main()
+{
+	NeuralNet<> net;
+	NeuralNetAffine<> affine0(28*28, 50);
+	NeuralNetSigmoid<> sigmoid0(50);
+	NeuralNetAffine<> affine1(50, 10);
+	NeuralNetSoftmax<> softmax1(10);
+
+	net.AddLayer(&affine0);
+	net.AddLayer(&sigmoid0);
+	net.AddLayer(&affine1);
+	net.AddLayer(&softmax1);
+	net.SetBatchSize(100);
+
+
+
+	return 0;
+}
+
+
+#if 0
+
 #include <windows.h>
 #include <tchar.h>
 #pragma comment(lib, "winmm.lib")
@@ -68,3 +97,4 @@ int main()
 	return 0;
 }
 
+#endif

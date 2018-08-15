@@ -175,6 +175,7 @@
     <ClInclude Include="NeuralNetAffine.h" />
     <ClInclude Include="NeuralNetLayer.h" />
     <ClInclude Include="NeuralNetSigmoid.h" />
+    <ClInclude Include="NeuralNetSoftmax.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

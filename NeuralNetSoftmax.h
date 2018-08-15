@@ -9,33 +9,33 @@
 
 // NeuralNetの抽象クラス
 template <typename T=float, typename INDEX=size_t>
-class NeuralNetSigmoid : public NeuralNetLayer<INDEX>
+class NeuralNetSoftmax : public NeuralNetLayer<INDEX>
 {
 protected:
 	typedef Eigen::Matrix<T, -1, -1, Eigen::ColMajor>	Matrix;
-//	typedef Eigen::Matrix<T, 1, -1>						Vector;
-
+	typedef Eigen::Matrix<T, -1, 1>						Vector;
+	
 	INDEX		m_frame_size;
 	INDEX		m_node_size;
-
+	
 	const T*	m_inputValue;
 	T*			m_outputValue;
 	T*			m_inputError;
 	const T*	m_outputError;
 
 public:
-	NeuralNetSigmoid() {}
+	NeuralNetSoftmax() {}
 
-	NeuralNetSigmoid(INDEX node_size, INDEX batch_size =1)
+	NeuralNetSoftmax(INDEX node_size, INDEX batch_size=1)
 	{
 		Setup(node_size, batch_size);
 	}
 
-	~NeuralNetSigmoid() {}		// デストラクタ
+	~NeuralNetSoftmax() {}		// デストラクタ
 
 	void Setup(INDEX node_size, INDEX batch_size =1)
 	{
-		m_frame_size  = batch_size;
+		m_frame_size = batch_size;
 		m_node_size = node_size;
 	}
 
@@ -60,16 +60,17 @@ public:
 		Eigen::Map<Matrix> inputValue((T*)m_inputValue, m_frame_size, m_node_size);
 		Eigen::Map<Matrix> outputValue(m_outputValue, m_frame_size, m_node_size);
 
-		outputValue = ((inputValue * -1).array().exp() + 1.0).inverse();
+		auto valueExp = (inputValue.colwise() - inputValue.rowwise().maxCoeff()).array().exp();
+		auto valueSum = valueExp.rowwise().sum();
+		outputValue = valueExp.array().colwise() / valueSum.array();
 	}
 
 	void Backward(void)
 	{
-		Eigen::Map<Matrix> outputValue((T*)m_outputValue, m_frame_size, m_node_size);
 		Eigen::Map<Matrix> outputError((T*)m_outputError, m_frame_size, m_node_size);
 		Eigen::Map<Matrix> inputError(m_inputError, m_frame_size, m_node_size);
 
-		inputError = outputError.array() * (-outputValue.array() + 1) * outputValue.array();
+		inputError = outputError;
 	}
 
 	void Update(double learning_rate)
