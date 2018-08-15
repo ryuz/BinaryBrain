@@ -5,32 +5,31 @@
 
 
 #include <Eigen/Core>
-#include <iostream>
+#include "NeuralNetLayer.h"
+
 
 // NeuralNetÇÃíäè€ÉNÉâÉX
-template <typename T=float, typename ET = float, typename INDEX=size_t>
-class NeuralNetAffine
+template <typename T=float, typename INDEX=size_t>
+class NeuralNetAffine : public NeuralNetLayer<INDEX>
 {
 protected:
 	typedef Eigen::Matrix<T, -1, -1, Eigen::ColMajor>	Matrix;
 	typedef Eigen::Matrix<T, 1, -1>						Vector;
 
-public:
-	INDEX	m_frame_size;
-	INDEX	m_input_size;
-	INDEX	m_output_size;
+	INDEX		m_frame_size;
+	INDEX		m_input_size;
+	INDEX		m_output_size;
+
+	const T*	m_inputValue;
+	T*			m_outputValue;
+	T*			m_inputError;
+	const T*	m_outputError;
 
 	Matrix		m_W;
 	Vector		m_b;
 	Matrix		m_dW;
 	Vector		m_db;
-
-	const T*	m_inputValue;
-	T*			m_outputValue;
-
-	T*			m_inputError;
-	const T*	m_outputError;
-
+	
 public:
 	NeuralNetAffine() {}
 
@@ -52,21 +51,26 @@ public:
 		m_db = Vector::Zero(output_size);
 	}
 
-	void SetInputValuePtr(const T* inputValue) { m_inputValue = inputValue; }
-	void SetOutputValuePtr(T* outputValue) { m_outputValue = outputValue; }
-	
-	void SetOutputErrorPtr(const ET* outputError) { m_outputError = outputError; }
-	void SetInputErrorPtr(ET* inputError) { m_inputError = inputError; }
+	void  SetInputValuePtr(const void* inputValue) { m_inputValue = (const T *)inputValue; }
+	void  SetOutputValuePtr(void* outputValue) { m_outputValue = (T *)outputValue; }
+	void  SetOutputErrorPtr(const void* outputError) { m_outputError = (const T *)outputError; }
+	void  SetInputErrorPtr(void* inputError) { m_inputError = (T *)inputError; }
+
+	INDEX GetInputFrameSize(void) const { return m_frame_size; }
+	INDEX GetInputNodeSize(void) const { return m_input_size; }
+	INDEX GetOutputFrameSize(void) const { return m_frame_size; }
+	INDEX GetOutputNodeSize(void) const { return m_output_size; }
+
+	int   GetInputValueBitSize(void) const { return sizeof(T) * 8; }
+	int   GetInputErrorBitSize(void) const { return sizeof(T) * 8; }
+	int   GetOutputValueBitSize(void) const { return sizeof(T) * 8; }
+	int   GetOutputErrorBitSize(void) const { return sizeof(T) * 8; }
 
 	T& W(INDEX input, INDEX output) { return m_W(input, output); }
 	T& b(INDEX output) { return m_b(output); }
 	T& dW(INDEX input, INDEX output) { return m_dW(input, output); }
 	T& db(INDEX output) { return m_db(output); }
 	
-	INDEX GetFrameSize(void) { return m_frame_size; }
-	INDEX GetInputSize(void) { return m_input_size; }
-	INDEX GetOutputSize(void) { return m_output_size; }
-
 	void Forward(void)
 	{
 		Eigen::Map<Matrix> inputValue((T*)m_inputValue, m_frame_size, m_input_size);
@@ -92,6 +96,5 @@ public:
 		m_W -= m_dW * learning_rate;
 		m_b -= m_db * learning_rate;
 	}
-
 };
 

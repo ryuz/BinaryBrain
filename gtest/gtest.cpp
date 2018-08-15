@@ -6,7 +6,7 @@
 
 
 
-TEST(NeuralNetAffineTest, test00_AffineForward)
+TEST(NeuralNetAffineTest, AffineForward)
 {
 	NeuralNetAffine<> affine(2, 3);
 
@@ -54,7 +54,7 @@ TEST(NeuralNetAffineTest, test00_AffineForward)
 }
 
 
-TEST(NeuralNetAffineTest, test00_AffineForwardBatch)
+TEST(NeuralNetAffineTest, AffineForwardBatch)
 {
 	NeuralNetAffine<> affine(2, 3, 2);
 
@@ -94,16 +94,10 @@ TEST(NeuralNetAffineTest, test00_AffineForwardBatch)
 	EXPECT_EQ(862248, inError[3]);
 }
 
-TEST(NeuralNetAffineTest, test01)
-{
-	EXPECT_EQ(true, true);
-	EXPECT_EQ(false, false);
-}
-
 
 TEST(NeuralNetSigmoidTest, testSigmoidForward)
 {
-	NeuralNetSigmoid<> sigmoid(2, 2);
+	NeuralNetSigmoid<> sigmoid(2);
 	float in[2] = { 1, 2};
 	float out[2];
 
@@ -111,5 +105,44 @@ TEST(NeuralNetSigmoidTest, testSigmoidForward)
 	sigmoid.SetOutputValuePtr(out);
 
 	sigmoid.Forward();
+	EXPECT_EQ(1.0f / (1.0f + exp(-1.0f)), out[0]);
+	EXPECT_EQ(1.0f / (1.0f + exp(-2.0f)), out[1]);
+
+	float outError[2] = { 2, 3 };
+	float inError[2];
+	sigmoid.SetOutputErrorPtr(outError);
+	sigmoid.SetInputErrorPtr(inError);
+	sigmoid.Backward();
+
+	EXPECT_EQ(outError[0] * (1.0f - out[0]) * out[0], inError[0]);
+	EXPECT_EQ(outError[1] * (1.0f - out[1]) * out[1], inError[1]);
+}
+
+
+TEST(NeuralNetSigmoidTest, testSigmoidForwardBatch)
+{
+	NeuralNetSigmoid<> sigmoid(2, 2);
+	float in[2*2] = { 1, 2, 3, 4 };
+	float out[2 * 2];
+
+	sigmoid.SetInputValuePtr(in);
+	sigmoid.SetOutputValuePtr(out);
+
+	sigmoid.Forward();
+	EXPECT_EQ(1.0f / (1.0f + exp(-1.0f)), out[0]);
+	EXPECT_EQ(1.0f / (1.0f + exp(-2.0f)), out[1]);
+	EXPECT_EQ(1.0f / (1.0f + exp(-3.0f)), out[2]);
+	EXPECT_EQ(1.0f / (1.0f + exp(-4.0f)), out[3]);
+
+	float outError[2*2] = { 2, 3, 4, -5 };
+	float inError[2*2];
+	sigmoid.SetOutputErrorPtr(outError);
+	sigmoid.SetInputErrorPtr(inError);
+	sigmoid.Backward();
+
+	EXPECT_EQ(outError[0] * (1.0f - out[0]) * out[0], inError[0]);
+	EXPECT_EQ(outError[1] * (1.0f - out[1]) * out[1], inError[1]);
+	EXPECT_EQ(outError[2] * (1.0f - out[2]) * out[2], inError[2]);
+	EXPECT_EQ(outError[3] * (1.0f - out[3]) * out[3], inError[3]);
 }
 
