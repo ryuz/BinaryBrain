@@ -39,18 +39,15 @@ int main()
 
 	// NET構築
 	NeuralNet<> net;
-	NeuralNetAffine<> affine0(28*28, 50);
-	NeuralNetSigmoid<> sigmoid0(50);
-	NeuralNetAffine<> affine1(50, 10);
+	NeuralNetAffine<> affine0(28*28, 100);
+	NeuralNetSigmoid<> sigmoid0(100);
+	NeuralNetAffine<> affine1(100, 10);
 	NeuralNetSoftmax<> softmax1(10);
 	net.AddLayer(&affine0);
 	net.AddLayer(&sigmoid0);
 	net.AddLayer(&affine1);
 	net.AddLayer(&softmax1);
 	
-
-	evaluation_net(net, test_image, test_label);
-
 	// インデックス作成
 	std::vector<size_t> train_index(train_image.size());
 	for (size_t i = 0; i < train_index.size(); ++i) {
@@ -58,10 +55,13 @@ int main()
 	}
 
 	size_t batch_size = 10000;
-
 	batch_size = std::min(batch_size, train_image.size());
 	
-	for (; ; ) {
+	for ( int loop = 0; ; ++loop) {
+		if (loop % 5 == 0) {
+			evaluation_net(net, test_image, test_label);
+		}
+
 		std::shuffle(train_index.begin(), train_index.end(), mt);
 
 		net.SetBatchSize(batch_size);
@@ -78,20 +78,13 @@ int main()
 			for (size_t node = 0; node < values.size(); ++node) {
 				values[node] -= train_label[train_index[frame]][node];
 				values[node] /= (float)batch_size;
-			
-	//			std::cout << train_label[train_index[frame]][node] << " ";
 			}
-	//		std::cout << std::endl;
-
-	//		img_show(train_image[train_index[frame]]);
-
 			net.SetOutputError(frame, values);
 		}
 
 		net.Backward();
-		net.Update(0.1);
 
-		evaluation_net(net, test_image, test_label);
+		net.Update(0.2);
 	}
 
 	return 0;
@@ -116,10 +109,6 @@ void evaluation_net(NeuralNet<>& net, std::vector< std::vector<float> >& images,
 	for (size_t frame = 0; frame < images.size(); ++frame) {
 		int max_idx = argmax<float>(net.GetOutputValue(frame));
 		ok_count += (max_idx == (int)labels[frame] ? 1 : 0);
-
-//		std::cout << (int)labels[frame] << std::endl;
-//		img_show(images[frame]);
-
 	}
 
 	std::cout << ok_count << " / " << images.size() << std::endl;
