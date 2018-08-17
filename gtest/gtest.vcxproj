@@ -112,7 +112,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(GTEST_DIR)\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\build\include;..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <OpenMPSupport>true</OpenMPSupport>
+      <OpenMPSupport>false</OpenMPSupport>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>

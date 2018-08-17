@@ -2,7 +2,7 @@
 
 #pragma once
 
-
+#include <intrin.h>
 #include "NeuralNetBufferAccessor.h"
 
 
@@ -46,6 +46,10 @@ public:
 		return (at(frame, node) & mask_bit(frame, node)) != 0;
 	}
 	
+	__m256i* GetMm256iPtr(INDEX node)
+	{
+		return (__m256i *)&m_buffer[m_frame_size * node];
+	}
 	
 	// virtual
 	virtual void SetReal(INDEX frame, INDEX node, T value)

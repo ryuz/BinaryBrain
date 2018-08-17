@@ -6,6 +6,7 @@
 #include "NeuralNetSoftmax.h"
 #include "NeuralNetBinarize.h"
 #include "NeuralNetUnbinarize.h"
+#include "NeuralNetBinaryLut6.h"
 
 
 TEST(NeuralNetAffineTest, testAffine)
@@ -302,6 +303,75 @@ TEST(NeuralNetBinarizeTest, testNeuralNetBinarize)
 	EXPECT_EQ(0.5, accRealErr.Get(0, 2));
 }
 
+TEST(NeuralNetBinarizeTest, testNeuralNetBinarizeBatch)
+{
+	const int node_size = 3;
+	const int mux_size = 2;
+	const int batch_size = 2;
+
+	NeuralNetBinarize<> binarize(node_size, mux_size, batch_size);
+
+	EXPECT_EQ(batch_size, binarize.GetInputFrameSize());
+	EXPECT_EQ(batch_size*mux_size, binarize.GetOutputFrameSize());
+
+
+	float	in[batch_size*node_size];
+	__m256i out[(((batch_size * mux_size) + 255) / 256) * node_size];
+
+	NeuralNetBufferAccessorReal<> accReal(in, batch_size);
+	NeuralNetBufferAccessorBinary<> accBin(out, batch_size*mux_size);
+
+	accReal.Set(0, 0, 0.0f);
+	accReal.Set(0, 1, 1.0f);
+	accReal.Set(0, 2, 0.5f);
+	accReal.Set(1, 0, 1.0f);
+	accReal.Set(1, 1, 0.5f);
+	accReal.Set(1, 2, 0.0f);
+	binarize.SetInputValuePtr(in);
+	binarize.SetOutputValuePtr(out);
+	binarize.Forward();
+	EXPECT_EQ(false, accBin.Get(0, 0));
+	EXPECT_EQ(false, accBin.Get(1, 0));
+	EXPECT_EQ(true, accBin.Get(0, 1));
+	EXPECT_EQ(true, accBin.Get(1, 1));
+
+	EXPECT_EQ(true, accBin.Get(2, 0));
+	EXPECT_EQ(true, accBin.Get(3, 0));
+	EXPECT_EQ(false, accBin.Get(2, 2));
+	EXPECT_EQ(false, accBin.Get(3, 2));
+
+	__m256i outError[(((batch_size * mux_size) + 255) / 256) * node_size];
+	float	inError[batch_size*node_size];
+
+	NeuralNetBufferAccessorReal<> accRealErr(inError, batch_size);
+	NeuralNetBufferAccessorBinary<> accBinErr(outError, batch_size*mux_size);
+
+	accBinErr.Set(0, 0, false);
+	accBinErr.Set(1, 0, false);
+	accBinErr.Set(0, 1, true);
+	accBinErr.Set(1, 1, true);
+	accBinErr.Set(0, 2, true);
+	accBinErr.Set(1, 2, false);
+
+	accBinErr.Set(2, 0, true);
+	accBinErr.Set(3, 0, false);
+	accBinErr.Set(2, 1, false);
+	accBinErr.Set(3, 1, false);
+	accBinErr.Set(2, 2, true);
+	accBinErr.Set(3, 2, true);
+
+	binarize.SetOutputErrorPtr(outError);
+	binarize.SetInputErrorPtr(inError);
+	binarize.Backward();
+	EXPECT_EQ(0.0, accRealErr.Get(0, 0));
+	EXPECT_EQ(1.0, accRealErr.Get(0, 1));
+	EXPECT_EQ(0.5, accRealErr.Get(0, 2));
+
+	EXPECT_EQ(0.5, accRealErr.Get(1, 0));
+	EXPECT_EQ(0.0, accRealErr.Get(1, 1));
+	EXPECT_EQ(1.0, accRealErr.Get(1, 2));
+}
+
 
 TEST(NeuralNetUnbinarizeTest, testNeuralNetUnbinarize)
 {
@@ -350,6 +420,115 @@ TEST(NeuralNetUnbinarizeTest, testNeuralNetUnbinarize)
 	EXPECT_EQ(false, accBinErr.Get(1, 0));
 	EXPECT_EQ(true, accBinErr.Get(0, 1));
 	EXPECT_EQ(true, accBinErr.Get(1, 1));
+}
+
+
+
+TEST(NeuralNetBinaryLut6, testNeuralNetBinaryLut6)
+{
+	NeuralNetBinaryLut6<> lut(16, 2, 1, 1, 1);
+
+	__m256i in[8];
+	__m256i out[2];
+
+	NeuralNetBufferAccessorBinary<> accIn(in, 1);
+	NeuralNetBufferAccessorBinary<> accOut(out, 1);
+
+	accIn.Set(0, 0, false);
+	accIn.Set(0, 1, true);
+	accIn.Set(0, 2, true);
+	accIn.Set(0, 3, false);
+	accIn.Set(0, 4, false);
+	accIn.Set(0, 5, true);
+	accIn.Set(0, 6, true);
+	accIn.Set(0, 7, true);
+
+	// 0x1d
+	lut.SetLutInput(0, 0, 6);	// 1
+	lut.SetLutInput(0, 1, 4);	// 0
+	lut.SetLutInput(0, 2, 1);	// 1
+	lut.SetLutInput(0, 3, 7);	// 1
+	lut.SetLutInput(0, 4, 2);	// 1
+	lut.SetLutInput(0, 5, 3);	// 0
+
+	// 0x1c
+	lut.SetLutInput(1, 0, 0);	// 0
+	lut.SetLutInput(1, 1, 4);	// 0
+	lut.SetLutInput(1, 2, 1);	// 1
+	lut.SetLutInput(1, 3, 5);	// 1
+	lut.SetLutInput(1, 4, 6);	// 1
+	lut.SetLutInput(1, 5, 3);	// 0
+
+	for (int i = 0; i < 64; i++) {
+		lut.SetLutTable(0, i, i == 0x1d);
+		lut.SetLutTable(0, i, i != 0x1c);
+	}
+
+	lut.SetInputValuePtr(in);
+	lut.SetOutputValuePtr(out);
+	lut.Forward();
+	EXPECT_EQ(true, accOut.Get(0, 0));
+	EXPECT_EQ(false, accOut.Get(0, 1));
+}
+
+
+
+TEST(NeuralNetBinaryLut6, testNeuralNetBinaryLut6Batch)
+{
+	NeuralNetBinaryLut6<> lut(16, 2, 2, 1, 1);
+
+	__m256i in[8];
+	__m256i out[2];
+
+	NeuralNetBufferAccessorBinary<> accIn(in, 2);
+	NeuralNetBufferAccessorBinary<> accOut(out, 2);
+
+	accIn.Set(0, 0, false);
+	accIn.Set(0, 1, true);
+	accIn.Set(0, 2, true);
+	accIn.Set(0, 3, false);
+	accIn.Set(0, 4, false);
+	accIn.Set(0, 5, true);
+	accIn.Set(0, 6, true);
+	accIn.Set(0, 7, true);
+
+	accIn.Set(1, 0, true);
+	accIn.Set(1, 1, false);
+	accIn.Set(1, 2, false);
+	accIn.Set(1, 3, true);
+	accIn.Set(1, 4, true);
+	accIn.Set(1, 5, false);
+	accIn.Set(1, 6, false);
+	accIn.Set(1, 7, false);
+
+	// 0x1d
+	lut.SetLutInput(0, 0, 6);	// 1
+	lut.SetLutInput(0, 1, 4);	// 0
+	lut.SetLutInput(0, 2, 1);	// 1
+	lut.SetLutInput(0, 3, 7);	// 1
+	lut.SetLutInput(0, 4, 2);	// 1
+	lut.SetLutInput(0, 5, 3);	// 0
+
+	// 0x1c
+	lut.SetLutInput(1, 0, 0);	// 0
+	lut.SetLutInput(1, 1, 4);	// 0
+	lut.SetLutInput(1, 2, 1);	// 1
+	lut.SetLutInput(1, 3, 5);	// 1
+	lut.SetLutInput(1, 4, 6);	// 1
+	lut.SetLutInput(1, 5, 3);	// 0
+
+	for (int i = 0; i < 64; i++) {
+		lut.SetLutTable(0, i, i == 0x1d || i == 0x22 );
+		lut.SetLutTable(1, i, i != 0x1c && i != 0x23 );
+	}
+
+	lut.SetInputValuePtr(in);
+	lut.SetOutputValuePtr(out);
+	lut.Forward();
+	EXPECT_EQ(true, accOut.Get(0, 0));
+	EXPECT_EQ(false, accOut.Get(0, 1));
+	EXPECT_EQ(true, accOut.Get(1, 0));
+	EXPECT_EQ(false, accOut.Get(1, 1));
 }
 
 

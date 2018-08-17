@@ -175,6 +175,8 @@
     <ClInclude Include="NeuralNet.h" />
     <ClInclude Include="NeuralNetAffine.h" />
     <ClInclude Include="NeuralNetBinarize.h" />
+    <ClInclude Include="NeuralNetBinaryLut.h" />
+    <ClInclude Include="NeuralNetBinaryLut6.h" />
     <ClInclude Include="NeuralNetBufferAccessor.h" />
     <ClInclude Include="NeuralNetBufferAccessorBinary.h" />
     <ClInclude Include="NeuralNetBufferAccessorReal.h" />
