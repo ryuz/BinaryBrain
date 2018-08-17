@@ -4,7 +4,8 @@
 #include "NeuralNetAffine.h"
 #include "NeuralNetSigmoid.h"
 #include "NeuralNetSoftmax.h"
-
+#include "NeuralNetBinarize.h"
+#include "NeuralNetUnbinarize.h"
 
 
 TEST(NeuralNetAffineTest, testAffine)
@@ -250,4 +251,105 @@ TEST_F(NeuralNetSoftmaxTest, testSoftmaxBatch)
 	EXPECT_EQ(6, inError[4]);
 	EXPECT_EQ(7, inError[5]);
 }
+
+
+TEST(NeuralNetBinarizeTest, testNeuralNetBinarize)
+{
+	const int node_size = 3;
+	const int mux_size = 2;
+	const int frame_size = 1;
+
+	NeuralNetBinarize<> binarize(node_size, mux_size);
+
+	EXPECT_EQ(1, binarize.GetInputFrameSize());
+	EXPECT_EQ(2, binarize.GetOutputFrameSize());
+
+
+	float	in[node_size];
+	__m256i out[(((frame_size * mux_size) + 255) / 256) * node_size];
+
+	NeuralNetBufferAccessorReal<> accReal(in, 1);
+	NeuralNetBufferAccessorBinary<> accBin(out, 2);
+
+	accReal.Set(0, 0, 0.0f);
+	accReal.Set(0, 1, 1.0f);
+	accReal.Set(0, 2, 0.5f);
+	binarize.SetInputValuePtr(in);
+	binarize.SetOutputValuePtr(out);
+	binarize.Forward();
+	EXPECT_EQ(false, accBin.Get(0, 0));
+	EXPECT_EQ(false, accBin.Get(1, 0));
+	EXPECT_EQ(true, accBin.Get(0, 1));
+	EXPECT_EQ(true, accBin.Get(1, 1));
+
+	__m256i outError[(((frame_size * mux_size) + 255) / 256) * node_size];
+	float	inError[node_size];
+
+	NeuralNetBufferAccessorReal<> accRealErr(inError, 1);
+	NeuralNetBufferAccessorBinary<> accBinErr(outError, 2);
+
+	accBinErr.Set(0, 0, false);
+	accBinErr.Set(1, 0, false);
+	accBinErr.Set(0, 1, true);
+	accBinErr.Set(1, 1, true);
+	accBinErr.Set(0, 2, true);
+	accBinErr.Set(1, 2, false);
+	binarize.SetOutputErrorPtr(outError);
+	binarize.SetInputErrorPtr(inError);
+	binarize.Backward();
+	EXPECT_EQ(0.0, accRealErr.Get(0, 0));
+	EXPECT_EQ(1.0, accRealErr.Get(0, 1));
+	EXPECT_EQ(0.5, accRealErr.Get(0, 2));
+}
+
+
+TEST(NeuralNetUnbinarizeTest, testNeuralNetUnbinarize)
+{
+	const int node_size = 3;
+	const int mux_size = 2;
+	const int frame_size = 1;
+
+	NeuralNetUnbinarize<> unbinarize(node_size, mux_size);
+
+	EXPECT_EQ(2, unbinarize.GetInputFrameSize());
+	EXPECT_EQ(1, unbinarize.GetOutputFrameSize());
+
+
+	__m256i in[(((frame_size * mux_size) + 255) / 256) * node_size];
+	float	out[node_size];
+
+	NeuralNetBufferAccessorBinary<> accBin(in, 2);
+	NeuralNetBufferAccessorReal<> accReal(out, 1);
+
+	accBin.Set(0, 0, true);
+	accBin.Set(1, 0, true);
+	accBin.Set(0, 1, false);
+	accBin.Set(1, 1, false);
+	accBin.Set(0, 2, false);
+	accBin.Set(1, 2, true);
+	unbinarize.SetInputValuePtr(in);
+	unbinarize.SetOutputValuePtr(out);
+	unbinarize.Forward();
+	EXPECT_EQ(1.0, accReal.Get(0, 0));
+	EXPECT_EQ(0.0, accReal.Get(0, 1));
+	EXPECT_EQ(0.5, accReal.Get(0, 2));
+
+
+	float	outError[node_size];
+	__m256i inError[(((frame_size * mux_size) + 255) / 256) * node_size];
+
+	NeuralNetBufferAccessorReal<> accRealErr(outError, 1);
+	NeuralNetBufferAccessorBinary<> accBinErr(inError, 2);
+	accRealErr.Set(0, 0, 0.0f);
+	accRealErr.Set(0, 1, 1.0f);
+	accRealErr.Set(0, 2, 0.5f);
+	unbinarize.SetOutputErrorPtr(outError);
+	unbinarize.SetInputErrorPtr(inError);
+	unbinarize.Backward();
+	EXPECT_EQ(false, accBinErr.Get(0, 0));
+	EXPECT_EQ(false, accBinErr.Get(1, 0));
+	EXPECT_EQ(true, accBinErr.Get(0, 1));
+	EXPECT_EQ(true, accBinErr.Get(1, 1));
+}
+
 

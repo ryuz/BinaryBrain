@@ -11,7 +11,7 @@ protected:
 	T*				m_buffer;
 	INDEX			m_frame_size;
 	
-	T at(INDEX frame, INDEX node) {
+	T& at(INDEX frame, INDEX node) {
 		return m_buffer[m_frame_size * node + frame];
 	}
 	

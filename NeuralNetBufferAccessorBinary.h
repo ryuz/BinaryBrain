@@ -23,7 +23,7 @@ protected:
 	}
 	
 public:
-	NeuralNetBufferBinary(void* buffer, INDEX frame_size)
+	NeuralNetBufferAccessorBinary(void* buffer, INDEX frame_size)
 	{
 		m_buffer     = (std::uint8_t*)buffer;
 		m_frame_size = ((frame_size + 255) / 256) * 32;
