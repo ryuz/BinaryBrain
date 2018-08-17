@@ -102,7 +102,7 @@ protected:
 	}
 
 	inline void ForwardNode(INDEX node) {
-		INDEX frame_size = (m_frame_size + 31) / 32;
+		INDEX frame_size = (m_frame_size + 255) / 256;
 
 		NeuralNetBufferAccessorBinary<INDEX> accIn((void *)m_inputValue, m_frame_size);
 		NeuralNetBufferAccessorBinary<INDEX> accOut((void *)m_outputValue, m_frame_size);

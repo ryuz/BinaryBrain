@@ -7,6 +7,7 @@
 #include "NeuralNetBinarize.h"
 #include "NeuralNetUnbinarize.h"
 #include "NeuralNetBinaryLut6.h"
+#include "NeuralNetBinaryLutN.h"
 
 
 TEST(NeuralNetAffineTest, testAffine)
@@ -529,6 +530,88 @@ TEST(NeuralNetBinaryLut6, testNeuralNetBinaryLut6Batch)
 	EXPECT_EQ(false, accOut.Get(0, 1));
 	EXPECT_EQ(true, accOut.Get(1, 0));
 	EXPECT_EQ(false, accOut.Get(1, 1));
+}
+
+
+TEST(NeuralNetBinaryLut6, testNeuralNetBinaryLut6Compare)
+{
+	const size_t input_node_size  = 23;
+	const size_t output_node_size = 77;
+	const size_t mux_size = 23;
+	const size_t batch_size = 345;
+	const size_t frame_size = mux_size * batch_size;
+	const int lut_input_size = 6;
+	const int lut_table_size = 64;
+
+	std::mt19937_64	mt(123);
+	std::uniform_int<size_t>	rand_input(0, input_node_size - 1);
+	std::uniform_int<int>		rand_bin(0, 1);
+
+	NeuralNetBinaryLut6<>  lut0(input_node_size, output_node_size, mux_size, batch_size, 1);
+	NeuralNetBinaryLutN<6> lut1(input_node_size, output_node_size, mux_size, batch_size, 1);
+
+	EXPECT_EQ(input_node_size, lut0.GetInputNodeSize());
+	EXPECT_EQ(output_node_size, lut0.GetOutputNodeSize());
+	EXPECT_EQ(frame_size, lut0.GetInputFrameSize());
+	EXPECT_EQ(frame_size, lut0.GetOutputFrameSize());
+	EXPECT_EQ(lut_input_size, lut0.GetLutInputSize());
+	EXPECT_EQ(lut_table_size, lut0.GetLutTableSize());
+	EXPECT_EQ(lut0.GetInputNodeSize() , lut1.GetInputNodeSize());
+	EXPECT_EQ(lut0.GetOutputNodeSize(), lut1.GetOutputNodeSize());
+	EXPECT_EQ(lut0.GetInputFrameSize(), lut1.GetInputFrameSize());
+	EXPECT_EQ(lut0.GetOutputFrameSize(), lut1.GetOutputFrameSize());
+	EXPECT_EQ(lut0.GetLutInputSize(), lut1.GetLutInputSize());
+	EXPECT_EQ(lut0.GetLutTableSize(), lut1.GetLutTableSize());
+
+	// ê›íË
+	for (size_t node = 0; node < output_node_size; ++node) {
+		for (int lut_input = 0; lut_input < lut_input_size; ++lut_input) {
+			size_t input_node = rand_input(mt);
+			lut0.SetLutInput(node, lut_input, input_node);
+			lut1.SetLutInput(node, lut_input, input_node);
+		}
+
+		for (int bit = 0; bit < lut_table_size; ++bit) {
+			bool table_value = (rand_bin(mt) != 0);
+			lut0.SetLutTable(node, bit, table_value);
+			lut1.SetLutTable(node, bit, table_value);
+		}
+	}
+	
+	// ÉfÅ[É^ê›íË
+	__m256i	inValue[(frame_size + 255) / 256 * input_node_size];
+	__m256i	outValue0[(frame_size + 255) / 256 * output_node_size];
+	__m256i	outValue1[(frame_size + 255) / 256 * output_node_size];
+	NeuralNetBufferAccessorBinary<> accIn(inValue, frame_size);
+	NeuralNetBufferAccessorBinary<> accOut0(outValue0, frame_size);
+	NeuralNetBufferAccessorBinary<> accOut1(outValue1, frame_size);
+
+	for (size_t frame = 0; frame < frame_size; ++frame) {
+		for (int node = 0; node < input_node_size; ++node) {
+			bool input_value = (rand_bin(mt) != 0);
+			accIn.Set(frame, node, input_value);
+		}
+	}
+	for (size_t frame = 0; frame < frame_size; ++frame) {
+		for (int node = 0; node < output_node_size; ++node) {
+			accOut0.Set(frame, node, (rand_bin(mt) != 0));
+			accOut1.Set(frame, node, (rand_bin(mt) != 0));
+		}
+	}
+
+	lut0.SetInputValuePtr(inValue);
+	lut0.SetOutputValuePtr(outValue0);
+	lut0.Forward();
+
+	lut1.SetInputValuePtr(inValue);
+	lut1.SetOutputValuePtr(outValue1);
+	lut1.Forward();
+
+	for (size_t frame = 0; frame < frame_size; ++frame) {
+		for (int node = 0; node < output_node_size; ++node) {
+			EXPECT_EQ(accOut0.Get(frame, node), accOut1.Get(frame, node));
+		}
+	}
 }
 
 
