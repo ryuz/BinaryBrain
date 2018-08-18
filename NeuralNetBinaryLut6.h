@@ -11,8 +11,8 @@
 
 
 // 6“ü—ÍLUTŒÅ’è
-template <typename INDEX = size_t>
-class NeuralNetBinaryLut6 : public NeuralNetBinaryLut<INDEX>
+template <typename T=float, typename INDEX = size_t>
+class NeuralNetBinaryLut6 : public NeuralNetBinaryLut<T, INDEX>
 {
 protected:
 	struct LutNode {

@@ -11,8 +11,8 @@
 
 
 // ”Ä—pLUT
-template <int N=6, typename INDEX = size_t>
-class NeuralNetBinaryLutN : public NeuralNetBinaryLut<INDEX>
+template <int N=6, typename T = float, typename INDEX = size_t>
+class NeuralNetBinaryLutN : public NeuralNetBinaryLut<float, INDEX>
 {
 protected:
 	struct LutNode {

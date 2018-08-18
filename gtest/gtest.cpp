@@ -615,3 +615,75 @@ TEST(NeuralNetBinaryLut6, testNeuralNetBinaryLut6Compare)
 }
 
 
+
+TEST(NeuralNetBinaryLut, testNeuralNetBinaryLutFeedback)
+{
+	const size_t lut_input_size = 4;
+	const size_t lut_table_size = (1 << lut_input_size);
+	const size_t mux_size   = 1;
+	const size_t batch_size = lut_table_size;
+	const size_t frame_size = mux_size * batch_size;
+	const size_t node_size = lut_table_size;
+	NeuralNetBinaryLutN<4> lut(lut_input_size, lut_table_size, mux_size, batch_size, 1);
+
+	__m256i in[lut_input_size];
+	__m256i out[node_size];
+
+	NeuralNetBufferAccessorBinary<> accIn(in, frame_size);
+	NeuralNetBufferAccessorBinary<> accOut(out, frame_size);
+
+	for (size_t frame = 0; frame < frame_size; frame++) {
+		for (int bit = 0; bit < lut_input_size; bit++) {
+			accIn.Set(frame, bit, (frame & (1 << bit)) != 0);
+		}
+	}
+
+	for (size_t node = 0; node < node_size; node++) {
+		for (int i = 0; i < lut_input_size; i++) {
+			lut.SetLutInput(node, i, i);
+		}
+	}
+
+	lut.SetInputValuePtr(in);
+	lut.SetOutputValuePtr(out);
+	lut.Forward();
+	uint64_t outW[node_size];
+	uint64_t lutTable[lut_table_size];
+
+	std::vector<float> vec_loss(frame_size);
+	std::vector<float> vec_out(frame_size);
+	for (int loop = 0; loop < 10; loop++) {
+		do {
+			for (int i = 0; i < lut_table_size; i++) {
+				outW[i] = out[i].m256i_u64[0];
+			}
+			for (size_t node = 0; node < node_size; node++) {
+				lutTable[node] = 0;
+				for (int i = 0; i < lut_table_size; i++) {
+					lutTable[node] |= lut.GetLutTable(node, i) ? ((uint64_t)1 << i) : 0;
+				}
+			}
+
+			for (size_t frame = 0; frame < frame_size; frame++) {
+				vec_loss[frame] = 0;
+				for (size_t node = 0; node < node_size; node++) {
+					bool val = accOut.Get(frame, node);
+					if (frame % node_size == node) {
+						vec_loss[frame] += !val ? +1.0f : -1.0f;
+					}
+					else {
+						vec_loss[frame] += val ? +0.01f : -0.01f;
+					}
+				}
+			}
+		} while (lut.Feedback(vec_loss));
+		std::cout << loop << std::endl;
+	}
+
+	for (size_t node = 0; node < node_size; node++) {
+		for (int i = 0; i < lut_table_size; i++) {
+			EXPECT_EQ(node == i, lut.GetLutTable(node, i));
+		}
+	}
+}
+

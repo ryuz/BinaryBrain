@@ -34,10 +34,10 @@ public:
 	void SetOutputErrorPtr(const void* outputError) { m_outputError = outputError; }
 	void SetInputErrorPtr(void* inputError) { m_inputError = inputError; }
 
-	INDEX GetInputFrameSize(void) const { return GetFrameSize(); }
+	INDEX GetInputFrameSize(void) const { return GetRealFrameSize(); }
 	INDEX GetInputNodeSize(void) const { return GetNodeSize(); }
-	INDEX GetOutputFrameSize(void) const { return GetFrameSize() * GetMuxSize(); }
-	INDEX GetOutputNodeSize(void) const { return GetFrameSize(); }
+	INDEX GetOutputFrameSize(void) const { return GetBinaryFrameSize(); }
+	INDEX GetOutputNodeSize(void) const { return GetNodeSize(); }
 
 	int   GetInputValueBitSize(void) const { return sizeof(T) * 8; }
 	int   GetInputErrorBitSize(void) const { return sizeof(T) * 8; }

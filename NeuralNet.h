@@ -13,7 +13,7 @@ template <typename T=float, typename INDEX=size_t>
 class NeuralNet
 {
 protected:
-	typedef	NeuralNetLayer<INDEX>	LAYER;
+	typedef	NeuralNetLayer<T, INDEX>	LAYER;
 
 	std::vector< LAYER* > m_layers;
 	std::vector< void* > m_values;
@@ -50,10 +50,12 @@ public:
 		return SetupBuffer();
 	}
 	
-	void Forward(void)
+	void Forward(INDEX start_layer = 0)
 	{
-		for (auto layer = m_layers.begin(); layer != m_layers.end(); ++layer) {
-			(*layer)->Forward();
+		INDEX layer_size = m_layers.size();
+
+		for (INDEX layer = start_layer; layer < layer_size; ++layer) {
+			m_layers[layer]->Forward();
 		}
 	}
 
@@ -111,6 +113,29 @@ public:
 		}
 	}
 
+protected:
+	int		m_feedback_layer = -1;
+
+public:
+	bool Feedback(std::vector<T>& loss)
+	{
+		bool first_flag = false;
+
+		if (m_feedback_layer < 0) {
+			m_feedback_layer = (int)m_layers.size() - 1;	// ‰‰ñ
+		}
+
+		while (m_feedback_layer >= 0) {
+			if ( m_layers[m_feedback_layer]->Feedback(loss) ) {
+				Forward(m_feedback_layer + 1);
+				return true;
+			}
+			--m_feedback_layer;
+		}
+
+		return false;
+	}
+
 
 protected:
 	size_t CalcBufferSize(INDEX frame_size, INDEX node_size, int bit_size)
@@ -141,6 +166,9 @@ protected:
 				return false;
 			}
 			if (m_layers[i - 1]->GetOutputNodeSize() != m_layers[i]->GetInputNodeSize()) {
+				std::cout << "node size mismatch" << std::endl;
+				std::cout << "layer[" << i - 1 << "] : output node = : " << m_layers[i - 1]->GetOutputNodeSize() << std::endl;
+				std::cout << "layer[" << i << "] : input node = : " << m_layers[i]->GetInputNodeSize() << std::endl;
 				assert(0);
 				return false;
 			}

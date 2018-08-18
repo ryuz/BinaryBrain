@@ -5,7 +5,11 @@
 #include "NeuralNetAffine.h"
 #include "NeuralNetSigmoid.h"
 #include "NeuralNetSoftmax.h"
+#include "NeuralNetBinaryLut6.h"
+#include "NeuralNetBinarize.h"
+#include "NeuralNetUnbinarize.h"
 #include "mnist_read.h"
+
 
 
 void evaluation_net(NeuralNet<>& net, std::vector< std::vector<float> >& images, std::vector<std::uint8_t>& labels);
@@ -24,8 +28,8 @@ int main()
 	std::mt19937_64 mt(1);
 
 #ifdef _DEBUG
-	int train_max_size = 3;
-	int test_max_size = 1;
+	int train_max_size = 300;
+	int test_max_size = 10;
 #else
 	int train_max_size = -1;
 	int test_max_size = -1;
@@ -39,6 +43,7 @@ int main()
 
 	// NET構築
 	NeuralNet<> net;
+#if 0
 	NeuralNetAffine<> affine0(28*28, 100);
 	NeuralNetSigmoid<> sigmoid0(100);
 	NeuralNetAffine<> affine1(100, 10);
@@ -47,7 +52,24 @@ int main()
 	net.AddLayer(&sigmoid0);
 	net.AddLayer(&affine1);
 	net.AddLayer(&softmax1);
-	
+#else
+	size_t mux_size = 1;
+	size_t input_node_size = 28*28;
+	size_t layer0_node_size = 360;
+	size_t layer1_node_size = 60;
+	size_t output_node_size = 10;
+	NeuralNetBinarize<>   binarize(input_node_size, mux_size);
+	NeuralNetBinaryLut6<> lut0(input_node_size, layer0_node_size, mux_size);
+	NeuralNetBinaryLut6<> lut1(layer0_node_size, layer1_node_size, mux_size);
+	NeuralNetBinaryLut6<> lut2(layer1_node_size, output_node_size, mux_size);
+	NeuralNetUnbinarize<> unbinarize(output_node_size, mux_size);
+	net.AddLayer(&binarize);
+	net.AddLayer(&lut0);
+	net.AddLayer(&lut1);
+	net.AddLayer(&lut2);
+	net.AddLayer(&unbinarize);
+#endif
+
 	// インデックス作成
 	std::vector<size_t> train_index(train_image.size());
 	for (size_t i = 0; i < train_index.size(); ++i) {
@@ -58,7 +80,7 @@ int main()
 	batch_size = std::min(batch_size, train_image.size());
 	
 	for ( int loop = 0; ; ++loop) {
-		if (loop % 5 == 0) {
+		if (loop % 2 == 0) {
 			evaluation_net(net, test_image, test_label);
 		}
 
@@ -72,6 +94,7 @@ int main()
 
 		net.Forward();
 
+#if 0
 		for (size_t frame = 0; frame < batch_size; ++frame) {
 			auto values = net.GetOutputValue(frame);
 
@@ -81,10 +104,26 @@ int main()
 			}
 			net.SetOutputError(frame, values);
 		}
-
 		net.Backward();
-
 		net.Update(0.2);
+#endif
+
+		std::vector<float> vec_loss(batch_size);
+		do {
+			for (size_t frame = 0; frame < batch_size; ++frame) {
+				auto values = net.GetOutputValue(frame);
+				vec_loss[frame] = 0;
+				for (size_t node = 0; node < values.size(); ++node) {
+					if (train_label[train_index[frame]][node] == 0.0) {
+						vec_loss[frame] += (values[node] == 0.0 ? +0.1f : -0.1f);
+					}
+					else {
+						vec_loss[frame] += (values[node] == 0.0 ? -1.0f : +1.0f);
+					}
+				}
+			}
+		} while (net.Feedback(vec_loss));
+
 	}
 
 	return 0;

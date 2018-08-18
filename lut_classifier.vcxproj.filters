@@ -71,5 +71,8 @@
     <ClInclude Include="NeuralNetBinaryLutN.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="NeuralNetMatrix.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

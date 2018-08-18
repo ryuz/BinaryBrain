@@ -5,7 +5,7 @@
 #include <vector>
 
 // NeuralNetの抽象クラス
-template <typename INDEX=size_t>
+template <typename T=float, typename INDEX = size_t>
 class NeuralNetLayer
 {
 public:
@@ -30,5 +30,7 @@ public:
 	virtual	void  Forward(void) = 0;						// 予測
 	virtual	void  Backward(void) = 0;						// 誤差逆伝播
 	virtual	void  Update(double learning_rate) {};			// 学習
+
+	virtual	bool  Feedback(const std::vector<T>& loss) { return false; }			// 直接フィードバック
 };
 

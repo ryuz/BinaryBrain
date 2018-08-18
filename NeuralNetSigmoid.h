@@ -9,7 +9,7 @@
 
 // NeuralNet‚Ì’ŠÛƒNƒ‰ƒX
 template <typename T=float, typename INDEX=size_t>
-class NeuralNetSigmoid : public NeuralNetLayer<INDEX>
+class NeuralNetSigmoid : public NeuralNetLayer<T, INDEX>
 {
 protected:
 	typedef Eigen::Matrix<T, -1, -1, Eigen::ColMajor>	Matrix;

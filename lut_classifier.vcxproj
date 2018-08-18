@@ -182,6 +182,7 @@
     <ClInclude Include="NeuralNetBufferAccessorBinary.h" />
     <ClInclude Include="NeuralNetBufferAccessorReal.h" />
     <ClInclude Include="NeuralNetLayer.h" />
+    <ClInclude Include="NeuralNetMatrix.h" />
     <ClInclude Include="NeuralNetRealBinaryConverter.h" />
     <ClInclude Include="NeuralNetSigmoid.h" />
     <ClInclude Include="NeuralNetSoftmax.h" />

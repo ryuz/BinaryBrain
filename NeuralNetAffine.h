@@ -10,7 +10,7 @@
 
 // NeuralNet‚Ì’ŠÛƒNƒ‰ƒX
 template <typename T=float, typename INDEX=size_t>
-class NeuralNetAffine : public NeuralNetLayer<INDEX>
+class NeuralNetAffine : public NeuralNetLayer<T, INDEX>
 {
 protected:
 	typedef Eigen::Matrix<T, -1, -1, Eigen::ColMajor>	Matrix;
