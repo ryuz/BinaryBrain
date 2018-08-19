@@ -56,12 +56,6 @@ public:
 	NeuralNetBuffer<T, INDEX>& GetInputErrorBuffer(void) { return m_input_error_buffer; }
 	NeuralNetBuffer<T, INDEX>& GetOutputErrorBuffer(void) { return m_output_error_buffer; }
 
-	// アクセサ取得
-	NeuralNetBufferAccessor<T, INDEX>* GetInputValueAccessor(void)  { return m_input_value_buffer.GetAccessor(); }
-	NeuralNetBufferAccessor<T, INDEX>* GetOutputValueAccessor(void) { return m_output_value_buffer.GetAccessor(); }
-	NeuralNetBufferAccessor<T, INDEX>* GetInputErrorAccessor(void)  { return m_input_error_buffer.GetAccessor(); }
-	NeuralNetBufferAccessor<T, INDEX>* GetOutputErrorAccessor(void) { return m_output_error_buffer.GetAccessor(); }
-
 	// バッファ生成補助
 	NeuralNetBuffer<T, INDEX> CreateInputValueBuffer(void) { 
 		return NeuralNetBuffer<T, INDEX>(GetInputFrameSize(), GetInputNodeSize(), GetInputValueBitSize()); 

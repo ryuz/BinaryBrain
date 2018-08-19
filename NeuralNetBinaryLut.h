@@ -98,20 +98,22 @@ public:
 		{
 //			NeuralNetBufferAccessorBinary<float, INDEX>	acc_in((void*)m_inputValue,   m_frame_size);
 //			NeuralNetBufferAccessorBinary<float, INDEX>	acc_out((void*)m_outputValue, m_frame_size);
-			auto acc_in = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetInputValueAccessor());
-			auto acc_out = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetOutputValueAccessor());
+//			auto acc_in = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetInputValueAccessor());
+//			auto acc_out = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetOutputValueAccessor());
+			auto in_buf  = GetInputValueBuffer();
+			auto out_buf = GetOutputValueBuffer();
 
 			for (INDEX frame = 0; frame < m_frame_size; ++frame) {
 				int bit = 0;
 				int msk = 1;
 				for (int i = 0; i < lut_input_size; i++) {
 					INDEX input_node = GetLutInput(node, i);
-					bool input_value = acc_in->Get(frame, input_node);
+					bool input_value = in_buf.Get<bool>(frame, input_node);
 					bit |= input_value ? msk : 0;
 					msk <<= 1;
 				}
 				bool output_value = GetLutTable(node, bit);
-				acc_out->Set(frame, node, output_value);
+				out_buf.Set<bool>(frame, node, output_value);
 			}
 		});
 	}
@@ -141,8 +143,8 @@ public:
 //		NeuralNetBufferAccessorBinary<float, INDEX>	acc_in((void*)m_inputValue, m_frame_size);
 //		NeuralNetBufferAccessorBinary<float, INDEX>	acc_out((void*)m_outputValue, m_frame_size);
 
-		auto acc_in  = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetInputValueAccessor());
-		auto acc_out = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetOutputValueAccessor());
+		auto in_buf  = GetInputValueBuffer();
+		auto out_buf = GetOutputValueBuffer();
 
 		INDEX node_size = GetOutputNodeSize();
 		INDEX frame_size = GetOutputFrameSize();
@@ -165,7 +167,7 @@ public:
 					int mask = 1;
 					for (int i = 0; i < lut_input_size; ++i) {
 						INDEX input_node = GetLutInput(node, i);
-						value |= (acc_in->Get(frame, input_node) ? mask : 0);
+						value |= (in_buf.Get<bool>(frame, input_node) ? mask : 0);
 						mask <<= 1;
 					}
 					m_feedback_input[node][frame] = value;
@@ -189,7 +191,7 @@ public:
 
 			// èoóÕÇîΩì]
 			for (INDEX frame = 0; frame < frame_size; ++frame) {
-				acc_out->Set(frame, m_feedback_node, !acc_out->Get(frame, m_feedback_node));
+				out_buf.Set<bool>(frame, m_feedback_node, !out_buf.Get<bool>(frame, m_feedback_node));
 			}
 
 			m_feedback_phase = true;
@@ -211,7 +213,7 @@ public:
 
 			// äwèKÇµÇΩLUTÇ≈èoóÕÇçƒåvéZ
 			for (INDEX frame = 0; frame < frame_size; ++frame) {
-				acc_out->Set(frame, m_feedback_node, GetLutTable(m_feedback_node, m_feedback_input[m_feedback_node][frame]));
+				out_buf.Set<bool>(frame, m_feedback_node, GetLutTable(m_feedback_node, m_feedback_input[m_feedback_node][frame]));
 			}
 
 			// éüÇÃLUTÇ…êiÇﬁ

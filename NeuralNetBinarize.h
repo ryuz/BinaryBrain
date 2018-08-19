@@ -46,12 +46,12 @@ public:
 
 	void Forward(void)
 	{
-		RealToBinary(GetInputValueBuffer().GetBufferPtr(), GetOutputValueBuffer().GetBufferPtr());
+		RealToBinary(GetInputValueBuffer().GetBuffer(), GetOutputValueBuffer().GetBuffer());
 	}
 
 	void Backward(void)
 	{
-		BinaryToReal(GetOutputErrorBuffer().GetBufferPtr(), GetInputErrorBuffer().GetBufferPtr());
+		BinaryToReal(GetOutputErrorBuffer().GetBuffer(), GetInputErrorBuffer().GetBuffer());
 	}
 
 	void Update(double learning_rate)

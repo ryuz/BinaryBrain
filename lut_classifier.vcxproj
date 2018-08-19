@@ -187,6 +187,7 @@
     <ClInclude Include="NeuralNetRealBinaryConverter.h" />
     <ClInclude Include="NeuralNetSigmoid.h" />
     <ClInclude Include="NeuralNetSoftmax.h" />
+    <ClInclude Include="NeuralNetType.h" />
     <ClInclude Include="NeuralNetUnbinarize.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

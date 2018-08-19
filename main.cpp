@@ -26,10 +26,13 @@ void img_show(std::vector<float>& image)
 //std::unique_ptr< NeuralNetBufferAccessor<T, INDEX> >	accessor;
 //NeuralNetBufferAccessor<>*	accessor;
 
+
+#include "NeuralNetType.h"
+
 int main()
 {
-	std::mt19937_64 mt(1);
 
+	std::mt19937_64 mt(1);
 
 #ifdef _DEBUG
 	int train_max_size = 300;
@@ -47,7 +50,7 @@ int main()
 
 	// NETç\íz
 	NeuralNet<> net;
-#if 0
+#if 1
 	NeuralNetAffine<> affine0(28*28, 100);
 	NeuralNetSigmoid<> sigmoid0(100);
 	NeuralNetAffine<> affine1(100, 10);

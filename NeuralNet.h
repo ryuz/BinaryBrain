@@ -83,8 +83,9 @@ public:
 //		INDEX stride = m_firstLayer->GetInputFrameSize();
 //		buf[node*stride + frame] = value;
 
-		NeuralNetBufferAccessor<T, INDEX>* acc = m_firstLayer->GetInputValueBuffer().GetAccessor();
-		acc->SetReal(frame, node, value);
+//		NeuralNetBufferAccessor<T, INDEX>* acc = m_firstLayer->GetInputValueBuffer().GetAccessor();
+//		acc->SetReal(frame, node, value);
+		return m_firstLayer->GetInputValueBuffer().SetReal(frame, node, value);
 	}
 
 	void SetInputValue(INDEX frame, std::vector<T> values) {
@@ -98,8 +99,10 @@ public:
 //		INDEX stride = m_lastLayer->GetOutputFrameSize();
 //		return buf[node*stride + frame];
 
-		NeuralNetBufferAccessor<T, INDEX>* acc = m_lastLayer->GetOutputValueBuffer().GetAccessor();
-		return acc->GetReal(frame, node);
+//		NeuralNetBufferAccessor<T, INDEX>* acc = m_lastLayer->GetOutputValueBuffer().GetAccessor();
+//		return acc->GetReal(frame, node);
+
+		return m_lastLayer->GetOutputValueBuffer().GetReal(frame, node);
 	}
 
 	std::vector<T> GetOutputValue(INDEX frame) {
