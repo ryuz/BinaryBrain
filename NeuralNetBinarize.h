@@ -39,19 +39,19 @@ public:
 	INDEX GetOutputFrameSize(void) const { return GetBinaryFrameSize(); }
 	INDEX GetOutputNodeSize(void) const { return GetNodeSize(); }
 
-	int   GetInputValueBitSize(void) const { return sizeof(T) * 8; }
-	int   GetInputErrorBitSize(void) const { return sizeof(T) * 8; }
-	int   GetOutputValueBitSize(void) const { return 1; }
-	int   GetOutputErrorBitSize(void) const { return 1; }
+	int   GetInputValueDataType(void) const { return NeuralNetType<T>::type; }
+	int   GetInputErrorDataType(void) const { return NeuralNetType<T>::type; }
+	int   GetOutputValueDataType(void) const { return NN_TYPE_BINARY; }
+	int   GetOutputErrorDataType(void) const { return NN_TYPE_BINARY; }
 
 	void Forward(void)
 	{
-		RealToBinary(GetInputValueBuffer().GetBuffer(), GetOutputValueBuffer().GetBuffer());
+		RealToBinary(GetInputValueBuffer(), GetOutputValueBuffer());
 	}
 
 	void Backward(void)
 	{
-		BinaryToReal(GetOutputErrorBuffer().GetBuffer(), GetInputErrorBuffer().GetBuffer());
+		BinaryToReal(GetOutputErrorBuffer(), GetInputErrorBuffer());
 	}
 
 	void Update(double learning_rate)

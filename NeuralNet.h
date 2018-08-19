@@ -115,9 +115,11 @@ public:
 	}
 
 	void SetOutputError(INDEX frame, INDEX node, T error) {
-		T* buf = (T*)m_errors.back();
-		INDEX stride = m_lastLayer->GetOutputFrameSize();
-		buf[node*stride + frame] = error;
+//		T* buf = (T*)m_errors.back();
+//		INDEX stride = m_lastLayer->GetOutputFrameSize();
+//		buf[node*stride + frame] = error;
+
+		m_lastLayer->GetOutputErrorBuffer().SetReal(frame, node, error);
 	}
 
 	void SetOutputError(INDEX frame, std::vector<T> errors) {
@@ -185,11 +187,11 @@ protected:
 				assert(0);
 				return false;
 			}
-			if (m_layers[i - 1]->GetOutputValueBitSize() != m_layers[i]->GetInputValueBitSize()) {
+			if (m_layers[i - 1]->GetOutputValueDataType() != m_layers[i]->GetInputValueDataType()) {
 				assert(0);
 				return false;
 			}
-			if (m_layers[i - 1]->GetOutputErrorBitSize() != m_layers[i]->GetInputErrorBitSize()) {
+			if (m_layers[i - 1]->GetOutputErrorDataType() != m_layers[i]->GetInputErrorDataType()) {
 				assert(0);
 				return false;
 			}

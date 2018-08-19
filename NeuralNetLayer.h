@@ -23,10 +23,10 @@ public:
 	virtual INDEX GetInputNodeSize(void) const = 0;					// 入力のノード数
 	virtual INDEX GetOutputFrameSize(void) const = 0;				// 出力のフレーム数
 	virtual INDEX GetOutputNodeSize(void) const = 0;				// 出力のノード数
-	virtual int   GetInputValueBitSize(void) const = 0;				// 入力値のサイズ
-	virtual int   GetInputErrorBitSize(void) const = 0;				// 出力値のサイズ
-	virtual int   GetOutputValueBitSize(void) const = 0;			// 入力値のサイズ
-	virtual int   GetOutputErrorBitSize(void) const = 0;			// 入力値のサイズ
+	virtual int   GetInputValueDataType(void) const = 0;			// 入力値のサイズ
+	virtual int   GetInputErrorDataType(void) const = 0;			// 出力値のサイズ
+	virtual int   GetOutputValueDataType(void) const = 0;			// 入力値のサイズ
+	virtual int   GetOutputErrorDataType(void) const = 0;			// 入力値のサイズ
 
 	virtual void  SetBatchSize(INDEX batch_size) = 0;				// バッチサイズの設定
 	virtual	void  Forward(void) = 0;								// 予測
@@ -58,16 +58,16 @@ public:
 
 	// バッファ生成補助
 	NeuralNetBuffer<T, INDEX> CreateInputValueBuffer(void) { 
-		return NeuralNetBuffer<T, INDEX>(GetInputFrameSize(), GetInputNodeSize(), GetInputValueBitSize()); 
+		return NeuralNetBuffer<T, INDEX>(GetInputFrameSize(), GetInputNodeSize(), GetInputValueDataType());
 	}
 	NeuralNetBuffer<T, INDEX> CreateOutputValueBuffer(void) {
-		return NeuralNetBuffer<T, INDEX>(GetOutputFrameSize(), GetOutputNodeSize(), GetOutputValueBitSize());
+		return NeuralNetBuffer<T, INDEX>(GetOutputFrameSize(), GetOutputNodeSize(), GetOutputValueDataType());
 	}
 	NeuralNetBuffer<T, INDEX> CreateInputErrorBuffer(void) {
-		return NeuralNetBuffer<T, INDEX>(GetInputFrameSize(), GetInputNodeSize(), GetInputErrorBitSize());
+		return NeuralNetBuffer<T, INDEX>(GetInputFrameSize(), GetInputNodeSize(), GetInputErrorDataType());
 	}
 	NeuralNetBuffer<T, INDEX> CreateOutputErrorBuffer(void) {
-		return NeuralNetBuffer<T, INDEX>(GetOutputFrameSize(), GetOutputNodeSize(), GetOutputErrorBitSize());
+		return NeuralNetBuffer<T, INDEX>(GetOutputFrameSize(), GetOutputNodeSize(), GetOutputErrorDataType());
 	}
 
 };

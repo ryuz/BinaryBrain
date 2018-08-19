@@ -86,7 +86,7 @@ int main()
 		train_index[i] = i;
 	}
 
-	size_t batch_size = 1000;
+	size_t batch_size = 10000;
 	batch_size = std::min(batch_size, train_image.size());
 	
 	for ( int loop = 0; loop < 1000; ++loop) {
@@ -104,7 +104,7 @@ int main()
 
 		net.Forward();
 
-#if 0
+#if 1
 		for (size_t frame = 0; frame < batch_size; ++frame) {
 			auto values = net.GetOutputValue(frame);
 
@@ -118,7 +118,7 @@ int main()
 		net.Update(0.2);
 #endif
 
-#if 1
+#if 0
 		std::vector<float> vec_loss(batch_size);
 		do {
 			for (size_t frame = 0; frame < batch_size; ++frame) {

@@ -6,8 +6,7 @@
 #include <random>
 
 
-#include "NeuralNetBufferAccessorBinary.h"
-#include "NeuralNetBufferAccessorReal.h"
+#include "NeuralNetLayer.h"
 
 
 // é¿êî<->ÉoÉCÉiÉäïœä∑
@@ -48,7 +47,41 @@ public:
 	INDEX GetBinaryFrameSize(void) const { return m_batch_size * m_mux_size; }
 	INDEX GetNodeSize(void) const { return m_node_size; }
 	INDEX GetMuxSize(void) const { return m_mux_size; }
-	
+
+	void RealToBinary(NeuralNetBuffer<T, INDEX> real_buf, NeuralNetBuffer<T, INDEX> binary_buf)
+	{
+		std::uniform_real_distribution<T>			rand(m_real_range_lo, m_real_range_hi);
+
+		for (INDEX node = 0; node < m_node_size; node++) {
+			for (INDEX frame = 0; frame < m_batch_size; frame++) {
+				for (INDEX i = 0; i < m_mux_size; i++) {
+					T		realVal = real_buf.Get<T>(frame, node);
+					bool	binVal = (realVal > rand(m_mt));
+					binary_buf.Set<bool>(frame*m_mux_size + i, node, binVal);
+				}
+			}
+		}
+	}
+
+	void BinaryToReal(NeuralNetBuffer<T, INDEX> binary_buf, NeuralNetBuffer<T, INDEX> real_buf)
+	{
+		T	reciprocal = (T)1.0 / (T)m_mux_size;
+
+		//		#pragma omp parallel for
+		for (INDEX node = 0; node < m_node_size; node++) {
+			for (INDEX frame = 0; frame < m_batch_size; frame++) {
+				INDEX count = 0;
+				for (INDEX i = 0; i < m_mux_size; i++) {
+					bool binVal = binary_buf.Get<bool>(frame*m_mux_size + i, node);
+					count += binVal ? 1 : 0;
+				}
+				T	realVal = (T)count * reciprocal;
+				real_buf.Set<T>(frame, node, realVal);
+			}
+		}
+	}
+
+	/*
 	void RealToBinary(const void* real_buf, void *binary_buf)
 	{
 		NeuralNetBufferAccessorReal<T, INDEX>		accReal((void*)real_buf, m_batch_size);
@@ -71,7 +104,9 @@ public:
 	{
 		NeuralNetBufferAccessorBinary<T, INDEX>		accBin((void*)binary_buf, m_batch_size*m_mux_size);
 		NeuralNetBufferAccessorReal<T, INDEX>		accReal(real_buf, m_batch_size);
+		
 		T	reciprocal = (T)1.0 / (T)m_mux_size;
+
 //		#pragma omp parallel for
 		for (INDEX node = 0; node < m_node_size; node++) {
 			for (INDEX frame = 0; frame < m_batch_size; frame++) {
@@ -85,6 +120,7 @@ public:
 			}
 		}
 	}
+	*/
 
 	void Update(double learning_rate)
 	{

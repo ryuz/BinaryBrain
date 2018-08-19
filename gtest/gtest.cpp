@@ -12,22 +12,30 @@
 
 void testSetupLayerBuffer(NeuralNetLayer<>& net)
 {
-
+	net.SetInputValueBuffer (net.CreateInputValueBuffer());
+	net.SetInputErrorBuffer (net.CreateInputErrorBuffer());
+	net.SetOutputValueBuffer(net.CreateOutputValueBuffer());
+	net.SetOutputErrorBuffer(net.CreateOutputErrorBuffer());
 }
 
 
 TEST(NeuralNetAffineTest, testAffine)
 {
 	NeuralNetAffine<> affine(2, 3);
+	testSetupLayerBuffer(affine);
 
 //	float in[2] = { 1, 2 };
 //	float out[3];
 //	affine.SetInputValuePtr(in);
 //	affine.SetOutputValuePtr(out);
 
-	affine.CreateInputValueBuffer();
-	float in[2] = { 1, 2 };
-	float out[3];
+	auto in_val = affine.GetInputValueBuffer();
+	auto out_val = affine.GetOutputValueBuffer();
+
+	in_val.SetReal(0, 0, 1);
+	in_val.SetReal(0, 1, 2);
+	EXPECT_EQ(1, in_val.GetReal(0, 0));
+	EXPECT_EQ(2, in_val.GetReal(0, 1));
 
 	affine.W(0, 0) = 1;
 	affine.W(1, 0) = 2;
@@ -39,17 +47,24 @@ TEST(NeuralNetAffineTest, testAffine)
 	affine.b(1) = 2000;
 	affine.b(2) = 3000;
 	affine.Forward();
-	EXPECT_EQ(1 * 1 + 2 * 2 + 1000, out[0]);
-	EXPECT_EQ(1 * 10 + 2 * 20 + 2000, out[1]);
-	EXPECT_EQ(1 * 100 + 2 * 200 + 3000, out[2]);
+	EXPECT_EQ(1 * 1 + 2 * 2 + 1000, out_val.GetReal(0, 0));
+	EXPECT_EQ(1 * 10 + 2 * 20 + 2000, out_val.GetReal(0, 1));
+	EXPECT_EQ(1 * 100 + 2 * 200 + 3000, out_val.GetReal(0, 2));
 
-	float outError[3] = { 998, 2042, 3491 };
-	float inError[2];
-	affine.SetOutputErrorPtr(outError);
-	affine.SetInputErrorPtr(inError);
+//	float outError[3] = { 998, 2042, 3491 };
+//	float inError[2];
+//	affine.SetOutputErrorPtr(outError);
+//	affine.SetInputErrorPtr(inError);
+
+	auto in_err = affine.GetInputErrorBuffer();
+	auto out_err = affine.GetOutputErrorBuffer();
+	out_err.SetReal(0, 0, 998);
+	out_err.SetReal(0, 1, 2042);
+	out_err.SetReal(0, 2, 3491);
+
 	affine.Backward();
-	EXPECT_EQ(370518, inError[0]);
-	EXPECT_EQ(741036, inError[1]);
+	EXPECT_EQ(370518, in_err.GetReal(0, 0));
+	EXPECT_EQ(741036, in_err.GetReal(0, 1));
 
 	EXPECT_EQ(998,  affine.dW(0, 0));
 	EXPECT_EQ(2042, affine.dW(0, 1));
@@ -66,17 +81,24 @@ TEST(NeuralNetAffineTest, testAffine)
 	affine.Update(0.1);
 }
 
-#if 0
 
 TEST(NeuralNetAffineTest, testAffineBatch)
 {
 	NeuralNetAffine<> affine(2, 3, 2);
+	testSetupLayerBuffer(affine);
 
-	float in[2*2] = { 1, 3, 2, 4 };
-	float out[3*2];
+//	float in[2*2] = { 1, 3, 2, 4 };
+//	float out[3*2];
+//	affine.SetInputValuePtr(in);
+//	affine.SetOutputValuePtr(out);
 
-	affine.SetInputValuePtr(in);
-	affine.SetOutputValuePtr(out);
+	auto in_val = affine.GetInputValueBuffer();
+	auto out_val = affine.GetOutputValueBuffer();
+	in_val.SetReal(0, 0, 1);
+	in_val.SetReal(0, 1, 2);
+	in_val.SetReal(1, 0, 3);
+	in_val.SetReal(1, 1, 4);
+
 
 	affine.W(0, 0) = 1;
 	affine.W(1, 0) = 2;
@@ -89,75 +111,124 @@ TEST(NeuralNetAffineTest, testAffineBatch)
 	affine.b(2) = 3000;
 	affine.Forward();
 		
-	EXPECT_EQ(1 * 1 + 2 * 2 + 1000, out[0]);
-	EXPECT_EQ(1 * 10 + 2 * 20 + 2000, out[2]);
-	EXPECT_EQ(1 * 100 + 2 * 200 + 3000, out[4]);
+	EXPECT_EQ(1 * 1 + 2 * 2 + 1000, out_val.GetReal(0, 0));
+	EXPECT_EQ(1 * 10 + 2 * 20 + 2000, out_val.GetReal(0, 1));
+	EXPECT_EQ(1 * 100 + 2 * 200 + 3000, out_val.GetReal(0, 2));
+	EXPECT_EQ(3 * 1 + 4 * 2 + 1000, out_val.GetReal(1, 0));
+	EXPECT_EQ(3 * 10 + 4 * 20 + 2000, out_val.GetReal(1, 1));
+	EXPECT_EQ(3 * 100 + 4 * 200 + 3000, out_val.GetReal(1, 2));
+	
+//	float outError[3 * 2] = { 998, 1004, 2042, 2102, 3491, 4091 };
+//	float inError[2 * 2];
+//	affine.SetOutputErrorPtr(outError);
+//	affine.SetInputErrorPtr(inError);
 
-	EXPECT_EQ(3 * 1 + 4 * 2 + 1000, out[1]);
-	EXPECT_EQ(3 * 10 + 4 * 20 + 2000, out[3]);
-	EXPECT_EQ(3 * 100 + 4 * 200 + 3000, out[5]);
+	auto out_err = affine.GetOutputErrorBuffer();
+	auto in_err = affine.GetInputErrorBuffer();
+	out_err.SetReal(0, 0, 998);
+	out_err.SetReal(1, 0, 1004);
+	out_err.SetReal(0, 1, 2042);
+	out_err.SetReal(1, 1, 2102);
+	out_err.SetReal(0, 2, 3491);
+	out_err.SetReal(1, 2, 4091);
 
-	float outError[3 * 2] = { 998, 1004, 2042, 2102, 3491, 4091 };
-	float inError[2 * 2];
-	affine.SetOutputErrorPtr(outError);
-	affine.SetInputErrorPtr(inError);
 	affine.Backward();
-	EXPECT_EQ(370518, inError[0]);
-	EXPECT_EQ(741036, inError[2]);
-	EXPECT_EQ(431124, inError[1]);
-	EXPECT_EQ(862248, inError[3]);
+//	EXPECT_EQ(370518, inError[0]);
+//	EXPECT_EQ(741036, inError[2]);
+//	EXPECT_EQ(431124, inError[1]);
+//	EXPECT_EQ(862248, inError[3]);
+
+	EXPECT_EQ(370518, in_err.GetReal(0, 0));
+	EXPECT_EQ(741036, in_err.GetReal(0, 1));
+	EXPECT_EQ(431124, in_err.GetReal(1, 0));
+	EXPECT_EQ(862248, in_err.GetReal(1, 1));
 }
+
 
 
 TEST(NeuralNetSigmoidTest, testSigmoid)
 {
 	NeuralNetSigmoid<> sigmoid(2);
-	float in[2] = { 1, 2};
-	float out[2];
+	testSetupLayerBuffer(sigmoid);
 
-	sigmoid.SetInputValuePtr(in);
-	sigmoid.SetOutputValuePtr(out);
+//	float in[2] = { 1, 2};
+//	float out[2];
+//	sigmoid.SetInputValuePtr(in);
+//	sigmoid.SetOutputValuePtr(out);
+
+	auto in_val = sigmoid.GetInputValueBuffer();
+	auto out_val = sigmoid.GetOutputValueBuffer();
+	in_val.SetReal(0, 0, 1);
+	in_val.SetReal(0, 1, 2);
 
 	sigmoid.Forward();
-	EXPECT_EQ(1.0f / (1.0f + exp(-1.0f)), out[0]);
-	EXPECT_EQ(1.0f / (1.0f + exp(-2.0f)), out[1]);
+	EXPECT_EQ(1.0f / (1.0f + exp(-1.0f)), out_val.GetReal(0, 0));
+	EXPECT_EQ(1.0f / (1.0f + exp(-2.0f)), out_val.GetReal(0, 1));
 
-	float outError[2] = { 2, 3 };
-	float inError[2];
-	sigmoid.SetOutputErrorPtr(outError);
-	sigmoid.SetInputErrorPtr(inError);
+//	float outError[2] = { 2, 3 };
+//	float inError[2];
+//	sigmoid.SetOutputErrorPtr(outError);
+//	sigmoid.SetInputErrorPtr(inError);
+
+	auto out_err = sigmoid.GetOutputErrorBuffer();
+	auto in_err = sigmoid.GetInputErrorBuffer();
+	out_err.SetReal(0, 0, 2);
+	out_err.SetReal(0, 1, 3);
+
+
 	sigmoid.Backward();
 
-	EXPECT_EQ(outError[0] * (1.0f - out[0]) * out[0], inError[0]);
-	EXPECT_EQ(outError[1] * (1.0f - out[1]) * out[1], inError[1]);
+//	EXPECT_EQ(outError[0] * (1.0f - out[0]) * out[0], inError[0]);
+//	EXPECT_EQ(outError[1] * (1.0f - out[1]) * out[1], inError[1]);
+
+	EXPECT_EQ(out_err.GetReal(0, 0) * (1.0f - out_val.GetReal(0, 0)) * out_val.GetReal(0, 0), in_err.GetReal(0, 0));
+	EXPECT_EQ(out_err.GetReal(0, 1) * (1.0f - out_val.GetReal(0, 1)) * out_val.GetReal(0, 1), in_err.GetReal(0, 1));
 }
 
 
 TEST(NeuralNetSigmoidTest, testSigmoidBatch)
 {
 	NeuralNetSigmoid<> sigmoid(2, 2);
-	float in[2*2] = { 1, 2, 3, 4 };
-	float out[2 * 2];
+	testSetupLayerBuffer(sigmoid);
 
-	sigmoid.SetInputValuePtr(in);
-	sigmoid.SetOutputValuePtr(out);
+//	float in[2*2] = { 1, 2, 3, 4 };
+//	float out[2 * 2];
+//	sigmoid.SetInputValuePtr(in);
+//	sigmoid.SetOutputValuePtr(out);
+
+	auto in_val = sigmoid.GetInputValueBuffer();
+	auto out_val = sigmoid.GetOutputValueBuffer();
+	in_val.SetReal(0, 0, 1);
+	in_val.SetReal(1, 0, 2);
+	in_val.SetReal(0, 1, 3);
+	in_val.SetReal(1, 1, 4);
 
 	sigmoid.Forward();
-	EXPECT_EQ(1.0f / (1.0f + exp(-1.0f)), out[0]);
-	EXPECT_EQ(1.0f / (1.0f + exp(-2.0f)), out[1]);
-	EXPECT_EQ(1.0f / (1.0f + exp(-3.0f)), out[2]);
-	EXPECT_EQ(1.0f / (1.0f + exp(-4.0f)), out[3]);
+	EXPECT_EQ(1.0f / (1.0f + exp(-1.0f)), out_val.GetReal(0, 0));
+	EXPECT_EQ(1.0f / (1.0f + exp(-2.0f)), out_val.GetReal(1, 0));
+	EXPECT_EQ(1.0f / (1.0f + exp(-3.0f)), out_val.GetReal(0, 1));
+	EXPECT_EQ(1.0f / (1.0f + exp(-4.0f)), out_val.GetReal(1, 1));
 
-	float outError[2*2] = { 2, 3, 4, -5 };
-	float inError[2*2];
-	sigmoid.SetOutputErrorPtr(outError);
-	sigmoid.SetInputErrorPtr(inError);
+
+//	float outError[2*2] = { 2, 3, 4, -5 };
+//	float inError[2*2];
+//	sigmoid.SetOutputErrorPtr(outError);
+//	sigmoid.SetInputErrorPtr(inError);
+
+	auto out_err = sigmoid.GetOutputErrorBuffer();
+	auto in_err = sigmoid.GetInputErrorBuffer();
+	out_err.SetReal(0, 0, 2);
+	out_err.SetReal(1, 0, 3);
+	out_err.SetReal(0, 1, 4);
+	out_err.SetReal(1, 1, -5);
+
+
 	sigmoid.Backward();
 
-	EXPECT_EQ(outError[0] * (1.0f - out[0]) * out[0], inError[0]);
-	EXPECT_EQ(outError[1] * (1.0f - out[1]) * out[1], inError[1]);
-	EXPECT_EQ(outError[2] * (1.0f - out[2]) * out[2], inError[2]);
-	EXPECT_EQ(outError[3] * (1.0f - out[3]) * out[3], inError[3]);
+	EXPECT_EQ(out_err.GetReal(0, 0) * (1.0f - out_val.GetReal(0, 0)) * out_val.GetReal(0, 0), in_err.GetReal(0, 0));
+	EXPECT_EQ(out_err.GetReal(1, 0) * (1.0f - out_val.GetReal(1, 0)) * out_val.GetReal(1, 0), in_err.GetReal(1, 0));
+	EXPECT_EQ(out_err.GetReal(0, 1) * (1.0f - out_val.GetReal(0, 1)) * out_val.GetReal(0, 1), in_err.GetReal(0, 1));
+	EXPECT_EQ(out_err.GetReal(1, 1) * (1.0f - out_val.GetReal(1, 1)) * out_val.GetReal(1, 1), in_err.GetReal(1, 1));
 }
 
 
@@ -196,72 +267,128 @@ protected:
 };
 
 
+
 TEST_F(NeuralNetSoftmaxTest, testSoftmax)
 {
 	NeuralNetSoftmax<> softmax(3);
-	float in[3];
-	float out[3];
+	testSetupLayerBuffer(softmax);
 
-	in[0] = m_src(0, 0);
-	in[1] = m_src(0, 1);
-	in[2] = m_src(0, 2);
+//	float in[3];
+//	float out[3];
+//	in[0] = m_src(0, 0);
+//	in[1] = m_src(0, 1);
+//	in[2] = m_src(0, 2);
+//	softmax.SetInputValuePtr(in);
+//	softmax.SetOutputValuePtr(out);
 
-	softmax.SetInputValuePtr(in);
-	softmax.SetOutputValuePtr(out);
+	auto in_val = softmax.GetInputValueBuffer();
+	auto out_val = softmax.GetOutputValueBuffer();
+	in_val.SetReal(0, 0, m_src(0, 0));
+	in_val.SetReal(0, 1, m_src(0, 1));
+	in_val.SetReal(0, 2, m_src(0, 2));
 
 	softmax.Forward();
-	EXPECT_EQ(m_softmax(0, 0), out[0]);
-	EXPECT_EQ(m_softmax(0, 1), out[1]);
-	EXPECT_EQ(m_softmax(0, 2), out[2]);
 
-	float outError[3] = { 2, 3, 4 };
-	float inError[3];
-	softmax.SetOutputErrorPtr(outError);
-	softmax.SetInputErrorPtr(inError);
+//	EXPECT_EQ(m_softmax(0, 0), out[0]);
+//	EXPECT_EQ(m_softmax(0, 1), out[1]);
+//	EXPECT_EQ(m_softmax(0, 2), out[2]);
+	EXPECT_EQ(m_softmax(0, 0), out_val.GetReal(0, 0));
+	EXPECT_EQ(m_softmax(0, 1), out_val.GetReal(0, 1));
+	EXPECT_EQ(m_softmax(0, 2), out_val.GetReal(0, 2));
+
+//	float outError[3] = { 2, 3, 4 };
+//	float inError[3];
+//	softmax.SetOutputErrorPtr(outError);
+//	softmax.SetInputErrorPtr(inError);
+
+	auto out_err = softmax.GetOutputErrorBuffer();
+	auto in_err = softmax.GetInputErrorBuffer();
+	out_err.SetReal(0, 0, 2);
+	out_err.SetReal(0, 1, 3);
+	out_err.SetReal(0, 2, 4);
+
 	softmax.Backward();
 
-	EXPECT_EQ(2, inError[0]);
-	EXPECT_EQ(3, inError[1]);
-	EXPECT_EQ(4, inError[2]);
+//	EXPECT_EQ(2, inError[0]);
+//	EXPECT_EQ(3, inError[1]);
+//	EXPECT_EQ(4, inError[2]);
+	EXPECT_EQ(2, in_err.GetReal(0, 0));
+	EXPECT_EQ(3, in_err.GetReal(0, 1));
+	EXPECT_EQ(4, in_err.GetReal(0, 2));
 }
 
 
 TEST_F(NeuralNetSoftmaxTest, testSoftmaxBatch)
 {
 	NeuralNetSoftmax<> softmax(3, 2);
-	float in[3*2];
-	float out[3*2];
+	testSetupLayerBuffer(softmax);
 
-	in[0] = m_src(0, 0);
-	in[1] = m_src(1, 0);
-	in[2] = m_src(0, 1);
-	in[3] = m_src(1, 1);
-	in[4] = m_src(0, 2);
-	in[5] = m_src(1, 2);
+//	float in[3*2];
+//	float out[3*2];
+//	in[0] = m_src(0, 0);
+//	in[1] = m_src(1, 0);
+//	in[2] = m_src(0, 1);
+//	in[3] = m_src(1, 1);
+//	in[4] = m_src(0, 2);
+//	in[5] = m_src(1, 2);
+//	softmax.SetInputValuePtr(in);
+//	softmax.SetOutputValuePtr(out);
 
-	softmax.SetInputValuePtr(in);
-	softmax.SetOutputValuePtr(out);
+	auto in_val = softmax.GetInputValueBuffer();
+	auto out_val = softmax.GetOutputValueBuffer();
+	in_val.SetReal(0, 0, m_src(0, 0));
+	in_val.SetReal(1, 0, m_src(1, 0));
+	in_val.SetReal(0, 1, m_src(0, 1));
+	in_val.SetReal(1, 1, m_src(1, 1));
+	in_val.SetReal(0, 2, m_src(0, 2));
+	in_val.SetReal(1, 2, m_src(1, 2));
 
 	softmax.Forward();
-	EXPECT_EQ(m_softmax(0, 0), out[0]);
-	EXPECT_EQ(m_softmax(1, 0), out[1]);
-	EXPECT_EQ(m_softmax(0, 1), out[2]);
-	EXPECT_EQ(m_softmax(1, 1), out[3]);
-	EXPECT_EQ(m_softmax(0, 2), out[4]);
-	EXPECT_EQ(m_softmax(1, 2), out[5]);
 
-	float outError[3*2] = { 2, 3, 4, 5, 6, 7 };
-	float inError[3 * 2];
-	softmax.SetOutputErrorPtr(outError);
-	softmax.SetInputErrorPtr(inError);
+//	EXPECT_EQ(m_softmax(0, 0), out[0]);
+//	EXPECT_EQ(m_softmax(1, 0), out[1]);
+//	EXPECT_EQ(m_softmax(0, 1), out[2]);
+//	EXPECT_EQ(m_softmax(1, 1), out[3]);
+//	EXPECT_EQ(m_softmax(0, 2), out[4]);
+//	EXPECT_EQ(m_softmax(1, 2), out[5]);
+
+	EXPECT_EQ(m_softmax(0, 0), out_val.GetReal(0, 0));
+	EXPECT_EQ(m_softmax(1, 0), out_val.GetReal(1, 0));
+	EXPECT_EQ(m_softmax(0, 1), out_val.GetReal(0, 1));
+	EXPECT_EQ(m_softmax(1, 1), out_val.GetReal(1, 1));
+	EXPECT_EQ(m_softmax(0, 2), out_val.GetReal(0, 2));
+	EXPECT_EQ(m_softmax(1, 2), out_val.GetReal(1, 2));
+
+
+//	float outError[3*2] = { 2, 3, 4, 5, 6, 7 };
+//	float inError[3 * 2];
+//	softmax.SetOutputErrorPtr(outError);
+//	softmax.SetInputErrorPtr(inError);
+
+	auto out_err = softmax.GetOutputErrorBuffer();
+	auto in_err = softmax.GetInputErrorBuffer();
+	out_err.SetReal(0, 0, 2);
+	out_err.SetReal(1, 0, 3);
+	out_err.SetReal(0, 1, 4);
+	out_err.SetReal(1, 1, 5);
+	out_err.SetReal(0, 2, 6);
+	out_err.SetReal(1, 2, 7);
+
 	softmax.Backward();
 
-	EXPECT_EQ(2, inError[0]);
-	EXPECT_EQ(3, inError[1]);
-	EXPECT_EQ(4, inError[2]);
-	EXPECT_EQ(5, inError[3]);
-	EXPECT_EQ(6, inError[4]);
-	EXPECT_EQ(7, inError[5]);
+//	EXPECT_EQ(2, inError[0]);
+//	EXPECT_EQ(3, inError[1]);
+//	EXPECT_EQ(4, inError[2]);
+//	EXPECT_EQ(5, inError[3]);
+//	EXPECT_EQ(6, inError[4]);
+//	EXPECT_EQ(7, inError[5]);
+
+	EXPECT_EQ(2, in_err.GetReal(0, 0));
+	EXPECT_EQ(3, in_err.GetReal(1, 0));
+	EXPECT_EQ(4, in_err.GetReal(0, 1));
+	EXPECT_EQ(5, in_err.GetReal(1, 1));
+	EXPECT_EQ(6, in_err.GetReal(0, 2));
+	EXPECT_EQ(7, in_err.GetReal(1, 2));
 }
 
 
@@ -272,47 +399,78 @@ TEST(NeuralNetBinarizeTest, testNeuralNetBinarize)
 	const int frame_size = 1;
 
 	NeuralNetBinarize<> binarize(node_size, mux_size);
+	testSetupLayerBuffer(binarize);
 
 	EXPECT_EQ(1, binarize.GetInputFrameSize());
 	EXPECT_EQ(2, binarize.GetOutputFrameSize());
 
 
-	float	in[node_size];
-	__m256i out[(((frame_size * mux_size) + 255) / 256) * node_size];
+//	float	in[node_size];
+//	__m256i out[(((frame_size * mux_size) + 255) / 256) * node_size];
+//	NeuralNetBufferAccessorReal<> accReal(in, 1);
+//	NeuralNetBufferAccessorBinary<> accBin(out, 2);
+//	accReal.Set(0, 0, 0.0f);
+//	accReal.Set(0, 1, 1.0f);
+//	accReal.Set(0, 2, 0.5f);
+//	binarize.SetInputValuePtr(in);
+//	binarize.SetOutputValuePtr(out);
 
-	NeuralNetBufferAccessorReal<> accReal(in, 1);
-	NeuralNetBufferAccessorBinary<> accBin(out, 2);
+	auto in_val = binarize.GetInputValueBuffer();
+	auto out_val = binarize.GetOutputValueBuffer();
+	in_val.SetReal(0, 0, 0.0f);
+	in_val.SetReal(0, 1, 1.0f);
+	in_val.SetReal(0, 2, 0.5f);
 
-	accReal.Set(0, 0, 0.0f);
-	accReal.Set(0, 1, 1.0f);
-	accReal.Set(0, 2, 0.5f);
-	binarize.SetInputValuePtr(in);
-	binarize.SetOutputValuePtr(out);
 	binarize.Forward();
-	EXPECT_EQ(false, accBin.Get(0, 0));
-	EXPECT_EQ(false, accBin.Get(1, 0));
-	EXPECT_EQ(true, accBin.Get(0, 1));
-	EXPECT_EQ(true, accBin.Get(1, 1));
 
-	__m256i outError[(((frame_size * mux_size) + 255) / 256) * node_size];
-	float	inError[node_size];
+//	EXPECT_EQ(false, accBin.Get(0, 0));
+//	EXPECT_EQ(false, accBin.Get(1, 0));
+//	EXPECT_EQ(true, accBin.Get(0, 1));
+//	EXPECT_EQ(true, accBin.Get(1, 1));
 
-	NeuralNetBufferAccessorReal<> accRealErr(inError, 1);
-	NeuralNetBufferAccessorBinary<> accBinErr(outError, 2);
+	EXPECT_EQ(false, out_val.GetBinary(0, 0));
+	EXPECT_EQ(false, out_val.GetBinary(1, 0));
+	EXPECT_EQ(true, out_val.GetBinary(0, 1));
+	EXPECT_EQ(true, out_val.GetBinary(1, 1));
 
-	accBinErr.Set(0, 0, false);
-	accBinErr.Set(1, 0, false);
-	accBinErr.Set(0, 1, true);
-	accBinErr.Set(1, 1, true);
-	accBinErr.Set(0, 2, true);
-	accBinErr.Set(1, 2, false);
-	binarize.SetOutputErrorPtr(outError);
-	binarize.SetInputErrorPtr(inError);
+//	__m256i outError[(((frame_size * mux_size) + 255) / 256) * node_size];
+//	float	inError[node_size];
+//	NeuralNetBufferAccessorReal<> accRealErr(inError, 1);
+//	NeuralNetBufferAccessorBinary<> accBinErr(outError, 2);
+//	accBinErr.Set(0, 0, false);
+//	accBinErr.Set(1, 0, false);
+//	accBinErr.Set(0, 1, true);
+//	accBinErr.Set(1, 1, true);
+//	accBinErr.Set(0, 2, true);
+//	accBinErr.Set(1, 2, false);
+//	binarize.SetOutputErrorPtr(outError);
+//	binarize.SetInputErrorPtr(inError);
+
+	auto out_err = binarize.GetOutputErrorBuffer();
+	auto in_err = binarize.GetInputErrorBuffer();
+
+	out_err.SetBinary(0, 0, false);
+	out_err.SetBinary(1, 0, false);
+	out_err.SetBinary(0, 1, true);
+	out_err.SetBinary(1, 1, true);
+	out_err.SetBinary(0, 2, true);
+	out_err.SetBinary(1, 2, false);
+
+
 	binarize.Backward();
-	EXPECT_EQ(0.0, accRealErr.Get(0, 0));
-	EXPECT_EQ(1.0, accRealErr.Get(0, 1));
-	EXPECT_EQ(0.5, accRealErr.Get(0, 2));
+	
+//	EXPECT_EQ(0.0, accRealErr.Get(0, 0));
+//	EXPECT_EQ(1.0, accRealErr.Get(0, 1));
+//	EXPECT_EQ(0.5, accRealErr.Get(0, 2));
+
+	EXPECT_EQ(0.0f, in_err.GetReal(0, 0));
+	EXPECT_EQ(1.0f, in_err.GetReal(0, 1));
+	EXPECT_EQ(0.5f, in_err.GetReal(0, 2));
 }
+
+#if 0
+
+
 
 TEST(NeuralNetBinarizeTest, testNeuralNetBinarizeBatch)
 {

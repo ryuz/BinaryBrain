@@ -9,7 +9,6 @@
 #include <omp.h>
 #include <ppl.h>
 #include "NeuralNetLayer.h"
-#include "NeuralNetBufferAccessorBinary.h"
 #include "ShuffleSet.h"
 
 

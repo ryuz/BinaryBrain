@@ -7,7 +7,6 @@
 #include <vector>
 #include <intrin.h>
 #include "NeuralNetBinaryLut.h"
-#include "NeuralNetBufferAccessorBinary.h"
 
 
 // ”Ä—pLUT

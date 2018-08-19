@@ -54,7 +54,12 @@ public:
 		size_t type_bit_size = NeuralNet_GetTypeBitSize(data_type);
 
 		// ÉÅÉÇÉäämï€
-		m_stride = (((frame_size * type_bit_size) + 255) / 256) * 32;
+		if (data_type == NN_TYPE_BINARY) {
+			m_stride = (((frame_size * type_bit_size) + 255) / 256) * 32;
+		}
+		else {
+			m_stride = frame_size * type_bit_size / 8;
+		}
 		m_buffer = std::shared_ptr<std::uint8_t>((std::uint8_t *)_aligned_malloc(m_stride*m_node_size, 32), _aligned_free);
 	}
 	
@@ -110,16 +115,16 @@ public:
 	void SetReal(INDEX frame, INDEX node, T value)
 	{
 		switch (m_data_type) {
-		case NN_TYPE_BINARY: return Set<bool>(frame, node, value > (T)0.5);
-		case NN_TYPE_REAL32: return Set<float>(frame, node, (float)value);
+		case NN_TYPE_BINARY: Set<bool>(frame, node, value > (T)0.5);	break;
+		case NN_TYPE_REAL32: Set<float>(frame, node, (float)value);		break;
 		}
 	}
 
 	T GetReal(INDEX frame, INDEX node)
 	{
 		switch (m_data_type) {
-		case NN_TYPE_BINARY: return Get<bool>(frame, node);
-		case NN_TYPE_REAL32: return (Get<float>(frame, node) > 0.5f);
+		case NN_TYPE_BINARY: return Get<bool>(frame, node) ? (T)1.0 : (T)0.0;
+		case NN_TYPE_REAL32: return Get<float>(frame, node);
 		}
 		return 0;
 	}
@@ -127,10 +132,9 @@ public:
 	void SetBinary(INDEX frame, INDEX node, bool value)
 	{
 		switch (m_data_type) {
-		case NN_TYPE_BINARY: return Set<bool>(frame, node, value);
-		case NN_TYPE_REAL32: return Set<float>(frame, node, value ? (T)1.0, (T)0.0);
+		case NN_TYPE_BINARY: Set<bool>(frame, node, value);						break;
+		case NN_TYPE_REAL32: Set<float>(frame, node, (value ? 1.0f : 0.0f)); 	break;
 		}
-		return false;
 	}
 
 	bool GetBinary(INDEX frame, INDEX node)
