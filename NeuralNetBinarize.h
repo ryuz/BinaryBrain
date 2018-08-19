@@ -14,10 +14,10 @@ template <typename T=float, typename INDEX=size_t>
 class NeuralNetBinarize : public NeuralNetRealBinaryConverter<T, INDEX>
 {
 protected:
-	const void*	m_inputValue;
-	void*		m_outputValue;
-	void*		m_inputError;
-	const void*	m_outputError;
+//	const void*	m_inputValue;
+//	void*		m_outputValue;
+//	void*		m_inputError;
+//	const void*	m_outputError;
 
 public:
 	NeuralNetBinarize() {}
@@ -29,10 +29,10 @@ public:
 	
 	~NeuralNetBinarize() {}		// デストラクタ
 
-	void SetInputValuePtr(const void* inputValue) { m_inputValue = inputValue; }
-	void SetOutputValuePtr(void* outputValue) { m_outputValue = outputValue; }
-	void SetOutputErrorPtr(const void* outputError) { m_outputError = outputError; }
-	void SetInputErrorPtr(void* inputError) { m_inputError = inputError; }
+//	void SetInputValuePtr(const void* inputValue) { m_inputValue = inputValue; }
+//	void SetOutputValuePtr(void* outputValue) { m_outputValue = outputValue; }
+//	void SetOutputErrorPtr(const void* outputError) { m_outputError = outputError; }
+//	void SetInputErrorPtr(void* inputError) { m_inputError = inputError; }
 
 	INDEX GetInputFrameSize(void) const { return GetRealFrameSize(); }
 	INDEX GetInputNodeSize(void) const { return GetNodeSize(); }
@@ -46,12 +46,12 @@ public:
 
 	void Forward(void)
 	{
-		RealToBinary(m_inputValue, m_outputValue);
+		RealToBinary(GetInputValueBuffer().GetBufferPtr(), GetOutputValueBuffer().GetBufferPtr());
 	}
 
 	void Backward(void)
 	{
-		BinaryToReal(m_outputError, m_inputError);
+		BinaryToReal(GetOutputErrorBuffer().GetBufferPtr(), GetInputErrorBuffer().GetBufferPtr());
 	}
 
 	void Update(double learning_rate)

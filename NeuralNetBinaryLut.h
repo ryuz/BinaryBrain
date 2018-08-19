@@ -10,7 +10,6 @@
 #include <ppl.h>
 #include "NeuralNetLayer.h"
 #include "NeuralNetBufferAccessorBinary.h"
-#include "NeuralNetMatrix.h"
 #include "ShuffleSet.h"
 
 
@@ -24,10 +23,10 @@ protected:
 	INDEX					m_input_node_size;
 	INDEX					m_output_node_size;
 
-	const void*				m_inputValue;
-	void*					m_outputValue;
-	void*					m_inputError;
-	const void*				m_outputError;
+//	const void*				m_inputValue;
+//	void*					m_outputValue;
+//	void*					m_inputError;
+//	const void*				m_outputError;
 
 public:
 	// LUT操作の定義
@@ -76,10 +75,10 @@ protected:
 public:
 	void  SetBatchSize(INDEX batch_size) { m_frame_size = batch_size * m_mux_size; }
 
-	void  SetInputValuePtr(const void* inputValue) { m_inputValue = inputValue; }
-	void  SetOutputValuePtr(void* outputValue) { m_outputValue = outputValue; }
-	void  SetOutputErrorPtr(const void* outputError) { m_outputError = outputError; }
-	void  SetInputErrorPtr(void* inputError) { m_inputError = inputError; }
+//	void  SetInputValuePtr(const void* inputValue) { m_inputValue = inputValue; }
+//	void  SetOutputValuePtr(void* outputValue) { m_outputValue = outputValue; }
+//	void  SetOutputErrorPtr(const void* outputError) { m_outputError = outputError; }
+//	void  SetInputErrorPtr(void* inputError) { m_inputError = inputError; }
 
 	INDEX GetInputFrameSize(void) const { return m_frame_size; }
 	INDEX GetInputNodeSize(void) const { return m_input_node_size; }
@@ -97,19 +96,22 @@ public:
 		int   lut_input_size = GetLutInputSize();
 		concurrency::parallel_for<INDEX>(0, node_size, [&](INDEX node)
 		{
-			NeuralNetBufferAccessorBinary<float, INDEX>	acc_in((void*)m_inputValue,   m_frame_size);
-			NeuralNetBufferAccessorBinary<float, INDEX>	acc_out((void*)m_outputValue, m_frame_size);
+//			NeuralNetBufferAccessorBinary<float, INDEX>	acc_in((void*)m_inputValue,   m_frame_size);
+//			NeuralNetBufferAccessorBinary<float, INDEX>	acc_out((void*)m_outputValue, m_frame_size);
+			auto acc_in = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetInputValueAccessor());
+			auto acc_out = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetOutputValueAccessor());
+
 			for (INDEX frame = 0; frame < m_frame_size; ++frame) {
 				int bit = 0;
 				int msk = 1;
 				for (int i = 0; i < lut_input_size; i++) {
 					INDEX input_node = GetLutInput(node, i);
-					bool input_value = acc_in.Get(frame, input_node);
+					bool input_value = acc_in->Get(frame, input_node);
 					bit |= input_value ? msk : 0;
 					msk <<= 1;
 				}
 				bool output_value = GetLutTable(node, bit);
-				acc_out.Set(frame, node, output_value);
+				acc_out->Set(frame, node, output_value);
 			}
 		});
 	}
@@ -128,99 +130,101 @@ public:
 protected:
 	// feedback
 	bool								m_feedback_busy = false;
+	bool								m_feedback_phase;
 	INDEX								m_feedback_node;
 	std::vector< std::vector<int> >		m_feedback_input;
-	std::vector< std::vector<T> >		m_feedback_loss;
-	
-	bool FeedbackFirst(const std::vector<T>& loss)
+	std::vector<T>						m_feedback_loss;
+
+public:
+	bool Feedback(const std::vector<T>& loss)
 	{
-		NeuralNetBufferAccessorBinary<float, INDEX>	acc_in((void*)m_inputValue, m_frame_size);
-		NeuralNetBufferAccessorBinary<float, INDEX>	acc_out((void*)m_outputValue, m_frame_size);
+//		NeuralNetBufferAccessorBinary<float, INDEX>	acc_in((void*)m_inputValue, m_frame_size);
+//		NeuralNetBufferAccessorBinary<float, INDEX>	acc_out((void*)m_outputValue, m_frame_size);
+
+		auto acc_in  = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetInputValueAccessor());
+		auto acc_out = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetOutputValueAccessor());
 
 		INDEX node_size = GetOutputNodeSize();
 		INDEX frame_size = GetOutputFrameSize();
 		int lut_input_size = GetLutInputSize();
 		int	lut_table_size = GetLutTableSize();
 
-		m_feedback_node = 0;
-		m_feedback_input.resize(node_size);
-		m_feedback_loss.resize(node_size);
-		for (INDEX node = 0; node < node_size; ++node) {
-			m_feedback_input[node].resize(frame_size);
-			m_feedback_loss[node].resize(lut_table_size);
-			std::fill(m_feedback_loss[node].begin(), m_feedback_loss[node].end(), (T)0.0);
+		// 初回設定
+		if (!m_feedback_busy) {
+			m_feedback_busy = true;
+			m_feedback_node = 0;
+			m_feedback_phase = false;
+			m_feedback_loss.resize(lut_table_size);
 
-			for (INDEX frame = 0; frame < frame_size; ++frame) {
-				// 入力値作成
-				int value = 0;
-				int mask = 1;
-				for (int i = 0; i < lut_input_size; ++i) {
-					INDEX input_node = GetLutInput(node, i);
-					value |= (acc_in.Get(frame, input_node) ? mask : 0);
-					mask <<= 1;
+			m_feedback_input.resize(node_size);
+			for (INDEX node = 0; node < node_size; ++node) {
+				m_feedback_input[node].resize(frame_size);
+				for (INDEX frame = 0; frame < frame_size; ++frame) {
+					// 入力値作成
+					int value = 0;
+					int mask = 1;
+					for (int i = 0; i < lut_input_size; ++i) {
+						INDEX input_node = GetLutInput(node, i);
+						value |= (acc_in->Get(frame, input_node) ? mask : 0);
+						mask <<= 1;
+					}
+					m_feedback_input[node][frame] = value;
 				}
-				m_feedback_input[node][frame] = value;
-
-				// 入力の集計
-				m_feedback_loss[node][value] += loss[frame];
 			}
 		}
 
-		// 初回出力を反転
-		for (INDEX frame = 0; frame < frame_size; ++frame) {
-			acc_out.Set(frame, m_feedback_node, !acc_out.Get(frame, m_feedback_node));
-		}
-
-		return true;
-	}
-
-public:
-	bool Feedback(const std::vector<T>& loss)
-	{
-		INDEX node_size = GetOutputNodeSize();
-		INDEX frame_size = GetOutputFrameSize();
-
-		// 初回
-		if (!m_feedback_busy) {
-			m_feedback_busy = true;
-			return FeedbackFirst(loss);
-		}
-
 		// 完了
-		if ( m_feedback_node >= node_size ) {
+		if (m_feedback_node >= node_size) {
 			m_feedback_busy = false;
 			return false;
 		}
 
-		// 反転させた結果を集計
-		for (INDEX frame = 0; frame < frame_size; ++frame) {
-			int lut_input = m_feedback_input[m_feedback_node][frame];
-			m_feedback_loss[m_feedback_node][lut_input] -= loss[frame];
-		}
-
-		// 集計結果に基づいてLUTを学習
-		int	lut_table_size = GetLutTableSize();
-		for (int bit = 0; bit < lut_table_size; ++bit) {
-			if (m_feedback_loss[m_feedback_node][bit] > (T)0.0 ) {
-				SetLutTable(m_feedback_node, bit, !GetLutTable(m_feedback_node, bit));
+		if (!m_feedback_phase) {
+			// 結果を集計
+			std::fill(m_feedback_loss.begin(), m_feedback_loss.end(), (T)0.0);
+			for (INDEX frame = 0; frame < frame_size; ++frame) {
+				int lut_input = m_feedback_input[m_feedback_node][frame];
+				m_feedback_loss[lut_input] += loss[frame];
 			}
-		}
 
-		// 学習したLUTで出力を再計算
-		NeuralNetBufferAccessorBinary<float, INDEX>	acc_out((void*)m_outputValue, m_frame_size);
-		for (INDEX frame = 0; frame < frame_size; ++frame) {
-			acc_out.Set(frame, m_feedback_node, GetLutTable(m_feedback_node, m_feedback_input[m_feedback_node][frame]));
-		}
-		
-		// 次のLUTに進む
-		++m_feedback_node;
-		if (m_feedback_node < node_size) {
 			// 出力を反転
 			for (INDEX frame = 0; frame < frame_size; ++frame) {
-				acc_out.Set(frame, m_feedback_node, !acc_out.Get(frame, m_feedback_node));
+				acc_out->Set(frame, m_feedback_node, !acc_out->Get(frame, m_feedback_node));
 			}
+
+			m_feedback_phase = true;
 		}
-		
+		else {
+			// 反転させた結果を集計
+			for (INDEX frame = 0; frame < frame_size; ++frame) {
+				int lut_input = m_feedback_input[m_feedback_node][frame];
+				m_feedback_loss[lut_input] -= loss[frame];
+			}
+
+			// 集計結果に基づいてLUTを学習
+			int	lut_table_size = GetLutTableSize();
+			for (int bit = 0; bit < lut_table_size; ++bit) {
+				if (m_feedback_loss[bit] > (T)0.0) {
+					SetLutTable(m_feedback_node, bit, !GetLutTable(m_feedback_node, bit));
+				}
+			}
+
+			// 学習したLUTで出力を再計算
+			for (INDEX frame = 0; frame < frame_size; ++frame) {
+				acc_out->Set(frame, m_feedback_node, GetLutTable(m_feedback_node, m_feedback_input[m_feedback_node][frame]));
+			}
+
+			// 次のLUTに進む
+			m_feedback_phase = false;
+			++m_feedback_node;
+	//		if (m_feedback_node < node_size) {
+	//			// 出力を反転
+	//			for (INDEX frame = 0; frame < frame_size; ++frame) {
+	//				acc_out.Set(frame, m_feedback_node, !acc_out.Get(frame, m_feedback_node));
+	//			}
+	//		}
+		}
+
 		return true;	// 以降を再計算して継続
 	}
 

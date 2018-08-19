@@ -21,15 +21,31 @@ protected:
 	std::uint8_t mask_bit(INDEX frame, INDEX node) {
 		return (1 << (frame % 8));
 	}
-	
+
 public:
 	NeuralNetBufferAccessorBinary(void* buffer, INDEX frame_size)
 	{
 		m_buffer     = (std::uint8_t*)buffer;
 		m_frame_size = ((frame_size + 255) / 256) * 32;
 	}
-	
-	
+
+	NeuralNetBufferAccessorBinary(const NeuralNetBufferAccessorBinary& acc)
+	{
+		m_buffer = acc.m_buffer;
+		m_frame_size = acc.m_frame_size;
+	}
+
+	// clone
+//	NeuralNetBufferAccessorr<T, INDEX>* clone(void) const
+//	{
+//		return new NeuralNetBufferAccessorBinary<T, INDEX>(*this);
+//	}
+	virtual NeuralNetBufferAccessor<T, INDEX>* clone(void) const
+	{
+		return new NeuralNetBufferAccessorBinary<T, INDEX>(*this);
+//		return nullptr;
+	}
+
 	// native
 	void Set(INDEX frame, INDEX node, bool value)
 	{

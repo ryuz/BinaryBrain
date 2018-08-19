@@ -109,7 +109,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(OPENCV2_4_13_DIR)\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <OpenMPSupport>true</OpenMPSupport>
+      <OpenMPSupport>false</OpenMPSupport>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -178,6 +178,7 @@
     <ClInclude Include="NeuralNetBinaryLut.h" />
     <ClInclude Include="NeuralNetBinaryLut6.h" />
     <ClInclude Include="NeuralNetBinaryLutN.h" />
+    <ClInclude Include="NeuralNetBuffer.h" />
     <ClInclude Include="NeuralNetBufferAccessor.h" />
     <ClInclude Include="NeuralNetBufferAccessorBinary.h" />
     <ClInclude Include="NeuralNetBufferAccessorReal.h" />

@@ -2,10 +2,12 @@
 
 #pragma once
 
+#include "NeuralNetBufferAccessor.h"
+
 
 // NeuralNet用のバッファ
 template <typename T = float, typename INDEX = size_t>
-class NeuralNetBufferAccessorReal
+class NeuralNetBufferAccessorReal : public NeuralNetBufferAccessor<T, INDEX>
 {
 protected:
 	T*				m_buffer;
@@ -21,8 +23,19 @@ public:
 		m_buffer     = (T*)buffer;
 		m_frame_size = frame_size;
 	}
-	
-	
+
+	NeuralNetBufferAccessorReal(const NeuralNetBufferAccessorReal& acc)
+	{
+		m_buffer = acc.m_buffer;
+		m_frame_size = acc.m_frame_size;
+	}
+
+	// clone
+	NeuralNetBufferAccessor<T, INDEX>* clone(void) const
+	{
+		return new NeuralNetBufferAccessorReal<T, INDEX>(*this);
+	}
+
 	// native
 	void Set(INDEX frame, INDEX node, T value)
 	{

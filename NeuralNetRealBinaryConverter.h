@@ -59,7 +59,8 @@ public:
 			for (INDEX frame = 0; frame < m_batch_size; frame++) {
 				for (INDEX i = 0; i < m_mux_size; i++) {
 					T		realVal = accReal.Get(frame, node);
-					bool	binVal = (realVal > rand(m_mt));
+//					bool	binVal = (realVal > rand(m_mt));
+					bool	binVal = (realVal > (T)0.5);
 					accBin.Set(frame*m_mux_size + i, node, binVal);
 				}
 			}

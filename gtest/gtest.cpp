@@ -10,15 +10,24 @@
 #include "NeuralNetBinaryLutN.h"
 
 
+void testSetupLayerBuffer(NeuralNetLayer<>& net)
+{
+
+}
+
+
 TEST(NeuralNetAffineTest, testAffine)
 {
 	NeuralNetAffine<> affine(2, 3);
 
+//	float in[2] = { 1, 2 };
+//	float out[3];
+//	affine.SetInputValuePtr(in);
+//	affine.SetOutputValuePtr(out);
+
+	affine.CreateInputValueBuffer();
 	float in[2] = { 1, 2 };
 	float out[3];
-
-	affine.SetInputValuePtr(in);
-	affine.SetOutputValuePtr(out);
 
 	affine.W(0, 0) = 1;
 	affine.W(1, 0) = 2;
@@ -57,6 +66,7 @@ TEST(NeuralNetAffineTest, testAffine)
 	affine.Update(0.1);
 }
 
+#if 0
 
 TEST(NeuralNetAffineTest, testAffineBatch)
 {
@@ -618,13 +628,13 @@ TEST(NeuralNetBinaryLut6, testNeuralNetBinaryLut6Compare)
 
 TEST(NeuralNetBinaryLut, testNeuralNetBinaryLutFeedback)
 {
-	const size_t lut_input_size = 4;
+	const size_t lut_input_size = 6;
 	const size_t lut_table_size = (1 << lut_input_size);
-	const size_t mux_size   = 1;
+	const size_t mux_size   = 3;
 	const size_t batch_size = lut_table_size;
 	const size_t frame_size = mux_size * batch_size;
 	const size_t node_size = lut_table_size;
-	NeuralNetBinaryLutN<4> lut(lut_input_size, lut_table_size, mux_size, batch_size, 1);
+	NeuralNetBinaryLutN<lut_input_size> lut(lut_input_size, lut_table_size, mux_size, batch_size, 1);
 
 	__m256i in[lut_input_size];
 	__m256i out[node_size];
@@ -634,7 +644,7 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLutFeedback)
 
 	for (size_t frame = 0; frame < frame_size; frame++) {
 		for (int bit = 0; bit < lut_input_size; bit++) {
-			accIn.Set(frame, bit, (frame & (1 << bit)) != 0);
+			accIn.Set(frame, bit, (frame & ((size_t)1 << bit)) != 0);
 		}
 	}
 
@@ -652,7 +662,7 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLutFeedback)
 
 	std::vector<float> vec_loss(frame_size);
 	std::vector<float> vec_out(frame_size);
-	for (int loop = 0; loop < 10; loop++) {
+	for (int loop = 0; loop < 1; loop++) {
 		do {
 			for (int i = 0; i < lut_table_size; i++) {
 				outW[i] = out[i].m256i_u64[0];
@@ -687,3 +697,4 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLutFeedback)
 	}
 }
 
+#endif

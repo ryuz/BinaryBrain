@@ -104,8 +104,10 @@ protected:
 	inline void ForwardNode(INDEX node) {
 		INDEX frame_size = (m_frame_size + 255) / 256;
 
-		NeuralNetBufferAccessorBinary<INDEX> accIn((void *)m_inputValue, m_frame_size);
-		NeuralNetBufferAccessorBinary<INDEX> accOut((void *)m_outputValue, m_frame_size);
+	//	NeuralNetBufferAccessorBinary<INDEX> accIn((void *)m_inputValue, m_frame_size);
+	//	NeuralNetBufferAccessorBinary<INDEX> accOut((void *)m_outputValue, m_frame_size);
+		auto acc_in = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetInputValueAccessor());
+		auto acc_out = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetOutputValueAccessor());
 
 		auto& lut = m_lut[node];
 
@@ -113,13 +115,13 @@ protected:
 		__m256i*	out_ptr;
 		__m256i		in_val[6];
 
-		in_ptr[0] = accIn.GetMm256iPtr(lut.input[0]);
-		in_ptr[1] = accIn.GetMm256iPtr(lut.input[1]);
-		in_ptr[2] = accIn.GetMm256iPtr(lut.input[2]);
-		in_ptr[3] = accIn.GetMm256iPtr(lut.input[3]);
-		in_ptr[4] = accIn.GetMm256iPtr(lut.input[4]);
-		in_ptr[5] = accIn.GetMm256iPtr(lut.input[5]);
-		out_ptr = accOut.GetMm256iPtr(node);
+		in_ptr[0] = acc_in->GetMm256iPtr(lut.input[0]);
+		in_ptr[1] = acc_in->GetMm256iPtr(lut.input[1]);
+		in_ptr[2] = acc_in->GetMm256iPtr(lut.input[2]);
+		in_ptr[3] = acc_in->GetMm256iPtr(lut.input[3]);
+		in_ptr[4] = acc_in->GetMm256iPtr(lut.input[4]);
+		in_ptr[5] = acc_in->GetMm256iPtr(lut.input[5]);
+		out_ptr = acc_out->GetMm256iPtr(node);
 
 		for (int i = 0; i < frame_size; i++) {
 			// input

@@ -10,7 +10,7 @@
 #include "NeuralNetUnbinarize.h"
 #include "mnist_read.h"
 
-
+#include "NeuralNetBuffer.h"
 
 void evaluation_net(NeuralNet<>& net, std::vector< std::vector<float> >& images, std::vector<std::uint8_t>& labels);
 
@@ -22,10 +22,14 @@ void img_show(std::vector<float>& image)
 	cv::waitKey();
 }
 
+//std::unique_ptr< NeuralNetBufferAccessor<float, size_t> >	accessor;
+//std::unique_ptr< NeuralNetBufferAccessor<T, INDEX> >	accessor;
+//NeuralNetBufferAccessor<>*	accessor;
 
 int main()
 {
 	std::mt19937_64 mt(1);
+
 
 #ifdef _DEBUG
 	int train_max_size = 300;
@@ -54,19 +58,22 @@ int main()
 	net.AddLayer(&softmax1);
 #else
 	size_t mux_size = 1;
-	size_t input_node_size = 28*28;
-	size_t layer0_node_size = 360;
-	size_t layer1_node_size = 60;
-	size_t output_node_size = 10;
-	NeuralNetBinarize<>   binarize(input_node_size, mux_size);
-	NeuralNetBinaryLut6<> lut0(input_node_size, layer0_node_size, mux_size);
-	NeuralNetBinaryLut6<> lut1(layer0_node_size, layer1_node_size, mux_size);
-	NeuralNetBinaryLut6<> lut2(layer1_node_size, output_node_size, mux_size);
-	NeuralNetUnbinarize<> unbinarize(output_node_size, mux_size);
+	size_t layer0_node_size = 28*28;
+	size_t layer1_node_size = 360*6;
+	size_t layer2_node_size = 360;
+	size_t layer3_node_size = 60;
+	size_t layer4_node_size = 10;
+	NeuralNetBinarize<>   binarize(layer0_node_size, mux_size);
+	NeuralNetBinaryLut6<> lut0(layer0_node_size, layer1_node_size, mux_size);
+	NeuralNetBinaryLut6<> lut1(layer1_node_size, layer2_node_size, mux_size);
+	NeuralNetBinaryLut6<> lut2(layer2_node_size, layer3_node_size, mux_size);
+	NeuralNetBinaryLut6<> lut3(layer3_node_size, layer4_node_size, mux_size);
+	NeuralNetUnbinarize<> unbinarize(layer4_node_size, mux_size);
 	net.AddLayer(&binarize);
 	net.AddLayer(&lut0);
 	net.AddLayer(&lut1);
 	net.AddLayer(&lut2);
+	net.AddLayer(&lut3);
 	net.AddLayer(&unbinarize);
 #endif
 
@@ -76,11 +83,11 @@ int main()
 		train_index[i] = i;
 	}
 
-	size_t batch_size = 10000;
+	size_t batch_size = 1000;
 	batch_size = std::min(batch_size, train_image.size());
 	
-	for ( int loop = 0; ; ++loop) {
-		if (loop % 2 == 0) {
+	for ( int loop = 0; loop < 1000; ++loop) {
+		if (loop % 1 == 0) {
 			evaluation_net(net, test_image, test_label);
 		}
 
@@ -108,21 +115,23 @@ int main()
 		net.Update(0.2);
 #endif
 
+#if 1
 		std::vector<float> vec_loss(batch_size);
 		do {
 			for (size_t frame = 0; frame < batch_size; ++frame) {
 				auto values = net.GetOutputValue(frame);
 				vec_loss[frame] = 0;
 				for (size_t node = 0; node < values.size(); ++node) {
-					if (train_label[train_index[frame]][node] == 0.0) {
-						vec_loss[frame] += (values[node] == 0.0 ? +0.1f : -0.1f);
+					if ( train_label[train_index[frame]][node] > 0.5 ) {
+						vec_loss[frame] += (values[node] > 0.5 ? -1.00f : +1.00f);
 					}
 					else {
-						vec_loss[frame] += (values[node] == 0.0 ? -1.0f : +1.0f);
+						vec_loss[frame] += (values[node] > 0.5 ? +0.1f : -0.1f);
 					}
 				}
 			}
 		} while (net.Feedback(vec_loss));
+#endif
 
 	}
 

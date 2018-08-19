@@ -16,8 +16,12 @@ protected:
 	typedef	NeuralNetLayer<T, INDEX>	LAYER;
 
 	std::vector< LAYER* > m_layers;
-	std::vector< void* > m_values;
-	std::vector< void* > m_errors;
+//	std::vector< void* > m_values;
+//	std::vector< void* > m_errors;
+
+	std::vector< NeuralNetBuffer<T, INDEX> > m_value_buffers;
+	std::vector< NeuralNetBuffer<T, INDEX> > m_error_buffers;
+
 	LAYER*				m_firstLayer;
 	LAYER*				m_lastLayer;
 
@@ -29,7 +33,7 @@ public:
 
 	// デストラクタ
 	~NeuralNet() {
-		ClearBuffer();
+//		ClearBuffer();
 	}
 	
 	void AddLayer(LAYER* layer)
@@ -75,9 +79,12 @@ public:
 
 
 	void SetInputValue(INDEX frame, INDEX node, T value) {
-		T* buf = (T*)m_values.front();
-		INDEX stride = m_firstLayer->GetInputFrameSize();
-		buf[node*stride + frame] = value;
+//		T* buf = (T*)m_values.front();
+//		INDEX stride = m_firstLayer->GetInputFrameSize();
+//		buf[node*stride + frame] = value;
+
+		NeuralNetBufferAccessor<T, INDEX>* acc = m_firstLayer->GetInputValueBuffer().GetAccessor();
+		acc->SetReal(frame, node, value);
 	}
 
 	void SetInputValue(INDEX frame, std::vector<T> values) {
@@ -87,14 +94,17 @@ public:
 	}
 	
 	T GetOutputValue(INDEX frame, INDEX node) {
-		T* buf = (T*)m_values.back();
-		INDEX stride = m_lastLayer->GetOutputFrameSize();
-		return buf[node*stride + frame];
+//		T* buf = (T*)m_values.back();
+//		INDEX stride = m_lastLayer->GetOutputFrameSize();
+//		return buf[node*stride + frame];
+
+		NeuralNetBufferAccessor<T, INDEX>* acc = m_lastLayer->GetOutputValueBuffer().GetAccessor();
+		return acc->GetReal(frame, node);
 	}
 
 	std::vector<T> GetOutputValue(INDEX frame) {
 		std::vector<T> values(m_lastLayer->GetOutputNodeSize());
-		T* buf = (T*)m_values.back();
+//		T* buf = (T*)m_values.back();
 		for (INDEX node = 0; node < (INDEX)values.size(); ++node) {
 			values[node] = GetOutputValue(frame, node);
 		}
@@ -119,8 +129,6 @@ protected:
 public:
 	bool Feedback(std::vector<T>& loss)
 	{
-		bool first_flag = false;
-
 		if (m_feedback_layer < 0) {
 			m_feedback_layer = (int)m_layers.size() - 1;	// 初回
 		}
@@ -144,6 +152,7 @@ protected:
 		return 32 * mm256_size * node_size;
 	}
 
+	/*
 	void ClearBuffer(void) {
 		for (auto v : m_values) { if (v != nullptr) { _mm_free(v); } }
 		m_values.clear();
@@ -151,6 +160,7 @@ protected:
 		for (auto e : m_errors) { if (e != nullptr) { _mm_free(e); } }
 		m_errors.clear();
 	}
+	*/
 
 	bool SetupBuffer(void)
 	{
@@ -183,6 +193,26 @@ protected:
 		}
 
 		// メモリ再確保
+		m_value_buffers.clear();
+		m_error_buffers.clear();
+
+		// バッファ生成
+		m_value_buffers.push_back(m_firstLayer->CreateInputValueBuffer());
+		m_error_buffers.push_back(m_firstLayer->CreateInputErrorBuffer());
+		for (auto layer : m_layers) {
+			m_value_buffers.push_back(layer->CreateOutputValueBuffer());
+			m_error_buffers.push_back(layer->CreateOutputErrorBuffer());
+		}
+
+		// バッファ設定
+		for (size_t i = 0; i < m_layers.size(); ++i) {
+			m_layers[i]->SetInputValueBuffer(m_value_buffers[i]);
+			m_layers[i]->SetInputErrorBuffer(m_error_buffers[i]);
+			m_layers[i]->SetOutputValueBuffer(m_value_buffers[i + 1]);
+			m_layers[i]->SetOutputErrorBuffer(m_error_buffers[i + 1]);
+		}
+
+		/*
 		ClearBuffer();
 
 		m_values.push_back(
@@ -226,6 +256,7 @@ protected:
 			m_layers[i]->SetOutputValuePtr(m_values[i+1]);
 			m_layers[i]->SetOutputErrorPtr(m_errors[i+1]);
 		}
+		*/
 
 		return true;
 	}
