@@ -1022,7 +1022,7 @@ TEST(NeuralNetConvolutionTest, testNeuralNetConvolution)
 
 	EXPECT_EQ(exp00, out_val.GetReal(0, 0));
 	EXPECT_EQ(exp01, out_val.GetReal(0, 1));
-	EXPECT_EQ(exp10, out_val.GetReal(1, 0));
-	EXPECT_EQ(exp11, out_val.GetReal(1, 1));
+	EXPECT_EQ(exp10, out_val.GetReal(0, 2));
+	EXPECT_EQ(exp11, out_val.GetReal(0, 3));
 }
 
