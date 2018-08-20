@@ -17,16 +17,15 @@
 
 namespace bb {
 
-// NeuralNetの抽象クラス
+
+// NeuralNet 最上位構成用クラス
 template <typename T = float, typename INDEX = size_t>
 class NeuralNet
 {
 protected:
 	typedef	NeuralNetLayer<T, INDEX>	LAYER;
 
-	std::vector< LAYER* > m_layers;
-	//	std::vector< void* > m_values;
-	//	std::vector< void* > m_errors;
+	std::vector< LAYER* >	m_layers;
 
 	std::vector< NeuralNetBuffer<T, INDEX> > m_value_buffers;
 	std::vector< NeuralNetBuffer<T, INDEX> > m_error_buffers;

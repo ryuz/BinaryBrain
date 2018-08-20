@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <random>
 #include <opencv2/opencv.hpp>
 #include "bb/NeuralNet.h"
@@ -8,10 +9,12 @@
 #include "bb/NeuralNetBinarize.h"
 #include "bb/NeuralNetUnbinarize.h"
 #include "bb/NeuralNetBinaryLut6.h"
+#include "bb/NeuralNetBinaryLut6VerilogXilinx.h"
 #include "mnist_read.h"
 
 
 float evaluation_net(bb::NeuralNet<>& net, std::vector< std::vector<float> >& images, std::vector<std::uint8_t>& labels);
+
 
 void img_show(std::vector<float>& image)
 {
@@ -20,14 +23,6 @@ void img_show(std::vector<float>& image)
 	cv::imshow("img", img);
 	cv::waitKey();
 }
-
-//std::unique_ptr< NeuralNetBufferAccessor<float, size_t> >	accessor;
-//std::unique_ptr< NeuralNetBufferAccessor<T, INDEX> >	accessor;
-//NeuralNetBufferAccessor<>*	accessor;
-
-
-
-
 
 
 std::vector<float> calc_onehot_loss(std::vector<std::uint8_t> label, bb::NeuralNetBuffer<> buf, size_t mux_size)
@@ -130,8 +125,16 @@ int main()
 	for ( int loop = 0; loop < loop_num; ++loop) {
 		// äwèKèÛãµï]âø
 		if (loop % 1 == 0) {
-//			std::cout << "real : " << evaluation_net(real_net, test_image, test_label) << std::endl;
+			std::cout << "real : " << evaluation_net(real_net, test_image, test_label) << std::endl;
 			std::cout << "bin  : " << evaluation_net(bin_net_eva, test_image, test_label) << std::endl;
+		}
+
+		// test
+		{
+			std::ofstream ofs("test.v");
+			bb::NeuralNetBinaryLut6VerilogXilinx<>(ofs, bin_lut0, "layer0_lut");
+			bb::NeuralNetBinaryLut6VerilogXilinx<>(ofs, bin_lut1, "layer1_lut");
+			bb::NeuralNetBinaryLut6VerilogXilinx<>(ofs, bin_lut2, "layer2_lut");
 		}
 
 		std::shuffle(train_index.begin(), train_index.end(), mt);
@@ -147,7 +150,7 @@ int main()
 			train_label_batch.push_back(train_label_u[train_index[frame]]);
 		}
 
-#if 0
+#if 1
 		// é¿êîî≈åÎç∑ãtì`îd
 		real_net.Forward();
 		for (size_t frame = 0; frame < batch_size; ++frame) {
@@ -168,38 +171,6 @@ int main()
 		std::vector<float> vec_loss(batch_size*bin_mux_size);
 		do {
 			vec_loss = calc_onehot_loss(train_label_batch, bin_lut2.GetOutputValueBuffer(), bin_mux_size);
-
-			/*
-			auto buf = bin_lut2.GetOutputValueBuffer();
-			size_t frame_size = batch_size*bin_mux_size;
-			size_t node_size = buf.GetNodeSize();
-			for (size_t frame = 0; frame < frame_size; ++frame) {
-				vec_loss[frame] = 0;
-				for (size_t node = 0; node < node_size; ++node) {
-					if (train_label_u[train_index[frame / bin_mux_size]] == (node % 10)) {
-						vec_loss[frame] += (buf.Get<bool>(frame, node) ? -1.00f : +1.00f);
-					}
-					else {
-						vec_loss[frame] += (buf.Get<bool>(frame, node) ? +0.1f : -0.1f);
-					}
-				}
-			}
-			*/
-#if 0
-			for (size_t frame = 0; frame < batch_size*bin_mux_size; ++frame) {
-				// UnbinarizeëOÇÃíiäKÇ≈ï]âø
-				vec_loss[frame] = 0;
-				auto buf = bin_lut2.GetOutputValueBuffer();
-				for (size_t node = 0; node < buf.GetNodeSize(); ++node) {
-					if (train_label[train_index[frame / bin_mux_size]][node % 10] > 0.5) {
-						vec_loss[frame] += (buf.Get<bool>(frame, node) ? -1.00f : +1.00f);
-					}
-					else {
-						vec_loss[frame] += (buf.Get<bool>(frame, node) ? +0.1f : -0.1f);
-					}
-				}
-			}
-#endif
 		} while (bin_net.Feedback(vec_loss));
 	}
 
