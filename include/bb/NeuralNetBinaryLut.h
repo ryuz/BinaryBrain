@@ -30,11 +30,6 @@ protected:
 	INDEX					m_input_node_size;
 	INDEX					m_output_node_size;
 
-	//	const void*				m_inputValue;
-	//	void*					m_outputValue;
-	//	void*					m_inputError;
-	//	const void*				m_outputError;
-
 public:
 	// LUTëÄçÏÇÃíËã`
 	virtual int   GetLutInputSize(void) const = 0;
@@ -82,20 +77,15 @@ protected:
 public:
 	void  SetBatchSize(INDEX batch_size) { m_frame_size = batch_size * m_mux_size; }
 
-	//	void  SetInputValuePtr(const void* inputValue) { m_inputValue = inputValue; }
-	//	void  SetOutputValuePtr(void* outputValue) { m_outputValue = outputValue; }
-	//	void  SetOutputErrorPtr(const void* outputError) { m_outputError = outputError; }
-	//	void  SetInputErrorPtr(void* inputError) { m_inputError = inputError; }
-
 	INDEX GetInputFrameSize(void) const { return m_frame_size; }
 	INDEX GetInputNodeSize(void) const { return m_input_node_size; }
 	INDEX GetOutputFrameSize(void) const { return m_frame_size; }
 	INDEX GetOutputNodeSize(void) const { return m_output_node_size; }
 
-	int   GetInputValueDataType(void) const { return NN_TYPE_BINARY; }
-	int   GetInputErrorDataType(void) const { return NN_TYPE_BINARY; }
-	int   GetOutputValueDataType(void) const { return NN_TYPE_BINARY; }
-	int   GetOutputErrorDataType(void) const { return NN_TYPE_BINARY; }
+	int   GetInputValueDataType(void) const { return BB_TYPE_BINARY; }
+	int   GetInputErrorDataType(void) const { return BB_TYPE_BINARY; }
+	int   GetOutputValueDataType(void) const { return BB_TYPE_BINARY; }
+	int   GetOutputErrorDataType(void) const { return BB_TYPE_BINARY; }
 
 	void Forward(void)
 	{
@@ -103,10 +93,6 @@ public:
 		int   lut_input_size = GetLutInputSize();
 		concurrency::parallel_for<INDEX>(0, node_size, [&](INDEX node)
 		{
-			//			NeuralNetBufferAccessorBinary<float, INDEX>	acc_in((void*)m_inputValue,   m_frame_size);
-			//			NeuralNetBufferAccessorBinary<float, INDEX>	acc_out((void*)m_outputValue, m_frame_size);
-			//			auto acc_in = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetInputValueAccessor());
-			//			auto acc_out = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetOutputValueAccessor());
 			auto in_buf = GetInputValueBuffer();
 			auto out_buf = GetOutputValueBuffer();
 
@@ -127,8 +113,6 @@ public:
 
 	void Backward(void)
 	{
-
-
 	}
 
 	void Update(double learning_rate)
@@ -147,9 +131,6 @@ protected:
 public:
 	bool Feedback(const std::vector<T>& loss)
 	{
-		//		NeuralNetBufferAccessorBinary<float, INDEX>	acc_in((void*)m_inputValue, m_frame_size);
-		//		NeuralNetBufferAccessorBinary<float, INDEX>	acc_out((void*)m_outputValue, m_frame_size);
-
 		auto in_buf = GetInputValueBuffer();
 		auto out_buf = GetOutputValueBuffer();
 
@@ -226,17 +207,41 @@ public:
 			// éüÇÃLUTÇ…êiÇﬁ
 			m_feedback_phase = false;
 			++m_feedback_node;
-			//		if (m_feedback_node < node_size) {
-			//			// èoóÕÇîΩì]
-			//			for (INDEX frame = 0; frame < frame_size; ++frame) {
-			//				acc_out.Set(frame, m_feedback_node, !acc_out.Get(frame, m_feedback_node));
-			//			}
-			//		}
 		}
 
 		return true;	// à»ç~ÇçƒåvéZÇµÇƒåpë±
 	}
 
+
+public:
+	// èoóÕÇÃëπé∏ä÷êî
+	template <typename LT, int LABEL_SIZE>
+	std::vector<T> GetOutputOnehotLoss(std::vector<LT> label)
+	{
+		auto buf = GetOutputValueBuffer();
+		INDEX frame_size = GetOutputFrameSize();
+		INDEX node_size  = GetOutputNodeSize();
+
+		std::vector<T> vec_loss_x(frame_size);
+		float* vec_loss = &vec_loss_x[0];
+
+		concurrency::parallel_for<INDEX>(0, frame_size, [&](INDEX frame)
+		{
+			vec_loss[frame] = 0;
+			for (size_t node = 0; node < node_size; ++node) {
+				if (label[frame / m_mux_size] == (node % LABEL_SIZE)) {
+					vec_loss[frame] += (buf.Get<bool>(frame, node) ? (T)-1.0 : (T)+1.0);
+				}
+				else {
+					vec_loss[frame] += (buf.Get<bool>(frame, node) ? +(T)(1.0 / LABEL_SIZE) : -(T)(1.0 / LABEL_SIZE));
+				}
+			}
+		});
+
+		return vec_loss_x;
+	}
+
 };
 
 }
+

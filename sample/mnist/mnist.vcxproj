@@ -185,6 +185,7 @@
     <ClInclude Include="..\..\include\bb\NeuralNetSoftmax.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetType.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetUnbinarize.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetUtility.h" />
     <ClInclude Include="..\..\include\bb\ShuffleSet.h" />
     <ClInclude Include="mnist_read.h" />
   </ItemGroup>

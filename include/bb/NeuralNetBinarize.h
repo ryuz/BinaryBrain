@@ -38,8 +38,8 @@ public:
 
 	int   GetInputValueDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetInputErrorDataType(void) const { return NeuralNetType<T>::type; }
-	int   GetOutputValueDataType(void) const { return NN_TYPE_BINARY; }
-	int   GetOutputErrorDataType(void) const { return NN_TYPE_BINARY; }
+	int   GetOutputValueDataType(void) const { return BB_TYPE_BINARY; }
+	int   GetOutputErrorDataType(void) const { return BB_TYPE_BINARY; }
 
 	void Forward(void)
 	{

@@ -38,8 +38,8 @@ public:
 	INDEX GetOutputFrameSize(void) const { return GetRealFrameSize(); }
 	INDEX GetOutputNodeSize(void) const { return GetRealNodeSize(); }
 
-	int   GetInputValueDataType(void) const { return NN_TYPE_BINARY; }
-	int   GetInputErrorDataType(void) const { return NN_TYPE_BINARY; }
+	int   GetInputValueDataType(void) const { return BB_TYPE_BINARY; }
+	int   GetInputErrorDataType(void) const { return BB_TYPE_BINARY; }
 	int   GetOutputValueDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
 

@@ -3,6 +3,7 @@
 #include <random>
 #include <opencv2/opencv.hpp>
 #include "bb/NeuralNet.h"
+#include "bb/NeuralNetUtility.h"
 #include "bb/NeuralNetAffine.h"
 #include "bb/NeuralNetSigmoid.h"
 #include "bb/NeuralNetSoftmax.h"
@@ -168,10 +169,8 @@ int main()
 
 		// バイナリ版フィードバック
 		bin_net.Forward();
-		std::vector<float> vec_loss(batch_size*bin_mux_size);
-		do {
-			vec_loss = calc_onehot_loss(train_label_batch, bin_lut2.GetOutputValueBuffer(), bin_mux_size);
-		} while (bin_net.Feedback(vec_loss));
+		while (bin_net.Feedback(bin_lut2.GetOutputOnehotLoss<std::uint8_t, 10>(train_label_batch)))
+			;
 	}
 
 	return 0;

@@ -64,7 +64,7 @@ public:
 		size_t type_bit_size = NeuralNet_GetTypeBitSize(data_type);
 
 		// ÉÅÉÇÉäämï€
-		if (data_type == NN_TYPE_BINARY) {
+		if (data_type == BB_TYPE_BINARY) {
 			m_stride = (((frame_size * type_bit_size) + 255) / 256) * 32;
 		}
 		else {
@@ -125,16 +125,18 @@ public:
 	void SetReal(INDEX frame, INDEX node, T value)
 	{
 		switch (m_data_type) {
-		case NN_TYPE_BINARY: Set<bool>(frame, node, value > (T)0.5);	break;
-		case NN_TYPE_REAL32: Set<float>(frame, node, (float)value);		break;
+		case BB_TYPE_BINARY: Set<bool>(frame, node, value > (T)0.5);	break;
+		case BB_TYPE_REAL32: Set<float>(frame, node, (float)value);		break;
+		case BB_TYPE_REAL64: Set<double>(frame, node, (double)value);	break;
 		}
 	}
 
 	T GetReal(INDEX frame, INDEX node)
 	{
 		switch (m_data_type) {
-		case NN_TYPE_BINARY: return Get<bool>(frame, node) ? (T)1.0 : (T)0.0;
-		case NN_TYPE_REAL32: return Get<float>(frame, node);
+		case BB_TYPE_BINARY: return Get<bool>(frame, node) ? (T)1.0 : (T)0.0;
+		case BB_TYPE_REAL32: return (T)Get<float>(frame, node);
+		case BB_TYPE_REAL64: return (T)Get<double>(frame, node);
 		}
 		return 0;
 	}
@@ -142,16 +144,18 @@ public:
 	void SetBinary(INDEX frame, INDEX node, bool value)
 	{
 		switch (m_data_type) {
-		case NN_TYPE_BINARY: Set<bool>(frame, node, value);						break;
-		case NN_TYPE_REAL32: Set<float>(frame, node, (value ? 1.0f : 0.0f)); 	break;
+		case BB_TYPE_BINARY: Set<bool>(frame, node, value);						break;
+		case BB_TYPE_REAL32: Set<float>(frame, node, (value ? 1.0f : 0.0f)); 	break;
+		case BB_TYPE_REAL64: Set<double>(frame, node, (value ? 1.0 : 0.0)); 	break;
 		}
 	}
 
 	bool GetBinary(INDEX frame, INDEX node)
 	{
 		switch (m_data_type) {
-		case NN_TYPE_BINARY: return Get<bool>(frame, node);
-		case NN_TYPE_REAL32: return (Get<float>(frame, node) > 0.5f);
+		case BB_TYPE_BINARY: return Get<bool>(frame, node);
+		case BB_TYPE_REAL32: return (Get<float>(frame, node) > 0.5f);
+		case BB_TYPE_REAL64: return (Get<double>(frame, node) > 0.5);
 		}
 		return false;
 	}

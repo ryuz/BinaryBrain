@@ -74,5 +74,8 @@
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryLut6VerilogXilinx.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bb\NeuralNetUtility.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

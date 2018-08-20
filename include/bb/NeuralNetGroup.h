@@ -35,12 +35,12 @@ protected:
 
 public:
 	// コンストラクタ
-	NeuralNet()
+	NeuralNetGroup()
 	{
 	}
 
 	// デストラクタ
-	~NeuralNet() {
+	~NeuralNetGroup() {
 	}
 
 	INDEX GetInputFrameSize(void) const { return m_firstLayer->GetInputFrameSize(); }
@@ -62,7 +62,7 @@ public:
 		m_lastLayer = layer;
 	}
 
-	bool SetBatchSize(INDEX batch_size)
+	void SetBatchSize(INDEX batch_size)
 	{
 		for (auto layer : m_layers) {
 			layer->SetBatchSize(batch_size);
@@ -71,13 +71,18 @@ public:
 		return SetupBuffer();
 	}
 
-	void Forward(void)
+	virtual void Forward(INDEX start_layer)
 	{
 		INDEX layer_size = m_layers.size();
 
 		for (INDEX layer = start_layer; layer < layer_size; ++layer) {
 			m_layers[layer]->Forward();
 		}
+	}
+	
+	void Forward(void)
+	{
+		Forward(0);
 	}
 
 	void Backward(void)
@@ -113,33 +118,33 @@ public:
 
 
 protected:
-	bool SetupBuffer(void)
+	void SetupBuffer(void)
 	{
 		if (m_layers.empty()) {
 			assert(0);
-			return false;
+			return;
 		}
 
 		// 整合性確認
 		for (size_t i = 0; i < m_layers.size()-1; ++i) {
 			if (m_layers[i]->GetOutputFrameSize() != m_layers[i+1]->GetInputFrameSize()) {
 				assert(0);
-				return false;
+				return;
 			}
 			if (m_layers[i]->GetOutputNodeSize() != m_layers[i+1]->GetInputNodeSize()) {
 				std::cout << "node size mismatch" << std::endl;
 				std::cout << "layer[" << i - 1 << "] : output node = : " << m_layers[i - 1]->GetOutputNodeSize() << std::endl;
 				std::cout << "layer[" << i << "] : input node = : " << m_layers[i]->GetInputNodeSize() << std::endl;
 				assert(0);
-				return false;
+				return;
 			}
 			if (m_layers[i]->GetOutputValueDataType() != m_layers[i+1]->GetInputValueDataType()) {
 				assert(0);
-				return false;
+				return;
 			}
 			if (m_layers[i]->GetOutputErrorDataType() != m_layers[i+1]->GetInputErrorDataType()) {
 				assert(0);
-				return false;
+				return;
 			}
 		}
 
@@ -158,8 +163,6 @@ protected:
 			m_layers[i + 1]->SetInputValueBuffer(m_value_buffers[i]);
 			m_layers[i + 1]->SetInputErrorBuffer(m_error_buffers[i]);
 		}
-
-		return true;
 	}
 };
 
