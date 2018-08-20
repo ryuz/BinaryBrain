@@ -152,7 +152,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(OPENCV2_4_13_DIR)\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
@@ -179,12 +179,14 @@
     <ClInclude Include="NeuralNetBinaryLut6.h" />
     <ClInclude Include="NeuralNetBinaryLutN.h" />
     <ClInclude Include="NeuralNetBuffer.h" />
+    <ClInclude Include="NeuralNetGroup.h" />
     <ClInclude Include="NeuralNetLayer.h" />
     <ClInclude Include="NeuralNetRealBinaryConverter.h" />
     <ClInclude Include="NeuralNetSigmoid.h" />
     <ClInclude Include="NeuralNetSoftmax.h" />
     <ClInclude Include="NeuralNetType.h" />
     <ClInclude Include="NeuralNetUnbinarize.h" />
+    <ClInclude Include="ShuffleSet.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

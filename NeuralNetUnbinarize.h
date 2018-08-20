@@ -26,22 +26,17 @@ class NeuralNetUnbinarize : public NeuralNetRealBinaryConverter<T, INDEX>
 public:
 	NeuralNetUnbinarize() {}
 
-	NeuralNetUnbinarize(INDEX node_size, INDEX mux_size, INDEX batch_size = 1, std::uint64_t seed = 1)
+	NeuralNetUnbinarize(INDEX input_node_size, INDEX output_node_size, INDEX mux_size, INDEX batch_size = 1, std::uint64_t seed = 1)
 	{
-		Setup(node_size, mux_size, batch_size, seed);
+		Setup(output_node_size, input_node_size, mux_size, batch_size, seed);
 	}
 
 	~NeuralNetUnbinarize() {}		// デストラクタ
 
-//	void SetInputValuePtr(const void* inputValue) { m_inputValue = inputValue; }
-//	void SetOutputValuePtr(void* outputValue) { m_outputValue = outputValue; }
-//	void SetOutputErrorPtr(const void* outputError) { m_outputError = outputError; }
-//	void SetInputErrorPtr(void* inputError) { m_inputError = inputError; }
-
 	INDEX GetInputFrameSize(void) const { return GetBinaryFrameSize(); }
-	INDEX GetInputNodeSize(void) const { return GetNodeSize(); }
+	INDEX GetInputNodeSize(void) const { return GetBinaryNodeSize(); }
 	INDEX GetOutputFrameSize(void) const { return GetRealFrameSize(); }
-	INDEX GetOutputNodeSize(void) const { return GetNodeSize(); }
+	INDEX GetOutputNodeSize(void) const { return GetRealNodeSize(); }
 
 	int   GetInputValueDataType(void) const { return NN_TYPE_BINARY; }
 	int   GetInputErrorDataType(void) const { return NN_TYPE_BINARY; }

@@ -14,9 +14,11 @@
 #include <Eigen/Core>
 #include "NeuralNetLayer.h"
 
+
 namespace bb {
 
-// NeuralNetの抽象クラス
+
+// Affineレイヤー
 template <typename T = float, typename INDEX = size_t>
 class NeuralNetAffine : public NeuralNetLayer<T, INDEX>
 {
@@ -27,11 +29,6 @@ protected:
 	INDEX		m_frame_size;
 	INDEX		m_input_size;
 	INDEX		m_output_size;
-
-	//	const T*	m_inputValue;
-	//	T*			m_outputValue;
-	//	T*			m_inputError;
-	//	const T*	m_outputError;
 
 	Matrix		m_W;
 	Vector		m_b;
@@ -59,13 +56,6 @@ public:
 		m_db = Vector::Zero(output_size);
 	}
 
-	void  SetBatchSize(INDEX batch_size) { m_frame_size = batch_size; }
-
-	//	void  SetInputValuePtr(const void* inputValue) { m_inputValue = (const T *)inputValue; }
-	//	void  SetOutputValuePtr(void* outputValue) { m_outputValue = (T *)outputValue; }
-	//	void  SetOutputErrorPtr(const void* outputError) { m_outputError = (const T *)outputError; }
-	//	void  SetInputErrorPtr(void* inputError) { m_inputError = (T *)inputError; }
-
 	INDEX GetInputFrameSize(void) const { return m_frame_size; }
 	INDEX GetInputNodeSize(void) const { return m_input_size; }
 	INDEX GetOutputFrameSize(void) const { return m_frame_size; }
@@ -80,6 +70,11 @@ public:
 	T& b(INDEX output) { return m_b(output); }
 	T& dW(INDEX input, INDEX output) { return m_dW(input, output); }
 	T& db(INDEX output) { return m_db(output); }
+
+	void  SetBatchSize(INDEX batch_size)
+	{
+		m_frame_size = batch_size;
+	}
 
 	void Forward(void)
 	{

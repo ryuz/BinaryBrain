@@ -1,3 +1,10 @@
+// --------------------------------------------------------------------------
+//  Binary Brain  -- binary neural net framework
+//
+//                                     Copyright (C) 2018 by Ryuji Fuchikami
+//                                     https://github.com/ryuz
+//                                     ryuji.fuchikami@nifty.com
+// --------------------------------------------------------------------------
 
 
 #pragma once
@@ -8,18 +15,20 @@
 #include <algorithm>
 
 
+namespace bb {
+
 class ShuffleSet
 {
 public:
 	ShuffleSet()
 	{
 	}
-	
+
 	ShuffleSet(size_t size, std::uint64_t seed = 1)
 	{
 		Setup(size, seed);
 	}
-	
+
 	void Setup(size_t size, std::uint64_t seed = 1)
 	{
 		// èâä˙âª
@@ -67,9 +76,10 @@ public:
 	}
 
 protected:
-	std::mt19937_64		m_mt;	
+	std::mt19937_64		m_mt;
 	std::list<size_t>	m_heap;
 	std::list<size_t>	m_reserve;
 };
 
 
+}
