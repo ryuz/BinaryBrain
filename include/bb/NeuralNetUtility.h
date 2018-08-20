@@ -22,13 +22,13 @@ INDEX argmax(std::vector<T> vec)
 
 // ラベル値をワンホットデータに変換
 template <typename LT, typename T=float>
-std::vector< std::vector<T> > LabelToOnehot(const std::vector<LT>& label, LT label_size, T f_val = (T)0.0, T t_val = (T)1.0)
+std::vector< std::vector<T> > LabelToOnehot(const std::vector<LT>& labels, LT label_size, T f_val = (T)0.0, T t_val = (T)1.0)
 {
-	std::vector < std::vector<T> >	onehot(label.size());
-	for (size_t i = 0; i < label.size(); ++i) {
+	std::vector < std::vector<T> >	onehot(labels.size());
+	for (size_t i = 0; i < labels.size(); ++i) {
 		onehot[i].resize(label_size);
 		for (size_t j = 0; j < label_size; ++j) {
-			onehot[i][j] = (j == label[i]) ? f_val : t_val;
+			onehot[i][j] = (j == labels[i]) ? t_val : f_val;
 		}
 	}
 

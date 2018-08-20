@@ -25,7 +25,7 @@ void img_show(std::vector<float>& image)
 	cv::waitKey();
 }
 
-
+/*
 std::vector<float> calc_onehot_loss(std::vector<std::uint8_t> label, bb::NeuralNetBuffer<> buf, size_t mux_size)
 {
 	int  frame_size = (int)buf.GetFrameSize();
@@ -49,6 +49,7 @@ std::vector<float> calc_onehot_loss(std::vector<std::uint8_t> label, bb::NeuralN
 
 	return vec_loss_x;
 }
+*/
 
 
 int main()
@@ -70,13 +71,14 @@ int main()
 
 
 	// MNISTデータ読み込み
-	auto train_image = mnist_read_images_real<float>("train-images-idx3-ubyte", train_max_size);
-	auto train_label = mnist_read_labels_real<float, 10>("train-labels-idx1-ubyte", train_max_size);
-	auto train_label_u = mnist_read_labels("train-labels-idx1-ubyte", train_max_size);
-	
-	auto test_image = mnist_read_images_real<float>("t10k-images-idx3-ubyte", test_max_size);
-	auto test_label = mnist_read_labels("t10k-labels-idx1-ubyte", test_max_size);
+	auto train_images = mnist_read_images_real<float>("train-images-idx3-ubyte", train_max_size);
+	auto train_labels = mnist_read_labels("train-labels-idx1-ubyte", train_max_size);
+	auto test_images = mnist_read_images_real<float>("t10k-images-idx3-ubyte", test_max_size);
+	auto test_labels = mnist_read_labels("t10k-labels-idx1-ubyte", test_max_size);
 
+//	auto train_onehot = mnist_read_labels_real<float, 10>("train-labels-idx1-ubyte", train_max_size);
+	auto train_onehot = bb::LabelToOnehot<std::uint8_t, float>(train_labels, 10);
+	
 
 	// 実数版NET構築
 	bb::NeuralNet<> real_net;
@@ -117,17 +119,17 @@ int main()
 	bin_net_eva.AddLayer(&bin_unbinarize);
 
 	// インデックス作成
-	std::vector<size_t> train_index(train_image.size());
+	std::vector<size_t> train_index(train_images.size());
 	for (size_t i = 0; i < train_index.size(); ++i) {
 		train_index[i] = i;
 	}
 
-	batch_size = std::min(batch_size, train_image.size());	
+	batch_size = std::min(batch_size, train_images.size());
 	for ( int loop = 0; loop < loop_num; ++loop) {
 		// 学習状況評価
 		if (loop % 1 == 0) {
-			std::cout << "real : " << evaluation_net(real_net, test_image, test_label) << std::endl;
-			std::cout << "bin  : " << evaluation_net(bin_net_eva, test_image, test_label) << std::endl;
+			std::cout << "real : " << evaluation_net(real_net, test_images, test_labels) << std::endl;
+			std::cout << "bin  : " << evaluation_net(bin_net_eva, test_images, test_labels) << std::endl;
 		}
 
 		// test
@@ -145,10 +147,10 @@ int main()
 
 		std::vector<std::uint8_t> train_label_batch;
 		for (size_t frame = 0; frame < batch_size; ++frame) {
-			real_net.SetInputValue(frame, train_image[train_index[frame]]);
-			bin_net.SetInputValue(frame, train_image[train_index[frame]]);
+			real_net.SetInputValue(frame, train_images[train_index[frame]]);
+			bin_net.SetInputValue(frame, train_images[train_index[frame]]);
 
-			train_label_batch.push_back(train_label_u[train_index[frame]]);
+			train_label_batch.push_back(train_labels[train_index[frame]]);
 		}
 
 #if 1
@@ -158,7 +160,7 @@ int main()
 			auto values = real_net.GetOutputValue(frame);
 
 			for (size_t node = 0; node < values.size(); ++node) {
-				values[node] -= train_label[train_index[frame]][node];
+				values[node] -= train_onehot[train_index[frame]][node];
 				values[node] /= (float)batch_size;
 			}
 			real_net.SetOutputError(frame, values);
@@ -167,16 +169,19 @@ int main()
 		real_net.Update(0.2);
 #endif		
 
+#if 0
 		// バイナリ版フィードバック
 		bin_net.Forward();
 		while (bin_net.Feedback(bin_lut2.GetOutputOnehotLoss<std::uint8_t, 10>(train_label_batch)))
 			;
+#endif
 	}
 
 	return 0;
 }
 
 
+// テスト用の画像で正解率を評価
 float evaluation_net(bb::NeuralNet<>& net, std::vector< std::vector<float> >& images, std::vector<std::uint8_t>& labels)
 {
 	// 評価サイズ設定

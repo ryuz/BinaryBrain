@@ -64,30 +64,37 @@ public:
 		size_t type_bit_size = NeuralNet_GetTypeBitSize(data_type);
 
 		// ÉÅÉÇÉäämï€
+#if 0
 		if (data_type == BB_TYPE_BINARY) {
 			m_stride = (((frame_size * type_bit_size) + 255) / 256) * 32;
 		}
 		else {
 			m_stride = frame_size * type_bit_size / 8;
 		}
+#else		
+		m_stride = (((frame_size * type_bit_size) + 255) / 256) * 32;
+#endif
 		m_buffer = std::shared_ptr<std::uint8_t>((std::uint8_t *)_aligned_malloc(m_stride*m_node_size, 32), _aligned_free);
+		memset(m_buffer.get(), 0, m_stride*m_node_size);
 	}
-
+	
 	INDEX GetFrameSize(void) { return m_frame_size; }
 	INDEX GetNodeSize(void) { return m_node_size; }
 	INDEX GetTypeBitSize(void) { return m_type_bit_size; }
-
+	
+	INDEX GetStride(void) { return m_stride; }
+	
 	void* GetBuffer(void)
 	{
 		return m_buffer.get();
 	}
-
+	
 	template <typename Tp>
 	inline Tp* GetPtr(INDEX node)
 	{
 		return (Tp*)(&m_buffer.get()[m_stride * node]);
 	}
-
+	
 	template <typename Tp>
 	inline void Set(INDEX frame, INDEX node, Tp value)
 	{
