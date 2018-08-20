@@ -1,3 +1,10 @@
+// --------------------------------------------------------------------------
+//  Binary Brain  -- binary neural net framework
+//
+//                                     Copyright (C) 2018 by Ryuji Fuchikami
+//                                     https://github.com/ryuz
+//                                     ryuji.fuchikami@nifty.com
+// --------------------------------------------------------------------------
 
 
 #pragma once
@@ -8,19 +15,21 @@
 #include <algorithm>
 
 
+namespace bb {
+
 class ShuffleSet
 {
 public:
 	ShuffleSet()
 	{
 	}
-	
-	ShuffleSet(int size, std::uint64_t seed = 1)
+
+	ShuffleSet(size_t size, std::uint64_t seed = 1)
 	{
 		Setup(size, seed);
 	}
-	
-	void Setup(int size, std::uint64_t seed = 1)
+
+	void Setup(size_t size, std::uint64_t seed = 1)
 	{
 		// 初期化
 		m_mt.seed(seed);
@@ -28,8 +37,8 @@ public:
 		m_reserve.clear();
 
 		// シャッフル
-		std::vector<int> heap(size);
-		for (int i = 0; i < size; i++) {
+		std::vector<size_t> heap(size);
+		for (size_t i = 0; i < size; i++) {
 			heap[i] = i;
 		}
 		std::shuffle(heap.begin(), heap.end(), m_mt);
@@ -38,15 +47,15 @@ public:
 		m_heap.assign(heap.begin(), heap.end());
 	}
 
-	std::vector<int> GetSet(int n)
+	std::vector<size_t> GetRandomSet(size_t n)
 	{
-		std::vector<int>	set;
+		std::vector<size_t>	set;
 
 		// 指定個数取り出す
 		for (int i = 0; i < n; i++) {
 			if (m_heap.empty()) {
 				// 一通り割り当てたら利用済みを再利用
-				std::vector<int> heap(m_reserve.size());
+				std::vector<size_t> heap(m_reserve.size());
 				heap.assign(m_reserve.begin(), m_reserve.end());
 				std::shuffle(heap.begin(), heap.end(), m_mt);
 				m_heap.assign(heap.begin(), heap.end());
@@ -67,9 +76,10 @@ public:
 	}
 
 protected:
-	std::mt19937_64	m_mt;	
-	std::list<int>	m_heap;
-	std::list<int>	m_reserve;
+	std::mt19937_64		m_mt;
+	std::list<size_t>	m_heap;
+	std::list<size_t>	m_reserve;
 };
 
 
+}

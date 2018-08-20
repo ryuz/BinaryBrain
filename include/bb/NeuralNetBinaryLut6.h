@@ -1,3 +1,10 @@
+// --------------------------------------------------------------------------
+//  Binary Brain  -- binary neural net framework
+//
+//                                     Copyright (C) 2018 by Ryuji Fuchikami
+//                                     https://github.com/ryuz
+//                                     ryuji.fuchikami@nifty.com
+// --------------------------------------------------------------------------
 
 
 
@@ -6,52 +13,88 @@
 #include <array>
 #include <vector>
 #include <intrin.h>
-#include "BinaryNetBatch.h"
+#include "NeuralNetBinaryLut.h"
 
 
-// 6入力LUT固定(バッチ版)、データビット配置 AVX2命令利用版
-class Lut6NetBatchAvx2Bit : public BinaryNetBatch
+namespace bb {
+
+
+// 6入力LUT固定
+template <typename T = float, typename INDEX = size_t>
+class NeuralNetBinaryLut6 : public NeuralNetBinaryLut<T, INDEX>
 {
 protected:
 	struct LutNode {
-		std::int8_t					table[64];
-		std::array< int, 6 >		input;
+		std::int8_t				table[64];
+		std::array< INDEX, 6 >	input;
 	};
 
-	int										m_batch_size_raw = 0;
-	int										m_batch_size     = 0;
-	std::vector< std::vector<LutNode> >		m_lut;
-	std::vector<__m256i*>					m_value;
+	std::vector<LutNode>	m_lut;
 
-	
-	inline void set_val(int frame, int layer, int node, bool val)
+public:
+	NeuralNetBinaryLut6() {}
+
+	NeuralNetBinaryLut6(INDEX input_node_size, INDEX output_node_size, INDEX mux_size, INDEX batch_size = 1, std::uint64_t seed = 1)
 	{
-		auto ptr = (std::int8_t*)m_value[layer];
-		int bit = (1 << (frame % 8));
-		if (val) {
-			ptr[node * (m_batch_size * 32) + (frame / 8)] |= bit;
-		}
-		else {
-			ptr[node * (m_batch_size * 32) + (frame / 8)] &= ~bit;
-		}
+		Setup(input_node_size, output_node_size, mux_size, batch_size, seed);
 	}
 
-	inline bool get_val(int frame, int layer, int node) const
+	~NeuralNetBinaryLut6() {}		// デストラクタ
+
+	int   GetLutInputSize(void) const { return 6; }
+	int   GetLutTableSize(void) const { return (1 << 6); }
+	void  SetLutInput(INDEX node, int input_index, INDEX input_node) { m_lut[node].input[input_index] = input_node; }
+	INDEX GetLutInput(INDEX node, int input_index) const { return m_lut[node].input[input_index]; };
+	void  SetLutTable(INDEX node, int bit, bool value) { m_lut[node].table[bit] = value ? -1 : 0; }
+	bool  GetLutTable(INDEX node, int bit) const { return (m_lut[node].table[bit] != 0); }
+
+	void Setup(INDEX input_node_size, INDEX output_node_size, INDEX mux_size, INDEX batch_size = 1, std::uint64_t seed = 1)
 	{
-		auto ptr = (std::int8_t*)m_value[layer];
-		int bit = (1 << (frame % 8));
-		return ((ptr[node * (m_batch_size * 32) + (frame / 8)] & bit) != 0);
+		SetupBase(input_node_size, output_node_size, mux_size, batch_size, seed);
+		m_lut.resize(m_output_node_size);
+		InitializeLut(seed);
 	}
 
+
+protected:
+	inline __m256i my_andnot_si256(__m256i& val, __m256i& lut)
+	{
+#ifdef __AVX2__
+		return _mm256_andnot_si256(val, lut);
+#else
+		__m256 res = _mm256_andnot_ps(*(__m256 *)&val, *(__m256 *)&lut);
+		return *(__m256i *)&res;
+#endif
+	}
+
+	inline __m256i my_and_si256(__m256i& val, __m256i& lut)
+	{
+#ifdef __AVX2__
+		return _mm256_and_si256(val, lut);
+#else
+		__m256 res = _mm256_and_ps(*(__m256 *)&val, *(__m256 *)&lut);
+		return *(__m256i *)&res;
+#endif
+	}
+
+	inline __m256i my_or_si256(__m256i& val, __m256i& lut)
+	{
+#ifdef __AVX2__
+		return _mm256_or_si256(val, lut);
+#else
+		__m256 res = _mm256_or_ps(*(__m256 *)&val, *(__m256 *)&lut);
+		return *(__m256i *)&res;
+#endif
+	}
 
 	template<int LUT, int VAL>
 	inline __m256i lut_mask_unit(__m256i& val, __m256i& lut)
 	{
-		if ((LUT & (1 << VAL)) == 0 ) {
-			return _mm256_andnot_si256(val, lut);
+		if ((LUT & (1 << VAL)) == 0) {
+			return my_andnot_si256(val, lut);
 		}
 		else {
-			return _mm256_and_si256(val, lut);
+			return my_and_si256(val, lut);
 		}
 	}
 
@@ -64,25 +107,34 @@ protected:
 		lut = lut_mask_unit<LUT, 3>(val[3], lut);
 		lut = lut_mask_unit<LUT, 4>(val[4], lut);
 		lut = lut_mask_unit<LUT, 5>(val[5], lut);
-		msk = _mm256_or_si256(msk, lut);
+		msk = my_or_si256(msk, lut);
 	}
 
-	inline void CalcForwardUnit(int layer, int node) {
-		auto& lut = m_lut[layer][node];
+	inline void ForwardNode(INDEX node) {
+		INDEX frame_size = (m_frame_size + 255) / 256;
+
+		//	NeuralNetBufferAccessorBinary<INDEX> accIn((void *)m_inputValue, m_frame_size);
+		//	NeuralNetBufferAccessorBinary<INDEX> accOut((void *)m_outputValue, m_frame_size);
+	//		auto acc_in = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetInputValueAccessor());
+	//		auto acc_out = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetOutputValueAccessor());
+		auto in_buf = GetInputValueBuffer();
+		auto out_buf = GetOutputValueBuffer();
+
+		auto& lut = m_lut[node];
 
 		__m256i*	in_ptr[6];
 		__m256i*	out_ptr;
 		__m256i		in_val[6];
 
-		in_ptr[0] = &m_value[layer - 1][lut.input[0] * m_batch_size];
-		in_ptr[1] = &m_value[layer - 1][lut.input[1] * m_batch_size];
-		in_ptr[2] = &m_value[layer - 1][lut.input[2] * m_batch_size];
-		in_ptr[3] = &m_value[layer - 1][lut.input[3] * m_batch_size];
-		in_ptr[4] = &m_value[layer - 1][lut.input[4] * m_batch_size];
-		in_ptr[5] = &m_value[layer - 1][lut.input[5] * m_batch_size];
-		out_ptr = &m_value[layer][node * m_batch_size];
-		
-		for (int i = 0; i < m_batch_size; i++) {
+		in_ptr[0] = in_buf.GetPtr<__m256i>(lut.input[0]);
+		in_ptr[1] = in_buf.GetPtr<__m256i>(lut.input[1]);
+		in_ptr[2] = in_buf.GetPtr<__m256i>(lut.input[2]);
+		in_ptr[3] = in_buf.GetPtr<__m256i>(lut.input[3]);
+		in_ptr[4] = in_buf.GetPtr<__m256i>(lut.input[4]);
+		in_ptr[5] = in_buf.GetPtr<__m256i>(lut.input[5]);
+		out_ptr = out_buf.GetPtr<__m256i>(node);
+
+		for (int i = 0; i < frame_size; i++) {
 			// input
 			in_val[0] = _mm256_loadu_si256(&in_ptr[0][i]);
 			in_val[1] = _mm256_loadu_si256(&in_ptr[1][i]);
@@ -162,123 +214,25 @@ protected:
 		}
 	}
 
-
 public:
-	Lut6NetBatchAvx2Bit()
+	void Forward(void)
 	{
-	}
-
-	Lut6NetBatchAvx2Bit(std::vector<int> vec_layer_size)
-	{
-		Setup(vec_layer_size);
-	}
-
-	~Lut6NetBatchAvx2Bit()
-	{
-		for (__m256i* v : m_value) {
-			_mm_free(v);
-		}
-	}
-
-	void Setup(std::vector<int> vec_layer_size)
-	{
-		int layer_num = (int)vec_layer_size.size();
-		m_lut.resize(layer_num);
-		for (int i = 0; i < layer_num; i++) {
-			m_lut[i].resize(vec_layer_size[i]);
-		}
-	}
-	
-	int  GetLayerNum(void) const
-	{
-		return (int)m_lut.size();
-	}
-
-	int  GetNodeNum(int layer) const
-	{
-		return (int)m_lut[layer].size();
-	}
-
-	int  GetInputNum(int layer, int node) const
-	{
-		return 6;
-	}
-
-	void SetConnection(int layer, int node, int input_index, int input_node)
-	{
-		m_lut[layer][node].input[input_index] = input_node;
-	}
-
-	int GetConnection(int layer, int node, int input_index) const
-	{
-		return m_lut[layer][node].input[input_index];
-	}
-	
-	void SetLutBit(int layer, int node, int bit, bool value)
-	{
-		m_lut[layer][node].table[bit] = value ? -1 : 0;
-	}
-
-	bool GetLutBit(int layer, int node, int bit) const
-	{
-		return (m_lut[layer][node].table[bit] != 0);
-	}
-
-	void SetBatchSize(int batch_size)
-	{
-		// 既存メモリ開放
-		for (__m256i* v : m_value) {
-			_mm_free(v);
-		}
-
-		// メモリ確保
-		m_batch_size_raw = batch_size;
-		m_batch_size = (batch_size + 255) / 256;
-
-		int layer_num = GetLayerNum();
-		m_value.resize(layer_num);
-		for (int layer = 0; layer < layer_num; layer++) {
-			int node_num = GetNodeNum(layer);
-			m_value[layer] = (__m256i*)_mm_malloc(sizeof(__m256i) * node_num * m_batch_size, 32);
-		}
-	}
-	
-	int  GetBatchSize(void)
-	{
-		return m_batch_size_raw;
-	}
-
-	bool GetValue(int frame, int layer, int node) const
-	{
-		return get_val(frame, layer, node);
-	}
-	
-	void SetValue(int frame, int layer, int node, bool value)
-	{
-		set_val(frame, layer, node, value);
-	}
-
-	bool GetInputValue(int frame, int layer, int node, int index) const
-	{
-		return get_val(frame, layer - 1, m_lut[layer][node].input[index]);
-	}
-
-	void CalcForward(int start_layer = 0)
-	{
-		int layer_num = GetLayerNum();
-		for (int layer = start_layer + 1; layer < layer_num; layer++) {
-			int node_num = GetNodeNum(layer);
+		int node_size = (int)m_output_node_size;
 #pragma omp parallel for
-			for (int node = 0; node < node_num; node++) {
-				CalcForwardUnit(layer, node);
-			}
+		for (int node = 0; node < node_size; ++node) {
+			ForwardNode(node);
 		}
 	}
 
-	void CalcForwardNode(int layer, int node)
+	void Backward(void)
 	{
-		CalcForwardUnit(layer, node);
+	}
+
+	void Update(double learning_rate)
+	{
 	}
 
 };
 
+
+}
