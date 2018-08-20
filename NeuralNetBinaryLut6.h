@@ -1,3 +1,10 @@
+// --------------------------------------------------------------------------
+//  Binary Brain  -- binary neural net framework
+//
+//                                     Copyright (C) 2018 by Ryuji Fuchikami
+//                                     https://github.com/ryuz
+//                                     ryuji.fuchikami@nifty.com
+// --------------------------------------------------------------------------
 
 
 
@@ -9,8 +16,11 @@
 #include "NeuralNetBinaryLut.h"
 
 
+namespace bb {
+
+
 // 6“ü—ÍLUTŒÅ’è
-template <typename T=float, typename INDEX = size_t>
+template <typename T = float, typename INDEX = size_t>
 class NeuralNetBinaryLut6 : public NeuralNetBinaryLut<T, INDEX>
 {
 protected:
@@ -103,10 +113,10 @@ protected:
 	inline void ForwardNode(INDEX node) {
 		INDEX frame_size = (m_frame_size + 255) / 256;
 
-	//	NeuralNetBufferAccessorBinary<INDEX> accIn((void *)m_inputValue, m_frame_size);
-	//	NeuralNetBufferAccessorBinary<INDEX> accOut((void *)m_outputValue, m_frame_size);
-//		auto acc_in = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetInputValueAccessor());
-//		auto acc_out = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetOutputValueAccessor());
+		//	NeuralNetBufferAccessorBinary<INDEX> accIn((void *)m_inputValue, m_frame_size);
+		//	NeuralNetBufferAccessorBinary<INDEX> accOut((void *)m_outputValue, m_frame_size);
+	//		auto acc_in = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetInputValueAccessor());
+	//		auto acc_out = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetOutputValueAccessor());
 		auto in_buf = GetInputValueBuffer();
 		auto out_buf = GetOutputValueBuffer();
 
@@ -122,7 +132,7 @@ protected:
 		in_ptr[3] = in_buf.GetPtr<__m256i>(lut.input[3]);
 		in_ptr[4] = in_buf.GetPtr<__m256i>(lut.input[4]);
 		in_ptr[5] = in_buf.GetPtr<__m256i>(lut.input[5]);
-		out_ptr   = out_buf.GetPtr<__m256i>(node);
+		out_ptr = out_buf.GetPtr<__m256i>(node);
 
 		for (int i = 0; i < frame_size; i++) {
 			// input
@@ -223,3 +233,6 @@ public:
 	}
 
 };
+
+
+}

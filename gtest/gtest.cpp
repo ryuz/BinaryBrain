@@ -10,7 +10,8 @@
 #include "NeuralNetBinaryLutN.h"
 
 
-void testSetupLayerBuffer(NeuralNetLayer<>& net)
+
+void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 {
 	net.SetInputValueBuffer (net.CreateInputValueBuffer());
 	net.SetInputErrorBuffer (net.CreateInputErrorBuffer());
@@ -21,7 +22,7 @@ void testSetupLayerBuffer(NeuralNetLayer<>& net)
 
 TEST(NeuralNetAffineTest, testAffine)
 {
-	NeuralNetAffine<> affine(2, 3);
+	bb::NeuralNetAffine<> affine(2, 3);
 	testSetupLayerBuffer(affine);
 
 //	float in[2] = { 1, 2 };
@@ -84,7 +85,7 @@ TEST(NeuralNetAffineTest, testAffine)
 
 TEST(NeuralNetAffineTest, testAffineBatch)
 {
-	NeuralNetAffine<> affine(2, 3, 2);
+	bb::NeuralNetAffine<> affine(2, 3, 2);
 	testSetupLayerBuffer(affine);
 
 //	float in[2*2] = { 1, 3, 2, 4 };
@@ -148,7 +149,7 @@ TEST(NeuralNetAffineTest, testAffineBatch)
 
 TEST(NeuralNetSigmoidTest, testSigmoid)
 {
-	NeuralNetSigmoid<> sigmoid(2);
+	bb::NeuralNetSigmoid<> sigmoid(2);
 	testSetupLayerBuffer(sigmoid);
 
 //	float in[2] = { 1, 2};
@@ -188,7 +189,7 @@ TEST(NeuralNetSigmoidTest, testSigmoid)
 
 TEST(NeuralNetSigmoidTest, testSigmoidBatch)
 {
-	NeuralNetSigmoid<> sigmoid(2, 2);
+	bb::NeuralNetSigmoid<> sigmoid(2, 2);
 	testSetupLayerBuffer(sigmoid);
 
 //	float in[2*2] = { 1, 2, 3, 4 };
@@ -270,7 +271,7 @@ protected:
 
 TEST_F(NeuralNetSoftmaxTest, testSoftmax)
 {
-	NeuralNetSoftmax<> softmax(3);
+	bb::NeuralNetSoftmax<> softmax(3);
 	testSetupLayerBuffer(softmax);
 
 //	float in[3];
@@ -320,7 +321,7 @@ TEST_F(NeuralNetSoftmaxTest, testSoftmax)
 
 TEST_F(NeuralNetSoftmaxTest, testSoftmaxBatch)
 {
-	NeuralNetSoftmax<> softmax(3, 2);
+	bb::NeuralNetSoftmax<> softmax(3, 2);
 	testSetupLayerBuffer(softmax);
 
 //	float in[3*2];
@@ -398,7 +399,7 @@ TEST(NeuralNetBinarizeTest, testNeuralNetBinarize)
 	const int mux_size = 2;
 	const int frame_size = 1;
 
-	NeuralNetBinarize<> binarize(node_size, mux_size);
+	bb::NeuralNetBinarize<> binarize(node_size, mux_size);
 	testSetupLayerBuffer(binarize);
 
 	EXPECT_EQ(1, binarize.GetInputFrameSize());
@@ -465,11 +466,8 @@ TEST(NeuralNetBinarizeTest, testNeuralNetBinarize)
 
 	EXPECT_EQ(0.0f, in_err.GetReal(0, 0));
 	EXPECT_EQ(1.0f, in_err.GetReal(0, 1));
-	EXPECT_EQ(0.5f, in_err.GetReal(0, 2));
+	EXPECT_EQ(0.5f, in_err.Get<float>(0, 2));
 }
-
-#if 0
-
 
 
 TEST(NeuralNetBinarizeTest, testNeuralNetBinarizeBatch)
@@ -478,67 +476,102 @@ TEST(NeuralNetBinarizeTest, testNeuralNetBinarizeBatch)
 	const int mux_size = 2;
 	const int batch_size = 2;
 
-	NeuralNetBinarize<> binarize(node_size, mux_size, batch_size);
+	bb::NeuralNetBinarize<> binarize(node_size, mux_size, batch_size);
+	testSetupLayerBuffer(binarize);
 
 	EXPECT_EQ(batch_size, binarize.GetInputFrameSize());
 	EXPECT_EQ(batch_size*mux_size, binarize.GetOutputFrameSize());
 
+//	float	in[batch_size*node_size];
+//	__m256i out[(((batch_size * mux_size) + 255) / 256) * node_size];
+//	NeuralNetBufferAccessorReal<> accReal(in, batch_size);
+//	NeuralNetBufferAccessorBinary<> accBin(out, batch_size*mux_size);
+//	accReal.Set(0, 0, 0.0f);
+//	accReal.Set(0, 1, 1.0f);
+//	accReal.Set(0, 2, 0.5f);
+//	accReal.Set(1, 0, 1.0f);
+//	accReal.Set(1, 1, 0.5f);
+//	accReal.Set(1, 2, 0.0f);
+//	binarize.SetInputValuePtr(in);
+//	binarize.SetOutputValuePtr(out);
 
-	float	in[batch_size*node_size];
-	__m256i out[(((batch_size * mux_size) + 255) / 256) * node_size];
-
-	NeuralNetBufferAccessorReal<> accReal(in, batch_size);
-	NeuralNetBufferAccessorBinary<> accBin(out, batch_size*mux_size);
-
-	accReal.Set(0, 0, 0.0f);
-	accReal.Set(0, 1, 1.0f);
-	accReal.Set(0, 2, 0.5f);
-	accReal.Set(1, 0, 1.0f);
-	accReal.Set(1, 1, 0.5f);
-	accReal.Set(1, 2, 0.0f);
-	binarize.SetInputValuePtr(in);
-	binarize.SetOutputValuePtr(out);
+	auto in_val = binarize.GetInputValueBuffer();
+	auto out_val = binarize.GetOutputValueBuffer();
+	in_val.SetReal(0, 0, 0.0f);
+	in_val.SetReal(0, 1, 1.0f);
+	in_val.SetReal(0, 2, 0.5f);
+	in_val.SetReal(1, 0, 1.0f);
+	in_val.SetReal(1, 1, 0.5f);
+	in_val.SetReal(1, 2, 0.0f);
+	
 	binarize.Forward();
-	EXPECT_EQ(false, accBin.Get(0, 0));
-	EXPECT_EQ(false, accBin.Get(1, 0));
-	EXPECT_EQ(true, accBin.Get(0, 1));
-	EXPECT_EQ(true, accBin.Get(1, 1));
+	
+//	EXPECT_EQ(true, accBin.Get(2, 0));
+//	EXPECT_EQ(true, accBin.Get(3, 0));
+//	EXPECT_EQ(false, accBin.Get(2, 2));
+//	EXPECT_EQ(false, accBin.Get(3, 2));
 
-	EXPECT_EQ(true, accBin.Get(2, 0));
-	EXPECT_EQ(true, accBin.Get(3, 0));
-	EXPECT_EQ(false, accBin.Get(2, 2));
-	EXPECT_EQ(false, accBin.Get(3, 2));
+	EXPECT_EQ(true, out_val.GetBinary(2, 0));
+	EXPECT_EQ(true, out_val.Get<bool>(3, 0));
+	EXPECT_EQ(false, out_val.GetBinary(2, 2));
+	EXPECT_EQ(false, out_val.Get<bool>(3, 2));
 
-	__m256i outError[(((batch_size * mux_size) + 255) / 256) * node_size];
-	float	inError[batch_size*node_size];
 
-	NeuralNetBufferAccessorReal<> accRealErr(inError, batch_size);
-	NeuralNetBufferAccessorBinary<> accBinErr(outError, batch_size*mux_size);
+//	__m256i outError[(((batch_size * mux_size) + 255) / 256) * node_size];
+//	float	inError[batch_size*node_size];
+//	NeuralNetBufferAccessorReal<> accRealErr(inError, batch_size);
+//	NeuralNetBufferAccessorBinary<> accBinErr(outError, batch_size*mux_size);
+//
+//	accBinErr.Set(0, 0, false);
+//	accBinErr.Set(1, 0, false);
+//	accBinErr.Set(0, 1, true);
+//	accBinErr.Set(1, 1, true);
+//	accBinErr.Set(0, 2, true);
+//	accBinErr.Set(1, 2, false);
+//
+//	accBinErr.Set(2, 0, true);
+//	accBinErr.Set(3, 0, false);
+//	accBinErr.Set(2, 1, false);
+//	accBinErr.Set(3, 1, false);
+//	accBinErr.Set(2, 2, true);
+//	accBinErr.Set(3, 2, true);
+//	binarize.SetOutputErrorPtr(outError);
+//	binarize.SetInputErrorPtr(inError);
 
-	accBinErr.Set(0, 0, false);
-	accBinErr.Set(1, 0, false);
-	accBinErr.Set(0, 1, true);
-	accBinErr.Set(1, 1, true);
-	accBinErr.Set(0, 2, true);
-	accBinErr.Set(1, 2, false);
+	auto out_err = binarize.GetOutputErrorBuffer();
+	auto in_err = binarize.GetInputErrorBuffer();
 
-	accBinErr.Set(2, 0, true);
-	accBinErr.Set(3, 0, false);
-	accBinErr.Set(2, 1, false);
-	accBinErr.Set(3, 1, false);
-	accBinErr.Set(2, 2, true);
-	accBinErr.Set(3, 2, true);
+	out_err.SetBinary(0, 0, false);
+	out_err.SetBinary(1, 0, false);
+	out_err.SetBinary(0, 1, true);
+	out_err.SetBinary(1, 1, true);
+	out_err.SetBinary(0, 2, true);
+	out_err.SetBinary(1, 2, false);
 
-	binarize.SetOutputErrorPtr(outError);
-	binarize.SetInputErrorPtr(inError);
+	out_err.SetBinary(2, 0, true);
+	out_err.SetBinary(3, 0, false);
+	out_err.SetBinary(2, 1, false);
+	out_err.SetBinary(3, 1, false);
+	out_err.SetBinary(2, 2, true);
+	out_err.SetBinary(3, 2, true);
+	
 	binarize.Backward();
-	EXPECT_EQ(0.0, accRealErr.Get(0, 0));
-	EXPECT_EQ(1.0, accRealErr.Get(0, 1));
-	EXPECT_EQ(0.5, accRealErr.Get(0, 2));
+	
+//	EXPECT_EQ(0.0, accRealErr.Get(0, 0));
+//	EXPECT_EQ(1.0, accRealErr.Get(0, 1));
+//	EXPECT_EQ(0.5, accRealErr.Get(0, 2));
 
-	EXPECT_EQ(0.5, accRealErr.Get(1, 0));
-	EXPECT_EQ(0.0, accRealErr.Get(1, 1));
-	EXPECT_EQ(1.0, accRealErr.Get(1, 2));
+//	EXPECT_EQ(0.5, accRealErr.Get(1, 0));
+//	EXPECT_EQ(0.0, accRealErr.Get(1, 1));
+//	EXPECT_EQ(1.0, accRealErr.Get(1, 2));
+	
+	EXPECT_EQ(0.0f, in_err.GetReal(0, 0));
+	EXPECT_EQ(1.0f, in_err.GetReal(0, 1));
+	EXPECT_EQ(0.5f, in_err.GetReal(0, 2));
+
+	EXPECT_EQ(0.5f, in_err.GetReal(1, 0));
+	EXPECT_EQ(0.0f, in_err.GetReal(1, 1));
+	EXPECT_EQ(1.0f, in_err.GetReal(1, 2));
 }
 
 
@@ -548,69 +581,102 @@ TEST(NeuralNetUnbinarizeTest, testNeuralNetUnbinarize)
 	const int mux_size = 2;
 	const int frame_size = 1;
 
-	NeuralNetUnbinarize<> unbinarize(node_size, mux_size);
+	bb::NeuralNetUnbinarize<> unbinarize(node_size, mux_size);
+	testSetupLayerBuffer(unbinarize);
 
 	EXPECT_EQ(2, unbinarize.GetInputFrameSize());
 	EXPECT_EQ(1, unbinarize.GetOutputFrameSize());
 
 
-	__m256i in[(((frame_size * mux_size) + 255) / 256) * node_size];
-	float	out[node_size];
+//	__m256i in[(((frame_size * mux_size) + 255) / 256) * node_size];
+//	float	out[node_size];
+//	NeuralNetBufferAccessorBinary<> accBin(in, 2);
+//	NeuralNetBufferAccessorReal<> accReal(out, 1);
+//	accBin.Set(0, 0, true);
+//	accBin.Set(1, 0, true);
+//	accBin.Set(0, 1, false);
+//	accBin.Set(1, 1, false);
+//	accBin.Set(0, 2, false);
+//	accBin.Set(1, 2, true);
+//	unbinarize.SetInputValuePtr(in);
+//	unbinarize.SetOutputValuePtr(out);
 
-	NeuralNetBufferAccessorBinary<> accBin(in, 2);
-	NeuralNetBufferAccessorReal<> accReal(out, 1);
+	auto in_val = unbinarize.GetInputValueBuffer();
+	auto out_val = unbinarize.GetOutputValueBuffer();
+	in_val.SetBinary(0, 0, true);
+	in_val.SetBinary(1, 0, true);
+	in_val.SetBinary(0, 1, false);
+	in_val.SetBinary(1, 1, false);
+	in_val.SetBinary(0, 2, false);
+	in_val.SetBinary(1, 2, true);
 
-	accBin.Set(0, 0, true);
-	accBin.Set(1, 0, true);
-	accBin.Set(0, 1, false);
-	accBin.Set(1, 1, false);
-	accBin.Set(0, 2, false);
-	accBin.Set(1, 2, true);
-	unbinarize.SetInputValuePtr(in);
-	unbinarize.SetOutputValuePtr(out);
 	unbinarize.Forward();
-	EXPECT_EQ(1.0, accReal.Get(0, 0));
-	EXPECT_EQ(0.0, accReal.Get(0, 1));
-	EXPECT_EQ(0.5, accReal.Get(0, 2));
+	
+//	EXPECT_EQ(1.0, accReal.Get(0, 0));
+//	EXPECT_EQ(0.0, accReal.Get(0, 1));
+//	EXPECT_EQ(0.5, accReal.Get(0, 2));
 
+	EXPECT_EQ(1.0, out_val.GetReal(0, 0));
+	EXPECT_EQ(0.0, out_val.GetReal(0, 1));
+	EXPECT_EQ(0.5, out_val.GetReal(0, 2));
+	
+//	float	outError[node_size];
+//	__m256i inError[(((frame_size * mux_size) + 255) / 256) * node_size];
+//	NeuralNetBufferAccessorReal<> accRealErr(outError, 1);
+//	NeuralNetBufferAccessorBinary<> accBinErr(inError, 2);
+//	accRealErr.Set(0, 0, 0.0f);
+//	accRealErr.Set(0, 1, 1.0f);
+//	accRealErr.Set(0, 2, 0.5f);
+//	unbinarize.SetOutputErrorPtr(outError);
+//	unbinarize.SetInputErrorPtr(inError);
 
-	float	outError[node_size];
-	__m256i inError[(((frame_size * mux_size) + 255) / 256) * node_size];
+	auto out_err = unbinarize.GetOutputErrorBuffer();
+	auto in_err = unbinarize.GetInputErrorBuffer();
+	out_err.SetReal(0, 0, 0.0f);
+	out_err.SetReal(0, 1, 1.0f);
+	out_err.SetReal(0, 2, 0.5f);
 
-	NeuralNetBufferAccessorReal<> accRealErr(outError, 1);
-	NeuralNetBufferAccessorBinary<> accBinErr(inError, 2);
-	accRealErr.Set(0, 0, 0.0f);
-	accRealErr.Set(0, 1, 1.0f);
-	accRealErr.Set(0, 2, 0.5f);
-	unbinarize.SetOutputErrorPtr(outError);
-	unbinarize.SetInputErrorPtr(inError);
 	unbinarize.Backward();
-	EXPECT_EQ(false, accBinErr.Get(0, 0));
-	EXPECT_EQ(false, accBinErr.Get(1, 0));
-	EXPECT_EQ(true, accBinErr.Get(0, 1));
-	EXPECT_EQ(true, accBinErr.Get(1, 1));
-}
+//	EXPECT_EQ(false, accBinErr.Get(0, 0));
+//	EXPECT_EQ(false, accBinErr.Get(1, 0));
+//	EXPECT_EQ(true, accBinErr.Get(0, 1));
+//	EXPECT_EQ(true, accBinErr.Get(1, 1));
 
+	EXPECT_EQ(false, in_err.GetBinary(0, 0));
+	EXPECT_EQ(false, in_err.GetBinary(1, 0));
+	EXPECT_EQ(true,  in_err.GetBinary(0, 1));
+	EXPECT_EQ(true,  in_err.GetBinary(1, 1));
+}
 
 
 TEST(NeuralNetBinaryLut6, testNeuralNetBinaryLut6)
 {
-	NeuralNetBinaryLut6<> lut(16, 2, 1, 1, 1);
+	bb::NeuralNetBinaryLut6<> lut(16, 2, 1, 1, 1);
+	testSetupLayerBuffer(lut);
 
-	__m256i in[8];
-	__m256i out[2];
+//	__m256i in[8];
+//	__m256i out[2];
+//	NeuralNetBufferAccessorBinary<> accIn(in, 1);
+//	NeuralNetBufferAccessorBinary<> accOut(out, 1);
+//	accIn.Set(0, 0, false);
+//	accIn.Set(0, 1, true);
+//	accIn.Set(0, 2, true);
+//	accIn.Set(0, 3, false);
+//	accIn.Set(0, 4, false);
+//	accIn.Set(0, 5, true);
+//	accIn.Set(0, 6, true);
+//	accIn.Set(0, 7, true);
 
-	NeuralNetBufferAccessorBinary<> accIn(in, 1);
-	NeuralNetBufferAccessorBinary<> accOut(out, 1);
-
-	accIn.Set(0, 0, false);
-	accIn.Set(0, 1, true);
-	accIn.Set(0, 2, true);
-	accIn.Set(0, 3, false);
-	accIn.Set(0, 4, false);
-	accIn.Set(0, 5, true);
-	accIn.Set(0, 6, true);
-	accIn.Set(0, 7, true);
+	auto in_val = lut.GetInputValueBuffer();
+	auto out_val = lut.GetOutputValueBuffer();
+	in_val.SetBinary(0, 0, false);
+	in_val.SetBinary(0, 1, true);
+	in_val.SetBinary(0, 2, true);
+	in_val.SetBinary(0, 3, false);
+	in_val.SetBinary(0, 4, false);
+	in_val.SetBinary(0, 5, true);
+	in_val.SetBinary(0, 6, true);
+	in_val.SetBinary(0, 7, true);
 
 	// 0x1d
 	lut.SetLutInput(0, 0, 6);	// 1
@@ -633,42 +699,67 @@ TEST(NeuralNetBinaryLut6, testNeuralNetBinaryLut6)
 		lut.SetLutTable(0, i, i != 0x1c);
 	}
 
-	lut.SetInputValuePtr(in);
-	lut.SetOutputValuePtr(out);
+//	lut.SetInputValuePtr(in);
+//	lut.SetOutputValuePtr(out);
+	
 	lut.Forward();
-	EXPECT_EQ(true, accOut.Get(0, 0));
-	EXPECT_EQ(false, accOut.Get(0, 1));
+//	EXPECT_EQ(true, accOut.Get(0, 0));
+//	EXPECT_EQ(false, accOut.Get(0, 1));
+
+	EXPECT_EQ(true, out_val.GetBinary(0, 0));
+	EXPECT_EQ(false, out_val.Get<bool>(0, 1));
 }
 
 
 
 TEST(NeuralNetBinaryLut6, testNeuralNetBinaryLut6Batch)
 {
-	NeuralNetBinaryLut6<> lut(16, 2, 2, 1, 1);
+	bb::NeuralNetBinaryLut6<> lut(16, 2, 2, 1, 1);
+	testSetupLayerBuffer(lut);
 
-	__m256i in[8];
-	__m256i out[2];
+//	__m256i in[8];
+//	__m256i out[2];
+//
+//	NeuralNetBufferAccessorBinary<> accIn(in, 2);
+//	NeuralNetBufferAccessorBinary<> accOut(out, 2);
+//
+//	accIn.Set(0, 0, false);
+//	accIn.Set(0, 1, true);
+//	accIn.Set(0, 2, true);
+//	accIn.Set(0, 3, false);
+//	accIn.Set(0, 4, false);
+//	accIn.Set(0, 5, true);
+//	accIn.Set(0, 6, true);
+//	accIn.Set(0, 7, true);
+//
+//	accIn.Set(1, 0, true);
+//	accIn.Set(1, 1, false);
+//	accIn.Set(1, 2, false);
+//	accIn.Set(1, 3, true);
+//	accIn.Set(1, 4, true);
+//	accIn.Set(1, 5, false);
+//	accIn.Set(1, 6, false);
+//	accIn.Set(1, 7, false);
 
-	NeuralNetBufferAccessorBinary<> accIn(in, 2);
-	NeuralNetBufferAccessorBinary<> accOut(out, 2);
+	auto in_val = lut.GetInputValueBuffer();
+	auto out_val = lut.GetOutputValueBuffer();
+	in_val.SetBinary(0, 0, false);
+	in_val.SetBinary(0, 1, true);
+	in_val.SetBinary(0, 2, true);
+	in_val.SetBinary(0, 3, false);
+	in_val.SetBinary(0, 4, false);
+	in_val.SetBinary(0, 5, true);
+	in_val.SetBinary(0, 6, true);
+	in_val.SetBinary(0, 7, true);
 
-	accIn.Set(0, 0, false);
-	accIn.Set(0, 1, true);
-	accIn.Set(0, 2, true);
-	accIn.Set(0, 3, false);
-	accIn.Set(0, 4, false);
-	accIn.Set(0, 5, true);
-	accIn.Set(0, 6, true);
-	accIn.Set(0, 7, true);
-
-	accIn.Set(1, 0, true);
-	accIn.Set(1, 1, false);
-	accIn.Set(1, 2, false);
-	accIn.Set(1, 3, true);
-	accIn.Set(1, 4, true);
-	accIn.Set(1, 5, false);
-	accIn.Set(1, 6, false);
-	accIn.Set(1, 7, false);
+	in_val.SetBinary(1, 0, true);
+	in_val.SetBinary(1, 1, false);
+	in_val.SetBinary(1, 2, false);
+	in_val.SetBinary(1, 3, true);
+	in_val.SetBinary(1, 4, true);
+	in_val.SetBinary(1, 5, false);
+	in_val.SetBinary(1, 6, false);
+	in_val.SetBinary(1, 7, false);
 
 	// 0x1d
 	lut.SetLutInput(0, 0, 6);	// 1
@@ -691,13 +782,18 @@ TEST(NeuralNetBinaryLut6, testNeuralNetBinaryLut6Batch)
 		lut.SetLutTable(1, i, i != 0x1c && i != 0x23 );
 	}
 
-	lut.SetInputValuePtr(in);
-	lut.SetOutputValuePtr(out);
+//	lut.SetInputValuePtr(in);
+//	lut.SetOutputValuePtr(out);
 	lut.Forward();
-	EXPECT_EQ(true, accOut.Get(0, 0));
-	EXPECT_EQ(false, accOut.Get(0, 1));
-	EXPECT_EQ(true, accOut.Get(1, 0));
-	EXPECT_EQ(false, accOut.Get(1, 1));
+//	EXPECT_EQ(true, accOut.Get(0, 0));
+//	EXPECT_EQ(false, accOut.Get(0, 1));
+//	EXPECT_EQ(true, accOut.Get(1, 0));
+//	EXPECT_EQ(false, accOut.Get(1, 1));
+
+	EXPECT_EQ(true, out_val.GetBinary(0, 0));
+	EXPECT_EQ(false, out_val.Get<bool>(0, 1));
+	EXPECT_EQ(true, out_val.GetBinary(1, 0));
+	EXPECT_EQ(false, out_val.Get<bool>(1, 1));
 }
 
 
@@ -715,8 +811,11 @@ TEST(NeuralNetBinaryLut6, testNeuralNetBinaryLut6Compare)
 	std::uniform_int<size_t>	rand_input(0, input_node_size - 1);
 	std::uniform_int<int>		rand_bin(0, 1);
 
-	NeuralNetBinaryLut6<>  lut0(input_node_size, output_node_size, mux_size, batch_size, 1);
-	NeuralNetBinaryLutN<6> lut1(input_node_size, output_node_size, mux_size, batch_size, 1);
+	bb::NeuralNetBinaryLut6<>  lut0(input_node_size, output_node_size, mux_size, batch_size, 1);
+	bb::NeuralNetBinaryLutN<6> lut1(input_node_size, output_node_size, mux_size, batch_size, 1);
+
+	testSetupLayerBuffer(lut0);
+	testSetupLayerBuffer(lut1);
 
 	EXPECT_EQ(input_node_size, lut0.GetInputNodeSize());
 	EXPECT_EQ(output_node_size, lut0.GetOutputNodeSize());
@@ -747,37 +846,44 @@ TEST(NeuralNetBinaryLut6, testNeuralNetBinaryLut6Compare)
 	}
 	
 	// データ設定
-	__m256i	inValue[(frame_size + 255) / 256 * input_node_size];
-	__m256i	outValue0[(frame_size + 255) / 256 * output_node_size];
-	__m256i	outValue1[(frame_size + 255) / 256 * output_node_size];
-	NeuralNetBufferAccessorBinary<> accIn(inValue, frame_size);
-	NeuralNetBufferAccessorBinary<> accOut0(outValue0, frame_size);
-	NeuralNetBufferAccessorBinary<> accOut1(outValue1, frame_size);
+//	__m256i	inValue[(frame_size + 255) / 256 * input_node_size];
+//	__m256i	outValue0[(frame_size + 255) / 256 * output_node_size];
+//	__m256i	outValue1[(frame_size + 255) / 256 * output_node_size];
+//	NeuralNetBufferAccessorBinary<> accIn(inValue, frame_size);
+//	NeuralNetBufferAccessorBinary<> accOut0(outValue0, frame_size);
+//	NeuralNetBufferAccessorBinary<> accOut1(outValue1, frame_size);
 
+	auto in_val = lut0.GetInputValueBuffer();
+	lut1.SetInputValueBuffer(in_val);		// 入力バッファ共通化
+	auto out_val0 = lut0.GetOutputValueBuffer();
+	auto out_val1 = lut1.GetOutputValueBuffer();
+	
 	for (size_t frame = 0; frame < frame_size; ++frame) {
 		for (int node = 0; node < input_node_size; ++node) {
 			bool input_value = (rand_bin(mt) != 0);
-			accIn.Set(frame, node, input_value);
+			in_val.SetBinary(frame, node, input_value);
 		}
 	}
+
+	// 出力バッファを壊しておく(Debug版だと同じ初期値が埋まるので)
 	for (size_t frame = 0; frame < frame_size; ++frame) {
 		for (int node = 0; node < output_node_size; ++node) {
-			accOut0.Set(frame, node, (rand_bin(mt) != 0));
-			accOut1.Set(frame, node, (rand_bin(mt) != 0));
+			out_val0.SetBinary(frame, node, (rand_bin(mt) != 0));
+			out_val1.SetBinary(frame, node, (rand_bin(mt) != 0));
 		}
 	}
 
-	lut0.SetInputValuePtr(inValue);
-	lut0.SetOutputValuePtr(outValue0);
+//	lut0.SetInputValuePtr(inValue);
+//	lut0.SetOutputValuePtr(outValue0);
 	lut0.Forward();
 
-	lut1.SetInputValuePtr(inValue);
-	lut1.SetOutputValuePtr(outValue1);
+//	lut1.SetInputValuePtr(inValue);
+//	lut1.SetOutputValuePtr(outValue1);
 	lut1.Forward();
 
 	for (size_t frame = 0; frame < frame_size; ++frame) {
 		for (int node = 0; node < output_node_size; ++node) {
-			EXPECT_EQ(accOut0.Get(frame, node), accOut1.Get(frame, node));
+			EXPECT_EQ(out_val0.GetBinary(frame, node), out_val1.GetBinary(frame, node));
 		}
 	}
 }
@@ -792,17 +898,20 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLutFeedback)
 	const size_t batch_size = lut_table_size;
 	const size_t frame_size = mux_size * batch_size;
 	const size_t node_size = lut_table_size;
-	NeuralNetBinaryLutN<lut_input_size> lut(lut_input_size, lut_table_size, mux_size, batch_size, 1);
+	bb::NeuralNetBinaryLutN<lut_input_size> lut(lut_input_size, lut_table_size, mux_size, batch_size, 1);
+	testSetupLayerBuffer(lut);
+	
+//	__m256i in[lut_input_size];
+//	__m256i out[node_size];
+//	NeuralNetBufferAccessorBinary<> accIn(in, frame_size);
+//	NeuralNetBufferAccessorBinary<> accOut(out, frame_size);
 
-	__m256i in[lut_input_size];
-	__m256i out[node_size];
-
-	NeuralNetBufferAccessorBinary<> accIn(in, frame_size);
-	NeuralNetBufferAccessorBinary<> accOut(out, frame_size);
+	auto in_val = lut.GetInputValueBuffer();
+	auto out_val = lut.GetOutputValueBuffer();
 
 	for (size_t frame = 0; frame < frame_size; frame++) {
 		for (int bit = 0; bit < lut_input_size; bit++) {
-			accIn.Set(frame, bit, (frame & ((size_t)1 << bit)) != 0);
+			in_val.Set<bool>(frame, bit, (frame & ((size_t)1 << bit)) != 0);
 		}
 	}
 
@@ -812,16 +921,18 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLutFeedback)
 		}
 	}
 
-	lut.SetInputValuePtr(in);
-	lut.SetOutputValuePtr(out);
+//	lut.SetInputValuePtr(in);
+//	lut.SetOutputValuePtr(out);
 	lut.Forward();
-	uint64_t outW[node_size];
-	uint64_t lutTable[lut_table_size];
+
+//	uint64_t outW[node_size];
+//	uint64_t lutTable[lut_table_size];
 
 	std::vector<float> vec_loss(frame_size);
 	std::vector<float> vec_out(frame_size);
 	for (int loop = 0; loop < 1; loop++) {
 		do {
+			/*
 			for (int i = 0; i < lut_table_size; i++) {
 				outW[i] = out[i].m256i_u64[0];
 			}
@@ -831,11 +942,12 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLutFeedback)
 					lutTable[node] |= lut.GetLutTable(node, i) ? ((uint64_t)1 << i) : 0;
 				}
 			}
+			*/
 
 			for (size_t frame = 0; frame < frame_size; frame++) {
 				vec_loss[frame] = 0;
 				for (size_t node = 0; node < node_size; node++) {
-					bool val = accOut.Get(frame, node);
+					bool val = out_val.Get<bool>(frame, node);
 					if (frame % node_size == node) {
 						vec_loss[frame] += !val ? +1.0f : -1.0f;
 					}
@@ -855,4 +967,4 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLutFeedback)
 	}
 }
 
-#endif
+

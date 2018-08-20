@@ -1,6 +1,15 @@
+// --------------------------------------------------------------------------
+//  Binary Brain  -- binary neural net framework
+//
+//                                     Copyright (C) 2018 by Ryuji Fuchikami
+//                                     https://github.com/ryuz
+//                                     ryuji.fuchikami@nifty.com
+// --------------------------------------------------------------------------
 
 
 #pragma once
+
+namespace bb {
 
 #define NN_TYPE_BINARY		(1)
 #define NN_TYPE_REAL32		(32)
@@ -46,5 +55,8 @@ inline int NeuralNet_GetTypeBitSize(int type)
 	}
 
 	return 0;
+}
+
+
 }
 

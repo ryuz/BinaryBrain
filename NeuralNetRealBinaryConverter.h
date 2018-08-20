@@ -1,38 +1,46 @@
+// --------------------------------------------------------------------------
+//  Binary Brain  -- binary neural net framework
+//
+//                                     Copyright (C) 2018 by Ryuji Fuchikami
+//                                     https://github.com/ryuz
+//                                     ryuji.fuchikami@nifty.com
+// --------------------------------------------------------------------------
 
 
 
 #pragma once
 
 #include <random>
-
-
 #include "NeuralNetLayer.h"
 
 
+namespace bb {
+
+
 // 実数<->バイナリ変換
-template <typename T=float, typename INDEX=size_t>
+template <typename T = float, typename INDEX = size_t>
 class NeuralNetRealBinaryConverter : public NeuralNetLayer<T, INDEX>
 {
 protected:
 	std::mt19937_64		m_mt;
-	
+
 	INDEX				m_node_size;
 	INDEX				m_batch_size;
 	INDEX				m_mux_size;
 
 	T					m_real_range_lo = (T)0.0;
 	T					m_real_range_hi = (T)1.0;
-	
+
 public:
 	NeuralNetRealBinaryConverter() {}
-	
-	NeuralNetRealBinaryConverter(INDEX node_size, INDEX mux_size, INDEX batch_size, std::uint64_t seed=1)
+
+	NeuralNetRealBinaryConverter(INDEX node_size, INDEX mux_size, INDEX batch_size, std::uint64_t seed = 1)
 	{
 		Setup(node_size, mux_size, batch_size, seed);
 	}
-	
+
 	~NeuralNetRealBinaryConverter() {}		// デストラクタ
-	
+
 	void Setup(INDEX node_size, INDEX mux_size, INDEX batch_size, std::uint64_t seed = 1)
 	{
 		m_node_size = node_size;
@@ -104,7 +112,7 @@ public:
 	{
 		NeuralNetBufferAccessorBinary<T, INDEX>		accBin((void*)binary_buf, m_batch_size*m_mux_size);
 		NeuralNetBufferAccessorReal<T, INDEX>		accReal(real_buf, m_batch_size);
-		
+
 		T	reciprocal = (T)1.0 / (T)m_mux_size;
 
 //		#pragma omp parallel for
@@ -128,3 +136,5 @@ public:
 
 };
 
+
+}

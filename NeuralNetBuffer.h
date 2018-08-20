@@ -1,3 +1,10 @@
+// --------------------------------------------------------------------------
+//  Binary Brain  -- binary neural net framework
+//
+//                                     Copyright (C) 2018 by Ryuji Fuchikami
+//                                     https://github.com/ryuz
+//                                     ryuji.fuchikami@nifty.com
+// --------------------------------------------------------------------------
 
 
 #pragma once
@@ -6,6 +13,9 @@
 #include <malloc.h>
 #include <intrin.h>
 #include "NeuralNetType.h"
+
+
+namespace bb {
 
 
 // NeuralNet用のバッファアクセサ
@@ -40,7 +50,7 @@ public:
 		m_data_type = buf.m_data_type;
 		m_frame_size = buf.m_frame_size;
 		m_node_size = buf.m_node_size;
-		
+
 		return *this;
 	}
 
@@ -62,7 +72,7 @@ public:
 		}
 		m_buffer = std::shared_ptr<std::uint8_t>((std::uint8_t *)_aligned_malloc(m_stride*m_node_size, 32), _aligned_free);
 	}
-	
+
 	INDEX GetFrameSize(void) { return m_frame_size; }
 	INDEX GetNodeSize(void) { return m_node_size; }
 	INDEX GetTypeBitSize(void) { return m_type_bit_size; }
@@ -148,3 +158,4 @@ public:
 };
 
 
+}

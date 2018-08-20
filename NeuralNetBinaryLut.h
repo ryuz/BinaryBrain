@@ -1,3 +1,10 @@
+// --------------------------------------------------------------------------
+//  Binary Brain  -- binary neural net framework
+//
+//                                     Copyright (C) 2018 by Ryuji Fuchikami
+//                                     https://github.com/ryuz
+//                                     ryuji.fuchikami@nifty.com
+// --------------------------------------------------------------------------
 
 
 
@@ -11,6 +18,7 @@
 #include "NeuralNetLayer.h"
 #include "ShuffleSet.h"
 
+namespace bb {
 
 // LUT方式基底クラス
 template <typename T = float, typename INDEX = size_t>
@@ -22,10 +30,10 @@ protected:
 	INDEX					m_input_node_size;
 	INDEX					m_output_node_size;
 
-//	const void*				m_inputValue;
-//	void*					m_outputValue;
-//	void*					m_inputError;
-//	const void*				m_outputError;
+	//	const void*				m_inputValue;
+	//	void*					m_outputValue;
+	//	void*					m_inputError;
+	//	const void*				m_outputError;
 
 public:
 	// LUT操作の定義
@@ -46,7 +54,7 @@ public:
 		int   lut_table_size = GetLutTableSize();
 
 		ShuffleSet	ss(GetInputNodeSize(), mt());
-		for (INDEX node = 0; node < node_size; ++node ) {
+		for (INDEX node = 0; node < node_size; ++node) {
 			// 入力をランダム接続
 			auto random_set = ss.GetRandomSet(GetLutInputSize());
 			for (int i = 0; i < lut_input_size; ++i) {
@@ -59,8 +67,8 @@ public:
 			}
 		}
 	}
-	
-	
+
+
 	// 共通機能の定義
 protected:
 	void SetupBase(INDEX input_node_size, INDEX output_node_size, INDEX mux_size, INDEX batch_size = 1, std::uint64_t seed = 1)
@@ -74,32 +82,32 @@ protected:
 public:
 	void  SetBatchSize(INDEX batch_size) { m_frame_size = batch_size * m_mux_size; }
 
-//	void  SetInputValuePtr(const void* inputValue) { m_inputValue = inputValue; }
-//	void  SetOutputValuePtr(void* outputValue) { m_outputValue = outputValue; }
-//	void  SetOutputErrorPtr(const void* outputError) { m_outputError = outputError; }
-//	void  SetInputErrorPtr(void* inputError) { m_inputError = inputError; }
+	//	void  SetInputValuePtr(const void* inputValue) { m_inputValue = inputValue; }
+	//	void  SetOutputValuePtr(void* outputValue) { m_outputValue = outputValue; }
+	//	void  SetOutputErrorPtr(const void* outputError) { m_outputError = outputError; }
+	//	void  SetInputErrorPtr(void* inputError) { m_inputError = inputError; }
 
 	INDEX GetInputFrameSize(void) const { return m_frame_size; }
 	INDEX GetInputNodeSize(void) const { return m_input_node_size; }
 	INDEX GetOutputFrameSize(void) const { return m_frame_size; }
 	INDEX GetOutputNodeSize(void) const { return m_output_node_size; }
 
-	int   GetInputValueBitSize(void) const { return 1; }
-	int   GetInputErrorBitSize(void) const { return 1; }
-	int   GetOutputValueBitSize(void) const { return 1; }
-	int   GetOutputErrorBitSize(void) const { return 1; }
-	
+	int   GetInputValueDataType(void) const { return NN_TYPE_BINARY; }
+	int   GetInputErrorDataType(void) const { return NN_TYPE_BINARY; }
+	int   GetOutputValueDataType(void) const { return NN_TYPE_BINARY; }
+	int   GetOutputErrorDataType(void) const { return NN_TYPE_BINARY; }
+
 	void Forward(void)
 	{
-		INDEX node_size      = GetOutputNodeSize();
+		INDEX node_size = GetOutputNodeSize();
 		int   lut_input_size = GetLutInputSize();
 		concurrency::parallel_for<INDEX>(0, node_size, [&](INDEX node)
 		{
-//			NeuralNetBufferAccessorBinary<float, INDEX>	acc_in((void*)m_inputValue,   m_frame_size);
-//			NeuralNetBufferAccessorBinary<float, INDEX>	acc_out((void*)m_outputValue, m_frame_size);
-//			auto acc_in = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetInputValueAccessor());
-//			auto acc_out = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetOutputValueAccessor());
-			auto in_buf  = GetInputValueBuffer();
+			//			NeuralNetBufferAccessorBinary<float, INDEX>	acc_in((void*)m_inputValue,   m_frame_size);
+			//			NeuralNetBufferAccessorBinary<float, INDEX>	acc_out((void*)m_outputValue, m_frame_size);
+			//			auto acc_in = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetInputValueAccessor());
+			//			auto acc_out = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetOutputValueAccessor());
+			auto in_buf = GetInputValueBuffer();
 			auto out_buf = GetOutputValueBuffer();
 
 			for (INDEX frame = 0; frame < m_frame_size; ++frame) {
@@ -139,10 +147,10 @@ protected:
 public:
 	bool Feedback(const std::vector<T>& loss)
 	{
-//		NeuralNetBufferAccessorBinary<float, INDEX>	acc_in((void*)m_inputValue, m_frame_size);
-//		NeuralNetBufferAccessorBinary<float, INDEX>	acc_out((void*)m_outputValue, m_frame_size);
+		//		NeuralNetBufferAccessorBinary<float, INDEX>	acc_in((void*)m_inputValue, m_frame_size);
+		//		NeuralNetBufferAccessorBinary<float, INDEX>	acc_out((void*)m_outputValue, m_frame_size);
 
-		auto in_buf  = GetInputValueBuffer();
+		auto in_buf = GetInputValueBuffer();
 		auto out_buf = GetOutputValueBuffer();
 
 		INDEX node_size = GetOutputNodeSize();
@@ -218,12 +226,12 @@ public:
 			// 次のLUTに進む
 			m_feedback_phase = false;
 			++m_feedback_node;
-	//		if (m_feedback_node < node_size) {
-	//			// 出力を反転
-	//			for (INDEX frame = 0; frame < frame_size; ++frame) {
-	//				acc_out.Set(frame, m_feedback_node, !acc_out.Get(frame, m_feedback_node));
-	//			}
-	//		}
+			//		if (m_feedback_node < node_size) {
+			//			// 出力を反転
+			//			for (INDEX frame = 0; frame < frame_size; ++frame) {
+			//				acc_out.Set(frame, m_feedback_node, !acc_out.Get(frame, m_feedback_node));
+			//			}
+			//		}
 		}
 
 		return true;	// 以降を再計算して継続
@@ -231,3 +239,4 @@ public:
 
 };
 
+}

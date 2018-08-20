@@ -1,3 +1,10 @@
+// --------------------------------------------------------------------------
+//  Binary Brain  -- binary neural net framework
+//
+//                                     Copyright (C) 2018 by Ryuji Fuchikami
+//                                     https://github.com/ryuz
+//                                     ryuji.fuchikami@nifty.com
+// --------------------------------------------------------------------------
 
 
 
@@ -7,9 +14,10 @@
 #include <Eigen/Core>
 #include "NeuralNetLayer.h"
 
+namespace bb {
 
 // NeuralNetの抽象クラス
-template <typename T=float, typename INDEX=size_t>
+template <typename T = float, typename INDEX = size_t>
 class NeuralNetAffine : public NeuralNetLayer<T, INDEX>
 {
 protected:
@@ -20,29 +28,29 @@ protected:
 	INDEX		m_input_size;
 	INDEX		m_output_size;
 
-//	const T*	m_inputValue;
-//	T*			m_outputValue;
-//	T*			m_inputError;
-//	const T*	m_outputError;
+	//	const T*	m_inputValue;
+	//	T*			m_outputValue;
+	//	T*			m_inputError;
+	//	const T*	m_outputError;
 
 	Matrix		m_W;
 	Vector		m_b;
 	Matrix		m_dW;
 	Vector		m_db;
-	
+
 public:
 	NeuralNetAffine() {}
 
-	NeuralNetAffine(INDEX input_size, INDEX output_size, INDEX batch_size=1)
+	NeuralNetAffine(INDEX input_size, INDEX output_size, INDEX batch_size = 1)
 	{
 		Setup(input_size, output_size, batch_size);
 	}
 
 	~NeuralNetAffine() {}		// デストラクタ
 
-	void Setup(INDEX input_size, INDEX output_size, INDEX batch_size=1)
+	void Setup(INDEX input_size, INDEX output_size, INDEX batch_size = 1)
 	{
-		m_frame_size  = batch_size;
+		m_frame_size = batch_size;
 		m_input_size = input_size;
 		m_output_size = output_size;
 		m_W = Matrix::Random(input_size, output_size);
@@ -53,10 +61,10 @@ public:
 
 	void  SetBatchSize(INDEX batch_size) { m_frame_size = batch_size; }
 
-//	void  SetInputValuePtr(const void* inputValue) { m_inputValue = (const T *)inputValue; }
-//	void  SetOutputValuePtr(void* outputValue) { m_outputValue = (T *)outputValue; }
-//	void  SetOutputErrorPtr(const void* outputError) { m_outputError = (const T *)outputError; }
-//	void  SetInputErrorPtr(void* inputError) { m_inputError = (T *)inputError; }
+	//	void  SetInputValuePtr(const void* inputValue) { m_inputValue = (const T *)inputValue; }
+	//	void  SetOutputValuePtr(void* outputValue) { m_outputValue = (T *)outputValue; }
+	//	void  SetOutputErrorPtr(const void* outputError) { m_outputError = (const T *)outputError; }
+	//	void  SetInputErrorPtr(void* inputError) { m_inputError = (T *)inputError; }
 
 	INDEX GetInputFrameSize(void) const { return m_frame_size; }
 	INDEX GetInputNodeSize(void) const { return m_input_size; }
@@ -72,7 +80,7 @@ public:
 	T& b(INDEX output) { return m_b(output); }
 	T& dW(INDEX input, INDEX output) { return m_dW(input, output); }
 	T& db(INDEX output) { return m_db(output); }
-	
+
 	void Forward(void)
 	{
 		Eigen::Map<Matrix> inputValue((T*)m_input_value_buffer.GetBuffer(), m_frame_size, m_input_size);
@@ -100,3 +108,4 @@ public:
 	}
 };
 
+}

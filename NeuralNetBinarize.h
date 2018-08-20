@@ -1,32 +1,40 @@
+// --------------------------------------------------------------------------
+//  Binary Brain  -- binary neural net framework
+//
+//                                     Copyright (C) 2018 by Ryuji Fuchikami
+//                                     https://github.com/ryuz
+//                                     ryuji.fuchikami@nifty.com
+// --------------------------------------------------------------------------
 
 
 
 #pragma once
 
 #include <random>
-
-
 #include "NeuralNetRealBinaryConverter.h"
 
 
+namespace bb {
+
+
 // NeuralNetの抽象クラス
-template <typename T=float, typename INDEX=size_t>
+template <typename T = float, typename INDEX = size_t>
 class NeuralNetBinarize : public NeuralNetRealBinaryConverter<T, INDEX>
 {
 protected:
-//	const void*	m_inputValue;
-//	void*		m_outputValue;
-//	void*		m_inputError;
-//	const void*	m_outputError;
+	//	const void*	m_inputValue;
+	//	void*		m_outputValue;
+	//	void*		m_inputError;
+	//	const void*	m_outputError;
 
 public:
 	NeuralNetBinarize() {}
-	
-	NeuralNetBinarize(INDEX node_size, INDEX mux_size, INDEX batch_size=1, std::uint64_t seed=1)
+
+	NeuralNetBinarize(INDEX node_size, INDEX mux_size, INDEX batch_size = 1, std::uint64_t seed = 1)
 	{
 		Setup(node_size, mux_size, batch_size, seed);
 	}
-	
+
 	~NeuralNetBinarize() {}		// デストラクタ
 
 //	void SetInputValuePtr(const void* inputValue) { m_inputValue = inputValue; }
@@ -60,3 +68,4 @@ public:
 
 };
 
+}

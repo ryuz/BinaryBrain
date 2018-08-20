@@ -1,3 +1,10 @@
+// --------------------------------------------------------------------------
+//  Binary Brain  -- binary neural net framework
+//
+//                                     Copyright (C) 2018 by Ryuji Fuchikami
+//                                     https://github.com/ryuz
+//                                     ryuji.fuchikami@nifty.com
+// --------------------------------------------------------------------------
 
 
 
@@ -9,13 +16,15 @@
 #include "NeuralNetBinaryLut.h"
 
 
+namespace bb {
+
 // ”Ä—pLUT
-template <int N=6, typename T = float, typename INDEX = size_t>
+template <int N = 6, typename T = float, typename INDEX = size_t>
 class NeuralNetBinaryLutN : public NeuralNetBinaryLut<float, INDEX>
 {
 protected:
 	struct LutNode {
-		std::array< bool, (1<<N) >	table;
+		std::array< bool, (1 << N) >	table;
 		std::array< INDEX, N >		input;
 	};
 
@@ -46,3 +55,6 @@ public:
 		InitializeLut(seed);
 	}
 };
+
+
+}

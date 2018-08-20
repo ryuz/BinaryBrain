@@ -12,7 +12,7 @@
 
 #include "NeuralNetBuffer.h"
 
-void evaluation_net(NeuralNet<>& net, std::vector< std::vector<float> >& images, std::vector<std::uint8_t>& labels);
+void evaluation_net(bb::NeuralNet<>& net, std::vector< std::vector<float> >& images, std::vector<std::uint8_t>& labels);
 
 void img_show(std::vector<float>& image)
 {
@@ -49,12 +49,12 @@ int main()
 	auto test_label = mnist_read_labels("t10k-labels-idx1-ubyte", test_max_size);
 
 	// NET構築
-	NeuralNet<> net;
-#if 1
-	NeuralNetAffine<> affine0(28*28, 100);
-	NeuralNetSigmoid<> sigmoid0(100);
-	NeuralNetAffine<> affine1(100, 10);
-	NeuralNetSoftmax<> softmax1(10);
+	bb::NeuralNet<> net;
+#if 0
+	bb::NeuralNetAffine<> affine0(28*28, 100);
+	bb::NeuralNetSigmoid<> sigmoid0(100);
+	bb::NeuralNetAffine<> affine1(100, 10);
+	bb::NeuralNetSoftmax<> softmax1(10);
 	net.AddLayer(&affine0);
 	net.AddLayer(&sigmoid0);
 	net.AddLayer(&affine1);
@@ -66,12 +66,12 @@ int main()
 	size_t layer2_node_size = 360;
 	size_t layer3_node_size = 60;
 	size_t layer4_node_size = 10;
-	NeuralNetBinarize<>   binarize(layer0_node_size, mux_size);
-	NeuralNetBinaryLut6<> lut0(layer0_node_size, layer1_node_size, mux_size);
-	NeuralNetBinaryLut6<> lut1(layer1_node_size, layer2_node_size, mux_size);
-	NeuralNetBinaryLut6<> lut2(layer2_node_size, layer3_node_size, mux_size);
-	NeuralNetBinaryLut6<> lut3(layer3_node_size, layer4_node_size, mux_size);
-	NeuralNetUnbinarize<> unbinarize(layer4_node_size, mux_size);
+	bb::NeuralNetBinarize<>   binarize(layer0_node_size, mux_size);
+	bb::NeuralNetBinaryLut6<> lut0(layer0_node_size, layer1_node_size, mux_size);
+	bb::NeuralNetBinaryLut6<> lut1(layer1_node_size, layer2_node_size, mux_size);
+	bb::NeuralNetBinaryLut6<> lut2(layer2_node_size, layer3_node_size, mux_size);
+	bb::NeuralNetBinaryLut6<> lut3(layer3_node_size, layer4_node_size, mux_size);
+	bb::NeuralNetUnbinarize<> unbinarize(layer4_node_size, mux_size);
 	net.AddLayer(&binarize);
 	net.AddLayer(&lut0);
 	net.AddLayer(&lut1);
@@ -118,7 +118,7 @@ int main()
 		net.Update(0.2);
 #endif
 
-#if 0
+#if 1
 		std::vector<float> vec_loss(batch_size);
 		do {
 			for (size_t frame = 0; frame < batch_size; ++frame) {
@@ -142,7 +142,7 @@ int main()
 }
 
 
-void evaluation_net(NeuralNet<>& net, std::vector< std::vector<float> >& images, std::vector<std::uint8_t>& labels)
+void evaluation_net(bb::NeuralNet<>& net, std::vector< std::vector<float> >& images, std::vector<std::uint8_t>& labels)
 {
 	// 評価サイズ設定
 	net.SetBatchSize(images.size());
@@ -158,7 +158,7 @@ void evaluation_net(NeuralNet<>& net, std::vector< std::vector<float> >& images,
 	// 結果集計
 	int ok_count = 0;
 	for (size_t frame = 0; frame < images.size(); ++frame) {
-		int max_idx = argmax<float>(net.GetOutputValue(frame));
+		int max_idx = bb::argmax<float>(net.GetOutputValue(frame));
 		ok_count += (max_idx == (int)labels[frame] ? 1 : 0);
 	}
 
