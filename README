@@ -1,0 +1,19 @@
+FPGAのLUTをダイレクトに学習させることを目標とした、バイナリニューラルネット用のライブラリを整理中です。
+http://ryuz.txt-nifty.com/blog/2018/08/lut-148c.html
+
+
+VisualStudio 2015 にて作成
+下記利用ライブラリがあり、環境変数を定義すれば、VisualStudio の設定がそのまま利用可能
+
+・eigen-eigen-5a0156e40feb
+・cereal-1.2.2
+・opencv-2.4.13.6-vc14
+・googletest-release-1.8.0
+
+以下は作者の環境での定義例
+
+GTEST_DIR=D:\etc\googletest-release-1.8.0\googletest
+EIGEN_DIR=D:\etc\eigen-eigen-5a0156e40feb
+CEREAL_DIR=D:\etc\cereal-1.2.2
+OPENCV2_4_13_DIR=D:\etc\opencv-2.4.13.6-vc14\build
+
