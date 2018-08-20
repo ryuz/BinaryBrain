@@ -22,3 +22,6 @@ OPENCV2_4_13_DIR=D:\etc\opencv-2.4.13.6-vc14\build
 
 AXV2以降の命令が使えるCPUと、Windows7以降の環境を想定しております。
 
+
+ひとまず sample の mnist で、カレントディレクトリに MNIST のデータを置いて実行すれば
+何か動き始める模様。
