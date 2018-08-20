@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <iostream>
 #include "gtest/gtest.h"
-#include "NeuralNetAffine.h"
-#include "NeuralNetSigmoid.h"
-#include "NeuralNetSoftmax.h"
-#include "NeuralNetBinarize.h"
-#include "NeuralNetUnbinarize.h"
-#include "NeuralNetBinaryLut6.h"
-#include "NeuralNetBinaryLutN.h"
+#include "bb/NeuralNetAffine.h"
+#include "bb/NeuralNetSigmoid.h"
+#include "bb/NeuralNetSoftmax.h"
+#include "bb/NeuralNetBinarize.h"
+#include "bb/NeuralNetUnbinarize.h"
+#include "bb/NeuralNetBinaryLut6.h"
+#include "bb/NeuralNetBinaryLutN.h"
 
 
 
@@ -399,7 +399,7 @@ TEST(NeuralNetBinarizeTest, testNeuralNetBinarize)
 	const int mux_size = 2;
 	const int frame_size = 1;
 
-	bb::NeuralNetBinarize<> binarize(node_size, mux_size);
+	bb::NeuralNetBinarize<> binarize(node_size, node_size, mux_size);
 	testSetupLayerBuffer(binarize);
 
 	EXPECT_EQ(1, binarize.GetInputFrameSize());
@@ -476,7 +476,7 @@ TEST(NeuralNetBinarizeTest, testNeuralNetBinarizeBatch)
 	const int mux_size = 2;
 	const int batch_size = 2;
 
-	bb::NeuralNetBinarize<> binarize(node_size, mux_size, batch_size);
+	bb::NeuralNetBinarize<> binarize(node_size, node_size, mux_size, batch_size);
 	testSetupLayerBuffer(binarize);
 
 	EXPECT_EQ(batch_size, binarize.GetInputFrameSize());
@@ -581,7 +581,7 @@ TEST(NeuralNetUnbinarizeTest, testNeuralNetUnbinarize)
 	const int mux_size = 2;
 	const int frame_size = 1;
 
-	bb::NeuralNetUnbinarize<> unbinarize(node_size, mux_size);
+	bb::NeuralNetUnbinarize<> unbinarize(node_size, node_size, mux_size);
 	testSetupLayerBuffer(unbinarize);
 
 	EXPECT_EQ(2, unbinarize.GetInputFrameSize());

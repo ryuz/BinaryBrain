@@ -1,13 +1,13 @@
 #include <iostream>
 #include <random>
 #include <opencv2/opencv.hpp>
-#include "NeuralNet.h"
-#include "NeuralNetAffine.h"
-#include "NeuralNetSigmoid.h"
-#include "NeuralNetSoftmax.h"
-#include "NeuralNetBinaryLut6.h"
-#include "NeuralNetBinarize.h"
-#include "NeuralNetUnbinarize.h"
+#include "bb/NeuralNet.h"
+#include "bb/NeuralNetAffine.h"
+#include "bb/NeuralNetSigmoid.h"
+#include "bb/NeuralNetSoftmax.h"
+#include "bb/NeuralNetBinarize.h"
+#include "bb/NeuralNetUnbinarize.h"
+#include "bb/NeuralNetBinaryLut6.h"
 #include "mnist_read.h"
 
 
@@ -26,13 +26,13 @@ void img_show(std::vector<float>& image)
 //NeuralNetBufferAccessor<>*	accessor;
 
 
-#include "NeuralNetType.h"
+
 
 
 
 std::vector<float> calc_onehot_loss(std::vector<std::uint8_t> label, bb::NeuralNetBuffer<> buf, size_t mux_size)
 {
-	int  frame_size = buf.GetFrameSize();
+	int  frame_size = (int)buf.GetFrameSize();
 	size_t node_size = buf.GetNodeSize();
 
 	std::vector<float> vec_loss_x(frame_size);
