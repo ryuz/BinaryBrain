@@ -170,9 +170,6 @@
     <ClCompile Include="mnist_read.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\include\bb\BinaryNet.h" />
-    <ClInclude Include="..\..\include\bb\BinaryNetBatch.h" />
-    <ClInclude Include="..\..\include\bb\BinaryNetData.h" />
     <ClInclude Include="..\..\include\bb\NeuralNet.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetAffine.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBinarize.h" />
