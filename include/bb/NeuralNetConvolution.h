@@ -113,7 +113,7 @@ public:
 								for (int fx = 0; fx < m_filter_w_size; ++fx) {
 									int ix = x + fx;
 									int iy = y + fy;
-									float* in_ptr = GetInputPtr(in_buf, c, ix, iy);
+									float* in_ptr = GetInputPtr(in_buf, c, iy, ix);
 									__m256 coeff_val = _mm256_set1_ps(coeff(n, c, fy, fx));
 									__m256 in_val = _mm256_load_ps(&in_ptr[frame]);
 									__m256 mul_val = _mm256_mul_ps(coeff_val, in_val);
