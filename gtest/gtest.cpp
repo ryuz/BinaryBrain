@@ -971,7 +971,7 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLutFeedback)
 
 TEST(NeuralNetConvolutionTest, testNeuralNetConvolution)
 {
-	bb::NeuralNetConvolution<> cnv(3, 3, 2, 2);
+	bb::NeuralNetConvolution<> cnv(1, 3, 3, 1, 2, 2);
 	testSetupLayerBuffer(cnv);
 	auto in_val = cnv.GetInputValueBuffer();
 	auto out_val = cnv.GetOutputValueBuffer();
@@ -989,10 +989,10 @@ TEST(NeuralNetConvolutionTest, testNeuralNetConvolution)
 	in_val.SetReal(0, 3 * 2 + 1, 0.8f);
 	in_val.SetReal(0, 3 * 2 + 2, 0.9f);
 
-	cnv.coeff(0, 0) = 0.1f;
-	cnv.coeff(0, 1) = 0.2f;
-	cnv.coeff(1, 0) = 0.3f;
-	cnv.coeff(1, 1) = 0.4f;
+	cnv.coeff(0, 0, 0, 0) = 0.1f;
+	cnv.coeff(0, 0, 0, 1) = 0.2f;
+	cnv.coeff(0, 0, 1, 0) = 0.3f;
+	cnv.coeff(0, 0, 1, 1) = 0.4f;
 
 	cnv.Forward();
 
