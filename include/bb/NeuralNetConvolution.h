@@ -33,7 +33,8 @@ protected:
 	int				m_output_h_size;
 	int				m_output_w_size;
 	int				m_output_c_size;
-	std::vector <T>	m_coeff;
+	std::vector <T>	m_W;
+	std::vector <T>	m_b;
 
 public:
 	NeuralNetConvolution() {}
@@ -57,17 +58,25 @@ public:
 		m_output_h_size = m_input_h_size - m_filter_h_size + 1;
 		m_output_w_size = m_input_w_size - m_filter_w_size + 1;
 
-		m_coeff.resize(m_output_c_size*m_input_c_size*m_filter_h_size*m_filter_w_size);
+		m_W.resize(m_output_c_size*m_input_c_size*m_filter_h_size*m_filter_w_size);
+		m_b.resize(m_output_c_size);
 
 		std::mt19937_64 mt(seed);
 		std::uniform_real_distribution<T> uniform_rand((T)0, (T)1);
-		for (auto& v : m_coeff) {
-			v = uniform_rand(mt);
+		for (auto& w : m_W) {
+			w = uniform_rand(mt);
+		}
+		for (auto& b : m_b) {
+			b = uniform_rand(mt);
 		}
 	}
 	
-	T& coeff(INDEX n, INDEX c, INDEX y, INDEX x) {
-		return m_coeff[((n*m_input_c_size + c)*m_filter_h_size + y)*m_filter_w_size + x];
+	T& W(INDEX n, INDEX c, INDEX y, INDEX x) {
+		return m_W[((n*m_input_c_size + c)*m_filter_h_size + y)*m_filter_w_size + x];
+	}
+
+	T& b(INDEX n) {
+		return m_b[n];
 	}
 
 
@@ -98,33 +107,42 @@ protected:
 public:
 	void Forward(void)
 	{
-		int  m256_frame_size = (int)(((m_frame_size + 7) / 8) * 8);
-		auto in_buf = GetInputValueBuffer();
-		auto out_buf = GetOutputValueBuffer();
+		if (typeid(T) == typeid(float)) {
+			// float—pŽÀ‘•
+			int  m256_frame_size = (int)(((m_frame_size + 7) / 8) * 8);
+			auto in_buf = GetInputValueBuffer();
+			auto out_buf = GetOutputValueBuffer();
 
-		for (int n = 0; n < m_output_c_size; ++n) {
-			for (int y = 0; y < m_output_h_size; ++y) {
-				for (int x = 0; x < m_output_w_size; ++x) {
-					float* out_ptr = GetOutputPtr(out_buf, n, y, x);
-					for (size_t frame = 0; frame < m256_frame_size; frame += 8) {
-						__m256 sum = _mm256_set1_ps(0);
-						for (int c = 0; c < m_input_c_size; ++c) {
-							for (int fy = 0; fy < m_filter_h_size; ++fy) {
-								for (int fx = 0; fx < m_filter_w_size; ++fx) {
-									int ix = x + fx;
-									int iy = y + fy;
-									float* in_ptr = GetInputPtr(in_buf, c, iy, ix);
-									__m256 coeff_val = _mm256_set1_ps(coeff(n, c, fy, fx));
-									__m256 in_val = _mm256_load_ps(&in_ptr[frame]);
-									__m256 mul_val = _mm256_mul_ps(coeff_val, in_val);
-									sum = _mm256_add_ps(sum, mul_val);
+			for (int n = 0; n < m_output_c_size; ++n) {
+				for (int y = 0; y < m_output_h_size; ++y) {
+					for (int x = 0; x < m_output_w_size; ++x) {
+						float* out_ptr = GetOutputPtr(out_buf, n, y, x);
+						for (size_t frame = 0; frame < m256_frame_size; frame += 8) {
+							__m256 sum = _mm256_set1_ps(b(n));
+							for (int c = 0; c < m_input_c_size; ++c) {
+								for (int fy = 0; fy < m_filter_h_size; ++fy) {
+									for (int fx = 0; fx < m_filter_w_size; ++fx) {
+										int ix = x + fx;
+										int iy = y + fy;
+										float* in_ptr = GetInputPtr(in_buf, c, iy, ix);
+										__m256 W_val = _mm256_set1_ps(W(n, c, fy, fx));
+										__m256 in_val = _mm256_load_ps(&in_ptr[frame]);
+										__m256 mul_val = _mm256_mul_ps(W_val, in_val);
+										sum = _mm256_add_ps(sum, mul_val);
+									}
 								}
 							}
+							_mm256_store_ps(&out_ptr[frame], sum);
 						}
-						_mm256_store_ps(&out_ptr[frame], sum);
 					}
 				}
 			}
+		}
+		else if (typeid(T) == typeid(double)) {
+			// double—pŽÀ‘•
+		}
+		else {
+			assert(0);
 		}
 	}
 	
