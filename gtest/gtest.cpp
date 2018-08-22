@@ -989,33 +989,35 @@ TEST(NeuralNetConvolutionTest, testNeuralNetConvolution)
 	in_val.SetReal(0, 3 * 2 + 1, 0.8f);
 	in_val.SetReal(0, 3 * 2 + 2, 0.9f);
 
-	cnv.coeff(0, 0, 0, 0) = 0.1f;
-	cnv.coeff(0, 0, 0, 1) = 0.2f;
-	cnv.coeff(0, 0, 1, 0) = 0.3f;
-	cnv.coeff(0, 0, 1, 1) = 0.4f;
+	cnv.W(0, 0, 0, 0) = 0.1f;
+	cnv.W(0, 0, 0, 1) = 0.2f;
+	cnv.W(0, 0, 1, 0) = 0.3f;
+	cnv.W(0, 0, 1, 1) = 0.4f;
+
+	cnv.b(0) = 0.321f;
 
 	cnv.Forward();
 
-	float exp00
-		= 0.1f * 0.1f
+	float exp00 = 0.321f
+		+ 0.1f * 0.1f
 		+ 0.2f * 0.2f
 		+ 0.4f * 0.3f
 		+ 0.5f * 0.4f;
 
-	float exp01
-		= 0.2f * 0.1f
+	float exp01 = 0.321f
+		+ 0.2f * 0.1f
 		+ 0.3f * 0.2f
 		+ 0.5f * 0.3f
 		+ 0.6f * 0.4f;
 
-	float exp10
-		= 0.4f * 0.1f
+	float exp10 = 0.321f
+		+ 0.4f * 0.1f
 		+ 0.5f * 0.2f
 		+ 0.7f * 0.3f
 		+ 0.8f * 0.4f;
 
-	float exp11
-		= 0.5f * 0.1f
+	float exp11 = 0.321f
+		+ 0.5f * 0.1f
 		+ 0.6f * 0.2f
 		+ 0.8f * 0.3f
 		+ 0.9f * 0.4f;
