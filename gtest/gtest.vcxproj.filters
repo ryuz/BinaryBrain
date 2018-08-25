@@ -83,12 +83,6 @@
     <ClInclude Include="..\include\bb\NeuralNetRealBinaryConverter.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bb\NeuralnetSigmoid.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\bb\NeuralnetSoftmax.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\bb\NeuralNetType.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -99,6 +93,12 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="..\include\bb\ShuffleSet.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bb\NeuralNetSoftmax.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bb\NeuralNetSigmoid.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

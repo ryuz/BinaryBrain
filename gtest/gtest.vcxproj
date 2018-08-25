@@ -43,8 +43,8 @@
     <ClInclude Include="..\include\bb\NeuralNetGroup.h" />
     <ClInclude Include="..\include\bb\NeuralNetLayer.h" />
     <ClInclude Include="..\include\bb\NeuralNetRealBinaryConverter.h" />
-    <ClInclude Include="..\include\bb\NeuralnetSigmoid.h" />
-    <ClInclude Include="..\include\bb\NeuralnetSoftmax.h" />
+    <ClInclude Include="..\include\bb\NeuralNetSigmoid.h" />
+    <ClInclude Include="..\include\bb\NeuralNetSoftmax.h" />
     <ClInclude Include="..\include\bb\NeuralNetType.h" />
     <ClInclude Include="..\include\bb\NeuralNetUnbinarize.h" />
     <ClInclude Include="..\include\bb\NeuralNetUtility.h" />
