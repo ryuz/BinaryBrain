@@ -78,10 +78,10 @@ public:
 	INDEX GetOutputFrameSize(void) const { return m_frame_size; }
 	INDEX GetOutputNodeSize(void) const { return m_output_c_size * m_output_h_size * m_output_w_size; }
 	
-	int   GetInputValueDataType(void) const { return NeuralNetType<T>::type; }
-	int   GetInputErrorDataType(void) const { return NeuralNetType<T>::type; }
-	int   GetOutputValueDataType(void) const { return NeuralNetType<T>::type; }
-	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
+	int   GetInputValueDataType(void) const { return BB_TYPE_BINARY; }
+	int   GetInputErrorDataType(void) const { return BB_TYPE_BINARY; }
+	int   GetOutputValueDataType(void) const { return BB_TYPE_BINARY; }
+	int   GetOutputErrorDataType(void) const { return BB_TYPE_BINARY; }
 	
 protected:
 
@@ -99,10 +99,10 @@ public:
 	void Forward(void)
 	{
 		auto in_val = GetInputValueBuffer();
-		auto out_val = GetInputValueBuffer();
+		auto out_val = GetOutputValueBuffer();
 
 		in_val.SetDimensions({ m_input_c_size, m_input_h_size, m_input_w_size});
-		out_val.SetDimensions({ m_input_c_size, m_input_h_size, m_input_w_size});
+		out_val.SetDimensions({ m_output_c_size, m_output_h_size, m_output_w_size});
 		
 		INDEX out_y = 0;
 		for (INDEX in_y = 0; in_y < m_output_h_size; in_y += m_y_step) {

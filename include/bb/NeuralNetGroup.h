@@ -144,29 +144,29 @@ protected:
 	void SetupBuffer(void)
 	{
 		if (m_layers.empty()) {
-			assert(0);
+			BB_ASSERT(0);
 			return;
 		}
 
 		// êÆçáê´ämîF
 		for (size_t i = 0; i < m_layers.size()-1; ++i) {
 			if (m_layers[i]->GetOutputFrameSize() != m_layers[i+1]->GetInputFrameSize()) {
-				assert(0);
+				BB_ASSERT(0);
 				return;
 			}
 			if (m_layers[i]->GetOutputNodeSize() != m_layers[i+1]->GetInputNodeSize()) {
 				std::cout << "node size mismatch" << std::endl;
-				std::cout << "layer[" << i - 1 << "] : output node = : " << m_layers[i - 1]->GetOutputNodeSize() << std::endl;
-				std::cout << "layer[" << i << "] : input node = : " << m_layers[i]->GetInputNodeSize() << std::endl;
-				assert(0);
+				std::cout << "layer[" << i - 1 << "] : output node = : " << m_layers[i]->GetOutputNodeSize() << std::endl;
+				std::cout << "layer[" << i << "] : input node = : " << m_layers[i+1]->GetInputNodeSize() << std::endl;
+				BB_ASSERT(0);
 				return;
 			}
 			if (m_layers[i]->GetOutputValueDataType() != m_layers[i+1]->GetInputValueDataType()) {
-				assert(0);
+				BB_ASSERT(0);
 				return;
 			}
 			if (m_layers[i]->GetOutputErrorDataType() != m_layers[i+1]->GetInputErrorDataType()) {
-				assert(0);
+				BB_ASSERT(0);
 				return;
 			}
 		}

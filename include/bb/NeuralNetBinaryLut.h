@@ -38,7 +38,7 @@ public:
 	virtual INDEX GetLutInput(INDEX node, int input_index) const = 0;
 	virtual void  SetLutTable(INDEX node, int bit, bool value) = 0;
 	virtual bool  GetLutTable(INDEX node, int bit) const = 0;
-
+	
 	void InitializeLut(std::uint64_t seed)
 	{
 		std::mt19937_64                     mt(seed);
@@ -63,6 +63,8 @@ public:
 		}
 	}
 
+	void  SetMuxSize(INDEX mux_size) { m_mux_size = mux_size; }
+	INDEX GetMuxSize(void)           { return m_mux_size; }
 
 	// ‹¤’Ê‹@”\‚Ì’è‹`
 protected:

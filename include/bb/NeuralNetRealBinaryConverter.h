@@ -57,6 +57,9 @@ public:
 	INDEX GetRealNodeSize(void) const { return m_real_node_size; }
 	INDEX GetMuxSize(void) const { return m_mux_size; }
 
+	void  SetMuxSize(INDEX mux_size) { m_mux_size = mux_size; }
+	INDEX GetMuxSize(void) { return m_mux_size; }
+
 	void  SetBatchSize(INDEX batch_size) { m_batch_size = batch_size; }
 
 	void RealToBinary(NeuralNetBuffer<T, INDEX> real_buf, NeuralNetBuffer<T, INDEX> binary_buf)
