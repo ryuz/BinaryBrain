@@ -39,6 +39,8 @@ protected:
 	INDEX			m_output_w_size;
 	INDEX			m_output_c_size;
 
+	int				m_feedback_layer = -1;
+
 public:
 	NeuralNetBinaryFilter() {}
 	
@@ -127,6 +129,24 @@ public:
 
 	void Update(double learning_rate)
 	{
+	}
+
+
+	bool Feedback(std::vector<double>& loss)
+	{
+		if (m_feedback_layer < 0) {
+			m_feedback_layer = (int)m_layers.size() - 1;	// ‰‰ñ
+		}
+
+		while (m_feedback_layer >= 0) {
+			if (m_layers[m_feedback_layer]->Feedback(loss)) {
+				Forward();	// ‘S‘ÌÄŒvZ
+				return true;
+			}
+			--m_feedback_layer;
+		}
+
+		return false;
 	}
 
 };

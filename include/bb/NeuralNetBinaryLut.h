@@ -234,7 +234,7 @@ protected:
 			// WŒvŒ‹‰Ê‚ÉŠî‚Ã‚¢‚ÄLUT‚ğŠwK
 			int	lut_table_size = GetLutTableSize();
 			for (int bit = 0; bit < lut_table_size; ++bit) {
-				if (m_feedback_loss[bit] > (T)0.0) {
+				if (m_feedback_loss[bit] > 0 ) {
 					SetLutTable(m_feedback_node, bit, !GetLutTable(m_feedback_node, bit));
 				}
 			}
@@ -267,7 +267,7 @@ protected:
 			m_feedback_node = 0;
 			m_feedback_bit  = 0;
 			m_feedback_phase = 0;
-			m_feedback_loss.resize(2);
+			m_feedback_loss.resize(1);
 		}
 
 		// Š®—¹
@@ -281,9 +281,11 @@ protected:
 		for (auto v : loss) {
 			loss_sum += v;
 		}
-		m_feedback_loss[m_feedback_phase] = loss_sum;
 
 		if (m_feedback_phase == 0) {
+			// ‘¹¸‚ğ•Û‘¶
+			m_feedback_loss[0] = loss_sum;
+
 			// ŠY“–LUT‚ğ”½“]
 			SetLutTable(m_feedback_node, m_feedback_bit, !GetLutTable(m_feedback_node, m_feedback_bit));
 
@@ -293,8 +295,9 @@ protected:
 			++m_feedback_phase;
 		}
 		else {
-			// Œ‹‰Ê”»’è
-			if (m_feedback_loss[0] <= m_feedback_loss[1]) {
+			// ‘¹¸‚ğ”äŠr
+			m_feedback_loss[0] -= loss_sum;
+			if (m_feedback_loss[0] < 0) {
 				// ”½“]‚³‚¹‚È‚¢•û‚ª‚æ‚¯‚ê‚ÎŒ³‚É–ß‚·
 				SetLutTable(m_feedback_node, m_feedback_bit, !GetLutTable(m_feedback_node, m_feedback_bit));
 
