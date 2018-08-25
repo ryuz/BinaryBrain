@@ -25,8 +25,8 @@ template <bool feedback_bitwise = false, typename T = float, typename INDEX = si
 class NeuralNetBinaryLut : public NeuralNetLayer<T, INDEX>
 {
 protected:
-	INDEX					m_mux_size;
-	INDEX					m_frame_size;
+	INDEX					m_mux_size = 1;
+	INDEX					m_frame_size = 1;
 	INDEX					m_input_node_size;
 	INDEX					m_output_node_size;
 
@@ -39,7 +39,7 @@ public:
 	virtual void  SetLutTable(INDEX node, int bit, bool value) = 0;
 	virtual bool  GetLutTable(INDEX node, int bit) const = 0;
 	
-	void InitializeLut(std::uint64_t seed)
+	void InitializeCoeff(std::uint64_t seed)
 	{
 		std::mt19937_64                     mt(seed);
 		std::uniform_int_distribution<int>	rand(0, 1);
@@ -66,14 +66,10 @@ public:
 	void  SetMuxSize(INDEX mux_size) { m_mux_size = mux_size; }
 	INDEX GetMuxSize(void)           { return m_mux_size; }
 
-	// 共通機能の定義
-protected:
-	void SetupBase(INDEX input_node_size, INDEX output_node_size, INDEX mux_size, INDEX batch_size = 1, std::uint64_t seed = 1)
+	virtual void Resize(INDEX input_node_size, INDEX output_node_size)
 	{
 		m_input_node_size = input_node_size;
 		m_output_node_size = output_node_size;
-		m_mux_size = mux_size;
-		m_frame_size = batch_size * mux_size;
 	}
 
 public:
@@ -362,6 +358,70 @@ public:
 		return vec_loss_x;
 	}
 
+
+	// シリアライズ
+protected:
+	struct LutData {
+		std::vector<int>	lut_input;
+		std::vector<bool>	lut_table;
+
+		template <class Archive>
+		void serialize(Archive &archive, std::uint32_t const version)
+		{
+			archive(cereal::make_nvp("input", lut_input));
+			archive(cereal::make_nvp("table", lut_table));
+		}
+	};
+
+public:
+	template <class Archive>
+	void save(Archive &archive, std::uint32_t const version) const
+	{
+		INDEX node_size = GetOutputNodeSize();
+		int lut_input_size = GetLutInputSize();
+		int	lut_table_size = GetLutTableSize();
+
+		std::vector<LutData> vec_lut;
+		for (INDEX node = 0; node < node_size; ++node) {
+			LutData ld;
+			ld.lut_input.resize(lut_input_size);
+			for (int i = 0; i < lut_input_size; ++i) {
+				ld.lut_input.push_back(GetLutInput(node, i));
+			}
+
+			ld.lut_table.resize(lut_table_size);
+			for (int i = 0; i < lut_table_size; ++i) {
+				ld.lut_table.push_back(GetLutTable(node, i));
+			}
+
+			vec_lut.push_back(ld);
+		}
+
+		archive(cereal::make_nvp("lut", vec_lut));
+	}
+	
+
+	template <class Archive>
+	void load(Archive &archive, std::uint32_t const version)
+	{
+		INDEX node_size = GetOutputNodeSize();
+		int lut_input_size = GetLutInputSize();
+		int	lut_table_size = GetLutTableSize();
+
+		std::vector<LutData> vec_lut;
+		archive(cereal::make_nvp("lut", vec_lut));
+
+		for (INDEX node = 0; node < node_size; ++node) {
+			for (int i = 0; i < lut_input_size; ++i) {
+				SetLutInput(node, i, ld.lut_input[i]);
+			}
+
+			ld.lut_table.resize(lut_table_size);
+			for (int i = 0; i < lut_table_size; ++i) {
+				SetLutTable(node, i, ld.lut_input[i]);
+			}
+		}
+	}
 };
 
 }

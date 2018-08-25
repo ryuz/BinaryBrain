@@ -26,12 +26,18 @@ class NeuralNetUnbinarize : public NeuralNetRealBinaryConverter<T, INDEX>
 public:
 	NeuralNetUnbinarize() {}
 
-	NeuralNetUnbinarize(INDEX input_node_size, INDEX output_node_size, INDEX mux_size, INDEX batch_size = 1, std::uint64_t seed = 1)
+	NeuralNetUnbinarize(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1)
 	{
-		Setup(output_node_size, input_node_size, mux_size, batch_size, seed);
+		Resize(input_node_size, output_node_size);
+		InitializeCoeff(seed);
 	}
 
 	~NeuralNetUnbinarize() {}		// デストラクタ
+
+	void Resize(INDEX input_node_size, INDEX output_node_size)
+	{
+		NeuralNetRealBinaryConverter<T, INDEX>::Resize(output_node_size, input_node_size);
+	}
 
 	INDEX GetInputFrameSize(void) const { return GetBinaryFrameSize(); }
 	INDEX GetInputNodeSize(void) const { return GetBinaryNodeSize(); }

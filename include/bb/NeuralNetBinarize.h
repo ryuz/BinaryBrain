@@ -24,12 +24,18 @@ class NeuralNetBinarize : public NeuralNetRealBinaryConverter<T, INDEX>
 public:
 	NeuralNetBinarize() {}
 
-	NeuralNetBinarize(INDEX input_node_size, INDEX output_node_size, INDEX mux_size, INDEX batch_size = 1, std::uint64_t seed = 1)
+	NeuralNetBinarize(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1)
 	{
-		Setup(input_node_size, input_node_size, mux_size, batch_size, seed);
+		Resize(input_node_size, input_node_size);
+		InitializeCoeff(seed);
 	}
 
 	~NeuralNetBinarize() {}		// デストラクタ
+
+	void Resize(INDEX input_node_size, INDEX output_node_size)
+	{
+		NeuralNetRealBinaryConverter<T, INDEX>::Resize(input_node_size, input_node_size);
+	}
 
 	INDEX GetInputFrameSize(void) const { return GetRealFrameSize(); }
 	INDEX GetInputNodeSize(void) const { return GetRealNodeSize(); }

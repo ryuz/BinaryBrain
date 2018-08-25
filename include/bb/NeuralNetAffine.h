@@ -10,7 +10,7 @@
 
 #pragma once
 
-
+#include <random>
 #include <Eigen/Core>
 #include "NeuralNetLayer.h"
 
@@ -26,9 +26,9 @@ protected:
 	typedef Eigen::Matrix<T, -1, -1, Eigen::ColMajor>	Matrix;
 	typedef Eigen::Matrix<T, 1, -1>						Vector;
 
-	INDEX		m_frame_size;
-	INDEX		m_input_size;
-	INDEX		m_output_size;
+	INDEX		m_frame_size = 1;
+	INDEX		m_input_size = 0;
+	INDEX		m_output_size = 0;
 
 	Matrix		m_W;
 	Vector		m_b;
@@ -38,22 +38,38 @@ protected:
 public:
 	NeuralNetAffine() {}
 
-	NeuralNetAffine(INDEX input_size, INDEX output_size, INDEX batch_size = 1)
+	NeuralNetAffine(INDEX input_size, INDEX output_size, std::uint64_t seed=1)
 	{
-		Setup(input_size, output_size, batch_size);
+		Resize(input_size, output_size);
+		InitializeCoeff(seed);
 	}
 
 	~NeuralNetAffine() {}		// デストラクタ
 
-	void Setup(INDEX input_size, INDEX output_size, INDEX batch_size = 1)
+	void Resize(INDEX input_size, INDEX output_size)
 	{
-		m_frame_size = batch_size;
 		m_input_size = input_size;
 		m_output_size = output_size;
 		m_W = Matrix::Random(input_size, output_size);
 		m_b = Vector::Random(output_size);
 		m_dW = Matrix::Zero(input_size, output_size);
 		m_db = Vector::Zero(output_size);
+	}
+
+	void InitializeCoeff(std::uint64_t seed)
+	{
+		std::mt19937_64 mt(seed);
+		std::uniform_real_distribution<T> distribution((T)0, (T)1);
+
+		for (INDEX i = 0; i < m_input_size; ++i) {
+			for (INDEX j = 0; j < m_output_size; ++j) {
+				m_W(i, j) = distribution(mt);
+			}
+		}
+
+		for (INDEX j = 0; j < m_output_size; ++j) {
+			m_b(j) = distribution(mt);
+		}
 	}
 
 	INDEX GetInputFrameSize(void) const { return m_frame_size; }

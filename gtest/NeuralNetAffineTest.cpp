@@ -63,8 +63,10 @@ TEST(NeuralNetAffineTest, testAffine)
 
 TEST(NeuralNetAffineTest, testAffineBatch)
 {
-	bb::NeuralNetAffine<> affine(2, 3, 2);
+	bb::NeuralNetAffine<> affine(2, 3);
 	testSetupLayerBuffer(affine);
+
+	affine.SetBatchSize(2);
 
 	auto in_val = affine.GetInputValueBuffer();
 	auto out_val = affine.GetOutputValueBuffer();

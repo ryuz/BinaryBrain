@@ -46,8 +46,10 @@ TEST(NeuralNetSigmoidTest, testSigmoid)
 
 TEST(NeuralNetSigmoidTest, testSigmoidBatch)
 {
-	bb::NeuralNetSigmoid<> sigmoid(2, 2);
+	bb::NeuralNetSigmoid<> sigmoid(2);
 	testSetupLayerBuffer(sigmoid);
+
+	sigmoid.SetBatchSize(2);
 
 	auto in_val = sigmoid.GetInputValueBuffer();
 	auto out_val = sigmoid.GetOutputValueBuffer();

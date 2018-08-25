@@ -82,9 +82,11 @@ TEST_F(NeuralNetSoftmaxTest, testSoftmax)
 
 TEST_F(NeuralNetSoftmaxTest, testSoftmaxBatch)
 {
-	bb::NeuralNetSoftmax<> softmax(3, 2);
-	testSetupLayerBuffer(softmax);
+	bb::NeuralNetSoftmax<> softmax(3);
+	softmax.SetBatchSize(2);
 
+	testSetupLayerBuffer(softmax);
+	
 	auto in_val = softmax.GetInputValueBuffer();
 	auto out_val = softmax.GetOutputValueBuffer();
 	in_val.SetReal(0, 0, m_src(0, 0));

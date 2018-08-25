@@ -21,8 +21,11 @@ TEST(NeuralNetBinarizeTest, testNeuralNetBinarize)
 	const int mux_size = 2;
 	const int frame_size = 1;
 
-	bb::NeuralNetBinarize<> binarize(node_size, node_size, mux_size);
+	bb::NeuralNetBinarize<> binarize(node_size, node_size);
 	testSetupLayerBuffer(binarize);
+
+	binarize.SetMuxSize(mux_size);
+	binarize.SetBatchSize(1);
 
 	EXPECT_EQ(1, binarize.GetInputFrameSize());
 	EXPECT_EQ(2, binarize.GetOutputFrameSize());
@@ -65,8 +68,11 @@ TEST(NeuralNetBinarizeTest, testNeuralNetBinarizeBatch)
 	const int mux_size = 2;
 	const int batch_size = 2;
 
-	bb::NeuralNetBinarize<> binarize(node_size, node_size, mux_size, batch_size);
+	bb::NeuralNetBinarize<> binarize(node_size, node_size);
 	testSetupLayerBuffer(binarize);
+
+	binarize.SetMuxSize(mux_size);
+	binarize.SetBatchSize(batch_size);
 
 	EXPECT_EQ(batch_size, binarize.GetInputFrameSize());
 	EXPECT_EQ(batch_size*mux_size, binarize.GetOutputFrameSize());

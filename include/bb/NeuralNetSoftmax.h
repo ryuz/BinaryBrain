@@ -26,22 +26,21 @@ protected:
 	typedef Eigen::Matrix<T, -1, -1, Eigen::ColMajor>	Matrix;
 	typedef Eigen::Matrix<T, -1, 1>						Vector;
 
-	INDEX		m_frame_size;
-	INDEX		m_node_size;
+	INDEX		m_frame_size = 1;
+	INDEX		m_node_size = 0;
 
 public:
 	NeuralNetSoftmax() {}
 
-	NeuralNetSoftmax(INDEX node_size, INDEX batch_size = 1)
+	NeuralNetSoftmax(INDEX node_size)
 	{
-		Setup(node_size, batch_size);
+		Resize(node_size);
 	}
 
 	~NeuralNetSoftmax() {}		// デストラクタ
 
-	void Setup(INDEX node_size, INDEX batch_size = 1)
+	void Resize(INDEX node_size)
 	{
-		m_frame_size = batch_size;
 		m_node_size = node_size;
 	}
 

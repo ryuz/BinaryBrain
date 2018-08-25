@@ -20,8 +20,11 @@ TEST(NeuralNetUnbinarizeTest, testNeuralNetUnbinarize)
 	const int mux_size = 2;
 	const int frame_size = 1;
 
-	bb::NeuralNetUnbinarize<> unbinarize(node_size, node_size, mux_size);
+	bb::NeuralNetUnbinarize<> unbinarize(node_size, node_size);
 	testSetupLayerBuffer(unbinarize);
+
+	unbinarize.SetMuxSize(mux_size);
+	unbinarize.SetBatchSize(1);
 
 	EXPECT_EQ(2, unbinarize.GetInputFrameSize());
 	EXPECT_EQ(1, unbinarize.GetOutputFrameSize());

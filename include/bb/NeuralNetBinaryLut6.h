@@ -34,12 +34,26 @@ protected:
 public:
 	NeuralNetBinaryLut6() {}
 
-	NeuralNetBinaryLut6(INDEX input_node_size, INDEX output_node_size, INDEX mux_size, INDEX batch_size = 1, std::uint64_t seed = 1)
+	NeuralNetBinaryLut6(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1)
 	{
-		Setup(input_node_size, output_node_size, mux_size, batch_size, seed);
+		Resize(input_node_size, output_node_size);
+		InitializeCoeff(seed);
 	}
 
 	~NeuralNetBinaryLut6() {}		// デストラクタ
+
+	void Resize(INDEX input_node_size, INDEX output_node_size)
+	{
+		NeuralNetBinaryLut<feedback_bitwise, T, INDEX>::Resize(input_node_size, output_node_size);
+		
+		m_lut.resize(m_output_node_size);
+	}
+
+	void Resize(std::vector<INDEX> sizes)
+	{
+		BB_ASSERT(sizes.size() == 2);
+		Resize(sizes[1], sizes[0]);
+	}
 
 	int   GetLutInputSize(void) const { return 6; }
 	int   GetLutTableSize(void) const { return (1 << 6); }
@@ -48,12 +62,6 @@ public:
 	void  SetLutTable(INDEX node, int bit, bool value) { m_lut[node].table[bit] = value ? -1 : 0; }
 	bool  GetLutTable(INDEX node, int bit) const { return (m_lut[node].table[bit] != 0); }
 
-	void Setup(INDEX input_node_size, INDEX output_node_size, INDEX mux_size, INDEX batch_size = 1, std::uint64_t seed = 1)
-	{
-		SetupBase(input_node_size, output_node_size, mux_size, batch_size, seed);
-		m_lut.resize(m_output_node_size);
-		InitializeLut(seed);
-	}
 
 
 protected:

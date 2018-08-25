@@ -24,10 +24,10 @@ class NeuralNetRealBinaryConverter : public NeuralNetLayer<T, INDEX>
 protected:
 	std::mt19937_64		m_mt;
 
-	INDEX				m_binary_node_size;
-	INDEX				m_real_node_size;
-	INDEX				m_batch_size;
-	INDEX				m_mux_size;
+	INDEX				m_binary_node_size = 0;
+	INDEX				m_real_node_size = 0;
+	INDEX				m_batch_size = 1;
+	INDEX				m_mux_size = 1;
 
 	T					m_real_range_lo = (T)0.0;
 	T					m_real_range_hi = (T)1.0;
@@ -35,19 +35,22 @@ protected:
 public:
 	NeuralNetRealBinaryConverter() {}
 
-	NeuralNetRealBinaryConverter(INDEX real_node_size, INDEX binary_node_size, INDEX mux_size, INDEX batch_size, std::uint64_t seed = 1)
+	NeuralNetRealBinaryConverter(INDEX real_node_size, INDEX binary_node_size, std::uint64_t seed = 1)
 	{
-		Setup(real_node_size, binary_node_size, mux_size, batch_size, seed);
+		Resize(real_node_size, binary_node_size);
+		InitializeCoeff(seed);
 	}
 
 	~NeuralNetRealBinaryConverter() {}		// デストラクタ
 
-	void Setup(INDEX real_node_size, INDEX binary_node_size,  INDEX mux_size, INDEX batch_size, std::uint64_t seed = 1)
+	void Resize(INDEX real_node_size, INDEX binary_node_size)
 	{
 		m_binary_node_size = binary_node_size;
 		m_real_node_size = real_node_size;
-		m_mux_size = mux_size;
-		m_batch_size = batch_size;
+	}
+
+	void  InitializeCoeff(std::uint64_t seed)
+	{
 		m_mt.seed(seed);
 	}
 

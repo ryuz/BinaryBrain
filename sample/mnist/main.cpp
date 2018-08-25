@@ -1,7 +1,14 @@
 #include <iostream>
 #include <fstream>
 #include <random>
+
 #include <opencv2/opencv.hpp>
+
+#include <cereal/cereal.hpp>
+#include <cereal/types/array.hpp>
+#include <cereal/types/vector.hpp>
+#include <cereal/archives/json.hpp>
+
 #include "bb/NeuralNet.h"
 #include "bb/NeuralNetUtility.h"
 #include "bb/NeuralNetAffine.h"
@@ -12,6 +19,7 @@
 #include "bb/NeuralNetBinaryLut6.h"
 #include "bb/NeuralNetBinaryLut6VerilogXilinx.h"
 #include "bb/NeuralNetBinaryFilter.h"
+#include "bb/ShuffleSet.h"
 #include "mnist_read.h"
 
 
@@ -44,6 +52,7 @@ protected:
 	std::vector< std::vector<float> >	m_train_onehot;
 
 	// 学習用バッチ
+	bb::ShuffleSet						m_shuffle_set;
 	std::vector<size_t>					m_train_batch_index;
 	std::vector< std::vector<float> >	m_train_batch_images;
 	std::vector< std::uint8_t >			m_train_batch_labels;
@@ -62,6 +71,8 @@ public:
 		m_test_onehot = bb::LabelToOnehot<std::uint8_t, float>(m_test_labels, 10);
 
 		// インデックス作成
+		m_shuffle_set.Setup(m_train_images.size());
+
 		m_train_batch_index.resize(m_train_images.size());
 		for (size_t i = 0; i < m_train_batch_index.size(); ++i) {
 			m_train_batch_index[i] = i;
@@ -84,7 +95,6 @@ public:
 		net.AddLayer(&layer0_sigmoid);
 		net.AddLayer(&layer1_affine);
 		net.AddLayer(&layer1_softmax);
-
 
 		for (int loop = 0; loop < loop_num; ++loop) {
 			// 学習状況評価
@@ -140,11 +150,11 @@ public:
 		size_t layer1_node_size = 60 * 3;
 		size_t layer2_node_size = 10 * 3;
 		size_t output_node_size = 10;
-		bb::NeuralNetBinarize<>   layer_binarize(input_node_size, input_node_size, train_mux_size);
-		bb::NeuralNetBinaryLut6<> layer_lut0(input_node_size, layer0_node_size, train_mux_size);
-		bb::NeuralNetBinaryLut6<> layer_lut1(layer0_node_size, layer1_node_size, train_mux_size);
-		bb::NeuralNetBinaryLut6<> layer_lut2(layer1_node_size, layer2_node_size, train_mux_size);
-		bb::NeuralNetUnbinarize<> layer_unbinarize(layer2_node_size, output_node_size, train_mux_size);
+		bb::NeuralNetBinarize<>   layer_binarize(input_node_size, input_node_size, mt());
+		bb::NeuralNetBinaryLut6<> layer_lut0(input_node_size, layer0_node_size, mt());
+		bb::NeuralNetBinaryLut6<> layer_lut1(layer0_node_size, layer1_node_size, mt());
+		bb::NeuralNetBinaryLut6<> layer_lut2(layer1_node_size, layer2_node_size, mt());
+		bb::NeuralNetUnbinarize<> layer_unbinarize(layer2_node_size, output_node_size, mt());
 		net.AddLayer(&layer_binarize);
 		net.AddLayer(&layer_lut0);
 		net.AddLayer(&layer_lut1);
@@ -159,16 +169,15 @@ public:
 		net_eva.AddLayer(&layer_lut2);
 		net_eva.AddLayer(&layer_unbinarize);
 
-
 		for (int loop = 0; loop < loop_num; ++loop) {
 			// 学習状況評価
 			if (loop % test_rate == 0) {
-				layer_binarize.SetMuxSize(test_mux_size);
-				layer_lut0.SetMuxSize(test_mux_size);
-				layer_lut1.SetMuxSize(test_mux_size);
-				layer_lut2.SetMuxSize(test_mux_size);
-				layer_unbinarize.SetMuxSize(test_mux_size);
-
+	//			layer_binarize.SetMuxSize(test_mux_size);
+	//			layer_lut0.SetMuxSize(test_mux_size);
+	//			layer_lut1.SetMuxSize(test_mux_size);
+	//			layer_lut2.SetMuxSize(test_mux_size);
+	//			layer_unbinarize.SetMuxSize(test_mux_size);
+				net_eva.SetMuxSize(test_mux_size);
 				std::cout << "test : " << TestNet(net_eva) << std::endl;
 			}
 
@@ -184,11 +193,13 @@ public:
 			ShuffleTrainBatch(batch_size, mt());
 
 			// データセット
-			layer_binarize.SetMuxSize(train_mux_size);
-			layer_lut0.SetMuxSize(train_mux_size);
-			layer_lut1.SetMuxSize(train_mux_size);
-			layer_lut2.SetMuxSize(train_mux_size);
-			layer_unbinarize.SetMuxSize(train_mux_size);
+	//		layer_binarize.SetMuxSize(train_mux_size);
+	//		layer_lut0.SetMuxSize(train_mux_size);
+	//		layer_lut1.SetMuxSize(train_mux_size);
+	//		layer_lut2.SetMuxSize(train_mux_size);
+	//		layer_unbinarize.SetMuxSize(train_mux_size);
+
+			net_eva.SetMuxSize(train_mux_size);
 			net.SetBatchSize(batch_size);
 			for (size_t frame = 0; frame < batch_size; ++frame) {
 				net.SetInputValue(frame, m_train_batch_images[frame]);
@@ -723,7 +734,8 @@ protected:
 		std::mt19937_64 mt(seed);
 
 		// シャッフル
-		std::shuffle(m_train_batch_index.begin(), m_train_batch_index.end(), mt);
+	//	std::shuffle(m_train_batch_index.begin(), m_train_batch_index.end(), mt);
+		m_train_batch_index = m_shuffle_set.GetRandomSet(batch_size);
 
 		m_train_batch_images.resize(batch_size);
 		m_train_batch_labels.resize(batch_size);
@@ -788,9 +800,10 @@ int main()
 	EvaluateMnist	eva_mnist(train_max_size, test_max_size);
 
 //	eva_mnist.RunFlatReal(loop_num, batch_size, 1);
-//	eva_mnist.RunFlatBinary(loop_num, batch_size, 1);
-	eva_mnist.RunCnnBinary(loop_num, batch_size, 1);
-	
+	eva_mnist.RunFlatBinary(loop_num, batch_size, 1);
+//	eva_mnist.RunCnn1Binary(loop_num, batch_size, 1);
+//	eva_mnist.RunCnnBinary(loop_num, batch_size, 1);
+
 	return 0;
 }
 

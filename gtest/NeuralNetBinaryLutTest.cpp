@@ -44,7 +44,7 @@ inline std::vector<T> vector_add(const std::vector<T>& vec0, const std::vector<T
 
 TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6)
 {
-	bb::NeuralNetBinaryLut6<> lut(16, 2, 1, 1, 1);
+	bb::NeuralNetBinaryLut6<> lut(16, 2);
 	testSetupLayerBuffer(lut);
 
 	auto in_val = lut.GetInputValueBuffer();
@@ -89,7 +89,7 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6)
 
 TEST(NeuralNetBinaryLut6, testNeuralNetBinaryLut6Batch)
 {
-	bb::NeuralNetBinaryLut6<> lut(16, 2, 2, 1, 1);
+	bb::NeuralNetBinaryLut6<> lut(16, 2, 2);
 	testSetupLayerBuffer(lut);
 
 	auto in_val = lut.GetInputValueBuffer();
@@ -159,8 +159,13 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6Compare)
 	std::uniform_int<size_t>	rand_input(0, input_node_size - 1);
 	std::uniform_int<int>		rand_bin(0, 1);
 
-	bb::NeuralNetBinaryLut6<>  lut0(input_node_size, output_node_size, mux_size, batch_size, 1);
-	bb::NeuralNetBinaryLutN<6> lut1(input_node_size, output_node_size, mux_size, batch_size, 1);
+	bb::NeuralNetBinaryLut6<>  lut0(input_node_size, output_node_size, 1);
+	bb::NeuralNetBinaryLutN<6> lut1(input_node_size, output_node_size, 1);
+
+	lut0.SetMuxSize(mux_size);
+	lut1.SetMuxSize(mux_size);
+	lut0.SetBatchSize(batch_size);
+	lut1.SetBatchSize(batch_size);
 
 #if 0
 
@@ -289,9 +294,11 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLutFeedback)
 	const size_t batch_size = lut_table_size;
 	const size_t frame_size = mux_size * batch_size;
 	const size_t node_size = lut_table_size;
-	bb::NeuralNetBinaryLutN<lut_input_size> lut(lut_input_size, lut_table_size, mux_size, batch_size, 1);
+	bb::NeuralNetBinaryLutN<lut_input_size> lut(lut_input_size, lut_table_size);
 	testSetupLayerBuffer(lut);
 
+	lut.SetMuxSize(mux_size);
+	lut.SetBatchSize(batch_size);
 
 	auto in_val = lut.GetInputValueBuffer();
 	auto out_val = lut.GetOutputValueBuffer();
@@ -311,7 +318,7 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLutFeedback)
 	lut.Forward();
 
 
-	std::vector<float> vec_loss(frame_size);
+	std::vector<double> vec_loss(frame_size);
 	std::vector<float> vec_out(frame_size);
 	for (int loop = 0; loop < 1; loop++) {
 		do {

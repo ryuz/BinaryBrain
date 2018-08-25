@@ -33,9 +33,10 @@ protected:
 public:
 	NeuralNetBinaryLutN() {}
 
-	NeuralNetBinaryLutN(INDEX input_node_size, INDEX output_node_size, INDEX mux_size, INDEX batch_size = 1, std::uint64_t seed = 1)
+	NeuralNetBinaryLutN(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1)
 	{
-		Setup(input_node_size, output_node_size, mux_size, batch_size, seed);
+		Resize(input_node_size, output_node_size);
+		InitializeCoeff(seed);
 	}
 
 	~NeuralNetBinaryLutN() {}
@@ -48,11 +49,10 @@ public:
 	void  SetLutTable(INDEX node, int bit, bool value) { m_lut[node].table[bit] = value; }
 	bool  GetLutTable(INDEX node, int bit) const { return m_lut[node].table[bit]; }
 
-	void Setup(INDEX input_node_size, INDEX output_node_size, INDEX mux_size, INDEX batch_size = 1, std::uint64_t seed = 1)
+	void Resize(INDEX input_node_size, INDEX output_node_size)
 	{
-		SetupBase(input_node_size, output_node_size, mux_size, batch_size, seed);
+		NeuralNetBinaryLut<feedback_bitwise, float, INDEX>::Resize(input_node_size, output_node_size);
 		m_lut.resize(m_output_node_size);
-		InitializeLut(seed);
 	}
 };
 
