@@ -142,6 +142,7 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6Compare)
 
 	testSetupLayerBuffer(lut0);
 	testSetupLayerBuffer(lut1);
+	
 
 	EXPECT_EQ(input_node_size, lut0.GetInputNodeSize());
 	EXPECT_EQ(output_node_size, lut0.GetOutputNodeSize());

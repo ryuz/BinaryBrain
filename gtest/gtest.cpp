@@ -12,7 +12,7 @@
 
 
 
-void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
+inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 {
 	net.SetInputValueBuffer (net.CreateInputValueBuffer());
 	net.SetInputErrorBuffer (net.CreateInputErrorBuffer());
@@ -650,6 +650,7 @@ TEST(NeuralNetUnbinarizeTest, testNeuralNetUnbinarize)
 }
 
 
+#if 0
 TEST(NeuralNetBinaryLut6, testNeuralNetBinaryLut6)
 {
 	bb::NeuralNetBinaryLut6<> lut(16, 2, 1, 1, 1);
@@ -847,13 +848,6 @@ TEST(NeuralNetBinaryLut6, testNeuralNetBinaryLut6Compare)
 	}
 	
 	// データ設定
-//	__m256i	inValue[(frame_size + 255) / 256 * input_node_size];
-//	__m256i	outValue0[(frame_size + 255) / 256 * output_node_size];
-//	__m256i	outValue1[(frame_size + 255) / 256 * output_node_size];
-//	NeuralNetBufferAccessorBinary<> accIn(inValue, frame_size);
-//	NeuralNetBufferAccessorBinary<> accOut0(outValue0, frame_size);
-//	NeuralNetBufferAccessorBinary<> accOut1(outValue1, frame_size);
-
 	auto in_val = lut0.GetInputValueBuffer();
 	lut1.SetInputValueBuffer(in_val);		// 入力バッファ共通化
 	auto out_val0 = lut0.GetOutputValueBuffer();
@@ -874,12 +868,7 @@ TEST(NeuralNetBinaryLut6, testNeuralNetBinaryLut6Compare)
 		}
 	}
 
-//	lut0.SetInputValuePtr(inValue);
-//	lut0.SetOutputValuePtr(outValue0);
 	lut0.Forward();
-
-//	lut1.SetInputValuePtr(inValue);
-//	lut1.SetOutputValuePtr(outValue1);
 	lut1.Forward();
 
 	for (size_t frame = 0; frame < frame_size; ++frame) {
@@ -967,6 +956,7 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLutFeedback)
 		}
 	}
 }
+#endif
 
 
 TEST(NeuralNetConvolutionTest, testNeuralNetConvolution)
@@ -1028,3 +1018,138 @@ TEST(NeuralNetConvolutionTest, testNeuralNetConvolution)
 	EXPECT_EQ(exp11, out_val.GetReal(0, 3));
 }
 
+
+#if 0
+
+TEST(NeuralNetBufferTest, testNeuralNetBufferTest)
+{
+	bb::NeuralNetBuffer<> buf(10, 2*3*4, BB_TYPE_REAL32);
+	
+	for (int i = 0; i < 2 * 3 * 4; ++i) {
+		buf.Set<float>(0, i, (float)i);
+	}
+
+	buf.SetDimension({ 2, 3, 4 });
+	EXPECT_EQ(0, *(float *)buf.GetPtr3(0, 0, 0));
+	EXPECT_EQ(1, *(float *)buf.GetPtr3(0, 0, 1));
+	EXPECT_EQ(2, *(float *)buf.GetPtr3(0, 1, 0));
+	EXPECT_EQ(3, *(float *)buf.GetPtr3(0, 1, 1));
+	EXPECT_EQ(4, *(float *)buf.GetPtr3(0, 2, 0));
+	EXPECT_EQ(5, *(float *)buf.GetPtr3(0, 2, 1));
+	EXPECT_EQ(6, *(float *)buf.GetPtr3(1, 0, 0));
+	EXPECT_EQ(7, *(float *)buf.GetPtr3(1, 0, 1));
+	EXPECT_EQ(8, *(float *)buf.GetPtr3(1, 1, 0));
+	EXPECT_EQ(9, *(float *)buf.GetPtr3(1, 1, 1));
+	EXPECT_EQ(10, *(float *)buf.GetPtr3(1, 2, 0));
+	EXPECT_EQ(11, *(float *)buf.GetPtr3(1, 2, 1));
+	EXPECT_EQ(12, *(float *)buf.GetPtr3(2, 0, 0));
+	EXPECT_EQ(13, *(float *)buf.GetPtr3(2, 0, 1));
+	EXPECT_EQ(14, *(float *)buf.GetPtr3(2, 1, 0));
+	EXPECT_EQ(15, *(float *)buf.GetPtr3(2, 1, 1));
+	EXPECT_EQ(16, *(float *)buf.GetPtr3(2, 2, 0));
+	EXPECT_EQ(17, *(float *)buf.GetPtr3(2, 2, 1));
+	EXPECT_EQ(18, *(float *)buf.GetPtr3(3, 0, 0));
+	EXPECT_EQ(19, *(float *)buf.GetPtr3(3, 0, 1));
+	EXPECT_EQ(20, *(float *)buf.GetPtr3(3, 1, 0));
+	EXPECT_EQ(21, *(float *)buf.GetPtr3(3, 1, 1));
+	EXPECT_EQ(22, *(float *)buf.GetPtr3(3, 2, 0));
+	EXPECT_EQ(23, *(float *)buf.GetPtr3(3, 2, 1));
+
+	int i = 0;
+	buf.ResetPtr();
+	while (!buf.IsEnd()) {
+		EXPECT_EQ((float)i, *(float *)buf.NextPtr());
+		i++;
+	}
+	EXPECT_EQ(i, 24);
+
+
+	buf.SetRoi({ 0, 1, 0 });
+	EXPECT_EQ(2, *(float *)buf.GetPtr3(0, 0, 0));
+	EXPECT_EQ(3, *(float *)buf.GetPtr3(0, 0, 1));
+	EXPECT_EQ(4, *(float *)buf.GetPtr3(0, 1, 0));
+	EXPECT_EQ(5, *(float *)buf.GetPtr3(0, 1, 1));
+	EXPECT_EQ(8, *(float *)buf.GetPtr3(1, 0, 0));
+	EXPECT_EQ(9, *(float *)buf.GetPtr3(1, 0, 1));
+	EXPECT_EQ(10, *(float *)buf.GetPtr3(1, 1, 0));
+	EXPECT_EQ(11, *(float *)buf.GetPtr3(1, 1, 1));
+	EXPECT_EQ(14, *(float *)buf.GetPtr3(2, 0, 0));
+	EXPECT_EQ(15, *(float *)buf.GetPtr3(2, 0, 1));
+	EXPECT_EQ(16, *(float *)buf.GetPtr3(2, 1, 0));
+	EXPECT_EQ(17, *(float *)buf.GetPtr3(2, 1, 1));
+	EXPECT_EQ(20, *(float *)buf.GetPtr3(3, 0, 0));
+	EXPECT_EQ(21, *(float *)buf.GetPtr3(3, 0, 1));
+	EXPECT_EQ(22, *(float *)buf.GetPtr3(3, 1, 0));
+	EXPECT_EQ(23, *(float *)buf.GetPtr3(3, 1, 1));
+
+	buf.ResetPtr();
+	EXPECT_EQ(false, buf.IsEnd());
+	EXPECT_EQ(2,  *(float *)buf.NextPtr());
+	EXPECT_EQ(false, buf.IsEnd());
+	EXPECT_EQ(3,  *(float *)buf.NextPtr());
+	EXPECT_EQ(4,  *(float *)buf.NextPtr());
+	EXPECT_EQ(5,  *(float *)buf.NextPtr());
+	EXPECT_EQ(8,  *(float *)buf.NextPtr());
+	EXPECT_EQ(9,  *(float *)buf.NextPtr());
+	EXPECT_EQ(10, *(float *)buf.NextPtr());
+	EXPECT_EQ(11, *(float *)buf.NextPtr());
+	EXPECT_EQ(14, *(float *)buf.NextPtr());
+	EXPECT_EQ(15, *(float *)buf.NextPtr());
+	EXPECT_EQ(16, *(float *)buf.NextPtr());
+	EXPECT_EQ(17, *(float *)buf.NextPtr());
+	EXPECT_EQ(20, *(float *)buf.NextPtr());
+	EXPECT_EQ(21, *(float *)buf.NextPtr());
+	EXPECT_EQ(22, *(float *)buf.NextPtr());
+	EXPECT_EQ(false, buf.IsEnd());
+	EXPECT_EQ(23, *(float *)buf.NextPtr());
+	EXPECT_EQ(true, buf.IsEnd());
+	
+	buf.SetRoi({ 0, 0, 2 });
+	EXPECT_EQ(14, *(float *)buf.GetPtr3(0, 0, 0));
+	EXPECT_EQ(15, *(float *)buf.GetPtr3(0, 0, 1));
+	EXPECT_EQ(16, *(float *)buf.GetPtr3(0, 1, 0));
+	EXPECT_EQ(17, *(float *)buf.GetPtr3(0, 1, 1));
+	EXPECT_EQ(20, *(float *)buf.GetPtr3(1, 0, 0));
+	EXPECT_EQ(21, *(float *)buf.GetPtr3(1, 0, 1));
+	EXPECT_EQ(22, *(float *)buf.GetPtr3(1, 1, 0));
+	EXPECT_EQ(23, *(float *)buf.GetPtr3(1, 1, 1));
+
+	EXPECT_EQ(14, *(float *)buf.GetPtr(0));
+	EXPECT_EQ(15, *(float *)buf.GetPtr(1));
+	EXPECT_EQ(16, *(float *)buf.GetPtr(2));
+	EXPECT_EQ(17, *(float *)buf.GetPtr(3));
+	EXPECT_EQ(20, *(float *)buf.GetPtr(4));
+	EXPECT_EQ(21, *(float *)buf.GetPtr(5));
+	EXPECT_EQ(22, *(float *)buf.GetPtr(6));
+	EXPECT_EQ(23, *(float *)buf.GetPtr(7));
+
+	buf.ResetPtr();
+	EXPECT_EQ(false, buf.IsEnd());
+	EXPECT_EQ(14, *(float *)buf.NextPtr());
+	EXPECT_EQ(false, buf.IsEnd());
+	EXPECT_EQ(15, *(float *)buf.NextPtr());
+	EXPECT_EQ(16, *(float *)buf.NextPtr());
+	EXPECT_EQ(17, *(float *)buf.NextPtr());
+	EXPECT_EQ(20, *(float *)buf.NextPtr());
+	EXPECT_EQ(21, *(float *)buf.NextPtr());
+	EXPECT_EQ(false, buf.IsEnd());
+	EXPECT_EQ(22, *(float *)buf.NextPtr());
+	EXPECT_EQ(false, buf.IsEnd());
+	EXPECT_EQ(23, *(float *)buf.NextPtr());
+	EXPECT_EQ(true, buf.IsEnd());
+}
+
+
+TEST(NeuralNetBufferTest, testNeuralNetBufferTest2)
+{
+	bb::NeuralNetBuffer<> buf(10, 2 * 3 * 4, BB_TYPE_REAL32);
+
+	for (int i = 0; i < 2 * 3 * 4; ++i) {
+		buf.Set<float>(0, i, (float)i);
+	}
+
+
+}
+
+
+#endif

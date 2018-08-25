@@ -20,6 +20,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="gtest.cpp" />
+    <ClCompile Include="NeuralNetBinaryLut.cpp" />
+    <ClCompile Include="NeuralNetBufferTest.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9A9C7AD9-1066-4DEA-A945-0D835BBF96E9}</ProjectGuid>

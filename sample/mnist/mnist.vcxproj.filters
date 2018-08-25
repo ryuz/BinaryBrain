@@ -80,5 +80,8 @@
     <ClInclude Include="..\..\include\bb\NeuralNetConvolution.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bb\NeuralNetBinaryFilter.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

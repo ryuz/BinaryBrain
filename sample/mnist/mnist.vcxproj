@@ -173,6 +173,7 @@
     <ClInclude Include="..\..\include\bb\NeuralNet.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetAffine.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBinarize.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetBinaryFilter.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryLut.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryLut6.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryLut6VerilogXilinx.h" />

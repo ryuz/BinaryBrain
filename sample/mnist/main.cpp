@@ -65,7 +65,7 @@ int main()
 #else
 	int train_max_size = -1;
 	int test_max_size = -1;
-	int loop_num = 1000;
+	int loop_num = 10000;
 #endif
 	size_t batch_size = 1000;
 
@@ -169,7 +169,7 @@ int main()
 		real_net.Update(0.2);
 #endif		
 
-#if 0
+#if 1
 		// バイナリ版フィードバック
 		bin_net.Forward();
 		while (bin_net.Feedback(bin_lut2.GetOutputOnehotLoss<std::uint8_t, 10>(train_label_batch)))
