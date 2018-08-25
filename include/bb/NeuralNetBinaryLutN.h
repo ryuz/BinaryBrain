@@ -19,8 +19,8 @@
 namespace bb {
 
 // ”Ä—pLUT
-template <int N = 6, typename T = float, typename INDEX = size_t>
-class NeuralNetBinaryLutN : public NeuralNetBinaryLut<float, INDEX>
+template <int N = 6, bool feedback_bitwise = false, typename T = float, typename INDEX = size_t>
+class NeuralNetBinaryLutN : public NeuralNetBinaryLut<feedback_bitwise, float, INDEX>
 {
 protected:
 	struct LutNode {

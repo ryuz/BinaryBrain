@@ -19,8 +19,8 @@
 namespace bb {
 
 // Xilinx—p 6“ü—ÍLUT Verilog o—Í
-template <typename T = float, typename INDEX = size_t>
-void NeuralNetBinaryLut6VerilogXilinx(std::ostream& os, NeuralNetBinaryLut<T, INDEX>& lut, std::string module_name)
+template <bool bitwise=false, typename T = float, typename INDEX = size_t>
+void NeuralNetBinaryLut6VerilogXilinx(std::ostream& os, NeuralNetBinaryLut<bitwise, T, INDEX>& lut, std::string module_name)
 {
 	int		lut_input_size = lut.GetLutInputSize();
 	int		lut_table_size = lut.GetLutTableSize();

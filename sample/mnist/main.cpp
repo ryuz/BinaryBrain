@@ -135,9 +135,9 @@ int main()
 		// test
 		{
 			std::ofstream ofs("test.v");
-			bb::NeuralNetBinaryLut6VerilogXilinx<>(ofs, bin_lut0, "layer0_lut");
-			bb::NeuralNetBinaryLut6VerilogXilinx<>(ofs, bin_lut1, "layer1_lut");
-			bb::NeuralNetBinaryLut6VerilogXilinx<>(ofs, bin_lut2, "layer2_lut");
+			bb::NeuralNetBinaryLut6VerilogXilinx(ofs, bin_lut0, "layer0_lut");
+			bb::NeuralNetBinaryLut6VerilogXilinx(ofs, bin_lut1, "layer1_lut");
+			bb::NeuralNetBinaryLut6VerilogXilinx(ofs, bin_lut2, "layer2_lut");
 		}
 
 		std::shuffle(train_index.begin(), train_index.end(), mt);

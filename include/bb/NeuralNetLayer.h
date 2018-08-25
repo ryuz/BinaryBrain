@@ -36,7 +36,7 @@ public:
 	virtual	void  Forward(void) = 0;										// 予測
 	virtual	void  Backward(void) = 0;										// 誤差逆伝播
 	virtual	void  Update(double learning_rate) {};							// 学習
-	virtual	bool  Feedback(const std::vector<T>& loss) { return false; }	// 直接フィードバック
+	virtual	bool  Feedback(const std::vector<double>& loss) { return false; }	// 直接フィードバック
 	
 
 protected:

@@ -21,7 +21,7 @@
 namespace bb {
 
 // LUT方式基底クラス
-template <typename T = float, typename INDEX = size_t>
+template <bool feedback_bitwise = false, typename T = float, typename INDEX = size_t>
 class NeuralNetBinaryLut : public NeuralNetLayer<T, INDEX>
 {
 protected:
@@ -87,12 +87,36 @@ public:
 	int   GetOutputValueDataType(void) const { return BB_TYPE_BINARY; }
 	int   GetOutputErrorDataType(void) const { return BB_TYPE_BINARY; }
 
-	void Forward(void)
+protected:
+	virtual void ForwardNode(INDEX node)
+	{
+		auto in_buf = GetInputValueBuffer();
+		auto out_buf = GetOutputValueBuffer();
+		int   lut_input_size = GetLutInputSize();
+
+		for (INDEX frame = 0; frame < m_frame_size; ++frame) {
+			int index = 0;
+			int mask = 1;
+			for (int i = 0; i < lut_input_size; i++) {
+				INDEX input_node = GetLutInput(node, i);
+				bool input_value = in_buf.Get<bool>(frame, input_node);
+				index |= input_value ? mask : 0;
+				mask <<= 1;
+			}
+			bool output_value = GetLutTable(node, index);
+			out_buf.Set<bool>(frame, node, output_value);
+		}
+	}
+
+public:
+	virtual void Forward(void)
 	{
 		INDEX node_size = GetOutputNodeSize();
 		int   lut_input_size = GetLutInputSize();
 		concurrency::parallel_for<INDEX>(0, node_size, [&](INDEX node)
 		{
+			ForwardNode(node);
+#if 0
 			auto in_buf = GetInputValueBuffer();
 			auto out_buf = GetOutputValueBuffer();
 
@@ -108,6 +132,7 @@ public:
 				bool output_value = GetLutTable(node, bit);
 				out_buf.Set<bool>(frame, node, output_value);
 			}
+#endif
 		});
 	}
 
@@ -121,15 +146,30 @@ public:
 
 
 protected:
+	inline int GetLutInputIndex(NeuralNetBuffer<T, INDEX>& buf, int lut_input_size, INDEX frame, INDEX node)
+	{
+		// 入力値作成
+		int index = 0;
+		int mask = 1;
+		for (int i = 0; i < lut_input_size; ++i) {
+			INDEX input_node = GetLutInput(node, i);
+			index |= (buf.Get<bool>(frame, input_node) ? mask : 0);
+			mask <<= 1;
+		}
+		return index;
+	}
+
+
 	// feedback
 	bool								m_feedback_busy = false;
-	bool								m_feedback_phase;
 	INDEX								m_feedback_node;
+	int									m_feedback_bit;
+	int									m_feedback_phase;
 	std::vector< std::vector<int> >		m_feedback_input;
-	std::vector<T>						m_feedback_loss;
-
-public:
-	bool Feedback(const std::vector<T>& loss)
+	std::vector<double>					m_feedback_loss;
+	
+	// 入力を集計してLUT単位で学習
+	inline bool FeedbackLutwise(const std::vector<double>& loss)
 	{
 		auto in_buf = GetInputValueBuffer();
 		auto out_buf = GetOutputValueBuffer();
@@ -143,7 +183,7 @@ public:
 		if (!m_feedback_busy) {
 			m_feedback_busy = true;
 			m_feedback_node = 0;
-			m_feedback_phase = false;
+			m_feedback_phase = 0;
 			m_feedback_loss.resize(lut_table_size);
 
 			m_feedback_input.resize(node_size);
@@ -169,7 +209,7 @@ public:
 			return false;
 		}
 
-		if (!m_feedback_phase) {
+		if ( m_feedback_phase == 0 ) {
 			// 結果を集計
 			std::fill(m_feedback_loss.begin(), m_feedback_loss.end(), (T)0.0);
 			for (INDEX frame = 0; frame < frame_size; ++frame) {
@@ -182,7 +222,7 @@ public:
 				out_buf.Set<bool>(frame, m_feedback_node, !out_buf.Get<bool>(frame, m_feedback_node));
 			}
 
-			m_feedback_phase = true;
+			m_feedback_phase++;
 		}
 		else {
 			// 反転させた結果を集計
@@ -200,13 +240,77 @@ public:
 			}
 
 			// 学習したLUTで出力を再計算
-			for (INDEX frame = 0; frame < frame_size; ++frame) {
-				out_buf.Set<bool>(frame, m_feedback_node, GetLutTable(m_feedback_node, m_feedback_input[m_feedback_node][frame]));
-			}
+			ForwardNode(m_feedback_node);
 
 			// 次のLUTに進む
-			m_feedback_phase = false;
+			m_feedback_phase = 0;
 			++m_feedback_node;
+		}
+
+		return true;	// 以降を再計算して継続
+	}
+
+	// ビット単位で学習
+	inline bool FeedbackBitwise(const std::vector<double>& loss)
+	{
+		auto in_buf = GetInputValueBuffer();
+		auto out_buf = GetOutputValueBuffer();
+
+		INDEX node_size = GetOutputNodeSize();
+		INDEX frame_size = GetOutputFrameSize();
+		int lut_input_size = GetLutInputSize();
+		int	lut_table_size = GetLutTableSize();
+
+		// 初回設定
+		if (!m_feedback_busy) {
+			m_feedback_busy = true;
+			m_feedback_node = 0;
+			m_feedback_bit  = 0;
+			m_feedback_phase = 0;
+			m_feedback_loss.resize(2);
+		}
+
+		// 完了
+		if (m_feedback_node >= node_size) {
+			m_feedback_busy = false;
+			return false;
+		}
+
+		// 損失集計
+		double loss_sum = (T)0;
+		for (auto v : loss) {
+			loss_sum += v;
+		}
+		m_feedback_loss[m_feedback_phase] = loss_sum;
+
+		if (m_feedback_phase == 0) {
+			// 該当LUTを反転
+			SetLutTable(m_feedback_node, m_feedback_bit, !GetLutTable(m_feedback_node, m_feedback_bit));
+
+			// 変更したLUTで再計算
+			ForwardNode(m_feedback_node);
+
+			++m_feedback_phase;
+		}
+		else {
+			// 結果判定
+			if (m_feedback_loss[0] <= m_feedback_loss[1]) {
+				// 反転させない方がよければ元に戻す
+				SetLutTable(m_feedback_node, m_feedback_bit, !GetLutTable(m_feedback_node, m_feedback_bit));
+
+				// 変更したLUTで再計算
+				ForwardNode(m_feedback_node);
+			}
+
+			// 次のbitに進む
+			m_feedback_phase = 0;
+			++m_feedback_bit;
+
+			if (m_feedback_bit >= lut_table_size) {
+				// 次のbitLUTに進む
+				m_feedback_bit = 0;
+				++m_feedback_node;
+			}
 		}
 
 		return true;	// 以降を再計算して継続
@@ -214,26 +318,38 @@ public:
 
 
 public:
+	bool Feedback(const std::vector<double>& loss)
+	{
+		if (feedback_bitwise) {
+			return FeedbackBitwise(loss);
+		}
+		else {
+			return FeedbackLutwise(loss);
+		}
+	}
+
+
+public:
 	// 出力の損失関数
 	template <typename LT, int LABEL_SIZE>
-	std::vector<T> GetOutputOnehotLoss(std::vector<LT> label)
+	std::vector<double> GetOutputOnehotLoss(std::vector<LT> label)
 	{
 		auto buf = GetOutputValueBuffer();
 		INDEX frame_size = GetOutputFrameSize();
 		INDEX node_size  = GetOutputNodeSize();
 
-		std::vector<T> vec_loss_x(frame_size);
-		float* vec_loss = &vec_loss_x[0];
+		std::vector<double> vec_loss_x(frame_size);
+		double* vec_loss = &vec_loss_x[0];
 
 		concurrency::parallel_for<INDEX>(0, frame_size, [&](INDEX frame)
 		{
 			vec_loss[frame] = 0;
 			for (size_t node = 0; node < node_size; ++node) {
 				if (label[frame / m_mux_size] == (node % LABEL_SIZE)) {
-					vec_loss[frame] += (buf.Get<bool>(frame, node) ? (T)-1.0 : (T)+1.0);
+					vec_loss[frame] += (buf.Get<bool>(frame, node) ? -1.0 : +1.0);
 				}
 				else {
-					vec_loss[frame] += (buf.Get<bool>(frame, node) ? +(T)(1.0 / LABEL_SIZE) : -(T)(1.0 / LABEL_SIZE));
+					vec_loss[frame] += (buf.Get<bool>(frame, node) ? +(1.0 / LABEL_SIZE) : -(1.0 / LABEL_SIZE));
 				}
 			}
 		});

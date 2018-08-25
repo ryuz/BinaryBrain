@@ -20,8 +20,8 @@ namespace bb {
 
 
 // 6“ü—ÍLUTŒÅ’è
-template <typename T = float, typename INDEX = size_t>
-class NeuralNetBinaryLut6 : public NeuralNetBinaryLut<T, INDEX>
+template <bool feedback_bitwise = false, typename T = float, typename INDEX = size_t>
+class NeuralNetBinaryLut6 : public NeuralNetBinaryLut<feedback_bitwise, T, INDEX>
 {
 protected:
 	struct LutNode {
@@ -110,13 +110,9 @@ protected:
 		msk = my_or_si256(msk, lut);
 	}
 
-	inline void ForwardNode(INDEX node) {
+	void ForwardNode(INDEX node) {
 		INDEX frame_size = (m_frame_size + 255) / 256;
 
-		//	NeuralNetBufferAccessorBinary<INDEX> accIn((void *)m_inputValue, m_frame_size);
-		//	NeuralNetBufferAccessorBinary<INDEX> accOut((void *)m_outputValue, m_frame_size);
-	//		auto acc_in = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetInputValueAccessor());
-	//		auto acc_out = dynamic_cast< NeuralNetBufferAccessorBinary<float, INDEX>* >(GetOutputValueAccessor());
 		auto in_buf = GetInputValueBuffer();
 		auto out_buf = GetOutputValueBuffer();
 

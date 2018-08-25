@@ -122,7 +122,7 @@ public:
 		}
 	}
 
-	bool Feedback(std::vector<T>& loss)
+	bool Feedback(std::vector<double>& loss)
 	{
 		if (m_feedback_layer < 0) {
 			m_feedback_layer = (int)m_layers.size() - 1;	// ‰‰ñ
