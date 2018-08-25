@@ -156,8 +156,8 @@ protected:
 			}
 			if (m_layers[i]->GetOutputNodeSize() != m_layers[i+1]->GetInputNodeSize()) {
 				std::cout << "node size mismatch" << std::endl;
-				std::cout << "layer[" << i - 1 << "] : output node = : " << m_layers[i]->GetOutputNodeSize() << std::endl;
-				std::cout << "layer[" << i << "] : input node = : " << m_layers[i+1]->GetInputNodeSize() << std::endl;
+				std::cout << "layer[" << i << "] : output node = : " << m_layers[i]->GetOutputNodeSize() << std::endl;
+				std::cout << "layer[" << i+1 << "] : input node = : " << m_layers[i+1]->GetInputNodeSize() << std::endl;
 				BB_ASSERT(0);
 				return;
 			}
