@@ -52,7 +52,30 @@ public:
 	int   GetOutputValueDataType(void) const { return m_lastLayer->GetOutputValueDataType(); }
 	int   GetOutputErrorDataType(void) const { return m_lastLayer->GetOutputErrorDataType(); }
 	
+	void  SetInputValueBuffer(NeuralNetBuffer<T, INDEX> buffer)
+	{
+		NeuralNetLayer<T, INDEX>::SetInputValueBuffer(buffer);
+		m_firstLayer->SetInputValueBuffer(buffer);
+	}
 
+	void  SetOutputValueBuffer(NeuralNetBuffer<T, INDEX> buffer)
+	{
+		NeuralNetLayer<T, INDEX>::SetOutputValueBuffer(buffer);
+		m_lastLayer->SetOutputValueBuffer(buffer);
+	}
+
+	void  SetInputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer)
+	{
+		NeuralNetLayer<T, INDEX>::SetInputErrorBuffer(buffer);
+		m_firstLayer->SetInputErrorBuffer(buffer);
+	}
+
+	void  SetOutputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer)
+	{
+		NeuralNetLayer<T, INDEX>::SetOutputErrorBuffer(buffer);
+		m_lastLayer->SetOutputErrorBuffer(buffer);
+	}
+	
 	void AddLayer(LAYER* layer)
 	{
 		if (m_layers.empty()) {

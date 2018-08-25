@@ -195,10 +195,10 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6Compare)
 	bb::NeuralNetBuffer<>	in_val1(frame_size, vector_product(in1_addr_size), lut0.GetInputValueDataType());
 	bb::NeuralNetBuffer<>	out_val0(frame_size, vector_product(out0_addr_size), lut0.GetInputValueDataType());
 	bb::NeuralNetBuffer<>	out_val1(frame_size, vector_product(out1_addr_size), lut0.GetInputValueDataType());
-	in_val0.SetDimension(in0_addr_size);
-	in_val1.SetDimension(in1_addr_size);
-	out_val0.SetDimension(out0_addr_size);
-	out_val1.SetDimension(out1_addr_size);
+	in_val0.SetDimensions(in0_addr_size);
+	in_val1.SetDimensions(in1_addr_size);
+	out_val0.SetDimensions(out0_addr_size);
+	out_val1.SetDimensions(out1_addr_size);
 
 	// ROIÉTÉCÉYÇÕëµÇ¶ÇÈ
 	in_val0.SetRoi(in0_front_blank, in_index_size);

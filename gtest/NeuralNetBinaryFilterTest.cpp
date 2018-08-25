@@ -20,6 +20,7 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 
 TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilter)
 {
+	size_t batch_size = 3;
 	size_t input_c_size = 3;
 	size_t input_h_size = 16;
 	size_t input_w_size = 24;
@@ -44,7 +45,10 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilter)
 	bb::NeuralNetBinaryFilter<> net(&filter_net, input_c_size, input_h_size, input_w_size, output_c_size, filter_h_size, filter_w_size, y_step, x_step, mux_size);
 	testSetupLayerBuffer(net);
 
+	net.SetBatchSize(batch_size);
+	net.Forward();
 
+	EXPECT_EQ(true, true);
 }
 
 

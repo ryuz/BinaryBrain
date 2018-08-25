@@ -31,7 +31,7 @@ TEST(NeuralNetBufferTest, testNeuralNetBufferTest)
 	}
 
 	// ëΩéüå≥îzóÒç\ê¨
-	buf.SetDimension({ 2, 3, 4 });
+	buf.SetDimensions({ 2, 3, 4 });
 	EXPECT_EQ(0, *(float *)buf.GetPtr3(0, 0, 0));
 	EXPECT_EQ(1, *(float *)buf.GetPtr3(0, 0, 1));
 	EXPECT_EQ(2, *(float *)buf.GetPtr3(0, 1, 0));

@@ -93,10 +93,10 @@ public:
 		m_dim[0].width  = node_size;
 	}
 	
-	void SetDimension(std::vector<INDEX> dim)
+	void SetDimensions(std::vector<INDEX> dim)
 	{
 		BB_ASSERT(dim.size() > 0);
-		INDEX total = 1; for (auto l : dim) { total *= l; }
+		INDEX total = 1; for (auto len : dim) { total *= len; }
 		BB_ASSERT(total == m_base_size);
 		
 		m_dim.resize(dim.size());

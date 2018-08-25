@@ -28,16 +28,16 @@ protected:
 	NeuralNetLayer<T, INDEX>* m_filter_net;
 	INDEX			m_mux_size;
 	INDEX			m_frame_size;
-	int				m_input_h_size;
-	int				m_input_w_size;
-	int				m_input_c_size;
-	int				m_filter_h_size;
-	int				m_filter_w_size;
-	int				m_y_step;
-	int				m_x_step;
-	int				m_output_h_size;
-	int				m_output_w_size;
-	int				m_output_c_size;
+	INDEX			m_input_h_size;
+	INDEX			m_input_w_size;
+	INDEX			m_input_c_size;
+	INDEX			m_filter_h_size;
+	INDEX			m_filter_w_size;
+	INDEX			m_y_step;
+	INDEX			m_x_step;
+	INDEX			m_output_h_size;
+	INDEX			m_output_w_size;
+	INDEX			m_output_c_size;
 
 public:
 	NeuralNetBinaryFilter() {}
@@ -66,7 +66,10 @@ public:
 		m_output_w_size = ((m_input_w_size - m_filter_w_size + 1) + (m_x_step - 1)) / m_x_step;
 	}
 	
-	void SetBatchSize(INDEX batch_size) { m_frame_size = batch_size * m_mux_size; }
+	void SetBatchSize(INDEX batch_size) {
+		m_frame_size = batch_size * m_mux_size;
+		m_filter_net->SetBatchSize(batch_size);
+	}
 	
 	INDEX GetInputFrameSize(void) const { return m_frame_size; }
 	INDEX GetInputNodeSize(void) const { return m_input_c_size * m_input_h_size * m_input_w_size; }
@@ -93,6 +96,29 @@ protected:
 public:
 	void Forward(void)
 	{
+		auto in_val = GetInputValueBuffer();
+		auto out_val = GetInputValueBuffer();
+
+		in_val.SetDimensions({ m_input_c_size, m_input_h_size, m_input_w_size});
+		out_val.SetDimensions({ m_input_c_size, m_input_h_size, m_input_w_size});
+		
+		INDEX out_y = 0;
+		for (INDEX in_y = 0; in_y < m_output_h_size; in_y += m_y_step) {
+			INDEX out_x = 0;
+			for (INDEX in_x = 0; in_x < m_output_w_size; in_x += m_x_step) {
+				in_val.ClearRoi();
+				in_val.SetRoi({ 0, in_y, in_x }, { m_input_c_size , m_filter_h_size , m_filter_w_size });
+				out_val.ClearRoi();
+				out_val.SetRoi({ 0, out_y, out_x }, { m_output_c_size, 1, 1 });
+
+				m_filter_net->SetInputValueBuffer(in_val);
+				m_filter_net->SetOutputValueBuffer(out_val);
+				m_filter_net->Forward();
+
+				++out_x;
+			}
+			++out_y;
+		}
 	}
 	
 	void Backward(void)
