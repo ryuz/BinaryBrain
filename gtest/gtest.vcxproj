@@ -23,6 +23,27 @@
     <ClCompile Include="NeuralNetBinaryLut.cpp" />
     <ClCompile Include="NeuralNetBufferTest.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\bb\NeuralNet.h" />
+    <ClInclude Include="..\include\bb\NeuralNetAffine.h" />
+    <ClInclude Include="..\include\bb\NeuralNetBinarize.h" />
+    <ClInclude Include="..\include\bb\NeuralNetBinaryFilter.h" />
+    <ClInclude Include="..\include\bb\NeuralNetBinaryLut.h" />
+    <ClInclude Include="..\include\bb\NeuralNetBinaryLut6.h" />
+    <ClInclude Include="..\include\bb\NeuralNetBinaryLut6VerilogXilinx.h" />
+    <ClInclude Include="..\include\bb\NeuralNetBinaryLutN.h" />
+    <ClInclude Include="..\include\bb\NeuralNetBuffer.h" />
+    <ClInclude Include="..\include\bb\NeuralNetConvolution.h" />
+    <ClInclude Include="..\include\bb\NeuralNetGroup.h" />
+    <ClInclude Include="..\include\bb\NeuralNetLayer.h" />
+    <ClInclude Include="..\include\bb\NeuralNetRealBinaryConverter.h" />
+    <ClInclude Include="..\include\bb\NeuralnetSigmoid.h" />
+    <ClInclude Include="..\include\bb\NeuralnetSoftmax.h" />
+    <ClInclude Include="..\include\bb\NeuralNetType.h" />
+    <ClInclude Include="..\include\bb\NeuralNetUnbinarize.h" />
+    <ClInclude Include="..\include\bb\NeuralNetUtility.h" />
+    <ClInclude Include="..\include\bb\ShuffleSet.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9A9C7AD9-1066-4DEA-A945-0D835BBF96E9}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

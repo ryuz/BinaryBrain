@@ -24,10 +24,8 @@ class NeuralNetBuffer
 {
 protected:
 	std::shared_ptr<std::uint8_t>	m_buffer;
-
 	int								m_data_type = 0;
-	INDEX							m_node_size = 0;
-
+	INDEX							m_base_size = 0;
 	INDEX							m_frame_size = 0;
 	INDEX							m_frame_stride = 0;
 
@@ -41,6 +39,7 @@ protected:
 
 	std::vector<Dimension>			m_dim;
 	
+	INDEX							m_node_size = 0;
 	std::vector<INDEX>				m_iterator;
 	bool							m_end;
 
@@ -59,14 +58,15 @@ public:
 	NeuralNetBuffer& operator=(const NeuralNetBuffer &buf)
 	{
 		m_buffer = buf.m_buffer;
-
 		m_data_type = buf.m_data_type;
-		m_node_size = buf.m_node_size;
-
+		m_base_size = buf.m_base_size;
 		m_frame_size = buf.m_frame_size;
 		m_frame_stride = buf.m_frame_stride;
 
 		m_dim = buf.m_dim;
+		m_node_size = buf.m_node_size;
+		m_iterator = buf.m_iterator;
+		m_end = buf.m_end;
 
 		return *this;
 	}
@@ -75,16 +75,17 @@ public:
 	{
 		// ê›íËï€ë∂
 		m_data_type = data_type;
+		m_base_size = node_size;
 		m_frame_size = frame_size;
-		m_node_size = node_size;
 
 		size_t type_bit_size = NeuralNet_GetTypeBitSize(data_type);
 
 		// ÉÅÉÇÉäämï€
 		m_frame_stride = (((frame_size * type_bit_size) + 255) / 256) * 32;
-		m_buffer = std::shared_ptr<std::uint8_t>((std::uint8_t *)_aligned_malloc(m_frame_stride*m_node_size, 32), _aligned_free);
-		memset(m_buffer.get(), 0, m_frame_stride*m_node_size);
+		m_buffer = std::shared_ptr<std::uint8_t>((std::uint8_t *)_aligned_malloc(m_frame_stride*m_base_size, 32), _aligned_free);
+		memset(m_buffer.get(), 0, m_frame_stride*m_base_size);
 
+		m_node_size = node_size;
 		m_dim.resize(1);
 		m_dim[0].step   = node_size;
 		m_dim[0].stride = 1;
@@ -96,7 +97,7 @@ public:
 	{
 		BB_ASSERT(dim.size() > 0);
 		INDEX total = 1; for (auto l : dim) { total *= l; }
-		BB_ASSERT(total == m_node_size);
+		BB_ASSERT(total == m_base_size);
 		
 		m_dim.resize(dim.size());
 		m_dim[0].step = dim[0];
@@ -114,20 +115,27 @@ public:
 	void SetRoi(std::vector<INDEX> offset)
 	{
 		BB_ASSERT(offset.size() == m_dim.size());
+
+		m_node_size = 1;
 		for (size_t i = 0; i < m_dim.size(); ++i) {
 			BB_ASSERT(m_dim[i].width > offset[i]);
 			m_dim[i].offset += offset[i];
 			m_dim[i].width -= offset[i];
+			m_node_size *= m_dim[i].width;
 		}
 	}
 
-	void SetRoi(std::vector<INDEX> start, std::vector<INDEX> width)
+	void SetRoi(std::vector<INDEX> offset, std::vector<INDEX> width)
 	{
-		BB_ASSERT(start.size() == m_dim.size());
+		BB_ASSERT(offset.size() == m_dim.size());
+		BB_ASSERT(width.size() == m_dim.size());
+
+		m_node_size = 1;
 		for (size_t i = 0; i < m_dim.size(); ++i) {
 			BB_ASSERT(m_dim[i].width > offset[i]);
-			m_dim[i].offset += start[i];
+			m_dim[i].offset += offset[i];
 			m_dim[i].width = width[i];
+			m_node_size *= m_dim[i].width;
 			BB_ASSERT(m_dim[i].offset + m_dim[i].width <= m_dim[i].step);
 		}
 	}
@@ -138,6 +146,7 @@ public:
 			d.offset = 0;
 			d.width = d.step;
 		}
+		m_node_size = m_base_size;
 	}
 
 

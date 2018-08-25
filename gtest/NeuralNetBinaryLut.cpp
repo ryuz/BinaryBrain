@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <iostream>
+#include <valarray>
 #include "gtest/gtest.h"
 #include "bb/NeuralNetAffine.h"
 #include "bb/NeuralNetSigmoid.h"
@@ -20,7 +21,25 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 	net.SetOutputErrorBuffer(net.CreateOutputErrorBuffer());
 }
 
+template <typename T>
+inline T vector_product(const std::vector<T>& vec)
+{
+	T prod = (T)1;
+	for (auto v : vec) {
+		prod *= v;
+	}
+	return prod;
+}
 
+template <typename T>
+inline std::vector<T> vector_add(const std::vector<T>& vec0, const std::vector<T>& vec1)
+{
+	std::vector<T> vec(vec0.size());
+	for (size_t i = 0; i < vec.size(); ++i ) {
+		vec[i] = vec0[i] + vec1[i];
+	}
+	return vec;
+}
 
 
 TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6)
@@ -125,8 +144,11 @@ TEST(NeuralNetBinaryLut6, testNeuralNetBinaryLut6Batch)
 
 TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6Compare)
 {
-	const size_t input_node_size  = 23;
-	const size_t output_node_size = 77;
+	// 各数値を適当に設定
+	const std::vector<size_t> in_index_size = { 4, 3, 2 };
+	const std::vector<size_t> out_index_size = { 5, 4, 3 };
+	const size_t input_node_size  = vector_product(in_index_size);
+	const size_t output_node_size = vector_product(out_index_size);
 	const size_t mux_size = 23;
 	const size_t batch_size = 345;
 	const size_t frame_size = mux_size * batch_size;
@@ -140,10 +162,59 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6Compare)
 	bb::NeuralNetBinaryLut6<>  lut0(input_node_size, output_node_size, mux_size, batch_size, 1);
 	bb::NeuralNetBinaryLutN<6> lut1(input_node_size, output_node_size, mux_size, batch_size, 1);
 
+#if 0
+
+	// そのままのサイズ
 	testSetupLayerBuffer(lut0);
 	testSetupLayerBuffer(lut1);
-	
 
+	auto in_val0 = lut0.GetInputValueBuffer();
+	auto in_val1 = lut1.GetInputValueBuffer();
+	auto out_val0 = lut0.GetOutputValueBuffer();
+	auto out_val1 = lut1.GetOutputValueBuffer();
+	lut1.SetInputValueBuffer(in_val0);		// 入力バッファ共通化
+
+#else
+
+	// ROIテストのためサイズの異なるバッファを作る
+	std::vector<size_t> in0_front_blank  = { 1, 2, 3 };
+	std::vector<size_t> in0_back_blank   = { 9, 8, 7 };
+	std::vector<size_t> in1_front_blank  = { 2, 0, 4 };
+	std::vector<size_t> in1_back_blank   = { 7, 3, 0 };
+	std::vector<size_t> out0_front_blank = { 2, 0, 4 };
+	std::vector<size_t> out0_back_blank  = { 0, 5, 0 };
+	std::vector<size_t> out1_front_blank = { 3, 0, 3 };
+	std::vector<size_t> out1_back_blank  = { 0, 4, 5 };
+
+	auto in0_addr_size  = vector_add(in_index_size, vector_add(in0_front_blank, in0_back_blank));
+	auto in1_addr_size  = vector_add(in_index_size, vector_add(in1_front_blank, in1_back_blank));
+	auto out0_addr_size = vector_add(out_index_size, vector_add(out0_front_blank, out0_back_blank));
+	auto out1_addr_size = vector_add(out_index_size, vector_add(out1_front_blank, out1_back_blank));
+	
+	bb::NeuralNetBuffer<>	in_val0(frame_size, vector_product(in0_addr_size), lut0.GetInputValueDataType());
+	bb::NeuralNetBuffer<>	in_val1(frame_size, vector_product(in1_addr_size), lut0.GetInputValueDataType());
+	bb::NeuralNetBuffer<>	out_val0(frame_size, vector_product(out0_addr_size), lut0.GetInputValueDataType());
+	bb::NeuralNetBuffer<>	out_val1(frame_size, vector_product(out1_addr_size), lut0.GetInputValueDataType());
+	in_val0.SetDimension(in0_addr_size);
+	in_val1.SetDimension(in1_addr_size);
+	out_val0.SetDimension(out0_addr_size);
+	out_val1.SetDimension(out1_addr_size);
+
+	// ROIサイズは揃える
+	in_val0.SetRoi(in0_front_blank, in_index_size);
+	in_val1.SetRoi(in1_front_blank, in_index_size);
+	out_val0.SetRoi(out0_front_blank, out_index_size);
+	out_val1.SetRoi(out1_front_blank, out_index_size);
+
+	// バッファ設定
+	lut0.SetInputValueBuffer(in_val0);
+	lut1.SetInputValueBuffer(in_val1);
+	lut0.SetOutputValueBuffer(out_val0);
+	lut1.SetOutputValueBuffer(out_val1);
+
+#endif
+
+	// 基本パラメータ確認
 	EXPECT_EQ(input_node_size, lut0.GetInputNodeSize());
 	EXPECT_EQ(output_node_size, lut0.GetOutputNodeSize());
 	EXPECT_EQ(frame_size, lut0.GetInputFrameSize());
@@ -156,6 +227,15 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6Compare)
 	EXPECT_EQ(lut0.GetOutputFrameSize(), lut1.GetOutputFrameSize());
 	EXPECT_EQ(lut0.GetLutInputSize(), lut1.GetLutInputSize());
 	EXPECT_EQ(lut0.GetLutTableSize(), lut1.GetLutTableSize());
+
+	EXPECT_EQ(lut0.GetInputNodeSize(), in_val0.GetNodeSize());
+	EXPECT_EQ(lut0.GetInputNodeSize(), in_val0.GetNodeSize());
+	EXPECT_EQ(lut1.GetInputNodeSize(), in_val1.GetNodeSize());
+	EXPECT_EQ(lut1.GetInputNodeSize(), in_val1.GetNodeSize());
+	EXPECT_EQ(lut0.GetOutputNodeSize(), out_val0.GetNodeSize());
+	EXPECT_EQ(lut0.GetOutputNodeSize(), out_val0.GetNodeSize());
+	EXPECT_EQ(lut1.GetOutputNodeSize(), out_val1.GetNodeSize());
+	EXPECT_EQ(lut1.GetOutputNodeSize(), out_val1.GetNodeSize());
 
 	// 設定
 	for (size_t node = 0; node < output_node_size; ++node) {
@@ -173,15 +253,11 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6Compare)
 	}
 	
 	// データ設定
-	auto in_val = lut0.GetInputValueBuffer();
-	lut1.SetInputValueBuffer(in_val);		// 入力バッファ共通化
-	auto out_val0 = lut0.GetOutputValueBuffer();
-	auto out_val1 = lut1.GetOutputValueBuffer();
-	
 	for (size_t frame = 0; frame < frame_size; ++frame) {
 		for (int node = 0; node < input_node_size; ++node) {
 			bool input_value = (rand_bin(mt) != 0);
-			in_val.SetBinary(frame, node, input_value);
+			in_val0.SetBinary(frame, node, input_value);
+			in_val1.SetBinary(frame, node, input_value);
 		}
 	}
 

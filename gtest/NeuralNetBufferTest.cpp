@@ -30,6 +30,7 @@ TEST(NeuralNetBufferTest, testNeuralNetBufferTest)
 		buf.Set<float>(0, i, (float)i);
 	}
 
+	// 多次元配列構成
 	buf.SetDimension({ 2, 3, 4 });
 	EXPECT_EQ(0, *(float *)buf.GetPtr3(0, 0, 0));
 	EXPECT_EQ(1, *(float *)buf.GetPtr3(0, 0, 1));
@@ -56,15 +57,18 @@ TEST(NeuralNetBufferTest, testNeuralNetBufferTest)
 	EXPECT_EQ(22, *(float *)buf.GetPtr3(3, 2, 0));
 	EXPECT_EQ(23, *(float *)buf.GetPtr3(3, 2, 1));
 
-	int i = 0;
-	buf.ResetPtr();
-	while (!buf.IsEnd()) {
-		EXPECT_EQ((float)i, *(float *)buf.NextPtr());
-		i++;
+	// シーケンシャルアクセス確認
+	{
+		int i = 0;
+		buf.ResetPtr();
+		while (!buf.IsEnd()) {
+			EXPECT_EQ((float)i, *(float *)buf.NextPtr());
+			i++;
+		}
+		EXPECT_EQ(i, 24);
 	}
-	EXPECT_EQ(i, 24);
 
-
+	// オフセットのみのROI
 	buf.SetRoi({ 0, 1, 0 });
 	EXPECT_EQ(2, *(float *)buf.GetPtr3(0, 0, 0));
 	EXPECT_EQ(3, *(float *)buf.GetPtr3(0, 0, 1));
@@ -137,6 +141,41 @@ TEST(NeuralNetBufferTest, testNeuralNetBufferTest)
 	EXPECT_EQ(22, *(float *)buf.NextPtr());
 	EXPECT_EQ(false, buf.IsEnd());
 	EXPECT_EQ(23, *(float *)buf.NextPtr());
+	EXPECT_EQ(true, buf.IsEnd());
+
+
+	// ROI解除
+	buf.ClearRoi();
+
+	// シーケンシャルアクセス確認
+	{
+		int i = 0;
+		buf.ResetPtr();
+		while (!buf.IsEnd()) {
+			EXPECT_EQ((float)i, *(float *)buf.NextPtr());
+			i++;
+		}
+		EXPECT_EQ(i, 24);
+	}
+
+
+	// 範囲付きROI
+	buf.SetRoi({ 0, 1, 1 }, { 1, 2, 2 });
+
+	EXPECT_EQ(8, *(float *)buf.GetPtr(0));	// (1, 1, 0) : 8
+	EXPECT_EQ(10, *(float *)buf.GetPtr(1));	// (1, 2, 0) : 8
+	EXPECT_EQ(14, *(float *)buf.GetPtr(2));	// (2, 1, 0) : 14
+	EXPECT_EQ(16, *(float *)buf.GetPtr(3));	// (2, 2, 0) : 16
+
+	buf.ResetPtr();
+	EXPECT_EQ(false, buf.IsEnd());
+	EXPECT_EQ(8, *(float *)buf.NextPtr());
+	EXPECT_EQ(false, buf.IsEnd());
+	EXPECT_EQ(10, *(float *)buf.NextPtr());
+	EXPECT_EQ(false, buf.IsEnd());
+	EXPECT_EQ(14, *(float *)buf.NextPtr());
+	EXPECT_EQ(false, buf.IsEnd());
+	EXPECT_EQ(16, *(float *)buf.NextPtr());
 	EXPECT_EQ(true, buf.IsEnd());
 }
 
