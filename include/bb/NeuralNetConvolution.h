@@ -96,12 +96,12 @@ protected:
 
 	inline T* GetInputPtr(NeuralNetBuffer<T, INDEX>& buf, int c, int y, int x)
 	{
-		return buf.GetPtr<T>((c*m_input_h_size + y)*m_input_w_size + x);
+		return (T*)buf.GetPtr((c*m_input_h_size + y)*m_input_w_size + x);
 	}
 
 	inline T* GetOutputPtr(NeuralNetBuffer<T, INDEX>& buf, int c, int y, int x)
 	{
-		return buf.GetPtr<T>((c*m_output_h_size + y)*m_output_w_size + x);
+		return (T*)buf.GetPtr((c*m_output_h_size + y)*m_output_w_size + x);
 	}
 
 public:
