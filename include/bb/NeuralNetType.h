@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <assert.h>
+
 namespace bb {
 
 
@@ -21,6 +23,8 @@ namespace bb {
 #define BB_TYPE_BINARY		(1)
 #define BB_TYPE_REAL32		(32)
 #define BB_TYPE_REAL64		(64)
+
+#define BB_ASSERT(v)		assert(v)
 
 
 template<typename _Tp> class NeuralNetType
