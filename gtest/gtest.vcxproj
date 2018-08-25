@@ -20,7 +20,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="gtest.cpp" />
-    <ClCompile Include="NeuralNetBinaryLut.cpp" />
+    <ClCompile Include="NeuralNetBinaryFilterTest.cpp" />
+    <ClCompile Include="NeuralNetBinaryLutTest.cpp" />
     <ClCompile Include="NeuralNetBufferTest.cpp" />
   </ItemGroup>
   <ItemGroup>
