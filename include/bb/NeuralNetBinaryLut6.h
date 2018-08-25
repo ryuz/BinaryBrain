@@ -126,13 +126,13 @@ protected:
 		__m256i*	out_ptr;
 		__m256i		in_val[6];
 
-		in_ptr[0] = in_buf.GetPtr<__m256i>(lut.input[0]);
-		in_ptr[1] = in_buf.GetPtr<__m256i>(lut.input[1]);
-		in_ptr[2] = in_buf.GetPtr<__m256i>(lut.input[2]);
-		in_ptr[3] = in_buf.GetPtr<__m256i>(lut.input[3]);
-		in_ptr[4] = in_buf.GetPtr<__m256i>(lut.input[4]);
-		in_ptr[5] = in_buf.GetPtr<__m256i>(lut.input[5]);
-		out_ptr = out_buf.GetPtr<__m256i>(node);
+		in_ptr[0] = (__m256i*)in_buf.GetPtr(lut.input[0]);
+		in_ptr[1] = (__m256i*)in_buf.GetPtr(lut.input[1]);
+		in_ptr[2] = (__m256i*)in_buf.GetPtr(lut.input[2]);
+		in_ptr[3] = (__m256i*)in_buf.GetPtr(lut.input[3]);
+		in_ptr[4] = (__m256i*)in_buf.GetPtr(lut.input[4]);
+		in_ptr[5] = (__m256i*)in_buf.GetPtr(lut.input[5]);
+		out_ptr = (__m256i*)out_buf.GetPtr(node);
 
 		for (int i = 0; i < frame_size; i++) {
 			// input

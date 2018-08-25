@@ -24,11 +24,25 @@ class NeuralNetBuffer
 {
 protected:
 	std::shared_ptr<std::uint8_t>	m_buffer;
-	INDEX							m_stride = 0;
 
 	int								m_data_type = 0;
-	INDEX							m_frame_size = 0;
 	INDEX							m_node_size = 0;
+
+	INDEX							m_frame_size = 0;
+	INDEX							m_frame_stride = 0;
+
+	struct Dimension
+	{
+		INDEX	step;
+		INDEX	stride;
+		INDEX	offset;
+		INDEX	width;
+	};
+
+	std::vector<Dimension>			m_dim;
+	
+	std::vector<INDEX>				m_iterator;
+	bool							m_end;
 
 public:
 	NeuralNetBuffer() {}
@@ -45,11 +59,14 @@ public:
 	NeuralNetBuffer& operator=(const NeuralNetBuffer &buf)
 	{
 		m_buffer = buf.m_buffer;
-		m_stride = buf.m_stride;
 
 		m_data_type = buf.m_data_type;
-		m_frame_size = buf.m_frame_size;
 		m_node_size = buf.m_node_size;
+
+		m_frame_size = buf.m_frame_size;
+		m_frame_stride = buf.m_frame_stride;
+
+		m_dim = buf.m_dim;
 
 		return *this;
 	}
@@ -64,42 +81,174 @@ public:
 		size_t type_bit_size = NeuralNet_GetTypeBitSize(data_type);
 
 		// ÉÅÉÇÉäämï€
-#if 0
-		if (data_type == BB_TYPE_BINARY) {
-			m_stride = (((frame_size * type_bit_size) + 255) / 256) * 32;
-		}
-		else {
-			m_stride = frame_size * type_bit_size / 8;
-		}
-#else		
-		m_stride = (((frame_size * type_bit_size) + 255) / 256) * 32;
-#endif
-		m_buffer = std::shared_ptr<std::uint8_t>((std::uint8_t *)_aligned_malloc(m_stride*m_node_size, 32), _aligned_free);
-		memset(m_buffer.get(), 0, m_stride*m_node_size);
+		m_frame_stride = (((frame_size * type_bit_size) + 255) / 256) * 32;
+		m_buffer = std::shared_ptr<std::uint8_t>((std::uint8_t *)_aligned_malloc(m_frame_stride*m_node_size, 32), _aligned_free);
+		memset(m_buffer.get(), 0, m_frame_stride*m_node_size);
+
+		m_dim.resize(1);
+		m_dim[0].step   = node_size;
+		m_dim[0].stride = 1;
+		m_dim[0].offset = 0;
+		m_dim[0].width  = node_size;
 	}
 	
+	void SetDimension(std::vector<INDEX> dim)
+	{
+		BB_ASSERT(dim.size() > 0);
+		INDEX total = 1; for (auto l : dim) { total *= l; }
+		BB_ASSERT(total == m_node_size);
+		
+		m_dim.resize(dim.size());
+		m_dim[0].step = dim[0];
+		m_dim[0].stride = 1;
+		m_dim[0].offset = 0;
+		m_dim[0].width = dim[0];
+		for (size_t i = 1; i < dim.size(); ++i) {
+			m_dim[i].step = dim[i];
+			m_dim[i].stride = m_dim[i-1].stride * m_dim[i-1].step;
+			m_dim[i].offset = 0;
+			m_dim[i].width = dim[i];
+		}
+	}
+
+	void SetRoi(std::vector<INDEX> offset)
+	{
+		BB_ASSERT(offset.size() == m_dim.size());
+		for (size_t i = 0; i < m_dim.size(); ++i) {
+			BB_ASSERT(m_dim[i].width > offset[i]);
+			m_dim[i].offset += offset[i];
+			m_dim[i].width -= offset[i];
+		}
+	}
+
+	void SetRoi(std::vector<INDEX> start, std::vector<INDEX> width)
+	{
+		BB_ASSERT(start.size() == m_dim.size());
+		for (size_t i = 0; i < m_dim.size(); ++i) {
+			BB_ASSERT(m_dim[i].width > offset[i]);
+			m_dim[i].offset += start[i];
+			m_dim[i].width = width[i];
+			BB_ASSERT(m_dim[i].offset + m_dim[i].width <= m_dim[i].step);
+		}
+	}
+
+	void ClearRoi(void)
+	{
+		for (auto& d : m_dim) {
+			d.offset = 0;
+			d.width = d.step;
+		}
+	}
+
+
 	INDEX GetFrameSize(void) { return m_frame_size; }
 	INDEX GetNodeSize(void) { return m_node_size; }
 	INDEX GetTypeBitSize(void) { return m_type_bit_size; }
 	
-	INDEX GetStride(void) { return m_stride; }
+	INDEX GetFrameStride(void) { return m_frame_stride; }
 	
 	void* GetBuffer(void)
 	{
 		return m_buffer.get();
 	}
-	
-	template <typename Tp>
-	inline Tp* GetPtr(INDEX node)
+
+
+protected:
+	inline void* GetBasePtr(INDEX addr)
 	{
-		return (Tp*)(&m_buffer.get()[m_stride * node]);
+		return &m_buffer.get()[m_frame_stride * addr];
+	}
+
+public:
+	inline void* GetPtr(std::vector<INDEX> index)
+	{
+		BB_ASSERT(index.size() == m_dim.size());
+		INDEX addr = 0;
+		for (size_t i = 0; i < m_dim.size(); ++i) {
+			addr += m_dim[i].stride * (index[i] + m_dim[i].offset);
+		}
+
+		return GetBasePtr(addr);
+	}
+
+	inline void* GetPtr(INDEX node)
+	{
+		INDEX addr = 0;
+		for (size_t i = 0; i < m_dim.size(); ++i) {
+			INDEX index = node % m_dim[i].width;
+			addr += m_dim[i].stride * (index + m_dim[i].offset);
+			node /= m_dim[i].width;
+		}
+		return GetBasePtr(addr);
+	}
+
+	template <size_t N>
+	inline void* GetPtrN(std::array<INDEX, N> index)
+	{
+		BB_ASSERT(index.size() == m_dim.size());
+		INDEX addr = 0;
+		for (size_t i = 0; i < index.size(); ++i) {
+			addr += m_dim[i].stride * (index[i] + m_dim[i].offset);
+		}
+
+		return GetBasePtr(addr);
+	}
+
+	inline void* GetPtr2(INDEX i1, INDEX i0)
+	{
+		return GetPtrN<2>({ i0 , i1 });
+	}
+
+	inline void* GetPtr3(INDEX i2, INDEX i1, INDEX i0)
+	{
+		return GetPtrN<3>({ i0, i1, i2 });
+	}
+
+	inline void* GetPtr4(INDEX i3, INDEX i2, INDEX i1, INDEX i0)
+	{
+		return GetPtrN<4>({ i0, i1, i2, i3 });
+	}
+
+	inline void* GetPtr5(INDEX i4, INDEX i3, INDEX i2, INDEX i1, INDEX i0)
+	{
+		return GetPtrN<5>({ i0, i1, i2, i3, i4 });
+	}
+
+
+	inline void ResetPtr(void)
+	{
+		m_end = false;
+		m_iterator.resize(m_dim.size());
+		std::fill(m_iterator.begin(), m_iterator.end(), 0);
+	}
+
+	inline void* NextPtr(void)
+	{
+		void* ptr = GetPtr(m_iterator);
+		
+		for (int i = 0; i < m_iterator.size(); ++i) {
+			++m_iterator[i];
+			if (m_iterator[i] < m_dim[i].width) {
+				return ptr;
+			}
+			m_iterator[i] = 0;
+		}
+		m_end = true;
+		return ptr;
 	}
 	
+	inline bool IsEnd(void)
+	{
+		return m_end;
+	}
+
+
 	template <typename Tp>
 	inline void Set(INDEX frame, INDEX node, Tp value)
 	{
 		if (typeid(Tp) == typeid(bool)) {
-			std::uint8_t* ptr = &(m_buffer.get()[m_stride * node]);
+//			std::uint8_t* ptr = &(m_buffer.get()[m_frame_stride * node]);
+			std::uint8_t* ptr = (std::uint8_t*)GetPtr(node);
 			std::uint8_t mask = (std::uint8_t)(1 << (frame % 8));
 			if (value) {
 				ptr[frame / 8] |= mask;
@@ -109,7 +258,7 @@ public:
 			}
 		}
 		else {
-			Tp* ptr = (Tp*)(&m_buffer.get()[m_stride * node]);
+			Tp* ptr = (Tp*)(&m_buffer.get()[m_frame_stride * node]);
 			ptr[frame] = value;
 		}
 	}
@@ -118,12 +267,13 @@ public:
 	inline Tp Get(INDEX frame, INDEX node)
 	{
 		if (typeid(Tp) == typeid(bool)) {
-			std::uint8_t* ptr = &(m_buffer.get()[m_stride * node]);
+//			std::uint8_t* ptr = &(m_buffer.get()[m_frame_stride * node]);
+			std::uint8_t* ptr = (std::uint8_t*)GetPtr(node);
 			std::uint8_t mask = (std::uint8_t)(1 << (frame % 8));
 			return ((ptr[frame / 8] & mask) != 0);
 		}
 		else {
-			Tp* ptr = (Tp*)(&m_buffer.get()[m_stride * node]);
+			Tp* ptr = (Tp*)(&m_buffer.get()[m_frame_stride * node]);
 			return ptr[frame];
 		}
 	}

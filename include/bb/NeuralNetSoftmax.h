@@ -58,8 +58,8 @@ public:
 
 	void Forward(void)
 	{
-		Eigen::Map<Matrix> inputValue((T*)m_input_value_buffer.GetBuffer(), m_input_value_buffer.GetStride() / sizeof(T), m_node_size);
-		Eigen::Map<Matrix> outputValue((T*)m_output_value_buffer.GetBuffer(), m_output_value_buffer.GetStride() / sizeof(T), m_node_size);
+		Eigen::Map<Matrix> inputValue((T*)m_input_value_buffer.GetBuffer(), m_input_value_buffer.GetFrameStride() / sizeof(T), m_node_size);
+		Eigen::Map<Matrix> outputValue((T*)m_output_value_buffer.GetBuffer(), m_output_value_buffer.GetFrameStride() / sizeof(T), m_node_size);
 
 		auto valueExp = (inputValue.colwise() - inputValue.rowwise().maxCoeff()).array().exp();
 		auto valueSum = valueExp.rowwise().sum();
@@ -68,8 +68,8 @@ public:
 
 	void Backward(void)
 	{
-		Eigen::Map<Matrix> outputError((T*)m_output_error_buffer.GetBuffer(), m_output_error_buffer.GetStride() / sizeof(T), m_node_size);
-		Eigen::Map<Matrix> inputError((T*)m_input_error_buffer.GetBuffer(), m_input_error_buffer.GetStride() / sizeof(T), m_node_size);
+		Eigen::Map<Matrix> outputError((T*)m_output_error_buffer.GetBuffer(), m_output_error_buffer.GetFrameStride() / sizeof(T), m_node_size);
+		Eigen::Map<Matrix> inputError((T*)m_input_error_buffer.GetBuffer(), m_input_error_buffer.GetFrameStride() / sizeof(T), m_node_size);
 
 		inputError = outputError;
 	}

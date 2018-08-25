@@ -78,8 +78,8 @@ public:
 
 	void Forward(void)
 	{
-		Eigen::Map<Matrix> inputValue((T*)m_input_value_buffer.GetBuffer(), m_input_value_buffer.GetStride() / sizeof(T), m_input_size);
-		Eigen::Map<Matrix> outputValue((T*)m_output_value_buffer.GetBuffer(), m_output_value_buffer.GetStride() / sizeof(T), m_output_size);
+		Eigen::Map<Matrix> inputValue((T*)m_input_value_buffer.GetBuffer(), m_input_value_buffer.GetFrameStride() / sizeof(T), m_input_size);
+		Eigen::Map<Matrix> outputValue((T*)m_output_value_buffer.GetBuffer(), m_output_value_buffer.GetFrameStride() / sizeof(T), m_output_size);
 
 		outputValue = inputValue * m_W;
 		outputValue.rowwise() += m_b;
@@ -87,9 +87,9 @@ public:
 
 	void Backward(void)
 	{
-		Eigen::Map<Matrix> outputError((T*)m_output_error_buffer.GetBuffer(), m_output_error_buffer.GetStride() / sizeof(T), m_output_size);
-		Eigen::Map<Matrix> inputError((T*)m_input_error_buffer.GetBuffer(), m_input_error_buffer.GetStride() / sizeof(T), m_input_size);
-		Eigen::Map<Matrix> inputValue((T*)m_input_value_buffer.GetBuffer(), m_input_value_buffer.GetStride() / sizeof(T), m_input_size);
+		Eigen::Map<Matrix> outputError((T*)m_output_error_buffer.GetBuffer(), m_output_error_buffer.GetFrameStride() / sizeof(T), m_output_size);
+		Eigen::Map<Matrix> inputError((T*)m_input_error_buffer.GetBuffer(), m_input_error_buffer.GetFrameStride() / sizeof(T), m_input_size);
+		Eigen::Map<Matrix> inputValue((T*)m_input_value_buffer.GetBuffer(), m_input_value_buffer.GetFrameStride() / sizeof(T), m_input_size);
 
 		inputError = outputError * m_W.transpose();
 		m_dW = inputValue.transpose() * outputError;
