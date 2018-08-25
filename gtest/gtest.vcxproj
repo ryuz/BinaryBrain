@@ -19,10 +19,15 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="gtest.cpp" />
+    <ClCompile Include="NeuralNetAffineTest.cpp" />
+    <ClCompile Include="NeuralNetBinarizeTest.cpp" />
     <ClCompile Include="NeuralNetBinaryFilterTest.cpp" />
     <ClCompile Include="NeuralNetBinaryLutTest.cpp" />
     <ClCompile Include="NeuralNetBufferTest.cpp" />
+    <ClCompile Include="NeuralNetConvolutionTest.cpp" />
+    <ClCompile Include="NeuralNetSigmoidTest.cpp" />
+    <ClCompile Include="NeuralNetSoftmaxTest.cpp" />
+    <ClCompile Include="NeuralNetUnbinarizeTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\bb\NeuralNet.h" />

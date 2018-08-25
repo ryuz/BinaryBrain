@@ -12,6 +12,7 @@
 
 
 #include <Eigen/Core>
+#include "NeuralNetLayer.h"
 
 
 namespace bb {

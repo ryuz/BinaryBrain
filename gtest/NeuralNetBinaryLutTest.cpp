@@ -145,12 +145,12 @@ TEST(NeuralNetBinaryLut6, testNeuralNetBinaryLut6Batch)
 TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6Compare)
 {
 	// äeêîílÇìKìñÇ…ê›íË
-	const std::vector<size_t> in_index_size = { 4, 3, 2 };
-	const std::vector<size_t> out_index_size = { 5, 4, 3 };
+	const std::vector<size_t> in_index_size = { 3, 2, 1 };
+	const std::vector<size_t> out_index_size = { 1, 3, 2 };
 	const size_t input_node_size  = vector_product(in_index_size);
 	const size_t output_node_size = vector_product(out_index_size);
-	const size_t mux_size = 23;
-	const size_t batch_size = 345;
+	const size_t mux_size = 7;
+	const size_t batch_size = 257;
 	const size_t frame_size = mux_size * batch_size;
 	const int lut_input_size = 6;
 	const int lut_table_size = 64;
@@ -291,11 +291,7 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLutFeedback)
 	const size_t node_size = lut_table_size;
 	bb::NeuralNetBinaryLutN<lut_input_size> lut(lut_input_size, lut_table_size, mux_size, batch_size, 1);
 	testSetupLayerBuffer(lut);
-	
-//	__m256i in[lut_input_size];
-//	__m256i out[node_size];
-//	NeuralNetBufferAccessorBinary<> accIn(in, frame_size);
-//	NeuralNetBufferAccessorBinary<> accOut(out, frame_size);
+
 
 	auto in_val = lut.GetInputValueBuffer();
 	auto out_val = lut.GetOutputValueBuffer();
@@ -312,29 +308,13 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLutFeedback)
 		}
 	}
 
-//	lut.SetInputValuePtr(in);
-//	lut.SetOutputValuePtr(out);
 	lut.Forward();
 
-//	uint64_t outW[node_size];
-//	uint64_t lutTable[lut_table_size];
 
 	std::vector<float> vec_loss(frame_size);
 	std::vector<float> vec_out(frame_size);
 	for (int loop = 0; loop < 1; loop++) {
 		do {
-			/*
-			for (int i = 0; i < lut_table_size; i++) {
-				outW[i] = out[i].m256i_u64[0];
-			}
-			for (size_t node = 0; node < node_size; node++) {
-				lutTable[node] = 0;
-				for (int i = 0; i < lut_table_size; i++) {
-					lutTable[node] |= lut.GetLutTable(node, i) ? ((uint64_t)1 << i) : 0;
-				}
-			}
-			*/
-
 			for (size_t frame = 0; frame < frame_size; frame++) {
 				vec_loss[frame] = 0;
 				for (size_t node = 0; node < node_size; node++) {
