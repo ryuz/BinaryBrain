@@ -1,7 +1,16 @@
 #include <stdio.h>
+#include <string>
 #include <iostream>
+#include <fstream>
 #include <valarray>
+
 #include "gtest/gtest.h"
+
+#include "cereal/types/array.hpp"
+#include "cereal/types/string.hpp"
+#include "cereal/types/vector.hpp"
+#include "cereal/archives/json.hpp"
+
 #include "bb/NeuralNetAffine.h"
 #include "bb/NeuralNetSigmoid.h"
 #include "bb/NeuralNetSoftmax.h"
@@ -345,4 +354,165 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLutFeedback)
 	}
 }
 
+#if 0
+TEST(NeuralNetBinaryLut, testNeuralNetBinaryLutFeedbackBitwise)
+{
+	const size_t lut_input_size = 6;
+	const size_t lut_table_size = (1 << lut_input_size);
+	const size_t mux_size = 3;
+	const size_t batch_size = lut_table_size;
+	const size_t frame_size = mux_size * batch_size;
+	const size_t node_size = lut_table_size;
+	bb::NeuralNetBinaryLutN<lut_input_size, true> lut(lut_input_size, lut_table_size);
+	testSetupLayerBuffer(lut);
+
+	lut.SetMuxSize(mux_size);
+	lut.SetBatchSize(batch_size);
+
+	auto in_val = lut.GetInputValueBuffer();
+	auto out_val = lut.GetOutputValueBuffer();
+
+	for (size_t frame = 0; frame < frame_size; frame++) {
+		for (int bit = 0; bit < lut_input_size; bit++) {
+			in_val.Set<bool>(frame, bit, (frame & ((size_t)1 << bit)) != 0);
+		}
+	}
+
+	for (size_t node = 0; node < node_size; node++) {
+		for (int i = 0; i < lut_input_size; i++) {
+			lut.SetLutInput(node, i, i);
+		}
+	}
+
+	lut.Forward();
+
+
+	std::vector<double> vec_loss(frame_size);
+	std::vector<float> vec_out(frame_size);
+	for (int loop = 0; loop < 1; loop++) {
+		do {
+			for (size_t frame = 0; frame < frame_size; frame++) {
+				vec_loss[frame] = 0;
+				for (size_t node = 0; node < node_size; node++) {
+					bool val = out_val.Get<bool>(frame, node);
+					if (frame % node_size == node) {
+						vec_loss[frame] += !val ? +1.0f : -1.0f;
+					}
+					else {
+						vec_loss[frame] += val ? +0.01f : -0.01f;
+					}
+				}
+			}
+		} while (lut.Feedback(vec_loss));
+		std::cout << loop << std::endl;
+	}
+
+	for (size_t node = 0; node < node_size; node++) {
+		for (int i = 0; i < lut_table_size; i++) {
+			EXPECT_EQ(node == i, lut.GetLutTable(node, i));
+		}
+	}
+}
+
+#endif
+
+
+TEST(NeuralNetBinaryLut, testNeuralNetBinaryLutFeedbackSerialize)
+{
+	std::string fname("testNeuralNetBinaryLutFeedbackSerialize.json");
+	size_t input_node_size  = 20;
+	size_t output_node_size = 2;
+	size_t lut_input_size = 6;
+	size_t lut_table_size = 64;
+
+	bb::NeuralNetBinaryLut6<>  lut0(input_node_size, output_node_size);
+	lut0.SetLutInput(0, 0, 9);
+	lut0.SetLutInput(0, 1, 8);
+	lut0.SetLutInput(0, 2, 7);
+	lut0.SetLutInput(0, 3, 6);
+	lut0.SetLutInput(0, 4, 5);
+	lut0.SetLutInput(0, 5, 4);
+	lut0.SetLutInput(1, 0, 12);
+	lut0.SetLutInput(1, 1, 18);
+	lut0.SetLutInput(1, 2, 14);
+	lut0.SetLutInput(1, 3, 16);
+	lut0.SetLutInput(1, 4, 17);
+	lut0.SetLutInput(1, 5, 14);
+
+	lut0.SetLutTable(0, 0,  true);
+	lut0.SetLutTable(0, 1,  false);
+	lut0.SetLutTable(0, 2,  true);
+	lut0.SetLutTable(0, 3,  true);
+	lut0.SetLutTable(0, 63, false);
+	lut0.SetLutTable(0, 62, false);
+	lut0.SetLutTable(0, 61, true);
+	lut0.SetLutTable(0, 60, true);
+
+	lut0.SetLutTable(1, 0, false);
+	lut0.SetLutTable(1, 1, false);
+	lut0.SetLutTable(1, 2, true);
+	lut0.SetLutTable(1, 3, false);
+	lut0.SetLutTable(1, 63, true);
+	lut0.SetLutTable(1, 62, false);
+	lut0.SetLutTable(1, 61, false);
+	lut0.SetLutTable(1, 60, false);
+
+	// save
+	{
+		std::ofstream ofs(fname);
+		cereal::JSONOutputArchive o_archive(ofs);
+//		o_archive(cereal::make_nvp("layer_lut", lut0));
+		lut0.Save(o_archive);
+	}
+
+
+	// load
+	bb::NeuralNetBinaryLutN<6> lut1(input_node_size, output_node_size);
+	{
+		std::ifstream ifs(fname);
+		cereal::JSONInputArchive i_archive(ifs);
+	//	i_archive(cereal::make_nvp("layer_lut", lut1));
+		lut1.Load(i_archive);
+	}
+
+	// compare
+	for (size_t node = 0; node < output_node_size; ++node) {
+		for (int i = 0; i < lut_input_size; ++i) {
+			EXPECT_EQ(lut0.GetLutInput(node, i), lut1.GetLutInput(node, i));
+		}
+
+		for (int i = 0; i < lut_table_size; ++i) {
+			EXPECT_EQ(lut0.GetLutTable(node, i), lut1.GetLutTable(node, i));
+		}
+	}
+
+	EXPECT_EQ(lut1.GetLutInput(0,  0), 9);
+	EXPECT_EQ(lut1.GetLutInput(0,  1), 8);
+	EXPECT_EQ(lut1.GetLutInput(0,  2), 7);
+	EXPECT_EQ(lut1.GetLutInput(0,  3), 6);
+	EXPECT_EQ(lut1.GetLutInput(0,  4), 5);
+	EXPECT_EQ(lut1.GetLutInput(0,  5), 4);
+	EXPECT_EQ(lut1.GetLutInput(1,  0), 12);
+	EXPECT_EQ(lut1.GetLutInput(1,  1), 18);
+	EXPECT_EQ(lut1.GetLutInput(1,  2), 14);
+	EXPECT_EQ(lut1.GetLutInput(1,  3), 16);
+	EXPECT_EQ(lut1.GetLutInput(1,  4), 17);
+	EXPECT_EQ(lut1.GetLutInput(1,  5), 14);
+	EXPECT_EQ(lut1.GetLutTable(0,  0), true);
+	EXPECT_EQ(lut1.GetLutTable(0,  1), false);
+	EXPECT_EQ(lut1.GetLutTable(0,  2), true);
+	EXPECT_EQ(lut1.GetLutTable(0,  3), true);
+	EXPECT_EQ(lut1.GetLutTable(0, 63), false);
+	EXPECT_EQ(lut1.GetLutTable(0, 62), false);
+	EXPECT_EQ(lut1.GetLutTable(0, 61), true);
+	EXPECT_EQ(lut1.GetLutTable(0, 60), true);
+	EXPECT_EQ(lut1.GetLutTable(1,  0), false);
+	EXPECT_EQ(lut1.GetLutTable(1,  1), false);
+	EXPECT_EQ(lut1.GetLutTable(1,  2), true);
+	EXPECT_EQ(lut1.GetLutTable(1,  3), false);
+	EXPECT_EQ(lut1.GetLutTable(1, 63), true);
+	EXPECT_EQ(lut1.GetLutTable(1, 62), false);
+	EXPECT_EQ(lut1.GetLutTable(1, 61), false);
+	EXPECT_EQ(lut1.GetLutTable(1, 60), false);
+}
 

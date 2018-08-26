@@ -15,15 +15,17 @@
 #include <intrin.h>
 #include <omp.h>
 #include <ppl.h>
-#include "NeuralNetLayer.h"
+#include "NeuralNetLayerBuf.h"
 #include "ShuffleSet.h"
 
 namespace bb {
 
 // LUT方式基底クラス
 template <bool feedback_bitwise = false, typename T = float, typename INDEX = size_t>
-class NeuralNetBinaryLut : public NeuralNetLayer<T, INDEX>
+class NeuralNetBinaryLut : public NeuralNetLayerBuf<T, INDEX>
 {
+	typedef NeuralNetLayer<T, INDEX> super;
+
 protected:
 	INDEX					m_mux_size = 1;
 	INDEX					m_frame_size = 1;
@@ -38,7 +40,13 @@ public:
 	virtual INDEX GetLutInput(INDEX node, int input_index) const = 0;
 	virtual void  SetLutTable(INDEX node, int bit, bool value) = 0;
 	virtual bool  GetLutTable(INDEX node, int bit) const = 0;
-	
+
+	virtual void Resize(INDEX input_node_size, INDEX output_node_size)
+	{
+		m_input_node_size = input_node_size;
+		m_output_node_size = output_node_size;
+	}
+
 	void InitializeCoeff(std::uint64_t seed)
 	{
 		std::mt19937_64                     mt(seed);
@@ -63,14 +71,12 @@ public:
 		}
 	}
 
-	void  SetMuxSize(INDEX mux_size) { m_mux_size = mux_size; }
-	INDEX GetMuxSize(void)           { return m_mux_size; }
-
-	virtual void Resize(INDEX input_node_size, INDEX output_node_size)
-	{
-		m_input_node_size = input_node_size;
-		m_output_node_size = output_node_size;
+	void  SetMuxSize(INDEX mux_size) {
+		m_mux_size = mux_size;
 	}
+
+	INDEX GetMuxSize(void) const     { return m_mux_size; }
+
 
 public:
 	void  SetBatchSize(INDEX batch_size) { m_frame_size = batch_size * m_mux_size; }
@@ -359,10 +365,10 @@ public:
 	}
 
 
-	// シリアライズ
+	// Serialize
 protected:
 	struct LutData {
-		std::vector<int>	lut_input;
+		std::vector<INDEX>	lut_input;
 		std::vector<bool>	lut_table;
 
 		template <class Archive>
@@ -377,6 +383,11 @@ public:
 	template <class Archive>
 	void save(Archive &archive, std::uint32_t const version) const
 	{
+		archive(cereal::make_nvp("NeuralNetLayer", *(super *)this));
+
+		archive(cereal::make_nvp("input_node_size", m_input_node_size));
+		archive(cereal::make_nvp("m_output_node_size", m_output_node_size));
+
 		INDEX node_size = GetOutputNodeSize();
 		int lut_input_size = GetLutInputSize();
 		int	lut_table_size = GetLutTableSize();
@@ -386,12 +397,12 @@ public:
 			LutData ld;
 			ld.lut_input.resize(lut_input_size);
 			for (int i = 0; i < lut_input_size; ++i) {
-				ld.lut_input.push_back(GetLutInput(node, i));
+				ld.lut_input[i] = GetLutInput(node, i);
 			}
 
 			ld.lut_table.resize(lut_table_size);
 			for (int i = 0; i < lut_table_size; ++i) {
-				ld.lut_table.push_back(GetLutTable(node, i));
+				ld.lut_table[i] = GetLutTable(node, i);
 			}
 
 			vec_lut.push_back(ld);
@@ -404,23 +415,38 @@ public:
 	template <class Archive>
 	void load(Archive &archive, std::uint32_t const version)
 	{
-		INDEX node_size = GetOutputNodeSize();
-		int lut_input_size = GetLutInputSize();
-		int	lut_table_size = GetLutTableSize();
-
+		archive(cereal::make_nvp("NeuralNetLayer", *(super *)this));
+		
+		INDEX input_node_size;
+		INDEX output_node_size;
 		std::vector<LutData> vec_lut;
+		archive(cereal::make_nvp("input_node_size", input_node_size));
+		archive(cereal::make_nvp("m_output_node_size", output_node_size));
 		archive(cereal::make_nvp("lut", vec_lut));
 
-		for (INDEX node = 0; node < node_size; ++node) {
-			for (int i = 0; i < lut_input_size; ++i) {
-				SetLutInput(node, i, ld.lut_input[i]);
+//		if (vec_lut.empty()) { return; }
+
+		Resize(input_node_size, output_node_size);
+
+		for (INDEX node = 0; node < (INDEX)vec_lut.size(); ++node) {
+			for (int i = 0; i < (int)vec_lut[node].lut_input.size(); ++i) {
+				SetLutInput(node, i, vec_lut[node].lut_input[i]);
 			}
 
-			ld.lut_table.resize(lut_table_size);
-			for (int i = 0; i < lut_table_size; ++i) {
-				SetLutTable(node, i, ld.lut_input[i]);
+			for (int i = 0; i < (int)vec_lut[node].lut_table.size(); ++i) {
+				SetLutTable(node, i, vec_lut[node].lut_table[i]);
 			}
 		}
+	}
+
+	virtual void Save(cereal::JSONOutputArchive& archive) const
+	{
+		archive(cereal::make_nvp("NeuralNetBinaryLut", *this));
+	}
+
+	virtual void Load(cereal::JSONInputArchive& archive)
+	{
+		archive(cereal::make_nvp("NeuralNetBinaryLut", *this));
 	}
 };
 

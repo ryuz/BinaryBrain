@@ -24,6 +24,8 @@ namespace bb {
 template <typename T = float, typename INDEX = size_t>
 class NeuralNetBinaryFilter : public NeuralNetLayer<T, INDEX>
 {
+	typedef NeuralNetLayer<T, INDEX>	super;
+
 protected:
 	NeuralNetLayer<T, INDEX>* m_filter_net;
 	INDEX			m_mux_size;
@@ -43,14 +45,14 @@ protected:
 
 public:
 	NeuralNetBinaryFilter() {}
-	
+
 	NeuralNetBinaryFilter(NeuralNetLayer<T, INDEX>* filter_net, INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size, INDEX y_step, INDEX x_step, INDEX mux_size, INDEX batch_size = 1)
 	{
 		Setup(filter_net, input_c_size, input_h_size, input_w_size, output_c_size, filter_h_size, filter_w_size, y_step, x_step, mux_size, batch_size);
 	}
-	
+
 	~NeuralNetBinaryFilter() {}		// デストラクタ
-	
+
 	void Setup(NeuralNetLayer<T, INDEX>* filter_net, INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size, INDEX y_step, INDEX x_step, INDEX mux_size, INDEX batch_size = 1)
 	{
 		m_filter_net = filter_net;
@@ -67,7 +69,23 @@ public:
 		m_output_h_size = ((m_input_h_size - m_filter_h_size + 1) + (m_y_step - 1)) / m_y_step;
 		m_output_w_size = ((m_input_w_size - m_filter_w_size + 1) + (m_x_step - 1)) / m_x_step;
 	}
+
+	void  SetInputValueBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_filter_net->SetInputValueBuffer(buffer); }
+	void  SetOutputValueBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_filter_net->SetOutputValueBuffer(buffer); }
+	void  SetInputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_filter_net->SetInputErrorBuffer(buffer); }
+	void  SetOutputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_filter_net->SetOutputErrorBuffer(buffer); }
 	
+	NeuralNetBuffer<T, INDEX>  GetInputValueBuffer(void) const { return m_filter_net->GetInputValueBuffer(); }
+	NeuralNetBuffer<T, INDEX>  GetOutputValueBuffer(void) const { return m_filter_net->GetOutputValueBuffer(); }
+	NeuralNetBuffer<T, INDEX>  GetInputErrorBuffer(void) const { return m_filter_net->GetInputErrorBuffer(); }
+	NeuralNetBuffer<T, INDEX>  GetOutputErrorBuffer(void) const { return m_filter_net->GetOutputErrorBuffer(); }
+
+	void  SetMuxSize(INDEX mux_size)
+	{
+		m_mux_size = mux_size;
+		m_filter_net->SetMuxSize(mux_size);
+	}
+
 	void SetBatchSize(INDEX batch_size) {
 		m_frame_size = batch_size * m_mux_size;
 		m_filter_net->SetBatchSize(batch_size);
@@ -131,24 +149,43 @@ public:
 	{
 	}
 
-
-	bool Feedback(std::vector<double>& loss)
+	bool Feedback(const std::vector<double>& loss)
 	{
-		if (m_feedback_layer < 0) {
-			m_feedback_layer = (int)m_layers.size() - 1;	// 初回
+		if ( m_filter_net->Feedback(loss)) {
+			Forward();	// 全体再計算
+			return true;
 		}
-
-		while (m_feedback_layer >= 0) {
-			if (m_layers[m_feedback_layer]->Feedback(loss)) {
-				Forward();	// 全体再計算
-				return true;
-			}
-			--m_feedback_layer;
-		}
-
+		
 		return false;
 	}
 
+
+	// Serialize
+public:
+	template <class Archive>
+	void save(Archive &archive, std::uint32_t const version) const
+	{
+		archive(cereal::make_nvp("NeuralNetLayer", *(NeuralNetLayer<T, INDEX>*)this));
+	}
+
+	template <class Archive>
+	void load(Archive &archive, std::uint32_t const version)
+	{
+		archive(cereal::make_nvp("NeuralNetLayer", *(NeuralNetLayer<T, INDEX>*)this));
+	}
+
+
+	virtual void Save(cereal::JSONOutputArchive& archive) const
+	{
+		archive(cereal::make_nvp("NeuralNetBinaryFilter", *this));
+		m_filter_net->Save(archive);
+	}
+
+	virtual void Load(cereal::JSONInputArchive& archive)
+	{
+		archive(cereal::make_nvp("NeuralNetBinaryFilter", *this));
+		m_filter_net->Load(archive);
+	}
 };
 
 

@@ -101,5 +101,8 @@
     <ClInclude Include="..\include\bb\NeuralNetSigmoid.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\bb\NeuralNetLayerBuf.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -12,7 +12,7 @@
 
 #include <random>
 #include <Eigen/Core>
-#include "NeuralNetLayer.h"
+#include "NeuralNetLayerBuf.h"
 
 
 namespace bb {
@@ -20,7 +20,7 @@ namespace bb {
 
 // AffineÉåÉCÉÑÅ[
 template <typename T = float, typename INDEX = size_t>
-class NeuralNetAffine : public NeuralNetLayer<T, INDEX>
+class NeuralNetAffine : public NeuralNetLayerBuf<T, INDEX>
 {
 protected:
 	typedef Eigen::Matrix<T, -1, -1, Eigen::ColMajor>	Matrix;
@@ -59,7 +59,7 @@ public:
 	void InitializeCoeff(std::uint64_t seed)
 	{
 		std::mt19937_64 mt(seed);
-		std::uniform_real_distribution<T> distribution((T)0, (T)1);
+		std::uniform_real_distribution<T> distribution((T)-1, (T)+1);
 
 		for (INDEX i = 0; i < m_input_size; ++i) {
 			for (INDEX j = 0; j < m_output_size; ++j) {

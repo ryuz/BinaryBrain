@@ -12,7 +12,7 @@
 
 
 #include <Eigen/Core>
-#include "NeuralNetLayer.h"
+#include "NeuralNetLayerBuf.h"
 
 
 namespace bb {
@@ -20,7 +20,7 @@ namespace bb {
 
 // NeuralNet‚Ì’ŠÛƒNƒ‰ƒX
 template <typename T = float, typename INDEX = size_t>
-class NeuralNetSoftmax : public NeuralNetLayer<T, INDEX>
+class NeuralNetSoftmax : public NeuralNetLayerBuf<T, INDEX>
 {
 protected:
 	typedef Eigen::Matrix<T, -1, -1, Eigen::ColMajor>	Matrix;

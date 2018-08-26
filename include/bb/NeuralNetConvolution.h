@@ -14,7 +14,7 @@
 #include <vector>
 #include <random>
 #include <intrin.h>
-#include "NeuralNetLayer.h"
+#include "NeuralNetLayerBuf.h"
 
 
 namespace bb {
@@ -22,7 +22,7 @@ namespace bb {
 
 // NeuralNet‚Ì’ŠÛƒNƒ‰ƒX
 template <typename T = float, typename INDEX = size_t>
-class NeuralNetConvolution : public NeuralNetLayer<T, INDEX>
+class NeuralNetConvolution : public NeuralNetLayerBuf<T, INDEX>
 {
 protected:
 	INDEX			m_frame_size;

@@ -71,6 +71,23 @@ public:
 		return *this;
 	}
 
+	NeuralNetBuffer& clone(void)
+	{
+		NeuralNetBuffer clone_buf(m_frame_size, m_base_size, m_data_type);
+		
+		memcpy(clone_buf.m_buffer.get(), m_buffer.get(), m_frame_stride*m_base_size);
+
+		clone_buf.m_frame_size = m_frame_size;
+		clone_buf.m_frame_stride = m_frame_stride;
+
+		clone_buf.m_dim = m_dim;
+		clone_buf.m_node_size = m_node_size;
+		clone_buf.m_iterator = m_iterator;
+		clone_buf.m_end = m_end;
+
+		return *this;
+	}
+
 	void Resize(INDEX frame_size, INDEX node_size, int data_type)
 	{
 		// ê›íËï€ë∂

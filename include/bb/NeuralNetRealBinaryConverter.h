@@ -11,7 +11,7 @@
 #pragma once
 
 #include <random>
-#include "NeuralNetLayer.h"
+#include "NeuralNetLayerBuf.h"
 
 
 namespace bb {
@@ -19,7 +19,7 @@ namespace bb {
 
 // À”<->ƒoƒCƒiƒŠ•ÏŠ·
 template <typename T = float, typename INDEX = size_t>
-class NeuralNetRealBinaryConverter : public NeuralNetLayer<T, INDEX>
+class NeuralNetRealBinaryConverter : public NeuralNetLayerBuf<T, INDEX>
 {
 protected:
 	std::mt19937_64		m_mt;
@@ -29,8 +29,10 @@ protected:
 	INDEX				m_batch_size = 1;
 	INDEX				m_mux_size = 1;
 
-	T					m_real_range_lo = (T)0.0;
-	T					m_real_range_hi = (T)1.0;
+//	T					m_real_range_lo = (T)0.0;
+//	T					m_real_range_hi = (T)1.0;
+	T					m_real_range_lo = (T)0.2;
+	T					m_real_range_hi = (T)0.8;
 
 public:
 	NeuralNetRealBinaryConverter() {}
