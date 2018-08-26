@@ -119,26 +119,32 @@ public:
 		auto in_val = GetInputValueBuffer();
 		auto out_val = GetOutputValueBuffer();
 
-		in_val.SetDimensions({ m_input_c_size, m_input_h_size, m_input_w_size});
-		out_val.SetDimensions({ m_output_c_size, m_output_h_size, m_output_w_size});
+		in_val.SetDimensions({ m_input_w_size, m_input_h_size, m_input_c_size});
+		out_val.SetDimensions({ m_output_w_size, m_output_h_size, m_output_c_size});
 		
-		INDEX out_y = 0;
-		for (INDEX in_y = 0; in_y < m_output_h_size; in_y += m_y_step) {
-			INDEX out_x = 0;
-			for (INDEX in_x = 0; in_x < m_output_w_size; in_x += m_x_step) {
+		INDEX in_y = 0;
+		for (INDEX out_y = 0; out_y < m_output_h_size; ++out_y) {
+			INDEX in_x = 0;
+			for (INDEX out_x = 0; out_x < m_output_w_size; ++out_x) {
 				in_val.ClearRoi();
-				in_val.SetRoi({ 0, in_y, in_x }, { m_input_c_size , m_filter_h_size , m_filter_w_size });
+				in_val.SetRoi({ in_x, in_y, 0}, { m_filter_w_size, m_filter_h_size, m_input_c_size });
 				out_val.ClearRoi();
-				out_val.SetRoi({ 0, out_y, out_x }, { m_output_c_size, 1, 1 });
+				out_val.SetRoi({ out_x, out_y, 0}, { 1, 1, m_output_c_size });
 
 				m_filter_net->SetInputValueBuffer(in_val);
 				m_filter_net->SetOutputValueBuffer(out_val);
 				m_filter_net->Forward();
 
-				++out_x;
+				in_x += m_x_step;
 			}
-			++out_y;
+			in_y += m_y_step;
 		}
+
+		in_val.ClearRoi();
+		SetInputValueBuffer(in_val);
+
+		out_val.ClearRoi();
+		SetOutputValueBuffer(out_val);
 	}
 	
 	void Backward(void)

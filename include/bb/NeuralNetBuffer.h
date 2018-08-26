@@ -284,7 +284,8 @@ public:
 			}
 		}
 		else {
-			Tp* ptr = (Tp*)(&m_buffer.get()[m_frame_stride * node]);
+//			Tp* ptr = (Tp*)(&m_buffer.get()[m_frame_stride * node]);
+			Tp* ptr = (Tp*)GetPtr(node);
 			ptr[frame] = value;
 		}
 	}
@@ -299,7 +300,8 @@ public:
 			return ((ptr[frame / 8] & mask) != 0);
 		}
 		else {
-			Tp* ptr = (Tp*)(&m_buffer.get()[m_frame_stride * node]);
+//			Tp* ptr = (Tp*)(&m_buffer.get()[m_frame_stride * node]);
+			Tp* ptr = (Tp*)GetPtr(node);
 			return ptr[frame];
 		}
 	}

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <numeric>
 #include <random>
 #include <chrono>
 
@@ -24,6 +25,19 @@
 #include "mnist_read.h"
 
 
+
+static void image_show(std::string name, bb::NeuralNetBuffer<> buf, size_t f, size_t h, size_t w)
+{
+	cv::Mat img((int)h, (int)w, CV_8U);
+	for (size_t y = 0; y < h; y++) {
+		for (size_t x = 0; x < w; x++) {
+			img.at<uchar>((int)y, (int)x) = buf.GetBinary(f, y*w + x) ? 255 : 0;
+		}
+	}
+	cv::imshow(name, img);
+}
+
+/*
 void img_show(std::vector<float>& image)
 {
 	cv::Mat img(28, 28, CV_32F);
@@ -31,6 +45,8 @@ void img_show(std::vector<float>& image)
 	cv::imshow("img", img);
 	cv::waitKey();
 }
+*/
+
 
 void print_time(void)
 {
@@ -44,8 +60,8 @@ void print_time(void)
 		prev_time = now_time;
 	}
 
-	auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now_time - prev_time).count();
-	std::cout << elapsed << "[s] passed" << std::endl;
+	auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now_time - prev_time).count() / 1000.0;
+	std::cout << elapsed << "[s]" << std::endl;
 
 	prev_time = now_time;
 }
@@ -244,27 +260,29 @@ public:
 		std::mt19937_64 mt(1);
 		batch_size = std::min(batch_size, m_train_images.size());
 
-		int train_mux_size = 3;
+		int train_mux_size = 1;
 		int test_mux_size = 3;
 		
 		// layer0 畳み込み層
-		size_t layer0_channel = 3;
+		size_t layer0_channel = 20;
 
 		size_t layer0_input_c_size = 1;
 		size_t layer0_input_h_size = 28;
 		size_t layer0_input_w_size = 28;
 		size_t layer0_output_c_size = layer0_channel;
-		size_t layer0_filter_h_size = 5;
-		size_t layer0_filter_w_size = 5;
-		size_t layer0_y_step = 1;
-		size_t layer0_x_step = 1;
+		size_t layer0_filter_h_size = 7;
+		size_t layer0_filter_w_size = 7;
+		size_t layer0_y_step = 3;
+		size_t layer0_x_step = 3;
+		size_t layer0_output_h_size = ((layer0_input_h_size - layer0_filter_h_size + 1) + (layer0_y_step - 1)) / layer0_y_step;
+		size_t layer0_output_w_size = ((layer0_input_w_size - layer0_filter_w_size + 1) + (layer0_x_step - 1)) / layer0_x_step;
 
 		size_t layer0_filter_input_node_size = layer0_input_c_size * layer0_filter_h_size * layer0_filter_h_size;
 		size_t layer0_filter_lut0_node_size = layer0_channel * 6;
 		size_t layer0_filter_lut1_node_size = layer0_output_c_size;
 
 		size_t input_node_size  = layer0_input_h_size * layer0_input_w_size;
-		size_t layer0_node_size = layer0_output_c_size * (layer0_input_h_size - layer0_filter_h_size + 1) * (layer0_input_w_size - layer0_filter_w_size + 1);
+		size_t layer0_node_size = layer0_output_c_size * layer0_output_h_size * layer0_output_w_size;
 		size_t layer1_node_size = 360 * 2;
 		size_t layer2_node_size = 60 * 2;
 		size_t layer3_node_size = 10 * 2;
@@ -294,9 +312,9 @@ public:
 			train_mux_size);
 
 		// LUT層
-		bb::NeuralNetBinaryLut6<> layer1_lut(layer0_node_size, layer1_node_size, train_mux_size);
-		bb::NeuralNetBinaryLut6<> layer2_lut(layer1_node_size, layer2_node_size, train_mux_size);
-		bb::NeuralNetBinaryLut6<> layer3_lut(layer2_node_size, layer3_node_size, train_mux_size);
+		bb::NeuralNetBinaryLut6<> layer1_lut(layer0_node_size, layer1_node_size, mt());
+		bb::NeuralNetBinaryLut6<> layer2_lut(layer1_node_size, layer2_node_size, mt());
+		bb::NeuralNetBinaryLut6<> layer3_lut(layer2_node_size, layer3_node_size, mt());
 		
 		// Unbinarize
 		bb::NeuralNetUnbinarize<> layer_unbinarize(layer3_node_size, output_node_size, train_mux_size);
@@ -355,9 +373,32 @@ public:
 			// 予測
 			net.Forward();
 
-			// バイナリ版フィードバック
-			while (net.Feedback(layer3_lut.GetOutputOnehotLoss<std::uint8_t, 10>(m_train_batch_labels)))
-				;
+			// フィードバック
+			double loss_min = 9999.9;
+			std::vector <double> loss;
+			do {
+				loss = layer3_lut.GetOutputOnehotLoss<std::uint8_t, 10>(m_train_batch_labels);
+				double loss_now = std::accumulate(loss.begin(), loss.end(), 0.0) / (double)loss.size();
+				if (loss_now < loss_min) {
+					loss_min = loss_now;
+	//				std::cout << "loss = " << loss_min << std::endl;
+					std::cout << "loss = " << loss_min << " (now : " << loss_now << ")" << std::endl;
+				}
+
+				static int z = 0;
+				z++;
+				if (z > 100) {
+					z = 0;
+					auto buf = net.GetOutputValueBuffer(1);
+					image_show("buf0", buf, 0, layer0_output_h_size, layer0_output_w_size);
+					image_show("buf1", buf, 1, layer0_output_h_size, layer0_output_w_size);
+					image_show("buf2", buf, 2, layer0_output_h_size, layer0_output_w_size);
+					image_show("buf3", buf, 3, layer0_output_h_size, layer0_output_w_size);
+					cv::waitKey(1);
+					std::cout << "loss = " << loss_min << " (now : " << loss_now << ")" << std::endl;
+				}
+
+			}  while (net.Feedback(loss));
 		}
 	}
 
@@ -835,7 +876,7 @@ int main()
 	int test_max_size = -1;
 	int loop_num = 10000;
 #endif
-	size_t batch_size = 8192/4;
+	size_t batch_size = 8192;
 
 	EvaluateMnist	eva_mnist(train_max_size, test_max_size);
 

@@ -294,7 +294,7 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6Compare)
 }
 
 
-
+#if 0
 TEST(NeuralNetBinaryLut, testNeuralNetBinaryLutFeedback)
 {
 	const size_t lut_input_size = 6;
@@ -353,6 +353,7 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLutFeedback)
 		}
 	}
 }
+#endif
 
 #if 0
 TEST(NeuralNetBinaryLut, testNeuralNetBinaryLutFeedbackBitwise)

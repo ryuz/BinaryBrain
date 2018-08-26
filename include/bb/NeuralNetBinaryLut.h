@@ -165,6 +165,7 @@ protected:
 
 
 	// feedback
+	std::mt19937_64						m_feedback_mt;
 	bool								m_feedback_busy = false;
 	INDEX								m_feedback_node;
 	int									m_feedback_bit;
@@ -301,7 +302,11 @@ protected:
 		else {
 			// ‘¹Ž¸‚ð”äŠr
 			m_feedback_loss[0] -= loss_sum;
-			if (m_feedback_loss[0] < 0) {
+
+			std::normal_distribution<double> dist(0.0, 0.1);
+
+			if (m_feedback_loss[0] < dist(m_feedback_mt) ) {
+//			if (m_feedback_loss[0] < 0) {
 				// ”½“]‚³‚¹‚È‚¢•û‚ª‚æ‚¯‚ê‚ÎŒ³‚É–ß‚·
 				SetLutTable(m_feedback_node, m_feedback_bit, !GetLutTable(m_feedback_node, m_feedback_bit));
 
@@ -353,10 +358,12 @@ public:
 			vec_loss[frame] = 0;
 			for (size_t node = 0; node < node_size; ++node) {
 				if (label[frame / m_mux_size] == (node % LABEL_SIZE)) {
-					vec_loss[frame] += (buf.Get<bool>(frame, node) ? -1.0 : +1.0);
+	//				vec_loss[frame] += (buf.Get<bool>(frame, node) ? -1.0 : +1.0);
+					vec_loss[frame] += (buf.Get<bool>(frame, node) ? 0.0 : +1.0);
 				}
 				else {
-					vec_loss[frame] += (buf.Get<bool>(frame, node) ? +(1.0 / LABEL_SIZE) : -(1.0 / LABEL_SIZE));
+	//				vec_loss[frame] += (buf.Get<bool>(frame, node) ? +(1.0 / LABEL_SIZE) : -(1.0 / LABEL_SIZE));
+					vec_loss[frame] += (buf.Get<bool>(frame, node) ? +(1.0 / LABEL_SIZE) : -(0.0 / LABEL_SIZE));
 				}
 			}
 		});
