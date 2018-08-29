@@ -25,7 +25,7 @@ template <typename T = float, typename INDEX = size_t>
 class NeuralNetConvolution : public NeuralNetLayerBuf<T, INDEX>
 {
 protected:
-	INDEX			m_frame_size;
+	INDEX			m_frame_size = 1;
 	int				m_input_h_size;
 	int				m_input_w_size;
 	int				m_input_c_size;
@@ -40,16 +40,15 @@ protected:
 public:
 	NeuralNetConvolution() {}
 	
-	NeuralNetConvolution(INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size, INDEX batch_size = 1, std::uint64_t seed = 1)
+	NeuralNetConvolution(INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size, std::uint64_t seed = 1)
 	{
-		Setup(input_c_size, input_h_size, input_w_size, output_c_size, filter_h_size, filter_w_size, batch_size, seed);
+		Resize(input_c_size, input_h_size, input_w_size, output_c_size, filter_h_size, filter_w_size, seed);
 	}
 	
 	~NeuralNetConvolution() {}		// デストラクタ
 	
-	void Setup(INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size, INDEX batch_size = 1, std::uint64_t seed = 1)
+	void Resize(INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size, std::uint64_t seed = 1)
 	{
-		m_frame_size = batch_size;
 		m_input_c_size = (int)input_c_size;
 		m_input_h_size = (int)input_h_size;
 		m_input_w_size = (int)input_w_size;

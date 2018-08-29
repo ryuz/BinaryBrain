@@ -24,8 +24,11 @@ namespace bb {
 #define BB_TYPE_REAL32		(32)
 #define BB_TYPE_REAL64		(64)
 
+#ifdef _DEBUG
 #define BB_ASSERT(v)		assert(v)
-
+#else
+#define BB_ASSERT(v)		do{}while(0)
+#endif
 
 template<typename _Tp> class NeuralNetType
 {

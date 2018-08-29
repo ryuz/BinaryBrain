@@ -69,10 +69,10 @@ public:
 	virtual void  SetOutputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) = 0;
 	
 	// バッファ取得
-	virtual NeuralNetBuffer<T, INDEX> GetInputValueBuffer(void) const = 0;
-	virtual NeuralNetBuffer<T, INDEX> GetOutputValueBuffer(void) const = 0;
-	virtual NeuralNetBuffer<T, INDEX> GetInputErrorBuffer(void) const = 0;
-	virtual NeuralNetBuffer<T, INDEX> GetOutputErrorBuffer(void) const = 0;
+	virtual const NeuralNetBuffer<T, INDEX>& GetInputValueBuffer(void) const = 0;
+	virtual const NeuralNetBuffer<T, INDEX>& GetOutputValueBuffer(void) const = 0;
+	virtual const NeuralNetBuffer<T, INDEX>& GetInputErrorBuffer(void) const = 0;
+	virtual const NeuralNetBuffer<T, INDEX>& GetOutputErrorBuffer(void) const = 0;
 
 	// バッファ生成補助
 	NeuralNetBuffer<T, INDEX> CreateInputValueBuffer(void) { 

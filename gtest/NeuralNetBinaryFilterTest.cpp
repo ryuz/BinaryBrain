@@ -42,15 +42,16 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilter)
 	size_t filter_layer0_node_size = output_c_size * 6;
 	size_t filter_output_node_size = output_c_size;
 	bb::NeuralNetGroup<> filter_net;
-	bb::NeuralNetBinaryLut6<> filter_lut0(filter_input_node_size, filter_layer0_node_size, mux_size);
-	bb::NeuralNetBinaryLut6<> filter_lut1(filter_layer0_node_size, filter_output_node_size, mux_size);
+	bb::NeuralNetBinaryLut6<> filter_lut0(filter_input_node_size, filter_layer0_node_size, 1);
+	bb::NeuralNetBinaryLut6<> filter_lut1(filter_layer0_node_size, filter_output_node_size, 1);
 	filter_net.AddLayer(&filter_lut0);
 	filter_net.AddLayer(&filter_lut1);
 	
 	// èÙÇ›çûÇ›ëwç\ê¨
-	bb::NeuralNetBinaryFilter<> net(&filter_net, input_c_size, input_h_size, input_w_size, output_c_size, filter_h_size, filter_w_size, y_step, x_step, mux_size);
+	bb::NeuralNetBinaryFilter<> net(&filter_net, input_c_size, input_h_size, input_w_size, output_c_size, filter_h_size, filter_w_size, y_step, x_step);
 	testSetupLayerBuffer(net);
 
+	net.SetMuxSize(mux_size);
 	net.SetBatchSize(batch_size);
 
 	net.Forward();
@@ -152,7 +153,7 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterRoi1)
 //	filter_lut1.SetLutInput(1, 0, 1);
 
 	// èÙÇ›çûÇ›ëwç\ê¨
-	bb::NeuralNetBinaryFilter<> net(&filter_net, input_c_size, input_h_size, input_w_size, output_c_size, filter_h_size, filter_w_size, y_step, x_step, mux_size);
+	bb::NeuralNetBinaryFilter<> net(&filter_net, input_c_size, input_h_size, input_w_size, output_c_size, filter_h_size, filter_w_size, y_step, x_step);
 	net.SetMuxSize(mux_size);
 	net.SetBatchSize(batch_size);
 
@@ -390,6 +391,7 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterFeedBack)
 #endif
 
 
+/*
 TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterFeedBack2)
 {
 	size_t batch_size = 4;
@@ -515,3 +517,4 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterFeedBack2)
 	EXPECT_EQ(true, true);
 }
 
+*/

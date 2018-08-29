@@ -58,10 +58,10 @@ public:
 	void  SetInputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_firstLayer->SetInputErrorBuffer(buffer); }
 	void  SetOutputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_lastLayer->SetOutputErrorBuffer(buffer); }
 
-	NeuralNetBuffer<T, INDEX> GetInputValueBuffer(void) const  { return m_firstLayer->GetInputValueBuffer(); }
-	NeuralNetBuffer<T, INDEX> GetOutputValueBuffer(void) const { return m_lastLayer->GetOutputValueBuffer(); }
-	NeuralNetBuffer<T, INDEX> GetInputErrorBuffer(void) const { return m_firstLayer->GetInputErrorBuffer(); }
-	NeuralNetBuffer<T, INDEX> GetOutputErrorBuffer(void) const { return m_lastLayer->GetOutputErrorBuffer(); }
+	const NeuralNetBuffer<T, INDEX>& GetInputValueBuffer(void) const  { return m_firstLayer->GetInputValueBuffer(); }
+	const NeuralNetBuffer<T, INDEX>& GetOutputValueBuffer(void) const { return m_lastLayer->GetOutputValueBuffer(); }
+	const NeuralNetBuffer<T, INDEX>& GetInputErrorBuffer(void) const { return m_firstLayer->GetInputErrorBuffer(); }
+	const NeuralNetBuffer<T, INDEX>& GetOutputErrorBuffer(void) const { return m_lastLayer->GetOutputErrorBuffer(); }
 
 	
 	// 内部バッファアクセス
@@ -166,16 +166,22 @@ protected:
 			}
 			if (m_layers[i]->GetOutputNodeSize() != m_layers[i+1]->GetInputNodeSize()) {
 				std::cout << "node size mismatch" << std::endl;
-				std::cout << "layer[" << i << "] : output node = : " << m_layers[i]->GetOutputNodeSize() << std::endl;
-				std::cout << "layer[" << i+1 << "] : input node = : " << m_layers[i+1]->GetInputNodeSize() << std::endl;
+				std::cout << "layer[" << i << "] " << m_layers[i]->GetLayerName() << ": output node = : " << m_layers[i]->GetOutputNodeSize() << std::endl;
+				std::cout << "layer[" << i+1 << "] " << m_layers[i+1]->GetLayerName() << ": input node = : " << m_layers[i+1]->GetInputNodeSize() << std::endl;
 				BB_ASSERT(0);
 				return;
 			}
 			if (m_layers[i]->GetOutputValueDataType() != m_layers[i+1]->GetInputValueDataType()) {
+				std::cout << "data type size mismatch" << std::endl;
+				std::cout << "layer[" << i << "] " << m_layers[i]->GetLayerName() << ": output data type = : " << m_layers[i]->GetOutputValueDataType() << std::endl;
+				std::cout << "layer[" << i + 1 << "] " << m_layers[i + 1]->GetLayerName() << ": data input type = : " << m_layers[i + 1]->GetInputValueDataType() << std::endl;
 				BB_ASSERT(0);
 				return;
 			}
 			if (m_layers[i]->GetOutputErrorDataType() != m_layers[i+1]->GetInputErrorDataType()) {
+				std::cout << "error type size mismatch" << std::endl;
+				std::cout << "layer[" << i << "] " << m_layers[i]->GetLayerName() << ": output error type = : " << m_layers[i]->GetOutputErrorDataType() << std::endl;
+				std::cout << "layer[" << i + 1 << "] " << m_layers[i + 1]->GetLayerName() << ": error input type = : " << m_layers[i + 1]->GetInputErrorDataType() << std::endl;
 				BB_ASSERT(0);
 				return;
 			}

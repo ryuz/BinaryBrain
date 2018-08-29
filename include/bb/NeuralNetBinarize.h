@@ -43,9 +43,9 @@ public:
 	INDEX GetOutputNodeSize(void) const { return GetBinaryNodeSize(); }
 
 	int   GetInputValueDataType(void) const { return NeuralNetType<T>::type; }
-	int   GetInputErrorDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetOutputValueDataType(void) const { return BB_TYPE_BINARY; }
-	int   GetOutputErrorDataType(void) const { return BB_TYPE_BINARY; }
+	int   GetInputErrorDataType(void) const { return NeuralNetType<T>::type; }
+	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
 
 	void Forward(void)
 	{
@@ -54,7 +54,8 @@ public:
 
 	void Backward(void)
 	{
-		BinaryToReal(GetOutputErrorBuffer(), GetInputErrorBuffer());
+//		BinaryToReal(GetOutputErrorBuffer(), GetInputErrorBuffer());
+//		RealToReal(GetOutputErrorBuffer(), GetInputErrorBuffer());
 	}
 
 	void Update(double learning_rate)

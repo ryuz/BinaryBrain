@@ -115,6 +115,31 @@ public:
 			}
 		}
 	}
+	
+	void RealToRealDemux(NeuralNetBuffer<T, INDEX> src_buf, NeuralNetBuffer<T, INDEX> dst_buf)
+	{
+		INDEX src_node_size = src_buf.GetNodeSize();
+		INDEX dst_node_size = dst_buf.GetNodeSize();
+		INDEX node_size = std::max(src_node_size, dst_node_size);
+		std::vector<int>	vec_v(dst_node_size, 0);
+		std::vector<int>	vec_n(dst_node_size, 0);
+		for (INDEX frame = 0; frame < m_batch_size; frame++) {
+			std::fill(vec_v.begin(), vec_v.end(), 0);
+			std::fill(vec_n.begin(), vec_n.end(), 0);
+			for (INDEX node = 0; node < node_size; node++) {
+				for (INDEX i = 0; i < m_mux_size; i++) {
+					bool binVal = binary_buf.Get<bool>(frame*m_mux_size + i, node);
+					vec_v[node %m_real_node_size] += binVal ? 1 : 0;
+					vec_n[node %m_real_node_size] += 1;
+				}
+			}
+
+			for (INDEX node = 0; node < m_real_node_size; node++) {
+				real_buf.Set<T>(frame, node, (T)vec_v[node] / vec_n[node]);
+			}
+		}
+	}
+
 
 	void Update(double learning_rate)
 	{

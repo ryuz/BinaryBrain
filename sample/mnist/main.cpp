@@ -182,19 +182,23 @@ public:
 		//	size_t layer0_node_size = 360 * 8;
 		//	size_t layer1_node_size = 60 * 16;
 		//	size_t layer2_node_size = 10 * 16;
-		size_t layer0_node_size = 360 * 2;
-		size_t layer1_node_size = 60 * 3;
-		size_t layer2_node_size = 10 * 3;
+		size_t layer0_node_size = 2000;
+		size_t layer1_node_size = 2000;
+//		size_t layer2_node_size = 200;
+//		size_t layer3_node_size = 200;
 		size_t output_node_size = 10;
 		bb::NeuralNetBinarize<>   layer_binarize(input_node_size, input_node_size, mt());
 		bb::NeuralNetBinaryLut6<> layer_lut0(input_node_size, layer0_node_size, mt());
 		bb::NeuralNetBinaryLut6<> layer_lut1(layer0_node_size, layer1_node_size, mt());
-		bb::NeuralNetBinaryLut6<> layer_lut2(layer1_node_size, layer2_node_size, mt());
-		bb::NeuralNetUnbinarize<> layer_unbinarize(layer2_node_size, output_node_size, mt());
+//		bb::NeuralNetBinaryLut6<> layer_lut2(layer1_node_size, layer2_node_size, mt());
+//		bb::NeuralNetBinaryLut6<> layer_lut3(layer2_node_size, layer3_node_size, mt());
+		auto last_lut_layer = &layer_lut1;
+		bb::NeuralNetUnbinarize<> layer_unbinarize(layer1_node_size, output_node_size, mt());
 		net.AddLayer(&layer_binarize);
 		net.AddLayer(&layer_lut0);
 		net.AddLayer(&layer_lut1);
-		net.AddLayer(&layer_lut2);
+//		net.AddLayer(&layer_lut2);
+//		net.AddLayer(&layer_lut3);
 		//	net.AddLayer(&layer_unbinarize);
 
 		// バイナリ版NET構築(評価用)
@@ -202,7 +206,8 @@ public:
 		net_eva.AddLayer(&layer_binarize);
 		net_eva.AddLayer(&layer_lut0);
 		net_eva.AddLayer(&layer_lut1);
-		net_eva.AddLayer(&layer_lut2);
+//		net_eva.AddLayer(&layer_lut2);
+//		net_eva.AddLayer(&layer_lut3);
 		net_eva.AddLayer(&layer_unbinarize);
 
 		for (int loop = 0; loop < loop_num; ++loop) {
@@ -219,10 +224,10 @@ public:
 
 			// test
 			{
-				std::ofstream ofs("test.v");
-				bb::NeuralNetBinaryLut6VerilogXilinx(ofs, layer_lut0, "layer0_lut");
-				bb::NeuralNetBinaryLut6VerilogXilinx(ofs, layer_lut1, "layer1_lut");
-				bb::NeuralNetBinaryLut6VerilogXilinx(ofs, layer_lut2, "layer2_lut");
+//				std::ofstream ofs("test.v");
+//				bb::NeuralNetBinaryLut6VerilogXilinx(ofs, layer_lut0, "layer0_lut");
+//				bb::NeuralNetBinaryLut6VerilogXilinx(ofs, layer_lut1, "layer1_lut");
+//				bb::NeuralNetBinaryLut6VerilogXilinx(ofs, layer_lut2, "layer2_lut");
 			}
 
 			// 学習データセットシャッフル
@@ -246,7 +251,7 @@ public:
 
 			// バイナリ版フィードバック
 			net.Forward();
-			while (net.Feedback(layer_lut2.GetOutputOnehotLoss<std::uint8_t, 10>(m_train_batch_labels)))
+			while (net.Feedback(last_lut_layer->GetOutputOnehotLoss<std::uint8_t, 10>(m_train_batch_labels)))
 				;
 		}
 	}
@@ -264,7 +269,7 @@ public:
 		int test_mux_size = 3;
 		
 		// layer0 畳み込み層
-		size_t layer0_channel = 20;
+		size_t layer0_channel = 3;
 
 		size_t layer0_input_c_size = 1;
 		size_t layer0_input_h_size = 28;
@@ -308,8 +313,7 @@ public:
 			layer0_filter_h_size,
 			layer0_filter_w_size,
 			layer0_y_step,
-			layer0_x_step,
-			train_mux_size);
+			layer0_x_step);
 
 		// LUT層
 		bb::NeuralNetBinaryLut6<> layer1_lut(layer0_node_size, layer1_node_size, mt());
@@ -348,6 +352,7 @@ public:
 		net_eva.AddLayer(&layer3_lut);
 		net_eva.AddLayer(&layer_unbinarize);
 		
+		double loss_min = 9999.9;
 		for (int loop = 0; loop < loop_num; ++loop) {
 			
 			// 学習状況評価
@@ -374,7 +379,6 @@ public:
 			net.Forward();
 
 			// フィードバック
-			double loss_min = 9999.9;
 			std::vector <double> loss;
 			do {
 				loss = layer3_lut.GetOutputOnehotLoss<std::uint8_t, 10>(m_train_batch_labels);
@@ -479,8 +483,7 @@ public:
 			layer0_filter_h_size,
 			layer0_filter_w_size,
 			layer0_y_step,
-			layer0_x_step,
-			train_mux_size);
+			layer0_x_step);
 
 		// layer1 プーリング層作成
 		bb::NeuralNetBinaryLut6<true> layer1_filter_lut0(layer1_filter_input_node_size, layer1_filter_lut0_node_size, train_mux_size);
@@ -499,8 +502,7 @@ public:
 			layer1_filter_h_size,
 			layer1_filter_w_size,
 			layer1_y_step,
-			layer1_x_step,
-			train_mux_size);
+			layer1_x_step);
 
 		// Layer2-4 LUT層
 		bb::NeuralNetBinaryLut6<> layer2_lut(layer1_node_size, layer2_node_size, train_mux_size);
@@ -667,8 +669,7 @@ public:
 			layer0_filter_h_size,
 			layer0_filter_w_size,
 			layer0_y_step,
-			layer0_x_step,
-			train_mux_size);
+			layer0_x_step);
 
 		// layer1 プーリング層作成
 		bb::NeuralNetBinaryLut6<true> layer1_filter_lut0(layer1_filter_input_node_size, layer1_filter_lut0_node_size, train_mux_size);
@@ -685,8 +686,7 @@ public:
 			layer1_filter_h_size,
 			layer1_filter_w_size,
 			layer1_y_step,
-			layer1_x_step,
-			train_mux_size);
+			layer1_x_step);
 
 		// layer2 畳み込み層作成
 		bb::NeuralNetBinaryLut6<true> layer2_filter_lut0(layer2_filter_input_node_size, layer2_filter_lut0_node_size, train_mux_size);
@@ -705,8 +705,7 @@ public:
 			layer2_filter_h_size,
 			layer2_filter_w_size,
 			layer2_y_step,
-			layer2_x_step,
-			train_mux_size);
+			layer2_x_step);
 
 		// layer3 プーリング層作成
 		bb::NeuralNetBinaryLut6<true> layer3_filter_lut0(layer3_filter_input_node_size, layer3_filter_lut0_node_size, train_mux_size);
@@ -723,8 +722,7 @@ public:
 			layer3_filter_h_size,
 			layer3_filter_w_size,
 			layer3_y_step,
-			layer3_x_step,
-			train_mux_size);
+			layer3_x_step);
 
 		// Layer4-5 LUT層
 		bb::NeuralNetBinaryLut6<> layer4_lut(layer3_node_size, layer4_node_size, train_mux_size);
@@ -881,8 +879,8 @@ int main()
 	EvaluateMnist	eva_mnist(train_max_size, test_max_size);
 
 //	eva_mnist.RunFlatReal(loop_num, batch_size, 1);
-//	eva_mnist.RunFlatBinary(loop_num, batch_size, 1);
-	eva_mnist.RunCnv1Binary(loop_num, batch_size, 1);
+	eva_mnist.RunFlatBinary(loop_num, batch_size, 1);
+//	eva_mnist.RunCnv1Binary(loop_num, batch_size, 1);
 //	eva_mnist.RunCnn1Binary(loop_num, batch_size, 1);
 //	eva_mnist.RunCnnBinary(loop_num, batch_size, 1);
 

@@ -22,14 +22,14 @@ namespace bb {
 
 // NeuralNetの抽象クラス
 template <typename T = float, typename INDEX = size_t>
-class NeuralNetBinaryFilter : public NeuralNetLayer<T, INDEX>
+class NeuralNetBinaryFilter : public NeuralNetLayerBuf<T, INDEX>
 {
-	typedef NeuralNetLayer<T, INDEX>	super;
+	typedef NeuralNetLayerBuf<T, INDEX>	super;
 
 protected:
 	NeuralNetLayer<T, INDEX>* m_filter_net;
-	INDEX			m_mux_size;
-	INDEX			m_frame_size;
+	INDEX			m_mux_size = 1;
+	INDEX			m_frame_size = 1;
 	INDEX			m_input_h_size;
 	INDEX			m_input_w_size;
 	INDEX			m_input_c_size;
@@ -46,18 +46,21 @@ protected:
 public:
 	NeuralNetBinaryFilter() {}
 
-	NeuralNetBinaryFilter(NeuralNetLayer<T, INDEX>* filter_net, INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size, INDEX y_step, INDEX x_step, INDEX mux_size, INDEX batch_size = 1)
+	NeuralNetBinaryFilter(NeuralNetLayer<T, INDEX>* filter_net, INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size, INDEX y_step, INDEX x_step)
 	{
-		Setup(filter_net, input_c_size, input_h_size, input_w_size, output_c_size, filter_h_size, filter_w_size, y_step, x_step, mux_size, batch_size);
+		SetFilterNet(filter_net);
+		Resize(input_c_size, input_h_size, input_w_size, output_c_size, filter_h_size, filter_w_size, y_step, x_step);
 	}
 
 	~NeuralNetBinaryFilter() {}		// デストラクタ
 
-	void Setup(NeuralNetLayer<T, INDEX>* filter_net, INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size, INDEX y_step, INDEX x_step, INDEX mux_size, INDEX batch_size = 1)
+	void SetFilterNet(NeuralNetLayer<T, INDEX>* filter_net)
 	{
 		m_filter_net = filter_net;
-		m_mux_size = mux_size;
-		m_frame_size = batch_size * mux_size;
+	}
+
+	void Resize(INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size, INDEX y_step, INDEX x_step)
+	{
 		m_input_c_size = (int)input_c_size;
 		m_input_h_size = (int)input_h_size;
 		m_input_w_size = (int)input_w_size;
@@ -70,15 +73,28 @@ public:
 		m_output_w_size = ((m_input_w_size - m_filter_w_size + 1) + (m_x_step - 1)) / m_x_step;
 	}
 
-	void  SetInputValueBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_filter_net->SetInputValueBuffer(buffer); }
-	void  SetOutputValueBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_filter_net->SetOutputValueBuffer(buffer); }
-	void  SetInputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_filter_net->SetInputErrorBuffer(buffer); }
-	void  SetOutputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_filter_net->SetOutputErrorBuffer(buffer); }
+	// 内部でROI設定を行うので、外部に見せるバッファポインタと別に設定する
+	void  SetInputValueBuffer(NeuralNetBuffer<T, INDEX> buffer) {
+		super::SetInputValueBuffer(buffer);
+		m_filter_net->SetInputValueBuffer(buffer);
+	}
+	void  SetOutputValueBuffer(NeuralNetBuffer<T, INDEX> buffer) {
+		super::SetOutputValueBuffer(buffer);
+		m_filter_net->SetOutputValueBuffer(buffer);
+	}
+	void  SetInputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) {
+		super::SetInputErrorBuffer(buffer);
+		m_filter_net->SetInputErrorBuffer(buffer);
+	}
+	void  SetOutputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) {
+		super::SetOutputErrorBuffer(buffer);
+		m_filter_net->SetOutputErrorBuffer(buffer);
+	}
 	
-	NeuralNetBuffer<T, INDEX>  GetInputValueBuffer(void) const { return m_filter_net->GetInputValueBuffer(); }
-	NeuralNetBuffer<T, INDEX>  GetOutputValueBuffer(void) const { return m_filter_net->GetOutputValueBuffer(); }
-	NeuralNetBuffer<T, INDEX>  GetInputErrorBuffer(void) const { return m_filter_net->GetInputErrorBuffer(); }
-	NeuralNetBuffer<T, INDEX>  GetOutputErrorBuffer(void) const { return m_filter_net->GetOutputErrorBuffer(); }
+//	const NeuralNetBuffer<T, INDEX>&  GetInputValueBuffer(void) const { return super::GetInputValueBuffer(); }
+//	const NeuralNetBuffer<T, INDEX>&  GetOutputValueBuffer(void) const { return super::GetOutputValueBuffer(); }
+//	const NeuralNetBuffer<T, INDEX>&  GetInputErrorBuffer(void) const { return super::GetInputErrorBuffer(); }
+//	const NeuralNetBuffer<T, INDEX>&  GetOutputErrorBuffer(void) const { return super::GetOutputErrorBuffer(); }
 
 	void  SetMuxSize(INDEX mux_size)
 	{
@@ -140,11 +156,10 @@ public:
 			in_y += m_y_step;
 		}
 
-		in_val.ClearRoi();
-		SetInputValueBuffer(in_val);
-
-		out_val.ClearRoi();
-		SetOutputValueBuffer(out_val);
+	//	in_val.ClearRoi();
+	//	SetInputValueBuffer(in_val);
+	//	out_val.ClearRoi();
+	//	SetOutputValueBuffer(out_val);
 	}
 	
 	void Backward(void)

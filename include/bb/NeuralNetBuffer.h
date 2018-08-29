@@ -71,7 +71,7 @@ public:
 		return *this;
 	}
 
-	NeuralNetBuffer& clone(void)
+	NeuralNetBuffer clone(void) const
 	{
 		NeuralNetBuffer clone_buf(m_frame_size, m_base_size, m_data_type);
 		
@@ -85,7 +85,7 @@ public:
 		clone_buf.m_iterator = m_iterator;
 		clone_buf.m_end = m_end;
 
-		return *this;
+		return clone_buf;
 	}
 
 	void Resize(INDEX frame_size, INDEX node_size, int data_type)
@@ -167,26 +167,26 @@ public:
 	}
 
 
-	INDEX GetFrameSize(void) { return m_frame_size; }
-	INDEX GetNodeSize(void) { return m_node_size; }
-	INDEX GetTypeBitSize(void) { return m_type_bit_size; }
+	INDEX GetFrameSize(void)  const { return m_frame_size; }
+	INDEX GetNodeSize(void)  const { return m_node_size; }
+	INDEX GetTypeBitSize(void)  const { return m_type_bit_size; }
 	
-	INDEX GetFrameStride(void) { return m_frame_stride; }
+	INDEX GetFrameStride(void)  const { return m_frame_stride; }
 	
-	void* GetBuffer(void)
+	void* GetBuffer(void) const
 	{
 		return m_buffer.get();
 	}
 
 
 protected:
-	inline void* GetBasePtr(INDEX addr)
+	inline void* GetBasePtr(INDEX addr) const
 	{
 		return &m_buffer.get()[m_frame_stride * addr];
 	}
 
 public:
-	inline void* GetPtr(std::vector<INDEX> index)
+	inline void* GetPtr(std::vector<INDEX> index) const
 	{
 		BB_ASSERT(index.size() == m_dim.size());
 		INDEX addr = 0;
@@ -197,7 +197,7 @@ public:
 		return GetBasePtr(addr);
 	}
 
-	inline void* GetPtr(INDEX node)
+	inline void* GetPtr(INDEX node) const
 	{
 		INDEX addr = 0;
 		for (size_t i = 0; i < m_dim.size(); ++i) {
@@ -209,7 +209,7 @@ public:
 	}
 
 	template <size_t N>
-	inline void* GetPtrN(std::array<INDEX, N> index)
+	inline void* GetPtrN(std::array<INDEX, N> index) const
 	{
 		BB_ASSERT(index.size() == m_dim.size());
 		INDEX addr = 0;
@@ -220,24 +220,24 @@ public:
 		return GetBasePtr(addr);
 	}
 
-	inline void* GetPtr2(INDEX i1, INDEX i0)
+	inline void* GetPtr2(INDEX i1, INDEX i0) const
 	{
 		return GetPtrN<2>({ i0 , i1 });
 	}
 
-	inline void* GetPtr3(INDEX i2, INDEX i1, INDEX i0)
+	inline void* GetPtr3(INDEX i2, INDEX i1, INDEX i0) const
 	{
 		return GetPtrN<3>({ i0, i1, i2 });
 	}
 
-	inline void* GetPtr4(INDEX i3, INDEX i2, INDEX i1, INDEX i0)
+	inline void* GetPtr4(INDEX i3, INDEX i2, INDEX i1, INDEX i0) const
 	{
 		return GetPtrN<4>({ i0, i1, i2, i3 });
 	}
 
 	inline void* GetPtr5(INDEX i4, INDEX i3, INDEX i2, INDEX i1, INDEX i0)
 	{
-		return GetPtrN<5>({ i0, i1, i2, i3, i4 });
+		return GetPtrN<5>({ i0, i1, i2, i3, i4 }); const
 	}
 
 
@@ -263,14 +263,14 @@ public:
 		return ptr;
 	}
 	
-	inline bool IsEnd(void)
+	inline bool IsEnd(void) const
 	{
 		return m_end;
 	}
 
 
 	template <typename Tp>
-	inline void Set(INDEX frame, INDEX node, Tp value)
+	inline void Set(INDEX frame, INDEX node, Tp value) const
 	{
 		if (typeid(Tp) == typeid(bool)) {
 //			std::uint8_t* ptr = &(m_buffer.get()[m_frame_stride * node]);
@@ -291,7 +291,7 @@ public:
 	}
 
 	template <typename Tp>
-	inline Tp Get(INDEX frame, INDEX node)
+	inline Tp Get(INDEX frame, INDEX node) const
 	{
 		if (typeid(Tp) == typeid(bool)) {
 //			std::uint8_t* ptr = &(m_buffer.get()[m_frame_stride * node]);
@@ -307,7 +307,7 @@ public:
 	}
 
 
-	void SetReal(INDEX frame, INDEX node, T value)
+	void SetReal(INDEX frame, INDEX node, T value) const
 	{
 		switch (m_data_type) {
 		case BB_TYPE_BINARY: Set<bool>(frame, node, value > (T)0.5);	break;
@@ -316,7 +316,7 @@ public:
 		}
 	}
 
-	T GetReal(INDEX frame, INDEX node)
+	T GetReal(INDEX frame, INDEX node) const
 	{
 		switch (m_data_type) {
 		case BB_TYPE_BINARY: return Get<bool>(frame, node) ? (T)1.0 : (T)0.0;
@@ -326,7 +326,7 @@ public:
 		return 0;
 	}
 
-	void SetBinary(INDEX frame, INDEX node, bool value)
+	void SetBinary(INDEX frame, INDEX node, bool value) const
 	{
 		switch (m_data_type) {
 		case BB_TYPE_BINARY: Set<bool>(frame, node, value);						break;
@@ -335,7 +335,7 @@ public:
 		}
 	}
 
-	bool GetBinary(INDEX frame, INDEX node)
+	bool GetBinary(INDEX frame, INDEX node) const
 	{
 		switch (m_data_type) {
 		case BB_TYPE_BINARY: return Get<bool>(frame, node);

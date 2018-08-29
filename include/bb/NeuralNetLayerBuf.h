@@ -41,10 +41,10 @@ public:
 	void  SetOutputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_output_error_buffer = buffer; }
 	
 	// バッファ取得
-	NeuralNetBuffer<T, INDEX> GetInputValueBuffer(void) const { return m_input_value_buffer; }
-	NeuralNetBuffer<T, INDEX> GetOutputValueBuffer(void) const { return m_output_value_buffer; }
-	NeuralNetBuffer<T, INDEX> GetInputErrorBuffer(void) const { return m_input_error_buffer; }
-	NeuralNetBuffer<T, INDEX> GetOutputErrorBuffer(void) const { return m_output_error_buffer; }
+	const NeuralNetBuffer<T, INDEX>& GetInputValueBuffer(void) const { return m_input_value_buffer; }
+	const NeuralNetBuffer<T, INDEX>& GetOutputValueBuffer(void) const { return m_output_value_buffer; }
+	const NeuralNetBuffer<T, INDEX>& GetInputErrorBuffer(void) const { return m_input_error_buffer; }
+	const NeuralNetBuffer<T, INDEX>& GetOutputErrorBuffer(void) const { return m_output_error_buffer; }
 };
 
 
