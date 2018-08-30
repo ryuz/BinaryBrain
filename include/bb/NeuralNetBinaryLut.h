@@ -214,7 +214,7 @@ public:
 					int mask = 1;
 			//		for (int bitpos = 0; bitpos < lut_input_size; ++bitpos) {
 					{
-						int bitpos = (mt() % lut_input_size);
+						int bitpos = (int)(mt() % lut_input_size);
 
 						INDEX input_node = GetLutInput(node, bitpos);
 						// 各入力項に対するテーブルの偏微分を計算
