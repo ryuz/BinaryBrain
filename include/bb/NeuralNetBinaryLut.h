@@ -51,11 +51,11 @@ public:
 	{
 		std::mt19937_64                     mt(seed);
 		std::uniform_int_distribution<int>	rand(0, 1);
-
+		
 		INDEX node_size = GetOutputNodeSize();
 		int   lut_input_size = GetLutInputSize();
 		int   lut_table_size = GetLutTableSize();
-
+		
 		ShuffleSet	ss(GetInputNodeSize(), mt());
 		for (INDEX node = 0; node < node_size; ++node) {
 			// 入力をランダム接続
@@ -63,18 +63,18 @@ public:
 			for (int i = 0; i < lut_input_size; ++i) {
 				SetLutInput(node, i, random_set[i]);
 			}
-
+			
 			// LUTテーブルをランダムに初期化
 			for (int i = 0; i < lut_table_size; i++) {
 				SetLutTable(node, i, rand(mt) != 0);
 			}
 		}
 	}
-
+	
 	void  SetMuxSize(INDEX mux_size) {
 		m_mux_size = mux_size;
 	}
-
+	
 	INDEX GetMuxSize(void) const     { return m_mux_size; }
 
 
@@ -162,8 +162,8 @@ public:
 #endif
 		});
 	}
-
-
+	
+	
 	void Backward(void)
 	{
 		auto& out_err = GetOutputErrorBuffer();
@@ -182,33 +182,62 @@ public:
 			}
 		}
 
+		std::mt19937_64 mt(1);
+
 		// 計算
 		std::vector<T> table_err(lut_table_size);
 		for (INDEX node = 0; node < node_size; ++node) {
 			std::fill(table_err.begin(), table_err.end(), (T)0);
 			for (INDEX frame = 0; frame < frame_size; ++frame) {
+				// 入力値取得
 				int input_index = GetLutInputIndex(frame, node);
 				T err = out_err.Get<T>(frame, node);
-				table_err[input_index] += err;
-				int mask = 1;
-				for (int bitpos = 0; bitpos < lut_input_size; ++bitpos) {
-					int reverse_index = (input_index ^ mask);
-					bool pos_val = GetLutTable(node, input_index);
-					bool rev_val = GetLutTable(node, reverse_index);
-					if (pos_val != rev_val) {
-						INDEX input_node = GetLutInput(node, bitpos);
-						out_err.Set<T>(frame, input_node, out_err.Get<T>(frame, input_node) + (pos_val && err > 0) ? (T)-1 : (T)+1);
-					}
-					mask <<= 1;
-				}
+
+				// テーブルに対する誤差計算
+				table_err[input_index] += err;	// 積算していく
 			}
 
 			for (int bitpos = 0; bitpos < lut_input_size; ++bitpos) {
-				SetLutTable(node, bitpos, table_err[bitpos] > 0);
+				if ( abs(table_err[bitpos]) > (mt() % 16)+5 ) {
+					SetLutTable(node, bitpos, table_err[bitpos] > 0);
+				}
 			}
+			
+			for (INDEX frame = 0; frame < frame_size; ++frame) {
+				int input_index = GetLutInputIndex(frame, node);
+				T err = out_err.Get<T>(frame, node);
+
+				bool val = GetLutTable(node, input_index);
+				if ((val && err < 0) || (val && err > 0)) {
+
+					// 入力に対する伝播誤差計算
+					int mask = 1;
+			//		for (int bitpos = 0; bitpos < lut_input_size; ++bitpos) {
+					{
+						int bitpos = (mt() % lut_input_size);
+
+						INDEX input_node = GetLutInput(node, bitpos);
+						// 各入力項に対するテーブルの偏微分を計算
+						int index0 = (input_index & ~mask);
+						int index1 = (input_index | mask);
+						bool val0 = GetLutTable(node, index0);
+						bool val1 = GetLutTable(node, index1);
+
+						if (!val0 && val1) {
+							in_err.Set<T>(frame, input_node, in_err.Get<T>(frame, input_node) + err);
+						}
+						else if (val0 && !val1) {
+							in_err.Set<T>(frame, input_node, in_err.Get<T>(frame, input_node) - err);
+						}
+						mask <<= 1;
+					}
+				}
+			}
+
 		}
 	}
-
+	
+	
 	void Update(double learning_rate)
 	{
 	}

@@ -58,7 +58,7 @@ public:
 	int   GetLutInputSize(void) const { return 6; }
 	int   GetLutTableSize(void) const { return (1 << 6); }
 	void  SetLutInput(INDEX node, int input_index, INDEX input_node) { m_lut[node].input[input_index] = input_node; }
-	INDEX GetLutInput(INDEX node, int input_index) const { return m_lut[node].input[input_index]; };
+	INDEX GetLutInput(INDEX node, int input_index) const { return m_lut[node].input[input_index]; }
 	void  SetLutTable(INDEX node, int bit, bool value) { m_lut[node].table[bit] = value ? -1 : 0; }
 	bool  GetLutTable(INDEX node, int bit) const { return (m_lut[node].table[bit] != 0); }
 
@@ -228,9 +228,9 @@ public:
 		}
 	}
 
-	void Backward(void)
-	{
-	}
+//	void Backward(void)
+//	{
+//	}
 
 	void Update(double learning_rate)
 	{
