@@ -24,6 +24,7 @@
 #include "bb/ShuffleSet.h"
 #include "mnist_read.h"
 
+#include "bb/NeuralNetLimitInputAffine.h"
 
 
 static void image_show(std::string name, bb::NeuralNetBuffer<> buf, size_t f, size_t h, size_t w)
@@ -168,9 +169,9 @@ public:
 		// バイナリ版NET構築
 		bb::NeuralNet<> net;
 		size_t input_node_size = 28 * 28;
-		size_t layer0_node_size = 360 * 1;
-		size_t layer1_node_size = 60 * 1;
-		size_t layer2_node_size = 10 * 1;
+		size_t layer0_node_size = 360 * 2;
+		size_t layer1_node_size = 60 * 4;
+		size_t layer2_node_size = 10 * 8;
 		size_t output_node_size = 10;
 		bb::NeuralNetBinarize<>   layer_binarize(input_node_size, input_node_size, mt());
 		bb::NeuralNetBinaryLut6<> layer_lut0(input_node_size, layer0_node_size, mt());
@@ -198,14 +199,12 @@ public:
 				layer_binarize.InitializeCoeff(1);
 				layer_unbinarize.InitializeCoeff(1);
 				net_eva.SetMuxSize(test_mux_size);
-	//			std::cout << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net_eva) << std::endl;
-				std::cout << "accuracy : " << CalcAccuracy(net_eva) << std::endl;
+				std::cout << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net_eva) << std::endl;
 			}
-
+			
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
-
 				// 末尾のバッチサイズクリップ
-				size_t batch_size = std::min(batch_size, m_train_images.size() - x_index);
+				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
 
 				// バッチ学習データの作成
 				std::vector< std::vector<float> >	batch_images(m_train_images.begin() + x_index, m_train_images.begin() + x_index + batch_size);
@@ -229,8 +228,7 @@ public:
 				layer_binarize.InitializeCoeff(1);
 				layer_unbinarize.InitializeCoeff(1);
 				net_eva.SetMuxSize(test_mux_size);
-			//	std::cout << "epoc[" << epoc << "] accuracy : " << accuracy << std::endl;
-				std::cout << "accuracy : " << CalcAccuracy(net_eva) << std::endl;
+				std::cout << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net_eva) << std::endl;
 			}
 		}
 	}
@@ -954,7 +952,7 @@ int main()
 {
 	omp_set_num_threads(6);
 
-#ifdef _DEBUG
+#ifdef _DEBUG_
 	int train_max_size = 3;
 	int test_max_size = 3;
 	int epoc_size = 2;
