@@ -165,18 +165,28 @@ public:
 
 		// é¿êîî≈NETç\íz
 		bb::NeuralNet<> net;
-		bb::NeuralNetInputLimitedAffine<>	layer0_affine(28 * 28, 200);
-		bb::NeuralNetSigmoid<>				layer0_sigmoid(360);
-		bb::NeuralNetInputLimitedAffine<>   layer1_affine(360, 60);
-		bb::NeuralNetSigmoid<>				layer1_sigmoid(60);
-		bb::NeuralNetInputLimitedAffine<>   layer2_affine(60, 10);
-		bb::NeuralNetSoftmax<>				layer2_softmax(10);
+		size_t input_node_size = 28 * 28;
+		size_t layer0_node_size = 10 * 6 * 6 * 3;
+		size_t layer1_node_size = 10 * 6 * 6;
+		size_t layer2_node_size = 10 * 6;
+		size_t layer3_node_size = 10;
+		size_t output_node_size = 10;
+		bb::NeuralNetInputLimitedAffine<>	layer0_affine(28 * 28, layer0_node_size);
+		bb::NeuralNetSigmoid<>				layer0_sigmoid(layer0_node_size);
+		bb::NeuralNetInputLimitedAffine<>   layer1_affine(layer0_node_size, layer1_node_size);
+		bb::NeuralNetSigmoid<>				layer1_sigmoid(layer1_node_size);
+		bb::NeuralNetInputLimitedAffine<>   layer2_affine(layer1_node_size, layer2_node_size);
+		bb::NeuralNetSigmoid<>				layer2_sigmoid(layer2_node_size);
+		bb::NeuralNetInputLimitedAffine<>   layer3_affine(layer2_node_size, layer3_node_size);
+		bb::NeuralNetSoftmax<>				layer3_softmax(layer3_node_size);
 		net.AddLayer(&layer0_affine);
 		net.AddLayer(&layer0_sigmoid);
 		net.AddLayer(&layer1_affine);
 		net.AddLayer(&layer1_sigmoid);
 		net.AddLayer(&layer2_affine);
-		net.AddLayer(&layer2_softmax);
+		net.AddLayer(&layer2_sigmoid);
+		net.AddLayer(&layer3_affine);
+		net.AddLayer(&layer3_softmax);
 
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
@@ -208,6 +218,24 @@ public:
 					net.SetOutputError(frame, values);
 				}
 				net.Backward();
+				
+				/*
+				auto err_buf = layer2_affine.GetOutputErrorBuffer();
+				std::cout << err_buf.GetReal(0, 0) << " "
+					<< err_buf.GetReal(1, 1) << " "
+					<< err_buf.GetReal(2, 2) << " "
+					<< err_buf.GetReal(3, 3) << std::endl;
+
+				std::cout << err_buf.GetReal(0, 0) << "-"
+					<< err_buf.GetReal(0, 1) << " "
+					<< err_buf.GetReal(0, 2) << " "
+					<< err_buf.GetReal(0, 3) << std::endl;
+
+				std::cout << err_buf.GetReal(0, 0) << "+"
+					<< err_buf.GetReal(1, 0) << " "
+					<< err_buf.GetReal(2, 0) << " "
+					<< err_buf.GetReal(3, 0) << std::endl;
+					*/
 
 				// çXêV
 				net.Update(0.2);
@@ -1010,14 +1038,14 @@ int main()
 {
 	omp_set_num_threads(6);
 
-#ifdef _DEBUG_
-	int train_max_size = 3;
-	int test_max_size = 3;
-	int epoc_size = 2;
+#ifdef _DEBUG
+	int train_max_size = 128;
+	int test_max_size = 128;
+	int epoc_size = 16;
 #else
 	int train_max_size = -1;
 	int test_max_size = -1;
-	int epoc_size = 100;
+	int epoc_size = 10000;
 #endif
 	size_t max_batch_size = 8192;
 
@@ -1035,7 +1063,7 @@ int main()
 //	eva_mnist.m_test_onehot = eva_mnist.m_train_onehot;
 
 //	eva_mnist.RunFlatReal(epoc_size, max_batch_size, 1);
-	eva_mnist.RunFlatIlReal(epoc_size, max_batch_size, 1);
+	eva_mnist.RunFlatIlReal(epoc_size, 256, 1);
 //	eva_mnist.RunFlatBinary(epoc_size, max_batch_size, 1);
 //	eva_mnist.RunFlatBinaryBackward(epoc_size, max_batch_size, 1);
 //	eva_mnist.RunCnv1Binary(epoc_size, max_batch_size, 1);

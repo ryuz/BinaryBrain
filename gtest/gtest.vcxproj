@@ -25,6 +25,7 @@
     <ClCompile Include="NeuralNetBinaryLutTest.cpp" />
     <ClCompile Include="NeuralNetBufferTest.cpp" />
     <ClCompile Include="NeuralNetConvolutionTest.cpp" />
+    <ClCompile Include="NeuralNetInputLimitedAffineTest.cpp" />
     <ClCompile Include="NeuralNetSigmoidTest.cpp" />
     <ClCompile Include="NeuralNetSoftmaxTest.cpp" />
     <ClCompile Include="NeuralNetUnbinarizeTest.cpp" />
@@ -41,6 +42,7 @@
     <ClInclude Include="..\include\bb\NeuralNetBuffer.h" />
     <ClInclude Include="..\include\bb\NeuralNetConvolution.h" />
     <ClInclude Include="..\include\bb\NeuralNetGroup.h" />
+    <ClInclude Include="..\include\bb\NeuralNetInputLimitedAffine.h" />
     <ClInclude Include="..\include\bb\NeuralNetLayer.h" />
     <ClInclude Include="..\include\bb\NeuralNetLayerBuf.h" />
     <ClInclude Include="..\include\bb\NeuralNetRealBinaryConverter.h" />
@@ -123,7 +125,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\include;$(GTEST_DIR)\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
@@ -141,7 +143,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\include;$(GTEST_DIR)\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <OpenMPSupport>false</OpenMPSupport>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
@@ -162,7 +164,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\include;$(GTEST_DIR)\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
@@ -185,7 +187,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\include;$(GTEST_DIR)\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>

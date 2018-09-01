@@ -13,6 +13,8 @@
 #include <array>
 #include <vector>
 #include <intrin.h>
+#include <omp.h>
+#include <ppl.h>
 #include "NeuralNetInputLimited.h"
 
 
@@ -34,7 +36,7 @@ protected:
 		T						db;
 	};
 
-	INDEX						m_frame_size;
+	INDEX						m_frame_size = 1;
 	std::vector<Node>			m_node;
 
 	
@@ -49,6 +51,12 @@ public:
 
 	~NeuralNetInputLimitedAffine() {}
 
+	T& W(INDEX input, INDEX output) { return m_node[output].W[input]; }
+	T& b(INDEX output) { return m_node[output].b; }
+	T& dW(INDEX input, INDEX output) { return m_node[output].dW[input]; }
+	T& db(INDEX output) { return[output].db; }
+
+
 	void Resize(INDEX input_node_size, INDEX output_node_size)
 	{
 		super::Resize(input_node_size, output_node_size);
@@ -58,9 +66,11 @@ public:
 
 	void InitializeCoeff(std::uint64_t seed)
 	{
+		super::InitializeCoeff(seed);
+
 		std::mt19937_64 mt(seed);
 		std::normal_distribution<T> distribution((T)0.0, (T)1.0);
-
+		
 		for (auto& node : m_node) {
 			for (auto& w : node.W) {
 				w = distribution(mt);
@@ -134,8 +144,9 @@ public:
 		auto in_err_buf = GetInputErrorBuffer();
 		auto out_err_buf = GetOutputErrorBuffer();
 
-		auto frame_size = GetOutputFrameSize();
 		auto node_size = GetOutputNodeSize();
+
+		INDEX frame_size = (m_frame_size + 7) / 8;
 
 		in_err_buf.Clear();
 
