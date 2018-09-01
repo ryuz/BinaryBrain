@@ -71,6 +71,35 @@ public:
 		}
 	}
 	
+	template <typename RT, typename RI>
+	void ImportLayer(const NeuralNetInputLimited<RT, RI>& lim)
+	{
+		auto node_size = GetOutputNodeSize();
+		auto input_size = GetLutInputSize();
+		auto table_size = GetLutTableSize();
+
+		BB_ASSERT(lim.GetOutputNodeSize() == node_size);
+		for (INDEX node = 0; node < node_size; ++node) {
+			BB_ASSERT(lim.GetNodeInputSize(node) == input_size);
+
+			// 入力をコピー
+			for (int input_index = 0; input_index < input_size; ++input_index) {
+				SetLutInput(node, input_index, lim.GetNodeInput(node, input_index));
+			}
+
+			// 係数をバイナリ化
+			std::vector<T> vec(input_size);
+			for (int index = 0; index < table_size; ++index) {
+				for (int bit = 0; bit < input_size; ++bit) {
+					vec[bit] = (index & (1 << bit)) ? (RT)1.0 : (RT)0.0;
+				}
+				RT v = lim.CalcNode(node, vec);
+				SetLutTable(node, index, (v >= 0));
+			}
+		}
+	}
+
+
 	void  SetMuxSize(INDEX mux_size) {
 		m_mux_size = mux_size;
 	}

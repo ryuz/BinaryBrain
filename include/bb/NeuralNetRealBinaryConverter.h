@@ -29,10 +29,10 @@ protected:
 	INDEX				m_batch_size = 1;
 	INDEX				m_mux_size = 1;
 
-//	T					m_real_range_lo = (T)0.0;
-//	T					m_real_range_hi = (T)1.0;
-	T					m_real_range_lo = (T)0.2;
-	T					m_real_range_hi = (T)0.8;
+	T					m_real_range_lo = (T)0.0;
+	T					m_real_range_hi = (T)1.0;
+//	T					m_real_range_lo = (T)0.2;
+//	T					m_real_range_hi = (T)0.8;
 
 public:
 	NeuralNetRealBinaryConverter() {}

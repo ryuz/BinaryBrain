@@ -57,6 +57,17 @@ public:
 	T& db(INDEX output) { return[output].db; }
 
 
+	T CalcNode(INDEX node, std::vector<T> input_value) const
+	{
+		auto& nd = m_node[node];
+		T val = nd.b;
+		for (int i = 0; i < N; ++i) {
+			val += input_value[i] * nd.W[i];
+		}
+		return val;
+	}
+
+
 	void Resize(INDEX input_node_size, INDEX output_node_size)
 	{
 		super::Resize(input_node_size, output_node_size);

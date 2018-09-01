@@ -38,6 +38,8 @@ public:
 	virtual void  SetNodeInput(INDEX node, int input_index, INDEX input_node) = 0;
 	virtual INDEX GetNodeInput(INDEX node, int input_index) const = 0;
 
+	virtual T     CalcNode(INDEX node, std::vector<T> input_value) const { return 0; }
+
 	virtual void Resize(INDEX input_node_size, INDEX output_node_size)
 	{
 		m_input_node_size = input_node_size;
