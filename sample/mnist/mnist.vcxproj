@@ -108,8 +108,8 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\..\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <OpenMPSupport>false</OpenMPSupport>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <OpenMPSupport>true</OpenMPSupport>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -163,6 +163,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OPENCV2_4_13_DIR)\x64\vc14\staticlib</AdditionalLibraryDirectories>
       <AdditionalDependencies>IlmImf.lib;libjasper.lib;libjpeg.lib;libpng.lib;libtiff.lib;opencv_calib3d2413.lib;opencv_contrib2413.lib;opencv_core2413.lib;opencv_features2d2413.lib;opencv_flann2413.lib;opencv_gpu2413.lib;opencv_highgui2413.lib;opencv_imgproc2413.lib;opencv_legacy2413.lib;opencv_ml2413.lib;opencv_nonfree2413.lib;opencv_objdetect2413.lib;opencv_ocl2413.lib;opencv_photo2413.lib;opencv_stitching2413.lib;opencv_superres2413.lib;opencv_ts2413.lib;opencv_video2413.lib;opencv_videostab2413.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackReserveSize>67108864</StackReserveSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -181,6 +182,8 @@
     <ClInclude Include="..\..\include\bb\NeuralNetBuffer.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetConvolution.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetGroup.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetInputLimited.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetInputLimitedAffine.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLayer.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLayerBuf.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetRealBinaryConverter.h" />

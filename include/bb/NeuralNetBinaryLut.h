@@ -15,22 +15,23 @@
 #include <intrin.h>
 #include <omp.h>
 #include <ppl.h>
-#include "NeuralNetLayerBuf.h"
-#include "ShuffleSet.h"
+#include "NeuralNetInputLimited.h"
+
+//#include "NeuralNetLayerBuf.h"
+//#include "ShuffleSet.h"
+
 
 namespace bb {
 
 // LUTï˚éÆäÓíÍÉNÉâÉX
 template <bool feedback_bitwise = false, typename T = float, typename INDEX = size_t>
-class NeuralNetBinaryLut : public NeuralNetLayerBuf<T, INDEX>
+class NeuralNetBinaryLut : public NeuralNetInputLimited<T, INDEX>
 {
 	typedef NeuralNetLayer<T, INDEX> super;
 
 protected:
 	INDEX					m_mux_size = 1;
 	INDEX					m_frame_size = 1;
-	INDEX					m_input_node_size;
-	INDEX					m_output_node_size;
 
 public:
 	// LUTëÄçÏÇÃíËã`
@@ -41,11 +42,10 @@ public:
 	virtual void  SetLutTable(INDEX node, int bitpos, bool value) = 0;
 	virtual bool  GetLutTable(INDEX node, int bitpos) const = 0;
 
-	virtual void Resize(INDEX input_node_size, INDEX output_node_size)
-	{
-		m_input_node_size = input_node_size;
-		m_output_node_size = output_node_size;
-	}
+	int   GetNodeInputSize(INDEX node) const { return GetLutInputSize(); }
+	void  SetNodeInput(INDEX node, int input_index, INDEX input_node) { SetLutInput(node, input_index, input_node);  }
+	INDEX GetNodeInput(INDEX node, int input_index) const { return GetLutInput(node, input_index); }
+
 
 	void InitializeCoeff(std::uint64_t seed)
 	{
@@ -105,9 +105,7 @@ public:
 	void  SetBatchSize(INDEX batch_size) { m_frame_size = batch_size * m_mux_size; }
 
 	INDEX GetInputFrameSize(void) const { return m_frame_size; }
-	INDEX GetInputNodeSize(void) const { return m_input_node_size; }
 	INDEX GetOutputFrameSize(void) const { return m_frame_size; }
-	INDEX GetOutputNodeSize(void) const { return m_output_node_size; }
 
 	int   GetInputValueDataType(void) const { return BB_TYPE_BINARY; }
 	int   GetInputErrorDataType(void) const { return NeuralNetType<T>::type; }

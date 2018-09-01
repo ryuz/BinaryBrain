@@ -88,6 +88,12 @@ public:
 		return clone_buf;
 	}
 
+	void Clear(void)
+	{
+		memset(m_buffer.get(), 0, m_frame_stride*m_base_size);
+	}
+
+
 	void Resize(INDEX frame_size, INDEX node_size, int data_type)
 	{
 		// ê›íËï€ë∂

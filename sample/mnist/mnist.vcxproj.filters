@@ -86,5 +86,11 @@
     <ClInclude Include="..\..\include\bb\NeuralNetLayerBuf.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bb\NeuralNetInputLimited.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\NeuralNetInputLimitedAffine.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

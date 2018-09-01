@@ -16,6 +16,7 @@
 #include "bb/NeuralNetAffine.h"
 #include "bb/NeuralNetSigmoid.h"
 #include "bb/NeuralNetSoftmax.h"
+#include "bb/NeuralNetInputLimitedAffine.h"
 #include "bb/NeuralNetBinarize.h"
 #include "bb/NeuralNetUnbinarize.h"
 #include "bb/NeuralNetBinaryLut6.h"
@@ -23,8 +24,6 @@
 #include "bb/NeuralNetBinaryFilter.h"
 #include "bb/ShuffleSet.h"
 #include "mnist_read.h"
-
-#include "bb/NeuralNetLimitInputAffine.h"
 
 
 static void image_show(std::string name, bb::NeuralNetBuffer<> buf, size_t f, size_t h, size_t w)
@@ -119,6 +118,65 @@ public:
 		net.AddLayer(&layer0_sigmoid);
 		net.AddLayer(&layer1_affine);
 		net.AddLayer(&layer1_softmax);
+
+		for (int epoc = 0; epoc < epoc_size; ++epoc) {
+
+			// 学習状況評価
+			if (epoc % test_rate == 0) {
+				std::cout << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
+			}
+
+			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
+				// 末尾のバッチサイズクリップ
+				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
+
+				// データセット
+				net.SetBatchSize(batch_size);
+				for (size_t frame = 0; frame < batch_size; ++frame) {
+					net.SetInputValue(frame, m_train_images[x_index + frame]);
+				}
+
+				// 予測
+				net.Forward();
+
+				// 誤差逆伝播
+				for (size_t frame = 0; frame < batch_size; ++frame) {
+					auto values = net.GetOutputValue(frame);
+					for (size_t node = 0; node < values.size(); ++node) {
+						values[node] -= m_train_onehot[x_index + frame][node];
+						values[node] /= (float)batch_size;
+					}
+					net.SetOutputError(frame, values);
+				}
+				net.Backward();
+
+				// 更新
+				net.Update(0.2);
+			}
+		}
+	}
+#endif
+
+#if 1
+	// 浮動小数点版のフラットなネットを評価
+	void RunFlatIlReal(int epoc_size, size_t max_batch_size, int test_rate = 1)
+	{
+		std::mt19937_64 mt(1);
+
+		// 実数版NET構築
+		bb::NeuralNet<> net;
+		bb::NeuralNetInputLimitedAffine<>	layer0_affine(28 * 28, 200);
+		bb::NeuralNetSigmoid<>				layer0_sigmoid(360);
+		bb::NeuralNetInputLimitedAffine<>   layer1_affine(360, 60);
+		bb::NeuralNetSigmoid<>				layer1_sigmoid(60);
+		bb::NeuralNetInputLimitedAffine<>   layer2_affine(60, 10);
+		bb::NeuralNetSoftmax<>				layer2_softmax(10);
+		net.AddLayer(&layer0_affine);
+		net.AddLayer(&layer0_sigmoid);
+		net.AddLayer(&layer1_affine);
+		net.AddLayer(&layer1_sigmoid);
+		net.AddLayer(&layer2_affine);
+		net.AddLayer(&layer2_softmax);
 
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
@@ -977,7 +1035,8 @@ int main()
 //	eva_mnist.m_test_onehot = eva_mnist.m_train_onehot;
 
 //	eva_mnist.RunFlatReal(epoc_size, max_batch_size, 1);
-	eva_mnist.RunFlatBinary(epoc_size, max_batch_size, 1);
+	eva_mnist.RunFlatIlReal(epoc_size, max_batch_size, 1);
+//	eva_mnist.RunFlatBinary(epoc_size, max_batch_size, 1);
 //	eva_mnist.RunFlatBinaryBackward(epoc_size, max_batch_size, 1);
 //	eva_mnist.RunCnv1Binary(epoc_size, max_batch_size, 1);
 //	eva_mnist.RunCnn1Binary(epoc_size, max_batch_size, 1);
