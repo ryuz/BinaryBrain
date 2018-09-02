@@ -198,8 +198,8 @@ public:
 
 		INDEX frame_size = GetOutputFrameSize();
 		INDEX node_size = GetOutputNodeSize();
-		INDEX lut_input_size = GetLutInputSize();
-		INDEX lut_table_size = GetLutTableSize();
+		int lut_input_size = GetLutInputSize();
+		int lut_table_size = GetLutTableSize();
 
 		// É[Éçèâä˙âª
 		INDEX input_node_size = GetInputNodeSize();

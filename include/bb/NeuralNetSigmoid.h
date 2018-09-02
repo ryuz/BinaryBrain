@@ -58,38 +58,12 @@ public:
 	int   GetOutputValueDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
 
-
-//	std::mt19937_64 m_mt;
-
 	void Forward(void)
 	{
 		Eigen::Map<Matrix> inputValue((T*)m_input_value_buffer.GetBuffer(), m_input_value_buffer.GetFrameStride() / sizeof(T), m_node_size);
 		Eigen::Map<Matrix> outputValue((T*)m_output_value_buffer.GetBuffer(), m_output_value_buffer.GetFrameStride() / sizeof(T), m_node_size);
 
 		outputValue = ((inputValue * -1).array().exp() + 1.0).inverse();
-
-#if 0
-		// ‚Q’l‰»ŽÀŒ±
-		{
-			std::uniform_real_distribution<T> dist(0, 1);
-
-			auto buf = GetOutputValueBuffer();
-			auto node_size = GetOutputNodeSize();
-			auto frame_size = GetOutputFrameSize();
-			for (size_t node = 0; node < node_size; ++node) {
-				for (size_t frame = 0; frame < frame_size; ++frame) {
-					if (m_mt() % 2 == 0) {
-						T val = buf.Get<float>(frame, node);
-						if (val < 0 || val > 1) {
-							std::cout << "over " << val << std::endl;
-						}
-			//			buf.Set<float>(frame, node, val > dist(m_mt) ? 1.0 : 0.0);
-						buf.Set<float>(frame, node, val > 0.5 ? 1.0 : 0.0);
-					}
-				}
-			}
-		}
-#endif
 	}
 
 	void Backward(void)

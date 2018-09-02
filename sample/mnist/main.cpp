@@ -4,8 +4,6 @@
 #include <random>
 #include <chrono>
 
-#include <opencv2/opencv.hpp>
-
 #include <cereal/cereal.hpp>
 #include <cereal/types/array.hpp>
 #include <cereal/types/vector.hpp>
@@ -25,20 +23,6 @@
 #include "bb/ShuffleSet.h"
 
 #include "mnist_read.h"
-
-
-
-static void image_show(std::string name, bb::NeuralNetBuffer<> buf, size_t f, size_t h, size_t w)
-{
-	cv::Mat img((int)h, (int)w, CV_8U);
-	for (size_t y = 0; y < h; y++) {
-		for (size_t x = 0; x < w; x++) {
-			img.at<uchar>((int)y, (int)x) = buf.GetBinary(f, y*w + x) ? 255 : 0;
-		}
-	}
-	cv::imshow(name, img);
-}
-
 
 
 // MNISTデータを使った評価用クラス
@@ -115,7 +99,7 @@ public:
 	
 
 	// LUT6入力のバイナリ版のフラットなネットを評価
-	void RunFlatBinaryLut6(int epoc_size, size_t max_batch_size)
+	void RunFlatBinaryLut6(int epoc_size, size_t max_batch_size, int max_iteration=-1)
 	{
 		std::cout << "start [RunFlatBinaryLut6]" << std::endl;
 		reset_time();
@@ -156,6 +140,7 @@ public:
 		net_eva.AddLayer(&layer_unbinarize);
 
 		// 学習ループ
+		int iteration = 0;
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 			// 学習状況評価
 			layer_binarize.InitializeCoeff(1);
@@ -190,8 +175,15 @@ public:
 				layer_unbinarize.InitializeCoeff(1);
 				net_eva.SetMuxSize(test_mux_size);
 				std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net_eva) << std::endl;
+
+				iteration++;
+				if (max_iteration > 0 && iteration > max_iteration) {
+					goto loop_end;
+				}
 			}
 		}
+
+		loop_end:
 		std::cout << "end\n" << std::endl;
 	}
 
@@ -312,7 +304,7 @@ public:
 				net.Backward();
 				
 				// 更新
-				net.Update(0.2);
+				net.Update(1.0);
 			}
 		}
 		std::cout << "end\n" << std::endl;
@@ -449,7 +441,7 @@ int main()
 
 #if 1
 	// バイナリ6入力LUT版学習実験(重いです)
-	eva_mnist.RunFlatBinaryLut6(2, 8192);
+	eva_mnist.RunFlatBinaryLut6(2, 8192, 8);
 #endif
 
 #if 1

@@ -52,7 +52,7 @@ public:
 		std::vector<size_t>	set;
 
 		// 指定個数取り出す
-		for (int i = 0; i < n; i++) {
+		for (size_t i = 0; i < n; i++) {
 			if (m_heap.empty()) {
 				// 一通り割り当てたら利用済みを再利用
 				std::vector<size_t> heap(m_reserve.size());

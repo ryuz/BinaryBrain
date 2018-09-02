@@ -138,7 +138,7 @@ protected:
 		in_ptr[5] = (__m256i*)in_buf.GetPtr(lut.input[5]);
 		out_ptr = (__m256i*)out_buf.GetPtr(node);
 
-		for (int i = 0; i < frame_size; i++) {
+		for (INDEX i = 0; i < frame_size; i++) {
 			// input
 			in_val[0] = _mm256_loadu_si256(&in_ptr[0][i]);
 			in_val[1] = _mm256_loadu_si256(&in_ptr[1][i]);

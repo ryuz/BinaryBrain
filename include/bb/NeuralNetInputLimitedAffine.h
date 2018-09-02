@@ -127,7 +127,7 @@ protected:
 			}
 			__m256 b = _mm256_set1_ps(m_node[node].b);
 
-			for (int i = 0; i < frame_size; i++) {
+			for (INDEX frame = 0; frame < frame_size; ++frame) {
 				__m256	acc = b;
 				for (int i = 0; i < N; ++i) {
 					__m256 val = _mm256_load_ps(in_ptr[i]);	in_ptr[i] += 8;
@@ -140,30 +140,8 @@ protected:
 
 public:
 
-//	std::mt19937_64 m_mt;
-
 	void Forward(void)
 	{
-#if 0
-		// ‚Q’l‰»ŽÀŒ±
-		{
-			auto in_val_buf = GetInputValueBuffer();
-			auto node_size = GetInputNodeSize();
-			auto frame_size = GetInputFrameSize();
-			for (size_t node = 0; node < node_size; ++node) {
-				for (size_t frame = 0; frame < frame_size; ++frame) {
-	//				if (m_mt() % 2 == 0) {
-						T val = in_val_buf.Get<float>(frame, node);
-						if (val < 0 || val > 1) {
-							std::cout << "over " << val << std::endl;
-						}
-						in_val_buf.Set<float>(frame, node, val > 0.5 ? 0.8 : 0.2);
-					}
-	//			}
-			}
-		}
-#endif
-
 		auto node_size = GetOutputNodeSize();
 		concurrency::parallel_for<INDEX>(0, node_size, [&](INDEX node)
 		{
@@ -206,7 +184,7 @@ public:
 					in_val_ptr[i] = (float*)in_val_buf.GetPtr(nd.input[i]);
 				}
 
-				for (int i = 0; i < frame_size; i++) {
+				for (size_t frame = 0; frame < frame_size; ++frame) {
 					__m256 out_err = _mm256_load_ps(out_err_ptr);	out_err_ptr += 8;
 					db = _mm256_add_ps(db, out_err);
 					for (int i = 0; i < N; ++i) {
