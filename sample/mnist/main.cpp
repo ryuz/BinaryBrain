@@ -56,6 +56,22 @@ void print_time(void)
 }
 
 
+double get_time(void)
+{
+	static bool first = true;
+	static std::chrono::system_clock::time_point base_time;
+
+	auto now_time = std::chrono::system_clock::now();
+
+	if (first) {
+		first = false;
+		base_time = now_time;
+	}
+
+	return std::chrono::duration_cast<std::chrono::milliseconds>(now_time - base_time).count() / 1000.0;
+}
+
+
 
 // MNISTデータを使った評価用クラス
 class EvaluateMnist
@@ -267,7 +283,7 @@ public:
 				layer_binarize.InitializeCoeff(1);
 				layer_unbinarize.InitializeCoeff(1);
 				net_eva.SetMuxSize(test_mux_size);
-				std::cout << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net_eva) << std::endl;
+				std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net_eva) << std::endl;
 			}
 			
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
@@ -296,7 +312,7 @@ public:
 				layer_binarize.InitializeCoeff(1);
 				layer_unbinarize.InitializeCoeff(1);
 				net_eva.SetMuxSize(test_mux_size);
-				std::cout << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net_eva) << std::endl;
+				std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net_eva) << std::endl;
 			}
 		}
 	}
@@ -360,7 +376,7 @@ public:
 				auto real_accuracy = CalcAccuracy(real_net);
 				std::cout << "epoc[" << epoc << "] real_net accuracy : " << real_accuracy << std::endl;
 				
-				if (real_accuracy > 0.9) {
+				if (real_accuracy > 0.6) {
 					bin_layer_lut0.ImportLayer(real_layer0_affine);
 					bin_layer_lut1.ImportLayer(real_layer1_affine);
 					bin_layer_lut2.ImportLayer(real_layer2_affine);
@@ -1149,8 +1165,8 @@ int main()
 
 //	eva_mnist.RunFlatReal(epoc_size, max_batch_size, 1);
 //	eva_mnist.RunFlatIlReal(epoc_size, 256, 1);
-	eva_mnist.RunFlatRealToBinary(epoc_size, 256, 1);
-//	eva_mnist.RunFlatBinary(epoc_size, max_batch_size, 1);
+//	eva_mnist.RunFlatRealToBinary(epoc_size, 256, 1);
+	eva_mnist.RunFlatBinary(epoc_size, max_batch_size, 1);
 //	eva_mnist.RunFlatBinaryBackward(epoc_size, max_batch_size, 1);
 //	eva_mnist.RunCnv1Binary(epoc_size, max_batch_size, 1);
 //	eva_mnist.RunCnn1Binary(epoc_size, max_batch_size, 1);
