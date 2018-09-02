@@ -41,30 +41,10 @@ static void image_show(std::string name, bb::NeuralNetBuffer<> buf, size_t f, si
 
 
 
-
-double get_time(void)
-{
-	static bool first = true;
-	static std::chrono::system_clock::time_point base_time;
-
-	auto now_time = std::chrono::system_clock::now();
-
-	if (first) {
-		first = false;
-		base_time = now_time;
-	}
-
-	return std::chrono::duration_cast<std::chrono::milliseconds>(now_time - base_time).count() / 1000.0;
-}
-
-
-
 // MNISTデータを使った評価用クラス
 class EvaluateMnist
 {
 protected:
-
-public:
 	// 評価用データセット
 	std::vector< std::vector<float> >	m_test_images;
 	std::vector< std::uint8_t >			m_test_labels;
@@ -75,6 +55,47 @@ public:
 	std::vector< std::uint8_t >			m_train_labels;
 	std::vector< std::vector<float> >	m_train_onehot;
 	
+	// 時間計測
+	std::chrono::system_clock::time_point m_base_time;
+	void reset_time(void) {	m_base_time = std::chrono::system_clock::now(); }
+	double get_time(void)
+	{
+		auto now_time = std::chrono::system_clock::now();
+		return std::chrono::duration_cast<std::chrono::milliseconds>(now_time - m_base_time).count() / 1000.0;
+	}
+
+	// ネットの正解率評価
+	double CalcAccuracy(bb::NeuralNet<>& net, std::vector< std::vector<float> >& images, std::vector<std::uint8_t>& labels)
+	{
+		// 評価サイズ設定
+		net.SetBatchSize(images.size());
+
+		// 評価画像設定
+		for (size_t frame = 0; frame < images.size(); ++frame) {
+			net.SetInputValue(frame, images[frame]);
+		}
+
+		// 評価実施
+		net.Forward();
+
+		// 結果集計
+		int ok_count = 0;
+		for (size_t frame = 0; frame < images.size(); ++frame) {
+			int max_idx = bb::argmax<float>(net.GetOutputValue(frame));
+			ok_count += (max_idx == (int)labels[frame] ? 1 : 0);
+		}
+
+		// 正解率を返す
+		return (double)ok_count / (double)images.size();
+	}
+
+	// 評価用データセットで正解率評価
+	double CalcAccuracy(bb::NeuralNet<>& net)
+	{
+		return CalcAccuracy(net, m_test_images, m_test_labels);
+	}
+
+
 public:
 	// コンストラクタ
 	EvaluateMnist(int train_max_size = -1, int test_max_size = -1)
@@ -96,7 +117,8 @@ public:
 	// LUT6入力のバイナリ版のフラットなネットを評価
 	void RunFlatBinaryLut6(int epoc_size, size_t max_batch_size)
 	{
-		std::cout << "\n\nstart [RunFlatBinaryLut6]" << std::endl;
+		std::cout << "start [RunFlatBinaryLut6]" << std::endl;
+		reset_time();
 
 		std::mt19937_64 mt(1);
 
@@ -170,13 +192,15 @@ public:
 				std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net_eva) << std::endl;
 			}
 		}
+		std::cout << "end\n" << std::endl;
 	}
 
 
 	// 実数(float)の全接続層で、フラットなネットを評価
 	void RunFlatReal(int epoc_size, size_t max_batch_size)
 	{
-		std::cout << "\n\nstart [RunFlatReal]" << std::endl;
+		std::cout << "start [RunFlatReal]" << std::endl;
+		reset_time();
 
 		// 実数版NET構築
 		bb::NeuralNet<> net;
@@ -223,13 +247,15 @@ public:
 				net.Update(0.2);
 			}
 		}
+		std::cout << "end\n" << std::endl;
 	}
 
 
 	// 実数(float)で6入力に制限ノードで層を形成して、フラットなネットを評価
 	void RunFlatIlReal(int epoc_size, size_t max_batch_size)
 	{
-		std::cout << "\n\nstart [RunFlatIlReal]" << std::endl;
+		std::cout << "start [RunFlatIlReal]" << std::endl;
+		reset_time();
 
 		// 実数版NET構築
 		bb::NeuralNet<> net;
@@ -289,13 +315,15 @@ public:
 				net.Update(0.2);
 			}
 		}
+		std::cout << "end\n" << std::endl;
 	}
 
 
 	// 浮動小数点で学習させてバイナリにコピー
 	void RunFlatRealToBinary(int epoc_size, size_t max_batch_size)
 	{
-		std::cout << "\n\nstart [RunFlatRealToBinary]" << std::endl;
+		std::cout << "start [RunFlatRealToBinary]" << std::endl;
+		reset_time();
 
 		std::mt19937_64 mt(1);
 
@@ -392,37 +420,7 @@ public:
 				real_net.Update(1.0);
 			}
 		}
-	}
-
-protected:
-	// ネットの正解率テスト
-	float CalcAccuracy(bb::NeuralNet<>& net, std::vector< std::vector<float> >& images, std::vector<std::uint8_t>& labels)
-	{
-		// 評価サイズ設定
-		net.SetBatchSize(images.size());
-
-		// 評価画像設定
-		for (size_t frame = 0; frame < images.size(); ++frame) {
-			net.SetInputValue(frame, images[frame]);
-		}
-
-		// 評価実施
-		net.Forward();
-
-		// 結果集計
-		int ok_count = 0;
-		for (size_t frame = 0; frame < images.size(); ++frame) {
-			int max_idx = bb::argmax<float>(net.GetOutputValue(frame));
-			ok_count += (max_idx == (int)labels[frame] ? 1 : 0);
-		}
-
-		// 正解率を返す
-		return (float)ok_count / (float)images.size();
-	}
-
-	float CalcAccuracy(bb::NeuralNet<>& net)
-	{
-		return CalcAccuracy(net, m_test_images, m_test_labels);
+		std::cout << "end\n" << std::endl;
 	}
 };
 

@@ -10,8 +10,11 @@
 
 #pragma once
 
-
+#ifndef EIGEN_MPL2_ONLY
+#define EIGEN_MPL2_ONLY
+#endif
 #include <Eigen/Core>
+
 #include "NeuralNetLayerBuf.h"
 
 
