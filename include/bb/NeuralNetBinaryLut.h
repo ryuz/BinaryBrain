@@ -17,11 +17,14 @@
 #include <ppl.h>
 #include "NeuralNetInputLimited.h"
 
-//#include "NeuralNetLayerBuf.h"
-//#include "ShuffleSet.h"
-
-
 namespace bb {
+
+
+// LUT型の基本クラス
+// 力技での学習を実装
+// フラットな結線であれば重複が無いので、LUT単位で統計を取りながら演算が可能
+// 畳み込み時はbit毎に結果に相互影響するのでbit単位でやるしか無さそう
+
 
 // LUT方式基底クラス
 template <bool feedback_bitwise = false, typename T = float, typename INDEX = size_t>
@@ -430,9 +433,8 @@ protected:
 
 			std::normal_distribution<double> dist(0.0, 0.1);
 
-//			if (m_feedback_loss[0] < dist(m_feedback_mt) ) {
 			if (m_feedback_loss[0] < 0) {
-				// 反転させない方がよければ元に戻す
+				// 反転させない方が結果がよければ元に戻す
 				SetLutTable(m_feedback_node, m_feedback_bit, !GetLutTable(m_feedback_node, m_feedback_bit));
 
 				// 変更したLUTで再計算
@@ -483,11 +485,9 @@ public:
 			vec_loss[frame] = 0;
 			for (size_t node = 0; node < node_size; ++node) {
 				if (label[frame / m_mux_size] == (node % LABEL_SIZE)) {
-	//				vec_loss[frame] += (buf.Get<bool>(frame, node) ? -1.0 : +1.0);
 					vec_loss[frame] += (buf.Get<bool>(frame, node) ? 0.0 : +1.0);
 				}
 				else {
-	//				vec_loss[frame] += (buf.Get<bool>(frame, node) ? +(1.0 / LABEL_SIZE) : -(1.0 / LABEL_SIZE));
 					vec_loss[frame] += (buf.Get<bool>(frame, node) ? +(1.0 / LABEL_SIZE) : -(0.0 / LABEL_SIZE));
 				}
 			}
