@@ -177,13 +177,21 @@ public:
 				std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net_eva) << std::endl;
 
 				iteration++;
-				if (max_iteration > 0 && iteration > max_iteration) {
+				if (max_iteration > 0 && iteration >= max_iteration) {
 					goto loop_end;
 				}
 			}
 		}
+	loop_end:
 
-		loop_end:
+
+		{
+			std::ofstream ofs("lut_net.v");
+			bb::NeuralNetBinaryLut6VerilogXilinx(ofs, layer_lut0, "lutnet_layer0");
+			bb::NeuralNetBinaryLut6VerilogXilinx(ofs, layer_lut1, "lutnet_layer1");
+			bb::NeuralNetBinaryLut6VerilogXilinx(ofs, layer_lut2, "lutnet_layer2");
+		}
+
 		std::cout << "end\n" << std::endl;
 	}
 
