@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{4D95C63D-3452-42FF-97AC-7E51A32DBCAD}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>mnist</RootNamespace>
+    <RootNamespace>sample_mnist</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
