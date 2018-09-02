@@ -18,7 +18,18 @@
 namespace bb {
 
 
-// NeuralNet用のバッファアクセサ
+// 色々な型のデータを管理することを目的としたバッファ
+// イメージとしては OpenCV の Mat型 のような汎用性を目指す
+//
+// メモリはベースを2次元として、画像フレーム毎にバッチ処理する場合の
+// frame 軸と、各層の演算ノードに対応する node 軸を持っている
+// frame軸は、SIMD演算を意識して32バイト境界を守り、バイナリ値は
+// __m256i に 256bit パッキングする
+// node 軸はさらに必要に応じて、テンソル的に多次元化可能にしておき、
+// 転置や reshape、畳み込み時のROIアクセスなど考慮に入れておく
+
+
+// NeuralNet用のバッファ
 template <typename T = float, typename INDEX = size_t>
 class NeuralNetBuffer
 {
