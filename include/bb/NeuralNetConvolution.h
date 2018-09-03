@@ -72,10 +72,15 @@ public:
 	}
 	
 	T& W(INDEX n, INDEX c, INDEX y, INDEX x) {
+		BB_ASSERT(n >= 0 && n < m_output_c_size);
+		BB_ASSERT(c >= 0 && c < m_input_c_size);
+		BB_ASSERT(y >= 0 && y < m_input_h_size);
+		BB_ASSERT(x >= 0 && x < m_input_w_size);
 		return m_W[((n*m_input_c_size + c)*m_filter_h_size + y)*m_filter_w_size + x];
 	}
 
 	T& b(INDEX n) {
+		BB_ASSERT(n >= 0 && n < m_output_c_size);
 		return m_b[n];
 	}
 
