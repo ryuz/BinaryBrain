@@ -86,7 +86,7 @@ public:
 	{
 		NeuralNetBuffer clone_buf(m_frame_size, m_base_size, m_data_type);
 
-		memcpy(clone_buf.m_buffer.get(), m_buffer.get(), m_frame_stride*m_base_size);
+		memcpy(clone_buf.m_buffer.get(), m_buffer.get(), m_frame_stride*(m_base_size+1));
 
 		clone_buf.m_frame_size = m_frame_size;
 		clone_buf.m_frame_stride = m_frame_stride;
@@ -116,8 +116,8 @@ public:
 
 		// ÉÅÉÇÉäämï€
 		m_frame_stride = (((frame_size * type_bit_size) + 255) / 256) * 32;
-		m_buffer = std::shared_ptr<std::uint8_t>((std::uint8_t *)_aligned_malloc(m_frame_stride*m_base_size, 32), _aligned_free);
-		memset(m_buffer.get(), 0, m_frame_stride*m_base_size);
+		m_buffer = std::shared_ptr<std::uint8_t>((std::uint8_t *)_aligned_malloc(m_frame_stride*(m_base_size + 1), 32), _aligned_free);
+		memset(m_buffer.get(), 0, m_frame_stride*(m_base_size + 1));
 
 		m_node_size = node_size;
 		m_dim.resize(1);
@@ -275,6 +275,11 @@ protected:
 
 
 public:
+	inline void* GetZeroPtr(void) const
+	{
+		return GetBasePtr(m_base_size);
+	}
+
 	inline void* GetPtr(std::vector<INDEX> index) const
 	{
 		BB_ASSERT(index.size() == m_dim.size());

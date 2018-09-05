@@ -141,5 +141,30 @@ TEST(NeuralNetConvolutionTest, testNeuralNetConvolution2)
 	cnv.Forward();
 
 	std::cout << out_val.GetReal(0, 0) << std::endl;
+	
+	EXPECT_EQ(19774, out_val.GetReal(0, 0));
+	EXPECT_EQ(20395, out_val.GetReal(0, 1));
+	EXPECT_EQ(21016, out_val.GetReal(0, 2));
+	EXPECT_EQ(22879, out_val.GetReal(0, 3));
+	EXPECT_EQ(23500, out_val.GetReal(0, 4));
+	EXPECT_EQ(24121, out_val.GetReal(0, 5));
+	EXPECT_EQ(38729, out_val.GetReal(0, 6));
+	EXPECT_EQ(40079, out_val.GetReal(0, 7));
+	EXPECT_EQ(41429, out_val.GetReal(0, 8));
+	EXPECT_EQ(45479, out_val.GetReal(0, 9));
+	EXPECT_EQ(46829, out_val.GetReal(0, 10));
+	EXPECT_EQ(48179, out_val.GetReal(0, 11));
+	EXPECT_EQ(57034, out_val.GetReal(1, 0));
+	EXPECT_EQ(57655, out_val.GetReal(1, 1));
+	EXPECT_EQ(58276, out_val.GetReal(1, 2));
+	EXPECT_EQ(60139, out_val.GetReal(1, 3));
+	EXPECT_EQ(60760, out_val.GetReal(1, 4));
+	EXPECT_EQ(61381, out_val.GetReal(1, 5));
+	EXPECT_EQ(119729, out_val.GetReal(1, 6));
+	EXPECT_EQ(121079, out_val.GetReal(1, 7));
+	EXPECT_EQ(122429, out_val.GetReal(1, 8));
+	EXPECT_EQ(126479, out_val.GetReal(1, 9));
+	EXPECT_EQ(127829, out_val.GetReal(1, 10));
+	EXPECT_EQ(129179, out_val.GetReal(1, 11));
 }
 

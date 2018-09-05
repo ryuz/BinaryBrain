@@ -20,7 +20,7 @@
 namespace bb {
 
 
-// NeuralNetの抽象クラス
+// Convolutionクラス
 template <typename T = float, typename INDEX = size_t>
 class NeuralNetConvolution : public NeuralNetLayerBuf<T, INDEX>
 {
@@ -36,6 +36,8 @@ protected:
 	int				m_output_c_size;
 	std::vector <T>	m_W;
 	std::vector <T>	m_b;
+	std::vector <T>	m_dW;
+	std::vector <T>	m_db;
 
 public:
 	NeuralNetConvolution() {}
@@ -84,8 +86,23 @@ public:
 		return m_b[n];
 	}
 
+	T& dW(INDEX n, INDEX c, INDEX y, INDEX x) {
+		BB_ASSERT(n >= 0 && n < m_output_c_size);
+		BB_ASSERT(c >= 0 && c < m_input_c_size);
+		BB_ASSERT(y >= 0 && y < m_input_h_size);
+		BB_ASSERT(x >= 0 && x < m_input_w_size);
+		return m_dW[((n*m_input_c_size + c)*m_filter_h_size + y)*m_filter_w_size + x];
+	}
 
-	void SetBatchSize(INDEX batch_size) { m_frame_size = batch_size; }
+	T& db(INDEX n) {
+		BB_ASSERT(n >= 0 && n < m_output_c_size);
+		return m_db[n];
+	}
+	
+
+	void SetBatchSize(INDEX batch_size) {
+		m_frame_size = batch_size;
+	}
 	
 	INDEX GetInputFrameSize(void) const { return m_frame_size; }
 	INDEX GetInputNodeSize(void) const { return m_input_c_size * m_input_h_size * m_input_w_size; }
@@ -107,6 +124,30 @@ protected:
 	inline T* GetOutputPtr(NeuralNetBuffer<T, INDEX>& buf, int c, int y, int x)
 	{
 		return (T*)buf.GetPtr((c*m_output_h_size + y)*m_output_w_size + x);
+	}
+
+	inline T* GetOutputPtrWithRangeCheck(NeuralNetBuffer<T, INDEX>& buf, int c, int y, int x)
+	{
+		if (x < 0 || x >= m_output_w_size || y < 0 || y >= m_output_h_size) {
+			(T*)buf.GetZeroPtr();
+		}
+
+		return (T*)buf.GetPtr((c*m_output_h_size + y)*m_output_w_size + x);
+	}
+
+	inline T* GetWPtr(NeuralNetBuffer<T, INDEX>& buf, INDEX n, INDEX c, INDEX y, INDEX x)
+	{
+		BB_ASSERT(n >= 0 && n < m_output_c_size);
+		BB_ASSERT(c >= 0 && c < m_input_c_size);
+		BB_ASSERT(y >= 0 && y < m_input_h_size);
+		BB_ASSERT(x >= 0 && x < m_input_w_size);
+		return (T*)buf.GetPtr(((n*m_input_c_size + c)*m_filter_h_size + y)*m_filter_w_size + x);
+	}
+
+	inline float my_mm256_sum_ps(__m256 r)
+	{
+		return r.m256_f32[0] + r.m256_f32[1] + r.m256_f32[2] + r.m256_f32[3]
+			+ r.m256_f32[4] + r.m256_f32[5] + r.m256_f32[6] + r.m256_f32[7];
 	}
 
 public:
@@ -153,6 +194,70 @@ public:
 	
 	void Backward(void)
 	{
+		if (typeid(T) == typeid(float)) {
+			// float用実装
+			int  m256_frame_size = (int)(((m_frame_size + 7) / 8) * 8);
+			auto in_val_buf = GetInputValueBuffer();
+			auto out_val_buf = GetOutputValueBuffer();
+			auto in_err_buf = GetInputErrorBuffer();
+			auto out_err_buf = GetOutputErrorBuffer();
+
+			// パラメータの計算
+			for (int c = 0; c < m_input_c_size; ++c) {
+				__m256 sum_db = _mm256_set1_ps(0);
+				for (int n = 0; n < m_output_c_size; ++n) {
+					for (int fy = 0; fy < m_filter_h_size; ++fy) {
+						for (int fx = 0; fx < m_filter_w_size; ++fx) {
+							__m256 sum_dW = _mm256_set1_ps(0);
+							for (int y = 0; y < m_output_h_size; ++y) {
+								for (int x = 0; x < m_output_w_size; ++x) {
+									int ix = x + fx;
+									int iy = y + fy;
+									float* out_err_ptr = GetOutputPtr(out_err_buf, n, y, x);
+									float* in_val_ptr = GetInputPtr(in_val_buf, n, iy, ix);
+									for (size_t frame = 0; frame < m256_frame_size; frame += 8) {
+										__m256 out_err = _mm256_load_ps(&out_err_ptr[frame]);
+										sum_db = _mm256_add_ps(sum_db, out_err);
+										__m256 in_val = _mm256_load_ps(&in_val_ptr[frame]);
+										__m256 mul_val = _mm256_mul_ps(in_val, out_err);
+										sum_dW = _mm256_add_ps(sum_dW, mul_val);
+									}
+								}
+							}
+							dW(n, c, fy, fx) = my_mm256_sum_ps(sum_dW);
+						}
+					}
+				}
+				db(c) = my_mm256_sum_ps(sum_db);
+			}
+
+
+			// 入力への逆伝播
+			for (int c = 0; c < m_input_c_size; ++c) {
+				for (int y = 0; y < m_input_h_size; ++y) {
+					for (int x = 0; x < m_input_w_size; ++x) {
+						float* in_err_ptr = GetInputPtr(in_err_buf, c, y, x);
+						for (size_t frame = 0; frame < m256_frame_size; frame += 8) {
+							__m256 sum = _mm256_set1_ps(0);
+							for (int n = 0; n < m_output_c_size; ++n) {
+								for (int fy = 0; fy < m_filter_h_size; ++fy) {
+									for (int fx = 0; fx < m_filter_w_size; ++fx) {
+										int ox = x - fx;
+										int oy = y - fy;
+										float* out_err_ptr = GetOutputPtrWithRangeCheck(out_err_buf, n, oy, ox);
+										__m256 W_val = _mm256_set1_ps(W(n, c, fy, fx));
+										__m256 out_err = _mm256_load_ps(&out_err_ptr[frame]);
+										__m256 mul_val = _mm256_mul_ps(W_val, out_err);
+										sum = _mm256_add_ps(sum, mul_val);
+									}
+								}
+							}
+							_mm256_store_ps(&in_err_ptr[frame], sum);
+						}
+					}
+				}
+			}
+		}
 	}
 
 	void Update(double learning_rate)
