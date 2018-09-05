@@ -15,7 +15,7 @@
 #include <intrin.h>
 #include <omp.h>
 #include <ppl.h>
-#include "NeuralNetInputLimited.h"
+#include "NeuralNetLimitedConnection.h"
 
 
 namespace bb {
@@ -23,9 +23,9 @@ namespace bb {
 
 // ì¸óÕêîêßå¿Affine
 template <int N = 6, typename T = float, typename INDEX = size_t>
-class NeuralNetInputLimitedAffine : public NeuralNetInputLimited<T, INDEX>
+class NeuralNetLimitedConnectionAffine : public NeuralNetLimitedConnection<T, INDEX>
 {
-	typedef NeuralNetInputLimited<T, INDEX>	super;
+	typedef NeuralNetLimitedConnection<T, INDEX>	super;
 
 protected:
 	struct Node {
@@ -41,15 +41,15 @@ protected:
 
 	
 public:
-	NeuralNetInputLimitedAffine() {}
+	NeuralNetLimitedConnectionAffine() {}
 
-	NeuralNetInputLimitedAffine(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1)
+	NeuralNetLimitedConnectionAffine(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1)
 	{
 		Resize(input_node_size, output_node_size);
 		InitializeCoeff(seed);
 	}
 
-	~NeuralNetInputLimitedAffine() {}
+	~NeuralNetLimitedConnectionAffine() {}
 
 	T& W(INDEX input, INDEX output) { return m_node[output].W[input]; }
 	T& b(INDEX output) { return m_node[output].b; }

@@ -14,7 +14,7 @@
 #include "bb/NeuralNetAffine.h"
 #include "bb/NeuralNetSigmoid.h"
 #include "bb/NeuralNetSoftmax.h"
-#include "bb/NeuralNetInputLimitedAffine.h"
+#include "bb/NeuralNetLimitedConnectionAffine.h"
 #include "bb/NeuralNetBinarize.h"
 #include "bb/NeuralNetUnbinarize.h"
 #include "bb/NeuralNetBinaryLut6.h"
@@ -265,14 +265,14 @@ public:
 		size_t layer2_node_size = 10 * 6;
 		size_t layer3_node_size = 10;
 		size_t output_node_size = 10;
-		bb::NeuralNetInputLimitedAffine<>	layer0_affine(28 * 28, layer0_node_size);
-		bb::NeuralNetSigmoid<>				layer0_sigmoid(layer0_node_size);
-		bb::NeuralNetInputLimitedAffine<>   layer1_affine(layer0_node_size, layer1_node_size);
-		bb::NeuralNetSigmoid<>				layer1_sigmoid(layer1_node_size);
-		bb::NeuralNetInputLimitedAffine<>   layer2_affine(layer1_node_size, layer2_node_size);
-		bb::NeuralNetSigmoid<>				layer2_sigmoid(layer2_node_size);
-		bb::NeuralNetInputLimitedAffine<>   layer3_affine(layer2_node_size, layer3_node_size);
-		bb::NeuralNetSoftmax<>				layer3_softmax(layer3_node_size);
+		bb::NeuralNetLimitedConnectionAffine<>	layer0_affine(28 * 28, layer0_node_size);
+		bb::NeuralNetSigmoid<>					layer0_sigmoid(layer0_node_size);
+		bb::NeuralNetLimitedConnectionAffine<>  layer1_affine(layer0_node_size, layer1_node_size);
+		bb::NeuralNetSigmoid<>					layer1_sigmoid(layer1_node_size);
+		bb::NeuralNetLimitedConnectionAffine<>  layer2_affine(layer1_node_size, layer2_node_size);
+		bb::NeuralNetSigmoid<>					layer2_sigmoid(layer2_node_size);
+		bb::NeuralNetLimitedConnectionAffine<>  layer3_affine(layer2_node_size, layer3_node_size);
+		bb::NeuralNetSoftmax<>					layer3_softmax(layer3_node_size);
 		net.AddLayer(&layer0_affine);
 		net.AddLayer(&layer0_sigmoid);
 		net.AddLayer(&layer1_affine);
@@ -341,14 +341,14 @@ public:
 
 		// é¿êîî≈NETç\íz
 		bb::NeuralNet<> real_net;
-		bb::NeuralNetInputLimitedAffine<6>	real_layer0_affine(input_node_size, layer0_node_size);
-		bb::NeuralNetSigmoid<>				real_layer0_sigmoid(layer0_node_size);
-		bb::NeuralNetInputLimitedAffine<6>  real_layer1_affine(layer0_node_size, layer1_node_size);
-		bb::NeuralNetSigmoid<>				real_layer1_sigmoid(layer1_node_size);
-		bb::NeuralNetInputLimitedAffine<6>  real_layer2_affine(layer1_node_size, layer2_node_size);
-		bb::NeuralNetSigmoid<>				real_layer2_sigmoid(layer2_node_size);
-		bb::NeuralNetInputLimitedAffine<6>  real_layer3_affine(layer2_node_size, layer3_node_size);
-		bb::NeuralNetSoftmax<>				real_layer3_softmax(layer3_node_size);
+		bb::NeuralNetLimitedConnectionAffine<6>	real_layer0_affine(input_node_size, layer0_node_size);
+		bb::NeuralNetSigmoid<>					real_layer0_sigmoid(layer0_node_size);
+		bb::NeuralNetLimitedConnectionAffine<6> real_layer1_affine(layer0_node_size, layer1_node_size);
+		bb::NeuralNetSigmoid<>					real_layer1_sigmoid(layer1_node_size);
+		bb::NeuralNetLimitedConnectionAffine<6> real_layer2_affine(layer1_node_size, layer2_node_size);
+		bb::NeuralNetSigmoid<>					real_layer2_sigmoid(layer2_node_size);
+		bb::NeuralNetLimitedConnectionAffine<6> real_layer3_affine(layer2_node_size, layer3_node_size);
+		bb::NeuralNetSoftmax<>					real_layer3_softmax(layer3_node_size);
 		real_net.AddLayer(&real_layer0_affine);
 		real_net.AddLayer(&real_layer0_sigmoid);
 		real_net.AddLayer(&real_layer1_affine);

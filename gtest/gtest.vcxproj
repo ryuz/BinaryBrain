@@ -42,9 +42,11 @@
     <ClInclude Include="..\include\bb\NeuralNetBuffer.h" />
     <ClInclude Include="..\include\bb\NeuralNetConvolution.h" />
     <ClInclude Include="..\include\bb\NeuralNetGroup.h" />
-    <ClInclude Include="..\include\bb\NeuralNetInputLimitedAffine.h" />
     <ClInclude Include="..\include\bb\NeuralNetLayer.h" />
     <ClInclude Include="..\include\bb\NeuralNetLayerBuf.h" />
+    <ClInclude Include="..\include\bb\NeuralNetLimitedConnection.h" />
+    <ClInclude Include="..\include\bb\NeuralNetLimitedConnectionAffine.h" />
+    <ClInclude Include="..\include\bb\NeuralNetLimitedConnectionAffineBc.h" />
     <ClInclude Include="..\include\bb\NeuralNetRealBinaryConverter.h" />
     <ClInclude Include="..\include\bb\NeuralNetSigmoid.h" />
     <ClInclude Include="..\include\bb\NeuralNetSoftmax.h" />

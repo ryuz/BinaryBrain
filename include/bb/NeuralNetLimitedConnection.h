@@ -18,9 +18,9 @@
 namespace bb {
 
 
-// 入力数に制限のあるネット
+// 入力接続数に制限のあるネット
 template <typename T = float, typename INDEX = size_t>
-class NeuralNetInputLimited : public NeuralNetLayerBuf<T, INDEX>
+class NeuralNetLimitedConnection : public NeuralNetLayerBuf<T, INDEX>
 {
 	typedef NeuralNetLayer<T, INDEX> super;
 	

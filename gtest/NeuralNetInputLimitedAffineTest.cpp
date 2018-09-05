@@ -2,7 +2,7 @@
 #include <iostream>
 #include "gtest/gtest.h"
 #include "bb/NeuralNetAffine.h"
-#include "bb/NeuralNetInputLimitedAffine.h"
+#include "bb/NeuralNetLimitedConnectionAffine.h"
 
 
 inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
@@ -14,9 +14,9 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 }
 
 
-TEST(NeuralNetInputLimitedAffineTest, testAffine)
+TEST(NeuralNetLimitedConnectionAffineTest, testAffine)
 {
-	bb::NeuralNetInputLimitedAffine<2> affine(2, 3);
+	bb::NeuralNetLimitedConnectionAffine<2> affine(2, 3);
 	testSetupLayerBuffer(affine);
 	
 	// Ú‘±‚ğ’ÊíAffine‚Æ“¯ˆê‚É‚·‚é
@@ -72,9 +72,9 @@ TEST(NeuralNetInputLimitedAffineTest, testAffine)
 }
 
 
-TEST(NeuralNetInputLimitedAffineTest, testAffineInput)
+TEST(NeuralNetLimitedConnectionAffineTest, testAffineInput)
 {
-	bb::NeuralNetInputLimitedAffine<2> affine(2, 3);
+	bb::NeuralNetLimitedConnectionAffine<2> affine(2, 3);
 	testSetupLayerBuffer(affine);
 
 	// Ú‘±‚ğ•Ï‚¦‚é
@@ -128,10 +128,10 @@ TEST(NeuralNetInputLimitedAffineTest, testAffineInput)
 }
 
 
-TEST(NeuralNetInputLimitedAffineTest, testAffineCompare)
+TEST(NeuralNetLimitedConnectionAffineTest, testAffineCompare)
 {
 	bb::NeuralNetAffine<>				affineOrg(6, 5);
-	bb::NeuralNetInputLimitedAffine<6>  affineLim(6, 5);
+	bb::NeuralNetLimitedConnectionAffine<6>  affineLim(6, 5);
 
 	affineOrg.SetBatchSize(23);
 	affineOrg.SetBatchSize(23);

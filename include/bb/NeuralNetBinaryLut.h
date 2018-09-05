@@ -15,7 +15,7 @@
 #include <intrin.h>
 #include <omp.h>
 #include <ppl.h>
-#include "NeuralNetInputLimited.h"
+#include "NeuralNetLimitedConnection.h"
 
 namespace bb {
 
@@ -28,9 +28,9 @@ namespace bb {
 
 // LUT•ûŽ®Šî’êƒNƒ‰ƒX
 template <bool feedback_bitwise = false, typename T = float, typename INDEX = size_t>
-class NeuralNetBinaryLut : public NeuralNetInputLimited<T, INDEX>
+class NeuralNetBinaryLut : public NeuralNetLimitedConnection<T, INDEX>
 {
-	typedef NeuralNetLayer<T, INDEX> super;
+	typedef NeuralNetLimitedConnection<T, INDEX> super;
 
 protected:
 	INDEX					m_mux_size = 1;
@@ -75,7 +75,7 @@ public:
 	}
 	
 	template <typename RT, typename RI>
-	void ImportLayer(const NeuralNetInputLimited<RT, RI>& lim)
+	void ImportLayer(const NeuralNetLimitedConnection<RT, RI>& lim)
 	{
 		auto node_size = GetOutputNodeSize();
 		auto input_size = GetLutInputSize();
