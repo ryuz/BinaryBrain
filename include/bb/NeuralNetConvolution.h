@@ -62,6 +62,8 @@ public:
 
 		m_W.resize(m_output_c_size*m_input_c_size*m_filter_h_size*m_filter_w_size);
 		m_b.resize(m_output_c_size);
+		m_dW.resize(m_output_c_size*m_input_c_size*m_filter_h_size*m_filter_w_size);
+		m_db.resize(m_output_c_size);
 
 		std::mt19937_64 mt(seed);
 		std::uniform_real_distribution<T> uniform_rand((T)0, (T)1);
@@ -129,7 +131,7 @@ protected:
 	inline T* GetOutputPtrWithRangeCheck(NeuralNetBuffer<T, INDEX>& buf, int c, int y, int x)
 	{
 		if (x < 0 || x >= m_output_w_size || y < 0 || y >= m_output_h_size) {
-			(T*)buf.GetZeroPtr();
+			return (T*)buf.GetZeroPtr();
 		}
 
 		return (T*)buf.GetPtr((c*m_output_h_size + y)*m_output_w_size + x);
@@ -202,10 +204,10 @@ public:
 			auto in_err_buf = GetInputErrorBuffer();
 			auto out_err_buf = GetOutputErrorBuffer();
 
-			// パラメータの計算
-			for (int c = 0; c < m_input_c_size; ++c) {
+			// パラメータdWの計算
+			for (int n = 0; n < m_output_c_size; ++n) {
 				__m256 sum_db = _mm256_set1_ps(0);
-				for (int n = 0; n < m_output_c_size; ++n) {
+				for (int c = 0; c < m_input_c_size; ++c) {
 					for (int fy = 0; fy < m_filter_h_size; ++fy) {
 						for (int fx = 0; fx < m_filter_w_size; ++fx) {
 							__m256 sum_dW = _mm256_set1_ps(0);
@@ -214,10 +216,9 @@ public:
 									int ix = x + fx;
 									int iy = y + fy;
 									float* out_err_ptr = GetOutputPtr(out_err_buf, n, y, x);
-									float* in_val_ptr = GetInputPtr(in_val_buf, n, iy, ix);
+									float* in_val_ptr = GetInputPtr(in_val_buf, c, iy, ix);
 									for (size_t frame = 0; frame < m256_frame_size; frame += 8) {
 										__m256 out_err = _mm256_load_ps(&out_err_ptr[frame]);
-										sum_db = _mm256_add_ps(sum_db, out_err);
 										__m256 in_val = _mm256_load_ps(&in_val_ptr[frame]);
 										__m256 mul_val = _mm256_mul_ps(in_val, out_err);
 										sum_dW = _mm256_add_ps(sum_dW, mul_val);
@@ -228,7 +229,21 @@ public:
 						}
 					}
 				}
-				db(c) = my_mm256_sum_ps(sum_db);
+			}
+
+			// パラメータdbの計算
+			for (int n = 0; n < m_output_c_size; ++n) {
+				__m256 sum_db = _mm256_set1_ps(0);
+				for (int y = 0; y < m_output_h_size; ++y) {
+					for (int x = 0; x < m_output_w_size; ++x) {
+						float* out_err_ptr = GetOutputPtr(out_err_buf, n, y, x);
+						for (size_t frame = 0; frame < m256_frame_size; frame += 8) {
+							__m256 out_err = _mm256_load_ps(&out_err_ptr[frame]);
+							sum_db = _mm256_add_ps(sum_db, out_err);
+						}
+					}
+				}
+				db(n) = my_mm256_sum_ps(sum_db);
 			}
 
 

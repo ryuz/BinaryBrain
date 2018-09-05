@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <iostream>
 #include <memory>
 #include <malloc.h>
 #include <intrin.h>
@@ -144,6 +145,11 @@ public:
 			m_dim[i].offset = 0;
 			m_dim[i].width = dim[i];
 		}
+	}
+
+	std::vector<INDEX> GetDimensions(void) const
+	{
+		return m_dim;
 	}
 
 	void SetRoi(std::vector<INDEX> offset)
@@ -416,7 +422,40 @@ public:
 
 	bool GetBinary(INDEX frame, INDEX node) const { return ReadBinary(GetPtr(node), frame); }
 	bool GetBinary(INDEX frame, std::vector<INDEX> index) const { return ReadBinary(GetPtr(index), frame); }
+
+
+	friend std::ostream& operator<<(std::ostream& os, const NeuralNetBuffer<T, INDEX>& buf);
 };
+
+template <typename T = float, typename INDEX = size_t>
+std::ostream& operator<<(std::ostream& os, const NeuralNetBuffer<T, INDEX>& buf)
+{
+	auto out_stream = [&out_stream](std::ostream& os, const NeuralNetBuffer<T, INDEX>& buf, std::vector<INDEX>& idx, INDEX depth)
+	{
+		if (depth == 0) {
+			os << "[";
+			for (INDEX i = 0; i < buf.m_dim[depth]; ++i) {
+				idx[depth] = i;
+				os << buf.GetReal(idx) << ", ";
+			}
+			os << "]" << std::endl;
+			return;
+		}
+		else {
+			os << "[";
+			for (INDEX i = 0; i < buf.m_dim[depth]; ++i) {
+				idx[depth] = i;
+				out_stream(os, buf, idx, depth - 1);
+			}
+			os << "]";
+		}
+	};
+
+	std::vector<INDEX> idx(buf, m_dim.size(), 0);
+	out_stream(os, buf, idx, (INDEX)(m_dim.size() - 1));
+
+	return os;
+}
 
 
 }
