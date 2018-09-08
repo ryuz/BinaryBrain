@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NeuralNetAffineTest.cpp" />
+    <ClCompile Include="NeuralNetBatchNormalizationTest.cpp" />
     <ClCompile Include="NeuralNetBinarizeTest.cpp" />
     <ClCompile Include="NeuralNetBinaryFilterTest.cpp" />
     <ClCompile Include="NeuralNetBinaryLutTest.cpp" />
@@ -28,11 +29,13 @@
     <ClCompile Include="NeuralNetInputLimitedAffineTest.cpp" />
     <ClCompile Include="NeuralNetSigmoidTest.cpp" />
     <ClCompile Include="NeuralNetSoftmaxTest.cpp" />
+    <ClCompile Include="NeuralNetTypeTest.cpp" />
     <ClCompile Include="NeuralNetUnbinarizeTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\bb\NeuralNet.h" />
     <ClInclude Include="..\include\bb\NeuralNetAffine.h" />
+    <ClInclude Include="..\include\bb\NeuralNetBatchNormalization.h" />
     <ClInclude Include="..\include\bb\NeuralNetBinarize.h" />
     <ClInclude Include="..\include\bb\NeuralNetBinaryFilter.h" />
     <ClInclude Include="..\include\bb\NeuralNetBinaryLut.h" />

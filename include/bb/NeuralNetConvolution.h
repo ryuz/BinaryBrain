@@ -148,8 +148,11 @@ protected:
 
 	inline float my_mm256_sum_ps(__m256 r)
 	{
-		return r.m256_f32[0] + r.m256_f32[1] + r.m256_f32[2] + r.m256_f32[3]
-			+ r.m256_f32[4] + r.m256_f32[5] + r.m256_f32[6] + r.m256_f32[7];
+//		return r.m256_f32[0] + r.m256_f32[1] + r.m256_f32[2] + r.m256_f32[3]
+//			+ r.m256_f32[4] + r.m256_f32[5] + r.m256_f32[6] + r.m256_f32[7];
+		r = _mm256_hadd_ps(r, r);
+		r = _mm256_hadd_ps(r, r);
+		return r.m256_f32[0] + r.m256_f32[4];
 	}
 
 public:
