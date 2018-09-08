@@ -219,7 +219,7 @@ protected:
 	}
 
 public:
-	void Forward(void)
+	void Forward(bool train = true)
 	{
 		int node_size = (int)m_output_node_size;
 #pragma omp parallel for

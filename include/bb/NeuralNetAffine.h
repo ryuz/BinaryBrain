@@ -97,7 +97,7 @@ public:
 		m_frame_size = batch_size;
 	}
 
-	void Forward(void)
+	void Forward(bool train = true)
 	{
 		Eigen::Map<Matrix> inputValue((T*)m_input_value_buffer.GetBuffer(), m_input_value_buffer.GetFrameStride() / sizeof(T), m_input_size);
 		Eigen::Map<Matrix> outputValue((T*)m_output_value_buffer.GetBuffer(), m_output_value_buffer.GetFrameStride() / sizeof(T), m_output_size);

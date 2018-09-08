@@ -31,11 +31,12 @@ protected:
 
 	INDEX		m_frame_size = 1;
 	INDEX		m_node_size = 0;
+	
+	Vector		m_gamma;
+	Vector		m_beta;
+	Vector		m_dgamma;
+	Vector		m_dbeta;
 
-	T			m_gamma = 1.0;
-	T			m_beta  = 0;
-	Matrix		m_dgamma;
-	Matrix		m_dbeta;
 	Matrix		m_xn;
 	Matrix		m_xc;
 	Vector		m_std;
@@ -53,6 +54,8 @@ public:
 	void Resize(INDEX node_size)
 	{
 		m_node_size = node_size;
+		m_gamma = Vector::Ones(m_node_size);
+		m_beta = Vector::Zero(m_node_size);
 	}
 
 	void SetBatchSize(INDEX batch_size) { m_frame_size = batch_size; }
@@ -67,17 +70,28 @@ public:
 	int   GetOutputValueDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
 
-	void Forward(void)
+	void Forward(bool train = true)
 	{
 		Eigen::Map<Matrix> x((T*)m_input_value_buffer.GetBuffer(), m_input_value_buffer.GetFrameStride() / sizeof(T), m_node_size);
 		Eigen::Map<Matrix> y((T*)m_output_value_buffer.GetBuffer(), m_output_value_buffer.GetFrameStride() / sizeof(T), m_node_size);
 
-		auto mu = x.colwise().mean();
-		auto xc = x.array().rowwise() - mu.array();
-		auto var = (xc.array() * xc.array()).colwise().mean();
-		auto std = (var.array() + (T)10e-7).array().sqrt();
-		auto xn = xc.array().rowwise() / std.array();
-		y = xn.array() * m_gamma + m_beta;
+		Vector mu = x.colwise().mean();
+	//	std::cout << "mu =\n" << mu << std::endl;
+
+		Matrix xc = x.array().rowwise() - mu.array();
+	//	std::cout << "xc =\n" << xc << std::endl;
+
+		Vector var = (xc.array() * xc.array()).colwise().mean();
+	//	std::cout << "var =\n" << var << std::endl;
+
+		Vector std = (var.array() + (T)10e-7).array().sqrt();
+	//	std::cout << "std =\n" << std << std::endl;
+
+		Matrix xn = xc.array().rowwise() / std.array();
+	//	std::cout << "xn =\n" << xn << std::endl;
+
+		y = (xn.array().rowwise() * m_gamma.array()).array().rowwise() + m_beta.array();
+	//	std::cout << "y =\n" << y << std::endl;
 
 		m_xn = xn;
 		m_xc = xc;
@@ -99,7 +113,7 @@ public:
 		Vector dgamma = (m_xn.array() * dy.array()).colwise().sum();
 //		std::cout << "dgamma =\n" << dgamma << std::endl;
 
-		Matrix dxn  = dy.array() * m_gamma;
+		Matrix dxn  = dy.array().rowwise() * m_gamma.array();
 //		std::cout << "dxn =\n" << dxn << std::endl;
 
 		Matrix dxc = dxn.array().rowwise() / m_std.array();
@@ -126,6 +140,8 @@ public:
 
 	void Update(double learning_rate)
 	{
+		m_gamma -= m_dgamma * learning_rate;
+		m_beta -= m_dbeta * learning_rate;
 	}
 
 };

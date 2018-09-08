@@ -49,7 +49,7 @@ public:
 	int   GetInputErrorDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
 
-	void Forward(void)
+	void Forward(bool train = true)
 	{
 		BinaryToReal(GetInputValueBuffer(), GetOutputValueBuffer());
 	}

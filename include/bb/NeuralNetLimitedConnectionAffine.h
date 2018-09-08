@@ -140,7 +140,7 @@ protected:
 
 public:
 
-	void Forward(void)
+	void Forward(bool train = true)
 	{
 		auto node_size = GetOutputNodeSize();
 		concurrency::parallel_for<INDEX>(0, node_size, [&](INDEX node)

@@ -130,7 +130,7 @@ protected:
 	}
 
 public:
-	void Forward(void)
+	void Forward(bool train = true)
 	{
 		auto in_val = GetInputValueBuffer();
 		auto out_val = GetOutputValueBuffer();

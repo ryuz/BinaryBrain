@@ -54,9 +54,9 @@ public:
 	virtual int   GetOutputValueDataType(void) const = 0;						// 入力値のサイズ
 	virtual int   GetOutputErrorDataType(void) const = 0;						// 入力値のサイズ
 	
-	virtual void  SetMuxSize(INDEX mux_size) {};								// 多重化サイズの設定
-	virtual void  SetBatchSize(INDEX batch_size) = 0;							// バッチサイズの設定
-	virtual	void  Forward(void) = 0;											// 予測
+	virtual void  SetMuxSize(INDEX mux_size) {};
+	virtual void  SetBatchSize(INDEX batch_size) = 0;			// バッチサイズの設定
+	virtual	void  Forward(bool train=true) = 0;										// 予測
 	virtual	void  Backward(void) = 0;											// 誤差逆伝播
 	virtual	void  Update(double learning_rate) {};								// 学習
 	virtual	bool  Feedback(const std::vector<double>& loss) { return false; }	// 直接フィードバック

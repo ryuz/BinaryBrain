@@ -166,7 +166,7 @@ protected:
 	}
 
 public:
-	virtual void Forward(void)
+	virtual void Forward(bool train = true)
 	{
 		INDEX node_size = GetOutputNodeSize();
 		int   lut_input_size = GetLutInputSize();

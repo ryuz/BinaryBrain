@@ -156,7 +156,7 @@ protected:
 	}
 
 public:
-	void Forward(void)
+	void Forward(bool train = true)
 	{
 		if (typeid(T) == typeid(float)) {
 			// float—pŽÀ‘•
