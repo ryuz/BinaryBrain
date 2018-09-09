@@ -10,58 +10,84 @@
 
 #pragma once
 
-#include <random>
-#include "NeuralNetRealBinaryConverter.h"
+#ifndef EIGEN_MPL2_ONLY
+#define EIGEN_MPL2_ONLY
+#endif
+#include <Eigen/Core>
+
+#include "NeuralNetLayerBuf.h"
 
 
 namespace bb {
 
 
-// NeuralNetの抽象クラス
+// バイナリ化(活性化関数)
 template <typename T = float, typename INDEX = size_t>
-class NeuralNetBinarize : public NeuralNetRealBinaryConverter<T, INDEX>
+class NeuralNetBinarize : public NeuralNetLayerBuf<T, INDEX>
 {
+protected:
+	INDEX		m_frame_size = 1;
+	INDEX		m_node_size = 0;
+
 public:
 	NeuralNetBinarize() {}
 
-	NeuralNetBinarize(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1)
+	NeuralNetBinarize(INDEX node_size)
 	{
-		Resize(input_node_size, input_node_size);
-		InitializeCoeff(seed);
+		Resize(node_size);
 	}
 
-	~NeuralNetBinarize() {}		// デストラクタ
+	~NeuralNetBinarize() {}
 
-	void Resize(INDEX input_node_size, INDEX output_node_size)
+	void Resize(INDEX node_size)
 	{
-		NeuralNetRealBinaryConverter<T, INDEX>::Resize(input_node_size, input_node_size);
+		m_node_size = node_size;
 	}
 
-	INDEX GetInputFrameSize(void) const { return GetRealFrameSize(); }
-	INDEX GetInputNodeSize(void) const { return GetRealNodeSize(); }
-	INDEX GetOutputFrameSize(void) const { return GetBinaryFrameSize(); }
-	INDEX GetOutputNodeSize(void) const { return GetBinaryNodeSize(); }
+	void SetBatchSize(INDEX batch_size) { m_frame_size = batch_size; }
+
+	INDEX GetInputFrameSize(void) const { return m_frame_size; }
+	INDEX GetInputNodeSize(void) const { return m_node_size; }
+	INDEX GetOutputFrameSize(void) const { return m_frame_size; }
+	INDEX GetOutputNodeSize(void) const { return m_node_size; }
 
 	int   GetInputValueDataType(void) const { return NeuralNetType<T>::type; }
-	int   GetOutputValueDataType(void) const { return BB_TYPE_BINARY; }
 	int   GetInputErrorDataType(void) const { return NeuralNetType<T>::type; }
+	int   GetOutputValueDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
 
 	void Forward(bool train = true)
 	{
-		RealToBinary(GetInputValueBuffer(), GetOutputValueBuffer());
+		auto x = GetInputValueBuffer();
+		auto y = GetOutputValueBuffer();
+
+		for (INDEX node = 0; node < m_node_size; ++node) {
+			for (INDEX frame = 0; frame < m_frame_size; ++frame) {
+				y.Set<T>(frame, node, x.Get<T>(frame, node) > (T)0.0 ? (T)1.0 : (T)0.0);
+			}
+		}
+
 	}
 
 	void Backward(void)
 	{
-//		BinaryToReal(GetOutputErrorBuffer(), GetInputErrorBuffer());
-//		RealToReal(GetOutputErrorBuffer(), GetInputErrorBuffer());
+		auto dx = GetInputErrorBuffer();
+		auto dy = GetOutputErrorBuffer();
+		auto y = GetOutputValueBuffer();
+
+		// hard-tanh
+		for (INDEX node = 0; node < m_node_size; ++node) {
+			for (INDEX frame = 0; frame < m_frame_size; ++frame) {
+				auto err = dy.Get<T>(frame, node);
+				auto val = y.Get<T>(frame, node);
+				dx.Set<T>(frame, node, (val >= (T)-1.0 && val <= (T)1.0) ? err : 0);
+			}
+		}
 	}
 
 	void Update(double learning_rate)
 	{
 	}
-
 };
 
 }
