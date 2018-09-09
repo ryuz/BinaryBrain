@@ -132,12 +132,13 @@ public:
 		bb::NeuralNetBinaryLut6<>	layer_lut1(layer0_node_size, layer1_node_size, mt());
 		bb::NeuralNetBinaryLut6<>	layer_lut2(layer1_node_size, layer2_node_size, mt());
 		bb::NeuralNetBinaryToReal<>	layer_bin2real(layer2_node_size, output_node_size, mt());
+//		bb::NeuralNetUnbinarize<>	layer_bin2real(layer2_node_size, output_node_size, mt());
 		auto last_lut_layer = &layer_lut2;
 		net.AddLayer(&layer_real2bin);
 		net.AddLayer(&layer_lut0);
 		net.AddLayer(&layer_lut1);
 		net.AddLayer(&layer_lut2);
-		//	net.AddLayer(&layer_unbinarize);	// 学習時はunbinarize不要
+		//	net.AddLayer(&layer_bin2real);	// 学習時は bin2real 不要
 		
 		// 評価用NET構築(ノードは共有)
 		bb::NeuralNet<> net_eva;
@@ -531,9 +532,9 @@ int main()
 
 	// 以下評価したいものを適当に切り替えてご使用ください
 
-	eva_mnist.RunBnn(16, 256);
+//	eva_mnist.RunBnn(16, 256);
 
-#if 0
+#if 1
 	// バイナリ6入力LUT版学習実験(重いです)
 	eva_mnist.RunFlatBinaryLut6(2, 8192, 8);
 #endif

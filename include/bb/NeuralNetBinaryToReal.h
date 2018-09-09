@@ -22,8 +22,6 @@ template <typename T = float, typename INDEX = size_t>
 class NeuralNetBinaryToReal : public NeuralNetLayerBuf<T, INDEX>
 {
 protected:
-	std::mt19937_64		m_mt;
-
 	INDEX				m_input_node_size = 0;
 	INDEX				m_output_node_size = 0;
 	INDEX				m_batch_size = 1;
@@ -34,7 +32,7 @@ public:
 
 	NeuralNetBinaryToReal(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1)
 	{
-		Resize(input_node_size, input_node_size);
+		Resize(input_node_size, output_node_size);
 		InitializeCoeff(seed);
 	}
 	
@@ -48,7 +46,6 @@ public:
 
 	void  InitializeCoeff(std::uint64_t seed)
 	{
-		m_mt.seed(seed);
 	}
 
 	void  SetMuxSize(INDEX mux_size) { m_mux_size = mux_size; }
@@ -64,7 +61,8 @@ public:
 	int   GetOutputValueDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetInputErrorDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
-
+	
+	
 	void Forward(bool train = true)
 	{
 		auto in_val = GetInputValueBuffer();
@@ -91,9 +89,8 @@ public:
 				out_val.Set<T>(frame, node, (T)vec_v[node] / vec_n[node]);
 			}
 		}
-
 	}
-
+	
 	void Backward(void)
 	{
 		auto in_err = GetInputErrorBuffer();

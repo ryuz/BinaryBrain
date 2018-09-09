@@ -37,7 +37,7 @@ public:
 
 	NeuralNetRealToBinary(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1)
 	{
-		Resize(input_node_size, input_node_size);
+		Resize(input_node_size, output_node_size);
 		InitializeCoeff(seed);
 	}
 
