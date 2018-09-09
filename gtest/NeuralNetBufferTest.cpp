@@ -1,26 +1,9 @@
 #include <stdio.h>
+#include <random>
 #include <iostream>
 #include "gtest/gtest.h"
-#include "opencv2/opencv.hpp"
-#include "bb/NeuralNetAffine.h"
-#include "bb/NeuralNetSigmoid.h"
-#include "bb/NeuralNetSoftmax.h"
-#include "bb/NeuralNetBinarize.h"
-#include "bb/NeuralNetUnbinarize.h"
-#include "bb/NeuralNetBinaryLut6.h"
-#include "bb/NeuralNetBinaryLutN.h"
-#include "bb/NeuralNetConvolution.h"
 
-
-
-inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
-{
-	net.SetInputValueBuffer (net.CreateInputValueBuffer());
-	net.SetInputErrorBuffer (net.CreateInputErrorBuffer());
-	net.SetOutputValueBuffer(net.CreateOutputValueBuffer());
-	net.SetOutputErrorBuffer(net.CreateOutputErrorBuffer());
-}
-
+#include "bb/NeuralNetBuffer.h"
 
 
 TEST(NeuralNetBufferTest, testNeuralNetBufferTest)
@@ -265,17 +248,6 @@ TEST(NeuralNetBufferTest, testNeuralNetBufferTest2)
 }
 
 
-static void image_show(std::string name, bb::NeuralNetBuffer<> buf, size_t f, size_t h, size_t w)
-{
-	cv::Mat img((int)h, (int)w, CV_8U);
-	for (size_t y = 0; y < h; y++) {
-		for (size_t x = 0; x < w; x++) {
-			img.at<uchar>((int)y, (int)x) = buf.GetBinary(f, y*w + x) ? 255 : 0;
-		}
-	}
-	cv::imshow(name, img);
-}
-
 TEST(NeuralNetBufferTest, testNeuralNetBufferTest3)
 {
 	size_t input_c_size = 1;
@@ -326,10 +298,6 @@ TEST(NeuralNetBufferTest, testNeuralNetBufferTest3)
 			EXPECT_EQ(in_buf.GetBinary(0, y*input_w_size+x), out_buf.GetBinary(0, y*output_w_size + x));
 		}
 	}
-
-	//	image_show("out_buf", out_buf, 0, output_h_size, output_w_size);
-	//	image_show("in_buf", in_buf, 0, input_h_size, input_w_size);
-	//	cv::waitKey();
 }
 
 

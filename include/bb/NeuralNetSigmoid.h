@@ -21,7 +21,7 @@
 namespace bb {
 
 
-// NeuralNetの抽象クラス
+// シグモイド(活性化関数)
 template <typename T = float, typename INDEX = size_t>
 class NeuralNetSigmoid : public NeuralNetLayerBuf<T, INDEX>
 {

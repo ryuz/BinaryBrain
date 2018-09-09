@@ -10,6 +10,8 @@
 #pragma once
 
 #include <iostream>
+#include <array>
+#include <vector>
 #include <memory>
 #include <malloc.h>
 #include <intrin.h>

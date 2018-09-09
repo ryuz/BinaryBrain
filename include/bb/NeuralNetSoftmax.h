@@ -22,7 +22,7 @@
 namespace bb {
 
 
-// NeuralNet‚Ì’ŠÛƒNƒ‰ƒX
+// Softmax(Šˆ«‰»ŠÖ”)
 template <typename T = float, typename INDEX = size_t>
 class NeuralNetSoftmax : public NeuralNetLayerBuf<T, INDEX>
 {

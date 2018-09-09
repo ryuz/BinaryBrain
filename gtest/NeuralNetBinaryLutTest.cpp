@@ -1,24 +1,11 @@
-#include <stdio.h>
 #include <string>
 #include <iostream>
 #include <fstream>
-#include <valarray>
 
 #include "gtest/gtest.h"
 
-#include "cereal/types/array.hpp"
-#include "cereal/types/string.hpp"
-#include "cereal/types/vector.hpp"
-#include "cereal/archives/json.hpp"
-
-#include "bb/NeuralNetAffine.h"
-#include "bb/NeuralNetSigmoid.h"
-#include "bb/NeuralNetSoftmax.h"
-#include "bb/NeuralNetBinarize.h"
-#include "bb/NeuralNetUnbinarize.h"
 #include "bb/NeuralNetBinaryLut6.h"
 #include "bb/NeuralNetBinaryLutN.h"
-#include "bb/NeuralNetConvolution.h"
 
 
 
