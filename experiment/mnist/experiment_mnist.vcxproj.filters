@@ -35,9 +35,6 @@
     <ClInclude Include="..\..\include\bb\NeuralNetAffine.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetBinarize.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryLut.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -56,9 +53,6 @@
     <ClInclude Include="..\..\include\bb\NeuralNetLayer.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetRealBinaryConverter.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\bb\NeuralNetSigmoid.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -66,9 +60,6 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\bb\NeuralNetType.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetUnbinarize.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryLut6VerilogXilinx.h">
@@ -86,10 +77,22 @@
     <ClInclude Include="..\..\include\bb\NeuralNetLayerBuf.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetInputLimited.h">
+    <ClInclude Include="..\..\include\bb\NeuralNetLimitedConnection.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetInputLimitedAffine.h">
+    <ClInclude Include="..\..\include\bb\NeuralNetLimitedConnectionAffine.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\NeuralNetLimitedConnectionAffineBc.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\NeuralNetBinaryToRealTo.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\NeuralNetRealToBinary.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\NeuralNetBinarize.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

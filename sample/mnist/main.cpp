@@ -15,8 +15,8 @@
 #include "bb/NeuralNetSigmoid.h"
 #include "bb/NeuralNetSoftmax.h"
 #include "bb/NeuralNetLimitedConnectionAffine.h"
-#include "bb/NeuralNetBinarize.h"
-#include "bb/NeuralNetUnbinarize.h"
+#include "bb/NeuralNetRealToBinary.h"
+#include "bb/NeuralNetBinaryToReal.h"
 #include "bb/NeuralNetBinaryLut6.h"
 #include "bb/NeuralNetBinaryLut6VerilogXilinx.h"
 #include "bb/NeuralNetBinaryFilter.h"
@@ -119,13 +119,13 @@ public:
 
 		// äwèKópNETç\íz
 		bb::NeuralNet<> net;
-		bb::NeuralNetBinarize<>   layer_binarize(input_node_size, input_node_size, mt());
-		bb::NeuralNetBinaryLut6<> layer_lut0(input_node_size, layer0_node_size, mt());
-		bb::NeuralNetBinaryLut6<> layer_lut1(layer0_node_size, layer1_node_size, mt());
-		bb::NeuralNetBinaryLut6<> layer_lut2(layer1_node_size, layer2_node_size, mt());
-		bb::NeuralNetUnbinarize<> layer_unbinarize(layer2_node_size, output_node_size, mt());
+		bb::NeuralNetRealToBinary<> layer_real2bin(input_node_size, input_node_size, mt());
+		bb::NeuralNetBinaryLut6<>	layer_lut0(input_node_size, layer0_node_size, mt());
+		bb::NeuralNetBinaryLut6<>	layer_lut1(layer0_node_size, layer1_node_size, mt());
+		bb::NeuralNetBinaryLut6<>	layer_lut2(layer1_node_size, layer2_node_size, mt());
+		bb::NeuralNetBinaryToReal<>	layer_bin2real(layer2_node_size, output_node_size, mt());
 		auto last_lut_layer = &layer_lut2;
-		net.AddLayer(&layer_binarize);
+		net.AddLayer(&layer_real2bin);
 		net.AddLayer(&layer_lut0);
 		net.AddLayer(&layer_lut1);
 		net.AddLayer(&layer_lut2);
@@ -133,18 +133,18 @@ public:
 		
 		// ï]âøópNETç\íz(ÉmÅ[ÉhÇÕã§óL)
 		bb::NeuralNet<> net_eva;
-		net_eva.AddLayer(&layer_binarize);
+		net_eva.AddLayer(&layer_real2bin);
 		net_eva.AddLayer(&layer_lut0);
 		net_eva.AddLayer(&layer_lut1);
 		net_eva.AddLayer(&layer_lut2);
-		net_eva.AddLayer(&layer_unbinarize);
+		net_eva.AddLayer(&layer_bin2real);
 
 		// äwèKÉãÅ[Év
 		int iteration = 0;
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 			// äwèKèÛãµï]âø
-			layer_binarize.InitializeCoeff(1);
-			layer_unbinarize.InitializeCoeff(1);
+			layer_real2bin.InitializeCoeff(1);
+			layer_bin2real.InitializeCoeff(1);
 			net_eva.SetMuxSize(test_mux_size);
 			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net_eva) << std::endl;
 
@@ -171,8 +171,8 @@ public:
 					;
 
 				// íÜä‘ï\é¶()
-				layer_binarize.InitializeCoeff(1);
-				layer_unbinarize.InitializeCoeff(1);
+				layer_real2bin.InitializeCoeff(1);
+				layer_bin2real.InitializeCoeff(1);
 				net_eva.SetMuxSize(test_mux_size);
 				std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net_eva) << std::endl;
 
@@ -360,18 +360,18 @@ public:
 
 		// ÉoÉCÉiÉäî≈NETç\íz
 		bb::NeuralNet<>	bin_net;
-		bb::NeuralNetBinarize<>   bin_layer_binarize(input_node_size, input_node_size);
-		bb::NeuralNetBinaryLut6<> bin_layer_lut0(input_node_size, layer0_node_size);
-		bb::NeuralNetBinaryLut6<> bin_layer_lut1(layer0_node_size, layer1_node_size);
-		bb::NeuralNetBinaryLut6<> bin_layer_lut2(layer1_node_size, layer2_node_size);
-		bb::NeuralNetBinaryLut6<> bin_layer_lut3(layer2_node_size, layer3_node_size);
-		bb::NeuralNetUnbinarize<> bin_layer_unbinarize(layer3_node_size, output_node_size);
-		bin_net.AddLayer(&bin_layer_binarize);
+		bb::NeuralNetRealToBinary<> bin_layer_real2bin(input_node_size, input_node_size);
+		bb::NeuralNetBinaryLut6<>	bin_layer_lut0(input_node_size, layer0_node_size);
+		bb::NeuralNetBinaryLut6<>	bin_layer_lut1(layer0_node_size, layer1_node_size);
+		bb::NeuralNetBinaryLut6<>	bin_layer_lut2(layer1_node_size, layer2_node_size);
+		bb::NeuralNetBinaryLut6<>	bin_layer_lut3(layer2_node_size, layer3_node_size);
+		bb::NeuralNetBinaryToReal<>	bin_layer_bin2real(layer3_node_size, output_node_size);
+		bin_net.AddLayer(&bin_layer_real2bin);
 		bin_net.AddLayer(&bin_layer_lut0);
 		bin_net.AddLayer(&bin_layer_lut1);
 		bin_net.AddLayer(&bin_layer_lut2);
 		bin_net.AddLayer(&bin_layer_lut3);
-		bin_net.AddLayer(&bin_layer_unbinarize);
+		bin_net.AddLayer(&bin_layer_bin2real);
 
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 

@@ -185,6 +185,7 @@
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryLut6.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryLut6VerilogXilinx.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryLutN.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetBinaryToReal.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBuffer.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetConvolution.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetGroup.h" />
@@ -193,11 +194,10 @@
     <ClInclude Include="..\..\include\bb\NeuralNetLimitedConnection.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLimitedConnectionAffine.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLimitedConnectionAffineBc.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetRealBinaryConverter.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetRealToBinary.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetSigmoid.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetSoftmax.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetType.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetUnbinarize.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetUtility.h" />
     <ClInclude Include="..\..\include\bb\ShuffleSet.h" />
     <ClInclude Include="mnist_read.h" />

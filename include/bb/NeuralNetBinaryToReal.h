@@ -1,0 +1,117 @@
+// --------------------------------------------------------------------------
+//  Binary Brain  -- binary neural net framework
+//
+//                                     Copyright (C) 2018 by Ryuji Fuchikami
+//                                     https://github.com/ryuz
+//                                     ryuji.fuchikami@nifty.com
+// --------------------------------------------------------------------------
+
+
+
+#pragma once
+
+#include <random>
+#include "NeuralNetLayerBuf.h"
+
+
+namespace bb {
+
+
+// NeuralNetÇÃíäè€ÉNÉâÉX
+template <typename T = float, typename INDEX = size_t>
+class NeuralNetBinaryToReal : public NeuralNetLayerBuf<T, INDEX>
+{
+protected:
+	std::mt19937_64		m_mt;
+
+	INDEX				m_input_node_size = 0;
+	INDEX				m_output_node_size = 0;
+	INDEX				m_batch_size = 1;
+	INDEX				m_mux_size = 1;
+	
+public:
+	NeuralNetBinaryToReal() {}
+
+	NeuralNetBinaryToReal(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1)
+	{
+		Resize(input_node_size, input_node_size);
+		InitializeCoeff(seed);
+	}
+	
+	~NeuralNetBinaryToReal() {}
+	
+	void Resize(INDEX input_node_size, INDEX output_node_size)
+	{
+		m_input_node_size = input_node_size;
+		m_output_node_size = output_node_size;
+	}
+
+	void  InitializeCoeff(std::uint64_t seed)
+	{
+		m_mt.seed(seed);
+	}
+
+	void  SetMuxSize(INDEX mux_size) { m_mux_size = mux_size; }
+	INDEX GetMuxSize(void) { return m_mux_size; }
+	void  SetBatchSize(INDEX batch_size) { m_batch_size = batch_size; }
+
+	INDEX GetInputFrameSize(void) const { return m_batch_size * m_mux_size; }
+	INDEX GetInputNodeSize(void) const { return m_input_node_size; }
+	INDEX GetOutputFrameSize(void) const { return m_batch_size; }
+	INDEX GetOutputNodeSize(void) const { return m_output_node_size; }
+
+	int   GetInputValueDataType(void) const { return BB_TYPE_BINARY; }
+	int   GetOutputValueDataType(void) const { return NeuralNetType<T>::type; }
+	int   GetInputErrorDataType(void) const { return NeuralNetType<T>::type; }
+	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
+
+	void Forward(bool train = true)
+	{
+		auto in_val = GetInputValueBuffer();
+		auto out_val = GetOutputValueBuffer();
+
+		T	reciprocal = (T)1.0 / (T)m_mux_size;
+
+		INDEX node_size = std::max(m_input_node_size, m_output_node_size);
+
+		std::vector<int>	vec_v(m_output_node_size, 0);
+		std::vector<int>	vec_n(m_output_node_size, 0);
+		for (INDEX frame = 0; frame < m_batch_size; frame++) {
+			std::fill(vec_v.begin(), vec_v.end(), 0);
+			std::fill(vec_n.begin(), vec_n.end(), 0);
+			for (INDEX node = 0; node < node_size; node++) {
+				for (INDEX i = 0; i < m_mux_size; i++) {
+					bool binVal = in_val.Get<bool>(frame*m_mux_size + i, node);
+					vec_v[node % m_output_node_size] += binVal ? 1 : 0;
+					vec_n[node % m_output_node_size] += 1;
+				}
+			}
+
+			for (INDEX node = 0; node < m_output_node_size; node++) {
+				out_val.Set<T>(frame, node, (T)vec_v[node] / vec_n[node]);
+			}
+		}
+
+	}
+
+	void Backward(void)
+	{
+		auto in_err = GetInputErrorBuffer();
+		auto out_err = GetOutputErrorBuffer();
+
+		for (INDEX node = 0; node < m_input_node_size; node++) {
+			for (INDEX frame = 0; frame < m_batch_size; ++frame) {
+				for (INDEX i = 0; i < m_mux_size; i++) {
+					in_err.Set<T>(frame*m_mux_size + i, node, out_err.Get<T>(frame, node));
+				}
+			}
+		}
+	}
+
+	void Update(double learning_rate)
+	{
+	}
+
+};
+
+}
