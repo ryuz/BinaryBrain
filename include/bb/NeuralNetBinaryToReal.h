@@ -18,7 +18,7 @@ namespace bb {
 
 
 // NeuralNetÇÃíäè€ÉNÉâÉX
-template <typename T = float, typename INDEX = size_t>
+template <typename BT = Bit, typename T = float, typename INDEX = size_t>
 class NeuralNetBinaryToReal : public NeuralNetLayerBuf<T, INDEX>
 {
 protected:
@@ -57,7 +57,7 @@ public:
 	INDEX GetOutputFrameSize(void) const { return m_batch_size; }
 	INDEX GetOutputNodeSize(void) const { return m_output_node_size; }
 
-	int   GetInputValueDataType(void) const { return BB_TYPE_BINARY; }
+	int   GetInputValueDataType(void) const { return NeuralNetType<BT>::type; }
 	int   GetOutputValueDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetInputErrorDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
@@ -79,7 +79,7 @@ public:
 			std::fill(vec_n.begin(), vec_n.end(), 0);
 			for (INDEX node = 0; node < node_size; node++) {
 				for (INDEX i = 0; i < m_mux_size; i++) {
-					bool binVal = in_val.Get<bool>(frame*m_mux_size + i, node);
+					Binary binVal = in_val.Get<BT>(frame*m_mux_size + i, node);
 					vec_v[node % m_output_node_size] += binVal ? 1 : 0;
 					vec_n[node % m_output_node_size] += 1;
 				}

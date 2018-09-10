@@ -34,8 +34,14 @@ protected:
 		T						b;
 		std::array<T, N>		dW;
 		T						db;
+
+		T	gamma = 1;
+		T	beta  = 0;
+		T	mean  = 0;
+		T	var   = 1;
 	};
 
+	INDEX						m_mux_size = 1;
 	INDEX						m_frame_size = 1;
 	std::vector<Node>			m_node;
 
@@ -56,6 +62,11 @@ public:
 	T& dW(INDEX input, INDEX output) { return m_node[output].dW[input]; }
 	T& db(INDEX output) { return[output].db; }
 
+	T& gamma(INDEX node) { return m_node[node].gamma; }
+	T& beta(INDEX node) { return m_node[node].beta; }
+	T& mean(INDEX node) { return m_node[node].mean; }
+	T& var(INDEX node) { return m_node[node].var; }
+
 
 	T CalcNode(INDEX node, std::vector<T> input_value) const
 	{
@@ -64,6 +75,11 @@ public:
 		for (int i = 0; i < N; ++i) {
 			val += input_value[i] * nd.W[i];
 		}
+		
+		val -= m_node[node].mean;
+		val /= (T)sqrt(m_node[node].var + 10e-7);
+		val = (val * m_node[node].gamma) + m_node[node].beta;
+
 		return val;
 	}
 
@@ -94,7 +110,8 @@ public:
 	void  SetNodeInput(INDEX node, int input_index, INDEX input_node) { m_node[node].input[input_index] = input_node; }
 	INDEX GetNodeInput(INDEX node, int input_index) const { return m_node[node].input[input_index]; }
 
-	void SetBatchSize(INDEX batch_size) { m_frame_size = batch_size; }
+	void  SetMuxSize(INDEX mux_size) { m_mux_size = mux_size; }
+	void  SetBatchSize(INDEX batch_size) { m_frame_size = batch_size * m_mux_size; }
 
 	INDEX GetInputFrameSize(void) const { return m_frame_size; }
 	INDEX GetOutputFrameSize(void) const { return m_frame_size; }

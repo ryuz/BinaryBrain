@@ -37,6 +37,7 @@ protected:
 		T						db;
 	};
 
+	INDEX						m_mux_size = 1;
 	INDEX						m_frame_size = 1;
 	std::vector<Node>			m_node;
 
@@ -65,6 +66,7 @@ public:
 		for (int i = 0; i < N; ++i) {
 			val += input_value[i] * nd.Wb[i];
 		}
+
 		return val;
 	}
 
@@ -100,7 +102,8 @@ public:
 	void  SetNodeInput(INDEX node, int input_index, INDEX input_node) { m_node[node].input[input_index] = input_node; }
 	INDEX GetNodeInput(INDEX node, int input_index) const { return m_node[node].input[input_index]; }
 
-	void SetBatchSize(INDEX batch_size) { m_frame_size = batch_size; }
+	void  SetMuxSize(INDEX mux_size) { m_mux_size = mux_size; }
+	void  SetBatchSize(INDEX batch_size) { m_frame_size = batch_size * m_mux_size; }
 
 	INDEX GetInputFrameSize(void) const { return m_frame_size; }
 	INDEX GetOutputFrameSize(void) const { return m_frame_size; }
@@ -230,8 +233,8 @@ public:
 				if (nd.W[i] > (T)+1.0) { nd.W[i] = +1.0; }
 			}
 			nd.b -= nd.db * (T)learning_rate;
-			if (nd.b < (T)-1.0) { nd.b = -1.0; }
-			if (nd.b > (T)+1.0) { nd.b = +1.0; }
+	//		if (nd.b < (T)-1.0) { nd.b = -1.0; }
+	//		if (nd.b > (T)+1.0) { nd.b = +1.0; }
 
 			// binarize
 			for (int i = 0; i < N; ++i) {

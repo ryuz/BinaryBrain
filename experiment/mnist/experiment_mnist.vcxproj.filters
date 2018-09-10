@@ -95,5 +95,8 @@
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryToReal.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bb\NeuralNetBatchNormalization.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -29,6 +29,7 @@ protected:
 	typedef Eigen::Matrix<T, -1, -1, Eigen::ColMajor>	Matrix;
 	typedef Eigen::Matrix<T, 1, -1>						Vector;
 
+	INDEX		m_mux_size = 1;
 	INDEX		m_frame_size = 1;
 	INDEX		m_node_size = 0;
 	
@@ -41,6 +42,10 @@ protected:
 	Matrix		m_xc;
 	Vector		m_std;
 
+	T			m_momentum = (T)0.01;
+	Vector		m_running_mean;
+	Vector		m_running_var;
+
 public:
 	NeuralNetBatchNormalization() {}
 
@@ -51,14 +56,32 @@ public:
 
 	~NeuralNetBatchNormalization() {}		// デストラクタ
 
+
+	T& gamma(INDEX node) { return m_gamma(node); }
+	T& beta(INDEX node) { return m_beta(node); }
+	T& dgamma(INDEX node) { return m_dgamma(node); }
+	T& dbeta(INDEX node) { return m_dbeta(node); }
+	T& mean(INDEX node) { return m_running_mean(node); }
+	T& var(INDEX node) { return m_running_var(node); }
+
+
 	void Resize(INDEX node_size)
 	{
 		m_node_size = node_size;
 		m_gamma = Vector::Ones(m_node_size);
 		m_beta = Vector::Zero(m_node_size);
+		m_running_mean = Vector::Zero(m_node_size);
+		m_running_var = Vector::Ones(m_node_size);
 	}
 
-	void SetBatchSize(INDEX batch_size) { m_frame_size = batch_size; }
+	void  SetMuxSize(INDEX mux_size) {
+		m_mux_size = mux_size;
+	}
+
+	void SetBatchSize(INDEX batch_size) {
+		m_frame_size = batch_size * m_mux_size;
+//		m_momentum = (T)batch_size * (T)0.1;
+	}
 
 	INDEX GetInputFrameSize(void) const { return m_frame_size; }
 	INDEX GetInputNodeSize(void) const { return m_node_size; }
@@ -75,27 +98,46 @@ public:
 		Eigen::Map<Matrix> x((T*)m_input_value_buffer.GetBuffer(), m_input_value_buffer.GetFrameStride() / sizeof(T), m_node_size);
 		Eigen::Map<Matrix> y((T*)m_output_value_buffer.GetBuffer(), m_output_value_buffer.GetFrameStride() / sizeof(T), m_node_size);
 
-		Vector mu = x.colwise().mean();
-	//	std::cout << "mu =\n" << mu << std::endl;
+		Matrix xc;
+		Matrix xn;
+		
+//		if (train) {
+		if (true) {
 
-		Matrix xc = x.array().rowwise() - mu.array();
-	//	std::cout << "xc =\n" << xc << std::endl;
+			Vector mu = x.colwise().mean();
+			//	std::cout << "mu =\n" << mu << std::endl;
 
-		Vector var = (xc.array() * xc.array()).colwise().mean();
-	//	std::cout << "var =\n" << var << std::endl;
+			xc = x.rowwise() - mu;
+			//	std::cout << "xc =\n" << xc << std::endl;
 
-		Vector std = (var.array() + (T)10e-7).array().sqrt();
-	//	std::cout << "std =\n" << std << std::endl;
+			Vector var = (xc.array() * xc.array()).colwise().mean();
+			//	std::cout << "var =\n" << var << std::endl;
 
-		Matrix xn = xc.array().rowwise() / std.array();
-	//	std::cout << "xn =\n" << xn << std::endl;
+			Vector std = (var.array() + (T)10e-7).array().sqrt();
+			//	std::cout << "std =\n" << std << std::endl;
 
+			xn = xc.array().rowwise() / std.array();
+			//	std::cout << "xn =\n" << xn << std::endl;
+
+			m_xn = xn;
+			m_xc = xc;
+			m_std = std;
+			
+	//		std::cout << "xc =\n" << xc << std::endl;
+	//		std::cout << "xn =\n" << xn << std::endl;
+
+			m_running_mean = m_running_mean * m_momentum + mu * (1 - m_momentum);
+			m_running_var = m_running_var * m_momentum + var * (1 - m_momentum);
+		}
+		else{
+			xc = x.rowwise() - m_running_mean;
+			xn = xc.array() / (m_running_var.array() + 10e-7).array().sqrt();
+
+	//		std::cout << "xc =\n" << xc << std::endl;
+	//		std::cout << "xn =\n" << xn << std::endl;
+		}
 		y = (xn.array().rowwise() * m_gamma.array()).array().rowwise() + m_beta.array();
-	//	std::cout << "y =\n" << y << std::endl;
-
-		m_xn = xn;
-		m_xc = xc;
-		m_std = std;
+		//	std::cout << "y =\n" << y << std::endl;
 	}
 
 	void Backward(void)

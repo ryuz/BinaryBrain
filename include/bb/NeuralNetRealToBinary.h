@@ -18,7 +18,7 @@ namespace bb {
 
 
 // NeuralNetÇÃíäè€ÉNÉâÉX
-template <typename T = float, typename INDEX = size_t>
+template <typename BT = Bit, typename T = float, typename INDEX = size_t>
 class NeuralNetRealToBinary : public NeuralNetLayerBuf<T, INDEX>
 {
 protected:
@@ -64,7 +64,7 @@ public:
 	INDEX GetOutputNodeSize(void) const { return m_output_node_size; }
 
 	int   GetInputValueDataType(void) const { return NeuralNetType<T>::type; }
-	int   GetOutputValueDataType(void) const { return BB_TYPE_BINARY; }
+	int   GetOutputValueDataType(void) const { return NeuralNetType<BT>::type; }
 	int   GetInputErrorDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
 
@@ -86,9 +86,9 @@ public:
 
 			for (INDEX node = 0; node < m_output_node_size; node++) {
 				T		realVal = vec_v[node] / (T)vec_n[node];
-				bool	binVal = (realVal > rand(m_mt));
+				Binary	binVal = (realVal > rand(m_mt));
 				for (INDEX i = 0; i < m_mux_size; i++) {
-					out_val.Set<bool>(frame*m_mux_size + i, node, binVal);
+					out_val.Set<BT>(frame*m_mux_size + i, node, binVal);
 				}
 			}
 		}

@@ -31,6 +31,7 @@ protected:
 	typedef Eigen::Matrix<T, -1, -1, Eigen::ColMajor>	Matrix;
 	typedef Eigen::Matrix<T, 1, -1>						Vector;
 
+	INDEX		m_mux_size = 1;
 	INDEX		m_frame_size = 1;
 	INDEX		m_input_size = 0;
 	INDEX		m_output_size = 0;
@@ -92,9 +93,11 @@ public:
 	T& dW(INDEX input, INDEX output) { return m_dW(input, output); }
 	T& db(INDEX output) { return m_db(output); }
 
+	void  SetMuxSize(INDEX mux_size) { m_mux_size = mux_size; }
+
 	void  SetBatchSize(INDEX batch_size)
 	{
-		m_frame_size = batch_size;
+		m_frame_size = batch_size * m_mux_size;
 	}
 
 	void Forward(bool train = true)

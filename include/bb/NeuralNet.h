@@ -54,12 +54,12 @@ public:
 		m_lastLayer->SetOutputErrorBuffer(m_output_error_buffers);
 	}
 
-	void Forward(INDEX start_layer = 0)
+	void Forward(bool train = true, INDEX start_layer = 0)
 	{
 		INDEX layer_size = m_layers.size();
 
 		for (INDEX layer = start_layer; layer < layer_size; ++layer) {
-			m_layers[layer]->Forward();
+			m_layers[layer]->Forward(train);
 		}
 	}
 

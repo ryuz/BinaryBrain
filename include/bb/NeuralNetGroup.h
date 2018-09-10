@@ -101,18 +101,18 @@ public:
 		return SetupBuffer();
 	}
 
-	virtual void Forward(INDEX start_layer, bool train = true)
+	virtual void Forward(bool train, INDEX start_layer)
 	{
 		INDEX layer_size = m_layers.size();
 
 		for (INDEX layer = start_layer; layer < layer_size; ++layer) {
-			m_layers[layer]->Forward();
+			m_layers[layer]->Forward(train);
 		}
 	}
 	
 	void Forward(bool train = true)
 	{
-		Forward(0, train);
+		Forward(train, 0);
 	}
 
 	void Backward(void)
@@ -137,7 +137,7 @@ public:
 
 		while (m_feedback_layer >= 0) {
 			if (m_layers[m_feedback_layer]->Feedback(loss)) {
-				Forward(m_feedback_layer + 1, true);
+				Forward(true, m_feedback_layer + 1);
 				return true;
 			}
 			--m_feedback_layer;
