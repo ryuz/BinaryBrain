@@ -110,12 +110,6 @@
     <ClInclude Include="..\include\bb\NeuralNetLayerBuf.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bb\NeuralNetLimitedConnection.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\bb\NeuralNetLimitedConnectionAffine.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\bb\NeuralNetLimitedConnectionAffineBc.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -126,6 +120,9 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="..\include\bb\NeuralNetBinaryToReal.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bb\NeuralNetSparseAffine.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

@@ -20,7 +20,7 @@ namespace bb {
 
 // “ü—ÍÚ‘±”‚É§ŒÀ‚Ì‚ ‚éƒlƒbƒg
 template <typename T = float, typename INDEX = size_t>
-class NeuralNetLimitedConnection : public NeuralNetLayerBuf<T, INDEX>
+class NeuralNetSparseLayer : public NeuralNetLayerBuf<T, INDEX>
 {
 	typedef NeuralNetLayer<T, INDEX> super;
 	

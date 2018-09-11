@@ -11,8 +11,8 @@
 #pragma once
 
 #include <cstdint>
-#include "NeuralNetLimitedConnection.h"
-#include "NeuralNetLimitedConnectionAffine.h"
+#include "NeuralNetSparseLayer.h"
+#include "NeuralNetSparseAffine.h"
 #include "NeuralNetBatchNormalization.h"
 #include "NeuralNetBinarize.h"
 
@@ -22,13 +22,13 @@ namespace bb {
 
 // ì¸óÕêîêßå¿Affine Binary Connectî≈
 template <int N = 6, typename T = float, typename INDEX = size_t>
-class NeuralNetSparseBinaryAffine : public NeuralNetLimitedConnection<T, INDEX>
+class NeuralNetSparseBinaryAffine : public NeuralNetSparseLayer<T, INDEX>
 {
 protected:
 	// 3ëwÇ≈ç\ê¨
-	NeuralNetLimitedConnectionAffine<N, T, INDEX>	m_affine;
-	NeuralNetBatchNormalization<T, INDEX>			m_norm;
-	NeuralNetBinarize<T, INDEX>						m_binarize;
+	NeuralNetSparseAffine<N, T, INDEX>		m_affine;
+	NeuralNetBatchNormalization<T, INDEX>	m_norm;
+	NeuralNetBinarize<T, INDEX>				m_binarize;
 		
 public:
 	NeuralNetSparseBinaryAffine() {}
