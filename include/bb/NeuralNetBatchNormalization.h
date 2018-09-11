@@ -93,6 +93,15 @@ public:
 	int   GetOutputValueDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
 
+	T CalcNode(INDEX node, std::vector<T> input_value) const
+	{
+		T val = input_value[0];
+		val -= m_running_mean(node);
+		val /= (T)sqrt(m_running_var(node) + 10e-7);
+		val = val * m_gamma(node) + m_beta(node);
+		return val;
+	}
+
 	void Forward(bool train = true)
 	{
 		Eigen::Map<Matrix> x((T*)m_input_value_buffer.GetBuffer(), m_input_value_buffer.GetFrameStride() / sizeof(T), m_node_size);
@@ -101,9 +110,7 @@ public:
 		Matrix xc;
 		Matrix xn;
 		
-//		if (train) {
-		if (true) {
-
+		if (train) {
 			Vector mu = x.colwise().mean();
 			//	std::cout << "mu =\n" << mu << std::endl;
 
@@ -123,18 +130,12 @@ public:
 			m_xc = xc;
 			m_std = std;
 			
-	//		std::cout << "xc =\n" << xc << std::endl;
-	//		std::cout << "xn =\n" << xn << std::endl;
-
 			m_running_mean = m_running_mean * m_momentum + mu * (1 - m_momentum);
 			m_running_var = m_running_var * m_momentum + var * (1 - m_momentum);
 		}
 		else{
 			xc = x.rowwise() - m_running_mean;
-			xn = xc.array() / (m_running_var.array() + 10e-7).array().sqrt();
-
-	//		std::cout << "xc =\n" << xc << std::endl;
-	//		std::cout << "xn =\n" << xn << std::endl;
+			xn = xc.array().rowwise() / (m_running_var.array() + 10e-7).array().sqrt();
 		}
 		y = (xn.array().rowwise() * m_gamma.array()).array().rowwise() + m_beta.array();
 		//	std::cout << "y =\n" << y << std::endl;

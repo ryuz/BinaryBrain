@@ -41,7 +41,8 @@ TEST(NeuralNetBatchNormalizationTest, testBatchNormalization)
 	in_val.SetReal(6, 1, 27);
 	in_val.SetReal(7, 1, 16);
 
-	batch_norm.Forward();
+	batch_norm.Forward(true);
+//	batch_norm.Forward(false);
 
 	/*
 	[-1.52752510, -1.23359570],

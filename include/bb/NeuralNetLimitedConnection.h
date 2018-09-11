@@ -32,20 +32,18 @@ public:
 	// 入出力サイズの管理
 	INDEX GetInputNodeSize(void) const { return m_input_node_size; }
 	INDEX GetOutputNodeSize(void) const { return m_output_node_size; }
-
+	
 	// ノードの接続管理の定義
 	virtual int   GetNodeInputSize(INDEX node) const = 0;
 	virtual void  SetNodeInput(INDEX node, int input_index, INDEX input_node) = 0;
 	virtual INDEX GetNodeInput(INDEX node, int input_index) const = 0;
-
-	virtual T     CalcNode(INDEX node, std::vector<T> input_value) const { return 0; }
-
+	
 	virtual void Resize(INDEX input_node_size, INDEX output_node_size)
 	{
 		m_input_node_size = input_node_size;
 		m_output_node_size = output_node_size;
 	}
-
+	
 	virtual void InitializeCoeff(std::uint64_t seed)
 	{
 		std::mt19937_64                     mt(seed);
@@ -53,7 +51,7 @@ public:
 		
 		// 接続先をシャッフル
 		ShuffleSet	ss(GetInputNodeSize(), mt());
-
+		
 		INDEX node_size = GetOutputNodeSize();
 		for (INDEX node = 0; node < node_size; ++node) {
 			// 入力をランダム接続

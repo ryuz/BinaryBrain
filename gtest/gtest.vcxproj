@@ -30,6 +30,7 @@
     <ClCompile Include="NeuralNetRealToBinaryTest.cpp" />
     <ClCompile Include="NeuralNetSigmoidTest.cpp" />
     <ClCompile Include="NeuralNetSoftmaxTest.cpp" />
+    <ClCompile Include="NeuralNetSparseBinaryAffineTest.cpp" />
     <ClCompile Include="NeuralNetTypeTest.cpp" />
   </ItemGroup>
   <ItemGroup>

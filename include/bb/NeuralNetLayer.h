@@ -56,12 +56,15 @@ public:
 	
 	virtual void  SetMuxSize(INDEX mux_size) = 0;								// 多重化サイズの設定
 	virtual void  SetBatchSize(INDEX batch_size) = 0;							// バッチサイズの設定
+	
+	virtual T     CalcNode(INDEX node, std::vector<T> input_value) const { return input_value[0]; }	// 1ノードだけ個別計算
+	
 	virtual	void  Forward(bool train=true) = 0;									// 予測
 	virtual	void  Backward(void) = 0;											// 誤差逆伝播
 	virtual	void  Update(double learning_rate) {};								// 学習
 	virtual	bool  Feedback(const std::vector<double>& loss) { return false; }	// 直接フィードバック
 	
-
+	
 	// バッファ設定
 	virtual void  SetInputValueBuffer(NeuralNetBuffer<T, INDEX> buffer) = 0;
 	virtual void  SetOutputValueBuffer(NeuralNetBuffer<T, INDEX> buffer) = 0;
@@ -73,7 +76,7 @@ public:
 	virtual const NeuralNetBuffer<T, INDEX>& GetOutputValueBuffer(void) const = 0;
 	virtual const NeuralNetBuffer<T, INDEX>& GetInputErrorBuffer(void) const = 0;
 	virtual const NeuralNetBuffer<T, INDEX>& GetOutputErrorBuffer(void) const = 0;
-
+	
 	// バッファ生成補助
 	NeuralNetBuffer<T, INDEX> CreateInputValueBuffer(void) { 
 		return NeuralNetBuffer<T, INDEX>(GetInputFrameSize(), GetInputNodeSize(), GetInputValueDataType());
@@ -88,7 +91,7 @@ public:
 		return NeuralNetBuffer<T, INDEX>(GetOutputFrameSize(), GetOutputNodeSize(), GetOutputErrorDataType());
 	}
 	
-
+	
 	// Serialize
 	template <class Archive>
 	void save(Archive& archive, std::uint32_t const version) const
