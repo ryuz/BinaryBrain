@@ -26,6 +26,7 @@
     <ClCompile Include="NeuralNetBinaryToRealTest.cpp" />
     <ClCompile Include="NeuralNetBufferTest.cpp" />
     <ClCompile Include="NeuralNetConvolutionTest.cpp" />
+    <ClCompile Include="NeuralNetMaxPoolingTest.cpp" />
     <ClCompile Include="NeuralNetRealToBinaryTest.cpp" />
     <ClCompile Include="NeuralNetSigmoidTest.cpp" />
     <ClCompile Include="NeuralNetSoftmaxTest.cpp" />

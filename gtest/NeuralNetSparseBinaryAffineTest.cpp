@@ -16,6 +16,7 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 TEST(NeuralNetSparseBinaryAffineTest, testAffine)
 {
 	bb::NeuralNetSparseBinaryAffine<2> affine(2, 3);
+	affine.SetBatchSize(1);
 	testSetupLayerBuffer(affine);
 	
 	auto in_val = affine.GetInputSignalBuffer();

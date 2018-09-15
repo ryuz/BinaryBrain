@@ -1040,10 +1040,11 @@ int main()
 //	eva_mnist.RunFlatReal(8, 256, 10.0);
 //	getchar();
 
-	eva_mnist.RunConvolutionReal(8, 256, 10.0);
+//	eva_mnist.RunConvolutionReal(8, 256, 10.0);
 
 //	eva_mnist.RunBnn(16, 256);
-//	eva_mnist.RunFlatRealToBinary2(100, 256);
+	eva_mnist.RunFlatRealToBinary2(100, 256);
+
 //	eva_mnist.RunFlatRealToBinary3(100, 256);
 
 
