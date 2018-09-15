@@ -15,7 +15,7 @@
 #include <intrin.h>
 #include <omp.h>
 #include <ppl.h>
-#include "NeuralNetLimitedConnection.h"
+#include "NeuralNetSparseLayer.h"
 
 
 namespace bb {
@@ -23,9 +23,9 @@ namespace bb {
 
 // ì¸óÕêîêßå¿Affine Binary Connectî≈
 template <int N = 6, typename T = float, typename INDEX = size_t>
-class NeuralNetLimitedConnectionAffineBc : public NeuralNetLimitedConnection<T, INDEX>
+class NeuralNetSparseAffineBc : public NeuralNetSparseLayer<T, INDEX>
 {
-	typedef NeuralNetLimitedConnection<T, INDEX>	super;
+	typedef NeuralNetSparseLayer<T, INDEX>	super;
 
 protected:
 	struct Node {
@@ -43,15 +43,15 @@ protected:
 
 	
 public:
-	NeuralNetLimitedConnectionAffineBc() {}
+	NeuralNetSparseAffineBc() {}
 
-	NeuralNetLimitedConnectionAffineBc(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1)
+	NeuralNetSparseAffineBc(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1)
 	{
 		Resize(input_node_size, output_node_size);
 		InitializeCoeff(seed);
 	}
 
-	~NeuralNetLimitedConnectionAffineBc() {}
+	~NeuralNetSparseAffineBc() {}
 
 	T& W(INDEX input, INDEX output) { return m_node[output].W[input]; }
 	T& b(INDEX output) { return m_node[output].b; }

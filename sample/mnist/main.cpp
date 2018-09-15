@@ -328,6 +328,9 @@ public:
 
 		std::mt19937_64 mt(1);
 
+		int train_mux_size = 1;
+		int test_mux_size = 16;
+
 
 		// 層構成
 		size_t input_node_size = 28 * 28;
@@ -353,6 +356,7 @@ public:
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
 			// 学習状況評価
+			real_net.SetMuxSize(test_mux_size);
 			auto real_accuracy = CalcAccuracy(real_net);
 			std::cout << get_time() << "s " << "epoc[" << epoc << "] real_net accuracy : " << real_accuracy << std::endl;
 
@@ -361,6 +365,7 @@ public:
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
 
 				// 入力データ設定
+				real_net.SetMuxSize(train_mux_size);
 				real_net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					real_net.SetInputValue(frame, m_train_images[frame + x_index]);
@@ -385,10 +390,6 @@ public:
 			}
 		}
 
-
-		// ここからバイナリ
-		int train_mux_size = 1;
-		int test_mux_size = 16;
 
 		// バイナリ版NET構築
 		bb::NeuralNet<>	bin_net;
@@ -518,7 +519,7 @@ int main()
 
 #if 1
 	// 接続制限の実数で学習した後でバイナリにコピー
-	eva_mnist.RunRealToBinary(4, 256);
+	eva_mnist.RunRealToBinary(16, 256);
 #endif
 
 	return 0;

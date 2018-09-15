@@ -22,16 +22,15 @@
 namespace bb {
 
 
-// NeuralNetの抽象クラス
+// abstract neura-network layer class
 template <typename T=float, typename INDEX = size_t>
 class NeuralNetLayer
 {
 protected:
-	// レイヤー名
 	std::string					m_layer_name;
 
 public:
-	// 基本機能
+	// basic functions
 	virtual ~NeuralNetLayer() {}												// デストラクタ
 
 	virtual void  SetLayerName(const std::string name) {						// レイヤー名設定
@@ -49,10 +48,6 @@ public:
 	virtual INDEX GetInputNodeSize(void) const = 0;								// 入力のノード数
 	virtual INDEX GetOutputFrameSize(void) const = 0;							// 出力のフレーム数
 	virtual INDEX GetOutputNodeSize(void) const = 0;							// 出力のノード数
-	virtual int   GetInputValueDataType(void) const = 0;						// 入力値のサイズ
-	virtual int   GetInputErrorDataType(void) const = 0;						// 出力値のサイズ
-	virtual int   GetOutputValueDataType(void) const = 0;						// 入力値のサイズ
-	virtual int   GetOutputErrorDataType(void) const = 0;						// 入力値のサイズ
 	
 	virtual void  SetMuxSize(INDEX mux_size) = 0;								// 多重化サイズの設定
 	virtual void  SetBatchSize(INDEX batch_size) = 0;							// バッチサイズの設定
@@ -65,25 +60,34 @@ public:
 	virtual	bool  Feedback(const std::vector<double>& loss) { return false; }	// 直接フィードバック
 	
 	
-	// バッファ設定
+	// forward propagation of signals
+	virtual int   GetInputValueDataType(void) const = 0;
+	virtual int   GetOutputValueDataType(void) const = 0;
+	
 	virtual void  SetInputValueBuffer(NeuralNetBuffer<T, INDEX> buffer) = 0;
 	virtual void  SetOutputValueBuffer(NeuralNetBuffer<T, INDEX> buffer) = 0;
-	virtual void  SetInputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) = 0;
-	virtual void  SetOutputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) = 0;
 	
-	// バッファ取得
 	virtual const NeuralNetBuffer<T, INDEX>& GetInputValueBuffer(void) const = 0;
 	virtual const NeuralNetBuffer<T, INDEX>& GetOutputValueBuffer(void) const = 0;
-	virtual const NeuralNetBuffer<T, INDEX>& GetInputErrorBuffer(void) const = 0;
-	virtual const NeuralNetBuffer<T, INDEX>& GetOutputErrorBuffer(void) const = 0;
 	
-	// バッファ生成補助
 	NeuralNetBuffer<T, INDEX> CreateInputValueBuffer(void) { 
 		return NeuralNetBuffer<T, INDEX>(GetInputFrameSize(), GetInputNodeSize(), GetInputValueDataType());
 	}
 	NeuralNetBuffer<T, INDEX> CreateOutputValueBuffer(void) {
 		return NeuralNetBuffer<T, INDEX>(GetOutputFrameSize(), GetOutputNodeSize(), GetOutputValueDataType());
 	}
+	
+
+	// backward propagation of errors
+	virtual int   GetInputErrorDataType(void) const = 0;
+	virtual int   GetOutputErrorDataType(void) const = 0;
+
+	virtual void  SetInputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) = 0;
+	virtual void  SetOutputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) = 0;
+
+	virtual const NeuralNetBuffer<T, INDEX>& GetInputErrorBuffer(void) const = 0;
+	virtual const NeuralNetBuffer<T, INDEX>& GetOutputErrorBuffer(void) const = 0;
+
 	NeuralNetBuffer<T, INDEX> CreateInputErrorBuffer(void) {
 		return NeuralNetBuffer<T, INDEX>(GetInputFrameSize(), GetInputNodeSize(), GetInputErrorDataType());
 	}
@@ -92,7 +96,7 @@ public:
 	}
 	
 	
-	// Serialize
+	// Serialize(CEREAL)
 	template <class Archive>
 	void save(Archive& archive, std::uint32_t const version) const
 	{

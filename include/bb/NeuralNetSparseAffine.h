@@ -35,10 +35,10 @@ protected:
 		std::array<T, N>		dW;
 		T						db;
 
-		T	gamma = 1;
-		T	beta  = 0;
-		T	mean  = 0;
-		T	var   = 1;
+//		T	gamma = 1;
+//		T	beta  = 0;
+//		T	mean  = 0;
+//		T	var   = 1;
 	};
 
 	INDEX						m_mux_size = 1;
@@ -62,10 +62,10 @@ public:
 	T& dW(INDEX input, INDEX output) { return m_node[output].dW[input]; }
 	T& db(INDEX output) { return[output].db; }
 
-	T& gamma(INDEX node) { return m_node[node].gamma; }
-	T& beta(INDEX node) { return m_node[node].beta; }
-	T& mean(INDEX node) { return m_node[node].mean; }
-	T& var(INDEX node) { return m_node[node].var; }
+//	T& gamma(INDEX node) { return m_node[node].gamma; }
+//	T& beta(INDEX node) { return m_node[node].beta; }
+//	T& mean(INDEX node) { return m_node[node].mean; }
+//	T& var(INDEX node) { return m_node[node].var; }
 
 
 	T CalcNode(INDEX node, std::vector<T> input_value) const
@@ -76,9 +76,9 @@ public:
 			val += input_value[i] * nd.W[i];
 		}
 		
-		val -= m_node[node].mean;
-		val /= (T)sqrt(m_node[node].var + 10e-7);
-		val = (val * m_node[node].gamma) + m_node[node].beta;
+//		val -= m_node[node].mean;
+//		val /= (T)sqrt(m_node[node].var + 10e-7);
+//		val = (val * m_node[node].gamma) + m_node[node].beta;
 
 		return val;
 	}
