@@ -249,12 +249,12 @@ public:
 
 				// åÎç∑ãtì`îd
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					auto values = net.GetOutputSignal(frame);
-					for (size_t node = 0; node < values.size(); ++node) {
-						values[node] -= m_train_onehot[x_index + frame][node];
-						values[node] /= (float)batch_size;
+					auto signals = net.GetOutputSignal(frame);
+					for (size_t node = 0; node < signals.size(); ++node) {
+						signals[node] -= m_train_onehot[x_index + frame][node];
+						signals[node] /= (float)batch_size;
 					}
-					net.SetOutputError(frame, values);
+					net.SetOutputError(frame, signals);
 				}
 				net.Backward();
 
@@ -308,12 +308,12 @@ public:
 
 				// åÎç∑ãtì`îd
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					auto values = net.GetOutputSignal(frame);
-					for (size_t node = 0; node < values.size(); ++node) {
-						values[node] -= m_train_onehot[x_index + frame][node];
-						values[node] /= (float)batch_size;
+					auto signals = net.GetOutputSignal(frame);
+					for (size_t node = 0; node < signals.size(); ++node) {
+						signals[node] -= m_train_onehot[x_index + frame][node];
+						signals[node] /= (float)batch_size;
 					}
-					net.SetOutputError(frame, values);
+					net.SetOutputError(frame, signals);
 				}
 				net.Backward();
 
@@ -368,12 +368,12 @@ public:
 
 				// åÎç∑ãtì`îd
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					auto values = net.GetOutputSignal(frame);
-					for (size_t node = 0; node < values.size(); ++node) {
-						values[node] -= m_train_onehot[x_index + frame][node % 10];
-						values[node] /= (float)batch_size;
+					auto signals = net.GetOutputSignal(frame);
+					for (size_t node = 0; node < signals.size(); ++node) {
+						signals[node] -= m_train_onehot[x_index + frame][node % 10];
+						signals[node] /= (float)batch_size;
 					}
-					net.SetOutputError(frame, values);
+					net.SetOutputError(frame, signals);
 				}
 				net.Backward();
 
@@ -436,12 +436,12 @@ public:
 
 				// åÎç∑ãtì`îd
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					auto values = net.GetOutputSignal(frame);
-					for (size_t node = 0; node < values.size(); ++node) {
-						values[node] -= m_train_onehot[x_index + frame][node];
-						values[node] /= (float)batch_size;
+					auto signals = net.GetOutputSignal(frame);
+					for (size_t node = 0; node < signals.size(); ++node) {
+						signals[node] -= m_train_onehot[x_index + frame][node];
+						signals[node] /= (float)batch_size;
 					}
-					net.SetOutputError(frame, values);
+					net.SetOutputError(frame, signals);
 				}
 				net.Backward();
 				
@@ -516,12 +516,12 @@ public:
 
 				// åÎç∑ãtì`îd
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					auto values = net.GetOutputSignal(frame);
-					for (size_t node = 0; node < values.size(); ++node) {
-						values[node] -= m_train_onehot[x_index + frame][node];
-						values[node] /= (float)batch_size;
+					auto signals = net.GetOutputSignal(frame);
+					for (size_t node = 0; node < signals.size(); ++node) {
+						signals[node] -= m_train_onehot[x_index + frame][node];
+						signals[node] /= (float)batch_size;
 					}
-					net.SetOutputError(frame, values);
+					net.SetOutputError(frame, signals);
 				}
 				net.Backward();
 
@@ -596,12 +596,12 @@ public:
 
 				// åÎç∑ãtì`îd
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					auto values = net.GetOutputSignal(frame);
-					for (size_t node = 0; node < values.size(); ++node) {
-						values[node] -= m_train_onehot[x_index + frame][node % 10];
-						values[node] /= (float)batch_size;
+					auto signals = net.GetOutputSignal(frame);
+					for (size_t node = 0; node < signals.size(); ++node) {
+						signals[node] -= m_train_onehot[x_index + frame][node % 10];
+						signals[node] /= (float)batch_size;
 					}
-					net.SetOutputError(frame, values);
+					net.SetOutputError(frame, signals);
 				}
 				net.Backward();
 
@@ -701,12 +701,12 @@ public:
 
 				// åÎç∑ãtì`îd
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					auto values = real_net.GetOutputSignal(frame);
-					for (size_t node = 0; node < values.size(); ++node) {
-						values[node] -= m_train_onehot[frame + x_index][node % 10];
-						values[node] /= (float)batch_size;
+					auto signals = real_net.GetOutputSignal(frame);
+					for (size_t node = 0; node < signals.size(); ++node) {
+						signals[node] -= m_train_onehot[frame + x_index][node % 10];
+						signals[node] /= (float)batch_size;
 					}
-					real_net.SetOutputError(frame, values);
+					real_net.SetOutputError(frame, signals);
 				}
 				real_net.Backward();
 
@@ -809,12 +809,12 @@ public:
 
 				// åÎç∑ãtì`îd
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					auto values = real_net.GetOutputSignal(frame);
-					for (size_t node = 0; node < values.size(); ++node) {
-						values[node] -= m_train_onehot[frame + x_index][node % 10];
-						values[node] /= (float)batch_size;
+					auto signals = real_net.GetOutputSignal(frame);
+					for (size_t node = 0; node < signals.size(); ++node) {
+						signals[node] -= m_train_onehot[frame + x_index][node % 10];
+						signals[node] /= (float)batch_size;
 					}
-					real_net.SetOutputError(frame, values);
+					real_net.SetOutputError(frame, signals);
 				}
 				real_net.Backward();
 
@@ -936,12 +936,12 @@ public:
 
 				// åÎç∑ãtì`îd
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					auto values = real_net.GetOutputSignal(frame);
-					for (size_t node = 0; node < values.size(); ++node) {
-						values[node] -= m_train_onehot[frame + x_index][node % 10];
-						values[node] /= (float)batch_size;
+					auto signals = real_net.GetOutputSignal(frame);
+					for (size_t node = 0; node < signals.size(); ++node) {
+						signals[node] -= m_train_onehot[frame + x_index][node % 10];
+						signals[node] /= (float)batch_size;
 					}
-					real_net.SetOutputError(frame, values);
+					real_net.SetOutputError(frame, signals);
 				}
 				real_net.Backward();
 
@@ -991,12 +991,12 @@ public:
 
 				// åÎç∑ãtì`îd
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					auto values = net.GetOutputSignal(frame);
-					for (size_t node = 0; node < values.size(); ++node) {
-						values[node] -= m_train_onehot[x_index + frame][node];
-						values[node] /= (float)batch_size;
+					auto signals = net.GetOutputSignal(frame);
+					for (size_t node = 0; node < signals.size(); ++node) {
+						signals[node] -= m_train_onehot[x_index + frame][node];
+						signals[node] /= (float)batch_size;
 					}
-					net.SetOutputError(frame, values);
+					net.SetOutputError(frame, signals);
 				}
 				net.Backward();
 

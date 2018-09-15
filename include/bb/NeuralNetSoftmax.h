@@ -64,20 +64,20 @@ public:
 
 	void Forward(bool train = true)
 	{
-		Eigen::Map<Matrix> inputValue((T*)m_input_value_buffer.GetBuffer(), m_input_value_buffer.GetFrameStride() / sizeof(T), m_node_size);
-		Eigen::Map<Matrix> outputValue((T*)m_output_value_buffer.GetBuffer(), m_output_value_buffer.GetFrameStride() / sizeof(T), m_node_size);
+		Eigen::Map<Matrix> x((T*)m_input_signal_buffer.GetBuffer(), m_input_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
+		Eigen::Map<Matrix> y((T*)m_output_signal_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
 
-		auto valueExp = (inputValue.colwise() - inputValue.rowwise().maxCoeff()).array().exp();
-		auto valueSum = valueExp.rowwise().sum();
-		outputValue = valueExp.array().colwise() / valueSum.array();
+		auto x_exp = (x.colwise() - x.rowwise().maxCoeff()).array().exp();
+		auto x_sum = x_exp.rowwise().sum();
+		y = x_exp.array().colwise() / x_sum.array();
 	}
 
 	void Backward(void)
 	{
-		Eigen::Map<Matrix> outputError((T*)m_output_error_buffer.GetBuffer(), m_output_error_buffer.GetFrameStride() / sizeof(T), m_node_size);
-		Eigen::Map<Matrix> inputError((T*)m_input_error_buffer.GetBuffer(), m_input_error_buffer.GetFrameStride() / sizeof(T), m_node_size);
+		Eigen::Map<Matrix> dy((T*)m_output_error_buffer.GetBuffer(), m_output_error_buffer.GetFrameStride() / sizeof(T), m_node_size);
+		Eigen::Map<Matrix> dx((T*)m_input_error_buffer.GetBuffer(), m_input_error_buffer.GetFrameStride() / sizeof(T), m_node_size);
 
-		inputError = outputError;
+		dx = dy;
 	}
 
 	void Update(double learning_rate)

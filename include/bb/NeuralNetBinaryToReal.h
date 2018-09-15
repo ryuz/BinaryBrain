@@ -65,8 +65,8 @@ public:
 	
 	void Forward(bool train = true)
 	{
-		auto in_val = GetInputSignalBuffer();
-		auto out_val = GetOutputSignalBuffer();
+		auto in_sig_buf = GetInputSignalBuffer();
+		auto out_sig_buf = GetOutputSignalBuffer();
 
 		T	reciprocal = (T)1.0 / (T)m_mux_size;
 
@@ -79,14 +79,14 @@ public:
 			std::fill(vec_n.begin(), vec_n.end(), 0);
 			for (INDEX node = 0; node < node_size; node++) {
 				for (INDEX i = 0; i < m_mux_size; i++) {
-					Binary binVal = in_val.Get<BT>(frame*m_mux_size + i, node);
-					vec_v[node % m_output_node_size] += binVal ? 1 : 0;
+					Binary bin_sig = in_sig_buf.Get<BT>(frame*m_mux_size + i, node);
+					vec_v[node % m_output_node_size] += bin_sig ? 1 : 0;
 					vec_n[node % m_output_node_size] += 1;
 				}
 			}
 
 			for (INDEX node = 0; node < m_output_node_size; node++) {
-				out_val.Set<T>(frame, node, (T)vec_v[node] / vec_n[node]);
+				out_sig_buf.Set<T>(frame, node, (T)vec_v[node] / vec_n[node]);
 			}
 		}
 	}

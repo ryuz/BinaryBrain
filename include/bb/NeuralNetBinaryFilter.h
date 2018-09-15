@@ -132,34 +132,29 @@ protected:
 public:
 	void Forward(bool train = true)
 	{
-		auto in_val = GetInputSignalBuffer();
-		auto out_val = GetOutputSignalBuffer();
+		auto in_sig_buf = GetInputSignalBuffer();
+		auto out_sig_buf = GetOutputSignalBuffer();
 
-		in_val.SetDimensions({ m_input_w_size, m_input_h_size, m_input_c_size});
-		out_val.SetDimensions({ m_output_w_size, m_output_h_size, m_output_c_size});
+		in_sig_buf.SetDimensions({ m_input_w_size, m_input_h_size, m_input_c_size});
+		out_sig_buf.SetDimensions({ m_output_w_size, m_output_h_size, m_output_c_size});
 		
 		INDEX in_y = 0;
 		for (INDEX out_y = 0; out_y < m_output_h_size; ++out_y) {
 			INDEX in_x = 0;
 			for (INDEX out_x = 0; out_x < m_output_w_size; ++out_x) {
-				in_val.ClearRoi();
-				in_val.SetRoi({ in_x, in_y, 0}, { m_filter_w_size, m_filter_h_size, m_input_c_size });
-				out_val.ClearRoi();
-				out_val.SetRoi({ out_x, out_y, 0}, { 1, 1, m_output_c_size });
+				in_sig_buf.ClearRoi();
+				in_sig_buf.SetRoi({ in_x, in_y, 0}, { m_filter_w_size, m_filter_h_size, m_input_c_size });
+				out_sig_buf.ClearRoi();
+				out_sig_buf.SetRoi({ out_x, out_y, 0}, { 1, 1, m_output_c_size });
 
-				m_filter_net->SetInputSignalBuffer(in_val);
-				m_filter_net->SetOutputSignalBuffer(out_val);
+				m_filter_net->SetInputSignalBuffer(in_sig_buf);
+				m_filter_net->SetOutputSignalBuffer(out_sig_buf);
 				m_filter_net->Forward();
 
 				in_x += m_x_step;
 			}
 			in_y += m_y_step;
 		}
-
-	//	in_val.ClearRoi();
-	//	SetInputSignalBuffer(in_val);
-	//	out_val.ClearRoi();
-	//	SetOutputSignalBuffer(out_val);
 	}
 	
 	void Backward(void)
@@ -173,7 +168,7 @@ public:
 	bool Feedback(const std::vector<double>& loss)
 	{
 		if ( m_filter_net->Feedback(loss)) {
-			Forward();	// 全体再計算
+			Forward(false);	// 全体再計算
 			return true;
 		}
 		

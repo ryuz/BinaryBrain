@@ -62,12 +62,6 @@ public:
 	T& dW(INDEX input, INDEX output) { return m_node[output].dW[input]; }
 	T& db(INDEX output) { return[output].db; }
 
-//	T& gamma(INDEX node) { return m_node[node].gamma; }
-//	T& beta(INDEX node) { return m_node[node].beta; }
-//	T& mean(INDEX node) { return m_node[node].mean; }
-//	T& var(INDEX node) { return m_node[node].var; }
-
-
 	T CalcNode(INDEX node, std::vector<T> input_value) const
 	{
 		auto& nd = m_node[node];
@@ -76,10 +70,6 @@ public:
 			val += input_value[i] * nd.W[i];
 		}
 		
-//		val -= m_node[node].mean;
-//		val /= (T)sqrt(m_node[node].var + 10e-7);
-//		val = (val * m_node[node].gamma) + m_node[node].beta;
-
 		return val;
 	}
 
@@ -128,15 +118,15 @@ protected:
 		if (typeid(T) == typeid(float)) {
 			INDEX frame_size = (m_frame_size + 7) / 8;
 
-			auto in_buf = GetInputSignalBuffer();
-			auto out_buf = GetOutputSignalBuffer();
+			auto in_sig_buf = GetInputSignalBuffer();
+			auto out_sig_buf = GetOutputSignalBuffer();
 			
-			float*	in_ptr[N];
-			float*	out_ptr;
+			float*	in_sig_ptr[N];
+			float*	out_sig_ptr;
 			for (int i = 0; i < N; ++i) {
-				in_ptr[i] = (float*)in_buf.GetPtr(m_node[node].input[i]);
+				in_sig_ptr[i] = (float*)in_sig_buf.GetPtr(m_node[node].input[i]);
 			}
-			out_ptr = (float*)out_buf.GetPtr(node);
+			out_sig_ptr = (float*)out_sig_buf.GetPtr(node);
 
 			__m256	W[N];
 			for (int i = 0; i < N; ++i) {
@@ -147,10 +137,10 @@ protected:
 			for (INDEX frame = 0; frame < frame_size; ++frame) {
 				__m256	acc = b;
 				for (int i = 0; i < N; ++i) {
-					__m256 val = _mm256_load_ps(in_ptr[i]);	in_ptr[i] += 8;
-					acc = _mm256_fmadd_ps(W[i], val, acc);
+					__m256 sig = _mm256_load_ps(in_sig_ptr[i]);	in_sig_ptr[i] += 8;
+					acc = _mm256_fmadd_ps(W[i], sig, acc);
 				}
-				_mm256_store_ps(out_ptr, acc);	out_ptr += 8;
+				_mm256_store_ps(out_sig_ptr, acc);	out_sig_ptr += 8;
 			}
 		}
 	}
@@ -168,8 +158,8 @@ public:
 
 	void Backward(void)
 	{
-		auto in_val_buf = GetInputSignalBuffer();
-		auto out_val_buf = GetOutputSignalBuffer();
+		auto in_sig_buf = GetInputSignalBuffer();
+		auto out_sig_buf = GetOutputSignalBuffer();
 		auto in_err_buf = GetInputErrorBuffer();
 		auto out_err_buf = GetOutputErrorBuffer();
 
@@ -193,24 +183,24 @@ public:
 
 				float*	out_err_ptr;
 				float*	in_err_ptr[N];
-				float*	in_val_ptr[N];
+				float*	in_sig_ptr[N];
 
 				out_err_ptr = (float*)out_err_buf.GetPtr(node);
 				for (int i = 0; i < N; ++i) {
 					in_err_ptr[i] = (float*)in_err_buf.GetPtr(nd.input[i]);
-					in_val_ptr[i] = (float*)in_val_buf.GetPtr(nd.input[i]);
+					in_sig_ptr[i] = (float*)in_sig_buf.GetPtr(nd.input[i]);
 				}
 
 				for (size_t frame = 0; frame < frame_size; ++frame) {
 					__m256 out_err = _mm256_load_ps(out_err_ptr);	out_err_ptr += 8;
 					db = _mm256_add_ps(db, out_err);
 					for (int i = 0; i < N; ++i) {
-						__m256 in_val = _mm256_load_ps(in_val_ptr[i]);	in_val_ptr[i] += 8;
+						__m256 in_sig = _mm256_load_ps(in_sig_ptr[i]);	in_sig_ptr[i] += 8;
 						__m256 in_err = _mm256_load_ps(in_err_ptr[i]);
 						in_err = _mm256_fmadd_ps(W[i], out_err, in_err);
 						_mm256_store_ps(in_err_ptr[i], in_err);	in_err_ptr[i] += 8;
 
-						dW[i] = _mm256_fmadd_ps(in_val, out_err, dW[i]);
+						dW[i] = _mm256_fmadd_ps(in_sig, out_err, dW[i]);
 					}
 				}
 

@@ -92,19 +92,19 @@ public:
 	int   GetOutputSignalDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
 
-	T CalcNode(INDEX node, std::vector<T> input_value) const
+	T CalcNode(INDEX node, std::vector<T> input_signals) const
 	{
-		T val = input_value[0];
-		val -= m_running_mean(node);
-		val /= (T)sqrt(m_running_var(node) + 10e-7);
-		val = val * m_gamma(node) + m_beta(node);
-		return val;
+		T sig = input_signals[0];
+		sig -= m_running_mean(node);
+		sig /= (T)sqrt(m_running_var(node) + 10e-7);
+		sig = sig * m_gamma(node) + m_beta(node);
+		return sig;
 	}
 
 	void Forward(bool train = true)
 	{
-		Eigen::Map<Matrix> x((T*)m_input_value_buffer.GetBuffer(), m_input_value_buffer.GetFrameStride() / sizeof(T), m_node_size);
-		Eigen::Map<Matrix> y((T*)m_output_value_buffer.GetBuffer(), m_output_value_buffer.GetFrameStride() / sizeof(T), m_node_size);
+		Eigen::Map<Matrix> x((T*)m_input_signal_buffer.GetBuffer(), m_input_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
+		Eigen::Map<Matrix> y((T*)m_output_signal_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
 
 		Matrix xc;
 		Matrix xn;
@@ -142,9 +142,9 @@ public:
 
 	void Backward(void)
 	{
-		Eigen::Map<Matrix> y((T*)m_output_value_buffer.GetBuffer(), m_output_value_buffer.GetFrameStride() / sizeof(T), m_node_size);
-		Eigen::Map<Matrix> dy((T*)m_output_error_buffer.GetBuffer(), m_output_value_buffer.GetFrameStride() / sizeof(T), m_node_size);
-		Eigen::Map<Matrix> dx((T*)m_input_error_buffer.GetBuffer(), m_output_value_buffer.GetFrameStride() / sizeof(T), m_node_size);
+		Eigen::Map<Matrix> y((T*)m_output_signal_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
+		Eigen::Map<Matrix> dy((T*)m_output_error_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
+		Eigen::Map<Matrix> dx((T*)m_input_error_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
 		INDEX frame_szie = GetOutputFrameSize();
 
 //		std::cout << "dy =\n" << dy << std::endl;

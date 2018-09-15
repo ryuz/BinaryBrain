@@ -81,8 +81,8 @@ public:
 		for (INDEX node = 0; node < m_node_size; ++node) {
 			for (INDEX frame = 0; frame < m_frame_size; ++frame) {
 				auto err = dy.Get<T>(frame, node);
-				auto val = y.Get<T>(frame, node);
-				dx.Set<T>(frame, node, (val >= (T)-1.0 && val <= (T)1.0) ? err : 0);
+				auto sig = y.Get<T>(frame, node);
+				dx.Set<T>(frame, node, (sig >= (T)-1.0 && sig <= (T)1.0) ? err : 0);
 			}
 		}
 	}

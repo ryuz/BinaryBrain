@@ -111,7 +111,7 @@ public:
 
 
 public:
-	bool GetLutInputValue(INDEX frame, INDEX node, int bitpos) const
+	bool GetLutInputSignal(INDEX frame, INDEX node, int bitpos) const
 	{
 		INDEX input_node = GetLutInput(node, bitpos);
 		return GetInputSignalBuffer().Get<bool>(frame, input_node);
@@ -147,8 +147,8 @@ public:
 protected:
 	virtual void ForwardNode(INDEX node)
 	{
-		auto in_buf = GetInputSignalBuffer();
-		auto out_buf = GetOutputSignalBuffer();
+		auto in_sig_buf = GetInputSignalBuffer();
+		auto out_sig_buf = GetOutputSignalBuffer();
 		int   lut_input_size = GetLutInputSize();
 
 		for (INDEX frame = 0; frame < m_frame_size; ++frame) {
@@ -156,12 +156,12 @@ protected:
 			int mask = 1;
 			for (int i = 0; i < lut_input_size; i++) {
 				INDEX input_node = GetLutInput(node, i);
-				bool input_value = in_buf.Get<bool>(frame, input_node);
-				index |= input_value ? mask : 0;
+				bool input_signal = in_sig_buf.Get<bool>(frame, input_node);
+				index |= input_signal ? mask : 0;
 				mask <<= 1;
 			}
-			bool output_value = GetLutTable(node, index);
-			out_buf.Set<bool>(frame, node, output_value);
+			bool output_signal = GetLutTable(node, index);
+			out_sig_buf.Set<bool>(frame, node, output_signal);
 		}
 	}
 
@@ -173,23 +173,6 @@ public:
 		concurrency::parallel_for<INDEX>(0, node_size, [&](INDEX node)
 		{
 			ForwardNode(node);
-#if 0
-			auto in_buf = GetInputSignalBuffer();
-			auto out_buf = GetOutputSignalBuffer();
-
-			for (INDEX frame = 0; frame < m_frame_size; ++frame) {
-				int bit = 0;
-				int msk = 1;
-				for (int i = 0; i < lut_input_size; i++) {
-					INDEX input_node = GetLutInput(node, i);
-					bool input_value = in_buf.Get<bool>(frame, input_node);
-					bit |= input_value ? msk : 0;
-					msk <<= 1;
-				}
-				bool output_value = GetLutTable(node, bit);
-				out_buf.Set<bool>(frame, node, output_value);
-			}
-#endif
 		});
 	}
 	

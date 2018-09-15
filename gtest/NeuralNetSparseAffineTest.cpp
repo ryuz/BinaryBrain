@@ -14,7 +14,7 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 }
 
 
-TEST(NeuralNetLimitedConnectionAffineTest, testAffine)
+TEST(NeuralNetSparseAffineTest, testAffine)
 {
 	bb::NeuralNetSparseAffine<2> affine(2, 3);
 	testSetupLayerBuffer(affine);
@@ -72,7 +72,7 @@ TEST(NeuralNetLimitedConnectionAffineTest, testAffine)
 }
 
 
-TEST(NeuralNetLimitedConnectionAffineTest, testAffineInput)
+TEST(NeuralNetSparseAffineTest, testAffineInput)
 {
 	bb::NeuralNetSparseAffine<2> affine(2, 3);
 	testSetupLayerBuffer(affine);
@@ -128,7 +128,7 @@ TEST(NeuralNetLimitedConnectionAffineTest, testAffineInput)
 }
 
 
-TEST(NeuralNetLimitedConnectionAffineTest, testAffineCompare)
+TEST(NeuralNetSparseAffineTest, testAffineCompare)
 {
 	bb::NeuralNetAffine<>	  	  affineOrg(6, 5);
 	bb::NeuralNetSparseAffine<6>  affineLim(6, 5);

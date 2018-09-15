@@ -163,13 +163,13 @@ public:
 		if (typeid(T) == typeid(float)) {
 			// float—pŽÀ‘•
 			int  m256_frame_size = (int)(((m_frame_size + 7) / 8) * 8);
-			auto in_buf = GetInputSignalBuffer();
-			auto out_buf = GetOutputSignalBuffer();
+			auto in_sig_buf = GetInputSignalBuffer();
+			auto out_sig_buf = GetOutputSignalBuffer();
 
 			for (int n = 0; n < m_output_c_size; ++n) {
 				for (int y = 0; y < m_output_h_size; ++y) {
 					for (int x = 0; x < m_output_w_size; ++x) {
-						float* out_ptr = GetOutputPtr(out_buf, n, y, x);
+						float* out_ptr = GetOutputPtr(out_sig_buf, n, y, x);
 						for (size_t frame = 0; frame < m256_frame_size; frame += 8) {
 							__m256 sum = _mm256_set1_ps(b(n));
 							for (int c = 0; c < m_input_c_size; ++c) {
@@ -177,7 +177,7 @@ public:
 									for (int fx = 0; fx < m_filter_w_size; ++fx) {
 										int ix = x + fx;
 										int iy = y + fy;
-										float* in_ptr = GetInputPtr(in_buf, c, iy, ix);
+										float* in_ptr = GetInputPtr(in_sig_buf, c, iy, ix);
 										__m256 W_val = _mm256_set1_ps(W(n, c, fy, fx));
 										__m256 in_val = _mm256_load_ps(&in_ptr[frame]);
 										__m256 mul_val = _mm256_mul_ps(W_val, in_val);
@@ -204,8 +204,8 @@ public:
 		if (typeid(T) == typeid(float)) {
 			// float—pŽÀ‘•
 			int  m256_frame_size = (int)(((m_frame_size + 7) / 8) * 8);
-			auto in_val_buf = GetInputSignalBuffer();
-			auto out_val_buf = GetOutputSignalBuffer();
+			auto in_sig_buf = GetInputSignalBuffer();
+			auto out_sig_buf = GetOutputSignalBuffer();
 			auto in_err_buf = GetInputErrorBuffer();
 			auto out_err_buf = GetOutputErrorBuffer();
 
@@ -221,11 +221,11 @@ public:
 									int ix = x + fx;
 									int iy = y + fy;
 									float* out_err_ptr = GetOutputPtr(out_err_buf, n, y, x);
-									float* in_val_ptr = GetInputPtr(in_val_buf, c, iy, ix);
+									float* in_sig_ptr = GetInputPtr(in_sig_buf, c, iy, ix);
 									for (size_t frame = 0; frame < m256_frame_size; frame += 8) {
 										__m256 out_err = _mm256_load_ps(&out_err_ptr[frame]);
-										__m256 in_val = _mm256_load_ps(&in_val_ptr[frame]);
-										__m256 mul_val = _mm256_mul_ps(in_val, out_err);
+										__m256 in_sig = _mm256_load_ps(&in_sig_ptr[frame]);
+										__m256 mul_val = _mm256_mul_ps(in_sig, out_err);
 										sum_dW = _mm256_add_ps(sum_dW, mul_val);
 									}
 								}

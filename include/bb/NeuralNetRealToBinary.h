@@ -70,8 +70,8 @@ public:
 
 	void Forward(bool train = true)
 	{
-		auto in_val = GetInputSignalBuffer();
-		auto out_val = GetOutputSignalBuffer();
+		auto in_sig_buf = GetInputSignalBuffer();
+		auto out_sig_buf = GetOutputSignalBuffer();
 
 		std::uniform_real_distribution<T>	rand(m_real_range_lo, m_real_range_hi);
 
@@ -80,15 +80,15 @@ public:
 			std::vector<T>		vec_v(m_output_node_size, (T)0.0);
 			std::vector<int>	vec_n(m_output_node_size, 0);
 			for (INDEX node = 0; node < node_size; node++) {
-				vec_v[node % m_output_node_size] += in_val.Get<T>(frame, node % m_input_node_size);
+				vec_v[node % m_output_node_size] += in_sig_buf.Get<T>(frame, node % m_input_node_size);
 				vec_n[node % m_output_node_size] += 1;
 			}
 
 			for (INDEX node = 0; node < m_output_node_size; node++) {
-				T		realVal = vec_v[node] / (T)vec_n[node];
-				Binary	binVal = (realVal > rand(m_mt));
+				T		real_sig = vec_v[node] / (T)vec_n[node];
+				Binary	bin_sig = (real_sig > rand(m_mt));
 				for (INDEX i = 0; i < m_mux_size; i++) {
-					out_val.Set<BT>(frame*m_mux_size + i, node, binVal);
+					out_sig_buf.Set<BT>(frame*m_mux_size + i, node, bin_sig);
 				}
 			}
 		}
@@ -96,17 +96,17 @@ public:
 
 	void Backward(void)
 	{
-		auto in_err = GetInputErrorBuffer();
-		auto out_err = GetOutputErrorBuffer();
+		auto in_err_buf = GetInputErrorBuffer();
+		auto out_err_buf = GetOutputErrorBuffer();
 
-		in_err.Clear();
+		in_err_buf.Clear();
 		for (INDEX node = 0; node < m_output_node_size; node++) {
 			for (INDEX frame = 0; frame < m_batch_size; ++frame) {
-				auto err = in_err.Get<T>(frame, node % m_input_node_size);
+				auto err = in_err_buf.Get<T>(frame, node % m_input_node_size);
 				for (INDEX i = 0; i < m_mux_size; i++) {
-					err += out_err.Get<T>(frame*m_mux_size + i, node);
+					err += out_err_buf.Get<T>(frame*m_mux_size + i, node);
 				}
-				in_err.Set<T>(frame, node % m_input_node_size, err);
+				in_err_buf.Set<T>(frame, node % m_input_node_size, err);
 			}
 		}
 	}

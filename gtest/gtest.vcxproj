@@ -26,10 +26,10 @@
     <ClCompile Include="NeuralNetBinaryToRealTest.cpp" />
     <ClCompile Include="NeuralNetBufferTest.cpp" />
     <ClCompile Include="NeuralNetConvolutionTest.cpp" />
-    <ClCompile Include="NeuralNetInputLimitedAffineTest.cpp" />
     <ClCompile Include="NeuralNetRealToBinaryTest.cpp" />
     <ClCompile Include="NeuralNetSigmoidTest.cpp" />
     <ClCompile Include="NeuralNetSoftmaxTest.cpp" />
+    <ClCompile Include="NeuralNetSparseAffineTest.cpp" />
     <ClCompile Include="NeuralNetSparseBinaryAffineTest.cpp" />
     <ClCompile Include="NeuralNetTypeTest.cpp" />
   </ItemGroup>
@@ -37,6 +37,7 @@
     <ClInclude Include="..\include\bb\NeuralNet.h" />
     <ClInclude Include="..\include\bb\NeuralNetAffine.h" />
     <ClInclude Include="..\include\bb\NeuralNetBatchNormalization.h" />
+    <ClInclude Include="..\include\bb\NeuralNetBinarize.h" />
     <ClInclude Include="..\include\bb\NeuralNetBinaryFilter.h" />
     <ClInclude Include="..\include\bb\NeuralNetBinaryLut.h" />
     <ClInclude Include="..\include\bb\NeuralNetBinaryLut6.h" />
@@ -48,12 +49,15 @@
     <ClInclude Include="..\include\bb\NeuralNetGroup.h" />
     <ClInclude Include="..\include\bb\NeuralNetLayer.h" />
     <ClInclude Include="..\include\bb\NeuralNetLayerBuf.h" />
-    <ClInclude Include="..\include\bb\NeuralNetLimitedConnectionAffineBc.h" />
+    <ClInclude Include="..\include\bb\NeuralNetMaxPooling.h" />
     <ClInclude Include="..\include\bb\NeuralNetRealBinaryConverter.h" />
     <ClInclude Include="..\include\bb\NeuralNetRealToBinary.h" />
     <ClInclude Include="..\include\bb\NeuralNetSigmoid.h" />
     <ClInclude Include="..\include\bb\NeuralNetSoftmax.h" />
     <ClInclude Include="..\include\bb\NeuralNetSparseAffine.h" />
+    <ClInclude Include="..\include\bb\NeuralNetSparseAffineBc.h" />
+    <ClInclude Include="..\include\bb\NeuralNetSparseBinaryAffine.h" />
+    <ClInclude Include="..\include\bb\NeuralNetSparseLayer.h" />
     <ClInclude Include="..\include\bb\NeuralNetType.h" />
     <ClInclude Include="..\include\bb\NeuralNetUtility.h" />
     <ClInclude Include="..\include\bb\ShuffleSet.h" />
