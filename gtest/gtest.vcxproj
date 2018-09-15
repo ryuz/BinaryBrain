@@ -28,6 +28,7 @@
     <ClCompile Include="NeuralNetConvolutionTest.cpp" />
     <ClCompile Include="NeuralNetMaxPoolingTest.cpp" />
     <ClCompile Include="NeuralNetRealToBinaryTest.cpp" />
+    <ClCompile Include="NeuralNetReLUTest.cpp" />
     <ClCompile Include="NeuralNetSigmoidTest.cpp" />
     <ClCompile Include="NeuralNetSoftmaxTest.cpp" />
     <ClCompile Include="NeuralNetSparseAffineTest.cpp" />
@@ -51,8 +52,8 @@
     <ClInclude Include="..\include\bb\NeuralNetLayer.h" />
     <ClInclude Include="..\include\bb\NeuralNetLayerBuf.h" />
     <ClInclude Include="..\include\bb\NeuralNetMaxPooling.h" />
-    <ClInclude Include="..\include\bb\NeuralNetRealBinaryConverter.h" />
     <ClInclude Include="..\include\bb\NeuralNetRealToBinary.h" />
+    <ClInclude Include="..\include\bb\NeuralNetReLU.h" />
     <ClInclude Include="..\include\bb\NeuralNetSigmoid.h" />
     <ClInclude Include="..\include\bb\NeuralNetSoftmax.h" />
     <ClInclude Include="..\include\bb\NeuralNetSparseAffine.h" />
