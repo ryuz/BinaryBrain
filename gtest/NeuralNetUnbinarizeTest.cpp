@@ -7,9 +7,9 @@
 
 inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 {
-	net.SetInputValueBuffer (net.CreateInputValueBuffer());
+	net.SetInputSignalBuffer (net.CreateInputSignalBuffer());
 	net.SetInputErrorBuffer (net.CreateInputErrorBuffer());
-	net.SetOutputValueBuffer(net.CreateOutputValueBuffer());
+	net.SetOutputSignalBuffer(net.CreateOutputSignalBuffer());
 	net.SetOutputErrorBuffer(net.CreateOutputErrorBuffer());
 }
 
@@ -30,8 +30,8 @@ TEST(NeuralNetUnbinarizeTest, testNeuralNetUnbinarize)
 	EXPECT_EQ(1, unbinarize.GetOutputFrameSize());
 
 
-	auto in_val = unbinarize.GetInputValueBuffer();
-	auto out_val = unbinarize.GetOutputValueBuffer();
+	auto in_val = unbinarize.GetInputSignalBuffer();
+	auto out_val = unbinarize.GetOutputSignalBuffer();
 	in_val.SetBinary(0, 0, true);
 	in_val.SetBinary(1, 0, true);
 	in_val.SetBinary(0, 1, false);

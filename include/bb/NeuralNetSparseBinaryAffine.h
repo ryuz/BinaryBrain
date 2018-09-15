@@ -75,26 +75,26 @@ public:
 		m_norm.SetBatchSize(batch_size);
 		m_binarize.SetBatchSize(batch_size);
 
-		m_affine.SetOutputValueBuffer(m_affine.CreateOutputValueBuffer());
+		m_affine.SetOutputSignalBuffer(m_affine.CreateOutputSignalBuffer());
 		m_affine.SetOutputErrorBuffer(m_affine.CreateOutputErrorBuffer());
-		m_norm.SetInputValueBuffer(m_affine.GetOutputValueBuffer());
+		m_norm.SetInputSignalBuffer(m_affine.GetOutputSignalBuffer());
 		m_norm.SetInputErrorBuffer(m_affine.GetOutputErrorBuffer());
 
-		m_norm.SetOutputValueBuffer(m_norm.CreateOutputValueBuffer());
+		m_norm.SetOutputSignalBuffer(m_norm.CreateOutputSignalBuffer());
 		m_norm.SetOutputErrorBuffer(m_norm.CreateOutputErrorBuffer());
-		m_binarize.SetInputValueBuffer(m_norm.GetOutputValueBuffer());
+		m_binarize.SetInputSignalBuffer(m_norm.GetOutputSignalBuffer());
 		m_binarize.SetInputErrorBuffer(m_norm.GetOutputErrorBuffer());
 	}
 
 	
 	// 入出力バッファ
-	void  SetInputValueBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_affine.SetInputValueBuffer(buffer); }
-	void  SetOutputValueBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_binarize.SetOutputValueBuffer(buffer); }
+	void  SetInputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_affine.SetInputSignalBuffer(buffer); }
+	void  SetOutputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_binarize.SetOutputSignalBuffer(buffer); }
 	void  SetInputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_affine.SetInputErrorBuffer(buffer); }
 	void  SetOutputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_binarize.SetOutputErrorBuffer(buffer); }
 
-	const NeuralNetBuffer<T, INDEX>& GetInputValueBuffer(void) const { return m_affine.GetInputValueBuffer(); }
-	const NeuralNetBuffer<T, INDEX>& GetOutputValueBuffer(void) const { return m_binarize.GetOutputValueBuffer(); }
+	const NeuralNetBuffer<T, INDEX>& GetInputSignalBuffer(void) const { return m_affine.GetInputSignalBuffer(); }
+	const NeuralNetBuffer<T, INDEX>& GetOutputSignalBuffer(void) const { return m_binarize.GetOutputSignalBuffer(); }
 	const NeuralNetBuffer<T, INDEX>& GetInputErrorBuffer(void) const { return m_affine.GetInputErrorBuffer(); }
 	const NeuralNetBuffer<T, INDEX>& GetOutputErrorBuffer(void) const { return m_binarize.GetOutputErrorBuffer(); }
 
@@ -105,9 +105,9 @@ public:
 	INDEX GetInputNodeSize(void) const { return m_affine.GetInputNodeSize(); }
 	INDEX GetOutputNodeSize(void) const { return m_binarize.GetOutputNodeSize(); }
 
-	int   GetInputValueDataType(void) const { return m_affine.GetInputValueDataType(); }
+	int   GetInputSignalDataType(void) const { return m_affine.GetInputSignalDataType(); }
 	int   GetInputErrorDataType(void) const { return m_affine.GetInputErrorDataType(); }
-	int   GetOutputValueDataType(void) const { return m_binarize.GetOutputValueDataType(); }
+	int   GetOutputSignalDataType(void) const { return m_binarize.GetOutputSignalDataType(); }
 	int   GetOutputErrorDataType(void) const { return m_binarize.GetOutputErrorDataType(); }
 
 

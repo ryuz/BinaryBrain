@@ -53,15 +53,15 @@ public:
 	INDEX GetOutputFrameSize(void) const { return m_frame_size; }
 	INDEX GetOutputNodeSize(void) const { return m_node_size; }
 
-	int   GetInputValueDataType(void) const { return NeuralNetType<T>::type; }
+	int   GetInputSignalDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetInputErrorDataType(void) const { return NeuralNetType<T>::type; }
-	int   GetOutputValueDataType(void) const { return NeuralNetType<T>::type; }
+	int   GetOutputSignalDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
 
 	void Forward(bool train = true)
 	{
-		auto x = GetInputValueBuffer();
-		auto y = GetOutputValueBuffer();
+		auto x = GetInputSignalBuffer();
+		auto y = GetOutputSignalBuffer();
 
 		for (INDEX node = 0; node < m_node_size; ++node) {
 			for (INDEX frame = 0; frame < m_frame_size; ++frame) {
@@ -75,7 +75,7 @@ public:
 	{
 		auto dx = GetInputErrorBuffer();
 		auto dy = GetOutputErrorBuffer();
-		auto y = GetOutputValueBuffer();
+		auto y = GetOutputSignalBuffer();
 
 		// hard-tanh
 		for (INDEX node = 0; node < m_node_size; ++node) {

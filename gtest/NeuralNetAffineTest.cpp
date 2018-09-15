@@ -6,9 +6,9 @@
 
 inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 {
-	net.SetInputValueBuffer (net.CreateInputValueBuffer());
+	net.SetInputSignalBuffer (net.CreateInputSignalBuffer());
 	net.SetInputErrorBuffer (net.CreateInputErrorBuffer());
-	net.SetOutputValueBuffer(net.CreateOutputValueBuffer());
+	net.SetOutputSignalBuffer(net.CreateOutputSignalBuffer());
 	net.SetOutputErrorBuffer(net.CreateOutputErrorBuffer());
 }
 
@@ -18,8 +18,8 @@ TEST(NeuralNetAffineTest, testAffine)
 	bb::NeuralNetAffine<> affine(2, 3);
 	testSetupLayerBuffer(affine);
 
-	auto in_val = affine.GetInputValueBuffer();
-	auto out_val = affine.GetOutputValueBuffer();
+	auto in_val = affine.GetInputSignalBuffer();
+	auto out_val = affine.GetOutputSignalBuffer();
 
 	in_val.SetReal(0, 0, 1);
 	in_val.SetReal(0, 1, 2);
@@ -68,8 +68,8 @@ TEST(NeuralNetAffineTest, testAffineBatch)
 
 	affine.SetBatchSize(2);
 
-	auto in_val = affine.GetInputValueBuffer();
-	auto out_val = affine.GetOutputValueBuffer();
+	auto in_val = affine.GetInputSignalBuffer();
+	auto out_val = affine.GetOutputSignalBuffer();
 	in_val.SetReal(0, 0, 1);
 	in_val.SetReal(0, 1, 2);
 	in_val.SetReal(1, 0, 3);

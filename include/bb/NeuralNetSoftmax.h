@@ -57,9 +57,9 @@ public:
 	INDEX GetOutputFrameSize(void) const { return m_frame_size; }
 	INDEX GetOutputNodeSize(void) const { return m_node_size; }
 
-	int   GetInputValueDataType(void) const { return NeuralNetType<T>::type; }
+	int   GetInputSignalDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetInputErrorDataType(void) const { return NeuralNetType<T>::type; }
-	int   GetOutputValueDataType(void) const { return NeuralNetType<T>::type; }
+	int   GetOutputSignalDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
 
 	void Forward(bool train = true)

@@ -14,9 +14,9 @@
 
 inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 {
-	net.SetInputValueBuffer (net.CreateInputValueBuffer());
+	net.SetInputSignalBuffer (net.CreateInputSignalBuffer());
 	net.SetInputErrorBuffer (net.CreateInputErrorBuffer());
-	net.SetOutputValueBuffer(net.CreateOutputValueBuffer());
+	net.SetOutputSignalBuffer(net.CreateOutputSignalBuffer());
 	net.SetOutputErrorBuffer(net.CreateOutputErrorBuffer());
 }
 
@@ -161,8 +161,8 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterRoi1)
 	testSetupLayerBuffer(net);
 
 	// 入力データ
-	auto in_val = net.GetInputValueBuffer();
-	auto out_val = net.GetOutputValueBuffer();
+	auto in_val = net.GetInputSignalBuffer();
+	auto out_val = net.GetOutputSignalBuffer();
 	for (size_t frame = 0; frame < batch_size*mux_size; ++frame) {
 		for (size_t node = 0; node < input_node_size; ++node) {
 			in_val.SetBinary(frame, node, train_images[frame][node]);
@@ -246,7 +246,7 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterRoi)
 	testSetupLayerBuffer(net);
 	
 	// 入力データ
-	auto in_val = net.GetInputValueBuffer();
+	auto in_val = net.GetInputSignalBuffer();
 	for (size_t frame = 0; frame < batch_size*mux_size; ++frame) {
 		for (size_t node = 0; node < input_node_size; ++node) {
 			in_val.SetBinary(frame, node, train_images[frame][node]);
@@ -256,7 +256,7 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterRoi)
 	net.Forward();
 
 	// 出力データ
-	auto out_val = net.GetOutputValueBuffer();
+	auto out_val = net.GetOutputSignalBuffer();
 	for (size_t frame = 0; frame < batch_size*mux_size; ++frame) {
 		for (size_t node = 0; node < input_node_size; ++node) {
 //			EXPECT_EQ(!train_images[frame][node], out_val.GetBinary(frame, node));
@@ -335,7 +335,7 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterFeedBack)
 	// バッファ準備
 	testSetupLayerBuffer(net);
 
-	auto in_val = net.GetInputValueBuffer();
+	auto in_val = net.GetInputSignalBuffer();
 	for (size_t frame = 0; frame < batch_size*mux_size; ++frame) {
 		for (size_t node = 0; node < input_node_size; ++node) {
 			in_val.SetBinary(frame, node, train_images[frame][node]);
@@ -348,7 +348,7 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterFeedBack)
 		// 予測
 		net.Forward();
 
-		auto out_val = net.GetOutputValueBuffer();
+		auto out_val = net.GetOutputSignalBuffer();
 
 #if 1
 		image_show("in0", in_val, 0, input_h_size, input_w_size);
@@ -448,8 +448,8 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterFeedBack2)
 	// バッファ準備
 	testSetupLayerBuffer(net);
 
-	auto in_val = net.GetInputValueBuffer();
-//	auto out_val = net.GetOutputValueBuffer();
+	auto in_val = net.GetInputSignalBuffer();
+//	auto out_val = net.GetOutputSignalBuffer();
 
 	for (size_t frame = 0; frame < batch_size*mux_size; ++frame) {
 		for (size_t node = 0; node < input_node_size; ++node) {
@@ -470,9 +470,9 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterFeedBack2)
 
 
 		// 予測
-//		auto out_val1 = net.GetOutputValueBuffer();
+//		auto out_val1 = net.GetOutputSignalBuffer();
 		net.Forward();
-		auto out_val = net.GetOutputValueBuffer();
+		auto out_val = net.GetOutputSignalBuffer();
 
 		std::cout << "Forward()" << loop << std::endl;
 

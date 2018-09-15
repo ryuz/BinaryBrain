@@ -61,20 +61,20 @@ public:
 	
 	
 	// forward propagation of signals
-	virtual int   GetInputValueDataType(void) const = 0;
-	virtual int   GetOutputValueDataType(void) const = 0;
+	virtual int   GetInputSignalDataType(void) const = 0;
+	virtual int   GetOutputSignalDataType(void) const = 0;
 	
-	virtual void  SetInputValueBuffer(NeuralNetBuffer<T, INDEX> buffer) = 0;
-	virtual void  SetOutputValueBuffer(NeuralNetBuffer<T, INDEX> buffer) = 0;
+	virtual void  SetInputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) = 0;
+	virtual void  SetOutputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) = 0;
 	
-	virtual const NeuralNetBuffer<T, INDEX>& GetInputValueBuffer(void) const = 0;
-	virtual const NeuralNetBuffer<T, INDEX>& GetOutputValueBuffer(void) const = 0;
+	virtual const NeuralNetBuffer<T, INDEX>& GetInputSignalBuffer(void) const = 0;
+	virtual const NeuralNetBuffer<T, INDEX>& GetOutputSignalBuffer(void) const = 0;
 	
-	NeuralNetBuffer<T, INDEX> CreateInputValueBuffer(void) { 
-		return NeuralNetBuffer<T, INDEX>(GetInputFrameSize(), GetInputNodeSize(), GetInputValueDataType());
+	NeuralNetBuffer<T, INDEX> CreateInputSignalBuffer(void) { 
+		return NeuralNetBuffer<T, INDEX>(GetInputFrameSize(), GetInputNodeSize(), GetInputSignalDataType());
 	}
-	NeuralNetBuffer<T, INDEX> CreateOutputValueBuffer(void) {
-		return NeuralNetBuffer<T, INDEX>(GetOutputFrameSize(), GetOutputNodeSize(), GetOutputValueDataType());
+	NeuralNetBuffer<T, INDEX> CreateOutputSignalBuffer(void) {
+		return NeuralNetBuffer<T, INDEX>(GetOutputFrameSize(), GetOutputNodeSize(), GetOutputSignalDataType());
 	}
 	
 

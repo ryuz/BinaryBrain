@@ -7,9 +7,9 @@
 
 inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 {
-	net.SetInputValueBuffer (net.CreateInputValueBuffer());
+	net.SetInputSignalBuffer (net.CreateInputSignalBuffer());
 	net.SetInputErrorBuffer (net.CreateInputErrorBuffer());
-	net.SetOutputValueBuffer(net.CreateOutputValueBuffer());
+	net.SetOutputSignalBuffer(net.CreateOutputSignalBuffer());
 	net.SetOutputErrorBuffer(net.CreateOutputErrorBuffer());
 }
 
@@ -21,8 +21,8 @@ TEST(NeuralNetSigmoidTest, testSigmoid)
 	testSetupLayerBuffer(sigmoid);
 
 
-	auto in_val = sigmoid.GetInputValueBuffer();
-	auto out_val = sigmoid.GetOutputValueBuffer();
+	auto in_val = sigmoid.GetInputSignalBuffer();
+	auto out_val = sigmoid.GetOutputSignalBuffer();
 	in_val.SetReal(0, 0, 1);
 	in_val.SetReal(0, 1, 2);
 
@@ -51,8 +51,8 @@ TEST(NeuralNetSigmoidTest, testSigmoidBatch)
 
 	sigmoid.SetBatchSize(2);
 
-	auto in_val = sigmoid.GetInputValueBuffer();
-	auto out_val = sigmoid.GetOutputValueBuffer();
+	auto in_val = sigmoid.GetInputSignalBuffer();
+	auto out_val = sigmoid.GetOutputSignalBuffer();
 	in_val.SetReal(0, 0, 1);
 	in_val.SetReal(1, 0, 2);
 	in_val.SetReal(0, 1, 3);

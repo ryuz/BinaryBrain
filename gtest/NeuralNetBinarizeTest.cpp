@@ -7,9 +7,9 @@
 
 inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 {
-	net.SetInputValueBuffer (net.CreateInputValueBuffer());
+	net.SetInputSignalBuffer (net.CreateInputSignalBuffer());
 	net.SetInputErrorBuffer (net.CreateInputErrorBuffer());
-	net.SetOutputValueBuffer(net.CreateOutputValueBuffer());
+	net.SetOutputSignalBuffer(net.CreateOutputSignalBuffer());
 	net.SetOutputErrorBuffer(net.CreateOutputErrorBuffer());
 }
 
@@ -30,8 +30,8 @@ TEST(NeuralNetBinarizeTest, testNeuralNetBinarize)
 	EXPECT_EQ(1, binarize.GetInputFrameSize());
 	EXPECT_EQ(2, binarize.GetOutputFrameSize());
 
-	auto in_val = binarize.GetInputValueBuffer();
-	auto out_val = binarize.GetOutputValueBuffer();
+	auto in_val = binarize.GetInputSignalBuffer();
+	auto out_val = binarize.GetOutputSignalBuffer();
 	in_val.SetReal(0, 0, 0.0f);
 	in_val.SetReal(0, 1, 1.0f);
 	in_val.SetReal(0, 2, 0.5f);
@@ -77,8 +77,8 @@ TEST(NeuralNetBinarizeTest, testNeuralNetBinarizeBatch)
 	EXPECT_EQ(batch_size, binarize.GetInputFrameSize());
 	EXPECT_EQ(batch_size*mux_size, binarize.GetOutputFrameSize());
 
-	auto in_val = binarize.GetInputValueBuffer();
-	auto out_val = binarize.GetOutputValueBuffer();
+	auto in_val = binarize.GetInputSignalBuffer();
+	auto out_val = binarize.GetOutputSignalBuffer();
 	in_val.SetReal(0, 0, 0.0f);
 	in_val.SetReal(0, 1, 1.0f);
 	in_val.SetReal(0, 2, 0.5f);

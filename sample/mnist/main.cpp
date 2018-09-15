@@ -57,7 +57,7 @@ protected:
 
 		// •]‰¿‰æ‘œİ’è
 		for (size_t frame = 0; frame < images.size(); ++frame) {
-			net.SetInputValue(frame, images[frame]);
+			net.SetInputSignal(frame, images[frame]);
 		}
 
 		// •]‰¿À{
@@ -66,7 +66,7 @@ protected:
 		// Œ‹‰ÊWŒv
 		int ok_count = 0;
 		for (size_t frame = 0; frame < images.size(); ++frame) {
-			int max_idx = bb::argmax<float>(net.GetOutputValue(frame));
+			int max_idx = bb::argmax<float>(net.GetOutputSignal(frame));
 			ok_count += (max_idx == (int)labels[frame] ? 1 : 0);
 		}
 
@@ -161,7 +161,7 @@ public:
 				net.SetMuxSize(train_mux_size);
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					net.SetInputValue(frame, batch_images[frame]);
+					net.SetInputSignal(frame, batch_images[frame]);
 				}
 
 				// —\‘ª
@@ -227,7 +227,7 @@ public:
 				// ƒf[ƒ^ƒZƒbƒg
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					net.SetInputValue(frame, m_train_images[x_index + frame]);
+					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
 				// —\‘ª
@@ -235,7 +235,7 @@ public:
 
 				// Œë·‹t“`”d
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					auto values = net.GetOutputValue(frame);
+					auto values = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < values.size(); ++node) {
 						values[node] -= m_train_onehot[x_index + frame][node];
 						values[node] /= (float)batch_size;
@@ -295,7 +295,7 @@ public:
 				// ƒf[ƒ^ƒZƒbƒg
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					net.SetInputValue(frame, m_train_images[x_index + frame]);
+					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
 				// —\‘ª
@@ -303,7 +303,7 @@ public:
 
 				// Œë·‹t“`”d
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					auto values = net.GetOutputValue(frame);
+					auto values = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < values.size(); ++node) {
 						values[node] -= m_train_onehot[x_index + frame][node];
 						values[node] /= (float)batch_size;
@@ -368,7 +368,7 @@ public:
 				real_net.SetMuxSize(train_mux_size);
 				real_net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					real_net.SetInputValue(frame, m_train_images[frame + x_index]);
+					real_net.SetInputSignal(frame, m_train_images[frame + x_index]);
 				}
 
 				// —\‘ª
@@ -376,7 +376,7 @@ public:
 
 				// Œë·‹t“`”d
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					auto values = real_net.GetOutputValue(frame);
+					auto values = real_net.GetOutputSignal(frame);
 					for (size_t node = 0; node < values.size(); ++node) {
 						values[node] -= m_train_onehot[frame + x_index][node % 10];
 						values[node] /= (float)batch_size;
@@ -444,7 +444,7 @@ public:
 				bin_net.SetMuxSize(train_mux_size);
 				bin_net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					bin_net.SetInputValue(frame, batch_images[frame]);
+					bin_net.SetInputSignal(frame, batch_images[frame]);
 				}
 
 				// —\‘ª

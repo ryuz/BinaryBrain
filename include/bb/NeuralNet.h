@@ -44,13 +44,13 @@ public:
 		NeuralNetGroup<T, INDEX>::SetBatchSize(batch_size);
 
 		// 入出力のバッファも準備
-		m_input_value_buffers = m_firstLayer->CreateInputValueBuffer();
+		m_input_value_buffers = m_firstLayer->CreateInputSignalBuffer();
 		m_input_error_buffers = m_firstLayer->CreateInputErrorBuffer();
-		m_output_value_buffers = m_lastLayer->CreateOutputValueBuffer();
+		m_output_value_buffers = m_lastLayer->CreateOutputSignalBuffer();
 		m_output_error_buffers = m_lastLayer->CreateOutputErrorBuffer();
-		m_firstLayer->SetInputValueBuffer(m_input_value_buffers);
+		m_firstLayer->SetInputSignalBuffer(m_input_value_buffers);
 		m_firstLayer->SetInputErrorBuffer(m_input_error_buffers);
-		m_lastLayer->SetOutputValueBuffer(m_output_value_buffers);
+		m_lastLayer->SetOutputSignalBuffer(m_output_value_buffers);
 		m_lastLayer->SetOutputErrorBuffer(m_output_error_buffers);
 	}
 
@@ -79,24 +79,24 @@ public:
 
 
 	// 入出力データへのアクセス補助
-	void SetInputValue(INDEX frame, INDEX node, T value) {
-		return m_firstLayer->GetInputValueBuffer().SetReal(frame, node, value);
+	void SetInputSignal(INDEX frame, INDEX node, T value) {
+		return m_firstLayer->GetInputSignalBuffer().SetReal(frame, node, value);
 	}
 
-	void SetInputValue(INDEX frame, std::vector<T> values) {
+	void SetInputSignal(INDEX frame, std::vector<T> values) {
 		for (INDEX node = 0; node < (INDEX)values.size(); ++node) {
-			SetInputValue(frame, node, values[node]);
+			SetInputSignal(frame, node, values[node]);
 		}
 	}
 
-	T GetOutputValue(INDEX frame, INDEX node) {
-		return m_lastLayer->GetOutputValueBuffer().GetReal(frame, node);
+	T GetOutputSignal(INDEX frame, INDEX node) {
+		return m_lastLayer->GetOutputSignalBuffer().GetReal(frame, node);
 	}
 
-	std::vector<T> GetOutputValue(INDEX frame) {
+	std::vector<T> GetOutputSignal(INDEX frame) {
 		std::vector<T> values(m_lastLayer->GetOutputNodeSize());
 		for (INDEX node = 0; node < (INDEX)values.size(); ++node) {
-			values[node] = GetOutputValue(frame, node);
+			values[node] = GetOutputSignal(frame, node);
 		}
 		return values;
 	}

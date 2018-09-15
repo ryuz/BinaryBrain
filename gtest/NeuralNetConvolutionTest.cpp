@@ -8,9 +8,9 @@
 
 inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 {
-	net.SetInputValueBuffer (net.CreateInputValueBuffer());
+	net.SetInputSignalBuffer (net.CreateInputSignalBuffer());
 	net.SetInputErrorBuffer (net.CreateInputErrorBuffer());
-	net.SetOutputValueBuffer(net.CreateOutputValueBuffer());
+	net.SetOutputSignalBuffer(net.CreateOutputSignalBuffer());
 	net.SetOutputErrorBuffer(net.CreateOutputErrorBuffer());
 }
 
@@ -19,8 +19,8 @@ TEST(NeuralNetConvolutionTest, testNeuralNetConvolution)
 {
 	bb::NeuralNetConvolution<> cnv(1, 3, 3, 1, 2, 2);
 	testSetupLayerBuffer(cnv);
-	auto in_val = cnv.GetInputValueBuffer();
-	auto out_val = cnv.GetOutputValueBuffer();
+	auto in_val = cnv.GetInputSignalBuffer();
+	auto out_val = cnv.GetOutputSignalBuffer();
 
 	EXPECT_EQ(9, cnv.GetInputNodeSize());
 	EXPECT_EQ(4, cnv.GetOutputNodeSize());
@@ -98,8 +98,8 @@ TEST(NeuralNetConvolutionTest, testNeuralNetConvolution2)
 	cnv.SetBatchSize(2);
 
 	testSetupLayerBuffer(cnv);
-	auto in_val = cnv.GetInputValueBuffer();
-	auto out_val = cnv.GetOutputValueBuffer();
+	auto in_val = cnv.GetInputSignalBuffer();
+	auto out_val = cnv.GetOutputSignalBuffer();
 
 	in_val.SetDimensions({ 5, 4, 3 });
 	int index = 0;

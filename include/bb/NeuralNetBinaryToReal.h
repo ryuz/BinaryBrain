@@ -57,16 +57,16 @@ public:
 	INDEX GetOutputFrameSize(void) const { return m_batch_size; }
 	INDEX GetOutputNodeSize(void) const { return m_output_node_size; }
 
-	int   GetInputValueDataType(void) const { return NeuralNetType<BT>::type; }
-	int   GetOutputValueDataType(void) const { return NeuralNetType<T>::type; }
+	int   GetInputSignalDataType(void) const { return NeuralNetType<BT>::type; }
+	int   GetOutputSignalDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetInputErrorDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
 	
 	
 	void Forward(bool train = true)
 	{
-		auto in_val = GetInputValueBuffer();
-		auto out_val = GetOutputValueBuffer();
+		auto in_val = GetInputSignalBuffer();
+		auto out_val = GetOutputSignalBuffer();
 
 		T	reciprocal = (T)1.0 / (T)m_mux_size;
 

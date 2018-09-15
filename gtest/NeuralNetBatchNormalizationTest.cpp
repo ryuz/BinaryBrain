@@ -7,9 +7,9 @@
 
 inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 {
-	net.SetInputValueBuffer (net.CreateInputValueBuffer());
+	net.SetInputSignalBuffer (net.CreateInputSignalBuffer());
 	net.SetInputErrorBuffer (net.CreateInputErrorBuffer());
-	net.SetOutputValueBuffer(net.CreateOutputValueBuffer());
+	net.SetOutputSignalBuffer(net.CreateOutputSignalBuffer());
 	net.SetOutputErrorBuffer(net.CreateOutputErrorBuffer());
 }
 
@@ -21,8 +21,8 @@ TEST(NeuralNetBatchNormalizationTest, testBatchNormalization)
 	batch_norm.SetBatchSize(8);
 	testSetupLayerBuffer(batch_norm);
 	
-	auto in_val = batch_norm.GetInputValueBuffer();
-	auto out_val = batch_norm.GetOutputValueBuffer();
+	auto in_val = batch_norm.GetInputSignalBuffer();
+	auto out_val = batch_norm.GetOutputSignalBuffer();
 	in_val.SetReal(0, 0, 1);
 	in_val.SetReal(1, 0, 2);
 	in_val.SetReal(2, 0, 3);

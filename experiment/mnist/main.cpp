@@ -20,7 +20,7 @@
 
 #include "bb/NeuralNetAffine.h"
 #include "bb/NeuralNetSparseAffine.h"
-#include "bb/NeuralNetLimitedConnectionAffineBc.h"
+#include "bb/NeuralNetSparseAffineBc.h"
 #include "bb/NeuralNetSparseBinaryAffine.h"
 
 #include "bb/NeuralNetRealToBinary.h"
@@ -66,7 +66,7 @@ protected:
 
 		// ï]âøâÊëúê›íË
 		for (size_t frame = 0; frame < images.size(); ++frame) {
-			net.SetInputValue(frame, images[frame]);
+			net.SetInputSignal(frame, images[frame]);
 		}
 
 		// ï]âøé¿é{
@@ -75,7 +75,7 @@ protected:
 		// åãâ èWåv
 		int ok_count = 0;
 		for (size_t frame = 0; frame < images.size(); ++frame) {
-			auto out_val = net.GetOutputValue(frame);
+			auto out_val = net.GetOutputSignal(frame);
 			for (size_t i = 10; i < out_val.size(); i++) {
 				out_val[i % 10] += out_val[i];
 			}
@@ -175,7 +175,7 @@ public:
 				net.SetMuxSize(train_mux_size);
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					net.SetInputValue(frame, batch_images[frame]);
+					net.SetInputSignal(frame, batch_images[frame]);
 				}
 
 				// ó\ë™
@@ -241,7 +241,7 @@ public:
 				// ÉfÅ[É^ÉZÉbÉg
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					net.SetInputValue(frame, m_train_images[x_index + frame]);
+					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
 				// ó\ë™
@@ -249,7 +249,7 @@ public:
 
 				// åÎç∑ãtì`îd
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					auto values = net.GetOutputValue(frame);
+					auto values = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < values.size(); ++node) {
 						values[node] -= m_train_onehot[x_index + frame][node];
 						values[node] /= (float)batch_size;
@@ -300,7 +300,7 @@ public:
 				// ÉfÅ[É^ÉZÉbÉg
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					net.SetInputValue(frame, m_train_images[x_index + frame]);
+					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
 				// ó\ë™
@@ -308,7 +308,7 @@ public:
 
 				// åÎç∑ãtì`îd
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					auto values = net.GetOutputValue(frame);
+					auto values = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < values.size(); ++node) {
 						values[node] -= m_train_onehot[x_index + frame][node];
 						values[node] /= (float)batch_size;
@@ -360,7 +360,7 @@ public:
 				// ÉfÅ[É^ÉZÉbÉg
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					net.SetInputValue(frame, m_train_images[x_index + frame]);
+					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
 				// ó\ë™
@@ -368,7 +368,7 @@ public:
 
 				// åÎç∑ãtì`îd
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					auto values = net.GetOutputValue(frame);
+					auto values = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < values.size(); ++node) {
 						values[node] -= m_train_onehot[x_index + frame][node % 10];
 						values[node] /= (float)batch_size;
@@ -428,7 +428,7 @@ public:
 				// ÉfÅ[É^ÉZÉbÉg
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					net.SetInputValue(frame, m_train_images[x_index + frame]);
+					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
 				// ó\ë™
@@ -436,7 +436,7 @@ public:
 
 				// åÎç∑ãtì`îd
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					auto values = net.GetOutputValue(frame);
+					auto values = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < values.size(); ++node) {
 						values[node] -= m_train_onehot[x_index + frame][node];
 						values[node] /= (float)batch_size;
@@ -508,7 +508,7 @@ public:
 				net.SetMuxSize(train_mux_size);
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					net.SetInputValue(frame, m_train_images[x_index + frame]);
+					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
 				// ó\ë™
@@ -516,7 +516,7 @@ public:
 
 				// åÎç∑ãtì`îd
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					auto values = net.GetOutputValue(frame);
+					auto values = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < values.size(); ++node) {
 						values[node] -= m_train_onehot[x_index + frame][node];
 						values[node] /= (float)batch_size;
@@ -547,20 +547,20 @@ public:
 		size_t layer2_node_size = 10 * 6;
 		size_t layer3_node_size = 10;
 		size_t output_node_size = 10;
-		bb::NeuralNetBatchNormalization<>			input_batch_norm(input_node_size);
-		bb::NeuralNetBinarize<>						input_binarize(input_node_size);
-		bb::NeuralNetLimitedConnectionAffineBc<>	layer0_affine(input_node_size, layer0_node_size);
-		bb::NeuralNetBatchNormalization<>			layer0_batch_norm(layer0_node_size);
-		bb::NeuralNetBinarize<>						layer0_binarize(layer0_node_size);
-		bb::NeuralNetSparseAffine<>		layer1_affine(layer0_node_size, layer1_node_size);
-		bb::NeuralNetBatchNormalization<>			layer1_batch_norm(layer1_node_size);
-		bb::NeuralNetBinarize<>						layer1_binarize(layer1_node_size);
-		bb::NeuralNetSparseAffine<>		layer2_affine(layer1_node_size, layer2_node_size);
-		bb::NeuralNetBatchNormalization<>			layer2_batch_norm(layer2_node_size);
-		bb::NeuralNetBinarize<>						layer2_binarize(layer2_node_size);
-		bb::NeuralNetSparseAffine<>		layer3_affine(layer2_node_size, layer3_node_size);
-		bb::NeuralNetBatchNormalization<>			layer3_batch_norm(layer3_node_size);
-		bb::NeuralNetSoftmax<>						layer3_softmax(layer3_node_size);
+		bb::NeuralNetBatchNormalization<>	input_batch_norm(input_node_size);
+		bb::NeuralNetBinarize<>				input_binarize(input_node_size);
+		bb::NeuralNetSparseAffine<>			layer0_affine(input_node_size, layer0_node_size);
+		bb::NeuralNetBatchNormalization<>	layer0_batch_norm(layer0_node_size);
+		bb::NeuralNetBinarize<>				layer0_binarize(layer0_node_size);
+		bb::NeuralNetSparseAffine<>			layer1_affine(layer0_node_size, layer1_node_size);
+		bb::NeuralNetBatchNormalization<>	layer1_batch_norm(layer1_node_size);
+		bb::NeuralNetBinarize<>				layer1_binarize(layer1_node_size);
+		bb::NeuralNetSparseAffine<>			layer2_affine(layer1_node_size, layer2_node_size);
+		bb::NeuralNetBatchNormalization<>	layer2_batch_norm(layer2_node_size);
+		bb::NeuralNetBinarize<>				layer2_binarize(layer2_node_size);
+		bb::NeuralNetSparseAffine<>			layer3_affine(layer2_node_size, layer3_node_size);
+		bb::NeuralNetBatchNormalization<>	layer3_batch_norm(layer3_node_size);
+		bb::NeuralNetSoftmax<>				layer3_softmax(layer3_node_size);
 //		net.AddLayer(&input_batch_norm);
 //		net.AddLayer(&input_binarize);
 		net.AddLayer(&layer0_affine);
@@ -588,7 +588,7 @@ public:
 				// ÉfÅ[É^ÉZÉbÉg
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					net.SetInputValue(frame, m_train_images[x_index + frame]);
+					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
 				// ó\ë™
@@ -596,7 +596,7 @@ public:
 
 				// åÎç∑ãtì`îd
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					auto values = net.GetOutputValue(frame);
+					auto values = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < values.size(); ++node) {
 						values[node] -= m_train_onehot[x_index + frame][node % 10];
 						values[node] /= (float)batch_size;
@@ -635,14 +635,14 @@ public:
 
 		// é¿êîî≈NETç\íz
 		bb::NeuralNet<> real_net;
-		bb::NeuralNetLimitedConnectionAffineBc<6>	real_layer0_affine(input_node_size, layer0_node_size);
-		bb::NeuralNetSigmoid<>					real_layer0_sigmoid(layer0_node_size);
-		bb::NeuralNetLimitedConnectionAffineBc<6>  real_layer1_affine(layer0_node_size, layer1_node_size);
-		bb::NeuralNetSigmoid<>					real_layer1_sigmoid(layer1_node_size);
-		bb::NeuralNetLimitedConnectionAffineBc<6>  real_layer2_affine(layer1_node_size, layer2_node_size);
-		bb::NeuralNetSigmoid<>					real_layer2_sigmoid(layer2_node_size);
-		bb::NeuralNetLimitedConnectionAffineBc<6>  real_layer3_affine(layer2_node_size, layer3_node_size);
-		bb::NeuralNetSoftmax<>				real_layer3_softmax(layer3_node_size);
+		bb::NeuralNetSparseAffineBc<6>	real_layer0_affine(input_node_size, layer0_node_size);
+		bb::NeuralNetSigmoid<>			real_layer0_sigmoid(layer0_node_size);
+		bb::NeuralNetSparseAffineBc<6>  real_layer1_affine(layer0_node_size, layer1_node_size);
+		bb::NeuralNetSigmoid<>			real_layer1_sigmoid(layer1_node_size);
+		bb::NeuralNetSparseAffineBc<6>  real_layer2_affine(layer1_node_size, layer2_node_size);
+		bb::NeuralNetSigmoid<>			real_layer2_sigmoid(layer2_node_size);
+		bb::NeuralNetSparseAffineBc<6>  real_layer3_affine(layer2_node_size, layer3_node_size);
+		bb::NeuralNetSoftmax<>			real_layer3_softmax(layer3_node_size);
 		real_net.AddLayer(&real_layer0_affine);
 		real_net.AddLayer(&real_layer0_sigmoid);
 		real_net.AddLayer(&real_layer1_affine);
@@ -693,7 +693,7 @@ public:
 				// ì¸óÕÉfÅ[É^ê›íË
 				real_net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					real_net.SetInputValue(frame, m_train_images[frame + x_index]);
+					real_net.SetInputSignal(frame, m_train_images[frame + x_index]);
 				}
 
 				// ó\ë™
@@ -701,7 +701,7 @@ public:
 
 				// åÎç∑ãtì`îd
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					auto values = real_net.GetOutputValue(frame);
+					auto values = real_net.GetOutputSignal(frame);
 					for (size_t node = 0; node < values.size(); ++node) {
 						values[node] -= m_train_onehot[frame + x_index][node % 10];
 						values[node] /= (float)batch_size;
@@ -789,7 +789,7 @@ public:
 				real_net.SetMuxSize(train_mux_size);
 				real_net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					real_net.SetInputValue(frame, m_train_images[frame + x_index]);
+					real_net.SetInputSignal(frame, m_train_images[frame + x_index]);
 				}
 
 				// ó\ë™
@@ -797,7 +797,7 @@ public:
 
 				// test
 				if (0) {
-					auto buf = real_layer1_affine.GetInputValueBuffer();
+					auto buf = real_layer1_affine.GetInputSignalBuffer();
 					for (size_t frame = 0; frame < buf.GetFrameSize(); ++frame) {
 						for (size_t node = 0; frame < buf.GetNodeSize(); ++node) {
 							float v = buf.Get<float>(frame, node);
@@ -809,7 +809,7 @@ public:
 
 				// åÎç∑ãtì`îd
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					auto values = real_net.GetOutputValue(frame);
+					auto values = real_net.GetOutputSignal(frame);
 					for (size_t node = 0; node < values.size(); ++node) {
 						values[node] -= m_train_onehot[frame + x_index][node % 10];
 						values[node] /= (float)batch_size;
@@ -916,7 +916,7 @@ public:
 				real_net.SetMuxSize(train_mux_size);
 				real_net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					real_net.SetInputValue(frame, m_train_images[frame + x_index]);
+					real_net.SetInputSignal(frame, m_train_images[frame + x_index]);
 				}
 
 				// ó\ë™
@@ -924,7 +924,7 @@ public:
 
 				// test
 				if (0) {
-					auto buf = real_layer1_affine.GetInputValueBuffer();
+					auto buf = real_layer1_affine.GetInputSignalBuffer();
 					for (size_t frame = 0; frame < buf.GetFrameSize(); ++frame) {
 						for (size_t node = 0; frame < buf.GetNodeSize(); ++node) {
 							float v = buf.Get<float>(frame, node);
@@ -936,7 +936,7 @@ public:
 
 				// åÎç∑ãtì`îd
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					auto values = real_net.GetOutputValue(frame);
+					auto values = real_net.GetOutputSignal(frame);
 					for (size_t node = 0; node < values.size(); ++node) {
 						values[node] -= m_train_onehot[frame + x_index][node % 10];
 						values[node] /= (float)batch_size;
@@ -983,7 +983,7 @@ public:
 				// ÉfÅ[É^ÉZÉbÉg
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					net.SetInputValue(frame, m_train_images[x_index + frame]);
+					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
 				// ó\ë™
@@ -991,7 +991,7 @@ public:
 
 				// åÎç∑ãtì`îd
 				for (size_t frame = 0; frame < batch_size; ++frame) {
-					auto values = net.GetOutputValue(frame);
+					auto values = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < values.size(); ++node) {
 						values[node] -= m_train_onehot[x_index + frame][node];
 						values[node] /= (float)batch_size;

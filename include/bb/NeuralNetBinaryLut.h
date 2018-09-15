@@ -114,18 +114,18 @@ public:
 	bool GetLutInputValue(INDEX frame, INDEX node, int bitpos) const
 	{
 		INDEX input_node = GetLutInput(node, bitpos);
-		return GetInputValueBuffer().Get<bool>(frame, input_node);
+		return GetInputSignalBuffer().Get<bool>(frame, input_node);
 	}
 
 	virtual int GetLutInputIndex(INDEX frame, INDEX node) const
 	{
-		const auto& buf = GetInputValueBuffer();
+		const auto& buf = GetInputSignalBuffer();
 		int lut_input_size = GetLutInputSize();
 		int index = 0;
 		int mask = 1;
 		for (int bitpos = 0; bitpos < lut_input_size; ++bitpos) {
 			INDEX input_node = GetLutInput(node, bitpos);
-			if (GetInputValueBuffer().Get<bool>(frame, input_node)) {
+			if (GetInputSignalBuffer().Get<bool>(frame, input_node)) {
 				index |= mask;
 			}
 			mask <<= 1;
@@ -139,16 +139,16 @@ public:
 	INDEX GetInputFrameSize(void) const { return m_frame_size; }
 	INDEX GetOutputFrameSize(void) const { return m_frame_size; }
 
-	int   GetInputValueDataType(void) const { return BB_TYPE_BINARY; }
+	int   GetInputSignalDataType(void) const { return BB_TYPE_BINARY; }
 	int   GetInputErrorDataType(void) const { return NeuralNetType<T>::type; }
-	int   GetOutputValueDataType(void) const { return BB_TYPE_BINARY; }
+	int   GetOutputSignalDataType(void) const { return BB_TYPE_BINARY; }
 	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
 
 protected:
 	virtual void ForwardNode(INDEX node)
 	{
-		auto in_buf = GetInputValueBuffer();
-		auto out_buf = GetOutputValueBuffer();
+		auto in_buf = GetInputSignalBuffer();
+		auto out_buf = GetOutputSignalBuffer();
 		int   lut_input_size = GetLutInputSize();
 
 		for (INDEX frame = 0; frame < m_frame_size; ++frame) {
@@ -174,8 +174,8 @@ public:
 		{
 			ForwardNode(node);
 #if 0
-			auto in_buf = GetInputValueBuffer();
-			auto out_buf = GetOutputValueBuffer();
+			auto in_buf = GetInputSignalBuffer();
+			auto out_buf = GetOutputSignalBuffer();
 
 			for (INDEX frame = 0; frame < m_frame_size; ++frame) {
 				int bit = 0;
@@ -300,8 +300,8 @@ protected:
 	// 入力を集計してLUT単位で学習
 	inline bool FeedbackLutwise(const std::vector<double>& loss)
 	{
-		auto in_buf = GetInputValueBuffer();
-		auto out_buf = GetOutputValueBuffer();
+		auto in_buf = GetInputSignalBuffer();
+		auto out_buf = GetOutputSignalBuffer();
 
 		INDEX node_size = GetOutputNodeSize();
 		INDEX frame_size = GetOutputFrameSize();
@@ -392,8 +392,8 @@ protected:
 	// ビット単位で学習
 	inline bool FeedbackBitwise(const std::vector<double>& loss)
 	{
-		auto in_buf = GetInputValueBuffer();
-		auto out_buf = GetOutputValueBuffer();
+		auto in_buf = GetInputSignalBuffer();
+		auto out_buf = GetOutputSignalBuffer();
 
 		INDEX node_size = GetOutputNodeSize();
 		INDEX frame_size = GetOutputFrameSize();
@@ -479,7 +479,7 @@ public:
 	template <typename LT, int LABEL_SIZE>
 	std::vector<double> GetOutputOnehotLoss(std::vector<LT> label)
 	{
-		auto buf = GetOutputValueBuffer();
+		auto buf = GetOutputSignalBuffer();
 		INDEX frame_size = GetOutputFrameSize();
 		INDEX node_size  = GetOutputNodeSize();
 

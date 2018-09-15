@@ -11,9 +11,9 @@
 
 inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 {
-	net.SetInputValueBuffer (net.CreateInputValueBuffer());
+	net.SetInputSignalBuffer (net.CreateInputSignalBuffer());
 	net.SetInputErrorBuffer (net.CreateInputErrorBuffer());
-	net.SetOutputValueBuffer(net.CreateOutputValueBuffer());
+	net.SetOutputSignalBuffer(net.CreateOutputSignalBuffer());
 	net.SetOutputErrorBuffer(net.CreateOutputErrorBuffer());
 }
 
@@ -43,8 +43,8 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6)
 	bb::NeuralNetBinaryLut6<> lut(16, 2);
 	testSetupLayerBuffer(lut);
 
-	auto in_val = lut.GetInputValueBuffer();
-	auto out_val = lut.GetOutputValueBuffer();
+	auto in_val = lut.GetInputSignalBuffer();
+	auto out_val = lut.GetOutputSignalBuffer();
 	in_val.SetBinary(0, 0, false);
 	in_val.SetBinary(0, 1, true);
 	in_val.SetBinary(0, 2, true);
@@ -88,8 +88,8 @@ TEST(NeuralNetBinaryLut6, testNeuralNetBinaryLut6Batch)
 	bb::NeuralNetBinaryLut6<> lut(16, 2, 2);
 	testSetupLayerBuffer(lut);
 
-	auto in_val = lut.GetInputValueBuffer();
-	auto out_val = lut.GetOutputValueBuffer();
+	auto in_val = lut.GetInputSignalBuffer();
+	auto out_val = lut.GetOutputSignalBuffer();
 	in_val.SetBinary(0, 0, false);
 	in_val.SetBinary(0, 1, true);
 	in_val.SetBinary(0, 2, true);
@@ -169,11 +169,11 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6Compare)
 	testSetupLayerBuffer(lut0);
 	testSetupLayerBuffer(lut1);
 
-	auto in_val0 = lut0.GetInputValueBuffer();
-	auto in_val1 = lut1.GetInputValueBuffer();
-	auto out_val0 = lut0.GetOutputValueBuffer();
-	auto out_val1 = lut1.GetOutputValueBuffer();
-	lut1.SetInputValueBuffer(in_val0);		// 入力バッファ共通化
+	auto in_val0 = lut0.GetInputSignalBuffer();
+	auto in_val1 = lut1.GetInputSignalBuffer();
+	auto out_val0 = lut0.GetOutputSignalBuffer();
+	auto out_val1 = lut1.GetOutputSignalBuffer();
+	lut1.SetInputSignalBuffer(in_val0);		// 入力バッファ共通化
 
 #else
 
@@ -192,10 +192,10 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6Compare)
 	auto out0_addr_size = vector_add(out_index_size, vector_add(out0_front_blank, out0_back_blank));
 	auto out1_addr_size = vector_add(out_index_size, vector_add(out1_front_blank, out1_back_blank));
 	
-	bb::NeuralNetBuffer<>	in_val0(frame_size, vector_product(in0_addr_size), lut0.GetInputValueDataType());
-	bb::NeuralNetBuffer<>	in_val1(frame_size, vector_product(in1_addr_size), lut0.GetInputValueDataType());
-	bb::NeuralNetBuffer<>	out_val0(frame_size, vector_product(out0_addr_size), lut0.GetInputValueDataType());
-	bb::NeuralNetBuffer<>	out_val1(frame_size, vector_product(out1_addr_size), lut0.GetInputValueDataType());
+	bb::NeuralNetBuffer<>	in_val0(frame_size, vector_product(in0_addr_size), lut0.GetInputSignalDataType());
+	bb::NeuralNetBuffer<>	in_val1(frame_size, vector_product(in1_addr_size), lut0.GetInputSignalDataType());
+	bb::NeuralNetBuffer<>	out_val0(frame_size, vector_product(out0_addr_size), lut0.GetInputSignalDataType());
+	bb::NeuralNetBuffer<>	out_val1(frame_size, vector_product(out1_addr_size), lut0.GetInputSignalDataType());
 	in_val0.SetDimensions(in0_addr_size);
 	in_val1.SetDimensions(in1_addr_size);
 	out_val0.SetDimensions(out0_addr_size);
@@ -208,10 +208,10 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6Compare)
 	out_val1.SetRoi(out1_front_blank, out_index_size);
 
 	// バッファ設定
-	lut0.SetInputValueBuffer(in_val0);
-	lut1.SetInputValueBuffer(in_val1);
-	lut0.SetOutputValueBuffer(out_val0);
-	lut1.SetOutputValueBuffer(out_val1);
+	lut0.SetInputSignalBuffer(in_val0);
+	lut1.SetInputSignalBuffer(in_val1);
+	lut0.SetOutputSignalBuffer(out_val0);
+	lut1.SetOutputSignalBuffer(out_val1);
 
 #endif
 
@@ -296,8 +296,8 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLutFeedback)
 	lut.SetMuxSize(mux_size);
 	lut.SetBatchSize(batch_size);
 
-	auto in_val = lut.GetInputValueBuffer();
-	auto out_val = lut.GetOutputValueBuffer();
+	auto in_val = lut.GetInputSignalBuffer();
+	auto out_val = lut.GetOutputSignalBuffer();
 
 	for (size_t frame = 0; frame < frame_size; frame++) {
 		for (int bit = 0; bit < lut_input_size; bit++) {
@@ -357,8 +357,8 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLutFeedbackBitwise)
 	lut.SetMuxSize(mux_size);
 	lut.SetBatchSize(batch_size);
 
-	auto in_val = lut.GetInputValueBuffer();
-	auto out_val = lut.GetOutputValueBuffer();
+	auto in_val = lut.GetInputSignalBuffer();
+	auto out_val = lut.GetOutputSignalBuffer();
 
 	for (size_t frame = 0; frame < frame_size; frame++) {
 		for (int bit = 0; bit < lut_input_size; bit++) {

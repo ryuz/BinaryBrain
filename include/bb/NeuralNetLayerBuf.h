@@ -35,14 +35,14 @@ protected:
 	
 public:
 	// バッファ設定
-	void  SetInputValueBuffer(NeuralNetBuffer<T, INDEX> buffer)  { m_input_value_buffer = buffer; }
-	void  SetOutputValueBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_output_value_buffer = buffer; }
+	void  SetInputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer)  { m_input_value_buffer = buffer; }
+	void  SetOutputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_output_value_buffer = buffer; }
 	void  SetInputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer)  { m_input_error_buffer = buffer; }
 	void  SetOutputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_output_error_buffer = buffer; }
 	
 	// バッファ取得
-	const NeuralNetBuffer<T, INDEX>& GetInputValueBuffer(void) const { return m_input_value_buffer; }
-	const NeuralNetBuffer<T, INDEX>& GetOutputValueBuffer(void) const { return m_output_value_buffer; }
+	const NeuralNetBuffer<T, INDEX>& GetInputSignalBuffer(void) const { return m_input_value_buffer; }
+	const NeuralNetBuffer<T, INDEX>& GetOutputSignalBuffer(void) const { return m_output_value_buffer; }
 	const NeuralNetBuffer<T, INDEX>& GetInputErrorBuffer(void) const { return m_input_error_buffer; }
 	const NeuralNetBuffer<T, INDEX>& GetOutputErrorBuffer(void) const { return m_output_error_buffer; }
 };

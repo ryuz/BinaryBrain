@@ -6,9 +6,9 @@
 
 inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 {
-	net.SetInputValueBuffer (net.CreateInputValueBuffer());
+	net.SetInputSignalBuffer (net.CreateInputSignalBuffer());
 	net.SetInputErrorBuffer (net.CreateInputErrorBuffer());
-	net.SetOutputValueBuffer(net.CreateOutputValueBuffer());
+	net.SetOutputSignalBuffer(net.CreateOutputSignalBuffer());
 	net.SetOutputErrorBuffer(net.CreateOutputErrorBuffer());
 }
 
@@ -54,8 +54,8 @@ TEST_F(NeuralNetSoftmaxTest, testSoftmax)
 	bb::NeuralNetSoftmax<> softmax(3);
 	testSetupLayerBuffer(softmax);
 
-	auto in_val = softmax.GetInputValueBuffer();
-	auto out_val = softmax.GetOutputValueBuffer();
+	auto in_val = softmax.GetInputSignalBuffer();
+	auto out_val = softmax.GetOutputSignalBuffer();
 	in_val.SetReal(0, 0, m_src(0, 0));
 	in_val.SetReal(0, 1, m_src(0, 1));
 	in_val.SetReal(0, 2, m_src(0, 2));
@@ -87,8 +87,8 @@ TEST_F(NeuralNetSoftmaxTest, testSoftmaxBatch)
 
 	testSetupLayerBuffer(softmax);
 	
-	auto in_val = softmax.GetInputValueBuffer();
-	auto out_val = softmax.GetOutputValueBuffer();
+	auto in_val = softmax.GetInputSignalBuffer();
+	auto out_val = softmax.GetOutputSignalBuffer();
 	in_val.SetReal(0, 0, m_src(0, 0));
 	in_val.SetReal(1, 0, m_src(1, 0));
 	in_val.SetReal(0, 1, m_src(0, 1));

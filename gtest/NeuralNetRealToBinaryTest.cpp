@@ -7,9 +7,9 @@
 
 inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 {
-	net.SetInputValueBuffer (net.CreateInputValueBuffer());
+	net.SetInputSignalBuffer (net.CreateInputSignalBuffer());
 	net.SetInputErrorBuffer (net.CreateInputErrorBuffer());
-	net.SetOutputValueBuffer(net.CreateOutputValueBuffer());
+	net.SetOutputSignalBuffer(net.CreateOutputSignalBuffer());
 	net.SetOutputErrorBuffer(net.CreateOutputErrorBuffer());
 }
 
@@ -30,8 +30,8 @@ TEST(NeuralNetRealToBinaryTest, testRealToBinary)
 	EXPECT_EQ(1, real2bin.GetInputFrameSize());
 	EXPECT_EQ(2, real2bin.GetOutputFrameSize());
 
-	auto in_val = real2bin.GetInputValueBuffer();
-	auto out_val = real2bin.GetOutputValueBuffer();
+	auto in_val = real2bin.GetInputSignalBuffer();
+	auto out_val = real2bin.GetOutputSignalBuffer();
 	in_val.SetReal(0, 0, 0.0f);
 	in_val.SetReal(0, 1, 1.0f);
 	in_val.SetReal(0, 2, 0.5f);
@@ -76,8 +76,8 @@ TEST(NeuralNetRealToBinaryTest, testNeuralNetRealToBinaryBatch)
 	EXPECT_EQ(batch_size, real2bin.GetInputFrameSize());
 	EXPECT_EQ(batch_size*mux_size, real2bin.GetOutputFrameSize());
 
-	auto in_val = real2bin.GetInputValueBuffer();
-	auto out_val = real2bin.GetOutputValueBuffer();
+	auto in_val = real2bin.GetInputSignalBuffer();
+	auto out_val = real2bin.GetOutputSignalBuffer();
 	in_val.SetReal(0, 0, 0.0f);
 	in_val.SetReal(0, 1, 1.0f);
 	in_val.SetReal(0, 2, 0.5f);

@@ -113,9 +113,9 @@ public:
 	INDEX GetOutputFrameSize(void) const { return m_frame_size; }
 	INDEX GetOutputNodeSize(void) const { return m_output_c_size * m_output_h_size * m_output_w_size; }
 	
-	int   GetInputValueDataType(void) const { return NeuralNetType<T>::type; }
+	int   GetInputSignalDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetInputErrorDataType(void) const { return NeuralNetType<T>::type; }
-	int   GetOutputValueDataType(void) const { return NeuralNetType<T>::type; }
+	int   GetOutputSignalDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
 	
 protected:
@@ -163,8 +163,8 @@ public:
 		if (typeid(T) == typeid(float)) {
 			// float—pŽÀ‘•
 			int  m256_frame_size = (int)(((m_frame_size + 7) / 8) * 8);
-			auto in_buf = GetInputValueBuffer();
-			auto out_buf = GetOutputValueBuffer();
+			auto in_buf = GetInputSignalBuffer();
+			auto out_buf = GetOutputSignalBuffer();
 
 			for (int n = 0; n < m_output_c_size; ++n) {
 				for (int y = 0; y < m_output_h_size; ++y) {
@@ -204,8 +204,8 @@ public:
 		if (typeid(T) == typeid(float)) {
 			// float—pŽÀ‘•
 			int  m256_frame_size = (int)(((m_frame_size + 7) / 8) * 8);
-			auto in_val_buf = GetInputValueBuffer();
-			auto out_val_buf = GetOutputValueBuffer();
+			auto in_val_buf = GetInputSignalBuffer();
+			auto out_val_buf = GetOutputSignalBuffer();
 			auto in_err_buf = GetInputErrorBuffer();
 			auto out_err_buf = GetOutputErrorBuffer();
 

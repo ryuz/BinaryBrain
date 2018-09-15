@@ -121,8 +121,8 @@ protected:
 	void ForwardNode(INDEX node) {
 		INDEX frame_size = (m_frame_size + 255) / 256;
 
-		auto in_buf = GetInputValueBuffer();
-		auto out_buf = GetOutputValueBuffer();
+		auto in_buf = GetInputSignalBuffer();
+		auto out_buf = GetOutputSignalBuffer();
 
 		auto& lut = m_lut[node];
 

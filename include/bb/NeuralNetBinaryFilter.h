@@ -74,13 +74,13 @@ public:
 	}
 
 	// 内部でROI設定を行うので、外部に見せるバッファポインタと別に設定する
-	void  SetInputValueBuffer(NeuralNetBuffer<T, INDEX> buffer) {
-		super::SetInputValueBuffer(buffer);
-		m_filter_net->SetInputValueBuffer(buffer);
+	void  SetInputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) {
+		super::SetInputSignalBuffer(buffer);
+		m_filter_net->SetInputSignalBuffer(buffer);
 	}
-	void  SetOutputValueBuffer(NeuralNetBuffer<T, INDEX> buffer) {
-		super::SetOutputValueBuffer(buffer);
-		m_filter_net->SetOutputValueBuffer(buffer);
+	void  SetOutputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) {
+		super::SetOutputSignalBuffer(buffer);
+		m_filter_net->SetOutputSignalBuffer(buffer);
 	}
 	void  SetInputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) {
 		super::SetInputErrorBuffer(buffer);
@@ -91,8 +91,8 @@ public:
 		m_filter_net->SetOutputErrorBuffer(buffer);
 	}
 	
-//	const NeuralNetBuffer<T, INDEX>&  GetInputValueBuffer(void) const { return super::GetInputValueBuffer(); }
-//	const NeuralNetBuffer<T, INDEX>&  GetOutputValueBuffer(void) const { return super::GetOutputValueBuffer(); }
+//	const NeuralNetBuffer<T, INDEX>&  GetInputSignalBuffer(void) const { return super::GetInputSignalBuffer(); }
+//	const NeuralNetBuffer<T, INDEX>&  GetOutputSignalBuffer(void) const { return super::GetOutputSignalBuffer(); }
 //	const NeuralNetBuffer<T, INDEX>&  GetInputErrorBuffer(void) const { return super::GetInputErrorBuffer(); }
 //	const NeuralNetBuffer<T, INDEX>&  GetOutputErrorBuffer(void) const { return super::GetOutputErrorBuffer(); }
 
@@ -112,9 +112,9 @@ public:
 	INDEX GetOutputFrameSize(void) const { return m_frame_size; }
 	INDEX GetOutputNodeSize(void) const { return m_output_c_size * m_output_h_size * m_output_w_size; }
 	
-	int   GetInputValueDataType(void) const { return BB_TYPE_BINARY; }
+	int   GetInputSignalDataType(void) const { return BB_TYPE_BINARY; }
 	int   GetInputErrorDataType(void) const { return BB_TYPE_BINARY; }
-	int   GetOutputValueDataType(void) const { return BB_TYPE_BINARY; }
+	int   GetOutputSignalDataType(void) const { return BB_TYPE_BINARY; }
 	int   GetOutputErrorDataType(void) const { return BB_TYPE_BINARY; }
 	
 protected:
@@ -132,8 +132,8 @@ protected:
 public:
 	void Forward(bool train = true)
 	{
-		auto in_val = GetInputValueBuffer();
-		auto out_val = GetOutputValueBuffer();
+		auto in_val = GetInputSignalBuffer();
+		auto out_val = GetOutputSignalBuffer();
 
 		in_val.SetDimensions({ m_input_w_size, m_input_h_size, m_input_c_size});
 		out_val.SetDimensions({ m_output_w_size, m_output_h_size, m_output_c_size});
@@ -147,8 +147,8 @@ public:
 				out_val.ClearRoi();
 				out_val.SetRoi({ out_x, out_y, 0}, { 1, 1, m_output_c_size });
 
-				m_filter_net->SetInputValueBuffer(in_val);
-				m_filter_net->SetOutputValueBuffer(out_val);
+				m_filter_net->SetInputSignalBuffer(in_val);
+				m_filter_net->SetOutputSignalBuffer(out_val);
 				m_filter_net->Forward();
 
 				in_x += m_x_step;
@@ -157,9 +157,9 @@ public:
 		}
 
 	//	in_val.ClearRoi();
-	//	SetInputValueBuffer(in_val);
+	//	SetInputSignalBuffer(in_val);
 	//	out_val.ClearRoi();
-	//	SetOutputValueBuffer(out_val);
+	//	SetOutputSignalBuffer(out_val);
 	}
 	
 	void Backward(void)
