@@ -73,7 +73,11 @@ public:
 		auto in_sig_buf = GetInputSignalBuffer();
 		auto out_sig_buf = GetOutputSignalBuffer();
 
-		std::uniform_real_distribution<T>	rand(m_real_range_lo, m_real_range_hi);
+		// ノード数の倍率を確認
+		int mul = std::max((int)(m_output_node_size / m_input_node_size), 1);
+		T th_range = (T)(1.0 / mul);
+
+		std::uniform_real_distribution<T>	dist_rand(0, th_range);
 
 		INDEX node_size = std::max(m_input_node_size, m_output_node_size);
 		for (INDEX frame = 0; frame < m_batch_size; frame++) {
@@ -85,8 +89,13 @@ public:
 			}
 
 			for (INDEX node = 0; node < m_output_node_size; node++) {
+				INDEX th_step   = node / m_input_node_size;
+				T     th_offset = (T)(th_range * th_step);
+
+				T rand_th = dist_rand(m_mt);
+
 				T		real_sig = vec_v[node] / (T)vec_n[node];
-				Binary	bin_sig = (real_sig > rand(m_mt));
+				Binary	bin_sig = (real_sig > (rand_th + th_offset));
 				for (INDEX i = 0; i < m_mux_size; i++) {
 					out_sig_buf.Set<BT>(frame*m_mux_size + i, node, bin_sig);
 				}
