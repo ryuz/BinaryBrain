@@ -67,12 +67,13 @@ public:
 		m_db.resize(m_output_c_size);
 
 		std::mt19937_64 mt(seed);
-		std::uniform_real_distribution<T> uniform_rand((T)0, (T)1);
+//		std::uniform_real_distribution<T> real_dist((T)0, (T)1);
+		std::normal_distribution<T>		real_dist((T)0.0, (T)1.0);
 		for (auto& w : m_W) {
-			w = uniform_rand(mt);
+			w = real_dist(mt);
 		}
 		for (auto& b : m_b) {
-			b = uniform_rand(mt);
+			b = real_dist(mt);
 		}
 	}
 	
@@ -157,6 +158,10 @@ protected:
 		return r.m256_f32[0] + r.m256_f32[4];
 	}
 
+	inline __m256	my_mm256_fmadd_ps(__m256 a, __m256 b, __m256 c) {
+		return _mm256_fmadd_ps(a, b, c);
+	}
+
 public:
 	void Forward(bool train = true)
 	{
@@ -165,7 +170,8 @@ public:
 			int  m256_frame_size = (int)(((m_frame_size + 7) / 8) * 8);
 			auto in_sig_buf = GetInputSignalBuffer();
 			auto out_sig_buf = GetOutputSignalBuffer();
-
+#if 0
+#pragma omp parallel for
 			for (int n = 0; n < m_output_c_size; ++n) {
 				for (int y = 0; y < m_output_h_size; ++y) {
 					for (int x = 0; x < m_output_w_size; ++x) {
@@ -180,8 +186,7 @@ public:
 										float* in_ptr = GetInputPtr(in_sig_buf, c, iy, ix);
 										__m256 W_val = _mm256_set1_ps(W(n, c, fy, fx));
 										__m256 in_val = _mm256_load_ps(&in_ptr[frame]);
-										__m256 mul_val = _mm256_mul_ps(W_val, in_val);
-										sum = _mm256_add_ps(sum, mul_val);
+										sum = my_mm256_fmadd_ps(W_val, in_val, sum);
 									}
 								}
 							}
@@ -190,6 +195,35 @@ public:
 					}
 				}
 			}
+#else
+#pragma omp parallel for
+			for (int n = 0; n < m_output_c_size; ++n) {
+				for (int y = 0; y < m_output_h_size; ++y) {
+					for (int x = 0; x < m_output_w_size; ++x) {
+						float* out_ptr = GetOutputPtr(out_sig_buf, n, y, x);
+						for (size_t frame = 0; frame < m256_frame_size; frame += 8) {
+							_mm256_store_ps(&out_ptr[frame], _mm256_set1_ps(b(n)));
+						}
+						for (int c = 0; c < m_input_c_size; ++c) {
+							for (int fy = 0; fy < m_filter_h_size; ++fy) {
+								for (int fx = 0; fx < m_filter_w_size; ++fx) {
+									int ix = x + fx;
+									int iy = y + fy;
+									float* in_ptr = GetInputPtr(in_sig_buf, c, iy, ix);
+									__m256 W_val = _mm256_set1_ps(W(n, c, fy, fx));
+									for (size_t frame = 0; frame < m256_frame_size; frame += 8) {
+										__m256 out_sig = _mm256_load_ps(&out_ptr[frame]);
+										__m256 in_sig = _mm256_load_ps(&in_ptr[frame]);
+										out_sig = _mm256_fmadd_ps(W_val, in_sig, out_sig);
+										_mm256_store_ps(&out_ptr[frame], out_sig);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+#endif
 		}
 		else if (typeid(T) == typeid(double)) {
 			// double—pŽÀ‘•
@@ -210,6 +244,7 @@ public:
 			auto out_err_buf = GetOutputErrorBuffer();
 
 			// ƒpƒ‰ƒ[ƒ^dW‚ÌŒvŽZ
+#pragma omp parallel for
 			for (int n = 0; n < m_output_c_size; ++n) {
 				__m256 sum_db = _mm256_set1_ps(0);
 				for (int c = 0; c < m_input_c_size; ++c) {
@@ -225,8 +260,9 @@ public:
 									for (size_t frame = 0; frame < m256_frame_size; frame += 8) {
 										__m256 out_err = _mm256_load_ps(&out_err_ptr[frame]);
 										__m256 in_sig = _mm256_load_ps(&in_sig_ptr[frame]);
-										__m256 mul_val = _mm256_mul_ps(in_sig, out_err);
-										sum_dW = _mm256_add_ps(sum_dW, mul_val);
+				//						__m256 mul_val = _mm256_mul_ps(in_sig, out_err);
+				//						sum_dW = _mm256_add_ps(sum_dW, mul_val);
+										sum_dW = my_mm256_fmadd_ps(in_sig, out_err, sum_dW);
 									}
 								}
 							}
@@ -237,6 +273,7 @@ public:
 			}
 
 			// ƒpƒ‰ƒ[ƒ^db‚ÌŒvŽZ
+#pragma omp parallel for
 			for (int n = 0; n < m_output_c_size; ++n) {
 				__m256 sum_db = _mm256_set1_ps(0);
 				for (int y = 0; y < m_output_h_size; ++y) {
@@ -253,6 +290,8 @@ public:
 
 
 			// “ü—Í‚Ö‚Ì‹t“`”d
+#if 0
+#pragma omp parallel for
 			for (int c = 0; c < m_input_c_size; ++c) {
 				for (int y = 0; y < m_input_h_size; ++y) {
 					for (int x = 0; x < m_input_w_size; ++x) {
@@ -277,6 +316,33 @@ public:
 					}
 				}
 			}
+#else
+			in_err_buf.Clear();
+			for (int c = 0; c < m_input_c_size; ++c) {
+#pragma omp parallel for
+				for (int y = 0; y < m_input_h_size; ++y) {
+					for (int x = 0; x < m_input_w_size; ++x) {
+						float* in_err_ptr = GetInputPtr(in_err_buf, c, y, x);
+						for (int n = 0; n < m_output_c_size; ++n) {
+							for (int fy = 0; fy < m_filter_h_size; ++fy) {
+								for (int fx = 0; fx < m_filter_w_size; ++fx) {
+									int ox = x - fx;
+									int oy = y - fy;
+									__m256 W_val = _mm256_set1_ps(W(n, c, fy, fx));
+									float* out_err_ptr = GetOutputPtrWithRangeCheck(out_err_buf, n, oy, ox);
+									for (size_t frame = 0; frame < m256_frame_size; frame += 8) {
+										__m256 in_err = _mm256_load_ps(&in_err_ptr[frame]);
+										__m256 out_err = _mm256_load_ps(&out_err_ptr[frame]);
+										in_err = _mm256_fmadd_ps(W_val, out_err, in_err);
+										_mm256_store_ps(&in_err_ptr[frame], in_err);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+#endif
 		}
 	}
 

@@ -32,6 +32,9 @@ namespace bb {
 // 転置や reshape、畳み込み時のROIアクセスなど考慮に入れておく
 
 
+#define BB_NEURALNET_BUFFER_USE_ROI		0
+
+
 // NeuralNet用のバッファ
 template <typename T = float, typename INDEX = size_t>
 class NeuralNetBuffer
@@ -47,8 +50,11 @@ protected:
 	{
 		INDEX	step;
 		INDEX	stride;
+
+#if	BB_NEURALNET_BUFFER_USE_ROI
 		INDEX	offset;
 		INDEX	width;
+#endif
 	};
 
 	std::vector<Dimension>			m_dim;
@@ -126,8 +132,10 @@ public:
 		m_dim.resize(1);
 		m_dim[0].step = node_size;
 		m_dim[0].stride = 1;
+#if	BB_NEURALNET_BUFFER_USE_ROI
 		m_dim[0].offset = 0;
 		m_dim[0].width = node_size;
+#endif
 	}
 
 	void SetDimensions(std::vector<INDEX> dim)
@@ -139,13 +147,17 @@ public:
 		m_dim.resize(dim.size());
 		m_dim[0].step = dim[0];
 		m_dim[0].stride = 1;
+#if	BB_NEURALNET_BUFFER_USE_ROI
 		m_dim[0].offset = 0;
 		m_dim[0].width = dim[0];
+#endif
 		for (size_t i = 1; i < dim.size(); ++i) {
 			m_dim[i].step = dim[i];
 			m_dim[i].stride = m_dim[i - 1].stride * m_dim[i - 1].step;
+#if	BB_NEURALNET_BUFFER_USE_ROI
 			m_dim[i].offset = 0;
 			m_dim[i].width = dim[i];
+#endif
 		}
 	}
 
@@ -154,6 +166,7 @@ public:
 		return m_dim;
 	}
 
+#if	BB_NEURALNET_BUFFER_USE_ROI
 	void SetRoi(std::vector<INDEX> offset)
 	{
 		BB_ASSERT(offset.size() == m_dim.size());
@@ -190,6 +203,7 @@ public:
 		}
 		m_node_size = m_base_size;
 	}
+#endif
 
 
 	INDEX GetFrameSize(void)  const { return m_frame_size; }
@@ -288,6 +302,18 @@ public:
 		return GetBasePtr(m_base_size);
 	}
 
+#if	BB_NEURALNET_BUFFER_USE_ROI
+	inline void* GetPtr(INDEX node) const
+	{
+		INDEX addr = 0;
+		for (size_t i = 0; i < m_dim.size(); ++i) {
+			INDEX index = node % m_dim[i].width;
+			addr += m_dim[i].stride * (index + m_dim[i].offset);
+			node /= m_dim[i].width;
+		}
+		return GetBasePtr(addr);
+	}
+
 	inline void* GetPtr(std::vector<INDEX> index) const
 	{
 		BB_ASSERT(index.size() == m_dim.size());
@@ -297,17 +323,6 @@ public:
 			addr += m_dim[i].stride * (index[i] + m_dim[i].offset);
 		}
 
-		return GetBasePtr(addr);
-	}
-
-	inline void* GetPtr(INDEX node) const
-	{
-		INDEX addr = 0;
-		for (size_t i = 0; i < m_dim.size(); ++i) {
-			INDEX index = node % m_dim[i].width;
-			addr += m_dim[i].stride * (index + m_dim[i].offset);
-			node /= m_dim[i].width;
-		}
 		return GetBasePtr(addr);
 	}
 
@@ -322,6 +337,36 @@ public:
 
 		return GetBasePtr(addr);
 	}
+#else
+	inline void* GetPtr(INDEX node) const
+	{
+		return GetBasePtr(node);
+	}
+
+	inline void* GetPtr(std::vector<INDEX> index) const
+	{
+		BB_ASSERT(index.size() == m_dim.size());
+		INDEX addr = 0;
+		for (size_t i = 0; i < m_dim.size(); ++i) {
+			BB_ASSERT(index[i] >= 0 && index[i] < m_dim[i].step);
+			addr += m_dim[i].stride * index[i];
+		}
+
+		return GetBasePtr(addr);
+	}
+
+	template <size_t N>
+	inline void* GetPtrN(std::array<INDEX, N> index) const
+	{
+		BB_ASSERT(index.size() == m_dim.size());
+		INDEX addr = 0;
+		for (size_t i = 0; i < index.size(); ++i) {
+			addr += m_dim[i].stride * index[i];
+		}
+
+		return GetBasePtr(addr);
+	}
+#endif
 
 	inline void* GetPtr2(INDEX i1, INDEX i0) const
 	{
@@ -376,40 +421,12 @@ public:
 	inline void Set(INDEX frame, INDEX node, Tp value) const
 	{
 		Write<Tp>(GetPtr(node), frame, value);
-
-#if 0
-		if (typeid(Tp) == typeid(bool)) {
-			std::uint8_t* ptr = (std::uint8_t*)GetPtr(node);
-			std::uint8_t mask = (std::uint8_t)(1 << (frame % 8));
-			if (value) {
-				ptr[frame / 8] |= mask;
-			}
-			else {
-				ptr[frame / 8] &= ~mask;
-			}
-		}
-		else {
-			Tp* ptr = (Tp*)GetPtr(node);
-			ptr[frame] = value;
-		}
-#endif
 	}
 
 	template <typename Tp>
 	inline Tp Get(INDEX frame, INDEX node) const
 	{
 		return Read<Tp>(GetPtr(node), frame);
-#if 0
-		if (typeid(Tp) == typeid(bool)) {
-			std::uint8_t* ptr = (std::uint8_t*)GetPtr(node);
-			std::uint8_t mask = (std::uint8_t)(1 << (frame % 8));
-			return ((ptr[frame / 8] & mask) != 0);
-		}
-		else {
-			Tp* ptr = (Tp*)GetPtr(node);
-			return ptr[frame];
-		}
-#endif
 	}
 
 
