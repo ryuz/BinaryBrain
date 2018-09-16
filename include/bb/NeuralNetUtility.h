@@ -11,12 +11,38 @@
 
 namespace bb {
 
+#include <cstdint>
+
 // argmax
 template <typename T = float, typename INDEX = int>
 INDEX argmax(std::vector<T> vec)
 {
 	auto maxIt = std::max_element(vec.begin(), vec.end());
 	return (INDEX)std::distance(vec.begin(), maxIt);
+}
+
+
+// データ型を変換(uint8_t(0-255) -> float(0.0-1.0)への変換に使う想定)
+template <typename ST = std::uint8_t, typename DT = float, typename MT = float>
+std::vector<DT> DataTypeConvert(const std::vector<ST>& src, MT mul=(MT)1)
+{
+	std::vector<DT> dst(src.size());
+	for (size_t i = 0; i < src.size(); ++i) {
+		dst[i] = (DT)(src[i] * mul);
+	}
+
+	return dst;
+}
+
+template <typename ST = std::uint8_t, typename DT = float, typename MT = float>
+std::vector< std::vector<DT> > DataTypeConvert(const std::vector< std::vector<ST> >& src, MT mul = (MT)1)
+{
+	std::vector< std::vector<DT> > dst(src.size());
+	for (size_t i = 0; i < src.size(); ++i) {
+		dst[i] = DataTypeConvert<ST, DT, MT>(src[i], mul);
+	}
+
+	return dst;
 }
 
 

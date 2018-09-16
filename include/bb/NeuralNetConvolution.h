@@ -290,33 +290,6 @@ public:
 
 
 			// “ü—Í‚Ö‚Ì‹t“`”d
-#if 0
-#pragma omp parallel for
-			for (int c = 0; c < m_input_c_size; ++c) {
-				for (int y = 0; y < m_input_h_size; ++y) {
-					for (int x = 0; x < m_input_w_size; ++x) {
-						float* in_err_ptr = GetInputPtr(in_err_buf, c, y, x);
-						for (size_t frame = 0; frame < m256_frame_size; frame += 8) {
-							__m256 sum = _mm256_set1_ps(0);
-							for (int n = 0; n < m_output_c_size; ++n) {
-								for (int fy = 0; fy < m_filter_h_size; ++fy) {
-									for (int fx = 0; fx < m_filter_w_size; ++fx) {
-										int ox = x - fx;
-										int oy = y - fy;
-										float* out_err_ptr = GetOutputPtrWithRangeCheck(out_err_buf, n, oy, ox);
-										__m256 W_val = _mm256_set1_ps(W(n, c, fy, fx));
-										__m256 out_err = _mm256_load_ps(&out_err_ptr[frame]);
-										__m256 mul_val = _mm256_mul_ps(W_val, out_err);
-										sum = _mm256_add_ps(sum, mul_val);
-									}
-								}
-							}
-							_mm256_store_ps(&in_err_ptr[frame], sum);
-						}
-					}
-				}
-			}
-#else
 			in_err_buf.Clear();
 			for (int c = 0; c < m_input_c_size; ++c) {
 #pragma omp parallel for
@@ -342,12 +315,17 @@ public:
 					}
 				}
 			}
-#endif
 		}
 	}
 
 	void Update(double learning_rate)
 	{
+		for (size_t i = 0; i < m_W.size(); ++i) {
+			m_W[i] -= (T)(m_dW[i] * learning_rate);
+		}
+		for (size_t i = 0; i < m_b.size(); ++i) {
+			m_b[i] -= (T)(m_db[i] * learning_rate);
+		}
 	}
 
 };
