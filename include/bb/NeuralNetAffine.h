@@ -65,16 +65,17 @@ public:
 	void InitializeCoeff(std::uint64_t seed)
 	{
 		std::mt19937_64 mt(seed);
-		std::uniform_real_distribution<T> distribution((T)-1, (T)+1);
+//		std::uniform_real_distribution<T> real_dist((T)-1, (T)+1);
+		std::normal_distribution<T>		real_dist((T)0.0, (T)1.0);
 
 		for (INDEX i = 0; i < m_input_size; ++i) {
 			for (INDEX j = 0; j < m_output_size; ++j) {
-				m_W(i, j) = distribution(mt);
+				m_W(i, j) = real_dist(mt);
 			}
 		}
 
 		for (INDEX j = 0; j < m_output_size; ++j) {
-			m_b(j) = distribution(mt);
+			m_b(j) = real_dist(mt);
 		}
 	}
 
