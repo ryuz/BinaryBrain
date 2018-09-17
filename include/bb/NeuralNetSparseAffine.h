@@ -34,11 +34,6 @@ protected:
 		T						b;
 		std::array<T, N>		dW;
 		T						db;
-
-//		T	gamma = 1;
-//		T	beta  = 0;
-//		T	mean  = 0;
-//		T	var   = 1;
 	};
 
 	INDEX						m_mux_size = 1;
@@ -93,6 +88,11 @@ public:
 				w = distribution(mt);
 			}
 			node.b = distribution(mt);
+
+			for (auto& dw : node.dW) {
+				dw = 0;
+			}
+			node.db = 0;
 		}
 	}
 	
@@ -205,12 +205,12 @@ public:
 				}
 
 				for (int i = 0; i < N; i++) {
-					nd.dW[i] = 0;
+//					nd.dW[i] = 0;
 					for (int j = 0; j < 8; j++) {
 						nd.dW[i] += dW[i].m256_f32[j];
 					}
 				}
-				nd.db = 0;
+//				nd.db = 0;
 				for (int j = 0; j < 8; j++) {
 					nd.db += db.m256_f32[j];
 				}
@@ -227,8 +227,10 @@ public:
 			auto& nd = m_node[node];
 			for (int i = 0; i < N; ++i) {
 				nd.W[i] -= nd.dW[i] * (T)learning_rate;
+				nd.dW[i] = 0;
 			}
 			nd.b -= nd.db * (T)learning_rate;
+			nd.db = 0;
 		}
 	}
 

@@ -52,6 +52,7 @@
     <ClInclude Include="..\include\bb\NeuralNetConvCollapse.h" />
     <ClInclude Include="..\include\bb\NeuralNetConvExpand.h" />
     <ClInclude Include="..\include\bb\NeuralNetConvolution.h" />
+    <ClInclude Include="..\include\bb\NeuralNetConvolutionPack.h" />
     <ClInclude Include="..\include\bb\NeuralNetGroup.h" />
     <ClInclude Include="..\include\bb\NeuralNetLayer.h" />
     <ClInclude Include="..\include\bb\NeuralNetLayerBuf.h" />

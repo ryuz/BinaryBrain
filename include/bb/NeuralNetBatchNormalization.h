@@ -70,6 +70,8 @@ public:
 		m_node_size = node_size;
 		m_gamma = Vector::Ones(m_node_size);
 		m_beta = Vector::Zero(m_node_size);
+		m_dgamma = Vector::Zero(m_node_size);
+		m_dbeta = Vector::Zero(m_node_size);
 		m_running_mean = Vector::Zero(m_node_size);
 		m_running_var = Vector::Ones(m_node_size);
 	}
@@ -176,14 +178,17 @@ public:
 		dx = dxc.array().rowwise() - (dmu.array() / (T)frame_szie);
 //		std::cout << "dx =\n" << dx << std::endl;
 		
-		m_dgamma = dgamma;
-		m_dbeta = dbeta;
+		m_dgamma += dgamma;
+		m_dbeta += dbeta;
 	}
 
 	void Update(double learning_rate)
 	{
 		m_gamma -= m_dgamma * learning_rate;
 		m_beta -= m_dbeta * learning_rate;
+
+		m_dgamma *= 0;
+		m_dbeta *= 0;
 	}
 
 };

@@ -503,17 +503,17 @@ int main()
 
 	// 以下評価したいものを適当に切り替えてご使用ください
 
-#if 1
+#if 0
 	// バイナリ6入力LUT版学習実験(重いです)
 	eva_mnist.RunBinaryLut6WithBbruteForce(2, 8192, 8);
 #endif
 
-#if 1
+#if 0
 	// 実数＆全接続(いわゆる古典的なニューラルネット)
 	eva_mnist.RunDenseAffine(16, 256);
 #endif
 
-#if 1
+#if 0
 	// 実数＆接続制限(接続だけLUT的にして中身のノードは実数)
 	eva_mnist.RunSparseAffine(16, 256);
 #endif
