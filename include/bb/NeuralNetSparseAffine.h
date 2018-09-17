@@ -169,7 +169,9 @@ public:
 
 		in_err_buf.Clear();
 
-		for (INDEX node = 0; node < node_size; ++ node ) {
+		concurrency::parallel_for<INDEX>(0, node_size, [&](INDEX node)
+		{
+//		for (INDEX node = 0; node < node_size; ++node ) {
 			if (typeid(T) == typeid(float)) {
 				auto& nd = m_node[node];
 
@@ -215,7 +217,7 @@ public:
 					nd.db += db.m256_f32[j];
 				}
 			}
-		}
+		});
 	}
 
 

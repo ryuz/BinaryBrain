@@ -77,15 +77,6 @@
     <ClInclude Include="..\..\include\bb\NeuralNetLayerBuf.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetLimitedConnection.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetLimitedConnectionAffine.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetLimitedConnectionAffineBc.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\bb\NeuralNetRealToBinary.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -102,6 +93,27 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\bb\NeuralNetMaxPooling.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\NeuralNetConvCollapse.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\NeuralNetConvExpand.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\NeuralNetConvolutionPack.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\NeuralNetReLU.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\NeuralNetSparseAffine.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\NeuralNetSparseAffineBc.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\NeuralNetSparseLayer.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

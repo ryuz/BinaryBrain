@@ -90,8 +90,8 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\..\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <OpenMPSupport>false</OpenMPSupport>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -129,7 +129,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\..\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
@@ -182,18 +182,22 @@
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryLutN.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryToReal.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBuffer.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetConvCollapse.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetConvExpand.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetConvolution.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetConvolutionPack.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetGroup.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLayer.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLayerBuf.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetLimitedConnection.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetLimitedConnectionAffine.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetLimitedConnectionAffineBc.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetMaxPooling.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetRealToBinary.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetReLU.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetSigmoid.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetSoftmax.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetSparseAffine.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetSparseAffineBc.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetSparseBinaryAffine.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetSparseLayer.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetType.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetUtility.h" />
     <ClInclude Include="..\..\include\bb\ShuffleSet.h" />

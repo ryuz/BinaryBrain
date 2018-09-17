@@ -12,9 +12,9 @@
 
 #include <random>
 
-#ifndef EIGEN_MPL2_ONLY
-#define EIGEN_MPL2_ONLY
-#endif
+//#ifndef EIGEN_MPL2_ONLY
+//#define EIGEN_MPL2_ONLY
+//#endif
 #include <Eigen/Core>
 
 #include "NeuralNetLayerBuf.h"
