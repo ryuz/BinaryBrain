@@ -99,7 +99,7 @@ public:
 		for (INDEX node = 0; node < m_input_node_size; node++) {
 			for (INDEX frame = 0; frame < m_batch_size; ++frame) {
 				for (INDEX i = 0; i < m_mux_size; i++) {
-					in_err.Set<T>(frame*m_mux_size + i, node, out_err.Get<T>(frame, node));
+					in_err.Set<T>(frame*m_mux_size + i, node, out_err.Get<T>(frame, node % m_output_node_size));
 				}
 			}
 		}
