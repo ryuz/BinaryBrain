@@ -163,7 +163,7 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6Compare)
 	lut0.SetBatchSize(batch_size);
 	lut1.SetBatchSize(batch_size);
 
-#if 0
+#if !BB_NEURALNET_BUFFER_USE_ROI
 
 	// ÇªÇÃÇ‹Ç‹ÇÃÉTÉCÉY
 	testSetupLayerBuffer(lut0);

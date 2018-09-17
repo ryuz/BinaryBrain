@@ -84,10 +84,10 @@ TEST(NeuralNetConvolutionTest, testNeuralNetConvolution)
 //	std::cout << exp10 << std::endl;
 //	std::cout << exp11 << std::endl;
 
-	EXPECT_EQ(exp00, out_val.GetReal(0, 0));
-	EXPECT_EQ(exp01, out_val.GetReal(0, 1));
-	EXPECT_EQ(exp10, out_val.GetReal(0, 2));
-	EXPECT_EQ(exp11, out_val.GetReal(0, 3));
+	EXPECT_TRUE(abs(exp00 - out_val.GetReal(0, 0)) < 0.000001);
+	EXPECT_TRUE(abs(exp01 - out_val.GetReal(0, 1)) < 0.000001);
+	EXPECT_TRUE(abs(exp10 - out_val.GetReal(0, 2)) < 0.000001);
+	EXPECT_TRUE(abs(exp11 - out_val.GetReal(0, 3)) < 0.000001);
 }
 
 

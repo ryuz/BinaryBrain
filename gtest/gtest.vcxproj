@@ -25,6 +25,8 @@
     <ClCompile Include="NeuralNetBinaryLutTest.cpp" />
     <ClCompile Include="NeuralNetBinaryToRealTest.cpp" />
     <ClCompile Include="NeuralNetBufferTest.cpp" />
+    <ClCompile Include="NeuralNetConvCollapseTest.cpp" />
+    <ClCompile Include="NeuralNetConvExpandTest.cpp" />
     <ClCompile Include="NeuralNetConvolutionTest.cpp" />
     <ClCompile Include="NeuralNetMaxPoolingTest.cpp" />
     <ClCompile Include="NeuralNetRealToBinaryTest.cpp" />
@@ -47,6 +49,8 @@
     <ClInclude Include="..\include\bb\NeuralNetBinaryLutN.h" />
     <ClInclude Include="..\include\bb\NeuralNetBinaryToReal.h" />
     <ClInclude Include="..\include\bb\NeuralNetBuffer.h" />
+    <ClInclude Include="..\include\bb\NeuralNetConvCollapse.h" />
+    <ClInclude Include="..\include\bb\NeuralNetConvExpand.h" />
     <ClInclude Include="..\include\bb\NeuralNetConvolution.h" />
     <ClInclude Include="..\include\bb\NeuralNetGroup.h" />
     <ClInclude Include="..\include\bb\NeuralNetLayer.h" />

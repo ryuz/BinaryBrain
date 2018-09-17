@@ -181,6 +181,7 @@
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryLutN.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryToReal.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBuffer.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetConvCollapse.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetConvolution.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetGroup.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLayer.h" />

@@ -276,6 +276,68 @@ loop_end:
 }
 
 
+// 「ゼロから作る」の構成のSigmoid
+void RunSimpleConvSigmoid(int epoc_size, size_t max_batch_size, double learning_rate)
+{
+	std::cout << "start [RunSimpleConvSigmoid]" << std::endl;
+	reset_time();
+
+	// 実数版NET構築
+	bb::NeuralNet<> net;
+	bb::NeuralNetConvolution<>  layer0_conv(3, 32, 32, 30, 5, 5);
+	bb::NeuralNetSigmoid<>		layer0_sigmoid(30 * 28 * 28);
+	bb::NeuralNetMaxPooling<>	layer0_maxpol(30, 28, 28, 2, 2);
+
+	bb::NeuralNetAffine<>		layer1_affine(30 * 14 * 14, 100);
+	bb::NeuralNetSigmoid<>		layer1_sigmoid(100);
+
+	bb::NeuralNetAffine<>		layer2_affine(100, 10);
+	bb::NeuralNetSoftmax<>		layer2_softmax(10);
+	net.AddLayer(&layer0_conv);
+	net.AddLayer(&layer0_sigmoid);
+	net.AddLayer(&layer0_maxpol);
+	net.AddLayer(&layer1_affine);
+	net.AddLayer(&layer1_sigmoid);
+	net.AddLayer(&layer2_affine);
+	net.AddLayer(&layer2_softmax);
+
+	for (int epoc = 0; epoc < epoc_size; ++epoc) {
+
+		// 学習状況評価
+		std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
+
+
+		for (size_t x_index = 0; x_index < train_images.size(); x_index += max_batch_size) {
+			// 末尾のバッチサイズクリップ
+			size_t batch_size = std::min(max_batch_size, train_images.size() - x_index);
+
+			// データセット
+			net.SetBatchSize(batch_size);
+			for (size_t frame = 0; frame < batch_size; ++frame) {
+				net.SetInputSignal(frame, train_images[x_index + frame]);
+			}
+
+			// 予測
+			net.Forward();
+
+			// 誤差逆伝播
+			for (size_t frame = 0; frame < batch_size; ++frame) {
+				auto signals = net.GetOutputSignal(frame);
+				for (size_t node = 0; node < signals.size(); ++node) {
+					signals[node] -= train_onehot[x_index + frame][node];
+					signals[node] /= (float)batch_size;
+				}
+				net.SetOutputError(frame, signals);
+			}
+			net.Backward();
+
+			// 更新
+			net.Update(learning_rate);
+		}
+	}
+	std::cout << "end\n" << std::endl;
+}
+
 
 int main()
 {
@@ -323,7 +385,10 @@ int main()
 #endif
 
 	
+
 	//////
+	RunSimpleConvSigmoid(1000, 256, 0.1);
+
 #if 1
 	// バイナリ6入力LUT版学習実験(重いです)
 	RunFlatBinaryLut6(100, 16*8192, -1);

@@ -396,6 +396,7 @@ public:
 		std::fill(m_iterator.begin(), m_iterator.end(), 0);
 	}
 
+#if BB_NEURALNET_BUFFER_USE_ROI
 	inline void* NextPtr(void)
 	{
 		void* ptr = GetPtr(m_iterator);
@@ -410,6 +411,22 @@ public:
 		m_end = true;
 		return ptr;
 	}
+#else
+	inline void* NextPtr(void)
+	{
+		void* ptr = GetPtr(m_iterator);
+
+		for (int i = 0; i < m_iterator.size(); ++i) {
+			++m_iterator[i];
+			if (m_iterator[i] < m_dim[i].step) {
+				return ptr;
+			}
+			m_iterator[i] = 0;
+		}
+		m_end = true;
+		return ptr;
+	}
+#endif
 
 	inline bool IsEnd(void) const
 	{

@@ -170,32 +170,7 @@ public:
 			int  m256_frame_size = (int)(((m_frame_size + 7) / 8) * 8);
 			auto in_sig_buf = GetInputSignalBuffer();
 			auto out_sig_buf = GetOutputSignalBuffer();
-#if 0
-#pragma omp parallel for
-			for (int n = 0; n < m_output_c_size; ++n) {
-				for (int y = 0; y < m_output_h_size; ++y) {
-					for (int x = 0; x < m_output_w_size; ++x) {
-						float* out_ptr = GetOutputPtr(out_sig_buf, n, y, x);
-						for (size_t frame = 0; frame < m256_frame_size; frame += 8) {
-							__m256 sum = _mm256_set1_ps(b(n));
-							for (int c = 0; c < m_input_c_size; ++c) {
-								for (int fy = 0; fy < m_filter_h_size; ++fy) {
-									for (int fx = 0; fx < m_filter_w_size; ++fx) {
-										int ix = x + fx;
-										int iy = y + fy;
-										float* in_ptr = GetInputPtr(in_sig_buf, c, iy, ix);
-										__m256 W_val = _mm256_set1_ps(W(n, c, fy, fx));
-										__m256 in_val = _mm256_load_ps(&in_ptr[frame]);
-										sum = my_mm256_fmadd_ps(W_val, in_val, sum);
-									}
-								}
-							}
-							_mm256_store_ps(&out_ptr[frame], sum);
-						}
-					}
-				}
-			}
-#else
+
 #pragma omp parallel for
 			for (int n = 0; n < m_output_c_size; ++n) {
 				for (int y = 0; y < m_output_h_size; ++y) {
@@ -223,7 +198,6 @@ public:
 					}
 				}
 			}
-#endif
 		}
 		else if (typeid(T) == typeid(double)) {
 			// double—pŽÀ‘•

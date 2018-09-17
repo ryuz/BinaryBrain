@@ -101,5 +101,8 @@
     <ClInclude Include="..\..\include\bb\NeuralNetMaxPooling.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bb\NeuralNetConvCollapse.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

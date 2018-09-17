@@ -52,6 +52,7 @@ TEST(NeuralNetBufferTest, testNeuralNetBufferTest)
 		EXPECT_EQ(i, 24);
 	}
 
+#if BB_NEURALNET_BUFFER_USE_ROI
 	// オフセットのみのROI
 	buf.SetRoi({ 0, 1, 0 });
 	EXPECT_EQ(2, *(float *)buf.GetPtr3(0, 0, 0));
@@ -130,6 +131,7 @@ TEST(NeuralNetBufferTest, testNeuralNetBufferTest)
 
 	// ROI解除
 	buf.ClearRoi();
+#endif
 
 	// シーケンシャルアクセス確認
 	{
@@ -142,7 +144,7 @@ TEST(NeuralNetBufferTest, testNeuralNetBufferTest)
 		EXPECT_EQ(i, 24);
 	}
 
-
+#if	BB_NEURALNET_BUFFER_USE_ROI
 	// 範囲付きROI
 	buf.SetRoi({ 0, 1, 1 }, { 1, 2, 2 });
 
@@ -161,8 +163,11 @@ TEST(NeuralNetBufferTest, testNeuralNetBufferTest)
 	EXPECT_EQ(false, buf.IsEnd());
 	EXPECT_EQ(16, *(float *)buf.NextPtr());
 	EXPECT_EQ(true, buf.IsEnd());
+#endif
 }
 
+
+#if	BB_NEURALNET_BUFFER_USE_ROI
 
 TEST(NeuralNetBufferTest, testNeuralNetBufferTest2)
 {
@@ -300,4 +305,5 @@ TEST(NeuralNetBufferTest, testNeuralNetBufferTest3)
 	}
 }
 
+#endif
 

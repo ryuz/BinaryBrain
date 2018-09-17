@@ -11,6 +11,8 @@
 #include "bb/NeuralNetBinaryFilter.h"
 
 
+#if BB_NEURALNET_BUFFER_USE_ROI
+
 
 inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 {
@@ -518,3 +520,7 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterFeedBack2)
 }
 
 */
+
+
+#endif
+
