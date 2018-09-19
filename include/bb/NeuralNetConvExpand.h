@@ -63,7 +63,7 @@ public:
 
 	void SetBatchSize(INDEX batch_size) {
 		m_input_frame_size = batch_size * m_mux_size;
-		m_output_frame_size = m_input_frame_size * m_output_h_size * m_output_w_size;
+		m_output_frame_size = m_input_frame_size * m_output_h_size * m_output_w_size * m_mux_size;
 	}
 	
 	INDEX GetInputFrameSize(void) const { return m_input_frame_size; }

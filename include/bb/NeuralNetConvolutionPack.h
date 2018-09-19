@@ -57,13 +57,13 @@ public:
 	void  SetMuxSize(INDEX mux_size)
 	{
 		m_expand.SetMuxSize(mux_size);
-		m_layer->SetMuxSize(mux_size * m_expand_size);
+		m_layer->SetMuxSize(mux_size);
 		m_collapse.SetMuxSize(mux_size);
 	}
 
 	void  SetBatchSize(INDEX batch_size) {
 		m_expand.SetBatchSize(batch_size);
-		m_layer->SetBatchSize(batch_size);
+		m_layer->SetBatchSize(batch_size * m_expand_size);
 		m_collapse.SetBatchSize(batch_size);
 
 		m_expand.SetOutputSignalBuffer(m_expand.CreateOutputSignalBuffer());
