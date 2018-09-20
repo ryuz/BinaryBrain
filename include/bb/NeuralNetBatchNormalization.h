@@ -17,7 +17,7 @@
 #include <Eigen/Core>
 
 #include "NeuralNetLayerBuf.h"
-
+#include "NeuralNetOptimizerSgd.h"
 
 namespace bb {
 
@@ -39,6 +39,9 @@ protected:
 	Vector		m_dgamma;
 	Vector		m_dbeta;
 
+	std::unique_ptr< NeuralNetOptimizer<T, INDEX> >	m_optimizer_gamma;
+	std::unique_ptr< NeuralNetOptimizer<T, INDEX> >	m_optimizer_beta;
+
 	Matrix		m_xn;
 	Matrix		m_xc;
 	Vector		m_std;
@@ -50,9 +53,10 @@ protected:
 public:
 	NeuralNetBatchNormalization() {}
 
-	NeuralNetBatchNormalization(INDEX node_size)
+	NeuralNetBatchNormalization(INDEX node_size, const NeuralNetOptimizerCreator<T, INDEX>* optimizer = &NeuralNetOptimizerSgdCreator<>())
 	{
 		Resize(node_size);
+		SetOptimizer(optimizer);
 	}
 
 	~NeuralNetBatchNormalization() {}		// デストラクタ
@@ -75,6 +79,12 @@ public:
 		m_dbeta = Vector::Zero(m_node_size);
 		m_running_mean = Vector::Zero(m_node_size);
 		m_running_var = Vector::Ones(m_node_size);
+	}
+
+	void  SetOptimizer(const NeuralNetOptimizerCreator<T, INDEX>* optimizer)
+	{
+		m_optimizer_gamma.reset(optimizer->Create(m_node_size));
+		m_optimizer_beta.reset(optimizer->Create(m_node_size));
 	}
 
 	void  SetMuxSize(INDEX mux_size) {
@@ -183,11 +193,36 @@ public:
 		m_dbeta += dbeta;
 	}
 
-	void Update(double learning_rate)
+	void Update(void)
 	{
-		m_gamma -= m_dgamma * learning_rate;
-		m_beta -= m_dbeta * learning_rate;
+		std::vector<T> vec_gamma(m_node_size);
+		std::vector<T> vec_dgamma(m_node_size);
+		std::vector<T> vec_beta(m_node_size);
+		std::vector<T> vec_dbeta(m_node_size);
 
+		// copy
+		for (INDEX node = 0; node < m_node_size; ++node) {
+			vec_gamma[node] = m_gamma(node);
+			vec_dgamma[node] = m_dgamma(node);
+			vec_beta[node] = m_beta(node);
+			vec_dbeta[node] = m_dbeta(node);
+		}
+
+		// update
+		m_optimizer_gamma->Update(vec_gamma, vec_dgamma);
+		m_optimizer_beta->Update(vec_beta, vec_dbeta);
+
+		// copy back
+		for (INDEX node = 0; node < m_node_size; ++node) {
+			m_gamma(node) = vec_gamma[node];
+			m_beta(node) = vec_beta[node];
+		}
+
+
+//		m_gamma -= m_dgamma * learning_rate;
+//		m_beta -= m_dbeta * learning_rate;
+
+		// clear
 		m_dgamma *= 0;
 		m_dbeta *= 0;
 	}

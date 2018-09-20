@@ -12,12 +12,11 @@
 
 #include <random>
 
-//#ifndef EIGEN_MPL2_ONLY
-//#define EIGEN_MPL2_ONLY
-//#endif
+
 #include <Eigen/Core>
 
 #include "NeuralNetLayerBuf.h"
+#include "NeuralNetOptimizerSgd.h"
 
 
 namespace bb {
@@ -41,13 +40,18 @@ protected:
 	Matrix		m_dW;
 	Vector		m_db;
 
+	std::unique_ptr< NeuralNetOptimizer<T, INDEX> >	m_optimizer_W;
+	std::unique_ptr< NeuralNetOptimizer<T, INDEX> >	m_optimizer_b;
+
 public:
 	NeuralNetAffine() {}
 
-	NeuralNetAffine(INDEX input_size, INDEX output_size, std::uint64_t seed=1)
+	NeuralNetAffine(INDEX input_size, INDEX output_size, std::uint64_t seed=1,
+		const NeuralNetOptimizerCreator<T, INDEX>* optimizer = &NeuralNetOptimizerSgdCreator<>())
 	{
 		Resize(input_size, output_size);
 		InitializeCoeff(seed);
+		SetOptimizer(optimizer);
 	}
 
 	~NeuralNetAffine() {}		// デストラクタ
@@ -65,7 +69,6 @@ public:
 	void InitializeCoeff(std::uint64_t seed)
 	{
 		std::mt19937_64 mt(seed);
-//		std::uniform_real_distribution<T> real_dist((T)-1, (T)+1);
 		std::normal_distribution<T>		real_dist((T)0.0, (T)1.0);
 
 		for (INDEX i = 0; i < m_input_size; ++i) {
@@ -78,6 +81,13 @@ public:
 			m_b(j) = real_dist(mt);
 		}
 	}
+
+	void  SetOptimizer(const NeuralNetOptimizerCreator<T, INDEX>* optimizer)
+	{
+		m_optimizer_W.reset(optimizer->Create(m_input_size * m_output_size));
+		m_optimizer_b.reset(optimizer->Create(m_output_size));
+	}
+
 
 	INDEX GetInputFrameSize(void) const { return m_frame_size; }
 	INDEX GetInputNodeSize(void) const { return m_input_size; }
@@ -121,10 +131,40 @@ public:
 		m_db = dy.colwise().sum();
 	}
 
-	void Update(double learning_rate)
+	void Update(void)
 	{
-		m_W -= m_dW * learning_rate;
-		m_b -= m_db * learning_rate;
+		m_optimizer_W->Update(m_W, m_dW);
+		m_optimizer_b->Update(m_b, m_db);
+
+#if 0
+		std::vector<T> vec_W(m_input_size * m_output_size);
+		std::vector<T> vec_dW(m_input_size * m_output_size);
+		std::vector<T> vec_b(m_output_size);
+		std::vector<T> vec_db(m_output_size);
+
+		for (INDEX output_node = 0; output_node < m_output_size; ++output_node) {
+			for (INDEX input_node = 0; input_node < m_input_size; ++input_node) {
+				vec_W[output_node*m_input_size + input_node] = m_W(input_node, output_node);
+				vec_dW[output_node*m_input_size + input_node] = m_dW(input_node, output_node);
+			}
+			vec_b[output_node] = m_b(output_node);
+			vec_db[output_node] = m_db(output_node);
+		}
+
+		// update
+		m_optimizer_W->Update(vec_W, vec_dW);
+		m_optimizer_b->Update(vec_b, vec_db);
+
+		for (INDEX output_node = 0; output_node < m_output_size; ++output_node) {
+			for (INDEX input_node = 0; input_node < m_input_size; ++input_node) {
+				m_W(input_node, output_node) = vec_W[output_node*m_input_size + input_node];
+			}
+			m_b(output_node) = vec_b[output_node];
+		}
+#endif
+
+//		m_W -= m_dW * learning_rate;
+//		m_b -= m_db * learning_rate;
 	}
 };
 

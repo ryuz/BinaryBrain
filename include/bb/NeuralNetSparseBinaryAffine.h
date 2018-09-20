@@ -33,8 +33,9 @@ protected:
 public:
 	NeuralNetSparseBinaryAffine() {}
 
-	NeuralNetSparseBinaryAffine(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1)
-		: m_affine(input_node_size, output_node_size, seed),
+	NeuralNetSparseBinaryAffine(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1,
+		const NeuralNetOptimizerCreator<T, INDEX>* optimizer = &NeuralNetOptimizerSgdCreator<>())
+		: m_affine(input_node_size, output_node_size, seed, optimizer),
 		m_norm(output_node_size),
 		m_binarize(output_node_size)
 	{
@@ -57,6 +58,11 @@ public:
 		m_affine.InitializeCoeff(seed);
 		m_norm.InitializeCoeff(seed);
 		m_binarize.InitializeCoeff(seed);
+	}
+	
+	void  SetBinaryEnable(bool enable)
+	{
+		m_binarize.SetBinaryEnable(enable);
 	}
 	
 	int   GetNodeInputSize(INDEX node) const { return m_affine.GetNodeInputSize(node); }
@@ -127,11 +133,11 @@ public:
 		m_affine.Backward();
 	}
 
-	void Update(double learning_rate)
+	void Update(void)
 	{
-		m_affine.Update(learning_rate);
-		m_norm.Update(learning_rate);
-		m_binarize.Update(learning_rate);
+		m_affine.Update();
+		m_norm.Update();
+		m_binarize.Update();
 	}
 
 };

@@ -24,7 +24,7 @@ TEST(NeuralNetSparseBinaryAffineTest, testAffine)
 
 	affine.Forward();
 	affine.Backward();
-	affine.Update(0.1);
+	affine.Update();
 }
 
 

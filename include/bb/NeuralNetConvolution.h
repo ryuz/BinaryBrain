@@ -39,13 +39,17 @@ protected:
 	std::vector <T>	m_b;
 	std::vector <T>	m_dW;
 	std::vector <T>	m_db;
+	std::unique_ptr< NeuralNetOptimizer<T, INDEX> >	m_optimizer_W;
+	std::unique_ptr< NeuralNetOptimizer<T, INDEX> >	m_optimizer_b;
 
 public:
 	NeuralNetConvolution() {}
 	
-	NeuralNetConvolution(INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size, std::uint64_t seed = 1)
+	NeuralNetConvolution(INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size, std::uint64_t seed = 1,
+		const NeuralNetOptimizerCreator<T, INDEX>* optimizer = &NeuralNetOptimizerSgdCreator<>())
 	{
 		Resize(input_c_size, input_h_size, input_w_size, output_c_size, filter_h_size, filter_w_size, seed);
+		SetOptimizer(optimizer);
 	}
 	
 	~NeuralNetConvolution() {}		// デストラクタ
@@ -76,7 +80,13 @@ public:
 			b = real_dist(mt);
 		}
 	}
-	
+
+	void  SetOptimizer(const NeuralNetOptimizerCreator<T, INDEX>* optimizer)
+	{
+		m_optimizer_W.reset(optimizer->Create(m_output_c_size*m_input_c_size*m_filter_h_size*m_filter_w_size));
+		m_optimizer_b.reset(optimizer->Create(m_output_c_size));
+	}
+
 	T& W(INDEX n, INDEX c, INDEX y, INDEX x) {
 		BB_ASSERT(n >= 0 && n < m_output_c_size);
 		BB_ASSERT(c >= 0 && c < m_input_c_size);
@@ -292,14 +302,19 @@ public:
 		}
 	}
 
-	void Update(double learning_rate)
+	void Update(void)
 	{
+		m_optimizer_W->Update(m_W, m_dW);
+		m_optimizer_b->Update(m_b, m_db);
+
+		/*
 		for (size_t i = 0; i < m_W.size(); ++i) {
-			m_W[i] -= (T)(m_dW[i] * learning_rate);
+			m_W[i] -= (T)(m_dW[i] * 0.01);
 		}
 		for (size_t i = 0; i < m_b.size(); ++i) {
-			m_b[i] -= (T)(m_db[i] * learning_rate);
+			m_b[i] -= (T)(m_db[i] * 0.01);
 		}
+		*/
 	}
 
 };

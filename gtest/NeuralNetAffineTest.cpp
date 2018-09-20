@@ -2,6 +2,7 @@
 #include <iostream>
 #include "gtest/gtest.h"
 #include "bb/NeuralNetAffine.h"
+#include "bb/NeuralNetOptimizerSgd.h"
 
 
 inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
@@ -20,6 +21,8 @@ TEST(NeuralNetAffineTest, testAffine)
 
 	auto in_val = affine.GetInputSignalBuffer();
 	auto out_val = affine.GetOutputSignalBuffer();
+
+	affine.SetOptimizer(&bb::NeuralNetOptimizerSgdCreator<>(0.01f));
 
 	in_val.SetReal(0, 0, 1);
 	in_val.SetReal(0, 1, 2);
@@ -57,7 +60,7 @@ TEST(NeuralNetAffineTest, testAffine)
 	EXPECT_EQ(4084, affine.dW(1, 1));
 	EXPECT_EQ(6982, affine.dW(1, 2));
 	
-	affine.Update(0.1);
+	affine.Update();
 }
 
 

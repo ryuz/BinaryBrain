@@ -54,6 +54,10 @@ public:
 		NeuralNetBinaryLut<feedback_bitwise, float, INDEX>::Resize(input_node_size, output_node_size);
 		m_lut.resize(m_output_node_size);
 	}
+
+	void Update(void)
+	{
+	}
 };
 
 

@@ -245,7 +245,7 @@ public:
 				net.Backward();
 
 				// 更新
-				net.Update(0.2);
+				net.Update();
 			}
 		}
 		std::cout << "end\n" << std::endl;
@@ -313,7 +313,7 @@ public:
 				net.Backward();
 				
 				// 更新
-				net.Update(1.0);
+				net.Update();
 			}
 		}
 		std::cout << "end\n" << std::endl;
@@ -386,7 +386,7 @@ public:
 				real_net.Backward();
 
 				// 更新
-				real_net.Update(1.0);
+				real_net.Update();
 			}
 		}
 
@@ -503,17 +503,17 @@ int main()
 
 	// 以下評価したいものを適当に切り替えてご使用ください
 
-#if 0
+#if 1
 	// バイナリ6入力LUT版学習実験(重いです)
 	eva_mnist.RunBinaryLut6WithBbruteForce(2, 8192, 8);
 #endif
 
-#if 0
+#if 1
 	// 実数＆全接続(いわゆる古典的なニューラルネット)
 	eva_mnist.RunDenseAffine(16, 256);
 #endif
 
-#if 0
+#if 1
 	// 実数＆接続制限(接続だけLUT的にして中身のノードは実数)
 	eva_mnist.RunSparseAffine(16, 256);
 #endif

@@ -17,6 +17,7 @@
 #include "cereal/archives/json.hpp"
 
 #include "NeuralNetBuffer.h"
+#include "NeuralNetOptimizer.h"
 
 
 namespace bb {
@@ -41,9 +42,11 @@ public:
 		return m_layer_name;
 	}
 
-	virtual void  Resize(std::vector<INDEX> size) {};							// サイズ設定
+	virtual void  Resize(std::vector<INDEX> size) {}							// サイズ設定
 	virtual void  InitializeCoeff(std::uint64_t seed) {}						// 内部係数の乱数初期化
 	
+	virtual void  SetOptimizer(const NeuralNetOptimizerCreator<T, INDEX>* optimizer) {}	//オプティマイザの設定
+
 	virtual INDEX GetInputFrameSize(void) const = 0;							// 入力のフレーム数
 	virtual INDEX GetInputNodeSize(void) const = 0;								// 入力のノード数
 	virtual INDEX GetOutputFrameSize(void) const = 0;							// 出力のフレーム数
@@ -56,7 +59,7 @@ public:
 	
 	virtual	void  Forward(bool train=true) = 0;									// 予測
 	virtual	void  Backward(void) = 0;											// 誤差逆伝播
-	virtual	void  Update(double learning_rate) {};								// 学習
+	virtual	void  Update(void) {}												// 学習
 	virtual	bool  Feedback(const std::vector<double>& loss) { return false; }	// 直接フィードバック
 	
 	

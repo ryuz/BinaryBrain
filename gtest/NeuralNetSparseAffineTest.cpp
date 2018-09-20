@@ -68,7 +68,7 @@ TEST(NeuralNetSparseAffineTest, testAffine)
 	EXPECT_EQ(4084, affine.dW(1, 1));
 	EXPECT_EQ(6982, affine.dW(1, 2));
 	
-	affine.Update(0.1);
+	affine.Update();
 }
 
 
@@ -124,7 +124,7 @@ TEST(NeuralNetSparseAffineTest, testAffineInput)
 	EXPECT_EQ(4084, affine.dW(1, 1));
 	EXPECT_EQ(6982, affine.dW(1, 2));
 
-	affine.Update(0.1);
+	affine.Update();
 }
 
 
@@ -223,8 +223,8 @@ TEST(NeuralNetSparseAffineTest, testAffineCompare)
 		}
 
 		// update
-		affineOrg.Update(0.5);
-		affineLim.Update(0.5);
+		affineOrg.Update();
+		affineLim.Update();
 		
 		// äwèKåWêîî‰är
 		for (size_t node = 0; node < node_size; ++node) {

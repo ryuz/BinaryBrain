@@ -70,10 +70,10 @@ public:
 		}
 	}
 
-	void Update(double learning_rate)
+	void Update(void)
 	{
 		for (auto layer = m_layers.begin(); layer != m_layers.end(); ++layer) {
-			(*layer)->Update(learning_rate);
+			(*layer)->Update();
 		}
 	}
 

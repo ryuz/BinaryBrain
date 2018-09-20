@@ -80,7 +80,7 @@ public:
 		dx = dy;
 	}
 
-	void Update(double learning_rate)
+	void Update(void)
 	{
 	}
 

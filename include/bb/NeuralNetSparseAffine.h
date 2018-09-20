@@ -16,6 +16,7 @@
 #include <omp.h>
 #include <ppl.h>
 #include "NeuralNetSparseLayer.h"
+#include "NeuralNetOptimizerSgd.h"
 
 
 namespace bb {
@@ -34,6 +35,9 @@ protected:
 		T						b;
 		std::array<T, N>		dW;
 		T						db;
+
+		std::unique_ptr< NeuralNetOptimizer<T, INDEX> >	optimizer_W;
+		std::unique_ptr< NeuralNetOptimizer<T, INDEX> >	optimizer_b;
 	};
 
 	INDEX						m_mux_size = 1;
@@ -44,10 +48,12 @@ protected:
 public:
 	NeuralNetSparseAffine() {}
 
-	NeuralNetSparseAffine(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1)
+	NeuralNetSparseAffine(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1,
+		const NeuralNetOptimizerCreator<T, INDEX>* optimizer = &NeuralNetOptimizerSgdCreator<>())
 	{
 		Resize(input_node_size, output_node_size);
 		InitializeCoeff(seed);
+		SetOptimizer(optimizer);
 	}
 
 	~NeuralNetSparseAffine() {}
@@ -95,7 +101,15 @@ public:
 			node.db = 0;
 		}
 	}
-	
+
+	void  SetOptimizer(const NeuralNetOptimizerCreator<T, INDEX>* optimizer)
+	{
+		for (auto& node : m_node) {
+			node.optimizer_W.reset(optimizer->Create(N));
+			node.optimizer_b.reset(optimizer->Create(1));
+		}
+	}
+
 	int   GetNodeInputSize(INDEX node) const { return N; }
 	void  SetNodeInput(INDEX node, int input_index, INDEX input_node) { m_node[node].input[input_index] = input_node; }
 	INDEX GetNodeInput(INDEX node, int input_index) const { return m_node[node].input[input_index]; }
@@ -221,17 +235,23 @@ public:
 	}
 
 
-	void Update(double learning_rate)
+	void Update(void)
 	{
 		auto node_size = GetOutputNodeSize();
 
 		for (INDEX node = 0; node < node_size; ++node) {
 			auto& nd = m_node[node];
+			nd.optimizer_W->Update(nd.W, nd.dW);
+			nd.optimizer_b->Update(nd.b, nd.db);
+		}
+
+		for (INDEX node = 0; node < node_size; ++node) {
+			auto& nd = m_node[node];
 			for (int i = 0; i < N; ++i) {
-				nd.W[i] -= nd.dW[i] * (T)learning_rate;
+//				nd.W[i] -= nd.dW[i] * (T)learning_rate;
 				nd.dW[i] = 0;
 			}
-			nd.b -= nd.db * (T)learning_rate;
+//			nd.b -= nd.db * (T)learning_rate;
 			nd.db = 0;
 		}
 	}
