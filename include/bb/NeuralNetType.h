@@ -41,12 +41,43 @@ namespace bb {
 #endif
 
 
-using Bit = bool;
+//using Bit = bool;
 
 
+class Bit;
+class Binary;
 class Sign;
 
-// Binary  SSE命令のマスクを意図して、メモリ上で8bitで、0x00 or 0xff の型を定義
+
+// メモリ効率とSIMDでの並列演算を意図してメモリ上で1bitづつパッキングして配置する事を意図した型
+class Bit
+{
+protected:
+	bool	m_value;
+
+public:
+	Bit() {}
+	template<typename Tp>
+	Bit(Tp v) { m_value = (v > 0); }
+	Bit(const Bit& bit) { m_value = bit.m_value; }
+	Bit(bool v) { m_value = v; }
+	inline Bit(const Binary& sign);
+	inline Bit(const Sign& sign);
+
+	template<typename Tp>
+	Bit& operator=(const Tp& v)    { m_value = (v > 0) ? 0xff : 0x00; return *this; }
+	Bit& operator=(const Bit& bit) { m_value = bit.m_value; return *this; }
+	Bit& operator=(const bool& v)  { m_value = v; return *this; }
+	inline Bit& operator=(const Binary& sign);
+	inline Bit& operator=(const Sign& sign);
+
+	template<typename Tp>
+	operator Tp() { return m_value ? (Tp)1.0 : (Tp)0.0; }
+	operator bool() const { return m_value; }
+};
+
+
+// SSE命令のマスクを意図して、メモリ上で8bitで、0x00 or 0xff の型を定義
 class Binary
 {
 protected:
@@ -58,12 +89,14 @@ public:
 	Binary(Tp v) { m_value = (v > 0) ? 0xff : 0x00; }
 	Binary(const Binary& bin) {	m_value = bin.m_value; }
 	Binary(bool v) { m_value = v ? 0xff : 0x00; }
+	inline Binary(const Bit& bit);
 	inline Binary(const Sign& sign);
 
 	template<typename Tp>
 	Binary& operator=(const Tp& v) { m_value = (v > 0) ? 0xff : 0x00; return *this; }
 	Binary& operator=(const Binary& bin) { m_value = bin.m_value; return *this; }
 	Binary& operator=(const bool& v) { m_value = v; return *this; }
+	inline Binary& operator=(const Bit& bit);
 	inline Binary& operator=(const Sign& sign);
 
 	template<typename Tp>
@@ -83,22 +116,36 @@ public:
 	template<typename Tp>
 	Sign(Tp v) { m_value = (v > 0); }
 	Sign(const Sign& sign) { m_value = sign.m_value; }
-	Sign(const Binary& bin) { m_value = (bool)bin; }
 	Sign(bool v) { m_value = v; }
+	inline Sign(const Bit& bit);
+	inline Sign(const Binary& bin);
 
 	template<typename Tp>
 	Sign& operator=(const Tp& v) { m_value = (v > 0); return *this; }
 	Sign& operator=(const Sign& sign) { m_value = sign.m_value; return *this; }
-	Sign& operator=(const Binary& bin) { m_value = (bool)bin; return *this; }
 	Sign& operator=(const bool& v) { m_value = v; return *this; }
+	inline Sign& operator=(const Bit& bit);
+	inline Sign& operator=(const Binary& bin);
 
 	template<typename Tp>
 	operator Tp() { return m_value ? (Tp)+1.0 : (Tp)-1.0; }
 	operator bool() const { return m_value; }
 };
 
+inline Bit::Bit(const Binary& bin) { m_value = (bool)bin; }
+inline Bit& Bit::operator=(const Binary& bin) { m_value = (bool)bin; return *this; }
+inline Bit::Bit(const Sign& sign) { m_value = (bool)sign; }
+inline Bit& Bit::operator=(const Sign& sign) { m_value = (bool)sign; return *this; }
+
+inline Binary::Binary(const Bit& bit) { m_value = (bool)bit; }
+inline Binary& Binary::operator=(const Bit& bit) { m_value = (bool)bit; return *this; }
 inline Binary::Binary(const Sign& sign) { m_value = (bool)sign; }
-inline Binary& Binary::operator=(const Sign& sign) { m_value = (bool)sign; }
+inline Binary& Binary::operator=(const Sign& sign) { m_value = (bool)sign; return *this; }
+
+inline Sign::Sign(const Bit& bit) { m_value = (bool)bit; }
+inline Sign& Sign::operator=(const Bit& bit) { m_value = (bool)bit; return *this; }
+inline Sign::Sign(const Binary& bin) { m_value = (bool)bin; }
+inline Sign& Sign::operator=(const Binary& bin) { m_value = (bool)bin; return *this; }
 
 
 
@@ -123,6 +170,15 @@ public:
 	};
 };
 
+template<> class NeuralNetType<Bit>
+{
+public:
+	typedef float value_type;
+	enum {
+		type = BB_TYPE_BOOL,
+		bit_size = 1
+	};
+};
 
 template<> class NeuralNetType<Binary>
 {

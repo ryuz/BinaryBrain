@@ -31,6 +31,7 @@ protected:
 	INDEX		m_mux_size = 1;
 	INDEX		m_frame_size = 1;
 	INDEX		m_node_size = 0;
+	bool		m_binary_mode = false;
 
 public:
 	NeuralNetSigmoid() {}
@@ -45,6 +46,11 @@ public:
 	void Resize(INDEX node_size)
 	{
 		m_node_size = node_size;
+	}
+
+	void  SetBinaryMode(bool enable)
+	{
+		m_binary_mode = enable;
 	}
 
 	void  SetMuxSize(INDEX mux_size) { m_mux_size = mux_size; }
@@ -62,22 +68,54 @@ public:
 
 	void Forward(bool train = true)
 	{
-		Eigen::Map<Matrix> x((T*)m_input_signal_buffer.GetBuffer(), m_input_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
-		Eigen::Map<Matrix> y((T*)m_output_signal_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
+		if (m_binary_mode) {
+			// Binarize
+			auto x = GetInputSignalBuffer();
+			auto y = GetOutputSignalBuffer();
+			for (INDEX node = 0; node < m_node_size; ++node) {
+				for (INDEX frame = 0; frame < m_frame_size; ++frame) {
+					y.Set<T>(frame, node, x.Get<T>(frame, node) >(T)0.0 ? (T)1.0 : (T)0.0);
+				}
+			}
+		}
+		else {
+			// Sigmoid
+			Eigen::Map<Matrix> x((T*)m_input_signal_buffer.GetBuffer(), m_input_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
+			Eigen::Map<Matrix> y((T*)m_output_signal_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
 
-		y = ((x * -1).array().exp() + 1.0).inverse();
+			y = ((x * -1).array().exp() + 1.0).inverse();
+		}
 	}
 
 	void Backward(void)
 	{
-		Eigen::Map<Matrix> y((T*)m_output_signal_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
-		Eigen::Map<Matrix> dy((T*)m_output_error_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
-		Eigen::Map<Matrix> dx((T*)m_input_error_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
+		if (m_binary_mode) {
+			// Binarize
+			auto dx = GetInputErrorBuffer();
+			auto dy = GetOutputErrorBuffer();
+			auto x = GetInputSignalBuffer();
+			auto y = GetOutputSignalBuffer();
 
-		dx = dy.array() * (-y.array() + 1) * y.array();
+			for (INDEX node = 0; node < m_node_size; ++node) {
+				for (INDEX frame = 0; frame < m_frame_size; ++frame) {
+					// hard-tanh
+					auto err = dy.Get<T>(frame, node);
+					auto sig = x.Get<T>(frame, node);
+					dx.Set<T>(frame, node, (sig >= (T)-1.0 && sig <= (T)1.0) ? err : 0);
+				}
+			}
+		}
+		else {
+			// Sigmoid
+			Eigen::Map<Matrix> y((T*)m_output_signal_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
+			Eigen::Map<Matrix> dy((T*)m_output_error_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
+			Eigen::Map<Matrix> dx((T*)m_input_error_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
+
+			dx = dy.array() * (-y.array() + 1) * y.array();
+		}
 	}
 
-	void Update(double learning_rate)
+	void Update(void)
 	{
 	}
 

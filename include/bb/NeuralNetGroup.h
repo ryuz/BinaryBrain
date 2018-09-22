@@ -85,6 +85,20 @@ public:
 		m_lastLayer = layer;
 	}
 
+	void SetBinaryMode(bool enable)
+	{
+		for (auto layer : m_layers) {
+			layer->SetBinaryMode(enable);
+		}
+	}
+
+	void SetOptimizer(const NeuralNetOptimizer<T, INDEX>* optimizer)
+	{
+		for (auto layer : m_layers) {
+			layer->SetOptimizer(optimizer);
+		}
+	}
+
 	void SetMuxSize(INDEX mux_size)
 	{
 		for (auto layer : m_layers) {

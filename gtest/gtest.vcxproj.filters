@@ -170,5 +170,8 @@
     <ClInclude Include="..\include\bb\NeuralNetOptimizerAdam.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\bb\NeuralNetSparceAffineSigmoid.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

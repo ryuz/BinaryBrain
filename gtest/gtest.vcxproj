@@ -65,6 +65,7 @@
     <ClInclude Include="..\include\bb\NeuralNetReLU.h" />
     <ClInclude Include="..\include\bb\NeuralNetSigmoid.h" />
     <ClInclude Include="..\include\bb\NeuralNetSoftmax.h" />
+    <ClInclude Include="..\include\bb\NeuralNetSparceAffineSigmoid.h" />
     <ClInclude Include="..\include\bb\NeuralNetSparseAffine.h" />
     <ClInclude Include="..\include\bb\NeuralNetSparseAffineBc.h" />
     <ClInclude Include="..\include\bb\NeuralNetSparseBinaryAffine.h" />

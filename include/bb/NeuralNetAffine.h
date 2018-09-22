@@ -40,14 +40,16 @@ protected:
 	Matrix		m_dW;
 	Vector		m_db;
 
-	std::unique_ptr< NeuralNetOptimizer<T, INDEX> >	m_optimizer_W;
-	std::unique_ptr< NeuralNetOptimizer<T, INDEX> >	m_optimizer_b;
+	std::unique_ptr< ParamOptimizer<T, INDEX> >	m_optimizer_W;
+	std::unique_ptr< ParamOptimizer<T, INDEX> >	m_optimizer_b;
+
+	bool		m_binary_mode = false;
 
 public:
 	NeuralNetAffine() {}
 
 	NeuralNetAffine(INDEX input_size, INDEX output_size, std::uint64_t seed=1,
-		const NeuralNetOptimizerCreator<T, INDEX>* optimizer = &NeuralNetOptimizerSgdCreator<>())
+		const NeuralNetOptimizer<T, INDEX>* optimizer = &NeuralNetOptimizerSgd<>())
 	{
 		Resize(input_size, output_size);
 		InitializeCoeff(seed);
@@ -82,7 +84,7 @@ public:
 		}
 	}
 
-	void  SetOptimizer(const NeuralNetOptimizerCreator<T, INDEX>* optimizer)
+	void  SetOptimizer(const NeuralNetOptimizer<T, INDEX>* optimizer)
 	{
 		m_optimizer_W.reset(optimizer->Create(m_input_size * m_output_size));
 		m_optimizer_b.reset(optimizer->Create(m_output_size));
@@ -103,6 +105,11 @@ public:
 	T& b(INDEX output) { return m_b(output); }
 	T& dW(INDEX input, INDEX output) { return m_dW(input, output); }
 	T& db(INDEX output) { return m_db(output); }
+
+	void  SetBinaryMode(bool enable)
+	{
+		m_binary_mode = enable;
+	}
 
 	void  SetMuxSize(INDEX mux_size) { m_mux_size = mux_size; }
 
@@ -135,6 +142,15 @@ public:
 	{
 		m_optimizer_W->Update(m_W, m_dW);
 		m_optimizer_b->Update(m_b, m_db);
+
+		// バイナリモードでは (-1, +1) でクリップ
+		if ( m_binary_mode ) {
+			for (INDEX output_node = 0; output_node < m_output_size; ++output_node) {
+				for (INDEX input_node = 0; input_node < m_input_size; ++input_node) {
+					m_W(input_node, output_node) = std::min((T)+1, std::max((T)-1, m_W(input_node, output_node)));
+				}
+			}
+		}
 
 #if 0
 		std::vector<T> vec_W(m_input_size * m_output_size);

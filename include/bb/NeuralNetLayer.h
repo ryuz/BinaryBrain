@@ -45,13 +45,15 @@ public:
 	virtual void  Resize(std::vector<INDEX> size) {}							// サイズ設定
 	virtual void  InitializeCoeff(std::uint64_t seed) {}						// 内部係数の乱数初期化
 	
-	virtual void  SetOptimizer(const NeuralNetOptimizerCreator<T, INDEX>* optimizer) {}	//オプティマイザの設定
+	virtual void  SetOptimizer(const NeuralNetOptimizer<T, INDEX>* optimizer) {}	//オプティマイザの設定
 
 	virtual INDEX GetInputFrameSize(void) const = 0;							// 入力のフレーム数
 	virtual INDEX GetInputNodeSize(void) const = 0;								// 入力のノード数
 	virtual INDEX GetOutputFrameSize(void) const = 0;							// 出力のフレーム数
 	virtual INDEX GetOutputNodeSize(void) const = 0;							// 出力のノード数
 	
+	virtual void  SetBinaryMode(bool enable) {}									// バイナリモードを設定
+
 	virtual void  SetMuxSize(INDEX mux_size) = 0;								// 多重化サイズの設定
 	virtual void  SetBatchSize(INDEX batch_size) = 0;							// バッチサイズの設定
 	

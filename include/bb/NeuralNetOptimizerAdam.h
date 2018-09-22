@@ -17,7 +17,7 @@ namespace bb {
 
 
 template <typename T = float, typename INDEX = size_t>
-class NeuralNetOptimizerAdam : public NeuralNetOptimizer<T, INDEX>
+class ParamOptimizerAdam : public ParamOptimizer<T, INDEX>
 {
 protected:
 	T				m_learning_rate;
@@ -29,7 +29,7 @@ protected:
 	std::vector<T>	m_v;
 	
 public:
-	NeuralNetOptimizerAdam(INDEX param_size, T learning_rate=0.001, T beta1 = 0.9, T beta2 = 0.999)
+	ParamOptimizerAdam(INDEX param_size, T learning_rate = (T)0.001, T beta1 = (T)0.9, T beta2 = (T)0.999)
 	{
 		m_learning_rate = learning_rate;
 		m_beta1         = beta1;
@@ -39,7 +39,7 @@ public:
 		m_v.resize(param_size, (T)0);
 	}
 	
-	~NeuralNetOptimizerAdam()
+	~ParamOptimizerAdam()
 	{
 	}
 
@@ -63,7 +63,7 @@ protected:
 
 
 template <typename T = float, typename INDEX = size_t>
-class NeuralNetOptimizerAdamCreator : public NeuralNetOptimizerCreator<T, INDEX>
+class NeuralNetOptimizerAdam: public NeuralNetOptimizer<T, INDEX>
 {
 protected:
 	T	m_learning_rate;
@@ -71,16 +71,16 @@ protected:
 	T	m_beta2;
 
 public:
-	NeuralNetOptimizerAdamCreator(T learning_rate=0.001, T beta1 = 0.9, T beta2 = 0.999)
+	NeuralNetOptimizerAdam(T learning_rate = (T)0.001, T beta1 = (T)0.9, T beta2 = (T)0.999)
 	{
 		m_learning_rate = learning_rate;
 		m_beta1         = beta1;
 		m_beta2         = beta2;
 	}
 	
-	NeuralNetOptimizer<T, INDEX>* Create(INDEX param_size) const
+	ParamOptimizer<T, INDEX>* Create(INDEX param_size) const
 	{
-		return new NeuralNetOptimizerAdam<T, INDEX>(param_size, m_learning_rate, m_beta1, m_beta2);
+		return new ParamOptimizerAdam<T, INDEX>(param_size, m_learning_rate, m_beta1, m_beta2);
 	}
 };
 

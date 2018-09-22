@@ -17,18 +17,18 @@ namespace bb {
 
 
 template <typename T = float, typename INDEX = size_t>
-class NeuralNetOptimizerSgd : public NeuralNetOptimizer<T, INDEX>
+class ParamOptimizerSgd : public ParamOptimizer<T, INDEX>
 {
 protected:
 	T	m_learning_rate;
 
 public:
-	NeuralNetOptimizerSgd(T learning_rate=0.01)
+	ParamOptimizerSgd(T learning_rate=0.01)
 	{
 		m_learning_rate = learning_rate;
 	}
 	
-	~NeuralNetOptimizerSgd()
+	~ParamOptimizerSgd()
 	{
 	}
 
@@ -41,20 +41,20 @@ protected:
 
 
 template <typename T = float, typename INDEX = size_t>
-class NeuralNetOptimizerSgdCreator : public NeuralNetOptimizerCreator<T, INDEX>
+class NeuralNetOptimizerSgd : public NeuralNetOptimizer<T, INDEX>
 {
 protected:
 	T	m_learning_rate;
 
 public:
-	NeuralNetOptimizerSgdCreator(T learning_rate = 0.01)
+	NeuralNetOptimizerSgd(T learning_rate = 0.01)
 	{
 		m_learning_rate = learning_rate;
 	}
 
-	NeuralNetOptimizer<T, INDEX>* Create(INDEX param_size) const
+	ParamOptimizer<T, INDEX>* Create(INDEX param_size) const
 	{
-		return new NeuralNetOptimizerSgd<T, INDEX>(m_learning_rate);
+		return new ParamOptimizerSgd<T, INDEX>(m_learning_rate);
 	}
 };
 

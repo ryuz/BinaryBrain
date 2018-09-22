@@ -22,28 +22,28 @@ namespace bb {
 
 // ì¸óÕêîêßå¿Affine Binary Connectî≈
 template <int N = 6, typename T = float, typename INDEX = size_t>
-class NeuralNetSparseBinaryAffine : public NeuralNetSparseLayer<T, INDEX>
+class NeuralNetDenseBinaryAffine : public NeuralNetSparseLayer<T, INDEX>
 {
 protected:
 	// 3ëwÇ≈ç\ê¨
-	NeuralNetSparseAffine<N, T, INDEX>		m_affine;
+	NeuralNetAffine<N, T, INDEX>			m_affine;
 	NeuralNetBatchNormalization<T, INDEX>	m_norm;
 	NeuralNetBinarize<T, INDEX>				m_binarize;
 		
 public:
-	NeuralNetSparseBinaryAffine() {}
+	NeuralNetDenseBinaryAffine() {}
 
-	NeuralNetSparseBinaryAffine(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1,
-		const NeuralNetOptimizer<T, INDEX>* optimizer = &NeuralNetOptimizerSgd<>())
+	NeuralNetDenseBinaryAffine(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1,
+		const NeuralNetOptimizerCreator<T, INDEX>* optimizer = &NeuralNetOptimizerSgdCreator<>())
 		: m_affine(input_node_size, output_node_size, seed, optimizer),
 		m_norm(output_node_size),
 		m_binarize(output_node_size)
 	{
 	}
-
-	~NeuralNetSparseBinaryAffine() {}
-
-
+	
+	~NeuralNetDenseBinaryAffine() {}
+	
+	
 	T CalcNode(INDEX node, std::vector<T> input_value) const
 	{
 		std::vector<T> vec(1);
@@ -59,14 +59,8 @@ public:
 		m_norm.InitializeCoeff(seed);
 		m_binarize.InitializeCoeff(seed);
 	}
-
-	void  SetBinaryMode(bool enable)
-	{
-		m_affine.SetBinaryMode(enable);
-		m_norm.SetBinaryMode(enable);
-		m_binarize.SetBinaryMode(enable);
-	}
-
+	
+	
 	int   GetNodeInputSize(INDEX node) const { return m_affine.GetNodeInputSize(node); }
 	void  SetNodeInput(INDEX node, int input_index, INDEX input_node) { m_affine.SetNodeInput(node, input_index, input_node); }
 	INDEX GetNodeInput(INDEX node, int input_index) const { return m_affine.GetNodeInput(node, input_index); }

@@ -14,7 +14,9 @@
 #include <vector>
 #include <random>
 #include <intrin.h>
+
 #include "NeuralNetLayerBuf.h"
+#include "NeuralNetOptimizerSgd.h"
 
 
 namespace bb {
@@ -39,14 +41,16 @@ protected:
 	std::vector <T>	m_b;
 	std::vector <T>	m_dW;
 	std::vector <T>	m_db;
-	std::unique_ptr< NeuralNetOptimizer<T, INDEX> >	m_optimizer_W;
-	std::unique_ptr< NeuralNetOptimizer<T, INDEX> >	m_optimizer_b;
+	std::unique_ptr< ParamOptimizer<T, INDEX> >	m_optimizer_W;
+	std::unique_ptr< ParamOptimizer<T, INDEX> >	m_optimizer_b;
+
+	bool			m_binary_mode = false;
 
 public:
 	NeuralNetConvolution() {}
 	
 	NeuralNetConvolution(INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size, std::uint64_t seed = 1,
-		const NeuralNetOptimizerCreator<T, INDEX>* optimizer = &NeuralNetOptimizerSgdCreator<>())
+		const NeuralNetOptimizer<T, INDEX>* optimizer = &NeuralNetOptimizerSgd<>())
 	{
 		Resize(input_c_size, input_h_size, input_w_size, output_c_size, filter_h_size, filter_w_size, seed);
 		SetOptimizer(optimizer);
@@ -81,10 +85,14 @@ public:
 		}
 	}
 
-	void  SetOptimizer(const NeuralNetOptimizerCreator<T, INDEX>* optimizer)
+	void  SetOptimizer(const NeuralNetOptimizer<T, INDEX>* optimizer)
 	{
 		m_optimizer_W.reset(optimizer->Create(m_output_c_size*m_input_c_size*m_filter_h_size*m_filter_w_size));
 		m_optimizer_b.reset(optimizer->Create(m_output_c_size));
+	}
+
+	void  SetBinaryMode(bool enable){
+		m_binary_mode = enable;
 	}
 
 	T& W(INDEX n, INDEX c, INDEX y, INDEX x) {
@@ -306,6 +314,18 @@ public:
 	{
 		m_optimizer_W->Update(m_W, m_dW);
 		m_optimizer_b->Update(m_b, m_db);
+
+		if (m_binary_mode) {
+			for (int n = 0; n < m_output_c_size; ++n) {
+				for (int c = 0; c < m_input_c_size; ++c) {
+					for (int fy = 0; fy < m_filter_h_size; ++fy) {
+						for (int fx = 0; fx < m_filter_w_size; ++fx) {
+							W(n, c, fy, fx) = std::min((T)+1, std::max((T)-1, W(n, c, fy, fx)));
+						}
+					}
+				}
+			}
+		}
 
 		/*
 		for (size_t i = 0; i < m_W.size(); ++i) {

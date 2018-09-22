@@ -39,8 +39,8 @@ protected:
 	Vector		m_dgamma;
 	Vector		m_dbeta;
 
-	std::unique_ptr< NeuralNetOptimizer<T, INDEX> >	m_optimizer_gamma;
-	std::unique_ptr< NeuralNetOptimizer<T, INDEX> >	m_optimizer_beta;
+	std::unique_ptr< ParamOptimizer<T, INDEX> >	m_optimizer_gamma;
+	std::unique_ptr< ParamOptimizer<T, INDEX> >	m_optimizer_beta;
 
 	Matrix		m_xn;
 	Matrix		m_xc;
@@ -53,7 +53,7 @@ protected:
 public:
 	NeuralNetBatchNormalization() {}
 
-	NeuralNetBatchNormalization(INDEX node_size, const NeuralNetOptimizerCreator<T, INDEX>* optimizer = &NeuralNetOptimizerSgdCreator<>())
+	NeuralNetBatchNormalization(INDEX node_size, const NeuralNetOptimizer<T, INDEX>* optimizer = &NeuralNetOptimizerSgd<>())
 	{
 		Resize(node_size);
 		SetOptimizer(optimizer);
@@ -81,7 +81,7 @@ public:
 		m_running_var = Vector::Ones(m_node_size);
 	}
 
-	void  SetOptimizer(const NeuralNetOptimizerCreator<T, INDEX>* optimizer)
+	void  SetOptimizer(const NeuralNetOptimizer<T, INDEX>* optimizer)
 	{
 		m_optimizer_gamma.reset(optimizer->Create(m_node_size));
 		m_optimizer_beta.reset(optimizer->Create(m_node_size));

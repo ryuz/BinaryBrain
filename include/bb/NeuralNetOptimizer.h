@@ -19,10 +19,10 @@ namespace bb {
 
 
 template <typename T = float, typename INDEX = size_t>
-class NeuralNetOptimizer
+class ParamOptimizer
 {
 public:
-	virtual ~NeuralNetOptimizer() {}
+	virtual ~ParamOptimizer() {}
 
 protected:
 	virtual void UpdateParam(INDEX index, T& param, const T grad) = 0;
@@ -43,7 +43,7 @@ public:
 
 		PreUpdate();
 		for (INDEX i = 0; i < (INDEX)param.size(); ++i) {
-			Update(param[i], grad[i]);
+			UpdateParam(i, param[i], grad[i]);
 		}
 		PostUpdate();
 	}
@@ -53,7 +53,7 @@ public:
 	{
 		PreUpdate();
 		for (INDEX i = 0; i < N; ++i) {
-			Update(param[i], grad[i]);
+			UpdateParam(i, param[i], grad[i]);
 		}
 		PostUpdate();
 	}
@@ -64,7 +64,7 @@ public:
 		BB_ASSERT(param.size() == grad.size());
 		PreUpdate();
 		for (INDEX i = 0; i < (INDEX)param.size(); ++i) {
-			Update(param.data()[i], grad.data()[i]);
+			UpdateParam(i, param.data()[i], grad.data()[i]);
 		}
 		PostUpdate();
 
@@ -73,10 +73,10 @@ public:
 
 
 template <typename T = float, typename INDEX = size_t>
-class NeuralNetOptimizerCreator
+class NeuralNetOptimizer
 {
 public:
-	virtual NeuralNetOptimizer<T, INDEX>* Create(INDEX param_size) const = 0;
+	virtual ParamOptimizer<T, INDEX>* Create(INDEX param_size) const = 0;
 };
 
 

@@ -68,19 +68,19 @@ public:
 		auto in_sig_buf = GetInputSignalBuffer();
 		auto out_sig_buf = GetOutputSignalBuffer();
 
-		T	reciprocal = (T)1.0 / (T)m_mux_size;
+//		T	reciprocal = (T)1.0 / (T)m_mux_size;
 
 		INDEX node_size = std::max(m_input_node_size, m_output_node_size);
 
-		std::vector<int>	vec_v(m_output_node_size, 0);
+		std::vector<T>		vec_v(m_output_node_size, (T)0);
 		std::vector<int>	vec_n(m_output_node_size, 0);
 		for (INDEX frame = 0; frame < m_batch_size; frame++) {
-			std::fill(vec_v.begin(), vec_v.end(), 0);
+			std::fill(vec_v.begin(), vec_v.end(), (T)0);
 			std::fill(vec_n.begin(), vec_n.end(), 0);
 			for (INDEX node = 0; node < node_size; node++) {
 				for (INDEX i = 0; i < m_mux_size; i++) {
-					Binary bin_sig = in_sig_buf.Get<BT>(frame*m_mux_size + i, node);
-					vec_v[node % m_output_node_size] += bin_sig ? 1 : 0;
+					BT bin_sig = in_sig_buf.Get<BT>(frame*m_mux_size + i, node);
+					vec_v[node % m_output_node_size] += bin_sig;
 					vec_n[node % m_output_node_size] += 1;
 				}
 			}

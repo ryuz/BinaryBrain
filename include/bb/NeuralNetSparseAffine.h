@@ -36,20 +36,21 @@ protected:
 		std::array<T, N>		dW;
 		T						db;
 
-		std::unique_ptr< NeuralNetOptimizer<T, INDEX> >	optimizer_W;
-		std::unique_ptr< NeuralNetOptimizer<T, INDEX> >	optimizer_b;
+		std::unique_ptr< ParamOptimizer<T, INDEX> >	optimizer_W;
+		std::unique_ptr< ParamOptimizer<T, INDEX> >	optimizer_b;
 	};
 
 	INDEX						m_mux_size = 1;
 	INDEX						m_frame_size = 1;
 	std::vector<Node>			m_node;
 
+	bool						m_binary_mode = false;
 	
 public:
 	NeuralNetSparseAffine() {}
-
+	
 	NeuralNetSparseAffine(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1,
-		const NeuralNetOptimizerCreator<T, INDEX>* optimizer = &NeuralNetOptimizerSgdCreator<>())
+		const NeuralNetOptimizer<T, INDEX>* optimizer = &NeuralNetOptimizerSgd<>())
 	{
 		Resize(input_node_size, output_node_size);
 		InitializeCoeff(seed);
@@ -102,13 +103,19 @@ public:
 		}
 	}
 
-	void  SetOptimizer(const NeuralNetOptimizerCreator<T, INDEX>* optimizer)
+	void  SetBinaryMode(bool enable)
+	{
+		m_binary_mode = enable;
+	}
+
+	void  SetOptimizer(const NeuralNetOptimizer<T, INDEX>* optimizer)
 	{
 		for (auto& node : m_node) {
 			node.optimizer_W.reset(optimizer->Create(N));
 			node.optimizer_b.reset(optimizer->Create(1));
 		}
 	}
+
 
 	int   GetNodeInputSize(INDEX node) const { return N; }
 	void  SetNodeInput(INDEX node, int input_index, INDEX input_node) { m_node[node].input[input_index] = input_node; }
@@ -243,15 +250,21 @@ public:
 			auto& nd = m_node[node];
 			nd.optimizer_W->Update(nd.W, nd.dW);
 			nd.optimizer_b->Update(nd.b, nd.db);
-		}
 
+			if (m_binary_mode) {
+				for (int i = 0; i < N; ++i) {
+					nd.dW[i] = std::min((T)+1, std::max((T)-1, nd.dW[i]));
+				}
+			}
+		}
+		
+
+		// clear
 		for (INDEX node = 0; node < node_size; ++node) {
 			auto& nd = m_node[node];
 			for (int i = 0; i < N; ++i) {
-//				nd.W[i] -= nd.dW[i] * (T)learning_rate;
 				nd.dW[i] = 0;
 			}
-//			nd.b -= nd.db * (T)learning_rate;
 			nd.db = 0;
 		}
 	}

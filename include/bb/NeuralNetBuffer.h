@@ -227,7 +227,7 @@ protected:
 	template <typename Tp>
 	inline void Write(void *base, INDEX frame, Tp value) const
 	{
-		if (typeid(Tp) == typeid(bool)) {
+		if ( typeid(Tp) == typeid(Bit) || typeid(Tp) == typeid(bool) ) {
 			std::uint8_t* ptr = (std::uint8_t*)base;
 			std::uint8_t mask = (std::uint8_t)(1 << (frame % 8));
 			if (value) {
@@ -246,7 +246,7 @@ protected:
 	template <typename Tp>
 	inline Tp Read(void *base, INDEX frame) const
 	{
-		if (typeid(Tp) == typeid(bool)) {
+		if ( typeid(Tp) == typeid(bool) || typeid(Tp) == typeid(bool) ) {
 			std::uint8_t* ptr = (std::uint8_t*)base;
 			std::uint8_t mask = (std::uint8_t)(1 << (frame % 8));
 			return ((ptr[frame / 8] & mask) != 0);
@@ -269,7 +269,7 @@ protected:
 	inline T ReadReal(void *base, INDEX frame) const
 	{
 		switch (m_data_type) {
-		case BB_TYPE_BINARY: return Read<bool>(base, frame) ? (T)1.0 : (T)0.0;
+		case BB_TYPE_BINARY: return Read<Bit>(base, frame) ? (T)1.0 : (T)0.0;
 		case BB_TYPE_REAL32: return (T)Read<float>(base, frame);
 		case BB_TYPE_REAL64: return (T)Read<double>(base, frame);
 		}

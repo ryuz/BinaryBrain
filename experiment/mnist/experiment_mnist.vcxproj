@@ -199,6 +199,7 @@
     <ClInclude Include="..\..\include\bb\NeuralNetSoftmax.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetSparseAffine.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetSparseAffineBc.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetSparseAffineSigmoid.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetSparseBinaryAffine.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetSparseLayer.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetType.h" />

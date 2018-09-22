@@ -46,11 +46,6 @@ public:
 		m_node_size = node_size;
 	}
 
-	void  SetBinaryEnable(bool enable)
-	{
-		m_enable = enable;
-	}
-
 	void  SetMuxSize(INDEX mux_size) { m_mux_size = mux_size; }
 	void  SetBatchSize(INDEX batch_size) { m_frame_size = batch_size * m_mux_size; }
 
@@ -69,20 +64,10 @@ public:
 		auto x = GetInputSignalBuffer();
 		auto y = GetOutputSignalBuffer();
 
-		if (m_enable) {
-			// ƒoƒCƒiƒŠ‰»
-			for (INDEX node = 0; node < m_node_size; ++node) {
-				for (INDEX frame = 0; frame < m_frame_size; ++frame) {
-					y.Set<T>(frame, node, x.Get<T>(frame, node) > (T)0.0 ? (T)1.0 : (T)0.0);
-				}
-			}
-		}
-		else {
-			// bypass
-			for (INDEX node = 0; node < m_node_size; ++node) {
-				for (INDEX frame = 0; frame < m_frame_size; ++frame) {
-					y.Set<T>(frame, node, x.Get<T>(frame, node));
-				}
+		// binarize
+		for (INDEX node = 0; node < m_node_size; ++node) {
+			for (INDEX frame = 0; frame < m_frame_size; ++frame) {
+				y.Set<T>(frame, node, x.Get<T>(frame, node) > (T)0.0 ? (T)1.0 : (T)0.0);
 			}
 		}
 	}
@@ -91,24 +76,15 @@ public:
 	{
 		auto dx = GetInputErrorBuffer();
 		auto dy = GetOutputErrorBuffer();
+		auto x = GetInputSignalBuffer();
 		auto y = GetOutputSignalBuffer();
 
-		if (m_enable) {
-			// hard-tanh
-			for (INDEX node = 0; node < m_node_size; ++node) {
-				for (INDEX frame = 0; frame < m_frame_size; ++frame) {
-					auto err = dy.Get<T>(frame, node);
-					auto sig = y.Get<T>(frame, node);
-					dx.Set<T>(frame, node, (sig >= (T)-1.0 && sig <= (T)1.0) ? err : 0);
-				}
-			}
-		}
-		else {
-			// bypass
-			for (INDEX node = 0; node < m_node_size; ++node) {
-				for (INDEX frame = 0; frame < m_frame_size; ++frame) {
-					dx.Set<T>(frame, node, dy.Get<T>(frame, node));
-				}
+		// hard-tanh
+		for (INDEX node = 0; node < m_node_size; ++node) {
+			for (INDEX frame = 0; frame < m_frame_size; ++frame) {
+				auto err = dy.Get<T>(frame, node);
+				auto sig = x.Get<T>(frame, node);
+				dx.Set<T>(frame, node, (sig >= (T)-1.0 && sig <= (T)1.0) ? err : 0);
 			}
 		}
 	}

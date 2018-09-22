@@ -22,7 +22,7 @@ TEST(NeuralNetAffineTest, testAffine)
 	auto in_val = affine.GetInputSignalBuffer();
 	auto out_val = affine.GetOutputSignalBuffer();
 
-	affine.SetOptimizer(&bb::NeuralNetOptimizerSgdCreator<>(0.01f));
+	affine.SetOptimizer(&bb::NeuralNetOptimizerSgd<>(0.01f));
 
 	in_val.SetReal(0, 0, 1);
 	in_val.SetReal(0, 1, 2);
