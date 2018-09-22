@@ -22,26 +22,26 @@ namespace bb {
 
 // 入力数制限Affine Binary Connect版
 template <int N = 6, typename T = float, typename INDEX = size_t>
-class NeuralNetDenseBinaryAffine : public NeuralNetSparseLayer<T, INDEX>
+class NeuralNetDenseAffineSigmoid : public NeuralNetLayer<T, INDEX>
 {
 protected:
 	// 3層で構成
 	NeuralNetAffine<N, T, INDEX>			m_affine;
 	NeuralNetBatchNormalization<T, INDEX>	m_norm;
-	NeuralNetBinarize<T, INDEX>				m_binarize;
-		
+	NeuralNetSigmoid<T, INDEX>				m_activation;
+	
 public:
-	NeuralNetDenseBinaryAffine() {}
+	NeuralNetDenseAffineSigmoid() {}
 
-	NeuralNetDenseBinaryAffine(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1,
-		const NeuralNetOptimizerCreator<T, INDEX>* optimizer = &NeuralNetOptimizerSgdCreator<>())
+	NeuralNetDenseAffineSigmoid(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1,
+		const NeuralNetOptimizer<T, INDEX>* optimizer = &NeuralNetOptimizerSgd<>())
 		: m_affine(input_node_size, output_node_size, seed, optimizer),
 		m_norm(output_node_size),
-		m_binarize(output_node_size)
+		m_activation(output_node_size)
 	{
 	}
 	
-	~NeuralNetDenseBinaryAffine() {}
+	~NeuralNetDenseAffineSigmoid() {}
 	
 	
 	T CalcNode(INDEX node, std::vector<T> input_value) const
@@ -49,7 +49,7 @@ public:
 		std::vector<T> vec(1);
 		vec[0] = m_affine.CalcNode(node, input_value);
 		vec[0] = m_norm.CalcNode(node, vec);
-		return m_binarize.CalcNode(node, vec);
+		return m_activation.CalcNode(node, vec);
 	}
 
 
@@ -57,25 +57,35 @@ public:
 	{
 		m_affine.InitializeCoeff(seed);
 		m_norm.InitializeCoeff(seed);
-		m_binarize.InitializeCoeff(seed);
+		m_activation.InitializeCoeff(seed);
 	}
-	
-	
-	int   GetNodeInputSize(INDEX node) const { return m_affine.GetNodeInputSize(node); }
-	void  SetNodeInput(INDEX node, int input_index, INDEX input_node) { m_affine.SetNodeInput(node, input_index, input_node); }
-	INDEX GetNodeInput(INDEX node, int input_index) const { return m_affine.GetNodeInput(node, input_index); }
+
+	void  SetOptimizer(const NeuralNetOptimizer<T, INDEX>* optimizer)
+	{
+		m_affine.SetOptimizer(optimizer);
+		m_norm.SetOptimizer(optimizer);
+		m_activation.SetOptimizer(optimizer);
+	}
+
+	void SetBinaryMode(bool enable)
+	{
+		m_affine.SetBinaryMode(enable);
+		m_norm.SetBinaryMode(enable);
+		m_activation.SetBinaryMode(enable);
+	}
 
 	void  SetMuxSize(INDEX mux_size)
 	{
 		m_affine.SetMuxSize(mux_size);
 		m_norm.SetMuxSize(mux_size);
-		m_binarize.SetMuxSize(mux_size);
+		m_activation.SetMuxSize(mux_size);
 	}
 
-	void  SetBatchSize(INDEX batch_size) {
+	void  SetBatchSize(INDEX batch_size)
+	{
 		m_affine.SetBatchSize(batch_size);
 		m_norm.SetBatchSize(batch_size);
-		m_binarize.SetBatchSize(batch_size);
+		m_activation.SetBatchSize(batch_size);
 
 		m_affine.SetOutputSignalBuffer(m_affine.CreateOutputSignalBuffer());
 		m_affine.SetOutputErrorBuffer(m_affine.CreateOutputErrorBuffer());
@@ -84,33 +94,33 @@ public:
 
 		m_norm.SetOutputSignalBuffer(m_norm.CreateOutputSignalBuffer());
 		m_norm.SetOutputErrorBuffer(m_norm.CreateOutputErrorBuffer());
-		m_binarize.SetInputSignalBuffer(m_norm.GetOutputSignalBuffer());
-		m_binarize.SetInputErrorBuffer(m_norm.GetOutputErrorBuffer());
+		m_activation.SetInputSignalBuffer(m_norm.GetOutputSignalBuffer());
+		m_activation.SetInputErrorBuffer(m_norm.GetOutputErrorBuffer());
 	}
 
 	
 	// 入出力バッファ
 	void  SetInputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_affine.SetInputSignalBuffer(buffer); }
-	void  SetOutputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_binarize.SetOutputSignalBuffer(buffer); }
+	void  SetOutputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_activation.SetOutputSignalBuffer(buffer); }
 	void  SetInputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_affine.SetInputErrorBuffer(buffer); }
-	void  SetOutputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_binarize.SetOutputErrorBuffer(buffer); }
+	void  SetOutputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_activation.SetOutputErrorBuffer(buffer); }
 
 	const NeuralNetBuffer<T, INDEX>& GetInputSignalBuffer(void) const { return m_affine.GetInputSignalBuffer(); }
-	const NeuralNetBuffer<T, INDEX>& GetOutputSignalBuffer(void) const { return m_binarize.GetOutputSignalBuffer(); }
+	const NeuralNetBuffer<T, INDEX>& GetOutputSignalBuffer(void) const { return m_activation.GetOutputSignalBuffer(); }
 	const NeuralNetBuffer<T, INDEX>& GetInputErrorBuffer(void) const { return m_affine.GetInputErrorBuffer(); }
-	const NeuralNetBuffer<T, INDEX>& GetOutputErrorBuffer(void) const { return m_binarize.GetOutputErrorBuffer(); }
+	const NeuralNetBuffer<T, INDEX>& GetOutputErrorBuffer(void) const { return m_activation.GetOutputErrorBuffer(); }
 
 
 	INDEX GetInputFrameSize(void) const { return m_affine.GetInputFrameSize(); }
-	INDEX GetOutputFrameSize(void) const { return m_binarize.GetOutputFrameSize(); }
+	INDEX GetOutputFrameSize(void) const { return m_activation.GetOutputFrameSize(); }
 
 	INDEX GetInputNodeSize(void) const { return m_affine.GetInputNodeSize(); }
-	INDEX GetOutputNodeSize(void) const { return m_binarize.GetOutputNodeSize(); }
+	INDEX GetOutputNodeSize(void) const { return m_activation.GetOutputNodeSize(); }
 
 	int   GetInputSignalDataType(void) const { return m_affine.GetInputSignalDataType(); }
 	int   GetInputErrorDataType(void) const { return m_affine.GetInputErrorDataType(); }
-	int   GetOutputSignalDataType(void) const { return m_binarize.GetOutputSignalDataType(); }
-	int   GetOutputErrorDataType(void) const { return m_binarize.GetOutputErrorDataType(); }
+	int   GetOutputSignalDataType(void) const { return m_activation.GetOutputSignalDataType(); }
+	int   GetOutputErrorDataType(void) const { return m_activation.GetOutputErrorDataType(); }
 
 
 public:
@@ -119,12 +129,12 @@ public:
 	{
 		m_affine.Forward(train);
 		m_norm.Forward(train);
-		m_binarize.Forward(train);
+		m_activation.Forward(train);
 	}
 
 	void Backward(void)
 	{
-		m_binarize.Backward();
+		m_activation.Backward();
 		m_norm.Backward();
 		m_affine.Backward();
 	}
@@ -133,7 +143,7 @@ public:
 	{
 		m_affine.Update();
 		m_norm.Update();
-		m_binarize.Update();
+		m_activation.Update();
 	}
 
 };
