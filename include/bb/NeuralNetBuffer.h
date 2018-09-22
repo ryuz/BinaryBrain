@@ -246,7 +246,7 @@ protected:
 	template <typename Tp>
 	inline Tp Read(void *base, INDEX frame) const
 	{
-		if ( typeid(Tp) == typeid(bool) || typeid(Tp) == typeid(bool) ) {
+		if ( typeid(Tp) == typeid(Bit) || typeid(Tp) == typeid(bool) ) {
 			std::uint8_t* ptr = (std::uint8_t*)base;
 			std::uint8_t mask = (std::uint8_t)(1 << (frame % 8));
 			return ((ptr[frame / 8] & mask) != 0);
