@@ -50,6 +50,13 @@ public:
 		m_layer->InitializeCoeff(seed);
 	}
 	
+	void  SetBinaryMode(bool enable)
+	{
+		m_expand.SetBinaryMode(enable);
+		m_layer->SetBinaryMode(enable);
+		m_collapse.SetBinaryMode(enable);
+	}
+
 	int   GetNodeInputSize(INDEX node) const { return m_affine.GetNodeInputSize(node); }
 	void  SetNodeInput(INDEX node, int input_index, INDEX input_node) { m_affine.SetNodeInput(node, input_index, input_node); }
 	INDEX GetNodeInput(INDEX node, int input_index) const { return m_affine.GetNodeInput(node, input_index); }
@@ -60,7 +67,7 @@ public:
 		m_layer->SetMuxSize(mux_size);
 		m_collapse.SetMuxSize(mux_size);
 	}
-
+	
 	void  SetBatchSize(INDEX batch_size) {
 		m_expand.SetBatchSize(batch_size);
 		m_layer->SetBatchSize(batch_size * m_expand_size);
