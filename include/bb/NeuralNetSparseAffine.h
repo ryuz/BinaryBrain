@@ -14,7 +14,6 @@
 #include <vector>
 #include <intrin.h>
 #include <omp.h>
-#include <ppl.h>
 #include "NeuralNetSparseLayer.h"
 #include "NeuralNetOptimizerSgd.h"
 
@@ -171,10 +170,11 @@ public:
 	void Forward(bool train = true)
 	{
 		auto node_size = GetOutputNodeSize();
-		concurrency::parallel_for<INDEX>(0, node_size, [&](INDEX node)
-		{
+
+		#pragma omp parallel for
+		for ( int node = 0; node < (int)node_size; ++node ) {
 			ForwardNode(node);
-		});
+		}
 	}
 
 	void Backward(void)
@@ -190,9 +190,8 @@ public:
 
 		in_err_buf.Clear();
 
-		concurrency::parallel_for<INDEX>(0, node_size, [&](INDEX node)
-		{
-//		for (INDEX node = 0; node < node_size; ++node ) {
+		#pragma omp parallel for
+		for (int node = 0; node < (int)node_size; ++node ) {
 			if (typeid(T) == typeid(float)) {
 				auto& nd = m_node[node];
 
@@ -238,7 +237,7 @@ public:
 					nd.db += db.m256_f32[j];
 				}
 			}
-		});
+		}
 	}
 
 

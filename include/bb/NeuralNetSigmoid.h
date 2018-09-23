@@ -72,7 +72,9 @@ public:
 			// Binarize
 			auto x = GetInputSignalBuffer();
 			auto y = GetOutputSignalBuffer();
-			for (INDEX node = 0; node < m_node_size; ++node) {
+
+			#pragma omp parallel for
+			for (int node = 0; node < (int)m_node_size; ++node) {
 				for (INDEX frame = 0; frame < m_frame_size; ++frame) {
 					y.Set<T>(frame, node, x.Get<T>(frame, node) >(T)0.0 ? (T)1.0 : (T)0.0);
 				}
@@ -94,9 +96,9 @@ public:
 			auto dx = GetInputErrorBuffer();
 			auto dy = GetOutputErrorBuffer();
 			auto x = GetInputSignalBuffer();
-			auto y = GetOutputSignalBuffer();
 
-			for (INDEX node = 0; node < m_node_size; ++node) {
+			#pragma omp parallel for
+			for (int node = 0; node < (int)m_node_size; ++node) {
 				for (INDEX frame = 0; frame < m_frame_size; ++frame) {
 					// hard-tanh
 					auto err = dy.Get<T>(frame, node);

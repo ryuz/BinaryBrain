@@ -14,7 +14,6 @@
 #include <vector>
 #include <intrin.h>
 #include <omp.h>
-#include <ppl.h>
 #include "NeuralNetSparseLayer.h"
 
 namespace bb {
@@ -170,13 +169,13 @@ public:
 	{
 		INDEX node_size = GetOutputNodeSize();
 		int   lut_input_size = GetLutInputSize();
-		concurrency::parallel_for<INDEX>(0, node_size, [&](INDEX node)
-		{
+
+		#pragma omp parallel for
+		for ( int node = 0; node < (int)node_size; ++node) {
 			ForwardNode(node);
-		});
+		}
 	}
-	
-	
+		
 	void Backward(void)
 	{
 		auto& out_err = GetOutputErrorBuffer();
@@ -469,8 +468,8 @@ public:
 		std::vector<double> vec_loss_x(frame_size);
 		double* vec_loss = &vec_loss_x[0];
 
-		concurrency::parallel_for<INDEX>(0, frame_size, [&](INDEX frame)
-		{
+		#pragma omp parallel for
+		for ( int frame = 0; frame < (int)frame_size; ++frame ) {
 			vec_loss[frame] = 0;
 			for (size_t node = 0; node < node_size; ++node) {
 				if (label[frame / m_mux_size] == (node % LABEL_SIZE)) {
@@ -480,7 +479,7 @@ public:
 					vec_loss[frame] += (buf.Get<bool>(frame, node) ? +(1.0 / LABEL_SIZE) : -(0.0 / LABEL_SIZE));
 				}
 			}
-		});
+		}
 
 		return vec_loss_x;
 	}
