@@ -41,8 +41,6 @@ namespace bb {
 #endif
 
 
-//using Bit = bool;
-
 
 class Bit;
 class Binary;

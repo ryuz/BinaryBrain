@@ -11,8 +11,8 @@
 #pragma once
 
 #include <cstdint>
-#include "NeuralNetSparseLayer.h"
-#include "NeuralNetSparseAffine.h"
+#include "NeuralNetLayer.h"
+#include "NeuralNetAffine.h"
 #include "NeuralNetBatchNormalization.h"
 #include "NeuralNetBinarize.h"
 
@@ -26,7 +26,7 @@ class NeuralNetDenseAffineSigmoid : public NeuralNetLayer<T, INDEX>
 {
 protected:
 	// 3ëwÇ≈ç\ê¨
-	NeuralNetAffine<N, T, INDEX>			m_affine;
+	NeuralNetAffine<T, INDEX>				m_affine;
 	NeuralNetBatchNormalization<T, INDEX>	m_norm;
 	NeuralNetSigmoid<T, INDEX>				m_activation;
 	

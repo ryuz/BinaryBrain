@@ -94,7 +94,7 @@ public:
 		}
 	}
 
-	void Update(double learning_rate)
+	void Update(void)
 	{
 	}
 

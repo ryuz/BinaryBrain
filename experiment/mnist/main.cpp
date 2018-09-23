@@ -62,10 +62,43 @@ protected:
 	// 最大バッチサイズ
 	size_t m_max_batch_size = 1024;
 
+	// 乱数
+	std::mt19937_64		m_mt;
+
+
+
+public:
+	// コンストラクタ
+	EvaluateMnist(int train_max_size = -1, int test_max_size = -1)
+	{
+		// MNIST学習用データ読み込み
+		m_train_images = mnist_read_images_real<float>("train-images-idx3-ubyte", train_max_size);
+		m_train_labels = mnist_read_labels("train-labels-idx1-ubyte", train_max_size);
+
+		// MNIST評価用データ読み込み
+		m_test_images = mnist_read_images_real<float>("t10k-images-idx3-ubyte", test_max_size);
+		m_test_labels = mnist_read_labels("t10k-labels-idx1-ubyte", test_max_size);
+
+		// 元データがラベルなので、期待値だけ 1.0 となるクロスエントロピー用のデータも作る
+		m_train_onehot = bb::LabelToOnehot<std::uint8_t, float>(m_train_labels, 10);
+		m_test_onehot = bb::LabelToOnehot<std::uint8_t, float>(m_test_labels, 10);
+
+		// 乱数初期化
+		m_mt.seed(1);
+	}
+
+
+protected:
+	// 学習データシャッフル
+	void ShuffleTrainData(void)
+	{
+		bb::ShuffleDataSet(m_mt(), m_train_images, m_train_labels, m_train_onehot);
+	}
+
 
 	// 時間計測
 	std::chrono::system_clock::time_point m_base_time;
-	void reset_time(void) {	m_base_time = std::chrono::system_clock::now(); }
+	void reset_time(void) { m_base_time = std::chrono::system_clock::now(); }
 	double get_time(void)
 	{
 		auto now_time = std::chrono::system_clock::now();
@@ -144,23 +177,6 @@ protected:
 
 
 public:
-	// コンストラクタ
-	EvaluateMnist(int train_max_size = -1, int test_max_size = -1)
-	{
-		// MNIST学習用データ読み込み
-		m_train_images = mnist_read_images_real<float>("train-images-idx3-ubyte", train_max_size);
-		m_train_labels = mnist_read_labels("train-labels-idx1-ubyte", train_max_size);
-
-		// MNIST評価用データ読み込み
-		m_test_images = mnist_read_images_real<float>("t10k-images-idx3-ubyte", test_max_size);
-		m_test_labels = mnist_read_labels("t10k-labels-idx1-ubyte", test_max_size);
-
-		// 元データがラベルなので、期待値だけ 1.0 となるクロスエントロピー用のデータも作る
-		m_train_onehot = bb::LabelToOnehot<std::uint8_t, float>(m_train_labels, 10);
-		m_test_onehot = bb::LabelToOnehot<std::uint8_t, float>(m_test_labels, 10);
-	}
-	
-
 	// LUT6入力のバイナリ版の力技学習
 	void RunBinaryLut6WithBbruteForce(int epoc_size, size_t max_batch_size, int max_iteration = -1)
 	{
@@ -1226,9 +1242,13 @@ public:
 
 
 	// 本命
-	void RunSparceFullyCnn(int epoc_size, size_t max_batch_size)
+	void RunSparseFullyCnn(int epoc_size, size_t max_batch_size)
 	{
-		std::cout << "start [RunSparceFullyCnn]" << std::endl;
+		std::ofstream ofs_log("log.txt");
+
+		ofs_log   << "start [RunSparseFullyCnn]" << std::endl;
+		std::cout << "start [RunSparseFullyCnn]" << std::endl;
+
 		reset_time();
 
 		// Conv用subネット構築 (3x3)
@@ -1237,36 +1257,36 @@ public:
 		sub0_net.AddLayer(&sub0_affine);
 
 		// Conv用subネット構築 (3x3)
-		bb::NeuralNetSparseBinaryAffine<>	sub1_affine0(30 * 3 * 3, 100);
-		bb::NeuralNetSparseBinaryAffine<>	sub1_affine1(100, 30);
+		bb::NeuralNetSparseAffineSigmoid<>	sub1_affine0(30 * 3 * 3, 180);
+		bb::NeuralNetSparseAffineSigmoid<>	sub1_affine1(180, 30);
 		bb::NeuralNetGroup<>				sub1_net;
 		sub1_net.AddLayer(&sub1_affine0);
 		sub1_net.AddLayer(&sub1_affine1);
 
 		// Conv用subネット構築 (3x3)
-		bb::NeuralNetSparseBinaryAffine<>	sub3_affine0(30 * 3 * 3, 100);
-		bb::NeuralNetSparseBinaryAffine<>	sub3_affine1(100, 30);
+		bb::NeuralNetSparseAffineSigmoid<>	sub3_affine0(30 * 3 * 3, 180);
+		bb::NeuralNetSparseAffineSigmoid<>	sub3_affine1(180, 30);
 		bb::NeuralNetGroup<>				sub3_net;
 		sub3_net.AddLayer(&sub3_affine0);
 		sub3_net.AddLayer(&sub3_affine1);
 
 		// Conv用subネット構築 (3x3)
-		bb::NeuralNetSparseBinaryAffine<>	sub4_affine0(30 * 3 * 3, 100);
-		bb::NeuralNetSparseBinaryAffine<>	sub4_affine1(100, 30);
+		bb::NeuralNetSparseAffineSigmoid<>	sub4_affine0(30 * 3 * 3, 180);
+		bb::NeuralNetSparseAffineSigmoid<>	sub4_affine1(180, 30);
 		bb::NeuralNetGroup<>				sub4_net;
 		sub4_net.AddLayer(&sub4_affine0);
 		sub4_net.AddLayer(&sub4_affine1);
 
 		// Conv用subネット構築 (3x3)
-		bb::NeuralNetSparseBinaryAffine<>	sub6_affine0(30 * 3 * 3, 100);
-		bb::NeuralNetSparseBinaryAffine<>	sub6_affine1(100, 30);
+		bb::NeuralNetSparseAffineSigmoid<>	sub6_affine0(30 * 3 * 3, 180);
+		bb::NeuralNetSparseAffineSigmoid<>	sub6_affine1(180, 30);
 		bb::NeuralNetGroup<>				sub6_net;
 		sub6_net.AddLayer(&sub6_affine0);
 		sub6_net.AddLayer(&sub6_affine1);
 
 		// Conv用subネット構築 (3x3)
-		bb::NeuralNetSparseBinaryAffine<>	sub7_affine0(30 * 2 * 2, 80);
-		bb::NeuralNetSparseBinaryAffine<>	sub7_affine1(80, 30);
+		bb::NeuralNetSparseAffineSigmoid<>	sub7_affine0(30 * 2 * 2, 180);
+		bb::NeuralNetSparseAffineSigmoid<>	sub7_affine1(180, 30);
 		bb::NeuralNetGroup<>				sub7_net;
 		sub7_net.AddLayer(&sub7_affine0);
 		sub7_net.AddLayer(&sub7_affine1);
@@ -1303,8 +1323,9 @@ public:
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
 			// 学習状況評価
-			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
-
+			auto accuracy = CalcAccuracy(net);
+			ofs_log << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << accuracy << std::endl;
+			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << accuracy << std::endl;
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
 				// 末尾のバッチサイズクリップ
@@ -1334,10 +1355,10 @@ public:
 				net.Update();
 			}
 		}
+		ofs_log << "end\n" << std::endl;
 		std::cout << "end\n" << std::endl;
 	}
-
-
+	
 
 	// 実験比較用
 	void RunSimpleConvPackSigmoid(int epoc_size, size_t max_batch_size)
@@ -1780,7 +1801,7 @@ int main()
 	// 評価用クラスを作成
 	EvaluateMnist	eva_mnist(train_max_size, test_max_size);
 
-	eva_mnist.RunSparceFullyCnn(1000, 128);
+	eva_mnist.RunSparseFullyCnn(1000, 128);
 
 //	eva_mnist.RunFullyConvBinary(1000, 128);
 //	eva_mnist.RunSimpleConvSigmoid(1000, 128);

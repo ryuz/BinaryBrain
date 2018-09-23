@@ -9,9 +9,17 @@
 
 #pragma once
 
-namespace bb {
 
 #include <cstdint>
+#include <ostream>
+#include <vector>
+#include <random>
+
+#include "NeuralNetType.h"
+
+
+namespace bb {
+
 
 // argmax
 template <typename T = float, typename INDEX = int>
@@ -60,6 +68,114 @@ std::vector< std::vector<T> > LabelToOnehot(const std::vector<LT>& labels, LT la
 
 	return onehot;
 }
+
+
+
+// トレーニングデータセットのシャッフル
+template <typename T0>
+void ShuffleDataSet(std::uint64_t seed, std::vector<T0>& data0)
+{
+	std::mt19937_64							mt(seed);
+	std::uniform_int_distribution<size_t>	rand_distribution(0, data_size - 1);
+
+	for (size_t i = 0; i < data0.size(); ++i) {
+		size_t j = rand_distribution(mt);
+		std::swap(data0[i], data0[j]);
+	}
+}
+
+template <typename T0, typename T1>
+void ShuffleDataSet(std::uint64_t seed, std::vector<T0>& data0, std::vector<T1>& data1)
+{
+	size_t data_size = data0.size();
+
+	BB_ASSERT(data1.size() == data_size);
+
+	std::mt19937_64							mt(seed);
+	std::uniform_int_distribution<size_t>	rand_distribution(0, data_size - 1);
+
+	for (size_t i = 0; i < data0.size(); ++i) {
+		size_t j = rand_distribution(mt);
+		std::swap(data0[i], data0[j]);
+		std::swap(data1[i], data1[j]);
+	}
+}
+
+template <typename T0, typename T1, typename T2>
+void ShuffleDataSet(std::uint64_t seed, std::vector<T0>& data0, std::vector<T1>& data1, std::vector<T2>& data2)
+{
+	size_t data_size = data0.size();
+
+	BB_ASSERT(data1.size() == data_size);
+	BB_ASSERT(data2.size() == data_size);
+
+	std::mt19937_64							mt(seed);
+	std::uniform_int_distribution<size_t>	rand_distribution(0, data_size - 1);
+
+	for (size_t i = 0; i < data0.size(); ++i) {
+		size_t j = rand_distribution(mt);
+		std::swap(data0[i], data0[j]);
+		std::swap(data1[i], data1[j]);
+		std::swap(data2[i], data2[j]);
+	}
+}
+
+
+
+// ostream 用 tee
+template<class _Elem, class _Traits = std::char_traits<_Elem> >
+class basic_streambuf_tee : public std::basic_streambuf<_Elem, _Traits>
+{
+	typedef basic_streambuf<_Elem, _Traits>		stmbuf;
+	typedef typename _Traits::int_type			int_type;
+
+	std::vector<stmbuf*>	m_streambufs;
+	
+	virtual int_type overflow(int_type ch = _Traits::eof())
+	{
+		for (auto s : m_streambufs) {
+			s->sputc(ch);
+		}
+		return ch;
+	}
+
+public:
+	basic_streambuf_tee()
+	{
+		this->setp(0, 0);
+	}
+
+	void add(stmbuf* stm)
+	{
+		m_streambufs.push_back(stm);
+	}
+};
+
+template<class _Elem, class _Traits = std::char_traits<_Elem> >
+class basic_ostream_tee : public std::basic_ostream<_Elem, _Traits>
+{
+	typedef basic_ostream<_Elem, _Traits>		ostm;
+	typedef basic_streambuf_tee<_Elem, _Traits> stmbuf;
+
+public:
+	basic_ostream_tee() : ostm(new basic_streambuf_tee<_Elem, _Traits>())
+	{
+	}
+
+	~basic_ostream_tee()
+	{
+		delete this->rdbuf();
+	}
+
+	void add(ostm& stm)
+	{
+		dynamic_cast<stmbuf *>(rdbuf())->add(stm.rdbuf());
+	}
+};
+
+
+typedef basic_ostream_tee<char>		ostream_tee;
+typedef basic_ostream_tee<wchar_t>	ostream_wtee;
 
 
 }

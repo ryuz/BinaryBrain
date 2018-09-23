@@ -61,7 +61,7 @@ public:
 	
 	virtual	void  Forward(bool train=true) = 0;									// 予測
 	virtual	void  Backward(void) = 0;											// 誤差逆伝播
-	virtual	void  Update(void) {}												// 学習
+	virtual	void  Update(void) = 0;												// 学習
 	virtual	bool  Feedback(const std::vector<double>& loss) { return false; }	// 直接フィードバック
 	
 	

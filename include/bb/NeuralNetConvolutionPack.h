@@ -125,11 +125,11 @@ public:
 		m_expand.Backward();
 	}
 
-	void Update(double learning_rate)
+	void Update(void)
 	{
-		m_expand.Update(learning_rate);
-		m_layer->Update(learning_rate);
-		m_collapse.Update(learning_rate);
+		m_expand.Update();
+		m_layer->Update();
+		m_collapse.Update();
 	}
 
 };
