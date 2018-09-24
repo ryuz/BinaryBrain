@@ -20,8 +20,8 @@
 namespace bb {
 
 
-// Convolutionクラス
-template <typename T = float, typename INDEX = size_t>
+// MaxPoolingクラス
+template <typename ST = float, typename ET = float, typename T = float, typename INDEX = size_t>
 class NeuralNetMaxPooling : public NeuralNetLayerBuf<T, INDEX>
 {
 protected:
@@ -67,10 +67,10 @@ public:
 	INDEX GetOutputFrameSize(void) const { return m_frame_size; }
 	INDEX GetOutputNodeSize(void) const { return m_input_c_size * m_output_h_size * m_output_w_size; }
 	
-	int   GetInputSignalDataType(void) const { return NeuralNetType<T>::type; }
-	int   GetInputErrorDataType(void) const { return NeuralNetType<T>::type; }
-	int   GetOutputSignalDataType(void) const { return NeuralNetType<T>::type; }
-	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
+	int   GetInputSignalDataType(void) const { return NeuralNetType<ST>::type; }
+	int   GetOutputSignalDataType(void) const { return NeuralNetType<ST>::type; }
+	int   GetInputErrorDataType(void) const { return NeuralNetType<ET>::type; }
+	int   GetOutputErrorDataType(void) const { return NeuralNetType<ET>::type; }
 	
 protected:
 
@@ -96,7 +96,7 @@ protected:
 public:
 	void Forward(bool train = true)
 	{
-		if (typeid(T) == typeid(float)) {
+		if (typeid(ST) == typeid(float)) {
 			// float用実装
 			int  m256_frame_size = (int)(((m_frame_size + 7) / 8) * 8);
 			auto in_sig_buf = GetInputSignalBuffer();
@@ -124,7 +124,7 @@ public:
 				}
 			}
 		}
-		else if (typeid(T) == typeid(double)) {
+		else if (typeid(ST) == typeid(double)) {
 			// double用実装
 		}
 		else {
@@ -134,7 +134,7 @@ public:
 	
 	void Backward(void)
 	{
-		if (typeid(T) == typeid(float)) {
+		if (typeid(ET) == typeid(float)) {
 			// float用実装
 			int  m256_frame_size = (int)(((m_frame_size + 7) / 8) * 8);
 			auto in_sig_buf = GetInputSignalBuffer();
@@ -168,6 +168,12 @@ public:
 					}
 				}
 			}
+		}
+		else if (typeid(ET) == typeid(double)) {
+			// double用実装
+		}
+		else {
+			assert(0);
 		}
 	}
 
