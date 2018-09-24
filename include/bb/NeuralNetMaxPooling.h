@@ -74,23 +74,14 @@ public:
 	
 protected:
 
-	inline T* GetInputPtr(NeuralNetBuffer<T, INDEX>& buf, int c, int y, int x)
+	inline void* GetInputPtr(NeuralNetBuffer<T, INDEX>& buf, int c, int y, int x)
 	{
-		return (T*)buf.GetPtr((c*m_input_h_size + y)*m_input_w_size + x);
+		return buf.GetPtr((c*m_input_h_size + y)*m_input_w_size + x);
 	}
 
-	inline T* GetOutputPtr(NeuralNetBuffer<T, INDEX>& buf, int c, int y, int x)
+	inline void* GetOutputPtr(NeuralNetBuffer<T, INDEX>& buf, int c, int y, int x)
 	{
-		return (T*)buf.GetPtr((c*m_output_h_size + y)*m_output_w_size + x);
-	}
-
-	inline T* GetOutputPtrWithRangeCheck(NeuralNetBuffer<T, INDEX>& buf, int c, int y, int x)
-	{
-		if (x < 0 || x >= m_output_w_size || y < 0 || y >= m_output_h_size) {
-			return (T*)buf.GetZeroPtr();
-		}
-
-		return (T*)buf.GetPtr((c*m_output_h_size + y)*m_output_w_size + x);
+		return buf.GetPtr((c*m_output_h_size + y)*m_output_w_size + x);
 	}
 
 public:
@@ -101,11 +92,11 @@ public:
 			int  m256_frame_size = (int)(((m_frame_size + 7) / 8) * 8);
 			auto in_sig_buf = GetInputSignalBuffer();
 			auto out_sig_buf = GetOutputSignalBuffer();
-
+			#pragma omp parallel for
 			for (int c = 0; c < m_input_c_size; ++c) {
 				for (int y = 0; y < m_output_h_size; ++y) {
 					for (int x = 0; x < m_output_w_size; ++x) {
-						float* out_sig_ptr = GetOutputPtr(out_sig_buf, c, y, x);
+						float* out_sig_ptr = (float*)GetOutputPtr(out_sig_buf, c, y, x);
 
 						for (size_t frame = 0; frame < m256_frame_size; frame += 8) {
 							__m256	max_val = _mm256_set1_ps(0.0f);	// 前段に活性化入れるから0がminだよね？
@@ -113,7 +104,7 @@ public:
 								int iy = y*m_filter_h_size + fy;
 								for (int fx = 0; fx < m_filter_w_size; ++fx) {
 									int ix = x*m_filter_w_size + fx;
-									float* in_sig_ptr = GetInputPtr(in_sig_buf, c, iy, ix);
+									float* in_sig_ptr = (float*)GetInputPtr(in_sig_buf, c, iy, ix);
 									__m256 in_sig = _mm256_load_ps(&in_sig_ptr[frame]);
 									max_val = _mm256_max_ps(max_val, in_sig);
 								}
@@ -127,6 +118,34 @@ public:
 		else if (typeid(ST) == typeid(double)) {
 			// double用実装
 		}
+		else if (typeid(ST) == typeid(Bit) || typeid(ST) == typeid(bool)) {
+			// バイナリ用実装
+			int  m256_frame_size = (int)((m_frame_size + 255) / 256);
+			auto in_sig_buf = GetInputSignalBuffer();
+			auto out_sig_buf = GetOutputSignalBuffer();
+
+			#pragma omp parallel for
+			for (int c = 0; c < m_input_c_size; ++c) {
+				for (int y = 0; y < m_output_h_size; ++y) {
+					for (int x = 0; x < m_output_w_size; ++x) {
+						__m256i* out_sig_ptr = (__m256i*)GetOutputPtr(out_sig_buf, c, y, x);
+						for (size_t frame = 0; frame < m256_frame_size; ++frame) {
+							__m256i	or_val = _mm256_set1_epi32(0);
+							for (int fy = 0; fy < m_filter_h_size; ++fy) {
+								int iy = y*m_filter_h_size + fy;
+								for (int fx = 0; fx < m_filter_w_size; ++fx) {
+									int ix = x*m_filter_w_size + fx;
+									__m256i* in_sig_ptr = (__m256i*)GetInputPtr(in_sig_buf, c, iy, ix);
+									__m256i in_sig = _mm256_load_si256(&in_sig_ptr[frame]);
+									or_val = _mm256_or_si256(or_val, in_sig);
+								}
+							}
+							_mm256_store_si256(&out_sig_ptr[frame], or_val);
+						}
+					}
+				}
+			}
+		}
 		else {
 			assert(0);
 		}
@@ -134,7 +153,7 @@ public:
 	
 	void Backward(void)
 	{
-		if (typeid(ET) == typeid(float)) {
+		if (typeid(ST) == typeid(float) && typeid(ET) == typeid(float)) {
 			// float用実装
 			int  m256_frame_size = (int)(((m_frame_size + 7) / 8) * 8);
 			auto in_sig_buf = GetInputSignalBuffer();
@@ -142,12 +161,12 @@ public:
 			auto in_err_buf = GetInputErrorBuffer();
 			auto out_err_buf = GetOutputErrorBuffer();
 
-			__m256 sum_db = _mm256_set1_ps(0);
+			#pragma omp parallel for
 			for (int n = 0; n < m_input_c_size; ++n) {
 				for (int y = 0; y < m_output_h_size; ++y) {
 					for (int x = 0; x < m_output_w_size; ++x) {
-						float* out_sig_ptr = GetOutputPtr(out_sig_buf, n, y, x);
-						float* out_err_ptr = GetOutputPtr(out_err_buf, n, y, x);
+						float* out_sig_ptr = (float*)GetOutputPtr(out_sig_buf, n, y, x);
+						float* out_err_ptr = (float*)GetOutputPtr(out_err_buf, n, y, x);
 
 						for (size_t frame = 0; frame < m256_frame_size; frame += 8) {
 							__m256 out_sig = _mm256_load_ps(&out_sig_ptr[frame]);
@@ -156,8 +175,8 @@ public:
 								int iy = y*m_filter_h_size + fy;
 								for (int fx = 0; fx < m_filter_w_size; ++fx) {
 									int ix = x*m_filter_w_size + fx;
-									float* in_sig_ptr = GetInputPtr(in_sig_buf, n, iy, ix);
-									float* in_err_ptr = GetInputPtr(in_err_buf, n, iy, ix);
+									float* in_sig_ptr = (float*)GetInputPtr(in_sig_buf, n, iy, ix);
+									float* in_err_ptr = (float*)GetInputPtr(in_err_buf, n, iy, ix);
 									__m256 in_sig = _mm256_load_ps(&in_sig_ptr[frame]);
 									__m256 mask = _mm256_cmp_ps(in_sig, out_sig, _CMP_EQ_OQ);
 									__m256 in_err = _mm256_and_ps(mask, out_err);
