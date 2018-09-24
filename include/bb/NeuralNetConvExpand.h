@@ -21,7 +21,7 @@ namespace bb {
 
 
 // ConvolutionƒNƒ‰ƒX
-template <typename T = float, typename INDEX = size_t>
+template <typename ST = float, typename ET = float, typename T = float, typename INDEX = size_t>
 class NeuralNetConvExpand : public NeuralNetLayerBuf<T, INDEX>
 {
 protected:
@@ -71,21 +71,31 @@ public:
 	INDEX GetOutputFrameSize(void) const { return m_output_frame_size; }
 	INDEX GetOutputNodeSize(void) const { return m_input_c_size * m_filter_h_size * m_filter_w_size; }
 	
-	int   GetInputSignalDataType(void) const { return NeuralNetType<T>::type; }
-	int   GetInputErrorDataType(void) const { return NeuralNetType<T>::type; }
-	int   GetOutputSignalDataType(void) const { return NeuralNetType<T>::type; }
-	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
+	int   GetInputSignalDataType(void) const { return NeuralNetType<ST>::type; }
+	int   GetOutputSignalDataType(void) const { return NeuralNetType<ST>::type; }
+	int   GetInputErrorDataType(void) const { return NeuralNetType<ET>::type; }
+	int   GetOutputErrorDataType(void) const { return NeuralNetType<ET>::type; }
 	
 protected:
 
-	inline T* GetInputPtr(NeuralNetBuffer<T, INDEX>& buf, int c, int y, int x)
+//	inline float* GetInputPtr(NeuralNetBuffer<T, INDEX>& buf, int c, int y, int x)
+//	{
+//		return (float*)buf.GetPtr((c*m_input_h_size + y)*m_input_w_size + x);
+//	}
+
+//	inline float* GetOutputPtr(NeuralNetBuffer<T, INDEX>& buf, int c, int y, int x)
+//	{
+//		return (float*)buf.GetPtr((c*m_filter_h_size + y)*m_filter_w_size + x);
+//	}
+
+	inline int GetInputNode(int c, int y, int x)
 	{
-		return (T*)buf.GetPtr((c*m_input_h_size + y)*m_input_w_size + x);
+		return (c * m_input_h_size + y)*m_input_w_size + x;
 	}
 
-	inline T* GetOutputPtr(NeuralNetBuffer<T, INDEX>& buf, int c, int y, int x)
+	inline int GetOutputNode(int c, int y, int x)
 	{
-		return (T*)buf.GetPtr((c*m_filter_h_size + y)*m_filter_w_size + x);
+		return (c*m_filter_h_size + y)*m_filter_w_size + x;
 	}
 
 
@@ -105,9 +115,13 @@ public:
 							for (int fx = 0; fx < m_filter_w_size; ++fx) {
 								int ix = x + fx;
 								int iy = y + fy;
-								const float* in_sig_ptr = GetInputPtr(in_sig_buf, c, iy, ix);
-								float* out_sig_ptr = GetOutputPtr(out_sig_buf, c, fy, fx);
-								out_sig_ptr[output_frame] = in_sig_ptr[input_frame];
+					//			const float* in_sig_ptr = GetInputPtr(in_sig_buf, c, iy, ix);
+					//			float* out_sig_ptr = GetOutputPtr(out_sig_buf, c, fy, fx);
+					//			out_sig_ptr[output_frame] = in_sig_ptr[input_frame];
+
+								int input_node = GetInputNode(c, iy, ix);
+								int output_node = GetOutputNode(c, fy, fx);
+								out_sig_buf.Set<ST>(output_frame, output_node, in_sig_buf.Get<ST>(input_frame, input_node));
 							}
 						}
 					}
@@ -134,9 +148,14 @@ public:
 							for (int fx = 0; fx < m_filter_w_size; ++fx) {
 								int ix = x + fx;
 								int iy = y + fy;
-								const float* out_err_ptr = GetOutputPtr(out_err_buf, c, fy, fx);
-								float* in_err_ptr = GetInputPtr(in_err_buf, c, iy, ix);
-								in_err_ptr[input_frame] += out_err_ptr[output_frame];
+				//				const float* out_err_ptr = GetOutputPtr(out_err_buf, c, fy, fx);
+				//				float* in_err_ptr = GetInputPtr(in_err_buf, c, iy, ix);
+				//				in_err_ptr[input_frame] += out_err_ptr[output_frame];
+
+								int output_node = GetOutputNode(c, fy, fx);
+								int input_node = GetInputNode(c, iy, ix);
+								ET err = in_err_buf.Get<ET>(input_frame, input_node);
+								in_err_buf.Set<ET>(input_frame, input_node, err + out_err_buf.Get<ET>(output_frame, output_node));
 							}
 						}
 					}

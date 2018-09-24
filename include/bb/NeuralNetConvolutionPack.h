@@ -20,14 +20,14 @@ namespace bb {
 
 
 // “ü—Í”§ŒÀAffine Binary Connect”Å
-template <int N = 6, typename T = float, typename INDEX = size_t>
+template <typename ST = float, typename ET = float, typename T = float, typename INDEX = size_t>
 class NeuralNetConvolutionPack : public NeuralNetLayer<T, INDEX>
 {
 protected:
 	// 3‘w‚Å\¬
-	NeuralNetConvExpand<T, INDEX>		m_expand;
-	NeuralNetLayer<T, INDEX>*			m_layer;
-	NeuralNetConvCollapse<T, INDEX>		m_collapse;
+	NeuralNetConvExpand<ST, ET, T, INDEX>		m_expand;
+	NeuralNetLayer<T, INDEX>*					m_layer;
+	NeuralNetConvCollapse<ST, ET, T, INDEX>		m_collapse;
 	
 	INDEX	m_expand_size = 1;
 

@@ -21,7 +21,7 @@ namespace bb {
 
 
 // ConvolutionƒNƒ‰ƒX
-template <typename T = float, typename INDEX = size_t>
+template <typename ST = float, typename ET = float, typename T = float, typename INDEX = size_t>
 class NeuralNetConvCollapse : public NeuralNetLayerBuf<T, INDEX>
 {
 protected:
@@ -63,13 +63,14 @@ public:
 	INDEX GetOutputFrameSize(void) const { return m_output_frame_size; }
 	INDEX GetOutputNodeSize(void) const { return m_c_size * m_h_size * m_w_size; }
 	
-	int   GetInputSignalDataType(void) const { return NeuralNetType<T>::type; }
-	int   GetInputErrorDataType(void) const { return NeuralNetType<T>::type; }
-	int   GetOutputSignalDataType(void) const { return NeuralNetType<T>::type; }
-	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
+	int   GetInputSignalDataType(void) const { return NeuralNetType<ST>::type; }
+	int   GetOutputSignalDataType(void) const { return NeuralNetType<ST>::type; }
+	int   GetInputErrorDataType(void) const { return NeuralNetType<ET>::type; }
+	int   GetOutputErrorDataType(void) const { return NeuralNetType<ET>::type; }
 	
 protected:
 
+	/*
 	inline T* GetInputPtr(NeuralNetBuffer<T, INDEX>& buf, int c, int y, int x)
 	{
 		return (T*)buf.GetPtr((c*m_input_h_size + y)*m_input_w_size + x);
@@ -80,6 +81,16 @@ protected:
 		return (T*)buf.GetPtr((c*m_filter_h_size + y)*m_filter_w_size + x);
 	}
 	
+	inline int GetInputNode(int c, int y, int x)
+	{
+		return (c*m_input_h_size + y)*m_input_w_size + x;
+	}
+
+	inline int GetOutputNode(int c, int y, int x)
+	{
+		return (c*m_filter_h_size + y)*m_filter_w_size + x;
+	}
+	*/
 
 public:
 	void Forward(bool train = true)
@@ -91,10 +102,15 @@ public:
 		for (INDEX output_frame = 0; output_frame < m_output_frame_size; ++output_frame) {
 			for (int y = 0; y < m_h_size; ++y) {
 				for (int x = 0; x < m_w_size; ++x) {
+					#pragma omp parallel for
 					for (int c = 0; c < m_c_size; ++c) {
-						float* in_sig_ptr = (float *)in_sig_buf.GetPtr(c);
-						float* out_sig_ptr = (float *)out_sig_buf.GetPtr((c*m_h_size + y)*m_w_size + x);
-						out_sig_ptr[output_frame] = in_sig_ptr[input_frame];
+		//				float* in_sig_ptr = (float *)in_sig_buf.GetPtr(c);
+		//				float* out_sig_ptr = (float *)out_sig_buf.GetPtr((c*m_h_size + y)*m_w_size + x);
+		//				out_sig_ptr[output_frame] = in_sig_ptr[input_frame];
+						
+						int input_node = c;
+						int output_node = (c*m_h_size + y)*m_w_size + x;
+						out_sig_buf.Set<ST>(output_frame, output_node, in_sig_buf.Get<ST>(input_frame, input_node));
 					}
 					++input_frame;
 				}
@@ -111,10 +127,15 @@ public:
 		for (INDEX output_frame = 0; output_frame < m_output_frame_size; ++output_frame) {
 			for (int y = 0; y < m_h_size; ++y) {
 				for (int x = 0; x < m_w_size; ++x) {
+					#pragma omp parallel for
 					for (int c = 0; c < m_c_size; ++c) {
-						float* out_err_ptr = (float *)out_err_buf.GetPtr((c*m_h_size + y)*m_w_size + x);
-						float* in_err_ptr = (float *)in_err_buf.GetPtr(c);
-						in_err_ptr[input_frame] = out_err_ptr[output_frame];
+		//				float* out_err_ptr = (float *)out_err_buf.GetPtr((c*m_h_size + y)*m_w_size + x);
+		//				float* in_err_ptr = (float *)in_err_buf.GetPtr(c);
+		//				in_err_ptr[input_frame] = out_err_ptr[output_frame];
+
+						int output_node = (c*m_h_size + y)*m_w_size + x;
+						int input_node = c;
+						in_err_buf.Set<ET>(input_frame, input_node, out_err_buf.Get<ET>(output_frame, output_node));
 					}
 					++input_frame;
 				}
