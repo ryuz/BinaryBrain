@@ -99,6 +99,7 @@ public:
 		for (INDEX input_frame = 0; input_frame < m_input_frame_size; ++input_frame) {
 			for (int y = 0; y < m_output_h_size; ++y) {
 				for (int x = 0; x < m_output_w_size; ++x) {
+					#pragma omp parallel for
 					for (int c = 0; c < m_input_c_size; ++c) {
 						for (int fy = 0; fy < m_filter_h_size; ++fy) {
 							for (int fx = 0; fx < m_filter_w_size; ++fx) {
@@ -127,6 +128,7 @@ public:
 		for (INDEX input_frame = 0; input_frame < m_input_frame_size; ++input_frame) {
 			for (int y = 0; y < m_output_h_size; ++y) {
 				for (int x = 0; x < m_output_w_size; ++x) {
+					#pragma omp parallel for
 					for (int c = 0; c < m_input_c_size; ++c) {
 						for (int fy = 0; fy < m_filter_h_size; ++fy) {
 							for (int fx = 0; fx < m_filter_w_size; ++fx) {
