@@ -139,6 +139,15 @@ class basic_streambuf_tee : public std::basic_streambuf<_Elem, _Traits>
 		return ch;
 	}
 
+	int sync(void)
+	{
+		for (auto s : m_streambufs) {
+			s->pubsync();
+		}
+
+		return 0;
+	}
+
 public:
 	basic_streambuf_tee()
 	{
