@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 #include <numeric>
 #include <random>
 #include <chrono>
@@ -51,13 +52,16 @@ protected:
 	std::vector< std::vector<float> >	m_train_images;
 	std::vector< std::uint8_t >			m_train_labels;
 	std::vector< std::vector<float> >	m_train_onehot;
-
+	
 	// 最大バッチサイズ
 	size_t m_max_batch_size = 1024;
 	
 	// 乱数
 	std::mt19937_64		m_mt;
 
+	// ログ用出力
+	std::ofstream		m_ofs_log;
+	bb::ostream_tee		m_log;
 
 
 public:
@@ -78,6 +82,25 @@ public:
 
 		// 乱数初期化
 		m_mt.seed(1);
+
+		// 日時でログファイルオープン
+		time_t time_now = time(NULL);
+		struct tm tm;
+		localtime_s(&tm, &time_now);
+		std::stringstream ss;
+		ss << "log_";
+		ss << std::setfill('0') << std::setw(4) << tm.tm_year + 1900;
+		ss << std::setfill('0') << std::setw(2) << tm.tm_mon + 1;
+		ss << std::setfill('0') << std::setw(2) << tm.tm_mday;
+		ss << std::setfill('0') << std::setw(2) << tm.tm_hour;
+		ss << std::setfill('0') << std::setw(2) << tm.tm_min;
+		ss << std::setfill('0') << std::setw(2) << tm.tm_sec;
+		ss << ".txt";
+		m_ofs_log.open(ss.str());
+		if (m_ofs_log.is_open()) { 
+			m_log.add(m_ofs_log);
+		}
+		m_log.add(std::cout);
 	}
 	
 
@@ -97,6 +120,13 @@ protected:
 	{
 		auto now_time = std::chrono::system_clock::now();
 		return std::chrono::duration_cast<std::chrono::milliseconds>(now_time - m_base_time).count() / 1000.0;
+	}
+
+	// 進捗表示
+	void PrintProgress(float loss, size_t progress, size_t size)
+	{
+		size_t rate = progress * 100 / size;
+		std::cout << "[" << rate << "% (" << progress << "/" << size << "] loss : " << sqrt(loss) << "\r" << std::flush;
 	}
 
 	// ネットの正解率評価
@@ -143,7 +173,7 @@ public:
 	// LUT6入力のバイナリ版の力技学習
 	void RunBinaryLut6WithBbruteForce(int epoc_size, size_t max_batch_size, int max_iteration=-1)
 	{
-		std::cout << "start [RunBinaryLut6WithBbruteForce]" << std::endl;
+		m_log << "start [RunBinaryLut6WithBbruteForce]" << std::endl;
 		reset_time();
 
 		std::mt19937_64 mt(1);
@@ -188,7 +218,7 @@ public:
 			layer_real2bin.InitializeCoeff(1);
 			layer_bin2real.InitializeCoeff(1);
 			net_eva.SetMuxSize(test_mux_size);
-			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net_eva) << std::endl;
+			m_log << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net_eva) << std::endl;
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
 				// 末尾のバッチサイズクリップ
@@ -216,7 +246,7 @@ public:
 				layer_real2bin.InitializeCoeff(1);
 				layer_bin2real.InitializeCoeff(1);
 				net_eva.SetMuxSize(test_mux_size);
-				std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net_eva) << std::endl;
+				m_log << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net_eva) << std::endl;
 
 				iteration++;
 				if (max_iteration > 0 && iteration >= max_iteration) {
@@ -234,18 +264,15 @@ public:
 			bb::NeuralNetBinaryLut6VerilogXilinx(ofs, layer_lut2, "lutnet_layer2");
 		}
 
-		std::cout << "end\n" << std::endl;
+		m_log << "end\n" << std::endl;
 	}
 
 
 	// 実数(float)の全接続層で、フラットなネットを評価
 	void RunSimpleDenseAffine(int epoc_size, size_t max_batch_size)
 	{
-		std::cout << "start [SimpleDenseAffine]" << std::endl;
+		m_log << "start [SimpleDenseAffine]" << std::endl;
 		reset_time();
-
-//		std::mt19937_64 mt(1);
-
 
 		// 実数版NET構築
 		bb::NeuralNetAffine<>  layer0_affine(28 * 28, 256);
@@ -270,7 +297,7 @@ public:
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
 			// 学習状況評価
-			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
+			m_log << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
 			
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
 				// 末尾のバッチサイズクリップ
@@ -303,22 +330,24 @@ public:
 			// Shuffle
 			ShuffleTrainData();
 		}
-		std::cout << "end\n" << std::endl;
+		m_log << "end\n" << std::endl;
 	}
 
 	// 実数(float)の全接続層で、フラットなネットを評価
 	void RunSimpleDenseAffineBinary(int epoc_size, size_t max_batch_size)
 	{
-		std::cout << "start [SimpleDenseAffineBinary]" << std::endl;
+		m_log << "start [SimpleDenseAffineBinary]" << std::endl;
 		reset_time();
 
 		std::mt19937_64 mt(1);
 
 		// 実数版NET構築
 		size_t input_node_size = 1 * 28 * 28;
-		size_t layer0_node_size = 256;
-		size_t layer1_node_size = 256;
-		size_t layer2_node_size = 256;
+		size_t layer0_node_size = 10800;
+		size_t layer1_node_size = 10800;
+		size_t layer2_node_size = 3600;
+		size_t layer3_node_size = 600;
+		size_t layer4_node_size = 100;
 		size_t output_node_size = 10;
 		bb::NeuralNetBatchNormalization<>	input_batch_norm(input_node_size);
 		bb::NeuralNetSigmoid<>				input_activation(input_node_size);
@@ -331,11 +360,19 @@ public:
 		bb::NeuralNetBatchNormalization<>	layer1_batch_norm(layer1_node_size);
 		bb::NeuralNetSigmoid<>				layer1_activation(layer1_node_size);
 
-		bb::NeuralNetAffine<>				layer2_affine(layer2_node_size, layer2_node_size);
+		bb::NeuralNetAffine<>				layer2_affine(layer1_node_size, layer2_node_size);
 		bb::NeuralNetBatchNormalization<>	layer2_batch_norm(layer2_node_size);
 		bb::NeuralNetSigmoid<>				layer2_activation(layer2_node_size);
 
-		bb::NeuralNetBinaryToReal<float>	output_bin2real(layer2_node_size, output_node_size);
+		bb::NeuralNetAffine<>				layer3_affine(layer2_node_size, layer3_node_size);
+		bb::NeuralNetBatchNormalization<>	layer3_batch_norm(layer3_node_size);
+		bb::NeuralNetSigmoid<>				layer3_activation(layer3_node_size);
+
+		bb::NeuralNetAffine<>				layer4_affine(layer3_node_size, layer4_node_size);
+		bb::NeuralNetBatchNormalization<>	layer4_batch_norm(layer4_node_size);
+		bb::NeuralNetSigmoid<>				layer4_activation(layer4_node_size);
+
+		bb::NeuralNetBinaryToReal<float>	output_bin2real(layer4_node_size, output_node_size);
 		bb::NeuralNetSoftmax<>				output_softmax(output_node_size);
 
 		bb::NeuralNet<> net;
@@ -350,6 +387,12 @@ public:
 		net.AddLayer(&layer2_affine);
 		net.AddLayer(&layer2_batch_norm);
 		net.AddLayer(&layer2_activation);
+		net.AddLayer(&layer3_affine);
+		net.AddLayer(&layer3_batch_norm);
+		net.AddLayer(&layer3_activation);
+		net.AddLayer(&layer4_affine);
+		net.AddLayer(&layer4_batch_norm);
+		net.AddLayer(&layer4_activation);
 		net.AddLayer(&output_bin2real);
 		net.AddLayer(&output_softmax);
 
@@ -363,7 +406,7 @@ public:
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
 			// 学習状況評価
-			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
+			m_log << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
 				// 末尾のバッチサイズクリップ
@@ -379,11 +422,13 @@ public:
 				net.Forward();
 
 				// 誤差逆伝播
+				float loss = 0;
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					auto signals = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < signals.size(); ++node) {
 						signals[node] -= m_train_onehot[x_index + frame][node];
 						signals[node] /= (float)batch_size;
+						loss += signals[node] * signals[node];
 					}
 					net.SetOutputError(frame, signals);
 				}
@@ -391,59 +436,78 @@ public:
 
 				// 更新
 				net.Update();
+
+				// 進捗表示
+				PrintProgress(sqrt(loss), x_index + batch_size, m_train_images.size());
 			}
 
 			// Shuffle
 			ShuffleTrainData();
 		}
-		std::cout << "end\n" << std::endl;
+		m_log << "end\n" << std::endl;
 	}
 	
 
 	// 実数(float)で6入力に制限したノードで層を形成してネットを評価
 	void RunSimpleSparseAffine(int epoc_size, size_t max_batch_size, bool binary_mode)
 	{
-		std::cout << "start [SimpleSparseAffine]" << std::endl;
+		m_log << "start [SimpleSparseAffine]" << std::endl;
 		reset_time();
 
 		// 実数版NET構築
 		bb::NeuralNet<> net;
 		size_t input_node_size = 28 * 28;
-		size_t layer0_node_size = 10 * 6 * 6 * 3;
-		size_t layer1_node_size = 10 * 6 * 6;
-		size_t layer2_node_size = 10 * 6;
-		size_t layer3_node_size = 10;
+		size_t layer0_node_size = 10 * 6 * 6 * 6 * 3;
+		size_t layer1_node_size = 10 * 6 * 6 * 6 * 3;
+		size_t layer2_node_size = 10 * 6 * 6 * 6;
+		size_t layer3_node_size = 10 * 6 * 6;
+		size_t layer4_node_size = 10 * 6;
+		size_t layer5_node_size = 10;
 		size_t output_node_size = 10;
-		bb::NeuralNetSparseAffine<>	layer0_affine(28 * 28, layer0_node_size);
-		bb::NeuralNetSigmoid<>		layer0_sigmoid(layer0_node_size);
-		bb::NeuralNetSparseAffine<> layer1_affine(layer0_node_size, layer1_node_size);
-		bb::NeuralNetSigmoid<>		layer1_sigmoid(layer1_node_size);
-		bb::NeuralNetSparseAffine<> layer2_affine(layer1_node_size, layer2_node_size);
-		bb::NeuralNetSigmoid<>		layer2_sigmoid(layer2_node_size);
-		bb::NeuralNetSparseAffine<> layer3_affine(layer2_node_size, layer3_node_size);
-		bb::NeuralNetSoftmax<>		layer3_softmax(layer3_node_size);
+		bb::NeuralNetSparseAffine<>			layer0_affine(28 * 28, layer0_node_size);
+		bb::NeuralNetBatchNormalization<>	layer0_norm(layer0_node_size);
+		bb::NeuralNetSigmoid<>				layer0_sigmoid(layer0_node_size);
+		bb::NeuralNetSparseAffine<>			layer1_affine(layer0_node_size, layer1_node_size);
+		bb::NeuralNetBatchNormalization<>	layer1_norm(layer1_node_size);
+		bb::NeuralNetSigmoid<>				layer1_sigmoid(layer1_node_size);
+		bb::NeuralNetSparseAffine<>			layer2_affine(layer1_node_size, layer2_node_size);
+		bb::NeuralNetSigmoid<>				layer2_sigmoid(layer2_node_size);
+		bb::NeuralNetSparseAffine<>			layer3_affine(layer2_node_size, layer3_node_size);
+		bb::NeuralNetSigmoid<>				layer3_sigmoid(layer3_node_size);
+		bb::NeuralNetSparseAffine<>			layer4_affine(layer3_node_size, layer4_node_size);
+		bb::NeuralNetSigmoid<>				layer4_sigmoid(layer4_node_size);
+		bb::NeuralNetSparseAffine<>			layer5_affine(layer4_node_size, layer5_node_size);
+		bb::NeuralNetSoftmax<>				layer5_softmax(layer5_node_size);
 		net.AddLayer(&layer0_affine);
+		net.AddLayer(&layer0_norm);
 		net.AddLayer(&layer0_sigmoid);
 		net.AddLayer(&layer1_affine);
+		net.AddLayer(&layer1_norm);
 		net.AddLayer(&layer1_sigmoid);
 		net.AddLayer(&layer2_affine);
 		net.AddLayer(&layer2_sigmoid);
 		net.AddLayer(&layer3_affine);
-		net.AddLayer(&layer3_softmax);
+		net.AddLayer(&layer3_sigmoid);
+		net.AddLayer(&layer4_affine);
+		net.AddLayer(&layer4_sigmoid);
+		net.AddLayer(&layer5_affine);
+		net.AddLayer(&layer5_softmax);
 
 		// オプティマイザ設定
 		net.SetOptimizer(&bb::NeuralNetOptimizerAdam<>(0.001f, 0.9f, 0.999f));
 
 		// バイナリ設定
-		std::cout << "binary mode : " << binary_mode << std::endl;
+		m_log << "binary mode : " << binary_mode << std::endl;
 		net.SetBinaryMode(binary_mode);
 
 		// 学習ループ
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
 			// 学習状況評価
-			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
+			auto accuracy = CalcAccuracy(net);
+			m_log << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << accuracy << std::endl;
 			
+			// ミニバッチ学習
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
 				// 末尾のバッチサイズクリップ
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
@@ -458,11 +522,13 @@ public:
 				net.Forward();
 
 				// 誤差逆伝播
+				float loss = 0;
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					auto signals = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < signals.size(); ++node) {
 						signals[node] -= m_train_onehot[x_index + frame][node];
 						signals[node] /= (float)batch_size;
+						loss += signals[node] * signals[node];
 					}
 					net.SetOutputError(frame, signals);
 				}
@@ -471,18 +537,21 @@ public:
 				// 更新
 				net.Update();
 
-				// Shuffle
-				ShuffleTrainData();
+				// 進捗表示
+				PrintProgress(sqrt(loss), x_index + batch_size, m_train_images.size());
 			}
+
+			// Shuffle
+			ShuffleTrainData();
 		}
-		std::cout << "end\n" << std::endl;
+		m_log << "end\n" << std::endl;
 	}
 
 
 	// 浮動小数点で学習させてバイナリにコピー
 	void RunRealToBinary(int epoc_size, size_t max_batch_size)
 	{
-		std::cout << "start [RealToBinary]" << std::endl;
+		m_log << "start [RealToBinary]" << std::endl;
 		reset_time();
 
 		std::mt19937_64 mt(1);
@@ -524,16 +593,16 @@ public:
 			// 学習状況評価
 			real_net.SetMuxSize(test_mux_size);
 			auto real_accuracy = CalcAccuracy(real_net);
-			std::cout << get_time() << "s " << "epoc[" << epoc << "] real_net accuracy : " << real_accuracy << std::endl;
+			m_log << get_time() << "s " << "epoc[" << epoc << "] real_net accuracy : " << real_accuracy << std::endl;
 
 			if ( !binary_mode && real_accuracy > 0.85) {
 				binary_mode = true;
 				real_net.SetBinaryMode(binary_mode);
-				std::cout << "(enable binary mode)" << std::endl;
+				m_log << "(enable binary mode)" << std::endl;
 				
 				// 再評価
 				real_accuracy = CalcAccuracy(real_net);
-				std::cout << get_time() << "s " << "epoc[" << epoc << "] real_net accuracy : " << real_accuracy << std::endl;
+				m_log << get_time() << "s " << "epoc[" << epoc << "] real_net accuracy : " << real_accuracy << std::endl;
 			}
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
@@ -564,6 +633,9 @@ public:
 				// 更新
 				real_net.Update();
 			}
+
+			// Shuffle
+			ShuffleTrainData();
 		}
 
 
@@ -589,7 +661,7 @@ public:
 		bin_net_eva.AddLayer(&bin_layer_bin2real);
 
 		// パラメータをコピー
-		std::cout << "[parameter copy] real-net -> binary-net" << std::endl;
+		m_log << "[parameter copy] real-net -> binary-net" << std::endl;
 		bin_layer_lut0.ImportLayer(real_affine0);
 		bin_layer_lut1.ImportLayer(real_affine1);
 		bin_layer_lut2.ImportLayer(real_affine2);
@@ -606,7 +678,7 @@ public:
 			bin_layer_real2bin.InitializeCoeff(1);
 			bin_layer_bin2real.InitializeCoeff(1);
 			bin_net_eva.SetMuxSize(test_mux_size);
-			std::cout << get_time() << "s " << "epoc[" << epoc << "] bin_net accuracy : " << CalcAccuracy(bin_net_eva) << std::endl;
+			m_log << get_time() << "s " << "epoc[" << epoc << "] bin_net accuracy : " << CalcAccuracy(bin_net_eva) << std::endl;
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
 				// 末尾のバッチサイズクリップ
@@ -634,7 +706,7 @@ public:
 				bin_layer_real2bin.InitializeCoeff(1);
 				bin_layer_bin2real.InitializeCoeff(1);
 				bin_net_eva.SetMuxSize(test_mux_size);
-				std::cout << get_time() << "s " << "epoc[" << epoc << "] bin_net accuracy : " << CalcAccuracy(bin_net_eva) << std::endl;
+				m_log << get_time() << "s " << "epoc[" << epoc << "] bin_net accuracy : " << CalcAccuracy(bin_net_eva) << std::endl;
 
 				iteration++;
 				if (max_iteration > 0 && iteration >= max_iteration) {
@@ -651,14 +723,14 @@ public:
 			bb::NeuralNetBinaryLut6VerilogXilinx(ofs, bin_layer_lut2, "lutnet_layer2");
 		}
 
-		std::cout << "end\n" << std::endl;
+		m_log << "end\n" << std::endl;
 	}
 
 
 	// 実数(float)の全接続層で、フラットなネットを評価
 	void RunSimpleConvolution(int epoc_size, size_t max_batch_size, bool binary_mode)
 	{
-		std::cout << "start [SimpleConvolution]" << std::endl;
+		m_log << "start [SimpleConvolution]" << std::endl;
 		reset_time();
 
 		std::mt19937_64 mt(1);
@@ -671,13 +743,13 @@ public:
 		bb::NeuralNetBatchNormalization<>	layer0_batch_norm(16 * 26 * 26);
 		bb::NeuralNetSigmoid<>				layer0_activation(16 * 26 * 26);
 
-		bb::NeuralNetConvolution<>			layer1_convolution(16, 26, 26, 32, 3, 3);
-		bb::NeuralNetBatchNormalization<>	layer1_batch_norm(32 * 24 * 24);
-		bb::NeuralNetSigmoid<>				layer1_activation(32 * 24 * 24);
+		bb::NeuralNetConvolution<>			layer1_convolution(16, 26, 26, 16, 3, 3);
+		bb::NeuralNetBatchNormalization<>	layer1_batch_norm(16 * 24 * 24);
+		bb::NeuralNetSigmoid<>				layer1_activation(16 * 24 * 24);
 
-		bb::NeuralNetMaxPooling<>			layer2_pooling(32, 24, 24, 2, 2);
+		bb::NeuralNetMaxPooling<>			layer2_pooling(16, 24, 24, 2, 2);
 
-		bb::NeuralNetAffine<>				layer3_affine(32 * 12 * 12, 10);
+		bb::NeuralNetAffine<>				layer3_affine(16 * 12 * 12, 10);
 		bb::NeuralNetBatchNormalization<>	layer3_batch_norm(10);
 		bb::NeuralNetSigmoid<>				layer3_activation(10);
 
@@ -702,14 +774,14 @@ public:
 		net.SetOptimizer(&bb::NeuralNetOptimizerAdam<>(0.001f, 0.9f, 0.999f));
 
 		// バイナリ設定
-		std::cout << "binary mode : " << binary_mode << std::endl;
+		m_log << "binary mode : " << binary_mode << std::endl;
 		net.SetBinaryMode(binary_mode);
 
 		// 学習ループ
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
 			// 学習状況評価
-			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
+			m_log << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
 				// 末尾のバッチサイズクリップ
@@ -735,8 +807,10 @@ public:
 					}
 					net.SetOutputError(frame, signals);
 				}
-				std::cout << "loss [" << x_index << "/" << m_train_images.size() << "] : " << sqrt(loss) << "\r" << std::flush;
 				net.Backward();
+
+				// 進捗表示
+				PrintProgress(loss, x_index + batch_size, m_train_images.size());
 
 				// 更新
 				net.Update();
@@ -745,12 +819,12 @@ public:
 			// Shuffle
 			bb::ShuffleDataSet(mt(), m_train_images, m_train_onehot);
 		}
-		std::cout << "end\n" << std::endl;
+		m_log << "end\n" << std::endl;
 	}
 
 	void RunSparseFullyCnn(int epoc_size, size_t max_batch_size)
 	{
-		std::cout << "start [SparseFullyCnn]" << std::endl;
+		m_log << "start [SparseFullyCnn]" << std::endl;
 		reset_time();
 
 		// Conv用subネット構築 (3x3)
@@ -825,15 +899,18 @@ public:
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
 			// 学習状況評価
-	//		std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(real_net) << std::endl;
+			m_log << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(real_net) << std::endl;
 
-
+			size_t current_batch_size = 0;
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
 				// 末尾のバッチサイズクリップ
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
+				if (current_batch_size != batch_size) {
+					real_net.SetBatchSize(batch_size);
+					current_batch_size = batch_size;
+				}
 
 				// データセット
-				real_net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					real_net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
@@ -856,10 +933,8 @@ public:
 				real_net.Update();
 			}
 		}
-		std::cout << "end\n" << std::endl;
+		m_log << "end\n" << std::endl;
 	}
-
-
 };
 
 
@@ -896,13 +971,13 @@ int main()
 	eva_mnist.RunSimpleDenseAffine(16, 256);
 #endif
 
-#if 0
-	eva_mnist.RunSimpleDenseAffineBinary(16, 256);
+#if 1
+	eva_mnist.RunSimpleDenseAffineBinary(1600, 256);
 #endif
 
 #if 0
 	// 実数＆接続制限(接続だけLUT的にして中身のノードは実数)
-	eva_mnist.RunSimpleSparseAffine(16, 256, false);
+	eva_mnist.RunSimpleSparseAffine(1000, 256, true);
 #endif
 
 #if 0
@@ -914,7 +989,7 @@ int main()
 	eva_mnist.RunSimpleConvolution(1000, 256, false);
 #endif
 
-#if 1
+#if 0
 	eva_mnist.RunSparseFullyCnn(1000, 256);
 #endif
 
