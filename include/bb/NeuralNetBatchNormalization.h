@@ -189,12 +189,17 @@ public:
 		dx = dxc.array().rowwise() - (dmu.array() / (T)frame_szie);
 //		std::cout << "dx =\n" << dx << std::endl;
 		
-		m_dgamma += dgamma;
-		m_dbeta += dbeta;
+		m_dgamma = dgamma;
+		m_dbeta = dbeta;
 	}
 
 	void Update(void)
 	{
+		// update
+		m_optimizer_gamma->Update(m_gamma, m_dgamma);
+		m_optimizer_beta->Update(m_beta, m_dbeta);
+
+#if 0
 		std::vector<T> vec_gamma(m_node_size);
 		std::vector<T> vec_dgamma(m_node_size);
 		std::vector<T> vec_beta(m_node_size);
@@ -217,14 +222,14 @@ public:
 			m_gamma(node) = vec_gamma[node];
 			m_beta(node) = vec_beta[node];
 		}
-
+#endif
 
 //		m_gamma -= m_dgamma * learning_rate;
 //		m_beta -= m_dbeta * learning_rate;
 
 		// clear
-		m_dgamma *= 0;
-		m_dbeta *= 0;
+//		m_dgamma *= 0;
+//		m_dbeta *= 0;
 	}
 
 };
