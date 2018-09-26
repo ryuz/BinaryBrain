@@ -352,8 +352,6 @@ public:
 				float* dx_ptr = (float*)in_err_buf.GetPtr(node);
 				float* x_ptr = (float*)in_sig_buf.GetPtr(node);
 
-		//		__m256 dbeta = my_horizontal_sum(dy_ptr, mm256_frame_size / 8);
-
 				__m256 mean   = _mm256_set1_ps(m_mean[node]);
 				__m256 rstd   = _mm256_set1_ps(m_rstd[node]);
 				__m256 gamma  = _mm256_set1_ps(m_gamma[node]);
@@ -365,45 +363,36 @@ public:
 
 				for (int frame = 0; frame < mm256_frame_size; frame += 8) {
 					__m256 x = _mm256_load_ps(&x_ptr[frame]);
-					__m256 dy = _mm256_load_ps(&dy_ptr[frame]);
 					__m256 xc = _mm256_sub_ps(x, mean);
 					__m256 xn = _mm256_mul_ps(xc, rstd);
+
+					__m256 dy = _mm256_load_ps(&dy_ptr[frame]);
 					dbeta = _mm256_add_ps(dy, dbeta);
-					dgamma = my_mm256_fmadd_ps(xn, dy, dgamma);
+					dgamma = _mm256_fmadd_ps(xn, dy, dgamma);
+
 					__m256 dxn = _mm256_mul_ps(dy, gamma);
 					dstd = _mm256_fnmadd_ps(_mm256_mul_ps(dxn, xc), rstd2, dstd);
-					dmeanx = _mm256_fmadd_ps(dxn, rstd, dmeanx);
+					dmeanx = _mm256_fnmadd_ps(dxn, rstd, dmeanx);
 				}
-				__m256 dvar = _mm256_mul_ps(rstd, dstd);
-
-				__m256 dmu = _mm256_set1_ps(0);
-				for (int frame = 0; frame < mm256_frame_size; frame += 8) {
-					__m256 x = _mm256_load_ps(&x_ptr[frame]);
-					__m256 dy = _mm256_load_ps(&dy_ptr[frame]);
-					__m256 xc = _mm256_sub_ps(x, mean);
-					__m256 xn = _mm256_mul_ps(xc, rstd);
-					__m256 dxn = _mm256_mul_ps(dy, gamma);
-					__m256 dxc = _mm256_mul_ps(dxn, rstd);
-					dxc = my_mm256_fmadd_ps(_mm256_mul_ps(xc, dvar), reciprocal_frame_size, dxc);
-					dmu = _mm256_add_ps(dmu, dxc);
-				}
-				
-				for (int frame = 0; frame < mm256_frame_size; frame += 8) {
-					__m256 x = _mm256_load_ps(&x_ptr[frame]);
-					__m256 dy = _mm256_load_ps(&dy_ptr[frame]);
-					__m256 xc = _mm256_sub_ps(x, mean);
-					__m256 xn = _mm256_mul_ps(xc, rstd);
-					__m256 dxn = _mm256_mul_ps(dy, gamma);
-					__m256 dxc = _mm256_mul_ps(dxn, rstd);
-					dxc = my_mm256_fmadd_ps(_mm256_mul_ps(xc, dvar), reciprocal_frame_size, dxc);
-					
-					__m256 dx = _mm256_fnmadd_ps(dmu, reciprocal_frame_size, dxc);
-
-					_mm256_store_ps(&dx_ptr[frame], dx);
-				}
-
+				dbeta = my_mm256_hsum_ps(dbeta);
+				dgamma = my_mm256_hsum_ps(dgamma);
 				m_dgamma[node] = dgamma.m256_f32[0];
 				m_dbeta[node] = dbeta.m256_f32[0];
+
+				dstd = my_mm256_hsum_ps(dstd);
+				dmeanx = my_mm256_hsum_ps(dmeanx);
+
+				__m256 dvar  = _mm256_mul_ps(dstd, rstd);
+				__m256 dmean = _mm256_mul_ps(_mm256_fnmadd_ps(mean, dvar, dmeanx), reciprocal_frame_size);
+
+				for (int frame = 0; frame < mm256_frame_size; frame += 8) {
+					__m256 dy = _mm256_load_ps(&dy_ptr[frame]);
+					__m256 x = _mm256_load_ps(&x_ptr[frame]);
+					__m256 dxn = _mm256_mul_ps(dy, gamma);
+					__m256 dxc = _mm256_fmadd_ps(dxn, rstd, dmean);
+					__m256 dx = _mm256_fmadd_ps(_mm256_mul_ps(x, dvar), reciprocal_frame_size, dxc);
+					_mm256_store_ps(&dx_ptr[frame], dx);
+				}
 			}
 		}
 		else {

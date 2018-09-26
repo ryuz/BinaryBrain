@@ -284,19 +284,19 @@ public:
 			dgamma += _xn * dy[i];
 			T _dxn = dy[i] * gamma;
 			T _dxc = _dxn / std;
-			dstd += -(_dxn * _xc) / (std * std);
+			dstd += -(_dxn * _xc) / var; // (std * std);
 			dmeanx += (-_dxc);
 		}
 
-		dvar = (T)0.5 * dstd / std;
-		dmean = dmeanx + (2.0f * mean * -dvar);
+		dvar = dstd / std;
+		dmean = dmeanx + (mean * -dvar);
 		dmean /= (T)n;
 
 		for (int i = 0; i < n; ++i) {
 			T _dxn = dy[i] * gamma;
 			T _dxc = _dxn / std;
 
-			dx[i] = _dxc + dmean + (((T)2 / (T)n) * x[i] * dvar);
+			dx[i] = _dxc + dmean + (((T)1 / (T)n) * x[i] * dvar);
 		}
 	}
 
@@ -323,7 +323,7 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 
 TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalization)
 {
-	bb::NeuralNetBatchNormalization<> batch_norm(2);
+	bb::NeuralNetBatchNormalizationAvx<> batch_norm(2);
 	batch_norm.SetBatchSize(8);
 	testSetupLayerBuffer(batch_norm);
 	
@@ -448,7 +448,7 @@ TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalization)
 	exp_norm1.Backward();
 
 
-#if 0
+#if 1
 	std::cout << in_err.GetReal(0, 0) << std::endl;
 	std::cout << in_err.GetReal(1, 0) << std::endl;
 	std::cout << in_err.GetReal(2, 0) << std::endl;
