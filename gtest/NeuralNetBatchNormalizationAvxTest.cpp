@@ -448,7 +448,7 @@ TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalization)
 	exp_norm1.Backward();
 
 
-#if 1
+#if 0
 	std::cout << in_err.GetReal(0, 0) << std::endl;
 	std::cout << in_err.GetReal(1, 0) << std::endl;
 	std::cout << in_err.GetReal(2, 0) << std::endl;
@@ -502,8 +502,8 @@ TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalization)
 
 TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalizationCmp)
 {
-	const int node_size = 7;
-	const int frame_size = 1025;
+	const int node_size = 9;
+	const int frame_size = 23;
 
 	std::vector< SimpleBatchNorm<> > exp_norm(node_size, SimpleBatchNorm<>(frame_size));
 	
@@ -564,8 +564,70 @@ TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalizationCmp)
 		}
 	}
 
+	/// backword
 
-	//	batch_norm.Forward(false);
+	auto out_err0 = batch_norm0.GetOutputErrorBuffer();
+	auto out_err1 = batch_norm1.GetOutputErrorBuffer();
+
+
+	index = 8;
+	for (int node = 0; node < node_size; ++node) {
+		for (int frame = 0; frame < frame_size; ++frame) {
+			out_err0.SetReal(frame, node, (float)index);
+			out_err1.SetReal(frame, node, (float)index);
+			exp_norm[node].dy[frame] = (float)index;
+			index++;
+		}
+	}
+
+#if 1
+	out_err0.SetReal(0, 0, 8);
+	out_err0.SetReal(1, 0, 6);
+	out_err0.SetReal(2, 0, 3);
+	out_err0.SetReal(3, 0, 4);
+	out_err0.SetReal(4, 0, 5);
+	out_err0.SetReal(5, 0, 4);
+	out_err0.SetReal(6, 0, 6);
+	out_err0.SetReal(7, 0, 1);
+	out_err0.SetReal(0, 1, 20);
+	out_err0.SetReal(1, 1, 70);
+	out_err0.SetReal(2, 1, 40);
+	out_err0.SetReal(3, 1, 15);
+	out_err0.SetReal(4, 1, 31);
+	out_err0.SetReal(5, 1, 54);
+	out_err0.SetReal(6, 1, 37);
+	out_err0.SetReal(7, 1, 26);
+	for (int node = 0; node < node_size; ++node) {
+		for (int frame = 0; frame < frame_size; ++frame) {
+			out_err1.SetReal(frame, node, out_err0.GetReal(frame, node));
+			exp_norm[node].dy[frame] = out_err0.GetReal(frame, node);
+		}
+	}
+#endif
+	
+	
+	batch_norm0.Backward();
+	batch_norm1.Backward();
+	for (int node = 0; node < node_size; ++node) {
+		exp_norm[node].Backward();
+	}
+
+	auto in_err0 = batch_norm0.GetInputErrorBuffer();
+	auto in_err1 = batch_norm1.GetInputErrorBuffer();
+
+
+	for (int node = 0; node < node_size; ++node) {
+//		std::cout << "node:" << node << std::endl;
+		for (int frame = 0; frame < frame_size; ++frame) {
+//			std::cout << out_err0.GetReal(frame, node) << "," << out_err1.GetReal(frame, node) << "," << exp_norm[node].dy[frame] << std::endl;
+//			std::cout << in_err0.GetReal(frame, node) << "," << in_err1.GetReal(frame, node) << "," << exp_norm[node].dx[frame] << std::endl;
+//			std::cout << in_sig0.GetReal(frame, node) << "," << in_sig1.GetReal(frame, node) << "," << exp_norm[node].x[frame] << std::endl;
+//			std::cout << out_sig0.GetReal(frame, node) << "," << out_sig1.GetReal(frame, node) << "," << exp_norm[node].y[frame] << std::endl;
+
+			EXPECT_TRUE(abs(in_err0.GetReal(frame, node) - in_err1.GetReal(frame, node)) < 0.0001);
+			EXPECT_TRUE(abs(in_err0.GetReal(frame, node) - exp_norm[node].dx[frame]) < 0.001);
+		}
+	}
 
 }
 

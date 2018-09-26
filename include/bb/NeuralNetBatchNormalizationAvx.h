@@ -10,11 +10,6 @@
 
 #pragma once
 
-//#ifndef EIGEN_MPL2_ONLY
-//#define EIGEN_MPL2_ONLY
-//#endif
-
-#include <Eigen/Core>
 
 #include "NeuralNetLayerBuf.h"
 #include "NeuralNetOptimizerSgd.h"
@@ -27,9 +22,6 @@ template <typename T = float, typename INDEX = size_t>
 class NeuralNetBatchNormalizationAvx : public NeuralNetLayerBuf<T, INDEX>
 {
 protected:
-	typedef Eigen::Matrix<T, -1, -1, Eigen::ColMajor>	Matrix;
-	typedef Eigen::Matrix<T, 1, -1>						Vector;
-
 	INDEX		m_mux_size = 1;
 	INDEX		m_frame_size = 1;
 	INDEX		m_node_size = 0;
@@ -41,9 +33,6 @@ protected:
 
 	std::unique_ptr< ParamOptimizer<T, INDEX> >	m_optimizer_gamma;
 	std::unique_ptr< ParamOptimizer<T, INDEX> >	m_optimizer_beta;
-
-	Matrix		m_xn;
-	Matrix		m_xc;
 
 	std::vector<T>	m_mean;		// ïΩãœíl
 	std::vector<T>	m_rstd;		// ïWèÄïŒç∑ÇÃãtêî
@@ -75,17 +64,7 @@ public:
 	void Resize(INDEX node_size)
 	{
 		m_node_size = node_size;
-	//	m_gamma = Vector::Ones(m_node_size);
-	//	m_beta = Vector::Zero(m_node_size);
-	//	m_dgamma = Vector::Zero(m_node_size);
-	//	m_dbeta = Vector::Zero(m_node_size);
-	//	m_running_mean = Vector::Zero(m_node_size);
-	//	m_running_var = Vector::Ones(m_node_size);
-
-		m_mean.resize(m_node_size);
-		m_rstd.resize(m_node_size);
-
-
+		
 		m_gamma.resize(m_node_size);
 		std::fill(m_gamma.begin(), m_gamma.end(), (T)1.0);
 
@@ -98,6 +77,8 @@ public:
 		m_dbeta.resize(m_node_size);
 		std::fill(m_dbeta.begin(), m_dbeta.end(), (T)0.0);
 
+		m_mean.resize(m_node_size);
+		m_rstd.resize(m_node_size);
 
 		m_running_mean.resize(m_node_size);
 		std::fill(m_running_mean.begin(), m_running_mean.end(), (T)0.0);
@@ -140,15 +121,7 @@ public:
 	}
 
 protected:
-	inline static __m256 my_mm256_fmadd_ps(__m256 a, __m256 b, __m256 c)
-	{
-#ifdef __FMA__
-		return _mm256_fmadd_ps(a, b, c);
-#else
-		return _mm256_add_ps(_mm256_mul_ps(a, b), c);
-#endif
-	}
-
+	// êÖïΩâ¡éZ
 	inline static __m256 my_mm256_hsum_ps(__m256 r)
 	{
 		r = _mm256_hadd_ps(r, r);
@@ -158,180 +131,99 @@ protected:
 		return _mm256_hadd_ps(r, r);
 	}
 
-	// êÖïΩâ¡éZ
-	inline static __m256 my_horizontal_sum(const float* ptr, int size)
-	{
-		__m256 sum0 = _mm256_set1_ps(0.0f);
-		__m256 sum1 = _mm256_set1_ps(0.0f);
-		__m256 sum2 = _mm256_set1_ps(0.0f);
-		__m256 sum3 = _mm256_set1_ps(0.0f);
-		int i;
-		for (i = 0; i < size - 3; i += 4) {
-			// ÉpÉCÉvÉâÉCÉìÇñÑÇﬂÇÈÇΩÇﬂï¿óÒâª
-			sum0 = _mm256_add_ps(sum0, _mm256_load_ps(&ptr[i + 0]));
-			sum1 = _mm256_add_ps(sum1, _mm256_load_ps(&ptr[i + 1]));
-			sum2 = _mm256_add_ps(sum2, _mm256_load_ps(&ptr[i + 2]));
-			sum3 = _mm256_add_ps(sum3, _mm256_load_ps(&ptr[i + 3]));
-		}
-		for (; i < size; ++i) {
-			// í[êîèàóù
-			sum0 = _mm256_add_ps(sum0, _mm256_load_ps(&ptr[i]));
-		}
-		sum0 = _mm256_add_ps(sum0, sum1);
-		sum2 = _mm256_add_ps(sum2, sum3);
-		return my_mm256_hsum_ps(_mm256_add_ps(sum0, sum2));
-	}
-
-	// ï™éUåvéZ
-	inline static __m256 my_horizontal_serr_sum(const float* ptr, int size, __m256 mean)
-	{
-		__m256 sum0 = _mm256_set1_ps(0.0f);
-		__m256 sum1 = _mm256_set1_ps(0.0f);
-		__m256 sum2 = _mm256_set1_ps(0.0f);
-		__m256 sum3 = _mm256_set1_ps(0.0f);
-		int	i;
-		// ÉLÉÉÉbÉVÉÖÇ™ìñÇΩÇËÇ‚Ç∑Ç¢ÇÊÇ§Ç…ÅAãtëñç∏
-		for ( i = size; i > 3; i -= 4) {
-			__m256 diff0 = _mm256_sub_ps(_mm256_load_ps(&ptr[i - 4]), mean);
-			sum0 = my_mm256_fmadd_ps(diff0, diff0, sum0);
-
-			__m256 diff1 = _mm256_sub_ps(_mm256_load_ps(&ptr[i - 3]), mean);
-			sum1 = my_mm256_fmadd_ps(diff1, diff1, sum1);
-
-			__m256 diff2 = _mm256_sub_ps(_mm256_load_ps(&ptr[i - 2]), mean);
-			sum2 = my_mm256_fmadd_ps(diff2, diff2, sum2);
-
-			__m256 diff3 = _mm256_sub_ps(_mm256_load_ps(&ptr[i - 1]), mean);
-			sum2 = my_mm256_fmadd_ps(diff3, diff3, sum2);
-		}
-		for (; i > 0; --i) {
-			__m256 diff0 = _mm256_sub_ps(_mm256_load_ps(&ptr[i - 1]), mean);
-			sum0 = my_mm256_fmadd_ps(diff0, diff0, sum0);
-		}
-		sum0 = _mm256_add_ps(sum0, sum1);
-		sum2 = _mm256_add_ps(sum2, sum3);
-		return my_mm256_hsum_ps(_mm256_add_ps(sum0, sum2));
-	}
-
 public:
 	void Forward(bool train = true)
 	{
 		if (typeid(T) == typeid(float)) {
-			int		mm256_frame_size = ((int)m_frame_size + 7) / 8 * 8;
-
-			const __m256	epsilon = _mm256_set1_ps(10e-7f);
-
-			// ãtêîê∂ê¨
-			const __m256	reciprocal_frame_size = _mm256_set1_ps(1.0f / (float)m_frame_size);
-
-#if 0
-			// ã´äEÉ}ÉXÉNê∂ê¨
-			__m256i	border_mask_i;
-			if (m_frame_size % 8 == 0) {
-				border_mask_i = _mm256_set1_epi32(0);
-			}
-			else {
-				for (int i = 0; i < 8; ++i) {
-					border_mask_i.m256i_i32[i] = (i < m_frame_size % 8) ? 0 : -1;
-				}
-			}
-			__m256	border_mask = _mm256_castsi256_ps(border_mask_i);
-#endif
+			const int	mm256_frame_size = ((int)m_frame_size + 7) / 8 * 8;
 
 			auto in_sig_buf = GetInputSignalBuffer();
 			auto out_sig_buf = GetOutputSignalBuffer();
 
-			for (int node = 0; node < (int)m_node_size; ++node) {
-				float* x_ptr = (float*)in_sig_buf.GetPtr(node);
-				float* y_ptr = (float*)out_sig_buf.GetPtr(node);
+			if (train) {
+				const __m256	reciprocal_frame_size = _mm256_set1_ps(1.0f / (float)m_frame_size);
+				const __m256	epsilon = _mm256_set1_ps(10e-7f);
 
-#if 0
-				// mean
-				__m256 mean = _mm256_mul_ps(my_horizontal_sum(x_ptr, mm256_frame_size / 8), reciprocal_frame_size);
-				
-				// í[êîÇïΩãœÇ≈ñÑÇﬂÇÈ
-				__m256 border = _mm256_load_ps(&x_ptr[mm256_frame_size - 8]);
-				border = _mm256_blendv_ps(border, mean, border_mask);
-				_mm256_store_ps(&x_ptr[mm256_frame_size - 8], border);
+				#pragma omp parallel for
+				for (int node = 0; node < (int)m_node_size; ++node) {
+					float* x_ptr = (float*)in_sig_buf.GetPtr(node);
+					float* y_ptr = (float*)out_sig_buf.GetPtr(node);
 
-				// ï™éUÇ∆ïŒç∑ÇãÅÇﬂÇÈ
-				__m256 var  = _mm256_mul_ps(my_horizontal_serr_sum(x_ptr, mm256_frame_size / 8, mean), reciprocal_frame_size);
-				__m256 rstd = _mm256_rsqrt_ps(_mm256_add_ps(var, epsilon));
-#endif
+					// ïΩãœÇ∆ï™éUåvéZ
+					__m256 mean0 = _mm256_set1_ps(0.0f);
+					__m256 mean1 = _mm256_set1_ps(0.0f);
+					__m256 var0 = _mm256_set1_ps(0.0f);
+					__m256 var1 = _mm256_set1_ps(0.0f);
+					int frame;
+					for (frame = 0; frame < mm256_frame_size - 8; frame += 16) {
+						__m256 x0 = _mm256_load_ps(&x_ptr[frame + 0]);
+						mean0 = _mm256_add_ps(x0, mean0);
+						var0 = _mm256_fmadd_ps(x0, x0, var0);
+						__m256 x1 = _mm256_load_ps(&x_ptr[frame + 8]);
+						mean1 = _mm256_add_ps(x1, mean1);
+						var1 = _mm256_fmadd_ps(x1, x1, var1);
+					}
+					for (; frame < mm256_frame_size; frame += 8) {
+						__m256 x0 = _mm256_load_ps(&x_ptr[frame + 0]);
+						mean0 = _mm256_add_ps(x0, mean0);
+						var0 = _mm256_fmadd_ps(x0, x0, var0);
+					}
+					__m256 mean = _mm256_mul_ps(my_mm256_hsum_ps(_mm256_add_ps(mean0, mean1)), reciprocal_frame_size);
+					__m256 var = my_mm256_hsum_ps(_mm256_add_ps(var0, var1));
+					var = _mm256_fmsub_ps(var, reciprocal_frame_size, _mm256_mul_ps(mean, mean));
+					var = _mm256_max_ps(var, _mm256_set1_ps(0.0f));	// åÎç∑ëŒçÙ(ïâÇ…Ç»ÇÁÇ»Ç¢ÇÊÇ§Ç…ÉNÉäÉbÉv)
 
-				__m256 mean0 = _mm256_set1_ps(0.0f);
-				__m256 mean1 = _mm256_set1_ps(0.0f);
-				__m256 var0 = _mm256_set1_ps(0.0f);
-				__m256 var1 = _mm256_set1_ps(0.0f);
-				int frame;
-				for ( frame = 0; frame < mm256_frame_size-8; frame += 16) {
-					__m256 x0 = _mm256_load_ps(&x_ptr[frame + 0]);
-					mean0 = _mm256_add_ps(x0, mean0);
-					var0  = _mm256_fmadd_ps(x0, x0, var0);
-					__m256 x1 = _mm256_load_ps(&x_ptr[frame + 8]);
-					mean1 = _mm256_add_ps(x1, mean1);
-					var1 = _mm256_fmadd_ps(x1, x1, var1);
-				}
-				for (; frame < mm256_frame_size; frame += 8) {
-					__m256 x0 = _mm256_load_ps(&x_ptr[frame + 0]);
-					mean0 = _mm256_add_ps(x0, mean0);
-					var0 = _mm256_fmadd_ps(x0, x0, var0);
-				}
-				__m256 mean = _mm256_mul_ps(my_mm256_hsum_ps(_mm256_add_ps(mean0, mean1)), reciprocal_frame_size);
-				__m256 var  = my_mm256_hsum_ps(_mm256_add_ps(var0, var1));
-				var = _mm256_fmsub_ps(var, reciprocal_frame_size, _mm256_mul_ps(mean, mean));
-				
-				__m256 varx = _mm256_add_ps(var, epsilon);
-				__m256 rstd = _mm256_rsqrt_ps(varx);
-				varx = _mm256_mul_ps(varx, _mm256_set1_ps(0.5f));
-				rstd = _mm256_mul_ps(rstd, _mm256_fnmadd_ps(varx, _mm256_mul_ps(rstd, rstd), _mm256_set1_ps(1.5f)));
-				rstd = _mm256_mul_ps(rstd, _mm256_fnmadd_ps(varx, _mm256_mul_ps(rstd, rstd), _mm256_set1_ps(1.5f)));
+					__m256 varx = _mm256_max_ps(var, epsilon);
+					__m256 rstd = _mm256_rsqrt_ps(varx);
 
-				// ê≥ãKâª Ç∆ gamma/beta èàóù
-				__m256 gamma = _mm256_set1_ps(m_gamma[node]);
-				__m256 beta = _mm256_set1_ps(m_beta[node]);
-				for (int frame = 0; frame < mm256_frame_size; frame += 8) {
+					varx = _mm256_mul_ps(varx, _mm256_set1_ps(0.5f));
+					rstd = _mm256_mul_ps(rstd, _mm256_fnmadd_ps(varx, _mm256_mul_ps(rstd, rstd), _mm256_set1_ps(1.5f)));
+					rstd = _mm256_mul_ps(rstd, _mm256_fnmadd_ps(varx, _mm256_mul_ps(rstd, rstd), _mm256_set1_ps(1.5f)));
+
+					// é¿çséûÇÃ mean Ç∆ var ï€ë∂
+					m_running_mean[node] = m_running_mean[node] * m_momentum + mean.m256_f32[0] * (1 - m_momentum);
+					m_running_var[node] = m_running_var[node] * m_momentum + var.m256_f32[0] * (1 - m_momentum);
+
+					// åãâ ÇÃï€ë∂
+					m_mean[node] = mean.m256_f32[0];
+					m_rstd[node] = rstd.m256_f32[0];
+
+					// ê≥ãKâª Ç∆ gamma/beta èàóù
+					__m256 gamma = _mm256_set1_ps(m_gamma[node]);
+					__m256 beta = _mm256_set1_ps(m_beta[node]);
+//					for (int frame = 0; frame < mm256_frame_size; frame += 8) {
+					for (int frame = mm256_frame_size-8; frame >= 0; frame -= 8) {
 					__m256 x = _mm256_load_ps(&x_ptr[frame]);
-					__m256 xn = _mm256_mul_ps(_mm256_sub_ps(x, mean), rstd);
-					__m256 y = my_mm256_fmadd_ps(xn, gamma, beta);
-					_mm256_store_ps(&y_ptr[frame], y);
+						__m256 xn = _mm256_mul_ps(_mm256_sub_ps(x, mean), rstd);
+						__m256 y = _mm256_fmadd_ps(xn, gamma, beta);
+						_mm256_store_ps(&y_ptr[frame], y);
+					}
 				}
+			}
+			else {
+				#pragma omp parallel for
+				for (int node = 0; node < (int)m_node_size; ++node) {
+					float* x_ptr = (float*)in_sig_buf.GetPtr(node);
+					float* y_ptr = (float*)out_sig_buf.GetPtr(node);
 
-				// é¿çséûÇÃ mean Ç∆ var ï€ë∂
-				m_running_mean[node] = m_running_mean[node] * m_momentum + mean.m256_f32[0] * (1 - m_momentum);
-				m_running_var[node] = m_running_var[node] * m_momentum + var.m256_f32[0] * (1 - m_momentum);
+					__m256 running_mean = _mm256_set1_ps(m_running_mean[node]);
+					__m256 running_var = _mm256_set1_ps(1.0f / sqrt(m_running_var[node] + 10e-7f));
 
-				// åãâ ÇÃï€ë∂
-				m_mean[node] = mean.m256_f32[0];
-				m_rstd[node] = rstd.m256_f32[0];
+					__m256 gamma = _mm256_set1_ps(m_gamma[node]);
+					__m256 beta = _mm256_set1_ps(m_beta[node]);
+
+					for (int frame = 0; frame < mm256_frame_size; frame += 8) {
+						__m256 x = _mm256_load_ps(&x_ptr[frame]);
+						__m256 xc = _mm256_sub_ps(x, running_mean);
+						__m256 xn = _mm256_mul_ps(xc, running_var);
+						__m256 y = _mm256_fmadd_ps(xn, gamma, beta);
+						_mm256_store_ps(&y_ptr[frame], y);
+					}
+				}
 			}
 		}
 		else {
-#if 0
-			Eigen::Map<Matrix> x((T*)m_input_signal_buffer.GetBuffer(), m_input_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
-			Eigen::Map<Matrix> y((T*)m_output_signal_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
 
-			Matrix xc;
-			Matrix xn;
-
-			if (train) {
-				Vector mu = x.colwise().mean();
-				xc = x.rowwise() - mu;
-				Vector var = (xc.array() * xc.array()).colwise().mean();
-				Vector std = (var.array() + (T)10e-7).array().sqrt();
-				xn = xc.array().rowwise() / std.array();
-				m_xn = xn;
-				m_xc = xc;
-				m_std = std;
-				m_running_mean = m_running_mean * m_momentum + mu * (1 - m_momentum);
-				m_running_var = m_running_var * m_momentum + var * (1 - m_momentum);
-			}
-			else {
-				xc = x.rowwise() - m_running_mean;
-				xn = xc.array().rowwise() / (m_running_var.array() + 10e-7).array().sqrt();
-			}
-			y = (xn.array().rowwise() * m_gamma.array()).array().rowwise() + m_beta.array();
-#endif
 		}
 	}
 
@@ -346,7 +238,7 @@ public:
 			auto out_sig_buf = GetOutputSignalBuffer();
 			auto in_err_buf = GetInputErrorBuffer();
 			auto out_err_buf = GetOutputErrorBuffer();
-
+			#pragma omp parallel for
 			for (int node = 0; node < (int)m_node_size; ++node) {
 				float* dy_ptr = (float*)out_err_buf.GetPtr(node);
 				float* dx_ptr = (float*)in_err_buf.GetPtr(node);
@@ -373,6 +265,14 @@ public:
 					__m256 dxn = _mm256_mul_ps(dy, gamma);
 					dstd = _mm256_fnmadd_ps(_mm256_mul_ps(dxn, xc), rstd2, dstd);
 					dmeanx = _mm256_fnmadd_ps(dxn, rstd, dmeanx);
+
+					if (isnan(dgamma.m256_f32[0]) || isnan(dbeta.m256_f32[0])) {
+						std::cout << "!!nan!!" << std::endl;
+						std::cout << x.m256_f32[0] << std::endl;
+						std::cout << xc.m256_f32[0] << std::endl;
+						std::cout << xn.m256_f32[0] << std::endl;
+						std::cout << dy.m256_f32[0] << std::endl;
+					}
 				}
 				dbeta = my_mm256_hsum_ps(dbeta);
 				dgamma = my_mm256_hsum_ps(dgamma);
@@ -385,7 +285,8 @@ public:
 				__m256 dvar  = _mm256_mul_ps(dstd, rstd);
 				__m256 dmean = _mm256_mul_ps(_mm256_fnmadd_ps(mean, dvar, dmeanx), reciprocal_frame_size);
 
-				for (int frame = 0; frame < mm256_frame_size; frame += 8) {
+//				for (int frame = 0; frame < mm256_frame_size; frame += 8) {
+				for (int frame = mm256_frame_size - 8; frame >= 0; frame -= 8) {
 					__m256 dy = _mm256_load_ps(&dy_ptr[frame]);
 					__m256 x = _mm256_load_ps(&x_ptr[frame]);
 					__m256 dxn = _mm256_mul_ps(dy, gamma);
@@ -396,26 +297,6 @@ public:
 			}
 		}
 		else {
-#if 0
-			Eigen::Map<Matrix> y((T*)m_output_signal_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
-			Eigen::Map<Matrix> dy((T*)m_output_error_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
-			Eigen::Map<Matrix> dx((T*)m_input_error_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
-			INDEX frame_szie = GetOutputFrameSize();
-
-			Vector dbeta = dy.colwise().sum();
-			Vector dgamma = (m_xn.array() * dy.array()).colwise().sum();
-			Matrix dxn = dy.array().rowwise() * m_gamma.array();
-			Matrix dxc = dxn.array().rowwise() / m_std.array();
-			Vector dstd = -((dxn.array() * m_xc.array()).array().rowwise() / (m_std.array() * m_std.array()).array()).array().colwise().sum();
-			Vector dvar = m_std.array().inverse() * dstd.array() * (T)0.5;
-			dxc = dxc.array() + (m_xc.array().rowwise() * dvar.array() * ((T)2.0 / (T)frame_szie)).array();
-
-			Vector dmu = dxc.colwise().sum();
-			dx = dxc.array().rowwise() - (dmu.array() / (T)frame_szie);
-
-			m_dgamma = dgamma;
-			m_dbeta = dbeta;
-#endif
 		}
 	}
 
@@ -424,38 +305,6 @@ public:
 		// update
 		m_optimizer_gamma->Update(m_gamma, m_dgamma);
 		m_optimizer_beta->Update(m_beta, m_dbeta);
-
-#if 0
-		std::vector<T> vec_gamma(m_node_size);
-		std::vector<T> vec_dgamma(m_node_size);
-		std::vector<T> vec_beta(m_node_size);
-		std::vector<T> vec_dbeta(m_node_size);
-
-		// copy
-		for (INDEX node = 0; node < m_node_size; ++node) {
-			vec_gamma[node] = m_gamma(node);
-			vec_dgamma[node] = m_dgamma(node);
-			vec_beta[node] = m_beta(node);
-			vec_dbeta[node] = m_dbeta(node);
-		}
-
-		// update
-		m_optimizer_gamma->Update(vec_gamma, vec_dgamma);
-		m_optimizer_beta->Update(vec_beta, vec_dbeta);
-
-		// copy back
-		for (INDEX node = 0; node < m_node_size; ++node) {
-			m_gamma(node) = vec_gamma[node];
-			m_beta(node) = vec_beta[node];
-		}
-#endif
-
-//		m_gamma -= m_dgamma * learning_rate;
-//		m_beta -= m_dbeta * learning_rate;
-
-		// clear
-//		m_dgamma *= 0;
-//		m_dbeta *= 0;
 	}
 
 };

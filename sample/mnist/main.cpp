@@ -27,6 +27,9 @@
 #include "bb/NeuralNetSparseAffineSigmoid.h"
 #include "bb/NeuralNetDenseAffineSigmoid.h"
 
+#include "bb/NeuralNetBatchNormalization.h"
+#include "bb/NeuralNetBatchNormalizationAvx.h"
+
 #include "bb/NeuralNetConvolution.h"
 #include "bb/NeuralNetConvolutionPack.h"
 #include "bb/NeuralNetMaxPooling.h"
@@ -756,18 +759,18 @@ public:
 		bb::NeuralNetSoftmax<>				output_softmax(10);
 
 		bb::NeuralNet<> net;
-	//	net.AddLayer(&input_batch_norm);
-	//	net.AddLayer(&input_activation);
+		net.AddLayer(&input_batch_norm);
+		net.AddLayer(&input_activation);
 		net.AddLayer(&layer0_convolution);
-	//	net.AddLayer(&layer0_batch_norm);
+		net.AddLayer(&layer0_batch_norm);
 		net.AddLayer(&layer0_activation);
 		net.AddLayer(&layer1_convolution);
-	//	net.AddLayer(&layer1_batch_norm);
+		net.AddLayer(&layer1_batch_norm);
 		net.AddLayer(&layer1_activation);
 		net.AddLayer(&layer2_pooling);
 		net.AddLayer(&layer3_affine);
-	//	net.AddLayer(&layer3_batch_norm);
-	//	net.AddLayer(&layer3_activation);
+		net.AddLayer(&layer3_batch_norm);
+		net.AddLayer(&layer3_activation);
 		net.AddLayer(&output_softmax);
 
 		// オプティマイザ設定
@@ -1230,7 +1233,7 @@ int main()
 	eva_mnist.RunRealToBinary(16, 256);
 #endif
 
-#if 0
+#if 1
 	eva_mnist.RunSimpleConvolution(1000, 256, false);
 #endif
 
@@ -1238,7 +1241,7 @@ int main()
 	eva_mnist.RunSparseFullyCnn(1000, 256);
 #endif
 
-#if 1
+#if 0
 	eva_mnist.RunLutSimpleConv(10000, 4096, 10000);
 #endif
 
