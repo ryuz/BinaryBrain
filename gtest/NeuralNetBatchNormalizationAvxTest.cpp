@@ -10,15 +10,13 @@ template <typename T=float>
 class SimpleBatchNorm
 {
 public:
-	SimpleBatchNorm(int n) : n(n), x(n), y(n), xn(n), xc(n), dx(n), dy(n), dxn(n), dxc(n)
+	SimpleBatchNorm(int n) : n(n), x(n), y(n), dx(n), dy(n)//, xn(n), xc(n), dxn(n), dxc(n)
 	{
 	}
 		
 	int				n;
 	
 	std::vector<T>	x;
-	std::vector<T>	xn;
-	std::vector<T>	xc;
 	std::vector<T>	y;
 
 	T				mean;
@@ -28,8 +26,6 @@ public:
 	T				beta = 0;
 
 	std::vector<T>	dx;
-	std::vector<T>	dxn;
-	std::vector<T>	dxc;
 	std::vector<T>	dy;
 	
 	T				dmean;
@@ -38,6 +34,13 @@ public:
 	T				dgamma;
 	T				dbeta;
 
+#if 0
+	std::vector<T>	xn;
+	std::vector<T>	xc;
+	std::vector<T>	dxn;
+	std::vector<T>	dxc;
+
+	// オリジナル
 	void Forward0(void)
 	{
 		// 平均
@@ -73,7 +76,37 @@ public:
 		}
 	}
 
-	void Forward(void)
+	// mean/var一括 (step順)
+	void Forward1(void)
+	{
+		// 平均/分散一括
+		mean = 0;
+		var = 0;
+		for (int i = 0; i < n; ++i) {
+			mean += x[i];
+			var += x[i] * x[i];
+		}
+		mean /= (T)n;
+		var = (var / (T)n) - (mean * mean);
+		std = sqrt(var + (T)10e-7);
+
+		// 平均を引く
+		for (int i = 0; i < n; ++i) {
+			xc[i] = x[i] - mean;
+		}
+
+		// 正規化
+		for (int i = 0; i < n; ++i) {
+			xn[i] = xc[i] / std;
+		}
+			// シフト
+		for (int i = 0; i < n; ++i) {
+			y[i] = xn[i] * gamma + beta;
+		}
+	}
+
+	// mean/var一括 (ループ最適化)
+	void Forward2(void)
 	{
 		// 平均/分散一括
 		mean = 0;
@@ -97,47 +130,35 @@ public:
 			y[i] = xn[i] * gamma + beta;
 		}
 	}
+#endif
 
-
-	void Backward(void)
+	// mean/var一括 (中間変数未使用)
+	void Forward(void)
 	{
-		dbeta = 0;
+		// 平均/分散一括
+		mean = 0;
+		var = 0;
 		for (int i = 0; i < n; ++i) {
-			dbeta += dy[i];
+			mean += x[i];
+			var += x[i] * x[i];
 		}
-
-		dgamma = 0;
-		for (int i = 0; i < n; ++i) {
-			dgamma += xn[i] * dy[i];
-		}
+		mean /= (T)n;
+		var = (var / (T)n) - (mean * mean);
+		std = sqrt(var + (T)10e-7);
 
 		for (int i = 0; i < n; ++i) {
-			dxn[i] = dy[i] * gamma;
-		}
+			// 平均を引く
+			T _xc = x[i] - mean;
 
-		for (int i = 0; i < n; ++i) {
-			dxc[i] = dxn[i] / std;
-		}
+			// 正規化
+			T _xn = _xc / std;
 
-		dstd = 0;
-		for (int i = 0; i < n; ++i) {
-			dstd += -(dxn[i] * xc[i]) / (std * std);
-		}
-
-		dvar = (T)0.5 * dstd / std;
-
-		T dmeanx = 0;
-		for (int i = 0; i < n; ++i) {
-			dmeanx += (-dxc[i]);
-		}
-		dmean = dmeanx + (2.0f * mean * -dvar);
-		dmean /= (T)n;
-
-		for (int i = 0; i < n; ++i) {
-			dx[i] = dxc[i] + dmean + (((T)2 / (T)n) * x[i] * dvar);
+			// シフト
+			y[i] = _xn * gamma + beta;
 		}
 	}
 
+#if 0
 	// オリジナル
 	void Backward0(void)
 	{
@@ -179,6 +200,107 @@ public:
 			dx[i] = dxc[i] - (dmean / (T)n);
 		}
 	}
+
+
+	// mean/var一括 (step順)
+	void Backward1(void)
+	{
+		dbeta = 0;
+		for (int i = 0; i < n; ++i) {
+			dbeta += dy[i];
+		}
+
+		dgamma = 0;
+		for (int i = 0; i < n; ++i) {
+			dgamma += xn[i] * dy[i];
+		}
+
+		for (int i = 0; i < n; ++i) {
+			dxn[i] = dy[i] * gamma;
+		}
+
+		for (int i = 0; i < n; ++i) {
+			dxc[i] = dxn[i] / std;
+		}
+
+		dstd = 0;
+		for (int i = 0; i < n; ++i) {
+			dstd += -(dxn[i] * xc[i]) / (std * std);
+		}
+
+		dvar = (T)0.5 * dstd / std;
+
+		T dmeanx = 0;
+		for (int i = 0; i < n; ++i) {
+			dmeanx += (-dxc[i]);
+		}
+		dmean = dmeanx + (2.0f * mean * -dvar);
+		dmean /= (T)n;
+
+		for (int i = 0; i < n; ++i) {
+			dx[i] = dxc[i] + dmean + (((T)2 / (T)n) * x[i] * dvar);
+		}
+	}
+
+
+	// mean/var一括 (ループ最適化)
+	void Backward2(void)
+	{
+		dbeta = 0;
+		dgamma = 0;
+		dstd = 0;
+		T dmeanx = 0;
+		for (int i = 0; i < n; ++i) {
+			dbeta  += dy[i];
+			dgamma += xn[i] * dy[i];
+			dxn[i] = dy[i] * gamma;
+			dxc[i] = dxn[i] / std;
+			dstd += -(dxn[i] * xc[i]) / (std * std);
+			dmeanx += (-dxc[i]);
+		}
+
+		dvar = (T)0.5 * dstd / std;
+		dmean = dmeanx + (2.0f * mean * -dvar);
+		dmean /= (T)n;
+
+		for (int i = 0; i < n; ++i) {
+			dx[i] = dxc[i] + dmean + (((T)2 / (T)n) * x[i] * dvar);
+		}
+	}
+#endif
+
+	// 中間変数未使用 (step順)
+	void Backward(void)
+	{
+		dbeta = 0;
+		dgamma = 0;
+		dstd = 0;
+		T dmeanx = 0;
+		for (int i = 0; i < n; ++i) {
+			T _xc = (x[i] - mean);
+			T _xn = _xc / std;
+
+			dbeta += dy[i];
+			dgamma += _xn * dy[i];
+			T _dxn = dy[i] * gamma;
+			T _dxc = _dxn / std;
+			dstd += -(_dxn * _xc) / (std * std);
+			dmeanx += (-_dxc);
+		}
+
+		dvar = (T)0.5 * dstd / std;
+		dmean = dmeanx + (2.0f * mean * -dvar);
+		dmean /= (T)n;
+
+		for (int i = 0; i < n; ++i) {
+			T _dxn = dy[i] * gamma;
+			T _dxc = _dxn / std;
+
+			dx[i] = _dxc + dmean + (((T)2 / (T)n) * x[i] * dvar);
+		}
+	}
+
+
 
 };
 

@@ -224,6 +224,7 @@ public:
 			// ãtêîê∂ê¨
 			const __m256	reciprocal_frame_size = _mm256_set1_ps(1.0f / (float)m_frame_size);
 
+#if 0
 			// ã´äEÉ}ÉXÉNê∂ê¨
 			__m256i	border_mask_i;
 			if (m_frame_size % 8 == 0) {
@@ -235,6 +236,7 @@ public:
 				}
 			}
 			__m256	border_mask = _mm256_castsi256_ps(border_mask_i);
+#endif
 
 			auto in_sig_buf = GetInputSignalBuffer();
 			auto out_sig_buf = GetOutputSignalBuffer();
@@ -243,6 +245,7 @@ public:
 				float* x_ptr = (float*)in_sig_buf.GetPtr(node);
 				float* y_ptr = (float*)out_sig_buf.GetPtr(node);
 
+#if 0
 				// mean
 				__m256 mean = _mm256_mul_ps(my_horizontal_sum(x_ptr, mm256_frame_size / 8), reciprocal_frame_size);
 				
@@ -254,6 +257,35 @@ public:
 				// ï™éUÇ∆ïŒç∑ÇãÅÇﬂÇÈ
 				__m256 var  = _mm256_mul_ps(my_horizontal_serr_sum(x_ptr, mm256_frame_size / 8, mean), reciprocal_frame_size);
 				__m256 rstd = _mm256_rsqrt_ps(_mm256_add_ps(var, epsilon));
+#endif
+
+				__m256 mean0 = _mm256_set1_ps(0.0f);
+				__m256 mean1 = _mm256_set1_ps(0.0f);
+				__m256 var0 = _mm256_set1_ps(0.0f);
+				__m256 var1 = _mm256_set1_ps(0.0f);
+				int frame;
+				for ( frame = 0; frame < mm256_frame_size-8; frame += 16) {
+					__m256 x0 = _mm256_load_ps(&x_ptr[frame + 0]);
+					mean0 = _mm256_add_ps(x0, mean0);
+					var0  = _mm256_fmadd_ps(x0, x0, var0);
+					__m256 x1 = _mm256_load_ps(&x_ptr[frame + 8]);
+					mean1 = _mm256_add_ps(x1, mean1);
+					var1 = _mm256_fmadd_ps(x1, x1, var1);
+				}
+				for (; frame < mm256_frame_size; frame += 8) {
+					__m256 x0 = _mm256_load_ps(&x_ptr[frame + 0]);
+					mean0 = _mm256_add_ps(x0, mean0);
+					var0 = _mm256_fmadd_ps(x0, x0, var0);
+				}
+				__m256 mean = _mm256_mul_ps(my_mm256_hsum_ps(_mm256_add_ps(mean0, mean1)), reciprocal_frame_size);
+				__m256 var  = my_mm256_hsum_ps(_mm256_add_ps(var0, var1));
+				var = _mm256_fmsub_ps(var, reciprocal_frame_size, _mm256_mul_ps(mean, mean));
+				
+				__m256 varx = _mm256_add_ps(var, epsilon);
+				__m256 rstd = _mm256_rsqrt_ps(varx);
+				varx = _mm256_mul_ps(varx, _mm256_set1_ps(0.5f));
+				rstd = _mm256_mul_ps(rstd, _mm256_fnmadd_ps(varx, _mm256_mul_ps(rstd, rstd), _mm256_set1_ps(1.5f)));
+				rstd = _mm256_mul_ps(rstd, _mm256_fnmadd_ps(varx, _mm256_mul_ps(rstd, rstd), _mm256_set1_ps(1.5f)));
 
 				// ê≥ãKâª Ç∆ gamma/beta èàóù
 				__m256 gamma = _mm256_set1_ps(m_gamma[node]);
@@ -270,6 +302,7 @@ public:
 				m_running_var[node] = m_running_var[node] * m_momentum + var.m256_f32[0] * (1 - m_momentum);
 
 				// åãâ ÇÃï€ë∂
+				m_mean[node] = mean.m256_f32[0];
 				m_rstd[node] = rstd.m256_f32[0];
 			}
 		}
@@ -304,9 +337,11 @@ public:
 
 	void Backward(void)
 	{
-		const int mm256_frame_size = ((int)m_frame_size + 7) / 8 * 8;
-
 		if (typeid(T) == typeid(float)) {
+			const int mm256_frame_size = ((int)m_frame_size + 7) / 8 * 8;
+			// ãtêîê∂ê¨
+			const __m256	reciprocal_frame_size = _mm256_set1_ps(1.0f / (float)m_frame_size);
+
 			auto in_sig_buf = GetInputSignalBuffer();
 			auto out_sig_buf = GetOutputSignalBuffer();
 			auto in_err_buf = GetInputErrorBuffer();
@@ -314,19 +349,61 @@ public:
 
 			for (int node = 0; node < (int)m_node_size; ++node) {
 				float* dy_ptr = (float*)out_err_buf.GetPtr(node);
+				float* dx_ptr = (float*)in_err_buf.GetPtr(node);
 				float* x_ptr = (float*)in_sig_buf.GetPtr(node);
 
-				__m256 dbeta = my_horizontal_sum(dy_ptr, mm256_frame_size / 8);
+		//		__m256 dbeta = my_horizontal_sum(dy_ptr, mm256_frame_size / 8);
 
-				__m256 mean = _mm256_set1_ps(m_mean[node]);
-				__m256 rstd = _mm256_set1_ps(m_rstd[node]);
+				__m256 mean   = _mm256_set1_ps(m_mean[node]);
+				__m256 rstd   = _mm256_set1_ps(m_rstd[node]);
+				__m256 gamma  = _mm256_set1_ps(m_gamma[node]);
+				__m256 dbeta  = _mm256_set1_ps(0);
+				__m256 dgamma = _mm256_set1_ps(0);
+				__m256 dstd = _mm256_set1_ps(0);
+				__m256 dmeanx = _mm256_set1_ps(0);
+				__m256 rstd2 = _mm256_mul_ps(rstd, rstd);
+
 				for (int frame = 0; frame < mm256_frame_size; frame += 8) {
 					__m256 x = _mm256_load_ps(&x_ptr[frame]);
+					__m256 dy = _mm256_load_ps(&dy_ptr[frame]);
 					__m256 xc = _mm256_sub_ps(x, mean);
 					__m256 xn = _mm256_mul_ps(xc, rstd);
-					// èëÇ´ìríÜ
+					dbeta = _mm256_add_ps(dy, dbeta);
+					dgamma = my_mm256_fmadd_ps(xn, dy, dgamma);
+					__m256 dxn = _mm256_mul_ps(dy, gamma);
+					dstd = _mm256_fnmadd_ps(_mm256_mul_ps(dxn, xc), rstd2, dstd);
+					dmeanx = _mm256_fmadd_ps(dxn, rstd, dmeanx);
+				}
+				__m256 dvar = _mm256_mul_ps(rstd, dstd);
+
+				__m256 dmu = _mm256_set1_ps(0);
+				for (int frame = 0; frame < mm256_frame_size; frame += 8) {
+					__m256 x = _mm256_load_ps(&x_ptr[frame]);
+					__m256 dy = _mm256_load_ps(&dy_ptr[frame]);
+					__m256 xc = _mm256_sub_ps(x, mean);
+					__m256 xn = _mm256_mul_ps(xc, rstd);
+					__m256 dxn = _mm256_mul_ps(dy, gamma);
+					__m256 dxc = _mm256_mul_ps(dxn, rstd);
+					dxc = my_mm256_fmadd_ps(_mm256_mul_ps(xc, dvar), reciprocal_frame_size, dxc);
+					dmu = _mm256_add_ps(dmu, dxc);
+				}
+				
+				for (int frame = 0; frame < mm256_frame_size; frame += 8) {
+					__m256 x = _mm256_load_ps(&x_ptr[frame]);
+					__m256 dy = _mm256_load_ps(&dy_ptr[frame]);
+					__m256 xc = _mm256_sub_ps(x, mean);
+					__m256 xn = _mm256_mul_ps(xc, rstd);
+					__m256 dxn = _mm256_mul_ps(dy, gamma);
+					__m256 dxc = _mm256_mul_ps(dxn, rstd);
+					dxc = my_mm256_fmadd_ps(_mm256_mul_ps(xc, dvar), reciprocal_frame_size, dxc);
+					
+					__m256 dx = _mm256_fnmadd_ps(dmu, reciprocal_frame_size, dxc);
+
+					_mm256_store_ps(&dx_ptr[frame], dx);
 				}
 
+				m_dgamma[node] = dgamma.m256_f32[0];
+				m_dbeta[node] = dbeta.m256_f32[0];
 			}
 		}
 		else {

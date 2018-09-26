@@ -127,6 +127,7 @@ public:
 		m_frame_stride = (((frame_size * type_bit_size) + 255) / 256) * 32;
 		m_buffer = std::shared_ptr<std::uint8_t>((std::uint8_t *)_aligned_malloc(m_frame_stride*(m_base_size + 1), 32), _aligned_free);
 		memset(m_buffer.get(), 0, m_frame_stride*(m_base_size + 1));
+//		memset(GetZeroPtr(), 0, m_frame_stride);
 
 		m_node_size = node_size;
 		m_dim.resize(1);

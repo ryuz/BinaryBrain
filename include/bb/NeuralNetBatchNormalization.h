@@ -27,8 +27,10 @@ template <typename T = float, typename INDEX = size_t>
 class NeuralNetBatchNormalization : public NeuralNetLayerBuf<T, INDEX>
 {
 protected:
-	typedef Eigen::Matrix<T, -1, -1, Eigen::ColMajor>	Matrix;
-	typedef Eigen::Matrix<T, 1, -1>						Vector;
+	using Vector = Eigen::Matrix<T, 1, Eigen::Dynamic>;
+	using Matrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
+	using Stride = Eigen::Stride<Eigen::Dynamic, 1>;
+	using MatMap = Eigen::Map<Matrix, 0, Stride>;
 
 	INDEX		m_mux_size = 1;
 	INDEX		m_frame_size = 1;
@@ -116,9 +118,10 @@ public:
 
 	void Forward(bool train = true)
 	{
-		Eigen::Map<Matrix> x((T*)m_input_signal_buffer.GetBuffer(), m_input_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
-		Eigen::Map<Matrix> y((T*)m_output_signal_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
-
+//		Eigen::Map<Matrix> x((T*)m_input_signal_buffer.GetBuffer(), m_input_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
+//		Eigen::Map<Matrix> y((T*)m_output_signal_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
+		MatMap x((T*)m_input_signal_buffer.GetBuffer(),  m_frame_size, m_node_size, Stride(m_input_signal_buffer.GetFrameStride() / sizeof(T), 1));
+		MatMap y((T*)m_output_signal_buffer.GetBuffer(), m_frame_size, m_node_size, Stride(m_output_signal_buffer.GetFrameStride() / sizeof(T), 1));
 		Matrix xc;
 		Matrix xn;
 		
@@ -155,10 +158,16 @@ public:
 
 	void Backward(void)
 	{
-		Eigen::Map<Matrix> y((T*)m_output_signal_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
-		Eigen::Map<Matrix> dy((T*)m_output_error_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
-		Eigen::Map<Matrix> dx((T*)m_input_error_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
-		INDEX frame_szie = GetOutputFrameSize();
+//		Eigen::Map<Matrix> y((T*)m_output_signal_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
+//		Eigen::Map<Matrix> dy((T*)m_output_error_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
+//		Eigen::Map<Matrix> dx((T*)m_input_error_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
+		MatMap y((T*)m_output_signal_buffer.GetBuffer(), m_frame_size, m_node_size, Stride(m_output_signal_buffer.GetFrameStride() / sizeof(T), 1));
+		MatMap dy((T*)m_output_error_buffer.GetBuffer(), m_frame_size, m_node_size, Stride(m_output_error_buffer.GetFrameStride() / sizeof(T), 1));
+		MatMap dx((T*)m_input_error_buffer.GetBuffer(), m_frame_size, m_node_size, Stride(m_input_error_buffer.GetFrameStride() / sizeof(T), 1));
+
+		
+		INDEX frame_size = GetOutputFrameSize();
+		T reciprocal_frame_size = (T)1 / (T)frame_size;
 
 //		std::cout << "dy =\n" << dy << std::endl;
 		
@@ -177,16 +186,16 @@ public:
 		Vector dstd = -((dxn.array() * m_xc.array()).array().rowwise() / (m_std.array() * m_std.array()).array()).array().colwise().sum();
 //		std::cout << "dstd =\n" << dstd << std::endl;
 
-		Vector dvar = m_std.array().inverse() * dstd.array() * (T)0.5;
+		Vector dvar = m_std.array().inverse() * dstd.array();// *(T)0.5;
 //		std::cout << "dvar =\n" << dvar << std::endl;
 
-		dxc = dxc.array() + (m_xc.array().rowwise() * dvar.array() * ((T)2.0 / (T)frame_szie)).array();
+		dxc = dxc.array() + (m_xc.array().rowwise() * dvar.array() * reciprocal_frame_size).array();	// 2.0f / frame_size
 //		std::cout << "dxc =\n" << dxc << std::endl;
 
 		Vector dmu = dxc.colwise().sum();
 //		std::cout << "dmu =\n" << dmu << std::endl;
 
-		dx = dxc.array().rowwise() - (dmu.array() / (T)frame_szie);
+		dx = dxc.array().rowwise() - (dmu.array() * reciprocal_frame_size);
 //		std::cout << "dx =\n" << dx << std::endl;
 		
 		m_dgamma = dgamma;

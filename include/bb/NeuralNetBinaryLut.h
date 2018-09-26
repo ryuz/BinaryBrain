@@ -349,9 +349,13 @@ protected:
 			// 集計結果に基づいてLUTを学習
 			int	lut_table_size = GetLutTableSize();
 			for (int bit = 0; bit < lut_table_size; ++bit) {
-				if (m_feedback_loss[bit] > 0 ) {
-					SetLutTable(m_feedback_node, bit, !GetLutTable(m_feedback_node, bit));
-				}
+				std::normal_distribution<double> rand_distribution(0, 0.001);
+
+	//			if ( abs(m_feedback_loss[bit]) >= abs(rand_distribution(m_feedback_mt)) ) {
+					if (m_feedback_loss[bit] > 0) {
+						SetLutTable(m_feedback_node, bit, !GetLutTable(m_feedback_node, bit));
+					}
+	//			}
 			}
 
 			// 学習したLUTで出力を再計算

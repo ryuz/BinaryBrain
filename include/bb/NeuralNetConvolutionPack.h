@@ -132,6 +132,18 @@ public:
 		m_collapse.Update();
 	}
 
+
+	bool Feedback(const std::vector<double>& loss)
+	{
+		std::vector<double> exp_loss(loss.size() * m_expand_size);
+		for (size_t i = 0; i < loss.size(); ++i) {
+			for (INDEX j = 0; j < m_expand_size; ++j) {
+				exp_loss[i*m_expand_size + j] = loss[i];
+			}
+		}
+		return m_layer->Feedback(exp_loss);
+	}
+
 };
 
 

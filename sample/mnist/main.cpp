@@ -955,13 +955,13 @@ public:
 		int test_mux_size  = 3;
 
 		// Conv用subネット構築 (3x3)
-		bb::NeuralNetBinaryLut6<>			sub0_lut0(1 * 3 * 3, 16);
+		bb::NeuralNetBinaryLut6<true>		sub0_lut0(1 * 3 * 3, 16);
 		bb::NeuralNetGroup<>				sub0_net;
 		sub0_net.AddLayer(&sub0_lut0);
 
 		// Conv用subネット構築 (3x3)
-		bb::NeuralNetBinaryLut6<>			sub1_lut0(16 * 3 * 3, 64);
-		bb::NeuralNetBinaryLut6<>			sub1_lut1(64, 8);
+		bb::NeuralNetBinaryLut6<true>		sub1_lut0(16 * 3 * 3, 64);
+		bb::NeuralNetBinaryLut6<true>		sub1_lut1(64, 8);
 		bb::NeuralNetGroup<>				sub1_net;
 		sub1_net.AddLayer(&sub1_lut0);
 		sub1_net.AddLayer(&sub1_lut1);
@@ -970,8 +970,8 @@ public:
 		bb::NeuralNetRealToBinary<>				input_real2bin(1 * 28 * 28, 1 * 28 * 28);
 		bb::NeuralNetConvolutionPack<bool>		layer0_conv(&sub0_net, 1, 28, 28, 16, 3, 3);
 		bb::NeuralNetConvolutionPack<bool>		layer1_conv(&sub1_net, 16, 26, 26, 8, 3, 3);
-		bb::NeuralNetBinaryLut6<>				layer2_lut(8*24* 24, 1024);
-		bb::NeuralNetBinaryLut6<>				layer3_lut(1024, 360);
+		bb::NeuralNetMaxPooling<bool>			layer2_maxpol(8, 24, 24, 2, 2);
+		bb::NeuralNetBinaryLut6<>				layer3_lut(8*12* 12, 360);
 		bb::NeuralNetBinaryLut6<>				layer4_lut(360, 60);
 		bb::NeuralNetBinaryToReal<>				output_bin2rel(60, 10);
 		auto last_lut_layer = &layer4_lut;
@@ -980,7 +980,7 @@ public:
 		net.AddLayer(&input_real2bin);
 		net.AddLayer(&layer0_conv);
 		net.AddLayer(&layer1_conv);
-		net.AddLayer(&layer2_lut);
+		net.AddLayer(&layer2_maxpol);
 		net.AddLayer(&layer3_lut);
 		net.AddLayer(&layer4_lut);
 	//	net.AddLayer(&output_bin2rel);	// 学習時はunbinarize不要
@@ -990,7 +990,7 @@ public:
 		eva_net.AddLayer(&input_real2bin);
 		eva_net.AddLayer(&layer0_conv);
 		eva_net.AddLayer(&layer1_conv);
-		eva_net.AddLayer(&layer2_lut);
+		eva_net.AddLayer(&layer2_maxpol);
 		eva_net.AddLayer(&layer3_lut);
 		eva_net.AddLayer(&layer4_lut);
 		eva_net.AddLayer(&output_bin2rel);
@@ -1057,34 +1057,34 @@ public:
 		int test_mux_size = 3;
 
 		// Conv用subネット構築 (3x3)
-		bb::NeuralNetBinaryLut6<>			sub0_lut0(1 * 3 * 3, 16);
+		bb::NeuralNetBinaryLut6<true>		sub0_lut0(1 * 3 * 3, 16);
 		bb::NeuralNetGroup<>				sub0_net;
 		sub0_net.AddLayer(&sub0_lut0);
 
 		// Conv用subネット構築 (3x3)
-		bb::NeuralNetBinaryLut6<>			sub1_lut0(16 * 3 * 3, 64);
-		bb::NeuralNetBinaryLut6<>			sub1_lut1(64, 16);
+		bb::NeuralNetBinaryLut6<true>		sub1_lut0(16 * 3 * 3, 64);
+		bb::NeuralNetBinaryLut6<true>		sub1_lut1(64, 16);
 		bb::NeuralNetGroup<>				sub1_net;
 		sub1_net.AddLayer(&sub1_lut0);
 		sub1_net.AddLayer(&sub1_lut1);
 
 		// Conv用subネット構築 (3x3)
-		bb::NeuralNetBinaryLut6<>			sub3_lut0(16 * 3 * 3, 64);
-		bb::NeuralNetBinaryLut6<>			sub3_lut1(64, 16);
+		bb::NeuralNetBinaryLut6<true>		sub3_lut0(16 * 3 * 3, 64);
+		bb::NeuralNetBinaryLut6<true>		sub3_lut1(64, 16);
 		bb::NeuralNetGroup<>				sub3_net;
 		sub3_net.AddLayer(&sub3_lut0);
 		sub3_net.AddLayer(&sub3_lut1);
 
 		// Conv用subネット構築 (3x3)
-		bb::NeuralNetBinaryLut6<>			sub4_lut0(16 * 3 * 3, 64);
-		bb::NeuralNetBinaryLut6<>			sub4_lut1(64, 16);
+		bb::NeuralNetBinaryLut6<true>		sub4_lut0(16 * 3 * 3, 64);
+		bb::NeuralNetBinaryLut6<true>		sub4_lut1(64, 16);
 		bb::NeuralNetGroup<>				sub4_net;
 		sub4_net.AddLayer(&sub4_lut0);
 		sub4_net.AddLayer(&sub4_lut1);
 
 		// Conv用subネット構築 (3x3)
-		bb::NeuralNetBinaryLut6<>			sub6_lut0(16 * 3 * 3, 64);
-		bb::NeuralNetBinaryLut6<>			sub6_lut1(64, 16);
+		bb::NeuralNetBinaryLut6<true>		sub6_lut0(16 * 3 * 3, 64);
+		bb::NeuralNetBinaryLut6<true>		sub6_lut1(64, 16);
 		bb::NeuralNetGroup<>				sub6_net;
 		sub6_net.AddLayer(&sub6_lut0);
 		sub6_net.AddLayer(&sub6_lut1);
@@ -1099,7 +1099,7 @@ public:
 		bb::NeuralNetConvolutionPack<bool>		layer4_conv(&sub4_net, 16, 10, 10, 16, 3, 3);
 		bb::NeuralNetMaxPooling<bool>			layer5_maxpol(16, 8, 8, 2, 2);
 		bb::NeuralNetConvolutionPack<bool>		layer6_conv(&sub6_net, 16, 4, 4, 16, 3, 3);
-		bb::NeuralNetBinaryLut6<>				layer7_lut(16*2*2, 30);
+		bb::NeuralNetBinaryLut6<>				layer7_lut(16 *2*2, 30);
 		bb::NeuralNetBinaryToReal<>				output_bin2rel(30, 10);
 		auto last_lut_layer = &layer7_lut;
 
@@ -1162,11 +1162,13 @@ public:
 					;
 
 				// 中間表示()
-				input_real2bin.InitializeCoeff(1);
-				output_bin2rel.InitializeCoeff(1);
-				eva_net.SetMuxSize(test_mux_size);
-				accuracy = CalcAccuracy(eva_net);
-				m_log << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << accuracy << std::endl;
+				if (iteration % 1 == 0) {
+					input_real2bin.InitializeCoeff(1);
+					output_bin2rel.InitializeCoeff(1);
+					eva_net.SetMuxSize(test_mux_size);
+					accuracy = CalcAccuracy(eva_net);
+					m_log << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << accuracy << std::endl;
+				}
 
 				iteration++;
 				if (max_iteration > 0 && iteration >= max_iteration) {
@@ -1236,12 +1238,12 @@ int main()
 	eva_mnist.RunSparseFullyCnn(1000, 256);
 #endif
 
-#if 0
-	eva_mnist.RunLutSimpleConv(2, 8192, 8);
+#if 1
+	eva_mnist.RunLutSimpleConv(10000, 4096, 10000);
 #endif
 
-#if 1
-	eva_mnist.RunLutSimpleCnn(10, 8192, 16);
+#if 0
+	eva_mnist.RunLutSimpleCnn(10000, 1024, 10000);
 #endif
 
 	getchar();
