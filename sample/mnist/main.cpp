@@ -201,7 +201,7 @@ public:
 		size_t layer1_node_size = 60 * 4;
 		size_t layer2_node_size = output_node_size * output_hmux_size;
 
-		// バイナリネットのGroup作成
+		// バイナリネットの多重化Group作成
 		bb::NeuralNetBinaryLut6<>	mux0_lut(input_node_size*input_hmux_size, layer0_node_size);
 		bb::NeuralNetBinaryLut6<>	mux1_lut(layer0_node_size, layer1_node_size);
 		bb::NeuralNetBinaryLut6<>	mux2_lut(layer1_node_size, layer2_node_size);
@@ -210,7 +210,7 @@ public:
 		mux_group.AddLayer(&mux1_lut);
 		mux_group.AddLayer(&mux2_lut);
 
-		// バイナリ部分を多重化
+		// レイヤー定義
 		bb::NeuralNetBinaryMultiplex<>	bin_mux(&mux_group, input_node_size, output_node_size, input_hmux_size, output_hmux_size);
 
 		// ネット構築
@@ -272,7 +272,7 @@ public:
 
 
 	// 実数(float)の全接続層で、フラットなネットを評価
-	void RunSimpleDenseAffine(int epoc_size, size_t max_batch_size)
+	void RunSimpleDenseAffine(int epoc_size, size_t max_batch_size, bool binary_mode)
 	{
 		m_log << "start [SimpleDenseAffine]" << std::endl;
 		reset_time();
@@ -295,6 +295,9 @@ public:
 
 		// オプティマイザ設定
 		net.SetOptimizer(&bb::NeuralNetOptimizerAdam<>(0.001f, 0.9f, 0.999f));
+
+		net.SetBinaryMode(binary_mode);
+		m_log << "binary mode : " << binary_mode << std::endl;
 
 		// 学習ループ
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
@@ -569,32 +572,39 @@ public:
 
 		// 層構成
 		size_t input_node_size = 28 * 28;
-		size_t layer0_node_size = 10 * 6 * 6 * 3;
-		size_t layer1_node_size = 10 * 6 * 6;
-		size_t layer2_node_size = 10 * 6;
 		size_t output_node_size = 10;
+		size_t input_hmux_size = 1;
+		size_t output_hmux_size = 8;
 
-		// 実数版NET構築
-		bb::NeuralNetSparseAffineSigmoid<6>	real_mux0_affine(input_node_size, layer0_node_size);
+		size_t layer0_node_size = 360 * 2;
+		size_t layer1_node_size = 60 * 4;
+		size_t layer2_node_size = output_node_size * output_hmux_size;
+
+		// バイナリネットの多重化Group作成
+		bb::NeuralNetSparseAffineSigmoid<6>	real_mux0_affine(input_node_size*input_hmux_size, layer0_node_size);
 		bb::NeuralNetSparseAffineSigmoid<6>	real_mux1_affine(layer0_node_size, layer1_node_size);
 		bb::NeuralNetSparseAffineSigmoid<6>	real_mux2_affine(layer1_node_size, layer2_node_size);
-		bb::NeuralNetSparseAffineSigmoid<6>	real_mux3_affine(layer2_node_size, output_node_size);
 		bb::NeuralNetGroup<>				real_mux_group;
 		real_mux_group.AddLayer(&real_mux0_affine);
 		real_mux_group.AddLayer(&real_mux1_affine);
 		real_mux_group.AddLayer(&real_mux2_affine);
-		real_mux_group.AddLayer(&real_mux3_affine);
 
-		bb::NeuralNetBinaryMultiplex<float>	real_mux(&real_mux_group, input_node_size, output_node_size, 1, 1);
+		// レイヤー定義
+		bb::NeuralNetBinaryMultiplex<float>	real_mux(&real_mux_group, input_node_size, output_node_size, input_hmux_size, output_hmux_size);
 		bb::NeuralNetSoftmax<>				real_softmax(output_node_size);
+
+		// ネット構築
 		bb::NeuralNet<> real_net;
 		real_net.AddLayer(&real_mux);
 		real_net.AddLayer(&real_softmax);
 
+		// 多重化なし
 		real_mux.SetMuxSize(1);
 
+		// オプティマイズ設定
 		real_net.SetOptimizer(&bb::NeuralNetOptimizerAdam<>());
 
+		// バイナリモード
 		real_net.SetBinaryMode(true);
 
 
@@ -641,16 +651,14 @@ public:
 
 
 		// バイナリ版NET構築
-		bb::NeuralNetBinaryLut6<>	bin_mux0_lut(input_node_size, layer0_node_size);
+		bb::NeuralNetBinaryLut6<>	bin_mux0_lut(input_node_size*input_hmux_size, layer0_node_size);
 		bb::NeuralNetBinaryLut6<>	bin_mux1_lut(layer0_node_size, layer1_node_size);
 		bb::NeuralNetBinaryLut6<>	bin_mux2_lut(layer1_node_size, layer2_node_size);
-		bb::NeuralNetBinaryLut6<>	bin_mux3_lut(layer2_node_size, output_node_size);
 		bb::NeuralNetGroup<>		bin_mux_group;
 		bin_mux_group.AddLayer(&bin_mux0_lut);
 		bin_mux_group.AddLayer(&bin_mux1_lut);
 		bin_mux_group.AddLayer(&bin_mux2_lut);
-		bin_mux_group.AddLayer(&bin_mux3_lut);
-		bb::NeuralNetBinaryMultiplex<>	bin_mux(&bin_mux_group, input_node_size, output_node_size, 1, 1);
+		bb::NeuralNetBinaryMultiplex<>	bin_mux(&bin_mux_group, input_node_size, output_node_size, input_hmux_size, output_hmux_size);
 
 		bb::NeuralNet<> bin_net;
 		bin_net.AddLayer(&bin_mux);
@@ -661,7 +669,6 @@ public:
 		bin_mux0_lut.ImportLayer(real_mux0_affine);
 		bin_mux1_lut.ImportLayer(real_mux1_affine);
 		bin_mux2_lut.ImportLayer(real_mux2_affine);
-		bin_mux3_lut.ImportLayer(real_mux3_affine);
 
 		// バイナリ版評価
 		bin_mux.SetMuxSize(test_mux_size);
@@ -712,7 +719,6 @@ public:
 			bb::NeuralNetBinaryLut6VerilogXilinx(ofs, bin_mux0_lut, "lutnet_layer0");
 			bb::NeuralNetBinaryLut6VerilogXilinx(ofs, bin_mux1_lut, "lutnet_layer1");
 			bb::NeuralNetBinaryLut6VerilogXilinx(ofs, bin_mux2_lut, "lutnet_layer2");
-			bb::NeuralNetBinaryLut6VerilogXilinx(ofs, bin_mux3_lut, "lutnet_layer3");
 		}
 
 		m_log << "end\n" << std::endl;
@@ -1209,12 +1215,12 @@ int main()
 
 #if 0
 	// 実数＆全接続(いわゆる古典的なニューラルネット)
-	eva_mnist.RunSimpleDenseAffine(16, 256);
+	eva_mnist.RunSimpleDenseAffine(16, 256, false);
 #endif
 
-#if 0
+#if 1
 	// 実数＆接続制限(接続だけLUT的にして中身のノードは実数)
-	eva_mnist.RunSimpleSparseAffine(1000, 256, true);
+	eva_mnist.RunSimpleSparseAffine(16, 256, true);
 #endif
 
 #if 1
