@@ -104,33 +104,65 @@ public:
 	{
 		auto in_sig_buf = GetInputSignalBuffer();
 		auto out_sig_buf = GetOutputSignalBuffer();
+
+		const int frame_size = (int)out_sig_buf.GetFrameStride() * 8 / NeuralNetType<ST>::bit_size;
+		const int frame_unit = 256 / NeuralNetType<ST>::bit_size;
+
+		for (int c = 0; c < m_input_c_size; ++c) {
+#pragma omp parallel for
+			for (int frame_base = 0; frame_base < frame_size; frame_base += frame_unit) {
+				for (int fy = 0; fy < m_filter_h_size; ++fy) {
+					for (int fx = 0; fx < m_filter_w_size; ++fx) {
+						int output_node = GetOutputNode(c, fy, fx);
+						for (int frame_step = 0; frame_step < frame_unit; ++frame_step) {
+							int output_frame = frame_base + frame_step;
+							int input_frame = output_frame / (m_output_h_size * m_output_w_size);
+							int f = output_frame % (m_output_h_size * m_output_w_size);
+							int ix = f % m_output_w_size;
+							int iy = f / m_output_w_size;
+							ix += fx;
+							iy += fy;
+							int input_node = GetInputNode(c, iy, ix);
+							ST sig = in_sig_buf.Get<ST>(input_frame, input_node);
+							out_sig_buf.Set<ST>(output_frame, output_node, sig);
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+	/*
+	void Forward(bool train = true)
+	{
+		auto in_sig_buf = GetInputSignalBuffer();
+		auto out_sig_buf = GetOutputSignalBuffer();
 		
-		INDEX output_frame = 0;
-		for (INDEX input_frame = 0; input_frame < m_input_frame_size; ++input_frame) {
+		#pragma omp parallel for
+		for (int input_frame = 0; input_frame < (int)m_input_frame_size; ++input_frame) {
 			for (int y = 0; y < m_output_h_size; ++y) {
 				for (int x = 0; x < m_output_w_size; ++x) {
-					#pragma omp parallel for
+					INDEX output_frame = (input_frame*m_output_h_size + y) * m_output_w_size + x;
 					for (int c = 0; c < m_input_c_size; ++c) {
 						for (int fy = 0; fy < m_filter_h_size; ++fy) {
 							for (int fx = 0; fx < m_filter_w_size; ++fx) {
 								int ix = x + fx;
 								int iy = y + fy;
-					//			const float* in_sig_ptr = GetInputPtr(in_sig_buf, c, iy, ix);
-					//			float* out_sig_ptr = GetOutputPtr(out_sig_buf, c, fy, fx);
-					//			out_sig_ptr[output_frame] = in_sig_ptr[input_frame];
-
 								int input_node = GetInputNode(c, iy, ix);
 								int output_node = GetOutputNode(c, fy, fx);
-								out_sig_buf.Set<ST>(output_frame, output_node, in_sig_buf.Get<ST>(input_frame, input_node));
+								ST sig = in_sig_buf.Get<ST>(input_frame, input_node);
+								out_sig_buf.Set<ST>(output_frame, output_node, sig);
 							}
 						}
 					}
-					output_frame++;
 				}
 			}
 		}
 	}
+	*/
 	
+
 	void Backward(void)
 	{
 		auto out_err_buf = GetOutputErrorBuffer();
@@ -138,32 +170,63 @@ public:
 
 		in_err_buf.Clear();
 
-		INDEX output_frame = 0;
-		for (INDEX input_frame = 0; input_frame < m_input_frame_size; ++input_frame) {
+		const int frame_size = (int)out_err_buf.GetFrameStride() * 8 / NeuralNetType<ST>::bit_size;
+		const int frame_unit = 256 / NeuralNetType<ST>::bit_size;
+
+		for (int c = 0; c < m_input_c_size; ++c) {
+#pragma omp parallel for
+			for (int frame_base = 0; frame_base < frame_size; frame_base += frame_unit) {
+				for (int fy = 0; fy < m_filter_h_size; ++fy) {
+					for (int fx = 0; fx < m_filter_w_size; ++fx) {
+						int output_node = GetOutputNode(c, fy, fx);
+						for (int frame_step = 0; frame_step < frame_unit; ++frame_step) {
+							int output_frame = frame_base + frame_step;
+							int input_frame = output_frame / (m_output_h_size * m_output_w_size);
+							int f = output_frame % (m_output_h_size * m_output_w_size);
+							int ix = f % m_output_w_size;
+							int iy = f / m_output_w_size;
+							ix += fx;
+							iy += fy;
+							int input_node = GetInputNode(c, iy, ix);
+							ET err = out_err_buf.Get<ET>(output_frame, output_node);
+							in_err_buf.Set<ET>(input_frame, input_node, in_err_buf.Get<ET>(input_frame, input_node) + err);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/*
+	void Backward(void)
+	{
+		auto out_err_buf = GetOutputErrorBuffer();
+		auto in_err_buf = GetInputErrorBuffer();
+
+		in_err_buf.Clear();
+
+#pragma omp parallel for
+		for (int input_frame = 0; input_frame < m_input_frame_size; ++input_frame) {
 			for (int y = 0; y < m_output_h_size; ++y) {
 				for (int x = 0; x < m_output_w_size; ++x) {
-					#pragma omp parallel for
+					INDEX output_frame = (input_frame*m_output_h_size + y) * m_output_w_size + x;
 					for (int c = 0; c < m_input_c_size; ++c) {
 						for (int fy = 0; fy < m_filter_h_size; ++fy) {
 							for (int fx = 0; fx < m_filter_w_size; ++fx) {
 								int ix = x + fx;
 								int iy = y + fy;
-				//				const float* out_err_ptr = GetOutputPtr(out_err_buf, c, fy, fx);
-				//				float* in_err_ptr = GetInputPtr(in_err_buf, c, iy, ix);
-				//				in_err_ptr[input_frame] += out_err_ptr[output_frame];
-
 								int output_node = GetOutputNode(c, fy, fx);
 								int input_node = GetInputNode(c, iy, ix);
-								ET err = in_err_buf.Get<ET>(input_frame, input_node);
-								in_err_buf.Set<ET>(input_frame, input_node, err + out_err_buf.Get<ET>(output_frame, output_node));
+								ET err = out_err_buf.Get<ET>(output_frame, output_node);
+								in_err_buf.Set<ET>(input_frame, input_node, in_err_buf.Get<ET>(input_frame, input_node) + err);
 							}
 						}
 					}
-					output_frame++;
 				}
 			}
 		}
 	}
+	*/
 
 	void Update(void)
 	{
