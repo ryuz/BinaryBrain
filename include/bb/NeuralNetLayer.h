@@ -37,7 +37,7 @@ public:
 	virtual void  SetLayerName(const std::string name) {						// レイヤー名設定
 		m_layer_name = name;
 	}
-	virtual std::string GetLayerName(void)
+	virtual std::string GetLayerName(void) const
 	{
 		return m_layer_name;
 	}
@@ -54,7 +54,6 @@ public:
 	
 	virtual void  SetBinaryMode(bool enable) {}									// バイナリモードを設定
 
-	virtual void  SetMuxSize(INDEX mux_size) = 0;								// 多重化サイズの設定
 	virtual void  SetBatchSize(INDEX batch_size) = 0;							// バッチサイズの設定
 	
 	virtual T     CalcNode(INDEX node, std::vector<T> input_value) const { return input_value[0]; }	// 1ノードだけ個別計算
@@ -124,6 +123,46 @@ public:
 		archive(cereal::make_nvp("NeuralNetLayer", *this));
 	}
 };
+
+
+
+// 整合性確認
+template <typename T = float, typename INDEX = size_t>
+bool CheckConnection(const NeuralNetLayer<T, INDEX>& out_layer, const NeuralNetLayer<T, INDEX>& in_layer)
+{
+	if (out_layer.GetOutputFrameSize() != in_layer.GetInputFrameSize()) {
+		std::cout << "frame size mismatch" << std::endl;
+		std::cout << "out_layer " << out_layer.GetLayerName() << " : output frame = : " << out_layer.GetOutputFrameSize() << std::endl;
+		std::cout << "in_layer  " << in_layer.GetLayerName() << " : input frame = : " << in_layer.GetInputFrameSize() << std::endl;
+		BB_ASSERT(0);
+		return false;
+	}
+	if (out_layer.GetOutputNodeSize() != in_layer.GetInputNodeSize()) {
+		std::cout << "node size mismatch" << std::endl;
+		std::cout << "out_layer " << out_layer.GetLayerName() << ": output node = : " << out_layer.GetOutputNodeSize() << std::endl;
+		std::cout << "in_layer  " << in_layer.GetLayerName() << ": input node = : " << in_layer.GetInputNodeSize() << std::endl;
+		BB_ASSERT(0);
+		return false;
+	}
+	if (out_layer.GetOutputSignalDataType() != in_layer.GetInputSignalDataType()) {
+		std::cout << "data type size mismatch" << std::endl;
+		std::cout << "out_layer " << out_layer.GetLayerName() << ": output data type = : " << out_layer.GetOutputSignalDataType() << std::endl;
+		std::cout << "in_layer  " << in_layer.GetLayerName() << ": data input type = : " << in_layer.GetInputSignalDataType() << std::endl;
+		BB_ASSERT(0);
+		return false;
+	}
+	if (out_layer.GetOutputErrorDataType() != in_layer.GetInputErrorDataType()) {
+		std::cout << "error type size mismatch" << std::endl;
+		std::cout << "out_layer " << out_layer.GetLayerName() << ": output error type = : " << out_layer.GetOutputErrorDataType() << std::endl;
+		std::cout << "in_layer  " << in_layer.GetLayerName() << ": error input type = : " << in_layer.GetInputErrorDataType() << std::endl;
+		BB_ASSERT(0);
+		return false;
+	}
+
+	return true;
+}
+
+
 
 
 }

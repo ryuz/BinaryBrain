@@ -25,7 +25,6 @@ template <typename ST = float, typename ET = float, typename T = float, typename
 class NeuralNetConvCollapse : public NeuralNetLayerBuf<T, INDEX>
 {
 protected:
-	INDEX			m_mux_size = 1;
 	INDEX			m_input_frame_size = 1;
 	INDEX			m_output_frame_size = 1;
 	int				m_c_size;
@@ -48,14 +47,10 @@ public:
 		m_h_size = (int)h_size;
 		m_w_size = (int)w_size;
 	}
-	
-	void SetMuxSize(INDEX mux_size) {
-		m_mux_size = mux_size;
-	}
 
 	void SetBatchSize(INDEX batch_size) {
-		m_input_frame_size  = batch_size * m_h_size * m_w_size * m_mux_size;
-		m_output_frame_size = batch_size * m_mux_size;
+		m_input_frame_size  = batch_size * m_h_size * m_w_size;
+		m_output_frame_size = batch_size;
 	}
 	
 	INDEX GetInputFrameSize(void) const { return m_input_frame_size; }

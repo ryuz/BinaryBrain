@@ -27,7 +27,6 @@ template <typename T = float, typename INDEX = size_t>
 class NeuralNetConvolution : public NeuralNetLayerBuf<T, INDEX>
 {
 protected:
-	INDEX			m_mux_size = 1;
 	INDEX			m_frame_size = 1;
 	int				m_input_h_size;
 	int				m_input_w_size;
@@ -121,10 +120,8 @@ public:
 		return m_db[n];
 	}
 	
-	void SetMuxSize(INDEX mux_size) { m_mux_size = mux_size; }
-
 	void SetBatchSize(INDEX batch_size) {
-		m_frame_size = batch_size * m_mux_size;
+		m_frame_size = batch_size;
 	}
 	
 	INDEX GetInputFrameSize(void) const { return m_frame_size; }

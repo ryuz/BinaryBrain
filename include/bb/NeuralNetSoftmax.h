@@ -27,7 +27,6 @@ protected:
 	typedef Eigen::Matrix<T, -1, -1, Eigen::ColMajor>	Matrix;
 	typedef Eigen::Matrix<T, -1, 1>						Vector;
 
-	INDEX		m_mux_size = 1;
 	INDEX		m_frame_size = 1;
 	INDEX		m_node_size = 0;
 
@@ -46,8 +45,7 @@ public:
 		m_node_size = node_size;
 	}
 
-	void  SetMuxSize(INDEX mux_size) { m_mux_size = mux_size; }
-	void  SetBatchSize(INDEX batch_size) { m_frame_size = batch_size * m_mux_size; }
+	void  SetBatchSize(INDEX batch_size) { m_frame_size = batch_size; }
 
 	INDEX GetInputFrameSize(void) const { return m_frame_size; }
 	INDEX GetInputNodeSize(void) const { return m_node_size; }

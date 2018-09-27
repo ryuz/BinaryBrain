@@ -34,8 +34,6 @@ protected:
 	using Stride = Eigen::Stride<Eigen::Dynamic, 1>;
 	using MatMap = Eigen::Map<Matrix, 0, Stride>;
 
-
-	INDEX		m_mux_size = 1;
 	INDEX		m_frame_size = 1;
 	INDEX		m_input_size = 0;
 	INDEX		m_output_size = 0;
@@ -94,7 +92,7 @@ public:
 		m_optimizer_W.reset(optimizer->Create(m_input_size * m_output_size));
 		m_optimizer_b.reset(optimizer->Create(m_output_size));
 	}
-
+	
 
 	INDEX GetInputFrameSize(void) const { return m_frame_size; }
 	INDEX GetInputNodeSize(void) const { return m_input_size; }
@@ -116,11 +114,9 @@ public:
 		m_binary_mode = enable;
 	}
 
-	void  SetMuxSize(INDEX mux_size) { m_mux_size = mux_size; }
-
 	void  SetBatchSize(INDEX batch_size)
 	{
-		m_frame_size = batch_size * m_mux_size;
+		m_frame_size = batch_size;
 	}
 
 	void Forward(bool train = true)

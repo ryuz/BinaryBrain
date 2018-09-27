@@ -71,13 +71,6 @@ public:
 	void  SetNodeInput(INDEX node, int input_index, INDEX input_node) { m_affine.SetNodeInput(node, input_index, input_node); }
 	INDEX GetNodeInput(INDEX node, int input_index) const { return m_affine.GetNodeInput(node, input_index); }
 
-	void  SetMuxSize(INDEX mux_size)
-	{
-		m_affine.SetMuxSize(mux_size);
-		m_norm.SetMuxSize(mux_size);
-		m_binarize.SetMuxSize(mux_size);
-	}
-
 	void  SetBatchSize(INDEX batch_size) {
 		m_affine.SetBatchSize(batch_size);
 		m_norm.SetBatchSize(batch_size);

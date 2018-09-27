@@ -60,18 +60,14 @@ public:
 	int   GetNodeInputSize(INDEX node) const { return m_affine.GetNodeInputSize(node); }
 	void  SetNodeInput(INDEX node, int input_index, INDEX input_node) { m_affine.SetNodeInput(node, input_index, input_node); }
 	INDEX GetNodeInput(INDEX node, int input_index) const { return m_affine.GetNodeInput(node, input_index); }
-
-	void  SetMuxSize(INDEX mux_size)
-	{
-		m_expand.SetMuxSize(mux_size);
-		m_layer->SetMuxSize(mux_size);
-		m_collapse.SetMuxSize(mux_size);
-	}
 	
 	void  SetBatchSize(INDEX batch_size) {
 		m_expand.SetBatchSize(batch_size);
 		m_layer->SetBatchSize(batch_size * m_expand_size);
 		m_collapse.SetBatchSize(batch_size);
+
+		CheckConnection(m_expand, *m_layer);
+		CheckConnection(*m_layer, m_collapse);
 
 		m_expand.SetOutputSignalBuffer(m_expand.CreateOutputSignalBuffer());
 		m_expand.SetOutputErrorBuffer(m_expand.CreateOutputErrorBuffer());

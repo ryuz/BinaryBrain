@@ -26,7 +26,6 @@ template <typename T = float, typename INDEX = size_t>
 class NeuralNetBinarize : public NeuralNetLayerBuf<T, INDEX>
 {
 protected:
-	INDEX		m_mux_size = 1;
 	INDEX		m_frame_size = 1;
 	INDEX		m_node_size = 0;
 	bool		m_enable = true;
@@ -46,8 +45,7 @@ public:
 		m_node_size = node_size;
 	}
 
-	void  SetMuxSize(INDEX mux_size) { m_mux_size = mux_size; }
-	void  SetBatchSize(INDEX batch_size) { m_frame_size = batch_size * m_mux_size; }
+	void  SetBatchSize(INDEX batch_size) { m_frame_size = batch_size; }
 
 	INDEX GetInputFrameSize(void) const { return m_frame_size; }
 	INDEX GetInputNodeSize(void) const { return m_node_size; }

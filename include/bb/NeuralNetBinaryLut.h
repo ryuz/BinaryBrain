@@ -32,7 +32,6 @@ class NeuralNetBinaryLut : public NeuralNetSparseLayer<T, INDEX>
 	typedef NeuralNetSparseLayer<T, INDEX> super;
 
 protected:
-	INDEX					m_mux_size = 1;
 	INDEX					m_frame_size = 1;
 
 public:
@@ -74,19 +73,19 @@ public:
 	}
 	
 	template <typename RT, typename RI>
-	void ImportLayer(const NeuralNetSparseLayer<RT, RI>& lim)
+	void ImportLayer(const NeuralNetSparseLayer<RT, RI>& src)
 	{
 		auto node_size = GetOutputNodeSize();
 		auto input_size = GetLutInputSize();
 		auto table_size = GetLutTableSize();
 
-		BB_ASSERT(lim.GetOutputNodeSize() == node_size);
+		BB_ASSERT(src.GetOutputNodeSize() == node_size);
 		for (INDEX node = 0; node < node_size; ++node) {
-			BB_ASSERT(lim.GetNodeInputSize(node) == input_size);
+			BB_ASSERT(src.GetNodeInputSize(node) == input_size);
 
 			// 入力をコピー
 			for (int input_index = 0; input_index < input_size; ++input_index) {
-				SetLutInput(node, input_index, lim.GetNodeInput(node, input_index));
+				SetLutInput(node, input_index, src.GetNodeInput(node, input_index));
 			}
 
 			// 係数をバイナリ化
@@ -95,18 +94,11 @@ public:
 				for (int bit = 0; bit < input_size; ++bit) {
 					vec[bit] = (index & (1 << bit)) ? (RT)1.0 : (RT)0.0;
 				}
-				RT v = lim.CalcNode(node, vec);
-				SetLutTable(node, index, (v >= 0));
+				RT v = src.CalcNode(node, vec);
+				SetLutTable(node, index, (v > 0));
 			}
 		}
 	}
-
-
-	void  SetMuxSize(INDEX mux_size) {
-		m_mux_size = mux_size;
-	}
-	
-	INDEX GetMuxSize(void) const     { return m_mux_size; }
 
 
 public:
@@ -133,7 +125,7 @@ public:
 	}
 
 
-	void  SetBatchSize(INDEX batch_size) { m_frame_size = batch_size * m_mux_size; }
+	void  SetBatchSize(INDEX batch_size) { m_frame_size = batch_size; }
 
 	INDEX GetInputFrameSize(void) const { return m_frame_size; }
 	INDEX GetOutputFrameSize(void) const { return m_frame_size; }
@@ -458,36 +450,6 @@ public:
 			return FeedbackLutwise(loss);
 		}
 	}
-
-
-public:
-	// 出力の損失関数
-	template <typename LT, int LABEL_SIZE>
-	std::vector<double> GetOutputOnehotLoss(std::vector<LT> label)
-	{
-		auto buf = GetOutputSignalBuffer();
-		INDEX frame_size = GetOutputFrameSize();
-		INDEX node_size  = GetOutputNodeSize();
-
-		std::vector<double> vec_loss_x(frame_size);
-		double* vec_loss = &vec_loss_x[0];
-
-		#pragma omp parallel for
-		for ( int frame = 0; frame < (int)frame_size; ++frame ) {
-			vec_loss[frame] = 0;
-			for (size_t node = 0; node < node_size; ++node) {
-				if (label[frame / m_mux_size] == (node % LABEL_SIZE)) {
-					vec_loss[frame] += (buf.Get<bool>(frame, node) ? 0.0 : +1.0);
-				}
-				else {
-					vec_loss[frame] += (buf.Get<bool>(frame, node) ? +(1.0 / LABEL_SIZE) : -(0.0 / LABEL_SIZE));
-				}
-			}
-		}
-
-		return vec_loss_x;
-	}
-
 
 	// Serialize
 protected:

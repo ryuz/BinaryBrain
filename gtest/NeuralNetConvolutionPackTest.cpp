@@ -115,7 +115,6 @@ TEST(NeuralNetConvolutionPackTest, testNeuralNetConvolutionPack2)
 	bb::NeuralNetConvolutionPack<>	cnv(&sub_net, 3, 4, 5, 2, 3, 3);
 
 //	bb::NeuralNetConvolution<> cnv(3, 4, 5, 2, 3, 3);
-	cnv.SetMuxSize(1);
 	cnv.SetBatchSize(2);
 
 	testSetupLayerBuffer(cnv);

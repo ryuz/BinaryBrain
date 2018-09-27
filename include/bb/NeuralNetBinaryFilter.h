@@ -28,7 +28,6 @@ class NeuralNetBinaryFilter : public NeuralNetLayerBuf<T, INDEX>
 
 protected:
 	NeuralNetLayer<T, INDEX>* m_filter_net;
-	INDEX			m_mux_size = 1;
 	INDEX			m_frame_size = 1;
 	INDEX			m_input_h_size;
 	INDEX			m_input_w_size;
@@ -96,14 +95,8 @@ public:
 //	const NeuralNetBuffer<T, INDEX>&  GetInputErrorBuffer(void) const { return super::GetInputErrorBuffer(); }
 //	const NeuralNetBuffer<T, INDEX>&  GetOutputErrorBuffer(void) const { return super::GetOutputErrorBuffer(); }
 
-	void  SetMuxSize(INDEX mux_size)
-	{
-		m_mux_size = mux_size;
-		m_filter_net->SetMuxSize(mux_size);
-	}
-
 	void SetBatchSize(INDEX batch_size) {
-		m_frame_size = batch_size * m_mux_size;
+		m_frame_size = batch_size;
 		m_filter_net->SetBatchSize(batch_size);
 	}
 	

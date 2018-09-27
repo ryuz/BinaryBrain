@@ -99,13 +99,6 @@ public:
 		}
 	}
 
-	void SetMuxSize(INDEX mux_size)
-	{
-		for (auto layer : m_layers) {
-			layer->SetMuxSize(mux_size);
-		}
-	}
-
 	void SetBatchSize(INDEX batch_size)
 	{
 		for (auto layer : m_layers) {

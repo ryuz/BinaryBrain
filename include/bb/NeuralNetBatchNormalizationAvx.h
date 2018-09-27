@@ -22,7 +22,6 @@ template <typename T = float, typename INDEX = size_t>
 class NeuralNetBatchNormalizationAvx : public NeuralNetLayerBuf<T, INDEX>
 {
 protected:
-	INDEX		m_mux_size = 1;
 	INDEX		m_frame_size = 1;
 	INDEX		m_node_size = 0;
 	
@@ -93,12 +92,8 @@ public:
 		m_optimizer_beta.reset(optimizer->Create(m_node_size));
 	}
 
-	void  SetMuxSize(INDEX mux_size) {
-		m_mux_size = mux_size;
-	}
-
 	void SetBatchSize(INDEX batch_size) {
-		m_frame_size = batch_size * m_mux_size;
+		m_frame_size = batch_size;
 	}
 
 	INDEX GetInputFrameSize(void) const { return m_frame_size; }

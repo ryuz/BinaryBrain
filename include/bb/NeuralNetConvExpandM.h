@@ -26,7 +26,6 @@ template <int INPUT_C_SIZE, int INPUT_H_SIZE, int INPUT_W_SIZE, int FILTER_H_SIZ
 class NeuralNetConvExpandM : public NeuralNetLayerBuf<T, INDEX>
 {
 protected:
-	INDEX			m_mux_size = 1;
 	INDEX			m_input_frame_size = 1;
 	INDEX			m_output_frame_size = 1;
 	const int		OUTPUT_H_SIZE = INPUT_H_SIZE - FILTER_H_SIZE + 1;
@@ -41,13 +40,9 @@ public:
 	{
 	}
 	
-	void SetMuxSize(INDEX mux_size) {
-		m_mux_size = mux_size;
-	}
-
 	void SetBatchSize(INDEX batch_size) {
-		m_input_frame_size = batch_size * m_mux_size;
-		m_output_frame_size = m_input_frame_size * OUTPUT_H_SIZE * OUTPUT_W_SIZE * m_mux_size;
+		m_input_frame_size = batch_size;
+		m_output_frame_size = m_input_frame_size * OUTPUT_H_SIZE * OUTPUT_W_SIZE;
 	}
 	
 	INDEX GetInputFrameSize(void) const { return m_input_frame_size; }

@@ -158,10 +158,8 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6Compare)
 	bb::NeuralNetBinaryLut6<>  lut0(input_node_size, output_node_size, 1);
 	bb::NeuralNetBinaryLutN<6> lut1(input_node_size, output_node_size, 1);
 
-	lut0.SetMuxSize(mux_size);
-	lut1.SetMuxSize(mux_size);
-	lut0.SetBatchSize(batch_size);
-	lut1.SetBatchSize(batch_size);
+	lut0.SetBatchSize(batch_size * mux_size);
+	lut1.SetBatchSize(batch_size * mux_size);
 
 #if !BB_NEURALNET_BUFFER_USE_ROI
 

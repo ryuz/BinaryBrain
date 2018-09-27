@@ -41,7 +41,7 @@ public:
 		m_layer = layer;
 	}
 	
-	~NeuralNetConvolutionPack() {}
+	~NeuralNetBinaryMultiplex() {}
 	
 	void InitializeCoeff(std::uint64_t seed)
 	{
@@ -70,18 +70,28 @@ public:
 		m_batch_size = 0;
 	}
 	
+	void SetOptimizer(const NeuralNetOptimizer<T, INDEX>* optimizer)
+	{
+		m_real2bin.SetOptimizer(optimizer);
+		m_layer->SetOptimizer(optimizer);
+		m_bin2real.SetOptimizer(optimizer);
+	}
+
 	void  SetBatchSize(INDEX batch_size)
 	{
-		if (m_batch_size == batch_size) {
-			return;
-		}
+//		if (m_batch_size == batch_size) {
+//			return;
+//		}
 		m_batch_size = batch_size;
 		
 		m_real2bin.SetBatchSize(m_batch_size);
 		m_layer->SetBatchSize(m_batch_size * m_mux_size);
 		m_bin2real.SetBatchSize(m_batch_size);
 		
-		
+		// チェック
+		CheckConnection(m_real2bin, *m_layer);
+		CheckConnection(*m_layer, m_bin2real);
+
 		m_real2bin.SetOutputSignalBuffer(m_real2bin.CreateOutputSignalBuffer());
 		m_real2bin.SetOutputErrorBuffer(m_real2bin.CreateOutputErrorBuffer());
 		m_layer->SetInputSignalBuffer(m_real2bin.GetOutputSignalBuffer());
@@ -123,9 +133,7 @@ public:
 	{
 		m_real2bin.Forward(train);
 		m_layer->Forward(train);
-		if (!train) {
-			m_bin2real.Forward(train);
-		}
+		m_bin2real.Forward(train);
 	}
 
 	void Backward(void)
@@ -141,18 +149,42 @@ public:
 		m_layer->Update();
 		m_real2bin.Update();
 	}
-
-
+	
 	bool Feedback(const std::vector<double>& loss)
 	{
-		std::vector<double> exp_loss(loss.size() * m_expand_size);
-		for (size_t i = 0; i < loss.size(); ++i) {
-			for (INDEX j = 0; j < m_expand_size; ++j) {
-				exp_loss[i*m_expand_size + j] = loss[i];
+		return m_layer->Feedback(loss);
+	}
+
+
+public:
+
+	// 出力の損失関数
+	template <typename LT, int LABEL_SIZE>
+	std::vector<double> GetOutputOnehotLoss(std::vector<LT> label)
+	{
+		auto buf = m_layer->GetOutputSignalBuffer();
+		INDEX frame_size = m_layer->GetOutputFrameSize();
+		INDEX node_size = m_layer->GetOutputNodeSize();
+
+		std::vector<double> vec_loss_x(frame_size);
+		double* vec_loss = &vec_loss_x[0];
+
+#pragma omp parallel for
+		for (int frame = 0; frame < (int)frame_size; ++frame) {
+			vec_loss[frame] = 0;
+			for (size_t node = 0; node < node_size; ++node) {
+				if (label[frame / m_mux_size] == (node % LABEL_SIZE)) {
+					vec_loss[frame] += (buf.Get<bool>(frame, node) ? 0.0 : +1.0);
+				}
+				else {
+					vec_loss[frame] += (buf.Get<bool>(frame, node) ? +(1.0 / LABEL_SIZE) : -(0.0 / LABEL_SIZE));
+				}
 			}
 		}
-		return m_layer->Feedback(exp_loss);
+
+		return vec_loss_x;
 	}
+
 };
 
 
