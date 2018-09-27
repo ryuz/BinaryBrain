@@ -129,7 +129,7 @@ protected:
 	void PrintProgress(float loss, size_t progress, size_t size)
 	{
 		size_t rate = progress * 100 / size;
-		std::cout << "[" << rate << "% (" << progress << "/" << size << ")] loss : " << sqrt(loss) << "\r" << std::flush;
+		std::cout << "[" << rate << "% (" << progress << "/" << size << ")] loss : " << loss << "\r" << std::flush;
 	}
 
 	// ネットの正解率評価
@@ -430,18 +430,19 @@ public:
 					auto signals = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < signals.size(); ++node) {
 						signals[node] -= m_train_onehot[x_index + frame][node];
-						signals[node] /= (float)batch_size;
 						loss += signals[node] * signals[node];
+						signals[node] /= (float)batch_size;
 					}
 					net.SetOutputError(frame, signals);
 				}
+				loss = sqrt(loss / batch_size);
 				net.Backward();
 
 				// 更新
 				net.Update();
 
 				// 進捗表示
-				PrintProgress(sqrt(loss), x_index + batch_size, m_train_images.size());
+				PrintProgress(loss, x_index + batch_size, m_train_images.size());
 			}
 
 			// Shuffle
@@ -530,18 +531,19 @@ public:
 					auto signals = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < signals.size(); ++node) {
 						signals[node] -= m_train_onehot[x_index + frame][node];
-						signals[node] /= (float)batch_size;
 						loss += signals[node] * signals[node];
+						signals[node] /= (float)batch_size;
 					}
 					net.SetOutputError(frame, signals);
 				}
+				loss = sqrt(loss/batch_size);
 				net.Backward();
 				
 				// 更新
 				net.Update();
 
 				// 進捗表示
-				PrintProgress(sqrt(loss), x_index + batch_size, m_train_images.size());
+				PrintProgress(loss, x_index + batch_size, m_train_images.size());
 			}
 
 			// Shuffle
@@ -805,11 +807,12 @@ public:
 					auto signals = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < signals.size(); ++node) {
 						signals[node] -= m_train_onehot[x_index + frame][node];
-						signals[node] /= (float)batch_size;
 						loss += signals[node] * signals[node];
+						signals[node] /= (float)batch_size;
 					}
 					net.SetOutputError(frame, signals);
 				}
+				loss = sqrt(loss/batch_size);
 				net.Backward();
 
 				// 進捗表示
@@ -927,18 +930,19 @@ public:
 					auto signals = real_net.GetOutputSignal(frame);
 					for (size_t node = 0; node < signals.size(); ++node) {
 						signals[node] -= m_train_onehot[x_index + frame][node];
-						signals[node] /= (float)batch_size;
 						loss += signals[node] * signals[node];
+						signals[node] /= (float)batch_size;
 					}
 					real_net.SetOutputError(frame, signals);
 				}
+				loss = sqrt(loss/batch_size);
 				real_net.Backward();
 
 				// 更新
 				real_net.Update();
 
 				// 進捗表示
-				PrintProgress(sqrt(loss), x_index + batch_size, m_train_images.size());
+				PrintProgress(loss, x_index + batch_size, m_train_images.size());
 			}
 
 			// Shuffle
@@ -1186,11 +1190,11 @@ public:
 };
 
 
-
 // メイン関数
 int main()
 {
 	omp_set_num_threads(6);
+
 
 #ifdef _DEBUG
 	std::cout << "!!! Debug Version !!!" << std::endl;
@@ -1233,11 +1237,11 @@ int main()
 	eva_mnist.RunRealToBinary(16, 256);
 #endif
 
-#if 1
-	eva_mnist.RunSimpleConvolution(1000, 256, false);
+#if 0
+	eva_mnist.RunSimpleConvolution(1000, 256, true);
 #endif
 
-#if 0
+#if 1
 	eva_mnist.RunSparseFullyCnn(1000, 256);
 #endif
 

@@ -45,10 +45,10 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6)
 
 	auto in_val = lut.GetInputSignalBuffer();
 	auto out_val = lut.GetOutputSignalBuffer();
-	in_val.SetBinary(0, 0, false);
+	in_val.Set<bool>(0, 0, false);
 	in_val.SetBinary(0, 1, true);
 	in_val.SetBinary(0, 2, true);
-	in_val.SetBinary(0, 3, false);
+	in_val.Set<bool>(0, 3, false);
 	in_val.SetBinary(0, 4, false);
 	in_val.SetBinary(0, 5, true);
 	in_val.SetBinary(0, 6, true);
@@ -94,17 +94,17 @@ TEST(NeuralNetBinaryLut6, testNeuralNetBinaryLut6Batch)
 	in_val.SetBinary(0, 1, true);
 	in_val.SetBinary(0, 2, true);
 	in_val.SetBinary(0, 3, false);
-	in_val.SetBinary(0, 4, false);
+	in_val.Set<bool>(0, 4, false);
 	in_val.SetBinary(0, 5, true);
 	in_val.SetBinary(0, 6, true);
 	in_val.SetBinary(0, 7, true);
 
 	in_val.SetBinary(1, 0, true);
-	in_val.SetBinary(1, 1, false);
+	in_val.Set<bool>(1, 1, false);
 	in_val.SetBinary(1, 2, false);
 	in_val.SetBinary(1, 3, true);
 	in_val.SetBinary(1, 4, true);
-	in_val.SetBinary(1, 5, false);
+	in_val.Set<bb::Bit>(1, 5, false);
 	in_val.SetBinary(1, 6, false);
 	in_val.SetBinary(1, 7, false);
 

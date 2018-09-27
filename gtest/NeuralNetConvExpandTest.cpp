@@ -3,6 +3,7 @@
 #include "gtest/gtest.h"
 
 #include "bb/NeuralNetConvExpand.h"
+#include "bb/NeuralNetConvExpandM.h"
 
 
 
@@ -18,7 +19,8 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 TEST(NeuralNetConvExpandTest, testNeuralNetConvExpand)
 {
 	bb::NeuralNetConvExpand<> cnvexp(2, 3, 4, 2, 3);
-
+//	bb::NeuralNetConvExpandM<2, 3, 4, 2, 3> cnvexp;
+	
 	cnvexp.SetBatchSize(2);
 	testSetupLayerBuffer(cnvexp);
 
@@ -155,3 +157,39 @@ TEST(NeuralNetConvExpandTest, testNeuralNetConvExpand)
 }
 
 
+
+#if 0
+
+#include <chrono>
+
+TEST(NeuralNetConvExpandTest, testNeuralNetConvExpandSpeed)
+{
+	// 実践的なサイズで速度比較
+	bb::NeuralNetConvExpand<> cnvexp(100, 28, 28, 3, 3);
+	bb::NeuralNetConvExpandM<100, 28, 28, 3, 3> cnvexpM;
+
+	cnvexp.SetBatchSize(256);
+	cnvexpM.SetBatchSize(256);
+	testSetupLayerBuffer(cnvexp);
+	testSetupLayerBuffer(cnvexpM);
+
+	std::chrono::system_clock::time_point  start, end;
+
+	start = std::chrono::system_clock::now();
+	cnvexp.Forward();
+	end = std::chrono::system_clock::now();
+
+	double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+	std::cout << elapsed << std::endl;
+
+
+	start = std::chrono::system_clock::now();
+	cnvexpM.Forward();
+	end = std::chrono::system_clock::now();
+
+	elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+	std::cout << elapsed << std::endl;
+}
+
+
+#endif

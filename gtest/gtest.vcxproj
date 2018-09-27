@@ -50,10 +50,12 @@
     <ClInclude Include="..\include\bb\NeuralNetBinaryLut6.h" />
     <ClInclude Include="..\include\bb\NeuralNetBinaryLut6VerilogXilinx.h" />
     <ClInclude Include="..\include\bb\NeuralNetBinaryLutN.h" />
+    <ClInclude Include="..\include\bb\NeuralNetBinaryMultiplex.h" />
     <ClInclude Include="..\include\bb\NeuralNetBinaryToReal.h" />
     <ClInclude Include="..\include\bb\NeuralNetBuffer.h" />
     <ClInclude Include="..\include\bb\NeuralNetConvCollapse.h" />
     <ClInclude Include="..\include\bb\NeuralNetConvExpand.h" />
+    <ClInclude Include="..\include\bb\NeuralNetConvExpandM.h" />
     <ClInclude Include="..\include\bb\NeuralNetConvolution.h" />
     <ClInclude Include="..\include\bb\NeuralNetConvolutionPack.h" />
     <ClInclude Include="..\include\bb\NeuralNetGroup.h" />

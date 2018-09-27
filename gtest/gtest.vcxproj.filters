@@ -179,5 +179,11 @@
     <ClInclude Include="..\include\bb\NeuralNetBatchNormalizationAvx.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\bb\NeuralNetConvExpandM.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bb\NeuralNetBinaryMultiplex.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

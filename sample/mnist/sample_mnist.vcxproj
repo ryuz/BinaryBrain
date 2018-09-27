@@ -181,6 +181,7 @@
     <ClInclude Include="..\..\include\bb\NeuralNetAffine.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBatchNormalization.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBatchNormalizationAvx.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetBatchNormalizationEigen.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBinarize.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryFilter.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryLut.h" />
@@ -191,6 +192,7 @@
     <ClInclude Include="..\..\include\bb\NeuralNetBuffer.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetConvCollapse.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetConvExpand.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetConvExpandM.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetConvolution.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetConvolutionPack.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetDenseAffineSigmoid.h" />

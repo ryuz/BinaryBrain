@@ -1781,10 +1781,90 @@ public:
 };
 
 
+
+
+inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
+{
+	net.SetInputSignalBuffer(net.CreateInputSignalBuffer());
+	net.SetInputErrorBuffer(net.CreateInputErrorBuffer());
+	net.SetOutputSignalBuffer(net.CreateOutputSignalBuffer());
+	net.SetOutputErrorBuffer(net.CreateOutputErrorBuffer());
+}
+
+
+#include "bb/NeuralNetConvExpandM.h"
+
+static int tmp_d[64 * 1024 * 1024];
+static int tmp_a[64 * 1024 * 1024];
+static int tmp_b[64 * 1024 * 1024];
+
+
+
 // メイン関数
 int main()
 {
 	omp_set_num_threads(6);
+
+
+#if 0
+	// NeuralNetConvExpandを実践的なサイズで速度比較
+	bb::NeuralNetConvExpand<> cnvexp(100, 28, 28, 3, 3);
+	bb::NeuralNetConvExpandM<100, 28, 28, 3, 3> cnvexpM;
+
+	cnvexp.SetBatchSize(256);
+	cnvexpM.SetBatchSize(256);
+	testSetupLayerBuffer(cnvexp);
+	testSetupLayerBuffer(cnvexpM);
+
+	std::chrono::system_clock::time_point  start, end;
+
+	if (1) {
+		// キャッシュを飛ばす
+		for (int i = 0; i < sizeof(tmp_d) / sizeof(int); ++i) { tmp_d[i]++; }
+
+		// 参考値
+		start = std::chrono::system_clock::now();
+		memcpy(tmp_a, tmp_b, sizeof(float) * 100 * 28 * 28 * 3 * 3);
+		end = std::chrono::system_clock::now();
+		double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+		std::cout << elapsed << std::endl;
+	}
+
+	if (1) {
+		// キャッシュを飛ばす
+		for (int i = 0; i < sizeof(tmp_d) / sizeof(int); ++i) { tmp_d[i]++; }
+
+		start = std::chrono::system_clock::now();
+		cnvexp.Forward();
+		end = std::chrono::system_clock::now();
+		double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+		std::cout << "forward : " << elapsed << std::endl;
+
+		start = std::chrono::system_clock::now();
+		cnvexp.Forward();
+		end = std::chrono::system_clock::now();
+		elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+		std::cout << "backward : " << elapsed << std::endl;
+	}
+
+	if (1) {
+		// キャッシュを飛ばす
+		for (int i = 0; i < sizeof(tmp_d) / sizeof(int); ++i) { tmp_d[i]++; }
+
+		start = std::chrono::system_clock::now();
+		cnvexpM.Forward();
+		end = std::chrono::system_clock::now();
+		double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+		std::cout << elapsed << std::endl;
+	}
+	//	getchar();
+	return 0;
+#endif
+
+
+
+
+
 
 #ifdef _DEBUG
 	std::cout << "!!!!DEBUG!!!!" << std::endl;

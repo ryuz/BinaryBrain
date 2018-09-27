@@ -23,11 +23,14 @@ template <typename T = float, typename INDEX = size_t>
 class NeuralNet : public NeuralNetGroup<T, INDEX>
 {
 protected:
+	INDEX						m_mux_size = 0;
+	INDEX						m_batch_size = 0;
+
 	NeuralNetBuffer<T, INDEX>	m_input_signal_buffers;
 	NeuralNetBuffer<T, INDEX>	m_output_signal_buffers;
 	NeuralNetBuffer<T, INDEX>	m_input_error_buffers;
 	NeuralNetBuffer<T, INDEX>	m_output_error_buffers;
-
+	
 public:
 	// コンストラクタ
 	NeuralNet()
@@ -37,12 +40,30 @@ public:
 	// デストラクタ
 	~NeuralNet() {
 	}
-	
+
+	void SetMuxSize(INDEX mux_size)
+	{
+//		if (m_mux_size == mux_size) {
+//			return;
+//		}
+
+		// 親クラス呼び出し
+		NeuralNetGroup<T, INDEX>::SetMuxSize(mux_size);
+		m_batch_size = 0;
+		m_mux_size = mux_size;
+	}
+
 	void SetBatchSize(INDEX batch_size)
 	{
+		// サイズ変更が無ければそのまま
+//		if (m_batch_size == batch_size) {
+//			return;
+//		}
+		
 		// 親クラス呼び出し
 		NeuralNetGroup<T, INDEX>::SetBatchSize(batch_size);
-		
+		m_batch_size = batch_size;
+
 		// 入出力のバッファも準備
 		m_input_signal_buffers = m_firstLayer->CreateInputSignalBuffer();
 		m_input_error_buffers = m_firstLayer->CreateInputErrorBuffer();
