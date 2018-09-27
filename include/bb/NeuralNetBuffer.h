@@ -225,38 +225,56 @@ protected:
 		return &m_buffer.get()[m_frame_stride * addr];
 	}
 
+
 	template <typename Tp>
 	inline void Write(void *base, INDEX frame, Tp value) const
 	{
-		if ( typeid(Tp) == typeid(Bit) || typeid(Tp) == typeid(bool) ) {
-			std::uint8_t* ptr = (std::uint8_t*)base;
-			std::uint8_t mask = (std::uint8_t)(1 << (frame % 8));
-			if (value) {
-				ptr[frame / 8] |= mask;
-			}
-			else {
-				ptr[frame / 8] &= ~mask;
-			}
+		Tp* ptr = (Tp*)base;
+		ptr[frame] = value;
+	}
+
+	template <>
+	inline void Write(void *base, INDEX frame, bool value) const
+	{
+		std::uint8_t* ptr = (std::uint8_t*)base;
+		std::uint8_t mask = (std::uint8_t)(1 << (frame % 8));
+		if (value) {
+			ptr[frame / 8] |= mask;
 		}
 		else {
-			Tp* ptr = (Tp*)base;
-			ptr[frame] = value;
+			ptr[frame / 8] &= ~mask;
 		}
 	}
+
+	template <>
+	inline void Write(void *base, INDEX frame, Bit value) const
+	{
+		Write<bool>(base, frame, (bool)value);
+	}
+
+
 
 	template <typename Tp>
 	inline Tp Read(void *base, INDEX frame) const
 	{
-		if ( typeid(Tp) == typeid(Bit) || typeid(Tp) == typeid(bool) ) {
-			std::uint8_t* ptr = (std::uint8_t*)base;
-			std::uint8_t mask = (std::uint8_t)(1 << (frame % 8));
-			return ((ptr[frame / 8] & mask) != 0);
-		}
-		else {
-			Tp* ptr = (Tp*)base;
-			return ptr[frame];
-		}
+		Tp* ptr = (Tp*)base;
+		return ptr[frame];
 	}
+
+	template <>
+	inline bool Read(void *base, INDEX frame) const
+	{
+		std::uint8_t* ptr = (std::uint8_t*)base;
+		std::uint8_t mask = (std::uint8_t)(1 << (frame % 8));
+		return ((ptr[frame / 8] & mask) != 0);
+	}
+
+	template <>
+	inline Bit Read(void *base, INDEX frame) const
+	{
+		return Bit(Read<bool>(base, frame));
+	}
+
 
 	inline void WriteReal(void *base, INDEX frame, T value) const
 	{
@@ -270,7 +288,7 @@ protected:
 	inline T ReadReal(void *base, INDEX frame) const
 	{
 		switch (m_data_type) {
-		case BB_TYPE_BINARY: return Read<Bit>(base, frame) ? (T)1.0 : (T)0.0;
+		case BB_TYPE_BINARY: return Read<bool>(base, frame) ? (T)1.0 : (T)0.0;
 		case BB_TYPE_REAL32: return (T)Read<float>(base, frame);
 		case BB_TYPE_REAL64: return (T)Read<double>(base, frame);
 		}
