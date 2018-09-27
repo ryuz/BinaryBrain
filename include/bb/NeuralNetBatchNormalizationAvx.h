@@ -37,7 +37,7 @@ protected:
 	std::vector<T>	m_mean;		// •½‹Ï’l
 	std::vector<T>	m_rstd;		// •W€•Î·‚Ì‹t”
 
-	T				m_momentum = (T)0.01;
+	T				m_momentum = (T)0.001;
 	std::vector<T>	m_running_mean;
 	std::vector<T>	m_running_var;
 
