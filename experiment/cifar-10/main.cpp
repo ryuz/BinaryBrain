@@ -30,6 +30,7 @@
 #include "bb/NeuralNetConvolution.h"
 #include "bb/NeuralNetMaxPooling.h"
 
+#include "bb/NeuralNetOptimizerAdam.h"
 
 
 std::vector<std::uint8_t>				train_labels;
@@ -76,6 +77,16 @@ double get_time(void)
 	return std::chrono::duration_cast<std::chrono::milliseconds>(now_time - m_base_time).count() / 1000.0;
 }
 
+// 進捗表示
+void PrintProgress(float loss, size_t progress, size_t size)
+{
+	size_t rate = progress * 100 / size;
+	std::cout << "[" << rate << "% (" << progress << "/" << size << ")] loss : " << loss << "\r" << std::flush;
+}
+
+void ClearProgress(void) {
+	std::cout << "                                                                \r" << std::flush;
+}
 
 
 
@@ -165,13 +176,14 @@ void RunDenseAffineSigmoid(int epoc_size, size_t max_batch_size, double learning
 			net.Backward();
 
 			// 更新
-			net.Update(learning_rate);
+			net.Update();
 		}
 	}
 	std::cout << "end\n" << std::endl;
 }
 
 
+#if 0
 // LUT6入力のバイナリ版のフラットなネットを評価
 void RunFlatBinaryLut6(int epoc_size, size_t max_batch_size, int max_iteration = -1)
 {
@@ -337,10 +349,135 @@ void RunSimpleConvSigmoid(int epoc_size, size_t max_batch_size, double learning_
 	}
 	std::cout << "end\n" << std::endl;
 }
+#endif
+
+
+// 実数(float)の全接続層で、フラットなネットを評価
+void RunSimpleConvolution(int epoc_size, size_t max_batch_size, bool binary_mode)
+{
+	std::cout << "start [SimpleConvolution]" << std::endl;
+	reset_time();
+
+	std::mt19937_64 mt(1);
+
+	// 実数版NET構築
+	bb::NeuralNetBatchNormalization<>	input_batch_norm(3 * 32 * 32);
+	bb::NeuralNetSigmoid<>				input_activation(3 * 32 * 32);
+
+	bb::NeuralNetConvolution<>			layer0_convolution(3, 32, 32, 32, 3, 3);
+	bb::NeuralNetBatchNormalization<>	layer0_batch_norm(32 * 30 * 30);
+	bb::NeuralNetSigmoid<>				layer0_activation(32 * 30 * 30);
+
+	bb::NeuralNetConvolution<>			layer1_convolution(32, 30, 30, 32, 3, 3);
+	bb::NeuralNetBatchNormalization<>	layer1_batch_norm(32 * 28 * 28);
+	bb::NeuralNetSigmoid<>				layer1_activation(32 * 28 * 28);
+
+	bb::NeuralNetMaxPooling<>			layer2_pooling(32, 28, 28, 2, 2);
+
+	bb::NeuralNetConvolution<>			layer3_convolution(32, 14, 14, 64, 3, 3);
+	bb::NeuralNetBatchNormalization<>	layer3_batch_norm(64 * 12 * 12);
+	bb::NeuralNetSigmoid<>				layer3_activation(64 * 12 * 12);
+
+	bb::NeuralNetConvolution<>			layer4_convolution(64, 12, 12, 64, 3, 3);
+	bb::NeuralNetBatchNormalization<>	layer4_batch_norm(64 * 10 * 10);
+	bb::NeuralNetSigmoid<>				layer4_activation(64 * 10 * 10);
+
+	bb::NeuralNetMaxPooling<>			layer5_pooling(64, 10, 10, 2, 2);
+
+	bb::NeuralNetAffine<>				layer6_affine(64 * 5 * 5, 512);
+	bb::NeuralNetBatchNormalization<>	layer6_batch_norm(512);
+	bb::NeuralNetSigmoid<>				layer6_activation(512);
+
+	bb::NeuralNetAffine<>				layer7_affine(512, 10);
+	bb::NeuralNetBatchNormalization<>	layer7_batch_norm(10);
+	bb::NeuralNetSigmoid<>				layer7_activation(10);
+
+	bb::NeuralNetSoftmax<>				output_softmax(10);
+
+	bb::NeuralNet<> net;
+	net.AddLayer(&input_batch_norm);
+	net.AddLayer(&input_activation);
+	net.AddLayer(&layer0_convolution);
+	net.AddLayer(&layer0_batch_norm);
+	net.AddLayer(&layer0_activation);
+	net.AddLayer(&layer1_convolution);
+	net.AddLayer(&layer1_batch_norm);
+	net.AddLayer(&layer1_activation);
+	net.AddLayer(&layer2_pooling);
+	net.AddLayer(&layer3_convolution);
+	net.AddLayer(&layer3_batch_norm);
+	net.AddLayer(&layer3_activation);
+	net.AddLayer(&layer4_convolution);
+	net.AddLayer(&layer4_batch_norm);
+	net.AddLayer(&layer4_activation);
+	net.AddLayer(&layer5_pooling);
+	net.AddLayer(&layer6_affine);
+	net.AddLayer(&layer6_batch_norm);
+	net.AddLayer(&layer6_activation);
+	net.AddLayer(&layer7_affine);
+	net.AddLayer(&layer7_batch_norm);
+	net.AddLayer(&layer7_activation);
+	net.AddLayer(&output_softmax);
+
+	// オプティマイザ設定
+	net.SetOptimizer(&bb::NeuralNetOptimizerAdam<>(0.001f, 0.9f, 0.999f));
+
+	// バイナリ設定
+	std::cout << "binary mode : " << binary_mode << std::endl;
+	net.SetBinaryMode(binary_mode);
+
+	// 学習ループ
+	for (int epoc = 0; epoc < epoc_size; ++epoc) {
+
+		// 学習状況評価
+		std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
+
+		for (size_t x_index = 0; x_index < train_images.size(); x_index += max_batch_size) {
+			// 末尾のバッチサイズクリップ
+			size_t batch_size = std::min(max_batch_size, train_images.size() - x_index);
+
+			// データセット
+			net.SetBatchSize(batch_size);
+			for (size_t frame = 0; frame < batch_size; ++frame) {
+				net.SetInputSignal(frame, train_images[x_index + frame]);
+			}
+
+			// 予測
+			net.Forward();
+
+			// 誤差逆伝播
+			float loss = 0;
+			for (size_t frame = 0; frame < batch_size; ++frame) {
+				auto signals = net.GetOutputSignal(frame);
+				for (size_t node = 0; node < signals.size(); ++node) {
+					signals[node] -= train_onehot[x_index + frame][node];
+					loss += signals[node] * signals[node];
+					signals[node] /= (float)batch_size;
+				}
+				net.SetOutputError(frame, signals);
+			}
+			loss = sqrt(loss / batch_size);
+			net.Backward();
+
+			// 更新
+			net.Update();
+
+			// 進捗表示
+			PrintProgress(loss, x_index + batch_size, train_images.size());
+		}
+		ClearProgress();
+
+		// Shuffle
+		bb::ShuffleDataSet(mt(), train_images, train_onehot);
+	}
+	std::cout << "end\n" << std::endl;
+}
 
 
 int main()
 {
+	omp_set_num_threads(6);
+
 	// ファイル読み込み
 	std::vector< std::vector<std::uint8_t> > train_images_u8;
 	std::vector< std::vector<std::uint8_t> > test_images_u8;
@@ -384,12 +521,11 @@ int main()
 	}
 #endif
 
-	
 
 	//////
-	RunSimpleConvSigmoid(1000, 256, 0.1);
+	RunSimpleConvolution(1000, 65, false);
 
-#if 1
+#if 0
 	// バイナリ6入力LUT版学習実験(重いです)
 	RunFlatBinaryLut6(100, 16*8192, -1);
 #endif
@@ -397,6 +533,8 @@ int main()
 #if 0
 	RunDenseAffineSigmoid(100, 256, 1.0);
 #endif
+
+	getchar();
 
 	return 0;
 }

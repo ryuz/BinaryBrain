@@ -972,22 +972,22 @@ int main()
 
 	// 以下評価したいものを適当に切り替えてご使用ください
 
-#if 1
+#if 0
 	// バイナリ6入力LUT版学習実験(重いです)
 	eva_mnist.RunBinaryLut6WithBbruteForce(2, 8192, 8);
 #endif
 
-#if 1
+#if 0
 	// 実数＆全接続(いわゆる古典的なニューラルネット)
 	eva_mnist.RunSimpleDenseAffine(16, 256, false);
 #endif
 
-#if 1
+#if 0
 	// 実数＆接続制限(接続だけLUT的にして中身のノードは実数)
 	eva_mnist.RunSimpleSparseAffine(16, 256, true);
 #endif
 
-#if 1
+#if 0
 	// 接続制限の実数で学習した後でバイナリにコピー
 	eva_mnist.RunRealToBinary(16, 256, 16, 16, 8192);
 #endif
@@ -997,7 +997,7 @@ int main()
 	eva_mnist.RunSimpleConvolution(1000, 256, true);
 #endif
 
-#if 0
+#if 1
 	eva_mnist.RunSparseFullyCnn(1000, 256, true);
 #endif
 
