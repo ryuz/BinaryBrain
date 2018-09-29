@@ -23,7 +23,8 @@ class NeuralNetGroup : public NeuralNetLayer<T, INDEX>
 protected:
 	typedef	NeuralNetLayer<T, INDEX>	LAYER;
 	
-	std::vector< LAYER* > m_layers;
+	INDEX					m_batch_size = 0;
+	std::vector< LAYER* >	m_layers;
 	
 	std::vector< NeuralNetBuffer<T, INDEX> > m_value_buffers;
 	std::vector< NeuralNetBuffer<T, INDEX> > m_error_buffers;
@@ -104,6 +105,11 @@ public:
 		for (auto layer : m_layers) {
 			layer->SetBatchSize(batch_size);
 		}
+
+		if (m_batch_size == batch_size) {
+			return;
+		}
+		m_batch_size = batch_size;
 
 		return SetupBuffer();
 	}

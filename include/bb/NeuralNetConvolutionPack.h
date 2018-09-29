@@ -29,6 +29,7 @@ protected:
 	NeuralNetLayer<T, INDEX>*					m_layer;
 	NeuralNetConvCollapse<ST, ET, T, INDEX>		m_collapse;
 	
+	INDEX	m_batch_size = 0;
 	INDEX	m_expand_size = 1;
 
 public:
@@ -61,10 +62,16 @@ public:
 	void  SetNodeInput(INDEX node, int input_index, INDEX input_node) { m_affine.SetNodeInput(node, input_index, input_node); }
 	INDEX GetNodeInput(INDEX node, int input_index) const { return m_affine.GetNodeInput(node, input_index); }
 	
-	void  SetBatchSize(INDEX batch_size) {
+	void  SetBatchSize(INDEX batch_size)
+	{
 		m_expand.SetBatchSize(batch_size);
 		m_layer->SetBatchSize(batch_size * m_expand_size);
 		m_collapse.SetBatchSize(batch_size);
+
+		if (m_batch_size == batch_size) {
+			return;
+		}
+		m_batch_size = batch_size;
 
 		CheckConnection(m_expand, *m_layer);
 		CheckConnection(*m_layer, m_collapse);

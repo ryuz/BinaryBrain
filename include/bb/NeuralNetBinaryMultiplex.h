@@ -79,14 +79,15 @@ public:
 
 	void  SetBatchSize(INDEX batch_size)
 	{
-//		if (m_batch_size == batch_size) {
-//			return;
-//		}
-		m_batch_size = batch_size;
-		
 		m_real2bin.SetBatchSize(m_batch_size);
 		m_layer->SetBatchSize(m_batch_size * m_mux_size);
 		m_bin2real.SetBatchSize(m_batch_size);
+		
+		if (m_batch_size == batch_size) {
+			return;
+		}
+		m_batch_size = batch_size;
+		
 		
 		// チェック
 		CheckConnection(m_real2bin, *m_layer);
