@@ -56,7 +56,9 @@ public:
 	}
 	
 	~NeuralNetConvolution() {}		// デストラクタ
-	
+
+	std::string GetClassName(void) const { return "NeuralNetConvolution"; }
+
 	void Resize(INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size, std::uint64_t seed = 1)
 	{
 		m_input_c_size = (int)input_c_size;

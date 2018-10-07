@@ -25,11 +25,14 @@ template <int N = 6, typename T = float, typename INDEX = size_t>
 class NeuralNetSparseAffineSigmoid : public NeuralNetSparseLayer<T, INDEX>
 {
 protected:
+	INDEX									m_batch_size = 0;
+
 	// 3ëwÇ≈ç\ê¨
 	NeuralNetSparseAffine<N, T, INDEX>		m_affine;
 	NeuralNetBatchNormalization<T, INDEX>	m_norm;
 	NeuralNetSigmoid<T, INDEX>				m_activation;
 	
+
 public:
 	NeuralNetSparseAffineSigmoid() {}
 
@@ -42,8 +45,9 @@ public:
 	}
 	
 	~NeuralNetSparseAffineSigmoid() {}
-	
-	
+
+	std::string GetClassName(void) const { return "NeuralNetSparseAffineSigmoid"; }
+
 	T CalcNode(INDEX node, std::vector<T> input_value) const
 	{
 		std::vector<T> vec(1);
@@ -90,6 +94,11 @@ public:
 		m_affine.SetBatchSize(batch_size);
 		m_norm.SetBatchSize(batch_size);
 		m_activation.SetBatchSize(batch_size);
+
+		if (batch_size == m_batch_size) {
+			return;
+		}
+		m_batch_size = batch_size;
 
 		m_affine.SetOutputSignalBuffer(m_affine.CreateOutputSignalBuffer());
 		m_affine.SetOutputErrorBuffer(m_affine.CreateOutputErrorBuffer());
@@ -150,6 +159,30 @@ public:
 		m_activation.Update();
 	}
 
+public:
+	// Serialize
+	template <class Archive>
+	void save(Archive &archive, std::uint32_t const version) const
+	{
+	}
+
+	template <class Archive>
+	void load(Archive &archive, std::uint32_t const version)
+	{
+	}
+
+
+	virtual void Save(cereal::JSONOutputArchive& archive) const
+	{
+		m_affine.Save(archive);
+		m_norm.Save(archive);
+	}
+
+	virtual void Load(cereal::JSONInputArchive& archive)
+	{
+		m_affine.Load(archive);
+		m_norm.Load(archive);
+	}
 };
 
 

@@ -40,6 +40,8 @@ public:
 
 	~NeuralNetBinarize() {}
 
+	std::string GetClassName(void) const { return "NeuralNetBinarize"; }
+
 	void Resize(INDEX node_size)
 	{
 		m_node_size = node_size;

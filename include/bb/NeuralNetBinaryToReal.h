@@ -37,7 +37,9 @@ public:
 	}
 	
 	~NeuralNetBinaryToReal() {}
-	
+
+	std::string GetClassName(void) const { return "NeuralNetBinaryToReal"; }
+
 	void Resize(INDEX input_node_size, INDEX output_node_size)
 	{
 		m_input_node_size = input_node_size;

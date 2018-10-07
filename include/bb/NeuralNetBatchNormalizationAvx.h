@@ -10,6 +10,9 @@
 
 #pragma once
 
+#include <cereal/archives/json.hpp>
+#include <cereal/types/vector.hpp>
+#include <cereal/types/array.hpp>
 
 #include "NeuralNetLayerBuf.h"
 #include "NeuralNetOptimizerSgd.h"
@@ -50,6 +53,8 @@ public:
 	}
 
 	~NeuralNetBatchNormalizationAvx() {}		// デストラクタ
+
+	std::string GetClassName(void) const { return "NeuralNetBatchNormalizationAvx"; }
 
 
 	T& gamma(INDEX node) { return m_gamma(node); }
@@ -145,6 +150,7 @@ public:
 					float* y_ptr = (float*)out_sig_buf.GetPtr(node);
 
 					// 平均と分散計算
+#if 0
 					__m256 mean0 = _mm256_set1_ps(0.0f);
 					__m256 mean1 = _mm256_set1_ps(0.0f);
 					__m256 var0 = _mm256_set1_ps(0.0f);
@@ -167,6 +173,27 @@ public:
 					__m256 var = my_mm256_hsum_ps(_mm256_add_ps(var0, var1));
 					var = _mm256_fmsub_ps(var, reciprocal_frame_size, _mm256_mul_ps(mean, mean));
 					var = _mm256_max_ps(var, _mm256_set1_ps(0.0f));	// 誤差対策(負にならないようにクリップ)
+#else
+					__m256 mean_sum = _mm256_set1_ps(0.0f);
+					__m256 mean_c   = _mm256_set1_ps(0.0f);
+					__m256 var_sum  = _mm256_set1_ps(0.0f);
+					__m256 var_c    = _mm256_set1_ps(0.0f);
+					for ( int frame = 0; frame < mm256_frame_size; frame += 8) {
+						__m256 x = _mm256_load_ps(&x_ptr[frame + 0]);
+						__m256 mean_y = _mm256_sub_ps(x, mean_c);
+						__m256 mean_t = _mm256_add_ps(mean_sum, mean_y);
+						__m256 mean_c = _mm256_sub_ps(_mm256_sub_ps(mean_t, mean_sum), mean_y);
+						mean_sum = mean_t;
+
+						__m256 var_y = _mm256_fmsub_ps(x, x, var_c);
+						__m256 var_t = _mm256_add_ps(var_sum, var_y);
+						__m256 var_c = _mm256_sub_ps(_mm256_sub_ps(var_t, var_sum), var_y);
+						var_sum = var_t;
+					}
+					__m256 mean = _mm256_mul_ps(my_mm256_hsum_ps(mean_sum), reciprocal_frame_size);
+					__m256 var = _mm256_fmsub_ps(my_mm256_hsum_ps(var_sum), reciprocal_frame_size, _mm256_mul_ps(mean, mean));
+					var = _mm256_max_ps(var, _mm256_set1_ps(0.0f));	// 誤差対策(負にならないようにクリップ)
+#endif
 
 					__m256 varx = _mm256_max_ps(var, epsilon);
 					__m256 rstd = _mm256_rsqrt_ps(varx);
@@ -260,14 +287,6 @@ public:
 					__m256 dxn = _mm256_mul_ps(dy, gamma);
 					dstd = _mm256_fnmadd_ps(_mm256_mul_ps(dxn, xc), rstd2, dstd);
 					dmeanx = _mm256_fnmadd_ps(dxn, rstd, dmeanx);
-
-					if (isnan(dgamma.m256_f32[0]) || isnan(dbeta.m256_f32[0])) {
-						std::cout << "!!nan!!" << std::endl;
-						std::cout << x.m256_f32[0] << std::endl;
-						std::cout << xc.m256_f32[0] << std::endl;
-						std::cout << xn.m256_f32[0] << std::endl;
-						std::cout << dy.m256_f32[0] << std::endl;
-					}
 				}
 				dbeta = my_mm256_hsum_ps(dbeta);
 				dgamma = my_mm256_hsum_ps(dgamma);
@@ -300,6 +319,36 @@ public:
 		// update
 		m_optimizer_gamma->Update(m_gamma, m_dgamma);
 		m_optimizer_beta->Update(m_beta, m_dbeta);
+	}
+
+public:
+	// Serialize
+	template <class Archive>
+	void save(Archive &archive, std::uint32_t const version) const
+	{
+		archive(cereal::make_nvp("gamma", m_gamma));
+		archive(cereal::make_nvp("beta", m_beta));
+		archive(cereal::make_nvp("running_mean", m_running_mean));
+		archive(cereal::make_nvp("running_var", m_running_var));
+	}
+
+	template <class Archive>
+	void load(Archive &archive, std::uint32_t const version)
+	{
+		archive(cereal::make_nvp("gamma", m_gamma));
+		archive(cereal::make_nvp("beta", m_beta));
+		archive(cereal::make_nvp("running_mean", m_running_mean));
+		archive(cereal::make_nvp("running_var", m_running_var));
+	}
+
+	virtual void Save(cereal::JSONOutputArchive& archive) const
+	{
+		archive(cereal::make_nvp("NeuralNetBatchNormalizationAvx", *this));
+	}
+
+	virtual void Load(cereal::JSONInputArchive& archive)
+	{
+		archive(cereal::make_nvp("NeuralNetBatchNormalizationAvx", *this));
 	}
 
 };

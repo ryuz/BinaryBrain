@@ -13,6 +13,7 @@
 #include <intrin.h>
 #include <assert.h>
 #include "NeuralNetGroup.h"
+#include "NeuralNetLossFunction.h"
 
 
 namespace bb {
@@ -39,6 +40,8 @@ public:
 	// デストラクタ
 	~NeuralNet() {
 	}
+
+	std::string GetClassName(void) const { return "NeuralNet"; }
 
 	void SetBatchSize(INDEX batch_size)
 	{
@@ -118,6 +121,68 @@ public:
 			SetOutputError(frame, node, errors[node]);
 		}
 	}
+
+
+public:
+	double RunCalculation(const std::vector< std::vector<T> >& x, const std::vector< std::vector<T> > t, INDEX max_batch_size,
+		bool train=false, const NeuralNetLossFunction<T, INDEX>* lossFunc = nullptr, bool print_progress = false)
+	{
+		auto it_t = t.begin();
+		INDEX x_size = (INDEX)x.size();
+		double accuracy = 0;
+
+		for (INDEX x_index = 0; x_index < x_size; x_index += max_batch_size) {
+			// 末尾のバッチサイズクリップ
+			INDEX batch_size = std::min(max_batch_size, x.size() - x_index);
+			INDEX node_size = x[0].size();
+
+			// データ格納
+			auto in_sig_buf = GetInputSignalBuffer();
+			for (INDEX frame = 0; frame < batch_size; ++frame) {
+				for (INDEX node = 0; node < node_size; ++node) {
+					in_sig_buf.Set<T>(frame, node) = x[x_index + frame][node];
+				}
+			}
+
+			// 予測
+			Forward(train);
+
+			// 進捗表示
+			if (print_progress) {
+				INDEX progress = x_index + batch_size;
+				INDEX rate = progress * 100 / x_size;
+				std::cout << "[" << rate << "% (" << progress << "/" << x_size << ")]";
+			}
+
+			// 誤差逆伝播
+			if (lossFunc != nullptr) {
+				auto out_sig_buf = GetOutputSignalBuffer();
+				auto out_err_buf = GetOutputErrorBuffer();
+				T loss = lossFunc->CalculateLoss(out_sig_buf, out_err_buf, it_t);
+				it_t += batch_size;
+
+				// 進捗表示
+				if (print_progress) {
+					std::cout << "  loss : " << loss;
+				}
+			}
+
+			if ( train ) {
+				// 逆伝播
+				Backward();
+
+				// 更新
+				Update();
+			}
+
+			if (print_progress) {
+				std::cout << "\r" << std::flush;
+			}
+		}
+
+		return accuracy;
+	}
+
 };
 
 

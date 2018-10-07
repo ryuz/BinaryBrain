@@ -185,5 +185,11 @@
     <ClInclude Include="..\include\bb\NeuralNetBinaryMultiplex.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\bb\NeuralNetLossFunction.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bb\NeuralNetSoftmaxWithLoss.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

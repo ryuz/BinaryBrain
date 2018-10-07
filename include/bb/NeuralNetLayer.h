@@ -34,11 +34,17 @@ public:
 	// basic functions
 	virtual ~NeuralNetLayer() {}												// デストラクタ
 
+	virtual std::string GetClassName(void) const = 0;
+
 	virtual void  SetLayerName(const std::string name) {						// レイヤー名設定
 		m_layer_name = name;
 	}
 	virtual std::string GetLayerName(void) const
 	{
+		if (m_layer_name.empty()) {
+			return GetClassName();
+		}
+
 		return m_layer_name;
 	}
 

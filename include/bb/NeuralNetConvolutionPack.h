@@ -45,7 +45,9 @@ public:
 	}
 
 	~NeuralNetConvolutionPack() {}
-	
+
+	std::string GetClassName(void) const { return "NeuralNetConvolutionPack"; }
+
 	void InitializeCoeff(std::uint64_t seed)
 	{
 		m_layer->InitializeCoeff(seed);
@@ -147,6 +149,28 @@ public:
 		return m_layer->Feedback(exp_loss);
 	}
 
+public:
+	// Serialize
+	template <class Archive>
+	void save(Archive &archive, std::uint32_t const version) const
+	{
+	}
+
+	template <class Archive>
+	void load(Archive &archive, std::uint32_t const version)
+	{
+	}
+
+
+	virtual void Save(cereal::JSONOutputArchive& archive) const
+	{
+		m_layer->Save(archive);
+	}
+
+	virtual void Load(cereal::JSONInputArchive& archive)
+	{
+		m_layer->Load(archive);
+	}
 };
 
 

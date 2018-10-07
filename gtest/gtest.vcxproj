@@ -61,6 +61,7 @@
     <ClInclude Include="..\include\bb\NeuralNetGroup.h" />
     <ClInclude Include="..\include\bb\NeuralNetLayer.h" />
     <ClInclude Include="..\include\bb\NeuralNetLayerBuf.h" />
+    <ClInclude Include="..\include\bb\NeuralNetLossFunction.h" />
     <ClInclude Include="..\include\bb\NeuralNetMaxPooling.h" />
     <ClInclude Include="..\include\bb\NeuralNetOptimizer.h" />
     <ClInclude Include="..\include\bb\NeuralNetOptimizerAdam.h" />
@@ -69,6 +70,7 @@
     <ClInclude Include="..\include\bb\NeuralNetReLU.h" />
     <ClInclude Include="..\include\bb\NeuralNetSigmoid.h" />
     <ClInclude Include="..\include\bb\NeuralNetSoftmax.h" />
+    <ClInclude Include="..\include\bb\NeuralNetSoftmaxWithLoss.h" />
     <ClInclude Include="..\include\bb\NeuralNetSparceAffineSigmoid.h" />
     <ClInclude Include="..\include\bb\NeuralNetSparseAffine.h" />
     <ClInclude Include="..\include\bb\NeuralNetSparseAffineBc.h" />

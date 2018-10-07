@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <iostream>
+#include <random>
 #include "gtest/gtest.h"
 #include "bb/NeuralNetBatchNormalizationAvx.h"
-#include "bb/NeuralNetBatchNormalization.h"
+#include "bb/NeuralNetBatchNormalizationEigen.h"
 
 
 
@@ -10,7 +11,7 @@ template <typename T=float>
 class SimpleBatchNorm
 {
 public:
-	SimpleBatchNorm(int n) : n(n), x(n), y(n), dx(n), dy(n)//, xn(n), xc(n), dxn(n), dxc(n)
+	SimpleBatchNorm(int n) : n(n), x(n), y(n), dx(n), dy(n), xn(n), xc(n), dxn(n), dxc(n)
 	{
 	}
 		
@@ -34,14 +35,14 @@ public:
 	T				dgamma;
 	T				dbeta;
 
-#if 0
+#if 1
 	std::vector<T>	xn;
 	std::vector<T>	xc;
 	std::vector<T>	dxn;
 	std::vector<T>	dxc;
 
 	// オリジナル
-	void Forward0(void)
+	void Forward(void)
 	{
 		// 平均
 		mean = 0;
@@ -133,7 +134,7 @@ public:
 #endif
 
 	// mean/var一括 (中間変数未使用)
-	void Forward(void)
+	void Forward3(void)
 	{
 		// 平均/分散一括
 		mean = 0;
@@ -158,9 +159,9 @@ public:
 		}
 	}
 
-#if 0
+#if 1
 	// オリジナル
-	void Backward0(void)
+	void Backward(void)
 	{
 		dbeta = 0;
 		for (int i = 0; i < n; ++i) {
@@ -270,7 +271,7 @@ public:
 #endif
 
 	// 中間変数未使用 (step順)
-	void Backward(void)
+	void Backward3(void)
 	{
 		dbeta = 0;
 		dgamma = 0;
@@ -327,8 +328,8 @@ TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalization)
 	batch_norm.SetBatchSize(8);
 	testSetupLayerBuffer(batch_norm);
 	
-	SimpleBatchNorm<> exp_norm0(8);
-	SimpleBatchNorm<> exp_norm1(8);
+	SimpleBatchNorm<double> exp_norm0(8);
+	SimpleBatchNorm<double> exp_norm1(8);
 
 
 	auto in_sig = batch_norm.GetInputSignalBuffer();
@@ -490,8 +491,8 @@ TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalization)
 
 	for (int i = 0; i < 8; i++) {
 //		std::cout << exp_norm0.dx[i] << std::endl;
-		EXPECT_TRUE(abs(in_err.GetReal(i, 0) - exp_norm0.dx[i]) < 0.000001);
-		EXPECT_TRUE(abs(in_err.GetReal(i, 1) - exp_norm1.dx[i]) < 0.000001);
+		EXPECT_TRUE(abs(in_err.GetReal(i, 0) - exp_norm0.dx[i]) < 0.001);
+		EXPECT_TRUE(abs(in_err.GetReal(i, 1) - exp_norm1.dx[i]) < 0.001);
 	}
 
 #endif
@@ -503,26 +504,32 @@ TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalization)
 TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalizationCmp)
 {
 	const int node_size = 9;
-	const int frame_size = 23;
+	const int frame_size = 32* 32 * 32;
 
-	std::vector< SimpleBatchNorm<> > exp_norm(node_size, SimpleBatchNorm<>(frame_size));
+	std::vector< SimpleBatchNorm<double> > exp_norm(node_size, SimpleBatchNorm<double>(frame_size));
 	
 
-	bb::NeuralNetBatchNormalizationAvx<> batch_norm0(node_size);
-	bb::NeuralNetBatchNormalization<>    batch_norm1(node_size);
+	bb::NeuralNetBatchNormalizationAvx<>	batch_norm0(node_size);
+	bb::NeuralNetBatchNormalizationEigen<>	batch_norm1(node_size);
 	batch_norm0.SetBatchSize(frame_size);
 	batch_norm1.SetBatchSize(frame_size);
 	testSetupLayerBuffer(batch_norm0);
 	testSetupLayerBuffer(batch_norm1);
-
+	
 	auto in_sig0 = batch_norm0.GetInputSignalBuffer();
 	auto in_sig1 = batch_norm1.GetInputSignalBuffer();
+	
+	std::mt19937_64 mt(123);
+	std::uniform_real_distribution<float> rand_dist(0.0f, 1.0f);
+	
 	int index = 11;
 	for (int node = 0; node < node_size; ++node) {
 		for (int frame = 0; frame < frame_size; ++frame) {
-			in_sig0.SetReal(frame, node, (float)index);
-			in_sig1.SetReal(frame, node, (float)index);
-			exp_norm[node].x[frame] = (float)index;
+	//		float value = (float)index;
+			float value = rand_dist(mt);
+			in_sig0.SetReal(frame, node, value);
+			in_sig1.SetReal(frame, node, value);
+			exp_norm[node].x[frame] = value;
 			index++;
 		}
 	}
@@ -556,13 +563,17 @@ TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalizationCmp)
 	std::cout << out_sig1.GetReal(7, 0) << std::endl;
 #endif
 
-
+	double err = 0;
 	for (int node = 0; node < node_size; ++node) {
 		for (int frame = 0; frame < frame_size; ++frame) {
-			EXPECT_TRUE(abs(out_sig0.GetReal(frame, node) - out_sig1.GetReal(frame, node)) < 0.0001);
-			EXPECT_TRUE(abs(out_sig0.GetReal(frame, node) - exp_norm[node].y[frame]) < 0.001);
+			EXPECT_TRUE(abs(out_sig0.GetReal(frame, node) - out_sig1.GetReal(frame, node))  < 0.0001);
+			EXPECT_TRUE(abs(out_sig0.GetReal(frame, node) - exp_norm[node].y[frame]) < 0.00002);
+
+			err += abs(out_sig0.GetReal(frame, node) - exp_norm[node].y[frame]);
 		}
 	}
+	std::cout << "error : " << err << std::endl;
+
 
 	/// backword
 
@@ -573,9 +584,11 @@ TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalizationCmp)
 	index = 8;
 	for (int node = 0; node < node_size; ++node) {
 		for (int frame = 0; frame < frame_size; ++frame) {
-			out_err0.SetReal(frame, node, (float)index);
-			out_err1.SetReal(frame, node, (float)index);
-			exp_norm[node].dy[frame] = (float)index;
+	//		float value = (float)index;
+			float value = rand_dist(mt);
+			out_err0.SetReal(frame, node, value);
+			out_err1.SetReal(frame, node, value);
+			exp_norm[node].dy[frame] = value;
 			index++;
 		}
 	}
@@ -624,10 +637,70 @@ TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalizationCmp)
 //			std::cout << in_sig0.GetReal(frame, node) << "," << in_sig1.GetReal(frame, node) << "," << exp_norm[node].x[frame] << std::endl;
 //			std::cout << out_sig0.GetReal(frame, node) << "," << out_sig1.GetReal(frame, node) << "," << exp_norm[node].y[frame] << std::endl;
 
-			EXPECT_TRUE(abs(in_err0.GetReal(frame, node) - in_err1.GetReal(frame, node)) < 0.0001);
-			EXPECT_TRUE(abs(in_err0.GetReal(frame, node) - exp_norm[node].dx[frame]) < 0.001);
+			EXPECT_TRUE(abs(in_err0.GetReal(frame, node) - in_err1.GetReal(frame, node)) < 0.01);
+			EXPECT_TRUE(abs(in_err0.GetReal(frame, node) - exp_norm[node].dx[frame]) < 0.01);
 		}
 	}
+
+}
+
+
+
+TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalizationAccuracy)
+{
+	const int frame_size = 16 * 1024* 1024;
+
+	SimpleBatchNorm<long double>			ref_norm(frame_size);	// 基準
+	SimpleBatchNorm<>						simple_norm0(frame_size);
+	SimpleBatchNorm<>						simple_norm1(frame_size);
+	bb::NeuralNetBatchNormalizationAvx<>	batch_norm0(1);
+	bb::NeuralNetBatchNormalizationEigen<>	batch_norm1(1);
+	batch_norm0.SetBatchSize(frame_size);
+	batch_norm1.SetBatchSize(frame_size);
+	testSetupLayerBuffer(batch_norm0);
+	testSetupLayerBuffer(batch_norm1);
+
+	std::mt19937_64 mt(123);
+	std::normal_distribution<float> rand_dist(0.2f, 0.7f);
+
+	auto in_sig0 = batch_norm0.GetInputSignalBuffer();
+	auto in_sig1 = batch_norm1.GetInputSignalBuffer();
+
+	// データセット
+	for (int frame = 0; frame < frame_size; ++frame) {
+		float value = rand_dist(mt);
+		ref_norm.x[frame] = value;
+		simple_norm0.x[frame] = value;
+		simple_norm1.x[frame] = value;
+		in_sig0.SetReal(frame, 0, value);
+		in_sig1.SetReal(frame, 0, value);
+	}
+
+	// forward
+	ref_norm.Forward();
+	batch_norm0.Forward(true);
+	batch_norm1.Forward(true);
+	simple_norm0.Forward();
+	simple_norm1.Forward3();
+
+	auto out_sig0 = batch_norm0.GetOutputSignalBuffer();
+	auto out_sig1 = batch_norm1.GetOutputSignalBuffer();
+
+	long double simple_norm0_err = 0;
+	long double simple_norm1_err = 0;
+	long double batch_norm0_err  = 0;
+	long double batch_norm1_err  = 0;
+	for (int frame = 0; frame < frame_size; ++frame) {
+		simple_norm0_err += abs(simple_norm0.y[frame] - ref_norm.y[frame]);
+		simple_norm1_err += abs(simple_norm1.y[frame] - ref_norm.y[frame]);
+		batch_norm0_err += abs(out_sig0.GetReal(frame, 0) - ref_norm.y[frame]);
+		batch_norm1_err += abs(out_sig1.GetReal(frame, 0) - ref_norm.y[frame]);
+	}
+	std::cout << "simple_norm0_err : " << simple_norm0_err << std::endl;
+	std::cout << "simple_norm1_err : " << simple_norm1_err << std::endl;
+	std::cout << "batch_norm0_err  : " << batch_norm0_err  << std::endl;
+	std::cout << "batch_norm1_err  : " << batch_norm1_err  << std::endl;
+
 
 }
 

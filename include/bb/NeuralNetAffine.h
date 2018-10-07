@@ -61,6 +61,8 @@ public:
 
 	~NeuralNetAffine() {}		// デストラクタ
 
+	std::string GetClassName(void) const { return "NeuralNetAffine"; }
+
 	void Resize(INDEX input_size, INDEX output_size)
 	{
 		m_input_size = input_size;

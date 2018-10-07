@@ -12,8 +12,14 @@
 
 #include <array>
 #include <vector>
+
 #include <intrin.h>
 #include <omp.h>
+
+#include "cereal/archives/json.hpp"
+#include "cereal/types/vector.hpp"
+#include "cereal/types/array.hpp"
+
 #include "NeuralNetSparseLayer.h"
 #include "NeuralNetOptimizerSgd.h"
 
@@ -37,6 +43,15 @@ protected:
 
 		std::unique_ptr< ParamOptimizer<T, INDEX> >	optimizer_W;
 		std::unique_ptr< ParamOptimizer<T, INDEX> >	optimizer_b;
+
+		template<class Archive>
+		void serialize(Archive & archive, std::uint32_t const version)
+		{
+			archive(cereal::make_nvp("input", input));
+			archive(cereal::make_nvp("W", W));
+			archive(cereal::make_nvp("b", b));
+		}
+
 	};
 
 	INDEX						m_frame_size = 1;
@@ -45,7 +60,8 @@ protected:
 	bool						m_binary_mode = false;
 	
 public:
-	NeuralNetSparseAffine() {}
+	NeuralNetSparseAffine() {
+	}
 	
 	NeuralNetSparseAffine(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1,
 		const NeuralNetOptimizer<T, INDEX>* optimizer = &NeuralNetOptimizerSgd<>())
@@ -56,6 +72,8 @@ public:
 	}
 
 	~NeuralNetSparseAffine() {}
+
+	std::string GetClassName(void) const { return "NeuralNetSparseAffine"; }
 
 	T& W(INDEX input, INDEX output) { return m_node[output].W[input]; }
 	T& b(INDEX output) { return m_node[output].b; }
@@ -266,6 +284,33 @@ public:
 		}
 	}
 
+public:
+
+	template <class Archive>
+	void save(Archive &archive, std::uint32_t const version) const
+	{
+		archive(cereal::make_nvp("NeuralNetSparseLayer", *(super *)this));
+		archive(cereal::make_nvp("node", m_node));
+		archive(cereal::make_nvp("binary_mode", m_binary_mode));
+	}
+
+	template <class Archive>
+	void load(Archive &archive, std::uint32_t const version)
+	{
+		archive(cereal::make_nvp("NeuralNetSparseLayer", *(super *)this));
+		archive(cereal::make_nvp("node", m_node));
+		archive(cereal::make_nvp("binary_mode", m_binary_mode));
+	}
+
+	virtual void Save(cereal::JSONOutputArchive& archive) const
+	{
+		archive(cereal::make_nvp("NeuralNetSparseAffine", *this));
+	}
+
+	virtual void Load(cereal::JSONInputArchive& archive)
+	{
+		archive(cereal::make_nvp("NeuralNetSparseAffine", *this));
+	}
 };
 
 

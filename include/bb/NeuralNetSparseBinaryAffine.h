@@ -43,6 +43,7 @@ public:
 
 	~NeuralNetSparseBinaryAffine() {}
 
+	std::string GetClassName(void) const { return "NeuralNetSparseBinaryAffine"; }
 
 	T CalcNode(INDEX node, std::vector<T> input_value) const
 	{

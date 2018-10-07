@@ -41,6 +41,7 @@ public:
 
 	~NeuralNetBinaryLutN() {}
 
+	std::string GetClassName(void) const { return "NeuralNetBinaryLutN"; }
 
 	int   GetLutInputSize(void) const { return N; }
 	int   GetLutTableSize(void) const { return (1 << N); }

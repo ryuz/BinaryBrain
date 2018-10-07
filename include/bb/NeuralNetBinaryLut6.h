@@ -42,6 +42,8 @@ public:
 
 	~NeuralNetBinaryLut6() {}		// デストラクタ
 
+	std::string GetClassName(void) const { return "NeuralNetBinaryLut6"; }
+
 	void Resize(INDEX input_node_size, INDEX output_node_size)
 	{
 		NeuralNetBinaryLut<feedback_bitwise, T, INDEX>::Resize(input_node_size, output_node_size);

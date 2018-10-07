@@ -39,6 +39,7 @@ public:
 		m_norm(output_node_size),
 		m_activation(output_node_size)
 	{
+		m_layer_name = "DenseAffineSigmoid";
 	}
 	
 	~NeuralNetDenseAffineSigmoid() {}

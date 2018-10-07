@@ -43,6 +43,9 @@ public:
 	
 	~NeuralNetBinaryMultiplex() {}
 	
+	std::string GetClassName(void) const { return "NeuralNetBinaryMultiplex"; }
+
+
 	void InitializeCoeff(std::uint64_t seed)
 	{
 		std::mt19937_64 mt(seed);
@@ -79,9 +82,9 @@ public:
 
 	void  SetBatchSize(INDEX batch_size)
 	{
-		m_real2bin.SetBatchSize(m_batch_size);
-		m_layer->SetBatchSize(m_batch_size * m_mux_size);
-		m_bin2real.SetBatchSize(m_batch_size);
+		m_real2bin.SetBatchSize(batch_size);
+		m_layer->SetBatchSize(batch_size * m_mux_size);
+		m_bin2real.SetBatchSize(batch_size);
 		
 		if (m_batch_size == batch_size) {
 			return;
@@ -184,6 +187,29 @@ public:
 		}
 
 		return vec_loss_x;
+	}
+
+
+public:
+	// Serialize
+	template <class Archive>
+	void save(Archive &archive, std::uint32_t const version) const
+	{
+	}
+
+	template <class Archive>
+	void load(Archive &archive, std::uint32_t const version)
+	{
+	}
+	
+	virtual void Save(cereal::JSONOutputArchive& archive) const
+	{
+		m_layer->Save(archive);
+	}
+
+	virtual void Load(cereal::JSONInputArchive& archive)
+	{
+		m_layer->Load(archive);
 	}
 
 };

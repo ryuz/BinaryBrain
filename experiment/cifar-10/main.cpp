@@ -15,6 +15,7 @@
 #include "bb/NeuralNetBinarize.h"
 
 #include "bb/NeuralNetBatchNormalization.h"
+#include "bb/NeuralNetSparseAffineSigmoid.h"
 
 #include "bb/NeuralNetAffine.h"
 #include "bb/NeuralNetSparseAffine.h"
@@ -29,6 +30,9 @@
 
 #include "bb/NeuralNetConvolution.h"
 #include "bb/NeuralNetMaxPooling.h"
+
+#include "bb/NeuralNetConvolutionPack.h"
+#include "bb/NeuralNetBinaryMultiplex.h"
 
 #include "bb/NeuralNetOptimizerAdam.h"
 
@@ -94,27 +98,32 @@ void ClearProgress(void) {
 // ネットの正解率評価
 double CalcAccuracy(bb::NeuralNet<>& net, std::vector< std::vector<float> >& images, std::vector<std::uint8_t>& labels)
 {
-	// 評価サイズ設定
-	net.SetBatchSize(images.size());
+	const size_t max_batch_size = 128;
 
-	// 評価画像設定
-	for (size_t frame = 0; frame < images.size(); ++frame) {
-		net.SetInputSignal(frame, images[frame]);
-	}
-
-	// 評価実施
-	net.Forward(false);
-
-	// 結果集計
 	int ok_count = 0;
-	for (size_t frame = 0; frame < images.size(); ++frame) {
-		auto out_val = net.GetOutputSignal(frame);
-		for (size_t i = 10; i < out_val.size(); i++) {
-			out_val[i % 10] += out_val[i];
+	for (size_t x_index = 0; x_index < images.size(); x_index += max_batch_size) {
+		// 末尾のバッチサイズクリップ
+		size_t batch_size = std::min(max_batch_size, images.size() - x_index);
+
+		// データセット
+		net.SetBatchSize(batch_size);
+		for (size_t frame = 0; frame < batch_size; ++frame) {
+			net.SetInputSignal(frame, images[x_index + frame]);
 		}
-		out_val.resize(10);
-		int max_idx = bb::argmax<float>(out_val);
-		ok_count += ((max_idx % 10) == (int)labels[frame] ? 1 : 0);
+
+		// 評価実施
+		net.Forward(false);
+
+		// 結果集計
+		for (size_t frame = 0; frame < batch_size; ++frame) {
+			auto out_val = net.GetOutputSignal(frame);
+			for (size_t i = 10; i < out_val.size(); i++) {
+				out_val[i % 10] += out_val[i];
+			}
+			out_val.resize(10);
+			int max_idx = bb::argmax<float>(out_val);
+			ok_count += ((max_idx % 10) == (int)labels[x_index + frame] ? 1 : 0);
+		}
 	}
 
 	// 正解率を返す
@@ -353,10 +362,12 @@ void RunSimpleConvSigmoid(int epoc_size, size_t max_batch_size, double learning_
 
 
 // 実数(float)の全接続層で、フラットなネットを評価
-void RunSimpleConvolution(int epoc_size, size_t max_batch_size, bool binary_mode)
+void RunSimpleDenseConvolution(int epoc_size, size_t max_batch_size, bool binary_mode)
 {
-	std::cout << "start [SimpleConvolution]" << std::endl;
+	std::cout << "start [SimpleDenseConvolution]" << std::endl;
 	reset_time();
+
+	std::string JsonName = "SimpleDenseConvolution.json";
 
 	std::mt19937_64 mt(1);
 
@@ -426,6 +437,18 @@ void RunSimpleConvolution(int epoc_size, size_t max_batch_size, bool binary_mode
 	std::cout << "binary mode : " << binary_mode << std::endl;
 	net.SetBinaryMode(binary_mode);
 
+	if (1) {
+		std::ofstream ofs(JsonName);
+		cereal::JSONOutputArchive ar(ofs);
+		net.Save(ar);
+	}
+
+	{
+		std::ifstream ifs(JsonName);
+		cereal::JSONInputArchive ar(ifs);
+		net.Load(ar);
+	}
+
 	// 学習ループ
 	for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
@@ -469,9 +492,156 @@ void RunSimpleConvolution(int epoc_size, size_t max_batch_size, bool binary_mode
 
 		// Shuffle
 		bb::ShuffleDataSet(mt(), train_images, train_onehot);
+
+		// 保存
+		std::ofstream ofs(JsonName);
+		cereal::JSONOutputArchive ar(ofs);
+		net.Save(ar);
 	}
 	std::cout << "end\n" << std::endl;
 }
+
+
+
+// 実数(float)の全接続層で、フラットなネットを評価
+void RunSimpleSparseConvolution(int epoc_size, size_t max_batch_size, bool binary_mode)
+{
+	std::cout << "start [SimpleSparseConvolution]" << std::endl;
+	reset_time();
+
+	std::mt19937_64 mt(1);
+
+	// Conv用subネット構築 (3x3)
+	bb::NeuralNetSparseAffineSigmoid<>	real_sub0_affine0(24 * 3 * 3, 192);
+	bb::NeuralNetSparseAffineSigmoid<>	real_sub0_affine1(192, 32);
+	bb::NeuralNetGroup<>				real_sub0_net;
+	real_sub0_net.AddLayer(&real_sub0_affine0);
+	real_sub0_net.AddLayer(&real_sub0_affine1);
+
+	// Conv用subネット構築 (3x3)
+	bb::NeuralNetSparseAffineSigmoid<>	real_sub1_affine0(32 * 3 * 3, 192);
+	bb::NeuralNetSparseAffineSigmoid<>	real_sub1_affine1(192, 32);
+	bb::NeuralNetGroup<>				real_sub1_net;
+	real_sub1_net.AddLayer(&real_sub1_affine0);
+	real_sub1_net.AddLayer(&real_sub1_affine1);
+
+	// Conv用subネット構築 (3x3)
+	bb::NeuralNetSparseAffineSigmoid<>	real_sub3_affine0(32 * 3 * 3, 192);
+	bb::NeuralNetSparseAffineSigmoid<>	real_sub3_affine1(192, 32);
+	bb::NeuralNetGroup<>				real_sub3_net;
+	real_sub3_net.AddLayer(&real_sub3_affine0);
+	real_sub3_net.AddLayer(&real_sub3_affine1);
+
+	// Conv用subネット構築 (3x3)
+	bb::NeuralNetSparseAffineSigmoid<>	real_sub4_affine0(32 * 3 * 3, 192);
+	bb::NeuralNetSparseAffineSigmoid<>	real_sub4_affine1(192, 32);
+	bb::NeuralNetGroup<>				real_sub4_net;
+	real_sub4_net.AddLayer(&real_sub4_affine0);
+	real_sub4_net.AddLayer(&real_sub4_affine1);
+
+	// バイナリネット
+	bb::NeuralNetConvolutionPack<>		real_layer0_conv(&real_sub0_net, 24, 32, 32, 32, 3, 3);
+	bb::NeuralNetConvolutionPack<>		real_layer1_conv(&real_sub1_net, 32, 30, 30, 32, 3, 3);
+	bb::NeuralNetMaxPooling<>			real_layer2_maxpol(32, 28, 28, 2, 2);
+	bb::NeuralNetConvolutionPack<>		real_layer3_conv(&real_sub3_net, 32, 14, 14, 32, 3, 3);
+	bb::NeuralNetConvolutionPack<>		real_layer4_conv(&real_sub4_net, 32, 12, 12, 32, 3, 3);
+	bb::NeuralNetMaxPooling<>			real_layer5_maxpol(32, 10, 10, 2, 2);
+	bb::NeuralNetSparseAffineSigmoid<>	real_layer6_affine(32 * 5 * 5, 420);
+	bb::NeuralNetSparseAffineSigmoid<>	real_layer7_affine(420, 80);
+	bb::NeuralNetGroup<>				real_mux_group;
+	real_mux_group.AddLayer(&real_layer0_conv);
+	real_mux_group.AddLayer(&real_layer1_conv);
+	real_mux_group.AddLayer(&real_layer2_maxpol);
+	real_mux_group.AddLayer(&real_layer3_conv);
+	real_mux_group.AddLayer(&real_layer4_conv);
+	real_mux_group.AddLayer(&real_layer5_maxpol);
+	real_mux_group.AddLayer(&real_layer6_affine);
+	real_mux_group.AddLayer(&real_layer7_affine);
+
+	// トップネット
+	bb::NeuralNetBinaryMultiplex<float>	real_mux(&real_mux_group, 3*32*32, 10, 8, 8);
+	bb::NeuralNetSoftmax<>				output_softmax(10);
+	bb::NeuralNet<> real_net;
+	real_net.AddLayer(&real_mux);
+	real_net.AddLayer(&output_softmax);
+
+	if(0){
+		std::ofstream ofs("SimpleSparseConvolution.json");
+		cereal::JSONOutputArchive ar(ofs);
+		real_net.Save(ar);
+	}
+	
+	{
+		std::ifstream ifs("SimpleSparseConvolution.json");
+		cereal::JSONInputArchive ar(ifs);
+		real_net.Load(ar);
+	}
+
+
+	// オプティマイザ設定
+	real_net.SetOptimizer(&bb::NeuralNetOptimizerAdam<>(0.001f, 0.9f, 0.999f));
+
+	// バイナリ設定
+	std::cout << "binary mode : " << binary_mode << std::endl;
+	real_net.SetBinaryMode(binary_mode);
+
+	real_mux.SetMuxSize(1);
+
+	// 学習ループ
+	for (int epoc = 0; epoc < epoc_size; ++epoc) {
+
+		// 学習状況評価
+		real_mux.SetMuxSize(3);
+		std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(real_net) << std::endl;
+
+		real_mux.SetMuxSize(1);
+		for (size_t x_index = 0; x_index < train_images.size(); x_index += max_batch_size) {
+			// 末尾のバッチサイズクリップ
+			size_t batch_size = std::min(max_batch_size, train_images.size() - x_index);
+
+			// データセット
+			real_net.SetBatchSize(batch_size);
+			for (size_t frame = 0; frame < batch_size; ++frame) {
+				real_net.SetInputSignal(frame, train_images[x_index + frame]);
+			}
+
+			// 予測
+			real_net.Forward();
+
+			// 誤差逆伝播
+			float loss = 0;
+			for (size_t frame = 0; frame < batch_size; ++frame) {
+				auto signals = real_net.GetOutputSignal(frame);
+				for (size_t node = 0; node < signals.size(); ++node) {
+					signals[node] -= train_onehot[x_index + frame][node];
+					loss += signals[node] * signals[node];
+					signals[node] /= (float)batch_size;
+				}
+				real_net.SetOutputError(frame, signals);
+			}
+			loss = sqrt(loss / batch_size);
+			real_net.Backward();
+
+			// 更新
+			real_net.Update();
+
+			// 進捗表示
+			PrintProgress(loss, x_index + batch_size, train_images.size());
+		}
+		ClearProgress();
+
+		{
+			std::ofstream ofs("SimpleSparseConvolution.json");
+			cereal::JSONOutputArchive ar(ofs);
+			real_net.Save(ar);
+		}
+
+		// Shuffle
+		bb::ShuffleDataSet(mt(), train_images, train_onehot);
+	}
+	std::cout << "end\n" << std::endl;
+}
+
 
 
 int main()
@@ -523,7 +693,9 @@ int main()
 
 
 	//////
-	RunSimpleConvolution(1000, 65, false);
+	RunSimpleDenseConvolution(1000, 64, false);
+//	RunSimpleSparseConvolution(1000, 128, true);
+//	RunSimpleConvolution(1000, 128, true);
 
 #if 0
 	// バイナリ6入力LUT版学習実験(重いです)

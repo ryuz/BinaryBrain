@@ -40,6 +40,8 @@ public:
 
 	~NeuralNetSoftmax() {}		// デストラクタ
 
+	std::string GetClassName(void) const { return "NeuralNetSoftmax"; }
+
 	void Resize(INDEX node_size)
 	{
 		m_node_size = node_size;

@@ -43,7 +43,9 @@ public:
 	}
 	
 	~NeuralNetMaxPooling() {}
-	
+
+	std::string GetClassName(void) const { return "NeuralNetMaxPooling"; }
+
 	void Resize(INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX filter_h_size, INDEX filter_w_size)
 	{
 		m_input_c_size = (int)input_c_size;

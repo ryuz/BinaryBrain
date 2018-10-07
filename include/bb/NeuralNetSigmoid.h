@@ -40,6 +40,8 @@ public:
 
 	~NeuralNetSigmoid() {}		// デストラクタ
 
+	std::string GetClassName(void) const { return "NeuralNetSigmoid"; }
+
 	void Resize(INDEX node_size)
 	{
 		m_node_size = node_size;

@@ -109,37 +109,6 @@ protected:
 	}
 
 	// ネットの正解率評価
-	double CalcAccuracyAll(bb::NeuralNet<>& net, std::vector< std::vector<float> >& images, std::vector<std::uint8_t>& labels)
-	{
-		// 評価サイズ設定
-		net.SetBatchSize(images.size());
-
-		// 評価画像設定
-		for (size_t frame = 0; frame < images.size(); ++frame) {
-			net.SetInputSignal(frame, images[frame]);
-		}
-
-		// 評価実施
-		net.Forward(false);
-
-		// 結果集計
-		int ok_count = 0;
-		for (size_t frame = 0; frame < images.size(); ++frame) {
-			auto out_val = net.GetOutputSignal(frame);
-			for (size_t i = 10; i < out_val.size(); i++) {
-				out_val[i % 10] += out_val[i];
-			}
-			out_val.resize(10);
-			int max_idx = bb::argmax<float>(out_val);
-			ok_count += ((max_idx % 10) == (int)labels[frame] ? 1 : 0);
-		}
-
-		// 正解率を返す
-		return (double)ok_count / (double)images.size();
-	}
-
-
-	// ネットの正解率評価
 	double CalcAccuracy(bb::NeuralNet<>& net, std::vector< std::vector<float> >& images, std::vector<std::uint8_t>& labels)
 	{
 		int ok_count = 0;

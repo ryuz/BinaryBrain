@@ -59,6 +59,7 @@ public:
 
 	~NeuralNetBatchNormalizationEigen() {}		// デストラクタ
 
+	std::string GetClassName(void) const { return "NeuralNetBatchNormalizationEigen"; }
 
 	T& gamma(INDEX node) { return m_gamma(node); }
 	T& beta(INDEX node) { return m_beta(node); }

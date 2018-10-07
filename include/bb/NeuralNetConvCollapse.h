@@ -20,7 +20,7 @@
 namespace bb {
 
 
-// Convolutionクラス
+
 template <typename ST = float, typename ET = float, typename T = float, typename INDEX = size_t>
 class NeuralNetConvCollapse : public NeuralNetLayerBuf<T, INDEX>
 {
@@ -40,7 +40,9 @@ public:
 	}
 	
 	~NeuralNetConvCollapse() {}		// デストラクタ
-	
+
+	std::string GetClassName(void) const { return "NeuralNetConvCollapse"; }
+
 	void Resize(INDEX c_size, INDEX h_size, INDEX w_size)
 	{
 		m_c_size = (int)c_size;
