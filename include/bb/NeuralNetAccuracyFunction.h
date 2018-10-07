@@ -18,10 +18,12 @@ namespace bb {
 
 
 template <typename T = float, typename INDEX = size_t>
-class NeuralNetLossFunction
+class NeuralNetAccuracyFunction
 {
 public:
-	virtual double CalculateLoss(NeuralNetBuffer<T, INDEX> buf_sig, NeuralNetBuffer<T, INDEX> buf_err, typename std::vector< std::vector<T> >::const_iterator t_begin) const = 0;
+	virtual ~NeuralNetAccuracyFunction() {}
+	
+	virtual double CalculateAccuracy(NeuralNetBuffer<T, INDEX> buf_sig, typename std::vector< std::vector<T> >::const_iterator t_begin) const = 0;
 };
 
 

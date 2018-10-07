@@ -14,6 +14,7 @@
 #include <assert.h>
 #include "NeuralNetGroup.h"
 #include "NeuralNetLossFunction.h"
+#include "NeuralNetAccuracyFunction.h"
 
 
 namespace bb {
@@ -124,10 +125,17 @@ public:
 
 
 public:
-	double RunCalculation(const std::vector< std::vector<T> >& x, const std::vector< std::vector<T> > t, INDEX max_batch_size,
-		bool train=false, const NeuralNetLossFunction<T, INDEX>* lossFunc = nullptr, bool print_progress = false)
+	double RunCalculation(
+		const std::vector< std::vector<T> >& x,
+		const std::vector< std::vector<T> >& t,
+		INDEX max_batch_size,
+		const NeuralNetAccuracyFunction<T, INDEX>* accFunc = nullptr,
+		const NeuralNetLossFunction<T, INDEX>* lossFunc = nullptr,
+		bool train = false,
+		bool print_progress = false)
 	{
-		auto it_t = t.begin();
+		auto it_t = t.cbegin();
+
 		INDEX x_size = (INDEX)x.size();
 		double accuracy = 0;
 
@@ -136,11 +144,16 @@ public:
 			INDEX batch_size = std::min(max_batch_size, x.size() - x_index);
 			INDEX node_size = x[0].size();
 
-			// データ格納
+			// バッチサイズ設定
+			SetBatchSize(batch_size);
+
 			auto in_sig_buf = GetInputSignalBuffer();
+			auto out_sig_buf = GetOutputSignalBuffer();
+
+			// データ格納
 			for (INDEX frame = 0; frame < batch_size; ++frame) {
 				for (INDEX node = 0; node < node_size; ++node) {
-					in_sig_buf.Set<T>(frame, node) = x[x_index + frame][node];
+					in_sig_buf.Set<T>(frame, node, x[x_index + frame][node]);
 				}
 			}
 
@@ -156,14 +169,21 @@ public:
 
 			// 誤差逆伝播
 			if (lossFunc != nullptr) {
-				auto out_sig_buf = GetOutputSignalBuffer();
 				auto out_err_buf = GetOutputErrorBuffer();
-				T loss = lossFunc->CalculateLoss(out_sig_buf, out_err_buf, it_t);
-				it_t += batch_size;
+				auto loss = lossFunc->CalculateLoss(out_sig_buf, out_err_buf, it_t);
 
 				// 進捗表示
 				if (print_progress) {
 					std::cout << "  loss : " << loss;
+				}
+			}
+
+			if (accFunc != nullptr) {
+				accuracy += accFunc->CalculateAccuracy(out_sig_buf, it_t);
+
+				// 進捗表示
+				if (print_progress) {
+					std::cout << "  acc : " << accuracy / (x_index + batch_size);
 				}
 			}
 
@@ -174,13 +194,22 @@ public:
 				// 更新
 				Update();
 			}
-
+			
+			// 進捗表示
 			if (print_progress) {
 				std::cout << "\r" << std::flush;
 			}
+
+			// イテレータを進める
+			it_t += batch_size;
 		}
 
-		return accuracy;
+		// 進捗表示クリア
+		if (print_progress) {
+			std::cout << "                                                                    \r" << std::flush;
+		}
+
+		return accuracy / x_size;
 	}
 
 };
