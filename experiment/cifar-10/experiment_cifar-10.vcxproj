@@ -171,6 +171,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\bb\NeuralNet.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetAccuracyCategoricalClassification.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetAccuracyFunction.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetAffine.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBatchNormalization.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBatchNormalizationAvx.h" />
@@ -196,6 +198,8 @@
     <ClInclude Include="..\..\include\bb\NeuralNetLimitedConnection.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLimitedConnectionAffine.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLimitedConnectionAffineBc.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetLossCrossEntropyWithSoftmax.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetLossFunction.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetMaxPooling.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetOptimizer.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetOptimizerAdam.h" />

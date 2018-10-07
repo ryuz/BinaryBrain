@@ -36,6 +36,9 @@
 
 #include "bb/NeuralNetOptimizerAdam.h"
 
+#include "bb/NeuralNetLossCrossEntropyWithSoftmax.h"
+#include "bb/NeuralNetAccuracyCategoricalClassification.h"
+
 
 std::vector<std::uint8_t>				train_labels;
 std::vector< std::vector<float> >		train_images;
@@ -188,6 +191,91 @@ void RunDenseAffineSigmoid(int epoc_size, size_t max_batch_size, double learning
 			net.Update();
 		}
 	}
+	std::cout << "end\n" << std::endl;
+}
+
+
+// 実数(float)の全接続層で、フラットなネットを評価
+void RunDenseAffineSigmoid2(int epoc_size, size_t max_batch_size)
+{
+	std::cout << "start [RunDenseAffineSigmoid2]" << std::endl;
+	reset_time();
+
+	std::mt19937_64 mt(1);
+
+	// 実数版NET構築
+	bb::NeuralNet<> net;
+	bb::NeuralNetAffine<>  layer0_affine(3 * 32 * 32, 200);
+	bb::NeuralNetSigmoid<> layer0_sigmoid(200);
+	bb::NeuralNetAffine<>  layer1_affine(200, 10);
+//	bb::NeuralNetSoftmax<> layer1_softmax(10);
+	net.AddLayer(&layer0_affine);
+	net.AddLayer(&layer0_sigmoid);
+	net.AddLayer(&layer1_affine);
+//	net.AddLayer(&layer1_softmax);
+
+	// オプティマイザ設定
+	net.SetOptimizer(&bb::NeuralNetOptimizerAdam<>(0.001f, 0.9f, 0.999f));
+
+	bb::NeuralNetLossCrossEntropyWithSoftmax<>			lossFunc;
+	bb::NeuralNetAccuracyCategoricalClassification<>	accFunc(10);
+
+	for (int epoc = 0; epoc < epoc_size; ++epoc) {
+		// 学習状況評価
+		auto accuracy = net.RunCalculation(train_images, train_onehot, max_batch_size, &accFunc);
+		std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << accuracy << std::endl;
+
+		// 学習実施
+		net.RunCalculation(train_images, train_onehot, max_batch_size, &accFunc, &lossFunc, true, true);
+
+		// Shuffle
+		bb::ShuffleDataSet(mt(), train_images, train_onehot);
+	}
+	std::cout << "end\n" << std::endl;
+}
+
+
+// 実数(float)の全接続層で、フラットなネットを評価
+void RunDenseAffineSigmoid3(int epoc_size, size_t max_batch_size)
+{
+	std::cout << "start [DenseAffineSigmoid3]" << std::endl;
+	reset_time();
+
+	std::mt19937_64 mt(1);
+
+	// 実数版NET構築
+	bb::NeuralNet<> net;
+	bb::NeuralNetAffine<>  layer0_affine(3 * 32 * 32, 200);
+	bb::NeuralNetSigmoid<> layer0_sigmoid(200);
+	bb::NeuralNetAffine<>  layer1_affine(200, 10);
+	//	bb::NeuralNetSoftmax<> layer1_softmax(10);
+	net.AddLayer(&layer0_affine);
+	net.AddLayer(&layer0_sigmoid);
+	net.AddLayer(&layer1_affine);
+	//	net.AddLayer(&layer1_softmax);
+
+	// オプティマイザ設定
+	net.SetOptimizer(&bb::NeuralNetOptimizerAdam<>(0.001f, 0.9f, 0.999f));
+
+	bb::NeuralNetLossCrossEntropyWithSoftmax<>			lossFunc;
+	bb::NeuralNetAccuracyCategoricalClassification<>	accFunc(10);
+	net.Fitting("DenseAffineSigmoid", train_images, train_onehot, epoc_size, max_batch_size, &accFunc, &lossFunc);
+
+	/*
+	for (int epoc = 0; epoc < epoc_size; ++epoc) {
+		// 学習状況評価
+		auto accuracy = net.RunCalculation(train_images, train_onehot, max_batch_size, &accFunc);
+		std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << accuracy << std::endl;
+
+		// 学習実施
+		net.RunCalculation(train_images, train_onehot, max_batch_size, &accFunc, &lossFunc, true, true);
+
+		// Shuffle
+		bb::ShuffleDataSet(mt(), train_images, train_onehot);
+	}
+	*/
+
+
 	std::cout << "end\n" << std::endl;
 }
 
@@ -647,6 +735,8 @@ void RunSimpleSparseConvolution(int epoc_size, size_t max_batch_size, bool binar
 int main()
 {
 	omp_set_num_threads(6);
+	
+	std::vector< std::vector<int> >::iterator exp_begin;
 
 	// ファイル読み込み
 	std::vector< std::vector<std::uint8_t> > train_images_u8;
@@ -691,9 +781,10 @@ int main()
 	}
 #endif
 
+	RunDenseAffineSigmoid3(64, 128);
 
 	//////
-	RunSimpleDenseConvolution(1000, 64, false);
+//	RunSimpleDenseConvolution(1000, 64, false);
 //	RunSimpleSparseConvolution(1000, 128, true);
 //	RunSimpleConvolution(1000, 128, true);
 

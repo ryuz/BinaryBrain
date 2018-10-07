@@ -187,14 +187,14 @@ public:
 				}
 			}
 
-			if ( train ) {
+			if (train) {
 				// 逆伝播
 				Backward();
 
 				// 更新
 				Update();
 			}
-			
+
 			// 進捗表示
 			if (print_progress) {
 				std::cout << "\r" << std::flush;
@@ -211,7 +211,74 @@ public:
 
 		return accuracy / x_size;
 	}
+	
+	void Fitting(
+		std::string name,
+		std::vector< std::vector<T> >& x,
+		std::vector< std::vector<T> >& t,
+		INDEX epoc_size,
+		INDEX max_batch_size,
+		const NeuralNetAccuracyFunction<T, INDEX>* accFunc,
+		const NeuralNetLossFunction<T, INDEX>* lossFunc,
+		bool print_progress = true,
+		bool file_write = true,
+		bool over_write = false,
+		std::uint64_t seed=1)
+	{
+		std::string csv_file_name = name + "_acc.txt";
+		std::string log_file_name = name + "_log.txt";
+		std::string net_file_name = name + "_net.json";
+		std::mt19937_64 mt(seed);
+		
+		// ログファイルオープン
+		std::ofstream ofs_log;
+		if (file_write) {
+			ofs_log.open(log_file_name, over_write ? std::ios::out : std::ios::app);
+		}
 
+		// 以前の計算があれば読み込み
+		if (file_write && !over_write) {
+			std::ifstream ifs(net_file_name);
+			if (ifs.is_open()) {
+				cereal::JSONInputArchive ar(ifs);
+				Load(ar);
+				std::cout << "[load] " << net_file_name << std::endl;
+			}
+		}
+		
+		{
+			// ログ出力先設定
+			ostream_tee	log_stream;
+			log_stream.add(std::cout);
+			if (ofs_log.is_open()) { log_stream.add(ofs_log); }
+
+			log_stream << "fitting start : " << name << std::endl;
+
+			auto test_accuracy = RunCalculation(x, t, max_batch_size, accFunc);
+			log_stream << "initial test_accuracy : " << test_accuracy << std::endl;
+
+			// 開始時間記録
+			auto start_time = std::chrono::system_clock::now();
+
+			for (int epoc = 0; epoc < epoc_size; ++epoc) {
+				// 学習実施
+				auto train_accuracy = RunCalculation(x, t, max_batch_size, accFunc, lossFunc, true, true);
+
+				// 学習状況評価
+				auto now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
+				auto test_accuracy = RunCalculation(x, t, max_batch_size, accFunc);
+				log_stream << now_time << "s " << "epoc[" << epoc << "] test_accuracy : " << test_accuracy << " train_accuracy : " << train_accuracy <<  std::endl;
+
+				// ネット保存
+				std::ofstream ofs_net(net_file_name);
+				cereal::JSONOutputArchive ar(ofs_net);
+				Save(ar);
+
+				// Shuffle
+				bb::ShuffleDataSet(mt(), x, t);
+			}
+		}
+	}
 };
 
 
