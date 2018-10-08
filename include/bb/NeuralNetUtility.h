@@ -70,6 +70,18 @@ std::vector< std::vector<T> > LabelToOnehot(const std::vector<LT>& labels, LT la
 }
 
 
+// ワンホットデータをラベル値に変換
+template <typename LT, typename T = float>
+std::vector<LT> OnehotToLabel(const std::vector<std::vector<T>>& onehot)
+{
+	std::vector<LT>	label(onehot.size());
+	for (size_t i = 0; i < onehot.size(); ++i) {
+		label[i] = argmax<T, LT>(onehot[i]);
+	}
+
+	return label;
+}
+
 
 // トレーニングデータセットのシャッフル
 template <typename T0>

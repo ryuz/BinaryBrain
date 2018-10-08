@@ -9,13 +9,17 @@
 
 #pragma once
 
+#include <chrono>
+#include <iostream>
+#include <fstream>
 #include <vector>
 #include <intrin.h>
 #include <assert.h>
+
 #include "NeuralNetGroup.h"
 #include "NeuralNetLossFunction.h"
 #include "NeuralNetAccuracyFunction.h"
-
+#include "TrainData.h"
 
 namespace bb {
 
@@ -127,14 +131,14 @@ public:
 public:
 	double RunCalculation(
 		const std::vector< std::vector<T> >& x,
-		const std::vector< std::vector<T> >& t,
+		const std::vector< std::vector<T> >& y,
 		INDEX max_batch_size,
 		const NeuralNetAccuracyFunction<T, INDEX>* accFunc = nullptr,
 		const NeuralNetLossFunction<T, INDEX>* lossFunc = nullptr,
 		bool train = false,
 		bool print_progress = false)
 	{
-		auto it_t = t.cbegin();
+		auto it_y = y.cbegin();
 
 		INDEX x_size = (INDEX)x.size();
 		double accuracy = 0;
@@ -170,7 +174,7 @@ public:
 			// 誤差逆伝播
 			if (lossFunc != nullptr) {
 				auto out_err_buf = GetOutputErrorBuffer();
-				auto loss = lossFunc->CalculateLoss(out_sig_buf, out_err_buf, it_t);
+				auto loss = lossFunc->CalculateLoss(out_sig_buf, out_err_buf, it_y);
 
 				// 進捗表示
 				if (print_progress) {
@@ -179,7 +183,7 @@ public:
 			}
 
 			if (accFunc != nullptr) {
-				accuracy += accFunc->CalculateAccuracy(out_sig_buf, it_t);
+				accuracy += accFunc->CalculateAccuracy(out_sig_buf, it_y);
 
 				// 進捗表示
 				if (print_progress) {
@@ -201,7 +205,7 @@ public:
 			}
 
 			// イテレータを進める
-			it_t += batch_size;
+			it_y += batch_size;
 		}
 
 		// 進捗表示クリア
@@ -214,8 +218,10 @@ public:
 	
 	void Fitting(
 		std::string name,
-		std::vector< std::vector<T> >& x,
-		std::vector< std::vector<T> >& t,
+		std::vector< std::vector<T> >& x_train,
+		std::vector< std::vector<T> >& y_train,
+		std::vector< std::vector<T> >& x_test,
+		std::vector< std::vector<T> >& y_test,
 		INDEX epoc_size,
 		INDEX max_batch_size,
 		const NeuralNetAccuracyFunction<T, INDEX>* accFunc,
@@ -223,6 +229,7 @@ public:
 		bool print_progress = true,
 		bool file_write = true,
 		bool over_write = false,
+		bool initial_evaluation = false,
 		std::uint64_t seed=1)
 	{
 		std::string csv_file_name = name + "_acc.txt";
@@ -236,37 +243,41 @@ public:
 			ofs_log.open(log_file_name, over_write ? std::ios::out : std::ios::app);
 		}
 
-		// 以前の計算があれば読み込み
-		if (file_write && !over_write) {
-			std::ifstream ifs(net_file_name);
-			if (ifs.is_open()) {
-				cereal::JSONInputArchive ar(ifs);
-				Load(ar);
-				std::cout << "[load] " << net_file_name << std::endl;
-			}
-		}
-		
 		{
 			// ログ出力先設定
 			ostream_tee	log_stream;
 			log_stream.add(std::cout);
 			if (ofs_log.is_open()) { log_stream.add(ofs_log); }
 
+			// 以前の計算があれば読み込み
+			if (file_write && !over_write) {
+				std::ifstream ifs(net_file_name);
+				if (ifs.is_open()) {
+					cereal::JSONInputArchive ar(ifs);
+					Load(ar);
+					log_stream << "[load] " << net_file_name << std::endl;
+				}
+			}
+
+			// 開始メッセージ
 			log_stream << "fitting start : " << name << std::endl;
 
-			auto test_accuracy = RunCalculation(x, t, max_batch_size, accFunc);
-			log_stream << "initial test_accuracy : " << test_accuracy << std::endl;
+			// 初期評価
+			if (initial_evaluation) {
+				auto test_accuracy = RunCalculation(x_test, y_test, max_batch_size, accFunc);
+				log_stream << "initial test_accuracy : " << test_accuracy << std::endl;
+			}
 
 			// 開始時間記録
 			auto start_time = std::chrono::system_clock::now();
 
 			for (int epoc = 0; epoc < epoc_size; ++epoc) {
 				// 学習実施
-				auto train_accuracy = RunCalculation(x, t, max_batch_size, accFunc, lossFunc, true, true);
+				auto train_accuracy = RunCalculation(x_train, y_train, max_batch_size, accFunc, lossFunc, true, true);
 
 				// 学習状況評価
 				auto now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
-				auto test_accuracy = RunCalculation(x, t, max_batch_size, accFunc);
+				auto test_accuracy = RunCalculation(x_test, y_test, max_batch_size, accFunc);
 				log_stream << now_time << "s " << "epoc[" << epoc << "] test_accuracy : " << test_accuracy << " train_accuracy : " << train_accuracy <<  std::endl;
 
 				// ネット保存
@@ -275,10 +286,44 @@ public:
 				Save(ar);
 
 				// Shuffle
-				bb::ShuffleDataSet(mt(), x, t);
+				bb::ShuffleDataSet(mt(), x_train, y_train);
 			}
+
+			// 終了メッセージ
+			log_stream << "fitting end" << std::endl;
 		}
 	}
+
+	void Fitting(
+		std::string name,
+		TrainData<T> train_data,
+		INDEX epoc_size,
+		INDEX max_batch_size,
+		const NeuralNetAccuracyFunction<T, INDEX>* accFunc,
+		const NeuralNetLossFunction<T, INDEX>* lossFunc,
+		bool print_progress = true,
+		bool file_write = true,
+		bool over_write = false,
+		bool initial_evaluation = true,
+		std::uint64_t seed = 1)
+	{
+		Fitting(
+			name,
+			train_data.x_train,
+			train_data.y_train,
+			train_data.x_test,
+			train_data.y_test,
+			epoc_size,
+			max_batch_size,
+			accFunc,
+			lossFunc,
+			print_progress,
+			file_write,
+			over_write,
+			initial_evaluation,
+			seed);
+	}
+
 };
 
 

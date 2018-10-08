@@ -164,7 +164,7 @@ public:
 
 	// èoóÕÇÃëπé∏ä÷êî
 	template <typename LT, int LABEL_SIZE>
-	std::vector<double> GetOutputOnehotLoss(std::vector<LT> label)
+	std::vector<double> GetOutputOnehotLoss(std::vector<LT> label, INDEX offset=0)
 	{
 		auto buf = m_layer->GetOutputSignalBuffer();
 		INDEX frame_size = m_layer->GetOutputFrameSize();
@@ -177,12 +177,48 @@ public:
 		for (int frame = 0; frame < (int)frame_size; ++frame) {
 			vec_loss[frame] = 0;
 			for (size_t node = 0; node < node_size; ++node) {
-				if (label[frame / m_mux_size] == (node % LABEL_SIZE)) {
+				if (label[frame / m_mux_size + offset] == (node % LABEL_SIZE)) {
 					vec_loss[frame] += (buf.Get<bool>(frame, node) ? 0.0 : +1.0);
 				}
 				else {
 					vec_loss[frame] += (buf.Get<bool>(frame, node) ? +(1.0 / LABEL_SIZE) : -(0.0 / LABEL_SIZE));
 				}
+			}
+		}
+
+		return vec_loss_x;
+	}
+
+	// èoóÕÇÃëπé∏ä÷êî
+	template <typename LT, int LABEL_SIZE>
+	std::vector<double>  CalcLoss(std::vector< std::vector<T> > label, INDEX offset = 0)
+	{
+		auto out_sig_buf = m_layer->GetOutputSignalBuffer();
+		INDEX frame_size = m_layer->GetOutputFrameSize();
+		INDEX node_size = m_layer->GetOutputNodeSize();
+
+		size_t label_size = frame_size / m_mux_size;
+		std::vector<double>	averages(label_size);
+#pragma omp parallel for
+		for (int i = 0; i < (int)label_size; ++i) {
+			T sum = 0;
+			for (int j = 0; j < LABEL_SIZE; ++j) {
+				sum += (T)label[i + offset][j];
+			}
+			averages[i] = sum / (T)label[i].size();
+		}
+		
+		std::vector<double> vec_loss_x(frame_size);
+		double* vec_loss = &vec_loss_x[0];
+
+#pragma omp parallel for
+		for (int frame = 0; frame < (int)frame_size; ++frame) {
+			vec_loss[frame] = 0;
+			auto ave = averages[frame / m_mux_size];
+			for (size_t node = 0; node < node_size; ++node) {
+				auto sig = out_sig_buf.GetReal(frame, node);
+				auto exp = label[frame / m_mux_size + offset][node % LABEL_SIZE];
+				vec_loss[frame] += (double)(abs(sig - exp) * abs(exp - ave));
 			}
 		}
 

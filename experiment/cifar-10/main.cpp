@@ -19,20 +19,10 @@
 
 #include "bb/NeuralNetAffine.h"
 #include "bb/NeuralNetSparseAffine.h"
-#include "bb/NeuralNetSparseAffineBc.h"
 #include "bb/NeuralNetSparseBinaryAffine.h"
-
-#include "bb/NeuralNetRealToBinary.h"
-#include "bb/NeuralNetBinaryToReal.h"
-#include "bb/NeuralNetBinaryLut6.h"
-#include "bb/NeuralNetBinaryLut6VerilogXilinx.h"
-#include "bb/NeuralNetBinaryFilter.h"
 
 #include "bb/NeuralNetConvolution.h"
 #include "bb/NeuralNetMaxPooling.h"
-
-#include "bb/NeuralNetConvolutionPack.h"
-#include "bb/NeuralNetBinaryMultiplex.h"
 
 #include "bb/NeuralNetOptimizerAdam.h"
 
@@ -40,6 +30,63 @@
 #include "bb/NeuralNetAccuracyCategoricalClassification.h"
 
 
+#include "bb/NeuralNetBinaryMultiplex.h"
+#include "bb/NeuralNetRealToBinary.h"
+#include "bb/NeuralNetBinaryToReal.h"
+#include "bb/NeuralNetBinaryLut6.h"
+#include "bb/NeuralNetBinaryLut6VerilogXilinx.h"
+#include "bb/NeuralNetBinaryFilter.h"
+#include "bb/NeuralNetConvolutionPack.h"
+
+
+#include "bb/LoadCifar10.h"
+
+
+// DenseAffine
+void RunDenseAffineSigmoid(int epoc_size, size_t max_batch_size)
+{
+	std::string run_name = "DenseAffineSigmoid";
+
+	// データ読み込み
+	auto train_data = bb::LoadCifar10<>::Load();
+	
+	// Layer定義
+	bb::NeuralNetAffine<>  layer0_affine(3 * 32 * 32, 200);
+	bb::NeuralNetSigmoid<> layer0_sigmoid(200);
+	bb::NeuralNetAffine<>  layer1_affine(200, 10);
+
+	// Network構築
+	bb::NeuralNet<> net;
+	net.AddLayer(&layer0_affine);
+	net.AddLayer(&layer0_sigmoid);
+	net.AddLayer(&layer1_affine);
+
+	// オプティマイザ設定
+	net.SetOptimizer(&bb::NeuralNetOptimizerAdam<>());
+
+	// fitting実行
+	bb::NeuralNetLossCrossEntropyWithSoftmax<>			lossFunc;
+	bb::NeuralNetAccuracyCategoricalClassification<>	accFunc(10);
+	net.Fitting(run_name, train_data, epoc_size, max_batch_size, &accFunc, &lossFunc);
+}
+
+
+
+
+int main()
+{
+	omp_set_num_threads(6);
+
+	RunDenseAffineSigmoid(32, 128);
+	
+	getchar();
+
+	return 0;
+}
+
+
+
+#if 0
 std::vector<std::uint8_t>				train_labels;
 std::vector< std::vector<float> >		train_images;
 std::vector< std::vector<float> >		train_onehot;
@@ -801,3 +848,6 @@ int main()
 
 	return 0;
 }
+
+
+#endif

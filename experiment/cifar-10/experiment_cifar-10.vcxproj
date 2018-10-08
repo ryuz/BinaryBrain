@@ -170,6 +170,8 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\include\bb\LoadCifar10.h" />
+    <ClInclude Include="..\..\include\bb\LoadMnist.h" />
     <ClInclude Include="..\..\include\bb\NeuralNet.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetAccuracyCategoricalClassification.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetAccuracyFunction.h" />
@@ -216,7 +218,7 @@
     <ClInclude Include="..\..\include\bb\NeuralNetType.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetUtility.h" />
     <ClInclude Include="..\..\include\bb\ShuffleSet.h" />
-    <ClInclude Include="mnist_read.h" />
+    <ClInclude Include="..\..\include\bb\TrainData.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
