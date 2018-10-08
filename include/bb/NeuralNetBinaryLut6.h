@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -21,7 +21,7 @@
 namespace bb {
 
 
-// 6“ü—ÍLUTŒÅ’è
+// 6å…¥åŠ›LUTå›ºå®š
 template <bool feedback_bitwise = false, typename T = float, typename INDEX = size_t>
 class NeuralNetBinaryLut6 : public NeuralNetBinaryLut<feedback_bitwise, T, INDEX>
 {
@@ -42,7 +42,7 @@ public:
 		InitializeCoeff(seed);
 	}
 
-	~NeuralNetBinaryLut6() {}		// ƒfƒXƒgƒ‰ƒNƒ^
+	~NeuralNetBinaryLut6() {}		// ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 
 	std::string GetClassName(void) const { return "NeuralNetBinaryLut6"; }
 

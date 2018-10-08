@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -22,7 +22,7 @@
 namespace bb {
 
 
-// NeuralNet‚Ì’ŠÛƒNƒ‰ƒX
+// NeuralNetã®æŠ½è±¡ã‚¯ãƒ©ã‚¹
 template <typename T = float, typename INDEX = size_t>
 class NeuralNetBatchNormalizationAvx : public NeuralNetLayerBuf<T, INDEX>
 {
@@ -38,8 +38,8 @@ protected:
 	std::unique_ptr< ParamOptimizer<T, INDEX> >	m_optimizer_gamma;
 	std::unique_ptr< ParamOptimizer<T, INDEX> >	m_optimizer_beta;
 
-	std::vector<T>	m_mean;		// •½‹Ï’l
-	std::vector<T>	m_rstd;		// •W€•Î·‚Ì‹t”
+	std::vector<T>	m_mean;		// å¹³å‡å€¤
+	std::vector<T>	m_rstd;		// æ¨™æº–åå·®ã®é€†æ•°
 
 	T				m_momentum = (T)0.001;
 	std::vector<T>	m_running_mean;
@@ -54,7 +54,7 @@ public:
 		SetOptimizer(optimizer);
 	}
 
-	~NeuralNetBatchNormalizationAvx() {}		// ƒfƒXƒgƒ‰ƒNƒ^
+	~NeuralNetBatchNormalizationAvx() {}		// ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 
 	std::string GetClassName(void) const { return "NeuralNetBatchNormalizationAvx"; }
 
@@ -123,7 +123,7 @@ public:
 	}
 
 protected:
-	// …•½‰ÁZ
+	// æ°´å¹³åŠ ç®—
 	inline static __m256 my_mm256_hsum_ps(__m256 r)
 	{
 		r = _mm256_hadd_ps(r, r);
@@ -151,7 +151,7 @@ public:
 					float* x_ptr = (float*)in_sig_buf.GetPtr(node);
 					float* y_ptr = (float*)out_sig_buf.GetPtr(node);
 
-					// •½‹Ï‚Æ•ªUŒvZ
+					// å¹³å‡ã¨åˆ†æ•£è¨ˆç®—
 #if 0
 					__m256 mean0 = _mm256_set1_ps(0.0f);
 					__m256 mean1 = _mm256_set1_ps(0.0f);
@@ -174,7 +174,7 @@ public:
 					__m256 mean = _mm256_mul_ps(my_mm256_hsum_ps(_mm256_add_ps(mean0, mean1)), reciprocal_frame_size);
 					__m256 var = my_mm256_hsum_ps(_mm256_add_ps(var0, var1));
 					var = _mm256_fmsub_ps(var, reciprocal_frame_size, _mm256_mul_ps(mean, mean));
-					var = _mm256_max_ps(var, _mm256_set1_ps(0.0f));	// Œë·‘Îô(•‰‚É‚È‚ç‚È‚¢‚æ‚¤‚ÉƒNƒŠƒbƒv)
+					var = _mm256_max_ps(var, _mm256_set1_ps(0.0f));	// èª¤å·®å¯¾ç­–(è² ã«ãªã‚‰ãªã„ã‚ˆã†ã«ã‚¯ãƒªãƒƒãƒ—)
 #else
 					__m256 mean_sum = _mm256_set1_ps(0.0f);
 					__m256 mean_c   = _mm256_set1_ps(0.0f);
@@ -194,7 +194,7 @@ public:
 					}
 					__m256 mean = _mm256_mul_ps(my_mm256_hsum_ps(mean_sum), reciprocal_frame_size);
 					__m256 var = _mm256_fmsub_ps(my_mm256_hsum_ps(var_sum), reciprocal_frame_size, _mm256_mul_ps(mean, mean));
-					var = _mm256_max_ps(var, _mm256_set1_ps(0.0f));	// Œë·‘Îô(•‰‚É‚È‚ç‚È‚¢‚æ‚¤‚ÉƒNƒŠƒbƒv)
+					var = _mm256_max_ps(var, _mm256_set1_ps(0.0f));	// èª¤å·®å¯¾ç­–(è² ã«ãªã‚‰ãªã„ã‚ˆã†ã«ã‚¯ãƒªãƒƒãƒ—)
 #endif
 
 					__m256 varx = _mm256_max_ps(var, epsilon);
@@ -204,15 +204,15 @@ public:
 					rstd = _mm256_mul_ps(rstd, _mm256_fnmadd_ps(varx, _mm256_mul_ps(rstd, rstd), _mm256_set1_ps(1.5f)));
 					rstd = _mm256_mul_ps(rstd, _mm256_fnmadd_ps(varx, _mm256_mul_ps(rstd, rstd), _mm256_set1_ps(1.5f)));
 
-					// Às‚Ì mean ‚Æ var •Û‘¶
+					// å®Ÿè¡Œæ™‚ã® mean ã¨ var ä¿å­˜
 					m_running_mean[node] = m_running_mean[node] * m_momentum + mean.m256_f32[0] * (1 - m_momentum);
 					m_running_var[node] = m_running_var[node] * m_momentum + var.m256_f32[0] * (1 - m_momentum);
 
-					// Œ‹‰Ê‚Ì•Û‘¶
+					// çµæœã®ä¿å­˜
 					m_mean[node] = mean.m256_f32[0];
 					m_rstd[node] = rstd.m256_f32[0];
 
-					// ³‹K‰» ‚Æ gamma/beta ˆ—
+					// æ­£è¦åŒ– ã¨ gamma/beta å‡¦ç†
 					__m256 gamma = _mm256_set1_ps(m_gamma[node]);
 					__m256 beta = _mm256_set1_ps(m_beta[node]);
 //					for (int frame = 0; frame < mm256_frame_size; frame += 8) {
@@ -255,7 +255,7 @@ public:
 	{
 		if (typeid(T) == typeid(float)) {
 			const int mm256_frame_size = ((int)m_frame_size + 7) / 8 * 8;
-			// ‹t”¶¬
+			// é€†æ•°ç”Ÿæˆ
 			const __m256	reciprocal_frame_size = _mm256_set1_ps(1.0f / (float)m_frame_size);
 
 			auto in_sig_buf = GetInputSignalBuffer();

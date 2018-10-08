@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -23,7 +23,7 @@
 namespace bb {
 
 
-// ConvolutionƒNƒ‰ƒX
+// Convolutionã‚¯ãƒ©ã‚¹
 template <typename T = float, typename INDEX = size_t>
 class NeuralNetConvolution : public NeuralNetLayerBuf<T, INDEX>
 {
@@ -56,7 +56,7 @@ public:
 		SetOptimizer(optimizer);
 	}
 	
-	~NeuralNetConvolution() {}		// ƒfƒXƒgƒ‰ƒNƒ^
+	~NeuralNetConvolution() {}		// ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 
 	std::string GetClassName(void) const { return "NeuralNetConvolution"; }
 
@@ -184,7 +184,7 @@ public:
 	void Forward(bool train = true)
 	{
 		if (typeid(T) == typeid(float)) {
-			// float—pÀ‘•
+			// floatç”¨å®Ÿè£…
 			int  m256_frame_size = (int)(((m_frame_size + 7) / 8) * 8);
 			auto in_sig_buf = GetInputSignalBuffer();
 			auto out_sig_buf = GetOutputSignalBuffer();
@@ -218,7 +218,7 @@ public:
 			}
 		}
 		else if (typeid(T) == typeid(double)) {
-			// double—pÀ‘•
+			// doubleç”¨å®Ÿè£…
 		}
 		else {
 			assert(0);
@@ -228,14 +228,14 @@ public:
 	void Backward(void)
 	{
 		if (typeid(T) == typeid(float)) {
-			// float—pÀ‘•
+			// floatç”¨å®Ÿè£…
 			int  m256_frame_size = (int)(((m_frame_size + 7) / 8) * 8);
 			auto in_sig_buf = GetInputSignalBuffer();
 			auto out_sig_buf = GetOutputSignalBuffer();
 			auto in_err_buf = GetInputErrorBuffer();
 			auto out_err_buf = GetOutputErrorBuffer();
 
-			// ƒpƒ‰ƒ[ƒ^dW‚ÌŒvZ
+			// ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿dWã®è¨ˆç®—
 #pragma omp parallel for
 			for (int n = 0; n < m_output_c_size; ++n) {
 				__m256 sum_db = _mm256_set1_ps(0);
@@ -264,7 +264,7 @@ public:
 				}
 			}
 
-			// ƒpƒ‰ƒ[ƒ^db‚ÌŒvZ
+			// ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿dbã®è¨ˆç®—
 #pragma omp parallel for
 			for (int n = 0; n < m_output_c_size; ++n) {
 				__m256 sum_db = _mm256_set1_ps(0);
@@ -281,7 +281,7 @@ public:
 			}
 
 
-			// “ü—Í‚Ö‚Ì‹t“`”d
+			// å…¥åŠ›ã¸ã®é€†ä¼æ’­
 			in_err_buf.Clear();
 			for (int c = 0; c < m_input_c_size; ++c) {
 #pragma omp parallel for

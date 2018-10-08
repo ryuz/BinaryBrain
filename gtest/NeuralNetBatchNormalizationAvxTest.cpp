@@ -1,4 +1,4 @@
-#include <stdio.h>
+ï»¿#include <stdio.h>
 #include <iostream>
 #include <random>
 #include "gtest/gtest.h"
@@ -41,46 +41,46 @@ public:
 	std::vector<T>	dxn;
 	std::vector<T>	dxc;
 
-	// ƒIƒŠƒWƒiƒ‹
+	// ã‚ªãƒªã‚¸ãƒŠãƒ«
 	void Forward(void)
 	{
-		// •½‹Ï
+		// å¹³å‡
 		mean = 0;
 		for (int i = 0; i < n; ++i) {
 			mean += x[i];
 		}
 		mean /= (T)n;
 
-		// •½‹Ï‚ğˆø‚­
+		// å¹³å‡ã‚’å¼•ã
 		for (int i = 0; i < n; ++i) {
 			xc[i] = x[i] - mean;
 		}
 
-		// •ªU
+		// åˆ†æ•£
 		var = 0;
 		for (int i = 0; i < n; ++i) {
 			var += xc[i] * xc[i];
 		}
 		var /= (T)n;
 
-		// •Î·
+		// åå·®
 		std = sqrt(var + (T)10e-7);
 
-		// ³‹K‰»
+		// æ­£è¦åŒ–
 		for (int i = 0; i < n; ++i) {
 			xn[i] = xc[i] / std;
 		}
 
-		// ƒVƒtƒg
+		// ã‚·ãƒ•ãƒˆ
 		for (int i = 0; i < n; ++i) {
 			y[i] = xn[i] * gamma + beta;
 		}
 	}
 
-	// mean/varˆêŠ‡ (step‡)
+	// mean/varä¸€æ‹¬ (stepé †)
 	void Forward1(void)
 	{
-		// •½‹Ï/•ªUˆêŠ‡
+		// å¹³å‡/åˆ†æ•£ä¸€æ‹¬
 		mean = 0;
 		var = 0;
 		for (int i = 0; i < n; ++i) {
@@ -91,25 +91,25 @@ public:
 		var = (var / (T)n) - (mean * mean);
 		std = sqrt(var + (T)10e-7);
 
-		// •½‹Ï‚ğˆø‚­
+		// å¹³å‡ã‚’å¼•ã
 		for (int i = 0; i < n; ++i) {
 			xc[i] = x[i] - mean;
 		}
 
-		// ³‹K‰»
+		// æ­£è¦åŒ–
 		for (int i = 0; i < n; ++i) {
 			xn[i] = xc[i] / std;
 		}
-			// ƒVƒtƒg
+			// ã‚·ãƒ•ãƒˆ
 		for (int i = 0; i < n; ++i) {
 			y[i] = xn[i] * gamma + beta;
 		}
 	}
 
-	// mean/varˆêŠ‡ (ƒ‹[ƒvÅ“K‰»)
+	// mean/varä¸€æ‹¬ (ãƒ«ãƒ¼ãƒ—æœ€é©åŒ–)
 	void Forward2(void)
 	{
-		// •½‹Ï/•ªUˆêŠ‡
+		// å¹³å‡/åˆ†æ•£ä¸€æ‹¬
 		mean = 0;
 		var = 0;
 		for (int i = 0; i < n; ++i) {
@@ -121,22 +121,22 @@ public:
 		std = sqrt(var + (T)10e-7);
 
 		for (int i = 0; i < n; ++i) {
-			// •½‹Ï‚ğˆø‚­
+			// å¹³å‡ã‚’å¼•ã
 			xc[i] = x[i] - mean;
 
-			// ³‹K‰»
+			// æ­£è¦åŒ–
 			xn[i] = xc[i] / std;
 
-			// ƒVƒtƒg
+			// ã‚·ãƒ•ãƒˆ
 			y[i] = xn[i] * gamma + beta;
 		}
 	}
 #endif
 
-	// mean/varˆêŠ‡ (’†ŠÔ•Ï”–¢g—p)
+	// mean/varä¸€æ‹¬ (ä¸­é–“å¤‰æ•°æœªä½¿ç”¨)
 	void Forward3(void)
 	{
-		// •½‹Ï/•ªUˆêŠ‡
+		// å¹³å‡/åˆ†æ•£ä¸€æ‹¬
 		mean = 0;
 		var = 0;
 		for (int i = 0; i < n; ++i) {
@@ -148,19 +148,19 @@ public:
 		std = sqrt(var + (T)10e-7);
 
 		for (int i = 0; i < n; ++i) {
-			// •½‹Ï‚ğˆø‚­
+			// å¹³å‡ã‚’å¼•ã
 			T _xc = x[i] - mean;
 
-			// ³‹K‰»
+			// æ­£è¦åŒ–
 			T _xn = _xc / std;
 
-			// ƒVƒtƒg
+			// ã‚·ãƒ•ãƒˆ
 			y[i] = _xn * gamma + beta;
 		}
 	}
 
 #if 1
-	// ƒIƒŠƒWƒiƒ‹
+	// ã‚ªãƒªã‚¸ãƒŠãƒ«
 	void Backward(void)
 	{
 		dbeta = 0;
@@ -203,7 +203,7 @@ public:
 	}
 
 
-	// mean/varˆêŠ‡ (step‡)
+	// mean/varä¸€æ‹¬ (stepé †)
 	void Backward1(void)
 	{
 		dbeta = 0;
@@ -244,7 +244,7 @@ public:
 	}
 
 
-	// mean/varˆêŠ‡ (ƒ‹[ƒvÅ“K‰»)
+	// mean/varä¸€æ‹¬ (ãƒ«ãƒ¼ãƒ—æœ€é©åŒ–)
 	void Backward2(void)
 	{
 		dbeta = 0;
@@ -270,7 +270,7 @@ public:
 	}
 #endif
 
-	// ’†ŠÔ•Ï”–¢g—p (step‡)
+	// ä¸­é–“å¤‰æ•°æœªä½¿ç”¨ (stepé †)
 	void Backward3(void)
 	{
 		dbeta = 0;
@@ -391,7 +391,7 @@ TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalization)
 		EXPECT_TRUE(abs(out_sig.GetReal(i, 1) - exp_norm1.y[i]) < 0.000001);
 	}
 
-	// _mm256_rsqrt_ps ‚ğg‚Á‚Ä‚¢‚é‚Ì‚Å¸“x‚Íˆ«‚¢
+	// _mm256_rsqrt_ps ã‚’ä½¿ã£ã¦ã„ã‚‹ã®ã§ç²¾åº¦ã¯æ‚ªã„
 	EXPECT_TRUE(abs(out_sig.GetReal(0, 0) - -1.52752510) < 0.000001);
 	EXPECT_TRUE(abs(out_sig.GetReal(1, 0) - -1.09108940) < 0.000001);
 	EXPECT_TRUE(abs(out_sig.GetReal(2, 0) - -0.65465360) < 0.000001);
@@ -650,7 +650,7 @@ TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalizationAccuracy)
 {
 	const int frame_size = 16 * 1024* 1024;
 
-	SimpleBatchNorm<long double>			ref_norm(frame_size);	// Šî€
+	SimpleBatchNorm<long double>			ref_norm(frame_size);	// åŸºæº–
 	SimpleBatchNorm<>						simple_norm0(frame_size);
 	SimpleBatchNorm<>						simple_norm1(frame_size);
 	bb::NeuralNetBatchNormalizationAvx<>	batch_norm0(1);
@@ -666,7 +666,7 @@ TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalizationAccuracy)
 	auto in_sig0 = batch_norm0.GetInputSignalBuffer();
 	auto in_sig1 = batch_norm1.GetInputSignalBuffer();
 
-	// ƒf[ƒ^ƒZƒbƒg
+	// ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 	for (int frame = 0; frame < frame_size; ++frame) {
 		float value = rand_dist(mt);
 		ref_norm.x[frame] = value;

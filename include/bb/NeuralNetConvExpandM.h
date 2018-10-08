@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -20,7 +20,7 @@
 namespace bb {
 
 
-// Convolution—p“WŠJƒNƒ‰ƒX ƒ}ƒNƒƒo[ƒWƒ‡ƒ“
+// Convolutionç”¨å±•é–‹ã‚¯ãƒ©ã‚¹ ãƒã‚¯ãƒ­ãƒãƒ¼ã‚¸ãƒ§ãƒ³
 template <int INPUT_C_SIZE, int INPUT_H_SIZE, int INPUT_W_SIZE, int FILTER_H_SIZE, int FILTER_W_SIZE,
 			typename ST = float, typename ET = float, typename T = float, typename INDEX = size_t>
 class NeuralNetConvExpandM : public NeuralNetLayerBuf<T, INDEX>
@@ -34,7 +34,7 @@ protected:
 public:
 	NeuralNetConvExpandM() {}
 	
-	~NeuralNetConvExpandM() {}		// ƒfƒXƒgƒ‰ƒNƒ^
+	~NeuralNetConvExpandM() {}		// ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	
 	void Resize()
 	{

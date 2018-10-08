@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -25,21 +25,21 @@
 namespace bb {
 
 
-// FX‚ÈŒ^‚Ìƒf[ƒ^‚ğŠÇ—‚·‚é‚±‚Æ‚ğ–Ú“I‚Æ‚µ‚½ƒoƒbƒtƒ@
-// ƒCƒ[ƒW‚Æ‚µ‚Ä‚Í OpenCV ‚Ì MatŒ^ ‚Ì‚æ‚¤‚È”Ä—p«‚ğ–Úw‚·
+// è‰²ã€…ãªå‹ã®ãƒ‡ãƒ¼ã‚¿ã‚’ç®¡ç†ã™ã‚‹ã“ã¨ã‚’ç›®çš„ã¨ã—ãŸãƒãƒƒãƒ•ã‚¡
+// ã‚¤ãƒ¡ãƒ¼ã‚¸ã¨ã—ã¦ã¯ OpenCV ã® Matå‹ ã®ã‚ˆã†ãªæ±ç”¨æ€§ã‚’ç›®æŒ‡ã™
 //
-// ƒƒ‚ƒŠ‚Íƒx[ƒX‚ğ2ŸŒ³‚Æ‚µ‚ÄA‰æ‘œƒtƒŒ[ƒ€–ˆ‚Éƒoƒbƒ`ˆ—‚·‚éê‡‚Ì
-// frame ²‚ÆAŠe‘w‚Ì‰‰Zƒm[ƒh‚É‘Î‰‚·‚é node ²‚ğ‚Á‚Ä‚¢‚é
-// frame²‚ÍASIMD‰‰Z‚ğˆÓ¯‚µ‚Ä32ƒoƒCƒg‹«ŠE‚ğç‚èAƒoƒCƒiƒŠ’l‚Í
-// __m256i ‚É 256bit ƒpƒbƒLƒ“ƒO‚·‚é
-// node ²‚Í‚³‚ç‚É•K—v‚É‰‚¶‚ÄAƒeƒ“ƒ\ƒ‹“I‚É‘½ŸŒ³‰»‰Â”\‚É‚µ‚Ä‚¨‚«A
-// “]’u‚â reshapeAô‚İ‚İ‚ÌROIƒAƒNƒZƒX‚È‚Çl—¶‚É“ü‚ê‚Ä‚¨‚­
+// ãƒ¡ãƒ¢ãƒªã¯ãƒ™ãƒ¼ã‚¹ã‚’2æ¬¡å…ƒã¨ã—ã¦ã€ç”»åƒãƒ•ãƒ¬ãƒ¼ãƒ æ¯ã«ãƒãƒƒãƒå‡¦ç†ã™ã‚‹å ´åˆã®
+// frame è»¸ã¨ã€å„å±¤ã®æ¼”ç®—ãƒãƒ¼ãƒ‰ã«å¯¾å¿œã™ã‚‹ node è»¸ã‚’æŒã£ã¦ã„ã‚‹
+// frameè»¸ã¯ã€SIMDæ¼”ç®—ã‚’æ„è­˜ã—ã¦32ãƒã‚¤ãƒˆå¢ƒç•Œã‚’å®ˆã‚Šã€ãƒã‚¤ãƒŠãƒªå€¤ã¯
+// __m256i ã« 256bit ãƒ‘ãƒƒã‚­ãƒ³ã‚°ã™ã‚‹
+// node è»¸ã¯ã•ã‚‰ã«å¿…è¦ã«å¿œã˜ã¦ã€ãƒ†ãƒ³ã‚½ãƒ«çš„ã«å¤šæ¬¡å…ƒåŒ–å¯èƒ½ã«ã—ã¦ãŠãã€
+// è»¢ç½®ã‚„ reshapeã€ç•³ã¿è¾¼ã¿æ™‚ã®ROIã‚¢ã‚¯ã‚»ã‚¹ãªã©è€ƒæ…®ã«å…¥ã‚Œã¦ãŠã
 
 
 #define BB_NEURALNET_BUFFER_USE_ROI		0
 
 
-// NeuralNet—p‚Ìƒoƒbƒtƒ@
+// NeuralNetç”¨ã®ãƒãƒƒãƒ•ã‚¡
 template <typename T = float, typename INDEX = size_t>
 class NeuralNetBuffer
 {
@@ -120,14 +120,14 @@ public:
 
 	void Resize(INDEX frame_size, INDEX node_size, int data_type)
 	{
-		// İ’è•Û‘¶
+		// è¨­å®šä¿å­˜
 		m_data_type = data_type;
 		m_base_size = node_size;
 		m_frame_size = frame_size;
 
 		size_t type_bit_size = NeuralNet_GetTypeBitSize(data_type);
 
-		// ƒƒ‚ƒŠŠm•Û
+		// ãƒ¡ãƒ¢ãƒªç¢ºä¿
 		m_frame_stride = (((frame_size * type_bit_size) + 255) / 256) * 32;
 #ifdef _MSC_VER
 		m_buffer = std::shared_ptr<std::uint8_t>((std::uint8_t *)_aligned_malloc(m_frame_stride*(m_base_size + 1), 32), _aligned_free);
@@ -268,7 +268,7 @@ protected:
 		return ptr[frame];
 	}
 
-	template <>
+	template <typename Tp>
 	inline bool Read(void *base, INDEX frame) const
 	{
 		std::uint8_t* ptr = (std::uint8_t*)base;
@@ -276,11 +276,11 @@ protected:
 		return ((ptr[frame / 8] & mask) != 0);
 	}
 
-	template <>
-	inline Bit Read(void *base, INDEX frame) const
-	{
-		return Read<bool>(base, frame);
-	}
+//	template <>
+//	inline Bit Read(void *base, INDEX frame) const
+//	{
+//		return Read<bool>(base, frame);
+//	}
 
 
 	inline void WriteReal(void *base, INDEX frame, T value) const

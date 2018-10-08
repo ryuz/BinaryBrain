@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -18,7 +18,7 @@
 
 namespace bb {
 
-// Xilinx—p 6“ü—ÍLUT Verilog o—Í
+// Xilinxç”¨ 6å…¥åŠ›LUT Verilog å‡ºåŠ›
 template <bool bitwise=false, typename T = float, typename INDEX = size_t>
 void NeuralNetBinaryLut6VerilogXilinx(std::ostream& os, NeuralNetBinaryLut<bitwise, T, INDEX>& lut, std::string module_name)
 {
@@ -30,7 +30,7 @@ void NeuralNetBinaryLut6VerilogXilinx(std::ostream& os, NeuralNetBinaryLut<bitwi
 		return;		// error
 	}
 
-	// ƒ‚ƒWƒ…[ƒ‹o—Í
+	// ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«å‡ºåŠ›
 	os <<
 		"\n"
 		"\n"
@@ -46,7 +46,7 @@ void NeuralNetBinaryLut6VerilogXilinx(std::ostream& os, NeuralNetBinaryLut<bitwi
 
 
 	for (INDEX node = 0; node < node_size; node++) {
-		// LUT o—Í
+		// LUT å‡ºåŠ›
 		os <<
 			"\n"
 			"// LUT : " << node << "\n"

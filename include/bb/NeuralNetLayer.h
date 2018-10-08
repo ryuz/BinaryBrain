@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -32,11 +32,11 @@ protected:
 
 public:
 	// basic functions
-	virtual ~NeuralNetLayer() {}												// ƒfƒXƒgƒ‰ƒNƒ^
+	virtual ~NeuralNetLayer() {}												// ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 
 	virtual std::string GetClassName(void) const = 0;
 
-	virtual void  SetLayerName(const std::string name) {						// ƒŒƒCƒ„[–¼İ’è
+	virtual void  SetLayerName(const std::string name) {						// ãƒ¬ã‚¤ãƒ¤ãƒ¼åè¨­å®š
 		m_layer_name = name;
 	}
 	virtual std::string GetLayerName(void) const
@@ -48,26 +48,26 @@ public:
 		return m_layer_name;
 	}
 
-	virtual void  Resize(std::vector<INDEX> size) {}							// ƒTƒCƒYİ’è
-	virtual void  InitializeCoeff(std::uint64_t seed) {}						// “à•”ŒW”‚Ì—”‰Šú‰»
+	virtual void  Resize(std::vector<INDEX> size) {}							// ã‚µã‚¤ã‚ºè¨­å®š
+	virtual void  InitializeCoeff(std::uint64_t seed) {}						// å†…éƒ¨ä¿‚æ•°ã®ä¹±æ•°åˆæœŸåŒ–
 	
-	virtual void  SetOptimizer(const NeuralNetOptimizer<T, INDEX>* optimizer) {}	//ƒIƒvƒeƒBƒ}ƒCƒU‚Ìİ’è
+	virtual void  SetOptimizer(const NeuralNetOptimizer<T, INDEX>* optimizer) {}	//ã‚ªãƒ—ãƒ†ã‚£ãƒã‚¤ã‚¶ã®è¨­å®š
 
-	virtual INDEX GetInputFrameSize(void) const = 0;							// “ü—Í‚ÌƒtƒŒ[ƒ€”
-	virtual INDEX GetInputNodeSize(void) const = 0;								// “ü—Í‚Ìƒm[ƒh”
-	virtual INDEX GetOutputFrameSize(void) const = 0;							// o—Í‚ÌƒtƒŒ[ƒ€”
-	virtual INDEX GetOutputNodeSize(void) const = 0;							// o—Í‚Ìƒm[ƒh”
+	virtual INDEX GetInputFrameSize(void) const = 0;							// å…¥åŠ›ã®ãƒ•ãƒ¬ãƒ¼ãƒ æ•°
+	virtual INDEX GetInputNodeSize(void) const = 0;								// å…¥åŠ›ã®ãƒãƒ¼ãƒ‰æ•°
+	virtual INDEX GetOutputFrameSize(void) const = 0;							// å‡ºåŠ›ã®ãƒ•ãƒ¬ãƒ¼ãƒ æ•°
+	virtual INDEX GetOutputNodeSize(void) const = 0;							// å‡ºåŠ›ã®ãƒãƒ¼ãƒ‰æ•°
 	
-	virtual void  SetBinaryMode(bool enable) {}									// ƒoƒCƒiƒŠƒ‚[ƒh‚ğİ’è
+	virtual void  SetBinaryMode(bool enable) {}									// ãƒã‚¤ãƒŠãƒªãƒ¢ãƒ¼ãƒ‰ã‚’è¨­å®š
 
-	virtual void  SetBatchSize(INDEX batch_size) = 0;							// ƒoƒbƒ`ƒTƒCƒY‚Ìİ’è
+	virtual void  SetBatchSize(INDEX batch_size) = 0;							// ãƒãƒƒãƒã‚µã‚¤ã‚ºã®è¨­å®š
 	
-	virtual T     CalcNode(INDEX node, std::vector<T> input_value) const { return input_value[0]; }	// 1ƒm[ƒh‚¾‚¯ŒÂ•ÊŒvZ
+	virtual T     CalcNode(INDEX node, std::vector<T> input_value) const { return input_value[0]; }	// 1ãƒãƒ¼ãƒ‰ã ã‘å€‹åˆ¥è¨ˆç®—
 	
-	virtual	void  Forward(bool train=true) = 0;									// —\‘ª
-	virtual	void  Backward(void) = 0;											// Œë·‹t“`”d
-	virtual	void  Update(void) = 0;												// ŠwK
-	virtual	bool  Feedback(const std::vector<double>& loss) { return false; }	// ’¼ÚƒtƒB[ƒhƒoƒbƒN
+	virtual	void  Forward(bool train=true) = 0;									// äºˆæ¸¬
+	virtual	void  Backward(void) = 0;											// èª¤å·®é€†ä¼æ’­
+	virtual	void  Update(void) = 0;												// å­¦ç¿’
+	virtual	bool  Feedback(const std::vector<double>& loss) { return false; }	// ç›´æ¥ãƒ•ã‚£ãƒ¼ãƒ‰ãƒãƒƒã‚¯
 	
 	
 	// forward propagation of signals
@@ -132,7 +132,7 @@ public:
 
 
 
-// ®‡«Šm”F
+// æ•´åˆæ€§ç¢ºèª
 template <typename T = float, typename INDEX = size_t>
 bool CheckConnection(const NeuralNetLayer<T, INDEX>& out_layer, const NeuralNetLayer<T, INDEX>& in_layer)
 {

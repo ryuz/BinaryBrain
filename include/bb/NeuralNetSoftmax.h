@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -19,7 +19,7 @@
 namespace bb {
 
 
-// Softmax(Šˆ«‰»ŠÖ”)
+// Softmax(æ´»æ€§åŒ–é–¢æ•°)
 template <typename T = float, typename INDEX = size_t>
 class NeuralNetSoftmax : public NeuralNetLayerBuf<T, INDEX>
 {
@@ -38,7 +38,7 @@ public:
 		Resize(node_size);
 	}
 
-	~NeuralNetSoftmax() {}		// ƒfƒXƒgƒ‰ƒNƒ^
+	~NeuralNetSoftmax() {}		// ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 
 	std::string GetClassName(void) const { return "NeuralNetSoftmax"; }
 

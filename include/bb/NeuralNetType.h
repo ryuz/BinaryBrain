@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+﻿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -14,10 +14,10 @@
 namespace bb {
 
 
-// ���݁A�����ƃo�C�i�����������B�����͐������������邩��
-// ������ float �� double ���؂�ւ��ł�����x�ɂ̓e���v���[�g��
-// ���������肾���Adouble �̎��v�͖����Ǝv����
-// �������������ꍇ�͂��낢��K�v�Ǝv��
+// 現在、実数とバイナリを実装中。将来は整数も実装するかも
+// 実数は float と double が切り替えできる程度にはテンプレートで
+// 書いたつもりだが、double の需要は無いと思われる
+// 将来整数をやる場合はいろいろ必要と思う
 
 
 #define BB_TYPE_BOOL		(0x0000 + 1)
@@ -47,7 +47,7 @@ class Binary;
 class Sign;
 
 
-// ������������SIMD�ł̕��񉉎Z���Ӑ}���ă��������1bit�Âp�b�L���O���Ĕz�u���鎖���Ӑ}�����^
+// メモリ効率とSIMDでの並列演算を意図してメモリ上で1bitづつパッキングして配置する事を意図した型
 class Bit
 {
 protected:
@@ -75,7 +75,7 @@ public:
 };
 
 
-// SSE���߂̃}�X�N���Ӑ}���āA���������8bit�ŁA0x00 or 0xff �̌^���`
+// SSE命令のマスクを意図して、メモリ上で8bitで、0x00 or 0xff の型を定義
 class Binary
 {
 protected:
@@ -103,7 +103,7 @@ public:
 };
 
 
-// Sign	���l�ɃL���X�g�����Ƃ��� -1 or +1 �ƂȂ� bool �^�I�Ȃ��̂��`
+// Sign	数値にキャストしたときに -1 or +1 となる bool 型的なものを定義
 class Sign
 {
 protected:

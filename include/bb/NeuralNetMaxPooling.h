@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -22,7 +22,7 @@
 namespace bb {
 
 
-// MaxPoolingƒNƒ‰ƒX
+// MaxPoolingã‚¯ãƒ©ã‚¹
 template <typename ST = float, typename ET = float, typename T = float, typename INDEX = size_t>
 class NeuralNetMaxPooling : public NeuralNetLayerBuf<T, INDEX>
 {
@@ -89,7 +89,7 @@ public:
 	void Forward(bool train = true)
 	{
 		if (typeid(ST) == typeid(float)) {
-			// float—pŽÀ‘•
+			// floatç”¨å®Ÿè£…
 			int  m256_frame_size = (int)(((m_frame_size + 7) / 8) * 8);
 			auto in_sig_buf = GetInputSignalBuffer();
 			auto out_sig_buf = GetOutputSignalBuffer();
@@ -100,7 +100,7 @@ public:
 						float* out_sig_ptr = (float*)GetOutputPtr(out_sig_buf, c, y, x);
 
 						for (size_t frame = 0; frame < m256_frame_size; frame += 8) {
-							__m256	max_val = _mm256_set1_ps(0.0f);	// ‘O’i‚ÉŠˆ«‰»“ü‚ê‚é‚©‚ç0‚ªmin‚¾‚æ‚ËH
+							__m256	max_val = _mm256_set1_ps(0.0f);	// å‰æ®µã«æ´»æ€§åŒ–å…¥ã‚Œã‚‹ã‹ã‚‰0ãŒminã ã‚ˆã­ï¼Ÿ
 							for (int fy = 0; fy < m_filter_h_size; ++fy) {
 								int iy = y*m_filter_h_size + fy;
 								for (int fx = 0; fx < m_filter_w_size; ++fx) {
@@ -117,10 +117,10 @@ public:
 			}
 		}
 		else if (typeid(ST) == typeid(double)) {
-			// double—pŽÀ‘•
+			// doubleç”¨å®Ÿè£…
 		}
 		else if (typeid(ST) == typeid(Bit) || typeid(ST) == typeid(bool)) {
-			// ƒoƒCƒiƒŠ—pŽÀ‘•
+			// ãƒã‚¤ãƒŠãƒªç”¨å®Ÿè£…
 			int  m256_frame_size = (int)((m_frame_size + 255) / 256);
 			auto in_sig_buf = GetInputSignalBuffer();
 			auto out_sig_buf = GetOutputSignalBuffer();
@@ -155,7 +155,7 @@ public:
 	void Backward(void)
 	{
 		if (typeid(ST) == typeid(float) && typeid(ET) == typeid(float)) {
-			// float—pŽÀ‘•
+			// floatç”¨å®Ÿè£…
 			int  m256_frame_size = (int)(((m_frame_size + 7) / 8) * 8);
 			auto in_sig_buf = GetInputSignalBuffer();
 			auto out_sig_buf = GetOutputSignalBuffer();
@@ -190,7 +190,7 @@ public:
 			}
 		}
 		else if (typeid(ET) == typeid(double)) {
-			// double—pŽÀ‘•
+			// doubleç”¨å®Ÿè£…
 		}
 		else {
 			assert(0);

@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -16,7 +16,7 @@
 
 namespace bb {
 
-// NeuralNetLayer‚ÌƒOƒ‹[ƒv‰»
+// NeuralNetLayerã®ã‚°ãƒ«ãƒ¼ãƒ—åŒ–
 template <typename T = float, typename INDEX = size_t>
 class NeuralNetGroup : public NeuralNetLayer<T, INDEX>
 {
@@ -35,12 +35,12 @@ protected:
 	int					m_feedback_layer = -1;
 	
 public:
-	// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	NeuralNetGroup()
 	{
 	}
 	
-	// ƒfƒXƒgƒ‰ƒNƒ^
+	// ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	~NeuralNetGroup() {
 	}
 
@@ -55,7 +55,7 @@ public:
 	int   GetOutputSignalDataType(void) const { return m_lastLayer->GetOutputSignalDataType(); }
 	int   GetOutputErrorDataType(void) const { return m_lastLayer->GetOutputErrorDataType(); }
 	
-	// “üo—Íƒoƒbƒtƒ@
+	// å…¥å‡ºåŠ›ãƒãƒƒãƒ•ã‚¡
 	void  SetInputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_firstLayer->SetInputSignalBuffer(buffer); }
 	void  SetOutputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_lastLayer->SetOutputSignalBuffer(buffer); }
 	void  SetInputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_firstLayer->SetInputErrorBuffer(buffer); }
@@ -67,7 +67,7 @@ public:
 	const NeuralNetBuffer<T, INDEX>& GetOutputErrorBuffer(void) const { return m_lastLayer->GetOutputErrorBuffer(); }
 	
 	
-	// “à•”ƒoƒbƒtƒ@ƒAƒNƒZƒX
+	// å†…éƒ¨ãƒãƒƒãƒ•ã‚¡ã‚¢ã‚¯ã‚»ã‚¹
 	void SetInputSignalBuffer(INDEX layer, NeuralNetBuffer<T, INDEX> buf) { return m_layers[layer]->SetInputSignalBuffer(buf); }
 	void SetInputErrorBuffer(INDEX layer, NeuralNetBuffer<T, INDEX> buf) { return m_layers[layer]->SetInputErrorBuffer(buf); }
 	void SetOutputSignalBuffer(INDEX layer, NeuralNetBuffer<T, INDEX> buf) { return m_layers[layer]->SetOutputSignalBuffer(buf); }
@@ -147,7 +147,7 @@ public:
 	bool Feedback(const std::vector<double>& loss)
 	{
 		if (m_feedback_layer < 0) {
-			m_feedback_layer = (int)m_layers.size() - 1;	// ‰‰ñ
+			m_feedback_layer = (int)m_layers.size() - 1;	// åˆå›
 		}
 
 		while (m_feedback_layer >= 0) {
@@ -170,7 +170,7 @@ protected:
 			return;
 		}
 		
-		// ®‡«Šm”F
+		// æ•´åˆæ€§ç¢ºèª
 		for (size_t i = 0; i < m_layers.size()-1; ++i) {
 			if (m_layers[i]->GetOutputFrameSize() != m_layers[i+1]->GetInputFrameSize()) {
 				std::cout << "frame size mismatch" << std::endl;
@@ -202,16 +202,16 @@ protected:
 			}
 		}
 		
-		// ƒƒ‚ƒŠÄŠm•Û
+		// ãƒ¡ãƒ¢ãƒªå†ç¢ºä¿
 		m_value_buffers.clear();
 		m_error_buffers.clear();
 		
 		for (size_t i = 0; i < m_layers.size()-1; ++i) {
-			// ƒoƒbƒtƒ@¶¬
+			// ãƒãƒƒãƒ•ã‚¡ç”Ÿæˆ
 			m_value_buffers.push_back(m_layers[i]->CreateOutputSignalBuffer());
 			m_error_buffers.push_back(m_layers[i]->CreateOutputErrorBuffer());
 			
-			// ƒoƒbƒtƒ@İ’è
+			// ãƒãƒƒãƒ•ã‚¡è¨­å®š
 			m_layers[i]->SetOutputSignalBuffer(m_value_buffers[i]);
 			m_layers[i]->SetOutputErrorBuffer(m_error_buffers[i]);
 			m_layers[i + 1]->SetInputSignalBuffer(m_value_buffers[i]);

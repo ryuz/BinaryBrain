@@ -1,4 +1,4 @@
-#include <string>
+ï»¿#include <string>
 #include <iostream>
 #include <fstream>
 
@@ -140,7 +140,7 @@ TEST(NeuralNetBinaryLut6, testNeuralNetBinaryLut6Batch)
 
 TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6Compare)
 {
-	// Še”’l‚ğ“K“–‚Éİ’è
+	// å„æ•°å€¤ã‚’é©å½“ã«è¨­å®š
 	const std::vector<size_t> in_index_size = { 3, 2, 1 };
 	const std::vector<size_t> out_index_size = { 1, 3, 2 };
 	const size_t input_node_size  = vector_product(in_index_size);
@@ -163,7 +163,7 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6Compare)
 
 #if !BB_NEURALNET_BUFFER_USE_ROI
 
-	// ‚»‚Ì‚Ü‚Ü‚ÌƒTƒCƒY
+	// ãã®ã¾ã¾ã®ã‚µã‚¤ã‚º
 	testSetupLayerBuffer(lut0);
 	testSetupLayerBuffer(lut1);
 
@@ -171,11 +171,11 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6Compare)
 	auto in_val1 = lut1.GetInputSignalBuffer();
 	auto out_val0 = lut0.GetOutputSignalBuffer();
 	auto out_val1 = lut1.GetOutputSignalBuffer();
-	lut1.SetInputSignalBuffer(in_val0);		// “ü—Íƒoƒbƒtƒ@‹¤’Ê‰»
+	lut1.SetInputSignalBuffer(in_val0);		// å…¥åŠ›ãƒãƒƒãƒ•ã‚¡å…±é€šåŒ–
 
 #else
 
-	// ROIƒeƒXƒg‚Ì‚½‚ßƒTƒCƒY‚ÌˆÙ‚È‚éƒoƒbƒtƒ@‚ğì‚é
+	// ROIãƒ†ã‚¹ãƒˆã®ãŸã‚ã‚µã‚¤ã‚ºã®ç•°ãªã‚‹ãƒãƒƒãƒ•ã‚¡ã‚’ä½œã‚‹
 	std::vector<size_t> in0_front_blank  = { 1, 2, 3 };
 	std::vector<size_t> in0_back_blank   = { 9, 8, 7 };
 	std::vector<size_t> in1_front_blank  = { 2, 0, 4 };
@@ -199,13 +199,13 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6Compare)
 	out_val0.SetDimensions(out0_addr_size);
 	out_val1.SetDimensions(out1_addr_size);
 
-	// ROIƒTƒCƒY‚Í‘µ‚¦‚é
+	// ROIã‚µã‚¤ã‚ºã¯æƒãˆã‚‹
 	in_val0.SetRoi(in0_front_blank, in_index_size);
 	in_val1.SetRoi(in1_front_blank, in_index_size);
 	out_val0.SetRoi(out0_front_blank, out_index_size);
 	out_val1.SetRoi(out1_front_blank, out_index_size);
 
-	// ƒoƒbƒtƒ@İ’è
+	// ãƒãƒƒãƒ•ã‚¡è¨­å®š
 	lut0.SetInputSignalBuffer(in_val0);
 	lut1.SetInputSignalBuffer(in_val1);
 	lut0.SetOutputSignalBuffer(out_val0);
@@ -213,7 +213,7 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6Compare)
 
 #endif
 
-	// Šî–{ƒpƒ‰ƒ[ƒ^Šm”F
+	// åŸºæœ¬ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ç¢ºèª
 	EXPECT_EQ(input_node_size, lut0.GetInputNodeSize());
 	EXPECT_EQ(output_node_size, lut0.GetOutputNodeSize());
 	EXPECT_EQ(frame_size, lut0.GetInputFrameSize());
@@ -236,7 +236,7 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6Compare)
 	EXPECT_EQ(lut1.GetOutputNodeSize(), out_val1.GetNodeSize());
 	EXPECT_EQ(lut1.GetOutputNodeSize(), out_val1.GetNodeSize());
 
-	// İ’è
+	// è¨­å®š
 	for (size_t node = 0; node < output_node_size; ++node) {
 		for (int lut_input = 0; lut_input < lut_input_size; ++lut_input) {
 			size_t input_node = rand_input(mt);
@@ -251,7 +251,7 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6Compare)
 		}
 	}
 	
-	// ƒf[ƒ^İ’è
+	// ãƒ‡ãƒ¼ã‚¿è¨­å®š
 	for (size_t frame = 0; frame < frame_size; ++frame) {
 		for (int node = 0; node < input_node_size; ++node) {
 			bool input_value = (rand_bin(mt) != 0);
@@ -260,7 +260,7 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6Compare)
 		}
 	}
 
-	// o—Íƒoƒbƒtƒ@‚ğ‰ó‚µ‚Ä‚¨‚­(Debug”Å‚¾‚Æ“¯‚¶‰Šú’l‚ª–„‚Ü‚é‚Ì‚Å)
+	// å‡ºåŠ›ãƒãƒƒãƒ•ã‚¡ã‚’å£Šã—ã¦ãŠã(Debugç‰ˆã ã¨åŒã˜åˆæœŸå€¤ãŒåŸ‹ã¾ã‚‹ã®ã§)
 	for (size_t frame = 0; frame < frame_size; ++frame) {
 		for (int node = 0; node < output_node_size; ++node) {
 			out_val0.SetBinary(frame, node, (rand_bin(mt) != 0));

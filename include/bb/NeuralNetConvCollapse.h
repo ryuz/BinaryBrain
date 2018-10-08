@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -38,7 +38,7 @@ public:
 		Resize(c_size, h_size, w_size);
 	}
 	
-	~NeuralNetConvCollapse() {}		// ƒfƒXƒgƒ‰ƒNƒ^
+	~NeuralNetConvCollapse() {}		// ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 
 	std::string GetClassName(void) const { return "NeuralNetConvCollapse"; }
 

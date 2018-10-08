@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+﻿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -17,7 +17,7 @@
 
 namespace bb {
 
-// �ėpLUT
+// 汎用LUT
 template <int N = 6, bool feedback_bitwise = false, typename T = float, typename INDEX = size_t>
 class NeuralNetBinaryLutN : public NeuralNetBinaryLut<feedback_bitwise, float, INDEX>
 {

@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -19,12 +19,12 @@
 namespace bb {
 
 
-// “ü—Í”§ŒÀAffine Binary Connect”Å
+// å…¥åŠ›æ•°åˆ¶é™Affine Binary Connectç‰ˆ
 template <typename ST = float, typename ET = float, typename T = float, typename INDEX = size_t>
 class NeuralNetConvolutionPack : public NeuralNetLayer<T, INDEX>
 {
 protected:
-	// 3‘w‚Å\¬
+	// 3å±¤ã§æ§‹æˆ
 	NeuralNetConvExpand<ST, ET, T, INDEX>		m_expand;
 	NeuralNetLayer<T, INDEX>*					m_layer;
 	NeuralNetConvCollapse<ST, ET, T, INDEX>		m_collapse;
@@ -90,7 +90,7 @@ public:
 	}
 
 	
-	// “üo—Íƒoƒbƒtƒ@
+	// å…¥å‡ºåŠ›ãƒãƒƒãƒ•ã‚¡
 	void  SetInputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_expand.SetInputSignalBuffer(buffer); }
 	void  SetOutputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_collapse.SetOutputSignalBuffer(buffer); }
 	void  SetInputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_expand.SetInputErrorBuffer(buffer); }

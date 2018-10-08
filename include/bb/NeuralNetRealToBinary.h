@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -17,7 +17,7 @@
 namespace bb {
 
 
-// NeuralNet‚Ì’ŠÛƒNƒ‰ƒX
+// NeuralNetã®æŠ½è±¡ã‚¯ãƒ©ã‚¹
 template <typename BT = Bit, typename T = float, typename INDEX = size_t>
 class NeuralNetRealToBinary : public NeuralNetLayerBuf<T, INDEX>
 {
@@ -75,7 +75,7 @@ public:
 		auto in_sig_buf = GetInputSignalBuffer();
 		auto out_sig_buf = GetOutputSignalBuffer();
 
-		// ƒm[ƒh”‚Ì”{—¦‚ğŠm”F
+		// ãƒãƒ¼ãƒ‰æ•°ã®å€ç‡ã‚’ç¢ºèª
 		int mul = std::max((int)(m_output_node_size / m_input_node_size), 1);
 		T th_range = (T)(1.0 / mul);
 

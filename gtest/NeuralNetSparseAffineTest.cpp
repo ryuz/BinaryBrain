@@ -1,4 +1,4 @@
-#include <stdio.h>
+ï»¿#include <stdio.h>
 #include <iostream>
 #include "gtest/gtest.h"
 #include "bb/NeuralNetAffine.h"
@@ -19,7 +19,7 @@ TEST(NeuralNetSparseAffineTest, testAffine)
 	bb::NeuralNetSparseAffine<2> affine(2, 3);
 	testSetupLayerBuffer(affine);
 	
-	// Ú‘±‚ğ’ÊíAffine‚Æ“¯ˆê‚É‚·‚é
+	// æ¥ç¶šã‚’é€šå¸¸Affineã¨åŒä¸€ã«ã™ã‚‹
 	for (size_t node = 0; node < affine.GetOutputNodeSize(); ++node) {
 		for (int i = 0; i < affine.GetNodeInputSize(node); ++i) {
 			affine.SetNodeInput(node, i, i);
@@ -77,7 +77,7 @@ TEST(NeuralNetSparseAffineTest, testAffineInput)
 	bb::NeuralNetSparseAffine<2> affine(2, 3);
 	testSetupLayerBuffer(affine);
 
-	// Ú‘±‚ğ•Ï‚¦‚é
+	// æ¥ç¶šã‚’å¤‰ãˆã‚‹
 	affine.SetNodeInput(0, 0, 1);
 	affine.SetNodeInput(0, 1, 0);
 	affine.SetNodeInput(1, 0, 1);
@@ -139,7 +139,7 @@ TEST(NeuralNetSparseAffineTest, testAffineCompare)
 	testSetupLayerBuffer(affineOrg);
 	testSetupLayerBuffer(affineLim);
 	
-	// §ŒÀ•t‚«Affine‚ÌÚ‘±‚ğ’ÊíAffine‚Æ“¯ˆê‚É‚·‚é
+	// åˆ¶é™ä»˜ãAffineã®æ¥ç¶šã‚’é€šå¸¸Affineã¨åŒä¸€ã«ã™ã‚‹
 	for (size_t node = 0; node < affineLim.GetOutputNodeSize(); ++node) {
 		for (int i = 0; i < affineLim.GetNodeInputSize(node); ++i) {
 			affineLim.SetNodeInput(node, i, i);
@@ -164,7 +164,7 @@ TEST(NeuralNetSparseAffineTest, testAffineCompare)
 	std::uniform_real_distribution<float> uniform_dist(0, 1);
 	std::normal_distribution<float> normal_dist(0, 1);
 
-	// “à•”ŒW”‚ğ“¯‚¶—”‚Å“ˆê
+	// å†…éƒ¨ä¿‚æ•°ã‚’åŒã˜ä¹±æ•°ã§çµ±ä¸€
 	for (size_t node = 0; node < node_size; ++node) {
 		for (size_t input = 0; input < input_size; ++input) {
 			float r = normal_dist(mt);
@@ -178,7 +178,7 @@ TEST(NeuralNetSparseAffineTest, testAffineCompare)
 
 	for (int loop = 0; loop < 3; ++loop)
 	{
-		// “ü—Íƒf[ƒ^‚ğ“¯‚¶—”‚Å“ˆê
+		// å…¥åŠ›ãƒ‡ãƒ¼ã‚¿ã‚’åŒã˜ä¹±æ•°ã§çµ±ä¸€
 		for (size_t input = 0; input < input_size; ++input) {
 			for (size_t frame = 0; frame < frame_size; ++frame) {
 				float r = uniform_dist(mt);
@@ -191,14 +191,14 @@ TEST(NeuralNetSparseAffineTest, testAffineCompare)
 		affineOrg.Forward();
 		affineLim.Forward();
 
-		// o—Í”äŠr
+		// å‡ºåŠ›æ¯”è¼ƒ
 		for (size_t node = 0; node < node_size; ++node) {
 			for (size_t frame = 0; frame < frame_size; ++frame) {
 				EXPECT_TRUE(abs(org_out_val.GetReal(frame, node) - lim_out_val.GetReal(frame, node)) < 0.00001);
 			}
 		}
 
-		// Œë·“ü—Íƒf[ƒ^‚ğ“¯‚¶—”‚Å“ˆê
+		// èª¤å·®å…¥åŠ›ãƒ‡ãƒ¼ã‚¿ã‚’åŒã˜ä¹±æ•°ã§çµ±ä¸€
 		std::uniform_real_distribution<float> uniform_dist(0, 1);
 		for (size_t node = 0; node < node_size; ++node) {
 			for (size_t frame = 0; frame < frame_size; ++frame) {
@@ -212,7 +212,7 @@ TEST(NeuralNetSparseAffineTest, testAffineCompare)
 		affineOrg.Backward();
 		affineLim.Backward();
 
-		// Œë·‚ğ”äŠr
+		// èª¤å·®ã‚’æ¯”è¼ƒ
 		for (size_t input = 0; input < input_size; ++input) {
 			for (size_t frame = 0; frame < frame_size; ++frame) {
 		//		std::cout << org_in_err.GetReal(frame, input) << std::endl;
@@ -226,7 +226,7 @@ TEST(NeuralNetSparseAffineTest, testAffineCompare)
 		affineOrg.Update();
 		affineLim.Update();
 		
-		// ŠwKŒW””äŠr
+		// å­¦ç¿’ä¿‚æ•°æ¯”è¼ƒ
 		for (size_t node = 0; node < node_size; ++node) {
 			for (size_t input = 0; input < input_size; ++input) {
 	//			EXPECT_EQ(affineOrg.W(input, node), affineLim.W(input, node));

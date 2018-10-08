@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -18,7 +18,7 @@
 namespace bb {
 
 
-// “ü—ÍÚ‘±”‚É§ŒÀ‚Ì‚ ‚éƒlƒbƒg
+// å…¥åŠ›æ¥ç¶šæ•°ã«åˆ¶é™ã®ã‚ã‚‹ãƒãƒƒãƒˆ
 template <typename T = float, typename INDEX = size_t>
 class NeuralNetSparseLayer : public NeuralNetLayerBuf<T, INDEX>
 {
@@ -29,11 +29,11 @@ protected:
 	INDEX					m_output_node_size;
 
 public:
-	// “üo—ÍƒTƒCƒY‚ÌŠÇ—
+	// å…¥å‡ºåŠ›ã‚µã‚¤ã‚ºã®ç®¡ç†
 	INDEX GetInputNodeSize(void) const { return m_input_node_size; }
 	INDEX GetOutputNodeSize(void) const { return m_output_node_size; }
 	
-	// ƒm[ƒh‚ÌÚ‘±ŠÇ—‚Ì’è‹`
+	// ãƒãƒ¼ãƒ‰ã®æ¥ç¶šç®¡ç†ã®å®šç¾©
 	virtual int   GetNodeInputSize(INDEX node) const = 0;
 	virtual void  SetNodeInput(INDEX node, int input_index, INDEX input_node) = 0;
 	virtual INDEX GetNodeInput(INDEX node, int input_index) const = 0;
@@ -49,12 +49,12 @@ public:
 		std::mt19937_64                     mt(seed);
 		std::uniform_int_distribution<int>	distribution(0, 1);
 		
-		// Ú‘±æ‚ğƒVƒƒƒbƒtƒ‹
+		// æ¥ç¶šå…ˆã‚’ã‚·ãƒ£ãƒƒãƒ•ãƒ«
 		ShuffleSet	ss(GetInputNodeSize(), mt());
 		
 		INDEX node_size = GetOutputNodeSize();
 		for (INDEX node = 0; node < node_size; ++node) {
-			// “ü—Í‚ğƒ‰ƒ“ƒ_ƒ€Ú‘±
+			// å…¥åŠ›ã‚’ãƒ©ãƒ³ãƒ€ãƒ æ¥ç¶š
 			int  input_size = GetNodeInputSize(node);
 			auto random_set = ss.GetRandomSet(input_size);
 			for (int i = 0; i < input_size; ++i) {

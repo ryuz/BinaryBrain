@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <fstream>
 #include <numeric>
 #include <random>
@@ -87,7 +87,7 @@ void MnistDenseAffineSigmoid(int epoc_size, size_t max_batch_size)
 
 
 
-// LUT6“ü—Í‚ÌƒoƒCƒiƒŠ”Å‚Ì—Í‹ZŠwK
+// LUT6å…¥åŠ›ã®ãƒã‚¤ãƒŠãƒªç‰ˆã®åŠ›æŠ€å­¦ç¿’
 void BinaryLut6WithBbruteForce(int epoc_size, size_t max_batch_size)
 {
 	// run name
@@ -119,7 +119,7 @@ void BinaryLut6WithBbruteForce(int epoc_size, size_t max_batch_size)
 
 	std::mt19937_64 mt(1);
 
-	// ŠwK‚Æ•]‰¿‚Å‘½d‰»”(—”‚ğ•Ï‚¦‚Ä•¡”–ˆ’Ê‚µ‚ÄWŒv‚Å‚«‚é‚æ‚¤‚É‚·‚é)‚ğ•Ï‚¦‚é
+	// å­¦ç¿’æ™‚ã¨è©•ä¾¡æ™‚ã§å¤šé‡åŒ–æ•°(ä¹±æ•°ã‚’å¤‰ãˆã¦è¤‡æ•°æ¯é€šã—ã¦é›†è¨ˆã§ãã‚‹ã‚ˆã†ã«ã™ã‚‹)ã‚’å¤‰ãˆã‚‹
 	int train_mux_size = 1;
 	int test_mux_size = 4;
 
@@ -133,7 +133,7 @@ void BinaryLut6WithBbruteForce(int epoc_size, size_t max_batch_size)
 	size_t layer1_node_size = 60 * output_hmux_size;
 	size_t layer2_node_size = output_node_size * output_hmux_size;
 
-	// ƒoƒCƒiƒŠƒlƒbƒg‚ÌGroupì¬
+	// ãƒã‚¤ãƒŠãƒªãƒãƒƒãƒˆã®Groupä½œæˆ
 	bb::NeuralNetBinaryLut6<>	bin_layer0_lut(input_node_size*input_hmux_size, layer0_node_size);
 	bb::NeuralNetBinaryLut6<>	bin_layer1_lut(layer0_node_size, layer1_node_size);
 	bb::NeuralNetBinaryLut6<>	bin_layer2_lut(layer1_node_size, layer2_node_size);
@@ -143,41 +143,41 @@ void BinaryLut6WithBbruteForce(int epoc_size, size_t max_batch_size)
 	bin_group.AddLayer(&bin_layer2_lut);
 	auto last_lut_layer = &bin_layer2_lut;
 
-	// ‘½d‰»‚µ‚ÄƒpƒbƒLƒ“ƒO
+	// å¤šé‡åŒ–ã—ã¦ãƒ‘ãƒƒã‚­ãƒ³ã‚°
 	bb::NeuralNetBinaryMultiplex<>	bin_mux(&bin_group, input_node_size, output_node_size, input_hmux_size, output_hmux_size);
 
-	// ƒlƒbƒg\’z
+	// ãƒãƒƒãƒˆæ§‹ç¯‰
 	bb::NeuralNet<> net;
 	net.AddLayer(&bin_mux);
 
-	// •]‰¿ŠÖ”
+	// è©•ä¾¡é–¢æ•°
 	bb::NeuralNetAccuracyCategoricalClassification<>	accFunc(num_class);
 
-	// ‰Šú•]‰¿
-	bin_mux.SetMuxSize(test_mux_size);	// •]‰¿—p‚Ì‘½d‰»”‚ÉƒXƒCƒbƒ`
+	// åˆæœŸè©•ä¾¡
+	bin_mux.SetMuxSize(test_mux_size);	// è©•ä¾¡ç”¨ã®å¤šé‡åŒ–æ•°ã«ã‚¹ã‚¤ãƒƒãƒ
 	auto test_accuracy = net.RunCalculation(train_data.x_test, train_data.y_test, max_batch_size, &accFunc);
 	std::cout << "initial test_accuracy : " << test_accuracy << std::endl;
 
-	// ŠJnŠÔ‹L˜^
+	// é–‹å§‹æ™‚é–“è¨˜éŒ²
 	auto start_time = std::chrono::system_clock::now();
 
-	// ŠwKƒ‹[ƒv
+	// å­¦ç¿’ãƒ«ãƒ¼ãƒ—
 	for (int epoc = 0; epoc < epoc_size; ++epoc) {
 		int iteration = 0;
 		for (size_t train_index = 0; train_index < train_size; train_index += max_batch_size) {
-			// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+			// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 			size_t batch_size = std::min(max_batch_size, train_size - train_index);
 
-			// ¬ƒTƒCƒY‚Å‰‰Z‚·‚é‚Æ—ò‰»‚·‚é‚Ì‚Å––”öƒXƒLƒbƒv
+			// å°ã‚µã‚¤ã‚ºã§æ¼”ç®—ã™ã‚‹ã¨åŠ£åŒ–ã™ã‚‹ã®ã§æœ«å°¾ã‚¹ã‚­ãƒƒãƒ—
 			if (batch_size < max_batch_size) {
 				break;
 			}
 
-			// ƒoƒbƒ`ƒTƒCƒYİ’è
-			bin_mux.SetMuxSize(train_mux_size);	// ŠwK‚Ì‘½d‰»”‚ÉƒXƒCƒbƒ`
+			// ãƒãƒƒãƒã‚µã‚¤ã‚ºè¨­å®š
+			bin_mux.SetMuxSize(train_mux_size);	// å­¦ç¿’ã®å¤šé‡åŒ–æ•°ã«ã‚¹ã‚¤ãƒƒãƒ
 			net.SetBatchSize(batch_size);
 
-			// ƒf[ƒ^Ši”[
+			// ãƒ‡ãƒ¼ã‚¿æ ¼ç´
 			auto in_sig_buf = net.GetInputSignalBuffer();
 			for (size_t frame = 0; frame < batch_size; ++frame) {
 				for (size_t node = 0; node < x_node_size; ++node) {
@@ -185,20 +185,20 @@ void BinaryLut6WithBbruteForce(int epoc_size, size_t max_batch_size)
 				}
 			}
 
-			// —\‘ª
+			// äºˆæ¸¬
 			net.Forward(true);
 
-			// ƒoƒCƒiƒŠ”ÅƒtƒB[ƒhƒoƒbƒN(—Í‹ZŠwK)
+			// ãƒã‚¤ãƒŠãƒªç‰ˆãƒ•ã‚£ãƒ¼ãƒ‰ãƒãƒƒã‚¯(åŠ›æŠ€å­¦ç¿’)
 	//		while (bin_mux.Feedback(bin_mux.GetOutputOnehotLoss<std::uint8_t, 10>(label_train, train_index)))
 	//			;
 			while (bin_mux.Feedback(bin_mux.CalcLoss<std::uint8_t, 10>(y_train, train_index)))
 				;
 
-			// “r’†•]‰¿
-			bin_mux.SetMuxSize(test_mux_size);	// •]‰¿—p‚Ì‘½d‰»”‚ÉƒXƒCƒbƒ`
+			// é€”ä¸­è©•ä¾¡
+			bin_mux.SetMuxSize(test_mux_size);	// è©•ä¾¡ç”¨ã®å¤šé‡åŒ–æ•°ã«ã‚¹ã‚¤ãƒƒãƒ
 			auto test_accuracy = net.RunCalculation(x_test, y_test, max_batch_size, &accFunc);
 
-			// i’»•\¦
+			// é€²æ—è¡¨ç¤º
 			auto progress = train_index + batch_size;
 			auto rate = progress * 100 / train_size;
 			std::cout << "[" << rate << "% (" << progress << "/" << train_size << ")]";
@@ -206,8 +206,8 @@ void BinaryLut6WithBbruteForce(int epoc_size, size_t max_batch_size)
 			std::cout << "\r" << std::flush;
 		}
 
-		// •]‰¿
-		bin_mux.SetMuxSize(test_mux_size);	// •]‰¿—p‚Ì‘½d‰»”‚ÉƒXƒCƒbƒ`
+		// è©•ä¾¡
+		bin_mux.SetMuxSize(test_mux_size);	// è©•ä¾¡ç”¨ã®å¤šé‡åŒ–æ•°ã«ã‚¹ã‚¤ãƒƒãƒ
 		auto test_accuracy = net.RunCalculation(x_test, y_test, max_batch_size, &accFunc);
 		auto train_accuracy = net.RunCalculation(x_train,y_train, max_batch_size, &accFunc);
 		auto now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
@@ -233,7 +233,7 @@ void BinaryLut6WithBbruteForce(int epoc_size, size_t max_batch_size)
 
 
 
-// ƒƒCƒ“ŠÖ”
+// ãƒ¡ã‚¤ãƒ³é–¢æ•°
 int main()
 {
 	omp_set_num_threads(6);
@@ -252,58 +252,58 @@ int main()
 
 #else
 
-// MNISTƒf[ƒ^‚ğg‚Á‚½•]‰¿—pƒNƒ‰ƒX
+// MNISTãƒ‡ãƒ¼ã‚¿ã‚’ä½¿ã£ãŸè©•ä¾¡ç”¨ã‚¯ãƒ©ã‚¹
 class EvaluateMnist
 {
 protected:
-	// •]‰¿—pƒf[ƒ^ƒZƒbƒg
+	// è©•ä¾¡ç”¨ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 	std::vector< std::vector<float> >	m_test_images;
 	std::vector< std::uint8_t >			m_test_labels;
 	std::vector< std::vector<float> >	m_test_onehot;
 
-	// ŠwK—pƒf[ƒ^ƒZƒbƒg
+	// å­¦ç¿’ç”¨ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 	std::vector< std::vector<float> >	m_train_images;
 	std::vector< std::uint8_t >			m_train_labels;
 	std::vector< std::vector<float> >	m_train_onehot;
 	
-	// Å‘åƒoƒbƒ`ƒTƒCƒY
+	// æœ€å¤§ãƒãƒƒãƒã‚µã‚¤ã‚º
 	size_t m_max_batch_size = 1024;
 
-	// —”
+	// ä¹±æ•°
 	std::mt19937_64		m_mt;
 
 
 
 public:
-	// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	EvaluateMnist(int train_max_size = -1, int test_max_size = -1)
 	{
-		// MNISTŠwK—pƒf[ƒ^“Ç‚İ‚İ
+		// MNISTå­¦ç¿’ç”¨ãƒ‡ãƒ¼ã‚¿èª­ã¿è¾¼ã¿
 		m_train_images = mnist_read_images_real<float>("train-images-idx3-ubyte", train_max_size);
 		m_train_labels = mnist_read_labels("train-labels-idx1-ubyte", train_max_size);
 
-		// MNIST•]‰¿—pƒf[ƒ^“Ç‚İ‚İ
+		// MNISTè©•ä¾¡ç”¨ãƒ‡ãƒ¼ã‚¿èª­ã¿è¾¼ã¿
 		m_test_images = mnist_read_images_real<float>("t10k-images-idx3-ubyte", test_max_size);
 		m_test_labels = mnist_read_labels("t10k-labels-idx1-ubyte", test_max_size);
 
-		// Œ³ƒf[ƒ^‚ªƒ‰ƒxƒ‹‚È‚Ì‚ÅAŠú‘Ò’l‚¾‚¯ 1.0 ‚Æ‚È‚éƒNƒƒXƒGƒ“ƒgƒƒs[—p‚Ìƒf[ƒ^‚àì‚é
+		// å…ƒãƒ‡ãƒ¼ã‚¿ãŒãƒ©ãƒ™ãƒ«ãªã®ã§ã€æœŸå¾…å€¤ã ã‘ 1.0 ã¨ãªã‚‹ã‚¯ãƒ­ã‚¹ã‚¨ãƒ³ãƒˆãƒ­ãƒ”ãƒ¼ç”¨ã®ãƒ‡ãƒ¼ã‚¿ã‚‚ä½œã‚‹
 		m_train_onehot = bb::LabelToOnehot<std::uint8_t, float>(m_train_labels, 10);
 		m_test_onehot = bb::LabelToOnehot<std::uint8_t, float>(m_test_labels, 10);
 
-		// —”‰Šú‰»
+		// ä¹±æ•°åˆæœŸåŒ–
 		m_mt.seed(1);
 	}
 
 
 protected:
-	// ŠwKƒf[ƒ^ƒVƒƒƒbƒtƒ‹
+	// å­¦ç¿’ãƒ‡ãƒ¼ã‚¿ã‚·ãƒ£ãƒƒãƒ•ãƒ«
 	void ShuffleTrainData(void)
 	{
 		bb::ShuffleDataSet(m_mt(), m_train_images, m_train_labels, m_train_onehot);
 	}
 
 
-	// ŠÔŒv‘ª
+	// æ™‚é–“è¨ˆæ¸¬
 	std::chrono::system_clock::time_point m_base_time;
 	void reset_time(void) { m_base_time = std::chrono::system_clock::now(); }
 	double get_time(void)
@@ -312,24 +312,24 @@ protected:
 		return std::chrono::duration_cast<std::chrono::milliseconds>(now_time - m_base_time).count() / 1000.0;
 	}
 
-	// ƒlƒbƒg‚Ì³‰ğ—¦•]‰¿
+	// ãƒãƒƒãƒˆã®æ­£è§£ç‡è©•ä¾¡
 	double CalcAccuracy(bb::NeuralNet<>& net, std::vector< std::vector<float> >& images, std::vector<std::uint8_t>& labels)
 	{
 		int ok_count = 0;
 		for (size_t x_index = 0; x_index < images.size(); x_index += m_max_batch_size) {
-			// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+			// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 			size_t batch_size = std::min(m_max_batch_size, images.size() - x_index);
 
-			// ƒf[ƒ^ƒZƒbƒg
+			// ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 			net.SetBatchSize(batch_size);
 			for (size_t frame = 0; frame < batch_size; ++frame) {
 				net.SetInputSignal(frame, images[x_index + frame]);
 			}
 
-			// •]‰¿À{
+			// è©•ä¾¡å®Ÿæ–½
 			net.Forward(false);
 
-			// Œ‹‰ÊWŒv
+			// çµæœé›†è¨ˆ
 			for (size_t frame = 0; frame < batch_size; ++frame) {
 				auto out_val = net.GetOutputSignal(frame);
 				for (size_t i = 10; i < out_val.size(); i++) {
@@ -341,11 +341,11 @@ protected:
 			}
 		}
 
-		// ³‰ğ—¦‚ğ•Ô‚·
+		// æ­£è§£ç‡ã‚’è¿”ã™
 		return (double)ok_count / (double)images.size();
 	}
 
-	// •]‰¿—pƒf[ƒ^ƒZƒbƒg‚Å³‰ğ—¦•]‰¿
+	// è©•ä¾¡ç”¨ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆã§æ­£è§£ç‡è©•ä¾¡
 	double CalcAccuracy(bb::NeuralNet<>& net)
 	{
 		return CalcAccuracy(net, m_test_images, m_test_labels);
@@ -354,7 +354,7 @@ protected:
 
 public:
 #if 0
-	// LUT6“ü—Í‚ÌƒoƒCƒiƒŠ”Å‚Ì—Í‹ZŠwK
+	// LUT6å…¥åŠ›ã®ãƒã‚¤ãƒŠãƒªç‰ˆã®åŠ›æŠ€å­¦ç¿’
 	void RunBinaryLut6WithBbruteForce(int epoc_size, size_t max_batch_size, int max_iteration = -1)
 	{
 		std::cout << "start [RunBinaryLut6WithBbruteForce]" << std::endl;
@@ -362,18 +362,18 @@ public:
 
 		std::mt19937_64 mt(1);
 
-		// ŠwK‚Æ•]‰¿‚Å‘½d‰»”(—”‚ğ•Ï‚¦‚Ä•¡”–ˆ’Ê‚µ‚ÄWŒv‚Å‚«‚é‚æ‚¤‚É‚·‚é)‚ğ•Ï‚¦‚é
+		// å­¦ç¿’æ™‚ã¨è©•ä¾¡æ™‚ã§å¤šé‡åŒ–æ•°(ä¹±æ•°ã‚’å¤‰ãˆã¦è¤‡æ•°æ¯é€šã—ã¦é›†è¨ˆã§ãã‚‹ã‚ˆã†ã«ã™ã‚‹)ã‚’å¤‰ãˆã‚‹
 		int train_mux_size = 1;
 		int test_mux_size = 16;
 
-		// ‘w\¬’è‹`
+		// å±¤æ§‹æˆå®šç¾©
 		size_t input_node_size = 28 * 28;
 		size_t layer0_node_size = 360 * 2;
 		size_t layer1_node_size = 60 * 4;
 		size_t layer2_node_size = 10 * 8;
 		size_t output_node_size = 10;
 
-		// ŠwK—pNET\’z
+		// å­¦ç¿’ç”¨NETæ§‹ç¯‰
 		bb::NeuralNet<> net;
 		bb::NeuralNetRealToBinary<> layer_real2bin(input_node_size, input_node_size, mt());
 		bb::NeuralNetBinaryLut6<>	layer_lut0(input_node_size, layer0_node_size, mt());
@@ -385,9 +385,9 @@ public:
 		net.AddLayer(&layer_lut0);
 		net.AddLayer(&layer_lut1);
 		net.AddLayer(&layer_lut2);
-		//	net.AddLayer(&layer_unbinarize);	// ŠwK‚Íunbinarize•s—v
+		//	net.AddLayer(&layer_unbinarize);	// å­¦ç¿’æ™‚ã¯unbinarizeä¸è¦
 
-		// •]‰¿—pNET\’z(ƒm[ƒh‚Í‹¤—L)
+		// è©•ä¾¡ç”¨NETæ§‹ç¯‰(ãƒãƒ¼ãƒ‰ã¯å…±æœ‰)
 		bb::NeuralNet<> net_eva;
 		net_eva.AddLayer(&layer_real2bin);
 		net_eva.AddLayer(&layer_lut0);
@@ -395,38 +395,38 @@ public:
 		net_eva.AddLayer(&layer_lut2);
 		net_eva.AddLayer(&layer_bin2real);
 
-		// ŠwKƒ‹[ƒv
+		// å­¦ç¿’ãƒ«ãƒ¼ãƒ—
 		int iteration = 0;
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
-			// ŠwKó‹µ•]‰¿
+			// å­¦ç¿’çŠ¶æ³è©•ä¾¡
 			layer_real2bin.InitializeCoeff(1);
 			layer_bin2real.InitializeCoeff(1);
 			net_eva.SetMuxSize(test_mux_size);
 			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net_eva) << std::endl;
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
-				// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+				// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
 
-				// ƒoƒbƒ`ŠwKƒf[ƒ^‚Ìì¬
+				// ãƒãƒƒãƒå­¦ç¿’ãƒ‡ãƒ¼ã‚¿ã®ä½œæˆ
 				std::vector< std::vector<float> >	batch_images(m_train_images.begin() + x_index, m_train_images.begin() + x_index + batch_size);
 				std::vector< std::uint8_t >			batch_labels(m_train_labels.begin() + x_index, m_train_labels.begin() + x_index + batch_size);
 
-				// ƒf[ƒ^ƒZƒbƒg
+				// ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 				net.SetMuxSize(train_mux_size);
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					net.SetInputSignal(frame, batch_images[frame]);
 				}
 
-				// —\‘ª
+				// äºˆæ¸¬
 				net.Forward();
 
-				// ƒoƒCƒiƒŠ”ÅƒtƒB[ƒhƒoƒbƒN(—Í‹ZŠwK)
+				// ãƒã‚¤ãƒŠãƒªç‰ˆãƒ•ã‚£ãƒ¼ãƒ‰ãƒãƒƒã‚¯(åŠ›æŠ€å­¦ç¿’)
 				while (net.Feedback(last_lut_layer->GetOutputOnehotLoss<std::uint8_t, 10>(batch_labels)))
 					;
 
-				// ’†ŠÔ•\¦()
+				// ä¸­é–“è¡¨ç¤º()
 				layer_real2bin.InitializeCoeff(1);
 				layer_bin2real.InitializeCoeff(1);
 				net_eva.SetMuxSize(test_mux_size);
@@ -452,7 +452,7 @@ public:
 	}
 #endif
 
-	// LUT6“ü—Í‚ÌƒoƒCƒiƒŠ”Å‚Ì—Í‹ZŠwK
+	// LUT6å…¥åŠ›ã®ãƒã‚¤ãƒŠãƒªç‰ˆã®åŠ›æŠ€å­¦ç¿’
 	void RunBinaryLut6WithBbruteForce(int epoc_size, size_t max_batch_size, int max_iteration = -1)
 	{
 		std::cout << "start [RunBinaryLut6WithBbruteForce]" << std::endl;
@@ -460,11 +460,11 @@ public:
 
 		std::mt19937_64 mt(1);
 
-		// ŠwK‚Æ•]‰¿‚Å‘½d‰»”(—”‚ğ•Ï‚¦‚Ä•¡”–ˆ’Ê‚µ‚ÄWŒv‚Å‚«‚é‚æ‚¤‚É‚·‚é)‚ğ•Ï‚¦‚é
+		// å­¦ç¿’æ™‚ã¨è©•ä¾¡æ™‚ã§å¤šé‡åŒ–æ•°(ä¹±æ•°ã‚’å¤‰ãˆã¦è¤‡æ•°æ¯é€šã—ã¦é›†è¨ˆã§ãã‚‹ã‚ˆã†ã«ã™ã‚‹)ã‚’å¤‰ãˆã‚‹
 		int train_mux_size = 1;
 		int test_mux_size = 16;
 
-		// ‘w\¬’è‹`
+		// å±¤æ§‹æˆå®šç¾©
 		size_t input_node_size = 28 * 28;
 		size_t output_node_size = 10;
 		size_t input_hmux_size = 1;
@@ -474,7 +474,7 @@ public:
 		size_t layer1_node_size = 60 * 4;
 		size_t layer2_node_size = output_node_size * output_hmux_size;
 
-		// ƒoƒCƒiƒŠƒlƒbƒg‚ÌGroupì¬
+		// ãƒã‚¤ãƒŠãƒªãƒãƒƒãƒˆã®Groupä½œæˆ
 		bb::NeuralNetBinaryLut6<>	bin_layer0_lut(input_node_size*input_hmux_size, layer0_node_size);
 		bb::NeuralNetBinaryLut6<>	bin_layer1_lut(layer0_node_size, layer1_node_size);
 		bb::NeuralNetBinaryLut6<>	bin_layer2_lut(layer1_node_size, layer2_node_size);
@@ -484,44 +484,44 @@ public:
 		bin_group.AddLayer(&bin_layer2_lut);
 		auto last_lut_layer = &bin_layer2_lut;
 
-		// ‘½d‰»‚µ‚ÄƒpƒbƒLƒ“ƒO
+		// å¤šé‡åŒ–ã—ã¦ãƒ‘ãƒƒã‚­ãƒ³ã‚°
 		bb::NeuralNetBinaryMultiplex<>	bin_mux(&bin_group, input_node_size, output_node_size, input_hmux_size, output_hmux_size);
 
-		// ƒlƒbƒg\’z
+		// ãƒãƒƒãƒˆæ§‹ç¯‰
 		bb::NeuralNet<> net;
 		net.AddLayer(&bin_mux);
 
 
-		// ŠwKƒ‹[ƒv
+		// å­¦ç¿’ãƒ«ãƒ¼ãƒ—
 		int iteration = 0;
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
-			// ŠwKó‹µ•]‰¿
-			bin_mux.SetMuxSize(test_mux_size);	// •]‰¿—p‚Ì‘½d‰»”‚ÉƒXƒCƒbƒ`
+			// å­¦ç¿’çŠ¶æ³è©•ä¾¡
+			bin_mux.SetMuxSize(test_mux_size);	// è©•ä¾¡ç”¨ã®å¤šé‡åŒ–æ•°ã«ã‚¹ã‚¤ãƒƒãƒ
 			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
-				// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+				// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
 
-				// ƒoƒbƒ`ŠwKƒf[ƒ^‚Ìì¬
+				// ãƒãƒƒãƒå­¦ç¿’ãƒ‡ãƒ¼ã‚¿ã®ä½œæˆ
 				std::vector< std::vector<float> >	batch_images(m_train_images.begin() + x_index, m_train_images.begin() + x_index + batch_size);
 				std::vector< std::uint8_t >			batch_labels(m_train_labels.begin() + x_index, m_train_labels.begin() + x_index + batch_size);
 
-				// ƒf[ƒ^ƒZƒbƒg
+				// ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 				bin_mux.SetMuxSize(train_mux_size);
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					net.SetInputSignal(frame, batch_images[frame]);
 				}
 
-				// —\‘ª
+				// äºˆæ¸¬
 				net.Forward();
 
-				// ƒoƒCƒiƒŠ”ÅƒtƒB[ƒhƒoƒbƒN(—Í‹ZŠwK)
+				// ãƒã‚¤ãƒŠãƒªç‰ˆãƒ•ã‚£ãƒ¼ãƒ‰ãƒãƒƒã‚¯(åŠ›æŠ€å­¦ç¿’)
 				while (bin_mux.Feedback(bin_mux.GetOutputOnehotLoss<std::uint8_t, 10>(batch_labels)))
 					;
 
-				// ’†ŠÔ•\¦()
+				// ä¸­é–“è¡¨ç¤º()
 				bin_mux.SetMuxSize(test_mux_size);
 				std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
 
@@ -545,13 +545,13 @@ public:
 
 
 
-	// À”(float)‚Ì‘SÚ‘±‘w‚ÅAƒtƒ‰ƒbƒg‚Èƒlƒbƒg‚ğ•]‰¿
+	// å®Ÿæ•°(float)ã®å…¨æ¥ç¶šå±¤ã§ã€ãƒ•ãƒ©ãƒƒãƒˆãªãƒãƒƒãƒˆã‚’è©•ä¾¡
 	void RunDenseAffineSigmoid(int epoc_size, size_t max_batch_size, double learning_rate)
 	{
 		std::cout << "start [RunDenseAffineSigmoid]" << std::endl;
 		reset_time();
 
-		// À””ÅNET\’z
+		// å®Ÿæ•°ç‰ˆNETæ§‹ç¯‰
 		bb::NeuralNet<> net;
 		bb::NeuralNetAffine<>  layer0_affine(28 * 28, 100);
 		bb::NeuralNetSigmoid<> layer0_sigmoid(100);
@@ -564,24 +564,24 @@ public:
 
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
-			// ŠwKó‹µ•]‰¿
+			// å­¦ç¿’çŠ¶æ³è©•ä¾¡
 			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
 
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
-				// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+				// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
 
-				// ƒf[ƒ^ƒZƒbƒg
+				// ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
-				// —\‘ª
+				// äºˆæ¸¬
 				net.Forward();
 
-				// Œë·‹t“`”d
+				// èª¤å·®é€†ä¼æ’­
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					auto signals = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < signals.size(); ++node) {
@@ -592,7 +592,7 @@ public:
 				}
 				net.Backward();
 
-				// XV
+				// æ›´æ–°
 				net.Update();
 			}
 		}
@@ -605,7 +605,7 @@ public:
 		std::cout << "start [RunDenseAffineReLU]" << std::endl;
 		reset_time();
 
-		// À””ÅNET\’z
+		// å®Ÿæ•°ç‰ˆNETæ§‹ç¯‰
 		bb::NeuralNet<> net;
 		bb::NeuralNetAffine<>  layer0_affine(28 * 28, 100);
 		bb::NeuralNetReLU<>	   layer0_relu(100);
@@ -618,24 +618,24 @@ public:
 
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
-			// ŠwKó‹µ•]‰¿
+			// å­¦ç¿’çŠ¶æ³è©•ä¾¡
 			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
 
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
-				// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+				// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
 
-				// ƒf[ƒ^ƒZƒbƒg
+				// ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
-				// —\‘ª
+				// äºˆæ¸¬
 				net.Forward();
 
-				// Œë·‹t“`”d
+				// èª¤å·®é€†ä¼æ’­
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					auto signals = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < signals.size(); ++node) {
@@ -646,7 +646,7 @@ public:
 				}
 				net.Backward();
 
-				// XV
+				// æ›´æ–°
 				net.Update();
 			}
 		}
@@ -654,13 +654,13 @@ public:
 	}
 
 
-	// À”(float)‚Ì‘SÚ‘±‘w‚ÅAƒtƒ‰ƒbƒg‚Èƒlƒbƒg‚ğ•]‰¿
+	// å®Ÿæ•°(float)ã®å…¨æ¥ç¶šå±¤ã§ã€ãƒ•ãƒ©ãƒƒãƒˆãªãƒãƒƒãƒˆã‚’è©•ä¾¡
 	void RunDenseAffineBatchNorm(int epoc_size, size_t max_batch_size, double learning_rate)
 	{
 		std::cout << "start [RunDenseAffineBatchNorm]" << std::endl;
 		reset_time();
 
-		// À””ÅNET\’z
+		// å®Ÿæ•°ç‰ˆNETæ§‹ç¯‰
 		bb::NeuralNet<> net;
 		bb::NeuralNetAffine<>				layer0_affine(28 * 28, 100);
 		bb::NeuralNetBatchNormalization<>	layer0_batch_norm(100);
@@ -677,24 +677,24 @@ public:
 
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
-			// ŠwKó‹µ•]‰¿
+			// å­¦ç¿’çŠ¶æ³è©•ä¾¡
 			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
 
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
-				// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+				// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
 
-				// ƒf[ƒ^ƒZƒbƒg
+				// ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
-				// —\‘ª
+				// äºˆæ¸¬
 				net.Forward();
 
-				// Œë·‹t“`”d
+				// èª¤å·®é€†ä¼æ’­
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					auto signals = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < signals.size(); ++node) {
@@ -705,7 +705,7 @@ public:
 				}
 				net.Backward();
 
-				// XV
+				// æ›´æ–°
 				net.Update();
 			}
 		}
@@ -713,13 +713,13 @@ public:
 	}
 
 
-	// À”(float)‚Å6“ü—Í‚É§ŒÀƒm[ƒh‚Å‘w‚ğŒ`¬‚µ‚ÄAƒtƒ‰ƒbƒg‚Èƒlƒbƒg‚ğ•]‰¿
+	// å®Ÿæ•°(float)ã§6å…¥åŠ›ã«åˆ¶é™ãƒãƒ¼ãƒ‰ã§å±¤ã‚’å½¢æˆã—ã¦ã€ãƒ•ãƒ©ãƒƒãƒˆãªãƒãƒƒãƒˆã‚’è©•ä¾¡
 	void RunSparseAffineSigmoid(int epoc_size, size_t max_batch_size)
 	{
 		std::cout << "start [RunSparseAffineSigmoid]" << std::endl;
 		reset_time();
 
-		// À””ÅNET\’z
+		// å®Ÿæ•°ç‰ˆNETæ§‹ç¯‰
 		bb::NeuralNet<> net;
 		size_t input_node_size = 28 * 28;
 		size_t layer0_node_size = 10 * 6 * 6 * 3;
@@ -747,23 +747,23 @@ public:
 
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
-			// ŠwKó‹µ•]‰¿
+			// å­¦ç¿’çŠ¶æ³è©•ä¾¡
 			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
 			
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
-				// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+				// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
 
-				// ƒf[ƒ^ƒZƒbƒg
+				// ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
-				// —\‘ª
+				// äºˆæ¸¬
 				net.Forward();
 
-				// Œë·‹t“`”d
+				// èª¤å·®é€†ä¼æ’­
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					auto signals = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < signals.size(); ++node) {
@@ -774,7 +774,7 @@ public:
 				}
 				net.Backward();
 				
-				// XV
+				// æ›´æ–°
 				net.Update();
 			}
 		}
@@ -782,7 +782,7 @@ public:
 	}
 
 
-	// •‚“®¬”“_‚ÅŠwK‚³‚¹‚ÄƒoƒCƒiƒŠ‚ÉƒRƒs[
+	// æµ®å‹•å°æ•°ç‚¹ã§å­¦ç¿’ã•ã›ã¦ãƒã‚¤ãƒŠãƒªã«ã‚³ãƒ”ãƒ¼
 	void RunRealToBinary(int epoc_size, size_t max_batch_size)
 	{
 		std::cout << "start [RunRealToBinary]" << std::endl;
@@ -794,14 +794,14 @@ public:
 		int test_mux_size = 16;
 
 
-		// ‘w\¬
+		// å±¤æ§‹æˆ
 		size_t input_node_size = 28 * 28;
 		size_t layer0_node_size = 10 * 6 * 6 * 3;
 		size_t layer1_node_size = 10 * 6 * 6;
 		size_t layer2_node_size = 10 * 6;
 		size_t output_node_size = 10;
 
-		// À””ÅNET\’z
+		// å®Ÿæ•°ç‰ˆNETæ§‹ç¯‰
 		bb::NeuralNetSparseAffineSigmoid<6>	real_mux0_affine(input_node_size, layer0_node_size);
 		bb::NeuralNetSparseAffineSigmoid<6>	real_mux1_affine(layer0_node_size, layer1_node_size);
 		bb::NeuralNetSparseAffineSigmoid<6>	real_mux2_affine(layer1_node_size, layer2_node_size);
@@ -825,29 +825,29 @@ public:
 		real_net.SetBinaryMode(true);
 
 
-		// À”‚Å‹t“`”d‚ÅŠwK
+		// å®Ÿæ•°ã§é€†ä¼æ’­ã§å­¦ç¿’
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
-			// ŠwKó‹µ•]‰¿
+			// å­¦ç¿’çŠ¶æ³è©•ä¾¡
 	//		real_mux.SetMuxSize(test_mux_size);
 			auto real_accuracy = CalcAccuracy(real_net);
 			std::cout << get_time() << "s " << "epoc[" << epoc << "] real_net accuracy : " << real_accuracy << std::endl;
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
-				// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+				// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
 
-				// “ü—Íƒf[ƒ^İ’è
+				// å…¥åŠ›ãƒ‡ãƒ¼ã‚¿è¨­å®š
 	//			real_mux.SetMuxSize(train_mux_size);
 				real_net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					real_net.SetInputSignal(frame, m_train_images[frame + x_index]);
 				}
 
-				// —\‘ª
+				// äºˆæ¸¬
 				real_net.Forward();
 
-				// Œë·‹t“`”d
+				// èª¤å·®é€†ä¼æ’­
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					auto signals = real_net.GetOutputSignal(frame);
 					for (size_t node = 0; node < signals.size(); ++node) {
@@ -858,16 +858,16 @@ public:
 				}
 				real_net.Backward();
 
-				// XV
+				// æ›´æ–°
 				real_net.Update();
 			}
 		}
 
-		// ÅIŒ‹‰Ê•\¦
+		// æœ€çµ‚çµæœè¡¨ç¤º
 		std::cout << get_time() << "s " << "real_net final accuracy : " << CalcAccuracy(real_net) << std::endl;
 
 
-		// ƒoƒCƒiƒŠ”ÅNET\’z
+		// ãƒã‚¤ãƒŠãƒªç‰ˆNETæ§‹ç¯‰
 		bb::NeuralNetBinaryLut6<>	bin_mux0_lut(input_node_size, layer0_node_size);
 		bb::NeuralNetBinaryLut6<>	bin_mux1_lut(layer0_node_size, layer1_node_size);
 		bb::NeuralNetBinaryLut6<>	bin_mux2_lut(layer1_node_size, layer2_node_size);
@@ -883,48 +883,48 @@ public:
 		bin_net.AddLayer(&bin_mux);
 
 
-		// ƒpƒ‰ƒ[ƒ^‚ğƒRƒs[
+		// ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’ã‚³ãƒ”ãƒ¼
 		std::cout << "[parameter copy] real-net -> binary-net" << std::endl;
 		bin_mux0_lut.ImportLayer(real_mux0_affine);
 		bin_mux1_lut.ImportLayer(real_mux1_affine);
 		bin_mux2_lut.ImportLayer(real_mux2_affine);
 		bin_mux3_lut.ImportLayer(real_mux3_affine);
 
-		// ƒoƒCƒiƒŠ”Å•]‰¿
+		// ãƒã‚¤ãƒŠãƒªç‰ˆè©•ä¾¡
 		bin_mux.SetMuxSize(test_mux_size);
 
-		// ŠwKƒ‹[ƒv
+		// å­¦ç¿’ãƒ«ãƒ¼ãƒ—
 		max_batch_size = 8192;
 		int max_iteration = 8;
 		int iteration = 0;
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
-			// ŠwKó‹µ•]‰¿
+			// å­¦ç¿’çŠ¶æ³è©•ä¾¡
 			bin_mux.SetMuxSize(test_mux_size);
 			std::cout << get_time() << "s " << "epoc[" << epoc << "] bin_net accuracy : " << CalcAccuracy(bin_net) << std::endl;
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
-				// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+				// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
 
-				// ƒoƒbƒ`ŠwKƒf[ƒ^‚Ìì¬
+				// ãƒãƒƒãƒå­¦ç¿’ãƒ‡ãƒ¼ã‚¿ã®ä½œæˆ
 				std::vector< std::vector<float> >	batch_images(m_train_images.begin() + x_index, m_train_images.begin() + x_index + batch_size);
 				std::vector< std::uint8_t >			batch_labels(m_train_labels.begin() + x_index, m_train_labels.begin() + x_index + batch_size);
 
-				// ƒf[ƒ^ƒZƒbƒg
+				// ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 				bin_mux.SetMuxSize(train_mux_size);
 				bin_net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					bin_net.SetInputSignal(frame, batch_images[frame]);
 				}
 
-				// —\‘ª
+				// äºˆæ¸¬
 				bin_net.Forward();
 
-				// ƒoƒCƒiƒŠ”ÅƒtƒB[ƒhƒoƒbƒN(—Í‹ZŠwK)
+				// ãƒã‚¤ãƒŠãƒªç‰ˆãƒ•ã‚£ãƒ¼ãƒ‰ãƒãƒƒã‚¯(åŠ›æŠ€å­¦ç¿’)
 				while (bin_mux.Feedback(bin_mux.GetOutputOnehotLoss<std::uint8_t, 10>(batch_labels)))
 					;
 
-				// ’†ŠÔ•\¦
+				// ä¸­é–“è¡¨ç¤º
 				bin_mux.SetMuxSize(test_mux_size);
 				std::cout << get_time() << "s " << "epoc[" << epoc << "] bin_net accuracy : " << CalcAccuracy(bin_net) << std::endl;
 
@@ -949,17 +949,17 @@ public:
 
 
 	////////////////////////////
-	// ‚±‚±‚©‚çô‚İ‚İ
+	// ã“ã“ã‹ã‚‰ç•³ã¿è¾¼ã¿
 	////////////////////////////
 
 
-	// À”(float)‚Ìô‚İ‚İŠm”F
+	// å®Ÿæ•°(float)ã®ç•³ã¿è¾¼ã¿ç¢ºèª
 	void RunConvolutionReal(int epoc_size, size_t max_batch_size, double learning_rate)
 	{
 		std::cout << "start [RunConvolutionReal]" << std::endl;
 		reset_time();
 		
-		// À””ÅNET\’z
+		// å®Ÿæ•°ç‰ˆNETæ§‹ç¯‰
 		bb::NeuralNet<> net;
 		bb::NeuralNetConvolution<>  layer0_conv(1, 28, 28, 16, 5, 5);
 		bb::NeuralNetSigmoid<>		layer0_sigmoid(24*24*16);
@@ -972,24 +972,24 @@ public:
 
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
-			// ŠwKó‹µ•]‰¿
+			// å­¦ç¿’çŠ¶æ³è©•ä¾¡
 			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
 
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
-				// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+				// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
 
-				// ƒf[ƒ^ƒZƒbƒg
+				// ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
-				// —\‘ª
+				// äºˆæ¸¬
 				net.Forward();
 
-				// Œë·‹t“`”d
+				// èª¤å·®é€†ä¼æ’­
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					auto signals = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < signals.size(); ++node) {
@@ -1000,7 +1000,7 @@ public:
 				}
 				net.Backward();
 
-				// XV
+				// æ›´æ–°
 				net.Update();
 			}
 		}
@@ -1008,13 +1008,13 @@ public:
 	}
 
 
-	// À”(float)‚Ìô‚İ‚İŠm”F
+	// å®Ÿæ•°(float)ã®ç•³ã¿è¾¼ã¿ç¢ºèª
 	void RunCnnRealPre(int epoc_size, size_t max_batch_size, double learning_rate)
 	{
 		std::cout << "start [RunCnnRealPre]" << std::endl;
 		reset_time();
 
-		// À””ÅNET\’z
+		// å®Ÿæ•°ç‰ˆNETæ§‹ç¯‰
 		bb::NeuralNet<> net;
 		bb::NeuralNetConvolution<>  layer0_conv(1, 28, 28, 30, 5, 5);
 		bb::NeuralNetReLU<>			layer0_relu(24 * 24 * 30);
@@ -1033,24 +1033,24 @@ public:
 
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
-			// ŠwKó‹µ•]‰¿
+			// å­¦ç¿’çŠ¶æ³è©•ä¾¡
 			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
 
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
-				// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+				// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
 
-				// ƒf[ƒ^ƒZƒbƒg
+				// ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
-				// —\‘ª
+				// äºˆæ¸¬
 				net.Forward();
 
-				// Œë·‹t“`”d
+				// èª¤å·®é€†ä¼æ’­
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					auto signals = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < signals.size(); ++node) {
@@ -1061,7 +1061,7 @@ public:
 				}
 				net.Backward();
 
-				// XV
+				// æ›´æ–°
 				net.Update();
 			}
 		}
@@ -1069,13 +1069,13 @@ public:
 	}
 
 
-	// uƒ[ƒ‚©‚çì‚év‚Ì\¬
+	// ã€Œã‚¼ãƒ­ã‹ã‚‰ä½œã‚‹ã€ã®æ§‹æˆ
 	void RunSimpleConv(int epoc_size, size_t max_batch_size, double learning_rate)
 	{
 		std::cout << "start [RunSimpleConv]" << std::endl;
 		reset_time();
 
-		// À””ÅNET\’z
+		// å®Ÿæ•°ç‰ˆNETæ§‹ç¯‰
 		bb::NeuralNet<> net;
 		bb::NeuralNetConvolution<>  layer0_conv(1, 28, 28, 30, 5, 5);
 		bb::NeuralNetReLU<>			layer0_relu(24 * 24 * 30);
@@ -1096,24 +1096,24 @@ public:
 
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
-			// ŠwKó‹µ•]‰¿
+			// å­¦ç¿’çŠ¶æ³è©•ä¾¡
 			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
 
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
-				// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+				// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
 
-				// ƒf[ƒ^ƒZƒbƒg
+				// ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
-				// —\‘ª
+				// äºˆæ¸¬
 				net.Forward();
 
-				// Œë·‹t“`”d
+				// èª¤å·®é€†ä¼æ’­
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					auto signals = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < signals.size(); ++node) {
@@ -1124,7 +1124,7 @@ public:
 				}
 				net.Backward();
 
-				// XV
+				// æ›´æ–°
 				net.Update();
 			}
 		}
@@ -1137,7 +1137,7 @@ public:
 		std::cout << "start [RunSimpleConvReLU]" << std::endl;
 		reset_time();
 
-		// À””ÅNET\’z
+		// å®Ÿæ•°ç‰ˆNETæ§‹ç¯‰
 		bb::NeuralNet<> net;
 		bb::NeuralNetConvolution<>  layer0_conv(1, 28, 28, 16, 3, 3);
 		bb::NeuralNetReLU<>			layer0_relu(16 * 26 * 26);
@@ -1165,24 +1165,24 @@ public:
 
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
-			// ŠwKó‹µ•]‰¿
+			// å­¦ç¿’çŠ¶æ³è©•ä¾¡
 			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
 
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
-				// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+				// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
 
-				// ƒf[ƒ^ƒZƒbƒg
+				// ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
-				// —\‘ª
+				// äºˆæ¸¬
 				net.Forward();
 
-				// Œë·‹t“`”d
+				// èª¤å·®é€†ä¼æ’­
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					auto signals = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < signals.size(); ++node) {
@@ -1193,7 +1193,7 @@ public:
 				}
 				net.Backward();
 
-				// XV
+				// æ›´æ–°
 				net.Update();
 			}
 		}
@@ -1201,13 +1201,13 @@ public:
 	}
 
 
-	// ÀŒ±”äŠr—p
+	// å®Ÿé¨“æ¯”è¼ƒç”¨
 	void RunSimpleConvSigmoid(int epoc_size, size_t max_batch_size)
 	{
 		std::cout << "start [RunSimpleConvSigmoid]" << std::endl;
 		reset_time();
 
-		// À””ÅNET\’z
+		// å®Ÿæ•°ç‰ˆNETæ§‹ç¯‰
 		bb::NeuralNet<> net;
 		bb::NeuralNetConvolution<>  layer0_conv(1, 28, 28, 16, 3, 3);
 		bb::NeuralNetSigmoid<>		layer0_sigmoid(16 * 26 * 26);
@@ -1236,24 +1236,24 @@ public:
 
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
-			// ŠwKó‹µ•]‰¿
+			// å­¦ç¿’çŠ¶æ³è©•ä¾¡
 			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
 
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
-				// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+				// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
 
-				// ƒf[ƒ^ƒZƒbƒg
+				// ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
-				// —\‘ª
+				// äºˆæ¸¬
 				net.Forward();
 
-				// Œë·‹t“`”d
+				// èª¤å·®é€†ä¼æ’­
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					auto signals = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < signals.size(); ++node) {
@@ -1264,7 +1264,7 @@ public:
 				}
 				net.Backward();
 
-				// XV
+				// æ›´æ–°
 				net.Update();
 			}
 		}
@@ -1277,7 +1277,7 @@ public:
 		std::cout << "start [RunSimpleConvBinary]" << std::endl;
 		reset_time();
 
-		// À””ÅNET\’z
+		// å®Ÿæ•°ç‰ˆNETæ§‹ç¯‰
 //		bb::NeuralNetRealToBinary<float>	layer0_rel2bin(28*28, 28 * 28);
 		bb::NeuralNetConvolution<>			layer0_conv(1, 28, 28, 16, 3, 3);
 		bb::NeuralNetBatchNormalization<>	layer0_norm(16 * 26 * 26);
@@ -1331,7 +1331,7 @@ public:
 
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
-			// ŠwKó‹µ•]‰¿
+			// å­¦ç¿’çŠ¶æ³è©•ä¾¡
 			auto accuracy = CalcAccuracy(net);
 			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << accuracy << std::endl;
 
@@ -1344,19 +1344,19 @@ public:
 			}
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
-				// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+				// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
 
-				// ƒf[ƒ^ƒZƒbƒg
+				// ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
-				// —\‘ª
+				// äºˆæ¸¬
 				net.Forward();
 
-				// Œë·‹t“`”d
+				// èª¤å·®é€†ä¼æ’­
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					auto signals = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < signals.size(); ++node) {
@@ -1367,7 +1367,7 @@ public:
 				}
 				net.Backward();
 
-				// XV
+				// æ›´æ–°
 				net.Update();
 			}
 		}
@@ -1379,7 +1379,7 @@ public:
 		std::cout << "start [RunFullyConvBinary]" << std::endl;
 		reset_time();
 
-		// À””ÅNET\’z
+		// å®Ÿæ•°ç‰ˆNETæ§‹ç¯‰
 		//		bb::NeuralNetRealToBinary<float>	layer0_rel2bin(28*28, 28 * 28);
 		bb::NeuralNetConvolution<>			layer0_conv(1, 28, 28, 30, 3, 3);
 		bb::NeuralNetBatchNormalization<>	layer0_norm(30 * 26 * 26);
@@ -1469,7 +1469,7 @@ public:
 
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
-			// ŠwKó‹µ•]‰¿
+			// å­¦ç¿’çŠ¶æ³è©•ä¾¡
 			auto accuracy = CalcAccuracy(net);
 			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << accuracy << std::endl;
 
@@ -1488,19 +1488,19 @@ public:
 			}
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
-				// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+				// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
 
-				// ƒf[ƒ^ƒZƒbƒg
+				// ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
-				// —\‘ª
+				// äºˆæ¸¬
 				net.Forward();
 
-				// Œë·‹t“`”d
+				// èª¤å·®é€†ä¼æ’­
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					auto signals = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < signals.size(); ++node) {
@@ -1511,7 +1511,7 @@ public:
 				}
 				net.Backward();
 
-				// XV
+				// æ›´æ–°
 				net.Update();
 			}
 		}
@@ -1519,7 +1519,7 @@ public:
 	}
 
 
-	// –{–½
+	// æœ¬å‘½
 	void RunSparseFullyCnn(int epoc_size, size_t max_batch_size)
 	{
 		std::ofstream ofs_log("log.txt");
@@ -1529,47 +1529,47 @@ public:
 
 		reset_time();
 
-		// Conv—psubƒlƒbƒg\’z (3x3)
+		// Convç”¨subãƒãƒƒãƒˆæ§‹ç¯‰ (3x3)
 		bb::NeuralNetSparseAffineSigmoid<>	sub0_affine(1 * 3 * 3, 30);
 		bb::NeuralNetGroup<>				sub0_net;
 		sub0_net.AddLayer(&sub0_affine);
 
-		// Conv—psubƒlƒbƒg\’z (3x3)
+		// Convç”¨subãƒãƒƒãƒˆæ§‹ç¯‰ (3x3)
 		bb::NeuralNetSparseAffineSigmoid<>	sub1_affine0(30 * 3 * 3, 180);
 		bb::NeuralNetSparseAffineSigmoid<>	sub1_affine1(180, 30);
 		bb::NeuralNetGroup<>				sub1_net;
 		sub1_net.AddLayer(&sub1_affine0);
 		sub1_net.AddLayer(&sub1_affine1);
 
-		// Conv—psubƒlƒbƒg\’z (3x3)
+		// Convç”¨subãƒãƒƒãƒˆæ§‹ç¯‰ (3x3)
 		bb::NeuralNetSparseAffineSigmoid<>	sub3_affine0(30 * 3 * 3, 180);
 		bb::NeuralNetSparseAffineSigmoid<>	sub3_affine1(180, 30);
 		bb::NeuralNetGroup<>				sub3_net;
 		sub3_net.AddLayer(&sub3_affine0);
 		sub3_net.AddLayer(&sub3_affine1);
 
-		// Conv—psubƒlƒbƒg\’z (3x3)
+		// Convç”¨subãƒãƒƒãƒˆæ§‹ç¯‰ (3x3)
 		bb::NeuralNetSparseAffineSigmoid<>	sub4_affine0(30 * 3 * 3, 180);
 		bb::NeuralNetSparseAffineSigmoid<>	sub4_affine1(180, 30);
 		bb::NeuralNetGroup<>				sub4_net;
 		sub4_net.AddLayer(&sub4_affine0);
 		sub4_net.AddLayer(&sub4_affine1);
 
-		// Conv—psubƒlƒbƒg\’z (3x3)
+		// Convç”¨subãƒãƒƒãƒˆæ§‹ç¯‰ (3x3)
 		bb::NeuralNetSparseAffineSigmoid<>	sub6_affine0(30 * 3 * 3, 180);
 		bb::NeuralNetSparseAffineSigmoid<>	sub6_affine1(180, 30);
 		bb::NeuralNetGroup<>				sub6_net;
 		sub6_net.AddLayer(&sub6_affine0);
 		sub6_net.AddLayer(&sub6_affine1);
 
-		// Conv—psubƒlƒbƒg\’z (3x3)
+		// Convç”¨subãƒãƒƒãƒˆæ§‹ç¯‰ (3x3)
 		bb::NeuralNetSparseAffineSigmoid<>	sub7_affine0(30 * 2 * 2, 180);
 		bb::NeuralNetSparseAffineSigmoid<>	sub7_affine1(180, 30);
 		bb::NeuralNetGroup<>				sub7_net;
 		sub7_net.AddLayer(&sub7_affine0);
 		sub7_net.AddLayer(&sub7_affine1);
 		
-		// À””ÅNET\’z
+		// å®Ÿæ•°ç‰ˆNETæ§‹ç¯‰
 		bb::NeuralNet<> net;
 		bb::NeuralNetConvolutionPack<>		layer0_conv(&sub0_net, 1, 28, 28, 30, 3, 3);
 		bb::NeuralNetConvolutionPack<>		layer1_conv(&sub1_net, 30, 26, 26, 30, 3, 3);
@@ -1598,25 +1598,25 @@ public:
 
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
-			// ŠwKó‹µ•]‰¿
+			// å­¦ç¿’çŠ¶æ³è©•ä¾¡
 			auto accuracy = CalcAccuracy(net);
 			ofs_log << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << accuracy << std::endl;
 			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << accuracy << std::endl;
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
-				// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+				// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
 
-				// ƒf[ƒ^ƒZƒbƒg
+				// ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
-				// —\‘ª
+				// äºˆæ¸¬
 				net.Forward();
 
-				// Œë·‹t“`”d
+				// èª¤å·®é€†ä¼æ’­
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					auto signals = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < signals.size(); ++node) {
@@ -1627,7 +1627,7 @@ public:
 				}
 				net.Backward();
 
-				// XV
+				// æ›´æ–°
 				net.Update();
 			}
 		}
@@ -1636,24 +1636,24 @@ public:
 	}
 	
 
-	// ÀŒ±”äŠr—p
+	// å®Ÿé¨“æ¯”è¼ƒç”¨
 	void RunSimpleConvPackSigmoid(int epoc_size, size_t max_batch_size)
 	{
 		std::cout << "start [RunSimpleConvPackSigmoid]" << std::endl;
 		reset_time();
 
-		// Conv—psubƒlƒbƒg\’z (3x3)
+		// Convç”¨subãƒãƒƒãƒˆæ§‹ç¯‰ (3x3)
 		bb::NeuralNetSparseBinaryAffine<>	sub0_affine(1 * 3 * 3, 16);
 		bb::NeuralNetGroup<>				sub0_net;
 		sub0_net.AddLayer(&sub0_affine);
 
-		// Conv—psubƒlƒbƒg\’z (3x3)
+		// Convç”¨subãƒãƒƒãƒˆæ§‹ç¯‰ (3x3)
 		bb::NeuralNetSparseBinaryAffine<>	sub1_affine(16 * 3 * 3, 16);
 		bb::NeuralNetGroup<>				sub1_net;
 		sub1_net.AddLayer(&sub1_affine);
 
 
-		// À””ÅNET\’z
+		// å®Ÿæ•°ç‰ˆNETæ§‹ç¯‰
 		bb::NeuralNet<> net;
 		bb::NeuralNetConvolutionPack<>	layer0_conv(&sub0_net, 1, 28, 28, 16, 3, 3);
 		bb::NeuralNetSigmoid<>			layer0_sigmoid(16 * 26 * 26);
@@ -1678,24 +1678,24 @@ public:
 
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
-			// ŠwKó‹µ•]‰¿
+			// å­¦ç¿’çŠ¶æ³è©•ä¾¡
 			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
 
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
-				// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+				// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
 
-				// ƒf[ƒ^ƒZƒbƒg
+				// ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
-				// —\‘ª
+				// äºˆæ¸¬
 				net.Forward();
 
-				// Œë·‹t“`”d
+				// èª¤å·®é€†ä¼æ’­
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					auto signals = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < signals.size(); ++node) {
@@ -1706,7 +1706,7 @@ public:
 				}
 				net.Backward();
 
-				// XV
+				// æ›´æ–°
 				net.Update();
 			}
 		}
@@ -1720,7 +1720,7 @@ public:
 		std::cout << "start [RunFullyCnnReal]" << std::endl;
 		reset_time();
 
-		// À””ÅNET\’z
+		// å®Ÿæ•°ç‰ˆNETæ§‹ç¯‰
 		size_t layer0_c_size = 32;
 		size_t layer1_c_size = 16;
 		size_t layer2_c_size = 10;
@@ -1751,24 +1751,24 @@ public:
 
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
-			// ŠwKó‹µ•]‰¿
+			// å­¦ç¿’çŠ¶æ³è©•ä¾¡
 			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
 
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
-				// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+				// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
 
-				// ƒf[ƒ^ƒZƒbƒg
+				// ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
-				// —\‘ª
+				// äºˆæ¸¬
 				net.Forward();
 
-				// Œë·‹t“`”d
+				// èª¤å·®é€†ä¼æ’­
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					auto signals = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < signals.size(); ++node) {
@@ -1779,7 +1779,7 @@ public:
 				}
 				net.Backward();
 
-				// XV
+				// æ›´æ–°
 				net.Update();
 			}
 		}
@@ -1793,7 +1793,7 @@ public:
 		std::cout << "start [RunSimpleConvBinary]" << std::endl;
 		reset_time();
 
-		// Conv—psubƒlƒbƒg\’z (1x5x5 -> 8)
+		// Convç”¨subãƒãƒƒãƒˆæ§‹ç¯‰ (1x5x5 -> 8)
 		bb::NeuralNetSparseBinaryAffine<>	sub_affine0(5 * 5, 32);
 		bb::NeuralNetSparseBinaryAffine<>	sub_affine1(32, 8);
 		bb::NeuralNetGroup<>				sub_net;
@@ -1801,7 +1801,7 @@ public:
 		sub_net.AddLayer(&sub_affine1);
 
 
-		// À””ÅNET\’z
+		// å®Ÿæ•°ç‰ˆNETæ§‹ç¯‰
 		size_t layer0_node_size = 8 * 12 * 12;
 		size_t layer1_node_size = 360 * 1;
 		size_t layer2_node_size = 60 * 2;
@@ -1826,23 +1826,23 @@ public:
 
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
-			// ŠwKó‹µ•]‰¿
+			// å­¦ç¿’çŠ¶æ³è©•ä¾¡
 			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
-				// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+				// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
 
-				// ƒf[ƒ^ƒZƒbƒg
+				// ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
-				// —\‘ª
+				// äºˆæ¸¬
 				net.Forward();
 
-				// Œë·‹t“`”d
+				// èª¤å·®é€†ä¼æ’­
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					auto signals = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < signals.size(); ++node) {
@@ -1853,7 +1853,7 @@ public:
 				}
 				net.Backward();
 
-				// XV
+				// æ›´æ–°
 				net.Update();
 			}
 		}
@@ -1870,21 +1870,21 @@ public:
 		size_t layer1_c_size = 60;
 		size_t layer2_c_size = 30;
 
-		// Conv—psubƒlƒbƒg\’z (5x5)
+		// Convç”¨subãƒãƒƒãƒˆæ§‹ç¯‰ (5x5)
 		bb::NeuralNetSparseBinaryAffine<>	sub0_affine0(1 * 5 * 5, 128);
 		bb::NeuralNetSparseBinaryAffine<>	sub0_affine1(128, layer0_c_size);
 		bb::NeuralNetGroup<>				sub0_net;
 		sub0_net.AddLayer(&sub0_affine0);
 		sub0_net.AddLayer(&sub0_affine1);
 
-		// Conv—psubƒlƒbƒg\’z (5x5)
+		// Convç”¨subãƒãƒƒãƒˆæ§‹ç¯‰ (5x5)
 		bb::NeuralNetSparseBinaryAffine<>	sub1_affine0(layer0_c_size * 5 * 5, 256);
 		bb::NeuralNetSparseBinaryAffine<>	sub1_affine1(256, layer1_c_size);
 		bb::NeuralNetGroup<>				sub1_net;
 		sub1_net.AddLayer(&sub1_affine0);
 		sub1_net.AddLayer(&sub1_affine1);
 
-		// Conv—psubƒlƒbƒg\’z (3x3)
+		// Convç”¨subãƒãƒƒãƒˆæ§‹ç¯‰ (3x3)
 		bb::NeuralNetSparseBinaryAffine<>	sub2_affine0(layer1_c_size * 3 * 3, 128);
 		bb::NeuralNetSparseBinaryAffine<>	sub2_affine1(128, layer2_c_size);
 		bb::NeuralNetGroup<>				sub2_net;
@@ -1892,7 +1892,7 @@ public:
 		sub2_net.AddLayer(&sub2_affine1);
 
 
-		// À””ÅNET\’z
+		// å®Ÿæ•°ç‰ˆNETæ§‹ç¯‰
 		bb::NeuralNetRealToBinary<float>	layer0_real2bin(28 * 28, 28 * 28);
 		bb::NeuralNetConvolutionPack<>		layer0_conv(&sub0_net, 1, 28, 28, layer0_c_size, 5, 5);
 		bb::NeuralNetMaxPooling<>			layer0_maxpol(layer0_c_size, 24, 24, 2, 2);
@@ -1918,23 +1918,23 @@ public:
 
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
-			// ŠwKó‹µ•]‰¿
+			// å­¦ç¿’çŠ¶æ³è©•ä¾¡
 			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
-				// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+				// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
 
-				// ƒf[ƒ^ƒZƒbƒg
+				// ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
-				// —\‘ª
+				// äºˆæ¸¬
 				net.Forward();
 
-				// Œë·‹t“`”d
+				// èª¤å·®é€†ä¼æ’­
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					auto signals = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < signals.size(); ++node) {
@@ -1945,7 +1945,7 @@ public:
 				}
 				net.Backward();
 
-				// XV
+				// æ›´æ–°
 				net.Update();
 			}
 		}
@@ -1953,13 +1953,13 @@ public:
 	}
 
 
-	// binary cnv ÀŒ±
+	// binary cnv å®Ÿé¨“
 	void RunSimpleConvBinary2(int epoc_size, size_t max_batch_size, double learning_rate)
 	{
 		std::cout << "start [RunSimpleConvBinary2]" << std::endl;
 		reset_time();
 
-		// Conv—psubƒlƒbƒg\’z (3x3)
+		// Convç”¨subãƒãƒƒãƒˆæ§‹ç¯‰ (3x3)
 		bb::NeuralNetSparseBinaryAffine<>	sub0_affine0(1 * 3 * 3, 96);
 		bb::NeuralNetSparseBinaryAffine<>	sub0_affine1(96, 96);
 		bb::NeuralNetSparseBinaryAffine<>	sub0_affine2(96, 16);
@@ -1968,7 +1968,7 @@ public:
 		sub0_net.AddLayer(&sub0_affine1);
 		sub0_net.AddLayer(&sub0_affine2);
 
-		// Conv—psubƒlƒbƒg\’z (3x3)
+		// Convç”¨subãƒãƒƒãƒˆæ§‹ç¯‰ (3x3)
 		bb::NeuralNetSparseBinaryAffine<>	sub1_affine0(16 * 3 * 3, 192);
 		bb::NeuralNetSparseBinaryAffine<>	sub1_affine1(192, 96);
 		bb::NeuralNetSparseBinaryAffine<>	sub1_affine2(96, 16);
@@ -1977,7 +1977,7 @@ public:
 		sub1_net.AddLayer(&sub1_affine1);
 		sub1_net.AddLayer(&sub1_affine2);
 
-		// À””ÅNET\’z
+		// å®Ÿæ•°ç‰ˆNETæ§‹ç¯‰
 		bb::NeuralNetRealToBinary<float>	layer0_real2bin(28 * 28, 28 * 28);
 		bb::NeuralNetConvolutionPack<>		layer0_conv(&sub0_net, 1, 28, 28, 16, 3, 3);
 
@@ -2004,23 +2004,23 @@ public:
 
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
 
-			// ŠwKó‹µ•]‰¿
+			// å­¦ç¿’çŠ¶æ³è©•ä¾¡
 			std::cout << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << CalcAccuracy(net) << std::endl;
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
-				// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+				// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
 
-				// ƒf[ƒ^ƒZƒbƒg
+				// ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					net.SetInputSignal(frame, m_train_images[x_index + frame]);
 				}
 
-				// —\‘ª
+				// äºˆæ¸¬
 				net.Forward();
 
-				// Œë·‹t“`”d
+				// èª¤å·®é€†ä¼æ’­
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					auto signals = net.GetOutputSignal(frame);
 					for (size_t node = 0; node < signals.size(); ++node) {
@@ -2031,7 +2031,7 @@ public:
 				}
 				net.Backward();
 
-				// XV
+				// æ›´æ–°
 				net.Update();
 			}
 		}
@@ -2044,23 +2044,23 @@ public:
 		m_log << "start [LutSimpleConv]" << std::endl;
 		reset_time();
 
-		// ŠwK‚Æ•]‰¿‚Å‘½d‰»”(—”‚ğ•Ï‚¦‚Ä•¡”–ˆ’Ê‚µ‚ÄWŒv‚Å‚«‚é‚æ‚¤‚É‚·‚é)‚ğ•Ï‚¦‚é
+		// å­¦ç¿’æ™‚ã¨è©•ä¾¡æ™‚ã§å¤šé‡åŒ–æ•°(ä¹±æ•°ã‚’å¤‰ãˆã¦è¤‡æ•°æ¯é€šã—ã¦é›†è¨ˆã§ãã‚‹ã‚ˆã†ã«ã™ã‚‹)ã‚’å¤‰ãˆã‚‹
 		int train_mux_size = 1;
 		int test_mux_size = 3;
 
-		// Conv—psubƒlƒbƒg\’z (3x3)
+		// Convç”¨subãƒãƒƒãƒˆæ§‹ç¯‰ (3x3)
 		bb::NeuralNetBinaryLut6<true>			sub0_lut0(1 * 3 * 3, 16);
 		bb::NeuralNetGroup<>					sub0_net;
 		sub0_net.AddLayer(&sub0_lut0);
 
-		// Conv—psubƒlƒbƒg\’z (3x3)
+		// Convç”¨subãƒãƒƒãƒˆæ§‹ç¯‰ (3x3)
 		bb::NeuralNetBinaryLut6<true>			sub1_lut0(16 * 3 * 3, 64);
 		bb::NeuralNetBinaryLut6<true>			sub1_lut1(64, 8);
 		bb::NeuralNetGroup<>					sub1_net;
 		sub1_net.AddLayer(&sub1_lut0);
 		sub1_net.AddLayer(&sub1_lut1);
 
-		// À””ÅNET\’z
+		// å®Ÿæ•°ç‰ˆNETæ§‹ç¯‰
 		bb::NeuralNetRealToBinary<>				input_real2bin(1 * 28 * 28, 1 * 28 * 28);
 		bb::NeuralNetConvolutionPack<bool>		layer0_conv(&sub0_net, 1, 28, 28, 16, 3, 3);
 		bb::NeuralNetConvolutionPack<bool>		layer1_conv(&sub1_net, 16, 26, 26, 8, 3, 3);
@@ -2077,9 +2077,9 @@ public:
 		net.AddLayer(&layer2_maxpol);
 		net.AddLayer(&layer3_lut);
 		net.AddLayer(&layer4_lut);
-		//	net.AddLayer(&output_bin2rel);	// ŠwK‚Íunbinarize•s—v
+		//	net.AddLayer(&output_bin2rel);	// å­¦ç¿’æ™‚ã¯unbinarizeä¸è¦
 
-		// •]‰¿—pNET\’z(ƒm[ƒh‚Í‹¤—L)
+		// è©•ä¾¡ç”¨NETæ§‹ç¯‰(ãƒãƒ¼ãƒ‰ã¯å…±æœ‰)
 		bb::NeuralNet<>		eva_net;
 		eva_net.AddLayer(&input_real2bin);
 		eva_net.AddLayer(&layer0_conv);
@@ -2090,10 +2090,10 @@ public:
 		eva_net.AddLayer(&output_bin2rel);
 
 
-		// ŠwKƒ‹[ƒv
+		// å­¦ç¿’ãƒ«ãƒ¼ãƒ—
 		int iteration = 0;
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
-			// ŠwKó‹µ•]‰¿
+			// å­¦ç¿’çŠ¶æ³è©•ä¾¡
 			input_real2bin.InitializeCoeff(1);
 			output_bin2rel.InitializeCoeff(1);
 			//			eva_net.SetMuxSize(test_mux_size);
@@ -2101,28 +2101,28 @@ public:
 			m_log << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << accuracy << std::endl;
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
-				// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+				// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
 
-				// ƒoƒbƒ`ŠwKƒf[ƒ^‚Ìì¬
+				// ãƒãƒƒãƒå­¦ç¿’ãƒ‡ãƒ¼ã‚¿ã®ä½œæˆ
 				std::vector< std::vector<float> >	batch_images(m_train_images.begin() + x_index, m_train_images.begin() + x_index + batch_size);
 				std::vector< std::uint8_t >			batch_labels(m_train_labels.begin() + x_index, m_train_labels.begin() + x_index + batch_size);
 
-				// ƒf[ƒ^ƒZƒbƒg
+				// ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 				//				net.SetMuxSize(train_mux_size);
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					net.SetInputSignal(frame, batch_images[frame]);
 				}
 
-				// —\‘ª
+				// äºˆæ¸¬
 				net.Forward();
 
-				// ƒoƒCƒiƒŠ”ÅƒtƒB[ƒhƒoƒbƒN(—Í‹ZŠwK)
+				// ãƒã‚¤ãƒŠãƒªç‰ˆãƒ•ã‚£ãƒ¼ãƒ‰ãƒãƒƒã‚¯(åŠ›æŠ€å­¦ç¿’)
 				while (net.Feedback(last_lut_layer->GetOutputOnehotLoss<std::uint8_t, 10>(batch_labels)))
 					;
 
-				// ’†ŠÔ•\¦()
+				// ä¸­é–“è¡¨ç¤º()
 				input_real2bin.InitializeCoeff(1);
 				output_bin2rel.InitializeCoeff(1);
 				eva_net.SetMuxSize(test_mux_size);
@@ -2147,37 +2147,37 @@ public:
 		m_log << "start [LutSimpleCnn]" << std::endl;
 		reset_time();
 
-		// ŠwK‚Æ•]‰¿‚Å‘½d‰»”(—”‚ğ•Ï‚¦‚Ä•¡”–ˆ’Ê‚µ‚ÄWŒv‚Å‚«‚é‚æ‚¤‚É‚·‚é)‚ğ•Ï‚¦‚é
+		// å­¦ç¿’æ™‚ã¨è©•ä¾¡æ™‚ã§å¤šé‡åŒ–æ•°(ä¹±æ•°ã‚’å¤‰ãˆã¦è¤‡æ•°æ¯é€šã—ã¦é›†è¨ˆã§ãã‚‹ã‚ˆã†ã«ã™ã‚‹)ã‚’å¤‰ãˆã‚‹
 		int train_mux_size = 1;
 		int test_mux_size = 3;
 
-		// Conv—psubƒlƒbƒg\’z (3x3)
+		// Convç”¨subãƒãƒƒãƒˆæ§‹ç¯‰ (3x3)
 		bb::NeuralNetBinaryLut6<true>		sub0_lut0(1 * 3 * 3, 16);
 		bb::NeuralNetGroup<>				sub0_net;
 		sub0_net.AddLayer(&sub0_lut0);
 
-		// Conv—psubƒlƒbƒg\’z (3x3)
+		// Convç”¨subãƒãƒƒãƒˆæ§‹ç¯‰ (3x3)
 		bb::NeuralNetBinaryLut6<true>		sub1_lut0(16 * 3 * 3, 64);
 		bb::NeuralNetBinaryLut6<true>		sub1_lut1(64, 16);
 		bb::NeuralNetGroup<>				sub1_net;
 		sub1_net.AddLayer(&sub1_lut0);
 		sub1_net.AddLayer(&sub1_lut1);
 
-		// Conv—psubƒlƒbƒg\’z (3x3)
+		// Convç”¨subãƒãƒƒãƒˆæ§‹ç¯‰ (3x3)
 		bb::NeuralNetBinaryLut6<true>		sub3_lut0(16 * 3 * 3, 64);
 		bb::NeuralNetBinaryLut6<true>		sub3_lut1(64, 16);
 		bb::NeuralNetGroup<>				sub3_net;
 		sub3_net.AddLayer(&sub3_lut0);
 		sub3_net.AddLayer(&sub3_lut1);
 
-		// Conv—psubƒlƒbƒg\’z (3x3)
+		// Convç”¨subãƒãƒƒãƒˆæ§‹ç¯‰ (3x3)
 		bb::NeuralNetBinaryLut6<true>		sub4_lut0(16 * 3 * 3, 64);
 		bb::NeuralNetBinaryLut6<true>		sub4_lut1(64, 16);
 		bb::NeuralNetGroup<>				sub4_net;
 		sub4_net.AddLayer(&sub4_lut0);
 		sub4_net.AddLayer(&sub4_lut1);
 
-		// Conv—psubƒlƒbƒg\’z (3x3)
+		// Convç”¨subãƒãƒƒãƒˆæ§‹ç¯‰ (3x3)
 		bb::NeuralNetBinaryLut6<true>		sub6_lut0(16 * 3 * 3, 64);
 		bb::NeuralNetBinaryLut6<true>		sub6_lut1(64, 16);
 		bb::NeuralNetGroup<>				sub6_net;
@@ -2185,7 +2185,7 @@ public:
 		sub6_net.AddLayer(&sub6_lut1);
 
 
-		// À””ÅNET\’z
+		// å®Ÿæ•°ç‰ˆNETæ§‹ç¯‰
 		bb::NeuralNetRealToBinary<>				input_real2bin(1 * 28 * 28, 1 * 28 * 28);
 		bb::NeuralNetConvolutionPack<bool>		layer0_conv(&sub0_net, 1, 28, 28, 16, 3, 3);
 		bb::NeuralNetConvolutionPack<bool>		layer1_conv(&sub1_net, 16, 26, 26, 16, 3, 3);
@@ -2208,9 +2208,9 @@ public:
 		net.AddLayer(&layer5_maxpol);
 		net.AddLayer(&layer6_conv);
 		net.AddLayer(&layer7_lut);
-		//	net.AddLayer(&output_bin2rel);	// ŠwK‚Íunbinarize•s—v
+		//	net.AddLayer(&output_bin2rel);	// å­¦ç¿’æ™‚ã¯unbinarizeä¸è¦
 
-		// •]‰¿—pNET\’z(ƒm[ƒh‚Í‹¤—L)
+		// è©•ä¾¡ç”¨NETæ§‹ç¯‰(ãƒãƒ¼ãƒ‰ã¯å…±æœ‰)
 		bb::NeuralNet<>		eva_net;
 		eva_net.AddLayer(&input_real2bin);
 		eva_net.AddLayer(&layer0_conv);
@@ -2224,10 +2224,10 @@ public:
 		eva_net.AddLayer(&output_bin2rel);
 
 
-		// ŠwKƒ‹[ƒv
+		// å­¦ç¿’ãƒ«ãƒ¼ãƒ—
 		int iteration = 0;
 		for (int epoc = 0; epoc < epoc_size; ++epoc) {
-			// ŠwKó‹µ•]‰¿
+			// å­¦ç¿’çŠ¶æ³è©•ä¾¡
 			input_real2bin.InitializeCoeff(1);
 			output_bin2rel.InitializeCoeff(1);
 			eva_net.SetMuxSize(test_mux_size);
@@ -2235,28 +2235,28 @@ public:
 			m_log << get_time() << "s " << "epoc[" << epoc << "] accuracy : " << accuracy << std::endl;
 
 			for (size_t x_index = 0; x_index < m_train_images.size(); x_index += max_batch_size) {
-				// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+				// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 				size_t batch_size = std::min(max_batch_size, m_train_images.size() - x_index);
 
-				// ƒoƒbƒ`ŠwKƒf[ƒ^‚Ìì¬
+				// ãƒãƒƒãƒå­¦ç¿’ãƒ‡ãƒ¼ã‚¿ã®ä½œæˆ
 				std::vector< std::vector<float> >	batch_images(m_train_images.begin() + x_index, m_train_images.begin() + x_index + batch_size);
 				std::vector< std::uint8_t >			batch_labels(m_train_labels.begin() + x_index, m_train_labels.begin() + x_index + batch_size);
 
-				// ƒf[ƒ^ƒZƒbƒg
+				// ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 				net.SetMuxSize(train_mux_size);
 				net.SetBatchSize(batch_size);
 				for (size_t frame = 0; frame < batch_size; ++frame) {
 					net.SetInputSignal(frame, batch_images[frame]);
 				}
 
-				// —\‘ª
+				// äºˆæ¸¬
 				net.Forward();
 
-				// ƒoƒCƒiƒŠ”ÅƒtƒB[ƒhƒoƒbƒN(—Í‹ZŠwK)
+				// ãƒã‚¤ãƒŠãƒªç‰ˆãƒ•ã‚£ãƒ¼ãƒ‰ãƒãƒƒã‚¯(åŠ›æŠ€å­¦ç¿’)
 				while (net.Feedback(last_lut_layer->GetOutputOnehotLoss<std::uint8_t, 10>(batch_labels)))
 					;
 
-				// ’†ŠÔ•\¦()
+				// ä¸­é–“è¡¨ç¤º()
 				if (iteration % 1 == 0) {
 					input_real2bin.InitializeCoeff(1);
 					output_bin2rel.InitializeCoeff(1);
@@ -2299,14 +2299,14 @@ static int tmp_b[64 * 1024 * 1024];
 
 
 
-// ƒƒCƒ“ŠÖ”
+// ãƒ¡ã‚¤ãƒ³é–¢æ•°
 int main()
 {
 	omp_set_num_threads(6);
 
 
 #if 0
-	// NeuralNetConvExpand‚ğÀ‘H“I‚ÈƒTƒCƒY‚Å‘¬“x”äŠr
+	// NeuralNetConvExpandã‚’å®Ÿè·µçš„ãªã‚µã‚¤ã‚ºã§é€Ÿåº¦æ¯”è¼ƒ
 	bb::NeuralNetConvExpand<> cnvexp(100, 28, 28, 3, 3);
 	bb::NeuralNetConvExpandM<100, 28, 28, 3, 3> cnvexpM;
 
@@ -2318,10 +2318,10 @@ int main()
 	std::chrono::system_clock::time_point  start, end;
 
 	if (1) {
-		// ƒLƒƒƒbƒVƒ…‚ğ”ò‚Î‚·
+		// ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã‚’é£›ã°ã™
 		for (int i = 0; i < sizeof(tmp_d) / sizeof(int); ++i) { tmp_d[i]++; }
 
-		// Ql’l
+		// å‚è€ƒå€¤
 		start = std::chrono::system_clock::now();
 		memcpy(tmp_a, tmp_b, sizeof(float) * 100 * 28 * 28 * 3 * 3);
 		end = std::chrono::system_clock::now();
@@ -2330,7 +2330,7 @@ int main()
 	}
 
 	if (1) {
-		// ƒLƒƒƒbƒVƒ…‚ğ”ò‚Î‚·
+		// ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã‚’é£›ã°ã™
 		for (int i = 0; i < sizeof(tmp_d) / sizeof(int); ++i) { tmp_d[i]++; }
 
 		start = std::chrono::system_clock::now();
@@ -2347,7 +2347,7 @@ int main()
 	}
 
 	if (1) {
-		// ƒLƒƒƒbƒVƒ…‚ğ”ò‚Î‚·
+		// ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã‚’é£›ã°ã™
 		for (int i = 0; i < sizeof(tmp_d) / sizeof(int); ++i) { tmp_d[i]++; }
 
 		start = std::chrono::system_clock::now();
@@ -2374,7 +2374,7 @@ int main()
 #endif
 
 
-	// •]‰¿—pƒNƒ‰ƒX‚ğì¬
+	// è©•ä¾¡ç”¨ã‚¯ãƒ©ã‚¹ã‚’ä½œæˆ
 	EvaluateMnist	eva_mnist(train_max_size, test_max_size);
 
 //	eva_mnist.RunSparseFullyCnn(1000, 128);
@@ -2389,23 +2389,23 @@ int main()
 //	eva_mnist.RunFullyCnnBinary(1000, 256, 0.01);
 
 #if 1
-	// ƒoƒCƒiƒŠ6“ü—ÍLUT”ÅŠwKÀŒ±(d‚¢‚Å‚·)
+	// ãƒã‚¤ãƒŠãƒª6å…¥åŠ›LUTç‰ˆå­¦ç¿’å®Ÿé¨“(é‡ã„ã§ã™)
 	eva_mnist.RunBinaryLut6WithBbruteForce(2, 8192, 8);
 #endif
 
 #if 0
-	// À”•‘SÚ‘±(‚¢‚í‚ä‚éŒÃ“T“I‚Èƒjƒ…[ƒ‰ƒ‹ƒlƒbƒg)
+	// å®Ÿæ•°ï¼†å…¨æ¥ç¶š(ã„ã‚ã‚†ã‚‹å¤å…¸çš„ãªãƒ‹ãƒ¥ãƒ¼ãƒ©ãƒ«ãƒãƒƒãƒˆ)
 	eva_mnist.RunDenseAffineSigmoid(16, 256, 1.0);
 #endif
 
 #if 0
-	// À”•Ú‘±§ŒÀ(Ú‘±‚¾‚¯LUT“I‚É‚µ‚Ä’†g‚Ìƒm[ƒh‚ÍÀ”)
+	// å®Ÿæ•°ï¼†æ¥ç¶šåˆ¶é™(æ¥ç¶šã ã‘LUTçš„ã«ã—ã¦ä¸­èº«ã®ãƒãƒ¼ãƒ‰ã¯å®Ÿæ•°)
 	eva_mnist.RunFlatIlReal(16, 256);
 #endif
 
 #if 0
 //	eva_mnist.RunSparseAffineSigmoid(5, 256);
-	// Ú‘±§ŒÀ‚ÌÀ”‚ÅŠwK‚µ‚½Œã‚ÅƒoƒCƒiƒŠ‚ÉƒRƒs[
+	// æ¥ç¶šåˆ¶é™ã®å®Ÿæ•°ã§å­¦ç¿’ã—ãŸå¾Œã§ãƒã‚¤ãƒŠãƒªã«ã‚³ãƒ”ãƒ¼
 	eva_mnist.RunRealToBinary(8, 256);
 #endif
 

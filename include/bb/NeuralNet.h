@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -23,7 +23,7 @@
 namespace bb {
 
 
-// NeuralNet ÅãˆÊ\¬—pƒNƒ‰ƒX
+// NeuralNet æœ€ä¸Šä½æ§‹æˆç”¨ã‚¯ãƒ©ã‚¹
 template <typename T = float, typename INDEX = size_t>
 class NeuralNet : public NeuralNetGroup<T, INDEX>
 {
@@ -36,12 +36,12 @@ protected:
 	NeuralNetBuffer<T, INDEX>	m_output_error_buffers;
 	
 public:
-	// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	NeuralNet()
 	{
 	}
 	
-	// ƒfƒXƒgƒ‰ƒNƒ^
+	// ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	~NeuralNet() {
 	}
 
@@ -49,20 +49,20 @@ public:
 
 	void SetBatchSize(INDEX batch_size)
 	{
-		// eƒNƒ‰ƒXŒÄ‚Ño‚µ
+		// è¦ªã‚¯ãƒ©ã‚¹å‘¼ã³å‡ºã—
 		NeuralNetGroup<T, INDEX>::SetBatchSize(batch_size);
 
-		// ƒTƒCƒY•ÏX‚ª–³‚¯‚ê‚Î‚»‚Ì‚Ü‚Ü
+		// ã‚µã‚¤ã‚ºå¤‰æ›´ãŒç„¡ã‘ã‚Œã°ãã®ã¾ã¾
 		if (m_batch_size == batch_size) {
 			return;
 		}
 		m_batch_size = batch_size;
 
-		// “üo—Í‚Ìƒoƒbƒtƒ@‚à€”õ
-		m_input_signal_buffers = m_firstLayer->CreateInputSignalBuffer();
-		m_input_error_buffers = m_firstLayer->CreateInputErrorBuffer();
-		m_output_signal_buffers = m_lastLayer->CreateOutputSignalBuffer();
-		m_output_error_buffers = m_lastLayer->CreateOutputErrorBuffer();
+		// å…¥å‡ºåŠ›ã®ãƒãƒƒãƒ•ã‚¡ã‚‚æº–å‚™
+		m_input_signal_buffers = this->m_firstLayer->CreateInputSignalBuffer();
+		m_input_error_buffers = this->m_firstLayer->CreateInputErrorBuffer();
+		m_output_signal_buffers = this->m_lastLayer->CreateOutputSignalBuffer();
+		m_output_error_buffers = this->m_lastLayer->CreateOutputErrorBuffer();
 		this->m_firstLayer->SetInputSignalBuffer(m_input_signal_buffers);
 		this->m_firstLayer->SetInputErrorBuffer(m_input_error_buffers);
 		this->m_lastLayer->SetOutputSignalBuffer(m_output_signal_buffers);
@@ -93,7 +93,7 @@ public:
 	}
 
 
-	// “üo—Íƒf[ƒ^‚Ö‚ÌƒAƒNƒZƒX•â•
+	// å…¥å‡ºåŠ›ãƒ‡ãƒ¼ã‚¿ã¸ã®ã‚¢ã‚¯ã‚»ã‚¹è£œåŠ©
 	void SetInputSignal(INDEX frame, INDEX node, T signal) {
 		return this->m_firstLayer->GetInputSignalBuffer().SetReal(frame, node, signal);
 	}
@@ -143,39 +143,39 @@ public:
 		double accuracy = 0;
 
 		for (INDEX x_index = 0; x_index < x_size; x_index += max_batch_size) {
-			// ––”ö‚Ìƒoƒbƒ`ƒTƒCƒYƒNƒŠƒbƒv
+			// æœ«å°¾ã®ãƒãƒƒãƒã‚µã‚¤ã‚ºã‚¯ãƒªãƒƒãƒ—
 			INDEX batch_size = std::min(max_batch_size, x.size() - x_index);
 			INDEX node_size = x[0].size();
 
-			// ƒoƒbƒ`ƒTƒCƒYİ’è
+			// ãƒãƒƒãƒã‚µã‚¤ã‚ºè¨­å®š
 			SetBatchSize(batch_size);
 
 			auto in_sig_buf = GetInputSignalBuffer();
 			auto out_sig_buf = GetOutputSignalBuffer();
 
-			// ƒf[ƒ^Ši”[
+			// ãƒ‡ãƒ¼ã‚¿æ ¼ç´
 			for (INDEX frame = 0; frame < batch_size; ++frame) {
 				for (INDEX node = 0; node < node_size; ++node) {
 					in_sig_buf.Set<T>(frame, node, x[x_index + frame][node]);
 				}
 			}
 
-			// —\‘ª
+			// äºˆæ¸¬
 			Forward(train);
 
-			// i’»•\¦
+			// é€²æ—è¡¨ç¤º
 			if (print_progress) {
 				INDEX progress = x_index + batch_size;
 				INDEX rate = progress * 100 / x_size;
 				std::cout << "[" << rate << "% (" << progress << "/" << x_size << ")]";
 			}
 
-			// Œë·‹t“`”d
+			// èª¤å·®é€†ä¼æ’­
 			if (lossFunc != nullptr) {
 				auto out_err_buf = GetOutputErrorBuffer();
 				auto loss = lossFunc->CalculateLoss(out_sig_buf, out_err_buf, it_y);
 
-				// i’»•\¦
+				// é€²æ—è¡¨ç¤º
 				if (print_progress) {
 					std::cout << "  loss : " << loss;
 				}
@@ -184,30 +184,30 @@ public:
 			if (accFunc != nullptr) {
 				accuracy += accFunc->CalculateAccuracy(out_sig_buf, it_y);
 
-				// i’»•\¦
+				// é€²æ—è¡¨ç¤º
 				if (print_progress) {
 					std::cout << "  acc : " << accuracy / (x_index + batch_size);
 				}
 			}
 
 			if (train) {
-				// ‹t“`”d
+				// é€†ä¼æ’­
 				Backward();
 
-				// XV
+				// æ›´æ–°
 				Update();
 			}
 
-			// i’»•\¦
+			// é€²æ—è¡¨ç¤º
 			if (print_progress) {
 				std::cout << "\r" << std::flush;
 			}
 
-			// ƒCƒeƒŒ[ƒ^‚ği‚ß‚é
+			// ã‚¤ãƒ†ãƒ¬ãƒ¼ã‚¿ã‚’é€²ã‚ã‚‹
 			it_y += batch_size;
 		}
 
-		// i’»•\¦ƒNƒŠƒA
+		// é€²æ—è¡¨ç¤ºã‚¯ãƒªã‚¢
 		if (print_progress) {
 			std::cout << "                                                                    \r" << std::flush;
 		}
@@ -236,19 +236,19 @@ public:
 		std::string net_file_name = name + "_net.json";
 		std::mt19937_64 mt(seed);
 		
-		// ƒƒOƒtƒ@ƒCƒ‹ƒI[ƒvƒ“
+		// ãƒ­ã‚°ãƒ•ã‚¡ã‚¤ãƒ«ã‚ªãƒ¼ãƒ—ãƒ³
 		std::ofstream ofs_log;
 		if (file_write) {
 			ofs_log.open(log_file_name, over_write ? std::ios::out : std::ios::app);
 		}
 
 		{
-			// ƒƒOo—Íæİ’è
+			// ãƒ­ã‚°å‡ºåŠ›å…ˆè¨­å®š
 			ostream_tee	log_stream;
 			log_stream.add(std::cout);
 			if (ofs_log.is_open()) { log_stream.add(ofs_log); }
 
-			// ˆÈ‘O‚ÌŒvZ‚ª‚ ‚ê‚Î“Ç‚İ‚İ
+			// ä»¥å‰ã®è¨ˆç®—ãŒã‚ã‚Œã°èª­ã¿è¾¼ã¿
 			if (file_write && !over_write) {
 				std::ifstream ifs(net_file_name);
 				if (ifs.is_open()) {
@@ -258,28 +258,28 @@ public:
 				}
 			}
 
-			// ŠJnƒƒbƒZ[ƒW
+			// é–‹å§‹ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸
 			log_stream << "fitting start : " << name << std::endl;
 
-			// ‰Šú•]‰¿
+			// åˆæœŸè©•ä¾¡
 			if (initial_evaluation) {
 				auto test_accuracy = RunCalculation(x_test, y_test, max_batch_size, accFunc);
 				log_stream << "initial test_accuracy : " << test_accuracy << std::endl;
 			}
 
-			// ŠJnŠÔ‹L˜^
+			// é–‹å§‹æ™‚é–“è¨˜éŒ²
 			auto start_time = std::chrono::system_clock::now();
 
 			for (int epoc = 0; epoc < epoc_size; ++epoc) {
-				// ŠwKÀ{
+				// å­¦ç¿’å®Ÿæ–½
 				auto train_accuracy = RunCalculation(x_train, y_train, max_batch_size, accFunc, lossFunc, true, true);
 
-				// ŠwKó‹µ•]‰¿
+				// å­¦ç¿’çŠ¶æ³è©•ä¾¡
 				auto now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
 				auto test_accuracy = RunCalculation(x_test, y_test, max_batch_size, accFunc);
 				log_stream << now_time << "s " << "epoc[" << epoc << "] test_accuracy : " << test_accuracy << " train_accuracy : " << train_accuracy <<  std::endl;
 
-				// ƒlƒbƒg•Û‘¶
+				// ãƒãƒƒãƒˆä¿å­˜
 				std::ofstream ofs_net(net_file_name);
 				cereal::JSONOutputArchive ar(ofs_net);
 				Save(ar);
@@ -288,7 +288,7 @@ public:
 				bb::ShuffleDataSet(mt(), x_train, y_train);
 			}
 
-			// I—¹ƒƒbƒZ[ƒW
+			// çµ‚äº†ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸
 			log_stream << "fitting end" << std::endl;
 		}
 	}

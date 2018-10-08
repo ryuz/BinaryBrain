@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -18,7 +18,7 @@
 namespace bb {
 
 
-// ReLU(Šˆ«‰»ŠÖ”)
+// ReLU(æ´»æ€§åŒ–é–¢æ•°)
 template <typename T = float, typename INDEX = size_t>
 class NeuralNetReLU : public NeuralNetLayerBuf<T, INDEX>
 {

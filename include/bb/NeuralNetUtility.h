@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -30,7 +30,7 @@ INDEX argmax(std::vector<T> vec)
 }
 
 
-// ƒf[ƒ^Œ^‚ğ•ÏŠ·(uint8_t(0-255) -> float(0.0-1.0)‚Ö‚Ì•ÏŠ·‚Ég‚¤‘z’è)
+// ãƒ‡ãƒ¼ã‚¿å‹ã‚’å¤‰æ›(uint8_t(0-255) -> float(0.0-1.0)ã¸ã®å¤‰æ›ã«ä½¿ã†æƒ³å®š)
 template <typename ST = std::uint8_t, typename DT = float, typename MT = float>
 std::vector<DT> DataTypeConvert(const std::vector<ST>& src, MT mul=(MT)1)
 {
@@ -54,7 +54,7 @@ std::vector< std::vector<DT> > DataTypeConvert(const std::vector< std::vector<ST
 }
 
 
-// ƒ‰ƒxƒ‹’l‚ğƒƒ“ƒzƒbƒgƒf[ƒ^‚É•ÏŠ·
+// ãƒ©ãƒ™ãƒ«å€¤ã‚’ãƒ¯ãƒ³ãƒ›ãƒƒãƒˆãƒ‡ãƒ¼ã‚¿ã«å¤‰æ›
 template <typename LT, typename T=float>
 std::vector< std::vector<T> > LabelToOnehot(const std::vector<LT>& labels, LT label_size, T f_val = (T)0.0, T t_val = (T)1.0)
 {
@@ -70,7 +70,7 @@ std::vector< std::vector<T> > LabelToOnehot(const std::vector<LT>& labels, LT la
 }
 
 
-// ƒƒ“ƒzƒbƒgƒf[ƒ^‚ğƒ‰ƒxƒ‹’l‚É•ÏŠ·
+// ãƒ¯ãƒ³ãƒ›ãƒƒãƒˆãƒ‡ãƒ¼ã‚¿ã‚’ãƒ©ãƒ™ãƒ«å€¤ã«å¤‰æ›
 template <typename LT, typename T = float>
 std::vector<LT> OnehotToLabel(const std::vector<std::vector<T>>& onehot)
 {
@@ -83,7 +83,7 @@ std::vector<LT> OnehotToLabel(const std::vector<std::vector<T>>& onehot)
 }
 
 
-// ƒgƒŒ[ƒjƒ“ƒOƒf[ƒ^ƒZƒbƒg‚ÌƒVƒƒƒbƒtƒ‹
+// ãƒˆãƒ¬ãƒ¼ãƒ‹ãƒ³ã‚°ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆã®ã‚·ãƒ£ãƒƒãƒ•ãƒ«
 template <typename T0>
 void ShuffleDataSet(std::uint64_t seed, std::vector<T0>& data0)
 {
@@ -136,7 +136,7 @@ void ShuffleDataSet(std::uint64_t seed, std::vector<T0>& data0, std::vector<T1>&
 
 
 
-// ostream —p tee
+// ostream ç”¨ tee
 template<class _Elem, class _Traits = std::char_traits<_Elem> >
 class basic_streambuf_tee : public std::basic_streambuf<_Elem, _Traits>
 {

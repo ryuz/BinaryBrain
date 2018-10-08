@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -18,13 +18,13 @@
 namespace bb {
 
 
-// LUTŒ^‚ÌŠî–{ƒNƒ‰ƒX
-// —Í‹Z‚Å‚ÌŠwK‚ğÀ‘•
-// ƒtƒ‰ƒbƒg‚ÈŒ‹ü‚Å‚ ‚ê‚Îd•¡‚ª–³‚¢‚Ì‚ÅALUT’PˆÊ‚Å“Œv‚ğæ‚è‚È‚ª‚ç‰‰Z‚ª‰Â”\
-// ô‚İ‚İ‚Íbit–ˆ‚ÉŒ‹‰Ê‚É‘ŠŒİ‰e‹¿‚·‚é‚Ì‚Åbit’PˆÊ‚Å‚â‚é‚µ‚©–³‚³‚»‚¤
+// LUTå‹ã®åŸºæœ¬ã‚¯ãƒ©ã‚¹
+// åŠ›æŠ€ã§ã®å­¦ç¿’ã‚’å®Ÿè£…
+// ãƒ•ãƒ©ãƒƒãƒˆãªçµç·šã§ã‚ã‚Œã°é‡è¤‡ãŒç„¡ã„ã®ã§ã€LUTå˜ä½ã§çµ±è¨ˆã‚’å–ã‚ŠãªãŒã‚‰æ¼”ç®—ãŒå¯èƒ½
+// ç•³ã¿è¾¼ã¿æ™‚ã¯bitæ¯ã«çµæœã«ç›¸äº’å½±éŸ¿ã™ã‚‹ã®ã§bitå˜ä½ã§ã‚„ã‚‹ã—ã‹ç„¡ã•ãã†
 
 
-// LUT•û®Šî’êƒNƒ‰ƒX
+// LUTæ–¹å¼åŸºåº•ã‚¯ãƒ©ã‚¹
 template <bool feedback_bitwise = false, typename T = float, typename INDEX = size_t>
 class NeuralNetBinaryLut : public NeuralNetSparseLayer<T, INDEX>
 {
@@ -34,7 +34,7 @@ protected:
 	INDEX					m_frame_size = 1;
 
 public:
-	// LUT‘€ì‚Ì’è‹`
+	// LUTæ“ä½œã®å®šç¾©
 	virtual int   GetLutInputSize(void) const = 0;
 	virtual int   GetLutTableSize(void) const = 0;
 	virtual void  SetLutInput(INDEX node, int bitpos, INDEX input_node) = 0;
@@ -58,13 +58,13 @@ public:
 		
 		ShuffleSet	ss(GetInputNodeSize(), mt());
 		for (INDEX node = 0; node < node_size; ++node) {
-			// “ü—Í‚ğƒ‰ƒ“ƒ_ƒ€Ú‘±
+			// å…¥åŠ›ã‚’ãƒ©ãƒ³ãƒ€ãƒ æ¥ç¶š
 			auto random_set = ss.GetRandomSet(GetLutInputSize());
 			for (int i = 0; i < lut_input_size; ++i) {
 				SetLutInput(node, i, random_set[i]);
 			}
 			
-			// LUTƒe[ƒuƒ‹‚ğƒ‰ƒ“ƒ_ƒ€‚É‰Šú‰»
+			// LUTãƒ†ãƒ¼ãƒ–ãƒ«ã‚’ãƒ©ãƒ³ãƒ€ãƒ ã«åˆæœŸåŒ–
 			for (int i = 0; i < lut_table_size; i++) {
 				SetLutTable(node, i, rand(mt) != 0);
 			}
@@ -82,12 +82,12 @@ public:
 		for (INDEX node = 0; node < node_size; ++node) {
 			BB_ASSERT(src.GetNodeInputSize(node) == input_size);
 
-			// “ü—Í‚ğƒRƒs[
+			// å…¥åŠ›ã‚’ã‚³ãƒ”ãƒ¼
 			for (int input_index = 0; input_index < input_size; ++input_index) {
 				SetLutInput(node, input_index, src.GetNodeInput(node, input_index));
 			}
 
-			// ŒW”‚ğƒoƒCƒiƒŠ‰»
+			// ä¿‚æ•°ã‚’ãƒã‚¤ãƒŠãƒªåŒ–
 			std::vector<T> vec(input_size);
 			for (int index = 0; index < table_size; ++index) {
 				for (int bit = 0; bit < input_size; ++bit) {
@@ -177,7 +177,7 @@ public:
 		int lut_input_size = GetLutInputSize();
 		int lut_table_size = GetLutTableSize();
 
-		// ƒ[ƒ‰Šú‰»
+		// ã‚¼ãƒ­åˆæœŸåŒ–
 		INDEX input_node_size = GetInputNodeSize();
 		for (INDEX node = 0; node < input_node_size; ++node) {
 			for (INDEX frame = 0; frame < frame_size; ++frame) {
@@ -187,17 +187,17 @@ public:
 
 		std::mt19937_64 mt(1);
 
-		// ŒvZ
+		// è¨ˆç®—
 		std::vector<T> table_err(lut_table_size);
 		for (INDEX node = 0; node < node_size; ++node) {
 			std::fill(table_err.begin(), table_err.end(), (T)0);
 			for (INDEX frame = 0; frame < frame_size; ++frame) {
-				// “ü—Í’læ“¾
+				// å…¥åŠ›å€¤å–å¾—
 				int input_index = GetLutInputIndex(frame, node);
 				T err = out_err.Get<T>(frame, node);
 
-				// ƒe[ƒuƒ‹‚É‘Î‚·‚éŒë·ŒvZ
-				table_err[input_index] += err;	// ÏZ‚µ‚Ä‚¢‚­
+				// ãƒ†ãƒ¼ãƒ–ãƒ«ã«å¯¾ã™ã‚‹èª¤å·®è¨ˆç®—
+				table_err[input_index] += err;	// ç©ç®—ã—ã¦ã„ã
 			}
 
 			for (int bitpos = 0; bitpos < lut_input_size; ++bitpos) {
@@ -213,14 +213,14 @@ public:
 				bool val = GetLutTable(node, input_index);
 				if ((val && err < 0) || (val && err > 0)) {
 
-					// “ü—Í‚É‘Î‚·‚é“`”dŒë·ŒvZ
+					// å…¥åŠ›ã«å¯¾ã™ã‚‹ä¼æ’­èª¤å·®è¨ˆç®—
 					int mask = 1;
 			//		for (int bitpos = 0; bitpos < lut_input_size; ++bitpos) {
 					{
 						int bitpos = (int)(mt() % lut_input_size);
 
 						INDEX input_node = GetLutInput(node, bitpos);
-						// Še“ü—Í€‚É‘Î‚·‚éƒe[ƒuƒ‹‚Ì•Î”÷•ª‚ğŒvZ
+						// å„å…¥åŠ›é …ã«å¯¾ã™ã‚‹ãƒ†ãƒ¼ãƒ–ãƒ«ã®åå¾®åˆ†ã‚’è¨ˆç®—
 						int index0 = (input_index & ~mask);
 						int index1 = (input_index | mask);
 						bool val0 = GetLutTable(node, index0);
@@ -249,7 +249,7 @@ public:
 protected:
 	inline int GetLutInputIndex(NeuralNetBuffer<T, INDEX>& buf, int lut_input_size, INDEX frame, INDEX node)
 	{
-		// “ü—Í’lì¬
+		// å…¥åŠ›å€¤ä½œæˆ
 		int index = 0;
 		int mask = 1;
 		for (int i = 0; i < lut_input_size; ++i) {
@@ -270,7 +270,7 @@ protected:
 	std::vector< std::vector<int> >		m_feedback_input;
 	std::vector<double>					m_feedback_loss;
 	
-	// “ü—Í‚ğWŒv‚µ‚ÄLUT’PˆÊ‚ÅŠwK
+	// å…¥åŠ›ã‚’é›†è¨ˆã—ã¦LUTå˜ä½ã§å­¦ç¿’
 	inline bool FeedbackLutwise(const std::vector<double>& loss)
 	{
 		auto in_buf = GetInputSignalBuffer();
@@ -281,7 +281,7 @@ protected:
 		int lut_input_size = GetLutInputSize();
 		int	lut_table_size = GetLutTableSize();
 
-		// ‰‰ñİ’è
+		// åˆå›è¨­å®š
 		if (!m_feedback_busy) {
 			m_feedback_busy = true;
 			m_feedback_node = 0;
@@ -292,7 +292,7 @@ protected:
 			for (INDEX node = 0; node < node_size; ++node) {
 				m_feedback_input[node].resize(frame_size);
 				for (INDEX frame = 0; frame < frame_size; ++frame) {
-					// “ü—Í’lì¬
+					// å…¥åŠ›å€¤ä½œæˆ
 #if 1
 					int value = 0;
 					int mask = 1;
@@ -309,21 +309,21 @@ protected:
 			}
 		}
 
-		// Š®—¹
+		// å®Œäº†
 		if (m_feedback_node >= node_size) {
 			m_feedback_busy = false;
 			return false;
 		}
 
 		if ( m_feedback_phase == 0 ) {
-			// Œ‹‰Ê‚ğWŒv
+			// çµæœã‚’é›†è¨ˆ
 			std::fill(m_feedback_loss.begin(), m_feedback_loss.end(), (T)0.0);
 			for (INDEX frame = 0; frame < frame_size; ++frame) {
 				int lut_input = m_feedback_input[m_feedback_node][frame];
 				m_feedback_loss[lut_input] += loss[frame];
 			}
 
-			// o—Í‚ğ”½“]
+			// å‡ºåŠ›ã‚’åè»¢
 			for (INDEX frame = 0; frame < frame_size; ++frame) {
 				out_buf.Set<bool>(frame, m_feedback_node, !out_buf.Get<bool>(frame, m_feedback_node));
 			}
@@ -331,13 +331,13 @@ protected:
 			m_feedback_phase++;
 		}
 		else {
-			// ”½“]‚³‚¹‚½Œ‹‰Ê‚ğWŒv
+			// åè»¢ã•ã›ãŸçµæœã‚’é›†è¨ˆ
 			for (INDEX frame = 0; frame < frame_size; ++frame) {
 				int lut_input = m_feedback_input[m_feedback_node][frame];
 				m_feedback_loss[lut_input] -= loss[frame];
 			}
 
-			// WŒvŒ‹‰Ê‚ÉŠî‚Ã‚¢‚ÄLUT‚ğŠwK
+			// é›†è¨ˆçµæœã«åŸºã¥ã„ã¦LUTã‚’å­¦ç¿’
 			int	lut_table_size = GetLutTableSize();
 			for (int bit = 0; bit < lut_table_size; ++bit) {
 				std::normal_distribution<double> rand_distribution(0, 0.001);
@@ -349,24 +349,24 @@ protected:
 	//			}
 			}
 
-			// ŠwK‚µ‚½LUT‚Åo—Í‚ğÄŒvZ
+			// å­¦ç¿’ã—ãŸLUTã§å‡ºåŠ›ã‚’å†è¨ˆç®—
 			ForwardNode(m_feedback_node);
 
-			// Ÿ‚ÌLUT‚Éi‚Ş
+			// æ¬¡ã®LUTã«é€²ã‚€
 			m_feedback_phase = 0;
 			++m_feedback_node;
 		}
 
-		return true;	// ˆÈ~‚ğÄŒvZ‚µ‚ÄŒp‘±
+		return true;	// ä»¥é™ã‚’å†è¨ˆç®—ã—ã¦ç¶™ç¶š
 	}
 
-	// [ƒAƒCƒfƒA‚¾‚¯ƒƒ‚]
-	// ô‚İ‚İ‚Åƒrƒbƒg’PˆÊ‚Í‚ ‚Ü‚è‚¤‚Ü‚­‚¢‚Á‚Ä‚¢‚È‚¢
-	// ƒnƒ~ƒ“ƒO‹——£1‚Ã‚Â‚µ‚©ˆÚ“®‚Å‚«‚È‚¢‚Ì‚Å‹ÇŠ‰ğ‚É—‚¿‚â‚·‚¢–Í—l
-	// —á‚¦‚Î4bit‚®‚ç‚¢‘©‚É‚µ‚Ä16‰ñ‚Ü‚í‚µ‚Äˆê”Ô—Ç‚¢‚à‚Ì‚ğæ‚é‚Æ‚©‚ª
-	// •K—v‚È‹C‚ª‚·‚éB‘I‚Ô4bit‚ÍˆÙ‚È‚éLUT‚ğŒ×‚®‚Ì‚à‚ ‚è‚¾‚Æv‚¤
+	// [ã‚¢ã‚¤ãƒ‡ã‚¢ã ã‘ãƒ¡ãƒ¢]
+	// ç•³ã¿è¾¼ã¿ã§ãƒ“ãƒƒãƒˆå˜ä½ã¯ã‚ã¾ã‚Šã†ã¾ãã„ã£ã¦ã„ãªã„
+	// ãƒãƒŸãƒ³ã‚°è·é›¢1ã¥ã¤ã—ã‹ç§»å‹•ã§ããªã„ã®ã§å±€æ‰€è§£ã«è½ã¡ã‚„ã™ã„æ¨¡æ§˜
+	// ä¾‹ãˆã°4bitãã‚‰ã„æŸã«ã—ã¦16å›ã¾ã‚ã—ã¦ä¸€ç•ªè‰¯ã„ã‚‚ã®ã‚’å–ã‚‹ã¨ã‹ãŒ
+	// å¿…è¦ãªæ°—ãŒã™ã‚‹ã€‚é¸ã¶4bitã¯ç•°ãªã‚‹LUTã‚’è·¨ãã®ã‚‚ã‚ã‚Šã ã¨æ€ã†
 
-	// ƒrƒbƒg’PˆÊ‚ÅŠwK
+	// ãƒ“ãƒƒãƒˆå˜ä½ã§å­¦ç¿’
 	inline bool FeedbackBitwise(const std::vector<double>& loss)
 	{
 		auto in_buf = GetInputSignalBuffer();
@@ -377,7 +377,7 @@ protected:
 		int lut_input_size = GetLutInputSize();
 		int	lut_table_size = GetLutTableSize();
 
-		// ‰‰ñİ’è
+		// åˆå›è¨­å®š
 		if (!m_feedback_busy) {
 			m_feedback_busy = true;
 			m_feedback_node = 0;
@@ -386,56 +386,56 @@ protected:
 			m_feedback_loss.resize(1);
 		}
 
-		// Š®—¹
+		// å®Œäº†
 		if (m_feedback_node >= node_size) {
 			m_feedback_busy = false;
 			return false;
 		}
 
-		// ‘¹¸WŒv
+		// æå¤±é›†è¨ˆ
 		double loss_sum = (T)0;
 		for (auto v : loss) {
 			loss_sum += v;
 		}
 
 		if (m_feedback_phase == 0) {
-			// ‘¹¸‚ğ•Û‘¶
+			// æå¤±ã‚’ä¿å­˜
 			m_feedback_loss[0] = loss_sum;
 
-			// ŠY“–LUT‚ğ”½“]
+			// è©²å½“LUTã‚’åè»¢
 			SetLutTable(m_feedback_node, m_feedback_bit, !GetLutTable(m_feedback_node, m_feedback_bit));
 
-			// •ÏX‚µ‚½LUT‚ÅÄŒvZ
+			// å¤‰æ›´ã—ãŸLUTã§å†è¨ˆç®—
 			ForwardNode(m_feedback_node);
 
 			++m_feedback_phase;
 		}
 		else {
-			// ‘¹¸‚ğ”äŠr
+			// æå¤±ã‚’æ¯”è¼ƒ
 			m_feedback_loss[0] -= loss_sum;
 
 			std::normal_distribution<double> dist(0.0, 0.1);
 
 			if (m_feedback_loss[0] < 0) {
-				// ”½“]‚³‚¹‚È‚¢•û‚ªŒ‹‰Ê‚ª‚æ‚¯‚ê‚ÎŒ³‚É–ß‚·
+				// åè»¢ã•ã›ãªã„æ–¹ãŒçµæœãŒã‚ˆã‘ã‚Œã°å…ƒã«æˆ»ã™
 				SetLutTable(m_feedback_node, m_feedback_bit, !GetLutTable(m_feedback_node, m_feedback_bit));
 
-				// •ÏX‚µ‚½LUT‚ÅÄŒvZ
+				// å¤‰æ›´ã—ãŸLUTã§å†è¨ˆç®—
 				ForwardNode(m_feedback_node);
 			}
 
-			// Ÿ‚Ìbit‚Éi‚Ş
+			// æ¬¡ã®bitã«é€²ã‚€
 			m_feedback_phase = 0;
 			++m_feedback_bit;
 
 			if (m_feedback_bit >= lut_table_size) {
-				// Ÿ‚ÌbitLUT‚Éi‚Ş
+				// æ¬¡ã®bitLUTã«é€²ã‚€
 				m_feedback_bit = 0;
 				++m_feedback_node;
 			}
 		}
 
-		return true;	// ˆÈ~‚ğÄŒvZ‚µ‚ÄŒp‘±
+		return true;	// ä»¥é™ã‚’å†è¨ˆç®—ã—ã¦ç¶™ç¶š
 	}
 
 

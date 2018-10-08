@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -19,7 +19,7 @@
 namespace bb {
 
 
-// NeuralNet‚Ì’ŠÛƒNƒ‰ƒX
+// NeuralNetã®æŠ½è±¡ã‚¯ãƒ©ã‚¹
 template <typename T = float, typename INDEX = size_t>
 class NeuralNetBinaryFilter : public NeuralNetLayerBuf<T, INDEX>
 {
@@ -50,7 +50,7 @@ public:
 		Resize(input_c_size, input_h_size, input_w_size, output_c_size, filter_h_size, filter_w_size, y_step, x_step);
 	}
 
-	~NeuralNetBinaryFilter() {}		// ƒfƒXƒgƒ‰ƒNƒ^
+	~NeuralNetBinaryFilter() {}		// ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 
 	void SetFilterNet(NeuralNetLayer<T, INDEX>* filter_net)
 	{
@@ -71,7 +71,7 @@ public:
 		m_output_w_size = ((m_input_w_size - m_filter_w_size + 1) + (m_x_step - 1)) / m_x_step;
 	}
 
-	// “à•”‚ÅROIİ’è‚ğs‚¤‚Ì‚ÅAŠO•”‚ÉŒ©‚¹‚éƒoƒbƒtƒ@ƒ|ƒCƒ“ƒ^‚Æ•Ê‚Éİ’è‚·‚é
+	// å†…éƒ¨ã§ROIè¨­å®šã‚’è¡Œã†ã®ã§ã€å¤–éƒ¨ã«è¦‹ã›ã‚‹ãƒãƒƒãƒ•ã‚¡ãƒã‚¤ãƒ³ã‚¿ã¨åˆ¥ã«è¨­å®šã™ã‚‹
 	void  SetInputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) {
 		super::SetInputSignalBuffer(buffer);
 		m_filter_net->SetInputSignalBuffer(buffer);
@@ -160,7 +160,7 @@ public:
 	bool Feedback(const std::vector<double>& loss)
 	{
 		if ( m_filter_net->Feedback(loss)) {
-			Forward(false);	// ‘S‘ÌÄŒvZ
+			Forward(false);	// å…¨ä½“å†è¨ˆç®—
 			return true;
 		}
 		

@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -19,7 +19,7 @@
 namespace bb {
 
 
-// “ü—Í”§ŒÀAffine Binary Connect”Å
+// å…¥åŠ›æ•°åˆ¶é™Affine Binary Connectç‰ˆ
 template <int N = 6, typename T = float, typename INDEX = size_t>
 class NeuralNetSparseAffineBc : public NeuralNetSparseLayer<T, INDEX>
 {

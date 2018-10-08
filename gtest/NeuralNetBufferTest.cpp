@@ -1,4 +1,4 @@
-#include <stdio.h>
+ï»¿#include <stdio.h>
 #include <random>
 #include <iostream>
 #include "gtest/gtest.h"
@@ -14,7 +14,7 @@ TEST(NeuralNetBufferTest, testNeuralNetBufferTest)
 		buf.Set<float>(0, i, (float)i);
 	}
 
-	// ‘½ŸŒ³”z—ñ\¬
+	// å¤šæ¬¡å…ƒé…åˆ—æ§‹æˆ
 	buf.SetDimensions({ 2, 3, 4 });
 	EXPECT_EQ(0, *(float *)buf.GetPtr3(0, 0, 0));
 	EXPECT_EQ(1, *(float *)buf.GetPtr3(0, 0, 1));
@@ -41,7 +41,7 @@ TEST(NeuralNetBufferTest, testNeuralNetBufferTest)
 	EXPECT_EQ(22, *(float *)buf.GetPtr3(3, 2, 0));
 	EXPECT_EQ(23, *(float *)buf.GetPtr3(3, 2, 1));
 
-	// ƒV[ƒPƒ“ƒVƒƒƒ‹ƒAƒNƒZƒXŠm”F
+	// ã‚·ãƒ¼ã‚±ãƒ³ã‚·ãƒ£ãƒ«ã‚¢ã‚¯ã‚»ã‚¹ç¢ºèª
 	{
 		int i = 0;
 		buf.ResetPtr();
@@ -53,7 +53,7 @@ TEST(NeuralNetBufferTest, testNeuralNetBufferTest)
 	}
 
 #if BB_NEURALNET_BUFFER_USE_ROI
-	// ƒIƒtƒZƒbƒg‚Ì‚İ‚ÌROI
+	// ã‚ªãƒ•ã‚»ãƒƒãƒˆã®ã¿ã®ROI
 	buf.SetRoi({ 0, 1, 0 });
 	EXPECT_EQ(2, *(float *)buf.GetPtr3(0, 0, 0));
 	EXPECT_EQ(3, *(float *)buf.GetPtr3(0, 0, 1));
@@ -129,11 +129,11 @@ TEST(NeuralNetBufferTest, testNeuralNetBufferTest)
 	EXPECT_EQ(true, buf.IsEnd());
 
 
-	// ROI‰ğœ
+	// ROIè§£é™¤
 	buf.ClearRoi();
 #endif
 
-	// ƒV[ƒPƒ“ƒVƒƒƒ‹ƒAƒNƒZƒXŠm”F
+	// ã‚·ãƒ¼ã‚±ãƒ³ã‚·ãƒ£ãƒ«ã‚¢ã‚¯ã‚»ã‚¹ç¢ºèª
 	{
 		int i = 0;
 		buf.ResetPtr();
@@ -145,7 +145,7 @@ TEST(NeuralNetBufferTest, testNeuralNetBufferTest)
 	}
 
 #if	BB_NEURALNET_BUFFER_USE_ROI
-	// ”ÍˆÍ•t‚«ROI
+	// ç¯„å›²ä»˜ãROI
 	buf.SetRoi({ 0, 1, 1 }, { 1, 2, 2 });
 
 	EXPECT_EQ(8, *(float *)buf.GetPtr(0));	// (1, 1, 0) : 8
@@ -173,7 +173,7 @@ TEST(NeuralNetBufferTest, testNeuralNetBufferTest2)
 {
 	bb::NeuralNetBuffer<> base_buf(2, 2 * 3 * 4, BB_TYPE_REAL32);
 	
-	// “ü—Íƒf[ƒ^ì¬
+	// å…¥åŠ›ãƒ‡ãƒ¼ã‚¿ä½œæˆ
 	for (size_t node = 0; node < 24; node++) {
 		base_buf.SetReal(0, node, (float)node);
 		base_buf.SetReal(1, node, (float)node + 1000);
@@ -272,7 +272,7 @@ TEST(NeuralNetBufferTest, testNeuralNetBufferTest3)
 	bb::NeuralNetBuffer<> in_buf(1, input_node_size, BB_TYPE_BINARY);
 	bb::NeuralNetBuffer<> out_buf(1, output_node_size, BB_TYPE_BINARY);
 
-	// “ü—Íƒf[ƒ^ì¬
+	// å…¥åŠ›ãƒ‡ãƒ¼ã‚¿ä½œæˆ
 	std::mt19937_64 mt(1);
 	for (size_t node = 0; node < input_node_size; node++) {
 		in_buf.SetBinary(0, node, mt() % 2 != 0);

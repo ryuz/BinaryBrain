@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -18,11 +18,11 @@
 namespace bb {
 
 
-// ‚È‚é‚×‚­d•¡‚µ‚È‚¢‚æ‚¤‚Éƒ‰ƒ“ƒ_ƒ€‚ÉƒCƒ“ƒfƒbƒNƒX‚ğƒVƒƒƒbƒtƒ‹‚·‚é
-// ƒgƒ‰ƒ“ƒv‚ÌƒJ[ƒh‚ğ”z‚éƒCƒ[ƒW‚ÅAè‚¿‚ª–³‚­‚È‚ê‚ÎÄ[“U‚·‚é‚±‚Æ‚ÅA
-// “Á’è‚Ì’l‚ª‚¸‚Á‚Æo‚È‚©‚Á‚½‚èA“¯‚¶‚à‚Ì‚ªo‘±‚¯‚é‚±‚Æ‚ğ–h~‚·‚é
+// ãªã‚‹ã¹ãé‡è¤‡ã—ãªã„ã‚ˆã†ã«ãƒ©ãƒ³ãƒ€ãƒ ã«ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’ã‚·ãƒ£ãƒƒãƒ•ãƒ«ã™ã‚‹
+// ãƒˆãƒ©ãƒ³ãƒ—ã®ã‚«ãƒ¼ãƒ‰ã‚’é…ã‚‹ã‚¤ãƒ¡ãƒ¼ã‚¸ã§ã€æ‰‹æŒã¡ãŒç„¡ããªã‚Œã°å†å……å¡«ã™ã‚‹ã“ã¨ã§ã€
+// ç‰¹å®šã®å€¤ãŒãšã£ã¨å‡ºãªã‹ã£ãŸã‚Šã€åŒã˜ã‚‚ã®ãŒå‡ºç¶šã‘ã‚‹ã“ã¨ã‚’é˜²æ­¢ã™ã‚‹
 
-// ƒVƒƒƒbƒtƒ‹ƒNƒ‰ƒX
+// ã‚·ãƒ£ãƒƒãƒ•ãƒ«ã‚¯ãƒ©ã‚¹
 class ShuffleSet
 {
 public:
@@ -37,19 +37,19 @@ public:
 
 	void Setup(size_t size, std::uint64_t seed = 1)
 	{
-		// ‰Šú‰»
+		// åˆæœŸåŒ–
 		m_mt.seed(seed);
 		m_heap.clear();
 		m_reserve.clear();
 
-		// ƒVƒƒƒbƒtƒ‹
+		// ã‚·ãƒ£ãƒƒãƒ•ãƒ«
 		std::vector<size_t> heap(size);
 		for (size_t i = 0; i < size; i++) {
 			heap[i] = i;
 		}
 		std::shuffle(heap.begin(), heap.end(), m_mt);
 
-		// İ’è
+		// è¨­å®š
 		m_heap.assign(heap.begin(), heap.end());
 	}
 
@@ -57,10 +57,10 @@ public:
 	{
 		std::vector<size_t>	set;
 
-		// w’èŒÂ”æ‚èo‚·
+		// æŒ‡å®šå€‹æ•°å–ã‚Šå‡ºã™
 		for (size_t i = 0; i < n; i++) {
 			if (m_heap.empty()) {
-				// ˆê’Ê‚èŠ„‚è“–‚Ä‚½‚ç—˜—pÏ‚İ‚ğÄ—˜—p
+				// ä¸€é€šã‚Šå‰²ã‚Šå½“ã¦ãŸã‚‰åˆ©ç”¨æ¸ˆã¿ã‚’å†åˆ©ç”¨
 				std::vector<size_t> heap(m_reserve.size());
 				heap.assign(m_reserve.begin(), m_reserve.end());
 				std::shuffle(heap.begin(), heap.end(), m_mt);
@@ -68,12 +68,12 @@ public:
 				m_reserve.clear();
 			}
 
-			// g‚Á‚½‚à‚Ì‚Íæ‚èŠO‚·
+			// ä½¿ã£ãŸã‚‚ã®ã¯å–ã‚Šå¤–ã™
 			set.push_back(m_heap.front());
 			m_heap.pop_front();
 		}
 
-		// g‚Á‚½‚à‚Ì‚ÍƒŠƒU[ƒu‚É‰ñ‚·
+		// ä½¿ã£ãŸã‚‚ã®ã¯ãƒªã‚¶ãƒ¼ãƒ–ã«å›ã™
 		for (auto s : set) {
 			m_reserve.push_back(s);
 		}

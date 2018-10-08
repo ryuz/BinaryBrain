@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -22,7 +22,7 @@
 namespace bb {
 
 
-// AffineƒŒƒCƒ„[
+// Affineãƒ¬ã‚¤ãƒ¤ãƒ¼
 template <typename T = float, typename INDEX = size_t>
 class NeuralNetAffine : public NeuralNetLayerBuf<T, INDEX>
 {
@@ -59,7 +59,7 @@ public:
 		SetOptimizer(optimizer);
 	}
 
-	~NeuralNetAffine() {}		// ƒfƒXƒgƒ‰ƒNƒ^
+	~NeuralNetAffine() {}		// ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 
 	std::string GetClassName(void) const { return "NeuralNetAffine"; }
 
@@ -151,7 +151,7 @@ public:
 		m_optimizer_W->Update(m_W, m_dW);
 		m_optimizer_b->Update(m_b, m_db);
 
-		// ƒoƒCƒiƒŠƒ‚[ƒh‚Å‚Í (-1, +1) ‚ÅƒNƒŠƒbƒv
+		// ãƒã‚¤ãƒŠãƒªãƒ¢ãƒ¼ãƒ‰ã§ã¯ (-1, +1) ã§ã‚¯ãƒªãƒƒãƒ—
 		if ( m_binary_mode ) {
 			for (INDEX output_node = 0; output_node < m_output_size; ++output_node) {
 				for (INDEX input_node = 0; input_node < m_input_size; ++input_node) {

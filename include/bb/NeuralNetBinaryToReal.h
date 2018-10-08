@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -17,7 +17,7 @@
 namespace bb {
 
 
-// NeuralNet‚Ì’ŠÛƒNƒ‰ƒX
+// NeuralNetã®æŠ½è±¡ã‚¯ãƒ©ã‚¹
 template <typename BT = Bit, typename T = float, typename INDEX = size_t>
 class NeuralNetBinaryToReal : public NeuralNetLayerBuf<T, INDEX>
 {

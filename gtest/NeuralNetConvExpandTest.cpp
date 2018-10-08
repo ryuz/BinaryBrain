@@ -1,4 +1,4 @@
-#include <stdio.h>
+ï»¿#include <stdio.h>
 #include <iostream>
 #include "gtest/gtest.h"
 
@@ -164,7 +164,7 @@ TEST(NeuralNetConvExpandTest, testNeuralNetConvExpand)
 
 TEST(NeuralNetConvExpandTest, testNeuralNetConvExpandSpeed)
 {
-	// À‘H“I‚ÈƒTƒCƒY‚Å‘¬“x”äŠr
+	// å®Ÿè·µçš„ãªã‚µã‚¤ã‚ºã§é€Ÿåº¦æ¯”è¼ƒ
 	bb::NeuralNetConvExpand<> cnvexp(100, 28, 28, 3, 3);
 	bb::NeuralNetConvExpandM<100, 28, 28, 3, 3> cnvexpM;
 

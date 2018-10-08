@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                     Copyright (C) 2018 by Ryuji Fuchikami
@@ -19,12 +19,12 @@
 namespace bb {
 
 
-// ƒoƒCƒiƒŠ‚ğ‘½d‰»‚µ‚Ä•]‰¿
+// ãƒã‚¤ãƒŠãƒªã‚’å¤šé‡åŒ–ã—ã¦è©•ä¾¡
 template <typename BT = bool, typename T = float, typename INDEX = size_t>
 class NeuralNetBinaryMultiplex : public NeuralNetLayer<T, INDEX>
 {
 protected:
-	// 3‘w‚Å\¬
+	// 3å±¤ã§æ§‹æˆ
 	NeuralNetRealToBinary<BT, T, INDEX>		m_real2bin;
 	NeuralNetLayer<T, INDEX>*				m_layer;
 	NeuralNetBinaryToReal<BT, T, INDEX>		m_bin2real;
@@ -92,7 +92,7 @@ public:
 		m_batch_size = batch_size;
 		
 		
-		// ƒ`ƒFƒbƒN
+		// ãƒã‚§ãƒƒã‚¯
 		CheckConnection(m_real2bin, *m_layer);
 		CheckConnection(*m_layer, m_bin2real);
 
@@ -108,7 +108,7 @@ public:
 	}
 
 	
-	// “üo—Íƒoƒbƒtƒ@
+	// å…¥å‡ºåŠ›ãƒãƒƒãƒ•ã‚¡
 	void  SetInputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_real2bin.SetInputSignalBuffer(buffer); }
 	void  SetInputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_real2bin.SetInputErrorBuffer(buffer); }
 	void  SetOutputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_bin2real.SetOutputSignalBuffer(buffer); }
@@ -162,7 +162,7 @@ public:
 
 public:
 
-	// o—Í‚Ì‘¹¸ŠÖ”
+	// å‡ºåŠ›ã®æå¤±é–¢æ•°
 	template <typename LT, int LABEL_SIZE>
 	std::vector<double> GetOutputOnehotLoss(std::vector<LT> label, INDEX offset=0)
 	{
@@ -189,7 +189,7 @@ public:
 		return vec_loss_x;
 	}
 
-	// o—Í‚Ì‘¹¸ŠÖ”
+	// å‡ºåŠ›ã®æå¤±é–¢æ•°
 	template <typename LT, int LABEL_SIZE>
 	std::vector<double>  CalcLoss(std::vector< std::vector<T> > label, INDEX offset = 0)
 	{

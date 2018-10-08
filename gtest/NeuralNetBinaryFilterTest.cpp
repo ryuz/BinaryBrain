@@ -1,4 +1,4 @@
-#include <stdio.h>
+ï»¿#include <stdio.h>
 #include <iostream>
 #include <fstream>
 #include "gtest/gtest.h"
@@ -39,7 +39,7 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilter)
 	size_t output_w_size = ((input_w_size - filter_w_size + 1) + (x_step - 1)) / x_step;
 
 
-	// ƒtƒBƒ‹ƒ^‘w¶¬
+	// ãƒ•ã‚£ãƒ«ã‚¿å±¤ç”Ÿæˆ
 	size_t filter_input_node_size  = input_c_size * input_h_size * input_w_size;
 	size_t filter_layer0_node_size = output_c_size * 6;
 	size_t filter_output_node_size = output_c_size;
@@ -49,7 +49,7 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilter)
 	filter_net.AddLayer(&filter_lut0);
 	filter_net.AddLayer(&filter_lut1);
 	
-	// ô‚İ‚İ‘w\¬
+	// ç•³ã¿è¾¼ã¿å±¤æ§‹æˆ
 	bb::NeuralNetBinaryFilter<> net(&filter_net, input_c_size, input_h_size, input_w_size, output_c_size, filter_h_size, filter_w_size, y_step, x_step);
 	testSetupLayerBuffer(net);
 
@@ -61,7 +61,7 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilter)
 	EXPECT_EQ(true, true);
 
 
-	// ƒVƒŠƒAƒ‰ƒCƒYŠm”F
+	// ã‚·ãƒªã‚¢ãƒ©ã‚¤ã‚ºç¢ºèª
 	std::string fname("testNeuralNetBinaryFilterSerialize.json");
 	// save
 	{
@@ -89,7 +89,7 @@ static void image_show(std::string name, bb::NeuralNetBuffer<> buf, size_t f, si
 
 
 
-// LUT‚ğ“ü—Í0‚ğ‚»‚Ì‚Ü‚ÜƒXƒ‹[‚·‚é‚æ‚¤‚Éİ’è
+// LUTã‚’å…¥åŠ›0ã‚’ãã®ã¾ã¾ã‚¹ãƒ«ãƒ¼ã™ã‚‹ã‚ˆã†ã«è¨­å®š
 void SetLutThrough0(bb::NeuralNetBinaryLut<true>& net, bool inv)
 {
 	size_t node_size = net.GetOutputNodeSize();
@@ -123,7 +123,7 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterRoi1)
 	size_t output_node_size = output_c_size * output_h_size * output_w_size;
 	size_t frame_size = batch_size * mux_size;
 
-	// ƒeƒXƒgƒf[ƒ^ì¬
+	// ãƒ†ã‚¹ãƒˆãƒ‡ãƒ¼ã‚¿ä½œæˆ
 	std::mt19937_64 mt(1);
 	std::vector< std::vector<bool> > train_images(frame_size);
 	for (size_t frame = 0; frame < frame_size; ++frame) {
@@ -135,7 +135,7 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterRoi1)
 		}
 	}
 
-	// ƒtƒBƒ‹ƒ^‘w¶¬
+	// ãƒ•ã‚£ãƒ«ã‚¿å±¤ç”Ÿæˆ
 	size_t filter_input_node_size = input_c_size * filter_h_size * filter_w_size;
 	size_t filter_layer0_node_size = output_c_size * 6;
 	size_t filter_output_node_size = output_c_size;
@@ -145,7 +145,7 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterRoi1)
 	filter_net.AddLayer(&filter_lut0);
 	filter_net.AddLayer(&filter_lut1);
 
-	// LUT‚ğ“ü—Í0‚ğ‚»‚Ì‚Ü‚ÜƒXƒ‹[ or ”½“]‚·‚é‚æ‚¤‚Éİ’è
+	// LUTã‚’å…¥åŠ›0ã‚’ãã®ã¾ã¾ã‚¹ãƒ«ãƒ¼ or åè»¢ã™ã‚‹ã‚ˆã†ã«è¨­å®š
 	SetLutThrough0(filter_lut0, false);
 	SetLutThrough0(filter_lut1, true);
 
@@ -154,15 +154,15 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterRoi1)
 	filter_lut1.SetLutInput(0, 0, 0);
 //	filter_lut1.SetLutInput(1, 0, 1);
 
-	// ô‚İ‚İ‘w\¬
+	// ç•³ã¿è¾¼ã¿å±¤æ§‹æˆ
 	bb::NeuralNetBinaryFilter<> net(&filter_net, input_c_size, input_h_size, input_w_size, output_c_size, filter_h_size, filter_w_size, y_step, x_step);
 	net.SetMuxSize(mux_size);
 	net.SetBatchSize(batch_size);
 
-	// ƒoƒbƒtƒ@€”õ
+	// ãƒãƒƒãƒ•ã‚¡æº–å‚™
 	testSetupLayerBuffer(net);
 
-	// “ü—Íƒf[ƒ^
+	// å…¥åŠ›ãƒ‡ãƒ¼ã‚¿
 	auto in_val = net.GetInputSignalBuffer();
 	auto out_val = net.GetOutputSignalBuffer();
 	for (size_t frame = 0; frame < batch_size*mux_size; ++frame) {
@@ -173,7 +173,7 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterRoi1)
 
 	net.Forward();
 
-	// o—Íƒf[ƒ^
+	// å‡ºåŠ›ãƒ‡ãƒ¼ã‚¿
 	for (size_t frame = 0; frame < batch_size*mux_size; ++frame) {
 		for (size_t y = 0; y < output_h_size; y++) {
 			for (size_t x = 0; x < output_w_size; x++) {
@@ -208,7 +208,7 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterRoi)
 	size_t output_node_size = output_c_size * output_h_size * output_w_size;
 	size_t frame_size = batch_size * mux_size;
 
-	// ƒeƒXƒgƒf[ƒ^ì¬
+	// ãƒ†ã‚¹ãƒˆãƒ‡ãƒ¼ã‚¿ä½œæˆ
 	std::mt19937_64 mt(1);
 	std::vector< std::vector<bool> > train_images(frame_size);
 	for (size_t frame = 0; frame < frame_size; ++frame) {
@@ -220,7 +220,7 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterRoi)
 		}
 	}
 	
-	// ƒtƒBƒ‹ƒ^‘w¶¬
+	// ãƒ•ã‚£ãƒ«ã‚¿å±¤ç”Ÿæˆ
 	size_t filter_input_node_size = input_c_size * input_h_size * input_w_size;
 	size_t filter_layer0_node_size = output_c_size*6;
 	size_t filter_output_node_size = output_c_size;
@@ -230,7 +230,7 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterRoi)
 	filter_net.AddLayer(&filter_lut0);
 	filter_net.AddLayer(&filter_lut1);
 
-	// LUT‚ğ“ü—Í0‚ğ‚»‚Ì‚Ü‚ÜƒXƒ‹[ or ”½“]‚·‚é‚æ‚¤‚Éİ’è
+	// LUTã‚’å…¥åŠ›0ã‚’ãã®ã¾ã¾ã‚¹ãƒ«ãƒ¼ or åè»¢ã™ã‚‹ã‚ˆã†ã«è¨­å®š
 	SetLutThrough0(filter_lut0, false);
 	SetLutThrough0(filter_lut1, true);
 
@@ -239,15 +239,15 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterRoi)
 	filter_lut1.SetLutInput(0, 0, 0);
 	filter_lut1.SetLutInput(1, 0, 1);
 	
-	// ô‚İ‚İ‘w\¬
+	// ç•³ã¿è¾¼ã¿å±¤æ§‹æˆ
 	bb::NeuralNetBinaryFilter<> net(&filter_net, input_c_size, input_h_size, input_w_size, output_c_size, filter_h_size, filter_w_size, y_step, x_step, mux_size);
 	net.SetMuxSize(mux_size);
 	net.SetBatchSize(batch_size);
 
-	// ƒoƒbƒtƒ@€”õ
+	// ãƒãƒƒãƒ•ã‚¡æº–å‚™
 	testSetupLayerBuffer(net);
 	
-	// “ü—Íƒf[ƒ^
+	// å…¥åŠ›ãƒ‡ãƒ¼ã‚¿
 	auto in_val = net.GetInputSignalBuffer();
 	for (size_t frame = 0; frame < batch_size*mux_size; ++frame) {
 		for (size_t node = 0; node < input_node_size; ++node) {
@@ -257,7 +257,7 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterRoi)
 
 	net.Forward();
 
-	// o—Íƒf[ƒ^
+	// å‡ºåŠ›ãƒ‡ãƒ¼ã‚¿
 	auto out_val = net.GetOutputSignalBuffer();
 	for (size_t frame = 0; frame < batch_size*mux_size; ++frame) {
 		for (size_t node = 0; node < input_node_size; ++node) {
@@ -298,7 +298,7 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterFeedBack)
 	size_t input_node_size = input_c_size * input_h_size * input_w_size;
 	size_t output_node_size = output_c_size * output_h_size * output_w_size;
 
-	// ƒeƒXƒgƒf[ƒ^ì¬
+	// ãƒ†ã‚¹ãƒˆãƒ‡ãƒ¼ã‚¿ä½œæˆ
 	std::mt19937_64 mt(1);
 	std::vector< std::vector<bool> > train_images(batch_size);
 	train_images[0].resize(input_node_size);
@@ -319,7 +319,7 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterFeedBack)
 	std::vector<bool> train_labels = { false, false, true, true };
 
 
-	// ƒtƒBƒ‹ƒ^‘w¶¬
+	// ãƒ•ã‚£ãƒ«ã‚¿å±¤ç”Ÿæˆ
 	size_t filter_input_node_size = input_c_size * input_h_size * input_w_size;
 	size_t filter_layer0_node_size = output_c_size * 6;
 	size_t filter_output_node_size = output_c_size;
@@ -329,12 +329,12 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterFeedBack)
 	filter_net.AddLayer(&filter_lut0);
 	filter_net.AddLayer(&filter_lut1);
 
-	// ô‚İ‚İ‘w\¬
+	// ç•³ã¿è¾¼ã¿å±¤æ§‹æˆ
 	bb::NeuralNetBinaryFilter<> net(&filter_net, input_c_size, input_h_size, input_w_size, output_c_size, filter_h_size, filter_w_size, y_step, x_step, mux_size);
 	net.SetMuxSize(mux_size);
 	net.SetBatchSize(batch_size);
 	
-	// ƒoƒbƒtƒ@€”õ
+	// ãƒãƒƒãƒ•ã‚¡æº–å‚™
 	testSetupLayerBuffer(net);
 
 	auto in_val = net.GetInputSignalBuffer();
@@ -344,10 +344,10 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterFeedBack)
 		}
 	}
 
-	// ŠwK
+	// å­¦ç¿’
 	double total_loss = 0;
 	for (int loop = 0; loop < 1; loop++) {
-		// —\‘ª
+		// äºˆæ¸¬
 		net.Forward();
 
 		auto out_val = net.GetOutputSignalBuffer();
@@ -412,7 +412,7 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterFeedBack2)
 	size_t input_node_size = input_c_size * input_h_size * input_w_size;
 	size_t output_node_size = output_c_size * output_h_size * output_w_size;
 
-	// ƒeƒXƒgƒf[ƒ^ì¬
+	// ãƒ†ã‚¹ãƒˆãƒ‡ãƒ¼ã‚¿ä½œæˆ
 	std::mt19937_64 mt(1);
 	std::vector< std::vector<bool> > train_images(batch_size);
 	train_images[0].resize(input_node_size);
@@ -432,7 +432,7 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterFeedBack2)
 	std::vector<bool> train_labels = { false, false, true, true };
 
 
-	// ƒtƒBƒ‹ƒ^‘w¶¬
+	// ãƒ•ã‚£ãƒ«ã‚¿å±¤ç”Ÿæˆ
 	size_t filter_input_node_size = input_c_size * input_h_size * input_w_size;
 	size_t filter_layer0_node_size = output_c_size * 6;
 	size_t filter_output_node_size = output_c_size;
@@ -442,12 +442,12 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterFeedBack2)
 	filter_net.AddLayer(&filter_lut0);
 	filter_net.AddLayer(&filter_lut1);
 
-	// ô‚İ‚İ‘w\¬
+	// ç•³ã¿è¾¼ã¿å±¤æ§‹æˆ
 	bb::NeuralNetBinaryFilter<> net(&filter_net, input_c_size, input_h_size, input_w_size, output_c_size, filter_h_size, filter_w_size, y_step, x_step, mux_size, batch_size);
 	net.SetMuxSize(mux_size);
 	net.SetBatchSize(batch_size);
 
-	// ƒoƒbƒtƒ@€”õ
+	// ãƒãƒƒãƒ•ã‚¡æº–å‚™
 	testSetupLayerBuffer(net);
 
 	auto in_val = net.GetInputSignalBuffer();
@@ -459,7 +459,7 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterFeedBack2)
 		}
 	}
 
-	// ŠwK
+	// å­¦ç¿’
 	double total_loss = 0;
 	for (int loop = 0; loop < 10; loop++) {
 		std::cout << "loop :" << loop << std::endl;
@@ -471,7 +471,7 @@ TEST(NeuralNetBinaryFilterTest, testNeuralNetBinaryFilterFeedBack2)
 	//	filter_lut1.SetLutInput(0, 0, 0);
 
 
-		// —\‘ª
+		// äºˆæ¸¬
 //		auto out_val1 = net.GetOutputSignalBuffer();
 		net.Forward();
 		auto out_val = net.GetOutputSignalBuffer();
