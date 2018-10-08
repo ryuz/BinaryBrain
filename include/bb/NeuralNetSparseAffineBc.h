@@ -12,7 +12,6 @@
 
 #include <array>
 #include <vector>
-#include <intrin.h>
 #include <omp.h>
 #include <ppl.h>
 #include "NeuralNetSparseLayer.h"

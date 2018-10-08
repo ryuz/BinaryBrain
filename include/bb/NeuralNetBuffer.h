@@ -14,7 +14,6 @@
 #include <vector>
 #include <memory>
 #include <malloc.h>
-#include <intrin.h>
 #include "NeuralNetType.h"
 
 

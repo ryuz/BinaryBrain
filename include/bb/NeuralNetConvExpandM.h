@@ -13,7 +13,7 @@
 
 #include <vector>
 #include <random>
-#include <intrin.h>
+
 #include "NeuralNetLayerBuf.h"
 
 

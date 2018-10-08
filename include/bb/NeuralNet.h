@@ -13,7 +13,6 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <intrin.h>
 #include <assert.h>
 
 #include "NeuralNetGroup.h"

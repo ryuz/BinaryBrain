@@ -12,7 +12,9 @@
 
 #include <array>
 #include <vector>
-#include <intrin.h>
+
+#include <immintrin.h>
+
 #include "NeuralNetBinaryLut.h"
 
 

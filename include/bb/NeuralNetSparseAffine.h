@@ -13,9 +13,6 @@
 #include <array>
 #include <vector>
 
-#include <intrin.h>
-#include <omp.h>
-
 #include "cereal/archives/json.hpp"
 #include "cereal/types/vector.hpp"
 #include "cereal/types/array.hpp"

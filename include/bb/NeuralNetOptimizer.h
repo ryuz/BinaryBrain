@@ -12,9 +12,6 @@
 #include <vector>
 
 
-#include <Eigen/Core>
-
-
 namespace bb {
 
 
