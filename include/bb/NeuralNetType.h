@@ -222,5 +222,56 @@ inline int NeuralNet_GetTypeBitSize(int type)
 }
 
 
+template<typename Tp>
+inline void NeuralNet_Write(void* base, size_t index, Tp value)
+{
+	Tp* ptr = (Tp*)base;
+	ptr[index] = value;
+}
+
+template<>
+inline void NeuralNet_Write<bool>(void* base, size_t index, bool value)
+{
+	std::uint8_t* ptr = (std::uint8_t*)base;
+	std::uint8_t mask = (std::uint8_t)(1 << (index % 8));
+	if (value) {
+		ptr[index / 8] |= mask;
+	}
+	else {
+		ptr[index / 8] &= ~mask;
+	}
+}
+
+template<>
+inline void NeuralNet_Write<Bit>(void* base, size_t index, Bit value)
+{
+	NeuralNet_Write<bool>(base, index, (bool)value);
+}
+
+
+
+template<typename Tp>
+inline Tp NeuralNet_Read(const void *base, size_t index)
+{
+	const Tp* ptr = (Tp*)base;
+	return ptr[index];
+}
+
+template <>
+inline bool NeuralNet_Read<bool>(const void *base, size_t index)
+{
+	const std::uint8_t* ptr = (std::uint8_t*)base;
+	std::uint8_t mask = (std::uint8_t)(1 << (index % 8));
+	return ((ptr[index / 8] & mask) != 0);
+}
+
+
+template<>
+inline Bit NeuralNet_Read<Bit>(const void* base, size_t index)
+{
+	return (Bit)NeuralNet_Read<bool>(base, index);
+}
+
+
 }
 

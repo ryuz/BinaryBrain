@@ -37,7 +37,7 @@ public:
 	NeuralNetSparseAffineSigmoid() {}
 
 	NeuralNetSparseAffineSigmoid(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1,
-		const NeuralNetOptimizer<T, INDEX>* optimizer = &NeuralNetOptimizerSgd<>())
+		const NeuralNetOptimizer<T, INDEX>* optimizer = nullptr)
 		: m_affine(input_node_size, output_node_size, seed, optimizer),
 		m_norm(output_node_size),
 		m_activation(output_node_size)

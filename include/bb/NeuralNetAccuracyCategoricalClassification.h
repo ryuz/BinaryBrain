@@ -41,7 +41,7 @@ public:
 			INDEX	max_node = 0;
 			T		max_signal = 0;
 			for (INDEX node = 0; node < node_size; ++node) {
-				T	sig = buf_sig.Get<T>(frame, node);
+				T	sig = buf_sig.template Get<T>(frame, node);
 				if (sig > max_signal) {
 					max_node = node;
 					max_signal = sig;

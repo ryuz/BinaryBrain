@@ -50,8 +50,13 @@ public:
 	NeuralNetConvolution() {}
 	
 	NeuralNetConvolution(INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size, std::uint64_t seed = 1,
-		const NeuralNetOptimizer<T, INDEX>* optimizer = &NeuralNetOptimizerSgd<>())
+		const NeuralNetOptimizer<T, INDEX>* optimizer = nullptr)
 	{
+		NeuralNetOptimizerSgd<T, INDEX> DefOptimizer;
+		if (optimizer == nullptr) {
+			optimizer = &DefOptimizer;
+		}
+		
 		Resize(input_c_size, input_h_size, input_w_size, output_c_size, filter_h_size, filter_w_size, seed);
 		SetOptimizer(optimizer);
 	}
@@ -167,13 +172,19 @@ protected:
 		return (T*)buf.GetPtr(((n*m_input_c_size + c)*m_filter_h_size + y)*m_filter_w_size + x);
 	}
 
+	// 水平加算
+	inline static __m256 my_mm256_hsum_ps(__m256 r)
+	{
+		r = _mm256_hadd_ps(r, r);
+		r = _mm256_hadd_ps(r, r);
+		__m256 tmp = _mm256_permute2f128_ps(r, r, 0x1);
+		r = _mm256_unpacklo_ps(r, tmp);
+		return _mm256_hadd_ps(r, r);
+	}
+
 	inline float my_mm256_sum_ps(__m256 r)
 	{
-//		return r.m256_f32[0] + r.m256_f32[1] + r.m256_f32[2] + r.m256_f32[3]
-//			+ r.m256_f32[4] + r.m256_f32[5] + r.m256_f32[6] + r.m256_f32[7];
-		r = _mm256_hadd_ps(r, r);
-		r = _mm256_hadd_ps(r, r);
-		return r.m256_f32[0] + r.m256_f32[4];
+		return _mm256_cvtss_f32(my_mm256_hsum_ps(r));
 	}
 
 	inline __m256	my_mm256_fmadd_ps(__m256 a, __m256 b, __m256 c) {
@@ -186,8 +197,8 @@ public:
 		if (typeid(T) == typeid(float)) {
 			// float用実装
 			int  m256_frame_size = (int)(((m_frame_size + 7) / 8) * 8);
-			auto in_sig_buf = GetInputSignalBuffer();
-			auto out_sig_buf = GetOutputSignalBuffer();
+			auto in_sig_buf = this->GetInputSignalBuffer();
+			auto out_sig_buf = this->GetOutputSignalBuffer();
 
 #pragma omp parallel for
 			for (int n = 0; n < m_output_c_size; ++n) {
@@ -230,10 +241,10 @@ public:
 		if (typeid(T) == typeid(float)) {
 			// float用実装
 			int  m256_frame_size = (int)(((m_frame_size + 7) / 8) * 8);
-			auto in_sig_buf = GetInputSignalBuffer();
-			auto out_sig_buf = GetOutputSignalBuffer();
-			auto in_err_buf = GetInputErrorBuffer();
-			auto out_err_buf = GetOutputErrorBuffer();
+			auto in_sig_buf = this->GetInputSignalBuffer();
+			auto out_sig_buf = this->GetOutputSignalBuffer();
+			auto in_err_buf = this->GetInputErrorBuffer();
+			auto out_err_buf = this->GetOutputErrorBuffer();
 
 			// パラメータdWの計算
 #pragma omp parallel for

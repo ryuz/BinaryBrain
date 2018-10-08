@@ -60,9 +60,9 @@ public:
 		m_collapse.SetBinaryMode(enable);
 	}
 
-	int   GetNodeInputSize(INDEX node) const { return m_affine.GetNodeInputSize(node); }
-	void  SetNodeInput(INDEX node, int input_index, INDEX input_node) { m_affine.SetNodeInput(node, input_index, input_node); }
-	INDEX GetNodeInput(INDEX node, int input_index) const { return m_affine.GetNodeInput(node, input_index); }
+	int   GetNodeInputSize(INDEX node) const { return this->m_affine.GetNodeInputSize(node); }
+	void  SetNodeInput(INDEX node, int input_index, INDEX input_node) { this->m_affine.SetNodeInput(node, input_index, input_node); }
+	INDEX GetNodeInput(INDEX node, int input_index) const { return this->m_affine.GetNodeInput(node, input_index); }
 	
 	void  SetBatchSize(INDEX batch_size)
 	{

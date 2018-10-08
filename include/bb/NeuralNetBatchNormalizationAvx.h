@@ -19,6 +19,10 @@
 #include "NeuralNetLayerBuf.h"
 #include "NeuralNetOptimizerSgd.h"
 
+#ifdef _MSC_VER
+#define _mm256_cvtss_f32(a)		((a).m256_f32[0])
+#endif
+
 namespace bb {
 
 
@@ -48,8 +52,13 @@ protected:
 public:
 	NeuralNetBatchNormalizationAvx() {}
 
-	NeuralNetBatchNormalizationAvx(INDEX node_size, const NeuralNetOptimizer<T, INDEX>* optimizer = &NeuralNetOptimizerSgd<>())
+	NeuralNetBatchNormalizationAvx(INDEX node_size, const NeuralNetOptimizer<T, INDEX>* optimizer = nullptr)
 	{
+		NeuralNetOptimizerSgd<T, INDEX> DefOptimizer;
+		if (optimizer == nullptr) {
+			optimizer = &DefOptimizer;
+		}
+
 		Resize(node_size);
 		SetOptimizer(optimizer);
 	}
@@ -139,8 +148,8 @@ public:
 		if (typeid(T) == typeid(float)) {
 			const int	mm256_frame_size = ((int)m_frame_size + 7) / 8 * 8;
 
-			auto in_sig_buf = GetInputSignalBuffer();
-			auto out_sig_buf = GetOutputSignalBuffer();
+			auto in_sig_buf = this->GetInputSignalBuffer();
+			auto out_sig_buf = this->GetOutputSignalBuffer();
 
 			if (train) {
 				const __m256	reciprocal_frame_size = _mm256_set1_ps(1.0f / (float)m_frame_size);
@@ -205,12 +214,12 @@ public:
 					rstd = _mm256_mul_ps(rstd, _mm256_fnmadd_ps(varx, _mm256_mul_ps(rstd, rstd), _mm256_set1_ps(1.5f)));
 
 					// 実行時の mean と var 保存
-					m_running_mean[node] = m_running_mean[node] * m_momentum + mean.m256_f32[0] * (1 - m_momentum);
-					m_running_var[node] = m_running_var[node] * m_momentum + var.m256_f32[0] * (1 - m_momentum);
+					m_running_mean[node] = m_running_mean[node] * m_momentum + _mm256_cvtss_f32(mean) * (1 - m_momentum);
+					m_running_var[node] = m_running_var[node] * m_momentum + _mm256_cvtss_f32(var) * (1 - m_momentum);
 
 					// 結果の保存
-					m_mean[node] = mean.m256_f32[0];
-					m_rstd[node] = rstd.m256_f32[0];
+					m_mean[node] = _mm256_cvtss_f32(mean);
+					m_rstd[node] = _mm256_cvtss_f32(rstd);
 
 					// 正規化 と gamma/beta 処理
 					__m256 gamma = _mm256_set1_ps(m_gamma[node]);
@@ -258,10 +267,10 @@ public:
 			// 逆数生成
 			const __m256	reciprocal_frame_size = _mm256_set1_ps(1.0f / (float)m_frame_size);
 
-			auto in_sig_buf = GetInputSignalBuffer();
-			auto out_sig_buf = GetOutputSignalBuffer();
-			auto in_err_buf = GetInputErrorBuffer();
-			auto out_err_buf = GetOutputErrorBuffer();
+			auto in_sig_buf = this->GetInputSignalBuffer();
+			auto out_sig_buf = this->GetOutputSignalBuffer();
+			auto in_err_buf = this->GetInputErrorBuffer();
+			auto out_err_buf = this->GetOutputErrorBuffer();
 			#pragma omp parallel for
 			for (int node = 0; node < (int)m_node_size; ++node) {
 				float* dy_ptr = (float*)out_err_buf.GetPtr(node);
@@ -292,8 +301,8 @@ public:
 				}
 				dbeta = my_mm256_hsum_ps(dbeta);
 				dgamma = my_mm256_hsum_ps(dgamma);
-				m_dgamma[node] = dgamma.m256_f32[0];
-				m_dbeta[node] = dbeta.m256_f32[0];
+				m_dgamma[node] = _mm256_cvtss_f32(dgamma);
+				m_dbeta[node] = _mm256_cvtss_f32(dbeta);
 
 				dstd = my_mm256_hsum_ps(dstd);
 				dmeanx = my_mm256_hsum_ps(dmeanx);

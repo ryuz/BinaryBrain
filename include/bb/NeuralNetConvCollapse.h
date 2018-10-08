@@ -91,8 +91,8 @@ protected:
 public:
 	void Forward(bool train = true)
 	{
-		auto in_sig_buf = GetInputSignalBuffer();
-		auto out_sig_buf = GetOutputSignalBuffer();
+		auto in_sig_buf = this->GetInputSignalBuffer();
+		auto out_sig_buf = this->GetOutputSignalBuffer();
 		
 		INDEX input_frame = 0;
 		for (INDEX output_frame = 0; output_frame < m_output_frame_size; ++output_frame) {
@@ -106,7 +106,7 @@ public:
 						
 						int input_node = c;
 						int output_node = (c*m_h_size + y)*m_w_size + x;
-						out_sig_buf.Set<ST>(output_frame, output_node, in_sig_buf.Get<ST>(input_frame, input_node));
+						out_sig_buf.template Set<ST>(output_frame, output_node, in_sig_buf.template Get<ST>(input_frame, input_node));
 					}
 					++input_frame;
 				}
@@ -116,8 +116,8 @@ public:
 	
 	void Backward(void)
 	{
-		auto out_err_buf = GetOutputErrorBuffer();
-		auto in_err_buf = GetInputErrorBuffer();
+		auto out_err_buf = this->GetOutputErrorBuffer();
+		auto in_err_buf = this->GetInputErrorBuffer();
 
 		INDEX input_frame = 0;
 		for (INDEX output_frame = 0; output_frame < m_output_frame_size; ++output_frame) {
@@ -131,7 +131,7 @@ public:
 
 						int output_node = (c*m_h_size + y)*m_w_size + x;
 						int input_node = c;
-						in_err_buf.Set<ET>(input_frame, input_node, out_err_buf.Get<ET>(output_frame, output_node));
+						in_err_buf.template Set<ET>(input_frame, input_node, out_err_buf.template Get<ET>(output_frame, output_node));
 					}
 					++input_frame;
 				}

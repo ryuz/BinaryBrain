@@ -52,8 +52,13 @@ public:
 	NeuralNetAffine() {}
 
 	NeuralNetAffine(INDEX input_size, INDEX output_size, std::uint64_t seed=1,
-		const NeuralNetOptimizer<T, INDEX>* optimizer = &NeuralNetOptimizerSgd<>())
+		const NeuralNetOptimizer<T, INDEX>* optimizer = nullptr)
 	{
+		NeuralNetOptimizerSgd<T, INDEX> DefOptimizer;
+		if (optimizer == nullptr) {
+			optimizer = &DefOptimizer;
+		}
+
 		Resize(input_size, output_size);
 		InitializeCoeff(seed);
 		SetOptimizer(optimizer);
@@ -125,8 +130,8 @@ public:
 	{
 //		Eigen::Map<Matrix> x((T*)m_input_signal_buffer.GetBuffer(), m_input_signal_buffer.GetFrameStride() / sizeof(T), m_input_size);
 //		Eigen::Map<Matrix> y((T*)m_output_signal_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_output_size);
-		MatMap x((T*)m_input_signal_buffer.GetBuffer(), m_frame_size, m_input_size, Stride(m_input_signal_buffer.GetFrameStride() / sizeof(T), 1));
-		MatMap y((T*)m_output_signal_buffer.GetBuffer(), m_frame_size, m_output_size, Stride(m_output_signal_buffer.GetFrameStride() / sizeof(T), 1));
+		MatMap x((T*)this->m_input_signal_buffer.GetBuffer(), m_frame_size, m_input_size, Stride(this->m_input_signal_buffer.GetFrameStride() / sizeof(T), 1));
+		MatMap y((T*)this->m_output_signal_buffer.GetBuffer(), m_frame_size, m_output_size, Stride(this->m_output_signal_buffer.GetFrameStride() / sizeof(T), 1));
 
 		y = x * m_W;
 		y.rowwise() += m_b;
@@ -137,9 +142,9 @@ public:
 //		Eigen::Map<Matrix> dy((T*)m_output_error_buffer.GetBuffer(), m_output_error_buffer.GetFrameStride() / sizeof(T), m_output_size);
 //		Eigen::Map<Matrix> dx((T*)m_input_error_buffer.GetBuffer(), m_input_error_buffer.GetFrameStride() / sizeof(T), m_input_size);
 //		Eigen::Map<Matrix> x((T*)m_input_signal_buffer.GetBuffer(), m_input_signal_buffer.GetFrameStride() / sizeof(T), m_input_size);
-		MatMap dy((T*)m_output_error_buffer.GetBuffer(), m_frame_size, m_output_size, Stride(m_output_error_buffer.GetFrameStride() / sizeof(T), 1));
-		MatMap dx((T*)m_input_error_buffer.GetBuffer(), m_frame_size, m_input_size, Stride(m_input_error_buffer.GetFrameStride() / sizeof(T), 1));
-		MatMap x((T*)m_input_signal_buffer.GetBuffer(), m_frame_size, m_input_size, Stride(m_input_signal_buffer.GetFrameStride() / sizeof(T), 1));
+		MatMap dy((T*)this->m_output_error_buffer.GetBuffer(), m_frame_size, m_output_size, Stride(this->m_output_error_buffer.GetFrameStride() / sizeof(T), 1));
+		MatMap dx((T*)this->m_input_error_buffer.GetBuffer(), m_frame_size, m_input_size, Stride(this->m_input_error_buffer.GetFrameStride() / sizeof(T), 1));
+		MatMap x((T*)this->m_input_signal_buffer.GetBuffer(), m_frame_size, m_input_size, Stride(this->m_input_signal_buffer.GetFrameStride() / sizeof(T), 1));
 
 		dx = dy * m_W.transpose();
 		m_dW = x.transpose() * dy;

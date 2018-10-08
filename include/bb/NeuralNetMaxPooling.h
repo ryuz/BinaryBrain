@@ -91,8 +91,8 @@ public:
 		if (typeid(ST) == typeid(float)) {
 			// float用実装
 			int  m256_frame_size = (int)(((m_frame_size + 7) / 8) * 8);
-			auto in_sig_buf = GetInputSignalBuffer();
-			auto out_sig_buf = GetOutputSignalBuffer();
+			auto in_sig_buf = this->GetInputSignalBuffer();
+			auto out_sig_buf = this->GetOutputSignalBuffer();
 			#pragma omp parallel for
 			for (int c = 0; c < m_input_c_size; ++c) {
 				for (int y = 0; y < m_output_h_size; ++y) {
@@ -122,8 +122,8 @@ public:
 		else if (typeid(ST) == typeid(Bit) || typeid(ST) == typeid(bool)) {
 			// バイナリ用実装
 			int  m256_frame_size = (int)((m_frame_size + 255) / 256);
-			auto in_sig_buf = GetInputSignalBuffer();
-			auto out_sig_buf = GetOutputSignalBuffer();
+			auto in_sig_buf = this->GetInputSignalBuffer();
+			auto out_sig_buf = this->GetOutputSignalBuffer();
 
 			#pragma omp parallel for
 			for (int c = 0; c < m_input_c_size; ++c) {
@@ -157,10 +157,10 @@ public:
 		if (typeid(ST) == typeid(float) && typeid(ET) == typeid(float)) {
 			// float用実装
 			int  m256_frame_size = (int)(((m_frame_size + 7) / 8) * 8);
-			auto in_sig_buf = GetInputSignalBuffer();
-			auto out_sig_buf = GetOutputSignalBuffer();
-			auto in_err_buf = GetInputErrorBuffer();
-			auto out_err_buf = GetOutputErrorBuffer();
+			auto in_sig_buf = this->GetInputSignalBuffer();
+			auto out_sig_buf = this->GetOutputSignalBuffer();
+			auto in_err_buf = this->GetInputErrorBuffer();
+			auto out_err_buf = this->GetOutputErrorBuffer();
 
 			#pragma omp parallel for
 			for (int n = 0; n < m_input_c_size; ++n) {

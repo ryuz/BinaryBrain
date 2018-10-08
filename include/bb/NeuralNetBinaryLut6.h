@@ -39,7 +39,7 @@ public:
 	NeuralNetBinaryLut6(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1)
 	{
 		Resize(input_node_size, output_node_size);
-		InitializeCoeff(seed);
+		this->InitializeCoeff(seed);
 	}
 
 	~NeuralNetBinaryLut6() {}		// デストラクタ
@@ -50,7 +50,7 @@ public:
 	{
 		NeuralNetBinaryLut<feedback_bitwise, T, INDEX>::Resize(input_node_size, output_node_size);
 		
-		m_lut.resize(m_output_node_size);
+		m_lut.resize(this->m_output_node_size);
 	}
 
 	void Resize(std::vector<INDEX> sizes)
@@ -123,10 +123,10 @@ protected:
 	}
 
 	void ForwardNode(INDEX node) {
-		INDEX frame_size = (m_frame_size + 255) / 256;
+		INDEX frame_size = (this->m_frame_size + 255) / 256;
 
-		auto in_sig_buf = GetInputSignalBuffer();
-		auto out_sig_buf = GetOutputSignalBuffer();
+		auto in_sig_buf = this->GetInputSignalBuffer();
+		auto out_sig_buf = this->GetOutputSignalBuffer();
 
 		auto& lut = m_lut[node];
 
@@ -225,7 +225,7 @@ protected:
 public:
 	void Forward(bool train = true)
 	{
-		int node_size = (int)m_output_node_size;
+		int node_size = (int)this->m_output_node_size;
 #pragma omp parallel for
 		for (int node = 0; node < node_size; ++node) {
 			ForwardNode(node);

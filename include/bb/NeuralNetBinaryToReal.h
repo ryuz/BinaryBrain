@@ -67,8 +67,8 @@ public:
 	
 	void Forward(bool train = true)
 	{
-		auto in_sig_buf = GetInputSignalBuffer();
-		auto out_sig_buf = GetOutputSignalBuffer();
+		auto in_sig_buf = this->GetInputSignalBuffer();
+		auto out_sig_buf = this->GetOutputSignalBuffer();
 
 //		T	reciprocal = (T)1.0 / (T)m_mux_size;
 
@@ -81,27 +81,27 @@ public:
 			std::fill(vec_n.begin(), vec_n.end(), 0);
 			for (INDEX node = 0; node < node_size; node++) {
 				for (INDEX i = 0; i < m_mux_size; i++) {
-					BT bin_sig = in_sig_buf.Get<BT>(frame*m_mux_size + i, node);
+					BT bin_sig = in_sig_buf.template Get<BT>(frame*m_mux_size + i, node);
 					vec_v[node % m_output_node_size] += bin_sig;
 					vec_n[node % m_output_node_size] += 1;
 				}
 			}
 
 			for (INDEX node = 0; node < m_output_node_size; node++) {
-				out_sig_buf.Set<T>(frame, node, (T)vec_v[node] / vec_n[node]);
+				out_sig_buf.template Set<T>(frame, node, (T)vec_v[node] / vec_n[node]);
 			}
 		}
 	}
 	
 	void Backward(void)
 	{
-		auto in_err = GetInputErrorBuffer();
-		auto out_err = GetOutputErrorBuffer();
+		auto in_err = this->GetInputErrorBuffer();
+		auto out_err = this->GetOutputErrorBuffer();
 
 		for (INDEX node = 0; node < m_input_node_size; node++) {
 			for (INDEX frame = 0; frame < m_batch_size; ++frame) {
 				for (INDEX i = 0; i < m_mux_size; i++) {
-					in_err.Set<T>(frame*m_mux_size + i, node, out_err.Get<T>(frame, node % m_output_node_size));
+					in_err.template Set<T>(frame*m_mux_size + i, node, out_err.template Get<T>(frame, node % m_output_node_size));
 				}
 			}
 		}

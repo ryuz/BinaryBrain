@@ -12,7 +12,6 @@
 
 #include <array>
 #include <vector>
-#include <omp.h>
 #include "NeuralNetSparseLayer.h"
 
 namespace bb {
@@ -52,21 +51,21 @@ public:
 		std::mt19937_64                     mt(seed);
 		std::uniform_int_distribution<int>	rand(0, 1);
 		
-		INDEX node_size = GetOutputNodeSize();
+		INDEX node_size = this->GetOutputNodeSize();
 		int   lut_input_size = GetLutInputSize();
 		int   lut_table_size = GetLutTableSize();
 		
-		ShuffleSet	ss(GetInputNodeSize(), mt());
+		ShuffleSet	ss(this->GetInputNodeSize(), mt());
 		for (INDEX node = 0; node < node_size; ++node) {
 			// 入力をランダム接続
-			auto random_set = ss.GetRandomSet(GetLutInputSize());
+			auto random_set = ss.GetRandomSet(this->GetLutInputSize());
 			for (int i = 0; i < lut_input_size; ++i) {
-				SetLutInput(node, i, random_set[i]);
+				this->SetLutInput(node, i, random_set[i]);
 			}
 			
 			// LUTテーブルをランダムに初期化
 			for (int i = 0; i < lut_table_size; i++) {
-				SetLutTable(node, i, rand(mt) != 0);
+				this->SetLutTable(node, i, rand(mt) != 0);
 			}
 		}
 	}
@@ -74,9 +73,9 @@ public:
 	template <typename RT, typename RI>
 	void ImportLayer(const NeuralNetSparseLayer<RT, RI>& src)
 	{
-		auto node_size = GetOutputNodeSize();
-		auto input_size = GetLutInputSize();
-		auto table_size = GetLutTableSize();
+		auto node_size = this->GetOutputNodeSize();
+		auto input_size = this->GetLutInputSize();
+		auto table_size = this->GetLutTableSize();
 
 		BB_ASSERT(src.GetOutputNodeSize() == node_size);
 		for (INDEX node = 0; node < node_size; ++node) {
@@ -104,18 +103,18 @@ public:
 	bool GetLutInputSignal(INDEX frame, INDEX node, int bitpos) const
 	{
 		INDEX input_node = GetLutInput(node, bitpos);
-		return GetInputSignalBuffer().Get<bool>(frame, input_node);
+		return this->GetInputSignalBuffer().template Get<bool>(frame, input_node);
 	}
 
 	virtual int GetLutInputIndex(INDEX frame, INDEX node) const
 	{
-		const auto& buf = GetInputSignalBuffer();
+		const auto& buf = this->GetInputSignalBuffer();
 		int lut_input_size = GetLutInputSize();
 		int index = 0;
 		int mask = 1;
 		for (int bitpos = 0; bitpos < lut_input_size; ++bitpos) {
 			INDEX input_node = GetLutInput(node, bitpos);
-			if (GetInputSignalBuffer().Get<bool>(frame, input_node)) {
+			if (this->GetInputSignalBuffer().template Get<bool>(frame, input_node)) {
 				index |= mask;
 			}
 			mask <<= 1;
@@ -137,8 +136,8 @@ public:
 protected:
 	virtual void ForwardNode(INDEX node)
 	{
-		auto in_sig_buf = GetInputSignalBuffer();
-		auto out_sig_buf = GetOutputSignalBuffer();
+		auto in_sig_buf = this->GetInputSignalBuffer();
+		auto out_sig_buf = this->GetOutputSignalBuffer();
 		int   lut_input_size = GetLutInputSize();
 
 		for (INDEX frame = 0; frame < m_frame_size; ++frame) {
@@ -146,20 +145,20 @@ protected:
 			int mask = 1;
 			for (int i = 0; i < lut_input_size; i++) {
 				INDEX input_node = GetLutInput(node, i);
-				bool input_signal = in_sig_buf.Get<bool>(frame, input_node);
+				bool input_signal = in_sig_buf.template Get<bool>(frame, input_node);
 				index |= input_signal ? mask : 0;
 				mask <<= 1;
 			}
 			bool output_signal = GetLutTable(node, index);
-			out_sig_buf.Set<bool>(frame, node, output_signal);
+			out_sig_buf.template Set<bool>(frame, node, output_signal);
 		}
 	}
 
 public:
 	virtual void Forward(bool train = true)
 	{
-		INDEX node_size = GetOutputNodeSize();
-		int   lut_input_size = GetLutInputSize();
+		INDEX node_size = this->GetOutputNodeSize();
+		int   lut_input_size = this->GetLutInputSize();
 
 		#pragma omp parallel for
 		for ( int node = 0; node < (int)node_size; ++node) {
@@ -169,19 +168,19 @@ public:
 		
 	void Backward(void)
 	{
-		auto& out_err = GetOutputErrorBuffer();
-		auto& in_err = GetInputErrorBuffer();
+		auto& out_err = this->GetOutputErrorBuffer();
+		auto& in_err = this->GetInputErrorBuffer();
 
-		INDEX frame_size = GetOutputFrameSize();
-		INDEX node_size = GetOutputNodeSize();
-		int lut_input_size = GetLutInputSize();
-		int lut_table_size = GetLutTableSize();
+		INDEX frame_size = this->GetOutputFrameSize();
+		INDEX node_size = this->GetOutputNodeSize();
+		int lut_input_size = this->GetLutInputSize();
+		int lut_table_size = this->GetLutTableSize();
 
 		// ゼロ初期化
-		INDEX input_node_size = GetInputNodeSize();
+		INDEX input_node_size = this->GetInputNodeSize();
 		for (INDEX node = 0; node < input_node_size; ++node) {
 			for (INDEX frame = 0; frame < frame_size; ++frame) {
-				in_err.Set<T>(frame, node, 0);
+				in_err.template Set<T>(frame, node, 0);
 			}
 		}
 
@@ -193,8 +192,8 @@ public:
 			std::fill(table_err.begin(), table_err.end(), (T)0);
 			for (INDEX frame = 0; frame < frame_size; ++frame) {
 				// 入力値取得
-				int input_index = GetLutInputIndex(frame, node);
-				T err = out_err.Get<T>(frame, node);
+				int input_index = this->GetLutInputIndex(frame, node);
+				T err = out_err.template Get<T>(frame, node);
 
 				// テーブルに対する誤差計算
 				table_err[input_index] += err;	// 積算していく
@@ -202,13 +201,13 @@ public:
 
 			for (int bitpos = 0; bitpos < lut_input_size; ++bitpos) {
 				if ( abs(table_err[bitpos]) > (mt() % 16)+5 ) {
-					SetLutTable(node, bitpos, table_err[bitpos] > 0);
+					this->SetLutTable(node, bitpos, table_err[bitpos] > 0);
 				}
 			}
 			
 			for (INDEX frame = 0; frame < frame_size; ++frame) {
-				int input_index = GetLutInputIndex(frame, node);
-				T err = out_err.Get<T>(frame, node);
+				int input_index = this->GetLutInputIndex(frame, node);
+				T err = out_err.template Get<T>(frame, node);
 
 				bool val = GetLutTable(node, input_index);
 				if ((val && err < 0) || (val && err > 0)) {
@@ -223,14 +222,14 @@ public:
 						// 各入力項に対するテーブルの偏微分を計算
 						int index0 = (input_index & ~mask);
 						int index1 = (input_index | mask);
-						bool val0 = GetLutTable(node, index0);
-						bool val1 = GetLutTable(node, index1);
+						bool val0 = this->GetLutTable(node, index0);
+						bool val1 = this->GetLutTable(node, index1);
 
 						if (!val0 && val1) {
-							in_err.Set<T>(frame, input_node, in_err.Get<T>(frame, input_node) + err);
+							in_err.template Set<T>(frame, input_node, in_err.template Get<T>(frame, input_node) + err);
 						}
 						else if (val0 && !val1) {
-							in_err.Set<T>(frame, input_node, in_err.Get<T>(frame, input_node) - err);
+							in_err.template Set<T>(frame, input_node, in_err.template Get<T>(frame, input_node) - err);
 						}
 						mask <<= 1;
 					}
@@ -254,7 +253,7 @@ protected:
 		int mask = 1;
 		for (int i = 0; i < lut_input_size; ++i) {
 			INDEX input_node = GetLutInput(node, i);
-			index |= (buf.Get<bool>(frame, input_node) ? mask : 0);
+			index |= (buf.template Get<bool>(frame, input_node) ? mask : 0);
 			mask <<= 1;
 		}
 		return index;
@@ -273,13 +272,13 @@ protected:
 	// 入力を集計してLUT単位で学習
 	inline bool FeedbackLutwise(const std::vector<double>& loss)
 	{
-		auto in_buf = GetInputSignalBuffer();
-		auto out_buf = GetOutputSignalBuffer();
+		auto in_buf = this->GetInputSignalBuffer();
+		auto out_buf = this->GetOutputSignalBuffer();
 
-		INDEX node_size = GetOutputNodeSize();
-		INDEX frame_size = GetOutputFrameSize();
-		int lut_input_size = GetLutInputSize();
-		int	lut_table_size = GetLutTableSize();
+		INDEX node_size = this->GetOutputNodeSize();
+		INDEX frame_size = this->GetOutputFrameSize();
+		int lut_input_size = this->GetLutInputSize();
+		int	lut_table_size = this->GetLutTableSize();
 
 		// 初回設定
 		if (!m_feedback_busy) {
@@ -298,7 +297,7 @@ protected:
 					int mask = 1;
 					for (int i = 0; i < lut_input_size; ++i) {
 						INDEX input_node = GetLutInput(node, i);
-						value |= (in_buf.Get<bool>(frame, input_node) ? mask : 0);
+						value |= (in_buf.template Get<bool>(frame, input_node) ? mask : 0);
 						mask <<= 1;
 					}
 					m_feedback_input[node][frame] = value;
@@ -325,7 +324,7 @@ protected:
 
 			// 出力を反転
 			for (INDEX frame = 0; frame < frame_size; ++frame) {
-				out_buf.Set<bool>(frame, m_feedback_node, !out_buf.Get<bool>(frame, m_feedback_node));
+				out_buf.template Set<bool>(frame, m_feedback_node, !out_buf.template Get<bool>(frame, m_feedback_node));
 			}
 
 			m_feedback_phase++;
@@ -369,13 +368,13 @@ protected:
 	// ビット単位で学習
 	inline bool FeedbackBitwise(const std::vector<double>& loss)
 	{
-		auto in_buf = GetInputSignalBuffer();
-		auto out_buf = GetOutputSignalBuffer();
+		auto in_buf = this->GetInputSignalBuffer();
+		auto out_buf = this->GetOutputSignalBuffer();
 
-		INDEX node_size = GetOutputNodeSize();
-		INDEX frame_size = GetOutputFrameSize();
-		int lut_input_size = GetLutInputSize();
-		int	lut_table_size = GetLutTableSize();
+		INDEX node_size = this->GetOutputNodeSize();
+		INDEX frame_size = this->GetOutputFrameSize();
+		int lut_input_size = this->GetLutInputSize();
+		int	lut_table_size = this->GetLutTableSize();
 
 		// 初回設定
 		if (!m_feedback_busy) {
@@ -470,24 +469,24 @@ public:
 	{
 		archive(cereal::make_nvp("NeuralNetLayer", *(super *)this));
 
-		archive(cereal::make_nvp("input_node_size", m_input_node_size));
-		archive(cereal::make_nvp("m_output_node_size", m_output_node_size));
+		archive(cereal::make_nvp("input_node_size", this->m_input_node_size));
+		archive(cereal::make_nvp("m_output_node_size", this->m_output_node_size));
 
-		INDEX node_size = GetOutputNodeSize();
-		int lut_input_size = GetLutInputSize();
-		int	lut_table_size = GetLutTableSize();
+		INDEX node_size = this->GetOutputNodeSize();
+		int lut_input_size = this->GetLutInputSize();
+		int	lut_table_size = this->GetLutTableSize();
 
 		std::vector<LutData> vec_lut;
 		for (INDEX node = 0; node < node_size; ++node) {
 			LutData ld;
 			ld.lut_input.resize(lut_input_size);
 			for (int i = 0; i < lut_input_size; ++i) {
-				ld.lut_input[i] = GetLutInput(node, i);
+				ld.lut_input[i] = this->GetLutInput(node, i);
 			}
 
 			ld.lut_table.resize(lut_table_size);
 			for (int i = 0; i < lut_table_size; ++i) {
-				ld.lut_table[i] = GetLutTable(node, i);
+				ld.lut_table[i] = this->GetLutTable(node, i);
 			}
 
 			vec_lut.push_back(ld);
@@ -511,7 +510,7 @@ public:
 
 //		if (vec_lut.empty()) { return; }
 
-		Resize(input_node_size, output_node_size);
+		this->Resize(input_node_size, output_node_size);
 
 		for (INDEX node = 0; node < (INDEX)vec_lut.size(); ++node) {
 			for (int i = 0; i < (int)vec_lut[node].lut_input.size(); ++i) {

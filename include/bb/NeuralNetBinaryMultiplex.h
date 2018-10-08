@@ -178,10 +178,10 @@ public:
 			vec_loss[frame] = 0;
 			for (size_t node = 0; node < node_size; ++node) {
 				if (label[frame / m_mux_size + offset] == (node % LABEL_SIZE)) {
-					vec_loss[frame] += (buf.Get<bool>(frame, node) ? 0.0 : +1.0);
+					vec_loss[frame] += (buf.template Get<bool>(frame, node) ? 0.0 : +1.0);
 				}
 				else {
-					vec_loss[frame] += (buf.Get<bool>(frame, node) ? +(1.0 / LABEL_SIZE) : -(0.0 / LABEL_SIZE));
+					vec_loss[frame] += (buf.template Get<bool>(frame, node) ? +(1.0 / LABEL_SIZE) : -(0.0 / LABEL_SIZE));
 				}
 			}
 		}

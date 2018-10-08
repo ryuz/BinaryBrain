@@ -232,7 +232,7 @@ protected:
 		return &m_buffer.get()[m_frame_stride * addr];
 	}
 
-
+	/*
 	template <typename Tp>
 	inline void Write(void *base, INDEX frame, Tp value) const
 	{
@@ -240,7 +240,7 @@ protected:
 		ptr[frame] = value;
 	}
 
-	template <typename Tp>
+	template <>
 	inline void Write(void *base, INDEX frame, bool value) const
 	{
 		std::uint8_t* ptr = (std::uint8_t*)base;
@@ -252,14 +252,12 @@ protected:
 			ptr[frame / 8] &= ~mask;
 		}
 	}
-
-	template <typename Tp>
+		
+	template <>
 	inline void Write(void *base, INDEX frame, Bit value) const
 	{
 		Write<bool>(base, frame, (bool)value);
 	}
-
-
 
 	template <typename Tp>
 	inline Tp Read(void *base, INDEX frame) const
@@ -268,36 +266,37 @@ protected:
 		return ptr[frame];
 	}
 
-	template <typename Tp>
-	inline bool Read(void *base, INDEX frame) const
+	template <>
+	inline bool Read<bool>(void *base, INDEX frame) const
 	{
 		std::uint8_t* ptr = (std::uint8_t*)base;
 		std::uint8_t mask = (std::uint8_t)(1 << (frame % 8));
 		return ((ptr[frame / 8] & mask) != 0);
 	}
 
-//	template <>
-//	inline Bit Read(void *base, INDEX frame) const
-//	{
-//		return Read<bool>(base, frame);
-//	}
+	template <>
+	inline Bit Read<Bit>(void *base, INDEX frame) const
+	{
+		return Read<bool>(base, frame);
+	}
+	*/
 
 
 	inline void WriteReal(void *base, INDEX frame, T value) const
 	{
 		switch (m_data_type) {
-		case BB_TYPE_BINARY: Write<bool>(base, frame, value > (T)0.5);	break;
-		case BB_TYPE_REAL32: Write<float>(base, frame, (float)value);	break;
-		case BB_TYPE_REAL64: Write<double>(base, frame, (double)value);	break;
+		case BB_TYPE_BINARY: NeuralNet_Write<bool>(base, frame, value > (T)0.5);	break;
+		case BB_TYPE_REAL32: NeuralNet_Write<float>(base, frame, (float)value);	break;
+		case BB_TYPE_REAL64: NeuralNet_Write<double>(base, frame, (double)value);	break;
 		}
 	}
 
 	inline T ReadReal(void *base, INDEX frame) const
 	{
 		switch (m_data_type) {
-		case BB_TYPE_BINARY: return Read<bool>(base, frame) ? (T)1.0 : (T)0.0;
-		case BB_TYPE_REAL32: return (T)Read<float>(base, frame);
-		case BB_TYPE_REAL64: return (T)Read<double>(base, frame);
+		case BB_TYPE_BINARY: return NeuralNet_Read<bool>(base, frame) ? (T)1.0 : (T)0.0;
+		case BB_TYPE_REAL32: return (T)NeuralNet_Read<float>(base, frame);
+		case BB_TYPE_REAL64: return (T)NeuralNet_Read<double>(base, frame);
 		}
 		return 0;
 	}
@@ -305,18 +304,18 @@ protected:
 	inline void WriteBinary(void *base, INDEX frame, bool value) const
 	{
 		switch (m_data_type) {
-		case BB_TYPE_BINARY: Write<bool>(base, frame, value);	break;
-		case BB_TYPE_REAL32: Write<float>(base, frame, (value ? 1.0f : 0.0f)); 	break;
-		case BB_TYPE_REAL64: Write<double>(base, frame, (value ? 1.0 : 0.0)); 	break;
+		case BB_TYPE_BINARY: NeuralNet_Write<bool>(base, frame, value);	break;
+		case BB_TYPE_REAL32: NeuralNet_Write<float>(base, frame, (value ? 1.0f : 0.0f)); 	break;
+		case BB_TYPE_REAL64: NeuralNet_Write<double>(base, frame, (value ? 1.0 : 0.0)); 	break;
 		}
 	}
 
 	inline bool ReadBinary(void *base, INDEX frame) const
 	{
 		switch (m_data_type) {
-		case BB_TYPE_BINARY: return Read<bool>(base, frame);
-		case BB_TYPE_REAL32: return (Read<float>(base, frame) > 0.5f);
-		case BB_TYPE_REAL64: return (Read<double>(base, frame) > 0.5);
+		case BB_TYPE_BINARY: return NeuralNet_Read<bool>(base, frame);
+		case BB_TYPE_REAL32: return (NeuralNet_Read<float>(base, frame) > 0.5f);
+		case BB_TYPE_REAL64: return (NeuralNet_Read<double>(base, frame) > 0.5);
 		}
 		return false;
 	}
@@ -463,13 +462,13 @@ public:
 	template <typename Tp>
 	inline void Set(INDEX frame, INDEX node, Tp value) const
 	{
-		Write<Tp>(GetPtr(node), frame, value);
+		NeuralNet_Write<Tp>(GetPtr(node), frame, value);
 	}
 
 	template <typename Tp>
 	inline Tp Get(INDEX frame, INDEX node) const
 	{
-		return Read<Tp>(GetPtr(node), frame);
+		return NeuralNet_Read<Tp>(GetPtr(node), frame);
 	}
 
 
@@ -486,8 +485,11 @@ public:
 	bool GetBinary(INDEX frame, std::vector<INDEX> index) const { return ReadBinary(GetPtr(index), frame); }
 
 
-	friend std::ostream& operator<<(std::ostream& os, const NeuralNetBuffer<T, INDEX>& buf);
+//	friend std::ostream& operator<<(std::ostream& os, const NeuralNetBuffer<T, INDEX>& buf);
 };
+
+
+
 
 /*
 template <typename T = float, typename INDEX = size_t>

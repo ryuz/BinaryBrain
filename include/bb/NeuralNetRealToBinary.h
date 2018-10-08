@@ -72,8 +72,8 @@ public:
 
 	void Forward(bool train = true)
 	{
-		auto in_sig_buf = GetInputSignalBuffer();
-		auto out_sig_buf = GetOutputSignalBuffer();
+		auto in_sig_buf = this->GetInputSignalBuffer();
+		auto out_sig_buf = this->GetOutputSignalBuffer();
 
 		// ノード数の倍率を確認
 		int mul = std::max((int)(m_output_node_size / m_input_node_size), 1);
@@ -86,7 +86,7 @@ public:
 			std::vector<T>		vec_v(m_output_node_size, (T)0.0);
 			std::vector<int>	vec_n(m_output_node_size, 0);
 			for (INDEX node = 0; node < node_size; node++) {
-				vec_v[node % m_output_node_size] += in_sig_buf.Get<T>(frame, node % m_input_node_size);
+				vec_v[node % m_output_node_size] += in_sig_buf.template Get<T>(frame, node % m_input_node_size);
 				vec_n[node % m_output_node_size] += 1;
 			}
 
@@ -99,7 +99,7 @@ public:
 				T		real_sig = vec_v[node] / (T)vec_n[node];
 				Binary	bin_sig = (real_sig > (rand_th + th_offset));
 				for (INDEX i = 0; i < m_mux_size; i++) {
-					out_sig_buf.Set<BT>(frame*m_mux_size + i, node, bin_sig);
+					out_sig_buf.template Set<BT>(frame*m_mux_size + i, node, bin_sig);
 				}
 			}
 		}
@@ -107,17 +107,17 @@ public:
 
 	void Backward(void)
 	{
-		auto in_err_buf = GetInputErrorBuffer();
-		auto out_err_buf = GetOutputErrorBuffer();
+		auto in_err_buf = this->GetInputErrorBuffer();
+		auto out_err_buf = this->GetOutputErrorBuffer();
 
 		in_err_buf.Clear();
 		for (INDEX node = 0; node < m_output_node_size; node++) {
 			for (INDEX frame = 0; frame < m_batch_size; ++frame) {
-				auto err = in_err_buf.Get<T>(frame, node % m_input_node_size);
+				auto err = in_err_buf.template Get<T>(frame, node % m_input_node_size);
 				for (INDEX i = 0; i < m_mux_size; i++) {
-					err += out_err_buf.Get<T>(frame*m_mux_size + i, node);
+					err += out_err_buf.template Get<T>(frame*m_mux_size + i, node);
 				}
-				in_err_buf.Set<T>(frame, node % m_input_node_size, err);
+				in_err_buf.template Set<T>(frame, node % m_input_node_size, err);
 			}
 		}
 	}

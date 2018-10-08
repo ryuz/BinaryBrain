@@ -18,6 +18,7 @@
 #include "NeuralNetGroup.h"
 #include "NeuralNetLossFunction.h"
 #include "NeuralNetAccuracyFunction.h"
+#include "NeuralNetUtility.h"
 #include "TrainData.h"
 
 namespace bb {
@@ -109,7 +110,7 @@ public:
 	}
 
 	std::vector<T> GetOutputSignal(INDEX frame) {
-		std::vector<T> signals(m_lastLayer->GetOutputNodeSize());
+		std::vector<T> signals(this->m_lastLayer->GetOutputNodeSize());
 		for (INDEX node = 0; node < (INDEX)signals.size(); ++node) {
 			signals[node] = GetOutputSignal(frame, node);
 		}
@@ -150,13 +151,13 @@ public:
 			// バッチサイズ設定
 			SetBatchSize(batch_size);
 
-			auto in_sig_buf = GetInputSignalBuffer();
-			auto out_sig_buf = GetOutputSignalBuffer();
+			auto in_sig_buf = this->GetInputSignalBuffer();
+			auto out_sig_buf = this->GetOutputSignalBuffer();
 
 			// データ格納
 			for (INDEX frame = 0; frame < batch_size; ++frame) {
 				for (INDEX node = 0; node < node_size; ++node) {
-					in_sig_buf.Set<T>(frame, node, x[x_index + frame][node]);
+					in_sig_buf.template Set<T>(frame, node, x[x_index + frame][node]);
 				}
 			}
 
@@ -172,7 +173,7 @@ public:
 
 			// 誤差逆伝播
 			if (lossFunc != nullptr) {
-				auto out_err_buf = GetOutputErrorBuffer();
+				auto out_err_buf = this->GetOutputErrorBuffer();
 				auto loss = lossFunc->CalculateLoss(out_sig_buf, out_err_buf, it_y);
 
 				// 進捗表示
@@ -253,7 +254,7 @@ public:
 				std::ifstream ifs(net_file_name);
 				if (ifs.is_open()) {
 					cereal::JSONInputArchive ar(ifs);
-					Load(ar);
+					this->Load(ar);
 					log_stream << "[load] " << net_file_name << std::endl;
 				}
 			}
@@ -282,10 +283,10 @@ public:
 				// ネット保存
 				std::ofstream ofs_net(net_file_name);
 				cereal::JSONOutputArchive ar(ofs_net);
-				Save(ar);
+				this->Save(ar);
 
 				// Shuffle
-				bb::ShuffleDataSet(mt(), x_train, y_train);
+				ShuffleDataSet(mt(), x_train, y_train);
 			}
 
 			// 終了メッセージ

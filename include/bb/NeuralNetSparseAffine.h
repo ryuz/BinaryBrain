@@ -24,6 +24,10 @@
 namespace bb {
 
 
+#ifdef _MSC_VER
+#define _mm256_cvtss_f32(a)		((a).m256_f32[0])
+#endif
+
 // 入力数制限Affine
 template <int N = 6, typename T = float, typename INDEX = size_t>
 class NeuralNetSparseAffine : public NeuralNetSparseLayer<T, INDEX>
@@ -61,8 +65,13 @@ public:
 	}
 	
 	NeuralNetSparseAffine(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1,
-		const NeuralNetOptimizer<T, INDEX>* optimizer = &NeuralNetOptimizerSgd<>())
+		const NeuralNetOptimizer<T, INDEX>* optimizer = nullptr)
 	{
+		NeuralNetOptimizerSgd<T, INDEX> DefOptimizer;
+		if (optimizer == nullptr) {
+			optimizer = &DefOptimizer;
+		}
+
 		Resize(input_node_size, output_node_size);
 		InitializeCoeff(seed);
 		SetOptimizer(optimizer);
@@ -75,7 +84,7 @@ public:
 	T& W(INDEX input, INDEX output) { return m_node[output].W[input]; }
 	T& b(INDEX output) { return m_node[output].b; }
 	T& dW(INDEX input, INDEX output) { return m_node[output].dW[input]; }
-	T& db(INDEX output) { return[output].db; }
+	T& db(INDEX output) { return m_node[output].db; }
 
 	T CalcNode(INDEX node, std::vector<T> input_value) const
 	{
@@ -93,7 +102,7 @@ public:
 	{
 		super::Resize(input_node_size, output_node_size);
 		
-		m_node.resize(m_output_node_size);
+		m_node.resize(this->m_output_node_size);
 	}
 
 	void InitializeCoeff(std::uint64_t seed)
@@ -146,13 +155,23 @@ public:
 
 
 protected:
+	// 水平加算
+	inline static __m256 my_mm256_hsum_ps(__m256 r)
+	{
+		r = _mm256_hadd_ps(r, r);
+		r = _mm256_hadd_ps(r, r);
+		__m256 tmp = _mm256_permute2f128_ps(r, r, 0x1);
+		r = _mm256_unpacklo_ps(r, tmp);
+		return _mm256_hadd_ps(r, r);
+	}
+
 
 	inline void ForwardNode(INDEX node) {
 		if (typeid(T) == typeid(float)) {
 			INDEX frame_size = (m_frame_size + 7) / 8;
 
-			auto in_sig_buf = GetInputSignalBuffer();
-			auto out_sig_buf = GetOutputSignalBuffer();
+			auto in_sig_buf = this->GetInputSignalBuffer();
+			auto out_sig_buf = this->GetOutputSignalBuffer();
 			
 			float*	in_sig_ptr[N];
 			float*	out_sig_ptr;
@@ -182,7 +201,7 @@ public:
 
 	void Forward(bool train = true)
 	{
-		auto node_size = GetOutputNodeSize();
+		auto node_size = this->GetOutputNodeSize();
 
 		#pragma omp parallel for
 		for ( int node = 0; node < (int)node_size; ++node ) {
@@ -192,12 +211,12 @@ public:
 
 	void Backward(void)
 	{
-		auto in_sig_buf = GetInputSignalBuffer();
-		auto out_sig_buf = GetOutputSignalBuffer();
-		auto in_err_buf = GetInputErrorBuffer();
-		auto out_err_buf = GetOutputErrorBuffer();
+		auto in_sig_buf = this->GetInputSignalBuffer();
+		auto out_sig_buf = this->GetOutputSignalBuffer();
+		auto in_err_buf = this->GetInputErrorBuffer();
+		auto out_err_buf = this->GetOutputErrorBuffer();
 
-		auto node_size = GetOutputNodeSize();
+		auto node_size = this->GetOutputNodeSize();
 
 		INDEX frame_size = (m_frame_size + 7) / 8;
 
@@ -241,14 +260,17 @@ public:
 
 				for (int i = 0; i < N; i++) {
 //					nd.dW[i] = 0;
-					for (int j = 0; j < 8; j++) {
-						nd.dW[i] += dW[i].m256_f32[j];
-					}
+//					for (int j = 0; j < 8; j++) {
+//						nd.dW[i] += dW[i].m256_f32[j];
+//					}
+					nd.dW[i] += _mm256_cvtss_f32(my_mm256_hsum_ps(dW[i]));
+
 				}
 //				nd.db = 0;
-				for (int j = 0; j < 8; j++) {
-					nd.db += db.m256_f32[j];
-				}
+//				for (int j = 0; j < 8; j++) {
+//					nd.db += db.m256_f32[j];
+//				}
+				nd.db += _mm256_cvtss_f32(my_mm256_hsum_ps(db));
 			}
 		}
 	}
@@ -256,7 +278,7 @@ public:
 
 	void Update(void)
 	{
-		auto node_size = GetOutputNodeSize();
+		auto node_size = this->GetOutputNodeSize();
 
 		for (INDEX node = 0; node < node_size; ++node) {
 			auto& nd = m_node[node];

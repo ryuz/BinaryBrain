@@ -61,30 +61,30 @@ public:
 
 	void Forward(bool train = true)
 	{
-		auto x = GetInputSignalBuffer();
-		auto y = GetOutputSignalBuffer();
+		auto x = this->GetInputSignalBuffer();
+		auto y = this->GetOutputSignalBuffer();
 
 		// binarize
 		for (INDEX node = 0; node < m_node_size; ++node) {
 			for (INDEX frame = 0; frame < m_frame_size; ++frame) {
-				y.Set<T>(frame, node, x.Get<T>(frame, node) > (T)0.0 ? (T)1.0 : (T)0.0);
+				y.template Set<T>(frame, node, x.template Get<T>(frame, node) > (T)0.0 ? (T)1.0 : (T)0.0);
 			}
 		}
 	}
 
 	void Backward(void)
 	{
-		auto dx = GetInputErrorBuffer();
-		auto dy = GetOutputErrorBuffer();
-		auto x = GetInputSignalBuffer();
-		auto y = GetOutputSignalBuffer();
+		auto dx = this->GetInputErrorBuffer();
+		auto dy = this->GetOutputErrorBuffer();
+		auto x = this->GetInputSignalBuffer();
+		auto y = this->GetOutputSignalBuffer();
 
 		// hard-tanh
 		for (INDEX node = 0; node < m_node_size; ++node) {
 			for (INDEX frame = 0; frame < m_frame_size; ++frame) {
-				auto err = dy.Get<T>(frame, node);
-				auto sig = x.Get<T>(frame, node);
-				dx.Set<T>(frame, node, (sig >= (T)-1.0 && sig <= (T)1.0) ? err : 0);
+				auto err = dy.template Get<T>(frame, node);
+				auto sig = x.template Get<T>(frame, node);
+				dx.template Set<T>(frame, node, (sig >= (T)-1.0 && sig <= (T)1.0) ? err : 0);
 			}
 		}
 	}

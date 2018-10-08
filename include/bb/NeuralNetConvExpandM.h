@@ -71,8 +71,8 @@ public:
 	/*
 	void Forward(bool train = true)
 	{
-		auto in_sig_buf = GetInputSignalBuffer();
-		auto out_sig_buf = GetOutputSignalBuffer();
+		auto in_sig_buf = this->GetInputSignalBuffer();
+		auto out_sig_buf = this->GetOutputSignalBuffer();
 		
 #pragma omp parallel for
 		for (int input_frame = 0; input_frame < (int)m_input_frame_size; ++input_frame) {
@@ -107,8 +107,8 @@ public:
 
 	void Forward(bool train = true)
 	{
-		auto in_sig_buf = GetInputSignalBuffer();
-		auto out_sig_buf = GetOutputSignalBuffer();
+		auto in_sig_buf = this->GetInputSignalBuffer();
+		auto out_sig_buf = this->GetOutputSignalBuffer();
 
 		const int frame_size = (int)out_sig_buf.GetFrameStride() * 8 / NeuralNetType<ST>::bit_size;
 		const int frame_unit = 256 / NeuralNetType<ST>::bit_size;

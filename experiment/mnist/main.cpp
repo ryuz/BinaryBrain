@@ -23,14 +23,13 @@
 
 #include "bb/NeuralNetAffine.h"
 #include "bb/NeuralNetSparseAffine.h"
-#include "bb/NeuralNetSparseAffineBc.h"
 #include "bb/NeuralNetSparseBinaryAffine.h"
 
 #include "bb/NeuralNetRealToBinary.h"
 #include "bb/NeuralNetBinaryToReal.h"
 #include "bb/NeuralNetBinaryLut6.h"
 #include "bb/NeuralNetBinaryLut6VerilogXilinx.h"
-#include "bb/NeuralNetBinaryFilter.h"
+// #include "bb/NeuralNetBinaryFilter.h"
 
 #include "bb/NeuralNetSparseAffineSigmoid.h"
 
@@ -77,7 +76,8 @@ void MnistDenseAffineSigmoid(int epoc_size, size_t max_batch_size)
 	net.AddLayer(&layer1_affine);
 
 	// set optimizer
-	net.SetOptimizer(&bb::NeuralNetOptimizerAdam<>());
+	bb::NeuralNetOptimizerAdam<> optimizer;
+	net.SetOptimizer(&optimizer);
 
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			lossFunc;
@@ -236,7 +236,7 @@ void BinaryLut6WithBbruteForce(int epoc_size, size_t max_batch_size)
 // メイン関数
 int main()
 {
-	omp_set_num_threads(6);
+//	omp_set_num_threads(6);
 
 #if 0
 	BinaryLut6WithBbruteForce(1000, 8192);

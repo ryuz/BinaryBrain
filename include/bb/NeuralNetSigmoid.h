@@ -68,20 +68,20 @@ public:
 	{
 		if (m_binary_mode) {
 			// Binarize
-			auto x = GetInputSignalBuffer();
-			auto y = GetOutputSignalBuffer();
+			auto x = this->GetInputSignalBuffer();
+			auto y = this->GetOutputSignalBuffer();
 
 			#pragma omp parallel for
 			for (int node = 0; node < (int)m_node_size; ++node) {
 				for (INDEX frame = 0; frame < m_frame_size; ++frame) {
-					y.Set<T>(frame, node, x.Get<T>(frame, node) >(T)0.0 ? (T)1.0 : (T)0.0);
+					y.template Set<T>(frame, node, x.template Get<T>(frame, node) >(T)0.0 ? (T)1.0 : (T)0.0);
 				}
 			}
 		}
 		else {
 			// Sigmoid
-			Eigen::Map<Matrix> x((T*)m_input_signal_buffer.GetBuffer(), m_input_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
-			Eigen::Map<Matrix> y((T*)m_output_signal_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
+			Eigen::Map<Matrix> x((T*)this->m_input_signal_buffer.GetBuffer(), this->m_input_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
+			Eigen::Map<Matrix> y((T*)this->m_output_signal_buffer.GetBuffer(), this->m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
 
 			y = ((x * -1).array().exp() + 1.0).inverse();
 		}
@@ -91,25 +91,25 @@ public:
 	{
 		if (m_binary_mode) {
 			// Binarize
-			auto dx = GetInputErrorBuffer();
-			auto dy = GetOutputErrorBuffer();
-			auto x = GetInputSignalBuffer();
+			auto dx = this->GetInputErrorBuffer();
+			auto dy = this->GetOutputErrorBuffer();
+			auto x = this->GetInputSignalBuffer();
 
 			#pragma omp parallel for
 			for (int node = 0; node < (int)m_node_size; ++node) {
 				for (INDEX frame = 0; frame < m_frame_size; ++frame) {
 					// hard-tanh
-					auto err = dy.Get<T>(frame, node);
-					auto sig = x.Get<T>(frame, node);
-					dx.Set<T>(frame, node, (sig >= (T)-1.0 && sig <= (T)1.0) ? err : 0);
+					auto err = dy.template Get<T>(frame, node);
+					auto sig = x.template Get<T>(frame, node);
+					dx.template Set<T>(frame, node, (sig >= (T)-1.0 && sig <= (T)1.0) ? err : 0);
 				}
 			}
 		}
 		else {
 			// Sigmoid
-			Eigen::Map<Matrix> y((T*)m_output_signal_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
-			Eigen::Map<Matrix> dy((T*)m_output_error_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
-			Eigen::Map<Matrix> dx((T*)m_input_error_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
+			Eigen::Map<Matrix> y((T*)this->m_output_signal_buffer.GetBuffer(), this->m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
+			Eigen::Map<Matrix> dy((T*)this->m_output_error_buffer.GetBuffer(), this->m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
+			Eigen::Map<Matrix> dx((T*)this->m_input_error_buffer.GetBuffer(), this->m_output_signal_buffer.GetFrameStride() / sizeof(T), m_node_size);
 
 			dx = dy.array() * (-y.array() + 1) * y.array();
 		}

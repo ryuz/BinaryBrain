@@ -99,8 +99,8 @@ protected:
 public:
 	void Forward(bool train = true)
 	{
-		auto in_sig_buf = GetInputSignalBuffer();
-		auto out_sig_buf = GetOutputSignalBuffer();
+		auto in_sig_buf = this->GetInputSignalBuffer();
+		auto out_sig_buf = this->GetOutputSignalBuffer();
 
 		const int frame_size = (int)out_sig_buf.GetFrameStride() * 8 / NeuralNetType<ST>::bit_size;
 		const int frame_unit = 256 / NeuralNetType<ST>::bit_size;
@@ -120,8 +120,8 @@ public:
 							ix += fx;
 							iy += fy;
 							int input_node = GetInputNode(c, iy, ix);
-							ST sig = in_sig_buf.Get<ST>(input_frame, input_node);
-							out_sig_buf.Set<ST>(output_frame, output_node, sig);
+							ST sig = in_sig_buf.template Get<ST>(input_frame, input_node);
+							out_sig_buf.template Set<ST>(output_frame, output_node, sig);
 						}
 					}
 				}
@@ -133,8 +133,8 @@ public:
 	/*
 	void Forward(bool train = true)
 	{
-		auto in_sig_buf = GetInputSignalBuffer();
-		auto out_sig_buf = GetOutputSignalBuffer();
+		auto in_sig_buf = this->GetInputSignalBuffer();
+		auto out_sig_buf = this->GetOutputSignalBuffer();
 		
 		#pragma omp parallel for
 		for (int input_frame = 0; input_frame < (int)m_input_frame_size; ++input_frame) {
@@ -148,8 +148,8 @@ public:
 								int iy = y + fy;
 								int input_node = GetInputNode(c, iy, ix);
 								int output_node = GetOutputNode(c, fy, fx);
-								ST sig = in_sig_buf.Get<ST>(input_frame, input_node);
-								out_sig_buf.Set<ST>(output_frame, output_node, sig);
+								ST sig = in_sig_buf.template Get<ST>(input_frame, input_node);
+								out_sig_buf.template Set<ST>(output_frame, output_node, sig);
 							}
 						}
 					}
@@ -162,8 +162,8 @@ public:
 
 	void Backward(void)
 	{
-		auto out_err_buf = GetOutputErrorBuffer();
-		auto in_err_buf = GetInputErrorBuffer();
+		auto out_err_buf = this->GetOutputErrorBuffer();
+		auto in_err_buf = this->GetInputErrorBuffer();
 
 		in_err_buf.Clear();
 
@@ -185,8 +185,8 @@ public:
 							ix += fx;
 							iy += fy;
 							int input_node = GetInputNode(c, iy, ix);
-							ET err = out_err_buf.Get<ET>(output_frame, output_node);
-							in_err_buf.Set<ET>(input_frame, input_node, in_err_buf.Get<ET>(input_frame, input_node) + err);
+							ET err = out_err_buf.template Get<ET>(output_frame, output_node);
+							in_err_buf.template Set<ET>(input_frame, input_node, in_err_buf.template Get<ET>(input_frame, input_node) + err);
 						}
 					}
 				}
@@ -214,8 +214,8 @@ public:
 								int iy = y + fy;
 								int output_node = GetOutputNode(c, fy, fx);
 								int input_node = GetInputNode(c, iy, ix);
-								ET err = out_err_buf.Get<ET>(output_frame, output_node);
-								in_err_buf.Set<ET>(input_frame, input_node, in_err_buf.Get<ET>(input_frame, input_node) + err);
+								ET err = out_err_buf.template Get<ET>(output_frame, output_node);
+								in_err_buf.template Set<ET>(input_frame, input_node, in_err_buf.template Get<ET>(input_frame, input_node) + err);
 							}
 						}
 					}

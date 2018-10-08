@@ -57,8 +57,8 @@ public:
 
 	void Forward(bool train = true)
 	{
-		auto in_sig_buf = GetInputSignalBuffer();
-		auto out_sig_buf = GetOutputSignalBuffer();
+		auto in_sig_buf = this->GetInputSignalBuffer();
+		auto out_sig_buf = this->GetOutputSignalBuffer();
 		int  m256_frame_size = (int)(((m_frame_size + 7) / 8) * 8);
 
 		__m256 zero = _mm256_set1_ps(0);
@@ -75,9 +75,9 @@ public:
 
 	void Backward(void)
 	{
-		auto out_sig_buf = GetOutputSignalBuffer();
-		auto out_err_buf = GetOutputErrorBuffer();
-		auto in_err_buf = GetInputErrorBuffer();
+		auto out_sig_buf = this->GetOutputSignalBuffer();
+		auto out_err_buf = this->GetOutputErrorBuffer();
+		auto in_err_buf = this->GetInputErrorBuffer();
 		int  m256_frame_size = (int)(((m_frame_size + 7) / 8) * 8);
 
 		__m256 zero = _mm256_set1_ps(0);

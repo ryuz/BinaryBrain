@@ -124,8 +124,8 @@ protected:
 public:
 	void Forward(bool train = true)
 	{
-		auto in_sig_buf = GetInputSignalBuffer();
-		auto out_sig_buf = GetOutputSignalBuffer();
+		auto in_sig_buf = this->GetInputSignalBuffer();
+		auto out_sig_buf = this->GetOutputSignalBuffer();
 
 		in_sig_buf.SetDimensions({ m_input_w_size, m_input_h_size, m_input_c_size});
 		out_sig_buf.SetDimensions({ m_output_w_size, m_output_h_size, m_output_c_size});
