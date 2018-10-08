@@ -208,7 +208,7 @@ public:
 
 	INDEX GetFrameSize(void)  const { return m_frame_size; }
 	INDEX GetNodeSize(void)  const { return m_node_size; }
-	INDEX GetTypeBitSize(void)  const { return m_type_bit_size; }
+//	INDEX GetTypeBitSize(void)  const { return m_type_bit_size; }
 
 	INDEX GetFrameStride(void)  const { return m_frame_stride; }
 
@@ -401,9 +401,9 @@ public:
 		return GetPtrN<4>({ i0, i1, i2, i3 });
 	}
 
-	inline void* GetPtr5(INDEX i4, INDEX i3, INDEX i2, INDEX i1, INDEX i0)
+	inline void* GetPtr5(INDEX i4, INDEX i3, INDEX i2, INDEX i1, INDEX i0) const
 	{
-		return GetPtrN<5>({ i0, i1, i2, i3, i4 }); const
+		return GetPtrN<5>({ i0, i1, i2, i3, i4 });
 	}
 
 
@@ -481,6 +481,7 @@ public:
 	friend std::ostream& operator<<(std::ostream& os, const NeuralNetBuffer<T, INDEX>& buf);
 };
 
+/*
 template <typename T = float, typename INDEX = size_t>
 std::ostream& operator<<(std::ostream& os, const NeuralNetBuffer<T, INDEX>& buf)
 {
@@ -510,6 +511,7 @@ std::ostream& operator<<(std::ostream& os, const NeuralNetBuffer<T, INDEX>& buf)
 
 	return os;
 }
+*/
 
 
 }

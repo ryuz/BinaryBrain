@@ -572,7 +572,7 @@ TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalizationCmp)
 			err += abs(out_sig0.GetReal(frame, node) - exp_norm[node].y[frame]);
 		}
 	}
-	std::cout << "error : " << err << std::endl;
+//	std::cout << "error : " << err << std::endl;
 
 
 	/// backword
@@ -645,7 +645,7 @@ TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalizationCmp)
 }
 
 
-
+#if 0
 TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalizationAccuracy)
 {
 	const int frame_size = 16 * 1024* 1024;
@@ -704,4 +704,5 @@ TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalizationAccuracy)
 
 }
 
+#endif
 
