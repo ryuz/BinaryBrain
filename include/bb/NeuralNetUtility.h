@@ -9,7 +9,7 @@
 
 #pragma once
 
-
+#include <algorithm>
 #include <cstdint>
 #include <ostream>
 #include <vector>
@@ -87,6 +87,8 @@ std::vector<LT> OnehotToLabel(const std::vector<std::vector<T>>& onehot)
 template <typename T0>
 void ShuffleDataSet(std::uint64_t seed, std::vector<T0>& data0)
 {
+	size_t data_size = data0.size();
+
 	std::mt19937_64							mt(seed);
 	std::uniform_int_distribution<size_t>	rand_distribution(0, data_size - 1);
 
@@ -138,8 +140,8 @@ void ShuffleDataSet(std::uint64_t seed, std::vector<T0>& data0, std::vector<T1>&
 template<class _Elem, class _Traits = std::char_traits<_Elem> >
 class basic_streambuf_tee : public std::basic_streambuf<_Elem, _Traits>
 {
-	typedef basic_streambuf<_Elem, _Traits>		stmbuf;
-	typedef typename _Traits::int_type			int_type;
+	typedef std::basic_streambuf<_Elem, _Traits>	stmbuf;
+	typedef typename _Traits::int_type				int_type;
 
 	std::vector<stmbuf*>	m_streambufs;
 	
@@ -175,7 +177,7 @@ public:
 template<class _Elem, class _Traits = std::char_traits<_Elem> >
 class basic_ostream_tee : public std::basic_ostream<_Elem, _Traits>
 {
-	typedef basic_ostream<_Elem, _Traits>		ostm;
+	typedef std::basic_ostream<_Elem, _Traits>	ostm;
 	typedef basic_streambuf_tee<_Elem, _Traits> stmbuf;
 
 public:
@@ -190,7 +192,7 @@ public:
 
 	void add(ostm& stm)
 	{
-		dynamic_cast<stmbuf *>(rdbuf())->add(stm.rdbuf());
+		dynamic_cast<stmbuf *>(this->rdbuf())->add(stm.rdbuf());
 	}
 };
 

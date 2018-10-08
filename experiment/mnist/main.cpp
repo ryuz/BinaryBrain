@@ -238,11 +238,11 @@ int main()
 {
 	omp_set_num_threads(6);
 
-#if 1
+#if 0
 	BinaryLut6WithBbruteForce(1000, 8192);
 #endif
 
-#if 0
+#if 1
 	MnistDenseAffineSigmoid(16, 128);
 #endif
 

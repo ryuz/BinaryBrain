@@ -14,6 +14,11 @@
 #include <vector>
 #include <memory>
 #include <malloc.h>
+
+#include <intrin.h>
+#include <mmintrin.h>
+#include <immintrin.h>
+
 #include "NeuralNetType.h"
 
 
@@ -124,9 +129,12 @@ public:
 
 		// ÉÅÉÇÉäämï€
 		m_frame_stride = (((frame_size * type_bit_size) + 255) / 256) * 32;
+#ifdef _MSC_VER
 		m_buffer = std::shared_ptr<std::uint8_t>((std::uint8_t *)_aligned_malloc(m_frame_stride*(m_base_size + 1), 32), _aligned_free);
+#else
+		m_buffer = std::shared_ptr<std::uint8_t>((std::uint8_t *)posix_memalign(m_frame_stride*(m_base_size + 1), 32), std::free);
+#endif
 		memset(m_buffer.get(), 0, m_frame_stride*(m_base_size + 1));
-//		memset(GetZeroPtr(), 0, m_frame_stride);
 
 		m_node_size = node_size;
 		m_dim.resize(1);
@@ -232,7 +240,7 @@ protected:
 		ptr[frame] = value;
 	}
 
-	template <>
+	template <typename Tp>
 	inline void Write(void *base, INDEX frame, bool value) const
 	{
 		std::uint8_t* ptr = (std::uint8_t*)base;
@@ -245,7 +253,7 @@ protected:
 		}
 	}
 
-	template <>
+	template <typename Tp>
 	inline void Write(void *base, INDEX frame, Bit value) const
 	{
 		Write<bool>(base, frame, (bool)value);
@@ -271,7 +279,7 @@ protected:
 	template <>
 	inline Bit Read(void *base, INDEX frame) const
 	{
-		return Bit(Read<bool>(base, frame));
+		return Read<bool>(base, frame);
 	}
 
 

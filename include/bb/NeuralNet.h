@@ -63,31 +63,31 @@ public:
 		m_input_error_buffers = m_firstLayer->CreateInputErrorBuffer();
 		m_output_signal_buffers = m_lastLayer->CreateOutputSignalBuffer();
 		m_output_error_buffers = m_lastLayer->CreateOutputErrorBuffer();
-		m_firstLayer->SetInputSignalBuffer(m_input_signal_buffers);
-		m_firstLayer->SetInputErrorBuffer(m_input_error_buffers);
-		m_lastLayer->SetOutputSignalBuffer(m_output_signal_buffers);
-		m_lastLayer->SetOutputErrorBuffer(m_output_error_buffers);
+		this->m_firstLayer->SetInputSignalBuffer(m_input_signal_buffers);
+		this->m_firstLayer->SetInputErrorBuffer(m_input_error_buffers);
+		this->m_lastLayer->SetOutputSignalBuffer(m_output_signal_buffers);
+		this->m_lastLayer->SetOutputErrorBuffer(m_output_error_buffers);
 	}
 
 	void Forward(bool train = true, INDEX start_layer = 0)
 	{
-		INDEX layer_size = m_layers.size();
+		INDEX layer_size = this->m_layers.size();
 
 		for (INDEX layer = start_layer; layer < layer_size; ++layer) {
-			m_layers[layer]->Forward(train);
+			this->m_layers[layer]->Forward(train);
 		}
 	}
 
 	void Backward(void)
 	{
-		for (auto layer = m_layers.rbegin(); layer != m_layers.rend(); ++layer) {
+		for (auto layer = this->m_layers.rbegin(); layer != this->m_layers.rend(); ++layer) {
 			(*layer)->Backward();
 		}
 	}
 
 	void Update(void)
 	{
-		for (auto layer = m_layers.begin(); layer != m_layers.end(); ++layer) {
+		for (auto layer = this->m_layers.begin(); layer != this->m_layers.end(); ++layer) {
 			(*layer)->Update();
 		}
 	}
@@ -95,7 +95,7 @@ public:
 
 	// 入出力データへのアクセス補助
 	void SetInputSignal(INDEX frame, INDEX node, T signal) {
-		return m_firstLayer->GetInputSignalBuffer().SetReal(frame, node, signal);
+		return this->m_firstLayer->GetInputSignalBuffer().SetReal(frame, node, signal);
 	}
 
 	void SetInputSignal(INDEX frame, std::vector<T> signals) {
@@ -105,7 +105,7 @@ public:
 	}
 
 	T GetOutputSignal(INDEX frame, INDEX node) {
-		return m_lastLayer->GetOutputSignalBuffer().GetReal(frame, node);
+		return this->m_lastLayer->GetOutputSignalBuffer().GetReal(frame, node);
 	}
 
 	std::vector<T> GetOutputSignal(INDEX frame) {
@@ -117,7 +117,7 @@ public:
 	}
 
 	void SetOutputError(INDEX frame, INDEX node, T error) {
-		m_lastLayer->GetOutputErrorBuffer().SetReal(frame, node, error);
+		this->m_lastLayer->GetOutputErrorBuffer().SetReal(frame, node, error);
 	}
 
 	void SetOutputError(INDEX frame, std::vector<T> errors) {

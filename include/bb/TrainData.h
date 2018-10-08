@@ -30,7 +30,7 @@ struct TrainData
 	}
 
 	bool empty(void) {
-		return x_tarin.empty() || y_tarin.empty() || x_test.empty() || y_test.empty();
+		return x_train.empty() || y_train.empty() || x_test.empty() || y_test.empty();
 	}
 };
 
