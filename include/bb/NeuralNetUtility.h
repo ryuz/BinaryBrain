@@ -135,6 +135,34 @@ void ShuffleDataSet(std::uint64_t seed, std::vector<T0>& data0, std::vector<T1>&
 }
 
 
+#include <immintrin.h>
+
+inline void* aligned_memory_alloc(size_t size, size_t align)
+{
+#if 1
+	return _mm_malloc(size, align);
+#else
+#ifdef _MSC_VER
+	return _aligned_malloc(size, align);
+#else
+	return posix_memalign(size, align);
+#endif
+#endif
+}
+
+inline void aligned_memory_free(void * mem)
+{
+#if 1
+	return _mm_free(mem);
+#else
+#ifdef _MSC_VER
+	return _aligned_free(mem);
+#else
+	return std::free(mem);
+#endif
+#endif
+}
+
 
 // ostream 用 tee
 template<class _Elem, class _Traits = std::char_traits<_Elem> >

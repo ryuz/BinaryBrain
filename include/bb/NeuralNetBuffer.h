@@ -9,6 +9,9 @@
 
 #pragma once
 
+#include <stdlib.h>
+#include <malloc.h>
+
 #include <iostream>
 #include <array>
 #include <vector>
@@ -20,6 +23,7 @@
 #include <immintrin.h>
 
 #include "NeuralNetType.h"
+#include "NeuralNetUtility.h"
 
 
 namespace bb {
@@ -129,11 +133,13 @@ public:
 
 		// メモリ確保
 		m_frame_stride = (((frame_size * type_bit_size) + 255) / 256) * 32;
-#ifdef _MSC_VER
-		m_buffer = std::shared_ptr<std::uint8_t>((std::uint8_t *)_aligned_malloc(m_frame_stride*(m_base_size + 1), 32), _aligned_free);
-#else
-		m_buffer = std::shared_ptr<std::uint8_t>((std::uint8_t *)posix_memalign(m_frame_stride*(m_base_size + 1), 32), std::free);
-#endif
+//#ifdef _MSC_VER
+//		m_buffer = std::shared_ptr<std::uint8_t>((std::uint8_t *)_aligned_malloc(m_frame_stride*(m_base_size + 1), 32), _aligned_free);
+//#else
+//		m_buffer = std::shared_ptr<std::uint8_t>((std::uint8_t *)posix_memalign(m_frame_stride*(m_base_size + 1), 32), std::free);
+//#endif
+		m_buffer = std::shared_ptr<std::uint8_t>((std::uint8_t *)aligned_memory_alloc(m_frame_stride*(m_base_size + 1), 32), aligned_memory_free);
+
 		memset(m_buffer.get(), 0, m_frame_stride*(m_base_size + 1));
 
 		m_node_size = node_size;

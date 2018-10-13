@@ -13,12 +13,21 @@
 #include <array>
 #include <vector>
 
-#include <immintrin.h>
+// #include <immintrin.h>
+
+#ifdef _MSC_VER
+#  include <intrin.h>
+#else
+#  include <x86intrin.h>
+#endif
 
 #include "NeuralNetBinaryLut.h"
 
 
 namespace bb {
+
+
+
 
 
 // 6入力LUT固定
@@ -111,7 +120,7 @@ protected:
 	}
 
 	template<int LUT>
-	inline void lut_mask(__m256i& msk, __m256i& lut, __m256i val[6])
+	inline void lut_mask(__m256i& msk, __m256i lut, __m256i val[6])
 	{
 		lut = lut_mask_unit<LUT, 0>(val[0], lut);
 		lut = lut_mask_unit<LUT, 1>(val[1], lut);
@@ -153,6 +162,9 @@ protected:
 
 			// LUT
 			__m256i msk = _mm256_set1_epi8(0);
+			lut_mask<0>(msk, _mm256_set1_epi8(lut.table[0]), in_sig);
+
+			/*
 			lut_mask<0>(msk, _mm256_set1_epi8(lut.table[0]), in_sig);
 			lut_mask<1>(msk, _mm256_set1_epi8(lut.table[1]), in_sig);
 			lut_mask<2>(msk, _mm256_set1_epi8(lut.table[2]), in_sig);
@@ -217,6 +229,7 @@ protected:
 			lut_mask<61>(msk, _mm256_set1_epi8(lut.table[61]), in_sig);
 			lut_mask<62>(msk, _mm256_set1_epi8(lut.table[62]), in_sig);
 			lut_mask<63>(msk, _mm256_set1_epi8(lut.table[63]), in_sig);
+			*/
 
 			_mm256_storeu_si256(&out_sig_ptr[i], msk);
 		}
