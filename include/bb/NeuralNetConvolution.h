@@ -14,7 +14,6 @@
 #include <vector>
 #include <random>
 
-#include <immintrin.h>
 
 #include "NeuralNetLayerBuf.h"
 #include "NeuralNetOptimizerSgd.h"

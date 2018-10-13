@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include <immintrin.h>
 
 #include "NeuralNetLayerBuf.h"
 

@@ -135,8 +135,6 @@ void ShuffleDataSet(std::uint64_t seed, std::vector<T0>& data0, std::vector<T1>&
 }
 
 
-#include <immintrin.h>
-
 inline void* aligned_memory_alloc(size_t size, size_t align)
 {
 #if 1

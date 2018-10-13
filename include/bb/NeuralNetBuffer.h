@@ -18,9 +18,6 @@
 #include <memory>
 #include <malloc.h>
 
-#include <mmintrin.h>
-#include <immintrin.h>
-
 #include "NeuralNetType.h"
 #include "NeuralNetUtility.h"
 

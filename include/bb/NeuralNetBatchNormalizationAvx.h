@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include <immintrin.h>
 
 #include <cereal/archives/json.hpp>
 #include <cereal/types/vector.hpp>
