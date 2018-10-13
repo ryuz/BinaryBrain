@@ -1,7 +1,8 @@
 
 TARGET = mnist-sample
 
-CC     = g++
+#CC     = g++
+CC     = clang++
 CFLAGS = -mavx2 -std=c++14 -I../../include -I../../../cereal/include -I../../../eigen
 
 SRCS = main.cpp
