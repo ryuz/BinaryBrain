@@ -18,7 +18,6 @@
 #include <memory>
 #include <malloc.h>
 
-#include <intrin.h>
 #include <mmintrin.h>
 #include <immintrin.h>
 
