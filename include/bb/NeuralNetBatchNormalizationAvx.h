@@ -128,17 +128,6 @@ public:
 		return sig;
 	}
 
-protected:
-	// 水平加算
-	inline static __m256 my_mm256_hsum_ps(__m256 r)
-	{
-		r = _mm256_hadd_ps(r, r);
-		r = _mm256_hadd_ps(r, r);
-		__m256 tmp = _mm256_permute2f128_ps(r, r, 0x1);
-		r = _mm256_unpacklo_ps(r, tmp);
-		return _mm256_hadd_ps(r, r);
-	}
-
 public:
 	void Forward(bool train = true)
 	{
@@ -177,8 +166,8 @@ public:
 						mean0 = _mm256_add_ps(x0, mean0);
 						var0 = _mm256_fmadd_ps(x0, x0, var0);
 					}
-					__m256 mean = _mm256_mul_ps(my_mm256_hsum_ps(_mm256_add_ps(mean0, mean1)), reciprocal_frame_size);
-					__m256 var = my_mm256_hsum_ps(_mm256_add_ps(var0, var1));
+					__m256 mean = _mm256_mul_ps(bb_mm256_hsum_ps(_mm256_add_ps(mean0, mean1)), reciprocal_frame_size);
+					__m256 var = bb_mm256_hsum_ps(_mm256_add_ps(var0, var1));
 					var = _mm256_fmsub_ps(var, reciprocal_frame_size, _mm256_mul_ps(mean, mean));
 					var = _mm256_max_ps(var, _mm256_set1_ps(0.0f));	// 誤差対策(負にならないようにクリップ)
 #else
@@ -198,8 +187,8 @@ public:
 						__m256 var_c = _mm256_sub_ps(_mm256_sub_ps(var_t, var_sum), var_y);
 						var_sum = var_t;
 					}
-					__m256 mean = _mm256_mul_ps(my_mm256_hsum_ps(mean_sum), reciprocal_frame_size);
-					__m256 var = _mm256_fmsub_ps(my_mm256_hsum_ps(var_sum), reciprocal_frame_size, _mm256_mul_ps(mean, mean));
+					__m256 mean = _mm256_mul_ps(bb_mm256_hsum_ps(mean_sum), reciprocal_frame_size);
+					__m256 var = _mm256_fmsub_ps(bb_mm256_hsum_ps(var_sum), reciprocal_frame_size, _mm256_mul_ps(mean, mean));
 					var = _mm256_max_ps(var, _mm256_set1_ps(0.0f));	// 誤差対策(負にならないようにクリップ)
 #endif
 
@@ -296,13 +285,13 @@ public:
 					dstd = _mm256_fnmadd_ps(_mm256_mul_ps(dxn, xc), rstd2, dstd);
 					dmeanx = _mm256_fnmadd_ps(dxn, rstd, dmeanx);
 				}
-				dbeta = my_mm256_hsum_ps(dbeta);
-				dgamma = my_mm256_hsum_ps(dgamma);
+				dbeta = bb_mm256_hsum_ps(dbeta);
+				dgamma = bb_mm256_hsum_ps(dgamma);
 				m_dgamma[node] = bb_mm256_cvtss_f32(dgamma);
 				m_dbeta[node] = bb_mm256_cvtss_f32(dbeta);
 
-				dstd = my_mm256_hsum_ps(dstd);
-				dmeanx = my_mm256_hsum_ps(dmeanx);
+				dstd = bb_mm256_hsum_ps(dstd);
+				dmeanx = bb_mm256_hsum_ps(dmeanx);
 
 				__m256 dvar  = _mm256_mul_ps(dstd, rstd);
 				__m256 dmean = _mm256_mul_ps(_mm256_fnmadd_ps(mean, dvar, dmeanx), reciprocal_frame_size);

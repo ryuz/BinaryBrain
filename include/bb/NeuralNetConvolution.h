@@ -171,24 +171,6 @@ protected:
 		return (T*)buf.GetPtr(((n*m_input_c_size + c)*m_filter_h_size + y)*m_filter_w_size + x);
 	}
 
-	// 水平加算
-	inline static __m256 my_mm256_hsum_ps(__m256 r)
-	{
-		r = _mm256_hadd_ps(r, r);
-		r = _mm256_hadd_ps(r, r);
-		__m256 tmp = _mm256_permute2f128_ps(r, r, 0x1);
-		r = _mm256_unpacklo_ps(r, tmp);
-		return _mm256_hadd_ps(r, r);
-	}
-
-	inline float my_mm256_sum_ps(__m256 r)
-	{
-		return _mm256_cvtss_f32(my_mm256_hsum_ps(r));
-	}
-
-	inline __m256	my_mm256_fmadd_ps(__m256 a, __m256 b, __m256 c) {
-		return _mm256_fmadd_ps(a, b, c);
-	}
 
 public:
 	void Forward(bool train = true)
@@ -264,11 +246,11 @@ public:
 										__m256 in_sig = _mm256_load_ps(&in_sig_ptr[frame]);
 				//						__m256 mul_val = _mm256_mul_ps(in_sig, out_err);
 				//						sum_dW = _mm256_add_ps(sum_dW, mul_val);
-										sum_dW = my_mm256_fmadd_ps(in_sig, out_err, sum_dW);
+										sum_dW = _mm256_fmadd_ps(in_sig, out_err, sum_dW);
 									}
 								}
 							}
-							dW(n, c, fy, fx) = my_mm256_sum_ps(sum_dW);
+							dW(n, c, fy, fx) = bb_mm256_cvtss_f32(bb_mm256_hsum_ps(sum_dW));
 						}
 					}
 				}
@@ -287,7 +269,7 @@ public:
 						}
 					}
 				}
-				db(n) = my_mm256_sum_ps(sum_db);
+				db(n) = bb_mm256_cvtss_f32(bb_mm256_hsum_ps(sum_db));
 			}
 
 

@@ -92,6 +92,16 @@ inline __m256i bb_mm256_or_si256(__m256i a, __m256i b)
 #endif
 }
 
+// horizontal sum
+inline __m256 bb_mm256_hsum_ps(__m256 r)
+{
+	r = _mm256_hadd_ps(r, r);
+	r = _mm256_hadd_ps(r, r);
+	__m256 tmp = _mm256_permute2f128_ps(r, r, 0x1);
+	r = _mm256_unpacklo_ps(r, tmp);
+	return _mm256_hadd_ps(r, r);
+}
+
 }
 
 #ifndef __AVX2__
