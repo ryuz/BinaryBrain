@@ -11,7 +11,8 @@
 
 
 #include <vector>
-#include "NeuralNetAccuracyFunction.h"
+
+#include "bb/NeuralNetAccuracyFunction.h"
 
 
 namespace bb {

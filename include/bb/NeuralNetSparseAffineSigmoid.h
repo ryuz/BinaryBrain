@@ -11,10 +11,11 @@
 #pragma once
 
 #include <cstdint>
-#include "NeuralNetSparseLayer.h"
-#include "NeuralNetSparseAffine.h"
-#include "NeuralNetBatchNormalization.h"
-#include "NeuralNetBinarize.h"
+
+#include "bb/NeuralNetSparseLayer.h"
+#include "bb/NeuralNetSparseAffine.h"
+#include "bb/NeuralNetBatchNormalization.h"
+#include "bb/NeuralNetBinarize.h"
 
 
 namespace bb {

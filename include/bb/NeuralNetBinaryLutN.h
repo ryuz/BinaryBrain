@@ -12,7 +12,7 @@
 
 #include <array>
 #include <vector>
-#include "NeuralNetBinaryLut.h"
+#include "bb/NeuralNetBinaryLut.h"
 
 
 namespace bb {

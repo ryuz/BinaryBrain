@@ -18,8 +18,8 @@
 #include <memory>
 #include <malloc.h>
 
-#include "NeuralNetType.h"
-#include "NeuralNetUtility.h"
+#include "bb/NeuralNetType.h"
+#include "bb/NeuralNetUtility.h"
 
 
 namespace bb {

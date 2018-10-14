@@ -11,7 +11,7 @@
 #pragma once
 
 
-#include "NeuralNetLayerBuf.h"
+#include "bb/NeuralNetLayerBuf.h"
 
 
 namespace bb {

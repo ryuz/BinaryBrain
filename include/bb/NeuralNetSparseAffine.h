@@ -17,8 +17,8 @@
 #include "cereal/types/vector.hpp"
 #include "cereal/types/array.hpp"
 
-#include "NeuralNetSparseLayer.h"
-#include "NeuralNetOptimizerSgd.h"
+#include "bb/NeuralNetSparseLayer.h"
+#include "bb/NeuralNetOptimizerSgd.h"
 
 
 namespace bb {

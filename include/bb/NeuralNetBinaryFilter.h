@@ -14,7 +14,7 @@
 #include <vector>
 #include <random>
 
-#include "NeuralNetLayer.h"
+#include "bb/NeuralNetLayer.h"
 
 namespace bb {
 

@@ -13,7 +13,8 @@
 
 #include <iostream>
 #include <sstream>
-#include "NeuralNetBinaryLut.h"
+
+#include "bb/NeuralNetBinaryLut.h"
 
 
 namespace bb {

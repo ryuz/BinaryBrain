@@ -14,7 +14,7 @@
 
 #include <Eigen/Core>
 
-#include "NeuralNetLossFunction.h"
+#include "bb/NeuralNetLossFunction.h"
 
 
 namespace bb {

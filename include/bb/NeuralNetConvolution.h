@@ -15,8 +15,8 @@
 #include <random>
 
 
-#include "NeuralNetLayerBuf.h"
-#include "NeuralNetOptimizerSgd.h"
+#include "bb/NeuralNetLayerBuf.h"
+#include "bb/NeuralNetOptimizerSgd.h"
 
 
 namespace bb {

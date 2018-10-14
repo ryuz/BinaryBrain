@@ -16,7 +16,7 @@
 #include "cereal/types/vector.hpp"
 #include "cereal/archives/json.hpp"
 
-#include "NeuralNetLayer.h"
+#include "bb/NeuralNetLayer.h"
 
 
 namespace bb {

@@ -13,7 +13,7 @@
 
 #if 0
 
-#include "NeuralNetBatchNormalizationEigen.h"
+#include "bb/NeuralNetBatchNormalizationEigen.h"
 
 namespace bb {
 
@@ -24,7 +24,7 @@ using NeuralNetBatchNormalization = NeuralNetBatchNormalizationEigen<T, INDEX>;
 
 #else
 
-#include "NeuralNetBatchNormalizationAvx.h"
+#include "bb/NeuralNetBatchNormalizationAvx.h"
 
 namespace bb {
 

@@ -13,7 +13,7 @@
 #include <cmath>
 #include <array>
 #include <vector>
-#include "NeuralNetSparseLayer.h"
+#include "bb/NeuralNetSparseLayer.h"
 
 namespace bb {
 

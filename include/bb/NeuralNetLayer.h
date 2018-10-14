@@ -16,8 +16,8 @@
 #include "cereal/types/vector.hpp"
 #include "cereal/archives/json.hpp"
 
-#include "NeuralNetBuffer.h"
-#include "NeuralNetOptimizer.h"
+#include "bb/NeuralNetBuffer.h"
+#include "bb/NeuralNetOptimizer.h"
 
 
 namespace bb {

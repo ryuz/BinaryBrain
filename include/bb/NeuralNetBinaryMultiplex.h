@@ -11,9 +11,10 @@
 #pragma once
 
 #include <cstdint>
-#include "NeuralNetLayer.h"
-#include "NeuralNetRealToBinary.h"
-#include "NeuralNetBinaryToReal.h"
+
+#include "bb/NeuralNetLayer.h"
+#include "bb/NeuralNetRealToBinary.h"
+#include "bb/NeuralNetBinaryToReal.h"
 
 
 namespace bb {

@@ -10,7 +10,7 @@
 #pragma once
 
 
-#include "NeuralNetOptimizer.h"
+#include "bb/NeuralNetOptimizer.h"
 
 
 namespace bb {

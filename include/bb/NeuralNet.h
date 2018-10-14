@@ -15,11 +15,11 @@
 #include <vector>
 #include <assert.h>
 
-#include "NeuralNetGroup.h"
-#include "NeuralNetLossFunction.h"
-#include "NeuralNetAccuracyFunction.h"
-#include "NeuralNetUtility.h"
-#include "TrainData.h"
+#include "bb/NeuralNetGroup.h"
+#include "bb/NeuralNetLossFunction.h"
+#include "bb/NeuralNetAccuracyFunction.h"
+#include "bb/NeuralNetUtility.h"
+#include "bb/TrainData.h"
 
 namespace bb {
 

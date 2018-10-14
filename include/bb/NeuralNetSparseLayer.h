@@ -12,8 +12,9 @@
 
 #include <array>
 #include <vector>
-#include "NeuralNetLayerBuf.h"
-#include "ShuffleSet.h"
+
+#include "bb/NeuralNetLayerBuf.h"
+#include "bb/ShuffleSet.h"
 
 namespace bb {
 

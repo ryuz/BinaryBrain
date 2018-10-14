@@ -11,9 +11,10 @@
 #pragma once
 
 #include <cstdint>
-#include "NeuralNetLayer.h"
-#include "NeuralNetConvExpand.h"
-#include "NeuralNetConvCollapse.h"
+
+#include "bb/NeuralNetLayer.h"
+#include "bb/NeuralNetConvExpand.h"
+#include "bb/NeuralNetConvCollapse.h"
 
 
 namespace bb {

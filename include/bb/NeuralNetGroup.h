@@ -11,7 +11,8 @@
 
 
 #include <vector>
-#include "NeuralNetLayer.h"
+
+#include "bb/NeuralNetLayer.h"
 
 
 namespace bb {

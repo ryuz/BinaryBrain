@@ -11,7 +11,8 @@
 
 
 #include <vector>
-#include "NeuralNetBuffer.h"
+
+#include "bb/NeuralNetBuffer.h"
 
 
 namespace bb {

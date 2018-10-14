@@ -11,7 +11,8 @@
 #pragma once
 
 #include <random>
-#include "NeuralNetLayerBuf.h"
+
+#include "bb/NeuralNetLayerBuf.h"
 
 
 namespace bb {
