@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <cmath>
 #include <array>
 #include <vector>
 #include "NeuralNetSparseLayer.h"
@@ -200,7 +201,7 @@ public:
 			}
 
 			for (int bitpos = 0; bitpos < lut_input_size; ++bitpos) {
-				if ( abs(table_err[bitpos]) > (mt() % 16)+5 ) {
+				if ( std::abs(table_err[bitpos]) > (mt() % 16)+5 ) {
 					this->SetLutTable(node, bitpos, table_err[bitpos] > 0);
 				}
 			}
