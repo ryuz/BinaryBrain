@@ -12,7 +12,6 @@
 
 #include <random>
 
-
 #include <Eigen/Core>
 
 #include "NeuralNetLayerBuf.h"
