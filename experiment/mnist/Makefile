@@ -1,9 +1,9 @@
 
 TARGET = mnist-sample
 
-#CC     = g++
-CC     = clang++
-CFLAGS = -mavx2 -std=c++14 -I../../include -I../../../cereal/include -I../../../eigen
+CC     = g++
+#CC     = clang++
+CFLAGS = -mavx2 -fpermissive -std=c++14 -I../../include -I../../../cereal/include -I../../../eigen
 
 SRCS = main.cpp
 

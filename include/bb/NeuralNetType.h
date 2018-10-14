@@ -16,6 +16,8 @@
 #include <intrin.h>
 #else
 #include <x86intrin.h>
+#include <avxintrin.h>
+#include <immintrin.h>
 #endif
 
 
