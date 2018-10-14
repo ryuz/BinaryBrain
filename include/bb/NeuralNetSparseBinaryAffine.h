@@ -137,6 +137,35 @@ public:
 		m_binarize.Update();
 	}
 
+
+public:
+	// Serialize
+	template <class Archive>
+	void save(Archive &archive, std::uint32_t const version) const
+	{
+		archive(cereal::make_nvp("affine",      m_affine));
+		archive(cereal::make_nvp("batch_norm",  m_norm));
+		archive(cereal::make_nvp("binarize",    m_binarize));
+	}
+
+	template <class Archive>
+	void load(Archive &archive, std::uint32_t const version)
+	{
+		archive(cereal::make_nvp("affine", m_affine));
+		archive(cereal::make_nvp("batch_norm", m_norm));
+		archive(cereal::make_nvp("binarize", m_binarize));
+	}
+
+
+	virtual void Save(cereal::JSONOutputArchive& archive) const
+	{
+		archive(cereal::make_nvp("SparseBinaryAffine", *this));
+	}
+
+	virtual void Load(cereal::JSONInputArchive& archive)
+	{
+		archive(cereal::make_nvp("SparseBinaryAffine", *this));
+	}
 };
 
 
