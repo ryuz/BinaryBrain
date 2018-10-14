@@ -16,8 +16,8 @@
 #include <intrin.h>
 #else
 #include <x86intrin.h>
-#include <avxintrin.h>
-#include <immintrin.h>
+//#include <avxintrin.h>
+//#include <immintrin.h>
 #endif
 
 
@@ -104,6 +104,7 @@ inline __m256 bb_mm256_hsum_ps(__m256 r)
 
 }
 
+/*
 #ifndef __AVX2__
 #define _mm256_andnot_si256		bb_mm256_andnot_si256
 #define _mm256_and_si256		bb_mm256_and_si256
@@ -112,5 +113,5 @@ inline __m256 bb_mm256_hsum_ps(__m256 r)
 #define _mm256_fmsub_ps			bb_mm256_fmsub_ps
 #define _mm256_fnmadd_ps		bb_mm256_fnmadd_ps
 #endif
-
+*/
 
