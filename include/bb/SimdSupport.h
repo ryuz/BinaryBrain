@@ -27,9 +27,10 @@ namespace bb {
 inline float bb_mm256_cvtss_f32(__m256 a)
 {
 #ifdef _MSC_VER
-	return (a).m256_f32[0];
+	return a.m256_f32[0];
 #else
-	return _mm256_cvtss_f32(a);
+	return a[0];
+//	return _mm256_cvtss_f32(a);
 #endif
 }
 
