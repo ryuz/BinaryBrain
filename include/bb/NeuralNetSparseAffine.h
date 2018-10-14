@@ -155,16 +155,6 @@ public:
 
 
 protected:
-	// 水平加算
-	inline static __m256 my_mm256_hsum_ps(__m256 r)
-	{
-		r = _mm256_hadd_ps(r, r);
-		r = _mm256_hadd_ps(r, r);
-		__m256 tmp = _mm256_permute2f128_ps(r, r, 0x1);
-		r = _mm256_unpacklo_ps(r, tmp);
-		return _mm256_hadd_ps(r, r);
-	}
-
 
 	inline void ForwardNode(INDEX node) {
 		if (typeid(T) == typeid(float)) {
@@ -263,14 +253,14 @@ public:
 //					for (int j = 0; j < 8; j++) {
 //						nd.dW[i] += dW[i].m256_f32[j];
 //					}
-					nd.dW[i] += _mm256_cvtss_f32(my_mm256_hsum_ps(dW[i]));
+					nd.dW[i] += bb_mm256_cvtss_f32(bb_mm256_hsum_ps(dW[i]));
 
 				}
 //				nd.db = 0;
 //				for (int j = 0; j < 8; j++) {
 //					nd.db += db.m256_f32[j];
 //				}
-				nd.db += _mm256_cvtss_f32(my_mm256_hsum_ps(db));
+				nd.db += bb_mm256_cvtss_f32(bb_mm256_hsum_ps(db));
 			}
 		}
 	}
