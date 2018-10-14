@@ -15,12 +15,10 @@
 #include <cereal/types/vector.hpp>
 #include <cereal/types/array.hpp>
 
-#include "NeuralNetLayerBuf.h"
-#include "NeuralNetOptimizerSgd.h"
+#include "bb/NeuralNetLayerBuf.h"
+#include "bb/NeuralNetOptimizerSgd.h"
+#include "bb/SimdSupport.h"
 
-#ifdef _MSC_VER
-#define _mm256_cvtss_f32(a)		((a).m256_f32[0])
-#endif
 
 namespace bb {
 
@@ -213,12 +211,12 @@ public:
 					rstd = _mm256_mul_ps(rstd, _mm256_fnmadd_ps(varx, _mm256_mul_ps(rstd, rstd), _mm256_set1_ps(1.5f)));
 
 					// 実行時の mean と var 保存
-					m_running_mean[node] = m_running_mean[node] * m_momentum + _mm256_cvtss_f32(mean) * (1 - m_momentum);
-					m_running_var[node] = m_running_var[node] * m_momentum + _mm256_cvtss_f32(var) * (1 - m_momentum);
+					m_running_mean[node] = m_running_mean[node] * m_momentum + bb_mm256_cvtss_f32(mean) * (1 - m_momentum);
+					m_running_var[node] = m_running_var[node] * m_momentum + bb_mm256_cvtss_f32(var) * (1 - m_momentum);
 
 					// 結果の保存
-					m_mean[node] = _mm256_cvtss_f32(mean);
-					m_rstd[node] = _mm256_cvtss_f32(rstd);
+					m_mean[node] = bb_mm256_cvtss_f32(mean);
+					m_rstd[node] = bb_mm256_cvtss_f32(rstd);
 
 					// 正規化 と gamma/beta 処理
 					__m256 gamma = _mm256_set1_ps(m_gamma[node]);
@@ -300,8 +298,8 @@ public:
 				}
 				dbeta = my_mm256_hsum_ps(dbeta);
 				dgamma = my_mm256_hsum_ps(dgamma);
-				m_dgamma[node] = _mm256_cvtss_f32(dgamma);
-				m_dbeta[node] = _mm256_cvtss_f32(dbeta);
+				m_dgamma[node] = bb_mm256_cvtss_f32(dgamma);
+				m_dbeta[node] = bb_mm256_cvtss_f32(dbeta);
 
 				dstd = my_mm256_hsum_ps(dstd);
 				dmeanx = my_mm256_hsum_ps(dmeanx);

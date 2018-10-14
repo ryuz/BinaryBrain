@@ -71,44 +71,14 @@ public:
 
 
 protected:
-	inline __m256i my_andnot_si256(__m256i& val, __m256i& lut)
-	{
-#ifdef __AVX2__
-		return _mm256_andnot_si256(val, lut);
-#else
-		__m256 res = _mm256_andnot_ps(*(__m256 *)&val, *(__m256 *)&lut);
-		return *(__m256i *)&res;
-#endif
-	}
-
-	inline __m256i my_and_si256(__m256i& val, __m256i& lut)
-	{
-#ifdef __AVX2__
-		return _mm256_and_si256(val, lut);
-#else
-		__m256 res = _mm256_and_ps(*(__m256 *)&val, *(__m256 *)&lut);
-		return *(__m256i *)&res;
-#endif
-	}
-
-	inline __m256i my_or_si256(__m256i& val, __m256i& lut)
-	{
-#ifdef __AVX2__
-		return _mm256_or_si256(val, lut);
-#else
-		__m256 res = _mm256_or_ps(*(__m256 *)&val, *(__m256 *)&lut);
-		return *(__m256i *)&res;
-#endif
-	}
-
 	template<int LUT, int VAL>
 	inline __m256i lut_mask_unit(__m256i& val, __m256i& lut)
 	{
 		if ((LUT & (1 << VAL)) == 0) {
-			return my_andnot_si256(val, lut);
+			return _mm256_andnot_si256(val, lut);
 		}
 		else {
-			return my_and_si256(val, lut);
+			return _mm256_and_si256(val, lut);
 		}
 	}
 
@@ -121,7 +91,7 @@ protected:
 		lut = lut_mask_unit<LUT, 3>(val[3], lut);
 		lut = lut_mask_unit<LUT, 4>(val[4], lut);
 		lut = lut_mask_unit<LUT, 5>(val[5], lut);
-		msk = my_or_si256(msk, lut);
+		msk = _mm256_or_si256(msk, lut);
 	}
 
 	void ForwardNode(INDEX node) {
@@ -155,9 +125,6 @@ protected:
 
 			// LUT
 			__m256i msk = _mm256_set1_epi8(0);
-			lut_mask<0>(msk, _mm256_set1_epi8(lut.table[0]), in_sig);
-
-			/*
 			lut_mask<0>(msk, _mm256_set1_epi8(lut.table[0]), in_sig);
 			lut_mask<1>(msk, _mm256_set1_epi8(lut.table[1]), in_sig);
 			lut_mask<2>(msk, _mm256_set1_epi8(lut.table[2]), in_sig);
@@ -222,7 +189,6 @@ protected:
 			lut_mask<61>(msk, _mm256_set1_epi8(lut.table[61]), in_sig);
 			lut_mask<62>(msk, _mm256_set1_epi8(lut.table[62]), in_sig);
 			lut_mask<63>(msk, _mm256_set1_epi8(lut.table[63]), in_sig);
-			*/
 
 			_mm256_storeu_si256(&out_sig_ptr[i], msk);
 		}
@@ -238,9 +204,9 @@ public:
 		}
 	}
 
-//	void Backward(void)
-//	{
-//	}
+	void Backward(void)
+	{
+	}
 
 	void Update(void)
 	{

@@ -11,14 +11,7 @@
 
 #include <assert.h>
 
-
-#ifdef _MSC_VER
-#include <intrin.h>
-#else
-#include <x86intrin.h>
-#include <avxintrin.h>
-#include <immintrin.h>
-#endif
+#include "bb/SimdSupport.h"
 
 
 namespace bb {

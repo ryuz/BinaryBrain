@@ -133,6 +133,7 @@ public:
 		const std::vector< std::vector<T> >& x,
 		const std::vector< std::vector<T> >& y,
 		INDEX max_batch_size,
+		INDEX min_batch_size,
 		const NeuralNetAccuracyFunction<T, INDEX>* accFunc = nullptr,
 		const NeuralNetLossFunction<T, INDEX>* lossFunc = nullptr,
 		bool train = false,
@@ -146,6 +147,8 @@ public:
 		for (INDEX x_index = 0; x_index < x_size; x_index += max_batch_size) {
 			// 末尾のバッチサイズクリップ
 			INDEX batch_size = std::min(max_batch_size, x.size() - x_index);
+			if (batch_size < min_batch_size) { break; }
+
 			INDEX node_size = x[0].size();
 
 			// バッチサイズ設定
@@ -264,7 +267,7 @@ public:
 
 			// 初期評価
 			if (initial_evaluation) {
-				auto test_accuracy = RunCalculation(x_test, y_test, max_batch_size, accFunc);
+				auto test_accuracy = RunCalculation(x_test, y_test, max_batch_size, 0, accFunc);
 				log_stream << "initial test_accuracy : " << test_accuracy << std::endl;
 			}
 
@@ -273,11 +276,11 @@ public:
 
 			for (int epoc = 0; epoc < epoc_size; ++epoc) {
 				// 学習実施
-				auto train_accuracy = RunCalculation(x_train, y_train, max_batch_size, accFunc, lossFunc, true, true);
+				auto train_accuracy = RunCalculation(x_train, y_train, max_batch_size, max_batch_size, accFunc, lossFunc, true, true);
 
 				// 学習状況評価
 				auto now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
-				auto test_accuracy = RunCalculation(x_test, y_test, max_batch_size, accFunc);
+				auto test_accuracy = RunCalculation(x_test, y_test, max_batch_size, 0, accFunc);
 				log_stream << now_time << "s " << "epoc[" << epoc << "] test_accuracy : " << test_accuracy << " train_accuracy : " << train_accuracy <<  std::endl;
 
 				// ネット保存
@@ -290,7 +293,7 @@ public:
 			}
 
 			// 終了メッセージ
-			log_stream << "fitting end" << std::endl;
+			log_stream << "fitting end\n" << std::endl;
 		}
 	}
 

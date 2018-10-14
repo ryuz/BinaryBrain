@@ -162,7 +162,7 @@ public:
 
 public:
 
-	// 出力の損失関数
+	// 出力の損失関数(ラベル指定)
 	template <typename LT, int LABEL_SIZE>
 	std::vector<double> GetOutputOnehotLoss(std::vector<LT> label, INDEX offset=0)
 	{
@@ -178,10 +178,42 @@ public:
 			vec_loss[frame] = 0;
 			for (size_t node = 0; node < node_size; ++node) {
 				if (label[frame / m_mux_size + offset] == (node % LABEL_SIZE)) {
-					vec_loss[frame] += (buf.template Get<bool>(frame, node) ? 0.0 : +1.0);
+					vec_loss[frame] += (buf.template Get<BT>(frame, node) ? 0.0 : +1.0);
 				}
 				else {
-					vec_loss[frame] += (buf.template Get<bool>(frame, node) ? +(1.0 / LABEL_SIZE) : -(0.0 / LABEL_SIZE));
+					vec_loss[frame] += (buf.template Get<BT>(frame, node) ? +(1.0 / LABEL_SIZE) : -(0.0 / LABEL_SIZE));
+				}
+			}
+		}
+
+		return vec_loss_x;
+	}
+
+	// 出力の損失関数(ベクタ指定)
+	std::vector<double> GetOutputOnehotLoss(std::vector< std::vector<T> > y, INDEX offset = 0)
+	{
+		auto buf = m_layer->GetOutputSignalBuffer();
+		INDEX frame_size = m_layer->GetOutputFrameSize();
+		INDEX node_size = m_layer->GetOutputNodeSize();
+		INDEX num_class = (INDEX)y[0].size();
+
+		std::vector<double> vec_loss_x(frame_size);
+		double* vec_loss = &vec_loss_x[0];
+
+//		double	loss_0 = 0.1;
+//		double	loss_1 = 1.0;
+		double	loss_0 = 1.0 / num_class;
+		double	loss_1 = 1.0 - loss_0;
+
+#pragma omp parallel for
+		for (int frame = 0; frame < (int)frame_size; ++frame) {
+			vec_loss[frame] = 0;
+			for (size_t node = 0; node < node_size; ++node) {
+				if (y[frame / m_mux_size + offset][node % num_class] != 0) {
+					vec_loss[frame] += (buf.template Get<BT>(frame, node) ? 0.0 : loss_1);
+				}
+				else {
+					vec_loss[frame] += (buf.template Get<BT>(frame, node) ? loss_0 : 0.0);
 				}
 			}
 		}
@@ -190,22 +222,22 @@ public:
 	}
 
 	// 出力の損失関数
-	template <typename LT, int LABEL_SIZE>
-	std::vector<double>  CalcLoss(std::vector< std::vector<T> > label, INDEX offset = 0)
+	std::vector<double> CalcLoss(std::vector< std::vector<T> > y, INDEX offset = 0)
 	{
 		auto out_sig_buf = m_layer->GetOutputSignalBuffer();
 		INDEX frame_size = m_layer->GetOutputFrameSize();
 		INDEX node_size = m_layer->GetOutputNodeSize();
+		INDEX num_class = (INDEX)y[0].size();
 
-		size_t label_size = frame_size / m_mux_size;
-		std::vector<double>	averages(label_size);
+		size_t y_size = frame_size / m_mux_size;
+		std::vector<double>	averages(y_size);
 #pragma omp parallel for
-		for (int i = 0; i < (int)label_size; ++i) {
+		for (int i = 0; i < (int)y_size; ++i) {
 			T sum = 0;
-			for (int j = 0; j < LABEL_SIZE; ++j) {
-				sum += (T)label[i + offset][j];
+			for (int j = 0; j < num_class; ++j) {
+				sum += (T)y[i + offset][j];
 			}
-			averages[i] = sum / (T)label[i].size();
+			averages[i] = sum / (T)y[i].size();
 		}
 		
 		std::vector<double> vec_loss_x(frame_size);
@@ -217,7 +249,7 @@ public:
 			auto ave = averages[frame / m_mux_size];
 			for (size_t node = 0; node < node_size; ++node) {
 				auto sig = out_sig_buf.GetReal(frame, node);
-				auto exp = label[frame / m_mux_size + offset][node % LABEL_SIZE];
+				auto exp = y[frame / m_mux_size + offset][node % num_class];
 				vec_loss[frame] += (double)(abs(sig - exp) * abs(exp - ave));
 			}
 		}

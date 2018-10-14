@@ -217,6 +217,7 @@
     <ClInclude Include="..\..\include\bb\NeuralNetType.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetUtility.h" />
     <ClInclude Include="..\..\include\bb\ShuffleSet.h" />
+    <ClInclude Include="..\..\include\bb\SimdSupport.h" />
     <ClInclude Include="..\..\include\bb\TrainData.h" />
     <ClInclude Include="mnist_read.h" />
   </ItemGroup>
