@@ -1,8 +1,8 @@
 ﻿#include <stdio.h>
 #include <iostream>
 #include "gtest/gtest.h"
-#include "bb/NeuralNetAffine.h"
 #include "bb/NeuralNetLutPre.h"
+#include "bb/NeuralNetSparseAffine.h"
 
 
 inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
@@ -13,7 +13,7 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 	net.SetOutputErrorBuffer(net.CreateOutputErrorBuffer());
 }
 
-#if 1
+
 TEST(NeuralNetLutPreTest, testNeuralNetLutPre)
 {
 	bb::NeuralNetLutPre<2, 1> affine(2, 3);
@@ -70,8 +70,132 @@ TEST(NeuralNetLutPreTest, testNeuralNetLutPre)
 	
 	affine.Update();
 }
-#endif
 
+
+TEST(NeuralNetLutPreTest, testComAffine)
+{
+	const int	M = 3;
+	const int	N = 6;
+
+	const int frame_size = 33;
+	const int input_node_size = 10;
+	const int output_node_size = 12;
+	
+	bb::NeuralNetLutPre<N, M>		lut(input_node_size, output_node_size);
+	lut.SetBatchSize(frame_size);
+	testSetupLayerBuffer(lut);
+
+	bb::NeuralNetSparseAffine<N>*	affine[M];
+	for (int i = 0; i < M; ++i) {
+		affine[i] = new bb::NeuralNetSparseAffine<N>(input_node_size, output_node_size);
+		affine[i]->SetBatchSize(frame_size);
+		testSetupLayerBuffer(*affine[i]);
+	}
+
+
+	std::mt19937_64 mt(1);
+	std::uniform_int_distribution<int> dist_rand(-10, 10);
+
+	// 入力設定
+	for (int node = 0; node < output_node_size; ++node) {
+		for (int j = 0; j < N; ++j) {
+			int input_node = (int)(mt() % input_node_size);
+			lut.SetNodeInput(node, j, input_node);
+			for (int i = 0; i < M; ++i) {
+				affine[i]->SetNodeInput(node, j, input_node);
+			}
+		}
+	}
+
+	// 係数設定
+	for (int node = 0; node < output_node_size; ++node) {
+		for (int i = 0; i < M; ++i) {
+			for (int j = 0; j < N; ++j) {
+				float W = (float)dist_rand(mt);
+				lut.W(node, i, j) = W;
+				affine[i]->W(node, j) = W;
+			}
+			float b = (float)dist_rand(mt);
+			lut.b(node, i) = b;
+			affine[i]->b(node) = b;
+		}
+	}
+
+	// 入力設定
+	for (int frame = 0; frame < frame_size; ++frame) {
+		for (int node = 0; node < input_node_size; ++node) {
+			float sig = (float)dist_rand(mt);
+			auto in_sig_buf = lut.GetInputSignalBuffer();
+			in_sig_buf.SetReal(frame, node, sig);
+			for (int i = 0; i < M; ++i) {
+				auto in_buf = affine[i]->GetInputSignalBuffer();
+				in_buf.SetReal(frame, node, sig);
+			}
+		}
+	}
+
+	// 計算
+	lut.Forward();
+	for (int i = 0; i < M; ++i) {
+		affine[i]->Forward();
+	}
+
+	// 出力比較
+	auto out_sig_buf = lut.GetOutputSignalBuffer();
+	for (int frame = 0; frame < frame_size; ++frame) {
+		for (int node = 0; node < output_node_size; ++node) {
+			for (int i = 0; i < M; ++i) {
+				auto out_cmp_buf = affine[i]->GetOutputSignalBuffer();
+				auto sig_val = out_sig_buf.GetReal(frame, node*M+i);
+				auto exp_val = out_cmp_buf.GetReal(frame, node);
+				EXPECT_EQ(exp_val, sig_val);
+			}
+		}
+	}
+
+
+	// 出力誤差設定
+	auto out_err_buf = lut.GetOutputErrorBuffer();
+	for (int frame = 0; frame < frame_size; ++frame) {
+		for (int node = 0; node < output_node_size; ++node) {
+			for (int i = 0; i < M; ++i) {
+				float err = (float)dist_rand(mt);
+				out_err_buf.SetReal(frame, node*M + i, err);
+
+				auto cmp_err_buf = affine[i]->GetOutputErrorBuffer();
+				cmp_err_buf.SetReal(frame, node, err);
+			}
+		}
+	}
+
+	// 計算
+	lut.Backward();
+	for (int i = 0; i < M; ++i) {
+		affine[i]->Backward();
+	}
+
+	// 入力誤差比較
+	for (int frame = 0; frame < frame_size; ++frame) {
+		for (int node = 0; node < input_node_size; ++node) {
+			auto in_err_buf = lut.GetInputErrorBuffer();
+			float err = in_err_buf.GetReal(frame, node);
+
+			float exp = 0;
+			for (int i = 0; i < M; ++i) {
+				auto in_buf = affine[i]->GetInputErrorBuffer();
+				exp += in_buf.GetReal(frame, node);
+			}
+
+			EXPECT_EQ(exp, err);
+		}
+	}
+
+
+	// 削除
+	for (int i = 0; i < M; ++i) {
+		delete affine[i];
+	}
+}
 
 
 #if 0

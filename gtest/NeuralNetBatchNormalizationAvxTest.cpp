@@ -504,7 +504,7 @@ TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalization)
 TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalizationCmp)
 {
 	const int node_size = 9;
-	const int frame_size = 32* 32 * 32;
+	const int frame_size = 32 * 3 * 3; //  32 * 32 * 32;
 
 	std::vector< SimpleBatchNorm<double> > exp_norm(node_size, SimpleBatchNorm<double>(frame_size));
 	

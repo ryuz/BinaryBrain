@@ -206,10 +206,10 @@ public:
 
 	void Forward(bool train = true)
 	{
-		auto node_size = this->GetOutputNodeSize();
+		int node_size = (int)this->m_output_node_size;
 
 		#pragma omp parallel for
-		for ( int node = 0; node < (int)node_size; ++node ) {
+		for ( int node = 0; node < node_size; ++node ) {
 			ForwardNode(node);
 		}
 	}
@@ -221,12 +221,9 @@ public:
 		auto in_err_buf = this->GetInputErrorBuffer();
 		auto out_err_buf = this->GetOutputErrorBuffer();
 
-		auto node_size = this->GetOutputNodeSize();
-
 		in_err_buf.Clear();
 
-		#pragma omp parallel for
-		for (int node = 0; node < (int)node_size; ++node ) {
+		for (INDEX node = 0; node < m_output_node_size; ++node ) {
 			if (typeid(T) == typeid(float)) {
 				auto& nd = m_node[node];
 
@@ -253,8 +250,9 @@ public:
 					in_sig_ptr[i] = (float*)in_sig_buf.GetPtr(nd.input[i]);
 				}
 
-				INDEX frame_size = (m_frame_size + 7) / 8 * 8;
-				for (size_t frame = 0; frame < frame_size; frame += 8) {
+				int frame_size = (int)((m_frame_size + 7) / 8 * 8);
+				#pragma omp parallel for
+				for (int frame = 0; frame < frame_size; frame += 8) {
 					for (int i = 0; i < M; ++i) {
 						__m256 out_err = _mm256_load_ps(&out_err_ptr[i][frame]);
 						db[i] = _mm256_add_ps(db[i], out_err);
