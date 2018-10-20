@@ -2,7 +2,7 @@
 #include <iostream>
 #include "gtest/gtest.h"
 #include "bb/NeuralNetAffine.h"
-#include "bb/NeuralNetSparseAffine.h"
+#include "bb/NeuralNetLutPre.h"
 
 
 inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
@@ -13,10 +13,10 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 	net.SetOutputErrorBuffer(net.CreateOutputErrorBuffer());
 }
 
-
-TEST(NeuralNetSparseAffineTest, testAffine)
+#if 1
+TEST(NeuralNetLutPreTest, testNeuralNetLutPre)
 {
-	bb::NeuralNetSparseAffine<2> affine(2, 3);
+	bb::NeuralNetLutPre<2, 1> affine(2, 3);
 	testSetupLayerBuffer(affine);
 	
 	// 接続を通常Affineと同一にする
@@ -37,15 +37,15 @@ TEST(NeuralNetSparseAffineTest, testAffine)
 	EXPECT_EQ(1, in_val.GetReal(0, 0));
 	EXPECT_EQ(2, in_val.GetReal(0, 1));
 
-	affine.W(0, 0) = 1;
-	affine.W(0, 1) = 2;
-	affine.W(1, 0) = 10;
-	affine.W(1, 1) = 20;
-	affine.W(2, 0) = 100;
-	affine.W(2, 1) = 200;
-	affine.b(0) = 1000;
-	affine.b(1) = 2000;
-	affine.b(2) = 3000;
+	affine.W(0, 0, 0) = 1;
+	affine.W(0, 0, 1) = 2;
+	affine.W(1, 0, 0) = 10;
+	affine.W(1, 0, 1) = 20;
+	affine.W(2, 0, 0) = 100;
+	affine.W(2, 0, 1) = 200;
+	affine.b(0, 0) = 1000;
+	affine.b(1, 0) = 2000;
+	affine.b(2, 0) = 3000;
 	affine.Forward();
 	EXPECT_EQ(1 * 1 + 2 * 2 + 1000, out_val.GetReal(0, 0));
 	EXPECT_EQ(1 * 10 + 2 * 20 + 2000, out_val.GetReal(0, 1));
@@ -53,7 +53,6 @@ TEST(NeuralNetSparseAffineTest, testAffine)
 
 	auto in_err = affine.GetInputErrorBuffer();
 	auto out_err = affine.GetOutputErrorBuffer();
-
 	out_err.SetReal(0, 0, 998);
 	out_err.SetReal(0, 1, 2042);
 	out_err.SetReal(0, 2, 3491);
@@ -62,17 +61,20 @@ TEST(NeuralNetSparseAffineTest, testAffine)
 	EXPECT_EQ(370518, in_err.GetReal(0, 0));
 	EXPECT_EQ(741036, in_err.GetReal(0, 1));
 
-	EXPECT_EQ(998,  affine.dW(0, 0));
-	EXPECT_EQ(2042, affine.dW(1, 0));
-	EXPECT_EQ(3491, affine.dW(2, 0));
-	EXPECT_EQ(1996, affine.dW(0, 1));
-	EXPECT_EQ(4084, affine.dW(1, 1));
-	EXPECT_EQ(6982, affine.dW(2, 1));
+	EXPECT_EQ(998,  affine.dW(0, 0, 0));
+	EXPECT_EQ(2042, affine.dW(1, 0, 0));
+	EXPECT_EQ(3491, affine.dW(2, 0, 0));
+	EXPECT_EQ(1996, affine.dW(0, 0, 1));
+	EXPECT_EQ(4084, affine.dW(1, 0, 1));
+	EXPECT_EQ(6982, affine.dW(2, 0, 1));
 	
 	affine.Update();
 }
+#endif
 
 
+
+#if 0
 TEST(NeuralNetSparseAffineTest, testAffineInput)
 {
 	bb::NeuralNetSparseAffine<2> affine(2, 3);
@@ -95,11 +97,11 @@ TEST(NeuralNetSparseAffineTest, testAffineInput)
 	EXPECT_EQ(1, in_val.GetReal(0, 1));
 
 	affine.W(0, 0) = 1;
-	affine.W(0, 1) = 2;
-	affine.W(1, 0) = 10;
+	affine.W(1, 0) = 2;
+	affine.W(0, 1) = 10;
 	affine.W(1, 1) = 20;
-	affine.W(2, 0) = 100;
-	affine.W(2, 1) = 200;
+	affine.W(0, 2) = 100;
+	affine.W(1, 2) = 200;
 	affine.b(0) = 1000;
 	affine.b(1) = 2000;
 	affine.b(2) = 3000;
@@ -119,16 +121,18 @@ TEST(NeuralNetSparseAffineTest, testAffineInput)
 	EXPECT_EQ(741036, in_err.GetReal(0, 0));
 
 	EXPECT_EQ(998,  affine.dW(0, 0));
-	EXPECT_EQ(2042, affine.dW(1, 0));
-	EXPECT_EQ(3491, affine.dW(2, 0));
-	EXPECT_EQ(1996, affine.dW(0, 1));
+	EXPECT_EQ(2042, affine.dW(0, 1));
+	EXPECT_EQ(3491, affine.dW(0, 2));
+	EXPECT_EQ(1996, affine.dW(1, 0));
 	EXPECT_EQ(4084, affine.dW(1, 1));
-	EXPECT_EQ(6982, affine.dW(2, 1));
+	EXPECT_EQ(6982, affine.dW(1, 2));
 
 	affine.Update();
 }
+#endif
 
 
+#if 0
 TEST(NeuralNetSparseAffineTest, testAffineCompare)
 {
 	bb::NeuralNetAffine<>	  	  affineOrg(6, 5);
@@ -169,8 +173,8 @@ TEST(NeuralNetSparseAffineTest, testAffineCompare)
 	for (size_t node = 0; node < node_size; ++node) {
 		for (size_t input = 0; input < input_size; ++input) {
 			float r = normal_dist(mt);
-			affineOrg.W(node, input) = r;
-			affineLim.W(node, input) = r;
+			affineOrg.W(input, node) = r;
+			affineLim.W(input, node) = r;
 		}
 		float r = normal_dist(mt);
 		affineOrg.b(node) = r;
@@ -230,8 +234,8 @@ TEST(NeuralNetSparseAffineTest, testAffineCompare)
 		// 学習係数比較
 		for (size_t node = 0; node < node_size; ++node) {
 			for (size_t input = 0; input < input_size; ++input) {
-	//			EXPECT_EQ(affineOrg.W(node, input), affineLim.W(node, input));
-				EXPECT_TRUE(abs(affineOrg.W(node, input) - affineLim.W(node, input)) < 0.00001);
+	//			EXPECT_EQ(affineOrg.W(input, node), affineLim.W(input, node));
+				EXPECT_TRUE(abs(affineOrg.W(input, node) - affineLim.W(input, node)) < 0.00001);
 			}
 	//		EXPECT_EQ(affineOrg.b(node), affineLim.b(node));
 			EXPECT_TRUE(abs(affineOrg.b(node) - affineLim.b(node)) < 0.00001);
@@ -261,11 +265,11 @@ TEST(NeuralNetAffineTest, testAffineBatch)
 
 
 	affine.W(0, 0) = 1;
-	affine.W(0, 1) = 2;
-	affine.W(1, 0) = 10;
+	affine.W(1, 0) = 2;
+	affine.W(0, 1) = 10;
 	affine.W(1, 1) = 20;
-	affine.W(2, 0) = 100;
-	affine.W(2, 1) = 200;
+	affine.W(0, 2) = 100;
+	affine.W(1, 2) = 200;
 	affine.b(0) = 1000;
 	affine.b(1) = 2000;
 	affine.b(2) = 3000;
@@ -296,5 +300,7 @@ TEST(NeuralNetAffineTest, testAffineBatch)
 	EXPECT_EQ(862248, in_err.GetReal(1, 1));
 }
 
+
+#endif
 
 #endif

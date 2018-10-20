@@ -30,6 +30,7 @@
     <ClCompile Include="NeuralNetConvExpandTest.cpp" />
     <ClCompile Include="NeuralNetConvolutionPackTest.cpp" />
     <ClCompile Include="NeuralNetConvolutionTest.cpp" />
+    <ClCompile Include="NeuralNetLutPreTest.cpp" />
     <ClCompile Include="NeuralNetMaxPoolingTest.cpp" />
     <ClCompile Include="NeuralNetRealToBinaryTest.cpp" />
     <ClCompile Include="NeuralNetReLUTest.cpp" />
@@ -62,6 +63,7 @@
     <ClInclude Include="..\include\bb\NeuralNetLayer.h" />
     <ClInclude Include="..\include\bb\NeuralNetLayerBuf.h" />
     <ClInclude Include="..\include\bb\NeuralNetLossFunction.h" />
+    <ClInclude Include="..\include\bb\NeuralNetLutPre.h" />
     <ClInclude Include="..\include\bb\NeuralNetMaxPooling.h" />
     <ClInclude Include="..\include\bb\NeuralNetOptimizer.h" />
     <ClInclude Include="..\include\bb\NeuralNetOptimizerAdam.h" />
@@ -73,7 +75,6 @@
     <ClInclude Include="..\include\bb\NeuralNetSoftmaxWithLoss.h" />
     <ClInclude Include="..\include\bb\NeuralNetSparceAffineSigmoid.h" />
     <ClInclude Include="..\include\bb\NeuralNetSparseAffine.h" />
-    <ClInclude Include="..\include\bb\NeuralNetSparseAffineBc.h" />
     <ClInclude Include="..\include\bb\NeuralNetSparseBinaryAffine.h" />
     <ClInclude Include="..\include\bb\NeuralNetSparseLayer.h" />
     <ClInclude Include="..\include\bb\NeuralNetType.h" />

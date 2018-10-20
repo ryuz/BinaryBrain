@@ -62,7 +62,7 @@ public:
 
 	virtual void  SetBatchSize(INDEX batch_size) = 0;							// バッチサイズの設定
 	
-	virtual T     CalcNode(INDEX node, std::vector<T> input_value) const { return input_value[0]; }	// 1ノードだけ個別計算
+	virtual std::vector<T>	CalcNode(INDEX node, std::vector<T> input_value) const { return input_value; }	// 1ノードだけ個別計算
 	
 	virtual	void  Forward(bool train=true) = 0;									// 予測
 	virtual	void  Backward(void) = 0;											// 誤差逆伝播

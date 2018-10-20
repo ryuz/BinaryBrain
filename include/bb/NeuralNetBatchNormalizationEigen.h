@@ -104,12 +104,15 @@ public:
 	int   GetOutputSignalDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
 
-	T CalcNode(INDEX node, std::vector<T> input_signals) const
+	std::vector<T> CalcNode(INDEX node, std::vector<T> input_signals) const
 	{
-		T sig = input_signals[0];
-		sig -= m_running_mean(node);
-		sig /= (T)sqrt(m_running_var(node) + 10e-7);
-		sig = sig * m_gamma(node) + m_beta(node);
+		std::vector<T> sig(input_signals.size());
+		for (size_t i = 0; i < input_signals.size(); ++i) {
+			sig[i] = input_signals[0];
+			sig[i] -= m_running_mean(node);
+			sig[i] /= (T)sqrt(m_running_var(node) + 10e-7);
+			sig[i] = sig[i] * m_gamma(node) + m_beta(node);
+		}
 		return sig;
 	}
 

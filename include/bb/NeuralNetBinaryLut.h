@@ -93,8 +93,8 @@ public:
 				for (int bit = 0; bit < input_size; ++bit) {
 					vec[bit] = (index & (1 << bit)) ? (RT)1.0 : (RT)0.0;
 				}
-				RT v = src.CalcNode(node, vec);
-				SetLutTable(node, index, (v > 0));
+				auto v = src.CalcNode(node, vec);
+				SetLutTable(node, index, (v[0] > 0));
 			}
 		}
 	}

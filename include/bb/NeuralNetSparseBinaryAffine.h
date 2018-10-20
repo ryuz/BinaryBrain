@@ -46,12 +46,11 @@ public:
 
 	std::string GetClassName(void) const { return "NeuralNetSparseBinaryAffine"; }
 
-	T CalcNode(INDEX node, std::vector<T> input_value) const
+	std::vector<T> CalcNode(INDEX node, std::vector<T> input_value) const
 	{
-		std::vector<T> vec(1);
-		vec[0] = m_affine.CalcNode(node, input_value);
-		vec[0] = m_norm.CalcNode(node, vec);
-		return m_binarize.CalcNode(node, vec);
+		auto vec_affine = m_affine.CalcNode(node, input_value);
+		auto vec_norm = m_norm.CalcNode(node, vec_affine);
+		return m_binarize.CalcNode(node, vec_norm);
 	}
 
 

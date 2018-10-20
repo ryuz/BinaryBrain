@@ -72,6 +72,9 @@
     <ClCompile Include="NeuralNetBatchNormalizationAvxTest.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="NeuralNetLutPreTest.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\bb\NeuralNet.h">
@@ -143,9 +146,6 @@
     <ClInclude Include="..\include\bb\NeuralNetMaxPooling.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bb\NeuralNetSparseAffineBc.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\bb\NeuralNetSparseBinaryAffine.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -192,6 +192,9 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="..\include\bb\TrainData.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bb\NeuralNetLutPre.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

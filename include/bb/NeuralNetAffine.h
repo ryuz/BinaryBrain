@@ -110,9 +110,9 @@ public:
 	int   GetOutputSignalDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
 
-	T& W(INDEX input, INDEX output) { return m_W(input, output); }
+	T& W(INDEX output, INDEX input) { return m_W(input, output); }
 	T& b(INDEX output) { return m_b(output); }
-	T& dW(INDEX input, INDEX output) { return m_dW(input, output); }
+	T& dW(INDEX output, INDEX input) { return m_dW(input, output); }
 	T& db(INDEX output) { return m_db(output); }
 
 	void  SetBinaryMode(bool enable)

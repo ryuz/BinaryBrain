@@ -201,6 +201,7 @@
     <ClInclude Include="..\..\include\bb\NeuralNetLayerBuf.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLossCrossEntropyWithSoftmax.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLossFunction.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetLutPre.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetMaxPooling.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetOptimizer.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetOptimizerAdam.h" />
@@ -210,7 +211,6 @@
     <ClInclude Include="..\..\include\bb\NeuralNetSigmoid.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetSoftmax.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetSparseAffine.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetSparseAffineBc.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetSparseAffineSigmoid.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetSparseBinaryAffine.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetSparseLayer.h" />

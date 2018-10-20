@@ -61,9 +61,9 @@ TEST(NeuralNetConvolutionPackTest, testNeuralNetConvolutionPack)
 //	cnv.b(0) = 0.321f;
 
 	sub_affine.W(0, 0) = 0.1f;
-	sub_affine.W(1, 0) = 0.2f;
-	sub_affine.W(2, 0) = 0.3f;
-	sub_affine.W(3, 0) = 0.4f;
+	sub_affine.W(0, 1) = 0.2f;
+	sub_affine.W(0, 2) = 0.3f;
+	sub_affine.W(0, 3) = 0.4f;
 	sub_affine.b(0) = 0.321f;
 
 
@@ -153,7 +153,7 @@ TEST(NeuralNetConvolutionPackTest, testNeuralNetConvolutionPack2)
 //	}
 	for (size_t n = 0; n < 2; ++n) {
 		for (size_t i = 0; i < 3 * 3 * 3; ++i) {
-			sub_affine.W(i, n) = (float)(index++);
+			sub_affine.W(n, i) = (float)(index++);
 		}
 	}
 

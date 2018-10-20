@@ -70,6 +70,8 @@ void MnistDenseSimpleConvolutionBinary(int epoc_size, size_t max_batch_size, boo
 void MnistSparseSimpleConvolutionBinary(int epoc_size, size_t max_batch_size, bool binary_mode = true);
 void MnistSparseSimpleConvolutionBinToLut(int bin_epoc_size, size_t bin_max_batch_size, int lut_epoc_size, size_t lut_max_batch_size);
 
+void MnistSparseSimpleConvolutionLut(int bin_epoc_size, size_t bin_max_batch_size);
+
 
 // メイン関数
 int main()
@@ -118,10 +120,12 @@ int main()
 #endif
 
 #if 1
-	MnistSparseSimpleConvolutionBinToLut(3, 128, 2, 128);
+	MnistSparseSimpleConvolutionBinToLut(16, 128, 2, 256);
 #endif
 
-//	getchar();
+#if 0
+	MnistSparseSimpleConvolutionLut(16, 256);
+#endif
 
 	return 0;
 }
@@ -861,7 +865,8 @@ void MnistSparseSimpleConvolutionBinToLut(int bin_epoc_size, size_t bin_max_batc
 	bb::NeuralNetAccuracyCategoricalClassification<>	bin_accFunc(num_class);
 	bin_net.Fitting(run_name + "_bin", train_data, bin_epoc_size, bin_max_batch_size, &bin_accFunc, &bin_lossFunc, true, true);
 
-#if 1
+
+
 	// -------- LUT-Network --------
 
 	// setup MNIST data
@@ -937,6 +942,232 @@ void MnistSparseSimpleConvolutionBinToLut(int bin_epoc_size, size_t bin_max_batc
 	auto test_accuracy = lut_net.RunCalculation(train_data.x_test, train_data.y_test, lut_max_batch_size, 0, &lut_accFunc);
 	std::cout << "initial test_accuracy : " << test_accuracy << std::endl;
 
-#endif
+	// start
+	std::cout << "start : LUT-Network trainning" << std::endl;
+
+	// 開始時間記録
+	auto start_time = std::chrono::system_clock::now();
+
+	// 学習ループ
+	for (int epoc = 0; epoc < lut_epoc_size; ++epoc) {
+		int iteration = 0;
+		for (size_t train_index = 0; train_index < train_size; train_index += lut_max_batch_size) {
+			// 末尾のバッチサイズクリップ
+			size_t batch_size = std::min(lut_max_batch_size, train_size - train_index);
+			if (batch_size < lut_max_batch_size) { break; }
+
+			// 小サイズで演算すると劣化するので末尾スキップ
+			if (batch_size < lut_max_batch_size) {
+				break;
+			}
+
+			// バッチサイズ設定
+			lut_mux.SetMuxSize(lut_train_mux_size);	// 学習の多重化数にスイッチ
+			lut_net.SetBatchSize(batch_size);
+
+			// データ格納
+			auto in_sig_buf = lut_net.GetInputSignalBuffer();
+			for (size_t frame = 0; frame < batch_size; ++frame) {
+				for (size_t node = 0; node < x_node_size; ++node) {
+					in_sig_buf.Set<float>(frame, node, x_train[train_index + frame][node]);
+				}
+			}
+
+			// 予測
+			lut_net.Forward(true);
+
+			// バイナリ版フィードバック(力技学習)
+			while (lut_mux.Feedback(lut_mux.GetOutputOnehotLoss<std::uint8_t, 10>(label_train, train_index)))
+				;
+
+			// 途中評価
+			lut_mux.SetMuxSize(lut_test_mux_size);	// 評価用の多重化数にスイッチ
+			auto test_accuracy = lut_net.RunCalculation(x_test, y_test, lut_max_batch_size, 0, &lut_accFunc);
+
+			// 進捗表示
+			auto progress = train_index + batch_size;
+			auto rate = progress * 100 / train_size;
+			std::cout << "[" << rate << "% (" << progress << "/" << train_size << ")]";
+			std::cout << "  test_accuracy : " << test_accuracy << "                  ";
+			std::cout << "\r" << std::flush;
+		}
+
+		// 評価
+		lut_mux.SetMuxSize(lut_test_mux_size);	// 評価用の多重化数にスイッチ
+		auto test_accuracy = lut_net.RunCalculation(x_test, y_test, lut_max_batch_size, 0, &lut_accFunc);
+	//	auto train_accuracy = lut_net.RunCalculation(x_train, y_train, lut_max_batch_size, 0, &lut_accFunc);
+		auto now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
+		std::cout << now_time << "s " << "epoc[" << epoc + 1 << "]"
+			<< "  test_accuracy : " << test_accuracy
+	//		<< "  train_accuracy : " << train_accuracy
+			<< std::endl;
+
+		// Shuffle
+		bb::ShuffleDataSet(mt(), x_train, y_train, label_train);
+	}
+
+	{
+		// Write RTL
+		std::ofstream ofs(run_name + "_lut_net.v");
+		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub0_lut0, "lutnet_conv0_layer0");
+		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub0_lut1, "lutnet_conv0_layer1");
+
+		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub1_lut0, "lutnet_conv1_layer0");
+		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub1_lut1, "lutnet_conv1_layer1");
+		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub1_lut2, "lutnet_conv1_layer2");
+
+		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_layer3_lut, "lutnet_layer3");
+		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_layer4_lut, "lutnet_layer4");
+	}
+
+	std::cout << "end\n" << std::endl;
+
+}
+
+
+
+void MnistSparseSimpleConvolutionLut(int epoc_size, size_t max_batch_size)
+{
+	// run name
+	std::string run_name = "MnistSparseSimpleConvolutionLut";
+	int			num_class = 10;
+
+	// load MNIST data
+	auto train_data = bb::LoadMnist<>::Load();
+	auto& x_train = train_data.x_train;
+	auto& y_train = train_data.y_train;
+	auto& x_test = train_data.x_test;
+	auto& y_test = train_data.y_test;
+	auto label_train = bb::OnehotToLabel<std::uint8_t>(y_train);
+	auto label_test = bb::OnehotToLabel<std::uint8_t>(y_test);
+	auto train_size = x_train.size();
+	auto test_size = x_test.size();
+	auto x_node_size = x_test[0].size();
+
+	std::mt19937_64 mt(1);
+
+	// 学習時と評価時で多重化数(乱数を変えて複数枚通して集計できるようにする)を変える
+	int lut_train_mux_size = 1;
+	int lut_test_mux_size = 3;
+
+	// Conv用subネット構築 (3x3)
+	bb::NeuralNetBinaryLut6<true>	lut_sub0_lut0(1 * 3 * 3, 48);
+	bb::NeuralNetBinaryLut6<true>		lut_sub0_lut1(48, 8);
+	bb::NeuralNetGroup<>			lut_sub0_net;
+	lut_sub0_net.AddLayer(&lut_sub0_lut0);
+	lut_sub0_net.AddLayer(&lut_sub0_lut1);
+
+	// Conv用subネット構築 (3x3)
+	bb::NeuralNetBinaryLut6<true>	lut_sub1_lut0(8 * 3 * 3, 96);
+	bb::NeuralNetBinaryLut6<true>	lut_sub1_lut1(96, 16);
+	bb::NeuralNetGroup<>			lut_sub1_net;
+	lut_sub1_net.AddLayer(&lut_sub1_lut0);
+	lut_sub1_net.AddLayer(&lut_sub1_lut1);
+
+	bb::NeuralNetConvolutionPack<bool>	lut_layer0_conv(&lut_sub0_net, 1, 28, 28, 8, 3, 3);
+	bb::NeuralNetConvolutionPack<bool>	lut_layer1_conv(&lut_sub1_net, 8, 26, 26, 16, 3, 3);
+	bb::NeuralNetMaxPooling<bool>		lut_layer2_maxpol(16, 24, 24, 2, 2);
+	bb::NeuralNetBinaryLut6<>			lut_layer3_lut(16 * 12 * 12, 180);
+	bb::NeuralNetBinaryLut6<>			lut_layer4_lut(180, 30);
+
+	bb::NeuralNetGroup<>				lut_mux_group;
+	lut_mux_group.AddLayer(&lut_layer0_conv);
+	lut_mux_group.AddLayer(&lut_layer1_conv);
+	lut_mux_group.AddLayer(&lut_layer2_maxpol);
+	lut_mux_group.AddLayer(&lut_layer3_lut);
+	lut_mux_group.AddLayer(&lut_layer4_lut);
+	bb::NeuralNetBinaryMultiplex<>		lut_mux(&lut_mux_group, 28 * 28, 10, 1, 3);
+
+	// build network
+	bb::NeuralNet<> lut_net;
+	lut_net.AddLayer(&lut_mux);
+
+	// 評価関数
+	bb::NeuralNetAccuracyCategoricalClassification<>	lut_accFunc(num_class);
+
+	// 初期評価
+	lut_mux.SetMuxSize(lut_test_mux_size);	// 評価用の多重化数にスイッチ
+	auto test_accuracy = lut_net.RunCalculation(train_data.x_test, train_data.y_test, max_batch_size, 0, &lut_accFunc);
+	std::cout << "initial test_accuracy : " << test_accuracy << std::endl;
+
+	// start
+	std::cout << "start : LUT-Network trainning" << std::endl;
+
+	// 開始時間記録
+	auto start_time = std::chrono::system_clock::now();
+
+	// 学習ループ
+	for (int epoc = 0; epoc < epoc_size; ++epoc) {
+		int iteration = 0;
+		for (size_t train_index = 0; train_index < train_size; train_index += max_batch_size) {
+			// 末尾のバッチサイズクリップ
+			size_t batch_size = std::min(max_batch_size, train_size - train_index);
+			if (batch_size < max_batch_size) { break; }
+
+			// 小サイズで演算すると劣化するので末尾スキップ
+			if (batch_size < max_batch_size) {
+				break;
+			}
+
+			// バッチサイズ設定
+			lut_mux.SetMuxSize(lut_train_mux_size);	// 学習の多重化数にスイッチ
+			lut_net.SetBatchSize(batch_size);
+
+			// データ格納
+			auto in_sig_buf = lut_net.GetInputSignalBuffer();
+			for (size_t frame = 0; frame < batch_size; ++frame) {
+				for (size_t node = 0; node < x_node_size; ++node) {
+					in_sig_buf.Set<float>(frame, node, x_train[train_index + frame][node]);
+				}
+			}
+
+			// 予測
+			lut_net.Forward(true);
+
+			// バイナリ版フィードバック(力技学習)
+			while (lut_mux.Feedback(lut_mux.GetOutputOnehotLoss<std::uint8_t, 10>(label_train, train_index)))
+				;
+
+			// 途中評価
+			lut_mux.SetMuxSize(lut_test_mux_size);	// 評価用の多重化数にスイッチ
+			auto test_accuracy = lut_net.RunCalculation(x_test, y_test, max_batch_size, 0, &lut_accFunc);
+
+			// 進捗表示
+			auto progress = train_index + batch_size;
+			auto rate = progress * 100 / train_size;
+			std::cout << "[" << rate << "% (" << progress << "/" << train_size << ")]";
+			std::cout << "  test_accuracy : " << test_accuracy << "                  ";
+			std::cout << "\r" << std::flush;
+		}
+
+		// 評価
+		lut_mux.SetMuxSize(lut_test_mux_size);	// 評価用の多重化数にスイッチ
+		auto test_accuracy = lut_net.RunCalculation(x_test, y_test, max_batch_size, 0, &lut_accFunc);
+		//	auto train_accuracy = lut_net.RunCalculation(x_train, y_train, lut_max_batch_size, 0, &lut_accFunc);
+		auto now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
+		std::cout << now_time << "s " << "epoc[" << epoc + 1 << "]"
+			<< "  test_accuracy : " << test_accuracy
+			//		<< "  train_accuracy : " << train_accuracy
+			<< std::endl;
+
+		// Shuffle
+		bb::ShuffleDataSet(mt(), x_train, y_train, label_train);
+	}
+
+	{
+		// Write RTL
+		std::ofstream ofs(run_name + "_lut_net.v");
+		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub0_lut0, "lutnet_conv0_layer0");
+		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub0_lut1, "lutnet_conv0_layer1");
+
+		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub1_lut0, "lutnet_conv1_layer0");
+		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub1_lut1, "lutnet_conv1_layer1");
+
+		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_layer3_lut, "lutnet_layer3");
+		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_layer4_lut, "lutnet_layer4");
+	}
+
+	std::cout << "end\n" << std::endl;
+
 }
 
