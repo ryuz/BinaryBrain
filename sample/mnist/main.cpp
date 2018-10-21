@@ -102,7 +102,7 @@ int main()
 #endif
 
 #if 1
-	MnistSparseAffineBinToLut(32, 128, 8, 8192);
+	MnistSparseAffineBinToLut(64, 128, 8, 8192);
 #endif
 
 

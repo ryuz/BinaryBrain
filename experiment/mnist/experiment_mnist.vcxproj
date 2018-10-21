@@ -200,6 +200,8 @@
     <ClInclude Include="..\..\include\bb\NeuralNetLayerBuf.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLossCrossEntropyWithSoftmax.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLossFunction.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetLut.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetLutPost.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLutPre.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetMaxPooling.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetOptimizer.h" />

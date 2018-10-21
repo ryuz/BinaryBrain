@@ -49,12 +49,12 @@ public:
 
 	std::string GetClassName(void) const { return "NeuralNetSparseAffineSigmoid"; }
 
-	T CalcNode(INDEX node, std::vector<T> input_value) const
+	std::vector<T> CalcNode(INDEX node, std::vector<T> input_value) const
 	{
-		std::vector<T> vec(1);
-		vec[0] = m_affine.CalcNode(node, input_value);
-		vec[0] = m_norm.CalcNode(node, vec);
-		return m_activation.CalcNode(node, vec);
+		auto vec0 = m_affine.CalcNode(node, input_value);
+		auto vec1 = m_norm.CalcNode(node, vec0);
+		auto vec2 = m_activation.CalcNode(node, vec1);
+		return vec2;
 	}
 
 

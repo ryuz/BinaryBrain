@@ -18,6 +18,7 @@
 #include "bb/NeuralNetLutPost.h"
 #include "bb/NeuralNetBatchNormalization.h"
 #include "bb/NeuralNetReLU.h"
+#include "bb/NeuralNetSigmoid.h"
 #include "bb/NeuralNetBinarize.h"
 
 
@@ -33,20 +34,22 @@ protected:
 
 	// 3層で構成
 	NeuralNetLutPre<N, M, T, INDEX>			m_lut_pre;
-	NeuralNetReLU<T, INDEX>					m_act_pre;
+//	NeuralNetReLU<T, INDEX>					m_act_pre;
+	NeuralNetSigmoid<T, INDEX>				m_act_pre;
 	NeuralNetLutPost<M, T, INDEX>			m_lut_post;
 	NeuralNetBatchNormalization<T, INDEX>	m_batch_norm;
-	NeuralNetSigmoid<N, T, INDEX>			m_act_post;
-
+	NeuralNetSigmoid<T, INDEX>				m_act_post;
 
 public:
 	NeuralNetLut() {}
 
 	NeuralNetLut(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1,
 		const NeuralNetOptimizer<T, INDEX>* optimizer = nullptr)
-		: m_affine(input_node_size, output_node_size, seed, optimizer),
-		m_norm(output_node_size),
-		m_activation(output_node_size)
+		: m_lut_pre(input_node_size, output_node_size, seed, optimizer),
+		m_act_pre(output_node_size * M),
+		m_lut_post(output_node_size, seed, optimizer),
+		m_batch_norm(output_node_size, optimizer),
+		m_act_post(output_node_size)
 	{
 	}
 	
@@ -54,7 +57,7 @@ public:
 
 	std::string GetClassName(void) const { return "NeuralNetLut"; }
 
-	T CalcNode(INDEX node, std::vector<T> input_value) const
+	std::vector<T> CalcNode(INDEX node, std::vector<T> input_value) const
 	{
 		auto vec0 = m_lut_pre.CalcNode(node, input_value);
 		auto vec1 = m_act_pre.CalcNode(node, vec0);

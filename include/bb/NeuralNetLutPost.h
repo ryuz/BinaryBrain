@@ -52,10 +52,10 @@ protected:
 	bool						m_binary_mode = false;
 	
 public:
-	NeuralNetLutPre() {
+	NeuralNetLutPost() {
 	}
 	
-	NeuralNetLutPre(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1,
+	NeuralNetLutPost(INDEX output_node_size, std::uint64_t seed = 1,
 		const NeuralNetOptimizer<T, INDEX>* optimizer = nullptr)
 	{
 		NeuralNetOptimizerSgd<T, INDEX> DefOptimizer;
@@ -63,64 +63,55 @@ public:
 			optimizer = &DefOptimizer;
 		}
 
-		Resize(input_node_size, output_node_size);
+		Resize(output_node_size);
 		InitializeCoeff(seed);
 		SetOptimizer(optimizer);
 	}
 
-	~NeuralNetLutPre() {}
+	~NeuralNetLutPost() {}
 
-	std::string GetClassName(void) const { return "NeuralNetLutPre"; }
+	std::string GetClassName(void) const { return "NeuralNetLutPost"; }
 
-	T& W(INDEX node, INDEX output, INDEX input)  { return m_node[node].W[output*N +input]; }
-	T& b(INDEX node, INDEX output)               { return m_node[node].b[output]; }
-	T& dW(INDEX node, INDEX output, INDEX input) { return m_node[node].dW[output*N + input]; }
-	T& db(INDEX node, INDEX output)              { return m_node[node].db[output]; }
+	T& W(INDEX output, INDEX input)  { return m_node[output].W[input]; }
+	T& b(INDEX output)               { return m_node[output].b; }
+	T& dW(INDEX output, INDEX input) { return m_node[output].dW[input]; }
+	T& db(INDEX output)              { return m_node[output].db; }
 
 	std::vector<T> CalcNode(INDEX node, std::vector<T> input_value) const
 	{
-		std::vector<T> val(M);
+		std::vector<T> val(1);
 
 		auto& nd = m_node[node];
+		val[0] = nd.b;
 		for (int i = 0; i < M; ++i) {
-			val[i] = nd.b[i];
-			for (int j = 0; j < N; ++j) {
-				val[i] += input_value[j] * nd.W[i*N + j];
-			}
+			val[0] += input_value[i] * nd.W[i];
 		}
 
 		return val;
 	}
 
 
-	void Resize(INDEX input_node_size, INDEX ouput_node_size)
+	void Resize(INDEX ouput_node_size)
 	{
-		m_input_node_size = input_node_size;
-		m_output_node_size = ouput_node_size;
+		m_node_size = ouput_node_size;
 		m_node.resize(ouput_node_size);
 	}
 
 	void InitializeCoeff(std::uint64_t seed)
 	{
-		super::InitializeCoeff(seed);
-
 		std::mt19937_64 mt(seed);
 		std::normal_distribution<T> distribution((T)0.0, (T)1.0);
 		
-		for (auto& node : m_node) {
-			for (auto& W : node.W) {
+		for (auto& nd : m_node) {
+			for (auto& W : nd.W) {
 				W = distribution(mt);
 			}
-			for (auto& b : node.b) {
-				b = distribution(mt);
-			}
+			nd.b = distribution(mt);
 
-			for (auto& dW : node.dW) {
+			for (auto& dW : nd.dW) {
 				dW = 0;
 			}
-			for (auto& db : node.db) {
-				db = 0;
-			}
+			nd.db = 0;
 		}
 	}
 
@@ -132,8 +123,8 @@ public:
 	void  SetOptimizer(const NeuralNetOptimizer<T, INDEX>* optimizer)
 	{
 		for (auto& node : m_node) {
-			node.optimizer_W.reset(optimizer->Create(M*N));
-			node.optimizer_b.reset(optimizer->Create(M));
+			node.optimizer_W.reset(optimizer->Create(M));
+			node.optimizer_b.reset(optimizer->Create(1));
 		}
 	}
 
@@ -147,8 +138,8 @@ public:
 	INDEX GetInputFrameSize(void) const { return m_frame_size; }
 	INDEX GetOutputFrameSize(void) const { return m_frame_size; }
 
-	INDEX GetInputNodeSize(void) const { return m_input_node_size; }
-	INDEX GetOutputNodeSize(void) const { return m_output_node_size * M; }
+	INDEX GetInputNodeSize(void) const { return m_node_size * M; }
+	INDEX GetOutputNodeSize(void) const { return m_node_size; }
 
 	int   GetInputSignalDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetInputErrorDataType(void) const { return NeuralNetType<T>::type; }
@@ -231,13 +222,13 @@ public:
 					db = _mm256_add_ps(db, out_err);
 					for (int i = 0; i < M; ++i) {
 						__m256 in_sig = _mm256_load_ps(&in_sig_ptr[i][frame]);
-						in_err = _mm256_mul_ps(W[i], out_err);
+						__m256 in_err = _mm256_mul_ps(W[i], out_err);
 						_mm256_store_ps(&in_err_ptr[i][frame], in_err);
 						dW[i] = _mm256_fmadd_ps(in_sig, out_err, dW[i]);
 					}
 				}
 
-				for (int i = 0; i < N; i++) {
+				for (int i = 0; i < M; i++) {
 					nd.dW[i] += bb_mm256_cvtss_f32(bb_mm256_hsum_ps(dW[i]));
 
 				}
@@ -249,24 +240,21 @@ public:
 
 	void Update(void)
 	{
-		auto node_size = this->GetOutputNodeSize();
-
 		for (auto& nd : m_node) {
-			if (m_binary_mode) {
-				for (int i = 0; i < N; ++i) {
-					nd.dW[i] = std::min((T)+1, std::max((T)-1, nd.dW[i]));
-				}
-			}
-
 			nd.optimizer_W->Update(nd.W, nd.dW);
 			nd.optimizer_b->Update(nd.b, nd.db);
+
+			if (m_binary_mode) {
+				for ( auto& W : nd.W ) {
+					W = std::min((T)+1, std::max((T)-1, W));
+				}
+			}
 		}
 
 		// clear
-		for (INDEX node = 0; node < node_size; ++node) {
-			auto& nd = m_node[node];
-			for (int i = 0; i < N; ++i) {
-				nd.dW[i] = 0;
+		for (auto& nd : m_node) {
+			for (auto& dW : nd.dW) {
+				dW = 0;
 			}
 			nd.db = 0;
 		}

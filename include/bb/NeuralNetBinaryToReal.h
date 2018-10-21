@@ -72,7 +72,6 @@ public:
 		auto out_sig_buf = this->GetOutputSignalBuffer();
 
 //		T	reciprocal = (T)1.0 / (T)m_mux_size;
-
 		INDEX node_size = std::max(m_input_node_size, m_output_node_size);
 
 		std::vector<T>		vec_v(m_output_node_size, (T)0);
