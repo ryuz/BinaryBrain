@@ -260,25 +260,30 @@ public:
 	{
 		auto node_size = this->GetOutputNodeSize();
 
+		// update
 		for (auto& nd : m_node) {
-			if (m_binary_mode) {
-				for (int i = 0; i < N; ++i) {
-					nd.dW[i] = std::min((T)+1, std::max((T)-1, nd.dW[i]));
-				}
-			}
-
 			nd.optimizer_W->Update(nd.W, nd.dW);
 			nd.optimizer_b->Update(nd.b, nd.db);
 		}
 		
 		// clear
-		for (INDEX node = 0; node < node_size; ++node) {
-			auto& nd = m_node[node];
+		for (auto& nd : m_node) {
 			for (int i = 0; i < N; ++i) {
 				nd.dW[i] = 0;
 			}
 			nd.db = 0;
 		}
+
+#if 1
+		// clip
+		if (m_binary_mode) {
+			for (auto& nd : m_node) {
+				for (int i = 0; i < N; ++i) {
+					nd.W[i] = std::min((T)+1, std::max((T)-1, nd.W[i]));
+				}
+			}
+		}
+#endif
 	}
 
 public:

@@ -93,7 +93,7 @@ int main()
 	MnistSparseAffineReal(16, 128);
 #endif
 
-#if 0
+#if 1
 	MnistSparseAffineBinary(16, 128);
 #endif
 
@@ -119,7 +119,7 @@ int main()
 	MnistSparseSimpleConvolutionBinary(16, 128);
 #endif
 
-#if 1
+#if 0
 	MnistSparseSimpleConvolutionBinToLut(16, 128, 2, 256);
 #endif
 
