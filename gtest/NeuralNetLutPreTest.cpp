@@ -187,9 +187,10 @@ TEST(NeuralNetLutPreTest, testComAffine)
 			}
 
 			EXPECT_EQ(exp, err);
+
+	//		std::cout << "n:" << node << "  f:" << frame << " err:" << err << " exp:" << exp << std::endl;
 		}
 	}
-
 
 	// 削除
 	for (int i = 0; i < M; ++i) {

@@ -500,6 +500,68 @@ TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalization)
 }
 
 
+#if 0
+// NeuralNetLutのテスト結果がおかしいので個別確認
+TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalization2)
+{
+	bb::NeuralNetBatchNormalizationAvx<> batch_norm(3);
+	batch_norm.SetBatchSize(2);
+	testSetupLayerBuffer(batch_norm);
+
+	SimpleBatchNorm<double> exp_norm0(2);
+	SimpleBatchNorm<double> exp_norm1(2);
+	SimpleBatchNorm<double> exp_norm2(2);
+
+//  in_sig
+//	[5.65472, 0.590863, -1.56775, ]
+//	[5.80975, 3.49996, -1.82165, ]
+//	out_sig
+//	[-718.6, -0.924596, -1.35898, ]
+//	[-563.573, 0.988387, -1.48246, ]
+
+
+	auto in_sig = batch_norm.GetInputSignalBuffer();
+	auto out_sig = batch_norm.GetOutputSignalBuffer();
+	in_sig.SetReal(0, 0, 5.65472);
+	in_sig.SetReal(1, 0, 5.80975);
+	in_sig.SetReal(0, 1, 0.590863);
+	in_sig.SetReal(1, 1, 3.49996);
+	in_sig.SetReal(0, 2, -1.56775);
+	in_sig.SetReal(1, 2, -1.82165);
+
+	for (int i = 0; i < 2; i++) {
+		exp_norm0.x[i] = in_sig.GetReal(i, 0);
+		exp_norm1.x[i] = in_sig.GetReal(i, 1);
+		exp_norm2.x[i] = in_sig.GetReal(i, 2);
+	}
+
+
+	batch_norm.Forward(true);
+	//	batch_norm.Forward(false);
+
+	exp_norm0.Forward();
+	exp_norm1.Forward();
+	exp_norm2.Forward();
+
+	std::cout << in_sig.GetReal(0, 0) << "  :  " << out_sig.GetReal(0, 0) << "  :  " << exp_norm0.y[0] << std::endl;
+	std::cout << in_sig.GetReal(1, 0) << "  :  " << out_sig.GetReal(1, 0) << "  :  " << exp_norm0.y[1] << std::endl;
+	std::cout << in_sig.GetReal(0, 1) << "  :  " << out_sig.GetReal(0, 1) << "  :  " << exp_norm1.y[0] << std::endl;
+	std::cout << in_sig.GetReal(1, 1) << "  :  " << out_sig.GetReal(1, 1) << "  :  " << exp_norm1.y[1] << std::endl;
+	std::cout << in_sig.GetReal(0, 2) << "  :  " << out_sig.GetReal(0, 2) << "  :  " << exp_norm2.y[0] << std::endl;
+	std::cout << in_sig.GetReal(1, 2) << "  :  " << out_sig.GetReal(1, 2) << "  :  " << exp_norm2.y[1] << std::endl;
+
+	for (int i = 0; i < 2; i++) {
+		EXPECT_TRUE(abs(out_sig.GetReal(i, 0) - exp_norm0.y[i]) < 0.000001);
+		EXPECT_TRUE(abs(out_sig.GetReal(i, 1) - exp_norm1.y[i]) < 0.000001);
+		EXPECT_TRUE(abs(out_sig.GetReal(i, 2) - exp_norm2.y[i]) < 0.000001);
+	}
+
+
+}
+#endif
+
+
+
 
 TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalizationCmp)
 {

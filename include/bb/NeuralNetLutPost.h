@@ -153,12 +153,11 @@ public:
 	{
 		auto node_size = this->GetOutputNodeSize();
 
+		auto in_sig_buf = this->GetInputSignalBuffer();
+		auto out_sig_buf = this->GetOutputSignalBuffer();
+
 #pragma omp parallel for
 		for (int node = 0; node < (int)node_size; ++node) {
-
-			auto in_sig_buf = this->GetInputSignalBuffer();
-			auto out_sig_buf = this->GetOutputSignalBuffer();
-
 			float*	in_sig_ptr[M];
 			float*	out_sig_ptr;
 			for (int i = 0; i < M; ++i) {
@@ -182,6 +181,8 @@ public:
 				_mm256_store_ps(&out_sig_ptr[frame], acc);
 			}
 		}
+
+		out_sig_buf.ClearMargin();
 	}
 
 	void Backward(void)

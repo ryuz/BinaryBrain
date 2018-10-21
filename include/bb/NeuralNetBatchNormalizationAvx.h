@@ -243,6 +243,8 @@ public:
 					}
 				}
 			}
+
+			out_sig_buf.ClearMargin();
 		}
 		else {
 
@@ -309,6 +311,8 @@ public:
 					_mm256_store_ps(&dx_ptr[frame], dx);
 				}
 			}
+
+			in_err_buf.ClearMargin();
 		}
 		else {
 		}

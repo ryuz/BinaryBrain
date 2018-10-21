@@ -29,7 +29,10 @@ namespace bb {
 template <int N = 6, int M = 64, typename T = float, typename INDEX = size_t>
 class NeuralNetLut : public NeuralNetSparseLayer<T, INDEX>
 {
+	using super = NeuralNetSparseLayer<T, INDEX>;
+
 protected:
+public:
 	INDEX									m_batch_size = 0;
 
 	// 3層で構成
@@ -51,6 +54,7 @@ public:
 		m_batch_norm(output_node_size, optimizer),
 		m_act_post(output_node_size)
 	{
+		InitializeCoeff(seed);
 	}
 	
 	~NeuralNetLut() {}
@@ -73,6 +77,7 @@ public:
 		std::mt19937_64 mt(seed);
 		m_lut_pre.InitializeCoeff(mt());
 		m_lut_post.InitializeCoeff(mt());
+		super::InitializeCoeff(mt());
 	}
 
 	void SetOptimizer(const NeuralNetOptimizer<T, INDEX>* optimizer)

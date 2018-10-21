@@ -117,6 +117,20 @@ public:
 		memset(m_buffer.get(), 0, m_frame_stride*m_base_size);
 	}
 
+	void ClearMargin(void)
+	{
+		size_t type_bit_size = NeuralNet_GetTypeBitSize(m_data_type);
+		size_t valid_size = (m_frame_size * type_bit_size + 7) / 8;
+		if (m_frame_stride <= valid_size ) { return; }
+
+		size_t margin_size = m_frame_stride - valid_size;
+		char* ptr = (char*)m_buffer.get();
+		for (INDEX node = 0; node < m_base_size; ++node) {
+			memset(ptr + valid_size, 0, margin_size);
+			ptr += m_frame_stride;
+		}
+	}
+
 
 	void Resize(INDEX frame_size, INDEX node_size, int data_type)
 	{

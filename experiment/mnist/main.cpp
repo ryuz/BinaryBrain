@@ -101,7 +101,7 @@ int main()
 	MnistSparseAffineBinary(64, 128, true);
 #endif
 
-	MnistLut2(64, 128, true);
+	MnistLut2(640, 128, true);
 
 
 #if 0

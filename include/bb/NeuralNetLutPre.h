@@ -163,13 +163,19 @@ public:
 	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
 
 
-protected:
 
-	inline void ForwardNode(INDEX node) {
-		if (typeid(T) == typeid(float)) {
-			auto in_sig_buf = this->GetInputSignalBuffer();
-			auto out_sig_buf = this->GetOutputSignalBuffer();
-			
+public:
+
+	void Forward(bool train = true)
+	{
+		int node_size = (int)this->m_output_node_size;
+
+		auto in_sig_buf = this->GetInputSignalBuffer();
+		auto out_sig_buf = this->GetOutputSignalBuffer();
+
+		#pragma omp parallel for
+		for ( int node = 0; node < node_size; ++node ) {
+
 			float*	in_sig_ptr[N];
 			float*	out_sig_ptr[M];
 			for (int i = 0; i < N; ++i) {
@@ -200,19 +206,9 @@ protected:
 				}
 			}
 		}
+		out_sig_buf.ClearMargin();
 	}
 
-public:
-
-	void Forward(bool train = true)
-	{
-		int node_size = (int)this->m_output_node_size;
-
-		#pragma omp parallel for
-		for ( int node = 0; node < node_size; ++node ) {
-			ForwardNode(node);
-		}
-	}
 
 	void Backward(void)
 	{
