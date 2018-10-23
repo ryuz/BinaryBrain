@@ -1183,3 +1183,4 @@ void MnistSparseSimpleConvolutionLut(int epoc_size, size_t max_batch_size)
 
 }
 
+

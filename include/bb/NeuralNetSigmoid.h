@@ -68,6 +68,21 @@ public:
 	int   GetOutputSignalDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
 
+	std::vector<T> CalcNode(INDEX node, std::vector<T> input_value) const
+	{
+		if (m_binary_mode) {
+			for (auto& v : input_value) {
+				v = v > (T)0 ? (T)1 : (T)0;
+			}
+		}
+		else {
+			for (auto& v : input_value) {
+				v = (T)1 / ((T)1 + exp(-v));
+			}
+		}
+		return input_value;
+	}
+
 	void Forward(bool train = true)
 	{
 		if (m_binary_mode) {
