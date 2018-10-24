@@ -39,7 +39,7 @@ inline __m256 bb_mm256_fmadd_ps(__m256 a, __m256 b, __m256 c)
 #ifdef __AVX2__
 	return _mm256_fmadd_ps(a, b, c);
 #else
-	return _mm256_sub_ps(_mm256_mul_ps(a, b), c);
+	return _mm256_add_ps(_mm256_mul_ps(a, b), c);
 #endif
 }
 
@@ -48,7 +48,7 @@ inline __m256 bb_mm256_fmsub_ps(__m256 a, __m256 b, __m256 c)
 #ifdef __AVX2__
 	return _mm256_fmsub_ps(a, b, c);
 #else
-	return _mm256_add_ps(_mm256_mul_ps(a, b), c);
+	return _mm256_sub_ps(_mm256_mul_ps(a, b), c);
 #endif
 }
 
@@ -104,7 +104,7 @@ inline __m256 bb_mm256_hsum_ps(__m256 r)
 
 }
 
-/*
+
 #ifndef __AVX2__
 #define _mm256_andnot_si256		bb_mm256_andnot_si256
 #define _mm256_and_si256		bb_mm256_and_si256
@@ -113,5 +113,6 @@ inline __m256 bb_mm256_hsum_ps(__m256 r)
 #define _mm256_fmsub_ps			bb_mm256_fmsub_ps
 #define _mm256_fnmadd_ps		bb_mm256_fnmadd_ps
 #endif
-*/
+
+
 
