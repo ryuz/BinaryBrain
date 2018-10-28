@@ -278,12 +278,7 @@ public:
 
 			for (int epoc = 0; epoc < epoc_size; ++epoc) {
 				// 学習実施
-				auto train_accuracy = RunCalculation(x_train, y_train, max_batch_size, max_batch_size, accFunc, lossFunc, true, true);
-
-				// 学習状況評価
-				auto now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
-				auto test_accuracy = RunCalculation(x_test, y_test, max_batch_size, 0, accFunc);
-				log_stream << now_time << "s " << "epoc[" << epoc+ prev_epoc + 1 << "] test_accuracy : " << test_accuracy << " train_accuracy : " << train_accuracy <<  std::endl;
+				auto train_accuracy = RunCalculation(x_train, y_train, max_batch_size, max_batch_size, accFunc, lossFunc, true, print_progress);
 
 				// ネット保存
 				if (file_write) {
@@ -294,6 +289,11 @@ public:
 					this->Save(ar);
 					log_stream << "[save] " << net_file_name << std::endl;
 				}
+
+				// 学習状況評価
+				auto now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
+				auto test_accuracy = RunCalculation(x_test, y_test, max_batch_size, 0, accFunc);
+				log_stream << now_time << "s " << "epoc[" << epoc+ prev_epoc + 1 << "] test_accuracy : " << test_accuracy << " train_accuracy : " << train_accuracy <<  std::endl;
 
 				// Shuffle
 				ShuffleDataSet(mt(), x_train, y_train);
