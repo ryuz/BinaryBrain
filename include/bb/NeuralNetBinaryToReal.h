@@ -98,10 +98,13 @@ public:
 		auto in_err = this->GetInputErrorBuffer();
 		auto out_err = this->GetOutputErrorBuffer();
 
+		T	gain = (T)m_output_node_size / (T)m_input_node_size;
 		for (INDEX node = 0; node < m_input_node_size; node++) {
 			for (INDEX frame = 0; frame < m_batch_size; ++frame) {
 				for (INDEX i = 0; i < m_mux_size; i++) {
-					in_err.template Set<T>(frame*m_mux_size + i, node, out_err.template Get<T>(frame, node % m_output_node_size));
+					auto err = out_err.template Get<T>(frame, node % m_output_node_size);
+					err *= gain;
+					in_err.template Set<T>(frame*m_mux_size + i, node, err);
 				}
 			}
 		}
