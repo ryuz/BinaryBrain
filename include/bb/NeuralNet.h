@@ -13,6 +13,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <filesystem>
 #include <assert.h>
 
 #include "bb/NeuralNetGroup.h"
@@ -282,12 +283,25 @@ public:
 
 				// ネット保存
 				if (file_write) {
-					std::ofstream ofs_net(net_file_name);
-					cereal::JSONOutputArchive ar(ofs_net);
 					int save_epoc = epoc + prev_epoc;
-					ar(cereal::make_nvp("epoc", save_epoc));
-					this->Save(ar);
-					log_stream << "[save] " << net_file_name << std::endl;
+
+					{
+						std::stringstream fname;
+						fname << name << "_net_" << save_epoc << ".json";
+						std::ofstream ofs_net(fname.str());
+						cereal::JSONOutputArchive ar(ofs_net);
+						ar(cereal::make_nvp("epoc", save_epoc));
+						this->Save(ar);
+						log_stream << "[save] " << fname.str() << std::endl;
+					}
+
+					{
+						std::ofstream ofs_net(net_file_name);
+						cereal::JSONOutputArchive ar(ofs_net);
+						ar(cereal::make_nvp("epoc", save_epoc));
+						this->Save(ar);
+						log_stream << "[save] " << net_file_name << std::endl;
+					}
 				}
 
 				// 学習状況評価
