@@ -37,8 +37,8 @@ public:
 
 	// 3層で構成
 	NeuralNetLutPre<N, M, T, INDEX>			m_lut_pre;
-//	NeuralNetReLU<T, INDEX>					m_act_pre;
-	NeuralNetSigmoid<T, INDEX>				m_act_pre;
+	NeuralNetReLU<T, INDEX>					m_act_pre;
+//	NeuralNetSigmoid<T, INDEX>				m_act_pre;
 	NeuralNetLutPost<M, T, INDEX>			m_lut_post;
 	NeuralNetBatchNormalization<T, INDEX>	m_batch_norm;
 	NeuralNetSigmoid<T, INDEX>				m_act_post;
