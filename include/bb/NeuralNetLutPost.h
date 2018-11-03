@@ -128,11 +128,6 @@ public:
 		}
 	}
 
-
-	int   GetNodeInputSize(INDEX node) const { return N; }
-	void  SetNodeInput(INDEX node, int input_index, INDEX input_node) { m_node[node].input[input_index] = input_node; }
-	INDEX GetNodeInput(INDEX node, int input_index) const { return m_node[node].input[input_index]; }
-
 	void  SetBatchSize(INDEX batch_size) { m_frame_size = batch_size; }
 
 	INDEX GetInputFrameSize(void) const { return m_frame_size; }
