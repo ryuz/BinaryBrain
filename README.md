@@ -64,14 +64,10 @@ LUT-network's learning cost is heavy, but prediction computing performanse of FP
 
 ![performance.png](documents/images/performance.png "parformance")
 
+## License
+This source code's license is MIT license.
 
-## Author's information
-- e-mail : ryuji.fuchikami@nifty.com
-- github : https://github.com/ryuz/BinaryBrain
-- blog : http://ryuz.txt-nifty.com
-- twitter : https://twitter.com/ryuz88
-- web-site : http://ryuz.my.coocan.jp/
-
+(Note : This program using Eigen and CEREAL)
 
 ## Reference
 - BinaryConnect: Training Deep Neural Networks with binary weights during propagations<br>
@@ -88,11 +84,20 @@ https://arxiv.org/abs/1603.05279
 
 - Xilinx UltraScale Architecture Configurable Logic Block User Guide<br>
 https://japan.xilinx.com/support/documentation/user_guides/ug574-ultrascale-clb.pdf
- 
+
+
+## Author's information
+- github : https://github.com/ryuz
+- blog : http://ryuz.txt-nifty.com
+- twitter : https://twitter.com/ryuz88
+- facebook : https://www.facebook.com/ryuji.fuchikami
+- web-site : http://ryuz.my.coocan.jp/
+- e-mail : ryuji.fuchikami@nifty.com
 
 
 
-# 日本語説明(old README)
+# 日本語説明
+## 概要
 FPGAのLUTをダイレクトに学習させることを目標とした、バイナリニューラルネット用のライブラリを整理中です。
 基本的にはヘッダファイルのみのライブラリとする見込みです。
 
@@ -101,4 +106,3 @@ AXV2以降の命令が使えるCPUと、Windows7以降の環境を想定して�
 CEREAL や EIGEN など、submoduleとして、他のライブラリを用いていますので、それらは個別にライセンスを確認ください。
 
 現在 git にあるオリジナルのソースコード部分のライセンスは MIT ライセンスとしております。
-
