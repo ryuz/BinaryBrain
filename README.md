@@ -33,18 +33,27 @@ http://ryuz.txt-nifty.com/blog/2018/10/binary-deep-neu.html
 
 
 ## What is LUT networks?
+### Design flow
+FPGA circuit is constructed from LUTs.
+This platform let the LUT's table learn directly.
+![LUT_network_design_flow.png](documents/images/LUT_network_design_flow.png "design flow")
 
-![LUT_node_model.png](documents/images/LUT_node_model.png "LUT node model")
+### LUT node model
+One LUT can calcurate XOR. But one perceptron node can't learn XOR.
+One LUT's equivalent_model is many perceptron that has hidden layer.
+
 ![LUT_equivalent_model.png](documents/images/LUT_equivalent_model.png "LUT node model")
 
+Learning model of LUT-Network is shown below.
+![LUT_node_model.png](documents/images/LUT_node_model.png "LUT node model")
 
 
+
+# 日本語メモ
 FPGAのLUTをダイレクトに学習させることを目標とした、バイナリニューラルネット用のライブラリを整理中です。
 基本的にはヘッダファイルのみのライブラリとする見込みです。
 AXV2以降の命令が使えるCPUと、Windows7以降の環境を想定しております。
 
 CEREAL や EIGEN など、submoduleとして、他のライブラリを用いていますので、それらは個別にライセンスを確認ください。
 現在 git にあるオリジナルのソースコード部分のライセンスは MIT ライセンスとしております。
-
-
 
