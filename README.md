@@ -2,7 +2,7 @@
 
 ## Abstract
 "LUT Networks" is one of the "Binary Deep Neural Networks" for FPGA.
-This network can implement to FPGA with high-density and high-speed 
+This network run high-performance prediction on FPGA.
 
 
 ## How to use sample program (MNIST)
@@ -36,16 +36,19 @@ This network can implement to FPGA with high-density and high-speed
 ### Design flow
 FPGA circuit is constructed from LUTs.
 This platform let the LUT's table learn directly.
-![LUT_network_design_flow.png](documents/images/LUT_network_design_flow.png "design flow")
+![LutNet_design_flow.png](documents/images/LutNet_design_flow.png "design flow")
+
+### layer model
+![LutNet_layer_mode.png](documents/images/LutNet_layer_mode.png "layer_model")
 
 ### LUT node model
 One LUT can calcurate XOR. But one perceptron node can't learn XOR.
 One LUT's equivalent_model is many perceptron that has hidden layer.
 
-![LUT_equivalent_model.png](documents/images/LUT_equivalent_model.png "LUT node model")
+![LutNet_lut_equivalent_model.png](documents/images/LutNet_lut_equivalent_model.png "LUT node model")
 
 Learning model of LUT-Network is shown below.
-![LUT_node_model.png](documents/images/LUT_node_model.png "LUT node model")
+![LutNet_lut_node_model.png](documents/images/LutNet_node_model.png "LUT node model")
 
 ### Difference from other binary deep neural network
 ![difference_other_networks.png](documents/images/difference_other_networks.png "difference from other networks")
@@ -78,11 +81,13 @@ https://japan.xilinx.com/support/documentation/user_guides/ug574-ultrascale-clb.
 
 
 
-# 日本語メモ
+# 日本語説明(old README)
 FPGAのLUTをダイレクトに学習させることを目標とした、バイナリニューラルネット用のライブラリを整理中です。
 基本的にはヘッダファイルのみのライブラリとする見込みです。
+
 AXV2以降の命令が使えるCPUと、Windows7以降の環境を想定しております。
 
 CEREAL や EIGEN など、submoduleとして、他のライブラリを用いていますので、それらは個別にライセンスを確認ください。
+
 現在 git にあるオリジナルのソースコード部分のライセンスは MIT ライセンスとしております。
 
