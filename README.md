@@ -40,7 +40,7 @@ This platform let the LUT's table learn directly.
 ![LutNet_design_flow.png](documents/images/LutNet_design_flow.png "design flow")
 
 ### layer model
-One LUT can calcurate XOR. But one perceptron node can't learn XOR.
+A single LUT can calcurate XOR. But a single perceptron node can't learn XOR.
 LUT-Network's one node has a hidden perceptrons.
 
 ![LutNet_layer_mode.png](documents/images/LutNet_layer_mode.png "layer_model")
