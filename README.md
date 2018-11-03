@@ -36,14 +36,17 @@ This network run high-performance prediction on FPGA.
 ### Design flow
 FPGA circuit is constructed from LUTs.
 This platform let the LUT's table learn directly.
+
 ![LutNet_design_flow.png](documents/images/LutNet_design_flow.png "design flow")
 
 ### layer model
+One LUT can calcurate XOR. But one perceptron node can't learn XOR.
+LUT-Network's one node has a hidden perceptrons.
+
 ![LutNet_layer_mode.png](documents/images/LutNet_layer_mode.png "layer_model")
 
 ### LUT node model
-One LUT can calcurate XOR. But one perceptron node can't learn XOR.
-One LUT's equivalent_model is many perceptron that has hidden layer.
+One LUT's equivalent model is many perceptron that has hidden layer.
 
 ![LutNet_lut_equivalent_model.png](documents/images/LutNet_lut_equivalent_model.png "LUT node model")
 
@@ -51,7 +54,15 @@ Learning model of LUT-Network is shown below.
 ![LutNet_lut_node_model.png](documents/images/LutNet_node_model.png "LUT node model")
 
 ### Difference from other binary deep neural network
+Though LUT-Network is binary nwtwork, it has FP32 weight parameter. Only activation layer's output is binary.
+
+
 ![difference_other_networks.png](documents/images/difference_other_networks.png "difference from other networks")
+
+### Performance  estimations
+LUT-network's learning cost is heavy, but prediction computing performanse of FPGA is very high.
+
+![performance.png](documents/images/performance.png "parformance")
 
 
 ## Author's information
