@@ -1,6 +1,8 @@
-﻿# BinaryBrain for LUT(Look-up table) Networks platform
+﻿# BinaryBrain <br>binary neural networks evaluation platform for LUT-networks
 
+## Abstract
 "LUT Networks" is one of the "Binary Deep Neural Networks" for FPGA.
+This network can implement to FPGA with high-density and high-speed .
 
 http://ryuz.txt-nifty.com/blog/2018/10/binary-deep-neu.html
 
@@ -49,6 +51,23 @@ Learning model of LUT-Network is shown below.
 
 ### difference from other binary deep neural network
 ![difference_other_networks.png](documents/images/difference_other_networks.png "difference from other networks")
+
+## reference
+- BinaryConnect: Training Deep Neural Networks with binary weights during propagations<br>
+https://arxiv.org/pdf/1511.00363.pdf
+
+- Binarized Neural Networks<br>
+https://arxiv.org/abs/1602.02505
+
+- Binarized Neural Networks: Training Deep Neural Networks with Weights and Activations Constrained to +1 or -1<br>
+https://arxiv.org/abs/1602.02830
+
+- XNOR-Net: ImageNet Classification Using Binary Convolutional Neural Networks<br>
+https://arxiv.org/abs/1603.05279
+
+- Xilinx UltraScale Architecture Configurable Logic Block User Guide<br>
+https://japan.xilinx.com/support/documentation/user_guides/ug574-ultrascale-clb.pdf
+ 
 
 # 日本語メモ
 FPGAのLUTをダイレクトに学習させることを目標とした、バイナリニューラルネット用のライブラリを整理中です。
