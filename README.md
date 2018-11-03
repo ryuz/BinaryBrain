@@ -27,8 +27,8 @@ This network run high-performance prediction on FPGA.
 ```
 % git clone --recursive https://github.com/ryuz/BinaryBrain.git
 % cd BinaryBrain/sample/mnist
-% cd make all
-% cd make run
+% make all
+% make run
 ```
 
 
