@@ -33,6 +33,12 @@ http://ryuz.txt-nifty.com/blog/2018/10/binary-deep-neu.html
 
 
 ## What is LUT networks?
+
+![LUT_node_model.png](documents/images/LUT_node_model.png "LUT node model")
+![LUT_equivalent_model.png](documents/images/LUT_equivalent_model.png "LUT node model")
+
+
+
 FPGAのLUTをダイレクトに学習させることを目標とした、バイナリニューラルネット用のライブラリを整理中です。
 基本的にはヘッダファイルのみのライブラリとする見込みです。
 AXV2以降の命令が使えるCPUと、Windows7以降の環境を想定しております。
