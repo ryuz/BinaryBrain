@@ -331,7 +331,7 @@ public:
 						db0[i] = _mm256_add_ps(db0[i], err0);
 						for (int j = 0; j < N; ++j) {
 							in_err[j] = _mm256_fmadd_ps(err0, W0[i][j], in_err[j]);
-							dW0[i][j] = _mm256_fmadd_ps(err0, in_sig[i], dW0[i][j]);
+							dW0[i][j] = _mm256_fmadd_ps(err0, in_sig[j], dW0[i][j]);
 						}
 					}
 
