@@ -22,7 +22,7 @@ namespace bb {
 
 // 入力数制限Affine Binary Connect版
 template <typename ST = float, typename ET = float, typename T = float, typename INDEX = size_t>
-class NeuralNetConvolutionPack : public NeuralNetLayer<T, INDEX>
+class NeuralNetLoweringConvolution : public NeuralNetLayer<T, INDEX>
 {
 protected:
 	// 3層で構成
@@ -34,9 +34,9 @@ protected:
 	INDEX	m_im2col_size = 1;
 
 public:
-	NeuralNetConvolutionPack() {}
+	NeuralNetLoweringConvolution() {}
 
-	NeuralNetConvolutionPack(NeuralNetLayer<T, INDEX>* layer, INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size)
+	NeuralNetLoweringConvolution(NeuralNetLayer<T, INDEX>* layer, INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size)
 		: m_im2col(input_c_size, input_h_size, input_w_size, filter_h_size, filter_w_size),
 		m_col2im(output_c_size, input_h_size - filter_h_size + 1, input_w_size - filter_w_size + 1)
 	{
@@ -45,9 +45,9 @@ public:
 		m_im2col_size = (input_h_size - filter_h_size + 1) * (input_w_size - filter_w_size + 1);
 	}
 
-	~NeuralNetConvolutionPack() {}
+	~NeuralNetLoweringConvolution() {}
 
-	std::string GetClassName(void) const { return "NeuralNetConvolutionPack"; }
+	std::string GetClassName(void) const { return "NeuralNetLoweringConvolution"; }
 
 	void InitializeCoeff(std::uint64_t seed)
 	{

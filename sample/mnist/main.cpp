@@ -32,7 +32,7 @@
 #include "bb/NeuralNetSparseAffineSigmoid.h"
 #include "bb/NeuralNetDenseConvolution.h"
 #include "bb/NeuralNetMaxPooling.h"
-#include "bb/NeuralNetConvolutionPack.h"
+#include "bb/NeuralNetLoweringConvolution.h"
 #include "bb/NeuralNetRealToBinary.h"
 #include "bb/NeuralNetBinaryToReal.h"
 #include "bb/NeuralNetBinaryLut6.h"
@@ -270,11 +270,11 @@ void MnistCnnLut(int epoc_size, size_t max_batch_size, bool binary_mode)
 	sub4_net.AddLayer(&sub4_lut1);
 
 	bb::NeuralNetBinaryToReal<float>	input_real2bin(28 * 28, 28 * 28);
-	bb::NeuralNetConvolutionPack<>		layer0_conv(&sub0_net, 1, 28, 28, 32, 3, 3);
-	bb::NeuralNetConvolutionPack<>		layer1_conv(&sub1_net, 32, 26, 26, 32, 3, 3);
+	bb::NeuralNetLoweringConvolution<>	layer0_conv(&sub0_net, 1, 28, 28, 32, 3, 3);
+	bb::NeuralNetLoweringConvolution<>	layer1_conv(&sub1_net, 32, 26, 26, 32, 3, 3);
 	bb::NeuralNetMaxPooling<>			layer2_maxpol(32, 24, 24, 2, 2);
-	bb::NeuralNetConvolutionPack<>		layer3_conv(&sub3_net, 32, 12, 12, 32, 3, 3);
-	bb::NeuralNetConvolutionPack<>		layer4_conv(&sub4_net, 32, 10, 10, 32, 3, 3);
+	bb::NeuralNetLoweringConvolution<>	layer3_conv(&sub3_net, 32, 12, 12, 32, 3, 3);
+	bb::NeuralNetLoweringConvolution<>	layer4_conv(&sub4_net, 32, 10, 10, 32, 3, 3);
 	bb::NeuralNetMaxPooling<>			layer5_maxpol(32, 8, 8, 2, 2);
 	bb::NeuralNetLut<6, 16>				layer6_lut(32 * 4 * 4, 480);
 	bb::NeuralNetLut<6, 16>				layer7_lut(480, 80);
@@ -337,14 +337,14 @@ void MnistCnnLut(int epoc_size, size_t max_batch_size, bool binary_mode)
 		bin_sub4_net.AddLayer(&bin_sub4_lut0);
 		bin_sub4_net.AddLayer(&bin_sub4_lut1);
 
-		bb::NeuralNetConvolutionPack<bool>	bin_layer0_conv(&bin_sub0_net, 1, 28, 28, 32, 3, 3);
-		bb::NeuralNetConvolutionPack<bool>	bin_layer1_conv(&bin_sub1_net, 32, 26, 26, 32, 3, 3);
-		bb::NeuralNetMaxPooling<bool>		bin_layer2_maxpol(32, 24, 24, 2, 2);
-		bb::NeuralNetConvolutionPack<bool>	bin_layer3_conv(&bin_sub3_net, 32, 12, 12, 32, 3, 3);
-		bb::NeuralNetConvolutionPack<bool>	bin_layer4_conv(&bin_sub4_net, 32, 10, 10, 32, 3, 3);
-		bb::NeuralNetMaxPooling<bool>		bin_layer5_maxpol(32, 8, 8, 2, 2);
-		bb::NeuralNetBinaryLut6<>			bin_layer6_lut(32 * 4 * 4, 480);
-		bb::NeuralNetBinaryLut6<>			bin_layer7_lut(480, 80);
+		bb::NeuralNetLoweringConvolution<bool>	bin_layer0_conv(&bin_sub0_net, 1, 28, 28, 32, 3, 3);
+		bb::NeuralNetLoweringConvolution<bool>	bin_layer1_conv(&bin_sub1_net, 32, 26, 26, 32, 3, 3);
+		bb::NeuralNetMaxPooling<bool>			bin_layer2_maxpol(32, 24, 24, 2, 2);
+		bb::NeuralNetLoweringConvolution<bool>	bin_layer3_conv(&bin_sub3_net, 32, 12, 12, 32, 3, 3);
+		bb::NeuralNetLoweringConvolution<bool>	bin_layer4_conv(&bin_sub4_net, 32, 10, 10, 32, 3, 3);
+		bb::NeuralNetMaxPooling<bool>			bin_layer5_maxpol(32, 8, 8, 2, 2);
+		bb::NeuralNetBinaryLut6<>				bin_layer6_lut(32 * 4 * 4, 480);
+		bb::NeuralNetBinaryLut6<>				bin_layer7_lut(480, 80);
 
 		bb::NeuralNetGroup<>			bin_mux_group;
 		bin_mux_group.AddLayer(&bin_layer0_conv);
@@ -713,8 +713,8 @@ void MnistCnnSparseAffineBinary(int epoc_size, size_t max_batch_size, bool binar
 	sub1_net.AddLayer(&sub1_affine1);
 	sub1_net.AddLayer(&sub1_affine2);
 
-	bb::NeuralNetConvolutionPack<>		layer0_conv(&sub0_net, 1, 28, 28, 16, 3, 3);
-	bb::NeuralNetConvolutionPack<>		layer1_conv(&sub1_net, 16, 26, 26, 16, 3, 3);
+	bb::NeuralNetLoweringConvolution<>	layer0_conv(&sub0_net, 1, 28, 28, 16, 3, 3);
+	bb::NeuralNetLoweringConvolution<>	layer1_conv(&sub1_net, 16, 26, 26, 16, 3, 3);
 	bb::NeuralNetMaxPooling<>			layer2_maxpol(16, 24, 24, 2, 2);
 	bb::NeuralNetSparseBinaryAffine<>	layer3_affine(16 * 12 * 12, 180);
 	bb::NeuralNetSparseBinaryAffine<>	layer4_affine(180, 30);
@@ -1124,8 +1124,8 @@ void MnistCnnSparseAffineBinToLut(int bin_epoc_size, size_t bin_max_batch_size, 
 	bin_sub1_net.AddLayer(&bin_sub1_affine2);
 
 	// layers
-	bb::NeuralNetConvolutionPack<>		bin_layer0_conv(&bin_sub0_net, 1, 28, 28, 16, 3, 3);
-	bb::NeuralNetConvolutionPack<>		bin_layer1_conv(&bin_sub1_net, 16, 26, 26, 16, 3, 3);
+	bb::NeuralNetLoweringConvolution<>	bin_layer0_conv(&bin_sub0_net, 1, 28, 28, 16, 3, 3);
+	bb::NeuralNetLoweringConvolution<>	bin_layer1_conv(&bin_sub1_net, 16, 26, 26, 16, 3, 3);
 	bb::NeuralNetMaxPooling<>			bin_layer2_maxpol(16, 24, 24, 2, 2);
 	bb::NeuralNetSparseBinaryAffine<>	bin_layer3_affine(16 * 12 * 12, 180);
 	bb::NeuralNetSparseBinaryAffine<>	bin_layer4_affine(180, 30);
@@ -1195,11 +1195,11 @@ void MnistCnnSparseAffineBinToLut(int bin_epoc_size, size_t bin_max_batch_size, 
 	lut_sub1_net.AddLayer(&lut_sub1_lut1);
 	lut_sub1_net.AddLayer(&lut_sub1_lut2);
 
-	bb::NeuralNetConvolutionPack<bool>	lut_layer0_conv(&lut_sub0_net, 1, 28, 28, 16, 3, 3);
-	bb::NeuralNetConvolutionPack<bool>	lut_layer1_conv(&lut_sub1_net, 16, 26, 26, 16, 3, 3);
-	bb::NeuralNetMaxPooling<bool>		lut_layer2_maxpol(16, 24, 24, 2, 2);
-	bb::NeuralNetBinaryLut6<>			lut_layer3_lut(16 * 12 * 12, 180);
-	bb::NeuralNetBinaryLut6<>			lut_layer4_lut(180, 30);
+	bb::NeuralNetLoweringConvolution<bool>	lut_layer0_conv(&lut_sub0_net, 1, 28, 28, 16, 3, 3);
+	bb::NeuralNetLoweringConvolution<bool>	lut_layer1_conv(&lut_sub1_net, 16, 26, 26, 16, 3, 3);
+	bb::NeuralNetMaxPooling<bool>			lut_layer2_maxpol(16, 24, 24, 2, 2);
+	bb::NeuralNetBinaryLut6<>				lut_layer3_lut(16 * 12 * 12, 180);
+	bb::NeuralNetBinaryLut6<>				lut_layer4_lut(180, 30);
 
 	bb::NeuralNetGroup<>				lut_mux_group;
 	lut_mux_group.AddLayer(&lut_layer0_conv);
@@ -1356,11 +1356,11 @@ void MnistCnnSparseLut(int epoc_size, size_t max_batch_size)
 	lut_sub1_net.AddLayer(&lut_sub1_lut0);
 	lut_sub1_net.AddLayer(&lut_sub1_lut1);
 
-	bb::NeuralNetConvolutionPack<bool>	lut_layer0_conv(&lut_sub0_net, 1, 28, 28, 8, 3, 3);
-	bb::NeuralNetConvolutionPack<bool>	lut_layer1_conv(&lut_sub1_net, 8, 26, 26, 16, 3, 3);
-	bb::NeuralNetMaxPooling<bool>		lut_layer2_maxpol(16, 24, 24, 2, 2);
-	bb::NeuralNetBinaryLut6<>			lut_layer3_lut(16 * 12 * 12, 180);
-	bb::NeuralNetBinaryLut6<>			lut_layer4_lut(180, 30);
+	bb::NeuralNetLoweringConvolution<bool>	lut_layer0_conv(&lut_sub0_net, 1, 28, 28, 8, 3, 3);
+	bb::NeuralNetLoweringConvolution<bool>	lut_layer1_conv(&lut_sub1_net, 8, 26, 26, 16, 3, 3);
+	bb::NeuralNetMaxPooling<bool>			lut_layer2_maxpol(16, 24, 24, 2, 2);
+	bb::NeuralNetBinaryLut6<>				lut_layer3_lut(16 * 12 * 12, 180);
+	bb::NeuralNetBinaryLut6<>				lut_layer4_lut(180, 30);
 
 	bb::NeuralNetGroup<>				lut_mux_group;
 	lut_mux_group.AddLayer(&lut_layer0_conv);

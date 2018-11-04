@@ -27,9 +27,9 @@
     <ClCompile Include="NeuralNetBufferTest.cpp" />
     <ClCompile Include="NeuralNetConvolutionCol2Im.cpp" />
     <ClCompile Include="NeuralNetConvolutionIm2Col.cpp" />
-    <ClCompile Include="NeuralNetConvolutionPackTest.cpp" />
     <ClCompile Include="NeuralNetDenseAffineTest.cpp" />
     <ClCompile Include="NeuralNetDenseConvolutionTest.cpp" />
+    <ClCompile Include="NeuralNetLoweringConvolutionTest.cpp" />
     <ClCompile Include="NeuralNetLutPostTest.cpp" />
     <ClCompile Include="NeuralNetLutPreTest.cpp" />
     <ClCompile Include="NeuralNetLutStackedAffineTest.cpp" />

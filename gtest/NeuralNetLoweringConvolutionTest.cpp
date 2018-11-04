@@ -4,7 +4,7 @@
 
 #include "bb/NeuralNetDenseAffine.h"
 #include "bb/NeuralNetGroup.h"
-#include "bb/NeuralNetConvolutionPack.h"
+#include "bb/NeuralNetLoweringConvolution.h"
 
 
 
@@ -17,12 +17,12 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 }
 
 
-TEST(NeuralNetConvolutionPackTest, testNeuralNetConvolutionPack)
+TEST(NeuralNetLoweringConvolutionTest, testNeuralNetLoweringConvolution)
 {
 	bb::NeuralNetDenseAffine<>	sub_affine(1 * 2 * 2, 1);
 	bb::NeuralNetGroup<>		sub_net;
 	sub_net.AddLayer(&sub_affine);
-	bb::NeuralNetConvolutionPack<>	cnv(&sub_net, 1, 3, 3, 1, 2, 2);
+	bb::NeuralNetLoweringConvolution<>	cnv(&sub_net, 1, 3, 3, 1, 2, 2);
 
 	cnv.SetBatchSize(1);
 	testSetupLayerBuffer(cnv);
@@ -107,12 +107,12 @@ TEST(NeuralNetConvolutionPackTest, testNeuralNetConvolutionPack)
 
 #if 1
 
-TEST(NeuralNetConvolutionPackTest, testNeuralNetConvolutionPack2)
+TEST(NeuralNetLoweringConvolutionTest, testNeuralNetLoweringConvolution2)
 {
 	bb::NeuralNetDenseAffine<>	sub_affine(3 * 3 * 3, 2);
 	bb::NeuralNetGroup<>		sub_net;
 	sub_net.AddLayer(&sub_affine);
-	bb::NeuralNetConvolutionPack<>	cnv(&sub_net, 3, 4, 5, 2, 3, 3);
+	bb::NeuralNetLoweringConvolution<>	cnv(&sub_net, 3, 4, 5, 2, 3, 3);
 
 //	bb::NeuralNetConvolution<> cnv(3, 4, 5, 2, 3, 3);
 	cnv.SetBatchSize(2);

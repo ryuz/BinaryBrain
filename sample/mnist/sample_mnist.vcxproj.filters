@@ -158,5 +158,8 @@
     <ClInclude Include="..\..\include\bb\NeuralNetDenseAffine.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bb\NeuralNetLoweringConvolution.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
