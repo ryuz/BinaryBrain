@@ -30,9 +30,6 @@
     <ClCompile Include="NeuralNetSoftmaxTest.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="NeuralNetConvolutionTest.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="NeuralNetTypeTest.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -57,12 +54,6 @@
     <ClCompile Include="NeuralNetReLUTest.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="NeuralNetConvExpandTest.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="NeuralNetConvCollapseTest.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="NeuralNetConvolutionPackTest.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -82,6 +73,15 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="NeuralNetDenseAffineTest.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="NeuralNetDenseConvolutionTest.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="NeuralNetConvolutionCol2Im.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="NeuralNetConvolutionIm2Col.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
@@ -105,9 +105,6 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="..\include\bb\NeuralNetBuffer.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\bb\NeuralNetConvolution.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="..\include\bb\NeuralNetGroup.h">
@@ -203,11 +200,14 @@
     <ClInclude Include="..\include\bb\NeuralNetLutStackedAffine.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bb\NeuralNetConvolutionCol2Im.h">
-      <Filter>ソース ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\bb\NeuralNetConvolutionIm2Col.h">
-      <Filter>ソース ファイル</Filter>
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bb\NeuralNetConvolutionCol2Im.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bb\NeuralNetDenseConvolution.h">
+      <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

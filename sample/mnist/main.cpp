@@ -30,7 +30,7 @@
 #include "bb/NeuralNetSparseAffine.h"
 #include "bb/NeuralNetSparseBinaryAffine.h"
 #include "bb/NeuralNetSparseAffineSigmoid.h"
-#include "bb/NeuralNetConvolution.h"
+#include "bb/NeuralNetDenseConvolution.h"
 #include "bb/NeuralNetMaxPooling.h"
 #include "bb/NeuralNetConvolutionPack.h"
 #include "bb/NeuralNetRealToBinary.h"
@@ -596,12 +596,12 @@ void MnistCnnDenseAffineReal(int epoc_size, size_t max_batch_size)
 	auto td = bb::LoadMnist<>::Load();
 
 	// build layer
-	bb::NeuralNetConvolution<>  layer0_conv(1, 28, 28, 16, 3, 3);	// c:1  w:28 h:28  --(filter:3x3)--> c:16 w:26 h:26 
-	bb::NeuralNetConvolution<>  layer1_conv(16, 26, 26, 16, 3, 3);	// c:16 w:26 h:26  --(filter:3x3)--> c:16 w:24 h:24 
-	bb::NeuralNetMaxPooling<>	layer2_maxpol(16, 24, 24, 2, 2);	// c:16 w:24 h:24  --(filter:2x2)--> c:16 w:12 h:12 
-	bb::NeuralNetDenseAffine<>	layer3_affine(16 * 12 * 12, 128);
-	bb::NeuralNetSigmoid<>		layer4_sigmoid(128);
-	bb::NeuralNetDenseAffine<>	layer5_affine(128, 10);
+	bb::NeuralNetDenseConvolution<> layer0_conv(1, 28, 28, 16, 3, 3);	// c:1  w:28 h:28  --(filter:3x3)--> c:16 w:26 h:26 
+	bb::NeuralNetDenseConvolution<> layer1_conv(16, 26, 26, 16, 3, 3);	// c:16 w:26 h:26  --(filter:3x3)--> c:16 w:24 h:24 
+	bb::NeuralNetMaxPooling<>		layer2_maxpol(16, 24, 24, 2, 2);	// c:16 w:24 h:24  --(filter:2x2)--> c:16 w:12 h:12 
+	bb::NeuralNetDenseAffine<>		layer3_affine(16 * 12 * 12, 128);
+	bb::NeuralNetSigmoid<>			layer4_sigmoid(128);
+	bb::NeuralNetDenseAffine<>		layer5_affine(128, 10);
 
 	// build network
 	bb::NeuralNet<> net;
@@ -634,10 +634,10 @@ void MnistCnnDenseAffineBinary(int epoc_size, size_t max_batch_size, bool binary
 	auto td = bb::LoadMnist<>::Load();
 
 	// build layer
-	bb::NeuralNetConvolution<>			layer0_conv(1, 28, 28, 16, 3, 3);	// c:1  w:28 h:28  --(filter:3x3)--> c:16 w:26 h:26 
+	bb::NeuralNetDenseConvolution<>		layer0_conv(1, 28, 28, 16, 3, 3);	// c:1  w:28 h:28  --(filter:3x3)--> c:16 w:26 h:26 
 	bb::NeuralNetBatchNormalization<>	layer0_batch_norm(16 * 26 * 26);
 	bb::NeuralNetSigmoid<>				layer0_activation(16 * 26 * 26);
-	bb::NeuralNetConvolution<>			layer1_conv(16, 26, 26, 16, 3, 3);	// c:16 w:26 h:26  --(filter:3x3)--> c:16 w:24 h:24 
+	bb::NeuralNetDenseConvolution<>		layer1_conv(16, 26, 26, 16, 3, 3);	// c:16 w:26 h:26  --(filter:3x3)--> c:16 w:24 h:24 
 	bb::NeuralNetBatchNormalization<>	layer1_batch_norm(16 * 24 * 24);
 	bb::NeuralNetSigmoid<>				layer1_activation(16 * 24 * 24);
 	bb::NeuralNetMaxPooling<>			layer2_maxpol(16, 24, 24, 2, 2);	// c:16 w:24 h:24  --(filter:2x2)--> c:16 w:12 h:12 

@@ -2,7 +2,7 @@
 #include <iostream>
 #include "gtest/gtest.h"
 
-#include "bb/NeuralNetConvolution.h"
+#include "bb/NeuralNetDenseConvolution.h"
 
 
 
@@ -15,9 +15,9 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 }
 
 
-TEST(NeuralNetConvolutionTest, testNeuralNetConvolution)
+TEST(NeuralNetDenseConvolutionTest, testNeuralNetConvolution)
 {
-	bb::NeuralNetConvolution<> cnv(1, 3, 3, 1, 2, 2);
+	bb::NeuralNetDenseConvolution<> cnv(1, 3, 3, 1, 2, 2);
 	testSetupLayerBuffer(cnv);
 	auto in_val = cnv.GetInputSignalBuffer();
 	auto out_val = cnv.GetOutputSignalBuffer();
@@ -92,9 +92,9 @@ TEST(NeuralNetConvolutionTest, testNeuralNetConvolution)
 
 
 
-TEST(NeuralNetConvolutionTest, testNeuralNetConvolution2)
+TEST(NeuralNetDenseConvolutionTest, testNeuralNetConvolution2)
 {
-	bb::NeuralNetConvolution<> cnv(3, 4, 5, 2, 3, 3);
+	bb::NeuralNetDenseConvolution<> cnv(3, 4, 5, 2, 3, 3);
 	cnv.SetBatchSize(2);
 
 	testSetupLayerBuffer(cnv);

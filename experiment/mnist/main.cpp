@@ -46,7 +46,7 @@
 #include "bb/NeuralNetOptimizerSgd.h"
 #include "bb/NeuralNetOptimizerAdam.h"
 
-#include "bb/NeuralNetConvolution.h"
+#include "bb/NeuralNetDenseConvolution.h"
 #include "bb/NeuralNetMaxPooling.h"
 
 #include "bb/NeuralNetLossCrossEntropyWithSoftmax.h"
@@ -1574,11 +1574,11 @@ void MnistDenseSimpleConvolution(int epoc_size, size_t max_batch_size)
 	auto train_data = bb::LoadMnist<>::Load();
 
 	// build layer
-	bb::NeuralNetConvolution<>  layer0_conv(1, 28, 28, 32, 3, 3);	// c:1  w:28 h:28  --(filter:3x3)--> c:32 w:26 h:26 
-	bb::NeuralNetConvolution<>  layer1_conv(32, 26, 26, 32, 3, 3);	// c:32 w:26 h:26  --(filter:3x3)--> c:32 w:24 h:24 
-	bb::NeuralNetMaxPooling<>	layer2_maxpol(32, 24, 24, 2, 2);	// c:32 w:24 h:24  --(filter:2x2)--> c:32 w:12 h:12 
+	bb::NeuralNetDenseConvolution<> layer0_conv(1, 28, 28, 32, 3, 3);	// c:1  w:28 h:28  --(filter:3x3)--> c:32 w:26 h:26 
+	bb::NeuralNetDenseConvolution<> layer1_conv(32, 26, 26, 32, 3, 3);	// c:32 w:26 h:26  --(filter:3x3)--> c:32 w:24 h:24 
+	bb::NeuralNetMaxPooling<>		layer2_maxpol(32, 24, 24, 2, 2);	// c:32 w:24 h:24  --(filter:2x2)--> c:32 w:12 h:12 
 	bb::NeuralNetDenseAffine<>		layer3_affine(32 * 12 * 12, 128);
-	bb::NeuralNetSigmoid<>		layer4_sigmoid(128);
+	bb::NeuralNetSigmoid<>			layer4_sigmoid(128);
 	bb::NeuralNetDenseAffine<>		layer5_affine(128, 10);
 
 	// build network

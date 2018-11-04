@@ -25,11 +25,11 @@
     <ClCompile Include="NeuralNetBinaryLutTest.cpp" />
     <ClCompile Include="NeuralNetBinaryToRealTest.cpp" />
     <ClCompile Include="NeuralNetBufferTest.cpp" />
-    <ClCompile Include="NeuralNetConvCollapseTest.cpp" />
-    <ClCompile Include="NeuralNetConvExpandTest.cpp" />
+    <ClCompile Include="NeuralNetConvolutionCol2Im.cpp" />
+    <ClCompile Include="NeuralNetConvolutionIm2Col.cpp" />
     <ClCompile Include="NeuralNetConvolutionPackTest.cpp" />
-    <ClCompile Include="NeuralNetConvolutionTest.cpp" />
     <ClCompile Include="NeuralNetDenseAffineTest.cpp" />
+    <ClCompile Include="NeuralNetDenseConvolutionTest.cpp" />
     <ClCompile Include="NeuralNetLutPostTest.cpp" />
     <ClCompile Include="NeuralNetLutPreTest.cpp" />
     <ClCompile Include="NeuralNetLutStackedAffineTest.cpp" />
@@ -56,10 +56,10 @@
     <ClInclude Include="..\include\bb\NeuralNetBinaryMultiplex.h" />
     <ClInclude Include="..\include\bb\NeuralNetBinaryToReal.h" />
     <ClInclude Include="..\include\bb\NeuralNetBuffer.h" />
-    <ClInclude Include="..\include\bb\NeuralNetConvolution.h" />
     <ClInclude Include="..\include\bb\NeuralNetConvolutionCol2Im.h" />
     <ClInclude Include="..\include\bb\NeuralNetConvolutionIm2Col.h" />
     <ClInclude Include="..\include\bb\NeuralNetConvolutionPack.h" />
+    <ClInclude Include="..\include\bb\NeuralNetDenseConvolution.h" />
     <ClInclude Include="..\include\bb\NeuralNetGroup.h" />
     <ClInclude Include="..\include\bb\NeuralNetLayer.h" />
     <ClInclude Include="..\include\bb\NeuralNetLayerBuf.h" />

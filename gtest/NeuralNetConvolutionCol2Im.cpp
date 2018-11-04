@@ -15,7 +15,7 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 }
 
 
-TEST(NeuralNetConvCollapseTest, testNeuralNetConvCollapse)
+TEST(NeuralNetConvolutionCol2ImTest, testNeuralNetConvCollapse)
 {
 	bb::NeuralNetConvolutionCol2Im<> cnvcol2im(2, 3, 4);
 

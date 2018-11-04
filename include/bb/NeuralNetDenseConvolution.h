@@ -24,7 +24,7 @@ namespace bb {
 
 // Convolutionクラス
 template <typename T = float, typename INDEX = size_t>
-class NeuralNetConvolution : public NeuralNetLayerBuf<T, INDEX>
+class NeuralNetDenseConvolution : public NeuralNetLayerBuf<T, INDEX>
 {
 protected:
 	INDEX			m_frame_size = 1;
@@ -46,9 +46,9 @@ protected:
 	bool			m_binary_mode = false;
 
 public:
-	NeuralNetConvolution() {}
+	NeuralNetDenseConvolution() {}
 	
-	NeuralNetConvolution(INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size, std::uint64_t seed = 1,
+	NeuralNetDenseConvolution(INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size, std::uint64_t seed = 1,
 		const NeuralNetOptimizer<T, INDEX>* optimizer = nullptr)
 	{
 		NeuralNetOptimizerSgd<T, INDEX> DefOptimizer;
@@ -60,9 +60,9 @@ public:
 		SetOptimizer(optimizer);
 	}
 	
-	~NeuralNetConvolution() {}		// デストラクタ
+	~NeuralNetDenseConvolution() {}
 
-	std::string GetClassName(void) const { return "NeuralNetConvolution"; }
+	std::string GetClassName(void) const { return "NeuralNetDenseConvolution"; }
 
 	void Resize(INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size, std::uint64_t seed = 1)
 	{

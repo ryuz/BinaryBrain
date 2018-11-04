@@ -16,7 +16,7 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 }
 
 
-TEST(NeuralNetConvExpandTest, testNeuralNetConvExpand)
+TEST(NeuralNetConvolutionIm2ColTest, testNeuralNetConvolutionIm2Col)
 {
 	bb::NeuralNetConvolutionIm2Col<> cnvim2col(2, 3, 4, 2, 3);
 	
@@ -161,7 +161,7 @@ TEST(NeuralNetConvExpandTest, testNeuralNetConvExpand)
 
 #include <chrono>
 
-TEST(NeuralNetConvExpandTest, testNeuralNetConvExpandSpeed)
+TEST(NeuralNetConvolutionIm2ColTest, testNeuralNetConvolutionIm2ColSpeed)
 {
 	// 実践的なサイズで速度比較
 	bb::NeuralNetConvExpand<> cnvexp(100, 28, 28, 3, 3);
