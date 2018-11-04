@@ -13,8 +13,8 @@
 #include <cstdint>
 
 #include "bb/NeuralNetLayer.h"
-#include "bb/NeuralNetConvExpand.h"
-#include "bb/NeuralNetConvCollapse.h"
+#include "bb/NeuralNetConvolutionIm2Col.h"
+#include "bb/NeuralNetConvolutionCol2Im.h"
 
 
 namespace bb {
@@ -26,23 +26,23 @@ class NeuralNetConvolutionPack : public NeuralNetLayer<T, INDEX>
 {
 protected:
 	// 3層で構成
-	NeuralNetConvExpand<ST, ET, T, INDEX>		m_expand;
-	NeuralNetLayer<T, INDEX>*					m_layer;
-	NeuralNetConvCollapse<ST, ET, T, INDEX>		m_collapse;
+	NeuralNetConvolutionIm2Col<ST, ET, T, INDEX>	m_im2col;
+	NeuralNetLayer<T, INDEX>*						m_layer;
+	NeuralNetConvolutionCol2Im<ST, ET, T, INDEX>	m_col2im;
 	
 	INDEX	m_batch_size = 0;
-	INDEX	m_expand_size = 1;
+	INDEX	m_im2col_size = 1;
 
 public:
 	NeuralNetConvolutionPack() {}
 
 	NeuralNetConvolutionPack(NeuralNetLayer<T, INDEX>* layer, INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size)
-		: m_expand(input_c_size, input_h_size, input_w_size, filter_h_size, filter_w_size),
-		m_collapse(output_c_size, input_h_size - filter_h_size + 1, input_w_size - filter_w_size + 1)
+		: m_im2col(input_c_size, input_h_size, input_w_size, filter_h_size, filter_w_size),
+		m_col2im(output_c_size, input_h_size - filter_h_size + 1, input_w_size - filter_w_size + 1)
 	{
 		m_layer = layer;
 
-		m_expand_size = (input_h_size - filter_h_size + 1) * (input_w_size - filter_w_size + 1);
+		m_im2col_size = (input_h_size - filter_h_size + 1) * (input_w_size - filter_w_size + 1);
 	}
 
 	~NeuralNetConvolutionPack() {}
@@ -56,9 +56,9 @@ public:
 	
 	void  SetBinaryMode(bool enable)
 	{
-		m_expand.SetBinaryMode(enable);
+		m_im2col.SetBinaryMode(enable);
 		m_layer->SetBinaryMode(enable);
-		m_collapse.SetBinaryMode(enable);
+		m_col2im.SetBinaryMode(enable);
 	}
 
 	int   GetNodeInputSize(INDEX node) const { return this->m_affine.GetNodeInputSize(node); }
@@ -67,84 +67,84 @@ public:
 	
 	void  SetBatchSize(INDEX batch_size)
 	{
-		m_expand.SetBatchSize(batch_size);
-		m_layer->SetBatchSize(batch_size * m_expand_size);
-		m_collapse.SetBatchSize(batch_size);
+		m_im2col.SetBatchSize(batch_size);
+		m_layer->SetBatchSize(batch_size * m_im2col_size);
+		m_col2im.SetBatchSize(batch_size);
 
 		if (m_batch_size == batch_size) {
 			return;
 		}
 		m_batch_size = batch_size;
 
-		CheckConnection(m_expand, *m_layer);
-		CheckConnection(*m_layer, m_collapse);
+		CheckConnection(m_im2col, *m_layer);
+		CheckConnection(*m_layer, m_col2im);
 
-		m_expand.SetOutputSignalBuffer(m_expand.CreateOutputSignalBuffer());
-		m_expand.SetOutputErrorBuffer(m_expand.CreateOutputErrorBuffer());
-		m_layer->SetInputSignalBuffer(m_expand.GetOutputSignalBuffer());
-		m_layer->SetInputErrorBuffer(m_expand.GetOutputErrorBuffer());
+		m_im2col.SetOutputSignalBuffer(m_im2col.CreateOutputSignalBuffer());
+		m_im2col.SetOutputErrorBuffer(m_im2col.CreateOutputErrorBuffer());
+		m_layer->SetInputSignalBuffer(m_im2col.GetOutputSignalBuffer());
+		m_layer->SetInputErrorBuffer(m_im2col.GetOutputErrorBuffer());
 
 		m_layer->SetOutputSignalBuffer(m_layer->CreateOutputSignalBuffer());
 		m_layer->SetOutputErrorBuffer(m_layer->CreateOutputErrorBuffer());
-		m_collapse.SetInputSignalBuffer(m_layer->GetOutputSignalBuffer());
-		m_collapse.SetInputErrorBuffer(m_layer->GetOutputErrorBuffer());
+		m_col2im.SetInputSignalBuffer(m_layer->GetOutputSignalBuffer());
+		m_col2im.SetInputErrorBuffer(m_layer->GetOutputErrorBuffer());
 	}
 
 	
 	// 入出力バッファ
-	void  SetInputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_expand.SetInputSignalBuffer(buffer); }
-	void  SetOutputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_collapse.SetOutputSignalBuffer(buffer); }
-	void  SetInputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_expand.SetInputErrorBuffer(buffer); }
-	void  SetOutputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_collapse.SetOutputErrorBuffer(buffer); }
+	void  SetInputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_im2col.SetInputSignalBuffer(buffer); }
+	void  SetOutputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_col2im.SetOutputSignalBuffer(buffer); }
+	void  SetInputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_im2col.SetInputErrorBuffer(buffer); }
+	void  SetOutputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_col2im.SetOutputErrorBuffer(buffer); }
 
-	const NeuralNetBuffer<T, INDEX>& GetInputSignalBuffer(void) const { return m_expand.GetInputSignalBuffer(); }
-	const NeuralNetBuffer<T, INDEX>& GetOutputSignalBuffer(void) const { return m_collapse.GetOutputSignalBuffer(); }
-	const NeuralNetBuffer<T, INDEX>& GetInputErrorBuffer(void) const { return m_expand.GetInputErrorBuffer(); }
-	const NeuralNetBuffer<T, INDEX>& GetOutputErrorBuffer(void) const { return m_collapse.GetOutputErrorBuffer(); }
+	const NeuralNetBuffer<T, INDEX>& GetInputSignalBuffer(void) const { return m_im2col.GetInputSignalBuffer(); }
+	const NeuralNetBuffer<T, INDEX>& GetOutputSignalBuffer(void) const { return m_col2im.GetOutputSignalBuffer(); }
+	const NeuralNetBuffer<T, INDEX>& GetInputErrorBuffer(void) const { return m_im2col.GetInputErrorBuffer(); }
+	const NeuralNetBuffer<T, INDEX>& GetOutputErrorBuffer(void) const { return m_col2im.GetOutputErrorBuffer(); }
 
 
-	INDEX GetInputFrameSize(void) const { return m_expand.GetInputFrameSize(); }
-	INDEX GetOutputFrameSize(void) const { return m_collapse.GetOutputFrameSize(); }
+	INDEX GetInputFrameSize(void) const { return m_im2col.GetInputFrameSize(); }
+	INDEX GetOutputFrameSize(void) const { return m_col2im.GetOutputFrameSize(); }
 
-	INDEX GetInputNodeSize(void) const { return m_expand.GetInputNodeSize(); }
-	INDEX GetOutputNodeSize(void) const { return m_collapse.GetOutputNodeSize(); }
+	INDEX GetInputNodeSize(void) const { return m_im2col.GetInputNodeSize(); }
+	INDEX GetOutputNodeSize(void) const { return m_col2im.GetOutputNodeSize(); }
 
-	int   GetInputSignalDataType(void) const { return m_expand.GetInputSignalDataType(); }
-	int   GetInputErrorDataType(void) const { return m_expand.GetInputErrorDataType(); }
-	int   GetOutputSignalDataType(void) const { return m_collapse.GetOutputSignalDataType(); }
-	int   GetOutputErrorDataType(void) const { return m_collapse.GetOutputErrorDataType(); }
+	int   GetInputSignalDataType(void) const { return m_im2col.GetInputSignalDataType(); }
+	int   GetInputErrorDataType(void) const { return m_im2col.GetInputErrorDataType(); }
+	int   GetOutputSignalDataType(void) const { return m_col2im.GetOutputSignalDataType(); }
+	int   GetOutputErrorDataType(void) const { return m_col2im.GetOutputErrorDataType(); }
 
 
 public:
 
 	void Forward(bool train = true)
 	{
-		m_expand.Forward(train);
+		m_im2col.Forward(train);
 		m_layer->Forward(train);
-		m_collapse.Forward(train);
+		m_col2im.Forward(train);
 	}
 
 	void Backward(void)
 	{
-		m_collapse.Backward();
+		m_col2im.Backward();
 		m_layer->Backward();
-		m_expand.Backward();
+		m_im2col.Backward();
 	}
 
 	void Update(void)
 	{
-		m_expand.Update();
+		m_im2col.Update();
 		m_layer->Update();
-		m_collapse.Update();
+		m_col2im.Update();
 	}
 
 
 	bool Feedback(const std::vector<double>& loss)
 	{
-		std::vector<double> exp_loss(loss.size() * m_expand_size);
+		std::vector<double> exp_loss(loss.size() * m_im2col_size);
 		for (size_t i = 0; i < loss.size(); ++i) {
-			for (INDEX j = 0; j < m_expand_size; ++j) {
-				exp_loss[i*m_expand_size + j] = loss[i];
+			for (INDEX j = 0; j < m_im2col_size; ++j) {
+				exp_loss[i*m_im2col_size + j] = loss[i];
 			}
 		}
 		return m_layer->Feedback(exp_loss);

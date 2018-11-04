@@ -72,8 +72,8 @@ int main()
 //	omp_set_num_threads(6);
 
 	// LUT network
-#if 1
-	MnistMlpLut(1, 128);
+#if 0
+	MnistMlpLut(16, 128);
 #endif
 
 #if 1
@@ -218,13 +218,16 @@ void MnistMlpLut(int epoc_size, size_t max_batch_size, bool binary_mode)
 		std::cout << "bin_train_accuracy : " << bin_train_accuracy << std::endl;
 
 		// Write RTL
-		std::ofstream ofs("lut_net_mlp.v");
+		std::string rtl_fname = "lut_net_mlp.v";
+		std::ofstream ofs(rtl_fname);
 		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, bin_layer0_lut, "lutnet_layer0");
 		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, bin_layer1_lut, "lutnet_layer1");
 		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, bin_layer2_lut, "lutnet_layer2");
 		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, bin_layer3_lut, "lutnet_layer3");
 		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, bin_layer4_lut, "lutnet_layer4");
+		std::cout << "write : " << rtl_fname << std::endl;
 	}
+	std::cout << "\n" << std::endl;
 }
 
 

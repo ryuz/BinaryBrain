@@ -22,7 +22,7 @@ namespace bb {
 
 
 template <typename ST = float, typename ET = float, typename T = float, typename INDEX = size_t>
-class NeuralNetConvCollapse : public NeuralNetLayerBuf<T, INDEX>
+class NeuralNetConvolutionCol2Im : public NeuralNetLayerBuf<T, INDEX>
 {
 protected:
 	INDEX			m_input_frame_size = 1;
@@ -32,16 +32,16 @@ protected:
 	int				m_w_size;
 
 public:
-	NeuralNetConvCollapse() {}
+	NeuralNetConvolutionCol2Im() {}
 	
-	NeuralNetConvCollapse(INDEX c_size, INDEX h_size, INDEX w_size)
+	NeuralNetConvolutionCol2Im(INDEX c_size, INDEX h_size, INDEX w_size)
 	{
 		Resize(c_size, h_size, w_size);
 	}
 	
-	~NeuralNetConvCollapse() {}		// デストラクタ
+	~NeuralNetConvolutionCol2Im() {}
 
-	std::string GetClassName(void) const { return "NeuralNetConvCollapse"; }
+	std::string GetClassName(void) const { return "NeuralNetConvolutionCol2Im"; }
 
 	void Resize(INDEX c_size, INDEX h_size, INDEX w_size)
 	{

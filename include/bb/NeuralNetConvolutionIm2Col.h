@@ -20,9 +20,8 @@
 namespace bb {
 
 
-// Convolutionクラス
 template <typename ST = float, typename ET = float, typename T = float, typename INDEX = size_t>
-class NeuralNetConvExpand : public NeuralNetLayerBuf<T, INDEX>
+class NeuralNetConvolutionIm2Col : public NeuralNetLayerBuf<T, INDEX>
 {
 protected:
 	INDEX			m_input_frame_size = 1;
@@ -36,16 +35,16 @@ protected:
 	int				m_output_w_size;
 
 public:
-	NeuralNetConvExpand() {}
+	NeuralNetConvolutionIm2Col() {}
 	
-	NeuralNetConvExpand(INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX filter_h_size, INDEX filter_w_size)
+	NeuralNetConvolutionIm2Col(INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX filter_h_size, INDEX filter_w_size)
 	{
 		Resize(input_c_size, input_h_size, input_w_size, filter_h_size, filter_w_size);
 	}
 	
-	~NeuralNetConvExpand() {}		// デストラクタ
+	~NeuralNetConvolutionIm2Col() {}
 
-	std::string GetClassName(void) const { return "NeuralNetConvExpand"; }
+	std::string GetClassName(void) const { return "NeuralNetConvolutionIm2Col"; }
 
 	void Resize(INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX filter_h_size, INDEX filter_w_size)
 	{
