@@ -72,7 +72,7 @@ int main()
 //	omp_set_num_threads(6);
 
 	// LUT network
-#if 0
+#if 1
 	MnistMlpLut(16, 128);
 #endif
 

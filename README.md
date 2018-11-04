@@ -2,7 +2,7 @@
 
 ## High Performance Binary Neural Networks for FPGA
 "LUT(Look-up Table) Networks" is one of the "Binary Deep Neural Networks" for FPGA.
-To provide a method for optimizing and learning a FPGA's LUT table.
+The FPGA's LUT can learn direct from LUT-network on this platform.
 
 ## How to use sample program (MNIST)
 ### windows
