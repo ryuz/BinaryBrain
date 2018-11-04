@@ -150,11 +150,11 @@ void MnistMlpLut(int epoc_size, size_t max_batch_size, bool binary_mode)
 
 	// build layer
 	bb::NeuralNetRealToBinary<float>	input_bin2real(28 * 28, 28 * 28);
-	bb::NeuralNetLut<6, 16>				layer0_lut(28 * 28, 8192);
-	bb::NeuralNetLut<6, 16>				layer1_lut(8192, 4096);
-	bb::NeuralNetLut<6, 16>				layer2_lut(4096, 1080);
-	bb::NeuralNetLut<6, 16>				layer3_lut(1080, 180);
-	bb::NeuralNetLut<6, 16>				layer4_lut(180, 30);
+	bb::NeuralNetLut2<6, 16>				layer0_lut(28 * 28, 8192);
+	bb::NeuralNetLut2<6, 16>				layer1_lut(8192, 4096);
+	bb::NeuralNetLut2<6, 16>				layer2_lut(4096, 1080);
+	bb::NeuralNetLut2<6, 16>				layer3_lut(1080, 180);
+	bb::NeuralNetLut2<6, 16>				layer4_lut(180, 30);
 	bb::NeuralNetBinaryToReal<float>	output_bin2real(30, 10);
 
 	// build network

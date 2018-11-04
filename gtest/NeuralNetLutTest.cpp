@@ -90,9 +90,11 @@ TEST(NeuralNetLutTest, testLut)
 	lut.Forward();
 
 	auto out_sig_buf = lut.GetOutputSignalBuffer();
+#if 0
 	std::cout << "out(0, 0) : " << out_sig_buf.GetReal(0, 0) << std::endl;
 	std::cout << "out(0, 1) : " << out_sig_buf.GetReal(0, 1) << std::endl;
 	std::cout << "out(0, 2) : " << out_sig_buf.GetReal(0, 2) << std::endl;
+#endif
 
 	auto out_err_buf = lut.GetOutputErrorBuffer();
 	out_err_buf.SetReal(0, 0, 0.5);
@@ -109,16 +111,18 @@ TEST(NeuralNetLutTest, testLut)
 	lut.Backward();
 
 	auto in_err_buf = lut.GetInputErrorBuffer();
+#if 0
 	std::cout << "in_err(0, 0) : " << out_sig_buf.GetReal(0, 0) << std::endl;
 	std::cout << "in_err(0, 1) : " << out_sig_buf.GetReal(0, 1) << std::endl;
 	std::cout << "in_err(0, 2) : " << out_sig_buf.GetReal(0, 2) << std::endl;
 	std::cout << "in_err(0, 3) : " << out_sig_buf.GetReal(0, 3) << std::endl;
 	std::cout << "in_err(0, 4) : " << out_sig_buf.GetReal(0, 4) << std::endl;
 	std::cout << "in_err(0, 5) : " << out_sig_buf.GetReal(0, 5) << std::endl;
-	
+#endif
+
 	lut.Update();
 
-#if 1
+#if 0
 	PrintLayerBuffer(lut.m_lut_pre, "m_lut_pre");
 //	PrintLayerBuffer(lut.m_act_pre, "m_act_pre");
 //	PrintLayerBuffer(lut.m_lut_post, "m_lut_post");

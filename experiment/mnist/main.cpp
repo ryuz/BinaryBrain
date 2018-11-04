@@ -26,6 +26,7 @@
 #include "bb/NeuralNetBinarize.h"
 
 #include "bb/NeuralNetLut.h"
+#include "bb/NeuralNetLut2.h"
 
 #include "bb/NeuralNetBinaryMultiplex.h"
 
@@ -92,13 +93,13 @@ void MnistLutSimpleConvolutionBinary2(int epoc_size, size_t max_batch_size, bool
 // メイン関数
 int main()
 {
-//	omp_set_num_threads(6);
+	omp_set_num_threads(4);
 
-	MnistMlpLut(16, 128);
+//	MnistMlpLut(16, 1024);
 
 //	MnistLutSimpleConvolutionBinary(1, 64, true);
 //	MnistLutSimpleConvolutionBinary(4, 64, false);
-//	MnistLutSimpleConvolutionBinary(128, 64, true);
+	MnistLutSimpleConvolutionBinary(128, 64, true);
 
 	MnistLutSimpleConvolutionBinary2(128, 64, true);
 
@@ -165,11 +166,11 @@ void MnistMlpLut(int epoc_size, size_t max_batch_size, bool binary_mode)
 
 	// build layer
 	bb::NeuralNetRealToBinary<float>	input_bin2real(28 * 28, 28 * 28);
-	bb::NeuralNetLut<6, 16>				layer0_lut(28 * 28, 8192);
-	bb::NeuralNetLut<6, 16>				layer1_lut(8192, 4096);
-	bb::NeuralNetLut<6, 16>				layer2_lut(4096, 1080);
-	bb::NeuralNetLut<6, 16>				layer3_lut(1080, 180);
-	bb::NeuralNetLut<6, 16>				layer4_lut(180, 30);
+	bb::NeuralNetLut2<6, 16>			layer0_lut(28 * 28, 8192);
+	bb::NeuralNetLut2<6, 16>			layer1_lut(8192, 4096);
+	bb::NeuralNetLut2<6, 16>			layer2_lut(4096, 1080);
+	bb::NeuralNetLut2<6, 16>			layer3_lut(1080, 180);
+	bb::NeuralNetLut2<6, 16>			layer4_lut(180, 30);
 	bb::NeuralNetBinaryToReal<float>	output_bin2real(30, 10);
 
 	// build network
@@ -193,7 +194,7 @@ void MnistMlpLut(int epoc_size, size_t max_batch_size, bool binary_mode)
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			loss_func;
 	bb::NeuralNetAccuracyCategoricalClassification<>	acc_func(num_class);
-	net.Fitting(run_name, td, epoc_size, max_batch_size, &acc_func, &loss_func, true, true);
+	net.Fitting(run_name, td, epoc_size, max_batch_size, &acc_func, &loss_func, true, false);
 
 	// Write RTL
 	{
@@ -1383,29 +1384,29 @@ void MnistLutSimpleConvolutionBinary(int epoc_size, size_t max_batch_size, bool 
 
 
 	// Conv用subネット構築 (3x3)
-	bb::NeuralNetLut<6, 16>		sub0_lut0(1 * 3 * 3, 192);
-	bb::NeuralNetLut<6, 16>		sub0_lut1(192, 32);
+	bb::NeuralNetLut2<6, 16>		sub0_lut0(1 * 3 * 3, 192);
+	bb::NeuralNetLut2<6, 16>		sub0_lut1(192, 32);
 	bb::NeuralNetGroup<>		sub0_net;
 	sub0_net.AddLayer(&sub0_lut0);
 	sub0_net.AddLayer(&sub0_lut1);
 
 	// Conv用subネット構築 (3x3)
-	bb::NeuralNetLut<6, 16>		sub1_lut0(32 * 3 * 3, 192);
-	bb::NeuralNetLut<6, 16>		sub1_lut1(192, 32);
+	bb::NeuralNetLut2<6, 16>		sub1_lut0(32 * 3 * 3, 192);
+	bb::NeuralNetLut2<6, 16>		sub1_lut1(192, 32);
 	bb::NeuralNetGroup<>		sub1_net;
 	sub1_net.AddLayer(&sub1_lut0);
 	sub1_net.AddLayer(&sub1_lut1);
 
 	// Conv用subネット構築 (3x3)
-	bb::NeuralNetLut<6, 16>		sub3_lut0(32 * 3 * 3, 192);
-	bb::NeuralNetLut<6, 16>		sub3_lut1(192, 32);
+	bb::NeuralNetLut2<6, 16>		sub3_lut0(32 * 3 * 3, 192);
+	bb::NeuralNetLut2<6, 16>		sub3_lut1(192, 32);
 	bb::NeuralNetGroup<>		sub3_net;
 	sub3_net.AddLayer(&sub3_lut0);
 	sub3_net.AddLayer(&sub3_lut1);
 
 	// Conv用subネット構築 (3x3)
-	bb::NeuralNetLut<6, 16>		sub4_lut0(32 * 3 * 3, 192);
-	bb::NeuralNetLut<6, 16>		sub4_lut1(192, 32);
+	bb::NeuralNetLut2<6, 16>		sub4_lut0(32 * 3 * 3, 192);
+	bb::NeuralNetLut2<6, 16>		sub4_lut1(192, 32);
 	bb::NeuralNetGroup<>		sub4_net;
 	sub4_net.AddLayer(&sub4_lut0);
 	sub4_net.AddLayer(&sub4_lut1);
@@ -1416,8 +1417,8 @@ void MnistLutSimpleConvolutionBinary(int epoc_size, size_t max_batch_size, bool 
 	bb::NeuralNetConvolutionPack<>		layer3_conv(&sub3_net, 32, 12, 12, 32, 3, 3);
 	bb::NeuralNetConvolutionPack<>		layer4_conv(&sub4_net, 32, 10, 10, 32, 3, 3);
 	bb::NeuralNetMaxPooling<>			layer5_maxpol(32, 8, 8, 2, 2);
-	bb::NeuralNetLut<6, 16>				layer6_lut(32 * 4 * 4, 480);
-	bb::NeuralNetLut<6, 16>				layer7_lut(480, 80);
+	bb::NeuralNetLut2<6, 16>			layer6_lut(32 * 4 * 4, 480);
+	bb::NeuralNetLut2<6, 16>			layer7_lut(480, 80);
 	bb::NeuralNetBinaryToReal<float>	output_bin2real(80, 10);
 
 	// build network
@@ -1448,7 +1449,7 @@ void MnistLutSimpleConvolutionBinary(int epoc_size, size_t max_batch_size, bool 
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			lossFunc;
 	bb::NeuralNetAccuracyCategoricalClassification<>	accFunc(num_class);
-	net.Fitting(run_name, train_data, epoc_size, max_batch_size, &accFunc, &lossFunc, true, true);
+	net.Fitting(run_name, train_data, epoc_size, max_batch_size, &accFunc, &lossFunc, true, false);
 #else
 	{
 		std::string net_file_name = "MnistLutSimpleConvolutionBinary_net.json";

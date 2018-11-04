@@ -26,7 +26,7 @@ namespace bb {
 
 
 // 入力数制限Affine Binary Connect版
-template <int N = 6, int M = 64, typename T = float, typename INDEX = size_t>
+template <int N = 6, int M = 16, typename ACTIVATION0=NeuralNetReLU<float, size_t>, typename ACTIVATION1 = NeuralNetSigmoid<float, size_t>, typename T = float, typename INDEX = size_t>
 class NeuralNetLut : public NeuralNetSparseLayer<T, INDEX>
 {
 	using super = NeuralNetSparseLayer<T, INDEX>;
@@ -37,11 +37,11 @@ public:
 
 	// 3層で構成
 	NeuralNetLutPre<N, M, T, INDEX>			m_lut_pre;
-	NeuralNetReLU<T, INDEX>					m_act_pre;
+	ACTIVATION0								m_act_pre;
 //	NeuralNetSigmoid<T, INDEX>				m_act_pre;
 	NeuralNetLutPost<M, T, INDEX>			m_lut_post;
 	NeuralNetBatchNormalization<T, INDEX>	m_batch_norm;
-	NeuralNetSigmoid<T, INDEX>				m_act_post;
+	ACTIVATION1								m_act_post;
 
 public:
 	NeuralNetLut() {}
