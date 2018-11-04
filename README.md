@@ -1,9 +1,8 @@
 ﻿# BinaryBrain <br> --binary neural networks evaluation platform for LUT-networks
 
-## Abstract
-"LUT Networks" is one of the "Binary Deep Neural Networks" for FPGA.
-This network run high-performance prediction on FPGA.
-
+## High Performance Binary Neural Networks for FPGA
+"LUT(Look-up Table) Networks" is one of the "Binary Deep Neural Networks" for FPGA.
+To provide a method for optimizing and learning a FPGA's LUT table.
 
 ## How to use sample program (MNIST)
 ### windows
