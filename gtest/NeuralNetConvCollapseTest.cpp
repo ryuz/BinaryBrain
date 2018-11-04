@@ -2,7 +2,7 @@
 #include <iostream>
 #include "gtest/gtest.h"
 
-#include "bb/NeuralNetConvCollapse.h"
+#include "bb/NeuralNetConvolutionCol2Im.h"
 
 
 
@@ -17,19 +17,19 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 
 TEST(NeuralNetConvCollapseTest, testNeuralNetConvCollapse)
 {
-	bb::NeuralNetConvCollapse<> cnvcol(2, 3, 4);
+	bb::NeuralNetConvolutionCol2Im<> cnvcol2im(2, 3, 4);
 
-	cnvcol.SetBatchSize(2);
-	testSetupLayerBuffer(cnvcol);
+	cnvcol2im.SetBatchSize(2);
+	testSetupLayerBuffer(cnvcol2im);
 
-	auto in_sig_buf = cnvcol.GetInputSignalBuffer();
-	auto out_sig_buf = cnvcol.GetOutputSignalBuffer();
+	auto in_sig_buf = cnvcol2im.GetInputSignalBuffer();
+	auto out_sig_buf = cnvcol2im.GetOutputSignalBuffer();
 
-	EXPECT_EQ(2, cnvcol.GetInputNodeSize());
-	EXPECT_EQ(2 * 3 * 4, cnvcol.GetInputFrameSize());
+	EXPECT_EQ(2, cnvcol2im.GetInputNodeSize());
+	EXPECT_EQ(2 * 3 * 4, cnvcol2im.GetInputFrameSize());
 	
-	EXPECT_EQ(2 * 3 * 4, cnvcol.GetOutputNodeSize());
-	EXPECT_EQ(2, cnvcol.GetOutputFrameSize());
+	EXPECT_EQ(2 * 3 * 4, cnvcol2im.GetOutputNodeSize());
+	EXPECT_EQ(2, cnvcol2im.GetOutputFrameSize());
 
 	for (size_t f = 0; f < 2; ++f) {
 		for (size_t y = 0; y < 3; ++y) {
@@ -41,7 +41,7 @@ TEST(NeuralNetConvCollapseTest, testNeuralNetConvCollapse)
 		}
 	}
 
-	cnvcol.Forward();
+	cnvcol2im.Forward();
 
 //	for (int f = 0; f < 2; ++f) {
 //		for (int i = 0; i < 2 * 3 * 4; ++i) {
@@ -102,8 +102,8 @@ TEST(NeuralNetConvCollapseTest, testNeuralNetConvCollapse)
 
 
 	// backward
-	auto out_err_buf = cnvcol.GetOutputErrorBuffer();
-	auto in_err_buf = cnvcol.GetInputErrorBuffer();
+	auto out_err_buf = cnvcol2im.GetOutputErrorBuffer();
+	auto in_err_buf = cnvcol2im.GetInputErrorBuffer();
 
 	out_sig_buf.SetDimensions({ 4, 3, 2 });
 	out_err_buf.SetDimensions({ 4, 3, 2 });
@@ -118,7 +118,7 @@ TEST(NeuralNetConvCollapseTest, testNeuralNetConvCollapse)
 		}
 	}
 
-	cnvcol.Backward();
+	cnvcol2im.Backward();
 
 	for (size_t f = 0; f < 2; ++f) {
 		for (size_t y = 0; y < 3; ++y) {

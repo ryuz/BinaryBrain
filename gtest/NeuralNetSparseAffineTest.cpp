@@ -1,7 +1,7 @@
 ﻿#include <stdio.h>
 #include <iostream>
 #include "gtest/gtest.h"
-#include "bb/NeuralNetAffine.h"
+#include "bb/NeuralNetDenseAffine.h"
 #include "bb/NeuralNetSparseAffine.h"
 
 
@@ -131,7 +131,7 @@ TEST(NeuralNetSparseAffineTest, testAffineInput)
 
 TEST(NeuralNetSparseAffineTest, testAffineCompare)
 {
-	bb::NeuralNetAffine<>	  	  dense_affine(6, 17);
+	bb::NeuralNetDenseAffine<>	   dense_affine(6, 17);
 	bb::NeuralNetSparseAffine<6>  sparse_affine(6, 17);
 
 	dense_affine.SetBatchSize(67);

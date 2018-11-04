@@ -198,6 +198,7 @@
     <ClInclude Include="..\..\include\bb\NeuralNetConvolutionCol2Im.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetConvolutionIm2Col.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetConvolutionPack.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetDenseAffine.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetDenseAffineSigmoid.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetGroup.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLayer.h" />

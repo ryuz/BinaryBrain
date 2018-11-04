@@ -1,7 +1,7 @@
 ﻿#include <stdio.h>
 #include <iostream>
 #include "gtest/gtest.h"
-#include "bb/NeuralNetAffine.h"
+#include "bb/NeuralNetDenseAffine.h"
 #include "bb/NeuralNetOptimizerSgd.h"
 
 
@@ -14,9 +14,9 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 }
 
 
-TEST(NeuralNetAffineTest, testAffine)
+TEST(NeuralNetDenseAffineTest, testAffine)
 {
-	bb::NeuralNetAffine<> affine(2, 3);
+	bb::NeuralNetDenseAffine<> affine(2, 3);
 	testSetupLayerBuffer(affine);
 
 	auto in_val = affine.GetInputSignalBuffer();
@@ -64,9 +64,9 @@ TEST(NeuralNetAffineTest, testAffine)
 }
 
 
-TEST(NeuralNetAffineTest, testAffineBatch)
+TEST(NeuralNetDenseAffineTest, testAffineBatch)
 {
-	bb::NeuralNetAffine<> affine(2, 3);
+	bb::NeuralNetDenseAffine<> affine(2, 3);
 	testSetupLayerBuffer(affine);
 
 	affine.SetBatchSize(2);

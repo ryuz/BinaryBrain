@@ -23,7 +23,7 @@ namespace bb {
 
 // Affineレイヤー
 template <typename T = float, typename INDEX = size_t>
-class NeuralNetAffine : public NeuralNetLayerBuf<T, INDEX>
+class NeuralNetDenseAffine : public NeuralNetLayerBuf<T, INDEX>
 {
 protected:
 //	typedef Eigen::Matrix<T, -1, -1, Eigen::ColMajor>	Matrix;
@@ -48,9 +48,9 @@ protected:
 	bool		m_binary_mode = false;
 
 public:
-	NeuralNetAffine() {}
+	NeuralNetDenseAffine() {}
 
-	NeuralNetAffine(INDEX input_size, INDEX output_size, std::uint64_t seed=1,
+	NeuralNetDenseAffine(INDEX input_size, INDEX output_size, std::uint64_t seed=1,
 		const NeuralNetOptimizer<T, INDEX>* optimizer = nullptr)
 	{
 		NeuralNetOptimizerSgd<T, INDEX> DefOptimizer;
@@ -63,9 +63,9 @@ public:
 		SetOptimizer(optimizer);
 	}
 
-	~NeuralNetAffine() {}		// デストラクタ
+	~NeuralNetDenseAffine() {}		// デストラクタ
 
-	std::string GetClassName(void) const { return "NeuralNetAffine"; }
+	std::string GetClassName(void) const { return "NeuralNetDenseAffine"; }
 
 	void Resize(INDEX input_size, INDEX output_size)
 	{

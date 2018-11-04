@@ -19,7 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="NeuralNetAffineTest.cpp" />
     <ClCompile Include="NeuralNetBatchNormalizationAvxTest.cpp" />
     <ClCompile Include="NeuralNetBatchNormalizationTest.cpp" />
     <ClCompile Include="NeuralNetBinaryFilterTest.cpp" />
@@ -30,6 +29,7 @@
     <ClCompile Include="NeuralNetConvExpandTest.cpp" />
     <ClCompile Include="NeuralNetConvolutionPackTest.cpp" />
     <ClCompile Include="NeuralNetConvolutionTest.cpp" />
+    <ClCompile Include="NeuralNetDenseAffineTest.cpp" />
     <ClCompile Include="NeuralNetLutPostTest.cpp" />
     <ClCompile Include="NeuralNetLutPreTest.cpp" />
     <ClCompile Include="NeuralNetLutStackedAffineTest.cpp" />
@@ -45,7 +45,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\bb\NeuralNet.h" />
-    <ClInclude Include="..\include\bb\NeuralNetAffine.h" />
     <ClInclude Include="..\include\bb\NeuralNetBatchNormalization.h" />
     <ClInclude Include="..\include\bb\NeuralNetBatchNormalizationAvx.h" />
     <ClInclude Include="..\include\bb\NeuralNetBinarize.h" />
@@ -57,10 +56,9 @@
     <ClInclude Include="..\include\bb\NeuralNetBinaryMultiplex.h" />
     <ClInclude Include="..\include\bb\NeuralNetBinaryToReal.h" />
     <ClInclude Include="..\include\bb\NeuralNetBuffer.h" />
-    <ClInclude Include="..\include\bb\NeuralNetConvCollapse.h" />
-    <ClInclude Include="..\include\bb\NeuralNetConvExpand.h" />
-    <ClInclude Include="..\include\bb\NeuralNetConvExpandM.h" />
     <ClInclude Include="..\include\bb\NeuralNetConvolution.h" />
+    <ClInclude Include="..\include\bb\NeuralNetConvolutionCol2Im.h" />
+    <ClInclude Include="..\include\bb\NeuralNetConvolutionIm2Col.h" />
     <ClInclude Include="..\include\bb\NeuralNetConvolutionPack.h" />
     <ClInclude Include="..\include\bb\NeuralNetGroup.h" />
     <ClInclude Include="..\include\bb\NeuralNetLayer.h" />

@@ -2,8 +2,8 @@
 #include <iostream>
 #include "gtest/gtest.h"
 
-#include "bb/NeuralNetConvExpand.h"
-#include "bb/NeuralNetConvExpandM.h"
+#include "bb/NeuralNetConvolutionIm2Col.h"
+#include "bb/NeuralNetConvolutionCol2Im.h"
 
 
 
@@ -18,19 +18,18 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 
 TEST(NeuralNetConvExpandTest, testNeuralNetConvExpand)
 {
-	bb::NeuralNetConvExpand<> cnvexp(2, 3, 4, 2, 3);
-//	bb::NeuralNetConvExpandM<2, 3, 4, 2, 3> cnvexp;
+	bb::NeuralNetConvolutionIm2Col<> cnvim2col(2, 3, 4, 2, 3);
 	
-	cnvexp.SetBatchSize(2);
-	testSetupLayerBuffer(cnvexp);
+	cnvim2col.SetBatchSize(2);
+	testSetupLayerBuffer(cnvim2col);
 
-	auto in_sig_buf = cnvexp.GetInputSignalBuffer();
-	auto out_sig_buf = cnvexp.GetOutputSignalBuffer();
+	auto in_sig_buf = cnvim2col.GetInputSignalBuffer();
+	auto out_sig_buf = cnvim2col.GetOutputSignalBuffer();
 
-	EXPECT_EQ(2 * 3 * 4, cnvexp.GetInputNodeSize());
-	EXPECT_EQ(2 * 2 * 3, cnvexp.GetOutputNodeSize());
-	EXPECT_EQ(2, cnvexp.GetInputFrameSize());
-	EXPECT_EQ(2 * 2 * 2, cnvexp.GetOutputFrameSize());
+	EXPECT_EQ(2 * 3 * 4, cnvim2col.GetInputNodeSize());
+	EXPECT_EQ(2 * 2 * 3, cnvim2col.GetOutputNodeSize());
+	EXPECT_EQ(2, cnvim2col.GetInputFrameSize());
+	EXPECT_EQ(2 * 2 * 2, cnvim2col.GetOutputFrameSize());
 
 	in_sig_buf.SetDimensions({ 4, 3, 2 });
 	for (size_t f = 0; f < 2; ++f) {
@@ -43,7 +42,7 @@ TEST(NeuralNetConvExpandTest, testNeuralNetConvExpand)
 		}
 	}
 
-	cnvexp.Forward();
+	cnvim2col.Forward();
 
 //	for (int i = 0; i < 2 * 2 * 3; ++i) {
 //		std::cout << out_sig_buf.GetReal(0, i) << std::endl;
@@ -130,8 +129,8 @@ TEST(NeuralNetConvExpandTest, testNeuralNetConvExpand)
 
 
 	// backward
-	auto out_err_buf = cnvexp.GetOutputErrorBuffer();
-	auto in_err_buf = cnvexp.GetInputErrorBuffer();
+	auto out_err_buf = cnvim2col.GetOutputErrorBuffer();
+	auto in_err_buf = cnvim2col.GetInputErrorBuffer();
 
 	out_err_buf.SetDimensions({ 3, 2, 2 });
 	for (size_t f = 0; f < 8; ++f) {
@@ -144,7 +143,7 @@ TEST(NeuralNetConvExpandTest, testNeuralNetConvExpand)
 		}
 	}
 	
-	cnvexp.Backward();
+	cnvim2col.Backward();
 
 //	for (int i = 0; i < 2 * 3 * 4; ++i) {
 //		std::cout << in_err_buf.GetReal(0, i) << std::endl;

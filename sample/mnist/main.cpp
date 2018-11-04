@@ -26,7 +26,7 @@
 #include "bb/NeuralNetSoftmax.h"
 #include "bb/NeuralNetBinaryMultiplex.h"
 #include "bb/NeuralNetBatchNormalization.h"
-#include "bb/NeuralNetAffine.h"
+#include "bb/NeuralNetDenseAffine.h"
 #include "bb/NeuralNetSparseAffine.h"
 #include "bb/NeuralNetSparseBinaryAffine.h"
 #include "bb/NeuralNetSparseAffineSigmoid.h"
@@ -414,9 +414,9 @@ void MnistMlpDenseAffineReal(int epoc_size, size_t max_batch_size)
 	auto td = bb::LoadMnist<>::Load();
 	
 	// build layer
-	bb::NeuralNetAffine<>  layer0_affine(28 * 28, 256);
-	bb::NeuralNetSigmoid<> layer0_sigmoid(256);
-	bb::NeuralNetAffine<>  layer1_affine(256, 10);
+	bb::NeuralNetDenseAffine<>  layer0_affine(28 * 28, 256);
+	bb::NeuralNetSigmoid<>		layer0_sigmoid(256);
+	bb::NeuralNetDenseAffine<>  layer1_affine(256, 10);
 
 	// build network
 	bb::NeuralNet<> net;
@@ -449,10 +449,10 @@ void MnistMlpDenseAffineBinary(int epoc_size, size_t max_batch_size, bool binary
 	auto td = bb::LoadMnist<>::Load();
 
 	// build layer
-	bb::NeuralNetAffine<>				layer0_affine(28 * 28, 256);
+	bb::NeuralNetDenseAffine<>			layer0_affine(28 * 28, 256);
 	bb::NeuralNetBatchNormalization<>	layer0_batch_norm(256);
 	bb::NeuralNetSigmoid<>				layer0_activation(256);
-	bb::NeuralNetAffine<>				layer1_affine(256, 10);
+	bb::NeuralNetDenseAffine<>			layer1_affine(256, 10);
 	bb::NeuralNetBatchNormalization<>	layer1_batch_norm(10);
 	bb::NeuralNetSigmoid<>				layer1_activation(10);
 
@@ -599,9 +599,9 @@ void MnistCnnDenseAffineReal(int epoc_size, size_t max_batch_size)
 	bb::NeuralNetConvolution<>  layer0_conv(1, 28, 28, 16, 3, 3);	// c:1  w:28 h:28  --(filter:3x3)--> c:16 w:26 h:26 
 	bb::NeuralNetConvolution<>  layer1_conv(16, 26, 26, 16, 3, 3);	// c:16 w:26 h:26  --(filter:3x3)--> c:16 w:24 h:24 
 	bb::NeuralNetMaxPooling<>	layer2_maxpol(16, 24, 24, 2, 2);	// c:16 w:24 h:24  --(filter:2x2)--> c:16 w:12 h:12 
-	bb::NeuralNetAffine<>		layer3_affine(16 * 12 * 12, 128);
+	bb::NeuralNetDenseAffine<>	layer3_affine(16 * 12 * 12, 128);
 	bb::NeuralNetSigmoid<>		layer4_sigmoid(128);
-	bb::NeuralNetAffine<>		layer5_affine(128, 10);
+	bb::NeuralNetDenseAffine<>	layer5_affine(128, 10);
 
 	// build network
 	bb::NeuralNet<> net;
@@ -641,10 +641,10 @@ void MnistCnnDenseAffineBinary(int epoc_size, size_t max_batch_size, bool binary
 	bb::NeuralNetBatchNormalization<>	layer1_batch_norm(16 * 24 * 24);
 	bb::NeuralNetSigmoid<>				layer1_activation(16 * 24 * 24);
 	bb::NeuralNetMaxPooling<>			layer2_maxpol(16, 24, 24, 2, 2);	// c:16 w:24 h:24  --(filter:2x2)--> c:16 w:12 h:12 
-	bb::NeuralNetAffine<>				layer3_affine(16 * 12 * 12, 180);
+	bb::NeuralNetDenseAffine<>			layer3_affine(16 * 12 * 12, 180);
 	bb::NeuralNetBatchNormalization<>	layer3_batch_norm(180);
 	bb::NeuralNetSigmoid<>				layer3_activation(180);
-	bb::NeuralNetAffine<>				layer4_affine(180, 30);
+	bb::NeuralNetDenseAffine<>			layer4_affine(180, 30);
 	bb::NeuralNetBatchNormalization<>	layer4_batch_norm(30);
 	bb::NeuralNetSigmoid<>				layer4_activation(30);
 
