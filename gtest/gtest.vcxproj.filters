@@ -81,7 +81,7 @@
     <ClCompile Include="NeuralNetLutPostTest.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="NeuralNetLutStackedAffine.cpp">
+    <ClCompile Include="NeuralNetLutStackedAffineTest.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

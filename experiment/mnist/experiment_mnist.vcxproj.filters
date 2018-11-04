@@ -173,7 +173,7 @@
     <ClInclude Include="..\..\include\bb\NeuralNetLutStackedAffine.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetLut2.h">
+    <ClInclude Include="..\..\include\bb\NeuralNetBatchNormalizationBinarization.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

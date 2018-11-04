@@ -100,14 +100,21 @@ public:
 	{
 		auto& nd = m_node[node];
 
+		// affine0
 		std::vector<T> value0(M);
 		for (INDEX i = 0; i < M; ++i) {
 			value0[i] = nd.b0[i];
 			for (INDEX j = 0; j < N; ++j) {
-				value0[i] += input_value[j] * nd.W0[i*N+j];
+				value0[i] += input_value[j] * nd.W0[i*N + j];
 			}
 		}
 
+		// ReLU
+		for (INDEX i = 0; i < M; ++i) {
+			value0[i] = std::max(value0[i], (T)0);;
+		}
+
+		// affine1
 		std::vector<T> value1(1);
 		value1[0] = nd.b1;
 		for (INDEX i = 0; i < M; ++i) {

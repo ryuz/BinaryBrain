@@ -6,7 +6,7 @@
 
 #include "bb/NeuralNetBinaryLut6.h"
 #include "bb/NeuralNetBinaryLutN.h"
-
+#include "bb/NeuralNetLut.h"
 
 
 inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
@@ -500,5 +500,165 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLutFeedbackSerialize)
 	EXPECT_EQ(lut1.GetLutTable(1, 62), false);
 	EXPECT_EQ(lut1.GetLutTable(1, 61), false);
 	EXPECT_EQ(lut1.GetLutTable(1, 60), false);
+}
+
+
+
+// node 対 forward 比較(forward済みの前提)
+void TestCalcNode(bb::NeuralNetSparseLayer<>& net)
+{
+	auto in_buf = net.GetInputSignalBuffer();
+	auto out_buf = net.GetOutputSignalBuffer();
+
+	size_t frame = 0;
+
+#if 0
+	for (int node = 0; node < (int)net.GetInputNodeSize(); ++node) {
+		std::cout << "in_buf(" << node << ") : " << in_buf.GetReal(frame, node) << std::endl;
+	}
+
+	for (int node = 0; node < (int)net.GetOutputNodeSize(); ++node) {
+		for (int i = 0; i < 6; i++) {
+			std::cout << "node(" << node << ") in[" << i << "] : " << net.GetNodeInput(node, i) << std::endl;
+		}
+		std::cout << "out_buf(" << node << ") : " << out_buf.GetReal(frame, node) << std::endl;
+	}
+#endif
+
+	for (int node = 0; node < (int)net.GetOutputNodeSize(); ++node) {
+		int input_index[6];
+		for (int i = 0; i < 6; ++i) {
+			input_index[i] = net.GetNodeInput(node, i);
+		}
+
+		std::vector<float> vec_in(6);
+		for (int i = 0; i < 6; ++i) {
+			vec_in[i] = in_buf.GetReal(frame, input_index[i]);
+		}
+		auto  cal_val = net.CalcNode(node, vec_in);
+		float fwd_val = out_buf.GetReal(frame, node);
+		EXPECT_EQ(cal_val[0], fwd_val);
+	}
+}
+
+
+void TestCalcNodeLut(bb::NeuralNetBinaryLut<>& net)
+{
+	auto in_buf = net.GetInputSignalBuffer();
+	auto out_buf = net.GetOutputSignalBuffer();
+
+	size_t frame = 0;
+
+#if 0
+	for (int node = 0; node < (int)net.GetInputNodeSize(); ++node) {
+		std::cout << "in_buf(" << node << ") : " << in_buf.GetReal(frame, node) << std::endl;
+	}
+
+	for (int node = 0; node < (int)net.GetOutputNodeSize(); ++node) {
+		for (int i = 0; i < 6; i++) {
+			std::cout << "node(" << node << ") in[" << i << "] : " << net.GetLutInput(node, i) << std::endl;
+		}
+		for (int i = 0; i < 64; i++) {
+			std::cout << "node(" << node << ") tbl[" << i << "] : " << net.GetLutTable(node, i) << std::endl;
+		}
+		std::cout << "out_buf(" << node << ") : " << out_buf.GetReal(frame, node) << std::endl;
+	}
+#endif
+
+	for (int node = 0; node < (int)net.GetOutputNodeSize(); ++node) {
+		int input_index[6];
+		for (int i = 0; i < 6; ++i) {
+			input_index[i] = net.GetNodeInput(node, i);
+		}
+
+		std::vector<float> vec_in(6);
+		for (int i = 0; i < 6; ++i) {
+			vec_in[i] = in_buf.GetReal(frame, input_index[i]);
+		}
+
+		auto  cal_val = net.CalcNode(node, vec_in);
+		float fwd_val = out_buf.GetReal(frame, node);
+		EXPECT_EQ(cal_val[0], fwd_val);
+	}
+}
+
+
+TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6Copy)
+{
+	size_t batch_size = 1;
+
+	bb::NeuralNetLut<6, 16> org_lut(8, 2);
+	bb::NeuralNetBinaryLut6<> cpy_lut(8, 2);
+
+	org_lut.SetBinaryMode(true);
+
+	org_lut.SetBatchSize(batch_size);
+	cpy_lut.SetBatchSize(batch_size);
+
+	testSetupLayerBuffer(org_lut);
+	testSetupLayerBuffer(cpy_lut);
+	
+	// copy
+	cpy_lut.ImportLayer(org_lut);
+
+	// node単位計算比較
+	for (int node = 0; node < (int)org_lut.GetOutputNodeSize(); ++node) {
+		for (int i = 0; i < 64; i++) {
+			std::vector<float> vec_in(6);
+			for (int j = 0; j < 6; ++j) {
+				vec_in[j] = ((i >> j) & 1) ? 1 : 0;
+			}
+			auto org_val = org_lut.CalcNode(node, vec_in);
+			auto cpy_val = cpy_lut.CalcNode(node, vec_in);
+			EXPECT_EQ(org_val[0], cpy_val[0]);
+		}
+	}
+
+	auto org_in_buf = org_lut.GetInputSignalBuffer();
+	auto cpy_in_buf = cpy_lut.GetInputSignalBuffer();
+	std::mt19937_64 mt(1);
+	size_t input_node_size = org_in_buf.GetNodeSize();
+	for (size_t i = 0; i < input_node_size; ++i) {
+		bool v = ((mt() % 2) == 0);
+		org_in_buf.SetBinary(0, i, v);
+		cpy_in_buf.SetBinary(0, i, v);
+	}
+
+	org_lut.Forward(false);
+	cpy_lut.Forward(false);
+
+	auto org_out_buf = org_lut.GetOutputSignalBuffer();
+	auto cpy_out_buf = cpy_lut.GetOutputSignalBuffer();
+
+
+	// node 対 forward 比較
+	TestCalcNode(org_lut);
+	TestCalcNodeLut(cpy_lut);
+
+	/*
+	for (int node = 0; node < (int)org_lut.GetOutputNodeSize(); ++node) {
+		int input_index[6];
+		for (int i = 0; i < 6; ++i) {
+			input_index[i] = org_lut.GetNodeInput(node, i);
+		}
+
+		std::vector<float> vec_in(6);
+		for (int i = 0; i < 6; ++i) {
+			vec_in[i] = org_in_buf.GetBinary(0, input_index[i]);
+		}
+		auto  cal_val = org_lut.CalcNode(node, vec_in);
+		float fwd_val = org_out_buf.GetBinary(0, node) ? 1.0f : 0.0f;
+		EXPECT_EQ(cal_val[0], fwd_val);
+	}
+	*/
+
+	// 結果比較
+	size_t output_node_size = org_out_buf.GetNodeSize();
+	for (size_t i = 0; i < output_node_size; ++i) {
+		bool v0 = org_out_buf.GetBinary(0, i);
+		bool v1 = cpy_out_buf.GetBinary(0, i);
+		EXPECT_EQ(v0, v1);
+	}
+
 }
 

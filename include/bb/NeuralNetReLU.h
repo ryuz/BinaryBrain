@@ -54,6 +54,15 @@ public:
 	int   GetOutputSignalDataType(void) const { return NeuralNetType<T>::type; }
 	int   GetOutputErrorDataType(void) const { return NeuralNetType<T>::type; }
 
+
+	std::vector<T> CalcNode(INDEX node, std::vector<T> input_value) const
+	{
+		for (auto& v : input_value) {
+			v = std::max(v, (T)0);
+		}
+		return input_value;
+	}
+
 	void Forward(bool train = true)
 	{
 		auto in_sig_buf = this->GetInputSignalBuffer();

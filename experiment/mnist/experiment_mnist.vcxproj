@@ -179,6 +179,7 @@
     <ClInclude Include="..\..\include\bb\NeuralNetAffine.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBatchNormalization.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBatchNormalizationAvx.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetBatchNormalizationBinarization.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBatchNormalizationEigen.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBinarize.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryFilter.h" />
@@ -201,7 +202,6 @@
     <ClInclude Include="..\..\include\bb\NeuralNetLossCrossEntropyWithSoftmax.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLossFunction.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLut.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetLut2.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLutPost.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLutPre.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLutStackedAffine.h" />

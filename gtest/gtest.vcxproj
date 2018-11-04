@@ -32,7 +32,7 @@
     <ClCompile Include="NeuralNetConvolutionTest.cpp" />
     <ClCompile Include="NeuralNetLutPostTest.cpp" />
     <ClCompile Include="NeuralNetLutPreTest.cpp" />
-    <ClCompile Include="NeuralNetLutStackedAffine.cpp" />
+    <ClCompile Include="NeuralNetLutStackedAffineTest.cpp" />
     <ClCompile Include="NeuralNetLutTest.cpp" />
     <ClCompile Include="NeuralNetMaxPoolingTest.cpp" />
     <ClCompile Include="NeuralNetRealToBinaryTest.cpp" />

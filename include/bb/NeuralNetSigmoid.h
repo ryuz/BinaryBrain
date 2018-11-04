@@ -121,16 +121,8 @@ public:
 				for (INDEX frame = 0; frame < m_frame_size; ++frame) {
 					// hard-tanh
 					auto err = dy.template Get<T>(frame, node);
-
-					// 勘違いしていると勘違いしていたので元に戻す
-#if 1
 					auto sig = x.template Get<T>(frame, node);
 					dx.template Set<T>(frame, node, (sig >= (T)-1.0 && sig <= (T)1.0) ? err : 0);
-#else
-					if (err < (T)-1.0) { err = (T)-1.0; }
-					if (err > (T)+1.0) { err = (T)+1.0; }
-					dx.template Set<T>(frame, node, err);
-#endif
 				}
 			}
 		}

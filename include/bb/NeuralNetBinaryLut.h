@@ -123,6 +123,22 @@ public:
 		return index;
 	}
 
+	std::vector<T> CalcNode(INDEX node, std::vector<T> input_value) const
+	{
+		int input_size = this->GetLutInputSize();
+		int index = 0;
+		for (int i = 0; i < input_size; ++i) {
+			if (input_value[i] > 0) {
+				index |= (1 << i);
+			}
+		}
+
+		std::vector<T>	vec(1);
+		vec[0] = this->GetLutTable(node, index);
+
+		return vec;
+	}
+
 
 	void  SetBatchSize(INDEX batch_size) { m_frame_size = batch_size; }
 
