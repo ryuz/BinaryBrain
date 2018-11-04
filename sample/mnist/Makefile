@@ -3,7 +3,7 @@ TARGET = mnist-sample
 
 CC     = g++
 #CC     = clang++
-CFLAGS = -mavx2 -mfma -fopenmp -std=c++14 -I../../include \
+CFLAGS = -O3 -mavx2 -mfma -fopenmp -std=c++14 -I../../include \
          -I../../cereal/include \
          -I../../eigen
 
