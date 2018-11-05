@@ -45,8 +45,10 @@
 
 
 // LUT networks samples
-void MnistMlpLut(int epoc_size, size_t mini_batch_size, bool binary_mode = true);
-void MnistCnnLut(int epoc_size, size_t mini_batch_size, bool binary_mode = true);
+void MnistMlpBin(int epoc_size, size_t mini_batch_size, bool binary_mode = true);
+void MnistCnnBin(int epoc_size, size_t mini_batch_size, bool binary_mode = true);
+void MnistMlpLut(int epoc_size, size_t mini_batch_size);
+void MnistMlpBinToLut(int bin_epoc_size, size_t bin_mini_batch_size, int lut_epoc_size, size_t lut_mini_batch_size);
 
 // Multilayer perceptron samples
 void MnistMlpDenseAffineReal(int epoc_size, size_t mini_batch_size);
@@ -60,8 +62,6 @@ void MnistCnnDenseAffineBinary(int epoc_size, size_t mini_batch_size, bool binar
 void MnistCnnSparseAffineBinary(int epoc_size, size_t mini_batch_size, bool binary_mode = true);
 
 // old samples
-void MnistMlpSparseAffineLut6(int epoc_size, size_t mini_batch_size);
-void MnistMlpSparseAffineBinToLut(int bin_epoc_size, size_t bin_mini_batch_size, int lut_epoc_size, size_t lut_mini_batch_size);
 void MnistCnnSparseAffineBinToLut(int bin_epoc_size, size_t bin_mini_batch_size, int lut_epoc_size, size_t lut_mini_batch_size);
 void MnistCnnSparseLut(int bin_epoc_size, size_t bin_mini_batch_size);
 
@@ -73,13 +73,21 @@ int main()
 
 	// LUT network
 #if 1
-	MnistMlpLut(16, 256);
+	MnistMlpBin(16, 256);	// Learn : DSMM-Network -> copy : LUT-Network
 #endif
 
 #if 1
-	MnistCnnLut(16, 128);
+	MnistCnnBin(16, 128);	// Learn : DSMM-Network -> copy : LUT-Network
 #endif
-	
+
+#if 1
+	MnistMlpLut(16, 32 * 1024);		// Learn : LUT-Network (LUT direct learning)
+#endif
+
+#if 1
+	MnistMlpBinToLut(16, 128, 8, 32 * 1024);	// Learn : DSMM-Network -> Learn : LUT-Network (additional learn)
+#endif
+
 
 	// MLP Dense Affine
 #if 1
@@ -115,13 +123,6 @@ int main()
 
 
 	// old samples
-#if 1
-	MnistMlpSparseAffineLut6(16, 128);
-#endif
-
-#if 1
-	MnistMlpSparseAffineBinToLut(16, 128, 2, 256);
-#endif
 
 #if 1
 	MnistCnnSparseAffineBinToLut(16, 128, 2, 256);
@@ -138,10 +139,10 @@ int main()
 
 
 // MNIST Multilayer perceptron with LUT networks
-void MnistMlpLut(int epoc_size, size_t mini_batch_size, bool binary_mode)
+void MnistMlpBin(int epoc_size, size_t mini_batch_size, bool binary_mode)
 {
 	// parameter
-	std::string run_name = "MnistMlpLut";
+	std::string run_name = "MnistMlpBin";
 	int			num_class = 10;
 
 	// load MNIST data
@@ -237,10 +238,10 @@ void MnistMlpLut(int epoc_size, size_t mini_batch_size, bool binary_mode)
 
 
 // MNIST CNN with LUT networks
-void MnistCnnLut(int epoc_size, size_t mini_batch_size, bool binary_mode)
+void MnistCnnBin(int epoc_size, size_t mini_batch_size, bool binary_mode)
 {
 	// run name
-	std::string run_name = "MnistCnnLut";
+	std::string run_name = "MnistCnnBin";
 	int			num_class = 10;
 
 	// load MNIST data
@@ -771,10 +772,10 @@ void MnistCnnSparseAffineBinary(int epoc_size, size_t mini_batch_size, bool bina
 ///////////////////////////////////////
 
 // LUT6入力のバイナリ版の力技学習  with BruteForce training
-void MnistMlpSparseAffineLut6(int epoc_size, size_t mini_batch_size)
+void MnistMlpLut(int epoc_size, size_t mini_batch_size)
 {
 	// run name
-	std::string run_name = "MnistSparseAffineLut6";
+	std::string run_name = "MnistMlpLut";
 	int			num_class = 10;
 	int			max_train = -1;
 	int			max_test = -1;
@@ -917,11 +918,11 @@ void MnistMlpSparseAffineLut6(int epoc_size, size_t mini_batch_size)
 	std::cout << "end\n" << std::endl;
 }
 
-// Binary-Network copy to LUT-Network
-void MnistMlpSparseAffineBinToLut(int bin_epoc_size, size_t bin_mini_batch_size, int lut_epoc_size, size_t lut_mini_batch_size)
+// Binary-Network copy to LUT-Network and additional learn
+void MnistMlpBinToLut(int bin_epoc_size, size_t bin_mini_batch_size, int lut_epoc_size, size_t lut_mini_batch_size)
 {
 	// parameter
-	std::string run_name = "MnistSparseAffineBinToLut";
+	std::string run_name = "MnistMlpBinToLut";
 	int			num_class = 10;
 
 	// load MNIST data
@@ -944,14 +945,14 @@ void MnistMlpSparseAffineBinToLut(int bin_epoc_size, size_t bin_mini_batch_size,
 	int	bin_mux_size = 1;
 
 	// build layer
-	bb::NeuralNetSparseBinaryAffine<>	bin_layer0_affine(input_node_size*input_hmux_size, layer0_node_size);
-	bb::NeuralNetSparseBinaryAffine<>	bin_layer1_affine(layer0_node_size, layer1_node_size);
-	bb::NeuralNetSparseBinaryAffine<>	bin_layer2_affine(layer1_node_size, layer2_node_size);
+	bb::NeuralNetSparseMiniMlp<6, 16>	bin_layer0_smm(input_node_size*input_hmux_size, layer0_node_size);
+	bb::NeuralNetSparseMiniMlp<6, 16>	bin_layer1_smm(layer0_node_size, layer1_node_size);
+	bb::NeuralNetSparseMiniMlp<6, 16>	bin_layer2_smm(layer1_node_size, layer2_node_size);
 
 	bb::NeuralNetGroup<>				bin_mux_group;
-	bin_mux_group.AddLayer(&bin_layer0_affine);
-	bin_mux_group.AddLayer(&bin_layer1_affine);
-	bin_mux_group.AddLayer(&bin_layer2_affine);
+	bin_mux_group.AddLayer(&bin_layer0_smm);
+	bin_mux_group.AddLayer(&bin_layer1_smm);
+	bin_mux_group.AddLayer(&bin_layer2_smm);
 
 	bb::NeuralNetBinaryMultiplex<float>	bin_mux(&bin_mux_group, input_node_size, output_node_size, input_hmux_size, output_hmux_size);
 
@@ -972,7 +973,7 @@ void MnistMlpSparseAffineBinToLut(int bin_epoc_size, size_t bin_mini_batch_size,
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			bin_loss_func;
 	bb::NeuralNetAccuracyCategoricalClassification<>	bin_acc_func(num_class);
-	bin_net.Fitting(run_name, train_data, bin_epoc_size, bin_mini_batch_size, &bin_acc_func, &bin_loss_func, true, false);
+	bin_net.Fitting(run_name, train_data, bin_epoc_size, bin_mini_batch_size, &bin_acc_func, &bin_loss_func, true, true);
 
 
 
@@ -1020,9 +1021,9 @@ void MnistMlpSparseAffineBinToLut(int bin_epoc_size, size_t bin_mini_batch_size,
 
 	// copy
 	std::cout << "[parameter copy] Binary-Neteork -> LUT-Network" << std::endl;
-	lut_layer0_lut.ImportLayer(bin_layer0_affine);
-	lut_layer1_lut.ImportLayer(bin_layer1_affine);
-	lut_layer2_lut.ImportLayer(bin_layer2_affine);
+	lut_layer0_lut.ImportLayer(bin_layer0_smm);
+	lut_layer1_lut.ImportLayer(bin_layer1_smm);
+	lut_layer2_lut.ImportLayer(bin_layer2_smm);
 
 
 	// 初期評価
