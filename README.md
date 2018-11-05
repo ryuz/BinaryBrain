@@ -86,6 +86,7 @@ https://japan.xilinx.com/support/documentation/user_guides/ug574-ultrascale-clb.
 
 
 ## Author's information
+Ryuji Fuchikami
 - github : https://github.com/ryuz
 - blog : http://ryuz.txt-nifty.com
 - twitter : https://twitter.com/ryuz88
@@ -200,6 +201,7 @@ https://japan.xilinx.com/support/documentation/user_guides/ug574-ultrascale-clb.
 
 
 ## 作者情報
+渕上 竜司(Ryuji Fuchikami)
 - github : https://github.com/ryuz
 - blog : http://ryuz.txt-nifty.com
 - twitter : https://twitter.com/ryuz88
