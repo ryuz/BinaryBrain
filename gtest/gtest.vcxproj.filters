@@ -57,12 +57,6 @@
     <ClCompile Include="NeuralNetBatchNormalizationAvxTest.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="NeuralNetLutPreTest.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="NeuralNetLutPostTest.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="NeuralNetDenseAffineTest.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -82,6 +76,12 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="NeuralNetSparseMiniMlpTest.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="NeuralNetSparseMiniMlpPostAffineTest.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="NeuralNetSparseMiniMlpPreAffineTest.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

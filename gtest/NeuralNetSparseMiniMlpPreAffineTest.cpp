@@ -1,7 +1,7 @@
 ﻿#include <stdio.h>
 #include <iostream>
 #include "gtest/gtest.h"
-#include "bb/NeuralNetLutPre.h"
+#include "bb/NeuralNetSparseMiniMlpPreAffine.h"
 #include "bb/NeuralNetSparseAffine.h"
 
 
@@ -14,9 +14,9 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 }
 
 
-TEST(NeuralNetLutPreTest, testNeuralNetLutPre)
+TEST(NeuralNetSparseMiniMlpPreAffineTest, testNeuralNetSparseMiniMlpPreAffine)
 {
-	bb::NeuralNetLutPre<2, 1> affine(2, 3);
+	bb::NeuralNetSparseMiniMlpPreAffine<2, 1> affine(2, 3);
 	testSetupLayerBuffer(affine);
 	
 	// 接続を通常Affineと同一にする
@@ -72,7 +72,7 @@ TEST(NeuralNetLutPreTest, testNeuralNetLutPre)
 }
 
 
-TEST(NeuralNetLutPreTest, testComAffine)
+TEST(NeuralNetSparseMiniMlpPreAffineTest, testComAffine)
 {
 	const int	M = 3;
 	const int	N = 6;
@@ -81,7 +81,7 @@ TEST(NeuralNetLutPreTest, testComAffine)
 	const int input_node_size = 10;
 	const int output_node_size = 12;
 	
-	bb::NeuralNetLutPre<N, M>		lut(input_node_size, output_node_size);
+	bb::NeuralNetSparseMiniMlpPreAffine<N, M>		lut(input_node_size, output_node_size);
 	lut.SetBatchSize(frame_size);
 	testSetupLayerBuffer(lut);
 
