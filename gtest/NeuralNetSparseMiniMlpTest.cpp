@@ -2,6 +2,7 @@
 #include <iostream>
 #include "gtest/gtest.h"
 #include "bb/NeuralNetSparseMiniMlp.h"
+#include "bb/NeuralNetSparseMiniMlpDiscrete.h"
 #include "bb/NeuralNetOptimizerSgd.h"
 
 
@@ -57,6 +58,7 @@ TEST(NeuralNetSparseMiniMlpTest, testLut)
 	const int output_node_size = 3;
 	const int frame_size = 3;
 	bb::NeuralNetSparseMiniMlp<6, 6> smm(input_node_size, output_node_size);
+	bb::NeuralNetSparseMiniMlpDiscrete<6, 6> smmd(input_node_size, output_node_size);
 
 	smm.SetOptimizer(&bb::NeuralNetOptimizerSgd<>(0.01f));
 

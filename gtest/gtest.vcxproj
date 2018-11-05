@@ -81,6 +81,9 @@
     <ClInclude Include="..\include\bb\NeuralNetSparseAffine.h" />
     <ClInclude Include="..\include\bb\NeuralNetSparseBinaryAffine.h" />
     <ClInclude Include="..\include\bb\NeuralNetSparseLayer.h" />
+    <ClInclude Include="..\include\bb\NeuralNetSparseMiniMlpDiscrete.h" />
+    <ClInclude Include="..\include\bb\NeuralNetSparseMiniMlpPostAffine.h" />
+    <ClInclude Include="..\include\bb\NeuralNetSparseMiniMlpPreAffine.h" />
     <ClInclude Include="..\include\bb\NeuralNetType.h" />
     <ClInclude Include="..\include\bb\NeuralNetUtility.h" />
     <ClInclude Include="..\include\bb\ShuffleSet.h" />

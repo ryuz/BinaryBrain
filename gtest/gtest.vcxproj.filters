@@ -209,5 +209,14 @@
     <ClInclude Include="..\include\bb\NeuralNetDenseConvolution.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\bb\NeuralNetSparseMiniMlpDiscrete.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bb\NeuralNetSparseMiniMlpPostAffine.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bb\NeuralNetSparseMiniMlpPreAffine.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

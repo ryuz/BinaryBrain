@@ -14,8 +14,8 @@
 #include <random>
 
 #include "bb/NeuralNetSparseLayer.h"
-#include "bb/NeuralNetLutPre.h"
-#include "bb/NeuralNetLutPost.h"
+#include "bb/NeuralNetSparseMiniMlpPreAffine.h"
+#include "bb/NeuralNetSparseMiniMlpPostAffine.h"
 #include "bb/NeuralNetBatchNormalization.h"
 #include "bb/NeuralNetReLU.h"
 #include "bb/NeuralNetSigmoid.h"

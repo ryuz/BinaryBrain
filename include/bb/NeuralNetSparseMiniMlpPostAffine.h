@@ -26,7 +26,7 @@ namespace bb {
 
 // 入力数制限Affine
 template <int M, typename T = float, typename INDEX = size_t>
-class NeuralNetLutPost : public NeuralNetLayerBuf<T, INDEX>
+class NeuralNetSparseMiniMlpPostAffine : public NeuralNetLayerBuf<T, INDEX>
 {
 protected:
 	struct Node {
@@ -52,10 +52,10 @@ protected:
 	bool						m_binary_mode = false;
 	
 public:
-	NeuralNetLutPost() {
+	NeuralNetSparseMiniMlpPostAffine() {
 	}
 	
-	NeuralNetLutPost(INDEX output_node_size, std::uint64_t seed = 1,
+	NeuralNetSparseMiniMlpPostAffine(INDEX output_node_size, std::uint64_t seed = 1,
 		const NeuralNetOptimizer<T, INDEX>* optimizer = nullptr)
 	{
 		NeuralNetOptimizerSgd<T, INDEX> DefOptimizer;
@@ -68,9 +68,9 @@ public:
 		SetOptimizer(optimizer);
 	}
 
-	~NeuralNetLutPost() {}
+	~NeuralNetSparseMiniMlpPostAffine() {}
 
-	std::string GetClassName(void) const { return "NeuralNetLutPost"; }
+	std::string GetClassName(void) const { return "NeuralNetSparseMiniMlpPostAffine"; }
 
 	T& W(INDEX output, INDEX input)  { return m_node[output].W[input]; }
 	T& b(INDEX output)               { return m_node[output].b; }
