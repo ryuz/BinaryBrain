@@ -40,11 +40,11 @@ HDRS = ../../include/bb/LoadCifar10.h                                  \
        ../../include/bb/NeuralNetLossFunction.h                        \
        ../../include/bb/NeuralNetLossMeanSquaredError.h                \
        ../../include/bb/NeuralNetLoweringConvolution.h                 \
-       ../../include/bb/NeuralNetLut.h                                 \
+       ../../include/bb/NeuralNetSparseMiniMlp.h                       \
        ../../include/bb/NeuralNetLutDiscrete.h                         \
        ../../include/bb/NeuralNetLutPost.h                             \
        ../../include/bb/NeuralNetLutPre.h                              \
-       ../../include/bb/NeuralNetLutStackedAffine.h                    \
+       ../../include/bb/NeuralNetStackedMiniAffine.h                   \
        ../../include/bb/NeuralNetMaxPooling.h                          \
        ../../include/bb/NeuralNetOptimizer.h                           \
        ../../include/bb/NeuralNetOptimizerAdam.h                       \
