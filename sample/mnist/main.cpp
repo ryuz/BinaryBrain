@@ -45,25 +45,25 @@
 
 
 // LUT networks samples
-void MnistMlpLut(int epoc_size, size_t max_batch_size, bool binary_mode = true);
-void MnistCnnLut(int epoc_size, size_t max_batch_size, bool binary_mode = true);
+void MnistMlpLut(int epoc_size, size_t mini_batch_size, bool binary_mode = true);
+void MnistCnnLut(int epoc_size, size_t mini_batch_size, bool binary_mode = true);
 
 // Multilayer perceptron samples
-void MnistMlpDenseAffineReal(int epoc_size, size_t max_batch_size);
-void MnistMlpDenseAffineBinary(int epoc_size, size_t max_batch_size, bool binary_mode = true);
-void MnistMlpSparseAffineReal(int epoc_size, size_t max_batch_size);
-void MnistMlpSparseAffineBinary(int epoc_size, size_t max_batch_size, bool binary_mode = true);
+void MnistMlpDenseAffineReal(int epoc_size, size_t mini_batch_size);
+void MnistMlpDenseAffineBinary(int epoc_size, size_t mini_batch_size, bool binary_mode = true);
+void MnistMlpSparseAffineReal(int epoc_size, size_t mini_batch_size);
+void MnistMlpSparseAffineBinary(int epoc_size, size_t mini_batch_size, bool binary_mode = true);
 
 // CNN samples
-void MnistCnnDenseAffineReal(int epoc_size, size_t max_batch_size);
-void MnistCnnDenseAffineBinary(int epoc_size, size_t max_batch_size, bool binary_mode = true);
-void MnistCnnSparseAffineBinary(int epoc_size, size_t max_batch_size, bool binary_mode = true);
+void MnistCnnDenseAffineReal(int epoc_size, size_t mini_batch_size);
+void MnistCnnDenseAffineBinary(int epoc_size, size_t mini_batch_size, bool binary_mode = true);
+void MnistCnnSparseAffineBinary(int epoc_size, size_t mini_batch_size, bool binary_mode = true);
 
 // old samples
-void MnistMlpSparseAffineLut6(int epoc_size, size_t max_batch_size);
-void MnistMlpSparseAffineBinToLut(int bin_epoc_size, size_t bin_max_batch_size, int lut_epoc_size, size_t lut_max_batch_size);
-void MnistCnnSparseAffineBinToLut(int bin_epoc_size, size_t bin_max_batch_size, int lut_epoc_size, size_t lut_max_batch_size);
-void MnistCnnSparseLut(int bin_epoc_size, size_t bin_max_batch_size);
+void MnistMlpSparseAffineLut6(int epoc_size, size_t mini_batch_size);
+void MnistMlpSparseAffineBinToLut(int bin_epoc_size, size_t bin_mini_batch_size, int lut_epoc_size, size_t lut_mini_batch_size);
+void MnistCnnSparseAffineBinToLut(int bin_epoc_size, size_t bin_mini_batch_size, int lut_epoc_size, size_t lut_mini_batch_size);
+void MnistCnnSparseLut(int bin_epoc_size, size_t bin_mini_batch_size);
 
 
 // main
@@ -138,7 +138,7 @@ int main()
 
 
 // MNIST Multilayer perceptron with LUT networks
-void MnistMlpLut(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistMlpLut(int epoc_size, size_t mini_batch_size, bool binary_mode)
 {
 	// parameter
 	std::string run_name = "MnistMlpLut";
@@ -181,7 +181,7 @@ void MnistMlpLut(int epoc_size, size_t max_batch_size, bool binary_mode)
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			loss_func;
 	bb::NeuralNetAccuracyCategoricalClassification<>	acc_func(num_class);
-	net.Fitting(run_name, td, epoc_size, max_batch_size, &acc_func, &loss_func, true, true);
+	net.Fitting(run_name, td, epoc_size, mini_batch_size, &acc_func, &loss_func, true, true);
 
 
 	// ------------------------------------
@@ -217,9 +217,9 @@ void MnistMlpLut(int epoc_size, size_t max_batch_size, bool binary_mode)
 
 	// evaluation
 	lut_bin_mux.SetMuxSize(1);
-	auto lut_test_accuracy = lut_net.RunCalculation(td.x_test, td.y_test, max_batch_size, 0, &lut_acc_func);
+	auto lut_test_accuracy = lut_net.RunCalculation(td.x_test, td.y_test, mini_batch_size, 0, &lut_acc_func);
 	std::cout << "lut_test_accuracy : " << lut_test_accuracy << std::endl;
-	auto lut_train_accuracy = lut_net.RunCalculation(td.x_train, td.y_train, max_batch_size, 0, &lut_acc_func);
+	auto lut_train_accuracy = lut_net.RunCalculation(td.x_train, td.y_train, mini_batch_size, 0, &lut_acc_func);
 	std::cout << "lut_train_accuracy : " << lut_train_accuracy << std::endl;
 
 	// Write RTL
@@ -237,7 +237,7 @@ void MnistMlpLut(int epoc_size, size_t max_batch_size, bool binary_mode)
 
 
 // MNIST CNN with LUT networks
-void MnistCnnLut(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistCnnLut(int epoc_size, size_t mini_batch_size, bool binary_mode)
 {
 	// run name
 	std::string run_name = "MnistCnnLut";
@@ -314,7 +314,7 @@ void MnistCnnLut(int epoc_size, size_t max_batch_size, bool binary_mode)
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			loss_func;
 	bb::NeuralNetAccuracyCategoricalClassification<>	acc_func(num_class);
-	net.Fitting(run_name, td, epoc_size, max_batch_size, &acc_func, &loss_func, true, true);
+	net.Fitting(run_name, td, epoc_size, mini_batch_size, &acc_func, &loss_func, true, true);
 
 
 
@@ -394,9 +394,9 @@ void MnistCnnLut(int epoc_size, size_t max_batch_size, bool binary_mode)
 
 		// evaluation
 		lut_bin_mux.SetMuxSize(1);
-		auto test_accuracy = lut_net.RunCalculation(td.x_test, td.y_test, max_batch_size, 0, &lut_acc_func);
+		auto test_accuracy = lut_net.RunCalculation(td.x_test, td.y_test, mini_batch_size, 0, &lut_acc_func);
 		std::cout << "copy test_accuracy : " << test_accuracy << std::endl;
-		auto train_accuracy = lut_net.RunCalculation(td.x_train, td.y_train, max_batch_size, 0, &lut_acc_func);
+		auto train_accuracy = lut_net.RunCalculation(td.x_train, td.y_train, mini_batch_size, 0, &lut_acc_func);
 		std::cout << "copy train_accuracy : " << train_accuracy << std::endl;
 
 		// Write RTL
@@ -419,7 +419,7 @@ void MnistCnnLut(int epoc_size, size_t max_batch_size, bool binary_mode)
 
 
 // Multilayer perceptron with DenseAffine Real(FP32) networks
-void MnistMlpDenseAffineReal(int epoc_size, size_t max_batch_size)
+void MnistMlpDenseAffineReal(int epoc_size, size_t mini_batch_size)
 {
 	// run name
 	std::string run_name = "MnistMlpDenseAffineReal";
@@ -447,11 +447,11 @@ void MnistMlpDenseAffineReal(int epoc_size, size_t max_batch_size)
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			loss_func;
 	bb::NeuralNetAccuracyCategoricalClassification<>	acc_func(num_class);		
-	net.Fitting(run_name, td, epoc_size, max_batch_size, &acc_func, &loss_func, true, false);
+	net.Fitting(run_name, td, epoc_size, mini_batch_size, &acc_func, &loss_func, true, false);
 }
 
 // Multilayer perceptron with Binary DenseAffine network
-void MnistMlpDenseAffineBinary(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistMlpDenseAffineBinary(int epoc_size, size_t mini_batch_size, bool binary_mode)
 {
 	// run name
 	std::string run_name = "MnistMlpDenseAffineBinary";
@@ -499,13 +499,13 @@ void MnistMlpDenseAffineBinary(int epoc_size, size_t max_batch_size, bool binary
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			loss_func;
 	bb::NeuralNetAccuracyCategoricalClassification<>	acc_func(num_class);
-	net.Fitting(run_name, td, epoc_size, max_batch_size, &acc_func, &loss_func, true, false);
+	net.Fitting(run_name, td, epoc_size, mini_batch_size, &acc_func, &loss_func, true, false);
 }
 
 
 
 // Multilayer perceptron with Sparse Affine network
-void MnistMlpSparseAffineReal(int epoc_size, size_t max_batch_size)
+void MnistMlpSparseAffineReal(int epoc_size, size_t mini_batch_size)
 {
 	// run name
 	std::string run_name = "MnistMlpSparseAffineReal";
@@ -537,11 +537,11 @@ void MnistMlpSparseAffineReal(int epoc_size, size_t max_batch_size)
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			loss_func;
 	bb::NeuralNetAccuracyCategoricalClassification<>	acc_func(num_class);
-	net.Fitting(run_name, train_data, epoc_size, max_batch_size, &acc_func, &loss_func);
+	net.Fitting(run_name, train_data, epoc_size, mini_batch_size, &acc_func, &loss_func);
 }
 
 // Multilayer perceptron with Binary Sparse-Affine network
-void MnistMlpSparseAffineBinary(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistMlpSparseAffineBinary(int epoc_size, size_t mini_batch_size, bool binary_mode)
 {
 	// parameter
 	std::string run_name = "MnistMlpSparseAffineBinary";
@@ -595,13 +595,13 @@ void MnistMlpSparseAffineBinary(int epoc_size, size_t max_batch_size, bool binar
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			lossFunc;
 	bb::NeuralNetAccuracyCategoricalClassification<>	accFunc(num_class);
-	net.Fitting(run_name, train_data, epoc_size, max_batch_size, &accFunc, &lossFunc, true, false);
+	net.Fitting(run_name, train_data, epoc_size, mini_batch_size, &accFunc, &lossFunc, true, false);
 }
 
 
 
 // Simple Convolution with Real(FP32) Dense-Affine network
-void MnistCnnDenseAffineReal(int epoc_size, size_t max_batch_size)
+void MnistCnnDenseAffineReal(int epoc_size, size_t mini_batch_size)
 {
 	// run name
 	std::string run_name = "MnistCnnDenseAffineReal";
@@ -634,12 +634,12 @@ void MnistCnnDenseAffineReal(int epoc_size, size_t max_batch_size)
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			loss_func;
 	bb::NeuralNetAccuracyCategoricalClassification<>	acc_func(num_class);
-	net.Fitting(run_name, td, epoc_size, max_batch_size, &acc_func, &loss_func, true, false);
+	net.Fitting(run_name, td, epoc_size, mini_batch_size, &acc_func, &loss_func, true, false);
 }
 
 
 // Simple Convolution with Binary Dense-Affine network
-void MnistCnnDenseAffineBinary(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistCnnDenseAffineBinary(int epoc_size, size_t mini_batch_size, bool binary_mode)
 {
 	// run name
 	std::string run_name = "MnistCnnDenseAffineBinary";
@@ -698,12 +698,12 @@ void MnistCnnDenseAffineBinary(int epoc_size, size_t max_batch_size, bool binary
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			loss_func;
 	bb::NeuralNetAccuracyCategoricalClassification<>	acc_func(num_class);
-	net.Fitting(run_name, td, epoc_size, max_batch_size, &acc_func, &loss_func, true, false);
+	net.Fitting(run_name, td, epoc_size, mini_batch_size, &acc_func, &loss_func, true, false);
 }
 
 
 // Simple Convolution with Binary Sparse-Affine network
-void MnistCnnSparseAffineBinary(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistCnnSparseAffineBinary(int epoc_size, size_t mini_batch_size, bool binary_mode)
 {
 	// run name
 	std::string run_name = "MnistCnnSparseAffineBinary";
@@ -761,7 +761,7 @@ void MnistCnnSparseAffineBinary(int epoc_size, size_t max_batch_size, bool binar
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			lossFunc;
 	bb::NeuralNetAccuracyCategoricalClassification<>	accFunc(num_class);
-	net.Fitting(run_name, train_data, epoc_size, max_batch_size, &accFunc, &lossFunc, true, false);
+	net.Fitting(run_name, train_data, epoc_size, mini_batch_size, &accFunc, &lossFunc, true, false);
 }
 
 
@@ -771,7 +771,7 @@ void MnistCnnSparseAffineBinary(int epoc_size, size_t max_batch_size, bool binar
 ///////////////////////////////////////
 
 // LUT6入力のバイナリ版の力技学習  with BruteForce training
-void MnistMlpSparseAffineLut6(int epoc_size, size_t max_batch_size)
+void MnistMlpSparseAffineLut6(int epoc_size, size_t mini_batch_size)
 {
 	// run name
 	std::string run_name = "MnistSparseAffineLut6";
@@ -783,7 +783,7 @@ void MnistMlpSparseAffineLut6(int epoc_size, size_t max_batch_size)
 	std::cout << "!!!Debug mode!!!" << std::endl;
 	max_train = 100;
 	max_test = 50;
-	max_batch_size = 16;
+	mini_batch_size = 16;
 #endif
 
 	// load MNIST data
@@ -837,7 +837,7 @@ void MnistMlpSparseAffineLut6(int epoc_size, size_t max_batch_size)
 
 	// 初期評価
 	bin_mux.SetMuxSize(test_mux_size);	// 評価用の多重化数にスイッチ
-	auto test_accuracy = net.RunCalculation(train_data.x_test, train_data.y_test, max_batch_size, 0, &accFunc);
+	auto test_accuracy = net.RunCalculation(train_data.x_test, train_data.y_test, mini_batch_size, 0, &accFunc);
 	std::cout << "initial test_accuracy : " << test_accuracy << std::endl;
 
 	// 開始時間記録
@@ -846,13 +846,13 @@ void MnistMlpSparseAffineLut6(int epoc_size, size_t max_batch_size)
 	// 学習ループ
 	for (int epoc = 0; epoc < epoc_size; ++epoc) {
 		int iteration = 0;
-		for (size_t train_index = 0; train_index < train_size; train_index += max_batch_size) {
+		for (size_t train_index = 0; train_index < train_size; train_index += mini_batch_size) {
 			// 末尾のバッチサイズクリップ
-			size_t batch_size = std::min(max_batch_size, train_size - train_index);
-			if (batch_size < max_batch_size) { break; }
+			size_t batch_size = std::min(mini_batch_size, train_size - train_index);
+			if (batch_size < mini_batch_size) { break; }
 
 			// 小サイズで演算すると劣化するので末尾スキップ
-			if (batch_size < max_batch_size) {
+			if (batch_size < mini_batch_size) {
 				break;
 			}
 
@@ -883,7 +883,7 @@ void MnistMlpSparseAffineLut6(int epoc_size, size_t max_batch_size)
 
 			// 途中評価
 			bin_mux.SetMuxSize(test_mux_size);	// 評価用の多重化数にスイッチ
-			auto test_accuracy = net.RunCalculation(x_test, y_test, max_batch_size, 0, &accFunc);
+			auto test_accuracy = net.RunCalculation(x_test, y_test, mini_batch_size, 0, &accFunc);
 
 			// 進捗表示
 			auto progress = train_index + batch_size;
@@ -895,8 +895,8 @@ void MnistMlpSparseAffineLut6(int epoc_size, size_t max_batch_size)
 
 		// 評価
 		bin_mux.SetMuxSize(test_mux_size);	// 評価用の多重化数にスイッチ
-		auto test_accuracy = net.RunCalculation(x_test, y_test, max_batch_size, 0, &accFunc);
-		auto train_accuracy = net.RunCalculation(x_train, y_train, max_batch_size, 0, &accFunc);
+		auto test_accuracy = net.RunCalculation(x_test, y_test, mini_batch_size, 0, &accFunc);
+		auto train_accuracy = net.RunCalculation(x_train, y_train, mini_batch_size, 0, &accFunc);
 		auto now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
 		std::cout << now_time << "s " << "epoc[" << epoc + 1 << "]"
 			<< "  test_accuracy : " << test_accuracy
@@ -918,7 +918,7 @@ void MnistMlpSparseAffineLut6(int epoc_size, size_t max_batch_size)
 }
 
 // Binary-Network copy to LUT-Network
-void MnistMlpSparseAffineBinToLut(int bin_epoc_size, size_t bin_max_batch_size, int lut_epoc_size, size_t lut_max_batch_size)
+void MnistMlpSparseAffineBinToLut(int bin_epoc_size, size_t bin_mini_batch_size, int lut_epoc_size, size_t lut_mini_batch_size)
 {
 	// parameter
 	std::string run_name = "MnistSparseAffineBinToLut";
@@ -972,7 +972,7 @@ void MnistMlpSparseAffineBinToLut(int bin_epoc_size, size_t bin_max_batch_size, 
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			bin_loss_func;
 	bb::NeuralNetAccuracyCategoricalClassification<>	bin_acc_func(num_class);
-	bin_net.Fitting(run_name, train_data, bin_epoc_size, bin_max_batch_size, &bin_acc_func, &bin_loss_func, true, false);
+	bin_net.Fitting(run_name, train_data, bin_epoc_size, bin_mini_batch_size, &bin_acc_func, &bin_loss_func, true, false);
 
 
 
@@ -1027,7 +1027,7 @@ void MnistMlpSparseAffineBinToLut(int bin_epoc_size, size_t bin_max_batch_size, 
 
 	// 初期評価
 	lut_mux.SetMuxSize(lut_test_mux_size);	// 評価用の多重化数にスイッチ
-	auto test_accuracy = lut_net.RunCalculation(train_data.x_test, train_data.y_test, lut_max_batch_size, 0, &lut_acc_func);
+	auto test_accuracy = lut_net.RunCalculation(train_data.x_test, train_data.y_test, lut_mini_batch_size, 0, &lut_acc_func);
 	std::cout << "initial test_accuracy : " << test_accuracy << std::endl;
 
 	// 開始時間記録
@@ -1036,13 +1036,13 @@ void MnistMlpSparseAffineBinToLut(int bin_epoc_size, size_t bin_max_batch_size, 
 	// 学習ループ
 	for (int epoc = 0; epoc < lut_epoc_size; ++epoc) {
 		int iteration = 0;
-		for (size_t train_index = 0; train_index < train_size; train_index += lut_max_batch_size) {
+		for (size_t train_index = 0; train_index < train_size; train_index += lut_mini_batch_size) {
 			// 末尾のバッチサイズクリップ
-			size_t batch_size = std::min(lut_max_batch_size, train_size - train_index);
-			if (batch_size < lut_max_batch_size) { break; }
+			size_t batch_size = std::min(lut_mini_batch_size, train_size - train_index);
+			if (batch_size < lut_mini_batch_size) { break; }
 
 			// 小サイズで演算すると劣化するので末尾スキップ
-			if (batch_size < lut_max_batch_size) {
+			if (batch_size < lut_mini_batch_size) {
 				break;
 			}
 
@@ -1073,7 +1073,7 @@ void MnistMlpSparseAffineBinToLut(int bin_epoc_size, size_t bin_max_batch_size, 
 
 			// 途中評価
 			lut_mux.SetMuxSize(lut_test_mux_size);	// 評価用の多重化数にスイッチ
-			auto test_accuracy = lut_net.RunCalculation(x_test, y_test, lut_max_batch_size, 0, &lut_acc_func);
+			auto test_accuracy = lut_net.RunCalculation(x_test, y_test, lut_mini_batch_size, 0, &lut_acc_func);
 
 			// 進捗表示
 			auto progress = train_index + batch_size;
@@ -1085,8 +1085,8 @@ void MnistMlpSparseAffineBinToLut(int bin_epoc_size, size_t bin_max_batch_size, 
 
 		// 評価
 		lut_mux.SetMuxSize(lut_test_mux_size);	// 評価用の多重化数にスイッチ
-		auto test_accuracy = lut_net.RunCalculation(x_test, y_test, lut_max_batch_size, 0, &lut_acc_func);
-		auto train_accuracy = lut_net.RunCalculation(x_train, y_train, lut_max_batch_size, 0, &lut_acc_func);
+		auto test_accuracy = lut_net.RunCalculation(x_test, y_test, lut_mini_batch_size, 0, &lut_acc_func);
+		auto train_accuracy = lut_net.RunCalculation(x_train, y_train, lut_mini_batch_size, 0, &lut_acc_func);
 		auto now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
 		std::cout << now_time << "s " << "epoc[" << epoc << "]"
 			<< "  test_accuracy : " << test_accuracy
@@ -1110,7 +1110,7 @@ void MnistMlpSparseAffineBinToLut(int bin_epoc_size, size_t bin_max_batch_size, 
 
 
 
-void MnistCnnSparseAffineBinToLut(int bin_epoc_size, size_t bin_max_batch_size, int lut_epoc_size, size_t lut_max_batch_size)
+void MnistCnnSparseAffineBinToLut(int bin_epoc_size, size_t bin_mini_batch_size, int lut_epoc_size, size_t lut_mini_batch_size)
 {
 	// run name
 	std::string run_name = "MnistCnnSparseAffineBinToLut";
@@ -1170,7 +1170,7 @@ void MnistCnnSparseAffineBinToLut(int bin_epoc_size, size_t bin_max_batch_size, 
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			bin_lossFunc;
 	bb::NeuralNetAccuracyCategoricalClassification<>	bin_accFunc(num_class);
-	bin_net.Fitting(run_name + "_bin", train_data, bin_epoc_size, bin_max_batch_size, &bin_accFunc, &bin_lossFunc, true, true);
+	bin_net.Fitting(run_name + "_bin", train_data, bin_epoc_size, bin_mini_batch_size, &bin_accFunc, &bin_lossFunc, true, true);
 
 
 
@@ -1246,7 +1246,7 @@ void MnistCnnSparseAffineBinToLut(int bin_epoc_size, size_t bin_max_batch_size, 
 
 	// 初期評価
 	lut_mux.SetMuxSize(lut_test_mux_size);	// 評価用の多重化数にスイッチ
-	auto test_accuracy = lut_net.RunCalculation(train_data.x_test, train_data.y_test, lut_max_batch_size, 0, &lut_accFunc);
+	auto test_accuracy = lut_net.RunCalculation(train_data.x_test, train_data.y_test, lut_mini_batch_size, 0, &lut_accFunc);
 	std::cout << "initial test_accuracy : " << test_accuracy << std::endl;
 
 	// start
@@ -1258,13 +1258,13 @@ void MnistCnnSparseAffineBinToLut(int bin_epoc_size, size_t bin_max_batch_size, 
 	// 学習ループ
 	for (int epoc = 0; epoc < lut_epoc_size; ++epoc) {
 		int iteration = 0;
-		for (size_t train_index = 0; train_index < train_size; train_index += lut_max_batch_size) {
+		for (size_t train_index = 0; train_index < train_size; train_index += lut_mini_batch_size) {
 			// 末尾のバッチサイズクリップ
-			size_t batch_size = std::min(lut_max_batch_size, train_size - train_index);
-			if (batch_size < lut_max_batch_size) { break; }
+			size_t batch_size = std::min(lut_mini_batch_size, train_size - train_index);
+			if (batch_size < lut_mini_batch_size) { break; }
 
 			// 小サイズで演算すると劣化するので末尾スキップ
-			if (batch_size < lut_max_batch_size) {
+			if (batch_size < lut_mini_batch_size) {
 				break;
 			}
 
@@ -1289,7 +1289,7 @@ void MnistCnnSparseAffineBinToLut(int bin_epoc_size, size_t bin_max_batch_size, 
 
 			// 途中評価
 			lut_mux.SetMuxSize(lut_test_mux_size);	// 評価用の多重化数にスイッチ
-			auto test_accuracy = lut_net.RunCalculation(x_test, y_test, lut_max_batch_size, 0, &lut_accFunc);
+			auto test_accuracy = lut_net.RunCalculation(x_test, y_test, lut_mini_batch_size, 0, &lut_accFunc);
 
 			// 進捗表示
 			auto progress = train_index + batch_size;
@@ -1301,8 +1301,8 @@ void MnistCnnSparseAffineBinToLut(int bin_epoc_size, size_t bin_max_batch_size, 
 
 		// 評価
 		lut_mux.SetMuxSize(lut_test_mux_size);	// 評価用の多重化数にスイッチ
-		auto test_accuracy = lut_net.RunCalculation(x_test, y_test, lut_max_batch_size, 0, &lut_accFunc);
-		//	auto train_accuracy = lut_net.RunCalculation(x_train, y_train, lut_max_batch_size, 0, &lut_accFunc);
+		auto test_accuracy = lut_net.RunCalculation(x_test, y_test, lut_mini_batch_size, 0, &lut_accFunc);
+		//	auto train_accuracy = lut_net.RunCalculation(x_train, y_train, lut_mini_batch_size, 0, &lut_accFunc);
 		auto now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
 		std::cout << now_time << "s " << "epoc[" << epoc + 1 << "]"
 			<< "  test_accuracy : " << test_accuracy
@@ -1333,7 +1333,7 @@ void MnistCnnSparseAffineBinToLut(int bin_epoc_size, size_t bin_max_batch_size, 
 
 
 
-void MnistCnnSparseLut(int epoc_size, size_t max_batch_size)
+void MnistCnnSparseLut(int epoc_size, size_t mini_batch_size)
 {
 	// run name
 	std::string run_name = "MnistCnnSparseLut";
@@ -1394,7 +1394,7 @@ void MnistCnnSparseLut(int epoc_size, size_t max_batch_size)
 
 	// 初期評価
 	lut_mux.SetMuxSize(lut_test_mux_size);	// 評価用の多重化数にスイッチ
-	auto test_accuracy = lut_net.RunCalculation(train_data.x_test, train_data.y_test, max_batch_size, 0, &lut_accFunc);
+	auto test_accuracy = lut_net.RunCalculation(train_data.x_test, train_data.y_test, mini_batch_size, 0, &lut_accFunc);
 	std::cout << "initial test_accuracy : " << test_accuracy << std::endl;
 
 	// start
@@ -1406,13 +1406,13 @@ void MnistCnnSparseLut(int epoc_size, size_t max_batch_size)
 	// 学習ループ
 	for (int epoc = 0; epoc < epoc_size; ++epoc) {
 		int iteration = 0;
-		for (size_t train_index = 0; train_index < train_size; train_index += max_batch_size) {
+		for (size_t train_index = 0; train_index < train_size; train_index += mini_batch_size) {
 			// 末尾のバッチサイズクリップ
-			size_t batch_size = std::min(max_batch_size, train_size - train_index);
-			if (batch_size < max_batch_size) { break; }
+			size_t batch_size = std::min(mini_batch_size, train_size - train_index);
+			if (batch_size < mini_batch_size) { break; }
 
 			// 小サイズで演算すると劣化するので末尾スキップ
-			if (batch_size < max_batch_size) {
+			if (batch_size < mini_batch_size) {
 				break;
 			}
 
@@ -1437,7 +1437,7 @@ void MnistCnnSparseLut(int epoc_size, size_t max_batch_size)
 
 			// 途中評価
 			lut_mux.SetMuxSize(lut_test_mux_size);	// 評価用の多重化数にスイッチ
-			auto test_accuracy = lut_net.RunCalculation(x_test, y_test, max_batch_size, 0, &lut_accFunc);
+			auto test_accuracy = lut_net.RunCalculation(x_test, y_test, mini_batch_size, 0, &lut_accFunc);
 
 			// 進捗表示
 			auto progress = train_index + batch_size;
@@ -1449,8 +1449,8 @@ void MnistCnnSparseLut(int epoc_size, size_t max_batch_size)
 
 		// 評価
 		lut_mux.SetMuxSize(lut_test_mux_size);	// 評価用の多重化数にスイッチ
-		auto test_accuracy = lut_net.RunCalculation(x_test, y_test, max_batch_size, 0, &lut_accFunc);
-		//	auto train_accuracy = lut_net.RunCalculation(x_train, y_train, lut_max_batch_size, 0, &lut_accFunc);
+		auto test_accuracy = lut_net.RunCalculation(x_test, y_test, mini_batch_size, 0, &lut_accFunc);
+		//	auto train_accuracy = lut_net.RunCalculation(x_train, y_train, lut_mini_batch_size, 0, &lut_accFunc);
 		auto now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
 		std::cout << now_time << "s " << "epoc[" << epoc + 1 << "]"
 			<< "  test_accuracy : " << test_accuracy

@@ -319,9 +319,9 @@ public:
 
 	void Fitting(
 		std::string name,
-		TrainData<T> train_data,
+		TrainData<T> td,
 		INDEX epoc_size,
-		INDEX max_batch_size,
+		INDEX mini_batch_size,
 		const NeuralNetAccuracyFunction<T, INDEX>* accFunc,
 		const NeuralNetLossFunction<T, INDEX>* lossFunc,
 		bool print_progress = true,
@@ -332,12 +332,12 @@ public:
 	{
 		Fitting(
 			name,
-			train_data.x_train,
-			train_data.y_train,
-			train_data.x_test,
-			train_data.y_test,
+			td.x_train,
+			td.y_train,
+			td.x_test,
+			td.y_test,
 			epoc_size,
-			max_batch_size,
+			mini_batch_size,
 			accFunc,
 			lossFunc,
 			print_progress,
