@@ -32,8 +32,6 @@
     <ClCompile Include="NeuralNetLoweringConvolutionTest.cpp" />
     <ClCompile Include="NeuralNetLutPostTest.cpp" />
     <ClCompile Include="NeuralNetLutPreTest.cpp" />
-    <ClCompile Include="NeuralNetLutStackedAffineTest.cpp" />
-    <ClCompile Include="NeuralNetLutTest.cpp" />
     <ClCompile Include="NeuralNetMaxPoolingTest.cpp" />
     <ClCompile Include="NeuralNetRealToBinaryTest.cpp" />
     <ClCompile Include="NeuralNetReLUTest.cpp" />
@@ -41,6 +39,8 @@
     <ClCompile Include="NeuralNetSoftmaxTest.cpp" />
     <ClCompile Include="NeuralNetSparseAffineTest.cpp" />
     <ClCompile Include="NeuralNetSparseBinaryAffineTest.cpp" />
+    <ClCompile Include="NeuralNetSparseMiniMlpTest.cpp" />
+    <ClCompile Include="NeuralNetStackedMiniAffineTest.cpp" />
     <ClCompile Include="NeuralNetTypeTest.cpp" />
   </ItemGroup>
   <ItemGroup>

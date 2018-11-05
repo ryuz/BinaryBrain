@@ -27,7 +27,7 @@ namespace bb {
 
 // 入力数制限Affine Binary Connect版
 template <int N = 6, int M = 16, typename T = float, typename INDEX = size_t>
-class NeuralNetLutStackedAffine : public NeuralNetSparseLayer<T, INDEX>
+class NeuralNetStackedMiniAffine : public NeuralNetSparseLayer<T, INDEX>
 {
 	using super = NeuralNetSparseLayer<T, INDEX>;
 
@@ -67,9 +67,9 @@ public:
 	bool					m_binary_mode = false;
 
 public:
-	NeuralNetLutStackedAffine() {}
+	NeuralNetStackedMiniAffine() {}
 
-	NeuralNetLutStackedAffine(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1,
+	NeuralNetStackedMiniAffine(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1,
 		const NeuralNetOptimizer<T, INDEX>* optimizer = nullptr)
 	{
 		NeuralNetOptimizerSgd<T, INDEX> DefOptimizer;
@@ -82,9 +82,9 @@ public:
 		SetOptimizer(optimizer);
 	}
 	
-	~NeuralNetLutStackedAffine() {}
+	~NeuralNetStackedMiniAffine() {}
 
-	std::string GetClassName(void) const { return "NeuralNetLutStackedAffine"; }
+	std::string GetClassName(void) const { return "NeuralNetStackedMiniAffine"; }
 
 	T& W0(INDEX output, INDEX hidden, INDEX input) { return m_node[output].W0[hidden*N + input]; }
 	T& b0(INDEX output, INDEX hidden) { return m_node[output].b0[hidden]; }

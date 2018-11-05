@@ -14,7 +14,7 @@
 #include <random>
 
 #include "bb/NeuralNetSparseLayer.h"
-#include "bb/NeuralNetLutStackedAffine.h"
+#include "bb/NeuralNetStackedMiniAffine.h"
 #include "bb/NeuralNetBatchNormalization.h"
 #include "bb/NeuralNetReLU.h"
 #include "bb/NeuralNetSigmoid.h"
@@ -24,9 +24,9 @@
 namespace bb {
 
 
-// 入力数制限Affine Binary Connect版
+// Sparce Mini-MLP(Multilayer perceptron) Layer
 template <int N = 6, int M = 16, typename T = float, typename INDEX = size_t>
-class NeuralNetLut : public NeuralNetSparseLayer<T, INDEX>
+class NeuralNetSparseMiniMlp : public NeuralNetSparseLayer<T, INDEX>
 {
 	using super = NeuralNetSparseLayer<T, INDEX>;
 
@@ -35,14 +35,14 @@ public:
 	INDEX										m_batch_size = 0;
 
 	// 3層で構成
-	NeuralNetLutStackedAffine<N, M, T, INDEX>	m_affine;
+	NeuralNetStackedMiniAffine<N, M, T, INDEX>	m_affine;
 	NeuralNetBatchNormalization<T, INDEX>		m_batch_norm;
 	NeuralNetSigmoid<T, INDEX>					m_activation;
 
 public:
-	NeuralNetLut() {}
+	NeuralNetSparseMiniMlp() {}
 
-	NeuralNetLut(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1,
+	NeuralNetSparseMiniMlp(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1,
 		const NeuralNetOptimizer<T, INDEX>* optimizer = nullptr)
 		: m_affine(input_node_size, output_node_size, seed, optimizer),
 		m_batch_norm(output_node_size, optimizer),
@@ -51,9 +51,9 @@ public:
 		InitializeCoeff(seed);
 	}
 	
-	~NeuralNetLut() {}
+	~NeuralNetSparseMiniMlp() {}
 
-	std::string GetClassName(void) const { return "NeuralNetLut"; }
+	std::string GetClassName(void) const { return "NeuralNetSparseMiniMlp"; }
 
 	std::vector<T> CalcNode(INDEX node, std::vector<T> input_value) const
 	{

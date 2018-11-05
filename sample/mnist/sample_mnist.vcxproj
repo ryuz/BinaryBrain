@@ -178,7 +178,9 @@
   <ItemGroup>
     <ClInclude Include="..\..\include\bb\LoadCifar10.h" />
     <ClInclude Include="..\..\include\bb\LoadMnist.h" />
+    <ClInclude Include="..\..\include\bb\LoadXor.h" />
     <ClInclude Include="..\..\include\bb\NeuralNet.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetAccuracyBool.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetAccuracyCategoricalClassification.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetAccuracyFunction.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetAffine.h" />
@@ -200,12 +202,17 @@
     <ClInclude Include="..\..\include\bb\NeuralNetConvolutionPack.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetDenseAffine.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetDenseAffineSigmoid.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetDenseConvolution.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetGroup.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLayer.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLayerBuf.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLossCrossEntropyWithSoftmax.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLossFunction.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetLossMeanSquaredError.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLoweringConvolution.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetLutDiscrete.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetLutPost.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetLutPre.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetMaxPooling.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetOptimizer.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetOptimizerAdam.h" />
@@ -218,6 +225,8 @@
     <ClInclude Include="..\..\include\bb\NeuralNetSparseAffineSigmoid.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetSparseBinaryAffine.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetSparseLayer.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetSparseMiniMlp.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetStackedMiniAffine.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetType.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetUtility.h" />
     <ClInclude Include="..\..\include\bb\ShuffleSet.h" />

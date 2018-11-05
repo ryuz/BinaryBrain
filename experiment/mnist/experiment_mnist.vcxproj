@@ -218,6 +218,8 @@
     <ClInclude Include="..\..\include\bb\NeuralNetSparseAffineSigmoid.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetSparseBinaryAffine.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetSparseLayer.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetSparseMiniMlp.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetStackedMiniAffine.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetType.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetUtility.h" />
     <ClInclude Include="..\..\include\bb\ShuffleSet.h" />

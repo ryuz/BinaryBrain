@@ -1,7 +1,7 @@
 ﻿#include <stdio.h>
 #include <iostream>
 #include "gtest/gtest.h"
-#include "bb/NeuralNetLut.h"
+#include "bb/NeuralNetSparseMiniMlp.h"
 #include "bb/NeuralNetOptimizerSgd.h"
 
 
@@ -51,19 +51,19 @@ inline void PrintLayerBuffer(bb::NeuralNetLayer<>& layer, std::string name)
 }
 
 
-TEST(NeuralNetLutTest, testLut)
+TEST(NeuralNetSparseMiniMlpTest, testLut)
 {
 	const int input_node_size = 6;
 	const int output_node_size = 3;
 	const int frame_size = 3;
-	bb::NeuralNetLut<6, 6> lut(input_node_size, output_node_size);
+	bb::NeuralNetSparseMiniMlp<6, 6> smm(input_node_size, output_node_size);
 
-	lut.SetOptimizer(&bb::NeuralNetOptimizerSgd<>(0.01f));
+	smm.SetOptimizer(&bb::NeuralNetOptimizerSgd<>(0.01f));
 
-	lut.SetBatchSize(frame_size);
-	testSetupLayerBuffer(lut);
+	smm.SetBatchSize(frame_size);
+	testSetupLayerBuffer(smm);
 
-	auto in_sig_buf = lut.GetInputSignalBuffer();
+	auto in_sig_buf = smm.GetInputSignalBuffer();
 	in_sig_buf.SetReal(0, 0, 0.1);
 	in_sig_buf.SetReal(0, 1, 0.2);
 	in_sig_buf.SetReal(0, 2, 0.3);
@@ -87,16 +87,16 @@ TEST(NeuralNetLutTest, testLut)
 
 //	PrintLayerBuffer(lut.m_batch_norm, "m_batch_norm");
 
-	lut.Forward();
+	smm.Forward();
 
-	auto out_sig_buf = lut.GetOutputSignalBuffer();
+	auto out_sig_buf = smm.GetOutputSignalBuffer();
 #if 0
 	std::cout << "out(0, 0) : " << out_sig_buf.GetReal(0, 0) << std::endl;
 	std::cout << "out(0, 1) : " << out_sig_buf.GetReal(0, 1) << std::endl;
 	std::cout << "out(0, 2) : " << out_sig_buf.GetReal(0, 2) << std::endl;
 #endif
 
-	auto out_err_buf = lut.GetOutputErrorBuffer();
+	auto out_err_buf = smm.GetOutputErrorBuffer();
 	out_err_buf.SetReal(0, 0, 0.5);
 	out_err_buf.SetReal(0, 1, -0.7);
 	out_err_buf.SetReal(0, 2, 0.9);
@@ -108,9 +108,9 @@ TEST(NeuralNetLutTest, testLut)
 	out_err_buf.SetReal(2, 2, -0.4);
 
 
-	lut.Backward();
+	smm.Backward();
 
-	auto in_err_buf = lut.GetInputErrorBuffer();
+	auto in_err_buf = smm.GetInputErrorBuffer();
 #if 0
 	std::cout << "in_err(0, 0) : " << out_sig_buf.GetReal(0, 0) << std::endl;
 	std::cout << "in_err(0, 1) : " << out_sig_buf.GetReal(0, 1) << std::endl;
@@ -120,7 +120,7 @@ TEST(NeuralNetLutTest, testLut)
 	std::cout << "in_err(0, 5) : " << out_sig_buf.GetReal(0, 5) << std::endl;
 #endif
 
-	lut.Update();
+	smm.Update();
 
 #if 0
 	PrintLayerBuffer(lut.m_lut_pre, "m_lut_pre");

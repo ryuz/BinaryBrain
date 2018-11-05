@@ -4,7 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "bb/NeuralNetLutStackedAffine.h"
+#include "bb/NeuralNetStackedMiniAffine.h"
 
 
 
@@ -85,9 +85,9 @@ public:
 };
 
 
-TEST(NeuralNetLutStackedAffine, testNeuralNetLutStackedAffine)
+TEST(NeuralNetStackedMiniAffineTest, testNeuralNetStackedMiniAffine)
 {
-	bb::NeuralNetLutStackedAffine<4, 2> lut(6, 1);
+	bb::NeuralNetStackedMiniAffine<4, 2> lut(6, 1);
 	lut.SetBatchSize(1);
 	testSetupLayerBuffer(lut);
 	
