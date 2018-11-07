@@ -282,7 +282,7 @@ public:
 
 				// ネット保存
 				if (file_write) {
-					int save_epoc = epoc + prev_epoc;
+					int save_epoc = epoc + 1 + prev_epoc;
 
 					{
 						std::stringstream fname;
@@ -306,7 +306,7 @@ public:
 				// 学習状況評価
 				auto now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
 				auto test_accuracy = RunCalculation(x_test, y_test, max_batch_size, 0, accFunc);
-				log_stream << now_time << "s " << "epoc[" << epoc+ prev_epoc + 1 << "] test_accuracy : " << test_accuracy << " train_accuracy : " << train_accuracy <<  std::endl;
+				log_stream << now_time << "s " << "epoc[" << epoc + 1 + prev_epoc << "] test_accuracy : " << test_accuracy << " train_accuracy : " << train_accuracy <<  std::endl;
 
 				// Shuffle
 				ShuffleDataSet(mt(), x_train, y_train);

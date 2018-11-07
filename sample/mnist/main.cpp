@@ -74,6 +74,7 @@ int main()
 	// LUT network
 #if 1
 	MnistMlpBin(16, 256);	// Learn : DSMM-Network -> copy : LUT-Network
+	return 0;
 #endif
 
 #if 1

@@ -26,7 +26,7 @@
 #include "bb/NeuralNetBinarize.h"
 
 #include "bb/NeuralNetSparseMiniMlp.h"
-#include "bb/NeuralNetLutDiscrete.h"
+#include "bb/NeuralNetSparseMiniMlpDiscrete.h"
 
 #include "bb/NeuralNetBinaryMultiplex.h"
 
@@ -227,13 +227,13 @@ void MnistMlpLut(int epoc_size, size_t max_batch_size, bool binary_mode)
 	auto td = bb::LoadMnist<>::Load();
 
 	// build layer
-	bb::NeuralNetRealToBinary<float>	input_real2bin(28 * 28, 28 * 28);
-	bb::NeuralNetLutDiscrete<6, 16>		layer0_lut(28 * 28, 8192);
-	bb::NeuralNetLutDiscrete<6, 16>		layer1_lut(8192, 4096);
-	bb::NeuralNetLutDiscrete<6, 16>		layer2_lut(4096, 1080);
-	bb::NeuralNetLutDiscrete<6, 16>		layer3_lut(1080, 180);
-	bb::NeuralNetLutDiscrete<6, 16>		layer4_lut(180, 30);
-	bb::NeuralNetBinaryToReal<float>	output_bin2real(30, 10);
+	bb::NeuralNetRealToBinary<float>			input_real2bin(28 * 28, 28 * 28);
+	bb::NeuralNetSparseMiniMlpDiscrete<6, 16>	layer0_lut(28 * 28, 8192);
+	bb::NeuralNetSparseMiniMlpDiscrete<6, 16>	layer1_lut(8192, 4096);
+	bb::NeuralNetSparseMiniMlpDiscrete<6, 16>	layer2_lut(4096, 1080);
+	bb::NeuralNetSparseMiniMlpDiscrete<6, 16>	layer3_lut(1080, 180);
+	bb::NeuralNetSparseMiniMlpDiscrete<6, 16>	layer4_lut(180, 30);
+	bb::NeuralNetBinaryToReal<float>			output_bin2real(30, 10);
 
 	// build network
 	bb::NeuralNet<> net;
