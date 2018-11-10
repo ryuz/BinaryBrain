@@ -58,7 +58,7 @@ void NeuralNetBinaryLut6VerilogXilinx(std::ostream& os, NeuralNetBinaryLut<bitwi
 			"        #(\n"
 			"            .INIT(64'b";
 
-		for (int bit = 0; bit < 64; ++bit ) {
+		for (int bit = 63; bit >= 0; --bit ) {
 			if (bit < lut_table_size) {
 				os << (lut.GetLutTable(node, bit) ? "1" : "0");
 			}
