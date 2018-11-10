@@ -24,7 +24,7 @@
 namespace bb {
 
 
-// Sparce Mini-MLP(Multilayer perceptron) Layer
+// Sparce Mini-MLP(Multilayer perceptron) Layer [Affine-ReLU-Affine-BatchNorm-Binarize]
 template <int N = 6, int M = 16, typename T = float, typename INDEX = size_t>
 class NeuralNetSparseMiniMlp : public NeuralNetSparseLayer<T, INDEX>
 {
@@ -81,7 +81,7 @@ public:
 	void SetBinaryMode(bool enable)
 	{
 		m_affine.SetBinaryMode(enable);
-//		m_batch_norm.SetBinaryMode(enable);
+		m_batch_norm.SetBinaryMode(enable);
 		m_activation.SetBinaryMode(enable);
 	}
 

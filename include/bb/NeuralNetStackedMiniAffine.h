@@ -25,7 +25,7 @@
 namespace bb {
 
 
-// 入力数制限Affine Binary Connect版
+// Mini-MLP(Affine-ReLU-Affine-BatchNorm-Binarize)
 template <int N = 6, int M = 16, typename T = float, typename INDEX = size_t>
 class NeuralNetStackedMiniAffine : public NeuralNetSparseLayer<T, INDEX>
 {
