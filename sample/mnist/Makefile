@@ -1,5 +1,5 @@
 
-TARGET = mnist-sample
+TARGET = sample-mnist
 
 CC     = g++
 #CC     = clang++
@@ -18,7 +18,7 @@ all: $(TARGET)
 
 .PHONY: clean
 clean:
-	rm -f mnist-sample
+	rm -f $(TARGET) *.o
 
 .PHONY: run
 run: $(TARGET) train-images-idx3-ubyte train-labels-idx1-ubyte t10k-images-idx3-ubyte t10k-labels-idx1-ubyte
