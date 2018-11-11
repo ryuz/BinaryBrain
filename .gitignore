@@ -4,9 +4,13 @@
 *.o
 *.exe
 *.bin
+*.v
+*.dat
+*.hex
 
 *.VC.db
-*.VC.db
+*.VC.opendb
+*.vspx
 
 .vs/
 Debug/

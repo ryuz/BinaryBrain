@@ -65,16 +65,22 @@ void MnistCnnSparseAffineBinary(int epoc_size, size_t mini_batch_size, bool bina
 void MnistCnnSparseAffineBinToLut(int bin_epoc_size, size_t bin_mini_batch_size, int lut_epoc_size, size_t lut_mini_batch_size);
 void MnistCnnSparseLut(int bin_epoc_size, size_t bin_mini_batch_size);
 
+void WriteMnistDataFile(std::string train_file, std::string test_file, int train_size=-1, int test_size = -1);
+
 
 // main
 int main()
 {
 //	omp_set_num_threads(6);
 
+#if 0
+	// write verilog testbench data file
+	WriteMnistDataFile("minis_train.dat", "mnist_test.dat");
+#endif
+
 	// LUT network
 #if 1
 	MnistMlpBin(16, 256);	// Learn : DSMM-Network -> copy : LUT-Network
-	return 0;
 #endif
 
 #if 1
@@ -1480,4 +1486,48 @@ void MnistCnnSparseLut(int epoc_size, size_t mini_batch_size)
 
 }
 
+
+
+
+static void WriteMnistDataFile(std::ostream& ofs, std::vector< std::vector<float> > x, std::vector< std::vector<float> > y)
+{
+	for (size_t i = 0; i < x.size(); ++i) {
+		auto yi = bb::argmax<>(y[i]);
+
+		for (int j = 7; j >= 0; --j) {
+			ofs << ((yi >> j) & 1);
+		}
+		ofs << "_";
+
+		for (int j = 28*28-1; j >= 0; --j) {
+			if (x[i][j] > 0.5f) {
+				ofs << "1";
+			}
+			else {
+				ofs << "0";
+			}
+		}
+		ofs << std::endl;
+	}
+}
+
+
+// write data file for verilog testbench
+void WriteMnistDataFile(std::string train_file, std::string test_file, int train_size, int test_size)
+{
+	// load MNIST data
+	auto td = bb::LoadMnist<>::Load(10, train_size, test_size);
+
+	// write train data
+	{
+		std::ofstream ofs_train(train_file);
+		WriteMnistDataFile(ofs_train, td.x_train, td.y_train);
+	}
+
+	// write test data
+	{
+		std::ofstream ofs_test(test_file);
+		WriteMnistDataFile(ofs_test, td.x_test, td.y_test);
+	}
+}
 
