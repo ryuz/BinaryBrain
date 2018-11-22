@@ -188,5 +188,8 @@
     <ClInclude Include="..\..\include\bb\NeuralNetStackedMiniAffine.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bb\NeuralNetBinaryLutVerilog.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

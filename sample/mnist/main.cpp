@@ -37,6 +37,7 @@
 #include "bb/NeuralNetBinaryToReal.h"
 #include "bb/NeuralNetBinaryLut6.h"
 #include "bb/NeuralNetBinaryLut6VerilogXilinx.h"
+#include "bb/NeuralNetBinaryLutVerilog.h"
 #include "bb/NeuralNetOptimizerSgd.h"
 #include "bb/NeuralNetOptimizerAdam.h"
 #include "bb/NeuralNetLossCrossEntropyWithSoftmax.h"
@@ -71,7 +72,7 @@ void WriteMnistDataFile(std::string train_file, std::string test_file, int train
 // main
 int main()
 {
-//	omp_set_num_threads(6);
+	omp_set_num_threads(4);
 
 #if 0
 	// write verilog testbench data file
@@ -81,6 +82,7 @@ int main()
 	// LUT network
 #if 1
 	MnistMlpBin(16, 256);	// Learn : DSMM-Network -> copy : LUT-Network
+	return 0;
 #endif
 
 #if 1
@@ -163,10 +165,63 @@ void MnistMlpBin(int epoc_size, size_t mini_batch_size, bool binary_mode)
 	bb::NeuralNetRealToBinary<float>	input_bin2real(28 * 28, 28 * 28);
 	bb::NeuralNetSparseMiniMlp<6, 16>	layer0_smm(28 * 28, 8192);
 	bb::NeuralNetSparseMiniMlp<6, 16>	layer1_smm(8192, 4096);
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer2_smm(4096, 1080);
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer3_smm(1080, 180);
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer4_smm(180, 30);
+	bb::NeuralNetSparseMiniMlp<6, 16>	layer2_smm(4096, 2048);
+	bb::NeuralNetSparseMiniMlp<6, 16>	layer3_smm(2048, 1024);
+	bb::NeuralNetSparseMiniMlp<6, 16>	layer4_smm(1024, 512);
+	bb::NeuralNetSparseMiniMlp<6, 16>	layer5_smm(512, 256);
+	bb::NeuralNetSparseMiniMlp<6, 16>	layer6_smm(256, 128);
+	bb::NeuralNetSparseMiniMlp<6, 16>	layer7_smm(128, 64);
+	bb::NeuralNetSparseMiniMlp<6, 16>	layer8_smm(64, 30);
 	bb::NeuralNetBinaryToReal<float>	output_bin2real(30, 10);
+
+	// connection
+	int idx0[6] = { 0, 1, 2, 28, 29, 28 * 2 };
+	for (int i = 0; i < 8192; ++i) {
+		for (int j = 0; j < 6; ++j) {
+			layer0_smm.SetNodeInput(i, j, (i + idx0[j]) % (28 * 28));
+		}
+	}
+	for (int i = 0; i < 4096; ++i) {
+		for (int j = 0; j < 6; ++j) {
+			layer1_smm.SetNodeInput(i, j, (i * 2 + j) % 8192);
+		}
+	}
+	for (int i = 0; i < 2048; ++i) {
+		for (int j = 0; j < 6; ++j) {
+			layer2_smm.SetNodeInput(i, j, (i * 2 + j) % 4096);
+		}
+	}
+	for (int i = 0; i < 1024; ++i) {
+		for (int j = 0; j < 6; ++j) {
+			layer3_smm.SetNodeInput(i, j, (i * 2 + j) % 2048);
+		}
+	}
+	for (int i = 0; i < 512; ++i) {
+		for (int j = 0; j < 6; ++j) {
+			layer4_smm.SetNodeInput(i, j, (i * 2 + j) % 1024);
+		}
+	}
+	for (int i = 0; i < 256; ++i) {
+		for (int j = 0; j < 6; ++j) {
+			layer5_smm.SetNodeInput(i, j, (i * 2 + j) % 512);
+		}
+	}
+	for (int i = 0; i < 128; ++i) {
+		for (int j = 0; j < 6; ++j) {
+			layer6_smm.SetNodeInput(i, j, (i * 2 + j) % 256);
+		}
+	}
+	for (int i = 0; i < 64; ++i) {
+		for (int j = 0; j < 6; ++j) {
+			layer7_smm.SetNodeInput(i, j, (i * 2 + j) % 128);
+		}
+	}
+	for (int i = 0; i < 30; ++i) {
+		for (int j = 0; j < 6; ++j) {
+			layer8_smm.SetNodeInput(i, j, (i * 2 + j) % 64);
+		}
+	}
+
 
 	// build network
 	bb::NeuralNet<> net;
@@ -176,6 +231,10 @@ void MnistMlpBin(int epoc_size, size_t mini_batch_size, bool binary_mode)
 	net.AddLayer(&layer2_smm);
 	net.AddLayer(&layer3_smm);
 	net.AddLayer(&layer4_smm);
+	net.AddLayer(&layer5_smm);
+	net.AddLayer(&layer6_smm);
+	net.AddLayer(&layer7_smm);
+	net.AddLayer(&layer8_smm);
 	net.AddLayer(&output_bin2real);
 
 	// set optimizer
@@ -191,6 +250,7 @@ void MnistMlpBin(int epoc_size, size_t mini_batch_size, bool binary_mode)
 	bb::NeuralNetAccuracyCategoricalClassification<>	acc_func(num_class);
 	net.Fitting(run_name, td, epoc_size, mini_batch_size, &acc_func, &loss_func, true, true);
 
+	return;
 
 	// ------------------------------------
 	//  Look-up Table Networks
@@ -233,11 +293,11 @@ void MnistMlpBin(int epoc_size, size_t mini_batch_size, bool binary_mode)
 	// Write RTL
 	std::string rtl_fname = "lut_net_mlp.v";
 	std::ofstream ofs(rtl_fname);
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_layer0_lut, "lutnet_layer0");
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_layer1_lut, "lutnet_layer1");
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_layer2_lut, "lutnet_layer2");
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_layer3_lut, "lutnet_layer3");
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_layer4_lut, "lutnet_layer4");
+	bb::NeuralNetBinaryLutVerilog(ofs, lut_layer0_lut, "lutnet_layer0");
+	bb::NeuralNetBinaryLutVerilog(ofs, lut_layer1_lut, "lutnet_layer1");
+	bb::NeuralNetBinaryLutVerilog(ofs, lut_layer2_lut, "lutnet_layer2");
+	bb::NeuralNetBinaryLutVerilog(ofs, lut_layer3_lut, "lutnet_layer3");
+	bb::NeuralNetBinaryLutVerilog(ofs, lut_layer4_lut, "lutnet_layer4");
 	std::cout << "write : " << rtl_fname << std::endl;
 	
 	std::cout << "end\n" << std::endl;

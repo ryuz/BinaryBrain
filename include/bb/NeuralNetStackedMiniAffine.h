@@ -168,7 +168,12 @@ public:
 	}
 
 	int   GetNodeInputSize(INDEX node) const { return N; }
-	void  SetNodeInput(INDEX node, int input_index, INDEX input_node) { m_node[node].input[input_index] = input_node; }
+	void  SetNodeInput(INDEX node, int input_index, INDEX input_node) {
+		BB_ASSERT(node >= 0 && node < GetOutputNodeSize());
+		BB_ASSERT(input_index >= 0 && input_index < GetNodeInputSize(node));
+		BB_ASSERT(input_node >= 0 && input_node < GetInputNodeSize());
+		m_node[node].input[input_index] = input_node;
+	}
 	INDEX GetNodeInput(INDEX node, int input_index) const { return m_node[node].input[input_index]; }
 
 	void  SetBatchSize(INDEX batch_size) { m_frame_size = batch_size; }
@@ -246,7 +251,7 @@ public:
 		}
 	}
 
-
+#if 0
 	void Backward(void)
 	{
 		auto in_sig_buf = this->GetInputSignalBuffer();
@@ -351,6 +356,141 @@ public:
 			}
 		}
 	}
+#else
+	void Backward(void)
+	{
+		auto in_sig_buf = this->GetInputSignalBuffer();
+		auto out_sig_buf = this->GetOutputSignalBuffer();
+		auto out_err_buf = this->GetOutputErrorBuffer();
+
+		auto node_size = this->GetOutputNodeSize();
+		const __m256	zero = _mm256_set1_ps(0);
+		
+		if (typeid(T) == typeid(float)) {
+			INDEX frame_size = (m_frame_size + 7) / 8 * 8;
+
+			float* tmp_err_buf = (float *)aligned_memory_alloc(node_size*N*frame_size*sizeof(float), 32);
+			
+#pragma omp parallel for
+			for (int node = 0; node < (int)node_size; ++node) {
+				auto& nd = m_node[node];
+
+				__m256	W0[M][N];
+				__m256	b0[M];
+				__m256	dW0[M][N];
+				__m256	db0[M];
+				__m256	W1[M];
+				__m256	dW1[M];
+				__m256	db1;
+				for (int i = 0; i < M; ++i) {
+					for (int j = 0; j < N; ++j) {
+						W0[i][j] = _mm256_set1_ps(nd.W0[i*N + j]);
+						dW0[i][j] = _mm256_set1_ps(nd.dW0[i*N + j]);
+					}
+					b0[i] = _mm256_set1_ps(nd.b0[i]);
+					db0[i] = _mm256_set1_ps(nd.db0[i]);
+					W1[i] = _mm256_set1_ps(nd.W1[i]);
+					dW1[i] = _mm256_set1_ps(nd.dW1[i]);
+				}
+				db1 = _mm256_set1_ps(nd.db1);
+
+				float*	out_err_ptr;
+				float*	in_sig_ptr[N];
+
+				float*	tmp_err_ptr = &tmp_err_buf[node * N*frame_size];
+
+
+				out_err_ptr = (float*)out_err_buf.GetPtr(node);
+				for (int i = 0; i < N; ++i) {
+					in_sig_ptr[i] = (float*)in_sig_buf.GetPtr(nd.input[i]);
+				}
+
+				for (int frame = 0; frame < frame_size; frame += 8) {
+					__m256	in_sig[N];
+					for (int i = 0; i < N; ++i) {
+						in_sig[i] = _mm256_load_ps(&in_sig_ptr[i][frame]);
+					}
+
+					// 一層目の信号を再構成
+					__m256	sig0[M];
+					for (int i = 0; i < M; ++i) {
+						// sub-layer0
+						__m256	sum0 = b0[i];
+						for (int j = 0; j < N; ++j) {
+							sum0 = _mm256_fmadd_ps(in_sig[j], W0[i][j], sum0);
+						}
+
+						// ReLU
+						sum0 = _mm256_max_ps(sum0, zero);
+
+						sig0[i] = sum0;
+					}
+
+					// 逆伝播
+					__m256	in_err[N];
+					for (int i = 0; i < N; ++i) {
+						in_err[i] = zero;
+					}
+
+					__m256 out_err = _mm256_load_ps(&out_err_ptr[frame]);
+					db1 = _mm256_add_ps(db1, out_err);
+					for (int i = 0; i < M; ++i) {
+						__m256 err0 = _mm256_mul_ps(W1[i], out_err);
+						__m256 mask = _mm256_cmp_ps(sig0[i], zero, _CMP_GT_OS);
+						dW1[i] = _mm256_fmadd_ps(sig0[i], out_err, dW1[i]);
+
+						err0 = _mm256_and_ps(err0, mask);		// ReLU
+
+						db0[i] = _mm256_add_ps(db0[i], err0);
+						for (int j = 0; j < N; ++j) {
+							in_err[j] = _mm256_fmadd_ps(err0, W0[i][j], in_err[j]);
+							dW0[i][j] = _mm256_fmadd_ps(err0, in_sig[j], dW0[i][j]);
+						}
+					}
+
+					for (int i = 0; i < N; ++i) {
+						_mm256_store_ps(&tmp_err_ptr[i*frame_size + frame], in_err[i]);
+					}
+				}
+
+				for (int i = 0; i < M; ++i) {
+					for (int j = 0; j < N; ++j) {
+						nd.dW0[i*N + j] += bb_mm256_cvtss_f32(bb_mm256_hsum_ps(dW0[i][j]));
+					}
+					nd.db0[i] += bb_mm256_cvtss_f32(bb_mm256_hsum_ps(db0[i]));
+					nd.dW1[i] += bb_mm256_cvtss_f32(bb_mm256_hsum_ps(dW1[i]));
+				}
+				nd.db1 += bb_mm256_cvtss_f32(bb_mm256_hsum_ps(db1));
+			}
+
+			// 足しこみ
+			auto in_err_buf = this->GetInputErrorBuffer();
+			in_err_buf.Clear();
+			for (int node = 0; node < (int)node_size; ++node) {
+				auto& nd = m_node[node];
+
+				float*	in_err_ptr[N];
+				for (int i = 0; i < N; ++i) {
+					in_err_ptr[i] = (float*)in_err_buf.GetPtr(nd.input[i]);
+				}
+				float*	tmp_err_ptr = &tmp_err_buf[node * N*frame_size];
+
+#pragma omp parallel for
+				for (int frame = 0; frame < frame_size; frame += 8) {
+					for (int i = 0; i < N; ++i) {
+						__m256 in_err = _mm256_load_ps(&in_err_ptr[i][frame]);
+						__m256 tmp_err = _mm256_load_ps(&tmp_err_ptr[i*frame_size + frame]);
+						in_err = _mm256_add_ps(in_err, tmp_err);
+						_mm256_store_ps(&in_err_ptr[i][frame], in_err);
+					}
+				}
+
+			}
+
+			aligned_memory_free(tmp_err_buf);
+		}
+	}
+#endif
 
 	void Update(void)
 	{
