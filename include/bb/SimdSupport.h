@@ -16,8 +16,6 @@
 #include <intrin.h>
 #else
 #include <x86intrin.h>
-//#include <avxintrin.h>
-//#include <immintrin.h>
 #endif
 
 
@@ -115,4 +113,11 @@ inline __m256 bb_mm256_hsum_ps(__m256 r)
 #endif
 
 
+#if !defined(__AVX__) && !defined(__AVX2__)
+#error AVX is not supported 
+#endif
+
+#if defined(__AVX__) && !defined(__AVX2__)
+// #warning AVX2 is not supported (use AVX instruction only)
+#endif
 

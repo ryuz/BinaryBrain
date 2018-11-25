@@ -82,7 +82,6 @@ int main()
 	// LUT network
 #if 1
 	MnistMlpBin(16, 256);	// Learn : DSMM-Network -> copy : LUT-Network
-	return 0;
 #endif
 
 #if 1
@@ -163,64 +162,13 @@ void MnistMlpBin(int epoc_size, size_t mini_batch_size, bool binary_mode)
 
 	// build layer
 	bb::NeuralNetRealToBinary<float>	input_bin2real(28 * 28, 28 * 28);
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer0_smm(28 * 28, 8192);
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer1_smm(8192, 4096);
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer2_smm(4096, 2048);
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer3_smm(2048, 1024);
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer4_smm(1024, 512);
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer5_smm(512, 256);
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer6_smm(256, 128);
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer7_smm(128, 64);
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer8_smm(64, 30);
+	bb::NeuralNetSparseMiniMlp<6, 16>	layer0_smm(28 * 28, 512);
+	bb::NeuralNetSparseMiniMlp<6, 16>	layer1_smm(512, 512);
+	bb::NeuralNetSparseMiniMlp<6, 16>	layer2_smm(512, 256);
+	bb::NeuralNetSparseMiniMlp<6, 16>	layer3_smm(256, 256);
+	bb::NeuralNetSparseMiniMlp<6, 16>	layer4_smm(256, 128);
+	bb::NeuralNetSparseMiniMlp<6, 16>	layer5_smm(128, 30);
 	bb::NeuralNetBinaryToReal<float>	output_bin2real(30, 10);
-
-	// connection
-	int idx0[6] = { 0, 1, 2, 28, 29, 28 * 2 };
-	for (int i = 0; i < 8192; ++i) {
-		for (int j = 0; j < 6; ++j) {
-			layer0_smm.SetNodeInput(i, j, (i + idx0[j]) % (28 * 28));
-		}
-	}
-	for (int i = 0; i < 4096; ++i) {
-		for (int j = 0; j < 6; ++j) {
-			layer1_smm.SetNodeInput(i, j, (i * 2 + j) % 8192);
-		}
-	}
-	for (int i = 0; i < 2048; ++i) {
-		for (int j = 0; j < 6; ++j) {
-			layer2_smm.SetNodeInput(i, j, (i * 2 + j) % 4096);
-		}
-	}
-	for (int i = 0; i < 1024; ++i) {
-		for (int j = 0; j < 6; ++j) {
-			layer3_smm.SetNodeInput(i, j, (i * 2 + j) % 2048);
-		}
-	}
-	for (int i = 0; i < 512; ++i) {
-		for (int j = 0; j < 6; ++j) {
-			layer4_smm.SetNodeInput(i, j, (i * 2 + j) % 1024);
-		}
-	}
-	for (int i = 0; i < 256; ++i) {
-		for (int j = 0; j < 6; ++j) {
-			layer5_smm.SetNodeInput(i, j, (i * 2 + j) % 512);
-		}
-	}
-	for (int i = 0; i < 128; ++i) {
-		for (int j = 0; j < 6; ++j) {
-			layer6_smm.SetNodeInput(i, j, (i * 2 + j) % 256);
-		}
-	}
-	for (int i = 0; i < 64; ++i) {
-		for (int j = 0; j < 6; ++j) {
-			layer7_smm.SetNodeInput(i, j, (i * 2 + j) % 128);
-		}
-	}
-	for (int i = 0; i < 30; ++i) {
-		for (int j = 0; j < 6; ++j) {
-			layer8_smm.SetNodeInput(i, j, (i * 2 + j) % 64);
-		}
-	}
 
 
 	// build network
@@ -232,9 +180,6 @@ void MnistMlpBin(int epoc_size, size_t mini_batch_size, bool binary_mode)
 	net.AddLayer(&layer3_smm);
 	net.AddLayer(&layer4_smm);
 	net.AddLayer(&layer5_smm);
-	net.AddLayer(&layer6_smm);
-	net.AddLayer(&layer7_smm);
-	net.AddLayer(&layer8_smm);
 	net.AddLayer(&output_bin2real);
 
 	// set optimizer

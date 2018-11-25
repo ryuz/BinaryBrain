@@ -150,7 +150,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>__AVX2__;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\..\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
@@ -171,6 +171,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\include\bb\DataAugmentationMnist.h" />
     <ClInclude Include="..\..\include\bb\LoadCifar10.h" />
     <ClInclude Include="..\..\include\bb\LoadMnist.h" />
     <ClInclude Include="..\..\include\bb\NeuralNet.h" />
@@ -187,6 +188,7 @@
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryLut6.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryLut6VerilogXilinx.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryLutN.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetBinaryLutVerilog.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryMultiplex.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryToReal.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBuffer.h" />
