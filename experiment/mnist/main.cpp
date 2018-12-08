@@ -101,6 +101,8 @@ void MnistMlpLutMini(int epoc_size, size_t max_batch_size, bool binary_mode);
 void MnistMlpLut2(int epoc_size, size_t max_batch_size, bool binary_mode);
 
 
+void MnistDenseFullyCnn(int epoc_size, size_t max_batch_size, bool binary_mode);
+
 // メイン関数
 int main()
 {
@@ -109,17 +111,22 @@ int main()
 
 	omp_set_num_threads(4);
 
+//	MnistDenseFullyCnn(16, 256, false);
+//	return 0;
+
 //	MnistMlpLut(16, 256, true);
-	MnistMlpLut2(16, 256, true);
+//	MnistMlpLut2(16, 256, true);
 //	MnistMlpLutMini(16, 256, true);
-	getchar();
-	return 0;
+//	getchar();
+//	return 0;
 
 
+	MnistFullyCnn(256, 64);
 //	MnistFullyCnn2(256, 64);
 
 //	MnistMlpLut(0, 256);
-//	return 0;
+	return 0;
+
 
 //	MnistCnnLut(2, 64);
 
@@ -177,6 +184,111 @@ int main()
 	getchar();
 
 	return 0;
+}
+
+// MNIST CNN with LUT networks
+void MnistDenseFullyCnn(int epoc_size, size_t max_batch_size, bool binary_mode)
+{
+	// run name
+	std::string run_name = "MnistDenseFullyCnn";
+	int			num_class = 10;
+
+	// load MNIST data
+	auto td = bb::LoadMnist<>::Load();
+
+	// sub-networks for convolution(3x3)
+	bb::NeuralNetDenseAffine<>	sub0_affine(1 * 3 * 3, 32);
+//	bb::NeuralNetSigmoid<>		sub0_act(32);
+	bb::NeuralNetGroup<>		sub0_net;
+	sub0_net.AddLayer(&sub0_affine);
+//	sub0_net.AddLayer(&sub0_act);
+
+	// sub-networks for convolution(3x3)
+	bb::NeuralNetDenseAffine<>	sub1_affine(32 * 3 * 3, 32);
+//	bb::NeuralNetSigmoid<>		sub1_act(32);
+	bb::NeuralNetGroup<>		sub1_net;
+	sub1_net.AddLayer(&sub1_affine);
+//	sub1_net.AddLayer(&sub1_act);
+
+	// sub-networks for convolution(3x3)
+	bb::NeuralNetDenseAffine<>	sub3_affine(32 * 3 * 3, 32);
+//	bb::NeuralNetSigmoid<>		sub3_act(32);
+	bb::NeuralNetGroup<>		sub3_net;
+	sub3_net.AddLayer(&sub3_affine);
+//	sub3_net.AddLayer(&sub3_act);
+
+	// sub-networks for convolution(3x3)
+	bb::NeuralNetDenseAffine<>	sub4_affine(32 * 3 * 3, 32);
+//	bb::NeuralNetSigmoid<>		sub4_act(32);
+	bb::NeuralNetGroup<>		sub4_net;
+	sub4_net.AddLayer(&sub4_affine);
+//	sub4_net.AddLayer(&sub4_act);
+
+	// sub-networks for convolution(3x3)
+	bb::NeuralNetDenseAffine<>	sub6_affine(32 * 3 * 3, 32);
+//	bb::NeuralNetSigmoid<>		sub6_act(32);
+	bb::NeuralNetGroup<>		sub6_net;
+	sub6_net.AddLayer(&sub6_affine);
+//	sub6_net.AddLayer(&sub6_act);
+
+	// sub-networks for convolution(3x3)
+	bb::NeuralNetDenseAffine<>	sub7_affine(32 * 2 * 2, 10);
+//	bb::NeuralNetSigmoid<>		sub7_act(10);
+	bb::NeuralNetGroup<>		sub7_net;
+	sub7_net.AddLayer(&sub7_affine);
+//	sub7_net.AddLayer(&sub7_act);
+
+
+	bb::NeuralNetLoweringConvolution<>		layer0_conv(&sub0_net, 1, 28, 28, 32, 3, 3);
+//	bb::NeuralNetDenseConvolution<>			layer0_conv(1, 28, 28, 32, 3, 3);
+	bb::NeuralNetReLU<>						layer0_act(32 * 26 * 26);
+	bb::NeuralNetLoweringConvolution<>		layer1_conv(&sub1_net, 32, 26, 26, 32, 3, 3);
+//	bb::NeuralNetDenseConvolution<>			layer1_conv(32, 26, 26, 32, 3, 3);
+	bb::NeuralNetReLU<>						layer1_act(32 * 24 * 24);
+	bb::NeuralNetMaxPooling<>				layer2_maxpol(32, 24, 24, 2, 2);
+	bb::NeuralNetLoweringConvolution<>		layer3_conv(&sub3_net, 32, 12, 12, 32, 3, 3);
+//	bb::NeuralNetDenseConvolution<>			layer3_conv(32, 12, 12, 32, 3, 3);
+	bb::NeuralNetReLU<>						layer3_act(32 * 10 * 10);
+	bb::NeuralNetLoweringConvolution<>		layer4_conv(&sub4_net, 32, 10, 10, 32, 3, 3);
+//	bb::NeuralNetDenseConvolution<>			layer4_conv(32, 10, 10, 32, 3, 3);
+	bb::NeuralNetReLU<>						layer4_act(32 * 8 * 8);
+	bb::NeuralNetMaxPooling<>				layer5_maxpol(32, 8, 8, 2, 2);
+	bb::NeuralNetLoweringConvolution<>		layer6_conv(&sub6_net, 32, 4, 4, 32, 3, 3);
+//	bb::NeuralNetDenseConvolution<>			layer6_conv(32, 4, 4, 32, 3, 3);
+	bb::NeuralNetReLU<>						layer6_act(32 * 2 * 2);
+	bb::NeuralNetLoweringConvolution<>		layer7_conv(&sub7_net, 32, 2, 2, 10, 2, 2);
+//	bb::NeuralNetDenseConvolution<>			layer7_conv(32, 2, 2, 10, 2, 2);
+//	bb::NeuralNetReLU<>						layer7_act(10);
+
+	// build network
+	bb::NeuralNet<> net;
+	net.AddLayer(&layer0_conv);
+	net.AddLayer(&layer0_act);
+	net.AddLayer(&layer1_conv);
+	net.AddLayer(&layer1_act);
+	net.AddLayer(&layer2_maxpol);
+	net.AddLayer(&layer3_conv);
+	net.AddLayer(&layer3_act);
+	net.AddLayer(&layer4_conv);
+	net.AddLayer(&layer4_act);
+	net.AddLayer(&layer5_maxpol);
+	net.AddLayer(&layer6_conv);
+	net.AddLayer(&layer6_act);
+	net.AddLayer(&layer7_conv);
+//	net.AddLayer(&layer7_act);
+
+	// set optimizer
+	bb::NeuralNetOptimizerAdam<> optimizerAdam;
+	net.SetOptimizer(&optimizerAdam);
+
+	// set binary mode
+	net.SetBinaryMode(binary_mode);
+	std::cout << "binary mode : " << binary_mode << std::endl;
+
+	// run fitting
+	bb::NeuralNetLossCrossEntropyWithSoftmax<>			loss_func;
+	bb::NeuralNetAccuracyCategoricalClassification<>	acc_func(num_class);
+	net.Fitting(run_name, td, epoc_size, max_batch_size, &acc_func, &loss_func, true, true, true);
 }
 
 

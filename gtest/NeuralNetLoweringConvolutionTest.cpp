@@ -5,8 +5,8 @@
 #include "bb/NeuralNetDenseAffine.h"
 #include "bb/NeuralNetGroup.h"
 #include "bb/NeuralNetLoweringConvolution.h"
-
-
+#include "bb/NeuralNetDenseConvolution.h"
+#include "bb/NeuralNetOptimizerAdam.h"
 
 inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 {
@@ -15,6 +15,8 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 	net.SetOutputSignalBuffer(net.CreateOutputSignalBuffer());
 	net.SetOutputErrorBuffer(net.CreateOutputErrorBuffer());
 }
+
+
 
 
 TEST(NeuralNetLoweringConvolutionTest, testNeuralNetLoweringConvolution)
@@ -315,3 +317,187 @@ TEST(NeuralNetLoweringConvolutionTest, testNeuralNetLoweringConvolution2)
 }
 
 #endif
+
+
+
+
+TEST(NeuralNetLoweringConvolutionTest, testNeuralNetLoweringConvolutionCmp)
+{
+#if 0
+	const int c_size = 31; // 2;
+	const int x_size = 3;  // 3;
+	const int y_size = 3;  //  3;
+	const int n_size = 32; // 4;
+	const int w_size = 28; // 5;
+	const int h_size = 28; //6;
+	const int batch_size = 256;//  128;
+#else
+	const int c_size = 2;
+	const int x_size = 3;
+	const int y_size = 3;
+	const int n_size = 4;
+	const int w_size = 5;
+	const int h_size = 6;
+	const int batch_size = 128;
+#endif
+	const int out_w_size = w_size - x_size + 1;
+	const int out_h_size = h_size - y_size + 1;
+
+
+	bb::NeuralNetDenseAffine<>			sub_affine(c_size * y_size * x_size, n_size);
+	bb::NeuralNetGroup<>				sub_net;
+	sub_net.AddLayer(&sub_affine);
+	bb::NeuralNetLoweringConvolution<>	cnv0(&sub_net, c_size, w_size, h_size, n_size, x_size, y_size);
+	bb::NeuralNetDenseConvolution<>		cnv1(          c_size, w_size, h_size, n_size, x_size, y_size);
+
+	cnv0.SetBatchSize(batch_size);
+	cnv1.SetBatchSize(batch_size);
+
+	testSetupLayerBuffer(cnv0);
+	testSetupLayerBuffer(cnv1);
+
+	bb::NeuralNetOptimizerAdam<> optimizerAdam;
+	cnv0.SetOptimizer(&optimizerAdam);
+	cnv1.SetOptimizer(&optimizerAdam);
+
+
+	std::mt19937_64 mt(1);
+	std::uniform_int_distribution<int>	rand_dist(1, 16);
+
+	for (int epoc = 0; epoc < 3; ++epoc) {
+		// -------------------------------
+		//  forward
+		// -------------------------------
+
+		// 係数を統一
+		for (int n = 0; n < n_size; ++n) {
+			for (int c = 0; c < c_size; ++c) {
+				for (int y = 0; y < y_size; ++y) {
+					for (int x = 0; x < x_size; ++x) {
+						float W = (float)(rand_dist(mt));
+						sub_affine.W(n, (c*y_size + y)*x_size + x) = W;
+						cnv1.W(n, c, y, x) = W;
+					}
+				}
+			}
+			float b = (float)(rand_dist(mt));
+			sub_affine.b(n) = b;
+			cnv1.b(n) = b;
+		}
+
+		// 入力を設定
+		{
+			auto in_sig_buf0 = cnv0.GetInputSignalBuffer();
+			auto in_sig_buf1 = cnv1.GetInputSignalBuffer();
+			for (int f = 0; f < batch_size; ++f) {
+				for (int c = 0; c < c_size; ++c) {
+					for (int h = 0; h < h_size; ++h) {
+						for (int w = 0; w < w_size; ++w) {
+							float sig = (float)(rand_dist(mt));
+							in_sig_buf0.SetReal(f, (c*h_size + h)*w_size + w, sig);
+							in_sig_buf1.SetReal(f, (c*h_size + h)*w_size + w, sig);
+						}
+					}
+				}
+			}
+		}
+
+		cnv0.Forward();
+		cnv1.Forward();
+
+		// 出力を比較
+		{
+			auto out_sig_buf0 = cnv0.GetOutputSignalBuffer();
+			auto out_sig_buf1 = cnv1.GetOutputSignalBuffer();
+			for (int f = 0; f < batch_size; ++f) {
+				for (int n = 0; n < c_size; ++n) {
+					for (int h = 0; h < out_h_size; ++h) {
+						for (int w = 0; w < out_w_size; ++w) {
+							auto sig0 = out_sig_buf0.GetReal(f, (n*out_h_size + h)*out_w_size + w);
+							auto sig1 = out_sig_buf1.GetReal(f, (n*out_h_size + h)*out_w_size + w);
+							EXPECT_EQ(sig0, sig1);
+						}
+					}
+				}
+			}
+		}
+
+
+
+		// -------------------------------
+		//  backword
+		// -------------------------------
+
+		// 逆伝播誤差を設定
+		auto out_err_buf0 = cnv0.GetOutputErrorBuffer();
+		auto out_err_buf1 = cnv1.GetOutputErrorBuffer();
+		for (int f = 0; f < batch_size; ++f) {
+			for (int n = 0; n < c_size; ++n) {
+				for (int h = 0; h < out_h_size; ++h) {
+					for (int w = 0; w < out_w_size; ++w) {
+						float err = (float)(rand_dist(mt));
+						out_err_buf0.SetReal(f, (n*out_h_size + h)*out_w_size + w, err);
+						out_err_buf1.SetReal(f, (n*out_h_size + h)*out_w_size + w, err);
+					}
+				}
+			}
+		}
+
+		cnv0.Backward();
+		cnv1.Backward();
+
+		// 伝播誤差を比較
+		{
+			auto in_err_buf0 = cnv0.GetInputErrorBuffer();
+			auto in_err_buf1 = cnv1.GetInputErrorBuffer();
+			for (int f = 0; f < batch_size; ++f) {
+				for (int c = 0; c < c_size; ++c) {
+					for (int h = 0; h < h_size; ++h) {
+						for (int w = 0; w < w_size; ++w) {
+							float sig = (float)(rand_dist(mt));
+							auto err0 = in_err_buf0.GetReal(f, (c*h_size + h)*w_size + w);
+							auto err1 = in_err_buf1.GetReal(f, (c*h_size + h)*w_size + w);
+							EXPECT_EQ(err0, err1);
+						}
+					}
+				}
+			}
+		}
+
+		// 学習係数を比較
+		for (int n = 0; n < n_size; ++n) {
+			for (int c = 0; c < c_size; ++c) {
+				for (int y = 0; y < y_size; ++y) {
+					for (int x = 0; x < x_size; ++x) {
+						auto dW0 = sub_affine.dW(n, (c*y_size + y)*x_size + x);
+						auto dW1 = cnv1.dW(n, c, y, x);
+						EXPECT_EQ(dW0, dW1);
+					}
+				}
+			}
+			auto db0 = sub_affine.db(n);
+			auto db1 = cnv1.db(n);
+			EXPECT_EQ(db0, db1);
+		}
+
+
+		cnv0.Update();
+		cnv1.Update();
+
+		// 学習係数を比較
+		for (int n = 0; n < n_size; ++n) {
+			for (int c = 0; c < c_size; ++c) {
+				for (int y = 0; y < y_size; ++y) {
+					for (int x = 0; x < x_size; ++x) {
+						auto W0 = sub_affine.W(n, (c*y_size + y)*x_size + x);
+						auto W1 = cnv1.W(n, c, y, x);
+						EXPECT_EQ(W0, W1);
+					}
+				}
+			}
+			auto b0 = sub_affine.b(n);
+			auto b1 = cnv1.b(n);
+			EXPECT_EQ(b0, b1);
+		}
+	}
+}
