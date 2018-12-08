@@ -232,7 +232,7 @@ public:
 					in_sig_ptr[i] = (float*)in_sig_buf.GetPtr(nd.input[i]);
 				}
 
-				#pragma omp parallel for
+	//			#pragma omp parallel for
 				for (int frame = 0; frame < (int)frame_size; ++frame) {
 					__m256 out_err = _mm256_load_ps(out_err_ptr);	out_err_ptr += 8;
 					db = _mm256_add_ps(db, out_err);
@@ -247,10 +247,9 @@ public:
 				}
 
 				for (int i = 0; i < N; i++) {
-					nd.dW[i] += bb_mm256_cvtss_f32(bb_mm256_hsum_ps(dW[i]));
-
+					nd.dW[i] = bb_mm256_cvtss_f32(bb_mm256_hsum_ps(dW[i]));
 				}
-				nd.db += bb_mm256_cvtss_f32(bb_mm256_hsum_ps(db));
+				nd.db = bb_mm256_cvtss_f32(bb_mm256_hsum_ps(db));
 			}
 		}
 	}
@@ -267,14 +266,13 @@ public:
 		}
 		
 		// clear
-		for (auto& nd : m_node) {
-			for (int i = 0; i < N; ++i) {
-				nd.dW[i] = 0;
-			}
-			nd.db = 0;
-		}
+	//	for (auto& nd : m_node) {
+	//		for (int i = 0; i < N; ++i) {
+	//			nd.dW[i] = 0;
+	//		}
+	//		nd.db = 0;
+	//	}
 
-#if 1
 		// clip
 		if (m_binary_mode) {
 			for (auto& nd : m_node) {
@@ -283,7 +281,6 @@ public:
 				}
 			}
 		}
-#endif
 	}
 
 public:

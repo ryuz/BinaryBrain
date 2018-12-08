@@ -212,7 +212,7 @@ public:
 				}
 
 				INDEX frame_size = (m_frame_size + 7) / 8 * 8;
-				#pragma omp parallel for
+	//			#pragma omp parallel for
 				for (int frame = 0; frame < (int)frame_size; frame += 8) {
 					__m256 out_err = _mm256_load_ps(&out_err_ptr[frame]);
 					db = _mm256_add_ps(db, out_err);
