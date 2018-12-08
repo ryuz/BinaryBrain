@@ -14,8 +14,8 @@
 #include <random>
 
 #include "bb/NeuralNetSparseLayer.h"
-#include "bb/NeuralNetSparseMiniMlpPreAffine.h"
-#include "bb/NeuralNetSparseMiniMlpPostAffine.h"
+#include "bb/NeuralNetSparseMicroMlpPreAffine.h"
+#include "bb/NeuralNetSparseMicroMlpPostAffine.h"
 #include "bb/NeuralNetBatchNormalization.h"
 #include "bb/NeuralNetReLU.h"
 #include "bb/NeuralNetSigmoid.h"
@@ -27,7 +27,7 @@ namespace bb {
 
 // 入力数制限Affine Binary Connect版
 template <int N = 6, int M = 16, typename ACTIVATION0=NeuralNetReLU<float, size_t>, typename ACTIVATION1 = NeuralNetSigmoid<float, size_t>, typename T = float, typename INDEX = size_t>
-class NeuralNetSparseMiniMlpDiscrete : public NeuralNetSparseLayer<T, INDEX>
+class NeuralNetSparseMicroMlpDiscrete : public NeuralNetSparseLayer<T, INDEX>
 {
 	using super = NeuralNetSparseLayer<T, INDEX>;
 
@@ -36,17 +36,17 @@ public:
 	INDEX									m_batch_size = 0;
 
 	// 3層で構成
-	NeuralNetSparseMiniMlpPreAffine<N, M, T, INDEX>		m_pre_affine;
+	NeuralNetSparseMicroMlpPreAffine<N, M, T, INDEX>		m_pre_affine;
 	ACTIVATION0											m_pre_act;
 //	NeuralNetSigmoid<T, INDEX>							m_pre_act;
-	NeuralNetSparseMiniMlpPostAffine<M, T, INDEX>		m_post_affine;
+	NeuralNetSparseMicroMlpPostAffine<M, T, INDEX>		m_post_affine;
 	NeuralNetBatchNormalization<T, INDEX>				m_batch_norm;
 	ACTIVATION1											m_act_post;
 
 public:
-	NeuralNetSparseMiniMlpDiscrete() {}
+	NeuralNetSparseMicroMlpDiscrete() {}
 
-	NeuralNetSparseMiniMlpDiscrete(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1,
+	NeuralNetSparseMicroMlpDiscrete(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1,
 		const NeuralNetOptimizer<T, INDEX>* optimizer = nullptr)
 		: m_pre_affine(input_node_size, output_node_size, seed, optimizer),
 		m_pre_act(output_node_size * M),
@@ -57,9 +57,9 @@ public:
 		InitializeCoeff(seed);
 	}
 	
-	~NeuralNetSparseMiniMlpDiscrete() {}
+	~NeuralNetSparseMicroMlpDiscrete() {}
 
-	std::string GetClassName(void) const { return "NeuralNetSparseMiniMlpDiscrete"; }
+	std::string GetClassName(void) const { return "NeuralNetSparseMicroMlpDiscrete"; }
 
 	std::vector<T> CalcNode(INDEX node, std::vector<T> input_value) const
 	{

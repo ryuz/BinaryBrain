@@ -37,10 +37,10 @@
     <ClCompile Include="NeuralNetSoftmaxTest.cpp" />
     <ClCompile Include="NeuralNetSparseAffineTest.cpp" />
     <ClCompile Include="NeuralNetSparseBinaryAffineTest.cpp" />
-    <ClCompile Include="NeuralNetSparseMiniMlpPostAffineTest.cpp" />
-    <ClCompile Include="NeuralNetSparseMiniMlpPreAffineTest.cpp" />
-    <ClCompile Include="NeuralNetSparseMiniMlpTest.cpp" />
-    <ClCompile Include="NeuralNetStackedMiniAffineTest.cpp" />
+    <ClCompile Include="NeuralNetSparseMicroMlpPostAffineTest.cpp" />
+    <ClCompile Include="NeuralNetSparseMicroMlpPreAffineTest.cpp" />
+    <ClCompile Include="NeuralNetSparseMicroMlpTest.cpp" />
+    <ClCompile Include="NeuralNetStackedMicroAffineTest.cpp" />
     <ClCompile Include="NeuralNetTypeTest.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -89,11 +89,6 @@
     <ClInclude Include="..\include\bb\NeuralNetSparseAffineSigmoid.h" />
     <ClInclude Include="..\include\bb\NeuralNetSparseBinaryAffine.h" />
     <ClInclude Include="..\include\bb\NeuralNetSparseLayer.h" />
-    <ClInclude Include="..\include\bb\NeuralNetSparseMiniMlp.h" />
-    <ClInclude Include="..\include\bb\NeuralNetSparseMiniMlpDiscrete.h" />
-    <ClInclude Include="..\include\bb\NeuralNetSparseMiniMlpPostAffine.h" />
-    <ClInclude Include="..\include\bb\NeuralNetSparseMiniMlpPreAffine.h" />
-    <ClInclude Include="..\include\bb\NeuralNetStackedMiniAffine.h" />
     <ClInclude Include="..\include\bb\NeuralNetType.h" />
     <ClInclude Include="..\include\bb\NeuralNetUtility.h" />
     <ClInclude Include="..\include\bb\ShuffleSet.h" />

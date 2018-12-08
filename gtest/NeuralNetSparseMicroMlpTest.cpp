@@ -1,8 +1,8 @@
 ﻿#include <stdio.h>
 #include <iostream>
 #include "gtest/gtest.h"
-#include "bb/NeuralNetSparseMiniMlp.h"
-#include "bb/NeuralNetSparseMiniMlpDiscrete.h"
+#include "bb/NeuralNetSparseMicroMlp.h"
+#include "bb/NeuralNetSparseMicroMlpDiscrete.h"
 #include "bb/NeuralNetOptimizerSgd.h"
 
 
@@ -52,13 +52,13 @@ inline void PrintLayerBuffer(bb::NeuralNetLayer<>& layer, std::string name)
 }
 
 
-TEST(NeuralNetSparseMiniMlpTest, testLut)
+TEST(NeuralNetSparseMicroMlpTest, testLut)
 {
 	const int input_node_size = 6;
 	const int output_node_size = 3;
 	const int frame_size = 3;
-	bb::NeuralNetSparseMiniMlp<6, 6> smm(input_node_size, output_node_size);
-	bb::NeuralNetSparseMiniMlpDiscrete<6, 6> smmd(input_node_size, output_node_size);
+	bb::NeuralNetSparseMicroMlp<6, 6> smm(input_node_size, output_node_size);
+	bb::NeuralNetSparseMicroMlpDiscrete<6, 6> smmd(input_node_size, output_node_size);
 
 	smm.SetOptimizer(&bb::NeuralNetOptimizerSgd<>(0.01f));
 

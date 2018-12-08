@@ -25,8 +25,8 @@
 #include "bb/NeuralNetSoftmax.h"
 #include "bb/NeuralNetBinarize.h"
 
-#include "bb/NeuralNetSparseMiniMlp.h"
-#include "bb/NeuralNetSparseMiniMlpDiscrete.h"
+#include "bb/NeuralNetSparseMicroMlp.h"
+#include "bb/NeuralNetSparseMicroMlpDiscrete.h"
 
 #include "bb/NeuralNetBinaryMultiplex.h"
 
@@ -444,9 +444,9 @@ void MnistMlpLutMini(int epoc_size, size_t max_batch_size, bool binary_mode)
 	auto td = bb::LoadMnist<>::Load();
 
 	// build layer
-	bb::NeuralNetSparseMiniMlpDiscrete<6, 32>	layer0_lut(28 * 28, 1080);
-	bb::NeuralNetSparseMiniMlpDiscrete<6, 32>	layer1_lut(1080, 180);
-	bb::NeuralNetSparseMiniMlpDiscrete<6, 32>	layer2_lut(180, 30);
+	bb::NeuralNetSparseMicroMlpDiscrete<6, 32>	layer0_lut(28 * 28, 1080);
+	bb::NeuralNetSparseMicroMlpDiscrete<6, 32>	layer1_lut(1080, 180);
+	bb::NeuralNetSparseMicroMlpDiscrete<6, 32>	layer2_lut(180, 30);
 
 	// build network
 	bb::NeuralNet<> net;
@@ -574,11 +574,11 @@ void MnistMlpLut(int epoc_size, size_t max_batch_size, bool binary_mode)
 
 	// build layer
 	bb::NeuralNetRealToBinary<float>			input_real2bin(28 * 28, 28 * 28);
-	bb::NeuralNetSparseMiniMlpDiscrete<6, 16>	layer0_lut(28 * 28, 8192);
-	bb::NeuralNetSparseMiniMlpDiscrete<6, 16>	layer1_lut(8192, 4096);
-	bb::NeuralNetSparseMiniMlpDiscrete<6, 16>	layer2_lut(4096, 1080);
-	bb::NeuralNetSparseMiniMlpDiscrete<6, 16>	layer3_lut(1080, 180);
-	bb::NeuralNetSparseMiniMlpDiscrete<6, 16>	layer4_lut(180, 30);
+	bb::NeuralNetSparseMicroMlpDiscrete<6, 16>	layer0_lut(28 * 28, 8192);
+	bb::NeuralNetSparseMicroMlpDiscrete<6, 16>	layer1_lut(8192, 4096);
+	bb::NeuralNetSparseMicroMlpDiscrete<6, 16>	layer2_lut(4096, 1080);
+	bb::NeuralNetSparseMicroMlpDiscrete<6, 16>	layer3_lut(1080, 180);
+	bb::NeuralNetSparseMicroMlpDiscrete<6, 16>	layer4_lut(180, 30);
 	bb::NeuralNetBinaryToReal<float>			output_bin2real(30, 10);
 
 	int index0[4] = { 0, 1, 28 + 0, 28 + 1};
@@ -768,14 +768,14 @@ void MnistMlpLut2(int epoc_size, size_t max_batch_size, bool binary_mode)
 
 	// build layer
 	bb::NeuralNetRealToBinary<float>			input_real2bin(28 * 28, 28 * 28);
-	bb::NeuralNetSparseMiniMlpDiscrete<6, 16>	layer0_lut(28 * 28, 256);
-	bb::NeuralNetSparseMiniMlpDiscrete<6, 16>	layer1_lut(256, 256);
-	bb::NeuralNetSparseMiniMlpDiscrete<6, 16>	layer2_lut(256, 128);
-	bb::NeuralNetSparseMiniMlpDiscrete<6, 16>	layer3_lut(128, 128);
-	bb::NeuralNetSparseMiniMlpDiscrete<6, 16>	layer4_lut(128, 128);
-	bb::NeuralNetSparseMiniMlpDiscrete<6, 16>	layer5_lut(128, 128);
-	bb::NeuralNetSparseMiniMlpDiscrete<6, 16>	layer6_lut(128, 128);
-	bb::NeuralNetSparseMiniMlpDiscrete<6, 16>	layer7_lut(128, 30);
+	bb::NeuralNetSparseMicroMlpDiscrete<6, 16>	layer0_lut(28 * 28, 256);
+	bb::NeuralNetSparseMicroMlpDiscrete<6, 16>	layer1_lut(256, 256);
+	bb::NeuralNetSparseMicroMlpDiscrete<6, 16>	layer2_lut(256, 128);
+	bb::NeuralNetSparseMicroMlpDiscrete<6, 16>	layer3_lut(128, 128);
+	bb::NeuralNetSparseMicroMlpDiscrete<6, 16>	layer4_lut(128, 128);
+	bb::NeuralNetSparseMicroMlpDiscrete<6, 16>	layer5_lut(128, 128);
+	bb::NeuralNetSparseMicroMlpDiscrete<6, 16>	layer6_lut(128, 128);
+	bb::NeuralNetSparseMicroMlpDiscrete<6, 16>	layer7_lut(128, 30);
 	bb::NeuralNetBinaryToReal<float>			output_bin2real(30, 10);
 
 //	ConnectShift6(layer0_lut);
@@ -939,29 +939,29 @@ void MnistCnnLut(int epoc_size, size_t max_batch_size, bool binary_mode)
 	auto td = bb::LoadMnist<>::Load();
 
 	// sub-networks for convolution(3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub0_smm0(1 * 3 * 3, 192);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub0_smm1(192, 32);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub0_smm0(1 * 3 * 3, 192);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub0_smm1(192, 32);
 	bb::NeuralNetGroup<>				sub0_net;
 	sub0_net.AddLayer(&sub0_smm0);
 	sub0_net.AddLayer(&sub0_smm1);
 
 	// sub-networks for convolution(3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub1_smm0(32 * 3 * 3, 192);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub1_smm1(192, 32);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub1_smm0(32 * 3 * 3, 192);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub1_smm1(192, 32);
 	bb::NeuralNetGroup<>				sub1_net;
 	sub1_net.AddLayer(&sub1_smm0);
 	sub1_net.AddLayer(&sub1_smm1);
 
 	// sub-networks for convolution(3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub3_smm0(32 * 3 * 3, 192);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub3_smm1(192, 32);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub3_smm0(32 * 3 * 3, 192);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub3_smm1(192, 32);
 	bb::NeuralNetGroup<>		sub3_net;
 	sub3_net.AddLayer(&sub3_smm0);
 	sub3_net.AddLayer(&sub3_smm1);
 
 	// sub-networks for convolution(3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub4_smm0(32 * 3 * 3, 192);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub4_smm1(192, 32);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub4_smm0(32 * 3 * 3, 192);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub4_smm1(192, 32);
 	bb::NeuralNetGroup<>		sub4_net;
 	sub4_net.AddLayer(&sub4_smm0);
 	sub4_net.AddLayer(&sub4_smm1);
@@ -973,8 +973,8 @@ void MnistCnnLut(int epoc_size, size_t max_batch_size, bool binary_mode)
 	bb::NeuralNetLoweringConvolution<>		layer3_conv(&sub3_net, 32, 12, 12, 32, 3, 3);
 	bb::NeuralNetLoweringConvolution<>		layer4_conv(&sub4_net, 32, 10, 10, 32, 3, 3);
 	bb::NeuralNetMaxPooling<>				layer5_maxpol(32, 8, 8, 2, 2);
-	bb::NeuralNetSparseMiniMlp<6, 16>		layer6_smm(32 * 4 * 4, 480);
-	bb::NeuralNetSparseMiniMlp<6, 16>		layer7_smm(480, 80);
+	bb::NeuralNetSparseMicroMlp<6, 16>		layer6_smm(32 * 4 * 4, 480);
+	bb::NeuralNetSparseMicroMlp<6, 16>		layer7_smm(480, 80);
 	bb::NeuralNetBinaryToReal<float>		output_bin2real(80, 10);
 
 	// build network
@@ -1120,36 +1120,36 @@ void MnistFullyCnn(int epoc_size, size_t max_batch_size, bool binary_mode)
 	auto td = bb::LoadMnist<>::Load();
 
 	// sub-networks for convolution(3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub0_smm0(1 * 3 * 3, 192);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub0_smm1(192, 32);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub0_smm0(1 * 3 * 3, 192);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub0_smm1(192, 32);
 	bb::NeuralNetGroup<>				sub0_net;
 	sub0_net.AddLayer(&sub0_smm0);
 	sub0_net.AddLayer(&sub0_smm1);
 
 	// sub-networks for convolution(3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub1_smm0(32 * 3 * 3, 192);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub1_smm1(192, 32);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub1_smm0(32 * 3 * 3, 192);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub1_smm1(192, 32);
 	bb::NeuralNetGroup<>				sub1_net;
 	sub1_net.AddLayer(&sub1_smm0);
 	sub1_net.AddLayer(&sub1_smm1);
 
 	// sub-networks for convolution(3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub3_smm0(32 * 3 * 3, 192);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub3_smm1(192, 32);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub3_smm0(32 * 3 * 3, 192);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub3_smm1(192, 32);
 	bb::NeuralNetGroup<>				sub3_net;
 	sub3_net.AddLayer(&sub3_smm0);
 	sub3_net.AddLayer(&sub3_smm1);
 
 	// sub-networks for convolution(3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub4_smm0(32 * 3 * 3, 192);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub4_smm1(192, 32);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub4_smm0(32 * 3 * 3, 192);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub4_smm1(192, 32);
 	bb::NeuralNetGroup<>				sub4_net;
 	sub4_net.AddLayer(&sub4_smm0);
 	sub4_net.AddLayer(&sub4_smm1);
 
 	// sub-networks for convolution(3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub6_smm0(32 * 3 * 3, 192);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub6_smm1(192, 30);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub6_smm0(32 * 3 * 3, 192);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub6_smm1(192, 30);
 	bb::NeuralNetGroup<>				sub6_net;
 	sub6_net.AddLayer(&sub6_smm0);
 	sub6_net.AddLayer(&sub6_smm1);
@@ -1308,10 +1308,10 @@ void MnistFullyCnn2(int epoc_size, size_t max_batch_size, bool binary_mode)
 	auto td = bb::LoadMnist<>::Load();
 
 	// sub-networks for convolution(3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub0_smm0(1 * 3 * 3, 1024);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub0_smm1(1024, 1024);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub0_smm2(1024, 384);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub0_smm3(384, 64);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub0_smm0(1 * 3 * 3, 1024);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub0_smm1(1024, 1024);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub0_smm2(1024, 384);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub0_smm3(384, 64);
 	bb::NeuralNetGroup<>				sub0_net;
 	sub0_net.AddLayer(&sub0_smm0);
 	sub0_net.AddLayer(&sub0_smm1);
@@ -1319,10 +1319,10 @@ void MnistFullyCnn2(int epoc_size, size_t max_batch_size, bool binary_mode)
 	sub0_net.AddLayer(&sub0_smm3);
 
 	// sub-networks for convolution(3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub1_smm0(64 * 3 * 3, 1024);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub1_smm1(1024, 1024);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub1_smm2(1024, 384);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub1_smm3(384, 64);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub1_smm0(64 * 3 * 3, 1024);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub1_smm1(1024, 1024);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub1_smm2(1024, 384);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub1_smm3(384, 64);
 	bb::NeuralNetGroup<>				sub1_net;
 	sub1_net.AddLayer(&sub1_smm0);
 	sub1_net.AddLayer(&sub1_smm1);
@@ -1330,10 +1330,10 @@ void MnistFullyCnn2(int epoc_size, size_t max_batch_size, bool binary_mode)
 	sub1_net.AddLayer(&sub1_smm3);
 
 	// sub-networks for convolution(3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub3_smm0(64 * 3 * 3, 1024);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub3_smm1(1024, 1024);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub3_smm2(1024, 384);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub3_smm3(384, 64);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub3_smm0(64 * 3 * 3, 1024);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub3_smm1(1024, 1024);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub3_smm2(1024, 384);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub3_smm3(384, 64);
 	bb::NeuralNetGroup<>				sub3_net;
 	sub3_net.AddLayer(&sub3_smm0);
 	sub3_net.AddLayer(&sub3_smm1);
@@ -1341,10 +1341,10 @@ void MnistFullyCnn2(int epoc_size, size_t max_batch_size, bool binary_mode)
 	sub3_net.AddLayer(&sub3_smm3);
 
 	// sub-networks for convolution(3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub4_smm0(64 * 3 * 3, 1024);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub4_smm1(1024, 1024);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub4_smm2(1024, 384);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub4_smm3(384, 64);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub4_smm0(64 * 3 * 3, 1024);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub4_smm1(1024, 1024);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub4_smm2(1024, 384);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub4_smm3(384, 64);
 	bb::NeuralNetGroup<>				sub4_net;
 	sub4_net.AddLayer(&sub4_smm0);
 	sub4_net.AddLayer(&sub4_smm1);
@@ -1352,10 +1352,10 @@ void MnistFullyCnn2(int epoc_size, size_t max_batch_size, bool binary_mode)
 	sub4_net.AddLayer(&sub4_smm3);
 
 	// sub-networks for convolution(3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub6_smm0(64 * 3 * 3, 1024);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub6_smm1(1024, 1024);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub6_smm2(1024, 384);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub6_smm3(384, 60);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub6_smm0(64 * 3 * 3, 1024);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub6_smm1(1024, 1024);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub6_smm2(1024, 384);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub6_smm3(384, 60);
 	bb::NeuralNetGroup<>				sub6_net;
 	sub6_net.AddLayer(&sub6_smm0);
 	sub6_net.AddLayer(&sub6_smm1);
@@ -1729,9 +1729,9 @@ void MnistLut2(int epoc_size, size_t max_batch_size, bool binary_mode)
 	// build layer
 #if 1
 	bb::NeuralNetSigmoid<>			input_act(28 * 28);
-	bb::NeuralNetSparseMiniMlp<6>	layer0_smm(28 * 28, 360);
-	bb::NeuralNetSparseMiniMlp<6>	layer1_smm(360, 60);
-	bb::NeuralNetSparseMiniMlp<6>	layer2_smm(60, 10);
+	bb::NeuralNetSparseMicroMlp<6>	layer0_smm(28 * 28, 360);
+	bb::NeuralNetSparseMicroMlp<6>	layer1_smm(360, 60);
+	bb::NeuralNetSparseMicroMlp<6>	layer2_smm(60, 10);
 #else
 	bb::NeuralNetSigmoid<>				input_act(28 * 28);
 	bb::NeuralNetSparseAffineSigmoid<6>	layer0_lut(28 * 28, 360);
@@ -1775,10 +1775,10 @@ void MnistLut3(int epoc_size, size_t max_batch_size, bool binary_mode)
 	// build layer
 	int		m = 8;
 	bb::NeuralNetSigmoid<>				input_act(28 * 28);
-	bb::NeuralNetSparseMiniMlp<6>		layer0_smm(28 * 28, 2160 * m);
-	bb::NeuralNetSparseMiniMlp<6>		layer1_smm(2160 * m, 360 * m);
-	bb::NeuralNetSparseMiniMlp<6>		layer2_smm(360 * m, 60 * m);
-	bb::NeuralNetSparseMiniMlp<6>		layer3_smm(60 * m, 10 * m);
+	bb::NeuralNetSparseMicroMlp<6>		layer0_smm(28 * 28, 2160 * m);
+	bb::NeuralNetSparseMicroMlp<6>		layer1_smm(2160 * m, 360 * m);
+	bb::NeuralNetSparseMicroMlp<6>		layer2_smm(360 * m, 60 * m);
+	bb::NeuralNetSparseMicroMlp<6>		layer3_smm(60 * m, 10 * m);
 
 	bb::NeuralNetGroup<>	mux_group;
 	mux_group.AddLayer(&input_act);
@@ -1821,11 +1821,11 @@ void MnistLut5(int epoc_size, size_t max_batch_size, bool binary_mode)
 	auto train_data = bb::LoadMnist<>::Load();
 
 	// build layer
-	bb::NeuralNetSparseMiniMlp<6>		layer0_smm(28 * 28, 38880);
-	bb::NeuralNetSparseMiniMlp<6>		layer1_smm(38880, 6480);
-	bb::NeuralNetSparseMiniMlp<6>		layer2_smm(6480, 1080);
-	bb::NeuralNetSparseMiniMlp<6>		layer3_smm(1080, 180);
-	bb::NeuralNetSparseMiniMlp<6>		layer4_smm(180, 30);
+	bb::NeuralNetSparseMicroMlp<6>		layer0_smm(28 * 28, 38880);
+	bb::NeuralNetSparseMicroMlp<6>		layer1_smm(38880, 6480);
+	bb::NeuralNetSparseMicroMlp<6>		layer2_smm(6480, 1080);
+	bb::NeuralNetSparseMicroMlp<6>		layer3_smm(1080, 180);
+	bb::NeuralNetSparseMicroMlp<6>		layer4_smm(180, 30);
 	bb::NeuralNetBinaryToReal<float>	layer5_bin2real(30, 10);
 
 	// build network
@@ -1862,11 +1862,11 @@ void MnistLutA(int epoc_size, size_t max_batch_size, bool binary_mode)
 	auto train_data = bb::LoadMnist<>::Load();
 
 	// build layer
-	bb::NeuralNetSparseMiniMlp<6>		layer0_smm(28 * 28, 4096);
-	bb::NeuralNetSparseMiniMlp<6>		layer1_smm(4096, 4096);
-	bb::NeuralNetSparseMiniMlp<6>		layer2_smm(4096, 1080);
-	bb::NeuralNetSparseMiniMlp<6>		layer3_smm(1080, 180);
-	bb::NeuralNetSparseMiniMlp<6>		layer4_smm(180, 30);
+	bb::NeuralNetSparseMicroMlp<6>		layer0_smm(28 * 28, 4096);
+	bb::NeuralNetSparseMicroMlp<6>		layer1_smm(4096, 4096);
+	bb::NeuralNetSparseMicroMlp<6>		layer2_smm(4096, 1080);
+	bb::NeuralNetSparseMicroMlp<6>		layer3_smm(1080, 180);
+	bb::NeuralNetSparseMicroMlp<6>		layer4_smm(180, 30);
 	bb::NeuralNetBinaryToReal<float>	layer5_bin2real(30, 10);
 
 	// build network
@@ -1912,11 +1912,11 @@ void MnistLutD(int epoc_size, size_t max_batch_size, bool binary_mode)
 	auto train_data = bb::LoadMnist<>::Load();
 
 	// build layer
-	bb::NeuralNetSparseMiniMlp<6, 16>		layer0_smm(28 * 28, 8192);
-	bb::NeuralNetSparseMiniMlp<6, 16>		layer1_smm(8192, 4096);
-	bb::NeuralNetSparseMiniMlp<6, 16>		layer2_smm(4096, 1024);
-	bb::NeuralNetSparseMiniMlp<6, 16>		layer3_smm(1024, 600);
-	bb::NeuralNetSparseMiniMlp<6, 16>		layer4_smm(600, 100);
+	bb::NeuralNetSparseMicroMlp<6, 16>		layer0_smm(28 * 28, 8192);
+	bb::NeuralNetSparseMicroMlp<6, 16>		layer1_smm(8192, 4096);
+	bb::NeuralNetSparseMicroMlp<6, 16>		layer2_smm(4096, 1024);
+	bb::NeuralNetSparseMicroMlp<6, 16>		layer3_smm(1024, 600);
+	bb::NeuralNetSparseMicroMlp<6, 16>		layer4_smm(600, 100);
 	bb::NeuralNetBinaryToReal<float>	layer5_bin2real(100, 10);
 
 	// build network
@@ -1963,11 +1963,11 @@ void MnistLutC(int epoc_size, size_t max_batch_size, bool binary_mode)
 	auto data = bb::LoadMnist<>::Load();
 
 	// build layer
-	bb::NeuralNetSparseMiniMlp<6, 16>		layer0_smm(28 * 28, 8192);
-	bb::NeuralNetSparseMiniMlp<6, 16>		layer1_smm(8192, 4096);
-	bb::NeuralNetSparseMiniMlp<6, 16>		layer2_smm(4096, 1080);
-	bb::NeuralNetSparseMiniMlp<6, 16>		layer3_smm(1080, 180);
-	bb::NeuralNetSparseMiniMlp<6, 16>		layer4_smm(180, 30);
+	bb::NeuralNetSparseMicroMlp<6, 16>		layer0_smm(28 * 28, 8192);
+	bb::NeuralNetSparseMicroMlp<6, 16>		layer1_smm(8192, 4096);
+	bb::NeuralNetSparseMicroMlp<6, 16>		layer2_smm(4096, 1080);
+	bb::NeuralNetSparseMicroMlp<6, 16>		layer3_smm(1080, 180);
+	bb::NeuralNetSparseMicroMlp<6, 16>		layer4_smm(180, 30);
 	bb::NeuralNetBinaryToReal<float>	layer5_bin2real(30, 10);
 
 	// build network
@@ -2019,12 +2019,12 @@ void MnistLutE(int epoc_size, size_t max_batch_size, bool binary_mode)
 	auto train_data = bb::LoadMnist<>::Load();
 
 	// build layer
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer0_smm(28 * 28, 8192*2);
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer1_smm(8192 * 2, 8192);
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer2_smm(8192, 4096);
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer3_smm(4096, 1024);
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer4_smm(1024, 600);
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer5_smm(600, 100);
+	bb::NeuralNetSparseMicroMlp<6, 16>	layer0_smm(28 * 28, 8192*2);
+	bb::NeuralNetSparseMicroMlp<6, 16>	layer1_smm(8192 * 2, 8192);
+	bb::NeuralNetSparseMicroMlp<6, 16>	layer2_smm(8192, 4096);
+	bb::NeuralNetSparseMicroMlp<6, 16>	layer3_smm(4096, 1024);
+	bb::NeuralNetSparseMicroMlp<6, 16>	layer4_smm(1024, 600);
+	bb::NeuralNetSparseMicroMlp<6, 16>	layer5_smm(600, 100);
 	bb::NeuralNetBinaryToReal<float>	layer6_bin2real(100, 10);
 
 	// build network
@@ -2071,12 +2071,12 @@ void MnistLutF(int epoc_size, size_t max_batch_size, bool binary_mode)
 	auto train_data = bb::LoadMnist<>::Load();
 
 	// build layer
-	bb::NeuralNetSparseMiniMlp<6, 64>	layer0_smm(28 * 28, 8192 * 2);
-	bb::NeuralNetSparseMiniMlp<6, 64>	layer1_smm(8192 * 2, 8192);
-	bb::NeuralNetSparseMiniMlp<6, 64>	layer2_smm(8192, 4096);
-	bb::NeuralNetSparseMiniMlp<6, 64>	layer3_smm(4096, 2048);
-	bb::NeuralNetSparseMiniMlp<6, 64>	layer4_smm(2048, 600);
-	bb::NeuralNetSparseMiniMlp<6, 64>	layer5_smm(600, 100);
+	bb::NeuralNetSparseMicroMlp<6, 64>	layer0_smm(28 * 28, 8192 * 2);
+	bb::NeuralNetSparseMicroMlp<6, 64>	layer1_smm(8192 * 2, 8192);
+	bb::NeuralNetSparseMicroMlp<6, 64>	layer2_smm(8192, 4096);
+	bb::NeuralNetSparseMicroMlp<6, 64>	layer3_smm(4096, 2048);
+	bb::NeuralNetSparseMicroMlp<6, 64>	layer4_smm(2048, 600);
+	bb::NeuralNetSparseMicroMlp<6, 64>	layer5_smm(600, 100);
 	bb::NeuralNetBinaryToReal<float>	layer6_bin2real(100, 10);
 
 	// build network
@@ -2195,9 +2195,9 @@ void MnistLutBinary(int epoc_size, size_t max_batch_size, bool binary_mode)
 
 	// build layer
 #if 1
-	bb::NeuralNetSparseMiniMlp<6, 64>	layer0_smm(input_node_size*input_hmux_size, layer0_node_size);
-	bb::NeuralNetSparseMiniMlp<6, 64>	layer1_smm(layer0_node_size, layer1_node_size);
-	bb::NeuralNetSparseMiniMlp<6, 64>	layer2_smm(layer1_node_size, layer2_node_size);
+	bb::NeuralNetSparseMicroMlp<6, 64>	layer0_smm(input_node_size*input_hmux_size, layer0_node_size);
+	bb::NeuralNetSparseMicroMlp<6, 64>	layer1_smm(layer0_node_size, layer1_node_size);
+	bb::NeuralNetSparseMicroMlp<6, 64>	layer2_smm(layer1_node_size, layer2_node_size);
 #else
 	bb::NeuralNetSparseAffineSigmoid<6>		layer0_lut(28 * 28, 360);
 	bb::NeuralNetSparseAffineSigmoid<6>		layer1_lut(360, 60);
@@ -2699,29 +2699,29 @@ void MnistLutSimpleConvolutionBinary(int epoc_size, size_t max_batch_size, bool 
 
 
 	// Conv用subネット構築 (3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub0_smm0(1 * 3 * 3, 192);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub0_smm1(192, 32);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub0_smm0(1 * 3 * 3, 192);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub0_smm1(192, 32);
 	bb::NeuralNetGroup<>				sub0_net;
 	sub0_net.AddLayer(&sub0_smm0);
 	sub0_net.AddLayer(&sub0_smm1);
 
 	// Conv用subネット構築 (3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub1_smm0(32 * 3 * 3, 192);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub1_smm1(192, 32);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub1_smm0(32 * 3 * 3, 192);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub1_smm1(192, 32);
 	bb::NeuralNetGroup<>				sub1_net;
 	sub1_net.AddLayer(&sub1_smm0);
 	sub1_net.AddLayer(&sub1_smm1);
 
 	// Conv用subネット構築 (3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub3_smm0(32 * 3 * 3, 192);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub3_smm1(192, 32);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub3_smm0(32 * 3 * 3, 192);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub3_smm1(192, 32);
 	bb::NeuralNetGroup<>				sub3_net;
 	sub3_net.AddLayer(&sub3_smm0);
 	sub3_net.AddLayer(&sub3_smm1);
 
 	// Conv用subネット構築 (3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub4_smm0(32 * 3 * 3, 192);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub4_smm1(192, 32);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub4_smm0(32 * 3 * 3, 192);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub4_smm1(192, 32);
 	bb::NeuralNetGroup<>				sub4_net;
 	sub4_net.AddLayer(&sub4_smm0);
 	sub4_net.AddLayer(&sub4_smm1);
@@ -2732,8 +2732,8 @@ void MnistLutSimpleConvolutionBinary(int epoc_size, size_t max_batch_size, bool 
 	bb::NeuralNetLoweringConvolution<>		layer3_conv(&sub3_net, 32, 12, 12, 32, 3, 3);
 	bb::NeuralNetLoweringConvolution<>		layer4_conv(&sub4_net, 32, 10, 10, 32, 3, 3);
 	bb::NeuralNetMaxPooling<>				layer5_maxpol(32, 8, 8, 2, 2);
-	bb::NeuralNetSparseMiniMlp<6, 16>		layer6_smm(32 * 4 * 4, 480);
-	bb::NeuralNetSparseMiniMlp<6, 16>		layer7_smm(480, 80);
+	bb::NeuralNetSparseMicroMlp<6, 16>		layer6_smm(32 * 4 * 4, 480);
+	bb::NeuralNetSparseMicroMlp<6, 16>		layer7_smm(480, 80);
 	bb::NeuralNetBinaryToReal<float>		output_bin2real(80, 10);
 
 	// build network
@@ -2902,36 +2902,36 @@ void MnistLutSimpleConvolutionBinary2(int epoc_size, size_t max_batch_size, bool
 	}
 
 	// Conv用subネット構築 (3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>		sub0_smm0(1 * 3 * 3, 256);
-	bb::NeuralNetSparseMiniMlp<6, 16>		sub0_smm1(256, 192);
-	bb::NeuralNetSparseMiniMlp<6, 16>		sub0_smm2(192, 32);
+	bb::NeuralNetSparseMicroMlp<6, 16>		sub0_smm0(1 * 3 * 3, 256);
+	bb::NeuralNetSparseMicroMlp<6, 16>		sub0_smm1(256, 192);
+	bb::NeuralNetSparseMicroMlp<6, 16>		sub0_smm2(192, 32);
 	bb::NeuralNetGroup<>		sub0_net;
 	sub0_net.AddLayer(&sub0_smm0);
 	sub0_net.AddLayer(&sub0_smm1);
 	sub0_net.AddLayer(&sub0_smm2);
 
 	// Conv用subネット構築 (3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>		sub1_smm0(32 * 3 * 3, 512);
-	bb::NeuralNetSparseMiniMlp<6, 16>		sub1_smm1(512, 192);
-	bb::NeuralNetSparseMiniMlp<6, 16>		sub1_smm2(192, 32);
+	bb::NeuralNetSparseMicroMlp<6, 16>		sub1_smm0(32 * 3 * 3, 512);
+	bb::NeuralNetSparseMicroMlp<6, 16>		sub1_smm1(512, 192);
+	bb::NeuralNetSparseMicroMlp<6, 16>		sub1_smm2(192, 32);
 	bb::NeuralNetGroup<>		sub1_net;
 	sub1_net.AddLayer(&sub1_smm0);
 	sub1_net.AddLayer(&sub1_smm1);
 	sub1_net.AddLayer(&sub1_smm2);
 
 	// Conv用subネット構築 (3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>		sub3_smm0(32 * 3 * 3, 512);
-	bb::NeuralNetSparseMiniMlp<6, 16>		sub3_smm1(512, 192);
-	bb::NeuralNetSparseMiniMlp<6, 16>		sub3_smm2(192, 32);
+	bb::NeuralNetSparseMicroMlp<6, 16>		sub3_smm0(32 * 3 * 3, 512);
+	bb::NeuralNetSparseMicroMlp<6, 16>		sub3_smm1(512, 192);
+	bb::NeuralNetSparseMicroMlp<6, 16>		sub3_smm2(192, 32);
 	bb::NeuralNetGroup<>		sub3_net;
 	sub3_net.AddLayer(&sub3_smm0);
 	sub3_net.AddLayer(&sub3_smm1);
 	sub3_net.AddLayer(&sub3_smm2);
 
 	// Conv用subネット構築 (3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>		sub4_smm0(32 * 3 * 3, 512);
-	bb::NeuralNetSparseMiniMlp<6, 16>		sub4_smm1(512, 192);
-	bb::NeuralNetSparseMiniMlp<6, 16>		sub4_smm2(192, 32);
+	bb::NeuralNetSparseMicroMlp<6, 16>		sub4_smm0(32 * 3 * 3, 512);
+	bb::NeuralNetSparseMicroMlp<6, 16>		sub4_smm1(512, 192);
+	bb::NeuralNetSparseMicroMlp<6, 16>		sub4_smm2(192, 32);
 	bb::NeuralNetGroup<>		sub4_net;
 	sub4_net.AddLayer(&sub4_smm0);
 	sub4_net.AddLayer(&sub4_smm1);
@@ -2943,10 +2943,10 @@ void MnistLutSimpleConvolutionBinary2(int epoc_size, size_t max_batch_size, bool
 	bb::NeuralNetLoweringConvolution<>		layer3_conv(&sub3_net, 32, 12, 12, 32, 3, 3);
 	bb::NeuralNetLoweringConvolution<>		layer4_conv(&sub4_net, 32, 10, 10, 32, 3, 3);
 	bb::NeuralNetMaxPooling<>				layer5_maxpol(32, 8, 8, 2, 2);
-	bb::NeuralNetSparseMiniMlp<6, 32>		layer6_lut(32 * 4 * 4, 1024);
-	bb::NeuralNetSparseMiniMlp<6, 32>		layer7_lut(1024, 1024);
-	bb::NeuralNetSparseMiniMlp<6, 32>		layer8_lut(1024, 512);
-	bb::NeuralNetSparseMiniMlp<6, 32>		layer9_lut(512, 100);
+	bb::NeuralNetSparseMicroMlp<6, 32>		layer6_lut(32 * 4 * 4, 1024);
+	bb::NeuralNetSparseMicroMlp<6, 32>		layer7_lut(1024, 1024);
+	bb::NeuralNetSparseMicroMlp<6, 32>		layer8_lut(1024, 512);
+	bb::NeuralNetSparseMicroMlp<6, 32>		layer9_lut(512, 100);
 	bb::NeuralNetBinaryToReal<float>		output_bin2real(100, 10);
 
 	// build network

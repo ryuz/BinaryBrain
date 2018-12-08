@@ -6,7 +6,7 @@
 
 #include "bb/NeuralNetBinaryLut6.h"
 #include "bb/NeuralNetBinaryLutN.h"
-#include "bb/NeuralNetSparseMiniMlp.h"
+#include "bb/NeuralNetSparseMicroMlp.h"
 
 
 inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
@@ -587,7 +587,7 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6Copy)
 {
 	size_t batch_size = 1;
 
-	bb::NeuralNetSparseMiniMlp<6, 16> org_lut(8, 2);
+	bb::NeuralNetSparseMicroMlp<6, 16> org_lut(8, 2);
 	bb::NeuralNetBinaryLut6<>		  cpy_lut(8, 2);
 
 	org_lut.SetBinaryMode(true);

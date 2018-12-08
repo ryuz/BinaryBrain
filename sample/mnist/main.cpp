@@ -21,7 +21,7 @@
 
 #include "bb/NeuralNet.h"
 #include "bb/NeuralNetUtility.h"
-#include "bb/NeuralNetSparseMiniMlp.h"
+#include "bb/NeuralNetSparseMicroMlp.h"
 #include "bb/NeuralNetSigmoid.h"
 #include "bb/NeuralNetSoftmax.h"
 #include "bb/NeuralNetBinaryMultiplex.h"
@@ -162,12 +162,12 @@ void MnistMlpBin(int epoc_size, size_t mini_batch_size, bool binary_mode)
 
 	// build layer
 	bb::NeuralNetRealToBinary<float>	input_bin2real(28 * 28, 28 * 28);
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer0_smm(28 * 28, 512);
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer1_smm(512, 512);
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer2_smm(512, 256);
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer3_smm(256, 256);
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer4_smm(256, 128);
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer5_smm(128, 30);
+	bb::NeuralNetSparseMicroMlp<6, 16>	layer0_smm(28 * 28, 512);
+	bb::NeuralNetSparseMicroMlp<6, 16>	layer1_smm(512, 512);
+	bb::NeuralNetSparseMicroMlp<6, 16>	layer2_smm(512, 256);
+	bb::NeuralNetSparseMicroMlp<6, 16>	layer3_smm(256, 256);
+	bb::NeuralNetSparseMicroMlp<6, 16>	layer4_smm(256, 128);
+	bb::NeuralNetSparseMicroMlp<6, 16>	layer5_smm(128, 30);
 	bb::NeuralNetBinaryToReal<float>	output_bin2real(30, 10);
 
 
@@ -265,29 +265,29 @@ void MnistCnnBin(int epoc_size, size_t mini_batch_size, bool binary_mode)
 	// ------------------------------------
 
 	// sub-networks for convolution(3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub0_smm0(1 * 3 * 3, 192);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub0_smm1(192, 32);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub0_smm0(1 * 3 * 3, 192);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub0_smm1(192, 32);
 	bb::NeuralNetGroup<>				sub0_net;
 	sub0_net.AddLayer(&sub0_smm0);
 	sub0_net.AddLayer(&sub0_smm1);
 
 	// sub-networks for convolution(3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub1_smm0(32 * 3 * 3, 192);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub1_smm1(192, 32);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub1_smm0(32 * 3 * 3, 192);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub1_smm1(192, 32);
 	bb::NeuralNetGroup<>		sub1_net;
 	sub1_net.AddLayer(&sub1_smm0);
 	sub1_net.AddLayer(&sub1_smm1);
 
 	// sub-networks for convolution(3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub3_smm0(32 * 3 * 3, 192);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub3_smm1(192, 32);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub3_smm0(32 * 3 * 3, 192);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub3_smm1(192, 32);
 	bb::NeuralNetGroup<>				sub3_net;
 	sub3_net.AddLayer(&sub3_smm0);
 	sub3_net.AddLayer(&sub3_smm1);
 
 	// sub-networks for convolution(3x3)
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub4_smm0(32 * 3 * 3, 192);
-	bb::NeuralNetSparseMiniMlp<6, 16>	sub4_smm1(192, 32);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub4_smm0(32 * 3 * 3, 192);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub4_smm1(192, 32);
 	bb::NeuralNetGroup<>				sub4_net;
 	sub4_net.AddLayer(&sub4_smm0);
 	sub4_net.AddLayer(&sub4_smm1);
@@ -299,8 +299,8 @@ void MnistCnnBin(int epoc_size, size_t mini_batch_size, bool binary_mode)
 	bb::NeuralNetLoweringConvolution<>	layer3_conv(&sub3_net, 32, 12, 12, 32, 3, 3);
 	bb::NeuralNetLoweringConvolution<>	layer4_conv(&sub4_net, 32, 10, 10, 32, 3, 3);
 	bb::NeuralNetMaxPooling<>			layer5_maxpol(32, 8, 8, 2, 2);
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer6_smm(32 * 4 * 4, 480);
-	bb::NeuralNetSparseMiniMlp<6, 16>	layer7_smm(480, 80);
+	bb::NeuralNetSparseMicroMlp<6, 16>	layer6_smm(32 * 4 * 4, 480);
+	bb::NeuralNetSparseMicroMlp<6, 16>	layer7_smm(480, 80);
 	bb::NeuralNetBinaryToReal<float>	output_bin2real(80, 10);
 
 	// build network
@@ -957,9 +957,9 @@ void MnistMlpBinToLut(int bin_epoc_size, size_t bin_mini_batch_size, int lut_epo
 	int	bin_mux_size = 1;
 
 	// build layer
-	bb::NeuralNetSparseMiniMlp<6, 16>	bin_layer0_smm(input_node_size*input_hmux_size, layer0_node_size);
-	bb::NeuralNetSparseMiniMlp<6, 16>	bin_layer1_smm(layer0_node_size, layer1_node_size);
-	bb::NeuralNetSparseMiniMlp<6, 16>	bin_layer2_smm(layer1_node_size, layer2_node_size);
+	bb::NeuralNetSparseMicroMlp<6, 16>	bin_layer0_smm(input_node_size*input_hmux_size, layer0_node_size);
+	bb::NeuralNetSparseMicroMlp<6, 16>	bin_layer1_smm(layer0_node_size, layer1_node_size);
+	bb::NeuralNetSparseMicroMlp<6, 16>	bin_layer2_smm(layer1_node_size, layer2_node_size);
 
 	bb::NeuralNetGroup<>				bin_mux_group;
 	bin_mux_group.AddLayer(&bin_layer0_smm);

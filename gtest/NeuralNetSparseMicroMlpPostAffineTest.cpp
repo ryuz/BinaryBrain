@@ -1,8 +1,8 @@
 ﻿#include <stdio.h>
 #include <iostream>
 #include "gtest/gtest.h"
-#include "bb/NeuralNetSparseMiniMlpPreAffine.h"
-#include "bb/NeuralNetSparseMiniMlpPostAffine.h"
+#include "bb/NeuralNetSparseMicroMlpPreAffine.h"
+#include "bb/NeuralNetSparseMicroMlpPostAffine.h"
 #include "bb/NeuralNetSparseAffine.h"
 
 
@@ -15,14 +15,14 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 }
 
 
-TEST(NeuralNetSparseMiniMlpPostAffineTest, testNeuralNetSparseMiniMlpPostAffine)
+TEST(NeuralNetSparseMicroMlpPostAffineTest, testNeuralNetSparseMicroMlpPostAffine)
 {
 	const int M         = 64;
 	const int output_node_size = 17;
 	const int input_node_size = output_node_size * M;
 	const int frame_size = 37;
 
-	bb::NeuralNetSparseMiniMlpPostAffine<M>		lut_post(output_node_size);
+	bb::NeuralNetSparseMicroMlpPostAffine<M>		lut_post(output_node_size);
 	bb::NeuralNetSparseAffine<M>				affine(input_node_size, output_node_size);
 
 	lut_post.SetBatchSize(frame_size);
