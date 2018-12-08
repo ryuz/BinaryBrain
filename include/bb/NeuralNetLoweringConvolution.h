@@ -61,6 +61,13 @@ public:
 		m_col2im.SetBinaryMode(enable);
 	}
 
+	void SetOptimizer(const NeuralNetOptimizer<T, INDEX>* optimizer)
+	{
+		m_im2col.SetOptimizer(optimizer);
+		m_layer->SetOptimizer(optimizer);
+		m_col2im.SetOptimizer(optimizer);
+	}
+
 	int   GetNodeInputSize(INDEX node) const { return this->m_affine.GetNodeInputSize(node); }
 	void  SetNodeInput(INDEX node, int input_index, INDEX input_node) { this->m_affine.SetNodeInput(node, input_index, input_node); }
 	INDEX GetNodeInput(INDEX node, int input_index) const { return this->m_affine.GetNodeInput(node, input_index); }
