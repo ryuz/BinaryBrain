@@ -121,7 +121,7 @@ int main()
 //	return 0;
 
 
-	MnistFullyCnn(256, 64);
+	MnistFullyCnn(0, 64);
 //	MnistFullyCnn2(256, 64);
 
 //	MnistMlpLut(0, 256);
