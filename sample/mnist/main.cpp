@@ -81,23 +81,23 @@ int main()
 #endif
 
 	// LUT network
-#if 1
+#if 0
 	MnistMlpBin(16, 256);	// Learn : DSMM-Network -> copy : LUT-Network
 #endif
 
-#if 1
+#if 0
 	MnistCnnBin(16, 128);	// Learn : DSMM-Network -> copy : LUT-Network
 #endif
 
-#if 1
+#if 0
 	MnistFullyCnn(16, 128);	// Learn : DSMM-Network -> copy : LUT-Network
 #endif
 
-#if 1
+#if 0
 	MnistMlpLut(16, 32 * 1024);		// Learn : LUT-Network (LUT direct learning)
 #endif
 
-#if 1
+#if 0
 	MnistMlpBinToLut(16, 128, 8, 32 * 1024);	// Learn : DSMM-Network -> Learn : LUT-Network (additional learn)
 #endif
 

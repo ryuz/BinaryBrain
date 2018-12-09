@@ -209,5 +209,8 @@
     <ClInclude Include="..\..\include\bb\NeuralNetSparseMiniMlpPreAffine.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bb\NeuralNetDropout.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

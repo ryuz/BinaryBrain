@@ -17,34 +17,41 @@
 namespace bb {
 
 
-// ReLU(活性化関数)
+// Dropout
 template <typename T = float, typename INDEX = size_t>
-class NeuralNetReLU : public NeuralNetLayerBuf<T, INDEX>
+class NeuralNetDropout : public NeuralNetLayerBuf<T, INDEX>
 {
 protected:
-	INDEX		m_frame_size = 1;
-	INDEX		m_node_size = 0;
-	bool		m_binary_mode = false;
+	INDEX				m_frame_size = 1;
+	INDEX				m_node_size = 0;
+	bool				m_binary_mode = false;
+
+	double				m_rate = 0.5;
+	std::mt19937_64		m_mt;
+	std::vector<bool>	m_mask;
 
 public:
-	NeuralNetReLU() {}
+	NeuralNetDropout() {}
 
-	NeuralNetReLU(INDEX node_size)
+	NeuralNetDropout(INDEX node_size, double rate, std::int64_t seed=1)
 	{
+		m_rate = rate;
+		m_mt.seed(seed);
 		Resize(node_size);
 	}
 
-	~NeuralNetReLU() {}
+	~NeuralNetDropout() {}
 
-	std::string GetClassName(void) const { return "NeuralNetReLU"; }
-
+	std::string GetClassName(void) const { return "NeuralNetDropout"; }
+	
 	void Resize(INDEX node_size)
 	{
 		m_node_size = node_size;
+		m_mask.resize(m_node_size);
 	}
-
+	
 	void  SetBatchSize(INDEX batch_size) { m_frame_size = batch_size; }
-
+	
 	INDEX GetInputFrameSize(void) const { return m_frame_size; }
 	INDEX GetInputNodeSize(void) const { return m_node_size; }
 	INDEX GetOutputFrameSize(void) const { return m_frame_size; }
@@ -59,13 +66,11 @@ public:
 	std::vector<T> CalcNode(INDEX node, std::vector<T> input_value) const
 	{
 		if (m_binary_mode) {
-			for (auto& v : input_value) {
-				v = v > (T)0 ? (T)1 : (T)0;
-			}
+			return input_value;
 		}
 		else {
 			for (auto& v : input_value) {
-				v = std::max(v, (T)0);
+				v = m_mask[node] ? v : 0;
 			}
 		}
 		return input_value;
@@ -81,23 +86,41 @@ public:
 #pragma omp parallel for
 			for (int node = 0; node < (int)m_node_size; ++node) {
 				for (INDEX frame = 0; frame < m_frame_size; ++frame) {
-					y.template Set<T>(frame, node, x.template Get<T>(frame, node) >(T)0.0 ? (T)1.0 : (T)0.0);
+					y.template Set<T>(frame, node, x.template Get<T>(frame, node));
 				}
 			}
 		}
 		else {
-			auto in_sig_buf = this->GetInputSignalBuffer();
-			auto out_sig_buf = this->GetOutputSignalBuffer();
-			int  m256_frame_size = (int)(((m_frame_size + 7) / 8) * 8);
+			auto x = this->GetInputSignalBuffer();
+			auto y = this->GetOutputSignalBuffer();
 
-			__m256 zero = _mm256_set1_ps(0);
-			for (INDEX node = 0; node < m_node_size; ++node) {
-				T* in_sig_ptr = (T*)in_sig_buf.GetPtr(node);
-				T* out_sig_ptr = (T*)out_sig_buf.GetPtr(node);
-				for (INDEX frame = 0; frame < m256_frame_size; frame += 8) {
-					__m256 in_sig = _mm256_load_ps(&in_sig_ptr[frame]);
-					in_sig = _mm256_max_ps(in_sig, zero);
-					_mm256_store_ps(&out_sig_ptr[frame], in_sig);
+			if (train) {
+				// generate mask
+				std::uniform_real_distribution<double> dist(0.0, 1.0);
+				for (INDEX node = 0; node < m_node_size; ++node) {
+					m_mask[node] = (dist(m_mt) > m_rate);
+				}
+
+#pragma omp parallel for
+				for (int node = 0; node < (int)m_node_size; ++node) {
+					if (m_mask[node]) {
+						for (INDEX frame = 0; frame < m_frame_size; ++frame) {
+							y.template Set<T>(frame, node, x.template Get<T>(frame, node));
+						}
+					}
+					else {
+						for (INDEX frame = 0; frame < m_frame_size; ++frame) {
+							y.template Set<T>(frame, node, 0);
+						}
+					}
+				}
+			}
+			else {
+#pragma omp parallel for
+				for (int node = 0; node < (int)m_node_size; ++node) {
+					for (INDEX frame = 0; frame < m_frame_size; ++frame) {
+						y.template Set<T>(frame, node, (T)(x.template Get<T>(frame, node) * (1.0 - m_rate)));
+					}
 				}
 			}
 		}
@@ -109,35 +132,29 @@ public:
 			// Binarize
 			auto dx = this->GetInputErrorBuffer();
 			auto dy = this->GetOutputErrorBuffer();
-			auto x = this->GetInputSignalBuffer();
 
 #pragma omp parallel for
 			for (int node = 0; node < (int)m_node_size; ++node) {
 				for (INDEX frame = 0; frame < m_frame_size; ++frame) {
-					// hard-tanh
-					auto err = dy.template Get<T>(frame, node);
-					auto sig = x.template Get<T>(frame, node);
-					dx.template Set<T>(frame, node, (sig >= (T)-1.0 && sig <= (T)1.0) ? err : 0);
+					dx.template Set<T>(frame, node, dy.template Get<T>(frame, node));
 				}
 			}
 		}
 		else {
-			auto out_sig_buf = this->GetOutputSignalBuffer();
-			auto out_err_buf = this->GetOutputErrorBuffer();
-			auto in_err_buf = this->GetInputErrorBuffer();
-			int  m256_frame_size = (int)(((m_frame_size + 7) / 8) * 8);
+			auto dx = this->GetInputErrorBuffer();
+			auto dy = this->GetOutputErrorBuffer();
 
-			__m256 zero = _mm256_set1_ps(0);
-			for (INDEX node = 0; node < m_node_size; ++node) {
-				T* out_sig_ptr = (T*)out_sig_buf.GetPtr(node);
-				T* out_err_ptr = (T*)out_err_buf.GetPtr(node);
-				T* in_err_ptr = (T*)in_err_buf.GetPtr(node);
-				for (INDEX frame = 0; frame < m256_frame_size; frame += 8) {
-					__m256 out_sig = _mm256_load_ps(&out_sig_ptr[frame]);
-					__m256 out_err = _mm256_load_ps(&out_err_ptr[frame]);
-					__m256 mask = _mm256_cmp_ps(out_sig, zero, _CMP_GT_OS);
-					__m256 in_err = _mm256_and_ps(out_err, mask);
-					_mm256_store_ps(&in_err_ptr[frame], in_err);
+#pragma omp parallel for
+			for (int node = 0; node < (int)m_node_size; ++node) {
+				if (m_mask[node]) {
+					for (INDEX frame = 0; frame < m_frame_size; ++frame) {
+						dx.template Set<T>(frame, node, dy.template Get<T>(frame, node));
+					}
+				}
+				else {
+					for (INDEX frame = 0; frame < m_frame_size; ++frame) {
+						dx.template Set<T>(frame, node, 0);
+					}
 				}
 			}
 		}

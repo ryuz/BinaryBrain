@@ -84,6 +84,9 @@
     <ClCompile Include="NeuralNetSparseMicroMlpTest.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="NeuralNetLossCrossEntropyWithSoftmaxTest .cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\bb\DataAugmentationMnist.h">

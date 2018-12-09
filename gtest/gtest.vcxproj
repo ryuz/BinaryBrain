@@ -29,6 +29,7 @@
     <ClCompile Include="NeuralNetConvolutionIm2Col.cpp" />
     <ClCompile Include="NeuralNetDenseAffineTest.cpp" />
     <ClCompile Include="NeuralNetDenseConvolutionTest.cpp" />
+    <ClCompile Include="NeuralNetLossCrossEntropyWithSoftmaxTest .cpp" />
     <ClCompile Include="NeuralNetLoweringConvolutionTest.cpp" />
     <ClCompile Include="NeuralNetMaxPoolingTest.cpp" />
     <ClCompile Include="NeuralNetRealToBinaryTest.cpp" />
@@ -168,7 +169,7 @@
       <AdditionalIncludeDirectories>..\include;$(GTEST_DIR)\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
-      <OpenMPSupport>false</OpenMPSupport>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -186,7 +187,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\include;$(GTEST_DIR)\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
-      <OpenMPSupport>false</OpenMPSupport>
+      <OpenMPSupport>true</OpenMPSupport>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
