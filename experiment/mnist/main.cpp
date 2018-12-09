@@ -114,13 +114,13 @@ int main()
 //	WriteTestImage();
 //	return 0;
 
-//	omp_set_num_threads(4);
+	omp_set_num_threads(4);
 
 //	MnistDenseSimpleConvolution(16, 256, false, true);
 //	MnistDenseSimpleConvolution5x5(16, 256, false, false);
-	MnistDenseSimpleConvolution3x3(16, 128, false, false);
+//	MnistDenseSimpleConvolution3x3(16, 128, false, false);
 
-//	MnistCnnBin(512, 256, true);
+	MnistCnnBin(512, 256, true);
 	getchar();
 	return 0;
 
