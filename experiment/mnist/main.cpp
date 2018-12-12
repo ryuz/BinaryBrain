@@ -118,9 +118,9 @@ int main()
 
 //	MnistDenseSimpleConvolution(16, 256, false, true);
 //	MnistDenseSimpleConvolution5x5(16, 256, false, false);
-//	MnistDenseSimpleConvolution3x3(16, 128, false, false);
+	MnistDenseSimpleConvolution3x3(16, 64, false, false);
 
-	MnistCnnBin(512, 256, true);
+//	MnistCnnBin(512, 256, true);
 	getchar();
 	return 0;
 
@@ -407,7 +407,7 @@ void MnistDenseSimpleConvolution3x3(int epoc_size, size_t max_batch_size, bool b
 	bb::NeuralNetDropout<>					layer3_dropout(128, 0.5, 5);
 	bb::NeuralNetDenseAffine<>				layer4_affine(128, 10);
 //	bb::NeuralNetBatchNormalization<>		layer4_norm(10);
-	bb::NeuralNetReLU<>						layer4_act(10);
+//	bb::NeuralNetReLU<>						layer4_act(10);
 
 	// build network
 	bb::NeuralNet<> net;
@@ -425,7 +425,7 @@ void MnistDenseSimpleConvolution3x3(int epoc_size, size_t max_batch_size, bool b
 //	net.AddLayer(&layer3_dropout);
 	net.AddLayer(&layer4_affine);
 //	net.AddLayer(&layer4_norm);
-	net.AddLayer(&layer4_act);
+//	net.AddLayer(&layer4_act);
 
 	// set optimizer
 	bb::NeuralNetOptimizerAdam<> optimizerAdam;
