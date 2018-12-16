@@ -291,7 +291,8 @@ public:
 						cereal::JSONOutputArchive ar(ofs_net);
 						ar(cereal::make_nvp("epoc", save_epoc));
 						this->Save(ar);
-						log_stream << "[save] " << fname.str() << std::endl;
+						std::cout << "[save] " << fname.str() << std::endl;
+			//			log_streamt << "[save] " << fname.str() << std::endl;
 					}
 
 					{

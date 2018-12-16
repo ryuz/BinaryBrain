@@ -105,7 +105,7 @@ void MnistMlpLut2(int epoc_size, size_t max_batch_size, bool binary_mode);
 void MnistDenseFullyCnn(int epoc_size, size_t max_batch_size, bool binary_mode);
 void MnistDenseSimpleConvolution(int epoc_size, size_t max_batch_size, bool binary_mode, bool binarize_input);
 void MnistDenseSimpleConvolution5x5(int epoc_size, size_t max_batch_size, bool binary_mode, bool binarize_input);
-void MnistDenseSimpleConvolution3x3(int epoc_size, size_t max_batch_size, bool binary_mode, bool binarize_input);
+void MnistDenseSimpleConvolution3x3(int epoc_size, size_t max_batch_size, bool binary_mode, bool binarize_input, std::string name);
 
 
 // メイン関数
@@ -118,7 +118,15 @@ int main()
 
 //	MnistDenseSimpleConvolution(16, 256, false, true);
 //	MnistDenseSimpleConvolution5x5(16, 256, false, false);
-	MnistDenseSimpleConvolution3x3(16, 64, false, false);
+
+//	MnistDenseSimpleConvolution3x3(32, 64, true,  true,  "MnistDenseSimpleConvolution3x3_binact_binin");
+//	MnistDenseSimpleConvolution3x3(32, 64, false, true,  "MnistDenseSimpleConvolution3x3_realact_binin");
+//	MnistDenseSimpleConvolution3x3(32, 64, true,  false, "MnistDenseSimpleConvolution3x3_binact_realin");
+//	MnistDenseSimpleConvolution3x3(32, 64, false, false, "MnistDenseSimpleConvolution3x3_realact_realin");
+
+//	MnistDenseSimpleConvolution3x3(32, 64, true,  true,  "MnistDenseSimpleConvolution3x3_2_binact_binin");
+	MnistDenseSimpleConvolution3x3(32, 64, false, true,  "MnistDenseSimpleConvolution3x3_2_realact_binin");
+
 
 //	MnistCnnBin(512, 256, true);
 	getchar();
@@ -369,10 +377,10 @@ void MnistDenseSimpleConvolution5x5(int epoc_size, size_t max_batch_size, bool b
 
 
 // Kerasのサンプルと揃えてみる
-void MnistDenseSimpleConvolution3x3(int epoc_size, size_t max_batch_size, bool binary_mode, bool binarize_input)
+void MnistDenseSimpleConvolution3x3(int epoc_size, size_t max_batch_size, bool binary_mode, bool binarize_input, std::string name)
 {
 	// run name
-	std::string run_name = "MnistDenseSimpleConvolution3x3";
+	std::string run_name = name; //  "MnistDenseSimpleConvolution3x3";
 	int			num_class = 10;
 
 	// load MNIST data
@@ -393,7 +401,7 @@ void MnistDenseSimpleConvolution3x3(int epoc_size, size_t max_batch_size, bool b
 	}
 
 	bb::NeuralNetDenseConvolution<>			layer0_conv(1, 28, 28, 32, 3, 3);
-//	bb::NeuralNetBatchNormalization<>		layer0_norm(32 * 26 * 26);
+	bb::NeuralNetBatchNormalization<>		layer0_norm(32 * 26 * 26);
 	bb::NeuralNetReLU<>						layer0_act(32 * 26 * 26);
 //	bb::NeuralNetDropout<>					layer0_dropout(32 * 26 * 26, 0.5, 1);
 	bb::NeuralNetDenseConvolution<>			layer1_conv(32, 26, 26, 64, 3, 3);
@@ -401,31 +409,33 @@ void MnistDenseSimpleConvolution3x3(int epoc_size, size_t max_batch_size, bool b
 	bb::NeuralNetReLU<>						layer1_act(64 * 24 * 24);
 	bb::NeuralNetMaxPooling<>				layer2_maxpol(64, 24, 24, 2, 2);
 	bb::NeuralNetDropout<>					layer2_dropout(64 * 12 * 12, 0.25, 1);
-	bb::NeuralNetDenseAffine<>				layer3_affine(64 * 12 * 12, 128);
-//	bb::NeuralNetBatchNormalization<>		layer3_norm(256);
-	bb::NeuralNetReLU<>						layer3_act(128);
-	bb::NeuralNetDropout<>					layer3_dropout(128, 0.5, 5);
-	bb::NeuralNetDenseAffine<>				layer4_affine(128, 10);
-//	bb::NeuralNetBatchNormalization<>		layer4_norm(10);
-//	bb::NeuralNetReLU<>						layer4_act(10);
+	bb::NeuralNetDenseAffine<>				layer3_affine(64 * 12 * 12, 256);
+	bb::NeuralNetBatchNormalization<>		layer3_norm(256);
+	bb::NeuralNetReLU<>						layer3_act(256);
+	bb::NeuralNetDropout<>					layer3_dropout(256, 0.5, 5);
+	bb::NeuralNetDenseAffine<>				layer4_affine(256, 10);
+	bb::NeuralNetBatchNormalization<>		layer4_norm(10);
+	bb::NeuralNetReLU<>						layer4_act(10);
 
 	// build network
 	bb::NeuralNet<> net;
 	net.AddLayer(&layer0_conv);
-//	net.AddLayer(&layer0_norm);
+	net.AddLayer(&layer0_norm);
 	net.AddLayer(&layer0_act);
 	net.AddLayer(&layer1_conv);
-//	net.AddLayer(&layer1_norm);
+	net.AddLayer(&layer1_norm);
 	net.AddLayer(&layer1_act);
 	net.AddLayer(&layer2_maxpol);
 //	net.AddLayer(&layer2_dropout);
 	net.AddLayer(&layer3_affine);
-//	net.AddLayer(&layer3_norm);
+	net.AddLayer(&layer3_norm);
 	net.AddLayer(&layer3_act);
 //	net.AddLayer(&layer3_dropout);
 	net.AddLayer(&layer4_affine);
-//	net.AddLayer(&layer4_norm);
-//	net.AddLayer(&layer4_act);
+	if (binary_mode) {
+		net.AddLayer(&layer4_norm);
+		net.AddLayer(&layer4_act);
+	}
 
 	// set optimizer
 	bb::NeuralNetOptimizerAdam<> optimizerAdam;

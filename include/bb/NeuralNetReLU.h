@@ -43,6 +43,11 @@ public:
 		m_node_size = node_size;
 	}
 
+	void SetBinaryMode(bool enable)
+	{
+		m_binary_mode = enable;
+	}
+
 	void  SetBatchSize(INDEX batch_size) { m_frame_size = batch_size; }
 
 	INDEX GetInputFrameSize(void) const { return m_frame_size; }

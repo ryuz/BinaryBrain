@@ -93,7 +93,7 @@ int main()
 	MnistFullyCnn(16, 128);	// Learn : DSMM-Network -> copy : LUT-Network
 #endif
 
-#if 0
+#if 1
 	MnistMlpLut(16, 32 * 1024);		// Learn : LUT-Network (LUT direct learning)
 #endif
 
