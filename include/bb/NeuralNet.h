@@ -127,6 +127,8 @@ public:
 		}
 	}
 
+public:
+	ostream_tee*	m_log_stream;
 
 public:
 	double RunCalculation(
@@ -233,7 +235,9 @@ public:
 		bool file_write = true,
 		bool over_write = false,
 		bool initial_evaluation = false,
-		std::uint64_t seed=1)
+		std::uint64_t seed=1,
+		void (*callback)(NeuralNet<T, INDEX >* net, void* user) = 0,
+		void* user = 0)
 	{
 		std::string csv_file_name = name + "_acc.txt";
 		std::string log_file_name = name + "_log.txt";
@@ -248,9 +252,10 @@ public:
 
 		{
 			// ログ出力先設定
-			ostream_tee	log_stream;
+			ostream_tee log_stream;
 			log_stream.add(std::cout);
 			if (ofs_log.is_open()) { log_stream.add(ofs_log); }
+			m_log_stream = &log_stream;
 
 			// 以前の計算があれば読み込み
 			int prev_epoc = 0;
@@ -269,8 +274,11 @@ public:
 
 			// 初期評価
 			if (initial_evaluation) {
-				auto test_accuracy = RunCalculation(x_test, y_test, max_batch_size, 0, accFunc);
-				log_stream << "initial test_accuracy : " << test_accuracy << std::endl;
+				auto test_accuracy  = RunCalculation(x_test,  y_test,  max_batch_size, 0, accFunc);
+				auto train_accuracy = RunCalculation(x_train, y_train, max_batch_size, 0, accFunc);
+				log_stream << "[initial] "
+					<< "test_accuracy : " << std::setw(6) << std::fixed << std::setprecision(4) << test_accuracy << " "
+					<< "train_accuracy : " << std::setw(6) << std::fixed << std::setprecision(4) << train_accuracy << std::endl;
 			}
 
 			// 開始時間記録
@@ -284,7 +292,7 @@ public:
 				if (file_write) {
 					int save_epoc = epoc + 1 + prev_epoc;
 
-					{
+					if(0){
 						std::stringstream fname;
 						fname << name << "_net_" << save_epoc << ".json";
 						std::ofstream ofs_net(fname.str());
@@ -305,9 +313,17 @@ public:
 				}
 
 				// 学習状況評価
-				auto now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
+				double now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
 				auto test_accuracy = RunCalculation(x_test, y_test, max_batch_size, 0, accFunc);
-				log_stream << now_time << "s " << "epoc[" << epoc + 1 + prev_epoc << "] test_accuracy : " << test_accuracy << " train_accuracy : " << train_accuracy <<  std::endl;
+				log_stream	<< std::setw(10) << std::fixed << std::setprecision(2) << now_time << "s "
+							<< "epoc[" << std::setw(3) << epoc + 1 + prev_epoc << "] "
+							<< "test_accuracy : "  << std::setw(6) << std::fixed << std::setprecision(4) << test_accuracy  << " "
+							<< "train_accuracy : " << std::setw(6) << std::fixed << std::setprecision(4) << train_accuracy << std::endl;
+
+				// callback
+				if (callback) {
+					callback(this, user);
+				}
 
 				// Shuffle
 				ShuffleDataSet(mt(), x_train, y_train);
@@ -329,7 +345,10 @@ public:
 		bool file_write = true,
 		bool over_write = false,
 		bool initial_evaluation = true,
-		std::uint64_t seed = 1)
+		std::uint64_t seed = 1,
+		void (*callback)(NeuralNet<T, INDEX >* net, void* user) = 0,
+		void* user = 0
+		)
 	{
 		Fitting(
 			name,
@@ -345,7 +364,9 @@ public:
 			file_write,
 			over_write,
 			initial_evaluation,
-			seed);
+			seed,
+			callback,
+			user);
 	}
 
 };
