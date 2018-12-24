@@ -11,6 +11,7 @@
 #pragma once
 
 #include <random>
+#include <algorithm>
 
 #include <Eigen/Core>
 
@@ -31,10 +32,11 @@ protected:
 	using Stride = Eigen::Stride<Eigen::Dynamic, 1>;
 	using MatMap = Eigen::Map<Matrix, 0, Stride>;
 
-	INDEX		m_current_size;
-	INDEX		m_target_size;
-	int			m_decimate_count;
-	int			m_decimate_interval;
+	bool		m_decimate_enable       = true;
+	double		m_decimate_update_rate  = 0.999;
+	double		m_decimate_current_rate = 1.0;
+	INDEX		m_decimate_current_size;
+	INDEX		m_decimate_target_size;
 	std::vector< std::vector<INDEX> >	m_sort_table;
 
 	INDEX		m_frame_size = 1;
@@ -55,7 +57,7 @@ protected:
 public:
 	NeuralNetDenseToSparseAffine() {}
 
-	NeuralNetDenseToSparseAffine(int target, int interval, INDEX input_size, INDEX output_size, std::uint64_t seed=1,
+	NeuralNetDenseToSparseAffine(int target, double rate, INDEX input_size, INDEX output_size, std::uint64_t seed = 1,
 		const NeuralNetOptimizer<T, INDEX>* optimizer = nullptr)
 	{
 		NeuralNetOptimizerSgd<T, INDEX> DefOptimizer;
@@ -63,7 +65,7 @@ public:
 			optimizer = &DefOptimizer;
 		}
 
-		Resize(target, interval, input_size, output_size);
+		Resize(target, rate, input_size, output_size);
 		InitializeCoeff(seed);
 		SetOptimizer(optimizer);
 	}
@@ -72,7 +74,7 @@ public:
 
 	std::string GetClassName(void) const { return "NeuralNetDenseToSparseAffine"; }
 
-	void Resize(int target, int interval, INDEX input_size, INDEX output_size)
+	void Resize(int target, double rate, INDEX input_size, INDEX output_size)
 	{
 		m_input_size = input_size;
 		m_output_size = output_size;
@@ -81,16 +83,19 @@ public:
 		m_dW = Matrix::Zero(input_size, output_size);
 		m_db = Vector::Zero(output_size);
 
-		m_current_size      = m_input_size;
-		m_target_size       = m_target_size;
-		m_decimate_count    = 0;
-		m_decimate_interval = interval;
+		m_decimate_current_size = m_input_size;
+		m_decimate_target_size = target;
+		m_decimate_current_rate = 1.0;
+		m_decimate_update_rate  = rate;
 		m_sort_table.resize(m_output_size);
 		for (INDEX i = 0; i < m_output_size; ++i) {
 			m_sort_table[i].resize(m_input_size);
 			for (INDEX j = 0; j < m_input_size; ++j) {
 				m_sort_table[i][j] = j;
 			}
+
+			// ちょっと実験
+			std::random_shuffle(m_sort_table[i].begin(), m_sort_table[i].end());
 		}
 	}
 
@@ -115,7 +120,15 @@ public:
 		m_optimizer_W.reset(optimizer->Create(m_input_size * m_output_size));
 		m_optimizer_b.reset(optimizer->Create(m_output_size));
 	}
-	
+
+	void SetDecimateEnable(bool enable)
+	{
+		m_decimate_enable = enable;
+	}
+
+	INDEX GetDecimatedInputSize(void)       { return m_decimate_current_size; }
+	void  SetDecimatedInputSize(INDEX size) { m_decimate_current_size = size; }
+
 
 	INDEX GetInputFrameSize(void) const { return m_frame_size; }
 	INDEX GetInputNodeSize(void) const { return m_input_size; }
@@ -181,39 +194,36 @@ public:
 			}
 		}
 
+		if (!m_decimate_enable) {
+			return;
+		}
+
 		// Sparse化した部分をマスク
 		for (INDEX i = 0; i < m_output_size; ++i) {
-			for (INDEX j = m_current_size; j < m_input_size; ++j) {
+			for (INDEX j = m_decimate_current_size; j < m_input_size; ++j) {
 				m_W(m_sort_table[i][j], i) = 0;
 			}
 		}
 
 		// 目的のサイズまでSparse化していれば何もしない
-		if (m_current_size <= m_target_size) {
+		if (m_decimate_current_size <= m_decimate_target_size) {
 			return;
 		}
 
-		// 回数カウント
-		if ( ++m_decimate_count < m_decimate_interval) {
-			return;
+		// 更新
+		m_decimate_current_rate *= m_decimate_update_rate;
+		m_decimate_current_size = (INDEX)(m_input_size * m_decimate_current_rate);
+		if (m_decimate_current_size < m_decimate_target_size) {
+			m_decimate_current_size = m_decimate_target_size;
 		}
-		m_decimate_count = 0;
 
+		// sort
 		for (INDEX i = 0; i < m_output_size; ++i) {
-			// sort
 			std::sort(m_sort_table[i].begin(), m_sort_table[i].end(), 
 				[&](INDEX i0, INDEX i1) -> int {
 				return abs(m_W(i0, i)) > abs(m_W(i1, i));
 			});
-			
-			// マスク
-			m_W(m_sort_table[i][m_current_size-1], i) = 0;
 		}
-
-		// 係数補正
-		m_W *= ((T)(m_current_size) / (T)(m_current_size - 1));
-		
-		--m_current_size;
 	}
 };
 
