@@ -92,6 +92,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -112,6 +113,7 @@
       <OpenMPSupport>true</OpenMPSupport>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,6 +135,7 @@
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -156,6 +159,7 @@
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -200,6 +204,7 @@
     <ClInclude Include="..\..\include\bb\NeuralNetDenseAffine.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetDenseAffineSigmoid.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetDenseConvolution.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetDenseToSparseAffine.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetDropout.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetGroup.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLayer.h" />
