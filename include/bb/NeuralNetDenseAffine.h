@@ -25,6 +25,8 @@ namespace bb {
 template <typename T = float, typename INDEX = size_t>
 class NeuralNetDenseAffine : public NeuralNetLayerBuf<T, INDEX>
 {
+	typedef NeuralNetSparseLayer<T, INDEX>	super;
+
 protected:
 //	typedef Eigen::Matrix<T, -1, -1, Eigen::ColMajor>	Matrix;
 //	typedef Eigen::Matrix<T, 1, -1>						Vector;
@@ -164,6 +166,59 @@ public:
 			}
 		}
 	}
+
+
+public:
+	template <class Archive>
+	void save(Archive &archive, std::uint32_t const version) const
+	{
+		archive(cereal::make_nvp("input_size", m_input_size));
+		archive(cereal::make_nvp("output_size", m_output_size));
+
+		std::vector< std::vector<T> >	W(m_output_size);
+		std::vector<T>					b(m_output_size);
+		for (INDEX i = 0; i < m_output_size; ++i) {
+			W[i].resize(m_input_size);
+			for (INDEX j = 0; j < m_input_size; ++j) {
+				W[i][j] = m_W(j, i);
+			}
+			b[i] = m_b(i);
+		}
+
+		archive(cereal::make_nvp("W", W));
+		archive(cereal::make_nvp("b", b));
+	}
+
+	template <class Archive>
+	void load(Archive &archive, std::uint32_t const version)
+	{
+		archive(cereal::make_nvp("input_size", m_input_size));
+		archive(cereal::make_nvp("output_size", m_output_size));
+		
+		std::vector< std::vector<T> >	W(m_output_size);
+		std::vector<T>					b(m_output_size);
+		archive(cereal::make_nvp("W", W));
+		archive(cereal::make_nvp("b", b));
+
+		for (INDEX i = 0; i < m_output_size; ++i) {
+			W[i].resize(m_input_size);
+			for (INDEX j = 0; j < m_input_size; ++j) {
+				m_W(j, i) = W[i][j];
+			}
+			m_b(i) = b[i];
+		}
+	}
+
+	virtual void Save(cereal::JSONOutputArchive& archive) const
+	{
+		archive(cereal::make_nvp("NeuralNetDenseAffine", *this));
+	}
+
+	virtual void Load(cereal::JSONInputArchive& archive)
+	{
+		archive(cereal::make_nvp("NeuralNetDenseAffine", *this));
+	}
+
 };
 
 }
