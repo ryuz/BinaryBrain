@@ -485,8 +485,8 @@ void MnistFullyCnn(int epoc_size, size_t max_batch_size, bool binary_mode)
 	sub6_net.AddLayer(&sub6_smm1);
 
 	// sub-networks for convolution(2x2)
-	bb::NeuralNetSparseMicroMlp<6, 16>	sub7_smm0(32 * 2 * 2, 192);
-	bb::NeuralNetSparseMicroMlp<6, 16>	sub7_smm1(192, 30);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub7_smm0(32 * 2 * 2, 180);
+	bb::NeuralNetSparseMicroMlp<6, 16>	sub7_smm1(180, 30);
 	bb::NeuralNetGroup<>				sub7_net;
 	sub7_net.AddLayer(&sub7_smm0);
 	sub7_net.AddLayer(&sub7_smm1);
