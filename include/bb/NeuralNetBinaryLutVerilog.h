@@ -21,8 +21,8 @@
 namespace bb {
 
 // Verilog 出力
-template <bool bitwise=false, typename T = float>
-void NeuralNetBinaryLutVerilog(std::ostream& os, NeuralNetBinaryLut<bitwise, T>& lut, std::string module_name)
+template <typename T = float>
+void NeuralNetBinaryLutVerilog(std::ostream& os, NeuralNetBinaryLut<T>& lut, std::string module_name)
 {
 	int		lut_input_size = lut.GetLutInputSize();
 	int		lut_table_size = lut.GetLutTableSize();
@@ -113,8 +113,8 @@ void NeuralNetBinaryLutVerilog(std::ostream& os, NeuralNetBinaryLut<bitwise, T>&
 
 
 // Verilog 出力
-template <bool bitwise = false, typename T = float>
-void NeuralNetMultilayerBinaryLutVerilog(std::ostream& os, std::vector< NeuralNetBinaryLut<bitwise, T>* > layers, std::string module_name)
+template <typename T = float>
+void NeuralNetMultilayerBinaryLutVerilog(std::ostream& os, std::vector< NeuralNetBinaryLut<T>* > layers, std::string module_name)
 {
 	std::vector<std::string> sub_modle_name;
 

@@ -25,7 +25,7 @@ namespace bb {
 
 
 // LUT方式基底クラス
-template <bool feedback_bitwise = false, typename T = float>
+template <typename T = float>
 class NeuralNetBinaryLut : public NeuralNetSparseLayer<T>
 {
 	typedef NeuralNetSparseLayer<T> super;
@@ -182,7 +182,7 @@ public:
 			ForwardNode(node);
 		}
 	}
-		
+	
 	void Backward(void)
 	{
 		auto& out_err = this->GetOutputErrorBuffer();
@@ -376,6 +376,7 @@ protected:
 		return true;	// 以降を再計算して継続
 	}
 
+#if 0
 	// [アイデアだけメモ]
 	// 畳み込みでビット単位はあまりうまくいっていない
 	// ハミング距離1づつしか移動できないので局所解に落ちやすい模様
@@ -453,17 +454,17 @@ protected:
 
 		return true;	// 以降を再計算して継続
 	}
-
+#endif
 
 public:
 	bool Feedback(const std::vector<double>& loss)
 	{
-		if (feedback_bitwise) {
-			return FeedbackBitwise(loss);
-		}
-		else {
+//		if (feedback_bitwise) {
+//			return FeedbackBitwise(loss);
+//		}
+//		else {
 			return FeedbackLutwise(loss);
-		}
+//		}
 	}
 
 	// Serialize
