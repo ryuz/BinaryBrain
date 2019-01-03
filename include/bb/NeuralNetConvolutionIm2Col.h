@@ -56,7 +56,23 @@ public:
 		m_output_h_size = m_input_h_size - m_filter_h_size + 1;
 		m_output_w_size = m_input_w_size - m_filter_w_size + 1;
 	}
-	
+
+	int GetInputChannel(void) const { return m_input_c_size; }
+	int GetInputHeight(void)  const { return m_input_h_size; }
+	int GetInputWidth(void)   const { return m_input_w_size; }
+	int GetFilterHeight(void) const { return m_filter_h_size; }
+	int	GetFilterWidth(void)  const { return m_filter_w_size; }
+	int	GetOutputHeight(void) const { return m_output_h_size; }
+	int	GetOutputWidth(void)  const { return m_output_w_size; }
+
+	std::vector<int> GetInputShape(void) {
+		std::vector<int> shape(3);
+		shape.push_back(m_input_h_size);
+		shape.push_back(m_input_w_size);
+		shape.push_back(m_input_c_size);
+		return shape;
+	}
+
 	void SetBatchSize(INDEX batch_size) {
 		m_input_frame_size = batch_size;
 		m_output_frame_size = m_input_frame_size * m_output_h_size * m_output_w_size;

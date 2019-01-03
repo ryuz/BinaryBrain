@@ -216,8 +216,8 @@ void NeuralNetMultilayerBinaryLutVerilog(std::ostream& os, std::vector< NeuralNe
 	for (int i = 0; i < (int)layers.size(); ++i) {
 		NeuralNetBinaryLutVerilog(os, *layers[i], sub_modle_name[i]);
 	}
-
 }
+
 
 
 }

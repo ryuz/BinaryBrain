@@ -49,6 +49,15 @@ public:
 
 	std::string GetClassName(void) const { return "NeuralNetLoweringConvolution"; }
 
+	int GetInputChannel(void)  const { return m_im2col.GetInputChannel(); }
+	int GetInputHeight(void)   const { return m_im2col.GetInputHeight(); }
+	int GetInputWidth(void)    const { return m_im2col.GetInputWidth(); }
+	int GetFilterHeight(void)  const { return m_im2col.GetFilterHeight(); }
+	int	GetFilterWidth(void)   const { return m_im2col.GetFilterWidth(); }
+	int GetOutputChannel(void) const { return m_col2im.GetChannel(); }
+	int	GetOutputHeight(void)  const { return m_col2im.GetHeight(); }
+	int	GetOutputWidth(void)   const { return m_col2im.GetWidth(); }
+
 	void InitializeCoeff(std::uint64_t seed)
 	{
 		m_layer->InitializeCoeff(seed);
@@ -66,6 +75,10 @@ public:
 		m_im2col.SetOptimizer(optimizer);
 		m_layer->SetOptimizer(optimizer);
 		m_col2im.SetOptimizer(optimizer);
+	}
+
+	NeuralNetLayer<T>* GetLayer(void) const {
+		return m_layer;
 	}
 
 	int   GetNodeInputSize(INDEX node) const { return this->m_affine.GetNodeInputSize(node); }

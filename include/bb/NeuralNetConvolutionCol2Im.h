@@ -43,6 +43,10 @@ public:
 
 	std::string GetClassName(void) const { return "NeuralNetConvolutionCol2Im"; }
 
+	int GetChannel(void) const { return m_c_size; }
+	int GetHeight(void)  const { return m_h_size; }
+	int GetWidth(void)   const { return m_w_size; }
+
 	void Resize(INDEX c_size, INDEX h_size, INDEX w_size)
 	{
 		m_c_size = (int)c_size;

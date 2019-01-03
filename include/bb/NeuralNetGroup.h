@@ -44,8 +44,11 @@ public:
 	// デストラクタ
 	~NeuralNetGroup() {
 	}
-
+	
 	std::string GetClassName(void) const { return "NeuralNetGroup"; }
+
+	int		GetSize(void) const { return (int)m_layers.size(); }
+	LAYER*	operator[](INDEX index) const { return m_layers[index]; }
 
 	INDEX GetInputFrameSize(void) const { return m_firstLayer->GetInputFrameSize(); }
 	INDEX GetInputNodeSize(void) const { return m_firstLayer->GetInputNodeSize(); }
