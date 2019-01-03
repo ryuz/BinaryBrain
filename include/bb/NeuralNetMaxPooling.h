@@ -21,8 +21,8 @@ namespace bb {
 
 
 // MaxPoolingクラス
-template <typename ST = float, typename ET = float, typename T = float, typename INDEX = size_t>
-class NeuralNetMaxPooling : public NeuralNetLayerBuf<T, INDEX>
+template <typename ST = float, typename ET = float, typename T = float>
+class NeuralNetMaxPooling : public NeuralNetLayerBuf<T>
 {
 protected:
 	INDEX			m_frame_size = 1;
@@ -73,12 +73,12 @@ public:
 	
 protected:
 
-	inline void* GetInputPtr(NeuralNetBuffer<T, INDEX>& buf, int c, int y, int x)
+	inline void* GetInputPtr(NeuralNetBuffer<T>& buf, int c, int y, int x)
 	{
 		return buf.GetPtr((c*m_input_h_size + y)*m_input_w_size + x);
 	}
 
-	inline void* GetOutputPtr(NeuralNetBuffer<T, INDEX>& buf, int c, int y, int x)
+	inline void* GetOutputPtr(NeuralNetBuffer<T>& buf, int c, int y, int x)
 	{
 		return buf.GetPtr((c*m_output_h_size + y)*m_output_w_size + x);
 	}

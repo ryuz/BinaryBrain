@@ -26,10 +26,10 @@ TEST(NeuralNetMaxPoolingTest, testNeuralNetMaxPoolingTest)
 	auto out_sig_buf = maxpol.GetOutputSignalBuffer();
 
 	in_sig_buf.SetDimensions({ 6, 4, 3 });
-	for (size_t f = 0; f < 2; ++f) {
-		for (size_t c = 0; c < 3; ++c) {
-			for (size_t y = 0; y < 4; ++y) {
-				for (size_t x = 0; x < 6; ++x) {
+	for (bb::INDEX f = 0; f < 2; ++f) {
+		for (bb::INDEX c = 0; c < 3; ++c) {
+			for (bb::INDEX y = 0; y < 4; ++y) {
+				for (bb::INDEX x = 0; x < 6; ++x) {
 					in_sig_buf.SetReal(f, { x, y, c }, (float)(1000 * f + 100 * c + 10 * y + x));
 				}
 			}
@@ -78,10 +78,10 @@ TEST(NeuralNetMaxPoolingTest, testNeuralNetMaxPoolingTest)
 	out_err_buf.SetDimensions({ 2, 2, 3 });
 	in_err_buf.SetDimensions({ 6, 4, 3 });
 
-	for (size_t f = 0; f < 2; ++f) {
-		for (size_t c = 0; c < 3; ++c) {
-			for (size_t y = 0; y < 2; ++y) {
-				for (size_t x = 0; x < 2; ++x) {
+	for (bb::INDEX f = 0; f < 2; ++f) {
+		for (bb::INDEX c = 0; c < 3; ++c) {
+			for (bb::INDEX y = 0; y < 2; ++y) {
+				for (bb::INDEX x = 0; x < 2; ++x) {
 					out_err_buf.SetReal(f, { x, y, c }, (float)(1000 * f + 100 * c + 10 * y + x + 1));
 				}
 			}

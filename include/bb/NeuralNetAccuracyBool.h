@@ -18,8 +18,8 @@
 namespace bb {
 
 
-template <typename T = float, typename INDEX = size_t>
-class NeuralNetAccuracyBool : public NeuralNetAccuracyFunction<T, INDEX>
+template <typename T = float>
+class NeuralNetAccuracyBool : public NeuralNetAccuracyFunction<T>
 {
 public:
 	NeuralNetAccuracyBool()
@@ -28,7 +28,7 @@ public:
 
 	~NeuralNetAccuracyBool() {}
 
-	double CalculateAccuracy(NeuralNetBuffer<T, INDEX> buf_sig, typename std::vector< std::vector<T> >::const_iterator exp_begin) const
+	double CalculateAccuracy(NeuralNetBuffer<T> buf_sig, typename std::vector< std::vector<T> >::const_iterator exp_begin) const
 	{
 		double accuracy = 0;
 

@@ -66,26 +66,26 @@ TEST(NeuralNetSparseMicroMlpTest, testLut)
 	testSetupLayerBuffer(smm);
 
 	auto in_sig_buf = smm.GetInputSignalBuffer();
-	in_sig_buf.SetReal(0, 0, 0.1);
-	in_sig_buf.SetReal(0, 1, 0.2);
-	in_sig_buf.SetReal(0, 2, 0.3);
-	in_sig_buf.SetReal(0, 3, 0.4);
-	in_sig_buf.SetReal(0, 4, 0.5);
-	in_sig_buf.SetReal(0, 5, 0.6);
+	in_sig_buf.SetReal(0, 0, 0.1f);
+	in_sig_buf.SetReal(0, 1, 0.2f);
+	in_sig_buf.SetReal(0, 2, 0.3f);
+	in_sig_buf.SetReal(0, 3, 0.4f);
+	in_sig_buf.SetReal(0, 4, 0.5f);
+	in_sig_buf.SetReal(0, 5, 0.6f);
 
-	in_sig_buf.SetReal(1, 0, 0.9);
-	in_sig_buf.SetReal(1, 1, 0.8);
-	in_sig_buf.SetReal(1, 2, 0.7);
-	in_sig_buf.SetReal(1, 3, 0.6);
-	in_sig_buf.SetReal(1, 4, 0.5);
-	in_sig_buf.SetReal(1, 5, 0.3);
+	in_sig_buf.SetReal(1, 0, 0.9f);
+	in_sig_buf.SetReal(1, 1, 0.8f);
+	in_sig_buf.SetReal(1, 2, 0.7f);
+	in_sig_buf.SetReal(1, 3, 0.6f);
+	in_sig_buf.SetReal(1, 4, 0.5f);
+	in_sig_buf.SetReal(1, 5, 0.3f);
 
-	in_sig_buf.SetReal(2, 0, 0.1);
-	in_sig_buf.SetReal(2, 1, 0.9);
-	in_sig_buf.SetReal(2, 2, 0.3);
-	in_sig_buf.SetReal(2, 3, 0.2);
-	in_sig_buf.SetReal(2, 4, 0.7);
-	in_sig_buf.SetReal(2, 5, 0.4);
+	in_sig_buf.SetReal(2, 0, 0.1f);
+	in_sig_buf.SetReal(2, 1, 0.9f);
+	in_sig_buf.SetReal(2, 2, 0.3f);
+	in_sig_buf.SetReal(2, 3, 0.2f);
+	in_sig_buf.SetReal(2, 4, 0.7f);
+	in_sig_buf.SetReal(2, 5, 0.4f);
 
 //	PrintLayerBuffer(lut.m_batch_norm, "m_batch_norm");
 
@@ -99,15 +99,15 @@ TEST(NeuralNetSparseMicroMlpTest, testLut)
 #endif
 
 	auto out_err_buf = smm.GetOutputErrorBuffer();
-	out_err_buf.SetReal(0, 0, 0.5);
-	out_err_buf.SetReal(0, 1, -0.7);
-	out_err_buf.SetReal(0, 2, 0.9);
-	out_err_buf.SetReal(1, 0, -0.3);
-	out_err_buf.SetReal(1, 1, 0.1);
-	out_err_buf.SetReal(1, 2, 0.4);
-	out_err_buf.SetReal(2, 0, 0.2);
-	out_err_buf.SetReal(2, 1, -0.3);
-	out_err_buf.SetReal(2, 2, -0.4);
+	out_err_buf.SetReal(0, 0, 0.5f);
+	out_err_buf.SetReal(0, 1, -0.7f);
+	out_err_buf.SetReal(0, 2, 0.9f);
+	out_err_buf.SetReal(1, 0, -0.3f);
+	out_err_buf.SetReal(1, 1, 0.1f);
+	out_err_buf.SetReal(1, 2, 0.4f);
+	out_err_buf.SetReal(2, 0, 0.2f);
+	out_err_buf.SetReal(2, 1, -0.3f);
+	out_err_buf.SetReal(2, 2, -0.4f);
 
 
 	smm.Backward();

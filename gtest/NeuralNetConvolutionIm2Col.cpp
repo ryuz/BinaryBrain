@@ -32,10 +32,10 @@ TEST(NeuralNetConvolutionIm2ColTest, testNeuralNetConvolutionIm2Col)
 	EXPECT_EQ(2 * 2 * 2, cnvim2col.GetOutputFrameSize());
 
 	in_sig_buf.SetDimensions({ 4, 3, 2 });
-	for (size_t f = 0; f < 2; ++f) {
-		for (size_t c = 0; c < 2; ++c) {
-			for (size_t y = 0; y < 3; ++y) {
-				for (size_t x = 0; x < 4; ++x) {
+	for (bb::INDEX f = 0; f < 2; ++f) {
+		for (bb::INDEX c = 0; c < 2; ++c) {
+			for (bb::INDEX y = 0; y < 3; ++y) {
+				for (bb::INDEX x = 0; x < 4; ++x) {
 					in_sig_buf.SetReal(f, { x, y, c }, (float)(1000 * f + 100 * c + 10 * y + x));
 				}
 			}
@@ -133,10 +133,10 @@ TEST(NeuralNetConvolutionIm2ColTest, testNeuralNetConvolutionIm2Col)
 	auto in_err_buf = cnvim2col.GetInputErrorBuffer();
 
 	out_err_buf.SetDimensions({ 3, 2, 2 });
-	for (size_t f = 0; f < 8; ++f) {
-		for (size_t c = 0; c < 2; ++c) {
-			for (size_t y = 0; y < 2; ++y) {
-				for (size_t x = 0; x < 3; ++x) {
+	for (bb::INDEX f = 0; f < 8; ++f) {
+		for (bb::INDEX c = 0; c < 2; ++c) {
+			for (bb::INDEX y = 0; y < 2; ++y) {
+				for (bb::INDEX x = 0; x < 3; ++x) {
 					out_err_buf.SetReal(f, { x, y, c }, (float)(1000 * f + 100 * c + 10 * y + x));
 				}
 			}

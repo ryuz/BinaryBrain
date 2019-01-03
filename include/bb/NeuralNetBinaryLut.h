@@ -25,10 +25,10 @@ namespace bb {
 
 
 // LUT方式基底クラス
-template <bool feedback_bitwise = false, typename T = float, typename INDEX = size_t>
-class NeuralNetBinaryLut : public NeuralNetSparseLayer<T, INDEX>
+template <bool feedback_bitwise = false, typename T = float>
+class NeuralNetBinaryLut : public NeuralNetSparseLayer<T>
 {
-	typedef NeuralNetSparseLayer<T, INDEX> super;
+	typedef NeuralNetSparseLayer<T> super;
 
 protected:
 	INDEX					m_frame_size = 1;
@@ -71,8 +71,8 @@ public:
 		}
 	}
 	
-	template <typename RT, typename RI>
-	void ImportLayer(const NeuralNetSparseLayer<RT, RI>& src)
+	template <typename RT>
+	void ImportLayer(const NeuralNetSparseLayer<RT>& src)
 	{
 		auto node_size = this->GetOutputNodeSize();
 		auto input_size = this->GetLutInputSize();
@@ -263,7 +263,7 @@ public:
 
 
 protected:
-	inline int GetLutInputIndex(NeuralNetBuffer<T, INDEX>& buf, int lut_input_size, INDEX frame, INDEX node)
+	inline int GetLutInputIndex(NeuralNetBuffer<T>& buf, int lut_input_size, INDEX frame, INDEX node)
 	{
 		// 入力値作成
 		int index = 0;

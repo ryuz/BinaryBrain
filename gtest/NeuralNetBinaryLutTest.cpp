@@ -528,7 +528,7 @@ void TestCalcNode(bb::NeuralNetSparseLayer<>& net)
 	for (int node = 0; node < (int)net.GetOutputNodeSize(); ++node) {
 		int input_index[6];
 		for (int i = 0; i < 6; ++i) {
-			input_index[i] = net.GetNodeInput(node, i);
+			input_index[i] = (int)net.GetNodeInput(node, i);
 		}
 
 		std::vector<float> vec_in(6);
@@ -568,7 +568,7 @@ void TestCalcNodeLut(bb::NeuralNetBinaryLut<>& net)
 	for (int node = 0; node < (int)net.GetOutputNodeSize(); ++node) {
 		int input_index[6];
 		for (int i = 0; i < 6; ++i) {
-			input_index[i] = net.GetNodeInput(node, i);
+			input_index[i] = (int)net.GetNodeInput(node, i);
 		}
 
 		std::vector<float> vec_in(6);
@@ -606,7 +606,7 @@ TEST(NeuralNetBinaryLut, testNeuralNetBinaryLut6Copy)
 		for (int i = 0; i < 64; i++) {
 			std::vector<float> vec_in(6);
 			for (int j = 0; j < 6; ++j) {
-				vec_in[j] = ((i >> j) & 1) ? 1 : 0;
+				vec_in[j] = ((i >> j) & 1) ? 1.0f : 0.0f;
 			}
 			auto org_val = org_lut.CalcNode(node, vec_in);
 			auto cpy_val = cpy_lut.CalcNode(node, vec_in);

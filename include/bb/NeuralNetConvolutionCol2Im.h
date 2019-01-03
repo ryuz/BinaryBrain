@@ -21,8 +21,8 @@ namespace bb {
 
 
 
-template <typename ST = float, typename ET = float, typename T = float, typename INDEX = size_t>
-class NeuralNetConvolutionCol2Im : public NeuralNetLayerBuf<T, INDEX>
+template <typename ST = float, typename ET = float, typename T = float>
+class NeuralNetConvolutionCol2Im : public NeuralNetLayerBuf<T>
 {
 protected:
 	INDEX			m_input_frame_size = 1;
@@ -68,12 +68,12 @@ public:
 protected:
 
 	/*
-	inline T* GetInputPtr(NeuralNetBuffer<T, INDEX>& buf, int c, int y, int x)
+	inline T* GetInputPtr(NeuralNetBuffer<T>& buf, int c, int y, int x)
 	{
 		return (T*)buf.GetPtr((c*m_input_h_size + y)*m_input_w_size + x);
 	}
 
-	inline T* GetOutputPtr(NeuralNetBuffer<T, INDEX>& buf, int c, int y, int x)
+	inline T* GetOutputPtr(NeuralNetBuffer<T>& buf, int c, int y, int x)
 	{
 		return (T*)buf.GetPtr((c*m_filter_h_size + y)*m_filter_w_size + x);
 	}

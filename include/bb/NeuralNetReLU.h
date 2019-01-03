@@ -18,8 +18,8 @@ namespace bb {
 
 
 // ReLU(活性化関数)
-template <typename T = float, typename INDEX = size_t>
-class NeuralNetReLU : public NeuralNetLayerBuf<T, INDEX>
+template <typename T = float>
+class NeuralNetReLU : public NeuralNetLayerBuf<T>
 {
 protected:
 	INDEX		m_frame_size = 1;

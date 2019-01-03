@@ -23,28 +23,28 @@ namespace bb {
 
 
 // NeuralNetのバッファ付き抽象クラス
-template <typename T=float, typename INDEX = size_t>
-class NeuralNetLayerBuf : public NeuralNetLayer<T, INDEX>
+template <typename T=float>
+class NeuralNetLayerBuf : public NeuralNetLayer<T>
 {
 protected:
 	// バッファ情報
-	NeuralNetBuffer<T, INDEX>	m_input_signal_buffer;
-	NeuralNetBuffer<T, INDEX>	m_output_signal_buffer;
-	NeuralNetBuffer<T, INDEX>	m_input_error_buffer;
-	NeuralNetBuffer<T, INDEX>	m_output_error_buffer;
+	NeuralNetBuffer<T>	m_input_signal_buffer;
+	NeuralNetBuffer<T>	m_output_signal_buffer;
+	NeuralNetBuffer<T>	m_input_error_buffer;
+	NeuralNetBuffer<T>	m_output_error_buffer;
 	
 public:
 	// バッファ設定
-	void  SetInputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer)  { m_input_signal_buffer = buffer; }
-	void  SetOutputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_output_signal_buffer = buffer; }
-	void  SetInputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer)  { m_input_error_buffer = buffer; }
-	void  SetOutputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_output_error_buffer = buffer; }
+	void  SetInputSignalBuffer(NeuralNetBuffer<T> buffer)  { m_input_signal_buffer = buffer; }
+	void  SetOutputSignalBuffer(NeuralNetBuffer<T> buffer) { m_output_signal_buffer = buffer; }
+	void  SetInputErrorBuffer(NeuralNetBuffer<T> buffer)  { m_input_error_buffer = buffer; }
+	void  SetOutputErrorBuffer(NeuralNetBuffer<T> buffer) { m_output_error_buffer = buffer; }
 	
 	// バッファ取得
-	const NeuralNetBuffer<T, INDEX>& GetInputSignalBuffer(void) const { return m_input_signal_buffer; }
-	const NeuralNetBuffer<T, INDEX>& GetOutputSignalBuffer(void) const { return m_output_signal_buffer; }
-	const NeuralNetBuffer<T, INDEX>& GetInputErrorBuffer(void) const { return m_input_error_buffer; }
-	const NeuralNetBuffer<T, INDEX>& GetOutputErrorBuffer(void) const { return m_output_error_buffer; }
+	const NeuralNetBuffer<T>& GetInputSignalBuffer(void) const { return m_input_signal_buffer; }
+	const NeuralNetBuffer<T>& GetOutputSignalBuffer(void) const { return m_output_signal_buffer; }
+	const NeuralNetBuffer<T>& GetInputErrorBuffer(void) const { return m_input_error_buffer; }
+	const NeuralNetBuffer<T>& GetOutputErrorBuffer(void) const { return m_output_error_buffer; }
 };
 
 

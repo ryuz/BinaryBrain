@@ -20,8 +20,8 @@ namespace bb {
 
 
 // Softmax(活性化関数)
-template <typename T = float, typename INDEX = size_t>
-class NeuralNetSoftmax : public NeuralNetLayerBuf<T, INDEX>
+template <typename T = float>
+class NeuralNetSoftmax : public NeuralNetLayerBuf<T>
 {
 protected:
 	typedef Eigen::Matrix<T, -1, -1, Eigen::ColMajor>	Matrix;

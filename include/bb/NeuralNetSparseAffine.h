@@ -25,10 +25,10 @@ namespace bb {
 
 
 // 入力数制限Affine
-template <int N = 6, typename T = float, typename INDEX = size_t>
-class NeuralNetSparseAffine : public NeuralNetSparseLayer<T, INDEX>
+template <int N = 6, typename T = float>
+class NeuralNetSparseAffine : public NeuralNetSparseLayer<T>
 {
-	typedef NeuralNetSparseLayer<T, INDEX>	super;
+	typedef NeuralNetSparseLayer<T>	super;
 
 protected:
 	struct Node {
@@ -38,8 +38,8 @@ protected:
 		std::array<T, N>		dW;
 		T						db;
 
-		std::unique_ptr< ParamOptimizer<T, INDEX> >	optimizer_W;
-		std::unique_ptr< ParamOptimizer<T, INDEX> >	optimizer_b;
+		std::unique_ptr< ParamOptimizer<T> >	optimizer_W;
+		std::unique_ptr< ParamOptimizer<T> >	optimizer_b;
 
 		template<class Archive>
 		void serialize(Archive & archive, std::uint32_t const version)
@@ -61,9 +61,9 @@ public:
 	}
 	
 	NeuralNetSparseAffine(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1,
-		const NeuralNetOptimizer<T, INDEX>* optimizer = nullptr)
+		const NeuralNetOptimizer<T>* optimizer = nullptr)
 	{
-		NeuralNetOptimizerSgd<T, INDEX> DefOptimizer;
+		NeuralNetOptimizerSgd<T> DefOptimizer;
 		if (optimizer == nullptr) {
 			optimizer = &DefOptimizer;
 		}
@@ -128,7 +128,7 @@ public:
 		m_binary_mode = enable;
 	}
 
-	void  SetOptimizer(const NeuralNetOptimizer<T, INDEX>* optimizer)
+	void  SetOptimizer(const NeuralNetOptimizer<T>* optimizer)
 	{
 		for (auto& node : m_node) {
 			node.optimizer_W.reset(optimizer->Create(N));

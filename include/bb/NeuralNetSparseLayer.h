@@ -20,10 +20,10 @@ namespace bb {
 
 
 // 入力接続数に制限のあるネット
-template <typename T = float, typename INDEX = size_t>
-class NeuralNetSparseLayer : public NeuralNetLayerBuf<T, INDEX>
+template <typename T = float>
+class NeuralNetSparseLayer : public NeuralNetLayerBuf<T>
 {
-	typedef NeuralNetLayer<T, INDEX> super;
+	typedef NeuralNetLayer<T> super;
 	
 protected:
 	INDEX					m_input_node_size;

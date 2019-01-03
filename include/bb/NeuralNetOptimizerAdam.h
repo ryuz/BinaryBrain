@@ -16,8 +16,8 @@
 namespace bb {
 
 
-template <typename T = float, typename INDEX = size_t>
-class ParamOptimizerAdam : public ParamOptimizer<T, INDEX>
+template <typename T = float>
+class ParamOptimizerAdam : public ParamOptimizer<T>
 {
 protected:
 	T				m_learning_rate;
@@ -62,8 +62,8 @@ protected:
 };
 
 
-template <typename T = float, typename INDEX = size_t>
-class NeuralNetOptimizerAdam: public NeuralNetOptimizer<T, INDEX>
+template <typename T = float>
+class NeuralNetOptimizerAdam: public NeuralNetOptimizer<T>
 {
 protected:
 	T	m_learning_rate;
@@ -78,9 +78,9 @@ public:
 		m_beta2         = beta2;
 	}
 	
-	ParamOptimizer<T, INDEX>* Create(INDEX param_size) const
+	ParamOptimizer<T>* Create(INDEX param_size) const
 	{
-		return new ParamOptimizerAdam<T, INDEX>(param_size, m_learning_rate, m_beta1, m_beta2);
+		return new ParamOptimizerAdam<T>(param_size, m_learning_rate, m_beta1, m_beta2);
 	}
 };
 

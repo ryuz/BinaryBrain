@@ -15,7 +15,7 @@
 namespace bb {
 
 
-template <typename T = float, typename INDEX = size_t>
+template <typename T = float>
 class ParamOptimizer
 {
 public:
@@ -69,11 +69,11 @@ public:
 };
 
 
-template <typename T = float, typename INDEX = size_t>
+template <typename T = float>
 class NeuralNetOptimizer
 {
 public:
-	virtual ParamOptimizer<T, INDEX>* Create(INDEX param_size) const = 0;
+	virtual ParamOptimizer<T>* Create(INDEX param_size) const = 0;
 };
 
 

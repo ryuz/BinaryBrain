@@ -20,7 +20,7 @@ TEST(NeuralNetSparseMicroMlpPreAffineTest, testNeuralNetSparseMicroMlpPreAffine)
 	testSetupLayerBuffer(affine);
 	
 	// 接続を通常Affineと同一にする
-	for (size_t node = 0; node < affine.GetOutputNodeSize(); ++node) {
+	for (bb::INDEX node = 0; node < affine.GetOutputNodeSize(); ++node) {
 		for (int i = 0; i < affine.GetNodeInputSize(node); ++i) {
 			affine.SetNodeInput(node, i, i);
 		}

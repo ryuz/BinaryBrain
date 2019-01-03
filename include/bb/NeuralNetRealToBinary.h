@@ -19,8 +19,8 @@ namespace bb {
 
 
 // NeuralNetの抽象クラス
-template <typename BT = Bit, typename T = float, typename INDEX = size_t>
-class NeuralNetRealToBinary : public NeuralNetLayerBuf<T, INDEX>
+template <typename BT = Bit, typename T = float>
+class NeuralNetRealToBinary : public NeuralNetLayerBuf<T>
 {
 protected:
 	std::mt19937_64		m_mt;

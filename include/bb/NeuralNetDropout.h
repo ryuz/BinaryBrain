@@ -18,8 +18,8 @@ namespace bb {
 
 
 // Dropout
-template <typename T = float, typename INDEX = size_t>
-class NeuralNetDropout : public NeuralNetLayerBuf<T, INDEX>
+template <typename T = float>
+class NeuralNetDropout : public NeuralNetLayerBuf<T>
 {
 protected:
 	INDEX				m_frame_size = 1;

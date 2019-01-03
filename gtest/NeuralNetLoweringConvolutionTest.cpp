@@ -125,10 +125,10 @@ TEST(NeuralNetLoweringConvolutionTest, testNeuralNetLoweringConvolution2)
 
 	in_val.SetDimensions({ 5, 4, 3 });
 	int index = 0;
-	for (size_t f = 0; f < 2; ++f) {
-		for (size_t c = 0; c < 3; ++c) {
-			for (size_t y = 0; y < 4; ++y) {
-				for (size_t x = 0; x < 5; ++x) {
+	for (bb::INDEX f = 0; f < 2; ++f) {
+		for (bb::INDEX c = 0; c < 3; ++c) {
+			for (bb::INDEX y = 0; y < 4; ++y) {
+				for (bb::INDEX x = 0; x < 5; ++x) {
 					in_val.SetReal(f, { x, y, c }, (float)(index++));
 				}
 			}
@@ -203,10 +203,10 @@ TEST(NeuralNetLoweringConvolutionTest, testNeuralNetLoweringConvolution2)
 	out_err.SetDimensions({ 3, 2, 2 });
 
 	index = 30;
-	for (size_t f = 0; f < 2; ++f) {
-		for (size_t c = 0; c < 2; ++c) {
-			for (size_t y = 0; y < 2; ++y) {
-				for (size_t x = 0; x < 3; ++x) {
+	for (bb::INDEX f = 0; f < 2; ++f) {
+		for (bb::INDEX c = 0; c < 2; ++c) {
+			for (bb::INDEX y = 0; y < 2; ++y) {
+				for (bb::INDEX x = 0; x < 3; ++x) {
 					out_err.SetReal(f, { x, y, c }, (float)(index++));
 				}
 			}

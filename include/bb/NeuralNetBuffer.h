@@ -40,7 +40,7 @@ namespace bb {
 
 
 // NeuralNet用のバッファ
-template <typename T = float, typename INDEX = size_t>
+template <typename T = float>
 class NeuralNetBuffer
 {
 protected:
@@ -119,11 +119,11 @@ public:
 
 	void ClearMargin(void)
 	{
-		size_t type_bit_size = NeuralNet_GetTypeBitSize(m_data_type);
-		size_t valid_size = (m_frame_size * type_bit_size + 7) / 8;
-		if (m_frame_stride <= valid_size ) { return; }
+		INDEX type_bit_size = NeuralNet_GetTypeBitSize(m_data_type);
+		INDEX valid_size = (m_frame_size * type_bit_size + 7) / 8;
+		if ( m_frame_stride <= valid_size ) { return; }
 
-		size_t margin_size = m_frame_stride - valid_size;
+		INDEX margin_size = m_frame_stride - valid_size;
 		char* ptr = (char*)m_buffer.get();
 		for (INDEX node = 0; node < m_base_size; ++node) {
 			memset(ptr + valid_size, 0, margin_size);
@@ -501,17 +501,17 @@ public:
 	bool GetBinary(INDEX frame, std::vector<INDEX> index) const { return ReadBinary(GetPtr(index), frame); }
 
 
-//	friend std::ostream& operator<<(std::ostream& os, const NeuralNetBuffer<T, INDEX>& buf);
+//	friend std::ostream& operator<<(std::ostream& os, const NeuralNetBuffer<T>& buf);
 };
 
 
 
 
 /*
-template <typename T = float, typename INDEX = size_t>
-std::ostream& operator<<(std::ostream& os, const NeuralNetBuffer<T, INDEX>& buf)
+template <typename T = float>
+std::ostream& operator<<(std::ostream& os, const NeuralNetBuffer<T>& buf)
 {
-	auto out_stream = [&out_stream](std::ostream& os, const NeuralNetBuffer<T, INDEX>& buf, std::vector<INDEX>& idx, INDEX depth)
+	auto out_stream = [&out_stream](std::ostream& os, const NeuralNetBuffer<T>& buf, std::vector<INDEX>& idx, INDEX depth)
 	{
 		if (depth == 0) {
 			os << "[";

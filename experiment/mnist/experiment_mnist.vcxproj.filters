@@ -215,5 +215,8 @@
     <ClInclude Include="..\..\include\bb\NeuralNetDenseToSparseAffine.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bb\NeuralNetBinaryConvolutionJelly.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

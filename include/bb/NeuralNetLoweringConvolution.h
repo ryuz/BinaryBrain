@@ -21,14 +21,14 @@ namespace bb {
 
 
 // 入力数制限Affine Binary Connect版
-template <typename ST = float, typename ET = float, typename T = float, typename INDEX = size_t>
-class NeuralNetLoweringConvolution : public NeuralNetLayer<T, INDEX>
+template <typename ST = float, typename ET = float, typename T = float>
+class NeuralNetLoweringConvolution : public NeuralNetLayer<T>
 {
 protected:
 	// 3層で構成
-	NeuralNetConvolutionIm2Col<ST, ET, T, INDEX>	m_im2col;
-	NeuralNetLayer<T, INDEX>*						m_layer;
-	NeuralNetConvolutionCol2Im<ST, ET, T, INDEX>	m_col2im;
+	NeuralNetConvolutionIm2Col<ST, ET, T>	m_im2col;
+	NeuralNetLayer<T>*						m_layer;
+	NeuralNetConvolutionCol2Im<ST, ET, T>	m_col2im;
 	
 	INDEX	m_batch_size = 0;
 	INDEX	m_im2col_size = 1;
@@ -36,7 +36,7 @@ protected:
 public:
 	NeuralNetLoweringConvolution() {}
 
-	NeuralNetLoweringConvolution(NeuralNetLayer<T, INDEX>* layer, INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size)
+	NeuralNetLoweringConvolution(NeuralNetLayer<T>* layer, INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size)
 		: m_im2col(input_c_size, input_h_size, input_w_size, filter_h_size, filter_w_size),
 		m_col2im(output_c_size, input_h_size - filter_h_size + 1, input_w_size - filter_w_size + 1)
 	{
@@ -61,7 +61,7 @@ public:
 		m_col2im.SetBinaryMode(enable);
 	}
 
-	void SetOptimizer(const NeuralNetOptimizer<T, INDEX>* optimizer)
+	void SetOptimizer(const NeuralNetOptimizer<T>* optimizer)
 	{
 		m_im2col.SetOptimizer(optimizer);
 		m_layer->SetOptimizer(optimizer);
@@ -99,15 +99,15 @@ public:
 
 	
 	// 入出力バッファ
-	void  SetInputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_im2col.SetInputSignalBuffer(buffer); }
-	void  SetOutputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_col2im.SetOutputSignalBuffer(buffer); }
-	void  SetInputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_im2col.SetInputErrorBuffer(buffer); }
-	void  SetOutputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_col2im.SetOutputErrorBuffer(buffer); }
+	void  SetInputSignalBuffer(NeuralNetBuffer<T> buffer) { m_im2col.SetInputSignalBuffer(buffer); }
+	void  SetOutputSignalBuffer(NeuralNetBuffer<T> buffer) { m_col2im.SetOutputSignalBuffer(buffer); }
+	void  SetInputErrorBuffer(NeuralNetBuffer<T> buffer) { m_im2col.SetInputErrorBuffer(buffer); }
+	void  SetOutputErrorBuffer(NeuralNetBuffer<T> buffer) { m_col2im.SetOutputErrorBuffer(buffer); }
 
-	const NeuralNetBuffer<T, INDEX>& GetInputSignalBuffer(void) const { return m_im2col.GetInputSignalBuffer(); }
-	const NeuralNetBuffer<T, INDEX>& GetOutputSignalBuffer(void) const { return m_col2im.GetOutputSignalBuffer(); }
-	const NeuralNetBuffer<T, INDEX>& GetInputErrorBuffer(void) const { return m_im2col.GetInputErrorBuffer(); }
-	const NeuralNetBuffer<T, INDEX>& GetOutputErrorBuffer(void) const { return m_col2im.GetOutputErrorBuffer(); }
+	const NeuralNetBuffer<T>& GetInputSignalBuffer(void) const { return m_im2col.GetInputSignalBuffer(); }
+	const NeuralNetBuffer<T>& GetOutputSignalBuffer(void) const { return m_col2im.GetOutputSignalBuffer(); }
+	const NeuralNetBuffer<T>& GetInputErrorBuffer(void) const { return m_im2col.GetInputErrorBuffer(); }
+	const NeuralNetBuffer<T>& GetOutputErrorBuffer(void) const { return m_col2im.GetOutputErrorBuffer(); }
 
 
 	INDEX GetInputFrameSize(void) const { return m_im2col.GetInputFrameSize(); }

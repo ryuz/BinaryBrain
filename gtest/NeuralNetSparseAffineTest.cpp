@@ -20,7 +20,7 @@ TEST(NeuralNetSparseAffineTest, testAffine)
 	testSetupLayerBuffer(affine);
 	
 	// 接続を通常Affineと同一にする
-	for (size_t node = 0; node < affine.GetOutputNodeSize(); ++node) {
+	for (bb::INDEX node = 0; node < affine.GetOutputNodeSize(); ++node) {
 		for (int i = 0; i < affine.GetNodeInputSize(node); ++i) {
 			affine.SetNodeInput(node, i, i);
 		}
@@ -141,7 +141,7 @@ TEST(NeuralNetSparseAffineTest, testAffineCompare)
 	testSetupLayerBuffer(sparse_affine);
 	
 	// 制限付きAffineの接続を通常Affineと同一にする
-	for (size_t node = 0; node < sparse_affine.GetOutputNodeSize(); ++node) {
+	for (bb::INDEX node = 0; node < sparse_affine.GetOutputNodeSize(); ++node) {
 		for (int i = 0; i < sparse_affine.GetNodeInputSize(node); ++i) {
 			sparse_affine.SetNodeInput(node, i, i);
 		}
@@ -166,8 +166,8 @@ TEST(NeuralNetSparseAffineTest, testAffineCompare)
 	std::normal_distribution<float> normal_dist(0, 1);
 
 	// 内部係数を同じ乱数で統一
-	for (size_t node = 0; node < node_size; ++node) {
-		for (size_t input = 0; input < input_size; ++input) {
+	for (bb::INDEX node = 0; node < node_size; ++node) {
+		for (bb::INDEX input = 0; input < input_size; ++input) {
 			float r = normal_dist(mt);
 			dense_affine.W(node, input) = r;
 			sparse_affine.W(node, input) = r;
@@ -180,8 +180,8 @@ TEST(NeuralNetSparseAffineTest, testAffineCompare)
 	for (int loop = 0; loop < 3; ++loop)
 	{
 		// 入力データを同じ乱数で統一
-		for (size_t input = 0; input < input_size; ++input) {
-			for (size_t frame = 0; frame < frame_size; ++frame) {
+		for (bb::INDEX input = 0; input < input_size; ++input) {
+			for (bb::INDEX frame = 0; frame < frame_size; ++frame) {
 				float r = uniform_dist(mt);
 				dense_in_val.SetReal(frame, input, r);
 				sparse_in_val.SetReal(frame, input, r);
@@ -193,16 +193,16 @@ TEST(NeuralNetSparseAffineTest, testAffineCompare)
 		sparse_affine.Forward();
 
 		// 出力比較
-		for (size_t node = 0; node < node_size; ++node) {
-			for (size_t frame = 0; frame < frame_size; ++frame) {
+		for (bb::INDEX node = 0; node < node_size; ++node) {
+			for (bb::INDEX frame = 0; frame < frame_size; ++frame) {
 				EXPECT_TRUE(abs(dense_out_val.GetReal(frame, node) - sparse_out_val.GetReal(frame, node)) < 0.00001);
 			}
 		}
 
 		// 誤差入力データを同じ乱数で統一
 		std::uniform_real_distribution<float> uniform_dist(0, 1);
-		for (size_t node = 0; node < node_size; ++node) {
-			for (size_t frame = 0; frame < frame_size; ++frame) {
+		for (bb::INDEX node = 0; node < node_size; ++node) {
+			for (bb::INDEX frame = 0; frame < frame_size; ++frame) {
 				float r = normal_dist(mt);
 				dense_out_err.SetReal(frame, node_size, r);
 				sparse_out_err.SetReal(frame, node_size, r);
@@ -214,8 +214,8 @@ TEST(NeuralNetSparseAffineTest, testAffineCompare)
 		sparse_affine.Backward();
 
 		// 誤差を比較
-		for (size_t input = 0; input < input_size; ++input) {
-			for (size_t frame = 0; frame < frame_size; ++frame) {
+		for (bb::INDEX input = 0; input < input_size; ++input) {
+			for (bb::INDEX frame = 0; frame < frame_size; ++frame) {
 		//		std::cout << dense_in_err.GetReal(frame, input) << std::endl;
 		//		std::cout << sparse_in_err.GetReal(frame, input) << std::endl;
 		//		EXPECT_EQ(dense_in_err.GetReal(frame, input), sparse_in_err.GetReal(frame, input));
@@ -228,8 +228,8 @@ TEST(NeuralNetSparseAffineTest, testAffineCompare)
 		sparse_affine.Update();
 		
 		// 学習係数比較
-		for (size_t node = 0; node < node_size; ++node) {
-			for (size_t input = 0; input < input_size; ++input) {
+		for (bb::INDEX node = 0; node < node_size; ++node) {
+			for (bb::INDEX input = 0; input < input_size; ++input) {
 	//			EXPECT_EQ(dense_affine.W(node, input), sparse_affine.W(node, input));
 				EXPECT_TRUE(abs(dense_affine.W(node, input) - sparse_affine.W(node, input)) < 0.00001);
 			}
@@ -242,8 +242,8 @@ TEST(NeuralNetSparseAffineTest, testAffineCompare)
 		sparse_affine.Backward();
 		dense_affine.Update();
 		sparse_affine.Update();
-		for (size_t node = 0; node < node_size; ++node) {
-			for (size_t input = 0; input < input_size; ++input) {
+		for (bb::INDEX node = 0; node < node_size; ++node) {
+			for (bb::INDEX input = 0; input < input_size; ++input) {
 				EXPECT_TRUE(abs(dense_affine.W(node, input) - sparse_affine.W(node, input)) < 0.00001);
 			}
 			EXPECT_TRUE(abs(dense_affine.b(node) - sparse_affine.b(node)) < 0.00001);

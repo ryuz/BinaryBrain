@@ -18,17 +18,17 @@
 namespace bb {
 
 // NeuralNetLayerのグループ化
-template <typename T = float, typename INDEX = size_t>
-class NeuralNetGroup : public NeuralNetLayer<T, INDEX>
+template <typename T = float>
+class NeuralNetGroup : public NeuralNetLayer<T>
 {
 protected:
-	typedef	NeuralNetLayer<T, INDEX>	LAYER;
+	typedef	NeuralNetLayer<T>	LAYER;
 	
 	INDEX					m_batch_size = 0;
 	std::vector< LAYER* >	m_layers;
 	
-	std::vector< NeuralNetBuffer<T, INDEX> > m_value_buffers;
-	std::vector< NeuralNetBuffer<T, INDEX> > m_error_buffers;
+	std::vector< NeuralNetBuffer<T> > m_value_buffers;
+	std::vector< NeuralNetBuffer<T> > m_error_buffers;
 	
 	LAYER*				m_firstLayer;
 	LAYER*				m_lastLayer;
@@ -57,27 +57,27 @@ public:
 	int   GetOutputErrorDataType(void) const { return m_lastLayer->GetOutputErrorDataType(); }
 	
 	// 入出力バッファ
-	void  SetInputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_firstLayer->SetInputSignalBuffer(buffer); }
-	void  SetOutputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_lastLayer->SetOutputSignalBuffer(buffer); }
-	void  SetInputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_firstLayer->SetInputErrorBuffer(buffer); }
-	void  SetOutputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_lastLayer->SetOutputErrorBuffer(buffer); }
+	void  SetInputSignalBuffer(NeuralNetBuffer<T> buffer) { m_firstLayer->SetInputSignalBuffer(buffer); }
+	void  SetOutputSignalBuffer(NeuralNetBuffer<T> buffer) { m_lastLayer->SetOutputSignalBuffer(buffer); }
+	void  SetInputErrorBuffer(NeuralNetBuffer<T> buffer) { m_firstLayer->SetInputErrorBuffer(buffer); }
+	void  SetOutputErrorBuffer(NeuralNetBuffer<T> buffer) { m_lastLayer->SetOutputErrorBuffer(buffer); }
 	
-	const NeuralNetBuffer<T, INDEX>& GetInputSignalBuffer(void) const  { return m_firstLayer->GetInputSignalBuffer(); }
-	const NeuralNetBuffer<T, INDEX>& GetOutputSignalBuffer(void) const { return m_lastLayer->GetOutputSignalBuffer(); }
-	const NeuralNetBuffer<T, INDEX>& GetInputErrorBuffer(void) const { return m_firstLayer->GetInputErrorBuffer(); }
-	const NeuralNetBuffer<T, INDEX>& GetOutputErrorBuffer(void) const { return m_lastLayer->GetOutputErrorBuffer(); }
+	const NeuralNetBuffer<T>& GetInputSignalBuffer(void) const  { return m_firstLayer->GetInputSignalBuffer(); }
+	const NeuralNetBuffer<T>& GetOutputSignalBuffer(void) const { return m_lastLayer->GetOutputSignalBuffer(); }
+	const NeuralNetBuffer<T>& GetInputErrorBuffer(void) const { return m_firstLayer->GetInputErrorBuffer(); }
+	const NeuralNetBuffer<T>& GetOutputErrorBuffer(void) const { return m_lastLayer->GetOutputErrorBuffer(); }
 	
 	
 	// 内部バッファアクセス
-	void SetInputSignalBuffer(INDEX layer, NeuralNetBuffer<T, INDEX> buf) { return m_layers[layer]->SetInputSignalBuffer(buf); }
-	void SetInputErrorBuffer(INDEX layer, NeuralNetBuffer<T, INDEX> buf) { return m_layers[layer]->SetInputErrorBuffer(buf); }
-	void SetOutputSignalBuffer(INDEX layer, NeuralNetBuffer<T, INDEX> buf) { return m_layers[layer]->SetOutputSignalBuffer(buf); }
-	void SetOutputErrorBuffer(INDEX layer, NeuralNetBuffer<T, INDEX> buf) { return m_layers[layer]->SetOutputErrorBuffer(buf); }
+	void SetInputSignalBuffer(INDEX layer, NeuralNetBuffer<T> buf) { return m_layers[layer]->SetInputSignalBuffer(buf); }
+	void SetInputErrorBuffer(INDEX layer, NeuralNetBuffer<T> buf) { return m_layers[layer]->SetInputErrorBuffer(buf); }
+	void SetOutputSignalBuffer(INDEX layer, NeuralNetBuffer<T> buf) { return m_layers[layer]->SetOutputSignalBuffer(buf); }
+	void SetOutputErrorBuffer(INDEX layer, NeuralNetBuffer<T> buf) { return m_layers[layer]->SetOutputErrorBuffer(buf); }
 	
-	NeuralNetBuffer<T, INDEX> GetInputSignalBuffer(INDEX layer) const { return m_layers[layer]->GetInputSignalBuffer(); }
-	NeuralNetBuffer<T, INDEX> GetInputErrorBuffer(INDEX layer) const { return m_layers[layer]->GetInputErrorBuffer(); }
-	NeuralNetBuffer<T, INDEX> GetOutputSignalBuffer(INDEX layer) const { return m_layers[layer]->GetOutputSignalBuffer(); }
-	NeuralNetBuffer<T, INDEX> GetOutputErrorBuffer(INDEX layer) const { return m_layers[layer]->GetOutputErrorBuffer(); }
+	NeuralNetBuffer<T> GetInputSignalBuffer(INDEX layer) const { return m_layers[layer]->GetInputSignalBuffer(); }
+	NeuralNetBuffer<T> GetInputErrorBuffer(INDEX layer) const { return m_layers[layer]->GetInputErrorBuffer(); }
+	NeuralNetBuffer<T> GetOutputSignalBuffer(INDEX layer) const { return m_layers[layer]->GetOutputSignalBuffer(); }
+	NeuralNetBuffer<T> GetOutputErrorBuffer(INDEX layer) const { return m_layers[layer]->GetOutputErrorBuffer(); }
 	
 	
 	void AddLayer(LAYER* layer)
@@ -96,7 +96,7 @@ public:
 		}
 	}
 
-	void SetOptimizer(const NeuralNetOptimizer<T, INDEX>* optimizer)
+	void SetOptimizer(const NeuralNetOptimizer<T>* optimizer)
 	{
 		for (auto layer : m_layers) {
 			layer->SetOptimizer(optimizer);

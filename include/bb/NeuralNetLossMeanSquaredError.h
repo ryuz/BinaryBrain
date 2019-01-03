@@ -20,8 +20,8 @@
 namespace bb {
 
 
-template <typename T = float, typename INDEX = size_t>
-class NeuralNetLossMeanSquaredError : public NeuralNetLossFunction<T, INDEX>
+template <typename T = float>
+class NeuralNetLossMeanSquaredError : public NeuralNetLossFunction<T>
 {
 protected:
 	using Vector = Eigen::Matrix<T, 1, Eigen::Dynamic>;
@@ -33,7 +33,7 @@ public:
 	NeuralNetLossMeanSquaredError() {}
 	~NeuralNetLossMeanSquaredError() {}
 	
-	double CalculateLoss(NeuralNetBuffer<T, INDEX> buf_sig, NeuralNetBuffer<T, INDEX> buf_err, typename std::vector< std::vector<T> >::const_iterator t_begin) const
+	double CalculateLoss(NeuralNetBuffer<T> buf_sig, NeuralNetBuffer<T> buf_err, typename std::vector< std::vector<T> >::const_iterator t_begin) const
 	{
 		INDEX frame_size = buf_sig.GetFrameSize();
 		INDEX node_size = buf_sig.GetNodeSize();

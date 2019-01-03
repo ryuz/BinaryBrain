@@ -15,17 +15,17 @@
 #include <Eigen/Core>
 
 #include "bb/NeuralNetLayerBuf.h"
+#include "bb/NeuralNetSparseLayer.h"
 #include "bb/NeuralNetOptimizerSgd.h"
-
 
 namespace bb {
 
 
 // Affineレイヤー
-template <typename T = float, typename INDEX = size_t>
-class NeuralNetDenseAffine : public NeuralNetLayerBuf<T, INDEX>
+template <typename T = float>
+class NeuralNetDenseAffine : public NeuralNetLayerBuf<T>
 {
-	typedef NeuralNetSparseLayer<T, INDEX>	super;
+	using super = NeuralNetSparseLayer<T>;
 
 protected:
 //	typedef Eigen::Matrix<T, -1, -1, Eigen::ColMajor>	Matrix;
@@ -44,8 +44,8 @@ protected:
 	Matrix		m_dW;
 	Vector		m_db;
 
-	std::unique_ptr< ParamOptimizer<T, INDEX> >	m_optimizer_W;
-	std::unique_ptr< ParamOptimizer<T, INDEX> >	m_optimizer_b;
+	std::unique_ptr< ParamOptimizer<T> >	m_optimizer_W;
+	std::unique_ptr< ParamOptimizer<T> >	m_optimizer_b;
 
 	bool		m_binary_mode = false;
 
@@ -53,9 +53,9 @@ public:
 	NeuralNetDenseAffine() {}
 
 	NeuralNetDenseAffine(INDEX input_size, INDEX output_size, std::uint64_t seed=1,
-		const NeuralNetOptimizer<T, INDEX>* optimizer = nullptr)
+		const NeuralNetOptimizer<T>* optimizer = nullptr)
 	{
-		NeuralNetOptimizerSgd<T, INDEX> DefOptimizer;
+		NeuralNetOptimizerSgd<T> DefOptimizer;
 		if (optimizer == nullptr) {
 			optimizer = &DefOptimizer;
 		}
@@ -95,7 +95,7 @@ public:
 		}
 	}
 
-	void  SetOptimizer(const NeuralNetOptimizer<T, INDEX>* optimizer)
+	void  SetOptimizer(const NeuralNetOptimizer<T>* optimizer)
 	{
 		m_optimizer_W.reset(optimizer->Create(m_input_size * m_output_size));
 		m_optimizer_b.reset(optimizer->Create(m_output_size));

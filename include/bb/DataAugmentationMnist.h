@@ -82,7 +82,7 @@ void DataAugmentationMnist(std::vector< std::vector<T> >& vec_x, std::vector< st
 		cv::minMaxLoc(imgDst.mul(maskEdge), nullptr, &maxEdge);
 		cv::minMaxLoc(imgDst.mul(maskInner), nullptr, &maxInner);
 		if (maxEdge >= 0.5 || maxInner < 0.5) {
-			std::fill(y.begin(), y.end(), 0);
+			std::fill(y.begin(), y.end(), 0.0f);
 		}
 
 		// ネガポジ

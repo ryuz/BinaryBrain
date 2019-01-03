@@ -10,6 +10,7 @@
 #pragma once
 
 #include <assert.h>
+#include <cstdint>
 
 #include "bb/SimdSupport.h"
 
@@ -44,6 +45,7 @@ namespace bb {
 #endif
 
 
+using INDEX = std::intptr_t;	// 配列の添え字(符号付き size_t としての扱い)
 
 class Bit;
 class Binary;

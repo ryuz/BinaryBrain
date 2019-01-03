@@ -107,10 +107,10 @@ TEST(NeuralNetConvolutionCol2ImTest, testNeuralNetConvCollapse)
 
 	out_sig_buf.SetDimensions({ 4, 3, 2 });
 	out_err_buf.SetDimensions({ 4, 3, 2 });
-	for (size_t f = 0; f < 2; ++f) {
-		for (size_t c = 0; c < 2; ++c) {
-			for (size_t y = 0; y < 3; ++y) {
-				for (size_t x = 0; x < 4; ++x) {
+	for (bb::INDEX f = 0; f < 2; ++f) {
+		for (bb::INDEX c = 0; c < 2; ++c) {
+			for (bb::INDEX y = 0; y < 3; ++y) {
+				for (bb::INDEX x = 0; x < 4; ++x) {
 					float val = out_sig_buf.GetReal(f, { x, y, c });
 					out_err_buf.SetReal(f, { x, y, c }, val + 10000);
 				}

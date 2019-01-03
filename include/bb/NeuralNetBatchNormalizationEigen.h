@@ -19,8 +19,8 @@ namespace bb {
 
 
 // NeuralNetの抽象クラス
-template <typename T = float, typename INDEX = size_t>
-class NeuralNetBatchNormalizationEigen : public NeuralNetLayerBuf<T, INDEX>
+template <typename T = float>
+class NeuralNetBatchNormalizationEigen : public NeuralNetLayerBuf<T>
 {
 protected:
 	using Vector = Eigen::Matrix<T, 1, Eigen::Dynamic>;
@@ -37,8 +37,8 @@ protected:
 	Vector		m_dgamma;
 	Vector		m_dbeta;
 
-	std::unique_ptr< ParamOptimizer<T, INDEX> >	m_optimizer_gamma;
-	std::unique_ptr< ParamOptimizer<T, INDEX> >	m_optimizer_beta;
+	std::unique_ptr< ParamOptimizer<T> >	m_optimizer_gamma;
+	std::unique_ptr< ParamOptimizer<T> >	m_optimizer_beta;
 
 	Matrix		m_xn;
 	Matrix		m_xc;
@@ -51,7 +51,7 @@ protected:
 public:
 	NeuralNetBatchNormalizationEigen() {}
 
-	NeuralNetBatchNormalizationEigen(INDEX node_size, const NeuralNetOptimizer<T, INDEX>* optimizer = &NeuralNetOptimizerSgd<>())
+	NeuralNetBatchNormalizationEigen(INDEX node_size, const NeuralNetOptimizer<T>* optimizer = &NeuralNetOptimizerSgd<>())
 	{
 		Resize(node_size);
 		SetOptimizer(optimizer);
@@ -80,7 +80,7 @@ public:
 		m_running_var = Vector::Ones(m_node_size);
 	}
 
-	void  SetOptimizer(const NeuralNetOptimizer<T, INDEX>* optimizer)
+	void  SetOptimizer(const NeuralNetOptimizer<T>* optimizer)
 	{
 		m_optimizer_gamma.reset(optimizer->Create(m_node_size));
 		m_optimizer_beta.reset(optimizer->Create(m_node_size));

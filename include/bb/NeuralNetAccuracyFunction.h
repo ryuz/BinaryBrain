@@ -18,13 +18,13 @@
 namespace bb {
 
 
-template <typename T = float, typename INDEX = size_t>
+template <typename T = float>
 class NeuralNetAccuracyFunction
 {
 public:
 	virtual ~NeuralNetAccuracyFunction() {}
 	
-	virtual double CalculateAccuracy(NeuralNetBuffer<T, INDEX> buf_sig, typename std::vector< std::vector<T> >::const_iterator t_begin) const = 0;
+	virtual double CalculateAccuracy(NeuralNetBuffer<T> buf_sig, typename std::vector< std::vector<T> >::const_iterator t_begin) const = 0;
 };
 
 

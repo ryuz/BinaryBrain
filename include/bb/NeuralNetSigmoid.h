@@ -20,8 +20,8 @@ namespace bb {
 
 
 // シグモイド(活性化関数)
-template <typename T = float, typename INDEX = size_t>
-class NeuralNetSigmoid : public NeuralNetLayerBuf<T, INDEX>
+template <typename T = float>
+class NeuralNetSigmoid : public NeuralNetLayerBuf<T>
 {
 protected:
 //	typedef Eigen::Matrix<T, -1, -1, Eigen::ColMajor>	Matrix;

@@ -24,8 +24,8 @@ namespace bb {
 
 
 // NeuralNetの抽象クラス
-template <typename T = float, typename INDEX = size_t>
-class NeuralNetBatchNormalizationAvx : public NeuralNetLayerBuf<T, INDEX>
+template <typename T = float>
+class NeuralNetBatchNormalizationAvx : public NeuralNetLayerBuf<T>
 {
 protected:
 	INDEX		m_frame_size = 1;
@@ -36,8 +36,8 @@ protected:
 	std::vector<T>	m_dgamma;
 	std::vector<T>	m_dbeta;
 
-	std::unique_ptr< ParamOptimizer<T, INDEX> >	m_optimizer_gamma;
-	std::unique_ptr< ParamOptimizer<T, INDEX> >	m_optimizer_beta;
+	std::unique_ptr< ParamOptimizer<T> >	m_optimizer_gamma;
+	std::unique_ptr< ParamOptimizer<T> >	m_optimizer_beta;
 
 	std::vector<T>	m_mean;		// 平均値
 	std::vector<T>	m_rstd;		// 標準偏差の逆数
@@ -49,9 +49,9 @@ protected:
 public:
 	NeuralNetBatchNormalizationAvx() {}
 
-	NeuralNetBatchNormalizationAvx(INDEX node_size, const NeuralNetOptimizer<T, INDEX>* optimizer = nullptr)
+	NeuralNetBatchNormalizationAvx(INDEX node_size, const NeuralNetOptimizer<T>* optimizer = nullptr)
 	{
-		NeuralNetOptimizerSgd<T, INDEX> DefOptimizer;
+		NeuralNetOptimizerSgd<T> DefOptimizer;
 		if (optimizer == nullptr) {
 			optimizer = &DefOptimizer;
 		}
@@ -99,7 +99,7 @@ public:
 		std::fill(m_running_var.begin(), m_running_var.end(), (T)1.0);
 	}
 
-	void  SetOptimizer(const NeuralNetOptimizer<T, INDEX>* optimizer)
+	void  SetOptimizer(const NeuralNetOptimizer<T>* optimizer)
 	{
 		m_optimizer_gamma.reset(optimizer->Create(m_node_size));
 		m_optimizer_beta.reset(optimizer->Create(m_node_size));

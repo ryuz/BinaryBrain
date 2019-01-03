@@ -25,16 +25,16 @@ namespace bb {
 
 
 // NeuralNet 最上位構成用クラス
-template <typename T = float, typename INDEX = size_t>
-class NeuralNet : public NeuralNetGroup<T, INDEX>
+template <typename T = float>
+class NeuralNet : public NeuralNetGroup<T>
 {
 protected:
-	INDEX						m_batch_size = 0;
+	INDEX				m_batch_size = 0;
 
-	NeuralNetBuffer<T, INDEX>	m_input_signal_buffers;
-	NeuralNetBuffer<T, INDEX>	m_output_signal_buffers;
-	NeuralNetBuffer<T, INDEX>	m_input_error_buffers;
-	NeuralNetBuffer<T, INDEX>	m_output_error_buffers;
+	NeuralNetBuffer<T>	m_input_signal_buffers;
+	NeuralNetBuffer<T>	m_output_signal_buffers;
+	NeuralNetBuffer<T>	m_input_error_buffers;
+	NeuralNetBuffer<T>	m_output_error_buffers;
 	
 public:
 	// コンストラクタ
@@ -51,7 +51,7 @@ public:
 	void SetBatchSize(INDEX batch_size)
 	{
 		// 親クラス呼び出し
-		NeuralNetGroup<T, INDEX>::SetBatchSize(batch_size);
+		NeuralNetGroup<T>::SetBatchSize(batch_size);
 
 		// サイズ変更が無ければそのまま
 		if (m_batch_size == batch_size) {
@@ -136,8 +136,8 @@ public:
 		const std::vector< std::vector<T> >& y,
 		INDEX max_batch_size,
 		INDEX min_batch_size,
-		const NeuralNetAccuracyFunction<T, INDEX>* accFunc = nullptr,
-		const NeuralNetLossFunction<T, INDEX>* lossFunc = nullptr,
+		const NeuralNetAccuracyFunction<T>* accFunc = nullptr,
+		const NeuralNetLossFunction<T>* lossFunc = nullptr,
 		bool train = false,
 		bool print_progress = false)
 	{
@@ -148,7 +148,7 @@ public:
 
 		for (INDEX x_index = 0; x_index < x_size; x_index += max_batch_size) {
 			// 末尾のバッチサイズクリップ
-			INDEX batch_size = std::min(max_batch_size, x.size() - x_index);
+			INDEX batch_size = std::min(max_batch_size, (INDEX)x.size() - x_index);
 			if (batch_size < min_batch_size) { break; }
 
 			INDEX node_size = x[0].size();
@@ -229,14 +229,14 @@ public:
 		std::vector< std::vector<T> >& y_test,
 		INDEX epoc_size,
 		INDEX max_batch_size,
-		const NeuralNetAccuracyFunction<T, INDEX>* accFunc,
-		const NeuralNetLossFunction<T, INDEX>* lossFunc,
+		const NeuralNetAccuracyFunction<T>* accFunc,
+		const NeuralNetLossFunction<T>* lossFunc,
 		bool print_progress = true,
 		bool file_write = true,
 		bool over_write = false,
 		bool initial_evaluation = false,
 		std::uint64_t seed=1,
-		void (*callback)(NeuralNet<T, INDEX >* net, void* user) = 0,
+		void (*callback)(NeuralNet<T>* net, void* user) = 0,
 		void* user = 0)
 	{
 		std::string csv_file_name = name + "_acc.txt";
@@ -292,7 +292,7 @@ public:
 				if (file_write) {
 					int save_epoc = epoc + 1 + prev_epoc;
 
-					if(0){
+					if(1){
 						std::stringstream fname;
 						fname << name << "_net_" << save_epoc << ".json";
 						std::ofstream ofs_net(fname.str());
@@ -339,14 +339,14 @@ public:
 		TrainData<T> td,
 		INDEX epoc_size,
 		INDEX mini_batch_size,
-		const NeuralNetAccuracyFunction<T, INDEX>* accFunc,
-		const NeuralNetLossFunction<T, INDEX>* lossFunc,
+		const NeuralNetAccuracyFunction<T>* accFunc,
+		const NeuralNetLossFunction<T>* lossFunc,
 		bool print_progress = true,
 		bool file_write = true,
 		bool over_write = false,
 		bool initial_evaluation = true,
 		std::uint64_t seed = 1,
-		void (*callback)(NeuralNet<T, INDEX >* net, void* user) = 0,
+		void (*callback)(NeuralNet<T>* net, void* user) = 0,
 		void* user = 0
 		)
 	{

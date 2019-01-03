@@ -26,10 +26,10 @@ namespace bb {
 
 
 // Mini-MLP(Affine-ReLU-Affine-BatchNorm-Binarize)
-template <int N = 6, int M = 16, typename T = float, typename INDEX = size_t>
-class NeuralNetStackedMicroAffine : public NeuralNetSparseLayer<T, INDEX>
+template <int N = 6, int M = 16, typename T = float>
+class NeuralNetStackedMicroAffine : public NeuralNetSparseLayer<T>
 {
-	using super = NeuralNetSparseLayer<T, INDEX>;
+	using super = NeuralNetSparseLayer<T>;
 
 protected:
 public:
@@ -46,10 +46,10 @@ public:
 		std::array<T, M>		dW1;
 		T						db1;
 
-		std::unique_ptr< ParamOptimizer<T, INDEX> >	optimizer_W0;
-		std::unique_ptr< ParamOptimizer<T, INDEX> >	optimizer_b0;
-		std::unique_ptr< ParamOptimizer<T, INDEX> >	optimizer_W1;
-		std::unique_ptr< ParamOptimizer<T, INDEX> >	optimizer_b1;
+		std::unique_ptr< ParamOptimizer<T> >	optimizer_W0;
+		std::unique_ptr< ParamOptimizer<T> >	optimizer_b0;
+		std::unique_ptr< ParamOptimizer<T> >	optimizer_W1;
+		std::unique_ptr< ParamOptimizer<T> >	optimizer_b1;
 
 		template<class Archive>
 		void serialize(Archive & archive, std::uint32_t const version)
@@ -70,9 +70,9 @@ public:
 	NeuralNetStackedMicroAffine() {}
 
 	NeuralNetStackedMicroAffine(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1,
-		const NeuralNetOptimizer<T, INDEX>* optimizer = nullptr)
+		const NeuralNetOptimizer<T>* optimizer = nullptr)
 	{
-		NeuralNetOptimizerSgd<T, INDEX> DefOptimizer;
+		NeuralNetOptimizerSgd<T> DefOptimizer;
 		if (optimizer == nullptr) {
 			optimizer = &DefOptimizer;
 		}
@@ -152,7 +152,7 @@ public:
 		}
 	}
 
-	void SetOptimizer(const NeuralNetOptimizer<T, INDEX>* optimizer)
+	void SetOptimizer(const NeuralNetOptimizer<T>* optimizer)
 	{
 		for (auto& node : m_node) {
 			node.optimizer_W0.reset(optimizer->Create(M*N));

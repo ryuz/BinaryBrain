@@ -189,6 +189,7 @@
     <ClInclude Include="..\..\include\bb\NeuralNetBatchNormalizationBinarization.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBatchNormalizationEigen.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBinarize.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetBinaryConvolutionJelly.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryFilter.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryLut.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryLut6.h" />

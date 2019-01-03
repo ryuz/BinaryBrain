@@ -24,8 +24,8 @@ namespace bb {
 
 
 // 6入力LUT固定
-template <bool feedback_bitwise = false, typename T = float, typename INDEX = size_t>
-class NeuralNetBinaryLut6 : public NeuralNetBinaryLut<feedback_bitwise, T, INDEX>
+template <bool feedback_bitwise = false, typename T = float>
+class NeuralNetBinaryLut6 : public NeuralNetBinaryLut<feedback_bitwise, T>
 {
 protected:
 	struct LutNode {
@@ -50,7 +50,7 @@ public:
 
 	void Resize(INDEX input_node_size, INDEX output_node_size)
 	{
-		NeuralNetBinaryLut<feedback_bitwise, T, INDEX>::Resize(input_node_size, output_node_size);
+		NeuralNetBinaryLut<feedback_bitwise, T>::Resize(input_node_size, output_node_size);
 		
 		m_lut.resize(this->m_output_node_size);
 	}

@@ -20,8 +20,8 @@
 namespace bb {
 
 // Xilinx用 6入力LUT Verilog 出力
-template <bool bitwise=false, typename T = float, typename INDEX = size_t>
-void NeuralNetBinaryLut6VerilogXilinx(std::ostream& os, NeuralNetBinaryLut<bitwise, T, INDEX>& lut, std::string module_name)
+template <bool bitwise=false, typename T = float>
+void NeuralNetBinaryLut6VerilogXilinx(std::ostream& os, NeuralNetBinaryLut<bitwise, T>& lut, std::string module_name)
 {
 	int		lut_input_size = lut.GetLutInputSize();
 	int		lut_table_size = lut.GetLutTableSize();

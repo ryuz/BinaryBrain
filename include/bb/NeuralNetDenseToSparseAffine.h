@@ -23,8 +23,8 @@ namespace bb {
 
 
 // 徐々にSparse化
-template <typename T = float, typename INDEX = size_t>
-class NeuralNetDenseToSparseAffine : public NeuralNetLayerBuf<T, INDEX>
+template <typename T = float>
+class NeuralNetDenseToSparseAffine : public NeuralNetLayerBuf<T>
 {
 protected:
 	using Vector = Eigen::Matrix<T, 1, Eigen::Dynamic>;
@@ -48,9 +48,16 @@ protected:
 	Matrix		m_dW;
 	Vector		m_db;
 
+public:
+	std::mt19937_64	m_mt;
+	std::vector<bool>	m_mask_vec;
+	Matrix				m_Mask;
+	Matrix				m_N;
+	Matrix				m_ErrSum;
+protected:
 
-	std::unique_ptr< ParamOptimizer<T, INDEX> >	m_optimizer_W;
-	std::unique_ptr< ParamOptimizer<T, INDEX> >	m_optimizer_b;
+	std::unique_ptr< ParamOptimizer<T> >	m_optimizer_W;
+	std::unique_ptr< ParamOptimizer<T> >	m_optimizer_b;
 
 	bool		m_binary_mode = false;
 
@@ -58,9 +65,9 @@ public:
 	NeuralNetDenseToSparseAffine() {}
 
 	NeuralNetDenseToSparseAffine(int target, double rate, INDEX input_size, INDEX output_size, std::uint64_t seed = 1,
-		const NeuralNetOptimizer<T, INDEX>* optimizer = nullptr)
+		const NeuralNetOptimizer<T>* optimizer = nullptr)
 	{
-		NeuralNetOptimizerSgd<T, INDEX> DefOptimizer;
+		NeuralNetOptimizerSgd<T> DefOptimizer;
 		if (optimizer == nullptr) {
 			optimizer = &DefOptimizer;
 		}
@@ -83,6 +90,15 @@ public:
 		m_dW = Matrix::Zero(input_size, output_size);
 		m_db = Vector::Zero(output_size);
 
+		m_Mask = Matrix::Zero(input_size, output_size);
+		m_N    = Matrix::Zero(input_size, output_size);
+		m_ErrSum = Matrix::Zero(input_size, output_size);
+		m_mask_vec.resize(input_size * output_size);
+		for (size_t i = 0; i < m_mask_vec.size(); ++i) {
+			m_mask_vec[i] = 1;// (i % 2 == 1);
+		}
+		std::random_shuffle(m_mask_vec.begin(), m_mask_vec.end());
+		
 		m_decimate_current_size = m_input_size;
 		m_decimate_target_size = target;
 		m_decimate_current_rate = 1.0;
@@ -113,9 +129,11 @@ public:
 		for (INDEX j = 0; j < m_output_size; ++j) {
 			m_b(j) = real_dist(mt);
 		}
+
+		m_mt.seed(mt());
 	}
 
-	void  SetOptimizer(const NeuralNetOptimizer<T, INDEX>* optimizer)
+	void SetOptimizer(const NeuralNetOptimizer<T>* optimizer)
 	{
 		m_optimizer_W.reset(optimizer->Create(m_input_size * m_output_size));
 		m_optimizer_b.reset(optimizer->Create(m_output_size));
@@ -157,12 +175,36 @@ public:
 
 	void Forward(bool train = true)
 	{
+		// mask作成
+		std::random_shuffle(m_mask_vec.begin(), m_mask_vec.end());
+		for (INDEX output_node = 0; output_node < m_output_size; ++output_node) {
+			for (INDEX input_node = 0; input_node < m_input_size; ++input_node) {
+				m_Mask(input_node, output_node) = m_mask_vec[output_node*m_input_size + input_node] ? (T)1 : (T)0;
+			}
+		}
+
+		for (INDEX output_node = 0; output_node < m_output_size; ++output_node) {
+			for (INDEX input_node = 0; input_node < m_input_size; ++input_node) {
+				auto& W = m_W(input_node, output_node);
+				if (isnan(W)) {
+					std::cout << "\n\nNaN\n\n" << std::endl;
+					W = (T)0.000000;
+				}
+				if (W == 0) {
+					W = (T)0.000001;
+				}
+			}
+		}
+		
 //		Eigen::Map<Matrix> x((T*)m_input_signal_buffer.GetBuffer(), m_input_signal_buffer.GetFrameStride() / sizeof(T), m_input_size);
 //		Eigen::Map<Matrix> y((T*)m_output_signal_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_output_size);
 		MatMap x((T*)this->m_input_signal_buffer.GetBuffer(), m_frame_size, m_input_size, Stride(this->m_input_signal_buffer.GetFrameStride() / sizeof(T), 1));
 		MatMap y((T*)this->m_output_signal_buffer.GetBuffer(), m_frame_size, m_output_size, Stride(this->m_output_signal_buffer.GetFrameStride() / sizeof(T), 1));
+		
+		Matrix W = m_W.array() * m_Mask.array();
 
-		y = x * m_W;
+//		y = x * m_W;
+		y = x * W;
 		y.rowwise() += m_b;
 	}
 	
@@ -175,9 +217,20 @@ public:
 		MatMap dx((T*)this->m_input_error_buffer.GetBuffer(), m_frame_size, m_input_size, Stride(this->m_input_error_buffer.GetFrameStride() / sizeof(T), 1));
 		MatMap x((T*)this->m_input_signal_buffer.GetBuffer(), m_frame_size, m_input_size, Stride(this->m_input_signal_buffer.GetFrameStride() / sizeof(T), 1));
 
-		dx = dy * m_W.transpose();
+//		Matrix dy2 = dy.array() * dy.array();
+//		T err_sum = dy2.sum();
+//		m_N      += m_Mask;
+//		m_ErrSum += (m_Mask * err_sum);
+
+		Matrix W = m_W.array() * m_Mask.array();
+
+//		dx = dy * m_W.transpose();
+		dx = dy * W.transpose();
 		m_dW = x.transpose() * dy;
 		m_db = dy.colwise().sum();
+
+		Matrix dx2 = dx.array() * dx.array();
+		m_ErrSum += dx2;
 	}
 
 	void Update(void)
@@ -193,6 +246,9 @@ public:
 				}
 			}
 		}
+
+//		m_W *= 0.998;
+//		m_b *= 0.998;
 
 		if (!m_decimate_enable) {
 			return;
@@ -225,6 +281,58 @@ public:
 			});
 		}
 	}
+
+
+	public:
+		template <class Archive>
+		void save(Archive &archive, std::uint32_t const version) const
+		{
+			archive(cereal::make_nvp("input_size", m_input_size));
+			archive(cereal::make_nvp("output_size", m_output_size));
+
+			std::vector< std::vector<T> >	W(m_output_size);
+			std::vector<T>					b(m_output_size);
+			for (INDEX i = 0; i < m_output_size; ++i) {
+				W[i].resize(m_input_size);
+				for (INDEX j = 0; j < m_input_size; ++j) {
+					W[i][j] = m_W(j, i);
+				}
+				b[i] = m_b(i);
+			}
+
+			archive(cereal::make_nvp("W", W));
+			archive(cereal::make_nvp("b", b));
+		}
+
+		template <class Archive>
+		void load(Archive &archive, std::uint32_t const version)
+		{
+			archive(cereal::make_nvp("input_size", m_input_size));
+			archive(cereal::make_nvp("output_size", m_output_size));
+
+			std::vector< std::vector<T> >	W(m_output_size);
+			std::vector<T>					b(m_output_size);
+			archive(cereal::make_nvp("W", W));
+			archive(cereal::make_nvp("b", b));
+
+			for (INDEX i = 0; i < m_output_size; ++i) {
+				W[i].resize(m_input_size);
+				for (INDEX j = 0; j < m_input_size; ++j) {
+					m_W(j, i) = W[i][j];
+				}
+				m_b(i) = b[i];
+			}
+		}
+
+		virtual void Save(cereal::JSONOutputArchive& archive) const
+		{
+			archive(cereal::make_nvp("NeuralNetDenseAffine", *this));
+		}
+
+		virtual void Load(cereal::JSONInputArchive& archive)
+		{
+			archive(cereal::make_nvp("NeuralNetDenseAffine", *this));
+		}
 };
 
 }

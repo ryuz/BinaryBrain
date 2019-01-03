@@ -20,13 +20,13 @@ namespace bb {
 
 
 // NeuralNetの抽象クラス
-template <typename T = float, typename INDEX = size_t>
-class NeuralNetBinaryFilter : public NeuralNetLayerBuf<T, INDEX>
+template <typename T = float>
+class NeuralNetBinaryFilter : public NeuralNetLayerBuf<T>
 {
-	typedef NeuralNetLayerBuf<T, INDEX>	super;
+	typedef NeuralNetLayerBuf<T>	super;
 
 protected:
-	NeuralNetLayer<T, INDEX>* m_filter_net;
+	NeuralNetLayer<T>* m_filter_net;
 	INDEX			m_frame_size = 1;
 	INDEX			m_input_h_size;
 	INDEX			m_input_w_size;
@@ -44,7 +44,7 @@ protected:
 public:
 	NeuralNetBinaryFilter() {}
 
-	NeuralNetBinaryFilter(NeuralNetLayer<T, INDEX>* filter_net, INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size, INDEX y_step, INDEX x_step)
+	NeuralNetBinaryFilter(NeuralNetLayer<T>* filter_net, INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size, INDEX y_step, INDEX x_step)
 	{
 		SetFilterNet(filter_net);
 		Resize(input_c_size, input_h_size, input_w_size, output_c_size, filter_h_size, filter_w_size, y_step, x_step);
@@ -52,7 +52,7 @@ public:
 
 	~NeuralNetBinaryFilter() {}		// デストラクタ
 
-	void SetFilterNet(NeuralNetLayer<T, INDEX>* filter_net)
+	void SetFilterNet(NeuralNetLayer<T>* filter_net)
 	{
 		m_filter_net = filter_net;
 	}
@@ -72,27 +72,27 @@ public:
 	}
 
 	// 内部でROI設定を行うので、外部に見せるバッファポインタと別に設定する
-	void  SetInputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) {
+	void  SetInputSignalBuffer(NeuralNetBuffer<T> buffer) {
 		super::SetInputSignalBuffer(buffer);
 		m_filter_net->SetInputSignalBuffer(buffer);
 	}
-	void  SetOutputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) {
+	void  SetOutputSignalBuffer(NeuralNetBuffer<T> buffer) {
 		super::SetOutputSignalBuffer(buffer);
 		m_filter_net->SetOutputSignalBuffer(buffer);
 	}
-	void  SetInputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) {
+	void  SetInputErrorBuffer(NeuralNetBuffer<T> buffer) {
 		super::SetInputErrorBuffer(buffer);
 		m_filter_net->SetInputErrorBuffer(buffer);
 	}
-	void  SetOutputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) {
+	void  SetOutputErrorBuffer(NeuralNetBuffer<T> buffer) {
 		super::SetOutputErrorBuffer(buffer);
 		m_filter_net->SetOutputErrorBuffer(buffer);
 	}
 	
-//	const NeuralNetBuffer<T, INDEX>&  GetInputSignalBuffer(void) const { return super::GetInputSignalBuffer(); }
-//	const NeuralNetBuffer<T, INDEX>&  GetOutputSignalBuffer(void) const { return super::GetOutputSignalBuffer(); }
-//	const NeuralNetBuffer<T, INDEX>&  GetInputErrorBuffer(void) const { return super::GetInputErrorBuffer(); }
-//	const NeuralNetBuffer<T, INDEX>&  GetOutputErrorBuffer(void) const { return super::GetOutputErrorBuffer(); }
+//	const NeuralNetBuffer<T>&  GetInputSignalBuffer(void) const { return super::GetInputSignalBuffer(); }
+//	const NeuralNetBuffer<T>&  GetOutputSignalBuffer(void) const { return super::GetOutputSignalBuffer(); }
+//	const NeuralNetBuffer<T>&  GetInputErrorBuffer(void) const { return super::GetInputErrorBuffer(); }
+//	const NeuralNetBuffer<T>&  GetOutputErrorBuffer(void) const { return super::GetOutputErrorBuffer(); }
 
 	void SetBatchSize(INDEX batch_size) {
 		m_frame_size = batch_size;
@@ -111,12 +111,12 @@ public:
 	
 protected:
 
-	inline T* GetInputPtr(NeuralNetBuffer<T, INDEX>& buf, int c, int y, int x)
+	inline T* GetInputPtr(NeuralNetBuffer<T>& buf, int c, int y, int x)
 	{
 		return buf.GetPtr<T>((c*m_input_h_size + y)*m_input_w_size + x);
 	}
 
-	inline T* GetOutputPtr(NeuralNetBuffer<T, INDEX>& buf, int c, int y, int x)
+	inline T* GetOutputPtr(NeuralNetBuffer<T>& buf, int c, int y, int x)
 	{
 		return buf.GetPtr<T>((c*m_output_h_size + y)*m_output_w_size + x);
 	}
@@ -173,13 +173,13 @@ public:
 	template <class Archive>
 	void save(Archive &archive, std::uint32_t const version) const
 	{
-		archive(cereal::make_nvp("NeuralNetLayer", *(NeuralNetLayer<T, INDEX>*)this));
+		archive(cereal::make_nvp("NeuralNetLayer", *(NeuralNetLayer<T>*)this));
 	}
 
 	template <class Archive>
 	void load(Archive &archive, std::uint32_t const version)
 	{
-		archive(cereal::make_nvp("NeuralNetLayer", *(NeuralNetLayer<T, INDEX>*)this));
+		archive(cereal::make_nvp("NeuralNetLayer", *(NeuralNetLayer<T>*)this));
 	}
 
 

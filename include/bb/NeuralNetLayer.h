@@ -24,7 +24,7 @@ namespace bb {
 
 
 // abstract neura-network layer class
-template <typename T=float, typename INDEX = size_t>
+template <typename T=float>
 class NeuralNetLayer
 {
 protected:
@@ -51,7 +51,7 @@ public:
 	virtual void  Resize(std::vector<INDEX> size) {}							// サイズ設定
 	virtual void  InitializeCoeff(std::uint64_t seed) {}						// 内部係数の乱数初期化
 	
-	virtual void  SetOptimizer(const NeuralNetOptimizer<T, INDEX>* optimizer) {}	//オプティマイザの設定
+	virtual void  SetOptimizer(const NeuralNetOptimizer<T>* optimizer) {}	//オプティマイザの設定
 
 	virtual INDEX GetInputFrameSize(void) const = 0;							// 入力のフレーム数
 	virtual INDEX GetInputNodeSize(void) const = 0;								// 入力のノード数
@@ -74,17 +74,17 @@ public:
 	virtual int   GetInputSignalDataType(void) const = 0;
 	virtual int   GetOutputSignalDataType(void) const = 0;
 	
-	virtual void  SetInputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) = 0;
-	virtual void  SetOutputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) = 0;
+	virtual void  SetInputSignalBuffer(NeuralNetBuffer<T> buffer) = 0;
+	virtual void  SetOutputSignalBuffer(NeuralNetBuffer<T> buffer) = 0;
 	
-	virtual const NeuralNetBuffer<T, INDEX>& GetInputSignalBuffer(void) const = 0;
-	virtual const NeuralNetBuffer<T, INDEX>& GetOutputSignalBuffer(void) const = 0;
+	virtual const NeuralNetBuffer<T>& GetInputSignalBuffer(void) const = 0;
+	virtual const NeuralNetBuffer<T>& GetOutputSignalBuffer(void) const = 0;
 	
-	NeuralNetBuffer<T, INDEX> CreateInputSignalBuffer(void) { 
-		return NeuralNetBuffer<T, INDEX>(GetInputFrameSize(), GetInputNodeSize(), GetInputSignalDataType());
+	NeuralNetBuffer<T> CreateInputSignalBuffer(void) { 
+		return NeuralNetBuffer<T>(GetInputFrameSize(), GetInputNodeSize(), GetInputSignalDataType());
 	}
-	NeuralNetBuffer<T, INDEX> CreateOutputSignalBuffer(void) {
-		return NeuralNetBuffer<T, INDEX>(GetOutputFrameSize(), GetOutputNodeSize(), GetOutputSignalDataType());
+	NeuralNetBuffer<T> CreateOutputSignalBuffer(void) {
+		return NeuralNetBuffer<T>(GetOutputFrameSize(), GetOutputNodeSize(), GetOutputSignalDataType());
 	}
 	
 
@@ -92,17 +92,17 @@ public:
 	virtual int   GetInputErrorDataType(void) const = 0;
 	virtual int   GetOutputErrorDataType(void) const = 0;
 
-	virtual void  SetInputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) = 0;
-	virtual void  SetOutputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) = 0;
+	virtual void  SetInputErrorBuffer(NeuralNetBuffer<T> buffer) = 0;
+	virtual void  SetOutputErrorBuffer(NeuralNetBuffer<T> buffer) = 0;
 
-	virtual const NeuralNetBuffer<T, INDEX>& GetInputErrorBuffer(void) const = 0;
-	virtual const NeuralNetBuffer<T, INDEX>& GetOutputErrorBuffer(void) const = 0;
+	virtual const NeuralNetBuffer<T>& GetInputErrorBuffer(void) const = 0;
+	virtual const NeuralNetBuffer<T>& GetOutputErrorBuffer(void) const = 0;
 
-	NeuralNetBuffer<T, INDEX> CreateInputErrorBuffer(void) {
-		return NeuralNetBuffer<T, INDEX>(GetInputFrameSize(), GetInputNodeSize(), GetInputErrorDataType());
+	NeuralNetBuffer<T> CreateInputErrorBuffer(void) {
+		return NeuralNetBuffer<T>(GetInputFrameSize(), GetInputNodeSize(), GetInputErrorDataType());
 	}
-	NeuralNetBuffer<T, INDEX> CreateOutputErrorBuffer(void) {
-		return NeuralNetBuffer<T, INDEX>(GetOutputFrameSize(), GetOutputNodeSize(), GetOutputErrorDataType());
+	NeuralNetBuffer<T> CreateOutputErrorBuffer(void) {
+		return NeuralNetBuffer<T>(GetOutputFrameSize(), GetOutputNodeSize(), GetOutputErrorDataType());
 	}
 	
 	
@@ -133,8 +133,8 @@ public:
 
 
 // 整合性確認
-template <typename T = float, typename INDEX = size_t>
-bool CheckConnection(const NeuralNetLayer<T, INDEX>& out_layer, const NeuralNetLayer<T, INDEX>& in_layer)
+template <typename T = float>
+bool CheckConnection(const NeuralNetLayer<T>& out_layer, const NeuralNetLayer<T>& in_layer)
 {
 	if (out_layer.GetOutputFrameSize() != in_layer.GetInputFrameSize()) {
 		std::cout << "frame size mismatch" << std::endl;

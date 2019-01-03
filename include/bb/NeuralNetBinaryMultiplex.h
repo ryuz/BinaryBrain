@@ -21,14 +21,14 @@ namespace bb {
 
 
 // バイナリを多重化して評価
-template <typename BT = bool, typename T = float, typename INDEX = size_t>
-class NeuralNetBinaryMultiplex : public NeuralNetLayer<T, INDEX>
+template <typename BT = bool, typename T = float>
+class NeuralNetBinaryMultiplex : public NeuralNetLayer<T>
 {
 protected:
 	// 3層で構成
-	NeuralNetRealToBinary<BT, T, INDEX>		m_real2bin;
-	NeuralNetLayer<T, INDEX>*				m_layer;
-	NeuralNetBinaryToReal<BT, T, INDEX>		m_bin2real;
+	NeuralNetRealToBinary<BT, T>	m_real2bin;
+	NeuralNetLayer<T>*				m_layer;
+	NeuralNetBinaryToReal<BT, T>	m_bin2real;
 	
 	INDEX	m_batch_size = 0;
 	INDEX	m_mux_size   = 0;
@@ -36,7 +36,7 @@ protected:
 public:
 	NeuralNetBinaryMultiplex() {}
 	
-	NeuralNetBinaryMultiplex(NeuralNetLayer<T, INDEX>* layer, INDEX input_node_size, INDEX output_node_size, INDEX input_hmux_size=1, INDEX output_hmux_size=1)
+	NeuralNetBinaryMultiplex(NeuralNetLayer<T>* layer, INDEX input_node_size, INDEX output_node_size, INDEX input_hmux_size=1, INDEX output_hmux_size=1)
 		: m_real2bin(input_node_size, input_node_size*input_hmux_size), m_bin2real(output_node_size*output_hmux_size, output_node_size)
 	{
 		m_layer = layer;
@@ -74,7 +74,7 @@ public:
 		m_batch_size = 0;
 	}
 	
-	void SetOptimizer(const NeuralNetOptimizer<T, INDEX>* optimizer)
+	void SetOptimizer(const NeuralNetOptimizer<T>* optimizer)
 	{
 		m_real2bin.SetOptimizer(optimizer);
 		m_layer->SetOptimizer(optimizer);
@@ -110,15 +110,15 @@ public:
 
 	
 	// 入出力バッファ
-	void  SetInputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_real2bin.SetInputSignalBuffer(buffer); }
-	void  SetInputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_real2bin.SetInputErrorBuffer(buffer); }
-	void  SetOutputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_bin2real.SetOutputSignalBuffer(buffer); }
-	void  SetOutputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_bin2real.SetOutputErrorBuffer(buffer); }
+	void  SetInputSignalBuffer(NeuralNetBuffer<T> buffer) { m_real2bin.SetInputSignalBuffer(buffer); }
+	void  SetInputErrorBuffer(NeuralNetBuffer<T> buffer) { m_real2bin.SetInputErrorBuffer(buffer); }
+	void  SetOutputSignalBuffer(NeuralNetBuffer<T> buffer) { m_bin2real.SetOutputSignalBuffer(buffer); }
+	void  SetOutputErrorBuffer(NeuralNetBuffer<T> buffer) { m_bin2real.SetOutputErrorBuffer(buffer); }
 
-	const NeuralNetBuffer<T, INDEX>& GetInputSignalBuffer(void) const { return m_real2bin.GetInputSignalBuffer(); }
-	const NeuralNetBuffer<T, INDEX>& GetInputErrorBuffer(void) const { return m_real2bin.GetInputErrorBuffer(); }
-	const NeuralNetBuffer<T, INDEX>& GetOutputSignalBuffer(void) const { return m_bin2real.GetOutputSignalBuffer(); }
-	const NeuralNetBuffer<T, INDEX>& GetOutputErrorBuffer(void) const { return m_bin2real.GetOutputErrorBuffer(); }
+	const NeuralNetBuffer<T>& GetInputSignalBuffer(void) const { return m_real2bin.GetInputSignalBuffer(); }
+	const NeuralNetBuffer<T>& GetInputErrorBuffer(void) const { return m_real2bin.GetInputErrorBuffer(); }
+	const NeuralNetBuffer<T>& GetOutputSignalBuffer(void) const { return m_bin2real.GetOutputSignalBuffer(); }
+	const NeuralNetBuffer<T>& GetOutputErrorBuffer(void) const { return m_bin2real.GetOutputErrorBuffer(); }
 
 
 	INDEX GetInputFrameSize(void) const { return m_real2bin.GetInputFrameSize(); }
@@ -177,7 +177,7 @@ public:
 #pragma omp parallel for
 		for (int frame = 0; frame < (int)frame_size; ++frame) {
 			vec_loss[frame] = 0;
-			for (size_t node = 0; node < node_size; ++node) {
+			for (INDEX node = 0; node < node_size; ++node) {
 				if (label[frame / m_mux_size + offset] == (node % LABEL_SIZE)) {
 					vec_loss[frame] += (buf.template Get<BT>(frame, node) ? 0.0 : +1.0);
 				}

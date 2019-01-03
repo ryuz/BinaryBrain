@@ -23,8 +23,8 @@ namespace bb {
 
 
 // Convolutionクラス
-template <typename T = float, typename INDEX = size_t>
-class NeuralNetDenseConvolution : public NeuralNetLayerBuf<T, INDEX>
+template <typename T = float>
+class NeuralNetDenseConvolution : public NeuralNetLayerBuf<T>
 {
 protected:
 	INDEX			m_frame_size = 1;
@@ -40,8 +40,8 @@ protected:
 	std::vector <T>	m_b;
 	std::vector <T>	m_dW;
 	std::vector <T>	m_db;
-	std::unique_ptr< ParamOptimizer<T, INDEX> >	m_optimizer_W;
-	std::unique_ptr< ParamOptimizer<T, INDEX> >	m_optimizer_b;
+	std::unique_ptr< ParamOptimizer<T> >	m_optimizer_W;
+	std::unique_ptr< ParamOptimizer<T> >	m_optimizer_b;
 
 	bool			m_binary_mode = false;
 
@@ -49,9 +49,9 @@ public:
 	NeuralNetDenseConvolution() {}
 	
 	NeuralNetDenseConvolution(INDEX input_c_size, INDEX input_h_size, INDEX input_w_size, INDEX output_c_size, INDEX filter_h_size, INDEX filter_w_size, std::uint64_t seed = 1,
-		const NeuralNetOptimizer<T, INDEX>* optimizer = nullptr)
+		const NeuralNetOptimizer<T>* optimizer = nullptr)
 	{
-		NeuralNetOptimizerSgd<T, INDEX> DefOptimizer;
+		NeuralNetOptimizerSgd<T> DefOptimizer;
 		if (optimizer == nullptr) {
 			optimizer = &DefOptimizer;
 		}
@@ -91,7 +91,7 @@ public:
 		}
 	}
 
-	void  SetOptimizer(const NeuralNetOptimizer<T, INDEX>* optimizer)
+	void  SetOptimizer(const NeuralNetOptimizer<T>* optimizer)
 	{
 		m_optimizer_W.reset(optimizer->Create(m_output_c_size*m_input_c_size*m_filter_h_size*m_filter_w_size));
 		m_optimizer_b.reset(optimizer->Create(m_output_c_size));
@@ -143,17 +143,17 @@ public:
 	
 protected:
 
-	inline T* GetInputPtr(NeuralNetBuffer<T, INDEX>& buf, int c, int y, int x)
+	inline T* GetInputPtr(NeuralNetBuffer<T>& buf, int c, int y, int x)
 	{
 		return (T*)buf.GetPtr((c*m_input_h_size + y)*m_input_w_size + x);
 	}
 
-	inline T* GetOutputPtr(NeuralNetBuffer<T, INDEX>& buf, int c, int y, int x)
+	inline T* GetOutputPtr(NeuralNetBuffer<T>& buf, int c, int y, int x)
 	{
 		return (T*)buf.GetPtr((c*m_output_h_size + y)*m_output_w_size + x);
 	}
 
-	inline T* GetOutputPtrWithRangeCheck(NeuralNetBuffer<T, INDEX>& buf, int c, int y, int x)
+	inline T* GetOutputPtrWithRangeCheck(NeuralNetBuffer<T>& buf, int c, int y, int x)
 	{
 		if (x < 0 || x >= m_output_w_size || y < 0 || y >= m_output_h_size) {
 			return (T*)buf.GetZeroPtr();
@@ -162,7 +162,7 @@ protected:
 		return (T*)buf.GetPtr((c*m_output_h_size + y)*m_output_w_size + x);
 	}
 
-	inline T* GetWPtr(NeuralNetBuffer<T, INDEX>& buf, INDEX n, INDEX c, INDEX y, INDEX x)
+	inline T* GetWPtr(NeuralNetBuffer<T>& buf, INDEX n, INDEX c, INDEX y, INDEX x)
 	{
 		BB_ASSERT(n >= 0 && n < m_output_c_size);
 		BB_ASSERT(c >= 0 && c < m_input_c_size);

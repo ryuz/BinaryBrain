@@ -18,8 +18,8 @@
 namespace bb {
 
 
-template <typename T = float, typename INDEX = size_t>
-class NeuralNetAccuracyCategoricalClassification : public NeuralNetAccuracyFunction<T, INDEX>
+template <typename T = float>
+class NeuralNetAccuracyCategoricalClassification : public NeuralNetAccuracyFunction<T>
 {
 protected:
 	INDEX m_num_classes;
@@ -32,7 +32,7 @@ public:
 
 	~NeuralNetAccuracyCategoricalClassification() {}
 
-	double CalculateAccuracy(NeuralNetBuffer<T, INDEX> buf_sig, typename std::vector< std::vector<T> >::const_iterator exp_begin) const
+	double CalculateAccuracy(NeuralNetBuffer<T> buf_sig, typename std::vector< std::vector<T> >::const_iterator exp_begin) const
 	{
 		double accuracy = 0;
 

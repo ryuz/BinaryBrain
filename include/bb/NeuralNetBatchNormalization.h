@@ -17,8 +17,8 @@
 
 namespace bb {
 
-template <typename T = float, typename INDEX = size_t>
-using NeuralNetBatchNormalization = NeuralNetBatchNormalizationEigen<T, INDEX>;
+template <typename T = float>
+using NeuralNetBatchNormalization = NeuralNetBatchNormalizationEigen<T>;
 
 }
 
@@ -28,8 +28,8 @@ using NeuralNetBatchNormalization = NeuralNetBatchNormalizationEigen<T, INDEX>;
 
 namespace bb {
 
-template <typename T = float, typename INDEX = size_t>
-using NeuralNetBatchNormalization = NeuralNetBatchNormalizationAvx<T, INDEX>;
+template <typename T = float>
+using NeuralNetBatchNormalization = NeuralNetBatchNormalizationAvx<T>;
 
 }
 

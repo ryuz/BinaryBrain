@@ -26,28 +26,28 @@ namespace bb {
 
 
 // 入力数制限Affine Binary Connect版
-template <int N = 6, int M = 16, typename ACTIVATION0=NeuralNetReLU<float, size_t>, typename ACTIVATION1 = NeuralNetSigmoid<float, size_t>, typename T = float, typename INDEX = size_t>
-class NeuralNetSparseMicroMlpDiscrete : public NeuralNetSparseLayer<T, INDEX>
+template <int N = 6, int M = 16, typename ACTIVATION0=NeuralNetReLU<float>, typename ACTIVATION1 = NeuralNetSigmoid<float>, typename T = float>
+class NeuralNetSparseMicroMlpDiscrete : public NeuralNetSparseLayer<T>
 {
-	using super = NeuralNetSparseLayer<T, INDEX>;
+	using super = NeuralNetSparseLayer<T>;
 
 protected:
 public:
-	INDEX									m_batch_size = 0;
+	INDEX										m_batch_size = 0;
 
 	// 3層で構成
-	NeuralNetSparseMicroMlpPreAffine<N, M, T, INDEX>		m_pre_affine;
-	ACTIVATION0											m_pre_act;
-//	NeuralNetSigmoid<T, INDEX>							m_pre_act;
-	NeuralNetSparseMicroMlpPostAffine<M, T, INDEX>		m_post_affine;
-	NeuralNetBatchNormalization<T, INDEX>				m_batch_norm;
-	ACTIVATION1											m_act_post;
+	NeuralNetSparseMicroMlpPreAffine<N, M, T>	m_pre_affine;
+	ACTIVATION0									m_pre_act;
+//	NeuralNetSigmoid<T>							m_pre_act;
+	NeuralNetSparseMicroMlpPostAffine<M, T>		m_post_affine;
+	NeuralNetBatchNormalization<T>				m_batch_norm;
+	ACTIVATION1									m_act_post;
 
 public:
 	NeuralNetSparseMicroMlpDiscrete() {}
 
 	NeuralNetSparseMicroMlpDiscrete(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1,
-		const NeuralNetOptimizer<T, INDEX>* optimizer = nullptr)
+		const NeuralNetOptimizer<T>* optimizer = nullptr)
 		: m_pre_affine(input_node_size, output_node_size, seed, optimizer),
 		m_pre_act(output_node_size * M),
 		m_post_affine(output_node_size, seed, optimizer),
@@ -80,7 +80,7 @@ public:
 		super::InitializeCoeff(mt());
 	}
 
-	void SetOptimizer(const NeuralNetOptimizer<T, INDEX>* optimizer)
+	void SetOptimizer(const NeuralNetOptimizer<T>* optimizer)
 	{
 		m_pre_affine.SetOptimizer(optimizer);
 		m_pre_act.SetOptimizer(optimizer);
@@ -143,15 +143,15 @@ public:
 
 	
 	// 入出力バッファ
-	void  SetInputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_pre_affine.SetInputSignalBuffer(buffer); }
-	void  SetInputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_pre_affine.SetInputErrorBuffer(buffer); }
-	void  SetOutputSignalBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_act_post.SetOutputSignalBuffer(buffer); }
-	void  SetOutputErrorBuffer(NeuralNetBuffer<T, INDEX> buffer) { m_act_post.SetOutputErrorBuffer(buffer); }
+	void  SetInputSignalBuffer(NeuralNetBuffer<T> buffer) { m_pre_affine.SetInputSignalBuffer(buffer); }
+	void  SetInputErrorBuffer(NeuralNetBuffer<T> buffer) { m_pre_affine.SetInputErrorBuffer(buffer); }
+	void  SetOutputSignalBuffer(NeuralNetBuffer<T> buffer) { m_act_post.SetOutputSignalBuffer(buffer); }
+	void  SetOutputErrorBuffer(NeuralNetBuffer<T> buffer) { m_act_post.SetOutputErrorBuffer(buffer); }
 
-	const NeuralNetBuffer<T, INDEX>& GetInputSignalBuffer(void) const { return m_pre_affine.GetInputSignalBuffer(); }
-	const NeuralNetBuffer<T, INDEX>& GetInputErrorBuffer(void) const { return m_pre_affine.GetInputErrorBuffer(); }
-	const NeuralNetBuffer<T, INDEX>& GetOutputSignalBuffer(void) const { return m_act_post.GetOutputSignalBuffer(); }
-	const NeuralNetBuffer<T, INDEX>& GetOutputErrorBuffer(void) const { return m_act_post.GetOutputErrorBuffer(); }
+	const NeuralNetBuffer<T>& GetInputSignalBuffer(void) const { return m_pre_affine.GetInputSignalBuffer(); }
+	const NeuralNetBuffer<T>& GetInputErrorBuffer(void) const { return m_pre_affine.GetInputErrorBuffer(); }
+	const NeuralNetBuffer<T>& GetOutputSignalBuffer(void) const { return m_act_post.GetOutputSignalBuffer(); }
+	const NeuralNetBuffer<T>& GetOutputErrorBuffer(void) const { return m_act_post.GetOutputErrorBuffer(); }
 
 
 	INDEX GetInputFrameSize(void) const { return m_pre_affine.GetInputFrameSize(); }
