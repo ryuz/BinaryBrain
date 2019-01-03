@@ -12,8 +12,10 @@
 
 
 #include <iostream>
-#include <sstream>
 #include <iomanip>
+#include <vector>
+#include <sstream>
+
 
 #include "bb/NeuralNet.h"
 #include "bb/NeuralNetGroup.h"
@@ -245,7 +247,6 @@ void OutputVerilogConvolution(std::ostream& os, std::string module_name, std::st
 		#(
 			parameter	USER_WIDTH = 0,
 			parameter	MAX_X_NUM  = 1024,
-			parameter	USE_VALID  = 0,
 			parameter	RAM_TYPE   = "block",
 			parameter	DEVICE     = "rtl",
 			
@@ -351,7 +352,7 @@ void OutputVerilogConvolution(std::ostream& os, std::string module_name, std::st
 								img_blk_line_last,
 								img_blk_pixel_first,
 								img_blk_pixel_last,
-								img_blk_de,
+								img_blk_de
 							}),
 				.in_data	(img_blk_data),
 				.in_valid	(img_blk_valid),
@@ -365,8 +366,8 @@ void OutputVerilogConvolution(std::ostream& os, std::string module_name, std::st
 								m_img_de
 							}),
 				.out_data	(m_img_data),
-				.out_valid	(m_img_valid),
-			);"
+				.out_valid	(m_img_valid)
+			);
 
 
 endmodule
@@ -378,7 +379,7 @@ endmodule
 
 
 
-template <typename ST = bool, typename T = float>
+template <typename T = float, typename ST = bool>
 void OutputVerilogLoweringConvolution(std::ostream& os, std::string module_name, NeuralNetLoweringConvolution<ST, T>& conv)
 {
 	// group取得
@@ -400,6 +401,251 @@ void OutputVerilogLoweringConvolution(std::ostream& os, std::string module_name,
 }
 
 
+
+
+template <typename T = float, typename ST = bool>
+void OutputVerilogCnnAxi4s(std::ostream& os, std::string module_name, std::vector< NeuralNetFilter2d<T>* > layers)
+{
+	int	 layer_size = (int)layers.size();
+	auto fisrt_layer = layers[0];
+	auto last_layer = layers[layer_size - 1];
+
+	os << "module " << module_name << "\n"; 
+	os << R"(
+		#(
+			parameter	TUSER_WIDTH    = 1,
+			parameter	IMG_X_WIDTH    = 10,
+			parameter	IMG_Y_WIDTH    = 9,
+			parameter	IMG_Y_NUM      = 480,
+			parameter	BLANK_Y_WIDTH  = 8,
+			parameter	INIT_Y_NUM     = IMG_Y_NUM,
+			parameter	FIFO_PTR_WIDTH = 9,
+			parameter	FIFO_RAM_TYPE  = "block",
+			parameter	IMG_CKE_BUFG   = 0,
+			parameter	DEVICE         = "rtl",
+)";
+
+	os << "			parameter	S_TDATA_WIDTH  = " << fisrt_layer->GetInputNodeSize() << ",\n";
+	os << "			parameter	M_TDATA_WIDTH  = " << last_layer->GetOutputNodeSize();
+
+	os << R"(
+		)
+		(
+			input	wire								reset,
+			input	wire								clk,
+			
+			input	wire	[BLANK_Y_WIDTH-1:0]			param_blank_num,
+			
+			input	wire	[TUSER_WIDTH-1:0]			s_axi4s_tuser,
+			input	wire								s_axi4s_tlast,
+			input	wire	[S_TDATA_WIDTH-1:0]			s_axi4s_tdata,
+			input	wire								s_axi4s_tvalid,
+			output	wire								s_axi4s_tready,
+			
+			output	wire	[TUSER_WIDTH-1:0]			m_axi4s_tuser,
+			output	wire								m_axi4s_tlast,
+			output	wire	[M_TDATA_WIDTH-1:0]			m_axi4s_tdata,
+			output	wire								m_axi4s_tvalid,
+			input	wire								m_axi4s_tready
+		);
+)";
+
+	os << R"(
+
+	localparam	USER_WIDTH = TUSER_WIDTH > 1 ? TUSER_WIDTH - 1 : 1;
+
+	wire								cke;
+	
+	wire								src_img_line_first;
+	wire								src_img_line_last;
+	wire								src_img_pixel_first;
+	wire								src_img_pixel_last;
+	wire								src_img_de;
+	wire	[USER_WIDTH-1:0]			src_img_user;
+	wire	[S_TDATA_WIDTH-1:0]			src_img_data;
+	wire								src_img_valid;
+	
+	wire								sink_img_line_first;
+	wire								sink_img_line_last;
+	wire								sink_img_pixel_first;
+	wire								sink_img_pixel_last;
+	wire								sink_img_de;
+	wire	[USER_WIDTH-1:0]			sink_img_user;
+	wire	[M_TDATA_WIDTH-1:0]			sink_img_data;
+	wire								sink_img_valid;
+	
+	jelly_axi4s_img
+			#(
+				.TUSER_WIDTH			(TUSER_WIDTH),
+				.S_TDATA_WIDTH			(S_TDATA_WIDTH),
+				.M_TDATA_WIDTH			(M_TDATA_WIDTH),
+				.IMG_X_WIDTH			(IMG_X_WIDTH),
+				.IMG_Y_WIDTH			(IMG_Y_WIDTH),
+				.IMG_Y_NUM				(IMG_Y_NUM),
+				.USE_DE					(1),
+				.USE_VALID				(1),
+				.BLANK_Y_WIDTH			(BLANK_Y_WIDTH),
+				.INIT_Y_NUM				(INIT_Y_NUM),
+				.FIFO_PTR_WIDTH			(FIFO_PTR_WIDTH),
+				.FIFO_RAM_TYPE			(FIFO_RAM_TYPE),
+				.IMG_CKE_BUFG			(IMG_CKE_BUFG)
+			)
+		i_axi4s_img
+			(
+				.reset					(reset),
+				.clk					(clk),
+				
+				.param_blank_num		(param_blank_num),
+				
+				.s_axi4s_tuser			(s_axi4s_tuser),
+				.s_axi4s_tlast			(s_axi4s_tlast),
+				.s_axi4s_tdata			(s_axi4s_tdata),
+				.s_axi4s_tvalid			(s_axi4s_tvalid),
+				.s_axi4s_tready			(s_axi4s_tready),
+				
+				.m_axi4s_tuser			(m_axi4s_tuser),
+				.m_axi4s_tlast			(m_axi4s_tlast),
+				.m_axi4s_tdata			(m_axi4s_tdata),
+				.m_axi4s_tvalid			(m_axi4s_tvalid),
+				.m_axi4s_tready			(m_axi4s_tready),
+				
+				
+				.img_cke				(cke),
+				
+				.src_img_line_first		(src_img_line_first),
+				.src_img_line_last		(src_img_line_last),
+				.src_img_pixel_first	(src_img_pixel_first),
+				.src_img_pixel_last		(src_img_pixel_last),
+				.src_img_de				(src_img_de),
+				.src_img_user			(src_img_user),
+				.src_img_data			(src_img_data),
+				.src_img_valid			(src_img_valid),
+				
+				.sink_img_line_first	(sink_img_line_first),
+				.sink_img_line_last		(sink_img_line_last),
+				.sink_img_pixel_first	(sink_img_pixel_first),
+				.sink_img_pixel_last	(sink_img_pixel_last),
+				.sink_img_de			(sink_img_de),
+				.sink_img_user			(sink_img_user),
+				.sink_img_data			(sink_img_data),
+				.sink_img_valid			(sink_img_valid)
+			);
+	
+	
+)";
+
+	os << "\tlocalparam DATA0_WIDTH = " << fisrt_layer->GetInputChannel() << " * " << fisrt_layer->GetFilterHeight() << " * " << fisrt_layer->GetFilterWidth() << ";\n";
+	for ( int i = 0; i < layer_size; ++i ) {
+		os << "\tlocalparam DATA" << i+1 << "_WIDTH = " << layers[i]->GetInputChannel() << " * " << layers[i]->GetFilterHeight() << " * " << layers[i]->GetFilterWidth() << ";\n";
+	}
+	os << "\t\n";
+	
+	for ( int i = 0; i < layer_size; ++i ) {
+		os << "\t\n";
+		os << "\twire							img" << i << "_line_first;\n";
+		os << "\twire							img" << i << "_line_last;\n";
+		os << "\twire							img" << i << "_pixel_first;\n";
+		os << "\twire							img" << i << "_pixel_last;\n";
+		os << "\twire							img" << i << "_de;\n";
+		os << "\twire	[USER_WIDTH-1:0]		img" << i << "_user;\n";
+		os << "\twire	[DATA" << i << "_WIDTH-1:0]		img" << i << "_data;\n";
+		os << "\twire							img" << i << "_valid;\n";
+	}
+
+
+	for ( int i = 0; i < layer_size; ++i ) {
+		os << "\n\n";
+
+		auto layer = layers[i];
+		auto cnv = dynamic_cast<NeuralNetLoweringConvolution<ST, T>*>(layer);
+		auto pol = dynamic_cast<NeuralNetMaxPooling<ST, T, T>*>(layer);
+		if ( cnv ) {
+			os << "\t" << module_name << "_layer" << i << "\n";
+			os << "\t\t\t#(\n";
+			os << "\t\t\t\t.USER_WIDTH				(USER_WIDTH),\n";
+			os << "\t\t\t\t.MAX_X_NUM				(MAX_X_NUM),\n";
+			os << "\t\t\t\t.RAM_TYPE				(RAM_TYPE),\n";
+			os << "\t\t\t\t.DEVICE					(DEVICE)\n";
+			os << "\t\t\t)\n";
+			os << "\t\ti_" << module_name << "_l" << i << "\n";
+		}
+		else if (pol) {
+			os << "\t" << "jelly_img_dnn_maxpol" << "\n";
+			os << "\t\t\t#(\n";
+			os << "\t\t\t\t.C						(" << pol->GetOutputChannel() << "),\n";
+			os << "\t\t\t\t.N						(" << pol->GetFilterWidth() << "),\n";
+			os << "\t\t\t\t.M						(" << pol->GetFilterHeight() << "),\n";
+			os << "\t\t\t\t.USER_WIDTH				(USER_WIDTH),\n";
+			os << "\t\t\t\t.MAX_X_NUM				(MAX_X_NUM),\n";
+			os << "\t\t\t\t.RAM_TYPE				(RAM_TYPE)\n";
+			os << "\t\t\t)\n";
+			os << "\t\ti_" << "i_img_dnn_maxpol" << "_l" << i << "\n";
+		}
+		else {
+			std::cout << "error" << std::endl;
+			BB_ASSERT(0);
+			return;
+		}
+
+		os << "\t\t\t(\n";
+		os << "\t\t\t\t.reset					(reset),\n";
+		os << "\t\t\t\t.clk					(clk),\n";
+		os << "\t\t\t\t.cke					(cke),\n";
+		os << "\t\t\t\t\n";
+		os << "\t\t\t\t.s_img_line_first		(img" << i << "_line_first),\n";
+		os << "\t\t\t\t.s_img_line_last		(img" << i << "_line_last),\n";
+		os << "\t\t\t\t.s_img_pixel_first		(img" << i << "_pixel_first),\n";
+		os << "\t\t\t\t.s_img_pixel_last		(img" << i << "_pixel_last),\n";
+		os << "\t\t\t\t.s_img_de				(img" << i << "_de),\n";
+		os << "\t\t\t\t.s_img_user				(img" << i << "_user),\n";
+		os << "\t\t\t\t.s_img_data				(img" << i << "_data),\n";
+		os << "\t\t\t\t.s_img_valid			(img" << i << "_valid),\n";
+		os << "\t\t\t\t\n";
+		os << "\t\t\t\t.m_img_line_first		(img" << i+1 << "_line_first),\n";
+		os << "\t\t\t\t.m_img_line_last		(img" << i+1 << "_line_last),\n";
+		os << "\t\t\t\t.m_img_pixel_first		(img" << i+1 << "_pixel_first),\n";
+		os << "\t\t\t\t.m_img_pixel_last		(img" << i+1 << "_pixel_last),\n";
+		os << "\t\t\t\t.m_img_de				(img" << i+1 << "_de),\n";
+		os << "\t\t\t\t.m_img_user				(img" << i+1 << "_user),\n";
+		os << "\t\t\t\t.m_img_data				(img" << i+1 << "_data),\n";
+		os << "\t\t\t\t.m_img_valid			(img" << i+1 << "_valid)\n";
+		os << "\t\t\t);\n";
+	}
+
+	os << "\t\n";
+	os << "\t\n";
+	os << "\tassign img" << 0 << "_line_first  = src_img_line_first;\n";
+	os << "\tassign img" << 0 << "_line_last   = src_img_line_last;\n";
+	os << "\tassign img" << 0 << "_pixel_first = src_img_pixel_first;\n";
+	os << "\tassign img" << 0 << "_pixel_last  = src_img_pixel_last;\n";
+	os << "\tassign img" << 0 << "_de          = src_img_de;\n";
+	os << "\tassign img" << 0 << "_user        = src_img_user;\n";
+	os << "\tassign img" << 0 << "_data        = src_img_data;\n";
+	os << "\tassign img" << 0 << "_valid       = src_img_valid;\n";
+	os << "\t\n";
+	os << "\tassign sink_img_line_first  = img" << layer_size << "_line_first;\n";
+	os << "\tassign sink_img_line_last   = img" << layer_size << "_line_last;\n";
+	os << "\tassign sink_img_pixel_first = img" << layer_size << "_pixel_first;\n";
+	os << "\tassign sink_img_pixel_last  = img" << layer_size << "_pixel_last;\n";
+	os << "\tassign sink_img_de          = img" << layer_size << "_de;\n";
+	os << "\tassign sink_img_user        = img" << layer_size << "_user;\n";
+	os << "\tassign sink_img_data        = img" << layer_size << "_data;\n";
+	os << "\tassign sink_img_valid       = img" << layer_size << "_valid;\n";
+
+	os << "\t\n";
+	os << "\t\n";
+	os << "endmodule\n\n";
+
+	for ( int i = 0; i < layer_size; ++i ) {
+		auto layer = layers[i];
+		auto cnv = dynamic_cast<NeuralNetLoweringConvolution<ST, T>*>(layer);
+		if ( cnv ) {
+			std::stringstream ss;
+			ss << module_name << "_l" << i;
+			OutputVerilogLoweringConvolution(os, ss.str(), *cnv);
+		}
+	}
+}
 
 
 }

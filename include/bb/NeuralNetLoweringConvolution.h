@@ -12,7 +12,7 @@
 
 #include <cstdint>
 
-#include "bb/NeuralNetLayer.h"
+#include "bb/NeuralNetFilter2d.h"
 #include "bb/NeuralNetConvolutionIm2Col.h"
 #include "bb/NeuralNetConvolutionCol2Im.h"
 
@@ -22,7 +22,7 @@ namespace bb {
 
 // 入力数制限Affine Binary Connect版
 template <typename ST = float, typename ET = float, typename T = float>
-class NeuralNetLoweringConvolution : public NeuralNetLayer<T>
+class NeuralNetLoweringConvolution : public NeuralNetFilter2d<T>
 {
 protected:
 	// 3層で構成

@@ -14,7 +14,7 @@
 #include <vector>
 #include <random>
 
-#include "bb/NeuralNetLayerBuf.h"
+#include "bb/NeuralNetFilter2d.h"
 
 
 namespace bb {
@@ -22,7 +22,7 @@ namespace bb {
 
 // MaxPoolingクラス
 template <typename ST = float, typename ET = float, typename T = float>
-class NeuralNetMaxPooling : public NeuralNetLayerBuf<T>
+class NeuralNetMaxPooling : public NeuralNetFilter2d<T>
 {
 protected:
 	INDEX			m_frame_size = 1;
@@ -56,6 +56,11 @@ public:
 		m_output_h_size = m_input_h_size / m_filter_h_size;
 		m_output_w_size = m_input_w_size / m_filter_w_size;
 	}
+
+	int GetInputChannel(void)  const { return m_input_c_size; }
+	int GetOutputChannel(void) const { return m_input_c_size; }
+	int GetFilterHeight(void)  const { return m_filter_h_size; }
+	int GetFilterWidth(void)   const { return m_filter_w_size; }
 	
 	void SetBatchSize(INDEX batch_size) {
 		m_frame_size = batch_size;
