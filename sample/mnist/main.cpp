@@ -36,12 +36,11 @@
 #include "bb/NeuralNetRealToBinary.h"
 #include "bb/NeuralNetBinaryToReal.h"
 #include "bb/NeuralNetBinaryLut6.h"
-#include "bb/NeuralNetBinaryLut6VerilogXilinx.h"
-#include "bb/NeuralNetBinaryLutVerilog.h"
 #include "bb/NeuralNetOptimizerSgd.h"
 #include "bb/NeuralNetOptimizerAdam.h"
 #include "bb/NeuralNetLossCrossEntropyWithSoftmax.h"
 #include "bb/NeuralNetAccuracyCategoricalClassification.h"
+#include "bb/NeuralNetOutputVerilog.h"
 #include "bb/LoadMnist.h"
 
 
@@ -241,13 +240,13 @@ void MnistMlpBin(int epoc_size, size_t mini_batch_size, bool binary_mode)
 	std::cout << "[copied LUT-Network] train_accuracy : " << lut_train_accuracy << std::endl;
 
 	// Write RTL
-	std::string rtl_fname = "lut_net_mlp.v";
+	std::string rtl_fname = run_name + ".v";
 	std::ofstream ofs(rtl_fname);
-	bb::NeuralNetBinaryLutVerilog(ofs, lut_layer0_lut, "lutnet_layer0");
-	bb::NeuralNetBinaryLutVerilog(ofs, lut_layer1_lut, "lutnet_layer1");
-	bb::NeuralNetBinaryLutVerilog(ofs, lut_layer2_lut, "lutnet_layer2");
-	bb::NeuralNetBinaryLutVerilog(ofs, lut_layer3_lut, "lutnet_layer3");
-	bb::NeuralNetBinaryLutVerilog(ofs, lut_layer4_lut, "lutnet_layer4");
+	bb::OutputVerilogBinaryLut(ofs, "lutnet_layer0", lut_layer0_lut);
+	bb::OutputVerilogBinaryLut(ofs, "lutnet_layer1", lut_layer1_lut);
+	bb::OutputVerilogBinaryLut(ofs, "lutnet_layer2", lut_layer2_lut);
+	bb::OutputVerilogBinaryLut(ofs, "lutnet_layer3", lut_layer3_lut);
+	bb::OutputVerilogBinaryLut(ofs, "lutnet_layer4", lut_layer4_lut);
 	std::cout << "write : " << rtl_fname << std::endl;
 	
 	std::cout << "end\n" << std::endl;
@@ -368,14 +367,20 @@ void MnistCnnBin(int epoc_size, size_t mini_batch_size, bool binary_mode)
 	lut_sub4_net.AddLayer(&lut_sub4_lut0);
 	lut_sub4_net.AddLayer(&lut_sub4_lut1);
 
+	// sub-networks for MLP (4x4)
+	bb::NeuralNetBinaryLut6<>	lut_sub6_lut0(32 * 4 * 4, 480);
+	bb::NeuralNetBinaryLut6<>	lut_sub6_lut1(480, 80);
+	bb::NeuralNetGroup<>		lut_sub6_net;
+	lut_sub6_net.AddLayer(&lut_sub6_lut0);
+	lut_sub6_net.AddLayer(&lut_sub6_lut1);
+
 	bb::NeuralNetLoweringConvolution<bool>	lut_layer0_conv(&lut_sub0_net, 1, 28, 28, 32, 3, 3);
 	bb::NeuralNetLoweringConvolution<bool>	lut_layer1_conv(&lut_sub1_net, 32, 26, 26, 32, 3, 3);
 	bb::NeuralNetMaxPooling<bool>			lut_layer2_maxpol(32, 24, 24, 2, 2);
 	bb::NeuralNetLoweringConvolution<bool>	lut_layer3_conv(&lut_sub3_net, 32, 12, 12, 32, 3, 3);
 	bb::NeuralNetLoweringConvolution<bool>	lut_layer4_conv(&lut_sub4_net, 32, 10, 10, 32, 3, 3);
 	bb::NeuralNetMaxPooling<bool>			lut_layer5_maxpol(32, 8, 8, 2, 2);
-	bb::NeuralNetBinaryLut6<>				lut_layer6_lut(32 * 4 * 4, 480);
-	bb::NeuralNetBinaryLut6<>				lut_layer7_lut(480, 80);
+	bb::NeuralNetLoweringConvolution<bool>	lut_layer6_conv(&lut_sub6_net, 32, 4, 4, 80, 4, 4);
 
 	bb::NeuralNetGroup<>			lut_mux_group;
 	lut_mux_group.AddLayer(&lut_layer0_conv);
@@ -384,8 +389,7 @@ void MnistCnnBin(int epoc_size, size_t mini_batch_size, bool binary_mode)
 	lut_mux_group.AddLayer(&lut_layer3_conv);
 	lut_mux_group.AddLayer(&lut_layer4_conv);
 	lut_mux_group.AddLayer(&lut_layer5_maxpol);
-	lut_mux_group.AddLayer(&lut_layer6_lut);
-	lut_mux_group.AddLayer(&lut_layer7_lut);
+	lut_mux_group.AddLayer(&lut_layer6_conv);
 	bb::NeuralNetBinaryMultiplex<>	lut_bin_mux(&lut_mux_group, 28 * 28, 10, 1, 8);
 
 	// build network
@@ -402,8 +406,8 @@ void MnistCnnBin(int epoc_size, size_t mini_batch_size, bool binary_mode)
 	lut_sub3_lut1.ImportLayer(sub3_smm1);
 	lut_sub4_lut0.ImportLayer(sub4_smm0);
 	lut_sub4_lut1.ImportLayer(sub4_smm1);
-	lut_layer6_lut.ImportLayer(layer6_smm);
-	lut_layer7_lut.ImportLayer(layer7_smm);
+	lut_sub6_lut0.ImportLayer(layer6_smm);
+	lut_sub6_lut1.ImportLayer(layer7_smm);
 
 	// Accuracy Function
 	bb::NeuralNetAccuracyCategoricalClassification<>	lut_acc_func(num_class);
@@ -416,18 +420,25 @@ void MnistCnnBin(int epoc_size, size_t mini_batch_size, bool binary_mode)
 	std::cout << "[copied LUT-Network] train_accuracy : " << train_accuracy << std::endl;
 
 	// Write RTL
-	std::string rtl_fname = "lut_net_cnn.v";
+	std::string rtl_fname = run_name + ".v";
 	std::ofstream ofs(rtl_fname);
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub0_lut0, "lutnet_layer0_sub0");
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub0_lut1, "lutnet_layer0_sub1");
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub1_lut0, "lutnet_layer1_sub0");
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub1_lut1, "lutnet_layer1_sub1");
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub3_lut0, "lutnet_layer3_sub0");
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub3_lut1, "lutnet_layer3_sub1");
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub4_lut0, "lutnet_layer4_sub0");
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub4_lut1, "lutnet_layer4_sub1");
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_layer6_lut, "lutnet_layer6");
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_layer7_lut, "lutnet_layer7");
+
+	std::vector< bb::NeuralNetFilter2d<>* > layers0;
+	layers0.push_back(&lut_layer0_conv);
+	layers0.push_back(&lut_layer1_conv);
+	layers0.push_back(&lut_layer2_maxpol);
+	bb::OutputVerilogCnnAxi4s<>(ofs, "lut_net_cnn_mnist_l0", layers0);
+
+	std::vector< bb::NeuralNetFilter2d<>* > layers1;
+	layers1.push_back(&lut_layer3_conv);
+	layers1.push_back(&lut_layer4_conv);
+	layers1.push_back(&lut_layer5_maxpol);
+	bb::OutputVerilogCnnAxi4s<>(ofs, "lut_net_cnn_mnist_l1", layers1);
+
+	std::vector< bb::NeuralNetFilter2d<>* > layers2;
+	layers2.push_back(&lut_layer6_conv);
+	bb::OutputVerilogCnnAxi4s<>(ofs, "lut_net_cnn_mnist_l2", layers2);
+
 	std::cout << "write : " << rtl_fname << std::endl;
 
 	std::cout << "end\n" << std::endl;
@@ -627,20 +638,26 @@ void MnistFullyCnn(int epoc_size, size_t max_batch_size, bool binary_mode)
 	std::cout << "[copied LUT-Network] train_accuracy : " << train_accuracy << std::endl;
 
 	// Write RTL
-	std::string rtl_fname = "lut_net_fully_cnn.v";
+	std::string rtl_fname = run_name + ".v";
 	std::ofstream ofs(rtl_fname);
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub0_lut0, "lutnet_layer0_sub0");
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub0_lut1, "lutnet_layer0_sub1");
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub1_lut0, "lutnet_layer1_sub0");
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub1_lut1, "lutnet_layer1_sub1");
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub3_lut0, "lutnet_layer3_sub0");
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub3_lut1, "lutnet_layer3_sub1");
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub4_lut0, "lutnet_layer4_sub0");
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub4_lut1, "lutnet_layer4_sub1");
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub6_lut0, "lutnet_layer6_sub0");
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub6_lut1, "lutnet_layer6_sub0");
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub6_lut0, "lutnet_layer7_sub0");
-	bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub6_lut1, "lutnet_layer7_sub0");
+
+	std::vector< bb::NeuralNetFilter2d<>* > layers0;
+	layers0.push_back(&lut_layer0_conv);
+	layers0.push_back(&lut_layer1_conv);
+	layers0.push_back(&lut_layer2_maxpol);
+	bb::OutputVerilogCnnAxi4s<>(ofs, "lut_net_cnn_mnist_l0", layers0);
+
+	std::vector< bb::NeuralNetFilter2d<>* > layers1;
+	layers1.push_back(&lut_layer3_conv);
+	layers1.push_back(&lut_layer4_conv);
+	layers1.push_back(&lut_layer5_maxpol);
+	bb::OutputVerilogCnnAxi4s<>(ofs, "lut_net_cnn_mnist_l1", layers1);
+
+	std::vector< bb::NeuralNetFilter2d<>* > layers2;
+	layers2.push_back(&lut_layer6_conv);
+	layers2.push_back(&lut_layer7_conv);
+	bb::OutputVerilogCnnAxi4s<>(ofs, "lut_net_cnn_mnist_l2", layers2);
+
 	std::cout << "write : " << rtl_fname << std::endl;
 
 	std::cout << "end\n" << std::endl;
@@ -1047,16 +1064,16 @@ void MnistMlpLut(int epoc_size, size_t mini_batch_size)
 	size_t layer2_node_size = output_node_size * output_hmux_size;
 
 	// バイナリネットのGroup作成
-	bb::NeuralNetBinaryLut6<>	bin_layer0_lut(input_node_size*input_hmux_size, layer0_node_size);
-	bb::NeuralNetBinaryLut6<>	bin_layer1_lut(layer0_node_size, layer1_node_size);
-	bb::NeuralNetBinaryLut6<>	bin_layer2_lut(layer1_node_size, layer2_node_size);
-	bb::NeuralNetGroup<>		bin_group;
-	bin_group.AddLayer(&bin_layer0_lut);
-	bin_group.AddLayer(&bin_layer1_lut);
-	bin_group.AddLayer(&bin_layer2_lut);
+	bb::NeuralNetBinaryLut6<>	lut_layer0_lut(input_node_size*input_hmux_size, layer0_node_size);
+	bb::NeuralNetBinaryLut6<>	lut_layer1_lut(layer0_node_size, layer1_node_size);
+	bb::NeuralNetBinaryLut6<>	lut_layer2_lut(layer1_node_size, layer2_node_size);
+	bb::NeuralNetGroup<>		lut_group;
+	lut_group.AddLayer(&lut_layer0_lut);
+	lut_group.AddLayer(&lut_layer1_lut);
+	lut_group.AddLayer(&lut_layer2_lut);
 
 	// 多重化してパッキング
-	bb::NeuralNetBinaryMultiplex<>	bin_mux(&bin_group, input_node_size, output_node_size, input_hmux_size, output_hmux_size);
+	bb::NeuralNetBinaryMultiplex<>	bin_mux(&lut_group, input_node_size, output_node_size, input_hmux_size, output_hmux_size);
 
 	// ネット構築
 	bb::NeuralNet<> net;
@@ -1138,10 +1155,12 @@ void MnistMlpLut(int epoc_size, size_t mini_batch_size)
 
 	{
 		// Write RTL
-		std::ofstream ofs("lut_net.v");
-		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, bin_layer0_lut, "lutnet_layer0");
-		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, bin_layer1_lut, "lutnet_layer1");
-		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, bin_layer2_lut, "lutnet_layer2");
+		std::string rtl_fname = run_name + ".v";
+		std::ofstream ofs(rtl_fname);
+		bb::OutputVerilogBinaryLut(ofs, "lutnet_layer0", lut_layer0_lut);
+		bb::OutputVerilogBinaryLut(ofs, "lutnet_layer1", lut_layer1_lut);
+		bb::OutputVerilogBinaryLut(ofs, "lutnet_layer2", lut_layer2_lut);
+		std::cout << "write : " << rtl_fname << std::endl;
 	}
 
 	std::cout << "end\n" << std::endl;
@@ -1328,10 +1347,12 @@ void MnistMlpBinToLut(int bin_epoc_size, size_t bin_mini_batch_size, int lut_epo
 
 	{
 		// Write RTL
-		std::ofstream ofs("lut_net.v");
-		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_layer0_lut, "lutnet_layer0");
-		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_layer1_lut, "lutnet_layer1");
-		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_layer2_lut, "lutnet_layer2");
+		std::string rtl_fname = run_name + ".v";
+		std::ofstream ofs(rtl_fname);
+		bb::OutputVerilogBinaryLut(ofs, "lutnet_layer0", lut_layer0_lut);
+		bb::OutputVerilogBinaryLut(ofs, "lutnet_layer1", lut_layer1_lut);
+		bb::OutputVerilogBinaryLut(ofs, "lutnet_layer2", lut_layer2_lut);
+		std::cout << "write : " << rtl_fname << std::endl;
 	}
 
 	std::cout << "end\n" << std::endl;
@@ -1545,16 +1566,17 @@ void MnistCnnSparseAffineBinToLut(int bin_epoc_size, size_t bin_mini_batch_size,
 
 	{
 		// Write RTL
-		std::ofstream ofs(run_name + "_lut_net.v");
-		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub0_lut0, "lutnet_conv0_layer0");
-		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub0_lut1, "lutnet_conv0_layer1");
+		std::string rtl_fname = run_name + ".v";
+		std::ofstream ofs(rtl_fname);
+		bb::OutputVerilogBinaryLut(ofs, "lutnet_conv0_layer0", lut_sub0_lut0);
+		bb::OutputVerilogBinaryLut(ofs, "lutnet_conv0_layer1", lut_sub0_lut1);
 
-		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub1_lut0, "lutnet_conv1_layer0");
-		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub1_lut1, "lutnet_conv1_layer1");
-		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub1_lut2, "lutnet_conv1_layer2");
+		bb::OutputVerilogBinaryLut(ofs, "lutnet_conv1_layer0", lut_sub1_lut0);
+		bb::OutputVerilogBinaryLut(ofs, "lutnet_conv1_layer1", lut_sub1_lut1);
+		bb::OutputVerilogBinaryLut(ofs, "lutnet_conv1_layer2", lut_sub1_lut2);
 
-		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_layer3_lut, "lutnet_layer3");
-		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_layer4_lut, "lutnet_layer4");
+		bb::OutputVerilogBinaryLut(ofs, "lutnet_layer3", lut_layer3_lut);
+		bb::OutputVerilogBinaryLut(ofs, "lutnet_layer4", lut_layer4_lut);
 	}
 
 	std::cout << "end\n" << std::endl;
@@ -1693,15 +1715,17 @@ void MnistCnnSparseLut(int epoc_size, size_t mini_batch_size)
 
 	{
 		// Write RTL
-		std::ofstream ofs(run_name + "_lut_net.v");
-		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub0_lut0, "lutnet_conv0_layer0");
-		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub0_lut1, "lutnet_conv0_layer1");
+		std::string rtl_fname = run_name + ".v";
+		std::ofstream ofs(rtl_fname);
 
-		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub1_lut0, "lutnet_conv1_layer0");
-		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_sub1_lut1, "lutnet_conv1_layer1");
+		bb::OutputVerilogBinaryLut(ofs, "lutnet_conv0_layer0", lut_sub0_lut0);
+		bb::OutputVerilogBinaryLut(ofs, "lutnet_conv0_layer1", lut_sub0_lut1);
 
-		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_layer3_lut, "lutnet_layer3");
-		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, lut_layer4_lut, "lutnet_layer4");
+		bb::OutputVerilogBinaryLut(ofs, "lutnet_conv1_layer0", lut_sub1_lut0);
+		bb::OutputVerilogBinaryLut(ofs, "lutnet_conv1_layer1", lut_sub1_lut1);
+
+		bb::OutputVerilogBinaryLut(ofs, "lutnet_layer3", lut_layer3_lut);
+		bb::OutputVerilogBinaryLut(ofs, "lutnet_layer4", lut_layer4_lut);
 	}
 
 	std::cout << "end\n" << std::endl;
