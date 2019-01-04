@@ -1425,26 +1425,26 @@ void MnistCnnSparseAffineBinToLut(int bin_epoc_size, size_t bin_mini_batch_size,
 	int lut_test_mux_size = 3;
 
 	// Conv用subネット構築 (3x3)
-	bb::NeuralNetBinaryLut6<true>		lut_sub0_lut0(1 * 3 * 3, 96);
-	bb::NeuralNetBinaryLut6<true>		lut_sub0_lut1(96, 16);
+	bb::NeuralNetBinaryLut6<>			lut_sub0_lut0(1 * 3 * 3, 96);
+	bb::NeuralNetBinaryLut6<>			lut_sub0_lut1(96, 16);
 	bb::NeuralNetGroup<>				lut_sub0_net;
 	lut_sub0_net.AddLayer(&lut_sub0_lut0);
 	lut_sub0_net.AddLayer(&lut_sub0_lut1);
 
 	// Conv用subネット構築 (3x3)
-	bb::NeuralNetBinaryLut6<true>		lut_sub1_lut0(16 * 3 * 3, 256);
-	bb::NeuralNetBinaryLut6<true>		lut_sub1_lut1(256, 96);
-	bb::NeuralNetBinaryLut6<true>		lut_sub1_lut2(96, 16);
+	bb::NeuralNetBinaryLut6<>			lut_sub1_lut0(16 * 3 * 3, 256);
+	bb::NeuralNetBinaryLut6<>			lut_sub1_lut1(256, 96);
+	bb::NeuralNetBinaryLut6<>			lut_sub1_lut2(96, 16);
 	bb::NeuralNetGroup<>				lut_sub1_net;
 	lut_sub1_net.AddLayer(&lut_sub1_lut0);
 	lut_sub1_net.AddLayer(&lut_sub1_lut1);
 	lut_sub1_net.AddLayer(&lut_sub1_lut2);
 
-	bb::NeuralNetLoweringConvolution<bool>	lut_layer0_conv(&lut_sub0_net, 1, 28, 28, 16, 3, 3);
-	bb::NeuralNetLoweringConvolution<bool>	lut_layer1_conv(&lut_sub1_net, 16, 26, 26, 16, 3, 3);
-	bb::NeuralNetMaxPooling<bool>			lut_layer2_maxpol(16, 24, 24, 2, 2);
-	bb::NeuralNetBinaryLut6<>				lut_layer3_lut(16 * 12 * 12, 180);
-	bb::NeuralNetBinaryLut6<>				lut_layer4_lut(180, 30);
+	bb::NeuralNetLoweringConvolution<>	lut_layer0_conv(&lut_sub0_net, 1, 28, 28, 16, 3, 3);
+	bb::NeuralNetLoweringConvolution<>	lut_layer1_conv(&lut_sub1_net, 16, 26, 26, 16, 3, 3);
+	bb::NeuralNetMaxPooling<>			lut_layer2_maxpol(16, 24, 24, 2, 2);
+	bb::NeuralNetBinaryLut6<>			lut_layer3_lut(16 * 12 * 12, 180);
+	bb::NeuralNetBinaryLut6<>			lut_layer4_lut(180, 30);
 
 	bb::NeuralNetGroup<>				lut_mux_group;
 	lut_mux_group.AddLayer(&lut_layer0_conv);
@@ -1588,15 +1588,15 @@ void MnistCnnSparseLut(int epoc_size, size_t mini_batch_size)
 	int lut_test_mux_size = 3;
 
 	// Conv用subネット構築 (3x3)
-	bb::NeuralNetBinaryLut6<true>	lut_sub0_lut0(1 * 3 * 3, 48);
-	bb::NeuralNetBinaryLut6<true>	lut_sub0_lut1(48, 8);
+	bb::NeuralNetBinaryLut6<>		lut_sub0_lut0(1 * 3 * 3, 48);
+	bb::NeuralNetBinaryLut6<>		lut_sub0_lut1(48, 8);
 	bb::NeuralNetGroup<>			lut_sub0_net;
 	lut_sub0_net.AddLayer(&lut_sub0_lut0);
 	lut_sub0_net.AddLayer(&lut_sub0_lut1);
 
 	// Conv用subネット構築 (3x3)
-	bb::NeuralNetBinaryLut6<true>	lut_sub1_lut0(8 * 3 * 3, 96);
-	bb::NeuralNetBinaryLut6<true>	lut_sub1_lut1(96, 16);
+	bb::NeuralNetBinaryLut6<>		lut_sub1_lut0(8 * 3 * 3, 96);
+	bb::NeuralNetBinaryLut6<>		lut_sub1_lut1(96, 16);
 	bb::NeuralNetGroup<>			lut_sub1_net;
 	lut_sub1_net.AddLayer(&lut_sub1_lut0);
 	lut_sub1_net.AddLayer(&lut_sub1_lut1);
