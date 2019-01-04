@@ -55,41 +55,76 @@ void OutputVerilogBinaryLut(std::ostream& os, std::string module_name, NeuralNet
 
 
 	for (INDEX node = 0; node < node_size; node++) {
-		// LUT 出力
-		os <<
-			"\n"
-			"// LUT : " << node << "\n"
-			"\n"
-			"wire lut_" << node << "_out;\n"
-			"\n"
-			"bb_lut\n"
-			"        #(\n"
-			"            .N(" << lut_input_size << "),\n"
-			"            .INIT(" << lut_table_size << "'b";
-
-		for (int bit = lut_table_size - 1; bit >= 0; --bit ) {
-			os << (lut.GetLutTable(node, bit) ? "1" : "0");
-		}
-		os <<
-			"),\n"
-			"            .DEVICE(DEVICE)\n";
-
-		os <<
-			"        )\n"
-			"    i_lut_" << node << "\n"
-			"        (\n"
-			"            .in_data({\n";
-
-		for (int bit = lut_input_size - 1; bit >= 1; --bit) {
+		if ( 0 && lut_input_size == 6 ) {
+			// LUT 出力(Xilinx)
 			os <<
-				"                         in_data[" << lut.GetLutInput(node, bit) << "],\n";
+				"\n"
+				"// LUT : " << node << "\n"
+				"\n"
+				"wire lut_" << node << "_out;\n"
+				"\n"
+				"LUT6\n"
+				"        #(\n"
+				"            .INIT(" << lut_table_size << "'b";
+
+			for (int bit = lut_table_size - 1; bit >= 0; --bit ) {
+				os << (lut.GetLutTable(node, bit) ? "1" : "0");
+			}
+			os <<
+				")\n";
+
+			os <<
+				"        )\n"
+				"    i_lut6_" << node << "\n"
+				"        (\n"
+				"            .O  (lut_" << node << "_out),\n"
+				"            .I0 (in_data[" << lut.GetLutInput(node, 0) << "]),\n"
+				"            .I1 (in_data[" << lut.GetLutInput(node, 1) << "]),\n"
+				"            .I2 (in_data[" << lut.GetLutInput(node, 2) << "]),\n"
+				"            .I3 (in_data[" << lut.GetLutInput(node, 3) << "]),\n"
+				"            .I4 (in_data[" << lut.GetLutInput(node, 4) << "]),\n"
+				"            .I5 (in_data[" << lut.GetLutInput(node, 5) << "])\n";
+			os <<
+				"        );\n"
+				"\n";
 		}
-		os <<
-			"                         in_data[" << lut.GetLutInput(node, 0) << "]\n"
-			"                    }),\n"
-			"            .out_data(lut_" << node << "_out)\n"
-			"        );\n"
-			"\n";
+		else {
+			// LUT 出力
+			os <<
+				"\n"
+				"// LUT : " << node << "\n"
+				"\n"
+				"wire lut_" << node << "_out;\n"
+				"\n"
+				"bb_lut\n"
+				"        #(\n"
+				"            .N(" << lut_input_size << "),\n"
+				"            .INIT(" << lut_table_size << "'b";
+
+			for (int bit = lut_table_size - 1; bit >= 0; --bit ) {
+				os << (lut.GetLutTable(node, bit) ? "1" : "0");
+			}
+			os <<
+				"),\n"
+				"            .DEVICE(DEVICE)\n";
+
+			os <<
+				"        )\n"
+				"    i_lut_" << node << "\n"
+				"        (\n"
+				"            .in_data({\n";
+
+			for (int bit = lut_input_size - 1; bit >= 1; --bit) {
+				os <<
+					"                         in_data[" << lut.GetLutInput(node, bit) << "],\n";
+			}
+			os <<
+				"                         in_data[" << lut.GetLutInput(node, 0) << "]\n"
+				"                    }),\n"
+				"            .out_data(lut_" << node << "_out)\n"
+				"        );\n"
+				"\n";
+		}
 
 		os <<
 			"reg   lut_" << node << "_ff;\n"
@@ -238,7 +273,7 @@ void OutputVerilogLutGroup(std::ostream& os, std::string module_name, NeuralNetG
 
 
 // Convolution 出力
-void OutputVerilogConvolution(std::ostream& os, std::string module_name, std::string mlp_name, int c, int n, int m)
+void OutputVerilogConvolution(std::ostream& os, std::string module_name, std::string mlp_name, int in_c, int out_c, int n, int m)
 {
 	os << "\n\n\n";
 	os << "module " << module_name << "\n";
@@ -249,7 +284,13 @@ void OutputVerilogConvolution(std::ostream& os, std::string module_name, std::st
 			parameter	MAX_X_NUM  = 1024,
 			parameter	RAM_TYPE   = "block",
 			parameter	DEVICE     = "rtl",
+)";
+	os << "			parameter	S_C  = " << in_c << ",\n";
+	os << "			parameter	M_C  = " << out_c << ",\n";
+	os << "			parameter	N  = " << n << ",\n";
+	os << "			parameter	M  = " << m << ",\n";
 			
+	os << R"(
 			parameter	USER_BITS  = USER_WIDTH > 0 ? USER_WIDTH : 1
 		)
 		(
@@ -263,7 +304,7 @@ void OutputVerilogConvolution(std::ostream& os, std::string module_name, std::st
 			input	wire							s_img_pixel_last,
 			input	wire							s_img_de,
 			input	wire	[USER_BITS-1:0]			s_img_user,
-			input	wire	[0:0]					s_img_data,
+			input	wire	[S_C-1:0]				s_img_data,
 			input	wire							s_img_valid,
 			
 			output	wire							m_img_line_first,
@@ -272,36 +313,34 @@ void OutputVerilogConvolution(std::ostream& os, std::string module_name, std::st
 			output	wire							m_img_pixel_last,
 			output	wire							m_img_de,
 			output	wire	[USER_BITS-1:0]			m_img_user,
-			output	wire	[0:0]					m_img_data,
+			output	wire	[M_C-1:0]				m_img_data,
 			output	wire							m_img_valid
 		);
 )";
 
-	os << "\tlocalparam	C  = " << c << ";\n";
-	os << "\tlocalparam	N  = " << n << ";\n";
-	os << "\tlocalparam	M  = " << m << ";\n";
 	
 	os << R"(
-	localparam	NC = N / 2;
-	localparam	MC = M / M;
-		
+	localparam	NC = (N-1) / 2;
+	localparam	MC = (M-1) / M;
+	
+	
 	wire							img_blk_line_first;
 	wire							img_blk_line_last;
 	wire							img_blk_pixel_first;
 	wire							img_blk_pixel_last;
 	wire							img_blk_de;
 	wire	[USER_BITS-1:0]			img_blk_user;
-	wire	[N*M*C-1:0]				img_blk_data;
+	wire	[N*M*S_C-1:0]			img_blk_data;
 	wire							img_blk_valid;
 	
 	jelly_img_blk_buffer
 			#(
 				.USER_WIDTH			(USER_WIDTH),
-				.DATA_WIDTH			(1),
-				.PIXEL_NUM			(N),
+				.DATA_WIDTH			(S_C),
 				.LINE_NUM			(N),
-				.PIXEL_CENTER		(NC),
-				.LINE_CENTER		(MC),
+				.PIXEL_NUM			(M),
+				.LINE_CENTER		(NC),
+				.PIXEL_CENTER		(MC),
 				.MAX_X_NUM			(MAX_X_NUM),
 				.RAM_TYPE			(RAM_TYPE),
 				.BORDER_MODE		("CONSTANT"),
@@ -331,13 +370,26 @@ void OutputVerilogConvolution(std::ostream& os, std::string module_name, std::st
 				.m_img_data			(img_blk_data),
 				.m_img_valid		(img_blk_valid)
 			);
+	
+	genvar							i, j, k;
+	wire	[N*M*S_C-1:0]			img_blk_data_shuffle;
+	generate
+	for ( i = 0; i < S_C; i = i+1 ) begin : loop_i
+		for ( j = 0; j < N; j = j+1 ) begin : loop_j
+			for ( k = 0; k < M; k = k+1 ) begin : loop_j
+				assign img_blk_data_shuffle[i*(N*M) + j*M + k] = img_blk_data[(j*M + k)*S_C + i];
+			end
+		end
+	end
+	endgenerate
+
 )";
 
 	os << "\n\n";
 	os << "\t" << mlp_name << "\n";
 	os << R"(
 			#(
-				.USER_WIDTH	(USER_BITS + 6),
+				.USER_WIDTH	(USER_BITS + 5),
 				.DEVICE		(DEVICE)
 			)
 		i_mlp
@@ -354,7 +406,7 @@ void OutputVerilogConvolution(std::ostream& os, std::string module_name, std::st
 								img_blk_pixel_last,
 								img_blk_de
 							}),
-				.in_data	(img_blk_data),
+				.in_data	(img_blk_data_shuffle),
 				.in_valid	(img_blk_valid),
 			
 				.out_user	({
@@ -392,11 +444,12 @@ void OutputVerilogLoweringConvolution(std::ostream& os, std::string module_name,
 
 	std::string mlp_name = module_name + "_mlp";
 
-	int c = conv.GetOutputChannel();
+	int in_c  = conv.GetInputChannel();
+	int out_c = conv.GetOutputChannel();
 	int n = conv.GetFilterHeight();
 	int m = conv.GetFilterWidth();
 
-	OutputVerilogConvolution(os, module_name, mlp_name, c, n, m);
+	OutputVerilogConvolution(os, module_name, mlp_name, in_c, out_c, n, m);
 	OutputVerilogLutGroup(os, mlp_name, *grop);
 }
 
@@ -417,16 +470,18 @@ void OutputVerilogCnnAxi4s(std::ostream& os, std::string module_name, std::vecto
 			parameter	IMG_X_WIDTH    = 10,
 			parameter	IMG_Y_WIDTH    = 9,
 			parameter	IMG_Y_NUM      = 480,
+			parameter	MAX_X_NUM      = 1024,
 			parameter	BLANK_Y_WIDTH  = 8,
 			parameter	INIT_Y_NUM     = IMG_Y_NUM,
 			parameter	FIFO_PTR_WIDTH = 9,
 			parameter	FIFO_RAM_TYPE  = "block",
+			parameter	RAM_TYPE       = "block",
 			parameter	IMG_CKE_BUFG   = 0,
 			parameter	DEVICE         = "rtl",
 )";
 
-	os << "			parameter	S_TDATA_WIDTH  = " << fisrt_layer->GetInputNodeSize() << ",\n";
-	os << "			parameter	M_TDATA_WIDTH  = " << last_layer->GetOutputNodeSize();
+	os << "			parameter	S_TDATA_WIDTH  = " << fisrt_layer->GetInputChannel() << ",\n";
+	os << "			parameter	M_TDATA_WIDTH  = " << last_layer->GetOutputChannel();
 
 	os << R"(
 		)
@@ -534,13 +589,13 @@ void OutputVerilogCnnAxi4s(std::ostream& os, std::string module_name, std::vecto
 	
 )";
 
-	os << "\tlocalparam DATA0_WIDTH = " << fisrt_layer->GetInputChannel() << " * " << fisrt_layer->GetFilterHeight() << " * " << fisrt_layer->GetFilterWidth() << ";\n";
+	os << "\tlocalparam DATA0_WIDTH = " << fisrt_layer->GetInputChannel() << ";\n";
 	for ( int i = 0; i < layer_size; ++i ) {
-		os << "\tlocalparam DATA" << i+1 << "_WIDTH = " << layers[i]->GetInputChannel() << " * " << layers[i]->GetFilterHeight() << " * " << layers[i]->GetFilterWidth() << ";\n";
+		os << "\tlocalparam DATA" << i+1 << "_WIDTH = " << layers[i]->GetOutputChannel() << ";\n";
 	}
 	os << "\t\n";
 	
-	for ( int i = 0; i < layer_size; ++i ) {
+	for ( int i = 0; i < layer_size+1; ++i ) {
 		os << "\t\n";
 		os << "\twire							img" << i << "_line_first;\n";
 		os << "\twire							img" << i << "_line_last;\n";
@@ -560,7 +615,7 @@ void OutputVerilogCnnAxi4s(std::ostream& os, std::string module_name, std::vecto
 		auto cnv = dynamic_cast<NeuralNetLoweringConvolution<ST, T>*>(layer);
 		auto pol = dynamic_cast<NeuralNetMaxPooling<ST, T, T>*>(layer);
 		if ( cnv ) {
-			os << "\t" << module_name << "_layer" << i << "\n";
+			os << "\t" << module_name << "_l" << i << "\n";
 			os << "\t\t\t#(\n";
 			os << "\t\t\t\t.USER_WIDTH				(USER_WIDTH),\n";
 			os << "\t\t\t\t.MAX_X_NUM				(MAX_X_NUM),\n";
