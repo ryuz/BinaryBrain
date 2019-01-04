@@ -40,8 +40,10 @@
 #include "bb/NeuralNetRealToBinary.h"
 #include "bb/NeuralNetBinaryToReal.h"
 #include "bb/NeuralNetBinaryLut6.h"
+
 #include "bb/NeuralNetBinaryLut6VerilogXilinx.h"
 #include "bb/NeuralNetBinaryLutVerilog.h"
+#include "bb/NeuralNetOutputVerilog.h"
 
 #include "bb/NeuralNetSparseAffineSigmoid.h"
 
@@ -561,7 +563,7 @@ int main()
 //	MnistDenseSimpleConvolution3x3(32, 64, false, true,  "MnistDenseSimpleConvolution3x3_2_realact_binin");
 
 
-	MnistCnnBin(16, 256, true);
+	MnistCnnBin(0, 256, true);
 	getchar();
 	return 0;
 
@@ -1709,7 +1711,7 @@ void MnistCnnBin(int epoc_size, size_t mini_batch_size, bool binary_mode)
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			loss_func;
 	bb::NeuralNetAccuracyCategoricalClassification<>	acc_func(num_class);
-	net.Fitting(run_name, td, epoc_size, mini_batch_size, &acc_func, &loss_func, true, true);
+	net.Fitting(run_name, td, epoc_size, mini_batch_size, &acc_func, &loss_func, true, true, false, false);
 
 
 
@@ -1745,14 +1747,22 @@ void MnistCnnBin(int epoc_size, size_t mini_batch_size, bool binary_mode)
 	lut_sub4_net.AddLayer(&lut_sub4_lut0);
 	lut_sub4_net.AddLayer(&lut_sub4_lut1);
 
+	bb::NeuralNetBinaryLut6<>	lut_sub6_lut0(32 * 4 * 4, 480);
+	bb::NeuralNetBinaryLut6<>	lut_sub6_lut1(480, 80);
+	bb::NeuralNetGroup<>		lut_sub6_net;
+	lut_sub6_net.AddLayer(&lut_sub6_lut0);
+	lut_sub6_net.AddLayer(&lut_sub6_lut1);
+
 	bb::NeuralNetLoweringConvolution<bool>	lut_layer0_conv(&lut_sub0_net, 1, 28, 28, 32, 3, 3);
 	bb::NeuralNetLoweringConvolution<bool>	lut_layer1_conv(&lut_sub1_net, 32, 26, 26, 32, 3, 3);
 	bb::NeuralNetMaxPooling<bool>			lut_layer2_maxpol(32, 24, 24, 2, 2);
 	bb::NeuralNetLoweringConvolution<bool>	lut_layer3_conv(&lut_sub3_net, 32, 12, 12, 32, 3, 3);
 	bb::NeuralNetLoweringConvolution<bool>	lut_layer4_conv(&lut_sub4_net, 32, 10, 10, 32, 3, 3);
 	bb::NeuralNetMaxPooling<bool>			lut_layer5_maxpol(32, 8, 8, 2, 2);
-	bb::NeuralNetBinaryLut6<>				lut_layer6_lut(32 * 4 * 4, 480);
-	bb::NeuralNetBinaryLut6<>				lut_layer7_lut(480, 80);
+	bb::NeuralNetLoweringConvolution<bool>	lut_layer6_conv(&lut_sub6_net, 32, 4, 4, 80, 4, 4);
+
+//	bb::NeuralNetBinaryLut6<>				lut_layer6_lut(32 * 4 * 4, 480);
+//	bb::NeuralNetBinaryLut6<>				lut_layer7_lut(480, 80);
 
 	bb::NeuralNetGroup<>			lut_mux_group;
 	lut_mux_group.AddLayer(&lut_layer0_conv);
@@ -1761,8 +1771,9 @@ void MnistCnnBin(int epoc_size, size_t mini_batch_size, bool binary_mode)
 	lut_mux_group.AddLayer(&lut_layer3_conv);
 	lut_mux_group.AddLayer(&lut_layer4_conv);
 	lut_mux_group.AddLayer(&lut_layer5_maxpol);
-	lut_mux_group.AddLayer(&lut_layer6_lut);
-	lut_mux_group.AddLayer(&lut_layer7_lut);
+	lut_mux_group.AddLayer(&lut_layer6_conv);
+//	lut_mux_group.AddLayer(&lut_layer6_lut);
+//	lut_mux_group.AddLayer(&lut_layer7_lut);
 	bb::NeuralNetBinaryMultiplex<>	lut_bin_mux(&lut_mux_group, 28 * 28, 10, 1, 8);
 
 	// build network
@@ -1779,22 +1790,50 @@ void MnistCnnBin(int epoc_size, size_t mini_batch_size, bool binary_mode)
 	lut_sub3_lut1.ImportLayer(sub3_smm1);
 	lut_sub4_lut0.ImportLayer(sub4_smm0);
 	lut_sub4_lut1.ImportLayer(sub4_smm1);
-	lut_layer6_lut.ImportLayer(layer6_smm);
-	lut_layer7_lut.ImportLayer(layer7_smm);
+	lut_sub6_lut0.ImportLayer(layer6_smm);
+	lut_sub6_lut1.ImportLayer(layer7_smm);
+
+//	lut_layer6_lut.ImportLayer(layer6_smm);
+//	lut_layer7_lut.ImportLayer(layer7_smm);
 
 	// Accuracy Function
 	bb::NeuralNetAccuracyCategoricalClassification<>	lut_acc_func(num_class);
 
 	// evaluation
 	lut_bin_mux.SetMuxSize(1);
-	auto test_accuracy = lut_net.RunCalculation(td.x_test, td.y_test, mini_batch_size, 0, &lut_acc_func);
-	std::cout << "[copied LUT-Network] test_accuracy : " << test_accuracy << std::endl;
-	auto train_accuracy = lut_net.RunCalculation(td.x_train, td.y_train, mini_batch_size, 0, &lut_acc_func);
-	std::cout << "[copied LUT-Network] train_accuracy : " << train_accuracy << std::endl;
+//	auto test_accuracy = lut_net.RunCalculation(td.x_test, td.y_test, mini_batch_size, 0, &lut_acc_func);
+//	std::cout << "[copied LUT-Network] test_accuracy : " << test_accuracy << std::endl;
+//	auto train_accuracy = lut_net.RunCalculation(td.x_train, td.y_train, mini_batch_size, 0, &lut_acc_func);
+//	std::cout << "[copied LUT-Network] train_accuracy : " << train_accuracy << std::endl;
 
 	// Write RTL
 	std::string rtl_fname = run_name + ".v";
 	std::ofstream ofs(rtl_fname);
+
+	ofs << "`timescale 1ns / 1ps"  << "\n";
+	ofs << "`default_nettype none" << "\n\n\n";
+
+//	bb::OutputVerilogLutGroup<float>(ofs, "lut_net_cnn_mnist", lut_sub0_net);
+//	bb::OutputVerilogLoweringConvolution<>(ofs, "lut_net_cnn_mnist", lut_layer0_conv);
+
+	std::vector< bb::NeuralNetFilter2d<>* > layers0;
+	layers0.push_back(&lut_layer0_conv);
+	layers0.push_back(&lut_layer1_conv);
+	layers0.push_back(&lut_layer2_maxpol);
+	bb::OutputVerilogCnnAxi4s<>(ofs, "lut_net_cnn_mnist_l0", layers0);
+
+	std::vector< bb::NeuralNetFilter2d<>* > layers1;
+	layers1.push_back(&lut_layer3_conv);
+	layers1.push_back(&lut_layer4_conv);
+	layers1.push_back(&lut_layer5_maxpol);
+	bb::OutputVerilogCnnAxi4s<>(ofs, "lut_net_cnn_mnist_l1", layers1);
+
+	std::vector< bb::NeuralNetFilter2d<>* > layers2;
+	layers2.push_back(&lut_layer6_conv);
+	bb::OutputVerilogCnnAxi4s<>(ofs, "lut_net_cnn_mnist_l2", layers2);
+
+
+	/*
 	bb::NeuralNetBinaryLutVerilog(ofs, lut_sub0_lut0, "lutnet_layer0_sub0");
 	bb::NeuralNetBinaryLutVerilog(ofs, lut_sub0_lut1, "lutnet_layer0_sub1");
 	bb::NeuralNetBinaryLutVerilog(ofs, lut_sub1_lut0, "lutnet_layer1_sub0");
@@ -1805,6 +1844,9 @@ void MnistCnnBin(int epoc_size, size_t mini_batch_size, bool binary_mode)
 	bb::NeuralNetBinaryLutVerilog(ofs, lut_sub4_lut1, "lutnet_layer4_sub1");
 	bb::NeuralNetBinaryLutVerilog(ofs, lut_layer6_lut, "lutnet_layer6");
 	bb::NeuralNetBinaryLutVerilog(ofs, lut_layer7_lut, "lutnet_layer7");
+	*/
+	ofs << "\n\n";
+	ofs << "`default_nettype wire" << "\n";
 	std::cout << "write : " << rtl_fname << std::endl;
 
 	std::cout << "end\n" << std::endl;

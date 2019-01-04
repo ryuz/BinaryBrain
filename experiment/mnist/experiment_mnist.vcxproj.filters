@@ -218,5 +218,11 @@
     <ClInclude Include="..\..\include\bb\NeuralNetBinaryConvolutionJelly.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bb\NeuralNetOutputVerilog.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\NeuralNetFilter2d.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

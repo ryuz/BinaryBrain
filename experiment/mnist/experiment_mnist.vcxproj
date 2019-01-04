@@ -207,6 +207,7 @@
     <ClInclude Include="..\..\include\bb\NeuralNetDenseConvolution.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetDenseToSparseAffine.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetDropout.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetFilter2d.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetGroup.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLayer.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetLayerBuf.h" />
@@ -222,6 +223,7 @@
     <ClInclude Include="..\..\include\bb\NeuralNetOptimizer.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetOptimizerAdam.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetOptimizerSgd.h" />
+    <ClInclude Include="..\..\include\bb\NeuralNetOutputVerilog.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetRealToBinary.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetReLU.h" />
     <ClInclude Include="..\..\include\bb\NeuralNetSigmoid.h" />
