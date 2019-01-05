@@ -273,7 +273,7 @@ void OutputVerilogLutGroup(std::ostream& os, std::string module_name, NeuralNetG
 
 
 // Convolution 出力
-void OutputVerilogConvolution(std::ostream& os, std::string module_name, std::string mlp_name, int in_c, int out_c, int n, int m)
+inline void OutputVerilogConvolution(std::ostream& os, std::string module_name, std::string mlp_name, int in_c, int out_c, int n, int m)
 {
 	os << "\n\n\n";
 	os << "module " << module_name << "\n";
