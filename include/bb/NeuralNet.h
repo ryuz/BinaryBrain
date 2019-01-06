@@ -228,7 +228,7 @@ public:
 		std::vector< std::vector<T> >& y_train,
 		std::vector< std::vector<T> >& x_test,
 		std::vector< std::vector<T> >& y_test,
-		INDEX epoc_size,
+		INDEX epoch_size,
 		INDEX max_batch_size,
 		const NeuralNetAccuracyFunction<T>* accFunc,
 		const NeuralNetLossFunction<T>* lossFunc,
@@ -259,12 +259,12 @@ public:
 			m_log_stream = &log_stream;
 
 			// 以前の計算があれば読み込み
-			int prev_epoc = 0;
+			int prev_epoch = 0;
 			if (file_write && !over_write) {
 				std::ifstream ifs(net_file_name);
 				if (ifs.is_open()) {
 					cereal::JSONInputArchive ar(ifs);
-					ar(cereal::make_nvp("epoc", prev_epoc));
+					ar(cereal::make_nvp("epoch", prev_epoch));
 					this->Load(ar);
 					log_stream << "[load] " << net_file_name << std::endl;
 				}
@@ -285,20 +285,20 @@ public:
 			// 開始時間記録
 			auto start_time = std::chrono::system_clock::now();
 
-			for (int epoc = 0; epoc < epoc_size; ++epoc) {
+			for (int epoch = 0; epoch < epoch_size; ++epoch) {
 				// 学習実施
 				auto train_accuracy = RunCalculation(x_train, y_train, max_batch_size, max_batch_size, accFunc, lossFunc, true, print_progress);
 
 				// ネット保存
 				if (file_write) {
-					int save_epoc = epoc + 1 + prev_epoc;
+					int save_epoc = epoch + 1 + prev_epoch;
 
 					if(1){
 						std::stringstream fname;
 						fname << name << "_net_" << save_epoc << ".json";
 						std::ofstream ofs_net(fname.str());
 						cereal::JSONOutputArchive ar(ofs_net);
-						ar(cereal::make_nvp("epoc", save_epoc));
+						ar(cereal::make_nvp("epoch", save_epoc));
 						this->Save(ar);
 						std::cout << "[save] " << fname.str() << std::endl;
 			//			log_streamt << "[save] " << fname.str() << std::endl;
@@ -307,7 +307,7 @@ public:
 					{
 						std::ofstream ofs_net(net_file_name);
 						cereal::JSONOutputArchive ar(ofs_net);
-						ar(cereal::make_nvp("epoc", save_epoc));
+						ar(cereal::make_nvp("epoch", save_epoc));
 						this->Save(ar);
 			//			log_stream << "[save] " << net_file_name << std::endl;
 					}
@@ -317,7 +317,7 @@ public:
 				double now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
 				auto test_accuracy = RunCalculation(x_test, y_test, max_batch_size, 0, accFunc);
 				log_stream	<< std::setw(10) << std::fixed << std::setprecision(2) << now_time << "s "
-							<< "epoc[" << std::setw(3) << epoc + 1 + prev_epoc << "] "
+							<< "epoch[" << std::setw(3) << epoch + 1 + prev_epoch << "] "
 							<< "test_accuracy : "  << std::setw(6) << std::fixed << std::setprecision(4) << test_accuracy  << " "
 							<< "train_accuracy : " << std::setw(6) << std::fixed << std::setprecision(4) << train_accuracy << std::endl;
 
@@ -338,7 +338,7 @@ public:
 	void Fitting(
 		std::string name,
 		TrainData<T> td,
-		INDEX epoc_size,
+		INDEX epoch_size,
 		INDEX mini_batch_size,
 		const NeuralNetAccuracyFunction<T>* accFunc,
 		const NeuralNetLossFunction<T>* lossFunc,
@@ -357,7 +357,7 @@ public:
 			td.y_train,
 			td.x_test,
 			td.y_test,
-			epoc_size,
+			epoch_size,
 			mini_batch_size,
 			accFunc,
 			lossFunc,

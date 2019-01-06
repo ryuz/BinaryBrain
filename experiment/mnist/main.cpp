@@ -68,267 +68,48 @@
 void WriteTestImage(void);
 
 
-void MnistMlpLut(int epoc_size, size_t max_batch_size, bool binary_mode = true);
-void MnistCnnBin(int epoc_size, size_t max_batch_size, bool binary_mode = true);
+void MnistMlpLut(int epoch_size, size_t max_batch_size, bool binary_mode = true);
+void MnistCnnBin(int epoch_size, size_t max_batch_size, bool binary_mode = true);
 
-void MnistFullyCnn(int epoc_size, size_t max_batch_size, bool binary_mode = true);
-void MnistFullyCnn2(int epoc_size, size_t max_batch_size, bool binary_mode = true);
+void MnistFullyCnn(int epoch_size, size_t max_batch_size, bool binary_mode = true);
+void MnistFullyCnn2(int epoch_size, size_t max_batch_size, bool binary_mode = true);
 
-void MnistDenseAffineReal(int epoc_size, size_t max_batch_size);
-void MnistDenseAffineBinary(int epoc_size, size_t max_batch_size, bool binary_mode = true);
+void MnistDenseAffineReal(int epoch_size, size_t max_batch_size);
+void MnistDenseAffineBinary(int epoch_size, size_t max_batch_size, bool binary_mode = true);
 
-void MnistSparseAffineReal(int epoc_size, size_t max_batch_size);
-void MnistSparseAffineBinary(int epoc_size, size_t max_batch_size, bool binary_mode = true);
-void MnistSparseAffineLut6(int epoc_size, size_t max_batch_size);
-void MnistSparseAffineBinToLut(int bin_epoc_size, size_t bin_max_batch_size, int lut_epoc_size, size_t lut_max_batch_size);
+void MnistSparseAffineReal(int epoch_size, size_t max_batch_size);
+void MnistSparseAffineBinary(int epoch_size, size_t max_batch_size, bool binary_mode = true);
+void MnistSparseAffineLut6(int epoch_size, size_t max_batch_size);
+void MnistSparseAffineBinToLut(int bin_epoch_size, size_t bin_max_batch_size, int lut_epoch_size, size_t lut_max_batch_size);
 
-void MnistDenseSimpleConvolution(int epoc_size, size_t max_batch_size);
+void MnistDenseSimpleConvolution(int epoch_size, size_t max_batch_size);
 
-void MnistLutBinary(int epoc_size, size_t max_batch_size, bool binary_mode);
-void MnistSparseAffineBinary2(int epoc_size, size_t max_batch_size, bool binary_mode = true);
+void MnistLutBinary(int epoch_size, size_t max_batch_size, bool binary_mode);
+void MnistSparseAffineBinary2(int epoch_size, size_t max_batch_size, bool binary_mode = true);
 
-void MnistLut2(int epoc_size, size_t max_batch_size, bool binary_mode);
-void MnistLut3(int epoc_size, size_t max_batch_size, bool binary_mode);
-void MnistLut5(int epoc_size, size_t max_batch_size, bool binary_mode);
-void MnistLutA(int epoc_size, size_t max_batch_size, bool binary_mode);
-void MnistLutC(int epoc_size, size_t max_batch_size, bool binary_mode);
-void MnistLutD(int epoc_size, size_t max_batch_size, bool binary_mode);
-void MnistLutE(int epoc_size, size_t max_batch_size, bool binary_mode);
-void MnistLutF(int epoc_size, size_t max_batch_size, bool binary_mode);
-
-
-void MnistLutSimpleConvolutionBinary(int epoc_size, size_t max_batch_size, bool binary_mode);
-void MnistLutSimpleConvolutionBinary2(int epoc_size, size_t max_batch_size, bool binary_mode);
+void MnistLut2(int epoch_size, size_t max_batch_size, bool binary_mode);
+void MnistLut3(int epoch_size, size_t max_batch_size, bool binary_mode);
+void MnistLut5(int epoch_size, size_t max_batch_size, bool binary_mode);
+void MnistLutA(int epoch_size, size_t max_batch_size, bool binary_mode);
+void MnistLutC(int epoch_size, size_t max_batch_size, bool binary_mode);
+void MnistLutD(int epoch_size, size_t max_batch_size, bool binary_mode);
+void MnistLutE(int epoch_size, size_t max_batch_size, bool binary_mode);
+void MnistLutF(int epoch_size, size_t max_batch_size, bool binary_mode);
 
 
-void MnistMlpLutMini(int epoc_size, size_t max_batch_size, bool binary_mode);
-void MnistMlpLut2(int epoc_size, size_t max_batch_size, bool binary_mode);
+void MnistLutSimpleConvolutionBinary(int epoch_size, size_t max_batch_size, bool binary_mode);
+void MnistLutSimpleConvolutionBinary2(int epoch_size, size_t max_batch_size, bool binary_mode);
 
 
-void MnistDenseFullyCnn(int epoc_size, size_t max_batch_size, bool binary_mode);
-void MnistDenseSimpleConvolution(int epoc_size, size_t max_batch_size, bool binary_mode, bool binarize_input);
-void MnistDenseSimpleConvolution5x5(int epoc_size, size_t max_batch_size, bool binary_mode, bool binarize_input);
-void MnistDenseSimpleConvolution3x3(int epoc_size, size_t max_batch_size, bool binary_mode, bool binarize_input, std::string name);
+void MnistMlpLutMini(int epoch_size, size_t max_batch_size, bool binary_mode);
+void MnistMlpLut2(int epoch_size, size_t max_batch_size, bool binary_mode);
 
 
+void MnistDenseFullyCnn(int epoch_size, size_t max_batch_size, bool binary_mode);
+void MnistDenseSimpleConvolution(int epoch_size, size_t max_batch_size, bool binary_mode, bool binarize_input);
+void MnistDenseSimpleConvolution5x5(int epoch_size, size_t max_batch_size, bool binary_mode, bool binarize_input);
+void MnistDenseSimpleConvolution3x3(int epoch_size, size_t max_batch_size, bool binary_mode, bool binarize_input, std::string name);
 
-// LUT6入力のバイナリ版の力技学習  with BruteForce training
-void MnistMlpLutDirect(int epoc_size, size_t mini_batch_size, std::string name)
-{
-	// run name
-	std::string run_name = name; //  "MnistMlpLut";
-	int			num_class = 10;
-	int			max_train = -1;
-	int			max_test = -1;
-
-#ifdef _DEBUG
-	std::cout << "!!!Debug mode!!!" << std::endl;
-	max_train = 100;
-	max_test = 50;
-	mini_batch_size = 16;
-#endif
-
-	// load MNIST data
-	auto train_data = bb::LoadMnist<>::Load(num_class, max_train, max_test);
-	auto& x_train = train_data.x_train;
-	auto& y_train = train_data.y_train;
-	auto& x_test = train_data.x_test;
-	auto& y_test = train_data.y_test;
-	auto label_train = bb::OnehotToLabel<std::uint8_t>(y_train);
-	auto label_test = bb::OnehotToLabel<std::uint8_t>(y_test);
-	auto train_size = x_train.size();
-	auto test_size = x_test.size();
-	auto x_node_size = x_test[0].size();
-
-	std::cout << "start : " << run_name << std::endl;
-
-	std::mt19937_64 mt(1);
-
-	// 学習時と評価時で多重化数(乱数を変えて複数枚通して集計できるようにする)を変える
-	int train_mux_size = 3;
-	int test_mux_size = 3;
-
-	// define layer size
-	size_t input_node_size = 28 * 28;
-	size_t output_node_size = 10;
-	size_t input_hmux_size = 1;
-	size_t output_hmux_size = 3;
-
-	size_t layer0_node_size = 360;
-	size_t layer1_node_size = 60 * output_hmux_size;
-	size_t layer2_node_size = output_node_size * output_hmux_size;
-
-	// バイナリネットのGroup作成
-	bb::NeuralNetBinaryLut6<>	bin_layer0_lut(input_node_size*input_hmux_size, layer0_node_size);
-	bb::NeuralNetBinaryLut6<>	bin_layer1_lut(layer0_node_size, layer1_node_size);
-	bb::NeuralNetBinaryLut6<>	bin_layer2_lut(layer1_node_size, layer2_node_size);
-	bb::NeuralNetGroup<>		bin_group;
-	bin_group.AddLayer(&bin_layer0_lut);
-	bin_group.AddLayer(&bin_layer1_lut);
-	bin_group.AddLayer(&bin_layer2_lut);
-
-	// 多重化してパッキング
-	bb::NeuralNetBinaryMultiplex<>	bin_mux(&bin_group, input_node_size, output_node_size, input_hmux_size, output_hmux_size);
-
-	// ネット構築
-	bb::NeuralNet<> net;
-	net.AddLayer(&bin_mux);
-
-	// 評価関数
-	bb::NeuralNetAccuracyCategoricalClassification<>	accFunc(num_class);
-
-	// 初期評価
-	bin_mux.SetMuxSize(test_mux_size);	// 評価用の多重化数にスイッチ
-	auto test_accuracy = net.RunCalculation(train_data.x_test, train_data.y_test, mini_batch_size, 0, &accFunc);
-	std::cout << "initial test_accuracy : " << test_accuracy << std::endl;
-
-	// 開始時間記録
-	auto start_time = std::chrono::system_clock::now();
-
-	// 学習ループ
-	for (int epoc = 0; epoc < epoc_size; ++epoc) {
-		int iteration = 0;
-		for (size_t train_index = 0; train_index < train_size; train_index += mini_batch_size) {
-			// 末尾のバッチサイズクリップ
-			size_t batch_size = std::min(mini_batch_size, train_size - train_index);
-			if (batch_size < mini_batch_size) { break; }
-
-			// 小サイズで演算すると劣化するので末尾スキップ
-			if (batch_size < mini_batch_size) {
-				break;
-			}
-
-			// バッチサイズ設定
-			bin_mux.SetMuxSize(train_mux_size);	// 学習の多重化数にスイッチ
-			net.SetBatchSize(batch_size);
-
-			// データ格納
-			auto in_sig_buf = net.GetInputSignalBuffer();
-			for (size_t frame = 0; frame < batch_size; ++frame) {
-				for (size_t node = 0; node < x_node_size; ++node) {
-					in_sig_buf.Set<float>(frame, node, x_train[train_index + frame][node]);
-				}
-			}
-
-			// 予測
-			net.Forward(true);
-
-			// バイナリ版フィードバック(力技学習)
-			while (bin_mux.Feedback(bin_mux.GetOutputOnehotLoss<std::uint8_t, 10>(label_train, train_index)))
-				;
-
-			//		while (bin_mux.Feedback(bin_mux.GetOutputOnehotLoss(y_train, train_index)))
-			//			;
-
-			//		while (bin_mux.Feedback(bin_mux.CalcLoss(y_train, train_index)))
-			//			;
-
-			// 途中評価
-			bin_mux.SetMuxSize(test_mux_size);	// 評価用の多重化数にスイッチ
-			auto test_accuracy = net.RunCalculation(x_test, y_test, mini_batch_size, 0, &accFunc);
-
-			// 進捗表示
-			auto progress = train_index + batch_size;
-			auto rate = progress * 100 / train_size;
-			std::cout << "[" << rate << "% (" << progress << "/" << train_size << ")]";
-			std::cout << "  test_accuracy : " << test_accuracy << "                  ";
-			std::cout << "\r" << std::flush;
-		}
-
-		// 評価
-		bin_mux.SetMuxSize(test_mux_size);	// 評価用の多重化数にスイッチ
-		auto test_accuracy = net.RunCalculation(x_test, y_test, mini_batch_size, 0, &accFunc);
-		auto train_accuracy = net.RunCalculation(x_train, y_train, mini_batch_size, 0, &accFunc);
-		auto now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
-		std::cout << now_time << "s " << "epoc[" << epoc + 1 << "]"
-			<< "  test_accuracy : " << test_accuracy
-			<< "  train_accuracy : " << train_accuracy << std::endl;
-
-		// Shuffle
-		bb::ShuffleDataSet(mt(), x_train, y_train, label_train);
-	}
-
-	{
-		// Write RTL
-		std::ofstream ofs("lut_net.v");
-		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, bin_layer0_lut, "lutnet_layer0");
-		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, bin_layer1_lut, "lutnet_layer1");
-		bb::NeuralNetBinaryLut6VerilogXilinx(ofs, bin_layer2_lut, "lutnet_layer2");
-	}
-
-	std::cout << "end\n" << std::endl;
-}
-
-// MNIST Multilayer perceptron with LUT networks
-template <int N=16>
-void MnistMlpLutN(int epoc_size, size_t max_batch_size, bool binary_mode, bool connect_change, std::string name)
-{
-	// parameter
-	std::string run_name = name; //  "MnistMlpLut2";
-	int			num_class = 10;
-
-	// load MNIST data
-	auto td = bb::LoadMnist<>::Load();
-
-	// 学習時と評価時で多重化数(乱数を変えて複数枚通して集計できるようにする)を変える
-	int train_mux_size = 1;
-	int test_mux_size = 3;
-
-	// define layer size
-	size_t input_node_size = 28 * 28;
-	size_t output_node_size = 10;
-	size_t input_hmux_size = 1;
-	size_t output_hmux_size = 3;
-
-	size_t layer0_node_size = 360;
-	size_t layer1_node_size = 60 * output_hmux_size;
-	size_t layer2_node_size = output_node_size * output_hmux_size;
-
-	// build layer
-	bb::NeuralNetSparseMicroMlpDiscrete<6, N>	layer0_lut(input_node_size*input_hmux_size, layer0_node_size);
-	bb::NeuralNetSparseMicroMlpDiscrete<6, N>	layer1_lut(layer0_node_size, layer1_node_size);
-	bb::NeuralNetSparseMicroMlpDiscrete<6, N>	layer2_lut(layer1_node_size, layer2_node_size);
-	bb::NeuralNetGroup<>		bin_group;
-	bin_group.AddLayer(&layer0_lut);
-	bin_group.AddLayer(&layer1_lut);
-	bin_group.AddLayer(&layer2_lut);
-
-	// 多重化してパッキング
-	bb::NeuralNetBinaryMultiplex<float>	bin_mux(&bin_group, input_node_size, output_node_size, input_hmux_size, output_hmux_size);
-
-	// ネット構築
-	bb::NeuralNet<> net;
-	net.AddLayer(&bin_mux);
-
-	bin_mux.SetMuxSize(test_mux_size);
-
-
-	//	ConnectShift6(layer0_lut);
-	//	ConnectShift6(layer1_lut);
-	//	ConnectShift6(layer2_lut);
-	//	ConnectShift6(layer3_lut);
-	//	ConnectShift6(layer4_lut);
-	//	ConnectShift6(layer5_lut);
-
-	if (connect_change) {
-		ConnectShift(layer0_lut, 1, 1);
-		ConnectShift(layer1_lut, 1, 1);
-		ConnectShift(layer2_lut, 2, 1);
-	}
-		
-	// set optimizer
-	bb::NeuralNetOptimizerAdam<> optimizer;
-	net.SetOptimizer(&optimizer);
-
-	// set binary mode
-	net.SetBinaryMode(binary_mode);
-	std::cout << "binary mode : " << binary_mode << std::endl;
-
-	// run fitting
-	bb::NeuralNetLossCrossEntropyWithSoftmax<>			loss_func;
-	bb::NeuralNetAccuracyCategoricalClassification<>	acc_func(num_class);
-	net.Fitting(run_name, td, epoc_size, max_batch_size, &acc_func, &loss_func, true, true, true);
-}
 
 
 struct DenseToSparseInfo
@@ -349,7 +130,7 @@ void callbakMnistMlpDenseToSparse(bb::NeuralNet<>* net, void* user)
 
 }
 
-void MnistMlpDenseToSparse(int pre_epoc_size, int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistMlpDenseToSparse(int pre_epoch_size, int epoch_size, size_t max_batch_size, bool binary_mode)
 {
 	// parameter
 	std::string run_name = "MnistMlpDenseToSparseT0";
@@ -482,7 +263,7 @@ void MnistMlpDenseToSparse(int pre_epoc_size, int epoc_size, size_t max_batch_si
 			layer1_affine.SetDecimateEnable(false);
 			layer2_affine.SetDecimateEnable(false);
 		}
-		net.Fitting(run_name, td, pre_epoc_size, max_batch_size, &acc_func, &loss_func, true, true, true,
+		net.Fitting(run_name, td, pre_epoch_size, max_batch_size, &acc_func, &loss_func, true, true, true,
 			true, 1, callbakMnistMlpDenseToSparse, (void *)&inf);
 
 
@@ -518,12 +299,14 @@ void MnistMlpDenseToSparse(int pre_epoc_size, int epoc_size, size_t max_batch_si
 	layer0_affine.SetDecimateEnable(true);
 	layer1_affine.SetDecimateEnable(true);
 	layer2_affine.SetDecimateEnable(true);
-	net.Fitting(run_name, td, epoc_size, max_batch_size, &acc_func, &loss_func, true, true, false,
+	net.Fitting(run_name, td, epoch_size, max_batch_size, &acc_func, &loss_func, true, true, false,
 		true, 1, callbakMnistMlpDenseToSparse, (void *)&inf);
 
 //	net.Fitting(run_name, td, 8, max_batch_size, &acc_func, &loss_func, true, true, false);
 }
 
+
+int evaluate_micro_mlp(void);
 
 // メイン関数
 int main()
@@ -532,6 +315,8 @@ int main()
 //	return 0;
 
 	omp_set_num_threads(4);
+
+//	return evaluate_micro_mlp();
 
 //	MnistMlpDenseToSparse(8, 128, 128, false);
 //	getchar();
@@ -563,7 +348,7 @@ int main()
 //	MnistDenseSimpleConvolution3x3(32, 64, false, true,  "MnistDenseSimpleConvolution3x3_2_realact_binin");
 
 
-	MnistCnnBin(0, 256, true);
+	MnistCnnBin(16, 256, true);
 	getchar();
 	return 0;
 
@@ -646,7 +431,7 @@ int main()
 
 
 
-void MnistDenseSimpleConvolution(int epoc_size, size_t max_batch_size, bool binary_mode, bool binarize_input)
+void MnistDenseSimpleConvolution(int epoch_size, size_t max_batch_size, bool binary_mode, bool binarize_input)
 {
 	// run name
 	std::string run_name = "MnistDenseSimpleConvolution";
@@ -734,11 +519,11 @@ void MnistDenseSimpleConvolution(int epoc_size, size_t max_batch_size, bool bina
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			loss_func;
 	bb::NeuralNetAccuracyCategoricalClassification<>	acc_func(num_class);
-	net.Fitting(run_name, td, epoc_size, max_batch_size, &acc_func, &loss_func, true, true, true);
+	net.Fitting(run_name, td, epoch_size, max_batch_size, &acc_func, &loss_func, true, true, true);
 }
 
 
-void MnistDenseSimpleConvolution5x5(int epoc_size, size_t max_batch_size, bool binary_mode, bool binarize_input)
+void MnistDenseSimpleConvolution5x5(int epoch_size, size_t max_batch_size, bool binary_mode, bool binarize_input)
 {
 	// run name
 	std::string run_name = "MnistDenseSimpleConvolution5x5";
@@ -810,12 +595,12 @@ void MnistDenseSimpleConvolution5x5(int epoc_size, size_t max_batch_size, bool b
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			loss_func;
 	bb::NeuralNetAccuracyCategoricalClassification<>	acc_func(num_class);
-	net.Fitting(run_name, td, epoc_size, max_batch_size, &acc_func, &loss_func, true, true, true);
+	net.Fitting(run_name, td, epoch_size, max_batch_size, &acc_func, &loss_func, true, true, true);
 }
 
 
 // Kerasのサンプルと揃えてみる
-void MnistDenseSimpleConvolution3x3(int epoc_size, size_t max_batch_size, bool binary_mode, bool binarize_input, std::string name)
+void MnistDenseSimpleConvolution3x3(int epoch_size, size_t max_batch_size, bool binary_mode, bool binarize_input, std::string name)
 {
 	// run name
 	std::string run_name = name; //  "MnistDenseSimpleConvolution3x3";
@@ -886,13 +671,13 @@ void MnistDenseSimpleConvolution3x3(int epoc_size, size_t max_batch_size, bool b
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			loss_func;
 	bb::NeuralNetAccuracyCategoricalClassification<>	acc_func(num_class);
-	net.Fitting(run_name, td, epoc_size, max_batch_size, &acc_func, &loss_func, true, true, true);
+	net.Fitting(run_name, td, epoch_size, max_batch_size, &acc_func, &loss_func, true, true, true);
 }
 
 
 
 // MNIST CNN with LUT networks
-void MnistDenseFullyCnn(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistDenseFullyCnn(int epoch_size, size_t max_batch_size, bool binary_mode)
 {
 	// run name
 	std::string run_name = "MnistDenseFullyCnn";
@@ -993,7 +778,7 @@ void MnistDenseFullyCnn(int epoc_size, size_t max_batch_size, bool binary_mode)
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			loss_func;
 	bb::NeuralNetAccuracyCategoricalClassification<>	acc_func(num_class);
-	net.Fitting(run_name, td, epoc_size, max_batch_size, &acc_func, &loss_func, true, true, true);
+	net.Fitting(run_name, td, epoch_size, max_batch_size, &acc_func, &loss_func, true, true, true);
 }
 
 
@@ -1139,7 +924,7 @@ void WriteVerilogData(std::string fname, bb::NeuralNetBuffer<>& buf)
 
 
 // MNIST Multilayer perceptron with LUT networks
-void MnistMlpLutMini(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistMlpLutMini(int epoch_size, size_t max_batch_size, bool binary_mode)
 {
 	// parameter
 	std::string run_name = "MnistMlpLutMini";
@@ -1171,14 +956,14 @@ void MnistMlpLutMini(int epoc_size, size_t max_batch_size, bool binary_mode)
 #if 1
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			loss_func;
 	bb::NeuralNetAccuracyCategoricalClassification<>	acc_func(num_class);
-	net.Fitting(run_name, td, epoc_size, max_batch_size, &acc_func, &loss_func, true, true);
+	net.Fitting(run_name, td, epoch_size, max_batch_size, &acc_func, &loss_func, true, true);
 #else
 	{
 		std::ifstream ifs("MnistMlpLut_net.json");
 		if (ifs.is_open()) {
 			cereal::JSONInputArchive ar(ifs);
-			int epoc;
-			ar(cereal::make_nvp("epoc", epoc));
+			int epoch;
+			ar(cereal::make_nvp("epoch", epoch));
 			net.Load(ar);
 		}
 	}
@@ -1268,7 +1053,7 @@ void MnistMlpLutMini(int epoc_size, size_t max_batch_size, bool binary_mode)
 
 
 // MNIST Multilayer perceptron with LUT networks
-void MnistMlpLut(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistMlpLut(int epoch_size, size_t max_batch_size, bool binary_mode)
 {
 	// parameter
 	std::string run_name = "MnistMlpLut";
@@ -1341,14 +1126,14 @@ void MnistMlpLut(int epoc_size, size_t max_batch_size, bool binary_mode)
 #if 1
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			loss_func;
 	bb::NeuralNetAccuracyCategoricalClassification<>	acc_func(num_class);
-	net.Fitting(run_name, td, epoc_size, max_batch_size, &acc_func, &loss_func, true, true);
+	net.Fitting(run_name, td, epoch_size, max_batch_size, &acc_func, &loss_func, true, true);
 #else
 	{
 		std::ifstream ifs("MnistMlpLut_net.json");
 		if (ifs.is_open()) {
 			cereal::JSONInputArchive ar(ifs);
-			int epoc;
-			ar(cereal::make_nvp("epoc", epoc));
+			int epoch;
+			ar(cereal::make_nvp("epoch", epoch));
 			net.Load(ar);
 		}
 	}
@@ -1459,7 +1244,7 @@ void ConnectShift6(bb::NeuralNetSparseLayer<>& layer)
 
 
 // MNIST Multilayer perceptron with LUT networks
-void MnistMlpLut2(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistMlpLut2(int epoch_size, size_t max_batch_size, bool binary_mode)
 {
 	// parameter
 	std::string run_name = "MnistMlpLut2";
@@ -1522,7 +1307,7 @@ void MnistMlpLut2(int epoc_size, size_t max_batch_size, bool binary_mode)
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			loss_func;
 	bb::NeuralNetAccuracyCategoricalClassification<>	acc_func(num_class);
-	net.Fitting(run_name, td, epoc_size, max_batch_size, &acc_func, &loss_func, true, true);
+	net.Fitting(run_name, td, epoch_size, max_batch_size, &acc_func, &loss_func, true, true);
 
 
 	// convert FPGA model
@@ -1634,7 +1419,7 @@ void MnistMlpLut2(int epoc_size, size_t max_batch_size, bool binary_mode)
 
 
 // MNIST CNN with LUT networks
-void MnistCnnBin(int epoc_size, size_t mini_batch_size, bool binary_mode)
+void MnistCnnBin(int epoch_size, size_t mini_batch_size, bool binary_mode)
 {
 	// run name
 	std::string run_name = "MnistCnnBin";
@@ -1711,7 +1496,7 @@ void MnistCnnBin(int epoc_size, size_t mini_batch_size, bool binary_mode)
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			loss_func;
 	bb::NeuralNetAccuracyCategoricalClassification<>	acc_func(num_class);
-	net.Fitting(run_name, td, epoc_size, mini_batch_size, &acc_func, &loss_func, true, true, false, false);
+	net.Fitting(run_name, td, epoch_size, mini_batch_size, &acc_func, &loss_func, true, true, false, false);
 
 
 
@@ -1855,7 +1640,7 @@ void MnistCnnBin(int epoc_size, size_t mini_batch_size, bool binary_mode)
 
 
 // MNIST CNN with LUT networks
-void MnistFullyCnn(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistFullyCnn(int epoch_size, size_t max_batch_size, bool binary_mode)
 {
 	// run name
 	std::string run_name = "MnistFullyCnn";
@@ -1942,7 +1727,7 @@ void MnistFullyCnn(int epoc_size, size_t max_batch_size, bool binary_mode)
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			loss_func;
 	bb::NeuralNetAccuracyCategoricalClassification<>	acc_func(num_class);
-	net.Fitting(run_name, td, epoc_size, max_batch_size, &acc_func, &loss_func, true, true);
+	net.Fitting(run_name, td, epoch_size, max_batch_size, &acc_func, &loss_func, true, true);
 
 
 	// copy to LUT Network
@@ -2056,7 +1841,7 @@ void MnistFullyCnn(int epoc_size, size_t max_batch_size, bool binary_mode)
 }
 
 
-void MnistFullyCnn2(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistFullyCnn2(int epoch_size, size_t max_batch_size, bool binary_mode)
 {
 	// run name
 	std::string run_name = "MnistFullyCnn2";
@@ -2156,14 +1941,14 @@ void MnistFullyCnn2(int epoc_size, size_t max_batch_size, bool binary_mode)
 #if 1
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			loss_func;
 	bb::NeuralNetAccuracyCategoricalClassification<>	acc_func(num_class);
-	net.Fitting(run_name, td, epoc_size, max_batch_size, &acc_func, &loss_func, true, true);
+	net.Fitting(run_name, td, epoch_size, max_batch_size, &acc_func, &loss_func, true, true);
 #else
 	{
 		std::ifstream ifs("MnistCnnLut_net.json");
 		if (ifs.is_open()) {
 			cereal::JSONInputArchive ar(ifs);
-			int epoc;
-			ar(cereal::make_nvp("epoc", epoc));
+			int epoch;
+			ar(cereal::make_nvp("epoch", epoch));
 			net.Load(ar);
 		}
 	}
@@ -2266,7 +2051,7 @@ void MnistFullyCnn2(int epoc_size, size_t max_batch_size, bool binary_mode)
 
 
 // DenseAffine Real network
-void MnistDenseAffineReal(int epoc_size, size_t max_batch_size)
+void MnistDenseAffineReal(int epoch_size, size_t max_batch_size)
 {
 	// run name
 	std::string run_name = "MnistDenseAffineReal";
@@ -2294,11 +2079,11 @@ void MnistDenseAffineReal(int epoc_size, size_t max_batch_size)
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			lossFunc;
 	bb::NeuralNetAccuracyCategoricalClassification<>	accFunc(num_class);		
-	net.Fitting(run_name, train_data, epoc_size, max_batch_size, &accFunc, &lossFunc, true, false);
+	net.Fitting(run_name, train_data, epoch_size, max_batch_size, &accFunc, &lossFunc, true, false);
 }
 
 // Binary DenseAffine network
-void MnistDenseAffineBinary(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistDenseAffineBinary(int epoch_size, size_t max_batch_size, bool binary_mode)
 {
 	// run name
 	std::string run_name = "MnistDenseAffineBinary";
@@ -2374,13 +2159,13 @@ void MnistDenseAffineBinary(int epoc_size, size_t max_batch_size, bool binary_mo
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			lossFunc;
 	bb::NeuralNetAccuracyCategoricalClassification<>	accFunc(num_class);
-	net.Fitting(run_name, train_data, epoc_size, max_batch_size, &accFunc, &lossFunc, true, false);
+	net.Fitting(run_name, train_data, epoch_size, max_batch_size, &accFunc, &lossFunc, true, false);
 }
 
 
 
 // Sparse Affine network
-void MnistSparseAffineReal(int epoc_size, size_t max_batch_size)
+void MnistSparseAffineReal(int epoch_size, size_t max_batch_size)
 {
 	// run name
 	std::string run_name = "MnistSparseAffineReal";
@@ -2412,12 +2197,12 @@ void MnistSparseAffineReal(int epoc_size, size_t max_batch_size)
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			lossFunc;
 	bb::NeuralNetAccuracyCategoricalClassification<>	accFunc(num_class);
-	net.Fitting(run_name, train_data, epoc_size, max_batch_size, &accFunc, &lossFunc, true, false);
+	net.Fitting(run_name, train_data, epoch_size, max_batch_size, &accFunc, &lossFunc, true, false);
 }
 
 
 // Binary Sparse-Affine network
-void MnistSparseAffineBinary2(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistSparseAffineBinary2(int epoch_size, size_t max_batch_size, bool binary_mode)
 {
 	// parameter
 	std::string run_name = "MnistSparseAffineBinary2";
@@ -2470,11 +2255,11 @@ void MnistSparseAffineBinary2(int epoc_size, size_t max_batch_size, bool binary_
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			lossFunc;
 	bb::NeuralNetAccuracyCategoricalClassification<>	accFunc(num_class);
-	net.Fitting(run_name, train_data, epoc_size, max_batch_size, &accFunc, &lossFunc, true, false);
+	net.Fitting(run_name, train_data, epoch_size, max_batch_size, &accFunc, &lossFunc, true, false);
 }
 
 
-void MnistLut2(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistLut2(int epoch_size, size_t max_batch_size, bool binary_mode)
 {
 	// parameter
 	std::string run_name = "MnistLut2";
@@ -2516,12 +2301,12 @@ void MnistLut2(int epoc_size, size_t max_batch_size, bool binary_mode)
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			lossFunc;
 	bb::NeuralNetAccuracyCategoricalClassification<>	accFunc(num_class);
-	net.Fitting(run_name, train_data, epoc_size, max_batch_size, &accFunc, &lossFunc, true, false);
+	net.Fitting(run_name, train_data, epoch_size, max_batch_size, &accFunc, &lossFunc, true, false);
 }
 
 
 
-void MnistLut3(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistLut3(int epoch_size, size_t max_batch_size, bool binary_mode)
 {
 	// parameter
 	std::string run_name = "MnistLut4";
@@ -2564,12 +2349,12 @@ void MnistLut3(int epoc_size, size_t max_batch_size, bool binary_mode)
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			lossFunc;
 	bb::NeuralNetAccuracyCategoricalClassification<>	accFunc(num_class);
-	net.Fitting(run_name, train_data, epoc_size, max_batch_size, &accFunc, &lossFunc, true, true);
+	net.Fitting(run_name, train_data, epoch_size, max_batch_size, &accFunc, &lossFunc, true, true);
 }
 
 
 
-void MnistLut5(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistLut5(int epoch_size, size_t max_batch_size, bool binary_mode)
 {
 	// parameter
 	std::string run_name = "MnistLut7";
@@ -2606,11 +2391,11 @@ void MnistLut5(int epoc_size, size_t max_batch_size, bool binary_mode)
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			lossFunc;
 	bb::NeuralNetAccuracyCategoricalClassification<>	accFunc(num_class);
-	net.Fitting(run_name, train_data, epoc_size, max_batch_size, &accFunc, &lossFunc, true, true);
+	net.Fitting(run_name, train_data, epoch_size, max_batch_size, &accFunc, &lossFunc, true, true);
 }
 
 
-void MnistLutA(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistLutA(int epoch_size, size_t max_batch_size, bool binary_mode)
 {
 	// parameter
 	std::string run_name = "MnistLutB";
@@ -2656,11 +2441,11 @@ void MnistLutA(int epoc_size, size_t max_batch_size, bool binary_mode)
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			lossFunc;
 	bb::NeuralNetAccuracyCategoricalClassification<>	accFunc(num_class);
-	net.Fitting(run_name, train_data, epoc_size, max_batch_size, &accFunc, &lossFunc, true, true);
+	net.Fitting(run_name, train_data, epoch_size, max_batch_size, &accFunc, &lossFunc, true, true);
 }
 
 
-void MnistLutD(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistLutD(int epoch_size, size_t max_batch_size, bool binary_mode)
 {
 	// parameter
 	std::string run_name = "MnistLutD";
@@ -2706,12 +2491,12 @@ void MnistLutD(int epoc_size, size_t max_batch_size, bool binary_mode)
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			lossFunc;
 	bb::NeuralNetAccuracyCategoricalClassification<>	accFunc(num_class);
-	net.Fitting(run_name, train_data, epoc_size, max_batch_size, &accFunc, &lossFunc, true, true);
+	net.Fitting(run_name, train_data, epoch_size, max_batch_size, &accFunc, &lossFunc, true, true);
 }
 
 
 
-void MnistLutC(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistLutC(int epoch_size, size_t max_batch_size, bool binary_mode)
 {
 	// parameter
 	std::string run_name = "MnistLutC";
@@ -2762,12 +2547,12 @@ void MnistLutC(int epoc_size, size_t max_batch_size, bool binary_mode)
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			lossFunc;
 	bb::NeuralNetAccuracyCategoricalClassification<>	accFunc(num_class);
-	net.Fitting(run_name, data, epoc_size, max_batch_size, &accFunc, &lossFunc, true, true);
+	net.Fitting(run_name, data, epoch_size, max_batch_size, &accFunc, &lossFunc, true, true);
 }
 
 
 
-void MnistLutE(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistLutE(int epoch_size, size_t max_batch_size, bool binary_mode)
 {
 	// parameter
 	std::string run_name = "MnistLutE";
@@ -2815,11 +2600,11 @@ void MnistLutE(int epoc_size, size_t max_batch_size, bool binary_mode)
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			lossFunc;
 	bb::NeuralNetAccuracyCategoricalClassification<>	accFunc(num_class);
-	net.Fitting(run_name, train_data, epoc_size, max_batch_size, &accFunc, &lossFunc, true, true);
+	net.Fitting(run_name, train_data, epoch_size, max_batch_size, &accFunc, &lossFunc, true, true);
 }
 
 
-void MnistLutF(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistLutF(int epoch_size, size_t max_batch_size, bool binary_mode)
 {
 	// parameter
 	std::string run_name = "MnistLutF";
@@ -2867,12 +2652,12 @@ void MnistLutF(int epoc_size, size_t max_batch_size, bool binary_mode)
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			lossFunc;
 	bb::NeuralNetAccuracyCategoricalClassification<>	accFunc(num_class);
-	net.Fitting(run_name, train_data, epoc_size, max_batch_size, &accFunc, &lossFunc, true, true);
+	net.Fitting(run_name, train_data, epoch_size, max_batch_size, &accFunc, &lossFunc, true, true);
 }
 
 
 // Binary Sparse-Affine network
-void MnistSparseAffineBinary(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistSparseAffineBinary(int epoch_size, size_t max_batch_size, bool binary_mode)
 {
 	// parameter
 	std::string run_name = "MnistSparseAffineBinary";
@@ -2927,11 +2712,11 @@ void MnistSparseAffineBinary(int epoc_size, size_t max_batch_size, bool binary_m
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			lossFunc;
 	bb::NeuralNetAccuracyCategoricalClassification<>	accFunc(num_class);
-	net.Fitting(run_name, train_data, epoc_size, max_batch_size, &accFunc, &lossFunc, true, false);
+	net.Fitting(run_name, train_data, epoch_size, max_batch_size, &accFunc, &lossFunc, true, false);
 }
 
 // 
-void MnistLutBinary(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistLutBinary(int epoch_size, size_t max_batch_size, bool binary_mode)
 {
 	// parameter
 	std::string run_name = "MnistLutBinary";
@@ -2986,11 +2771,11 @@ void MnistLutBinary(int epoc_size, size_t max_batch_size, bool binary_mode)
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			loss_func;
 	bb::NeuralNetAccuracyCategoricalClassification<>	acc_func(num_class);
-	net.Fitting(run_name, train_data, epoc_size, max_batch_size, &acc_func, &loss_func, true, false);
+	net.Fitting(run_name, train_data, epoch_size, max_batch_size, &acc_func, &loss_func, true, false);
 }
 
 // LUT6入力のバイナリ版の力技学習  with BruteForce training
-void MnistSparseAffineLut6(int epoc_size, size_t max_batch_size)
+void MnistSparseAffineLut6(int epoch_size, size_t max_batch_size)
 {
 	// run name
 	std::string run_name = "MnistSparseAffineLut6";
@@ -3064,7 +2849,7 @@ void MnistSparseAffineLut6(int epoc_size, size_t max_batch_size)
 	auto start_time = std::chrono::system_clock::now();
 
 	// 学習ループ
-	for (int epoc = 0; epoc < epoc_size; ++epoc) {
+	for (int epoch = 0; epoch < epoch_size; ++epoch) {
 		int iteration = 0;
 		for (size_t train_index = 0; train_index < train_size; train_index += max_batch_size) {
 			// 末尾のバッチサイズクリップ
@@ -3118,7 +2903,7 @@ void MnistSparseAffineLut6(int epoc_size, size_t max_batch_size)
 		auto test_accuracy = lut_net.RunCalculation(x_test, y_test, max_batch_size, 0, &lut_acc_func);
 		auto train_accuracy = lut_net.RunCalculation(x_train,y_train, max_batch_size, 0, &lut_acc_func);
 		auto now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
-		std::cout << now_time << "s " << "epoc[" << epoc << "]"
+		std::cout << now_time << "s " << "epoch[" << epoch << "]"
 			<< "  test_accuracy : " << test_accuracy
 			<< "  train_accuracy : " << train_accuracy << std::endl;
 
@@ -3138,7 +2923,7 @@ void MnistSparseAffineLut6(int epoc_size, size_t max_batch_size)
 }
 
 // Binary-Network copy to LUT-Network
-void MnistSparseAffineBinToLut(int bin_epoc_size, size_t bin_max_batch_size, int lut_epoc_size, size_t lut_max_batch_size)
+void MnistSparseAffineBinToLut(int bin_epoch_size, size_t bin_max_batch_size, int lut_epoch_size, size_t lut_max_batch_size)
 {
 	// parameter
 	std::string run_name = "MnistSparseAffineBinToLut";
@@ -3192,7 +2977,7 @@ void MnistSparseAffineBinToLut(int bin_epoc_size, size_t bin_max_batch_size, int
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			bin_loss_func;
 	bb::NeuralNetAccuracyCategoricalClassification<>	bin_acc_func(num_class);
-	bin_net.Fitting(run_name, train_data, bin_epoc_size, bin_max_batch_size, &bin_acc_func, &bin_loss_func, true, false);
+	bin_net.Fitting(run_name, train_data, bin_epoch_size, bin_max_batch_size, &bin_acc_func, &bin_loss_func, true, false);
 
 
 
@@ -3254,7 +3039,7 @@ void MnistSparseAffineBinToLut(int bin_epoc_size, size_t bin_max_batch_size, int
 	auto start_time = std::chrono::system_clock::now();
 
 	// 学習ループ
-	for (int epoc = 0; epoc < lut_epoc_size; ++epoc) {
+	for (int epoch = 0; epoch < lut_epoch_size; ++epoch) {
 		int iteration = 0;
 		for (size_t train_index = 0; train_index < train_size; train_index += lut_max_batch_size) {
 			// 末尾のバッチサイズクリップ
@@ -3308,7 +3093,7 @@ void MnistSparseAffineBinToLut(int bin_epoc_size, size_t bin_max_batch_size, int
 		auto test_accuracy = lut_net.RunCalculation(x_test, y_test, lut_max_batch_size, 0, &lut_acc_func);
 		auto train_accuracy = lut_net.RunCalculation(x_train, y_train, lut_max_batch_size, 0, &lut_acc_func);
 		auto now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
-		std::cout << now_time << "s " << "epoc[" << epoc << "]"
+		std::cout << now_time << "s " << "epoch[" << epoch << "]"
 			<< "  test_accuracy : " << test_accuracy
 			<< "  train_accuracy : " << train_accuracy << std::endl;
 
@@ -3332,7 +3117,7 @@ void MnistSparseAffineBinToLut(int bin_epoc_size, size_t bin_max_batch_size, int
 
 
 // DenseSimpleConvolution  network
-void MnistDenseSimpleConvolution(int epoc_size, size_t max_batch_size)
+void MnistDenseSimpleConvolution(int epoch_size, size_t max_batch_size)
 {
 	// run name
 	std::string run_name = "MnistDenseSimpleConvolution";
@@ -3365,13 +3150,13 @@ void MnistDenseSimpleConvolution(int epoc_size, size_t max_batch_size)
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			lossFunc;
 	bb::NeuralNetAccuracyCategoricalClassification<>	accFunc(num_class);
-	net.Fitting(run_name, train_data, epoc_size, max_batch_size, &accFunc, &lossFunc, true, false);
+	net.Fitting(run_name, train_data, epoch_size, max_batch_size, &accFunc, &lossFunc, true, false);
 }
 
 
 
 
-void MnistSparseSimpleConvolutionBinary(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistSparseSimpleConvolutionBinary(int epoch_size, size_t max_batch_size, bool binary_mode)
 {
 	// run name
 	std::string run_name = "MnistSparseSimpleConvolutionBinary";
@@ -3429,12 +3214,12 @@ void MnistSparseSimpleConvolutionBinary(int epoc_size, size_t max_batch_size, bo
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			lossFunc;
 	bb::NeuralNetAccuracyCategoricalClassification<>	accFunc(num_class);
-	net.Fitting(run_name, train_data, epoc_size, max_batch_size, &accFunc, &lossFunc, true, false);
+	net.Fitting(run_name, train_data, epoch_size, max_batch_size, &accFunc, &lossFunc, true, false);
 }
 
 
 
-void MnistLutSimpleConvolutionBinary(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistLutSimpleConvolutionBinary(int epoch_size, size_t max_batch_size, bool binary_mode)
 {
 	// run name
 	std::string run_name = "MnistLutSimpleConvolutionBinary";
@@ -3522,14 +3307,14 @@ void MnistLutSimpleConvolutionBinary(int epoc_size, size_t max_batch_size, bool 
 	// run fitting
 	bb::NeuralNetLossCrossEntropyWithSoftmax<>			lossFunc;
 	bb::NeuralNetAccuracyCategoricalClassification<>	accFunc(num_class);
-	net.Fitting(run_name, train_data, epoc_size, max_batch_size, &accFunc, &lossFunc, true, false);
+	net.Fitting(run_name, train_data, epoch_size, max_batch_size, &accFunc, &lossFunc, true, false);
 #else
 	{
 		std::string net_file_name = "MnistLutSimpleConvolutionBinary_net.json";
 		std::ifstream ifs(net_file_name);
 		cereal::JSONInputArchive ar(ifs);
-		int epoc;
-		ar(cereal::make_nvp("epoc", epoc));
+		int epoch;
+		ar(cereal::make_nvp("epoch", epoch));
 		net.Load(ar);
 		std::cout << "[load] " << net_file_name << std::endl;
 	}
@@ -3638,7 +3423,7 @@ void MnistLutSimpleConvolutionBinary(int epoc_size, size_t max_batch_size, bool 
 
 
 
-void MnistLutSimpleConvolutionBinary2(int epoc_size, size_t max_batch_size, bool binary_mode)
+void MnistLutSimpleConvolutionBinary2(int epoch_size, size_t max_batch_size, bool binary_mode)
 {
 	// run name
 	std::string run_name = "MnistLutSimpleConvolutionBinary2";
@@ -3737,15 +3522,15 @@ void MnistLutSimpleConvolutionBinary2(int epoc_size, size_t max_batch_size, bool
 	std::cout << "binary mode : " << binary_mode << std::endl;
 
 	// run fitting
-	net.Fitting(run_name, data, epoc_size, max_batch_size, &acc_func, &loss_func, true, true);
+	net.Fitting(run_name, data, epoch_size, max_batch_size, &acc_func, &loss_func, true, true);
 
 #else
 	{
 		std::string net_file_name = "MnistLutSimpleConvolutionBinary_net.json";
 		std::ifstream ifs(net_file_name);
 		cereal::JSONInputArchive ar(ifs);
-		int epoc;
-		ar(cereal::make_nvp("epoc", epoc));
+		int epoch;
+		ar(cereal::make_nvp("epoch", epoch));
 		net.Load(ar);
 		std::cout << "[load] " << net_file_name << std::endl;
 	}
