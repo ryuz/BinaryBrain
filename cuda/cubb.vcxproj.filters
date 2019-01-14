@@ -14,5 +14,8 @@
     <CudaCompile Include="MicroMlp6x16.cu">
       <Filter>ソース ファイル</Filter>
     </CudaCompile>
+    <CudaCompile Include="Im2Col.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>

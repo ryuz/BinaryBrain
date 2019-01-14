@@ -157,6 +157,7 @@
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <CudaCompile Include="Im2Col.cu" />
     <CudaCompile Include="MicroMlp6x16.cu">
       <FileType>Document</FileType>
     </CudaCompile>

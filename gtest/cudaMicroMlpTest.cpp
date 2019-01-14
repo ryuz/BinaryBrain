@@ -23,7 +23,13 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 #define	N					6
 #define	M					16
 
-#if	1
+#if	_DEBUG
+
+#define FRAME_SIZE			(512)
+#define INPUT_NODE_SIZE		(6)
+#define OUTPUT_NODE_SIZE	(2)
+
+#elif 0
 
 #define FRAME_SIZE			(32*1024*1024)
 #define INPUT_NODE_SIZE		(6)
@@ -71,13 +77,12 @@ TEST(cudaMicroMlpTest, test_cudaMicroMlp2)
 //	std::normal_distribution<float>		norm_rand(0, 1);
 	
 	
-	for (int i = 0; i < sizeof(in_sig) / sizeof(float); ++i) { in_sig[i] = norm_rand(mt); }
-
-	for (int i = 0; i < sizeof(input_index) / sizeof(int); ++i) { input_index[i] = index_rand(mt); }
-	for (int i = 0; i < sizeof(hidden_W) / sizeof(float); ++i) { hidden_W[i] = norm_rand(mt); }
-	for (int i = 0; i < sizeof(hidden_b) / sizeof(float); ++i) { hidden_b[i] = norm_rand(mt); }
-	for (int i = 0; i < sizeof(output_W) / sizeof(float); ++i) { output_W[i] = norm_rand(mt); }
-	for (int i = 0; i < sizeof(output_b) / sizeof(float); ++i) { output_b[i] = -norm_rand(mt); }
+	for (size_t i = 0; i < in_sig.size(); ++i) { in_sig[i] = norm_rand(mt); }
+	for (size_t i = 0; i < input_index.size(); ++i) { input_index[i] = index_rand(mt); }
+	for (size_t i = 0; i < hidden_W.size(); ++i) { hidden_W[i] = norm_rand(mt); }
+	for (size_t i = 0; i < hidden_b.size(); ++i) { hidden_b[i] = norm_rand(mt); }
+	for (size_t i = 0; i < output_W.size(); ++i) { output_W[i] = norm_rand(mt); }
+	for (size_t i = 0; i < output_b.size(); ++i) { output_b[i] = -norm_rand(mt); }
 	
 
 	std::cout << "\n\n";

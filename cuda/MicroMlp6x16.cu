@@ -1,11 +1,8 @@
+#include <iostream>
+#include <chrono>
 
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <iostream>
-#include <chrono>
 
 #include "cubb/MicroMlp.h"
 
@@ -97,31 +94,6 @@ __global__ void kernal_MicroMlp6x16_forward(
 
 		// 出力
 		out_ptr[frame] = acc1;
-
-#if 0
-		// 初段計算	
-		float	hidden_data[M];
-		for ( int i = 0; i < M; ++i ) {
-			float acc = b0[i];
-			for ( int j = 0; j < N; ++j ) {
-				acc += in_data[j] * W0[i][j];
-			}
-		
-			acc = fmaxf(acc, 0);	// ReLU
-		
-			hidden_data[i] = acc;
-		}
-
-		// 出力段計算
-		{
-			float acc = b1;
-			for ( int i = 0; i < M; ++i ) {
-				acc += hidden_data[i] * W1[i];
-			}
-
-			out_ptr[frame] = acc;
-		}
-#endif
 
 		frame += frame_step;
 	}
