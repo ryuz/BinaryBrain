@@ -23,23 +23,24 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 #define	N					6
 #define	M					16
 
-#if 0
+#if	0
 
-#define FRAME_SIZE			8
-#define OUTPUT_NODE_SIZE	2
-#define INPUT_NODE_SIZE		6
+#define FRAME_SIZE			(256*28)
+#define INPUT_NODE_SIZE		(256*3*3)
+#define OUTPUT_NODE_SIZE	(256)
 
 #else
 
 #define FRAME_SIZE			(2*64*28*28)
 #define INPUT_NODE_SIZE		(256*3*3)
 #define OUTPUT_NODE_SIZE	(256)
+
 #endif
 
 
 float	in_sig[INPUT_NODE_SIZE*FRAME_SIZE];
 float	out_sig[OUTPUT_NODE_SIZE*FRAME_SIZE];
-int		input_index[INPUT_NODE_SIZE*N];
+int		input_index[OUTPUT_NODE_SIZE*N];
 float	hidden_W[OUTPUT_NODE_SIZE*M*N];
 float	hidden_b[OUTPUT_NODE_SIZE*M];
 float	output_W[OUTPUT_NODE_SIZE*M];
@@ -107,7 +108,7 @@ TEST(cudaMicroMlpTest, test_cudaMicroMlp2)
 		}
 		umlp_cpu.b1(i) = output_b[i];
 	}
-
+	
 	auto in_sig_buf  = umlp_cpu.GetInputSignalBuffer();
 	auto out_sig_buf = umlp_cpu.GetOutputSignalBuffer();
 
@@ -126,7 +127,8 @@ TEST(cudaMicroMlpTest, test_cudaMicroMlp2)
 	std::cout << "\n\n[CPU Core i7-4770]" << std::endl;
 	double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(time1-time0).count();
 	std::cout << "OpenMP + AVX2 : " << elapsed << " [msec]" << std::endl;
-	double flops = OUTPUT_NODE_SIZE * FRAME_SIZE * (16+6)*2 / elapsed / 1000000.0;
+//	double flops = (double)OUTPUT_NODE_SIZE * (double)FRAME_SIZE * (16.0+6.0)*2.0 / elapsed / 1000000.0;
+	double flops = (double)OUTPUT_NODE_SIZE * (double)FRAME_SIZE * (6.0*16.0+16.0+16.0)*2.0 / elapsed / 1000000.0;
 	std::cout << "      " << flops << " [GFLOPS]  (" << flops / 435.2 * 100.0 << "% [peak 435.2 GFLOPS])" << std::endl;
 
 	std::cout << "\n\n";
