@@ -23,11 +23,11 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 #define	N					6
 #define	M					16
 
-#if	0
+#if	1
 
-#define FRAME_SIZE			(256*28)
-#define INPUT_NODE_SIZE		(256*3*3)
-#define OUTPUT_NODE_SIZE	(256)
+#define FRAME_SIZE			(32*1024*1024)
+#define INPUT_NODE_SIZE		(6)
+#define OUTPUT_NODE_SIZE	(2*3)
 
 #else
 
@@ -38,6 +38,7 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 #endif
 
 
+/*
 float	in_sig[INPUT_NODE_SIZE*FRAME_SIZE];
 float	out_sig[OUTPUT_NODE_SIZE*FRAME_SIZE];
 int		input_index[OUTPUT_NODE_SIZE*N];
@@ -45,12 +46,21 @@ float	hidden_W[OUTPUT_NODE_SIZE*M*N];
 float	hidden_b[OUTPUT_NODE_SIZE*M];
 float	output_W[OUTPUT_NODE_SIZE*M];
 float	output_b[OUTPUT_NODE_SIZE];
-
+*/
 
 #if 1
 
 TEST(cudaMicroMlpTest, test_cudaMicroMlp2)
 {
+	std::vector<float>	in_sig(INPUT_NODE_SIZE*FRAME_SIZE);
+	std::vector<float>	out_sig(OUTPUT_NODE_SIZE*FRAME_SIZE);
+	std::vector<int>	input_index(OUTPUT_NODE_SIZE*N);
+	std::vector<float>	hidden_W(OUTPUT_NODE_SIZE*M*N);
+	std::vector<float>	hidden_b(OUTPUT_NODE_SIZE*M);
+	std::vector<float>	output_W(OUTPUT_NODE_SIZE*M);
+	std::vector<float>	output_b(OUTPUT_NODE_SIZE);
+	
+
 	bb::NeuralNetStackedMicroAffine<N, M> umlp_cpu(INPUT_NODE_SIZE, OUTPUT_NODE_SIZE);
 	umlp_cpu.SetBatchSize(FRAME_SIZE);
 	testSetupLayerBuffer(umlp_cpu);
@@ -80,13 +90,13 @@ TEST(cudaMicroMlpTest, test_cudaMicroMlp2)
 			INPUT_NODE_SIZE,
 			OUTPUT_NODE_SIZE,
 			FRAME_SIZE,
-			in_sig,
-			out_sig,
-			input_index,
-			hidden_W,
-			hidden_b,
-			output_W,
-			output_b
+			&in_sig[0],
+			&out_sig[0],
+			&input_index[0],
+			&hidden_W[0],
+			&hidden_b[0],
+			&output_W[0],
+			&output_b[0]
 		);
 	
 	for (int i = 0; i < OUTPUT_NODE_SIZE; i++) {

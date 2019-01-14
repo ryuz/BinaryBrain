@@ -24,18 +24,18 @@ do { \
 #if 1
 
 
-#define MAX_NODE_SIZE	512
-#define MAX_FRAME_UNIT	64
+//#define MAX_NODE_SIZE	2048
 #define	N				6
 #define	M				16
 
-__constant__ int g_input_index[MAX_NODE_SIZE*N];
+//__constant__ int g_input_index[MAX_NODE_SIZE*N];
 
 
 __global__ void kernal_MicroMlp6x16_forward(
 			int				frame_size,
 			const float*	in_sig,
 			float*			out_sig,
+			const int*		input_index,
 			const float*	hidden_W,
 			const float*	hidden_b,
 			const float*	output_W,
@@ -63,10 +63,12 @@ __global__ void kernal_MicroMlp6x16_forward(
 		W1[i] = output_W[node * M + i];
 	}
 	b1 = output_b[node];
+	
+	__syncthreads();
 
 	const float *in_ptr[N];
 	for ( int i = 0; i < N; ++i ) {
-		int in_idx = g_input_index[node*N + i];
+		int in_idx = input_index[node*N + i];
 		in_ptr[i] = &in_sig[frame_size * in_idx];
 	}
 
@@ -80,6 +82,23 @@ __global__ void kernal_MicroMlp6x16_forward(
 			in_data[i] = in_ptr[i][frame];
 		}
 
+		// ŒvŽZ
+		float acc1 = b1;
+		for ( int i = 0; i < M; ++i ) {
+			float acc0 = b0[i];
+			for ( int j = 0; j < N; ++j ) {
+				acc0 += in_data[j] * W0[i][j];
+			}
+		
+			acc0 = fmaxf(acc0, 0);	// ReLU
+		
+			acc1 += acc0 * W1[i];
+		}
+
+		// o—Í
+		out_ptr[frame] = acc1;
+
+#if 0
 		// ‰’iŒvŽZ	
 		float	hidden_data[M];
 		for ( int i = 0; i < M; ++i ) {
@@ -102,6 +121,7 @@ __global__ void kernal_MicroMlp6x16_forward(
 
 			out_ptr[frame] = acc;
 		}
+#endif
 
 		frame += frame_step;
 	}
@@ -136,6 +156,7 @@ int MicroMlp6x16_Forward
 
 	float* dev_in_sig;
 	float* dev_out_sig;
+	int*   dev_input_index;
 	float* dev_hidden_W;
 	float* dev_hidden_b;
 	float* dev_output_W;
@@ -143,6 +164,7 @@ int MicroMlp6x16_Forward
 
 	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_in_sig,   input_node_size * frame_size * sizeof(float)));
 	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_out_sig,  output_node_size * frame_size * sizeof(float)));
+	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_input_index, output_node_size * N * sizeof(int)));
 	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_hidden_W, output_node_size * M * N * sizeof(float)));
 	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_hidden_b, output_node_size * M * sizeof(float)));
 	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_output_W, output_node_size * M * sizeof(float)));
@@ -151,7 +173,8 @@ int MicroMlp6x16_Forward
 	cudaDeviceSynchronize();
 	auto time1 = std::chrono::system_clock::now();
 
-	CUDA_SAFE_CALL(cudaMemcpyToSymbol(g_input_index, input_index, output_node_size * N * sizeof(int)));
+//	CUDA_SAFE_CALL(cudaMemcpyToSymbol(g_input_index, input_index, output_node_size * N * sizeof(int)));
+	CUDA_SAFE_CALL(cudaMemcpy(dev_input_index, input_index, output_node_size * N * sizeof(int), cudaMemcpyHostToDevice));
 	CUDA_SAFE_CALL(cudaMemcpy(dev_hidden_W, hidden_W, output_node_size * M * N * sizeof(float), cudaMemcpyHostToDevice));
 	CUDA_SAFE_CALL(cudaMemcpy(dev_hidden_b, hidden_b, output_node_size * M * sizeof(float), cudaMemcpyHostToDevice));
 	CUDA_SAFE_CALL(cudaMemcpy(dev_output_W, output_W, output_node_size * M * sizeof(float), cudaMemcpyHostToDevice));
@@ -166,12 +189,13 @@ int MicroMlp6x16_Forward
 	auto time3 = std::chrono::system_clock::now();
 	
 	dim3	grid(output_node_size);
-	dim3	block(128);
+	dim3	block(128*4, 1, 1);
 	
 	kernal_MicroMlp6x16_forward<<<grid, block>>>(
 			frame_size,
 			dev_in_sig,
 			dev_out_sig,
+			dev_input_index,
 			dev_hidden_W,
 			dev_hidden_b,
 			dev_output_W,
