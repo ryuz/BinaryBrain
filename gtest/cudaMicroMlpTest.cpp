@@ -92,11 +92,11 @@ TEST(cudaMicroMlpTest, test_cudaMicroMlp2)
 	std::cout << "[GPU GT1030]" << std::endl;
 	MicroMlp6x16_Forward
 		(
+			&in_sig[0],
+			&out_sig[0],
 			INPUT_NODE_SIZE,
 			OUTPUT_NODE_SIZE,
 			FRAME_SIZE,
-			&in_sig[0],
-			&out_sig[0],
 			&input_index[0],
 			&hidden_W[0],
 			&hidden_b[0],

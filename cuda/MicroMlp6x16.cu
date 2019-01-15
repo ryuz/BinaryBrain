@@ -21,17 +21,14 @@ do { \
 #if 1
 
 
-//#define MAX_NODE_SIZE	2048
-#define	N				6
-#define	M				16
-
-//__constant__ int g_input_index[MAX_NODE_SIZE*N];
+#define	N		6
+#define	M		16
 
 
 __global__ void kernal_MicroMlp6x16_forward(
-			int				frame_size,
 			const float*	in_sig,
 			float*			out_sig,
+			int				frame_size,
 			const int*		input_index,
 			const float*	hidden_W,
 			const float*	hidden_b,
@@ -100,13 +97,54 @@ __global__ void kernal_MicroMlp6x16_forward(
 }
 
 
-int MicroMlp6x16_Forward
+int bbcu_MicroMlp6x16_Forward
 		(
+			const float*	dev_in_sig,
+			float*			dev_out_sig,
 			int				input_node_size,
 			int				output_node_size,
 			int				frame_size,
+			const int*		dev_input_index,
+			const float*	dev_hidden_W,
+			const float*	dev_hidden_b,
+			const float*	dev_output_W,
+			const float*	dev_output_b,
+			cudaStream_t	streamId
+		)
+{
+	dim3	grid(output_node_size);
+	dim3	block(512, 1, 1);
+	
+	kernal_MicroMlp6x16_forward<<<grid, block, 0, streamId>>>(
+			dev_in_sig,
+			dev_out_sig,
+			frame_size,
+			dev_input_index,
+			dev_hidden_W,
+			dev_hidden_b,
+			dev_output_W,
+			dev_output_b
+		);
+
+	cudaError_t cudaStatus = cudaGetLastError();
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "kernel launch failed: %s\n", cudaGetErrorString(cudaStatus));
+		return 1;
+    }
+	
+	return 0;
+}
+
+
+
+
+int MicroMlp6x16_Forward
+		(
 			const float*	in_sig,
 			float*			out_sig,
+			int				input_node_size,
+			int				output_node_size,
+			int				frame_size,
 			const int*		input_index,
 			const float*	hidden_W,
 			const float*	hidden_b,
@@ -163,10 +201,10 @@ int MicroMlp6x16_Forward
 	dim3	grid(output_node_size);
 	dim3	block(128*4, 1, 1);
 	
-	kernal_MicroMlp6x16_forward<<<grid, block>>>(
-			frame_size,
+	kernal_MicroMlp6x16_forward<<<grid, block, 0, 0>>>(
 			dev_in_sig,
 			dev_out_sig,
+			frame_size,
 			dev_input_index,
 			dev_hidden_W,
 			dev_hidden_b,

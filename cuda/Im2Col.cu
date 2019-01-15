@@ -51,6 +51,54 @@ __global__ void kernal_Im2Col_forward(
 }
 
 
+int cubb_Im2Col_Forward
+		(
+			const float*	dev_in_sig,
+			float*			dev_out_sig,
+			int				input_frame_size,
+			int				input_w_size,
+			int				input_h_size,
+			int				input_c_size,
+			int				filter_w_size,
+			int				filter_h_size
+		)
+{
+	int output_c_size = input_c_size;
+	int output_w_size = input_w_size - filter_w_size + 1;
+	int output_h_size = input_h_size - filter_h_size + 1;
+	int output_size   = output_w_size * output_h_size;
+
+	int input_node_size  = input_c_size * input_h_size * input_w_size;
+	int output_node_size = output_c_size * filter_h_size * filter_w_size;
+	
+	int output_frame_size = input_frame_size * output_size;
+	
+	int		frame_unit = 16;
+	dim3	grid(output_frame_size/frame_unit, output_c_size);
+	dim3	block(frame_unit, filter_w_size, filter_h_size);
+	
+	kernal_Im2Col_forward<<<grid, block>>>(
+			dev_in_sig,
+			dev_out_sig,
+			input_frame_size,
+			input_w_size,
+			input_h_size,
+			output_frame_size,
+			output_w_size,
+			output_size
+		);
+
+	cudaError_t cudaStatus = cudaGetLastError();
+    if ( cudaStatus != cudaSuccess ) {
+        fprintf(stderr, "addKernel launch failed: %s\n", cudaGetErrorString(cudaStatus));
+		return 1;
+	}
+
+	return 0;
+}
+
+
+
 int Im2Col_Forward
 		(
 			const float*	in_sig,

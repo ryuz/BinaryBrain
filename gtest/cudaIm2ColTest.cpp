@@ -7,6 +7,9 @@
 #include "bb/NeuralNetConvolutionIm2Col.h"
 #include "bb/NeuralNetConvolutionCol2Im.h"
 
+#include "cuda_runtime.h"
+#include "device_launch_parameters.h"
+
 #include "cubb/Im2Col.h"
 
 
@@ -21,6 +24,15 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 
 TEST(cudaIm2ColTest, testcudaIm2Col)
 {
+	cudaDeviceProp dev;
+	cudaGetDeviceProperties(&dev, 0);
+	cudaDeviceSynchronize();
+
+//	float* ptr_buf = 0;
+////	cudaMallocManaged((void**)&ptr_buf, 64*1024*1024);
+//	cudaMalloc((void**)&ptr_buf, 64*1024*1024);
+//	cudaFree(ptr_buf);
+	
 	const int input_frame_size = 256;
 	const int c_size = 32;
 	const int input_h_size = 28;
@@ -104,7 +116,6 @@ TEST(cudaIm2ColTest, testcudaIm2Col)
 //			std::cout << out_sig_buf.GetReal(frame, node) << ", " << out_sig[node*output_frame_size + frame] << std::endl;
 		}
 	}
-
 }
 
 
