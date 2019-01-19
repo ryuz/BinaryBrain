@@ -1,6 +1,9 @@
 
 #pragma once
 
+#include "cuda_runtime.h"
+
+
 /*
 #ifdef DLL_EXPORT
 #define CUBB_DLL_EXPORT __declspec(dllexport) 
@@ -29,7 +32,7 @@ CUBB_DLL_EXPORT int MicroMlp6x16_Forward
 		);
 
 
-CUBB_DLL_EXPORT int cubb_MicroMlp6x16_Forward
+CUBB_DLL_EXPORT int bbcu_MicroMlp6x16_Forward
 		(
 			const float*	dev_in_sig,
 			float*			dev_out_sig,

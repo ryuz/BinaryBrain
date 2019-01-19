@@ -10,7 +10,7 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-#include "cubb/Im2Col.h"
+#include "bbcu/Im2Col.h"
 
 
 inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)

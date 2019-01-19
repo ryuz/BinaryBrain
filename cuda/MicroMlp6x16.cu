@@ -4,7 +4,7 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-#include "cubb/MicroMlp.h"
+#include "bbcu/MicroMlp.h"
 
 
 #define CUDA_SAFE_CALL(func) \
@@ -18,16 +18,14 @@ do { \
 
 
 
-#if 1
+// -------------------------------------------------
+//  Forward
+// -------------------------------------------------
 
-
-#define	N		6
-#define	M		16
-
-
+template <int N=6, int M=16>
 __global__ void kernal_MicroMlp6x16_forward(
-			const float*	in_sig,
-			float*			out_sig,
+			const float*	in_sig_buf,
+			float*			out_sig_buf,
 			int				frame_size,
 			const int*		input_index,
 			const float*	hidden_W,
@@ -60,44 +58,45 @@ __global__ void kernal_MicroMlp6x16_forward(
 	
 	__syncthreads();
 
-	const float *in_ptr[N];
+	const float *in_sig_ptr[N];
 	for ( int i = 0; i < N; ++i ) {
 		int in_idx = input_index[node*N + i];
-		in_ptr[i] = &in_sig[frame_size * in_idx];
+		in_sig_ptr[i] = &in_sig_buf[frame_size * in_idx];
 	}
 
-	float *out_ptr = &out_sig[frame_size * node];
+	float *out_sig_ptr = &out_sig_buf[frame_size * node];
 
 	// 1つのSMで1nodeを全フレーム処理
 	while ( frame <  frame_size ) {
 		// 入力データ読み込み
-		float	in_data[N];
+		float	in_sig[N];
 		for ( int i = 0; i < N; ++i ) {
-			in_data[i] = in_ptr[i][frame];
+			in_sig[i] = in_sig_ptr[i][frame];
 		}
 
 		// 計算
-		float acc1 = b1;
+		float sig1 = b1;
 		for ( int i = 0; i < M; ++i ) {
-			float acc0 = b0[i];
+			float sig0 = b0[i];
 			for ( int j = 0; j < N; ++j ) {
-				acc0 += in_data[j] * W0[i][j];
+				sig0 += in_sig[j] * W0[i][j];
 			}
 		
-			acc0 = fmaxf(acc0, 0);	// ReLU
+			sig0 = fmaxf(sig0, 0);	// ReLU
 		
-			acc1 += acc0 * W1[i];
+			sig1 += sig0 * W1[i];
 		}
 
 		// 出力
-		out_ptr[frame] = acc1;
+		out_sig_ptr[frame] = sig1;
 
 		frame += frame_step;
 	}
 }
 
 
-int bbcu_MicroMlp6x16_Forward
+template <int N=6, int M=16>
+int bbcu_MicroMlp_Forward
 		(
 			const float*	dev_in_sig,
 			float*			dev_out_sig,
@@ -115,7 +114,7 @@ int bbcu_MicroMlp6x16_Forward
 	dim3	grid(output_node_size);
 	dim3	block(512, 1, 1);
 	
-	kernal_MicroMlp6x16_forward<<<grid, block, 0, streamId>>>(
+	kernal_MicroMlp6x16_forward<N, M><<<grid, block, 0, streamId>>>(
 			dev_in_sig,
 			dev_out_sig,
 			frame_size,
@@ -136,12 +135,43 @@ int bbcu_MicroMlp6x16_Forward
 }
 
 
-
-
-int MicroMlp6x16_Forward
+int bbcu_MicroMlp6x16_Forward
 		(
-			const float*	in_sig,
-			float*			out_sig,
+			const float*	dev_in_sig,
+			float*			dev_out_sig,
+			int				input_node_size,
+			int				output_node_size,
+			int				frame_size,
+			const int*		dev_input_index,
+			const float*	dev_hidden_W,
+			const float*	dev_hidden_b,
+			const float*	dev_output_W,
+			const float*	dev_output_b,
+			cudaStream_t	streamId
+		)
+{
+	return bbcu_MicroMlp_Forward<6, 16>(
+			dev_in_sig,
+			dev_out_sig,
+			input_node_size,
+			output_node_size,
+			frame_size,
+			dev_input_index,
+			dev_hidden_W,
+			dev_hidden_b,
+			dev_output_W,
+			dev_output_b,
+			streamId
+		);
+}
+
+
+
+template <int N=6, int M=16>
+int MicroMlp_Forward
+		(
+			const float*	in_sig_buf,
+			float*			out_sig_buf,
 			int				input_node_size,
 			int				output_node_size,
 			int				frame_size,
@@ -193,7 +223,7 @@ int MicroMlp6x16_Forward
 	cudaDeviceSynchronize();
 	auto time2 = std::chrono::system_clock::now();
 
-	CUDA_SAFE_CALL(cudaMemcpy(dev_in_sig, in_sig, input_node_size * frame_size * sizeof(float), cudaMemcpyHostToDevice));
+	CUDA_SAFE_CALL(cudaMemcpy(dev_in_sig, in_sig_buf, input_node_size * frame_size * sizeof(float), cudaMemcpyHostToDevice));
 
 	cudaDeviceSynchronize();
 	auto time3 = std::chrono::system_clock::now();
@@ -221,7 +251,7 @@ int MicroMlp6x16_Forward
 	cudaDeviceSynchronize();
 	auto time4 = std::chrono::system_clock::now();
 
-	CUDA_SAFE_CALL(cudaMemcpy(out_sig, dev_out_sig, output_node_size * frame_size * sizeof(float), cudaMemcpyDeviceToHost));
+	CUDA_SAFE_CALL(cudaMemcpy(out_sig_buf, dev_out_sig, output_node_size * frame_size * sizeof(float), cudaMemcpyDeviceToHost));
 
 	cudaDeviceSynchronize();
 	auto time5 = std::chrono::system_clock::now();
@@ -255,73 +285,319 @@ int MicroMlp6x16_Forward
 }
 
 
-
-#elif 1
-
-#define MAX_NODE_SIZE	512
-#define MAX_FRAME_UNIT	64
-#define	N				6
-#define	M				16
-
-__constant__ int g_input_index[MAX_NODE_SIZE*N];
-
-
-__global__ void kernal_MicroMlp6x16_forward(
-			const float*	in_sig,
-			float*			out_sig,
+int MicroMlp6x16_Forward
+		(
+			const float*	in_sig_buf,
+			float*			out_sig_buf,
+			int				input_node_size,
+			int				output_node_size,
+			int				frame_size,
+			const int*		input_index,
 			const float*	hidden_W,
 			const float*	hidden_b,
 			const float*	output_W,
-			const float*	output_b)
+			const float*	output_b
+		)
 {
-	int frame_size = gridDim.x * blockDim.x;
-	int frame = blockIdx.x * blockDim.x + threadIdx.x;
-	int node  = blockIdx.y * blockDim.y + threadIdx.y;
-	
-	// 入力データ読み込み
-	float	in_data[N];
-	for ( int i = 0; i < N; ++i ) {
-		int in_idx = g_input_index[node*N + i];
-		in_data[i] = in_sig[frame_size * in_idx + frame];
-	}
+	return MicroMlp_Forward
+		(
+			in_sig_buf,
+			out_sig_buf,
+			input_node_size,
+			output_node_size,
+			frame_size,
+			input_index,
+			hidden_W,
+			hidden_b,
+			output_W,
+			output_b
+		);
+}
 
-	// 初段計算	
-	float	hidden_data[M];
+
+
+// -------------------------------------------------
+//  Backward
+// -------------------------------------------------
+
+
+template <int N=6, int M=16>
+__global__ void kernal_MicroMlp_backward(
+			const float*	in_sig_buf,
+			float*			in_err_buf,
+			float*			out_err_buf,
+			int				frame_size,
+			const int*		input_index,
+			const float*	hidden_W,
+			const float*	hidden_b,
+			float*			hidden_dW,
+			float*			hidden_db,
+			const float*	output_W,
+			const float*	output_b,
+			float*			output_dW,
+			float*			output_db)
+{
+	int frame_step = blockDim.x;
+	int frame      = threadIdx.x;
+	int node       = blockIdx.x;
+
+	__shared__   float W0[M][N];
+	__shared__   float b0[M];
+	__shared__   float W1[M];
+				 float b1;
+
+ 	__shared__   float dW0[M][N];
+	__shared__   float db0[M];
+	__shared__   float dW1[M];
+				 float db1;
+
+	// 係数読み込み
 	for ( int i = 0; i < M; ++i ) {
-		float acc = hidden_b[node * M + i];
 		for ( int j = 0; j < N; ++j ) {
-			acc += in_data[j] * hidden_W[(node * M + i) * N + j];
+			W0[i][j] = hidden_W[(node * M + i) * N + j];
 		}
-		
-		acc = fmaxf(acc, 0);	// ReLU
-		
-		hidden_data[i] = acc;
+	}
+	for ( int i = 0; i < M; ++i ) {
+		b0[i] = hidden_b[node * M + i];
+	}
+	for ( int i = 0; i < M; ++i ) {
+		W1[i] = output_W[node * M + i];
+	}
+	b1 = output_b[node];
+	
+	// 勾配初期化
+	for ( int i = 0; i < M; ++i ) {
+		for ( int j = 0; j < N; ++j ) {
+			dW0[i][j] = 0; // hidden_dW[(node * M + i) * N + j];
+		}
+	}
+	for ( int i = 0; i < M; ++i ) {
+		db0[i] = 0; // hidden_db[node * M + i];
+	}
+	for ( int i = 0; i < M; ++i ) {
+		dW1[i] = 0; // output_dW[node * M + i];
+	}
+	db1 = 0; // output_db[node];
+	
+	__syncthreads();
+
+	const float *in_sig_ptr[N];
+	for ( int i = 0; i < N; ++i ) {
+		int in_idx = input_index[node*N + i];
+		in_sig_ptr[i] = &in_sig_buf[frame_size * in_idx];
 	}
 
-	// 出力段計算
-	{
-		float acc = output_b[node];
+	float	*out_err_ptr = &out_err_buf[frame_size * node];
+
+	// 1つのSMで1nodeを全フレーム処理
+	while ( frame <  frame_size ) {
+		// 入力データ読み込み
+		float	in_sig[N];
+		for ( int i = 0; i < N; ++i ) {
+			in_sig[i] = in_sig_ptr[i][frame];
+		}
+		
+		// 1段目再計算して2段目逆伝播
+		float	err1 = out_err_ptr[frame];
+		float	err0[M];
+		float	acc1 = b1;
+		db1 += err1;
 		for ( int i = 0; i < M; ++i ) {
-			acc += hidden_data[i] * output_W[node * M + i];
+			float acc0 = b0[i];
+			for ( int j = 0; j < N; ++j ) {
+				acc0 += in_sig[j] * W0[i][j];
+			}
+		
+			acc0 = fmaxf(acc0, 0);	// ReLU
+			dW1[i]  += err1 * acc0;
+			err0[i]  = err1 * W1[i];
+		}
+		
+		// 1段目逆伝播
+		const float *in_err_ptr  = &in_err_buf[frame_size * N * node];
+		float	in_err[N];
+		for ( int i = 0; i < N; ++i ) {
+			in_err[i] = 0;	// in_err_ptr[frame_size * i + frame];
 		}
 
-		out_sig[frame_size * node + frame] = acc;
+		for ( int i = 0; i < M; ++i ) {
+			db0[i] += err0[i];
+			for ( int j = 0; j < N; ++j ) {
+				dW0[i][j] += err0[i] * in_sig[i];
+				in_err[j] += err0[i] * W0[i];
+			}
+		}
+		
+		// 誤差書き込み
+		for ( int i = 0; i < N; ++i ) {
+			in_err_ptr[frame_size * i + frame] = in_err[i];
+		}
+
+		frame += frame_step;
 	}
 }
 
 
-int MicroMlp6x16_Forward
-		(
+template <int N=6>
+__global__ void kernal_MicroMlp_backward_marge(
+			float*			dst_buf,
+			const float*	src_buf,
+			int				frame_size,
+			int				node_size,
+			const int*		input_index
+		)
+{
+	int n          = blockDim.y * blockIdx.y + threadIdx.y;
+	int frame      = blockDim.x * blockIdx.x + threadIdx.x;
+	
+	for ( int node = 0; node < node_size; ++node ) {
+		int in_idx = input_index[node*N + n];
+		float*		 dst_buf_ptr = &dst_buf[frame_size * in_idx];
+		const float* src_buf_ptr = &src_buf[(N * node + n) * frame_size];
+		
+		dst_buf_ptr[frame] += src_buf_ptr[frame];
+
+		__syncthreads();
+	}
+}
+
+
+
+template <int N=6, int M=16>
+int bbcu_MicroMlp_backward(
+			const float*	dev_in_sig_buf,
+			float*			dev_in_err_buf,
+			float*			dev_in_err_tmp,
+			float*			dev_out_err_buf,
 			int				input_node_size,
 			int				output_node_size,
 			int				frame_size,
-			const float*	in_sig,
-			float*			out_sig,
-			const int*		input_index,
-			const float*	hidden_W,
-			const float*	hidden_b,
-			const float*	output_W,
-			const float*	output_b
+			const int*		dev_input_index,
+			const float*	dev_hidden_W,
+			const float*	dev_hidden_b,
+			float*			dev_hidden_dW,
+			float*			dev_hidden_db,
+			const float*	dev_output_W,
+			const float*	dev_output_b,
+			float*			dev_output_dW,
+			float*			dev_output_db,
+			cudaStream_t	streamId = 0
+	)
+{
+	{
+		dim3	grid(output_node_size);
+		dim3	block(512, 1, 1);
+		
+		kernal_MicroMlp_backward<N, M><<<grid, block, 0, streamId>>>(
+				dev_in_sig_buf,
+				dev_in_err_tmp,
+				dev_out_err_buf,
+				frame_size,
+				dev_input_index,
+				dev_hidden_W,
+				dev_hidden_b,
+				dev_hidden_dW,
+				dev_hidden_db,
+				dev_output_W,
+				dev_output_b,
+				dev_output_dW,
+				dev_output_db
+			);
+
+		cudaError_t cudaStatus = cudaGetLastError();
+		if (cudaStatus != cudaSuccess) {
+			fprintf(stderr, "kernel launch failed: %s\n", cudaGetErrorString(cudaStatus));
+			return 1;
+		}
+	}
+
+	{
+		int block_x = frame_size;
+		while ( block_x > 1024 ) { block_x /= 2; }
+
+		dim3	grid(frame_size/block_x, N);
+		dim3	block(block_x, 1, 1);
+
+		kernal_MicroMlp_backward_marge<N><<<grid, block>>>(
+				dev_in_err_buf,
+				dev_in_err_tmp,
+				frame_size,
+				output_node_size,
+				dev_input_index
+			);
+
+		cudaError_t cudaStatus = cudaGetLastError();
+		if (cudaStatus != cudaSuccess) {
+			fprintf(stderr, "kernel launch failed: %s\n", cudaGetErrorString(cudaStatus));
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+
+int bbcu_MicroMlp6x16_backward(
+			const float*	dev_in_sig_buf,
+			float*			dev_in_err_buf,
+			float*			dev_in_err_tmp,
+			float*			dev_out_err_buf,
+			int				input_node_size,
+			int				output_node_size,
+			int				frame_size,
+			const int*		dev_input_index,
+			const float*	dev_hidden_W,
+			const float*	dev_hidden_b,
+			float*			dev_hidden_dW,
+			float*			dev_hidden_db,
+			const float*	dev_output_W,
+			const float*	dev_output_b,
+			float*			dev_output_dW,
+			float*			dev_output_db,
+			cudaStream_t	streamId
+		)
+{
+	return bbcu_MicroMlp_backward<6, 16>(
+			dev_in_sig_buf,
+			dev_in_err_buf,
+			dev_in_err_tmp,
+			dev_out_err_buf,
+			input_node_size,
+			output_node_size,
+			frame_size,
+			dev_input_index,
+			dev_hidden_W,
+			dev_hidden_b,
+			dev_hidden_dW,
+			dev_hidden_db,
+			dev_output_W,
+			dev_output_b,
+			dev_output_dW,
+			dev_output_db,
+			streamId
+		);
+}
+
+
+
+template <int N=6, int M=16>
+int MicroMlp_Backward
+		(
+			const float*	in_sig_buf,
+			float*			in_err_buf,
+			float*			out_err_buf,
+			int				input_node_size,
+			int				output_node_size,
+			int				frame_size,
+			const int*		dev_input_index,
+			const float*	dev_hidden_W,
+			const float*	dev_hidden_b,
+			float*			dev_hidden_dW,
+			float*			dev_hidden_db,
+			const float*	dev_output_W,
+			const float*	dev_output_b,
+			float*			dev_output_dW,
+			float*			dev_output_db
 		)
 {
 	cudaDeviceProp dev;
@@ -336,24 +612,39 @@ int MicroMlp6x16_Forward
 	cudaDeviceSynchronize();
 	auto time0 = std::chrono::system_clock::now();
 
-	float* dev_in_sig;
-	float* dev_out_sig;
+	float* dev_in_sig_buf;
+	float* dev_in_err_buf;
+	float* dev_in_err_tmp;
+	float* dev_out_err_buf;
+
+	int*   dev_input_index;
 	float* dev_hidden_W;
 	float* dev_hidden_b;
 	float* dev_output_W;
 	float* dev_output_b;
+	float* dev_hidden_dW;
+	float* dev_hidden_db;
+	float* dev_output_dW;
+	float* dev_output_db;
 
-	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_in_sig,   input_node_size * frame_size * sizeof(float)));
-	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_out_sig,  output_node_size * frame_size * sizeof(float)));
+	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_in_sig_buf,  input_node_size * frame_size * sizeof(float)));
+	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_in_err_buf,  input_node_size * frame_size * sizeof(float)));
+	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_in_err_tmp,  output_node_size * N * frame_size * sizeof(float)));
+	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_out_sig_buf, output_node_size * frame_size * sizeof(float)));
+	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_input_index, output_node_size * N * sizeof(int)));
 	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_hidden_W, output_node_size * M * N * sizeof(float)));
 	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_hidden_b, output_node_size * M * sizeof(float)));
 	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_output_W, output_node_size * M * sizeof(float)));
 	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_output_b, output_node_size * sizeof(float)));
+	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_hidden_dW, output_node_size * M * N * sizeof(float)));
+	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_hidden_db, output_node_size * M * sizeof(float)));
+	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_output_dW, output_node_size * M * sizeof(float)));
+	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_output_db, output_node_size * sizeof(float)));
 	
 	cudaDeviceSynchronize();
 	auto time1 = std::chrono::system_clock::now();
 
-	CUDA_SAFE_CALL(cudaMemcpyToSymbol(g_input_index, input_index, output_node_size * N * sizeof(int)));
+	CUDA_SAFE_CALL(cudaMemcpy(dev_input_index, input_index, output_node_size * N * sizeof(int), cudaMemcpyHostToDevice));
 	CUDA_SAFE_CALL(cudaMemcpy(dev_hidden_W, hidden_W, output_node_size * M * N * sizeof(float), cudaMemcpyHostToDevice));
 	CUDA_SAFE_CALL(cudaMemcpy(dev_hidden_b, hidden_b, output_node_size * M * sizeof(float), cudaMemcpyHostToDevice));
 	CUDA_SAFE_CALL(cudaMemcpy(dev_output_W, output_W, output_node_size * M * sizeof(float), cudaMemcpyHostToDevice));
@@ -362,33 +653,36 @@ int MicroMlp6x16_Forward
 	cudaDeviceSynchronize();
 	auto time2 = std::chrono::system_clock::now();
 
-	CUDA_SAFE_CALL(cudaMemcpy(dev_in_sig, in_sig, input_node_size * frame_size * sizeof(float), cudaMemcpyHostToDevice));
+	CUDA_SAFE_CALL(cudaMemcpy(dev_in_sig_buf,  in_sig_buf,  input_node_size * frame_size * sizeof(float), cudaMemcpyHostToDevice));
+	CUDA_SAFE_CALL(cudaMemcpy(dev_out_err_buf, out_sig_buf, output_node_size * frame_size * sizeof(float), cudaMemcpyHostToDevice));
 
 	cudaDeviceSynchronize();
 	auto time3 = std::chrono::system_clock::now();
-	
-	dim3	grid((frame_size + 31) / 32, (output_node_size + 31) / 32);
-	dim3	block(frame_size / grid.x, output_node_size / grid.y);
-	
-	kernal_MicroMlp6x16_forward<<<grid, block>>>(
-			dev_in_sig,
-			dev_out_sig,
+
+	bbcu_MicroMlp_backward<N, M>(
+			dev_in_sig_buf,
+			dev_in_err_buf,
+			dev_in_err_tmp,
+			dev_out_err_buf,
+			input_node_size,
+			output_node_size,
+			frame_size,
+			dev_input_index,
 			dev_hidden_W,
 			dev_hidden_b,
+			dev_hidden_dW,
+			dev_hidden_db,
 			dev_output_W,
-			dev_output_b
+			dev_output_b,
+			dev_output_dW,
+			dev_output_db
 		);
-	cudaError_t cudaStatus = cudaGetLastError();
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "kernel launch failed: %s\n", cudaGetErrorString(cudaStatus));
-		exit(1);
-    }
 
 
 	cudaDeviceSynchronize();
 	auto time4 = std::chrono::system_clock::now();
 
-	CUDA_SAFE_CALL(cudaMemcpy(out_sig, dev_out_sig, output_node_size * frame_size * sizeof(float), cudaMemcpyDeviceToHost));
+	CUDA_SAFE_CALL(cudaMemcpy(in_err_buf, dev_in_err_buf, input_node_size * frame_size * sizeof(float), cudaMemcpyDeviceToHost));
 
 	cudaDeviceSynchronize();
 	auto time5 = std::chrono::system_clock::now();
@@ -422,196 +716,44 @@ int MicroMlp6x16_Forward
 }
 
 
-#else
 
-#define MAX_NODE_SIZE	512
-#define MAX_FRAME_UNIT	64
-#define	N				6
-#define	M				16
-
-__constant__ int g_input_index[MAX_NODE_SIZE*N];
-
-__global__ void kernal_MicroMlp6x16_forward(
-			const float*	in_sig,
-			float*			out_sig,
-			const float*	hidden_W,
-			const float*	hidden_b,
-			const float*	output_W,
-			const float*	output_b)
-{
-	__shared__   float hidden_buf[M*MAX_FRAME_UNIT];
-	__shared__   float input_buf [N*MAX_FRAME_UNIT];
-
-//	int frame_size = gridDim.z * gridDim.x * blockDim.x;
-//	int frame = (blockDim.z * blockIdx.z + blockIdx.x) * blockDim.x + threadIdx.x;
-	int frame_size = gridDim.x * blockDim.x;
-	int frame = (blockIdx.x) * blockDim.x + threadIdx.x;
-	int index = threadIdx.y;
-	int node  = blockIdx.y;
-
-	// input_buf(shared memory) に コピー
-	if ( index < N ) {
-		int in_idx = g_input_index[node*N + index];
-		input_buf[index * MAX_FRAME_UNIT + threadIdx.x] = in_sig[frame_size * in_idx + frame];
-	}
-
-	__syncthreads();
-
-	const float*	ptr_in;
-	float*			ptr_out;
-	const float*	ptr_W;
-	const float*	ptr_b;
-	float			acc;
-
-	// 初段計算
-	ptr_in  = &input_buf[threadIdx.x];
-	ptr_W = &hidden_W[(node * M + index) * N];
-	ptr_b = &hidden_b[node * M + index];
-	acc = ptr_b[0];
-	for ( int i = 0; i < N; ++i ) {
-		acc += ptr_in[i * MAX_FRAME_UNIT] * ptr_W[i];
-	}
-	acc = fmaxf(acc, 0);	// ReLU
-
-	ptr_out = &hidden_buf[threadIdx.x];
-	ptr_out[index * MAX_FRAME_UNIT] = acc;
-
-	__syncthreads();
-
-	// 出力段計算
-	if ( index == 0 ) {
-		ptr_in = ptr_out;
-		ptr_W = &output_W[node * M];
-		ptr_b = &output_b[node];
-		acc = ptr_b[0];
-		for ( int i = 0; i < M; ++i ) {
-			acc += ptr_in[i * MAX_FRAME_UNIT] * ptr_W[i];
-		}
-
-		ptr_out = &out_sig[frame];
-		ptr_out[frame_size * node] = acc;
-	}
-}
-
-
-int MicroMlp6x16_Forward
+int MicroMlp6x16_Backward
 		(
+			const float*	in_sig_buf,
+			float*			in_err_buf,
+			float*			out_err_buf,
 			int				input_node_size,
 			int				output_node_size,
 			int				frame_size,
-			const float*	in_sig,
-			float*			out_sig,
-			const int*		input_index,
-			const float*	hidden_W,
-			const float*	hidden_b,
-			const float*	output_W,
-			const float*	output_b
+			const int*		dev_input_index,
+			const float*	dev_hidden_W,
+			const float*	dev_hidden_b,
+			float*			dev_hidden_dW,
+			float*			dev_hidden_db,
+			const float*	dev_output_W,
+			const float*	dev_output_b,
+			float*			dev_output_dW,
+			float*			dev_output_db
 		)
 {
-	cudaDeviceProp dev;
-	CUDA_SAFE_CALL(cudaGetDeviceProperties(&dev, 0));
 
-	cudaError_t cudaStatus0 = cudaGetLastError();
-    if (cudaStatus0 != cudaSuccess) {
-        fprintf(stderr, "start failed: %s\n", cudaGetErrorString(cudaStatus0));
-		exit(1);
-    }
-
-	cudaDeviceSynchronize();
-	auto time0 = std::chrono::system_clock::now();
-
-	float* dev_in_sig;
-	float* dev_out_sig;
-	float* dev_hidden_W;
-	float* dev_hidden_b;
-	float* dev_output_W;
-	float* dev_output_b;
-
-	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_in_sig,   input_node_size * frame_size * sizeof(float)));
-	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_out_sig,  output_node_size * frame_size * sizeof(float)));
-	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_hidden_W, output_node_size * M * N * sizeof(float)));
-	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_hidden_b, output_node_size * M * sizeof(float)));
-	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_output_W, output_node_size * M * sizeof(float)));
-	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_output_b, output_node_size * sizeof(float)));
-	
-//	cudaDeviceSynchronize();
-	auto time1 = std::chrono::system_clock::now();
-
-	CUDA_SAFE_CALL(cudaMemcpyToSymbol(g_input_index, input_index, output_node_size * N * sizeof(int)));
-	CUDA_SAFE_CALL(cudaMemcpy(dev_hidden_W, hidden_W, output_node_size * M * N * sizeof(float), cudaMemcpyHostToDevice));
-	CUDA_SAFE_CALL(cudaMemcpy(dev_hidden_b, hidden_b, output_node_size * M * sizeof(float), cudaMemcpyHostToDevice));
-	CUDA_SAFE_CALL(cudaMemcpy(dev_output_W, output_W, output_node_size * M * sizeof(float), cudaMemcpyHostToDevice));
-	CUDA_SAFE_CALL(cudaMemcpy(dev_output_b, output_b, output_node_size * sizeof(float), cudaMemcpyHostToDevice));
-
-//	cudaDeviceSynchronize();
-	auto time2 = std::chrono::system_clock::now();
-
-	CUDA_SAFE_CALL(cudaMemcpy(dev_in_sig, in_sig, input_node_size * frame_size * sizeof(float), cudaMemcpyHostToDevice));
-
-//	cudaDeviceSynchronize();
-	auto time3 = std::chrono::system_clock::now();
-
-	int		frame_unit = frame_size;
-	if ( frame_unit > MAX_FRAME_UNIT ) { frame_unit = MAX_FRAME_UNIT; }
-
-	int grid_x = frame_size / frame_unit;
-	int grid_z = 1; 
-//	while (grid_x > 1024) {
-//		grid_x /= 2;
-//		grid_z *= 2;
-//	}
-	dim3	grid(grid_x, output_node_size, grid_z);
-	dim3	block(frame_unit, M);
-
-	kernal_MicroMlp6x16_forward<<<grid, block>>>(
-			dev_in_sig,
-			dev_out_sig,
+	return MicroMlp_Backward<6, 16>
+		(
+			in_sig_buf,
+			in_err_buf,
+			out_err_buf,
+			input_node_size,
+			output_node_size,
+			frame_size,
+			dev_input_index,
 			dev_hidden_W,
 			dev_hidden_b,
+			dev_hidden_dW,
+			dev_hidden_db,
 			dev_output_W,
-			dev_output_b
+			dev_output_b,
+			dev_output_dW,
+			dev_output_db
 		);
-	cudaError_t cudaStatus = cudaGetLastError();
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "kernel launch failed: %s\n", cudaGetErrorString(cudaStatus));
-		exit(1);
-    }
-
-
-//	cudaDeviceSynchronize();
-	auto time4 = std::chrono::system_clock::now();
-
-	CUDA_SAFE_CALL(cudaMemcpy(out_sig, dev_out_sig, output_node_size * frame_size * sizeof(float), cudaMemcpyDeviceToHost));
-
-//	cudaDeviceSynchronize();
-	auto time5 = std::chrono::system_clock::now();
-
-	CUDA_SAFE_CALL(cudaFree(dev_in_sig));
-	CUDA_SAFE_CALL(cudaFree(dev_out_sig));
-	CUDA_SAFE_CALL(cudaFree(dev_hidden_W));
-	CUDA_SAFE_CALL(cudaFree(dev_hidden_b));
-	CUDA_SAFE_CALL(cudaFree(dev_output_W));
-	CUDA_SAFE_CALL(cudaFree(dev_output_b));
-
-//	cudaDeviceSynchronize();
-	auto time6 = std::chrono::system_clock::now();
-
-	double elapsed_malloc       = std::chrono::duration_cast<std::chrono::milliseconds>(time1-time0).count();
-	double elapsed_cpu_to_gpu_p = std::chrono::duration_cast<std::chrono::milliseconds>(time2-time1).count();
-	double elapsed_cpu_to_gpu   = std::chrono::duration_cast<std::chrono::milliseconds>(time3-time2).count();
-	double elapsed_kernel       = std::chrono::duration_cast<std::chrono::milliseconds>(time4-time3).count();
-	double elapsed_gpu_to_cpu   = std::chrono::duration_cast<std::chrono::milliseconds>(time5-time4).count();
-	double elapsed_free         = std::chrono::duration_cast<std::chrono::milliseconds>(time6-time5).count();
-	std::cout << "malloc               : " << elapsed_malloc       << " [msec]" << std::endl;
-	std::cout << "param copy(cpu->gpu) : " << elapsed_cpu_to_gpu_p << " [msec]" << std::endl;
-	std::cout << "data copy(cpu->gpu)  : " << elapsed_cpu_to_gpu   << " [msec]" << std::endl;
-	std::cout << "kernel               : " << elapsed_kernel       << " [msec]" << std::endl;
-	std::cout << "data copy(gpu->cpu)  : " << elapsed_gpu_to_cpu   << " [msec]" << std::endl;
-	std::cout << "free                 : " << elapsed_free         << " [msec]" << std::endl;
-
-	return 0;
 }
-
-
-#endif
 

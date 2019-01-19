@@ -5,13 +5,14 @@
 
 int MicroMlp_Test(void);
 int UnifiedMemory(void);
-
+int cudnn_test();
 
 int main()
 {
-	UnifiedMemory();
+//	return cudnn_test();
 
-//	MicroMlp_Test();
+//	return UnifiedMemory();
+	return MicroMlp_Test();
 
 	return 0;
 }

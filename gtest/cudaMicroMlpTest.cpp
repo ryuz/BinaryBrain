@@ -6,7 +6,7 @@
 #include "gtest/gtest.h"
 
 #include "bb/NeuralNetStackedMicroAffine.h"
-#include "cubb/MicroMlp.h"
+#include "bbcu/MicroMlp.h"
 
 
 
@@ -58,6 +58,9 @@ float	output_b[OUTPUT_NODE_SIZE];
 
 TEST(cudaMicroMlpTest, test_cudaMicroMlp2)
 {
+	cudaDeviceProp dev;
+	cudaGetDeviceProperties(&dev, 0);
+
 	std::vector<float>	in_sig(INPUT_NODE_SIZE*FRAME_SIZE);
 	std::vector<float>	out_sig(OUTPUT_NODE_SIZE*FRAME_SIZE);
 	std::vector<int>	input_index(OUTPUT_NODE_SIZE*N);
