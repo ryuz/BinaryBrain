@@ -10,7 +10,7 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-#include "bbcu/Im2Col.h"
+#include "bbcu/bbcu.h"
 
 
 inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
@@ -33,12 +33,21 @@ TEST(cudaIm2ColTest, testcudaIm2Col)
 //	cudaMalloc((void**)&ptr_buf, 64*1024*1024);
 //	cudaFree(ptr_buf);
 	
+#if _DEBUG
+	const int input_frame_size = 16;
+	const int c_size = 4;
+	const int input_h_size = 28;
+	const int input_w_size = 28;
+	const int filter_h_size = 3;
+	const int filter_w_size = 3;
+#else
 	const int input_frame_size = 256;
 	const int c_size = 32;
 	const int input_h_size = 28;
 	const int input_w_size = 28;
 	const int filter_h_size = 3;
 	const int filter_w_size = 3;
+#endif
 
 	int output_w_size = input_w_size - filter_w_size + 1;
 	int output_h_size = input_h_size - filter_h_size + 1;

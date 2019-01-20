@@ -11,11 +11,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="MicroMlp6x16.cu">
-      <Filter>ソース ファイル</Filter>
-    </CudaCompile>
     <CudaCompile Include="Im2Col.cu">
       <Filter>ソース ファイル</Filter>
     </CudaCompile>
+    <CudaCompile Include="MicroMlp.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\bbcu\bbcu.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

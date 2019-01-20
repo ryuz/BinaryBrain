@@ -3,10 +3,13 @@
 #include <fstream>
 #include <chrono>
 
+#include "cuda_runtime.h"
+#include "device_launch_parameters.h"
+
 #include "gtest/gtest.h"
 
 #include "bb/NeuralNetStackedMicroAffine.h"
-#include "bbcu/MicroMlp.h"
+#include "bbcu/bbcu.h"
 
 
 
@@ -37,9 +40,9 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 
 #else
 
-#define FRAME_SIZE			(2*64*28*28)
-#define INPUT_NODE_SIZE		(256*3*3)
-#define OUTPUT_NODE_SIZE	(256)
+#define FRAME_SIZE			(64*28*28)
+#define INPUT_NODE_SIZE		(128*3*3)
+#define OUTPUT_NODE_SIZE	(128)
 
 #endif
 
@@ -136,14 +139,14 @@ TEST(cudaMicroMlpTest, test_cudaMicroMlp2)
 		}
 	}
 
-	auto time0 = std::chrono::system_clock::now();
+	auto fw_time0 = std::chrono::system_clock::now();
 
 	umlp_cpu.Forward();
 
-	auto time1 = std::chrono::system_clock::now();
+	auto fw_time1 = std::chrono::system_clock::now();
 
 	std::cout << "\n\n[CPU Core i7-4770]" << std::endl;
-	double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(time1-time0).count();
+	double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(fw_time1-fw_time0).count();
 	std::cout << "OpenMP + AVX2 : " << elapsed << " [msec]" << std::endl;
 //	double flops = (double)OUTPUT_NODE_SIZE * (double)FRAME_SIZE * (16.0+6.0)*2.0 / elapsed / 1000000.0;
 	double flops = (double)OUTPUT_NODE_SIZE * (double)FRAME_SIZE * (6.0*16.0+16.0+16.0)*2.0 / elapsed / 1000000.0;
@@ -157,6 +160,80 @@ TEST(cudaMicroMlpTest, test_cudaMicroMlp2)
 //			std::cout << out_sig_buf.GetReal(j, i) << " " << out_sig[FRAME_SIZE*i + j] << std::endl;
 		}
 	}
+
+
+	/// backward ////
+#if 0
+
+	// GPU
+	std::vector<float>	in_err(INPUT_NODE_SIZE*FRAME_SIZE);
+	std::vector<float>	out_err(OUTPUT_NODE_SIZE*FRAME_SIZE);
+	std::vector<float>	hidden_dW(OUTPUT_NODE_SIZE*M*N);
+	std::vector<float>	hidden_db(OUTPUT_NODE_SIZE*M);
+	std::vector<float>	output_dW(OUTPUT_NODE_SIZE*M);
+	std::vector<float>	output_db(OUTPUT_NODE_SIZE);
+
+	for (size_t i = 0; i < out_err.size(); ++i) { out_err[i] = norm_rand(mt); }
+
+	auto in_err_buf  = umlp_cpu.GetInputErrorBuffer();
+	auto out_err_buf = umlp_cpu.GetOutputErrorBuffer();
+
+
+	std::cout << "<<<Backward>>>\n" << std::endl;
+	std::cout << "[GPU GT1030]" << std::endl;
+	MicroMlp6x16_Backward
+		(
+			&in_sig[0],
+			&in_err[0],
+			&out_err[0],
+			INPUT_NODE_SIZE,
+			OUTPUT_NODE_SIZE,
+			FRAME_SIZE,
+			&input_index[0],
+			&hidden_W[0],
+			&hidden_b[0],
+			&hidden_dW[0],
+			&hidden_db[0],
+			&output_W[0],
+			&output_b[0],
+			&output_dW[0],
+			&output_db[0]
+		);
+
+
+	// CPU
+	for (int i = 0; i < OUTPUT_NODE_SIZE; i++) {
+		for (int j = 0; j < FRAME_SIZE; j++) {
+			out_err_buf.SetReal(j, i, out_err[FRAME_SIZE*i + j]);
+		}
+	}
+	
+	auto bw_time0 = std::chrono::system_clock::now();
+	umlp_cpu.Backward();
+	auto bw_time1 = std::chrono::system_clock::now();
+
+
+	for (int i = 0; i < OUTPUT_NODE_SIZE; i++) {
+		for (int j = 0; j < N; j++) {
+			umlp_cpu.SetNodeInput(i, j, input_index[i*N+j]);
+		}
+	}
+
+	for (int i = 0; i < OUTPUT_NODE_SIZE; i++) {
+		for (int j = 0; j < M; j++) {
+			for (int k = 0; k < N; k++) {
+				EXPECT_EQ(umlp_cpu.dW0(i, j, k), hidden_dW[i*(M*N) + j*N + k]);
+			}
+			EXPECT_EQ(umlp_cpu.db0(i, j), hidden_db[i*M + j]);
+		}
+
+		for (int j = 0; j < M; j++) {
+			EXPECT_EQ(umlp_cpu.dW1(i, j), output_dW[i*M + j]);
+		}
+		EXPECT_EQ(umlp_cpu.db1(i), output_db[i]);
+	}
+
+#endif
 }
 
 

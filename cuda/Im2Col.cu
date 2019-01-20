@@ -4,18 +4,8 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-#include "bbcu/Im2Col.h"
-
-
-#define CUDA_SAFE_CALL(func) \
-do { \
-     cudaError_t err = (func); \
-     if (err != cudaSuccess) { \
-         fprintf(stderr, "[Error] %s (error code: %d) at %s line %d\n", cudaGetErrorString(err), err, __FILE__, __LINE__); \
-         exit(1); \
-     } \
-} while(0)
-
+#include "bbcu/bbcu.h"
+#include "bbcu_util.h"
 
 
 __global__ void kernal_Im2Col_forward(

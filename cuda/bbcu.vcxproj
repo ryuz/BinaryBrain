@@ -158,9 +158,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <CudaCompile Include="Im2Col.cu" />
-    <CudaCompile Include="MicroMlp6x16.cu">
-      <FileType>Document</FileType>
-    </CudaCompile>
+    <CudaCompile Include="MicroMlp.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\bbcu\bbcu.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

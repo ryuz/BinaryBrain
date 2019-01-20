@@ -9,7 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "MicroMlp.h"
+#include "bbcu/bbcu.h"
+
 
 
 #define CUDA_SAFE_CALL(func) \
@@ -69,11 +70,11 @@ int MicroMlp_Test(void)
 
 	MicroMlp6x16_Forward
 		(
+			in_sig,
+			out_sig,
 			INPUT_NODE_SIZE,
 			OUTPUT_NODE_SIZE,
 			FRAME_SIZE,
-			in_sig,
-			out_sig,
 			input_index,
 			hidden_W,
 			hidden_b,
