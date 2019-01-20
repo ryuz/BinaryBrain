@@ -31,22 +31,27 @@ __global__ void kernal_MicroMlp_forward(
 	__shared__   float W0[M][N];
 	__shared__   float b0[M];
 	__shared__   float W1[M];
-				 float b1;
+	__shared__		 float b1;
 
 	// ŒW”“Ç‚İ‚İ
-	for ( int i = 0; i < M; ++i ) {
+	if (threadIdx.x < M) {
+		int i = threadIdx.x;
+
 		for ( int j = 0; j < N; ++j ) {
 			W0[i][j] = hidden_W[(node * M + i) * N + j];
 		}
+
+		for ( int i = 0; i < M; ++i ) {
+			b0[i] = hidden_b[node * M + i];
+		}
+		for ( int i = 0; i < M; ++i ) {
+			W1[i] = output_W[node * M + i];
+		}
 	}
-	for ( int i = 0; i < M; ++i ) {
-		b0[i] = hidden_b[node * M + i];
+	if (threadIdx.x == 0) {
+		b1 = output_b[node];
 	}
-	for ( int i = 0; i < M; ++i ) {
-		W1[i] = output_W[node * M + i];
-	}
-	b1 = output_b[node];
-	
+
 	__syncthreads();
 
 	const float *in_sig_ptr[N];
