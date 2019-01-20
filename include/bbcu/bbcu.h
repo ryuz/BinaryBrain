@@ -33,6 +33,26 @@ CUBB_DLL_EXPORT int bbcu_MicroMlp6x16_Forward
 			cudaStream_t	streamId = 0
 		);
 
+CUBB_DLL_EXPORT int bbcu_MicroMlp6x16_backward(
+			const float*	dev_in_sig_buf,
+			float*			dev_in_err_buf,
+			float*			dev_in_err_tmp,
+			float*			dev_out_err_buf,
+			int				input_node_size,
+			int				output_node_size,
+			int				frame_size,
+			const int*		dev_input_index,
+			const float*	dev_hidden_W,
+			const float*	dev_hidden_b,
+			float*			dev_hidden_dW,
+			float*			dev_hidden_db,
+			const float*	dev_output_W,
+			const float*	dev_output_b,
+			float*			dev_output_dW,
+			float*			dev_output_db,
+			cudaStream_t	streamId
+		);
+
 
 CUBB_DLL_EXPORT	int cubb_Im2Col_Forward
 		(

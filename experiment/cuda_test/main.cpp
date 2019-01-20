@@ -3,16 +3,14 @@
 #include <random>
 
 
-int MicroMlp_Test(void);
-int UnifiedMemory(void);
-int cudnn_test();
+int Test_MicroMlp_Forward(void);
+int Test_MicroMlp_Backward(void);
+
 
 int main()
 {
-//	return cudnn_test();
-
-//	return UnifiedMemory();
-	return MicroMlp_Test();
+//	return Test_MicroMlp_Forward();
+	return Test_MicroMlp_Backward();
 
 	return 0;
 }

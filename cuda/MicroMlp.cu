@@ -14,7 +14,7 @@
 // -------------------------------------------------
 
 template <int N=6, int M=16>
-__global__ void kernal_MicroMlp6x16_forward(
+__global__ void kernal_MicroMlp_forward(
 			const float*	in_sig_buf,
 			float*			out_sig_buf,
 			int				frame_size,
@@ -105,7 +105,7 @@ int bbcu_MicroMlp_Forward
 	dim3	grid(output_node_size);
 	dim3	block(512, 1, 1);
 	
-	kernal_MicroMlp6x16_forward<N, M><<<grid, block, 0, streamId>>>(
+	kernal_MicroMlp_forward<N, M><<<grid, block, 0, streamId>>>(
 			dev_in_sig,
 			dev_out_sig,
 			frame_size,
@@ -222,7 +222,7 @@ int MicroMlp_Forward
 	dim3	grid(output_node_size);
 	dim3	block(128*4, 1, 1);
 	
-	kernal_MicroMlp6x16_forward<<<grid, block, 0, 0>>>(
+	kernal_MicroMlp_forward<<<grid, block, 0, 0>>>(
 			dev_in_sig,
 			dev_out_sig,
 			frame_size,
@@ -312,8 +312,6 @@ int MicroMlp6x16_Forward
 //  Backward
 // -------------------------------------------------
 
-#if 1
-
 template <int N=6, int M=16>
 __global__ void kernal_MicroMlp_backward(
 			const float*	in_sig_buf,
@@ -342,7 +340,7 @@ __global__ void kernal_MicroMlp_backward(
  	__shared__   float dW0[M][N];
 	__shared__   float db0[M];
 	__shared__   float dW1[M];
-				 float db1;
+	__shared__	 float db1;
 
 	// åWêîì«Ç›çûÇ›
 	for ( int i = 0; i < M; ++i ) {
@@ -393,7 +391,7 @@ __global__ void kernal_MicroMlp_backward(
 		// 1íiñ⁄çƒåvéZÇµÇƒ2íiñ⁄ãtì`îd
 		float	err1 = out_err_ptr[frame];
 		float	err0[M];
-		db1 += err1;
+		atomicAdd(&db1, err1);
 		for ( int i = 0; i < M; ++i ) {
 			float sig0 = b0[i];
 			for ( int j = 0; j < N; ++j ) {
@@ -401,8 +399,15 @@ __global__ void kernal_MicroMlp_backward(
 			}
 		
 			sig0 = fmaxf(sig0, 0);	// ReLU
+
 			atomicAdd(&dW1[i], err1 * sig0);
-			err0[i] = err1 * W1[i];
+
+			if ( sig0 > 0 ) {		// ReLU
+				err0[i] = err1 * W1[i];
+			}
+			else {
+				err0[i] = 0;
+			}
 		}
 		
 		// 1íiñ⁄ãtì`îd
@@ -427,13 +432,11 @@ __global__ void kernal_MicroMlp_backward(
 
 		frame += frame_step;
 	}
-	return;
-
+	
 	__syncthreads();
 
-
 	// å˘îzèoóÕ(å„Ç≈ï¿óÒâªÇ∑ÇÈ)
-	if ( threadIdx.x == 1 ) {
+	if ( threadIdx.x == 0 ) {
 		for ( int i = 0; i < M; ++i ) {
 			for ( int j = 0; j < N; ++j ) {
 				hidden_dW[(node * M + i) * N + j] = dW0[i][j];
@@ -443,7 +446,7 @@ __global__ void kernal_MicroMlp_backward(
 			hidden_db[node * M + i] = db0[i];
 		}
 		for ( int i = 0; i < M; ++i ) {
-			output_dW[node * M + i] = dW1[i] = 0;
+			output_dW[node * M + i] = dW1[i];
 		}
 		output_db[node] = db1;
 	}
@@ -498,7 +501,7 @@ int bbcu_MicroMlp_backward(
 {
 	{
 		dim3	grid(output_node_size);
-		dim3	block(512, 1, 1);
+		dim3	block(256, 1, 1);
 		
 		kernal_MicroMlp_backward<N, M><<<grid, block, 0, streamId>>>(
 				dev_in_sig_buf,
@@ -727,12 +730,12 @@ int MicroMlp_Backward
 	double elapsed_kernel       = std::chrono::duration_cast<std::chrono::milliseconds>(time4-time3).count();
 	double elapsed_gpu_to_cpu   = std::chrono::duration_cast<std::chrono::milliseconds>(time5-time4).count();
 	double elapsed_free         = std::chrono::duration_cast<std::chrono::milliseconds>(time6-time5).count();
+//	double kernel_flops = (double)output_node_size *(double) frame_size * (16.0*6.0+16.0+16.0)*2.0 / elapsed_kernel / 1000000.0;
 	std::cout << "malloc               : " << elapsed_malloc       << " [msec]" << std::endl;
 	std::cout << "param copy(cpu->gpu) : " << elapsed_cpu_to_gpu_p << " [msec]" << std::endl;
 	std::cout << "data copy(cpu->gpu)  : " << elapsed_cpu_to_gpu   << " [msec]" << std::endl;
 	std::cout << "kernel               : " << elapsed_kernel       << " [msec]" << std::endl;
-	double flops = (double)output_node_size *(double) frame_size * (16.0*6.0+16.0+16.0)*2.0 / elapsed_kernel / 1000000.0;
-	std::cout << "      " << flops << " [GFLOPS]  (" << flops / 942.0 * 100.0 << "% [peak 942 GFLOPS])" << std::endl;
+//	 << kernel_flops << " [GFLOPS])" << std::endl;
 	std::cout << "data copy(gpu->cpu)  : " << elapsed_gpu_to_cpu   << " [msec]" << std::endl;
 	std::cout << "free                 : " << elapsed_free         << " [msec]" << std::endl;
 	
@@ -781,5 +784,3 @@ int MicroMlp6x16_Backward
 		);
 }
 
-
-#endif

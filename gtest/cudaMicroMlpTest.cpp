@@ -34,9 +34,13 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 
 #elif 0
 
-#define FRAME_SIZE			(32*1024*1024)
+#define FRAME_SIZE			(512)
 #define INPUT_NODE_SIZE		(6)
-#define OUTPUT_NODE_SIZE	(2*3)
+#define OUTPUT_NODE_SIZE	(2)
+
+//#define FRAME_SIZE			(64*28*28)
+//#define INPUT_NODE_SIZE		(6)
+//#define OUTPUT_NODE_SIZE	(2*3)
 
 #else
 
@@ -84,7 +88,8 @@ TEST(cudaMicroMlpTest, test_cudaMicroMlp2)
 	
 	
 	for (size_t i = 0; i < in_sig.size(); ++i) { in_sig[i] = norm_rand(mt); }
-	for (size_t i = 0; i < input_index.size(); ++i) { input_index[i] = index_rand(mt); }
+//	for (size_t i = 0; i < input_index.size(); ++i) { input_index[i] = index_rand(mt); }
+	for (size_t i = 0; i < input_index.size(); ++i) { input_index[i] = i % 6; }
 	for (size_t i = 0; i < hidden_W.size(); ++i) { hidden_W[i] = norm_rand(mt); }
 	for (size_t i = 0; i < hidden_b.size(); ++i) { hidden_b[i] = norm_rand(mt); }
 	for (size_t i = 0; i < output_W.size(); ++i) { output_W[i] = norm_rand(mt); }
@@ -163,7 +168,7 @@ TEST(cudaMicroMlpTest, test_cudaMicroMlp2)
 
 
 	/// backward ////
-#if 0
+#if 1
 
 	// GPU
 	std::vector<float>	in_err(INPUT_NODE_SIZE*FRAME_SIZE);
@@ -231,6 +236,12 @@ TEST(cudaMicroMlpTest, test_cudaMicroMlp2)
 			EXPECT_EQ(umlp_cpu.dW1(i, j), output_dW[i*M + j]);
 		}
 		EXPECT_EQ(umlp_cpu.db1(i), output_db[i]);
+	}
+
+	for (int i = 0; i < INPUT_NODE_SIZE; i++) {
+		for (int j = 0; j < FRAME_SIZE; j++) {
+//			EXPECT_EQ(in_err_buf.GetReal(j, i), in_err[FRAME_SIZE*i + j]);
+		}
 	}
 
 #endif
