@@ -9,7 +9,7 @@
 
 
 
-
+// kernel
 __global__ void kernel_HorizontalSum(
 			const float*	src,
 			float*			dst,
