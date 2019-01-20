@@ -5,10 +5,10 @@
 #include "device_launch_parameters.h"
 
 #include "bbcu/bbcu.h"
-#include "bbcu_util.h"
+#include "bbcu/bbcu_util.h"
 
 
-__global__ void kernal_Im2Col_forward(
+__global__ void kernal_Im2Col_Forward(
 			const float*	in_sig,
 			float*			out_sig,
 			int				input_frame_size,
@@ -19,7 +19,7 @@ __global__ void kernal_Im2Col_forward(
 			int				output_size
 		)
 {
-	int c_size        = gridDim.y;
+//	int c_size        = gridDim.y;
 	int filter_w_size = blockDim.y;
 	int filter_h_size = blockDim.z;
 
@@ -58,8 +58,8 @@ int cubb_Im2Col_Forward
 	int output_h_size = input_h_size - filter_h_size + 1;
 	int output_size   = output_w_size * output_h_size;
 
-	int input_node_size  = input_c_size * input_h_size * input_w_size;
-	int output_node_size = output_c_size * filter_h_size * filter_w_size;
+//	int input_node_size  = input_c_size * input_h_size * input_w_size;
+//	int output_node_size = output_c_size * filter_h_size * filter_w_size;
 	
 	int output_frame_size = input_frame_size * output_size;
 	
@@ -67,7 +67,7 @@ int cubb_Im2Col_Forward
 	dim3	grid(output_frame_size/frame_unit, output_c_size);
 	dim3	block(frame_unit, filter_w_size, filter_h_size);
 	
-	kernal_Im2Col_forward<<<grid, block>>>(
+	kernal_Im2Col_Forward<<<grid, block>>>(
 			dev_in_sig,
 			dev_out_sig,
 			input_frame_size,
@@ -77,19 +77,14 @@ int cubb_Im2Col_Forward
 			output_w_size,
 			output_size
 		);
-
-	cudaError_t cudaStatus = cudaGetLastError();
-    if ( cudaStatus != cudaSuccess ) {
-        fprintf(stderr, "addKernel launch failed: %s\n", cudaGetErrorString(cudaStatus));
-		return 1;
-	}
+	BB_CUDA_CHECK_LAST_ERROR();
 
 	return 0;
 }
 
 
 
-int Im2Col_Forward
+int bbcu_eva_Im2Col_Forward
 		(
 			const float*	in_sig,
 			float*			out_sig,
@@ -102,7 +97,7 @@ int Im2Col_Forward
 		)
 {
 	cudaDeviceProp dev;
-	CUDA_SAFE_CALL(cudaGetDeviceProperties(&dev, 0));
+	BB_CUDA_SAFE_CALL(cudaGetDeviceProperties(&dev, 0));
 
 	cudaError_t cudaStatus0 = cudaGetLastError();
     if (cudaStatus0 != cudaSuccess) {
@@ -126,13 +121,13 @@ int Im2Col_Forward
 	float* dev_in_sig;
 	float* dev_out_sig;
 
-	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_in_sig,   input_node_size  * input_frame_size * sizeof(float)));
-	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_out_sig,  output_node_size * output_frame_size * sizeof(float)));
+	BB_CUDA_SAFE_CALL(cudaMalloc((void**)&dev_in_sig,   input_node_size  * input_frame_size * sizeof(float)));
+	BB_CUDA_SAFE_CALL(cudaMalloc((void**)&dev_out_sig,  output_node_size * output_frame_size * sizeof(float)));
 	
 	cudaDeviceSynchronize();
 	auto time1 = std::chrono::system_clock::now();
 
-	CUDA_SAFE_CALL(cudaMemcpy(dev_in_sig, in_sig, input_node_size * input_frame_size * sizeof(float), cudaMemcpyHostToDevice));
+	BB_CUDA_SAFE_CALL(cudaMemcpy(dev_in_sig, in_sig, input_node_size * input_frame_size * sizeof(float), cudaMemcpyHostToDevice));
 
 	cudaDeviceSynchronize();
 	auto time2 = std::chrono::system_clock::now();
@@ -141,7 +136,7 @@ int Im2Col_Forward
 	dim3	grid(output_frame_size/frame_unit, output_c_size);
 	dim3	block(frame_unit, filter_w_size, filter_h_size);
 	
-	kernal_Im2Col_forward<<<grid, block>>>(
+	kernal_Im2Col_Forward<<<grid, block>>>(
 			dev_in_sig,
 			dev_out_sig,
 			input_frame_size,
@@ -151,32 +146,27 @@ int Im2Col_Forward
 			output_w_size,
 			output_size
 		);
-	
-	cudaError_t cudaStatus = cudaGetLastError();
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "kernel launch failed: %s\n", cudaGetErrorString(cudaStatus));
-		exit(1);
-    }
+	BB_CUDA_CHECK_LAST_ERROR();
 	
 	cudaDeviceSynchronize();
 	auto time3 = std::chrono::system_clock::now();
 
-	CUDA_SAFE_CALL(cudaMemcpy(out_sig, dev_out_sig, output_node_size * output_frame_size * sizeof(float), cudaMemcpyDeviceToHost));
+	BB_CUDA_SAFE_CALL(cudaMemcpy(out_sig, dev_out_sig, output_node_size * output_frame_size * sizeof(float), cudaMemcpyDeviceToHost));
 
 	cudaDeviceSynchronize();
 	auto time4 = std::chrono::system_clock::now();
 
-	CUDA_SAFE_CALL(cudaFree(dev_in_sig));
-	CUDA_SAFE_CALL(cudaFree(dev_out_sig));
+	BB_CUDA_SAFE_CALL(cudaFree(dev_in_sig));
+	BB_CUDA_SAFE_CALL(cudaFree(dev_out_sig));
 
 	cudaDeviceSynchronize();
 	auto time5 = std::chrono::system_clock::now();
 
-	double elapsed_malloc       = std::chrono::duration_cast<std::chrono::milliseconds>(time1-time0).count();
-	double elapsed_cpu_to_gpu   = std::chrono::duration_cast<std::chrono::milliseconds>(time2-time1).count();
-	double elapsed_kernel       = std::chrono::duration_cast<std::chrono::milliseconds>(time3-time2).count();
-	double elapsed_gpu_to_cpu   = std::chrono::duration_cast<std::chrono::milliseconds>(time4-time3).count();
-	double elapsed_free         = std::chrono::duration_cast<std::chrono::milliseconds>(time5-time4).count();
+	double elapsed_malloc       = (double)std::chrono::duration_cast<std::chrono::milliseconds>(time1-time0).count();
+	double elapsed_cpu_to_gpu   = (double)std::chrono::duration_cast<std::chrono::milliseconds>(time2-time1).count();
+	double elapsed_kernel       = (double)std::chrono::duration_cast<std::chrono::milliseconds>(time3-time2).count();
+	double elapsed_gpu_to_cpu   = (double)std::chrono::duration_cast<std::chrono::milliseconds>(time4-time3).count();
+	double elapsed_free         = (double)std::chrono::duration_cast<std::chrono::milliseconds>(time5-time4).count();
 	std::cout << "malloc               : " << elapsed_malloc       << " [msec]" << std::endl;
 	std::cout << "data copy(cpu->gpu)  : " << elapsed_cpu_to_gpu   << " [msec]" << std::endl;
 	std::cout << "kernel               : " << elapsed_kernel       << " [msec]" << std::endl;

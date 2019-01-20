@@ -5,12 +5,12 @@
 #include "device_launch_parameters.h"
 
 #include "bbcu/bbcu.h"
-#include "bbcu_util.h"
+#include "bbcu/bbcu_util.h"
 
 
 
 
-__global__ void horizontal_sum(
+__global__ void kernel_HorizontalSum(
 			const float*	src,
 			float*			dst,
 			int				size)
@@ -49,7 +49,7 @@ __global__ void horizontal_sum(
 }
 
 
-int bbcu_horizontal_sum
+int bbcu_HorizontalSum
 		(
 			const float*	dev_src,
 			float*			dev_dst,
@@ -63,7 +63,7 @@ int bbcu_horizontal_sum
 	dim3	grid(y_size);
 	dim3	block(unit_x);
 	
-	horizontal_sum<<<grid, block, unit_x*sizeof(float), streamId>>>(
+	kernel_HorizontalSum<<<grid, block, unit_x*sizeof(float), streamId>>>(
 			dev_src,
 			dev_dst,
 			x_size);
@@ -80,7 +80,7 @@ int bbcu_horizontal_sum
 
 
 
-int horizontal_sum
+int bbcu_eva_HorizontalSum
 		(
 			const float*	src,
 			float*			dst,
@@ -91,14 +91,14 @@ int horizontal_sum
 	float*	dev_src;
 	float*	dev_dst;
 
-	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_src, y_size * x_size * sizeof(float)));
-	CUDA_SAFE_CALL(cudaMalloc((void**)&dev_dst, y_size * sizeof(float)));
+	BB_CUDA_SAFE_CALL(cudaMalloc((void**)&dev_src, y_size * x_size * sizeof(float)));
+	BB_CUDA_SAFE_CALL(cudaMalloc((void**)&dev_dst, y_size * sizeof(float)));
 
-	CUDA_SAFE_CALL(cudaMemcpy(dev_src, src, y_size * x_size * sizeof(float), cudaMemcpyHostToDevice));
+	BB_CUDA_SAFE_CALL(cudaMemcpy(dev_src, src, y_size * x_size * sizeof(float), cudaMemcpyHostToDevice));
 
-	bbcu_horizontal_sum(dev_src, dev_dst, x_size, y_size, 0);
+	bbcu_HorizontalSum(dev_src, dev_dst, x_size, y_size, 0);
 
-	CUDA_SAFE_CALL(cudaMemcpy(dst, dev_dst, y_size * sizeof(float), cudaMemcpyDeviceToHost));
+	BB_CUDA_SAFE_CALL(cudaMemcpy(dst, dev_dst, y_size * sizeof(float), cudaMemcpyDeviceToHost));
 
 	return 0;
 }

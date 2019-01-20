@@ -18,7 +18,7 @@
 extern "C" {
 
 
-CUBB_DLL_EXPORT	int bbcu_horizontal_sum
+CUBB_DLL_EXPORT	int bbcu_HorizontalSum
 		(
 			const float*	dev_src,
 			float*			dev_dst,
@@ -42,7 +42,7 @@ CUBB_DLL_EXPORT int bbcu_MicroMlp6x16_Forward
 			cudaStream_t	streamId = 0
 		);
 
-CUBB_DLL_EXPORT int bbcu_MicroMlp6x16_backward(
+CUBB_DLL_EXPORT int bbcu_MicroMlp6x16_Backward(
 			const float*	dev_in_sig_buf,
 			float*			dev_in_err_buf,
 			float*			dev_in_err_tmp,
@@ -81,7 +81,7 @@ CUBB_DLL_EXPORT	int cubb_Im2Col_Forward
 /// ---- test code ----
 
 
-CUBB_DLL_EXPORT int horizontal_sum
+CUBB_DLL_EXPORT int bbcu_eva_HorizontalSum
 		(
 			const float*	src,
 			float*			dst,
@@ -89,7 +89,7 @@ CUBB_DLL_EXPORT int horizontal_sum
 			int				y_size
 		);
 
-CUBB_DLL_EXPORT int MicroMlp6x16_Forward
+CUBB_DLL_EXPORT int bbcu_eva_MicroMlp6x16_Forward
 		(
 			const float*	in_sig,
 			float*			out_sig,
@@ -103,7 +103,7 @@ CUBB_DLL_EXPORT int MicroMlp6x16_Forward
 			const float*	output_b
 		);
 
-CUBB_DLL_EXPORT int MicroMlp6x16_Backward
+CUBB_DLL_EXPORT int bbcu_eva_MicroMlp6x16_Backward
 		(
 			const float*	in_sig_buf,
 			float*			in_err_buf,
@@ -124,7 +124,7 @@ CUBB_DLL_EXPORT int MicroMlp6x16_Backward
 
 
 
-CUBB_DLL_EXPORT int Im2Col_Forward
+CUBB_DLL_EXPORT int bbcu_eva_Im2Col_Forward
 		(
 			const float*	in_sig,
 			float*			out_sig,

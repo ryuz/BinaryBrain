@@ -92,6 +92,7 @@
     </Link>
     <CudaCompile>
       <Include>..\include</Include>
+      <AdditionalCompilerOptions>/wd"4819"</AdditionalCompilerOptions>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -110,6 +111,7 @@
     </Link>
     <CudaCompile>
       <Include>..\include</Include>
+      <AdditionalCompilerOptions>/wd"4819"</AdditionalCompilerOptions>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -132,6 +134,7 @@
     </Link>
     <CudaCompile>
       <Include>..\include</Include>
+      <AdditionalCompilerOptions>/wd"4819"</AdditionalCompilerOptions>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -154,6 +157,7 @@
     </Link>
     <CudaCompile>
       <Include>..\include</Include>
+      <AdditionalCompilerOptions>/wd"4819"</AdditionalCompilerOptions>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -163,6 +167,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\bbcu\bbcu.h" />
+    <ClInclude Include="..\include\bbcu\bbcu_util.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

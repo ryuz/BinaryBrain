@@ -95,7 +95,7 @@ TEST(cudaIm2ColTest, testcudaIm2Col)
 
 	std::cout << "[GPU GT1030]" << std::endl;
 
-	Im2Col_Forward(
+	bbcu_eva_Im2Col_Forward(
 			&in_sig[0],
 			&out_sig[0],
 			input_frame_size,

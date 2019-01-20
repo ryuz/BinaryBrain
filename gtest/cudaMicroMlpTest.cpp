@@ -117,7 +117,7 @@ TEST(cudaMicroMlpTest, test_cudaMicroMlp2)
 	std::cout <<  OUTPUT_NODE_SIZE << " node[6x16] x " << FRAME_SIZE << " frames\n\n";
 
 	std::cout << "[GPU GT1030]" << std::endl;
-	MicroMlp6x16_Forward
+	bbcu_eva_MicroMlp6x16_Forward
 		(
 			&in_sig[0],
 			&out_sig[0],
@@ -166,7 +166,7 @@ TEST(cudaMicroMlpTest, test_cudaMicroMlp2)
 
 	auto fw_time1 = std::chrono::system_clock::now();
 
-	std::cout << "\n\n[CPU Core i7-4770]" << std::endl;
+	std::cout << "\n\n[CPU]" << std::endl;
 	double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(fw_time1-fw_time0).count();
 	std::cout << "OpenMP + AVX2 : " << elapsed << " [msec]" << std::endl;
 //	double flops = (double)OUTPUT_NODE_SIZE * (double)FRAME_SIZE * (16.0+6.0)*2.0 / elapsed / 1000000.0;
@@ -201,8 +201,8 @@ TEST(cudaMicroMlpTest, test_cudaMicroMlp2)
 
 
 	std::cout << "<<<Backward>>>\n" << std::endl;
-	std::cout << "[GPU GT1030]" << std::endl;
-	MicroMlp6x16_Backward
+	std::cout << "[GPU]" << std::endl;
+	bbcu_eva_MicroMlp6x16_Backward
 		(
 			&in_sig[0],
 			&in_err[0],
@@ -259,7 +259,6 @@ TEST(cudaMicroMlpTest, test_cudaMicroMlp2)
 			EXPECT_EQ(in_err_buf.GetReal(j, i), in_err[FRAME_SIZE*i + j]);
 		}
 	}
-
 #endif
 }
 
