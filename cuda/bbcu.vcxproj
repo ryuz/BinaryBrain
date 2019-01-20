@@ -157,6 +157,7 @@
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <CudaCompile Include="horizontal_sum.cu" />
     <CudaCompile Include="Im2Col.cu" />
     <CudaCompile Include="MicroMlp.cu" />
   </ItemGroup>

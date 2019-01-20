@@ -31,7 +31,7 @@ __global__ void kernal_MicroMlp_forward(
 	__shared__   float W0[M][N];
 	__shared__   float b0[M];
 	__shared__   float W1[M];
-	__shared__		 float b1;
+	__shared__	 float b1;
 
 	// ŒW”“Ç‚İ‚İ
 	if (threadIdx.x < M) {
@@ -41,12 +41,8 @@ __global__ void kernal_MicroMlp_forward(
 			W0[i][j] = hidden_W[(node * M + i) * N + j];
 		}
 
-		for ( int i = 0; i < M; ++i ) {
-			b0[i] = hidden_b[node * M + i];
-		}
-		for ( int i = 0; i < M; ++i ) {
-			W1[i] = output_W[node * M + i];
-		}
+		b0[i] = hidden_b[node * M + i];
+		W1[i] = output_W[node * M + i];
 	}
 	if (threadIdx.x == 0) {
 		b1 = output_b[node];
@@ -317,6 +313,7 @@ int MicroMlp6x16_Forward
 //  Backward
 // -------------------------------------------------
 
+
 template <int N=6, int M=16>
 __global__ void kernal_MicroMlp_backward(
 			const float*	in_sig_buf,
@@ -348,33 +345,34 @@ __global__ void kernal_MicroMlp_backward(
 	__shared__	 float db1;
 
 	// ŒW”“Ç‚İ‚İ
-	for ( int i = 0; i < M; ++i ) {
+	if (threadIdx.x < M) {
+		int i = threadIdx.x;
+
 		for ( int j = 0; j < N; ++j ) {
 			W0[i][j] = hidden_W[(node * M + i) * N + j];
 		}
-	}
-	for ( int i = 0; i < M; ++i ) {
+
 		b0[i] = hidden_b[node * M + i];
-	}
-	for ( int i = 0; i < M; ++i ) {
 		W1[i] = output_W[node * M + i];
 	}
-//	b1 = output_b[node];
+//	if (threadIdx.x == 0) {
+//		b1 = output_b[node];
+//	}
 	
 	// Œù”z‰Šú‰»
-	for ( int i = 0; i < M; ++i ) {
+	if (threadIdx.x < M) {
+		int i = threadIdx.x;
+
 		for ( int j = 0; j < N; ++j ) {
 			dW0[i][j] = 0; // hidden_dW[(node * M + i) * N + j];
 		}
-	}
-	for ( int i = 0; i < M; ++i ) {
 		db0[i] = 0; // hidden_db[node * M + i];
-	}
-	for ( int i = 0; i < M; ++i ) {
 		dW1[i] = 0; // output_dW[node * M + i];
 	}
-	db1 = 0; // output_db[node];
-	
+	if (threadIdx.x == 0) {
+		db1 = 0; // output_db[node];
+	}
+
 	__syncthreads();
 
 	const float *in_sig_ptr[N];

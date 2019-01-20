@@ -67,6 +67,22 @@ TEST(cudaMicroMlpTest, test_cudaMicroMlp2)
 {
 	cudaDeviceProp dev;
 	cudaGetDeviceProperties(&dev, 0);
+	
+#if 0
+	{
+		float	test_src_buf[10 * 100];
+		float	test_dst_buf[10];
+		for ( int y = 0; y < 10; ++y ) {
+			for ( int x = 0; x < 100; ++x ) {
+				test_src_buf[y*100 + x] = y*1 + x + 1;
+			}
+		}
+		horizontal_sum(test_src_buf, test_dst_buf, 100, 10);
+		for ( int y = 0; y < 10; ++y ) {
+			std::cout << test_dst_buf[y] << std::endl;
+		}
+	}
+#endif
 
 	std::vector<float>	in_sig(INPUT_NODE_SIZE*FRAME_SIZE);
 	std::vector<float>	out_sig(OUTPUT_NODE_SIZE*FRAME_SIZE);

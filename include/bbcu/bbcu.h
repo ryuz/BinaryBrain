@@ -18,6 +18,15 @@
 extern "C" {
 
 
+CUBB_DLL_EXPORT	int bbcu_horizontal_sum
+		(
+			const float*	dev_src,
+			float*			dev_dst,
+			int				x_size,
+			int				y_size,
+			cudaStream_t	streamId = 0
+		);
+
 CUBB_DLL_EXPORT int bbcu_MicroMlp6x16_Forward
 		(
 			const float*	dev_in_sig,
@@ -70,6 +79,15 @@ CUBB_DLL_EXPORT	int cubb_Im2Col_Forward
 
 
 /// ---- test code ----
+
+
+CUBB_DLL_EXPORT int horizontal_sum
+		(
+			const float*	src,
+			float*			dst,
+			int				x_size,
+			int				y_size
+		);
 
 CUBB_DLL_EXPORT int MicroMlp6x16_Forward
 		(
