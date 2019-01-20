@@ -263,12 +263,13 @@ int MicroMlp_Forward
 	double elapsed_kernel       = std::chrono::duration_cast<std::chrono::milliseconds>(time4-time3).count();
 	double elapsed_gpu_to_cpu   = std::chrono::duration_cast<std::chrono::milliseconds>(time5-time4).count();
 	double elapsed_free         = std::chrono::duration_cast<std::chrono::milliseconds>(time6-time5).count();
+
+	double kernel_flops = (double)output_node_size *(double) frame_size * (M*N+M+M)*2.0 / elapsed_kernel / 1000000.0;
+
 	std::cout << "malloc               : " << elapsed_malloc       << " [msec]" << std::endl;
 	std::cout << "param copy(cpu->gpu) : " << elapsed_cpu_to_gpu_p << " [msec]" << std::endl;
 	std::cout << "data copy(cpu->gpu)  : " << elapsed_cpu_to_gpu   << " [msec]" << std::endl;
-	std::cout << "kernel               : " << elapsed_kernel       << " [msec]" << std::endl;
-	double flops = (double)output_node_size *(double) frame_size * (16.0*6.0+16.0+16.0)*2.0 / elapsed_kernel / 1000000.0;
-	std::cout << "      " << flops << " [GFLOPS]  (" << flops / 942.0 * 100.0 << "% [peak 942 GFLOPS])" << std::endl;
+	std::cout << "kernel               : " << elapsed_kernel       << " [msec]  " << kernel_flops << " [GFLOPS]" << std::endl;
 	std::cout << "data copy(gpu->cpu)  : " << elapsed_gpu_to_cpu   << " [msec]" << std::endl;
 	std::cout << "free                 : " << elapsed_free         << " [msec]" << std::endl;
 	
