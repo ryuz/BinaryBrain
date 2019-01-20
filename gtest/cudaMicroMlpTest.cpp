@@ -256,7 +256,7 @@ TEST(cudaMicroMlpTest, test_cudaMicroMlp2)
 
 	for (int i = 0; i < INPUT_NODE_SIZE; i++) {
 		for (int j = 0; j < FRAME_SIZE; j++) {
-//			EXPECT_EQ(in_err_buf.GetReal(j, i), in_err[FRAME_SIZE*i + j]);
+			EXPECT_EQ(in_err_buf.GetReal(j, i), in_err[FRAME_SIZE*i + j]);
 		}
 	}
 
