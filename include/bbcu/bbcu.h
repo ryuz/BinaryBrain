@@ -75,6 +75,17 @@ CUBB_DLL_EXPORT	int cubb_Im2Col_Forward
 			int				filter_h_size
 		);
 
+CUBB_DLL_EXPORT int cubb_Im2Col_Backward
+		(
+			float*			dev_in_err_buf,
+			const float*	dev_out_err_buf,
+			int				input_frame_size,
+			int				input_w_size,
+			int				input_h_size,
+			int				input_c_size,
+			int				filter_w_size,
+			int				filter_h_size
+		);
 
 
 
@@ -128,6 +139,18 @@ CUBB_DLL_EXPORT int bbcu_eva_Im2Col_Forward
 		(
 			const float*	in_sig,
 			float*			out_sig,
+			int				input_frame_size,
+			int				input_w_size,
+			int				input_h_size,
+			int				input_c_size,
+			int				filter_w_size,
+			int				filter_h_size
+		);
+
+CUBB_DLL_EXPORT int bbcu_eva_Im2Col_Backward
+		(
+			float*			in_err_buf,
+			const float*	out_err_buf,
 			int				input_frame_size,
 			int				input_w_size,
 			int				input_h_size,

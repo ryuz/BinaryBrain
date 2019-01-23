@@ -64,6 +64,7 @@ TEST(cudaIm2ColTest, testcudaIm2Col)
 	int idx = 0;
 	for ( int frame = 0; frame < input_frame_size; ++frame ) {
 		for ( int node = 0; node < input_node_size; ++node ) {
+//			in_sig[node*input_frame_size + frame] = norm_rand(mt); // frame * 1000 + node;
 			in_sig[node*input_frame_size + frame] = frame * 1000 + node;
 		}
 	}
@@ -93,7 +94,7 @@ TEST(cudaIm2ColTest, testcudaIm2Col)
 	std::cout << "total input size  : " << input_frame_size * input_node_size << "\n";
 	std::cout << "total output size : " << output_frame_size * output_node_size << "\n\n";
 
-	std::cout << "[GPU GT1030]" << std::endl;
+	std::cout << "[GPU]" << std::endl;
 
 	bbcu_eva_Im2Col_Forward(
 			&in_sig[0],
@@ -106,13 +107,13 @@ TEST(cudaIm2ColTest, testcudaIm2Col)
 			filter_h_size
 		);
 
-	auto time0 = std::chrono::system_clock::now();
+	auto fw_time0 = std::chrono::system_clock::now();
 	cnvim2col.Forward();
-	auto time1 = std::chrono::system_clock::now();
+	auto fw_time1 = std::chrono::system_clock::now();
 
-	std::cout << "\n\n[CPU Core i7-4770]" << std::endl;
-	double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(time1-time0).count();
-	std::cout << "OpenMP : " << elapsed << " [msec]" << std::endl;
+	std::cout << "\n\n[CPU]" << std::endl;
+	double fw_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(fw_time1-fw_time0).count();
+	std::cout << "OpenMP : " << fw_elapsed << " [msec]" << std::endl;
 	std::cout << "\n\n";
 
 
@@ -125,6 +126,62 @@ TEST(cudaIm2ColTest, testcudaIm2Col)
 //			std::cout << out_sig_buf.GetReal(frame, node) << ", " << out_sig[node*output_frame_size + frame] << std::endl;
 		}
 	}
+
+
+
+	// backward
+	std::cout << "<<<backward>>\n";
+
+	std::vector<float> in_err(input_frame_size * input_node_size);
+	std::vector<float> out_err(output_frame_size * output_node_size);
+
+	idx = 0;
+	for ( int frame = 0; frame < output_frame_size; ++frame ) {
+		for ( int node = 0; node < output_node_size; ++node ) {
+//			out_err[node*output_frame_size + frame] = idx++; // norm_rand(mt); // frame * 1000 + node;
+			out_err[node*output_frame_size + frame] = out_sig[node*output_frame_size + frame];
+		}
+	}
+
+	auto in_err_buf = cnvim2col.GetInputErrorBuffer();
+	auto out_err_buf = cnvim2col.GetOutputErrorBuffer();
+	for ( int frame = 0; frame < output_frame_size; ++frame ) {
+		for ( int node = 0; node < output_node_size; ++node ) {
+			out_err_buf.SetReal(frame, node, out_err[node*output_frame_size + frame]);
+		}
+	}
+
+	std::cout << "[GPU]" << std::endl;
+
+	bbcu_eva_Im2Col_Backward(
+			&in_err[0],
+			&out_err[0],
+			input_frame_size,
+			input_w_size,
+			input_h_size,
+			c_size,
+			filter_w_size,
+			filter_h_size
+		);
+
+	auto bw_time0 = std::chrono::system_clock::now();
+	cnvim2col.Backward();
+	auto bw_time1 = std::chrono::system_clock::now();
+
+	std::cout << "\n\n[CPU]" << std::endl;
+	double bw_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(bw_time1-bw_time0).count();
+	std::cout << "OpenMP : " << bw_elapsed << " [msec]" << std::endl;
+	std::cout << "\n\n";
+	
+	for ( int frame = 0; frame < input_frame_size; ++frame ) {
+		for ( int node = 0; node < input_node_size; ++node ) {
+			EXPECT_EQ(in_err_buf.GetReal(frame, node), in_err_buf.GetReal(frame, node));
+//			EXPECT_EQ(in_err_buf.GetReal(frame, node), in_err[node*input_frame_size + frame]);
+//			std::cout << in_err_buf.GetReal(frame, node) << ", " << in_err[node*input_frame_size + frame] << std::endl;
+		}
+	}
+
+
 }
 
 
