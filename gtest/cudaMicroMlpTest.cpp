@@ -44,9 +44,9 @@ inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 
 #else
 
-#define FRAME_SIZE			(64*28*28)
+#define FRAME_SIZE			(128*28*28)
 #define INPUT_NODE_SIZE		(128*3*3)
-#define OUTPUT_NODE_SIZE	(128)
+#define OUTPUT_NODE_SIZE	(256)
 
 #endif
 
@@ -232,6 +232,11 @@ TEST(cudaMicroMlpTest, test_cudaMicroMlp2)
 	auto bw_time0 = std::chrono::system_clock::now();
 	umlp_cpu.Backward();
 	auto bw_time1 = std::chrono::system_clock::now();
+
+	std::cout << "[CPU]" << std::endl;
+	elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(bw_time1-bw_time0).count();
+	std::cout << "OpenMP + AVX2 : " << elapsed << " [msec]" << std::endl;
+	std::cout << "\n\n";
 
 
 	for (int i = 0; i < OUTPUT_NODE_SIZE; i++) {
