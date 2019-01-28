@@ -15,7 +15,7 @@
 #include <vector>
 #include <random>
 
-#include "bb/NeuralNetType.h"
+#include "bb/DataType.h"
 
 
 namespace bb {

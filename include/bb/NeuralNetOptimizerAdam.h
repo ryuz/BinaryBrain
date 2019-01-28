@@ -52,7 +52,7 @@ protected:
 
 	void UpdateParam(INDEX index, T& param, const T grad)
 	{
-		BB_ASSERT(index >= 0 && index < m_m.size());
+		BB_ASSERT(index >= 0 && index < (INDEX)m_m.size());
 		
 		m_m[index] += ((T)1 - m_beta1) * (grad - m_m[index]);
 		m_v[index] += ((T)1 - m_beta2) * (grad*grad - m_v[index]);
