@@ -35,6 +35,7 @@ class Tensor
 {
 protected:
 	std::shared_ptr<Memory>			m_mem;
+    Memory::Ptr                     m_ptr;
 	int								m_type = 0;
 	INDEX							m_size = 0;
 
@@ -73,9 +74,9 @@ public:
 	{
 		Tensor tensor(m_shape, m_type);
 
-		memcpy(tensor.m_mem->Lock(BB_MEMORY_MODE_NW), m_mem->Lock(BB_MEMORY_MODE_READ), m_mem->GetSize());
-        tensor.m_mem->Unlock();
-        m_mem->Unlock();
+        auto src_ptr = m_mem->Lock(BB_MEMORY_MODE_READ);
+        auto dst_ptr = tensor.m_mem->Lock(BB_MEMORY_MODE_READ);
+		memcpy(dst_ptr.GetPtr(), src_ptr.GetPtr(), m_mem->GetSize());
 
 		tensor.m_type = m_type;
 		tensor.m_size = m_size;
@@ -106,7 +107,7 @@ public:
         m_size = total;
 
 		// メモリ確保
-		m_mem = std::make_shared<Memory>(m_size * DataType_GetByteSize(type));
+		m_mem = Memory::Create(m_size * DataType_GetByteSize(type));
 	}
 
 	void Resize(INDEX size, int type)
@@ -120,7 +121,7 @@ public:
 		m_stride[0] = 1;
 
 		// メモリ確保
-		m_mem = std::make_shared<Memory>(m_size * DataType_GetByteSize(type));
+		m_mem = Memory::Create(m_size * DataType_GetByteSize(type));
 	}
 
 	std::vector<INDEX> GetShape(void) const
@@ -128,6 +129,21 @@ public:
 		return m_shape;
 	}
 
+
+    // -------------------------------------
+    //  アクセサ
+    // -------------------------------------
+
+    void Lock(int mode = BB_MEMORY_MODE_RW)
+    {
+        m_ptr = std::move(m_mem->Lock(mode));
+    }
+
+    void Unlock(void)
+    {
+        m_ptr.Clear();
+    }
+    
 	template <typename Tp>
 	inline const Tp& At(std::vector<INDEX> indices) const
 	{
@@ -138,7 +154,7 @@ public:
 			index += indices[i] * m_stride[i];
 		}
 
-		return ((Tp *)m_mem->GetPtr())[index];
+		return ((Tp *)m_ptr.GetPtr())[index];
 	}
 
    	template <typename Tp>
@@ -151,25 +167,26 @@ public:
 			index += indices[i] * m_stride[i];
 		}
 
-		return ((Tp *)m_mem->GetPtr())[index];
+		return ((Tp *)m_ptr.GetPtr())[index];
 	}
 
 	template <typename Tp>
 	inline const Tp& At(INDEX index) const 
 	{
 		BB_DEBUG_ASSERT(index >= 0 && index < m_size);
-		return ((const Tp *)m_mem->GetPtr())[index];
+		return ((const Tp *)m_ptr.GetPtr())[index];
 	}
 	
     template <typename Tp>
 	inline Tp& At(INDEX index)
 	{
 		BB_DEBUG_ASSERT(index >= 0 && index < m_size);
-		return ((Tp *)m_mem->GetPtr())[index];
+		return ((Tp *)m_ptr.GetPtr())[index];
 	}
 
 	INDEX GetMemorySize(void) const { return m_mem->GetSize(); }
 //	void* GetMemoryPtr(void)  const { return m_mem->Lock().GetPtr(); }
+
 
     // operator
     inline const Tensor& operator+=(const Tensor& op)
@@ -177,11 +194,14 @@ public:
         if ( m_type == BB_TYPE_FP32 ) {
 #ifdef BB_WITH_CUDA
             if ( m_mem->IsDeviceAvailable() && op.m_mem->IsDeviceAvailable()) {
-                auto dst_ptr = (float *)m_mem->LockDevice(BB_MEMORY_MODE_RW);
-                auto src_ptr = (float *)op.m_mem->LockDevice(BB_MEMORY_MODE_READ);
-                bbcu_Scalar_add_ex(dst_ptr, dst_ptr, src_ptr, 1.0f, 1.0f, 0.0f, (int)m_size);
-                m_mem->UnlockDevice();
-                op.m_mem->LockDevice();
+                auto ptrDst = m_mem->LockDevice(BB_MEMORY_MODE_RW);
+                if ( m_mem == op.m_mem ) {
+                    bbcu_Scalar_add_ex((float *)ptrDst.GetDevPtr(), (float *)ptrDst.GetDevPtr(), (float *)ptrDst.GetDevPtr(), 1.0f, 1.0f, 0.0f, (int)m_size);
+                }
+                else {
+                    auto ptrSrc = op.m_mem->LockDevice(BB_MEMORY_MODE_READ);
+                    bbcu_Scalar_add_ex((float *)ptrDst.GetDevPtr(), (float *)ptrDst.GetDevPtr(), (float *)ptrSrc.GetDevPtr(), 1.0f, 1.0f, 0.0f, (int)m_size);
+                }
                 return *this;
             }
 #endif
