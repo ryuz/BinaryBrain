@@ -114,7 +114,7 @@ inline __m256 bb_mm256_hsum_ps(__m256 r)
 
 
 #if !defined(__AVX__) && !defined(__AVX2__)
-#error AVX is not supported 
+// #error AVX is not supported 
 #endif
 
 #if defined(__AVX__) && !defined(__AVX2__)

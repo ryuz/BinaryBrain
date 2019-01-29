@@ -20,6 +20,9 @@
     <CudaCompile Include="HorizontalSum.cu">
       <Filter>ソース ファイル</Filter>
     </CudaCompile>
+    <CudaCompile Include="Scalar.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\bbcu\bbcu.h">

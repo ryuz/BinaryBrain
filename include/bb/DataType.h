@@ -24,24 +24,32 @@ namespace bb {
 // 将来整数をやる場合はいろいろ必要と思う
 
 
-#define BB_TYPE_BOOL		(0x0000 + 1)
-#define BB_TYPE_BINARY		(0x0000 + 1)
+//#define BB_TYPE_BOOL		(0x0000 + 1)
+#define BB_TYPE_BIT			(0x0000 + 1)
+#define BB_TYPE_BINARY		(0x0000 + 2)
 
-//#define BB_TYPE_REAL16	(0x0100 + 16)
-#define BB_TYPE_REAL32		(0x0100 + 32)
-#define BB_TYPE_REAL64		(0x0100 + 64)
+#define BB_TYPE_FP16	    (0x0100 + 16)
+#define BB_TYPE_FP32		(0x0100 + 32)
+#define BB_TYPE_FP64		(0x0100 + 64)
 
 #define BB_TYPE_INT8		(0x0200 + 8)
 #define BB_TYPE_INT16		(0x0200 + 16)
 #define BB_TYPE_INT32		(0x0200 + 32)
 #define BB_TYPE_INT64		(0x0200 + 64)
 
+#define BB_TYPE_UINT8		(0x0300 + 8)
+#define BB_TYPE_UINT16		(0x0300 + 16)
+#define BB_TYPE_UINT32		(0x0300 + 32)
+#define BB_TYPE_UINT64		(0x0300 + 64)
 
+
+
+#define BB_ASSERT(v)	    	assert(v)
 
 #ifdef _DEBUG
-#define BB_ASSERT(v)		assert(v)
+#define BB_DEBUG_ASSERT(v)		assert(v)
 #else
-#define BB_ASSERT(v)		do{}while(0)
+#define BB_DEBUG_ASSERT(v)		do{}while(0)
 #endif
 
 
@@ -152,7 +160,8 @@ inline Sign& Sign::operator=(const Binary& bin) { m_value = (bool)bin; return *t
 
 
 
-template<typename _Tp> class NeuralNetType
+// データタイプ定義
+template<typename _Tp> class DataType
 {
 public:
 	typedef _Tp value_type;
@@ -162,80 +171,168 @@ public:
 	};
 };
 
-
-template<> class NeuralNetType<bool>
+/*
+template<> class DataType<bool>
 {
 public:
 	typedef float value_type;
 	enum {
 		type = BB_TYPE_BOOL,
-		bit_size = 1
+		bit_size = 1,
 	};
 };
+*/
 
-template<> class NeuralNetType<Bit>
+template<> class DataType<Bit>
 {
 public:
 	typedef float value_type;
 	enum {
-		type = BB_TYPE_BOOL,
-		bit_size = 1
+		type = BB_TYPE_BIT,
+		bit_size = 1,
 	};
 };
 
-template<> class NeuralNetType<Binary>
+template<> class DataType<Binary>
 {
 public:
 	typedef float value_type;
 	enum {
 		type = BB_TYPE_BINARY,
-		bit_size = 8
+		bit_size = 8,
 	};
 };
 
-
-template<> class NeuralNetType<float>
+template<> class DataType<std::int8_t>
 {
 public:
 	typedef float value_type;
 	enum {
-		type = BB_TYPE_REAL32,
-		bit_size = 32
+		type = BB_TYPE_INT8,
+		bit_size = 8,
 	};
 };
 
-template<> class NeuralNetType<double>
+template<> class DataType<std::int16_t>
 {
 public:
 	typedef float value_type;
 	enum {
-		type = BB_TYPE_REAL64,
-		bit_size = 32
+		type = BB_TYPE_INT16,
+		bit_size = 16,
+	};
+};
+
+template<> class DataType<std::int32_t>
+{
+public:
+	typedef float value_type;
+	enum {
+		type = BB_TYPE_INT32,
+		bit_size = 32,
+	};
+};
+
+template<> class DataType<std::int64_t>
+{
+public:
+	typedef float value_type;
+	enum {
+		type = BB_TYPE_INT64,
+		bit_size = 64,
+	};
+};
+
+template<> class DataType<float>
+{
+public:
+	typedef float value_type;
+	enum {
+		type = BB_TYPE_FP32,
+		bit_size = 32,
+	};
+};
+
+template<> class DataType<double>
+{
+public:
+	typedef float value_type;
+	enum {
+		type = BB_TYPE_FP64,
+		bit_size = 32,
 	};
 };
 
 
-inline int NeuralNet_GetTypeBitSize(int type)
+inline int DataType_GetBitSize(int type)
 {
 	switch (type) {
+	case BB_TYPE_BIT:    return 1;
+	case BB_TYPE_BINARY: return 8;
+	case BB_TYPE_FP16:   return 16;
+	case BB_TYPE_FP32:   return 32;
+	case BB_TYPE_FP64:   return 64;
+	case BB_TYPE_INT8:	 return 8;
+	case BB_TYPE_INT16:  return 16;
+	case BB_TYPE_INT32:  return 32;
+	case BB_TYPE_INT64:  return 64;
+	case BB_TYPE_UINT8:	 return 8;
+	case BB_TYPE_UINT16: return 16;
+	case BB_TYPE_UINT32: return 32;
+	case BB_TYPE_UINT64: return 64;
+	}
+
+	return 0;
+}
+
+inline int DataType_GetByteSize(int type)
+{
+	switch (type) {
+	case BB_TYPE_BIT:    return 1;
 	case BB_TYPE_BINARY: return 1;
-	case BB_TYPE_REAL32: return 32;
-	case BB_TYPE_REAL64: return 64;
+	case BB_TYPE_FP16:   return 2;
+	case BB_TYPE_FP32:   return 4;
+	case BB_TYPE_FP64:   return 8;
+	case BB_TYPE_INT8:	 return 1;
+	case BB_TYPE_INT16:  return 2;
+	case BB_TYPE_INT32:  return 4;
+	case BB_TYPE_INT64:  return 8;
+	case BB_TYPE_UINT8:	 return 1;
+	case BB_TYPE_UINT16: return 2;
+	case BB_TYPE_UINT32: return 4;
+	case BB_TYPE_UINT64: return 8;
 	}
 
 	return 0;
 }
 
 
+
+// アクセサ
 template<typename Tp>
-inline void NeuralNet_Write(void* base, size_t index, Tp value)
+inline void DataType_Write(void* base, INDEX index, Tp value)
 {
 	Tp* ptr = (Tp*)base;
 	ptr[index] = value;
 }
 
+/*
 template<>
-inline void NeuralNet_Write<bool>(void* base, size_t index, bool value)
+inline void DataType_Write<bool>(void* base, INDEX index, bool value)
+{
+	std::uint8_t* ptr = (std::uint8_t*)base;
+	std::uint8_t mask = (std::uint8_t)(1 << (index % 8));
+	if (value) {
+		ptr[index / 8] |= mask;
+	}
+	else {
+		ptr[index / 8] &= ~mask;
+	}
+}
+*/
+
+template<>
+inline void DataType_Write<Bit>(void* base, INDEX index, Bit value)
 {
 	std::uint8_t* ptr = (std::uint8_t*)base;
 	std::uint8_t mask = (std::uint8_t)(1 << (index % 8));
@@ -247,34 +344,30 @@ inline void NeuralNet_Write<bool>(void* base, size_t index, bool value)
 	}
 }
 
-template<>
-inline void NeuralNet_Write<Bit>(void* base, size_t index, Bit value)
-{
-	NeuralNet_Write<bool>(base, index, (bool)value);
-}
-
-
 
 template<typename Tp>
-inline Tp NeuralNet_Read(const void *base, size_t index)
+inline Tp DataType_Read(const void *base, INDEX index)
 {
 	const Tp* ptr = (Tp*)base;
 	return ptr[index];
 }
 
+/*
 template <>
-inline bool NeuralNet_Read<bool>(const void *base, size_t index)
+inline bool DataType_Read<bool>(const void *base, INDEX index)
 {
 	const std::uint8_t* ptr = (std::uint8_t*)base;
 	std::uint8_t mask = (std::uint8_t)(1 << (index % 8));
 	return ((ptr[index / 8] & mask) != 0);
 }
-
+*/
 
 template<>
-inline Bit NeuralNet_Read<Bit>(const void* base, size_t index)
+inline Bit DataType_Read<Bit>(const void* base, INDEX index)
 {
-	return (Bit)NeuralNet_Read<bool>(base, index);
+	const std::uint8_t* ptr = (std::uint8_t*)base;
+	std::uint8_t mask = (std::uint8_t)(1 << (index % 8));
+	return ((ptr[index / 8] & mask) != 0);
 }
 
 

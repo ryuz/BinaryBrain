@@ -7,65 +7,34 @@
 
 
 #include <iostream>
-#include <fstream>
-#include <numeric>
-#include <random>
-#include <chrono>
+#include <omp.h>
 
-#include <cereal/cereal.hpp>
-#include <cereal/types/array.hpp>
-#include <cereal/types/vector.hpp>
-#include <cereal/archives/json.hpp>
 
-#include "bb/NeuralNet.h"
-#include "bb/NeuralNetUtility.h"
 
-#include "bb/NeuralNetSigmoid.h"
-#include "bb/NeuralNetReLU.h"
-#include "bb/NeuralNetSoftmax.h"
-#include "bb/NeuralNetBinarize.h"
-#include "bb/NeuralNetDropout.h"
+void MnistCnnBin(int epoch_size, size_t max_batch_size, bool binary_mode = true);
 
-#include "bb/NeuralNetSparseMicroMlp.h"
-#include "bb/NeuralNetSparseMicroMlpDiscrete.h"
 
-#include "bb/NeuralNetBinaryMultiplex.h"
+// メイン関数
+int main()
+{
+	omp_set_num_threads(4);
 
-#include "bb/NeuralNetBatchNormalization.h"
+	MnistCnnBin(64, 128, true);
 
-#include "bb/NeuralNetDenseAffine.h"
-#include "bb/NeuralNetSparseAffine.h"
-#include "bb/NeuralNetSparseBinaryAffine.h"
+	getchar();
+	return 0;
+}
 
-#include "bb/NeuralNetRealToBinary.h"
-#include "bb/NeuralNetBinaryToReal.h"
-#include "bb/NeuralNetBinaryLut6.h"
 
-#include "bb/NeuralNetBinaryLut6VerilogXilinx.h"
-#include "bb/NeuralNetBinaryLutVerilog.h"
-#include "bb/NeuralNetOutputVerilog.h"
 
-#include "bb/NeuralNetSparseAffineSigmoid.h"
 
-#include "bb/NeuralNetOptimizerSgd.h"
-#include "bb/NeuralNetOptimizerAdam.h"
 
-#include "bb/NeuralNetDenseConvolution.h"
-#include "bb/NeuralNetMaxPooling.h"
 
-#include "bb/NeuralNetLossCrossEntropyWithSoftmax.h"
-#include "bb/NeuralNetAccuracyCategoricalClassification.h"
 
-#include "bb/NeuralNetLoweringConvolution.h"
 
-#include "bb/ShuffleSet.h"
 
-#include "bb/LoadMnist.h"
-#include "bb/DataAugmentationMnist.h"
-#include "bb/NeuralNetDenseToSparseAffine.h"
 
-#include "bb/ShuffleSet.h"
-
+#if 0
 void WriteTestImage(void);
 
 
@@ -4333,3 +4302,4 @@ void MnistLutSimpleConvolutionBinary2(int epoch_size, size_t max_batch_size, boo
 
 
 
+#endif

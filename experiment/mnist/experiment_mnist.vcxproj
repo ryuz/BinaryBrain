@@ -86,7 +86,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BB_WITH_CUDA;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\..\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -106,7 +106,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BB_WITH_CUDA;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\..\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
@@ -129,7 +129,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BB_WITH_CUDA;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\..\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
@@ -153,7 +153,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BB_WITH_CUDA;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\..\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
@@ -174,76 +174,12 @@
   <ItemGroup>
     <ClCompile Include="evaluate_micro_mlp.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MnistCnnBin.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\include\bb\DataAugmentationMnist.h" />
-    <ClInclude Include="..\..\include\bb\LoadCifar10.h" />
-    <ClInclude Include="..\..\include\bb\LoadMnist.h" />
-    <ClInclude Include="..\..\include\bb\LoadXor.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNet.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetAccuracyBool.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetAccuracyCategoricalClassification.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetAccuracyFunction.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetAffine.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetBatchNormalization.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetBatchNormalizationAvx.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetBatchNormalizationBinarization.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetBatchNormalizationEigen.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetBinarize.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetBinaryConvolutionJelly.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetBinaryFilter.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetBinaryLut.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetBinaryLut6.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetBinaryLut6VerilogXilinx.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetBinaryLutN.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetBinaryLutVerilog.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetBinaryMultiplex.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetBinaryToReal.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetBuffer.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetConvCollapse.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetConvolutionCol2Im.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetConvolutionIm2Col.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetDenseAffine.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetDenseAffineSigmoid.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetDenseConvolution.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetDenseToSparseAffine.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetDropout.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetFilter2d.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetGroup.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetLayer.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetLayerBuf.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetLossCrossEntropyWithSoftmax.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetLossFunction.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetLossMeanSquaredError.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetLoweringConvolution.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetLut.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetLutPost.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetLutPre.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetLutStackedAffine.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetMaxPooling.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetOptimizer.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetOptimizerAdam.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetOptimizerSgd.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetOutputVerilog.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetRealToBinary.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetReLU.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetSigmoid.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetSoftmax.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetSparseAffine.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetSparseAffineSigmoid.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetSparseBinaryAffine.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetSparseLayer.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetSparseMiniMlp.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetSparseMiniMlpDiscrete.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetSparseMiniMlpPostAffine.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetSparseMiniMlpPreAffine.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetStackedMiniAffine.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetType.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetUtility.h" />
-    <ClInclude Include="..\..\include\bb\ShuffleSet.h" />
-    <ClInclude Include="..\..\include\bb\SimdSupport.h" />
-    <ClInclude Include="..\..\include\bb\TrainData.h" />
-    <ClInclude Include="mnist_read.h" />
+    <ClInclude Include="..\..\include\bb\DataType.h" />
+    <ClInclude Include="..\..\include\bb\Memory.h" />
+    <ClInclude Include="..\..\include\bb\Variables.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
