@@ -332,7 +332,7 @@ template<typename T>
 Tensor_<T> operator+(const Tensor_<T>& src0, T src1)
 {
    BB_ASSERT(src0.m_size == src1.m_size);
-   Tensor_<T>  dst(op0.m_shape);
+   Tensor_<T>  dst(src0.m_shape);
    auto op3 = Memory::GetOp3Ptr(dst.m_mem, dst.m_mem, src0.m_mem);
    Tensor_Scalar_add_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)0, src1, dst.m_size);
    return dst;
@@ -482,11 +482,11 @@ public:
         BB_ASSERT(DataType<Tp>::type == m_type);
 
         Tensor_<Tp> tensor;
-   		tensor.m_mem  = src.m_mem;
-		tensor.m_type = src.m_type;
-		tensor.m_size = src.m_size;
-		tensor.m_shape = src.m_shape;
-		tensor.m_stride = src.m_stride;
+   		tensor.m_mem  = m_mem;
+		tensor.m_type = m_type;
+		tensor.m_size = m_size;
+		tensor.m_shape = m_shape;
+		tensor.m_stride = m_stride;
 		return tensor;
     }
 
