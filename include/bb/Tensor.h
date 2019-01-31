@@ -139,8 +139,8 @@ public:
 	{
 		Tensor_ tensor(m_shape);
 
-        auto src_ptr = m_mem->Lock(BB_MEMORY_MODE_READ);
-        auto dst_ptr = tensor.m_mem->Lock(BB_MEMORY_MODE_READ);
+        auto src_ptr = m_mem->GetConstPtr();
+        auto dst_ptr = tensor.m_mem->GetPtr(true);
 		memcpy(dst_ptr.GetPtr(), src_ptr.GetPtr(), m_mem->GetSize());
 
 		tensor.m_size = m_size;

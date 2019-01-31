@@ -18,6 +18,7 @@ TEST(TensorTest, testTensor)
     t0[0] = 1;
     t0.Unlock();
 
+    bb::Tensor tt(16, BB_TYPE_FP32);
 
     t0 += t1;
     t0 += 1.0f;
