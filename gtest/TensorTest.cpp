@@ -140,20 +140,21 @@ TEST(TensorTest, testTensorOp)
     for (int i = 0; i < N; ++i) {
         d0[i] = (float)(mt() % 10000);
         d1[i] = (float)(mt() % 10000);
+//       d0[i] = (float)(i);
+//       d1[i] = (float)(i * 100);
     }
     
     bb::Tensor_<float> t0(16);
     bb::Tensor_<float> t1(16);
     bb::Tensor_<float> t2(16);
 
-    // ‰ÁŽZ1
+    // ‰ÁŽZ1-1
     t0.Lock(); t1.Lock();
     for (int i = 0; i < N; ++i) { t0[i] = d0[i]; t1[i] = d1[i]; }
     t0.Unlock(); t1.Unlock();
 
     t0 += t1;
     
-    cudaDeviceSynchronize();
     t0.Lock();
     for (int i = 0; i < N; ++i) {
         EXPECT_EQ(t0[i], d0[i] + d1[i]);
@@ -161,7 +162,22 @@ TEST(TensorTest, testTensorOp)
     t0.Unlock();
 
 
-    // ‰ÁŽZ2
+    // ‰ÁŽZ1-2
+    t0.Lock(); t1.Lock();
+    for (int i = 0; i < N; ++i) { t0[i] = d0[i]; t1[i] = d1[i]; }
+    t0.Unlock(); t1.Unlock();
+
+    t0 += d1[0];
+    
+    t0.Lock();
+    for (int i = 0; i < N; ++i) {
+        EXPECT_EQ(t0[i], d0[i] + d1[0]);
+    }
+    t0.Unlock();
+
+
+
+    // ‰ÁŽZ2-1
     t0.Lock(); t1.Lock();
     for (int i = 0; i < N; ++i) { t0[i] = d0[i]; t1[i] = d1[i]; }
     t0.Unlock(); t1.Unlock();
@@ -174,6 +190,33 @@ TEST(TensorTest, testTensorOp)
     }
     t2.Unlock();
 
+
+    // ‰ÁŽZ2-2
+    t0.Lock(); t1.Lock();
+    for (int i = 0; i < N; ++i) { t0[i] = d0[i]; t1[i] = d1[i]; }
+    t0.Unlock(); t1.Unlock();
+
+    t2 = t0 + d1[0];
+    
+    t2.Lock();
+    for (int i = 0; i < N; ++i) {
+        EXPECT_EQ(t2[i], d0[i] + d1[0]);
+    }
+    t2.Unlock();
+
+
+    // ‰ÁŽZ2-3
+    t0.Lock(); t1.Lock();
+    for (int i = 0; i < N; ++i) { t0[i] = d0[i]; t1[i] = d1[i]; }
+    t0.Unlock(); t1.Unlock();
+
+    t2 = d0[0] + t1;
+    
+    t2.Lock();
+    for (int i = 0; i < N; ++i) {
+        EXPECT_EQ(t2[i], d0[0] + d1[i]);
+    }
+    t2.Unlock();
 
 
 

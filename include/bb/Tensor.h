@@ -390,22 +390,21 @@ Tensor_<T> operator+(const Tensor_<T> &src0, Tensor_<T> const &src1)
 template<typename T>
 Tensor_<T> operator+(const Tensor_<T>& src0, T src1)
 {
-   BB_ASSERT(src0.m_size == src1.m_size);
    Tensor_<T>  dst(src0.m_shape);
-   auto op3 = Memory::GetOp3Ptr(dst.m_mem, dst.m_mem, src0.m_mem);
+   auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
    Tensor_Scalar_add_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)0, src1, dst.m_size);
    return dst;
 }
 
 template<typename T>
-inline Tensor_<T> operator+(T src0, Tensor_<T> const &src1)
+Tensor_<T> operator+(T src0, Tensor_<T> const &src1)
 {
     return src1 + src0;
 }
 
 
 template<typename T>
-inline Tensor_<T> operator-(const Tensor_<T> &src0, Tensor_<T> const &src1)
+Tensor_<T> operator-(const Tensor_<T> &src0, Tensor_<T> const &src1)
 {
     BB_ASSERT(src0.m_size == src1.m_size);
     Tensor_<T>  dst(src0.m_shape);
@@ -415,7 +414,7 @@ inline Tensor_<T> operator-(const Tensor_<T> &src0, Tensor_<T> const &src1)
 }
 
 template<typename T>
-inline Tensor_<T> operator-(const Tensor_<T>& src0, T src1)
+Tensor_<T> operator-(const Tensor_<T>& src0, T src1)
 {
    BB_ASSERT(src0.m_size == src1.m_size);
    Tensor_<T>  dst(src0.m_shape);
@@ -425,7 +424,7 @@ inline Tensor_<T> operator-(const Tensor_<T>& src0, T src1)
 }
 
 template<typename T>
-inline Tensor_<T> operator-(T src0, Tensor_<T> const &src1)
+Tensor_<T> operator-(T src0, Tensor_<T> const &src1)
 {
    BB_ASSERT(src0.m_size == src1.m_size);
    Tensor_<T>  dst(src1.m_shape);
@@ -462,6 +461,22 @@ inline Tensor_<float> & Tensor_<float>::operator+=(Tensor_<float> const &src)
 }
 
 template<>
+inline Tensor_<float> & Tensor_<float>::operator+=(float src)
+{
+    // CUDA
+    if ( m_mem->IsDeviceAvailable() ) {
+        auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, m_mem);
+        bbcu_Scalar_add_ex((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 0.0f, src, (int)m_size);
+        return *this;
+    }
+
+    // CPU
+    auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
+    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 0.0f, src, m_size);
+    return *this;
+}
+
+template<>
 inline Tensor_<float> operator+(const Tensor_<float> &src0, Tensor_<float> const &src1)
 {
     BB_ASSERT(src0.m_size == src1.m_size);
@@ -469,7 +484,7 @@ inline Tensor_<float> operator+(const Tensor_<float> &src0, Tensor_<float> const
 
     // CUDA
     if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() ) {
-        auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
+        auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
         bbcu_Scalar_add_ex((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 1.0f, 0.0f, (int)dst.m_size);
         return dst;
     }
@@ -477,6 +492,42 @@ inline Tensor_<float> operator+(const Tensor_<float> &src0, Tensor_<float> const
     // CPU
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
     Tensor_Scalar_add_ex<float>((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 1.0f, 0.0f, dst.m_size);
+    return dst;
+}
+
+template<>
+inline Tensor_<float> operator+(const Tensor_<float> &src0, float src1)
+{
+    Tensor_<float>  dst(src0.m_shape);
+
+    // CUDA
+    if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() ) {
+        auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
+        bbcu_Scalar_add_ex((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 0.0f, src1, (int)dst.m_size);
+        return dst;
+    }
+
+    // CPU
+    auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
+    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 0.0f, src1, dst.m_size);
+    return dst;
+}
+
+template<>
+inline Tensor_<float> operator+(float src0, const Tensor_<float> &src1)
+{
+    Tensor_<float>  dst(src1.m_shape);
+
+    // CUDA
+    if ( dst.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() ) {
+        auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
+        bbcu_Scalar_add_ex((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 0.0f, src0, (int)dst.m_size);
+        return dst;
+    }
+
+    // CPU
+    auto op3 = Memory::GetOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
+    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 0.0f, src0, dst.m_size);
     return dst;
 }
 
