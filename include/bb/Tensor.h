@@ -29,13 +29,349 @@
 
 namespace bb {
 
+
+// -------------------------------------
+//  基本演算定義
+// -------------------------------------
+
+template<typename T>
+inline void Tensor_Scalar_add_ex
+(
+    T       *dst,
+    T const *src0,
+    T const *src1,
+    T	    a,
+    T	    b,
+    T	    c,
+    INDEX   size
+)
+{
+    #pragma omp parallel for 
+    for (INDEX i = 0; i < size; ++i) {
+        dst[i] = a * src0[i] + b * src1[i] + c;
+    }
+}
+
+template<typename T>
+inline void Tensor_Scalar_mul_ex
+(
+    T       *dst,
+    T const *src0,
+    T const *src1,
+    T	    a,
+    T	    b,
+    INDEX   size
+)
+{
+    #pragma omp parallel for 
+    for (INDEX i = 0; i < size; ++i) {
+        dst[i] = a * src0[i] * src1[i] + b;
+    }
+}
+
+template<typename T>
+inline void Tensor_Scalar_div_ex
+(
+    T       *dst,
+    T const *src0,
+    T const *src1,
+    T	    a,
+    T	    b,
+    T	    c,
+    T	    d,
+    INDEX   size
+)
+{
+    #pragma omp parallel for 
+    for (INDEX i = 0; i < size; ++i) {
+        dst[i] = (a * src0[i] + b) / (c * src1[i] + d);
+    }
+}
+
+
+
+// -------------------------------------
+//  型固定テンソル
+// -------------------------------------
+
+class Tensor;
+
 template<typename T>
 class Tensor_
 {
+    friend  Tensor;
 
-    Tensor_(){}
+protected:
+	std::shared_ptr<Memory>	m_mem;
+    Memory::Ptr             m_ptr;
+	INDEX					m_size = 0;
+
+	std::vector<INDEX>		m_shape;
+	std::vector<INDEX>		m_stride;
 public:
+    Tensor_(){}
+
+    Tensor_(const Tensor_& tensor)
+	{
+		*this = tensor;
+	}
+
+	Tensor_(INDEX size)
+	{
+		Resize(size);
+	}
+
+	Tensor_(std::vector<INDEX> shape)
+	{
+		Resize(shape);
+	}
+
+	Tensor_& operator=(const Tensor_ &src)
+	{
+		m_mem  = src.m_mem;
+		m_size = src.m_size;
+		m_shape  = src.m_shape;
+		m_stride = src.m_stride;
+		return *this;
+	}
+
+	Tensor_ Clone(void) const
+	{
+		Tensor_ tensor(m_shape);
+
+        auto src_ptr = m_mem->Lock(BB_MEMORY_MODE_READ);
+        auto dst_ptr = tensor.m_mem->Lock(BB_MEMORY_MODE_READ);
+		memcpy(dst_ptr.GetPtr(), src_ptr.GetPtr(), m_mem->GetSize());
+
+		tensor.m_size = m_size;
+		tensor.m_shape  = m_shape;
+		tensor.m_stride = m_stride;
+
+		return tensor;
+	}
+
+	void Resize(std::vector<INDEX> shape)
+	{
+		// サイズ算出
+		m_shape = shape;
+        m_stride.clear();
+		INDEX total = 1;
+		for (auto len : m_shape) {
+			m_stride.push_back(total);
+			total *= len;
+		}
+        m_size = total;
+
+		// メモリ確保
+		m_mem = Memory::Create(m_size * DataType<T>::size);
+	}
+
+	void Resize(INDEX size)
+	{
+		// 設定保存
+        m_size = size;
+		m_shape.resize(1);
+		m_stride.resize(1);
+        m_shape[0] = size;
+		m_stride[0] = 1;
+
+		// メモリ確保
+		m_mem = Memory::Create(m_size * DataType<T>::size);
+	}
+
+	std::vector<INDEX> GetShape(void) const
+	{
+		return m_shape;
+	}
+
+    // -------------------------------------
+    //  アクセサ
+    // -------------------------------------
+    
+    void Lock()
+    {
+        m_ptr = m_mem->GetPtr();
+    }
+
+    void Unlock(void)
+    {
+        m_ptr.Clear();
+    }
+
+   	INDEX GetMemorySize(void) const
+    {
+        return m_mem->GetSize();
+    }
+
+   	void* GetMemoryPtr(void) const
+    {
+        return m_mem->GetPtr();
+    }
+
+	inline T const & operator()(std::vector<INDEX> indices) const
+	{
+		BB_ASSERT(indices.size() == m_shape.size());
+
+		INDEX index = 0;
+		for (int i = 0; i < (int)indices.size(); ++i) {
+			index += indices[i] * m_stride[i];
+		}
+
+		return m_ptr.At<T>(index);
+	}
+
+	inline T & operator()(std::vector<INDEX> indices)
+	{
+		BB_ASSERT(indices.size() == m_shape.size());
+
+		INDEX index = 0;
+		for (int i = 0; i < (int)indices.size(); ++i) {
+			index += indices[i] * m_stride[i];
+		}
+
+		return m_ptr.At<T>(index);
+	}
+
+	inline T const & operator[](INDEX index) const 
+	{
+		BB_DEBUG_ASSERT(index >= 0 && index < m_size);
+		return ((const T *)m_ptr.GetPtr())[index];
+	}
+	
+	inline T & operator[](INDEX index)
+	{
+		BB_DEBUG_ASSERT(index >= 0 && index < m_size);
+		return m_ptr.At<T>(index);
+	}
+    
+
+    // -------------------------------------
+    //  演算
+    // -------------------------------------
+
+    inline Tensor_& operator+=(Tensor_ const &src)
+    {
+        BB_ASSERT(m_size == src.m_size);
+        auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, src.m_mem);
+        Tensor_Scalar_add_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)1, (T)0, m_size);
+        return *this;
+    }
+
+    inline Tensor_& operator+=(T src)
+    {
+        BB_ASSERT(m_size == op.m_size);
+        auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
+        Tensor_Scalar_add_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)0, src, m_size);
+        return *this;
+    }
+
+    inline Tensor_& operator-=(Tensor_ const &src)
+    {
+        BB_ASSERT(m_size == src.m_size);
+        auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, src.m_mem);
+        Tensor_Scalar_add_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)-1, (T)0, m_size);
+        return *this;
+    }
+
+    inline Tensor_& operator-=(T src)
+    {
+        BB_ASSERT(m_size == op.m_size);
+        auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
+        Tensor_Scalar_add_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)0, -src, m_size);
+        return *this;
+    }
+
+    inline Tensor_& operator*=(Tensor_ const &src)
+    {
+        BB_ASSERT(m_size == src.m_size);
+        auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, src.m_mem);
+        Tensor_Scalar_mul_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)0, m_size);
+        return *this;
+    }
+
+    inline Tensor_& operator*=(T src)
+    {
+        BB_ASSERT(m_size == op.m_size);
+        auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
+        Tensor_Scalar_add_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), src, (T)0, (T)0, m_size);
+        return *this;
+    }
+
+    inline Tensor_& operator/=(Tensor_ const &src)
+    {
+        BB_ASSERT(m_size == src.m_size);
+        auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, src.m_mem);
+        Tensor_Scalar_div_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)0, (T)1, (T)0, m_size);
+        return *this;
+    }
+
+    inline Tensor_& operator/=(T src)
+    {
+        BB_ASSERT(m_size == src.m_size);
+        auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
+        Tensor_Scalar_div_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)0, (T)0, src, m_size);
+        return *this;
+    }
+
+    friend inline Tensor_<T>& operator+(Tensor_<T> const &src0, Tensor_<T>  const &src1);
+    friend inline Tensor_<T>& operator+(Tensor_<T> const &src0, T src1);
 };
+
+template<typename T>
+inline Tensor_<T>& operator+(Tensor_<T> const &src0, Tensor_<T> const &src1)
+{
+    BB_ASSERT(src0.m_size == src1.m_size);
+    Tensor_<T>  dst(op0.m_shape);
+    auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
+    Tensor_Scalar_add_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)1, (T)0, dst.m_size);
+    return dst;
+}
+
+template<typename T>
+inline Tensor_<T>& operator+(Tensor_<T> const &src0, T src1)
+{
+    BB_ASSERT(src0.m_size == src1.m_size);
+    Tensor_<T>  dst(op0.m_shape);
+    auto op3 = Memory::GetOp3Ptr(dst.m_mem, dst.m_mem, src0.m_mem);
+    Tensor_Scalar_add_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)0, src1, dst.m_size);
+    return dst;
+}
+
+template<typename T>
+inline Tensor_<T>& operator+(T src0, Tensor_<T> const &src1)
+{
+    return src1 + src0;
+}
+
+
+
+
+// -------------------------------------
+//  高速版の特殊化
+// -------------------------------------
+
+#ifdef BB_WITH_CUDA
+/*
+template<>
+Tensor_<float> & Tensor_<float>::operator+=(Tensor_<float> const &op)
+{
+    BB_ASSERT(m_size == op.m_size);
+
+    // CUDA
+    if ( m_mem->IsDeviceAvailable() && op.m_mem->IsDeviceAvailable() ) {
+        auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, op->m_mem);
+        bbcu_Scalar_add_ex((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 1.0f, 0.0f, (int)m_size);
+        return *this;
+    }
+
+    // CPU
+    auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, op.m_mem);
+    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 1.0f, 0.0f, m_size);
+    return *this;
+}
+*/
+#endif
+
 
 
 // Tensor
@@ -82,8 +418,8 @@ public:
 	{
 		Tensor tensor(m_shape, m_type);
 
-        auto src_ptr = m_mem->Lock(BB_MEMORY_MODE_READ);
-        auto dst_ptr = tensor.m_mem->Lock(BB_MEMORY_MODE_READ);
+        auto src_ptr = m_mem->GetConstPtr();
+        auto dst_ptr = tensor.m_mem->GetPtr(true);
 		memcpy(dst_ptr.GetPtr(), src_ptr.GetPtr(), m_mem->GetSize());
 
 		tensor.m_type = m_type;
@@ -93,11 +429,6 @@ public:
 
 		return tensor;
 	}
-
-//	void ZeroFill(void)
-//	{
-//		memset(m_mem->Lock().GetPtr(), 0, m_mem->GetSize());
-//	}
 
 	void Resize(std::vector<INDEX> shape, int type)
 	{
@@ -139,12 +470,31 @@ public:
 
 
     // -------------------------------------
+    //  キャスト
+    // -------------------------------------
+
+    template<typename Tp>
+    operator Tensor_<Tp>() const
+    {
+        BB_ASSERT(DataType<Tp>::type == m_type);
+
+        Tensor_<Tp> tensor;
+   		tensor.m_mem  = src.m_mem;
+		tensor.m_type = src.m_type;
+		tensor.m_size = src.m_size;
+		tensor.m_shape = src.m_shape;
+		tensor.m_stride = src.m_stride;
+		return tensor;
+    }
+
+
+    // -------------------------------------
     //  アクセサ
     // -------------------------------------
 
-    void Lock(int mode = BB_MEMORY_MODE_RW)
+    void Lock(void)
     {
-        m_ptr = std::move(m_mem->Lock(mode));
+        m_ptr = m_mem->GetPtr();
     }
 
     void Unlock(void)
@@ -179,223 +529,22 @@ public:
 	}
 
 	template <typename Tp>
-	inline const Tp& At(INDEX index) const 
+	inline Tp const & At(INDEX index) const 
 	{
 		BB_DEBUG_ASSERT(index >= 0 && index < m_size);
 		return ((const Tp *)m_ptr.GetPtr())[index];
 	}
 	
     template <typename Tp>
-	inline Tp& At(INDEX index)
+	inline Tp & At(INDEX index)
 	{
 		BB_DEBUG_ASSERT(index >= 0 && index < m_size);
 		return ((Tp *)m_ptr.GetPtr())[index];
 	}
 
-	INDEX GetMemorySize(void) const { return m_mem->GetSize(); }
-//	void* GetMemoryPtr(void)  const { return m_mem->Lock().GetPtr(); }
-
-
-    // operator
-protected:
-#ifdef BB_WITH_CUDA
-    // 3 operand
-    struct DevOp3Ptr {
-        Memory::DevPtr dst;
-        Memory::DevPtr src0;
-        Memory::DevPtr src1;
-    };
-
-    inline DevOp3Ptr GetOp3Ptr(Tensor& dst, const Tensor& src0, const Tensor& src1)
+	INDEX GetMemorySize(void) const
     {
-        DevOp3Ptr op3;
-        if (dst.m_mem != src0.m_mem && dst.m_mem != src1.m_mem) {
-            op3.dst  = dst.m_mem->LockDevice(BB_MEMORY_MODE_WRITE | BB_MEMORY_MODE_NEW);
-            
-            op3.src0 = src0.m_mem->LockDevice(BB_MEMORY_MODE_READ);
-            
-            if ( src1.m_mem == src0.m_mem ) {
-                op3.src1 = op3.src0;
-            }
-            else {
-                op3.src1 = src1.m_mem->LockDevice(BB_MEMORY_MODE_READ);
-            }
-        }
-        else {
-            op3.dst = dst.m_mem->LockDevice(BB_MEMORY_MODE_WRITE | BB_MEMORY_MODE_READ);
-            
-            if (src0.m_mem == dst.m_mem) {
-                op3.src0 = op3.dst;
-            }
-            else {
-                op3.src0 = src0.m_mem->LockDevice(BB_MEMORY_MODE_READ);
-            }
-
-            if (src1.m_mem == dst.m_mem) {
-                op3.src1 = op3.dst;
-            }
-            else {
-                op3.src1 = src1.m_mem->LockDevice(BB_MEMORY_MODE_READ);
-            }
-        }
-        return op3;
-    };
-
-    inline void scalar_add_ex(Tensor& dst, const Tensor& src0, const Tensor& src1, float a, float b, float c)
-    {
-        auto op = GetOp3Ptr(dst, src0, src1);
-        bbcu_Scalar_add_ex((float *)op.dst.GetDevPtr(), (float *)op.src0.GetDevPtr(), (float *)op.src0.GetDevPtr(), a, b, c, (int)m_size);
-    }
-
-    inline void scalar_mul_ex(Tensor& dst, const Tensor& src0, const Tensor& src1, float a, float b)
-    {
-        auto op = GetOp3Ptr(dst, src0, src1);
-        bbcu_Scalar_mul_ex((float *)op.dst.GetDevPtr(), (float *)op.src0.GetDevPtr(), (float *)op.src0.GetDevPtr(), a, b, (int)m_size);
-    }
-#endif
-
-
-public:
-    template<typename Tp>
-    inline const Tensor& operator+=(Tp op)
-    {
-#ifdef BB_WITH_CUDA
-        if ( m_type == BB_TYPE_FP32 && m_mem->IsDeviceAvailable() ) {
-            scalar_add_ex(*this, *this, *this, 1.0f, 0.0f, static_cast<float>(op));
-            return *this;
-        }
-#endif
-        
-        switch ( m_type ) {
-        case BB_TYPE_FP32:      for (INDEX i = 0; i < m_size; ++i) { this->At<float        >(i) += static_cast<float        >(op); } break;
-        case BB_TYPE_FP64:	    for (INDEX i = 0; i < m_size; ++i) { this->At<double       >(i) += static_cast<double       >(op); } break;
-        case BB_TYPE_INT8:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int8_t  >(i) += static_cast<std::int8_t  >(op); } break;
-        case BB_TYPE_INT16:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int16_t >(i) += static_cast<std::int16_t >(op); } break;
-        case BB_TYPE_INT32:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int32_t >(i) += static_cast<std::int32_t >(op); } break;
-        case BB_TYPE_INT64:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int64_t >(i) += static_cast<std::int64_t >(op); } break;
-        case BB_TYPE_UINT8:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint8_t >(i) += static_cast<std::uint8_t >(op); } break;
-        case BB_TYPE_UINT16:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint16_t>(i) += static_cast<std::uint16_t>(op); } break;
-        case BB_TYPE_UINT32:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint32_t>(i) += static_cast<std::uint32_t>(op); } break;
-        case BB_TYPE_UINT64:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint64_t>(i) += static_cast<std::uint64_t>(op); } break;
-        default:    BB_ASSERT(0);
-        }
-
-        return *this;
-    }
-
-    inline const Tensor& operator+=(Tensor& op)
-    {
-#ifdef BB_WITH_CUDA
-        if ( m_type == BB_TYPE_FP32 && m_mem->IsDeviceAvailable() && op.m_mem->IsDeviceAvailable()) {
-            scalar_add_ex(*this, *this, op, 1.0f, 1.0f, 0.0f);
-            return *this;
-        }
-#endif
-        
-        op.Lock();
-        switch ( m_type ) {
-        case BB_TYPE_FP32:      for (INDEX i = 0; i < m_size; ++i) { this->At<float        >(i) += op.At<float        >(i); } break;
-        case BB_TYPE_FP64:	    for (INDEX i = 0; i < m_size; ++i) { this->At<double       >(i) += op.At<double       >(i); } break;
-        case BB_TYPE_INT8:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int8_t  >(i) += op.At<std::int8_t  >(i); } break;
-        case BB_TYPE_INT16:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int16_t >(i) += op.At<std::int16_t >(i); } break;
-        case BB_TYPE_INT32:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int32_t >(i) += op.At<std::int32_t >(i); } break;
-        case BB_TYPE_INT64:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int64_t >(i) += op.At<std::int64_t >(i); } break;
-        case BB_TYPE_UINT8:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint8_t >(i) += op.At<std::uint8_t >(i); } break;
-        case BB_TYPE_UINT16:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint16_t>(i) += op.At<std::uint16_t>(i); } break;
-        case BB_TYPE_UINT32:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint32_t>(i) += op.At<std::uint32_t>(i); } break;
-        case BB_TYPE_UINT64:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint64_t>(i) += op.At<std::uint64_t>(i); } break;
-        default:    BB_ASSERT(0);
-        }
-
-        return *this;
-    }
-
-    template<typename Tp>
-    inline const Tensor& operator-=(Tp op)
-    {
-        *this += -op;
-        return *this;
-    }
-
-    inline const Tensor& operator-=(const Tensor& op)
-    {
-#ifdef BB_WITH_CUDA
-        if ( m_type == BB_TYPE_FP32 && m_mem->IsDeviceAvailable() && op.m_mem->IsDeviceAvailable()) {
-            scalar_add_ex(*this, *this, op, 1.0f, -1.0f, 0.0f);
-            return *this;
-        }
-#endif
-        
-        switch ( m_type ) {
-        case BB_TYPE_FP32:      for (INDEX i = 0; i < m_size; ++i) { this->At<float        >(i) -= op.At<float        >(i); } break;
-        case BB_TYPE_FP64:	    for (INDEX i = 0; i < m_size; ++i) { this->At<double       >(i) -= op.At<double       >(i); } break;
-        case BB_TYPE_INT8:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int8_t  >(i) -= op.At<std::int8_t  >(i); } break;
-        case BB_TYPE_INT16:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int16_t >(i) -= op.At<std::int16_t >(i); } break;
-        case BB_TYPE_INT32:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int32_t >(i) -= op.At<std::int32_t >(i); } break;
-        case BB_TYPE_INT64:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int64_t >(i) -= op.At<std::int64_t >(i); } break;
-        case BB_TYPE_UINT8:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint8_t >(i) -= op.At<std::uint8_t >(i); } break;
-        case BB_TYPE_UINT16:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint16_t>(i) -= op.At<std::uint16_t>(i); } break;
-        case BB_TYPE_UINT32:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint32_t>(i) -= op.At<std::uint32_t>(i); } break;
-        case BB_TYPE_UINT64:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint64_t>(i) -= op.At<std::uint64_t>(i); } break;
-        default:    BB_ASSERT(0);
-        }
-
-        return *this;
-    }
-
-    template<typename Tp>
-    inline const Tensor& operator*=(Tp op)
-    {
-#ifdef BB_WITH_CUDA
-        if ( m_type == BB_TYPE_FP32 && m_mem->IsDeviceAvailable() ) {
-            scalar_add_ex(*this, *this, *this, static_cast<float>(op), 0.0f, 0.0f);
-            return *this;
-        }
-#endif
-        
-        this->Lock();
-        switch ( m_type ) {
-        case BB_TYPE_FP32:      for (INDEX i = 0; i < m_size; ++i) { this->At<float        >(i) *= static_cast<float        >(op); } break;
-        case BB_TYPE_FP64:	    for (INDEX i = 0; i < m_size; ++i) { this->At<double       >(i) *= static_cast<double       >(op); } break;
-        case BB_TYPE_INT8:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int8_t  >(i) *= static_cast<std::int8_t  >(op); } break;
-        case BB_TYPE_INT16:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int16_t >(i) *= static_cast<std::int16_t >(op); } break;
-        case BB_TYPE_INT32:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int32_t >(i) *= static_cast<std::int32_t >(op); } break;
-        case BB_TYPE_INT64:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int64_t >(i) *= static_cast<std::int64_t >(op); } break;
-        case BB_TYPE_UINT8:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint8_t >(i) *= static_cast<std::uint8_t >(op); } break;
-        case BB_TYPE_UINT16:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint16_t>(i) *= static_cast<std::uint16_t>(op); } break;
-        case BB_TYPE_UINT32:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint32_t>(i) *= static_cast<std::uint32_t>(op); } break;
-        case BB_TYPE_UINT64:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint64_t>(i) *= static_cast<std::uint64_t>(op); } break;
-        default:    BB_ASSERT(0);
-        }
-        this->Unlock();
-
-        return *this;
-    }
-
-    inline const Tensor& operator*=(const Tensor& op)
-    {
-#ifdef BB_WITH_CUDA
-        if ( m_type == BB_TYPE_FP32 && m_mem->IsDeviceAvailable() && op.m_mem->IsDeviceAvailable()) {
-            scalar_add_ex(*this, *this, op, 1.0f, -1.0f, 0.0f);
-            return *this;
-        }
-#endif
-        
-        switch ( m_type ) {
-        case BB_TYPE_FP32:      for (INDEX i = 0; i < m_size; ++i) { this->At<float        >(i) *= op.At<float        >(i); } break;
-        case BB_TYPE_FP64:	    for (INDEX i = 0; i < m_size; ++i) { this->At<double       >(i) *= op.At<double       >(i); } break;
-        case BB_TYPE_INT8:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int8_t  >(i) *= op.At<std::int8_t  >(i); } break;
-        case BB_TYPE_INT16:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int16_t >(i) *= op.At<std::int16_t >(i); } break;
-        case BB_TYPE_INT32:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int32_t >(i) *= op.At<std::int32_t >(i); } break;
-        case BB_TYPE_INT64:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int64_t >(i) *= op.At<std::int64_t >(i); } break;
-        case BB_TYPE_UINT8:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint8_t >(i) *= op.At<std::uint8_t >(i); } break;
-        case BB_TYPE_UINT16:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint16_t>(i) *= op.At<std::uint16_t>(i); } break;
-        case BB_TYPE_UINT32:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint32_t>(i) *= op.At<std::uint32_t>(i); } break;
-        case BB_TYPE_UINT64:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint64_t>(i) *= op.At<std::uint64_t>(i); } break;
-        default:    BB_ASSERT(0);
-        }
-
-        return *this;
+        return m_mem->GetSize();
     }
 };
 

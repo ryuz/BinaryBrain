@@ -189,6 +189,7 @@ public:
 	typedef float value_type;
 	enum {
 		type = BB_TYPE_BIT,
+		size = 1,
 		bit_size = 1,
 	};
 };
@@ -199,6 +200,7 @@ public:
 	typedef float value_type;
 	enum {
 		type = BB_TYPE_BINARY,
+		size = 1,
 		bit_size = 8,
 	};
 };
@@ -209,6 +211,7 @@ public:
 	typedef float value_type;
 	enum {
 		type = BB_TYPE_INT8,
+		size = 1,
 		bit_size = 8,
 	};
 };
@@ -219,6 +222,7 @@ public:
 	typedef float value_type;
 	enum {
 		type = BB_TYPE_INT16,
+		size = 2,
 		bit_size = 16,
 	};
 };
@@ -229,6 +233,7 @@ public:
 	typedef float value_type;
 	enum {
 		type = BB_TYPE_INT32,
+		size = 4,
 		bit_size = 32,
 	};
 };
@@ -239,6 +244,7 @@ public:
 	typedef float value_type;
 	enum {
 		type = BB_TYPE_INT64,
+		size = 8,
 		bit_size = 64,
 	};
 };
@@ -249,6 +255,7 @@ public:
 	typedef float value_type;
 	enum {
 		type = BB_TYPE_FP32,
+		size = 4,
 		bit_size = 32,
 	};
 };
@@ -259,6 +266,7 @@ public:
 	typedef float value_type;
 	enum {
 		type = BB_TYPE_FP64,
+		size = 8,
 		bit_size = 32,
 	};
 };

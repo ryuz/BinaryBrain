@@ -11,7 +11,7 @@
 
 
 #include <memory>
-
+#include <type_traits>
 
 #ifdef BB_WITH_CUDA
 #include "cuda_runtime.h"
@@ -25,183 +25,201 @@
 
 namespace bb {
 
-#define BB_MEMORY_MODE_WRITE		0x01
-#define BB_MEMORY_MODE_READ			0x02
-#define BB_MEMORY_MODE_NEW			0x04
-#define BB_MEMORY_MODE_RW			(BB_MEMORY_MODE_WRITE | BB_MEMORY_MODE_READ)
-#define BB_MEMORY_MODE_NW			(BB_MEMORY_MODE_NEW | BB_MEMORY_MODE_WRITE)
-#define BB_MEMORY_MODE_NRW			(BB_MEMORY_MODE_NEW | BB_MEMORY_MODE_RW)
-
-
 
 class Memory
 {
 public:
-    // メモリポインタ
-    class Ptr
+    // メモリポインタ(const)
+    template <void (Memory::*lock)(), void (Memory::*unlock)()>
+    class ConstPtr_
     {
         friend Memory;
 
     protected:
-        Memory* m_mem = nullptr;
-        void*   m_ptr = nullptr;
+        void const *m_ptr = nullptr;
+        Memory     *m_mem = nullptr;
+
+        inline void Lock()    const { (m_mem->*lock)(); }
+        inline void Unlock()  const { if (m_mem != nullptr) { (m_mem->*unlock)(); } }
 
     protected:
-        Ptr(Memory* mem, void* ptr)
+       // friend の Memoryクラスのみ初期値を与えられる
+        ConstPtr_(void const *ptr, Memory *mem) noexcept
         {
-            m_mem = mem;
             m_ptr = ptr;
+            m_mem = mem;
+            Lock();
         }
 
     public:
-        Ptr() {}
+        ConstPtr_() {}
 
-        Ptr(Ptr& obj)
+        ConstPtr_(ConstPtr_ const &obj)
         {
-            Clear();
+            Unlock();
             m_mem = obj.m_mem;
             m_ptr = obj.m_ptr;
-            m_mem->m_refcnt++;
+            Lock();
         }
 
-        Ptr(Ptr&& obj) noexcept
+        ~ConstPtr_()
         {
-            Clear();
-            m_mem = obj.m_mem;
+            Unlock();
+        }
+
+        ConstPtr_& operator=(ConstPtr_ const &obj)
+        {
+            Unlock();
             m_ptr = obj.m_ptr;
-            obj.m_mem = nullptr;
-            obj.m_ptr = nullptr;
-        }
-
-        Ptr::~Ptr()
-        {
-            if (m_mem != nullptr) {
-                m_mem->Unlock();
-            }
-        }
-
-        Ptr& operator=(Ptr& obj)
-        {
-            Clear();
             m_mem = obj.m_mem;
-            m_ptr = obj.m_ptr;
-            m_mem->m_refcnt++;
+            Lock();
             return *this;
         }
 
-        Ptr& operator=(Ptr&& obj) noexcept
+        bool IsEmpty(void) const
         {
-            Clear();
-            m_mem = obj.m_mem;
-            m_ptr = obj.m_ptr;
-            obj.m_mem = nullptr;
-            obj.m_ptr = nullptr;
-            return *this;
+            return (m_mem == nullptr);
         }
 
         void Clear(void)
         {
-            if (m_mem != nullptr) {
-                m_mem->Unlock();
-            }
-            m_mem = nullptr;
+            Unlock();
             m_ptr = nullptr;
+            m_mem = nullptr;
+        }
+        
+        void const* GetPtr(void) const
+        {
+            return m_ptr;
         }
 
-        void* GetPtr(void) { return m_ptr; }
-        const void* GetPtr(void) const { return m_ptr; }
+        template<typename Tp>
+        Tp const& At(INDEX index) const {
+//          BB_DEBUG_ASSERT(m_ptr != nullptr);
+            return ((Tp const*)m_ptr)[index];
+        }
     };
+
     
-
-    // デバイス用メモリポインタ
-    class DevPtr
+    // メモリポインタ
+    template <typename ConstTp, void (Memory::*lock)(), void (Memory::*unlock)()>
+    class Ptr_
     {
         friend Memory;
 
     protected:
-        Memory* m_mem = nullptr;
         void*   m_ptr = nullptr;
+        Memory* m_mem = nullptr;
+
+        inline void Lock()    const { (m_mem->*lock)(); }
+        inline void Unlock()  const { if (m_mem != nullptr) { (m_mem->*unlock)(); } }
 
     protected:
-        DevPtr(Memory* mem, void* ptr)
+        // friend の Memoryクラスのみ初期値を与えられる
+        Ptr_(void* ptr, Memory* mem)
         {
-            m_mem = mem;
             m_ptr = ptr;
+            m_mem = mem;
+            Lock();
         }
 
     public:
-        DevPtr() {}
+        Ptr_() {}
 
-        DevPtr(DevPtr& obj)
+        Ptr_(Ptr_ const &obj)
         {
-            Clear();
+            Unlock();
             m_mem = obj.m_mem;
             m_ptr = obj.m_ptr;
-            m_mem->m_devRefcnt++;
+            Lock();
         }
 
-        DevPtr(DevPtr &&obj) noexcept
+        ~Ptr_()
         {
-            m_mem = obj.m_mem;
+            Unlock();
+        }
+
+        Ptr_& operator=(Ptr_ const &obj)
+        {
+            Unlock();
             m_ptr = obj.m_ptr;
-            obj.m_mem = nullptr;
-            obj.m_ptr = nullptr;
-        }
-
-        DevPtr::~DevPtr()
-        {
-            if (m_mem != nullptr) {
-                m_mem->UnlockDevice();
-            }
-        }
-
-        DevPtr& operator=(DevPtr& obj) noexcept
-        {
-            Clear();
             m_mem = obj.m_mem;
-            m_ptr = obj.m_ptr;
-            m_mem->m_devRefcnt++;
+            Lock();
             return *this;
         }
 
-        DevPtr& operator=(DevPtr&& obj) noexcept
+        bool IsEmpty(void) const
         {
-            Clear();
-            m_mem = obj.m_mem;
-            m_ptr = obj.m_ptr;
-            obj.m_mem = nullptr;
-            obj.m_ptr = nullptr;
-            return *this;
+            return (m_mem == nullptr);
         }
 
         void Clear(void)
         {
-            if (m_mem != nullptr) {
-                m_mem->UnlockDevice();
-            }
-            m_mem = nullptr;
+            Unlock();
             m_ptr = nullptr;
+            m_mem = nullptr;
+        }
+        
+        void* GetPtr(void) const
+        {
+            return m_ptr;
         }
 
-        void* GetDevPtr(void) { return m_ptr; }
-        const void* GetDevPtr(void) const { return m_ptr; }
-    };
+        operator ConstTp() const
+        {
+           return ConstTp(m_ptr, m_mem);
+        }
 
-    friend Ptr;
-    friend DevPtr;
+        // constアクセス
+        template<typename Tp>
+        Tp const & At(INDEX index) const {
+//          BB_DEBUG_ASSERT(m_ptr != nullptr);
+            return ((Tp const *)m_ptr)[index];
+        }
+
+        // 非constアクセス
+        template<typename Tp>
+        Tp& At(INDEX index) {
+//          BB_DEBUG_ASSERT(m_ptr != nullptr);
+            return ((Tp *)m_ptr)[index];
+        }
+    };
 
 protected:
 	size_t	m_size = 0;
 	void*	m_addr = nullptr;
-    int     m_refcnt = 0;
+    int     m_refCnt = 0;
 
 #ifdef BB_WITH_CUDA
 	int		m_device;
 	void*	m_devAddr = nullptr;
 	bool	m_hostModified = false;
 	bool	m_devModified = false;
-	int		m_devRefcnt = 0;
+	int		m_devRefCnt = 0;
 #endif
+
+    void lock()   { m_refCnt++; }
+    void unlock() { m_refCnt--;}
+
+#ifdef BB_WITH_CUDA
+    void lockDevice(){m_devRefCnt++;}
+    void unlockDevice(){m_devRefCnt--;}
+#else
+    void lockDevice(){}
+    void unlockDevice(){}
+#endif
+
+public:
+    using ConstPtr    = ConstPtr_<&lock, &unlock>;
+    using Ptr         = Ptr_<ConstPtr, &lock, &unlock>;
+    using ConstDevPtr = ConstPtr_<&lockDevice, &unlockDevice>;
+    using DevPtr      = Ptr_<ConstDevPtr, &lockDevice, &unlockDevice>;
+
+    friend Ptr;
+    friend ConstPtr;
+    friend DevPtr;
+    friend ConstDevPtr;
+
 
 public:
 	/**
@@ -270,10 +288,10 @@ public:
      */
 	~Memory()
 	{
-        BB_DEBUG_ASSERT(m_refcnt == 0);
+        BB_DEBUG_ASSERT(m_refCnt == 0);
 
 #ifdef BB_WITH_CUDA
-        BB_DEBUG_ASSERT(m_devRefcnt == 0);
+        BB_DEBUG_ASSERT(m_devRefCnt == 0);
 
 		if ( m_device >= 0 ) {
 			CudaDevicePush dev_push(m_device);
@@ -332,7 +350,7 @@ public:
      * @detail メモリサイズの取得
      * @return メモリサイズ(バイト単位)
      */
-	INDEX GetSize(void)
+	INDEX GetSize(void) const
 	{
 		return m_size;
 	}
@@ -340,18 +358,15 @@ public:
 	/**
      * @brief  ポインタの取得
      * @detail アクセス用に確保したホスト側のメモリポインタの取得
-     * @param  mode 以下のフラグの組み合わせ 
-     *           BB_MEM_WRITE   書き込みを行う
-     *           BB_MEM_READ    読み込みを行う
-     *           BB_MEM_NEW		新規利用(以前の内容の破棄)
-     * @return アクセス用に確保したホスト側のメモリポインタ
+     * @param  new_buffer true なら古い内容を破棄する
+     * @return ホスト側のメモリポインタ
      */
-	Ptr Lock(int mode=BB_MEMORY_MODE_RW)
+	Ptr GetPtr(bool new_buffer=false)
 	{
 #ifdef BB_WITH_CUDA
 		if ( m_device >= 0 ) {
 			// 新規であれば過去の更新情報は破棄
-			if (mode & BB_MEMORY_MODE_NEW) {
+			if ( new_buffer ) {
 				m_hostModified = false;
 				m_devModified = false;
 			}
@@ -369,38 +384,60 @@ public:
 				m_devModified =false;
 			}
 
-			// 書き込みを行うなら修正フラグセット
-			if (mode & BB_MEMORY_MODE_WRITE) {
-				m_hostModified = true;
+			// 修正フラグセット
+			m_hostModified = true;
+		}
+#endif
+
+        // ポインタオブジェクトを生成して返す
+		return Ptr(m_addr, this);
+	}
+
+   	/**
+     * @brief  読み取り専用ポインタの取得
+     * @detail アクセス用に確保したホスト側のメモリポインタの取得
+     *         実際にはメモリのロックなどで内部状態が変わるが、
+     *         メモリ内容が変わらないので便宜上 const とする
+     * @return アクセス用に確保したホスト側のメモリポインタ
+     */
+	ConstPtr GetConstPtr(void) const
+	{
+        auto self = const_cast<Memory *>(this);
+
+#ifdef BB_WITH_CUDA
+		if ( m_device >= 0 ) {
+			if (m_addr == nullptr) {
+				// ホスト側メモリ未確保ならここで確保
+				CudaDevicePush dev_push(m_device);
+				BB_CUDA_SAFE_CALL(cudaMallocHost(&self->m_addr, m_size));
+			}
+
+			if ( m_devModified ) {
+				// デバイス側メモリが最新ならコピー取得
+				CudaDevicePush dev_push(m_device);
+				BB_CUDA_SAFE_CALL(cudaMemcpy(m_addr, m_devAddr, m_size, cudaMemcpyDeviceToHost));
+				self->m_devModified = false;
 			}
 		}
 #endif
-        m_refcnt++;
-		return std::move(Ptr(this, m_addr));
+
+        // ポインタを生成して返す
+		return ConstPtr(m_addr, self);
 	}
 
 
-  	void Unlock(void)
-	{
-        m_refcnt--;
-    }
-
-
-	/**
+  	/**
      * @brief  デバイス側ポインタの取得
-     * @detail アクセス用に確保したデバイス側のメモリアドレスの取得
-     * @param  mode 以下のフラグの組み合わせ 
-     *           BB_MEM_WRITE   書き込みを行う
-     *           BB_MEM_READ    読み込みを行う
-     *           BB_MEM_NEW		新規利用(以前の内容の破棄)
-     * @return アクセス用に確保したデバイス側のメモリアドレス
+     * @detail アクセス用に確保したデバイス側のメモリポインタの取得
+     * @param  new_buffer true なら古い内容を破棄する
+     * @return デバイス側のメモリポインタ
      */
-	DevPtr LockDevice(int mode=BB_MEMORY_MODE_RW)
+	DevPtr GetDevicePtr(bool new_buffer=false)
 	{
 	#ifdef BB_WITH_CUDA
 		if ( m_device >= 0 ) {
 			// 新規であれば過去の更新情報は破棄
-			if (mode & BB_MEMORY_MODE_NEW) {
+			if (new_buffer) {
 				m_hostModified = false;
 				m_devModified = false;
 			}
@@ -418,22 +455,134 @@ public:
 				m_hostModified =false;
 			}
 
-			// 書き込みを行うなら修正フラグセット
-			if (mode & BB_MEMORY_MODE_WRITE) {
-				m_devModified = true;
-			}
+			// 修正フラグセット
+			m_devModified = true;
 
-            m_devRefcnt++;
-			return std::move(DevPtr(this, m_devAddr));
+			return DevPtr(m_devAddr, this);
 		}
 #endif
 
-		return std::move(DevPtr());
+		return DevPtr();
 	}
 
-    void UnlockDevice(void)
+
+   	/**
+     * @brief  デバイス側ポインタの取得
+     * @detail アクセス用に確保したデバイス側のメモリポインタの取得
+     * @param  new_buffer true なら古い内容を破棄する
+     * @return デバイス側のメモリポインタ
+     */
+	ConstDevPtr GetConstDevicePtr(void) const
+	{
+       auto self = const_cast<Memory *>(this);
+
+#ifdef BB_WITH_CUDA
+		if ( m_device >= 0 ) {
+			if (m_devAddr == nullptr) {
+				// デバイス側メモリ未確保ならここで確保
+				CudaDevicePush dev_push(m_device);
+				BB_CUDA_SAFE_CALL(cudaMalloc(&self->m_devAddr, m_size));
+			}
+
+			if (m_hostModified) {
+				// ホスト側メモリが最新ならコピー取得
+				CudaDevicePush dev_push(m_device);
+				BB_CUDA_SAFE_CALL(cudaMemcpy(m_devAddr, m_addr, m_size, cudaMemcpyHostToDevice));
+				self->m_hostModified =false;
+			}
+
+			return ConstDevPtr(m_devAddr, self);
+		}
+#endif
+
+		return ConstDevPtr();
+	}
+
+
+    // ---------------------------------
+    //  Utility
+    // ---------------------------------
+    
+    // 3 operand
+    struct Op3Ptr {
+        Ptr      dst;
+        ConstPtr src0;
+        ConstPtr src1;
+    };
+    
+    static Op3Ptr GetOp3Ptr(std::shared_ptr<Memory> &dst, std::shared_ptr<Memory> const &src0, std::shared_ptr<Memory> const &src1)
     {
-        m_devRefcnt--;
+        Op3Ptr op3;
+        if ( (dst == src0) && (dst != src1) ) {
+            op3.dst  = dst->GetPtr(true);
+            op3.src0 = src0->GetConstPtr();
+            
+            if ( src1 == src0 ) {
+                op3.src1 = op3.src0;
+            }
+            else {
+                op3.src1 = src1->GetConstPtr();
+            }
+        }
+        else {
+            op3.dst = dst->GetPtr(false);
+            
+            if (src0 == dst) {
+                op3.src0 = op3.dst;
+            }
+            else {
+                op3.src0 = src0->GetConstPtr();
+            }
+
+            if (src1 == dst) {
+                op3.src1 = op3.dst;
+            }
+            else {
+                op3.src1 = src1->GetConstPtr();
+            }
+        }
+        return op3;
+    }
+    
+    // 3 operand
+    struct DevOp3Ptr {
+        DevPtr      dst;
+        ConstDevPtr src0;
+        ConstDevPtr src1;
+    };
+    
+    static DevOp3Ptr GetDevOp3Ptr(std::shared_ptr<Memory> &dst, std::shared_ptr<Memory> const &src0, std::shared_ptr<Memory> const &src1)
+    {
+        DevOp3Ptr op3;
+        if ( (dst == src0) && (dst != src1) ) {
+            op3.dst  = dst->GetDevicePtr(true);
+            op3.src0 = src0->GetConstDevicePtr();
+            
+            if ( src1 == src0 ) {
+                op3.src1 = op3.src0;
+            }
+            else {
+                op3.src1 = src1->GetConstDevicePtr();
+            }
+        }
+        else {
+            op3.dst = dst->GetDevicePtr(false);
+            
+            if (src0 == dst) {
+                op3.src0 = op3.dst;
+            }
+            else {
+                op3.src0 = src0->GetConstDevicePtr();
+            }
+
+            if (src1 == dst) {
+                op3.src1 = op3.dst;
+            }
+            else {
+                op3.src1 = src1->GetConstDevicePtr();
+            }
+        }
+        return op3;
     }
 };
 

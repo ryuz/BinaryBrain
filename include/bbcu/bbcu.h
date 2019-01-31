@@ -24,7 +24,7 @@ CUBB_DLL_EXPORT int bbcu_Scalar_add_ex
             const float*	dev_src1,
             float			a,
             float			b,
-            float			x,
+            float			c,
             int				size,
             cudaStream_t	streamId = 0
         );
