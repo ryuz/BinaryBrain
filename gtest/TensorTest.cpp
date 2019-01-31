@@ -21,7 +21,7 @@ TEST(TensorTest, testTensor_Transpose)
     for ( int i = 0; i < L; ++i ) {
         for ( int j = 0; j < M; ++j ) {
             for ( int k = 0; k < N; ++k ) {
-                data[i][j][k] = (i+1)*10000 + (j+1) * 100 + (k+1); 
+                data[i][j][k] = (float)((i+1)*10000 + (j+1) * 100 + (k+1)); 
                 t({k, j, i}) = data[i][j][k];
 //              std::cout << "[" << i << "][" << j<< "][" << k << "] : " << t({k, j, i}) << std::endl;
             }
@@ -103,6 +103,28 @@ TEST(TensorTest, testTensor_Reshape)
     EXPECT_EQ(t({1, 1}), 5);
     EXPECT_EQ(t({2, 1}), 6);
     t.Unlock();
+
+
+    // clone
+    auto t1 = t.Clone();
+
+    t.Lock();
+    t[0] = 11;
+    t[1] = 21;
+    t[2] = 31;
+    t[3] = 41;
+    t[4] = 51;
+    t[5] = 61;
+    t.Unlock();
+
+    t1.Lock();
+    EXPECT_EQ(t1({0, 0}), 1);
+    EXPECT_EQ(t1({1, 0}), 2);
+    EXPECT_EQ(t1({2, 0}), 3);
+    EXPECT_EQ(t1({0, 1}), 4);
+    EXPECT_EQ(t1({1, 1}), 5);
+    EXPECT_EQ(t1({2, 1}), 6);
+    t1.Unlock();
 }
 
 
@@ -110,18 +132,52 @@ TEST(TensorTest, testTensor_Reshape)
 
 TEST(TensorTest, testTensorOp)
 {
+    const int N = 16;
+    std::mt19937_64 mt(1);
+
+    float d0[N];
+    float d1[N];
+    for (int i = 0; i < N; ++i) {
+        d0[i] = (float)(mt() % 10000);
+        d1[i] = (float)(mt() % 10000);
+    }
+    
     bb::Tensor_<float> t0(16);
     bb::Tensor_<float> t1(16);
     bb::Tensor_<float> t2(16);
 
+    // ‰ÁŽZ1
+    t0.Lock(); t1.Lock();
+    for (int i = 0; i < N; ++i) { t0[i] = d0[i]; t1[i] = d1[i]; }
+    t0.Unlock(); t1.Unlock();
+
+    t0 += t1;
+    
+    cudaDeviceSynchronize();
     t0.Lock();
-    t0[0] = 1;
+    for (int i = 0; i < N; ++i) {
+        EXPECT_EQ(t0[i], d0[i] + d1[i]);
+    }
     t0.Unlock();
 
 
-    bb::Tensor tt(16, BB_TYPE_FP32);
+    // ‰ÁŽZ2
+    t0.Lock(); t1.Lock();
+    for (int i = 0; i < N; ++i) { t0[i] = d0[i]; t1[i] = d1[i]; }
+    t0.Unlock(); t1.Unlock();
 
-    t0 += t1;
+    t2 = t0 + t1;
+    
+    t2.Lock();
+    for (int i = 0; i < N; ++i) {
+        EXPECT_EQ(t2[i], d0[i] + d1[i]);
+    }
+    t2.Unlock();
+
+
+
+
+
     t0 += 1.0f;
     t0 -= t1;
     t0 -= 1.0f;

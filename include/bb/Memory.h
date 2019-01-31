@@ -318,12 +318,49 @@ public:
 #endif
 	}
 
+   /**
+     * @brief  メモリオブジェクトの生成
+     * @detail メモリオブジェクトの生成
+     * @param size 確保するメモリサイズ(バイト単位)
+	 * @param device 利用するGPUデバイス
+	 *           0以上  現在の選択中のGPU
+	 *           -1     現在の選択中のGPU
+	 *           -2     GPUは利用しない
+     * @return メモリオブジェクトへのshared_ptr
+     */
+	std::shared_ptr<Memory> Clone(void) const
+    {
+#ifdef BB_WITH_CUDA
+        auto clone = std::shared_ptr<Memory>(new Memory(m_size, m_device));
+
+        if (m_addr == nullptr && m_devAddr == nullptr) {
+            return clone;
+        }
+
+        if (m_hostModified || !IsDeviceAvailable() || clone->IsDeviceAvailable() ) {
+            auto ptr_src = GetConstPtr();
+            auto ptr_dst = clone->GetPtr(true);
+            memcpy(ptr_dst.GetPtr(), ptr_src.GetPtr(), m_size);
+        }
+        else {
+            auto ptr_src = GetConstDevicePtr();
+            auto ptr_dst = clone->GetDevicePtr(true);
+            BB_CUDA_SAFE_CALL(cudaMemcpy(ptr_dst.GetPtr(), ptr_src.GetPtr(), m_size, cudaMemcpyDeviceToDevice));
+        }
+        return clone;
+#else
+        auto clone = std::shared_ptr<Memory>(new Memory(m_size));
+        memcpy(clone->m_addr, m_addr, m_size);
+        return clone;
+#endif        
+    }
+    
 	/**
      * @brief  デバイスが利用可能か問い合わせる
      * @detail デバイスが利用可能か問い合わせる
      * @return デバイスが利用可能ならtrue
      */
-	bool IsDeviceAvailable(void)
+	bool IsDeviceAvailable(void) const
 	{
 #ifdef BB_WITH_CUDA
 		return (m_device >= 0);

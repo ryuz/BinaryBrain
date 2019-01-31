@@ -151,16 +151,11 @@ public:
 
 	Tensor_ Clone(void) const
 	{
-		Tensor_ tensor(m_shape);
-
-        auto src_ptr = m_mem->GetConstPtr();
-        auto dst_ptr = tensor.m_mem->GetPtr(true);
-		memcpy(dst_ptr.GetPtr(), src_ptr.GetPtr(), m_mem->GetSize());
-
+		Tensor_ tensor;
+        tensor.m_mem = m_mem->Clone();
 		tensor.m_size = m_size;
 		tensor.m_shape  = m_shape;
 		tensor.m_stride = m_stride;
-
 		return tensor;
 	}
 
@@ -195,9 +190,9 @@ public:
 
   	void Reshape(std::vector<INDEX> shape)
 	{
-        int auto_index = -1;
+        INDEX auto_index = -1;
 		INDEX total = 1;
-        for (INDEX i = 0; i < shape.size(); ++i)
+        for (INDEX i = 0; i < (INDEX)shape.size(); ++i)
         {
             if (shape[i] < 0) {
                 auto_index = i;
@@ -403,14 +398,14 @@ Tensor_<T> operator+(const Tensor_<T>& src0, T src1)
 }
 
 template<typename T>
-Tensor_<T> operator+(T src0, Tensor_<T> const &src1)
+inline Tensor_<T> operator+(T src0, Tensor_<T> const &src1)
 {
     return src1 + src0;
 }
 
 
 template<typename T>
-Tensor_<T> operator-(const Tensor_<T> &src0, Tensor_<T> const &src1)
+inline Tensor_<T> operator-(const Tensor_<T> &src0, Tensor_<T> const &src1)
 {
     BB_ASSERT(src0.m_size == src1.m_size);
     Tensor_<T>  dst(src0.m_shape);
@@ -420,7 +415,7 @@ Tensor_<T> operator-(const Tensor_<T> &src0, Tensor_<T> const &src1)
 }
 
 template<typename T>
-Tensor_<T> operator-(const Tensor_<T>& src0, T src1)
+inline Tensor_<T> operator-(const Tensor_<T>& src0, T src1)
 {
    BB_ASSERT(src0.m_size == src1.m_size);
    Tensor_<T>  dst(src0.m_shape);
@@ -430,7 +425,7 @@ Tensor_<T> operator-(const Tensor_<T>& src0, T src1)
 }
 
 template<typename T>
-Tensor_<T> operator-(T src0, Tensor_<T> const &src1)
+inline Tensor_<T> operator-(T src0, Tensor_<T> const &src1)
 {
    BB_ASSERT(src0.m_size == src1.m_size);
    Tensor_<T>  dst(src1.m_shape);
@@ -447,25 +442,44 @@ Tensor_<T> operator-(T src0, Tensor_<T> const &src1)
 // -------------------------------------
 
 #ifdef BB_WITH_CUDA
-/*
+
 template<>
-Tensor_<float> & Tensor_<float>::operator+=(Tensor_<float> const &op)
+inline Tensor_<float> & Tensor_<float>::operator+=(Tensor_<float> const &src)
 {
-    BB_ASSERT(m_size == op.m_size);
+    BB_ASSERT(m_size == src.m_size);
 
     // CUDA
-    if ( m_mem->IsDeviceAvailable() && op.m_mem->IsDeviceAvailable() ) {
-        auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, op->m_mem);
+    if ( m_mem->IsDeviceAvailable() && src.m_mem->IsDeviceAvailable() ) {
+        auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, src.m_mem);
         bbcu_Scalar_add_ex((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 1.0f, 0.0f, (int)m_size);
         return *this;
     }
 
     // CPU
-    auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, op.m_mem);
+    auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, src.m_mem);
     Tensor_Scalar_add_ex<float>((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 1.0f, 0.0f, m_size);
     return *this;
 }
-*/
+
+template<>
+inline Tensor_<float> operator+(const Tensor_<float> &src0, Tensor_<float> const &src1)
+{
+    BB_ASSERT(src0.m_size == src1.m_size);
+    Tensor_<float>  dst(src0.m_shape);
+
+    // CUDA
+    if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() ) {
+        auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
+        bbcu_Scalar_add_ex((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 1.0f, 0.0f, (int)dst.m_size);
+        return dst;
+    }
+
+    // CPU
+    auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
+    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 1.0f, 0.0f, dst.m_size);
+    return dst;
+}
+
 #endif
 
 
