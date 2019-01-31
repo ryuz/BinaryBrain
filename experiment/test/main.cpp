@@ -39,7 +39,7 @@ int main()
 
     t0 += t1;
     
-    cudaDeviceSynchronize();
+//    cudaDeviceSynchronize();
     t0.Lock();
     for (int i = 0; i < N; ++i) {
 //        EXPECT_EQ(t0[i], d0[i] + d1[i]);
