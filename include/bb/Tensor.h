@@ -29,6 +29,14 @@
 
 namespace bb {
 
+template<typename T>
+class Tensor_
+{
+
+    Tensor_(){}
+public:
+};
+
 
 // Tensor
 class Tensor
@@ -189,24 +197,102 @@ public:
 
 
     // operator
-    inline const Tensor& operator+=(const Tensor& op)
-    {
-        if ( m_type == BB_TYPE_FP32 ) {
+protected:
 #ifdef BB_WITH_CUDA
-            if ( m_mem->IsDeviceAvailable() && op.m_mem->IsDeviceAvailable()) {
-                auto ptrDst = m_mem->LockDevice(BB_MEMORY_MODE_RW);
-                if ( m_mem == op.m_mem ) {
-                    bbcu_Scalar_add_ex((float *)ptrDst.GetDevPtr(), (float *)ptrDst.GetDevPtr(), (float *)ptrDst.GetDevPtr(), 1.0f, 1.0f, 0.0f, (int)m_size);
-                }
-                else {
-                    auto ptrSrc = op.m_mem->LockDevice(BB_MEMORY_MODE_READ);
-                    bbcu_Scalar_add_ex((float *)ptrDst.GetDevPtr(), (float *)ptrDst.GetDevPtr(), (float *)ptrSrc.GetDevPtr(), 1.0f, 1.0f, 0.0f, (int)m_size);
-                }
-                return *this;
+    // 3 operand
+    struct DevOp3Ptr {
+        Memory::DevPtr dst;
+        Memory::DevPtr src0;
+        Memory::DevPtr src1;
+    };
+
+    inline DevOp3Ptr GetOp3Ptr(Tensor& dst, const Tensor& src0, const Tensor& src1)
+    {
+        DevOp3Ptr op3;
+        if (dst.m_mem != src0.m_mem && dst.m_mem != src1.m_mem) {
+            op3.dst  = dst.m_mem->LockDevice(BB_MEMORY_MODE_WRITE | BB_MEMORY_MODE_NEW);
+            
+            op3.src0 = src0.m_mem->LockDevice(BB_MEMORY_MODE_READ);
+            
+            if ( src1.m_mem == src0.m_mem ) {
+                op3.src1 = op3.src0;
             }
-#endif
+            else {
+                op3.src1 = src1.m_mem->LockDevice(BB_MEMORY_MODE_READ);
+            }
         }
+        else {
+            op3.dst = dst.m_mem->LockDevice(BB_MEMORY_MODE_WRITE | BB_MEMORY_MODE_READ);
+            
+            if (src0.m_mem == dst.m_mem) {
+                op3.src0 = op3.dst;
+            }
+            else {
+                op3.src0 = src0.m_mem->LockDevice(BB_MEMORY_MODE_READ);
+            }
+
+            if (src1.m_mem == dst.m_mem) {
+                op3.src1 = op3.dst;
+            }
+            else {
+                op3.src1 = src1.m_mem->LockDevice(BB_MEMORY_MODE_READ);
+            }
+        }
+        return op3;
+    };
+
+    inline void scalar_add_ex(Tensor& dst, const Tensor& src0, const Tensor& src1, float a, float b, float c)
+    {
+        auto op = GetOp3Ptr(dst, src0, src1);
+        bbcu_Scalar_add_ex((float *)op.dst.GetDevPtr(), (float *)op.src0.GetDevPtr(), (float *)op.src0.GetDevPtr(), a, b, c, (int)m_size);
+    }
+
+    inline void scalar_mul_ex(Tensor& dst, const Tensor& src0, const Tensor& src1, float a, float b)
+    {
+        auto op = GetOp3Ptr(dst, src0, src1);
+        bbcu_Scalar_mul_ex((float *)op.dst.GetDevPtr(), (float *)op.src0.GetDevPtr(), (float *)op.src0.GetDevPtr(), a, b, (int)m_size);
+    }
+#endif
+
+
+public:
+    template<typename Tp>
+    inline const Tensor& operator+=(Tp op)
+    {
+#ifdef BB_WITH_CUDA
+        if ( m_type == BB_TYPE_FP32 && m_mem->IsDeviceAvailable() ) {
+            scalar_add_ex(*this, *this, *this, 1.0f, 0.0f, static_cast<float>(op));
+            return *this;
+        }
+#endif
         
+        switch ( m_type ) {
+        case BB_TYPE_FP32:      for (INDEX i = 0; i < m_size; ++i) { this->At<float        >(i) += static_cast<float        >(op); } break;
+        case BB_TYPE_FP64:	    for (INDEX i = 0; i < m_size; ++i) { this->At<double       >(i) += static_cast<double       >(op); } break;
+        case BB_TYPE_INT8:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int8_t  >(i) += static_cast<std::int8_t  >(op); } break;
+        case BB_TYPE_INT16:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int16_t >(i) += static_cast<std::int16_t >(op); } break;
+        case BB_TYPE_INT32:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int32_t >(i) += static_cast<std::int32_t >(op); } break;
+        case BB_TYPE_INT64:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int64_t >(i) += static_cast<std::int64_t >(op); } break;
+        case BB_TYPE_UINT8:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint8_t >(i) += static_cast<std::uint8_t >(op); } break;
+        case BB_TYPE_UINT16:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint16_t>(i) += static_cast<std::uint16_t>(op); } break;
+        case BB_TYPE_UINT32:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint32_t>(i) += static_cast<std::uint32_t>(op); } break;
+        case BB_TYPE_UINT64:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint64_t>(i) += static_cast<std::uint64_t>(op); } break;
+        default:    BB_ASSERT(0);
+        }
+
+        return *this;
+    }
+
+    inline const Tensor& operator+=(Tensor& op)
+    {
+#ifdef BB_WITH_CUDA
+        if ( m_type == BB_TYPE_FP32 && m_mem->IsDeviceAvailable() && op.m_mem->IsDeviceAvailable()) {
+            scalar_add_ex(*this, *this, op, 1.0f, 1.0f, 0.0f);
+            return *this;
+        }
+#endif
+        
+        op.Lock();
         switch ( m_type ) {
         case BB_TYPE_FP32:      for (INDEX i = 0; i < m_size; ++i) { this->At<float        >(i) += op.At<float        >(i); } break;
         case BB_TYPE_FP64:	    for (INDEX i = 0; i < m_size; ++i) { this->At<double       >(i) += op.At<double       >(i); } break;
@@ -218,6 +304,94 @@ public:
         case BB_TYPE_UINT16:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint16_t>(i) += op.At<std::uint16_t>(i); } break;
         case BB_TYPE_UINT32:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint32_t>(i) += op.At<std::uint32_t>(i); } break;
         case BB_TYPE_UINT64:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint64_t>(i) += op.At<std::uint64_t>(i); } break;
+        default:    BB_ASSERT(0);
+        }
+
+        return *this;
+    }
+
+    template<typename Tp>
+    inline const Tensor& operator-=(Tp op)
+    {
+        *this += -op;
+        return *this;
+    }
+
+    inline const Tensor& operator-=(const Tensor& op)
+    {
+#ifdef BB_WITH_CUDA
+        if ( m_type == BB_TYPE_FP32 && m_mem->IsDeviceAvailable() && op.m_mem->IsDeviceAvailable()) {
+            scalar_add_ex(*this, *this, op, 1.0f, -1.0f, 0.0f);
+            return *this;
+        }
+#endif
+        
+        switch ( m_type ) {
+        case BB_TYPE_FP32:      for (INDEX i = 0; i < m_size; ++i) { this->At<float        >(i) -= op.At<float        >(i); } break;
+        case BB_TYPE_FP64:	    for (INDEX i = 0; i < m_size; ++i) { this->At<double       >(i) -= op.At<double       >(i); } break;
+        case BB_TYPE_INT8:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int8_t  >(i) -= op.At<std::int8_t  >(i); } break;
+        case BB_TYPE_INT16:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int16_t >(i) -= op.At<std::int16_t >(i); } break;
+        case BB_TYPE_INT32:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int32_t >(i) -= op.At<std::int32_t >(i); } break;
+        case BB_TYPE_INT64:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int64_t >(i) -= op.At<std::int64_t >(i); } break;
+        case BB_TYPE_UINT8:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint8_t >(i) -= op.At<std::uint8_t >(i); } break;
+        case BB_TYPE_UINT16:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint16_t>(i) -= op.At<std::uint16_t>(i); } break;
+        case BB_TYPE_UINT32:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint32_t>(i) -= op.At<std::uint32_t>(i); } break;
+        case BB_TYPE_UINT64:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint64_t>(i) -= op.At<std::uint64_t>(i); } break;
+        default:    BB_ASSERT(0);
+        }
+
+        return *this;
+    }
+
+    template<typename Tp>
+    inline const Tensor& operator*=(Tp op)
+    {
+#ifdef BB_WITH_CUDA
+        if ( m_type == BB_TYPE_FP32 && m_mem->IsDeviceAvailable() ) {
+            scalar_add_ex(*this, *this, *this, static_cast<float>(op), 0.0f, 0.0f);
+            return *this;
+        }
+#endif
+        
+        this->Lock();
+        switch ( m_type ) {
+        case BB_TYPE_FP32:      for (INDEX i = 0; i < m_size; ++i) { this->At<float        >(i) *= static_cast<float        >(op); } break;
+        case BB_TYPE_FP64:	    for (INDEX i = 0; i < m_size; ++i) { this->At<double       >(i) *= static_cast<double       >(op); } break;
+        case BB_TYPE_INT8:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int8_t  >(i) *= static_cast<std::int8_t  >(op); } break;
+        case BB_TYPE_INT16:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int16_t >(i) *= static_cast<std::int16_t >(op); } break;
+        case BB_TYPE_INT32:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int32_t >(i) *= static_cast<std::int32_t >(op); } break;
+        case BB_TYPE_INT64:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int64_t >(i) *= static_cast<std::int64_t >(op); } break;
+        case BB_TYPE_UINT8:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint8_t >(i) *= static_cast<std::uint8_t >(op); } break;
+        case BB_TYPE_UINT16:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint16_t>(i) *= static_cast<std::uint16_t>(op); } break;
+        case BB_TYPE_UINT32:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint32_t>(i) *= static_cast<std::uint32_t>(op); } break;
+        case BB_TYPE_UINT64:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint64_t>(i) *= static_cast<std::uint64_t>(op); } break;
+        default:    BB_ASSERT(0);
+        }
+        this->Unlock();
+
+        return *this;
+    }
+
+    inline const Tensor& operator*=(const Tensor& op)
+    {
+#ifdef BB_WITH_CUDA
+        if ( m_type == BB_TYPE_FP32 && m_mem->IsDeviceAvailable() && op.m_mem->IsDeviceAvailable()) {
+            scalar_add_ex(*this, *this, op, 1.0f, -1.0f, 0.0f);
+            return *this;
+        }
+#endif
+        
+        switch ( m_type ) {
+        case BB_TYPE_FP32:      for (INDEX i = 0; i < m_size; ++i) { this->At<float        >(i) *= op.At<float        >(i); } break;
+        case BB_TYPE_FP64:	    for (INDEX i = 0; i < m_size; ++i) { this->At<double       >(i) *= op.At<double       >(i); } break;
+        case BB_TYPE_INT8:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int8_t  >(i) *= op.At<std::int8_t  >(i); } break;
+        case BB_TYPE_INT16:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int16_t >(i) *= op.At<std::int16_t >(i); } break;
+        case BB_TYPE_INT32:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int32_t >(i) *= op.At<std::int32_t >(i); } break;
+        case BB_TYPE_INT64:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::int64_t >(i) *= op.At<std::int64_t >(i); } break;
+        case BB_TYPE_UINT8:	    for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint8_t >(i) *= op.At<std::uint8_t >(i); } break;
+        case BB_TYPE_UINT16:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint16_t>(i) *= op.At<std::uint16_t>(i); } break;
+        case BB_TYPE_UINT32:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint32_t>(i) *= op.At<std::uint32_t>(i); } break;
+        case BB_TYPE_UINT64:	for (INDEX i = 0; i < m_size; ++i) { this->At<std::uint64_t>(i) *= op.At<std::uint64_t>(i); } break;
         default:    BB_ASSERT(0);
         }
 

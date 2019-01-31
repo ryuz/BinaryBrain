@@ -55,6 +55,15 @@ public:
 
     public:
         Ptr() {}
+
+        Ptr(Ptr& obj)
+        {
+            Clear();
+            m_mem = obj.m_mem;
+            m_ptr = obj.m_ptr;
+            m_mem->m_refcnt++;
+        }
+
         Ptr(Ptr&& obj) noexcept
         {
             Clear();
@@ -69,6 +78,15 @@ public:
             if (m_mem != nullptr) {
                 m_mem->Unlock();
             }
+        }
+
+        Ptr& operator=(Ptr& obj)
+        {
+            Clear();
+            m_mem = obj.m_mem;
+            m_ptr = obj.m_ptr;
+            m_mem->m_refcnt++;
+            return *this;
         }
 
         Ptr& operator=(Ptr&& obj) noexcept
@@ -113,6 +131,15 @@ public:
 
     public:
         DevPtr() {}
+
+        DevPtr(DevPtr& obj)
+        {
+            Clear();
+            m_mem = obj.m_mem;
+            m_ptr = obj.m_ptr;
+            m_mem->m_devRefcnt++;
+        }
+
         DevPtr(DevPtr &&obj) noexcept
         {
             m_mem = obj.m_mem;
@@ -126,6 +153,15 @@ public:
             if (m_mem != nullptr) {
                 m_mem->UnlockDevice();
             }
+        }
+
+        DevPtr& operator=(DevPtr& obj) noexcept
+        {
+            Clear();
+            m_mem = obj.m_mem;
+            m_ptr = obj.m_ptr;
+            m_mem->m_devRefcnt++;
+            return *this;
         }
 
         DevPtr& operator=(DevPtr&& obj) noexcept
@@ -151,6 +187,8 @@ public:
         const void* GetDevPtr(void) const { return m_ptr; }
     };
 
+    friend Ptr;
+    friend DevPtr;
 
 protected:
 	size_t	m_size = 0;
@@ -385,7 +423,7 @@ public:
 				m_devModified = true;
 			}
 
-            m_refcnt++;
+            m_devRefcnt++;
 			return std::move(DevPtr(this, m_devAddr));
 		}
 #endif
@@ -395,7 +433,7 @@ public:
 
     void UnlockDevice(void)
     {
-        m_refcnt--;
+        m_devRefcnt--;
     }
 };
 
