@@ -30,7 +30,7 @@ class Memory
 {
 public:
     // メモリポインタ(const)
-    template <void (Memory::*lock)(), void (Memory::*unlock)()>
+    template <void (*lock)(Memory*), void (*unlock)(Memory*)>
     class ConstPtr_
     {
         friend Memory;
@@ -39,8 +39,8 @@ public:
         void const *m_ptr = nullptr;
         Memory     *m_mem = nullptr;
 
-        inline void Lock()    const { (m_mem->*lock)(); }
-        inline void Unlock()  const { if (m_mem != nullptr) { (m_mem->*unlock)(); } }
+        inline void Lock()    const { lock(m_mem); }
+        inline void Unlock()  const { if (m_mem != nullptr) { unlock(m_mem); } }
 
     protected:
        // friend の Memoryクラスのみ初期値を与えられる
@@ -102,7 +102,7 @@ public:
 
     
     // メモリポインタ
-    template <typename ConstTp, void (Memory::*lock)(), void (Memory::*unlock)()>
+    template <typename ConstTp, void (*lock)(Memory*), void (*unlock)(Memory*)>
     class Ptr_
     {
         friend Memory;
@@ -111,8 +111,8 @@ public:
         void*   m_ptr = nullptr;
         Memory* m_mem = nullptr;
 
-        inline void Lock()    const { (m_mem->*lock)(); }
-        inline void Unlock()  const { if (m_mem != nullptr) { (m_mem->*unlock)(); } }
+        inline void Lock()    const { lock(m_mem); }
+        inline void Unlock()  const { if (m_mem != nullptr) { unlock(m_mem); } }
 
     protected:
         // friend の Memoryクラスのみ初期値を与えられる
@@ -198,20 +198,20 @@ protected:
 	int		m_devRefCnt = 0;
 #endif
 
-    void lock()   { m_refCnt++; }
-    void unlock() { m_refCnt--;}
+    static void lock(Memory *self)   { self->m_refCnt++; }
+    static void unlock(Memory *self) { self->m_refCnt--;}
 
 #ifdef BB_WITH_CUDA
-    void lockDevice(){m_devRefCnt++;}
-    void unlockDevice(){m_devRefCnt--;}
+    static void lockDevice(Memory *self)   { self->m_devRefCnt++; }
+    static void unlockDevice(Memory *self) { self->m_devRefCnt--; }
 #else
-    void lockDevice(){}
-    void unlockDevice(){}
+    static void lockDevice(Memory *self){}
+    static void unlockDevice(Memory *self){}
 #endif
 
 public:
-    using ConstPtr    = ConstPtr_<&lock, &unlock>;
-    using Ptr         = Ptr_<ConstPtr, &lock, &unlock>;
+    using ConstPtr    = ConstPtr_<lock, unlock>;
+    using Ptr         = Ptr_<ConstPtr, lock, unlock>;
     using ConstDevPtr = ConstPtr_<&lockDevice, &unlockDevice>;
     using DevPtr      = Ptr_<ConstDevPtr, &lockDevice, &unlockDevice>;
 

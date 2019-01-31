@@ -259,7 +259,6 @@ public:
 
     inline Tensor_& operator+=(T src)
     {
-        BB_ASSERT(m_size == op.m_size);
         auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
         Tensor_Scalar_add_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)0, src, m_size);
         return *this;
@@ -275,7 +274,6 @@ public:
 
     inline Tensor_& operator-=(T src)
     {
-        BB_ASSERT(m_size == op.m_size);
         auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
         Tensor_Scalar_add_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)0, -src, m_size);
         return *this;
@@ -291,7 +289,6 @@ public:
 
     inline Tensor_& operator*=(T src)
     {
-        BB_ASSERT(m_size == op.m_size);
         auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
         Tensor_Scalar_add_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), src, (T)0, (T)0, m_size);
         return *this;
@@ -307,18 +304,18 @@ public:
 
     inline Tensor_& operator/=(T src)
     {
-        BB_ASSERT(m_size == src.m_size);
         auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
         Tensor_Scalar_div_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)0, (T)0, src, m_size);
         return *this;
     }
 
-    friend inline Tensor_<T>& operator+(Tensor_<T> const &src0, Tensor_<T>  const &src1);
-    friend inline Tensor_<T>& operator+(Tensor_<T> const &src0, T src1);
+//    friend inline Tensor_ operator+(Tensor_ const &src0, Tensor_ const &src1);
+//    friend Tensor_<T> operator+<T>(const Tensor_<T> &src0, T src1);
+//    friend class Tensor_<float> __cdecl bb::operator+ <float> (class Tensor_<float> const &,float);
 };
 
 template<typename T>
-inline Tensor_<T>& operator+(Tensor_<T> const &src0, Tensor_<T> const &src1)
+inline Tensor_<T> operator+(const Tensor_<T> &src0, Tensor_<T> const &src1)
 {
     BB_ASSERT(src0.m_size == src1.m_size);
     Tensor_<T>  dst(op0.m_shape);
@@ -328,17 +325,23 @@ inline Tensor_<T>& operator+(Tensor_<T> const &src0, Tensor_<T> const &src1)
 }
 
 template<typename T>
-inline Tensor_<T>& operator+(Tensor_<T> const &src0, T src1)
+Tensor_<T> operator+(const Tensor_<T>& src0, T src1);
+
+/*
+template<typename T>
+Tensor_<T> operator+(const Tensor_<T>& src0, T src1)
 {
-    BB_ASSERT(src0.m_size == src1.m_size);
-    Tensor_<T>  dst(op0.m_shape);
-    auto op3 = Memory::GetOp3Ptr(dst.m_mem, dst.m_mem, src0.m_mem);
-    Tensor_Scalar_add_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)0, src1, dst.m_size);
-    return dst;
+   BB_ASSERT(src0.m_size == src1.m_size);
+   Tensor_<T>  dst(op0.m_shape);
+ //  auto op3 = Memory::GetOp3Ptr(dst.m_mem, dst.m_mem, src0.m_mem);
+ //   Tensor_Scalar_add_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)0, src1, dst.m_size);
+ //   return dst;
+    return Tensor_<T>();
 }
+*/
 
 template<typename T>
-inline Tensor_<T>& operator+(T src0, Tensor_<T> const &src1)
+Tensor_<T> operator+(T src0, Tensor_<T> const &src1)
 {
     return src1 + src0;
 }
