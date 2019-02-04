@@ -53,7 +53,7 @@ namespace bb {
 #endif
 
 
-using INDEX = std::intptr_t;	// 配列の添え字(符号付き size_t としての扱い)
+using index_t = std::intptr_t;	// 配列の添え字(符号付き size_t としての扱い)
 
 class Bit;
 class Binary;
@@ -318,7 +318,7 @@ inline int DataType_GetByteSize(int type)
 
 // アクセサ
 template<typename Tp>
-inline void DataType_Write(void* base, INDEX index, Tp value)
+inline void DataType_Write(void* base, index_t index, Tp value)
 {
 	Tp* ptr = (Tp*)base;
 	ptr[index] = value;
@@ -326,7 +326,7 @@ inline void DataType_Write(void* base, INDEX index, Tp value)
 
 /*
 template<>
-inline void DataType_Write<bool>(void* base, INDEX index, bool value)
+inline void DataType_Write<bool>(void* base, index_t index, bool value)
 {
 	std::uint8_t* ptr = (std::uint8_t*)base;
 	std::uint8_t mask = (std::uint8_t)(1 << (index % 8));
@@ -340,7 +340,7 @@ inline void DataType_Write<bool>(void* base, INDEX index, bool value)
 */
 
 template<>
-inline void DataType_Write<Bit>(void* base, INDEX index, Bit value)
+inline void DataType_Write<Bit>(void* base, index_t index, Bit value)
 {
 	std::uint8_t* ptr = (std::uint8_t*)base;
 	std::uint8_t mask = (std::uint8_t)(1 << (index % 8));
@@ -354,7 +354,7 @@ inline void DataType_Write<Bit>(void* base, INDEX index, Bit value)
 
 
 template<typename Tp>
-inline Tp DataType_Read(const void *base, INDEX index)
+inline Tp DataType_Read(const void *base, index_t index)
 {
 	const Tp* ptr = (Tp*)base;
 	return ptr[index];
@@ -362,7 +362,7 @@ inline Tp DataType_Read(const void *base, INDEX index)
 
 /*
 template <>
-inline bool DataType_Read<bool>(const void *base, INDEX index)
+inline bool DataType_Read<bool>(const void *base, index_t index)
 {
 	const std::uint8_t* ptr = (std::uint8_t*)base;
 	std::uint8_t mask = (std::uint8_t)(1 << (index % 8));
@@ -371,7 +371,7 @@ inline bool DataType_Read<bool>(const void *base, INDEX index)
 */
 
 template<>
-inline Bit DataType_Read<Bit>(const void* base, INDEX index)
+inline Bit DataType_Read<Bit>(const void* base, index_t index)
 {
 	const std::uint8_t* ptr = (std::uint8_t*)base;
 	std::uint8_t mask = (std::uint8_t)(1 << (index % 8));

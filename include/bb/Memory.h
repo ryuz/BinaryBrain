@@ -27,6 +27,20 @@
 namespace bb {
 
 
+//[Memory クラス]
+//  ・GPU/CPUどちらのメモリも管理
+//  ・コピータイミングを明示的に管理したいのと、 Maxwell以前のGPUも使いたいので Unified Memory は一旦保留
+//  ・Lcok/Unlockで管理
+//  ・Lock した段階で、自分のデバイスに最新データが無ければcudaMemcopy
+//
+//
+// メモリの実体を管理する Memory クラスと
+// Memory のロックを管理する Ptr_ / ConstPtr_ クラス とからなる
+// 参照が存在している間、実体やロックが維持される
+// Memory クラスから Ptr を取得することで、実メモリがアクセス可能な状態でロックされ
+// Ptrの生存期間が過ぎるとロック解除される
+// ロックしなおした際にアドレスが変わらない保証は行わない
+
 class Memory
 {
 public:
@@ -37,7 +51,7 @@ public:
         friend Memory;
 
     protected:
-        void const *m_ptr = nullptr;
+        void const *m_addr = nullptr;
         Memory     *m_mem = nullptr;
 
         inline void Lock()    const { lock(m_mem); }
@@ -45,9 +59,9 @@ public:
 
     protected:
        // friend の Memoryクラスのみ初期値を与えられる
-        ConstPtr_(void const *ptr, Memory *mem) noexcept
+        ConstPtr_(void const *addr, Memory *mem) noexcept
         {
-            m_ptr = ptr;
+            m_addr = addr;
             m_mem = mem;
             Lock();
         }
@@ -58,8 +72,8 @@ public:
         ConstPtr_(ConstPtr_ const &obj)
         {
             Unlock();
+            m_addr = obj.m_addr;
             m_mem = obj.m_mem;
-            m_ptr = obj.m_ptr;
             Lock();
         }
 
@@ -71,7 +85,7 @@ public:
         ConstPtr_& operator=(ConstPtr_ const &obj)
         {
             Unlock();
-            m_ptr = obj.m_ptr;
+            m_addr = obj.m_addr;
             m_mem = obj.m_mem;
             Lock();
             return *this;
@@ -85,19 +99,19 @@ public:
         void Clear(void)
         {
             Unlock();
-            m_ptr = nullptr;
+            m_addr = nullptr;
             m_mem = nullptr;
         }
         
-        void const* GetPtr(void) const
+        void const* GetAddr(void) const
         {
-            return m_ptr;
+            return m_addr;
         }
 
         template<typename Tp>
-        Tp const& At(INDEX index) const {
+        Tp const& At(index_t index) const {
 //          BB_DEBUG_ASSERT(m_ptr != nullptr);
-            return ((Tp const*)m_ptr)[index];
+            return ((Tp const*)m_addr)[index];
         }
     };
 
@@ -109,18 +123,18 @@ public:
         friend Memory;
 
     protected:
-        void*   m_ptr = nullptr;
-        Memory* m_mem = nullptr;
+        void*   m_addr = nullptr;
+        Memory* m_mem  = nullptr;
 
         inline void Lock()    const { lock(m_mem); }
         inline void Unlock()  const { if (m_mem != nullptr) { unlock(m_mem); } }
 
     protected:
         // friend の Memoryクラスのみ初期値を与えられる
-        Ptr_(void* ptr, Memory* mem)
+        Ptr_(void* addr, Memory* mem)
         {
-            m_ptr = ptr;
-            m_mem = mem;
+            m_addr = addr;
+            m_mem  = mem;
             Lock();
         }
 
@@ -130,8 +144,8 @@ public:
         Ptr_(Ptr_ const &obj)
         {
             Unlock();
+            m_addr = obj.m_addr;
             m_mem = obj.m_mem;
-            m_ptr = obj.m_ptr;
             Lock();
         }
 
@@ -143,7 +157,7 @@ public:
         Ptr_& operator=(Ptr_ const &obj)
         {
             Unlock();
-            m_ptr = obj.m_ptr;
+            m_addr = obj.m_addr;
             m_mem = obj.m_mem;
             Lock();
             return *this;
@@ -157,32 +171,32 @@ public:
         void Clear(void)
         {
             Unlock();
-            m_ptr = nullptr;
+            m_addr = nullptr;
             m_mem = nullptr;
         }
         
-        void* GetPtr(void) const
+        void* GetAddr(void) const
         {
-            return m_ptr;
+            return m_addr;
         }
 
         operator ConstTp() const
         {
-           return ConstTp(m_ptr, m_mem);
+           return ConstTp(m_addr, m_mem);
         }
 
         // constアクセス
         template<typename Tp>
-        Tp const & At(INDEX index) const {
+        Tp const & At(index_t index) const {
 //          BB_DEBUG_ASSERT(m_ptr != nullptr);
-            return ((Tp const *)m_ptr)[index];
+            return ((Tp const *)m_addr)[index];
         }
 
         // 非constアクセス
         template<typename Tp>
-        Tp& At(INDEX index) {
+        Tp& At(index_t index) {
 //          BB_DEBUG_ASSERT(m_ptr != nullptr);
-            return ((Tp *)m_ptr)[index];
+            return ((Tp *)m_addr)[index];
         }
     };
 
@@ -211,15 +225,15 @@ protected:
 #endif
 
 public:
-    using ConstPtr    = ConstPtr_<lock, unlock>;
-    using Ptr         = Ptr_<ConstPtr, lock, unlock>;
-    using ConstDevPtr = ConstPtr_<&lockDevice, &unlockDevice>;
-    using DevPtr      = Ptr_<ConstDevPtr, &lockDevice, &unlockDevice>;
+    using ConstPtr    = ConstPtr_<lock, unlock>;                        //< 読み書き可能なHOSTメモリのポインタオブジェクト
+    using Ptr         = Ptr_<ConstPtr, lock, unlock>;                   //< リードオンリーなHOSTメモリのポインタオブジェクト
+    using DevConstPtr = ConstPtr_<&lockDevice, &unlockDevice>;          //< 読み書き可能なDeviceメモリのポインタオブジェクト
+    using DevPtr      = Ptr_<DevConstPtr, &lockDevice, &unlockDevice>;  //< リードオンリーなDeviceTメモリのポインタオブジェクト
 
     friend Ptr;
     friend ConstPtr;
     friend DevPtr;
-    friend ConstDevPtr;
+    friend DevConstPtr;
 
 
 public:
@@ -341,12 +355,12 @@ public:
         if (m_hostModified || !IsDeviceAvailable() || clone->IsDeviceAvailable() ) {
             auto ptr_src = GetConstPtr();
             auto ptr_dst = clone->GetPtr(true);
-            memcpy(ptr_dst.GetPtr(), ptr_src.GetPtr(), m_size);
+            memcpy(ptr_dst.GetAddr(), ptr_src.GetAddr(), m_size);
         }
         else {
-            auto ptr_src = GetConstDevicePtr();
-            auto ptr_dst = clone->GetDevicePtr(true);
-            BB_CUDA_SAFE_CALL(cudaMemcpy(ptr_dst.GetPtr(), ptr_src.GetPtr(), m_size, cudaMemcpyDeviceToDevice));
+            auto ptr_src = GetDevConstPtr();
+            auto ptr_dst = clone->GetDevPtr(true);
+            BB_CUDA_SAFE_CALL(cudaMemcpy(ptr_dst.GetAddr(), ptr_src.GetAddr(), m_size, cudaMemcpyDeviceToDevice));
         }
         return clone;
 #else
@@ -388,7 +402,7 @@ public:
      * @detail メモリサイズの取得
      * @return メモリサイズ(バイト単位)
      */
-	INDEX GetSize(void) const
+	index_t GetSize(void) const
 	{
 		return m_size;
 	}
@@ -470,7 +484,7 @@ public:
      * @param  new_buffer true なら古い内容を破棄する
      * @return デバイス側のメモリポインタ
      */
-	DevPtr GetDevicePtr(bool new_buffer=false)
+	DevPtr GetDevPtr(bool new_buffer=false)
 	{
 	#ifdef BB_WITH_CUDA
 		if ( m_device >= 0 ) {
@@ -510,7 +524,7 @@ public:
      * @param  new_buffer true なら古い内容を破棄する
      * @return デバイス側のメモリポインタ
      */
-	ConstDevPtr GetConstDevicePtr(void) const
+	DevConstPtr GetDevConstPtr(void) const
 	{
        auto self = const_cast<Memory *>(this);
 
@@ -529,11 +543,11 @@ public:
 				self->m_hostModified =false;
 			}
 
-			return ConstDevPtr(m_devAddr, self);
+			return DevConstPtr(m_devAddr, self);
 		}
 #endif
 
-		return ConstDevPtr();
+		return DevConstPtr();
 	}
 
 
@@ -585,39 +599,39 @@ public:
     // 3 operand
     struct DevOp3Ptr {
         DevPtr      dst;
-        ConstDevPtr src0;
-        ConstDevPtr src1;
+        DevConstPtr src0;
+        DevConstPtr src1;
     };
     
     static DevOp3Ptr GetDevOp3Ptr(std::shared_ptr<Memory> &dst, std::shared_ptr<Memory> const &src0, std::shared_ptr<Memory> const &src1)
     {
         DevOp3Ptr op3;
         if ( (dst != src0) && (dst != src1) ) {
-            op3.dst  = dst->GetDevicePtr(true);
-            op3.src0 = src0->GetConstDevicePtr();
+            op3.dst  = dst->GetDevPtr(true);
+            op3.src0 = src0->GetDevConstPtr();
             
             if ( src1 == src0 ) {
                 op3.src1 = op3.src0;
             }
             else {
-                op3.src1 = src1->GetConstDevicePtr();
+                op3.src1 = src1->GetDevConstPtr();
             }
         }
         else {
-            op3.dst = dst->GetDevicePtr(false);
+            op3.dst = dst->GetDevPtr(false);
             
             if (src0 == dst) {
                 op3.src0 = op3.dst;
             }
             else {
-                op3.src0 = src0->GetConstDevicePtr();
+                op3.src0 = src0->GetDevConstPtr();
             }
 
             if (src1 == dst) {
                 op3.src1 = op3.dst;
             }
             else {
-                op3.src1 = src1->GetConstDevicePtr();
+                op3.src1 = src1->GetDevConstPtr();
             }
         }
         return op3;

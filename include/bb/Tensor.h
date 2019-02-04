@@ -43,11 +43,11 @@ inline void Tensor_Scalar_add_ex
     T	    a,
     T	    b,
     T	    c,
-    INDEX   size
+    index_t size
 )
 {
     #pragma omp parallel for 
-    for (INDEX i = 0; i < size; ++i) {
+    for (index_t i = 0; i < size; ++i) {
         dst[i] = a * src0[i] + b * src1[i] + c;
     }
 }
@@ -60,11 +60,11 @@ inline void Tensor_Scalar_mul_ex
     T const *src1,
     T	    a,
     T	    b,
-    INDEX   size
+    index_t size
 )
 {
     #pragma omp parallel for 
-    for (INDEX i = 0; i < size; ++i) {
+    for (index_t i = 0; i < size; ++i) {
         dst[i] = a * src0[i] * src1[i] + b;
     }
 }
@@ -79,11 +79,11 @@ inline void Tensor_Scalar_div_ex
     T	    b,
     T	    c,
     T	    d,
-    INDEX   size
+    index_t size
 )
 {
     #pragma omp parallel for 
-    for (INDEX i = 0; i < size; ++i) {
+    for (index_t i = 0; i < size; ++i) {
         dst[i] = (a * src0[i] + b) / (c * src1[i] + d);
     }
 }
@@ -118,10 +118,10 @@ class Tensor_
 protected:
 	std::shared_ptr<Memory>	m_mem;
     Memory::Ptr             m_ptr;
-	INDEX					m_size = 0;
+	index_t					m_size = 0;
 
-	std::vector<INDEX>		m_shape;
-	std::vector<INDEX>		m_stride;
+	std::vector<index_t>		m_shape;
+	std::vector<index_t>		m_stride;
 public:
     Tensor_(){}
 
@@ -130,12 +130,12 @@ public:
 		*this = tensor;
 	}
 
-	Tensor_(INDEX size)
+	Tensor_(index_t size)
 	{
 		Resize(size);
 	}
 
-	Tensor_(std::vector<INDEX> shape)
+	Tensor_(std::vector<index_t> shape)
 	{
 		Resize(shape);
 	}
@@ -159,12 +159,12 @@ public:
 		return tensor;
 	}
 
-	void Resize(std::vector<INDEX> shape)
+	void Resize(std::vector<index_t> shape)
 	{
 		// サイズ算出
 		m_shape = shape;
         m_stride.clear();
-		INDEX total = 1;
+		index_t total = 1;
 		for (auto len : m_shape) {
 			m_stride.push_back(total);
 			total *= len;
@@ -175,7 +175,7 @@ public:
 		m_mem = Memory::Create(m_size * DataType<T>::size);
 	}
 
-	void Resize(INDEX size)
+	void Resize(index_t size)
 	{
 		// 設定保存
         m_size = size;
@@ -188,11 +188,11 @@ public:
 		m_mem = Memory::Create(m_size * DataType<T>::size);
 	}
 
-  	void Reshape(std::vector<INDEX> shape)
+  	void Reshape(std::vector<index_t> shape)
 	{
-        INDEX auto_index = -1;
-		INDEX total = 1;
-        for (INDEX i = 0; i < (INDEX)shape.size(); ++i)
+        index_t auto_index = -1;
+		index_t total = 1;
+        for (index_t i = 0; i < (index_t)shape.size(); ++i)
         {
             if (shape[i] < 0) {
                 auto_index = i;
@@ -216,25 +216,42 @@ public:
         BB_ASSERT(m_size == total);
 	}
 
-	std::vector<INDEX> Shape(void) const
+	std::vector<index_t> Shape(void) const
 	{
 		return m_shape;
 	}
 
 
-    void Transpose(std::vector<INDEX> axes)
+    void Transpose(std::vector<index_t> axes)
     {
         BB_ASSERT(axes.size() == m_stride.size());
 
         auto tmp_stride = m_stride;
         auto tmp_shape  = m_shape;
-        for (INDEX i = 0; i < (INDEX)m_stride.size(); ++i)
+        for (index_t i = 0; i < (index_t)m_stride.size(); ++i)
         {
-            BB_ASSERT(axes[i] >= 0 && axes[i] < (INDEX)m_stride.size());
+            BB_ASSERT(axes[i] >= 0 && axes[i] < (index_t)m_stride.size());
             m_stride[i] = tmp_stride[axes[i]];
             m_shape[i]  = tmp_shape[axes[i]];
         }
     }
+
+    void FillZero(void)
+    {
+        auto ptr = m_mem->GetPtr(true);
+        memset(ptr.GetAddr(), 0, m_mem->GetSize());
+    }
+
+
+    // -------------------------------------
+    //  直接アクセス用ポインタ取得
+    // -------------------------------------
+
+    Memory::Ptr         GetPtr(bool new_buf=false) const { return m_mem->GetPtr(new_buf); }
+    Memory::ConstPtr    GetConstPtr(void) const { return m_mem->GetConstPtr(); }
+    Memory::DevPtr      GetDevPtr(bool new_buf=false) const { return m_mem->GetDevPtr(new_buf); }
+    Memory::DevConstPtr GetDevConstPtr(void) const { return m_mem->GetDevConstPtr(); }
+
 
 
     // -------------------------------------
@@ -251,7 +268,7 @@ public:
         m_ptr.Clear();
     }
 
-   	INDEX GetMemorySize(void) const
+   	index_t GetMemorySize(void) const
     {
         return m_mem->GetSize();
     }
@@ -261,11 +278,11 @@ public:
         return m_mem->GetPtr();
     }
 
-	inline T const & operator()(std::vector<INDEX> indices) const
+	inline T const & operator()(std::vector<index_t> indices) const
 	{
 		BB_ASSERT(indices.size() == m_shape.size());
 
-		INDEX index = 0;
+		index_t index = 0;
 		for (int i = 0; i < (int)indices.size(); ++i) {
 			index += indices[i] * m_stride[i];
 		}
@@ -273,11 +290,11 @@ public:
 		return m_ptr.At<T>(index);
 	}
 
-	inline T & operator()(std::vector<INDEX> indices)
+	inline T & operator()(std::vector<index_t> indices)
 	{
 		BB_ASSERT(indices.size() == m_shape.size());
 
-		INDEX index = 0;
+		index_t index = 0;
 		for (int i = 0; i < (int)indices.size(); ++i) {
             BB_DEBUG_ASSERT(indices[i] >= 0 && indices[i] < m_shape[i]);
 			index += indices[i] * m_stride[i];
@@ -286,13 +303,13 @@ public:
 		return m_ptr.At<T>(index);
 	}
 
-	inline T const & operator[](INDEX index) const 
+	inline T const & operator[](index_t index) const 
 	{
 		BB_DEBUG_ASSERT(index >= 0 && index < m_size);
 		return ((const T *)m_ptr.GetPtr())[index];
 	}
 	
-	inline T & operator[](INDEX index)
+	inline T & operator[](index_t index)
 	{
 		BB_DEBUG_ASSERT(index >= 0 && index < m_size);
 		return m_ptr.At<T>(index);
@@ -307,14 +324,14 @@ public:
     {
         BB_ASSERT(m_size == src.m_size);
         auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, src.m_mem);
-        Tensor_Scalar_add_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)1, (T)0, m_size);
+        Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)1, (T)0, m_size);
         return *this;
     }
 
     inline Tensor_& operator+=(T src)
     {
         auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
-        Tensor_Scalar_add_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)0, src, m_size);
+        Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, src, m_size);
         return *this;
     }
 
@@ -322,14 +339,14 @@ public:
     {
         BB_ASSERT(m_size == src.m_size);
         auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, src.m_mem);
-        Tensor_Scalar_add_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)-1, (T)0, m_size);
+        Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)-1, (T)0, m_size);
         return *this;
     }
 
     inline Tensor_& operator-=(T src)
     {
         auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
-        Tensor_Scalar_add_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)0, -src, m_size);
+        Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, -src, m_size);
         return *this;
     }
 
@@ -337,14 +354,14 @@ public:
     {
         BB_ASSERT(m_size == src.m_size);
         auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, src.m_mem);
-        Tensor_Scalar_mul_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)0, m_size);
+        Tensor_Scalar_mul_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, m_size);
         return *this;
     }
 
     inline Tensor_& operator*=(T src)
     {
         auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
-        Tensor_Scalar_add_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), src, (T)0, (T)0, m_size);
+        Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), src, (T)0, (T)0, m_size);
         return *this;
     }
 
@@ -352,14 +369,14 @@ public:
     {
         BB_ASSERT(m_size == src.m_size);
         auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, src.m_mem);
-        Tensor_Scalar_div_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)0, (T)1, (T)0, m_size);
+        Tensor_Scalar_div_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, (T)1, (T)0, m_size);
         return *this;
     }
 
     inline Tensor_& operator/=(T src)
     {
         auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
-        Tensor_Scalar_div_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)0, (T)0, src, m_size);
+        Tensor_Scalar_div_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, (T)0, src, m_size);
         return *this;
     }
 
@@ -448,13 +465,13 @@ inline Tensor_<float> & Tensor_<float>::operator+=(Tensor_<float> const &src)
     // CUDA
     if ( m_mem->IsDeviceAvailable() && src.m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, src.m_mem);
-        bbcu_Scalar_add_ex((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 1.0f, 0.0f, (int)m_size);
+        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 1.0f, 0.0f, (int)m_size);
         return *this;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, src.m_mem);
-    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 1.0f, 0.0f, m_size);
+    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 1.0f, 0.0f, m_size);
     return *this;
 }
 
@@ -464,13 +481,13 @@ inline Tensor_<float> & Tensor_<float>::operator+=(float src)
     // CUDA
     if ( m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, m_mem);
-        bbcu_Scalar_add_ex((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 0.0f, src, (int)m_size);
+        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, src, (int)m_size);
         return *this;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
-    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 0.0f, src, m_size);
+    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, src, m_size);
     return *this;
 }
 
@@ -483,13 +500,13 @@ inline Tensor_<float> operator+(const Tensor_<float> &src0, Tensor_<float> const
     // CUDA
     if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
-        bbcu_Scalar_add_ex((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 1.0f, 0.0f, (int)dst.m_size);
+        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 1.0f, 0.0f, (int)dst.m_size);
         return dst;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
-    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 1.0f, 0.0f, dst.m_size);
+    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 1.0f, 0.0f, dst.m_size);
     return dst;
 }
 
@@ -501,13 +518,13 @@ inline Tensor_<float> operator+(const Tensor_<float> &src0, float src1)
     // CUDA
     if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
-        bbcu_Scalar_add_ex((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 0.0f, src1, (int)dst.m_size);
+        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, src1, (int)dst.m_size);
         return dst;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
-    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 0.0f, src1, dst.m_size);
+    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, src1, dst.m_size);
     return dst;
 }
 
@@ -519,13 +536,13 @@ inline Tensor_<float> operator+(float src0, const Tensor_<float> &src1)
     // CUDA
     if ( dst.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
-        bbcu_Scalar_add_ex((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 0.0f, src0, (int)dst.m_size);
+        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, src0, (int)dst.m_size);
         return dst;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
-    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 0.0f, src0, dst.m_size);
+    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, src0, dst.m_size);
     return dst;
 }
 
@@ -540,13 +557,13 @@ inline Tensor_<float> & Tensor_<float>::operator-=(Tensor_<float> const &src)
     // CUDA
     if ( m_mem->IsDeviceAvailable() && src.m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, src.m_mem);
-        bbcu_Scalar_add_ex((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, -1.0f, 0.0f, (int)m_size);
+        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, -1.0f, 0.0f, (int)m_size);
         return *this;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, src.m_mem);
-    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, -1.0f, 0.0f, m_size);
+    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, -1.0f, 0.0f, m_size);
     return *this;
 }
 
@@ -556,13 +573,13 @@ inline Tensor_<float> & Tensor_<float>::operator-=(float src)
     // CUDA
     if ( m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, m_mem);
-        bbcu_Scalar_add_ex((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 0.0f, -src, (int)m_size);
+        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, -src, (int)m_size);
         return *this;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
-    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 0.0f, -src, m_size);
+    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, -src, m_size);
     return *this;
 }
 
@@ -575,13 +592,13 @@ inline Tensor_<float> operator-(const Tensor_<float> &src0, Tensor_<float> const
     // CUDA
     if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
-        bbcu_Scalar_add_ex((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, -1.0f, 0.0f, (int)dst.m_size);
+        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, -1.0f, 0.0f, (int)dst.m_size);
         return dst;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
-    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, -1.0f, 0.0f, dst.m_size);
+    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, -1.0f, 0.0f, dst.m_size);
     return dst;
 }
 
@@ -593,13 +610,13 @@ inline Tensor_<float> operator-(const Tensor_<float> &src0, float src1)
     // CUDA
     if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
-        bbcu_Scalar_add_ex((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 0.0f, -src1, (int)dst.m_size);
+        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, -src1, (int)dst.m_size);
         return dst;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
-    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), 1.0f, 0.0f, -src1, dst.m_size);
+    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, -src1, dst.m_size);
     return dst;
 }
 
@@ -611,13 +628,13 @@ inline Tensor_<float> operator-(float src0, const Tensor_<float> &src1)
     // CUDA
     if ( dst.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
-        bbcu_Scalar_add_ex((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), -1.0f, 0.0f, src0, (int)dst.m_size);
+        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), -1.0f, 0.0f, src0, (int)dst.m_size);
         return dst;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
-    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetPtr(), (const float *)op3.src0.GetPtr(), (const float *)op3.src1.GetPtr(), -1.0f, 0.0f, src0, dst.m_size);
+    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), -1.0f, 0.0f, src0, dst.m_size);
     return dst;
 }
 
@@ -633,10 +650,10 @@ protected:
 	std::shared_ptr<Memory>			m_mem;
     Memory::Ptr                     m_ptr;
 	int								m_type = 0;
-	INDEX							m_size = 0;
+	index_t							m_size = 0;
 
-	std::vector<INDEX>				m_shape;
-	std::vector<INDEX>				m_stride;
+	std::vector<index_t>			m_shape;
+	std::vector<index_t>			m_stride;
 
 public:
 	Tensor() {}
@@ -645,16 +662,22 @@ public:
 		*this = tensor;
 	}
 
-	Tensor(INDEX size, int type)
+	Tensor(index_t size, int type)
 	{
 		Resize(size, type);
 	}
 
-	Tensor(std::vector<INDEX> shape, int type)
+	Tensor(std::vector<index_t> shape, int type)
 	{
 		Resize(shape, type);
 	}
 
+    template<typename Tp>
+   	Tensor(const Tensor_<Tp>& tensor)
+	{
+        *this = tensor;
+	}
+    
 	Tensor& operator=(const Tensor &src)
 	{
 		m_mem  = src.m_mem;
@@ -666,13 +689,57 @@ public:
 		return *this;
 	}
 
+    template<typename Tp>
+   	Tensor& operator=(const Tensor_<Tp>& tensor)
+	{
+        m_mem = tensor.m_mem;
+        m_ptr.Clear();
+        m_type = DataType<Tp>::type;
+        m_size = tensor.m_size;
+        m_shape  = tensor.m_shape;
+        m_stride = tensor.m_stride;
+        return *this;
+	}
+
+    template<typename Tp>
+    operator Tensor_<Tp>() const
+    {
+        if (DataType<Tp>::type == m_type) {
+            Tensor_<Tp> tensor;
+   	        tensor.m_mem  = m_mem;
+	        tensor.m_size = m_size;
+	        tensor.m_shape = m_shape;
+	        tensor.m_stride = m_stride;
+            return tensor;
+        }
+        else {
+            Tensor_<Tp> tensor(m_shape);
+            auto src = m_mem->GetConstPtr();
+            auto dst = tensor.m_mem->GetPtr(true);
+            switch ( m_type ) {
+            case BB_TYPE_FP32:   for (index_t i = 0; i < m_size; ++i){ dst.At<Tp>(i) = static_cast<Tp>(src.At<float>(i));         } break;
+            case BB_TYPE_FP64:   for (index_t i = 0; i < m_size; ++i){ dst.At<Tp>(i) = static_cast<Tp>(src.At<double>(i));        } break;
+            case BB_TYPE_INT8:   for (index_t i = 0; i < m_size; ++i){ dst.At<Tp>(i) = static_cast<Tp>(src.At<std::int8_t>(i));   } break;
+            case BB_TYPE_INT16:  for (index_t i = 0; i < m_size; ++i){ dst.At<Tp>(i) = static_cast<Tp>(src.At<std::int16_t>(i));  } break;
+            case BB_TYPE_INT32:  for (index_t i = 0; i < m_size; ++i){ dst.At<Tp>(i) = static_cast<Tp>(src.At<std::int32_t>(i));  } break;
+            case BB_TYPE_INT64:  for (index_t i = 0; i < m_size; ++i){ dst.At<Tp>(i) = static_cast<Tp>(src.At<std::int64_t>(i));  } break;
+            case BB_TYPE_UINT8:  for (index_t i = 0; i < m_size; ++i){ dst.At<Tp>(i) = static_cast<Tp>(src.At<std::uint8_t>(i));  } break;
+            case BB_TYPE_UINT16: for (index_t i = 0; i < m_size; ++i){ dst.At<Tp>(i) = static_cast<Tp>(src.At<std::uint16_t>(i)); } break;
+            case BB_TYPE_UINT32: for (index_t i = 0; i < m_size; ++i){ dst.At<Tp>(i) = static_cast<Tp>(src.At<std::uint32_t>(i)); } break;
+            case BB_TYPE_UINT64: for (index_t i = 0; i < m_size; ++i){ dst.At<Tp>(i) = static_cast<Tp>(src.At<std::uint64_t>(i)); } break;
+            default: BB_ASSERT(0); break;
+            }
+            return tensor;
+        }
+    }
+
 	Tensor Clone(void) const
 	{
 		Tensor tensor(m_shape, m_type);
 
         auto src_ptr = m_mem->GetConstPtr();
         auto dst_ptr = tensor.m_mem->GetPtr(true);
-		memcpy(dst_ptr.GetPtr(), src_ptr.GetPtr(), m_mem->GetSize());
+		memcpy(dst_ptr.GetAddr(), src_ptr.GetAddr(), m_mem->GetSize());
 
 		tensor.m_type = m_type;
 		tensor.m_size = m_size;
@@ -682,7 +749,7 @@ public:
 		return tensor;
 	}
 
-	void Resize(std::vector<INDEX> shape, int type)
+	void Resize(std::vector<index_t> shape, int type)
 	{
 		// 設定保存
 		m_type = type;
@@ -690,7 +757,7 @@ public:
 		// サイズ算出
 		m_shape = shape;
         m_stride.clear();
-		INDEX total = 1;
+		index_t total = 1;
 		for (auto len : m_shape) {
 			m_stride.push_back(total);
 			total *= len;
@@ -701,7 +768,7 @@ public:
 		m_mem = Memory::Create(m_size * DataType_GetByteSize(type));
 	}
 
-	void Resize(INDEX size, int type)
+	void Resize(index_t size, int type)
 	{
 		// 設定保存
 		m_type = type;
@@ -715,33 +782,34 @@ public:
 		m_mem = Memory::Create(m_size * DataType_GetByteSize(type));
 	}
 
-	std::vector<INDEX> GetShape(void) const
+	std::vector<index_t> GetShape(void) const
 	{
 		return m_shape;
 	}
 
-
-    // -------------------------------------
-    //  キャスト
-    // -------------------------------------
-
-    template<typename Tp>
-    operator Tensor_<Tp>() const
+	index_t GetSize(void) const
+	{
+		return m_size;
+	}
+    
+    void FillZero(void)
     {
-        BB_ASSERT(DataType<Tp>::type == m_type);
-
-        Tensor_<Tp> tensor;
-   		tensor.m_mem  = m_mem;
-		tensor.m_type = m_type;
-		tensor.m_size = m_size;
-		tensor.m_shape = m_shape;
-		tensor.m_stride = m_stride;
-		return tensor;
+        auto ptr = m_mem->GetPtr(true);
+        memset(ptr.GetAddr(), 0, m_mem->GetSize());
     }
 
+    // -------------------------------------
+    //  直接アクセス用ポインタ取得
+    // -------------------------------------
+
+    Memory::Ptr         GetPtr(bool new_buf=false) const { return m_mem->GetPtr(new_buf); }
+    Memory::ConstPtr    GetConstPtr(void) const { return m_mem->GetConstPtr(); }
+    Memory::DevPtr      GetDevPtr(bool new_buf=false) const { return m_mem->GetDevPtr(new_buf); }
+    Memory::DevConstPtr GetDevConstPtr(void) const { return m_mem->GetDevConstPtr(); }
+
 
     // -------------------------------------
-    //  アクセサ
+    //  メモリアクセス操作
     // -------------------------------------
 
     void Lock(void)
@@ -755,11 +823,12 @@ public:
     }
     
 	template <typename Tp>
-	inline const Tp& At(std::vector<INDEX> indices) const
+	inline const Tp& At(std::vector<index_t> indices) const
 	{
+        BB_DEBUG_ASSERT(m_type == DataType<Tp>::Type);
 		BB_ASSERT(indices.size() == m_shape.size());
 
-		INDEX index = 0;
+		index_t index = 0;
 		for (int i = 0; i < (int)indices.size(); ++i) {
 			index += indices[i] * m_stride[i];
 		}
@@ -768,11 +837,12 @@ public:
 	}
 
    	template <typename Tp>
-	inline Tp& At(std::vector<INDEX> indices)
+	inline Tp& At(std::vector<index_t> indices)
 	{
+        BB_DEBUG_ASSERT(m_type == DataType<Tp>::Type);
 		BB_ASSERT(indices.size() == m_shape.size());
 
-		INDEX index = 0;
+		index_t index = 0;
 		for (int i = 0; i < (int)indices.size(); ++i) {
 			index += indices[i] * m_stride[i];
 		}
@@ -781,20 +851,22 @@ public:
 	}
 
 	template <typename Tp>
-	inline Tp const & At(INDEX index) const 
+	inline Tp const & At(index_t index) const 
 	{
+        BB_DEBUG_ASSERT(m_type == DataType<Tp>::Type);
 		BB_DEBUG_ASSERT(index >= 0 && index < m_size);
 		return ((const Tp *)m_ptr.GetPtr())[index];
 	}
 	
     template <typename Tp>
-	inline Tp & At(INDEX index)
+	inline Tp & At(index_t index)
 	{
+        BB_DEBUG_ASSERT(m_type == DataType<Tp>::Type);
 		BB_DEBUG_ASSERT(index >= 0 && index < m_size);
 		return ((Tp *)m_ptr.GetPtr())[index];
 	}
 
-	INDEX GetMemorySize(void) const
+	index_t GetMemorySize(void) const
     {
         return m_mem->GetSize();
     }

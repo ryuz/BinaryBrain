@@ -18,228 +18,198 @@
 #include <memory>
 #include <malloc.h>
 
-#include "bb/NeuralNetType.h"
-#include "bb/NeuralNetUtility.h"
+#include "bb/DataType.h"
+#include "bb/Tensor.h"
 
 
 namespace bb {
 
 
-// 色々な型のデータを管理することを目的としたバッファ
-// イメージとしては OpenCV の Mat型 のような汎用性を目指す
+// [FrameBuffer クラス]
+//   ・LayerとLayerの接続に利用
+//   ・Layerのパラメータ構成に必要な情報を保持
+//   ・Tensorクラスで実体を保有
+//   ・Tensor内のデータの各次元の意味付けを行う(Sparseで性能の出る軸で管理)
+// 
+//  外部APIとしては、Tensor が複数フレーム格納されるたような形式に見せる
+//  内部的には１つの Tensor に統合する。即ち内部 Tensor は次数が1多い
+//  メモリ配置は NCHW でも NHWC でもなく、CHWN を意図しており、N = frame の意である
 //
-// メモリはベースを2次元として、画像フレーム毎にバッチ処理する場合の
-// frame 軸と、各層の演算ノードに対応する node 軸を持っている
-// frame軸は、SIMD演算を意識して32バイト境界を守り、バイナリ値は
-// __m256i に 256bit パッキングする
-// node 軸はさらに必要に応じて、テンソル的に多次元化可能にしておき、
-// 転置や reshape、畳み込み時のROIアクセスなど考慮に入れておく
-
-
-#define BB_NEURALNET_BUFFER_USE_ROI		0
+//  また ここで node_size や node などの語を定義している。これは各フレームの
+//  Tensor を1次元のフラットでアクセスする事を意図した用語である。
+//  CUDAやSIMD命令での操作を強く意図しており、これらを使ってプログラミングするときは
+//  メモリ配置を強く意識する必要がある。 shape は上位からメモリにアクセスをする際に
+//  利便性を向上させる為のものである。
+//  同じノードへのアクセス方法として、
+//    ・フレーム番号＋ノード番号
+//    ・フレーム番号＋shapeに従った多次元の添え字
+//  の２種類があるので注意すること
 
 
 // NeuralNet用のバッファ
 template <typename T = float>
-class NeuralNetBuffer
+class FrameBuffer
 {
 protected:
-	std::shared_ptr<std::uint8_t>	m_buffer;
-	int								m_data_type = 0;
-	INDEX							m_base_size = 0;
-	INDEX							m_frame_size = 0;
-	INDEX							m_frame_stride = 0;
+    Tensor                  m_tensor;
 
-	struct Dimension
-	{
-		INDEX	step;
-		INDEX	stride;
-
-#if	BB_NEURALNET_BUFFER_USE_ROI
-		INDEX	offset;
-		INDEX	width;
-#endif
-	};
-
-	std::vector<Dimension>			m_dim;
-
-	INDEX							m_node_size = 0;
-	std::vector<INDEX>				m_iterator;
-	bool							m_end;
+	int		                m_data_type = 0;
+	index_t	                m_frame_size = 0;
+	index_t                 m_frame_stride = 0;
+	index_t	                m_node_size = 0;
+    std::vector<index_t>    m_node_shape;
 
 public:
-	NeuralNetBuffer() {}
-	NeuralNetBuffer(const NeuralNetBuffer& buf)
+    // デフォルトコンストラクタ
+	FrameBuffer() {}
+
+    // コピーコンストラクタ
+	FrameBuffer(const FrameBuffer& buf)
 	{
 		*this = buf;
 	}
 
-	NeuralNetBuffer(INDEX frame_size, INDEX node_size, int data_type)
+  	/**
+     * @brief  コンストラクタ
+     * @detail コンストラクタ
+     *        tensor は node_size サイズの1次元で初期化
+     * @param frame_size フレーム数
+     * @param node_size  1フレームのノード数
+	 * @param data_type  1ノードのデータ型
+     */
+	FrameBuffer(index_t frame_size, index_t node_size, int data_type)
 	{
-		Resize(frame_size, node_size, data_type);
+        Resize(frame_size, {node_size}, data_type);
 	}
 
-	NeuralNetBuffer& operator=(const NeuralNetBuffer &buf)
+   	/**
+     * @brief  コンストラクタ
+     * @detail コンストラクタ
+     * @param frame_size フレーム数
+     * @param shape      1フレームのノードを構成するshape
+	 * @param data_type  1ノードのデータ型
+     */
+	FrameBuffer(index_t frame_size, std::vector<index_t> shape, int data_type)
 	{
-		m_buffer = buf.m_buffer;
-		m_data_type = buf.m_data_type;
-		m_base_size = buf.m_base_size;
-		m_frame_size = buf.m_frame_size;
-		m_frame_stride = buf.m_frame_stride;
-
-		m_dim = buf.m_dim;
-		m_node_size = buf.m_node_size;
-		m_iterator = buf.m_iterator;
-		m_end = buf.m_end;
+		Resize(frame_size, shape, data_type);
+	}
+    
+   	/**
+     * @brief  代入演算子
+     * @detail 代入演算子
+     *         代入演算子でのコピーは、メモリは同じ箇所を指す
+     */
+    FrameBuffer& operator=(const FrameBuffer &buf)
+	{
+		m_tensor        = buf.m_tensor;
+		m_data_type     = buf.m_data_type;
+		m_frame_size    = buf.m_frame_size;
+		m_frame_stride  = buf.m_frame_stride;
+		m_node_size     = buf.m_node_size;
+        m_node_shape    = m_node_shape;
 
 		return *this;
 	}
 
-	NeuralNetBuffer clone(void) const
+   	/**
+     * @brief  クローン
+     * @detail クローン
+     * @return メモリ内容をコピーしたクローンを返す
+     */
+	FrameBuffer Clone(void) const
 	{
-		NeuralNetBuffer clone_buf(m_frame_size, m_base_size, m_data_type);
+		FrameBuffer clone_buf();
 
-		memcpy(clone_buf.m_buffer.get(), m_buffer.get(), m_frame_stride*(m_base_size+1));
-
-		clone_buf.m_frame_size = m_frame_size;
-		clone_buf.m_frame_stride = m_frame_stride;
-
-		clone_buf.m_dim = m_dim;
-		clone_buf.m_node_size = m_node_size;
-		clone_buf.m_iterator = m_iterator;
-		clone_buf.m_end = m_end;
+        clone_buf.m_tensor  = m_tensor.Clone();
+		m_data_type         = buf.m_data_type;
+		m_node_size = buf.m_node_size;
+		m_frame_size = buf.m_frame_size;
+		m_frame_stride = buf.m_frame_stride;
+        m_shape        = m_shape;
 
 		return clone_buf;
 	}
 
-	void Clear(void)
+
+
+   	/**
+     * @brief  サイズ設定
+     * @detail サイズ設定
+     * @param frame_size フレーム数
+     * @param shape      1フレームのノードを構成するshape
+	 * @param data_type  1ノードのデータ型
+     */
+    void Resize(index_t frame_size, std::vector<index_t> shape, int data_type)
 	{
-		memset(m_buffer.get(), 0, m_frame_stride*m_base_size);
-	}
+        m_data_type    = data_type;
+        m_frame_size   = frame_size;
+        m_frame_stride = ((DataType_GetBitSize(data_type) + 255) / 256) * (255 / 8);        // frame軸は256bit境界にあわせる(SIMD命令用)
+        m_node_shape   = shape;
 
-	void ClearMargin(void)
-	{
-		INDEX type_bit_size = NeuralNet_GetTypeBitSize(m_data_type);
-		INDEX valid_size = (m_frame_size * type_bit_size + 7) / 8;
-		if ( m_frame_stride <= valid_size ) { return; }
+        // tensor の shape設定
+        int                     tensor_type = data_type;
+        std::vector<index_t>    tensor_shape(shape.size() + 1);
 
-		INDEX margin_size = m_frame_stride - valid_size;
-		char* ptr = (char*)m_buffer.get();
-		for (INDEX node = 0; node < m_base_size; ++node) {
-			memset(ptr + valid_size, 0, margin_size);
-			ptr += m_frame_stride;
-		}
-	}
+        // Bit型は内部 UINT8 で扱う
+        if ( data_type == BB_TYPE_BIT )
+        {
+            tensor_type = BB_TYPE_UINT8;
+        }
 
-
-	void Resize(INDEX frame_size, INDEX node_size, int data_type)
-	{
-		// 設定保存
-		m_data_type = data_type;
-		m_base_size = node_size;
-		m_frame_size = frame_size;
-
-		size_t type_bit_size = NeuralNet_GetTypeBitSize(data_type);
+        // サイズ計算
+		m_node_size = 1;
+        tensor_shape.push_back(m_frame_stride / DataType_GetByteSize(tensor_type));
+        for ( auto size : shape ) {
+            tensor_shape.push_back(size);
+    		m_node_size *= size;
+        }
 
 		// メモリ確保
-		m_frame_stride = (((frame_size * type_bit_size) + 255) / 256) * 32;
-//#ifdef _MSC_VER
-//		m_buffer = std::shared_ptr<std::uint8_t>((std::uint8_t *)_aligned_malloc(m_frame_stride*(m_base_size + 1), 32), _aligned_free);
-//#else
-//		m_buffer = std::shared_ptr<std::uint8_t>((std::uint8_t *)posix_memalign(m_frame_stride*(m_base_size + 1), 32), std::free);
-//#endif
-		m_buffer = std::shared_ptr<std::uint8_t>((std::uint8_t *)aligned_memory_alloc(m_frame_stride*(m_base_size + 1), 32), aligned_memory_free);
-
-		memset(m_buffer.get(), 0, m_frame_stride*(m_base_size + 1));
-
-		m_node_size = node_size;
-		m_dim.resize(1);
-		m_dim[0].step = node_size;
-		m_dim[0].stride = 1;
-#if	BB_NEURALNET_BUFFER_USE_ROI
-		m_dim[0].offset = 0;
-		m_dim[0].width = node_size;
-#endif
+		m_tensor.Resize(tensor_shape, tensor_type);
 	}
 
-	void SetDimensions(std::vector<INDEX> dim)
+   	/**
+     * @brief  サイズ設定
+     * @detail サイズ設定
+     * @param frame_size フレーム数
+     * @param node_size  1フレームのノードサイズ
+	 * @param data_type  1ノードのデータ型
+     */	void Resize(index_t frame_size, index_t node_size, int data_type)
 	{
-		BB_ASSERT(dim.size() > 0);
-		INDEX total = 1; for (auto len : dim) { total *= len; }
-		BB_ASSERT(total == m_base_size);
-
-		m_dim.resize(dim.size());
-		m_dim[0].step = dim[0];
-		m_dim[0].stride = 1;
-#if	BB_NEURALNET_BUFFER_USE_ROI
-		m_dim[0].offset = 0;
-		m_dim[0].width = dim[0];
-#endif
-		for (size_t i = 1; i < dim.size(); ++i) {
-			m_dim[i].step = dim[i];
-			m_dim[i].stride = m_dim[i - 1].stride * m_dim[i - 1].step;
-#if	BB_NEURALNET_BUFFER_USE_ROI
-			m_dim[i].offset = 0;
-			m_dim[i].width = dim[i];
-#endif
-		}
+        std::vector<index_t>    shape(1);
+        shape[0] = node_size;
+        Resize(frame_size, shape, data_type);
 	}
 
-	std::vector<INDEX> GetDimensions(void) const
+   	/**
+     * @brief  内容のゼロ埋め
+     * @detail 内容のゼロ埋め
+     */
+	void FillZero(void)
+    {
+        m_tensor.FillZero();
+    }
+
+//	void FillZeroMargin(void)
+//	{
+//	}
+    
+
+	int     GetType(void)  const { return m_data_type; }
+	index_t GetFrameSize(void)  const { return m_frame_size; }
+	index_t GetNodeSize(void)  const { return m_node_size; }
+	std::vector<index_t> GetShape(void) const
 	{
-		return m_dim;
+		return m_node_shape;
 	}
 
-#if	BB_NEURALNET_BUFFER_USE_ROI
-	void SetRoi(std::vector<INDEX> offset)
-	{
-		BB_ASSERT(offset.size() == m_dim.size());
 
-		m_node_size = 1;
-		for (size_t i = 0; i < m_dim.size(); ++i) {
-			BB_ASSERT(m_dim[i].width > offset[i]);
-			m_dim[i].offset += offset[i];
-			m_dim[i].width -= offset[i];
-			m_node_size *= m_dim[i].width;
-		}
-	}
-
-	void SetRoi(std::vector<INDEX> offset, std::vector<INDEX> width)
-	{
-		BB_ASSERT(offset.size() == m_dim.size());
-		BB_ASSERT(width.size() == m_dim.size());
-
-		m_node_size = 1;
-		for (size_t i = 0; i < m_dim.size(); ++i) {
-			BB_ASSERT(m_dim[i].width > offset[i]);
-			m_dim[i].offset += offset[i];
-			m_dim[i].width = width[i];
-			m_node_size *= m_dim[i].width;
-			BB_ASSERT(m_dim[i].offset + m_dim[i].width <= m_dim[i].step);
-		}
-	}
-
-	void ClearRoi(void)
-	{
-		for (auto& d : m_dim) {
-			d.offset = 0;
-			d.width = d.step;
-		}
-		m_node_size = m_base_size;
-	}
-#endif
-
-
-	INDEX GetFrameSize(void)  const { return m_frame_size; }
-	INDEX GetNodeSize(void)  const { return m_node_size; }
-//	INDEX GetTypeBitSize(void)  const { return m_type_bit_size; }
-
-	INDEX GetFrameStride(void)  const { return m_frame_stride; }
-
-	void* GetBuffer(void) const
-	{
-		return m_buffer.get();
-	}
+	index_t GetFrameStride(void)  const { return m_frame_stride; }
+    
+    Memory::Ptr GetPtr(bool new_buf=false) const { return m_tensor.GetPtr(new_buf); }
+    Memory::Ptr GetConstPtr(void) const { return m_tensor.GetConstPtr(); }
+    Memory::Ptr GetDevPtr(bool new_buf=false) const { return m_tensor.GetDevPtr(new_buf); }
+    Memory::Ptr GetDevConstPtr(void) const { return m_tensor.GetDevConstPtr(); }
 
 
 protected:

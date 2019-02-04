@@ -41,6 +41,7 @@
   <ItemGroup>
     <ClInclude Include="..\include\bb\CudaUtility.h" />
     <ClInclude Include="..\include\bb\DataType.h" />
+    <ClInclude Include="..\include\bb\FrameBuffer.h" />
     <ClInclude Include="..\include\bb\Memory.h" />
     <ClInclude Include="..\include\bb\Tensor.h" />
     <ClInclude Include="..\include\bb\Utility.h" />

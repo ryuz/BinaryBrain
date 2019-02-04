@@ -12,7 +12,7 @@ TEST(MemoryTest, testMem)
 	{
 		auto mem = bb::Memory::Create(1024, BB_DEVICE_CPU);
 		mem->GetPtr();
-		mem->GetDevicePtr();
+		mem->GetDevPtr();
 		mem->IsDeviceAvailable();
 
         auto wp = mem->GetPtr();
@@ -26,14 +26,14 @@ TEST(MemoryTest, testMem)
 	{
 		auto mem = bb::Memory::Create(1024);
 		mem->GetPtr();
-		mem->GetDevicePtr();
+		mem->GetDevPtr();
 		mem->IsDeviceAvailable();
 	}
 
 	{
 		auto mem = bb::Memory::Create(1024, 0);
 		mem->GetPtr();
-		mem->GetDevicePtr();
+		mem->GetDevPtr();
 		mem->IsDeviceAvailable();
 	}
     

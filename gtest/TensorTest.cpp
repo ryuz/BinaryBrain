@@ -304,3 +304,32 @@ TEST(TensorTest, testTensorOp)
 
 //    t0 = t1 + 1.0f;
 }
+
+
+
+TEST(TensorTest, testTensor_cast)
+{
+    bb::Tensor_<float> t_fp32({2, 3});
+    t_fp32.Lock();
+    t_fp32({0, 0}) = 1;
+    t_fp32({1, 0}) = 2;
+    t_fp32({0, 1}) = 3;
+    t_fp32({1, 1}) = 4;
+    t_fp32({0, 2}) = 5;
+    t_fp32({1, 2}) = 6;
+    t_fp32.Unlock();
+
+    bb::Tensor t(t_fp32);
+
+    auto t_int32 = static_cast< bb::Tensor_<int> >(t);
+
+    t_int32.Lock();
+    EXPECT_EQ(t_int32({0, 0}), 1);
+    EXPECT_EQ(t_int32({1, 0}), 2);
+    EXPECT_EQ(t_int32({0, 1}), 3);
+    EXPECT_EQ(t_int32({1, 1}), 4);
+    EXPECT_EQ(t_int32({0, 2}), 5);
+    EXPECT_EQ(t_int32({1, 2}), 6);
+    t_int32.Unlock();
+
+}
