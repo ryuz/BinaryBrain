@@ -206,9 +206,11 @@ protected:
     int     m_refCnt = 0;
 
 #ifdef BB_WITH_CUDA
+    bool	m_hostOnly = true;   
+	bool	m_hostModified = false;
+
 	int		m_device;
 	void*	m_devAddr = nullptr;
-	bool	m_hostModified = false;
 	bool	m_devModified = false;
 	int		m_devRefCnt = 0;
 #endif
@@ -247,9 +249,9 @@ public:
 	 *           -2     GPUは利用しない
      * @return メモリオブジェクトへのshared_ptr
      */
-	static std::shared_ptr<Memory> Create(size_t size, int device=BB_DEVICE_CURRENT_GPU)
+	static std::shared_ptr<Memory> Create(size_t size, bool hostOnly=false)
     {
-        return std::shared_ptr<Memory>(new Memory(size, device));
+        return std::shared_ptr<Memory>(new Memory(size, hostOnly));
     }
 
 protected:
@@ -263,12 +265,14 @@ protected:
 	 *           -2     GPUは利用しない
      * @return なし
      */
-	explicit Memory(size_t size, int device=BB_DEVICE_CURRENT_GPU)
+	explicit Memory(size_t size, bool hostOnly=false)
 	{
 		// サイズ保存
 		m_size = size;
 
 #ifdef BB_WITH_CUDA
+        m_hostOnly = hostOnly;
+
 		// デバイス設定
 		int dev_count = 0;
 		auto status = cudaGetDeviceCount(&dev_count);
@@ -276,18 +280,13 @@ protected:
 			dev_count = 0;
 		}
 
-		// 現在のデバイスを取得
-		if ( device == BB_DEVICE_CURRENT_GPU && dev_count > 0 ) {
-			BB_CUDA_SAFE_CALL(cudaGetDevice(&device));
+        // デバイスが無ければhost固定
+		if ( dev_count <= 0 ) {
+            m_hostOnly = true;
 		}
 
-		// GPUが存在する場合
-		if ( device >= 0 && device < dev_count ) {
-			m_device = device;
-		}
-		else {
-			// 指定デバイスが存在しない場合もCPU
-			m_device = BB_DEVICE_CPU;
+		// Host固定ならここでメモリ確保
+		if ( m_hostOnly ) {
 			m_addr = aligned_memory_alloc(m_size, 32);
 		}
 #else
@@ -308,21 +307,23 @@ public:
 #ifdef BB_WITH_CUDA
         BB_DEBUG_ASSERT(m_devRefCnt == 0);
 
-		if ( m_device >= 0 ) {
-			CudaDevicePush dev_push(m_device);
-
-			// メモリ開放
-			if (m_addr != nullptr) {
-				BB_CUDA_SAFE_CALL(cudaFreeHost(m_addr));
-			}
-			if (m_devAddr != nullptr) {
-				BB_CUDA_SAFE_CALL(cudaFree(m_devAddr));
-			}
-		}
-		else {
+        if ( m_hostOnly ) {
 			// メモリ開放
 			if (m_addr != nullptr) {
 				aligned_memory_free(m_addr);
+			}
+        }
+        else {
+			CudaDevicePush dev_push(m_device);
+
+			// Hostメモリ開放
+			if (m_addr != nullptr) {
+				BB_CUDA_SAFE_CALL(cudaFreeHost(m_addr));
+			}
+
+            // Deviceメモリ開放
+			if (m_devAddr != nullptr) {
+				BB_CUDA_SAFE_CALL(cudaFree(m_devAddr));
 			}
 		}
 #else
@@ -346,7 +347,7 @@ public:
 	std::shared_ptr<Memory> Clone(void) const
     {
 #ifdef BB_WITH_CUDA
-        auto clone = std::shared_ptr<Memory>(new Memory(m_size, m_device));
+        auto clone = std::shared_ptr<Memory>(new Memory(m_size, m_hostOnly));
 
         if (m_addr == nullptr && m_devAddr == nullptr) {
             return clone;
@@ -358,6 +359,11 @@ public:
             memcpy(ptr_dst.GetAddr(), ptr_src.GetAddr(), m_size);
         }
         else {
+            // ひとまず複数GPUは未サポート
+            int device;
+            BB_CUDA_SAFE_CALL(cudaGetDevice(&device));
+            BB_ASSERT(device == m_device);
+
             auto ptr_src = GetDevConstPtr();
             auto ptr_dst = clone->GetDevPtr(true);
             BB_CUDA_SAFE_CALL(cudaMemcpy(ptr_dst.GetAddr(), ptr_src.GetAddr(), m_size, cudaMemcpyDeviceToDevice));
@@ -378,7 +384,7 @@ public:
 	bool IsDeviceAvailable(void) const
 	{
 #ifdef BB_WITH_CUDA
-		return (m_device >= 0);
+		return !m_hostOnly;
 #else
 		return false;
 #endif
@@ -416,7 +422,7 @@ public:
 	Ptr GetPtr(bool new_buffer=false)
 	{
 #ifdef BB_WITH_CUDA
-		if ( m_device >= 0 ) {
+		if ( !m_hostOnly ) {
 			// 新規であれば過去の更新情報は破棄
 			if ( new_buffer ) {
 				m_hostModified = false;
@@ -457,7 +463,7 @@ public:
         auto self = const_cast<Memory *>(this);
 
 #ifdef BB_WITH_CUDA
-		if ( m_device >= 0 ) {
+		if ( !m_hostOnly ) {
 			if (m_addr == nullptr) {
 				// ホスト側メモリ未確保ならここで確保
 				CudaDevicePush dev_push(m_device);
@@ -487,7 +493,7 @@ public:
 	DevPtr GetDevPtr(bool new_buffer=false)
 	{
 	#ifdef BB_WITH_CUDA
-		if ( m_device >= 0 ) {
+		if ( !m_hostOnly ) {
 			// 新規であれば過去の更新情報は破棄
 			if (new_buffer) {
 				m_hostModified = false;
@@ -529,7 +535,7 @@ public:
        auto self = const_cast<Memory *>(this);
 
 #ifdef BB_WITH_CUDA
-		if ( m_device >= 0 ) {
+		if ( !m_hostOnly ) {
 			if (m_devAddr == nullptr) {
 				// デバイス側メモリ未確保ならここで確保
 				CudaDevicePush dev_push(m_device);

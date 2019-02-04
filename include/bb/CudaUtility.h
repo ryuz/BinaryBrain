@@ -21,9 +21,6 @@
 
 namespace bb {
 
-#define BB_DEVICE_CPU				(-2)
-#define BB_DEVICE_CURRENT_GPU		(-1)
-
 
 #ifdef BB_WITH_CUDA
 
