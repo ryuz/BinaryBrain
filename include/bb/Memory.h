@@ -206,9 +206,10 @@ protected:
     int     m_refCnt = 0;
 
 #ifdef BB_WITH_CUDA
-    bool	m_hostOnly = true;   
+    bool	m_hostOnly = true;
 	bool	m_hostModified = false;
 
+    // 将来下記を多重化して複数GPU対応もケアできるようにするかも
 	int		m_device;
 	void*	m_devAddr = nullptr;
 	bool	m_devModified = false;

@@ -216,7 +216,7 @@ public:
         BB_ASSERT(m_size == total);
 	}
 
-	std::vector<index_t> Shape(void) const
+	std::vector<index_t> GetShape(void) const
 	{
 		return m_shape;
 	}
@@ -749,6 +749,11 @@ public:
 		return tensor;
 	}
 
+    int GetType(void) const
+    {
+        return m_type;
+    }
+
 	void Resize(std::vector<index_t> shape, int type)
 	{
 		// 設定保存
@@ -758,9 +763,10 @@ public:
 		m_shape = shape;
         m_stride.clear();
 		index_t total = 1;
-		for (auto len : m_shape) {
+		for (auto size : m_shape) {
+            BB_ASSERT(size > 0);
 			m_stride.push_back(total);
-			total *= len;
+			total *= size;
 		}
         m_size = total;
 
@@ -780,6 +786,34 @@ public:
 
 		// メモリ確保
 		m_mem = Memory::Create(m_size * DataType_GetByteSize(type));
+	}
+
+   	void Reshape(std::vector<index_t> shape)
+	{
+        index_t auto_index = -1;
+		index_t total = 1;
+        for (index_t i = 0; i < (index_t)shape.size(); ++i)
+        {
+            if (shape[i] < 0) {
+                auto_index = i;
+            }
+            else {
+                total *= shape[i];
+            }
+        }
+        if (auto_index >= 0) {
+            shape[auto_index] = m_size / total;
+        }
+
+       	// 再計算
+		m_shape = shape;
+        m_stride.clear();
+		total = 1;
+		for (auto len : m_shape) {
+			m_stride.push_back(total);
+			total *= len;
+		}
+        BB_ASSERT(m_size == total);
 	}
 
 	std::vector<index_t> GetShape(void) const

@@ -35,6 +35,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="FrameBufferTest.cpp" />
     <ClCompile Include="MemoryTest.cpp" />
     <ClCompile Include="TensorTest.cpp" />
   </ItemGroup>

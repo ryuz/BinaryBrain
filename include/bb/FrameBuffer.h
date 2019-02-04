@@ -47,7 +47,6 @@ namespace bb {
 
 
 // NeuralNet用のバッファ
-template <typename T = float>
 class FrameBuffer
 {
 protected:
@@ -118,14 +117,14 @@ public:
      */
 	FrameBuffer Clone(void) const
 	{
-		FrameBuffer clone_buf();
+		FrameBuffer clone_buf;
 
-        clone_buf.m_tensor  = m_tensor.Clone();
-		m_data_type         = buf.m_data_type;
-		m_node_size = buf.m_node_size;
-		m_frame_size = buf.m_frame_size;
-		m_frame_stride = buf.m_frame_stride;
-        m_shape        = m_shape;
+        clone_buf.m_tensor       = m_tensor.Clone();
+		clone_buf.m_data_type    = m_data_type;
+		clone_buf.m_frame_size   = m_frame_size;
+		clone_buf.m_frame_stride = m_frame_stride;
+		clone_buf.m_node_size    = m_node_size;
+        clone_buf.m_node_shape   = m_node_shape;
 
 		return clone_buf;
 	}
@@ -146,11 +145,9 @@ public:
         m_frame_stride = ((DataType_GetBitSize(data_type) + 255) / 256) * (255 / 8);        // frame軸は256bit境界にあわせる(SIMD命令用)
         m_node_shape   = shape;
 
-        // tensor の shape設定
-        int                     tensor_type = data_type;
-        std::vector<index_t>    tensor_shape(shape.size() + 1);
 
         // Bit型は内部 UINT8 で扱う
+        int tensor_type = data_type;
         if ( data_type == BB_TYPE_BIT )
         {
             tensor_type = BB_TYPE_UINT8;
@@ -158,6 +155,7 @@ public:
 
         // サイズ計算
 		m_node_size = 1;
+        std::vector<index_t>    tensor_shape;
         tensor_shape.push_back(m_frame_stride / DataType_GetByteSize(tensor_type));
         for ( auto size : shape ) {
             tensor_shape.push_back(size);
@@ -181,6 +179,46 @@ public:
         Resize(frame_size, shape, data_type);
 	}
 
+   	void Reshape(std::vector<index_t> shape)
+	{
+        index_t auto_index = -1;
+		index_t total = 1;
+        for (index_t i = 0; i < (index_t)shape.size(); ++i)
+        {
+            if (shape[i] < 0) {
+                auto_index = i;
+            }
+            else {
+                total *= shape[i];
+            }
+        }
+        if (auto_index >= 0) {
+            shape[auto_index] = m_node_size / total;
+        }
+
+       	// 再計算
+   		total = 1;
+		for (auto size : shape) {
+			total *= size;
+		}
+        BB_ASSERT(total == m_node_size);
+
+        m_node_shape = shape;
+        
+        std::vector<index_t> tensor_shape;
+        tensor_shape.push_back(-1);
+        for ( auto size : shape ) {
+            tensor_shape.push_back(size);
+        }
+
+        m_tensor.Reshape(tensor_shape);
+	}
+
+  	std::vector<index_t> GetShape(void) const
+	{
+		return m_node_shape;
+	}
+
    	/**
      * @brief  内容のゼロ埋め
      * @detail 内容のゼロ埋め
@@ -198,316 +236,211 @@ public:
 	int     GetType(void)  const { return m_data_type; }
 	index_t GetFrameSize(void)  const { return m_frame_size; }
 	index_t GetNodeSize(void)  const { return m_node_size; }
-	std::vector<index_t> GetShape(void) const
-	{
-		return m_node_shape;
-	}
 
+
+    // ---------------------------------
+    //  ダイレクトアクセス用
+    // ---------------------------------
 
 	index_t GetFrameStride(void)  const { return m_frame_stride; }
-    
-    Memory::Ptr GetPtr(bool new_buf=false) const { return m_tensor.GetPtr(new_buf); }
-    Memory::Ptr GetConstPtr(void) const { return m_tensor.GetConstPtr(); }
-    Memory::Ptr GetDevPtr(bool new_buf=false) const { return m_tensor.GetDevPtr(new_buf); }
-    Memory::Ptr GetDevConstPtr(void) const { return m_tensor.GetDevConstPtr(); }
+
+    Memory::Ptr         GetPtr(bool new_buf=false) const { return m_tensor.GetPtr(new_buf); }
+    Memory::ConstPtr    GetConstPtr(void) const { return m_tensor.GetConstPtr(); }
+    Memory::DevPtr      GetDevPtr(bool new_buf=false) const { return m_tensor.GetDevPtr(new_buf); }
+    Memory::DevConstPtr GetDevConstPtr(void) const { return m_tensor.GetDevConstPtr(); }
+
 
 
 protected:
-	inline void* GetBasePtr(INDEX addr) const
-	{
-		return &m_buffer.get()[m_frame_stride * addr];
-	}
+    // ---------------------------------
+    //  アクセス用
+    // ---------------------------------
 
-	/*
-	template <typename Tp>
-	inline void Write(void *base, INDEX frame, Tp value) const
-	{
-		Tp* ptr = (Tp*)base;
-		ptr[frame] = value;
-	}
+    void *GetNodeBaseAddr(void* base_addr, index_t node) const
+    {
+        auto addr = (std::uint8_t*)base_addr;
+        return addr + (m_frame_stride * node);
+    }
 
-	template <>
-	inline void Write(void *base, INDEX frame, bool value) const
-	{
-		std::uint8_t* ptr = (std::uint8_t*)base;
-		std::uint8_t mask = (std::uint8_t)(1 << (frame % 8));
-		if (value) {
-			ptr[frame / 8] |= mask;
-		}
-		else {
-			ptr[frame / 8] &= ~mask;
-		}
-	}
-		
-	template <>
-	inline void Write(void *base, INDEX frame, Bit value) const
-	{
-		Write<bool>(base, frame, (bool)value);
-	}
+    void const *GetNodeBaseAddr(const void* base_addr, index_t node) const
+    {
+        auto addr = (std::uint8_t const *)base_addr;
+        return addr + (m_frame_stride * node);
+    }
 
-	template <typename Tp>
-	inline Tp Read(void *base, INDEX frame) const
-	{
-		Tp* ptr = (Tp*)base;
-		return ptr[frame];
-	}
+    inline index_t GetNodeIndex(std::vector<index_t> const & indexces) const
+    {
+        BB_DEBUG_ASSERT(indexces.size() == m_node_shape.size());
 
-	template <>
-	inline bool Read<bool>(void *base, INDEX frame) const
-	{
-		std::uint8_t* ptr = (std::uint8_t*)base;
-		std::uint8_t mask = (std::uint8_t)(1 << (frame % 8));
-		return ((ptr[frame / 8] & mask) != 0);
-	}
+        index_t stride = 1;
+        index_t index = 0;
+        for ( index_t i = 0; i < (index_t)m_node_shape.size(); ++i ) {
+            BB_DEBUG_ASSERT(indexces[i] >= 0 && indexces[i] < m_node_shape[i]);
+            index += stride * indexces[i];
+            stride *= m_node_shape[i];
+        }
+        return index;
+    }
 
-	template <>
-	inline Bit Read<Bit>(void *base, INDEX frame) const
-	{
-		return Read<bool>(base, frame);
-	}
-	*/
-
-
-	inline void WriteReal(void *base, INDEX frame, T value) const
+    template<typename Tp>
+    void WriteValue(void *base, index_t frame, Tp value) const
 	{
 		switch (m_data_type) {
-		case BB_TYPE_BINARY: NeuralNet_Write<bool>(base, frame, value > (T)0.5);	break;
-		case BB_TYPE_REAL32: NeuralNet_Write<float>(base, frame, (float)value);	break;
-		case BB_TYPE_REAL64: NeuralNet_Write<double>(base, frame, (double)value);	break;
-		}
+		case BB_TYPE_BIT:    DataType_Write<Bit>         (base, frame, static_cast<Bit>     (value));   break;
+		case BB_TYPE_FP32:   DataType_Write<float>       (base, frame, static_cast<float>   (value));	break;
+		case BB_TYPE_FP64:   DataType_Write<double>      (base, frame, static_cast<double>  (value));	break;
+        case BB_TYPE_INT8:   DataType_Write<std::int8_t> (base, frame, static_cast<int8_t>  (value));   break;
+		case BB_TYPE_INT16:  DataType_Write<std::int16_t>(base, frame, static_cast<int16_t> (value));	break;
+   		case BB_TYPE_INT32:  DataType_Write<std::int32_t>(base, frame, static_cast<int32_t> (value));	break;
+		case BB_TYPE_INT64:  DataType_Write<std::int64_t>(base, frame, static_cast<int64_t> (value));	break;
+        case BB_TYPE_UINT8:  DataType_Write<std::int8_t> (base, frame, static_cast<uint8_t> (value));   break;
+		case BB_TYPE_UINT16: DataType_Write<std::int16_t>(base, frame, static_cast<uint16_t>(value));	break;
+   		case BB_TYPE_UINT32: DataType_Write<std::int32_t>(base, frame, static_cast<uint32_t>(value));	break;
+		case BB_TYPE_UINT64: DataType_Write<std::int64_t>(base, frame, static_cast<uint64_t>(value));	break;
+        default:   BB_ASSERT(0);
+        }
 	}
 
-	inline T ReadReal(void *base, INDEX frame) const
+    template<typename Tp>
+  	Tp ReadValue(void *base, index_t frame) const
 	{
 		switch (m_data_type) {
-		case BB_TYPE_BINARY: return NeuralNet_Read<bool>(base, frame) ? (T)1.0 : (T)0.0;
-		case BB_TYPE_REAL32: return (T)NeuralNet_Read<float>(base, frame);
-		case BB_TYPE_REAL64: return (T)NeuralNet_Read<double>(base, frame);
-		}
+        case BB_TYPE_BIT:    return static_cast<Tp>(DataType_Read<Bit>         (base, frame));  break;
+		case BB_TYPE_FP32:   return static_cast<Tp>(DataType_Read<float>       (base, frame));	break;
+		case BB_TYPE_FP64:   return static_cast<Tp>(DataType_Read<double>      (base, frame));	break;
+        case BB_TYPE_INT8:   return static_cast<Tp>(DataType_Read<std::int8_t> (base, frame));  break;
+		case BB_TYPE_INT16:  return static_cast<Tp>(DataType_Read<std::int16_t>(base, frame));	break;
+   		case BB_TYPE_INT32:  return static_cast<Tp>(DataType_Read<std::int32_t>(base, frame));	break;
+		case BB_TYPE_INT64:  return static_cast<Tp>(DataType_Read<std::int64_t>(base, frame));	break;
+        case BB_TYPE_UINT8:  return static_cast<Tp>(DataType_Read<std::int8_t> (base, frame));  break;
+		case BB_TYPE_UINT16: return static_cast<Tp>(DataType_Read<std::int16_t>(base, frame));	break;
+   		case BB_TYPE_UINT32: return static_cast<Tp>(DataType_Read<std::int32_t>(base, frame));	break;
+		case BB_TYPE_UINT64: return static_cast<Tp>(DataType_Read<std::int64_t>(base, frame));	break;
+        default:   BB_ASSERT(0);
+        }
 		return 0;
-	}
-
-	inline void WriteBinary(void *base, INDEX frame, bool value) const
-	{
-		switch (m_data_type) {
-		case BB_TYPE_BINARY: NeuralNet_Write<bool>(base, frame, value);	break;
-		case BB_TYPE_REAL32: NeuralNet_Write<float>(base, frame, (value ? 1.0f : 0.0f)); 	break;
-		case BB_TYPE_REAL64: NeuralNet_Write<double>(base, frame, (value ? 1.0 : 0.0)); 	break;
-		}
-	}
-
-	inline bool ReadBinary(void *base, INDEX frame) const
-	{
-		switch (m_data_type) {
-		case BB_TYPE_BINARY: return NeuralNet_Read<bool>(base, frame);
-		case BB_TYPE_REAL32: return (NeuralNet_Read<float>(base, frame) > 0.5f);
-		case BB_TYPE_REAL64: return (NeuralNet_Read<double>(base, frame) > 0.5);
-		}
-		return false;
 	}
 
 
 public:
-	inline void* GetZeroPtr(void) const
+
+    // 高速アクセス
+	template <typename MemTp, typename ValueTp>
+	inline void Set(index_t frame, index_t node, ValueTp value)
 	{
-		return GetBasePtr(m_base_size);
+        BB_DEBUG_ASSERT(m_data_type == DataType<MemTp>::type);
+        auto ptr = GetPtr();
+        DataType_Write<MemTp>(GetNodeBaseAddr(ptr.GetAddr(), node), frame, static_cast<MemTp>(value));
 	}
 
-#if	BB_NEURALNET_BUFFER_USE_ROI
-	inline void* GetPtr(INDEX node) const
+   	template <typename MemTp, typename ValueTp>
+	inline void Set(index_t frame, std::vector<index_t> const & indexces, ValueTp value)
 	{
-		INDEX addr = 0;
-		for (size_t i = 0; i < m_dim.size(); ++i) {
-			INDEX index = node % m_dim[i].width;
-			addr += m_dim[i].stride * (index + m_dim[i].offset);
-			node /= m_dim[i].width;
-		}
-		return GetBasePtr(addr);
+        Set<MemTp, ValueTp>(frame, GetNodeIndex(indexces), value);
 	}
 
-	inline void* GetPtr(std::vector<INDEX> index) const
+	template <typename MemTp, typename ValueTp>
+	inline ValueTp Get(index_t frame, index_t node) const
 	{
-		BB_ASSERT(index.size() == m_dim.size());
-		INDEX addr = 0;
-		for (size_t i = 0; i < m_dim.size(); ++i) {
-			BB_ASSERT(index[i] >= 0 && index[i] < m_dim[i].width);
-			addr += m_dim[i].stride * (index[i] + m_dim[i].offset);
-		}
-
-		return GetBasePtr(addr);
+        BB_DEBUG_ASSERT(m_data_type == DataType<MemTp>::type);
+        auto ptr = GetConstPtr();
+		return static_cast<ValueTp>(DataType_Read<MemTp>(GetNodeBaseAddr(ptr.GetAddr(), node), frame)); 
 	}
-
-	template <size_t N>
-	inline void* GetPtrN(std::array<INDEX, N> index) const
+    
+   	template <typename MemTp, typename ValueTp>
+	inline ValueTp Get(index_t frame, std::vector<index_t> const & indexces)
 	{
-		BB_ASSERT(index.size() == m_dim.size());
-		INDEX addr = 0;
-		for (size_t i = 0; i < index.size(); ++i) {
-			addr += m_dim[i].stride * (index[i] + m_dim[i].offset);
-		}
-
-		return GetBasePtr(addr);
-	}
-#else
-	inline void* GetPtr(INDEX node) const
-	{
-		return GetBasePtr(node);
-	}
-
-	inline void* GetPtr(std::vector<INDEX> index) const
-	{
-		BB_ASSERT(index.size() == m_dim.size());
-		INDEX addr = 0;
-		for (size_t i = 0; i < m_dim.size(); ++i) {
-			BB_ASSERT(index[i] >= 0 && index[i] < m_dim[i].step);
-			addr += m_dim[i].stride * index[i];
-		}
-
-		return GetBasePtr(addr);
-	}
-
-	template <size_t N>
-	inline void* GetPtrN(std::array<INDEX, N> index) const
-	{
-		BB_ASSERT(index.size() == m_dim.size());
-		INDEX addr = 0;
-		for (size_t i = 0; i < index.size(); ++i) {
-			addr += m_dim[i].stride * index[i];
-		}
-
-		return GetBasePtr(addr);
-	}
-#endif
-
-	inline void* GetPtr2(INDEX i1, INDEX i0) const
-	{
-		return GetPtrN<2>({ i0 , i1 });
-	}
-
-	inline void* GetPtr3(INDEX i2, INDEX i1, INDEX i0) const
-	{
-		return GetPtrN<3>({ i0, i1, i2 });
-	}
-
-	inline void* GetPtr4(INDEX i3, INDEX i2, INDEX i1, INDEX i0) const
-	{
-		return GetPtrN<4>({ i0, i1, i2, i3 });
-	}
-
-	inline void* GetPtr5(INDEX i4, INDEX i3, INDEX i2, INDEX i1, INDEX i0) const
-	{
-		return GetPtrN<5>({ i0, i1, i2, i3, i4 });
+        return Get<MemTp, ValueTp>(frame, GetNodeIndex(indexces));
 	}
 
 
-	inline void ResetPtr(void)
+    // 汎用アクセス
+  	template <typename Tp>
+	inline void SetValue(index_t frame, index_t node, Tp value)
 	{
-		m_end = false;
-		m_iterator.resize(m_dim.size());
-		std::fill(m_iterator.begin(), m_iterator.end(), 0);
+        auto ptr = GetPtr();
+        WriteValue<Tp>(GetNodeBaseAddr(ptr.GetAddr(), node), frame, value);
 	}
 
-#if BB_NEURALNET_BUFFER_USE_ROI
-	inline void* NextPtr(void)
-	{
-		void* ptr = GetPtr(m_iterator);
+   	template <typename Tp>
+    inline void SetValue(index_t frame, std::vector<index_t> const & indexces, Tp value)
+    {
+        SetValue<Tp>(frame, GetNodeIndex(indexces), value);
+    }
 
-		for (int i = 0; i < m_iterator.size(); ++i) {
-			++m_iterator[i];
-			if (m_iterator[i] < m_dim[i].width) {
-				return ptr;
-			}
-			m_iterator[i] = 0;
-		}
-		m_end = true;
-		return ptr;
-	}
-#else
-	inline void* NextPtr(void)
+    template <typename Tp>
+	inline Tp GetValue(index_t frame, index_t node)
 	{
-		void* ptr = GetPtr(m_iterator);
-
-		for (int i = 0; i < m_iterator.size(); ++i) {
-			++m_iterator[i];
-			if (m_iterator[i] < m_dim[i].step) {
-				return ptr;
-			}
-			m_iterator[i] = 0;
-		}
-		m_end = true;
-		return ptr;
-	}
-#endif
-
-	inline bool IsEnd(void) const
-	{
-		return m_end;
+        auto ptr = GetPtr();
+        return ReadValue<Tp>(GetNodeBaseAddr(ptr.GetAddr(), node), frame);
 	}
 
+   	template <typename Tp>
+    inline Tp GetValue(index_t frame, std::vector<index_t> const & indexces)
+    {
+        return GetValue<Tp>(frame, GetNodeIndex(indexces));
+    }
 
-	template <typename Tp>
-	inline void Set(INDEX frame, INDEX node, Tp value) const
-	{
-		NeuralNet_Write<Tp>(GetPtr(node), frame, value);
-	}
+    inline void SetValueBit   (index_t frame, index_t node, Bit           value) { SetValue<Bit          >(frame, node, value); }
+    inline void SetValueFP32  (index_t frame, index_t node, float         value) { SetValue<float        >(frame, node, value); }
+    inline void SetValueFP64  (index_t frame, index_t node, double        value) { SetValue<double       >(frame, node, value); }
+    inline void SetValueINT8  (index_t frame, index_t node, std::int8_t   value) { SetValue<std::int8_t  >(frame, node, value); }
+    inline void SetValueINT16 (index_t frame, index_t node, std::int16_t  value) { SetValue<std::int16_t >(frame, node, value); }
+    inline void SetValueINT32 (index_t frame, index_t node, std::int32_t  value) { SetValue<std::int32_t >(frame, node, value); }
+    inline void SetValueINT64 (index_t frame, index_t node, std::int64_t  value) { SetValue<std::int64_t >(frame, node, value); }
+    inline void SetValueUINT8 (index_t frame, index_t node, std::uint8_t  value) { SetValue<std::uint8_t >(frame, node, value); }
+    inline void SetValueUINT16(index_t frame, index_t node, std::uint16_t value) { SetValue<std::uint16_t>(frame, node, value); }
+    inline void SetValueUINT32(index_t frame, index_t node, std::uint32_t value) { SetValue<std::uint32_t>(frame, node, value); }
+    inline void SetValueUINT64(index_t frame, index_t node, std::uint64_t value) { SetValue<std::uint64_t>(frame, node, value); }
 
-	template <typename Tp>
-	inline Tp Get(INDEX frame, INDEX node) const
-	{
-		return NeuralNet_Read<Tp>(GetPtr(node), frame);
-	}
+    inline void SetValueBit   (index_t frame, std::vector<index_t> const & indexces, Bit           value) { SetValue<Bit          >(frame, indexces, value); }
+    inline void SetValueFP32  (index_t frame, std::vector<index_t> const & indexces, float         value) { SetValue<float        >(frame, indexces, value); }
+    inline void SetValueFP64  (index_t frame, std::vector<index_t> const & indexces, double        value) { SetValue<double       >(frame, indexces, value); }
+    inline void SetValueINT8  (index_t frame, std::vector<index_t> const & indexces, std::int8_t   value) { SetValue<std::int8_t  >(frame, indexces, value); }
+    inline void SetValueINT16 (index_t frame, std::vector<index_t> const & indexces, std::int16_t  value) { SetValue<std::int16_t >(frame, indexces, value); }
+    inline void SetValueINT32 (index_t frame, std::vector<index_t> const & indexces, std::int32_t  value) { SetValue<std::int32_t >(frame, indexces, value); }
+    inline void SetValueINT64 (index_t frame, std::vector<index_t> const & indexces, std::int64_t  value) { SetValue<std::int64_t >(frame, indexces, value); }
+    inline void SetValueUINT8 (index_t frame, std::vector<index_t> const & indexces, std::uint8_t  value) { SetValue<std::uint8_t >(frame, indexces, value); }
+    inline void SetValueUINT16(index_t frame, std::vector<index_t> const & indexces, std::uint16_t value) { SetValue<std::uint16_t>(frame, indexces, value); }
+    inline void SetValueUINT32(index_t frame, std::vector<index_t> const & indexces, std::uint32_t value) { SetValue<std::uint32_t>(frame, indexces, value); }
+    inline void SetValueUINT64(index_t frame, std::vector<index_t> const & indexces, std::uint64_t value) { SetValue<std::uint64_t>(frame, indexces, value); }
+
+    inline Bit           GetValueBit   (index_t frame, index_t node) { return GetValue<Bit          >(frame, node); }
+    inline float         GetValueFP32  (index_t frame, index_t node) { return GetValue<float        >(frame, node); }
+    inline double        GetValueFP64  (index_t frame, index_t node) { return GetValue<double       >(frame, node); }
+    inline std::int8_t   GetValueINT8  (index_t frame, index_t node) { return GetValue<std::int8_t  >(frame, node); }
+    inline std::int16_t  GetValueINT16 (index_t frame, index_t node) { return GetValue<std::int16_t >(frame, node); }
+    inline std::int32_t  GetValueINT32 (index_t frame, index_t node) { return GetValue<std::int32_t >(frame, node); }
+    inline std::int64_t  GetValueINT64 (index_t frame, index_t node) { return GetValue<std::int64_t >(frame, node); }
+    inline std::uint8_t  GetValueUINT8 (index_t frame, index_t node) { return GetValue<std::uint8_t >(frame, node); }
+    inline std::uint16_t GetValueUINT16(index_t frame, index_t node) { return GetValue<std::uint16_t>(frame, node); }
+    inline std::uint32_t GetValueUINT32(index_t frame, index_t node) { return GetValue<std::uint32_t>(frame, node); }
+    inline std::uint64_t GetValueUINT64(index_t frame, index_t node) { return GetValue<std::uint64_t>(frame, node); }
+    
+    inline Bit           GetValueBit   (index_t frame, std::vector<index_t> const & indexces) { return GetValue<Bit          >(frame, indexces); }
+    inline float         GetValueFP32  (index_t frame, std::vector<index_t> const & indexces) { return GetValue<float        >(frame, indexces); }
+    inline double        GetValueFP64  (index_t frame, std::vector<index_t> const & indexces) { return GetValue<double       >(frame, indexces); }
+    inline std::int8_t   GetValueINT8  (index_t frame, std::vector<index_t> const & indexces) { return GetValue<std::int8_t  >(frame, indexces); }
+    inline std::int16_t  GetValueINT16 (index_t frame, std::vector<index_t> const & indexces) { return GetValue<std::int16_t >(frame, indexces); }
+    inline std::int32_t  GetValueINT32 (index_t frame, std::vector<index_t> const & indexces) { return GetValue<std::int32_t >(frame, indexces); }
+    inline std::int64_t  GetValueINT64 (index_t frame, std::vector<index_t> const & indexces) { return GetValue<std::int64_t >(frame, indexces); }
+    inline std::uint8_t  GetValueUINT8 (index_t frame, std::vector<index_t> const & indexces) { return GetValue<std::uint8_t >(frame, indexces); }
+    inline std::uint16_t GetValueUINT16(index_t frame, std::vector<index_t> const & indexces) { return GetValue<std::uint16_t>(frame, indexces); }
+    inline std::uint32_t GetValueUINT32(index_t frame, std::vector<index_t> const & indexces) { return GetValue<std::uint32_t>(frame, indexces); }
+    inline std::uint64_t GetValueUINT64(index_t frame, std::vector<index_t> const & indexces) { return GetValue<std::uint64_t>(frame, indexces); }
 
 
-	void SetReal(INDEX frame, INDEX node, T value) const {	WriteReal(GetPtr(node), frame, value); }
-	void SetReal(INDEX frame, std::vector<INDEX> index, T value) const { WriteReal(GetPtr(index), frame, value); }
-
-	T GetReal(INDEX frame, INDEX node) const { return ReadReal(GetPtr(node), frame); }
-	T GetReal(INDEX frame, std::vector<INDEX> index) const { return ReadReal(GetPtr(index), frame); }
-
-	void SetBinary(INDEX frame, INDEX node, bool value) const { WriteBinary(GetPtr(node), frame, value); }
-	void SetBinary(INDEX frame, std::vector<INDEX> index, bool value) const { WriteBinary(GetPtr(index), frame, value); }
-
-	bool GetBinary(INDEX frame, INDEX node) const { return ReadBinary(GetPtr(node), frame); }
-	bool GetBinary(INDEX frame, std::vector<INDEX> index) const { return ReadBinary(GetPtr(index), frame); }
+    // テンソルの設定
+protected:
+    template<typename Tp>
+    void SetTensor(index_t frame, Tensor const &tensor)
+    {
+        BB_ASSERT(m_data_type == DataType<Tp>::type);
+        BB_ASSERT(tensor.GetType() == DataType<Tp>::type);
 
 
-//	friend std::ostream& operator<<(std::ostream& os, const NeuralNetBuffer<T>& buf);
+    }
 };
-
-
-
-
-/*
-template <typename T = float>
-std::ostream& operator<<(std::ostream& os, const NeuralNetBuffer<T>& buf)
-{
-	auto out_stream = [&out_stream](std::ostream& os, const NeuralNetBuffer<T>& buf, std::vector<INDEX>& idx, INDEX depth)
-	{
-		if (depth == 0) {
-			os << "[";
-			for (INDEX i = 0; i < buf.m_dim[depth]; ++i) {
-				idx[depth] = i;
-				os << buf.GetReal(idx) << ", ";
-			}
-			os << "]" << std::endl;
-			return;
-		}
-		else {
-			os << "[";
-			for (INDEX i = 0; i < buf.m_dim[depth]; ++i) {
-				idx[depth] = i;
-				out_stream(os, buf, idx, depth - 1);
-			}
-			os << "]";
-		}
-	};
-
-	std::vector<INDEX> idx(buf, m_dim.size(), 0);
-	out_stream(os, buf, idx, (INDEX)(m_dim.size() - 1));
-
-	return os;
-}
-*/
 
 
 }
