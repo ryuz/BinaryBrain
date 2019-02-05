@@ -206,6 +206,7 @@ protected:
     int     m_refCnt = 0;
 
 #ifdef BB_WITH_CUDA
+	size_t	m_mem_size = 0;
     bool	m_hostOnly = true;
 	bool	m_hostModified = false;
 
@@ -266,13 +267,14 @@ protected:
 	 *           -2     GPUは利用しない
      * @return なし
      */
-	explicit Memory(size_t size, bool hostOnly=false)
+	Memory(size_t size, bool hostOnly=false)
 	{
 		// サイズ保存
 		m_size = size;
 
 #ifdef BB_WITH_CUDA
         m_hostOnly = hostOnly;
+        m_mem_size = m_size;
 
 		// デバイス設定
 		int dev_count = 0;
@@ -377,6 +379,53 @@ public:
 #endif        
     }
     
+
+	/**
+     * @brief  メモリのサイズを変更する
+     * @detail メモリのサイズを変更する
+     *         古い中身はサイズに関わらず破棄する
+     */
+    void Resize(size_t size)
+    {
+#ifdef BB_WITH_CUDA
+        m_size = size;
+        if ( m_hostOnly ) {
+            aligned_memory_free(m_addr);
+            m_addr = aligned_memory_alloc(size, 32);
+        }
+        else {
+            if (size <= m_mem_size) {
+                return;
+            }
+            if (m_addr != nullptr) {
+                BB_CUDA_SAFE_CALL(cudaFreeHost(m_addr));  // Hostメモリ開放
+                m_addr= nullptr;
+            }
+			if (m_devAddr != nullptr) {
+                BB_CUDA_SAFE_CALL(cudaFree(m_devAddr));   // Deviceメモリ開放
+                m_devAddr= nullptr;
+            }
+            m_hostModified = false;
+            m_devModified = false;
+        }
+#else
+        m_size = size;
+        aligned_memory_free(m_addr);
+        m_addr = aligned_memory_alloc(size, 32);
+#endif
+    }
+
+
+   	/**
+     * @brief  メモリサイズの取得
+     * @detail メモリサイズの取得
+     * @return メモリサイズ(バイト単位)
+     */
+	index_t GetSize(void) const
+	{
+		return m_size;
+	}
+
 	/**
      * @brief  デバイスが利用可能か問い合わせる
      * @detail デバイスが利用可能か問い合わせる
@@ -405,16 +454,6 @@ public:
 	}
 
 	/**
-     * @brief  メモリサイズの取得
-     * @detail メモリサイズの取得
-     * @return メモリサイズ(バイト単位)
-     */
-	index_t GetSize(void) const
-	{
-		return m_size;
-	}
-
-	/**
      * @brief  ポインタの取得
      * @detail アクセス用に確保したホスト側のメモリポインタの取得
      * @param  new_buffer true なら古い内容を破棄する
@@ -433,7 +472,7 @@ public:
 			if (m_addr == nullptr) {
 				// ホスト側メモリ未確保ならここで確保
 				CudaDevicePush dev_push(m_device);
-				BB_CUDA_SAFE_CALL(cudaMallocHost(&m_addr, m_size));
+				BB_CUDA_SAFE_CALL(cudaMallocHost(&m_addr, m_mem_size));
 			}
 
 			if ( m_devModified ) {
@@ -468,7 +507,7 @@ public:
 			if (m_addr == nullptr) {
 				// ホスト側メモリ未確保ならここで確保
 				CudaDevicePush dev_push(m_device);
-				BB_CUDA_SAFE_CALL(cudaMallocHost(&self->m_addr, m_size));
+				BB_CUDA_SAFE_CALL(cudaMallocHost(&self->m_addr, m_mem_size));
 			}
 
 			if ( m_devModified ) {
