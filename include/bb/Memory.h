@@ -394,7 +394,7 @@ public:
             m_addr = aligned_memory_alloc(size, 32);
         }
         else {
-            if (size <= m_mem_size) {
+            if (m_size <= m_mem_size) {
                 return;
             }
             if (m_addr != nullptr) {
@@ -405,13 +405,14 @@ public:
                 BB_CUDA_SAFE_CALL(cudaFree(m_devAddr));   // Deviceƒƒ‚ƒŠŠJ•ú
                 m_devAddr= nullptr;
             }
+            m_mem_size = m_size;
             m_hostModified = false;
             m_devModified = false;
         }
 #else
-        m_size = size;
         aligned_memory_free(m_addr);
         m_addr = aligned_memory_alloc(size, 32);
+        m_size = size;
 #endif
     }
 

@@ -656,20 +656,25 @@ protected:
 	std::vector<index_t>			m_stride;
 
 public:
-	Tensor() {}
-	Tensor(const Tensor& tensor)
-	{
-		*this = tensor;
-	}
+	Tensor(bool hostOnly=false) {
+        m_mem = Memory::Create(0, hostOnly);
+    }
 
-	Tensor(index_t size, int type)
+	Tensor(index_t size, int type, bool hostOnly=false)
 	{
+        m_mem = Memory::Create(0, hostOnly);
 		Resize(size, type);
 	}
 
-	Tensor(std::vector<index_t> shape, int type)
+	Tensor(std::vector<index_t> shape, int type, bool hostOnly=false)
 	{
+        m_mem = Memory::Create(0, hostOnly);
 		Resize(shape, type);
+	}
+
+   	Tensor(const Tensor& tensor)
+	{
+		*this = tensor;
 	}
 
     template<typename Tp>
@@ -771,7 +776,8 @@ public:
         m_size = total;
 
 		// メモリ確保
-		m_mem = Memory::Create(m_size * DataType_GetByteSize(type));
+//		m_mem = Memory::Create(m_size * DataType_GetByteSize(type));
+		m_mem->Resize(m_size * DataType_GetByteSize(type));
 	}
 
 	void Resize(index_t size, int type)
@@ -785,7 +791,8 @@ public:
 		m_stride[0] = 1;
 
 		// メモリ確保
-		m_mem = Memory::Create(m_size * DataType_GetByteSize(type));
+//		m_mem = Memory::Create(m_size * DataType_GetByteSize(type));
+		m_mem->Resize(m_size * DataType_GetByteSize(type));
 	}
 
    	void Reshape(std::vector<index_t> shape)
