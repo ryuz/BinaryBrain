@@ -816,6 +816,11 @@ public:
         BB_ASSERT(m_size == total);
 	}
 
+	int GetDim(void) const
+	{
+		return (int)m_shape.size();
+	}
+
 	std::vector<index_t> GetShape(void) const
 	{
 		return m_shape;
