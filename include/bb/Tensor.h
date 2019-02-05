@@ -400,7 +400,7 @@ Tensor_<T> operator+(const Tensor_<T> &src0, Tensor_<T> const &src1)
     BB_ASSERT(src0.m_size == src1.m_size);
     Tensor_<T>  dst(src0.m_shape);
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
-    Tensor_Scalar_add_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)1, (T)0, dst.m_size);
+    Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)1, (T)0, dst.m_size);
     return dst;
 }
 
@@ -409,7 +409,7 @@ Tensor_<T> operator+(const Tensor_<T>& src0, T src1)
 {
    Tensor_<T>  dst(src0.m_shape);
    auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
-   Tensor_Scalar_add_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)0, src1, dst.m_size);
+   Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, src1, dst.m_size);
    return dst;
 }
 
@@ -426,7 +426,7 @@ Tensor_<T> operator-(const Tensor_<T> &src0, Tensor_<T> const &src1)
     BB_ASSERT(src0.m_size == src1.m_size);
     Tensor_<T>  dst(src0.m_shape);
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
-    Tensor_Scalar_add_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)-1, (T)0, dst.m_size);
+    Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)-1, (T)0, dst.m_size);
     return dst;
 }
 
@@ -435,7 +435,7 @@ Tensor_<T> operator-(const Tensor_<T>& src0, T src1)
 {
    Tensor_<T>  dst(src0.m_shape);
    auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
-   Tensor_Scalar_add_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)1, (T)0, -src1, dst.m_size);
+   Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, -src1, dst.m_size);
    return dst;
 }
 
@@ -444,7 +444,7 @@ Tensor_<T> operator-(T src0, Tensor_<T> const &src1)
 {
    Tensor_<T>  dst(src1.m_shape);
    auto op3 = Memory::GetOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
-   Tensor_Scalar_add_ex<T>((T *)op3.dst.GetPtr(), (const T *)op3.src0.GetPtr(), (const T *)op3.src1.GetPtr(), (T)-1, (T)0, src0, dst.m_size);
+   Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)-1, (T)0, src0, dst.m_size);
    return dst;
 }
 
