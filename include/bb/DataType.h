@@ -53,7 +53,8 @@ namespace bb {
 #endif
 
 
-using index_t = std::intptr_t;	// 配列の添え字(符号付き size_t としての扱い)
+using index_t   = std::intptr_t;	        // 配列の添え字(符号付き size_t としての扱い)
+using indices_t = std::vector<index_t>;     // Tensorなどの多次元配列の添え字
 
 class Bit;
 class Binary;

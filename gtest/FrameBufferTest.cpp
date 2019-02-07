@@ -8,7 +8,8 @@
 
 TEST(FrameBufferTest, FrameBuffer_SetGet)
 {
-	bb::FrameBuffer buf(2, 3, BB_TYPE_FP32);
+   
+    bb::FrameBuffer buf(2, 3, BB_TYPE_FP32);
 
     buf.Set<float, float>(0, 0, 1.0f);
     buf.Set<float, float>(0, 1, 2.0f);
@@ -84,6 +85,20 @@ TEST(FrameBufferTest, FrameBuffer_SetGet)
 }
 
 
+TEST(FrameBufferTest, FrameBuffer_IsDeviceAvailable)
+{
+  	bb::FrameBuffer buf_h(2, 3, BB_TYPE_FP32, true);
+  	bb::FrameBuffer buf_d(2, 3, BB_TYPE_FP32, false);
+#if BB_WITH_CUDA
+    EXPECT_FALSE(buf_h.IsDeviceAvailable());
+    EXPECT_TRUE(buf_d.IsDeviceAvailable());
+#else
+    EXPECT_FALSE(buf_h.IsDeviceAvailable());
+    EXPECT_FALSE(buf_d.IsDeviceAvailable());
+#endif
+}
+
+
 TEST(FrameBufferTest, FrameBuffer_Range)
 {
     bb::index_t const frame_size = 32;
@@ -113,6 +128,94 @@ TEST(FrameBufferTest, FrameBuffer_Range)
     }
 }
 
+
+
+TEST(FrameBufferTest, FrameBuffer_SetGetTensor)
+{
+    bb::index_t const frame_size = 32;
+    bb::index_t const l = 3;
+    bb::index_t const m = 4;
+    bb::index_t const n = 5;
+
+    bb::FrameBuffer buf(frame_size, {l, m, n}, BB_TYPE_INT64);
+
+    for ( bb::index_t frame = 0; frame < frame_size; ++frame ) {
+        for ( bb::index_t i = 0; i < n; ++i ) {
+            for ( bb::index_t j = 0; i < m; ++i ) {
+                for ( bb::index_t k = 0; i < l; ++i ) {
+                    buf.SetINT64(frame, {k, j, i}, (int)(frame*1000000 + i*10000 + j * 100 + k));
+                }
+            }
+        }
+    }
+
+    for ( bb::index_t frame = 0; frame < frame_size; ++frame ) {
+        for ( bb::index_t i = 0; i < n; ++i ) {
+            for ( bb::index_t j = 0; i < m; ++i ) {
+                for ( bb::index_t k = 0; i < l; ++i ) {
+                    EXPECT_EQ(buf.GetINT64(frame, {k, j, i}), (int)(frame*1000000 + i*10000 + j * 100 + k));
+                }
+            }
+        }
+    }
+}
+
+
+TEST(FrameBufferTest, FrameBuffer_SetGetTensorBit)
+{
+    bb::index_t const frame_size = 32;
+    bb::index_t const l = 3;
+    bb::index_t const m = 4;
+    bb::index_t const n = 5;
+
+    bb::FrameBuffer buf(frame_size, {l, m, n}, BB_TYPE_BIT);
+
+    for ( bb::index_t frame = 0; frame < frame_size; ++frame ) {
+        for ( bb::index_t i = 0; i < n; ++i ) {
+            for ( bb::index_t j = 0; i < m; ++i ) {
+                for ( bb::index_t k = 0; i < l; ++i ) {
+                    buf.Set<bb::Bit, bb::Bit>(frame, {k, j, i}, (bb::Bit)(frame ^ i ^ j ^ k));
+                }
+            }
+        }
+    }
+
+    for ( bb::index_t frame = 0; frame < frame_size; ++frame ) {
+        for ( bb::index_t i = 0; i < n; ++i ) {
+            for ( bb::index_t j = 0; i < m; ++i ) {
+                for ( bb::index_t k = 0; i < l; ++i ) {
+                    EXPECT_EQ((buf.Get<bb::Bit, bb::Bit>(frame, {k, j, i})), (bb::Bit)(frame ^ i ^ j ^ k));
+                }
+            }
+        }
+    }
+}
+
+
+
+TEST(FrameBufferTest, FrameBuffer_SetVector)
+{
+    bb::index_t const frame_size = 32;
+    bb::index_t const node_size = 12;
+
+    bb::FrameBuffer buf(frame_size, node_size, BB_TYPE_FP32);
+
+    std::vector< std::vector<float> > vec(frame_size, std::vector<float>(node_size));
+    
+    for ( bb::index_t frame = 0; frame < frame_size; ++frame ) {
+        for ( bb::index_t node = 0; node < node_size; ++node ) {
+            vec[frame][node] = (float)(frame * 1000 + node);
+        }
+    }
+
+    buf.SetVector(vec);
+
+    for ( bb::index_t frame = 0; frame < frame_size; ++frame ) {
+        for ( bb::index_t node = 0; node < node_size; ++node ) {
+            EXPECT_EQ((buf.Get<float, float>(frame, node)), (float)(frame * 1000 + node));
+        }
+    }
+}
 
 
 

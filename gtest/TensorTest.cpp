@@ -144,9 +144,9 @@ TEST(TensorTest, testTensorOp)
 //       d1[i] = (float)(i * 100);
     }
     
-    bb::Tensor_<float> t0(16);
-    bb::Tensor_<float> t1(16);
-    bb::Tensor_<float> t2(16);
+    bb::Tensor_<float> t0((bb::index_t)16);
+    bb::Tensor_<float> t1((bb::index_t)16);
+    bb::Tensor_<float> t2((bb::index_t)16);
 
     // ‰ÁŽZ1-1
     t0.Lock(); t1.Lock();
@@ -309,7 +309,7 @@ TEST(TensorTest, testTensorOp)
 
 TEST(TensorTest, testTensor_cast)
 {
-    bb::Tensor_<float> t_fp32({2, 3});
+    bb::Tensor_<float> t_fp32(std::vector<bb::index_t>{2, 3});
     t_fp32.Lock();
     t_fp32({0, 0}) = 1;
     t_fp32({1, 0}) = 2;

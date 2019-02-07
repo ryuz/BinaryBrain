@@ -116,29 +116,30 @@ class Tensor_
     friend  Tensor;
 
 protected:
-	std::shared_ptr<Memory>	m_mem;
-    Memory::Ptr             m_ptr;
-	index_t					m_size = 0;
+	std::shared_ptr<Memory>	    m_mem;
+    Memory::Ptr                 m_ptr;
+	index_t					    m_size = 0;
 
 	std::vector<index_t>		m_shape;
 	std::vector<index_t>		m_stride;
 public:
-    Tensor_(){}
+   	Tensor_(index_t size=0, bool hostOnly=false)
+	{
+        m_mem = Memory::Create(0, hostOnly);
+		Resize(size);
+	}
+
+	Tensor_(std::vector<index_t> shape, bool hostOnly=false)
+	{
+        m_mem = Memory::Create(0, hostOnly);
+		Resize(shape);
+	}
 
     Tensor_(const Tensor_& tensor)
 	{
 		*this = tensor;
 	}
-
-	Tensor_(index_t size)
-	{
-		Resize(size);
-	}
-
-	Tensor_(std::vector<index_t> shape)
-	{
-		Resize(shape);
-	}
+    
 
 	Tensor_& operator=(const Tensor_ &src)
 	{
@@ -172,7 +173,8 @@ public:
         m_size = total;
 
 		// メモリ確保
-		m_mem = Memory::Create(m_size * DataType<T>::size);
+//		m_mem = Memory::Create(m_size * DataType<T>::size);
+		m_mem->Resize(m_size * DataType<T>::size);
 	}
 
 	void Resize(index_t size)
@@ -185,7 +187,8 @@ public:
 		m_stride[0] = 1;
 
 		// メモリ確保
-		m_mem = Memory::Create(m_size * DataType<T>::size);
+//		m_mem = Memory::Create(m_size * DataType<T>::size);
+		m_mem->Resize(m_size * DataType<T>::size);
 	}
 
   	void Reshape(std::vector<index_t> shape)
@@ -647,13 +650,14 @@ inline Tensor_<float> operator-(float src0, const Tensor_<float> &src1)
 class Tensor
 {
 protected:
-	std::shared_ptr<Memory>			m_mem;
-    Memory::Ptr                     m_ptr;
-	int								m_type = 0;
-	index_t							m_size = 0;
+	int							m_type = 0;
 
-	std::vector<index_t>			m_shape;
-	std::vector<index_t>			m_stride;
+	std::shared_ptr<Memory>		m_mem;
+    Memory::Ptr                 m_ptr;
+	index_t						m_size = 0;
+
+	std::vector<index_t>		m_shape;
+	std::vector<index_t>		m_stride;
 
 public:
 	Tensor(bool hostOnly=false) {
@@ -758,6 +762,16 @@ public:
     {
         return m_type;
     }
+
+   /**
+     * @brief  デバイスが利用可能か問い合わせる
+     * @detail デバイスが利用可能か問い合わせる
+     * @return デバイスが利用可能ならtrue
+     */
+	bool IsDeviceAvailable(void) const
+	{
+		return m_mem->IsDeviceAvailable();
+	}
 
 	void Resize(std::vector<index_t> shape, int type)
 	{

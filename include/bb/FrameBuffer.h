@@ -59,14 +59,11 @@ protected:
     std::vector<index_t>    m_node_shape;
 
 public:
-    // デフォルトコンストラクタ
-	FrameBuffer() {}
-
-    // コピーコンストラクタ
-	FrameBuffer(const FrameBuffer& buf)
-	{
-		*this = buf;
-	}
+   	/**
+      * @brief  デフォルトコンストラクタ
+      * @detail デフォルトコンストラクタ
+      */
+	FrameBuffer(bool hostOnly=false) : m_tensor(hostOnly) {}
 
   	/**
      * @brief  コンストラクタ
@@ -76,7 +73,7 @@ public:
      * @param node_size  1フレームのノード数
 	 * @param data_type  1ノードのデータ型
      */
-	FrameBuffer(index_t frame_size, index_t node_size, int data_type)
+	FrameBuffer(index_t frame_size, index_t node_size, int data_type, bool hostOnly=false) : m_tensor(hostOnly)
 	{
         Resize(frame_size, {node_size}, data_type);
 	}
@@ -88,11 +85,20 @@ public:
      * @param shape      1フレームのノードを構成するshape
 	 * @param data_type  1ノードのデータ型
      */
-	FrameBuffer(index_t frame_size, std::vector<index_t> shape, int data_type)
+	FrameBuffer(index_t frame_size, std::vector<index_t> shape, int data_type, bool hostOnly=false) : m_tensor(hostOnly)
 	{
 		Resize(frame_size, shape, data_type);
 	}
-    
+
+   	/**
+      * @brief  コピーコンストラクタ
+      * @detail コピーコンストラクタ
+      */
+	FrameBuffer(const FrameBuffer& buf)
+	{
+		*this = buf;
+	}
+
    	/**
      * @brief  代入演算子
      * @detail 代入演算子
@@ -128,7 +134,16 @@ public:
 
 		return clone_buf;
 	}
-
+    
+   /**
+     * @brief  デバイスが利用可能か問い合わせる
+     * @detail デバイスが利用可能か問い合わせる
+     * @return デバイスが利用可能ならtrue
+     */
+	bool IsDeviceAvailable(void) const
+	{
+		return m_tensor.IsDeviceAvailable();
+	}
 
 
    	/**
@@ -178,7 +193,7 @@ public:
         shape[0] = node_size;
         Resize(frame_size, shape, data_type);
 	}
-
+    
    	void Reshape(std::vector<index_t> shape)
 	{
         index_t auto_index = -1;
@@ -428,6 +443,30 @@ public:
     inline std::uint16_t GetUINT16(index_t frame, std::vector<index_t> const & indices) { return GetValue<std::uint16_t>(frame, indices); }
     inline std::uint32_t GetUINT32(index_t frame, std::vector<index_t> const & indices) { return GetValue<std::uint32_t>(frame, indices); }
     inline std::uint64_t GetUINT64(index_t frame, std::vector<index_t> const & indices) { return GetValue<std::uint64_t>(frame, indices); }
+
+
+    template<typename Tp>
+    void SetVector(index_t frame, std::vector<Tp> const &data)
+    {
+        BB_ASSERT(data.size() == (size_t)m_node_size);
+        BB_ASSERT(frame > 0 && frame < m_frame_size);
+
+        for (index_t node = 0; node < m_node_size; ++node) {
+            SetValue<Tp>(frame, node, data[node]);
+        }
+    }
+
+    template<typename Tp>
+    void SetVector(std::vector< std::vector<Tp> > const &data)
+    {
+        BB_ASSERT(data.size() == (size_t)m_frame_size);
+        for (index_t frame = 0; frame < m_frame_size; ++frame) {
+            BB_ASSERT(data[frame].size() == (size_t)m_node_size);
+            for (index_t node = 0; node < m_node_size; ++node) {
+                SetValue<Tp>(frame, node, data[frame][node]);
+            }
+        }
+    }
 
 
     // テンソルの設定
