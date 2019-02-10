@@ -266,21 +266,7 @@ public:
     Memory::DevConstPtr GetDevConstPtr(void) const          { return m_tensor.GetDevConstPtr(); }
 
     // 型指定アクセス
-	template <typename MemTp, typename ValueTp>
-	inline void Set(void *addr, index_t frame, index_t node, ValueTp value)
-	{
-        BB_DEBUG_ASSERT(m_data_type == DataType<MemTp>::type);
-        auto ptr = GetPtr();
-        DataType_Write<MemTp>(GetNodeBaseAddr(addr, node), frame, static_cast<MemTp>(value));
-	}
-
    	template <typename MemTp, typename ValueTp>
-	inline void Set(void *addr, index_t frame, std::vector<index_t> const & indices, ValueTp value)
-	{
-        Set<MemTp, ValueTp>(addr, frame, GetNodeIndex(indices), value);
-	}
-
-	template <typename MemTp, typename ValueTp>
 	inline ValueTp Get(void const *addr, index_t frame, index_t node) const
 	{
         BB_DEBUG_ASSERT(m_data_type == DataType<MemTp>::type);
@@ -294,20 +280,36 @@ public:
         return Get<MemTp, ValueTp>(addr, frame, GetNodeIndex(indices));
 	}
 
-
-    // 汎用アクセス
-   	template <typename Tp>
-	inline void SetValue(void *addr, index_t frame, index_t node, Tp value)
+    template <typename MemTp, typename ValueTp>
+	inline void Set(void *addr, index_t frame, index_t node, ValueTp value)
 	{
-        WriteValue<Tp>(GetNodeBaseAddr(addr, node), frame, value);
+        BB_DEBUG_ASSERT(m_data_type == DataType<MemTp>::type);
+        auto ptr = GetPtr();
+        DataType_Write<MemTp>(GetNodeBaseAddr(addr, node), frame, static_cast<MemTp>(value));
 	}
 
-   	template <typename Tp>
-    inline void SetValue(void *addr, index_t frame, std::vector<index_t> const & indices, Tp value)
-    {
-        SetValue<Tp>(addr, frame, GetNodeIndex(indices), value);
-    }
+   	template <typename MemTp, typename ValueTp>
+	inline void Set(void *addr, index_t frame, std::vector<index_t> const & indices, ValueTp value)
+	{
+        Set<MemTp, ValueTp>(addr, frame, GetNodeIndex(indices), value);
+	}
 
+    template <typename MemTp, typename ValueTp>
+	inline void Add(void *addr, index_t frame, index_t node, ValueTp value)
+	{
+        BB_DEBUG_ASSERT(m_data_type == DataType<MemTp>::type);
+        auto ptr = GetPtr();
+        DataType_Add<MemTp>(GetNodeBaseAddr(addr, node), frame, static_cast<MemTp>(value));
+	}
+
+   	template <typename MemTp, typename ValueTp>
+	inline void Add(void *addr, index_t frame, std::vector<index_t> const & indices, ValueTp value)
+	{
+        Add<MemTp, ValueTp>(addr, frame, GetNodeIndex(indices), value);
+	}
+
+
+    // 汎用アクセス
     template <typename Tp>
 	inline Tp GetValue(void const *addr, index_t frame, index_t node)
 	{
@@ -321,7 +323,29 @@ public:
         return GetValue<Tp>(addr, frame, GetNodeIndex(indices));
     }
 
+   	template <typename Tp>
+	inline void SetValue(void *addr, index_t frame, index_t node, Tp value)
+	{
+        WriteValue<Tp>(GetNodeBaseAddr(addr, node), frame, value);
+	}
 
+   	template <typename Tp>
+    inline void SetValue(void *addr, index_t frame, std::vector<index_t> const & indices, Tp value)
+    {
+        SetValue<Tp>(addr, frame, GetNodeIndex(indices), value);
+    }
+
+   	template <typename Tp>
+	inline void AddValue(void *addr, index_t frame, index_t node, Tp value)
+	{
+        AddValue<Tp>(GetNodeBaseAddr(addr, node), frame, value);
+	}
+
+   	template <typename Tp>
+    inline void AddValue(void *addr, index_t frame, std::vector<index_t> const & indices, Tp value)
+    {
+        AddValue<Tp>(addr, frame, GetNodeIndex(indices), value);
+    }
 
 
 protected:
@@ -356,25 +380,6 @@ protected:
     }
 
     template<typename Tp>
-    void WriteValue(void *base, index_t frame, Tp value) const
-	{
-		switch (m_data_type) {
-		case BB_TYPE_BIT:    DataType_Write<Bit>         (base, frame, static_cast<Bit>     (value));   break;
-		case BB_TYPE_FP32:   DataType_Write<float>       (base, frame, static_cast<float>   (value));	break;
-		case BB_TYPE_FP64:   DataType_Write<double>      (base, frame, static_cast<double>  (value));	break;
-        case BB_TYPE_INT8:   DataType_Write<std::int8_t> (base, frame, static_cast<int8_t>  (value));   break;
-		case BB_TYPE_INT16:  DataType_Write<std::int16_t>(base, frame, static_cast<int16_t> (value));	break;
-   		case BB_TYPE_INT32:  DataType_Write<std::int32_t>(base, frame, static_cast<int32_t> (value));	break;
-		case BB_TYPE_INT64:  DataType_Write<std::int64_t>(base, frame, static_cast<int64_t> (value));	break;
-        case BB_TYPE_UINT8:  DataType_Write<std::int8_t> (base, frame, static_cast<uint8_t> (value));   break;
-		case BB_TYPE_UINT16: DataType_Write<std::int16_t>(base, frame, static_cast<uint16_t>(value));	break;
-   		case BB_TYPE_UINT32: DataType_Write<std::int32_t>(base, frame, static_cast<uint32_t>(value));	break;
-		case BB_TYPE_UINT64: DataType_Write<std::int64_t>(base, frame, static_cast<uint64_t>(value));	break;
-        default:   BB_ASSERT(0);
-        }
-	}
-
-    template<typename Tp>
   	Tp ReadValue(void *base, index_t frame) const
 	{
 		switch (m_data_type) {
@@ -394,10 +399,62 @@ protected:
 		return 0;
 	}
 
+    template<typename Tp>
+    void WriteValue(void *base, index_t frame, Tp value) const
+	{
+		switch (m_data_type) {
+		case BB_TYPE_BIT:    DataType_Write<Bit>         (base, frame, static_cast<Bit>     (value));   break;
+		case BB_TYPE_FP32:   DataType_Write<float>       (base, frame, static_cast<float>   (value));	break;
+		case BB_TYPE_FP64:   DataType_Write<double>      (base, frame, static_cast<double>  (value));	break;
+        case BB_TYPE_INT8:   DataType_Write<std::int8_t> (base, frame, static_cast<int8_t>  (value));   break;
+		case BB_TYPE_INT16:  DataType_Write<std::int16_t>(base, frame, static_cast<int16_t> (value));	break;
+   		case BB_TYPE_INT32:  DataType_Write<std::int32_t>(base, frame, static_cast<int32_t> (value));	break;
+		case BB_TYPE_INT64:  DataType_Write<std::int64_t>(base, frame, static_cast<int64_t> (value));	break;
+        case BB_TYPE_UINT8:  DataType_Write<std::int8_t> (base, frame, static_cast<uint8_t> (value));   break;
+		case BB_TYPE_UINT16: DataType_Write<std::int16_t>(base, frame, static_cast<uint16_t>(value));	break;
+   		case BB_TYPE_UINT32: DataType_Write<std::int32_t>(base, frame, static_cast<uint32_t>(value));	break;
+		case BB_TYPE_UINT64: DataType_Write<std::int64_t>(base, frame, static_cast<uint64_t>(value));	break;
+        default:   BB_ASSERT(0);
+        }
+	}
+
+    template<typename Tp>
+    void AddValue(void *base, index_t frame, Tp value) const
+	{
+		switch (m_data_type) {
+		case BB_TYPE_BIT:    DataType_Add<Bit>         (base, frame, static_cast<Bit>     (value)); break;
+		case BB_TYPE_FP32:   DataType_Add<float>       (base, frame, static_cast<float>   (value));	break;
+		case BB_TYPE_FP64:   DataType_Add<double>      (base, frame, static_cast<double>  (value)); break;
+        case BB_TYPE_INT8:   DataType_Add<std::int8_t> (base, frame, static_cast<int8_t>  (value)); break;
+		case BB_TYPE_INT16:  DataType_Add<std::int16_t>(base, frame, static_cast<int16_t> (value));	break;
+   		case BB_TYPE_INT32:  DataType_Add<std::int32_t>(base, frame, static_cast<int32_t> (value));	break;
+		case BB_TYPE_INT64:  DataType_Add<std::int64_t>(base, frame, static_cast<int64_t> (value));	break;
+        case BB_TYPE_UINT8:  DataType_Add<std::int8_t> (base, frame, static_cast<uint8_t> (value)); break;
+		case BB_TYPE_UINT16: DataType_Add<std::int16_t>(base, frame, static_cast<uint16_t>(value));	break;
+   		case BB_TYPE_UINT32: DataType_Add<std::int32_t>(base, frame, static_cast<uint32_t>(value));	break;
+		case BB_TYPE_UINT64: DataType_Add<std::int64_t>(base, frame, static_cast<uint64_t>(value));	break;
+        default:   BB_ASSERT(0);
+        }
+	}
+
 
 public:
 
     // 型指定アクセス
+	template <typename MemTp, typename ValueTp>
+	inline ValueTp Get(index_t frame, index_t node) const
+	{
+        BB_DEBUG_ASSERT(m_data_type == DataType<MemTp>::type);
+        auto ptr = GetConstPtr();
+		return static_cast<ValueTp>(DataType_Read<MemTp>(GetNodeBaseAddr(ptr.GetAddr(), node), frame)); 
+	}
+    
+   	template <typename MemTp, typename ValueTp>
+	inline ValueTp Get(index_t frame, std::vector<index_t> const & indices)
+	{
+        return Get<MemTp, ValueTp>(frame, GetNodeIndex(indices));
+	}
+
 	template <typename MemTp, typename ValueTp>
 	inline void Set(index_t frame, index_t node, ValueTp value)
 	{
@@ -413,22 +470,35 @@ public:
 	}
 
 	template <typename MemTp, typename ValueTp>
-	inline ValueTp Get(index_t frame, index_t node) const
+	inline void Add(index_t frame, index_t node, ValueTp value)
 	{
         BB_DEBUG_ASSERT(m_data_type == DataType<MemTp>::type);
-        auto ptr = GetConstPtr();
-		return static_cast<ValueTp>(DataType_Read<MemTp>(GetNodeBaseAddr(ptr.GetAddr(), node), frame)); 
+        auto ptr = GetPtr();
+        DataType_Add<MemTp>(GetNodeBaseAddr(ptr.GetAddr(), node), frame, static_cast<MemTp>(value));
 	}
-    
+
    	template <typename MemTp, typename ValueTp>
-	inline ValueTp Get(index_t frame, std::vector<index_t> const & indices)
+	inline void Add(index_t frame, std::vector<index_t> const & indices, ValueTp value)
 	{
-        return Get<MemTp, ValueTp>(frame, GetNodeIndex(indices));
+        Add<MemTp, ValueTp>(frame, GetNodeIndex(indices), value);
 	}
 
 
     // 汎用アクセス
-  	template <typename Tp>
+    template <typename Tp>
+	inline Tp GetValue(index_t frame, index_t node)
+	{
+        auto ptr = GetPtr();
+        return ReadValue<Tp>(GetNodeBaseAddr(ptr.GetAddr(), node), frame);
+	}
+
+   	template <typename Tp>
+    inline Tp GetValue(index_t frame, std::vector<index_t> const & indices)
+    {
+        return GetValue<Tp>(frame, GetNodeIndex(indices));
+    }
+
+   	template <typename Tp>
 	inline void SetValue(index_t frame, index_t node, Tp value)
 	{
         auto ptr = GetPtr();
@@ -442,17 +512,18 @@ public:
     }
 
     template <typename Tp>
-	inline Tp GetValue(index_t frame, index_t node)
+	inline void AddValue(index_t frame, index_t node, Tp value)
 	{
         auto ptr = GetPtr();
-        return ReadValue<Tp>(GetNodeBaseAddr(ptr.GetAddr(), node), frame);
+        AddValue<Tp>(GetNodeBaseAddr(ptr.GetAddr(), node), frame, value);
 	}
 
    	template <typename Tp>
-    inline Tp GetValue(index_t frame, std::vector<index_t> const & indices)
+    inline void AddValue(index_t frame, std::vector<index_t> const & indices, Tp value)
     {
-        return GetValue<Tp>(frame, GetNodeIndex(indices));
+        AddValue<Tp>(frame, GetNodeIndex(indices), value);
     }
+
 
     inline void SetBit   (index_t frame, index_t node, Bit           value) { SetValue<Bit          >(frame, node, value); }
     inline void SetFP32  (index_t frame, index_t node, float         value) { SetValue<float        >(frame, node, value); }

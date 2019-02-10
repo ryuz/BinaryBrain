@@ -20,7 +20,7 @@ TEST(ConvolutionIm2ColTest, testConvolutionIm2Col)
 {
 	bb::ConvolutionIm2Col<> cnvim2col(2, 3);
 	
-    bb::FrameBuffer buf_x(16, {4, 3, 2}, BB_TYPE_FP32);
+    bb::FrameBuffer buf_x(2, {4, 3, 2}, BB_TYPE_FP32);
 
 	for ( bb::index_t f = 0; f < 2; ++f) {
 		for (bb::index_t c = 0; c < 2; ++c) {
@@ -113,72 +113,80 @@ TEST(ConvolutionIm2ColTest, testConvolutionIm2Col)
 	EXPECT_EQ(1122, buf_y.GetFP32(7, { 1, 1, 1 }));
 	EXPECT_EQ(1123, buf_y.GetFP32(7, { 2, 1, 1 }));
 
-    /*
 	// backward
-	auto out_err_buf = cnvim2col.GetOutputErrorBuffer();
-	auto in_err_buf = cnvim2col.GetInputErrorBuffer();
+    bb::FrameBuffer buf_dy(8, { 3, 2, 2 }, BB_TYPE_FP32);
+    
+    float dy_data[8][2][2][3];
 
-	out_err_buf.SetDimensions({ 3, 2, 2 });
-	for (bb::INDEX f = 0; f < 8; ++f) {
-		for (bb::INDEX c = 0; c < 2; ++c) {
-			for (bb::INDEX y = 0; y < 2; ++y) {
-				for (bb::INDEX x = 0; x < 3; ++x) {
-					out_err_buf.SetReal(f, { x, y, c }, (float)(1000 * f + 100 * c + 10 * y + x));
+    buf_dy = buf_y.Clone();
+	for (bb::index_t f = 0; f < 8; ++f) {
+		for (bb::index_t c = 0; c < 2; ++c) {
+			for (bb::index_t y = 0; y < 2; ++y) {
+				for (bb::index_t x = 0; x < 3; ++x) {
+                    dy_data[f][c][y][x] = (float)(1000 * f + 100 * c + 10 * y + x);
+					buf_dy.SetFP32(f, { x, y, c }, dy_data[f][c][y][x]);
 				}
 			}
 		}
 	}
 	
-	cnvim2col.Backward();
+	auto buf_dx = cnvim2col.Backward(buf_dy);
 
-//	for (int i = 0; i < 2 * 3 * 4; ++i) {
-//		std::cout << in_err_buf.GetReal(0, i) << std::endl;
-//	}
+    for ( bb::index_t f = 0; f < 2; ++f ) {
+        for ( bb::index_t c = 0; c < 2; ++c ) {
+            EXPECT_EQ(dy_data[(f*4)+0][c][0][0],
+                    buf_dx.GetFP32(f, { 0, 0, c }));
 
-//	EXPECT_EQ(0, in_err_buf.GetReal(0, { 0, 0, 0 }));
-//	EXPECT_EQ(((0+1) + 0)+ ((1 + 2) + 1000), in_err_buf.GetReal(0, { 1, 0, 0 }));
-//	EXPECT_EQ((1 + 2) + 1000, in_err_buf.GetReal(0, { 2, 0, 0 }));
-*/
+            EXPECT_EQ(dy_data[(f*4)+0][c][0][1]
+                    + dy_data[(f*4)+1][c][0][0],
+                    buf_dx.GetFP32(f, { 1, 0, c }));
+
+            EXPECT_EQ(dy_data[(f*4)+0][c][0][2]
+                    + dy_data[(f*4)+1][c][0][1],
+                    buf_dx.GetFP32(f, { 2, 0, c }));
+
+            EXPECT_EQ(dy_data[(f*4)+1][c][0][2],
+                    buf_dx.GetFP32(f, { 3, 0, c }));
+
+
+
+            EXPECT_EQ(dy_data[(f*4)+0][c][1][0]
+                    + dy_data[(f*4)+2][c][0][0],
+                    buf_dx.GetFP32(f, { 0, 1, c }));
+
+            EXPECT_EQ(dy_data[(f*4)+0][c][1][1]
+                    + dy_data[(f*4)+1][c][1][0]
+                    + dy_data[(f*4)+2][c][0][1]
+                    + dy_data[(f*4)+3][c][0][0],
+                    buf_dx.GetFP32(f, { 1, 1, c }));
+
+            EXPECT_EQ(dy_data[(f*4)+0][c][1][2]
+                    + dy_data[(f*4)+1][c][1][1]
+                    + dy_data[(f*4)+2][c][0][2]
+                    + dy_data[(f*4)+3][c][0][1],
+                    buf_dx.GetFP32(f, { 2, 1, c }));
+        
+            EXPECT_EQ(dy_data[(f*4)+1][c][1][2]
+                    + dy_data[(f*4)+3][c][0][2],
+                    buf_dx.GetFP32(f, { 3, 1, c }));
+
+
+
+            EXPECT_EQ(dy_data[(f*4)+2][c][1][0],
+                    buf_dx.GetFP32(f, { 0, 2, c }));
+
+            EXPECT_EQ(dy_data[(f*4)+2][c][1][1]
+                    + dy_data[(f*4)+3][c][1][0],
+                    buf_dx.GetFP32(f, { 1, 2, c }));
+
+            EXPECT_EQ(dy_data[(f*4)+2][c][1][2]
+                    + dy_data[(f*4)+3][c][1][1],
+                    buf_dx.GetFP32(f, { 2, 2, c }));
+
+            EXPECT_EQ(dy_data[(f*4)+3][c][1][2],
+                    buf_dx.GetFP32(f, { 3, 2, c }));
+        }
+    }
 }
 
 
-
-#if 0
-
-#if 0
-
-#include <chrono>
-
-TEST(NeuralNetConvolutionIm2ColTest, testNeuralNetConvolutionIm2ColSpeed)
-{
-	// 実践的なサイズで速度比較
-	bb::NeuralNetConvExpand<> cnvexp(100, 28, 28, 3, 3);
-	bb::NeuralNetConvExpandM<100, 28, 28, 3, 3> cnvexpM;
-
-	cnvexp.SetBatchSize(256);
-	cnvexpM.SetBatchSize(256);
-	testSetupLayerBuffer(cnvexp);
-	testSetupLayerBuffer(cnvexpM);
-
-	std::chrono::system_clock::time_point  start, end;
-
-	start = std::chrono::system_clock::now();
-	cnvexp.Forward();
-	end = std::chrono::system_clock::now();
-
-	double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-	std::cout << elapsed << std::endl;
-
-
-	start = std::chrono::system_clock::now();
-	cnvexpM.Forward();
-	end = std::chrono::system_clock::now();
-
-	elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-	std::cout << elapsed << std::endl;
-}
-
-
-#endif
-
-#endif

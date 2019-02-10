@@ -10,7 +10,7 @@
 
 #pragma once
 
-
+#include <fstream>
 #include <vector>
 #include <random>
 
@@ -27,8 +27,8 @@ class ConvolutionIm2Col //  : public Layer
 protected:
     indices_t       m_input_shape;
     indices_t       m_output_shape;
-	index_t 		m_input_frame_size = 1;
-	index_t			m_output_frame_size = 1;
+	index_t 		m_input_frame_size;
+	index_t			m_output_frame_size;
 	index_t			m_input_h_size;
 	index_t			m_input_w_size;
 	index_t			m_input_c_size;
@@ -70,12 +70,12 @@ public:
 
 
 protected:
-	inline int GetInputNode(int c, int y, int x)
+	inline index_t GetInputNode(index_t c, index_t y, index_t x)
 	{
 		return (c * m_input_h_size + y)*m_input_w_size + x;
 	}
 
-	inline int GetOutputNode(int c, int y, int x)
+	inline index_t GetOutputNode(index_t c, index_t y, index_t x)
 	{
 		return (c*m_filter_h_size + y)*m_filter_w_size + x;
 	}
@@ -99,10 +99,10 @@ public:
 
         auto type = x.GetType();
         BB_ASSERT(type == DataType<ST>::type);
-        auto input_frame_size = x.GetFrameSize();
-        auto output_frame_size = input_frame_size * m_output_h_size * m_output_w_size;
+        m_input_frame_size = x.GetFrameSize();
+        m_output_frame_size = m_input_frame_size * m_output_h_size * m_output_w_size;
 
-        m_y.Resize(output_frame_size, m_output_shape, x.GetType());
+        m_y.Resize(m_output_frame_size, m_output_shape, x.GetType());
 
 #ifdef BB_WITH_CUDA
         if ( type == BB_TYPE_FP32 && x.IsDeviceAvailable() && m_y.IsDeviceAvailable())
@@ -111,45 +111,45 @@ public:
             auto ptr_y = m_y.GetDevPtr();
             cubb_Im2Col_Forward(
                 (const float *)ptr_x.GetAddr(),
-                (float *)ptr_y.GetAddr(),
-                (int)input_frame_size,
+                (int)m_input_frame_size,
+                (int)x.GetFrameStride() / sizeof(float),
                 (int)m_input_w_size,
                 (int)m_input_h_size,
                 (int)m_input_c_size,
+                (float *)ptr_y.GetAddr(),
+                (int)m_y.GetFrameStride() / sizeof(float),
                 (int)m_filter_w_size,
                 (int)m_filter_h_size);
             return m_y;
         }
 #endif
 
-   		const int frame_size = m_y.GetFrameStride() * 8 / DataType<ST>::bit_size;
-		const int frame_unit = 256 / DataType<ST>::bit_size;
+
+   		const index_t frame_size = m_y.GetFrameStride() * 8 / DataType<ST>::bit_size;
+		const index_t frame_unit = 256 / DataType<ST>::bit_size;
 
         auto ptr_x = x.GetConstPtr();
         auto ptr_y = m_y.GetPtr();
         auto addr_x = ptr_x.GetAddr();
         auto addr_y = ptr_y.GetAddr();
 
-   		for (int c = 0; c < m_input_c_size; ++c) {
+   		for (index_t c = 0; c < m_input_c_size; ++c) {
 #pragma omp parallel for
-			for (int frame_base = 0; frame_base < frame_size; frame_base += frame_unit) {
-				for (int fy = 0; fy < m_filter_h_size; ++fy) {
-					for (int fx = 0; fx < m_filter_w_size; ++fx) {
-						int output_node = GetOutputNode(c, fy, fx);
-						for (int frame_step = 0; frame_step < frame_unit; ++frame_step) {
-							int output_frame = frame_base + frame_step;
-							int input_frame = output_frame / (m_output_h_size * m_output_w_size);
-							int f = output_frame % (m_output_h_size * m_output_w_size);
-							int ix = f % m_output_w_size;
-							int iy = f / m_output_w_size;
+			for (index_t frame_base = 0; frame_base < frame_size; frame_base += frame_unit) {
+				for (index_t fy = 0; fy < m_filter_h_size; ++fy) {
+					for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
+						index_t output_node = GetOutputNode(c, fy, fx);
+						for (index_t frame_step = 0; frame_step < frame_unit; ++frame_step) {
+							index_t output_frame = frame_base + frame_step;
+							index_t input_frame = output_frame / (m_output_h_size * m_output_w_size);
+							index_t f = output_frame % (m_output_h_size * m_output_w_size);
+							index_t ix = f % m_output_w_size;
+							index_t iy = f / m_output_w_size;
 							ix += fx;
 							iy += fy;
-    						int input_node = GetInputNode(c, iy, ix);
+    						index_t input_node = GetInputNode(c, iy, ix);
 							ST sig = x.template Get<ST, ST>(addr_x, input_frame, input_node);
 							m_y.template Set<ST, ST>(addr_y, output_frame, output_node, sig);
-
-//							ST sig = x.template Get<ST, ST>(input_frame, input_node);
-//							m_y.template Set<ST, ST>(output_frame, output_node, sig);
 						}
 					}
 				}
@@ -160,35 +160,66 @@ public:
     }
 
 
-	FrameBuffer Backward(FrameBuffer dy)
+	FrameBuffer Backward(const FrameBuffer& dy)
 	{
-		m_dx.FillZero();
+        BB_ASSERT(dy.GetType() == DataType<GT>::type);
+        m_dx.Resize(m_input_frame_size, m_input_shape, DataType<GT>::type);
+
+#ifdef BB_WITH_CUDA
+        if ( dy.GetType() == BB_TYPE_FP32 && dy.IsDeviceAvailable() && m_dx.IsDeviceAvailable())
+        {
+            auto ptr_dy = dy.GetDevConstPtr();
+            auto ptr_dx = m_dx.GetDevPtr();
+            cubb_Im2Col_Backward(
+                (float *)ptr_dx.GetAddr(),
+                (int)m_input_frame_size,
+                (int)m_dx.GetFrameStride() / sizeof(float),
+                (int)m_input_w_size,
+                (int)m_input_h_size,
+                (int)m_input_c_size,
+                (const float *)ptr_dy.GetAddr(),
+                (int)dy.GetFrameStride() / sizeof(float),
+                (int)m_filter_w_size,
+                (int)m_filter_h_size);
+            return m_dx;
+        }
+#endif
+
 
 		const index_t frame_size = dy.GetFrameStride() * 8 / DataType<GT>::bit_size;
-		const index_t frame_unit = 256 / NeuralNetType<GT>::bit_size;
+		const index_t frame_unit = 256 / DataType<GT>::bit_size;
 
-		for (int c = 0; c < m_input_c_size; ++c) {
+        auto ptr_dy = dy.GetConstPtr();
+        auto ptr_dx = m_dx.GetPtr();
+        auto addr_dy = ptr_dy.GetAddr();
+        auto addr_dx = ptr_dx.GetAddr();
+
+   		m_dx.FillZero();
+
+		for (index_t c = 0; c < m_input_c_size; ++c) {
 #pragma omp parallel for
-			for (int frame_base = 0; frame_base < frame_size; frame_base += frame_unit) {
-				for (int fy = 0; fy < m_filter_h_size; ++fy) {
-					for (int fx = 0; fx < m_filter_w_size; ++fx) {
-						int output_node = GetOutputNode(c, fy, fx);
-						for (int frame_step = 0; frame_step < frame_unit; ++frame_step) {
-							int output_frame = frame_base + frame_step;
-							int input_frame = output_frame / (m_output_h_size * m_output_w_size);
-							int f = output_frame % (m_output_h_size * m_output_w_size);
-							int ix = f % m_output_w_size;
-							int iy = f / m_output_w_size;
+			for (index_t frame_base = 0; frame_base < frame_size; frame_base += frame_unit) {
+				for (index_t fy = 0; fy < m_filter_h_size; ++fy) {
+					for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
+						index_t output_node = GetOutputNode(c, fy, fx);
+						for (index_t frame_step = 0; frame_step < frame_unit; ++frame_step) {
+							index_t output_frame = frame_base + frame_step;
+							index_t input_frame = output_frame / (m_output_h_size * m_output_w_size);
+							index_t f = output_frame % (m_output_h_size * m_output_w_size);
+							index_t ix = f % m_output_w_size;
+							index_t iy = f / m_output_w_size;
 							ix += fx;
 							iy += fy;
-							int input_node = GetInputNode(c, iy, ix);
-							GT err = out_err_buf.template Get<ET>(output_frame, output_node);
-							in_err_buf.template Set<ET>(input_frame, input_node, in_err_buf.template Get<ET>(input_frame, input_node) + err);
+							index_t input_node = GetInputNode(c, iy, ix);
+							GT grad = dy.template Get<GT, GT>(addr_dy, output_frame, output_node);
+							m_dx.template Add<ST, ST>(addr_dx, input_frame, input_node, grad);
 						}
 					}
 				}
 			}
 		}
+
+        return m_dx;
 	}
 };
 
