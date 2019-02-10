@@ -17,6 +17,7 @@ TEST(TensorTest, testTensor_Transpose)
 
     bb::Tensor_<float> t({N, M, L});
 
+#if 0
     t.Lock();
     for ( int i = 0; i < L; ++i ) {
         for ( int j = 0; j < M; ++j ) {
@@ -28,7 +29,21 @@ TEST(TensorTest, testTensor_Transpose)
         }
     }
     t.Unlock();
+#else
+    {
+        auto ptr = t.GetPtr();
+        for ( int i = 0; i < L; ++i ) {
+            for ( int j = 0; j < M; ++j ) {
+                for ( int k = 0; k < N; ++k ) {
+                    data[i][j][k] = (float)((i+1)*10000 + (j+1) * 100 + (k+1)); 
+                    ptr(i, j, k) = data[i][j][k];
+                }
+            }
+        }
+    }
+#endif
 
+#if 0
     t.Lock();
     for ( int i = 0; i < L; ++i ) {
         for ( int j = 0; j < M; ++j ) {
@@ -39,6 +54,18 @@ TEST(TensorTest, testTensor_Transpose)
         }
     }
     t.Unlock();
+#else
+    {
+        auto ptr = t.GetConstPtr();
+        for ( int i = 0; i < L; ++i ) {
+            for ( int j = 0; j < M; ++j ) {
+                for ( int k = 0; k < N; ++k ) {
+                    EXPECT_EQ(ptr(i, j, k), data[i][j][k]);
+                }
+            }
+        }
+    }
+#endif
 
     t.Transpose({1, 2, 0});
 
@@ -331,5 +358,4 @@ TEST(TensorTest, testTensor_cast)
     EXPECT_EQ(t_int32({0, 2}), 5);
     EXPECT_EQ(t_int32({1, 2}), 6);
     t_int32.Unlock();
-
 }

@@ -260,10 +260,10 @@ public:
 
 	index_t GetFrameStride(void)  const { return m_frame_stride; }
 
-    Memory::Ptr         GetPtr(bool new_buf=false) const    { return m_tensor.GetPtr(new_buf); }
-    Memory::ConstPtr    GetConstPtr(void) const             { return m_tensor.GetConstPtr(); }
-    Memory::DevPtr      GetDevPtr(bool new_buf=false) const { return m_tensor.GetDevPtr(new_buf); }
-    Memory::DevConstPtr GetDevConstPtr(void) const          { return m_tensor.GetDevConstPtr(); }
+    Memory::Ptr         GetPtr(bool new_buf=false) const    { return m_tensor.GetMemoryPtr(new_buf); }
+    Memory::ConstPtr    GetConstPtr(void) const             { return m_tensor.GetMemoryConstPtr(); }
+    Memory::DevPtr      GetDevPtr(bool new_buf=false) const { return m_tensor.GetMemoryDevPtr(new_buf); }
+    Memory::DevConstPtr GetDevConstPtr(void) const          { return m_tensor.GetMemoryDevConstPtr(); }
 
     // 型指定アクセス
    	template <typename MemTp, typename ValueTp>
@@ -636,8 +636,8 @@ public:
 
         FrameBuffer buf(size, m_node_shape, m_data_type);
 
-        auto src_ptr = m_tensor.GetConstPtr();
-        auto dst_ptr = buf.m_tensor.GetPtr(true);
+        auto src_ptr = m_tensor.GetMemoryConstPtr();
+        auto dst_ptr = buf.m_tensor.GetMemoryPtr(true);
         auto src_addr = (std::int8_t const *)src_ptr.GetAddr();
         auto dst_addr = (std::int8_t       *)dst_ptr.GetAddr();
 

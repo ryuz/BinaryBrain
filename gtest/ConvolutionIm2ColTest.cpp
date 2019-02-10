@@ -165,7 +165,7 @@ TEST(ConvolutionIm2ColTest, testConvolutionIm2Col)
                     + dy_data[(f*4)+2][c][0][2]
                     + dy_data[(f*4)+3][c][0][1],
                     buf_dx.GetFP32(f, { 2, 1, c }));
-        
+            
             EXPECT_EQ(dy_data[(f*4)+1][c][1][2]
                     + dy_data[(f*4)+3][c][0][2],
                     buf_dx.GetFP32(f, { 3, 1, c }));
