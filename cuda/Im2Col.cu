@@ -34,16 +34,18 @@ __global__ void kernal_Im2Col_Forward(
 	int fy           = threadIdx.z;
 	int c            = blockIdx.y;
 	
-	int input_frame = output_frame / output_size;
-	int f           = output_frame % output_size;
-	int ix = f % output_w_size + fx;
-	int iy = f / output_w_size + fy;
+    if ( output_frame < output_frame_size ) {
+	    int input_frame = output_frame / output_size;
+	    int f           = output_frame % output_size;
+	    int ix = f % output_w_size + fx;
+	    int iy = f / output_w_size + fy;
 
-	int input_node  = (c * input_h_size  + iy) * input_w_size  + ix;
-	float sig = in_sig_buf[input_node * input_frame_size + input_frame];
+	    int input_node  = (c * input_h_size  + iy) * input_w_size  + ix;
+	    float sig = in_sig_buf[input_node * input_frame_size + input_frame];
 
-	int output_node = (c * filter_h_size + fy) * filter_w_size + fx;	
-	out_sig_buf[output_node * output_frame_size + output_frame] = sig;
+	    int output_node = (c * filter_h_size + fy) * filter_w_size + fx;	
+        out_sig_buf[output_node * output_frame_size + output_frame] = sig;
+    }
 }
 
 
@@ -69,8 +71,9 @@ int cubb_Im2Col_Forward
 	
 	int output_frame_size = input_frame_size * output_size;
 	
+    
 	int		frame_unit = 16;
-	dim3	grid(output_frame_size/frame_unit, output_c_size);
+	dim3	grid((output_frame_size + (frame_unit-1))/frame_unit, output_c_size);
 	dim3	block(frame_unit, filter_w_size, filter_h_size);
 	
 	kernal_Im2Col_Forward<<<grid, block>>>(

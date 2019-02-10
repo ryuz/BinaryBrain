@@ -149,6 +149,11 @@ public:
 		m_stride = src.m_stride;
 		return *this;
 	}
+    
+    index_t GetMemorySize(void) const
+    {
+        return m_mem->GetSize();
+    }
 
 	Tensor_ Clone(void) const
 	{
@@ -269,11 +274,6 @@ public:
     void Unlock(void)
     {
         m_ptr.Clear();
-    }
-
-   	index_t GetMemorySize(void) const
-    {
-        return m_mem->GetSize();
     }
 
    	void* GetMemoryPtr(void) const
@@ -763,6 +763,11 @@ public:
         return m_type;
     }
 
+    index_t GetMemorySize(void) const
+    {
+        return m_mem->GetSize();
+    }
+
    /**
      * @brief  デバイスが利用可能か問い合わせる
      * @detail デバイスが利用可能か問い合わせる
@@ -858,20 +863,65 @@ public:
         memset(ptr.GetAddr(), 0, m_mem->GetSize());
     }
 
+
     // -------------------------------------
     //  直接アクセス用ポインタ取得
     // -------------------------------------
 
-    Memory::Ptr         GetPtr(bool new_buf=false) const { return m_mem->GetPtr(new_buf); }
-    Memory::ConstPtr    GetConstPtr(void) const { return m_mem->GetConstPtr(); }
+    Memory::Ptr         GetPtr(bool new_buf=false) const    { return m_mem->GetPtr(new_buf); }
+    Memory::ConstPtr    GetConstPtr(void) const             { return m_mem->GetConstPtr(); }
     Memory::DevPtr      GetDevPtr(bool new_buf=false) const { return m_mem->GetDevPtr(new_buf); }
-    Memory::DevConstPtr GetDevConstPtr(void) const { return m_mem->GetDevConstPtr(); }
+    Memory::DevConstPtr GetDevConstPtr(void) const          { return m_mem->GetDevConstPtr(); }
+
+   	template <typename Tp>
+	inline const Tp& At(void const *addr, indices_t indices) const
+	{
+        BB_DEBUG_ASSERT(m_type == DataType<Tp>::Type);
+		BB_ASSERT(indices.size() == m_shape.size());
+
+		index_t index = 0;
+		for (int i = 0; i < (int)indices.size(); ++i) {
+			index += indices[i] * m_stride[i];
+		}
+
+		return ((Tp *)addr)[index];
+	}
+
+   	template <typename Tp>
+	inline Tp& At(void *addr, indices_t indices)
+	{
+        BB_DEBUG_ASSERT(m_type == DataType<Tp>::Type);
+		BB_ASSERT(indices.size() == m_shape.size());
+
+		index_t index = 0;
+		for (int i = 0; i < (int)indices.size(); ++i) {
+			index += indices[i] * m_stride[i];
+		}
+
+		return ((Tp *)addr)[index];
+	}
+
+	template <typename Tp>
+	inline Tp const & At(void const *addr, index_t index) const 
+	{
+        BB_DEBUG_ASSERT(m_type == DataType<Tp>::Type);
+		BB_DEBUG_ASSERT(index >= 0 && index < m_size);
+		return ((const Tp *)addr)[index];
+	}
+	
+    template <typename Tp>
+	inline Tp & At(void *addr, index_t index)
+	{
+        BB_DEBUG_ASSERT(m_type == DataType<Tp>::Type);
+		BB_DEBUG_ASSERT(index >= 0 && index < m_size);
+		return ((Tp *)addr)[index];
+	}
 
 
     // -------------------------------------
     //  メモリアクセス操作
     // -------------------------------------
-
+    
     void Lock(void)
     {
         m_ptr = m_mem->GetPtr();
@@ -885,51 +935,31 @@ public:
 	template <typename Tp>
 	inline const Tp& At(std::vector<index_t> indices) const
 	{
-        BB_DEBUG_ASSERT(m_type == DataType<Tp>::Type);
-		BB_ASSERT(indices.size() == m_shape.size());
-
-		index_t index = 0;
-		for (int i = 0; i < (int)indices.size(); ++i) {
-			index += indices[i] * m_stride[i];
-		}
-
-		return ((Tp *)m_ptr.GetPtr())[index];
+		BB_ASSERT(m_ptr);
+        return At(m_ptr.GetPtr(), index);
 	}
 
    	template <typename Tp>
 	inline Tp& At(std::vector<index_t> indices)
 	{
-        BB_DEBUG_ASSERT(m_type == DataType<Tp>::Type);
-		BB_ASSERT(indices.size() == m_shape.size());
-
-		index_t index = 0;
-		for (int i = 0; i < (int)indices.size(); ++i) {
-			index += indices[i] * m_stride[i];
-		}
-
-		return ((Tp *)m_ptr.GetPtr())[index];
+		BB_ASSERT(m_ptr);
+        return At(m_ptr.GetPtr(), indices);
 	}
 
 	template <typename Tp>
 	inline Tp const & At(index_t index) const 
 	{
-        BB_DEBUG_ASSERT(m_type == DataType<Tp>::Type);
-		BB_DEBUG_ASSERT(index >= 0 && index < m_size);
-		return ((const Tp *)m_ptr.GetPtr())[index];
+		BB_ASSERT(m_ptr);
+        return At(m_ptr.GetPtr(), index);
 	}
 	
     template <typename Tp>
 	inline Tp & At(index_t index)
 	{
-        BB_DEBUG_ASSERT(m_type == DataType<Tp>::Type);
-		BB_DEBUG_ASSERT(index >= 0 && index < m_size);
-		return ((Tp *)m_ptr.GetPtr())[index];
+		BB_ASSERT(m_ptr);
+        return At(m_ptr.GetPtr(), index);
 	}
 
-	index_t GetMemorySize(void) const
-    {
-        return m_mem->GetSize();
-    }
 };
 
 

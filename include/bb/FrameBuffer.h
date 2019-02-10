@@ -9,9 +9,10 @@
 
 #pragma once
 
-#include <stdlib.h>
-#include <malloc.h>
+//#include <stdlib.h>
+//#include <malloc.h>
 
+#include <mutex>
 #include <iostream>
 #include <array>
 #include <vector>
@@ -111,7 +112,7 @@ public:
 		m_frame_size    = buf.m_frame_size;
 		m_frame_stride  = buf.m_frame_stride;
 		m_node_size     = buf.m_node_size;
-        m_node_shape    = m_node_shape;
+        m_node_shape    = buf.m_node_shape;
 
 		return *this;
 	}
@@ -259,10 +260,67 @@ public:
 
 	index_t GetFrameStride(void)  const { return m_frame_stride; }
 
-    Memory::Ptr         GetPtr(bool new_buf=false) const { return m_tensor.GetPtr(new_buf); }
-    Memory::ConstPtr    GetConstPtr(void) const { return m_tensor.GetConstPtr(); }
+    Memory::Ptr         GetPtr(bool new_buf=false) const    { return m_tensor.GetPtr(new_buf); }
+    Memory::ConstPtr    GetConstPtr(void) const             { return m_tensor.GetConstPtr(); }
     Memory::DevPtr      GetDevPtr(bool new_buf=false) const { return m_tensor.GetDevPtr(new_buf); }
-    Memory::DevConstPtr GetDevConstPtr(void) const { return m_tensor.GetDevConstPtr(); }
+    Memory::DevConstPtr GetDevConstPtr(void) const          { return m_tensor.GetDevConstPtr(); }
+
+    // 型指定アクセス
+	template <typename MemTp, typename ValueTp>
+	inline void Set(void *addr, index_t frame, index_t node, ValueTp value)
+	{
+        BB_DEBUG_ASSERT(m_data_type == DataType<MemTp>::type);
+        auto ptr = GetPtr();
+        DataType_Write<MemTp>(GetNodeBaseAddr(addr, node), frame, static_cast<MemTp>(value));
+	}
+
+   	template <typename MemTp, typename ValueTp>
+	inline void Set(void *addr, index_t frame, std::vector<index_t> const & indices, ValueTp value)
+	{
+        Set<MemTp, ValueTp>(addr, frame, GetNodeIndex(indices), value);
+	}
+
+	template <typename MemTp, typename ValueTp>
+	inline ValueTp Get(void const *addr, index_t frame, index_t node) const
+	{
+        BB_DEBUG_ASSERT(m_data_type == DataType<MemTp>::type);
+        auto ptr = GetConstPtr();
+		return static_cast<ValueTp>(DataType_Read<MemTp>(GetNodeBaseAddr(addr, node), frame)); 
+	}
+    
+   	template <typename MemTp, typename ValueTp>
+	inline ValueTp Get(void const *addr, index_t frame, std::vector<index_t> const & indices)
+	{
+        return Get<MemTp, ValueTp>(addr, frame, GetNodeIndex(indices));
+	}
+
+
+    // 汎用アクセス
+   	template <typename Tp>
+	inline void SetValue(void *addr, index_t frame, index_t node, Tp value)
+	{
+        WriteValue<Tp>(GetNodeBaseAddr(addr, node), frame, value);
+	}
+
+   	template <typename Tp>
+    inline void SetValue(void *addr, index_t frame, std::vector<index_t> const & indices, Tp value)
+    {
+        SetValue<Tp>(addr, frame, GetNodeIndex(indices), value);
+    }
+
+    template <typename Tp>
+	inline Tp GetValue(void const *addr, index_t frame, index_t node)
+	{
+        auto ptr = GetPtr();
+        return ReadValue<Tp>(GetNodeBaseAddr(addr, node), frame);
+	}
+
+   	template <typename Tp>
+    inline Tp GetValue(void const *addr, index_t frame, std::vector<index_t> const & indices)
+    {
+        return GetValue<Tp>(addr, frame, GetNodeIndex(indices));
+    }
+
 
 
 
@@ -339,7 +397,7 @@ protected:
 
 public:
 
-    // 高速アクセス
+    // 型指定アクセス
 	template <typename MemTp, typename ValueTp>
 	inline void Set(index_t frame, index_t node, ValueTp value)
 	{

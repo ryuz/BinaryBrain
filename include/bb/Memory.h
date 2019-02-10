@@ -12,6 +12,7 @@
 
 #include <string.h>
 #include <memory>
+#include <atomic>
 #include <type_traits>
 
 #ifdef BB_WITH_CUDA
@@ -201,24 +202,24 @@ public:
     };
 
 protected:
-	size_t	m_size = 0;
-	void*	m_addr = nullptr;
-    int     m_refCnt = 0;
+	size_t	            m_size = 0;
+	void*        	    m_addr = nullptr;
+    std::atomic<int>    m_refCnt = 0;
 
 #ifdef BB_WITH_CUDA
-	size_t	m_mem_size = 0;
-    bool	m_hostOnly = true;
-	bool	m_hostModified = false;
+	size_t	            m_mem_size = 0;
+    bool	            m_hostOnly = true;
+	bool	            m_hostModified = false;
 
     // 将来下記を多重化して複数GPU対応もケアできるようにするかも
-	int		m_device;
-	void*	m_devAddr = nullptr;
-	bool	m_devModified = false;
-	int		m_devRefCnt = 0;
+	int		            m_device;
+	void*	            m_devAddr = nullptr;
+	bool	            m_devModified = false;
+	std::atomic<int>  	m_devRefCnt = 0;
 #endif
 
     static void lock(Memory *self)   { self->m_refCnt++; }
-    static void unlock(Memory *self) { self->m_refCnt--;}
+    static void unlock(Memory *self) { self->m_refCnt--; }
 
 #ifdef BB_WITH_CUDA
     static void lockDevice(Memory *self)   { self->m_devRefCnt++; }
