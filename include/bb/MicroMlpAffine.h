@@ -13,29 +13,19 @@
 #include <cstdint>
 #include <random>
 
-#include "bb/NeuralNetSparseLayer.h"
-#include "bb/NeuralNetSparseMicroMlpPreAffine.h"
-#include "bb/NeuralNetSparseMicroMlpPostAffine.h"
-#include "bb/NeuralNetBatchNormalization.h"
-#include "bb/NeuralNetReLU.h"
-#include "bb/NeuralNetSigmoid.h"
-#include "bb/NeuralNetBinarize.h"
+#include "bb/FrameBuffer.h"
 
 
 namespace bb {
 
 
-// Mini-MLP(Affine-ReLU-Affine-BatchNorm-Binarize)
+// Mini-MLP (SparseAffine - ReLU - SparseAffine)
 template <int N = 6, int M = 16, typename T = float>
-class NeuralNetStackedMicroAffine : public NeuralNetSparseLayer<T>
+class MicroMlpAffine
 {
-	using super = NeuralNetSparseLayer<T>;
-
 protected:
 public:
 	struct Node {
-		std::array<INDEX, N>	input;
-
 		std::array<T, M*N>		W0;
 		std::array<T, M>		b0;
 		std::array<T, M*N>		dW0;
@@ -45,46 +35,69 @@ public:
 		T						b1;
 		std::array<T, M>		dW1;
 		T						db1;
+    }
 
-		std::unique_ptr< ParamOptimizer<T> >	optimizer_W0;
-		std::unique_ptr< ParamOptimizer<T> >	optimizer_b0;
-		std::unique_ptr< ParamOptimizer<T> >	optimizer_W1;
-		std::unique_ptr< ParamOptimizer<T> >	optimizer_b1;
-
-		template<class Archive>
-		void serialize(Archive & archive, std::uint32_t const version)
-		{
-			archive(cereal::make_nvp("input", input));
-			archive(cereal::make_nvp("W0", W0));
-			archive(cereal::make_nvp("b0", b0));
-			archive(cereal::make_nvp("W1", W1));
-			archive(cereal::make_nvp("b1", b1));
-		}
-	};
-
-	INDEX					m_frame_size = 1;
-	std::vector<Node>		m_node;
 	bool					m_binary_mode = false;
 
+    FrameBuffer            m_x;
+    FrameBuffer            m_y;
+    FrameBuffer            m_dx;
+
+    Tensor                 m_W0;
+    Tensor                 m_b0;
+    Tensor                 m_dW0;
+    Tensor                 m_db0;
+
+    Tensor                 m_W1;
+    Tensor                 m_b1;
+    Tensor                 m_dW1;
+    Tensor                 m_db1;
+
+    
 public:
-	NeuralNetStackedMicroAffine() {}
+	MicroMlpAffine() {}
 
-	NeuralNetStackedMicroAffine(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1,
-		const NeuralNetOptimizer<T>* optimizer = nullptr)
+	MicroMlpAffine(index_t output_node_size)
 	{
-		NeuralNetOptimizerSgd<T> DefOptimizer;
-		if (optimizer == nullptr) {
-			optimizer = &DefOptimizer;
-		}
-
-		Resize(input_node_size, output_node_size);
-		InitializeCoeff(seed);
-		SetOptimizer(optimizer);
 	}
 	
-	~NeuralNetStackedMicroAffine() {}
+	~MicroMlpAffine() {}
 
-	std::string GetClassName(void) const { return "NeuralNetStackedMicroAffine"; }
+	std::string GetClassName(void) const { return "MicroMlpAffine"; }
+
+
+    FrameBuffer Forward(FrameBuffer const &x, bool train = true)
+    {
+        m_x = x;
+
+        auto shape     = m_x.GetShape();
+        auto node_size = m_x.GetNodeSize();
+
+
+        if ( DataType<T>::type == BB_TYPE_FP32 && x.IsDeviceAvailable() && m_y.IsDeviceAvailable) {
+            auto x_ptr = m_x.GetDevConstPtr();
+            auto y_ptr = m_y.GetDevConstPtr();
+            auto W0_ptr = m_W0.GetDevConstPtr();
+            auto b0_ptr = m_b0.GetDevConstPtr();
+            auto W1_ptr = m_W0.GetDevConstPtr();
+            auto b1_ptr = m_b0.GetDevConstPtr();
+            bbcu_MicroMlp6x16_Forward
+    		    (
+                    x_ptr.GetAddr(),
+                    y_ptr.GetAddr(),
+                    m_input_node_size,
+                    m_output_node_size,
+                    frame_size,
+                    input_index_ptr.GetAddr(),
+                    W0_ptr.GetAddr(),
+                    b0_ptr.GetAddr(),
+                    W1_ptr.GetAddr(),
+                    b1_ptr.GetAddr()
+                );
+        }
+    }
+
+
 
 	T& W0(INDEX output, INDEX hidden, INDEX input) { return m_node[output].W0[hidden*N + input]; }
 	T& b0(INDEX output, INDEX hidden) { return m_node[output].b0[hidden]; }

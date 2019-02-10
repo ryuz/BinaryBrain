@@ -13,26 +13,18 @@
 #include <cstdint>
 #include <random>
 
-#include "bb/NeuralNetSparseLayer.h"
-#include "bb/NeuralNetStackedMicroAffine.h"
-#include "bb/NeuralNetBatchNormalization.h"
-#include "bb/NeuralNetReLU.h"
-#include "bb/NeuralNetSigmoid.h"
-#include "bb/NeuralNetBinarize.h"
+#include "bb/FrameBuffer.h"
 
 
 namespace bb {
 
 
 // Sparce Mini-MLP(Multilayer perceptron) Layer [Affine-ReLU-Affine-BatchNorm-Binarize]
-template <int N = 6, int M = 16, typename T = float>
-class NeuralNetSparseMicroMlp : public NeuralNetSparseLayer<T>
+template <int N = 6, int M = 16, typename ST = float, typename GT = float>
+class MicroMlp
 {
-	using super = NeuralNetSparseLayer<T>;
-
 protected:
 public:
-	INDEX									m_batch_size = 0;
 
 	// 3層で構成
 	NeuralNetStackedMicroAffine<N, M, T>	m_affine;

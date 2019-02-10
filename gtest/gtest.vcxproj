@@ -47,6 +47,8 @@
     <ClInclude Include="..\include\bb\FrameBuffer.h" />
     <ClInclude Include="..\include\bb\Layer.h" />
     <ClInclude Include="..\include\bb\Memory.h" />
+    <ClInclude Include="..\include\bb\MicroMlp.h" />
+    <ClInclude Include="..\include\bb\MicroMlpAffine.h" />
     <ClInclude Include="..\include\bb\Tensor.h" />
     <ClInclude Include="..\include\bb\Utility.h" />
   </ItemGroup>

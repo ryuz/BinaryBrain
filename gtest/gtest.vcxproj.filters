@@ -53,5 +53,11 @@
     <ClInclude Include="..\include\bb\ConvolutionIm2Col.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\bb\MicroMlp.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bb\MicroMlpAffine.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
