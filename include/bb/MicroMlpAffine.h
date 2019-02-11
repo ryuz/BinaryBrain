@@ -25,45 +25,120 @@ class MicroMlpAffine
 {
 protected:
 public:
-	struct Node {
-		std::array<T, M*N>		W0;
-		std::array<T, M>		b0;
-		std::array<T, M*N>		dW0;
-		std::array<T, M>		db0;
 
-		std::array<T, M>		W1;
-		T						b1;
-		std::array<T, M>		dW1;
-		T						db1;
-    }
+	bool			        m_binary_mode = false;
 
-	bool					m_binary_mode = false;
+    std::mt19937_64         m_mt;
 
-    FrameBuffer            m_x;
-    FrameBuffer            m_y;
-    FrameBuffer            m_dx;
+    index_t                 m_input_node_size = 0;
+    index_t                 m_output_node_size = 0;
+    indices_t               m_input_shape;
+    indices_t               m_output_shape;
 
-    Tensor                 m_W0;
-    Tensor                 m_b0;
-    Tensor                 m_dW0;
-    Tensor                 m_db0;
+    Tensor_<std::int32_t>   m_input_index;
 
-    Tensor                 m_W1;
-    Tensor                 m_b1;
-    Tensor                 m_dW1;
-    Tensor                 m_db1;
+    Tensor_<T>              m_W0;
+    Tensor_<T>              m_b0;
+    Tensor_<T>              m_dW0;
+    Tensor_<T>              m_db0;
 
-    
-public:
+    Tensor_<T>              m_W1;
+    Tensor_<T>              m_b1;
+    Tensor_<T>              m_dW1;
+    Tensor_<T>              m_db1;
+
+    FrameBuffer             m_x;
+    FrameBuffer             m_y;
+    FrameBuffer             m_dx;
+        
+protected:
 	MicroMlpAffine() {}
 
-	MicroMlpAffine(index_t output_node_size)
-	{
-	}
-	
+public:
 	~MicroMlpAffine() {}
 
+
+    struct create_t
+    {
+        indices_t       output_shape;
+        std::uint64_t   seed = 1;
+    };
+
+    static std::shared_ptr<MicroMlpAffine> Create(create_t const &create)
+    {
+        auto self = std::shared_ptr<MicroMlpAffine>(new MicroMlpAffine);
+        BB_ASSERT(!create.output_shape.empty());
+
+        self->m_mt.seed(create.seed);
+
+        self->m_output_shape = create.output_shape;
+        self->m_output_node_size = GetShapeSize(self->m_output_shape);
+
+        return self;
+    }
+
+    static std::shared_ptr<MicroMlpAffine> Create(indices_t const &output_shape)
+    {
+        create_t create;
+        create.output_shape = output_shape;
+        return Create(create);
+    }
+
+    static std::shared_ptr<MicroMlpAffine> Create(index_t output_node_size)
+    {
+        create_t create;
+        create.output_shape.resize(1);
+        create.output_shape[0] = output_node_size;
+        return Create(create);
+    }
+	
+
 	std::string GetClassName(void) const { return "MicroMlpAffine"; }
+
+
+   /**
+     * @brief  入力のshape設定
+     * @detail 入力のshape設定
+     * @param shape 新しいshape
+     * @return なし
+     */
+    indices_t SetInputShape(indices_t const &shape)
+    {
+        // 形状設定
+        m_input_shape = shape;
+        m_input_node_size = GetShapeSize(shape);
+        
+        // 接続初期化
+        m_input_index.Resize(m_output_node_size, N);
+        
+
+        // パラメータ初期化
+        m_W0.Resize(m_output_node_size, M, N);  m_W0.InitNormalDistribution(0.0, 1.0, m_mt());
+        m_b0.Resize(m_output_node_size, M);     m_b0.InitNormalDistribution(0.0, 1.0, m_mt());
+        m_W1.Resize(m_output_node_size, M);     m_W1.InitNormalDistribution(0.0, 1.0, m_mt());
+        m_b1.Resize(m_output_node_size);        m_b1.InitNormalDistribution(0.0, 1.0, m_mt());
+
+        m_dW0.Resize(m_output_node_size, M, N); m_dW0.FillZero();
+        m_db0.Resize(m_output_node_size, M);    m_db0.FillZero();
+        m_dW1.Resize(m_output_node_size, M);    m_dW1.FillZero();
+        m_db1.Resize(m_output_node_size);       m_db1.FillZero();
+        
+        return m_output_shape;
+    }
+    
+
+   /**
+     * @brief  出力のshape設定
+     * @detail 出力のshape設定
+     *         出力ノード数が変わらない限りshpeは自由
+     * @param shape 新しいshape
+     * @return なし
+     */
+    void SetOutputShape(indices_t const &shape)
+    {
+        BB_ASSERT(GetShapeSize(shape) == m_output_node_size);
+        m_output_shape = shape;
+    }
 
 
     FrameBuffer Forward(FrameBuffer const &x, bool train = true)
@@ -73,14 +148,15 @@ public:
         auto shape     = m_x.GetShape();
         auto node_size = m_x.GetNodeSize();
 
+        /*
 
         if ( DataType<T>::type == BB_TYPE_FP32 && x.IsDeviceAvailable() && m_y.IsDeviceAvailable) {
-            auto x_ptr = m_x.GetDevConstPtr();
-            auto y_ptr = m_y.GetDevConstPtr();
-            auto W0_ptr = m_W0.GetDevConstPtr();
-            auto b0_ptr = m_b0.GetDevConstPtr();
-            auto W1_ptr = m_W0.GetDevConstPtr();
-            auto b1_ptr = m_b0.GetDevConstPtr();
+            auto x_ptr  = m_x.GetMemoryDevConstPtr();
+            auto y_ptr  = m_y.GetMemoryDevConstPtr();
+            auto W0_ptr = m_W0.GetMemoryDevConstPtr();
+            auto b0_ptr = m_b0.GetMemoryDevConstPtr();
+            auto W1_ptr = m_W0.GetMemoryDevConstPtr();
+            auto b1_ptr = m_b0.GetMemoryDevConstPtr();
             bbcu_MicroMlp6x16_Forward
     		    (
                     x_ptr.GetAddr(),
@@ -95,20 +171,15 @@ public:
                     b1_ptr.GetAddr()
                 );
         }
+        */
+
+        return m_y;
     }
 
+	auto GetConstW0(void) { return m_W0.GetConstPtr<T>(); }
+	auto GetW0(void) { return m_W0.GetPtr<T>(); }
 
-
-	T& W0(INDEX output, INDEX hidden, INDEX input) { return m_node[output].W0[hidden*N + input]; }
-	T& b0(INDEX output, INDEX hidden) { return m_node[output].b0[hidden]; }
-	T& dW0(INDEX output, INDEX hidden, INDEX input) { return m_node[output].dW0[hidden*N + input]; }
-	T& db0(INDEX output, INDEX hidden) { return m_node[output].db0[hidden]; }
-
-	T& W1(INDEX output, INDEX hidden) { return m_node[output].W1[hidden]; }
-	T& b1(INDEX output) { return m_node[output].b1; }
-	T& dW1(INDEX output, INDEX hidden) { return m_node[output].dW1[hidden]; }
-	T& db1(INDEX output) { return m_node[output].db1; }
-
+#if 0
 	std::vector<T> CalcNode(INDEX node, std::vector<T> input_value) const
 	{
 		auto& nd = m_node[node];
@@ -539,28 +610,21 @@ public:
 	template <class Archive>
 	void save(Archive &archive, std::uint32_t const version) const
 	{
-		archive(cereal::make_nvp("NeuralNetSparseLayer", *(super *)this));
-		archive(cereal::make_nvp("node", m_node));
-		archive(cereal::make_nvp("binary_mode", m_binary_mode));
 	}
 
 	template <class Archive>
 	void load(Archive &archive, std::uint32_t const version)
 	{
-		archive(cereal::make_nvp("NeuralNetSparseLayer", *(super *)this));
-		archive(cereal::make_nvp("node", m_node));
-		archive(cereal::make_nvp("binary_mode", m_binary_mode));
 	}
 
 	virtual void Save(cereal::JSONOutputArchive& archive) const
 	{
-		archive(cereal::make_nvp("NeuralNetLutStackedAffine", *this));
 	}
 
 	virtual void Load(cereal::JSONInputArchive& archive)
 	{
-		archive(cereal::make_nvp("NeuralNetLutStackedAffine", *this));
 	}
+#endif
 };
 
 

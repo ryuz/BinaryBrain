@@ -8,8 +8,7 @@
 
 TEST(FrameBufferTest, FrameBuffer_SetGet)
 {
-   
-    bb::FrameBuffer buf(2, 3, BB_TYPE_FP32);
+    bb::FrameBuffer buf(BB_TYPE_FP32, 2, 3);
 
     buf.Set<float, float>(0, 0, 1.0f);
     buf.Set<float, float>(0, 1, 2.0f);
@@ -87,8 +86,8 @@ TEST(FrameBufferTest, FrameBuffer_SetGet)
 
 TEST(FrameBufferTest, FrameBuffer_IsDeviceAvailable)
 {
-  	bb::FrameBuffer buf_h(2, 3, BB_TYPE_FP32, true);
-  	bb::FrameBuffer buf_d(2, 3, BB_TYPE_FP32, false);
+  	bb::FrameBuffer buf_h(BB_TYPE_FP32, 2, 3, true);
+  	bb::FrameBuffer buf_d(BB_TYPE_FP32, 2, 3, false);
 #if BB_WITH_CUDA
     EXPECT_FALSE(buf_h.IsDeviceAvailable());
     EXPECT_TRUE(buf_d.IsDeviceAvailable());
@@ -104,7 +103,7 @@ TEST(FrameBufferTest, FrameBuffer_Range)
     bb::index_t const frame_size = 32;
     bb::index_t const node_size  = 3;
 
-	bb::FrameBuffer buf(frame_size, node_size, BB_TYPE_INT32);
+	bb::FrameBuffer buf(BB_TYPE_INT32, frame_size, node_size);
 
     for ( bb::index_t frame = 0; frame < frame_size; ++frame ) {
         for ( bb::index_t node = 0; node < node_size; ++node ) {
@@ -137,7 +136,7 @@ TEST(FrameBufferTest, FrameBuffer_SetGetTensor)
     bb::index_t const m = 4;
     bb::index_t const n = 5;
 
-    bb::FrameBuffer buf(frame_size, {l, m, n}, BB_TYPE_INT64);
+    bb::FrameBuffer buf(BB_TYPE_INT64, frame_size, {l, m, n});
 
     for ( bb::index_t frame = 0; frame < frame_size; ++frame ) {
         for ( bb::index_t i = 0; i < n; ++i ) {
@@ -168,7 +167,7 @@ TEST(FrameBufferTest, FrameBuffer_SetGetTensorBit)
     bb::index_t const m = 4;
     bb::index_t const n = 5;
 
-    bb::FrameBuffer buf(frame_size, {l, m, n}, BB_TYPE_BIT);
+    bb::FrameBuffer buf(BB_TYPE_BIT, frame_size, {l, m, n});
 
     for ( bb::index_t frame = 0; frame < frame_size; ++frame ) {
         for ( bb::index_t i = 0; i < n; ++i ) {
@@ -198,7 +197,7 @@ TEST(FrameBufferTest, FrameBuffer_SetVector)
     bb::index_t const frame_size = 32;
     bb::index_t const node_size = 12;
 
-    bb::FrameBuffer buf(frame_size, node_size, BB_TYPE_FP32);
+    bb::FrameBuffer buf(BB_TYPE_FP32, frame_size, node_size);
 
     std::vector< std::vector<float> > vec(frame_size, std::vector<float>(node_size));
     

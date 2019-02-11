@@ -102,13 +102,13 @@ public:
         m_input_frame_size = x.GetFrameSize();
         m_output_frame_size = m_input_frame_size * m_output_h_size * m_output_w_size;
 
-        m_y.Resize(m_output_frame_size, m_output_shape, x.GetType());
+        m_y.Resize(x.GetType(), m_output_frame_size, m_output_shape);
 
 #ifdef BB_WITH_CUDA
         if ( type == BB_TYPE_FP32 && x.IsDeviceAvailable() && m_y.IsDeviceAvailable())
         {
-            auto ptr_x = x.GetDevConstPtr();
-            auto ptr_y = m_y.GetDevPtr();
+            auto ptr_x = x.GetMemoryDevConstPtr();
+            auto ptr_y = m_y.GetMemoryDevPtr();
             cubb_Im2Col_Forward(
                 (const float *)ptr_x.GetAddr(),
                 (int)m_input_frame_size,
@@ -128,8 +128,8 @@ public:
    		const index_t frame_size = m_y.GetFrameStride() * 8 / DataType<ST>::bit_size;
 		const index_t frame_unit = 256 / DataType<ST>::bit_size;
 
-        auto ptr_x = x.GetConstPtr();
-        auto ptr_y = m_y.GetPtr();
+        auto ptr_x = x.GetMemoryConstPtr();
+        auto ptr_y = m_y.GetMemoryPtr();
         auto addr_x = ptr_x.GetAddr();
         auto addr_y = ptr_y.GetAddr();
 
@@ -163,13 +163,13 @@ public:
 	FrameBuffer Backward(const FrameBuffer& dy)
 	{
         BB_ASSERT(dy.GetType() == DataType<GT>::type);
-        m_dx.Resize(m_input_frame_size, m_input_shape, DataType<GT>::type);
+        m_dx.Resize(DataType<GT>::type, m_input_frame_size, m_input_shape);
 
 #ifdef BB_WITH_CUDA
         if ( dy.GetType() == BB_TYPE_FP32 && dy.IsDeviceAvailable() && m_dx.IsDeviceAvailable())
         {
-            auto ptr_dy = dy.GetDevConstPtr();
-            auto ptr_dx = m_dx.GetDevPtr();
+            auto ptr_dy = dy.GetMemoryDevConstPtr();
+            auto ptr_dx = m_dx.GetMemoryDevPtr();
             cubb_Im2Col_Backward(
                 (float *)ptr_dx.GetAddr(),
                 (int)m_input_frame_size,
@@ -189,8 +189,8 @@ public:
 		const index_t frame_size = dy.GetFrameStride() * 8 / DataType<GT>::bit_size;
 		const index_t frame_unit = 256 / DataType<GT>::bit_size;
 
-        auto ptr_dy = dy.GetConstPtr();
-        auto ptr_dx = m_dx.GetPtr();
+        auto ptr_dy = dy.GetMemoryConstPtr();
+        auto ptr_dx = m_dx.GetMemoryPtr();
         auto addr_dy = ptr_dy.GetAddr();
         auto addr_dx = ptr_dx.GetAddr();
 

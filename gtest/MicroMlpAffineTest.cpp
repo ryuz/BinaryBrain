@@ -4,10 +4,21 @@
 
 #include "gtest/gtest.h"
 
-#include "bb/NeuralNetStackedMicroAffine.h"
+#include "bb/MicroMlpAffine.h"
 
 
+TEST(MicroMlpAffineTest, testMicroMlpAffine)
+{
+	auto mlp = bb::MicroMlpAffine<4, 2>::Create(16);
 
+    bb::FrameBuffer x(BB_TYPE_FP32, 32, 16);
+
+    mlp->SetInputShape({16});
+    auto y = mlp->Forward(x);
+}
+
+
+#if 0
 inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
 {
 	net.SetInputSignalBuffer (net.CreateInputSignalBuffer());
@@ -191,3 +202,4 @@ TEST(NeuralNetStackedMicroAffineTest, testNeuralNetStackedMicroAffine)
 	lut.Update();
 }
 
+#endif

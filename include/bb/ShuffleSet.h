@@ -52,7 +52,7 @@ public:
 		// 設定
 		m_heap.assign(heap.begin(), heap.end());
 	}
-
+    
 	std::vector<size_t> GetRandomSet(size_t n)
 	{
 		std::vector<size_t>	set;

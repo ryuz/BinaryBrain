@@ -56,6 +56,16 @@ namespace bb {
 using index_t   = std::intptr_t;	        // 配列の添え字(符号付き size_t としての扱い)
 using indices_t = std::vector<index_t>;     // Tensorなどの多次元配列の添え字
 
+inline index_t GetShapeSize(indices_t const & shape)
+{
+    index_t size = 1;
+    for (auto s : shape) {
+        size *= s;
+    }
+    return size;
+}
+
+
 class Bit;
 class Binary;
 class Sign;

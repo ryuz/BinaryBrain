@@ -38,6 +38,7 @@
     <ClCompile Include="ConvolutionIm2ColTest.cpp" />
     <ClCompile Include="FrameBufferTest.cpp" />
     <ClCompile Include="MemoryTest.cpp" />
+    <ClCompile Include="MicroMlpAffineTest.cpp" />
     <ClCompile Include="TensorTest.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -49,6 +50,7 @@
     <ClInclude Include="..\include\bb\Memory.h" />
     <ClInclude Include="..\include\bb\MicroMlp.h" />
     <ClInclude Include="..\include\bb\MicroMlpAffine.h" />
+    <ClInclude Include="..\include\bb\ShuffleSet.h" />
     <ClInclude Include="..\include\bb\Tensor.h" />
     <ClInclude Include="..\include\bb\Utility.h" />
   </ItemGroup>

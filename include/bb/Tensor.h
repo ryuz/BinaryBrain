@@ -31,68 +31,7 @@ namespace bb {
 
 
 // -------------------------------------
-//  基本演算定義
-// -------------------------------------
-
-template<typename T>
-inline void Tensor_Scalar_add_ex
-(
-    T       *dst,
-    T const *src0,
-    T const *src1,
-    T	    a,
-    T	    b,
-    T	    c,
-    index_t size
-)
-{
-    #pragma omp parallel for 
-    for (index_t i = 0; i < size; ++i) {
-        dst[i] = a * src0[i] + b * src1[i] + c;
-    }
-}
-
-template<typename T>
-inline void Tensor_Scalar_mul_ex
-(
-    T       *dst,
-    T const *src0,
-    T const *src1,
-    T	    a,
-    T	    b,
-    index_t size
-)
-{
-    #pragma omp parallel for 
-    for (index_t i = 0; i < size; ++i) {
-        dst[i] = a * src0[i] * src1[i] + b;
-    }
-}
-
-template<typename T>
-inline void Tensor_Scalar_div_ex
-(
-    T       *dst,
-    T const *src0,
-    T const *src1,
-    T	    a,
-    T	    b,
-    T	    c,
-    T	    d,
-    index_t size
-)
-{
-    #pragma omp parallel for 
-    for (index_t i = 0; i < size; ++i) {
-        dst[i] = (a * src0[i] + b) / (c * src1[i] + d);
-    }
-}
-
-
-
-
-// -------------------------------------
-//  アクセス用ポインタクラス
+//  アクセス用ポインタクラス定義
 // -------------------------------------
 
 // const アクセス用
@@ -194,7 +133,6 @@ public:
     {
 	    BB_DEBUG_ASSERT(indices.size() == m_tensor->m_shape.size());
 	    index_t index = 0;
-        index += i0 * m_tensor->m_stride[0];
 	    for (int i = 0; i < (int)indices.size(); ++i) {
             BB_DEBUG_ASSERT(indices[i] >= 0 && indices[i] < m_tensor->m_shape[i]);
 		    index += indices[i] * m_tensor->m_stride[i];
@@ -217,7 +155,7 @@ public:
 };
 
 
-// ポインタ
+// 非const アクセス用
 template <typename Tp, class TensorTp, class PtrTp>
 class TensorPtr_ : public TensorConstPtr_<Tp, TensorTp, PtrTp>
 {
@@ -297,7 +235,6 @@ public:
     {
 	    BB_DEBUG_ASSERT(indices.size() == m_tensor->m_shape.size());
 	    index_t index = 0;
-        index += i0 * m_tensor->m_stride[0];
 	    for (int i = 0; i < (int)indices.size(); ++i) {
             BB_DEBUG_ASSERT(indices[i] >= 0 && indices[i] < m_tensor->m_shape[i]);
 		    index += indices[i] * m_tensor->m_stride[i];
@@ -318,6 +255,66 @@ public:
     	return At(index);
     }
 };
+
+
+
+// -------------------------------------
+//  基本演算定義
+// -------------------------------------
+
+template<typename T>
+inline void Tensor_Scalar_add_ex
+(
+    T       *dst,
+    T const *src0,
+    T const *src1,
+    T	    a,
+    T	    b,
+    T	    c,
+    index_t size
+)
+{
+    #pragma omp parallel for 
+    for (index_t i = 0; i < size; ++i) {
+        dst[i] = a * src0[i] + b * src1[i] + c;
+    }
+}
+
+template<typename T>
+inline void Tensor_Scalar_mul_ex
+(
+    T       *dst,
+    T const *src0,
+    T const *src1,
+    T	    a,
+    T	    b,
+    index_t size
+)
+{
+    #pragma omp parallel for 
+    for (index_t i = 0; i < size; ++i) {
+        dst[i] = a * src0[i] * src1[i] + b;
+    }
+}
+
+template<typename T>
+inline void Tensor_Scalar_div_ex
+(
+    T       *dst,
+    T const *src0,
+    T const *src1,
+    T	    a,
+    T	    b,
+    T	    c,
+    T	    d,
+    index_t size
+)
+{
+    #pragma omp parallel for 
+    for (index_t i = 0; i < size; ++i) {
+        dst[i] = (a * src0[i] + b) / (c * src1[i] + d);
+    }
+}
 
 
 
@@ -407,7 +404,7 @@ public:
         return DataType<T>::type;
     }
 
-	void Resize(std::vector<index_t> shape)
+	void Resize(indices_t shape)
 	{
 		// サイズ算出
 		m_shape = shape;
@@ -424,21 +421,12 @@ public:
 		m_mem->Resize(m_size * DataType<T>::size);
 	}
 
-	void Resize(index_t size)
-	{
-		// 設定保存
-        m_size = size;
-		m_shape.resize(1);
-		m_stride.resize(1);
-        m_shape[0] = size;
-		m_stride[0] = 1;
+    void Resize(index_t i0)                                        { Resize(indices_t({i0})); }
+    void Resize(index_t i1, index_t i0)                            { Resize(indices_t({i0, i1})); }
+    void Resize(index_t i2, index_t i1, index_t i0)                { Resize(indices_t({i0, i1, i2})); }
+    void Resize(index_t i3, index_t i2, index_t i1, index_t i0)    { Resize(indices_t({i0, i1, i2, i3})); }
 
-		// メモリ確保
-//		m_mem = Memory::Create(m_size * DataType<T>::size);
-		m_mem->Resize(m_size * DataType<T>::size);
-	}
-
-  	void Reshape(std::vector<index_t> shape)
+  	void Reshape(indices_t shape)
 	{
         index_t auto_index = -1;
 		index_t total = 1;
@@ -466,11 +454,25 @@ public:
         BB_ASSERT(m_size == total);
 	}
 
+    void Reshape(index_t i0)                                        { Reshape(indices_t({i0})); }
+    void Reshape(index_t i1, index_t i0)                            { Reshape(indices_t({i0, i1})); }
+    void Reshape(index_t i2, index_t i1, index_t i0)                { Reshape(indices_t({i0, i1, i2})); }
+    void Reshape(index_t i3, index_t i2, index_t i1, index_t i0)    { Reshape(indices_t({i0, i1, i2, i3})); }
+
 	std::vector<index_t> GetShape(void) const
 	{
 		return m_shape;
 	}
 
+   	int GetDim(void) const
+	{
+		return (int)m_shape.size();
+	}
+
+    index_t GetSize(void) const
+	{
+		return m_size;
+	}
 
     void Transpose(std::vector<index_t> axes)
     {
@@ -492,6 +494,18 @@ public:
         memset(ptr.GetAddr(), 0, m_mem->GetSize());
     }
 
+    void InitNormalDistribution(double mean = 0.0, double stddev = 1.0, std::uint64_t seed=1)
+    {
+        auto ptr  = m_mem->GetPtr(true);
+        auto addr = (T *)ptr.GetAddr();
+
+        std::mt19937_64 mt(seed);
+        std::normal_distribution<double> dist(mean, stddev);
+        for (index_t i = 0; i < m_size; ++i) {
+            addr[i] = (T)dist(mt);
+        }
+    }
+    
 
     // -------------------------------------
     //  アクセス用ポインタ
@@ -522,7 +536,7 @@ public:
     Memory::DevConstPtr GetMemoryDevConstPtr(void)          const { return m_mem->GetDevConstPtr(); }
 
 
-
+#if 0
     // -------------------------------------
     //  アクセサ
     // -------------------------------------
@@ -578,7 +592,8 @@ public:
 		BB_DEBUG_ASSERT(index >= 0 && index < m_size);
 		return m_ptr.At<T>(index);
 	}
-    
+#endif
+
 
     // -------------------------------------
     //  演算
@@ -915,6 +930,11 @@ inline Tensor_<float> operator-(float src0, const Tensor_<float> &src1)
 // Tensor
 class Tensor
 {
+    friend TensorConstPtr_<float,  Tensor const, Memory::ConstPtr>;
+    friend TensorConstPtr_<double, Tensor const, Memory::ConstPtr>;
+    friend TensorPtr_<float, Tensor, Memory::Ptr>;;
+    friend TensorPtr_<double, Tensor, Memory::Ptr>;;
+
 protected:
 	int							m_type = 0;
 
@@ -930,16 +950,16 @@ public:
         m_mem = Memory::Create(0, hostOnly);
     }
 
-   	Tensor(std::vector<index_t> shape, int type, bool hostOnly=false)
+   	Tensor(int type, std::vector<index_t> shape, bool hostOnly=false)
 	{
         m_mem = Memory::Create(0, hostOnly);
-		Resize(shape, type);
+		Resize(type, shape);
 	}
 
-	Tensor(index_t size, int type, bool hostOnly=false)
+	Tensor(int type, index_t size, bool hostOnly=false)
 	{
         m_mem = Memory::Create(0, hostOnly);
-		Resize(size, type);
+		Resize(type, size);
 	}
     
    	Tensor(const Tensor& tensor)
@@ -1010,7 +1030,7 @@ public:
 
 	Tensor Clone(void) const
 	{
-		Tensor tensor(m_shape, m_type);
+		Tensor tensor(m_type, m_shape);
 
         auto src_ptr = m_mem->GetConstPtr();
         auto dst_ptr = tensor.m_mem->GetPtr(true);
@@ -1044,7 +1064,7 @@ public:
 		return m_mem->IsDeviceAvailable();
 	}
 
-	void Resize(std::vector<index_t> shape, int type)
+	void Resize(int type, indices_t shape)
 	{
 		// 設定保存
 		m_type = type;
@@ -1065,22 +1085,13 @@ public:
 		m_mem->Resize(m_size * DataType_GetByteSize(type));
 	}
 
-	void Resize(index_t size, int type)
-	{
-		// 設定保存
-		m_type = type;
-        m_size = size;
-		m_shape.resize(1);
-		m_stride.resize(1);
-        m_shape[0] = size;
-		m_stride[0] = 1;
+    void Resize(int type, index_t i0)                                        { Resize(type, indices_t({i0})); }
+    void Resize(int type, index_t i1, index_t i0)                            { Resize(type, indices_t({i0, i1})); }
+    void Resize(int type, index_t i2, index_t i1, index_t i0)                { Resize(type, indices_t({i0, i1, i2})); }
+    void Resize(int type, index_t i3, index_t i2, index_t i1, index_t i0)    { Resize(type, indices_t({i0, i1, i2, i3})); }
 
-		// メモリ確保
-//		m_mem = Memory::Create(m_size * DataType_GetByteSize(type));
-		m_mem->Resize(m_size * DataType_GetByteSize(type));
-	}
 
-   	void Reshape(std::vector<index_t> shape)
+   	void Reshape(indices_t shape)
 	{
         index_t auto_index = -1;
 		index_t total = 1;
@@ -1108,14 +1119,19 @@ public:
         BB_ASSERT(m_size == total);
 	}
 
-	int GetDim(void) const
-	{
-		return (int)m_shape.size();
-	}
+    void Reshape(index_t i0)                                        { Reshape(indices_t({i0})); }
+    void Reshape(index_t i1, index_t i0)                            { Reshape(indices_t({i0, i1})); }
+    void Reshape(index_t i2, index_t i1, index_t i0)                { Reshape(indices_t({i0, i1, i2})); }
+    void Reshape(index_t i3, index_t i2, index_t i1, index_t i0)    { Reshape(indices_t({i0, i1, i2, i3})); }
 
 	std::vector<index_t> GetShape(void) const
 	{
 		return m_shape;
+	}
+
+  	int GetDim(void) const
+	{
+		return (int)m_shape.size();
 	}
 
 	index_t GetSize(void) const
@@ -1123,13 +1139,27 @@ public:
 		return m_size;
 	}
     
+    void Transpose(std::vector<index_t> axes)
+    {
+        BB_ASSERT(axes.size() == m_stride.size());
+
+        auto tmp_stride = m_stride;
+        auto tmp_shape  = m_shape;
+        for (index_t i = 0; i < (index_t)m_stride.size(); ++i)
+        {
+            BB_ASSERT(axes[i] >= 0 && axes[i] < (index_t)m_stride.size());
+            m_stride[i] = tmp_stride[axes[i]];
+            m_shape[i]  = tmp_shape[axes[i]];
+        }
+    }
+
     void FillZero(void)
     {
         auto ptr = m_mem->GetPtr(true);
         memset(ptr.GetAddr(), 0, m_mem->GetSize());
     }
 
-
+#if 0
     // -------------------------------------
     //  アクセスクラス
     // -------------------------------------
@@ -1246,8 +1276,6 @@ public:
 	    }
     };
 
-
-#if 0
     template <typename Tp, class TensorTp, class PtrTp>
     class Ptr
     {
@@ -1352,8 +1380,8 @@ public:
     template <typename Tp>
     TensorConstPtr_<Tp, Tensor const, Memory::ConstPtr> GetConstPtr(void) const
     {
-        ConstPtr<Tp, Tensor const, Memory::ConstPtr> ptr(this);
-        ptr->Lock();
+        TensorConstPtr_<Tp, Tensor const, Memory::ConstPtr> ptr(this);
+        ptr.Lock();
         return ptr;
     }
     
@@ -1361,7 +1389,7 @@ public:
     TensorPtr_<Tp, Tensor, Memory::Ptr> GetPtr(bool new_buf=false) const
     {
         TensorPtr_<Tp, Tensor, Memory::Ptr> ptr(this);
-        ptr->Lock(new_buf);
+        ptr.Lock(new_buf);
         return ptr;
     }
 
@@ -1370,10 +1398,10 @@ public:
     //  直接アクセス用ポインタ取得
     // -------------------------------------
 
-    Memory::Ptr         GetMemoryPtr(bool new_buf=false) const  { return m_mem->GetPtr(new_buf); }
-    Memory::ConstPtr    GetMemoryConstPtr(void) const           { return m_mem->GetConstPtr(); }
-    Memory::DevPtr      GetMemoryDevPtr(bool new_buf=false) const     { return m_mem->GetDevPtr(new_buf); }
-    Memory::DevConstPtr GetMemoryDevConstPtr(void) const              { return m_mem->GetDevConstPtr(); }
+    Memory::Ptr         GetMemoryPtr(bool new_buf=false) const      { return m_mem->GetPtr(new_buf); }
+    Memory::ConstPtr    GetMemoryConstPtr(void) const               { return m_mem->GetConstPtr(); }
+    Memory::DevPtr      GetMemoryDevPtr(bool new_buf=false) const   { return m_mem->GetDevPtr(new_buf); }
+    Memory::DevConstPtr GetMemoryDevConstPtr(void) const            { return m_mem->GetDevConstPtr(); }
 
 
 #if 0

@@ -10,7 +10,7 @@ TEST(ConvolutionIm2ColTest, testConvolutionIm2Col_xy)
 {
 	bb::ConvolutionIm2Col<> cnvim2col(2, 3);
 
-    bb::FrameBuffer buf_x(16, {28, 28, 3}, BB_TYPE_FP32);
+    bb::FrameBuffer buf_x(BB_TYPE_FP32, 16, {28, 28, 3});
     bb::FrameBuffer buf_y = cnvim2col.Forward(buf_x);
 
 }
@@ -20,7 +20,7 @@ TEST(ConvolutionIm2ColTest, testConvolutionIm2Col)
 {
 	bb::ConvolutionIm2Col<> cnvim2col(2, 3);
 	
-    bb::FrameBuffer buf_x(2, {4, 3, 2}, BB_TYPE_FP32);
+    bb::FrameBuffer buf_x(BB_TYPE_FP32, 2, {4, 3, 2});
 
 	for ( bb::index_t f = 0; f < 2; ++f) {
 		for (bb::index_t c = 0; c < 2; ++c) {
@@ -114,7 +114,7 @@ TEST(ConvolutionIm2ColTest, testConvolutionIm2Col)
 	EXPECT_EQ(1123, buf_y.GetFP32(7, { 2, 1, 1 }));
 
 	// backward
-    bb::FrameBuffer buf_dy(8, { 3, 2, 2 }, BB_TYPE_FP32);
+    bb::FrameBuffer buf_dy(BB_TYPE_FP32, 8, { 3, 2, 2 });
     
     float dy_data[8][2][2][3];
 
