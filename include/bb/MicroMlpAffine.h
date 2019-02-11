@@ -222,8 +222,6 @@ public:
         if ( DataType<T>::type == BB_TYPE_FP32 ) {
             return Forward_AVX_FP32(x, train);
         }
-
-
         
         return m_y;
     }
@@ -231,12 +229,63 @@ public:
 
     FrameBuffer Backward(FrameBuffer const &dy)
     {
-        return Backward_AVX_FP32(dy);
+        m_dx.Resize(DataType<T>::type, dy.GetFrameSize(), m_input_node_size);
+
+        auto frame_size = dy.GetFrameSize();
+
+#ifdef BB_WITH_CUDA
+        if ( N == 6 && M == 16 && DataType<T>::type == BB_TYPE_FP32
+            && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() ) {
+            // CUDA版
+            auto input_index_ptr = m_input_index.GetMemoryDevConstPtr();
+            auto x_ptr  = m_x.GetMemoryDevConstPtr();
+            auto y_ptr  = m_y.GetMemoryDevConstPtr();
+            auto dx_ptr = m_dx.GetMemoryDevPtr();
+            auto dy_ptr = dy.GetMemoryDevConstPtr();
+            auto W0_ptr = m_W0.GetMemoryDevConstPtr();
+            auto b0_ptr = m_b0.GetMemoryDevConstPtr();
+            auto W1_ptr = m_W0.GetMemoryDevConstPtr();
+            auto b1_ptr = m_b0.GetMemoryDevConstPtr();
+            auto dW0_ptr = m_dW0.GetMemoryDevPtr();
+            auto db0_ptr = m_db0.GetMemoryDevPtr();
+            auto dW1_ptr = m_dW0.GetMemoryDevPtr();
+            auto db1_ptr = m_db0.GetMemoryDevPtr();
+
+            float* dev_in_err_tmp;
+            BB_CUDA_SAFE_CALL(cudaMalloc((void**)&dev_in_err_tmp,  m_output_node_size * N * frame_size * sizeof(float)));
+
+            bbcu_MicroMlp6x16_Backward
+                (
+			        (float const *)x_ptr.GetAddr(),
+			        (float *)dx_ptr.GetAddr(),
+			        dev_in_err_tmp,
+			        (float *)dy_ptr.GetAddr(),
+			        (int)m_input_node_size,
+			        (int)m_output_node_size,
+			        (int)dy.GetFrameStride() / sizeof(float),
+			        (int const *)input_index_ptr.GetAddr(),
+			        (float const *)W0_ptr.GetAddr(),
+			        (float const *)b0_ptr.GetAddr(),
+			        (float *)dW0_ptr.GetAddr(),
+			        (float *)db0_ptr.GetAddr(),
+			        (float const *)W1_ptr.GetAddr(),
+			        (float const *)b1_ptr.GetAddr(),
+			        (float *)dW1_ptr.GetAddr(),
+			        (float *)db1_ptr.GetAddr()
+		        );
+
+            BB_CUDA_SAFE_CALL(cudaFree(dev_in_err_tmp));
+            return m_y;
+        }
+#endif
+
+        if ( DataType<T>::type == BB_TYPE_FP32 ) {
+            return Backward_AVX_FP32(dy);
+        }
     }
- 
-
-
     
+
+       
     FrameBuffer Forward_AVX_FP32(FrameBuffer const &x, bool train = true)
 	{
 		const index_t   frame_size = x.GetFrameStride() / sizeof(float);

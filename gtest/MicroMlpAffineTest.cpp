@@ -226,6 +226,139 @@ TEST(MicroMlpAffineTest, testMicroMlpAffine)
 
 
 
+TEST(MicroMlpAffineTest, testMicroMlpAffineCmp)
+{
+    const int N = 6;
+    const int M = 16;
+    const int input_node_size = 13;
+    const int output_node_size = 7;
+    const int frame_size = 33;
+
+    std::mt19937_64 mt(1);
+
+	auto mlp1 = bb::MicroMlpAffine<N, M>::Create(output_node_size);
+	auto mlp2 = bb::MicroMlpAffine<N, M>::Create(output_node_size);
+    
+    bb::FrameBuffer x_cpu(BB_TYPE_FP32, frame_size, input_node_size, true);
+    bb::FrameBuffer x_gpu(BB_TYPE_FP32, frame_size, input_node_size, false);
+
+    mlp1->SetInputShape({input_node_size});
+    mlp2->SetInputShape({input_node_size});
+	
+	for (int i = 0; i < output_node_size; i++) {
+		for (int j = 0; j < N; j++) {
+            int idx = mt() % input_node_size;
+			mlp1->SetNodeInput(i, j, idx);
+			mlp2->SetNodeInput(i, j, idx);
+		}
+	}
+	
+	for (int i = 0; i < frame_size; i++) {
+		for (int j = 0; j < input_node_size; j++) {
+            int val = mt() % 1000;
+            x_cpu.SetFP32(i, j, (float)val);
+            x_cpu.SetFP32(i, j, (float)val);
+        }
+    }
+
+
+    {
+        auto p1_W0 = mlp1->lock_W0();
+        auto p1_b0 = mlp1->lock_b0();
+        auto p1_W1 = mlp1->lock_W1();
+        auto p1_b1 = mlp1->lock_b1();
+        auto p2_W0 = mlp2->lock_W0();
+        auto p2_b0 = mlp2->lock_b0();
+        auto p2_W1 = mlp2->lock_W1();
+        auto p2_b1 = mlp2->lock_b1();
+
+	    for (int i = 0; i < output_node_size; i++) {
+    	    for (int j = 0; j < M; j++) {
+        	    for (int k = 0; j < N; j++) {
+                    int val = mt() % 1000;
+	        	    p1_W0(i, j, k)  = (float)val;
+	        	    p2_W0(i, j, k)  = (float)val;
+                }
+
+                int val = mt() % 1000;
+        	    p1_b0(i, j)  = (float)val;
+        	    p2_b0(i, j)  = (float)val;
+            }
+
+	        for (int j = 0; j < M; j++) {
+                int val = mt() % 1000;
+		        p1_W1(i, j) = (float)val;
+		        p2_W1(i, j) = (float)val;
+	        }
+
+            int val = mt() % 1000;
+            p1_b1(i) = (float)val;
+            p2_b1(i) = (float)val;
+        }
+    }
+
+	auto y_cpu = mlp1->Forward(x_cpu);
+	auto y_gpu = mlp1->Forward(x_gpu);
+
+	for (int i = 0; i < frame_size; i++) {
+        for ( int j = 0; j < output_node_size; ++j ) {
+        	EXPECT_EQ(y_cpu.GetFP32(i, j), y_gpu.GetFP32(i, j));
+        }
+    }
+    
+
+    // backward
+
+    bb::FrameBuffer dy_cpu(BB_TYPE_FP32, frame_size, output_node_size, true);
+    bb::FrameBuffer dy_gpu(BB_TYPE_FP32, frame_size, output_node_size, false);
+	
+	for (int i = 0; i < frame_size; i++) {
+		for (int j = 0; j < output_node_size; j++) {
+            int val = mt() % 1000;
+            dy_cpu.SetFP32(i, j, (float)val);
+            dy_cpu.SetFP32(i, j, (float)val);
+        }
+    }
+
+	auto dx_cpu = mlp1->Forward(dy_cpu);
+	auto dx_gpu = mlp1->Forward(dy_gpu);
+
+  	for (int i = 0; i < frame_size; i++) {
+		for (int j = 0; j < input_node_size; j++) {
+            int val = mt() % 1000;
+            EXPECT_EQ(dx_cpu.GetFP32(i, j), dx_cpu.GetFP32(i, j));
+        }
+    }
+
+    {
+        auto p1_dW0 = mlp1->lock_dW0_const();
+        auto p1_db0 = mlp1->lock_db0_const();
+        auto p1_dW1 = mlp1->lock_dW1_const();
+        auto p1_db1 = mlp1->lock_db1_const();
+        auto p2_dW0 = mlp2->lock_dW0_const();
+        auto p2_db0 = mlp2->lock_db0_const();
+        auto p2_dW1 = mlp2->lock_dW1_const();
+        auto p2_db1 = mlp2->lock_db1_const();
+
+	    for (int i = 0; i < output_node_size; i++) {
+    	    for (int j = 0; j < M; j++) {
+        	    for (int k = 0; j < N; j++) {
+	        	    EXPECT_EQ(p1_dW0(i, j, k), p2_dW0(i, j, k));
+                }
+        	    EXPECT_EQ(p1_db0(i, j), p2_db0(i, j));
+            }
+
+	        for (int j = 0; j < M; j++) {
+                EXPECT_EQ(p1_dW1(i, j), p2_dW1(i, j));
+	        }
+
+            EXPECT_EQ(p1_db1(i), p2_db1(i));
+        }
+    }
+}
+
+
+
 #if 0
 
 TEST(NeuralNetStackedMicroAffineTest, testNeuralNetStackedMicroAffine)
