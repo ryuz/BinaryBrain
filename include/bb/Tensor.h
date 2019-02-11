@@ -98,7 +98,7 @@ public:
 	    index_t index = 0;
         index += i0 * m_tensor->m_stride[0];
         index += i1 * m_tensor->m_stride[1];
-    	return At(addr, index);
+    	return At(index);
 	}
 
     inline Tp const &operator()(index_t i2, index_t i1, index_t i0) const 

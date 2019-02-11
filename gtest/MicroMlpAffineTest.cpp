@@ -7,25 +7,6 @@
 #include "bb/MicroMlpAffine.h"
 
 
-TEST(MicroMlpAffineTest, testMicroMlpAffine)
-{
-	auto mlp = bb::MicroMlpAffine<4, 2>::Create(16);
-
-    bb::FrameBuffer x(BB_TYPE_FP32, 32, 16);
-
-    mlp->SetInputShape({16});
-    auto y = mlp->Forward(x);
-}
-
-
-#if 0
-inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
-{
-	net.SetInputSignalBuffer (net.CreateInputSignalBuffer());
-	net.SetInputErrorBuffer (net.CreateInputErrorBuffer());
-	net.SetOutputSignalBuffer(net.CreateOutputSignalBuffer());
-	net.SetOutputErrorBuffer(net.CreateOutputErrorBuffer());
-}
 
 
 template <typename T = float>
@@ -95,6 +76,119 @@ public:
 	}
 };
 
+
+TEST(MicroMlpAffineTest, testMicroMlpAffine)
+{
+	auto mlp = bb::MicroMlpAffine<4, 2>::Create(1);
+
+    bb::FrameBuffer x(BB_TYPE_FP32, 1, 6);
+
+    mlp->SetInputShape({6});
+
+    auto y = mlp->Forward(x);
+	
+	for (int i = 0; i < 1; i++) {
+		for (int j = 0; j < 4; j++) {
+			mlp->SetNodeInput(i, j, j);
+		}
+	}
+	
+
+    ModelAffine<float>	affine0_0(4);
+	ModelAffine<float>	affine0_1(4);
+	ModelReLU<float>	relu(2);
+	ModelAffine<float>	affine1(2);
+
+	std::vector<float>	in_sig_val(4);
+	float				out_err_val;
+	
+	in_sig_val[0] = 1;
+	in_sig_val[1] = 2;
+	in_sig_val[2] = 3;
+	in_sig_val[3] = 4;
+	out_err_val = 2;
+	
+#if 0
+
+	in_sig.SetReal(0, 0, in_sig_val[0]);
+	in_sig.SetReal(0, 1, in_sig_val[1]);
+	in_sig.SetReal(0, 2, in_sig_val[2]);
+	in_sig.SetReal(0, 3, in_sig_val[3]);
+
+	float W0[2][4];
+	float b0[2];
+	float W1[2];
+	float b1;
+
+	W0[0][0] = 2;
+	W0[0][1] = 3;
+	W0[0][2] = 4;
+	W0[0][3] = 5;
+	b0[0] = 1;
+
+	W0[1][0] = 6;
+	W0[1][1] = -7;
+	W0[1][2] = -8;
+	W0[1][3] = -9;
+	b0[1] = 2;
+
+	W1[0] = 5;
+	W1[1] = 6;
+	b1 = 1;
+
+	for (int i = 0; i < 4; i++) {
+		lut.W0(0, 0, i)   = W0[0][i];
+		affine0_0.W[i] = W0[0][i];
+	}
+	lut.b0(0, 0) = b0[0];
+	affine0_0.b = b0[0];
+
+	for (int i = 0; i < 4; i++) {
+		lut.W0(0, 1, i)   = W0[1][i];
+		affine0_1.W[i] = W0[1][i];
+	}
+	lut.b0(0, 1) = b0[1];
+	affine0_1.b = b0[1];
+
+	for (int i = 0; i < 2; i++) {
+		lut.W1(0, i) = W1[i];
+		affine1.W[i] = W1[i];
+	}
+	lut.b1(0) = b1;
+	affine1.b = b1;
+
+
+	lut.Forward();
+
+	std::vector<float> hidden_sig0(2);
+	hidden_sig0[0] = affine0_0.Forward(in_sig_val);
+	hidden_sig0[1] = affine0_1.Forward(in_sig_val);
+	auto hidden_sig1 = relu.Foward(hidden_sig0);
+	float out_sig_val = affine1.Forward(hidden_sig1);
+
+	EXPECT_EQ(out_sig_val, out_sig.GetReal(0, 0));
+	
+	out_err.SetReal(0, 0, out_err_val);
+	lut.Backward();
+
+	auto hidden_err1 = affine1.Backward(out_err_val);
+	auto hidden_err0 = relu.Backward(hidden_err1);
+	auto in_err_val0 = affine0_0.Backward(hidden_err0[0]);
+	auto in_err_val1 = affine0_0.Backward(hidden_err0[1]);
+
+	EXPECT_EQ(in_err_val0[0] + in_err_val1[0], in_err.GetReal(0, 0));
+	EXPECT_EQ(in_err_val0[1] + in_err_val1[1], in_err.GetReal(0, 1));
+	EXPECT_EQ(in_err_val0[2] + in_err_val1[2], in_err.GetReal(0, 2));
+	EXPECT_EQ(in_err_val0[3] + in_err_val1[3], in_err.GetReal(0, 3));
+
+
+	lut.Update();
+#endif
+}
+
+
+
+#if 0
 
 TEST(NeuralNetStackedMicroAffineTest, testNeuralNetStackedMicroAffine)
 {

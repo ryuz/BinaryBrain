@@ -14,6 +14,7 @@
 #include <random>
 
 #include "bb/FrameBuffer.h"
+#include "bb/ShuffleSet.h"
 
 
 namespace bb {
@@ -95,6 +96,33 @@ public:
 
 	std::string GetClassName(void) const { return "MicroMlpAffine"; }
 
+   	auto lock_InputIndex(void)       { return m_input_index.GetPtr(); }
+	auto lock_InputIndex_const(void) { return m_input_index.GetConstPtr(); }
+
+	auto lock_W0(void)       { return m_W0.GetPtr(); }
+	auto lock_W0_const(void) { return m_W0.GetConstPtr(); }
+	auto lock_b0(void)       { return m_b0.GetPtr(); }
+	auto lock_b0_const(void) { return m_b0.GetConstPtr(); }
+	auto lock_W1(void)       { return m_W1.GetPtr(); }
+	auto lock_W1_const(void) { return m_W1.GetConstPtr(); }
+	auto lock_b1(void)       { return m_b1.GetPtr(); }
+	auto lock_b1_const(void) { return m_b1.GetConstPtr(); }
+
+	auto lock_dW0(void)       { return m_dW0.GetPtr(); }
+	auto lock_dW0_const(void) { return m_dW0.GetConstPtr(); }
+	auto lock_db0(void)       { return m_db0.GetPtr(); }
+	auto lock_db0_const(void) { return m_db0.GetConstPtr(); }
+	auto lock_dW1(void)       { return m_dW1.GetPtr(); }
+	auto lock_dW1_const(void) { return m_dW1.GetConstPtr(); }
+	auto lock_db1(void)       { return m_db1.GetPtr(); }
+	auto lock_db1_const(void) { return m_db1.GetConstPtr(); }
+
+    void  SetNodeInput(index_t node, index_t input_index, index_t input_node)
+    {
+        auto ptr = lock_InputIndex();
+        ptr(node, input_index) = input_node;
+    }
+
 
    /**
      * @brief  入力のshape設定
@@ -110,7 +138,16 @@ public:
         
         // 接続初期化
         m_input_index.Resize(m_output_node_size, N);
-        
+        {
+            auto ptr = m_input_index.GetPtr();
+            ShuffleSet<std::int32_t> shuffle((std::int32_t)m_input_node_size);
+            for ( index_t i = 0; i < m_output_node_size; ++i ) {
+                auto idx = shuffle.GetRandomSet(N);
+                for ( index_t j = 0; j < N; ++j ) {
+                    ptr(i, j) = idx[j];
+                }
+            }
+        }
 
         // パラメータ初期化
         m_W0.Resize(m_output_node_size, M, N);  m_W0.InitNormalDistribution(0.0, 1.0, m_mt());
@@ -143,41 +180,125 @@ public:
 
     FrameBuffer Forward(FrameBuffer const &x, bool train = true)
     {
+        if (m_x.GetNodeSize() != m_input_node_size) {
+            SetInputShape(m_x.GetShape());
+        }
+
+        // backwardの為に保存
         m_x = x;
 
-        auto shape     = m_x.GetShape();
-        auto node_size = m_x.GetNodeSize();
+        // 出力を設定
+        auto frame_size = m_x.GetFrameSize();
+        m_y.Resize(DataType<T>::type, frame_size, m_output_shape);
 
-        /*
-
-        if ( DataType<T>::type == BB_TYPE_FP32 && x.IsDeviceAvailable() && m_y.IsDeviceAvailable) {
+#ifdef BB_WITH_CUDA
+        if ( DataType<T>::type == BB_TYPE_FP32 && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() ) {
+            // CUDA版
+            auto input_index_ptr = m_input_index.GetMemoryDevConstPtr();
             auto x_ptr  = m_x.GetMemoryDevConstPtr();
-            auto y_ptr  = m_y.GetMemoryDevConstPtr();
+            auto y_ptr  = m_y.GetMemoryDevPtr();
             auto W0_ptr = m_W0.GetMemoryDevConstPtr();
             auto b0_ptr = m_b0.GetMemoryDevConstPtr();
             auto W1_ptr = m_W0.GetMemoryDevConstPtr();
             auto b1_ptr = m_b0.GetMemoryDevConstPtr();
             bbcu_MicroMlp6x16_Forward
     		    (
-                    x_ptr.GetAddr(),
-                    y_ptr.GetAddr(),
-                    m_input_node_size,
-                    m_output_node_size,
-                    frame_size,
-                    input_index_ptr.GetAddr(),
-                    W0_ptr.GetAddr(),
-                    b0_ptr.GetAddr(),
-                    W1_ptr.GetAddr(),
-                    b1_ptr.GetAddr()
+                    (const float *)x_ptr.GetAddr(),
+                    (float *)y_ptr.GetAddr(),
+                    (int)m_input_node_size,
+                    (int)m_output_node_size,
+                    (int)frame_size,
+                    (int *)input_index_ptr.GetAddr(),
+                    (float *)W0_ptr.GetAddr(),
+                    (float *)b0_ptr.GetAddr(),
+                    (float *)W1_ptr.GetAddr(),
+                    (float *)b1_ptr.GetAddr()
                 );
+            return m_y;
         }
-        */
+#endif
 
+        if ( DataType<T>::type == BB_TYPE_FP32 ) {
+            return Forward_AVX_FP32(x, train);
+        }
+
+
+        
         return m_y;
     }
+    
+    FrameBuffer Forward_AVX_FP32(FrameBuffer const &x, bool train = true)
+	{
+		const index_t   frame_size = x.GetFrameStride() / sizeof(float);
+		const __m256	zero = _mm256_set1_ps(0);
 
-	auto GetConstW0(void) { return m_W0.GetConstPtr<T>(); }
-	auto GetW0(void) { return m_W0.GetPtr<T>(); }
+        auto x_ptr = x.GetMemoryConstPtr();
+        auto y_ptr = m_y.GetMemoryPtr();
+        auto input_index_ptr = m_input_index.GetConstPtr();
+//        auto W0_ptr = m_W0.GetConstPtr();
+//        auto b0_ptr = m_b0.GetConstPtr();
+//        auto W1_ptr = m_W1.GetConstPtr();
+//        auto b1_ptr = m_b1.GetConstPtr();
+        auto W0_ptr = lock_W0_const();
+        auto b0_ptr = lock_b0_const();
+        auto W1_ptr = lock_W1_const();
+        auto b1_ptr = lock_b1_const();
+        
+		auto in_sig_buf  = (float const *)x_ptr.GetAddr();
+		auto out_sig_buf = (float       *)y_ptr.GetAddr();
+
+#pragma omp parallel for
+		for (index_t node = 0; node < m_output_node_size; ++node) {
+			__m256	W0[M][N];
+			__m256	b0[M];
+			__m256	W1[M];
+			__m256	b1;
+			for (int i = 0; i < M; ++i) {
+				for (int j = 0; j < N; ++j) {
+					W0[i][j] = _mm256_set1_ps(W0_ptr(node, i, j));
+				}
+				b0[i] = _mm256_set1_ps(b0_ptr(node, i));
+				W1[i] = _mm256_set1_ps(W1_ptr(node, i));
+			}
+			b1 = _mm256_set1_ps(b1_ptr(node));
+
+			float const *in_sig_ptr[N];
+			float       *out_sig_ptr;
+			for (int i = 0; i < N; ++i) {
+				in_sig_ptr[i] = &in_sig_buf[input_index_ptr(node, i) * frame_size];
+			}
+			out_sig_ptr = &out_sig_buf[node * frame_size];
+
+			for (index_t frame = 0; frame < frame_size; frame += 8) {
+				__m256	in_sig[N];
+				for (int i = 0; i < N; ++i) {
+					in_sig[i] = _mm256_load_ps(&in_sig_ptr[i][frame]);
+				}
+
+				__m256	sum1 = b1;
+				for (int i = 0; i < M; ++i) {
+					// sub-layer0
+					__m256	sum0 = b0[i];
+					for (int j = 0; j < N; ++j) {
+						sum0 = _mm256_fmadd_ps(in_sig[j], W0[i][j], sum0);
+					}
+
+					// ReLU
+					sum0 = _mm256_max_ps(sum0, zero);
+
+					// sub-layer1
+					sum1 = _mm256_fmadd_ps(sum0, W1[i], sum1);
+				}
+
+				_mm256_store_ps(&out_sig_ptr[frame], sum1);
+			}
+        }
+
+        return m_y;
+	}
+
+
+    
 
 #if 0
 	std::vector<T> CalcNode(INDEX node, std::vector<T> input_value) const

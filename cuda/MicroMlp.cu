@@ -124,8 +124,8 @@ int bbcu_MicroMlp_Forward
 
 int bbcu_MicroMlp6x16_Forward
 		(
-			const float*	dev_in_sig,
-			float*			dev_out_sig,
+			float const*	dev_in_sig,
+			float*	        dev_out_sig,
 			int				input_node_size,
 			int				output_node_size,
 			int				frame_size,
