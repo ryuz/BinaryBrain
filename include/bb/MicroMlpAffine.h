@@ -120,7 +120,7 @@ public:
     void  SetNodeInput(index_t node, index_t input_index, index_t input_node)
     {
         auto ptr = lock_InputIndex();
-        ptr(node, input_index) = input_node;
+        ptr(node, input_index) = (std::int32_t)input_node;
     }
 
 
@@ -180,12 +180,12 @@ public:
 
     FrameBuffer Forward(FrameBuffer const &x, bool train = true)
     {
+        // backwardの為に保存
+        m_x = x;
+
         if (m_x.GetNodeSize() != m_input_node_size) {
             SetInputShape(m_x.GetShape());
         }
-
-        // backwardの為に保存
-        m_x = x;
 
         // 出力を設定
         auto frame_size = m_x.GetFrameSize();

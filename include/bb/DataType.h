@@ -65,6 +65,45 @@ inline index_t GetShapeSize(indices_t const & shape)
     return size;
 }
 
+inline index_t GetShapeIndex(indices_t const & indices, indices_t const & shape)
+{
+    BB_DEBUG_ASSERT(indices.size() == shape.size());
+
+    index_t stride = 1;
+    index_t index = 0;
+    for ( index_t i = 0; i < (index_t)shape.size(); ++i ) {
+        BB_DEBUG_ASSERT(indices[i] >= 0 && indices[i] < shape[i]);
+        index += stride * indices[i];
+        stride *= shape[i];
+    }
+    return index;
+}
+
+inline index_t GetStrideIndex(indices_t const & indices, indices_t const & stride)
+{
+    BB_DEBUG_ASSERT(indices.size() == stride.size());
+
+    index_t index = 0;
+    for ( index_t i = 0; i < (index_t)stride.size(); ++i ) {
+        BB_DEBUG_ASSERT(indices[i] >= 0);
+        index += stride[i] * indices[i];
+    }
+    return index;
+}
+
+inline index_t GetStrideIndex(indices_t const & indices, indices_t const & stride, indices_t const & shape)
+{
+    BB_DEBUG_ASSERT(indices.size() == shape.size());
+
+    index_t index = 0;
+    for ( index_t i = 0; i < (index_t)shape.size(); ++i ) {
+        BB_DEBUG_ASSERT(indices[i] >= 0 && indices[i] < shape[i]);
+        index += stride[i] * indices[i];
+    }
+    return index;
+}
+
+
 
 class Bit;
 class Binary;

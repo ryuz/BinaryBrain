@@ -83,9 +83,12 @@ TEST(MicroMlpAffineTest, testMicroMlpAffine)
 
     bb::FrameBuffer x(BB_TYPE_FP32, 1, 6);
 
-    mlp->SetInputShape({6});
+    auto x_ptr = x.GetPtr<float>();
+    auto x_cptr = x.GetConstPtr<float>();
 
-    auto y = mlp->Forward(x);
+    float a = x_cptr.Get(0, 0);
+
+    mlp->SetInputShape({6});
 	
 	for (int i = 0; i < 1; i++) {
 		for (int j = 0; j < 4; j++) {
@@ -107,13 +110,21 @@ TEST(MicroMlpAffineTest, testMicroMlpAffine)
 	in_sig_val[2] = 3;
 	in_sig_val[3] = 4;
 	out_err_val = 2;
-	
-#if 0
 
-	in_sig.SetReal(0, 0, in_sig_val[0]);
-	in_sig.SetReal(0, 1, in_sig_val[1]);
-	in_sig.SetReal(0, 2, in_sig_val[2]);
-	in_sig.SetReal(0, 3, in_sig_val[3]);
+
+    x_ptr.Set(0, 0, in_sig_val[0]);
+ 	x_ptr.Set(0, 1, in_sig_val[1]);
+	x_ptr.Set(0, 2, in_sig_val[2]);
+	x_ptr.Set(0, 3, in_sig_val[3]);
+
+    EXPECT_EQ(x.GetFP32(0, 0), in_sig_val[0]);
+	EXPECT_EQ(x.GetFP32(0, 1), in_sig_val[1]);
+	EXPECT_EQ(x.GetFP32(0, 2), in_sig_val[2]);
+	EXPECT_EQ(x.GetFP32(0, 3), in_sig_val[3]);
+
+
+
+
 
 	float W0[2][4];
 	float b0[2];
@@ -136,29 +147,57 @@ TEST(MicroMlpAffineTest, testMicroMlpAffine)
 	W1[1] = 6;
 	b1 = 1;
 
-	for (int i = 0; i < 4; i++) {
-		lut.W0(0, 0, i)   = W0[0][i];
-		affine0_0.W[i] = W0[0][i];
-	}
-	lut.b0(0, 0) = b0[0];
-	affine0_0.b = b0[0];
+    {
+        auto p_W0 = mlp->lock_W0();
+        auto p_b0 = mlp->lock_b0();
+        auto p_W1 = mlp->lock_W1();
+        auto p_b1 = mlp->lock_b1();
 
-	for (int i = 0; i < 4; i++) {
-		lut.W0(0, 1, i)   = W0[1][i];
-		affine0_1.W[i] = W0[1][i];
-	}
-	lut.b0(0, 1) = b0[1];
-	affine0_1.b = b0[1];
+	    for (int i = 0; i < 4; i++) {
+		    p_W0(0, 0, i)  = W0[0][i];
+		    affine0_0.W[i] = W0[0][i];
+	    }
+	    p_b0(0, 0)  = b0[0];
+	    affine0_0.b = b0[0];
 
-	for (int i = 0; i < 2; i++) {
-		lut.W1(0, i) = W1[i];
-		affine1.W[i] = W1[i];
-	}
-	lut.b1(0) = b1;
-	affine1.b = b1;
+	    for (int i = 0; i < 4; i++) {
+		    p_W0(0, 1, i)  = W0[1][i];
+		    affine0_1.W[i] = W0[1][i];
+	    }
+	    p_b0(0, 1)  = b0[1];
+	    affine0_1.b = b0[1];
 
+	    for (int i = 0; i < 2; i++) {
+		    p_W1(0, i) = W1[i];
+		    affine1.W[i] = W1[i];
+	    }
+	    p_b1(0) = b1;
+	    affine1.b = b1;
+    }
 
-	lut.Forward();
+    {
+        auto p_W0 = mlp->lock_W0_const();
+        auto p_b0 = mlp->lock_b0_const();
+        auto p_W1 = mlp->lock_W1_const();
+        auto p_b1 = mlp->lock_b1_const();
+
+        for (int i = 0; i < 4; i++) {
+		    EXPECT_EQ(p_W0(0, 0, i), W0[0][i]);
+	    }
+	    EXPECT_EQ(p_b0(0, 0), b0[0]);
+
+	    for (int i = 0; i < 4; i++) {
+		    EXPECT_EQ(p_W0(0, 1, i), W0[1][i]);
+	    }
+	    EXPECT_EQ(p_b0(0, 1), b0[1]);
+
+	    for (int i = 0; i < 2; i++) {
+		    EXPECT_EQ(p_W1(0, i), W1[i]);
+	    }
+	    EXPECT_EQ(p_b1(0), b1);
+    }
+
+	auto y = mlp->Forward(x);
 
 	std::vector<float> hidden_sig0(2);
 	hidden_sig0[0] = affine0_0.Forward(in_sig_val);
@@ -166,8 +205,11 @@ TEST(MicroMlpAffineTest, testMicroMlpAffine)
 	auto hidden_sig1 = relu.Foward(hidden_sig0);
 	float out_sig_val = affine1.Forward(hidden_sig1);
 
-	EXPECT_EQ(out_sig_val, out_sig.GetReal(0, 0));
-	
+
+	EXPECT_EQ(out_sig_val, y.GetFP32(0, 0));
+
+#if 0
+
 	out_err.SetReal(0, 0, out_err_val);
 	lut.Backward();
 
