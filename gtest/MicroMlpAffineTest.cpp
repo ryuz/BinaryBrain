@@ -208,24 +208,20 @@ TEST(MicroMlpAffineTest, testMicroMlpAffine)
 
 	EXPECT_EQ(out_sig_val, y.GetFP32(0, 0));
 
-#if 0
+    bb::FrameBuffer dy(BB_TYPE_FP32, 1, 1);
+	dy.SetFP32(0, 0, out_err_val);
 
-	out_err.SetReal(0, 0, out_err_val);
-	lut.Backward();
+	auto dx = mlp->Backward(dy);
 
 	auto hidden_err1 = affine1.Backward(out_err_val);
 	auto hidden_err0 = relu.Backward(hidden_err1);
 	auto in_err_val0 = affine0_0.Backward(hidden_err0[0]);
 	auto in_err_val1 = affine0_0.Backward(hidden_err0[1]);
 
-	EXPECT_EQ(in_err_val0[0] + in_err_val1[0], in_err.GetReal(0, 0));
-	EXPECT_EQ(in_err_val0[1] + in_err_val1[1], in_err.GetReal(0, 1));
-	EXPECT_EQ(in_err_val0[2] + in_err_val1[2], in_err.GetReal(0, 2));
-	EXPECT_EQ(in_err_val0[3] + in_err_val1[3], in_err.GetReal(0, 3));
-
-
-	lut.Update();
-#endif
+	EXPECT_EQ(in_err_val0[0] + in_err_val1[0], dx.GetFP32(0, 0));
+	EXPECT_EQ(in_err_val0[1] + in_err_val1[1], dx.GetFP32(0, 1));
+	EXPECT_EQ(in_err_val0[2] + in_err_val1[2], dx.GetFP32(0, 2));
+	EXPECT_EQ(in_err_val0[3] + in_err_val1[3], dx.GetFP32(0, 3));
 }
 
 

@@ -192,7 +192,8 @@ public:
         m_y.Resize(DataType<T>::type, frame_size, m_output_shape);
 
 #ifdef BB_WITH_CUDA
-        if ( DataType<T>::type == BB_TYPE_FP32 && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() ) {
+        if ( N == 6 && M == 16 && DataType<T>::type == BB_TYPE_FP32
+            && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() ) {
             // CUDA版
             auto input_index_ptr = m_input_index.GetMemoryDevConstPtr();
             auto x_ptr  = m_x.GetMemoryDevConstPtr();
@@ -207,7 +208,7 @@ public:
                     (float *)y_ptr.GetAddr(),
                     (int)m_input_node_size,
                     (int)m_output_node_size,
-                    (int)frame_size,
+                    (int)m_x.GetFrameStride() / sizeof(float),
                     (int *)input_index_ptr.GetAddr(),
                     (float *)W0_ptr.GetAddr(),
                     (float *)b0_ptr.GetAddr(),
@@ -226,6 +227,15 @@ public:
         
         return m_y;
     }
+
+
+    FrameBuffer Backward(FrameBuffer const &dy)
+    {
+        return Backward_AVX_FP32(dy);
+    }
+ 
+
+
     
     FrameBuffer Forward_AVX_FP32(FrameBuffer const &x, bool train = true)
 	{
@@ -235,10 +245,6 @@ public:
         auto x_ptr = x.GetMemoryConstPtr();
         auto y_ptr = m_y.GetMemoryPtr();
         auto input_index_ptr = m_input_index.GetConstPtr();
-//        auto W0_ptr = m_W0.GetConstPtr();
-//        auto b0_ptr = m_b0.GetConstPtr();
-//        auto W1_ptr = m_W1.GetConstPtr();
-//        auto b1_ptr = m_b1.GetConstPtr();
         auto W0_ptr = lock_W0_const();
         auto b0_ptr = lock_b0_const();
         auto W1_ptr = lock_W1_const();
@@ -298,6 +304,147 @@ public:
 	}
 
 
+    FrameBuffer Backward_AVX_FP32(FrameBuffer const &dy)
+	{
+		index_t frame_size = dy.GetFrameStride() / sizeof(float);
+		index_t node_size  = m_output_node_size;
+
+        auto dy_ptr = dy.GetMemoryConstPtr();
+        auto dx_ptr = m_dx.GetMemoryPtr();
+        auto x_ptr  = m_x.GetMemoryConstPtr();
+
+        auto input_index_ptr = m_input_index.GetConstPtr();
+        auto W0_ptr = lock_W0_const();
+        auto b0_ptr = lock_b0_const();
+        auto W1_ptr = lock_W1_const();
+        auto b1_ptr = lock_b1_const();
+        auto dW0_ptr = lock_dW0();
+        auto db0_ptr = lock_db0();
+        auto dW1_ptr = lock_dW1();
+        auto db1_ptr = lock_db1();
+        
+		auto dy_buf = (float const *)dy_ptr.GetAddr();
+		auto dx_buf = (float       *)dx_ptr.GetAddr();
+		auto x_buf  = (float const *)x_ptr.GetAddr();
+
+		const __m256	zero = _mm256_set1_ps(0);
+
+		float* tmp_err_buf = (float *)aligned_memory_alloc(node_size*N*frame_size*sizeof(float), 32);
+		
+#pragma omp parallel for
+		for (int node = 0; node < (int)node_size; ++node) {
+			__m256	W0[M][N];
+			__m256	b0[M];
+			__m256	dW0[M][N];
+			__m256	db0[M];
+			__m256	W1[M];
+			__m256	dW1[M];
+			__m256	db1;
+			for (int i = 0; i < M; ++i) {
+				for (int j = 0; j < N; ++j) {
+					W0[i][j]  = _mm256_set1_ps(W0_ptr (node, i, j));
+					dW0[i][j] = _mm256_set1_ps(dW0_ptr(node, i, j));
+				}
+				b0[i]  = _mm256_set1_ps(b0_ptr(node, i));
+				db0[i] = _mm256_set1_ps(db0_ptr(node, i));
+				W1[i]  = _mm256_set1_ps(W1_ptr(node, i));
+				dW1[i] = _mm256_set1_ps(dW1_ptr(node, i));
+			}
+			db1 = _mm256_set1_ps(db1_ptr(node));
+
+			float const *out_err_ptr;
+			float const *in_sig_ptr[N];
+
+			float*	tmp_err_ptr = &tmp_err_buf[node * N*frame_size];
+
+
+			out_err_ptr = &dy_buf[frame_size * node];
+			for (int i = 0; i < N; ++i) {
+				in_sig_ptr[i] = &x_buf[frame_size * input_index_ptr(node, i)];
+			}
+
+			for (int frame = 0; frame < frame_size; frame += 8) {
+				__m256	in_sig[N];
+				for (int i = 0; i < N; ++i) {
+					in_sig[i] = _mm256_load_ps(&in_sig_ptr[i][frame]);
+				}
+
+				// 一層目の信号を再構成
+				__m256	sig0[M];
+				for (int i = 0; i < M; ++i) {
+					// sub-layer0
+					__m256	sum0 = b0[i];
+					for (int j = 0; j < N; ++j) {
+						sum0 = _mm256_fmadd_ps(in_sig[j], W0[i][j], sum0);
+					}
+
+					// ReLU
+					sum0 = _mm256_max_ps(sum0, zero);
+
+					sig0[i] = sum0;
+				}
+
+				// 逆伝播
+				__m256	in_err[N];
+				for (int i = 0; i < N; ++i) {
+					in_err[i] = zero;
+				}
+
+				__m256 out_err = _mm256_load_ps(&out_err_ptr[frame]);
+				db1 = _mm256_add_ps(db1, out_err);
+				for (int i = 0; i < M; ++i) {
+					__m256 err0 = _mm256_mul_ps(W1[i], out_err);
+					__m256 mask = _mm256_cmp_ps(sig0[i], zero, _CMP_GT_OS);
+					dW1[i] = _mm256_fmadd_ps(sig0[i], out_err, dW1[i]);
+
+					err0 = _mm256_and_ps(err0, mask);		// ReLU
+
+					db0[i] = _mm256_add_ps(db0[i], err0);
+					for (int j = 0; j < N; ++j) {
+						in_err[j] = _mm256_fmadd_ps(err0, W0[i][j], in_err[j]);
+						dW0[i][j] = _mm256_fmadd_ps(err0, in_sig[j], dW0[i][j]);
+					}
+				}
+
+				for (int i = 0; i < N; ++i) {
+					_mm256_store_ps(&tmp_err_ptr[i*frame_size + frame], in_err[i]);
+				}
+			}
+
+			for (int i = 0; i < M; ++i) {
+				for (int j = 0; j < N; ++j) {
+					dW0_ptr(node, i, j) += bb_mm256_cvtss_f32(bb_mm256_hsum_ps(dW0[i][j]));
+				}
+				db0_ptr(node, i) += bb_mm256_cvtss_f32(bb_mm256_hsum_ps(db0[i]));
+				dW1_ptr(node, i) += bb_mm256_cvtss_f32(bb_mm256_hsum_ps(dW1[i]));
+			}
+			db1_ptr(node) += bb_mm256_cvtss_f32(bb_mm256_hsum_ps(db1));
+		}
+
+		// 足しこみ
+		m_dx.FillZero();
+		for (int node = 0; node < (int)node_size; ++node) {
+			float*	in_err_ptr[N];
+			for (int i = 0; i < N; ++i) {
+				in_err_ptr[i] = &dx_buf[frame_size * input_index_ptr(node, i)];
+			}
+			float*	tmp_err_ptr = &tmp_err_buf[node * N*frame_size];
+
+#pragma omp parallel for
+			for (int frame = 0; frame < frame_size; frame += 8) {
+				for (int i = 0; i < N; ++i) {
+					__m256 in_err = _mm256_load_ps(&in_err_ptr[i][frame]);
+					__m256 tmp_err = _mm256_load_ps(&tmp_err_ptr[i*frame_size + frame]);
+					in_err = _mm256_add_ps(in_err, tmp_err);
+					_mm256_store_ps(&in_err_ptr[i][frame], in_err);
+				}
+			}
+
+        }
+		aligned_memory_free(tmp_err_buf);
+
+        return m_dx;
+	}
     
 
 #if 0
