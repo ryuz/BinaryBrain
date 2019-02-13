@@ -13,16 +13,16 @@
 #include <cstdint>
 #include <random>
 
+#include "bb/Layer.h"
 #include "bb/FrameBuffer.h"
 #include "bb/ShuffleSet.h"
-
 
 namespace bb {
 
 
 // Mini-MLP (SparseAffine - ReLU - SparseAffine)
 template <int N = 6, int M = 16, typename T = float>
-class MicroMlpAffine
+class MicroMlpAffine : public Layer
 {
 protected:
 public:
@@ -130,7 +130,7 @@ public:
      * @param shape 新しいshape
      * @return なし
      */
-    indices_t SetInputShape(indices_t const &shape)
+    indices_t SetInputShape(indices_t shape)
     {
         // 形状設定
         m_input_shape = shape;
@@ -159,7 +159,7 @@ public:
         m_db0.Resize(m_output_node_size, M);    m_db0.FillZero();
         m_dW1.Resize(m_output_node_size, M);    m_dW1.FillZero();
         m_db1.Resize(m_output_node_size);       m_db1.FillZero();
-        
+
         return m_output_shape;
     }
     
@@ -178,7 +178,7 @@ public:
     }
 
 
-    FrameBuffer Forward(FrameBuffer const &x, bool train = true)
+    FrameBuffer Forward(FrameBuffer x, bool train = true)
     {
         // backwardの為に保存
         m_x = x;
@@ -227,7 +227,7 @@ public:
     }
 
 
-    FrameBuffer Backward(FrameBuffer const &dy)
+    FrameBuffer Backward(FrameBuffer dy)
     {
         m_dx.Resize(DataType<T>::type, dy.GetFrameSize(), m_input_node_size);
 
@@ -284,8 +284,7 @@ public:
         }
     }
     
-
-       
+           
     FrameBuffer Forward_AVX_FP32(FrameBuffer const &x, bool train = true)
 	{
 		const index_t   frame_size = x.GetFrameStride() / sizeof(float);

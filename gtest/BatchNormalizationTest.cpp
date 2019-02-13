@@ -2,8 +2,9 @@
 #include <iostream>
 #include <random>
 #include "gtest/gtest.h"
-#include "bb/NeuralNetBatchNormalizationAvx.h"
-#include "bb/NeuralNetBatchNormalizationEigen.h"
+
+#include "bb/BatchNormalization.h"
+
 
 
 
@@ -310,55 +311,43 @@ public:
 
 
 
-
-
-
-inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
+TEST(BatchNormalizationTest, testBatchNormalization)
 {
-	net.SetInputSignalBuffer (net.CreateInputSignalBuffer());
-	net.SetInputErrorBuffer (net.CreateInputErrorBuffer());
-	net.SetOutputSignalBuffer(net.CreateOutputSignalBuffer());
-	net.SetOutputErrorBuffer(net.CreateOutputErrorBuffer());
-}
+    bb::BatchNormalization<float>::create_t create;
+    auto batch_norm = bb::BatchNormalization<float>::Create(create);
+
+    bb::FrameBuffer x(BB_TYPE_FP32, 8, 2);
+    
+    batch_norm->SetInputShape({2});
 
 
-TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalization)
-{
-	bb::NeuralNetBatchNormalizationAvx<> batch_norm(2);
-	batch_norm.SetBatchSize(8);
-	testSetupLayerBuffer(batch_norm);
-	
-	SimpleBatchNorm<double> exp_norm0(8);
+    SimpleBatchNorm<double> exp_norm0(8);
 	SimpleBatchNorm<double> exp_norm1(8);
 
-
-	auto in_sig = batch_norm.GetInputSignalBuffer();
-	auto out_sig = batch_norm.GetOutputSignalBuffer();
-	in_sig.SetReal(0, 0, 1);
-	in_sig.SetReal(1, 0, 2);
-	in_sig.SetReal(2, 0, 3);
-	in_sig.SetReal(3, 0, 4);
-	in_sig.SetReal(4, 0, 5);
-	in_sig.SetReal(5, 0, 6);
-	in_sig.SetReal(6, 0, 7);
-	in_sig.SetReal(7, 0, 8);
-	in_sig.SetReal(0, 1, 10);
-	in_sig.SetReal(1, 1, 30);
-	in_sig.SetReal(2, 1, 20);
-	in_sig.SetReal(3, 1, 15);
-	in_sig.SetReal(4, 1, 11);
-	in_sig.SetReal(5, 1, 34);
-	in_sig.SetReal(6, 1, 27);
-	in_sig.SetReal(7, 1, 16);
+	x.SetFP32(0, 0, 1);
+	x.SetFP32(1, 0, 2);
+	x.SetFP32(2, 0, 3);
+	x.SetFP32(3, 0, 4);
+	x.SetFP32(4, 0, 5);
+	x.SetFP32(5, 0, 6);
+	x.SetFP32(6, 0, 7);
+	x.SetFP32(7, 0, 8);
+	x.SetFP32(0, 1, 10);
+	x.SetFP32(1, 1, 30);
+	x.SetFP32(2, 1, 20);
+	x.SetFP32(3, 1, 15);
+	x.SetFP32(4, 1, 11);
+	x.SetFP32(5, 1, 34);
+	x.SetFP32(6, 1, 27);
+	x.SetFP32(7, 1, 16);
 
 	for (int i = 0; i < 8; i++) {
-		exp_norm0.x[i] = in_sig.GetReal(i, 0);
-		exp_norm1.x[i] = in_sig.GetReal(i, 1);
+		exp_norm0.x[i] = x.GetFP32(i, 0);
+		exp_norm1.x[i] = x.GetFP32(i, 1);
 	}
-	
-
-	batch_norm.Forward(true);
-//	batch_norm.Forward(false);
+    
+	auto y = batch_norm->Forward(x, true);
+//	auto y = batch_norm->Forward(x, false);
 
 	exp_norm0.Forward();
 	exp_norm1.Forward();
@@ -387,63 +376,62 @@ TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalization)
 #endif
 
 	for (int i = 0; i < 8; i++) {
-		EXPECT_TRUE(abs(out_sig.GetReal(i, 0) - exp_norm0.y[i]) < 0.000001);
-		EXPECT_TRUE(abs(out_sig.GetReal(i, 1) - exp_norm1.y[i]) < 0.000001);
+		EXPECT_TRUE(abs(y.GetFP32(i, 0) - exp_norm0.y[i]) < 0.000001);
+		EXPECT_TRUE(abs(y.GetFP32(i, 1) - exp_norm1.y[i]) < 0.000001);
+//		EXPECT_EQ(y.GetFP32(i, 0), exp_norm0.y[i]);
+//		EXPECT_EQ(y.GetFP32(i, 1), exp_norm1.y[i]);
 	}
 
 	// _mm256_rsqrt_ps を使っているので精度は悪い
-	EXPECT_TRUE(abs(out_sig.GetReal(0, 0) - -1.52752510) < 0.000001);
-	EXPECT_TRUE(abs(out_sig.GetReal(1, 0) - -1.09108940) < 0.000001);
-	EXPECT_TRUE(abs(out_sig.GetReal(2, 0) - -0.65465360) < 0.000001);
-	EXPECT_TRUE(abs(out_sig.GetReal(3, 0) - -0.21821786) < 0.000001);
-	EXPECT_TRUE(abs(out_sig.GetReal(4, 0) - +0.21821786) < 0.000001);
-	EXPECT_TRUE(abs(out_sig.GetReal(5, 0) - +0.65465360) < 0.000001);
-	EXPECT_TRUE(abs(out_sig.GetReal(6, 0) - +1.09108940) < 0.000001);
-	EXPECT_TRUE(abs(out_sig.GetReal(7, 0) - +1.52752510) < 0.000001);
+	EXPECT_TRUE(abs(y.GetFP32(0, 0) - -1.52752510) < 0.000001);
+	EXPECT_TRUE(abs(y.GetFP32(1, 0) - -1.09108940) < 0.000001);
+	EXPECT_TRUE(abs(y.GetFP32(2, 0) - -0.65465360) < 0.000001);
+	EXPECT_TRUE(abs(y.GetFP32(3, 0) - -0.21821786) < 0.000001);
+	EXPECT_TRUE(abs(y.GetFP32(4, 0) - +0.21821786) < 0.000001);
+	EXPECT_TRUE(abs(y.GetFP32(5, 0) - +0.65465360) < 0.000001);
+	EXPECT_TRUE(abs(y.GetFP32(6, 0) - +1.09108940) < 0.000001);
+	EXPECT_TRUE(abs(y.GetFP32(7, 0) - +1.52752510) < 0.000001);
 
-	EXPECT_TRUE(abs(out_sig.GetReal(0, 1) - -1.23359570) < 0.000001);
-	EXPECT_TRUE(abs(out_sig.GetReal(1, 1) - +1.14442010) < 0.000001);
-	EXPECT_TRUE(abs(out_sig.GetReal(2, 1) - -0.04458780) < 0.000001);
-	EXPECT_TRUE(abs(out_sig.GetReal(3, 1) - -0.63909180) < 0.000001);
-	EXPECT_TRUE(abs(out_sig.GetReal(4, 1) - -1.11469500) < 0.000001);
-	EXPECT_TRUE(abs(out_sig.GetReal(5, 1) - +1.62002340) < 0.000001);
-	EXPECT_TRUE(abs(out_sig.GetReal(6, 1) - +0.78771776) < 0.000001);
-	EXPECT_TRUE(abs(out_sig.GetReal(7, 1) - -0.52019095) < 0.000001);
+	EXPECT_TRUE(abs(y.GetFP32(0, 1) - -1.23359570) < 0.000001);
+	EXPECT_TRUE(abs(y.GetFP32(1, 1) - +1.14442010) < 0.000001);
+	EXPECT_TRUE(abs(y.GetFP32(2, 1) - -0.04458780) < 0.000001);
+	EXPECT_TRUE(abs(y.GetFP32(3, 1) - -0.63909180) < 0.000001);
+	EXPECT_TRUE(abs(y.GetFP32(4, 1) - -1.11469500) < 0.000001);
+	EXPECT_TRUE(abs(y.GetFP32(5, 1) - +1.62002340) < 0.000001);
+	EXPECT_TRUE(abs(y.GetFP32(6, 1) - +0.78771776) < 0.000001);
+	EXPECT_TRUE(abs(y.GetFP32(7, 1) - -0.52019095) < 0.000001);
 
-
-#if 1
-	auto out_err = batch_norm.GetOutputErrorBuffer();
-	auto in_err = batch_norm.GetInputErrorBuffer();
+    bb::FrameBuffer dy(BB_TYPE_FP32, 8, 2);
 	
 	for (int i = 0; i < 2; i++) {
 		for (int j = 0; j < 8; j++) {
-			out_err.SetReal(j, i, out_sig.GetReal(j, i));
+			dy.SetFP32(j, i, y.GetFP32(j, i));
 		}
 	}
 
-	out_err.SetReal(0, 0, 8);
-	out_err.SetReal(1, 0, 6);
-	out_err.SetReal(2, 0, 3);
-	out_err.SetReal(3, 0, 4);
-	out_err.SetReal(4, 0, 5);
-	out_err.SetReal(5, 0, 4);
-	out_err.SetReal(6, 0, 6);
-	out_err.SetReal(7, 0, 1);
-	out_err.SetReal(0, 1, 20);
-	out_err.SetReal(1, 1, 70);
-	out_err.SetReal(2, 1, 40);
-	out_err.SetReal(3, 1, 15);
-	out_err.SetReal(4, 1, 31);
-	out_err.SetReal(5, 1, 54);
-	out_err.SetReal(6, 1, 37);
-	out_err.SetReal(7, 1, 26);
+	dy.SetFP32(0, 0, 8);
+	dy.SetFP32(1, 0, 6);
+	dy.SetFP32(2, 0, 3);
+	dy.SetFP32(3, 0, 4);
+	dy.SetFP32(4, 0, 5);
+	dy.SetFP32(5, 0, 4);
+	dy.SetFP32(6, 0, 6);
+	dy.SetFP32(7, 0, 1);
+	dy.SetFP32(0, 1, 20);
+	dy.SetFP32(1, 1, 70);
+	dy.SetFP32(2, 1, 40);
+	dy.SetFP32(3, 1, 15);
+	dy.SetFP32(4, 1, 31);
+	dy.SetFP32(5, 1, 54);
+	dy.SetFP32(6, 1, 37);
+	dy.SetFP32(7, 1, 26);
 
 	for (int i = 0; i < 8; i++) {
-		exp_norm0.dy[i] = out_err.GetReal(i, 0);
-		exp_norm1.dy[i] = out_err.GetReal(i, 1);
+		exp_norm0.dy[i] = dy.GetFP32(i, 0);
+		exp_norm1.dy[i] = dy.GetFP32(i, 1);
 	}
-
-	batch_norm.Backward();
+        
+    auto dx = batch_norm->Backward(dy);
 
 	exp_norm0.Backward();
 	exp_norm1.Backward();
@@ -471,32 +459,29 @@ TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalization)
 		[-0.76376295, -0.39265870]]
 	*/
 
-	EXPECT_TRUE(abs(in_err.GetReal(0, 0) - +0.65465380) < 0.001);
-	EXPECT_TRUE(abs(in_err.GetReal(1, 0) - +0.01558709) < 0.001);
-	EXPECT_TRUE(abs(in_err.GetReal(2, 0) - -1.05991530) < 0.001);
-	EXPECT_TRUE(abs(in_err.GetReal(3, 0) - -0.38967478) < 0.001);
-	EXPECT_TRUE(abs(in_err.GetReal(4, 0) - +0.28056574) < 0.001);
-	EXPECT_TRUE(abs(in_err.GetReal(5, 0) - +0.07793474) < 0.001);
-	EXPECT_TRUE(abs(in_err.GetReal(6, 0) - +1.18461110) < 0.001);
-	EXPECT_TRUE(abs(in_err.GetReal(7, 0) - -0.76376295) < 0.001);
-
-	EXPECT_TRUE(abs(in_err.GetReal(0, 1) - +0.08798742) < 0.001);
-	EXPECT_TRUE(abs(in_err.GetReal(1, 1) - +2.05285700) < 0.001);
-	EXPECT_TRUE(abs(in_err.GetReal(2, 1) - +0.47591877) < 0.001);
-	EXPECT_TRUE(abs(in_err.GetReal(3, 1) - -1.50155930) < 0.001);
-	EXPECT_TRUE(abs(in_err.GetReal(4, 1) - +1.19688750) < 0.001);
-	EXPECT_TRUE(abs(in_err.GetReal(5, 1) - -0.64558935) < 0.001);
-	EXPECT_TRUE(abs(in_err.GetReal(6, 1) - -1.27384350) < 0.001);
-	EXPECT_TRUE(abs(in_err.GetReal(7, 1) - -0.39265870) < 0.001);
+	EXPECT_TRUE(abs(dx.GetFP32(0, 0) - +0.65465380) < 0.00001);
+	EXPECT_TRUE(abs(dx.GetFP32(1, 0) - +0.01558709) < 0.00001);
+	EXPECT_TRUE(abs(dx.GetFP32(2, 0) - -1.05991530) < 0.00001);
+	EXPECT_TRUE(abs(dx.GetFP32(3, 0) - -0.38967478) < 0.00001);
+	EXPECT_TRUE(abs(dx.GetFP32(4, 0) - +0.28056574) < 0.00001);
+	EXPECT_TRUE(abs(dx.GetFP32(5, 0) - +0.07793474) < 0.00001);
+	EXPECT_TRUE(abs(dx.GetFP32(6, 0) - +1.18461110) < 0.00001);
+	EXPECT_TRUE(abs(dx.GetFP32(7, 0) - -0.76376295) < 0.00001);
+       
+	EXPECT_TRUE(abs(dx.GetFP32(0, 1) - +0.08798742) < 0.00001);
+	EXPECT_TRUE(abs(dx.GetFP32(1, 1) - +2.05285700) < 0.00001);
+	EXPECT_TRUE(abs(dx.GetFP32(2, 1) - +0.47591877) < 0.00001);
+	EXPECT_TRUE(abs(dx.GetFP32(3, 1) - -1.50155930) < 0.00001);
+	EXPECT_TRUE(abs(dx.GetFP32(4, 1) - +1.19688750) < 0.00001);
+	EXPECT_TRUE(abs(dx.GetFP32(5, 1) - -0.64558935) < 0.00001);
+	EXPECT_TRUE(abs(dx.GetFP32(6, 1) - -1.27384350) < 0.00001);
+	EXPECT_TRUE(abs(dx.GetFP32(7, 1) - -0.39265870) < 0.00001);
 
 	for (int i = 0; i < 8; i++) {
 //		std::cout << exp_norm0.dx[i] << std::endl;
-		EXPECT_TRUE(abs(in_err.GetReal(i, 0) - exp_norm0.dx[i]) < 0.001);
-		EXPECT_TRUE(abs(in_err.GetReal(i, 1) - exp_norm1.dx[i]) < 0.001);
+		EXPECT_TRUE(abs(dx.GetFP32(i, 0) - exp_norm0.dx[i]) < 0.001);
+		EXPECT_TRUE(abs(dx.GetFP32(i, 1) - exp_norm1.dx[i]) < 0.001);
 	}
-
-#endif
-
 }
 
 
@@ -563,6 +548,7 @@ TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalization2)
 
 
 
+#if 0
 TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalizationCmp)
 {
 	const int node_size = 9;
@@ -768,3 +754,5 @@ TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalizationAccuracy)
 
 #endif
 
+
+#endif

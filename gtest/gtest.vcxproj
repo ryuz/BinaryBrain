@@ -35,6 +35,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BatchNormalizationTest.cpp" />
     <ClCompile Include="ConvolutionIm2ColTest.cpp" />
     <ClCompile Include="FrameBufferTest.cpp" />
     <ClCompile Include="MemoryTest.cpp" />
@@ -42,6 +43,7 @@
     <ClCompile Include="TensorTest.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\bb\BatchNormalization.h" />
     <ClInclude Include="..\include\bb\ConvolutionIm2Col.h" />
     <ClInclude Include="..\include\bb\CudaUtility.h" />
     <ClInclude Include="..\include\bb\DataType.h" />

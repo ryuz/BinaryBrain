@@ -66,16 +66,69 @@ public:
 		return m_layerName;
 	}
 	
-//	virtual GetVariables GetVariables(void) {} = 0;
 	
+//	virtual void  Command(std::string command) {}								// コマンドを送信
 	virtual void  SetBinaryMode(bool enable) {}									// バイナリモードを設定
+
+    //	virtual GetVariables GetParameters(void) {} = 0;
+    //	virtual GetVariables GetGradients(void) {} = 0;
+    
+    /**
+     * @brief  入力形状設定
+     * @detail 入力形状を設定する
+     *         内部変数を初期化し、以降、GetOutputShape()で値取得可能となることとする
+     *         同一形状を指定しても内部変数は初期化されるものとする
+     * @param  shape      1フレームのノードを構成するshape
+     * @return 出力形状を返す
+     */
+    virtual indices_t SetInputShape(indices_t shape) = 0;
+
+   /**
+     * @brief  forward演算
+     * @detail forward演算を行う
+     * @param  x     入力データ
+     * @param  train 学習時にtrueを指定
+     * @return forward演算結果
+     */
+    virtual	FrameBuffer Forward(FrameBuffer x, bool train=true) = 0;
+
+   /**
+     * @brief  forward演算(複数入力対応)
+     * @detail forward演算を行う
+     *         分岐や合流演算を可能とするために汎用版を定義しておく
+     * @return forward演算結果
+     */
+    virtual	std::vector<FrameBuffer> Forward(std::vector<FrameBuffer> vx, bool train = true)
+    {
+        BB_ASSERT(vx.size() == 1);
+        auto& y = Forward(vx[0], train);
+        return {y};
+    }
+
+
+   /**
+     * @brief  backward演算
+     * @detail backward演算を行う
+     *         
+     * @return backward演算結果
+     */
+	virtual	FrameBuffer Backward(FrameBuffer dy) = 0;
+
+   /**
+     * @brief  backward演算(複数入力対応)
+     * @detail backward演算を行う
+     *         分岐や合流演算を可能とするために汎用版を定義しておく
+     * @return backward演算結果
+     */
+    virtual	std::vector<FrameBuffer> Backward(std::vector<FrameBuffer> vdy)
+    {
+        BB_ASSERT(vdy.size() == 1);
+        auto& dx = Backward(vdy[0]);
+        return {dx};
+    }
 	
-	virtual	void  Forward(bool train=true) = 0;									// 予測
-	virtual	void  Backward(void) = 0;											// 誤差逆伝播
-	virtual	void  Update(void) = 0;												// 学習
-	virtual	bool  Feedback(const std::vector<double>& loss) { return false; }	// 直接フィードバック
 	
-	
+public:
 	// Serialize(CEREAL)
 	template <class Archive>
 	void save(Archive& archive, std::uint32_t const version) const

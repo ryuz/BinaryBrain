@@ -101,9 +101,14 @@ protected:
 
 
 public:
-    inline Tp *GetAddr(void)
+    inline Tp const *GetAddr(void) const
     {
         return (Tp *)m_ptr.GetAddr();
+    }
+
+    inline Tp const *GetAddr(index_t node) const
+    {
+        return (Tp *)GetNodeBaseAddr(node);
     }
 
     inline Tp Get(index_t frame, index_t node) const
@@ -165,6 +170,11 @@ public:
     inline Tp *GetAddr(void)
     {
         return (Tp *)m_ptr.GetAddr();
+    }
+
+    inline Tp *GetAddr(index_t node)
+    {
+        return (Tp *)GetNodeBaseAddr(node);
     }
 
     inline void Set(index_t frame, index_t node, Tp value)
