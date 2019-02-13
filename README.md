@@ -85,6 +85,10 @@ LUTモデルとそれに対応するMicro-MLPの単位の関係を示します�
 現在MITライセンスを採用しています。lisense.txtを参照ください。
 ただし、本ソースコードは Eigen や CEREAL を利用しているので、それらに関しては個別に各ライセンスに従ってください。
 
+## 関連資料
+以下に本技術をfpgaxで発表した際のスライドを置いております。<br>
+https://www.slideshare.net/ryuz88/lut-network-fpgx201902
+
 ## 参考
 - BinaryConnect: Training Deep Neural Networks with binary weights during propagations<br>
 https://arxiv.org/pdf/1511.00363.pdf
