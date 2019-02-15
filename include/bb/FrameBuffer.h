@@ -263,7 +263,7 @@ public:
       * @brief  コピーコンストラクタ
       * @detail コピーコンストラクタ
       */
-	FrameBuffer(const FrameBuffer& buf)
+	FrameBuffer(FrameBuffer const &buf)
 	{
 		*this = buf;
 	}
@@ -273,7 +273,7 @@ public:
      * @detail 代入演算子
      *         代入演算子でのコピーは、メモリは同じ箇所を指す
      */
-    FrameBuffer& operator=(const FrameBuffer &buf)
+    FrameBuffer& operator=(FrameBuffer const &buf)
 	{
 		m_tensor        = buf.m_tensor;
 		m_data_type     = buf.m_data_type;
