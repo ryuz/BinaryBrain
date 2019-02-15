@@ -1042,7 +1042,7 @@ public:
             auto src = m_mem->GetConstPtr();
             auto dst = tensor.m_mem->GetPtr(true);
             switch ( m_type ) {
-            case BB_TYPE_FP32:   for (index_t i = 0; i < m_size; ++i){ dst.At<Tp>(i) = static_cast<Tp>(src.At<float>(i));         } break;
+            case BB_TYPE_FP32:   for (index_t i = 0; i < m_size; ++i){ dst. template At<Tp>(i) = static_cast<Tp>(src. template At<float>(i));         } break;
             case BB_TYPE_FP64:   for (index_t i = 0; i < m_size; ++i){ dst.At<Tp>(i) = static_cast<Tp>(src.At<double>(i));        } break;
             case BB_TYPE_INT8:   for (index_t i = 0; i < m_size; ++i){ dst.At<Tp>(i) = static_cast<Tp>(src.At<std::int8_t>(i));   } break;
             case BB_TYPE_INT16:  for (index_t i = 0; i < m_size; ++i){ dst.At<Tp>(i) = static_cast<Tp>(src.At<std::int16_t>(i));  } break;
