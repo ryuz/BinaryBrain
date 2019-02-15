@@ -280,6 +280,26 @@ inline void Tensor_Scalar_add_ex
     }
 }
 
+
+template<typename T>
+inline void Tensor_Scalar_sub_ex
+(
+    T       *dst,
+    T const *src0,
+    T const *src1,
+    T	    a,
+    T	    b,
+    T	    c,
+    index_t size
+)
+{
+    #pragma omp parallel for 
+    for (index_t i = 0; i < size; ++i) {
+        dst[i] = a * src0[i] - b * src1[i] - c;
+    }
+}
+
+
 template<typename T>
 inline void Tensor_Scalar_mul_ex
 (
@@ -536,69 +556,17 @@ public:
     Memory::DevConstPtr GetMemoryDevConstPtr(void)          const { return m_mem->GetDevConstPtr(); }
 
 
-#if 0
-    // -------------------------------------
-    //  アクセサ
-    // -------------------------------------
-    
-    void Lock()
-    {
-        m_ptr = m_mem->GetPtr();
-    }
-
-    void Unlock(void)
-    {
-        m_ptr.Clear();
-    }
-
-   	void* GetMemoryPtr(void) const
-    {
-        return m_mem->GetPtr();
-    }
-
-	inline T const & operator()(std::vector<index_t> indices) const
-	{
-		BB_ASSERT(indices.size() == m_shape.size());
-
-		index_t index = 0;
-		for (int i = 0; i < (int)indices.size(); ++i) {
-			index += indices[i] * m_stride[i];
-		}
-
-		return m_ptr.At<T>(index);
-	}
-
-	inline T & operator()(std::vector<index_t> indices)
-	{
-		BB_ASSERT(indices.size() == m_shape.size());
-
-		index_t index = 0;
-		for (int i = 0; i < (int)indices.size(); ++i) {
-            BB_DEBUG_ASSERT(indices[i] >= 0 && indices[i] < m_shape[i]);
-			index += indices[i] * m_stride[i];
-		}
-
-		return m_ptr.At<T>(index);
-	}
-
-	inline T const & operator[](index_t index) const 
-	{
-		BB_DEBUG_ASSERT(index >= 0 && index < m_size);
-		return ((const T *)m_ptr.GetPtr())[index];
-	}
-	
-	inline T & operator[](index_t index)
-	{
-		BB_DEBUG_ASSERT(index >= 0 && index < m_size);
-		return m_ptr.At<T>(index);
-	}
-#endif
-
-
     // -------------------------------------
     //  演算
     // -------------------------------------
 
+    inline Tensor_& operator=(T src)
+	{
+        auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
+        Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)0, (T)0, src, m_size);
+		return *this;
+	}
+    
     inline Tensor_& operator+=(Tensor_ const &src)
     {
         BB_ASSERT(m_size == src.m_size);
@@ -625,7 +593,7 @@ public:
     inline Tensor_& operator-=(T src)
     {
         auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
-        Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, -src, m_size);
+        Tensor_Scalar_sub_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, src, m_size);
         return *this;
     }
 
@@ -714,7 +682,7 @@ Tensor_<T> operator-(const Tensor_<T>& src0, T src1)
 {
    Tensor_<T>  dst(src0.m_shape);
    auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
-   Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, -src1, dst.m_size);
+   Tensor_Scalar_sub_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, src1, dst.m_size);
    return dst;
 }
 
@@ -724,6 +692,65 @@ Tensor_<T> operator-(T src0, Tensor_<T> const &src1)
    Tensor_<T>  dst(src1.m_shape);
    auto op3 = Memory::GetOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
    Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)-1, (T)0, src0, dst.m_size);
+   return dst;
+}
+
+
+template<typename T>
+Tensor_<T> operator*(const Tensor_<T> &src0, Tensor_<T> const &src1)
+{
+    BB_ASSERT(src0.m_size == src1.m_size);
+    Tensor_<T>  dst(src0.m_shape);
+    auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
+    Tensor_Scalar_mul_ex<T>((T *)op3.dst.GetAddr(), (T const *)op3.src0.GetAddr(), (T const *)op3.src1.GetAddr(), (T)1, (T)0, dst.m_size);
+    return dst;
+}
+
+template<typename T>
+Tensor_<T> operator*(Tensor_<T> const &src0, T src1)
+{
+   Tensor_<T>  dst(src0.m_shape);
+   auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
+   Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (T const *)op3.src0.GetAddr(), (T const *)op3.src1.GetAddr(), (T)src1, (T)0, (T)0, dst.m_size);
+   return dst;
+}
+
+template<typename T>
+Tensor_<T> operator*(T src0, Tensor_<T> const &src1)
+{
+   Tensor_<T>  dst(src1.m_shape);
+   auto op3 = Memory::GetOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
+   Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (T const *)op3.src0.GetAddr(), (T const *)op3.src1.GetAddr(), (T)src0, (T)0, (T)0, dst.m_size);
+   return dst;
+}
+
+
+
+template<typename T>
+Tensor_<T> operator/(Tensor_<T> const &src0, Tensor_<T> const &src1)
+{
+    BB_ASSERT(src0.m_size == src1.m_size);
+    Tensor_<T>  dst(src0.m_shape);
+    auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
+    Tensor_Scalar_div_ex<T>((T *)op3.dst.GetAddr(), (T const *)op3.src0.GetAddr(), (T const *)op3.src1.GetAddr(), (T)1, (T)0, (T)1, (T)0, dst.m_size);
+    return dst;
+}
+
+template<typename T>
+Tensor_<T> operator/(const Tensor_<T>& src0, T src1)
+{
+   Tensor_<T>  dst(src0.m_shape);
+   auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
+   Tensor_Scalar_div_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, (T)0, src1, dst.m_size);
+   return dst;
+}
+
+template<typename T>
+Tensor_<T> operator/(T src0, Tensor_<T> const &src1)
+{
+   Tensor_<T>  dst(src1.m_shape);
+   auto op3 = Memory::GetOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
+   Tensor_Scalar_div_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)0, src0, (T)1, (T)0, dst.m_size);
    return dst;
 }
 
@@ -1493,6 +1520,22 @@ public:
         return At(m_ptr.GetPtr(), index);
 	}
 #endif
+
+
+    // -------------------------------------
+    //  演算
+    // -------------------------------------
+
+    inline Tensor& operator+=(Tensor const &src)
+    {
+        BB_ASSERT(m_type == src.m_type);
+        switch (m_type) {
+        case BB_TYPE_FP32: Tensor_<float>(*this) += Tensor_<float>(src);
+        }
+        return *this;
+    }
+
+ 
 };
 
 

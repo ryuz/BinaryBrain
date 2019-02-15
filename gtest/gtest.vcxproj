@@ -55,6 +55,7 @@
     <ClInclude Include="..\include\bb\ShuffleSet.h" />
     <ClInclude Include="..\include\bb\Tensor.h" />
     <ClInclude Include="..\include\bb\Utility.h" />
+    <ClInclude Include="..\include\bb\Variables.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9A9C7AD9-1066-4DEA-A945-0D835BBF96E9}</ProjectGuid>

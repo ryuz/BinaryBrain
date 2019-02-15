@@ -299,6 +299,50 @@ public:
 	};
 };
 
+template<> class DataType<std::uint8_t>
+{
+public:
+	typedef float value_type;
+	enum {
+		type = BB_TYPE_UINT8,
+		size = 1,
+		bit_size = 8,
+	};
+};
+
+template<> class DataType<std::uint16_t>
+{
+public:
+	typedef float value_type;
+	enum {
+		type = BB_TYPE_UINT16,
+		size = 2,
+		bit_size = 16,
+	};
+};
+
+template<> class DataType<std::uint32_t>
+{
+public:
+	typedef float value_type;
+	enum {
+		type = BB_TYPE_UINT32,
+		size = 4,
+		bit_size = 32,
+	};
+};
+
+template<> class DataType<std::uint64_t>
+{
+public:
+	typedef float value_type;
+	enum {
+		type = BB_TYPE_UINT64,
+		size = 8,
+		bit_size = 64,
+	};
+};
+
 template<> class DataType<float>
 {
 public:

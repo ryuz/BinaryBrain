@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                Copyright (C) 2018-2019 by Ryuji Fuchikami
@@ -28,24 +28,24 @@
 namespace bb {
 
 
-//[Memory ƒNƒ‰ƒX]
-//  EGPU/CPU‚Ç‚¿‚ç‚Ìƒƒ‚ƒŠ‚àŠÇ—
-//  EƒRƒs[ƒ^ƒCƒ~ƒ“ƒO‚ğ–¾¦“I‚ÉŠÇ—‚µ‚½‚¢‚Ì‚ÆA MaxwellˆÈ‘O‚ÌGPU‚àg‚¢‚½‚¢‚Ì‚Å Unified Memory ‚Íˆê’U•Û—¯
-//  ELcok/Unlock‚ÅŠÇ—
-//  ELock ‚µ‚½’iŠK‚ÅA©•ª‚ÌƒfƒoƒCƒX‚ÉÅVƒf[ƒ^‚ª–³‚¯‚ê‚ÎcudaMemcopy
+//[Memory ã‚¯ãƒ©ã‚¹]
+//  ãƒ»GPU/CPUã©ã¡ã‚‰ã®ãƒ¡ãƒ¢ãƒªã‚‚ç®¡ç†
+//  ãƒ»ã‚³ãƒ”ãƒ¼ã‚¿ã‚¤ãƒŸãƒ³ã‚°ã‚’æ˜ç¤ºçš„ã«ç®¡ç†ã—ãŸã„ã®ã¨ã€ Maxwellä»¥å‰ã®GPUã‚‚ä½¿ã„ãŸã„ã®ã§ Unified Memory ã¯ä¸€æ—¦ä¿ç•™
+//  ãƒ»Lcok/Unlockã§ç®¡ç†
+//  ãƒ»Lock ã—ãŸæ®µéšã§ã€è‡ªåˆ†ã®ãƒ‡ãƒã‚¤ã‚¹ã«æœ€æ–°ãƒ‡ãƒ¼ã‚¿ãŒç„¡ã‘ã‚Œã°cudaMemcopy
 //
 //
-// ƒƒ‚ƒŠ‚ÌÀ‘Ì‚ğŠÇ—‚·‚é Memory ƒNƒ‰ƒX‚Æ
-// Memory ‚ÌƒƒbƒN‚ğŠÇ—‚·‚é Ptr_ / ConstPtr_ ƒNƒ‰ƒX ‚Æ‚©‚ç‚È‚é
-// QÆ‚ª‘¶İ‚µ‚Ä‚¢‚éŠÔAÀ‘Ì‚âƒƒbƒN‚ªˆÛ‚³‚ê‚é
-// Memory ƒNƒ‰ƒX‚©‚ç Ptr ‚ğæ“¾‚·‚é‚±‚Æ‚ÅAÀƒƒ‚ƒŠ‚ªƒAƒNƒZƒX‰Â”\‚Èó‘Ô‚ÅƒƒbƒN‚³‚ê
-// Ptr‚Ì¶‘¶ŠúŠÔ‚ª‰ß‚¬‚é‚ÆƒƒbƒN‰ğœ‚³‚ê‚é
-// ƒƒbƒN‚µ‚È‚¨‚µ‚½Û‚ÉƒAƒhƒŒƒX‚ª•Ï‚í‚ç‚È‚¢•ÛØ‚Ís‚í‚È‚¢
+// ãƒ¡ãƒ¢ãƒªã®å®Ÿä½“ã‚’ç®¡ç†ã™ã‚‹ Memory ã‚¯ãƒ©ã‚¹ã¨
+// Memory ã®ãƒ­ãƒƒã‚¯ã‚’ç®¡ç†ã™ã‚‹ Ptr_ / ConstPtr_ ã‚¯ãƒ©ã‚¹ ã¨ã‹ã‚‰ãªã‚‹
+// å‚ç…§ãŒå­˜åœ¨ã—ã¦ã„ã‚‹é–“ã€å®Ÿä½“ã‚„ãƒ­ãƒƒã‚¯ãŒç¶­æŒã•ã‚Œã‚‹
+// Memory ã‚¯ãƒ©ã‚¹ã‹ã‚‰ Ptr ã‚’å–å¾—ã™ã‚‹ã“ã¨ã§ã€å®Ÿãƒ¡ãƒ¢ãƒªãŒã‚¢ã‚¯ã‚»ã‚¹å¯èƒ½ãªçŠ¶æ…‹ã§ãƒ­ãƒƒã‚¯ã•ã‚Œ
+// Ptrã®ç”Ÿå­˜æœŸé–“ãŒéãã‚‹ã¨ãƒ­ãƒƒã‚¯è§£é™¤ã•ã‚Œã‚‹
+// ãƒ­ãƒƒã‚¯ã—ãªãŠã—ãŸéš›ã«ã‚¢ãƒ‰ãƒ¬ã‚¹ãŒå¤‰ã‚ã‚‰ãªã„ä¿è¨¼ã¯è¡Œã‚ãªã„
 
 class Memory
 {
 public:
-    // ƒƒ‚ƒŠƒ|ƒCƒ“ƒ^(const)
+    // ãƒ¡ãƒ¢ãƒªãƒã‚¤ãƒ³ã‚¿(const)
     template <void (*lock)(Memory*), void (*unlock)(Memory*)>
     class ConstPtr_
     {
@@ -59,7 +59,7 @@ public:
         inline void Unlock()  const { if (m_mem != nullptr) { unlock(m_mem); } }
 
     protected:
-       // friend ‚Ì MemoryƒNƒ‰ƒX‚Ì‚İ‰Šú’l‚ğ—^‚¦‚ç‚ê‚é
+       // friend ã® Memoryã‚¯ãƒ©ã‚¹ã®ã¿åˆæœŸå€¤ã‚’ä¸ãˆã‚‰ã‚Œã‚‹
         ConstPtr_(void const *addr, Memory *mem) noexcept
         {
             m_addr = addr;
@@ -117,7 +117,7 @@ public:
     };
 
     
-    // ƒƒ‚ƒŠƒ|ƒCƒ“ƒ^
+    // ãƒ¡ãƒ¢ãƒªãƒã‚¤ãƒ³ã‚¿
     template <typename ConstTp, void (*lock)(Memory*), void (*unlock)(Memory*)>
     class Ptr_
     {
@@ -131,7 +131,7 @@ public:
         inline void Unlock()  const { if (m_mem != nullptr) { unlock(m_mem); } }
 
     protected:
-        // friend ‚Ì MemoryƒNƒ‰ƒX‚Ì‚İ‰Šú’l‚ğ—^‚¦‚ç‚ê‚é
+        // friend ã® Memoryã‚¯ãƒ©ã‚¹ã®ã¿åˆæœŸå€¤ã‚’ä¸ãˆã‚‰ã‚Œã‚‹
         Ptr_(void* addr, Memory* mem)
         {
             m_addr = addr;
@@ -186,14 +186,14 @@ public:
            return ConstTp(m_addr, m_mem);
         }
 
-        // constƒAƒNƒZƒX
+        // constã‚¢ã‚¯ã‚»ã‚¹
         template<typename Tp>
         Tp const & At(index_t index) const {
 //          BB_DEBUG_ASSERT(m_ptr != nullptr);
             return ((Tp const *)m_addr)[index];
         }
 
-        // ”ñconstƒAƒNƒZƒX
+        // éconstã‚¢ã‚¯ã‚»ã‚¹
         template<typename Tp>
         Tp& At(index_t index) {
 //          BB_DEBUG_ASSERT(m_ptr != nullptr);
@@ -204,18 +204,18 @@ public:
 protected:
 	size_t	            m_size = 0;
 	void*        	    m_addr = nullptr;
-    std::atomic<int>    m_refCnt = 0;
+    std::atomic<int>    m_refCnt;
 
 #ifdef BB_WITH_CUDA
 	size_t	            m_mem_size = 0;
     bool	            m_hostOnly = true;
 	bool	            m_hostModified = false;
 
-    // «—ˆ‰º‹L‚ğ‘½d‰»‚µ‚Ä•¡”GPU‘Î‰‚àƒPƒA‚Å‚«‚é‚æ‚¤‚É‚·‚é‚©‚à
+    // å°†æ¥ä¸‹è¨˜ã‚’å¤šé‡åŒ–ã—ã¦è¤‡æ•°GPUå¯¾å¿œã‚‚ã‚±ã‚¢ã§ãã‚‹ã‚ˆã†ã«ã™ã‚‹ã‹ã‚‚
 	int		            m_device;
 	void*	            m_devAddr = nullptr;
 	bool	            m_devModified = false;
-	std::atomic<int>  	m_devRefCnt = 0;
+	std::atomic<int>  	m_devRefCnt;
 #endif
 
     static void lock(Memory *self)   { self->m_refCnt++; }
@@ -230,10 +230,10 @@ protected:
 #endif
 
 public:
-    using ConstPtr    = ConstPtr_<lock, unlock>;                        //< “Ç‚İ‘‚«‰Â”\‚ÈHOSTƒƒ‚ƒŠ‚Ìƒ|ƒCƒ“ƒ^ƒIƒuƒWƒFƒNƒg
-    using Ptr         = Ptr_<ConstPtr, lock, unlock>;                   //< ƒŠ[ƒhƒIƒ“ƒŠ[‚ÈHOSTƒƒ‚ƒŠ‚Ìƒ|ƒCƒ“ƒ^ƒIƒuƒWƒFƒNƒg
-    using DevConstPtr = ConstPtr_<&lockDevice, &unlockDevice>;          //< “Ç‚İ‘‚«‰Â”\‚ÈDeviceƒƒ‚ƒŠ‚Ìƒ|ƒCƒ“ƒ^ƒIƒuƒWƒFƒNƒg
-    using DevPtr      = Ptr_<DevConstPtr, &lockDevice, &unlockDevice>;  //< ƒŠ[ƒhƒIƒ“ƒŠ[‚ÈDeviceTƒƒ‚ƒŠ‚Ìƒ|ƒCƒ“ƒ^ƒIƒuƒWƒFƒNƒg
+    using ConstPtr    = ConstPtr_<lock, unlock>;                        //< èª­ã¿æ›¸ãå¯èƒ½ãªHOSTãƒ¡ãƒ¢ãƒªã®ãƒã‚¤ãƒ³ã‚¿ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
+    using Ptr         = Ptr_<ConstPtr, lock, unlock>;                   //< ãƒªãƒ¼ãƒ‰ã‚ªãƒ³ãƒªãƒ¼ãªHOSTãƒ¡ãƒ¢ãƒªã®ãƒã‚¤ãƒ³ã‚¿ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
+    using DevConstPtr = ConstPtr_<&lockDevice, &unlockDevice>;          //< èª­ã¿æ›¸ãå¯èƒ½ãªDeviceãƒ¡ãƒ¢ãƒªã®ãƒã‚¤ãƒ³ã‚¿ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
+    using DevPtr      = Ptr_<DevConstPtr, &lockDevice, &unlockDevice>;  //< ãƒªãƒ¼ãƒ‰ã‚ªãƒ³ãƒªãƒ¼ãªDeviceTãƒ¡ãƒ¢ãƒªã®ãƒã‚¤ãƒ³ã‚¿ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
 
     friend Ptr;
     friend ConstPtr;
@@ -243,14 +243,14 @@ public:
 
 public:
 	/**
-     * @brief  ƒƒ‚ƒŠƒIƒuƒWƒFƒNƒg‚Ì¶¬
-     * @detail ƒƒ‚ƒŠƒIƒuƒWƒFƒNƒg‚Ì¶¬
-     * @param size Šm•Û‚·‚éƒƒ‚ƒŠƒTƒCƒY(ƒoƒCƒg’PˆÊ)
-	 * @param device —˜—p‚·‚éGPUƒfƒoƒCƒX
-	 *           0ˆÈã  Œ»İ‚Ì‘I‘ğ’†‚ÌGPU
-	 *           -1     Œ»İ‚Ì‘I‘ğ’†‚ÌGPU
-	 *           -2     GPU‚Í—˜—p‚µ‚È‚¢
-     * @return ƒƒ‚ƒŠƒIƒuƒWƒFƒNƒg‚Ö‚Ìshared_ptr
+     * @brief  ãƒ¡ãƒ¢ãƒªã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ç”Ÿæˆ
+     * @detail ãƒ¡ãƒ¢ãƒªã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ç”Ÿæˆ
+     * @param size ç¢ºä¿ã™ã‚‹ãƒ¡ãƒ¢ãƒªã‚µã‚¤ã‚º(ãƒã‚¤ãƒˆå˜ä½)
+	 * @param device åˆ©ç”¨ã™ã‚‹GPUãƒ‡ãƒã‚¤ã‚¹
+	 *           0ä»¥ä¸Š  ç¾åœ¨ã®é¸æŠä¸­ã®GPU
+	 *           -1     ç¾åœ¨ã®é¸æŠä¸­ã®GPU
+	 *           -2     GPUã¯åˆ©ç”¨ã—ãªã„
+     * @return ãƒ¡ãƒ¢ãƒªã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¸ã®shared_ptr
      */
 	static std::shared_ptr<Memory> Create(size_t size, bool hostOnly=false)
     {
@@ -259,50 +259,54 @@ public:
 
 protected:
 	/**
-     * @brief  ƒRƒ“ƒXƒgƒ‰ƒNƒ^
-     * @detail ƒRƒ“ƒXƒgƒ‰ƒNƒ^
-     * @param size Šm•Û‚·‚éƒƒ‚ƒŠƒTƒCƒY(ƒoƒCƒg’PˆÊ)
-	 * @param device —˜—p‚·‚éGPUƒfƒoƒCƒX
-	 *           0ˆÈã  Œ»İ‚Ì‘I‘ğ’†‚ÌGPU
-	 *           -1     Œ»İ‚Ì‘I‘ğ’†‚ÌGPU
-	 *           -2     GPU‚Í—˜—p‚µ‚È‚¢
-     * @return ‚È‚µ
+     * @brief  ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
+     * @detail ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
+     * @param size ç¢ºä¿ã™ã‚‹ãƒ¡ãƒ¢ãƒªã‚µã‚¤ã‚º(ãƒã‚¤ãƒˆå˜ä½)
+	 * @param device åˆ©ç”¨ã™ã‚‹GPUãƒ‡ãƒã‚¤ã‚¹
+	 *           0ä»¥ä¸Š  ç¾åœ¨ã®é¸æŠä¸­ã®GPU
+	 *           -1     ç¾åœ¨ã®é¸æŠä¸­ã®GPU
+	 *           -2     GPUã¯åˆ©ç”¨ã—ãªã„
+     * @return ãªã—
      */
 	Memory(size_t size, bool hostOnly=false)
 	{
-		// ƒTƒCƒY•Û‘¶
+		// ã‚µã‚¤ã‚ºä¿å­˜
 		m_size = size;
 
+        m_refCnt = 0;
+
 #ifdef BB_WITH_CUDA
+        m_devRefCnt = 0;
+
         m_hostOnly = hostOnly;
         m_mem_size = m_size;
 
-		// ƒfƒoƒCƒXİ’è
+		// ãƒ‡ãƒã‚¤ã‚¹è¨­å®š
 		int dev_count = 0;
 		auto status = cudaGetDeviceCount(&dev_count);
 		if (status != cudaSuccess) {
 			dev_count = 0;
 		}
 
-        // ƒfƒoƒCƒX‚ª–³‚¯‚ê‚ÎhostŒÅ’è
+        // ãƒ‡ãƒã‚¤ã‚¹ãŒç„¡ã‘ã‚Œã°hostå›ºå®š
 		if ( dev_count <= 0 ) {
             m_hostOnly = true;
 		}
 
-		// HostŒÅ’è‚È‚ç‚±‚±‚Åƒƒ‚ƒŠŠm•Û
+		// Hostå›ºå®šãªã‚‰ã“ã“ã§ãƒ¡ãƒ¢ãƒªç¢ºä¿
 		if ( m_hostOnly ) {
 			m_addr = aligned_memory_alloc(m_size, 32);
 		}
 #else
-		// ƒƒ‚ƒŠŠm•Û
+		// ãƒ¡ãƒ¢ãƒªç¢ºä¿
 		m_addr = aligned_memory_alloc(m_size, 32);
 #endif
 	}
 
 public:
 	/**
-     * @brief  ƒfƒXƒgƒ‰ƒNƒ^
-     * @detail ƒfƒXƒgƒ‰ƒNƒ^
+     * @brief  ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
+     * @detail ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
      */
 	~Memory()
 	{
@@ -312,7 +316,7 @@ public:
         BB_DEBUG_ASSERT(m_devRefCnt == 0);
 
         if ( m_hostOnly ) {
-			// ƒƒ‚ƒŠŠJ•ú
+			// ãƒ¡ãƒ¢ãƒªé–‹æ”¾
 			if (m_addr != nullptr) {
 				aligned_memory_free(m_addr);
 			}
@@ -320,18 +324,18 @@ public:
         else {
 			CudaDevicePush dev_push(m_device);
 
-			// Hostƒƒ‚ƒŠŠJ•ú
+			// Hostãƒ¡ãƒ¢ãƒªé–‹æ”¾
 			if (m_addr != nullptr) {
 				BB_CUDA_SAFE_CALL(cudaFreeHost(m_addr));
 			}
 
-            // Deviceƒƒ‚ƒŠŠJ•ú
+            // Deviceãƒ¡ãƒ¢ãƒªé–‹æ”¾
 			if (m_devAddr != nullptr) {
 				BB_CUDA_SAFE_CALL(cudaFree(m_devAddr));
 			}
 		}
 #else
-		// ƒƒ‚ƒŠŠJ•ú
+		// ãƒ¡ãƒ¢ãƒªé–‹æ”¾
 		if (m_addr != nullptr) {
 			aligned_memory_free(m_addr);
 		}
@@ -339,14 +343,14 @@ public:
 	}
 
    /**
-     * @brief  ƒƒ‚ƒŠƒIƒuƒWƒFƒNƒg‚Ì¶¬
-     * @detail ƒƒ‚ƒŠƒIƒuƒWƒFƒNƒg‚Ì¶¬
-     * @param size Šm•Û‚·‚éƒƒ‚ƒŠƒTƒCƒY(ƒoƒCƒg’PˆÊ)
-	 * @param device —˜—p‚·‚éGPUƒfƒoƒCƒX
-	 *           0ˆÈã  Œ»İ‚Ì‘I‘ğ’†‚ÌGPU
-	 *           -1     Œ»İ‚Ì‘I‘ğ’†‚ÌGPU
-	 *           -2     GPU‚Í—˜—p‚µ‚È‚¢
-     * @return ƒƒ‚ƒŠƒIƒuƒWƒFƒNƒg‚Ö‚Ìshared_ptr
+     * @brief  ãƒ¡ãƒ¢ãƒªã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ç”Ÿæˆ
+     * @detail ãƒ¡ãƒ¢ãƒªã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ç”Ÿæˆ
+     * @param size ç¢ºä¿ã™ã‚‹ãƒ¡ãƒ¢ãƒªã‚µã‚¤ã‚º(ãƒã‚¤ãƒˆå˜ä½)
+	 * @param device åˆ©ç”¨ã™ã‚‹GPUãƒ‡ãƒã‚¤ã‚¹
+	 *           0ä»¥ä¸Š  ç¾åœ¨ã®é¸æŠä¸­ã®GPU
+	 *           -1     ç¾åœ¨ã®é¸æŠä¸­ã®GPU
+	 *           -2     GPUã¯åˆ©ç”¨ã—ãªã„
+     * @return ãƒ¡ãƒ¢ãƒªã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¸ã®shared_ptr
      */
 	std::shared_ptr<Memory> Clone(void) const
     {
@@ -363,7 +367,7 @@ public:
             memcpy(ptr_dst.GetAddr(), ptr_src.GetAddr(), m_size);
         }
         else {
-            // ‚Ğ‚Æ‚Ü‚¸•¡”GPU‚Í–¢ƒTƒ|[ƒg
+            // ã²ã¨ã¾ãšè¤‡æ•°GPUã¯æœªã‚µãƒãƒ¼ãƒˆ
             int device;
             BB_CUDA_SAFE_CALL(cudaGetDevice(&device));
             BB_ASSERT(device == m_device);
@@ -382,9 +386,9 @@ public:
     
 
 	/**
-     * @brief  ƒƒ‚ƒŠ‚ÌƒTƒCƒY‚ğ•ÏX‚·‚é
-     * @detail ƒƒ‚ƒŠ‚ÌƒTƒCƒY‚ğ•ÏX‚·‚é
-     *         ŒÃ‚¢’†g‚ÍƒTƒCƒY‚ÉŠÖ‚í‚ç‚¸”jŠü‚·‚é
+     * @brief  ãƒ¡ãƒ¢ãƒªã®ã‚µã‚¤ã‚ºã‚’å¤‰æ›´ã™ã‚‹
+     * @detail ãƒ¡ãƒ¢ãƒªã®ã‚µã‚¤ã‚ºã‚’å¤‰æ›´ã™ã‚‹
+     *         å¤ã„ä¸­èº«ã¯ã‚µã‚¤ã‚ºã«é–¢ã‚ã‚‰ãšç ´æ£„ã™ã‚‹
      */
     void Resize(size_t size)
     {
@@ -399,11 +403,11 @@ public:
                 return;
             }
             if (m_addr != nullptr) {
-                BB_CUDA_SAFE_CALL(cudaFreeHost(m_addr));  // Hostƒƒ‚ƒŠŠJ•ú
+                BB_CUDA_SAFE_CALL(cudaFreeHost(m_addr));  // Hostãƒ¡ãƒ¢ãƒªé–‹æ”¾
                 m_addr= nullptr;
             }
 			if (m_devAddr != nullptr) {
-                BB_CUDA_SAFE_CALL(cudaFree(m_devAddr));   // Deviceƒƒ‚ƒŠŠJ•ú
+                BB_CUDA_SAFE_CALL(cudaFree(m_devAddr));   // Deviceãƒ¡ãƒ¢ãƒªé–‹æ”¾
                 m_devAddr= nullptr;
             }
             m_mem_size = m_size;
@@ -419,9 +423,9 @@ public:
 
 
    	/**
-     * @brief  ƒƒ‚ƒŠƒTƒCƒY‚Ìæ“¾
-     * @detail ƒƒ‚ƒŠƒTƒCƒY‚Ìæ“¾
-     * @return ƒƒ‚ƒŠƒTƒCƒY(ƒoƒCƒg’PˆÊ)
+     * @brief  ãƒ¡ãƒ¢ãƒªã‚µã‚¤ã‚ºã®å–å¾—
+     * @detail ãƒ¡ãƒ¢ãƒªã‚µã‚¤ã‚ºã®å–å¾—
+     * @return ãƒ¡ãƒ¢ãƒªã‚µã‚¤ã‚º(ãƒã‚¤ãƒˆå˜ä½)
      */
 	index_t GetSize(void) const
 	{
@@ -429,9 +433,9 @@ public:
 	}
 
 	/**
-     * @brief  ƒfƒoƒCƒX‚ª—˜—p‰Â”\‚©–â‚¢‡‚í‚¹‚é
-     * @detail ƒfƒoƒCƒX‚ª—˜—p‰Â”\‚©–â‚¢‡‚í‚¹‚é
-     * @return ƒfƒoƒCƒX‚ª—˜—p‰Â”\‚È‚çtrue
+     * @brief  ãƒ‡ãƒã‚¤ã‚¹ãŒåˆ©ç”¨å¯èƒ½ã‹å•ã„åˆã‚ã›ã‚‹
+     * @detail ãƒ‡ãƒã‚¤ã‚¹ãŒåˆ©ç”¨å¯èƒ½ã‹å•ã„åˆã‚ã›ã‚‹
+     * @return ãƒ‡ãƒã‚¤ã‚¹ãŒåˆ©ç”¨å¯èƒ½ãªã‚‰true
      */
 	bool IsDeviceAvailable(void) const
 	{
@@ -444,61 +448,61 @@ public:
 	
 
 	/**
-     * @brief  ƒƒ‚ƒŠ“à—e‚Ì”jŠü
-     * @detail ƒƒ‚ƒŠ“à—e‚ğ”jŠü‚·‚é
+     * @brief  ãƒ¡ãƒ¢ãƒªå†…å®¹ã®ç ´æ£„
+     * @detail ãƒ¡ãƒ¢ãƒªå†…å®¹ã‚’ç ´æ£„ã™ã‚‹
      */	void Dispose(void)
 	{
 #ifdef BB_WITH_CUDA
-		// XV‚Ì”jŠü
+		// æ›´æ–°ã®ç ´æ£„
 		m_hostModified = false;
 		m_devModified = false;
 #endif
 	}
 
 	/**
-     * @brief  ƒ|ƒCƒ“ƒ^‚Ìæ“¾
-     * @detail ƒAƒNƒZƒX—p‚ÉŠm•Û‚µ‚½ƒzƒXƒg‘¤‚Ìƒƒ‚ƒŠƒ|ƒCƒ“ƒ^‚Ìæ“¾
-     * @param  new_buffer true ‚È‚çŒÃ‚¢“à—e‚ğ”jŠü‚·‚é
-     * @return ƒzƒXƒg‘¤‚Ìƒƒ‚ƒŠƒ|ƒCƒ“ƒ^
+     * @brief  ãƒã‚¤ãƒ³ã‚¿ã®å–å¾—
+     * @detail ã‚¢ã‚¯ã‚»ã‚¹ç”¨ã«ç¢ºä¿ã—ãŸãƒ›ã‚¹ãƒˆå´ã®ãƒ¡ãƒ¢ãƒªãƒã‚¤ãƒ³ã‚¿ã®å–å¾—
+     * @param  new_buffer true ãªã‚‰å¤ã„å†…å®¹ã‚’ç ´æ£„ã™ã‚‹
+     * @return ãƒ›ã‚¹ãƒˆå´ã®ãƒ¡ãƒ¢ãƒªãƒã‚¤ãƒ³ã‚¿
      */
 	Ptr GetPtr(bool new_buffer=false)
 	{
 #ifdef BB_WITH_CUDA
 		if ( !m_hostOnly ) {
-			// V‹K‚Å‚ ‚ê‚Î‰ß‹‚ÌXVî•ñ‚Í”jŠü
+			// æ–°è¦ã§ã‚ã‚Œã°éå»ã®æ›´æ–°æƒ…å ±ã¯ç ´æ£„
 			if ( new_buffer ) {
 				m_hostModified = false;
 				m_devModified = false;
 			}
 
 			if (m_addr == nullptr) {
-				// ƒzƒXƒg‘¤ƒƒ‚ƒŠ–¢Šm•Û‚È‚ç‚±‚±‚ÅŠm•Û
+				// ãƒ›ã‚¹ãƒˆå´ãƒ¡ãƒ¢ãƒªæœªç¢ºä¿ãªã‚‰ã“ã“ã§ç¢ºä¿
 				CudaDevicePush dev_push(m_device);
 				BB_CUDA_SAFE_CALL(cudaMallocHost(&m_addr, m_mem_size));
 			}
 
 			if ( m_devModified ) {
-				// ƒfƒoƒCƒX‘¤ƒƒ‚ƒŠ‚ªÅV‚È‚çƒRƒs[æ“¾
+				// ãƒ‡ãƒã‚¤ã‚¹å´ãƒ¡ãƒ¢ãƒªãŒæœ€æ–°ãªã‚‰ã‚³ãƒ”ãƒ¼å–å¾—
 				CudaDevicePush dev_push(m_device);
 				BB_CUDA_SAFE_CALL(cudaMemcpy(m_addr, m_devAddr, m_size, cudaMemcpyDeviceToHost));
 				m_devModified =false;
 			}
 
-			// C³ƒtƒ‰ƒOƒZƒbƒg
+			// ä¿®æ­£ãƒ•ãƒ©ã‚°ã‚»ãƒƒãƒˆ
 			m_hostModified = true;
 		}
 #endif
 
-        // ƒ|ƒCƒ“ƒ^ƒIƒuƒWƒFƒNƒg‚ğ¶¬‚µ‚Ä•Ô‚·
+        // ãƒã‚¤ãƒ³ã‚¿ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ç”Ÿæˆã—ã¦è¿”ã™
 		return Ptr(m_addr, this);
 	}
 
    	/**
-     * @brief  “Ç‚İæ‚èê—pƒ|ƒCƒ“ƒ^‚Ìæ“¾
-     * @detail ƒAƒNƒZƒX—p‚ÉŠm•Û‚µ‚½ƒzƒXƒg‘¤‚Ìƒƒ‚ƒŠƒ|ƒCƒ“ƒ^‚Ìæ“¾
-     *         ÀÛ‚É‚Íƒƒ‚ƒŠ‚ÌƒƒbƒN‚È‚Ç‚Å“à•”ó‘Ô‚ª•Ï‚í‚é‚ªA
-     *         ƒƒ‚ƒŠ“à—e‚ª•Ï‚í‚ç‚È‚¢‚Ì‚Å•Ö‹Xã const ‚Æ‚·‚é
-     * @return ƒAƒNƒZƒX—p‚ÉŠm•Û‚µ‚½ƒzƒXƒg‘¤‚Ìƒƒ‚ƒŠƒ|ƒCƒ“ƒ^
+     * @brief  èª­ã¿å–ã‚Šå°‚ç”¨ãƒã‚¤ãƒ³ã‚¿ã®å–å¾—
+     * @detail ã‚¢ã‚¯ã‚»ã‚¹ç”¨ã«ç¢ºä¿ã—ãŸãƒ›ã‚¹ãƒˆå´ã®ãƒ¡ãƒ¢ãƒªãƒã‚¤ãƒ³ã‚¿ã®å–å¾—
+     *         å®Ÿéš›ã«ã¯ãƒ¡ãƒ¢ãƒªã®ãƒ­ãƒƒã‚¯ãªã©ã§å†…éƒ¨çŠ¶æ…‹ãŒå¤‰ã‚ã‚‹ãŒã€
+     *         ãƒ¡ãƒ¢ãƒªå†…å®¹ãŒå¤‰ã‚ã‚‰ãªã„ã®ã§ä¾¿å®œä¸Š const ã¨ã™ã‚‹
+     * @return ã‚¢ã‚¯ã‚»ã‚¹ç”¨ã«ç¢ºä¿ã—ãŸãƒ›ã‚¹ãƒˆå´ã®ãƒ¡ãƒ¢ãƒªãƒã‚¤ãƒ³ã‚¿
      */
 	ConstPtr GetConstPtr(void) const
 	{
@@ -507,13 +511,13 @@ public:
 #ifdef BB_WITH_CUDA
 		if ( !m_hostOnly ) {
 			if (m_addr == nullptr) {
-				// ƒzƒXƒg‘¤ƒƒ‚ƒŠ–¢Šm•Û‚È‚ç‚±‚±‚ÅŠm•Û
+				// ãƒ›ã‚¹ãƒˆå´ãƒ¡ãƒ¢ãƒªæœªç¢ºä¿ãªã‚‰ã“ã“ã§ç¢ºä¿
 				CudaDevicePush dev_push(m_device);
 				BB_CUDA_SAFE_CALL(cudaMallocHost(&self->m_addr, m_mem_size));
 			}
 
 			if ( m_devModified ) {
-				// ƒfƒoƒCƒX‘¤ƒƒ‚ƒŠ‚ªÅV‚È‚çƒRƒs[æ“¾
+				// ãƒ‡ãƒã‚¤ã‚¹å´ãƒ¡ãƒ¢ãƒªãŒæœ€æ–°ãªã‚‰ã‚³ãƒ”ãƒ¼å–å¾—
 				CudaDevicePush dev_push(m_device);
 				BB_CUDA_SAFE_CALL(cudaMemcpy(m_addr, m_devAddr, m_size, cudaMemcpyDeviceToHost));
 				self->m_devModified = false;
@@ -521,41 +525,41 @@ public:
 		}
 #endif
 
-        // ƒ|ƒCƒ“ƒ^‚ğ¶¬‚µ‚Ä•Ô‚·
+        // ãƒã‚¤ãƒ³ã‚¿ã‚’ç”Ÿæˆã—ã¦è¿”ã™
 		return ConstPtr(m_addr, self);
 	}
 
 
   	/**
-     * @brief  ƒfƒoƒCƒX‘¤ƒ|ƒCƒ“ƒ^‚Ìæ“¾
-     * @detail ƒAƒNƒZƒX—p‚ÉŠm•Û‚µ‚½ƒfƒoƒCƒX‘¤‚Ìƒƒ‚ƒŠƒ|ƒCƒ“ƒ^‚Ìæ“¾
-     * @param  new_buffer true ‚È‚çŒÃ‚¢“à—e‚ğ”jŠü‚·‚é
-     * @return ƒfƒoƒCƒX‘¤‚Ìƒƒ‚ƒŠƒ|ƒCƒ“ƒ^
+     * @brief  ãƒ‡ãƒã‚¤ã‚¹å´ãƒã‚¤ãƒ³ã‚¿ã®å–å¾—
+     * @detail ã‚¢ã‚¯ã‚»ã‚¹ç”¨ã«ç¢ºä¿ã—ãŸãƒ‡ãƒã‚¤ã‚¹å´ã®ãƒ¡ãƒ¢ãƒªãƒã‚¤ãƒ³ã‚¿ã®å–å¾—
+     * @param  new_buffer true ãªã‚‰å¤ã„å†…å®¹ã‚’ç ´æ£„ã™ã‚‹
+     * @return ãƒ‡ãƒã‚¤ã‚¹å´ã®ãƒ¡ãƒ¢ãƒªãƒã‚¤ãƒ³ã‚¿
      */
 	DevPtr GetDevPtr(bool new_buffer=false)
 	{
 	#ifdef BB_WITH_CUDA
 		if ( !m_hostOnly ) {
-			// V‹K‚Å‚ ‚ê‚Î‰ß‹‚ÌXVî•ñ‚Í”jŠü
+			// æ–°è¦ã§ã‚ã‚Œã°éå»ã®æ›´æ–°æƒ…å ±ã¯ç ´æ£„
 			if (new_buffer) {
 				m_hostModified = false;
 				m_devModified = false;
 			}
 
 			if (m_devAddr == nullptr) {
-				// ƒfƒoƒCƒX‘¤ƒƒ‚ƒŠ–¢Šm•Û‚È‚ç‚±‚±‚ÅŠm•Û
+				// ãƒ‡ãƒã‚¤ã‚¹å´ãƒ¡ãƒ¢ãƒªæœªç¢ºä¿ãªã‚‰ã“ã“ã§ç¢ºä¿
 				CudaDevicePush dev_push(m_device);
 				BB_CUDA_SAFE_CALL(cudaMalloc(&m_devAddr, m_size));
 			}
 
 			if (m_hostModified) {
-				// ƒzƒXƒg‘¤ƒƒ‚ƒŠ‚ªÅV‚È‚çƒRƒs[æ“¾
+				// ãƒ›ã‚¹ãƒˆå´ãƒ¡ãƒ¢ãƒªãŒæœ€æ–°ãªã‚‰ã‚³ãƒ”ãƒ¼å–å¾—
 				CudaDevicePush dev_push(m_device);
 				BB_CUDA_SAFE_CALL(cudaMemcpy(m_devAddr, m_addr, m_size, cudaMemcpyHostToDevice));
 				m_hostModified =false;
 			}
 
-			// C³ƒtƒ‰ƒOƒZƒbƒg
+			// ä¿®æ­£ãƒ•ãƒ©ã‚°ã‚»ãƒƒãƒˆ
 			m_devModified = true;
 
 			return DevPtr(m_devAddr, this);
@@ -567,10 +571,10 @@ public:
 
 
    	/**
-     * @brief  ƒfƒoƒCƒX‘¤ƒ|ƒCƒ“ƒ^‚Ìæ“¾
-     * @detail ƒAƒNƒZƒX—p‚ÉŠm•Û‚µ‚½ƒfƒoƒCƒX‘¤‚Ìƒƒ‚ƒŠƒ|ƒCƒ“ƒ^‚Ìæ“¾
-     * @param  new_buffer true ‚È‚çŒÃ‚¢“à—e‚ğ”jŠü‚·‚é
-     * @return ƒfƒoƒCƒX‘¤‚Ìƒƒ‚ƒŠƒ|ƒCƒ“ƒ^
+     * @brief  ãƒ‡ãƒã‚¤ã‚¹å´ãƒã‚¤ãƒ³ã‚¿ã®å–å¾—
+     * @detail ã‚¢ã‚¯ã‚»ã‚¹ç”¨ã«ç¢ºä¿ã—ãŸãƒ‡ãƒã‚¤ã‚¹å´ã®ãƒ¡ãƒ¢ãƒªãƒã‚¤ãƒ³ã‚¿ã®å–å¾—
+     * @param  new_buffer true ãªã‚‰å¤ã„å†…å®¹ã‚’ç ´æ£„ã™ã‚‹
+     * @return ãƒ‡ãƒã‚¤ã‚¹å´ã®ãƒ¡ãƒ¢ãƒªãƒã‚¤ãƒ³ã‚¿
      */
 	DevConstPtr GetDevConstPtr(void) const
 	{
@@ -579,13 +583,13 @@ public:
 #ifdef BB_WITH_CUDA
 		if ( !m_hostOnly ) {
 			if (m_devAddr == nullptr) {
-				// ƒfƒoƒCƒX‘¤ƒƒ‚ƒŠ–¢Šm•Û‚È‚ç‚±‚±‚ÅŠm•Û
+				// ãƒ‡ãƒã‚¤ã‚¹å´ãƒ¡ãƒ¢ãƒªæœªç¢ºä¿ãªã‚‰ã“ã“ã§ç¢ºä¿
 				CudaDevicePush dev_push(m_device);
 				BB_CUDA_SAFE_CALL(cudaMalloc(&self->m_devAddr, m_size));
 			}
 
 			if (m_hostModified) {
-				// ƒzƒXƒg‘¤ƒƒ‚ƒŠ‚ªÅV‚È‚çƒRƒs[æ“¾
+				// ãƒ›ã‚¹ãƒˆå´ãƒ¡ãƒ¢ãƒªãŒæœ€æ–°ãªã‚‰ã‚³ãƒ”ãƒ¼å–å¾—
 				CudaDevicePush dev_push(m_device);
 				BB_CUDA_SAFE_CALL(cudaMemcpy(m_devAddr, m_addr, m_size, cudaMemcpyHostToDevice));
 				self->m_hostModified =false;
