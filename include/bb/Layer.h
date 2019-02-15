@@ -101,7 +101,7 @@ public:
     virtual	std::vector<FrameBuffer> Forward(std::vector<FrameBuffer> vx, bool train = true)
     {
         BB_ASSERT(vx.size() == 1);
-        auto& y = Forward(vx[0], train);
+        auto y = Forward(vx[0], train);
         return {y};
     }
 
@@ -123,7 +123,7 @@ public:
     virtual	std::vector<FrameBuffer> Backward(std::vector<FrameBuffer> vdy)
     {
         BB_ASSERT(vdy.size() == 1);
-        auto& dx = Backward(vdy[0]);
+        auto dx = Backward(vdy[0]);
         return {dx};
     }
 	
