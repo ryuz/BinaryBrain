@@ -132,7 +132,10 @@ public:
 template <typename Tp, class FrameBufferTp, class PtrTp>
 class FrameBufferPtr_ : public FrameBufferConstPtr_<Tp, FrameBufferTp, PtrTp>
 {
-friend FrameBufferTp;
+    friend FrameBufferTp;
+    using FrameBufferConstPtr_<Tp, FrameBufferTp, PtrTp>::m_buf;
+    using FrameBufferConstPtr_<Tp, FrameBufferTp, PtrTp>::m_ptr;
+
 protected:
     FrameBufferPtr_(FrameBufferTp* buf) : FrameBufferConstPtr_<Tp, FrameBufferTp, PtrTp>(buf)
     {
@@ -470,7 +473,6 @@ public:
     template <typename Tp>
 	inline Tp GetValue(void const *addr, index_t frame, index_t node)
 	{
-        auto ptr = GetPtr();
         return ReadValue<Tp>(GetNodeBaseAddr(addr, node), frame);
 	}
 
@@ -673,7 +675,7 @@ public:
 	inline void Add(index_t frame, index_t node, ValueTp value)
 	{
         BB_DEBUG_ASSERT(m_data_type == DataType<MemTp>::type);
-        auto ptr = GetPtr();
+        auto ptr = GetMemoryPtr();
         DataType_Add<MemTp>(GetNodeBaseAddr(ptr.GetAddr(), node), frame, static_cast<MemTp>(value));
 	}
 
@@ -810,7 +812,7 @@ public:
         int dim = tensor.GetDim();
         std::vector<index_t> indices(tensor.GetDim(), 0);
         for ( ; ; ) {
-            m_tensor.At<Tp>(indices) = tensor.At<Tp>(indices);
+//            m_tensor.template At<Tp>(indices) = tensor.template At<Tp>(indices);
 
             int i = 0;
             for ( ; ; ) {

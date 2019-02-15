@@ -1043,15 +1043,15 @@ public:
             auto dst = tensor.m_mem->GetPtr(true);
             switch ( m_type ) {
             case BB_TYPE_FP32:   for (index_t i = 0; i < m_size; ++i){ dst. template At<Tp>(i) = static_cast<Tp>(src. template At<float>(i));         } break;
-            case BB_TYPE_FP64:   for (index_t i = 0; i < m_size; ++i){ dst.At<Tp>(i) = static_cast<Tp>(src.At<double>(i));        } break;
-            case BB_TYPE_INT8:   for (index_t i = 0; i < m_size; ++i){ dst.At<Tp>(i) = static_cast<Tp>(src.At<std::int8_t>(i));   } break;
-            case BB_TYPE_INT16:  for (index_t i = 0; i < m_size; ++i){ dst.At<Tp>(i) = static_cast<Tp>(src.At<std::int16_t>(i));  } break;
-            case BB_TYPE_INT32:  for (index_t i = 0; i < m_size; ++i){ dst.At<Tp>(i) = static_cast<Tp>(src.At<std::int32_t>(i));  } break;
-            case BB_TYPE_INT64:  for (index_t i = 0; i < m_size; ++i){ dst.At<Tp>(i) = static_cast<Tp>(src.At<std::int64_t>(i));  } break;
-            case BB_TYPE_UINT8:  for (index_t i = 0; i < m_size; ++i){ dst.At<Tp>(i) = static_cast<Tp>(src.At<std::uint8_t>(i));  } break;
-            case BB_TYPE_UINT16: for (index_t i = 0; i < m_size; ++i){ dst.At<Tp>(i) = static_cast<Tp>(src.At<std::uint16_t>(i)); } break;
-            case BB_TYPE_UINT32: for (index_t i = 0; i < m_size; ++i){ dst.At<Tp>(i) = static_cast<Tp>(src.At<std::uint32_t>(i)); } break;
-            case BB_TYPE_UINT64: for (index_t i = 0; i < m_size; ++i){ dst.At<Tp>(i) = static_cast<Tp>(src.At<std::uint64_t>(i)); } break;
+            case BB_TYPE_FP64:   for (index_t i = 0; i < m_size; ++i){ dst. template At<Tp>(i) = static_cast<Tp>(src. template At<double>(i));        } break;
+            case BB_TYPE_INT8:   for (index_t i = 0; i < m_size; ++i){ dst. template At<Tp>(i) = static_cast<Tp>(src. template At<std::int8_t>(i));   } break;
+            case BB_TYPE_INT16:  for (index_t i = 0; i < m_size; ++i){ dst. template At<Tp>(i) = static_cast<Tp>(src. template At<std::int16_t>(i));  } break;
+            case BB_TYPE_INT32:  for (index_t i = 0; i < m_size; ++i){ dst. template At<Tp>(i) = static_cast<Tp>(src. template At<std::int32_t>(i));  } break;
+            case BB_TYPE_INT64:  for (index_t i = 0; i < m_size; ++i){ dst. template At<Tp>(i) = static_cast<Tp>(src. template At<std::int64_t>(i));  } break;
+            case BB_TYPE_UINT8:  for (index_t i = 0; i < m_size; ++i){ dst. template At<Tp>(i) = static_cast<Tp>(src. template At<std::uint8_t>(i));  } break;
+            case BB_TYPE_UINT16: for (index_t i = 0; i < m_size; ++i){ dst. template At<Tp>(i) = static_cast<Tp>(src. template At<std::uint16_t>(i)); } break;
+            case BB_TYPE_UINT32: for (index_t i = 0; i < m_size; ++i){ dst. template At<Tp>(i) = static_cast<Tp>(src. template At<std::uint32_t>(i)); } break;
+            case BB_TYPE_UINT64: for (index_t i = 0; i < m_size; ++i){ dst. template At<Tp>(i) = static_cast<Tp>(src. template At<std::uint64_t>(i)); } break;
             default: BB_ASSERT(0); break;
             }
             return tensor;
