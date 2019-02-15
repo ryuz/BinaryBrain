@@ -159,7 +159,10 @@ public:
 template <typename Tp, class TensorTp, class PtrTp>
 class TensorPtr_ : public TensorConstPtr_<Tp, TensorTp, PtrTp>
 {
-friend TensorTp;
+    friend TensorTp;
+    using TensorConstPtr_<Tp, TensorTp, PtrTp>::m_tensor;
+    using TensorConstPtr_<Tp, TensorTp, PtrTp>::m_ptr;
+
 protected:
     TensorPtr_(TensorTp* tensor) : TensorConstPtr_<Tp, TensorTp, PtrTp>(tensor)
     {
