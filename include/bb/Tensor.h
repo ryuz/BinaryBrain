@@ -347,18 +347,18 @@ inline void Tensor_Scalar_div_ex
 // -------------------------------------
 
 template<typename T>    class Tensor_;
-template<typename T>    Tensor_<T> operator+(const Tensor_<T> &src0, Tensor_<T> const &src1);
-template<typename T>    Tensor_<T> operator+(const Tensor_<T> &src0, T src1);
-template<typename T>    Tensor_<T> operator+(T src0, const Tensor_<T> &src1);
-template<typename T>    Tensor_<T> operator-(const Tensor_<T> &src0, Tensor_<T> const &src1);
-template<typename T>    Tensor_<T> operator-(const Tensor_<T> &src0, T src1);
+template<typename T>    Tensor_<T> operator+(Tensor_<T> const &src0, Tensor_<T> const &src1);
+template<typename T>    Tensor_<T> operator+(Tensor_<T> const &src0, T src1);
+template<typename T>    Tensor_<T> operator+(T src0, Tensor_<T> const &src1);
+template<typename T>    Tensor_<T> operator-(Tensor_<T> const  &src0, Tensor_<T> const &src1);
+template<typename T>    Tensor_<T> operator-(Tensor_<T> const  &src0, T src1);
 template<typename T>    Tensor_<T> operator-(T src0, const Tensor_<T> &src1);
-template<typename T>    Tensor_<T> operator*(const Tensor_<T> &src0, Tensor_<T> const &src1);
-template<typename T>    Tensor_<T> operator*(const Tensor_<T> &src0, T src1);
-template<typename T>    Tensor_<T> operator*(T src0, const Tensor_<T> &src1);
-template<typename T>    Tensor_<T> operator/(const Tensor_<T> &src0, Tensor_<T> const &src1);
-template<typename T>    Tensor_<T> operator/(const Tensor_<T> &src0, T src1);
-template<typename T>    Tensor_<T> operator/(T src0, const Tensor_<T> &src1);
+template<typename T>    Tensor_<T> operator*(Tensor_<T> const &src0, Tensor_<T> const &src1);
+template<typename T>    Tensor_<T> operator*(Tensor_<T> const &src0, T src1);
+template<typename T>    Tensor_<T> operator*(T src0, Tensor_<T> const &src1);
+template<typename T>    Tensor_<T> operator/(Tensor_<T> const &src0, Tensor_<T> const &src1);
+template<typename T>    Tensor_<T> operator/(Tensor_<T> const &src0, T src1);
+template<typename T>    Tensor_<T> operator/(T src0, Tensor_<T> const &src1);
 
 class Tensor;
 
@@ -957,13 +957,47 @@ inline Tensor_<float> operator-(float src0, const Tensor_<float> &src1)
 //  Tensorクラス
 // -------------------------------------
 
+class Tensor;
+
+/*
+//template<typename T>    Tensor operator+(Tensor const &src0, Tensor> const &src1);
+template<typename T>    Tensor operator+(Tensor const &src0, T src1);
+template<typename T>    Tensor operator+(T src0, Tensor const &src1);
+//template<typename T>    Tensor operator-(Tensor const  &src0, Tensor const &src1);
+template<typename T>    Tensor operator-(Tensor const  &src0, T src1);
+template<typename T>    Tensor operator-(T src0, const Tensor &src1);
+//template<typename T>    Tensor operator*(Tensor const &src0, Tensor const &src1);
+template<typename T>    Tensor operator*(Tensor const &src0, T src1);
+template<typename T>    Tensor operator*(T src0, Tensor const &src1);
+//template<typename T>    Tensor operator/(Tensor const &src0, Tensor const &src1);
+template<typename T>    Tensor operator/(Tensor const &src0, T src1);
+template<typename T>    Tensor operator/(T src0, Tensor const &src1);
+*/
+
 // Tensor
 class Tensor
 {
-    friend TensorConstPtr_<float,  Tensor const, Memory::ConstPtr>;
-    friend TensorConstPtr_<double, Tensor const, Memory::ConstPtr>;
-    friend TensorPtr_<float, Tensor, Memory::Ptr>;;
-    friend TensorPtr_<double, Tensor, Memory::Ptr>;;
+    friend TensorConstPtr_<float,         Tensor const, Memory::ConstPtr>;
+    friend TensorConstPtr_<double,        Tensor const, Memory::ConstPtr>;
+    friend TensorConstPtr_<std::int8_t,   Tensor const, Memory::ConstPtr>;
+    friend TensorConstPtr_<std::int16_t,  Tensor const, Memory::ConstPtr>;
+    friend TensorConstPtr_<std::int32_t,  Tensor const, Memory::ConstPtr>;
+    friend TensorConstPtr_<std::int64_t,  Tensor const, Memory::ConstPtr>;
+    friend TensorConstPtr_<std::uint8_t,  Tensor const, Memory::ConstPtr>;
+    friend TensorConstPtr_<std::uint16_t, Tensor const, Memory::ConstPtr>;
+    friend TensorConstPtr_<std::uint32_t, Tensor const, Memory::ConstPtr>;
+    friend TensorConstPtr_<std::uint64_t, Tensor const, Memory::ConstPtr>;
+
+    friend TensorPtr_<float,         Tensor, Memory::Ptr>;
+    friend TensorPtr_<double,        Tensor, Memory::Ptr>;
+    friend TensorPtr_<std::int8_t,   Tensor, Memory::Ptr>;
+    friend TensorPtr_<std::int16_t,  Tensor, Memory::Ptr>;
+    friend TensorPtr_<std::int32_t,  Tensor, Memory::Ptr>;
+    friend TensorPtr_<std::int64_t,  Tensor, Memory::Ptr>;
+    friend TensorPtr_<std::uint8_t,  Tensor, Memory::Ptr>;
+    friend TensorPtr_<std::uint16_t, Tensor, Memory::Ptr>;
+    friend TensorPtr_<std::uint32_t, Tensor, Memory::Ptr>;
+    friend TensorPtr_<std::uint64_t, Tensor, Memory::Ptr>;
 
 protected:
 	int							m_type = 0;
@@ -1181,6 +1215,23 @@ public:
             m_stride[i] = tmp_stride[axes[i]];
             m_shape[i]  = tmp_shape[axes[i]];
         }
+    }
+
+    void InitNormalDistribution(double mean = 0.0, double stddev = 1.0, std::uint64_t seed=1)
+    {
+        switch (m_type) {
+        case BB_TYPE_FP32:   Tensor_<float        >(*this).InitNormalDistribution();  break;
+        case BB_TYPE_FP64:   Tensor_<double       >(*this).InitNormalDistribution();  break;
+        case BB_TYPE_INT8:   Tensor_<std::int8_t  >(*this).InitNormalDistribution();  break;
+        case BB_TYPE_INT16:  Tensor_<std::int16_t >(*this).InitNormalDistribution();  break;
+        case BB_TYPE_INT32:  Tensor_<std::int32_t >(*this).InitNormalDistribution();  break;
+        case BB_TYPE_INT64:  Tensor_<std::int64_t >(*this).InitNormalDistribution();  break;
+        case BB_TYPE_UINT8:  Tensor_<std::uint8_t >(*this).InitNormalDistribution();  break;
+        case BB_TYPE_UINT16: Tensor_<std::uint16_t>(*this).InitNormalDistribution();  break;
+        case BB_TYPE_UINT32: Tensor_<std::uint32_t>(*this).InitNormalDistribution();  break;
+        case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this).InitNormalDistribution();  break;
+        default:    BB_ASSERT(0);  break;
+        } 
     }
 
     void FillZero(void)
@@ -1416,7 +1467,7 @@ public:
     }
     
     template <typename Tp>
-    TensorPtr_<Tp, Tensor, Memory::Ptr> GetPtr(bool new_buf=false) const
+    TensorPtr_<Tp, Tensor, Memory::Ptr> GetPtr(bool new_buf=false)
     {
         TensorPtr_<Tp, Tensor, Memory::Ptr> ptr(this);
         ptr.Lock(new_buf);
@@ -1529,18 +1580,407 @@ public:
     //  演算
     // -------------------------------------
 
-    inline Tensor& operator+=(Tensor const &src)
+    template<typename Tp>
+    inline Tensor& operator=(Tp src)
     {
-        BB_ASSERT(m_type == src.m_type);
         switch (m_type) {
-        case BB_TYPE_FP32: Tensor_<float>(*this) += Tensor_<float>(src);
+        case BB_TYPE_FP32:   Tensor_<float>(*this)         = static_cast<float>(src);          break;
+        case BB_TYPE_FP64:   Tensor_<double>(*this)        = static_cast<double>(src);         break;
+        case BB_TYPE_INT8:   Tensor_<std::int8_t>(*this)   = static_cast<std::int8_t>(src);    break;
+        case BB_TYPE_INT16:  Tensor_<std::int16_t>(*this)  = static_cast<std::int16_t>(src);   break;
+        case BB_TYPE_INT32:  Tensor_<std::int32_t>(*this)  = static_cast<std::int32_t>(src);   break;
+        case BB_TYPE_INT64:  Tensor_<std::int64_t>(*this)  = static_cast<std::int64_t>(src);   break;
+        case BB_TYPE_UINT8:  Tensor_<std::uint8_t>(*this)  = static_cast<std::uint8_t>(src);   break;
+        case BB_TYPE_UINT16: Tensor_<std::uint16_t>(*this) = static_cast<std::uint16_t>(src);  break;
+        case BB_TYPE_UINT32: Tensor_<std::uint32_t>(*this) = static_cast<std::uint32_t>(src);  break;
+        case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this) = static_cast<std::uint64_t>(src);  break;
+        default:    BB_ASSERT(0);  break;
         }
         return *this;
     }
 
+    inline Tensor& operator+=(Tensor const &src)
+    {
+        BB_ASSERT(m_type == src.m_type);
+        switch (m_type) {
+        case BB_TYPE_FP32:   Tensor_<float>(*this)         += Tensor_<float>(src);          break;
+        case BB_TYPE_FP64:   Tensor_<double>(*this)        += Tensor_<double>(src);         break;
+        case BB_TYPE_INT8:   Tensor_<std::int8_t>(*this)   += Tensor_<std::int8_t>(src);    break;
+        case BB_TYPE_INT16:  Tensor_<std::int16_t>(*this)  += Tensor_<std::int16_t>(src);   break;
+        case BB_TYPE_INT32:  Tensor_<std::int32_t>(*this)  += Tensor_<std::int32_t>(src);   break;
+        case BB_TYPE_INT64:  Tensor_<std::int64_t>(*this)  += Tensor_<std::int64_t>(src);   break;
+        case BB_TYPE_UINT8:  Tensor_<std::uint8_t>(*this)  += Tensor_<std::uint8_t>(src);   break;
+        case BB_TYPE_UINT16: Tensor_<std::uint16_t>(*this) += Tensor_<std::uint16_t>(src);  break;
+        case BB_TYPE_UINT32: Tensor_<std::uint32_t>(*this) += Tensor_<std::uint32_t>(src);  break;
+        case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this) += Tensor_<std::uint64_t>(src);  break;
+        default:    BB_ASSERT(0);  break;
+        }
+        return *this;
+    }
+
+    template<typename Tp>
+    inline Tensor& operator+=(Tp src)
+    {
+        switch (m_type) {
+        case BB_TYPE_FP32:   Tensor_<float>(*this)         += static_cast<float>(src);          break;
+        case BB_TYPE_FP64:   Tensor_<double>(*this)        += static_cast<double>(src);         break;
+        case BB_TYPE_INT8:   Tensor_<std::int8_t>(*this)   += static_cast<std::int8_t>(src);    break;
+        case BB_TYPE_INT16:  Tensor_<std::int16_t>(*this)  += static_cast<std::int16_t>(src);   break;
+        case BB_TYPE_INT32:  Tensor_<std::int32_t>(*this)  += static_cast<std::int32_t>(src);   break;
+        case BB_TYPE_INT64:  Tensor_<std::int64_t>(*this)  += static_cast<std::int64_t>(src);   break;
+        case BB_TYPE_UINT8:  Tensor_<std::uint8_t>(*this)  += static_cast<std::uint8_t>(src);   break;
+        case BB_TYPE_UINT16: Tensor_<std::uint16_t>(*this) += static_cast<std::uint16_t>(src);  break;
+        case BB_TYPE_UINT32: Tensor_<std::uint32_t>(*this) += static_cast<std::uint32_t>(src);  break;
+        case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this) += static_cast<std::uint64_t>(src);  break;
+        default:    BB_ASSERT(0);  break;
+        }
+        return *this;
+    }
+
+    
+    inline Tensor& operator-=(Tensor const &src)
+    {
+        BB_ASSERT(m_type == src.m_type);
+        switch (m_type) {
+        case BB_TYPE_FP32:   Tensor_<float>(*this)         -= Tensor_<float>(src);          break;
+        case BB_TYPE_FP64:   Tensor_<double>(*this)        -= Tensor_<double>(src);         break;
+        case BB_TYPE_INT8:   Tensor_<std::int8_t>(*this)   -= Tensor_<std::int8_t>(src);    break;
+        case BB_TYPE_INT16:  Tensor_<std::int16_t>(*this)  -= Tensor_<std::int16_t>(src);   break;
+        case BB_TYPE_INT32:  Tensor_<std::int32_t>(*this)  -= Tensor_<std::int32_t>(src);   break;
+        case BB_TYPE_INT64:  Tensor_<std::int64_t>(*this)  -= Tensor_<std::int64_t>(src);   break;
+        case BB_TYPE_UINT8:  Tensor_<std::uint8_t>(*this)  -= Tensor_<std::uint8_t>(src);   break;
+        case BB_TYPE_UINT16: Tensor_<std::uint16_t>(*this) -= Tensor_<std::uint16_t>(src);  break;
+        case BB_TYPE_UINT32: Tensor_<std::uint32_t>(*this) -= Tensor_<std::uint32_t>(src);  break;
+        case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this) -= Tensor_<std::uint64_t>(src);  break;
+        default:    BB_ASSERT(0);  break;
+        }
+        return *this;
+    }
+
+    template<typename Tp>
+    inline Tensor& operator-=(Tp src)
+    {
+        switch (m_type) {
+        case BB_TYPE_FP32:   Tensor_<float>(*this)         -= static_cast<float>(src);          break;
+        case BB_TYPE_FP64:   Tensor_<double>(*this)        -= static_cast<double>(src);         break;
+        case BB_TYPE_INT8:   Tensor_<std::int8_t>(*this)   -= static_cast<std::int8_t>(src);    break;
+        case BB_TYPE_INT16:  Tensor_<std::int16_t>(*this)  -= static_cast<std::int16_t>(src);   break;
+        case BB_TYPE_INT32:  Tensor_<std::int32_t>(*this)  -= static_cast<std::int32_t>(src);   break;
+        case BB_TYPE_INT64:  Tensor_<std::int64_t>(*this)  -= static_cast<std::int64_t>(src);   break;
+        case BB_TYPE_UINT8:  Tensor_<std::uint8_t>(*this)  -= static_cast<std::uint8_t>(src);   break;
+        case BB_TYPE_UINT16: Tensor_<std::uint16_t>(*this) -= static_cast<std::uint16_t>(src);  break;
+        case BB_TYPE_UINT32: Tensor_<std::uint32_t>(*this) -= static_cast<std::uint32_t>(src);  break;
+        case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this) -= static_cast<std::uint64_t>(src);  break;
+        default:    BB_ASSERT(0);  break;
+        }
+        return *this;
+    }
  
+    inline Tensor& operator*=(Tensor const &src)
+    {
+        BB_ASSERT(m_type == src.m_type);
+        switch (m_type) {
+        case BB_TYPE_FP32:   Tensor_<float>(*this)         *= Tensor_<float>(src);          break;
+        case BB_TYPE_FP64:   Tensor_<double>(*this)        *= Tensor_<double>(src);         break;
+        case BB_TYPE_INT8:   Tensor_<std::int8_t>(*this)   *= Tensor_<std::int8_t>(src);    break;
+        case BB_TYPE_INT16:  Tensor_<std::int16_t>(*this)  *= Tensor_<std::int16_t>(src);   break;
+        case BB_TYPE_INT32:  Tensor_<std::int32_t>(*this)  *= Tensor_<std::int32_t>(src);   break;
+        case BB_TYPE_INT64:  Tensor_<std::int64_t>(*this)  *= Tensor_<std::int64_t>(src);   break;
+        case BB_TYPE_UINT8:  Tensor_<std::uint8_t>(*this)  *= Tensor_<std::uint8_t>(src);   break;
+        case BB_TYPE_UINT16: Tensor_<std::uint16_t>(*this) *= Tensor_<std::uint16_t>(src);  break;
+        case BB_TYPE_UINT32: Tensor_<std::uint32_t>(*this) *= Tensor_<std::uint32_t>(src);  break;
+        case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this) *= Tensor_<std::uint64_t>(src);  break;
+        default:    BB_ASSERT(0);  break;
+        }
+        return *this;
+    }
+
+    template<typename Tp>
+    inline Tensor& operator*=(Tp src)
+    {
+        switch (m_type) {
+        case BB_TYPE_FP32:   Tensor_<float>(*this)         *= static_cast<float>(src);          break;
+        case BB_TYPE_FP64:   Tensor_<double>(*this)        *= static_cast<double>(src);         break;
+        case BB_TYPE_INT8:   Tensor_<std::int8_t>(*this)   *= static_cast<std::int8_t>(src);    break;
+        case BB_TYPE_INT16:  Tensor_<std::int16_t>(*this)  *= static_cast<std::int16_t>(src);   break;
+        case BB_TYPE_INT32:  Tensor_<std::int32_t>(*this)  *= static_cast<std::int32_t>(src);   break;
+        case BB_TYPE_INT64:  Tensor_<std::int64_t>(*this)  *= static_cast<std::int64_t>(src);   break;
+        case BB_TYPE_UINT8:  Tensor_<std::uint8_t>(*this)  *= static_cast<std::uint8_t>(src);   break;
+        case BB_TYPE_UINT16: Tensor_<std::uint16_t>(*this) *= static_cast<std::uint16_t>(src);  break;
+        case BB_TYPE_UINT32: Tensor_<std::uint32_t>(*this) *= static_cast<std::uint32_t>(src);  break;
+        case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this) *= static_cast<std::uint64_t>(src);  break;
+        default:    BB_ASSERT(0);  break;
+        }
+        return *this;
+    }
+
+    inline Tensor& operator/=(Tensor const &src)
+    {
+        BB_ASSERT(m_type == src.m_type);
+        switch (m_type) {
+        case BB_TYPE_FP32:   Tensor_<float>(*this)         /= Tensor_<float>(src);          break;
+        case BB_TYPE_FP64:   Tensor_<double>(*this)        /= Tensor_<double>(src);         break;
+        case BB_TYPE_INT8:   Tensor_<std::int8_t>(*this)   /= Tensor_<std::int8_t>(src);    break;
+        case BB_TYPE_INT16:  Tensor_<std::int16_t>(*this)  /= Tensor_<std::int16_t>(src);   break;
+        case BB_TYPE_INT32:  Tensor_<std::int32_t>(*this)  /= Tensor_<std::int32_t>(src);   break;
+        case BB_TYPE_INT64:  Tensor_<std::int64_t>(*this)  /= Tensor_<std::int64_t>(src);   break;
+        case BB_TYPE_UINT8:  Tensor_<std::uint8_t>(*this)  /= Tensor_<std::uint8_t>(src);   break;
+        case BB_TYPE_UINT16: Tensor_<std::uint16_t>(*this) /= Tensor_<std::uint16_t>(src);  break;
+        case BB_TYPE_UINT32: Tensor_<std::uint32_t>(*this) /= Tensor_<std::uint32_t>(src);  break;
+        case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this) /= Tensor_<std::uint64_t>(src);  break;
+        default:    BB_ASSERT(0);  break;
+        }
+        return *this;
+    }
+
+    template<typename Tp>
+    inline Tensor& operator/=(Tp src)
+    {
+        switch (m_type) {
+        case BB_TYPE_FP32:   Tensor_<float>(*this)         /= static_cast<float>(src);          break;
+        case BB_TYPE_FP64:   Tensor_<double>(*this)        /= static_cast<double>(src);         break;
+        case BB_TYPE_INT8:   Tensor_<std::int8_t>(*this)   /= static_cast<std::int8_t>(src);    break;
+        case BB_TYPE_INT16:  Tensor_<std::int16_t>(*this)  /= static_cast<std::int16_t>(src);   break;
+        case BB_TYPE_INT32:  Tensor_<std::int32_t>(*this)  /= static_cast<std::int32_t>(src);   break;
+        case BB_TYPE_INT64:  Tensor_<std::int64_t>(*this)  /= static_cast<std::int64_t>(src);   break;
+        case BB_TYPE_UINT8:  Tensor_<std::uint8_t>(*this)  /= static_cast<std::uint8_t>(src);   break;
+        case BB_TYPE_UINT16: Tensor_<std::uint16_t>(*this) /= static_cast<std::uint16_t>(src);  break;
+        case BB_TYPE_UINT32: Tensor_<std::uint32_t>(*this) /= static_cast<std::uint32_t>(src);  break;
+        case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this) /= static_cast<std::uint64_t>(src);  break;
+        default:    BB_ASSERT(0);  break;
+        }
+        return *this;
+    }
+
+    friend  Tensor operator + (Tensor const &src0, const Tensor &src1);
+    friend  Tensor operator + (Tensor const &src0, double src1);
+    friend  Tensor operator + (double src0, Tensor const &src1);
+    friend  Tensor operator - (const Tensor &src0, Tensor const &src1);
+    friend  Tensor operator - (const Tensor &src0, double src1);
+    friend  Tensor operator - (double src0, const Tensor &src1);
+    friend  Tensor operator * (const Tensor &src0, Tensor const &src1);
+    friend  Tensor operator * (const Tensor &src0, double src1);
+    friend  Tensor operator * (double src0, const Tensor &src1);
+    friend  Tensor operator / (const Tensor &src0, Tensor const &src1);
+    friend  Tensor operator / (const Tensor &src0, double src1);
+    friend  Tensor operator / (double src0, const Tensor &src1);
 };
 
+
+inline Tensor operator+(const Tensor &src0, Tensor const &src1)
+{
+    BB_ASSERT(src0.m_type == src1.m_type);
+    BB_ASSERT(src0.m_size == src1.m_size);
+    switch (src0.m_type) {
+    case BB_TYPE_FP32:   return Tensor_<float        >(src0) + Tensor_<float        >(src1);        
+    case BB_TYPE_FP64:   return Tensor_<double       >(src0) + Tensor_<double       >(src1);       
+    case BB_TYPE_INT8:   return Tensor_<std::int8_t  >(src0) + Tensor_<std::int8_t  >(src1);  
+    case BB_TYPE_INT16:  return Tensor_<std::int16_t >(src0) + Tensor_<std::int16_t >(src1); 
+    case BB_TYPE_INT32:  return Tensor_<std::int32_t >(src0) + Tensor_<std::int32_t >(src1); 
+    case BB_TYPE_INT64:  return Tensor_<std::int64_t >(src0) + Tensor_<std::int64_t >(src1); 
+    case BB_TYPE_UINT8:  return Tensor_<std::uint8_t >(src0) + Tensor_<std::uint8_t >(src1); 
+    case BB_TYPE_UINT16: return Tensor_<std::uint16_t>(src0) + Tensor_<std::uint16_t>(src1);
+    case BB_TYPE_UINT32: return Tensor_<std::uint32_t>(src0) + Tensor_<std::uint32_t>(src1);
+    case BB_TYPE_UINT64: return Tensor_<std::uint64_t>(src0) + Tensor_<std::uint64_t>(src1);
+    default:    BB_ASSERT(0);  return Tensor();
+    }
+}
+
+inline Tensor operator+(Tensor const & src0, double src1)
+{
+    switch (src0.m_type) {
+    case BB_TYPE_FP32:   return Tensor_<float        >(src0) + static_cast<float        >(src1);        
+    case BB_TYPE_FP64:   return Tensor_<double       >(src0) + static_cast<double       >(src1);       
+    case BB_TYPE_INT8:   return Tensor_<std::int8_t  >(src0) + static_cast<std::int8_t  >(src1);  
+    case BB_TYPE_INT16:  return Tensor_<std::int16_t >(src0) + static_cast<std::int16_t >(src1); 
+    case BB_TYPE_INT32:  return Tensor_<std::int32_t >(src0) + static_cast<std::int32_t >(src1); 
+    case BB_TYPE_INT64:  return Tensor_<std::int64_t >(src0) + static_cast<std::int64_t >(src1); 
+    case BB_TYPE_UINT8:  return Tensor_<std::uint8_t >(src0) + static_cast<std::uint8_t >(src1); 
+    case BB_TYPE_UINT16: return Tensor_<std::uint16_t>(src0) + static_cast<std::uint16_t>(src1);
+    case BB_TYPE_UINT32: return Tensor_<std::uint32_t>(src0) + static_cast<std::uint32_t>(src1);
+    case BB_TYPE_UINT64: return Tensor_<std::uint64_t>(src0) + static_cast<std::uint64_t>(src1);
+    default:    BB_ASSERT(0);  return Tensor();
+    }
+}
+
+inline Tensor operator+(double src0, Tensor const &src1)
+{
+    switch (src1.m_type) {
+    case BB_TYPE_FP32:   return static_cast<float        >(src0) + Tensor_<float        >(src1);        
+    case BB_TYPE_FP64:   return static_cast<double       >(src0) + Tensor_<double       >(src1);       
+    case BB_TYPE_INT8:   return static_cast<std::int8_t  >(src0) + Tensor_<std::int8_t  >(src1);  
+    case BB_TYPE_INT16:  return static_cast<std::int16_t >(src0) + Tensor_<std::int16_t >(src1); 
+    case BB_TYPE_INT32:  return static_cast<std::int32_t >(src0) + Tensor_<std::int32_t >(src1); 
+    case BB_TYPE_INT64:  return static_cast<std::int64_t >(src0) + Tensor_<std::int64_t >(src1); 
+    case BB_TYPE_UINT8:  return static_cast<std::uint8_t >(src0) + Tensor_<std::uint8_t >(src1); 
+    case BB_TYPE_UINT16: return static_cast<std::uint16_t>(src0) + Tensor_<std::uint16_t>(src1);
+    case BB_TYPE_UINT32: return static_cast<std::uint32_t>(src0) + Tensor_<std::uint32_t>(src1);
+    case BB_TYPE_UINT64: return static_cast<std::uint64_t>(src0) + Tensor_<std::uint64_t>(src1);
+    default:    BB_ASSERT(0);  return Tensor();
+    }
+}
+
+
+inline Tensor operator-(const Tensor &src0, Tensor const &src1)
+{
+    BB_ASSERT(src0.m_type == src1.m_type);
+    BB_ASSERT(src0.m_size == src1.m_size);
+    switch (src0.m_type) {
+    case BB_TYPE_FP32:   return Tensor_<float        >(src0) - Tensor_<float        >(src1);        
+    case BB_TYPE_FP64:   return Tensor_<double       >(src0) - Tensor_<double       >(src1);       
+    case BB_TYPE_INT8:   return Tensor_<std::int8_t  >(src0) - Tensor_<std::int8_t  >(src1);  
+    case BB_TYPE_INT16:  return Tensor_<std::int16_t >(src0) - Tensor_<std::int16_t >(src1); 
+    case BB_TYPE_INT32:  return Tensor_<std::int32_t >(src0) - Tensor_<std::int32_t >(src1); 
+    case BB_TYPE_INT64:  return Tensor_<std::int64_t >(src0) - Tensor_<std::int64_t >(src1); 
+    case BB_TYPE_UINT8:  return Tensor_<std::uint8_t >(src0) - Tensor_<std::uint8_t >(src1); 
+    case BB_TYPE_UINT16: return Tensor_<std::uint16_t>(src0) - Tensor_<std::uint16_t>(src1);
+    case BB_TYPE_UINT32: return Tensor_<std::uint32_t>(src0) - Tensor_<std::uint32_t>(src1);
+    case BB_TYPE_UINT64: return Tensor_<std::uint64_t>(src0) - Tensor_<std::uint64_t>(src1);
+    default:    BB_ASSERT(0);  return Tensor();
+    }
+}
+
+inline Tensor operator-(Tensor const & src0, double src1)
+{
+    switch (src0.m_type) {
+    case BB_TYPE_FP32:   return Tensor_<float        >(src0) - static_cast<float        >(src1);        
+    case BB_TYPE_FP64:   return Tensor_<double       >(src0) - static_cast<double       >(src1);       
+    case BB_TYPE_INT8:   return Tensor_<std::int8_t  >(src0) - static_cast<std::int8_t  >(src1);  
+    case BB_TYPE_INT16:  return Tensor_<std::int16_t >(src0) - static_cast<std::int16_t >(src1); 
+    case BB_TYPE_INT32:  return Tensor_<std::int32_t >(src0) - static_cast<std::int32_t >(src1); 
+    case BB_TYPE_INT64:  return Tensor_<std::int64_t >(src0) - static_cast<std::int64_t >(src1); 
+    case BB_TYPE_UINT8:  return Tensor_<std::uint8_t >(src0) - static_cast<std::uint8_t >(src1); 
+    case BB_TYPE_UINT16: return Tensor_<std::uint16_t>(src0) - static_cast<std::uint16_t>(src1);
+    case BB_TYPE_UINT32: return Tensor_<std::uint32_t>(src0) - static_cast<std::uint32_t>(src1);
+    case BB_TYPE_UINT64: return Tensor_<std::uint64_t>(src0) - static_cast<std::uint64_t>(src1);
+    default:    BB_ASSERT(0);  return Tensor();
+    }
+}
+
+inline Tensor operator-(double src0, Tensor const &src1)
+{
+    switch (src1.m_type) {
+    case BB_TYPE_FP32:   return static_cast<float        >(src0) - Tensor_<float        >(src1);        
+    case BB_TYPE_FP64:   return static_cast<double       >(src0) - Tensor_<double       >(src1);       
+    case BB_TYPE_INT8:   return static_cast<std::int8_t  >(src0) - Tensor_<std::int8_t  >(src1);  
+    case BB_TYPE_INT16:  return static_cast<std::int16_t >(src0) - Tensor_<std::int16_t >(src1); 
+    case BB_TYPE_INT32:  return static_cast<std::int32_t >(src0) - Tensor_<std::int32_t >(src1); 
+    case BB_TYPE_INT64:  return static_cast<std::int64_t >(src0) - Tensor_<std::int64_t >(src1); 
+    case BB_TYPE_UINT8:  return static_cast<std::uint8_t >(src0) - Tensor_<std::uint8_t >(src1); 
+    case BB_TYPE_UINT16: return static_cast<std::uint16_t>(src0) - Tensor_<std::uint16_t>(src1);
+    case BB_TYPE_UINT32: return static_cast<std::uint32_t>(src0) - Tensor_<std::uint32_t>(src1);
+    case BB_TYPE_UINT64: return static_cast<std::uint64_t>(src0) - Tensor_<std::uint64_t>(src1);
+    default:    BB_ASSERT(0);  return Tensor();
+    }
+}
+
+
+inline Tensor operator*(const Tensor &src0, Tensor const &src1)
+{
+    BB_ASSERT(src0.m_type == src1.m_type);
+    BB_ASSERT(src0.m_size == src1.m_size);
+    switch (src0.m_type) {
+    case BB_TYPE_FP32:   return Tensor_<float        >(src0) * Tensor_<float        >(src1);        
+    case BB_TYPE_FP64:   return Tensor_<double       >(src0) * Tensor_<double       >(src1);       
+    case BB_TYPE_INT8:   return Tensor_<std::int8_t  >(src0) * Tensor_<std::int8_t  >(src1);  
+    case BB_TYPE_INT16:  return Tensor_<std::int16_t >(src0) * Tensor_<std::int16_t >(src1); 
+    case BB_TYPE_INT32:  return Tensor_<std::int32_t >(src0) * Tensor_<std::int32_t >(src1); 
+    case BB_TYPE_INT64:  return Tensor_<std::int64_t >(src0) * Tensor_<std::int64_t >(src1); 
+    case BB_TYPE_UINT8:  return Tensor_<std::uint8_t >(src0) * Tensor_<std::uint8_t >(src1); 
+    case BB_TYPE_UINT16: return Tensor_<std::uint16_t>(src0) * Tensor_<std::uint16_t>(src1);
+    case BB_TYPE_UINT32: return Tensor_<std::uint32_t>(src0) * Tensor_<std::uint32_t>(src1);
+    case BB_TYPE_UINT64: return Tensor_<std::uint64_t>(src0) * Tensor_<std::uint64_t>(src1);
+    default:    BB_ASSERT(0);  return Tensor();
+    }
+}
+
+inline Tensor operator*(Tensor const & src0, double src1)
+{
+    switch (src0.m_type) {
+    case BB_TYPE_FP32:   return Tensor_<float        >(src0) * static_cast<float        >(src1);        
+    case BB_TYPE_FP64:   return Tensor_<double       >(src0) * static_cast<double       >(src1);       
+    case BB_TYPE_INT8:   return Tensor_<std::int8_t  >(src0) * static_cast<std::int8_t  >(src1);  
+    case BB_TYPE_INT16:  return Tensor_<std::int16_t >(src0) * static_cast<std::int16_t >(src1); 
+    case BB_TYPE_INT32:  return Tensor_<std::int32_t >(src0) * static_cast<std::int32_t >(src1); 
+    case BB_TYPE_INT64:  return Tensor_<std::int64_t >(src0) * static_cast<std::int64_t >(src1); 
+    case BB_TYPE_UINT8:  return Tensor_<std::uint8_t >(src0) * static_cast<std::uint8_t >(src1); 
+    case BB_TYPE_UINT16: return Tensor_<std::uint16_t>(src0) * static_cast<std::uint16_t>(src1);
+    case BB_TYPE_UINT32: return Tensor_<std::uint32_t>(src0) * static_cast<std::uint32_t>(src1);
+    case BB_TYPE_UINT64: return Tensor_<std::uint64_t>(src0) * static_cast<std::uint64_t>(src1);
+    default:    BB_ASSERT(0);  return Tensor();
+    }
+}
+
+inline Tensor operator*(double src0, Tensor const &src1)
+{
+    switch (src1.m_type) {
+    case BB_TYPE_FP32:   return static_cast<float        >(src0) * Tensor_<float        >(src1);        
+    case BB_TYPE_FP64:   return static_cast<double       >(src0) * Tensor_<double       >(src1);       
+    case BB_TYPE_INT8:   return static_cast<std::int8_t  >(src0) * Tensor_<std::int8_t  >(src1);  
+    case BB_TYPE_INT16:  return static_cast<std::int16_t >(src0) * Tensor_<std::int16_t >(src1); 
+    case BB_TYPE_INT32:  return static_cast<std::int32_t >(src0) * Tensor_<std::int32_t >(src1); 
+    case BB_TYPE_INT64:  return static_cast<std::int64_t >(src0) * Tensor_<std::int64_t >(src1); 
+    case BB_TYPE_UINT8:  return static_cast<std::uint8_t >(src0) * Tensor_<std::uint8_t >(src1); 
+    case BB_TYPE_UINT16: return static_cast<std::uint16_t>(src0) * Tensor_<std::uint16_t>(src1);
+    case BB_TYPE_UINT32: return static_cast<std::uint32_t>(src0) * Tensor_<std::uint32_t>(src1);
+    case BB_TYPE_UINT64: return static_cast<std::uint64_t>(src0) * Tensor_<std::uint64_t>(src1);
+    default:    BB_ASSERT(0);  return Tensor();
+    }
+}
+
+
+inline Tensor operator/(const Tensor &src0, Tensor const &src1)
+{
+    BB_ASSERT(src0.m_type == src1.m_type);
+    BB_ASSERT(src0.m_size == src1.m_size);
+    switch (src0.m_type) {
+    case BB_TYPE_FP32:   return Tensor_<float        >(src0) / Tensor_<float        >(src1);        
+    case BB_TYPE_FP64:   return Tensor_<double       >(src0) / Tensor_<double       >(src1);       
+    case BB_TYPE_INT8:   return Tensor_<std::int8_t  >(src0) / Tensor_<std::int8_t  >(src1);  
+    case BB_TYPE_INT16:  return Tensor_<std::int16_t >(src0) / Tensor_<std::int16_t >(src1); 
+    case BB_TYPE_INT32:  return Tensor_<std::int32_t >(src0) / Tensor_<std::int32_t >(src1); 
+    case BB_TYPE_INT64:  return Tensor_<std::int64_t >(src0) / Tensor_<std::int64_t >(src1); 
+    case BB_TYPE_UINT8:  return Tensor_<std::uint8_t >(src0) / Tensor_<std::uint8_t >(src1); 
+    case BB_TYPE_UINT16: return Tensor_<std::uint16_t>(src0) / Tensor_<std::uint16_t>(src1);
+    case BB_TYPE_UINT32: return Tensor_<std::uint32_t>(src0) / Tensor_<std::uint32_t>(src1);
+    case BB_TYPE_UINT64: return Tensor_<std::uint64_t>(src0) / Tensor_<std::uint64_t>(src1);
+    default:    BB_ASSERT(0);  return Tensor();
+    }
+}
+
+inline Tensor operator/(Tensor const & src0, double src1)
+{
+    switch (src0.m_type) {
+    case BB_TYPE_FP32:   return Tensor_<float        >(src0) / static_cast<float        >(src1);        
+    case BB_TYPE_FP64:   return Tensor_<double       >(src0) / static_cast<double       >(src1);       
+    case BB_TYPE_INT8:   return Tensor_<std::int8_t  >(src0) / static_cast<std::int8_t  >(src1);  
+    case BB_TYPE_INT16:  return Tensor_<std::int16_t >(src0) / static_cast<std::int16_t >(src1); 
+    case BB_TYPE_INT32:  return Tensor_<std::int32_t >(src0) / static_cast<std::int32_t >(src1); 
+    case BB_TYPE_INT64:  return Tensor_<std::int64_t >(src0) / static_cast<std::int64_t >(src1); 
+    case BB_TYPE_UINT8:  return Tensor_<std::uint8_t >(src0) / static_cast<std::uint8_t >(src1); 
+    case BB_TYPE_UINT16: return Tensor_<std::uint16_t>(src0) / static_cast<std::uint16_t>(src1);
+    case BB_TYPE_UINT32: return Tensor_<std::uint32_t>(src0) / static_cast<std::uint32_t>(src1);
+    case BB_TYPE_UINT64: return Tensor_<std::uint64_t>(src0) / static_cast<std::uint64_t>(src1);
+    default:    BB_ASSERT(0);  return Tensor();
+    }
+}
+
+inline Tensor operator/(double src0, Tensor const &src1)
+{
+    switch (src1.m_type) {
+    case BB_TYPE_FP32:   return static_cast<float        >(src0) / Tensor_<float        >(src1);        
+    case BB_TYPE_FP64:   return static_cast<double       >(src0) / Tensor_<double       >(src1);       
+    case BB_TYPE_INT8:   return static_cast<std::int8_t  >(src0) / Tensor_<std::int8_t  >(src1);  
+    case BB_TYPE_INT16:  return static_cast<std::int16_t >(src0) / Tensor_<std::int16_t >(src1); 
+    case BB_TYPE_INT32:  return static_cast<std::int32_t >(src0) / Tensor_<std::int32_t >(src1); 
+    case BB_TYPE_INT64:  return static_cast<std::int64_t >(src0) / Tensor_<std::int64_t >(src1); 
+    case BB_TYPE_UINT8:  return static_cast<std::uint8_t >(src0) / Tensor_<std::uint8_t >(src1); 
+    case BB_TYPE_UINT16: return static_cast<std::uint16_t>(src0) / Tensor_<std::uint16_t>(src1);
+    case BB_TYPE_UINT32: return static_cast<std::uint32_t>(src0) / Tensor_<std::uint32_t>(src1);
+    case BB_TYPE_UINT64: return static_cast<std::uint64_t>(src0) / Tensor_<std::uint64_t>(src1);
+    default:    BB_ASSERT(0);  return Tensor();
+    }
+}
 
 
 }

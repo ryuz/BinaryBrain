@@ -673,6 +673,16 @@ void test_Operator(bb::indices_t shape)
     base_src0.InitNormalDistribution(0, 1000, 2);
     base_src1.InitNormalDistribution(0, 1000, 3);
     T scalar = (T)123.4;
+
+    {
+        // É[ÉçèúéZâÒî
+        auto b_s1 = base_src1.GetPtr();
+        for (bb::index_t i = 0; i < node_size; ++i) {
+            if ( b_s1[i] == 0 ) {
+                b_s1[i]++;
+            }
+        }
+    }
  
 
     // +
@@ -1038,3 +1048,392 @@ TEST(TensorTest, testTensor_Operator)
     test_Operator<std::uint64_t>({7, 2, 5});
 }
 
+
+
+template <typename T>
+void test_OperatorX(bb::indices_t shape)
+{
+    auto node_size = bb::GetShapeSize(shape);
+
+    bb::Tensor  base_dst(bb::DataType<T>::type, shape);
+    bb::Tensor  base_src0(bb::DataType<T>::type, shape);
+    bb::Tensor  base_src1(bb::DataType<T>::type, shape);
+    base_dst.InitNormalDistribution(0, 1000, 1);
+    base_src0.InitNormalDistribution(0, 1000, 2);
+    base_src1.InitNormalDistribution(0, 1000, 3);
+    T scalar = (T)123.4;
+    
+    {
+        // É[ÉçèúéZâÒî
+        auto b_s1 = base_src1.GetPtr<T>();
+        for (bb::index_t i = 0; i < node_size; ++i) {
+            if ( b_s1[i] == 0 ) {
+                b_s1[i]++;
+            }
+        }
+    }
+        
+
+    // +
+    {
+        auto dst  = base_dst.Clone();
+        auto src0 = base_src0.Clone();
+        auto src1 = base_src1.Clone();
+
+        dst += src0;
+        
+        auto b_d  = base_dst.GetConstPtr<T>();
+        auto b_s0 = base_src0.GetConstPtr<T>();
+        auto b_s1 = base_src1.GetConstPtr<T>();
+        auto d  = dst.GetConstPtr<T>();
+       
+        for (bb::index_t i = 0; i < node_size; ++i) {
+            EXPECT_EQ(d[i], (T)(b_d[i]+b_s0[i]));
+        }
+    }
+
+    {
+        auto dst  = base_dst.Clone();
+        auto src0 = base_src0.Clone();
+        auto src1 = base_src1.Clone();
+
+        dst += scalar;
+        
+        auto b_d  = base_dst.GetConstPtr<T>();
+        auto b_s0 = base_src0.GetConstPtr<T>();
+        auto b_s1 = base_src1.GetConstPtr<T>();
+        auto d  = dst.GetConstPtr<T>();
+       
+        for (bb::index_t i = 0; i < node_size; ++i) {
+            EXPECT_EQ(d[i], (T)(b_d[i]+scalar));
+        }
+    }
+
+    {
+        auto dst  = base_dst.Clone();
+        auto src0 = base_src0.Clone();
+        auto src1 = base_src1.Clone();
+
+        dst = src0 + src1;
+        
+        auto b_d  = base_dst.GetConstPtr<T>();
+        auto b_s0 = base_src0.GetConstPtr<T>();
+        auto b_s1 = base_src1.GetConstPtr<T>();
+        auto d  = dst.GetConstPtr<T>();
+       
+        for (bb::index_t i = 0; i < node_size; ++i) {
+            EXPECT_EQ(d[i], (T)(b_s0[i]+b_s1[i]));
+        }
+    }
+
+    {
+        auto dst  = base_dst.Clone();
+        auto src0 = base_src0.Clone();
+        auto src1 = base_src1.Clone();
+
+        dst = src0 + scalar;
+        
+        auto b_d  = base_dst.GetConstPtr<T>();
+        auto b_s0 = base_src0.GetConstPtr<T>();
+        auto b_s1 = base_src1.GetConstPtr<T>();
+        auto d  = dst.GetConstPtr<T>();
+       
+        for (bb::index_t i = 0; i < node_size; ++i) {
+            EXPECT_EQ(d[i], (T)(b_s0[i]+scalar));
+        }
+    }
+
+    {
+        auto dst  = base_dst.Clone();
+        auto src0 = base_src0.Clone();
+        auto src1 = base_src1.Clone();
+
+        dst = scalar + src1;
+        
+        auto b_d  = base_dst.GetConstPtr<T>();
+        auto b_s0 = base_src0.GetConstPtr<T>();
+        auto b_s1 = base_src1.GetConstPtr<T>();
+        auto d  = dst.GetConstPtr<T>();
+       
+        for (bb::index_t i = 0; i < node_size; ++i) {
+            EXPECT_EQ(d[i], (T)(scalar+b_s1[i]));
+        }
+    }
+
+
+    // -
+    {
+        auto dst  = base_dst.Clone();
+        auto src0 = base_src0.Clone();
+        auto src1 = base_src1.Clone();
+
+        dst -= src0;
+        
+        auto b_d  = base_dst.GetConstPtr<T>();
+        auto b_s0 = base_src0.GetConstPtr<T>();
+        auto b_s1 = base_src1.GetConstPtr<T>();
+        auto d  = dst.GetConstPtr<T>();
+       
+        for (bb::index_t i = 0; i < node_size; ++i) {
+            EXPECT_EQ(d[i], (T)(b_d[i]-b_s0[i]));
+        }
+    }
+
+    {
+        auto dst  = base_dst.Clone();
+        auto src0 = base_src0.Clone();
+        auto src1 = base_src1.Clone();
+
+        dst -= scalar;
+        
+        auto b_d  = base_dst.GetConstPtr<T>();
+        auto b_s0 = base_src0.GetConstPtr<T>();
+        auto b_s1 = base_src1.GetConstPtr<T>();
+        auto d  = dst.GetConstPtr<T>();
+       
+        for (bb::index_t i = 0; i < node_size; ++i) {
+            EXPECT_EQ(d[i], (T)(b_d[i]-scalar));
+        }
+    }
+
+    {
+        auto dst  = base_dst.Clone();
+        auto src0 = base_src0.Clone();
+        auto src1 = base_src1.Clone();
+
+        dst = src0 - src1;
+        
+        auto b_d  = base_dst.GetConstPtr<T>();
+        auto b_s0 = base_src0.GetConstPtr<T>();
+        auto b_s1 = base_src1.GetConstPtr<T>();
+        auto d  = dst.GetConstPtr<T>();
+       
+        for (bb::index_t i = 0; i < node_size; ++i) {
+            EXPECT_EQ(d[i], (T)(b_s0[i]-b_s1[i]));
+        }
+    }
+
+    {
+        auto dst  = base_dst.Clone();
+        auto src0 = base_src0.Clone();
+        auto src1 = base_src1.Clone();
+
+        dst = src0 - scalar;
+        
+        auto b_d  = base_dst.GetConstPtr<T>();
+        auto b_s0 = base_src0.GetConstPtr<T>();
+        auto b_s1 = base_src1.GetConstPtr<T>();
+        auto d  = dst.GetConstPtr<T>();
+       
+        for (bb::index_t i = 0; i < node_size; ++i) {
+            EXPECT_EQ(d[i], (T)(b_s0[i]-scalar));
+        }
+    }
+
+    {
+        auto dst  = base_dst.Clone();
+        auto src0 = base_src0.Clone();
+        auto src1 = base_src1.Clone();
+
+        dst = scalar - src1;
+        
+        auto b_d  = base_dst.GetConstPtr<T>();
+        auto b_s0 = base_src0.GetConstPtr<T>();
+        auto b_s1 = base_src1.GetConstPtr<T>();
+        auto d  = dst.GetConstPtr<T>();
+       
+        for (bb::index_t i = 0; i < node_size; ++i) {
+            EXPECT_EQ(d[i], (T)(scalar-b_s1[i]));
+        }
+    }
+
+
+    // *
+    {
+        auto dst  = base_dst.Clone();
+        auto src0 = base_src0.Clone();
+        auto src1 = base_src1.Clone();
+
+        dst *= src0;
+        
+         auto b_d  = base_dst.GetConstPtr<T>();
+        auto b_s0 = base_src0.GetConstPtr<T>();
+        auto b_s1 = base_src1.GetConstPtr<T>();
+        auto d  = dst.GetConstPtr<T>();
+       
+        for (bb::index_t i = 0; i < node_size; ++i) {
+            EXPECT_EQ(d[i], (T)(b_d[i]*b_s0[i]));
+        }
+    }
+
+    {
+        auto dst  = base_dst.Clone();
+        auto src0 = base_src0.Clone();
+        auto src1 = base_src1.Clone();
+
+        dst *= scalar;
+        
+        auto b_d  = base_dst.GetConstPtr<T>();
+        auto b_s0 = base_src0.GetConstPtr<T>();
+        auto b_s1 = base_src1.GetConstPtr<T>();
+        auto d  = dst.GetConstPtr<T>();
+       
+        for (bb::index_t i = 0; i < node_size; ++i) {
+            EXPECT_EQ(d[i], (T)(b_d[i]*scalar));
+        }
+    }
+
+    {
+        auto dst  = base_dst.Clone();
+        auto src0 = base_src0.Clone();
+        auto src1 = base_src1.Clone();
+
+        dst = src0 * src1;
+        
+        auto b_d  = base_dst.GetConstPtr<T>();
+        auto b_s0 = base_src0.GetConstPtr<T>();
+        auto b_s1 = base_src1.GetConstPtr<T>();
+        auto d  = dst.GetConstPtr<T>();
+       
+        for (bb::index_t i = 0; i < node_size; ++i) {
+            EXPECT_EQ(d[i], (T)(b_s0[i]*b_s1[i]));
+        }
+    }
+
+    {
+        auto dst  = base_dst.Clone();
+        auto src0 = base_src0.Clone();
+        auto src1 = base_src1.Clone();
+
+        dst = src0 * scalar;
+        
+        auto b_d  = base_dst.GetConstPtr<T>();
+        auto b_s0 = base_src0.GetConstPtr<T>();
+        auto b_s1 = base_src1.GetConstPtr<T>();
+        auto d  = dst.GetConstPtr<T>();
+       
+        for (bb::index_t i = 0; i < node_size; ++i) {
+            EXPECT_EQ(d[i], (T)(b_s0[i]*scalar));
+        }
+    }
+
+    {
+        auto dst  = base_dst.Clone();
+        auto src0 = base_src0.Clone();
+        auto src1 = base_src1.Clone();
+
+        dst = scalar * src1;
+        
+        auto b_d  = base_dst.GetConstPtr<T>();
+        auto b_s0 = base_src0.GetConstPtr<T>();
+        auto b_s1 = base_src1.GetConstPtr<T>();
+        auto d  = dst.GetConstPtr<T>();
+       
+        for (bb::index_t i = 0; i < node_size; ++i) {
+            EXPECT_EQ(d[i], (T)(scalar*b_s1[i]));
+        }
+    }
+
+
+    // /
+    {
+        auto dst  = base_dst.Clone();
+        auto src0 = base_src0.Clone();
+        auto src1 = base_src1.Clone();
+
+        dst /= src1;
+        
+        auto b_d  = base_dst.GetConstPtr<T>();
+        auto b_s0 = base_src0.GetConstPtr<T>();
+        auto b_s1 = base_src1.GetConstPtr<T>();
+        auto d  = dst.GetConstPtr<T>();
+        
+        for (bb::index_t i = 0; i < node_size; ++i) {
+            EXPECT_EQ(d[i], (T)(b_d[i]/b_s1[i]));
+        }
+    }
+
+    {
+        auto dst  = base_dst.Clone();
+        auto src0 = base_src0.Clone();
+        auto src1 = base_src1.Clone();
+
+        dst /= scalar;
+        
+        auto b_d  = base_dst.GetConstPtr<T>();
+        auto b_s0 = base_src0.GetConstPtr<T>();
+        auto b_s1 = base_src1.GetConstPtr<T>();
+        auto d  = dst.GetConstPtr<T>();
+       
+        for (bb::index_t i = 0; i < node_size; ++i) {
+            EXPECT_EQ(d[i], (T)(b_d[i]/scalar));
+        }
+    }
+
+    {
+        auto dst  = base_dst.Clone();
+        auto src0 = base_src0.Clone();
+        auto src1 = base_src1.Clone();
+
+        dst = src0 / src1;
+        
+        auto b_d  = base_dst.GetConstPtr<T>();
+        auto b_s0 = base_src0.GetConstPtr<T>();
+        auto b_s1 = base_src1.GetConstPtr<T>();
+        auto d  = dst.GetConstPtr<T>();
+       
+        for (bb::index_t i = 0; i < node_size; ++i) {
+            EXPECT_EQ(d[i], (T)(b_s0[i]/b_s1[i]));
+        }
+    }
+
+    {
+        auto dst  = base_dst.Clone();
+        auto src0 = base_src0.Clone();
+        auto src1 = base_src1.Clone();
+
+        dst = src0 / scalar;
+        
+        auto b_d  = base_dst.GetConstPtr<T>();
+        auto b_s0 = base_src0.GetConstPtr<T>();
+        auto b_s1 = base_src1.GetConstPtr<T>();
+        auto d  = dst.GetConstPtr<T>();
+       
+        for (bb::index_t i = 0; i < node_size; ++i) {
+            EXPECT_EQ(d[i], (T)(b_s0[i]/scalar));
+        }
+    }
+
+    {
+        auto dst  = base_dst.Clone();
+        auto src0 = base_src0.Clone();
+        auto src1 = base_src1.Clone();
+
+        dst = scalar / src1;
+        
+        auto b_d  = base_dst.GetConstPtr<T>();
+        auto b_s0 = base_src0.GetConstPtr<T>();
+        auto b_s1 = base_src1.GetConstPtr<T>();
+        auto d  = dst.GetConstPtr<T>();
+       
+        for (bb::index_t i = 0; i < node_size; ++i) {
+            EXPECT_EQ(d[i], (T)(scalar/b_s1[i]));
+        }
+    }
+}
+
+
+
+TEST(TensorTest, testTensorX_Operator)
+{
+    test_OperatorX<float        >({1, 2, 3});
+    test_OperatorX<double       >({2, 2, 3});
+    test_OperatorX<std::int8_t  >({3, 2, 3});
+    test_OperatorX<std::int16_t >({2, 2, 3});
+    test_OperatorX<std::int32_t >({4, 2, 3});
+//    test_OperatorX<std::int64_t >({1, 2, 3});
+    test_OperatorX<std::uint8_t >({1, 2, 3});
+    test_OperatorX<std::uint16_t>({5, 2});
+    test_OperatorX<std::uint32_t>({1, 2, 3, 7});
+//    test_OperatorX<std::uint64_t>({1, 2, 3});
+}
