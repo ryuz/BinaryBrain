@@ -14,7 +14,6 @@
 #include <random>
 
 #include "bb/Layer.h"
-#include "bb/FrameBuffer.h"
 #include "bb/ShuffleSet.h"
 
 namespace bb {
@@ -186,6 +185,27 @@ public:
         m_output_shape = shape;
     }
 
+    
+    Variables GetParameters(void)
+    {
+        Variables parameters;
+        parameters.PushBack(m_W0);
+        parameters.PushBack(m_b0);
+        parameters.PushBack(m_W1);
+        parameters.PushBack(m_b1);
+        return parameters;
+    }
+
+    Variables GetGradients(void)
+    {
+        Variables gradients;
+        gradients.PushBack(m_dW0);
+        gradients.PushBack(m_db0);
+        gradients.PushBack(m_dW1);
+        gradients.PushBack(m_db1);
+        return gradients;
+    }
+    
 
     FrameBuffer Forward(FrameBuffer x, bool train = true)
     {

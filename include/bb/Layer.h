@@ -17,6 +17,7 @@
 #include "cereal/archives/json.hpp"
 
 #include "bb/FrameBuffer.h"
+#include "bb/Variables.h"
 
 
 namespace bb {
@@ -70,9 +71,24 @@ public:
 //	virtual void  Command(std::string command) {}								// コマンドを送信
 	virtual void  SetBinaryMode(bool enable) {}									// バイナリモードを設定
 
-    //	virtual GetVariables GetParameters(void) {} = 0;
-    //	virtual GetVariables GetGradients(void) {} = 0;
+
+    /**
+     * @brief  パラメータ取得
+     * @detail パラメータを取得する
+     *         Optimizerでの利用を想定
+     * @return パラメータを返す
+     */
+    virtual Variables GetParameters(void) { return Variables(); }
+
+    /**
+     * @brief  勾配取得
+     * @detail 勾配を取得する
+     *         Optimizerでの利用を想定
+     * @return パラメータを返す
+     */
+    virtual Variables GetGradients(void) { return Variables(); }
     
+
     /**
      * @brief  入力形状設定
      * @detail 入力形状を設定する

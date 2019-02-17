@@ -33,11 +33,11 @@
     <ClCompile Include="BatchNormalizationTest.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="VariablesTest.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\bb\Variables.h">
-      <Filter>ソース ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\bb\Utility.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>

@@ -52,6 +52,7 @@ public:
         for ( auto& t : m_tensors ) {
             types.push_back(t->GetType());
         }
+        return types;
     }
 
     std::vector<indices_t> GetShapes(void) const
@@ -60,14 +61,21 @@ public:
         for ( auto& t : m_tensors ) {
             shapes.push_back(t->GetShape());
         }
+        return shapes;
     }
     
     void PushBack(std::shared_ptr<Tensor> t)
     {
         m_tensors.push_back(t);
     }
-    
 
+    void PushBack(Variables const &v)
+    {
+        for ( auto& t : v.m_tensors ) {
+            m_tensors.push_back(t);
+        }
+    }
+    
     // access operators
     Tensor const &operator[](index_t index) const
     {
@@ -92,12 +100,12 @@ public:
     template<typename Tp>
     Variables &operator=(Tp src)
     {
-        BB_ASSERT(m_tensors.size() == v.m_tensors.size());
         for ( size_t i = 0; i < m_tensors.size(); ++i ) {
             *m_tensors[i] = src;
         }
         return *this;
     }
+
 
     Variables &operator+=(Variables const &src)
     {
@@ -111,15 +119,202 @@ public:
     template<typename Tp>
     Variables &operator+=(Tp src)
     {
-        BB_ASSERT(m_tensors.size() == v.m_tensors.size());
         for ( size_t i = 0; i < m_tensors.size(); ++i ) {
             *m_tensors[i] += src;
         }
         return *this;
     }
 
+    Variables &operator-=(Variables const &src)
+    {
+        BB_ASSERT(m_tensors.size() == src.m_tensors.size());
+        for ( size_t i = 0; i < m_tensors.size(); ++i ) {
+            *m_tensors[i] -= *src.m_tensors[i];
+        }
+        return *this;
+    }
+
+    template<typename Tp>
+    Variables &operator-=(Tp src)
+    {
+        for ( size_t i = 0; i < m_tensors.size(); ++i ) {
+            *m_tensors[i] -= src;
+        }
+        return *this;
+    }
+
+    Variables &operator*=(Variables const &src)
+    {
+        BB_ASSERT(m_tensors.size() == src.m_tensors.size());
+        for ( size_t i = 0; i < m_tensors.size(); ++i ) {
+            *m_tensors[i] *= *src.m_tensors[i];
+        }
+        return *this;
+    }
+
+    template<typename Tp>
+    Variables &operator*=(Tp src)
+    {
+        for ( size_t i = 0; i < m_tensors.size(); ++i ) {
+            *m_tensors[i] *= src;
+        }
+        return *this;
+    }
+
+    Variables &operator/=(Variables const &src)
+    {
+        BB_ASSERT(m_tensors.size() == src.m_tensors.size());
+        for ( size_t i = 0; i < m_tensors.size(); ++i ) {
+            *m_tensors[i] /= *src.m_tensors[i];
+        }
+        return *this;
+    }
+
+    template<typename Tp>
+    Variables &operator/=(Tp src)
+    {
+        for ( size_t i = 0; i < m_tensors.size(); ++i ) {
+            *m_tensors[i] /= src;
+        }
+        return *this;
+    }
+
+    friend  Variables operator + (Variables const &src0, Variables const &src1);
+    friend  Variables operator + (Variables const &src0, double src1);
+    friend  Variables operator + (double src0, Variables const &src1);
+    friend  Variables operator - (Variables const &src0, Variables const &src1);
+    friend  Variables operator - (Variables const &src0, double src1);
+    friend  Variables operator - (double src0, Variables const &src1);
+    friend  Variables operator * (Variables const &src0, Variables const &src1);
+    friend  Variables operator * (Variables const &src0, double src1);
+    friend  Variables operator * (double src0, Variables const &src1);
+    friend  Variables operator / (Variables const &src0, Variables const &src1);
+    friend  Variables operator / (Variables const &src0, double src1);
+    friend  Variables operator / (double src0, Variables const &src1);
 };
 
+inline Variables operator+(Variables const &src0, Variables const &src1)
+{
+    BB_ASSERT(src0.GetTypes() == src1.GetTypes());
+    BB_ASSERT(src0.GetShapes() == src1.GetShapes());
+
+    Variables var(src0.GetTypes(), src0.GetShapes());
+    for ( size_t i = 0; i < src0.m_tensors.size(); ++i ) {
+        *var.m_tensors[i] = *src0.m_tensors[i] + *src1.m_tensors[i];
+    }
+    return var;
+}
+
+inline Variables operator+(Variables const & src0, double src1)
+{
+    Variables var(src0.GetTypes(), src0.GetShapes());
+    for ( size_t i = 0; i < src0.m_tensors.size(); ++i ) {
+        *var.m_tensors[i] = *src0.m_tensors[i] + src1;
+    }
+    return var;
+}
+
+inline Variables operator+(double src0, Variables const & src1)
+{
+    Variables var(src1.GetTypes(), src1.GetShapes());
+    for ( size_t i = 0; i < src1.m_tensors.size(); ++i ) {
+        *var.m_tensors[i] = src0 + *src1.m_tensors[i];
+    }
+    return var;
+}
+
+
+inline Variables operator-(Variables const &src0, Variables const &src1)
+{
+    BB_ASSERT(src0.GetTypes() == src1.GetTypes());
+    BB_ASSERT(src0.GetShapes() == src1.GetShapes());
+
+    Variables var(src0.GetTypes(), src0.GetShapes());
+    for ( size_t i = 0; i < src0.m_tensors.size(); ++i ) {
+        *var.m_tensors[i] = *src0.m_tensors[i] - *src1.m_tensors[i];
+    }
+    return var;
+}
+
+inline Variables operator-(Variables const & src0, double src1)
+{
+    Variables var(src0.GetTypes(), src0.GetShapes());
+    for ( size_t i = 0; i < src0.m_tensors.size(); ++i ) {
+        *var.m_tensors[i] = *src0.m_tensors[i] - src1;
+    }
+    return var;
+}
+
+inline Variables operator-(double src0, Variables const & src1)
+{
+    Variables var(src1.GetTypes(), src1.GetShapes());
+    for ( size_t i = 0; i < src1.m_tensors.size(); ++i ) {
+        *var.m_tensors[i] = src0 - *src1.m_tensors[i];
+    }
+    return var;
+}
+
+
+inline Variables operator*(Variables const &src0, Variables const &src1)
+{
+    BB_ASSERT(src0.GetTypes() == src1.GetTypes());
+    BB_ASSERT(src0.GetShapes() == src1.GetShapes());
+
+    Variables var(src0.GetTypes(), src0.GetShapes());
+    for ( size_t i = 0; i < src0.m_tensors.size(); ++i ) {
+        *var.m_tensors[i] = *src0.m_tensors[i] * *src1.m_tensors[i];
+    }
+    return var;
+}
+
+inline Variables operator*(Variables const & src0, double src1)
+{
+    Variables var(src0.GetTypes(), src0.GetShapes());
+    for ( size_t i = 0; i < src0.m_tensors.size(); ++i ) {
+        *var.m_tensors[i] = *src0.m_tensors[i] * src1;
+    }
+    return var;
+}
+
+inline Variables operator*(double src0, Variables const & src1)
+{
+    Variables var(src1.GetTypes(), src1.GetShapes());
+    for ( size_t i = 0; i < src1.m_tensors.size(); ++i ) {
+        *var.m_tensors[i] = src0 * *src1.m_tensors[i];
+    }
+    return var;
+}
+
+
+inline Variables operator/(Variables const &src0, Variables const &src1)
+{
+    BB_ASSERT(src0.GetTypes() == src1.GetTypes());
+    BB_ASSERT(src0.GetShapes() == src1.GetShapes());
+
+    Variables var(src0.GetTypes(), src0.GetShapes());
+    for ( size_t i = 0; i < src0.m_tensors.size(); ++i ) {
+        *var.m_tensors[i] = *src0.m_tensors[i] / *src1.m_tensors[i];
+    }
+    return var;
+}
+
+inline Variables operator/(Variables const & src0, double src1)
+{
+    Variables var(src0.GetTypes(), src0.GetShapes());
+    for ( size_t i = 0; i < src0.m_tensors.size(); ++i ) {
+        *var.m_tensors[i] = *src0.m_tensors[i] / src1;
+    }
+    return var;
+}
+
+inline Variables operator/(double src0, Variables const & src1)
+{
+    Variables var(src1.GetTypes(), src1.GetShapes());
+    for ( size_t i = 0; i < src1.m_tensors.size(); ++i ) {
+        *var.m_tensors[i] = src0 / *src1.m_tensors[i];
+    }
+    return var;
+}
 
 
 }
