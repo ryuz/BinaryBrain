@@ -53,6 +53,9 @@
     <ClInclude Include="..\..\include\bb\Memory.h" />
     <ClInclude Include="..\..\include\bb\MicroMlp.h" />
     <ClInclude Include="..\..\include\bb\MicroMlpAffine.h" />
+    <ClInclude Include="..\..\include\bb\Optimizer.h" />
+    <ClInclude Include="..\..\include\bb\OptimizerAdam.h" />
+    <ClInclude Include="..\..\include\bb\OptimizerSgd.h" />
     <ClInclude Include="..\..\include\bb\ShuffleSet.h" />
     <ClInclude Include="..\..\include\bb\SimdSupport.h" />
     <ClInclude Include="..\..\include\bb\Tensor.h" />

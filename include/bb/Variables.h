@@ -191,6 +191,24 @@ public:
     friend  Variables operator / (Variables const &src0, Variables const &src1);
     friend  Variables operator / (Variables const &src0, double src1);
     friend  Variables operator / (double src0, Variables const &src1);
+
+    Variables sqrt(void)
+    {
+        Variables var(GetTypes(), GetShapes());
+        for ( size_t i = 0; i < m_tensors.size(); ++i ) {
+            *var.m_tensors[i] = m_tensors[i]->sqrt();
+        }
+        return *this;
+    }
+
+    Variables exp(void)
+    {
+        Variables var(GetTypes(), GetShapes());
+        for ( size_t i = 0; i < m_tensors.size(); ++i ) {
+            *var.m_tensors[i] = m_tensors[i]->exp();
+        }
+        return *this;
+    }
 };
 
 inline Variables operator+(Variables const &src0, Variables const &src1)

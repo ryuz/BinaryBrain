@@ -340,6 +340,60 @@ inline void Tensor_Scalar_div_ex
 }
 
 
+template<typename T>
+inline void Tensor_Scalar_sqrt(
+    T       *dst,
+    T const *src,
+    index_t size
+)
+{
+    #pragma omp parallel for 
+    for (index_t i = 0; i < size; ++i) {
+        dst[i] = (T)sqrt((double)src[i]);
+    }
+}
+
+template<>
+inline void Tensor_Scalar_sqrt<float>(
+    float       *dst,
+    float const *src,
+    index_t size
+)
+{
+    #pragma omp parallel for 
+    for (index_t i = 0; i < size; ++i) {
+        dst[i] = sqrt(src[i]);
+    }
+}
+
+
+template<typename T>
+inline void Tensor_Scalar_exp(
+    T       *dst,
+    T const *src,
+    index_t size
+)
+{
+    #pragma omp parallel for 
+    for (index_t i = 0; i < size; ++i) {
+        dst[i] = (T)exp((double)src[i]);
+    }
+}
+
+template<>
+inline void Tensor_Scalar_exp<float>(
+    float       *dst,
+    float const *src,
+    index_t size
+)
+{
+    #pragma omp parallel for 
+    for (index_t i = 0; i < size; ++i) {
+        dst[i] = exp(src[i]);
+    }
+}
+
+
 
 
 // -------------------------------------
@@ -359,6 +413,7 @@ template<typename T>    Tensor_<T> operator*(T src0, Tensor_<T> const &src1);
 template<typename T>    Tensor_<T> operator/(Tensor_<T> const &src0, Tensor_<T> const &src1);
 template<typename T>    Tensor_<T> operator/(Tensor_<T> const &src0, T src1);
 template<typename T>    Tensor_<T> operator/(T src0, Tensor_<T> const &src1);
+
 
 class Tensor;
 
@@ -630,36 +685,54 @@ public:
         return *this;
     }
 
-    friend  Tensor_ operator + <T> (const Tensor_ &src0, Tensor_ const &src1);
-    friend  Tensor_ operator + <T> (const Tensor_ &src0, T src1);
-    friend  Tensor_ operator + <T> (T src0, const Tensor_ &src1);
-    friend  Tensor_ operator - <T> (const Tensor_ &src0, Tensor_ const &src1);
-    friend  Tensor_ operator - <T> (const Tensor_ &src0, T src1);
-    friend  Tensor_ operator - <T> (T src0, const Tensor_ &src1);
-    friend  Tensor_ operator * <T> (const Tensor_ &src0, Tensor_ const &src1);
-    friend  Tensor_ operator * <T> (const Tensor_ &src0, T src1);
-    friend  Tensor_ operator * <T> (T src0, const Tensor_ &src1);
-    friend  Tensor_ operator / <T> (const Tensor_ &src0, Tensor_ const &src1);
-    friend  Tensor_ operator / <T> (const Tensor_ &src0, T src1);
-    friend  Tensor_ operator / <T> (T src0, const Tensor_ &src1);
+    friend  Tensor_ operator + <T> (Tensor_ const &src0, Tensor_ const &src1);
+    friend  Tensor_ operator + <T> (Tensor_ const &src0, T src1);
+    friend  Tensor_ operator + <T> (T src0, Tensor_ const &src1);
+    friend  Tensor_ operator - <T> (Tensor_ const &src0, Tensor_ const &src1);
+    friend  Tensor_ operator - <T> (Tensor_ const &src0, T src1);
+    friend  Tensor_ operator - <T> (T src0, Tensor_ const &src1);
+    friend  Tensor_ operator * <T> (Tensor_ const &src0, Tensor_ const &src1);
+    friend  Tensor_ operator * <T> (Tensor_ const &src0, T src1);
+    friend  Tensor_ operator * <T> (T src0, Tensor_ const &src1);
+    friend  Tensor_ operator / <T> (Tensor_ const &src0, Tensor_ const &src1);
+    friend  Tensor_ operator / <T> (Tensor_ const &src0, T src1);
+    friend  Tensor_ operator / <T> (T src0, Tensor_ const &src1);
+    
+    Tensor_ sqrt(void)
+    {
+       Tensor_  dst(m_shape);
+       auto src_ptr = GetMemoryConstPtr();
+       auto dst_ptr = dst.GetMemoryPtr(true);
+       Tensor_Scalar_sqrt<T>((T *)dst_ptr.GetAddr(), (const T *)src_ptr.GetAddr(), m_size);
+       return dst;
+    }
+
+    Tensor_ exp(void)
+    {
+       Tensor_  dst(m_shape);
+       auto src_ptr = GetMemoryConstPtr();
+       auto dst_ptr = dst.GetMemoryPtr(true);
+       Tensor_Scalar_exp<T>((T *)dst_ptr.GetAddr(), (T const *)src_ptr.GetAddr(), m_size);
+       return dst;
+    }
 };
 
 template<typename T>
-Tensor_<T> operator+(const Tensor_<T> &src0, Tensor_<T> const &src1)
+Tensor_<T> operator+(Tensor_<T> const &src0, Tensor_<T> const &src1)
 {
     BB_ASSERT(src0.m_size == src1.m_size);
     Tensor_<T>  dst(src0.m_shape);
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
-    Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)1, (T)0, dst.m_size);
+    Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (T const *)op3.src0.GetAddr(), (T const *)op3.src1.GetAddr(), (T)1, (T)1, (T)0, dst.m_size);
     return dst;
 }
 
 template<typename T>
-Tensor_<T> operator+(const Tensor_<T>& src0, T src1)
+Tensor_<T> operator+(Tensor_<T> const &src0, T src1)
 {
    Tensor_<T>  dst(src0.m_shape);
    auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
-   Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, src1, dst.m_size);
+   Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (T const *)op3.src0.GetAddr(), (T const *)op3.src1.GetAddr(), (T)1, (T)0, src1, dst.m_size);
    return dst;
 }
 
@@ -671,12 +744,12 @@ Tensor_<T> operator+(T src0, Tensor_<T> const &src1)
 
 
 template<typename T>
-Tensor_<T> operator-(const Tensor_<T> &src0, Tensor_<T> const &src1)
+Tensor_<T> operator-(Tensor_<T> const &src0, Tensor_<T> const &src1)
 {
     BB_ASSERT(src0.m_size == src1.m_size);
     Tensor_<T>  dst(src0.m_shape);
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
-    Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)-1, (T)0, dst.m_size);
+    Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (T const *)op3.src0.GetAddr(), (T const *)op3.src1.GetAddr(), (T)1, (T)-1, (T)0, dst.m_size);
     return dst;
 }
 
@@ -1764,6 +1837,40 @@ public:
     friend  Tensor operator / (const Tensor &src0, Tensor const &src1);
     friend  Tensor operator / (const Tensor &src0, double src1);
     friend  Tensor operator / (double src0, const Tensor &src1);
+
+    Tensor sqrt(void)
+    {
+        switch (m_type) {
+        case BB_TYPE_FP32:   return Tensor_<float        >(*this).sqrt();        
+        case BB_TYPE_FP64:   return Tensor_<double       >(*this).sqrt();       
+        case BB_TYPE_INT8:   return Tensor_<std::int8_t  >(*this).sqrt();  
+        case BB_TYPE_INT16:  return Tensor_<std::int16_t >(*this).sqrt(); 
+        case BB_TYPE_INT32:  return Tensor_<std::int32_t >(*this).sqrt(); 
+        case BB_TYPE_INT64:  return Tensor_<std::int64_t >(*this).sqrt(); 
+        case BB_TYPE_UINT8:  return Tensor_<std::uint8_t >(*this).sqrt(); 
+        case BB_TYPE_UINT16: return Tensor_<std::uint16_t>(*this).sqrt();
+        case BB_TYPE_UINT32: return Tensor_<std::uint32_t>(*this).sqrt();
+        case BB_TYPE_UINT64: return Tensor_<std::uint64_t>(*this).sqrt();
+        default:    BB_ASSERT(0);  return Tensor();
+        }
+    }
+
+    Tensor exp(void)
+    {
+        switch (m_type) {
+        case BB_TYPE_FP32:   return Tensor_<float        >(*this).exp();        
+        case BB_TYPE_FP64:   return Tensor_<double       >(*this).exp();       
+        case BB_TYPE_INT8:   return Tensor_<std::int8_t  >(*this).exp();  
+        case BB_TYPE_INT16:  return Tensor_<std::int16_t >(*this).exp(); 
+        case BB_TYPE_INT32:  return Tensor_<std::int32_t >(*this).exp(); 
+        case BB_TYPE_INT64:  return Tensor_<std::int64_t >(*this).exp(); 
+        case BB_TYPE_UINT8:  return Tensor_<std::uint8_t >(*this).exp(); 
+        case BB_TYPE_UINT16: return Tensor_<std::uint16_t>(*this).exp();
+        case BB_TYPE_UINT32: return Tensor_<std::uint32_t>(*this).exp();
+        case BB_TYPE_UINT64: return Tensor_<std::uint64_t>(*this).exp();
+        default:    BB_ASSERT(0);  return Tensor();
+        }
+    }
 };
 
 

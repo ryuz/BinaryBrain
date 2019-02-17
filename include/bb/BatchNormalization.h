@@ -28,27 +28,32 @@ template <typename T = float>
 class BatchNormalization : public Layer
 {
 protected:
-	indices_t 		m_shape;
-	index_t 		m_node_size;
+	indices_t 		            m_shape;
+	index_t 		            m_node_size;
 	
-    FrameBuffer     m_x;
-    FrameBuffer     m_y;
-    FrameBuffer     m_dx;
+    FrameBuffer                 m_x;
+    FrameBuffer                 m_y;
+    FrameBuffer                 m_dx;
 
-	Tensor_<T>	    m_gamma;
-	Tensor_<T>  	m_beta;
-	Tensor_<T>	    m_dgamma;
-	Tensor_<T>  	m_dbeta;
+	std::shared_ptr<Tensor>  	m_gamma;
+	std::shared_ptr<Tensor>    	m_beta;
+	std::shared_ptr<Tensor>	    m_dgamma;
+	std::shared_ptr<Tensor>  	m_dbeta;
 
-	Tensor_<T>  	m_mean;		// 平均値
-	Tensor_<T>  	m_rstd;		// 標準偏差の逆数
+	Tensor_<T>  	            m_mean;		// 平均値
+	Tensor_<T>  	            m_rstd;		// 標準偏差の逆数
 
-	T				m_momentum = (T)0.001;
-	Tensor_<T> 	    m_running_mean;
-	Tensor_<T>  	m_running_var;
+	T				            m_momentum = (T)0.001;
+	Tensor_<T> 	                m_running_mean;
+	Tensor_<T>  	            m_running_var;
 
 protected:
-	BatchNormalization() {}
+	BatchNormalization() {
+	    m_gamma  = std::make_shared<Tensor>();
+	    m_beta   = std::make_shared<Tensor>();
+	    m_dgamma = std::make_shared<Tensor>();
+	    m_dbeta  = std::make_shared<Tensor>();
+    }
 
 public:
 	~BatchNormalization() {}
@@ -75,14 +80,14 @@ public:
 //	T& mean(INDEX node) { return m_running_mean(node); }
 //	T& var(INDEX node) { return m_running_var(node); }
 
-	auto lock_gamma(void)        { return m_gamma.GetPtr(); }
-	auto lock_gamma_const(void)  { return m_gamma.GetConstPtr(); }
-	auto lock_beta(void)         { return m_beta.GetPtr(); }
-	auto lock_beta_const(void)   { return m_beta.GetConstPtr(); }
-	auto lock_dgamma(void)       { return m_dgamma.GetPtr(); }
-	auto lock_dgamma_const(void) { return m_dgamma.GetConstPtr(); }
-	auto lock_dbeta(void)        { return m_dbeta.GetPtr(); }
-	auto lock_dbeta_const(void)  { return m_dbeta.GetConstPtr(); }
+	auto lock_gamma(void)        { return m_gamma->GetPtr<T>(); }
+	auto lock_gamma_const(void)  { return m_gamma->GetConstPtr<T>(); }
+	auto lock_beta(void)         { return m_beta->GetPtr<T>(); }
+	auto lock_beta_const(void)   { return m_beta->GetConstPtr<T>(); }
+	auto lock_dgamma(void)       { return m_dgamma->GetPtr<T>(); }
+	auto lock_dgamma_const(void) { return m_dgamma->GetConstPtr<T>(); }
+	auto lock_dbeta(void)        { return m_dbeta->GetPtr<T>(); }
+	auto lock_dbeta_const(void)  { return m_dbeta->GetConstPtr<T>(); }
 	auto lock_mean(void)         { return m_running_mean.GetPtr(); }
 	auto lock_mean_const(void)   { return m_running_mean.GetConstPtr(); }
 	auto lock_var(void)          { return m_running_var.GetPtr(); }
@@ -103,16 +108,16 @@ public:
         m_node_size = GetShapeSize(m_shape);
 		
         // パラメータ初期化
-		m_gamma.Resize(m_node_size);    m_gamma.FillZero(); m_gamma += (T)1.0;
-		m_beta.Resize(m_node_size);     m_beta.FillZero();
-		m_dgamma.Resize(m_node_size);   m_dgamma.FillZero();
-		m_dbeta.Resize(m_node_size);    m_dbeta.FillZero();
+		m_gamma->Resize(DataType<T>::type, m_node_size);    *m_gamma  = (T)1.0;
+		m_beta->Resize(DataType<T>::type, m_node_size);     *m_beta   = (T)0.0;
+		m_dgamma->Resize(DataType<T>::type, m_node_size);   *m_dgamma = (T)0.0;
+		m_dbeta->Resize(DataType<T>::type, m_node_size);    *m_dbeta  = (T)0.0;
 
 		m_mean.Resize(m_node_size);
 		m_rstd.Resize(m_node_size);
 
-		m_running_mean.Resize(m_node_size); m_running_mean.FillZero();
-		m_running_var.Resize(m_node_size);  m_running_var.FillZero();   m_running_var += (T)1.0;
+		m_running_mean.Resize(m_node_size); m_running_mean = (T)0.0;
+		m_running_var.Resize(m_node_size);  m_running_var  = (T)1.0;
 
         return shape;
 	}
@@ -120,6 +125,35 @@ public:
 
 public:
    /**
+     * @brief  パラメータ取得
+     * @detail パラメータを取得する
+     *         Optimizerでの利用を想定
+     * @return パラメータを返す
+     */
+    Variables GetParameters(void)
+    {
+        Variables parameters;
+        parameters.PushBack(m_gamma);
+        parameters.PushBack(m_beta);
+        return parameters;
+    }
+
+    /**
+     * @brief  勾配取得
+     * @detail 勾配を取得する
+     *         Optimizerでの利用を想定
+     * @return パラメータを返す
+     */
+    Variables GetGradients(void)
+    {
+        Variables gradients;
+        gradients.PushBack(m_dgamma);
+        gradients.PushBack(m_dbeta);
+        return gradients;
+    }
+    
+    
+    /**
      * @brief  forward演算
      * @detail forward演算を行う
      * @param  x     入力データ

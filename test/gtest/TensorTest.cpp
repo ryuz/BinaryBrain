@@ -98,6 +98,8 @@ TEST(TensorTest, testTensor_Transpose)
 
 
     t.Reshape({2, -1});
+
+    t = t.sqrt();
 }
 
 

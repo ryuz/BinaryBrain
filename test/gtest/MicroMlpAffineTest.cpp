@@ -5,7 +5,7 @@
 #include "gtest/gtest.h"
 
 #include "bb/MicroMlpAffine.h"
-
+#include "bb/OptimizerAdam.h"
 
 
 
@@ -222,6 +222,10 @@ TEST(MicroMlpAffineTest, testMicroMlpAffine)
 	EXPECT_EQ(in_err_val0[1] + in_err_val1[1], dx.GetFP32(0, 1));
 	EXPECT_EQ(in_err_val0[2] + in_err_val1[2], dx.GetFP32(0, 2));
 	EXPECT_EQ(in_err_val0[3] + in_err_val1[3], dx.GetFP32(0, 3));
+
+    bb::OptimizerAdam<>::create_t create;
+    bb::OptimizerAdam<> optimizer(create, mlp->GetParameters(), mlp->GetGradients());
+    optimizer.Update();
 }
 
 
