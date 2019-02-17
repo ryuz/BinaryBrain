@@ -19,7 +19,7 @@ namespace bb
 class Variables
 {
 protected:
-    std::vector<Tensor>    m_tensors;
+    std::vector< std::shared_ptr<Tensor> >    m_tensors;
 
 public:
     Variables(){}
@@ -29,7 +29,7 @@ public:
         BB_ASSERT(shapes.size() == types.size());
 
         for ( size_t i = 0; i < shapes.size(); ++i ) {
-            m_tensors.push_back(Tensor(types[i], shapes[i]));
+            m_tensors.push_back(std::make_shared<Tensor>(types[i], shapes[i]));
         }
     }
 
@@ -50,7 +50,7 @@ public:
     {
         std::vector<int> types;
         for ( auto& t : m_tensors ) {
-            types.push_back(t.GetType());
+            types.push_back(t->GetType());
         }
     }
 
@@ -58,11 +58,11 @@ public:
     {
         std::vector<indices_t> shapes;
         for ( auto& t : m_tensors ) {
-            shapes.push_back(t.GetShape());
+            shapes.push_back(t->GetShape());
         }
     }
     
-    void PushBack(Tensor const &t)
+    void PushBack(std::shared_ptr<Tensor> t)
     {
         m_tensors.push_back(t);
     }
@@ -72,13 +72,13 @@ public:
     Tensor const &operator[](index_t index) const
     {
         BB_DEBUG_ASSERT(index >= 0 && index < GetSize());
-        return m_tensors[index];
+        return *m_tensors[index];
     }
 
     Tensor &operator[](index_t index)
     {
         BB_DEBUG_ASSERT(index >= 0 && index < GetSize());
-        return m_tensors[index];
+        return *m_tensors[index];
     }
 
 
@@ -94,7 +94,7 @@ public:
     {
         BB_ASSERT(m_tensors.size() == v.m_tensors.size());
         for ( size_t i = 0; i < m_tensors.size(); ++i ) {
-            m_tensors[i] = src;
+            *m_tensors[i] = src;
         }
         return *this;
     }
@@ -103,7 +103,7 @@ public:
     {
         BB_ASSERT(m_tensors.size() == src.m_tensors.size());
         for ( size_t i = 0; i < m_tensors.size(); ++i ) {
-            m_tensors[i] += src.m_tensors[i];
+            *m_tensors[i] += *src.m_tensors[i];
         }
         return *this;
     }
@@ -113,7 +113,7 @@ public:
     {
         BB_ASSERT(m_tensors.size() == v.m_tensors.size());
         for ( size_t i = 0; i < m_tensors.size(); ++i ) {
-            m_tensors[i] += src;
+            *m_tensors[i] += src;
         }
         return *this;
     }

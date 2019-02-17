@@ -38,22 +38,31 @@ public:
 
     Tensor_<std::int32_t>   m_input_index;
 
-    Tensor_<T>              m_W0;
-    Tensor_<T>              m_b0;
-    Tensor_<T>              m_dW0;
-    Tensor_<T>              m_db0;
+    std::shared_ptr<Tensor> m_W0;
+    std::shared_ptr<Tensor> m_b0;
+    std::shared_ptr<Tensor> m_dW0;
+    std::shared_ptr<Tensor> m_db0;
 
-    Tensor_<T>              m_W1;
-    Tensor_<T>              m_b1;
-    Tensor_<T>              m_dW1;
-    Tensor_<T>              m_db1;
+    std::shared_ptr<Tensor> m_W1;
+    std::shared_ptr<Tensor> m_b1;
+    std::shared_ptr<Tensor> m_dW1;
+    std::shared_ptr<Tensor> m_db1;
 
     FrameBuffer             m_x;
     FrameBuffer             m_y;
     FrameBuffer             m_dx;
         
 protected:
-	MicroMlpAffine() {}
+	MicroMlpAffine() {
+        m_W0  = std::make_shared<Tensor>();
+        m_b0  = std::make_shared<Tensor>();
+        m_dW0 = std::make_shared<Tensor>();
+        m_db0 = std::make_shared<Tensor>();
+        m_W1  = std::make_shared<Tensor>();
+        m_b1  = std::make_shared<Tensor>();
+        m_dW1 = std::make_shared<Tensor>();
+        m_db1 = std::make_shared<Tensor>();
+    }
 
 public:
 	~MicroMlpAffine() {}
@@ -99,23 +108,23 @@ public:
    	auto lock_InputIndex(void)       { return m_input_index.GetPtr(); }
 	auto lock_InputIndex_const(void) { return m_input_index.GetConstPtr(); }
 
-	auto lock_W0(void)       { return m_W0.GetPtr(); }
-	auto lock_W0_const(void) { return m_W0.GetConstPtr(); }
-	auto lock_b0(void)       { return m_b0.GetPtr(); }
-	auto lock_b0_const(void) { return m_b0.GetConstPtr(); }
-	auto lock_W1(void)       { return m_W1.GetPtr(); }
-	auto lock_W1_const(void) { return m_W1.GetConstPtr(); }
-	auto lock_b1(void)       { return m_b1.GetPtr(); }
-	auto lock_b1_const(void) { return m_b1.GetConstPtr(); }
+	auto lock_W0(void)       { return m_W0->GetPtr<T>(); }
+	auto lock_W0_const(void) { return m_W0->GetConstPtr<T>(); }
+	auto lock_b0(void)       { return m_b0->GetPtr<T>(); }
+	auto lock_b0_const(void) { return m_b0->GetConstPtr<T>(); }
+	auto lock_W1(void)       { return m_W1->GetPtr<T>(); }
+	auto lock_W1_const(void) { return m_W1->GetConstPtr<T>(); }
+	auto lock_b1(void)       { return m_b1->GetPtr<T>(); }
+	auto lock_b1_const(void) { return m_b1->GetConstPtr<T>(); }
 
-	auto lock_dW0(void)       { return m_dW0.GetPtr(); }
-	auto lock_dW0_const(void) { return m_dW0.GetConstPtr(); }
-	auto lock_db0(void)       { return m_db0.GetPtr(); }
-	auto lock_db0_const(void) { return m_db0.GetConstPtr(); }
-	auto lock_dW1(void)       { return m_dW1.GetPtr(); }
-	auto lock_dW1_const(void) { return m_dW1.GetConstPtr(); }
-	auto lock_db1(void)       { return m_db1.GetPtr(); }
-	auto lock_db1_const(void) { return m_db1.GetConstPtr(); }
+	auto lock_dW0(void)       { return m_dW0->GetPtr<T>(); }
+	auto lock_dW0_const(void) { return m_dW0->GetConstPtr<T>(); }
+	auto lock_db0(void)       { return m_db0->GetPtr<T>(); }
+	auto lock_db0_const(void) { return m_db0->GetConstPtr<T>(); }
+	auto lock_dW1(void)       { return m_dW1->GetPtr<T>(); }
+	auto lock_dW1_const(void) { return m_dW1->GetConstPtr<T>(); }
+	auto lock_db1(void)       { return m_db1->GetPtr<T>(); }
+	auto lock_db1_const(void) { return m_db1->GetConstPtr<T>(); }
 
     void  SetNodeInput(index_t node, index_t input_index, index_t input_node)
     {
@@ -150,15 +159,15 @@ public:
         }
 
         // パラメータ初期化
-        m_W0.Resize(m_output_node_size, M, N);  m_W0.InitNormalDistribution(0.0, 1.0, m_mt());
-        m_b0.Resize(m_output_node_size, M);     m_b0.InitNormalDistribution(0.0, 1.0, m_mt());
-        m_W1.Resize(m_output_node_size, M);     m_W1.InitNormalDistribution(0.0, 1.0, m_mt());
-        m_b1.Resize(m_output_node_size);        m_b1.InitNormalDistribution(0.0, 1.0, m_mt());
+        m_W0->Resize(DataType<T>::type, m_output_node_size, M, N);  m_W0->InitNormalDistribution(0.0, 1.0, m_mt());
+        m_b0->Resize(DataType<T>::type, m_output_node_size, M);     m_b0->InitNormalDistribution(0.0, 1.0, m_mt());
+        m_W1->Resize(DataType<T>::type, m_output_node_size, M);     m_W1->InitNormalDistribution(0.0, 1.0, m_mt());
+        m_b1->Resize(DataType<T>::type, m_output_node_size);        m_b1->InitNormalDistribution(0.0, 1.0, m_mt());
 
-        m_dW0.Resize(m_output_node_size, M, N); m_dW0.FillZero();
-        m_db0.Resize(m_output_node_size, M);    m_db0.FillZero();
-        m_dW1.Resize(m_output_node_size, M);    m_dW1.FillZero();
-        m_db1.Resize(m_output_node_size);       m_db1.FillZero();
+        m_dW0->Resize(DataType<T>::type, m_output_node_size, M, N); m_dW0->FillZero();
+        m_db0->Resize(DataType<T>::type, m_output_node_size, M);    m_db0->FillZero();
+        m_dW1->Resize(DataType<T>::type, m_output_node_size, M);    m_dW1->FillZero();
+        m_db1->Resize(DataType<T>::type, m_output_node_size);       m_db1->FillZero();
 
         return m_output_shape;
     }
@@ -198,10 +207,10 @@ public:
             auto input_index_ptr = m_input_index.GetMemoryDevConstPtr();
             auto x_ptr  = m_x.GetMemoryDevConstPtr();
             auto y_ptr  = m_y.GetMemoryDevPtr();
-            auto W0_ptr = m_W0.GetMemoryDevConstPtr();
-            auto b0_ptr = m_b0.GetMemoryDevConstPtr();
-            auto W1_ptr = m_W0.GetMemoryDevConstPtr();
-            auto b1_ptr = m_b0.GetMemoryDevConstPtr();
+            auto W0_ptr = m_W0->GetMemoryDevConstPtr();
+            auto b0_ptr = m_b0->GetMemoryDevConstPtr();
+            auto W1_ptr = m_W0->GetMemoryDevConstPtr();
+            auto b1_ptr = m_b0->GetMemoryDevConstPtr();
             bbcu_MicroMlp6x16_Forward
     		    (
                     (const float *)x_ptr.GetAddr(),
@@ -242,14 +251,14 @@ public:
             auto y_ptr  = m_y.GetMemoryDevConstPtr();
             auto dx_ptr = m_dx.GetMemoryDevPtr();
             auto dy_ptr = dy.GetMemoryDevConstPtr();
-            auto W0_ptr = m_W0.GetMemoryDevConstPtr();
-            auto b0_ptr = m_b0.GetMemoryDevConstPtr();
-            auto W1_ptr = m_W0.GetMemoryDevConstPtr();
-            auto b1_ptr = m_b0.GetMemoryDevConstPtr();
-            auto dW0_ptr = m_dW0.GetMemoryDevPtr();
-            auto db0_ptr = m_db0.GetMemoryDevPtr();
-            auto dW1_ptr = m_dW0.GetMemoryDevPtr();
-            auto db1_ptr = m_db0.GetMemoryDevPtr();
+            auto W0_ptr = m_W0->GetMemoryDevConstPtr();
+            auto b0_ptr = m_b0->GetMemoryDevConstPtr();
+            auto W1_ptr = m_W0->GetMemoryDevConstPtr();
+            auto b1_ptr = m_b0->GetMemoryDevConstPtr();
+            auto dW0_ptr = m_dW0->GetMemoryDevPtr();
+            auto db0_ptr = m_db0->GetMemoryDevPtr();
+            auto dW1_ptr = m_dW0->GetMemoryDevPtr();
+            auto db1_ptr = m_db0->GetMemoryDevPtr();
 
             float* dev_in_err_tmp;
             BB_CUDA_SAFE_CALL(cudaMalloc((void**)&dev_in_err_tmp,  m_output_node_size * N * frame_size * sizeof(float)));
