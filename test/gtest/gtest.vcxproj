@@ -40,6 +40,7 @@
     <ClCompile Include="FrameBufferTest.cpp" />
     <ClCompile Include="MemoryTest.cpp" />
     <ClCompile Include="MicroMlpAffineTest.cpp" />
+    <ClCompile Include="ReLUTest.cpp" />
     <ClCompile Include="TensorTest.cpp" />
     <ClCompile Include="VariablesTest.cpp" />
   </ItemGroup>

@@ -611,6 +611,18 @@ public:
     friend FrameBufferConstPtr_<uint32_t const, FrameBuffer const, Memory::ConstPtr>;
     friend FrameBufferConstPtr_<uint64_t const, FrameBuffer const, Memory::ConstPtr>;
 
+    friend FrameBufferConstPtr_<Bit     , FrameBuffer, Memory::Ptr>;
+    friend FrameBufferConstPtr_<float   , FrameBuffer, Memory::Ptr>;
+    friend FrameBufferConstPtr_<double  , FrameBuffer, Memory::Ptr>;
+    friend FrameBufferConstPtr_<int8_t  , FrameBuffer, Memory::Ptr>;
+    friend FrameBufferConstPtr_<int16_t , FrameBuffer, Memory::Ptr>;
+    friend FrameBufferConstPtr_<int32_t , FrameBuffer, Memory::Ptr>;
+    friend FrameBufferConstPtr_<int64_t , FrameBuffer, Memory::Ptr>;
+    friend FrameBufferConstPtr_<uint8_t , FrameBuffer, Memory::Ptr>;
+    friend FrameBufferConstPtr_<uint16_t, FrameBuffer, Memory::Ptr>;
+    friend FrameBufferConstPtr_<uint32_t, FrameBuffer, Memory::Ptr>;
+    friend FrameBufferConstPtr_<uint64_t, FrameBuffer, Memory::Ptr>;
+
     friend FrameBufferPtr_<Bit     , FrameBuffer, Memory::Ptr>;
     friend FrameBufferPtr_<float   , FrameBuffer, Memory::Ptr>;
     friend FrameBufferPtr_<double  , FrameBuffer, Memory::Ptr>;
