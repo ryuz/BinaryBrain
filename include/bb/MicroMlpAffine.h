@@ -47,6 +47,7 @@ public:
     std::shared_ptr<Tensor> m_dW1;
     std::shared_ptr<Tensor> m_db1;
 
+public:
     FrameBuffer             m_x;
     FrameBuffer             m_y;
     FrameBuffer             m_dx;
@@ -261,6 +262,11 @@ public:
         m_dx.Resize(DataType<T>::type, dy.GetFrameSize(), m_input_node_size);
 
         auto frame_size = dy.GetFrameSize();
+
+        m_dW0->FillZero();
+        m_db0->FillZero();
+        m_dW1->FillZero();
+        m_db1->FillZero();
 
 #ifdef BB_WITH_CUDA
         if ( N == 6 && M == 16 && DataType<T>::type == BB_TYPE_FP32

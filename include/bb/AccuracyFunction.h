@@ -12,17 +12,18 @@
 
 #include <vector>
 
-#include "bb/NeuralNetBuffer.h"
+#include "bb/FrameBuffer.h"
 
 
 namespace bb {
 
 
-template <typename T = float>
-class NeuralNetLossFunction
+class AccuracyFunction
 {
 public:
-	virtual double CalculateLoss(NeuralNetBuffer<T> buf_sig, NeuralNetBuffer<T> buf_err, typename std::vector< std::vector<T> >::const_iterator t_begin) const = 0;
+	virtual ~AccuracyFunction() {}
+	
+	virtual double CalculateAccuracy(FrameBuffer y, FrameBuffer t) = 0;
 };
 
 

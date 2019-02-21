@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "experiment_mnist", "experiment_mnist.vcxproj", "{4D95C63D-3452-42FF-97AC-7E51A32DBCAD}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bbcu", "..\..\cuda\bbcu.vcxproj", "{78F65C55-EC8C-4A6A-90BE-B018E884A72E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -13,6 +15,8 @@ Global
 		DebugCpu|x86 = DebugCpu|x86
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
+		ReleaseCpu|x64 = ReleaseCpu|x64
+		ReleaseCpu|x86 = ReleaseCpu|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{4D95C63D-3452-42FF-97AC-7E51A32DBCAD}.Debug|x64.ActiveCfg = Debug|x64
@@ -27,6 +31,26 @@ Global
 		{4D95C63D-3452-42FF-97AC-7E51A32DBCAD}.Release|x64.Build.0 = Release|x64
 		{4D95C63D-3452-42FF-97AC-7E51A32DBCAD}.Release|x86.ActiveCfg = Release|Win32
 		{4D95C63D-3452-42FF-97AC-7E51A32DBCAD}.Release|x86.Build.0 = Release|Win32
+		{4D95C63D-3452-42FF-97AC-7E51A32DBCAD}.ReleaseCpu|x64.ActiveCfg = ReleaseCpu|x64
+		{4D95C63D-3452-42FF-97AC-7E51A32DBCAD}.ReleaseCpu|x64.Build.0 = ReleaseCpu|x64
+		{4D95C63D-3452-42FF-97AC-7E51A32DBCAD}.ReleaseCpu|x86.ActiveCfg = ReleaseCpu|Win32
+		{4D95C63D-3452-42FF-97AC-7E51A32DBCAD}.ReleaseCpu|x86.Build.0 = ReleaseCpu|Win32
+		{78F65C55-EC8C-4A6A-90BE-B018E884A72E}.Debug|x64.ActiveCfg = Debug|x64
+		{78F65C55-EC8C-4A6A-90BE-B018E884A72E}.Debug|x64.Build.0 = Debug|x64
+		{78F65C55-EC8C-4A6A-90BE-B018E884A72E}.Debug|x86.ActiveCfg = Debug|Win32
+		{78F65C55-EC8C-4A6A-90BE-B018E884A72E}.Debug|x86.Build.0 = Debug|Win32
+		{78F65C55-EC8C-4A6A-90BE-B018E884A72E}.DebugCpu|x64.ActiveCfg = DebugCpu|x64
+		{78F65C55-EC8C-4A6A-90BE-B018E884A72E}.DebugCpu|x64.Build.0 = DebugCpu|x64
+		{78F65C55-EC8C-4A6A-90BE-B018E884A72E}.DebugCpu|x86.ActiveCfg = DebugCpu|Win32
+		{78F65C55-EC8C-4A6A-90BE-B018E884A72E}.DebugCpu|x86.Build.0 = DebugCpu|Win32
+		{78F65C55-EC8C-4A6A-90BE-B018E884A72E}.Release|x64.ActiveCfg = Release|x64
+		{78F65C55-EC8C-4A6A-90BE-B018E884A72E}.Release|x64.Build.0 = Release|x64
+		{78F65C55-EC8C-4A6A-90BE-B018E884A72E}.Release|x86.ActiveCfg = Release|Win32
+		{78F65C55-EC8C-4A6A-90BE-B018E884A72E}.Release|x86.Build.0 = Release|Win32
+		{78F65C55-EC8C-4A6A-90BE-B018E884A72E}.ReleaseCpu|x64.ActiveCfg = ReleaseCpu|x64
+		{78F65C55-EC8C-4A6A-90BE-B018E884A72E}.ReleaseCpu|x64.Build.0 = ReleaseCpu|x64
+		{78F65C55-EC8C-4A6A-90BE-B018E884A72E}.ReleaseCpu|x86.ActiveCfg = ReleaseCpu|Win32
+		{78F65C55-EC8C-4A6A-90BE-B018E884A72E}.ReleaseCpu|x86.Build.0 = ReleaseCpu|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

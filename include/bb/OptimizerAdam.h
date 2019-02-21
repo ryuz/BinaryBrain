@@ -48,6 +48,13 @@ public:
 		m_iter          = 0;
 	}
 
+  	OptimizerAdam(T learning_rate = (T)0.001, T beta1 = (T)0.9, T beta2 = (T)0.999) 
+	{
+		m_learning_rate = learning_rate;
+		m_beta1         = beta1;
+		m_beta2         = beta2;
+		m_iter          = 0;
+	}
 
 	OptimizerAdam(create_t const &create, Variables params, Variables grads) 
         : m_m(params.GetTypes(), params.GetShapes()), m_v(params.GetTypes(), params.GetShapes())

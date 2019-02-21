@@ -277,12 +277,37 @@ inline void Tensor_Scalar_add_ex
     index_t size
 )
 {
-    #pragma omp parallel for 
+#pragma omp parallel for 
     for (index_t i = 0; i < size; ++i) {
         dst[i] = a * src0[i] + b * src1[i] + c;
     }
 }
 
+/*
+template<>
+inline void Tensor_Scalar_add_ex
+(
+    float       *dst,
+    float const *src0,
+    float const *src1,
+    float	    a,
+    float	    b,
+    float	    c,
+    index_t size
+)
+{
+//  #pragma omp parallel for 
+    for (index_t i = 0; i < size; ++i) {
+        BB_DEBUG_ASSERT(!isnan(a));
+        BB_DEBUG_ASSERT(!isnan(b));
+        BB_DEBUG_ASSERT(!isnan(c));
+        BB_DEBUG_ASSERT(!isnan(src0[i]));
+        BB_DEBUG_ASSERT(!isnan(src1[i]));
+
+        dst[i] = a * src0[i] + b * src1[i] + c;
+    }
+}
+*/
 
 template<typename T>
 inline void Tensor_Scalar_sub_ex

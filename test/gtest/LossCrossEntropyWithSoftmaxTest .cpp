@@ -1,7 +1,7 @@
 ﻿#include <stdio.h>
 #include <iostream>
 #include "gtest/gtest.h"
-#include "bb/NeuralNetLossCrossEntropyWithSoftmax.h"
+#include "bb/LossCrossEntropyWithSoftmax.h"
 
 
 
@@ -32,7 +32,7 @@ dx = [[0.01189111  0.02348626 - 0.17144011  0.02146598  0.01292184  0.0148421
 */
 
 
-TEST(NeuralNetLossCrossEntropyWithSoftmaxTest, testNeuralNetLossCrossEntropyWithSoftmax)
+TEST(LossCrossEntropyWithSoftmaxTest, testLossCrossEntropyWithSoftmax)
 {
 	const float x_table[5][10] = {
 		{ 0.03682449f, 0.7174495f, 0.9130372f, 0.6275032f, 0.11995261f, 0.25850186f, 0.9942376f, 0.23910977f, 0.75574166f, 0.38816985f },
@@ -62,25 +62,31 @@ TEST(NeuralNetLossCrossEntropyWithSoftmaxTest, testNeuralNetLossCrossEntropyWith
 	}
 	
 
-	bb::NeuralNetBuffer<> buf_sig(5, 10, BB_TYPE_REAL32);
-	bb::NeuralNetBuffer<> buf_err(5, 10, BB_TYPE_REAL32);
+	bb::FrameBuffer y_buf(BB_TYPE_FP32, 5, 10);
+	bb::FrameBuffer t_buf(BB_TYPE_FP32, 5, 10);
 	for (int i = 0; i < 5; i++) {
 		for (int j = 0; j < 10; j++) {
-			buf_sig.SetReal(i, j, x[i][j]);
+			y_buf.SetFP32(i, j, x[i][j]);
+		}
+	}
+	for (int i = 0; i < 5; i++) {
+		for (int j = 0; j < 10; j++) {
+			t_buf.SetFP32(i, j, t[i][j]);
 		}
 	}
 
-	bb::NeuralNetLossCrossEntropyWithSoftmax<> lossFunc;
+    bb::LossCrossEntropyWithSoftmax<float> lossFunc;
 
-	double loss = lossFunc.CalculateLoss(buf_sig, buf_err, t.begin());
+	auto   dy_buf = lossFunc.CalculateLoss(y_buf, t_buf);
+    double loss   = lossFunc.GetLoss();
 
 //	std::cout << "loss = " << loss << " (exp:2.297830009460449)" << std::endl;
-	EXPECT_TRUE(abs(loss - 2.297830009460449) < 0.00001);
+	ASSERT_NEAR(loss, 2.297830009460449, 0.00001);
 
 	for (int i = 0; i < 5; i++) {
 		for (int j = 0; j < 10; j++) {
 //			std::cout << "err : " << buf_err.GetReal(i, j)  << " exp : " << dx[i][j] << std::endl;
-			EXPECT_TRUE(abs(buf_err.GetReal(i, j) - dx[i][j]) < 0.00001);
+			ASSERT_NEAR(dy_buf.GetFP32(i, j), dx[i][j], 0.000001);
 		}
 	}
 }
