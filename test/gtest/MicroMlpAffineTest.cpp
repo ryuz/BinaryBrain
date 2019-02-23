@@ -6,7 +6,8 @@
 
 #include "bb/MicroMlpAffine.h"
 #include "bb/OptimizerAdam.h"
-
+#include "bb/ShuffleSet.h"
+#include "bb/Utility.h"
 
 
 template <typename T = float>
@@ -77,6 +78,7 @@ public:
 };
 
 
+#if 0
 TEST(MicroMlpAffineTest, testMicroMlpAffine)
 {
 	auto mlp = bb::MicroMlpAffine<4, 2>::Create(1);
@@ -227,16 +229,27 @@ TEST(MicroMlpAffineTest, testMicroMlpAffine)
     bb::OptimizerAdam<> optimizer(create, mlp->GetParameters(), mlp->GetGradients());
     optimizer.Update();
 }
-
+#endif
 
 
 TEST(MicroMlpAffineTest, testMicroMlpAffineCmp)
 {
     const int N = 6;
     const int M = 16;
-    const int input_node_size = 13;
-    const int output_node_size = 7;
-    const int frame_size = 33;
+#if 1
+    const int input_node_size = 360;
+    const int output_node_size = 60;
+    const int frame_size = 64;
+#else
+    const int input_node_size = 6;
+    const int output_node_size = 1;
+    const int frame_size = 8;
+#endif
+
+    float   W0[output_node_size][M][N];
+    float   b0[output_node_size][M];
+    float   W1[output_node_size][M];
+    float   b1[output_node_size];
 
     std::mt19937_64 mt(1);
 
@@ -249,69 +262,115 @@ TEST(MicroMlpAffineTest, testMicroMlpAffineCmp)
     mlp1->SetInputShape({input_node_size});
     mlp2->SetInputShape({input_node_size});
 	
+    
+    bb::ShuffleSet<bb::index_t> ss(input_node_size, 1);
 	for (int i = 0; i < output_node_size; i++) {
+        auto s = ss.GetRandomSet(N);
 		for (int j = 0; j < N; j++) {
-            int idx = mt() % input_node_size;
-			mlp1->SetNodeInput(i, j, idx);
-			mlp2->SetNodeInput(i, j, idx);
+            int idx = s[j]; // mt() % input_node_size;
+//			mlp1->SetNodeInput(i, j, idx);
+//			mlp2->SetNodeInput(i, j, idx);
+			mlp2->SetNodeInput(i, j, mlp1->GetNodeInput(i, j));
 		}
 	}
-	
-	for (int i = 0; i < frame_size; i++) {
-		for (int j = 0; j < input_node_size; j++) {
-            int val = mt() % 1000;
-            x_cpu.SetFP32(i, j, (float)val);
-            x_cpu.SetFP32(i, j, (float)val);
+
+    {
+        auto p1_W0 = mlp1->lock_W0();
+        auto p1_b0 = mlp1->lock_b0();
+        auto p1_W1 = mlp1->lock_W1();
+        auto p1_b1 = mlp1->lock_b1();
+        auto p2_W0 = mlp2->lock_W0();
+        auto p2_b0 = mlp2->lock_b0();
+        auto p2_W1 = mlp2->lock_W1();
+        auto p2_b1 = mlp2->lock_b1();
+
+        for (int i = 0; i < output_node_size; i++) {
+            for (int j = 0; j < M; j++) {
+                for (int k = 0; k < N; k++) {
+                    int val = mt() % 100;
+                    W0[i][j][k] = (float)val;
+                    p1_W0(i, j, k) = (float)val;
+                    p2_W0(i, j, k) = (float)val;
+                }
+
+                int val = mt() % 100;
+                b0[i][j] = (float)val;
+                p1_b0(i, j) = (float)val;
+                p2_b0(i, j) = (float)val;
+            }
+
+            for (int j = 0; j < M; j++) {
+                int val = mt() % 100;
+                W1[i][j] = (float)val;
+                p1_W1(i, j) = (float)val;
+                p2_W1(i, j) = (float)val;
+            }
+
+            int val = mt() % 100;
+            b1[i] = (float)val;
+            p1_b1(i) = (float)val;
+            p2_b1(i) = (float)val;
         }
     }
 
-    for ( int loop = 0; loop < 2; ++loop ) {
-        {
-            auto p1_W0 = mlp1->lock_W0();
-            auto p1_b0 = mlp1->lock_b0();
-            auto p1_W1 = mlp1->lock_W1();
-            auto p1_b1 = mlp1->lock_b1();
-            auto p2_W0 = mlp2->lock_W0();
-            auto p2_b0 = mlp2->lock_b0();
-            auto p2_W1 = mlp2->lock_W1();
-            auto p2_b1 = mlp2->lock_b1();
+    for ( int loop = 0; loop < 4; ++loop ) {
 
-	        for (int i = 0; i < output_node_size; i++) {
-    	        for (int j = 0; j < M; j++) {
-        	        for (int k = 0; j < N; j++) {
-                        int val = mt() % 1000;
-	        	        p1_W0(i, j, k)  = (float)val;
-	        	        p2_W0(i, j, k)  = (float)val;
-                    }
-
-                    int val = mt() % 1000;
-        	        p1_b0(i, j)  = (float)val;
-        	        p2_b0(i, j)  = (float)val;
-                }
-
-	            for (int j = 0; j < M; j++) {
-                    int val = mt() % 1000;
-		            p1_W1(i, j) = (float)val;
-		            p2_W1(i, j) = (float)val;
-	            }
-
+	    for (int i = 0; i < frame_size; i++) {
+		    for (int j = 0; j < input_node_size; j++) {
                 int val = mt() % 1000;
-                p1_b1(i) = (float)val;
-                p2_b1(i) = (float)val;
+                x_cpu.SetFP32(i, j, (float)val);
+                x_gpu.SetFP32(i, j, (float)val);
             }
         }
 
+        {
+            auto p1_W0 = mlp1->lock_W0_const();
+            auto p1_b0 = mlp1->lock_b0_const();
+            auto p1_W1 = mlp1->lock_W1_const();
+            auto p1_b1 = mlp1->lock_b1_const();
+            auto p2_W0 = mlp2->lock_W0_const();
+            auto p2_b0 = mlp2->lock_b0_const();
+            auto p2_W1 = mlp2->lock_W1_const();
+            auto p2_b1 = mlp2->lock_b1_const();
+
+	        for (int i = 0; i < output_node_size; i++) {
+    	        for (int j = 0; j < M; j++) {
+        	        for (int k = 0; k < N; k++) {
+	        	        EXPECT_FLOAT_EQ(W0[i][j][k], p1_W0(i, j, k));
+	        	        EXPECT_FLOAT_EQ(W0[i][j][k], p2_W0(i, j, k));
+                    }
+
+        	        EXPECT_FLOAT_EQ(b0[i][j], p1_b0(i, j));
+        	        EXPECT_FLOAT_EQ(b0[i][j], p2_b0(i, j));
+                }
+
+	            for (int j = 0; j < M; j++) {
+        	        EXPECT_FLOAT_EQ(W1[i][j], p1_W1(i, j));
+        	        EXPECT_FLOAT_EQ(W1[i][j], p2_W1(i, j));
+	            }
+
+      	        EXPECT_FLOAT_EQ(b1[i], p1_b1(i));
+      	        EXPECT_FLOAT_EQ(b1[i], p2_b1(i));
+            }
+        }
+
+
 	    auto y_cpu = mlp1->Forward(x_cpu);
-	    auto y_gpu = mlp1->Forward(x_gpu);
+	    auto y_gpu = mlp2->Forward(x_gpu);
 
 	    for (int i = 0; i < frame_size; i++) {
             for ( int j = 0; j < output_node_size; ++j ) {
-        	    EXPECT_EQ(y_cpu.GetFP32(i, j), y_gpu.GetFP32(i, j));
+        	    EXPECT_FLOAT_EQ(y_cpu.GetFP32(i, j), y_gpu.GetFP32(i, j));
             }
         }
     
 
         // backward
+	    for (int i = 0; i < output_node_size; i++) {
+		    for (int j = 0; j < N; j++) {
+			    EXPECT_EQ(mlp1->GetNodeInput(i, j), mlp2->GetNodeInput(i, j));
+		    }
+	    }
 
         bb::FrameBuffer dy_cpu(BB_TYPE_FP32, frame_size, output_node_size, true);
         bb::FrameBuffer dy_gpu(BB_TYPE_FP32, frame_size, output_node_size, false);
@@ -320,17 +379,47 @@ TEST(MicroMlpAffineTest, testMicroMlpAffineCmp)
 		    for (int j = 0; j < output_node_size; j++) {
                 int val = mt() % 1000;
                 dy_cpu.SetFP32(i, j, (float)val);
-                dy_cpu.SetFP32(i, j, (float)val);
+                dy_gpu.SetFP32(i, j, (float)val);
             }
         }
 
 	    auto dx_cpu = mlp1->Backward(dy_cpu);
-	    auto dx_gpu = mlp1->Backward(dy_gpu);
+	    auto dx_gpu = mlp2->Backward(dy_gpu);
 
   	    for (int i = 0; i < frame_size; i++) {
 		    for (int j = 0; j < input_node_size; j++) {
-                int val = mt() % 1000;
-                EXPECT_FLOAT_EQ(dx_cpu.GetFP32(i, j), dx_cpu.GetFP32(i, j));
+                EXPECT_FLOAT_EQ(dx_cpu.GetFP32(i, j), dx_gpu.GetFP32(i, j));
+            }
+        }
+
+        {
+            auto p1_W0 = mlp1->lock_W0_const();
+            auto p1_b0 = mlp1->lock_b0_const();
+            auto p1_W1 = mlp1->lock_W1_const();
+            auto p1_b1 = mlp1->lock_b1_const();
+            auto p2_W0 = mlp2->lock_W0_const();
+            auto p2_b0 = mlp2->lock_b0_const();
+            auto p2_W1 = mlp2->lock_W1_const();
+            auto p2_b1 = mlp2->lock_b1_const();
+
+	        for (int i = 0; i < output_node_size; i++) {
+    	        for (int j = 0; j < M; j++) {
+        	        for (int k = 0; k < N; k++) {
+	        	        EXPECT_FLOAT_EQ(W0[i][j][k], p1_W0(i, j, k));
+	        	        EXPECT_FLOAT_EQ(W0[i][j][k], p2_W0(i, j, k));
+                    }
+
+        	        EXPECT_FLOAT_EQ(b0[i][j], p1_b0(i, j));
+        	        EXPECT_FLOAT_EQ(b0[i][j], p2_b0(i, j));
+                }
+
+	            for (int j = 0; j < M; j++) {
+        	        EXPECT_FLOAT_EQ(W1[i][j], p1_W1(i, j));
+        	        EXPECT_FLOAT_EQ(W1[i][j], p2_W1(i, j));
+	            }
+
+      	        EXPECT_FLOAT_EQ(b1[i], p1_b1(i));
+      	        EXPECT_FLOAT_EQ(b1[i], p2_b1(i));
             }
         }
 

@@ -18,9 +18,9 @@ int main()
 {
 	omp_set_num_threads(4);
 
-	MnistSimpleMicroMlp(64, 128, true);
+	MnistSimpleMicroMlp(64, 64, true);
 
-	getchar();
+//	getchar();
 	return 0;
 }
 

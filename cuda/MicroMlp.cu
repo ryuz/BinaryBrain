@@ -537,7 +537,33 @@ int bbcu_MicroMlp_Backward(
 		}
 	}
 
+    if ( 0 ) {
+        int*   index   = (int *)malloc(output_node_size*N*sizeof(int));
+        float* tmp_buf = (float *)malloc(output_node_size*frame_size*N*sizeof(float));
+        float* dst_buf = (float *)malloc(input_node_size*frame_size*sizeof(float));
+        BB_CUDA_SAFE_CALL(cudaMemcpy(index,   dev_input_index, output_node_size*N*sizeof(float), cudaMemcpyDeviceToHost));
+        BB_CUDA_SAFE_CALL(cudaMemcpy(tmp_buf, dev_in_err_tmp,  output_node_size*frame_size*N*sizeof(float), cudaMemcpyDeviceToHost));
+        memset(dst_buf, 0, input_node_size*frame_size*sizeof(float));
+
+        for (int frame = 0; frame < frame_size; ++frame) {
+            for (int node = 0; node < output_node_size; ++node) {
+                for (int i = 0; i < N; ++i) {
+                    int idx = index[node*N + i];
+                    dst_buf[idx*frame_size+frame] += tmp_buf[(node*N+i)*frame_size + frame];
+                }
+            }
+        }
+
+        BB_CUDA_SAFE_CALL(cudaMemcpy(dev_in_err_buf, dst_buf, input_node_size*frame_size*sizeof(float), cudaMemcpyHostToDevice));
+
+        free(index);
+        free(tmp_buf);
+        free(dst_buf);
+    }
+    else
 	{
+        BB_CUDA_SAFE_CALL(cudaMemset(dev_in_err_buf, 0, input_node_size * frame_size * sizeof(float)));
+
 		int block_x = frame_size;
 		while ( block_x > 1024 ) { block_x /= 2; }
 

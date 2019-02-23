@@ -51,6 +51,8 @@ public:
     FrameBuffer             m_x;
     FrameBuffer             m_y;
     FrameBuffer             m_dx;
+
+    FrameBuffer             m_dy;   // debug
         
 protected:
 	MicroMlpAffine() {
@@ -105,31 +107,37 @@ public:
 
 	std::string GetClassName(void) const { return "MicroMlpAffine"; }
 
-   	auto lock_InputIndex(void)       { return m_input_index.GetPtr(); }
-	auto lock_InputIndex_const(void) { return m_input_index.GetConstPtr(); }
+   	auto lock_InputIndex(void)             { return m_input_index.GetPtr(); }
+	auto lock_InputIndex_const(void) const { return m_input_index.GetConstPtr(); }
 
-	auto lock_W0(void)       { return m_W0->GetPtr<T>(); }
-	auto lock_W0_const(void) { return m_W0->GetConstPtr<T>(); }
-	auto lock_b0(void)       { return m_b0->GetPtr<T>(); }
-	auto lock_b0_const(void) { return m_b0->GetConstPtr<T>(); }
-	auto lock_W1(void)       { return m_W1->GetPtr<T>(); }
-	auto lock_W1_const(void) { return m_W1->GetConstPtr<T>(); }
-	auto lock_b1(void)       { return m_b1->GetPtr<T>(); }
-	auto lock_b1_const(void) { return m_b1->GetConstPtr<T>(); }
+	auto lock_W0(void)             { return m_W0->GetPtr<T>(); }
+	auto lock_W0_const(void) const { return m_W0->GetConstPtr<T>(); }
+	auto lock_b0(void)             { return m_b0->GetPtr<T>(); }
+	auto lock_b0_const(void) const { return m_b0->GetConstPtr<T>(); }
+	auto lock_W1(void)             { return m_W1->GetPtr<T>(); }
+	auto lock_W1_const(void) const { return m_W1->GetConstPtr<T>(); }
+	auto lock_b1(void)             { return m_b1->GetPtr<T>(); }
+	auto lock_b1_const(void) const { return m_b1->GetConstPtr<T>(); }
 
-	auto lock_dW0(void)       { return m_dW0->GetPtr<T>(); }
-	auto lock_dW0_const(void) { return m_dW0->GetConstPtr<T>(); }
-	auto lock_db0(void)       { return m_db0->GetPtr<T>(); }
-	auto lock_db0_const(void) { return m_db0->GetConstPtr<T>(); }
-	auto lock_dW1(void)       { return m_dW1->GetPtr<T>(); }
-	auto lock_dW1_const(void) { return m_dW1->GetConstPtr<T>(); }
-	auto lock_db1(void)       { return m_db1->GetPtr<T>(); }
-	auto lock_db1_const(void) { return m_db1->GetConstPtr<T>(); }
+	auto lock_dW0(void)             { return m_dW0->GetPtr<T>(); }
+	auto lock_dW0_const(void) const { return m_dW0->GetConstPtr<T>(); }
+	auto lock_db0(void)             { return m_db0->GetPtr<T>(); }
+	auto lock_db0_const(void) const { return m_db0->GetConstPtr<T>(); }
+	auto lock_dW1(void)             { return m_dW1->GetPtr<T>(); }
+	auto lock_dW1_const(void) const { return m_dW1->GetConstPtr<T>(); }
+	auto lock_db1(void)             { return m_db1->GetPtr<T>(); }
+	auto lock_db1_const(void) const { return m_db1->GetConstPtr<T>(); }
 
     void  SetNodeInput(index_t node, index_t input_index, index_t input_node)
     {
         auto ptr = lock_InputIndex();
         ptr(node, input_index) = (std::int32_t)input_node;
+    }
+
+    index_t GetNodeInput(index_t node, index_t input_index) const
+    {
+        auto ptr = lock_InputIndex_const();
+        return (index_t)ptr(node, input_index);
     }
 
 
@@ -230,8 +238,8 @@ public:
             auto y_ptr  = m_y.GetMemoryDevPtr();
             auto W0_ptr = m_W0->GetMemoryDevConstPtr();
             auto b0_ptr = m_b0->GetMemoryDevConstPtr();
-            auto W1_ptr = m_W0->GetMemoryDevConstPtr();
-            auto b1_ptr = m_b0->GetMemoryDevConstPtr();
+            auto W1_ptr = m_W1->GetMemoryDevConstPtr();
+            auto b1_ptr = m_b1->GetMemoryDevConstPtr();
             bbcu_MicroMlp6x16_Forward
     		    (
                     (const float *)x_ptr.GetAddr(),
@@ -259,6 +267,8 @@ public:
 
     FrameBuffer Backward(FrameBuffer dy)
     {
+        m_dy = dy;
+
         m_dx.Resize(DataType<T>::type, dy.GetFrameSize(), m_input_node_size);
 
         auto frame_size = dy.GetFrameSize();
@@ -279,15 +289,16 @@ public:
             auto dy_ptr = dy.GetMemoryDevConstPtr();
             auto W0_ptr = m_W0->GetMemoryDevConstPtr();
             auto b0_ptr = m_b0->GetMemoryDevConstPtr();
-            auto W1_ptr = m_W0->GetMemoryDevConstPtr();
-            auto b1_ptr = m_b0->GetMemoryDevConstPtr();
+            auto W1_ptr = m_W1->GetMemoryDevConstPtr();
+            auto b1_ptr = m_b1->GetMemoryDevConstPtr();
             auto dW0_ptr = m_dW0->GetMemoryDevPtr();
             auto db0_ptr = m_db0->GetMemoryDevPtr();
-            auto dW1_ptr = m_dW0->GetMemoryDevPtr();
-            auto db1_ptr = m_db0->GetMemoryDevPtr();
+            auto dW1_ptr = m_dW1->GetMemoryDevPtr();
+            auto db1_ptr = m_db1->GetMemoryDevPtr();
 
             float* dev_in_err_tmp;
             BB_CUDA_SAFE_CALL(cudaMalloc((void**)&dev_in_err_tmp,  m_output_node_size * N * frame_size * sizeof(float)));
+            BB_CUDA_SAFE_CALL(cudaMemset(dev_in_err_tmp, 0, m_output_node_size * N * frame_size * sizeof(float)));
 
             bbcu_MicroMlp6x16_Backward
                 (
@@ -309,8 +320,16 @@ public:
 			        (float *)db1_ptr.GetAddr()
 		        );
 
+#if 0
+            float tmp[8][1][6];
+            BB_CUDA_SAFE_CALL(cudaMemcpy(tmp, dev_in_err_tmp, sizeof(tmp), cudaMemcpyDeviceToHost));
+            float dst[8][1][6];
+            BB_CUDA_SAFE_CALL(cudaMemcpy(dst, dx_ptr.GetAddr(), sizeof(tmp), cudaMemcpyDeviceToHost));
+#endif
+
             BB_CUDA_SAFE_CALL(cudaFree(dev_in_err_tmp));
-            return m_y;
+
+            return m_dx;
         }
 #endif
 

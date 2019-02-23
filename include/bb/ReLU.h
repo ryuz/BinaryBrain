@@ -22,6 +22,7 @@ template <typename T = float>
 class ReLU : public Layer
 {
 protected:
+public:
     FrameBuffer m_x;
     FrameBuffer m_y;
     FrameBuffer m_dx;

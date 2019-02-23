@@ -857,6 +857,19 @@ Tensor_<T> operator/(T src0, Tensor_<T> const &src1)
 
 
 
+template<typename T>
+std::ostream& operator<<(std::ostream& os, const Tensor_<T>& t)
+{
+    auto ptr = t.GetConstPtr();
+    os << "[";
+    for ( index_t i = 0; i < t.GetSize(); ++i ) {
+        os << ptr[i] << ", ";
+    }
+    os << "]\n";
+    return os;
+}
+
+
 
 // -------------------------------------
 //  高速版の特殊化

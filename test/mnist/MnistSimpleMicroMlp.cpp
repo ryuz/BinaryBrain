@@ -33,6 +33,8 @@ protected:
 
 
 public:
+//    AffinePtr   m_affineX;
+//    ActivatePtr m_activateX;
     AffinePtr   m_affine0;
     ActivatePtr m_activate0;
     AffinePtr   m_affine1;
@@ -43,6 +45,9 @@ public:
 
     MnistSimpleMicroMlpNet()
     {
+//        m_affineX   = Affine::Create({360});
+//        m_activateX = Activate::Create();
+
         m_affine0   = Affine::Create({360});
         m_activate0 = Activate::Create();
         m_affine1   = Affine::Create({60});
@@ -57,6 +62,9 @@ public:
 
     bb::indices_t SetInputShape(bb::indices_t shape)
     {
+//        shape = m_affineX->SetInputShape(shape);
+//        shape = m_activateX->SetInputShape(shape);
+
         shape = m_affine0->SetInputShape(shape);
         shape = m_activate0->SetInputShape(shape);
         shape = m_affine1->SetInputShape(shape);
@@ -68,6 +76,10 @@ public:
     bb::Variables GetParameters(void)
     {
         bb::Variables var;
+
+//        var.PushBack(m_affineX->GetParameters());
+//        var.PushBack(m_activateX->GetParameters());
+
         var.PushBack(m_affine0->GetParameters());
         var.PushBack(m_activate0->GetParameters());
         var.PushBack(m_affine1->GetParameters());
@@ -79,6 +91,9 @@ public:
     bb::Variables GetGradients(void)
     {
         bb::Variables var;
+//        var.PushBack(m_affineX->GetGradients());
+//        var.PushBack(m_activateX->GetGradients());
+
         var.PushBack(m_affine0->GetGradients());
         var.PushBack(m_activate0->GetGradients());
         var.PushBack(m_affine1->GetGradients());
@@ -89,6 +104,9 @@ public:
 
     bb::FrameBuffer Forward(bb::FrameBuffer x, bool train=true)
     {
+//        x = m_affineX->Forward(x, train);
+//        x = m_activateX->Forward(x, train);
+
         x = m_affine0->Forward(x, train);
         x = m_activate0->Forward(x, train);
         x = m_affine1->Forward(x, train);
@@ -104,31 +122,37 @@ public:
         dy = m_affine1->Backward(dy);
         dy = m_activate0->Backward(dy);
         dy = m_affine0->Backward(dy);
+
+//        dy = m_activateX->Backward(dy);
+//        dy = m_affineX->Backward(dy);
         return dy;
     }
 };
 
-void printBuffer(std::string name, bb::FrameBuffer buf)
+
+void printBuffer(std::ostream &os, std::string name, bb::FrameBuffer buf)
 {
-    std::cout << name << " =\n";
+    os << name << " =\n";
     auto ptr = buf.GetConstPtr<float>();
-    for (int f = 0; f < 3; f++) {
-        for (int i = 0; i < 10; i++) {
-            std::cout << ptr.Get(f, i) << ", ";
+//  for (int f = 0; f < 3; f++) {
+    for (int f = 0; f < buf.GetFrameSize(); f++) {
+//      for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < buf.GetNodeSize(); i++) {
+            os << ptr.Get(f, i) << ", ";
         }
-        std::cout << "\n";
+        os << "\n";
     }
-    std::cout << std::endl;
+    os << std::endl;
 }
 
 template<typename T>
-void printTensorPtr(std::string name,  bb::TensorConstPtr_<T, bb::Tensor const, bb::Memory::ConstPtr> ptr)
+void printTensorPtr(std::ostream &os, std::string name,  bb::TensorConstPtr_<T, bb::Tensor const, bb::Memory::ConstPtr> ptr)
 {
-    std::cout << name << " =\n";
+    os << name << " =\n";
     for (int i = 0; i < 10; i++) {
-       std::cout << ptr[i] << ", ";
+       os << ptr[i] << ", ";
     }
-    std::cout << std::endl;
+    os << std::endl;
 }
 
 
@@ -136,11 +160,27 @@ void printTensorPtr(std::string name,  bb::TensorConstPtr_<T, bb::Tensor const, 
 void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
 {
     // load MNIST data
+//#ifdef _DEBUG
+//	auto data = bb::LoadMnist<>::Load(10, 512, 128);
+//#else
+  auto data = bb::LoadMnist<>::Load(10);
+//#endif
+
+  /*
 #ifdef _DEBUG
-	auto data = bb::LoadMnist<>::Load(10, 512, 128);
+#ifdef BB_WITH_CUDA
+    std::ofstream ofs("log_gpu_d.txt");
 #else
-    auto data = bb::LoadMnist<>::Load(10);
+    std::ofstream ofs("log_cpu_d.txt");
 #endif
+#else
+#ifdef BB_WITH_CUDA
+    std::ofstream ofs("log_gpu.txt");
+#else
+    std::ofstream ofs("log_cpu.txt");
+#endif
+#endif
+    */
 
     MnistSimpleMicroMlpNet                          net;
     bb::LossCrossEntropyWithSoftmax<float>          lossFunc;
@@ -152,12 +192,12 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
     bb::FrameBuffer t(BB_TYPE_FP32, mini_batch_size, 10);
 
     bb::OptimizerAdam<float> optimizer;
-//  bb::OptimizerSgd<float> optimizer;
+//  bb::OptimizerSgd<float> optimizer(0.05);
     optimizer.SetVariables(net.GetParameters(), net.GetGradients());
 
     std::mt19937_64 mt(1);
 
-    for ( bb::index_t epoch = 0; epoch < 32; ++epoch ) {
+    for ( bb::index_t epoch = 0; epoch < epoch_size; ++epoch ) {
         double acc = 0;
         for (bb::index_t i = 0; i < (bb::index_t)(data.x_train.size() - mini_batch_size); i += mini_batch_size)
         {
@@ -170,21 +210,43 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
             acc += accFunc.CalculateAccuracy(y, t);
 
 
-            auto dx = net.Backward(dy);
+           dy = net.Backward(dy);
 
-            printBuffer("y", y);
-            printBuffer("t", t);
-            printBuffer("dy", dy);
-            printBuffer("dx", dx);
+//           ofs << "\n----------------------\n" << std::endl;
+           /*
+           printBuffer(ofs, "x", x);
+           printBuffer(ofs, "y", y);
+           printBuffer(ofs, "t", t);
+           printBuffer(ofs, "dy", dy);
 
-            printBuffer("af2_dx", net.m_affine2->m_dx);
-            printTensorPtr<float>("W0", net.m_affine2->lock_W0_const());
-            printTensorPtr<float>("dW0", net.m_affine2->lock_dW0_const());
+           printBuffer(ofs, "1x",  net.m_affine1->m_x);
+           printBuffer(ofs, "1y",  net.m_affine1->m_y);
+           printBuffer(ofs, "1dx", net.m_affine1->m_dx);
+           printBuffer(ofs, "1dy", net.m_affine1->m_dy);
 
-            optimizer.Update();
+           printBuffer(ofs, "af2_dx", net.m_affine2->m_dx);
+           printBuffer(ofs, "af1_dx", net.m_affine1->m_dx);
+           printBuffer(ofs, "af0_dy", net.m_activate0->m_dx);
+           printTensorPtr<float>(ofs, "W0", net.m_affine0->lock_W0_const());
+           printTensorPtr<float>(ofs, "dW0", net.m_affine0->lock_dW0_const());
+           printTensorPtr<float>(ofs, "b0", net.m_affine0->lock_b0_const());
+           printTensorPtr<float>(ofs, "db0", net.m_affine0->lock_db0_const());
+           printTensorPtr<float>(ofs, "W1", net.m_affine0->lock_W1_const());
+           printTensorPtr<float>(ofs, "dW1", net.m_affine0->lock_dW1_const());
+           printTensorPtr<float>(ofs, "b1", net.m_affine0->lock_b1_const());
+           printTensorPtr<float>(ofs, "db1", net.m_affine0->lock_db1_const());
+           ofs << "in = " << net.m_affine0->m_input_index;
+           */
+//         printBuffer(ofs, "dy", net.m_affine0->m_dy);
+//         printBuffer(ofs, "2_dx", net.m_affine2->m_dx);
+//         printBuffer(ofs, "1_dx", net.m_affine1->m_dx);
+//         printBuffer(ofs, "0_dx", net.m_affine0->m_dx);
+//         printBuffer(ofs, "X_dx", net.m_affineX->m_dx);
 
-            printTensorPtr<float>("W0", net.m_affine2->lock_W0_const());
-            printTensorPtr<float>("dW0", net.m_affine2->lock_dW0_const());
+           optimizer.Update();
+//           printTensorPtr<float>(ofs, "W0", net.m_affine0->lock_W0_const());
+//           printTensorPtr<float>(ofs, "dW0", net.m_affine0->lock_dW0_const());
+//           ofs << "\n" << std::endl;
         }
         std::cout << acc / data.x_train.size() << std::endl;
 
