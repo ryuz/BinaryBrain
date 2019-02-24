@@ -40,7 +40,9 @@ TEST(ReLUTest, testReLU_test0)
 	auto dx = relu->Backward(dy);
 
 	EXPECT_EQ(0, dx.GetFP32(0, 0));
-	EXPECT_EQ(0, dx.GetFP32(0, 1));
+	
+    EXPECT_TRUE(dx.GetFP32(0, 1) == 0 || dx.GetFP32(0, 1) == 2);    // 境界値は両方許容
+
 	EXPECT_EQ(3, dx.GetFP32(0, 2));
 	EXPECT_EQ(4, dx.GetFP32(1, 0));
 	EXPECT_EQ(5, dx.GetFP32(1, 1));

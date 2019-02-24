@@ -215,8 +215,8 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
     bb::FrameBuffer x(BB_TYPE_FP32, mini_batch_size, {28, 28, 1});
     bb::FrameBuffer t(BB_TYPE_FP32, mini_batch_size, 10);
 
-    bb::OptimizerAdam<float> optimizer;
-//  bb::OptimizerSgd<float> optimizer(0.05);
+//  bb::OptimizerAdam<float> optimizer;
+    bb::OptimizerSgd<float> optimizer(0.01f);
     optimizer.SetVariables(net.GetParameters(), net.GetGradients());
 
     std::mt19937_64 mt(1);
@@ -233,8 +233,20 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
             auto dy = lossFunc.CalculateLoss(y, t);
             acc += accFunc.CalculateAccuracy(y, t);
 
+#if 0
+            auto dy_ptr = dy.GetConstPtr<float>();
+            for (int f = 0; f < (int)dy.GetFrameSize(); ++f) {
+                for (int n = 0; n < (int)dy.GetNodeSize(); ++n) {
+                    if (isnan(dy_ptr.Get(f, n))) {
+                        std::cout << "!!!nan!!!" << std::endl;
+                    }
+                }
+            }
+#endif
 
             dy = net.Backward(dy);
+
+
 
 #if 0
             net.m_affine0->Save("affine.bin");

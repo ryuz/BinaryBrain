@@ -53,7 +53,11 @@ public:
     FrameBuffer             m_dx;
 
     FrameBuffer             m_dy;   // debug
-        
+    
+#ifdef BB_WITH_CUDA
+    FrameBuffer             m_dx_tmp;
+#endif
+
 protected:
 	MicroMlpAffine() {
         m_W0  = std::make_shared<Tensor>();
@@ -296,15 +300,20 @@ public:
             auto dW1_ptr = m_dW1->GetMemoryDevPtr();
             auto db1_ptr = m_db1->GetMemoryDevPtr();
 
-            float* dev_in_err_tmp;
-            BB_CUDA_SAFE_CALL(cudaMalloc((void**)&dev_in_err_tmp,  m_output_node_size * N * frame_size * sizeof(float)));
-            BB_CUDA_SAFE_CALL(cudaMemset(dev_in_err_tmp, 0, m_output_node_size * N * frame_size * sizeof(float)));
+            m_dx_tmp.Resize(BB_TYPE_FP32, frame_size, m_output_node_size * N);
+            m_dx_tmp.FillZero();
+            auto dx_tmp_ptr = m_dx_tmp.GetMemoryDevPtr();
+
+//          float* dev_in_err_tmp;
+//          BB_CUDA_SAFE_CALL(cudaMalloc((void**)&dev_in_err_tmp,  m_output_node_size * N * frame_size * sizeof(float)));
+//          BB_CUDA_SAFE_CALL(cudaMemset(dev_in_err_tmp, 0, m_output_node_size * N * frame_size * sizeof(float)));
 
             bbcu_MicroMlp6x16_Backward
                 (
 			        (float const *)x_ptr.GetAddr(),
 			        (float *)dx_ptr.GetAddr(),
-			        dev_in_err_tmp,
+//  		        dev_in_err_tmp,
+			        (float *)dx_tmp_ptr.GetAddr(),
 			        (float *)dy_ptr.GetAddr(),
 			        (int)m_input_node_size,
 			        (int)m_output_node_size,
@@ -327,7 +336,7 @@ public:
             BB_CUDA_SAFE_CALL(cudaMemcpy(dst, dx_ptr.GetAddr(), sizeof(tmp), cudaMemcpyDeviceToHost));
 #endif
 
-            BB_CUDA_SAFE_CALL(cudaFree(dev_in_err_tmp));
+//          BB_CUDA_SAFE_CALL(cudaFree(dev_in_err_tmp));
 
             return m_dx;
         }

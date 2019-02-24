@@ -446,6 +446,26 @@ public:
 #endif
 	}
 	
+    /**
+     * @brief  ゼロ初期化する
+     * @detail ゼロ初期化する
+     */
+	void FillZero(void)
+	{
+        if ( m_size == 0 ) { return; }
+
+        if (m_addr != nullptr) {
+            memset(m_addr, 0, m_size);
+        }
+
+#ifdef BB_WITH_CUDA
+        if (m_devAddr != nullptr) {
+            BB_CUDA_SAFE_CALL(cudaMemset(m_devAddr, 0, m_size));
+        }
+        m_devModified  = false;
+        m_hostModified = false;
+#endif
+    }
 
 	/**
      * @brief  メモリ内容の破棄

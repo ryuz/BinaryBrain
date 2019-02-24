@@ -226,36 +226,36 @@ public:
         BB_DEBUG_ASSERT(i1 >= 0 && i1 < m_tensor->m_shape[1]);
         BB_DEBUG_ASSERT(i2 >= 0 && i2 < m_tensor->m_shape[2]);
         BB_DEBUG_ASSERT(i3 >= 0 && i3 < m_tensor->m_shape[3]);
-	    index_t index = 0;
+        index_t index = 0;
         index += i0 * m_tensor->m_stride[0];
         index += i1 * m_tensor->m_stride[1];
         index += i2 * m_tensor->m_stride[2];
         index += i3 * m_tensor->m_stride[3];
-    	return At(index);
-	}
+        return At(index);
+    }
 
     inline Tp &operator()(indices_t indices)
     {
-	    BB_DEBUG_ASSERT(indices.size() == m_tensor->m_shape.size());
-	    index_t index = 0;
-	    for (int i = 0; i < (int)indices.size(); ++i) {
+        BB_DEBUG_ASSERT(indices.size() == m_tensor->m_shape.size());
+        index_t index = 0;
+        for (int i = 0; i < (int)indices.size(); ++i) {
             BB_DEBUG_ASSERT(indices[i] >= 0 && indices[i] < m_tensor->m_shape[i]);
-		    index += indices[i] * m_tensor->m_stride[i];
-	    }
-    	return At(index);
+            index += indices[i] * m_tensor->m_stride[i];
+        }
+        return At(index);
     }
 
     inline Tp &operator()(indices_t indices, index_t i0)
     {
-	    BB_DEBUG_ASSERT(indices.size() + 1 == m_tensor->m_shape.size());
+        BB_DEBUG_ASSERT(indices.size() + 1 == m_tensor->m_shape.size());
         BB_DEBUG_ASSERT(i0 >= 0 && i0 < m_tensor->m_shape[0]);
-	    index_t index = 0;
+        index_t index = 0;
         index += i0 * m_tensor->m_stride[0];
-	    for (int i = 0; i < (int)indices.size(); ++i) {
-            BB_DEBUG_ASSERT(indices[i] >= 0 && indices[i] < m_tensor->m_shape[i+1]);
-		    index += indices[i] * m_tensor->m_stride[i+1];
-	    }
-    	return At(index);
+        for (int i = 0; i < (int)indices.size(); ++i) {
+            BB_DEBUG_ASSERT(indices[i] >= 0 && indices[i] < m_tensor->m_shape[i + 1]);
+            index += indices[i] * m_tensor->m_stride[i + 1];
+        }
+        return At(index);
     }
 };
 
@@ -264,6 +264,21 @@ public:
 // -------------------------------------
 //  基本演算定義
 // -------------------------------------
+
+template<typename T>
+inline void Tensor_Scalar_set
+(
+    T       *dst,
+    T	    a,
+    index_t size
+)
+{
+#pragma omp parallel for 
+    for (index_t i = 0; i < size; ++i) {
+        dst[i] = a;
+    }
+}
+
 
 template<typename T>
 inline void Tensor_Scalar_add_ex
@@ -296,7 +311,7 @@ inline void Tensor_Scalar_add_ex
     index_t size
 )
 {
-//  #pragma omp parallel for 
+//  #pragma omp parallel for
     for (index_t i = 0; i < size; ++i) {
         BB_DEBUG_ASSERT(!isnan(a));
         BB_DEBUG_ASSERT(!isnan(b));
@@ -321,7 +336,7 @@ inline void Tensor_Scalar_sub_ex
     index_t size
 )
 {
-    #pragma omp parallel for 
+#pragma omp parallel for 
     for (index_t i = 0; i < size; ++i) {
         dst[i] = a * src0[i] - b * src1[i] - c;
     }
@@ -666,8 +681,8 @@ public:
 
     inline Tensor_& operator=(T src)
 	{
-        auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
-        Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)0, (T)0, src, m_size);
+        auto ptr = m_mem->GetPtr();
+        Tensor_Scalar_set<T>((T *)ptr.GetAddr(), src, m_size);
 		return *this;
 	}
     
@@ -1080,6 +1095,99 @@ inline Tensor_<float> operator-(float src0, const Tensor_<float> &src1)
 }
 
 
+/////////////////
+
+
+template<>
+inline Tensor_<float> & Tensor_<float>::operator*=(Tensor_<float> const &src)
+{
+    BB_ASSERT(m_size == src.m_size);
+
+    // CUDA
+    if ( m_mem->IsDeviceAvailable() && src.m_mem->IsDeviceAvailable() ) {
+        auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, src.m_mem);
+        bbcu_Scalar_mul_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, (int)m_size);
+        return *this;
+    }
+
+    // CPU
+    auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, src.m_mem);
+    Tensor_Scalar_mul_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, m_size);
+    return *this;
+}
+
+template<>
+inline Tensor_<float> & Tensor_<float>::operator*=(float src)
+{
+    // CUDA
+    if ( m_mem->IsDeviceAvailable() ) {
+        auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, m_mem);
+        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), src, 0.0f, 0.0f, (int)m_size);
+        return *this;
+    }
+
+    // CPU
+    auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
+    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), src, 0.0f, 0.0f, m_size);
+    return *this;
+}
+
+template<>
+inline Tensor_<float> operator*(const Tensor_<float> &src0, Tensor_<float> const &src1)
+{
+    BB_ASSERT(src0.m_size == src1.m_size);
+    Tensor_<float>  dst(src0.m_shape);
+
+    // CUDA
+    if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() ) {
+        auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
+        bbcu_Scalar_mul_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, (int)dst.m_size);
+        return dst;
+    }
+
+    // CPU
+    auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
+    Tensor_Scalar_mul_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, dst.m_size);
+    return dst;
+}
+
+template<>
+inline Tensor_<float> operator*(const Tensor_<float> &src0, float src1)
+{
+    Tensor_<float>  dst(src0.m_shape);
+
+    // CUDA
+    if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() ) {
+        auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
+        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), src1, 0.0f, 0.0f, (int)dst.m_size);
+        return dst;
+    }
+
+    // CPU
+    auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
+    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), src1, 0.0f, 0.0f, dst.m_size);
+    return dst;
+}
+
+template<>
+inline Tensor_<float> operator*(float src0, const Tensor_<float> &src1)
+{
+    Tensor_<float>  dst(src1.m_shape);
+
+    // CUDA
+    if ( dst.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() ) {
+        auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
+        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), src0, 0.0f, 0.0f, (int)dst.m_size);
+        return dst;
+    }
+
+    // CPU
+    auto op3 = Memory::GetOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
+    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), src0, 0.0f, 0.0f, dst.m_size);
+    return dst;
+}
+
+
 #endif
 
 
@@ -1368,8 +1476,9 @@ public:
 
     void FillZero(void)
     {
-        auto ptr = m_mem->GetPtr(true);
-        memset(ptr.GetAddr(), 0, m_mem->GetSize());
+        m_mem->FillZero();
+//        auto ptr = m_mem->GetPtr(true);
+//        memset(ptr.GetAddr(), 0, m_mem->GetSize());
     }
 
 

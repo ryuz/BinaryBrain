@@ -843,11 +843,14 @@ public:
     template<typename Tp>
     void SetVector(std::vector< std::vector<Tp> > const &data, index_t offset)
     {
+        BB_ASSERT(GetType() == DataType<Tp>::type);
         BB_ASSERT(offset + m_frame_size < (index_t)data.size() );
+
+        auto ptr = GetPtr<Tp>();
         for (index_t frame = 0; frame < m_frame_size; ++frame) {
             BB_ASSERT(data[frame].size() == (size_t)m_node_size);
             for (index_t node = 0; node < m_node_size; ++node) {
-                SetValue<Tp>(frame, node, data[frame + offset][node]);
+                ptr.Set(frame, node, data[frame + offset][node]);
             }
         }
     }

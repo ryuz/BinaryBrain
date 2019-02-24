@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "experiment_mnist", "experiment_mnist.vcxproj", "{4D95C63D-3452-42FF-97AC-7E51A32DBCAD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{78F65C55-EC8C-4A6A-90BE-B018E884A72E} = {78F65C55-EC8C-4A6A-90BE-B018E884A72E}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bbcu", "..\..\cuda\bbcu.vcxproj", "{78F65C55-EC8C-4A6A-90BE-B018E884A72E}"
 EndProject

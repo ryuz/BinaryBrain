@@ -186,11 +186,11 @@ FrameBuffer ReLU<float>::Forward(FrameBuffer x, bool train)
     index_t frame_size = m_x.GetFrameSize();
     index_t node_size = m_x.GetNodeSize();
 
-    auto x_ptr = m_x.GetConstPtr<float>();
-	auto y_ptr = m_y.GetPtr<float>();
-
 	if (m_binary_mode) {
     	// Binarize
+        auto x_ptr = m_x.GetConstPtr<float>();
+	    auto y_ptr = m_y.GetPtr<float>();
+
 #pragma omp parallel for
 		for (index_t node = 0; node < node_size; ++node) {
 			for (index_t frame = 0; frame < frame_size; ++frame) {
@@ -201,6 +201,7 @@ FrameBuffer ReLU<float>::Forward(FrameBuffer x, bool train)
 	else {
 #if BB_WITH_CUDA
         if ( m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() ) {
+            // CUDA版
             auto ptr_x = x.GetMemoryDevConstPtr();
             auto ptr_y = m_y.GetMemoryDevPtr();
             cubb_fp32_ReLU_Forward(
@@ -214,17 +215,24 @@ FrameBuffer ReLU<float>::Forward(FrameBuffer x, bool train)
         }
 #endif
 
-		index_t  m256_frame_size = (int)(((frame_size + 7) / 8) * 8);
-		__m256 zero = _mm256_set1_ps(0);
-		for (index_t node = 0; node < node_size; ++node) {
-		    auto x_addr = (float const *)x_ptr.GetAddr(node);
-		    auto y_addr = (float *)y_ptr.GetAddr(node);
-		    for (index_t frame = 0; frame < m256_frame_size; frame += 8) {
-			    __m256 in_sig = _mm256_load_ps(&x_addr[frame]);
-			    in_sig = _mm256_max_ps(in_sig, zero);
-			    _mm256_store_ps(&y_addr[frame], in_sig);
+        {
+            // AVX版
+            auto x_ptr = m_x.GetConstPtr<float>();
+	        auto y_ptr = m_y.GetPtr<float>();
+
+		    index_t  m256_frame_size = (int)(((frame_size + 7) / 8) * 8);
+		    __m256 zero = _mm256_set1_ps(0);
+		    for (index_t node = 0; node < node_size; ++node) {
+		        auto x_addr = (float const *)x_ptr.GetAddr(node);
+		        auto y_addr = (float *)y_ptr.GetAddr(node);
+		        for (index_t frame = 0; frame < m256_frame_size; frame += 8) {
+			        __m256 in_sig = _mm256_load_ps(&x_addr[frame]);
+			        in_sig = _mm256_max_ps(in_sig, zero);
+			        _mm256_store_ps(&y_addr[frame], in_sig);
+		        }
 		    }
-		}
+            return m_y;
+        }
     }
 
     return m_y;
@@ -246,12 +254,12 @@ FrameBuffer ReLU<float>::Backward(FrameBuffer dy)
     index_t frame_size = m_dx.GetFrameSize();
     index_t node_size = m_dx.GetNodeSize();
 
-	auto x_ptr  = m_x.GetConstPtr<float>();
-	auto y_ptr  = m_y.GetConstPtr<float>();
-	auto dy_ptr = dy.GetConstPtr<float>();
-	auto dx_ptr = m_dx.GetPtr<float>();
-
     if (m_binary_mode) {
+	    auto x_ptr  = m_x.GetConstPtr<float>();
+	    auto y_ptr  = m_y.GetConstPtr<float>();
+	    auto dy_ptr = dy.GetConstPtr<float>();
+	    auto dx_ptr = m_dx.GetPtr<float>();
+
 #pragma omp parallel for
 		for (index_t node = 0; node < node_size; ++node) {
 			for (index_t frame = 0; frame < frame_size; ++frame) {
@@ -281,23 +289,36 @@ FrameBuffer ReLU<float>::Backward(FrameBuffer dy)
         }
 #endif
 
-		index_t  m256_frame_size = (int)(((frame_size + 7) / 8) * 8);
+        {
+            // AVX
+	        auto x_ptr  = m_x.GetConstPtr<float>();
+	        auto y_ptr  = m_y.GetConstPtr<float>();
+	        auto dy_ptr = dy.GetConstPtr<float>();
+	        auto dx_ptr = m_dx.GetPtr<float>();
 
-		__m256 zero = _mm256_set1_ps(0);
-		for (index_t node = 0; node < node_size; ++node) {
-			auto y_addr  = (float *)y_ptr.GetAddr(node);
-			auto dy_addr = (float *)dy_ptr.GetAddr(node);
-			auto dx_addr = (float *)dx_ptr.GetAddr(node);
-			for (index_t frame = 0; frame < m256_frame_size; frame += 8) {
-				__m256 y    = _mm256_load_ps(&y_addr[frame]);
-				__m256 dy   = _mm256_load_ps(&dy_addr[frame]);
-				__m256 mask = _mm256_cmp_ps(y, zero, _CMP_GT_OS);
-				__m256 dx   = _mm256_and_ps(dy, mask);
-				_mm256_store_ps(&dx_addr[frame], dx);
-			}
-		}
-	}
+            index_t  m256_frame_size = (int)(((frame_size + 7) / 8) * 8);
+
+		    __m256 zero = _mm256_set1_ps(0);
+		    for (index_t node = 0; node < node_size; ++node) {
+			    auto y_addr  = (float *)y_ptr.GetAddr(node);
+			    auto dy_addr = (float *)dy_ptr.GetAddr(node);
+			    auto dx_addr = (float *)dx_ptr.GetAddr(node);
+			    for (index_t frame = 0; frame < m256_frame_size; frame += 8) {
+				    __m256 y    = _mm256_load_ps(&y_addr[frame]);
+				    __m256 dy   = _mm256_load_ps(&dy_addr[frame]);
+				    __m256 mask = _mm256_cmp_ps(y, zero, _CMP_GT_OS);
+				    __m256 dx   = _mm256_and_ps(dy, mask);
+				    _mm256_store_ps(&dx_addr[frame], dx);
+			    }
+		    }
+            return m_dx;
+       }
+ 	}
 
     return m_dx;
 }
+
+
+
 };
+
