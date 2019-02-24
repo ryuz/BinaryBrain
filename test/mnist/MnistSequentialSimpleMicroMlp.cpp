@@ -36,6 +36,8 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
 #endif
 
     bb::Sequential  net;
+    net.Add(bb::MicroMlpAffine<6, 16, float>::Create({1024}));
+    net.Add(bb::ReLU<float>::Create());
     net.Add(bb::MicroMlpAffine<6, 16, float>::Create({360}));
     net.Add(bb::ReLU<float>::Create());
     net.Add(bb::MicroMlpAffine<6, 16, float>::Create({60}));
@@ -50,8 +52,8 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
     bb::FrameBuffer x(BB_TYPE_FP32, mini_batch_size, {28, 28, 1});
     bb::FrameBuffer t(BB_TYPE_FP32, mini_batch_size, 10);
 
-//  bb::OptimizerAdam<float> optimizer;
-    bb::OptimizerSgd<float> optimizer(0.01f);
+    bb::OptimizerAdam<float> optimizer;
+//  bb::OptimizerSgd<float> optimizer(0.01f);
     optimizer.SetVariables(net.GetParameters(), net.GetGradients());
 
     std::mt19937_64 mt(1);

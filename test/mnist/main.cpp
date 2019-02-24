@@ -18,7 +18,7 @@ int main()
 {
 	omp_set_num_threads(4);
 
-    MnistSequentialMicroMlp(64, 64, true);
+    MnistSequentialMicroMlp(64, 128, true);
 //	MnistSimpleMicroMlp(64, 1024, true);
 
 //	getchar();
