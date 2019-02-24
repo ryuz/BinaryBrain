@@ -375,6 +375,7 @@
     <CudaCompile Include="HorizontalSum.cu" />
     <CudaCompile Include="Im2Col.cu" />
     <CudaCompile Include="MicroMlp.cu" />
+    <CudaCompile Include="ReLU.cu" />
     <CudaCompile Include="Scalar.cu" />
   </ItemGroup>
   <ItemGroup>

@@ -23,6 +23,9 @@
     <CudaCompile Include="Scalar.cu">
       <Filter>ソース ファイル</Filter>
     </CudaCompile>
+    <CudaCompile Include="ReLU.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\bbcu\bbcu.h">

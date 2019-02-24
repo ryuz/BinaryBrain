@@ -234,7 +234,7 @@ TEST(MicroMlpAffineTest, testMicroMlpAffine)
 
 
 
-#if 1
+#if 0
 
 void DumpAffineLayer(std::ostream &os, std::string name, bb::MicroMlpAffine<6, 16, float> const &affine)
 {
@@ -309,7 +309,7 @@ TEST(MicroMlpAffineTest, testMicroMlpAffineCmp)
 {
     const int N = 6;
     const int M = 16;
-#if 1
+#if 0
     const int input_node_size = 360;
     const int output_node_size = 60;
     const int frame_size = 64;
@@ -386,7 +386,7 @@ TEST(MicroMlpAffineTest, testMicroMlpAffineCmp)
         }
     }
 
-    for ( int loop = 0; loop < 4; ++loop ) {
+    for ( int loop = 0; loop < 2; ++loop ) {
 
 	    for (int i = 0; i < frame_size; i++) {
 		    for (int j = 0; j < input_node_size; j++) {

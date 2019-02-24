@@ -90,6 +90,14 @@ public:
 			}
 		}
 		else {
+			for (index_t node = 0; node < node_size; ++node) {
+				for (index_t frame = 0; frame < frame_size; ++frame) {
+                    auto sig = x_ptr.Get(frame, node);
+					y_ptr.Set(frame, node, sig >(T)0.0 ? sig : (T)0.0);
+				}
+			}
+
+            /*
 			index_t  m256_frame_size = (int)(((frame_size + 7) / 8) * 8);
 			__m256 zero = _mm256_set1_ps(0);
 			for (index_t node = 0; node < node_size; ++node) {
@@ -101,6 +109,7 @@ public:
 					_mm256_store_ps(&y_addr[frame], in_sig);
 				}
 			}
+            */
 		}
         return m_y;
     }
@@ -157,4 +166,138 @@ public:
     }
 };
 
+
+
+/**
+ * @brief  forward演算
+ * @detail forward演算を行う
+ * @param  x     入力データ
+ * @param  train 学習時にtrueを指定
+ * @return forward演算結果
+ */
+template<>
+FrameBuffer ReLU<float>::Forward(FrameBuffer x, bool train)
+{
+    BB_ASSERT(x.GetType() == BB_TYPE_FP32);
+
+    m_x = x;
+    m_y.Resize(x.GetType(), x.GetFrameSize(), x.GetShape());
+
+    index_t frame_size = m_x.GetFrameSize();
+    index_t node_size = m_x.GetNodeSize();
+
+    auto x_ptr = m_x.GetConstPtr<float>();
+	auto y_ptr = m_y.GetPtr<float>();
+
+	if (m_binary_mode) {
+    	// Binarize
+#pragma omp parallel for
+		for (index_t node = 0; node < node_size; ++node) {
+			for (index_t frame = 0; frame < frame_size; ++frame) {
+				y_ptr.Set(frame, node, x_ptr.Get(frame, node) >0.0f ? 1.0f : 0.0f);
+			}
+		}
+	}
+	else {
+#if BB_WITH_CUDA
+        if ( m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() ) {
+            auto ptr_x = x.GetMemoryDevConstPtr();
+            auto ptr_y = m_y.GetMemoryDevPtr();
+            cubb_fp32_ReLU_Forward(
+                        (float const *)ptr_x.GetAddr(),
+                        (float *)ptr_y.GetAddr(),
+                        (int)frame_size,
+                        (int)(m_x.GetFrameStride() / sizeof(float)),
+                        (int)node_size
+                   );
+            return m_y;
+        }
+#endif
+
+		index_t  m256_frame_size = (int)(((frame_size + 7) / 8) * 8);
+		__m256 zero = _mm256_set1_ps(0);
+		for (index_t node = 0; node < node_size; ++node) {
+		    auto x_addr = (float const *)x_ptr.GetAddr(node);
+		    auto y_addr = (float *)y_ptr.GetAddr(node);
+		    for (index_t frame = 0; frame < m256_frame_size; frame += 8) {
+			    __m256 in_sig = _mm256_load_ps(&x_addr[frame]);
+			    in_sig = _mm256_max_ps(in_sig, zero);
+			    _mm256_store_ps(&y_addr[frame], in_sig);
+		    }
+		}
+    }
+
+    return m_y;
 }
+
+
+
+/**
+  * @brief  backward演算
+  * @detail backward演算を行う
+  *         
+  * @return backward演算結果
+  */
+template<>
+FrameBuffer ReLU<float>::Backward(FrameBuffer dy)
+{
+    m_dx.Resize(dy.GetType(), dy.GetFrameSize(), dy.GetShape());
+
+    index_t frame_size = m_dx.GetFrameSize();
+    index_t node_size = m_dx.GetNodeSize();
+
+	auto x_ptr  = m_x.GetConstPtr<float>();
+	auto y_ptr  = m_y.GetConstPtr<float>();
+	auto dy_ptr = dy.GetConstPtr<float>();
+	auto dx_ptr = m_dx.GetPtr<float>();
+
+    if (m_binary_mode) {
+#pragma omp parallel for
+		for (index_t node = 0; node < node_size; ++node) {
+			for (index_t frame = 0; frame < frame_size; ++frame) {
+				// hard-tanh
+				auto grad = dy_ptr.Get(frame, node);
+				auto sig  = x_ptr.Get(frame, node);
+				dx_ptr.Set(frame, node, (sig >= -1.0f && sig <= 1.0f) ? grad : 0);
+			}
+		}
+	}
+	else {
+
+#if BB_WITH_CUDA
+        if ( m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() ) {
+            auto ptr_x  = m_x.GetMemoryDevConstPtr();
+            auto ptr_dy = dy.GetMemoryDevConstPtr();
+            auto ptr_dx = m_dx.GetMemoryDevPtr();
+            cubb_fp32_ReLU_Backward(
+                        (float const *)ptr_x.GetAddr(),
+                        (float const *)ptr_dy.GetAddr(),
+                        (float *)ptr_dx.GetAddr(),
+                        (int)frame_size,
+                        (int)(m_x.GetFrameStride() / sizeof(float)),
+                        (int)node_size
+                   );
+            return m_dx;
+        }
+#endif
+
+		index_t  m256_frame_size = (int)(((frame_size + 7) / 8) * 8);
+
+		__m256 zero = _mm256_set1_ps(0);
+		for (index_t node = 0; node < node_size; ++node) {
+			auto y_addr  = (float *)y_ptr.GetAddr(node);
+			auto dy_addr = (float *)dy_ptr.GetAddr(node);
+			auto dx_addr = (float *)dx_ptr.GetAddr(node);
+			for (index_t frame = 0; frame < m256_frame_size; frame += 8) {
+				__m256 y    = _mm256_load_ps(&y_addr[frame]);
+				__m256 dy   = _mm256_load_ps(&dy_addr[frame]);
+				__m256 mask = _mm256_cmp_ps(y, zero, _CMP_GT_OS);
+				__m256 dx   = _mm256_and_ps(dy, mask);
+				_mm256_store_ps(&dx_addr[frame], dx);
+			}
+		}
+	}
+
+    return m_dx;
+}
+};
