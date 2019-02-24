@@ -50,10 +50,10 @@ public:
     }
 	
     // コマンド処理
-    void Command(std::string command, std::string send_to = "all")
+    void SendCommand(std::string command, std::string send_to = "all")
     {
         for (auto layer : m_layers) {
-            layer->Command(command, send_to);
+            layer->SendCommand(command, send_to);
         }
     }
     
@@ -134,8 +134,7 @@ public:
 	
 
 public:
-
-
+    
 	void Save(cereal::JSONOutputArchive& archive) const
 	{
         for (auto layer : m_layers) {

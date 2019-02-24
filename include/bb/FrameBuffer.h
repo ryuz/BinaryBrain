@@ -443,9 +443,24 @@ public:
 	index_t GetNodeSize(void)  const { return m_node_size; }
 
 
+    // debug
     inline bool IsValidValue(void) const
     {
         return m_tensor.IsValidValue();
+    }
+
+    // debug
+    template <typename Tp>
+    inline bool IsZero(void) const
+    {
+        for (index_t frame = 0; frame < GetFrameSize(); ++frame ) {
+            for (index_t node = 0; node < GetNodeSize(); ++node ) {
+                if ( GetValue<Tp>(frame, node) != 0 ) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
 
@@ -735,14 +750,14 @@ public:
 
     // 汎用アクセス
     template <typename Tp>
-	inline Tp GetValue(index_t frame, index_t node)
+	inline Tp GetValue(index_t frame, index_t node) const
 	{
         auto ptr = GetMemoryPtr();
         return ReadValue<Tp>(GetNodeBaseAddr(ptr.GetAddr(), node), frame);
 	}
 
    	template <typename Tp>
-    inline Tp GetValue(index_t frame, std::vector<index_t> const & indices)
+    inline Tp GetValue(index_t frame, std::vector<index_t> const & indices) const
     {
         return GetValue<Tp>(frame, GetNodeIndex(indices));
     }
@@ -798,17 +813,17 @@ public:
     inline void SetUINT32(index_t frame, std::vector<index_t> const & indices, std::uint32_t value) { SetValue<std::uint32_t>(frame, indices, value); }
     inline void SetUINT64(index_t frame, std::vector<index_t> const & indices, std::uint64_t value) { SetValue<std::uint64_t>(frame, indices, value); }
 
-    inline Bit           GetBit   (index_t frame, index_t node) { return GetValue<Bit          >(frame, node); }
-    inline float         GetFP32  (index_t frame, index_t node) { return GetValue<float        >(frame, node); }
-    inline double        GetFP64  (index_t frame, index_t node) { return GetValue<double       >(frame, node); }
-    inline std::int8_t   GetINT8  (index_t frame, index_t node) { return GetValue<std::int8_t  >(frame, node); }
-    inline std::int16_t  GetINT16 (index_t frame, index_t node) { return GetValue<std::int16_t >(frame, node); }
-    inline std::int32_t  GetINT32 (index_t frame, index_t node) { return GetValue<std::int32_t >(frame, node); }
-    inline std::int64_t  GetINT64 (index_t frame, index_t node) { return GetValue<std::int64_t >(frame, node); }
-    inline std::uint8_t  GetUINT8 (index_t frame, index_t node) { return GetValue<std::uint8_t >(frame, node); }
-    inline std::uint16_t GetUINT16(index_t frame, index_t node) { return GetValue<std::uint16_t>(frame, node); }
-    inline std::uint32_t GetUINT32(index_t frame, index_t node) { return GetValue<std::uint32_t>(frame, node); }
-    inline std::uint64_t GetUINT64(index_t frame, index_t node) { return GetValue<std::uint64_t>(frame, node); }
+    inline Bit           GetBit   (index_t frame, index_t node) const { return GetValue<Bit          >(frame, node); }
+    inline float         GetFP32  (index_t frame, index_t node) const { return GetValue<float        >(frame, node); }
+    inline double        GetFP64  (index_t frame, index_t node) const { return GetValue<double       >(frame, node); }
+    inline std::int8_t   GetINT8  (index_t frame, index_t node) const { return GetValue<std::int8_t  >(frame, node); }
+    inline std::int16_t  GetINT16 (index_t frame, index_t node) const { return GetValue<std::int16_t >(frame, node); }
+    inline std::int32_t  GetINT32 (index_t frame, index_t node) const { return GetValue<std::int32_t >(frame, node); }
+    inline std::int64_t  GetINT64 (index_t frame, index_t node) const { return GetValue<std::int64_t >(frame, node); }
+    inline std::uint8_t  GetUINT8 (index_t frame, index_t node) const { return GetValue<std::uint8_t >(frame, node); }
+    inline std::uint16_t GetUINT16(index_t frame, index_t node) const { return GetValue<std::uint16_t>(frame, node); }
+    inline std::uint32_t GetUINT32(index_t frame, index_t node) const { return GetValue<std::uint32_t>(frame, node); }
+    inline std::uint64_t GetUINT64(index_t frame, index_t node) const { return GetValue<std::uint64_t>(frame, node); }
     
     inline Bit           GetBit   (index_t frame, std::vector<index_t> const & indices) { return GetValue<Bit          >(frame, indices); }
     inline float         GetFP32  (index_t frame, std::vector<index_t> const & indices) { return GetValue<float        >(frame, indices); }
@@ -940,6 +955,7 @@ std::ostream &operator<<(std::ostream& os, FrameBufferConstPtr_<T const, FrameBu
         os << " [";
         for ( index_t node = 0; node < ptr.GetFrameBuffer().GetNodeSize(); ++node ) {
             os << ptr.Get(frame, node) << ", ";
+            if ( node % 16 == 15 ) { os << "\n"; }
         }
         "]\n";
     }

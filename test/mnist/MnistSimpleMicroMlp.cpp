@@ -33,27 +33,25 @@ protected:
 
 
 public:
-    AffinePtr   m_affineX;
-    ActivatePtr m_activateX;
-
     AffinePtr   m_affine0;
     ActivatePtr m_activate0;
     AffinePtr   m_affine1;
     ActivatePtr m_activate1;
     AffinePtr   m_affine2;
+    ActivatePtr m_activate2;
+    AffinePtr   m_affine3;
 
 public:
 
     MnistSimpleMicroMlpNet()
     {
-//        m_affineX   = Affine::Create({360});
-//        m_activateX = Activate::Create();
-
-        m_affine0   = Affine::Create({360});
+        m_affine0   = Affine::Create({1024});
         m_activate0 = Activate::Create();
-        m_affine1   = Affine::Create({60});
+        m_affine1   = Affine::Create({360});
         m_activate1 = Activate::Create();
-        m_affine2   = Affine::Create({10});
+        m_affine2   = Affine::Create({60});
+        m_activate2 = Activate::Create();
+        m_affine3   = Affine::Create({10});
     }
 
     std::string GetClassName(void) const
@@ -61,71 +59,84 @@ public:
         return "MnistSimpleMicroMlpNet";
     }
 
+    void SendCommand(std::string command, std::string send_to = "all")
+    {
+        m_affine0->SendCommand(command, send_to);
+        m_activate0->SendCommand(command, send_to);
+        m_affine1->SendCommand(command, send_to);
+        m_activate1->SendCommand(command, send_to);
+        m_affine2->SendCommand(command, send_to);
+        m_activate2->SendCommand(command, send_to);
+        m_affine3->SendCommand(command, send_to);
+    }
+
     bb::indices_t SetInputShape(bb::indices_t shape)
     {
-//        shape = m_affineX->SetInputShape(shape);
-//        shape = m_activateX->SetInputShape(shape);
-
         shape = m_affine0->SetInputShape(shape);
         shape = m_activate0->SetInputShape(shape);
         shape = m_affine1->SetInputShape(shape);
         shape = m_activate1->SetInputShape(shape);
         shape = m_affine2->SetInputShape(shape);
+        shape = m_activate2->SetInputShape(shape);
+        shape = m_affine3->SetInputShape(shape);
         return shape;
     }
 
     bb::Variables GetParameters(void)
     {
         bb::Variables var;
-
-//        var.PushBack(m_affineX->GetParameters());
-//        var.PushBack(m_activateX->GetParameters());
-
         var.PushBack(m_affine0->GetParameters());
         var.PushBack(m_activate0->GetParameters());
         var.PushBack(m_affine1->GetParameters());
-        var.PushBack(m_activate1->GetParameters());
+        var.PushBack(m_activate2->GetParameters());
         var.PushBack(m_affine2->GetParameters());
+        var.PushBack(m_activate2->GetParameters());
+        var.PushBack(m_affine3->GetParameters());
         return var;
     }
 
     bb::Variables GetGradients(void)
     {
         bb::Variables var;
-//        var.PushBack(m_affineX->GetGradients());
-//        var.PushBack(m_activateX->GetGradients());
-
         var.PushBack(m_affine0->GetGradients());
         var.PushBack(m_activate0->GetGradients());
         var.PushBack(m_affine1->GetGradients());
         var.PushBack(m_activate1->GetGradients());
         var.PushBack(m_affine2->GetGradients());
+        var.PushBack(m_activate2->GetGradients());
+        var.PushBack(m_affine3->GetGradients());
         return var;
     }
 
     bb::FrameBuffer Forward(bb::FrameBuffer x, bool train=true)
     {
-//        x = m_affineX->Forward(x, train);
-//        x = m_activateX->Forward(x, train);
-
         x = m_affine0->Forward(x, train);
         x = m_activate0->Forward(x, train);
         x = m_affine1->Forward(x, train);
         x = m_activate1->Forward(x, train);
         x = m_affine2->Forward(x, train);
+        x = m_activate2->Forward(x, train);
+        x = m_affine3->Forward(x, train);
         return x;
     }
 
     bb::FrameBuffer Backward(bb::FrameBuffer dy)
     {
+//      if (dy.IsZero<float>()) { std::cout << "backward_zero\n"; }
+        dy = m_affine3->Backward(dy);
+//      if (dy.IsZero<float>()) { std::cout << "affine3_zero\n"; }
+        dy = m_activate2->Backward(dy);
+//      if (dy.IsZero<float>()) { std::cout << "relu2_zero\n"; }
         dy = m_affine2->Backward(dy);
+//      if (dy.IsZero<float>()) { std::cout << "affine2_zero\n"; }
         dy = m_activate1->Backward(dy);
+//      if (dy.IsZero<float>()) { std::cout << "relu1_zero\n"; }
         dy = m_affine1->Backward(dy);
+//      if (dy.IsZero<float>()) { std::cout << "affine1_zero\n"; }
         dy = m_activate0->Backward(dy);
+//      if (dy.IsZero<float>()) { std::cout << "relu0_zero\n"; }
         dy = m_affine0->Backward(dy);
-
-//        dy = m_activateX->Backward(dy);
-//        dy = m_affineX->Backward(dy);
+//      if (dy.IsZero<float>()) { std::cout << "affine0_zero\n"; }
         return dy;
     }
 };
@@ -171,10 +182,10 @@ void DumpAffineLayer(std::ostream &os, std::string name, bb::MicroMlpAffine<6, 1
     os << num << ":" << name << " dW1 = " << *affine.m_dW1 << std::endl;
     os << num << ":" << name << " db0 = " << *affine.m_db0 << std::endl;
 
-    os << num << ":" << name << " x  = " << affine.m_x << std::endl;
-    os << num << ":" << name << " y  = " << affine.m_y << std::endl;
-    os << num << ":" << name << " dy = " << affine.m_dy << std::endl;
-    os << num << ":" << name << " dx = " << affine.m_dx << std::endl;
+//   os << num << ":" << name << " x  = " << affine.m_x << std::endl;
+//   os << num << ":" << name << " y  = " << affine.m_y << std::endl;
+//   os << num << ":" << name << " dy = " << affine.m_dy << std::endl;
+//   os << num << ":" << name << " dx = " << affine.m_dx << std::endl;
 
     num++;
 }
@@ -184,13 +195,13 @@ void DumpAffineLayer(std::ostream &os, std::string name, bb::MicroMlpAffine<6, 1
 void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
 {
     // load MNIST data
-//#ifdef _DEBUG
-//	auto data = bb::LoadMnist<>::Load(10, 512, 128);
-//#else
+#ifdef _DEBUG
+	auto data = bb::LoadMnist<>::Load(10, 512, 128);
+#else
     auto data = bb::LoadMnist<>::Load(10);
-//#endif
+#endif
 
-
+/*
 #ifdef _DEBUG
 #ifdef BB_WITH_CUDA
     std::ofstream ofs("log_gpu_d.txt");
@@ -204,7 +215,7 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
     std::ofstream ofs("log_cpu.txt");
 #endif
 #endif
-
+*/
 
     MnistSimpleMicroMlpNet                          net;
     bb::LossCrossEntropyWithSoftmax<float>          lossFunc;
@@ -215,11 +226,21 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
     bb::FrameBuffer x(BB_TYPE_FP32, mini_batch_size, {28, 28, 1});
     bb::FrameBuffer t(BB_TYPE_FP32, mini_batch_size, 10);
 
-//  bb::OptimizerAdam<float> optimizer;
-    bb::OptimizerSgd<float> optimizer(0.01f);
+    bb::OptimizerAdam<float> optimizer;
+//  bb::OptimizerSgd<float> optimizer(0.001f);
     optimizer.SetVariables(net.GetParameters(), net.GetGradients());
 
     std::mt19937_64 mt(1);
+
+#ifdef BB_WITH_CUDA
+//  std::ofstream ofs("log_gpu.txt");
+//  std::ofstream ofs("log_relu.txt");  net.SendCommand("host_only true", "MicroMlpAffine");
+//  std::ofstream ofs("log_all.txt");   net.SendCommand("host_only true");
+#else
+    std::ofstream ofs("log_cpu.txt");
+#endif
+
+    int dbg = 0;
 
     for ( bb::index_t epoch = 0; epoch < epoch_size; ++epoch ) {
         double acc = 0;
@@ -233,20 +254,7 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
             auto dy = lossFunc.CalculateLoss(y, t);
             acc += accFunc.CalculateAccuracy(y, t);
 
-#if 0
-            auto dy_ptr = dy.GetConstPtr<float>();
-            for (int f = 0; f < (int)dy.GetFrameSize(); ++f) {
-                for (int n = 0; n < (int)dy.GetNodeSize(); ++n) {
-                    if (isnan(dy_ptr.Get(f, n))) {
-                        std::cout << "!!!nan!!!" << std::endl;
-                    }
-                }
-            }
-#endif
-
             dy = net.Backward(dy);
-
-
 
 #if 0
             net.m_affine0->Save("affine.bin");
@@ -256,10 +264,17 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
             net.m_affine0->m_dy.Save("dy.bin");
 #endif
 
-//           DumpAffineLayer(ofs, "affine0", *net.m_affine0);
-//           ofs << "hoge?" << std::endl;
+#if 0
+            DumpAffineLayer(ofs, "affine0", *net.m_affine0);
+            DumpAffineLayer(ofs, "affine1", *net.m_affine1);
+            DumpAffineLayer(ofs, "affine2", *net.m_affine2);
+            DumpAffineLayer(ofs, "affine3", *net.m_affine3);
+            if (dbg++ > 3) {
+                return;
+            }
+#endif
 
-           optimizer.Update();
+            optimizer.Update();
         }
         std::cout << acc / data.x_train.size() << std::endl;
 

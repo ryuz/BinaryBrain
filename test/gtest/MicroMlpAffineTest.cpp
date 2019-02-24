@@ -324,7 +324,8 @@ TEST(MicroMlpAffineTest, testMicroMlpAffineCmp)
     float   W1[output_node_size][M];
     float   b1[output_node_size];
 
-    std::mt19937_64 mt(1);
+    std::mt19937_64                 mt(1);
+    std::normal_distribution<float> norm_dist(0.0f, 1.0f);
 
 	auto mlp1 = bb::MicroMlpAffine<N, M>::Create(output_node_size);
 	auto mlp2 = bb::MicroMlpAffine<N, M>::Create(output_node_size);
@@ -510,15 +511,19 @@ TEST(MicroMlpAffineTest, testMicroMlpAffineCmp)
     	        for (int j = 0; j < M; j++) {
         	        for (int k = 0; j < N; j++) {
 	        	        EXPECT_FLOAT_EQ(p1_dW0(i, j, k), p2_dW0(i, j, k));
+//                      std::cout << "dW0 : " << p1_dW0(i, j, k) << ", " << p2_dW0(i, j, k) << "\n";
                     }
         	        EXPECT_FLOAT_EQ(p1_db0(i, j), p2_db0(i, j));
+//                  std::cout << "db0 : " << p1_db0(i, j) << ", " << p2_db0(i, j) << "\n";
                 }
 
 	            for (int j = 0; j < M; j++) {
                     EXPECT_FLOAT_EQ(p1_dW1(i, j), p2_dW1(i, j));
+//                  std::cout << "dW1 : " << p1_dW1(i, j) << ", " << p2_dW1(i, j) << "\n";
 	            }
 
                 EXPECT_FLOAT_EQ(p1_db1(i), p2_db1(i));
+//              std::cout << "db1 : " << p1_db1(i) << ", " << p2_db1(i) << "\n";
             }
         }
     }

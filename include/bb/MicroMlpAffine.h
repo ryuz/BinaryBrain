@@ -71,7 +71,7 @@ protected:
         m_db1 = std::make_shared<Tensor>();
     }
 
- 	void Command(std::vector<std::string> args)
+ 	void CommandProc(std::vector<std::string> args)
 	{
         // バイナリモード設定
         if ( args.size() == 2 && args[0] == "bainary" )
@@ -320,15 +320,10 @@ public:
             m_dx_tmp.FillZero();
             auto dx_tmp_ptr = m_dx_tmp.GetMemoryDevPtr();
 
-//          float* dev_in_err_tmp;
-//          BB_CUDA_SAFE_CALL(cudaMalloc((void**)&dev_in_err_tmp,  m_output_node_size * N * frame_size * sizeof(float)));
-//          BB_CUDA_SAFE_CALL(cudaMemset(dev_in_err_tmp, 0, m_output_node_size * N * frame_size * sizeof(float)));
-
             bbcu_MicroMlp6x16_Backward
                 (
 			        (float const *)x_ptr.GetAddr(),
 			        (float *)dx_ptr.GetAddr(),
-//  		        dev_in_err_tmp,
 			        (float *)dx_tmp_ptr.GetAddr(),
 			        (float *)dy_ptr.GetAddr(),
 			        (int)m_input_node_size,
@@ -344,15 +339,6 @@ public:
 			        (float *)dW1_ptr.GetAddr(),
 			        (float *)db1_ptr.GetAddr()
 		        );
-
-#if 0
-            float tmp[8][1][6];
-            BB_CUDA_SAFE_CALL(cudaMemcpy(tmp, dev_in_err_tmp, sizeof(tmp), cudaMemcpyDeviceToHost));
-            float dst[8][1][6];
-            BB_CUDA_SAFE_CALL(cudaMemcpy(dst, dx_ptr.GetAddr(), sizeof(tmp), cudaMemcpyDeviceToHost));
-#endif
-
-//          BB_CUDA_SAFE_CALL(cudaFree(dev_in_err_tmp));
 
             return m_dx;
         }
@@ -436,6 +422,12 @@ public:
 		index_t frame_size = dy.GetFrameStride() / sizeof(float);
 		index_t node_size  = m_output_node_size;
 
+        if (dy.IsZero<float>()) {
+            std::cout << "zero\n";
+        }
+
+   		m_dx.FillZero();
+
         auto dy_ptr = dy.GetMemoryConstPtr();
         auto dx_ptr = m_dx.GetMemoryPtr();
         auto x_ptr  = m_x.GetMemoryConstPtr();
@@ -453,6 +445,16 @@ public:
 		auto dy_buf = (float const *)dy_ptr.GetAddr();
 		auto dx_buf = (float       *)dx_ptr.GetAddr();
 		auto x_buf  = (float const *)x_ptr.GetAddr();
+
+        /*
+        bool zero_chk = true;
+        for ( int i = 0; i < frame_size * node_size && i < 128 ; ++i ) {
+            if ( dy_buf[i] != 0 ) { zero_chk = false; }
+        }
+        if ( zero_chk ) {
+            std::cout << "hhhhhh!\n";
+        }
+        */
 
 		const __m256	zero = _mm256_set1_ps(0);
 
@@ -549,7 +551,6 @@ public:
 		}
 
 		// 足しこみ
-		m_dx.FillZero();
 		for (int node = 0; node < (int)node_size; ++node) {
 			float*	in_err_ptr[N];
 			for (int i = 0; i < N; ++i) {
@@ -569,7 +570,7 @@ public:
 
         }
 		aligned_memory_free(tmp_err_buf);
-
+        
         return m_dx;
 	}
     

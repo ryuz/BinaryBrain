@@ -916,6 +916,7 @@ std::ostream& operator<<(std::ostream& os, const Tensor_<T>& t)
     os << "[";
     for ( index_t i = 0; i < t.GetSize(); ++i ) {
         os << ptr[i] << ", ";
+        if ( i % 16 == 15 ) { os << "\n"; }
     }
     os << "]\n";
     return os;
@@ -928,6 +929,7 @@ std::ostream& operator<<(std::ostream& os, const Tensor_<T>& t)
 // -------------------------------------
 
 #ifdef BB_WITH_CUDA
+//#if 0
 
 template<>
 inline Tensor_<float> & Tensor_<float>::operator+=(Tensor_<float> const &src)
@@ -1784,7 +1786,7 @@ public:
         return ptr;
     }
 
-
+    
     // -------------------------------------
     //  直接アクセス用ポインタ取得
     // -------------------------------------

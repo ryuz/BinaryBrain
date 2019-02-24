@@ -35,7 +35,7 @@ protected:
      *         そのうち特定のレイヤだけとか、活性化だけとか選べるのも作るかも
      *         文字列にしておけば何でも出来るかな？
      */
-    virtual void Command(std::vector<std::string> args)
+    virtual void CommandProc(std::vector<std::string> args)
     {
     }
     
@@ -82,10 +82,10 @@ public:
      * @detail コマンドを送信
      *         そのうち特定のレイヤだけとか、活性化だけとか選べるのも作るかも
      */
-    virtual void Command(std::string command, std::string send_to = "all")
+    virtual void SendCommand(std::string command, std::string send_to = "all")
     {
         if ( send_to == "all" || send_to == GetClassName() || send_to == GetLayerName() ) {
-            Command(SplitString(command));
+            CommandProc(SplitString(command));
         }
     }
 

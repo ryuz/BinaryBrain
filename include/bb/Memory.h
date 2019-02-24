@@ -204,6 +204,7 @@ public:
 protected:
 	size_t	            m_size = 0;
 	void*        	    m_addr = nullptr;
+//  std::atomic<int>    m_refConstCnt;
     std::atomic<int>    m_refCnt;
 
 #ifdef BB_WITH_CUDA
@@ -215,18 +216,44 @@ protected:
 	int		            m_device;
 	void*	            m_devAddr = nullptr;
 	bool	            m_devModified = false;
+//	std::atomic<int>  	m_devRefConstCnt;
 	std::atomic<int>  	m_devRefCnt;
 #endif
 
-    static void lock(Memory *self)   { self->m_refCnt++; }
-    static void unlock(Memory *self) { self->m_refCnt--; }
+/*
+#ifdef BB_WITH_CUDA
+    static void lockConst(Memory *self)   { BB_ASSERT(self->m_devRefConstCnt == 0 && self->m_devRefCnt == 0 && self->m_refCnt == 0);      self->m_refConstCnt++; }
+    static void unlockConst(Memory *self) { BB_ASSERT(self->m_devRefConstCnt == 0 && self->m_devRefCnt == 0 && self->m_refCnt == 0);      self->m_refConstCnt--; }
+    static void lock(Memory *self)        { BB_ASSERT(self->m_devRefConstCnt == 0 && self->m_devRefCnt == 0 && self->m_refConstCnt == 0); self->m_refCnt++; }
+    static void unlock(Memory *self)      { BB_ASSERT(self->m_devRefConstCnt == 0 && self->m_devRefCnt == 0 && self->m_refConstCnt == 0); self->m_refCnt--; }
+
+    static void lockConstDevice(Memory *self)   { BB_ASSERT(self->m_devRefCnt == 0 && self->m_refConstCnt == 0 && self->m_refCnt == 0);      self->m_devRefConstCnt++; }
+    static void unlockConstDevice(Memory *self) { BB_ASSERT(self->m_devRefCnt == 0 && self->m_refConstCnt == 0 && self->m_refCnt == 0);      self->m_devRefConstCnt--; }
+    static void lockDevice(Memory *self)        { BB_ASSERT(self->m_devRefConstCnt == 0 && self->m_refConstCnt == 0 && self->m_refCnt == 0); self->m_devRefCnt++; }
+    static void unlockDevice(Memory *self)      { BB_ASSERT(self->m_devRefConstCnt == 0 && self->m_refConstCnt == 0 && self->m_refCnt == 0); self->m_devRefCnt--; }
+#else
+    static void lockConst(Memory *self)   { BB_ASSERT(self->m_refCnt == 0); self->m_refConstCnt++; }
+    static void unlockConst(Memory *self) { BB_ASSERT(self->m_refCnt == 0); self->m_refConstCnt--; }
+    static void lock(Memory *self)        { BB_ASSERT(self->m_refConstCnt == 0); self->m_refCnt++; }
+    static void unlock(Memory *self)      { BB_ASSERT(self->m_refConstCnt == 0); self->m_refCnt--; }
+
+    static void lockConstDevice(Memory *self)   {}
+    static void unlockConstDevice(Memory *self) {}
+    static void lockDevice(Memory *self)        {}
+    static void unlockDevice(Memory *self)      {}
+#endif
+*/
 
 #ifdef BB_WITH_CUDA
-    static void lockDevice(Memory *self)   { self->m_devRefCnt++; }
-    static void unlockDevice(Memory *self) { self->m_devRefCnt--; }
+    static void lock(Memory *self)         { BB_ASSERT(self->m_devRefCnt == 0); self->m_refCnt++; }
+    static void unlock(Memory *self)       { BB_ASSERT(self->m_devRefCnt == 0); self->m_refCnt--; }
+    static void lockDevice(Memory *self)   { BB_ASSERT(self->m_refCnt == 0);    self->m_devRefCnt++; }
+    static void unlockDevice(Memory *self) { BB_ASSERT(self->m_refCnt == 0);    self->m_devRefCnt--; }
 #else
-    static void lockDevice(Memory *self){}
-    static void unlockDevice(Memory *self){}
+    static void lock(Memory *self)         { self->m_refCnt++; }
+    static void unlock(Memory *self)       { self->m_refCnt--; }
+    static void lockDevice(Memory *self)   {}
+    static void unlockDevice(Memory *self) {}
 #endif
 
 public:
@@ -273,10 +300,12 @@ protected:
 		// サイズ保存
 		m_size = size;
 
-        m_refCnt = 0;
+//      m_refConstCnt = 0;
+        m_refCnt      = 0;
 
 #ifdef BB_WITH_CUDA
-        m_devRefCnt = 0;
+//      m_devRefConstCnt = 0;
+        m_devRefCnt      = 0;
 
         m_hostOnly = hostOnly;
         m_mem_size = m_size;
@@ -310,9 +339,11 @@ public:
      */
 	~Memory()
 	{
+        BB_DEBUG_ASSERT(m_refConstCnt == 0);
         BB_DEBUG_ASSERT(m_refCnt == 0);
 
 #ifdef BB_WITH_CUDA
+        BB_DEBUG_ASSERT(m_devRefConstCnt == 0);
         BB_DEBUG_ASSERT(m_devRefCnt == 0);
 
         if ( m_hostOnly ) {

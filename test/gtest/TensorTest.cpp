@@ -18,45 +18,6 @@ TEST(TensorTest, testTensor_Transpose)
 
     bb::Tensor_<float> t({N, M, L});
 
-#if 0
-    t.Lock();
-    for ( int i = 0; i < L; ++i ) {
-        for ( int j = 0; j < M; ++j ) {
-            for ( int k = 0; k < N; ++k ) {
-                data[i][j][k] = (float)((i+1)*10000 + (j+1) * 100 + (k+1)); 
-                t({k, j, i}) = data[i][j][k];
-//              std::cout << "[" << i << "][" << j<< "][" << k << "] : " << t({k, j, i}) << std::endl;
-            }
-        }
-    }
-    t.Unlock();
-
-    t.Lock();
-    for ( int i = 0; i < L; ++i ) {
-        for ( int j = 0; j < M; ++j ) {
-            for ( int k = 0; k < N; ++k ) {
-                EXPECT_EQ(t({k, j, i}), data[i][j][k]);
-//              std::cout << "[" << i << "][" << j<< "][" << k << "] : " << t({k, j, i}) << std::endl;
-            }
-        }
-    }
-    t.Unlock();
-
-    t.Transpose({1, 2, 0});
-
-    t.Lock();
-    for ( int i = 0; i < L; ++i ) {
-        for ( int j = 0; j < M; ++j ) {
-            for ( int k = 0; k < N; ++k ) {
-                EXPECT_EQ(t({j, i, k}), data[i][j][k]);
-//              std::cout << "[" << i << "][" << j<< "][" << k << "] : " << t({k, j, i}) << std::endl;
-            }
-        }
-    }
-    t.Unlock();
-#endif
-
-
     {
         auto ptr = t.GetPtr();
         for ( int i = 0; i < L; ++i ) {
@@ -190,70 +151,6 @@ TEST(TensorTest, testTensor_Reshape)
     const int N = 2;
     bb::Tensor_<float> t({N, M, L});
 
-#if 0
-    t.Lock();
-    float index = 1; 
-    for ( int i = 0; i < L; ++i ) {
-        for ( int j = 0; j < M; ++j ) {
-            for ( int k = 0; k < N; ++k ) {
-                t({k, j, i}) = index++; 
-            }
-        }
-    }
-    t.Unlock();
-
-    t.Lock();
-    EXPECT_EQ(t[0], 1);
-    EXPECT_EQ(t[1], 2);
-    EXPECT_EQ(t[2], 3);
-    EXPECT_EQ(t[3], 4);
-    EXPECT_EQ(t[4], 5);
-    EXPECT_EQ(t[5], 6);
-    t.Unlock();
-
-    t.Lock();
-    EXPECT_EQ(t({0, 0, 0}), 1);
-    EXPECT_EQ(t({1, 0, 0}), 2);
-    EXPECT_EQ(t({0, 0, 1}), 3);
-    EXPECT_EQ(t({1, 0, 1}), 4);
-    EXPECT_EQ(t({0, 0, 2}), 5);
-    EXPECT_EQ(t({1, 0, 2}), 6);
-    t.Unlock();
-
-    t.Reshape({3, -1});
-
-    t.Lock();
-    EXPECT_EQ(t({0, 0}), 1);
-    EXPECT_EQ(t({1, 0}), 2);
-    EXPECT_EQ(t({2, 0}), 3);
-    EXPECT_EQ(t({0, 1}), 4);
-    EXPECT_EQ(t({1, 1}), 5);
-    EXPECT_EQ(t({2, 1}), 6);
-    t.Unlock();
-
-
-    // clone
-    auto t1 = t.Clone();
-
-    t.Lock();
-    t[0] = 11;
-    t[1] = 21;
-    t[2] = 31;
-    t[3] = 41;
-    t[4] = 51;
-    t[5] = 61;
-    t.Unlock();
-
-    t1.Lock();
-    EXPECT_EQ(t1({0, 0}), 1);
-    EXPECT_EQ(t1({1, 0}), 2);
-    EXPECT_EQ(t1({2, 0}), 3);
-    EXPECT_EQ(t1({0, 1}), 4);
-    EXPECT_EQ(t1({1, 1}), 5);
-    EXPECT_EQ(t1({2, 1}), 6);
-    t1.Unlock();
-#endif
-
 
     {
         auto ptr = t.GetPtr();
@@ -324,6 +221,104 @@ TEST(TensorTest, testTensor_Reshape)
     }
 }
 
+
+TEST(TensorTest, testTensorCpuGpu)
+{
+    bb::Tensor  t0(true);
+    bb::Tensor  t1(true);
+    bb::Tensor  t2(false);
+    bb::Tensor  t3(false);
+    bb::Tensor  t4(true);
+    bb::Tensor  t5(false);
+    bb::Tensor  t6(true);
+
+    const int size = 256;
+    t0.Resize(BB_TYPE_FP32, size);
+    t1.Resize(BB_TYPE_FP32, size);
+    t2.Resize(BB_TYPE_FP32, size);
+    t3.Resize(BB_TYPE_FP32, size);
+    t4.Resize(BB_TYPE_FP32, size);
+    t5.Resize(BB_TYPE_FP32, size);
+    t6.Resize(BB_TYPE_FP32, size);
+
+    std::mt19937_64 mt(1);
+    float data0[size];
+    float data1[size];
+    float data2[size];
+    float data3[size];
+    float data4[size];
+    float data5[size];
+    float data6[size];
+    for (int i = 0; i < size; ++i) {
+        data0[i] = (float)(mt() % 100000);
+    }
+
+    {
+        auto ptr0 = t0.GetPtr<float>();
+        for (int i = 0; i < size; ++i) {
+            ptr0[i] = data0[i];
+        }
+    }
+
+    t1 = t0 + 1.0f;    for (int i = 0; i < size; ++i) { data1[i] = data0[i] + 1.0f; }
+    t2 = t1 * 0.5f;    for (int i = 0; i < size; ++i) { data2[i] = data1[i] * 0.5f; }
+    t3 = t2 - 5.0f;    for (int i = 0; i < size; ++i) { data3[i] = data2[i] - 5.0f; }
+    t4 = t3 + 1.5f;    for (int i = 0; i < size; ++i) { data4[i] = data3[i] + 1.5f; }
+    t5 = t4 * 2.5f;    for (int i = 0; i < size; ++i) { data5[i] = data4[i] * 2.5f; }
+    t6 = t5 - 1.2f;    for (int i = 0; i < size; ++i) { data6[i] = data5[i] - 1.2f; }
+
+    {
+        auto ptr0 = t0.GetConstPtr<float>();
+        auto ptr1 = t1.GetConstPtr<float>();
+        auto ptr2 = t2.GetConstPtr<float>();
+        auto ptr3 = t3.GetConstPtr<float>();
+        auto ptr4 = t4.GetConstPtr<float>();
+        auto ptr5 = t5.GetConstPtr<float>();
+        auto ptr6 = t6.GetConstPtr<float>();
+        for (int i = 0; i < size; ++i) {
+            EXPECT_FLOAT_EQ(data0[i], ptr0[i]);
+            EXPECT_FLOAT_EQ(data1[i], ptr1[i]);
+            EXPECT_FLOAT_EQ(data2[i], ptr2[i]);
+            EXPECT_FLOAT_EQ(data3[i], ptr3[i]);
+            EXPECT_FLOAT_EQ(data4[i], ptr4[i]);
+            EXPECT_FLOAT_EQ(data5[i], ptr5[i]);
+            EXPECT_FLOAT_EQ(data6[i], ptr6[i]);
+        }
+    }
+
+    t5 += t6 + 1.0f;    for (int i = 0; i < size; ++i) { data5[i] += data6[i] + 1.0f; }
+    t4 *= t5 * 0.5f;    for (int i = 0; i < size; ++i) { data4[i] *= data5[i] * 0.5f; }
+    t3 -= t4 - 5.0f;    for (int i = 0; i < size; ++i) { data3[i] -= data4[i] - 5.0f; }
+    t2 += t3 + 1.5f;    for (int i = 0; i < size; ++i) { data2[i] += data3[i] + 1.5f; }
+    t1 *= t2 * 2.5f;    for (int i = 0; i < size; ++i) { data1[i] *= data2[i] * 2.5f; }
+    t0 -= t1 - 1.2f;    for (int i = 0; i < size; ++i) { data0[i] -= data1[i] - 1.2f; }
+
+    t1 += t0 + 1.1f;    for (int i = 0; i < size; ++i) { data1[i] += data0[i] + 1.1f; }
+    t2 *= t1 * 0.2f;    for (int i = 0; i < size; ++i) { data2[i] *= data1[i] * 0.2f; }
+    t3 -= t2 - 5.3f;    for (int i = 0; i < size; ++i) { data3[i] -= data2[i] - 5.3f; }
+    t4 += t3 + 1.4f;    for (int i = 0; i < size; ++i) { data4[i] += data3[i] + 1.4f; }
+    t5 *= t4 * 2.5f;    for (int i = 0; i < size; ++i) { data5[i] *= data4[i] * 2.5f; }
+    t6 -= t5 - 1.6f;    for (int i = 0; i < size; ++i) { data6[i] -= data5[i] - 1.6f; }
+
+   {
+        auto ptr0 = t0.GetConstPtr<float>();
+        auto ptr1 = t1.GetConstPtr<float>();
+        auto ptr2 = t2.GetConstPtr<float>();
+        auto ptr3 = t3.GetConstPtr<float>();
+        auto ptr4 = t4.GetConstPtr<float>();
+        auto ptr5 = t5.GetConstPtr<float>();
+        auto ptr6 = t6.GetConstPtr<float>();
+        for (int i = 0; i < size; ++i) {
+            EXPECT_FLOAT_EQ(data0[i], ptr0[i]);
+            EXPECT_FLOAT_EQ(data1[i], ptr1[i]);
+            EXPECT_FLOAT_EQ(data2[i], ptr2[i]);
+            EXPECT_FLOAT_EQ(data3[i], ptr3[i]);
+            EXPECT_FLOAT_EQ(data4[i], ptr4[i]);
+            EXPECT_FLOAT_EQ(data5[i], ptr5[i]);
+            EXPECT_FLOAT_EQ(data6[i], ptr6[i]);
+        }
+    }
+}
 
 
 

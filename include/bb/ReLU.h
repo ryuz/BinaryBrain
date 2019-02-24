@@ -108,26 +108,14 @@ public:
 			}
 		}
 		else {
+			// ReLU
+#pragma omp parallel for
 			for (index_t node = 0; node < node_size; ++node) {
 				for (index_t frame = 0; frame < frame_size; ++frame) {
                     auto sig = x_ptr.Get(frame, node);
 					y_ptr.Set(frame, node, sig >(T)0.0 ? sig : (T)0.0);
 				}
 			}
-
-            /*
-			index_t  m256_frame_size = (int)(((frame_size + 7) / 8) * 8);
-			__m256 zero = _mm256_set1_ps(0);
-			for (index_t node = 0; node < node_size; ++node) {
-				auto x_addr = (T*)x_ptr.GetAddr(node);
-				auto y_addr = (T*)y_ptr.GetAddr(node);
-				for (index_t frame = 0; frame < m256_frame_size; frame += 8) {
-					__m256 in_sig = _mm256_load_ps(&x_addr[frame]);
-					in_sig = _mm256_max_ps(in_sig, zero);
-					_mm256_store_ps(&y_addr[frame], in_sig);
-				}
-			}
-            */
 		}
         return m_y;
     }

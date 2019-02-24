@@ -53,8 +53,13 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
     bb::FrameBuffer t(BB_TYPE_FP32, mini_batch_size, 10);
 
     bb::OptimizerAdam<float> optimizer;
-//  bb::OptimizerSgd<float> optimizer(0.01f);
+//    bb::OptimizerSgd<float> optimizer(0.001f);
     optimizer.SetVariables(net.GetParameters(), net.GetGradients());
+
+    net.SendCommand("host_only true", "MicroMlpAffine");
+//  net.SendCommand("host_only true", "ReLU");
+
+//    net.SendCommand("host_only true");
 
     std::mt19937_64 mt(1);
 
