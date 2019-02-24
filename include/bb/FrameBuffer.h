@@ -9,11 +9,9 @@
 
 #pragma once
 
-//#include <stdlib.h>
-//#include <malloc.h>
-
 #include <mutex>
 #include <iostream>
+#include <fstream>
 #include <array>
 #include <vector>
 #include <memory>
@@ -52,6 +50,8 @@ namespace bb {
 // -------------------------------------
 //  アクセス用ポインタクラス定義
 // -------------------------------------
+
+class FrameBuffer;
 
 // const アクセス用
 template <typename Tp, class FrameBufferTp, class PtrTp>
@@ -101,6 +101,11 @@ protected:
 
 
 public:
+    inline FrameBuffer const &GetFrameBuffer(void) const
+    {
+        return *m_buf;
+    }
+
     inline Tp const *GetAddr(void) const
     {
         return (Tp *)m_ptr.GetAddr();
@@ -349,6 +354,30 @@ public:
 		// メモリ確保
 		m_tensor.Resize(tensor_type, tensor_shape);
 	}
+
+
+    void Save(std::ostream &os) const 
+    {
+        os.write((char const *)&m_data_type, sizeof(m_data_type));
+    	SaveIndex(os, m_frame_size);
+	    SaveIndex(os, m_frame_stride);
+	    SaveIndex(os, m_node_size);
+        SaveIndices(os, m_node_shape);
+        m_tensor.Save(os);
+    }
+
+    void Load(std::istream &is)
+    {
+        is.read((char *)&m_data_type, sizeof(m_data_type));
+        m_frame_size   = LoadIndex(is); 
+	    m_frame_stride = LoadIndex(is);
+	    m_node_size    = LoadIndex(is);
+        m_node_shape   = LoadIndices(is);
+        m_tensor.Load(is);
+    }
+
+    void Save(std::string filename) const { Save(std::ofstream(filename, std::ios::binary)); }
+    void Load(std::string filename)       { Load(std::ifstream(filename, std::ios::binary)); }
 
     void Resize(int type, index_t frame_size, index_t i0)                                      { Resize(type, frame_size, indices_t({i0})); }
     void Resize(int type, index_t frame_size, index_t i0, index_t i1)                          { Resize(type, frame_size, indices_t({i0, i1})); }
@@ -893,6 +922,41 @@ public:
 
 };
 
+
+template<typename T>
+std::ostream &operator<<(std::ostream& os, FrameBufferConstPtr_<T const, FrameBuffer const, Memory::ConstPtr> ptr)
+{
+    os << "[\n";
+    for ( index_t frame = 0; frame < ptr.GetFrameBuffer().GetFrameSize(); ++frame ) {
+        os << " [";
+        for ( index_t node = 0; node < ptr.GetFrameBuffer().GetNodeSize(); ++node ) {
+            os << ptr.Get(frame, node) << ", ";
+        }
+        "]\n";
+    }
+    os << "]\n";
+    return os;
+}
+
+
+inline std::ostream& operator<<(std::ostream& os, FrameBuffer const &buf)
+{
+	switch (buf.GetType()) {
+	case BB_TYPE_BIT:    return os << buf.GetConstPtr<Bit     >();
+	case BB_TYPE_FP32:   return os << buf.GetConstPtr<float   >();
+	case BB_TYPE_FP64:   return os << buf.GetConstPtr<double  >();
+    case BB_TYPE_INT8:   return os << buf.GetConstPtr<int8_t  >();
+	case BB_TYPE_INT16:  return os << buf.GetConstPtr<int16_t >();
+   	case BB_TYPE_INT32:  return os << buf.GetConstPtr<int32_t >();
+	case BB_TYPE_INT64:  return os << buf.GetConstPtr<int64_t >();
+    case BB_TYPE_UINT8:  return os << buf.GetConstPtr<uint8_t >();
+	case BB_TYPE_UINT16: return os << buf.GetConstPtr<uint16_t>();
+   	case BB_TYPE_UINT32: return os << buf.GetConstPtr<uint32_t>();
+	case BB_TYPE_UINT64: return os << buf.GetConstPtr<uint64_t>();
+    default:   BB_ASSERT(0);
+    }
+    return os;
+}
 
 
 }

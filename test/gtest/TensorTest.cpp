@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <random>
 #include <iostream>
+#include <fstream>
 #include "gtest/gtest.h"
 
 #include "bb/Memory.h"
@@ -101,6 +102,85 @@ TEST(TensorTest, testTensor_Transpose)
 
     t = t.sqrt();
 }
+
+
+
+TEST(TensorTest, testTensor_SaveLoad)
+{
+    const int L = 4;
+    const int M = 3;
+    const int N = 2;
+
+    float   data[L][M][N];
+
+    bb::Tensor_<float> t({N, M, L});
+
+    {
+        auto ptr = t.GetPtr();
+        for ( int i = 0; i < L; ++i ) {
+            for ( int j = 0; j < M; ++j ) {
+                for ( int k = 0; k < N; ++k ) {
+                    data[i][j][k] = (float)((i+1)*10000 + (j+1) * 100 + (k+1)); 
+                    ptr(i, j, k) = data[i][j][k];
+                }
+            }
+        }
+    }
+
+    {
+        auto ptr = t.GetConstPtr();
+        for ( int i = 0; i < L; ++i ) {
+            for ( int j = 0; j < M; ++j ) {
+                for ( int k = 0; k < N; ++k ) {
+                    EXPECT_EQ(ptr({k, j, i}), data[i][j][k]);
+                    EXPECT_EQ(ptr(i, j, k), data[i][j][k]);
+                    EXPECT_EQ(ptr[(i*M+j)*N+k], data[i][j][k]);
+                }
+            }
+        }
+    }
+
+    t.Transpose({1, 2, 0});
+
+    {
+        auto ptr = t.GetConstPtr();
+        for ( int i = 0; i < L; ++i ) {
+            for ( int j = 0; j < M; ++j ) {
+                for ( int k = 0; k < N; ++k ) {
+                    EXPECT_EQ(ptr({j, i, k}), data[i][j][k]);
+                    EXPECT_EQ(ptr(k, i, j), data[i][j][k]);
+                    EXPECT_EQ(ptr[(i*M+j)*N+k], data[i][j][k]);
+                }
+            }
+        }
+    }
+
+    {
+        bb::Tensor t1(t);
+        std::ofstream ofs("TensorTest.bin", std::ios::binary);
+        t1.Save(ofs);
+    }
+
+    {
+        bb::Tensor t2;
+        std::ifstream ifs("TensorTest.bin", std::ios::binary);
+        t2.Load(ifs);
+
+        auto ptr = t2.GetConstPtr<float>();
+        for ( int i = 0; i < L; ++i ) {
+            for ( int j = 0; j < M; ++j ) {
+                for ( int k = 0; k < N; ++k ) {
+                    EXPECT_EQ(ptr({j, i, k}), data[i][j][k]);
+                    EXPECT_EQ(ptr(k, i, j), data[i][j][k]);
+                    EXPECT_EQ(ptr[(i*M+j)*N+k], data[i][j][k]);
+                }
+            }
+        }
+    }
+
+}
+
+
 
 
 TEST(TensorTest, testTensor_Reshape)

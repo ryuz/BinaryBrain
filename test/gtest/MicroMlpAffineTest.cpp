@@ -78,7 +78,8 @@ public:
 };
 
 
-#if 0
+#if 1
+
 TEST(MicroMlpAffineTest, testMicroMlpAffine)
 {
 	auto mlp = bb::MicroMlpAffine<4, 2>::Create(1);
@@ -232,6 +233,78 @@ TEST(MicroMlpAffineTest, testMicroMlpAffine)
 #endif
 
 
+
+#if 1
+
+void DumpAffineLayer(std::ostream &os, std::string name, bb::MicroMlpAffine<6, 16, float> const &affine)
+{
+    static int num = 0;
+    os << num << ":" << name << " W0 = " << *affine.m_W0 << std::endl;
+    os << num << ":" << name << " b0 = " << *affine.m_b0 << std::endl;
+    os << num << ":" << name << " W1 = " << *affine.m_W1 << std::endl;
+    os << num << ":" << name << " b0 = " << *affine.m_b0 << std::endl;
+    os << num << ":" << name << " dW0 = " << *affine.m_dW0 << std::endl;
+    os << num << ":" << name << " db0 = " << *affine.m_db0 << std::endl;
+    os << num << ":" << name << " dW1 = " << *affine.m_dW1 << std::endl;
+    os << num << ":" << name << " db0 = " << *affine.m_db0 << std::endl;
+
+    os << num << ":" << name << " x  = " << affine.m_x << std::endl;
+    os << num << ":" << name << " y  = " << affine.m_y << std::endl;
+    os << num << ":" << name << " dy = " << affine.m_dy << std::endl;
+    os << num << ":" << name << " dx = " << affine.m_dx << std::endl;
+
+//    num++;
+}
+
+TEST(MicroMlpAffineTest, testMicroMlpAffineFile)
+{
+    const int N = 6;
+    const int M = 16;
+
+    auto mlp1 = bb::MicroMlpAffine<N, M>::Create(1);
+	auto mlp2 = bb::MicroMlpAffine<N, M>::Create(1);
+
+    mlp1->Load("MicroMlpAffineTest/affine.bin");
+    mlp2->Load("MicroMlpAffineTest/affine.bin");
+
+    bb::FrameBuffer x_cpu(true);   x_cpu.Load("MicroMlpAffineTest/x.bin");
+    bb::FrameBuffer x_gpu(false);  x_gpu.Load("MicroMlpAffineTest/x.bin");
+//    bb::FrameBuffer y_cpu(true);   y_cpu.Load("MicroMlpAffineTest/y.bin");
+//    bb::FrameBuffer y_gpu(false);  y_gpu.Load("MicroMlpAffineTest/y.bin");
+    bb::FrameBuffer dy_cpu(true);
+    dy_cpu.Load("MicroMlpAffineTest/dy.bin");
+    bb::FrameBuffer dy_gpu(false); dy_gpu.Load("MicroMlpAffineTest/dy.bin");
+
+    auto y_cpu = mlp1->Forward(x_cpu);
+    auto y_gpu = mlp2->Forward(x_gpu);
+
+    for (int i = 0; i < y_cpu.GetFrameSize(); i++) {
+	    for (int j = 0; j < y_cpu.GetNodeSize(); j++) {
+            EXPECT_NEAR(y_cpu.GetFP32(i, j), y_gpu.GetFP32(i, j), 0.0001);
+        }
+    }
+
+    auto dx_cpu = mlp1->Backward(dy_cpu);
+    auto dx_gpu = mlp2->Backward(dy_gpu);
+
+    for (int i = 0; i < dx_cpu.GetFrameSize(); i++) {
+	    for (int j = 0; j < dx_cpu.GetNodeSize(); j++) {
+            EXPECT_NEAR(dx_cpu.GetFP32(i, j), dx_gpu.GetFP32(i, j), 0.0001);
+        }
+    }
+
+    {
+        std::ofstream ofs("log_cpu_t.txt");
+        DumpAffineLayer(ofs, "affine0", *mlp1);
+    }
+    {
+        std::ofstream ofs("log_gpu_t.txt");
+        DumpAffineLayer(ofs, "affine0", *mlp2);
+    }
+}
+#endif
+
+
 TEST(MicroMlpAffineTest, testMicroMlpAffineCmp)
 {
     const int N = 6;
@@ -267,7 +340,7 @@ TEST(MicroMlpAffineTest, testMicroMlpAffineCmp)
 	for (int i = 0; i < output_node_size; i++) {
         auto s = ss.GetRandomSet(N);
 		for (int j = 0; j < N; j++) {
-            int idx = s[j]; // mt() % input_node_size;
+            int idx = (int)s[j]; // mt() % input_node_size;
 //			mlp1->SetNodeInput(i, j, idx);
 //			mlp2->SetNodeInput(i, j, idx);
 			mlp2->SetNodeInput(i, j, mlp1->GetNodeInput(i, j));

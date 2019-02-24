@@ -33,8 +33,9 @@ protected:
 
 
 public:
-//    AffinePtr   m_affineX;
-//    ActivatePtr m_activateX;
+    AffinePtr   m_affineX;
+    ActivatePtr m_activateX;
+
     AffinePtr   m_affine0;
     ActivatePtr m_activate0;
     AffinePtr   m_affine1;
@@ -130,6 +131,7 @@ public:
 };
 
 
+/*
 void printBuffer(std::ostream &os, std::string name, bb::FrameBuffer buf)
 {
     os << name << " =\n";
@@ -154,6 +156,28 @@ void printTensorPtr(std::ostream &os, std::string name,  bb::TensorConstPtr_<T, 
     }
     os << std::endl;
 }
+*/
+
+
+void DumpAffineLayer(std::ostream &os, std::string name, bb::MicroMlpAffine<6, 16, float> const &affine)
+{
+    static int num = 0;
+    os << num << ":" << name << " W0 = " << *affine.m_W0 << std::endl;
+    os << num << ":" << name << " b0 = " << *affine.m_b0 << std::endl;
+    os << num << ":" << name << " W1 = " << *affine.m_W1 << std::endl;
+    os << num << ":" << name << " b0 = " << *affine.m_b0 << std::endl;
+    os << num << ":" << name << " dW0 = " << *affine.m_dW0 << std::endl;
+    os << num << ":" << name << " db0 = " << *affine.m_db0 << std::endl;
+    os << num << ":" << name << " dW1 = " << *affine.m_dW1 << std::endl;
+    os << num << ":" << name << " db0 = " << *affine.m_db0 << std::endl;
+
+    os << num << ":" << name << " x  = " << affine.m_x << std::endl;
+    os << num << ":" << name << " y  = " << affine.m_y << std::endl;
+    os << num << ":" << name << " dy = " << affine.m_dy << std::endl;
+    os << num << ":" << name << " dx = " << affine.m_dx << std::endl;
+
+    num++;
+}
 
 
 // MNIST CNN with LUT networks
@@ -163,10 +187,10 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
 //#ifdef _DEBUG
 //	auto data = bb::LoadMnist<>::Load(10, 512, 128);
 //#else
-  auto data = bb::LoadMnist<>::Load(10);
+    auto data = bb::LoadMnist<>::Load(10);
 //#endif
 
-  /*
+
 #ifdef _DEBUG
 #ifdef BB_WITH_CUDA
     std::ofstream ofs("log_gpu_d.txt");
@@ -180,7 +204,7 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
     std::ofstream ofs("log_cpu.txt");
 #endif
 #endif
-    */
+
 
     MnistSimpleMicroMlpNet                          net;
     bb::LossCrossEntropyWithSoftmax<float>          lossFunc;
@@ -210,43 +234,20 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
             acc += accFunc.CalculateAccuracy(y, t);
 
 
-           dy = net.Backward(dy);
+            dy = net.Backward(dy);
 
-//           ofs << "\n----------------------\n" << std::endl;
-           /*
-           printBuffer(ofs, "x", x);
-           printBuffer(ofs, "y", y);
-           printBuffer(ofs, "t", t);
-           printBuffer(ofs, "dy", dy);
+#if 0
+            net.m_affine0->Save("affine.bin");
+            net.m_affine0->m_x.Save("x.bin");
+            net.m_affine0->m_y.Save("y.bin");
+            net.m_affine0->m_dx.Save("dx.bin");
+            net.m_affine0->m_dy.Save("dy.bin");
+#endif
 
-           printBuffer(ofs, "1x",  net.m_affine1->m_x);
-           printBuffer(ofs, "1y",  net.m_affine1->m_y);
-           printBuffer(ofs, "1dx", net.m_affine1->m_dx);
-           printBuffer(ofs, "1dy", net.m_affine1->m_dy);
-
-           printBuffer(ofs, "af2_dx", net.m_affine2->m_dx);
-           printBuffer(ofs, "af1_dx", net.m_affine1->m_dx);
-           printBuffer(ofs, "af0_dy", net.m_activate0->m_dx);
-           printTensorPtr<float>(ofs, "W0", net.m_affine0->lock_W0_const());
-           printTensorPtr<float>(ofs, "dW0", net.m_affine0->lock_dW0_const());
-           printTensorPtr<float>(ofs, "b0", net.m_affine0->lock_b0_const());
-           printTensorPtr<float>(ofs, "db0", net.m_affine0->lock_db0_const());
-           printTensorPtr<float>(ofs, "W1", net.m_affine0->lock_W1_const());
-           printTensorPtr<float>(ofs, "dW1", net.m_affine0->lock_dW1_const());
-           printTensorPtr<float>(ofs, "b1", net.m_affine0->lock_b1_const());
-           printTensorPtr<float>(ofs, "db1", net.m_affine0->lock_db1_const());
-           ofs << "in = " << net.m_affine0->m_input_index;
-           */
-//         printBuffer(ofs, "dy", net.m_affine0->m_dy);
-//         printBuffer(ofs, "2_dx", net.m_affine2->m_dx);
-//         printBuffer(ofs, "1_dx", net.m_affine1->m_dx);
-//         printBuffer(ofs, "0_dx", net.m_affine0->m_dx);
-//         printBuffer(ofs, "X_dx", net.m_affineX->m_dx);
+//           DumpAffineLayer(ofs, "affine0", *net.m_affine0);
+//           ofs << "hoge?" << std::endl;
 
            optimizer.Update();
-//           printTensorPtr<float>(ofs, "W0", net.m_affine0->lock_W0_const());
-//           printTensorPtr<float>(ofs, "dW0", net.m_affine0->lock_dW0_const());
-//           ofs << "\n" << std::endl;
         }
         std::cout << acc / data.x_train.size() << std::endl;
 

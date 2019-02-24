@@ -477,7 +477,6 @@ public:
 		*this = tensor;
 	}
     
-
 	Tensor_& operator=(const Tensor_ &src)
 	{
 		m_mem  = src.m_mem;
@@ -626,6 +625,28 @@ public:
         Ptr ptr(this);
         ptr.Lock(new_buf);
         return ptr;
+    }
+
+
+    // -------------------------------------
+    //  シリアライズ
+    // -------------------------------------
+
+    void Save(std::ostream& os) const
+    {
+        SaveIndices(os, m_shape);
+        SaveIndices(os, m_stride);
+        auto ptr = m_mem->GetConstPtr();
+        os.write((char const *)ptr.GetAddr(), m_size * DataType<T>::size);
+    }
+    
+    void Load(std::istream& is)
+    {
+        m_shape  = LoadIndices(is);
+        Resize(m_shape);
+        m_stride = LoadIndices(is);
+        auto ptr = m_mem->GetPtr(true);
+        is.read((char *)ptr.GetAddr(), m_size * DataType<T>::size);
     }
 
 
@@ -1349,6 +1370,49 @@ public:
     {
         auto ptr = m_mem->GetPtr(true);
         memset(ptr.GetAddr(), 0, m_mem->GetSize());
+    }
+
+
+    // -------------------------------------
+    //  シリアライズ
+    // -------------------------------------
+
+    void Save(std::ostream& os) const
+    {
+        os.write((char const *)&m_type, sizeof(m_type));
+
+        switch (m_type) {
+        case BB_TYPE_FP32:   Tensor_<float        >(*this).Save(os);  break;
+        case BB_TYPE_FP64:   Tensor_<double       >(*this).Save(os);  break;
+        case BB_TYPE_INT8:   Tensor_<std::int8_t  >(*this).Save(os);  break;
+        case BB_TYPE_INT16:  Tensor_<std::int16_t >(*this).Save(os);  break;
+        case BB_TYPE_INT32:  Tensor_<std::int32_t >(*this).Save(os);  break;
+        case BB_TYPE_INT64:  Tensor_<std::int64_t >(*this).Save(os);  break;
+        case BB_TYPE_UINT8:  Tensor_<std::uint8_t >(*this).Save(os);  break;
+        case BB_TYPE_UINT16: Tensor_<std::uint16_t>(*this).Save(os);  break;
+        case BB_TYPE_UINT32: Tensor_<std::uint32_t>(*this).Save(os);  break;
+        case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this).Save(os);  break;
+        default:    BB_ASSERT(0);  break;
+        } 
+    }
+
+    void Load(std::istream& is)
+    {
+        is.read((char*)&m_type, sizeof(m_type));
+
+        switch (m_type) {
+        case BB_TYPE_FP32:   { Tensor_<float        > t(0, !m_mem->IsDeviceAvailable()); t.Load(is); *this = t; break; }
+        case BB_TYPE_FP64:   { Tensor_<double       > t(0, !m_mem->IsDeviceAvailable()); t.Load(is); *this = t; break; }
+        case BB_TYPE_INT8:   { Tensor_<std::int8_t  > t(0, !m_mem->IsDeviceAvailable()); t.Load(is); *this = t; break; }
+        case BB_TYPE_INT16:  { Tensor_<std::int16_t > t(0, !m_mem->IsDeviceAvailable()); t.Load(is); *this = t; break; }
+        case BB_TYPE_INT32:  { Tensor_<std::int32_t > t(0, !m_mem->IsDeviceAvailable()); t.Load(is); *this = t; break; }
+        case BB_TYPE_INT64:  { Tensor_<std::int64_t > t(0, !m_mem->IsDeviceAvailable()); t.Load(is); *this = t; break; }
+        case BB_TYPE_UINT8:  { Tensor_<std::uint8_t > t(0, !m_mem->IsDeviceAvailable()); t.Load(is); *this = t; break; }
+        case BB_TYPE_UINT16: { Tensor_<std::uint16_t> t(0, !m_mem->IsDeviceAvailable()); t.Load(is); *this = t; break; }
+        case BB_TYPE_UINT32: { Tensor_<std::uint32_t> t(0, !m_mem->IsDeviceAvailable()); t.Load(is); *this = t; break; }
+        case BB_TYPE_UINT64: { Tensor_<std::uint64_t> t(0, !m_mem->IsDeviceAvailable()); t.Load(is); *this = t; break; }
+        default:    BB_ASSERT(0);  break;
+        } 
     }
 
 #if 0
@@ -2126,6 +2190,26 @@ inline Tensor operator/(double src0, Tensor const &src1)
     default:    BB_ASSERT(0);  return Tensor();
     }
 }
+
+
+inline std::ostream& operator<<(std::ostream& os, Tensor const &t)
+{
+    switch (t.GetType()) {
+    case BB_TYPE_FP32:   return os << static_cast<Tensor_<float        > >(t);        
+    case BB_TYPE_FP64:   return os << static_cast<Tensor_<double       > >(t);       
+    case BB_TYPE_INT8:   return os << static_cast<Tensor_<std::int8_t  > >(t);  
+    case BB_TYPE_INT16:  return os << static_cast<Tensor_<std::int16_t > >(t); 
+    case BB_TYPE_INT32:  return os << static_cast<Tensor_<std::int32_t > >(t); 
+    case BB_TYPE_INT64:  return os << static_cast<Tensor_<std::int64_t > >(t); 
+    case BB_TYPE_UINT8:  return os << static_cast<Tensor_<std::uint8_t > >(t); 
+    case BB_TYPE_UINT16: return os << static_cast<Tensor_<std::uint16_t> >(t);
+    case BB_TYPE_UINT32: return os << static_cast<Tensor_<std::uint32_t> >(t);
+    case BB_TYPE_UINT64: return os << static_cast<Tensor_<std::uint64_t> >(t);
+    default:    BB_ASSERT(0);
+    }
+    return os;
+}
+
 
 
 }

@@ -56,6 +56,22 @@ namespace bb {
 using index_t   = std::intptr_t;	        // 配列の添え字(符号付き size_t としての扱い)
 using indices_t = std::vector<index_t>;     // Tensorなどの多次元配列の添え字
 
+
+inline void SaveIndex(std::ostream &os, index_t index)
+{
+    std::int64_t index64 = index;
+    os.write((const char*)&index64, sizeof(index64));
+}
+
+inline index_t LoadIndex(std::istream &is)
+{
+    std::int64_t index64;
+    is.read((char*)&index64, sizeof(index64));
+
+    return (index_t)index64;
+}
+
+
 inline index_t GetShapeSize(indices_t const & shape)
 {
     index_t size = 1;
@@ -102,6 +118,63 @@ inline index_t GetStrideIndex(indices_t const & indices, indices_t const & strid
     }
     return index;
 }
+
+inline void SaveIndices(std::ostream &os, indices_t const &indices)
+{
+    auto size = (index_t)indices.size();
+    SaveIndex(os, (index_t)indices.size());
+    for (index_t i = 0; i < size; ++i) {
+        SaveIndex(os, indices[i]);
+    }
+}
+
+inline indices_t LoadIndices(std::istream &is)
+{
+    indices_t indices;
+
+    auto size = LoadIndex(is);
+    indices.resize((size_t)size);
+    for (index_t i = 0; i < size; ++i) {
+        indices[(size_t)i] = LoadIndex(is);
+    }
+
+    return indices;
+}
+
+
+class shape_t
+{
+protected:
+    std::vector<index_t>  m_shape;
+
+public:
+    shape_t() {}
+    shape_t(shape_t const &shape) { m_shape = shape.m_shape; }
+    shape_t(indices_t const &indices) { m_shape = indices; }
+    
+    indices_t& operator=(shape_t const &shape) { m_shape = shape.m_shape; }
+    indices_t& operator=(indices_t const &indices) { m_shape = indices; }
+
+    operator std::vector<index_t> () { return m_shape; }
+
+    auto size()  const { return m_shape.size(); }
+    auto begin() const { return m_shape.begin(); }
+    auto end()   const { return m_shape.end(); }
+    index_t &operator[](index_t i) { return m_shape[i]; }
+    index_t const & operator[](index_t i) const { return m_shape[i]; }
+
+
+    index_t GetShapeSize(void)
+    {
+        index_t size = 1;
+        for (auto s : m_shape) {
+            size *= s;
+        }
+        return size;
+    }
+};
+
+
 
 
 
