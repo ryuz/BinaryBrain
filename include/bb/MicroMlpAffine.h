@@ -27,6 +27,7 @@ protected:
 public:
 
 	bool			        m_binary_mode = false;
+	bool			        m_host_only   = false;
 
     std::mt19937_64         m_mt;
 
@@ -69,6 +70,21 @@ protected:
         m_dW1 = std::make_shared<Tensor>();
         m_db1 = std::make_shared<Tensor>();
     }
+
+ 	void Command(std::vector<std::string> args)
+	{
+        // バイナリモード設定
+        if ( args.size() == 2 && args[0] == "bainary" )
+        {
+            m_binary_mode = EvalBool(args[1]);
+        }
+
+        // HostOnlyモード設定
+        if (args.size() == 2 && args[0] == "host_only")
+        {
+            m_host_only = EvalBool(args[1]);
+        }
+	}
 
 public:
 	~MicroMlpAffine() {}
@@ -235,7 +251,7 @@ public:
 
 #ifdef BB_WITH_CUDA
         if ( N == 6 && M == 16 && DataType<T>::type == BB_TYPE_FP32
-            && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() ) {
+            && !m_host_only && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() ) {
             // CUDA版
             auto input_index_ptr = m_input_index.GetMemoryDevConstPtr();
             auto x_ptr  = m_x.GetMemoryDevConstPtr();
@@ -284,7 +300,7 @@ public:
 
 #ifdef BB_WITH_CUDA
         if ( N == 6 && M == 16 && DataType<T>::type == BB_TYPE_FP32
-            && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() ) {
+            && !m_host_only && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() ) {
             // CUDA版
             auto input_index_ptr = m_input_index.GetMemoryDevConstPtr();
             auto x_ptr  = m_x.GetMemoryDevConstPtr();

@@ -71,6 +71,11 @@ protected:
 	}
 
 public:
+    TensorTp const & GetTensor(void)
+    {
+        return m_tensor;
+    }
+
     inline Tp *GetAddr(void)
     {
         return m_ptr.GetAddr();
@@ -640,6 +645,17 @@ public:
         Ptr ptr(this);
         ptr.Lock(new_buf);
         return ptr;
+    }
+
+    inline bool IsValidValue(void) const
+    {
+        auto ptr = GetConstPtr();
+        for ( index_t i = 0; i < GetSize(); ++i ) {
+            if ( !Real_IsValid<T>(ptr[i]) ) {
+                return false;
+            }
+        }
+        return true;
     }
 
 
@@ -1479,6 +1495,16 @@ public:
         m_mem->FillZero();
 //        auto ptr = m_mem->GetPtr(true);
 //        memset(ptr.GetAddr(), 0, m_mem->GetSize());
+    }
+
+
+    inline bool IsValidValue(void) const
+    {
+        switch (m_type) {
+        case BB_TYPE_FP32:   return Tensor_<float        >(*this).IsValidValue();
+        case BB_TYPE_FP64:   return Tensor_<double       >(*this).IsValidValue();
+        }
+        return true;
     }
 
 

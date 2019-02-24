@@ -29,6 +29,16 @@ class Layer
 protected:
 	std::string		m_layerName;
 
+    /**
+     * @brief  コマンドを処理
+     * @detail レイヤーの動作をカスタマイズ
+     *         そのうち特定のレイヤだけとか、活性化だけとか選べるのも作るかも
+     *         文字列にしておけば何でも出来るかな？
+     */
+    virtual void Command(std::vector<std::string> args)
+    {
+    }
+    
 public:
     /**
      * @brief  デストラクタ(仮想関数)
@@ -67,9 +77,17 @@ public:
 		return m_layerName;
 	}
 	
-	
-//	virtual void  Command(std::string command) {}								// コマンドを送信
-	virtual void  SetBinaryMode(bool enable) {}									// バイナリモードを設定
+    /**
+     * @brief  コマンドを送信
+     * @detail コマンドを送信
+     *         そのうち特定のレイヤだけとか、活性化だけとか選べるのも作るかも
+     */
+    virtual void Command(std::string command, std::string send_to = "all")
+    {
+        if ( send_to == "all" || send_to == GetClassName() || send_to == GetLayerName() ) {
+            Command(SplitString(command));
+        }
+    }
 
 
     /**

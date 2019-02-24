@@ -27,10 +27,32 @@ public:
     FrameBuffer m_y;
     FrameBuffer m_dx;
 
-    bool    m_binary_mode = false;
+    bool m_host_only   = false;
+    bool m_binary_mode = false;
 
 protected:
 	ReLU() {}
+
+    /**
+     * @brief  コマンド処理
+     * @detail コマンド処理
+     * @param  args   コマンド
+     */
+	void Command(std::vector<std::string> args)
+	{
+        // バイナリモード設定
+        if ( args.size() == 2 && args[0] == "bainary" )
+        {
+            m_binary_mode = EvalBool(args[1]);
+        }
+
+        // HostOnlyモード設定
+        if (args.size() == 2 && args[0] == "host_only")
+        {
+            m_host_only = EvalBool(args[1]);
+        }
+	}
+
 
 public:
     static std::shared_ptr<ReLU> Create(void)
@@ -43,10 +65,6 @@ public:
 
 	std::string GetClassName(void) const { return "ReLU"; }
 
-	void SetBinaryMode(bool enable)
-	{
-		m_binary_mode = enable;
-	}
 
     /**
      * @brief  入力形状設定
@@ -200,7 +218,7 @@ FrameBuffer ReLU<float>::Forward(FrameBuffer x, bool train)
 	}
 	else {
 #if BB_WITH_CUDA
-        if ( m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() ) {
+        if ( !m_host_only && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() ) {
             // CUDA版
             auto ptr_x = x.GetMemoryDevConstPtr();
             auto ptr_y = m_y.GetMemoryDevPtr();
@@ -273,7 +291,7 @@ FrameBuffer ReLU<float>::Backward(FrameBuffer dy)
 	else {
 
 #if BB_WITH_CUDA
-        if ( m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() ) {
+        if ( !m_host_only && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() ) {
             auto ptr_x  = m_x.GetMemoryDevConstPtr();
             auto ptr_dy = dy.GetMemoryDevConstPtr();
             auto ptr_dx = m_dx.GetMemoryDevPtr();

@@ -26,6 +26,9 @@ protected:
 	T				m_beta1;
 	T				m_beta2;
 	int				m_iter;
+	T				m_b1;
+	T				m_b2;
+
     Variables       m_m;
     Variables       m_v;
 
@@ -46,6 +49,9 @@ public:
 		m_beta1         = create.beta1;
 		m_beta2         = create.beta2;
 		m_iter          = 0;
+
+        m_b1            = m_beta1;
+        m_b2            = m_beta2;
 	}
 
   	OptimizerAdam(T learning_rate = (T)0.001, T beta1 = (T)0.9, T beta2 = (T)0.999) 
@@ -54,6 +60,9 @@ public:
 		m_beta1         = beta1;
 		m_beta2         = beta2;
 		m_iter          = 0;
+
+        m_b1            = m_beta1;
+        m_b2            = m_beta2;
 	}
 
 	OptimizerAdam(create_t const &create, Variables params, Variables grads) 
@@ -70,7 +79,10 @@ public:
 		m_beta1         = create.beta1;
 		m_beta2         = create.beta2;
 		m_iter          = 0;
-	}
+
+        m_b1            = m_beta1;
+        m_b2            = m_beta2;
+    }
 	
 	~OptimizerAdam()
 	{
@@ -90,12 +102,32 @@ public:
     
 	void Update(void)
 	{
-		m_iter++;
-        auto lr_t = m_learning_rate * sqrt((T)1.0 - pow(m_beta2, (T)m_iter)) / ((T)1.0 - pow(m_beta1, (T)m_iter) + 1.0e-7);
+#if 1
+        auto lr_t = m_learning_rate * sqrt((T)1.0 - m_b2) / ((T)1.0 - m_b1 + 1.0e-7);
 
+        m_m += ((T)1.0 - m_beta1) * (m_grads - m_m);
+        m_v += ((T)1.0 - m_beta2) * (m_grads * m_grads - m_v);
+        m_params -= lr_t * m_m / (m_v.sqrt() + (T)1e-7);
+
+        m_b1 *= m_beta1;
+        m_b2 *= m_beta2;
+
+#else
+		m_iter++;
+        m_b1 = pow(m_beta1, (T)m_iter);
+        m_b2 = pow(m_beta2, (T)m_iter);
+
+        auto lr_t = m_learning_rate * sqrt((T)1.0 - m_b2) / ((T)1.0 - m_b1 + 1.0e-7);
         m_m += ((T)1 - m_beta1) * (m_grads - m_m);
         m_v += ((T)1 - m_beta2) * (m_grads * m_grads - m_v);
         m_params -= lr_t * m_m / (m_v.sqrt() + (T)1e-7);
+
+
+//      auto lr_t = m_learning_rate * sqrt((T)1.0 - pow(m_beta2, (T)m_iter)) / ((T)1.0 - pow(m_beta1, (T)m_iter) + 1.0e-7);
+//      m_m += ((T)1 - m_beta1) * (m_grads - m_m);
+//      m_v += ((T)1 - m_beta2) * (m_grads * m_grads - m_v);
+//      m_params -= lr_t * m_m / (m_v.sqrt() + (T)1e-7);
+#endif
     }
 };
 

@@ -49,14 +49,11 @@ public:
         m_layers.push_back(layer);
     }
 	
-	
-//	virtual void  Command(std::string command) {}								// コマンドを送信
-	
-    // バイナリモードを設定
-    void  SetBinaryMode(bool enable)
+    // コマンド処理
+    void Command(std::string command, std::string send_to = "all")
     {
         for (auto layer : m_layers) {
-            layer->SetBinaryMode(enable);
+            layer->Command(command, send_to);
         }
     }
     

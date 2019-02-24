@@ -14,6 +14,10 @@
 #include <ostream>
 #include <vector>
 #include <random>
+#include <string>
+#include <cctype>
+#include <vector>
+#include <locale>
 
 #include "bb/DataType.h"
 
@@ -81,6 +85,52 @@ std::vector<LT> OnehotToLabel(const std::vector<std::vector<T>>& onehot)
 
 	return label;
 }
+
+
+// 文字列の分解
+inline std::vector<std::string> SplitString(std::string text)
+{
+    std::vector<std::string> vec;
+    std::string              str;
+
+    for (auto c : text) {
+        if (std::isspace(c)) {
+            if (!str.empty()) {
+                vec.push_back(str);
+                str.clear();
+            }
+        }
+        else {
+            str.push_back(c);
+        }
+    }
+
+    if (!str.empty()) {
+        vec.push_back(str);
+    }
+
+    return vec;
+}
+
+
+inline std::int64_t EvalInt(std::string str)
+{
+    return std::stoll(str);
+}
+
+inline bool EvalBool(std::string str)
+{
+//  std::locale locale;
+//  str = std::tolower(str, locale);
+
+    if ( str == "t" || str == "true"  || str == "on"  || str == "enable"  || str == "1" ) { return true; }
+    if ( str == "f" || str == "false" || str == "off" || str == "disable" || str == "0" ) { return false; }
+
+    BB_ASSERT(0);
+
+    return false;
+}
+
 
 
 // トレーニングデータセットのシャッフル
@@ -159,6 +209,25 @@ inline void aligned_memory_free(void * mem)
 	return std::free(mem);
 #endif
 #endif
+}
+
+
+// 浮動小数点の有効性チェック
+template <typename T>
+inline bool Real_IsValid(T val) {
+    return true;
+}
+
+template <>
+inline bool Real_IsValid<float>(float val) {
+    if ( isinf(val) ) { std::cout << "inf"; }
+
+    return (!isnan(val) && !isinf(val));
+}
+
+template <>
+inline bool Real_IsValid<double>(double val) {
+    return (!isnan(val) && !isinf(val));
 }
 
 

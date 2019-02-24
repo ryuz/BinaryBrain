@@ -59,6 +59,18 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
     std::mt19937_64 mt(1);
 
     for ( bb::index_t epoch = 0; epoch < epoch_size; ++epoch ) {
+
+#if 0
+        if (epoch == 4) {
+            net.Command("host_only true");
+            std::cout << "host_only true" << std::endl;
+        }
+        if (epoch == 10) {
+            net.Command("host_only false");
+            std::cout << "host_only false" << std::endl;
+        }
+#endif
+
         double acc = 0;
         for (bb::index_t i = 0; i < (bb::index_t)(data.x_train.size() - mini_batch_size); i += mini_batch_size)
         {

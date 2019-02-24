@@ -443,6 +443,12 @@ public:
 	index_t GetNodeSize(void)  const { return m_node_size; }
 
 
+    inline bool IsValidValue(void) const
+    {
+        return m_tensor.IsValidValue();
+    }
+
+
     // ---------------------------------
     //  ダイレクトアクセス用
     // ---------------------------------

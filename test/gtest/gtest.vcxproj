@@ -38,7 +38,7 @@
     <ClCompile Include="BatchNormalizationTest.cpp" />
     <ClCompile Include="ConvolutionIm2ColTest.cpp" />
     <ClCompile Include="FrameBufferTest.cpp" />
-    <ClCompile Include="LossCrossEntropyWithSoftmaxTest .cpp" />
+    <ClCompile Include="LossCrossEntropyWithSoftmaxTest.cpp" />
     <ClCompile Include="MemoryTest.cpp" />
     <ClCompile Include="MicroMlpAffineTest.cpp" />
     <ClCompile Include="OptimizerAdamTest.cpp" />
