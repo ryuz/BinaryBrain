@@ -105,4 +105,131 @@ CUBB_DLL_EXPORT int bbcu_Scalar_mul_ex
 }
 
 
+// -------------------------------------------------
+//  div_ex
+// -------------------------------------------------
+
+__global__ void kernal_Scalar_div_ex(
+			float*			dst,
+			const float*	src0,
+			const float*	src1,
+			float			a,
+			float			b,
+			float			c,
+			float			d,
+			int				size)
+{
+	int	index = threadIdx.x;
+	while ( index < size ) {
+		dst[index] = (a * src0[index] + b) / (c * src1[index] + d);
+		index += blockDim.x;
+	}
+}
+
+
+CUBB_DLL_EXPORT int bbcu_Scalar_div_ex(
+            float           *dev_dst,
+            float const     *dev_src0,
+            float const     *dev_src1,
+            float	        a,
+            float	        b,
+            float	        c,
+            float	        d,
+			int				size,
+            cudaStream_t	streamId
+		)
+{
+	kernal_Scalar_div_ex<<<1, 1024, 0, streamId>>>
+        (
+			dev_dst,
+			dev_src0,
+			dev_src1,
+			a,
+			b,
+			c,
+			d,
+			size
+		);
+    BB_CUDA_CHECK_LAST_ERROR();
+
+    return 0;
+}
+
+
+
+// -------------------------------------------------
+//  sqrt
+// -------------------------------------------------
+
+__global__ void kernal_Scalar_sqrt(
+			float*			dst,
+			const float*	src,
+			int				size)
+{
+	int	index = threadIdx.x;
+	while ( index < size ) {
+		dst[index] = sqrt(src[index]);
+		index += blockDim.x;
+	}
+}
+
+
+CUBB_DLL_EXPORT int bbcu_Scalar_sqrt(
+            float           *dev_dst,
+            float const     *dev_src,
+			int				size,
+            cudaStream_t	streamId
+		)
+{
+	kernal_Scalar_sqrt<<<1, 1024, 0, streamId>>>
+        (
+			dev_dst,
+			dev_src,
+			size
+		);
+    BB_CUDA_CHECK_LAST_ERROR();
+
+    return 0;
+}
+
+
+
+
+// -------------------------------------------------
+//  exp
+// -------------------------------------------------
+
+__global__ void kernal_Scalar_exp(
+			float*			dst,
+			const float*	src,
+			int				size)
+{
+	int	index = threadIdx.x;
+	while ( index < size ) {
+		dst[index] = exp(src[index]);
+		index += blockDim.x;
+	}
+}
+
+
+CUBB_DLL_EXPORT int bbcu_Scalar_exp(
+            float           *dev_dst,
+            float const     *dev_src,
+			int				size,
+            cudaStream_t	streamId
+		)
+{
+	kernal_Scalar_exp<<<1, 1024, 0, streamId>>>
+        (
+			dev_dst,
+			dev_src,
+			size
+		);
+    BB_CUDA_CHECK_LAST_ERROR();
+
+    return 0;
+}
+
+
+
 // end of file

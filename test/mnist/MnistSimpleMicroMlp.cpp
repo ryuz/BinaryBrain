@@ -345,7 +345,7 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
             auto cpu_y = cpu_net.Forward(cpu_x);
             auto gpu_y = gpu_net.Forward(gpu_x);
             
-//          DumpLayerForward(ofs, cpu_net, gpu_net);
+            DumpLayerForward(ofs, cpu_net, gpu_net);
 
             auto cpu_dy = cpu_lossFunc.CalculateLoss(cpu_y, cpu_t);
             auto gpu_dy = gpu_lossFunc.CalculateLoss(gpu_y, gpu_t);
@@ -356,12 +356,12 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
             cpu_dy = cpu_net.Backward(cpu_dy);
             gpu_dy = gpu_net.Backward(gpu_dy);
 
-//          DumpLayerBackward(ofs, cpu_net, gpu_net);
+            DumpLayerBackward(ofs, cpu_net, gpu_net);
 
             cpu_optimizer.Update();
             gpu_optimizer.Update();
 
-//          DumpLayerUpdate(ofs, cpu_net, gpu_net);
+            DumpLayerUpdate(ofs, cpu_net, gpu_net);
         }
         std::cout << "cpu : " << cpu_acc / data.x_train.size() << std::endl;
         std::cout << "gpu : " << gpu_acc / data.x_train.size() << std::endl;

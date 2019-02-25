@@ -40,6 +40,37 @@ CUBB_DLL_EXPORT int bbcu_Scalar_mul_ex
             cudaStream_t	streamId = 0
         );
 
+CUBB_DLL_EXPORT int bbcu_Scalar_div_ex(
+            float           *dev_dst,
+            float const     *dev_src0,
+            float const     *dev_src1,
+            float	        a,
+            float	        b,
+            float	        c,
+            float	        d,
+			int				size,
+            cudaStream_t	streamId = 0
+		);
+
+CUBB_DLL_EXPORT int bbcu_Scalar_sqrt(
+            float           *dev_dst,
+            float const     *dev_src,
+			int				size,
+            cudaStream_t	streamId = 0
+		);
+
+
+CUBB_DLL_EXPORT int bbcu_Scalar_exp(
+            float           *dev_dst,
+            float const     *dev_src,
+			int				size,
+            cudaStream_t	streamId = 0
+		);
+
+
+
+
+
 
 CUBB_DLL_EXPORT	int bbcu_HorizontalSum
         (
