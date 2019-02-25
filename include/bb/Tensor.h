@@ -506,6 +506,11 @@ public:
 		return *this;
 	}
     
+    bool IsHostOnly(void) const
+    {
+        return m_mem->IsHostOnly();
+    }
+
     index_t GetMemorySize(void) const
     {
         return m_mem->GetSize();
@@ -775,22 +780,37 @@ public:
     friend  Tensor_ operator / <T> (Tensor_ const &src0, T src1);
     friend  Tensor_ operator / <T> (T src0, Tensor_ const &src1);
     
-    Tensor_ sqrt(void)
+    Tensor_ Sqrt(void)
     {
-       Tensor_  dst(m_shape);
-       auto src_ptr = GetMemoryConstPtr();
-       auto dst_ptr = dst.GetMemoryPtr(true);
-       Tensor_Scalar_sqrt<T>((T *)dst_ptr.GetAddr(), (const T *)src_ptr.GetAddr(), m_size);
-       return dst;
+        Tensor_  dst(m_shape);
+        auto src_ptr = GetMemoryConstPtr();
+        auto dst_ptr = dst.GetMemoryPtr(true);
+        Tensor_Scalar_sqrt<T>((T *)dst_ptr.GetAddr(), (const T *)src_ptr.GetAddr(), m_size);
+        return dst;
     }
 
-    Tensor_ exp(void)
+    Tensor_ Exp(void)
     {
-       Tensor_  dst(m_shape);
-       auto src_ptr = GetMemoryConstPtr();
-       auto dst_ptr = dst.GetMemoryPtr(true);
-       Tensor_Scalar_exp<T>((T *)dst_ptr.GetAddr(), (T const *)src_ptr.GetAddr(), m_size);
-       return dst;
+        Tensor_  dst(m_shape);
+        auto src_ptr = GetMemoryConstPtr();
+        auto dst_ptr = dst.GetMemoryPtr(true);
+        Tensor_Scalar_exp<T>((T *)dst_ptr.GetAddr(), (T const *)src_ptr.GetAddr(), m_size);
+        return dst;
+    }
+
+    double Sum(void)
+    {
+        double sum = 0;
+        auto ptr = GetConstPtr();
+        for ( index_t i = 0; i < GetSize(); ++i ) {
+            sum += ptr[i];
+        }
+        return sum;
+    }
+
+    double Norm(void)
+    {
+        return sqrt((*this * *this).Sum());
     }
 };
 
@@ -1369,6 +1389,11 @@ public:
     int GetType(void) const
     {
         return m_type;
+    }
+
+    bool IsHostOnly(void) const
+    {
+        return m_mem->IsHostOnly();
     }
 
     index_t GetMemorySize(void) const
@@ -2077,38 +2102,60 @@ public:
     friend  Tensor operator / (const Tensor &src0, double src1);
     friend  Tensor operator / (double src0, const Tensor &src1);
 
-    Tensor sqrt(void)
+    Tensor Sqrt(void)
     {
         switch (m_type) {
-        case BB_TYPE_FP32:   return Tensor_<float        >(*this).sqrt();        
-        case BB_TYPE_FP64:   return Tensor_<double       >(*this).sqrt();       
-        case BB_TYPE_INT8:   return Tensor_<std::int8_t  >(*this).sqrt();  
-        case BB_TYPE_INT16:  return Tensor_<std::int16_t >(*this).sqrt(); 
-        case BB_TYPE_INT32:  return Tensor_<std::int32_t >(*this).sqrt(); 
-        case BB_TYPE_INT64:  return Tensor_<std::int64_t >(*this).sqrt(); 
-        case BB_TYPE_UINT8:  return Tensor_<std::uint8_t >(*this).sqrt(); 
-        case BB_TYPE_UINT16: return Tensor_<std::uint16_t>(*this).sqrt();
-        case BB_TYPE_UINT32: return Tensor_<std::uint32_t>(*this).sqrt();
-        case BB_TYPE_UINT64: return Tensor_<std::uint64_t>(*this).sqrt();
+        case BB_TYPE_FP32:   return Tensor_<float        >(*this).Sqrt();        
+        case BB_TYPE_FP64:   return Tensor_<double       >(*this).Sqrt();       
+        case BB_TYPE_INT8:   return Tensor_<std::int8_t  >(*this).Sqrt();  
+        case BB_TYPE_INT16:  return Tensor_<std::int16_t >(*this).Sqrt(); 
+        case BB_TYPE_INT32:  return Tensor_<std::int32_t >(*this).Sqrt(); 
+        case BB_TYPE_INT64:  return Tensor_<std::int64_t >(*this).Sqrt(); 
+        case BB_TYPE_UINT8:  return Tensor_<std::uint8_t >(*this).Sqrt(); 
+        case BB_TYPE_UINT16: return Tensor_<std::uint16_t>(*this).Sqrt();
+        case BB_TYPE_UINT32: return Tensor_<std::uint32_t>(*this).Sqrt();
+        case BB_TYPE_UINT64: return Tensor_<std::uint64_t>(*this).Sqrt();
         default:    BB_ASSERT(0);  return Tensor();
         }
     }
 
-    Tensor exp(void)
+    Tensor Exp(void)
     {
         switch (m_type) {
-        case BB_TYPE_FP32:   return Tensor_<float        >(*this).exp();        
-        case BB_TYPE_FP64:   return Tensor_<double       >(*this).exp();       
-        case BB_TYPE_INT8:   return Tensor_<std::int8_t  >(*this).exp();  
-        case BB_TYPE_INT16:  return Tensor_<std::int16_t >(*this).exp(); 
-        case BB_TYPE_INT32:  return Tensor_<std::int32_t >(*this).exp(); 
-        case BB_TYPE_INT64:  return Tensor_<std::int64_t >(*this).exp(); 
-        case BB_TYPE_UINT8:  return Tensor_<std::uint8_t >(*this).exp(); 
-        case BB_TYPE_UINT16: return Tensor_<std::uint16_t>(*this).exp();
-        case BB_TYPE_UINT32: return Tensor_<std::uint32_t>(*this).exp();
-        case BB_TYPE_UINT64: return Tensor_<std::uint64_t>(*this).exp();
+        case BB_TYPE_FP32:   return Tensor_<float        >(*this).Exp();        
+        case BB_TYPE_FP64:   return Tensor_<double       >(*this).Exp();       
+        case BB_TYPE_INT8:   return Tensor_<std::int8_t  >(*this).Exp();  
+        case BB_TYPE_INT16:  return Tensor_<std::int16_t >(*this).Exp(); 
+        case BB_TYPE_INT32:  return Tensor_<std::int32_t >(*this).Exp(); 
+        case BB_TYPE_INT64:  return Tensor_<std::int64_t >(*this).Exp(); 
+        case BB_TYPE_UINT8:  return Tensor_<std::uint8_t >(*this).Exp(); 
+        case BB_TYPE_UINT16: return Tensor_<std::uint16_t>(*this).Exp();
+        case BB_TYPE_UINT32: return Tensor_<std::uint32_t>(*this).Exp();
+        case BB_TYPE_UINT64: return Tensor_<std::uint64_t>(*this).Exp();
         default:    BB_ASSERT(0);  return Tensor();
         }
+    }
+
+    double Sum(void)
+    {
+        switch (m_type) {
+        case BB_TYPE_FP32:   return Tensor_<float        >(*this).Sum();        
+        case BB_TYPE_FP64:   return Tensor_<double       >(*this).Sum();       
+        case BB_TYPE_INT8:   return Tensor_<std::int8_t  >(*this).Sum();  
+        case BB_TYPE_INT16:  return Tensor_<std::int16_t >(*this).Sum(); 
+        case BB_TYPE_INT32:  return Tensor_<std::int32_t >(*this).Sum(); 
+        case BB_TYPE_INT64:  return Tensor_<std::int64_t >(*this).Sum(); 
+        case BB_TYPE_UINT8:  return Tensor_<std::uint8_t >(*this).Sum(); 
+        case BB_TYPE_UINT16: return Tensor_<std::uint16_t>(*this).Sum();
+        case BB_TYPE_UINT32: return Tensor_<std::uint32_t>(*this).Sum();
+        case BB_TYPE_UINT64: return Tensor_<std::uint64_t>(*this).Sum();
+        default:    BB_ASSERT(0);  return 0;
+        }
+    }
+
+    double Norm(void)
+    {
+        return sqrt((*this * *this).Sum());
     }
 };
 

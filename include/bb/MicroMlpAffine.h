@@ -127,6 +127,26 @@ public:
 
 	std::string GetClassName(void) const { return "MicroMlpAffine"; }
 
+
+  	Tensor       &W0(void)       { return *m_W0; }
+	Tensor const &W0(void) const { return *m_W0; }
+  	Tensor       &b0(void)       { return *m_b0; }
+	Tensor const &b0(void) const { return *m_b0; }
+  	Tensor       &W1(void)       { return *m_W1; }
+	Tensor const &W1(void) const { return *m_W1; }
+  	Tensor       &b1(void)       { return *m_b1; }
+	Tensor const &b1(void) const { return *m_b1; }
+    
+   	Tensor       &dW0(void)       { return *m_dW0; }
+	Tensor const &dW0(void) const { return *m_dW0; }
+  	Tensor       &db0(void)       { return *m_db0; }
+	Tensor const &db0(void) const { return *m_db0; }
+  	Tensor       &dW1(void)       { return *m_dW1; }
+	Tensor const &dW1(void) const { return *m_dW1; }
+  	Tensor       &db1(void)       { return *m_db1; }
+	Tensor const &db1(void) const { return *m_db1; }
+
+
    	auto lock_InputIndex(void)             { return m_input_index.GetPtr(); }
 	auto lock_InputIndex_const(void) const { return m_input_index.GetConstPtr(); }
 

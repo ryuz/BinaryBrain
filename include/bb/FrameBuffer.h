@@ -309,6 +309,12 @@ public:
 		return clone_buf;
 	}
     
+    bool IsHostOnly(void) const
+    {
+        return m_tensor.IsHostOnly();
+    }
+    
+
    /**
      * @brief  デバイスが利用可能か問い合わせる
      * @detail デバイスが利用可能か問い合わせる
@@ -943,8 +949,151 @@ public:
 
         return buf;
     }
+    
 
+
+
+    // -------------------------------------
+    //  演算
+    // -------------------------------------
+
+    inline FrameBuffer& operator+=(FrameBuffer src)	{ m_tensor += src.m_tensor; }
+    inline FrameBuffer& operator+=(double src)	    { m_tensor += src; }
+    inline FrameBuffer& operator-=(FrameBuffer src)	{ m_tensor -= src.m_tensor; }
+    inline FrameBuffer& operator-=(double src)	    { m_tensor -= src; }
+    inline FrameBuffer& operator*=(FrameBuffer src)	{ m_tensor *= src.m_tensor; }
+    inline FrameBuffer& operator*=(double src)	    { m_tensor *= src; }
+    inline FrameBuffer& operator/=(FrameBuffer src)	{ m_tensor /= src.m_tensor; }
+    inline FrameBuffer& operator/=(double src)	    { m_tensor /= src; }
+
+    FrameBuffer Sqrt(void)
+    {
+        FrameBuffer dst(GetType(), GetFrameSize(), GetShape(), IsHostOnly());
+        dst.m_tensor = m_tensor.Sqrt();
+        return dst;
+    }
+
+    FrameBuffer Exp(void)
+    {
+        FrameBuffer dst(GetType(), GetFrameSize(), GetShape(), IsHostOnly());
+        dst.m_tensor = m_tensor.Exp();
+        return dst;
+    }
+
+    double Sum(void)
+    {
+        return m_tensor.Sum();
+    }
+
+    double Norm(void)
+    {
+        return sqrt((*this * *this).Sum());
+    }
+
+
+
+    friend  FrameBuffer operator+(FrameBuffer const &src0, FrameBuffer const &src1);
+    friend  FrameBuffer operator+(FrameBuffer const &src0, double src1);
+    friend  FrameBuffer operator+(double src0, FrameBuffer const &src1);
+    friend  FrameBuffer operator-(FrameBuffer const &src0, FrameBuffer const &src1);
+    friend  FrameBuffer operator-(FrameBuffer const &src0, double src1);
+    friend  FrameBuffer operator-(double src0, FrameBuffer const &src1);
+    friend  FrameBuffer operator*(FrameBuffer const &src0, FrameBuffer const &src1);
+    friend  FrameBuffer operator*(FrameBuffer const &src0, double src1);
+    friend  FrameBuffer operator*(double src0, FrameBuffer const &src1);
+    friend  FrameBuffer operator/(FrameBuffer const &src0, FrameBuffer const &src1);
+    friend  FrameBuffer operator/(FrameBuffer const &src0, double src1);
+    friend  FrameBuffer operator/(double src0, FrameBuffer const &src1);
 };
+
+
+inline FrameBuffer operator+(FrameBuffer const &src0, FrameBuffer const &src1)
+{
+    FrameBuffer dst(src0.GetType(), src0.GetFrameSize(), src0.GetShape(), src0.IsHostOnly());
+    dst.m_tensor = src0.m_tensor + src1.m_tensor;
+    return dst;
+}
+
+inline FrameBuffer operator+(FrameBuffer const &src0, double src1)
+{
+    FrameBuffer dst(src0.GetType(), src0.GetFrameSize(), src0.GetShape(), src0.IsHostOnly());
+    dst.m_tensor = src0.m_tensor + src1;
+    return dst;
+}
+
+inline FrameBuffer operator+(double src0, FrameBuffer const &src1)
+{
+    FrameBuffer dst(src1.GetType(), src1.GetFrameSize(), src1.GetShape(), src1.IsHostOnly());
+    dst.m_tensor = src0 + src1.m_tensor;
+    return dst;
+}
+
+
+inline FrameBuffer operator-(FrameBuffer const &src0, FrameBuffer const &src1)
+{
+    FrameBuffer dst(src0.GetType(), src0.GetFrameSize(), src0.GetShape(), src0.IsHostOnly());
+    dst.m_tensor = src0.m_tensor - src1.m_tensor;
+    return dst;
+}
+
+inline FrameBuffer operator-(FrameBuffer const &src0, double src1)
+{
+    FrameBuffer dst(src0.GetType(), src0.GetFrameSize(), src0.GetShape(), src0.IsHostOnly());
+    dst.m_tensor = src0.m_tensor - src1;
+    return dst;
+}
+
+inline FrameBuffer operator-(double src0, FrameBuffer const &src1)
+{
+    FrameBuffer dst(src1.GetType(), src1.GetFrameSize(), src1.GetShape(), src1.IsHostOnly());
+    dst.m_tensor = src0 - src1.m_tensor;
+    return dst;
+}
+
+
+inline FrameBuffer operator*(FrameBuffer const &src0, FrameBuffer const &src1)
+{
+    FrameBuffer dst(src0.GetType(), src0.GetFrameSize(), src0.GetShape(), src0.IsHostOnly());
+    dst.m_tensor = src0.m_tensor * src1.m_tensor;
+    return dst;
+}
+
+inline FrameBuffer operator*(FrameBuffer const &src0, double src1)
+{
+    FrameBuffer dst(src0.GetType(), src0.GetFrameSize(), src0.GetShape(), src0.IsHostOnly());
+    dst.m_tensor = src0.m_tensor * src1;
+    return dst;
+}
+
+inline FrameBuffer operator*(double src0, FrameBuffer const &src1)
+{
+    FrameBuffer dst(src1.GetType(), src1.GetFrameSize(), src1.GetShape(), src1.IsHostOnly());
+    dst.m_tensor = src0 * src1.m_tensor;
+    return dst;
+}
+
+
+inline FrameBuffer operator/(FrameBuffer const &src0, FrameBuffer const &src1)
+{
+    FrameBuffer dst(src0.GetType(), src0.GetFrameSize(), src0.GetShape(), src0.IsHostOnly());
+    dst.m_tensor = src0.m_tensor / src1.m_tensor;
+    return dst;
+}
+
+inline FrameBuffer operator/(FrameBuffer const &src0, double src1)
+{
+    FrameBuffer dst(src0.GetType(), src0.GetFrameSize(), src0.GetShape(), src0.IsHostOnly());
+    dst.m_tensor = src0.m_tensor / src1;
+    return dst;
+}
+
+inline FrameBuffer operator/(double src0, FrameBuffer const &src1)
+{
+    FrameBuffer dst(src1.GetType(), src1.GetFrameSize(), src1.GetShape(), src1.IsHostOnly());
+    dst.m_tensor = src0 / src1.m_tensor;
+    return dst;
+}
+
 
 
 template<typename T>

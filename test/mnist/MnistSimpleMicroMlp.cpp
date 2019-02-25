@@ -122,21 +122,13 @@ public:
 
     bb::FrameBuffer Backward(bb::FrameBuffer dy)
     {
-//      if (dy.IsZero<float>()) { std::cout << "backward_zero\n"; }
         dy = m_affine3->Backward(dy);
-//      if (dy.IsZero<float>()) { std::cout << "affine3_zero\n"; }
         dy = m_activate2->Backward(dy);
-//      if (dy.IsZero<float>()) { std::cout << "relu2_zero\n"; }
         dy = m_affine2->Backward(dy);
-//      if (dy.IsZero<float>()) { std::cout << "affine2_zero\n"; }
         dy = m_activate1->Backward(dy);
-//      if (dy.IsZero<float>()) { std::cout << "relu1_zero\n"; }
         dy = m_affine1->Backward(dy);
-//      if (dy.IsZero<float>()) { std::cout << "affine1_zero\n"; }
         dy = m_activate0->Backward(dy);
-//      if (dy.IsZero<float>()) { std::cout << "relu0_zero\n"; }
         dy = m_affine0->Backward(dy);
-//      if (dy.IsZero<float>()) { std::cout << "affine0_zero\n"; }
         return dy;
     }
 };
@@ -168,6 +160,86 @@ void printTensorPtr(std::ostream &os, std::string name,  bb::TensorConstPtr_<T, 
     os << std::endl;
 }
 */
+
+
+void DumpLayerForward(std::ostream &os, MnistSimpleMicroMlpNet const &net0, MnistSimpleMicroMlpNet const &net1)
+{
+    os << "-------- forward -------"  << std::endl;
+    os << "l0_x   = " << (net0.m_affine0->m_x  - net1.m_affine0->m_x  ).Norm() << std::endl;
+    os << "l0_y   = " << (net0.m_affine0->m_y  - net1.m_affine0->m_y  ).Norm() << std::endl;
+    os << "l0_W0  = " << (net0.m_affine0->W0() - net1.m_affine0->W0() ).Norm() << std::endl;
+    os << "l0_b0  = " << (net0.m_affine0->b0() - net1.m_affine0->b0() ).Norm() << std::endl;
+    os << "l0_W1  = " << (net0.m_affine0->W1() - net1.m_affine0->W1() ).Norm() << std::endl;
+    os << "l0_b0  = " << (net0.m_affine0->b0() - net1.m_affine0->b0() ).Norm() << std::endl;
+    os << "l1_x   = " << (net0.m_affine1->m_x  - net1.m_affine1->m_x  ).Norm() << std::endl;
+    os << "l1_y   = " << (net0.m_affine1->m_y  - net1.m_affine1->m_y  ).Norm() << std::endl;
+    os << "l1_W0  = " << (net0.m_affine1->W0() - net1.m_affine1->W0() ).Norm() << std::endl;
+    os << "l1_b0  = " << (net0.m_affine1->b0() - net1.m_affine1->b0() ).Norm() << std::endl;
+    os << "l1_W1  = " << (net0.m_affine1->W1() - net1.m_affine1->W1() ).Norm() << std::endl;
+    os << "l1_b0  = " << (net0.m_affine1->b0() - net1.m_affine1->b0() ).Norm() << std::endl;    
+    os << "l2_x   = " << (net0.m_affine2->m_x  - net1.m_affine2->m_x  ).Norm() << std::endl;
+    os << "l2_y   = " << (net0.m_affine2->m_y  - net1.m_affine2->m_y  ).Norm() << std::endl;
+    os << "l2_W0  = " << (net0.m_affine2->W0() - net1.m_affine2->W0() ).Norm() << std::endl;
+    os << "l2_b0  = " << (net0.m_affine2->b0() - net1.m_affine2->b0() ).Norm() << std::endl;
+    os << "l2_W1  = " << (net0.m_affine2->W1() - net1.m_affine2->W1() ).Norm() << std::endl;
+    os << "l2_b0  = " << (net0.m_affine2->b0() - net1.m_affine2->b0() ).Norm() << std::endl;    
+    os << "l3_x   = " << (net0.m_affine3->m_x  - net1.m_affine3->m_x  ).Norm() << std::endl;
+    os << "l3_y   = " << (net0.m_affine3->m_y  - net1.m_affine3->m_y  ).Norm() << std::endl;
+    os << "l3_W0  = " << (net0.m_affine3->W0() - net1.m_affine3->W0() ).Norm() << std::endl;
+    os << "l3_b0  = " << (net0.m_affine3->b0() - net1.m_affine3->b0() ).Norm() << std::endl;
+    os << "l3_W1  = " << (net0.m_affine3->W1() - net1.m_affine3->W1() ).Norm() << std::endl;
+    os << "l3_b0  = " << (net0.m_affine3->b0() - net1.m_affine3->b0() ).Norm() << std::endl;    
+}
+
+void DumpLayerBackward(std::ostream &os, MnistSimpleMicroMlpNet const &net0, MnistSimpleMicroMlpNet const &net1)
+{
+    os << "-------- backward -------"  << std::endl;
+    os << "l3_dy  = " << (net0.m_affine3->m_dy  - net1.m_affine3->m_dy  ).Norm() << std::endl;
+    os << "l3_dx  = " << (net0.m_affine3->m_dx  - net1.m_affine3->m_dx  ).Norm() << std::endl;
+    os << "l3_dW0 = " << (net0.m_affine3->dW0() - net1.m_affine3->dW0() ).Norm() << ", " << net0.m_affine3->dW0().Norm() << ", " << net1.m_affine3->dW0().Norm() << std::endl;
+    os << "l3_db0 = " << (net0.m_affine3->db0() - net1.m_affine3->db0() ).Norm() << ", " << net0.m_affine3->db0().Norm() << ", " << net1.m_affine3->db0().Norm() << std::endl;
+    os << "l3_dW1 = " << (net0.m_affine3->dW1() - net1.m_affine3->dW1() ).Norm() << ", " << net0.m_affine3->dW1().Norm() << ", " << net1.m_affine3->dW1().Norm() << std::endl;
+    os << "l3_db0 = " << (net0.m_affine3->db0() - net1.m_affine3->db0() ).Norm() << ", " << net0.m_affine3->db0().Norm() << ", " << net1.m_affine3->db0().Norm() << std::endl;
+    os << "l2_dy  = " << (net0.m_affine2->m_dy  - net1.m_affine2->m_dy  ).Norm() << std::endl;
+    os << "l2_dx  = " << (net0.m_affine2->m_dx  - net1.m_affine2->m_dx  ).Norm() << std::endl;
+    os << "l2_dW0 = " << (net0.m_affine2->dW0() - net1.m_affine2->dW0() ).Norm() << std::endl;
+    os << "l2_db0 = " << (net0.m_affine2->db0() - net1.m_affine2->db0() ).Norm() << std::endl;
+    os << "l2_dW1 = " << (net0.m_affine2->dW1() - net1.m_affine2->dW1() ).Norm() << std::endl;
+    os << "l2_db0 = " << (net0.m_affine2->db0() - net1.m_affine2->db0() ).Norm() << std::endl;    
+    os << "l1_dy  = " << (net0.m_affine1->m_dy  - net1.m_affine1->m_dy  ).Norm() << std::endl;
+    os << "l1_dx  = " << (net0.m_affine1->m_dx  - net1.m_affine1->m_dx  ).Norm() << std::endl;
+    os << "l1_dW0 = " << (net0.m_affine1->dW0() - net1.m_affine1->dW0() ).Norm() << std::endl;
+    os << "l1_db0 = " << (net0.m_affine1->db0() - net1.m_affine1->db0() ).Norm() << std::endl;
+    os << "l1_dW1 = " << (net0.m_affine1->dW1() - net1.m_affine1->dW1() ).Norm() << std::endl;
+    os << "l1_db0 = " << (net0.m_affine1->db0() - net1.m_affine1->db0() ).Norm() << std::endl;    
+    os << "l0_dy  = " << (net0.m_affine0->m_dy  - net1.m_affine0->m_dy  ).Norm() << std::endl;
+    os << "l0_dx  = " << (net0.m_affine0->m_dx  - net1.m_affine0->m_dx  ).Norm() << std::endl;
+    os << "l0_dW0 = " << (net0.m_affine0->dW0() - net1.m_affine0->dW0() ).Norm() << std::endl;
+    os << "l0_db0 = " << (net0.m_affine0->db0() - net1.m_affine0->db0() ).Norm() << std::endl;
+    os << "l0_dW1 = " << (net0.m_affine0->dW1() - net1.m_affine0->dW1() ).Norm() << std::endl;
+    os << "l0_db0 = " << (net0.m_affine0->db0() - net1.m_affine0->db0() ).Norm() << std::endl;    
+}
+
+void DumpLayerUpdate(std::ostream &os, MnistSimpleMicroMlpNet const &net0, MnistSimpleMicroMlpNet const &net1)
+{
+    os << "-------- update -------"  << std::endl;
+    os << "l0_W0 = " << (net0.m_affine0->W0() - net1.m_affine0->W0() ).Norm() << std::endl;
+    os << "l0_b0 = " << (net0.m_affine0->b0() - net1.m_affine0->b0() ).Norm() << std::endl;
+    os << "l0_W1 = " << (net0.m_affine0->W1() - net1.m_affine0->W1() ).Norm() << std::endl;
+    os << "l0_b0 = " << (net0.m_affine0->b0() - net1.m_affine0->b0() ).Norm() << std::endl;
+    os << "l1_W0 = " << (net0.m_affine1->W0() - net1.m_affine1->W0() ).Norm() << std::endl;
+    os << "l1_b0 = " << (net0.m_affine1->b0() - net1.m_affine1->b0() ).Norm() << std::endl;
+    os << "l1_W1 = " << (net0.m_affine1->W1() - net1.m_affine1->W1() ).Norm() << std::endl;
+    os << "l1_b0 = " << (net0.m_affine1->b0() - net1.m_affine1->b0() ).Norm() << std::endl;    
+    os << "l2_W0 = " << (net0.m_affine2->W0() - net1.m_affine2->W0() ).Norm() << std::endl;
+    os << "l2_b0 = " << (net0.m_affine2->b0() - net1.m_affine2->b0() ).Norm() << std::endl;
+    os << "l2_W1 = " << (net0.m_affine2->W1() - net1.m_affine2->W1() ).Norm() << std::endl;
+    os << "l2_b0 = " << (net0.m_affine2->b0() - net1.m_affine2->b0() ).Norm() << std::endl;    
+    os << "l3_W0 = " << (net0.m_affine3->W0() - net1.m_affine3->W0() ).Norm() << std::endl;
+    os << "l3_b0 = " << (net0.m_affine3->b0() - net1.m_affine3->b0() ).Norm() << std::endl;
+    os << "l3_W1 = " << (net0.m_affine3->W1() - net1.m_affine3->W1() ).Norm() << std::endl;
+    os << "l3_b0 = " << (net0.m_affine3->b0() - net1.m_affine3->b0() ).Norm() << std::endl;    
+}
 
 
 void DumpAffineLayer(std::ostream &os, std::string name, bb::MicroMlpAffine<6, 16, float> const &affine)
@@ -217,66 +289,82 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
 #endif
 */
 
-    MnistSimpleMicroMlpNet                          net;
-    bb::LossCrossEntropyWithSoftmax<float>          lossFunc;
-    bb::AccuracyCategoricalClassification<float>    accFunc(10);
+    MnistSimpleMicroMlpNet                          cpu_net;
+    bb::LossCrossEntropyWithSoftmax<float>          cpu_lossFunc;
+    bb::AccuracyCategoricalClassification<float>    cpu_accFunc(10);
 
-    net.SetInputShape({28, 28, 1});
+    MnistSimpleMicroMlpNet                          gpu_net;
+    bb::LossCrossEntropyWithSoftmax<float>          gpu_lossFunc;
+    bb::AccuracyCategoricalClassification<float>    gpu_accFunc(10);
 
-    bb::FrameBuffer x(BB_TYPE_FP32, mini_batch_size, {28, 28, 1});
-    bb::FrameBuffer t(BB_TYPE_FP32, mini_batch_size, 10);
+    cpu_net.SetInputShape({28, 28, 1});
+    gpu_net.SetInputShape({28, 28, 1});
 
-    bb::OptimizerAdam<float> optimizer;
-//  bb::OptimizerSgd<float> optimizer(0.001f);
-    optimizer.SetVariables(net.GetParameters(), net.GetGradients());
+    bb::FrameBuffer cpu_x(BB_TYPE_FP32, mini_batch_size, {28, 28, 1});
+    bb::FrameBuffer gpu_x(BB_TYPE_FP32, mini_batch_size, {28, 28, 1});
+    bb::FrameBuffer cpu_t(BB_TYPE_FP32, mini_batch_size, 10);
+    bb::FrameBuffer gpu_t(BB_TYPE_FP32, mini_batch_size, 10);
+
+
+    bb::OptimizerAdam<float> cpu_optimizer;
+    bb::OptimizerAdam<float> gpu_optimizer;
+
+//  bb::OptimizerSgd<float> cpu_optimizer(0.001f);
+//  bb::OptimizerSgd<float> gpu_optimizer(0.001f);
+
+    cpu_optimizer.SetVariables(cpu_net.GetParameters(), cpu_net.GetGradients());
+    gpu_optimizer.SetVariables(gpu_net.GetParameters(), gpu_net.GetGradients());
 
     std::mt19937_64 mt(1);
 
 #ifdef BB_WITH_CUDA
 //  std::ofstream ofs("log_gpu.txt");
-//  std::ofstream ofs("log_relu.txt");  net.SendCommand("host_only true", "MicroMlpAffine");
+//  std::ofstream ofs("log_relu.txt");  cpu_net.SendCommand("host_only true", "MicroMlpAffine");
 //  std::ofstream ofs("log_all.txt");   net.SendCommand("host_only true");
 #else
-    std::ofstream ofs("log_cpu.txt");
+//  std::ofstream ofs("log_cpu.txt");
 #endif
+
+
+    cpu_net.SendCommand("host_only true", "MicroMlpAffine");
+
+    std::ofstream ofs("dump_norm.txt");
 
     int dbg = 0;
 
     for ( bb::index_t epoch = 0; epoch < epoch_size; ++epoch ) {
-        double acc = 0;
+        double cpu_acc = 0;
+        double gpu_acc = 0;
         for (bb::index_t i = 0; i < (bb::index_t)(data.x_train.size() - mini_batch_size); i += mini_batch_size)
         {
-            x.SetVector(data.x_train, i);
-            t.SetVector(data.y_train, i);
+            cpu_x.SetVector(data.x_train, i);
+            gpu_x.SetVector(data.x_train, i);
+            cpu_t.SetVector(data.y_train, i);
+            gpu_t.SetVector(data.y_train, i);
 
-            auto y = net.Forward(x);
+            auto cpu_y = cpu_net.Forward(cpu_x);
+            auto gpu_y = gpu_net.Forward(gpu_x);
             
-            auto dy = lossFunc.CalculateLoss(y, t);
-            acc += accFunc.CalculateAccuracy(y, t);
+//          DumpLayerForward(ofs, cpu_net, gpu_net);
 
-            dy = net.Backward(dy);
+            auto cpu_dy = cpu_lossFunc.CalculateLoss(cpu_y, cpu_t);
+            auto gpu_dy = gpu_lossFunc.CalculateLoss(gpu_y, gpu_t);
 
-#if 0
-            net.m_affine0->Save("affine.bin");
-            net.m_affine0->m_x.Save("x.bin");
-            net.m_affine0->m_y.Save("y.bin");
-            net.m_affine0->m_dx.Save("dx.bin");
-            net.m_affine0->m_dy.Save("dy.bin");
-#endif
+            cpu_acc += cpu_accFunc.CalculateAccuracy(cpu_y, cpu_t);
+            gpu_acc += gpu_accFunc.CalculateAccuracy(gpu_y, gpu_t);
 
-#if 0
-            DumpAffineLayer(ofs, "affine0", *net.m_affine0);
-            DumpAffineLayer(ofs, "affine1", *net.m_affine1);
-            DumpAffineLayer(ofs, "affine2", *net.m_affine2);
-            DumpAffineLayer(ofs, "affine3", *net.m_affine3);
-            if (dbg++ > 3) {
-                return;
-            }
-#endif
+            cpu_dy = cpu_net.Backward(cpu_dy);
+            gpu_dy = gpu_net.Backward(gpu_dy);
 
-            optimizer.Update();
+//          DumpLayerBackward(ofs, cpu_net, gpu_net);
+
+            cpu_optimizer.Update();
+            gpu_optimizer.Update();
+
+//          DumpLayerUpdate(ofs, cpu_net, gpu_net);
         }
-        std::cout << acc / data.x_train.size() << std::endl;
+        std::cout << "cpu : " << cpu_acc / data.x_train.size() << std::endl;
+        std::cout << "gpu : " << gpu_acc / data.x_train.size() << std::endl;
 
         bb::ShuffleDataSet(mt(), data.x_train, data.y_train);
     }

@@ -192,20 +192,20 @@ public:
     friend  Variables operator / (Variables const &src0, double src1);
     friend  Variables operator / (double src0, Variables const &src1);
 
-    Variables sqrt(void)
+    Variables Sqrt(void)
     {
         Variables var(GetTypes(), GetShapes());
         for ( size_t i = 0; i < m_tensors.size(); ++i ) {
-            *var.m_tensors[i] = m_tensors[i]->sqrt();
+            *var.m_tensors[i] = m_tensors[i]->Sqrt();
         }
         return *this;
     }
 
-    Variables exp(void)
+    Variables Exp(void)
     {
         Variables var(GetTypes(), GetShapes());
         for ( size_t i = 0; i < m_tensors.size(); ++i ) {
-            *var.m_tensors[i] = m_tensors[i]->exp();
+            *var.m_tensors[i] = m_tensors[i]->Exp();
         }
         return *this;
     }

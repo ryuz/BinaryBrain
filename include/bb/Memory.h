@@ -300,11 +300,9 @@ protected:
 		// サイズ保存
 		m_size = size;
 
-//      m_refConstCnt = 0;
         m_refCnt      = 0;
 
 #ifdef BB_WITH_CUDA
-//      m_devRefConstCnt = 0;
         m_devRefCnt      = 0;
 
         m_hostOnly = hostOnly;
@@ -339,11 +337,9 @@ public:
      */
 	~Memory()
 	{
-        BB_DEBUG_ASSERT(m_refConstCnt == 0);
         BB_DEBUG_ASSERT(m_refCnt == 0);
 
 #ifdef BB_WITH_CUDA
-        BB_DEBUG_ASSERT(m_devRefConstCnt == 0);
         BB_DEBUG_ASSERT(m_devRefCnt == 0);
 
         if ( m_hostOnly ) {
@@ -462,6 +458,20 @@ public:
 	{
 		return m_size;
 	}
+
+	/**
+     * @brief  ホスト専用かどうか問い合わせる
+     * @detail ホスト専用かどうか問い合わせる
+     * @return ホスト専用ならtrue
+     */
+	bool IsHostOnly(void) const
+	{
+#ifdef BB_WITH_CUDA
+        return m_hostOnly;
+#else
+		return true;
+#endif
+    }
 
 	/**
      * @brief  デバイスが利用可能か問い合わせる
