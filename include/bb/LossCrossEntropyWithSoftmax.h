@@ -35,8 +35,16 @@ public:
 	LossCrossEntropyWithSoftmax() {}
 	~LossCrossEntropyWithSoftmax() {}
 	
-//	double CalculateLoss(NeuralNetBuffer<T> buf_sig, NeuralNetBuffer<T> buf_err, typename std::vector< std::vector<T> >::const_iterator t_begin) const
-	
+    void Clear(void)
+    {
+        m_loss = 0;
+    }
+
+    double GetLoss(void) const 
+    {
+        return m_loss;
+    }
+
     FrameBuffer CalculateLoss(FrameBuffer y, FrameBuffer t)
 	{
 		index_t frame_size  = y.GetFrameSize();
@@ -63,11 +71,6 @@ public:
 
         return m_dy;
 	}
-
-    double GetLoss(void)
-    {
-        return m_loss;
-    }
 };
 
 

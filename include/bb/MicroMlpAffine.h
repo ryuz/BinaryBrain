@@ -75,7 +75,7 @@ protected:
  	void CommandProc(std::vector<std::string> args)
 	{
         // バイナリモード設定
-        if ( args.size() == 2 && args[0] == "bainary" )
+        if ( args.size() == 2 && args[0] == "binary" )
         {
             m_binary_mode = EvalBool(args[1]);
         }
@@ -478,10 +478,6 @@ protected:
 	{
 		index_t frame_size = dy.GetFrameStride() / sizeof(float);
 		index_t node_size  = m_output_node_size;
-
-        if (dy.IsZero<float>()) {
-            std::cout << "zero\n";
-        }
 
    		m_dx.FillZero();
 

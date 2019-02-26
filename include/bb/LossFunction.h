@@ -23,21 +23,28 @@ class LossFunction
 {
 public:
     /**
-     * @brief  損失計算
-     * @detail 損失を計算する
-     * @param  y     結果の入力
-     * @param  exp   期待値
-     * @return backwardする誤差勾配を返す
+     * @brief  積算していた損失をクリア
+     * @detail 積算していた損失をクリアする
      */
-	virtual FrameBuffer CalculateLoss(FrameBuffer y, FrameBuffer t) = 0;
-    
+    virtual void Clear(void) = 0;
+
    /**
      * @brief  損失取得
      * @detail 損失取得
      *         損失の取得にGPUからのメモリコピーが発生する可能性があるので
      *         CalculateLoss とは別メソッドにする
+     * @return 積算していた損失を返す
      */
-    virtual double GetLoss(void) = 0;
+    virtual double GetLoss(void) const = 0;
+
+    /**
+     * @brief  損失計算
+     * @detail 損失を計算する
+     * @param  y    結果の入力
+     * @param  t    期待値
+     * @return backwardする誤差勾配を返す
+     */
+	virtual FrameBuffer CalculateLoss(FrameBuffer y, FrameBuffer t) = 0;
 };
 
 

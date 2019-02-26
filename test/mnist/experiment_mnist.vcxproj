@@ -335,6 +335,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\include\bb\AccuracyCategoricalClassification.h" />
     <ClInclude Include="..\..\include\bb\AccuracyFunction.h" />
+    <ClInclude Include="..\..\include\bb\BatchNormalization.h" />
     <ClInclude Include="..\..\include\bb\DataType.h" />
     <ClInclude Include="..\..\include\bb\FrameBuffer.h" />
     <ClInclude Include="..\..\include\bb\Layer.h" />

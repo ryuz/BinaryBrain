@@ -13,6 +13,7 @@
 #include <chrono>
 
 #include "bb/MicroMlpAffine.h"
+#include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
 #include "bb/LossCrossEntropyWithSoftmax.h"
 #include "bb/AccuracyCategoricalClassification.h"
@@ -37,10 +38,13 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
 
     bb::Sequential  net;
     net.Add(bb::MicroMlpAffine<6, 16, float>::Create({1024}));
+    net.Add(bb::BatchNormalization<float>::Create());
     net.Add(bb::ReLU<float>::Create());
     net.Add(bb::MicroMlpAffine<6, 16, float>::Create({360}));
+    net.Add(bb::BatchNormalization<float>::Create());
     net.Add(bb::ReLU<float>::Create());
     net.Add(bb::MicroMlpAffine<6, 16, float>::Create({60}));
+    net.Add(bb::BatchNormalization<float>::Create());
     net.Add(bb::ReLU<float>::Create());
     net.Add(bb::MicroMlpAffine<6, 16, float>::Create({10}));
 
@@ -53,13 +57,18 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
     bb::FrameBuffer t(BB_TYPE_FP32, mini_batch_size, 10);
 
     bb::OptimizerAdam<float> optimizer;
-//    bb::OptimizerSgd<float> optimizer(0.001f);
+//  bb::OptimizerSgd<float> optimizer(0.001f);
+
     optimizer.SetVariables(net.GetParameters(), net.GetGradients());
 
-    net.SendCommand("host_only true", "MicroMlpAffine");
-//  net.SendCommand("host_only true", "ReLU");
 
-//    net.SendCommand("host_only true");
+//  net.SendCommand("host_only true", "MicroMlpAffine");
+//  net.SendCommand("host_only true", "ReLU");
+//  net.SendCommand("host_only true");
+
+    if ( binary_mode ) {
+        net.SendCommand("binary true");
+    }
 
     std::mt19937_64 mt(1);
 
@@ -76,7 +85,7 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
         }
 #endif
 
-        double acc = 0;
+        accFunc.Clear();
         for (bb::index_t i = 0; i < (bb::index_t)(data.x_train.size() - mini_batch_size); i += mini_batch_size)
         {
             x.SetVector(data.x_train, i);
@@ -85,13 +94,13 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
             auto y = net.Forward(x);
             
             auto dy = lossFunc.CalculateLoss(y, t);
-            acc += accFunc.CalculateAccuracy(y, t);
+            accFunc.CalculateAccuracy(y, t);
 
             dy = net.Backward(dy);
 
             optimizer.Update();
         }
-        std::cout << acc / data.x_train.size() << std::endl;
+        std::cout << "accuracy : " << accFunc.GetAccuracy() << std::endl;
 
         bb::ShuffleDataSet(mt(), data.x_train, data.y_train);
     }

@@ -13,6 +13,7 @@
 #include <chrono>
 
 #include "bb/MicroMlpAffine.h"
+#include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
 #include "bb/LossCrossEntropyWithSoftmax.h"
 #include "bb/AccuracyCategoricalClassification.h"
@@ -328,13 +329,16 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
 
     cpu_net.SendCommand("host_only true", "MicroMlpAffine");
 
+    cpu_net.SendCommand("binary true");
+    gpu_net.SendCommand("binary true");
+
     std::ofstream ofs("dump_norm.txt");
 
     int dbg = 0;
 
     for ( bb::index_t epoch = 0; epoch < epoch_size; ++epoch ) {
-        double cpu_acc = 0;
-        double gpu_acc = 0;
+        cpu_accFunc.Clear();
+        gpu_accFunc.Clear();
         for (bb::index_t i = 0; i < (bb::index_t)(data.x_train.size() - mini_batch_size); i += mini_batch_size)
         {
             cpu_x.SetVector(data.x_train, i);
@@ -350,8 +354,8 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
             auto cpu_dy = cpu_lossFunc.CalculateLoss(cpu_y, cpu_t);
             auto gpu_dy = gpu_lossFunc.CalculateLoss(gpu_y, gpu_t);
 
-            cpu_acc += cpu_accFunc.CalculateAccuracy(cpu_y, cpu_t);
-            gpu_acc += gpu_accFunc.CalculateAccuracy(gpu_y, gpu_t);
+            cpu_accFunc.CalculateAccuracy(cpu_y, cpu_t);
+            gpu_accFunc.CalculateAccuracy(gpu_y, gpu_t);
 
             cpu_dy = cpu_net.Backward(cpu_dy);
             gpu_dy = gpu_net.Backward(gpu_dy);
@@ -363,8 +367,8 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
 
             DumpLayerUpdate(ofs, cpu_net, gpu_net);
         }
-        std::cout << "cpu : " << cpu_acc / data.x_train.size() << std::endl;
-        std::cout << "gpu : " << gpu_acc / data.x_train.size() << std::endl;
+        std::cout << "cpu : " << cpu_accFunc.GetAccuracy() << std::endl;
+        std::cout << "gpu : " << gpu_accFunc.GetAccuracy() << std::endl;
 
         bb::ShuffleDataSet(mt(), data.x_train, data.y_train);
     }

@@ -23,6 +23,8 @@ class AccuracyCategoricalClassification : public AccuracyFunction
 {
 protected:
 	index_t m_num_classes;
+	double  m_accuracy = 0;
+    index_t m_frames;
 
 public:
 	AccuracyCategoricalClassification(index_t num_classes)
@@ -32,15 +34,26 @@ public:
 
 	~AccuracyCategoricalClassification() {}
 
-	double CalculateAccuracy(FrameBuffer y, FrameBuffer t)
+    void Clear(void)
+    {
+        m_accuracy = 0;
+        m_frames   = 0;
+    }
+
+    double GetAccuracy(void) const
+    {
+        return m_accuracy / (double)m_frames;
+    }
+
+	void CalculateAccuracy(FrameBuffer y, FrameBuffer t)
 	{
         BB_ASSERT(y.GetType() == DataType<T>::type);
         BB_ASSERT(t.GetType() == DataType<T>::type);
 
-		double accuracy = 0;
-
 		index_t frame_size = y.GetFrameSize();
 		index_t node_size = y.GetNodeSize();
+
+        m_frames += frame_size;
 
         auto y_ptr  = y.GetConstPtr<T>();
         auto t_ptr  = t.GetConstPtr<T>();
@@ -56,11 +69,9 @@ public:
 				}
 			}
 			if ( t_ptr.Get(frame, max_node) > 0) {
-				accuracy += 1.0;
+				m_accuracy += 1.0;
 			}
 		}
-
-		return accuracy;
 	}
 };
 

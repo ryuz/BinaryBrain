@@ -38,10 +38,10 @@ protected:
      * @detail コマンド処理
      * @param  args   コマンド
      */
-	void Command(std::vector<std::string> args)
+	void CommandProc(std::vector<std::string> args)
 	{
         // バイナリモード設定
-        if ( args.size() == 2 && args[0] == "bainary" )
+        if ( args.size() == 2 && args[0] == "binary" )
         {
             m_binary_mode = EvalBool(args[1]);
         }

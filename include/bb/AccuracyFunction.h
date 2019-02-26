@@ -23,7 +23,9 @@ class AccuracyFunction
 public:
 	virtual ~AccuracyFunction() {}
 	
-	virtual double CalculateAccuracy(FrameBuffer y, FrameBuffer t) = 0;
+    virtual void   Clear(void) = 0;
+    virtual double GetAccuracy(void) const = 0;
+	virtual void   CalculateAccuracy(FrameBuffer y, FrameBuffer t) = 0;
 };
 
 
