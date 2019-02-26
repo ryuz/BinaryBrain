@@ -28,6 +28,7 @@ public:
 
 	bool			        m_binary_mode = false;
 	bool			        m_host_only   = false;
+    bool                    m_host_simd   = true;
 
     std::mt19937_64         m_mt;
 
@@ -83,6 +84,12 @@ protected:
         if (args.size() == 2 && args[0] == "host_only")
         {
             m_host_only = EvalBool(args[1]);
+        }
+
+        // Host SIMDモード設定
+        if (args.size() == 2 && args[0] == "host_simd")
+        {
+            m_host_simd = EvalBool(args[1]);
         }
 	}
 
@@ -258,124 +265,124 @@ public:
 
     FrameBuffer Forward(FrameBuffer x, bool train = true)
     {
+        BB_ASSERT(x.GetType() == DataType<T>::type);
+
         // backwardの為に保存
         m_x = x;
 
+        // SetInputShpaeされていなければ初回に設定
         if (m_x.GetNodeSize() != m_input_node_size) {
             SetInputShape(m_x.GetShape());
         }
 
         // 出力を設定
-        auto frame_size = m_x.GetFrameSize();
-        m_y.Resize(DataType<T>::type, frame_size, m_output_shape);
+        m_y.Resize(DataType<T>::type, m_x.GetFrameSize(), m_output_shape);
 
+        // CUDA版
 #ifdef BB_WITH_CUDA
         if ( N == 6 && M == 16 && DataType<T>::type == BB_TYPE_FP32
             && !m_host_only && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() ) {
-            // CUDA版
-            auto input_index_ptr = m_input_index.GetMemoryDevConstPtr();
-            auto x_ptr  = m_x.GetMemoryDevConstPtr();
-            auto y_ptr  = m_y.GetMemoryDevPtr();
-            auto W0_ptr = m_W0->GetMemoryDevConstPtr();
-            auto b0_ptr = m_b0->GetMemoryDevConstPtr();
-            auto W1_ptr = m_W1->GetMemoryDevConstPtr();
-            auto b1_ptr = m_b1->GetMemoryDevConstPtr();
-            bbcu_MicroMlp6x16_Forward
-    		    (
-                    (const float *)x_ptr.GetAddr(),
-                    (float *)y_ptr.GetAddr(),
-                    (int)m_input_node_size,
-                    (int)m_output_node_size,
-                    (int)m_x.GetFrameStride() / sizeof(float),
-                    (int *)input_index_ptr.GetAddr(),
-                    (float *)W0_ptr.GetAddr(),
-                    (float *)b0_ptr.GetAddr(),
-                    (float *)W1_ptr.GetAddr(),
-                    (float *)b1_ptr.GetAddr()
-                );
+            ForwardCudaFP32();
             return m_y;
         }
 #endif
 
-        if ( DataType<T>::type == BB_TYPE_FP32 ) {
-            return Forward_AVX_FP32(x, train);
+        // AVX版
+        if ( DataType<T>::type == BB_TYPE_FP32 && m_host_simd ) {
+            ForwardHostSimdFP32();
+            return m_y;
         }
         
+        ForwardHost(x, train);
         return m_y;
     }
 
 
     FrameBuffer Backward(FrameBuffer dy)
     {
+        BB_ASSERT(dy.GetType() == DataType<T>::type);
+
         m_dy = dy;
 
         m_dx.Resize(DataType<T>::type, dy.GetFrameSize(), m_input_node_size);
-
-        auto frame_size = dy.GetFrameSize();
 
         m_dW0->FillZero();
         m_db0->FillZero();
         m_dW1->FillZero();
         m_db1->FillZero();
 
+        // CUDA版
 #ifdef BB_WITH_CUDA
         if ( N == 6 && M == 16 && DataType<T>::type == BB_TYPE_FP32
-            && !m_host_only && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() ) {
-            // CUDA版
-            auto input_index_ptr = m_input_index.GetMemoryDevConstPtr();
-            auto x_ptr  = m_x.GetMemoryDevConstPtr();
-            auto y_ptr  = m_y.GetMemoryDevConstPtr();
-            auto dx_ptr = m_dx.GetMemoryDevPtr();
-            auto dy_ptr = dy.GetMemoryDevConstPtr();
-            auto W0_ptr = m_W0->GetMemoryDevConstPtr();
-            auto b0_ptr = m_b0->GetMemoryDevConstPtr();
-            auto W1_ptr = m_W1->GetMemoryDevConstPtr();
-            auto b1_ptr = m_b1->GetMemoryDevConstPtr();
-            auto dW0_ptr = m_dW0->GetMemoryDevPtr();
-            auto db0_ptr = m_db0->GetMemoryDevPtr();
-            auto dW1_ptr = m_dW1->GetMemoryDevPtr();
-            auto db1_ptr = m_db1->GetMemoryDevPtr();
-
-            m_dx_tmp.Resize(BB_TYPE_FP32, frame_size, m_output_node_size * N);
-            m_dx_tmp.FillZero();
-            auto dx_tmp_ptr = m_dx_tmp.GetMemoryDevPtr();
-
-            bbcu_MicroMlp6x16_Backward
-                (
-			        (float const *)x_ptr.GetAddr(),
-			        (float *)dx_ptr.GetAddr(),
-			        (float *)dx_tmp_ptr.GetAddr(),
-			        (float *)dy_ptr.GetAddr(),
-			        (int)m_input_node_size,
-			        (int)m_output_node_size,
-			        (int)dy.GetFrameStride() / sizeof(float),
-			        (int const *)input_index_ptr.GetAddr(),
-			        (float const *)W0_ptr.GetAddr(),
-			        (float const *)b0_ptr.GetAddr(),
-			        (float *)dW0_ptr.GetAddr(),
-			        (float *)db0_ptr.GetAddr(),
-			        (float const *)W1_ptr.GetAddr(),
-			        (float const *)b1_ptr.GetAddr(),
-			        (float *)dW1_ptr.GetAddr(),
-			        (float *)db1_ptr.GetAddr()
-		        );
-
+                && !m_host_only && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() ) {
+            BackwardCudaFP32(dy);
             return m_dx;
         }
 #endif
-
+        
         if ( DataType<T>::type == BB_TYPE_FP32 ) {
-            return Backward_AVX_FP32(dy);
+            BackwardHostSimdFP32(dy);
+            return m_dx;
         }
     }
     
-           
-    FrameBuffer Forward_AVX_FP32(FrameBuffer const &x, bool train = true)
+
+
+protected:
+    // Forward
+    FrameBuffer ForwardHost(FrameBuffer const &x, bool train = true)
 	{
-		const index_t   frame_size = x.GetFrameStride() / sizeof(float);
+        BB_ASSERT(x.GetType() == DataType<T>::type);
+
+        auto frame_size = m_x.GetFrameSize();
+        auto x_ptr = x.GetConstPtr<T>();
+        auto y_ptr = m_y.GetPtr<T>();
+        auto input_index_ptr = m_input_index.GetConstPtr();
+        auto W0_ptr = lock_W0_const();
+        auto b0_ptr = lock_b0_const();
+        auto W1_ptr = lock_W1_const();
+        auto b1_ptr = lock_b1_const();
+
+#pragma omp parallel for
+		for ( index_t node = 0; node < m_output_node_size; ++node ) {
+            index_t in_idx[N];
+			for ( int i = 0; i < N; ++i) {
+                in_idx[i] = input_index_ptr(node, i);
+            }
+			for (index_t frame = 0; frame < frame_size; ++frame ) {
+				T   in_sig[N];
+				for ( int i = 0; i < N; ++i) {
+					in_sig[i] = x_ptr.Get(frame, in_idx[i]);
+				}
+
+				T	sum1 = b1_ptr(node);
+				for (int i = 0; i < M; ++i) {
+					// sub-layer0
+					T	sum0 = b0_ptr(node, i);
+					for (int j = 0; j < N; ++j) {
+						sum0 += in_sig[j] * W0_ptr(node, i, j);
+					}
+
+					// ReLU
+					sum0 = sum0 > (T)0 ? sum0 : (T)0;
+
+					// sub-layer1
+					sum1 += sum0 * W1_ptr(node, i);
+				}
+
+                y_ptr.Set(frame, node, sum1);
+			}
+        }
+
+        return m_y;
+	}
+    
+    void ForwardHostSimdFP32(void)
+	{
+		const index_t   frame_size = m_x.GetFrameStride() / sizeof(float);
 		const __m256	zero = _mm256_set1_ps(0);
 
-        auto x_ptr = x.GetMemoryConstPtr();
+        auto x_ptr = m_x.GetMemoryConstPtr();
         auto y_ptr = m_y.GetMemoryPtr();
         auto input_index_ptr = m_input_index.GetConstPtr();
         auto W0_ptr = lock_W0_const();
@@ -432,12 +439,42 @@ public:
 				_mm256_store_ps(&out_sig_ptr[frame], sum1);
 			}
         }
-
-        return m_y;
 	}
+    
+#ifdef BB_WITH_CUDA
+    void ForwardCudaFP32(void)
+    {
+        // 出力を設定
+        auto frame_size = m_x.GetFrameSize();
+        m_y.Resize(DataType<T>::type, frame_size, m_output_shape);
 
+        // CUDA版
+        auto input_index_ptr = m_input_index.GetMemoryDevConstPtr();
+        auto x_ptr  = m_x.GetMemoryDevConstPtr();
+        auto y_ptr  = m_y.GetMemoryDevPtr();
+        auto W0_ptr = m_W0->GetMemoryDevConstPtr();
+        auto b0_ptr = m_b0->GetMemoryDevConstPtr();
+        auto W1_ptr = m_W1->GetMemoryDevConstPtr();
+        auto b1_ptr = m_b1->GetMemoryDevConstPtr();
+        bbcu_MicroMlp6x16_Forward
+    		(
+                (const float *)x_ptr.GetAddr(),
+                (float *)y_ptr.GetAddr(),
+                (int)m_input_node_size,
+                (int)m_output_node_size,
+                (int)m_x.GetFrameStride() / sizeof(float),
+                (int *)input_index_ptr.GetAddr(),
+                (float *)W0_ptr.GetAddr(),
+                (float *)b0_ptr.GetAddr(),
+                (float *)W1_ptr.GetAddr(),
+                (float *)b1_ptr.GetAddr()
+            );
+    }
+#endif
+    
 
-    FrameBuffer Backward_AVX_FP32(FrameBuffer const &dy)
+    // Backward
+    void BackwardHostSimdFP32(FrameBuffer const &dy)
 	{
 		index_t frame_size = dy.GetFrameStride() / sizeof(float);
 		index_t node_size  = m_output_node_size;
@@ -465,16 +502,6 @@ public:
 		auto dy_buf = (float const *)dy_ptr.GetAddr();
 		auto dx_buf = (float       *)dx_ptr.GetAddr();
 		auto x_buf  = (float const *)x_ptr.GetAddr();
-
-        /*
-        bool zero_chk = true;
-        for ( int i = 0; i < frame_size * node_size && i < 128 ; ++i ) {
-            if ( dy_buf[i] != 0 ) { zero_chk = false; }
-        }
-        if ( zero_chk ) {
-            std::cout << "hhhhhh!\n";
-        }
-        */
 
 		const __m256	zero = _mm256_set1_ps(0);
 
@@ -590,13 +617,59 @@ public:
 
         }
 		aligned_memory_free(tmp_err_buf);
-        
-        return m_dx;
 	}
     
 
-#if 0
+#ifdef BB_WITH_CUDA
+    void BackwardCudaFP32(FrameBuffer const &dy)
+    {
+        // CUDA版
+        auto input_index_ptr = m_input_index.GetMemoryDevConstPtr();
+        auto x_ptr  = m_x.GetMemoryDevConstPtr();
+        auto y_ptr  = m_y.GetMemoryDevConstPtr();
+        auto dx_ptr = m_dx.GetMemoryDevPtr();
+        auto dy_ptr = dy.GetMemoryDevConstPtr();
+        auto W0_ptr = m_W0->GetMemoryDevConstPtr();
+        auto b0_ptr = m_b0->GetMemoryDevConstPtr();
+        auto W1_ptr = m_W1->GetMemoryDevConstPtr();
+        auto b1_ptr = m_b1->GetMemoryDevConstPtr();
+        auto dW0_ptr = m_dW0->GetMemoryDevPtr();
+        auto db0_ptr = m_db0->GetMemoryDevPtr();
+        auto dW1_ptr = m_dW1->GetMemoryDevPtr();
+        auto db1_ptr = m_db1->GetMemoryDevPtr();
+
+        m_dx_tmp.Resize(BB_TYPE_FP32, dy.GetFrameSize(), m_output_node_size * N);
+        m_dx_tmp.FillZero();
+        auto dx_tmp_ptr = m_dx_tmp.GetMemoryDevPtr();
+
+        bbcu_MicroMlp6x16_Backward
+            (
+			    (float const *)x_ptr.GetAddr(),
+			    (float *)dx_ptr.GetAddr(),
+			    (float *)dx_tmp_ptr.GetAddr(),
+			    (float *)dy_ptr.GetAddr(),
+			    (int)m_input_node_size,
+			    (int)m_output_node_size,
+			    (int)dy.GetFrameStride() / sizeof(float),
+			    (int const *)input_index_ptr.GetAddr(),
+			    (float const *)W0_ptr.GetAddr(),
+			    (float const *)b0_ptr.GetAddr(),
+			    (float *)dW0_ptr.GetAddr(),
+			    (float *)db0_ptr.GetAddr(),
+			    (float const *)W1_ptr.GetAddr(),
+			    (float const *)b1_ptr.GetAddr(),
+			    (float *)dW1_ptr.GetAddr(),
+			    (float *)db1_ptr.GetAddr()
+		    );
+    }
+#endif
+       
+
+
+
+
 public:
+#if 0
 
 	template <class Archive>
 	void save(Archive &archive, std::uint32_t const version) const

@@ -372,6 +372,7 @@
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <CudaCompile Include="Binarize.cu" />
     <CudaCompile Include="HorizontalSum.cu" />
     <CudaCompile Include="Im2Col.cu" />
     <CudaCompile Include="MicroMlp.cu" />

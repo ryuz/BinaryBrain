@@ -103,7 +103,7 @@ public:
 #pragma omp parallel for
 			for (index_t node = 0; node < node_size; ++node) {
 				for (index_t frame = 0; frame < frame_size; ++frame) {
-					y_ptr.Set(frame, node, x_ptr.Get(frame, node) >(T)0.0 ? (T)1.0 : (T)0.0);
+					y_ptr.Set(frame, node, x_ptr.Get(frame, node) > (T)0.0 ? (T)1.0 : (T)0.0);
 				}
 			}
 		}
@@ -113,7 +113,7 @@ public:
 			for (index_t node = 0; node < node_size; ++node) {
 				for (index_t frame = 0; frame < frame_size; ++frame) {
                     auto sig = x_ptr.Get(frame, node);
-					y_ptr.Set(frame, node, sig >(T)0.0 ? sig : (T)0.0);
+					y_ptr.Set(frame, node, sig > (T)0.0 ? sig : (T)0.0);
 				}
 			}
 		}
@@ -194,17 +194,37 @@ FrameBuffer ReLU<float>::Forward(FrameBuffer x, bool train)
 
 	if (m_binary_mode) {
     	// Binarize
-        auto x_ptr = m_x.GetConstPtr<float>();
-	    auto y_ptr = m_y.GetPtr<float>();
+#if BB_WITH_CUDA
+        if ( !m_host_only && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() ) {
+            // CUDA版
+            auto ptr_x = x.GetMemoryDevConstPtr();
+            auto ptr_y = m_y.GetMemoryDevPtr();
+            cubb_fp32_Binarize_Forward(
+                        (float const *)ptr_x.GetAddr(),
+                        (float *)ptr_y.GetAddr(),
+                        (int)frame_size,
+                        (int)(m_x.GetFrameStride() / sizeof(float)),
+                        (int)node_size
+                   );
+            return m_y;
+        }
+#endif
+        {
+            // CPU版
+            auto x_ptr = m_x.GetConstPtr<float>();
+	        auto y_ptr = m_y.GetPtr<float>();
 
-#pragma omp parallel for
-		for (index_t node = 0; node < node_size; ++node) {
-			for (index_t frame = 0; frame < frame_size; ++frame) {
-				y_ptr.Set(frame, node, x_ptr.Get(frame, node) >0.0f ? 1.0f : 0.0f);
-			}
-		}
+    #pragma omp parallel for
+		    for (index_t node = 0; node < node_size; ++node) {
+			    for (index_t frame = 0; frame < frame_size; ++frame) {
+				    y_ptr.Set(frame, node, x_ptr.Get(frame, node) >0.0f ? 1.0f : 0.0f);
+			    }
+		    }
+            return m_y;
+        }
 	}
 	else {
+        // ReLU
 #if BB_WITH_CUDA
         if ( !m_host_only && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() ) {
             // CUDA版
@@ -261,25 +281,47 @@ FrameBuffer ReLU<float>::Backward(FrameBuffer dy)
     index_t node_size = m_dx.GetNodeSize();
 
     if (m_binary_mode) {
-	    auto x_ptr  = m_x.GetConstPtr<float>();
-	    auto y_ptr  = m_y.GetConstPtr<float>();
-	    auto dy_ptr = dy.GetConstPtr<float>();
-	    auto dx_ptr = m_dx.GetPtr<float>();
+        #if BB_WITH_CUDA
+        if ( !m_host_only && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() ) {
+            // GPU版
+            auto ptr_x  = m_x.GetMemoryDevConstPtr();
+            auto ptr_dy = dy.GetMemoryDevConstPtr();
+            auto ptr_dx = m_dx.GetMemoryDevPtr();
+            cubb_fp32_HardTanh_Backward(
+                        (float const *)ptr_x.GetAddr(),
+                        (float const *)ptr_dy.GetAddr(),
+                        (float *)ptr_dx.GetAddr(),
+                        (int)frame_size,
+                        (int)(m_x.GetFrameStride() / sizeof(float)),
+                        (int)node_size
+                   );
+            return m_dx;
+        }
+#endif
+        {
+            // CPU版
+            auto x_ptr  = m_x.GetConstPtr<float>();
+	        auto y_ptr  = m_y.GetConstPtr<float>();
+	        auto dy_ptr = dy.GetConstPtr<float>();
+	        auto dx_ptr = m_dx.GetPtr<float>();
 
-#pragma omp parallel for
-		for (index_t node = 0; node < node_size; ++node) {
-			for (index_t frame = 0; frame < frame_size; ++frame) {
-				// hard-tanh
-				auto grad = dy_ptr.Get(frame, node);
-				auto sig  = x_ptr.Get(frame, node);
-				dx_ptr.Set(frame, node, (sig >= -1.0f && sig <= 1.0f) ? grad : 0);
-			}
-		}
+    #pragma omp parallel for
+		    for (index_t node = 0; node < node_size; ++node) {
+			    for (index_t frame = 0; frame < frame_size; ++frame) {
+				    // hard-tanh
+				    auto grad = dy_ptr.Get(frame, node);
+				    auto sig  = x_ptr.Get(frame, node);
+				    dx_ptr.Set(frame, node, (sig >= -1.0f && sig <= 1.0f) ? grad : 0);
+			    }
+		    }
+            return m_dx;
+        }
 	}
 	else {
-
+        // ReLU
 #if BB_WITH_CUDA
         if ( !m_host_only && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() ) {
+            // GPU版
             auto ptr_x  = m_x.GetMemoryDevConstPtr();
             auto ptr_dy = dy.GetMemoryDevConstPtr();
             auto ptr_dx = m_dx.GetMemoryDevPtr();

@@ -14,7 +14,7 @@
 // forward
 //////////////////////////////
 
-__global__ void kernal_fp32_ReLU_Forward(
+__global__ void kernal_fp32_Binarize_Forward(
 			const float*	x_buf,
 			float*			y_buf,
 			int				frame_stride
@@ -24,12 +24,12 @@ __global__ void kernal_fp32_ReLU_Forward(
 	int node  = blockDim.y * blockIdx.y + threadIdx.y;
 
     float x = x_buf[frame_stride*node + frame];
-    if ( x <= 0 ) { x = 0; }
+    x = (x > 0) ? 1 : 0;
     y_buf[frame_stride*node + frame] = x;
 }
 
 
-CUBB_DLL_EXPORT int cubb_fp32_ReLU_Forward
+CUBB_DLL_EXPORT int cubb_fp32_Binarize_Forward
 		(
 			const float*	dev_x_buf,
 			float*			dev_y_buf,
@@ -49,7 +49,7 @@ CUBB_DLL_EXPORT int cubb_fp32_ReLU_Forward
 	dim3	grid(frame_grid, node_size);
 	dim3	block(frame_block, 1);
 	
-	kernal_fp32_ReLU_Forward<<<grid, block, 0, streamId>>>(
+	kernal_fp32_Binarize_Forward<<<grid, block, 0, streamId>>>(
 			dev_x_buf,
             dev_y_buf,
 			frame_stride
@@ -64,7 +64,7 @@ CUBB_DLL_EXPORT int cubb_fp32_ReLU_Forward
 // backward
 //////////////////////////////
 
-__global__ void kernal_fp32_ReLU_Backward
+__global__ void kernal_fp32_HardTanh_Backward
         (
 			const float*	x_buf,
 			const float*    dy_buf,
@@ -78,11 +78,12 @@ __global__ void kernal_fp32_ReLU_Backward
     float x  = x_buf[frame_stride*node + frame];
     float dy = dy_buf[frame_stride*node + frame];
     if ( x <= 0 ) { dy = 0; }
+    dy = (x >= -1 && x <= 1) ? dy : 0;
     dx_buf[frame_stride*node + frame] = dy;
 }
 
 
-CUBB_DLL_EXPORT int cubb_fp32_ReLU_Backward
+CUBB_DLL_EXPORT int cubb_fp32_HardTanh_Backward
 		(
 			const float*	dev_x_buf,
 			const float*	dev_dy_buf,
@@ -103,7 +104,7 @@ CUBB_DLL_EXPORT int cubb_fp32_ReLU_Backward
 	dim3	grid(frame_grid, node_size);
 	dim3	block(frame_block, 1);
 	
-	kernal_fp32_ReLU_Backward<<<grid, block, 0, streamId>>>(
+	kernal_fp32_HardTanh_Backward<<<grid, block, 0, streamId>>>(
 			dev_x_buf,
             dev_dy_buf,
             dev_dx_buf,
