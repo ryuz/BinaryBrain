@@ -17,6 +17,7 @@
 #include <string>
 #include <cctype>
 #include <vector>
+#include <cmath>
 #include <locale>
 
 #include "bb/DataType.h"
@@ -220,14 +221,12 @@ inline bool Real_IsValid(T val) {
 
 template <>
 inline bool Real_IsValid<float>(float val) {
-    if ( isinf(val) ) { std::cout << "inf"; }
-
-    return (!isnan(val) && !isinf(val));
+    return (!std::isnan(val) && !std::isinf(val));
 }
 
 template <>
 inline bool Real_IsValid<double>(double val) {
-    return (!isnan(val) && !isinf(val));
+    return (!std::isnan(val) && !std::isinf(val));
 }
 
 

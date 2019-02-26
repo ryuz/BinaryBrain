@@ -382,8 +382,16 @@ public:
         m_tensor.Load(is);
     }
 
-    void Save(std::string filename) const { Save(std::ofstream(filename, std::ios::binary)); }
-    void Load(std::string filename)       { Load(std::ifstream(filename, std::ios::binary)); }
+    void Save(std::string filename) const
+    {
+        std::ofstream ofs(filename, std::ios::binary);
+        Save(ofs);
+    }
+    void Load(std::string filename)
+    {
+        std::ifstream ifs(filename, std::ios::binary);
+        Load(ifs);
+    }
 
     void Resize(int type, index_t frame_size, index_t i0)                                      { Resize(type, frame_size, indices_t({i0})); }
     void Resize(int type, index_t frame_size, index_t i0, index_t i1)                          { Resize(type, frame_size, indices_t({i0, i1})); }

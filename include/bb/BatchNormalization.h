@@ -70,7 +70,7 @@ public:
         return self;
     }
 
-    static std::shared_ptr<BatchNormalization> Create(T momentum = (T)0.001;)
+    static std::shared_ptr<BatchNormalization> Create(T momentum = (T)0.001)
     {
         auto self = std::shared_ptr<BatchNormalization>(new BatchNormalization);
         self->m_momentum = momentum;
