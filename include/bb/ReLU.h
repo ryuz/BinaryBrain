@@ -87,7 +87,7 @@ public:
      * @param  train 学習時にtrueを指定
      * @return forward演算結果
      */
-    FrameBuffer Forward(FrameBuffer x, bool train = true)
+    inline FrameBuffer Forward(FrameBuffer x, bool train = true)
     {
         m_x = x;
         m_y.Resize(x.GetType(), x.GetFrameSize(), x.GetShape());
@@ -127,7 +127,7 @@ public:
      *         
      * @return backward演算結果
      */
-	FrameBuffer Backward(FrameBuffer dy)
+	inline FrameBuffer Backward(FrameBuffer dy)
     {
         m_dx.Resize(dy.GetType(), dy.GetFrameSize(), dy.GetShape());
 
@@ -182,7 +182,7 @@ public:
  * @return forward演算結果
  */
 template<>
-FrameBuffer ReLU<float>::Forward(FrameBuffer x, bool train)
+inline FrameBuffer ReLU<float>::Forward(FrameBuffer x, bool train)
 {
     BB_ASSERT(x.GetType() == BB_TYPE_FP32);
 
@@ -273,7 +273,7 @@ FrameBuffer ReLU<float>::Forward(FrameBuffer x, bool train)
   * @return backward演算結果
   */
 template<>
-FrameBuffer ReLU<float>::Backward(FrameBuffer dy)
+inline FrameBuffer ReLU<float>::Backward(FrameBuffer dy)
 {
     m_dx.Resize(dy.GetType(), dy.GetFrameSize(), dy.GetShape());
 
