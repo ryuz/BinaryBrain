@@ -8,17 +8,17 @@
 
 TEST(ConvolutionIm2ColTest, testConvolutionIm2Col_xy)
 {
-	bb::ConvolutionIm2Col<> cnvim2col(2, 3);
+	auto cnvim2col = bb::ConvolutionIm2Col<>::Create(2, 3);
 
     bb::FrameBuffer buf_x(BB_TYPE_FP32, 16, {28, 28, 3});
-    bb::FrameBuffer buf_y = cnvim2col.Forward(buf_x);
+    bb::FrameBuffer buf_y = cnvim2col->Forward(buf_x);
 
 }
 
 
 TEST(ConvolutionIm2ColTest, testConvolutionIm2Col)
 {
-	bb::ConvolutionIm2Col<> cnvim2col(2, 3);
+	auto cnvim2col = bb::ConvolutionIm2Col<>::Create(2, 3);
 	
     bb::FrameBuffer buf_x(BB_TYPE_FP32, 2, {4, 3, 2});
 
@@ -32,7 +32,7 @@ TEST(ConvolutionIm2ColTest, testConvolutionIm2Col)
 		}
 	}
 
-	auto buf_y = cnvim2col.Forward(buf_x);
+	auto buf_y = cnvim2col->Forward(buf_x);
 
 //	buf_y.Reshape({ 3, 2, 2 });
 	EXPECT_EQ(0,   buf_y.GetFP32(0, { 0, 0, 0 }));
@@ -130,7 +130,7 @@ TEST(ConvolutionIm2ColTest, testConvolutionIm2Col)
 		}
 	}
 	
-	auto buf_dx = cnvim2col.Backward(buf_dy);
+	auto buf_dx = cnvim2col->Backward(buf_dy);
 
     for ( bb::index_t f = 0; f < 2; ++f ) {
         for ( bb::index_t c = 0; c < 2; ++c ) {

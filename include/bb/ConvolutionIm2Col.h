@@ -22,7 +22,7 @@ namespace bb {
 
 
 template <typename ST = float, typename GT = float>
-class ConvolutionIm2Col //  : public Layer
+class ConvolutionIm2Col : public Layer
 {
 protected:
     indices_t       m_input_shape;
@@ -41,29 +41,33 @@ protected:
     FrameBuffer     m_y;
     FrameBuffer     m_dx;
 
-public:
+protected:
 	ConvolutionIm2Col() {}
-	
-    struct construct_t
+
+public:
+	~ConvolutionIm2Col() {}
+
+    struct create_t
     {
         index_t filter_h_size = 3;
         index_t filter_w_size = 3;
     };
 
-	ConvolutionIm2Col(construct_t const & construct)
+	static std::shared_ptr<ConvolutionIm2Col> Create(create_t const & create)
 	{
-		m_filter_h_size = construct.filter_h_size;
-        m_filter_w_size = construct.filter_w_size;
+        auto self = std::shared_ptr<ConvolutionIm2Col>(new ConvolutionIm2Col);
+		self->m_filter_h_size = create.filter_h_size;
+        self->m_filter_w_size = create.filter_w_size;
+        return self;
 	}
 
-    ConvolutionIm2Col(size_t filter_h_size, size_t filter_w_size)
+	static std::shared_ptr<ConvolutionIm2Col> Create(size_t filter_h_size, size_t filter_w_size)
     {
-		m_filter_h_size = filter_h_size;
-        m_filter_w_size = filter_w_size;
+        auto self = std::shared_ptr<ConvolutionIm2Col>(new ConvolutionIm2Col);
+		self->m_filter_h_size = filter_h_size;
+        self->m_filter_w_size = filter_w_size;
+        return self;
     }
-
-
-	~ConvolutionIm2Col() {}
 
 	std::string GetClassName(void) const { return "ConvolutionIm2Col"; }
 
@@ -81,7 +85,7 @@ protected:
 	}
 
 public:
-    FrameBuffer Forward(FrameBuffer const &x, bool train = true)
+    FrameBuffer Forward(FrameBuffer x, bool train = true)
     {
         m_input_shape = x.GetShape();
         BB_ASSERT(m_input_shape.size() == 3);
@@ -160,7 +164,7 @@ public:
     }
 
 
-	FrameBuffer Backward(const FrameBuffer& dy)
+	FrameBuffer Backward(FrameBuffer dy)
 	{
         BB_ASSERT(dy.GetType() == DataType<GT>::type);
         m_dx.Resize(DataType<GT>::type, m_input_frame_size, m_input_shape);

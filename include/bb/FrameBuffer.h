@@ -91,7 +91,7 @@ protected:
 
     inline index_t GetNodeIndex(indices_t const & indices) const
     {
-        return GetShapeIndex(indices, m_buf->m_shape);
+        return GetShapeIndex(indices, m_buf->GetShape());
     }
 
   	inline Tp ReadValue(void const *base, index_t frame) const
@@ -123,12 +123,12 @@ public:
 
     inline Tp Get(index_t frame, indices_t indices) const
     {
-        return ReadValue(frame, GetNodeIndex(indices));
+        return Get(frame, GetNodeIndex(indices));
     }
 
     inline Tp Get(index_t frame, index_t i1, index_t i0) const
     {
-        return ReadValue(frame, indices_t{i0, i1});
+        return Get(frame, indices_t{i0, i1});
     }
 };
 

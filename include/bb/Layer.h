@@ -35,9 +35,7 @@ protected:
      *         そのうち特定のレイヤだけとか、活性化だけとか選べるのも作るかも
      *         文字列にしておけば何でも出来るかな？
      */
-    virtual void CommandProc(std::vector<std::string> args)
-    {
-    }
+    virtual void CommandProc(std::vector<std::string> args) {}
     
 public:
     /**
@@ -115,7 +113,7 @@ public:
      * @param  shape      1フレームのノードを構成するshape
      * @return 出力形状を返す
      */
-    virtual indices_t SetInputShape(indices_t shape) = 0;
+    virtual indices_t SetInputShape(indices_t shape) { return shape; }
 
    /**
      * @brief  forward演算
