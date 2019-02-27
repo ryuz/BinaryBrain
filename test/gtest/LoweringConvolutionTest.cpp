@@ -2,9 +2,7 @@
 #include <iostream>
 #include "gtest/gtest.h"
 
-#include "bb/NeuralNetDenseAffine.h"
-#include "bb/NeuralNetGroup.h"
-#include "bb/NeuralNetLoweringConvolution.h"
+#include "bb/LoweringConvolution.h"
 #include "bb/NeuralNetDenseConvolution.h"
 #include "bb/NeuralNetOptimizerAdam.h"
 

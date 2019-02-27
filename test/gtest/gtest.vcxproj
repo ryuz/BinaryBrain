@@ -22,6 +22,7 @@
     <ClCompile Include="BatchNormalizationTest.cpp" />
     <ClCompile Include="ConvolutionCol2ImTest.cpp" />
     <ClCompile Include="ConvolutionIm2ColTest.cpp" />
+    <ClCompile Include="DenseAffineTest.cpp" />
     <ClCompile Include="FrameBufferTest.cpp" />
     <ClCompile Include="LossCrossEntropyWithSoftmaxTest.cpp" />
     <ClCompile Include="MemoryTest.cpp" />
@@ -39,10 +40,12 @@
     <ClInclude Include="..\..\include\bb\ConvolutionIm2Col.h" />
     <ClInclude Include="..\..\include\bb\CudaUtility.h" />
     <ClInclude Include="..\..\include\bb\DataType.h" />
+    <ClInclude Include="..\..\include\bb\DenseAffine.h" />
     <ClInclude Include="..\..\include\bb\FrameBuffer.h" />
     <ClInclude Include="..\..\include\bb\Layer.h" />
     <ClInclude Include="..\..\include\bb\LossCrossEntropyWithSoftmax.h" />
     <ClInclude Include="..\..\include\bb\LossFunction.h" />
+    <ClInclude Include="..\..\include\bb\LoweringConvolution.h" />
     <ClInclude Include="..\..\include\bb\Memory.h" />
     <ClInclude Include="..\..\include\bb\MicroMlp.h" />
     <ClInclude Include="..\..\include\bb\MicroMlpAffine.h" />
@@ -50,6 +53,7 @@
     <ClInclude Include="..\..\include\bb\OptimizerAdam.h" />
     <ClInclude Include="..\..\include\bb\OptimizerSgd.h" />
     <ClInclude Include="..\..\include\bb\ReLU.h" />
+    <ClInclude Include="..\..\include\bb\Sequential.h" />
     <ClInclude Include="..\..\include\bb\ShuffleSet.h" />
     <ClInclude Include="..\..\include\bb\SimdSupport.h" />
     <ClInclude Include="..\..\include\bb\Tensor.h" />

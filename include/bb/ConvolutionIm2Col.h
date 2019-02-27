@@ -21,7 +21,7 @@
 namespace bb {
 
 
-template <typename ST = float, typename GT = float>
+template <typename FT = float, typename BT = float>
 class ConvolutionIm2Col : public Layer
 {
 protected:
@@ -102,7 +102,7 @@ public:
         m_output_shape[2] = m_input_c_size;
 
         auto type = x.GetType();
-        BB_ASSERT(type == DataType<ST>::type);
+        BB_ASSERT(type == DataType<FT>::type);
         m_input_frame_size = x.GetFrameSize();
         m_output_frame_size = m_input_frame_size * m_output_h_size * m_output_w_size;
 
@@ -129,8 +129,8 @@ public:
 #endif
 
 
-   		const index_t frame_size = m_y.GetFrameStride() * 8 / DataType<ST>::bit_size;
-		const index_t frame_unit = 256 / DataType<ST>::bit_size;
+   		const index_t frame_size = m_y.GetFrameStride() * 8 / DataType<FT>::bit_size;
+		const index_t frame_unit = 256 / DataType<FT>::bit_size;
 
         auto ptr_x = x.GetMemoryConstPtr();
         auto ptr_y = m_y.GetMemoryPtr();
@@ -152,8 +152,8 @@ public:
 							ix += fx;
 							iy += fy;
     						index_t input_node = GetInputNode(c, iy, ix);
-							ST sig = x.template Get<ST, ST>(addr_x, input_frame, input_node);
-							m_y.template Set<ST, ST>(addr_y, output_frame, output_node, sig);
+							FT sig = x.template Get<FT, FT>(addr_x, input_frame, input_node);
+							m_y.template Set<FT, FT>(addr_y, output_frame, output_node, sig);
 						}
 					}
 				}
@@ -166,8 +166,8 @@ public:
 
 	FrameBuffer Backward(FrameBuffer dy)
 	{
-        BB_ASSERT(dy.GetType() == DataType<GT>::type);
-        m_dx.Resize(DataType<GT>::type, m_input_frame_size, m_input_shape);
+        BB_ASSERT(dy.GetType() == DataType<BT>::type);
+        m_dx.Resize(DataType<BT>::type, m_input_frame_size, m_input_shape);
 
 #ifdef BB_WITH_CUDA
         if ( dy.GetType() == BB_TYPE_FP32 && dy.IsDeviceAvailable() && m_dx.IsDeviceAvailable())
@@ -190,8 +190,8 @@ public:
 #endif
 
 
-		const index_t frame_size = dy.GetFrameStride() * 8 / DataType<GT>::bit_size;
-		const index_t frame_unit = 256 / DataType<GT>::bit_size;
+		const index_t frame_size = dy.GetFrameStride() * 8 / DataType<BT>::bit_size;
+		const index_t frame_unit = 256 / DataType<BT>::bit_size;
 
         auto ptr_dy = dy.GetMemoryConstPtr();
         auto ptr_dx = m_dx.GetMemoryPtr();
@@ -215,8 +215,8 @@ public:
 							ix += fx;
 							iy += fy;
 							index_t input_node = GetInputNode(c, iy, ix);
-							GT grad = dy.template Get<GT, GT>(addr_dy, output_frame, output_node);
-							m_dx.template Add<ST, ST>(addr_dx, input_frame, input_node, grad);
+							BT grad = dy.template Get<BT, BT>(addr_dy, output_frame, output_node);
+							m_dx.template Add<BT, BT>(addr_dx, input_frame, input_node, grad);
 						}
 					}
 				}

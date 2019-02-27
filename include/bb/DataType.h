@@ -47,7 +47,8 @@ namespace bb {
 #define BB_ASSERT(v)	    	do { if(!(v)) { std::cout << "assert" << std::endl; for(;;);} } while(0)
 
 #ifdef _DEBUG
-#define BB_DEBUG_ASSERT(v)		assert(v)
+#define BB_DEBUG_ASSERT(v)		do { if(!(v)) { std::cout << "assert" << std::endl; for(;;);} } while(0)
+//#define BB_DEBUG_ASSERT(v)		assert(v)
 #else
 #define BB_DEBUG_ASSERT(v)		do{}while(0)
 #endif

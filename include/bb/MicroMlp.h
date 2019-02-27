@@ -13,40 +13,58 @@
 #include <cstdint>
 #include <random>
 
-#include "bb/FrameBuffer.h"
+#include "bb/Layer.h"
+#include "bb/MicroMlpAffine.h"
+#include "bb/BatchNormalization.h"
+#include "bb/ReLU.h"
 
 
 namespace bb {
 
 
 // Sparce Mini-MLP(Multilayer perceptron) Layer [Affine-ReLU-Affine-BatchNorm-Binarize]
-template <int N = 6, int M = 16, typename ST = float, typename GT = float>
-class MicroMlp
+template <int N = 6, int M = 16, typename T = float, class Activation = ReLU<T> >
+class MicroMlp : public Layer
 {
 protected:
-public:
-
 	// 3層で構成
-	NeuralNetStackedMicroAffine<N, M, T>	m_affine;
-	NeuralNetBatchNormalization<T>			m_batch_norm;
-	NeuralNetSigmoid<T>						m_activation;
+	std::shared_ptr< MicroMlpAffine<N, M, T> >	m_affine;
+	std::shared_ptr< BatchNormalization<T>   >  m_batch_norm;
+	std::shared_ptr< Activation              >  m_activation;
+
+protected:
+	MicroMlp() {}
 
 public:
-	NeuralNetSparseMicroMlp() {}
+	~MicroMlp() {}
 
-	NeuralNetSparseMicroMlp(INDEX input_node_size, INDEX output_node_size, std::uint64_t seed = 1,
-		const NeuralNetOptimizer<T>* optimizer = nullptr)
-		: m_affine(input_node_size, output_node_size, seed, optimizer),
-		m_batch_norm(output_node_size, optimizer),
-		m_activation(output_node_size)
-	{
-		InitializeCoeff(seed);
-	}
-	
-	~NeuralNetSparseMicroMlp() {}
+    struct create_t
+    {
+        MicroMlpAffine<N, M, T>::create_t   affine;
+        BatchNormalization<T>::create_t     bn;
+    };
 
-	std::string GetClassName(void) const { return "NeuralNetSparseMicroMlp"; }
+    std::shared_ptr< MicroMlp > Create(create_t const &create)
+    {
+        auto self = std::shared_ptr<MicroMlp>(new MicroMlp);
+        self.m_affine     = MicroMlpAffine<N, M, T>::Create(create.affine);
+        self.m_batch_norm = BatchNormalization<T>::Create(create.bn);
+        self.m_activation = Activation::Create(create.bn);
+        return self;
+    }
 
+    std::shared_ptr< MicroMlp > Create(index_t output_node_size, T momentum = (T)0.001)
+    {
+        auto self = std::shared_ptr<MicroMlp>(new MicroMlp);
+        self.m_affine     = MicroMlpAffine<N, M, T>::Create(output_node_size);
+        self.m_batch_norm = BatchNormalization<T>::Create(momentum);
+        self.m_activation = Activation::Create(create.bn);
+        return self;
+    }
+
+	std::string GetClassName(void) const { return "MicroMlp"; }
+
+    /*
 	std::vector<T> CalcNode(INDEX node, std::vector<T> input_value) const
 	{
 		auto vec0 = m_affine.CalcNode(node, input_value);
@@ -54,132 +72,110 @@ public:
 		auto vec2 = m_activation.CalcNode(node, vec1);
 		return vec2;
 	}
+    */
 
+    /**
+     * @brief  コマンドを送る
+     * @detail コマンドを送る
+     */   
+    void SendCommand(std::string command, std::string send_to = "all")
+    {
+	    m_affine    ->SendCommand(command, send_to);
+	    m_batch_norm->SendCommand(command, send_to);
+	    m_activation->SendCommand(command, send_to);
+    }
+    
+    /**
+     * @brief  パラメータ取得
+     * @detail パラメータを取得する
+     *         Optimizerでの利用を想定
+     * @return パラメータを返す
+     */
+    Variables GetParameters(void)
+    {
+        Variables parameters;
+	    parameters.PushBack(m_affine    ->GetParameters());
+	    parameters.PushBack(m_batch_norm->GetParameters());
+	    parameters.PushBack(m_activation->GetParameters());
+        return parameters;
+    }
 
-	void InitializeCoeff(std::uint64_t seed)
-	{
-		std::mt19937_64 mt(seed);
-		m_affine.InitializeCoeff(mt());
-		super::InitializeCoeff(mt());
-	}
+    /**
+     * @brief  勾配取得
+     * @detail 勾配を取得する
+     *         Optimizerでの利用を想定
+     * @return パラメータを返す
+     */
+    virtual Variables GetGradients(void)
+    {
+        Variables gradients;
+	    gradients.PushBack(m_affine    ->GetGradients());
+	    gradients.PushBack(m_batch_norm->GetGradients());
+	    gradients.PushBack(m_activation->GetGradients());
+        return gradients;
+    }  
 
-	void SetOptimizer(const NeuralNetOptimizer<T>* optimizer)
-	{
-		m_affine.SetOptimizer(optimizer);
-		m_batch_norm.SetOptimizer(optimizer);
-		m_activation.SetOptimizer(optimizer);
-	}
+    /**
+     * @brief  入力形状設定
+     * @detail 入力形状を設定する
+     *         内部変数を初期化し、以降、GetOutputShape()で値取得可能となることとする
+     *         同一形状を指定しても内部変数は初期化されるものとする
+     * @param  shape      1フレームのノードを構成するshape
+     * @return 出力形状を返す
+     */
+    indices_t SetInputShape(indices_t shape)
+    {
+	    shape = m_affine    ->SetInputShape(shape);
+	    shape = m_batch_norm->SetInputShape(shape);
+	    shape = m_activation->SetInputShape(shape);
+        return shape;
+    }
 
-	void SetBinaryMode(bool enable)
-	{
-		m_affine.SetBinaryMode(enable);
-		m_batch_norm.SetBinaryMode(enable);
-		m_activation.SetBinaryMode(enable);
-	}
+   /**
+     * @brief  forward演算
+     * @detail forward演算を行う
+     * @param  x     入力データ
+     * @param  train 学習時にtrueを指定
+     * @return forward演算結果
+     */
+    FrameBuffer Forward(FrameBuffer x, bool train = true)
+    {
+	    x = m_affine    ->Forward(x, train);
+	    x = m_batch_norm->Forward(x, train);
+	    x = m_activation->Forward(x, train);
+        return x;
+    }
 
-	int   GetNodeInputSize(INDEX node) const { return m_affine.GetNodeInputSize(node); }
-	void  SetNodeInput(INDEX node, int input_index, INDEX input_node) { m_affine.SetNodeInput(node, input_index, input_node); }
-	INDEX GetNodeInput(INDEX node, int input_index) const { return m_affine.GetNodeInput(node, input_index); }
-
-	void  SetBatchSize(INDEX batch_size)
-	{
-		m_affine.SetBatchSize(batch_size);
-		m_batch_norm.SetBatchSize(batch_size);
-		m_activation.SetBatchSize(batch_size);
-
-		if (batch_size == m_batch_size) {
-			return;
-		}
-		m_batch_size = batch_size;
-
-		CheckConnection(m_affine, m_batch_norm);
-		CheckConnection(m_batch_norm, m_activation);
-
-		m_affine.SetOutputSignalBuffer(m_affine.CreateOutputSignalBuffer());
-		m_affine.SetOutputErrorBuffer(m_affine.CreateOutputErrorBuffer());
-		m_batch_norm.SetInputSignalBuffer(m_affine.GetOutputSignalBuffer());
-		m_batch_norm.SetInputErrorBuffer(m_affine.GetOutputErrorBuffer());
-
-		m_batch_norm.SetOutputSignalBuffer(m_batch_norm.CreateOutputSignalBuffer());
-		m_batch_norm.SetOutputErrorBuffer(m_batch_norm.CreateOutputErrorBuffer());
-		m_activation.SetInputSignalBuffer(m_batch_norm.GetOutputSignalBuffer());
-		m_activation.SetInputErrorBuffer(m_batch_norm.GetOutputErrorBuffer());
-	}
-
+   /**
+     * @brief  backward演算
+     * @detail backward演算を行う
+     *         
+     * @return backward演算結果
+     */
+    FrameBuffer Backward(FrameBuffer dy)
+    {
+	    dy = m_activation->Backward(dy);
+	    dy = m_batch_norm->Backward(dy);
+	    dy = m_affine    ->Backward(dy);
+        return dy; 
+    }
 	
-	// 入出力バッファ
-	void  SetInputSignalBuffer(NeuralNetBuffer<T> buffer) { m_affine.SetInputSignalBuffer(buffer); }
-	void  SetInputErrorBuffer(NeuralNetBuffer<T> buffer) { m_affine.SetInputErrorBuffer(buffer); }
-	void  SetOutputSignalBuffer(NeuralNetBuffer<T> buffer) { m_activation.SetOutputSignalBuffer(buffer); }
-	void  SetOutputErrorBuffer(NeuralNetBuffer<T> buffer) { m_activation.SetOutputErrorBuffer(buffer); }
-
-	const NeuralNetBuffer<T>& GetInputSignalBuffer(void) const { return m_affine.GetInputSignalBuffer(); }
-	const NeuralNetBuffer<T>& GetInputErrorBuffer(void) const { return m_affine.GetInputErrorBuffer(); }
-	const NeuralNetBuffer<T>& GetOutputSignalBuffer(void) const { return m_activation.GetOutputSignalBuffer(); }
-	const NeuralNetBuffer<T>& GetOutputErrorBuffer(void) const { return m_activation.GetOutputErrorBuffer(); }
-
-
-	INDEX GetInputFrameSize(void) const { return m_affine.GetInputFrameSize(); }
-	INDEX GetInputNodeSize(void) const { return m_affine.GetInputNodeSize(); }
-
-	INDEX GetOutputFrameSize(void) const { return m_activation.GetOutputFrameSize(); }
-	INDEX GetOutputNodeSize(void) const { return m_activation.GetOutputNodeSize(); }
-
-	int   GetInputSignalDataType(void) const { return m_affine.GetInputSignalDataType(); }
-	int   GetInputErrorDataType(void) const { return m_affine.GetInputErrorDataType(); }
-	int   GetOutputSignalDataType(void) const { return m_activation.GetOutputSignalDataType(); }
-	int   GetOutputErrorDataType(void) const { return m_activation.GetOutputErrorDataType(); }
-
-
-public:
-
-	void Forward(bool train = true)
+public:    
+	void Save(cereal::JSONOutputArchive& archive) const
 	{
-		m_affine.Forward(train);
-		m_batch_norm.Forward(train);
-		m_activation.Forward(train);
+	    m_affine    ->Save(archive);
+	    m_batch_norm->Save(archive);
+	    m_activation->Save(archive);
 	}
 
-	void Backward(void)
+	void Load(cereal::JSONInputArchive& archive)
 	{
-		m_activation.Backward();
-		m_batch_norm.Backward();
-		m_affine.Backward();
-	}
-
-	void Update(void)
-	{
-		m_affine.Update();
-		m_batch_norm.Update();
-		m_activation.Update();
-	}
-
-public:
-	// Serialize
-	template <class Archive>
-	void save(Archive &archive, std::uint32_t const version) const
-	{
-	}
-
-	template <class Archive>
-	void load(Archive &archive, std::uint32_t const version)
-	{
+	    m_affine    ->Load(archive);
+	    m_batch_norm->Load(archive);
+	    m_activation->Load(archive);
 	}
 
 
-	virtual void Save(cereal::JSONOutputArchive& archive) const
-	{
-		m_affine.Save(archive);
-		m_batch_norm.Save(archive);
-		m_activation.Save(archive);
-	}
-
-	virtual void Load(cereal::JSONInputArchive& archive)
-	{
-		m_affine.Load(archive);
-		m_batch_norm.Load(archive);
-		m_activation.Load(archive);
-	}
 };
 
 

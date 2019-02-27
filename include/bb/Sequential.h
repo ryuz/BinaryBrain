@@ -24,14 +24,21 @@ class Sequential : public Layer
 protected:
 	std::vector< std::shared_ptr<Layer> > m_layers;
 
-public:
+protected:
     Sequential() {}
 
+public:
     /**
      * @brief  デストラクタ(仮想関数)
      * @detail デストラクタ(仮想関数)
      */
 	~Sequential() {}
+
+    static std::shared_ptr<Sequential> Create(void)
+    {
+        auto self = std::shared_ptr<Sequential>(new Sequential);
+        return self;
+    }
 
     /**
      * @brief  クラス名取得
@@ -49,7 +56,10 @@ public:
         m_layers.push_back(layer);
     }
 	
-    // コマンド処理
+    /**
+     * @brief  コマンドを送る
+     * @detail コマンドを送る
+     */   
     void SendCommand(std::string command, std::string send_to = "all")
     {
         for (auto layer : m_layers) {
