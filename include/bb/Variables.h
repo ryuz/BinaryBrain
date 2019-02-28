@@ -198,7 +198,7 @@ public:
         for ( size_t i = 0; i < m_tensors.size(); ++i ) {
             *var.m_tensors[i] = m_tensors[i]->Sqrt();
         }
-        return *this;
+        return var;
     }
 
     Variables Exp(void)
@@ -207,7 +207,7 @@ public:
         for ( size_t i = 0; i < m_tensors.size(); ++i ) {
             *var.m_tensors[i] = m_tensors[i]->Exp();
         }
-        return *this;
+        return var;
     }
 };
 
@@ -333,6 +333,16 @@ inline Variables operator/(double src0, Variables const & src1)
     }
     return var;
 }
+
+
+inline std::ostream& operator<<(std::ostream& os, Variables const &v)
+{
+    for (index_t i = 0; i < v.GetSize(); ++i) {
+        os << v[i];
+    }
+    return os;
+}
+
 
 
 }

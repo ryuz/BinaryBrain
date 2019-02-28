@@ -221,6 +221,8 @@ public:
             auto y_ptr = m_y.GetPtr<T>();
             auto W_ptr = lock_W_const();
             auto b_ptr = lock_b_const();
+
+            #pragma omp parallel for
             for (index_t frame = 0; frame < frame_size; ++frame) {
                 for (index_t output_node = 0; output_node < m_output_node_size; ++output_node) {
                     y_ptr.Set(frame, output_node, b_ptr(output_node));
@@ -278,6 +280,7 @@ public:
             auto dW_ptr = lock_dW();
             auto db_ptr = lock_db();
 
+            #pragma omp parallel for
             for (index_t frame = 0; frame < frame_size; ++frame) {
                 for (index_t output_node = 0; output_node < m_output_node_size; ++output_node) {
                     auto grad = dy_ptr.Get(frame, output_node);

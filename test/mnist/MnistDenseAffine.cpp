@@ -12,11 +12,9 @@
 #include <random>
 #include <chrono>
 
-#include "bb/MicroMlp.h"
-#include "bb/LoweringConvolution.h"
+#include "bb/DenseAffine.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
-#include "bb/MaxPooling.h"
 #include "bb/LossCrossEntropyWithSoftmax.h"
 #include "bb/AccuracyCategoricalClassification.h"
 #include "bb/OptimizerAdam.h"
@@ -28,8 +26,8 @@
 
 
 
-// MNIST CNN with LUT networks
-void MnistSimpleCnnMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
+
+void MnistDenseAffine(int epoch_size, size_t mini_batch_size)
 {
   // load MNIST data
 #ifdef _DEBUG
@@ -38,27 +36,10 @@ void MnistSimpleCnnMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
     auto data = bb::LoadMnist<>::Load(10);
 #endif
 
-    auto cnn_sub0 = bb::Sequential::Create();
-    cnn_sub0->Add(bb::MicroMlp<>::Create(256));
-    cnn_sub0->Add(bb::MicroMlp<>::Create(64));
-    cnn_sub0->Add(bb::MicroMlp<>::Create(16));
-
-    auto cnn_sub1 = bb::Sequential::Create();
-    cnn_sub1->Add(bb::MicroMlp<>::Create(256));
-    cnn_sub1->Add(bb::MicroMlp<>::Create(64));
-    cnn_sub1->Add(bb::MicroMlp<>::Create(16));
-
     auto net = bb::Sequential::Create();
-    net->Add(bb::LoweringConvolution<>::Create(cnn_sub0, 16, 3, 3));
-    net->Add(bb::LoweringConvolution<>::Create(cnn_sub1, 16, 3, 3));
-    net->Add(bb::MaxPooling<>::Create(3, 3));
-    net->Add(bb::MicroMlpAffine<6, 16, float>::Create({360}));
-    net->Add(bb::BatchNormalization<float>::Create());
+    net->Add(bb::DenseAffine<float>::Create({256}));
     net->Add(bb::ReLU<float>::Create());
-    net->Add(bb::MicroMlpAffine<6, 16, float>::Create({60}));
-    net->Add(bb::BatchNormalization<float>::Create());
-    net->Add(bb::ReLU<float>::Create());
-    net->Add(bb::MicroMlpAffine<6, 16, float>::Create({10}));
+    net->Add(bb::DenseAffine<float>::Create({10}));
 
     bb::LossCrossEntropyWithSoftmax<float>          lossFunc;
     bb::AccuracyCategoricalClassification<float>    accFunc(10);
@@ -73,18 +54,10 @@ void MnistSimpleCnnMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
 
     optimizer.SetVariables(net->GetParameters(), net->GetGradients());
 
-//  net.SendCommand("host_only true", "MicroMlpAffine");
-//  net.SendCommand("host_only true", "ReLU");
-//  net.SendCommand("host_only true");
-
-    if ( binary_mode ) {
-        std::cout << "binary mode" << std::endl;
-        net->SendCommand("binary true");
-    }
-
     std::mt19937_64 mt(1);
 
     for ( bb::index_t epoch = 0; epoch < epoch_size; ++epoch ) {
+        lossFunc.Clear();
         accFunc.Clear();
         for (bb::index_t i = 0; i < (bb::index_t)(data.x_train.size() - mini_batch_size); i += mini_batch_size)
         {
@@ -100,11 +73,24 @@ void MnistSimpleCnnMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
 
             optimizer.Update();
         }
-        std::cout << "accuracy : " << accFunc.GetAccuracy() << std::endl;
+        std::cout << "train loss : " << lossFunc.GetLoss() <<  "  accuracy : " << accFunc.GetAccuracy() << std::endl;
+
+        // test
+        lossFunc.Clear();
+        accFunc.Clear();
+        for (bb::index_t i = 0; i < (bb::index_t)(data.x_test.size() - mini_batch_size); i += mini_batch_size)
+        {
+            x.SetVector(data.x_test, i);
+            t.SetVector(data.y_test, i);
+
+            auto y = net->Forward(x);
+            
+            auto dy = lossFunc.CalculateLoss(y, t);
+            accFunc.CalculateAccuracy(y, t);
+        }
+        std::cout << "test loss : " << lossFunc.GetLoss() <<  "  accuracy : " << accFunc.GetAccuracy() << std::endl;
 
         bb::ShuffleDataSet(mt(), data.x_train, data.y_train);
     }
 }
 
-
-// end of file

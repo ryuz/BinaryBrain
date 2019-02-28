@@ -16,127 +16,133 @@
 #include <vector>
 #include <assert.h>
 
-#include "bb/NeuralNetGroup.h"
-#include "bb/NeuralNetLossFunction.h"
-#include "bb/NeuralNetAccuracyFunction.h"
-#include "bb/NeuralNetUtility.h"
+#include "bb/Layer.h"
+#include "bb/LossFunction.h"
+#include "bb/AccuracyFunction.h"
+#include "bb/Optimizer.h"
+#include "bb/Utility.h"
 #include "bb/TrainData.h"
+
 
 namespace bb {
 
 
-// NeuralNet 最上位構成用クラス
-template <typename T = float>
-class NeuralNet : public NeuralNetGroup<T>
+template <typename T>
+class Fitting
 {
 protected:
-	INDEX				m_batch_size = 0;
+    std::mt19937_64                        m_mt;
 
-	NeuralNetBuffer<T>	m_input_signal_buffers;
-	NeuralNetBuffer<T>	m_output_signal_buffers;
-	NeuralNetBuffer<T>	m_input_error_buffers;
-	NeuralNetBuffer<T>	m_output_error_buffers;
-	
+//	std::shared_ptr<AccuracyFunction>      m_accFunc;
+//	std::shared_ptr<LossFunction>          m_lossFunc;
+    
 public:
-	// コンストラクタ
-	NeuralNet()
-	{
-	}
-	
-	// デストラクタ
-	~NeuralNet() {
-	}
 
-	std::string GetClassName(void) const { return "NeuralNet"; }
+    struct run_calculation_t
+    {
+	    std::vector< std::vector<T> > const     &x;
+	    std::vector< std::vector<T> > const     &t;
+	    index_t                                 max_batch_size;
+	    index_t                                 min_batch_size;
+	    std::shared_ptr<AccuracyFunction>       accFunc;
+	    std::shared_ptr<LossFunction>           lossFunc;
+	    bool                                    train = false;
+	    bool                                    print_progress = false;
+    };
+    
+    double RunCalculation(
+        indices_t                           x_shape,
+        std::vector< std::vector<T> > const &x_vec,
+        indices_t                           t_shape,
+		std::vector< std::vector<T> > const &t_vec,
+        index_t max_batch_size,
+		index_t min_batch_size = 1,
+	    std::shared_ptr<AccuracyFunction> accFunc = nullptr,
+	    std::shared_ptr<LossFunction>     lossFunc = nullptr,
+		std::shared_ptr<Optimizer>        optimizer = nullptr,
+		bool train = false,
+		bool print_progress = false)
+    {
+        BB_ASSERT(x.size() == y.size());
 
-	void SetBatchSize(INDEX batch_size)
-	{
-		// 親クラス呼び出し
-		NeuralNetGroup<T>::SetBatchSize(batch_size);
+        if ( accFunc  != nullptr ) { accFunc.Clear(); }
+        if ( lossFunc != nullptr ) { lossFunc.Clear(); }
+        
+        index_t frame_size = (index_t)x.size();
+        
+        FrameBuffer x_buf;
+        FrameBuffer t_buf;
 
-		// サイズ変更が無ければそのまま
-		if (m_batch_size == batch_size) {
-			return;
-		}
-		m_batch_size = batch_size;
+        bb::index_t index = 0;
+        while ( index < frame_size )
+        {
+            // ミニバッチサイズ計算
+            bb::index_t  mini_batch_size = std::min(max_batch_size, frame_size - index);
 
-		// 入出力のバッファも準備
-		m_input_signal_buffers = this->m_firstLayer->CreateInputSignalBuffer();
-		m_input_error_buffers = this->m_firstLayer->CreateInputErrorBuffer();
-		m_output_signal_buffers = this->m_lastLayer->CreateOutputSignalBuffer();
-		m_output_error_buffers = this->m_lastLayer->CreateOutputErrorBuffer();
-		this->m_firstLayer->SetInputSignalBuffer(m_input_signal_buffers);
-		this->m_firstLayer->SetInputErrorBuffer(m_input_error_buffers);
-		this->m_lastLayer->SetOutputSignalBuffer(m_output_signal_buffers);
-		this->m_lastLayer->SetOutputErrorBuffer(m_output_error_buffers);
-	}
+            // 残数が規定以下なら抜ける
+            if ( mini_batch_size < min_batch_size ) {
+                break;
+            }
 
-	void Forward(bool train = true, INDEX start_layer = 0)
-	{
-		INDEX layer_size = this->m_layers.size();
+            // 学習データセット
+            x_buf.Resize(DataType<T>::type, mini_batch_size, x_shape);
+            x_buf.SetVector(x_vec, index);
 
-		for (INDEX layer = start_layer; layer < layer_size; ++layer) {
-			this->m_layers[layer]->Forward(train);
-		}
-	}
+            // Forward
+            auto y_buf = net->Forward(x_buf, train);
 
-	void Backward(void)
-	{
-		for (auto layer = this->m_layers.rbegin(); layer != this->m_layers.rend(); ++layer) {
-			(*layer)->Backward();
-		}
-	}
+            // 期待値データセット
+            t_buf.Resize(DataType<T>::type, mini_batch_size, t_shape);
+            t.SetVector(t_vec, index);
 
-	void Update(void)
-	{
-		for (auto layer = this->m_layers.begin(); layer != this->m_layers.end(); ++layer) {
-			(*layer)->Update();
-		}
-	}
+			// 進捗表示
+			if ( print_progress ) {
+				index_t progress = index + mini_batch_size;
+				index_t rate = progress * 100 / frame_size;
+				std::cout << "[" << rate << "% (" << progress << "/" << frame_size << ")]";
+			}
+            
+            FrameBuffer dy_buf;
+            if ( lossFunc != nullptr ) {
+                dy_buf = lossFunc->CalculateLoss(y_buf, t_buf);
+            }
+
+            if ( accFunc != nullptr ) {
+                accFunc.CalculateAccuracy(y_buf, t_buf);
+            }
+
+            if ( train && lossFunc != nullptr ) {
+                auto dx = net->Backward(dy_buf);
+                
+                if ( optimizer != nullptr ) {
+                    optimizer->Update();
+                }
+            }
+
+            // 進捗表示
+		    if ( print_progress ) {
+                if ( lossFunc != nullptr ) {
+	    		    std::cout << "  loss : " << lossFunc->GetLoss();
+                }
+
+                if ( accFunc != nullptr ) {
+                    std::cout << "  acc : " << accFunc->GetAccuracy();
+                }
+
+				std::cout << "\r" << std::flush;
+			}
+
+            // インデックスを進める
+            index += min_batch_size;
+        }
+    }
 
 
-	// 入出力データへのアクセス補助
-	void SetInputSignal(INDEX frame, INDEX node, T signal) {
-		return this->m_firstLayer->GetInputSignalBuffer().SetReal(frame, node, signal);
-	}
-
-	void SetInputSignal(INDEX frame, std::vector<T> signals) {
-		for (INDEX node = 0; node < (INDEX)signals.size(); ++node) {
-			SetInputSignal(frame, node, signals[node]);
-		}
-	}
-
-	T GetOutputSignal(INDEX frame, INDEX node) {
-		return this->m_lastLayer->GetOutputSignalBuffer().GetReal(frame, node);
-	}
-
-	std::vector<T> GetOutputSignal(INDEX frame) {
-		std::vector<T> signals(this->m_lastLayer->GetOutputNodeSize());
-		for (INDEX node = 0; node < (INDEX)signals.size(); ++node) {
-			signals[node] = GetOutputSignal(frame, node);
-		}
-		return signals;
-	}
-
-	void SetOutputError(INDEX frame, INDEX node, T error) {
-		this->m_lastLayer->GetOutputErrorBuffer().SetReal(frame, node, error);
-	}
-
-	void SetOutputError(INDEX frame, std::vector<T> errors) {
-		for (INDEX node = 0; node < (INDEX)errors.size(); ++node) {
-			SetOutputError(frame, node, errors[node]);
-		}
-	}
-
-public:
-	ostream_tee*	m_log_stream;
-
-public:
-	double RunCalculation(
-		const std::vector< std::vector<T> >& x,
-		const std::vector< std::vector<T> >& y,
-		INDEX max_batch_size,
-		INDEX min_batch_size,
+    double RunCalculation(
+		const   std::vector< std::vector<T> >& x,
+		const   std::vector< std::vector<T> >& y,
+		index_t max_batch_size,
+		index_t min_batch_size,
 		const NeuralNetAccuracyFunction<T>* accFunc = nullptr,
 		const NeuralNetLossFunction<T>* lossFunc = nullptr,
 		bool train = false,

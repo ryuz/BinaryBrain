@@ -109,6 +109,14 @@ public:
         m_v += ((T)1.0 - m_beta2) * (m_grads * m_grads - m_v);
         m_params -= lr_t * m_m / (m_v.Sqrt() + (T)1e-7);
 
+#if 0
+        std::cout << "lr_t = " << lr_t << std::endl;
+        std::cout << "m_m = " << m_m << std::endl;
+        std::cout << "m_v = " << m_v << std::endl;
+        std::cout << "lr_t * m_m / (m_v.Sqrt() + (T)1e-7) = " << (lr_t * m_m / (m_v.Sqrt() + (T)1e-7)) << std::endl;
+        std::cout << "m_v.Sqrt() = " << m_v.Sqrt() << std::endl;
+#endif
+
         m_b1 *= m_beta1;
         m_b2 *= m_beta2;
 

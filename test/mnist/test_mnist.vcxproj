@@ -329,6 +329,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MnistDenseAffine.cpp" />
     <ClCompile Include="MnistSequentialSimpleMicroMlp.cpp" />
     <ClCompile Include="MnistSimpleCnnMlp.cpp" />
     <ClCompile Include="MnistSimpleMicroMlp.cpp" />
@@ -340,6 +341,7 @@
     <ClInclude Include="..\..\include\bb\ConvolutionCol2Im.h" />
     <ClInclude Include="..\..\include\bb\ConvolutionIm2Col.h" />
     <ClInclude Include="..\..\include\bb\DataType.h" />
+    <ClInclude Include="..\..\include\bb\Fitting.h" />
     <ClInclude Include="..\..\include\bb\FrameBuffer.h" />
     <ClInclude Include="..\..\include\bb\Layer.h" />
     <ClInclude Include="..\..\include\bb\LossCrossEntropyWithSoftmax.h" />

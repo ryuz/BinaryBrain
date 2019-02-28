@@ -228,7 +228,7 @@ TEST(MicroMlpAffineTest, testMicroMlpAffine)
 
     bb::OptimizerAdam<>::create_t create;
     bb::OptimizerAdam<> optimizer(create, mlp->GetParameters(), mlp->GetGradients());
-    optimizer.Update();
+//  optimizer.Update();
 }
 #endif
 
