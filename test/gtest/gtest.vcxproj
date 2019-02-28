@@ -26,6 +26,7 @@
     <ClCompile Include="FrameBufferTest.cpp" />
     <ClCompile Include="LossCrossEntropyWithSoftmaxTest.cpp" />
     <ClCompile Include="LoweringConvolutionTest.cpp" />
+    <ClCompile Include="MaxPoolingTest.cpp" />
     <ClCompile Include="MemoryTest.cpp" />
     <ClCompile Include="MicroMlpAffineTest.cpp" />
     <ClCompile Include="OptimizerAdamTest.cpp" />
@@ -47,6 +48,7 @@
     <ClInclude Include="..\..\include\bb\LossCrossEntropyWithSoftmax.h" />
     <ClInclude Include="..\..\include\bb\LossFunction.h" />
     <ClInclude Include="..\..\include\bb\LoweringConvolution.h" />
+    <ClInclude Include="..\..\include\bb\MaxPooling.h" />
     <ClInclude Include="..\..\include\bb\Memory.h" />
     <ClInclude Include="..\..\include\bb\MicroMlp.h" />
     <ClInclude Include="..\..\include\bb\MicroMlpAffine.h" />
