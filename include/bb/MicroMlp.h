@@ -38,27 +38,29 @@ protected:
 public:
 	~MicroMlp() {}
 
+    /*
     struct create_t
     {
         MicroMlpAffine<N, M, T>::create_t   affine;
         BatchNormalization<T>::create_t     bn;
     };
 
-    std::shared_ptr< MicroMlp > Create(create_t const &create)
+    static std::shared_ptr< MicroMlp > Create(create_t const &create)
     {
         auto self = std::shared_ptr<MicroMlp>(new MicroMlp);
-        self.m_affine     = MicroMlpAffine<N, M, T>::Create(create.affine);
-        self.m_batch_norm = BatchNormalization<T>::Create(create.bn);
-        self.m_activation = Activation::Create(create.bn);
+        self->m_affine     = MicroMlpAffine<N, M, T>::Create(create.affine);
+        self->m_batch_norm = BatchNormalization<T>::Create(create.bn);
+        self->m_activation = Activation::Create();
         return self;
     }
+    */
 
-    std::shared_ptr< MicroMlp > Create(index_t output_node_size, T momentum = (T)0.001)
+    static std::shared_ptr< MicroMlp > Create(index_t output_node_size, T momentum = (T)0.001)
     {
         auto self = std::shared_ptr<MicroMlp>(new MicroMlp);
-        self.m_affine     = MicroMlpAffine<N, M, T>::Create(output_node_size);
-        self.m_batch_norm = BatchNormalization<T>::Create(momentum);
-        self.m_activation = Activation::Create(create.bn);
+        self->m_affine     = MicroMlpAffine<N, M, T>::Create(output_node_size);
+        self->m_batch_norm = BatchNormalization<T>::Create(momentum);
+        self->m_activation = Activation::Create();
         return self;
     }
 
@@ -160,7 +162,8 @@ public:
         return dy; 
     }
 	
-public:    
+public:
+    /*
 	void Save(cereal::JSONOutputArchive& archive) const
 	{
 	    m_affine    ->Save(archive);
@@ -174,7 +177,7 @@ public:
 	    m_batch_norm->Load(archive);
 	    m_activation->Load(archive);
 	}
-
+    */
 
 };
 

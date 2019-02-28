@@ -12,13 +12,16 @@
 
 void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mode);
 void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mode);
+void MnistSimpleCnnMlp(int epoch_size, size_t mini_batch_size, bool binary_mode);
+
 
 // メイン関数
 int main()
 {
 	omp_set_num_threads(4);
 
-    MnistSequentialMicroMlp(64, 128, true);
+    MnistSimpleCnnMlp(32, 128, true);
+//  MnistSequentialMicroMlp(64, 128, true);
 //	MnistSimpleMicroMlp(64, 128, true);
 
 //	getchar();

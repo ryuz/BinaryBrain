@@ -24,7 +24,11 @@ template <typename FT = float, typename BT = float>
 class LoweringConvolution : public Layer
 {
 protected:
-	// 3層で構成
+    index_t m_filter_c_size = 1;
+    index_t m_filter_h_size = 1;
+    index_t m_filter_w_size = 1;
+
+    // 3層で構成
 	std::shared_ptr< ConvolutionIm2Col<FT, BT> >	m_im2col;
 	std::shared_ptr< Layer                     >    m_layer;
 	std::shared_ptr< ConvolutionCol2Im<FT, BT> >	m_col2im;
@@ -48,18 +52,30 @@ public:
     static std::shared_ptr<LoweringConvolution> Create(create_t const & create)
 	{
         auto self = std::shared_ptr<LoweringConvolution>(new LoweringConvolution);
-  		self->m_im2col = ConvolutionIm2Col<FT, BT>::Create(create.input_c_size, create.input_h_size, create.input_w_size, create.filter_h_size, create.filter_w_size);
+        
+        self->m_filter_w_size = create.filter_w_size;
+        self->m_filter_h_size = create.filter_h_size;
+        self->m_filter_c_size = create.filter_c_size;
+
+  		self->m_im2col = ConvolutionIm2Col<FT, BT>::Create(filter_h_size, filter_w_size);
         self->m_layer  = create.layer;
-		self->m_col2im = ConvolutionCol2Im<FT, BT>::Create(create.filter_c_size, create.input_h_size - create.filter_h_size + 1, create.input_w_size - create.filter_w_size + 1);
+        // col2im の形状は入力形状確定時に決まる
+
         return self;
 	}
 
     static std::shared_ptr<LoweringConvolution> Create(std::shared_ptr<Layer> layer, index_t filter_c_size, index_t filter_h_size, index_t filter_w_size)
 	{
         auto self = std::shared_ptr<LoweringConvolution>(new LoweringConvolution);
+        
+        self->m_filter_w_size = filter_w_size;
+        self->m_filter_h_size = filter_h_size;
+        self->m_filter_c_size = filter_c_size;
+
   		self->m_im2col = ConvolutionIm2Col<FT, BT>::Create(filter_h_size, filter_w_size);
         self->m_layer  = layer;
-		self->m_col2im = ConvolutionCol2Im<FT, BT>::Create(filter_c_size, filter_h_size, filter_w_size);
+        // col2im の形状は入力形状確定時に決まる
+
         return self;
 	}
 
@@ -117,9 +133,21 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
-	    shape = m_im2col->SetInputShape(shape);
-	    shape = m_layer->SetInputShape(shape);
-	    shape = m_col2im->SetInputShape(shape);
+        BB_ASSERT(shape.size() == 3);
+
+        index_t input_w_size = shape[0];
+        index_t input_h_size = shape[1];
+        index_t input_c_size = shape[2];
+		index_t output_w_size = input_w_size - m_filter_w_size + 1;
+		index_t output_h_size = input_h_size - m_filter_h_size + 1;
+		index_t output_c_size = m_filter_c_size;
+
+		m_col2im = ConvolutionCol2Im<FT, BT>::Create(output_c_size, output_h_size, output_w_size);
+
+        shape = m_im2col->SetInputShape(shape);
+        shape = m_layer->SetInputShape(shape);
+        shape = m_col2im->SetInputShape(shape);
+
         return shape;
     }
 
