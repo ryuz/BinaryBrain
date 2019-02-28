@@ -162,14 +162,14 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
     bb::FrameBuffer gpu_t(BB_TYPE_FP32, mini_batch_size, 10);
 
 
-    bb::OptimizerAdam<float> cpu_optimizer;
-    bb::OptimizerAdam<float> gpu_optimizer;
+    auto cpu_optimizer = bb::OptimizerAdam<float>::Create();
+    auto gpu_optimizer = bb::OptimizerAdam<float>::Create();
 
-//  bb::OptimizerSgd<float> cpu_optimizer(0.001f);
-//  bb::OptimizerSgd<float> gpu_optimizer(0.001f);
+//  auto cpu_optimizer = bb::OptimizerSgd<float>::Create(0.001f);
+//  auto gpu_optimizer = bb::OptimizerSgd<float>::Create(0.001f);
 
-    cpu_optimizer.SetVariables(cpu_net.GetParameters(), cpu_net.GetGradients());
-    gpu_optimizer.SetVariables(gpu_net.GetParameters(), gpu_net.GetGradients());
+    cpu_optimizer->SetVariables(cpu_net.GetParameters(), cpu_net.GetGradients());
+    gpu_optimizer->SetVariables(gpu_net.GetParameters(), gpu_net.GetGradients());
 
     std::mt19937_64 mt(1);
 
@@ -200,15 +200,14 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
             cpu_dy = cpu_net.Backward(cpu_dy);
             gpu_dy = gpu_net.Backward(gpu_dy);
 
-            cpu_optimizer.Update();
-            gpu_optimizer.Update();
+            cpu_optimizer->Update();
+            gpu_optimizer->Update();
         }
         std::cout << "cpu : " << cpu_accFunc.GetAccuracy() << std::endl;
         std::cout << "gpu : " << gpu_accFunc.GetAccuracy() << std::endl;
 
         bb::ShuffleDataSet(mt(), data.x_train, data.y_train);
     }
-
 }
 
 

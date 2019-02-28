@@ -24,24 +24,33 @@ protected:
     Variables       m_params;
     Variables       m_grads;
 
+protected:
+    OptimizerSgd() {}
+
 public:
+	~OptimizerSgd() {}
+
     struct create_t
     {
         T learning_rate = (T)0.01;
     };
 
-   	OptimizerSgd(create_t const &create) 
+   	static std::shared_ptr<OptimizerSgd> Create(create_t const &create) 
 	{
-		m_learning_rate = create.learning_rate;
+        auto self = std::shared_ptr<OptimizerSgd>(new OptimizerSgd);
+
+		self->m_learning_rate = create.learning_rate;
+
+        return self;
 	}
 
-    OptimizerSgd(T learning_rate=(T)0.01)
+    static std::shared_ptr<OptimizerSgd> Create(T learning_rate=(T)0.01)
 	{
-		m_learning_rate = learning_rate;
-	}
-	
-	~OptimizerSgd()
-	{
+        auto self = std::shared_ptr<OptimizerSgd>(new OptimizerSgd);
+
+		self->m_learning_rate = learning_rate;
+
+        return self;
 	}
 
     void SetVariables(Variables params, Variables grads)
