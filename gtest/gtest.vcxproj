@@ -19,8 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="cudaIm2ColTest.cpp" />
-    <ClCompile Include="cudaMicroMlpTest.cpp" />
     <ClCompile Include="NeuralNetBatchNormalizationAvxTest.cpp" />
     <ClCompile Include="NeuralNetBatchNormalizationTest.cpp" />
     <ClCompile Include="NeuralNetBinaryFilterTest.cpp" />
@@ -34,6 +32,7 @@
     <ClCompile Include="NeuralNetLossCrossEntropyWithSoftmaxTest .cpp" />
     <ClCompile Include="NeuralNetLoweringConvolutionTest.cpp" />
     <ClCompile Include="NeuralNetMaxPoolingTest.cpp" />
+    <ClCompile Include="NeuralNetOptimizerAdamTest.cpp" />
     <ClCompile Include="NeuralNetRealToBinaryTest.cpp" />
     <ClCompile Include="NeuralNetReLUTest.cpp" />
     <ClCompile Include="NeuralNetSigmoidTest.cpp" />
