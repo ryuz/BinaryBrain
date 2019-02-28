@@ -40,9 +40,6 @@ public:
     struct create_t
     {
         std::shared_ptr<Layer>  layer;
-    	index_t                 input_c_size  = 1;
-        index_t                 input_h_size  = 1;
-        index_t                 input_w_size  = 1;
         index_t                 filter_c_size = 1;
         index_t                 filter_h_size = 1;
         index_t                 filter_w_size = 1;
@@ -50,17 +47,19 @@ public:
 
     static std::shared_ptr<LoweringConvolution> Create(create_t const & create)
 	{
-        auto self = std::shared_ptr<ConvolutionIm2Col>(new ConvolutionIm2Col);
-  		m_im2col = ConvolutionIm2Col<FT, BT>::Create(create.input_c_size, create.input_h_size, create.input_w_size, create.filter_h_size, create.filter_w_size);
-		m_col2im = ConvolutionCol2Im<FT, BT>::Create(create.filter_c_size, create.input_h_size - create.filter_h_size + 1, create.input_w_size - create.filter_w_size + 1);
+        auto self = std::shared_ptr<LoweringConvolution>(new LoweringConvolution);
+  		self->m_im2col = ConvolutionIm2Col<FT, BT>::Create(create.input_c_size, create.input_h_size, create.input_w_size, create.filter_h_size, create.filter_w_size);
+        self->m_layer  = create.layer;
+		self->m_col2im = ConvolutionCol2Im<FT, BT>::Create(create.filter_c_size, create.input_h_size - create.filter_h_size + 1, create.input_w_size - create.filter_w_size + 1);
         return self;
 	}
 
-    static std::shared_ptr<LoweringConvolution> Create(std::shared_ptr<Layer> layer, index_t input_c_size, index_t input_h_size, index_t input_w_size, index_t filter_c_size, index_t filter_h_size, index_t filter_w_size)
+    static std::shared_ptr<LoweringConvolution> Create(std::shared_ptr<Layer> layer, index_t filter_c_size, index_t filter_h_size, index_t filter_w_size)
 	{
-        auto self = std::shared_ptr<ConvolutionIm2Col>(new ConvolutionIm2Col);
-  		m_im2col = ConvolutionIm2Col<FT, BT>::Create(input_c_size, input_h_size, input_w_size, filter_h_size, filter_w_size);
-		m_col2im = ConvolutionCol2Im<FT, BT>::Create(filter_c_size, input_h_size - filter_h_size + 1, input_w_size - filter_w_size + 1);
+        auto self = std::shared_ptr<LoweringConvolution>(new LoweringConvolution);
+  		self->m_im2col = ConvolutionIm2Col<FT, BT>::Create(filter_h_size, filter_w_size);
+        self->m_layer  = layer;
+		self->m_col2im = ConvolutionCol2Im<FT, BT>::Create(filter_c_size, filter_h_size, filter_w_size);
         return self;
 	}
 

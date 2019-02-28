@@ -69,6 +69,18 @@ public:
 	
 
 public:
+
+    /**
+     * @brief  入力のshape設定
+     * @detail 入力のshape設定
+     * @param shape 新しいshape
+     * @return なし
+     */
+    indices_t SetInputShape(indices_t shape)
+    {
+        return indices_t({m_w_size, m_h_size, m_c_size});
+    }
+
     FrameBuffer Forward(FrameBuffer x, bool train=true)
  	{
         BB_ASSERT(x.GetType() == DataType<FT>::type);

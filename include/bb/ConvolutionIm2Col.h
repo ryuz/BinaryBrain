@@ -72,22 +72,16 @@ public:
 	std::string GetClassName(void) const { return "ConvolutionIm2Col"; }
 
 
-
-protected:
-	inline index_t GetInputNode(index_t c, index_t y, index_t x)
-	{
-		return (c * m_input_h_size + y)*m_input_w_size + x;
-	}
-
-	inline index_t GetOutputNode(index_t c, index_t y, index_t x)
-	{
-		return (c*m_filter_h_size + y)*m_filter_w_size + x;
-	}
-
-public:
-    FrameBuffer Forward(FrameBuffer x, bool train = true)
+    /**
+     * @brief  入力のshape設定
+     * @detail 入力のshape設定
+     * @param shape 新しいshape
+     * @return なし
+     */
+    indices_t SetInputShape(indices_t shape)
     {
-        m_input_shape = x.GetShape();
+        // 形状設定
+        m_input_shape = shape;
         BB_ASSERT(m_input_shape.size() == 3);
 
         m_input_w_size = m_input_shape[0];
@@ -101,15 +95,56 @@ public:
         m_output_shape[1] = m_filter_h_size;
         m_output_shape[2] = m_input_c_size;
 
-        auto type = x.GetType();
-        BB_ASSERT(type == DataType<FT>::type);
+        return m_output_shape;
+    }
+    
+
+
+protected:
+	inline index_t GetInputNode(index_t c, index_t y, index_t x)
+	{
+		return (c * m_input_h_size + y)*m_input_w_size + x;
+	}
+
+	inline index_t GetOutputNode(index_t c, index_t y, index_t x)
+	{
+		return (c*m_filter_h_size + y)*m_filter_w_size + x;
+	}
+
+public:
+
+    FrameBuffer Forward(FrameBuffer x, bool train = true)
+    {
+        BB_ASSERT(x.GetType() == DataType<FT>::type);
+
+        // SetInputShpaeされていなければ初回に設定
+        if ( x.GetShape() != m_input_shape ) {
+            SetInputShape(x.GetShape());
+        }
+
+        /*
+        m_input_shape = x.GetShape();
+        BB_ASSERT(m_input_shape.size() == 3);
+
+        m_input_w_size = m_input_shape[0];
+        m_input_h_size = m_input_shape[1];
+        m_input_c_size = m_input_shape[2];
+		m_output_h_size = m_input_h_size - m_filter_h_size + 1;
+		m_output_w_size = m_input_w_size - m_filter_w_size + 1;
+
+        m_output_shape.resize(3);
+        m_output_shape[0] = m_filter_w_size;
+        m_output_shape[1] = m_filter_h_size;
+        m_output_shape[2] = m_input_c_size;
+        */
+
         m_input_frame_size = x.GetFrameSize();
         m_output_frame_size = m_input_frame_size * m_output_h_size * m_output_w_size;
 
         m_y.Resize(x.GetType(), m_output_frame_size, m_output_shape);
 
 #ifdef BB_WITH_CUDA
-        if ( type == BB_TYPE_FP32 && x.IsDeviceAvailable() && m_y.IsDeviceAvailable())
+        if ( x.GetType() == BB_TYPE_FP32 && x.IsDeviceAvailable() && m_y.IsDeviceAvailable())
         {
             auto ptr_x = x.GetMemoryDevConstPtr();
             auto ptr_y = m_y.GetMemoryDevPtr();

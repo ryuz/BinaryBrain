@@ -3,55 +3,42 @@
 #include "gtest/gtest.h"
 
 #include "bb/LoweringConvolution.h"
-#include "bb/NeuralNetDenseConvolution.h"
-#include "bb/NeuralNetOptimizerAdam.h"
+#include "bb/DenseAffine.h"
 
-inline void testSetupLayerBuffer(bb::NeuralNetLayer<>& net)
+
+TEST(LoweringConvolutionTest, testLoweringConvolution)
 {
-	net.SetInputSignalBuffer (net.CreateInputSignalBuffer());
-	net.SetInputErrorBuffer (net.CreateInputErrorBuffer());
-	net.SetOutputSignalBuffer(net.CreateOutputSignalBuffer());
-	net.SetOutputErrorBuffer(net.CreateOutputErrorBuffer());
-}
+	auto sub_affine = bb::DenseAffine<float>::Create(1);
+//    1 * 2 * 2
 
+	auto cnv = bb::LoweringConvolution<>::Create(sub_affine, 1, 2, 2);
 
+    bb::FrameBuffer x_buf(BB_TYPE_FP32, 1, {3, 3, 1});
 
+    cnv->SetInputShape({3, 3, 1});
 
-TEST(NeuralNetLoweringConvolutionTest, testNeuralNetLoweringConvolution)
-{
-	bb::NeuralNetDenseAffine<>	sub_affine(1 * 2 * 2, 1);
-	bb::NeuralNetGroup<>		sub_net;
-	sub_net.AddLayer(&sub_affine);
-	bb::NeuralNetLoweringConvolution<>	cnv(&sub_net, 1, 3, 3, 1, 2, 2);
+//	EXPECT_EQ(9, cnv.GetInputNodeSize());
+//	EXPECT_EQ(4, cnv.GetOutputNodeSize());
 
-	cnv.SetBatchSize(1);
-	testSetupLayerBuffer(cnv);
-	auto in_val = cnv.GetInputSignalBuffer();
-	auto out_val = cnv.GetOutputSignalBuffer();
+	x_buf.SetFP32(0, 3 * 0 + 0, 0.1f);
+	x_buf.SetFP32(0, 3 * 0 + 1, 0.2f);
+	x_buf.SetFP32(0, 3 * 0 + 2, 0.3f);
+	x_buf.SetFP32(0, 3 * 1 + 0, 0.4f);
+	x_buf.SetFP32(0, 3 * 1 + 1, 0.5f);
+	x_buf.SetFP32(0, 3 * 1 + 2, 0.6f);
+	x_buf.SetFP32(0, 3 * 2 + 0, 0.7f);
+	x_buf.SetFP32(0, 3 * 2 + 1, 0.8f);
+	x_buf.SetFP32(0, 3 * 2 + 2, 0.9f);
 
-	EXPECT_EQ(9, cnv.GetInputNodeSize());
-	EXPECT_EQ(4, cnv.GetOutputNodeSize());
-
-	in_val.SetReal(0, 3 * 0 + 0, 0.1f);
-	in_val.SetReal(0, 3 * 0 + 1, 0.2f);
-	in_val.SetReal(0, 3 * 0 + 2, 0.3f);
-	in_val.SetReal(0, 3 * 1 + 0, 0.4f);
-	in_val.SetReal(0, 3 * 1 + 1, 0.5f);
-	in_val.SetReal(0, 3 * 1 + 2, 0.6f);
-	in_val.SetReal(0, 3 * 2 + 0, 0.7f);
-	in_val.SetReal(0, 3 * 2 + 1, 0.8f);
-	in_val.SetReal(0, 3 * 2 + 2, 0.9f);
-
-	in_val.SetDimensions({ 3, 3, 1 });
-	EXPECT_EQ(0.1f, in_val.GetReal(0, { 0 , 0, 0 }));
-	EXPECT_EQ(0.2f, in_val.GetReal(0, { 1 , 0, 0 }));
-	EXPECT_EQ(0.3f, in_val.GetReal(0, { 2 , 0, 0 }));
-	EXPECT_EQ(0.4f, in_val.GetReal(0, { 0 , 1, 0 }));
-	EXPECT_EQ(0.5f, in_val.GetReal(0, { 1 , 1, 0 }));
-	EXPECT_EQ(0.6f, in_val.GetReal(0, { 2 , 1, 0 }));
-	EXPECT_EQ(0.7f, in_val.GetReal(0, { 0 , 2, 0 }));
-	EXPECT_EQ(0.8f, in_val.GetReal(0, { 1 , 2, 0 }));
-	EXPECT_EQ(0.9f, in_val.GetReal(0, { 2 , 2, 0 }));
+	EXPECT_EQ(0.1f, x_buf.GetFP32(0, { 0 , 0, 0 }));
+	EXPECT_EQ(0.2f, x_buf.GetFP32(0, { 1 , 0, 0 }));
+	EXPECT_EQ(0.3f, x_buf.GetFP32(0, { 2 , 0, 0 }));
+	EXPECT_EQ(0.4f, x_buf.GetFP32(0, { 0 , 1, 0 }));
+	EXPECT_EQ(0.5f, x_buf.GetFP32(0, { 1 , 1, 0 }));
+	EXPECT_EQ(0.6f, x_buf.GetFP32(0, { 2 , 1, 0 }));
+	EXPECT_EQ(0.7f, x_buf.GetFP32(0, { 0 , 2, 0 }));
+	EXPECT_EQ(0.8f, x_buf.GetFP32(0, { 1 , 2, 0 }));
+	EXPECT_EQ(0.9f, x_buf.GetFP32(0, { 2 , 2, 0 }));
 
 //	cnv.W(0, 0, 0, 0) = 0.1f;
 //	cnv.W(0, 0, 0, 1) = 0.2f;
@@ -60,14 +47,19 @@ TEST(NeuralNetLoweringConvolutionTest, testNeuralNetLoweringConvolution)
 
 //	cnv.b(0) = 0.321f;
 
-	sub_affine.W(0, 0) = 0.1f;
-	sub_affine.W(0, 1) = 0.2f;
-	sub_affine.W(0, 2) = 0.3f;
-	sub_affine.W(0, 3) = 0.4f;
-	sub_affine.b(0) = 0.321f;
+    {
+        auto W = sub_affine->lock_W();
+        auto b = sub_affine->lock_b();
+        W(0, 0) = 0.1f;
+        W(0, 1) = 0.2f;
+        W(0, 2) = 0.3f;
+        W(0, 3) = 0.4f;
+        b(0) = 0.321f;
+    }
 
 
-	cnv.Forward();
+	auto y_buf = cnv->Forward(x_buf);
+
 
 	float exp00 = 0.321f
 		+ 0.1f * 0.1f
@@ -98,14 +90,14 @@ TEST(NeuralNetLoweringConvolutionTest, testNeuralNetLoweringConvolution)
 //	std::cout << exp10 << std::endl;
 //	std::cout << exp11 << std::endl;
 
-	EXPECT_TRUE(abs(exp00 - out_val.GetReal(0, 0)) < 0.000001);
-	EXPECT_TRUE(abs(exp01 - out_val.GetReal(0, 1)) < 0.000001);
-	EXPECT_TRUE(abs(exp10 - out_val.GetReal(0, 2)) < 0.000001);
-	EXPECT_TRUE(abs(exp11 - out_val.GetReal(0, 3)) < 0.000001);
+	EXPECT_NEAR(exp00, y_buf.GetFP32(0, 0), 0.000001);
+	EXPECT_NEAR(exp01, y_buf.GetFP32(0, 1), 0.000001);
+	EXPECT_NEAR(exp10, y_buf.GetFP32(0, 2), 0.000001);
+	EXPECT_NEAR(exp11, y_buf.GetFP32(0, 3), 0.000001);
 }
 
 
-#if 1
+#if 0
 
 TEST(NeuralNetLoweringConvolutionTest, testNeuralNetLoweringConvolution2)
 {
@@ -317,7 +309,7 @@ TEST(NeuralNetLoweringConvolutionTest, testNeuralNetLoweringConvolution2)
 #endif
 
 
-
+#if 0
 
 TEST(NeuralNetLoweringConvolutionTest, testNeuralNetLoweringConvolutionCmp)
 {
@@ -499,3 +491,7 @@ TEST(NeuralNetLoweringConvolutionTest, testNeuralNetLoweringConvolutionCmp)
 		}
 	}
 }
+
+
+#endif
+
