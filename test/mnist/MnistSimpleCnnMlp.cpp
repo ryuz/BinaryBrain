@@ -60,8 +60,8 @@ void MnistSimpleCnnMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
     net->Add(bb::ReLU<float>::Create());
     net->Add(bb::MicroMlpAffine<6, 16, float>::Create({10}));
 
-    bb::LossCrossEntropyWithSoftmax<float>          lossFunc;
-    bb::AccuracyCategoricalClassification<float>    accFunc(10);
+    auto lossFunc = bb::LossCrossEntropyWithSoftmax<float>::Create();
+    auto accFunc  = bb::AccuracyCategoricalClassification<float>::Create(10);
 
     net->SetInputShape({28, 28, 1});
 
@@ -85,7 +85,7 @@ void MnistSimpleCnnMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
     std::mt19937_64 mt(1);
 
     for ( bb::index_t epoch = 0; epoch < epoch_size; ++epoch ) {
-        accFunc.Clear();
+        accFunc->Clear();
         for (bb::index_t i = 0; i < (bb::index_t)(data.x_train.size() - mini_batch_size); i += mini_batch_size)
         {
             x.SetVector(data.x_train, i);
@@ -93,14 +93,14 @@ void MnistSimpleCnnMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
 
             auto y = net->Forward(x);
             
-            auto dy = lossFunc.CalculateLoss(y, t);
-            accFunc.CalculateAccuracy(y, t);
+            auto dy = lossFunc->CalculateLoss(y, t);
+            accFunc->CalculateAccuracy(y, t);
 
             dy = net->Backward(dy);
 
             optimizer->Update();
         }
-        std::cout << "accuracy : " << accFunc.GetAccuracy() << std::endl;
+        std::cout << "accuracy : " << accFunc->GetAccuracy() << std::endl;
 
         bb::ShuffleDataSet(mt(), data.x_train, data.y_train);
     }

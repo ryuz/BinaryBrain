@@ -30,11 +30,18 @@ protected:
     FrameBuffer m_dy;
     double      m_loss;
 
+protected:
+	LossCrossEntropyWithSoftmax() {}
 
 public:
-	LossCrossEntropyWithSoftmax() {}
 	~LossCrossEntropyWithSoftmax() {}
 	
+    static std::shared_ptr<LossCrossEntropyWithSoftmax> Create(void)
+    {
+        auto self = std::shared_ptr<LossCrossEntropyWithSoftmax>(new LossCrossEntropyWithSoftmax);
+        return self;
+    }
+
     void Clear(void)
     {
         m_loss = 0;

@@ -26,19 +26,26 @@ protected:
 	double  m_accuracy = 0;
     index_t m_frames;
 
-public:
-	AccuracyCategoricalClassification(index_t num_classes)
-	{
-		m_num_classes = num_classes;
-	}
 
+protected:
+    AccuracyCategoricalClassification()	{}
+
+public:
 	~AccuracyCategoricalClassification() {}
 
+    static std::shared_ptr<AccuracyCategoricalClassification> Create(index_t num_classes)
+    {
+        auto self = std::shared_ptr<AccuracyCategoricalClassification>(new AccuracyCategoricalClassification);
+		self->m_num_classes = num_classes;
+        return self;
+    }
+     
     void Clear(void)
     {
         m_accuracy = 0;
         m_frames   = 0;
     }
+
 
     double GetAccuracy(void) const
     {

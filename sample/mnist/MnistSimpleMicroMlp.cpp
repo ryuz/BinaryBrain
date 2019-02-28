@@ -145,13 +145,13 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
     auto data = bb::LoadMnist<>::Load(10);
 #endif
     
-    MnistSimpleMicroMlpNet                          cpu_net;
-    bb::LossCrossEntropyWithSoftmax<float>          cpu_lossFunc;
-    bb::AccuracyCategoricalClassification<float>    cpu_accFunc(10);
+    MnistSimpleMicroMlpNet  cpu_net;
+    auto cpu_lossFunc = bb::LossCrossEntropyWithSoftmax<float>::Create();
+    auto cpu_accFunc  = bb::AccuracyCategoricalClassification<float>::Create(10);
 
-    MnistSimpleMicroMlpNet                          gpu_net;
-    bb::LossCrossEntropyWithSoftmax<float>          gpu_lossFunc;
-    bb::AccuracyCategoricalClassification<float>    gpu_accFunc(10);
+    MnistSimpleMicroMlpNet  gpu_net;
+    auto gpu_lossFunc = bb::LossCrossEntropyWithSoftmax<float>::Create();
+    auto gpu_accFunc  = bb::AccuracyCategoricalClassification<float>::Create(10);
 
     cpu_net.SetInputShape({28, 28, 1});
     gpu_net.SetInputShape({28, 28, 1});
@@ -179,8 +179,8 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
     }
 
     for ( bb::index_t epoch = 0; epoch < epoch_size; ++epoch ) {
-        cpu_accFunc.Clear();
-        gpu_accFunc.Clear();
+        cpu_accFunc->Clear();
+        gpu_accFunc->Clear();
         for (bb::index_t i = 0; i < (bb::index_t)(data.x_train.size() - mini_batch_size); i += mini_batch_size)
         {
             cpu_x.SetVector(data.x_train, i);
@@ -191,11 +191,11 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
             auto cpu_y = cpu_net.Forward(cpu_x);
             auto gpu_y = gpu_net.Forward(gpu_x);
             
-            auto cpu_dy = cpu_lossFunc.CalculateLoss(cpu_y, cpu_t);
-            auto gpu_dy = gpu_lossFunc.CalculateLoss(gpu_y, gpu_t);
+            auto cpu_dy = cpu_lossFunc->CalculateLoss(cpu_y, cpu_t);
+            auto gpu_dy = gpu_lossFunc->CalculateLoss(gpu_y, gpu_t);
 
-            cpu_accFunc.CalculateAccuracy(cpu_y, cpu_t);
-            gpu_accFunc.CalculateAccuracy(gpu_y, gpu_t);
+            cpu_accFunc->CalculateAccuracy(cpu_y, cpu_t);
+            gpu_accFunc->CalculateAccuracy(gpu_y, gpu_t);
 
             cpu_dy = cpu_net.Backward(cpu_dy);
             gpu_dy = gpu_net.Backward(gpu_dy);
@@ -203,8 +203,8 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
             cpu_optimizer->Update();
             gpu_optimizer->Update();
         }
-        std::cout << "cpu : " << cpu_accFunc.GetAccuracy() << std::endl;
-        std::cout << "gpu : " << gpu_accFunc.GetAccuracy() << std::endl;
+        std::cout << "cpu : " << cpu_accFunc->GetAccuracy() << std::endl;
+        std::cout << "gpu : " << gpu_accFunc->GetAccuracy() << std::endl;
 
         bb::ShuffleDataSet(mt(), data.x_train, data.y_train);
     }
