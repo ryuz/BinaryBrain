@@ -541,6 +541,29 @@ inline void DataType_Add<Bit>(void* base, index_t index, Bit value)
 }
 
 
+template <typename T = float>
+struct TrainData
+{
+    indices_t                       x_shape;
+    indices_t                       t_shape;
+	std::vector< std::vector<T> >	x_train;
+	std::vector< std::vector<T> >	t_train;
+	std::vector< std::vector<T> >	x_test;
+	std::vector< std::vector<T> >	t_test;
+
+	void clear(void) {
+        x_shape.clear();
+        t_shape.clear();
+		x_train.clear();
+		t_train.clear();
+		x_test.clear();
+		t_test.clear();
+	}
+
+	bool empty(void) {
+		return x_train.empty() || t_train.empty() || x_test.empty() || t_test.empty();
+	}
+};
 
 }
 

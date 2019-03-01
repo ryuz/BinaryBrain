@@ -29,14 +29,14 @@ public:
         m_m += (1 - m_beta1) * (grads - m_m);
         m_v += (1 - m_beta2) * (pow(grads, 2) - m_v);
 
-        std::cout << "[model] lr_t = " << lr_t << std::endl;
-        std::cout << "[model] m_m  = " << m_m << std::endl;
-        std::cout << "[model] m_v  = " << m_v << std::endl;
+//       std::cout << "[model] lr_t = " << lr_t << std::endl;
+//       std::cout << "[model] m_m  = " << m_m << std::endl;
+//       std::cout << "[model] m_v  = " << m_v << std::endl;
         
         params -= lr_t * m_m / (sqrt(m_v) + 1e-7f);
 
-        std::cout << "[model] lr_t * m_m / (sqrt(m_v) + 1e-7f)  = " << lr_t * m_m / (sqrt(m_v) + 1e-7f) << std::endl;
-        std::cout << "[model] sqrt(m_v) = " << sqrt(m_v) << std::endl;
+//        std::cout << "[model] lr_t * m_m / (sqrt(m_v) + 1e-7f)  = " << lr_t * m_m / (sqrt(m_v) + 1e-7f) << std::endl;
+//        std::cout << "[model] sqrt(m_v) = " << sqrt(m_v) << std::endl;
     }
 };
 
@@ -49,14 +49,14 @@ TEST(NeuralNetOptimizerAdamTest, testNeuralNetOptimizerAdamTest)
 
     ModelAdam   model(learning_rate, beta1, beta2);
 
-    bb::OptimizerAdam<float>   opt_adam(learning_rate, beta1, beta2);
+    auto opt_adam = bb::OptimizerAdam<float>::Create(learning_rate, beta1, beta2);
     auto param_tensor = std::shared_ptr<bb::Tensor>(new bb::Tensor(BB_TYPE_FP32, 1));
     auto grad_tensor  = std::shared_ptr<bb::Tensor>(new bb::Tensor(BB_TYPE_FP32, 1));
     bb::Variables param_var;
     bb::Variables grad_var;
     param_var.PushBack(param_tensor);
     grad_var.PushBack(grad_tensor);
-    opt_adam.SetVariables(param_var, grad_var);
+    opt_adam->SetVariables(param_var, grad_var);
 
     std::mt19937_64                 mt(1);
     std::normal_distribution<float> norm_dist(0.0001f, 2.0f);
@@ -83,7 +83,7 @@ TEST(NeuralNetOptimizerAdamTest, testNeuralNetOptimizerAdamTest)
             auto grad_ptr = grad_tensor->GetPtr<float>();
             grad_ptr(0) = grad;
         }
-        opt_adam.Update();
+        opt_adam->Update();
         
         {
             auto param_ptr = param_tensor->GetConstPtr<float>();
@@ -161,11 +161,11 @@ TEST(OptimizerAdamTest, testOptimizerAdam_Cmp)
     grad_var_cpu.PushBack(grad_cpu);
     grad_var_gpu.PushBack(grad_gpu);
 
-    bb::OptimizerAdam<float> opt_cpu;
-    bb::OptimizerAdam<float> opt_gpu;
+    auto opt_cpu = bb::OptimizerAdam<float>::Create();
+    auto opt_gpu = bb::OptimizerAdam<float>::Create();
 
-    opt_cpu.SetVariables(param_var_cpu, grad_var_cpu);
-    opt_gpu.SetVariables(param_var_gpu, grad_var_gpu);
+    opt_cpu->SetVariables(param_var_cpu, grad_var_cpu);
+    opt_gpu->SetVariables(param_var_gpu, grad_var_gpu);
 
     {
         auto param_ptr_cpu = param_cpu->GetPtr<float>();
@@ -199,8 +199,8 @@ TEST(OptimizerAdamTest, testOptimizerAdam_Cmp)
             }
         }
 
-        opt_cpu.Update();
-        opt_gpu.Update();
+        opt_cpu->Update();
+        opt_gpu->Update();
     }
 }
 

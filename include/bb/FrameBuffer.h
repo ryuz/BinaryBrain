@@ -879,7 +879,7 @@ public:
     void SetVector(std::vector< std::vector<Tp> > const &data, index_t offset)
     {
         BB_ASSERT(GetType() == DataType<Tp>::type);
-        BB_ASSERT(offset + m_frame_size < (index_t)data.size() );
+        BB_ASSERT(offset + m_frame_size <= (index_t)data.size() );
 
         auto ptr = GetPtr<Tp>();
         for (index_t frame = 0; frame < m_frame_size; ++frame) {

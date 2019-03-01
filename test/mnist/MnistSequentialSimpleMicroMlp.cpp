@@ -23,6 +23,7 @@
 #include "bb/ShuffleSet.h"
 #include "bb/Utility.h"
 #include "bb/Sequential.h"
+#include "bb/Fitting.h"
 
 
 
@@ -31,9 +32,9 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
 {
   // load MNIST data
 #ifdef _DEBUG
-	auto data = bb::LoadMnist<>::Load(10, 512, 128);
+	auto td = bb::LoadMnist<>::Load(10, 512, 128);
 #else
-    auto data = bb::LoadMnist<>::Load(10);
+    auto td = bb::LoadMnist<>::Load(10);
 #endif
 
     auto net = bb::Sequential::Create();
@@ -70,6 +71,13 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
         net->SendCommand("binary true");
     }
 
+
+
+//    bb::Fitting::fitt
+
+
+
+
     std::mt19937_64 mt(1);
 
     for ( bb::index_t epoch = 0; epoch < epoch_size; ++epoch ) {
@@ -86,10 +94,10 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
 #endif
 
         accFunc->Clear();
-        for (bb::index_t i = 0; i < (bb::index_t)(data.x_train.size() - mini_batch_size); i += mini_batch_size)
+        for (bb::index_t i = 0; i < (bb::index_t)(td.x_train.size() - mini_batch_size); i += mini_batch_size)
         {
-            x.SetVector(data.x_train, i);
-            t.SetVector(data.y_train, i);
+            x.SetVector(td.x_train, i);
+            t.SetVector(td.t_train, i);
 
             auto y = net->Forward(x);
             
@@ -102,7 +110,7 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
         }
         std::cout << "accuracy : " << accFunc->GetAccuracy() << std::endl;
 
-        bb::ShuffleDataSet(mt(), data.x_train, data.y_train);
+        bb::ShuffleDataSet(mt(), td.x_train, td.t_train);
     }
 
 }

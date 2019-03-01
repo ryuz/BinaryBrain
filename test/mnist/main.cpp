@@ -20,9 +20,9 @@ int main()
 {
 	omp_set_num_threads(4);
 
-//  MnistDenseAffine(64, 32);
+    MnistDenseAffine(64, 32);
 
-    MnistSimpleCnnMlp(64, 32, true);
+//  MnistSimpleCnnMlp(64, 32, true);
 //  MnistSequentialMicroMlp(64, 128, true);
 //	MnistSimpleMicroMlp(64, 128, true);
 

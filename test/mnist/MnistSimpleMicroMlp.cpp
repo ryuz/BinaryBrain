@@ -269,9 +269,9 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
 {
     // load MNIST data
 #ifdef _DEBUG
-	auto data = bb::LoadMnist<>::Load(10, 512, 128);
+	auto td = bb::LoadMnist<>::Load(10, 512, 128);
 #else
-    auto data = bb::LoadMnist<>::Load(10);
+    auto td = bb::LoadMnist<>::Load(10);
 #endif
 
 /*
@@ -339,12 +339,12 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
     for ( bb::index_t epoch = 0; epoch < epoch_size; ++epoch ) {
         cpu_accFunc->Clear();
         gpu_accFunc->Clear();
-        for (bb::index_t i = 0; i < (bb::index_t)(data.x_train.size() - mini_batch_size); i += mini_batch_size)
+        for (bb::index_t i = 0; i < (bb::index_t)(td.x_train.size() - mini_batch_size); i += mini_batch_size)
         {
-            cpu_x.SetVector(data.x_train, i);
-            gpu_x.SetVector(data.x_train, i);
-            cpu_t.SetVector(data.y_train, i);
-            gpu_t.SetVector(data.y_train, i);
+            cpu_x.SetVector(td.x_train, i);
+            gpu_x.SetVector(td.x_train, i);
+            cpu_t.SetVector(td.t_train, i);
+            gpu_t.SetVector(td.t_train, i);
 
             auto cpu_y = cpu_net.Forward(cpu_x);
             auto gpu_y = gpu_net.Forward(gpu_x);
@@ -370,7 +370,7 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
         std::cout << "cpu : " << cpu_accFunc->GetAccuracy() << std::endl;
         std::cout << "gpu : " << gpu_accFunc->GetAccuracy() << std::endl;
 
-        bb::ShuffleDataSet(mt(), data.x_train, data.y_train);
+        bb::ShuffleDataSet(mt(), td.x_train, td.t_train);
     }
 
 }

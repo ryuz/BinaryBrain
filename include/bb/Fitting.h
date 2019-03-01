@@ -21,7 +21,6 @@
 #include "bb/AccuracyFunction.h"
 #include "bb/Optimizer.h"
 #include "bb/Utility.h"
-#include "bb/TrainData.h"
 
 
 namespace bb {
@@ -31,230 +30,72 @@ template <typename T>
 class Fitting
 {
 protected:
-    std::mt19937_64                        m_mt;
+    using callback_proc_t = void (*)(std::shared_ptr< Layer >, void*);
 
-//	std::shared_ptr<AccuracyFunction>      m_accFunc;
-//	std::shared_ptr<LossFunction>          m_lossFunc;
+    std::string                         m_name;
+    std::shared_ptr<Layer>              m_net;
+
+  	std::mt19937_64                     m_mt;
+
+	index_t                             m_epoch = 0;
+	index_t                             m_max_batch_size = 16;
+
+	std::shared_ptr<AccuracyFunction>   m_accFunc;
+	std::shared_ptr<LossFunction>       m_lossFunc;
+	std::shared_ptr<Optimizer>          m_optimizer;
+
+	bool                                m_print_progress     = true;
+	bool                                m_file_write         = true;
+	bool                                m_over_write         = false;
+	bool                                m_initial_evaluation = false;
+	
+    callback_proc_t                     m_callback_proc = nullptr;
+	void                                *m_callback_user = 0;
     
 public:
-
-    struct run_calculation_t
+    // コンストラクタ
+    Fitting(std::shared_ptr< Layer > net, std::string name="")
     {
-	    std::vector< std::vector<T> > const     &x;
-	    std::vector< std::vector<T> > const     &t;
-	    index_t                                 max_batch_size;
-	    index_t                                 min_batch_size;
-	    std::shared_ptr<AccuracyFunction>       accFunc;
-	    std::shared_ptr<LossFunction>           lossFunc;
-	    bool                                    train = false;
-	    bool                                    print_progress = false;
-    };
-    
-    double RunCalculation(
-        indices_t                           x_shape,
-        std::vector< std::vector<T> > const &x_vec,
-        indices_t                           t_shape,
-		std::vector< std::vector<T> > const &t_vec,
-        index_t max_batch_size,
-		index_t min_batch_size = 1,
-	    std::shared_ptr<AccuracyFunction> accFunc = nullptr,
-	    std::shared_ptr<LossFunction>     lossFunc = nullptr,
-		std::shared_ptr<Optimizer>        optimizer = nullptr,
-		bool train = false,
-		bool print_progress = false)
-    {
-        BB_ASSERT(x.size() == y.size());
-
-        if ( accFunc  != nullptr ) { accFunc.Clear(); }
-        if ( lossFunc != nullptr ) { lossFunc.Clear(); }
-        
-        index_t frame_size = (index_t)x.size();
-        
-        FrameBuffer x_buf;
-        FrameBuffer t_buf;
-
-        bb::index_t index = 0;
-        while ( index < frame_size )
-        {
-            // ミニバッチサイズ計算
-            bb::index_t  mini_batch_size = std::min(max_batch_size, frame_size - index);
-
-            // 残数が規定以下なら抜ける
-            if ( mini_batch_size < min_batch_size ) {
-                break;
-            }
-
-            // 学習データセット
-            x_buf.Resize(DataType<T>::type, mini_batch_size, x_shape);
-            x_buf.SetVector(x_vec, index);
-
-            // Forward
-            auto y_buf = net->Forward(x_buf, train);
-
-            // 期待値データセット
-            t_buf.Resize(DataType<T>::type, mini_batch_size, t_shape);
-            t.SetVector(t_vec, index);
-
-			// 進捗表示
-			if ( print_progress ) {
-				index_t progress = index + mini_batch_size;
-				index_t rate = progress * 100 / frame_size;
-				std::cout << "[" << rate << "% (" << progress << "/" << frame_size << ")]";
-			}
-            
-            FrameBuffer dy_buf;
-            if ( lossFunc != nullptr ) {
-                dy_buf = lossFunc->CalculateLoss(y_buf, t_buf);
-            }
-
-            if ( accFunc != nullptr ) {
-                accFunc.CalculateAccuracy(y_buf, t_buf);
-            }
-
-            if ( train && lossFunc != nullptr ) {
-                auto dx = net->Backward(dy_buf);
-                
-                if ( optimizer != nullptr ) {
-                    optimizer->Update();
-                }
-            }
-
-            // 進捗表示
-		    if ( print_progress ) {
-                if ( lossFunc != nullptr ) {
-	    		    std::cout << "  loss : " << lossFunc->GetLoss();
-                }
-
-                if ( accFunc != nullptr ) {
-                    std::cout << "  acc : " << accFunc->GetAccuracy();
-                }
-
-				std::cout << "\r" << std::flush;
-			}
-
-            // インデックスを進める
-            index += min_batch_size;
+        m_net  = net;
+        m_name = name;
+        if ( m_name.empty() ) {
+            m_name = m_net->GetLayerName();
         }
     }
 
+    void SetSeed(std::int64_t seed)     { m_mt.seed(seed); }
+    void SetMaxBatchSize(index_t batch) { m_max_batch_size = batch; }
 
-    double RunCalculation(
-		const   std::vector< std::vector<T> >& x,
-		const   std::vector< std::vector<T> >& y,
-		index_t max_batch_size,
-		index_t min_batch_size,
-		const NeuralNetAccuracyFunction<T>* accFunc = nullptr,
-		const NeuralNetLossFunction<T>* lossFunc = nullptr,
-		bool train = false,
-		bool print_progress = false)
-	{
-		auto it_y = y.cbegin();
+    void SetAccuracyFunction(std::shared_ptr<AccuracyFunction> accFunc) { m_accFunc = accFunc; }
+    void SetLossFunction(std::shared_ptr<LossFunction > lossFunc)       { m_lossFunc = lossFunc; }
+    void SetOptimizer(std::shared_ptr<Optimizer > optimizer)            { m_optimizer = optimizer; }
 
-		INDEX x_size = (INDEX)x.size();
-		double accuracy = 0;
+    void SetPrintProgress(bool print_progress) { m_print_progress = print_progress; }
+    void SetFileWrite(bool file_write) { m_file_write = file_write; }
+    void SetOverWrite(bool over_write) { m_over_write = over_write; }
+    void SetInitialEvaluation(bool initial_evaluation) { m_initial_evaluation = false; }
 
-		for (INDEX x_index = 0; x_index < x_size; x_index += max_batch_size) {
-			// 末尾のバッチサイズクリップ
-			INDEX batch_size = std::min(max_batch_size, (INDEX)x.size() - x_index);
-			if (batch_size < min_batch_size) { break; }
+    void SetCallback(callback_proc_t callback_proc, void *user)
+    {
+        m_callback_proc = callback_proc;
+	    m_callback_user = user;
+    }
+    
 
-			INDEX node_size = x[0].size();
-
-			// バッチサイズ設定
-			SetBatchSize(batch_size);
-
-			auto in_sig_buf = this->GetInputSignalBuffer();
-			auto out_sig_buf = this->GetOutputSignalBuffer();
-
-			// データ格納
-			for (INDEX frame = 0; frame < batch_size; ++frame) {
-				for (INDEX node = 0; node < node_size; ++node) {
-					in_sig_buf.template Set<T>(frame, node, x[x_index + frame][node]);
-				}
-			}
-
-			// 予測
-			Forward(train);
-
-			// 進捗表示
-			if (print_progress) {
-				INDEX progress = x_index + batch_size;
-				INDEX rate = progress * 100 / x_size;
-				std::cout << "[" << rate << "% (" << progress << "/" << x_size << ")]";
-			}
-
-			// 誤差逆伝播
-			if (lossFunc != nullptr) {
-				auto out_err_buf = this->GetOutputErrorBuffer();
-				auto loss = lossFunc->CalculateLoss(out_sig_buf, out_err_buf, it_y);
-
-				// 進捗表示
-				if (print_progress) {
-					std::cout << "  loss : " << loss;
-				}
-			}
-
-			if (accFunc != nullptr) {
-				accuracy += accFunc->CalculateAccuracy(out_sig_buf, it_y);
-
-				// 進捗表示
-				if (print_progress) {
-					std::cout << "  acc : " << accuracy / (x_index + batch_size);
-				}
-			}
-
-			if (train) {
-				// 逆伝播
-				Backward();
-
-				// 更新
-				Update();
-			}
-
-			// 進捗表示
-			if (print_progress) {
-				std::cout << "\r" << std::flush;
-			}
-
-			// イテレータを進める
-			it_y += batch_size;
-		}
-
-		// 進捗表示クリア
-		if (print_progress) {
-			std::cout << "                                                                    \r" << std::flush;
-		}
-
-		return accuracy / x_size;
-	}
-	
-	void Fitting(
-		std::string name,
-		std::vector< std::vector<T> >& x_train,
-		std::vector< std::vector<T> >& y_train,
-		std::vector< std::vector<T> >& x_test,
-		std::vector< std::vector<T> >& y_test,
-		INDEX epoch_size,
-		INDEX max_batch_size,
-		const NeuralNetAccuracyFunction<T>* accFunc,
-		const NeuralNetLossFunction<T>* lossFunc,
-		bool print_progress = true,
-		bool file_write = true,
-		bool over_write = false,
-		bool initial_evaluation = false,
-		std::uint64_t seed=1,
-		void (*callback)(NeuralNet<T>* net, void* user) = 0,
-		void* user = 0)
-	{
-		std::string csv_file_name = name + "_acc.txt";
-		std::string log_file_name = name + "_log.txt";
-		std::string net_file_name = name + "_net.json";
-		std::mt19937_64 mt(seed);
+	void Run(
+            TrainData<T> &td,
+		    index_t      epoch_size,
+		    index_t      batch_size
+        )
+    {
+		std::string csv_file_name = m_name + "_acc.txt";
+		std::string log_file_name = m_name + "_log.txt";
+		std::string net_file_name = m_name + "_net.json";
 		
 		// ログファイルオープン
 		std::ofstream ofs_log;
-		if (file_write) {
-			ofs_log.open(log_file_name, over_write ? std::ios::out : std::ios::app);
+		if ( m_file_write ) {
+			ofs_log.open(log_file_name, m_over_write ? std::ios::out : std::ios::app);
 		}
 
 		{
@@ -262,10 +103,10 @@ public:
 			ostream_tee log_stream;
 			log_stream.add(std::cout);
 			if (ofs_log.is_open()) { log_stream.add(ofs_log); }
-			m_log_stream = &log_stream;
 
 			// 以前の計算があれば読み込み
 			int prev_epoch = 0;
+            /*
 			if (file_write && !over_write) {
 				std::ifstream ifs(net_file_name);
 				if (ifs.is_open()) {
@@ -275,14 +116,15 @@ public:
 					log_stream << "[load] " << net_file_name << std::endl;
 				}
 			}
+            */
 
 			// 開始メッセージ
-			log_stream << "fitting start : " << name << std::endl;
+			log_stream << "fitting start : " << m_name << std::endl;
 
 			// 初期評価
-			if (initial_evaluation) {
-				auto test_accuracy  = RunCalculation(x_test,  y_test,  max_batch_size, 0, accFunc);
-				auto train_accuracy = RunCalculation(x_train, y_train, max_batch_size, 0, accFunc);
+			if (m_initial_evaluation) {
+				auto test_accuracy  = Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_accFunc);
+				auto train_accuracy = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, 0, m_accFunc);
 				log_stream << "[initial] "
 					<< "test_accuracy : " << std::setw(6) << std::fixed << std::setprecision(4) << test_accuracy << " "
 					<< "train_accuracy : " << std::setw(6) << std::fixed << std::setprecision(4) << train_accuracy << std::endl;
@@ -293,9 +135,11 @@ public:
 
 			for (int epoch = 0; epoch < epoch_size; ++epoch) {
 				// 学習実施
-				auto train_accuracy = RunCalculation(x_train, y_train, max_batch_size, max_batch_size, accFunc, lossFunc, true, print_progress);
+				auto train_accuracy = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, batch_size,
+                                        m_accFunc, m_lossFunc, m_optimizer, true, m_print_progress);
 
 				// ネット保存
+#if 0
 				if (file_write) {
 					int save_epoc = epoch + 1 + prev_epoch;
 
@@ -318,22 +162,23 @@ public:
 			//			log_stream << "[save] " << net_file_name << std::endl;
 					}
 				}
+#endif
 
 				// 学習状況評価
 				double now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
-				auto test_accuracy = RunCalculation(x_test, y_test, max_batch_size, 0, accFunc);
+				auto test_accuracy = Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_accFunc);
 				log_stream	<< std::setw(10) << std::fixed << std::setprecision(2) << now_time << "s "
 							<< "epoch[" << std::setw(3) << epoch + 1 + prev_epoch << "] "
 							<< "test_accuracy : "  << std::setw(6) << std::fixed << std::setprecision(4) << test_accuracy  << " "
 							<< "train_accuracy : " << std::setw(6) << std::fixed << std::setprecision(4) << train_accuracy << std::endl;
 
 				// callback
-				if (callback) {
-					callback(this, user);
+				if (m_callback_proc != nullptr) {
+					m_callback_proc(m_net, m_callback_user);
 				}
 
 				// Shuffle
-				ShuffleDataSet(mt(), x_train, y_train);
+				ShuffleDataSet(m_mt(), td.x_train, td.t_train);
 			}
 
 			// 終了メッセージ
@@ -341,40 +186,97 @@ public:
 		}
 	}
 
-	void Fitting(
-		std::string name,
-		TrainData<T> td,
-		INDEX epoch_size,
-		INDEX mini_batch_size,
-		const NeuralNetAccuracyFunction<T>* accFunc,
-		const NeuralNetLossFunction<T>* lossFunc,
-		bool print_progress = true,
-		bool file_write = true,
-		bool over_write = false,
-		bool initial_evaluation = true,
-		std::uint64_t seed = 1,
-		void (*callback)(NeuralNet<T>* net, void* user) = 0,
-		void* user = 0
-		)
-	{
-		Fitting(
-			name,
-			td.x_train,
-			td.y_train,
-			td.x_test,
-			td.y_test,
-			epoch_size,
-			mini_batch_size,
-			accFunc,
-			lossFunc,
-			print_progress,
-			file_write,
-			over_write,
-			initial_evaluation,
-			seed,
-			callback,
-			user);
-	}
+
+protected:
+    double Calculation(
+                std::vector< std::vector<T> > const &x,
+                indices_t x_shape,
+                std::vector< std::vector<T> > const &t,
+                indices_t t_shape,
+		        index_t max_batch_size,
+		        index_t min_batch_size,
+	            std::shared_ptr< AccuracyFunction > accFunc = nullptr,
+	            std::shared_ptr< LossFunction > lossFunc = nullptr,	
+                std::shared_ptr< Optimizer > optimizer = nullptr,
+		        bool train = false,
+		        bool print_progress = false)
+
+    {
+        BB_ASSERT(x.size() == t.size());
+
+        if ( accFunc  != nullptr ) { accFunc->Clear(); }
+        if ( lossFunc != nullptr ) { lossFunc->Clear(); }
+        
+        index_t frame_size = (index_t)x.size();
+        
+        FrameBuffer x_buf;
+        FrameBuffer t_buf;
+
+        bb::index_t index = 0;
+        while ( index < frame_size )
+        {
+            // ミニバッチサイズ計算
+            bb::index_t  mini_batch_size = std::min(max_batch_size, frame_size - index);
+
+            // 残数が規定以下なら抜ける
+            if ( mini_batch_size < min_batch_size ) {
+                break;
+            }
+
+            // 学習データセット
+            x_buf.Resize(DataType<T>::type, mini_batch_size, x_shape);
+            x_buf.SetVector(x, index);
+
+            // Forward
+            auto y_buf = m_net->Forward(x_buf, train);
+
+            // 期待値データセット
+            t_buf.Resize(DataType<T>::type, mini_batch_size, t_shape);
+            t_buf.SetVector(t, index);
+
+			// 進捗表示
+			if ( print_progress ) {
+				index_t progress = index + mini_batch_size;
+				index_t rate = progress * 100 / frame_size;
+				std::cout << "[" << rate << "% (" << progress << "/" << frame_size << ")]";
+			}
+            
+            FrameBuffer dy_buf;
+            if ( lossFunc != nullptr ) {
+                dy_buf = lossFunc->CalculateLoss(y_buf, t_buf);
+            }
+
+            if ( accFunc != nullptr ) {
+                accFunc->CalculateAccuracy(y_buf, t_buf);
+            }
+
+            if ( train && lossFunc != nullptr ) {
+                auto dx = m_net->Backward(dy_buf);
+                
+                if ( optimizer != nullptr ) {
+                    optimizer->Update();
+                }
+            }
+
+            // 進捗表示
+		    if ( print_progress ) {
+                if ( lossFunc != nullptr ) {
+	    		    std::cout << "  loss : " << lossFunc->GetLoss();
+                }
+
+                if ( accFunc != nullptr ) {
+                    std::cout << "  acc : " << accFunc->GetAccuracy();
+                }
+
+				std::cout << "\r" << std::flush;
+			}
+
+            // インデックスを進める
+            index += mini_batch_size;
+        }
+
+        return accFunc->GetAccuracy();
+    }
 
 };
 

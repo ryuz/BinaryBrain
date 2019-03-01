@@ -17,8 +17,6 @@
 #include <vector>
 #include <array>
 
-#include "TrainData.h"
-
 
 namespace bb {
 
@@ -149,7 +147,9 @@ public:
 	static TrainData<T> Load(int num_class = 10, int max_train = -1, int max_test = -1)
 	{
 		TrainData<T>	td;
-		if (!Load(td.x_train, td.y_train, td.x_test, td.y_test, num_class, max_train, max_test)) {
+        td.x_shape = indices_t({28, 28});
+        td.t_shape = indices_t({10});
+		if (!Load(td.x_train, td.t_train, td.x_test, td.t_test, num_class, max_train, max_test)) {
 			td.clear();
 		}
 		return td;

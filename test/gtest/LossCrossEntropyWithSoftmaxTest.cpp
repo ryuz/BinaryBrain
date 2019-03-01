@@ -75,10 +75,10 @@ TEST(LossCrossEntropyWithSoftmaxTest, testLossCrossEntropyWithSoftmax)
 		}
 	}
 
-    bb::LossCrossEntropyWithSoftmax<float> lossFunc;
+    auto lossFunc = bb::LossCrossEntropyWithSoftmax<float>::Create();
 
-	auto   dy_buf = lossFunc.CalculateLoss(y_buf, t_buf);
-    double loss   = lossFunc.GetLoss();
+	auto   dy_buf = lossFunc->CalculateLoss(y_buf, t_buf);
+    double loss   = lossFunc->GetLoss();
 
 //	std::cout << "loss = " << loss << " (exp:2.297830009460449)" << std::endl;
 	ASSERT_NEAR(loss, 2.297830009460449, 0.00001);

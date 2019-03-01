@@ -23,6 +23,7 @@
 #include "bb/ShuffleSet.h"
 #include "bb/Utility.h"
 #include "bb/Sequential.h"
+#include "bb/Fitting.h"
 
 
 
@@ -31,9 +32,9 @@ void MnistDenseAffine(int epoch_size, size_t mini_batch_size)
 {
   // load MNIST data
 #ifdef _DEBUG
-	auto data = bb::LoadMnist<>::Load(10, 512, 128);
+	auto td = bb::LoadMnist<>::Load(10, 512, 128);
 #else
-    auto data = bb::LoadMnist<>::Load(10);
+    auto td = bb::LoadMnist<>::Load(10);
 #endif
 
     auto net = bb::Sequential::Create();
@@ -54,6 +55,16 @@ void MnistDenseAffine(int epoch_size, size_t mini_batch_size)
 
     optimizer->SetVariables(net->GetParameters(), net->GetGradients());
 
+
+    bb::Fitting<float> fitting(net, "MnistDenseAffine");
+    fitting.SetLossFunction(lossFunc);
+    fitting.SetAccuracyFunction(accFunc);
+    fitting.SetOptimizer(optimizer);
+
+    fitting.Run(td, epoch_size, mini_batch_size);
+    return;
+
+#if 0
     std::mt19937_64 mt(1);
 
     for ( bb::index_t epoch = 0; epoch < epoch_size; ++epoch ) {
@@ -92,5 +103,6 @@ void MnistDenseAffine(int epoch_size, size_t mini_batch_size)
 
         bb::ShuffleDataSet(mt(), data.x_train, data.y_train);
     }
+#endif
 }
 
