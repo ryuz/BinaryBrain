@@ -308,6 +308,7 @@
     <CudaCompile Include="Binarize.cu" />
     <CudaCompile Include="HorizontalSum.cu" />
     <CudaCompile Include="Im2Col.cu" />
+    <CudaCompile Include="Manager.cu" />
     <CudaCompile Include="MicroMlp.cu" />
     <CudaCompile Include="ReLU.cu" />
     <CudaCompile Include="Vector.cu" />

@@ -65,3 +65,52 @@ TEST(MemoryTest, testMem)
     a.Unlock();
 #endif
 }
+
+
+
+
+TEST(MemoryTest, testHostOnly)
+{
+	{
+		auto mem = bb::Memory::Create(4);
+
+        mem->GetPtr();
+        if ( mem->IsDeviceAvailable() ) {
+            mem->GetDevPtr();
+        }
+        
+        mem->SetHostOnly(true);
+        
+        mem->GetPtr();
+        if ( mem->IsDeviceAvailable() ) {
+            mem->GetDevPtr();
+        }
+        mem->GetPtr();
+        
+        mem->SetHostOnly(false);
+
+        mem->GetPtr();
+        if ( mem->IsDeviceAvailable() ) {
+            mem->GetDevPtr();
+        }
+        mem->GetPtr();
+
+        mem->SetHostOnly(true);
+        
+        mem->GetPtr();
+        if ( mem->IsDeviceAvailable() ) {
+            mem->GetDevPtr();
+        }
+        mem->GetPtr();
+        
+        mem->SetHostOnly(false);
+
+        mem->GetPtr();
+        if ( mem->IsDeviceAvailable() ) {
+            mem->GetDevPtr();
+        }
+        mem->GetPtr();
+    }
+}
+
+

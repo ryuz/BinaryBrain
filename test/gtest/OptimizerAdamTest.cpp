@@ -88,7 +88,7 @@ TEST(NeuralNetOptimizerAdamTest, testNeuralNetOptimizerAdamTest)
         {
             auto param_ptr = param_tensor->GetConstPtr<float>();
         	EXPECT_FLOAT_EQ(exp_p, param_ptr(0));
-            std::cout << grad << ", " << exp_p << ", " << param_ptr(0) << std::endl;
+//          std::cout << grad << ", " << exp_p << ", " << param_ptr(0) << std::endl;
         }
     }
 }

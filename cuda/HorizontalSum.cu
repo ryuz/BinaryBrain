@@ -10,7 +10,7 @@
 
 
 // kernel
-__global__ void kernel_HorizontalSum(
+__global__ void kernel_fp32_HorizontalSum(
 			const float*	src,
 			float*			dst,
 			int				size)
@@ -49,7 +49,7 @@ __global__ void kernel_HorizontalSum(
 }
 
 
-int bbcu_HorizontalSum
+int bbcu_fp32_HorizontalSum
 		(
 			const float*	dev_src,
 			float*			dev_dst,
@@ -58,12 +58,14 @@ int bbcu_HorizontalSum
 			cudaStream_t	streamId
 		)
 {
+    BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
+
 	int		unit_x = 512;
 
 	dim3	grid(y_size);
 	dim3	block(unit_x);
 	
-	kernel_HorizontalSum<<<grid, block, unit_x*sizeof(float), streamId>>>(
+	kernel_fp32_HorizontalSum<<<grid, block, unit_x*sizeof(float), streamId>>>(
 			dev_src,
 			dev_dst,
 			x_size);
@@ -75,31 +77,6 @@ int bbcu_HorizontalSum
 		return 1;
     }
 	
-	return 0;
-}
-
-
-
-int bbcu_eva_HorizontalSum
-		(
-			const float*	src,
-			float*			dst,
-			int				x_size,
-			int				y_size
-		)
-{
-	float*	dev_src;
-	float*	dev_dst;
-
-	BB_CUDA_SAFE_CALL(cudaMalloc((void**)&dev_src, y_size * x_size * sizeof(float)));
-	BB_CUDA_SAFE_CALL(cudaMalloc((void**)&dev_dst, y_size * sizeof(float)));
-
-	BB_CUDA_SAFE_CALL(cudaMemcpy(dev_src, src, y_size * x_size * sizeof(float), cudaMemcpyHostToDevice));
-
-	bbcu_HorizontalSum(dev_src, dev_dst, x_size, y_size, 0);
-
-	BB_CUDA_SAFE_CALL(cudaMemcpy(dst, dev_dst, y_size * sizeof(float), cudaMemcpyDeviceToHost));
-
 	return 0;
 }
 

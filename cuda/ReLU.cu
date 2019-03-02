@@ -39,6 +39,8 @@ CUBB_DLL_EXPORT int cubb_fp32_ReLU_Forward
             cudaStream_t    streamId
         )
 {
+    BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
+
 	int		frame_block = frame_size;
 	int		frame_grid  = 1;
     while (frame_block > 1024) {
@@ -93,6 +95,8 @@ CUBB_DLL_EXPORT int cubb_fp32_ReLU_Backward
             cudaStream_t    streamId
         )
 {
+    BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
+
 	int		frame_block = frame_size;
 	int		frame_grid  = 1;
     while (frame_block > 1024) {
@@ -114,3 +118,4 @@ CUBB_DLL_EXPORT int cubb_fp32_ReLU_Backward
 	return 0;
 }
 
+// end of file

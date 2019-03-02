@@ -14,7 +14,7 @@
 // -------------------------------------------------
 
 template <int N=6, int M=16>
-__global__ void kernal_MicroMlp_Forward(
+__global__ void kernal_fp32_MicroMlp_Forward(
 			const float*	in_sig_buf,
 			float*			out_sig_buf,
 			int				frame_size,
@@ -88,7 +88,7 @@ __global__ void kernal_MicroMlp_Forward(
 
 
 template <int N=6, int M=16>
-int bbcu_MicroMlp_Forward
+int bbcu_fp32_MicroMlp_Forward
 		(
 			const float*	dev_in_sig,
 			float*			dev_out_sig,
@@ -103,10 +103,12 @@ int bbcu_MicroMlp_Forward
 			cudaStream_t	streamId = 0
 		)
 {
+    BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
+
 	dim3	grid(output_node_size);
 	dim3	block(512, 1, 1);
 	
-	kernal_MicroMlp_Forward<N, M><<<grid, block, 0, streamId>>>(
+	kernal_fp32_MicroMlp_Forward<N, M><<<grid, block, 0, streamId>>>(
 			dev_in_sig,
 			dev_out_sig,
 			frame_size,
@@ -122,7 +124,7 @@ int bbcu_MicroMlp_Forward
 }
 
 
-int bbcu_MicroMlp6x16_Forward
+int bbcu_fp32_MicroMlp6x16_Forward
 		(
 			float const*	dev_in_sig,
 			float*	        dev_out_sig,
@@ -137,7 +139,7 @@ int bbcu_MicroMlp6x16_Forward
 			cudaStream_t	streamId
 		)
 {
-	return bbcu_MicroMlp_Forward<6, 16>(
+	return bbcu_fp32_MicroMlp_Forward<6, 16>(
 			dev_in_sig,
 			dev_out_sig,
 			input_node_size,
@@ -162,7 +164,7 @@ int bbcu_MicroMlp6x16_Forward
 
 // kernel
 template <int N=6, int M=16, int H=16>
-__global__ void kernal_MicroMlp_Backward(
+__global__ void kernal_fp32_MicroMlp_Backward(
 			const float*	in_sig_buf,
 			float*			in_err_buf,
 			float*			out_err_buf,
@@ -327,7 +329,7 @@ __global__ void kernal_MicroMlp_Backward(
 
 
 template <int N=6>
-__global__ void kernal_MicroMlp_BackwardMarge(
+__global__ void kernal_fp32_MicroMlp_BackwardMarge(
 			float*			dst_buf,
 			const float*	src_buf,
 			int				frame_size,
@@ -351,7 +353,7 @@ __global__ void kernal_MicroMlp_BackwardMarge(
 
 
 template <int N=6, int M=16>
-int bbcu_MicroMlp_Backward(
+int bbcu_fp32_MicroMlp_Backward(
 			const float*	dev_in_sig_buf,
 			float*			dev_in_err_buf,
 			float*			dev_in_err_tmp,
@@ -371,13 +373,15 @@ int bbcu_MicroMlp_Backward(
 			cudaStream_t	streamId = 0
 	)
 {
+    BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
+
 	{
 		const int x_size = (8192 / (N*M));
 
 		dim3	grid(output_node_size);
 		dim3	block(x_size, 1, 1);
 		
-		kernal_MicroMlp_Backward<N, M, x_size><<<grid, block, 0, streamId>>>(
+		kernal_fp32_MicroMlp_Backward<N, M, x_size><<<grid, block, 0, streamId>>>(
 				dev_in_sig_buf,
 				dev_in_err_tmp,
 				dev_out_err_buf,
@@ -409,7 +413,7 @@ int bbcu_MicroMlp_Backward(
 	    dim3	grid(frame_size/block_x, N);
 	    dim3	block(block_x, 1, 1);
 
-	    kernal_MicroMlp_BackwardMarge<N><<<grid, block>>>(
+	    kernal_fp32_MicroMlp_BackwardMarge<N><<<grid, block>>>(
 			    dev_in_err_buf,
 			    dev_in_err_tmp,
 			    frame_size,
@@ -428,7 +432,7 @@ int bbcu_MicroMlp_Backward(
 }
 
 
-CUBB_DLL_EXPORT int bbcu_MicroMlp6x16_Backward(
+CUBB_DLL_EXPORT int bbcu_fp32_MicroMlp6x16_Backward(
 			const float*	dev_in_sig_buf,
 			float*			dev_in_err_buf,
 			float*			dev_in_err_tmp,
@@ -448,7 +452,7 @@ CUBB_DLL_EXPORT int bbcu_MicroMlp6x16_Backward(
 			cudaStream_t	streamId
 		)
 {
-	return bbcu_MicroMlp_Backward<6, 16>(
+	return bbcu_fp32_MicroMlp_Backward<6, 16>(
 			dev_in_sig_buf,
 			dev_in_err_buf,
 			dev_in_err_tmp,

@@ -14,6 +14,7 @@
 #include <vector>
 #include <random>
 
+#include "bb/Manager.h"
 #include "bb/Layer.h"
 #include "bb/FrameBuffer.h"
 
@@ -144,11 +145,11 @@ public:
         m_y.Resize(x.GetType(), m_output_frame_size, m_output_shape);
 
 #ifdef BB_WITH_CUDA
-        if ( x.GetType() == BB_TYPE_FP32 && x.IsDeviceAvailable() && m_y.IsDeviceAvailable())
+        if ( x.GetType() == BB_TYPE_FP32 && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable())
         {
             auto ptr_x = x.GetMemoryDevConstPtr();
             auto ptr_y = m_y.GetMemoryDevPtr();
-            cubb_Im2Col_Forward(
+            cubb_fp32_Im2Col_Forward(
                 (const float *)ptr_x.GetAddr(),
                 (int)m_input_frame_size,
                 (int)x.GetFrameStride() / sizeof(float),
@@ -205,11 +206,11 @@ public:
         m_dx.Resize(DataType<BT>::type, m_input_frame_size, m_input_shape);
 
 #ifdef BB_WITH_CUDA
-        if ( dy.GetType() == BB_TYPE_FP32 && dy.IsDeviceAvailable() && m_dx.IsDeviceAvailable())
+        if ( dy.GetType() == BB_TYPE_FP32 && dy.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && Manager::IsDeviceAvailable())
         {
             auto ptr_dy = dy.GetMemoryDevConstPtr();
             auto ptr_dx = m_dx.GetMemoryDevPtr();
-            cubb_Im2Col_Backward(
+            cubb_fp32_Im2Col_Backward(
                 (float *)ptr_dx.GetAddr(),
                 (int)m_input_frame_size,
                 (int)m_dx.GetFrameStride() / sizeof(float),

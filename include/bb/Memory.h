@@ -677,7 +677,7 @@ public:
                 memcpy(newAddr, m_addr, m_size);
             }
             else if ( m_devModified ) {
-                BB_CUDA_SAFE_CALL(cudaMemcpy(newAddr, m_devAddr, m_size, cudaMemcpyDeviceToDevice));
+                BB_CUDA_SAFE_CALL(cudaMemcpy(newAddr, m_devAddr, m_size, cudaMemcpyDeviceToHost));
             }
 
             // デバイスメモリ開放

@@ -14,7 +14,7 @@
 // forward
 //////////////////////////////
 
-__global__ void kernal_Im2Col_Forward(
+__global__ void kernal_fp32_Im2Col_Forward(
 			const float*	input_sig_buf,
 			int				input_frame_stride,
 			int				input_w_size,
@@ -50,7 +50,7 @@ __global__ void kernal_Im2Col_Forward(
 }
 
 
-CUBB_DLL_EXPORT int cubb_Im2Col_Forward
+CUBB_DLL_EXPORT int cubb_fp32_Im2Col_Forward
 		(
 			const float*	input_sig_dev_buf,
 			int				input_frame_size,
@@ -68,6 +68,8 @@ CUBB_DLL_EXPORT int cubb_Im2Col_Forward
             cudaStream_t	streamId
 		)
 {
+    BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
+
 	int output_c_size = input_c_size;
 	int output_w_size = input_w_size - filter_w_size + 1;
 	int output_h_size = input_h_size - filter_h_size + 1;
@@ -79,7 +81,7 @@ CUBB_DLL_EXPORT int cubb_Im2Col_Forward
 	dim3	grid((output_frame_size + (frame_unit-1))/frame_unit, output_c_size);
 	dim3	block(frame_unit, filter_w_size, filter_h_size);
 	
-	kernal_Im2Col_Forward<<<grid, block, 0, streamId>>>(
+	kernal_fp32_Im2Col_Forward<<<grid, block, 0, streamId>>>(
 			input_sig_dev_buf,
             input_frame_stride,
 			input_w_size,
@@ -102,7 +104,7 @@ CUBB_DLL_EXPORT int cubb_Im2Col_Forward
 // backward
 //////////////////////////////
 
-__global__ void kernal_Im2Col_Backward(
+__global__ void kernal_fp32_Im2Col_Backward(
 			float*			input_grad_buf,
 			int				input_frame_size,
 			int				input_frame_stride,
@@ -148,7 +150,7 @@ __global__ void kernal_Im2Col_Backward(
 }
 
 
-CUBB_DLL_EXPORT int cubb_Im2Col_Backward
+CUBB_DLL_EXPORT int cubb_fp32_Im2Col_Backward
 		(
 			float*			input_grad_dev_buf,
 			int				input_frame_size,
@@ -163,7 +165,9 @@ CUBB_DLL_EXPORT int cubb_Im2Col_Backward
             cudaStream_t	streamId
 		)
 {
-	int output_c_size = input_c_size;
+    BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
+
+//	int output_c_size = input_c_size;
 	int output_w_size = input_w_size - filter_w_size + 1;
 	int output_h_size = input_h_size - filter_h_size + 1;
 	int output_size   = output_w_size * output_h_size;
@@ -173,7 +177,7 @@ CUBB_DLL_EXPORT int cubb_Im2Col_Backward
 	dim3	grid(input_w_size, input_h_size, 1);
 	dim3	block(1, 1, input_c_size);
 	
-	kernal_Im2Col_Backward<<<grid, block, 0, streamId>>>(
+	kernal_fp32_Im2Col_Backward<<<grid, block, 0, streamId>>>(
 			input_grad_dev_buf,
 			input_frame_size,
 			input_frame_stride,

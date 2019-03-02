@@ -18,6 +18,7 @@
 #include <memory>
 #include <malloc.h>
 
+#include "bb/Manager.h"
 #include "bb/DataType.h"
 #include "bb/Utility.h"
 #include "bb/Memory.h"
@@ -809,7 +810,6 @@ std::ostream& operator<<(std::ostream& os, const Tensor_<T>& t)
 // -------------------------------------
 
 #ifdef BB_WITH_CUDA
-//#if 0
 
 template<>
 inline Tensor_<float> & Tensor_<float>::operator+=(Tensor_<float> const &src)
@@ -817,9 +817,9 @@ inline Tensor_<float> & Tensor_<float>::operator+=(Tensor_<float> const &src)
     BB_ASSERT(m_size == src.m_size);
 
     // CUDA
-    if ( m_mem->IsDeviceAvailable() && src.m_mem->IsDeviceAvailable() ) {
+    if ( m_mem->IsDeviceAvailable() && src.m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, src.m_mem);
-        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 1.0f, 0.0f, (int)m_size);
+        bbcu_fp32_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 1.0f, 0.0f, (int)m_size);
         return *this;
     }
 
@@ -833,9 +833,9 @@ template<>
 inline Tensor_<float> & Tensor_<float>::operator+=(float src)
 {
     // CUDA
-    if ( m_mem->IsDeviceAvailable() ) {
+    if ( m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, m_mem);
-        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, src, (int)m_size);
+        bbcu_fp32_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, src, (int)m_size);
         return *this;
     }
 
@@ -852,9 +852,9 @@ inline Tensor_<float> operator+(const Tensor_<float> &src0, Tensor_<float> const
     Tensor_<float>  dst(src0.m_shape);
 
     // CUDA
-    if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() ) {
+    if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
-        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 1.0f, 0.0f, (int)dst.m_size);
+        bbcu_fp32_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 1.0f, 0.0f, (int)dst.m_size);
         return dst;
     }
 
@@ -870,9 +870,9 @@ inline Tensor_<float> operator+(const Tensor_<float> &src0, float src1)
     Tensor_<float>  dst(src0.m_shape);
 
     // CUDA
-    if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() ) {
+    if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
-        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, src1, (int)dst.m_size);
+        bbcu_fp32_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, src1, (int)dst.m_size);
         return dst;
     }
 
@@ -888,9 +888,9 @@ inline Tensor_<float> operator+(float src0, const Tensor_<float> &src1)
     Tensor_<float>  dst(src1.m_shape);
 
     // CUDA
-    if ( dst.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() ) {
+    if ( dst.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
-        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, src0, (int)dst.m_size);
+        bbcu_fp32_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, src0, (int)dst.m_size);
         return dst;
     }
 
@@ -909,9 +909,9 @@ inline Tensor_<float> & Tensor_<float>::operator-=(Tensor_<float> const &src)
     BB_ASSERT(m_size == src.m_size);
 
     // CUDA
-    if ( m_mem->IsDeviceAvailable() && src.m_mem->IsDeviceAvailable() ) {
+    if ( m_mem->IsDeviceAvailable() && src.m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, src.m_mem);
-        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, -1.0f, 0.0f, (int)m_size);
+        bbcu_fp32_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, -1.0f, 0.0f, (int)m_size);
         return *this;
     }
 
@@ -925,9 +925,9 @@ template<>
 inline Tensor_<float> & Tensor_<float>::operator-=(float src)
 {
     // CUDA
-    if ( m_mem->IsDeviceAvailable() ) {
+    if ( m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, m_mem);
-        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, -src, (int)m_size);
+        bbcu_fp32_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, -src, (int)m_size);
         return *this;
     }
 
@@ -944,9 +944,9 @@ inline Tensor_<float> operator-(const Tensor_<float> &src0, Tensor_<float> const
     Tensor_<float>  dst(src0.m_shape);
 
     // CUDA
-    if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() ) {
+    if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
-        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, -1.0f, 0.0f, (int)dst.m_size);
+        bbcu_fp32_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, -1.0f, 0.0f, (int)dst.m_size);
         return dst;
     }
 
@@ -962,9 +962,9 @@ inline Tensor_<float> operator-(const Tensor_<float> &src0, float src1)
     Tensor_<float>  dst(src0.m_shape);
 
     // CUDA
-    if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() ) {
+    if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
-        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, -src1, (int)dst.m_size);
+        bbcu_fp32_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, -src1, (int)dst.m_size);
         return dst;
     }
 
@@ -980,9 +980,9 @@ inline Tensor_<float> operator-(float src0, const Tensor_<float> &src1)
     Tensor_<float>  dst(src1.m_shape);
 
     // CUDA
-    if ( dst.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() ) {
+    if ( dst.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
-        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), -1.0f, 0.0f, src0, (int)dst.m_size);
+        bbcu_fp32_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), -1.0f, 0.0f, src0, (int)dst.m_size);
         return dst;
     }
 
@@ -1002,9 +1002,9 @@ inline Tensor_<float> & Tensor_<float>::operator*=(Tensor_<float> const &src)
     BB_ASSERT(m_size == src.m_size);
 
     // CUDA
-    if ( m_mem->IsDeviceAvailable() && src.m_mem->IsDeviceAvailable() ) {
+    if ( m_mem->IsDeviceAvailable() && src.m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, src.m_mem);
-        bbcu_Vector_mul_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, (int)m_size);
+        bbcu_fp32_Vector_mul_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, (int)m_size);
         return *this;
     }
 
@@ -1018,9 +1018,9 @@ template<>
 inline Tensor_<float> & Tensor_<float>::operator*=(float src)
 {
     // CUDA
-    if ( m_mem->IsDeviceAvailable() ) {
+    if ( m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, m_mem);
-        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), src, 0.0f, 0.0f, (int)m_size);
+        bbcu_fp32_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), src, 0.0f, 0.0f, (int)m_size);
         return *this;
     }
 
@@ -1037,9 +1037,9 @@ inline Tensor_<float> operator*(const Tensor_<float> &src0, Tensor_<float> const
     Tensor_<float>  dst(src0.m_shape);
 
     // CUDA
-    if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() ) {
+    if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
-        bbcu_Vector_mul_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, (int)dst.m_size);
+        bbcu_fp32_Vector_mul_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, (int)dst.m_size);
         return dst;
     }
 
@@ -1055,9 +1055,9 @@ inline Tensor_<float> operator*(const Tensor_<float> &src0, float src1)
     Tensor_<float>  dst(src0.m_shape);
 
     // CUDA
-    if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() ) {
+    if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
-        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), src1, 0.0f, 0.0f, (int)dst.m_size);
+        bbcu_fp32_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), src1, 0.0f, 0.0f, (int)dst.m_size);
         return dst;
     }
 
@@ -1073,9 +1073,9 @@ inline Tensor_<float> operator*(float src0, const Tensor_<float> &src1)
     Tensor_<float>  dst(src1.m_shape);
 
     // CUDA
-    if ( dst.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() ) {
+    if ( dst.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
-        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), src0, 0.0f, 0.0f, (int)dst.m_size);
+        bbcu_fp32_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), src0, 0.0f, 0.0f, (int)dst.m_size);
         return dst;
     }
 
@@ -1094,9 +1094,9 @@ inline Tensor_<float> & Tensor_<float>::operator/=(Tensor_<float> const &src)
     BB_ASSERT(m_size == src.m_size);
 
     // CUDA
-    if ( m_mem->IsDeviceAvailable() && src.m_mem->IsDeviceAvailable() ) {
+    if ( m_mem->IsDeviceAvailable() && src.m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, src.m_mem);
-        bbcu_Vector_div_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, 1.0f, 0.0f, (int)m_size);
+        bbcu_fp32_Vector_div_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, 1.0f, 0.0f, (int)m_size);
         return *this;
     }
 
@@ -1110,9 +1110,9 @@ template<>
 inline Tensor_<float> & Tensor_<float>::operator/=(float src)
 {
     // CUDA
-    if ( m_mem->IsDeviceAvailable() ) {
+    if ( m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, m_mem);
-        bbcu_Vector_div_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, 0.0f, src, (int)m_size);
+        bbcu_fp32_Vector_div_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, 0.0f, src, (int)m_size);
         return *this;
     }
 
@@ -1129,9 +1129,9 @@ inline Tensor_<float> operator/(const Tensor_<float> &src0, Tensor_<float> const
     Tensor_<float>  dst(src0.m_shape);
 
     // CUDA
-    if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() ) {
+    if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
-        bbcu_Vector_div_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, 1.0f, 0.0f, (int)dst.m_size);
+        bbcu_fp32_Vector_div_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, 1.0f, 0.0f, (int)dst.m_size);
         return dst;
     }
 
@@ -1147,9 +1147,9 @@ inline Tensor_<float> operator/(const Tensor_<float> &src0, float src1)
     Tensor_<float>  dst(src0.m_shape);
 
     // CUDA
-    if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() ) {
+    if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
-        bbcu_Vector_div_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, 0.0f, src1, (int)dst.m_size);
+        bbcu_fp32_Vector_div_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, 0.0f, src1, (int)dst.m_size);
         return dst;
     }
 
@@ -1165,9 +1165,9 @@ inline Tensor_<float> operator/(float src0, const Tensor_<float> &src1)
     Tensor_<float>  dst(src1.m_shape);
 
     // CUDA
-    if ( dst.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() ) {
+    if ( dst.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
-        bbcu_Vector_div_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 0.0f, src0, 1.0f, 0.0f, (int)dst.m_size);
+        bbcu_fp32_Vector_div_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 0.0f, src0, 1.0f, 0.0f, (int)dst.m_size);
         return dst;
     }
 
@@ -1186,10 +1186,10 @@ inline Tensor_<float> Tensor_<float>::Sqrt(void)
     Tensor_<float>  dst(m_shape);
 
     // CUDA
-    if ( dst.m_mem->IsDeviceAvailable() && dst.m_mem->IsDeviceAvailable() ) {
+    if ( dst.m_mem->IsDeviceAvailable() && dst.m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         auto src_ptr = GetMemoryDevConstPtr();
         auto dst_ptr = dst.GetMemoryDevPtr(true);
-        bbcu_Vector_sqrt((float *)dst_ptr.GetAddr(), (const float *)src_ptr.GetAddr(), (int)m_size);
+        bbcu_fp32_Vector_sqrt((float *)dst_ptr.GetAddr(), (const float *)src_ptr.GetAddr(), (int)m_size);
         return dst;
     }
     
@@ -1206,10 +1206,10 @@ inline Tensor_<float> Tensor_<float>::Exp(void)
     Tensor_<float>  dst(m_shape);
 
     // CUDA
-    if ( dst.m_mem->IsDeviceAvailable() && dst.m_mem->IsDeviceAvailable() ) {
+    if ( dst.m_mem->IsDeviceAvailable() && dst.m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         auto src_ptr = GetMemoryDevConstPtr();
         auto dst_ptr = dst.GetMemoryDevPtr(true);
-        bbcu_Vector_sqrt((float *)dst_ptr.GetAddr(), (const float *)src_ptr.GetAddr(), (int)m_size);
+        bbcu_fp32_Vector_sqrt((float *)dst_ptr.GetAddr(), (const float *)src_ptr.GetAddr(), (int)m_size);
         return dst;
     }
     

@@ -11,6 +11,7 @@
 #pragma once
 
 
+#include "bb/Manager.h"
 #include "bb/Layer.h"
 
 
@@ -195,7 +196,7 @@ inline FrameBuffer ReLU<float>::Forward(FrameBuffer x, bool train)
 	if (m_binary_mode) {
     	// Binarize
 #if BB_WITH_CUDA
-        if ( !m_host_only && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() ) {
+        if ( !m_host_only && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // CUDA版
             auto ptr_x = x.GetMemoryDevConstPtr();
             auto ptr_y = m_y.GetMemoryDevPtr();
@@ -226,7 +227,7 @@ inline FrameBuffer ReLU<float>::Forward(FrameBuffer x, bool train)
 	else {
         // ReLU
 #if BB_WITH_CUDA
-        if ( !m_host_only && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() ) {
+        if ( !m_host_only && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // CUDA版
             auto ptr_x = x.GetMemoryDevConstPtr();
             auto ptr_y = m_y.GetMemoryDevPtr();
@@ -282,7 +283,7 @@ inline FrameBuffer ReLU<float>::Backward(FrameBuffer dy)
 
     if (m_binary_mode) {
         #if BB_WITH_CUDA
-        if ( !m_host_only && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() ) {
+        if ( !m_host_only && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // GPU版
             auto ptr_x  = m_x.GetMemoryDevConstPtr();
             auto ptr_dy = dy.GetMemoryDevConstPtr();
@@ -320,7 +321,7 @@ inline FrameBuffer ReLU<float>::Backward(FrameBuffer dy)
 	else {
         // ReLU
 #if BB_WITH_CUDA
-        if ( !m_host_only && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() ) {
+        if ( !m_host_only && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // GPU版
             auto ptr_x  = m_x.GetMemoryDevConstPtr();
             auto ptr_dy = dy.GetMemoryDevConstPtr();

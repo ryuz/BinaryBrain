@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <random>
 
+#include "bb/Manager.h"
 #include "bb/Layer.h"
 #include "bb/ShuffleSet.h"
 
@@ -281,7 +282,7 @@ public:
         // CUDA版
 #ifdef BB_WITH_CUDA
         if ( N == 6 && M == 16 && DataType<T>::type == BB_TYPE_FP32
-            && !m_host_only && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() ) {
+            && !m_host_only && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             ForwardCudaFP32();
             return m_y;
         }
@@ -314,7 +315,7 @@ public:
         // CUDA版
 #ifdef BB_WITH_CUDA
         if ( N == 6 && M == 16 && DataType<T>::type == BB_TYPE_FP32
-                && !m_host_only && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() ) {
+                && !m_host_only && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             BackwardCudaFP32(dy);
             return m_dx;
         }
@@ -456,7 +457,7 @@ protected:
         auto b0_ptr = m_b0->GetMemoryDevConstPtr();
         auto W1_ptr = m_W1->GetMemoryDevConstPtr();
         auto b1_ptr = m_b1->GetMemoryDevConstPtr();
-        bbcu_MicroMlp6x16_Forward
+        bbcu_fp32_MicroMlp6x16_Forward
     		(
                 (const float *)x_ptr.GetAddr(),
                 (float *)y_ptr.GetAddr(),
@@ -638,7 +639,7 @@ protected:
         m_dx_tmp.FillZero();
         auto dx_tmp_ptr = m_dx_tmp.GetMemoryDevPtr();
 
-        bbcu_MicroMlp6x16_Backward
+        bbcu_fp32_MicroMlp6x16_Backward
             (
 			    (float const *)x_ptr.GetAddr(),
 			    (float *)dx_ptr.GetAddr(),

@@ -71,13 +71,6 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
         net->SendCommand("binary true");
     }
 
-
-
-//    bb::Fitting::fitt
-
-
-
-
     std::mt19937_64 mt(1);
 
     for ( bb::index_t epoch = 0; epoch < epoch_size; ++epoch ) {

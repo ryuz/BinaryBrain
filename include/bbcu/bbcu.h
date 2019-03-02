@@ -1,6 +1,8 @@
 ﻿
 #pragma once
 
+#include <assert.h>
+
 #include "cuda_runtime.h"
 
 
@@ -18,12 +20,27 @@
 extern "C" {
 
 
+#define BBCU_ASSERT(x)          assert(x)
+#define BBCU_DEBUG_ASSERT(x)    assert(x)
+
+
+
+// -------------------------------------
+//  Vector Operation
+// -------------------------------------
+
+CUBB_DLL_EXPORT void bbcu_SetHostOnly(bool hostOnly);
+CUBB_DLL_EXPORT bool bbcu_IsHostOnly(void);
+CUBB_DLL_EXPORT bool bbcu_IsDeviceAvailable(void);
+
+
+
 // -------------------------------------
 //  Vector Operation
 // -------------------------------------
 
 // dst = a * src0 + b * src1 + c
-CUBB_DLL_EXPORT int bbcu_Vector_add_ex
+CUBB_DLL_EXPORT int bbcu_fp32_Vector_add_ex
         (
             float*		    dev_dst,
             const float*	dev_src0,
@@ -36,7 +53,7 @@ CUBB_DLL_EXPORT int bbcu_Vector_add_ex
         );
     
 // dst = a * src0 * src1 + b
-CUBB_DLL_EXPORT int bbcu_Vector_mul_ex
+CUBB_DLL_EXPORT int bbcu_fp32_Vector_mul_ex
         (
             float*			dev_dst,
             const float*	dev_src0,
@@ -48,7 +65,7 @@ CUBB_DLL_EXPORT int bbcu_Vector_mul_ex
         );
 
 // dst = (a * src0 + b) / (c * src1 + d)
-CUBB_DLL_EXPORT int bbcu_Vector_div_ex(
+CUBB_DLL_EXPORT int bbcu_fp32_Vector_div_ex(
             float           *dev_dst,
             float const     *dev_src0,
             float const     *dev_src1,
@@ -61,7 +78,7 @@ CUBB_DLL_EXPORT int bbcu_Vector_div_ex(
 		);
 
 // dst = sqrt(src)
-CUBB_DLL_EXPORT int bbcu_Vector_sqrt(
+CUBB_DLL_EXPORT int bbcu_fp32_Vector_sqrt(
             float           *dev_dst,
             float const     *dev_src,
 			int				size,
@@ -70,7 +87,7 @@ CUBB_DLL_EXPORT int bbcu_Vector_sqrt(
 
 
 // dst = exp(src)
-CUBB_DLL_EXPORT int bbcu_Vector_exp(
+CUBB_DLL_EXPORT int bbcu_fp32_Vector_exp(
             float           *dev_dst,
             float const     *dev_src,
 			int				size,
@@ -79,7 +96,7 @@ CUBB_DLL_EXPORT int bbcu_Vector_exp(
 
 
 // Horizontal Sum
-CUBB_DLL_EXPORT	int bbcu_HorizontalSum
+CUBB_DLL_EXPORT	int bbcu_fp32_HorizontalSum
         (
             const float*	dev_src,
             float*			dev_dst,
@@ -94,7 +111,7 @@ CUBB_DLL_EXPORT	int bbcu_HorizontalSum
 //  MicroMlp
 // -------------------------------------
 
-CUBB_DLL_EXPORT int bbcu_MicroMlp6x16_Forward
+CUBB_DLL_EXPORT int bbcu_fp32_MicroMlp6x16_Forward
         (
             const float*	dev_in_sig,
             float*			dev_out_sig,
@@ -109,7 +126,7 @@ CUBB_DLL_EXPORT int bbcu_MicroMlp6x16_Forward
             cudaStream_t	streamId = 0
         );
 
-CUBB_DLL_EXPORT int bbcu_MicroMlp6x16_Backward(
+CUBB_DLL_EXPORT int bbcu_fp32_MicroMlp6x16_Backward(
             const float*	dev_in_sig_buf,
             float*			dev_in_err_buf,
             float*			dev_in_err_tmp,
@@ -134,7 +151,7 @@ CUBB_DLL_EXPORT int bbcu_MicroMlp6x16_Backward(
 // -------------------------------------
 
 
-CUBB_DLL_EXPORT	int cubb_Im2Col_Forward
+CUBB_DLL_EXPORT	int cubb_fp32_Im2Col_Forward
         (
             const float*	input_sig_dev_buf,
             int				input_frame_size,
@@ -149,7 +166,7 @@ CUBB_DLL_EXPORT	int cubb_Im2Col_Forward
             cudaStream_t    streamId = 0   
         );
 
-CUBB_DLL_EXPORT int cubb_Im2Col_Backward
+CUBB_DLL_EXPORT int cubb_fp32_Im2Col_Backward
         (
 			float*			input_grad_dev_buf,
 			int				input_frame_size,
@@ -211,78 +228,9 @@ CUBB_DLL_EXPORT int cubb_fp32_HardTanh_Backward
             cudaStream_t    streamId = 0
         );
 
-/// ---- test code ----
-
-
-
-CUBB_DLL_EXPORT int bbcu_eva_HorizontalSum
-        (
-            const float*	src,
-            float*			dst,
-            int				x_size,
-            int				y_size
-        );
-
-CUBB_DLL_EXPORT int bbcu_eva_MicroMlp6x16_Forward
-        (
-            const float*	in_sig,
-            float*			out_sig,
-            int				input_node_size,
-            int				output_node_size,
-            int				frame_size,
-            const int*		input_index,
-            const float*	hidden_W,
-            const float*	hidden_b,
-            const float*	output_W,
-            const float*	output_b
-        );
-
-CUBB_DLL_EXPORT int bbcu_eva_MicroMlp6x16_Backward
-        (
-            const float*	in_sig_buf,
-            float*			in_err_buf,
-            float*			out_err_buf,
-            int				input_node_size,
-            int				output_node_size,
-            int				frame_size,
-            const int*		input_index,
-            const float*	hidden_W,
-            const float*	hidden_b,
-            float*			hidden_dW,
-            float*			hidden_db,
-            const float*	output_W,
-            const float*	output_b,
-            float*			output_dW,
-            float*			output_db
-        );
-
-
-
-CUBB_DLL_EXPORT int bbcu_eva_Im2Col_Forward
-        (
-            const float*	input_sig,
-            int				input_frame_size,
-            int     		input_frame_stride,
-            int				input_w_size,
-            int				input_h_size,
-            int				input_c_size,
-            float*			output_sig,
-            int     		output_frame_stride,
-            int				filter_w_size,
-            int				filter_h_size
-        );
-
-CUBB_DLL_EXPORT int bbcu_eva_Im2Col_Backward
-        (
-            float*			in_err_buf,
-            const float*	out_err_buf,
-            int				input_frame_size,
-            int				input_w_size,
-            int				input_h_size,
-            int				input_c_size,
-            int				filter_w_size,
-            int				filter_h_size
-        );
 
 
 }
+
+
+// end of file

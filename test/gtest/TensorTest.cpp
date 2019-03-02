@@ -4,6 +4,7 @@
 #include <fstream>
 #include "gtest/gtest.h"
 
+#include "bb/Manager.h"
 #include "bb/Memory.h"
 #include "bb/Tensor.h"
 
