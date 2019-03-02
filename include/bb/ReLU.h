@@ -23,7 +23,7 @@ template <typename T = float>
 class ReLU : public Binarize<T>
 {
 protected:
-    bool m_binary_mode = false;
+    bool        m_binary_mode = false;
 
 protected:
 	ReLU() {}

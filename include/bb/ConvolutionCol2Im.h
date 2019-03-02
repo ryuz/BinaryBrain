@@ -23,6 +23,8 @@ template <typename FT = float, typename BT = float>
 class ConvolutionCol2Im : public Model
 {
 protected:
+    indices_t       m_input_shape;
+
 	index_t			m_c_size;
 	index_t			m_h_size;
 	index_t			m_w_size;
@@ -78,8 +80,30 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
+        m_input_shape = shape;
         return indices_t({m_w_size, m_h_size, m_c_size});
     }
+
+    /**
+     * @brief  入力形状取得
+     * @detail 入力形状を取得する
+     * @return 入力形状を返す
+     */
+    indices_t GetInputShape(void) const
+    {
+        return m_input_shape;
+    }
+
+    /**
+     * @brief  出力形状取得
+     * @detail 出力形状を取得する
+     * @return 出力形状を返す
+     */
+    indices_t GetOutputShape(void) const
+    {
+        return indices_t({m_w_size, m_h_size, m_c_size});
+    }
+
 
     FrameBuffer Forward(FrameBuffer x, bool train=true)
  	{

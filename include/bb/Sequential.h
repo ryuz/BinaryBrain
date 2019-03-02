@@ -113,6 +113,29 @@ public:
         return shape;
     }
 
+    /**
+     * @brief  入力形状取得
+     * @detail 入力形状を取得する
+     * @return 入力形状を返す
+     */
+    indices_t GetInputShape(void) const
+    {
+        if ( m_layers.empty() ) { return indices_t(); }
+        m_layers.front()->GetInputShape();
+    }
+
+    /**
+     * @brief  出力形状取得
+     * @detail 出力形状を取得する
+     * @return 出力形状を返す
+     */
+    indices_t GetOutputShape(void) const
+    {
+        if ( m_layers.empty() ) { return indices_t(); }
+        m_layers.back()->GetInputShape();
+    }
+    
+
    /**
      * @brief  forward演算
      * @detail forward演算を行う

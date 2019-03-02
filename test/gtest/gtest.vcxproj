@@ -46,7 +46,9 @@
   <ItemGroup>
     <ClInclude Include="..\..\include\bb\AccuracyCategoricalClassification.h" />
     <ClInclude Include="..\..\include\bb\AccuracyFunction.h" />
+    <ClInclude Include="..\..\include\bb\Activation.h" />
     <ClInclude Include="..\..\include\bb\BatchNormalization.h" />
+    <ClInclude Include="..\..\include\bb\Binarize.h" />
     <ClInclude Include="..\..\include\bb\ConvolutionCol2Im.h" />
     <ClInclude Include="..\..\include\bb\ConvolutionIm2Col.h" />
     <ClInclude Include="..\..\include\bb\CudaUtility.h" />

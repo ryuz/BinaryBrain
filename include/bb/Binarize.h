@@ -12,7 +12,7 @@
 
 
 #include "bb/Manager.h"
-#include "bb/Layer.h"
+#include "bb/Activation.h"
 
 
 namespace bb {
@@ -20,14 +20,15 @@ namespace bb {
 
 // Binarize(活性化層)
 template <typename T = float>
-class Binarize : public Layer<T, T>
+class Binarize : public Activation<T, T>
 {
 protected:
     FrameBuffer m_x;
     FrameBuffer m_y;
     FrameBuffer m_dx;
 
-    bool m_host_only   = false;
+    bool        m_host_only   = false;
+    indices_t   m_shape;
 
 protected:
 	Binarize() {}
@@ -57,22 +58,9 @@ public:
 	~Binarize() {}
 
 	std::string GetClassName(void) const { return "Binarize"; }
-
-
-    /**
-     * @brief  入力形状設定
-     * @detail 入力形状を設定する
-     *         内部変数を初期化し、以降、GetOutputShape()で値取得可能となることとする
-     *         同一形状を指定しても内部変数は初期化されるものとする
-     * @param  shape      1フレームのノードを構成するshape
-     * @return 出力形状を返す
-     */
-    indices_t SetInputShape(indices_t shape)
-    {
-        return shape;
-    }
-
-    // 1ノードのみForward計算
+    
+    
+    // ノード単位でのForward計算
     std::vector<T> ForwardNode(index_t node, std::vector<T> x_vec) const
     {
         std::vector<T> y_vec;

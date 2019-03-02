@@ -15,7 +15,7 @@
 #include <cereal/types/vector.hpp>
 #include <cereal/types/array.hpp>
 
-#include "bb/Layer.h"
+#include "bb/Activation.h"
 #include "bb/FrameBuffer.h"
 #include "bb/SimdSupport.h"
 
@@ -25,10 +25,11 @@ namespace bb {
 
 // BatchNormalization
 template <typename T = float>
-class BatchNormalization : public Layer<T, T>
+class BatchNormalization : public Activation<T, T>
 {
+    using super = Activation<T, T>;
+
 protected:
-    indices_t 		            m_shape;
     index_t 		            m_node_size;
     
     FrameBuffer                 m_x;
@@ -104,8 +105,9 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
-        m_shape = shape;
-        m_node_size = GetShapeSize(m_shape);
+        super::SetInputShape(shape);
+
+        m_node_size = GetShapeSize(shape);
         
         // パラメータ初期化
         m_gamma->Resize(DataType<T>::type, m_node_size);    *m_gamma  = (T)1.0;

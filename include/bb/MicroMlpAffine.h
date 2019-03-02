@@ -325,9 +325,8 @@ public:
 
         return m_output_shape;
     }
-    
 
-   /**
+    /**
      * @brief  出力のshape設定
      * @detail 出力のshape設定
      *         出力ノード数が変わらない限りshpeは自由
@@ -340,6 +339,28 @@ public:
         m_output_shape = shape;
     }
 
+
+    /**
+     * @brief  入力形状取得
+     * @detail 入力形状を取得する
+     * @return 入力形状を返す
+     */
+    indices_t GetInputShape(void) const
+    {
+        return m_input_shape;
+    }
+
+    /**
+     * @brief  出力形状取得
+     * @detail 出力形状を取得する
+     * @return 出力形状を返す
+     */
+    indices_t GetOutputShape(void) const
+    {
+        return m_output_shape;
+    }
+    
+    
     
     Variables GetParameters(void)
     {
