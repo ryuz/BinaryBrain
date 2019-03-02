@@ -14,7 +14,7 @@
 #include <random>
 
 #include "bb/Manager.h"
-#include "bb/Model.h"
+#include "bb/Layer.h"
 #include "bb/ShuffleSet.h"
 
 namespace bb {
@@ -22,9 +22,9 @@ namespace bb {
 
 // Mini-MLP (SparseAffine - ReLU - SparseAffine)
 template <int N = 6, int M = 16, typename T = float>
-class MicroMlpAffine : public Model
+class MicroMlpAffine : public Layer<T, T>
 {
-    using supper = Model;
+    using supper = Layer<T, T>;
 
 protected:
 public:

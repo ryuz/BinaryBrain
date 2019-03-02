@@ -362,6 +362,18 @@ public:
 	}
 
 
+  	/**
+     * @brief  同じ型同じサイズにする
+     * @detail 同じ型同じサイズにする
+     * @param buf 型とサイズをあわせる対象
+     */
+    void ResizeLike(FrameBuffer const &buf)
+    {
+        Resize(buf.GetType(), buf.GetFrameSize(), buf.GetShape());
+    }
+
+
+
     // -------------------------------------
     //  Serialize
     // -------------------------------------

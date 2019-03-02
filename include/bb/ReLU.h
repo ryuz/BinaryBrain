@@ -18,7 +18,7 @@
 namespace bb {
 
 
-// ReLU(活性化関数)
+// ReLU(活性化層)
 template <typename T = float>
 class ReLU : public Model
 {
