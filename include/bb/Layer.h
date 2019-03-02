@@ -11,10 +11,12 @@
 
 #include <vector>
 
+#if BB_WITH_CEREAL
 #include "cereal/types/array.hpp"
 #include "cereal/types/string.hpp"
 #include "cereal/types/vector.hpp"
 #include "cereal/archives/json.hpp"
+#endif
 
 #include "bb/FrameBuffer.h"
 #include "bb/Variables.h"
@@ -27,7 +29,7 @@ namespace bb {
 class Layer
 {
 protected:
-	std::string		m_layerName;
+	std::string		m_name;
 
     /**
      * @brief  コマンドを処理
@@ -53,26 +55,26 @@ public:
 	virtual std::string GetClassName(void) const = 0;
 
     /**
-     * @brief  レイヤー名設定
-     * @detail レイヤー名設定
-     *         便宜上インスタンスの区別の付く命名を可能にする
+     * @brief  名前設定
+     * @detail 名前設定
+     *         インスタンスの名前を設定する
      */
-	virtual void  SetLayerName(const std::string name) {
-		m_layerName = name;
+	virtual void  SetName(const std::string name) {
+		m_name = name;
 	}
     
     /**
-     * @brief  レイヤー名取得
-     * @detail レイヤー名取得
-     *         便宜上インスタンスの区別の付く命名を可能にする
-     * @return レイヤー名取得名
+     * @brief  名前取得
+     * @detail 名前取得
+     *         インスタンスの名前を取得する
+     * @return 名前を返す
      */
-	virtual std::string GetLayerName(void) const
+	virtual std::string GetName(void) const
 	{
-		if (m_layerName.empty()) {
+		if (m_name.empty()) {
 			return GetClassName();
 		}
-		return m_layerName;
+		return m_name;
 	}
 	
     /**
@@ -82,7 +84,7 @@ public:
      */
     virtual void SendCommand(std::string command, std::string send_to = "all")
     {
-        if ( send_to == "all" || send_to == GetClassName() || send_to == GetLayerName() ) {
+        if ( send_to == "all" || send_to == GetClassName() || send_to == GetName() ) {
             CommandProc(SplitString(command));
         }
     }
@@ -161,17 +163,35 @@ public:
 	
 	
 public:
+	// Serialize
+  	virtual void Save(std::ostream &os) const
+	{
+        int size = (int)m_name.size();
+        os.write((char const *)&size, sizeof(size));
+        os.write((char const *)&m_name[0], size);
+	}
+
+	virtual void Load(std::istream &is)
+	{
+        int size;
+        is.read((char*)&size, sizeof(size));
+        m_name.resize(size);
+        is.read((char*)&m_name[0], size);
+	}
+
+
 	// Serialize(CEREAL)
+#if BB_WITH_CEREAL
 	template <class Archive>
 	void save(Archive& archive, std::uint32_t const version) const
 	{
-		archive(cereal::make_nvp("layer_name", m_layerName));
+		archive(cereal::make_nvp("name", m_name));
 	}
 
 	template <class Archive>
 	void load(Archive& archive, std::uint32_t const version)
 	{
-		archive(cereal::make_nvp("layer_name", m_layerName));
+		archive(cereal::make_nvp("name", m_name));
 	}
 
 	virtual void Save(cereal::JSONOutputArchive& archive) const
@@ -183,6 +203,9 @@ public:
 	{
 		archive(cereal::make_nvp("Layer", *this));
 	}
+#endif
+
+
 };
 
 

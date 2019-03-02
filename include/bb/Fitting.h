@@ -59,7 +59,7 @@ public:
         m_net  = net;
         m_name = name;
         if ( m_name.empty() ) {
-            m_name = m_net->GetLayerName();
+            m_name = m_net->GetName();
         }
     }
 

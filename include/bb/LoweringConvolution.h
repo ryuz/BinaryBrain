@@ -181,7 +181,7 @@ public:
     }
 	
 
-public:    
+public:
 	void Save(cereal::JSONOutputArchive& archive) const
 	{
 	    m_im2col->Save(archive);

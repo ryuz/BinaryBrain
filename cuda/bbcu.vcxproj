@@ -310,7 +310,7 @@
     <CudaCompile Include="Im2Col.cu" />
     <CudaCompile Include="MicroMlp.cu" />
     <CudaCompile Include="ReLU.cu" />
-    <CudaCompile Include="Scalar.cu" />
+    <CudaCompile Include="Vector.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\bbcu\bbcu.h" />

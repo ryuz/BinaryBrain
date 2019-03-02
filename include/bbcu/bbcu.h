@@ -17,7 +17,13 @@
 
 extern "C" {
 
-CUBB_DLL_EXPORT int bbcu_Scalar_add_ex
+
+// -------------------------------------
+//  Vector Operation
+// -------------------------------------
+
+// dst = a * src0 + b * src1 + c
+CUBB_DLL_EXPORT int bbcu_Vector_add_ex
         (
             float*		    dev_dst,
             const float*	dev_src0,
@@ -29,7 +35,8 @@ CUBB_DLL_EXPORT int bbcu_Scalar_add_ex
             cudaStream_t	streamId = 0
         );
     
-CUBB_DLL_EXPORT int bbcu_Scalar_mul_ex
+// dst = a * src0 * src1 + b
+CUBB_DLL_EXPORT int bbcu_Vector_mul_ex
         (
             float*			dev_dst,
             const float*	dev_src0,
@@ -40,7 +47,8 @@ CUBB_DLL_EXPORT int bbcu_Scalar_mul_ex
             cudaStream_t	streamId = 0
         );
 
-CUBB_DLL_EXPORT int bbcu_Scalar_div_ex(
+// dst = (a * src0 + b) / (c * src1 + d)
+CUBB_DLL_EXPORT int bbcu_Vector_div_ex(
             float           *dev_dst,
             float const     *dev_src0,
             float const     *dev_src1,
@@ -52,7 +60,8 @@ CUBB_DLL_EXPORT int bbcu_Scalar_div_ex(
             cudaStream_t	streamId = 0
 		);
 
-CUBB_DLL_EXPORT int bbcu_Scalar_sqrt(
+// dst = sqrt(src)
+CUBB_DLL_EXPORT int bbcu_Vector_sqrt(
             float           *dev_dst,
             float const     *dev_src,
 			int				size,
@@ -60,7 +69,8 @@ CUBB_DLL_EXPORT int bbcu_Scalar_sqrt(
 		);
 
 
-CUBB_DLL_EXPORT int bbcu_Scalar_exp(
+// dst = exp(src)
+CUBB_DLL_EXPORT int bbcu_Vector_exp(
             float           *dev_dst,
             float const     *dev_src,
 			int				size,
@@ -68,10 +78,7 @@ CUBB_DLL_EXPORT int bbcu_Scalar_exp(
 		);
 
 
-
-
-
-
+// Horizontal Sum
 CUBB_DLL_EXPORT	int bbcu_HorizontalSum
         (
             const float*	dev_src,
@@ -80,6 +87,12 @@ CUBB_DLL_EXPORT	int bbcu_HorizontalSum
             int				y_size,
             cudaStream_t	streamId = 0
         );
+
+
+
+// -------------------------------------
+//  MicroMlp
+// -------------------------------------
 
 CUBB_DLL_EXPORT int bbcu_MicroMlp6x16_Forward
         (
@@ -115,6 +128,10 @@ CUBB_DLL_EXPORT int bbcu_MicroMlp6x16_Backward(
             float*			dev_output_db,
             cudaStream_t	streamId = 0
         );
+
+// -------------------------------------
+//  Im2Col
+// -------------------------------------
 
 
 CUBB_DLL_EXPORT	int cubb_Im2Col_Forward
@@ -195,6 +212,7 @@ CUBB_DLL_EXPORT int cubb_fp32_HardTanh_Backward
         );
 
 /// ---- test code ----
+
 
 
 CUBB_DLL_EXPORT int bbcu_eva_HorizontalSum

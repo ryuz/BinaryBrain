@@ -20,13 +20,13 @@
     <CudaCompile Include="HorizontalSum.cu">
       <Filter>ソース ファイル</Filter>
     </CudaCompile>
-    <CudaCompile Include="Scalar.cu">
-      <Filter>ソース ファイル</Filter>
-    </CudaCompile>
     <CudaCompile Include="ReLU.cu">
       <Filter>ソース ファイル</Filter>
     </CudaCompile>
     <CudaCompile Include="Binarize.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+    <CudaCompile Include="Vector.cu">
       <Filter>ソース ファイル</Filter>
     </CudaCompile>
   </ItemGroup>
