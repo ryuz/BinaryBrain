@@ -394,7 +394,10 @@ public:
      */
     void Resize(size_t size)
     {
+        BB_ASSERT(m_hostRefCnt == 0);
+
 #ifdef BB_WITH_CUDA
+        BB_ASSERT(m_devRefCnt == 0);
         m_size = size;
         if ( m_devAvailable ) {
             // デバイスメモリ再確保
@@ -645,6 +648,79 @@ public:
         BB_ASSERT(0);
 		return DevConstPtr();    // エラー
 	}
+
+
+   	/**
+     * @brief  hostOnlyフラグの変更
+     * @detail hostOnlyフラグの変更
+     * @param  新しいhostOnlyフラグの
+     */
+    void SetHostOnly(bool hostOnly)
+    {
+        BB_ASSERT(m_hostRefCnt == 0);
+
+#ifdef BB_WITH_CUDA
+        BB_ASSERT(m_devRefCnt == 0);
+
+        // 変更が無ければ何もしない
+        if ( hostOnly ==  m_hostOnly ) {
+            return;
+        }
+
+        if (hostOnly) {
+		    // メモリ確保
+		    auto newAddr = aligned_memory_alloc(m_size, 32);
+            BB_ASSERT(m_addr != nullptr);
+
+            // データがあればコピー
+            if ( m_hostModified ) {
+                memcpy(newAddr, m_addr, m_size);
+            }
+            else if ( m_devModified ) {
+                BB_CUDA_SAFE_CALL(cudaMemcpy(newAddr, m_devAddr, m_size, cudaMemcpyDeviceToDevice));
+            }
+
+            // デバイスメモリ開放
+            if (m_addr != nullptr) {
+                BB_CUDA_SAFE_CALL(cudaFreeHost(m_addr));  // Hostメモリ開放
+                m_addr= nullptr;
+            }
+			if (m_devAddr != nullptr) {
+                BB_CUDA_SAFE_CALL(cudaFree(m_devAddr));   // Deviceメモリ開放
+                m_devAddr= nullptr;
+            }
+            m_mem_size = m_size;
+            m_hostModified = false;
+            m_devModified = false;
+
+            m_addr = newAddr;
+        }
+        else {
+		    if ( m_hostModified ) {
+                // メモリ確保
+                void *newAddr;
+                BB_CUDA_SAFE_CALL(cudaMallocHost(&newAddr, m_size));
+                m_mem_size = m_size;
+
+                // コピー
+                memcpy(newAddr, m_addr, m_size);
+
+                // メモリ開放
+                if ( m_addr != nullptr ) {
+        		    aligned_memory_free(m_addr);
+                }
+
+                m_hostModified = false;
+
+                m_addr = newAddr;
+            }
+        }
+#endif
+
+        // フラグ変更
+        m_hostOnly = hostOnly;
+    }
+
 
 
     // ---------------------------------
