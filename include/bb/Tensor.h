@@ -306,7 +306,7 @@ class Tensor_
     
 protected:
 	std::shared_ptr<Memory>	    m_mem;
-    Memory::Ptr                 m_ptr;
+//  Memory::Ptr                 m_ptr;
 	index_t					    m_size = 0;
 
 	std::vector<index_t>		m_shape;
@@ -502,6 +502,9 @@ public:
 
     void Save(std::ostream& os) const
     {
+        std::int32_t hostOnly = m_mem->IsHostOnly() ? 1 : 0;
+        os.write((char const *)&hostOnly, sizeof(hostOnly));
+
         SaveIndices(os, m_shape);
         SaveIndices(os, m_stride);
         auto ptr = m_mem->GetConstPtr();
@@ -510,6 +513,10 @@ public:
     
     void Load(std::istream& is)
     {
+        std::int32_t hostOnly;
+        is.read((char *)&hostOnly, sizeof(hostOnly));
+        m_mem->SetHostOnly(hostOnly != 0);
+
         m_shape  = LoadIndices(is);
         Resize(m_shape);
         m_stride = LoadIndices(is);
@@ -521,8 +528,11 @@ public:
 	template <class Archive>
 	void save(Archive& archive, std::uint32_t const version) const
 	{
+        bool hostOnly = m_mem->IsHostOnly();
+		archive(cereal::make_nvp("host_only", hostOnly));
+
 		archive(cereal::make_nvp("shape",    m_shape));
-		archive(cereal::make_nvp("m_stride", m_stride));
+		archive(cereal::make_nvp("stride", m_stride));
 
         auto ptr = m_mem->GetConstPtr();
         std::vector<T> vec(m_size);
@@ -533,9 +543,13 @@ public:
 	template <class Archive>
 	void load(Archive& archive, std::uint32_t const version)
 	{
+        bool hostOnly;
+		archive(cereal::make_nvp("host_only", hostOnly));
+        m_mem->SetHostOnly(hostOnly);
+
 		archive(cereal::make_nvp("shape",    m_shape));
         Resize(m_shape);
-		archive(cereal::make_nvp("m_stride", m_stride));
+		archive(cereal::make_nvp("stride", m_stride));
 
         std::vector<T> vec;
 		archive(cereal::make_nvp("data", vec));
@@ -1276,7 +1290,7 @@ protected:
 	int							m_type = 0;
 
 	std::shared_ptr<Memory>		m_mem;
-    Memory::Ptr                 m_ptr;
+//  Memory::Ptr                 m_ptr;
 	index_t						m_size = 0;
 
 	std::vector<index_t>		m_shape;
@@ -1325,7 +1339,7 @@ public:
    	Tensor& operator=(const Tensor_<Tp>& tensor)
 	{
         m_mem = tensor.m_mem;
-        m_ptr.Clear();
+//      m_ptr.Clear();
         m_type = DataType<Tp>::type;
         m_size = tensor.m_size;
         m_shape  = tensor.m_shape;
@@ -1558,19 +1572,63 @@ public:
         is.read((char*)&m_type, sizeof(m_type));
 
         switch (m_type) {
-        case BB_TYPE_FP32:   { Tensor_<float        > t(0, !m_mem->IsHostOnly()); t.Load(is); *this = t; break; }
-        case BB_TYPE_FP64:   { Tensor_<double       > t(0, !m_mem->IsHostOnly()); t.Load(is); *this = t; break; }
-        case BB_TYPE_INT8:   { Tensor_<std::int8_t  > t(0, !m_mem->IsHostOnly()); t.Load(is); *this = t; break; }
-        case BB_TYPE_INT16:  { Tensor_<std::int16_t > t(0, !m_mem->IsHostOnly()); t.Load(is); *this = t; break; }
-        case BB_TYPE_INT32:  { Tensor_<std::int32_t > t(0, !m_mem->IsHostOnly()); t.Load(is); *this = t; break; }
-        case BB_TYPE_INT64:  { Tensor_<std::int64_t > t(0, !m_mem->IsHostOnly()); t.Load(is); *this = t; break; }
-        case BB_TYPE_UINT8:  { Tensor_<std::uint8_t > t(0, !m_mem->IsHostOnly()); t.Load(is); *this = t; break; }
-        case BB_TYPE_UINT16: { Tensor_<std::uint16_t> t(0, !m_mem->IsHostOnly()); t.Load(is); *this = t; break; }
-        case BB_TYPE_UINT32: { Tensor_<std::uint32_t> t(0, !m_mem->IsHostOnly()); t.Load(is); *this = t; break; }
-        case BB_TYPE_UINT64: { Tensor_<std::uint64_t> t(0, !m_mem->IsHostOnly()); t.Load(is); *this = t; break; }
+        case BB_TYPE_FP32:   { Tensor_<float        > t; t.Load(is); *this = t; break; }
+        case BB_TYPE_FP64:   { Tensor_<double       > t; t.Load(is); *this = t; break; }
+        case BB_TYPE_INT8:   { Tensor_<std::int8_t  > t; t.Load(is); *this = t; break; }
+        case BB_TYPE_INT16:  { Tensor_<std::int16_t > t; t.Load(is); *this = t; break; }
+        case BB_TYPE_INT32:  { Tensor_<std::int32_t > t; t.Load(is); *this = t; break; }
+        case BB_TYPE_INT64:  { Tensor_<std::int64_t > t; t.Load(is); *this = t; break; }
+        case BB_TYPE_UINT8:  { Tensor_<std::uint8_t > t; t.Load(is); *this = t; break; }
+        case BB_TYPE_UINT16: { Tensor_<std::uint16_t> t; t.Load(is); *this = t; break; }
+        case BB_TYPE_UINT32: { Tensor_<std::uint32_t> t; t.Load(is); *this = t; break; }
+        case BB_TYPE_UINT64: { Tensor_<std::uint64_t> t; t.Load(is); *this = t; break; }
         default:    BB_ASSERT(0);  break;
         }
     }
+
+
+#ifdef BB_WITH_CEREAL
+    template <class Archive>
+	void save(Archive& archive, std::uint32_t const version) const
+	{
+        archive(cereal::make_nvp("type", m_type));
+
+        switch (m_type) {
+        case BB_TYPE_FP32:   Tensor_<float        >(*this).save(archive, version);  break;
+        case BB_TYPE_FP64:   Tensor_<double       >(*this).save(archive, version);  break;
+        case BB_TYPE_INT8:   Tensor_<std::int8_t  >(*this).save(archive, version);  break;
+        case BB_TYPE_INT16:  Tensor_<std::int16_t >(*this).save(archive, version);  break;
+        case BB_TYPE_INT32:  Tensor_<std::int32_t >(*this).save(archive, version);  break;
+        case BB_TYPE_INT64:  Tensor_<std::int64_t >(*this).save(archive, version);  break;
+        case BB_TYPE_UINT8:  Tensor_<std::uint8_t >(*this).save(archive, version);  break;
+        case BB_TYPE_UINT16: Tensor_<std::uint16_t>(*this).save(archive, version);  break;
+        case BB_TYPE_UINT32: Tensor_<std::uint32_t>(*this).save(archive, version);  break;
+        case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this).save(archive, version);  break;
+        default:    BB_ASSERT(0);  break;
+        } 
+	}
+
+	template <class Archive>
+	void load(Archive& archive, std::uint32_t const version)
+	{
+        archive(cereal::make_nvp("type", m_type));
+
+        switch (m_type) {
+        case BB_TYPE_FP32:   { Tensor_<float        > t; t.load(archive, version); *this = t; break; }
+        case BB_TYPE_FP64:   { Tensor_<double       > t; t.load(archive, version); *this = t; break; }
+        case BB_TYPE_INT8:   { Tensor_<std::int8_t  > t; t.load(archive, version); *this = t; break; }
+        case BB_TYPE_INT16:  { Tensor_<std::int16_t > t; t.load(archive, version); *this = t; break; }
+        case BB_TYPE_INT32:  { Tensor_<std::int32_t > t; t.load(archive, version); *this = t; break; }
+        case BB_TYPE_INT64:  { Tensor_<std::int64_t > t; t.load(archive, version); *this = t; break; }
+        case BB_TYPE_UINT8:  { Tensor_<std::uint8_t > t; t.load(archive, version); *this = t; break; }
+        case BB_TYPE_UINT16: { Tensor_<std::uint16_t> t; t.load(archive, version); *this = t; break; }
+        case BB_TYPE_UINT32: { Tensor_<std::uint32_t> t; t.load(archive, version); *this = t; break; }
+        case BB_TYPE_UINT64: { Tensor_<std::uint64_t> t; t.load(archive, version); *this = t; break; }
+        default:    BB_ASSERT(0);  break;
+        }
+	}
+#endif
+
 
 #if 0
     // -------------------------------------
