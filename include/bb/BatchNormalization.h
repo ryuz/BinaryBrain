@@ -15,7 +15,7 @@
 #include <cereal/types/vector.hpp>
 #include <cereal/types/array.hpp>
 
-#include "bb/Model.h"
+#include "bb/Layer.h"
 #include "bb/FrameBuffer.h"
 #include "bb/SimdSupport.h"
 
@@ -25,7 +25,7 @@ namespace bb {
 
 // BatchNormalization
 template <typename T = float>
-class BatchNormalization : public Model
+class BatchNormalization : public Layer<T, T>
 {
 protected:
     indices_t 		            m_shape;
@@ -77,28 +77,21 @@ public:
         return self;
     }
 
-    std::string GetClassName(void) const { return "NeuralNetBatchNormalizationAvx"; }
+    std::string GetClassName(void) const { return "BatchNormalization"; }
 
 
-//	T& gamma(INDEX node) { return m_gamma(node); }
-//	T& beta(INDEX node) { return m_beta(node); }
-//	T& dgamma(INDEX node) { return m_dgamma(node); }
-//	T& dbeta(INDEX node) { return m_dbeta(node); }
-//	T& mean(INDEX node) { return m_running_mean(node); }
-//	T& var(INDEX node) { return m_running_var(node); }
-
-    auto lock_gamma(void)        { return m_gamma->GetPtr<T>(); }
-    auto lock_gamma_const(void)  { return m_gamma->GetConstPtr<T>(); }
-    auto lock_beta(void)         { return m_beta->GetPtr<T>(); }
-    auto lock_beta_const(void)   { return m_beta->GetConstPtr<T>(); }
-    auto lock_dgamma(void)       { return m_dgamma->GetPtr<T>(); }
-    auto lock_dgamma_const(void) { return m_dgamma->GetConstPtr<T>(); }
-    auto lock_dbeta(void)        { return m_dbeta->GetPtr<T>(); }
-    auto lock_dbeta_const(void)  { return m_dbeta->GetConstPtr<T>(); }
-    auto lock_mean(void)         { return m_running_mean.GetPtr(); }
-    auto lock_mean_const(void)   { return m_running_mean.GetConstPtr(); }
-    auto lock_var(void)          { return m_running_var.GetPtr(); }
-    auto lock_var_const(void)    { return m_running_var.GetConstPtr(); }
+    auto lock_gamma(void)              { return m_gamma->GetPtr<T>(); }
+    auto lock_gamma_const(void)  const { return m_gamma->GetConstPtr<T>(); }
+    auto lock_beta(void)               { return m_beta->GetPtr<T>(); }
+    auto lock_beta_const(void)   const { return m_beta->GetConstPtr<T>(); }
+    auto lock_dgamma(void)             { return m_dgamma->GetPtr<T>(); }
+    auto lock_dgamma_const(void) const { return m_dgamma->GetConstPtr<T>(); }
+    auto lock_dbeta(void)              { return m_dbeta->GetPtr<T>(); }
+    auto lock_dbeta_const(void)  const { return m_dbeta->GetConstPtr<T>(); }
+    auto lock_mean(void)               { return m_running_mean.GetPtr(); }
+    auto lock_mean_const(void)   const { return m_running_mean.GetConstPtr(); }
+    auto lock_var(void)                { return m_running_var.GetPtr(); }
+    auto lock_var_const(void)    const { return m_running_var.GetConstPtr(); }
 
 
     /**
@@ -159,7 +152,28 @@ public:
         return gradients;
     }
     
-    
+
+    // ノード単位でのForward計算
+    std::vector<T> ForwardNode(index_t node, std::vector<T> x_vec) const
+ 	{
+        BB_DEBUG_ASSERT(node >= 0 && node < m_node_size);
+
+        auto gamma_ptr        = lock_gamma_const();
+        auto beta_ptr         = lock_beta_const();
+        auto running_mean_ptr = m_running_mean.GetConstPtr();
+        auto running_var_ptr  = m_running_var.GetConstPtr();
+
+        std::vector<T> y_vec(x_vec.size());
+		for (size_t i = 0; i < x_vec.size(); ++i) {
+			y_vec[i]  = x_vec[i];
+			y_vec[i] -= running_mean_ptr(node);
+			y_vec[i] /= (T)sqrt(running_var_ptr(node) + 10e-7);
+			y_vec[i]  = y_vec[i] * gamma_ptr(node) + beta_ptr(node);
+		}
+		return y_vec;
+	}
+
+
     /**
      * @brief  forward演算
      * @detail forward演算を行う

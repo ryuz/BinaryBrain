@@ -23,7 +23,6 @@ template <typename T = float>
 class Binarize : public Layer<T, T>
 {
 protected:
-public:
     FrameBuffer m_x;
     FrameBuffer m_y;
     FrameBuffer m_dx;

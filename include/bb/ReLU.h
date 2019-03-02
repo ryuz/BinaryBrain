@@ -1,9 +1,9 @@
 ﻿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
-//                                     Copyright (C) 2018 by Ryuji Fuchikami
-//                                     https://github.com/ryuz
-//                                     ryuji.fuchikami@nifty.com
+//                                Copyright (C) 2018-2019 by Ryuji Fuchikami
+//                                https://github.com/ryuz
+//                                ryuji.fuchikami@nifty.com
 // --------------------------------------------------------------------------
 
 
@@ -12,7 +12,7 @@
 
 
 #include "bb/Manager.h"
-#include "bb/Model.h"
+#include "bb/Binarize.h"
 
 
 namespace bb {
@@ -20,15 +20,9 @@ namespace bb {
 
 // ReLU(活性化層)
 template <typename T = float>
-class ReLU : public Model
+class ReLU : public Binarize<T>
 {
 protected:
-public:
-    FrameBuffer m_x;
-    FrameBuffer m_y;
-    FrameBuffer m_dx;
-
-    bool m_host_only   = false;
     bool m_binary_mode = false;
 
 protected:
@@ -80,8 +74,22 @@ public:
         return shape;
     }
 
+    // 1ノードのみForward計算
+    std::vector<T> ForwardNode(index_t node, std::vector<T> x_vec) const
+    {
+        if ( m_binary_mode ) {
+            return Binarize<T>::ForwardNode(node, x_vec);
+        }
 
-      /**
+        std::vector<T> y_vec;
+        for ( auto x : x_vec ) {
+		    y_vec.push_back((x > (T)0.0) ? x : (T)0.0); // ReLU
+        }
+
+        return y_vec;
+    }
+    
+    /**
      * @brief  forward演算
      * @detail forward演算を行う
      * @param  x     入力データ
@@ -90,8 +98,18 @@ public:
      */
     inline FrameBuffer Forward(FrameBuffer x, bool train = true)
     {
+        // binaryモード
+    	if (m_binary_mode) {
+            return Binarize<T>::Forward(x, train);
+        }
+
+        BB_ASSERT(x.GetType() == DataType<T>::type);
+
+        // backward用に保存
         m_x = x;
-        m_y.Resize(x.GetType(), x.GetFrameSize(), x.GetShape());
+
+        // 戻り値のサイズ設定
+        m_y.ResizeLike(x);
 
         index_t frame_size = m_x.GetFrameSize();
         index_t node_size = m_x.GetNodeSize();
@@ -99,23 +117,12 @@ public:
 		auto x_ptr = m_x.GetConstPtr<T>();
 		auto y_ptr = m_y.GetPtr<T>();
 
-		if (m_binary_mode) {
-			// Binarize
+		// ReLU
 #pragma omp parallel for
-			for (index_t node = 0; node < node_size; ++node) {
-				for (index_t frame = 0; frame < frame_size; ++frame) {
-					y_ptr.Set(frame, node, x_ptr.Get(frame, node) > (T)0.0 ? (T)1.0 : (T)0.0);
-				}
-			}
-		}
-		else {
-			// ReLU
-#pragma omp parallel for
-			for (index_t node = 0; node < node_size; ++node) {
-				for (index_t frame = 0; frame < frame_size; ++frame) {
-                    auto sig = x_ptr.Get(frame, node);
-					y_ptr.Set(frame, node, sig > (T)0.0 ? sig : (T)0.0);
-				}
+		for (index_t node = 0; node < node_size; ++node) {
+			for (index_t frame = 0; frame < frame_size; ++frame) {
+                auto sig = x_ptr.Get(frame, node);
+				y_ptr.Set(frame, node, sig > (T)0.0 ? sig : (T)0.0);
 			}
 		}
         return m_y;
@@ -130,42 +137,26 @@ public:
      */
 	inline FrameBuffer Backward(FrameBuffer dy)
     {
-        m_dx.Resize(dy.GetType(), dy.GetFrameSize(), dy.GetShape());
+        // binaryモード
+  		if (m_binary_mode) {
+            return Binarize<T>::Backward(dy);
+        }
+
+        BB_ASSERT(dy.GetType() == DataType<T>::type);
+
+        // 戻り値のサイズ設定
+        m_dx.ResizeLike(dy);
 
         index_t frame_size = m_dx.GetFrameSize();
         index_t node_size = m_dx.GetNodeSize();
 
-		auto x_ptr  = m_x.GetConstPtr<T>();
-		auto y_ptr  = m_y.GetConstPtr<T>();
-		auto dy_ptr = dy.GetConstPtr<T>();
-		auto dx_ptr = m_dx.GetPtr<T>();
-
-        if (m_binary_mode) {
+        // ReLU
 #pragma omp parallel for
-			for (index_t node = 0; node < node_size; ++node) {
-				for (index_t frame = 0; frame < frame_size; ++frame) {
-					// hard-tanh
-					auto grad = dy_ptr.Get(frame, node);
-					auto sig  = x_ptr.Get(frame, node);
-					dx_ptr.Set(frame, node, (sig >= (T)-1.0 && sig <= (T)1.0) ? grad : 0);
-				}
-			}
-		}
-		else {
-			index_t  m256_frame_size = (int)(((frame_size + 7) / 8) * 8);
-
-			__m256 zero = _mm256_set1_ps(0);
-			for (index_t node = 0; node < node_size; ++node) {
-				auto y_addr  = (T*)y_ptr.GetAddr(node);
-				auto dy_addr = (T*)dy_ptr.GetAddr(node);
-				auto dx_addr = (T*)dx_ptr.GetAddr(node);
-				for (index_t frame = 0; frame < m256_frame_size; frame += 8) {
-					__m256 y    = _mm256_load_ps(&y_addr[frame]);
-					__m256 dy   = _mm256_load_ps(&dy_addr[frame]);
-					__m256 mask = _mm256_cmp_ps(y, zero, _CMP_GT_OS);
-					__m256 dx   = _mm256_and_ps(dy, mask);
-					_mm256_store_ps(&dx_addr[frame], dx);
-				}
+		for (index_t node = 0; node < node_size; ++node) {
+			for (index_t frame = 0; frame < frame_size; ++frame) {
+                auto sig  = y_ptr.Get(frame, node);
+                auto grad = dy_ptr.Get(frame, node);
+				dx_ptr.Set(frame, node, (sig > (T)0) ? grad : (T)0);
 			}
 		}
 
@@ -185,84 +176,56 @@ public:
 template<>
 inline FrameBuffer ReLU<float>::Forward(FrameBuffer x, bool train)
 {
+    if ( m_binary_mode ) {
+        return Binarize<float>::Forward(x, train);
+    }
+
     BB_ASSERT(x.GetType() == BB_TYPE_FP32);
 
+    // backward用に保存
     m_x = x;
-    m_y.Resize(x.GetType(), x.GetFrameSize(), x.GetShape());
+
+    // 戻り値サイズ設定
+    m_y.ResizeLike(x);
 
     index_t frame_size = m_x.GetFrameSize();
     index_t node_size = m_x.GetNodeSize();
 
-	if (m_binary_mode) {
-    	// Binarize
+    // ReLU
 #if BB_WITH_CUDA
-        if ( !m_host_only && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
-            // CUDA版
-            auto ptr_x = x.GetMemoryDevConstPtr();
-            auto ptr_y = m_y.GetMemoryDevPtr();
-            cubb_fp32_Binarize_Forward(
-                        (float const *)ptr_x.GetAddr(),
-                        (float *)ptr_y.GetAddr(),
-                        (int)frame_size,
-                        (int)(m_x.GetFrameStride() / sizeof(float)),
-                        (int)node_size
-                   );
-            return m_y;
-        }
-#endif
-        {
-            // CPU版
-            auto x_ptr = m_x.GetConstPtr<float>();
-	        auto y_ptr = m_y.GetPtr<float>();
-
-    #pragma omp parallel for
-		    for (index_t node = 0; node < node_size; ++node) {
-			    for (index_t frame = 0; frame < frame_size; ++frame) {
-				    y_ptr.Set(frame, node, x_ptr.Get(frame, node) >0.0f ? 1.0f : 0.0f);
-			    }
-		    }
-            return m_y;
-        }
-	}
-	else {
-        // ReLU
-#if BB_WITH_CUDA
-        if ( !m_host_only && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
-            // CUDA版
-            auto ptr_x = x.GetMemoryDevConstPtr();
-            auto ptr_y = m_y.GetMemoryDevPtr();
-            cubb_fp32_ReLU_Forward(
-                        (float const *)ptr_x.GetAddr(),
-                        (float *)ptr_y.GetAddr(),
-                        (int)frame_size,
-                        (int)(m_x.GetFrameStride() / sizeof(float)),
-                        (int)node_size
-                   );
-            return m_y;
-        }
-#endif
-
-        {
-            // AVX版
-            auto x_ptr = m_x.GetConstPtr<float>();
-	        auto y_ptr = m_y.GetPtr<float>();
-
-		    index_t  m256_frame_size = (int)(((frame_size + 7) / 8) * 8);
-		    __m256 zero = _mm256_set1_ps(0);
-		    for (index_t node = 0; node < node_size; ++node) {
-		        auto x_addr = (float const *)x_ptr.GetAddr(node);
-		        auto y_addr = (float *)y_ptr.GetAddr(node);
-		        for (index_t frame = 0; frame < m256_frame_size; frame += 8) {
-			        __m256 in_sig = _mm256_load_ps(&x_addr[frame]);
-			        in_sig = _mm256_max_ps(in_sig, zero);
-			        _mm256_store_ps(&y_addr[frame], in_sig);
-		        }
-		    }
-            return m_y;
-        }
+    if ( !m_host_only && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        // CUDA版
+        auto ptr_x = x.GetMemoryDevConstPtr();
+        auto ptr_y = m_y.GetMemoryDevPtr();
+        cubb_fp32_ReLU_Forward(
+                    (float const *)ptr_x.GetAddr(),
+                    (float *)ptr_y.GetAddr(),
+                    (int)frame_size,
+                    (int)(m_x.GetFrameStride() / sizeof(float)),
+                    (int)node_size
+                );
+        return m_y;
     }
+#endif
 
-    return m_y;
+    {
+        // AVX版
+        auto x_ptr = m_x.GetConstPtr<float>();
+	    auto y_ptr = m_y.GetPtr<float>();
+
+		index_t  m256_frame_size = (int)(((frame_size + 7) / 8) * 8);
+		__m256 zero = _mm256_set1_ps(0);
+		for (index_t node = 0; node < node_size; ++node) {
+		    auto x_addr = (float const *)x_ptr.GetAddr(node);
+		    auto y_addr = (float *)y_ptr.GetAddr(node);
+		    for (index_t frame = 0; frame < m256_frame_size; frame += 8) {
+			    __m256 in_sig = _mm256_load_ps(&x_addr[frame]);
+			    in_sig = _mm256_max_ps(in_sig, zero);
+			    _mm256_store_ps(&y_addr[frame], in_sig);
+		    }
+		}
+        return m_y;
+    }
 }
 
 
@@ -276,95 +239,60 @@ inline FrameBuffer ReLU<float>::Forward(FrameBuffer x, bool train)
 template<>
 inline FrameBuffer ReLU<float>::Backward(FrameBuffer dy)
 {
-    m_dx.Resize(dy.GetType(), dy.GetFrameSize(), dy.GetShape());
+    if ( m_binary_mode ) {
+        return Binarize<float>::Backward(dy);
+    }
+
+    BB_ASSERT(dy.GetType() == BB_TYPE_FP32);
+
+    // 戻り値サイズ設定
+    m_dx.ResizeLike(dy);
 
     index_t frame_size = m_dx.GetFrameSize();
     index_t node_size = m_dx.GetNodeSize();
 
-    if (m_binary_mode) {
-        #if BB_WITH_CUDA
-        if ( !m_host_only && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
-            // GPU版
-            auto ptr_x  = m_x.GetMemoryDevConstPtr();
-            auto ptr_dy = dy.GetMemoryDevConstPtr();
-            auto ptr_dx = m_dx.GetMemoryDevPtr();
-            cubb_fp32_HardTanh_Backward(
-                        (float const *)ptr_x.GetAddr(),
-                        (float const *)ptr_dy.GetAddr(),
-                        (float *)ptr_dx.GetAddr(),
-                        (int)frame_size,
-                        (int)(m_x.GetFrameStride() / sizeof(float)),
-                        (int)node_size
-                   );
-            return m_dx;
-        }
-#endif
-        {
-            // CPU版
-            auto x_ptr  = m_x.GetConstPtr<float>();
-	        auto y_ptr  = m_y.GetConstPtr<float>();
-	        auto dy_ptr = dy.GetConstPtr<float>();
-	        auto dx_ptr = m_dx.GetPtr<float>();
-
-    #pragma omp parallel for
-		    for (index_t node = 0; node < node_size; ++node) {
-			    for (index_t frame = 0; frame < frame_size; ++frame) {
-				    // hard-tanh
-				    auto grad = dy_ptr.Get(frame, node);
-				    auto sig  = x_ptr.Get(frame, node);
-				    dx_ptr.Set(frame, node, (sig >= -1.0f && sig <= 1.0f) ? grad : 0);
-			    }
-		    }
-            return m_dx;
-        }
-	}
-	else {
-        // ReLU
 #if BB_WITH_CUDA
-        if ( !m_host_only && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
-            // GPU版
-            auto ptr_x  = m_x.GetMemoryDevConstPtr();
-            auto ptr_dy = dy.GetMemoryDevConstPtr();
-            auto ptr_dx = m_dx.GetMemoryDevPtr();
-            cubb_fp32_ReLU_Backward(
-                        (float const *)ptr_x.GetAddr(),
-                        (float const *)ptr_dy.GetAddr(),
-                        (float *)ptr_dx.GetAddr(),
-                        (int)frame_size,
-                        (int)(m_x.GetFrameStride() / sizeof(float)),
-                        (int)node_size
-                   );
-            return m_dx;
-        }
+    if ( !m_host_only && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        // GPU版
+        auto ptr_x  = m_x.GetMemoryDevConstPtr();
+        auto ptr_dy = dy.GetMemoryDevConstPtr();
+        auto ptr_dx = m_dx.GetMemoryDevPtr();
+        cubb_fp32_ReLU_Backward(
+                    (float const *)ptr_x.GetAddr(),
+                    (float const *)ptr_dy.GetAddr(),
+                    (float *)ptr_dx.GetAddr(),
+                    (int)frame_size,
+                    (int)(m_x.GetFrameStride() / sizeof(float)),
+                    (int)node_size
+                );
+        return m_dx;
+    }
 #endif
 
-        {
-            // AVX
-	        auto x_ptr  = m_x.GetConstPtr<float>();
-	        auto y_ptr  = m_y.GetConstPtr<float>();
-	        auto dy_ptr = dy.GetConstPtr<float>();
-	        auto dx_ptr = m_dx.GetPtr<float>();
+    {
+        // AVX
+	    auto x_ptr  = m_x.GetConstPtr<float>();
+	    auto y_ptr  = m_y.GetConstPtr<float>();
+	    auto dy_ptr = dy.GetConstPtr<float>();
+	    auto dx_ptr = m_dx.GetPtr<float>();
 
-            index_t  m256_frame_size = (int)(((frame_size + 7) / 8) * 8);
+        index_t  m256_frame_size = (int)(((frame_size + 7) / 8) * 8);
 
-		    __m256 zero = _mm256_set1_ps(0);
-		    for (index_t node = 0; node < node_size; ++node) {
-			    auto y_addr  = (float *)y_ptr.GetAddr(node);
-			    auto dy_addr = (float *)dy_ptr.GetAddr(node);
-			    auto dx_addr = (float *)dx_ptr.GetAddr(node);
-			    for (index_t frame = 0; frame < m256_frame_size; frame += 8) {
-				    __m256 y    = _mm256_load_ps(&y_addr[frame]);
-				    __m256 dy   = _mm256_load_ps(&dy_addr[frame]);
-				    __m256 mask = _mm256_cmp_ps(y, zero, _CMP_GT_OS);
-				    __m256 dx   = _mm256_and_ps(dy, mask);
-				    _mm256_store_ps(&dx_addr[frame], dx);
-			    }
-		    }
-            return m_dx;
-        }
- 	}
-
-    return m_dx;
+		__m256 zero = _mm256_set1_ps(0);
+		for (index_t node = 0; node < node_size; ++node) {
+			auto y_addr  = (float *)y_ptr.GetAddr(node);
+			auto dy_addr = (float *)dy_ptr.GetAddr(node);
+			auto dx_addr = (float *)dx_ptr.GetAddr(node);
+			for (index_t frame = 0; frame < m256_frame_size; frame += 8) {
+				__m256 y    = _mm256_load_ps(&y_addr[frame]);
+				__m256 dy   = _mm256_load_ps(&dy_addr[frame]);
+				__m256 mask = _mm256_cmp_ps(y, zero, _CMP_GT_OS);
+				__m256 dx   = _mm256_and_ps(dy, mask);
+				_mm256_store_ps(&dx_addr[frame], dx);
+			}
+		}
+        return m_dx;
+    }
 }
 
 
