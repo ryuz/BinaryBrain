@@ -271,7 +271,7 @@ public:
 // -------------------------------------
 
 template<typename T>
-inline void Tensor_Scalar_set
+inline void Tensor_Vector_set
 (
     T       *dst,
     T	    a,
@@ -286,7 +286,7 @@ inline void Tensor_Scalar_set
 
 
 template<typename T>
-inline void Tensor_Scalar_add_ex
+inline void Tensor_Vector_add_ex
 (
     T       *dst,
     T const *src0,
@@ -305,7 +305,7 @@ inline void Tensor_Scalar_add_ex
 
 /*
 template<>
-inline void Tensor_Scalar_add_ex
+inline void Tensor_Vector_add_ex
 (
     float       *dst,
     float const *src0,
@@ -330,7 +330,7 @@ inline void Tensor_Scalar_add_ex
 */
 
 template<typename T>
-inline void Tensor_Scalar_sub_ex
+inline void Tensor_Vector_sub_ex
 (
     T       *dst,
     T const *src0,
@@ -349,7 +349,7 @@ inline void Tensor_Scalar_sub_ex
 
 
 template<typename T>
-inline void Tensor_Scalar_mul_ex
+inline void Tensor_Vector_mul_ex
 (
     T       *dst,
     T const *src0,
@@ -366,7 +366,7 @@ inline void Tensor_Scalar_mul_ex
 }
 
 template<typename T>
-inline void Tensor_Scalar_div_ex
+inline void Tensor_Vector_div_ex
 (
     T       *dst,
     T const *src0,
@@ -386,7 +386,7 @@ inline void Tensor_Scalar_div_ex
 
 
 template<typename T>
-inline void Tensor_Scalar_sqrt(
+inline void Tensor_Vector_sqrt(
     T       *dst,
     T const *src,
     index_t size
@@ -399,7 +399,7 @@ inline void Tensor_Scalar_sqrt(
 }
 
 template<>
-inline void Tensor_Scalar_sqrt<float>(
+inline void Tensor_Vector_sqrt<float>(
     float       *dst,
     float const *src,
     index_t size
@@ -413,7 +413,7 @@ inline void Tensor_Scalar_sqrt<float>(
 
 
 template<typename T>
-inline void Tensor_Scalar_exp(
+inline void Tensor_Vector_exp(
     T       *dst,
     T const *src,
     index_t size
@@ -426,7 +426,7 @@ inline void Tensor_Scalar_exp(
 }
 
 template<>
-inline void Tensor_Scalar_exp<float>(
+inline void Tensor_Vector_exp<float>(
     float       *dst,
     float const *src,
     index_t size
@@ -703,7 +703,7 @@ public:
     inline Tensor_& operator=(T src)
 	{
         auto ptr = m_mem->GetPtr();
-        Tensor_Scalar_set<T>((T *)ptr.GetAddr(), src, m_size);
+        Tensor_Vector_set<T>((T *)ptr.GetAddr(), src, m_size);
 		return *this;
 	}
     
@@ -711,14 +711,14 @@ public:
     {
         BB_ASSERT(m_size == src.m_size);
         auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, src.m_mem);
-        Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)1, (T)0, m_size);
+        Tensor_Vector_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)1, (T)0, m_size);
         return *this;
     }
 
     inline Tensor_& operator+=(T src)
     {
         auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
-        Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, src, m_size);
+        Tensor_Vector_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, src, m_size);
         return *this;
     }
 
@@ -726,14 +726,14 @@ public:
     {
         BB_ASSERT(m_size == src.m_size);
         auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, src.m_mem);
-        Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)-1, (T)0, m_size);
+        Tensor_Vector_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)-1, (T)0, m_size);
         return *this;
     }
 
     inline Tensor_& operator-=(T src)
     {
         auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
-        Tensor_Scalar_sub_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, src, m_size);
+        Tensor_Vector_sub_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, src, m_size);
         return *this;
     }
 
@@ -741,14 +741,14 @@ public:
     {
         BB_ASSERT(m_size == src.m_size);
         auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, src.m_mem);
-        Tensor_Scalar_mul_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, m_size);
+        Tensor_Vector_mul_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, m_size);
         return *this;
     }
 
     inline Tensor_& operator*=(T src)
     {
         auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
-        Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), src, (T)0, (T)0, m_size);
+        Tensor_Vector_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), src, (T)0, (T)0, m_size);
         return *this;
     }
 
@@ -756,14 +756,14 @@ public:
     {
         BB_ASSERT(m_size == src.m_size);
         auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, src.m_mem);
-        Tensor_Scalar_div_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, (T)1, (T)0, m_size);
+        Tensor_Vector_div_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, (T)1, (T)0, m_size);
         return *this;
     }
 
     inline Tensor_& operator/=(T src)
     {
         auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
-        Tensor_Scalar_div_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, (T)0, src, m_size);
+        Tensor_Vector_div_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, (T)0, src, m_size);
         return *this;
     }
 
@@ -785,7 +785,7 @@ public:
         Tensor_  dst(m_shape);
         auto src_ptr = GetMemoryConstPtr();
         auto dst_ptr = dst.GetMemoryPtr(true);
-        Tensor_Scalar_sqrt<T>((T *)dst_ptr.GetAddr(), (const T *)src_ptr.GetAddr(), m_size);
+        Tensor_Vector_sqrt<T>((T *)dst_ptr.GetAddr(), (const T *)src_ptr.GetAddr(), m_size);
         return dst;
     }
 
@@ -794,7 +794,7 @@ public:
         Tensor_  dst(m_shape);
         auto src_ptr = GetMemoryConstPtr();
         auto dst_ptr = dst.GetMemoryPtr(true);
-        Tensor_Scalar_exp<T>((T *)dst_ptr.GetAddr(), (T const *)src_ptr.GetAddr(), m_size);
+        Tensor_Vector_exp<T>((T *)dst_ptr.GetAddr(), (T const *)src_ptr.GetAddr(), m_size);
         return dst;
     }
 
@@ -820,7 +820,7 @@ Tensor_<T> operator+(Tensor_<T> const &src0, Tensor_<T> const &src1)
     BB_ASSERT(src0.m_size == src1.m_size);
     Tensor_<T>  dst(src0.m_shape);
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
-    Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (T const *)op3.src0.GetAddr(), (T const *)op3.src1.GetAddr(), (T)1, (T)1, (T)0, dst.m_size);
+    Tensor_Vector_add_ex<T>((T *)op3.dst.GetAddr(), (T const *)op3.src0.GetAddr(), (T const *)op3.src1.GetAddr(), (T)1, (T)1, (T)0, dst.m_size);
     return dst;
 }
 
@@ -829,7 +829,7 @@ Tensor_<T> operator+(Tensor_<T> const &src0, T src1)
 {
    Tensor_<T>  dst(src0.m_shape);
    auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
-   Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (T const *)op3.src0.GetAddr(), (T const *)op3.src1.GetAddr(), (T)1, (T)0, src1, dst.m_size);
+   Tensor_Vector_add_ex<T>((T *)op3.dst.GetAddr(), (T const *)op3.src0.GetAddr(), (T const *)op3.src1.GetAddr(), (T)1, (T)0, src1, dst.m_size);
    return dst;
 }
 
@@ -846,7 +846,7 @@ Tensor_<T> operator-(Tensor_<T> const &src0, Tensor_<T> const &src1)
     BB_ASSERT(src0.m_size == src1.m_size);
     Tensor_<T>  dst(src0.m_shape);
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
-    Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (T const *)op3.src0.GetAddr(), (T const *)op3.src1.GetAddr(), (T)1, (T)-1, (T)0, dst.m_size);
+    Tensor_Vector_add_ex<T>((T *)op3.dst.GetAddr(), (T const *)op3.src0.GetAddr(), (T const *)op3.src1.GetAddr(), (T)1, (T)-1, (T)0, dst.m_size);
     return dst;
 }
 
@@ -855,7 +855,7 @@ Tensor_<T> operator-(const Tensor_<T>& src0, T src1)
 {
    Tensor_<T>  dst(src0.m_shape);
    auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
-   Tensor_Scalar_sub_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, src1, dst.m_size);
+   Tensor_Vector_sub_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, src1, dst.m_size);
    return dst;
 }
 
@@ -864,7 +864,7 @@ Tensor_<T> operator-(T src0, Tensor_<T> const &src1)
 {
    Tensor_<T>  dst(src1.m_shape);
    auto op3 = Memory::GetOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
-   Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)-1, (T)0, src0, dst.m_size);
+   Tensor_Vector_add_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)-1, (T)0, src0, dst.m_size);
    return dst;
 }
 
@@ -875,7 +875,7 @@ Tensor_<T> operator*(const Tensor_<T> &src0, Tensor_<T> const &src1)
     BB_ASSERT(src0.m_size == src1.m_size);
     Tensor_<T>  dst(src0.m_shape);
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
-    Tensor_Scalar_mul_ex<T>((T *)op3.dst.GetAddr(), (T const *)op3.src0.GetAddr(), (T const *)op3.src1.GetAddr(), (T)1, (T)0, dst.m_size);
+    Tensor_Vector_mul_ex<T>((T *)op3.dst.GetAddr(), (T const *)op3.src0.GetAddr(), (T const *)op3.src1.GetAddr(), (T)1, (T)0, dst.m_size);
     return dst;
 }
 
@@ -884,7 +884,7 @@ Tensor_<T> operator*(Tensor_<T> const &src0, T src1)
 {
    Tensor_<T>  dst(src0.m_shape);
    auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
-   Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (T const *)op3.src0.GetAddr(), (T const *)op3.src1.GetAddr(), (T)src1, (T)0, (T)0, dst.m_size);
+   Tensor_Vector_add_ex<T>((T *)op3.dst.GetAddr(), (T const *)op3.src0.GetAddr(), (T const *)op3.src1.GetAddr(), (T)src1, (T)0, (T)0, dst.m_size);
    return dst;
 }
 
@@ -893,7 +893,7 @@ Tensor_<T> operator*(T src0, Tensor_<T> const &src1)
 {
    Tensor_<T>  dst(src1.m_shape);
    auto op3 = Memory::GetOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
-   Tensor_Scalar_add_ex<T>((T *)op3.dst.GetAddr(), (T const *)op3.src0.GetAddr(), (T const *)op3.src1.GetAddr(), (T)src0, (T)0, (T)0, dst.m_size);
+   Tensor_Vector_add_ex<T>((T *)op3.dst.GetAddr(), (T const *)op3.src0.GetAddr(), (T const *)op3.src1.GetAddr(), (T)src0, (T)0, (T)0, dst.m_size);
    return dst;
 }
 
@@ -905,7 +905,7 @@ Tensor_<T> operator/(Tensor_<T> const &src0, Tensor_<T> const &src1)
     BB_ASSERT(src0.m_size == src1.m_size);
     Tensor_<T>  dst(src0.m_shape);
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
-    Tensor_Scalar_div_ex<T>((T *)op3.dst.GetAddr(), (T const *)op3.src0.GetAddr(), (T const *)op3.src1.GetAddr(), (T)1, (T)0, (T)1, (T)0, dst.m_size);
+    Tensor_Vector_div_ex<T>((T *)op3.dst.GetAddr(), (T const *)op3.src0.GetAddr(), (T const *)op3.src1.GetAddr(), (T)1, (T)0, (T)1, (T)0, dst.m_size);
     return dst;
 }
 
@@ -914,7 +914,7 @@ Tensor_<T> operator/(const Tensor_<T>& src0, T src1)
 {
    Tensor_<T>  dst(src0.m_shape);
    auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
-   Tensor_Scalar_div_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, (T)0, src1, dst.m_size);
+   Tensor_Vector_div_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)1, (T)0, (T)0, src1, dst.m_size);
    return dst;
 }
 
@@ -923,7 +923,7 @@ Tensor_<T> operator/(T src0, Tensor_<T> const &src1)
 {
    Tensor_<T>  dst(src1.m_shape);
    auto op3 = Memory::GetOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
-   Tensor_Scalar_div_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)0, src0, (T)1, (T)0, dst.m_size);
+   Tensor_Vector_div_ex<T>((T *)op3.dst.GetAddr(), (const T *)op3.src0.GetAddr(), (const T *)op3.src1.GetAddr(), (T)0, src0, (T)1, (T)0, dst.m_size);
    return dst;
 }
 
@@ -959,13 +959,13 @@ inline Tensor_<float> & Tensor_<float>::operator+=(Tensor_<float> const &src)
     // CUDA
     if ( m_mem->IsDeviceAvailable() && src.m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, src.m_mem);
-        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 1.0f, 0.0f, (int)m_size);
+        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 1.0f, 0.0f, (int)m_size);
         return *this;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, src.m_mem);
-    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 1.0f, 0.0f, m_size);
+    Tensor_Vector_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 1.0f, 0.0f, m_size);
     return *this;
 }
 
@@ -975,13 +975,13 @@ inline Tensor_<float> & Tensor_<float>::operator+=(float src)
     // CUDA
     if ( m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, m_mem);
-        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, src, (int)m_size);
+        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, src, (int)m_size);
         return *this;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
-    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, src, m_size);
+    Tensor_Vector_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, src, m_size);
     return *this;
 }
 
@@ -994,13 +994,13 @@ inline Tensor_<float> operator+(const Tensor_<float> &src0, Tensor_<float> const
     // CUDA
     if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
-        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 1.0f, 0.0f, (int)dst.m_size);
+        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 1.0f, 0.0f, (int)dst.m_size);
         return dst;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
-    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 1.0f, 0.0f, dst.m_size);
+    Tensor_Vector_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 1.0f, 0.0f, dst.m_size);
     return dst;
 }
 
@@ -1012,13 +1012,13 @@ inline Tensor_<float> operator+(const Tensor_<float> &src0, float src1)
     // CUDA
     if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
-        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, src1, (int)dst.m_size);
+        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, src1, (int)dst.m_size);
         return dst;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
-    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, src1, dst.m_size);
+    Tensor_Vector_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, src1, dst.m_size);
     return dst;
 }
 
@@ -1030,13 +1030,13 @@ inline Tensor_<float> operator+(float src0, const Tensor_<float> &src1)
     // CUDA
     if ( dst.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
-        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, src0, (int)dst.m_size);
+        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, src0, (int)dst.m_size);
         return dst;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
-    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, src0, dst.m_size);
+    Tensor_Vector_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, src0, dst.m_size);
     return dst;
 }
 
@@ -1051,13 +1051,13 @@ inline Tensor_<float> & Tensor_<float>::operator-=(Tensor_<float> const &src)
     // CUDA
     if ( m_mem->IsDeviceAvailable() && src.m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, src.m_mem);
-        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, -1.0f, 0.0f, (int)m_size);
+        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, -1.0f, 0.0f, (int)m_size);
         return *this;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, src.m_mem);
-    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, -1.0f, 0.0f, m_size);
+    Tensor_Vector_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, -1.0f, 0.0f, m_size);
     return *this;
 }
 
@@ -1067,13 +1067,13 @@ inline Tensor_<float> & Tensor_<float>::operator-=(float src)
     // CUDA
     if ( m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, m_mem);
-        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, -src, (int)m_size);
+        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, -src, (int)m_size);
         return *this;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
-    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, -src, m_size);
+    Tensor_Vector_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, -src, m_size);
     return *this;
 }
 
@@ -1086,13 +1086,13 @@ inline Tensor_<float> operator-(const Tensor_<float> &src0, Tensor_<float> const
     // CUDA
     if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
-        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, -1.0f, 0.0f, (int)dst.m_size);
+        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, -1.0f, 0.0f, (int)dst.m_size);
         return dst;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
-    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, -1.0f, 0.0f, dst.m_size);
+    Tensor_Vector_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, -1.0f, 0.0f, dst.m_size);
     return dst;
 }
 
@@ -1104,13 +1104,13 @@ inline Tensor_<float> operator-(const Tensor_<float> &src0, float src1)
     // CUDA
     if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
-        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, -src1, (int)dst.m_size);
+        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, -src1, (int)dst.m_size);
         return dst;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
-    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, -src1, dst.m_size);
+    Tensor_Vector_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, -src1, dst.m_size);
     return dst;
 }
 
@@ -1122,13 +1122,13 @@ inline Tensor_<float> operator-(float src0, const Tensor_<float> &src1)
     // CUDA
     if ( dst.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
-        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), -1.0f, 0.0f, src0, (int)dst.m_size);
+        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), -1.0f, 0.0f, src0, (int)dst.m_size);
         return dst;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
-    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), -1.0f, 0.0f, src0, dst.m_size);
+    Tensor_Vector_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), -1.0f, 0.0f, src0, dst.m_size);
     return dst;
 }
 
@@ -1144,13 +1144,13 @@ inline Tensor_<float> & Tensor_<float>::operator*=(Tensor_<float> const &src)
     // CUDA
     if ( m_mem->IsDeviceAvailable() && src.m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, src.m_mem);
-        bbcu_Scalar_mul_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, (int)m_size);
+        bbcu_Vector_mul_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, (int)m_size);
         return *this;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, src.m_mem);
-    Tensor_Scalar_mul_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, m_size);
+    Tensor_Vector_mul_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, m_size);
     return *this;
 }
 
@@ -1160,13 +1160,13 @@ inline Tensor_<float> & Tensor_<float>::operator*=(float src)
     // CUDA
     if ( m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, m_mem);
-        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), src, 0.0f, 0.0f, (int)m_size);
+        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), src, 0.0f, 0.0f, (int)m_size);
         return *this;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
-    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), src, 0.0f, 0.0f, m_size);
+    Tensor_Vector_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), src, 0.0f, 0.0f, m_size);
     return *this;
 }
 
@@ -1179,13 +1179,13 @@ inline Tensor_<float> operator*(const Tensor_<float> &src0, Tensor_<float> const
     // CUDA
     if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
-        bbcu_Scalar_mul_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, (int)dst.m_size);
+        bbcu_Vector_mul_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, (int)dst.m_size);
         return dst;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
-    Tensor_Scalar_mul_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, dst.m_size);
+    Tensor_Vector_mul_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, dst.m_size);
     return dst;
 }
 
@@ -1197,13 +1197,13 @@ inline Tensor_<float> operator*(const Tensor_<float> &src0, float src1)
     // CUDA
     if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
-        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), src1, 0.0f, 0.0f, (int)dst.m_size);
+        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), src1, 0.0f, 0.0f, (int)dst.m_size);
         return dst;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
-    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), src1, 0.0f, 0.0f, dst.m_size);
+    Tensor_Vector_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), src1, 0.0f, 0.0f, dst.m_size);
     return dst;
 }
 
@@ -1215,13 +1215,13 @@ inline Tensor_<float> operator*(float src0, const Tensor_<float> &src1)
     // CUDA
     if ( dst.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
-        bbcu_Scalar_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), src0, 0.0f, 0.0f, (int)dst.m_size);
+        bbcu_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), src0, 0.0f, 0.0f, (int)dst.m_size);
         return dst;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
-    Tensor_Scalar_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), src0, 0.0f, 0.0f, dst.m_size);
+    Tensor_Vector_add_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), src0, 0.0f, 0.0f, dst.m_size);
     return dst;
 }
 
@@ -1236,13 +1236,13 @@ inline Tensor_<float> & Tensor_<float>::operator/=(Tensor_<float> const &src)
     // CUDA
     if ( m_mem->IsDeviceAvailable() && src.m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, src.m_mem);
-        bbcu_Scalar_div_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, 1.0f, 0.0f, (int)m_size);
+        bbcu_Vector_div_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, 1.0f, 0.0f, (int)m_size);
         return *this;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, src.m_mem);
-    Tensor_Scalar_div_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, 1.0f, 0.0f, m_size);
+    Tensor_Vector_div_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, 1.0f, 0.0f, m_size);
     return *this;
 }
 
@@ -1252,13 +1252,13 @@ inline Tensor_<float> & Tensor_<float>::operator/=(float src)
     // CUDA
     if ( m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, m_mem);
-        bbcu_Scalar_div_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, 0.0f, src, (int)m_size);
+        bbcu_Vector_div_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, 0.0f, src, (int)m_size);
         return *this;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(m_mem, m_mem, m_mem);
-    Tensor_Scalar_div_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, 0.0f, src, m_size);
+    Tensor_Vector_div_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, 0.0f, src, m_size);
     return *this;
 }
 
@@ -1271,13 +1271,13 @@ inline Tensor_<float> operator/(const Tensor_<float> &src0, Tensor_<float> const
     // CUDA
     if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
-        bbcu_Scalar_div_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, 1.0f, 0.0f, (int)dst.m_size);
+        bbcu_Vector_div_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, 1.0f, 0.0f, (int)dst.m_size);
         return dst;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src1.m_mem);
-    Tensor_Scalar_div_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, 1.0f, 0.0f, dst.m_size);
+    Tensor_Vector_div_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, 1.0f, 0.0f, dst.m_size);
     return dst;
 }
 
@@ -1289,13 +1289,13 @@ inline Tensor_<float> operator/(const Tensor_<float> &src0, float src1)
     // CUDA
     if ( dst.m_mem->IsDeviceAvailable() && src0.m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
-        bbcu_Scalar_div_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, 0.0f, src1, (int)dst.m_size);
+        bbcu_Vector_div_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, 0.0f, src1, (int)dst.m_size);
         return dst;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src0.m_mem, src0.m_mem);
-    Tensor_Scalar_div_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, 0.0f, src1, dst.m_size);
+    Tensor_Vector_div_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 1.0f, 0.0f, 0.0f, src1, dst.m_size);
     return dst;
 }
 
@@ -1307,13 +1307,13 @@ inline Tensor_<float> operator/(float src0, const Tensor_<float> &src1)
     // CUDA
     if ( dst.m_mem->IsDeviceAvailable() && src1.m_mem->IsDeviceAvailable() ) {
         auto op3 = Memory::GetDevOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
-        bbcu_Scalar_div_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 0.0f, src0, 1.0f, 0.0f, (int)dst.m_size);
+        bbcu_Vector_div_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 0.0f, src0, 1.0f, 0.0f, (int)dst.m_size);
         return dst;
     }
 
     // CPU
     auto op3 = Memory::GetOp3Ptr(dst.m_mem, src1.m_mem, src1.m_mem);
-    Tensor_Scalar_div_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 0.0f, src0, 1.0f, 0.0f, dst.m_size);
+    Tensor_Vector_div_ex<float>((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 0.0f, src0, 1.0f, 0.0f, dst.m_size);
     return dst;
 }
 
@@ -1329,14 +1329,14 @@ inline Tensor_<float> Tensor_<float>::Sqrt(void)
     if ( dst.m_mem->IsDeviceAvailable() && dst.m_mem->IsDeviceAvailable() ) {
         auto src_ptr = GetMemoryDevConstPtr();
         auto dst_ptr = dst.GetMemoryDevPtr(true);
-        bbcu_Scalar_sqrt((float *)dst_ptr.GetAddr(), (const float *)src_ptr.GetAddr(), (int)m_size);
+        bbcu_Vector_sqrt((float *)dst_ptr.GetAddr(), (const float *)src_ptr.GetAddr(), (int)m_size);
         return dst;
     }
     
     // CPU
     auto src_ptr = GetMemoryConstPtr();
     auto dst_ptr = dst.GetMemoryPtr(true);
-    Tensor_Scalar_sqrt<float>((float *)dst_ptr.GetAddr(), (const float *)src_ptr.GetAddr(), m_size);
+    Tensor_Vector_sqrt<float>((float *)dst_ptr.GetAddr(), (const float *)src_ptr.GetAddr(), m_size);
     return dst;
 }
 
@@ -1349,14 +1349,14 @@ inline Tensor_<float> Tensor_<float>::Exp(void)
     if ( dst.m_mem->IsDeviceAvailable() && dst.m_mem->IsDeviceAvailable() ) {
         auto src_ptr = GetMemoryDevConstPtr();
         auto dst_ptr = dst.GetMemoryDevPtr(true);
-        bbcu_Scalar_sqrt((float *)dst_ptr.GetAddr(), (const float *)src_ptr.GetAddr(), (int)m_size);
+        bbcu_Vector_sqrt((float *)dst_ptr.GetAddr(), (const float *)src_ptr.GetAddr(), (int)m_size);
         return dst;
     }
     
     // CPU
     auto src_ptr = GetMemoryConstPtr();
     auto dst_ptr = dst.GetMemoryPtr(true);
-    Tensor_Scalar_exp<float>((float *)dst_ptr.GetAddr(), (float const *)src_ptr.GetAddr(), m_size);
+    Tensor_Vector_exp<float>((float *)dst_ptr.GetAddr(), (float const *)src_ptr.GetAddr(), m_size);
     return dst;
 }
 

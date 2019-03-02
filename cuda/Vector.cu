@@ -13,7 +13,7 @@
 //  add_ex
 // -------------------------------------------------
 
-__global__ void kernal_Scalar_add_ex
+__global__ void kernal_Vector_add_ex
 		(
 			float*			dst,
 			const float*	src0,
@@ -31,7 +31,7 @@ __global__ void kernal_Scalar_add_ex
 	}
 }
 
-CUBB_DLL_EXPORT int bbcu_Scalar_add_ex(
+CUBB_DLL_EXPORT int bbcu_Vector_add_ex(
 			float*			dev_dst,
 			const float*	dev_src0,
 			const float*	dev_src1,
@@ -42,7 +42,7 @@ CUBB_DLL_EXPORT int bbcu_Scalar_add_ex(
             cudaStream_t	streamId
 		)
 {
-	kernal_Scalar_add_ex<<<1, 1024, 0, streamId>>>
+	kernal_Vector_add_ex<<<1, 1024, 0, streamId>>>
         (
 			dev_dst,
 			dev_src0,
@@ -63,7 +63,7 @@ CUBB_DLL_EXPORT int bbcu_Scalar_add_ex(
 //  mul_ex
 // -------------------------------------------------
 
-__global__ void kernal_Scalar_mul_ex(
+__global__ void kernal_Vector_mul_ex(
 			float*			dst,
 			const float*	src0,
 			const float*	src1,
@@ -79,7 +79,7 @@ __global__ void kernal_Scalar_mul_ex(
 }
 
 
-CUBB_DLL_EXPORT int bbcu_Scalar_mul_ex
+CUBB_DLL_EXPORT int bbcu_Vector_mul_ex
         (
 			float*			dev_dst,
 			const float*	dev_src0,
@@ -90,7 +90,7 @@ CUBB_DLL_EXPORT int bbcu_Scalar_mul_ex
             cudaStream_t	streamId
 		)
 {
-	kernal_Scalar_mul_ex<<<1, 1024, 0, streamId>>>
+	kernal_Vector_mul_ex<<<1, 1024, 0, streamId>>>
         (
 			dev_dst,
 			dev_src0,
@@ -109,7 +109,7 @@ CUBB_DLL_EXPORT int bbcu_Scalar_mul_ex
 //  div_ex
 // -------------------------------------------------
 
-__global__ void kernal_Scalar_div_ex(
+__global__ void kernal_Vector_div_ex(
 			float*			dst,
 			const float*	src0,
 			const float*	src1,
@@ -127,7 +127,7 @@ __global__ void kernal_Scalar_div_ex(
 }
 
 
-CUBB_DLL_EXPORT int bbcu_Scalar_div_ex(
+CUBB_DLL_EXPORT int bbcu_Vector_div_ex(
             float           *dev_dst,
             float const     *dev_src0,
             float const     *dev_src1,
@@ -139,7 +139,7 @@ CUBB_DLL_EXPORT int bbcu_Scalar_div_ex(
             cudaStream_t	streamId
 		)
 {
-	kernal_Scalar_div_ex<<<1, 1024, 0, streamId>>>
+	kernal_Vector_div_ex<<<1, 1024, 0, streamId>>>
         (
 			dev_dst,
 			dev_src0,
@@ -161,7 +161,7 @@ CUBB_DLL_EXPORT int bbcu_Scalar_div_ex(
 //  sqrt
 // -------------------------------------------------
 
-__global__ void kernal_Scalar_sqrt(
+__global__ void kernal_Vector_sqrt(
 			float*			dst,
 			const float*	src,
 			int				size)
@@ -174,14 +174,14 @@ __global__ void kernal_Scalar_sqrt(
 }
 
 
-CUBB_DLL_EXPORT int bbcu_Scalar_sqrt(
+CUBB_DLL_EXPORT int bbcu_Vector_sqrt(
             float           *dev_dst,
             float const     *dev_src,
 			int				size,
             cudaStream_t	streamId
 		)
 {
-	kernal_Scalar_sqrt<<<1, 1024, 0, streamId>>>
+	kernal_Vector_sqrt<<<1, 1024, 0, streamId>>>
         (
 			dev_dst,
 			dev_src,
@@ -199,7 +199,7 @@ CUBB_DLL_EXPORT int bbcu_Scalar_sqrt(
 //  exp
 // -------------------------------------------------
 
-__global__ void kernal_Scalar_exp(
+__global__ void kernal_Vector_exp(
 			float*			dst,
 			const float*	src,
 			int				size)
@@ -212,14 +212,14 @@ __global__ void kernal_Scalar_exp(
 }
 
 
-CUBB_DLL_EXPORT int bbcu_Scalar_exp(
+CUBB_DLL_EXPORT int bbcu_Vector_exp(
             float           *dev_dst,
             float const     *dev_src,
 			int				size,
             cudaStream_t	streamId
 		)
 {
-	kernal_Scalar_exp<<<1, 1024, 0, streamId>>>
+	kernal_Vector_exp<<<1, 1024, 0, streamId>>>
         (
 			dev_dst,
 			dev_src,
