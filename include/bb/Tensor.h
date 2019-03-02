@@ -21,9 +21,14 @@
 #include "bb/DataType.h"
 #include "bb/Utility.h"
 #include "bb/Memory.h"
+#include "bb/TensorOperator.h"
 
 #ifdef BB_WITH_CUDA
 #include "bbcu/bbcu.h"
+#endif
+
+#ifdef BB_WITH_CEREAL
+#include "cereal/types/vector.hpp"
 #endif
 
 
@@ -263,180 +268,6 @@ public:
         return At(index);
     }
 };
-
-
-
-// -------------------------------------
-//  基本演算定義
-// -------------------------------------
-
-template<typename T>
-inline void Tensor_Vector_set
-(
-    T       *dst,
-    T	    a,
-    index_t size
-)
-{
-#pragma omp parallel for 
-    for (index_t i = 0; i < size; ++i) {
-        dst[i] = a;
-    }
-}
-
-
-template<typename T>
-inline void Tensor_Vector_add_ex
-(
-    T       *dst,
-    T const *src0,
-    T const *src1,
-    T	    a,
-    T	    b,
-    T	    c,
-    index_t size
-)
-{
-#pragma omp parallel for 
-    for (index_t i = 0; i < size; ++i) {
-        dst[i] = a * src0[i] + b * src1[i] + c;
-    }
-}
-
-/*
-template<>
-inline void Tensor_Vector_add_ex
-(
-    float       *dst,
-    float const *src0,
-    float const *src1,
-    float	    a,
-    float	    b,
-    float	    c,
-    index_t size
-)
-{
-//  #pragma omp parallel for
-    for (index_t i = 0; i < size; ++i) {
-        BB_DEBUG_ASSERT(!isnan(a));
-        BB_DEBUG_ASSERT(!isnan(b));
-        BB_DEBUG_ASSERT(!isnan(c));
-        BB_DEBUG_ASSERT(!isnan(src0[i]));
-        BB_DEBUG_ASSERT(!isnan(src1[i]));
-
-        dst[i] = a * src0[i] + b * src1[i] + c;
-    }
-}
-*/
-
-template<typename T>
-inline void Tensor_Vector_sub_ex
-(
-    T       *dst,
-    T const *src0,
-    T const *src1,
-    T	    a,
-    T	    b,
-    T	    c,
-    index_t size
-)
-{
-#pragma omp parallel for 
-    for (index_t i = 0; i < size; ++i) {
-        dst[i] = a * src0[i] - b * src1[i] - c;
-    }
-}
-
-
-template<typename T>
-inline void Tensor_Vector_mul_ex
-(
-    T       *dst,
-    T const *src0,
-    T const *src1,
-    T	    a,
-    T	    b,
-    index_t size
-)
-{
-    #pragma omp parallel for 
-    for (index_t i = 0; i < size; ++i) {
-        dst[i] = a * src0[i] * src1[i] + b;
-    }
-}
-
-template<typename T>
-inline void Tensor_Vector_div_ex
-(
-    T       *dst,
-    T const *src0,
-    T const *src1,
-    T	    a,
-    T	    b,
-    T	    c,
-    T	    d,
-    index_t size
-)
-{
-    #pragma omp parallel for 
-    for (index_t i = 0; i < size; ++i) {
-        dst[i] = (a * src0[i] + b) / (c * src1[i] + d);
-    }
-}
-
-
-template<typename T>
-inline void Tensor_Vector_sqrt(
-    T       *dst,
-    T const *src,
-    index_t size
-)
-{
-    #pragma omp parallel for 
-    for (index_t i = 0; i < size; ++i) {
-        dst[i] = (T)sqrt((double)src[i]);
-    }
-}
-
-template<>
-inline void Tensor_Vector_sqrt<float>(
-    float       *dst,
-    float const *src,
-    index_t size
-)
-{
-    #pragma omp parallel for 
-    for (index_t i = 0; i < size; ++i) {
-        dst[i] = sqrt(src[i]);
-    }
-}
-
-
-template<typename T>
-inline void Tensor_Vector_exp(
-    T       *dst,
-    T const *src,
-    index_t size
-)
-{
-    #pragma omp parallel for 
-    for (index_t i = 0; i < size; ++i) {
-        dst[i] = (T)exp((double)src[i]);
-    }
-}
-
-template<>
-inline void Tensor_Vector_exp<float>(
-    float       *dst,
-    float const *src,
-    index_t size
-)
-{
-    #pragma omp parallel for 
-    for (index_t i = 0; i < size; ++i) {
-        dst[i] = exp(src[i]);
-    }
-}
 
 
 
@@ -684,6 +515,35 @@ public:
         auto ptr = m_mem->GetPtr(true);
         is.read((char *)ptr.GetAddr(), m_size * DataType<T>::size);
     }
+
+#ifdef BB_WITH_CEREAL
+	template <class Archive>
+	void save(Archive& archive, std::uint32_t const version) const
+	{
+		archive(cereal::make_nvp("shape",    m_shape));
+		archive(cereal::make_nvp("m_stride", m_stride));
+
+        auto ptr = m_mem->GetConstPtr();
+        std::vector<T> vec(m_size);
+        memcpy(&m_size[0], (T const *)ptr.GetAddr(), m_size*sizeof(T));
+		archive(cereal::make_nvp("data", vec));
+	}
+
+	template <class Archive>
+	void load(Archive& archive, std::uint32_t const version)
+	{
+		archive(cereal::make_nvp("shape",    m_shape));
+        Resize(m_shape);
+		archive(cereal::make_nvp("m_stride", m_stride));
+
+        std::vector<T> vec;
+		archive(cereal::make_nvp("data", vec));
+        BB_ASSERT(m_size == (index_t)vec.size());
+
+        auto ptr = m_mem->GetPtr();
+        memcpy(ptr.GetAddr(), &m_size[0], m_size*sizeof(T));
+	}
+#endif
 
 
     // -------------------------------------
@@ -1698,16 +1558,16 @@ public:
         is.read((char*)&m_type, sizeof(m_type));
 
         switch (m_type) {
-        case BB_TYPE_FP32:   { Tensor_<float        > t(0, !m_mem->IsDeviceAvailable()); t.Load(is); *this = t; break; }
-        case BB_TYPE_FP64:   { Tensor_<double       > t(0, !m_mem->IsDeviceAvailable()); t.Load(is); *this = t; break; }
-        case BB_TYPE_INT8:   { Tensor_<std::int8_t  > t(0, !m_mem->IsDeviceAvailable()); t.Load(is); *this = t; break; }
-        case BB_TYPE_INT16:  { Tensor_<std::int16_t > t(0, !m_mem->IsDeviceAvailable()); t.Load(is); *this = t; break; }
-        case BB_TYPE_INT32:  { Tensor_<std::int32_t > t(0, !m_mem->IsDeviceAvailable()); t.Load(is); *this = t; break; }
-        case BB_TYPE_INT64:  { Tensor_<std::int64_t > t(0, !m_mem->IsDeviceAvailable()); t.Load(is); *this = t; break; }
-        case BB_TYPE_UINT8:  { Tensor_<std::uint8_t > t(0, !m_mem->IsDeviceAvailable()); t.Load(is); *this = t; break; }
-        case BB_TYPE_UINT16: { Tensor_<std::uint16_t> t(0, !m_mem->IsDeviceAvailable()); t.Load(is); *this = t; break; }
-        case BB_TYPE_UINT32: { Tensor_<std::uint32_t> t(0, !m_mem->IsDeviceAvailable()); t.Load(is); *this = t; break; }
-        case BB_TYPE_UINT64: { Tensor_<std::uint64_t> t(0, !m_mem->IsDeviceAvailable()); t.Load(is); *this = t; break; }
+        case BB_TYPE_FP32:   { Tensor_<float        > t(0, !m_mem->IsHostOnly()); t.Load(is); *this = t; break; }
+        case BB_TYPE_FP64:   { Tensor_<double       > t(0, !m_mem->IsHostOnly()); t.Load(is); *this = t; break; }
+        case BB_TYPE_INT8:   { Tensor_<std::int8_t  > t(0, !m_mem->IsHostOnly()); t.Load(is); *this = t; break; }
+        case BB_TYPE_INT16:  { Tensor_<std::int16_t > t(0, !m_mem->IsHostOnly()); t.Load(is); *this = t; break; }
+        case BB_TYPE_INT32:  { Tensor_<std::int32_t > t(0, !m_mem->IsHostOnly()); t.Load(is); *this = t; break; }
+        case BB_TYPE_INT64:  { Tensor_<std::int64_t > t(0, !m_mem->IsHostOnly()); t.Load(is); *this = t; break; }
+        case BB_TYPE_UINT8:  { Tensor_<std::uint8_t > t(0, !m_mem->IsHostOnly()); t.Load(is); *this = t; break; }
+        case BB_TYPE_UINT16: { Tensor_<std::uint16_t> t(0, !m_mem->IsHostOnly()); t.Load(is); *this = t; break; }
+        case BB_TYPE_UINT32: { Tensor_<std::uint32_t> t(0, !m_mem->IsHostOnly()); t.Load(is); *this = t; break; }
+        case BB_TYPE_UINT64: { Tensor_<std::uint64_t> t(0, !m_mem->IsHostOnly()); t.Load(is); *this = t; break; }
         default:    BB_ASSERT(0);  break;
         } 
     }

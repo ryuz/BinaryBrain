@@ -140,5 +140,8 @@
     <ClInclude Include="..\..\include\bb\MaxPooling.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bb\TensorOperator.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
