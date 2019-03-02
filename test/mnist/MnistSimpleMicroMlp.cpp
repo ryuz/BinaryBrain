@@ -24,7 +24,7 @@
 #include "bb/Utility.h"
 
 
-class MnistSimpleMicroMlpNet : public bb::Layer
+class MnistSimpleMicroMlpNet : public bb::Model
 {
 protected:
     using Affine      = bb::MicroMlpAffine<6, 16, float>;

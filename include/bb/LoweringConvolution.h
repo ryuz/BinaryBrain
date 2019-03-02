@@ -21,7 +21,7 @@ namespace bb {
 
 // 入力数制限Affine Binary Connect版
 template <typename FT = float, typename BT = float>
-class LoweringConvolution : public Layer
+class LoweringConvolution : public Model
 {
 protected:
     index_t m_filter_c_size = 1;
@@ -30,7 +30,7 @@ protected:
 
     // 3層で構成
 	std::shared_ptr< ConvolutionIm2Col<FT, BT> >	m_im2col;
-	std::shared_ptr< Layer                     >    m_layer;
+	std::shared_ptr< Model                     >    m_layer;
 	std::shared_ptr< ConvolutionCol2Im<FT, BT> >	m_col2im;
 	
 	index_t 	m_im2col_size = 1;
@@ -43,7 +43,7 @@ public:
 
     struct create_t
     {
-        std::shared_ptr<Layer>  layer;
+        std::shared_ptr<Model>  layer;
         index_t                 filter_c_size = 1;
         index_t                 filter_h_size = 1;
         index_t                 filter_w_size = 1;
@@ -64,7 +64,7 @@ public:
         return self;
 	}
 
-    static std::shared_ptr<LoweringConvolution> Create(std::shared_ptr<Layer> layer, index_t filter_c_size, index_t filter_h_size, index_t filter_w_size)
+    static std::shared_ptr<LoweringConvolution> Create(std::shared_ptr<Model> layer, index_t filter_c_size, index_t filter_h_size, index_t filter_w_size)
 	{
         auto self = std::shared_ptr<LoweringConvolution>(new LoweringConvolution);
         

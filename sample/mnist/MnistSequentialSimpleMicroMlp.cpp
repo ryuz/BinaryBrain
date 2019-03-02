@@ -76,7 +76,7 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
         for (bb::index_t i = 0; i < (bb::index_t)(data.x_train.size() - mini_batch_size); i += mini_batch_size)
         {
             x.SetVector(data.x_train, i);
-            t.SetVector(data.y_train, i);
+            t.SetVector(data.t_train, i);
 
             auto y = net->Forward(x);
             
@@ -89,7 +89,7 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
         }
         std::cout << "accuracy : " << accFunc->GetAccuracy() << std::endl;
 
-        bb::ShuffleDataSet(mt(), data.x_train, data.y_train);
+        bb::ShuffleDataSet(mt(), data.x_train, data.t_train);
     }
 }
 

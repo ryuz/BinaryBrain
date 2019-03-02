@@ -14,7 +14,7 @@
 #include <random>
 
 #include "bb/Manager.h"
-#include "bb/Layer.h"
+#include "bb/Model.h"
 #include "bb/ShuffleSet.h"
 
 namespace bb {
@@ -22,9 +22,9 @@ namespace bb {
 
 // Mini-MLP (SparseAffine - ReLU - SparseAffine)
 template <int N = 6, int M = 16, typename T = float>
-class MicroMlpAffine : public Layer
+class MicroMlpAffine : public Model
 {
-    using supper = Layer;
+    using supper = Model;
 
 protected:
 public:
@@ -350,6 +350,39 @@ public:
         return gradients;
     }
     
+
+    // 1ノードのみForward計算
+    std::vector<T> ForwardNode(index_t node, std::vector<T> input_value) const
+	{
+        auto W0 = lock_W0_const();
+        auto b0 = lock_b0_const();
+        auto W1 = lock_W1_const();
+        auto b1 = lock_b1_const();
+
+		// affine0
+		std::vector<T> value0(M);
+		for (index_t i = 0; i < M; ++i) {
+			value0[i] = b0(node, i);
+			for (index_t j = 0; j < N; ++j) {
+				value0[i] += input_value[j] * W0(node, i, j);
+			}
+		}
+
+		// ReLU
+		for (index_t i = 0; i < M; ++i) {
+			value0[i] = std::max(value0[i], (T)0);;
+		}
+
+		// affine1
+		std::vector<T> value1(1);
+		value1[0] = b1(node);
+		for (index_t i = 0; i < M; ++i) {
+			value1[0] += value0[i] * W1(node, i);
+		}
+		
+		return value1;
+	}
+
 
     FrameBuffer Forward(FrameBuffer x, bool train = true)
     {
@@ -748,10 +781,6 @@ protected:
     }
 #endif
        
-
-
-
-
 };
 
 

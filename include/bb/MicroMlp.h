@@ -13,7 +13,7 @@
 #include <cstdint>
 #include <random>
 
-#include "bb/Layer.h"
+#include "bb/Model.h"
 #include "bb/MicroMlpAffine.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
@@ -24,7 +24,7 @@ namespace bb {
 
 // Sparce Mini-MLP(Multilayer perceptron) Layer [Affine-ReLU-Affine-BatchNorm-Binarize]
 template <int N = 6, int M = 16, typename T = float, class Activation = ReLU<T> >
-class MicroMlp : public Layer
+class MicroMlp : public Model
 {
 protected:
 	// 3層で構成

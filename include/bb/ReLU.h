@@ -12,7 +12,7 @@
 
 
 #include "bb/Manager.h"
-#include "bb/Layer.h"
+#include "bb/Model.h"
 
 
 namespace bb {
@@ -20,7 +20,7 @@ namespace bb {
 
 // ReLU(活性化関数)
 template <typename T = float>
-class ReLU : public Layer
+class ReLU : public Model
 {
 protected:
 public:

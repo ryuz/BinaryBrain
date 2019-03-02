@@ -25,8 +25,8 @@
 namespace bb {
 
 
-//! layer class
-class Layer
+//! model class
+class Model
 {
 protected:
 	std::string		m_name;
@@ -44,7 +44,7 @@ public:
      * @brief  デストラクタ(仮想関数)
      * @detail デストラクタ(仮想関数)
      */
-	virtual ~Layer() {}
+	virtual ~Model() {}
 
     /**
      * @brief  クラス名取得
@@ -199,12 +199,12 @@ public:
 
 	virtual void Save(cereal::JSONOutputArchive& archive) const
 	{
-		archive(cereal::make_nvp("Layer", *this));
+		archive(cereal::make_nvp("Model", *this));
 	}
 
 	virtual void Load(cereal::JSONInputArchive& archive)
 	{
-		archive(cereal::make_nvp("Layer", *this));
+		archive(cereal::make_nvp("Model", *this));
 	}
 
 	void SaveJson(std::string filename) const

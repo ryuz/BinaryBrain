@@ -13,14 +13,14 @@
 #include <vector>
 #include <random>
 
-#include "bb/Layer.h"
+#include "bb/Model.h"
 
 
 namespace bb {
 
 
 template <typename FT = float, typename BT = float>
-class ConvolutionCol2Im : public Layer
+class ConvolutionCol2Im : public Model
 {
 protected:
 	index_t			m_c_size;

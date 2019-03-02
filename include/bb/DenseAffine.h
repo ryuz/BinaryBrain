@@ -14,7 +14,7 @@
 
 #include <Eigen/Core>
 
-#include "bb/Layer.h"
+#include "bb/Model.h"
 
 
 namespace bb {
@@ -22,7 +22,7 @@ namespace bb {
 
 // Affineレイヤー
 template <typename T = float>
-class DenseAffine : public Layer
+class DenseAffine : public Model
 {
 protected:
 	using Vector = Eigen::Matrix<T, 1, Eigen::Dynamic>;

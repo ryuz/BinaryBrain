@@ -15,7 +15,7 @@
 #include <random>
 
 #include "bb/Manager.h"
-#include "bb/Layer.h"
+#include "bb/Model.h"
 #include "bb/FrameBuffer.h"
 
 
@@ -23,7 +23,7 @@ namespace bb {
 
 
 template <typename FT = float, typename BT = float>
-class ConvolutionIm2Col : public Layer
+class ConvolutionIm2Col : public Model
 {
 protected:
     indices_t       m_input_shape;

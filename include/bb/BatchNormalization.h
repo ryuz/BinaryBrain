@@ -15,7 +15,7 @@
 #include <cereal/types/vector.hpp>
 #include <cereal/types/array.hpp>
 
-#include "bb/Layer.h"
+#include "bb/Model.h"
 #include "bb/FrameBuffer.h"
 #include "bb/SimdSupport.h"
 
@@ -25,7 +25,7 @@ namespace bb {
 
 // BatchNormalization
 template <typename T = float>
-class BatchNormalization : public Layer
+class BatchNormalization : public Model
 {
 protected:
     indices_t 		            m_shape;

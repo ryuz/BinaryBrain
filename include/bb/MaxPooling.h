@@ -14,14 +14,14 @@
 #include <vector>
 #include <random>
 
-#include "bb/Layer.h"
+#include "bb/Model.h"
 
 
 namespace bb {
 
 // MaxPoolingクラス
 template <typename FT = float, typename BT = float>
-class MaxPooling : public Layer
+class MaxPooling : public Model
 {
 protected:
    	index_t				m_filter_h_size;

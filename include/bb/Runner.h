@@ -16,7 +16,7 @@
 #include <vector>
 #include <assert.h>
 
-#include "bb/Layer.h"
+#include "bb/Model.h"
 #include "bb/LossFunction.h"
 #include "bb/AccuracyFunction.h"
 #include "bb/Optimizer.h"
@@ -31,10 +31,10 @@ template <typename T>
 class Runner
 {
 protected:
-    using callback_proc_t = void (*)(std::shared_ptr< Layer >, void*);
+    using callback_proc_t = void (*)(std::shared_ptr< Model >, void*);
 
     std::string                         m_name;
-    std::shared_ptr<Layer>              m_net;
+    std::shared_ptr<Model>              m_net;
 
   	std::mt19937_64                     m_mt;
 
@@ -63,7 +63,7 @@ public:
     struct create_t
     {
         std::string                         name;
-        std::shared_ptr<Layer>              net;
+        std::shared_ptr<Model>              net;
 	    std::shared_ptr<AccuracyFunction>   accFunc;
 	    std::shared_ptr<LossFunction>       lossFunc;
 	    std::shared_ptr<Optimizer>          optimizer;
@@ -107,7 +107,7 @@ public:
   
     static std::shared_ptr<Runner> Create(
                 std::string                         name,
-                std::shared_ptr<Layer>              net,
+                std::shared_ptr<Model>              net,
 	            index_t                             epoch_size,
 	            index_t                             batch_size,
 	            std::shared_ptr<AccuracyFunction>   accFunc,

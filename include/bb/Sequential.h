@@ -12,17 +12,17 @@
 #include <vector>
 
 
-#include "bb/Layer.h"
+#include "bb/Model.h"
 
 
 namespace bb {
 
 
 //! layer class
-class Sequential : public Layer
+class Sequential : public Model
 {
 protected:
-	std::vector< std::shared_ptr<Layer> > m_layers;
+	std::vector< std::shared_ptr<Model> > m_layers;
 
 protected:
     Sequential() {}
@@ -51,7 +51,7 @@ public:
         return "Sequential";
     }
 
-    void Add(std::shared_ptr<Layer> layer)
+    void Add(std::shared_ptr<Model> layer)
     {
         m_layers.push_back(layer);
     }
