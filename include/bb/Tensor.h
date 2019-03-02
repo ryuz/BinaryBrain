@@ -1569,7 +1569,7 @@ public:
         case BB_TYPE_UINT32: { Tensor_<std::uint32_t> t(0, !m_mem->IsHostOnly()); t.Load(is); *this = t; break; }
         case BB_TYPE_UINT64: { Tensor_<std::uint64_t> t(0, !m_mem->IsHostOnly()); t.Load(is); *this = t; break; }
         default:    BB_ASSERT(0);  break;
-        } 
+        }
     }
 
 #if 0
