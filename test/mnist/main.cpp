@@ -25,10 +25,9 @@ int main()
 
     bb::Manager::SetHostOnly(true); // CPUのみ利用する
 
-    MnistDenseAffine(64, 32);
-
+//  MnistDenseAffine(64, 32);
 //  MnistSimpleCnnMlp(64, 32, true);
-//  MnistSequentialMicroMlp(64, 128, true);
+    MnistSequentialMicroMlp(64, 128, true);
 //	MnistSimpleMicroMlp(64, 128, true);
 
 //	getchar();

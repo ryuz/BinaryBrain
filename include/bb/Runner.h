@@ -267,6 +267,7 @@ public:
 #else
 		std::string net_file_name = m_name + "_net.bin";
 #endif
+        m_net->SetInputShape(td.x_shape);
 
         // オプティマイザ設定
         m_optimizer->SetVariables(m_net->GetParameters(), m_net->GetGradients());
@@ -412,6 +413,9 @@ protected:
         
         FrameBuffer x_buf;
         FrameBuffer t_buf;
+
+        // 入力設定
+        m_net->SetInputShape(x_shape);
 
         bb::index_t index = 0;
         while ( index < frame_size )

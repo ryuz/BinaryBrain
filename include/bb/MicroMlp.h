@@ -24,7 +24,7 @@ namespace bb {
 
 // Sparce Mini-MLP(Multilayer perceptron) Layer [Affine-ReLU-Affine-BatchNorm-Binarize]
 template <int N = 6, int M = 16, typename T = float, class Activation = ReLU<T> >
-class MicroMlp : public Model
+class MicroMlp : public SparseLayer<T, T>
 {
 protected:
 	// 3層で構成
@@ -65,16 +65,6 @@ public:
     }
 
 	std::string GetClassName(void) const { return "MicroMlp"; }
-
-    /*
-	std::vector<T> CalcNode(INDEX node, std::vector<T> input_value) const
-	{
-		auto vec0 = m_affine.CalcNode(node, input_value);
-		auto vec1 = m_batch_norm.CalcNode(node, vec0);
-		auto vec2 = m_activation.CalcNode(node, vec1);
-		return vec2;
-	}
-    */
 
     /**
      * @brief  コマンドを送る
@@ -131,6 +121,30 @@ public:
 	    shape = m_batch_norm->SetInputShape(shape);
 	    shape = m_activation->SetInputShape(shape);
         return shape;
+    }
+
+
+    index_t GetNodeInputSize(index_t node) const
+    {
+        return m_affine->GetNodeInputSize(node);
+    }
+
+    void SetNodeInput(index_t node, index_t input_index, index_t input_node)
+    {
+        m_affine->SetNodeInput(node, input_index, input_node);
+    }
+
+    index_t GetNodeInput(index_t node, index_t input_index) const
+    {
+        return m_affine->GetNodeInput(node, input_index);
+    }
+
+    std::vector<T> ForwardNode(index_t node, std::vector<T> x_vec) const
+    {
+        x_vec = m_affine    ->ForwardNode(node, x_vec);
+        x_vec = m_batch_norm->ForwardNode(node, x_vec);
+        x_vec = m_activation->ForwardNode(node, x_vec);
+        return x_vec;
     }
 
    /**

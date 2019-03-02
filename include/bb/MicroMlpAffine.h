@@ -14,7 +14,7 @@
 #include <random>
 
 #include "bb/Manager.h"
-#include "bb/Layer.h"
+#include "bb/SparseLayer.h"
 #include "bb/ShuffleSet.h"
 
 namespace bb {
@@ -22,9 +22,9 @@ namespace bb {
 
 // Mini-MLP (SparseAffine - ReLU - SparseAffine)
 template <int N = 6, int M = 16, typename T = float>
-class MicroMlpAffine : public Layer<T, T>
+class MicroMlpAffine : public SparseLayer<T, T>
 {
-    using supper = Layer<T, T>;
+    using supper = SparseLayer<T, T>;
 
 protected:
 public:
@@ -119,10 +119,11 @@ public:
         return self;
     }
 
-    static std::shared_ptr<MicroMlpAffine> Create(indices_t const &output_shape)
+    static std::shared_ptr<MicroMlpAffine> Create(indices_t const &output_shape, std::uint64_t seed = 1)
     {
         create_t create;
         create.output_shape = output_shape;
+        create.seed         = seed;
         return Create(create);
     }
 
@@ -263,7 +264,13 @@ public:
 	auto lock_db1(void)             { return m_db1->GetPtr<T>(); }
 	auto lock_db1_const(void) const { return m_db1->GetConstPtr<T>(); }
 
-    void  SetNodeInput(index_t node, index_t input_index, index_t input_node)
+
+    index_t GetNodeInputSize(index_t node) const
+    {
+        return N;
+    }
+
+    void SetNodeInput(index_t node, index_t input_index, index_t input_node)
     {
         auto ptr = lock_InputIndex();
         ptr(node, input_index) = (std::int32_t)input_node;
@@ -290,6 +297,9 @@ public:
         
         // 接続初期化
         m_input_index.Resize(m_output_node_size, N);
+        InitializeNodeInput(m_output_node_size, m_input_node_size, m_mt());
+
+        /*
         {
             auto ptr = m_input_index.GetPtr();
             ShuffleSet<std::int32_t> shuffle((std::int32_t)m_input_node_size);
@@ -300,6 +310,7 @@ public:
                 }
             }
         }
+        */
 
         // パラメータ初期化
         m_W0->Resize(DataType<T>::type, m_output_node_size, M, N);  m_W0->InitNormalDistribution(0.0, 1.0, m_mt());
@@ -351,7 +362,7 @@ public:
     }
     
 
-    // 1ノードのみForward計算
+    // ノード単位でのForward計算
     std::vector<T> ForwardNode(index_t node, std::vector<T> input_value) const
 	{
         auto W0 = lock_W0_const();

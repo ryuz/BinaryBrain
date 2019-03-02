@@ -23,9 +23,9 @@ template<typename FT=float, typename BT=float>
 class Layer : public Model
 {
 public:
-    // 1ノードのみForward計算
+    // ノード単位でのForward計算
     virtual std::vector<FT> ForwardNode(index_t node, std::vector<FT> x) const { return x; }
-    virtual std::vector<BT> BackwardNode(index_t node, std::vector<BT> dy) const { return dy; }
+//  virtual std::vector<BT> BackwardNode(index_t node, std::vector<BT> dy) const { return dy; }
 };
 
 

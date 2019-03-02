@@ -49,6 +49,24 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
     net->Add(bb::ReLU<float>::Create());
     net->Add(bb::MicroMlpAffine<6, 16, float>::Create({10}));
 
+    if ( binary_mode ) {
+        net->SendCommand("binary true");
+        std::cout << "binary mode" << std::endl;
+    }
+
+    bb::Runner<float>::create_t runner_create;
+    runner_create.name      = "MnistSequentialMicroMlp";
+    runner_create.net       = net;
+    runner_create.lossFunc  = bb::LossCrossEntropyWithSoftmax<float>::Create();
+    runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create(10);
+    runner_create.optimizer = bb::OptimizerAdam<float>::Create();
+    runner_create.serial_write = false;
+    auto runner = bb::Runner<float>::Create(runner_create);
+
+    runner->Fitting(td, epoch_size, mini_batch_size);
+
+
+#if 0
     auto lossFunc = bb::LossCrossEntropyWithSoftmax<float>::Create();
     auto accFunc  = bb::AccuracyCategoricalClassification<float>::Create(10);
 
@@ -105,6 +123,6 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
 
         bb::ShuffleDataSet(mt(), td.x_train, td.t_train);
     }
-
+#endif
 }
 

@@ -197,6 +197,7 @@
     <ClInclude Include="..\..\include\bb\OptimizerSgd.h" />
     <ClInclude Include="..\..\include\bb\ReLU.h" />
     <ClInclude Include="..\..\include\bb\Sequential.h" />
+    <ClInclude Include="..\..\include\bb\Sigmoid.h" />
     <ClInclude Include="..\..\include\bb\Tensor.h" />
     <ClInclude Include="..\..\include\bb\Utility.h" />
     <ClInclude Include="..\..\include\bb\Variables.h" />

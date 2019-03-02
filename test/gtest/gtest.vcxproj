@@ -69,6 +69,7 @@
     <ClInclude Include="..\..\include\bb\Sequential.h" />
     <ClInclude Include="..\..\include\bb\ShuffleSet.h" />
     <ClInclude Include="..\..\include\bb\SimdSupport.h" />
+    <ClInclude Include="..\..\include\bb\SparseLayer.h" />
     <ClInclude Include="..\..\include\bb\Tensor.h" />
     <ClInclude Include="..\..\include\bb\TensorOperator.h" />
     <ClInclude Include="..\..\include\bb\Utility.h" />

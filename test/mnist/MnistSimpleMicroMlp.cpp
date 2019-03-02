@@ -31,8 +31,7 @@ protected:
     using AffinePtr   = std::shared_ptr<Affine>;
     using Activate    = bb::ReLU<float>;
     using ActivatePtr = std::shared_ptr<Activate>;
-
-
+    
 public:
     AffinePtr   m_affine0;
     ActivatePtr m_activate0;
