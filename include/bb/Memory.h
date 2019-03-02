@@ -202,56 +202,31 @@ public:
     };
 
 protected:
-	size_t	            m_size = 0;
 	void*        	    m_addr = nullptr;
-//  std::atomic<int>    m_refConstCnt;
-    std::atomic<int>    m_refCnt;
-
-#ifdef BB_WITH_CUDA
-	size_t	            m_mem_size = 0;
+	size_t	            m_size = 0;
+    std::atomic<int>    m_hostRefCnt = 0;
     bool	            m_hostOnly = true;
 	bool	            m_hostModified = false;
 
+#ifdef BB_WITH_CUDA
+	size_t	            m_mem_size = 0;
+    bool                m_devAvailable = false;
+
     // 将来下記を多重化して複数GPU対応もケアできるようにするかも
-	int		            m_device;
+	int		            m_device = 0;
 	void*	            m_devAddr = nullptr;
 	bool	            m_devModified = false;
-//	std::atomic<int>  	m_devRefConstCnt;
-	std::atomic<int>  	m_devRefCnt;
+	std::atomic<int>  	m_devRefCnt = 0;
 #endif
 
-/*
 #ifdef BB_WITH_CUDA
-    static void lockConst(Memory *self)   { BB_ASSERT(self->m_devRefConstCnt == 0 && self->m_devRefCnt == 0 && self->m_refCnt == 0);      self->m_refConstCnt++; }
-    static void unlockConst(Memory *self) { BB_ASSERT(self->m_devRefConstCnt == 0 && self->m_devRefCnt == 0 && self->m_refCnt == 0);      self->m_refConstCnt--; }
-    static void lock(Memory *self)        { BB_ASSERT(self->m_devRefConstCnt == 0 && self->m_devRefCnt == 0 && self->m_refConstCnt == 0); self->m_refCnt++; }
-    static void unlock(Memory *self)      { BB_ASSERT(self->m_devRefConstCnt == 0 && self->m_devRefCnt == 0 && self->m_refConstCnt == 0); self->m_refCnt--; }
-
-    static void lockConstDevice(Memory *self)   { BB_ASSERT(self->m_devRefCnt == 0 && self->m_refConstCnt == 0 && self->m_refCnt == 0);      self->m_devRefConstCnt++; }
-    static void unlockConstDevice(Memory *self) { BB_ASSERT(self->m_devRefCnt == 0 && self->m_refConstCnt == 0 && self->m_refCnt == 0);      self->m_devRefConstCnt--; }
-    static void lockDevice(Memory *self)        { BB_ASSERT(self->m_devRefConstCnt == 0 && self->m_refConstCnt == 0 && self->m_refCnt == 0); self->m_devRefCnt++; }
-    static void unlockDevice(Memory *self)      { BB_ASSERT(self->m_devRefConstCnt == 0 && self->m_refConstCnt == 0 && self->m_refCnt == 0); self->m_devRefCnt--; }
+    static void lock(Memory *self)         { BB_ASSERT(self->m_devRefCnt == 0);  self->m_hostRefCnt++; }
+    static void unlock(Memory *self)       { BB_ASSERT(self->m_devRefCnt == 0);  self->m_hostRefCnt--; }
+    static void lockDevice(Memory *self)   { BB_ASSERT(self->m_hostRefCnt == 0); self->m_devRefCnt++; }
+    static void unlockDevice(Memory *self) { BB_ASSERT(self->m_hostRefCnt == 0); self->m_devRefCnt--; }
 #else
-    static void lockConst(Memory *self)   { BB_ASSERT(self->m_refCnt == 0); self->m_refConstCnt++; }
-    static void unlockConst(Memory *self) { BB_ASSERT(self->m_refCnt == 0); self->m_refConstCnt--; }
-    static void lock(Memory *self)        { BB_ASSERT(self->m_refConstCnt == 0); self->m_refCnt++; }
-    static void unlock(Memory *self)      { BB_ASSERT(self->m_refConstCnt == 0); self->m_refCnt--; }
-
-    static void lockConstDevice(Memory *self)   {}
-    static void unlockConstDevice(Memory *self) {}
-    static void lockDevice(Memory *self)        {}
-    static void unlockDevice(Memory *self)      {}
-#endif
-*/
-
-#ifdef BB_WITH_CUDA
-    static void lock(Memory *self)         { BB_ASSERT(self->m_devRefCnt == 0); self->m_refCnt++; }
-    static void unlock(Memory *self)       { BB_ASSERT(self->m_devRefCnt == 0); self->m_refCnt--; }
-    static void lockDevice(Memory *self)   { BB_ASSERT(self->m_refCnt == 0);    self->m_devRefCnt++; }
-    static void unlockDevice(Memory *self) { BB_ASSERT(self->m_refCnt == 0);    self->m_devRefCnt--; }
-#else
-    static void lock(Memory *self)         { self->m_refCnt++; }
-    static void unlock(Memory *self)       { self->m_refCnt--; }
+    static void lock(Memory *self)         { self->m_hostRefCnt++; }
+    static void unlock(Memory *self)       { self->m_hostRefCnt--; }
     static void lockDevice(Memory *self)   {}
     static void unlockDevice(Memory *self) {}
 #endif
@@ -297,16 +272,15 @@ protected:
      */
 	Memory(size_t size, bool hostOnly=false)
 	{
-		// サイズ保存
-		m_size = size;
-
-        m_refCnt      = 0;
+		// 初期化
+		m_size       = size;
+        m_hostRefCnt = 0;
+        m_hostOnly   = hostOnly;
 
 #ifdef BB_WITH_CUDA
-        m_devRefCnt      = 0;
-
-        m_hostOnly = hostOnly;
-        m_mem_size = m_size;
+        m_mem_size     = m_size;
+        m_devRefCnt    = 0;
+        m_devAvailable = false;
 
 		// デバイス設定
 		int dev_count = 0;
@@ -315,13 +289,13 @@ protected:
 			dev_count = 0;
 		}
 
-        // デバイスが無ければhost固定
-		if ( dev_count <= 0 ) {
-            m_hostOnly = true;
+        // デバイスがあれば有効化
+		if ( dev_count > 0 && !m_hostOnly ) {
+            m_devAvailable = true;
 		}
 
-		// Host固定ならここでメモリ確保
-		if ( m_hostOnly ) {
+		// デバイスが使えなければここでホストメモリ確保
+		if ( !m_devAvailable ) {
 			m_addr = aligned_memory_alloc(m_size, 32);
 		}
 #else
@@ -337,18 +311,12 @@ public:
      */
 	~Memory()
 	{
-        BB_DEBUG_ASSERT(m_refCnt == 0);
+        BB_DEBUG_ASSERT(m_hostRefCnt == 0);
 
 #ifdef BB_WITH_CUDA
         BB_DEBUG_ASSERT(m_devRefCnt == 0);
 
-        if ( m_hostOnly ) {
-			// メモリ開放
-			if (m_addr != nullptr) {
-				aligned_memory_free(m_addr);
-			}
-        }
-        else {
+        if ( m_devAvailable ) {
 			CudaDevicePush dev_push(m_device);
 
 			// Hostメモリ開放
@@ -361,6 +329,13 @@ public:
 				BB_CUDA_SAFE_CALL(cudaFree(m_devAddr));
 			}
 		}
+        else {
+			// メモリ開放
+			if (m_addr != nullptr) {
+				aligned_memory_free(m_addr);
+			}
+        }
+
 #else
 		// メモリ開放
 		if (m_addr != nullptr) {
@@ -421,11 +396,8 @@ public:
     {
 #ifdef BB_WITH_CUDA
         m_size = size;
-        if ( m_hostOnly ) {
-            aligned_memory_free(m_addr);
-            m_addr = aligned_memory_alloc(size, 32);
-        }
-        else {
+        if ( m_devAvailable ) {
+            // デバイスメモリ再確保
             if (m_size <= m_mem_size) {
                 return;
             }
@@ -441,10 +413,17 @@ public:
             m_hostModified = false;
             m_devModified = false;
         }
+        else {
+            // ホストメモリ再確保
+            aligned_memory_free(m_addr);
+            m_addr = aligned_memory_alloc(size, 32);
+            m_hostModified = false;
+        }
 #else
         aligned_memory_free(m_addr);
         m_addr = aligned_memory_alloc(size, 32);
         m_size = size;
+        m_hostModified = false;
 #endif
     }
 
@@ -481,7 +460,7 @@ public:
 	bool IsDeviceAvailable(void) const
 	{
 #ifdef BB_WITH_CUDA
-		return !m_hostOnly;
+		return m_devAvailable;
 #else
 		return false;
 #endif
@@ -498,13 +477,13 @@ public:
         if (m_addr != nullptr) {
             memset(m_addr, 0, m_size);
         }
+        m_hostModified = false;
 
 #ifdef BB_WITH_CUDA
         if (m_devAddr != nullptr) {
             BB_CUDA_SAFE_CALL(cudaMemset(m_devAddr, 0, m_size));
         }
         m_devModified  = false;
-        m_hostModified = false;
 #endif
     }
 
@@ -513,9 +492,10 @@ public:
      * @detail メモリ内容を破棄する
      */	void Dispose(void)
 	{
-#ifdef BB_WITH_CUDA
 		// 更新の破棄
 		m_hostModified = false;
+
+#ifdef BB_WITH_CUDA
 		m_devModified = false;
 #endif
 	}
@@ -529,7 +509,7 @@ public:
 	Ptr GetPtr(bool new_buffer=false)
 	{
 #ifdef BB_WITH_CUDA
-		if ( !m_hostOnly ) {
+		if ( m_devAvailable ) {
 			// 新規であれば過去の更新情報は破棄
 			if ( new_buffer ) {
 				m_hostModified = false;
@@ -548,11 +528,11 @@ public:
 				BB_CUDA_SAFE_CALL(cudaMemcpy(m_addr, m_devAddr, m_size, cudaMemcpyDeviceToHost));
 				m_devModified =false;
 			}
-
-			// 修正フラグセット
-			m_hostModified = true;
 		}
 #endif
+
+		// 修正フラグセット
+		m_hostModified = true;
 
         // ポインタオブジェクトを生成して返す
 		return Ptr(m_addr, this);
@@ -570,7 +550,7 @@ public:
         auto self = const_cast<Memory *>(this);
 
 #ifdef BB_WITH_CUDA
-		if ( !m_hostOnly ) {
+		if ( m_devAvailable ) {
 			if (m_addr == nullptr) {
 				// ホスト側メモリ未確保ならここで確保
 				CudaDevicePush dev_push(m_device);
@@ -600,7 +580,7 @@ public:
 	DevPtr GetDevPtr(bool new_buffer=false)
 	{
 	#ifdef BB_WITH_CUDA
-		if ( !m_hostOnly ) {
+		if ( m_devAvailable ) {
 			// 新規であれば過去の更新情報は破棄
 			if (new_buffer) {
 				m_hostModified = false;
@@ -627,7 +607,8 @@ public:
 		}
 #endif
 
-		return DevPtr();
+        BB_ASSERT(0);
+		return DevPtr();    // エラー
 	}
 
 
@@ -639,10 +620,11 @@ public:
      */
 	DevConstPtr GetDevConstPtr(void) const
 	{
-       auto self = const_cast<Memory *>(this);
+        // 便宜上constをはずす
+        auto self = const_cast<Memory *>(this);
 
 #ifdef BB_WITH_CUDA
-		if ( !m_hostOnly ) {
+		if ( m_devAvailable ) {
 			if (m_devAddr == nullptr) {
 				// デバイス側メモリ未確保ならここで確保
 				CudaDevicePush dev_push(m_device);
@@ -660,7 +642,8 @@ public:
 		}
 #endif
 
-		return DevConstPtr();
+        BB_ASSERT(0);
+		return DevConstPtr();    // エラー
 	}
 
 

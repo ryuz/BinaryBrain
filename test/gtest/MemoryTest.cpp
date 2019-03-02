@@ -12,7 +12,8 @@ TEST(MemoryTest, testMem)
 	{
 		auto mem = bb::Memory::Create(1024, true);
 		mem->GetPtr();
-		mem->GetDevPtr();
+        EXPECT_TRUE(mem->IsHostOnly());
+        EXPECT_FALSE(mem->IsDeviceAvailable());
 		mem->IsDeviceAvailable();
 
         auto wp = mem->GetPtr();
@@ -26,14 +27,18 @@ TEST(MemoryTest, testMem)
 	{
 		auto mem = bb::Memory::Create(1024);
 		mem->GetPtr();
-		mem->GetDevPtr();
-		mem->IsDeviceAvailable();
+        if ( mem->IsDeviceAvailable() ) {
+            mem->GetDevPtr();
+        }
+        mem->IsDeviceAvailable();
 	}
 
 	{
 		auto mem = bb::Memory::Create(1024, false);
 		mem->GetPtr();
-		mem->GetDevPtr();
+        if ( mem->IsDeviceAvailable() ) {
+    		mem->GetDevPtr();
+        }
 		mem->IsDeviceAvailable();
 	}
     
