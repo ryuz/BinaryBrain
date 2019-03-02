@@ -25,6 +25,7 @@ class Activation : public Layer<FT, BT>
 protected:
     indices_t   m_shape;    //< 入出力の形状 
 
+public:
     /**
      * @brief  入力形状設定
      * @detail 入力形状を設定する

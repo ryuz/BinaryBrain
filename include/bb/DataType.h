@@ -574,7 +574,7 @@ inline void Save(std::ostream &os, T const &val)
 template<typename T>
 inline void Load(std::istream &is, T &val)
 {
-    is.write((char *)&val, sizeof(T));
+    is.read((char *)&val, sizeof(T));
 }
 
 template<typename T>

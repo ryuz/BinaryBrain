@@ -209,8 +209,7 @@ public:
 		archive(cereal::make_nvp("print_progress", m_print_progress));
 		archive(cereal::make_nvp("file_write", m_file_write));
 		archive(cereal::make_nvp("over_write", m_over_write));
-		archive(cereal::make_nvp("initial_evaluation", m_initial_evaluation));
-        archive(cereal::make_nvp("net", *m_net));
+        m_net->Save(archive);
 	}
 
 	template <class Archive>
@@ -222,8 +221,7 @@ public:
 		archive(cereal::make_nvp("print_progress", m_print_progress));
 		archive(cereal::make_nvp("file_write", m_file_write));
 		archive(cereal::make_nvp("over_write", m_over_write));
-		archive(cereal::make_nvp("initial_evaluation", m_initial_evaluation));
-        archive(cereal::make_nvp("net", *m_net));
+        m_net->Load(archive);
 	}
 
    	void SaveJson(std::string filename) const
@@ -267,10 +265,6 @@ public:
 #else
 		std::string net_file_name = m_name + "_net.bin";
 #endif
-        m_net->SetInputShape(td.x_shape);
-
-        // オプティマイザ設定
-        m_optimizer->SetVariables(m_net->GetParameters(), m_net->GetGradients());
 
 		// ログファイルオープン
 		std::ofstream ofs_log;
@@ -306,6 +300,9 @@ public:
 
 			// 開始メッセージ
 			log_stream << "fitting start : " << m_name << std::endl;
+
+            // オプティマイザ設定
+            m_optimizer->SetVariables(m_net->GetParameters(), m_net->GetGradients());
 
 			// 初期評価
 			if (m_initial_evaluation) {
@@ -413,9 +410,6 @@ protected:
         
         FrameBuffer x_buf;
         FrameBuffer t_buf;
-
-        // 入力設定
-        m_net->SetInputShape(x_shape);
 
         bb::index_t index = 0;
         while ( index < frame_size )

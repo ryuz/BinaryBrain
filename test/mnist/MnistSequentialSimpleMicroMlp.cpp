@@ -48,6 +48,7 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
     net->Add(bb::BatchNormalization<float>::Create());
     net->Add(bb::ReLU<float>::Create());
     net->Add(bb::MicroMlpAffine<6, 16, float>::Create({10}));
+    net->SetInputShape(td.x_shape);
 
     if ( binary_mode ) {
         net->SendCommand("binary true");
@@ -61,6 +62,7 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
     runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create(10);
     runner_create.optimizer = bb::OptimizerAdam<float>::Create();
     runner_create.serial_write = false;
+    runner_create.initial_evaluation = true;
     auto runner = bb::Runner<float>::Create(runner_create);
 
     runner->Fitting(td, epoch_size, mini_batch_size);

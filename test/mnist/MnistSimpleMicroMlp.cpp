@@ -82,6 +82,16 @@ public:
         return shape;
     }
 
+    bb::indices_t GetInputShape(void) const
+    {
+        return m_affine0->GetInputShape();
+    }
+ 
+    bb::indices_t GetOutputShape(void) const
+    {
+        return m_affine3->GetInputShape();
+    }
+    
     bb::Variables GetParameters(void)
     {
         bb::Variables var;

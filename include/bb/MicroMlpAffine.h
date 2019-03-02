@@ -187,10 +187,10 @@ public:
         archive(cereal::make_nvp("b0",               *m_b0));
         archive(cereal::make_nvp("W1",               *m_W1));
         archive(cereal::make_nvp("b1",               *m_b1));
-        archive(cereal::make_nvp("dW0",              *m_dW0));
-        archive(cereal::make_nvp("db0",              *m_db0));
-        archive(cereal::make_nvp("dW1",              *m_dW1));
-        archive(cereal::make_nvp("db1",              *m_db1));
+//      archive(cereal::make_nvp("dW0",              *m_dW0));
+//      archive(cereal::make_nvp("db0",              *m_db0));
+//      archive(cereal::make_nvp("dW1",              *m_dW1));
+//      archive(cereal::make_nvp("db1",              *m_db1));
     }
 
 	template <class Archive>
@@ -206,10 +206,10 @@ public:
         archive(cereal::make_nvp("b0",               *m_b0));
         archive(cereal::make_nvp("W1",               *m_W1));
         archive(cereal::make_nvp("b1",               *m_b1));
-        archive(cereal::make_nvp("dW0",              *m_dW0));
-        archive(cereal::make_nvp("db0",              *m_db0));
-        archive(cereal::make_nvp("dW1",              *m_dW1));
-        archive(cereal::make_nvp("db1",              *m_db1));
+//      archive(cereal::make_nvp("dW0",              *m_dW0));
+//      archive(cereal::make_nvp("db0",              *m_db0));
+//      archive(cereal::make_nvp("dW1",              *m_dW1));
+//      archive(cereal::make_nvp("db1",              *m_db1));
     }
 
 	void Save(cereal::JSONOutputArchive& archive) const

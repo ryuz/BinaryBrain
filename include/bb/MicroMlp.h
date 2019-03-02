@@ -123,6 +123,27 @@ public:
         return shape;
     }
 
+    /**
+     * @brief  入力形状取得
+     * @detail 入力形状を取得する
+     * @return 入力形状を返す
+     */
+    indices_t GetInputShape(void) const
+    {
+        return m_affine->GetInputShape();
+    }
+
+    /**
+     * @brief  出力形状取得
+     * @detail 出力形状を取得する
+     * @return 出力形状を返す
+     */
+    indices_t GetOutputShape(void) const
+    {
+        return m_activation->GetOutputShape();
+    }
+
+
 
     index_t GetNodeInputSize(index_t node) const
     {

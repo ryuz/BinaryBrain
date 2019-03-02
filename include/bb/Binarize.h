@@ -28,7 +28,6 @@ protected:
     FrameBuffer m_dx;
 
     bool        m_host_only   = false;
-    indices_t   m_shape;
 
 protected:
 	Binarize() {}

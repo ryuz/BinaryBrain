@@ -15,6 +15,7 @@
 #include <cereal/types/vector.hpp>
 #include <cereal/types/array.hpp>
 
+#include "bb/DataType.h"
 #include "bb/Activation.h"
 #include "bb/FrameBuffer.h"
 #include "bb/SimdSupport.h"
@@ -27,7 +28,7 @@ namespace bb {
 template <typename T = float>
 class BatchNormalization : public Activation<T, T>
 {
-    using super = Activation<T, T>;
+    using _super = Activation<T, T>;
 
 protected:
     index_t 		            m_node_size;
@@ -81,6 +82,67 @@ public:
     std::string GetClassName(void) const { return "BatchNormalization"; }
 
 
+
+    // Serialize
+    void Save(std::ostream &os) const 
+    {
+        SaveIndex(os, m_node_size);
+        bb::Save(os, m_momentum);
+        m_gamma->Save(os);
+        m_beta->Save(os);
+        m_running_mean.Save(os);
+        m_running_var.Save(os);
+    }
+
+    void Load(std::istream &is)
+    {
+        m_node_size = LoadIndex(is);
+        bb::Load(is, m_momentum);
+        m_gamma->Load(is);
+        m_beta->Load(is);
+        m_running_mean.Load(is);
+        m_running_var.Load(is);
+    }
+
+
+#ifdef BB_WITH_CEREAL
+	template <class Archive>
+    void save(Archive& archive, std::uint32_t const version) const
+	{
+        _super::save(archive, version);
+        archive(cereal::make_nvp("node_size",    m_node_size));
+        archive(cereal::make_nvp("gamma",        *m_gamma));
+        archive(cereal::make_nvp("beta",         *m_beta));
+        archive(cereal::make_nvp("running_mean", m_running_mean));
+        archive(cereal::make_nvp("running_var",  m_running_var));
+    }
+
+	template <class Archive>
+    void load(Archive& archive, std::uint32_t const version)
+	{
+        _super::load(archive, version);
+        archive(cereal::make_nvp("node_size",    m_node_size));
+        archive(cereal::make_nvp("gamma",        *m_gamma));
+        archive(cereal::make_nvp("beta",         *m_beta));
+        archive(cereal::make_nvp("running_mean", m_running_mean));
+        archive(cereal::make_nvp("running_var",  m_running_var));
+     }
+
+	void Save(cereal::JSONOutputArchive& archive) const
+	{
+        archive(cereal::make_nvp("BatchNormalization", *this));
+	}
+
+	void Load(cereal::JSONInputArchive& archive)
+	{
+        archive(cereal::make_nvp("BatchNormalization", *this));
+	}
+#endif
+
+
+
+
+
     auto lock_gamma(void)              { return m_gamma->GetPtr<T>(); }
     auto lock_gamma_const(void)  const { return m_gamma->GetConstPtr<T>(); }
     auto lock_beta(void)               { return m_beta->GetPtr<T>(); }
@@ -105,7 +167,7 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
-        super::SetInputShape(shape);
+        _super::SetInputShape(shape);
 
         m_node_size = GetShapeSize(shape);
         

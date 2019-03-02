@@ -23,7 +23,7 @@ int main()
 {
 	omp_set_num_threads(4);
 
-    bb::Manager::SetHostOnly(true); // CPUのみ利用する
+//  bb::Manager::SetHostOnly(true); // CPUのみ利用する
 
 //  MnistDenseAffine(64, 32);
 //  MnistSimpleCnnMlp(64, 32, true);

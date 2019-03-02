@@ -121,7 +121,7 @@ public:
     indices_t GetInputShape(void) const
     {
         if ( m_layers.empty() ) { return indices_t(); }
-        m_layers.front()->GetInputShape();
+        return m_layers.front()->GetInputShape();
     }
 
     /**
@@ -132,7 +132,7 @@ public:
     indices_t GetOutputShape(void) const
     {
         if ( m_layers.empty() ) { return indices_t(); }
-        m_layers.back()->GetInputShape();
+        return m_layers.back()->GetInputShape();
     }
     
 
