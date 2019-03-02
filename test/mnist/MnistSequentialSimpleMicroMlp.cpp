@@ -23,7 +23,7 @@
 #include "bb/ShuffleSet.h"
 #include "bb/Utility.h"
 #include "bb/Sequential.h"
-#include "bb/Fitting.h"
+#include "bb/Runner.h"
 
 
 

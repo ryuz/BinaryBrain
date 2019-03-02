@@ -26,8 +26,9 @@
 namespace bb {
 
 
+// 実行アシストクラス
 template <typename T>
-class Fitting
+class Runner
 {
 protected:
     using callback_proc_t = void (*)(std::shared_ptr< Layer >, void*);
@@ -55,7 +56,7 @@ protected:
     
 protected:
     // コンストラクタ
-    Fitting() {}
+    Runner() {}
     
 
 public:
@@ -76,9 +77,9 @@ public:
 	    void*                               callback_user = 0;
     };
 
-    static std::shared_ptr<Fitting> Create(create_t const &create)
+    static std::shared_ptr<Runner> Create(create_t const &create)
     {
-        auto self = std::shared_ptr<Fitting>(new Fitting);
+        auto self = std::shared_ptr<Runner>(new Runner);
 
         BB_ASSERT(create.net != nullptr);
 
@@ -104,7 +105,7 @@ public:
         return self;
     }
   
-    static std::shared_ptr<Fitting> Create(
+    static std::shared_ptr<Runner> Create(
                 std::string                         name,
                 std::shared_ptr<Layer>              net,
 	            index_t                             epoch_size,
@@ -229,31 +230,31 @@ public:
     {
         std::ofstream ofs(filename);
         cereal::JSONOutputArchive archive(ofs);
-		archive(cereal::make_nvp("fitting", *this));
+		archive(cereal::make_nvp("runner", *this));
 	}
 
    	void SaveJson(std::ostream &os) const
     {
         cereal::JSONOutputArchive archive(os);
-		archive(cereal::make_nvp("fitting", *this));
+		archive(cereal::make_nvp("runner", *this));
 	}
 
 	void LoadJson(std::string filename)
     {
         std::ifstream ifs(filename);
         cereal::JSONInputArchive archive(ifs);
-		archive(cereal::make_nvp("fitting", *this));
+		archive(cereal::make_nvp("runner", *this));
 	}
 
 	void LoadJson(std::istream &is)
     {
         cereal::JSONInputArchive archive(is);
-		archive(cereal::make_nvp("fitting", *this));
+		archive(cereal::make_nvp("runner", *this));
 	}
 #endif
 
 
-	void Run(
+	void Fitting(
             TrainData<T> &td,
 		    index_t      epoch_size,
 		    index_t      batch_size
@@ -378,6 +379,15 @@ public:
 	}
 
 
+	double Evaluation(
+            TrainData<T> &td,
+		    index_t      batch_size
+        )
+    {
+        return Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_accFunc);
+    }
+
+    
 protected:
     double Calculation(
                 std::vector< std::vector<T> > const &x,

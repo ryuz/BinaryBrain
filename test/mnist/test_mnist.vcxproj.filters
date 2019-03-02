@@ -98,7 +98,7 @@
     <ClInclude Include="..\..\include\bb\LoweringConvolution.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\Fitting.h">
+    <ClInclude Include="..\..\include\bb\Runner.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

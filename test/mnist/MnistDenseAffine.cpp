@@ -23,7 +23,7 @@
 #include "bb/ShuffleSet.h"
 #include "bb/Utility.h"
 #include "bb/Sequential.h"
-#include "bb/Fitting.h"
+#include "bb/Runner.h"
 
 
 
@@ -47,56 +47,15 @@ void MnistDenseAffine(int epoch_size, size_t mini_batch_size)
     bb::FrameBuffer x(BB_TYPE_FP32, mini_batch_size, {28, 28, 1});
     bb::FrameBuffer t(BB_TYPE_FP32, mini_batch_size, 10);
 
-    bb::Fitting<float>::create_t fitter_create;
-    fitter_create.name      = "MnistDenseAffine";
-    fitter_create.net       = net;
-    fitter_create.lossFunc  = bb::LossCrossEntropyWithSoftmax<float>::Create();
-    fitter_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create(10);
-    fitter_create.optimizer = bb::OptimizerAdam<float>::Create();
-    auto fitting = bb::Fitting<float>::Create(fitter_create);
+    bb::Runner<float>::create_t runner_create;
+    runner_create.name      = "MnistDenseAffine";
+    runner_create.net       = net;
+    runner_create.lossFunc  = bb::LossCrossEntropyWithSoftmax<float>::Create();
+    runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create(10);
+    runner_create.optimizer = bb::OptimizerAdam<float>::Create();
+    runner_create.serial_write = false;
+    auto runner = bb::Runner<float>::Create(runner_create);
 
-    fitting->Run(td, epoch_size, mini_batch_size);
-    return;
-
-#if 0
-    std::mt19937_64 mt(1);
-
-    for ( bb::index_t epoch = 0; epoch < epoch_size; ++epoch ) {
-        lossFunc->Clear();
-        accFunc->Clear();
-        for (bb::index_t i = 0; i < (bb::index_t)(data.x_train.size() - mini_batch_size); i += mini_batch_size)
-        {
-            x.SetVector(data.x_train, i);
-            t.SetVector(data.y_train, i);
-
-            auto y = net->Forward(x);
-            
-            auto dy = lossFunc->CalculateLoss(y, t);
-            accFunc->CalculateAccuracy(y, t);
-
-            dy = net->Backward(dy);
-
-            optimizer->Update();
-        }
-        std::cout << "train loss : " << lossFunc->GetLoss() <<  "  accuracy : " << accFunc->GetAccuracy() << std::endl;
-
-        // test
-        lossFunc->Clear();
-        accFunc->Clear();
-        for (bb::index_t i = 0; i < (bb::index_t)(data.x_test.size() - mini_batch_size); i += mini_batch_size)
-        {
-            x.SetVector(data.x_test, i);
-            t.SetVector(data.y_test, i);
-
-            auto y = net->Forward(x);
-            
-            auto dy = lossFunc->CalculateLoss(y, t);
-            accFunc->CalculateAccuracy(y, t);
-        }
-        std::cout << "test loss : " << lossFunc->GetLoss() <<  "  accuracy : " << accFunc->GetAccuracy() << std::endl;
-
-        bb::ShuffleDataSet(mt(), data.x_train, data.y_train);
-    }
-#endif
+    runner->Fitting(td, epoch_size, mini_batch_size);
 }
 
