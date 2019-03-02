@@ -306,7 +306,6 @@ class Tensor_
     
 protected:
 	std::shared_ptr<Memory>	    m_mem;
-//  Memory::Ptr                 m_ptr;
 	index_t					    m_size = 0;
 
 	std::vector<index_t>		m_shape;
@@ -1290,7 +1289,6 @@ protected:
 	int							m_type = 0;
 
 	std::shared_ptr<Memory>		m_mem;
-//  Memory::Ptr                 m_ptr;
 	index_t						m_size = 0;
 
 	std::vector<index_t>		m_shape;
@@ -1339,7 +1337,6 @@ public:
    	Tensor& operator=(const Tensor_<Tp>& tensor)
 	{
         m_mem = tensor.m_mem;
-//      m_ptr.Clear();
         m_type = DataType<Tp>::type;
         m_size = tensor.m_size;
         m_shape  = tensor.m_shape;
@@ -1630,223 +1627,9 @@ public:
 #endif
 
 
-#if 0
     // -------------------------------------
-    //  アクセスクラス
+    //  アクセス用ポインタ取得
     // -------------------------------------
-
-    template <typename Tp, class TensorTp, class PtrTp>
-    class ConstPtr
-    {
-    friend Tensor;
-
-    protected:
-        TensorTp*   m_tensor;
-        PtrTp       m_ptr;
-
-    protected:
-        ConstPtr(TensorTp* tensor)
-        {
-            m_tensor = tensor;
-        }
-
-        inline void Lock(void)
-        {
-            m_ptr = m_tensor.GetConstPtr();
-        }
-
-	    inline Tp const &At(index_t index) const 
-	    {
-            BB_DEBUG_ASSERT(m_tensor->m_type == DataType<Tp>::Type);
-		    BB_DEBUG_ASSERT(index >= 0 && index < m_tensor->m_size);
-	    	return ((Tp *)m_ptr.GetPtr())[index];
-    	}
-
-    public:
-        inline Tp *GetAddr(void)
-        {
-            return m_ptr.GetAddr();
-        }
-
-        inline Tp const &operator[](index_t index) const
-        {
-	    	return At(index);
-        }
-
-        inline Tp const &operator()(index_t i0) const
-        {
-		    BB_DEBUG_ASSERT(m_tensor->m_shape.size() == 1);
-            BB_DEBUG_ASSERT(i0 >= 0 && i0 < m_tensor->m_shape[0]);
-		    index_t index = 0;
-            index += i0 * m_tensor->m_stride[0];
-	    	return At(index);
-        }
-
-   	    inline Tp const &operator()(index_t i1, index_t i0) const 
-	    {
-		    BB_DEBUG_ASSERT(m_tensor->m_shape.size() == 2);
-            BB_DEBUG_ASSERT(i0 >= 0 && i0 < m_tensor->m_shape[0]);
-            BB_DEBUG_ASSERT(i1 >= 0 && i1 < m_tensor->m_shape[1]);
-		    index_t index = 0;
-            index += i0 * m_tensor->m_stride[0];
-            index += i1 * m_tensor->m_stride[1];
-	    	return At(addr, index);
-    	}
-
-   	    inline Tp const &operator()(index_t i2, index_t i1, index_t i0) const 
-	    {
-		    BB_DEBUG_ASSERT(m_tensor->m_shape.size() == 2);
-            BB_DEBUG_ASSERT(i0 >= 0 && i0 < m_tensor->m_shape[0]);
-            BB_DEBUG_ASSERT(i1 >= 0 && i1 < m_tensor->m_shape[1]);
-            BB_DEBUG_ASSERT(i2 >= 0 && i2 < m_tensor->m_shape[2]);
-		    index_t index = 0;
-            index += i0 * m_tensor->m_stride[0];
-            index += i1 * m_tensor->m_stride[1];
-            index += i2 * m_tensor->m_stride[2];
-	    	return At(addr, index);
-    	}
-
-  	    inline Tp const &operator()(index_t i3, index_t i2, index_t i1, index_t i0) const 
-	    {
-		    BB_DEBUG_ASSERT(m_tensor->m_shape.size() == 3);
-            BB_DEBUG_ASSERT(i0 >= 0 && i0 < m_tensor->m_shape[0]);
-            BB_DEBUG_ASSERT(i1 >= 0 && i1 < m_tensor->m_shape[1]);
-            BB_DEBUG_ASSERT(i2 >= 0 && i2 < m_tensor->m_shape[2]);
-            BB_DEBUG_ASSERT(i3 >= 0 && i3 < m_tensor->m_shape[3]);
-		    index_t index = 0;
-            index += i0 * m_tensor->m_stride[0];
-            index += i1 * m_tensor->m_stride[1];
-            index += i2 * m_tensor->m_stride[2];
-            index += i3 * m_tensor->m_stride[3];
-	    	return At(addr, index);
-    	}
-
-        inline Tp const &operator()(indices_t indices) const
-	    {
-		    BB_DEBUG_ASSERT(indices.size() == m_tensor->m_shape.size());
-		    index_t index = 0;
-            index += i0 * m_tensor->m_stride[0];
-		    for (int i = 0; i < (int)indices.size(); ++i) {
-                BB_DEBUG_ASSERT(indices[i] >= 0 && indices[i] < m_tensor->m_shape[i]);
-			    index += indices[i] * m_tensor->m_stride[i];
-		    }
-	    	return At(index);
-	    }
-
-   	    inline Tp const &operator()(indices_t indices, index_t i0) const
-	    {
-		    BB_DEBUG_ASSERT(indices.size() + 1 == m_tensor->m_shape.size());
-            BB_DEBUG_ASSERT(i0 >= 0 && i0 < m_tensor->m_shape[0]);
-		    index_t index = 0;
-            index += i0 * m_tensor->m_stride[0];
-		    for (int i = 0; i < (int)indices.size(); ++i) {
-                BB_DEBUG_ASSERT(indices[i] >= 0 && indices[i] < m_tensor->m_shape[i+1]);
-			    index += indices[i] * m_tensor->m_stride[i+1];
-		    }
-	    	return At(index);
-	    }
-    };
-
-    template <typename Tp, class TensorTp, class PtrTp>
-    class Ptr
-    {
-    protected:
-        Ptr(TensorTp* tensor) : public ConstPtr<Tp, TensorTp, PtrTp>(tensor)
-        {
-        }
-
-        void Lock(void)
-        {
-            m_ptr = m_tensor.GetPtr();
-        }
-
-        inline Tp &At(index_t index) 
-	    {
-            BB_DEBUG_ASSERT(m_tensor->m_type == DataType<Tp>::Type);
-		    BB_DEBUG_ASSERT(index >= 0 && index < m_tensor->m_size);
-	    	return ((Tp *)m_ptr.GetPtr())[index];
-    	}
-
-    public:
-        inline Tp &operator[](index_t index)
-        {
-	    	return At(index);
-        }
-
-        inline Tp &operator()(index_t i0)
-        {
-		    BB_DEBUG_ASSERT(m_tensor->m_shape.size() == 1);
-            BB_DEBUG_ASSERT(i0 >= 0 && i0 < m_tensor->m_shape[0]);
-		    index_t index = 0;
-            index += i0 * m_tensor->m_stride[0];
-	    	return At(index);
-        }
-
-   	    inline Tp &operator()(index_t i1, index_t i0)
-	    {
-		    BB_DEBUG_ASSERT(m_tensor->m_shape.size() == 2);
-            BB_DEBUG_ASSERT(i0 >= 0 && i0 < m_tensor->m_shape[0]);
-            BB_DEBUG_ASSERT(i1 >= 0 && i1 < m_tensor->m_shape[1]);
-		    index_t index = 0;
-            index += i0 * m_tensor->m_stride[0];
-            index += i1 * m_tensor->m_stride[1];
-	    	return At(addr, index);
-    	}
-
-   	    inline Tp &operator()(index_t i2, index_t i1, index_t i0)
-	    {
-		    BB_DEBUG_ASSERT(m_tensor->m_shape.size() == 2);
-            BB_DEBUG_ASSERT(i0 >= 0 && i0 < m_tensor->m_shape[0]);
-            BB_DEBUG_ASSERT(i1 >= 0 && i1 < m_tensor->m_shape[1]);
-            BB_DEBUG_ASSERT(i2 >= 0 && i2 < m_tensor->m_shape[2]);
-		    index_t index = 0;
-            index += i0 * m_tensor->m_stride[0];
-            index += i1 * m_tensor->m_stride[1];
-            index += i2 * m_tensor->m_stride[2];
-	    	return At(addr, index);
-    	}
-
-  	    inline Tp &operator()(index_t i3, index_t i2, index_t i1, index_t i0)
-	    {
-		    BB_DEBUG_ASSERT(m_tensor->m_shape.size() == 3);
-            BB_DEBUG_ASSERT(i0 >= 0 && i0 < m_tensor->m_shape[0]);
-            BB_DEBUG_ASSERT(i1 >= 0 && i1 < m_tensor->m_shape[1]);
-            BB_DEBUG_ASSERT(i2 >= 0 && i2 < m_tensor->m_shape[2]);
-            BB_DEBUG_ASSERT(i3 >= 0 && i3 < m_tensor->m_shape[3]);
-		    index_t index = 0;
-            index += i0 * m_tensor->m_stride[0];
-            index += i1 * m_tensor->m_stride[1];
-            index += i2 * m_tensor->m_stride[2];
-            index += i3 * m_tensor->m_stride[3];
-	    	return At(addr, index);
-    	}
-
-        inline Tp &operator()(indices_t indices)
-	    {
-		    BB_DEBUG_ASSERT(indices.size() == m_tensor->m_shape.size());
-		    index_t index = 0;
-            index += i0 * m_tensor->m_stride[0];
-		    for (int i = 0; i < (int)indices.size(); ++i) {
-                BB_DEBUG_ASSERT(indices[i] >= 0 && indices[i] < m_tensor->m_shape[i]);
-			    index += indices[i] * m_tensor->m_stride[i];
-		    }
-	    	return At(index);
-	    }
-
-   	    inline Tp &operator()(indices_t indices, index_t i0)
-	    {
-		    BB_DEBUG_ASSERT(indices.size() + 1 == m_tensor->m_shape.size());
-            BB_DEBUG_ASSERT(i0 >= 0 && i0 < m_tensor->m_shape[0]);
-		    index_t index = 0;
-            index += i0 * m_tensor->m_stride[0];
-		    for (int i = 0; i < (int)indices.size(); ++i) {
-                BB_DEBUG_ASSERT(indices[i] >= 0 && indices[i] < m_tensor->m_shape[i+1]);
-			    index += indices[i] * m_tensor->m_stride[i+1];
-		    }
-	    	return At(index);
-	    }
-    };
-#endif
 
     template <typename Tp>
     TensorConstPtr_<Tp, Tensor const, Memory::ConstPtr> GetConstPtr(void) const
@@ -1863,107 +1646,21 @@ public:
         ptr.Lock(new_buf);
         return ptr;
     }
+        
 
-    
+
     // -------------------------------------
-    //  直接アクセス用ポインタ取得
+    //  メモリ直接アクセス用ポインタ取得
     // -------------------------------------
+
+    // CUDAやSIMDでガリガリやる場合はこちらから取得
 
     Memory::Ptr         GetMemoryPtr(bool new_buf=false) const      { return m_mem->GetPtr(new_buf); }
     Memory::ConstPtr    GetMemoryConstPtr(void) const               { return m_mem->GetConstPtr(); }
     Memory::DevPtr      GetMemoryDevPtr(bool new_buf=false) const   { return m_mem->GetDevPtr(new_buf); }
     Memory::DevConstPtr GetMemoryDevConstPtr(void) const            { return m_mem->GetDevConstPtr(); }
-
-
-#if 0
-
-    template <typename Tp>
-	inline const Tp& At(void const *addr, indices_t indices) const
-	{
-        BB_DEBUG_ASSERT(m_type == DataType<Tp>::Type);
-		BB_ASSERT(indices.size() == m_shape.size());
-
-		index_t index = 0;
-		for (int i = 0; i < (int)indices.size(); ++i) {
-			index += indices[i] * m_stride[i];
-		}
-
-		return ((Tp *)addr)[index];
-	}
-
-   	template <typename Tp>
-	inline Tp& At(void *addr, indices_t indices)
-	{
-        BB_DEBUG_ASSERT(m_type == DataType<Tp>::Type);
-		BB_ASSERT(indices.size() == m_shape.size());
-
-		index_t index = 0;
-		for (int i = 0; i < (int)indices.size(); ++i) {
-			index += indices[i] * m_stride[i];
-		}
-
-		return ((Tp *)addr)[index];
-	}
-
-	template <typename Tp>
-	inline Tp const & At(void const *addr, index_t index) const 
-	{
-        BB_DEBUG_ASSERT(m_type == DataType<Tp>::Type);
-		BB_DEBUG_ASSERT(index >= 0 && index < m_size);
-		return ((const Tp *)addr)[index];
-	}
-	
-    template <typename Tp>
-	inline Tp & At(void *addr, index_t index)
-	{
-        BB_DEBUG_ASSERT(m_type == DataType<Tp>::Type);
-		BB_DEBUG_ASSERT(index >= 0 && index < m_size);
-		return ((Tp *)addr)[index];
-	}
-
-
-    // -------------------------------------
-    //  メモリアクセス操作
-    // -------------------------------------
     
-    void Lock(void)
-    {
-        m_ptr = m_mem->GetPtr();
-    }
-
-    void Unlock(void)
-    {
-        m_ptr.Clear();
-    }
-    
-	template <typename Tp>
-	inline const Tp& At(std::vector<index_t> indices) const
-	{
-		BB_ASSERT(m_ptr);
-        return At(m_ptr.GetPtr(), index);
-	}
-
-   	template <typename Tp>
-	inline Tp& At(std::vector<index_t> indices)
-	{
-		BB_ASSERT(m_ptr);
-        return At(m_ptr.GetPtr(), indices);
-	}
-
-	template <typename Tp>
-	inline Tp const & At(index_t index) const 
-	{
-		BB_ASSERT(m_ptr);
-        return At(m_ptr.GetPtr(), index);
-	}
-	
-    template <typename Tp>
-	inline Tp & At(index_t index)
-	{
-		BB_ASSERT(m_ptr);
-        return At(m_ptr.GetPtr(), index);
-	}
-#endif
+        
 
 
     // -------------------------------------
