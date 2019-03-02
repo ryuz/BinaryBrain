@@ -4,6 +4,14 @@
 #include <fstream>
 #include "gtest/gtest.h"
 
+#if BB_WITH_CEREAL
+#include "cereal/types/array.hpp"
+#include "cereal/types/string.hpp"
+#include "cereal/types/vector.hpp"
+#include "cereal/archives/json.hpp"
+#endif
+
+
 #include "bb/Manager.h"
 #include "bb/Memory.h"
 #include "bb/Tensor.h"
@@ -143,6 +151,85 @@ TEST(TensorTest, testTensor_SaveLoad)
 
 }
 
+
+#if BB_WITH_CEREAL
+TEST(TensorTest, testTensor_Json)
+{
+    const int L = 4;
+    const int M = 3;
+    const int N = 2;
+
+    float   data[L][M][N];
+
+    bb::Tensor_<float> t({N, M, L});
+
+    {
+        auto ptr = t.GetPtr();
+        for ( int i = 0; i < L; ++i ) {
+            for ( int j = 0; j < M; ++j ) {
+                for ( int k = 0; k < N; ++k ) {
+                    data[i][j][k] = (float)((i+1)*10000 + (j+1) * 100 + (k+1)); 
+                    ptr(i, j, k) = data[i][j][k];
+                }
+            }
+        }
+    }
+
+    {
+        auto ptr = t.GetConstPtr();
+        for ( int i = 0; i < L; ++i ) {
+            for ( int j = 0; j < M; ++j ) {
+                for ( int k = 0; k < N; ++k ) {
+                    EXPECT_EQ(ptr({k, j, i}), data[i][j][k]);
+                    EXPECT_EQ(ptr(i, j, k), data[i][j][k]);
+                    EXPECT_EQ(ptr[(i*M+j)*N+k], data[i][j][k]);
+                }
+            }
+        }
+    }
+
+    t.Transpose({1, 2, 0});
+
+    {
+        auto ptr = t.GetConstPtr();
+        for ( int i = 0; i < L; ++i ) {
+            for ( int j = 0; j < M; ++j ) {
+                for ( int k = 0; k < N; ++k ) {
+                    EXPECT_EQ(ptr({j, i, k}), data[i][j][k]);
+                    EXPECT_EQ(ptr(k, i, j), data[i][j][k]);
+                    EXPECT_EQ(ptr[(i*M+j)*N+k], data[i][j][k]);
+                }
+            }
+        }
+    }
+
+    {
+        bb::Tensor t1(t);
+        std::ofstream ofs("TensorTest.json");
+        cereal::JSONOutputArchive ar(ofs);
+		ar(cereal::make_nvp("tensot", t1));
+    }
+
+    {
+        bb::Tensor t2;
+        std::ifstream ifs("TensorTest.json");
+        cereal::JSONInputArchive ar(ifs);
+		ar(cereal::make_nvp("tensot", t2));
+
+        auto ptr = t2.GetConstPtr<float>();
+        for ( int i = 0; i < L; ++i ) {
+            for ( int j = 0; j < M; ++j ) {
+                for ( int k = 0; k < N; ++k ) {
+                    EXPECT_EQ(ptr({j, i, k}), data[i][j][k]);
+                    EXPECT_EQ(ptr(k, i, j), data[i][j][k]);
+                    EXPECT_EQ(ptr[(i*M+j)*N+k], data[i][j][k]);
+                }
+            }
+        }
+    }
+
+}
+#endif
 
 
 

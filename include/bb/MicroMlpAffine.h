@@ -24,6 +24,8 @@ namespace bb {
 template <int N = 6, int M = 16, typename T = float>
 class MicroMlpAffine : public Layer
 {
+    using supper = Layer;
+
 protected:
 public:
 
@@ -134,6 +136,91 @@ public:
 	
 
 	std::string GetClassName(void) const { return "MicroMlpAffine"; }
+
+
+    
+public:
+    // Serialize
+    void Save(std::ostream &os) const 
+    {
+        SaveIndex(os, m_input_node_size);
+        SaveIndex(os, m_output_node_size);
+        SaveIndices(os, m_input_shape);
+        SaveIndices(os, m_output_shape);
+        m_input_index.Save(os);
+        m_W0->Save(os);
+        m_b0->Save(os);
+        m_W1->Save(os);
+        m_b1->Save(os);
+    }
+
+    void Load(std::istream &is)
+    {
+        m_input_node_size  = LoadIndex(is); 
+        m_output_node_size = LoadIndex(is);
+        m_input_shape      = LoadIndices(is);
+        m_output_shape     = LoadIndices(is);
+        m_input_index.Load(is);
+        m_W0->Load(is);
+        m_b0->Load(is);
+        m_W1->Load(is);
+        m_b1->Load(is);
+        m_dW0->Resize(m_W0->GetType(), m_W0->GetShape());
+        m_db0->Resize(m_b0->GetType(), m_b0->GetShape());
+        m_dW1->Resize(m_W1->GetType(), m_W1->GetShape());
+        m_db1->Resize(m_b1->GetType(), m_b1->GetShape());
+    }
+
+
+#ifdef BB_WITH_CEREAL
+	template <class Archive>
+    void save(Archive& archive, std::uint32_t const version) const
+	{
+        supper::save(archive, version);
+        archive(cereal::make_nvp("input_node_size",  m_input_node_size));
+        archive(cereal::make_nvp("output_node_size", m_output_node_size));
+        archive(cereal::make_nvp("input_shape",      m_input_shape));
+        archive(cereal::make_nvp("output_shape",     m_output_shape));
+        archive(cereal::make_nvp("input_index",      m_input_index));
+        archive(cereal::make_nvp("W0",               *m_W0));
+        archive(cereal::make_nvp("b0",               *m_b0));
+        archive(cereal::make_nvp("W1",               *m_W1));
+        archive(cereal::make_nvp("b1",               *m_b1));
+        archive(cereal::make_nvp("dW0",              *m_dW0));
+        archive(cereal::make_nvp("db0",              *m_db0));
+        archive(cereal::make_nvp("dW1",              *m_dW1));
+        archive(cereal::make_nvp("db1",              *m_db1));
+    }
+
+	template <class Archive>
+    void load(Archive& archive, std::uint32_t const version)
+	{
+        supper::load(archive, version);
+        archive(cereal::make_nvp("input_node_size",  m_input_node_size));
+        archive(cereal::make_nvp("output_node_size", m_output_node_size));
+        archive(cereal::make_nvp("input_shape",      m_input_shape));
+        archive(cereal::make_nvp("output_shape",     m_output_shape));
+        archive(cereal::make_nvp("input_index",      m_input_index));
+        archive(cereal::make_nvp("W0",               *m_W0));
+        archive(cereal::make_nvp("b0",               *m_b0));
+        archive(cereal::make_nvp("W1",               *m_W1));
+        archive(cereal::make_nvp("b1",               *m_b1));
+        archive(cereal::make_nvp("dW0",              *m_dW0));
+        archive(cereal::make_nvp("db0",              *m_db0));
+        archive(cereal::make_nvp("dW1",              *m_dW1));
+        archive(cereal::make_nvp("db1",              *m_db1));
+    }
+
+	void Save(cereal::JSONOutputArchive& archive) const
+	{
+        archive(cereal::make_nvp("MicroMlpAffine", *this));
+	}
+
+	void Load(cereal::JSONInputArchive& archive)
+	{
+        archive(cereal::make_nvp("MicroMlpAffine", *this));
+	}
+#endif
 
 
   	Tensor       &W0(void)       { return *m_W0; }
@@ -665,61 +752,6 @@ protected:
 
 
 
-public:
-#if 0
-
-	template <class Archive>
-	void save(Archive &archive, std::uint32_t const version) const
-	{
-	}
-
-	template <class Archive>
-	void load(Archive &archive, std::uint32_t const version)
-	{
-	}
-
-	virtual void Save(cereal::JSONOutputArchive& archive) const
-	{
-	}
-
-	virtual void Load(cereal::JSONInputArchive& archive)
-	{
-	}
-#endif
-
-
-    void Save(std::ostream &os) const 
-    {
-        SaveIndex(os, m_input_node_size);
-        SaveIndex(os, m_output_node_size);
-        SaveIndices(os, m_input_shape);
-        SaveIndices(os, m_output_shape);
-        m_input_index.Save(os);
-        m_W0->Save(os);
-        m_b0->Save(os);
-        m_W1->Save(os);
-        m_b1->Save(os);
-    }
-
-    void Load(std::istream &is)
-    {
-        m_input_node_size  = LoadIndex(is); 
-        m_output_node_size = LoadIndex(is);
-        m_input_shape      = LoadIndices(is);
-        m_output_shape     = LoadIndices(is);
-        m_input_index.Load(is);
-        m_W0->Load(is);
-        m_b0->Load(is);
-        m_W1->Load(is);
-        m_b1->Load(is);
-        m_dW0->Resize(m_W0->GetType(), m_W0->GetShape());
-        m_db0->Resize(m_b0->GetType(), m_b0->GetShape());
-        m_dW1->Resize(m_W1->GetType(), m_W1->GetShape());
-        m_db1->Resize(m_b1->GetType(), m_b1->GetShape());
-    }
-
-    void Save(std::string filename) const { Save(std::ofstream(filename, std::ios::binary)); }
-    void Load(std::string filename)       { Load(std::ifstream(filename, std::ios::binary)); }
 };
 
 

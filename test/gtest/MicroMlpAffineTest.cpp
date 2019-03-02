@@ -233,6 +233,18 @@ TEST(MicroMlpAffineTest, testMicroMlpAffine)
 #endif
 
 
+TEST(MicroMlpAffineTest, testMicroMlpAffine_Serialize)
+{
+	auto mlp = bb::MicroMlpAffine<4, 2>::Create(10);
+
+    mlp->SetInputShape({28, 28});
+
+    mlp->SaveBinary("MicroMlpAffineTest.bin");
+    mlp->LoadBinary("MicroMlpAffineTest.bin");
+
+    mlp->SaveJson("MicroMlpAffineTest.json");
+    mlp->LoadJson("MicroMlpAffineTest.json");
+}
 
 #if 0
 

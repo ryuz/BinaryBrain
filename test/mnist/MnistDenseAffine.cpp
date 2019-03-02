@@ -42,26 +42,20 @@ void MnistDenseAffine(int epoch_size, size_t mini_batch_size)
     net->Add(bb::ReLU<float>::Create());
     net->Add(bb::DenseAffine<float>::Create({10}));
 
-    auto lossFunc = bb::LossCrossEntropyWithSoftmax<float>::Create();
-    auto accFunc  = bb::AccuracyCategoricalClassification<float>::Create(10);
-
     net->SetInputShape({28, 28, 1});
 
     bb::FrameBuffer x(BB_TYPE_FP32, mini_batch_size, {28, 28, 1});
     bb::FrameBuffer t(BB_TYPE_FP32, mini_batch_size, 10);
 
-//  auto optimizer = bb::OptimizerAdam<float>::Create();
-    auto optimizer = bb::OptimizerSgd<float>::Create(0.001f);
+    bb::Fitting<float>::create_t fitter_create;
+    fitter_create.name      = "MnistDenseAffine";
+    fitter_create.net       = net;
+    fitter_create.lossFunc  = bb::LossCrossEntropyWithSoftmax<float>::Create();
+    fitter_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create(10);
+    fitter_create.optimizer = bb::OptimizerAdam<float>::Create();
+    auto fitting = bb::Fitting<float>::Create(fitter_create);
 
-    optimizer->SetVariables(net->GetParameters(), net->GetGradients());
-
-
-    bb::Fitting<float> fitting(net, "MnistDenseAffine");
-    fitting.SetLossFunction(lossFunc);
-    fitting.SetAccuracyFunction(accFunc);
-    fitting.SetOptimizer(optimizer);
-
-    fitting.Run(td, epoch_size, mini_batch_size);
+    fitting->Run(td, epoch_size, mini_batch_size);
     return;
 
 #if 0

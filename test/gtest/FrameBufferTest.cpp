@@ -6,6 +6,14 @@
 #include "bb/FrameBuffer.h"
 
 
+#if BB_WITH_CEREAL
+#include "cereal/types/array.hpp"
+#include "cereal/types/string.hpp"
+#include "cereal/types/vector.hpp"
+#include "cereal/archives/json.hpp"
+#endif
+
+
 TEST(FrameBufferTest, FrameBuffer_SetGet)
 {
     bb::FrameBuffer buf(BB_TYPE_FP32, 2, 3);
@@ -215,6 +223,71 @@ TEST(FrameBufferTest, FrameBuffer_SetVector)
         }
     }
 }
+
+
+
+TEST(FrameBufferTest, testFrameBuffer_Json)
+{
+    bb::index_t const frame_size = 32;
+    bb::index_t const node_size = 12;
+
+    std::vector< std::vector<float> > vec(frame_size, std::vector<float>(node_size));
+    
+    for ( bb::index_t frame = 0; frame < frame_size; ++frame ) {
+        for ( bb::index_t node = 0; node < node_size; ++node ) {
+            vec[frame][node] = (float)(frame * 1000 + node);
+        }
+    }
+
+    // save
+    {
+        bb::FrameBuffer buf(BB_TYPE_FP32, frame_size, node_size);
+        buf.SetVector(vec);
+        {
+            std::ofstream ofs("FrameBufferTest.bin", std::ios::binary);
+            buf.Save(ofs);
+        }
+
+#ifdef BB_WITH_CEREAL
+        {
+            std::ofstream ofs("FrameBufferTest.json");
+            cereal::JSONOutputArchive ar(ofs);
+       		ar(cereal::make_nvp("FrameBuffer", buf));
+        }
+#endif
+    }
+
+
+    // load
+    {
+        bb::FrameBuffer buf(BB_TYPE_FP64, 1, 2);
+        std::ifstream ifs("FrameBufferTest.bin", std::ios::binary);
+        buf.Load(ifs);
+
+        for ( bb::index_t frame = 0; frame < frame_size; ++frame ) {
+            for ( bb::index_t node = 0; node < node_size; ++node ) {
+                EXPECT_EQ((buf.Get<float, float>(frame, node)), (float)(frame * 1000 + node));
+            }
+        }
+    }
+
+#ifdef BB_WITH_CEREAL
+    {
+        bb::FrameBuffer buf(BB_TYPE_FP64, 1, 2);
+        std::ifstream ifs("FrameBufferTest.json");
+        cereal::JSONInputArchive ar(ifs);
+		ar(cereal::make_nvp("FrameBuffer", buf));
+
+        for ( bb::index_t frame = 0; frame < frame_size; ++frame ) {
+            for ( bb::index_t node = 0; node < node_size; ++node ) {
+                EXPECT_EQ((buf.Get<float, float>(frame, node)), (float)(frame * 1000 + node));
+            }
+        }
+    }
+#endif
+
+}
+
 
 
 

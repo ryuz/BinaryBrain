@@ -47,26 +47,113 @@ protected:
 	bool                                m_print_progress     = true;
 	bool                                m_file_write         = true;
 	bool                                m_over_write         = false;
+    bool                                m_serial_write       = true;
 	bool                                m_initial_evaluation = false;
 	
     callback_proc_t                     m_callback_proc = nullptr;
 	void                                *m_callback_user = 0;
     
-public:
+protected:
     // コンストラクタ
-    Fitting(std::shared_ptr< Layer > net, std::string name="")
+    Fitting() {}
+    
+
+public:
+    struct create_t
     {
-        m_net  = net;
-        m_name = name;
-        if ( m_name.empty() ) {
-            m_name = m_net->GetName();
+        std::string                         name;
+        std::shared_ptr<Layer>              net;
+	    std::shared_ptr<AccuracyFunction>   accFunc;
+	    std::shared_ptr<LossFunction>       lossFunc;
+	    std::shared_ptr<Optimizer>          optimizer;
+	    bool                                print_progress = true;
+	    bool                                file_write = true;
+	    bool                                over_write = false;
+        bool                                serial_write = true;
+	    bool                                initial_evaluation = false;
+        std::int64_t                        seed = 1;
+	    callback_proc_t                     callback_proc = nullptr;
+	    void*                               callback_user = 0;
+    };
+
+    static std::shared_ptr<Fitting> Create(create_t const &create)
+    {
+        auto self = std::shared_ptr<Fitting>(new Fitting);
+
+        BB_ASSERT(create.net != nullptr);
+
+        self->m_name               = create.name;
+        self->m_net                = create.net;
+	    self->m_accFunc            = create.accFunc;
+	    self->m_lossFunc           = create.lossFunc;
+	    self->m_optimizer          = create.optimizer;
+	    self->m_print_progress     = create.print_progress;
+	    self->m_file_write         = create.file_write;
+	    self->m_over_write         = create.over_write;
+        self->m_serial_write       = create.serial_write;
+	    self->m_initial_evaluation = create.initial_evaluation;
+	    self->m_callback_proc      = create.callback_proc;
+	    self->m_callback_user      = create.callback_user;
+        
+        self->m_mt.seed(create.seed);
+
+        if ( self->m_name.empty() ) {
+            self->m_name = self->m_net->GetName();
         }
+
+        return self;
+    }
+  
+    static std::shared_ptr<Fitting> Create(
+                std::string                         name,
+                std::shared_ptr<Layer>              net,
+	            index_t                             epoch_size,
+	            index_t                             batch_size,
+	            std::shared_ptr<AccuracyFunction>   accFunc,
+	            std::shared_ptr<LossFunction>       lossFunc,
+	            std::shared_ptr<Optimizer>          optimizer,
+	            bool                                print_progress = true,
+	            bool                                file_write = true,
+	            bool                                over_write = false,
+                bool                                serial_write = true,
+	            bool                                initial_evaluation = false,
+                std::int64_t                        seed = 1,
+	            callback_proc_t                     callback_proc = nullptr,
+	            void*                               callback_user = 0
+        )
+    {
+        create_t create;
+
+        create.name               = name;
+        create.net                = net;
+        create.accFunc            = accFunc;
+        create.lossFunc           = lossFunc;
+        create.optimizer          = optimizer;
+        create.print_progress     = print_progress;
+        create.file_write         = file_write;
+        create.over_write         = over_write;
+        create.serial_write       = serial_write;
+        create.initial_evaluation = initial_evaluation;
+        create.seed               = seed
+        create.callback_proc      = callback_proc;
+        create.callback_user      = callback_user;
+
+        return Create(create);
     }
 
-    void SetSeed(std::int64_t seed)     { m_mt.seed(seed); }
-    void SetMaxBatchSize(index_t batch) { m_max_batch_size = batch; }
 
-    void SetAccuracyFunction(std::shared_ptr<AccuracyFunction> accFunc) { m_accFunc = accFunc; }
+    // アクセサ
+    void        SetName(std::string name) { m_name = name; }
+    std::string GetName(void) const { return m_name; }
+
+    void SetSeed(std::int64_t seed)     { m_mt.seed(seed); }
+
+    void    SetMaxBatchSize(index_t batch) { m_max_batch_size = batch; }
+    index_t GetMaxBatchSize(void) const  { return m_max_batch_size; }
+
+    void                              SetAccuracyFunction(std::shared_ptr<AccuracyFunction> accFunc) { m_accFunc = accFunc; }
+    std::shared_ptr<AccuracyFunction> GetAccuracyFunction(void) const { return m_accFunc; }
+
     void SetLossFunction(std::shared_ptr<LossFunction > lossFunc)       { m_lossFunc = lossFunc; }
     void SetOptimizer(std::shared_ptr<Optimizer > optimizer)            { m_optimizer = optimizer; }
 
@@ -82,6 +169,90 @@ public:
     }
     
 
+    // Serialize
+  	void Save(std::ostream &os) const
+	{
+        Save(os, m_name);
+        SaveIndex(os, m_epoch);
+        SaveIndex(os, m_max_batch_size);
+	    Save(os, m_print_progress);
+	    Save(os, m_file_write);
+	    Save(os, m_over_write);
+	    Save(os, m_initial_evaluation);
+        m_net.Save(os);
+	}
+
+	void Load(std::istream &is)
+	{
+        Load(os, m_name);
+        LoadIndex(os, m_epoch);
+        LoadIndex(os, m_max_batch_size);
+	    Load(os, m_print_progress);
+	    Load(os, m_file_write);
+	    Load(os, m_over_write);
+	    Load(os, m_initial_evaluation);
+        m_net.Load(os);
+	}
+
+   	void SaveBinary(std::string filename) const { Save(std::ofstream(filename, std::ios::binary)); }
+   	void LoadBinary(std::string filename)       { Load(std::ifstream(filename, std::ios::binary)); }
+    
+
+#ifdef BB_WITH_CEREAL
+	template <class Archive>
+	void save(Archive& archive, std::uint32_t const version) const
+	{
+		archive(cereal::make_nvp("name", m_name));
+		archive(cereal::make_nvp("epoch", m_epoch));
+		archive(cereal::make_nvp("max_batch_size", m_max_batch_size));
+		archive(cereal::make_nvp("print_progress", m_print_progress));
+		archive(cereal::make_nvp("file_write", m_file_write));
+		archive(cereal::make_nvp("over_write", m_over_write));
+		archive(cereal::make_nvp("initial_evaluation", m_initial_evaluation));
+        archive(cereal::make_nvp("net", *m_net));
+	}
+
+	template <class Archive>
+	void load(Archive& archive, std::uint32_t const version)
+	{
+		archive(cereal::make_nvp("name", m_name));
+		archive(cereal::make_nvp("epoch", m_epoch));
+		archive(cereal::make_nvp("max_batch_size", m_max_batch_size));
+		archive(cereal::make_nvp("print_progress", m_print_progress));
+		archive(cereal::make_nvp("file_write", m_file_write));
+		archive(cereal::make_nvp("over_write", m_over_write));
+		archive(cereal::make_nvp("initial_evaluation", m_initial_evaluation));
+        archive(cereal::make_nvp("net", *m_net));
+	}
+
+   	void SaveJson(std::string filename) const
+    {
+        std::ofstream ofs(filename);
+        cereal::JSONOutputArchive archive(ofs);
+		archive(cereal::make_nvp("fitting", *this));
+	}
+
+   	void SaveJson(std::ostream &os) const
+    {
+        cereal::JSONOutputArchive archive(os);
+		archive(cereal::make_nvp("fitting", *this));
+	}
+
+	void LoadJson(std::string filename)
+    {
+        std::ifstream ifs(filename);
+        cereal::JSONInputArchive archive(ifs);
+		archive(cereal::make_nvp("fitting", *this));
+	}
+
+	void LoadJson(std::istream &is)
+    {
+        cereal::JSONInputArchive archive(is);
+		archive(cereal::make_nvp("fitting", *this));
+	}
+#endif
+
+
 	void Run(
             TrainData<T> &td,
 		    index_t      epoch_size,
@@ -90,8 +261,15 @@ public:
     {
 		std::string csv_file_name = m_name + "_acc.txt";
 		std::string log_file_name = m_name + "_log.txt";
+#ifdef BB_WITH_CEREAL
 		std::string net_file_name = m_name + "_net.json";
-		
+#else
+		std::string net_file_name = m_name + "_net.bin";
+#endif
+
+        // オプティマイザ設定
+        m_optimizer->SetVariables(m_net->GetParameters(), m_net->GetGradients());
+
 		// ログファイルオープン
 		std::ofstream ofs_log;
 		if ( m_file_write ) {
@@ -106,17 +284,23 @@ public:
 
 			// 以前の計算があれば読み込み
 			int prev_epoch = 0;
-            /*
-			if (file_write && !over_write) {
-				std::ifstream ifs(net_file_name);
+            
+			if (m_file_write && !m_over_write) {
+#ifdef BB_WITH_CEREAL
+                std::ifstream ifs(net_file_name);
 				if (ifs.is_open()) {
-					cereal::JSONInputArchive ar(ifs);
-					ar(cereal::make_nvp("epoch", prev_epoch));
-					this->Load(ar);
-					log_stream << "[load] " << net_file_name << std::endl;
+                    LoadJson(ifs);
+                    std::cout << "[load] " << net_file_name << std::endl;
 				}
-			}
-            */
+#else
+                std::ifstream ifs(net_file_name, std::ios::binary);
+				if (ifs.is_open()) {
+                    LoadBinary(ifs);
+                    std::cout << "[load] " << net_file_name << std::endl;
+				}
+#endif
+            }
+            
 
 			// 開始メッセージ
 			log_stream << "fitting start : " << m_name << std::endl;
@@ -139,30 +323,37 @@ public:
                                         m_accFunc, m_lossFunc, m_optimizer, true, m_print_progress);
 
 				// ネット保存
-#if 0
-				if (file_write) {
+				if (m_file_write) {
 					int save_epoc = epoch + 1 + prev_epoch;
 
-					if(1){
+#ifdef BB_WITH_CEREAL
+					if ( m_serial_write ) {
 						std::stringstream fname;
-						fname << name << "_net_" << save_epoc << ".json";
-						std::ofstream ofs_net(fname.str());
-						cereal::JSONOutputArchive ar(ofs_net);
-						ar(cereal::make_nvp("epoch", save_epoc));
-						this->Save(ar);
+						fname << m_name << "_net_" << save_epoc << ".json";
+						SaveJson(fname.str());
 						std::cout << "[save] " << fname.str() << std::endl;
 			//			log_streamt << "[save] " << fname.str() << std::endl;
 					}
 
 					{
-						std::ofstream ofs_net(net_file_name);
-						cereal::JSONOutputArchive ar(ofs_net);
-						ar(cereal::make_nvp("epoch", save_epoc));
-						this->Save(ar);
+						SaveJson(net_file_name);
 			//			log_stream << "[save] " << net_file_name << std::endl;
 					}
-				}
+#else
+					if ( m_serial_write ) {
+						std::stringstream fname;
+						fname << m_name << "_net_" << save_epoc << ".bin";
+						SaveBinary(fname.str());
+						std::cout << "[save] " << fname.str() << std::endl;
+			//			log_streamt << "[save] " << fname.str() << std::endl;
+					}
+
+					{
+						SaveBinary(net_file_name);
+			//			log_stream << "[save] " << net_file_name << std::endl;
+					}
 #endif
+                }
 
 				// 学習状況評価
 				double now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
@@ -274,6 +465,8 @@ protected:
             // インデックスを進める
             index += mini_batch_size;
         }
+
+        std::cout << "                                                                               \r" << std::flush;
 
         return accFunc->GetAccuracy();
     }

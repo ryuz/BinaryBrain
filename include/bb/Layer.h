@@ -179,6 +179,9 @@ public:
         is.read((char*)&m_name[0], size);
 	}
 
+    void SaveBinary(std::string filename) const { Save(std::ofstream(filename, std::ios::binary)); }
+    void LoadBinary(std::string filename)       { Load(std::ifstream(filename, std::ios::binary)); }
+
 
 	// Serialize(CEREAL)
 #if BB_WITH_CEREAL
@@ -202,6 +205,20 @@ public:
 	virtual void Load(cereal::JSONInputArchive& archive)
 	{
 		archive(cereal::make_nvp("Layer", *this));
+	}
+
+	void SaveJson(std::string filename) const
+    {
+        std::ofstream ofs(filename);
+        cereal::JSONOutputArchive archive(ofs);
+		Save(archive);
+	}
+
+	void LoadJson(std::string filename)
+    {
+        std::ifstream ifs(filename);
+        cereal::JSONInputArchive archive(ifs);
+		Load(archive);
 	}
 #endif
 

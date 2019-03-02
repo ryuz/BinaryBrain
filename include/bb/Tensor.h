@@ -535,7 +535,7 @@ public:
 
         auto ptr = m_mem->GetConstPtr();
         std::vector<T> vec(m_size);
-        memcpy(&m_size[0], (T const *)ptr.GetAddr(), m_size*sizeof(T));
+        memcpy(&vec[0], (T const *)ptr.GetAddr(), m_size*sizeof(T));
 		archive(cereal::make_nvp("data", vec));
 	}
 
@@ -555,7 +555,7 @@ public:
         BB_ASSERT(m_size == (index_t)vec.size());
 
         auto ptr = m_mem->GetPtr();
-        memcpy(ptr.GetAddr(), &m_size[0], m_size*sizeof(T));
+        memcpy(ptr.GetAddr(), &vec[0], m_size*sizeof(T));
 	}
 #endif
 
@@ -1542,7 +1542,7 @@ public:
 
 
     // -------------------------------------
-    //  シリアライズ
+    //  Serialize
     // -------------------------------------
 
     void Save(std::ostream& os) const

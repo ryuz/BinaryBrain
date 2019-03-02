@@ -175,7 +175,29 @@ public:
     }
 };
 
+template <typename T = float>
+struct TrainData
+{
+    indices_t                       x_shape;
+    indices_t                       t_shape;
+	std::vector< std::vector<T> >	x_train;
+	std::vector< std::vector<T> >	t_train;
+	std::vector< std::vector<T> >	x_test;
+	std::vector< std::vector<T> >	t_test;
 
+	void clear(void) {
+        x_shape.clear();
+        t_shape.clear();
+		x_train.clear();
+		t_train.clear();
+		x_test.clear();
+		t_test.clear();
+	}
+
+	bool empty(void) {
+		return x_train.empty() || t_train.empty() || x_test.empty() || t_test.empty();
+	}
+};
 
 
 
@@ -541,29 +563,55 @@ inline void DataType_Add<Bit>(void* base, index_t index, Bit value)
 }
 
 
-template <typename T = float>
-struct TrainData
+
+// シリアライズ
+template<typename T>
+inline void Save(std::ostream &os, T const &val)
 {
-    indices_t                       x_shape;
-    indices_t                       t_shape;
-	std::vector< std::vector<T> >	x_train;
-	std::vector< std::vector<T> >	t_train;
-	std::vector< std::vector<T> >	x_test;
-	std::vector< std::vector<T> >	t_test;
+    os.write((char const *)&val, sizeof(T));
+}
 
-	void clear(void) {
-        x_shape.clear();
-        t_shape.clear();
-		x_train.clear();
-		t_train.clear();
-		x_test.clear();
-		t_test.clear();
-	}
+template<typename T>
+inline void Load(std::istream &is, T &val)
+{
+    is.write((char *)&val, sizeof(T));
+}
 
-	bool empty(void) {
-		return x_train.empty() || t_train.empty() || x_test.empty() || t_test.empty();
-	}
-};
+template<typename T>
+inline void Save(std::ostream &os, std::vector<T> const &vec)
+{
+    std::uint64_t size = (std::uint64_t)vec.size();
+    os.write((char const *)&size, sizeof(size));
+    os.write((char const *)&vec[0], size*sizeof(T));
+}
+
+template<typename T>
+inline void Load(std::istream &is, std::vector<T>  &vec)
+{
+    std::uint64_t size;
+    is.read((char *)&size, sizeof(size));
+    vec.resize(size);
+    os.read((char *)&vec[0], size*sizeof(T));
+}
+
+
+template<typename T>
+inline void Save(std::ostream &os, std::string const &str)
+{
+    std::uint64_t size = (std::uint64_t)str.size();
+    os.write((char const *)&size, sizeof(size));
+    os.write((char const *)&str[0], size*sizeof(str[0]));
+}
+
+template<typename T>
+inline void Load(std::istream &is, std::string &str)
+{
+    std::uint64_t size;
+    is.read((char *)&size, sizeof(size));
+    str.resize(size);
+    os.read((char *)&str[0], size*sizeof(str[0]));
+}
+
 
 }
 

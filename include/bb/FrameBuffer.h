@@ -362,6 +362,10 @@ public:
 	}
 
 
+    // -------------------------------------
+    //  Serialize
+    // -------------------------------------
+    
     void Save(std::ostream &os) const 
     {
         os.write((char const *)&m_data_type, sizeof(m_data_type));
@@ -393,6 +397,25 @@ public:
         Load(ifs);
     }
 
+
+#ifdef BB_WITH_CEREAL
+    template <class Archive>
+	void serialize(Archive& archive, std::uint32_t const version)
+	{
+        archive(cereal::make_nvp("data_type",    m_data_type));
+    	archive(cereal::make_nvp("frame_size",   m_frame_size));
+	    archive(cereal::make_nvp("frame_stride", m_frame_stride));
+	    archive(cereal::make_nvp("node_size",    m_node_size));
+        archive(cereal::make_nvp("node_shape",   m_node_shape));
+        archive(cereal::make_nvp("tensor",       m_tensor));
+    }
+#endif
+
+
+    // -------------------------------------
+    //  Resize
+    // -------------------------------------
+ 
     void Resize(int type, index_t frame_size, index_t i0)                                      { Resize(type, frame_size, indices_t({i0})); }
     void Resize(int type, index_t frame_size, index_t i0, index_t i1)                          { Resize(type, frame_size, indices_t({i0, i1})); }
     void Resize(int type, index_t frame_size, index_t i0, index_t i1, index_t i2)              { Resize(type, frame_size, indices_t({i0, i1, i2})); }
