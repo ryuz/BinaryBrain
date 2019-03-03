@@ -113,5 +113,8 @@
     <ClInclude Include="..\..\include\bb\SparseLayer.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bb\BinaryLutN.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

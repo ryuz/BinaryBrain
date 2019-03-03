@@ -297,7 +297,7 @@ public:
         
         // 接続初期化
         m_input_index.Resize(m_output_node_size, N);
-        InitializeNodeInput(m_output_node_size, m_input_node_size, m_mt());
+        InitializeNodeInput(m_mt());
 
         /*
         {

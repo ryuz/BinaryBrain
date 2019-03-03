@@ -28,11 +28,14 @@ public:
 	virtual index_t GetNodeInput(index_t node, index_t input_index) const = 0;
 	
 protected:
-	void InitializeNodeInput(index_t output_node_size, index_t input_node_size, std::uint64_t seed)
+	void InitializeNodeInput(std::uint64_t seed)
 	{
 		std::mt19937_64                     mt(seed);
 		std::uniform_int_distribution<int>	distribution(0, 1);
 		
+        auto input_node_size  = GetShapeSize(GetInputShape());
+        auto output_node_size = GetShapeSize(GetOutputShape());
+
 		// 接続先をシャッフル
 		ShuffleSet<index_t>	ss(input_node_size, seed);
 		

@@ -510,8 +510,8 @@ inline int DataType_GetByteSize(int type)
 template<typename Tp>
 inline Tp DataType_Read(const void *base, index_t index)
 {
-	const Tp* ptr = (Tp*)base;
-	return ptr[index];
+   	const Tp* ptr = (Tp*)base;
+    return ptr[index];
 }
 
 template<>
@@ -522,12 +522,20 @@ inline Bit DataType_Read<Bit>(const void* base, index_t index)
 	return ((ptr[index / 8] & mask) != 0);
 }
 
+template<>
+inline Bit const DataType_Read<Bit const>(const void* base, index_t index)
+{
+	const std::uint8_t* ptr = (std::uint8_t*)base;
+	std::uint8_t mask = (std::uint8_t)(1 << (index % 8));
+	return ((ptr[index / 8] & mask) != 0);
+}
+
 
 template<typename Tp>
 inline void DataType_Write(void* base, index_t index, Tp value)
 {
-	Tp* ptr = (Tp*)base;
-	ptr[index] = value;
+    Tp* ptr = (Tp*)base;
+  	ptr[index] = value;
 }
 
 template<>

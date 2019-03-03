@@ -125,11 +125,31 @@ public:
     virtual indices_t GetInputShape(void) const = 0;
 
     /**
+     * @brief  入力ノード数取得
+     * @detail 入力ノード数取得
+     * @return 入力ノード数を返す
+     */
+    index_t GetInputNodeSize(void) const
+    {
+        return GetShapeSize(GetInputShape());
+    }
+
+    /**
      * @brief  出力形状取得
      * @detail 出力形状を取得する
      * @return 出力形状を返す
      */
     virtual indices_t GetOutputShape(void) const = 0;
+    
+    /**
+     * @brief  出力ノード数取得
+     * @detail 出力ノード数取得
+     * @return 出力ノード数を返す
+     */
+    index_t GetOutputNodeSize(void) const
+    {
+        return GetShapeSize(GetOutputShape());
+    }
 
 
    /**
