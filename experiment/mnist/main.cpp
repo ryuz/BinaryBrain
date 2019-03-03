@@ -320,6 +320,8 @@ int main()
 
 	omp_set_num_threads(4);
 
+    MnistLutBinary(16, 128, true);
+
 //	return evaluate_micro_mlp();
 
 //	MnistMlpDenseToSparse(8, 128, 128, false);

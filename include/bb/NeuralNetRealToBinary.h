@@ -95,11 +95,10 @@ public:
 				INDEX th_step   = node / m_input_node_size;
 				T     th_offset = (T)(th_range * th_step);
 
-				T rand_th = dist_rand(m_mt);
-
-				T		real_sig = vec_v[node] / (T)vec_n[node];
-				Binary	bin_sig = (real_sig > (rand_th + th_offset));
 				for (INDEX i = 0; i < m_mux_size; i++) {
+    				T rand_th = dist_rand(m_mt);
+    				T		real_sig = vec_v[node] / (T)vec_n[node];
+	    			Binary	bin_sig = (real_sig > (rand_th + th_offset));
 					out_sig_buf.template Set<BT>(frame*m_mux_size + i, node, bin_sig);
 				}
 			}
