@@ -83,7 +83,7 @@ public:
 
         std::vector<T> y_vec;
         for ( auto x : x_vec ) {
-		    y_vec.push_back((T)1 / ((T)1 + exp(-x))); // Sigmoid
+		    y_vec.push_back((T)1 / ((T)1 + std::exp(-x))); // Sigmoid
         }
 
         return y_vec;
@@ -122,7 +122,7 @@ public:
 		for (index_t node = 0; node < node_size; ++node) {
 			for (index_t frame = 0; frame < frame_size; ++frame) {
                 auto sig = x_ptr.Get(frame, node);
-				y_ptr.Set(frame, node, (T)1 / ((T)1 + exp(-sig)));
+				y_ptr.Set(frame, node, (T)1 / ((T)1 + std::exp(-sig)));
 			}
 		}
         return m_y;

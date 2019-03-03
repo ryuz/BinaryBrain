@@ -121,7 +121,7 @@ inline void Tensor_Vector_sqrt(
 {
     #pragma omp parallel for 
     for (index_t i = 0; i < size; ++i) {
-        dst[i] = (T)sqrt((double)src[i]);
+        dst[i] = (T)std::sqrt((double)src[i]);
     }
 }
 
@@ -134,7 +134,7 @@ inline void Tensor_Vector_sqrt<float>(
 {
     #pragma omp parallel for 
     for (index_t i = 0; i < size; ++i) {
-        dst[i] = sqrt(src[i]);
+        dst[i] = std::sqrt(src[i]);
     }
 }
 
@@ -148,7 +148,7 @@ inline void Tensor_Vector_exp(
 {
     #pragma omp parallel for 
     for (index_t i = 0; i < size; ++i) {
-        dst[i] = (T)exp((double)src[i]);
+        dst[i] = (T)std::exp((double)src[i]);
     }
 }
 
@@ -161,9 +161,84 @@ inline void Tensor_Vector_exp<float>(
 {
     #pragma omp parallel for 
     for (index_t i = 0; i < size; ++i) {
-        dst[i] = exp(src[i]);
+        dst[i] = std::exp(src[i]);
     }
 }
+
+
+template<typename T>
+inline void Tensor_Vector_min(
+    T       *dst,
+    T const *src0,
+    T const *src1,
+    index_t size
+)
+{
+    #pragma omp parallel for 
+    for (index_t i = 0; i < size; ++i) {
+        dst[i] = std::min(src0[i], src1[i]);
+    }
+}
+
+template<typename T>
+inline void Tensor_Vector_min_v(
+    T       *dst,
+    T const *src0,
+    T       src1,
+    index_t size
+)
+{
+    #pragma omp parallel for 
+    for (index_t i = 0; i < size; ++i) {
+        dst[i] = std::min(src0[i], src1);
+    }
+}
+
+
+template<typename T>
+inline void Tensor_Vector_max(
+    T       *dst,
+    T const *src0,
+    T const *src1,
+    index_t size
+)
+{
+    #pragma omp parallel for 
+    for (index_t i = 0; i < size; ++i) {
+        dst[i] = std::max(src0[i], src1[i]);
+    }
+}
+
+template<typename T>
+inline void Tensor_Vector_max_v(
+    T       *dst,
+    T const *src0,
+    T       src1,
+    index_t size
+)
+{
+    #pragma omp parallel for 
+    for (index_t i = 0; i < size; ++i) {
+        dst[i] = std::max(src0[i], src1);
+    }
+}
+
+
+template<typename T>
+inline void Tensor_Vector_clamp(
+    T       *dst,
+    T const *src,
+    T       a,
+    T       b,
+    index_t size
+)
+{
+    #pragma omp parallel for 
+    for (index_t i = 0; i < size; ++i) {
+        dst[i] = std::max(a, std::min(b, src[i]));
+    }
+}
+
 
 
 }

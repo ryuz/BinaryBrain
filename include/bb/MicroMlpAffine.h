@@ -431,6 +431,14 @@ public:
         // 出力を設定
         m_y.Resize(DataType<T>::type, m_x.GetFrameSize(), m_output_shape);
 
+        // バイナリモードならパラメータクリップ
+        if (m_binary_mode) {
+//            m_W0->Clamp(-1.0, +1.0);
+//            m_b0->Clamp(-1.0, +1.0);
+//            m_W1->Clamp(-1.0, +1.0);
+//            m_b1->Clamp(-1.0, +1.0);
+        }
+
         // CUDA版
 #ifdef BB_WITH_CUDA
         if ( N == 6 && M == 16 && DataType<T>::type == BB_TYPE_FP32

@@ -116,5 +116,8 @@
     <ClInclude Include="..\..\include\bb\BinaryLutN.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bb\RealToBinary.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

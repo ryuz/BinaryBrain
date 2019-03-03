@@ -1009,6 +1009,7 @@ public:
     inline FrameBuffer& operator/=(FrameBuffer src)	{ m_tensor /= src.m_tensor; }
     inline FrameBuffer& operator/=(double src)	    { m_tensor /= src; }
 
+    /*
     FrameBuffer Sqrt(void)
     {
         FrameBuffer dst(GetType(), GetFrameSize(), GetShape(), IsHostOnly());
@@ -1022,6 +1023,7 @@ public:
         dst.m_tensor = m_tensor.Exp();
         return dst;
     }
+    */
 
     double Sum(void)
     {
@@ -1030,7 +1032,7 @@ public:
 
     double Norm(void)
     {
-        return sqrt((*this * *this).Sum());
+        return std::sqrt((*this * *this).Sum());
     }
 
 
@@ -1047,6 +1049,8 @@ public:
     friend  FrameBuffer operator/(FrameBuffer const &src0, FrameBuffer const &src1);
     friend  FrameBuffer operator/(FrameBuffer const &src0, double src1);
     friend  FrameBuffer operator/(double src0, FrameBuffer const &src1);
+    friend  FrameBuffer Sqrt(FrameBuffer const &src);
+    friend  FrameBuffer Exp(FrameBuffer const &src);
 };
 
 
@@ -1137,6 +1141,19 @@ inline FrameBuffer operator/(double src0, FrameBuffer const &src1)
     return dst;
 }
 
+inline FrameBuffer Sqrt(FrameBuffer const &src)
+{
+    FrameBuffer dst(src.GetType(), src.GetFrameSize(), src.GetShape(), src.IsHostOnly());
+    dst.m_tensor = Sqrt(src.m_tensor);
+    return dst;
+}
+
+inline FrameBuffer Exp(FrameBuffer const &src)
+{
+    FrameBuffer dst(src.GetType(), src.GetFrameSize(), src.GetShape(), src.IsHostOnly());
+    dst.m_tensor = Exp(src.m_tensor);
+    return dst;
+}
 
 
 template<typename T>

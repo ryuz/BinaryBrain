@@ -291,6 +291,9 @@ template<typename T>    Tensor_<T> operator/(Tensor_<T> const &src0, Tensor_<T> 
 template<typename T>    Tensor_<T> operator/(Tensor_<T> const &src0, T src1);
 template<typename T>    Tensor_<T> operator/(T src0, Tensor_<T> const &src1);
 
+//template<typename T>    Tensor_<T> Sqrt (Tensor_<T> const &src);
+//template<typename T>    Tensor_<T> Exp  (Tensor_<T> const &src);
+//template<typename T>    Tensor_<T> Clamp(Tensor_<T> const &src, T a, T b);
 
 class Tensor;
 
@@ -641,37 +644,29 @@ public:
         return *this;
     }
 
-    friend  Tensor_ operator + <T> (Tensor_ const &src0, Tensor_ const &src1);
-    friend  Tensor_ operator + <T> (Tensor_ const &src0, T src1);
-    friend  Tensor_ operator + <T> (T src0, Tensor_ const &src1);
-    friend  Tensor_ operator - <T> (Tensor_ const &src0, Tensor_ const &src1);
-    friend  Tensor_ operator - <T> (Tensor_ const &src0, T src1);
-    friend  Tensor_ operator - <T> (T src0, Tensor_ const &src1);
-    friend  Tensor_ operator * <T> (Tensor_ const &src0, Tensor_ const &src1);
-    friend  Tensor_ operator * <T> (Tensor_ const &src0, T src1);
-    friend  Tensor_ operator * <T> (T src0, Tensor_ const &src1);
-    friend  Tensor_ operator / <T> (Tensor_ const &src0, Tensor_ const &src1);
-    friend  Tensor_ operator / <T> (Tensor_ const &src0, T src1);
-    friend  Tensor_ operator / <T> (T src0, Tensor_ const &src1);
+    /*
+    inline Tensor_& Sqrt(void)
+    {
+        auto ptr = GetMemoryPtr();
+        Tensor_Vector_sqrt<T>((T *)ptr.GetAddr(), (const T *)ptr.GetAddr(), m_size);
+        return *this;
+    }
+
+    inline Tensor_& Exp(void)
+    {
+        auto ptr = GetMemoryPtr();
+        Tensor_Vector_exp<T>((T *)ptr.GetAddr(), (const T *)ptr.GetAddr(), m_size);
+        return *this;
+    }
+
+    inline Tensor_& Clamp(T a, T b)
+    {
+        auto ptr = GetMemoryPtr();
+        Tensor_Vector_clamp<T>((T *)ptr.GetAddr(), (const T *)ptr.GetAddr(), a, b, m_size);
+        return *this;
+    }
+    */
     
-    Tensor_ Sqrt(void)
-    {
-        Tensor_  dst(m_shape);
-        auto src_ptr = GetMemoryConstPtr();
-        auto dst_ptr = dst.GetMemoryPtr(true);
-        Tensor_Vector_sqrt<T>((T *)dst_ptr.GetAddr(), (const T *)src_ptr.GetAddr(), m_size);
-        return dst;
-    }
-
-    Tensor_ Exp(void)
-    {
-        Tensor_  dst(m_shape);
-        auto src_ptr = GetMemoryConstPtr();
-        auto dst_ptr = dst.GetMemoryPtr(true);
-        Tensor_Vector_exp<T>((T *)dst_ptr.GetAddr(), (T const *)src_ptr.GetAddr(), m_size);
-        return dst;
-    }
-
     double Sum(void)
     {
         double sum = 0;
@@ -686,7 +681,25 @@ public:
     {
         return sqrt((*this * *this).Sum());
     }
+
+
+    friend  Tensor_ operator + <T> (Tensor_ const &src0, Tensor_ const &src1);
+    friend  Tensor_ operator + <T> (Tensor_ const &src0, T src1);
+    friend  Tensor_ operator + <T> (T src0, Tensor_ const &src1);
+    friend  Tensor_ operator - <T> (Tensor_ const &src0, Tensor_ const &src1);
+    friend  Tensor_ operator - <T> (Tensor_ const &src0, T src1);
+    friend  Tensor_ operator - <T> (T src0, Tensor_ const &src1);
+    friend  Tensor_ operator * <T> (Tensor_ const &src0, Tensor_ const &src1);
+    friend  Tensor_ operator * <T> (Tensor_ const &src0, T src1);
+    friend  Tensor_ operator * <T> (T src0, Tensor_ const &src1);
+    friend  Tensor_ operator / <T> (Tensor_ const &src0, Tensor_ const &src1);
+    friend  Tensor_ operator / <T> (Tensor_ const &src0, T src1);
+    friend  Tensor_ operator / <T> (T src0, Tensor_ const &src1);
+//    friend  Tensor_ Sqrt (Tensor_ const &src);
+//    friend  Tensor_ Exp  (Tensor_ const &src);
+//    friend  Tensor_ Clamp(Tensor_ const &src, T a, T b);
 };
+
 
 template<typename T>
 Tensor_<T> operator+(Tensor_<T> const &src0, Tensor_<T> const &src1)
@@ -801,6 +814,36 @@ Tensor_<T> operator/(T src0, Tensor_<T> const &src1)
    return dst;
 }
 
+
+template<typename T>
+inline Tensor_<T> Sqrt(Tensor_<T> const &src)
+{
+    Tensor_<T>  dst(src.GetShape());
+    auto src_ptr = src.GetMemoryConstPtr();
+    auto dst_ptr = dst.GetMemoryPtr(true);
+    Tensor_Vector_sqrt<T>((T *)dst_ptr.GetAddr(), (const T *)src_ptr.GetAddr(), src.GetSize());
+    return dst;
+}
+
+template<typename T>
+inline Tensor_<T> Exp(Tensor_<T> const &src)
+{
+    Tensor_<T>  dst(src.GetShape());
+    auto src_ptr = src.GetMemoryConstPtr();
+    auto dst_ptr = dst.GetMemoryPtr(true);
+    Tensor_Vector_exp<T>((T *)dst_ptr.GetAddr(), (T const *)src_ptr.GetAddr(), src.GetSize());
+    return dst;
+}
+
+template<typename T>
+inline Tensor_<T> Clamp(Tensor_<T> const &src, T a, T b)
+{
+    Tensor_<T>  dst(src.GetShape());
+    auto src_ptr = src.GetMemoryConstPtr();
+    auto dst_ptr = dst.GetMemoryPtr(true);
+    Tensor_Vector_clamp<T>((T *)dst_ptr.GetAddr(), (T const *)src_ptr.GetAddr(), a, b, src.GetSize());
+    return dst;
+}
 
 
 template<typename T>
@@ -1193,6 +1236,7 @@ inline Tensor_<float> operator/(float src0, const Tensor_<float> &src1)
 
 /////////
 
+#if 0
 template<>
 inline Tensor_<float> Tensor_<float>::Sqrt(void)
 {
@@ -1234,6 +1278,27 @@ inline Tensor_<float> Tensor_<float>::Exp(void)
 }
 
 
+template<>
+inline Tensor_<float> Tensor_<float>::Clamp(float a, float b)
+{
+    Tensor_<float>  dst(m_shape);
+
+    // CUDA
+    if ( dst.m_mem->IsDeviceAvailable() && dst.m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        auto src_ptr = GetMemoryDevConstPtr();
+        auto dst_ptr = dst.GetMemoryDevPtr(true);
+        bbcu_fp32_Vector_clamp((float *)dst_ptr.GetAddr(), (const float *)src_ptr.GetAddr(), a, b, (int)m_size);
+        return dst;
+    }
+    
+    // CPU
+    auto src_ptr = GetMemoryConstPtr();
+    auto dst_ptr = dst.GetMemoryPtr(true);
+    Tensor_Vector_clamp<float>((float *)dst_ptr.GetAddr(), (float const *)src_ptr.GetAddr(), a, b, m_size);
+    return dst;
+}
+#endif
+
 #endif
 
 
@@ -1242,23 +1307,6 @@ inline Tensor_<float> Tensor_<float>::Exp(void)
 // -------------------------------------
 //  Tensorクラス
 // -------------------------------------
-
-class Tensor;
-
-/*
-//template<typename T>    Tensor operator+(Tensor const &src0, Tensor> const &src1);
-template<typename T>    Tensor operator+(Tensor const &src0, T src1);
-template<typename T>    Tensor operator+(T src0, Tensor const &src1);
-//template<typename T>    Tensor operator-(Tensor const  &src0, Tensor const &src1);
-template<typename T>    Tensor operator-(Tensor const  &src0, T src1);
-template<typename T>    Tensor operator-(T src0, const Tensor &src1);
-//template<typename T>    Tensor operator*(Tensor const &src0, Tensor const &src1);
-template<typename T>    Tensor operator*(Tensor const &src0, T src1);
-template<typename T>    Tensor operator*(T src0, Tensor const &src1);
-//template<typename T>    Tensor operator/(Tensor const &src0, Tensor const &src1);
-template<typename T>    Tensor operator/(Tensor const &src0, T src1);
-template<typename T>    Tensor operator/(T src0, Tensor const &src1);
-*/
 
 // Tensor
 class Tensor
@@ -1838,53 +1886,62 @@ public:
         }
         return *this;
     }
-
-    friend  Tensor operator + (Tensor const &src0, const Tensor &src1);
-    friend  Tensor operator + (Tensor const &src0, double src1);
-    friend  Tensor operator + (double src0, Tensor const &src1);
-    friend  Tensor operator - (const Tensor &src0, Tensor const &src1);
-    friend  Tensor operator - (const Tensor &src0, double src1);
-    friend  Tensor operator - (double src0, const Tensor &src1);
-    friend  Tensor operator * (const Tensor &src0, Tensor const &src1);
-    friend  Tensor operator * (const Tensor &src0, double src1);
-    friend  Tensor operator * (double src0, const Tensor &src1);
-    friend  Tensor operator / (const Tensor &src0, Tensor const &src1);
-    friend  Tensor operator / (const Tensor &src0, double src1);
-    friend  Tensor operator / (double src0, const Tensor &src1);
-
-    Tensor Sqrt(void)
+    
+    /*
+    inline Tensor& Sqrt(void)
     {
         switch (m_type) {
-        case BB_TYPE_FP32:   return Tensor_<float        >(*this).Sqrt();        
-        case BB_TYPE_FP64:   return Tensor_<double       >(*this).Sqrt();       
-        case BB_TYPE_INT8:   return Tensor_<std::int8_t  >(*this).Sqrt();  
-        case BB_TYPE_INT16:  return Tensor_<std::int16_t >(*this).Sqrt(); 
-        case BB_TYPE_INT32:  return Tensor_<std::int32_t >(*this).Sqrt(); 
-        case BB_TYPE_INT64:  return Tensor_<std::int64_t >(*this).Sqrt(); 
-        case BB_TYPE_UINT8:  return Tensor_<std::uint8_t >(*this).Sqrt(); 
-        case BB_TYPE_UINT16: return Tensor_<std::uint16_t>(*this).Sqrt();
-        case BB_TYPE_UINT32: return Tensor_<std::uint32_t>(*this).Sqrt();
-        case BB_TYPE_UINT64: return Tensor_<std::uint64_t>(*this).Sqrt();
-        default:    BB_ASSERT(0);  return Tensor();
+        case BB_TYPE_FP32:   Tensor_<float        >(*this).Sqrt();        
+        case BB_TYPE_FP64:   Tensor_<double       >(*this).Sqrt();       
+        case BB_TYPE_INT8:   Tensor_<std::int8_t  >(*this).Sqrt();  
+        case BB_TYPE_INT16:  Tensor_<std::int16_t >(*this).Sqrt(); 
+        case BB_TYPE_INT32:  Tensor_<std::int32_t >(*this).Sqrt(); 
+        case BB_TYPE_INT64:  Tensor_<std::int64_t >(*this).Sqrt(); 
+        case BB_TYPE_UINT8:  Tensor_<std::uint8_t >(*this).Sqrt(); 
+        case BB_TYPE_UINT16: Tensor_<std::uint16_t>(*this).Sqrt();
+        case BB_TYPE_UINT32: Tensor_<std::uint32_t>(*this).Sqrt();
+        case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this).Sqrt();
+        default:    BB_ASSERT(0);   break;
         }
+        return *this;
     }
 
-    Tensor Exp(void)
+    inline Tensor& Exp(void)
     {
         switch (m_type) {
-        case BB_TYPE_FP32:   return Tensor_<float        >(*this).Exp();        
-        case BB_TYPE_FP64:   return Tensor_<double       >(*this).Exp();       
-        case BB_TYPE_INT8:   return Tensor_<std::int8_t  >(*this).Exp();  
-        case BB_TYPE_INT16:  return Tensor_<std::int16_t >(*this).Exp(); 
-        case BB_TYPE_INT32:  return Tensor_<std::int32_t >(*this).Exp(); 
-        case BB_TYPE_INT64:  return Tensor_<std::int64_t >(*this).Exp(); 
-        case BB_TYPE_UINT8:  return Tensor_<std::uint8_t >(*this).Exp(); 
-        case BB_TYPE_UINT16: return Tensor_<std::uint16_t>(*this).Exp();
-        case BB_TYPE_UINT32: return Tensor_<std::uint32_t>(*this).Exp();
-        case BB_TYPE_UINT64: return Tensor_<std::uint64_t>(*this).Exp();
-        default:    BB_ASSERT(0);  return Tensor();
+        case BB_TYPE_FP32:   Tensor_<float        >(*this).Exp();        
+        case BB_TYPE_FP64:   Tensor_<double       >(*this).Exp();       
+        case BB_TYPE_INT8:   Tensor_<std::int8_t  >(*this).Exp();  
+        case BB_TYPE_INT16:  Tensor_<std::int16_t >(*this).Exp(); 
+        case BB_TYPE_INT32:  Tensor_<std::int32_t >(*this).Exp(); 
+        case BB_TYPE_INT64:  Tensor_<std::int64_t >(*this).Exp(); 
+        case BB_TYPE_UINT8:  Tensor_<std::uint8_t >(*this).Exp(); 
+        case BB_TYPE_UINT16: Tensor_<std::uint16_t>(*this).Exp();
+        case BB_TYPE_UINT32: Tensor_<std::uint32_t>(*this).Exp();
+        case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this).Exp();
+        default:    BB_ASSERT(0);   break;
         }
+        return *this;
     }
+
+    inline Tensor& Clamp(double a, double b)
+    {
+        switch (m_type) {
+        case BB_TYPE_FP32:   Tensor_<float        >(*this).Clamp((float        )a, (float        )b);        
+        case BB_TYPE_FP64:   Tensor_<double       >(*this).Clamp((double       )a, (double       )b);       
+        case BB_TYPE_INT8:   Tensor_<std::int8_t  >(*this).Clamp((std::int8_t  )a, (std::int8_t  )b);  
+        case BB_TYPE_INT16:  Tensor_<std::int16_t >(*this).Clamp((std::int16_t )a, (std::int16_t )b); 
+        case BB_TYPE_INT32:  Tensor_<std::int32_t >(*this).Clamp((std::int32_t )a, (std::int32_t )b); 
+        case BB_TYPE_INT64:  Tensor_<std::int64_t >(*this).Clamp((std::int64_t )a, (std::int64_t )b); 
+        case BB_TYPE_UINT8:  Tensor_<std::uint8_t >(*this).Clamp((std::uint8_t )a, (std::uint8_t )b); 
+        case BB_TYPE_UINT16: Tensor_<std::uint16_t>(*this).Clamp((std::uint16_t)a, (std::uint16_t)b);
+        case BB_TYPE_UINT32: Tensor_<std::uint32_t>(*this).Clamp((std::uint32_t)a, (std::uint32_t)b);
+        case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this).Clamp((std::uint64_t)a, (std::uint64_t)b);
+        default:    BB_ASSERT(0);   break;
+        }
+        return *this;
+    }
+    */
 
     double Sum(void)
     {
@@ -1905,8 +1962,25 @@ public:
 
     double Norm(void)
     {
-        return sqrt((*this * *this).Sum());
+        return std::sqrt((*this * *this).Sum());
     }
+
+
+    friend  Tensor operator + (Tensor const &src0, const Tensor &src1);
+    friend  Tensor operator + (Tensor const &src0, double src1);
+    friend  Tensor operator + (double src0, Tensor const &src1);
+    friend  Tensor operator - (const Tensor &src0, Tensor const &src1);
+    friend  Tensor operator - (const Tensor &src0, double src1);
+    friend  Tensor operator - (double src0, const Tensor &src1);
+    friend  Tensor operator * (const Tensor &src0, Tensor const &src1);
+    friend  Tensor operator * (const Tensor &src0, double src1);
+    friend  Tensor operator * (double src0, const Tensor &src1);
+    friend  Tensor operator / (const Tensor &src0, Tensor const &src1);
+    friend  Tensor operator / (const Tensor &src0, double src1);
+    friend  Tensor operator / (double src0, const Tensor &src1);
+    friend  Tensor Sqrt(Tensor const &src);
+    friend  Tensor Exp(Tensor const &src);
+    friend  Tensor Clamp(Tensor const &src, double a, double b);
 };
 
 
@@ -2121,6 +2195,57 @@ inline Tensor operator/(double src0, Tensor const &src1)
     case BB_TYPE_UINT16: return static_cast<std::uint16_t>(src0) / Tensor_<std::uint16_t>(src1);
     case BB_TYPE_UINT32: return static_cast<std::uint32_t>(src0) / Tensor_<std::uint32_t>(src1);
     case BB_TYPE_UINT64: return static_cast<std::uint64_t>(src0) / Tensor_<std::uint64_t>(src1);
+    default:    BB_ASSERT(0);  return Tensor();
+    }
+}
+
+inline Tensor Sqrt(Tensor const &src)
+{
+    switch (src.m_type) {
+    case BB_TYPE_FP32:   return Sqrt(Tensor_<float        >(src));        
+    case BB_TYPE_FP64:   return Sqrt(Tensor_<double       >(src));       
+    case BB_TYPE_INT8:   return Sqrt(Tensor_<std::int8_t  >(src));  
+    case BB_TYPE_INT16:  return Sqrt(Tensor_<std::int16_t >(src)); 
+    case BB_TYPE_INT32:  return Sqrt(Tensor_<std::int32_t >(src)); 
+    case BB_TYPE_INT64:  return Sqrt(Tensor_<std::int64_t >(src)); 
+    case BB_TYPE_UINT8:  return Sqrt(Tensor_<std::uint8_t >(src)); 
+    case BB_TYPE_UINT16: return Sqrt(Tensor_<std::uint16_t>(src));
+    case BB_TYPE_UINT32: return Sqrt(Tensor_<std::uint32_t>(src));
+    case BB_TYPE_UINT64: return Sqrt(Tensor_<std::uint64_t>(src));
+    default:    BB_ASSERT(0);  return Tensor();
+    }
+}
+
+inline Tensor Exp(Tensor const &src)
+{
+    switch (src.m_type) {
+    case BB_TYPE_FP32:   return Exp(Tensor_<float        >(src));        
+    case BB_TYPE_FP64:   return Exp(Tensor_<double       >(src));       
+    case BB_TYPE_INT8:   return Exp(Tensor_<std::int8_t  >(src));  
+    case BB_TYPE_INT16:  return Exp(Tensor_<std::int16_t >(src)); 
+    case BB_TYPE_INT32:  return Exp(Tensor_<std::int32_t >(src)); 
+    case BB_TYPE_INT64:  return Exp(Tensor_<std::int64_t >(src)); 
+    case BB_TYPE_UINT8:  return Exp(Tensor_<std::uint8_t >(src)); 
+    case BB_TYPE_UINT16: return Exp(Tensor_<std::uint16_t>(src));
+    case BB_TYPE_UINT32: return Exp(Tensor_<std::uint32_t>(src));
+    case BB_TYPE_UINT64: return Exp(Tensor_<std::uint64_t>(src));
+    default:    BB_ASSERT(0);  return Tensor();
+    }
+}
+
+inline Tensor Clamp(Tensor const &src, double a, double b)
+{
+    switch (src.m_type) {
+    case BB_TYPE_FP32:   return Clamp(Tensor_<float        >(src), (float        )a, (float        )b);        
+    case BB_TYPE_FP64:   return Clamp(Tensor_<double       >(src), (double       )a, (double       )b);       
+    case BB_TYPE_INT8:   return Clamp(Tensor_<std::int8_t  >(src), (std::int8_t  )a, (std::int8_t  )b);  
+    case BB_TYPE_INT16:  return Clamp(Tensor_<std::int16_t >(src), (std::int16_t )a, (std::int16_t )b); 
+    case BB_TYPE_INT32:  return Clamp(Tensor_<std::int32_t >(src), (std::int32_t )a, (std::int32_t )b); 
+    case BB_TYPE_INT64:  return Clamp(Tensor_<std::int64_t >(src), (std::int64_t )a, (std::int64_t )b); 
+    case BB_TYPE_UINT8:  return Clamp(Tensor_<std::uint8_t >(src), (std::uint8_t )a, (std::uint8_t )b); 
+    case BB_TYPE_UINT16: return Clamp(Tensor_<std::uint16_t>(src), (std::uint16_t)a, (std::uint16_t)b);
+    case BB_TYPE_UINT32: return Clamp(Tensor_<std::uint32_t>(src), (std::uint32_t)a, (std::uint32_t)b);
+    case BB_TYPE_UINT64: return Clamp(Tensor_<std::uint64_t>(src), (std::uint64_t)a, (std::uint64_t)b);
     default:    BB_ASSERT(0);  return Tensor();
     }
 }

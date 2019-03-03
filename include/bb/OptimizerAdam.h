@@ -110,11 +110,11 @@ public:
     
 	void Update(void)
 	{
-        auto lr_t = m_learning_rate * sqrt((T)1.0 - m_b2) / ((T)1.0 - m_b1 + 1.0e-7);
+        auto lr_t = m_learning_rate * std::sqrt((T)1.0 - m_b2) / ((T)1.0 - m_b1 + 1.0e-7);
 
         m_m += ((T)1.0 - m_beta1) * (m_grads - m_m);
         m_v += ((T)1.0 - m_beta2) * (m_grads * m_grads - m_v);
-        m_params -= lr_t * m_m / (m_v.Sqrt() + (T)1e-7);
+        m_params -= lr_t * m_m / (Sqrt(m_v) + (T)1e-7);
 
         m_b1 *= m_beta1;
         m_b2 *= m_beta2;

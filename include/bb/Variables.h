@@ -191,7 +191,10 @@ public:
     friend  Variables operator / (Variables const &src0, Variables const &src1);
     friend  Variables operator / (Variables const &src0, double src1);
     friend  Variables operator / (double src0, Variables const &src1);
+    friend  Variables Sqrt(Variables const &src);
+    friend  Variables Exp(Variables const &src);
 
+    /*
     Variables Sqrt(void)
     {
         Variables var(GetTypes(), GetShapes());
@@ -209,6 +212,7 @@ public:
         }
         return var;
     }
+    */
 };
 
 inline Variables operator+(Variables const &src0, Variables const &src1)
@@ -330,6 +334,24 @@ inline Variables operator/(double src0, Variables const & src1)
     Variables var(src1.GetTypes(), src1.GetShapes());
     for ( size_t i = 0; i < src1.m_tensors.size(); ++i ) {
         *var.m_tensors[i] = src0 / *src1.m_tensors[i];
+    }
+    return var;
+}
+
+inline Variables Sqrt(Variables const &src)
+{
+    Variables var(src.GetTypes(), src.GetShapes());
+    for ( size_t i = 0; i < src.m_tensors.size(); ++i ) {
+        *var.m_tensors[i] = Sqrt(*src.m_tensors[i]);
+    }
+    return var;
+}
+
+inline Variables Exp(Variables const &src)
+{
+    Variables var(src.GetTypes(), src.GetShapes());
+    for ( size_t i = 0; i < src.m_tensors.size(); ++i ) {
+        *var.m_tensors[i] = Exp(*src.m_tensors[i]);
     }
     return var;
 }

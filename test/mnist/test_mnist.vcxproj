@@ -364,6 +364,7 @@
     <ClInclude Include="..\..\include\bb\Optimizer.h" />
     <ClInclude Include="..\..\include\bb\OptimizerAdam.h" />
     <ClInclude Include="..\..\include\bb\OptimizerSgd.h" />
+    <ClInclude Include="..\..\include\bb\RealToBinary.h" />
     <ClInclude Include="..\..\include\bb\ReLU.h" />
     <ClInclude Include="..\..\include\bb\Runner.h" />
     <ClInclude Include="..\..\include\bb\Sequential.h" />

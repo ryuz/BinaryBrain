@@ -95,6 +95,57 @@ CUBB_DLL_EXPORT int bbcu_fp32_Vector_exp(
 		);
 
 
+//  min(ベクトル同士)
+CUBB_DLL_EXPORT int bbcu_fp32_Vector_min(
+            float           *dev_dst,
+            float const     *dev_src0,
+            float const     *dev_src1,
+			int				size,
+            cudaStream_t	streamId = 0
+		);
+
+// min(係数)
+CUBB_DLL_EXPORT int bbcu_fp32_Vector_min_v(
+            float           *dev_dst,
+            float const     *dev_src,
+            float           a,
+			int				size,
+            cudaStream_t	streamId = 0
+		);
+
+
+//  max(ベクトル同士)
+CUBB_DLL_EXPORT int bbcu_fp32_Vector_max(
+            float           *dev_dst,
+            float const     *dev_src0,
+            float const     *dev_src1,
+			int				size,
+            cudaStream_t	streamId = 0
+		);
+
+// max(係数)
+CUBB_DLL_EXPORT int bbcu_fp32_Vector_max_v(
+            float           *dev_dst,
+            float const     *dev_src,
+            float           a,
+			int				size,
+            cudaStream_t	streamId = 0
+		);
+
+
+// clamp
+CUBB_DLL_EXPORT int bbcu_fp32_Vector_clamp(
+            float           *dev_dst,
+            float const     *dev_src,
+            float           lo,
+            float           hi,
+			int				size,
+            cudaStream_t	streamId = 0
+		);
+
+
+
+
 // Horizontal Sum
 CUBB_DLL_EXPORT	int bbcu_fp32_HorizontalSum
         (

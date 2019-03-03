@@ -70,8 +70,8 @@ TEST(TensorTest, testTensor_Transpose)
 
     t.Reshape({2, -1});
 
-    t = t.Sqrt();
-    t = t.Exp();
+    t = Sqrt(t);
+    t = Exp(t);
 }
 
 
