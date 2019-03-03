@@ -1009,7 +1009,7 @@ public:
     inline FrameBuffer& operator/=(FrameBuffer src)	{ m_tensor /= src.m_tensor; }
     inline FrameBuffer& operator/=(double src)	    { m_tensor /= src; }
 
-    /*
+    
     FrameBuffer Sqrt(void)
     {
         FrameBuffer dst(GetType(), GetFrameSize(), GetShape(), IsHostOnly());
@@ -1023,7 +1023,7 @@ public:
         dst.m_tensor = m_tensor.Exp();
         return dst;
     }
-    */
+    
 
     double Sum(void)
     {

@@ -644,7 +644,6 @@ public:
         return *this;
     }
 
-    /*
     inline Tensor_& Sqrt(void)
     {
         auto ptr = GetMemoryPtr();
@@ -665,7 +664,6 @@ public:
         Tensor_Vector_clamp<T>((T *)ptr.GetAddr(), (const T *)ptr.GetAddr(), a, b, m_size);
         return *this;
     }
-    */
     
     double Sum(void)
     {
@@ -1887,20 +1885,20 @@ public:
         return *this;
     }
     
-    /*
+    
     inline Tensor& Sqrt(void)
     {
         switch (m_type) {
-        case BB_TYPE_FP32:   Tensor_<float        >(*this).Sqrt();        
-        case BB_TYPE_FP64:   Tensor_<double       >(*this).Sqrt();       
-        case BB_TYPE_INT8:   Tensor_<std::int8_t  >(*this).Sqrt();  
-        case BB_TYPE_INT16:  Tensor_<std::int16_t >(*this).Sqrt(); 
-        case BB_TYPE_INT32:  Tensor_<std::int32_t >(*this).Sqrt(); 
-        case BB_TYPE_INT64:  Tensor_<std::int64_t >(*this).Sqrt(); 
-        case BB_TYPE_UINT8:  Tensor_<std::uint8_t >(*this).Sqrt(); 
-        case BB_TYPE_UINT16: Tensor_<std::uint16_t>(*this).Sqrt();
-        case BB_TYPE_UINT32: Tensor_<std::uint32_t>(*this).Sqrt();
-        case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this).Sqrt();
+        case BB_TYPE_FP32:   Tensor_<float        >(*this).Sqrt();  break;       
+        case BB_TYPE_FP64:   Tensor_<double       >(*this).Sqrt();  break;      
+        case BB_TYPE_INT8:   Tensor_<std::int8_t  >(*this).Sqrt();  break; 
+        case BB_TYPE_INT16:  Tensor_<std::int16_t >(*this).Sqrt();  break;
+        case BB_TYPE_INT32:  Tensor_<std::int32_t >(*this).Sqrt();  break;
+        case BB_TYPE_INT64:  Tensor_<std::int64_t >(*this).Sqrt();  break;
+        case BB_TYPE_UINT8:  Tensor_<std::uint8_t >(*this).Sqrt();  break;
+        case BB_TYPE_UINT16: Tensor_<std::uint16_t>(*this).Sqrt();  break;
+        case BB_TYPE_UINT32: Tensor_<std::uint32_t>(*this).Sqrt();  break;
+        case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this).Sqrt();  break;
         default:    BB_ASSERT(0);   break;
         }
         return *this;
@@ -1909,16 +1907,16 @@ public:
     inline Tensor& Exp(void)
     {
         switch (m_type) {
-        case BB_TYPE_FP32:   Tensor_<float        >(*this).Exp();        
-        case BB_TYPE_FP64:   Tensor_<double       >(*this).Exp();       
-        case BB_TYPE_INT8:   Tensor_<std::int8_t  >(*this).Exp();  
-        case BB_TYPE_INT16:  Tensor_<std::int16_t >(*this).Exp(); 
-        case BB_TYPE_INT32:  Tensor_<std::int32_t >(*this).Exp(); 
-        case BB_TYPE_INT64:  Tensor_<std::int64_t >(*this).Exp(); 
-        case BB_TYPE_UINT8:  Tensor_<std::uint8_t >(*this).Exp(); 
-        case BB_TYPE_UINT16: Tensor_<std::uint16_t>(*this).Exp();
-        case BB_TYPE_UINT32: Tensor_<std::uint32_t>(*this).Exp();
-        case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this).Exp();
+        case BB_TYPE_FP32:   Tensor_<float        >(*this).Exp();   break;
+        case BB_TYPE_FP64:   Tensor_<double       >(*this).Exp();   break;
+        case BB_TYPE_INT8:   Tensor_<std::int8_t  >(*this).Exp();   break;
+        case BB_TYPE_INT16:  Tensor_<std::int16_t >(*this).Exp();   break;
+        case BB_TYPE_INT32:  Tensor_<std::int32_t >(*this).Exp();   break;
+        case BB_TYPE_INT64:  Tensor_<std::int64_t >(*this).Exp();   break;
+        case BB_TYPE_UINT8:  Tensor_<std::uint8_t >(*this).Exp();   break;
+        case BB_TYPE_UINT16: Tensor_<std::uint16_t>(*this).Exp();   break;
+        case BB_TYPE_UINT32: Tensor_<std::uint32_t>(*this).Exp();   break;
+        case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this).Exp();   break;
         default:    BB_ASSERT(0);   break;
         }
         return *this;
@@ -1927,21 +1925,21 @@ public:
     inline Tensor& Clamp(double a, double b)
     {
         switch (m_type) {
-        case BB_TYPE_FP32:   Tensor_<float        >(*this).Clamp((float        )a, (float        )b);        
-        case BB_TYPE_FP64:   Tensor_<double       >(*this).Clamp((double       )a, (double       )b);       
-        case BB_TYPE_INT8:   Tensor_<std::int8_t  >(*this).Clamp((std::int8_t  )a, (std::int8_t  )b);  
-        case BB_TYPE_INT16:  Tensor_<std::int16_t >(*this).Clamp((std::int16_t )a, (std::int16_t )b); 
-        case BB_TYPE_INT32:  Tensor_<std::int32_t >(*this).Clamp((std::int32_t )a, (std::int32_t )b); 
-        case BB_TYPE_INT64:  Tensor_<std::int64_t >(*this).Clamp((std::int64_t )a, (std::int64_t )b); 
-        case BB_TYPE_UINT8:  Tensor_<std::uint8_t >(*this).Clamp((std::uint8_t )a, (std::uint8_t )b); 
-        case BB_TYPE_UINT16: Tensor_<std::uint16_t>(*this).Clamp((std::uint16_t)a, (std::uint16_t)b);
-        case BB_TYPE_UINT32: Tensor_<std::uint32_t>(*this).Clamp((std::uint32_t)a, (std::uint32_t)b);
-        case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this).Clamp((std::uint64_t)a, (std::uint64_t)b);
+        case BB_TYPE_FP32:   Tensor_<float        >(*this).Clamp((float        )a, (float        )b);   break;
+        case BB_TYPE_FP64:   Tensor_<double       >(*this).Clamp((double       )a, (double       )b);   break;
+        case BB_TYPE_INT8:   Tensor_<std::int8_t  >(*this).Clamp((std::int8_t  )a, (std::int8_t  )b);   break;
+        case BB_TYPE_INT16:  Tensor_<std::int16_t >(*this).Clamp((std::int16_t )a, (std::int16_t )b);   break;
+        case BB_TYPE_INT32:  Tensor_<std::int32_t >(*this).Clamp((std::int32_t )a, (std::int32_t )b);   break;
+        case BB_TYPE_INT64:  Tensor_<std::int64_t >(*this).Clamp((std::int64_t )a, (std::int64_t )b);   break;
+        case BB_TYPE_UINT8:  Tensor_<std::uint8_t >(*this).Clamp((std::uint8_t )a, (std::uint8_t )b);   break;
+        case BB_TYPE_UINT16: Tensor_<std::uint16_t>(*this).Clamp((std::uint16_t)a, (std::uint16_t)b);   break;
+        case BB_TYPE_UINT32: Tensor_<std::uint32_t>(*this).Clamp((std::uint32_t)a, (std::uint32_t)b);   break;
+        case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this).Clamp((std::uint64_t)a, (std::uint64_t)b);   break;
         default:    BB_ASSERT(0);   break;
         }
         return *this;
     }
-    */
+    
 
     double Sum(void)
     {
