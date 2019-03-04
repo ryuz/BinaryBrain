@@ -27,7 +27,7 @@ protected:
     FrameBuffer         m_dx;
 
 	indices_t			m_node_shape;
-    index_t             m_mux_size;
+    index_t             m_frame_mux_size;
 
 	FXT					m_real_range_lo = (FXT)0.0;
 	FXT					m_real_range_hi = (FXT)1.0;
@@ -41,7 +41,7 @@ public:
 
     struct create_t
     {
-        index_t         mux_size = 1;
+        index_t         frame_mux_size = 1;
         FXT             real_range_lo = (FXT)0.0;
         FXT             real_range_hi = (FXT)1.0;
         std::uint64_t   seed = 1;
@@ -51,19 +51,19 @@ public:
     {
         auto self = std::shared_ptr<RealToBinary>(new RealToBinary);
 
-        self->m_mux_size      = create.mux_size;
-	    self->m_real_range_lo = create.real_range_lo;
-	    self->m_real_range_hi = create.real_range_hi;
+        self->m_frame_mux_size = create.frame_mux_size;
+	    self->m_real_range_lo  = create.real_range_lo;
+	    self->m_real_range_hi  = create.real_range_hi;
 
         self->m_mt.seed(create.seed);
 
         return self;
     }
 
-    static std::shared_ptr<RealToBinary> Create(index_t mux_size, std::uint64_t seed = 1)
+    static std::shared_ptr<RealToBinary> Create(index_t frame_mux_size, std::uint64_t seed = 1)
     {
         create_t create;
-        create.mux_size = mux_size;
+        create.frame_mux_size = frame_mux_size;
         create.seed     = seed;
         return Create(create);
     }
@@ -115,7 +115,7 @@ public:
         }
 
         // 戻り値の型を設定
-        m_y.Resize(DataType<FYT>::type, x.GetFrameSize() * m_mux_size, m_node_shape);
+        m_y.Resize(DataType<FYT>::type, x.GetFrameSize() * m_frame_mux_size, m_node_shape);
 
 		std::uniform_real_distribution<FXT>	dist_rand(m_real_range_lo, m_real_range_hi);
 
@@ -127,7 +127,7 @@ public:
 
 		for (index_t node = 0; node < node_size; ++node) {
     	    for (index_t output_frame = 0; output_frame < output_frame_size; ++output_frame) {
-                index_t input_frame = output_frame / m_mux_size;
+                index_t input_frame = output_frame / m_frame_mux_size;
             
 			    FXT th = dist_rand(m_mt);
                 FXT real_sig = x_ptr.Get(input_frame, node);
@@ -145,7 +145,7 @@ public:
         BB_ASSERT(dy.GetType() == DataType<BT>::type);
 
         // 戻り値の型を設定
-        m_dx.Resize(DataType<BT>::type, dy.GetFrameSize() / m_mux_size, m_node_shape);
+        m_dx.Resize(DataType<BT>::type, dy.GetFrameSize() / m_frame_mux_size, m_node_shape);
 
 		index_t node_size         = dy.GetNodeSize();
 		index_t output_frame_size = dy.GetFrameSize();
@@ -157,7 +157,7 @@ public:
 
 		for (index_t node = 0; node < node_size; node++) {
     		for (index_t output_frame = 0; output_frame < output_frame_size; ++output_frame) {
-                index_t input_frame = output_frame / m_mux_size;
+                index_t input_frame = output_frame / m_frame_mux_size;
 
                 BT grad = dy_ptr.Get(output_frame, node);
 				dx_ptr.Add(input_frame, node, grad);

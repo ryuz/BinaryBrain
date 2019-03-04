@@ -29,6 +29,7 @@
   <ItemGroup>
     <ClCompile Include="BatchNormalizationTest.cpp" />
     <ClCompile Include="BinaryLutTest.cpp" />
+    <ClCompile Include="BinaryToRealTest.cpp" />
     <ClCompile Include="ConvolutionCol2ImTest.cpp" />
     <ClCompile Include="ConvolutionIm2ColTest.cpp" />
     <ClCompile Include="DenseAffineTest.cpp" />
@@ -52,6 +53,7 @@
     <ClInclude Include="..\..\include\bb\BatchNormalization.h" />
     <ClInclude Include="..\..\include\bb\Binarize.h" />
     <ClInclude Include="..\..\include\bb\BinaryLutN.h" />
+    <ClInclude Include="..\..\include\bb\BinaryToReal.h" />
     <ClInclude Include="..\..\include\bb\ConvolutionCol2Im.h" />
     <ClInclude Include="..\..\include\bb\ConvolutionIm2Col.h" />
     <ClInclude Include="..\..\include\bb\CudaUtility.h" />
