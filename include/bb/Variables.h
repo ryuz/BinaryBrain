@@ -22,9 +22,9 @@ protected:
     std::vector< std::shared_ptr<Tensor> >    m_tensors;
 
 public:
-    Variables(){}
+    explicit Variables(){}
 
-    Variables(std::vector<int> const &types, std::vector<indices_t> const &shapes)
+    explicit Variables(std::vector<int> const &types, std::vector<indices_t> const &shapes)
     {
         BB_ASSERT(shapes.size() == types.size());
 

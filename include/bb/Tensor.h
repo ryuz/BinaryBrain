@@ -314,13 +314,13 @@ protected:
 	std::vector<index_t>		m_shape;
 	std::vector<index_t>		m_stride;
 public:
-   	Tensor_(index_t size=0, bool hostOnly=false)
+   	explicit Tensor_(index_t size=0, bool hostOnly=false)
 	{
         m_mem = Memory::Create(0, hostOnly);
 		Resize(size);
 	}
 
-	Tensor_(std::vector<index_t> shape, bool hostOnly=false)
+	explicit Tensor_(std::vector<index_t> shape, bool hostOnly=false)
 	{
         m_mem = Memory::Create(0, hostOnly);
 		Resize(shape);
@@ -1341,17 +1341,17 @@ protected:
 	std::vector<index_t>		m_stride;
 
 public:
-	Tensor(bool hostOnly=false) {
+	explicit Tensor(bool hostOnly=false) {
         m_mem = Memory::Create(0, hostOnly);
     }
 
-   	Tensor(int type, std::vector<index_t> shape, bool hostOnly=false)
+   	explicit Tensor(int type, std::vector<index_t> shape, bool hostOnly=false)
 	{
         m_mem = Memory::Create(0, hostOnly);
 		Resize(type, shape);
 	}
 
-	Tensor(int type, index_t size, bool hostOnly=false)
+	explicit Tensor(int type, index_t size, bool hostOnly=false)
 	{
         m_mem = Memory::Create(0, hostOnly);
 		Resize(type, size);

@@ -237,7 +237,7 @@ public:
       * @brief  デフォルトコンストラクタ
       * @detail デフォルトコンストラクタ
       */
-	FrameBuffer(bool hostOnly=false) : m_tensor(hostOnly) {}
+	explicit FrameBuffer(bool hostOnly=false) : m_tensor(hostOnly) {}
 
   	/**
      * @brief  コンストラクタ
@@ -247,7 +247,7 @@ public:
      * @param node_size  1フレームのノード数
 	 * @param data_type  1ノードのデータ型
      */
-	FrameBuffer(int data_type, index_t frame_size, index_t node_size, bool hostOnly=false) : m_tensor(hostOnly)
+	explicit FrameBuffer(int data_type, index_t frame_size, index_t node_size, bool hostOnly=false) : m_tensor(hostOnly)
 	{
         Resize(data_type, frame_size, {node_size});
 	}
@@ -259,7 +259,7 @@ public:
      * @param shape      1フレームのノードを構成するshape
 	 * @param data_type  1ノードのデータ型
      */
-	FrameBuffer(int data_type, index_t frame_size, std::vector<index_t> shape, bool hostOnly=false) : m_tensor(hostOnly)
+	explicit FrameBuffer(int data_type, index_t frame_size, std::vector<index_t> shape, bool hostOnly=false) : m_tensor(hostOnly)
 	{
 		Resize(data_type, frame_size, shape);
 	}
