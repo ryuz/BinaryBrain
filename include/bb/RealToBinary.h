@@ -12,7 +12,8 @@
 
 #include <random>
 
-#include "bb/Layer.h"
+#include "bb/Model.h"
+#include "bb/ValueGenerator.h"
 
 
 namespace bb {
@@ -34,16 +35,15 @@ template <typename FXT = float, typename FYT = float, typename BT = float>
 class RealToBinary : public Model
 {
 protected:
-    FrameBuffer         m_y;
-    FrameBuffer         m_dx;
+    FrameBuffer                             m_y;
+    FrameBuffer                             m_dx;
 
-	indices_t			m_node_shape;
-    index_t             m_frame_mux_size;
-
-	FXT					m_real_range_lo = (FXT)0.0;
-	FXT					m_real_range_hi = (FXT)1.0;
-
-	std::mt19937_64		m_mt;
+	indices_t			                    m_node_shape;
+    index_t                                 m_frame_mux_size;
+    std::shared_ptr< ValueGenerator<FXT> >  m_value_generator;
+    bool                                    m_framewise;
+	FXT                                     m_input_range_lo;
+	FXT                                     m_input_range_hi;
 
 protected:
 	RealToBinary() {}
@@ -52,30 +52,39 @@ public:
 
     struct create_t
     {
-        index_t         frame_mux_size = 1;
-        FXT             real_range_lo = (FXT)0.0;
-        FXT             real_range_hi = (FXT)1.0;
-        std::uint64_t   seed = 1;
+        index_t                                 frame_mux_size = 1;         //< フレームを何倍するか
+        std::shared_ptr< ValueGenerator<FXT> >  value_generator;            //< 閾値のジェネレーター
+        bool                                    framewise = true;           //< true でフレーム単位で閾値、falseでデータ単位
+    	FXT                                     input_range_lo = (FXT)0.0;  //< 入力データの下限値
+	    FXT                                     input_range_hi = (FXT)1.0;  //< 入力データの上限値
     };
 
     static std::shared_ptr<RealToBinary> Create(create_t const &create)
     {
         auto self = std::shared_ptr<RealToBinary>(new RealToBinary);
 
-        self->m_frame_mux_size = create.frame_mux_size;
-	    self->m_real_range_lo  = create.real_range_lo;
-	    self->m_real_range_hi  = create.real_range_hi;
-
-        self->m_mt.seed(create.seed);
+        self->m_frame_mux_size  = create.frame_mux_size;
+        self->m_value_generator = create.value_generator;
+        self->m_framewise       = create.framewise;
+	    self->m_input_range_lo  = create.input_range_lo;
+	    self->m_input_range_hi  = create.input_range_hi;
 
         return self;
     }
 
-    static std::shared_ptr<RealToBinary> Create(index_t frame_mux_size, std::uint64_t seed = 1)
+    static std::shared_ptr<RealToBinary> Create(
+                index_t                                 frame_mux_size  = 1,
+                std::shared_ptr< ValueGenerator<FXT> >  value_generator = nullptr,
+                bool                                    framewise       = true,
+    	        FXT                                     input_range_lo  = (FXT)0.0,
+	            FXT                                     input_range_hi  = (FXT)1.0)
     {
         create_t create;
-        create.frame_mux_size = frame_mux_size;
-        create.seed     = seed;
+        create.frame_mux_size   = frame_mux_size;
+        create.value_generator  = value_generator;
+        create.framewise        = framewise;
+	    create.input_range_lo   = input_range_lo;
+	    create.input_range_hi   = input_range_hi;
         return Create(create);
     }
 
@@ -128,23 +137,42 @@ public:
         // 戻り値の型を設定
         m_y.Resize(DataType<FYT>::type, x.GetFrameSize() * m_frame_mux_size, m_node_shape);
 
-		std::uniform_real_distribution<FXT>	dist_rand(m_real_range_lo, m_real_range_hi);
-
-		index_t node_size         = m_y.GetNodeSize();
-		index_t output_frame_size = m_y.GetFrameSize();
+		index_t node_size        = x.GetNodeSize();
+		index_t input_frame_size = x.GetFrameSize();
 
         auto x_ptr = x.GetConstPtr<FXT>();
         auto y_ptr = m_y.GetPtr<FYT>();
 
-		for (index_t node = 0; node < node_size; ++node) {
-    	    for (index_t output_frame = 0; output_frame < output_frame_size; ++output_frame) {
-                index_t input_frame = output_frame / m_frame_mux_size;
-            
-			    FXT th = dist_rand(m_mt);
-                FXT real_sig = x_ptr.Get(input_frame, node);
-			    FYT bin_sig  = (real_sig > th) ? (FYT)1 : (FYT)0;
-			    y_ptr.Set(output_frame, node, bin_sig);
-		    }
+        FXT th_step = (m_input_range_hi - m_input_range_lo) / (FXT)(m_frame_mux_size + 1);
+   	    for ( index_t input_frame = 0; input_frame < input_frame_size; ++input_frame) {
+       	    for ( index_t i = 0; i < m_frame_mux_size; ++i ) {
+                index_t output_frame = input_frame * m_frame_mux_size + i;
+
+                if ( m_framewise || m_value_generator == nullptr ) {
+                    // frame毎に閾値変調
+                    FXT th;
+                    if ( m_value_generator != nullptr ) {
+    	    	        th = m_value_generator->GetValue();
+                    }
+                    else {
+                        th = m_input_range_lo + (th_step * (FXT)(i + 1));
+                    }
+                    for (index_t node = 0; node < node_size; ++node) {
+                        FXT real_sig = x_ptr.Get(input_frame, node);
+			            FYT bin_sig  = (real_sig > th) ? (FYT)1 : (FYT)0;
+			            y_ptr.Set(output_frame, node, bin_sig);
+		            }
+                }
+                else {
+                    // データ毎に閾値変調
+                    for (index_t node = 0; node < node_size; ++node) {
+                        FXT th = m_value_generator->GetValue();
+                        FXT real_sig = x_ptr.Get(input_frame, node);
+			            FYT bin_sig  = (real_sig > th) ? (FYT)1 : (FYT)0;
+			            y_ptr.Set(output_frame, node, bin_sig);
+		            }
+                }
+            }
 		}
 
         return m_y;
