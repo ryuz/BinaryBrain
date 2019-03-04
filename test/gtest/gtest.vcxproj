@@ -71,6 +71,7 @@
     <ClInclude Include="..\..\include\bb\MicroMlp.h" />
     <ClInclude Include="..\..\include\bb\MicroMlpAffine.h" />
     <ClInclude Include="..\..\include\bb\Model.h" />
+    <ClInclude Include="..\..\include\bb\NormalDistributionGenerator.h" />
     <ClInclude Include="..\..\include\bb\Optimizer.h" />
     <ClInclude Include="..\..\include\bb\OptimizerAdam.h" />
     <ClInclude Include="..\..\include\bb\OptimizerSgd.h" />
@@ -82,7 +83,9 @@
     <ClInclude Include="..\..\include\bb\SparseLayer.h" />
     <ClInclude Include="..\..\include\bb\Tensor.h" />
     <ClInclude Include="..\..\include\bb\TensorOperator.h" />
+    <ClInclude Include="..\..\include\bb\UniformDistributionGenerator.h" />
     <ClInclude Include="..\..\include\bb\Utility.h" />
+    <ClInclude Include="..\..\include\bb\ValueGenerator.h" />
     <ClInclude Include="..\..\include\bb\Variables.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

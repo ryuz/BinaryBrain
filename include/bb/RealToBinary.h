@@ -18,7 +18,18 @@
 namespace bb {
 
 
-// NeuralNetの抽象クラス
+
+/**
+ * @brief   バイナリ変調を行いながらバイナライズを行う
+ * @details 閾値を乱数などで変調して実数をバイナリに変換する
+ *          入力に対して出力は frame_mux_size 倍のフレーム数となる
+ *          入力値に応じて 0と1 を確率的に発生させることを目的としている
+ *          RealToBinary と組み合わせて使う想定
+ * 
+ * @tparam FXT  foward入力型 (x)
+ * @tparam FXT  foward出力型 (y)
+ * @tparam BT   backward型 (dy, dx)
+ */
 template <typename FXT = float, typename FYT = float, typename BT = float>
 class RealToBinary : public Model
 {

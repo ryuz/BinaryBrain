@@ -57,6 +57,8 @@ TEST(BinaryToRealTest, testBinaryToReal)
 	EXPECT_EQ(1.0f, dx_buf.GetFP32(1, 1));
 	EXPECT_EQ(0.5f, dx_buf.GetFP32(0, 2));
 	EXPECT_EQ(0.5f, dx_buf.GetFP32(1, 2));
+
+ 
 }
 
 

@@ -18,6 +18,16 @@
 namespace bb {
 
 
+/**
+ * @brief   バイナリ変調したデータを積算して実数に戻す
+ * @details バイナリ変調したデータを積算して実数に戻す
+ *          出力に対して入力は frame_mux_size 倍のフレーム数を必要とする
+ *          BinaryToReal と組み合わせて使う想定
+ * 
+ * @tparam FXT  foward入力型 (x)
+ * @tparam FXT  foward出力型 (y)
+ * @tparam BT   backward型 (dy, dx)
+ */
 template <typename FXT = float, typename FYT = float, typename BT = float>
 class BinaryToReal : public Model
 {
