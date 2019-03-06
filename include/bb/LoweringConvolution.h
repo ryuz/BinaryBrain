@@ -24,7 +24,6 @@ template <typename FT = float, typename BT = float>
 class LoweringConvolution : public Model
 {
 protected:
-    index_t m_filter_c_size = 1;
     index_t m_filter_h_size = 1;
     index_t m_filter_w_size = 1;
 
@@ -44,7 +43,6 @@ public:
     struct create_t
     {
         std::shared_ptr<Model>  layer;
-        index_t                 filter_c_size = 1;
         index_t                 filter_h_size = 1;
         index_t                 filter_w_size = 1;
     };
@@ -55,7 +53,6 @@ public:
         
         self->m_filter_w_size = create.filter_w_size;
         self->m_filter_h_size = create.filter_h_size;
-        self->m_filter_c_size = create.filter_c_size;
 
   		self->m_im2col = ConvolutionIm2Col<FT, BT>::Create(filter_h_size, filter_w_size);
         self->m_layer  = create.layer;
@@ -64,13 +61,12 @@ public:
         return self;
 	}
 
-    static std::shared_ptr<LoweringConvolution> Create(std::shared_ptr<Model> layer, index_t filter_c_size, index_t filter_h_size, index_t filter_w_size)
+    static std::shared_ptr<LoweringConvolution> Create(std::shared_ptr<Model> layer, index_t filter_h_size, index_t filter_w_size)
 	{
         auto self = std::shared_ptr<LoweringConvolution>(new LoweringConvolution);
         
         self->m_filter_w_size = filter_w_size;
         self->m_filter_h_size = filter_h_size;
-        self->m_filter_c_size = filter_c_size;
 
   		self->m_im2col = ConvolutionIm2Col<FT, BT>::Create(filter_h_size, filter_w_size);
         self->m_layer  = layer;
@@ -140,9 +136,8 @@ public:
         index_t input_c_size = shape[2];
 		index_t output_w_size = input_w_size - m_filter_w_size + 1;
 		index_t output_h_size = input_h_size - m_filter_h_size + 1;
-		index_t output_c_size = m_filter_c_size;
 
-		m_col2im = ConvolutionCol2Im<FT, BT>::Create(output_c_size, output_h_size, output_w_size);
+		m_col2im = ConvolutionCol2Im<FT, BT>::Create(output_h_size, output_w_size);
 
         shape = m_im2col->SetInputShape(shape);
         shape = m_layer->SetInputShape(shape);

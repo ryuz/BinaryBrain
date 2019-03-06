@@ -25,9 +25,9 @@ class ConvolutionCol2Im : public Model
 protected:
     indices_t       m_input_shape;
 
-	index_t			m_c_size;
-	index_t			m_h_size;
-	index_t			m_w_size;
+	index_t			m_c_size = 1;
+	index_t			m_h_size = 1;
+	index_t			m_w_size = 1;
     
     FrameBuffer     m_y;
     FrameBuffer     m_dx;
@@ -40,7 +40,6 @@ public:
 
     struct create_t
     {
-        index_t c_size = 1;
         index_t h_size = 1;
         index_t w_size = 1;
     };
@@ -48,16 +47,14 @@ public:
 	static std::shared_ptr<ConvolutionCol2Im> Create(create_t const & create)
 	{
         auto self = std::shared_ptr<ConvolutionCol2Im>(new ConvolutionCol2Im);
-		self->m_c_size = create.c_size;
         self->m_h_size = create.h_size;
         self->m_w_size = create.w_size;
         return self;
 	}
 
-    static std::shared_ptr<ConvolutionCol2Im> Create(index_t c_size, index_t h_size, index_t w_size)
+    static std::shared_ptr<ConvolutionCol2Im> Create(index_t h_size, index_t w_size)
 	{
         auto self = std::shared_ptr<ConvolutionCol2Im>(new ConvolutionCol2Im);
-		self->m_c_size = c_size;
         self->m_h_size = h_size;
         self->m_w_size = w_size;
         return self;
@@ -80,7 +77,9 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
-        m_input_shape = shape;
+        BB_ASSERT(shape.size() == 1);
+        m_input_shape  = shape;
+        m_c_size = shape[0];
         return indices_t({m_w_size, m_h_size, m_c_size});
     }
 
