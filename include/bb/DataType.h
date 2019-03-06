@@ -617,7 +617,7 @@ inline void Load(std::istream &is, std::string &str)
     std::uint64_t size;
     is.read((char *)&size, sizeof(size));
     str.resize(size);
-    os.read((char *)&str[0], size*sizeof(str[0]));
+    is.read((char *)&str[0], size*sizeof(str[0]));
 }
 
 
