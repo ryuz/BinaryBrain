@@ -11,6 +11,7 @@
 #include <numeric>
 #include <random>
 #include <chrono>
+#include <cmath>
 
 #include "bb/MicroMlpAffine.h"
 #include "bb/BatchNormalization.h"
