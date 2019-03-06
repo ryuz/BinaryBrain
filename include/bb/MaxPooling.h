@@ -41,17 +41,6 @@ protected:
     FrameBuffer         m_y;
     FrameBuffer         m_dx;
 
-    /*
-    index_t			m_frame_size = 1;
-	int				m_input_h_size;
-	int				m_input_w_size;
-	int				m_input_c_size;
-	index_t				m_filter_h_size;
-	index_t				m_filter_w_size;
-	int				m_output_h_size;
-	int				m_output_w_size;
-    */
-
 protected:
 	MaxPooling() {}
 
