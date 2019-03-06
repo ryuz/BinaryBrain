@@ -12,6 +12,8 @@
 #include <random>
 #include <chrono>
 
+#include "bb/RealToBinary.h"
+#include "bb/BinaryToReal.h"
 #include "bb/MicroMlpAffine.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
@@ -38,6 +40,7 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
 #endif
 
     auto net = bb::Sequential::Create();
+    net->Add(bb::RealToBinary<float, float>::Create(8));
     net->Add(bb::MicroMlpAffine<6, 16, float>::Create({1024}));
     net->Add(bb::BatchNormalization<float>::Create());
     net->Add(bb::ReLU<float>::Create());
@@ -48,6 +51,7 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
     net->Add(bb::BatchNormalization<float>::Create());
     net->Add(bb::ReLU<float>::Create());
     net->Add(bb::MicroMlpAffine<6, 16, float>::Create({10}));
+    net->Add(bb::BinaryToReal<float, float>::Create({10}, 8));
     net->SetInputShape(td.x_shape);
 
     if ( binary_mode ) {
@@ -61,6 +65,7 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
     runner_create.lossFunc  = bb::LossCrossEntropyWithSoftmax<float>::Create();
     runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create(10);
     runner_create.optimizer = bb::OptimizerAdam<float>::Create();
+    runner_create.over_write = true;
     runner_create.serial_write = false;
     runner_create.initial_evaluation = true;
     auto runner = bb::Runner<float>::Create(runner_create);

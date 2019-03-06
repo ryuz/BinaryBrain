@@ -12,6 +12,8 @@
 #include <random>
 #include <chrono>
 
+#include "bb/RealToBinary.h"
+#include "bb/BinaryToReal.h"
 #include "bb/MicroMlp.h"
 #include "bb/LoweringConvolution.h"
 #include "bb/BatchNormalization.h"
