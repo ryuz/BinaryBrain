@@ -24,6 +24,10 @@ class ReLU : public Binarize<T>
 {
 protected:
     bool        m_binary_mode = false;
+    bool        m_host_only   = false;
+
+    using Binarize<T>::m_x;
+    using Binarize<T>::m_y;
 
 protected:
 	ReLU() {}

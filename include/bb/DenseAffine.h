@@ -334,6 +334,7 @@ public:
 #endif
 
 public:
+#ifdef BB_WITH_CEREAL
 	template <class Archive>
 	void save(Archive &archive, std::uint32_t const version) const
 	{
@@ -364,7 +365,7 @@ public:
 	{
 //		archive(cereal::make_nvp("NeuralNetDenseAffine", *this));
 	}
-
+#endif
 };
 
 }

@@ -10,6 +10,8 @@
 #pragma once
 
 #include <vector>
+#include <iostream>
+#include <fstream>
 
 #if BB_WITH_CEREAL
 #include "cereal/types/array.hpp"
@@ -214,8 +216,17 @@ public:
         is.read((char*)&m_name[0], size);
 	}
 
-    void SaveBinary(std::string filename) const { Save(std::ofstream(filename, std::ios::binary)); }
-    void LoadBinary(std::string filename)       { Load(std::ifstream(filename, std::ios::binary)); }
+    void SaveBinary(std::string filename) const
+    {
+        std::ofstream ofs(filename, std::ios::binary);
+         Save(ofs);
+    }
+
+    void LoadBinary(std::string filename)
+    {
+        std::ifstream ifs(filename, std::ios::binary);
+        Load(ifs);
+    }
 
 
 	// Serialize(CEREAL)

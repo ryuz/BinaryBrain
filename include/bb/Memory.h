@@ -204,7 +204,7 @@ public:
 protected:
 	void*        	    m_addr = nullptr;
 	size_t	            m_size = 0;
-    std::atomic<int>    m_hostRefCnt = 0;
+    std::atomic<int>    m_hostRefCnt;
     bool	            m_hostOnly = true;
 	bool	            m_hostModified = false;
 
@@ -270,7 +270,7 @@ protected:
 	 *           -2     GPUは利用しない
      * @return なし
      */
-	Memory(size_t size, bool hostOnly=false)
+	Memory(size_t size, bool hostOnly=false) : m_hostRefCnt(0)
 	{
 		// 初期化
 		m_size       = size;
