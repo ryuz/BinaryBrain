@@ -28,6 +28,7 @@ protected:
 
     using Binarize<T>::m_x;
     using Binarize<T>::m_y;
+    using Binarize<T>::m_dx;
 
 protected:
 	ReLU() {}
@@ -118,8 +119,8 @@ public:
         index_t frame_size = m_x.GetFrameSize();
         index_t node_size = m_x.GetNodeSize();
 
-		auto x_ptr = m_x.GetConstPtr<T>();
-		auto y_ptr = m_y.GetPtr<T>();
+		auto x_ptr = m_x.template GetConstPtr<T>();
+		auto y_ptr = m_y.template GetPtr<T>();
 
 		// ReLU
 #pragma omp parallel for
@@ -153,6 +154,10 @@ public:
 
         index_t frame_size = m_dx.GetFrameSize();
         index_t node_size = m_dx.GetNodeSize();
+
+		auto y_ptr  = m_y.template GetConstPtr<T>();
+		auto dy_ptr = dy.template GetConstPtr<T>();
+		auto dx_ptr = m_dx.template GetPtr<T>();
 
         // ReLU
 #pragma omp parallel for

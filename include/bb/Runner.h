@@ -135,7 +135,7 @@ public:
         create.over_write         = over_write;
         create.serial_write       = serial_write;
         create.initial_evaluation = initial_evaluation;
-        create.seed               = seed
+        create.seed               = seed;
         create.callback_proc      = callback_proc;
         create.callback_user      = callback_user;
 
@@ -173,6 +173,7 @@ public:
     // Serialize
   	void Save(std::ostream &os) const
 	{
+		/*
         Save(os, m_name);
         SaveIndex(os, m_epoch);
         SaveIndex(os, m_max_batch_size);
@@ -180,23 +181,35 @@ public:
 	    Save(os, m_file_write);
 	    Save(os, m_over_write);
 	    Save(os, m_initial_evaluation);
-        m_net.Save(os);
+        m_net->Save(os);
+		*/
 	}
 
 	void Load(std::istream &is)
 	{
-        Load(os, m_name);
-        LoadIndex(os, m_epoch);
-        LoadIndex(os, m_max_batch_size);
-	    Load(os, m_print_progress);
-	    Load(os, m_file_write);
-	    Load(os, m_over_write);
-	    Load(os, m_initial_evaluation);
-        m_net.Load(os);
+		/*
+        Load(is, m_name);
+        m_epoch = LoadIndex(is);
+        m_max_batch_size = LoadIndex(is);
+	    Load(is, m_print_progress);
+	    Load(is, m_file_write);
+	    Load(is, m_over_write);
+	    Load(is, m_initial_evaluation);
+        m_net->Load(is);
+		*/
 	}
 
-   	void SaveBinary(std::string filename) const { Save(std::ofstream(filename, std::ios::binary)); }
-   	void LoadBinary(std::string filename)       { Load(std::ifstream(filename, std::ios::binary)); }
+   	void SaveBinary(std::string filename) const
+	{
+		std::ofstream ofs(filename, std::ios::binary);
+		Save(ofs);
+	}
+
+   	void LoadBinary(std::string filename)
+	{
+		std::ifstream ifs(filename, std::ios::binary);
+		Load(ifs);
+	}
     
 
 #ifdef BB_WITH_CEREAL
@@ -291,7 +304,7 @@ public:
 #else
                 std::ifstream ifs(net_file_name, std::ios::binary);
 				if (ifs.is_open()) {
-                    LoadBinary(ifs);
+                    Load(ifs);
                     std::cout << "[load] " << net_file_name << std::endl;
 				}
 #endif
