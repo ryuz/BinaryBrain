@@ -599,7 +599,7 @@ inline void Load(std::istream &is, std::vector<T>  &vec)
     std::uint64_t size;
     is.read((char *)&size, sizeof(size));
     vec.resize(size);
-    os.read((char *)&vec[0], size*sizeof(T));
+    is.read((char *)&vec[0], size*sizeof(T));
 }
 
 

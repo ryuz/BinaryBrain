@@ -1,4 +1,5 @@
 ﻿
+*.log
 
 *.obj
 *.o
@@ -12,9 +13,12 @@
 *.VC.opendb
 *.vspx
 
+
 .vs/
 Debug/
 Release/
+DbgCpu/
+RelCpu/
 
 *.gz
 *-ubyte
