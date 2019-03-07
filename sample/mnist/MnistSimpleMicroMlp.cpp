@@ -30,7 +30,7 @@
 
 
 // MNIST CNN with LUT networks
-void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
+void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
 {
   // load MNIST data
 #ifdef _DEBUG

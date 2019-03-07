@@ -15,6 +15,7 @@ CFLAGS = -Xcompiler '-O3 -mavx2 -mfma -fopenmp -std=c++14' \
          -I../../eigen
 
 OBJS = main.cpp \
+    	MnistDenseAffine.o \
     	MnistSimpleMicroMlp.o \
 		MnistSimpleMicroMlpScratch.o \
 		MnistSimpleLutCnn.o

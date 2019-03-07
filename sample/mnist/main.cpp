@@ -8,20 +8,33 @@
 
 #include <iostream>
 #include <omp.h>
+#include <string.h>
 
-
+void MnistDenseAffine(int epoch_size, size_t mini_batch_size);
+void MnistSimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode);
 void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mode);
-void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mode);
+void MnistSimpleMicroMlpScratch(int epoch_size, size_t mini_batch_size, bool binary_mode);
+
 
 // メイン関数
-int main()
+int main(int argc, char *argv[])
 {
 	omp_set_num_threads(4);
 
-    MnistSequentialMicroMlp(64, 128, true);
-//	MnistSimpleMicroMlp(64, 128, true);
+	if ( argc < 2 ) {
+		return 1;
+	}
 
-//	getchar();
+	if ( strcmp(argv[1], "DenseAffine") == 0 ) {
+		MnistDenseAffine(16, 64);
+	}
+	if ( strcmp(argv[1], "LutCnn") == 0 ) {
+    	MnistSimpleLutCnn(64, 64, true);
+	}
+	if ( strcmp(argv[1], "MicroMlp") == 0 ) {
+		MnistSimpleMicroMlp(16, 64, true);
+	}
+
 	return 0;
 }
 
