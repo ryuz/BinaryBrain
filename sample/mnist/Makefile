@@ -4,10 +4,11 @@ TARGET  = sample-mnist
 BBCU_PATH = ../../cuda
 BBCU_LIB  = $(BBCU_PATH)/libbbcu.a
 
-CC     = g++
-#CC     = clang++
+CC     = nvcc
+#CC     = g++
+#CC    = clang++
 
-CFLAGS = -O3 -mavx2 -mfma -fopenmp -std=c++14 \
+CFLAGS = -Xcompiler '-O3 -mavx2 -mfma -fopenmp -std=c++14' \
          -DBB_WITH_CUDA \
          -I../../include \
          -I../../cereal/include \
@@ -33,7 +34,7 @@ run: $(TARGET) train-images-idx3-ubyte train-labels-idx1-ubyte t10k-images-idx3-
 	./$(TARGET)
 
 $(TARGET): $(OBJS) $(BBCU_LIB)
-	nvcc -o $(TARGET) -Xcompiler '-O2 -fopenmp' $(OBJS) $(BBCU_LIB)
+	nvcc -o $(TARGET) $(CFLAGS) $(OBJS) $(BBCU_LIB)
 
 $(BBCU_LIB):
 	make -C $(BBCU_PATH)
