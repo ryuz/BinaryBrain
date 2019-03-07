@@ -1,17 +1,23 @@
 
-TARGET = sample-mnist
+TARGET  = sample-mnist
+
+BBCU_PATH = ../../cuda
+BBCU_LIB  = $(BBCU_PATH)/libbbcu.a
 
 CC     = g++
 #CC     = clang++
+
 CFLAGS = -O3 -mavx2 -mfma -fopenmp -std=c++14 -I../../include \
          -I../../cereal/include \
          -I../../eigen
 
-SRCS = main.cpp MnistSimpleMicroMlp.cpp MnistSequentialSimpleMicroMlp.cpp 
+OBJS = main.cpp \
+    	MnistSimpleMicroMlp.o \
+		MnistSimpleMicroMlpScratch.o \
+		MnistSimpleLutCnn.o
 
 
-$(TARGET): $(SRCS)
-	$(CC) -o $(TARGET) $(CFLAGS) $(SRCS)
+.SUFFIXES: .c .o
 
 .PHONY: all
 all: $(TARGET)
@@ -23,6 +29,12 @@ clean:
 .PHONY: run
 run: $(TARGET) train-images-idx3-ubyte train-labels-idx1-ubyte t10k-images-idx3-ubyte t10k-labels-idx1-ubyte
 	./$(TARGET)
+
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
+
+.cpp.o:
+	$(CC) $(CFLAGS) -c $<
 
 # mnist data
 train-images-idx3-ubyte: train-images-idx3-ubyte.gz

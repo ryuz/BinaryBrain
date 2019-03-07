@@ -1,4 +1,4 @@
-﻿// --------------------------------------------------------------------------
+// --------------------------------------------------------------------------
 //  BinaryBrain  -- binary network evaluation platform
 //   MNIST sample
 //
@@ -12,9 +12,7 @@
 #include <random>
 #include <chrono>
 
-#include "bb/RealToBinary.h"
-#include "bb/BinaryToReal.h"
-#include "bb/MicroMlpAffine.h"
+#include "bb/DenseAffine.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
 #include "bb/LossCrossEntropyWithSoftmax.h"
@@ -29,43 +27,31 @@
 
 
 
-// MNIST CNN with LUT networks
-void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
+void MnistDenseAffine(int epoch_size, size_t mini_batch_size)
 {
   // load MNIST data
 #ifdef _DEBUG
-	auto td = bb::LoadMnist<>::Load(10, 512, 128);
+    auto td = bb::LoadMnist<>::Load(10, 512, 128);
 #else
     auto td = bb::LoadMnist<>::Load(10);
 #endif
 
     auto net = bb::Sequential::Create();
-    net->Add(bb::RealToBinary<float, float>::Create(8));
-    net->Add(bb::MicroMlpAffine<6, 16, float>::Create({1024}));
-    net->Add(bb::BatchNormalization<float>::Create());
+    net->Add(bb::DenseAffine<float>::Create({256}));
     net->Add(bb::ReLU<float>::Create());
-    net->Add(bb::MicroMlpAffine<6, 16, float>::Create({360}));
-    net->Add(bb::BatchNormalization<float>::Create());
-    net->Add(bb::ReLU<float>::Create());
-    net->Add(bb::MicroMlpAffine<6, 16, float>::Create({60}));
-    net->Add(bb::BatchNormalization<float>::Create());
-    net->Add(bb::ReLU<float>::Create());
-    net->Add(bb::MicroMlpAffine<6, 16, float>::Create({10}));
-    net->Add(bb::BinaryToReal<float, float>::Create({10}, 8));
-    net->SetInputShape(td.x_shape);
+    net->Add(bb::DenseAffine<float>::Create({10}));
 
-    if ( binary_mode ) {
-        net->SendCommand("binary true");
-        std::cout << "binary mode" << std::endl;
-    }
+    net->SetInputShape({28, 28, 1});
+
+    bb::FrameBuffer x(BB_TYPE_FP32, mini_batch_size, {28, 28, 1});
+    bb::FrameBuffer t(BB_TYPE_FP32, mini_batch_size, 10);
 
     bb::Runner<float>::create_t runner_create;
-    runner_create.name      = "MnistSequentialMicroMlp";
+    runner_create.name      = "MnistDenseAffine";
     runner_create.net       = net;
     runner_create.lossFunc  = bb::LossCrossEntropyWithSoftmax<float>::Create();
     runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create(10);
     runner_create.optimizer = bb::OptimizerAdam<float>::Create();
-    runner_create.over_write = true;
     runner_create.serial_write = false;
     runner_create.initial_evaluation = true;
     auto runner = bb::Runner<float>::Create(runner_create);
