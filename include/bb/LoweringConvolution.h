@@ -54,7 +54,7 @@ public:
         self->m_filter_w_size = create.filter_w_size;
         self->m_filter_h_size = create.filter_h_size;
 
-  		self->m_im2col = ConvolutionIm2Col<FT, BT>::Create(filter_h_size, filter_w_size);
+  		self->m_im2col = ConvolutionIm2Col<FT, BT>::Create(self->m_filter_h_size, self->m_filter_w_size);
         self->m_layer  = create.layer;
         // col2im の形状は入力形状確定時に決まる
 
@@ -199,6 +199,7 @@ public:
 	
 
 public:
+#ifdef BB_WITH_CREAL
 	void Save(cereal::JSONOutputArchive& archive) const
 	{
 	    m_im2col->Save(archive);
@@ -212,6 +213,7 @@ public:
 	    m_layer->Load(archive);
 	    m_col2im->Load(archive);
 	}
+#endif
 };
 
 

@@ -33,8 +33,8 @@ protected:
 		std::mt19937_64                     mt(seed);
 		std::uniform_int_distribution<int>	distribution(0, 1);
 		
-        auto input_node_size  = GetShapeSize(GetInputShape());
-        auto output_node_size = GetShapeSize(GetOutputShape());
+        auto input_node_size  = GetShapeSize(this->GetInputShape());
+        auto output_node_size = GetShapeSize(this->GetOutputShape());
 
 		// 接続先をシャッフル
 		ShuffleSet<index_t>	ss(input_node_size, seed);
