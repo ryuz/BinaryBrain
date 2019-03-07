@@ -11,7 +11,7 @@ TEST(LoweringConvolutionTest, testLoweringConvolution)
 	auto sub_affine = bb::DenseAffine<float>::Create(1);
 //    1 * 2 * 2
 
-	auto cnv = bb::LoweringConvolution<>::Create(sub_affine, 1, 2, 2);
+	auto cnv = bb::LoweringConvolution<>::Create(sub_affine, 2, 2);
 
     bb::FrameBuffer x_buf(BB_TYPE_FP32, 1, {3, 3, 1});
 

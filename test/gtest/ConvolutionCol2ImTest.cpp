@@ -8,9 +8,10 @@
 
 TEST(ConvolutionCol2ImTest, testConvolutionCol2ImTest)
 {
-   	auto cnvcol2im = bb::ConvolutionCol2Im<>::Create(2, 3, 4);
+   	auto cnvcol2im = bb::ConvolutionCol2Im<>::Create(3, 4);
 
     bb::FrameBuffer x_buf(BB_TYPE_FP32, 2*(3*4), 2);
+    cnvcol2im->SetInputShape(x_buf.GetShape());
 
     {
 	    auto x_ptr = x_buf.GetPtr<float>();
