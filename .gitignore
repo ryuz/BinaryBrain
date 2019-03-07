@@ -15,6 +15,10 @@
 *.VC.opendb
 *.vspx
 
+# execute
+sample/mnist/sample-mnist
+test/mnist/test-mnist
+
 
 .vs/
 Debug/
