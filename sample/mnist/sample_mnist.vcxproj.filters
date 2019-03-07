@@ -21,7 +21,13 @@
     <ClCompile Include="MnistSimpleMicroMlp.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="MnistSequentialSimpleMicroMlp.cpp">
+    <ClCompile Include="MnistDenseAffine.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="MnistSimpleMicroMlpScratch.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="MnistSimpleLutCnn.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

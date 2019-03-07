@@ -177,8 +177,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="MnistSequentialSimpleMicroMlp.cpp" />
+    <ClCompile Include="MnistDenseAffine.cpp" />
+    <ClCompile Include="MnistSimpleLutCnn.cpp" />
     <ClCompile Include="MnistSimpleMicroMlp.cpp" />
+    <ClCompile Include="MnistSimpleMicroMlpScratch.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\bb\AccuracyCategoricalClassification.h" />
