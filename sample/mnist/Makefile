@@ -7,7 +7,9 @@ BBCU_LIB  = $(BBCU_PATH)/libbbcu.a
 CC     = g++
 #CC     = clang++
 
-CFLAGS = -O3 -mavx2 -mfma -fopenmp -std=c++14 -I../../include \
+CFLAGS = -O3 -mavx2 -mfma -fopenmp -std=c++14 \
+         -DBB_WITH_CUDA \
+         -I../../include \
          -I../../cereal/include \
          -I../../eigen
 
@@ -30,8 +32,11 @@ clean:
 run: $(TARGET) train-images-idx3-ubyte train-labels-idx1-ubyte t10k-images-idx3-ubyte t10k-labels-idx1-ubyte
 	./$(TARGET)
 
-$(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
+$(TARGET): $(OBJS) $(BBCU_LIB)
+	nvcc -o $(TARGET) -Xcompiler '-O2 -fopenmp' $(OBJS) $(BBCU_LIB)
+
+$(BBCU_LIB):
+	make -C $(BBCU_PATH)
 
 .cpp.o:
 	$(CC) $(CFLAGS) -c $<

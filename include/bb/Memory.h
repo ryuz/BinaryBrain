@@ -216,7 +216,7 @@ protected:
 	int		            m_device = 0;
 	void*	            m_devAddr = nullptr;
 	bool	            m_devModified = false;
-	std::atomic<int>  	m_devRefCnt = 0;
+	std::atomic<int>  	m_devRefCnt;
 #endif
 
 #ifdef BB_WITH_CUDA

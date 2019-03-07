@@ -1,6 +1,6 @@
 
 
-TARGET=libbucc.a
+TARGET=libbbcu.a
 
 NVCC = nvcc
 CFLAGS = -I ../include
