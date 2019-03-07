@@ -1,8 +1,10 @@
 ﻿
 *.log
 
-*.obj
 *.o
+*.a
+
+*.obj
 *.exe
 *.bin
 *.v
