@@ -268,15 +268,11 @@ public:
         auto running_mean_ptr = m_running_mean.GetPtr();
         auto running_var_ptr  = m_running_var.GetPtr();
 
-
-//		auto in_sig_buf  = this->GetInputSignalBuffer();
-//		auto out_sig_buf = this->GetOutputSignalBuffer();
-
         if (train) {
             const __m256	reciprocal_frame_size = _mm256_set1_ps(1.0f / (float)frame_size);
             const __m256	epsilon = _mm256_set1_ps(10e-7f);
 
-//  	#pragma omp parallel for
+		  	#pragma omp parallel for
             for (int node = 0; node < (int)m_node_size; ++node) {
                 float const *x_ptr = x_buf_ptr.GetAddr(node);
                 float       *y_ptr = y_buf_ptr.GetAddr(node);
@@ -350,8 +346,6 @@ public:
                 }
             }
         }
-
-//		out_sig_buf.ClearMargin();	
 
         return m_y;
     }
