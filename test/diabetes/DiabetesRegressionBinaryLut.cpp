@@ -96,7 +96,7 @@ void DiabetesRegressionBinaryLut(int epoch_size, size_t mini_batch_size, size_t 
     runner_create.net       = net;
     runner_create.lossFunc  = bb::LossMeanSquaredError<float>::Create();
     runner_create.accFunc   = bb::AccuracyMeanSquaredError<float>::Create();
-	runner_create.optimizer = bb::OptimizerSgd<float>::Create(0.00001);
+	runner_create.optimizer = bb::OptimizerSgd<float>::Create(0.00001f);
 //	runner_create.optimizer = bb::OptimizerAdam<float>::Create();
     runner_create.serial_write = false;
 	runner_create.over_write = true;
