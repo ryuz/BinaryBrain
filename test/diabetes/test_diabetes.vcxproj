@@ -336,8 +336,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="DiabetesAffineRegression.cpp" />
-    <ClCompile Include="DiabetesRegression.cpp" />
+    <ClCompile Include="DiabetesRegressionBinaryLut.cpp" />
+    <ClCompile Include="DiabetesRegressionDenseAffine.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -350,6 +350,7 @@
     <ClInclude Include="..\..\include\bb\ConvolutionCol2Im.h" />
     <ClInclude Include="..\..\include\bb\ConvolutionIm2Col.h" />
     <ClInclude Include="..\..\include\bb\DataType.h" />
+    <ClInclude Include="..\..\include\bb\DenseAffine.h" />
     <ClInclude Include="..\..\include\bb\FrameBuffer.h" />
     <ClInclude Include="..\..\include\bb\Layer.h" />
     <ClInclude Include="..\..\include\bb\LoadMnist.h" />
@@ -370,6 +371,7 @@
     <ClInclude Include="..\..\include\bb\ReLU.h" />
     <ClInclude Include="..\..\include\bb\Runner.h" />
     <ClInclude Include="..\..\include\bb\Sequential.h" />
+    <ClInclude Include="..\..\include\bb\Sigmoid.h" />
     <ClInclude Include="..\..\include\bb\SparseLayer.h" />
     <ClInclude Include="..\..\include\bb\Tensor.h" />
     <ClInclude Include="..\..\include\bb\Utility.h" />

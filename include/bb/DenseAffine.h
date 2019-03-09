@@ -40,10 +40,6 @@ protected:
     FrameBuffer                 m_y;
     FrameBuffer                 m_dx;
 
-//	Matrix		                m_W;
-//	Vector		                m_b;
-//	Matrix		                m_dW;
-//	Vector		                m_db;
 	std::shared_ptr<Tensor>		m_W;
 	std::shared_ptr<Tensor>		m_b;
 	std::shared_ptr<Tensor>		m_dW;
@@ -158,8 +154,8 @@ public:
         m_input_node_size = GetShapeSize(shape);
 
         // パラメータ初期化
-        m_W->Resize(DataType<T>::type, m_output_node_size, m_input_node_size);      m_W->InitNormalDistribution(0.0, 1.0, m_mt());
-        m_b->Resize(DataType<T>::type, m_output_node_size);                         m_b->InitNormalDistribution(0.0, 1.0, m_mt());
+        m_W->Resize(DataType<T>::type, m_output_node_size, m_input_node_size);      m_W->InitNormalDistribution(0.0, 1.0/ m_input_node_size, m_mt());
+        m_b->Resize(DataType<T>::type, m_output_node_size);                         m_b->InitNormalDistribution(0.0, 1.0 / m_input_node_size, m_mt());
         m_dW->Resize(DataType<T>::type, m_output_node_size, m_input_node_size);     m_dW->FillZero();
         m_db->Resize(DataType<T>::type, m_output_node_size);                        m_db->FillZero();
 

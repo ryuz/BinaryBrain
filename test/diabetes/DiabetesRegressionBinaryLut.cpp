@@ -70,17 +70,21 @@ bb::TrainData<T> LoadDiabetes(int num_train=400)
 
 
 
-void DiabetesAffineRegression(int epoch_size, size_t mini_batch_size)
+void DiabetesRegressionBinaryLut(int epoch_size, size_t mini_batch_size, size_t mux_size)
 {
-  // load diabetes data
+	// load diabetes data
 	auto td = LoadDiabetes<>();
 
+	bb::TrainDataNormalize(td);
+
     auto net = bb::Sequential::Create();
-	net->Add(bb::DenseAffine<>::Create({ 512 }));
-	net->Add(bb::ReLU<>::Create());
-	net->Add(bb::DenseAffine<>::Create({ 256 }));
-	net->Add(bb::ReLU<>::Create());
-	net->Add(bb::DenseAffine<>::Create({ 1 }));
+	net->Add(bb::RealToBinary<>::Create(mux_size));
+	net->Add(bb::MicroMlp<6, 16>::Create({ 512 }));
+	net->Add(bb::MicroMlp<6, 16>::Create({ 216 }));
+	net->Add(bb::MicroMlp<6, 16>::Create({ 36 }));
+    net->Add(bb::MicroMlp<6, 16>::Create({ 6 }));
+    net->Add(bb::MicroMlp<6, 16>::Create({ 1 }));
+	net->Add(bb::BinaryToReal<>::Create({ 1 }, mux_size));
 
 	net->SetInputShape({ 10 });
 
@@ -88,15 +92,16 @@ void DiabetesAffineRegression(int epoch_size, size_t mini_batch_size)
 	bb::FrameBuffer t(BB_TYPE_FP32, mini_batch_size, { 1 });
 
     bb::Runner<float>::create_t runner_create;
-    runner_create.name      = "DiabetesAffineRegression";
+    runner_create.name      = "DiabetesRegressionBinaryLut";
     runner_create.net       = net;
     runner_create.lossFunc  = bb::LossMeanSquaredError<float>::Create();
     runner_create.accFunc   = bb::AccuracyMeanSquaredError<float>::Create();
-    runner_create.optimizer = bb::OptimizerSgd<float>::Create(0.00001);
-//  runner_create.optimizer = bb::OptimizerAdam<float>::Create();
-	runner_create.serial_write = false;
+	runner_create.optimizer = bb::OptimizerSgd<float>::Create(0.00001);
+//	runner_create.optimizer = bb::OptimizerAdam<float>::Create();
+    runner_create.serial_write = false;
+	runner_create.over_write = true;
 	runner_create.print_progress = false;
-	runner_create.initial_evaluation = true;
+    runner_create.initial_evaluation = true;
     auto runner = bb::Runner<float>::Create(runner_create);
 
     runner->Fitting(td, epoch_size, mini_batch_size);

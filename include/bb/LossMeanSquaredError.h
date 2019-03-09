@@ -72,15 +72,6 @@ public:
 				auto grad = signal - target;
 				auto error = grad * grad;
 
-				if ( std::isnan(signal) || std::isinf(signal)) {
-					std::cout << "signal" << std::endl; }
-				if (std::isnan(target) || std::isinf(target)) {
-					std::cout << "target" << std::endl; }
-				if (std::isnan(grad) || std::isinf(grad)) {
-					std::cout << "grad" << std::endl; }
-				if (std::isnan(error) || std::isinf(error)) {
-					std::cout << "error" << std::endl; }
-
 				dy_ptr.Set(frame, node, grad / (T)frame_size);
 				m_loss += error;
 			}

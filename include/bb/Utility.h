@@ -185,6 +185,68 @@ void ShuffleDataSet(std::uint64_t seed, std::vector<T0>& data0, std::vector<T1>&
 	}
 }
 
+template<typename T=float>
+void TrainDataNormalize(TrainData<T> &td)
+{
+	auto x_size = GetShapeSize(td.x_shape);
+	auto t_size = GetShapeSize(td.t_shape);
+
+	std::vector<T>	x_max(x_size, (T)1.0);
+	std::vector<T>	x_min(x_size, (T)0.0);
+	std::vector<T>	t_max(t_size, (T)1.0);
+	std::vector<T>	t_min(t_size, (T)0.0);
+
+	// 集計
+	for (auto& x : td.x_train) {
+		for (index_t i = 0; i < x_size; ++i) {
+			x_max[i] = std::max(x_max[i], x[i]);
+			x_min[i] = std::min(x_min[i], x[i]);
+		}
+	}
+	for (auto& x : td.x_test) {
+		for (index_t i = 0; i < x_size; ++i) {
+			x_max[i] = std::max(x_max[i], x[i]);
+			x_min[i] = std::min(x_min[i], x[i]);
+		}
+	}
+
+	for (auto& t : td.t_train) {
+		for (index_t i = 0; i < t_size; ++i) {
+			t_max[i] = std::max(t_max[i], t[i]);
+			t_min[i] = std::min(t_min[i], t[i]);
+		}
+	}
+	for (auto& t : td.t_test) {
+		for (index_t i = 0; i < t_size; ++i) {
+			t_max[i] = std::max(t_max[i], t[i]);
+			t_min[i] = std::min(t_min[i], t[i]);
+		}
+	}
+
+	// 正規化
+	for (auto& x : td.x_train) {
+		for (index_t i = 0; i < x_size; ++i) {
+			x[i] = (x[i] - x_min[i]) / (x_max[i] - x_min[i]);
+		}
+	}
+	for (auto& x : td.x_test) {
+		for (index_t i = 0; i < x_size; ++i) {
+			x[i] = (x[i] - x_min[i]) / (x_max[i] - x_min[i]);
+		}
+	}
+
+	for (auto& t : td.t_train) {
+		for (index_t i = 0; i < t_size; ++i) {
+			t[i] = (t[i] - t_min[i]) / (t_max[i] - t_min[i]);
+		}
+	}
+	for (auto& t : td.t_test) {
+		for (index_t i = 0; i < t_size; ++i) {
+			t[i] = (t[i] - t_min[i]) / (t_max[i] - t_min[i]);
+		}
+	}
+}
+
 
 inline void* aligned_memory_alloc(size_t size, size_t align)
 {
