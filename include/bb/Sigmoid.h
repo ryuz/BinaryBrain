@@ -114,7 +114,7 @@ public:
         index_t frame_size = m_x.GetFrameSize();
         index_t node_size = m_x.GetNodeSize();
 
-		auto x_ptr = m_x.GetConstPtr<T>();
+		auto x_ptr = m_x.LockConst<T>();
 		auto y_ptr = m_y.GetPtr<T>();
 
 		// Sigmoid
@@ -150,8 +150,8 @@ public:
         index_t frame_size = m_dx.GetFrameSize();
         index_t node_size = m_dx.GetNodeSize();
 
-	    auto y_ptr  = m_y.GetConstPtr<T>();
-	    auto dy_ptr = dy.GetConstPtr<T>();
+	    auto y_ptr  = m_y.LockConst<T>();
+	    auto dy_ptr = dy.LockConst<T>();
 	    auto dx_ptr = m_dx.GetPtr<T>();
 
         // Sigmoid

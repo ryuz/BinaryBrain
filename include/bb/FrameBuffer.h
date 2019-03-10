@@ -80,7 +80,7 @@ protected:
     
     inline void Lock(void)
     {
-        m_ptr = m_buf->GetMemoryConstPtr();
+        m_ptr = m_buf->LockMemoryConst();
     }
 
     inline void const *GetNodeBaseAddr(index_t node) const
@@ -148,7 +148,7 @@ protected:
 
     inline void Lock(bool new_buf)
     {
-        m_ptr = m_buf->GetMemoryPtr(new_buf);
+        m_ptr = m_buf->LockMemory(new_buf);
     }
 
 protected:
@@ -519,17 +519,17 @@ public:
 
 	index_t GetFrameStride(void)  const { return m_frame_stride; }
 
-    Memory::Ptr         GetMemoryPtr(bool new_buf=false) const    { return m_tensor.GetMemoryPtr(new_buf); }
-    Memory::ConstPtr    GetMemoryConstPtr(void) const             { return m_tensor.GetMemoryConstPtr(); }
-    Memory::DevPtr      GetMemoryDevPtr(bool new_buf=false) const { return m_tensor.GetMemoryDevPtr(new_buf); }
-    Memory::DevConstPtr GetMemoryDevConstPtr(void) const          { return m_tensor.GetMemoryDevConstPtr(); }
+    Memory::Ptr         LockMemory(bool new_buf=false) const    { return m_tensor.LockMemory(new_buf); }
+    Memory::ConstPtr    LockMemoryConst(void) const             { return m_tensor.LockMemoryConst(); }
+    Memory::DevPtr      LockDeviceMemory(bool new_buf=false) const { return m_tensor.LockDeviceMemory(new_buf); }
+    Memory::DevConstPtr LockDeviceMemoryConst(void) const          { return m_tensor.LockDeviceMemoryConst(); }
 
     // 型指定アクセス
    	template <typename MemTp, typename ValueTp>
 	inline ValueTp Get(void const *addr, index_t frame, index_t node) const
 	{
         BB_DEBUG_ASSERT(m_data_type == DataType<MemTp>::type);
-        auto ptr = GetMemoryConstPtr();
+        auto ptr = LockMemoryConst();
 		return static_cast<ValueTp>(DataType_Read<MemTp>(GetNodeBaseAddr(addr, node), frame)); 
 	}
     
@@ -543,7 +543,7 @@ public:
 	inline void Set(void *addr, index_t frame, index_t node, ValueTp value)
 	{
         BB_DEBUG_ASSERT(m_data_type == DataType<MemTp>::type);
-        auto ptr = GetMemoryPtr();
+        auto ptr = LockMemory();
         DataType_Write<MemTp>(GetNodeBaseAddr(addr, node), frame, static_cast<MemTp>(value));
 	}
 
@@ -557,7 +557,7 @@ public:
 	inline void Add(void *addr, index_t frame, index_t node, ValueTp value)
 	{
         BB_DEBUG_ASSERT(m_data_type == DataType<MemTp>::type);
-        auto ptr = GetMemoryPtr();
+        auto ptr = LockMemory();
         DataType_Add<MemTp>(GetNodeBaseAddr(addr, node), frame, static_cast<MemTp>(value));
 	}
 
@@ -735,7 +735,7 @@ public:
     friend FrameBufferPtr_<uint64_t, FrameBuffer, Memory::Ptr>;
 
     template <typename Tp>
-    auto GetConstPtr(void) const
+    auto LockConst(void) const
     {
         FrameBufferConstPtr_<Tp const, FrameBuffer const, Memory::ConstPtr> ptr(this);
         ptr.Lock();
@@ -758,7 +758,7 @@ public:
 	inline ValueTp Get(index_t frame, index_t node) const
 	{
         BB_DEBUG_ASSERT(m_data_type == DataType<MemTp>::type);
-        auto ptr = GetMemoryConstPtr();
+        auto ptr = LockMemoryConst();
 		return static_cast<ValueTp>(DataType_Read<MemTp>(GetNodeBaseAddr(ptr.GetAddr(), node), frame)); 
 	}
     
@@ -772,7 +772,7 @@ public:
 	inline void Set(index_t frame, index_t node, ValueTp value)
 	{
         BB_DEBUG_ASSERT(m_data_type == DataType<MemTp>::type);
-        auto ptr = GetMemoryPtr();
+        auto ptr = LockMemory();
         DataType_Write<MemTp>(GetNodeBaseAddr(ptr.GetAddr(), node), frame, static_cast<MemTp>(value));
 	}
 
@@ -786,7 +786,7 @@ public:
 	inline void Add(index_t frame, index_t node, ValueTp value)
 	{
         BB_DEBUG_ASSERT(m_data_type == DataType<MemTp>::type);
-        auto ptr = GetMemoryPtr();
+        auto ptr = LockMemory();
         DataType_Add<MemTp>(GetNodeBaseAddr(ptr.GetAddr(), node), frame, static_cast<MemTp>(value));
 	}
 
@@ -801,7 +801,7 @@ public:
     template <typename Tp>
 	inline Tp GetValue(index_t frame, index_t node) const
 	{
-        auto ptr = GetMemoryPtr();
+        auto ptr = LockMemory();
         return ReadValue<Tp>(GetNodeBaseAddr(ptr.GetAddr(), node), frame);
 	}
 
@@ -814,7 +814,7 @@ public:
    	template <typename Tp>
 	inline void SetValue(index_t frame, index_t node, Tp value)
 	{
-        auto ptr = GetMemoryPtr();
+        auto ptr = LockMemory();
         WriteValue<Tp>(GetNodeBaseAddr(ptr.GetAddr(), node), frame, value);
 	}
 
@@ -827,7 +827,7 @@ public:
     template <typename Tp>
 	inline void AddValue(index_t frame, index_t node, Tp value)
 	{
-        auto ptr = GetMemoryPtr();
+        auto ptr = LockMemory();
         AddValue<Tp>(GetNodeBaseAddr(ptr.GetAddr(), node), frame, value);
 	}
 
@@ -963,8 +963,8 @@ public:
 
         FrameBuffer buf(m_data_type, size, m_node_shape);
 
-        auto src_ptr = m_tensor.GetMemoryConstPtr();
-        auto dst_ptr = buf.m_tensor.GetMemoryPtr(true);
+        auto src_ptr = m_tensor.LockMemoryConst();
+        auto dst_ptr = buf.m_tensor.LockMemory(true);
         auto src_addr = (std::int8_t const *)src_ptr.GetAddr();
         auto dst_addr = (std::int8_t       *)dst_ptr.GetAddr();
 
@@ -1176,17 +1176,17 @@ std::ostream &operator<<(std::ostream& os, FrameBufferConstPtr_<T const, FrameBu
 inline std::ostream& operator<<(std::ostream& os, FrameBuffer const &buf)
 {
 	switch (buf.GetType()) {
-	case BB_TYPE_BIT:    return os << buf.GetConstPtr<Bit     >();
-	case BB_TYPE_FP32:   return os << buf.GetConstPtr<float   >();
-	case BB_TYPE_FP64:   return os << buf.GetConstPtr<double  >();
-    case BB_TYPE_INT8:   return os << buf.GetConstPtr<int8_t  >();
-	case BB_TYPE_INT16:  return os << buf.GetConstPtr<int16_t >();
-   	case BB_TYPE_INT32:  return os << buf.GetConstPtr<int32_t >();
-	case BB_TYPE_INT64:  return os << buf.GetConstPtr<int64_t >();
-    case BB_TYPE_UINT8:  return os << buf.GetConstPtr<uint8_t >();
-	case BB_TYPE_UINT16: return os << buf.GetConstPtr<uint16_t>();
-   	case BB_TYPE_UINT32: return os << buf.GetConstPtr<uint32_t>();
-	case BB_TYPE_UINT64: return os << buf.GetConstPtr<uint64_t>();
+	case BB_TYPE_BIT:    return os << buf.LockConst<Bit     >();
+	case BB_TYPE_FP32:   return os << buf.LockConst<float   >();
+	case BB_TYPE_FP64:   return os << buf.LockConst<double  >();
+    case BB_TYPE_INT8:   return os << buf.LockConst<int8_t  >();
+	case BB_TYPE_INT16:  return os << buf.LockConst<int16_t >();
+   	case BB_TYPE_INT32:  return os << buf.LockConst<int32_t >();
+	case BB_TYPE_INT64:  return os << buf.LockConst<int64_t >();
+    case BB_TYPE_UINT8:  return os << buf.LockConst<uint8_t >();
+	case BB_TYPE_UINT16: return os << buf.LockConst<uint16_t>();
+   	case BB_TYPE_UINT32: return os << buf.LockConst<uint32_t>();
+	case BB_TYPE_UINT64: return os << buf.LockConst<uint64_t>();
     default:   BB_ASSERT(0);
     }
     return os;

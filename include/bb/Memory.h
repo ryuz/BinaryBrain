@@ -220,22 +220,22 @@ protected:
 #endif
 
 #ifdef BB_WITH_CUDA
-    static void lock(Memory *self)         { BB_ASSERT(self->m_devRefCnt == 0);  self->m_hostRefCnt++; }
-    static void unlock(Memory *self)       { BB_ASSERT(self->m_devRefCnt == 0);  self->m_hostRefCnt--; }
-    static void lockDevice(Memory *self)   { BB_ASSERT(self->m_hostRefCnt == 0); self->m_devRefCnt++; }
-    static void unlockDevice(Memory *self) { BB_ASSERT(self->m_hostRefCnt == 0); self->m_devRefCnt--; }
+    static void GetRef(Memory *self)       { BB_ASSERT(self->m_devRefCnt == 0);  self->m_hostRefCnt++; }
+    static void RelRef(Memory *self)       { BB_ASSERT(self->m_devRefCnt == 0);  self->m_hostRefCnt--; }
+    static void GetRefDevice(Memory *self) { BB_ASSERT(self->m_hostRefCnt == 0); self->m_devRefCnt++; }
+    static void RelRefDevice(Memory *self) { BB_ASSERT(self->m_hostRefCnt == 0); self->m_devRefCnt--; }
 #else
-    static void lock(Memory *self)         { self->m_hostRefCnt++; }
-    static void unlock(Memory *self)       { self->m_hostRefCnt--; }
-    static void lockDevice(Memory *self)   {}
-    static void unlockDevice(Memory *self) {}
+    static void GetRef(Memory *self)       { self->m_hostRefCnt++; }
+    static void RelRef(Memory *self)       { self->m_hostRefCnt--; }
+    static void GetRefDevice(Memory *self) {}
+    static void RelRefDevice(Memory *self) {}
 #endif
 
 public:
-    using ConstPtr    = ConstPtr_<lock, unlock>;                        //< 読み書き可能なHOSTメモリのポインタオブジェクト
-    using Ptr         = Ptr_<ConstPtr, lock, unlock>;                   //< リードオンリーなHOSTメモリのポインタオブジェクト
-    using DevConstPtr = ConstPtr_<&lockDevice, &unlockDevice>;          //< 読み書き可能なDeviceメモリのポインタオブジェクト
-    using DevPtr      = Ptr_<DevConstPtr, &lockDevice, &unlockDevice>;  //< リードオンリーなDeviceTメモリのポインタオブジェクト
+    using ConstPtr    = ConstPtr_<GetRef, RelRef>;						  //< 読み書き可能なHOSTメモリのポインタオブジェクト
+    using Ptr         = Ptr_<ConstPtr, GetRef, RelRef>;                   //< リードオンリーなHOSTメモリのポインタオブジェクト
+    using DevConstPtr = ConstPtr_<&GetRefDevice, &RelRefDevice>;          //< 読み書き可能なDeviceメモリのポインタオブジェクト
+    using DevPtr      = Ptr_<DevConstPtr, &GetRefDevice, &RelRefDevice>;  //< リードオンリーなDeviceTメモリのポインタオブジェクト
 
     friend Ptr;
     friend ConstPtr;
@@ -364,8 +364,8 @@ public:
         }
 
         if (m_hostModified || !IsDeviceAvailable() || clone->IsDeviceAvailable() ) {
-            auto ptr_src = GetConstPtr();
-            auto ptr_dst = clone->GetPtr(true);
+            auto ptr_src = LockConst();
+            auto ptr_dst = clone->Lock(true);
             memcpy(ptr_dst.GetAddr(), ptr_src.GetAddr(), m_size);
         }
         else {
@@ -374,8 +374,8 @@ public:
             BB_CUDA_SAFE_CALL(cudaGetDevice(&device));
             BB_ASSERT(device == m_device);
 
-            auto ptr_src = GetDevConstPtr();
-            auto ptr_dst = clone->GetDevPtr(true);
+            auto ptr_src = LockDeviceConst();
+            auto ptr_dst = clone->LockDevice(true);
             BB_CUDA_SAFE_CALL(cudaMemcpy(ptr_dst.GetAddr(), ptr_src.GetAddr(), m_size, cudaMemcpyDeviceToDevice));
         }
         return clone;
@@ -509,7 +509,7 @@ public:
      * @param  new_buffer true なら古い内容を破棄する
      * @return ホスト側のメモリポインタ
      */
-	Ptr GetPtr(bool new_buffer=false)
+	Ptr Lock(bool new_buffer=false)
 	{
 #ifdef BB_WITH_CUDA
 		if ( m_devAvailable ) {
@@ -548,7 +548,7 @@ public:
      *         メモリ内容が変わらないので便宜上 const とする
      * @return アクセス用に確保したホスト側のメモリポインタ
      */
-	ConstPtr GetConstPtr(void) const
+	ConstPtr LockConst(void) const
 	{
         auto self = const_cast<Memory *>(this);
 
@@ -580,7 +580,7 @@ public:
      * @param  new_buffer true なら古い内容を破棄する
      * @return デバイス側のメモリポインタ
      */
-	DevPtr GetDevPtr(bool new_buffer=false)
+	DevPtr LockDevice(bool new_buffer=false)
 	{
 	#ifdef BB_WITH_CUDA
 		if ( m_devAvailable ) {
@@ -621,7 +621,7 @@ public:
      * @param  new_buffer true なら古い内容を破棄する
      * @return デバイス側のメモリポインタ
      */
-	DevConstPtr GetDevConstPtr(void) const
+	DevConstPtr LockDeviceConst(void) const
 	{
         // 便宜上constをはずす
         auto self = const_cast<Memory *>(this);
@@ -738,31 +738,31 @@ public:
     {
         Op3Ptr op3;
         if ( (dst != src0) && (dst != src1) ) {
-            op3.dst  = dst->GetPtr(true);
-            op3.src0 = src0->GetConstPtr();
+            op3.dst  = dst->Lock(true);
+            op3.src0 = src0->LockConst();
             
             if ( src1 == src0 ) {
                 op3.src1 = op3.src0;
             }
             else {
-                op3.src1 = src1->GetConstPtr();
+                op3.src1 = src1->LockConst();
             }
         }
         else {
-            op3.dst = dst->GetPtr(false);
+            op3.dst = dst->Lock(false);
             
             if (src0 == dst) {
                 op3.src0 = op3.dst;
             }
             else {
-                op3.src0 = src0->GetConstPtr();
+                op3.src0 = src0->LockConst();
             }
 
             if (src1 == dst) {
                 op3.src1 = op3.dst;
             }
             else {
-                op3.src1 = src1->GetConstPtr();
+                op3.src1 = src1->LockConst();
             }
         }
         return op3;
@@ -779,31 +779,31 @@ public:
     {
         DevOp3Ptr op3;
         if ( (dst != src0) && (dst != src1) ) {
-            op3.dst  = dst->GetDevPtr(true);
-            op3.src0 = src0->GetDevConstPtr();
+            op3.dst  = dst->LockDevice(true);
+            op3.src0 = src0->LockDeviceConst();
             
             if ( src1 == src0 ) {
                 op3.src1 = op3.src0;
             }
             else {
-                op3.src1 = src1->GetDevConstPtr();
+                op3.src1 = src1->LockDeviceConst();
             }
         }
         else {
-            op3.dst = dst->GetDevPtr(false);
+            op3.dst = dst->LockDevice(false);
             
             if (src0 == dst) {
                 op3.src0 = op3.dst;
             }
             else {
-                op3.src0 = src0->GetDevConstPtr();
+                op3.src0 = src0->LockDeviceConst();
             }
 
             if (src1 == dst) {
                 op3.src1 = op3.dst;
             }
             else {
-                op3.src1 = src1->GetDevConstPtr();
+                op3.src1 = src1->LockDeviceConst();
             }
         }
         return op3;

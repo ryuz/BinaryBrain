@@ -36,7 +36,7 @@ TEST(ConvolutionCol2ImTest, testConvolutionCol2ImTest)
 
 
     {
-	    auto y_ptr = y_buf.GetConstPtr<float>();
+	    auto y_ptr = y_buf.LockConst<float>();
 	    EXPECT_EQ(0,   y_ptr.Get(0, { 0, 0, 0 }));
 	    EXPECT_EQ(1,   y_ptr.Get(0, { 1, 0, 0 }));
 	    EXPECT_EQ(2,   y_ptr.Get(0, { 2, 0, 0 }));

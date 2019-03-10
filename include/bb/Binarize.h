@@ -90,7 +90,7 @@ public:
         index_t frame_size = m_x.GetFrameSize();
         index_t node_size = m_x.GetNodeSize();
 
-		auto x_ptr = m_x.GetConstPtr<T>();
+		auto x_ptr = m_x.LockConst<T>();
 		auto y_ptr = m_y.GetPtr<T>();
 
 		// Binarize
@@ -121,9 +121,9 @@ public:
         index_t frame_size = m_dx.GetFrameSize();
         index_t node_size = m_dx.GetNodeSize();
 
-		auto x_ptr  = m_x.GetConstPtr<T>();
-		auto y_ptr  = m_y.GetConstPtr<T>();
-		auto dy_ptr = dy.GetConstPtr<T>();
+		auto x_ptr  = m_x.LockConst<T>();
+		auto y_ptr  = m_y.LockConst<T>();
+		auto dy_ptr = dy.LockConst<T>();
 		auto dx_ptr = m_dx.GetPtr<T>();
         
     	// hard-tanh
@@ -167,8 +167,8 @@ inline FrameBuffer Binarize<float>::Forward(FrameBuffer x, bool train)
 #if BB_WITH_CUDA
     if ( !m_host_only && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         // CUDA版
-        auto ptr_x = x.GetMemoryDevConstPtr();
-        auto ptr_y = m_y.GetMemoryDevPtr();
+        auto ptr_x = x.LockDeviceMemoryConst();
+        auto ptr_y = m_y.LockDeviceMemory();
         cubb_fp32_Binarize_Forward(
                     (float const *)ptr_x.GetAddr(),
                     (float *)ptr_y.GetAddr(),
@@ -182,7 +182,7 @@ inline FrameBuffer Binarize<float>::Forward(FrameBuffer x, bool train)
 
     {
         // CPU版
-        auto x_ptr = m_x.GetConstPtr<float>();
+        auto x_ptr = m_x.LockConst<float>();
 	    auto y_ptr = m_y.GetPtr<float>();
 
 #pragma omp parallel for
@@ -217,9 +217,9 @@ inline FrameBuffer Binarize<float>::Backward(FrameBuffer dy)
     #if BB_WITH_CUDA
     if ( !m_host_only && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         // GPU版
-        auto ptr_x  = m_x.GetMemoryDevConstPtr();
-        auto ptr_dy = dy.GetMemoryDevConstPtr();
-        auto ptr_dx = m_dx.GetMemoryDevPtr();
+        auto ptr_x  = m_x.LockDeviceMemoryConst();
+        auto ptr_dy = dy.LockDeviceMemoryConst();
+        auto ptr_dx = m_dx.LockDeviceMemory();
         cubb_fp32_HardTanh_Backward(
                     (float const *)ptr_x.GetAddr(),
                     (float const *)ptr_dy.GetAddr(),
@@ -234,9 +234,9 @@ inline FrameBuffer Binarize<float>::Backward(FrameBuffer dy)
 
     {
         // CPU版
-        auto x_ptr  = m_x.GetConstPtr<float>();
-	    auto y_ptr  = m_y.GetConstPtr<float>();
-	    auto dy_ptr = dy.GetConstPtr<float>();
+        auto x_ptr  = m_x.LockConst<float>();
+	    auto y_ptr  = m_y.LockConst<float>();
+	    auto dy_ptr = dy.LockConst<float>();
 	    auto dx_ptr = m_dx.GetPtr<float>();
 
 #pragma omp parallel for

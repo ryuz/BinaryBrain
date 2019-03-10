@@ -166,8 +166,8 @@ public:
 #ifdef BB_WITH_CUDA
         if ( x.GetType() == BB_TYPE_FP32 && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable())
         {
-            auto ptr_x = x.GetMemoryDevConstPtr();
-            auto ptr_y = m_y.GetMemoryDevPtr();
+            auto ptr_x = x.LockDeviceMemoryConst();
+            auto ptr_y = m_y.LockDeviceMemory();
             cubb_fp32_Im2Col_Forward(
                 (const float *)ptr_x.GetAddr(),
                 (int)m_input_frame_size,
@@ -187,8 +187,8 @@ public:
    		const index_t frame_size = m_y.GetFrameStride() * 8 / DataType<FT>::bit_size;
 		const index_t frame_unit = 256 / DataType<FT>::bit_size;
 
-        auto ptr_x = x.GetMemoryConstPtr();
-        auto ptr_y = m_y.GetMemoryPtr();
+        auto ptr_x = x.LockMemoryConst();
+        auto ptr_y = m_y.LockMemory();
         auto addr_x = ptr_x.GetAddr();
         auto addr_y = ptr_y.GetAddr();
 
@@ -227,8 +227,8 @@ public:
 #ifdef BB_WITH_CUDA
         if ( dy.GetType() == BB_TYPE_FP32 && dy.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && Manager::IsDeviceAvailable())
         {
-            auto ptr_dy = dy.GetMemoryDevConstPtr();
-            auto ptr_dx = m_dx.GetMemoryDevPtr();
+            auto ptr_dy = dy.LockDeviceMemoryConst();
+            auto ptr_dx = m_dx.LockDeviceMemory();
             cubb_fp32_Im2Col_Backward(
                 (float *)ptr_dx.GetAddr(),
                 (int)m_input_frame_size,
@@ -248,8 +248,8 @@ public:
 		const index_t frame_size = dy.GetFrameStride() * 8 / DataType<BT>::bit_size;
 		const index_t frame_unit = 256 / DataType<BT>::bit_size;
 
-        auto ptr_dy = dy.GetMemoryConstPtr();
-        auto ptr_dx = m_dx.GetMemoryPtr();
+        auto ptr_dy = dy.LockMemoryConst();
+        auto ptr_dx = m_dx.LockMemory();
         auto addr_dy = ptr_dy.GetAddr();
         auto addr_dx = ptr_dx.GetAddr();
 

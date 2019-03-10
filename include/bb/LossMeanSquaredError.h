@@ -61,8 +61,8 @@ public:
 
 		m_dy.Resize(DataType<T>::type, y.GetFrameSize(), y.GetShape());
 
-		auto y_ptr = y.GetConstPtr<T>();
-		auto t_ptr = t.GetConstPtr<T>();
+		auto y_ptr = y.LockConst<T>();
+		auto t_ptr = t.LockConst<T>();
 		auto dy_ptr = m_dy.GetPtr<T>();
 
 		for (index_t frame = 0; frame < frame_size; ++frame) {

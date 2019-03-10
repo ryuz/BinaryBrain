@@ -66,7 +66,7 @@ public:
 protected:
     inline void Lock(void)
     {
-        m_ptr = m_tensor->m_mem->GetConstPtr();
+        m_ptr = m_tensor->m_mem->LockConst();
     }
 
     inline Tp const &At(index_t index) const 
@@ -181,7 +181,7 @@ protected:
 
     void Lock(bool new_buf)
     {
-        m_ptr = m_tensor->m_mem->GetPtr(new_buf);
+        m_ptr = m_tensor->m_mem->Lock(new_buf);
     }
 
     inline Tp &At(index_t index) 
@@ -457,7 +457,7 @@ public:
 
     void InitNormalDistribution(double mean = 0.0, double stddev = 1.0, std::uint64_t seed=1)
     {
-        auto ptr  = m_mem->GetPtr(true);
+        auto ptr  = m_mem->Lock(true);
         auto addr = (T *)ptr.GetAddr();
 
         std::mt19937_64 mt(seed);
@@ -472,7 +472,7 @@ public:
     //  アクセス用ポインタ
     // -------------------------------------
 
-    ConstPtr GetConstPtr(void) const
+    ConstPtr LockConst(void) const
     {
         ConstPtr ptr(this);
         ptr.Lock();
@@ -488,7 +488,7 @@ public:
 
     inline bool IsValidValue(void) const
     {
-        auto ptr = GetConstPtr();
+        auto ptr = LockConst();
         for ( index_t i = 0; i < GetSize(); ++i ) {
             if ( !Real_IsValid<T>(ptr[i]) ) {
                 return false;
@@ -509,7 +509,7 @@ public:
 
         SaveIndices(os, m_shape);
         SaveIndices(os, m_stride);
-        auto ptr = m_mem->GetConstPtr();
+        auto ptr = m_mem->LockConst();
         os.write((char const *)ptr.GetAddr(), m_size * DataType<T>::size);
     }
     
@@ -522,7 +522,7 @@ public:
         m_shape  = LoadIndices(is);
         Resize(m_shape);
         m_stride = LoadIndices(is);
-        auto ptr = m_mem->GetPtr(true);
+        auto ptr = m_mem->Lock(true);
         is.read((char *)ptr.GetAddr(), m_size * DataType<T>::size);
     }
 
@@ -536,7 +536,7 @@ public:
 		archive(cereal::make_nvp("shape",    m_shape));
 		archive(cereal::make_nvp("stride", m_stride));
 
-        auto ptr = m_mem->GetConstPtr();
+        auto ptr = m_mem->LockConst();
         std::vector<T> vec(m_size);
         memcpy(&vec[0], (T const *)ptr.GetAddr(), m_size*sizeof(T));
 		archive(cereal::make_nvp("data", vec));
@@ -557,7 +557,7 @@ public:
 		archive(cereal::make_nvp("data", vec));
         BB_ASSERT(m_size == (index_t)vec.size());
 
-        auto ptr = m_mem->GetPtr();
+        auto ptr = m_mem->Lock();
         memcpy(ptr.GetAddr(), &vec[0], m_size*sizeof(T));
 	}
 #endif
@@ -567,10 +567,10 @@ public:
     //  直接アクセス用ポインタ取得
     // -------------------------------------
 
-    Memory::Ptr         GetMemoryPtr(bool new_buf=false)    const { return m_mem->GetPtr(new_buf); }
-    Memory::ConstPtr    GetMemoryConstPtr(void)             const { return m_mem->GetConstPtr(); }
-    Memory::DevPtr      GetMemoryDevPtr(bool new_buf=false) const { return m_mem->GetDevPtr(new_buf); }
-    Memory::DevConstPtr GetMemoryDevConstPtr(void)          const { return m_mem->GetDevConstPtr(); }
+    Memory::Ptr         LockMemory(bool new_buf=false)       const { return m_mem->Lock(new_buf); }
+    Memory::ConstPtr    LockMemoryConst(void)                const { return m_mem->LockConst(); }
+    Memory::DevPtr      LockDeviceMemory(bool new_buf=false) const { return m_mem->LockDevice(new_buf); }
+    Memory::DevConstPtr LockDeviceMemoryConst(void)          const { return m_mem->LockDeviceConst(); }
 
 
     // -------------------------------------
@@ -579,7 +579,7 @@ public:
 
     inline Tensor_& operator=(T src)
 	{
-        auto ptr = m_mem->GetPtr();
+        auto ptr = m_mem->Lock();
         Tensor_Vector_set<T>((T *)ptr.GetAddr(), src, m_size);
 		return *this;
 	}
@@ -646,21 +646,21 @@ public:
 
     inline Tensor_& Sqrt(void)
     {
-        auto ptr = GetMemoryPtr();
+        auto ptr = LockMemory();
         Tensor_Vector_sqrt<T>((T *)ptr.GetAddr(), (const T *)ptr.GetAddr(), m_size);
         return *this;
     }
 
     inline Tensor_& Exp(void)
     {
-        auto ptr = GetMemoryPtr();
+        auto ptr = LockMemory();
         Tensor_Vector_exp<T>((T *)ptr.GetAddr(), (const T *)ptr.GetAddr(), m_size);
         return *this;
     }
 
     inline Tensor_& Clamp(T a, T b)
     {
-        auto ptr = GetMemoryPtr();
+        auto ptr = LockMemory();
         Tensor_Vector_clamp<T>((T *)ptr.GetAddr(), (const T *)ptr.GetAddr(), a, b, m_size);
         return *this;
     }
@@ -668,7 +668,7 @@ public:
     double Sum(void)
     {
         double sum = 0;
-        auto ptr = GetConstPtr();
+        auto ptr = LockConst();
         for ( index_t i = 0; i < GetSize(); ++i ) {
             sum += ptr[i];
         }
@@ -817,8 +817,8 @@ template<typename T>
 inline Tensor_<T> Sqrt(Tensor_<T> const &src)
 {
     Tensor_<T>  dst(src.GetShape());
-    auto src_ptr = src.GetMemoryConstPtr();
-    auto dst_ptr = dst.GetMemoryPtr(true);
+    auto src_ptr = src.LockMemoryConst();
+    auto dst_ptr = dst.LockMemory(true);
     Tensor_Vector_sqrt<T>((T *)dst_ptr.GetAddr(), (const T *)src_ptr.GetAddr(), src.GetSize());
     return dst;
 }
@@ -827,8 +827,8 @@ template<typename T>
 inline Tensor_<T> Exp(Tensor_<T> const &src)
 {
     Tensor_<T>  dst(src.GetShape());
-    auto src_ptr = src.GetMemoryConstPtr();
-    auto dst_ptr = dst.GetMemoryPtr(true);
+    auto src_ptr = src.LockMemoryConst();
+    auto dst_ptr = dst.LockMemory(true);
     Tensor_Vector_exp<T>((T *)dst_ptr.GetAddr(), (T const *)src_ptr.GetAddr(), src.GetSize());
     return dst;
 }
@@ -837,8 +837,8 @@ template<typename T>
 inline Tensor_<T> Clamp(Tensor_<T> const &src, T a, T b)
 {
     Tensor_<T>  dst(src.GetShape());
-    auto src_ptr = src.GetMemoryConstPtr();
-    auto dst_ptr = dst.GetMemoryPtr(true);
+    auto src_ptr = src.LockMemoryConst();
+    auto dst_ptr = dst.LockMemory(true);
     Tensor_Vector_clamp<T>((T *)dst_ptr.GetAddr(), (T const *)src_ptr.GetAddr(), a, b, src.GetSize());
     return dst;
 }
@@ -847,7 +847,7 @@ inline Tensor_<T> Clamp(Tensor_<T> const &src, T a, T b)
 template<typename T>
 std::ostream& operator<<(std::ostream& os, const Tensor_<T>& t)
 {
-    auto ptr = t.GetConstPtr();
+    auto ptr = t.LockConst();
     os << "[";
     for ( index_t i = 0; i < t.GetSize(); ++i ) {
         os << ptr[i] << ", ";
@@ -1242,15 +1242,15 @@ inline Tensor_<float> Tensor_<float>::Sqrt(void)
 
     // CUDA
     if ( dst.m_mem->IsDeviceAvailable() && dst.m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
-        auto src_ptr = GetMemoryDevConstPtr();
-        auto dst_ptr = dst.GetMemoryDevPtr(true);
+        auto src_ptr = LockDeviceMemoryConst();
+        auto dst_ptr = dst.LockDeviceMemory(true);
         bbcu_fp32_Vector_sqrt((float *)dst_ptr.GetAddr(), (const float *)src_ptr.GetAddr(), (int)m_size);
         return dst;
     }
     
     // CPU
-    auto src_ptr = GetMemoryConstPtr();
-    auto dst_ptr = dst.GetMemoryPtr(true);
+    auto src_ptr = LockMemoryConst();
+    auto dst_ptr = dst.LockMemory(true);
     Tensor_Vector_sqrt<float>((float *)dst_ptr.GetAddr(), (const float *)src_ptr.GetAddr(), m_size);
     return dst;
 }
@@ -1262,15 +1262,15 @@ inline Tensor_<float> Tensor_<float>::Exp(void)
 
     // CUDA
     if ( dst.m_mem->IsDeviceAvailable() && dst.m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
-        auto src_ptr = GetMemoryDevConstPtr();
-        auto dst_ptr = dst.GetMemoryDevPtr(true);
+        auto src_ptr = LockDeviceMemoryConst();
+        auto dst_ptr = dst.LockDeviceMemory(true);
         bbcu_fp32_Vector_sqrt((float *)dst_ptr.GetAddr(), (const float *)src_ptr.GetAddr(), (int)m_size);
         return dst;
     }
     
     // CPU
-    auto src_ptr = GetMemoryConstPtr();
-    auto dst_ptr = dst.GetMemoryPtr(true);
+    auto src_ptr = LockMemoryConst();
+    auto dst_ptr = dst.LockMemory(true);
     Tensor_Vector_exp<float>((float *)dst_ptr.GetAddr(), (float const *)src_ptr.GetAddr(), m_size);
     return dst;
 }
@@ -1283,15 +1283,15 @@ inline Tensor_<float> Tensor_<float>::Clamp(float a, float b)
 
     // CUDA
     if ( dst.m_mem->IsDeviceAvailable() && dst.m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
-        auto src_ptr = GetMemoryDevConstPtr();
-        auto dst_ptr = dst.GetMemoryDevPtr(true);
+        auto src_ptr = LockDeviceMemoryConst();
+        auto dst_ptr = dst.LockDeviceMemory(true);
         bbcu_fp32_Vector_clamp((float *)dst_ptr.GetAddr(), (const float *)src_ptr.GetAddr(), a, b, (int)m_size);
         return dst;
     }
     
     // CPU
-    auto src_ptr = GetMemoryConstPtr();
-    auto dst_ptr = dst.GetMemoryPtr(true);
+    auto src_ptr = LockMemoryConst();
+    auto dst_ptr = dst.LockMemory(true);
     Tensor_Vector_clamp<float>((float *)dst_ptr.GetAddr(), (float const *)src_ptr.GetAddr(), a, b, m_size);
     return dst;
 }
@@ -1403,8 +1403,8 @@ public:
         }
         else {
             Tensor_<Tp> tensor(m_shape);
-            auto src = m_mem->GetConstPtr();
-            auto dst = tensor.m_mem->GetPtr(true);
+            auto src = m_mem->LockConst();
+            auto dst = tensor.m_mem->Lock(true);
             switch ( m_type ) {
             case BB_TYPE_FP32:   for (index_t i = 0; i < m_size; ++i){ dst. template At<Tp>(i) = static_cast<Tp>(src. template At<float>(i));         } break;
             case BB_TYPE_FP64:   for (index_t i = 0; i < m_size; ++i){ dst. template At<Tp>(i) = static_cast<Tp>(src. template At<double>(i));        } break;
@@ -1426,8 +1426,8 @@ public:
 	{
 		Tensor tensor(m_type, m_shape);
 
-        auto src_ptr = m_mem->GetConstPtr();
-        auto dst_ptr = tensor.m_mem->GetPtr(true);
+        auto src_ptr = m_mem->LockConst();
+        auto dst_ptr = tensor.m_mem->Lock(true);
 		memcpy(dst_ptr.GetAddr(), src_ptr.GetAddr(), m_mem->GetSize());
 
 		tensor.m_type = m_type;
@@ -1678,7 +1678,7 @@ public:
     // -------------------------------------
 
     template <typename Tp>
-    TensorConstPtr_<Tp, Tensor const, Memory::ConstPtr> GetConstPtr(void) const
+    TensorConstPtr_<Tp, Tensor const, Memory::ConstPtr> LockConst(void) const
     {
         TensorConstPtr_<Tp, Tensor const, Memory::ConstPtr> ptr(this);
         ptr.Lock();
@@ -1701,10 +1701,10 @@ public:
 
     // CUDAやSIMDでガリガリやる場合はこちらから取得
 
-    Memory::Ptr         GetMemoryPtr(bool new_buf=false) const      { return m_mem->GetPtr(new_buf); }
-    Memory::ConstPtr    GetMemoryConstPtr(void) const               { return m_mem->GetConstPtr(); }
-    Memory::DevPtr      GetMemoryDevPtr(bool new_buf=false) const   { return m_mem->GetDevPtr(new_buf); }
-    Memory::DevConstPtr GetMemoryDevConstPtr(void) const            { return m_mem->GetDevConstPtr(); }
+    Memory::Ptr         LockMemory(bool new_buf=false) const       { return m_mem->Lock(new_buf); }
+    Memory::ConstPtr    LockMemoryConst(void) const                { return m_mem->LockConst(); }
+    Memory::DevPtr      LockDeviceMemory(bool new_buf=false) const { return m_mem->LockDevice(new_buf); }
+    Memory::DevConstPtr LockDeviceMemoryConst(void) const          { return m_mem->LockDeviceConst(); }
     
         
 

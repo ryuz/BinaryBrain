@@ -145,7 +145,7 @@ public:
     bool GetLutInput(index_t frame, index_t node, int bitpos) const
     {
         auto input_node = GetNodeInput(node, (index_t)bitpos);
-        auto ptr = m_x.GetConstPtr<FT>();
+        auto ptr = m_x.LockConst<FT>();
         return ptr.Get(frame, input_node);
     }
     
@@ -220,7 +220,7 @@ public:
 
 
     	{
-            auto x_ptr = x.GetConstPtr<FT>();
+            auto x_ptr = x.LockConst<FT>();
             auto y_ptr = m_y.GetPtr<FT>();
 
             index_t frame_size = x.GetFrameSize();

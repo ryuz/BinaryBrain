@@ -149,7 +149,7 @@ public:
 void printBuffer(std::ostream &os, std::string name, bb::FrameBuffer buf)
 {
     os << name << " =\n";
-    auto ptr = buf.GetConstPtr<float>();
+    auto ptr = buf.LockConst<float>();
 //  for (int f = 0; f < 3; f++) {
     for (int f = 0; f < buf.GetFrameSize(); f++) {
 //      for (int i = 0; i < 10; i++) {

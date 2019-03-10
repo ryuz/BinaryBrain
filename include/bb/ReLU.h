@@ -119,7 +119,7 @@ public:
         index_t frame_size = m_x.GetFrameSize();
         index_t node_size = m_x.GetNodeSize();
 
-		auto x_ptr = m_x.template GetConstPtr<T>();
+		auto x_ptr = m_x.template LockConst<T>();
 		auto y_ptr = m_y.template GetPtr<T>();
 
 		// ReLU
@@ -155,8 +155,8 @@ public:
         index_t frame_size = m_dx.GetFrameSize();
         index_t node_size = m_dx.GetNodeSize();
 
-		auto y_ptr  = m_y.template GetConstPtr<T>();
-		auto dy_ptr = dy.template GetConstPtr<T>();
+		auto y_ptr  = m_y.template LockConst<T>();
+		auto dy_ptr = dy.template LockConst<T>();
 		auto dx_ptr = m_dx.template GetPtr<T>();
 
         // ReLU
@@ -204,8 +204,8 @@ inline FrameBuffer ReLU<float>::Forward(FrameBuffer x, bool train)
 #if BB_WITH_CUDA
     if ( !m_host_only && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         // CUDA版
-        auto ptr_x = x.GetMemoryDevConstPtr();
-        auto ptr_y = m_y.GetMemoryDevPtr();
+        auto ptr_x = x.LockDeviceMemoryConst();
+        auto ptr_y = m_y.LockDeviceMemory();
         cubb_fp32_ReLU_Forward(
                     (float const *)ptr_x.GetAddr(),
                     (float *)ptr_y.GetAddr(),
@@ -219,7 +219,7 @@ inline FrameBuffer ReLU<float>::Forward(FrameBuffer x, bool train)
 
     {
         // AVX版
-        auto x_ptr = m_x.GetConstPtr<float>();
+        auto x_ptr = m_x.LockConst<float>();
 	    auto y_ptr = m_y.GetPtr<float>();
 
 		index_t  m256_frame_size = (int)(((frame_size + 7) / 8) * 8);
@@ -263,9 +263,9 @@ inline FrameBuffer ReLU<float>::Backward(FrameBuffer dy)
 #if BB_WITH_CUDA
     if ( !m_host_only && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         // GPU版
-        auto ptr_x  = m_x.GetMemoryDevConstPtr();
-        auto ptr_dy = dy.GetMemoryDevConstPtr();
-        auto ptr_dx = m_dx.GetMemoryDevPtr();
+        auto ptr_x  = m_x.LockDeviceMemoryConst();
+        auto ptr_dy = dy.LockDeviceMemoryConst();
+        auto ptr_dx = m_dx.LockDeviceMemory();
         cubb_fp32_ReLU_Backward(
                     (float const *)ptr_x.GetAddr(),
                     (float const *)ptr_dy.GetAddr(),
@@ -280,9 +280,9 @@ inline FrameBuffer ReLU<float>::Backward(FrameBuffer dy)
 
     {
         // AVX
-	    auto x_ptr  = m_x.GetConstPtr<float>();
-	    auto y_ptr  = m_y.GetConstPtr<float>();
-	    auto dy_ptr = dy.GetConstPtr<float>();
+	    auto x_ptr  = m_x.LockConst<float>();
+	    auto y_ptr  = m_y.LockConst<float>();
+	    auto dy_ptr = dy.LockConst<float>();
 	    auto dx_ptr = m_dx.GetPtr<float>();
 
         index_t  m256_frame_size = (int)(((frame_size + 7) / 8) * 8);

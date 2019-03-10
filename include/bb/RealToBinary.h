@@ -140,7 +140,7 @@ public:
 		index_t node_size        = x.GetNodeSize();
 		index_t input_frame_size = x.GetFrameSize();
 
-        auto x_ptr = x.GetConstPtr<FXT>();
+        auto x_ptr = x.LockConst<FXT>();
         auto y_ptr = m_y.GetPtr<FYT>();
 
         FXT th_step = (m_input_range_hi - m_input_range_lo) / (FXT)(m_frame_mux_size + 1);
@@ -191,7 +191,7 @@ public:
 
         m_dx.FillZero();
 
-        auto dy_ptr = dy.GetConstPtr<BT>();
+        auto dy_ptr = dy.LockConst<BT>();
         auto dx_ptr = m_dx.GetPtr<BT>();
 
 		for (index_t node = 0; node < node_size; node++) {

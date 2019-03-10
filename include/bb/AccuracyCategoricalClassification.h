@@ -62,8 +62,8 @@ public:
 
         m_frames += frame_size;
 
-        auto y_ptr  = y.GetConstPtr<T>();
-        auto t_ptr  = t.GetConstPtr<T>();
+        auto y_ptr  = y.LockConst<T>();
+        auto t_ptr  = t.LockConst<T>();
  
 		for (index_t frame = 0; frame < frame_size; ++frame) {
 			index_t	max_node = 0;

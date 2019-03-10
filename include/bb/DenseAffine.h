@@ -131,14 +131,14 @@ public:
 	Tensor const &db(void) const { return *m_db; }
 
 	auto lock_W(void)             { return m_W->GetPtr<T>(); }
-	auto lock_W_const(void) const { return m_W->GetConstPtr<T>(); }
+	auto lock_W_const(void) const { return m_W->LockConst<T>(); }
 	auto lock_b(void)             { return m_b->GetPtr<T>(); }
-	auto lock_b_const(void) const { return m_b->GetConstPtr<T>(); }
+	auto lock_b_const(void) const { return m_b->LockConst<T>(); }
 
 	auto lock_dW(void)             { return m_dW->GetPtr<T>(); }
-	auto lock_dW_const(void) const { return m_dW->GetConstPtr<T>(); }
+	auto lock_dW_const(void) const { return m_dW->LockConst<T>(); }
 	auto lock_db(void)             { return m_db->GetPtr<T>(); }
-	auto lock_db_const(void) const { return m_db->GetConstPtr<T>(); }
+	auto lock_db_const(void) const { return m_db->LockConst<T>(); }
 
 
   /**
@@ -233,7 +233,7 @@ public:
         m_y.Resize(DataType<T>::type, m_x.GetFrameSize(), m_output_shape);
 
         {
-            auto x_ptr = m_x.GetConstPtr<T>();
+            auto x_ptr = m_x.LockConst<T>();
             auto y_ptr = m_y.GetPtr<T>();
             auto W_ptr = lock_W_const();
             auto b_ptr = lock_b_const();
@@ -253,8 +253,8 @@ public:
 
 
         if ( 0 ) {
-            auto x_ptr = m_x.GetMemoryConstPtr();
-            auto y_ptr = m_y.GetMemoryPtr();
+            auto x_ptr = m_x.LockMemoryConst();
+            auto y_ptr = m_y.LockMemory();
             auto W_ptr = lock_W_const();
             auto b_ptr = lock_b_const();
 
@@ -288,8 +288,8 @@ public:
         m_db->FillZero();
 
         {
-            auto x_ptr  = m_x.GetConstPtr<T>();
-            auto dy_ptr = dy.GetConstPtr<T>();
+            auto x_ptr  = m_x.LockConst<T>();
+            auto dy_ptr = dy.LockConst<T>();
             auto dx_ptr = m_dx.GetPtr<T>();
             auto W_ptr  = lock_W_const();
             auto b_ptr  = lock_b_const();

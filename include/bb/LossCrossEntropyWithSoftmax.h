@@ -60,9 +60,9 @@ public:
 
         m_dy.Resize(y.GetType(), y.GetFrameSize(), y.GetShape());
 
-        auto y_ptr  = y.GetMemoryConstPtr();
-        auto t_ptr  = t.GetMemoryConstPtr();
-        auto dy_ptr = m_dy.GetMemoryPtr(true);
+        auto y_ptr  = y.LockMemoryConst();
+        auto t_ptr  = t.LockMemoryConst();
+        auto dy_ptr = m_dy.LockMemory(true);
 
 		MatMap y_mat ((T*)y_ptr.GetAddr(),  frame_size, node_size, Stride(stride_size, 1));
 		MatMap t_mat ((T*)t_ptr.GetAddr(),  frame_size, node_size, Stride(stride_size, 1));

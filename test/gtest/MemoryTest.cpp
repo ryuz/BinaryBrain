@@ -11,13 +11,13 @@ TEST(MemoryTest, testMem)
 {
 	{
 		auto mem = bb::Memory::Create(1024, true);
-		mem->GetPtr();
+		mem->Lock();
         EXPECT_TRUE(mem->IsHostOnly());
         EXPECT_FALSE(mem->IsDeviceAvailable());
 		mem->IsDeviceAvailable();
 
-        auto wp = mem->GetPtr();
-        auto rp = mem->GetConstPtr();
+        auto wp = mem->Lock();
+        auto rp = mem->LockConst();
 
 //      bb::Memory::ConstPtr rr(wp.GetConst());
 //      bb::Memory::ConstPtr rr = (bb::Memory::ConstPtr)wp;
@@ -26,18 +26,18 @@ TEST(MemoryTest, testMem)
 
 	{
 		auto mem = bb::Memory::Create(1024);
-		mem->GetPtr();
+		mem->Lock();
         if ( mem->IsDeviceAvailable() ) {
-            mem->GetDevPtr();
+            mem->LockDevice();
         }
         mem->IsDeviceAvailable();
 	}
 
 	{
 		auto mem = bb::Memory::Create(1024, false);
-		mem->GetPtr();
+		mem->Lock();
         if ( mem->IsDeviceAvailable() ) {
-    		mem->GetDevPtr();
+    		mem->LockDevice();
         }
 		mem->IsDeviceAvailable();
 	}
@@ -74,42 +74,42 @@ TEST(MemoryTest, testHostOnly)
 	{
 		auto mem = bb::Memory::Create(4);
 
-        mem->GetPtr();
+        mem->Lock();
         if ( mem->IsDeviceAvailable() ) {
-            mem->GetDevPtr();
+            mem->LockDeviceConst();
         }
         
         mem->SetHostOnly(true);
         
-        mem->GetPtr();
+        mem->Lock();
         if ( mem->IsDeviceAvailable() ) {
-            mem->GetDevPtr();
+            mem->LockDeviceConst();
         }
-        mem->GetPtr();
+        mem->Lock();
         
         mem->SetHostOnly(false);
 
-        mem->GetPtr();
+        mem->Lock();
         if ( mem->IsDeviceAvailable() ) {
-            mem->GetDevPtr();
+            mem->LockDeviceConst();
         }
-        mem->GetPtr();
+        mem->Lock();
 
         mem->SetHostOnly(true);
         
-        mem->GetPtr();
+        mem->Lock();
         if ( mem->IsDeviceAvailable() ) {
-            mem->GetDevPtr();
+            mem->LockDeviceConst();
         }
-        mem->GetPtr();
+        mem->Lock();
         
         mem->SetHostOnly(false);
 
-        mem->GetPtr();
+        mem->Lock();
         if ( mem->IsDeviceAvailable() ) {
-            mem->GetDevPtr();
+            mem->LockDeviceConst();
         }
-        mem->GetPtr();
+        mem->Lock();
     }
 }
 

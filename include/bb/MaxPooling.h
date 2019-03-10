@@ -150,7 +150,7 @@ public:
 #if 0
         if ( DataType<FT>::type == BB_TYPE_BIT ) {
 			// バイナリ用実装
-            auto x_ptr = m_x.GetConstPtr();
+            auto x_ptr = m_x.LockConst();
             auto y_ptr = m_y.GetPtr(true);
 
 			index_t  m256_frame_size = m_y.GetFrameStride() / 256;
@@ -184,7 +184,7 @@ public:
 
         if ( DataType<FT>::type == BB_TYPE_FP32 ) {
 			// float用実装
-            auto x_ptr = m_x.GetConstPtr<FT>();
+            auto x_ptr = m_x.LockConst<FT>();
             auto y_ptr = m_y.GetPtr<FT>(true);
 
 			index_t  m256_frame_size = (int)m_y.GetFrameStride() / 8;
@@ -233,9 +233,9 @@ public:
 			// float用実装
 			index_t  m256_frame_size = m_dx.GetFrameStride() / 8;
 
-            auto x_ptr  = m_x.GetConstPtr<FT>();
-            auto y_ptr  = m_y.GetConstPtr<FT>();
-            auto dy_ptr = dy.GetConstPtr<BT>();
+            auto x_ptr  = m_x.LockConst<FT>();
+            auto y_ptr  = m_y.LockConst<FT>();
+            auto dy_ptr = dy.LockConst<BT>();
             auto dx_ptr = m_dx.GetPtr<BT>();
 
 			#pragma omp parallel for

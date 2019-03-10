@@ -244,25 +244,25 @@ public:
 
 
    	auto lock_InputIndex(void)             { return m_input_index.GetPtr(); }
-	auto lock_InputIndex_const(void) const { return m_input_index.GetConstPtr(); }
+	auto lock_InputIndex_const(void) const { return m_input_index.LockConst(); }
 
 	auto lock_W0(void)             { return m_W0->GetPtr<T>(); }
-	auto lock_W0_const(void) const { return m_W0->GetConstPtr<T>(); }
+	auto lock_W0_const(void) const { return m_W0->LockConst<T>(); }
 	auto lock_b0(void)             { return m_b0->GetPtr<T>(); }
-	auto lock_b0_const(void) const { return m_b0->GetConstPtr<T>(); }
+	auto lock_b0_const(void) const { return m_b0->LockConst<T>(); }
 	auto lock_W1(void)             { return m_W1->GetPtr<T>(); }
-	auto lock_W1_const(void) const { return m_W1->GetConstPtr<T>(); }
+	auto lock_W1_const(void) const { return m_W1->LockConst<T>(); }
 	auto lock_b1(void)             { return m_b1->GetPtr<T>(); }
-	auto lock_b1_const(void) const { return m_b1->GetConstPtr<T>(); }
+	auto lock_b1_const(void) const { return m_b1->LockConst<T>(); }
 
 	auto lock_dW0(void)             { return m_dW0->GetPtr<T>(); }
-	auto lock_dW0_const(void) const { return m_dW0->GetConstPtr<T>(); }
+	auto lock_dW0_const(void) const { return m_dW0->LockConst<T>(); }
 	auto lock_db0(void)             { return m_db0->GetPtr<T>(); }
-	auto lock_db0_const(void) const { return m_db0->GetConstPtr<T>(); }
+	auto lock_db0_const(void) const { return m_db0->LockConst<T>(); }
 	auto lock_dW1(void)             { return m_dW1->GetPtr<T>(); }
-	auto lock_dW1_const(void) const { return m_dW1->GetConstPtr<T>(); }
+	auto lock_dW1_const(void) const { return m_dW1->LockConst<T>(); }
 	auto lock_db1(void)             { return m_db1->GetPtr<T>(); }
-	auto lock_db1_const(void) const { return m_db1->GetConstPtr<T>(); }
+	auto lock_db1_const(void) const { return m_db1->LockConst<T>(); }
 
 
     index_t GetNodeInputSize(index_t node) const
@@ -496,9 +496,9 @@ protected:
         BB_ASSERT(x.GetType() == DataType<T>::type);
 
         auto frame_size = m_x.GetFrameSize();
-        auto x_ptr = x.GetConstPtr<T>();
+        auto x_ptr = x.LockConst<T>();
         auto y_ptr = m_y.GetPtr<T>();
-        auto input_index_ptr = m_input_index.GetConstPtr();
+        auto input_index_ptr = m_input_index.LockConst();
         auto W0_ptr = lock_W0_const();
         auto b0_ptr = lock_b0_const();
         auto W1_ptr = lock_W1_const();
@@ -543,9 +543,9 @@ protected:
 		const index_t   frame_size = m_x.GetFrameStride() / sizeof(float);
 		const __m256	zero = _mm256_set1_ps(0);
 
-        auto x_ptr = m_x.GetMemoryConstPtr();
-        auto y_ptr = m_y.GetMemoryPtr();
-        auto input_index_ptr = m_input_index.GetConstPtr();
+        auto x_ptr = m_x.LockMemoryConst();
+        auto y_ptr = m_y.LockMemory();
+        auto input_index_ptr = m_input_index.LockConst();
         auto W0_ptr = lock_W0_const();
         auto b0_ptr = lock_b0_const();
         auto W1_ptr = lock_W1_const();
@@ -610,13 +610,13 @@ protected:
         m_y.Resize(DataType<T>::type, frame_size, m_output_shape);
 
         // CUDA版
-        auto input_index_ptr = m_input_index.GetMemoryDevConstPtr();
-        auto x_ptr  = m_x.GetMemoryDevConstPtr();
-        auto y_ptr  = m_y.GetMemoryDevPtr();
-        auto W0_ptr = m_W0->GetMemoryDevConstPtr();
-        auto b0_ptr = m_b0->GetMemoryDevConstPtr();
-        auto W1_ptr = m_W1->GetMemoryDevConstPtr();
-        auto b1_ptr = m_b1->GetMemoryDevConstPtr();
+        auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
+        auto x_ptr  = m_x.LockDeviceMemoryConst();
+        auto y_ptr  = m_y.LockDeviceMemory();
+        auto W0_ptr = m_W0->LockDeviceMemoryConst();
+        auto b0_ptr = m_b0->LockDeviceMemoryConst();
+        auto W1_ptr = m_W1->LockDeviceMemoryConst();
+        auto b1_ptr = m_b1->LockDeviceMemoryConst();
         bbcu_fp32_MicroMlp6x16_Forward
     		(
                 (const float *)x_ptr.GetAddr(),
@@ -642,11 +642,11 @@ protected:
 
    		m_dx.FillZero();
 
-        auto dy_ptr = dy.GetMemoryConstPtr();
-        auto dx_ptr = m_dx.GetMemoryPtr();
-        auto x_ptr  = m_x.GetMemoryConstPtr();
+        auto dy_ptr = dy.LockMemoryConst();
+        auto dx_ptr = m_dx.LockMemory();
+        auto x_ptr  = m_x.LockMemoryConst();
 
-        auto input_index_ptr = m_input_index.GetConstPtr();
+        auto input_index_ptr = m_input_index.LockConst();
         auto W0_ptr = lock_W0_const();
         auto b0_ptr = lock_b0_const();
         auto W1_ptr = lock_W1_const();
@@ -781,23 +781,23 @@ protected:
     void BackwardCudaFP32(FrameBuffer const &dy)
     {
         // CUDA版
-        auto input_index_ptr = m_input_index.GetMemoryDevConstPtr();
-        auto x_ptr  = m_x.GetMemoryDevConstPtr();
-        auto y_ptr  = m_y.GetMemoryDevConstPtr();
-        auto dx_ptr = m_dx.GetMemoryDevPtr();
-        auto dy_ptr = dy.GetMemoryDevConstPtr();
-        auto W0_ptr = m_W0->GetMemoryDevConstPtr();
-        auto b0_ptr = m_b0->GetMemoryDevConstPtr();
-        auto W1_ptr = m_W1->GetMemoryDevConstPtr();
-        auto b1_ptr = m_b1->GetMemoryDevConstPtr();
-        auto dW0_ptr = m_dW0->GetMemoryDevPtr();
-        auto db0_ptr = m_db0->GetMemoryDevPtr();
-        auto dW1_ptr = m_dW1->GetMemoryDevPtr();
-        auto db1_ptr = m_db1->GetMemoryDevPtr();
+        auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
+        auto x_ptr  = m_x.LockDeviceMemoryConst();
+        auto y_ptr  = m_y.LockDeviceMemoryConst();
+        auto dx_ptr = m_dx.LockDeviceMemory();
+        auto dy_ptr = dy.LockDeviceMemoryConst();
+        auto W0_ptr = m_W0->LockDeviceMemoryConst();
+        auto b0_ptr = m_b0->LockDeviceMemoryConst();
+        auto W1_ptr = m_W1->LockDeviceMemoryConst();
+        auto b1_ptr = m_b1->LockDeviceMemoryConst();
+        auto dW0_ptr = m_dW0->LockDeviceMemory();
+        auto db0_ptr = m_db0->LockDeviceMemory();
+        auto dW1_ptr = m_dW1->LockDeviceMemory();
+        auto db1_ptr = m_db1->LockDeviceMemory();
 
         m_dx_tmp.Resize(BB_TYPE_FP32, dy.GetFrameSize(), m_output_node_size * N);
         m_dx_tmp.FillZero();
-        auto dx_tmp_ptr = m_dx_tmp.GetMemoryDevPtr();
+        auto dx_tmp_ptr = m_dx_tmp.LockDeviceMemory();
 
         bbcu_fp32_MicroMlp6x16_Backward
             (

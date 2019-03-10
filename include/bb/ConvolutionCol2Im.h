@@ -115,7 +115,7 @@ public:
         m_y.Resize(DataType<FT>::type, output_frame_size, indices_t({m_w_size, m_h_size, m_c_size}));
 
         {
-            auto x_ptr = x.GetConstPtr<FT>();
+            auto x_ptr = x.LockConst<FT>();
             auto y_ptr = m_y.GetPtr<FT>(true);
 		    index_t input_frame = 0;
 		    for (index_t output_frame = 0; output_frame < output_frame_size; ++output_frame) {
@@ -145,7 +145,7 @@ public:
         m_dx.Resize(DataType<BT>::type, input_frame_size, m_c_size);
         
         {
-		    auto dy_ptr = dy.GetConstPtr<BT>();
+		    auto dy_ptr = dy.LockConst<BT>();
 		    auto dx_ptr = m_dx.GetPtr<BT>(true);
 
 		    index_t input_frame = 0;

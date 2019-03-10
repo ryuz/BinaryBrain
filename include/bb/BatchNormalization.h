@@ -144,17 +144,17 @@ public:
 
 
     auto lock_gamma(void)              { return m_gamma->GetPtr<T>(); }
-    auto lock_gamma_const(void)  const { return m_gamma->GetConstPtr<T>(); }
+    auto lock_gamma_const(void)  const { return m_gamma->LockConst<T>(); }
     auto lock_beta(void)               { return m_beta->GetPtr<T>(); }
-    auto lock_beta_const(void)   const { return m_beta->GetConstPtr<T>(); }
+    auto lock_beta_const(void)   const { return m_beta->LockConst<T>(); }
     auto lock_dgamma(void)             { return m_dgamma->GetPtr<T>(); }
-    auto lock_dgamma_const(void) const { return m_dgamma->GetConstPtr<T>(); }
+    auto lock_dgamma_const(void) const { return m_dgamma->LockConst<T>(); }
     auto lock_dbeta(void)              { return m_dbeta->GetPtr<T>(); }
-    auto lock_dbeta_const(void)  const { return m_dbeta->GetConstPtr<T>(); }
+    auto lock_dbeta_const(void)  const { return m_dbeta->LockConst<T>(); }
     auto lock_mean(void)               { return m_running_mean.GetPtr(); }
-    auto lock_mean_const(void)   const { return m_running_mean.GetConstPtr(); }
+    auto lock_mean_const(void)   const { return m_running_mean.LockConst(); }
     auto lock_var(void)                { return m_running_var.GetPtr(); }
-    auto lock_var_const(void)    const { return m_running_var.GetConstPtr(); }
+    auto lock_var_const(void)    const { return m_running_var.LockConst(); }
 
 
     /**
@@ -224,8 +224,8 @@ public:
 
         auto gamma_ptr        = lock_gamma_const();
         auto beta_ptr         = lock_beta_const();
-        auto running_mean_ptr = m_running_mean.GetConstPtr();
-        auto running_var_ptr  = m_running_var.GetConstPtr();
+        auto running_mean_ptr = m_running_mean.LockConst();
+        auto running_var_ptr  = m_running_var.LockConst();
 
         std::vector<T> y_vec(x_vec.size());
 		for (size_t i = 0; i < x_vec.size(); ++i) {
@@ -257,7 +257,7 @@ public:
         
         const int	mm256_frame_size = ((int)frame_size + 7) / 8 * 8;
 
-        auto x_buf_ptr = m_x.GetConstPtr<T>();
+        auto x_buf_ptr = m_x.LockConst<T>();
         auto y_buf_ptr = m_y.GetPtr<T>();
 
         auto gamma_ptr        = lock_gamma_const();
@@ -386,10 +386,10 @@ public:
 //		auto in_err_buf = this->GetInputErrorBuffer();
 //		auto out_err_buf = this->GetOutputErrorBuffer();
 
-        auto x_buf_ptr  = m_x.GetConstPtr<T>();
-        auto y_buf_ptr  = m_y.GetConstPtr<T>();
+        auto x_buf_ptr  = m_x.LockConst<T>();
+        auto y_buf_ptr  = m_y.LockConst<T>();
         auto dx_buf_ptr = m_dx.GetPtr<T>();
-        auto dy_buf_ptr = dy.GetConstPtr<T>();
+        auto dy_buf_ptr = dy.LockConst<T>();
 
         #pragma omp parallel for
         for (int node = 0; node < (int)m_node_size; ++node) {

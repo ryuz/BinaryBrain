@@ -87,7 +87,7 @@ TEST(MicroMlpAffineTest, testMicroMlpAffine)
     bb::FrameBuffer x(BB_TYPE_FP32, 1, 6);
 
     auto x_ptr = x.GetPtr<float>();
-    auto x_cptr = x.GetConstPtr<float>();
+    auto x_cptr = x.LockConst<float>();
 
     float a = x_cptr.Get(0, 0);
 

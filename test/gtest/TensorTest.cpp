@@ -40,7 +40,7 @@ TEST(TensorTest, testTensor_Transpose)
     }
 
     {
-        auto ptr = t.GetConstPtr();
+        auto ptr = t.LockConst();
         for ( int i = 0; i < L; ++i ) {
             for ( int j = 0; j < M; ++j ) {
                 for ( int k = 0; k < N; ++k ) {
@@ -55,7 +55,7 @@ TEST(TensorTest, testTensor_Transpose)
     t.Transpose({1, 2, 0});
 
     {
-        auto ptr = t.GetConstPtr();
+        auto ptr = t.LockConst();
         for ( int i = 0; i < L; ++i ) {
             for ( int j = 0; j < M; ++j ) {
                 for ( int k = 0; k < N; ++k ) {
@@ -99,7 +99,7 @@ TEST(TensorTest, testTensor_SaveLoad)
     }
 
     {
-        auto ptr = t.GetConstPtr();
+        auto ptr = t.LockConst();
         for ( int i = 0; i < L; ++i ) {
             for ( int j = 0; j < M; ++j ) {
                 for ( int k = 0; k < N; ++k ) {
@@ -114,7 +114,7 @@ TEST(TensorTest, testTensor_SaveLoad)
     t.Transpose({1, 2, 0});
 
     {
-        auto ptr = t.GetConstPtr();
+        auto ptr = t.LockConst();
         for ( int i = 0; i < L; ++i ) {
             for ( int j = 0; j < M; ++j ) {
                 for ( int k = 0; k < N; ++k ) {
@@ -137,7 +137,7 @@ TEST(TensorTest, testTensor_SaveLoad)
         std::ifstream ifs("TensorTest.bin", std::ios::binary);
         t2.Load(ifs);
 
-        auto ptr = t2.GetConstPtr<float>();
+        auto ptr = t2.LockConst<float>();
         for ( int i = 0; i < L; ++i ) {
             for ( int j = 0; j < M; ++j ) {
                 for ( int k = 0; k < N; ++k ) {
@@ -176,7 +176,7 @@ TEST(TensorTest, testTensor_Json)
     }
 
     {
-        auto ptr = t.GetConstPtr();
+        auto ptr = t.LockConst();
         for ( int i = 0; i < L; ++i ) {
             for ( int j = 0; j < M; ++j ) {
                 for ( int k = 0; k < N; ++k ) {
@@ -191,7 +191,7 @@ TEST(TensorTest, testTensor_Json)
     t.Transpose({1, 2, 0});
 
     {
-        auto ptr = t.GetConstPtr();
+        auto ptr = t.LockConst();
         for ( int i = 0; i < L; ++i ) {
             for ( int j = 0; j < M; ++j ) {
                 for ( int k = 0; k < N; ++k ) {
@@ -216,7 +216,7 @@ TEST(TensorTest, testTensor_Json)
         cereal::JSONInputArchive ar(ifs);
 		ar(cereal::make_nvp("tensot", t2));
 
-        auto ptr = t2.GetConstPtr<float>();
+        auto ptr = t2.LockConst<float>();
         for ( int i = 0; i < L; ++i ) {
             for ( int j = 0; j < M; ++j ) {
                 for ( int k = 0; k < N; ++k ) {
@@ -254,7 +254,7 @@ TEST(TensorTest, testTensor_Reshape)
     }
 
     {
-        auto ptr = t.GetConstPtr();
+        auto ptr = t.LockConst();
         EXPECT_EQ(ptr[0], 1);
         EXPECT_EQ(ptr[1], 2);
         EXPECT_EQ(ptr[2], 3);
@@ -264,7 +264,7 @@ TEST(TensorTest, testTensor_Reshape)
     }
 
     {
-        auto ptr = t.GetConstPtr();
+        auto ptr = t.LockConst();
         EXPECT_EQ(ptr({0, 0, 0}), 1);
         EXPECT_EQ(ptr({1, 0, 0}), 2);
         EXPECT_EQ(ptr({0, 0, 1}), 3);
@@ -276,7 +276,7 @@ TEST(TensorTest, testTensor_Reshape)
     t.Reshape({3, -1});
 
    {
-        auto ptr = t.GetConstPtr();
+        auto ptr = t.LockConst();
         EXPECT_EQ(ptr({0, 0}), 1);
         EXPECT_EQ(ptr({1, 0}), 2);
         EXPECT_EQ(ptr({2, 0}), 3);
@@ -357,13 +357,13 @@ TEST(TensorTest, testTensorCpuGpu)
     t6 = t5 - 1.2f;    for (int i = 0; i < size; ++i) { data6[i] = data5[i] - 1.2f; }
 
     {
-        auto ptr0 = t0.GetConstPtr<float>();
-        auto ptr1 = t1.GetConstPtr<float>();
-        auto ptr2 = t2.GetConstPtr<float>();
-        auto ptr3 = t3.GetConstPtr<float>();
-        auto ptr4 = t4.GetConstPtr<float>();
-        auto ptr5 = t5.GetConstPtr<float>();
-        auto ptr6 = t6.GetConstPtr<float>();
+        auto ptr0 = t0.LockConst<float>();
+        auto ptr1 = t1.LockConst<float>();
+        auto ptr2 = t2.LockConst<float>();
+        auto ptr3 = t3.LockConst<float>();
+        auto ptr4 = t4.LockConst<float>();
+        auto ptr5 = t5.LockConst<float>();
+        auto ptr6 = t6.LockConst<float>();
         for (int i = 0; i < size; ++i) {
             EXPECT_FLOAT_EQ(data0[i], ptr0[i]);
             EXPECT_FLOAT_EQ(data1[i], ptr1[i]);
@@ -390,13 +390,13 @@ TEST(TensorTest, testTensorCpuGpu)
     t6 -= t5 - 1.6f;    for (int i = 0; i < size; ++i) { data6[i] -= data5[i] - 1.6f; }
 
    {
-        auto ptr0 = t0.GetConstPtr<float>();
-        auto ptr1 = t1.GetConstPtr<float>();
-        auto ptr2 = t2.GetConstPtr<float>();
-        auto ptr3 = t3.GetConstPtr<float>();
-        auto ptr4 = t4.GetConstPtr<float>();
-        auto ptr5 = t5.GetConstPtr<float>();
-        auto ptr6 = t6.GetConstPtr<float>();
+        auto ptr0 = t0.LockConst<float>();
+        auto ptr1 = t1.LockConst<float>();
+        auto ptr2 = t2.LockConst<float>();
+        auto ptr3 = t3.LockConst<float>();
+        auto ptr4 = t4.LockConst<float>();
+        auto ptr5 = t5.LockConst<float>();
+        auto ptr6 = t6.LockConst<float>();
         for (int i = 0; i < size; ++i) {
             EXPECT_FLOAT_EQ(data0[i], ptr0[i]);
             EXPECT_FLOAT_EQ(data1[i], ptr1[i]);
@@ -584,7 +584,7 @@ TEST(TensorTest, testTensorOp)
     t0 += t1;
     
     {
-        auto ptr0 = t0.GetConstPtr();
+        auto ptr0 = t0.LockConst();
         for (int i = 0; i < N; ++i) {
             EXPECT_EQ(ptr0[i], d0[i] + d1[i]);
         }
@@ -601,7 +601,7 @@ TEST(TensorTest, testTensorOp)
     t0 += d1[0];
     
     {
-        auto ptr0 = t0.GetConstPtr();
+        auto ptr0 = t0.LockConst();
         for (int i = 0; i < N; ++i) {
             EXPECT_EQ(ptr0[i], d0[i] + d1[0]);
         }
@@ -618,7 +618,7 @@ TEST(TensorTest, testTensorOp)
     t2 = t0 + t1;
     
     {
-        auto ptr2 = t2.GetConstPtr();
+        auto ptr2 = t2.LockConst();
         for (int i = 0; i < N; ++i) {
             EXPECT_EQ(ptr2[i], d0[i] + d1[i]);
         }
@@ -635,7 +635,7 @@ TEST(TensorTest, testTensorOp)
     t2 = t0 + d1[0];
     
     {
-        auto ptr2 = t2.GetConstPtr();
+        auto ptr2 = t2.LockConst();
         for (int i = 0; i < N; ++i) {
             EXPECT_EQ(ptr2[i], d0[i] + d1[0]);
         }
@@ -652,7 +652,7 @@ TEST(TensorTest, testTensorOp)
     t2 = d0[0] + t1;
     
     {
-        auto ptr2 = t2.GetConstPtr();
+        auto ptr2 = t2.LockConst();
         for (int i = 0; i < N; ++i) {
             EXPECT_EQ(ptr2[i], d0[0] + d1[i]);
         }
@@ -671,7 +671,7 @@ TEST(TensorTest, testTensorOp)
     t0 -= t1;
     
     {
-        auto ptr0 = t0.GetConstPtr();
+        auto ptr0 = t0.LockConst();
         for (int i = 0; i < N; ++i) {
             EXPECT_EQ(ptr0[i], d0[i] - d1[i]);
         }
@@ -688,7 +688,7 @@ TEST(TensorTest, testTensorOp)
     t0 -= d1[0];
     
     {
-        auto ptr0 = t0.GetConstPtr();
+        auto ptr0 = t0.LockConst();
         for (int i = 0; i < N; ++i) {
             EXPECT_EQ(ptr0[i], d0[i] - d1[0]);
         }
@@ -706,7 +706,7 @@ TEST(TensorTest, testTensorOp)
     t2 = t0 - t1;
     
     {
-        auto ptr2 = t2.GetConstPtr();
+        auto ptr2 = t2.LockConst();
         for (int i = 0; i < N; ++i) {
             EXPECT_EQ(ptr2[i], d0[i] - d1[i]);
         }
@@ -723,7 +723,7 @@ TEST(TensorTest, testTensorOp)
     t2 = t0 - d1[0];
     
     {
-        auto ptr2 = t2.GetConstPtr();
+        auto ptr2 = t2.LockConst();
         for (int i = 0; i < N; ++i) {
             EXPECT_EQ(ptr2[i], d0[i] - d1[0]);
         }
@@ -740,7 +740,7 @@ TEST(TensorTest, testTensorOp)
     t2 = d0[0] - t1;
     
     {
-        auto ptr2 = t2.GetConstPtr();
+        auto ptr2 = t2.LockConst();
         for (int i = 0; i < N; ++i) {
             EXPECT_EQ(ptr2[i], d0[0] - d1[i]);
         }
@@ -803,7 +803,7 @@ TEST(TensorTest, testTensor_cast)
     auto t_int32 = static_cast< bb::Tensor_<int> >(t);
 
     {
-        auto ptr = t_fp32.GetConstPtr();
+        auto ptr = t_fp32.LockConst();
         EXPECT_EQ(ptr({0, 0}), 1);
         EXPECT_EQ(ptr({1, 0}), 2);
         EXPECT_EQ(ptr({0, 1}), 3);
@@ -814,7 +814,7 @@ TEST(TensorTest, testTensor_cast)
 
     
     {
-        auto ptr = t.GetConstPtr<float>();
+        auto ptr = t.LockConst<float>();
         EXPECT_EQ(ptr({0, 0}), 1);
         EXPECT_EQ(ptr({1, 0}), 2);
         EXPECT_EQ(ptr({0, 1}), 3);
@@ -859,10 +859,10 @@ void test_Operator(bb::indices_t shape)
 
         dst += src0;
         
-        auto b_d  = base_dst.GetConstPtr();
-        auto b_s0 = base_src0.GetConstPtr();
-        auto b_s1 = base_src1.GetConstPtr();
-        auto d  = dst.GetConstPtr();
+        auto b_d  = base_dst.LockConst();
+        auto b_s0 = base_src0.LockConst();
+        auto b_s1 = base_src1.LockConst();
+        auto d  = dst.LockConst();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_d[i]+b_s0[i]));
@@ -876,10 +876,10 @@ void test_Operator(bb::indices_t shape)
 
         dst += scalar;
         
-        auto b_d  = base_dst.GetConstPtr();
-        auto b_s0 = base_src0.GetConstPtr();
-        auto b_s1 = base_src1.GetConstPtr();
-        auto d  = dst.GetConstPtr();
+        auto b_d  = base_dst.LockConst();
+        auto b_s0 = base_src0.LockConst();
+        auto b_s1 = base_src1.LockConst();
+        auto d  = dst.LockConst();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_d[i]+scalar));
@@ -893,10 +893,10 @@ void test_Operator(bb::indices_t shape)
 
         dst = src0 + src1;
         
-        auto b_d  = base_dst.GetConstPtr();
-        auto b_s0 = base_src0.GetConstPtr();
-        auto b_s1 = base_src1.GetConstPtr();
-        auto d  = dst.GetConstPtr();
+        auto b_d  = base_dst.LockConst();
+        auto b_s0 = base_src0.LockConst();
+        auto b_s1 = base_src1.LockConst();
+        auto d  = dst.LockConst();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_s0[i]+b_s1[i]));
@@ -910,10 +910,10 @@ void test_Operator(bb::indices_t shape)
 
         dst = src0 + scalar;
         
-        auto b_d  = base_dst.GetConstPtr();
-        auto b_s0 = base_src0.GetConstPtr();
-        auto b_s1 = base_src1.GetConstPtr();
-        auto d  = dst.GetConstPtr();
+        auto b_d  = base_dst.LockConst();
+        auto b_s0 = base_src0.LockConst();
+        auto b_s1 = base_src1.LockConst();
+        auto d  = dst.LockConst();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_s0[i]+scalar));
@@ -927,10 +927,10 @@ void test_Operator(bb::indices_t shape)
 
         dst = scalar + src1;
         
-        auto b_d  = base_dst.GetConstPtr();
-        auto b_s0 = base_src0.GetConstPtr();
-        auto b_s1 = base_src1.GetConstPtr();
-        auto d  = dst.GetConstPtr();
+        auto b_d  = base_dst.LockConst();
+        auto b_s0 = base_src0.LockConst();
+        auto b_s1 = base_src1.LockConst();
+        auto d  = dst.LockConst();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(scalar+b_s1[i]));
@@ -946,10 +946,10 @@ void test_Operator(bb::indices_t shape)
 
         dst -= src0;
         
-        auto b_d  = base_dst.GetConstPtr();
-        auto b_s0 = base_src0.GetConstPtr();
-        auto b_s1 = base_src1.GetConstPtr();
-        auto d  = dst.GetConstPtr();
+        auto b_d  = base_dst.LockConst();
+        auto b_s0 = base_src0.LockConst();
+        auto b_s1 = base_src1.LockConst();
+        auto d  = dst.LockConst();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_d[i]-b_s0[i]));
@@ -963,10 +963,10 @@ void test_Operator(bb::indices_t shape)
 
         dst -= scalar;
         
-        auto b_d  = base_dst.GetConstPtr();
-        auto b_s0 = base_src0.GetConstPtr();
-        auto b_s1 = base_src1.GetConstPtr();
-        auto d  = dst.GetConstPtr();
+        auto b_d  = base_dst.LockConst();
+        auto b_s0 = base_src0.LockConst();
+        auto b_s1 = base_src1.LockConst();
+        auto d  = dst.LockConst();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_d[i]-scalar));
@@ -980,10 +980,10 @@ void test_Operator(bb::indices_t shape)
 
         dst = src0 - src1;
         
-        auto b_d  = base_dst.GetConstPtr();
-        auto b_s0 = base_src0.GetConstPtr();
-        auto b_s1 = base_src1.GetConstPtr();
-        auto d  = dst.GetConstPtr();
+        auto b_d  = base_dst.LockConst();
+        auto b_s0 = base_src0.LockConst();
+        auto b_s1 = base_src1.LockConst();
+        auto d  = dst.LockConst();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_s0[i]-b_s1[i]));
@@ -997,10 +997,10 @@ void test_Operator(bb::indices_t shape)
 
         dst = src0 - scalar;
         
-        auto b_d  = base_dst.GetConstPtr();
-        auto b_s0 = base_src0.GetConstPtr();
-        auto b_s1 = base_src1.GetConstPtr();
-        auto d  = dst.GetConstPtr();
+        auto b_d  = base_dst.LockConst();
+        auto b_s0 = base_src0.LockConst();
+        auto b_s1 = base_src1.LockConst();
+        auto d  = dst.LockConst();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_s0[i]-scalar));
@@ -1014,10 +1014,10 @@ void test_Operator(bb::indices_t shape)
 
         dst = scalar - src1;
         
-        auto b_d  = base_dst.GetConstPtr();
-        auto b_s0 = base_src0.GetConstPtr();
-        auto b_s1 = base_src1.GetConstPtr();
-        auto d  = dst.GetConstPtr();
+        auto b_d  = base_dst.LockConst();
+        auto b_s0 = base_src0.LockConst();
+        auto b_s1 = base_src1.LockConst();
+        auto d  = dst.LockConst();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(scalar-b_s1[i]));
@@ -1033,10 +1033,10 @@ void test_Operator(bb::indices_t shape)
 
         dst *= src0;
         
-        auto b_d  = base_dst.GetConstPtr();
-        auto b_s0 = base_src0.GetConstPtr();
-        auto b_s1 = base_src1.GetConstPtr();
-        auto d  = dst.GetConstPtr();
+        auto b_d  = base_dst.LockConst();
+        auto b_s0 = base_src0.LockConst();
+        auto b_s1 = base_src1.LockConst();
+        auto d  = dst.LockConst();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_d[i]*b_s0[i]));
@@ -1050,10 +1050,10 @@ void test_Operator(bb::indices_t shape)
 
         dst *= scalar;
         
-        auto b_d  = base_dst.GetConstPtr();
-        auto b_s0 = base_src0.GetConstPtr();
-        auto b_s1 = base_src1.GetConstPtr();
-        auto d  = dst.GetConstPtr();
+        auto b_d  = base_dst.LockConst();
+        auto b_s0 = base_src0.LockConst();
+        auto b_s1 = base_src1.LockConst();
+        auto d  = dst.LockConst();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_d[i]*scalar));
@@ -1067,10 +1067,10 @@ void test_Operator(bb::indices_t shape)
 
         dst = src0 * src1;
         
-        auto b_d  = base_dst.GetConstPtr();
-        auto b_s0 = base_src0.GetConstPtr();
-        auto b_s1 = base_src1.GetConstPtr();
-        auto d  = dst.GetConstPtr();
+        auto b_d  = base_dst.LockConst();
+        auto b_s0 = base_src0.LockConst();
+        auto b_s1 = base_src1.LockConst();
+        auto d  = dst.LockConst();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_s0[i]*b_s1[i]));
@@ -1084,10 +1084,10 @@ void test_Operator(bb::indices_t shape)
 
         dst = src0 * scalar;
         
-        auto b_d  = base_dst.GetConstPtr();
-        auto b_s0 = base_src0.GetConstPtr();
-        auto b_s1 = base_src1.GetConstPtr();
-        auto d  = dst.GetConstPtr();
+        auto b_d  = base_dst.LockConst();
+        auto b_s0 = base_src0.LockConst();
+        auto b_s1 = base_src1.LockConst();
+        auto d  = dst.LockConst();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_s0[i]*scalar));
@@ -1101,10 +1101,10 @@ void test_Operator(bb::indices_t shape)
 
         dst = scalar * src1;
         
-        auto b_d  = base_dst.GetConstPtr();
-        auto b_s0 = base_src0.GetConstPtr();
-        auto b_s1 = base_src1.GetConstPtr();
-        auto d  = dst.GetConstPtr();
+        auto b_d  = base_dst.LockConst();
+        auto b_s0 = base_src0.LockConst();
+        auto b_s1 = base_src1.LockConst();
+        auto d  = dst.LockConst();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(scalar*b_s1[i]));
@@ -1120,10 +1120,10 @@ void test_Operator(bb::indices_t shape)
 
         dst /= src0;
         
-        auto b_d  = base_dst.GetConstPtr();
-        auto b_s0 = base_src0.GetConstPtr();
-        auto b_s1 = base_src1.GetConstPtr();
-        auto d  = dst.GetConstPtr();
+        auto b_d  = base_dst.LockConst();
+        auto b_s0 = base_src0.LockConst();
+        auto b_s1 = base_src1.LockConst();
+        auto d  = dst.LockConst();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_d[i]/b_s0[i]));
@@ -1137,10 +1137,10 @@ void test_Operator(bb::indices_t shape)
 
         dst /= scalar;
         
-        auto b_d  = base_dst.GetConstPtr();
-        auto b_s0 = base_src0.GetConstPtr();
-        auto b_s1 = base_src1.GetConstPtr();
-        auto d  = dst.GetConstPtr();
+        auto b_d  = base_dst.LockConst();
+        auto b_s0 = base_src0.LockConst();
+        auto b_s1 = base_src1.LockConst();
+        auto d  = dst.LockConst();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_d[i]/scalar));
@@ -1154,10 +1154,10 @@ void test_Operator(bb::indices_t shape)
 
         dst = src0 / src1;
         
-        auto b_d  = base_dst.GetConstPtr();
-        auto b_s0 = base_src0.GetConstPtr();
-        auto b_s1 = base_src1.GetConstPtr();
-        auto d  = dst.GetConstPtr();
+        auto b_d  = base_dst.LockConst();
+        auto b_s0 = base_src0.LockConst();
+        auto b_s1 = base_src1.LockConst();
+        auto d  = dst.LockConst();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_s0[i]/b_s1[i]));
@@ -1171,10 +1171,10 @@ void test_Operator(bb::indices_t shape)
 
         dst = src0 / scalar;
         
-        auto b_d  = base_dst.GetConstPtr();
-        auto b_s0 = base_src0.GetConstPtr();
-        auto b_s1 = base_src1.GetConstPtr();
-        auto d  = dst.GetConstPtr();
+        auto b_d  = base_dst.LockConst();
+        auto b_s0 = base_src0.LockConst();
+        auto b_s1 = base_src1.LockConst();
+        auto d  = dst.LockConst();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_s0[i]/scalar));
@@ -1188,10 +1188,10 @@ void test_Operator(bb::indices_t shape)
 
         dst = scalar / src1;
         
-        auto b_d  = base_dst.GetConstPtr();
-        auto b_s0 = base_src0.GetConstPtr();
-        auto b_s1 = base_src1.GetConstPtr();
-        auto d  = dst.GetConstPtr();
+        auto b_d  = base_dst.LockConst();
+        auto b_s0 = base_src0.LockConst();
+        auto b_s1 = base_src1.LockConst();
+        auto d  = dst.LockConst();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(scalar/b_s1[i]));
@@ -1248,10 +1248,10 @@ void test_OperatorX(bb::indices_t shape)
 
         dst += src0;
         
-        auto b_d  = base_dst.GetConstPtr<T>();
-        auto b_s0 = base_src0.GetConstPtr<T>();
-        auto b_s1 = base_src1.GetConstPtr<T>();
-        auto d  = dst.GetConstPtr<T>();
+        auto b_d  = base_dst.LockConst<T>();
+        auto b_s0 = base_src0.LockConst<T>();
+        auto b_s1 = base_src1.LockConst<T>();
+        auto d  = dst.LockConst<T>();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_d[i]+b_s0[i]));
@@ -1265,10 +1265,10 @@ void test_OperatorX(bb::indices_t shape)
 
         dst += scalar;
         
-        auto b_d  = base_dst.GetConstPtr<T>();
-        auto b_s0 = base_src0.GetConstPtr<T>();
-        auto b_s1 = base_src1.GetConstPtr<T>();
-        auto d  = dst.GetConstPtr<T>();
+        auto b_d  = base_dst.LockConst<T>();
+        auto b_s0 = base_src0.LockConst<T>();
+        auto b_s1 = base_src1.LockConst<T>();
+        auto d  = dst.LockConst<T>();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_d[i]+scalar));
@@ -1282,10 +1282,10 @@ void test_OperatorX(bb::indices_t shape)
 
         dst = src0 + src1;
         
-        auto b_d  = base_dst.GetConstPtr<T>();
-        auto b_s0 = base_src0.GetConstPtr<T>();
-        auto b_s1 = base_src1.GetConstPtr<T>();
-        auto d  = dst.GetConstPtr<T>();
+        auto b_d  = base_dst.LockConst<T>();
+        auto b_s0 = base_src0.LockConst<T>();
+        auto b_s1 = base_src1.LockConst<T>();
+        auto d  = dst.LockConst<T>();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_s0[i]+b_s1[i]));
@@ -1299,10 +1299,10 @@ void test_OperatorX(bb::indices_t shape)
 
         dst = src0 + scalar;
         
-        auto b_d  = base_dst.GetConstPtr<T>();
-        auto b_s0 = base_src0.GetConstPtr<T>();
-        auto b_s1 = base_src1.GetConstPtr<T>();
-        auto d  = dst.GetConstPtr<T>();
+        auto b_d  = base_dst.LockConst<T>();
+        auto b_s0 = base_src0.LockConst<T>();
+        auto b_s1 = base_src1.LockConst<T>();
+        auto d  = dst.LockConst<T>();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_s0[i]+scalar));
@@ -1316,10 +1316,10 @@ void test_OperatorX(bb::indices_t shape)
 
         dst = scalar + src1;
         
-        auto b_d  = base_dst.GetConstPtr<T>();
-        auto b_s0 = base_src0.GetConstPtr<T>();
-        auto b_s1 = base_src1.GetConstPtr<T>();
-        auto d  = dst.GetConstPtr<T>();
+        auto b_d  = base_dst.LockConst<T>();
+        auto b_s0 = base_src0.LockConst<T>();
+        auto b_s1 = base_src1.LockConst<T>();
+        auto d  = dst.LockConst<T>();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(scalar+b_s1[i]));
@@ -1335,10 +1335,10 @@ void test_OperatorX(bb::indices_t shape)
 
         dst -= src0;
         
-        auto b_d  = base_dst.GetConstPtr<T>();
-        auto b_s0 = base_src0.GetConstPtr<T>();
-        auto b_s1 = base_src1.GetConstPtr<T>();
-        auto d  = dst.GetConstPtr<T>();
+        auto b_d  = base_dst.LockConst<T>();
+        auto b_s0 = base_src0.LockConst<T>();
+        auto b_s1 = base_src1.LockConst<T>();
+        auto d  = dst.LockConst<T>();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_d[i]-b_s0[i]));
@@ -1352,10 +1352,10 @@ void test_OperatorX(bb::indices_t shape)
 
         dst -= scalar;
         
-        auto b_d  = base_dst.GetConstPtr<T>();
-        auto b_s0 = base_src0.GetConstPtr<T>();
-        auto b_s1 = base_src1.GetConstPtr<T>();
-        auto d  = dst.GetConstPtr<T>();
+        auto b_d  = base_dst.LockConst<T>();
+        auto b_s0 = base_src0.LockConst<T>();
+        auto b_s1 = base_src1.LockConst<T>();
+        auto d  = dst.LockConst<T>();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_d[i]-scalar));
@@ -1369,10 +1369,10 @@ void test_OperatorX(bb::indices_t shape)
 
         dst = src0 - src1;
         
-        auto b_d  = base_dst.GetConstPtr<T>();
-        auto b_s0 = base_src0.GetConstPtr<T>();
-        auto b_s1 = base_src1.GetConstPtr<T>();
-        auto d  = dst.GetConstPtr<T>();
+        auto b_d  = base_dst.LockConst<T>();
+        auto b_s0 = base_src0.LockConst<T>();
+        auto b_s1 = base_src1.LockConst<T>();
+        auto d  = dst.LockConst<T>();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_s0[i]-b_s1[i]));
@@ -1386,10 +1386,10 @@ void test_OperatorX(bb::indices_t shape)
 
         dst = src0 - scalar;
         
-        auto b_d  = base_dst.GetConstPtr<T>();
-        auto b_s0 = base_src0.GetConstPtr<T>();
-        auto b_s1 = base_src1.GetConstPtr<T>();
-        auto d  = dst.GetConstPtr<T>();
+        auto b_d  = base_dst.LockConst<T>();
+        auto b_s0 = base_src0.LockConst<T>();
+        auto b_s1 = base_src1.LockConst<T>();
+        auto d  = dst.LockConst<T>();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_s0[i]-scalar));
@@ -1403,10 +1403,10 @@ void test_OperatorX(bb::indices_t shape)
 
         dst = scalar - src1;
         
-        auto b_d  = base_dst.GetConstPtr<T>();
-        auto b_s0 = base_src0.GetConstPtr<T>();
-        auto b_s1 = base_src1.GetConstPtr<T>();
-        auto d  = dst.GetConstPtr<T>();
+        auto b_d  = base_dst.LockConst<T>();
+        auto b_s0 = base_src0.LockConst<T>();
+        auto b_s1 = base_src1.LockConst<T>();
+        auto d  = dst.LockConst<T>();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(scalar-b_s1[i]));
@@ -1422,10 +1422,10 @@ void test_OperatorX(bb::indices_t shape)
 
         dst *= src0;
         
-         auto b_d  = base_dst.GetConstPtr<T>();
-        auto b_s0 = base_src0.GetConstPtr<T>();
-        auto b_s1 = base_src1.GetConstPtr<T>();
-        auto d  = dst.GetConstPtr<T>();
+         auto b_d  = base_dst.LockConst<T>();
+        auto b_s0 = base_src0.LockConst<T>();
+        auto b_s1 = base_src1.LockConst<T>();
+        auto d  = dst.LockConst<T>();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_d[i]*b_s0[i]));
@@ -1439,10 +1439,10 @@ void test_OperatorX(bb::indices_t shape)
 
         dst *= scalar;
         
-        auto b_d  = base_dst.GetConstPtr<T>();
-        auto b_s0 = base_src0.GetConstPtr<T>();
-        auto b_s1 = base_src1.GetConstPtr<T>();
-        auto d  = dst.GetConstPtr<T>();
+        auto b_d  = base_dst.LockConst<T>();
+        auto b_s0 = base_src0.LockConst<T>();
+        auto b_s1 = base_src1.LockConst<T>();
+        auto d  = dst.LockConst<T>();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_d[i]*scalar));
@@ -1456,10 +1456,10 @@ void test_OperatorX(bb::indices_t shape)
 
         dst = src0 * src1;
         
-        auto b_d  = base_dst.GetConstPtr<T>();
-        auto b_s0 = base_src0.GetConstPtr<T>();
-        auto b_s1 = base_src1.GetConstPtr<T>();
-        auto d  = dst.GetConstPtr<T>();
+        auto b_d  = base_dst.LockConst<T>();
+        auto b_s0 = base_src0.LockConst<T>();
+        auto b_s1 = base_src1.LockConst<T>();
+        auto d  = dst.LockConst<T>();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_s0[i]*b_s1[i]));
@@ -1473,10 +1473,10 @@ void test_OperatorX(bb::indices_t shape)
 
         dst = src0 * scalar;
         
-        auto b_d  = base_dst.GetConstPtr<T>();
-        auto b_s0 = base_src0.GetConstPtr<T>();
-        auto b_s1 = base_src1.GetConstPtr<T>();
-        auto d  = dst.GetConstPtr<T>();
+        auto b_d  = base_dst.LockConst<T>();
+        auto b_s0 = base_src0.LockConst<T>();
+        auto b_s1 = base_src1.LockConst<T>();
+        auto d  = dst.LockConst<T>();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_s0[i]*scalar));
@@ -1490,10 +1490,10 @@ void test_OperatorX(bb::indices_t shape)
 
         dst = scalar * src1;
         
-        auto b_d  = base_dst.GetConstPtr<T>();
-        auto b_s0 = base_src0.GetConstPtr<T>();
-        auto b_s1 = base_src1.GetConstPtr<T>();
-        auto d  = dst.GetConstPtr<T>();
+        auto b_d  = base_dst.LockConst<T>();
+        auto b_s0 = base_src0.LockConst<T>();
+        auto b_s1 = base_src1.LockConst<T>();
+        auto d  = dst.LockConst<T>();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(scalar*b_s1[i]));
@@ -1509,10 +1509,10 @@ void test_OperatorX(bb::indices_t shape)
 
         dst /= src1;
         
-        auto b_d  = base_dst.GetConstPtr<T>();
-        auto b_s0 = base_src0.GetConstPtr<T>();
-        auto b_s1 = base_src1.GetConstPtr<T>();
-        auto d  = dst.GetConstPtr<T>();
+        auto b_d  = base_dst.LockConst<T>();
+        auto b_s0 = base_src0.LockConst<T>();
+        auto b_s1 = base_src1.LockConst<T>();
+        auto d  = dst.LockConst<T>();
         
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_d[i]/b_s1[i]));
@@ -1526,10 +1526,10 @@ void test_OperatorX(bb::indices_t shape)
 
         dst /= scalar;
         
-        auto b_d  = base_dst.GetConstPtr<T>();
-        auto b_s0 = base_src0.GetConstPtr<T>();
-        auto b_s1 = base_src1.GetConstPtr<T>();
-        auto d  = dst.GetConstPtr<T>();
+        auto b_d  = base_dst.LockConst<T>();
+        auto b_s0 = base_src0.LockConst<T>();
+        auto b_s1 = base_src1.LockConst<T>();
+        auto d  = dst.LockConst<T>();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_d[i]/scalar));
@@ -1543,10 +1543,10 @@ void test_OperatorX(bb::indices_t shape)
 
         dst = src0 / src1;
         
-        auto b_d  = base_dst.GetConstPtr<T>();
-        auto b_s0 = base_src0.GetConstPtr<T>();
-        auto b_s1 = base_src1.GetConstPtr<T>();
-        auto d  = dst.GetConstPtr<T>();
+        auto b_d  = base_dst.LockConst<T>();
+        auto b_s0 = base_src0.LockConst<T>();
+        auto b_s1 = base_src1.LockConst<T>();
+        auto d  = dst.LockConst<T>();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_s0[i]/b_s1[i]));
@@ -1560,10 +1560,10 @@ void test_OperatorX(bb::indices_t shape)
 
         dst = src0 / scalar;
         
-        auto b_d  = base_dst.GetConstPtr<T>();
-        auto b_s0 = base_src0.GetConstPtr<T>();
-        auto b_s1 = base_src1.GetConstPtr<T>();
-        auto d  = dst.GetConstPtr<T>();
+        auto b_d  = base_dst.LockConst<T>();
+        auto b_s0 = base_src0.LockConst<T>();
+        auto b_s1 = base_src1.LockConst<T>();
+        auto d  = dst.LockConst<T>();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(b_s0[i]/scalar));
@@ -1577,10 +1577,10 @@ void test_OperatorX(bb::indices_t shape)
 
         dst = scalar / src1;
         
-        auto b_d  = base_dst.GetConstPtr<T>();
-        auto b_s0 = base_src0.GetConstPtr<T>();
-        auto b_s1 = base_src1.GetConstPtr<T>();
-        auto d  = dst.GetConstPtr<T>();
+        auto b_d  = base_dst.LockConst<T>();
+        auto b_s0 = base_src0.LockConst<T>();
+        auto b_s1 = base_src1.LockConst<T>();
+        auto d  = dst.LockConst<T>();
        
         for (bb::index_t i = 0; i < node_size; ++i) {
             EXPECT_EQ(d[i], (T)(scalar/b_s1[i]));
