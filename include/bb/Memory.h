@@ -477,16 +477,31 @@ public:
 	{
         if ( m_size == 0 ) { return; }
 
-        if (m_addr != nullptr) {
+#ifdef BB_WITH_CUDA
+		// メモリ未確保なら確保
+		if (m_addr == nullptr && m_devAddr == nullptr) {
+			Lock(true);
+		}
+		
+		// クリア
+		if (m_addr != nullptr) {
             memset(m_addr, 0, m_size);
         }
         m_hostModified = false;
 
-#ifdef BB_WITH_CUDA
         if (m_devAddr != nullptr) {
             BB_CUDA_SAFE_CALL(cudaMemset(m_devAddr, 0, m_size));
         }
         m_devModified  = false;
+#else
+		// メモリ未確保なら確保
+		if (m_addr == nullptr ) {
+			Lock(true);
+		}
+
+		// クリア
+		memset(m_addr, 0, m_size);
+		m_hostModified = false;
 #endif
     }
 
