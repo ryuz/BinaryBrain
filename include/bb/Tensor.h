@@ -345,6 +345,11 @@ public:
         return m_mem->IsHostOnly();
     }
 
+	bool IsDeviceAvailable(void) const
+	{
+		return m_mem->IsDeviceAvailable();
+	}
+
     index_t GetMemorySize(void) const
     {
         return m_mem->GetSize();
@@ -680,7 +685,6 @@ public:
         return sqrt((*this * *this).Sum());
     }
 
-
     friend  Tensor_ operator + <T> (Tensor_ const &src0, Tensor_ const &src1);
     friend  Tensor_ operator + <T> (Tensor_ const &src0, T src1);
     friend  Tensor_ operator + <T> (T src0, Tensor_ const &src1);
@@ -693,6 +697,7 @@ public:
     friend  Tensor_ operator / <T> (Tensor_ const &src0, Tensor_ const &src1);
     friend  Tensor_ operator / <T> (Tensor_ const &src0, T src1);
     friend  Tensor_ operator / <T> (T src0, Tensor_ const &src1);
+
 //    friend  Tensor_ Sqrt (Tensor_ const &src);
 //    friend  Tensor_ Exp  (Tensor_ const &src);
 //    friend  Tensor_ Clamp(Tensor_ const &src, T a, T b);
@@ -1448,6 +1453,11 @@ public:
         return m_mem->IsHostOnly();
     }
 
+	bool IsDeviceAvailable(void) const
+	{
+		return m_mem->IsDeviceAvailable();
+	}
+	
     index_t GetMemorySize(void) const
     {
         return m_mem->GetSize();
