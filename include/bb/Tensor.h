@@ -1453,11 +1453,6 @@ public:
         return m_mem->IsHostOnly();
     }
 
-	bool IsDeviceAvailable(void) const
-	{
-		return m_mem->IsDeviceAvailable();
-	}
-	
     index_t GetMemorySize(void) const
     {
         return m_mem->GetSize();
