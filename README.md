@@ -9,7 +9,7 @@ FPGAのLUTを直接学習させることで高いパフォーマンスを実現�
 AXV2以降の命令が使えるCPUと、Windows7以降の環境を想定しております。
 
 ### windows
-1. install VisualStudio 2015. 
+1. install VisualStudio 2017 + CUDA 9.2
 2. git clone --recursive https://github.com/ryuz/BinaryBrain.git 
 3. download MNIST from http://yann.lecun.com/exdb/mnist/
 4. decompress MNIST for "\sample\mnist"
@@ -20,9 +20,10 @@ AXV2以降の命令が使えるCPUと、Windows7以降の環境を想定して�
 ### Linux(Ubuntu 18.04.1)
 1. install tools 
 ```
-% sudo apt install make
+% sudo apt install cuda cuda-drivers
+% sudo apt install git
 % sudo apt install g++
-% sudo apt install clang
+% sudo apt install make
 % sudo apt install git
 ```
 2. build and run
