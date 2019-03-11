@@ -243,25 +243,25 @@ public:
 	Tensor const &db1(void) const { return *m_db1; }
 
 
-   	auto lock_InputIndex(void)             { return m_input_index.GetPtr(); }
+   	auto lock_InputIndex(void)             { return m_input_index.Lock(); }
 	auto lock_InputIndex_const(void) const { return m_input_index.LockConst(); }
 
-	auto lock_W0(void)             { return m_W0->GetPtr<T>(); }
+	auto lock_W0(void)             { return m_W0->Lock<T>(); }
 	auto lock_W0_const(void) const { return m_W0->LockConst<T>(); }
-	auto lock_b0(void)             { return m_b0->GetPtr<T>(); }
+	auto lock_b0(void)             { return m_b0->Lock<T>(); }
 	auto lock_b0_const(void) const { return m_b0->LockConst<T>(); }
-	auto lock_W1(void)             { return m_W1->GetPtr<T>(); }
+	auto lock_W1(void)             { return m_W1->Lock<T>(); }
 	auto lock_W1_const(void) const { return m_W1->LockConst<T>(); }
-	auto lock_b1(void)             { return m_b1->GetPtr<T>(); }
+	auto lock_b1(void)             { return m_b1->Lock<T>(); }
 	auto lock_b1_const(void) const { return m_b1->LockConst<T>(); }
 
-	auto lock_dW0(void)             { return m_dW0->GetPtr<T>(); }
+	auto lock_dW0(void)             { return m_dW0->Lock<T>(); }
 	auto lock_dW0_const(void) const { return m_dW0->LockConst<T>(); }
-	auto lock_db0(void)             { return m_db0->GetPtr<T>(); }
+	auto lock_db0(void)             { return m_db0->Lock<T>(); }
 	auto lock_db0_const(void) const { return m_db0->LockConst<T>(); }
-	auto lock_dW1(void)             { return m_dW1->GetPtr<T>(); }
+	auto lock_dW1(void)             { return m_dW1->Lock<T>(); }
 	auto lock_dW1_const(void) const { return m_dW1->LockConst<T>(); }
-	auto lock_db1(void)             { return m_db1->GetPtr<T>(); }
+	auto lock_db1(void)             { return m_db1->Lock<T>(); }
 	auto lock_db1_const(void) const { return m_db1->LockConst<T>(); }
 
 
@@ -301,7 +301,7 @@ public:
 
         /*
         {
-            auto ptr = m_input_index.GetPtr();
+            auto ptr = m_input_index.Lock();
             ShuffleSet<std::int32_t> shuffle((std::int32_t)m_input_node_size);
             for ( index_t i = 0; i < m_output_node_size; ++i ) {
                 auto idx = shuffle.GetRandomSet(N);
@@ -497,7 +497,7 @@ protected:
 
         auto frame_size = m_x.GetFrameSize();
         auto x_ptr = x.LockConst<T>();
-        auto y_ptr = m_y.GetPtr<T>();
+        auto y_ptr = m_y.Lock<T>();
         auto input_index_ptr = m_input_index.LockConst();
         auto W0_ptr = lock_W0_const();
         auto b0_ptr = lock_b0_const();

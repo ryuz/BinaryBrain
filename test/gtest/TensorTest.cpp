@@ -28,7 +28,7 @@ TEST(TensorTest, testTensor_Transpose)
     bb::Tensor_<float> t({N, M, L});
 
     {
-        auto ptr = t.GetPtr();
+        auto ptr = t.Lock();
         for ( int i = 0; i < L; ++i ) {
             for ( int j = 0; j < M; ++j ) {
                 for ( int k = 0; k < N; ++k ) {
@@ -87,7 +87,7 @@ TEST(TensorTest, testTensor_SaveLoad)
     bb::Tensor_<float> t({N, M, L});
 
     {
-        auto ptr = t.GetPtr();
+        auto ptr = t.Lock();
         for ( int i = 0; i < L; ++i ) {
             for ( int j = 0; j < M; ++j ) {
                 for ( int k = 0; k < N; ++k ) {
@@ -164,7 +164,7 @@ TEST(TensorTest, testTensor_Json)
     bb::Tensor_<float> t({N, M, L});
 
     {
-        auto ptr = t.GetPtr();
+        auto ptr = t.Lock();
         for ( int i = 0; i < L; ++i ) {
             for ( int j = 0; j < M; ++j ) {
                 for ( int k = 0; k < N; ++k ) {
@@ -242,7 +242,7 @@ TEST(TensorTest, testTensor_Reshape)
 
 
     {
-        auto ptr = t.GetPtr();
+        auto ptr = t.Lock();
         float index = 1; 
         for ( int i = 0; i < L; ++i ) {
             for ( int j = 0; j < M; ++j ) {
@@ -290,7 +290,7 @@ TEST(TensorTest, testTensor_Reshape)
     auto t1 = t.Clone();
 
     {
-        auto ptr = t.GetPtr();
+        auto ptr = t.Lock();
         ptr[0] = 11;
         ptr[1] = 21;
         ptr[2] = 31;
@@ -300,7 +300,7 @@ TEST(TensorTest, testTensor_Reshape)
     }
 
     {
-        auto ptr = t1.GetPtr();
+        auto ptr = t1.Lock();
         EXPECT_EQ(ptr({0, 0}), 1);
         EXPECT_EQ(ptr({1, 0}), 2);
         EXPECT_EQ(ptr({2, 0}), 3);
@@ -343,7 +343,7 @@ TEST(TensorTest, testTensorCpuGpu)
     }
 
     {
-        auto ptr0 = t0.GetPtr<float>();
+        auto ptr0 = t0.Lock<float>();
         for (int i = 0; i < size; ++i) {
             ptr0[i] = data0[i];
         }
@@ -576,8 +576,8 @@ TEST(TensorTest, testTensorOp)
 
     // ‰ÁŽZ1-1
     {
-        auto ptr0 = t0.GetPtr();
-        auto ptr1 = t1.GetPtr();
+        auto ptr0 = t0.Lock();
+        auto ptr1 = t1.Lock();
         for (int i = 0; i < N; ++i) { ptr0[i] = d0[i]; ptr1[i] = d1[i]; }
     }
 
@@ -593,8 +593,8 @@ TEST(TensorTest, testTensorOp)
 
     // ‰ÁŽZ1-2
     {
-        auto ptr0 = t0.GetPtr();
-        auto ptr1 = t1.GetPtr();
+        auto ptr0 = t0.Lock();
+        auto ptr1 = t1.Lock();
         for (int i = 0; i < N; ++i) { ptr0[i] = d0[i]; ptr1[i] = d1[i]; }
     }
 
@@ -610,8 +610,8 @@ TEST(TensorTest, testTensorOp)
 
     // ‰ÁŽZ2-1
     {
-        auto ptr0 = t0.GetPtr();
-        auto ptr1 = t1.GetPtr();
+        auto ptr0 = t0.Lock();
+        auto ptr1 = t1.Lock();
         for (int i = 0; i < N; ++i) { ptr0[i] = d0[i]; ptr1[i] = d1[i]; }
     }
 
@@ -627,8 +627,8 @@ TEST(TensorTest, testTensorOp)
 
     // ‰ÁŽZ2-2
     {
-        auto ptr0 = t0.GetPtr();
-        auto ptr1 = t1.GetPtr();
+        auto ptr0 = t0.Lock();
+        auto ptr1 = t1.Lock();
         for (int i = 0; i < N; ++i) { ptr0[i] = d0[i]; ptr1[i] = d1[i]; }
     }
 
@@ -644,8 +644,8 @@ TEST(TensorTest, testTensorOp)
 
     // ‰ÁŽZ2-3
     {
-        auto ptr0 = t0.GetPtr();
-        auto ptr1 = t1.GetPtr();
+        auto ptr0 = t0.Lock();
+        auto ptr1 = t1.Lock();
         for (int i = 0; i < N; ++i) { ptr0[i] = d0[i]; ptr1[i] = d1[i]; }
     }
 
@@ -663,8 +663,8 @@ TEST(TensorTest, testTensorOp)
 
     // Œ¸ŽZ1-1
     {
-        auto ptr0 = t0.GetPtr();
-        auto ptr1 = t1.GetPtr();
+        auto ptr0 = t0.Lock();
+        auto ptr1 = t1.Lock();
         for (int i = 0; i < N; ++i) { ptr0[i] = d0[i]; ptr1[i] = d1[i]; }
     }
 
@@ -680,8 +680,8 @@ TEST(TensorTest, testTensorOp)
 
     // Œ¸ŽZ1-2
     {
-        auto ptr0 = t0.GetPtr();
-        auto ptr1 = t1.GetPtr();
+        auto ptr0 = t0.Lock();
+        auto ptr1 = t1.Lock();
         for (int i = 0; i < N; ++i) { ptr0[i] = d0[i]; ptr1[i] = d1[i]; }
     }
 
@@ -698,8 +698,8 @@ TEST(TensorTest, testTensorOp)
 
     // Œ¸ŽZ2-1
     {
-        auto ptr0 = t0.GetPtr();
-        auto ptr1 = t1.GetPtr();
+        auto ptr0 = t0.Lock();
+        auto ptr1 = t1.Lock();
         for (int i = 0; i < N; ++i) { ptr0[i] = d0[i]; ptr1[i] = d1[i]; }
     }
 
@@ -715,8 +715,8 @@ TEST(TensorTest, testTensorOp)
 
     // Œ¸ŽZ2-2
     {
-        auto ptr0 = t0.GetPtr();
-        auto ptr1 = t1.GetPtr();
+        auto ptr0 = t0.Lock();
+        auto ptr1 = t1.Lock();
         for (int i = 0; i < N; ++i) { ptr0[i] = d0[i]; ptr1[i] = d1[i]; }
     }
 
@@ -732,8 +732,8 @@ TEST(TensorTest, testTensorOp)
 
     // Œ¸ŽZ2-3
     {
-        auto ptr0 = t0.GetPtr();
-        auto ptr1 = t1.GetPtr();
+        auto ptr0 = t0.Lock();
+        auto ptr1 = t1.Lock();
         for (int i = 0; i < N; ++i) { ptr0[i] = d0[i]; ptr1[i] = d1[i]; }
     }
 
@@ -789,7 +789,7 @@ TEST(TensorTest, testTensor_cast)
 #endif
 
     {
-        auto ptr = t_fp32.GetPtr();
+        auto ptr = t_fp32.Lock();
         ptr({0, 0}) = 1;
         ptr({1, 0}) = 2;
         ptr({0, 1}) = 3;
@@ -842,7 +842,7 @@ void test_Operator(bb::indices_t shape)
 
     {
         // ƒ[ƒœŽZ‰ñ”ð
-        auto b_s1 = base_src1.GetPtr();
+        auto b_s1 = base_src1.Lock();
         for (bb::index_t i = 0; i < node_size; ++i) {
             if ( b_s1[i] == 0 ) {
                 b_s1[i]++;
@@ -1231,7 +1231,7 @@ void test_OperatorX(bb::indices_t shape)
     
     {
         // ƒ[ƒœŽZ‰ñ”ð
-        auto b_s1 = base_src1.GetPtr<T>();
+        auto b_s1 = base_src1.Lock<T>();
         for (bb::index_t i = 0; i < node_size; ++i) {
             if ( b_s1[i] == 0 ) {
                 b_s1[i]++;

@@ -145,12 +145,12 @@ protected:
 
 	inline T* GetInputPtr(NeuralNetBuffer<T>& buf, int c, int y, int x)
 	{
-		return (T*)buf.GetPtr((c*m_input_h_size + y)*m_input_w_size + x);
+		return (T*)buf.Lock((c*m_input_h_size + y)*m_input_w_size + x);
 	}
 
 	inline T* GetOutputPtr(NeuralNetBuffer<T>& buf, int c, int y, int x)
 	{
-		return (T*)buf.GetPtr((c*m_output_h_size + y)*m_output_w_size + x);
+		return (T*)buf.Lock((c*m_output_h_size + y)*m_output_w_size + x);
 	}
 
 	inline T* GetOutputPtrWithRangeCheck(NeuralNetBuffer<T>& buf, int c, int y, int x)
@@ -159,7 +159,7 @@ protected:
 			return (T*)buf.GetZeroPtr();
 		}
 
-		return (T*)buf.GetPtr((c*m_output_h_size + y)*m_output_w_size + x);
+		return (T*)buf.Lock((c*m_output_h_size + y)*m_output_w_size + x);
 	}
 
 	inline T* GetWPtr(NeuralNetBuffer<T>& buf, INDEX n, INDEX c, INDEX y, INDEX x)
@@ -168,7 +168,7 @@ protected:
 		BB_ASSERT(c >= 0 && c < m_input_c_size);
 		BB_ASSERT(y >= 0 && y < m_input_h_size);
 		BB_ASSERT(x >= 0 && x < m_input_w_size);
-		return (T*)buf.GetPtr(((n*m_input_c_size + c)*m_filter_h_size + y)*m_filter_w_size + x);
+		return (T*)buf.Lock(((n*m_input_c_size + c)*m_filter_h_size + y)*m_filter_w_size + x);
 	}
 
 

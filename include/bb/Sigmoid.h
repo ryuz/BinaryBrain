@@ -115,7 +115,7 @@ public:
         index_t node_size = m_x.GetNodeSize();
 
 		auto x_ptr = m_x.LockConst<T>();
-		auto y_ptr = m_y.GetPtr<T>();
+		auto y_ptr = m_y.Lock<T>();
 
 		// Sigmoid
 #pragma omp parallel for
@@ -152,7 +152,7 @@ public:
 
 	    auto y_ptr  = m_y.LockConst<T>();
 	    auto dy_ptr = dy.LockConst<T>();
-	    auto dx_ptr = m_dx.GetPtr<T>();
+	    auto dx_ptr = m_dx.Lock<T>();
 
         // Sigmoid
 #pragma omp parallel for

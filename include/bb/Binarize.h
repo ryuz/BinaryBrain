@@ -91,7 +91,7 @@ public:
         index_t node_size = m_x.GetNodeSize();
 
 		auto x_ptr = m_x.LockConst<T>();
-		auto y_ptr = m_y.GetPtr<T>();
+		auto y_ptr = m_y.Lock<T>();
 
 		// Binarize
 #pragma omp parallel for
@@ -124,7 +124,7 @@ public:
 		auto x_ptr  = m_x.LockConst<T>();
 		auto y_ptr  = m_y.LockConst<T>();
 		auto dy_ptr = dy.LockConst<T>();
-		auto dx_ptr = m_dx.GetPtr<T>();
+		auto dx_ptr = m_dx.Lock<T>();
         
     	// hard-tanh
 #pragma omp parallel for
@@ -183,7 +183,7 @@ inline FrameBuffer Binarize<float>::Forward(FrameBuffer x, bool train)
     {
         // CPU版
         auto x_ptr = m_x.LockConst<float>();
-	    auto y_ptr = m_y.GetPtr<float>();
+	    auto y_ptr = m_y.Lock<float>();
 
 #pragma omp parallel for
 		for (index_t node = 0; node < node_size; ++node) {
@@ -237,7 +237,7 @@ inline FrameBuffer Binarize<float>::Backward(FrameBuffer dy)
         auto x_ptr  = m_x.LockConst<float>();
 	    auto y_ptr  = m_y.LockConst<float>();
 	    auto dy_ptr = dy.LockConst<float>();
-	    auto dx_ptr = m_dx.GetPtr<float>();
+	    auto dx_ptr = m_dx.Lock<float>();
 
 #pragma omp parallel for
 		for (index_t node = 0; node < node_size; ++node) {

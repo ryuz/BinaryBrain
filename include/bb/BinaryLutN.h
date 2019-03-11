@@ -221,7 +221,7 @@ public:
 
     	{
             auto x_ptr = x.LockConst<FT>();
-            auto y_ptr = m_y.GetPtr<FT>();
+            auto y_ptr = m_y.Lock<FT>();
 
             index_t frame_size = x.GetFrameSize();
             index_t node_size  = GetOutputNodeSize();

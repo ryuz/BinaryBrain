@@ -743,7 +743,7 @@ public:
     }
 
     template <typename Tp>
-    auto GetPtr(bool new_buf=false)
+    auto Lock(bool new_buf=false)
     {
         FrameBufferPtr_<Tp, FrameBuffer, Memory::Ptr> ptr(this);
         ptr.Lock(new_buf);
@@ -916,7 +916,7 @@ public:
         BB_ASSERT(GetType() == DataType<Tp>::type);
         BB_ASSERT(offset + m_frame_size <= (index_t)data.size() );
 
-        auto ptr = GetPtr<Tp>();
+        auto ptr = Lock<Tp>();
         for (index_t frame = 0; frame < m_frame_size; ++frame) {
             BB_ASSERT(data[frame].size() == (size_t)m_node_size);
             for (index_t node = 0; node < m_node_size; ++node) {

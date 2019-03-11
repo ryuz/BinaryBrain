@@ -63,7 +63,7 @@ public:
 
 		auto y_ptr = y.LockConst<T>();
 		auto t_ptr = t.LockConst<T>();
-		auto dy_ptr = m_dy.GetPtr<T>();
+		auto dy_ptr = m_dy.Lock<T>();
 
 		for (index_t frame = 0; frame < frame_size; ++frame) {
 			for (index_t node = 0; node < node_size; ++node) {

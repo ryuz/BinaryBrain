@@ -118,7 +118,7 @@ public:
         m_y.Resize(DataType<FYT>::type, x.GetFrameSize() / m_frame_mux_size, m_output_shape);
 
 		auto x_ptr = x.LockConst<FXT>();
-		auto y_ptr = m_y.GetPtr<FYT>();
+		auto y_ptr = m_y.Lock<FYT>();
 
         index_t input_node_size   = GetInputNodeSize();
         index_t output_node_size  = GetOutputNodeSize();
@@ -160,7 +160,7 @@ public:
 		index_t output_frame_size = dy.GetFrameSize();
 
         auto dy_ptr = dy.LockConst<BT>();
-        auto dx_ptr = m_dx.GetPtr<BT>();
+        auto dx_ptr = m_dx.Lock<BT>();
 
 		BT	gain = (BT)output_node_size / (BT)input_node_size;
 		for (index_t node = 0; node < input_node_size; node++) {

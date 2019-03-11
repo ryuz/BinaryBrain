@@ -130,14 +130,14 @@ public:
   	Tensor       &db(void)       { return *m_db; }
 	Tensor const &db(void) const { return *m_db; }
 
-	auto lock_W(void)             { return m_W->GetPtr<T>(); }
+	auto lock_W(void)             { return m_W->Lock<T>(); }
 	auto lock_W_const(void) const { return m_W->LockConst<T>(); }
-	auto lock_b(void)             { return m_b->GetPtr<T>(); }
+	auto lock_b(void)             { return m_b->Lock<T>(); }
 	auto lock_b_const(void) const { return m_b->LockConst<T>(); }
 
-	auto lock_dW(void)             { return m_dW->GetPtr<T>(); }
+	auto lock_dW(void)             { return m_dW->Lock<T>(); }
 	auto lock_dW_const(void) const { return m_dW->LockConst<T>(); }
-	auto lock_db(void)             { return m_db->GetPtr<T>(); }
+	auto lock_db(void)             { return m_db->Lock<T>(); }
 	auto lock_db_const(void) const { return m_db->LockConst<T>(); }
 
 
@@ -234,7 +234,7 @@ public:
 
         {
             auto x_ptr = m_x.LockConst<T>();
-            auto y_ptr = m_y.GetPtr<T>();
+            auto y_ptr = m_y.Lock<T>();
             auto W_ptr = lock_W_const();
             auto b_ptr = lock_b_const();
 
@@ -290,7 +290,7 @@ public:
         {
             auto x_ptr  = m_x.LockConst<T>();
             auto dy_ptr = dy.LockConst<T>();
-            auto dx_ptr = m_dx.GetPtr<T>();
+            auto dx_ptr = m_dx.Lock<T>();
             auto W_ptr  = lock_W_const();
             auto b_ptr  = lock_b_const();
             auto dW_ptr = lock_dW();

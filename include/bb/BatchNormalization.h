@@ -143,17 +143,17 @@ public:
 
 
 
-    auto lock_gamma(void)              { return m_gamma->GetPtr<T>(); }
+    auto lock_gamma(void)              { return m_gamma->Lock<T>(); }
     auto lock_gamma_const(void)  const { return m_gamma->LockConst<T>(); }
-    auto lock_beta(void)               { return m_beta->GetPtr<T>(); }
+    auto lock_beta(void)               { return m_beta->Lock<T>(); }
     auto lock_beta_const(void)   const { return m_beta->LockConst<T>(); }
-    auto lock_dgamma(void)             { return m_dgamma->GetPtr<T>(); }
+    auto lock_dgamma(void)             { return m_dgamma->Lock<T>(); }
     auto lock_dgamma_const(void) const { return m_dgamma->LockConst<T>(); }
-    auto lock_dbeta(void)              { return m_dbeta->GetPtr<T>(); }
+    auto lock_dbeta(void)              { return m_dbeta->Lock<T>(); }
     auto lock_dbeta_const(void)  const { return m_dbeta->LockConst<T>(); }
-    auto lock_mean(void)               { return m_running_mean.GetPtr(); }
+    auto lock_mean(void)               { return m_running_mean.Lock(); }
     auto lock_mean_const(void)   const { return m_running_mean.LockConst(); }
-    auto lock_var(void)                { return m_running_var.GetPtr(); }
+    auto lock_var(void)                { return m_running_var.Lock(); }
     auto lock_var_const(void)    const { return m_running_var.LockConst(); }
 
 
@@ -258,15 +258,15 @@ public:
         const int	mm256_frame_size = ((int)frame_size + 7) / 8 * 8;
 
         auto x_buf_ptr = m_x.LockConst<T>();
-        auto y_buf_ptr = m_y.GetPtr<T>();
+        auto y_buf_ptr = m_y.Lock<T>();
 
         auto gamma_ptr        = lock_gamma_const();
         auto beta_ptr         = lock_beta_const();
 
-        auto mean_ptr         = m_mean.GetPtr();
-        auto rstd_ptr         = m_rstd.GetPtr();        
-        auto running_mean_ptr = m_running_mean.GetPtr();
-        auto running_var_ptr  = m_running_var.GetPtr();
+        auto mean_ptr         = m_mean.Lock();
+        auto rstd_ptr         = m_rstd.Lock();        
+        auto running_mean_ptr = m_running_mean.Lock();
+        auto running_var_ptr  = m_running_var.Lock();
 
         if (train) {
             const __m256	reciprocal_frame_size = _mm256_set1_ps(1.0f / (float)frame_size);
@@ -372,10 +372,10 @@ public:
         auto dgamma_ptr       = lock_dgamma();
         auto dbeta_ptr        = lock_dbeta();
 
-        auto mean_ptr         = m_mean.GetPtr();
-        auto rstd_ptr         = m_rstd.GetPtr();        
-        auto running_mean_ptr = m_running_mean.GetPtr();
-        auto running_var_ptr  = m_running_var.GetPtr();
+        auto mean_ptr         = m_mean.Lock();
+        auto rstd_ptr         = m_rstd.Lock();        
+        auto running_mean_ptr = m_running_mean.Lock();
+        auto running_var_ptr  = m_running_var.Lock();
         
         
         // 逆数生成
@@ -388,7 +388,7 @@ public:
 
         auto x_buf_ptr  = m_x.LockConst<T>();
         auto y_buf_ptr  = m_y.LockConst<T>();
-        auto dx_buf_ptr = m_dx.GetPtr<T>();
+        auto dx_buf_ptr = m_dx.Lock<T>();
         auto dy_buf_ptr = dy.LockConst<T>();
 
         #pragma omp parallel for

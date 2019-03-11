@@ -112,12 +112,12 @@ protected:
     /*
 	inline void* GetInputPtr(NeuralNetBuffer<T>& buf, int c, int y, int x)
 	{
-		return buf.GetPtr((c*m_input_h_size + y)*m_input_w_size + x);
+		return buf.Lock((c*m_input_h_size + y)*m_input_w_size + x);
 	}
 
 	inline void* GetOutputPtr(NeuralNetBuffer<T>& buf, int c, int y, int x)
 	{
-		return buf.GetPtr((c*m_output_h_size + y)*m_output_w_size + x);
+		return buf.Lock((c*m_output_h_size + y)*m_output_w_size + x);
 	}
     */
 
@@ -151,7 +151,7 @@ public:
         if ( DataType<FT>::type == BB_TYPE_BIT ) {
 			// バイナリ用実装
             auto x_ptr = m_x.LockConst();
-            auto y_ptr = m_y.GetPtr(true);
+            auto y_ptr = m_y.Lock(true);
 
 			index_t  m256_frame_size = m_y.GetFrameStride() / 256;
 
@@ -185,7 +185,7 @@ public:
         if ( DataType<FT>::type == BB_TYPE_FP32 ) {
 			// float用実装
             auto x_ptr = m_x.LockConst<FT>();
-            auto y_ptr = m_y.GetPtr<FT>(true);
+            auto y_ptr = m_y.Lock<FT>(true);
 
 			index_t  m256_frame_size = (int)m_y.GetFrameStride() / 8;
 
@@ -236,7 +236,7 @@ public:
             auto x_ptr  = m_x.LockConst<FT>();
             auto y_ptr  = m_y.LockConst<FT>();
             auto dy_ptr = dy.LockConst<BT>();
-            auto dx_ptr = m_dx.GetPtr<BT>();
+            auto dx_ptr = m_dx.Lock<BT>();
 
 			#pragma omp parallel for
 			for (index_t n = 0; n < m_input_c_size; ++n) {

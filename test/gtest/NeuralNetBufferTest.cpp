@@ -16,30 +16,30 @@ TEST(NeuralNetBufferTest, testNeuralNetBufferTest)
 
 	// 多次元配列構成
 	buf.SetDimensions({ 2, 3, 4 });
-	EXPECT_EQ(0, *(float *)buf.GetPtr3(0, 0, 0));
-	EXPECT_EQ(1, *(float *)buf.GetPtr3(0, 0, 1));
-	EXPECT_EQ(2, *(float *)buf.GetPtr3(0, 1, 0));
-	EXPECT_EQ(3, *(float *)buf.GetPtr3(0, 1, 1));
-	EXPECT_EQ(4, *(float *)buf.GetPtr3(0, 2, 0));
-	EXPECT_EQ(5, *(float *)buf.GetPtr3(0, 2, 1));
-	EXPECT_EQ(6, *(float *)buf.GetPtr3(1, 0, 0));
-	EXPECT_EQ(7, *(float *)buf.GetPtr3(1, 0, 1));
-	EXPECT_EQ(8, *(float *)buf.GetPtr3(1, 1, 0));
-	EXPECT_EQ(9, *(float *)buf.GetPtr3(1, 1, 1));
-	EXPECT_EQ(10, *(float *)buf.GetPtr3(1, 2, 0));
-	EXPECT_EQ(11, *(float *)buf.GetPtr3(1, 2, 1));
-	EXPECT_EQ(12, *(float *)buf.GetPtr3(2, 0, 0));
-	EXPECT_EQ(13, *(float *)buf.GetPtr3(2, 0, 1));
-	EXPECT_EQ(14, *(float *)buf.GetPtr3(2, 1, 0));
-	EXPECT_EQ(15, *(float *)buf.GetPtr3(2, 1, 1));
-	EXPECT_EQ(16, *(float *)buf.GetPtr3(2, 2, 0));
-	EXPECT_EQ(17, *(float *)buf.GetPtr3(2, 2, 1));
-	EXPECT_EQ(18, *(float *)buf.GetPtr3(3, 0, 0));
-	EXPECT_EQ(19, *(float *)buf.GetPtr3(3, 0, 1));
-	EXPECT_EQ(20, *(float *)buf.GetPtr3(3, 1, 0));
-	EXPECT_EQ(21, *(float *)buf.GetPtr3(3, 1, 1));
-	EXPECT_EQ(22, *(float *)buf.GetPtr3(3, 2, 0));
-	EXPECT_EQ(23, *(float *)buf.GetPtr3(3, 2, 1));
+	EXPECT_EQ(0, *(float *)buf.Lock3(0, 0, 0));
+	EXPECT_EQ(1, *(float *)buf.Lock3(0, 0, 1));
+	EXPECT_EQ(2, *(float *)buf.Lock3(0, 1, 0));
+	EXPECT_EQ(3, *(float *)buf.Lock3(0, 1, 1));
+	EXPECT_EQ(4, *(float *)buf.Lock3(0, 2, 0));
+	EXPECT_EQ(5, *(float *)buf.Lock3(0, 2, 1));
+	EXPECT_EQ(6, *(float *)buf.Lock3(1, 0, 0));
+	EXPECT_EQ(7, *(float *)buf.Lock3(1, 0, 1));
+	EXPECT_EQ(8, *(float *)buf.Lock3(1, 1, 0));
+	EXPECT_EQ(9, *(float *)buf.Lock3(1, 1, 1));
+	EXPECT_EQ(10, *(float *)buf.Lock3(1, 2, 0));
+	EXPECT_EQ(11, *(float *)buf.Lock3(1, 2, 1));
+	EXPECT_EQ(12, *(float *)buf.Lock3(2, 0, 0));
+	EXPECT_EQ(13, *(float *)buf.Lock3(2, 0, 1));
+	EXPECT_EQ(14, *(float *)buf.Lock3(2, 1, 0));
+	EXPECT_EQ(15, *(float *)buf.Lock3(2, 1, 1));
+	EXPECT_EQ(16, *(float *)buf.Lock3(2, 2, 0));
+	EXPECT_EQ(17, *(float *)buf.Lock3(2, 2, 1));
+	EXPECT_EQ(18, *(float *)buf.Lock3(3, 0, 0));
+	EXPECT_EQ(19, *(float *)buf.Lock3(3, 0, 1));
+	EXPECT_EQ(20, *(float *)buf.Lock3(3, 1, 0));
+	EXPECT_EQ(21, *(float *)buf.Lock3(3, 1, 1));
+	EXPECT_EQ(22, *(float *)buf.Lock3(3, 2, 0));
+	EXPECT_EQ(23, *(float *)buf.Lock3(3, 2, 1));
 
 	// シーケンシャルアクセス確認
 	{
@@ -55,22 +55,22 @@ TEST(NeuralNetBufferTest, testNeuralNetBufferTest)
 #if BB_NEURALNET_BUFFER_USE_ROI
 	// オフセットのみのROI
 	buf.SetRoi({ 0, 1, 0 });
-	EXPECT_EQ(2, *(float *)buf.GetPtr3(0, 0, 0));
-	EXPECT_EQ(3, *(float *)buf.GetPtr3(0, 0, 1));
-	EXPECT_EQ(4, *(float *)buf.GetPtr3(0, 1, 0));
-	EXPECT_EQ(5, *(float *)buf.GetPtr3(0, 1, 1));
-	EXPECT_EQ(8, *(float *)buf.GetPtr3(1, 0, 0));
-	EXPECT_EQ(9, *(float *)buf.GetPtr3(1, 0, 1));
-	EXPECT_EQ(10, *(float *)buf.GetPtr3(1, 1, 0));
-	EXPECT_EQ(11, *(float *)buf.GetPtr3(1, 1, 1));
-	EXPECT_EQ(14, *(float *)buf.GetPtr3(2, 0, 0));
-	EXPECT_EQ(15, *(float *)buf.GetPtr3(2, 0, 1));
-	EXPECT_EQ(16, *(float *)buf.GetPtr3(2, 1, 0));
-	EXPECT_EQ(17, *(float *)buf.GetPtr3(2, 1, 1));
-	EXPECT_EQ(20, *(float *)buf.GetPtr3(3, 0, 0));
-	EXPECT_EQ(21, *(float *)buf.GetPtr3(3, 0, 1));
-	EXPECT_EQ(22, *(float *)buf.GetPtr3(3, 1, 0));
-	EXPECT_EQ(23, *(float *)buf.GetPtr3(3, 1, 1));
+	EXPECT_EQ(2, *(float *)buf.Lock3(0, 0, 0));
+	EXPECT_EQ(3, *(float *)buf.Lock3(0, 0, 1));
+	EXPECT_EQ(4, *(float *)buf.Lock3(0, 1, 0));
+	EXPECT_EQ(5, *(float *)buf.Lock3(0, 1, 1));
+	EXPECT_EQ(8, *(float *)buf.Lock3(1, 0, 0));
+	EXPECT_EQ(9, *(float *)buf.Lock3(1, 0, 1));
+	EXPECT_EQ(10, *(float *)buf.Lock3(1, 1, 0));
+	EXPECT_EQ(11, *(float *)buf.Lock3(1, 1, 1));
+	EXPECT_EQ(14, *(float *)buf.Lock3(2, 0, 0));
+	EXPECT_EQ(15, *(float *)buf.Lock3(2, 0, 1));
+	EXPECT_EQ(16, *(float *)buf.Lock3(2, 1, 0));
+	EXPECT_EQ(17, *(float *)buf.Lock3(2, 1, 1));
+	EXPECT_EQ(20, *(float *)buf.Lock3(3, 0, 0));
+	EXPECT_EQ(21, *(float *)buf.Lock3(3, 0, 1));
+	EXPECT_EQ(22, *(float *)buf.Lock3(3, 1, 0));
+	EXPECT_EQ(23, *(float *)buf.Lock3(3, 1, 1));
 
 	buf.ResetPtr();
 	EXPECT_EQ(false, buf.IsEnd());
@@ -95,23 +95,23 @@ TEST(NeuralNetBufferTest, testNeuralNetBufferTest)
 	EXPECT_EQ(true, buf.IsEnd());
 
 	buf.SetRoi({ 0, 0, 2 });
-	EXPECT_EQ(14, *(float *)buf.GetPtr3(0, 0, 0));
-	EXPECT_EQ(15, *(float *)buf.GetPtr3(0, 0, 1));
-	EXPECT_EQ(16, *(float *)buf.GetPtr3(0, 1, 0));
-	EXPECT_EQ(17, *(float *)buf.GetPtr3(0, 1, 1));
-	EXPECT_EQ(20, *(float *)buf.GetPtr3(1, 0, 0));
-	EXPECT_EQ(21, *(float *)buf.GetPtr3(1, 0, 1));
-	EXPECT_EQ(22, *(float *)buf.GetPtr3(1, 1, 0));
-	EXPECT_EQ(23, *(float *)buf.GetPtr3(1, 1, 1));
+	EXPECT_EQ(14, *(float *)buf.Lock3(0, 0, 0));
+	EXPECT_EQ(15, *(float *)buf.Lock3(0, 0, 1));
+	EXPECT_EQ(16, *(float *)buf.Lock3(0, 1, 0));
+	EXPECT_EQ(17, *(float *)buf.Lock3(0, 1, 1));
+	EXPECT_EQ(20, *(float *)buf.Lock3(1, 0, 0));
+	EXPECT_EQ(21, *(float *)buf.Lock3(1, 0, 1));
+	EXPECT_EQ(22, *(float *)buf.Lock3(1, 1, 0));
+	EXPECT_EQ(23, *(float *)buf.Lock3(1, 1, 1));
 
-	EXPECT_EQ(14, *(float *)buf.GetPtr(0));
-	EXPECT_EQ(15, *(float *)buf.GetPtr(1));
-	EXPECT_EQ(16, *(float *)buf.GetPtr(2));
-	EXPECT_EQ(17, *(float *)buf.GetPtr(3));
-	EXPECT_EQ(20, *(float *)buf.GetPtr(4));
-	EXPECT_EQ(21, *(float *)buf.GetPtr(5));
-	EXPECT_EQ(22, *(float *)buf.GetPtr(6));
-	EXPECT_EQ(23, *(float *)buf.GetPtr(7));
+	EXPECT_EQ(14, *(float *)buf.Lock(0));
+	EXPECT_EQ(15, *(float *)buf.Lock(1));
+	EXPECT_EQ(16, *(float *)buf.Lock(2));
+	EXPECT_EQ(17, *(float *)buf.Lock(3));
+	EXPECT_EQ(20, *(float *)buf.Lock(4));
+	EXPECT_EQ(21, *(float *)buf.Lock(5));
+	EXPECT_EQ(22, *(float *)buf.Lock(6));
+	EXPECT_EQ(23, *(float *)buf.Lock(7));
 
 	buf.ResetPtr();
 	EXPECT_EQ(false, buf.IsEnd());
@@ -148,10 +148,10 @@ TEST(NeuralNetBufferTest, testNeuralNetBufferTest)
 	// 範囲付きROI
 	buf.SetRoi({ 0, 1, 1 }, { 1, 2, 2 });
 
-	EXPECT_EQ(8, *(float *)buf.GetPtr(0));	// (1, 1, 0) : 8
-	EXPECT_EQ(10, *(float *)buf.GetPtr(1));	// (1, 2, 0) : 8
-	EXPECT_EQ(14, *(float *)buf.GetPtr(2));	// (2, 1, 0) : 14
-	EXPECT_EQ(16, *(float *)buf.GetPtr(3));	// (2, 2, 0) : 16
+	EXPECT_EQ(8, *(float *)buf.Lock(0));	// (1, 1, 0) : 8
+	EXPECT_EQ(10, *(float *)buf.Lock(1));	// (1, 2, 0) : 8
+	EXPECT_EQ(14, *(float *)buf.Lock(2));	// (2, 1, 0) : 14
+	EXPECT_EQ(16, *(float *)buf.Lock(3));	// (2, 2, 0) : 16
 
 	buf.ResetPtr();
 	EXPECT_EQ(false, buf.IsEnd());
@@ -193,14 +193,14 @@ TEST(NeuralNetBufferTest, testNeuralNetBufferTest2)
 	
 	buf.SetRoi({ 0, 0, 0 }, { 2, 2, 2 });
 
-	EXPECT_EQ(0, ((float*)buf.GetPtr(0))[0]);
-	EXPECT_EQ(1, ((float*)buf.GetPtr(1))[0]);
-	EXPECT_EQ(4, ((float*)buf.GetPtr(2))[0]);
-	EXPECT_EQ(5, ((float*)buf.GetPtr(3))[0]);
-	EXPECT_EQ(12, ((float*)buf.GetPtr(4))[0]);
-	EXPECT_EQ(13, ((float*)buf.GetPtr(5))[0]);
-	EXPECT_EQ(16, ((float*)buf.GetPtr(6))[0]);
-	EXPECT_EQ(17, ((float*)buf.GetPtr(7))[0]);
+	EXPECT_EQ(0, ((float*)buf.Lock(0))[0]);
+	EXPECT_EQ(1, ((float*)buf.Lock(1))[0]);
+	EXPECT_EQ(4, ((float*)buf.Lock(2))[0]);
+	EXPECT_EQ(5, ((float*)buf.Lock(3))[0]);
+	EXPECT_EQ(12, ((float*)buf.Lock(4))[0]);
+	EXPECT_EQ(13, ((float*)buf.Lock(5))[0]);
+	EXPECT_EQ(16, ((float*)buf.Lock(6))[0]);
+	EXPECT_EQ(17, ((float*)buf.Lock(7))[0]);
 
 	EXPECT_EQ(0, buf.GetReal(0, 0));
 	EXPECT_EQ(1, buf.GetReal(0, 1));

@@ -63,7 +63,7 @@ TEST(NeuralNetOptimizerAdamTest, testNeuralNetOptimizerAdamTest)
 
     float exp_p = 0.1f;
     {
-        auto param_ptr = param_tensor->GetPtr<float>();
+        auto param_ptr = param_tensor->Lock<float>();
         param_ptr(0) = exp_p;
     }
 
@@ -80,7 +80,7 @@ TEST(NeuralNetOptimizerAdamTest, testNeuralNetOptimizerAdamTest)
         
         // 計算
         {
-            auto grad_ptr = grad_tensor->GetPtr<float>();
+            auto grad_ptr = grad_tensor->Lock<float>();
             grad_ptr(0) = grad;
         }
         opt_adam->Update();
@@ -168,8 +168,8 @@ TEST(OptimizerAdamTest, testOptimizerAdam_Cmp)
     opt_gpu->SetVariables(param_var_gpu, grad_var_gpu);
 
     {
-        auto param_ptr_cpu = param_cpu->GetPtr<float>();
-        auto param_ptr_gpu = param_gpu->GetPtr<float>();
+        auto param_ptr_cpu = param_cpu->Lock<float>();
+        auto param_ptr_gpu = param_gpu->Lock<float>();
         for ( bb::index_t i = 0; i < param_cpu->GetSize(); ++i ) {
             float param = norm_dist(mt);
             param_ptr_cpu[i] = param;
@@ -179,8 +179,8 @@ TEST(OptimizerAdamTest, testOptimizerAdam_Cmp)
 
     for ( int loop = 0; loop < 10; ++loop ) {
         {
-            auto grad_ptr_cpu = grad_cpu->GetPtr<float>();
-            auto grad_ptr_gpu = grad_gpu->GetPtr<float>();
+            auto grad_ptr_cpu = grad_cpu->Lock<float>();
+            auto grad_ptr_gpu = grad_gpu->Lock<float>();
             for ( bb::index_t i = 0; i < param_cpu->GetSize(); ++i ) {
                 float grad = norm_dist(mt);
                 grad_ptr_cpu[i] = grad;

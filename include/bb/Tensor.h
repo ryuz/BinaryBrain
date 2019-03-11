@@ -456,7 +456,7 @@ public:
 
     void FillZero(void)
     {
-        auto ptr = m_mem->GetPtr(true);
+        auto ptr = m_mem->Lock(true);
         memset(ptr.GetAddr(), 0, m_mem->GetSize());
     }
 
@@ -484,7 +484,7 @@ public:
         return ptr;
     }
     
-    Ptr GetPtr(bool new_buf=false)
+    Ptr Lock(bool new_buf=false)
     {
         Ptr ptr(this);
         ptr.Lock(new_buf);
@@ -1577,7 +1577,7 @@ public:
     void FillZero(void)
     {
         m_mem->FillZero();
-//        auto ptr = m_mem->GetPtr(true);
+//        auto ptr = m_mem->Lock(true);
 //        memset(ptr.GetAddr(), 0, m_mem->GetSize());
     }
 
@@ -1691,7 +1691,7 @@ public:
     }
     
     template <typename Tp>
-    TensorPtr_<Tp, Tensor, Memory::Ptr> GetPtr(bool new_buf=false)
+    TensorPtr_<Tp, Tensor, Memory::Ptr> Lock(bool new_buf=false)
     {
         TensorPtr_<Tp, Tensor, Memory::Ptr> ptr(this);
         ptr.Lock(new_buf);

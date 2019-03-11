@@ -27,9 +27,9 @@ TEST(VariablesTest, VariablesTest_Test)
     var2 += var1;
 
     {
-        auto ptr2_0 = var2[0].GetPtr<float>();
-        auto ptr2_1 = var2[1].GetPtr<double>();
-        auto ptr2_2 = var2[2].GetPtr<std::int32_t>();
+        auto ptr2_0 = var2[0].Lock<float>();
+        auto ptr2_1 = var2[1].Lock<double>();
+        auto ptr2_2 = var2[2].Lock<std::int32_t>();
         EXPECT_EQ(3.0f, ptr2_0[0]);
         EXPECT_EQ(3.0f, ptr2_0[1]);
         EXPECT_EQ(3.0f, ptr2_0[2]);

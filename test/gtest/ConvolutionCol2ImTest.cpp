@@ -14,7 +14,7 @@ TEST(ConvolutionCol2ImTest, testConvolutionCol2ImTest)
     cnvcol2im->SetInputShape(x_buf.GetShape());
 
     {
-	    auto x_ptr = x_buf.GetPtr<float>();
+	    auto x_ptr = x_buf.Lock<float>();
 	    for (size_t f = 0; f < 2; ++f) {
 		    for (size_t y = 0; y < 3; ++y) {
 			    for (size_t x = 0; x < 4; ++x) {

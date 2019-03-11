@@ -116,7 +116,7 @@ public:
 
         {
             auto x_ptr = x.LockConst<FT>();
-            auto y_ptr = m_y.GetPtr<FT>(true);
+            auto y_ptr = m_y.Lock<FT>(true);
 		    index_t input_frame = 0;
 		    for (index_t output_frame = 0; output_frame < output_frame_size; ++output_frame) {
 			    for (index_t y = 0; y < m_h_size; ++y) {
@@ -146,7 +146,7 @@ public:
         
         {
 		    auto dy_ptr = dy.LockConst<BT>();
-		    auto dx_ptr = m_dx.GetPtr<BT>(true);
+		    auto dx_ptr = m_dx.Lock<BT>(true);
 
 		    index_t input_frame = 0;
 		    for (index_t output_frame = 0; output_frame < output_frame_size; ++output_frame) {
