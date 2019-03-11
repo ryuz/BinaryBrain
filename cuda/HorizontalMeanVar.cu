@@ -26,7 +26,7 @@ __global__ void kernel_fp32_HorizontalMeanVar(
 	
 	// カハンの加算アルゴリズム(Kahan summation algorithm)
 	float s1 = 0, c1 = 0, y1, t1;
-	float s1 = 0, c1 = 0, y1, t1;
+	float s2 = 0, c2 = 0, y2, t2;
 	const float* src_ptr = &src[frame_stride * node];
 	while ( frame < frame_size ) {
 		float x = src_ptr[frame];
@@ -35,7 +35,7 @@ __global__ void kernel_fp32_HorizontalMeanVar(
 		t1 = s1 + y1;
 		c1 += (t1 - s1) - y1;
 		
-		y2 = x - c2;
+		y2 = (x * x) - c2;
 		t2 = s2 + y2;
 		c2 += (t2 - s2) - y2;
 		
@@ -64,18 +64,18 @@ __global__ void kernel_fp32_HorizontalMeanVar(
 	}
 	
 	float m = buf1[0] / frame_size;
-	float v = (buf2[0] / frame_size) - (m * m);
+	float v = max(0.0f, (buf2[0] / frame_size) - (m * m));
 	
 	mean[node]     = m;
 	variance[node] = v;
 }
 
 
-int bbcu_fp32_HorizontalMeanVar
+CUBB_DLL_EXPORT int bbcu_fp32_HorizontalMeanVar
 (
 	const float*	dev_src,
 	float*			dev_mean,
-	float*			dev_var,
+	float*			dev_variance,
 	int				node_size,
 	int				frame_size,
 	int				frame_stride,
@@ -91,7 +91,8 @@ int bbcu_fp32_HorizontalMeanVar
 	
 	kernel_fp32_HorizontalMeanVar << <grid, block, 2 * unit_x * sizeof(float), streamId >> > (
 		dev_src,
-		dev_dst,
+		dev_mean,
+		dev_variance,
 		frame_size,
 		frame_stride);
 	

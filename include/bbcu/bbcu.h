@@ -157,6 +157,18 @@ CUBB_DLL_EXPORT	int bbcu_fp32_HorizontalSum
         );
 
 
+// Horizontal MeanVar
+CUBB_DLL_EXPORT int bbcu_fp32_HorizontalMeanVar
+		(
+			const float*	dev_src,
+			float*			dev_mean,
+			float*			dev_variance,
+			int				node_size,
+			int				frame_size,
+			int				frame_stride,
+			cudaStream_t	streamId = 0
+		);
+
 
 // -------------------------------------
 //  MicroMlp
