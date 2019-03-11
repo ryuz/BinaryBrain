@@ -18,6 +18,7 @@ __global__ void kernel_fp32_HorizontalMeanVar(
 {
 	extern __shared__   float	buf[];
 	
+
 	// 初期化
 	int node  = blockIdx.x;
 	int frame = threadIdx.x;
@@ -34,11 +35,13 @@ __global__ void kernel_fp32_HorizontalMeanVar(
 		y1 = x - c1;
 		t1 = s1 + y1;
 		c1 += (t1 - s1) - y1;
+		s1 = t1;
 		
 		y2 = (x * x) - c2;
 		t2 = s2 + y2;
 		c2 += (t2 - s2) - y2;
-		
+		s2 = t2;
+
 		frame += frame_step;
 	}
 	
@@ -49,10 +52,10 @@ __global__ void kernel_fp32_HorizontalMeanVar(
 	buf2[threadIdx.x] = s2;
 	
 	__syncthreads();
-	
+
 	// スレッド間集計
 	int comb = 1;
-	while (comb < frame_size) {
+	while (comb < frame_step) {
 		int next = comb * 2;
 		int mask = next - 1;
 		if ((threadIdx.x & mask) == 0) {
@@ -62,12 +65,14 @@ __global__ void kernel_fp32_HorizontalMeanVar(
 		comb = next;
 		__syncthreads();
 	}
-	
-	float m = buf1[0] / frame_size;
-	float v = max(0.0f, (buf2[0] / frame_size) - (m * m));
-	
-	mean[node]     = m;
-	variance[node] = v;
+
+	if (threadIdx.x == 0) {
+		float m = buf1[0] / frame_size;
+		float v = max(0.0f, (buf2[0] / frame_size) - (m * m));
+
+		mean[node] = m;
+		variance[node] = v;
+	}
 }
 
 
@@ -95,13 +100,7 @@ CUBB_DLL_EXPORT int bbcu_fp32_HorizontalMeanVar
 		dev_variance,
 		frame_size,
 		frame_stride);
-	
-	cudaError_t cudaStatus = cudaGetLastError();
-	if (cudaStatus != cudaSuccess) {
-		fprintf(stderr, "kernel launch failed: %s\n", cudaGetErrorString(cudaStatus));
-		exit(1);
-		return 1;
-	}
+	BB_CUDA_CHECK_LAST_ERROR();
 
 	return 0;
 }
