@@ -209,10 +209,34 @@ CUBB_DLL_EXPORT int bbcu_fp32_MicroMlp6x16_Backward(
             cudaStream_t	streamId = 0
         );
 
+
+
+// -------------------------------------
+//  BatchNormalization
+// -------------------------------------
+
+CUBB_DLL_EXPORT int cubb_fp32_BatchNormalization_Forward
+		(
+			const float*	dev_x_buf,
+			float*			dev_y_buf,
+			float*			dev_gamma_buf,
+			float*			dev_beta_buf,
+			float*			dev_mean_buf,
+			float*			dev_rstd_buf,
+			float*			dev_running_mean_buf,
+			float*			dev_running_var_buf,
+			float			momentum,
+			int				frame_size,
+			int				frame_stride,
+			int				node_size,
+			cudaStream_t    streamId = 0
+		);
+
+
+
 // -------------------------------------
 //  Im2Col
 // -------------------------------------
-
 
 CUBB_DLL_EXPORT	int cubb_fp32_Im2Col_Forward
         (

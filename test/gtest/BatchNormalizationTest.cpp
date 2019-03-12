@@ -376,30 +376,28 @@ TEST(BatchNormalizationTest, testBatchNormalization)
 #endif
 
 	for (int i = 0; i < 8; i++) {
-		EXPECT_TRUE(abs(y.GetFP32(i, 0) - exp_norm0.y[i]) < 0.000001);
-		EXPECT_TRUE(abs(y.GetFP32(i, 1) - exp_norm1.y[i]) < 0.000001);
-//		EXPECT_EQ(y.GetFP32(i, 0), exp_norm0.y[i]);
-//		EXPECT_EQ(y.GetFP32(i, 1), exp_norm1.y[i]);
+		EXPECT_NEAR(exp_norm0.y[i], y.GetFP32(i, 0), 0.000001);
+		EXPECT_NEAR(exp_norm1.y[i], y.GetFP32(i, 1), 0.000001);
 	}
 
 	// _mm256_rsqrt_ps を使っているので精度は悪い
-	EXPECT_TRUE(abs(y.GetFP32(0, 0) - -1.52752510) < 0.000001);
-	EXPECT_TRUE(abs(y.GetFP32(1, 0) - -1.09108940) < 0.000001);
-	EXPECT_TRUE(abs(y.GetFP32(2, 0) - -0.65465360) < 0.000001);
-	EXPECT_TRUE(abs(y.GetFP32(3, 0) - -0.21821786) < 0.000001);
-	EXPECT_TRUE(abs(y.GetFP32(4, 0) - +0.21821786) < 0.000001);
-	EXPECT_TRUE(abs(y.GetFP32(5, 0) - +0.65465360) < 0.000001);
-	EXPECT_TRUE(abs(y.GetFP32(6, 0) - +1.09108940) < 0.000001);
-	EXPECT_TRUE(abs(y.GetFP32(7, 0) - +1.52752510) < 0.000001);
+	EXPECT_NEAR(-1.52752510, y.GetFP32(0, 0), 0.000001);
+	EXPECT_NEAR(-1.09108940, y.GetFP32(1, 0), 0.000001);
+	EXPECT_NEAR(-0.65465360, y.GetFP32(2, 0), 0.000001);
+	EXPECT_NEAR(-0.21821786, y.GetFP32(3, 0), 0.000001);
+	EXPECT_NEAR(+0.21821786, y.GetFP32(4, 0), 0.000001);
+	EXPECT_NEAR(+0.65465360, y.GetFP32(5, 0), 0.000001);
+	EXPECT_NEAR(+1.09108940, y.GetFP32(6, 0), 0.000001);
+	EXPECT_NEAR(+1.52752510, y.GetFP32(7, 0), 0.000001);
 
-	EXPECT_TRUE(abs(y.GetFP32(0, 1) - -1.23359570) < 0.000001);
-	EXPECT_TRUE(abs(y.GetFP32(1, 1) - +1.14442010) < 0.000001);
-	EXPECT_TRUE(abs(y.GetFP32(2, 1) - -0.04458780) < 0.000001);
-	EXPECT_TRUE(abs(y.GetFP32(3, 1) - -0.63909180) < 0.000001);
-	EXPECT_TRUE(abs(y.GetFP32(4, 1) - -1.11469500) < 0.000001);
-	EXPECT_TRUE(abs(y.GetFP32(5, 1) - +1.62002340) < 0.000001);
-	EXPECT_TRUE(abs(y.GetFP32(6, 1) - +0.78771776) < 0.000001);
-	EXPECT_TRUE(abs(y.GetFP32(7, 1) - -0.52019095) < 0.000001);
+	EXPECT_NEAR(-1.23359570, y.GetFP32(0, 1), 0.000001);
+	EXPECT_NEAR(+1.14442010, y.GetFP32(1, 1), 0.000001);
+	EXPECT_NEAR(-0.04458780, y.GetFP32(2, 1), 0.000001);
+	EXPECT_NEAR(-0.63909180, y.GetFP32(3, 1), 0.000001);
+	EXPECT_NEAR(-1.11469500, y.GetFP32(4, 1), 0.000001);
+	EXPECT_NEAR(+1.62002340, y.GetFP32(5, 1), 0.000001);
+	EXPECT_NEAR(+0.78771776, y.GetFP32(6, 1), 0.000001);
+	EXPECT_NEAR(-0.52019095, y.GetFP32(7, 1), 0.000001);
 
     bb::FrameBuffer dy(BB_TYPE_FP32, 8, 2);
 	
@@ -459,28 +457,28 @@ TEST(BatchNormalizationTest, testBatchNormalization)
 		[-0.76376295, -0.39265870]]
 	*/
 
-	EXPECT_TRUE(abs(dx.GetFP32(0, 0) - +0.65465380) < 0.00001);
-	EXPECT_TRUE(abs(dx.GetFP32(1, 0) - +0.01558709) < 0.00001);
-	EXPECT_TRUE(abs(dx.GetFP32(2, 0) - -1.05991530) < 0.00001);
-	EXPECT_TRUE(abs(dx.GetFP32(3, 0) - -0.38967478) < 0.00001);
-	EXPECT_TRUE(abs(dx.GetFP32(4, 0) - +0.28056574) < 0.00001);
-	EXPECT_TRUE(abs(dx.GetFP32(5, 0) - +0.07793474) < 0.00001);
-	EXPECT_TRUE(abs(dx.GetFP32(6, 0) - +1.18461110) < 0.00001);
-	EXPECT_TRUE(abs(dx.GetFP32(7, 0) - -0.76376295) < 0.00001);
-       
-	EXPECT_TRUE(abs(dx.GetFP32(0, 1) - +0.08798742) < 0.00001);
-	EXPECT_TRUE(abs(dx.GetFP32(1, 1) - +2.05285700) < 0.00001);
-	EXPECT_TRUE(abs(dx.GetFP32(2, 1) - +0.47591877) < 0.00001);
-	EXPECT_TRUE(abs(dx.GetFP32(3, 1) - -1.50155930) < 0.00001);
-	EXPECT_TRUE(abs(dx.GetFP32(4, 1) - +1.19688750) < 0.00001);
-	EXPECT_TRUE(abs(dx.GetFP32(5, 1) - -0.64558935) < 0.00001);
-	EXPECT_TRUE(abs(dx.GetFP32(6, 1) - -1.27384350) < 0.00001);
-	EXPECT_TRUE(abs(dx.GetFP32(7, 1) - -0.39265870) < 0.00001);
+	EXPECT_NEAR(+0.65465380, dx.GetFP32(0, 0), 0.00001);
+	EXPECT_NEAR(+0.01558709, dx.GetFP32(1, 0), 0.00001);
+	EXPECT_NEAR(-1.05991530, dx.GetFP32(2, 0), 0.00001);
+	EXPECT_NEAR(-0.38967478, dx.GetFP32(3, 0), 0.00001);
+	EXPECT_NEAR(+0.28056574, dx.GetFP32(4, 0), 0.00001);
+	EXPECT_NEAR(+0.07793474, dx.GetFP32(5, 0), 0.00001);
+	EXPECT_NEAR(+1.18461110, dx.GetFP32(6, 0), 0.00001);
+	EXPECT_NEAR(-0.76376295, dx.GetFP32(7, 0), 0.00001);
+
+	EXPECT_NEAR(+0.08798742, dx.GetFP32(0, 1), 0.00001);
+	EXPECT_NEAR(+2.05285700, dx.GetFP32(1, 1), 0.00001);
+	EXPECT_NEAR(+0.47591877, dx.GetFP32(2, 1), 0.00001);
+	EXPECT_NEAR(-1.50155930, dx.GetFP32(3, 1), 0.00001);
+	EXPECT_NEAR(+1.19688750, dx.GetFP32(4, 1), 0.00001);
+	EXPECT_NEAR(-0.64558935, dx.GetFP32(5, 1), 0.00001);
+	EXPECT_NEAR(-1.27384350, dx.GetFP32(6, 1), 0.00001);
+	EXPECT_NEAR(-0.39265870, dx.GetFP32(7, 1), 0.00001);
 
 	for (int i = 0; i < 8; i++) {
 //		std::cout << exp_norm0.dx[i] << std::endl;
-		EXPECT_TRUE(abs(dx.GetFP32(i, 0) - exp_norm0.dx[i]) < 0.001);
-		EXPECT_TRUE(abs(dx.GetFP32(i, 1) - exp_norm1.dx[i]) < 0.001);
+		EXPECT_NEAR(exp_norm0.dx[i], dx.GetFP32(i, 0), 0.001);
+		EXPECT_NEAR(exp_norm1.dx[i], dx.GetFP32(i, 1), 0.001);
 	}
 }
 

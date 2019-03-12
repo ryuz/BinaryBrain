@@ -77,9 +77,10 @@ TEST(cudaHorizontalMeanVarTest, test_cudaHorizontalMeanVar)
 		EXPECT_FLOAT_EQ((float)calc_mean(arr0), m_ptr[0]);
 		EXPECT_FLOAT_EQ((float)calc_mean(arr1), m_ptr[1]);
 		EXPECT_FLOAT_EQ((float)calc_mean(arr2), m_ptr[2]);
+		EXPECT_FLOAT_EQ((float)calc_var(arr0), v_ptr[0]);
+		EXPECT_FLOAT_EQ((float)calc_var(arr1), v_ptr[1]);
+		EXPECT_FLOAT_EQ((float)calc_var(arr2), v_ptr[2]);
 	}
-
-
 }
 
 

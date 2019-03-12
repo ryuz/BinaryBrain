@@ -20,6 +20,11 @@
 #include "bb/FrameBuffer.h"
 #include "bb/SimdSupport.h"
 
+#if BB_WITH_CUDA
+#include "bbcu/bbcu.h"
+#include "bbcu/bbcu_util.h"
+#endif
+
 
 namespace bb {
 
@@ -252,6 +257,40 @@ public:
 
         // 出力設定
         m_y.Resize(x.GetType(), x.GetFrameSize(), x.GetNodeSize());
+
+
+#if BB_WITH_CUDA
+		if (train && DataType<T>::type == BB_TYPE_FP32 && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() ) {
+			auto dev_x_ptr     = m_x.LockDeviceMemoryConst();
+			auto dev_y_ptr     = m_y.LockDeviceMemory();
+			auto dev_gamma_ptr = m_gamma->LockDeviceMemory();
+			auto dev_beta_ptr  = m_beta->LockDeviceMemory();
+			auto dev_mean_ptr = m_mean.LockDeviceMemory();
+			auto dev_rstd_ptr = m_rstd.LockDeviceMemory();
+			auto dev_running_mean_ptr = m_running_mean.LockDeviceMemory();
+			auto dev_running_var_ptr = m_running_var.LockDeviceMemory();
+
+			cubb_fp32_BatchNormalization_Forward
+				(
+					(const float*)dev_x_ptr.GetAddr(),
+					(float*)dev_y_ptr.GetAddr(),
+					(float*)dev_gamma_ptr.GetAddr(),
+					(float*)dev_beta_ptr.GetAddr(),
+					(float*)dev_mean_ptr.GetAddr(),
+					(float*)dev_rstd_ptr.GetAddr(),
+					(float*)dev_running_mean_ptr.GetAddr(),
+					(float*)dev_running_var_ptr.GetAddr(),
+					(float)m_momentum,
+					(int)m_x.GetFrameSize(),
+					(int)m_x.GetFrameStride() / sizeof(float),
+					(int)m_x.GetNodeSize()
+				);
+
+			return m_y;
+		}
+#endif
+
+
 
         auto frame_size = x.GetFrameSize();
         

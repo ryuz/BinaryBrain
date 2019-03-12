@@ -305,6 +305,7 @@
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <CudaCompile Include="BatchNormalization.cu" />
     <CudaCompile Include="Binarize.cu" />
     <CudaCompile Include="HorizontalMeanVar.cu" />
     <CudaCompile Include="HorizontalSum.cu" />
