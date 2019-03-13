@@ -67,7 +67,7 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
     runner_create.optimizer = bb::OptimizerAdam<float>::Create();
     runner_create.over_write = true;
     runner_create.serial_write = false;
-    runner_create.initial_evaluation = true;
+    runner_create.initial_evaluation = false;
     auto runner = bb::Runner<float>::Create(runner_create);
 
     runner->Fitting(td, epoch_size, mini_batch_size);

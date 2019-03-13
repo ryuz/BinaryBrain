@@ -871,6 +871,48 @@ std::ostream& operator<<(std::ostream& os, const Tensor_<T>& t)
 #ifdef BB_WITH_CUDA
 
 template<>
+inline Tensor_<float>& Tensor_<float>::Sqrt(void)
+{
+    if (IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+        auto ptr = LockDeviceMemory();
+        bbcu_fp32_Vector_sqrt((float *)ptr.GetAddr(), (const float *)ptr.GetAddr(), (int)m_size);
+        return *this;
+    }
+
+    auto ptr = LockMemory();
+    Tensor_Vector_sqrt<float>((float *)ptr.GetAddr(), (const float *)ptr.GetAddr(), m_size);
+    return *this;
+}
+
+template<>
+inline Tensor_<float>& Tensor_<float>::Exp(void)
+{
+    if (IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+        auto ptr = LockDeviceMemory();
+        bbcu_fp32_Vector_exp((float *)ptr.GetAddr(), (const float *)ptr.GetAddr(), (int)m_size);
+        return *this;
+    }
+
+    auto ptr = LockMemory();
+    Tensor_Vector_exp<float>((float *)ptr.GetAddr(), (const float *)ptr.GetAddr(), m_size);
+    return *this;
+}
+
+template<>
+inline Tensor_<float>& Tensor_<float>::Clamp(float a, float b)
+{
+    if (IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+        auto ptr = LockMemory();
+        Tensor_Vector_clamp<float>((float *)ptr.GetAddr(), (const float *)ptr.GetAddr(), a, b, m_size);
+        return *this;
+    }
+
+    auto ptr = LockMemory();
+    Tensor_Vector_clamp<float>((float *)ptr.GetAddr(), (const float *)ptr.GetAddr(), a, b, m_size);
+    return *this;
+}
+
+template<>
 inline Tensor_<float> & Tensor_<float>::operator+=(Tensor_<float> const &src)
 {
     BB_ASSERT(m_size == src.m_size);
@@ -1237,73 +1279,68 @@ inline Tensor_<float> operator/(float src0, const Tensor_<float> &src1)
 }
 
 
-/////////
-
-#if 0
 template<>
-inline Tensor_<float> Tensor_<float>::Sqrt(void)
+inline Tensor_<float> Sqrt(Tensor_<float> const &src)
 {
-    Tensor_<float>  dst(m_shape);
+    Tensor_<float>  dst(src.GetShape());
 
     // CUDA
-    if ( dst.m_mem->IsDeviceAvailable() && dst.m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
-        auto src_ptr = LockDeviceMemoryConst();
+    if ( src.IsDeviceAvailable() && dst.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        auto src_ptr = src.LockDeviceMemoryConst();
         auto dst_ptr = dst.LockDeviceMemory(true);
-        bbcu_fp32_Vector_sqrt((float *)dst_ptr.GetAddr(), (const float *)src_ptr.GetAddr(), (int)m_size);
+        bbcu_fp32_Vector_sqrt((float *)dst_ptr.GetAddr(), (const float *)src_ptr.GetAddr(), (int)src.GetSize());
         return dst;
     }
     
     // CPU
-    auto src_ptr = LockMemoryConst();
+    auto src_ptr = src.LockMemoryConst();
     auto dst_ptr = dst.LockMemory(true);
-    Tensor_Vector_sqrt<float>((float *)dst_ptr.GetAddr(), (const float *)src_ptr.GetAddr(), m_size);
+    Tensor_Vector_sqrt<float>((float *)dst_ptr.GetAddr(), (const float *)src_ptr.GetAddr(), src.GetSize());
     return dst;
 }
 
 template<>
-inline Tensor_<float> Tensor_<float>::Exp(void)
+inline Tensor_<float> Exp(Tensor_<float> const &src)
 {
-    Tensor_<float>  dst(m_shape);
+    Tensor_<float>  dst(src.GetShape());
 
     // CUDA
-    if ( dst.m_mem->IsDeviceAvailable() && dst.m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
-        auto src_ptr = LockDeviceMemoryConst();
+    if ( src.IsDeviceAvailable() && dst.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        auto src_ptr = src.LockDeviceMemoryConst();
         auto dst_ptr = dst.LockDeviceMemory(true);
-        bbcu_fp32_Vector_sqrt((float *)dst_ptr.GetAddr(), (const float *)src_ptr.GetAddr(), (int)m_size);
+        bbcu_fp32_Vector_sqrt((float *)dst_ptr.GetAddr(), (const float *)src_ptr.GetAddr(), (int)src.GetSize());
         return dst;
     }
     
     // CPU
-    auto src_ptr = LockMemoryConst();
+    auto src_ptr = src.LockMemoryConst();
     auto dst_ptr = dst.LockMemory(true);
-    Tensor_Vector_exp<float>((float *)dst_ptr.GetAddr(), (float const *)src_ptr.GetAddr(), m_size);
+    Tensor_Vector_exp<float>((float *)dst_ptr.GetAddr(), (float const *)src_ptr.GetAddr(), src.GetSize());
     return dst;
 }
 
 
 template<>
-inline Tensor_<float> Tensor_<float>::Clamp(float a, float b)
+inline Tensor_<float> Clamp(Tensor_<float> const &src, float a, float b)
 {
-    Tensor_<float>  dst(m_shape);
+    Tensor_<float>  dst(src.GetShape());
 
     // CUDA
-    if ( dst.m_mem->IsDeviceAvailable() && dst.m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
-        auto src_ptr = LockDeviceMemoryConst();
+    if ( dst.IsDeviceAvailable() && dst.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        auto src_ptr = src.LockDeviceMemoryConst();
         auto dst_ptr = dst.LockDeviceMemory(true);
-        bbcu_fp32_Vector_clamp((float *)dst_ptr.GetAddr(), (const float *)src_ptr.GetAddr(), a, b, (int)m_size);
+        bbcu_fp32_Vector_clamp((float *)dst_ptr.GetAddr(), (const float *)src_ptr.GetAddr(), a, b, (int)src.GetSize());
         return dst;
     }
     
     // CPU
-    auto src_ptr = LockMemoryConst();
+    auto src_ptr = src.LockMemoryConst();
     auto dst_ptr = dst.LockMemory(true);
-    Tensor_Vector_clamp<float>((float *)dst_ptr.GetAddr(), (float const *)src_ptr.GetAddr(), a, b, m_size);
+    Tensor_Vector_clamp<float>((float *)dst_ptr.GetAddr(), (float const *)src_ptr.GetAddr(), a, b, src.GetSize());
     return dst;
 }
-#endif
 
 #endif
-
 
 
 
