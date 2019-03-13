@@ -401,20 +401,51 @@ public:
         // 出力設定
         m_dx.Resize(dy.GetType(), dy.GetFrameSize(), dy.GetNodeSize());
 
+#ifdef BB_WITH_CUDA
+        if ( false && DataType<T>::type == BB_TYPE_FP32 && dy.IsDeviceAvailable() && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() ) {
+            auto dev_dy_ptr     = dy.LockDeviceMemoryConst();
+            auto dev_x_ptr      = m_x.LockDeviceMemoryConst();
+            auto dev_dx_ptr     = m_dx.LockDeviceMemory();
+            auto dev_gamma_ptr  = m_gamma->LockDeviceMemoryConst();
+            auto dev_dgamma_ptr = m_dgamma->LockDeviceMemory();
+            auto dev_dbeta_ptr  = m_dbeta->LockDeviceMemory();
+            auto dev_mean_ptr   = m_mean.LockDeviceMemoryConst();
+            auto dev_rstd_ptr   = m_rstd.LockDeviceMemoryConst();
+            cubb_fp32_BatchNormalization_Backward
+                (
+                    (const float *)dev_x_ptr.GetAddr(),
+                    (const float *)dev_dy_ptr.GetAddr(),
+                    (float       *)dev_dx_ptr.GetAddr(),
+                    (float const *)dev_gamma_ptr.GetAddr(),
+                    (float       *)dev_dgamma_ptr.GetAddr(),
+                    (float       *)dev_dbeta_ptr.GetAddr(),
+                    (float const *)dev_mean_ptr.GetAddr(),
+                    (float const *)dev_rstd_ptr.GetAddr(),
+                    (float        )1.0f / dy.GetFrameSize(),
+                    (int          )dy.GetFrameSize(),
+                    (int          )dy.GetFrameStride() / sizeof(float),
+                    (int          )dy.GetNodeSize()
+                );
+
+            return m_dx;
+        }
+#endif
+
+
         auto frame_size = dy.GetFrameSize();
         
         const int	mm256_frame_size = ((int)frame_size + 7) / 8 * 8;
 
  
         auto gamma_ptr        = lock_gamma_const();
-        auto beta_ptr         = lock_beta_const();
+//      auto beta_ptr         = lock_beta_const();
         auto dgamma_ptr       = lock_dgamma();
         auto dbeta_ptr        = lock_dbeta();
 
-        auto mean_ptr         = m_mean.Lock();
-        auto rstd_ptr         = m_rstd.Lock();        
-        auto running_mean_ptr = m_running_mean.Lock();
-        auto running_var_ptr  = m_running_var.Lock();
+        auto mean_ptr         = m_mean.LockConst();
+        auto rstd_ptr         = m_rstd.LockConst();
+//      auto running_mean_ptr = m_running_mean.Lock();
+//      auto running_var_ptr  = m_running_var.Lock();
         
         
         // 逆数生成

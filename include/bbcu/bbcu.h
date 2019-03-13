@@ -232,6 +232,23 @@ CUBB_DLL_EXPORT int cubb_fp32_BatchNormalization_Forward
 			cudaStream_t    streamId = 0
 		);
 
+CUBB_DLL_EXPORT int cubb_fp32_BatchNormalization_Backward
+        (
+            const float		*dev_x_buf,
+            const float		*dev_dy_buf,
+            float			*dev_dx_buf,
+            float const		*dev_gamma_buf,
+            float			*dev_dgamma_buf,
+            float			*dev_dbeta_buf,
+            float const		*dev_mean_buf,
+            float const		*dev_rstd_buf,
+            float			reciprocal_frame_size,
+            int				frame_size,
+            int				frame_stride,
+            int				node_size,
+            cudaStream_t    streamId = 0
+        );
+
 
 
 // -------------------------------------
