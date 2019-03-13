@@ -234,6 +234,7 @@ __global__ void kernal_fp32_MicroMlp_Backward(
 	float	*out_err_ptr = &out_err_buf[frame_size * node];
 
 	// 1つのSMで1nodeを全フレーム処理
+    frame = threadIdx.x;
 	while ( frame <  frame_size ) {
 		// 入力データ読み込み
 		float	in_sig[N];

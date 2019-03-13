@@ -467,11 +467,6 @@ public:
 
         m_dx.Resize(DataType<T>::type, dy.GetFrameSize(), m_input_node_size);
 
-        m_dW0->FillZero();
-        m_db0->FillZero();
-        m_dW1->FillZero();
-        m_db1->FillZero();
-
         // CUDA版
 #ifdef BB_WITH_CUDA
         if ( N == 6 && M == 16 && DataType<T>::type == BB_TYPE_FP32
@@ -480,7 +475,12 @@ public:
             return m_dx;
         }
 #endif
-        
+
+        m_dW0->FillZero();
+        m_db0->FillZero();
+        m_dW1->FillZero();
+        m_db1->FillZero();
+
         if ( DataType<T>::type == BB_TYPE_FP32 ) {
             BackwardHostSimdFP32(dy);
             return m_dx;
@@ -796,7 +796,7 @@ protected:
         auto db1_ptr = m_db1->LockDeviceMemory();
 
         m_dx_tmp.Resize(BB_TYPE_FP32, dy.GetFrameSize(), m_output_node_size * N);
-        m_dx_tmp.FillZero();
+//      m_dx_tmp.FillZero();
         auto dx_tmp_ptr = m_dx_tmp.LockDeviceMemory();
 
         bbcu_fp32_MicroMlp6x16_Backward
