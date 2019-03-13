@@ -192,9 +192,9 @@ __global__ void kernal_fp32_BatchNormalization_Backward
 
 	float rstd2 = rstd * rstd;
 
-	float const *x_ptr  = &x_buf[node];
-	float const *dy_ptr = &dy_buf[node];
-	float		*dx_ptr = &dx_buf[node];
+	float const *x_ptr  = &x_buf[node * frame_stride];
+	float const *dy_ptr = &dy_buf[node * frame_stride];
+	float		*dx_ptr = &dx_buf[node * frame_stride];
 
 	while (frame < frame_size) {
 		float x = x_ptr[frame];
@@ -205,8 +205,8 @@ __global__ void kernal_fp32_BatchNormalization_Backward
 		dgamma += xn * dy;
 
 		float dxn = gamma * dy;
-		dstd += dxn * xc * rstd2;
-		dmeanx += dxn * rstd;
+		dstd += -(dxn * xc * rstd2);
+		dmeanx += -(dxn * rstd);
 
 		frame += frame_step;
 	}
@@ -229,8 +229,8 @@ __global__ void kernal_fp32_BatchNormalization_Backward
 		float dy = dy_ptr[frame];
 		float x  = x_ptr[frame];
 		float dxn = dy * gamma;
-		float dxc = dxn * rstd + dmean;
-		float dx  = (x * dvar) * reciprocal_frame_size + dxc;
+		float dxc = dxn * rstd;
+		float dx  = dxc + dmean + (x * dvar * reciprocal_frame_size);
 		dx_ptr[frame] = dx;
         frame += frame_step;
 	}
