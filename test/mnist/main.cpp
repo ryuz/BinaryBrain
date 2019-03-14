@@ -27,8 +27,8 @@ int main()
 
 //  MnistDenseAffine(64, 32);
 //  MnistSimpleCnnMlp(64, 32, true);
-    MnistSequentialMicroMlp(64, 128, true);
-//  MnistSimpleMicroMlp(64, 128, true);
+//    MnistSequentialMicroMlp(64, 256, true);
+    MnistSimpleMicroMlp(64, 16*1024, true);
 
 //	getchar();
 	return 0;

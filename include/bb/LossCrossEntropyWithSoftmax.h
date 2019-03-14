@@ -11,6 +11,7 @@
 
 
 #include <vector>
+#include <valarray>
 
 #include <Eigen/Core>
 
@@ -52,6 +53,52 @@ public:
         return m_loss;
     }
 
+#if 1
+    FrameBuffer CalculateLoss(FrameBuffer y, FrameBuffer t)
+    {
+        index_t frame_size = y.GetFrameSize();
+        index_t node_size = y.GetNodeSize();
+        index_t stride_size = y.GetFrameStride() / sizeof(T);
+
+        m_dy.Resize(y.GetType(), y.GetFrameSize(), y.GetShape());
+
+        {
+            auto y_ptr = y.LockConst<T>();
+            auto t_ptr = t.LockConst<T>();
+            auto dy_ptr = m_dy.Lock<T>(true);
+
+            std::valarray<T> loss(frame_size);
+
+#pragma omp parallel for
+            for (index_t frame = 0; frame < frame_size; ++frame) {
+                // max
+                auto c = y_ptr.Get(frame, 0);
+                for (index_t node = 1; node < node_size; ++node) {
+                    c = std::max(c, y_ptr.Get(frame, node));
+                }
+
+                // sum(exp(y - c))
+                T sum = 0;
+                for (index_t node = 0; node < node_size; ++node) {
+                    sum += std::exp(y_ptr.Get(frame, node) - c);
+                }
+
+                for (index_t node = 0; node < node_size; ++node) {
+                    T softmax = std::exp(y_ptr.Get(frame, node) - c) / sum;
+                    if (t_ptr.Get(frame, node) > 0) {
+                        loss[frame] = std::log(softmax);
+                    }
+                    T dy = (softmax - t_ptr.Get(frame, node)) / (T)frame_size;
+                    dy_ptr.Set(frame, node, dy);
+                }
+            }
+
+            m_loss -= (double)(loss.sum() / (T)frame_size);
+
+            return m_dy;
+        }        
+    }
+#else
     FrameBuffer CalculateLoss(FrameBuffer y, FrameBuffer t)
 	{
 		index_t frame_size  = y.GetFrameSize();
@@ -78,6 +125,7 @@ public:
 
         return m_dy;
 	}
+#endif
 };
 
 

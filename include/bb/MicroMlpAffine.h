@@ -796,7 +796,6 @@ protected:
         auto db1_ptr = m_db1->LockDeviceMemory();
 
         m_dx_tmp.Resize(BB_TYPE_FP32, dy.GetFrameSize(), m_output_node_size * N);
-//      m_dx_tmp.FillZero();
         auto dx_tmp_ptr = m_dx_tmp.LockDeviceMemory();
 
         bbcu_fp32_MicroMlp6x16_Backward

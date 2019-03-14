@@ -13,6 +13,9 @@
 #include <chrono>
 #include <cmath>
 
+#include "cuda_runtime.h"
+#include "device_launch_parameters.h"
+
 #include "bb/MicroMlpAffine.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
@@ -121,25 +124,75 @@ public:
 
     bb::FrameBuffer Forward(bb::FrameBuffer x, bool train=true)
     {
+        cudaDeviceSynchronize();
+        auto tm0 = std::chrono::system_clock::now();
         x = m_affine0->Forward(x, train);
+        cudaDeviceSynchronize();
+        auto tm1 = std::chrono::system_clock::now();
         x = m_activate0->Forward(x, train);
+        cudaDeviceSynchronize();
+        auto tm2 = std::chrono::system_clock::now();
         x = m_affine1->Forward(x, train);
+        cudaDeviceSynchronize();
+        auto tm3 = std::chrono::system_clock::now();
         x = m_activate1->Forward(x, train);
+        cudaDeviceSynchronize();
+        auto tm4 = std::chrono::system_clock::now();
         x = m_affine2->Forward(x, train);
+        cudaDeviceSynchronize();
+        auto tm5 = std::chrono::system_clock::now();
         x = m_activate2->Forward(x, train);
+        cudaDeviceSynchronize();
+        auto tm6 = std::chrono::system_clock::now();
         x = m_affine3->Forward(x, train);
+        cudaDeviceSynchronize();
+        auto tm7 = std::chrono::system_clock::now();
+
+        std::cout << "forward0 " << std::chrono::duration_cast<std::chrono::milliseconds>(tm1 - tm0).count() << std::endl;
+        std::cout << "forward1 " << std::chrono::duration_cast<std::chrono::milliseconds>(tm2 - tm1).count() << std::endl;
+        std::cout << "forward2 " << std::chrono::duration_cast<std::chrono::milliseconds>(tm3 - tm2).count() << std::endl;
+        std::cout << "forward3 " << std::chrono::duration_cast<std::chrono::milliseconds>(tm4 - tm3).count() << std::endl;
+        std::cout << "forward4 " << std::chrono::duration_cast<std::chrono::milliseconds>(tm5 - tm4).count() << std::endl;
+        std::cout << "forward5 " << std::chrono::duration_cast<std::chrono::milliseconds>(tm6 - tm5).count() << std::endl;
+        std::cout << "forward6 " << std::chrono::duration_cast<std::chrono::milliseconds>(tm7 - tm6).count() << std::endl;
+        
         return x;
     }
 
     bb::FrameBuffer Backward(bb::FrameBuffer dy)
     {
+        cudaDeviceSynchronize();
+        auto tm0 = std::chrono::system_clock::now();
         dy = m_affine3->Backward(dy);
+        cudaDeviceSynchronize();
+        auto tm1 = std::chrono::system_clock::now();
         dy = m_activate2->Backward(dy);
+        cudaDeviceSynchronize();
+        auto tm2 = std::chrono::system_clock::now();
         dy = m_affine2->Backward(dy);
+        cudaDeviceSynchronize();
+        auto tm3 = std::chrono::system_clock::now();
         dy = m_activate1->Backward(dy);
+        cudaDeviceSynchronize();
+        auto tm4 = std::chrono::system_clock::now();
         dy = m_affine1->Backward(dy);
+        cudaDeviceSynchronize();
+        auto tm5 = std::chrono::system_clock::now();
         dy = m_activate0->Backward(dy);
+        cudaDeviceSynchronize();
+        auto tm6 = std::chrono::system_clock::now();
         dy = m_affine0->Backward(dy);
+        cudaDeviceSynchronize();
+        auto tm7 = std::chrono::system_clock::now();
+
+        std::cout << "backward0 " << std::chrono::duration_cast<std::chrono::milliseconds>(tm1 - tm0).count() << std::endl;
+        std::cout << "backward1 " << std::chrono::duration_cast<std::chrono::milliseconds>(tm2 - tm1).count() << std::endl;
+        std::cout << "backward2 " << std::chrono::duration_cast<std::chrono::milliseconds>(tm3 - tm2).count() << std::endl;
+        std::cout << "backward3 " << std::chrono::duration_cast<std::chrono::milliseconds>(tm4 - tm3).count() << std::endl;
+        std::cout << "backward4 " << std::chrono::duration_cast<std::chrono::milliseconds>(tm5 - tm4).count() << std::endl;
+        std::cout << "backward5 " << std::chrono::duration_cast<std::chrono::milliseconds>(tm6 - tm5).count() << std::endl;
+        std::cout << "backward6 " << std::chrono::duration_cast<std::chrono::milliseconds>(tm7 - tm6).count() << std::endl;
+
         return dy;
     }
 };
@@ -351,31 +404,54 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
         gpu_accFunc->Clear();
         for (bb::index_t i = 0; i < (bb::index_t)(td.x_train.size() - mini_batch_size); i += mini_batch_size)
         {
+            auto tmA = std::chrono::system_clock::now();
             cpu_x.SetVector(td.x_train, i);
-            gpu_x.SetVector(td.x_train, i);
             cpu_t.SetVector(td.t_train, i);
+            auto tmB = std::chrono::system_clock::now();
+            gpu_x.SetVector(td.x_train, i);
             gpu_t.SetVector(td.t_train, i);
+            auto tmC = std::chrono::system_clock::now();
+            std::cout << "cpu set " << std::chrono::duration_cast<std::chrono::milliseconds>(tmB - tmA).count() << std::endl;
+            std::cout << "gpu set " << std::chrono::duration_cast<std::chrono::milliseconds>(tmC - tmB).count() << std::endl;
 
+            std::cout << "--- CPU ----" << std::endl;
             auto cpu_y = cpu_net.Forward(cpu_x);
+            std::cout << "--- GPU ----" << std::endl;
             auto gpu_y = gpu_net.Forward(gpu_x);
             
-            DumpLayerForward(ofs, cpu_net, gpu_net);
+ //         DumpLayerForward(ofs, cpu_net, gpu_net);
 
+            auto tm0 = std::chrono::system_clock::now();
             auto cpu_dy = cpu_lossFunc->CalculateLoss(cpu_y, cpu_t);
+            auto tm1 = std::chrono::system_clock::now();
             auto gpu_dy = gpu_lossFunc->CalculateLoss(gpu_y, gpu_t);
+            auto tm2 = std::chrono::system_clock::now();
+            std::cout << "cpu loss " << std::chrono::duration_cast<std::chrono::milliseconds>(tm1 - tm0).count() << std::endl;
+            std::cout << "gpu loss " << std::chrono::duration_cast<std::chrono::milliseconds>(tm2 - tm1).count() << std::endl;
 
+            auto tm3 = std::chrono::system_clock::now();
             cpu_accFunc->CalculateAccuracy(cpu_y, cpu_t);
+            auto tm4 = std::chrono::system_clock::now();
             gpu_accFunc->CalculateAccuracy(gpu_y, gpu_t);
+            auto tm5 = std::chrono::system_clock::now();
+            std::cout << "cpu acc " << std::chrono::duration_cast<std::chrono::milliseconds>(tm4 - tm3).count() << std::endl;
+            std::cout << "gpu acc " << std::chrono::duration_cast<std::chrono::milliseconds>(tm5 - tm4).count() << std::endl;
 
             cpu_dy = cpu_net.Backward(cpu_dy);
             gpu_dy = gpu_net.Backward(gpu_dy);
 
-            DumpLayerBackward(ofs, cpu_net, gpu_net);
+//          DumpLayerBackward(ofs, cpu_net, gpu_net);
 
+            auto tm6 = std::chrono::system_clock::now();
             cpu_optimizer->Update();
+            auto tm7 = std::chrono::system_clock::now();
             gpu_optimizer->Update();
+            auto tm8 = std::chrono::system_clock::now();
+            std::cout << "cpu up " << std::chrono::duration_cast<std::chrono::milliseconds>(tm7 - tm6).count() << std::endl;
+            std::cout << "gpu up " << std::chrono::duration_cast<std::chrono::milliseconds>(tm8 - tm7).count() << std::endl;
+            std::cout << "gpu up " << std::chrono::duration_cast<std::chrono::milliseconds>(tm8 - tm7).count() << std::endl;
 
-            DumpLayerUpdate(ofs, cpu_net, gpu_net);
+//          DumpLayerUpdate(ofs, cpu_net, gpu_net);
         }
         std::cout << "cpu : " << cpu_accFunc->GetAccuracy() << std::endl;
         std::cout << "gpu : " << gpu_accFunc->GetAccuracy() << std::endl;
