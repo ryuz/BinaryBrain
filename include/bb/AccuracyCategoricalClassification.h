@@ -66,9 +66,9 @@ public:
         auto t_ptr  = t.LockConst<T>();
  
 		for (index_t frame = 0; frame < frame_size; ++frame) {
-			index_t	max_node = 0;
-			T		max_signal = 0;
-			for (index_t node = 0; node < node_size; ++node) {
+			index_t	max_node   = 0;
+			T		max_signal = y_ptr.Get(frame, 0);
+			for (index_t node = 1; node < node_size; ++node) {
 				T	sig = y_ptr.Get(frame, node);
 				if (sig > max_signal) {
 					max_node   = node;
