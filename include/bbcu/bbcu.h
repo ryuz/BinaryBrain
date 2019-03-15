@@ -286,8 +286,41 @@ CUBB_DLL_EXPORT int cubb_fp32_Im2Col_Backward
         );
 
 
+// -------------------------------------
+//  Col2Im
+// -------------------------------------
 
-/// ReLU
+CUBB_DLL_EXPORT int cubb_fp32_Col2Im_Forward
+        (
+            float const     *dev_x_buf,
+            float           *dev_y_buf,
+            int			    w_size,
+            int			    h_size,
+            int			    c_size,
+            int			    input_frame_stride,
+            int			    output_frame_size,
+            int			    output_frame_stride,
+            cudaStream_t	streamId = 0
+        );
+
+CUBB_DLL_EXPORT int cubb_fp32_Col2Im_Backward
+		(
+			float const     *dev_dy_buf,
+            float           *dev_dx_buf,
+			int			    w_size,
+			int			    h_size,
+			int			    c_size,
+            int			    input_frame_stride,
+            int			    output_frame_size,
+			int			    output_frame_stride,
+            cudaStream_t	streamId = 0
+		);
+
+
+// -------------------------------------
+// ReLU
+// -------------------------------------
+
 CUBB_DLL_EXPORT int cubb_fp32_ReLU_Forward
 		(
 			const float*	dev_x_buf,

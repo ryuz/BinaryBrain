@@ -114,6 +114,28 @@ public:
 
         m_y.Resize(DataType<FT>::type, output_frame_size, indices_t({m_w_size, m_h_size, m_c_size}));
 
+#ifdef BB_WITH_CUDA
+        if ( DataType<FT>::type == BB_TYPE_FP32 && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() )
+        {
+            auto x_ptr = x.LockDeviceMemoryConst();
+            auto y_ptr = m_y.LockDeviceMemory(true);
+
+            cubb_fp32_Col2Im_Forward
+                (
+                    (float const *)x_ptr.GetAddr(),
+                    (float       *)y_ptr.GetAddr(),
+                    (int          )m_w_size,
+                    (int          )m_h_size,
+                    (int          )m_c_size,
+                    (int          )(x.GetFrameStride() / sizeof(float)),
+                    (int          )m_y.GetFrameSize(),
+                    (int          )(m_y.GetFrameStride() / sizeof(float))
+                );
+
+            return m_y;
+        }
+#endif
+
         {
             auto x_ptr = x.LockConst<FT>();
             auto y_ptr = m_y.Lock<FT>(true);
@@ -143,6 +165,26 @@ public:
        	index_t input_frame_size  = output_frame_size *(m_h_size * m_w_size);
 
         m_dx.Resize(DataType<BT>::type, input_frame_size, m_c_size);
+
+        if ( DataType<FT>::type == BB_TYPE_FP32 && dy.IsDeviceAvailable() && m_dx.IsDeviceAvailable() )
+        {
+            auto dy_ptr = dy.LockDeviceMemoryConst();
+            auto dx_ptr = m_dx.LockDeviceMemory(true);
+
+            cubb_fp32_Col2Im_Backward
+                (
+                    (float const *)dy_ptr.GetAddr(),
+                    (float       *)dx_ptr.GetAddr(),
+                    (int          )m_w_size,
+                    (int          )m_h_size,
+                    (int          )m_c_size,
+                    (int          )(m_dx.GetFrameStride() / sizeof(float)),
+                    (int          )dy.GetFrameSize(),
+                    (int          )(dy.GetFrameStride() / sizeof(float))
+                );
+
+            return m_dx;
+        }
         
         {
 		    auto dy_ptr = dy.LockConst<BT>();
