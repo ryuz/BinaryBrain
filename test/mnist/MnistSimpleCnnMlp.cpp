@@ -61,23 +61,23 @@ void MnistSimpleCnnMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
     cnv3_sub->Add(bb::MicroMlp<>::Create(32));
 
     auto net = bb::Sequential::Create();
-    net->Add(bb::RealToBinary<>::Create(3));
+    net->Add(bb::RealToBinary<>::Create(1));
     net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
     net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
     net->Add(bb::MaxPooling<>::Create(3, 3));
     net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
     net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
     net->Add(bb::MaxPooling<>::Create(3, 3));
-    net->Add(bb::MicroMlpAffine<6, 16, float>::Create({360}));
+    net->Add(bb::MicroMlpAffine<6, 16, float>::Create({512}));
     net->Add(bb::BatchNormalization<float>::Create());
     net->Add(bb::ReLU<float>::Create());
-    net->Add(bb::MicroMlpAffine<6, 16, float>::Create({60}));
+    net->Add(bb::MicroMlpAffine<6, 16, float>::Create({180}));
     net->Add(bb::BatchNormalization<float>::Create());
     net->Add(bb::ReLU<float>::Create());
-    net->Add(bb::MicroMlpAffine<6, 16, float>::Create({10}));
+    net->Add(bb::MicroMlpAffine<6, 16, float>::Create({30}));
     net->Add(bb::BatchNormalization<float>::Create());
     net->Add(bb::ReLU<float>::Create());
-    net->Add(bb::BinaryToReal<>::Create({ 10 }, 3));
+    net->Add(bb::BinaryToReal<>::Create({ 10 }, 1));
     net->SetInputShape({28, 28, 1});
 
     if ( binary_mode ) {

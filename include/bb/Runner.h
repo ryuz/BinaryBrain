@@ -70,7 +70,7 @@ public:
 	    bool                                print_progress = true;
         bool                                file_read = false;
         bool                                file_write = false;
-        bool                                write_serial = true;
+        bool                                write_serial = false;
 	    bool                                initial_evaluation = false;
         std::int64_t                        seed = 1;
 	    callback_proc_t                     callback_proc = nullptr;
@@ -366,12 +366,15 @@ public:
                 }
 
 				// 学習状況評価
-				double now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
-				auto test_accuracy = Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_accFunc);
-				log_stream	<< std::setw(10) << std::fixed << std::setprecision(2) << now_time << "s "
-							<< "epoch[" << std::setw(3) << epoch + 1 + prev_epoch << "] "
-							<< "test_accuracy : "  << std::setw(6) << std::fixed << std::setprecision(4) << test_accuracy  << " "
-							<< "train_accuracy : " << std::setw(6) << std::fixed << std::setprecision(4) << train_accuracy << std::endl;
+                {
+				    double now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
+				    auto test_accuracy  = Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_accFunc);
+				    auto train_accuracy = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, 0, m_accFunc);
+				    log_stream	<< std::setw(10) << std::fixed << std::setprecision(2) << now_time << "s "
+							    << "epoch[" << std::setw(3) << epoch + 1 + prev_epoch << "] "
+							    << "test_accuracy : "  << std::setw(6) << std::fixed << std::setprecision(4) << test_accuracy  << " "
+							    << "train_accuracy : " << std::setw(6) << std::fixed << std::setprecision(4) << train_accuracy << std::endl;
+                }
 
 				// callback
 				if (m_callback_proc != nullptr) {
@@ -414,8 +417,12 @@ protected:
     {
         BB_ASSERT(x.size() == t.size());
 
-        if ( accFunc  != nullptr ) { accFunc->Clear(); }
-        if ( lossFunc != nullptr ) { lossFunc->Clear(); }
+        if ( accFunc  != nullptr ) {
+            accFunc->Clear();
+        }
+        if ( lossFunc != nullptr ) {
+            lossFunc->Clear();
+        }
         
         index_t frame_size = (index_t)x.size();
         
