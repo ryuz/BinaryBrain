@@ -13,7 +13,7 @@
 #include <vector>
 #include <valarray>
 
-#include <Eigen/Core>
+//#include <Eigen/Core>
 
 #include "bb/LossFunction.h"
 
@@ -23,13 +23,15 @@ namespace bb {
 template <typename T = float>
 class LossCrossEntropyWithSoftmax : public LossFunction
 {
-	using Vector = Eigen::Matrix<T, 1, Eigen::Dynamic>;
-	using Matrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
-	using Stride = Eigen::Stride<Eigen::Dynamic, 1>;
-	using MatMap = Eigen::Map<Matrix, 0, Stride>;
+//	using Vector = Eigen::Matrix<T, 1, Eigen::Dynamic>;
+//	using Matrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
+//	using Stride = Eigen::Stride<Eigen::Dynamic, 1>;
+//	using MatMap = Eigen::Map<Matrix, 0, Stride>;
+
 protected:
     FrameBuffer m_dy;
     double      m_loss;
+    index_t     m_frames;
 
 protected:
 	LossCrossEntropyWithSoftmax() {}
@@ -46,11 +48,12 @@ public:
     void Clear(void)
     {
         m_loss = 0;
+        m_frames = 0;
     }
 
     double GetLoss(void) const 
     {
-        return m_loss;
+        return m_loss / (double)m_frames;
     }
 
 #if 1
@@ -93,7 +96,8 @@ public:
                 }
             }
 
-            m_loss -= (double)(loss.sum() / (T)frame_size);
+            m_loss   += (double)(-loss.sum());
+            m_frames += frame_size;
 
             return m_dy;
         }        
