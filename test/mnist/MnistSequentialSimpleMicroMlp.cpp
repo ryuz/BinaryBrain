@@ -65,8 +65,8 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
     runner_create.lossFunc  = bb::LossCrossEntropyWithSoftmax<float>::Create();
     runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create(10);
     runner_create.optimizer = bb::OptimizerAdam<float>::Create();
-    runner_create.over_write = true;
-    runner_create.serial_write = false;
+    runner_create.print_progress = true;
+    runner_create.file_write = true;
     runner_create.initial_evaluation = false;
     auto runner = bb::Runner<float>::Create(runner_create);
 

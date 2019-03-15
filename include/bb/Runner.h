@@ -45,10 +45,10 @@ protected:
 	std::shared_ptr<LossFunction>       m_lossFunc;
 	std::shared_ptr<Optimizer>          m_optimizer;
 
-	bool                                m_print_progress     = true;
-	bool                                m_file_write         = true;
-	bool                                m_over_write         = false;
-    bool                                m_serial_write       = true;
+	bool                                m_print_progress     = false;
+    bool                                m_file_read          = false;
+    bool                                m_file_write         = false;
+    bool                                m_write_serial       = false;
 	bool                                m_initial_evaluation = false;
 	
     callback_proc_t                     m_callback_proc = nullptr;
@@ -68,9 +68,9 @@ public:
 	    std::shared_ptr<LossFunction>       lossFunc;
 	    std::shared_ptr<Optimizer>          optimizer;
 	    bool                                print_progress = true;
-	    bool                                file_write = true;
-	    bool                                over_write = false;
-        bool                                serial_write = true;
+        bool                                file_read = false;
+        bool                                file_write = false;
+        bool                                write_serial = true;
 	    bool                                initial_evaluation = false;
         std::int64_t                        seed = 1;
 	    callback_proc_t                     callback_proc = nullptr;
@@ -89,9 +89,9 @@ public:
 	    self->m_lossFunc           = create.lossFunc;
 	    self->m_optimizer          = create.optimizer;
 	    self->m_print_progress     = create.print_progress;
-	    self->m_file_write         = create.file_write;
-	    self->m_over_write         = create.over_write;
-        self->m_serial_write       = create.serial_write;
+        self->m_file_read          = create.file_read;
+        self->m_file_write         = create.file_write;
+        self->m_write_serial       = create.write_serial;
 	    self->m_initial_evaluation = create.initial_evaluation;
 	    self->m_callback_proc      = create.callback_proc;
 	    self->m_callback_user      = create.callback_user;
@@ -113,10 +113,10 @@ public:
 	            std::shared_ptr<AccuracyFunction>   accFunc,
 	            std::shared_ptr<LossFunction>       lossFunc,
 	            std::shared_ptr<Optimizer>          optimizer,
-	            bool                                print_progress = true,
-	            bool                                file_write = true,
-	            bool                                over_write = false,
-                bool                                serial_write = true,
+	            bool                                print_progress = false,
+                bool                                file_read  = false,
+                bool                                file_write = false,
+                bool                                write_serial = false,
 	            bool                                initial_evaluation = false,
                 std::int64_t                        seed = 1,
 	            callback_proc_t                     callback_proc = nullptr,
@@ -131,9 +131,9 @@ public:
         create.lossFunc           = lossFunc;
         create.optimizer          = optimizer;
         create.print_progress     = print_progress;
+        create.file_read          = file_read;
         create.file_write         = file_write;
-        create.over_write         = over_write;
-        create.serial_write       = serial_write;
+        create.write_serial       = write_serial;
         create.initial_evaluation = initial_evaluation;
         create.seed               = seed;
         create.callback_proc      = callback_proc;
@@ -218,10 +218,9 @@ public:
 	{
 		archive(cereal::make_nvp("name", m_name));
 		archive(cereal::make_nvp("epoch", m_epoch));
-		archive(cereal::make_nvp("max_batch_size", m_max_batch_size));
-		archive(cereal::make_nvp("print_progress", m_print_progress));
-		archive(cereal::make_nvp("file_write", m_file_write));
-		archive(cereal::make_nvp("over_write", m_over_write));
+//		archive(cereal::make_nvp("max_batch_size", m_max_batch_size));
+//		archive(cereal::make_nvp("print_progress", m_print_progress));
+//		archive(cereal::make_nvp("file_write", m_file_write));
         m_net->Save(archive);
 	}
 
@@ -230,10 +229,9 @@ public:
 	{
 		archive(cereal::make_nvp("name", m_name));
 		archive(cereal::make_nvp("epoch", m_epoch));
-		archive(cereal::make_nvp("max_batch_size", m_max_batch_size));
-		archive(cereal::make_nvp("print_progress", m_print_progress));
-		archive(cereal::make_nvp("file_write", m_file_write));
-		archive(cereal::make_nvp("over_write", m_over_write));
+//		archive(cereal::make_nvp("max_batch_size", m_max_batch_size));
+//		archive(cereal::make_nvp("print_progress", m_print_progress));
+//		archive(cereal::make_nvp("file_write", m_file_write));
         m_net->Load(archive);
 	}
 
@@ -282,7 +280,7 @@ public:
 		// ログファイルオープン
 		std::ofstream ofs_log;
 		if ( m_file_write ) {
-			ofs_log.open(log_file_name, m_over_write ? std::ios::out : std::ios::app);
+			ofs_log.open(log_file_name, m_file_read ? std::ios::app : std::ios::out);
 		}
 
 		{
@@ -291,10 +289,10 @@ public:
 			log_stream.add(std::cout);
 			if (ofs_log.is_open()) { log_stream.add(ofs_log); }
 
-			// 以前の計算があれば読み込み
 			int prev_epoch = 0;
             
-			if (m_file_write && !m_over_write) {
+            // 以前の計算があれば読み込み
+            if ( m_file_read ) {
 #ifdef BB_WITH_CEREAL
                 std::ifstream ifs(net_file_name);
 				if (ifs.is_open()) {
@@ -339,7 +337,7 @@ public:
 					int save_epoc = epoch + 1 + prev_epoch;
 
 #ifdef BB_WITH_CEREAL
-					if ( m_serial_write ) {
+					if ( m_write_serial ) {
 						std::stringstream fname;
 						fname << m_name << "_net_" << save_epoc << ".json";
 						SaveJson(fname.str());

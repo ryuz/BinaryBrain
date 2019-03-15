@@ -61,6 +61,7 @@ void MnistSimpleCnnMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
     cnv3_sub->Add(bb::MicroMlp<>::Create(32));
 
     auto net = bb::Sequential::Create();
+    net->Add(bb::RealToBinary<>::Create(3));
     net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
     net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
     net->Add(bb::MaxPooling<>::Create(3, 3));
@@ -74,6 +75,9 @@ void MnistSimpleCnnMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
     net->Add(bb::BatchNormalization<float>::Create());
     net->Add(bb::ReLU<float>::Create());
     net->Add(bb::MicroMlpAffine<6, 16, float>::Create({10}));
+    net->Add(bb::BatchNormalization<float>::Create());
+    net->Add(bb::ReLU<float>::Create());
+    net->Add(bb::BinaryToReal<>::Create({ 10 }, 3));
     net->SetInputShape({28, 28, 1});
 
     if ( binary_mode ) {
@@ -87,7 +91,8 @@ void MnistSimpleCnnMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
     runner_create.lossFunc  = bb::LossCrossEntropyWithSoftmax<float>::Create();
     runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create(10);
     runner_create.optimizer = bb::OptimizerAdam<float>::Create();
-    runner_create.serial_write = false;
+    runner_create.print_progress = true;
+    runner_create.file_write = true;
     runner_create.initial_evaluation = false;
     auto runner = bb::Runner<float>::Create(runner_create);
 
