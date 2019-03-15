@@ -15,14 +15,16 @@
 
 template <int N=6, int M=16>
 __global__ void kernal_fp32_MicroMlp_Forward(
-			const float*	in_sig_buf,
-			float*			out_sig_buf,
-			int				frame_size,
+			const float*	x_buf,
+			float*			y_buf,
 			const int*		input_index,
 			const float*	hidden_W,
 			const float*	hidden_b,
 			const float*	output_W,
-			const float*	output_b)
+			const float*	output_b,
+   			int				frame_size,
+   			int				frame_stride
+        )
 {
 	int frame_step = blockDim.x;
 	int frame      = threadIdx.x;
@@ -50,20 +52,20 @@ __global__ void kernal_fp32_MicroMlp_Forward(
 
 	__syncthreads();
 
-	const float *in_sig_ptr[N];
+	const float *x_ptr[N];
 	for ( int i = 0; i < N; ++i ) {
 		int in_idx = input_index[node*N + i];
-		in_sig_ptr[i] = &in_sig_buf[frame_size * in_idx];
+		x_ptr[i] = &x_buf[frame_stride * in_idx];
 	}
 
-	float *out_sig_ptr = &out_sig_buf[frame_size * node];
+	float *y_ptr = &y_buf[frame_stride * node];
 
 	// 1つのSMで1nodeを全フレーム処理
 	while ( frame <  frame_size ) {
 		// 入力データ読み込み
-		float	in_sig[N];
+		float	x[N];
 		for ( int i = 0; i < N; ++i ) {
-			in_sig[i] = in_sig_ptr[i][frame];
+			x[i] = x_ptr[i][frame];
 		}
 
 		// 計算
@@ -71,7 +73,7 @@ __global__ void kernal_fp32_MicroMlp_Forward(
 		for ( int i = 0; i < M; ++i ) {
 			float sig0 = b0[i];
 			for ( int j = 0; j < N; ++j ) {
-				sig0 += in_sig[j] * W0[i][j];
+				sig0 += x[j] * W0[i][j];
 			}
 		
 			sig0 = fmaxf(sig0, 0);	// ReLU
@@ -80,7 +82,7 @@ __global__ void kernal_fp32_MicroMlp_Forward(
 		}
 
 		// 出力
-		out_sig_ptr[frame] = sig1;
+		y_ptr[frame] = sig1;
 
 		frame += frame_step;
 	}
@@ -90,16 +92,17 @@ __global__ void kernal_fp32_MicroMlp_Forward(
 template <int N=6, int M=16>
 int bbcu_fp32_MicroMlp_Forward
 		(
-			const float*	dev_in_sig,
-			float*			dev_out_sig,
-			int				input_node_size,
-			int				output_node_size,
-			int				frame_size,
+			const float*	dev_x_buf,
+			float*			dev_y_buf,
 			const int*		dev_input_index,
 			const float*	dev_hidden_W,
 			const float*	dev_hidden_b,
 			const float*	dev_output_W,
 			const float*	dev_output_b,
+			int				input_node_size,
+			int				output_node_size,
+			int				frame_size,
+			int				frame_stride,
 			cudaStream_t	streamId = 0
 		)
 {
@@ -109,14 +112,15 @@ int bbcu_fp32_MicroMlp_Forward
 	dim3	block(512, 1, 1);
 	
 	kernal_fp32_MicroMlp_Forward<N, M><<<grid, block, 0, streamId>>>(
-			dev_in_sig,
-			dev_out_sig,
-			frame_size,
+			dev_x_buf,
+			dev_y_buf,
 			dev_input_index,
 			dev_hidden_W,
 			dev_hidden_b,
 			dev_output_W,
-			dev_output_b
+			dev_output_b,
+			frame_size,
+			frame_stride
 		);
 	BB_CUDA_CHECK_LAST_ERROR();
 	
@@ -126,30 +130,32 @@ int bbcu_fp32_MicroMlp_Forward
 
 int bbcu_fp32_MicroMlp6x16_Forward
 		(
-			float const*	dev_in_sig,
-			float*	        dev_out_sig,
-			int				input_node_size,
-			int				output_node_size,
-			int				frame_size,
-			const int*		dev_input_index,
-			const float*	dev_hidden_W,
-			const float*	dev_hidden_b,
-			const float*	dev_output_W,
-			const float*	dev_output_b,
-			cudaStream_t	streamId
+			float const     *dev_x_buf,
+			float           *dev_y_buf,
+			int   const     *dev_input_index,
+			float const     *dev_hidden_W,
+			float const     *dev_hidden_b,
+			float const     *dev_output_W,
+			float const     *dev_output_b,
+			int			    input_node_size,
+			int			    output_node_size,
+			int			    frame_size,
+			int			    frame_stride,
+			cudaStream_t    streamId
 		)
 {
 	return bbcu_fp32_MicroMlp_Forward<6, 16>(
-			dev_in_sig,
-			dev_out_sig,
-			input_node_size,
-			output_node_size,
-			frame_size,
+			dev_x_buf,
+			dev_y_buf,
 			dev_input_index,
 			dev_hidden_W,
 			dev_hidden_b,
 			dev_output_W,
 			dev_output_b,
+			input_node_size,
+			output_node_size,
+			frame_size,
+            frame_stride,
 			streamId
 		);
 }
@@ -164,20 +170,23 @@ int bbcu_fp32_MicroMlp6x16_Forward
 
 // kernel
 template <int N=6, int M=16, int H=16>
-__global__ void kernal_fp32_MicroMlp_Backward(
-			const float*	in_sig_buf,
-			float*			in_err_buf,
-			float*			out_err_buf,
+__global__ void kernal_fp32_MicroMlp_Backward
+        (
+			float const     *x_buf,
+			float const     *dy_buf,
+			float           *dx_buf,
+			int   const     *input_index,
+			float const     *hidden_W,
+			float const     *hidden_b,
+			float           *hidden_dW,
+			float           *hidden_db,
+			float const     *output_W,
+			float const     *output_b,
+			float           *output_dW,
+			float           *output_db,
 			int				frame_size,
-			const int*		input_index,
-			const float*	hidden_W,
-			const float*	hidden_b,
-			float*			hidden_dW,
-			float*			hidden_db,
-			const float*	output_W,
-			const float*	output_b,
-			float*			output_dW,
-			float*			output_db)
+			int				frame_stride
+        )
 {
 	int	id         = threadIdx.x;
 	int frame_step = H;	// blockDim.x;
@@ -225,63 +234,63 @@ __global__ void kernal_fp32_MicroMlp_Backward(
 
 	__syncthreads();
 
-	const float *in_sig_ptr[N];
+	const float *x_ptr[N];
 	for ( int i = 0; i < N; ++i ) {
 		int in_idx = input_index[node*N + i];
-		in_sig_ptr[i] = &in_sig_buf[frame_size * in_idx];
+		x_ptr[i] = &x_buf[frame_stride * in_idx];
 	}
 
-	float	*out_err_ptr = &out_err_buf[frame_size * node];
+	float const *dy_ptr = &dy_buf[frame_stride * node];
 
 	// 1つのSMで1nodeを全フレーム処理
     frame = threadIdx.x;
-	while ( frame <  frame_size ) {
+	while ( frame < frame_size ) {
 		// 入力データ読み込み
-		float	in_sig[N];
+		float	x[N];
 		for ( int i = 0; i < N; ++i ) {
-			in_sig[i] = in_sig_ptr[i][frame];
+			x[i] = x_ptr[i][frame];
 		}
 		
 		// 1段目再計算して2段目逆伝播
-		float	err1 = out_err_ptr[frame];
-		float	err0[M];
-		db1[id] += err1;
+		float	grad1 = dy_ptr[frame];
+		float	grad0[M];
+		db1[id] += grad1;
 		for ( int i = 0; i < M; ++i ) {
 			float sig0 = b0[i];
 			for ( int j = 0; j < N; ++j ) {
-				sig0 += in_sig[j] * W0[i][j];
+				sig0 += x[j] * W0[i][j];
 			}
 		
 			sig0 = fmaxf(sig0, 0);	// ReLU
 
-			dW1[i][id] += err1 * sig0;
+			dW1[i][id] += grad1 * sig0;
 
 			if ( sig0 > 0 ) {		// ReLU
-				err0[i] = err1 * W1[i];
+				grad0[i] = grad1 * W1[i];
 			}
 			else {
-				err0[i] = 0;
+				grad0[i] = 0;
 			}
 		}
 		
 		// 1段目逆伝播
-		float *in_err_ptr  = &in_err_buf[frame_size * N * node];
-		float	in_err[N];
+		float *dx_ptr  = &dx_buf[frame_stride * N * node];
+		float	dx[N];
 		for ( int i = 0; i < N; ++i ) {
-			in_err[i] = 0;	// in_err_ptr[frame_size * i + frame];
+			dx[i] = 0;	// dx_ptr[frame_stride * i + frame];
 		}
 
 		for ( int i = 0; i < M; ++i ) {
-			db0[i][id] += err0[i];
+			db0[i][id] += grad0[i];
 			for ( int j = 0; j < N; ++j ) {
-				dW0[i][j][id] += err0[i] * in_sig[j];
-				in_err[j] += err0[i] * W0[i][j];
+				dW0[i][j][id] += grad0[i] * x[j];
+				dx[j] += grad0[i] * W0[i][j];
 			}
 		}
 		
 		// 誤差書き込み
 		for ( int i = 0; i < N; ++i ) {
-			in_err_ptr[frame_size * i + frame] = in_err[i];
+			dx_ptr[frame_stride * i + frame] = dx[i];
 		}
 
 		frame += frame_step;
@@ -331,11 +340,12 @@ __global__ void kernal_fp32_MicroMlp_Backward(
 
 template <int N=6>
 __global__ void kernal_fp32_MicroMlp_BackwardMarge(
-			float*			dst_buf,
 			const float*	src_buf,
-			int				frame_size,
+			float*			dst_buf,
+			const int*		input_index,
 			int				node_size,
-			const int*		input_index
+			int				frame_size,
+			int				frame_stride
 		)
 {
 	int n          = blockDim.y * blockIdx.y + threadIdx.y;
@@ -355,22 +365,23 @@ __global__ void kernal_fp32_MicroMlp_BackwardMarge(
 
 template <int N=6, int M=16>
 int bbcu_fp32_MicroMlp_Backward(
-			const float*	dev_in_sig_buf,
-			float*			dev_in_err_buf,
-			float*			dev_in_err_tmp,
-			float*			dev_out_err_buf,
+			float const     *dev_x_buf,
+			float const     *dev_dy_buf,
+			float           *dev_dx_buf,
+			float           *dev_dx_tmp,
+			int   const     *dev_input_index,
+			float const     *dev_hidden_W,
+			float const     *dev_hidden_b,
+			float           *dev_hidden_dW,
+			float           *dev_hidden_db,
+			float const     *dev_output_W,
+			float const     *dev_output_b,
+			float           *dev_output_dW,
+			float           *dev_output_db,
 			int				input_node_size,
 			int				output_node_size,
 			int				frame_size,
-			const int*		dev_input_index,
-			const float*	dev_hidden_W,
-			const float*	dev_hidden_b,
-			float*			dev_hidden_dW,
-			float*			dev_hidden_db,
-			const float*	dev_output_W,
-			const float*	dev_output_b,
-			float*			dev_output_dW,
-			float*			dev_output_db,
+			int				frame_stride,
 			cudaStream_t	streamId = 0
 	)
 {
@@ -383,10 +394,9 @@ int bbcu_fp32_MicroMlp_Backward(
 		dim3	block(x_size, 1, 1);
 		
 		kernal_fp32_MicroMlp_Backward<N, M, x_size><<<grid, block, 0, streamId>>>(
-				dev_in_sig_buf,
-				dev_in_err_tmp,
-				dev_out_err_buf,
-				frame_size,
+				dev_x_buf,
+				dev_dy_buf,
+				dev_dx_tmp,
 				dev_input_index,
 				dev_hidden_W,
 				dev_hidden_b,
@@ -395,18 +405,15 @@ int bbcu_fp32_MicroMlp_Backward(
 				dev_output_W,
 				dev_output_b,
 				dev_output_dW,
-				dev_output_db
+				dev_output_db,
+				frame_size,
+				frame_stride
 			);
-
-		cudaError_t cudaStatus = cudaGetLastError();
-		if (cudaStatus != cudaSuccess) {
-			fprintf(stderr, "kernel launch failed: %s\n", cudaGetErrorString(cudaStatus));
-			return 1;
-		}
+        BB_CUDA_CHECK_LAST_ERROR();
 	}
 
     {
-        BB_CUDA_SAFE_CALL(cudaMemset(dev_in_err_buf, 0, input_node_size * frame_size * sizeof(float)));
+        BB_CUDA_SAFE_CALL(cudaMemset(dev_dx_buf, 0, input_node_size * frame_stride * sizeof(float)));
 
 	    int block_x = frame_size;
 	    while ( block_x > 1024 ) { block_x /= 2; }
@@ -415,18 +422,14 @@ int bbcu_fp32_MicroMlp_Backward(
 	    dim3	block(block_x, 1, 1);
 
 	    kernal_fp32_MicroMlp_BackwardMarge<N><<<grid, block>>>(
-			    dev_in_err_buf,
-			    dev_in_err_tmp,
-			    frame_size,
+			    dev_dx_tmp,
+			    dev_dx_buf,
+			    dev_input_index,
 			    output_node_size,
-			    dev_input_index
+			    frame_size,
+			    frame_stride
 		    );
-
-	    cudaError_t cudaStatus = cudaGetLastError();
-	    if (cudaStatus != cudaSuccess) {
-		    fprintf(stderr, "kernel launch failed: %s\n", cudaGetErrorString(cudaStatus));
-		    return 1;
-	    }
+        BB_CUDA_CHECK_LAST_ERROR();
     }
 
 	return 0;
@@ -434,33 +437,31 @@ int bbcu_fp32_MicroMlp_Backward(
 
 
 CUBB_DLL_EXPORT int bbcu_fp32_MicroMlp6x16_Backward(
-			const float*	dev_in_sig_buf,
-			float*			dev_in_err_buf,
-			float*			dev_in_err_tmp,
-			float*			dev_out_err_buf,
+			float const     *dev_x_buf,
+			float const     *dev_dy_buf,
+			float           *dev_dx_buf,
+			float           *dev_dx_tmp,
+			int   const     *dev_input_index,
+			float const     *dev_hidden_W,
+			float const     *dev_hidden_b,
+			float           *dev_hidden_dW,
+			float           *dev_hidden_db,
+			float const     *dev_output_W,
+			float const     *dev_output_b,
+			float           *dev_output_dW,
+			float           *dev_output_db,
 			int				input_node_size,
 			int				output_node_size,
 			int				frame_size,
-			const int*		dev_input_index,
-			const float*	dev_hidden_W,
-			const float*	dev_hidden_b,
-			float*			dev_hidden_dW,
-			float*			dev_hidden_db,
-			const float*	dev_output_W,
-			const float*	dev_output_b,
-			float*			dev_output_dW,
-			float*			dev_output_db,
+			int				frame_stride,
 			cudaStream_t	streamId
 		)
 {
 	return bbcu_fp32_MicroMlp_Backward<6, 16>(
-			dev_in_sig_buf,
-			dev_in_err_buf,
-			dev_in_err_tmp,
-			dev_out_err_buf,
-			input_node_size,
-			output_node_size,
-			frame_size,
+			dev_x_buf,
+			dev_dy_buf,
+			dev_dx_buf,
+			dev_dx_tmp,
 			dev_input_index,
 			dev_hidden_W,
 			dev_hidden_b,
@@ -470,6 +471,10 @@ CUBB_DLL_EXPORT int bbcu_fp32_MicroMlp6x16_Backward(
 			dev_output_b,
 			dev_output_dW,
 			dev_output_db,
+			input_node_size,
+			output_node_size,
+			frame_size,
+			frame_stride,
 			streamId
 		);
 }

@@ -619,16 +619,17 @@ protected:
         auto b1_ptr = m_b1->LockDeviceMemoryConst();
         bbcu_fp32_MicroMlp6x16_Forward
     		(
-                (const float *)x_ptr.GetAddr(),
-                (float *)y_ptr.GetAddr(),
-                (int)m_input_node_size,
-                (int)m_output_node_size,
-                (int)m_x.GetFrameStride() / sizeof(float),
-                (int *)input_index_ptr.GetAddr(),
-                (float *)W0_ptr.GetAddr(),
-                (float *)b0_ptr.GetAddr(),
-                (float *)W1_ptr.GetAddr(),
-                (float *)b1_ptr.GetAddr()
+                (float const *)x_ptr.GetAddr(),
+                (float       *)y_ptr.GetAddr(),
+                (int   const *)input_index_ptr.GetAddr(),
+                (float const *)W0_ptr.GetAddr(),
+                (float const *)b0_ptr.GetAddr(),
+                (float const *)W1_ptr.GetAddr(),
+                (float const *)b1_ptr.GetAddr(),
+                (int          )m_input_node_size,
+                (int          )m_output_node_size,
+                (int          )m_x.GetFrameSize(),
+                (int          )(m_x.GetFrameStride() / sizeof(float))
             );
     }
 #endif
@@ -783,9 +784,9 @@ protected:
         // CUDA版
         auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
         auto x_ptr  = m_x.LockDeviceMemoryConst();
-        auto y_ptr  = m_y.LockDeviceMemoryConst();
-        auto dx_ptr = m_dx.LockDeviceMemory();
         auto dy_ptr = dy.LockDeviceMemoryConst();
+//      auto y_ptr  = m_y.LockDeviceMemoryConst();
+        auto dx_ptr = m_dx.LockDeviceMemory();
         auto W0_ptr = m_W0->LockDeviceMemoryConst();
         auto b0_ptr = m_b0->LockDeviceMemoryConst();
         auto W1_ptr = m_W1->LockDeviceMemoryConst();
@@ -801,21 +802,22 @@ protected:
         bbcu_fp32_MicroMlp6x16_Backward
             (
 			    (float const *)x_ptr.GetAddr(),
-			    (float *)dx_ptr.GetAddr(),
-			    (float *)dx_tmp_ptr.GetAddr(),
-			    (float *)dy_ptr.GetAddr(),
-			    (int)m_input_node_size,
-			    (int)m_output_node_size,
-			    (int)dy.GetFrameStride() / sizeof(float),
-			    (int const *)input_index_ptr.GetAddr(),
+			    (float       *)dy_ptr.GetAddr(),
+			    (float       *)dx_ptr.GetAddr(),
+			    (float       *)dx_tmp_ptr.GetAddr(),
+			    (int   const *)input_index_ptr.GetAddr(),
 			    (float const *)W0_ptr.GetAddr(),
 			    (float const *)b0_ptr.GetAddr(),
-			    (float *)dW0_ptr.GetAddr(),
-			    (float *)db0_ptr.GetAddr(),
+			    (float       *)dW0_ptr.GetAddr(),
+			    (float       *)db0_ptr.GetAddr(),
 			    (float const *)W1_ptr.GetAddr(),
 			    (float const *)b1_ptr.GetAddr(),
-			    (float *)dW1_ptr.GetAddr(),
-			    (float *)db1_ptr.GetAddr()
+			    (float       *)dW1_ptr.GetAddr(),
+			    (float       *)db1_ptr.GetAddr(),
+			    (int          )m_input_node_size,
+			    (int          )m_output_node_size,
+			    (int          )dy.GetFrameSize(),
+			    (int          )dy.GetFrameStride() / sizeof(float)
 		    );
     }
 #endif
