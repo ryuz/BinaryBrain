@@ -345,14 +345,17 @@ CUBB_DLL_EXPORT int cubb_fp32_ReLU_Backward
         );
 
 
-// Binarize
+// -------------------------------------
+//  Binarize
+// -------------------------------------
+
 CUBB_DLL_EXPORT int cubb_fp32_Binarize_Forward
 		(
 			const float*	dev_x_buf,
 			float*			dev_y_buf,
+			int				node_size,
 			int				frame_size,
 			int				frame_stride,
-			int				node_size,
             cudaStream_t    streamId = 0
         );
 
@@ -361,9 +364,9 @@ CUBB_DLL_EXPORT int cubb_fp32_HardTanh_Backward
 			const float*	dev_x_buf,
 			const float*	dev_dy_buf,
 			float*			dev_dx_buf,
+			int				node_size,
 			int				frame_size,
 			int				frame_stride,
-			int				node_size,
             cudaStream_t    streamId = 0
         );
 

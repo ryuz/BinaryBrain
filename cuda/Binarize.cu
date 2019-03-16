@@ -15,45 +15,45 @@
 //////////////////////////////
 
 __global__ void kernal_fp32_Binarize_Forward(
-			const float*	x_buf,
-			float*			y_buf,
-			int				frame_stride
+			float const *x_buf,
+			float       *y_buf,
+			int         frame_size,
+			int         frame_stride
 		)
 {
-	int frame = blockDim.x * blockIdx.x + threadIdx.x;
-	int node  = blockDim.y * blockIdx.y + threadIdx.y;
-
-    float x = x_buf[frame_stride*node + frame];
-    x = (x > 0) ? 1 : 0;
-    y_buf[frame_stride*node + frame] = x;
+ 	int node       = blockIdx.x;
+	int frame_base = threadIdx.x;
+	int frame_step = blockDim.x;
+    
+    for ( int frame = frame_base; frame < frame_size; frame += frame_step ) {
+        float x = x_buf[frame_stride*node + frame];
+        x = (x > 0) ? 1 : 0;
+        y_buf[frame_stride*node + frame] = x;
+    }
 }
 
 
 CUBB_DLL_EXPORT int cubb_fp32_Binarize_Forward
 		(
-			const float*	dev_x_buf,
+			float const *	dev_x_buf,
 			float*			dev_y_buf,
+			int				node_size,
 			int				frame_size,
 			int				frame_stride,
-			int				node_size,
             cudaStream_t    streamId
         )
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
-	int		frame_block = frame_size;
-	int		frame_grid  = 1;
-    while (frame_block > 1024) {
-        frame_block /= 2;
-        frame_grid  *= 2;
-    }
-
-	dim3	grid(frame_grid, node_size);
-	dim3	block(frame_block, 1);
+	int		unit_x = 512;
+	
+	dim3	grid(node_size);
+	dim3	block(unit_x);
 	
 	kernal_fp32_Binarize_Forward<<<grid, block, 0, streamId>>>(
 			dev_x_buf,
             dev_y_buf,
+            frame_size,
 			frame_stride
 		);
 	BB_CUDA_CHECK_LAST_ERROR();
@@ -71,47 +71,46 @@ __global__ void kernal_fp32_HardTanh_Backward
 			const float*	x_buf,
 			const float*    dy_buf,
 		    float*	        dx_buf,
+			int				frame_size,
 			int				frame_stride
 		)
 {
-	int frame = blockDim.x * blockIdx.x + threadIdx.x;
-	int node  = blockDim.y * blockIdx.y + threadIdx.y;
-	
-    float x  = x_buf[frame_stride*node + frame];
-    float dy = dy_buf[frame_stride*node + frame];
-    if ( x <= 0 ) { dy = 0; }
-    dy = (x >= -1 && x <= 1) ? dy : 0;
-    dx_buf[frame_stride*node + frame] = dy;
+  	int node  = blockIdx.x;
+	int frame_base = threadIdx.x;
+	int frame_step = blockDim.x;
+    
+    for ( int frame = frame_base; frame < frame_size; frame += frame_step ) {
+        float x  = x_buf[frame_stride*node + frame];
+        float dy = dy_buf[frame_stride*node + frame];
+        dy = (x >= -1.0f && x <= 1.0f) ? dy : 0.0f;
+        dx_buf[frame_stride*node + frame] = dy;
+    }
 }
 
 
 CUBB_DLL_EXPORT int cubb_fp32_HardTanh_Backward
 		(
-			const float*	dev_x_buf,
-			const float*	dev_dy_buf,
-			float*			dev_dx_buf,
+			float const     *dev_x_buf,
+			float const     *dev_dy_buf,
+			float           *dev_dx_buf,
+			int				node_size,
 			int				frame_size,
 			int				frame_stride,
-			int				node_size,
             cudaStream_t    streamId
         )
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
-	int		frame_block = frame_size;
-	int		frame_grid  = 1;
-    while (frame_block > 1024) {
-        frame_block /= 2;
-        frame_grid  *= 2;
-    }
-
-	dim3	grid(frame_grid, node_size);
-	dim3	block(frame_block, 1);
+	int		unit_x = 512;
 	
+	dim3	grid(node_size);
+	dim3	block(unit_x);
+
 	kernal_fp32_HardTanh_Backward<<<grid, block, 0, streamId>>>(
 			dev_x_buf,
             dev_dy_buf,
             dev_dx_buf,
+            frame_size,
 			frame_stride
 		);
 	BB_CUDA_CHECK_LAST_ERROR();

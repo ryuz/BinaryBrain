@@ -27,7 +27,7 @@ protected:
     FrameBuffer m_y;
     FrameBuffer m_dx;
 
-    bool        m_host_only   = false;
+    bool        m_host_only = false;
 
 protected:
 	Binarize() {}
@@ -172,9 +172,9 @@ inline FrameBuffer Binarize<float>::Forward(FrameBuffer x, bool train)
         cubb_fp32_Binarize_Forward(
                     (float const *)ptr_x.GetAddr(),
                     (float *)ptr_y.GetAddr(),
+                    (int)node_size,
                     (int)frame_size,
-                    (int)(m_x.GetFrameStride() / sizeof(float)),
-                    (int)node_size
+                    (int)(m_x.GetFrameStride() / sizeof(float))
                 );
         return m_y;
     }
@@ -188,7 +188,7 @@ inline FrameBuffer Binarize<float>::Forward(FrameBuffer x, bool train)
 #pragma omp parallel for
 		for (index_t node = 0; node < node_size; ++node) {
 			for (index_t frame = 0; frame < frame_size; ++frame) {
-				y_ptr.Set(frame, node, x_ptr.Get(frame, node) >0.0f ? 1.0f : 0.0f);
+				y_ptr.Set(frame, node, x_ptr.Get(frame, node) > 0.0f ? 1.0f : 0.0f);
 			}
 		}
         return m_y;
@@ -219,14 +219,14 @@ inline FrameBuffer Binarize<float>::Backward(FrameBuffer dy)
         // GPU版
         auto ptr_x  = m_x.LockDeviceMemoryConst();
         auto ptr_dy = dy.LockDeviceMemoryConst();
-        auto ptr_dx = m_dx.LockDeviceMemory();
+        auto ptr_dx = m_dx.LockDeviceMemory(true);
         cubb_fp32_HardTanh_Backward(
                     (float const *)ptr_x.GetAddr(),
                     (float const *)ptr_dy.GetAddr(),
-                    (float *)ptr_dx.GetAddr(),
-                    (int)frame_size,
-                    (int)(m_x.GetFrameStride() / sizeof(float)),
-                    (int)node_size
+                    (float       *)ptr_dx.GetAddr(),
+                    (int          )node_size,
+                    (int          )frame_size,
+                    (int          )(m_x.GetFrameStride() / sizeof(float))
                 );
         return m_dx;
     }
@@ -235,9 +235,8 @@ inline FrameBuffer Binarize<float>::Backward(FrameBuffer dy)
     {
         // CPU版
         auto x_ptr  = m_x.LockConst<float>();
-	    auto y_ptr  = m_y.LockConst<float>();
 	    auto dy_ptr = dy.LockConst<float>();
-	    auto dx_ptr = m_dx.Lock<float>();
+	    auto dx_ptr = m_dx.Lock<float>(true);
 
 #pragma omp parallel for
 		for (index_t node = 0; node < node_size; ++node) {
