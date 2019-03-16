@@ -25,6 +25,8 @@ class ConvolutionCol2Im : public Model
 protected:
     indices_t       m_input_shape;
 
+    bool            m_host_only = false;
+
 	index_t			m_c_size = 1;
 	index_t			m_h_size = 1;
 	index_t			m_w_size = 1;
@@ -115,12 +117,12 @@ public:
         m_y.Resize(DataType<FT>::type, output_frame_size, indices_t({m_w_size, m_h_size, m_c_size}));
 
 #ifdef BB_WITH_CUDA
-        if ( DataType<FT>::type == BB_TYPE_FP32 && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() )
+        if ( !m_host_only && DataType<FT>::type == BB_TYPE_FP32 && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() )
         {
             auto x_ptr = x.LockDeviceMemoryConst();
             auto y_ptr = m_y.LockDeviceMemory(true);
 
-            cubb_fp32_Col2Im_Forward
+            bbcu_fp32_Col2Im_Forward
                 (
                     (float const *)x_ptr.GetAddr(),
                     (float       *)y_ptr.GetAddr(),
@@ -166,12 +168,13 @@ public:
 
         m_dx.Resize(DataType<BT>::type, input_frame_size, m_c_size);
 
-        if ( DataType<FT>::type == BB_TYPE_FP32 && dy.IsDeviceAvailable() && m_dx.IsDeviceAvailable() )
+#ifdef BB_WITH_CUDA
+        if ( !m_host_only && DataType<FT>::type == BB_TYPE_FP32 && dy.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && Manager::IsDeviceAvailable() )
         {
             auto dy_ptr = dy.LockDeviceMemoryConst();
             auto dx_ptr = m_dx.LockDeviceMemory(true);
 
-            cubb_fp32_Col2Im_Backward
+            bbcu_fp32_Col2Im_Backward
                 (
                     (float const *)dy_ptr.GetAddr(),
                     (float       *)dx_ptr.GetAddr(),
@@ -185,7 +188,8 @@ public:
 
             return m_dx;
         }
-        
+#endif
+
         {
 		    auto dy_ptr = dy.LockConst<BT>();
 		    auto dx_ptr = m_dx.Lock<BT>(true);

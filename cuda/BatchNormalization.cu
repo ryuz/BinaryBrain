@@ -57,15 +57,15 @@ __global__ void kernal_fp32_BatchNormalization_Forward(
 	extern __shared__   float	buf[];
 
 	// 初期化
-	int node = blockIdx.x;
-	int frame = threadIdx.x;
-	int frame_step = blockDim.x;
+	int const node = blockIdx.x;
+	int const frame_base = threadIdx.x;
+	int const frame_step = blockDim.x;
 	
 	// カハンの加算アルゴリズム(Kahan summation algorithm)
 	float s1 = 0, c1 = 0, y1, t1;
 	float s2 = 0, c2 = 0, y2, t2;
 	const float* x_ptr = &x_buf[frame_stride * node];
-	while (frame < frame_size) {
+	for ( int frame = frame_base; frame < frame_size; frame += frame_step) {
 		float x = x_ptr[frame];
 
 		y1 = x - c1;
@@ -77,8 +77,6 @@ __global__ void kernal_fp32_BatchNormalization_Forward(
 		t2 = s2 + y2;
 		c2 += (t2 - s2) - y2;
 		s2 = t2;
-
-		frame += frame_step;
 	}
 
 	// 集計
@@ -99,18 +97,16 @@ __global__ void kernal_fp32_BatchNormalization_Forward(
 	float gamma = gamma_buf[node];
 	float beta  = beta_buf[node];
 	float* y_ptr = &y_buf[frame_stride * node];
-	frame = threadIdx.x;
-	while (frame < frame_size) {
+	for ( int frame = frame_base; frame < frame_size; frame += frame_step) {
 		float x = x_ptr[frame];
 		x = (x - mean) * rstd;
 		x = x * gamma + beta;
 		y_ptr[frame] = x;
-		frame += frame_step;
 	}
 }
 
 
-CUBB_DLL_EXPORT int cubb_fp32_BatchNormalization_Forward
+BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Forward
 		(
 			const float*	dev_x_buf,
 			float*			dev_y_buf,
@@ -121,9 +117,9 @@ CUBB_DLL_EXPORT int cubb_fp32_BatchNormalization_Forward
 			float*			dev_running_mean_buf,
 			float*			dev_running_var_buf,
 			float			momentum,
+			int				node_size,	
 			int				frame_size,
 			int				frame_stride,
-			int				node_size,	
 			cudaStream_t    streamId
         )
 {
@@ -178,9 +174,9 @@ __global__ void kernal_fp32_BatchNormalization_Backward
 	extern __shared__   float	buf[];
 
 	// 初期化
-	int node = blockIdx.x;
-	int frame = threadIdx.x;
-	int frame_step = blockDim.x;
+	int const node = blockIdx.x;
+	int const frame_base = threadIdx.x;
+	int const frame_step = blockDim.x;
 
 	float mean = mean_buf[node];
 	float rstd = rstd_buf[node];
@@ -194,9 +190,8 @@ __global__ void kernal_fp32_BatchNormalization_Backward
 
 	float const *x_ptr  = &x_buf[node * frame_stride];
 	float const *dy_ptr = &dy_buf[node * frame_stride];
-	float		*dx_ptr = &dx_buf[node * frame_stride];
 
-	while (frame < frame_size) {
+	for ( int frame = frame_base; frame < frame_size; frame += frame_step) {
 		float x = x_ptr[frame];
 		float dy = dy_ptr[frame];
 		float xc = x - mean;
@@ -207,8 +202,6 @@ __global__ void kernal_fp32_BatchNormalization_Backward
 		float dxn = gamma * dy;
 		dstd += -(dxn * xc * rstd2);
 		dmeanx += -(dxn * rstd);
-
-		frame += frame_step;
 	}
 
 	dbeta = device_fp32_LocalSum(dbeta, buf);
@@ -220,25 +213,24 @@ __global__ void kernal_fp32_BatchNormalization_Backward
 	dstd   = device_fp32_LocalSum(dstd, buf);
 	dmeanx = device_fp32_LocalSum(dmeanx, buf);
 
+	float *dx_ptr = &dx_buf[node * frame_stride];
 
 	float dvar  = dstd * rstd;
 	float dmean = (dmeanx - (mean * dvar)) * reciprocal_frame_size;
 
-	frame = threadIdx.x;
-	while (frame < frame_size) {
+	for ( int frame = frame_base; frame < frame_size; frame += frame_step) {
 		float dy = dy_ptr[frame];
 		float x  = x_ptr[frame];
 		float dxn = dy * gamma;
 		float dxc = dxn * rstd;
 		float dx  = dxc + dmean + (x * dvar * reciprocal_frame_size);
 		dx_ptr[frame] = dx;
-        frame += frame_step;
 	}
 }
 
 
 
-CUBB_DLL_EXPORT int cubb_fp32_BatchNormalization_Backward
+BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Backward
 		(
 			const float		*dev_x_buf,
 			const float		*dev_dy_buf,
@@ -249,14 +241,14 @@ CUBB_DLL_EXPORT int cubb_fp32_BatchNormalization_Backward
 			float const		*dev_mean_buf,
 			float const		*dev_rstd_buf,
 			float			reciprocal_frame_size,
+			int				node_size,
 			int				frame_size,
 			int				frame_stride,
-			int				node_size,
             cudaStream_t    streamId
         )
 {
 	BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
-
+    
 	int		unit_x = 512;
 
 	dim3	grid(node_size);
@@ -277,6 +269,25 @@ CUBB_DLL_EXPORT int cubb_fp32_BatchNormalization_Backward
         );
     BB_CUDA_CHECK_LAST_ERROR();
     
+
+    // dump
+    if ( 0 ){
+#ifdef _DEBUG
+        std::string dump_path = "dump_dbg\\";
+#else
+        std::string dump_path = "dump_rel\\";
+#endif
+
+	    bbcu::DumpDeviceMemory(dump_path + "x_buf.txt",         dev_x_buf,      frame_stride * node_size);
+	    bbcu::DumpDeviceMemory(dump_path + "dy_buf.txt",		dev_dy_buf,     frame_stride * node_size);
+	    bbcu::DumpDeviceMemory(dump_path + "dx_buf.txt",		dev_dx_buf,     frame_stride * node_size);
+	    bbcu::DumpDeviceMemory(dump_path + "gamma_buf.txt",	    dev_gamma_buf,  node_size);
+	    bbcu::DumpDeviceMemory(dump_path + "dgamma_buf.txt",	dev_dgamma_buf, node_size);
+	    bbcu::DumpDeviceMemory(dump_path + "dbeta_buf.txt",	    dev_dbeta_buf,  node_size);
+	    bbcu::DumpDeviceMemory(dump_path + "mean_buf.txt",		dev_mean_buf,   node_size);
+	    bbcu::DumpDeviceMemory(dump_path + "rstd_buf.txt",		dev_rstd_buf,   node_size);
+    }
+
 	return 0;
 }
 

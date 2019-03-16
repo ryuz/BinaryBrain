@@ -8,13 +8,13 @@
 
 /*
 #ifdef DLL_EXPORT
-#define CUBB_DLL_EXPORT __declspec(dllexport) 
+#define BBCU_DLL_EXPORT __declspec(dllexport) 
 #else
-#define CUBB_DLL_EXPORT __declspec(dllimport) 
+#define BBCU_DLL_EXPORT __declspec(dllimport) 
 #endif
 */
 
-#define	CUBB_DLL_EXPORT	/**/
+#define	BBCU_DLL_EXPORT	/**/
 
 
 extern "C" {
@@ -29,9 +29,9 @@ extern "C" {
 //  Vector Operation
 // -------------------------------------
 
-CUBB_DLL_EXPORT void bbcu_SetHostOnly(bool hostOnly);
-CUBB_DLL_EXPORT bool bbcu_IsHostOnly(void);
-CUBB_DLL_EXPORT bool bbcu_IsDeviceAvailable(void);
+BBCU_DLL_EXPORT void bbcu_SetHostOnly(bool hostOnly);
+BBCU_DLL_EXPORT bool bbcu_IsHostOnly(void);
+BBCU_DLL_EXPORT bool bbcu_IsDeviceAvailable(void);
 
 
 
@@ -40,7 +40,7 @@ CUBB_DLL_EXPORT bool bbcu_IsDeviceAvailable(void);
 // -------------------------------------
 
 // dst = a * src0 + b * src1 + c
-CUBB_DLL_EXPORT int bbcu_fp32_Vector_add_ex
+BBCU_DLL_EXPORT int bbcu_fp32_Vector_add_ex
         (
             float*		    dev_dst,
             const float*	dev_src0,
@@ -53,7 +53,7 @@ CUBB_DLL_EXPORT int bbcu_fp32_Vector_add_ex
         );
     
 // dst = a * src0 * src1 + b
-CUBB_DLL_EXPORT int bbcu_fp32_Vector_mul_ex
+BBCU_DLL_EXPORT int bbcu_fp32_Vector_mul_ex
         (
             float*			dev_dst,
             const float*	dev_src0,
@@ -65,7 +65,7 @@ CUBB_DLL_EXPORT int bbcu_fp32_Vector_mul_ex
         );
 
 // dst = (a * src0 + b) / (c * src1 + d)
-CUBB_DLL_EXPORT int bbcu_fp32_Vector_div_ex(
+BBCU_DLL_EXPORT int bbcu_fp32_Vector_div_ex(
             float           *dev_dst,
             float const     *dev_src0,
             float const     *dev_src1,
@@ -78,7 +78,7 @@ CUBB_DLL_EXPORT int bbcu_fp32_Vector_div_ex(
 		);
 
 // dst = sqrt(src)
-CUBB_DLL_EXPORT int bbcu_fp32_Vector_sqrt(
+BBCU_DLL_EXPORT int bbcu_fp32_Vector_sqrt(
             float           *dev_dst,
             float const     *dev_src,
 			int				size,
@@ -87,7 +87,7 @@ CUBB_DLL_EXPORT int bbcu_fp32_Vector_sqrt(
 
 
 // dst = exp(src)
-CUBB_DLL_EXPORT int bbcu_fp32_Vector_exp(
+BBCU_DLL_EXPORT int bbcu_fp32_Vector_exp(
             float           *dev_dst,
             float const     *dev_src,
 			int				size,
@@ -96,7 +96,7 @@ CUBB_DLL_EXPORT int bbcu_fp32_Vector_exp(
 
 
 //  min(ベクトル同士)
-CUBB_DLL_EXPORT int bbcu_fp32_Vector_min(
+BBCU_DLL_EXPORT int bbcu_fp32_Vector_min(
             float           *dev_dst,
             float const     *dev_src0,
             float const     *dev_src1,
@@ -105,7 +105,7 @@ CUBB_DLL_EXPORT int bbcu_fp32_Vector_min(
 		);
 
 // min(係数)
-CUBB_DLL_EXPORT int bbcu_fp32_Vector_min_v(
+BBCU_DLL_EXPORT int bbcu_fp32_Vector_min_v(
             float           *dev_dst,
             float const     *dev_src,
             float           a,
@@ -115,7 +115,7 @@ CUBB_DLL_EXPORT int bbcu_fp32_Vector_min_v(
 
 
 //  max(ベクトル同士)
-CUBB_DLL_EXPORT int bbcu_fp32_Vector_max(
+BBCU_DLL_EXPORT int bbcu_fp32_Vector_max(
             float           *dev_dst,
             float const     *dev_src0,
             float const     *dev_src1,
@@ -124,7 +124,7 @@ CUBB_DLL_EXPORT int bbcu_fp32_Vector_max(
 		);
 
 // max(係数)
-CUBB_DLL_EXPORT int bbcu_fp32_Vector_max_v(
+BBCU_DLL_EXPORT int bbcu_fp32_Vector_max_v(
             float           *dev_dst,
             float const     *dev_src,
             float           a,
@@ -134,7 +134,7 @@ CUBB_DLL_EXPORT int bbcu_fp32_Vector_max_v(
 
 
 // clamp
-CUBB_DLL_EXPORT int bbcu_fp32_Vector_clamp(
+BBCU_DLL_EXPORT int bbcu_fp32_Vector_clamp(
             float           *dev_dst,
             float const     *dev_src,
             float           lo,
@@ -147,7 +147,7 @@ CUBB_DLL_EXPORT int bbcu_fp32_Vector_clamp(
 
 
 // Horizontal Sum
-CUBB_DLL_EXPORT	int bbcu_fp32_HorizontalSum
+BBCU_DLL_EXPORT	int bbcu_fp32_HorizontalSum
         (
             const float*	dev_src,
             float*			dev_dst,
@@ -158,7 +158,7 @@ CUBB_DLL_EXPORT	int bbcu_fp32_HorizontalSum
 
 
 // Horizontal MeanVar
-CUBB_DLL_EXPORT int bbcu_fp32_HorizontalMeanVar
+BBCU_DLL_EXPORT int bbcu_fp32_HorizontalMeanVar
 		(
 			const float*	dev_src,
 			float*			dev_mean,
@@ -174,7 +174,7 @@ CUBB_DLL_EXPORT int bbcu_fp32_HorizontalMeanVar
 //  MicroMlp
 // -------------------------------------
 
-int bbcu_fp32_MicroMlp6x16_Forward
+BBCU_DLL_EXPORT int bbcu_fp32_MicroMlp6x16_Forward
 		(
 			float const     *dev_x_buf,
 			float           *dev_y_buf,
@@ -190,7 +190,7 @@ int bbcu_fp32_MicroMlp6x16_Forward
 			cudaStream_t    streamId = 0
 		);
 
-CUBB_DLL_EXPORT int bbcu_fp32_MicroMlp6x16_Backward(
+BBCU_DLL_EXPORT int bbcu_fp32_MicroMlp6x16_Backward(
 			float const     *dev_x_buf,
 			float const     *dev_dy_buf,
 			float           *dev_dx_buf,
@@ -217,7 +217,7 @@ CUBB_DLL_EXPORT int bbcu_fp32_MicroMlp6x16_Backward(
 //  BatchNormalization
 // -------------------------------------
 
-CUBB_DLL_EXPORT int cubb_fp32_BatchNormalization_Forward
+BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Forward
 		(
 			const float*	dev_x_buf,
 			float*			dev_y_buf,
@@ -228,13 +228,13 @@ CUBB_DLL_EXPORT int cubb_fp32_BatchNormalization_Forward
 			float*			dev_running_mean_buf,
 			float*			dev_running_var_buf,
 			float			momentum,
+			int				node_size,
 			int				frame_size,
 			int				frame_stride,
-			int				node_size,
 			cudaStream_t    streamId = 0
 		);
 
-CUBB_DLL_EXPORT int cubb_fp32_BatchNormalization_Backward
+BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Backward
         (
             const float		*dev_x_buf,
             const float		*dev_dy_buf,
@@ -245,9 +245,9 @@ CUBB_DLL_EXPORT int cubb_fp32_BatchNormalization_Backward
             float const		*dev_mean_buf,
             float const		*dev_rstd_buf,
             float			reciprocal_frame_size,
+            int				node_size,
             int				frame_size,
             int				frame_stride,
-            int				node_size,
             cudaStream_t    streamId = 0
         );
 
@@ -257,7 +257,7 @@ CUBB_DLL_EXPORT int cubb_fp32_BatchNormalization_Backward
 //  Im2Col
 // -------------------------------------
 
-CUBB_DLL_EXPORT	int cubb_fp32_Im2Col_Forward
+BBCU_DLL_EXPORT	int bbcu_fp32_Im2Col_Forward
         (
             const float*	input_sig_dev_buf,
             int				input_frame_size,
@@ -272,7 +272,7 @@ CUBB_DLL_EXPORT	int cubb_fp32_Im2Col_Forward
             cudaStream_t    streamId = 0   
         );
 
-CUBB_DLL_EXPORT int cubb_fp32_Im2Col_Backward
+BBCU_DLL_EXPORT int bbcu_fp32_Im2Col_Backward
         (
 			float*			input_grad_dev_buf,
 			int				input_frame_size,
@@ -292,7 +292,7 @@ CUBB_DLL_EXPORT int cubb_fp32_Im2Col_Backward
 //  Col2Im
 // -------------------------------------
 
-CUBB_DLL_EXPORT int cubb_fp32_Col2Im_Forward
+BBCU_DLL_EXPORT int bbcu_fp32_Col2Im_Forward
         (
             float const     *dev_x_buf,
             float           *dev_y_buf,
@@ -305,7 +305,7 @@ CUBB_DLL_EXPORT int cubb_fp32_Col2Im_Forward
             cudaStream_t	streamId = 0
         );
 
-CUBB_DLL_EXPORT int cubb_fp32_Col2Im_Backward
+BBCU_DLL_EXPORT int bbcu_fp32_Col2Im_Backward
 		(
 			float const     *dev_dy_buf,
             float           *dev_dx_buf,
@@ -323,7 +323,7 @@ CUBB_DLL_EXPORT int cubb_fp32_Col2Im_Backward
 // ReLU
 // -------------------------------------
 
-CUBB_DLL_EXPORT int cubb_fp32_ReLU_Forward
+BBCU_DLL_EXPORT int bbcu_fp32_ReLU_Forward
 		(
 			const float*	dev_x_buf,
 			float*			dev_y_buf,
@@ -333,7 +333,7 @@ CUBB_DLL_EXPORT int cubb_fp32_ReLU_Forward
             cudaStream_t    streamId = 0
         );
 
-CUBB_DLL_EXPORT int cubb_fp32_ReLU_Backward
+BBCU_DLL_EXPORT int bbcu_fp32_ReLU_Backward
 		(
 			const float*	dev_x_buf,
 			const float*	dev_dy_buf,
@@ -349,7 +349,7 @@ CUBB_DLL_EXPORT int cubb_fp32_ReLU_Backward
 //  Binarize
 // -------------------------------------
 
-CUBB_DLL_EXPORT int cubb_fp32_Binarize_Forward
+BBCU_DLL_EXPORT int bbcu_fp32_Binarize_Forward
 		(
 			const float*	dev_x_buf,
 			float*			dev_y_buf,
@@ -359,7 +359,7 @@ CUBB_DLL_EXPORT int cubb_fp32_Binarize_Forward
             cudaStream_t    streamId = 0
         );
 
-CUBB_DLL_EXPORT int cubb_fp32_HardTanh_Backward
+BBCU_DLL_EXPORT int bbcu_fp32_HardTanh_Backward
 		(
 			const float*	dev_x_buf,
 			const float*	dev_dy_buf,

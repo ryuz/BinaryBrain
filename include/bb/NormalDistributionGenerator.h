@@ -12,6 +12,8 @@
 #include <memory>
 #include <random>
 
+#include "bb/ValueGenerator.h"
+
 namespace bb {
 
 template <typename T>
@@ -29,9 +31,9 @@ protected:
     }
 
 public:
-    static auto std::shared_ptr<NormalDistributionGenerator>::Create(T mean = (T)0.0, T stddev = (T)1.0, std::int64_t seed = 1)
+    static std::shared_ptr<NormalDistributionGenerator> Create(T mean = (T)0.0, T stddev = (T)1.0, std::int64_t seed = 1)
     {
-        auto self = std::shared_ptr<NormalDistributionGenerator>(new NormalDistributionGenerator(mean, stddev, seed));
+        return std::shared_ptr<NormalDistributionGenerator>(new NormalDistributionGenerator(mean, stddev, seed));
     }
 
     void Seed(std::int64_t seed)

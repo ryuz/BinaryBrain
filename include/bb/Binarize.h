@@ -169,7 +169,7 @@ inline FrameBuffer Binarize<float>::Forward(FrameBuffer x, bool train)
         // CUDA版
         auto ptr_x = x.LockDeviceMemoryConst();
         auto ptr_y = m_y.LockDeviceMemory();
-        cubb_fp32_Binarize_Forward(
+        bbcu_fp32_Binarize_Forward(
                     (float const *)ptr_x.GetAddr(),
                     (float *)ptr_y.GetAddr(),
                     (int)node_size,
@@ -220,7 +220,7 @@ inline FrameBuffer Binarize<float>::Backward(FrameBuffer dy)
         auto ptr_x  = m_x.LockDeviceMemoryConst();
         auto ptr_dy = dy.LockDeviceMemoryConst();
         auto ptr_dx = m_dx.LockDeviceMemory(true);
-        cubb_fp32_HardTanh_Backward(
+        bbcu_fp32_HardTanh_Backward(
                     (float const *)ptr_x.GetAddr(),
                     (float const *)ptr_dy.GetAddr(),
                     (float       *)ptr_dx.GetAddr(),

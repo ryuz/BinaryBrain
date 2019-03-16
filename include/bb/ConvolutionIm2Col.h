@@ -26,6 +26,8 @@ template <typename FT = float, typename BT = float>
 class ConvolutionIm2Col : public Model
 {
 protected:
+	bool			m_host_only   = false;
+ 
     indices_t       m_input_shape;
     indices_t       m_output_shape;
 	index_t 		m_input_frame_size;
@@ -164,11 +166,11 @@ public:
         m_y.Resize(x.GetType(), m_output_frame_size, m_output_shape);
 
 #ifdef BB_WITH_CUDA
-        if ( x.GetType() == BB_TYPE_FP32 && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable())
+        if ( !m_host_only && x.GetType() == BB_TYPE_FP32 && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable())
         {
             auto ptr_x = x.LockDeviceMemoryConst();
             auto ptr_y = m_y.LockDeviceMemory();
-            cubb_fp32_Im2Col_Forward(
+            bbcu_fp32_Im2Col_Forward(
                 (const float *)ptr_x.GetAddr(),
                 (int)m_input_frame_size,
                 (int)x.GetFrameStride() / sizeof(float),
@@ -225,11 +227,11 @@ public:
         m_dx.Resize(DataType<BT>::type, m_input_frame_size, m_input_shape);
 
 #ifdef BB_WITH_CUDA
-        if ( dy.GetType() == BB_TYPE_FP32 && dy.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && Manager::IsDeviceAvailable())
+        if ( !m_host_only && dy.GetType() == BB_TYPE_FP32 && dy.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && Manager::IsDeviceAvailable())
         {
             auto ptr_dy = dy.LockDeviceMemoryConst();
             auto ptr_dx = m_dx.LockDeviceMemory();
-            cubb_fp32_Im2Col_Backward(
+            bbcu_fp32_Im2Col_Backward(
                 (float *)ptr_dx.GetAddr(),
                 (int)m_input_frame_size,
                 (int)m_dx.GetFrameStride() / sizeof(float),

@@ -436,7 +436,7 @@ int bbcu_fp32_MicroMlp_Backward(
 }
 
 
-CUBB_DLL_EXPORT int bbcu_fp32_MicroMlp6x16_Backward(
+BBCU_DLL_EXPORT int bbcu_fp32_MicroMlp6x16_Backward(
 			float const     *dev_x_buf,
 			float const     *dev_dy_buf,
 			float           *dev_dx_buf,

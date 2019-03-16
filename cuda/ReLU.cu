@@ -29,7 +29,7 @@ __global__ void kernal_fp32_ReLU_Forward(
 }
 
 
-CUBB_DLL_EXPORT int cubb_fp32_ReLU_Forward
+BBCU_DLL_EXPORT int bbcu_fp32_ReLU_Forward
 		(
 			const float*	dev_x_buf,
 			float*			dev_y_buf,
@@ -84,7 +84,7 @@ __global__ void kernal_fp32_ReLU_Backward
 }
 
 
-CUBB_DLL_EXPORT int cubb_fp32_ReLU_Backward
+BBCU_DLL_EXPORT int bbcu_fp32_ReLU_Backward
 		(
 			const float*	dev_x_buf,
 			const float*	dev_dy_buf,

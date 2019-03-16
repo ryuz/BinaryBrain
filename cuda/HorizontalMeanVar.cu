@@ -76,7 +76,7 @@ __global__ void kernel_fp32_HorizontalMeanVar(
 }
 
 
-CUBB_DLL_EXPORT int bbcu_fp32_HorizontalMeanVar
+BBCU_DLL_EXPORT int bbcu_fp32_HorizontalMeanVar
 (
 	const float*	dev_src,
 	float*			dev_mean,

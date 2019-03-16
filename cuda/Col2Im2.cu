@@ -37,7 +37,7 @@ __global__ void kernal_fp32_Col2Im_Forward(
 }
 
 
-CUBB_DLL_EXPORT int cubb_fp32_Col2Im_Forward
+BBCU_DLL_EXPORT int bbcu_fp32_Col2Im_Forward
 		(
 			float const     *dev_x_buf,
             float           *dev_y_buf,
@@ -99,7 +99,7 @@ __global__ void kernal_fp32_Col2Im_Backward(
     }
 }
 
-CUBB_DLL_EXPORT int cubb_fp32_Col2Im_Backward
+BBCU_DLL_EXPORT int bbcu_fp32_Col2Im_Backward
 		(
 			float const     *dev_dy_buf,
             float           *dev_dx_buf,

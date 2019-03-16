@@ -191,6 +191,8 @@
     <CudaCompile>
       <Include>..\include</Include>
       <AdditionalCompilerOptions>/wd"4819"</AdditionalCompilerOptions>
+      <InterleaveSourceInPTX>false</InterleaveSourceInPTX>
+      <GPUDebugInfo>false</GPUDebugInfo>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DbgCpu|x64'">
@@ -279,6 +281,8 @@
     <CudaCompile>
       <Include>..\include</Include>
       <AdditionalCompilerOptions>/wd"4819"</AdditionalCompilerOptions>
+      <InterleaveSourceInPTX>false</InterleaveSourceInPTX>
+      <GPUDebugInfo>true</GPUDebugInfo>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelCpu|x64'">

@@ -50,7 +50,7 @@ __global__ void kernal_fp32_Im2Col_Forward(
 }
 
 
-CUBB_DLL_EXPORT int cubb_fp32_Im2Col_Forward
+BBCU_DLL_EXPORT int bbcu_fp32_Im2Col_Forward
 		(
 			const float*	input_sig_dev_buf,
 			int				input_frame_size,
@@ -150,7 +150,7 @@ __global__ void kernal_fp32_Im2Col_Backward(
 }
 
 
-CUBB_DLL_EXPORT int cubb_fp32_Im2Col_Backward
+BBCU_DLL_EXPORT int bbcu_fp32_Im2Col_Backward
 		(
 			float*			input_grad_dev_buf,
 			int				input_frame_size,

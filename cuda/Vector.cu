@@ -31,7 +31,7 @@ __global__ void kernal_fp32_Vector_add_ex
 	}
 }
 
-CUBB_DLL_EXPORT int bbcu_fp32_Vector_add_ex(
+BBCU_DLL_EXPORT int bbcu_fp32_Vector_add_ex(
 			float*			dev_dst,
 			const float*	dev_src0,
 			const float*	dev_src1,
@@ -81,7 +81,7 @@ __global__ void kernal_fp32_Vector_mul_ex(
 }
 
 
-CUBB_DLL_EXPORT int bbcu_fp32_Vector_mul_ex
+BBCU_DLL_EXPORT int bbcu_fp32_Vector_mul_ex
         (
 			float*			dev_dst,
 			const float*	dev_src0,
@@ -131,7 +131,7 @@ __global__ void kernal_fp32_Vector_div_ex(
 }
 
 
-CUBB_DLL_EXPORT int bbcu_fp32_Vector_div_ex(
+BBCU_DLL_EXPORT int bbcu_fp32_Vector_div_ex(
             float           *dev_dst,
             float const     *dev_src0,
             float const     *dev_src1,
@@ -180,7 +180,7 @@ __global__ void kernal_fp32_Vector_sqrt(
 }
 
 
-CUBB_DLL_EXPORT int bbcu_fp32_Vector_sqrt(
+BBCU_DLL_EXPORT int bbcu_fp32_Vector_sqrt(
             float           *dev_dst,
             float const     *dev_src,
 			int				size,
@@ -220,7 +220,7 @@ __global__ void kernal_fp32_Vector_exp(
 }
 
 
-CUBB_DLL_EXPORT int bbcu_fp32_Vector_exp(
+BBCU_DLL_EXPORT int bbcu_fp32_Vector_exp(
             float           *dev_dst,
             float const     *dev_src,
 			int				size,
@@ -261,7 +261,7 @@ __global__ void kernal_fp32_Vector_min(
 }
 
 
-CUBB_DLL_EXPORT int bbcu_fp32_Vector_min(
+BBCU_DLL_EXPORT int bbcu_fp32_Vector_min(
             float           *dev_dst,
             float const     *dev_src0,
             float const     *dev_src1,
@@ -299,7 +299,7 @@ __global__ void kernal_fp32_Vector_min_v(
 }
 
 
-CUBB_DLL_EXPORT int bbcu_fp32_Vector_min_v(
+BBCU_DLL_EXPORT int bbcu_fp32_Vector_min_v(
             float           *dev_dst,
             float const     *dev_src,
             float           a,
@@ -342,7 +342,7 @@ __global__ void kernal_fp32_Vector_max(
 }
 
 
-CUBB_DLL_EXPORT int bbcu_fp32_Vector_max(
+BBCU_DLL_EXPORT int bbcu_fp32_Vector_max(
             float           *dev_dst,
             float const     *dev_src0,
             float const     *dev_src1,
@@ -380,7 +380,7 @@ __global__ void kernal_fp32_Vector_max_v(
 }
 
 
-CUBB_DLL_EXPORT int bbcu_fp32_Vector_max_v(
+BBCU_DLL_EXPORT int bbcu_fp32_Vector_max_v(
             float           *dev_dst,
             float const     *dev_src,
             float           a,
@@ -422,7 +422,7 @@ __global__ void kernal_fp32_Vector_clamp(
 }
 
 
-CUBB_DLL_EXPORT int bbcu_fp32_Vector_clamp(
+BBCU_DLL_EXPORT int bbcu_fp32_Vector_clamp(
             float           *dev_dst,
             float const     *dev_src,
             float           lo,

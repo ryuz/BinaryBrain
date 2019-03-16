@@ -206,7 +206,7 @@ inline FrameBuffer ReLU<float>::Forward(FrameBuffer x, bool train)
         // CUDA版
         auto ptr_x = x.LockDeviceMemoryConst();
         auto ptr_y = m_y.LockDeviceMemory();
-        cubb_fp32_ReLU_Forward(
+        bbcu_fp32_ReLU_Forward(
                     (float const *)ptr_x.GetAddr(),
                     (float *)ptr_y.GetAddr(),
                     (int)frame_size,
@@ -266,7 +266,7 @@ inline FrameBuffer ReLU<float>::Backward(FrameBuffer dy)
         auto ptr_x  = m_x.LockDeviceMemoryConst();
         auto ptr_dy = dy.LockDeviceMemoryConst();
         auto ptr_dx = m_dx.LockDeviceMemory();
-        cubb_fp32_ReLU_Backward(
+        bbcu_fp32_ReLU_Backward(
                     (float const *)ptr_x.GetAddr(),
                     (float const *)ptr_dy.GetAddr(),
                     (float *)ptr_dx.GetAddr(),

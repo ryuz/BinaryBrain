@@ -15,6 +15,7 @@
 #include <cereal/types/vector.hpp>
 #include <cereal/types/array.hpp>
 
+#include "bb/Manager.h"
 #include "bb/DataType.h"
 #include "bb/Activation.h"
 #include "bb/FrameBuffer.h"
@@ -36,6 +37,10 @@ class BatchNormalization : public Activation<T, T>
     using _super = Activation<T, T>;
 
 protected:
+    bool                        m_host_only = false;
+    bool                        m_host_simd = true;
+
+
     index_t 		            m_node_size;
     
     FrameBuffer                 m_x;
@@ -61,6 +66,21 @@ protected:
         m_dgamma = std::make_shared<Tensor>();
         m_dbeta  = std::make_shared<Tensor>();
     }
+
+   	void CommandProc(std::vector<std::string> args)
+	{
+        // HostOnlyモード設定
+        if (args.size() == 2 && args[0] == "host_only")
+        {
+            m_host_only = EvalBool(args[1]);
+        }
+
+        // Host SIMDモード設定
+        if (args.size() == 2 && args[0] == "host_simd")
+        {
+            m_host_simd = EvalBool(args[1]);
+        }
+	}
 
 public:
     ~BatchNormalization() {}
@@ -160,7 +180,10 @@ public:
     auto lock_mean_const(void)   const { return m_running_mean.LockConst(); }
     auto lock_var(void)                { return m_running_var.Lock(); }
     auto lock_var_const(void)    const { return m_running_var.LockConst(); }
-
+    
+    // debug
+    auto lock_tmp_mean_const(void)   const { return m_mean.LockConst(); }
+    auto lock_tmp_rstd_const(void)   const { return m_rstd.LockConst(); }
 
     /**
      * @brief  入力形状設定
@@ -259,8 +282,8 @@ public:
         m_y.Resize(x.GetType(), x.GetFrameSize(), x.GetNodeSize());
 
 
-#if BB_WITH_CUDA
-		if (train && DataType<T>::type == BB_TYPE_FP32 && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() ) {
+#ifdef BB_WITH_CUDA
+		if ( !m_host_only && train && DataType<T>::type == BB_TYPE_FP32 && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
 			auto dev_x_ptr     = m_x.LockDeviceMemoryConst();
 			auto dev_y_ptr     = m_y.LockDeviceMemory();
 			auto dev_gamma_ptr = m_gamma->LockDeviceMemory();
@@ -270,7 +293,7 @@ public:
 			auto dev_running_mean_ptr = m_running_mean.LockDeviceMemory();
 			auto dev_running_var_ptr = m_running_var.LockDeviceMemory();
 
-			cubb_fp32_BatchNormalization_Forward
+			bbcu_fp32_BatchNormalization_Forward
 				(
 					(const float*)dev_x_ptr.GetAddr(),
 					(float*)dev_y_ptr.GetAddr(),
@@ -281,9 +304,9 @@ public:
 					(float*)dev_running_mean_ptr.GetAddr(),
 					(float*)dev_running_var_ptr.GetAddr(),
 					(float)m_momentum,
+					(int)m_x.GetNodeSize(),
 					(int)m_x.GetFrameSize(),
-					(int)m_x.GetFrameStride() / sizeof(float),
-					(int)m_x.GetNodeSize()
+					(int)m_x.GetFrameStride() / sizeof(float)
 				);
 
 			return m_y;
@@ -402,7 +425,7 @@ public:
         m_dx.Resize(dy.GetType(), dy.GetFrameSize(), dy.GetNodeSize());
 
 #ifdef BB_WITH_CUDA
-        if ( DataType<T>::type == BB_TYPE_FP32 && dy.IsDeviceAvailable() && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() ) {
+        if ( !m_host_only && DataType<T>::type == BB_TYPE_FP32 && dy.IsDeviceAvailable() && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             auto dev_dy_ptr     = dy.LockDeviceMemoryConst();
             auto dev_x_ptr      = m_x.LockDeviceMemoryConst();
             auto dev_dx_ptr     = m_dx.LockDeviceMemory();
@@ -411,7 +434,7 @@ public:
             auto dev_dbeta_ptr  = m_dbeta->LockDeviceMemory();
             auto dev_mean_ptr   = m_mean.LockDeviceMemoryConst();
             auto dev_rstd_ptr   = m_rstd.LockDeviceMemoryConst();
-            cubb_fp32_BatchNormalization_Backward
+            bbcu_fp32_BatchNormalization_Backward
                 (
                     (const float *)dev_x_ptr.GetAddr(),
                     (const float *)dev_dy_ptr.GetAddr(),
@@ -422,9 +445,9 @@ public:
                     (float const *)dev_mean_ptr.GetAddr(),
                     (float const *)dev_rstd_ptr.GetAddr(),
                     (float        )1.0f / dy.GetFrameSize(),
+                    (int          )dy.GetNodeSize(),
                     (int          )dy.GetFrameSize(),
-                    (int          )dy.GetFrameStride() / sizeof(float),
-                    (int          )dy.GetNodeSize()
+                    (int          )dy.GetFrameStride() / sizeof(float)
                 );
 
             return m_dx;

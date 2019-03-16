@@ -4,6 +4,8 @@
 #include "gtest/gtest.h"
 
 #include "bb/BatchNormalization.h"
+#include "bb/OptimizerAdam.h"
+#include "bb/NormalDistributionGenerator.h"
 
 
 
@@ -310,7 +312,7 @@ public:
 // カハンの加算アルゴリズム
 
 
-
+#if 0
 TEST(BatchNormalizationTest, testBatchNormalization)
 {
     bb::BatchNormalization<float>::create_t create;
@@ -481,6 +483,237 @@ TEST(BatchNormalizationTest, testBatchNormalization)
 		EXPECT_NEAR(exp_norm1.dx[i], dx.GetFP32(i, 1), 0.001);
 	}
 }
+#endif
+
+
+TEST(BatchNormalizationTest, testBatchNormalization_test02)
+{
+   int const node_size  = 3;
+   int const frame_size = 1024+7;
+
+    bb::BatchNormalization<float>::create_t create;
+    auto bn = bb::BatchNormalization<float>::Create(create);
+
+    bb::FrameBuffer x_buf(BB_TYPE_FP32, frame_size, node_size);
+    bn->SetInputShape(x_buf.GetShape());
+
+    auto valgen = bb::NormalDistributionGenerator<float>::Create(1.2f, 3.3f, 1);
+    for ( int frame = 0; frame < frame_size; ++frame) {
+        for ( int node = 0; node < node_size; ++node ) {
+            x_buf.SetFP32(frame, node, valgen->GetValue());
+        }
+    }
+
+    SimpleBatchNorm<double> exp_norm0(frame_size);
+	SimpleBatchNorm<double> exp_norm1(frame_size);
+	SimpleBatchNorm<double> exp_norm2(frame_size);
+
+    for ( int frame = 0; frame < frame_size; ++frame) {
+		exp_norm0.x[frame] = x_buf.GetFP32(frame, 0);
+		exp_norm1.x[frame] = x_buf.GetFP32(frame, 1);
+		exp_norm2.x[frame] = x_buf.GetFP32(frame, 2);
+	}
+    
+	auto y_buf = bn->Forward(x_buf, true);
+
+	exp_norm0.Forward();
+	exp_norm1.Forward();
+	exp_norm2.Forward();
+
+    for ( int frame = 0; frame < frame_size; ++frame) {
+		EXPECT_NEAR(exp_norm0.y[frame], y_buf.GetFP32(frame, 0), 0.000001);
+		EXPECT_NEAR(exp_norm1.y[frame], y_buf.GetFP32(frame, 1), 0.000001);
+		EXPECT_NEAR(exp_norm2.y[frame], y_buf.GetFP32(frame, 2), 0.000001);
+	}
+
+    {
+        auto tmp_mean = bn->lock_tmp_mean_const();
+        EXPECT_NEAR(exp_norm0.mean, tmp_mean[0], 0.00001f);
+        EXPECT_NEAR(exp_norm1.mean, tmp_mean[1], 0.00001f);
+        EXPECT_NEAR(exp_norm2.mean, tmp_mean[2], 0.00001f);
+
+        auto tmp_rstd = bn->lock_tmp_rstd_const();
+        EXPECT_NEAR(1.0f/sqrt(exp_norm0.var), tmp_rstd[0], 0.00001f);
+        EXPECT_NEAR(1.0f/sqrt(exp_norm1.var), tmp_rstd[1], 0.00001f);
+        EXPECT_NEAR(1.0f/sqrt(exp_norm2.var), tmp_rstd[2], 0.00001f);
+    }
+
+    // backward
+    bb::FrameBuffer dy_buf(BB_TYPE_FP32,  frame_size, node_size);
+    for ( int frame = 0; frame < frame_size; ++frame) {
+        for ( int node = 0; node < node_size; ++node ) {
+            dy_buf.SetFP32(frame, node, valgen->GetValue());
+        }
+    }
+
+    for ( int frame = 0; frame < frame_size; ++frame) {
+		exp_norm0.dy[frame] = dy_buf.GetFP32(frame, 0);
+		exp_norm1.dy[frame] = dy_buf.GetFP32(frame, 1);
+		exp_norm2.dy[frame] = dy_buf.GetFP32(frame, 2);
+	}
+        
+    auto dx_buf = bn->Backward(dy_buf);
+
+	exp_norm0.Backward();
+	exp_norm1.Backward();
+	exp_norm2.Backward();
+
+    for ( int frame = 0; frame < frame_size; ++frame) {
+		EXPECT_NEAR(exp_norm0.dx[frame], dx_buf.GetFP32(frame, 0), 0.001);
+		EXPECT_NEAR(exp_norm1.dx[frame], dx_buf.GetFP32(frame, 1), 0.001);
+		EXPECT_NEAR(exp_norm2.dx[frame], dx_buf.GetFP32(frame, 2), 0.001);
+	}
+
+    auto dgamma_ptr = bn->lock_dgamma_const();
+    auto dbeta_ptr  = bn->lock_dbeta_const();
+	EXPECT_NEAR(exp_norm0.dgamma, dgamma_ptr[0], 0.001);
+	EXPECT_NEAR(exp_norm1.dgamma, dgamma_ptr[1], 0.001);
+	EXPECT_NEAR(exp_norm2.dgamma, dgamma_ptr[2], 0.001);
+
+	EXPECT_NEAR(exp_norm0.dbeta, dbeta_ptr[0], 0.001);
+	EXPECT_NEAR(exp_norm1.dbeta, dbeta_ptr[1], 0.001);
+	EXPECT_NEAR(exp_norm2.dbeta, dbeta_ptr[2], 0.001);
+}
+
+
+#if 0
+// #ifdef BB_WITH_CUDA
+
+TEST(BatchNormalizationTest, testBatchNormalization_cmp)
+{
+    int const node_size  = 13;
+    int const frame_size = 8*123;
+
+    bb::BatchNormalization<float>::create_t create;
+    auto bn_cpu = bb::BatchNormalization<float>::Create(create);
+    auto bn_gpu = bb::BatchNormalization<float>::Create(create);
+
+    auto opt_cpu = bb::OptimizerAdam<float>::Create();
+    auto opt_gpu = bb::OptimizerAdam<float>::Create();
+
+    bn_cpu->SendCommand("host_only true");
+
+    bb::FrameBuffer x_cpu(BB_TYPE_FP32, frame_size, node_size, true);
+    bb::FrameBuffer x_gpu(BB_TYPE_FP32, frame_size, node_size);
+    
+    bn_cpu->SetInputShape(x_cpu.GetShape());
+    bn_gpu->SetInputShape(x_gpu.GetShape());
+
+    opt_cpu->SetVariables(bn_cpu->GetParameters(), bn_cpu->GetGradients());
+    opt_gpu->SetVariables(bn_gpu->GetParameters(), bn_gpu->GetGradients());
+
+
+    auto valgen = bb::NormalDistributionGenerator<float>::Create(1.2f, 3.3f, 1);
+
+    for ( int loop = 0; loop < 2; ++ loop ) 
+    {
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < node_size; ++node ) {
+                x_cpu.SetFP32(frame, node, valgen->GetValue());
+                x_gpu.SetFP32(frame, node, x_cpu.GetFP32(frame, node));
+            }
+        }
+
+        auto y_cpu = bn_cpu->Forward(x_cpu);
+        auto y_gpu = bn_gpu->Forward(x_gpu);
+
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < node_size; ++node ) {
+                auto val_cpu = x_cpu.GetFP32(frame, node);
+                auto val_gpu = x_gpu.GetFP32(frame, node);
+                EXPECT_FLOAT_EQ(val_cpu, val_gpu);
+            }
+        }
+
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < node_size; ++node ) {
+                auto val_cpu = y_cpu.GetFP32(frame, node);
+                auto val_gpu = y_gpu.GetFP32(frame, node);
+                EXPECT_NEAR(val_cpu, val_gpu, 0.0001f);
+            }
+        }
+
+
+        // backward
+        bb::FrameBuffer dy_cpu(BB_TYPE_FP32, frame_size, node_size, true);
+        bb::FrameBuffer dy_gpu(BB_TYPE_FP32, frame_size, node_size);
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < node_size; ++node ) {
+                dy_cpu.SetFP32(frame, node, valgen->GetValue());
+                dy_gpu.SetFP32(frame, node, dy_cpu.GetFP32(frame, node));
+            }
+        }
+
+        auto dx_cpu = bn_cpu->Backward(dy_cpu);
+        auto dx_gpu = bn_gpu->Backward(dy_gpu);
+
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < node_size; ++node ) {
+                auto val_cpu = dx_cpu.GetFP32(frame, node);
+                auto val_gpu = dx_gpu.GetFP32(frame, node);
+                EXPECT_NEAR(val_cpu, val_gpu, 0.0001f);
+            }
+        }
+
+        {
+            auto dgamma_cpu = bn_cpu->lock_dgamma_const();
+            auto dgamma_gpu = bn_gpu->lock_dgamma_const();
+            for ( int node = 0; node < node_size; ++node ) {
+                auto val_cpu = dgamma_cpu[node];
+                auto val_gpu = dgamma_gpu[node];
+                EXPECT_NEAR(val_cpu, val_gpu, 0.001f);
+            }
+
+            auto dbeta_cpu = bn_cpu->lock_dbeta_const();
+            auto dbeta_gpu = bn_gpu->lock_dbeta_const();
+            for ( int node = 0; node < node_size; ++node ) {
+                auto val_cpu = dbeta_cpu[node];
+                auto val_gpu = dbeta_gpu[node];
+                EXPECT_NEAR(val_cpu, val_gpu, 0.001f);
+            }
+
+            auto mean_cpu = bn_cpu->lock_mean_const();
+            auto mean_gpu = bn_gpu->lock_mean_const();
+            auto var_cpu  = bn_cpu->lock_var_const();
+            auto var_gpu  = bn_gpu->lock_var_const();
+            auto tmp_mean_cpu = bn_cpu->lock_tmp_mean_const();
+            auto tmp_mean_gpu = bn_gpu->lock_tmp_mean_const();
+            auto tmp_rstd_cpu = bn_cpu->lock_tmp_rstd_const();
+            auto tmp_rstd_gpu = bn_gpu->lock_tmp_rstd_const();
+            for ( int node = 0; node < node_size; ++node ) {
+                EXPECT_NEAR(mean_cpu[node], mean_gpu[node], 0.001f);
+                EXPECT_NEAR(var_cpu[node], var_gpu[node], 0.001f);
+                EXPECT_NEAR(tmp_mean_cpu[node], tmp_mean_gpu[node], 0.001f);
+                EXPECT_NEAR(tmp_rstd_cpu[node], tmp_rstd_gpu[node], 0.001f);
+            }
+        }
+
+        opt_cpu->Update();
+        opt_gpu->Update();
+
+        {
+            auto gamma_cpu = bn_cpu->lock_gamma_const();
+            auto gamma_gpu = bn_gpu->lock_gamma_const();
+            for ( int node = 0; node < node_size; ++node ) {
+                auto val_cpu = gamma_cpu[node];
+                auto val_gpu = gamma_gpu[node];
+                EXPECT_NEAR(val_cpu, val_gpu, 0.001f);
+            }
+
+            auto beta_cpu = bn_cpu->lock_beta_const();
+            auto beta_gpu = bn_gpu->lock_beta_const();
+            for ( int node = 0; node < node_size; ++node ) {
+                auto val_cpu = beta_cpu[node];
+                auto val_gpu = beta_gpu[node];
+                EXPECT_NEAR(val_cpu, val_gpu, 0.001f);
+            }
+        }
+    }
+}
+
+#endif
+
+
 
 
 #if 0

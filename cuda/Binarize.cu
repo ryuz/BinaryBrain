@@ -33,7 +33,7 @@ __global__ void kernal_fp32_Binarize_Forward(
 }
 
 
-CUBB_DLL_EXPORT int cubb_fp32_Binarize_Forward
+BBCU_DLL_EXPORT int bbcu_fp32_Binarize_Forward
 		(
 			float const *	dev_x_buf,
 			float*			dev_y_buf,
@@ -88,7 +88,7 @@ __global__ void kernal_fp32_HardTanh_Backward
 }
 
 
-CUBB_DLL_EXPORT int cubb_fp32_HardTanh_Backward
+BBCU_DLL_EXPORT int bbcu_fp32_HardTanh_Backward
 		(
 			float const     *dev_x_buf,
 			float const     *dev_dy_buf,
