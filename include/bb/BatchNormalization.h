@@ -295,18 +295,18 @@ public:
 
 			bbcu_fp32_BatchNormalization_Forward
 				(
-					(const float*)dev_x_ptr.GetAddr(),
-					(float*)dev_y_ptr.GetAddr(),
-					(float*)dev_gamma_ptr.GetAddr(),
-					(float*)dev_beta_ptr.GetAddr(),
-					(float*)dev_mean_ptr.GetAddr(),
-					(float*)dev_rstd_ptr.GetAddr(),
-					(float*)dev_running_mean_ptr.GetAddr(),
-					(float*)dev_running_var_ptr.GetAddr(),
-					(float)m_momentum,
-					(int)m_x.GetNodeSize(),
-					(int)m_x.GetFrameSize(),
-					(int)m_x.GetFrameStride() / sizeof(float)
+					(float const *)dev_x_ptr.GetAddr(),
+					(float       *)dev_y_ptr.GetAddr(),
+					(float const *)dev_gamma_ptr.GetAddr(),
+					(float const *)dev_beta_ptr.GetAddr(),
+					(float       *)dev_mean_ptr.GetAddr(),
+					(float       *)dev_rstd_ptr.GetAddr(),
+					(float       *)dev_running_mean_ptr.GetAddr(),
+					(float       *)dev_running_var_ptr.GetAddr(),
+					(float        )m_momentum,
+					(int          )m_x.GetNodeSize(),
+					(int          )m_x.GetFrameSize(),
+					(int          )m_x.GetFrameStride() / sizeof(float)
 				);
 
 			return m_y;

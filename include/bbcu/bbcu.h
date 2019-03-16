@@ -219,16 +219,16 @@ BBCU_DLL_EXPORT int bbcu_fp32_MicroMlp6x16_Backward(
 
 BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Forward
 		(
-			const float*	dev_x_buf,
-			float*			dev_y_buf,
-			float*			dev_gamma_buf,
-			float*			dev_beta_buf,
-			float*			dev_mean_buf,
-			float*			dev_rstd_buf,
-			float*			dev_running_mean_buf,
-			float*			dev_running_var_buf,
+			float const     *dev_x_buf,
+			float           *dev_y_buf,
+			float const     *dev_gamma_buf,
+			float const     *dev_beta_buf,
+			float           *dev_mean_buf,
+			float           *dev_rstd_buf,
+			float           *dev_running_mean_buf,
+			float           *dev_running_var_buf,
 			float			momentum,
-			int				node_size,
+			int				node_size,	
 			int				frame_size,
 			int				frame_stride,
 			cudaStream_t    streamId = 0
@@ -236,8 +236,8 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Forward
 
 BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Backward
         (
-            const float		*dev_x_buf,
-            const float		*dev_dy_buf,
+            float const 	*dev_x_buf,
+            float const 	*dev_dy_buf,
             float			*dev_dx_buf,
             float const		*dev_gamma_buf,
             float			*dev_dgamma_buf,
