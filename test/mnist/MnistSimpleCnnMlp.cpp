@@ -38,26 +38,38 @@ void MnistSimpleCnnMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
 {
   // load MNIST data
 #ifdef _DEBUG
-	auto td = bb::LoadMnist<>::Load(10); //, 512, 128);
+	auto td = bb::LoadMnist<>::Load(10, 512, 128);
 #else
     auto td = bb::LoadMnist<>::Load(10);
 #endif
 
+    auto cvn0_mm0 = bb::MicroMlp<>::Create(192);
+    auto cvn0_mm1 = bb::MicroMlp<>::Create(32);
+
+    auto cvn1_mm0 = bb::MicroMlp<>::Create(192);
+    auto cvn1_mm1 = bb::MicroMlp<>::Create(32);
+
+    auto cvn2_mm0 = bb::MicroMlp<>::Create(192);
+    auto cvn2_mm1 = bb::MicroMlp<>::Create(32);
+
+    auto cvn3_mm0 = bb::MicroMlp<>::Create(192);
+    auto cvn3_mm1 = bb::MicroMlp<>::Create(32);
+
     auto cnv0_sub = bb::Sequential::Create();
-    cnv0_sub->Add(bb::MicroMlp<>::Create(192));
-    cnv0_sub->Add(bb::MicroMlp<>::Create(32));
+    cnv0_sub->Add(cvn0_mm0);
+    cnv0_sub->Add(cvn0_mm1);
 
     auto cnv1_sub = bb::Sequential::Create();
-    cnv1_sub->Add(bb::MicroMlp<>::Create(192));
-    cnv1_sub->Add(bb::MicroMlp<>::Create(32));
+    cnv1_sub->Add(cvn1_mm0);
+    cnv1_sub->Add(cvn1_mm1);
 
     auto cnv2_sub = bb::Sequential::Create();
-    cnv2_sub->Add(bb::MicroMlp<>::Create(192));
-    cnv2_sub->Add(bb::MicroMlp<>::Create(32));
+    cnv2_sub->Add(cvn2_mm0);
+    cnv2_sub->Add(cvn2_mm1);
 
     auto cnv3_sub = bb::Sequential::Create();
-    cnv3_sub->Add(bb::MicroMlp<>::Create(192));
-    cnv3_sub->Add(bb::MicroMlp<>::Create(32));
+    cnv3_sub->Add(cvn3_mm0);
+    cnv3_sub->Add(cvn3_mm1);
 
     auto net = bb::Sequential::Create();
     net->Add(bb::RealToBinary<>::Create(1));
@@ -77,6 +89,8 @@ void MnistSimpleCnnMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
 
 //  net->SendCommand("host_only true");
 //  net->SendCommand("host_only true", "BatchNormalization");
+
+    net->PrintInfo();
 
     bb::Runner<float>::create_t runner_create;
     runner_create.name      = "MnistSimpleCnnMlp";

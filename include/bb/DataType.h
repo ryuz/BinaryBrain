@@ -120,6 +120,22 @@ inline index_t GetStrideIndex(indices_t const & indices, indices_t const & strid
     return index;
 }
 
+inline std::ostream& operator<<(std::ostream& os, indices_t const &indices)
+{
+    bool first = true;
+    os << "{";
+    for (auto i : indices) {
+        if ( !first ) {
+            os << ", ";
+        }
+        os << i;
+        first = false;
+    }
+    os << "}";
+
+    return os;
+}
+
 inline void SaveIndices(std::ostream &os, indices_t const &indices)
 {
     auto size = (index_t)indices.size();

@@ -197,6 +197,21 @@ public:
         return dy; 
     }
 	
+public:
+    /**
+     * @brief  モデルの情報を表示
+     * @detail モデルの情報を表示する
+     * @param  os     出力ストリーム
+     * @param  indent インデント文字列
+     */
+    virtual	void PrintInfoText(std::ostream& os, std::string indent = "", int columns = 60)
+    {
+        os << indent << std::string(columns - indent.length(), '-')  << std::endl;
+        os << indent << "[" << GetName() << "]"  << std::endl;
+        m_im2col->PrintInfoText(os, indent + " ", columns);
+        m_layer->PrintInfoText(os, indent + " ", columns);
+        m_col2im->PrintInfoText(os, indent + " ", columns);
+    }
 
 public:
 #ifdef BB_WITH_CREAL

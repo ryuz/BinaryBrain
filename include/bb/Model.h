@@ -177,6 +177,35 @@ public:
     }
 
 
+public:
+    /**
+     * @brief  モデルの情報を表示
+     * @detail モデルの情報を表示する
+     * @param  os      出力ストリーム
+     * @param  indent  インデント文字列
+     * @param  columns 表示幅
+     */
+    virtual	void PrintInfoText(std::ostream& os, std::string indent, int columns)
+    {
+        os << indent << std::string(columns - indent.length(), '-')  << std::endl;
+        os << indent << "[" << GetName() << "]"  << std::endl;
+        os << indent << " input  shape : " << GetInputShape();
+        os << indent << " output shape : " << GetOutputShape() << std::endl;
+    }
+
+    /**
+     * @brief  モデルの情報を表示
+     * @detail モデルの情報を表示する
+     * @param  os     出力ストリーム
+     * @param  indent インデント文字列
+     */
+    virtual	void PrintInfo(std::ostream& os=std::cout, std::string indent="", int columns=60)
+    {
+        PrintInfoText(os ,indent, columns);
+        os << indent << std::string(columns - indent.length(), '-')  << std::endl;
+    }
+    
+
    /**
      * @brief  backward演算
      * @detail backward演算を行う

@@ -196,7 +196,23 @@ public:
 	    dy = m_affine    ->Backward(dy);
         return dy; 
     }
-	
+
+	public:
+    /**
+     * @brief  モデルの情報を表示
+     * @detail モデルの情報を表示する
+     * @param  os     出力ストリーム
+     * @param  indent インデント文字列
+     */
+    virtual	void PrintInfoText(std::ostream& os, std::string indent = "", int columns = 60)
+    {
+        os << indent << std::string(columns - indent.length(), '-')  << std::endl;
+        os << indent << "[" << GetName() << "]"  << std::endl;
+        m_affine->PrintInfoText(os, indent + " ", columns);
+        m_batch_norm->PrintInfoText(os, indent + " ", columns);
+        m_activation->PrintInfoText(os, indent + " ", columns);
+    }
+
 public:
     /*
 	void Save(cereal::JSONOutputArchive& archive) const

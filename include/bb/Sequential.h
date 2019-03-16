@@ -165,6 +165,22 @@ public:
         return dy; 
     }
 	
+protected:
+    /**
+     * @brief  モデルの情報を表示
+     * @detail モデルの情報を表示する
+     * @param  os     出力ストリーム
+     * @param  indent インデント文字列
+     */
+    virtual	void PrintInfoText(std::ostream& os=std::cout, std::string indent = "", int columns = 60)
+    {
+        os << indent << std::string(columns - indent.length(), '-')  << std::endl;
+        os << indent << "[" << GetName() << "]"  << std::endl;
+        for (auto layer : m_layers) {
+            layer->PrintInfoText(os, indent + " ", columns);
+        }
+    }
+
 
 public:
  	// Serialize
