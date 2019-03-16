@@ -238,7 +238,7 @@ public:
             auto dy_ptr = dy.LockConst<BT>();
             auto dx_ptr = m_dx.Lock<BT>();
 
-			#pragma omp parallel for
+	#pragma omp parallel for
 			for (index_t n = 0; n < m_input_c_size; ++n) {
 				for (index_t y = 0; y < m_output_h_size; ++y) {
 					for (index_t x = 0; x < m_output_w_size; ++x) {

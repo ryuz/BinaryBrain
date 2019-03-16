@@ -283,7 +283,7 @@ public:
 
 
 #ifdef BB_WITH_CUDA
-		if ( !m_host_only && train && DataType<T>::type == BB_TYPE_FP32 && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+		if ( false && !m_host_only && train && DataType<T>::type == BB_TYPE_FP32 && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
 			auto dev_x_ptr     = m_x.LockDeviceMemoryConst();
 			auto dev_y_ptr     = m_y.LockDeviceMemory(true);
 			auto dev_gamma_ptr = m_gamma->LockDeviceMemory();
@@ -413,7 +413,7 @@ public:
 
 
             // dump
-            if ( 1 ){
+            if ( 0 ){
         #ifdef _DEBUG
                 std::string dump_path = "dump_host_dbg\\";
         #else
@@ -561,7 +561,7 @@ public:
     //      in_err_buf.ClearMargin();
 
             // dump
-            if ( 1 ){
+            if ( 0 ){
         #ifdef _DEBUG
                 std::string dump_path = "dump_host_dbg\\";
         #else

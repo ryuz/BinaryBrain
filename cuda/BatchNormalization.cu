@@ -13,7 +13,7 @@
 // common
 //////////////////////////////
 
-__device__ float device_fp32_LocalSum(float v, float *buf)
+__device__ __forceinline__ float device_fp32_LocalSum(float v, float *buf)
 {
 	buf[threadIdx.x] = v;
 	__syncthreads();
@@ -125,26 +125,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Forward
 {
 	BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
-        // dump
-    if ( 0 ){
-#ifdef _DEBUG
-        std::string dump_path = "dump_gpu_dbg\\";
-#else
-        std::string dump_path = "dump_gpu_rel\\";
-#endif
-
-	    bbcu::DumpDeviceMemory(dump_path + "fw_x.txt",            dev_x_buf,            frame_stride * node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "fw_y.txt",            dev_y_buf,            frame_stride * node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "fw_gamma.txt",        dev_gamma_buf,        node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "fw_beta.txt",         dev_beta_buf,         node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "fw_mean.txt",         dev_mean_buf,         node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "fw_rstd.txt",         dev_rstd_buf,         node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "fw_running_mean.txt", dev_running_mean_buf, node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "fw_running_var.txt",  dev_running_var_buf,  node_size);
-    }
-
-
-	int		unit_x = 512;
+	int		unit_x = 128;
 
 	dim3	grid(node_size);
 	dim3	block(unit_x);
@@ -166,7 +147,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Forward
 	BB_CUDA_CHECK_LAST_ERROR();
 
     // dump
-    if ( 1 ){
+    if ( 0 ){
 #ifdef _DEBUG
         std::string dump_path = "dump_gpu_dbg\\";
 #else
@@ -249,10 +230,8 @@ __global__ void kernal_fp32_BatchNormalization_Backward
 	}
 	dstd   = device_fp32_LocalSum(dstd, buf);
 	dmeanx = device_fp32_LocalSum(dmeanx, buf);
-    __syncthreads();
 
 	float * const dx_ptr = &dx_buf[node * frame_stride];
-    __syncthreads();
 
 	float dvar  = dstd * rstd;
 	float dmean = (dmeanx - (mean * dvar)) * reciprocal_frame_size;
@@ -265,7 +244,6 @@ __global__ void kernal_fp32_BatchNormalization_Backward
 		float dx  = dxc + dmean + (x * dvar * reciprocal_frame_size);
 		dx_ptr[frame] = dx;
 	}
-    __syncthreads();
 }
 
 
@@ -289,7 +267,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Backward
 {
 	BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
     
-	int		unit_x = 512;
+	int		unit_x = 128;
 
 	dim3	grid(node_size);
 	dim3	block(unit_x);
@@ -313,7 +291,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Backward
     
 
     // dump
-    if ( 1 ){
+    if ( 0 ){
 #ifdef _DEBUG
         std::string dump_path = "dump_gpu_dbg\\";
 #else

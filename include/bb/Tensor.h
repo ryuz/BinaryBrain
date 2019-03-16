@@ -1613,9 +1613,9 @@ public:
 
     void FillZero(void)
     {
-        m_mem->FillZero();
-//        auto ptr = m_mem->Lock(true);
-//        memset(ptr.GetAddr(), 0, m_mem->GetSize());
+//        m_mem->FillZero();
+          auto ptr = m_mem->Lock(true);
+          memset(ptr.GetAddr(), 0, m_mem->GetSize());
     }
 
 

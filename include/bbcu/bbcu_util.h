@@ -3,6 +3,8 @@
 #pragma once
 
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -10,12 +12,12 @@
 
 #define BB_CUDA_SAFE_CALL(func) \
 do { \
-     cudaError_t err = (func); \
-     if (err != cudaSuccess) { \
-         fprintf(stderr, "[Error] %s (error code: %d) at %s line %d\n", cudaGetErrorString(err), err, __FILE__, __LINE__); \
-         for(;;); \
-         exit(1); \
-     } \
+    cudaError_t err = (func); \
+    if (err != cudaSuccess) { \
+        fprintf(stderr, "[Error] %s (error code: %d) at %s line %d\n", cudaGetErrorString(err), err, __FILE__, __LINE__); \
+        getchar(); \
+        exit(1); \
+    } \
 } while(0)
 
 
@@ -24,7 +26,7 @@ do { \
 	cudaError_t cudaStatus = cudaGetLastError(); \
     if (cudaStatus != cudaSuccess) { \
         fprintf(stderr, "[Error] %s (error code: %d) at %s line %d\n", cudaGetErrorString(cudaStatus), cudaStatus, __FILE__, __LINE__); \
-        for(;;); \
+        getchar(); \
 		exit(1); \
     } \
 }  while(0)

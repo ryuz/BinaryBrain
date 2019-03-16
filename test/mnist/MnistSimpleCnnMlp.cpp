@@ -44,9 +44,6 @@ void MnistSimpleCnnMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
 #endif
 
     auto cnv0_sub = bb::Sequential::Create();
-//    cnv0_sub->Add(bb::DenseAffine<>::Create(32));
-//    cnv0_sub->Add(bb::BatchNormalization<>::Create());
-//    cnv0_sub->Add(bb::Binarize<>::Create());
     cnv0_sub->Add(bb::MicroMlp<>::Create(192));
     cnv0_sub->Add(bb::MicroMlp<>::Create(32));
 
@@ -65,11 +62,11 @@ void MnistSimpleCnnMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
     auto net = bb::Sequential::Create();
     net->Add(bb::RealToBinary<>::Create(1));
     net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
-//  net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
+    net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
     net->Add(bb::MaxPooling<>::Create(3, 3));
-//  net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
-//  net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
-//  net->Add(bb::MaxPooling<>::Create(3, 3));
+    net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
+    net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
+    net->Add(bb::MaxPooling<>::Create(3, 3));
     net->Add(bb::MicroMlp<>::Create({480}));
     net->Add(bb::MicroMlp<>::Create({80}));
     net->Add(bb::BinaryToReal<>::Create({ 10 }, 1));
@@ -77,6 +74,9 @@ void MnistSimpleCnnMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
 
     std::cout << "binary mode" << std::endl;
     net->SendCommand("binary true");
+
+//  net->SendCommand("host_only true");
+//  net->SendCommand("host_only true", "BatchNormalization");
 
     bb::Runner<float>::create_t runner_create;
     runner_create.name      = "MnistSimpleCnnMlp";
