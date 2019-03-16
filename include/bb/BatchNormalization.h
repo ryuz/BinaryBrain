@@ -285,7 +285,7 @@ public:
 #ifdef BB_WITH_CUDA
 		if ( !m_host_only && train && DataType<T>::type == BB_TYPE_FP32 && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
 			auto dev_x_ptr     = m_x.LockDeviceMemoryConst();
-			auto dev_y_ptr     = m_y.LockDeviceMemory();
+			auto dev_y_ptr     = m_y.LockDeviceMemory(true);
 			auto dev_gamma_ptr = m_gamma->LockDeviceMemory();
 			auto dev_beta_ptr  = m_beta->LockDeviceMemory();
 			auto dev_mean_ptr = m_mean.LockDeviceMemory();
@@ -314,102 +314,124 @@ public:
 #endif
 
 
-
-        auto frame_size = x.GetFrameSize();
+        {
+            auto node_size    = x.GetNodeSize();
+            auto frame_size   = x.GetFrameSize();
+            auto frame_stride = x.GetFrameStride() / sizeof(float);
         
-        const int	mm256_frame_size = ((int)frame_size + 7) / 8 * 8;
+            const int	mm256_frame_size = ((int)frame_size + 7) / 8 * 8;
 
-        auto x_buf_ptr = m_x.LockConst<T>();
-        auto y_buf_ptr = m_y.Lock<T>();
+            auto x_buf_ptr = m_x.LockConst<T>();
+            auto y_buf_ptr = m_y.Lock<T>();
 
-        auto gamma_ptr        = lock_gamma_const();
-        auto beta_ptr         = lock_beta_const();
+            auto gamma_ptr        = lock_gamma_const();
+            auto beta_ptr         = lock_beta_const();
 
-        auto mean_ptr         = m_mean.Lock();
-        auto rstd_ptr         = m_rstd.Lock();        
-        auto running_mean_ptr = m_running_mean.Lock();
-        auto running_var_ptr  = m_running_var.Lock();
+            auto mean_ptr         = m_mean.Lock();
+            auto rstd_ptr         = m_rstd.Lock();        
+            auto running_mean_ptr = m_running_mean.Lock();
+            auto running_var_ptr  = m_running_var.Lock();
 
-        if (train) {
-            const __m256	reciprocal_frame_size = _mm256_set1_ps(1.0f / (float)frame_size);
-            const __m256	epsilon = _mm256_set1_ps(10e-7f);
+            if (train) {
+                const __m256	reciprocal_frame_size = _mm256_set1_ps(1.0f / (float)frame_size);
+                const __m256	epsilon = _mm256_set1_ps(10e-7f);
 
-		  	#pragma omp parallel for
-            for (int node = 0; node < (int)m_node_size; ++node) {
-                float const *x_ptr = x_buf_ptr.GetAddr(node);
-                float       *y_ptr = y_buf_ptr.GetAddr(node);
+		  	    #pragma omp parallel for
+                for (int node = 0; node < (int)m_node_size; ++node) {
+                    float const *x_ptr = x_buf_ptr.GetAddr(node);
+                    float       *y_ptr = y_buf_ptr.GetAddr(node);
 
-                // 平均と分散計算
-                __m256 mean_sum = _mm256_set1_ps(0.0f);
-                __m256 mean_c   = _mm256_set1_ps(0.0f);
-                __m256 var_sum  = _mm256_set1_ps(0.0f);
-                __m256 var_c    = _mm256_set1_ps(0.0f);
-                for ( int frame = 0; frame < mm256_frame_size; frame += 8) {
-                    __m256 x = _mm256_load_ps(&x_ptr[frame + 0]);
-                    __m256 mean_y = _mm256_sub_ps(x, mean_c);
-                    __m256 mean_t = _mm256_add_ps(mean_sum, mean_y);
-                    __m256 mean_c = _mm256_sub_ps(_mm256_sub_ps(mean_t, mean_sum), mean_y);
-                    mean_sum = mean_t;
+                    // 平均と分散計算
+                    __m256 mean_sum = _mm256_set1_ps(0.0f);
+                    __m256 mean_c   = _mm256_set1_ps(0.0f);
+                    __m256 var_sum  = _mm256_set1_ps(0.0f);
+                    __m256 var_c    = _mm256_set1_ps(0.0f);
+                    for ( int frame = 0; frame < mm256_frame_size; frame += 8) {
+                        __m256 x = _mm256_load_ps(&x_ptr[frame + 0]);
+                        __m256 mean_y = _mm256_sub_ps(x, mean_c);
+                        __m256 mean_t = _mm256_add_ps(mean_sum, mean_y);
+                        __m256 mean_c = _mm256_sub_ps(_mm256_sub_ps(mean_t, mean_sum), mean_y);
+                        mean_sum = mean_t;
 
-                    __m256 var_y = _mm256_fmsub_ps(x, x, var_c);
-                    __m256 var_t = _mm256_add_ps(var_sum, var_y);
-                    __m256 var_c = _mm256_sub_ps(_mm256_sub_ps(var_t, var_sum), var_y);
-                    var_sum = var_t;
-                }
-                __m256 mean = _mm256_mul_ps(bb_mm256_hsum_ps(mean_sum), reciprocal_frame_size);
-                __m256 var = _mm256_fmsub_ps(bb_mm256_hsum_ps(var_sum), reciprocal_frame_size, _mm256_mul_ps(mean, mean));
-                var = _mm256_max_ps(var, _mm256_set1_ps(0.0f));	// 誤差対策(負にならないようにクリップ)
+                        __m256 var_y = _mm256_fmsub_ps(x, x, var_c);
+                        __m256 var_t = _mm256_add_ps(var_sum, var_y);
+                        __m256 var_c = _mm256_sub_ps(_mm256_sub_ps(var_t, var_sum), var_y);
+                        var_sum = var_t;
+                    }
+                    __m256 mean = _mm256_mul_ps(bb_mm256_hsum_ps(mean_sum), reciprocal_frame_size);
+                    __m256 var = _mm256_fmsub_ps(bb_mm256_hsum_ps(var_sum), reciprocal_frame_size, _mm256_mul_ps(mean, mean));
+                    var = _mm256_max_ps(var, _mm256_set1_ps(0.0f));	// 誤差対策(負にならないようにクリップ)
 
-                __m256 varx = _mm256_max_ps(var, epsilon);
-                __m256 rstd = _mm256_rsqrt_ps(varx);
+                    __m256 varx = _mm256_max_ps(var, epsilon);
+                    __m256 rstd = _mm256_rsqrt_ps(varx);
 
-                varx = _mm256_mul_ps(varx, _mm256_set1_ps(0.5f));
-                rstd = _mm256_mul_ps(rstd, _mm256_fnmadd_ps(varx, _mm256_mul_ps(rstd, rstd), _mm256_set1_ps(1.5f)));
-                rstd = _mm256_mul_ps(rstd, _mm256_fnmadd_ps(varx, _mm256_mul_ps(rstd, rstd), _mm256_set1_ps(1.5f)));
+                    varx = _mm256_mul_ps(varx, _mm256_set1_ps(0.5f));
+                    rstd = _mm256_mul_ps(rstd, _mm256_fnmadd_ps(varx, _mm256_mul_ps(rstd, rstd), _mm256_set1_ps(1.5f)));
+                    rstd = _mm256_mul_ps(rstd, _mm256_fnmadd_ps(varx, _mm256_mul_ps(rstd, rstd), _mm256_set1_ps(1.5f)));
 
-                // 実行時の mean と var 保存
-                running_mean_ptr[node] = running_mean_ptr[node] * m_momentum + bb_mm256_cvtss_f32(mean) * (1 - m_momentum);
-                running_var_ptr[node]  = running_var_ptr[node] * m_momentum + bb_mm256_cvtss_f32(var) * (1 - m_momentum);
+                    // 実行時の mean と var 保存
+                    running_mean_ptr[node] = running_mean_ptr[node] * m_momentum + bb_mm256_cvtss_f32(mean) * (1 - m_momentum);
+                    running_var_ptr[node]  = running_var_ptr[node] * m_momentum + bb_mm256_cvtss_f32(var) * (1 - m_momentum);
 
-                // 結果の保存
-                mean_ptr[node] = bb_mm256_cvtss_f32(mean);
-                rstd_ptr[node] = bb_mm256_cvtss_f32(rstd);
+                    // 結果の保存
+                    mean_ptr[node] = bb_mm256_cvtss_f32(mean);
+                    rstd_ptr[node] = bb_mm256_cvtss_f32(rstd);
 
-                // 正規化 と gamma/beta 処理
-                __m256 gamma = _mm256_set1_ps(gamma_ptr[node]);
-                __m256 beta = _mm256_set1_ps(beta_ptr[node]);
-//				for (int frame = 0; frame < mm256_frame_size; frame += 8) {
-                for (int frame = mm256_frame_size-8; frame >= 0; frame -= 8) {
-                __m256 x = _mm256_load_ps(&x_ptr[frame]);
-                    __m256 xn = _mm256_mul_ps(_mm256_sub_ps(x, mean), rstd);
-                    __m256 y = _mm256_fmadd_ps(xn, gamma, beta);
-                    _mm256_store_ps(&y_ptr[frame], y);
-                }
-            }
-        }
-        else {
-            #pragma omp parallel for
-            for (int node = 0; node < (int)m_node_size; ++node) {
-                auto x_ptr = x_buf_ptr.GetAddr(node);
-                auto y_ptr = y_buf_ptr.GetAddr(node);
-
-                __m256 running_mean = _mm256_set1_ps(running_mean_ptr[node]);
-                __m256 running_var = _mm256_set1_ps(1.0f / sqrt(running_var_ptr[node] + 10e-7f));
-
-                __m256 gamma = _mm256_set1_ps(gamma_ptr[node]);
-                __m256 beta = _mm256_set1_ps(beta_ptr[node]);
-
-                for (int frame = 0; frame < mm256_frame_size; frame += 8) {
+                    // 正規化 と gamma/beta 処理
+                    __m256 gamma = _mm256_set1_ps(gamma_ptr[node]);
+                    __m256 beta = _mm256_set1_ps(beta_ptr[node]);
+    //				for (int frame = 0; frame < mm256_frame_size; frame += 8) {
+                    for (int frame = mm256_frame_size-8; frame >= 0; frame -= 8) {
                     __m256 x = _mm256_load_ps(&x_ptr[frame]);
-                    __m256 xc = _mm256_sub_ps(x, running_mean);
-                    __m256 xn = _mm256_mul_ps(xc, running_var);
-                    __m256 y = _mm256_fmadd_ps(xn, gamma, beta);
-                    _mm256_store_ps(&y_ptr[frame], y);
+                        __m256 xn = _mm256_mul_ps(_mm256_sub_ps(x, mean), rstd);
+                        __m256 y = _mm256_fmadd_ps(xn, gamma, beta);
+                        _mm256_store_ps(&y_ptr[frame], y);
+                    }
                 }
             }
-        }
+            else {
+                #pragma omp parallel for
+                for (int node = 0; node < (int)m_node_size; ++node) {
+                    auto x_ptr = x_buf_ptr.GetAddr(node);
+                    auto y_ptr = y_buf_ptr.GetAddr(node);
 
-        return m_y;
+                    __m256 running_mean = _mm256_set1_ps(running_mean_ptr[node]);
+                    __m256 running_var = _mm256_set1_ps(1.0f / sqrt(running_var_ptr[node] + 10e-7f));
+
+                    __m256 gamma = _mm256_set1_ps(gamma_ptr[node]);
+                    __m256 beta = _mm256_set1_ps(beta_ptr[node]);
+
+                    for (int frame = 0; frame < mm256_frame_size; frame += 8) {
+                        __m256 x = _mm256_load_ps(&x_ptr[frame]);
+                        __m256 xc = _mm256_sub_ps(x, running_mean);
+                        __m256 xn = _mm256_mul_ps(xc, running_var);
+                        __m256 y = _mm256_fmadd_ps(xn, gamma, beta);
+                        _mm256_store_ps(&y_ptr[frame], y);
+                    }
+                }
+            }
+
+
+            // dump
+            if ( 1 ){
+        #ifdef _DEBUG
+                std::string dump_path = "dump_host_dbg\\";
+        #else
+                std::string dump_path = "dump_host_rel\\";
+        #endif
+
+	            DumpMemory(dump_path + "fw_x.txt",            x_buf_ptr.GetAddr(),        frame_stride * node_size);
+	            DumpMemory(dump_path + "fw_y.txt",            y_buf_ptr.GetAddr(),        frame_stride * node_size);
+	            DumpMemory(dump_path + "fw_gamma.txt",        gamma_ptr.GetAddr(),        node_size);
+	            DumpMemory(dump_path + "fw_beta.txt",         beta_ptr.GetAddr(),         node_size);
+	            DumpMemory(dump_path + "fw_mean.txt",         mean_ptr.GetAddr(),         node_size);
+	            DumpMemory(dump_path + "fw_rstd.txt",         rstd_ptr.GetAddr(),         node_size);
+	            DumpMemory(dump_path + "fw_running_mean.txt", running_mean_ptr.GetAddr(), node_size);
+	            DumpMemory(dump_path + "fw_running_var.txt",  running_var_ptr.GetAddr(),  node_size);
+            }
+
+            return m_y;
+        }
     }
 
 
@@ -426,9 +448,9 @@ public:
 
 #ifdef BB_WITH_CUDA
         if ( !m_host_only && DataType<T>::type == BB_TYPE_FP32 && dy.IsDeviceAvailable() && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
-            auto dev_dy_ptr     = dy.LockDeviceMemoryConst();
             auto dev_x_ptr      = m_x.LockDeviceMemoryConst();
-            auto dev_dx_ptr     = m_dx.LockDeviceMemory();
+            auto dev_dy_ptr     = dy.LockDeviceMemoryConst();
+            auto dev_dx_ptr     = m_dx.LockDeviceMemory(true);
             auto dev_gamma_ptr  = m_gamma->LockDeviceMemoryConst();
             auto dev_dgamma_ptr = m_dgamma->LockDeviceMemory();
             auto dev_dbeta_ptr  = m_dbeta->LockDeviceMemory();
@@ -454,89 +476,110 @@ public:
         }
 #endif
 
-
-        auto frame_size = dy.GetFrameSize();
+        {
+            auto node_size    = dy.GetNodeSize();
+            auto frame_size   = dy.GetFrameSize();
+            auto frame_stride = dy.GetFrameStride() / sizeof(float);
         
-        const int	mm256_frame_size = ((int)frame_size + 7) / 8 * 8;
+            const int	mm256_frame_size = ((int)frame_size + 7) / 8 * 8;
 
  
-        auto gamma_ptr        = lock_gamma_const();
-//      auto beta_ptr         = lock_beta_const();
-        auto dgamma_ptr       = lock_dgamma();
-        auto dbeta_ptr        = lock_dbeta();
+            auto gamma_ptr        = lock_gamma_const();
+    //      auto beta_ptr         = lock_beta_const();
+            auto dgamma_ptr       = lock_dgamma();
+            auto dbeta_ptr        = lock_dbeta();
 
-        auto mean_ptr         = m_mean.LockConst();
-        auto rstd_ptr         = m_rstd.LockConst();
-//      auto running_mean_ptr = m_running_mean.Lock();
-//      auto running_var_ptr  = m_running_var.Lock();
+            auto mean_ptr         = m_mean.LockConst();
+            auto rstd_ptr         = m_rstd.LockConst();
+    //      auto running_mean_ptr = m_running_mean.Lock();
+    //      auto running_var_ptr  = m_running_var.Lock();
         
         
-        // 逆数生成
-        const __m256	reciprocal_frame_size = _mm256_set1_ps(1.0f / (float)frame_size);
+            // 逆数生成
+            const __m256	reciprocal_frame_size = _mm256_set1_ps(1.0f / (float)frame_size);
 
-//		auto in_sig_buf = this->GetInputSignalBuffer();
-//		auto out_sig_buf = this->GetOutputSignalBuffer();
-//		auto in_err_buf = this->GetInputErrorBuffer();
-//		auto out_err_buf = this->GetOutputErrorBuffer();
+    //		auto in_sig_buf = this->GetInputSignalBuffer();
+    //		auto out_sig_buf = this->GetOutputSignalBuffer();
+    //		auto in_err_buf = this->GetInputErrorBuffer();
+    //		auto out_err_buf = this->GetOutputErrorBuffer();
 
-        auto x_buf_ptr  = m_x.LockConst<T>();
-        auto y_buf_ptr  = m_y.LockConst<T>();
-        auto dx_buf_ptr = m_dx.Lock<T>();
-        auto dy_buf_ptr = dy.LockConst<T>();
+            auto x_buf_ptr  = m_x.LockConst<T>();
+            auto y_buf_ptr  = m_y.LockConst<T>();
+            auto dx_buf_ptr = m_dx.Lock<T>();
+            auto dy_buf_ptr = dy.LockConst<T>();
 
-        #pragma omp parallel for
-        for (int node = 0; node < (int)m_node_size; ++node) {
-            auto dy_ptr = dy_buf_ptr.GetAddr(node);
-            auto dx_ptr = dx_buf_ptr.GetAddr(node);
-            auto x_ptr  = x_buf_ptr.GetAddr(node);
+            #pragma omp parallel for
+            for (int node = 0; node < (int)m_node_size; ++node) {
+                auto dy_ptr = dy_buf_ptr.GetAddr(node);
+                auto dx_ptr = dx_buf_ptr.GetAddr(node);
+                auto x_ptr  = x_buf_ptr.GetAddr(node);
 
-            __m256 mean   = _mm256_set1_ps(mean_ptr[node]);
-            __m256 rstd   = _mm256_set1_ps(rstd_ptr[node]);
-            __m256 gamma  = _mm256_set1_ps(gamma_ptr[node]);
-            __m256 dbeta  = _mm256_set1_ps(0);
-            __m256 dgamma = _mm256_set1_ps(0);
-            __m256 dstd = _mm256_set1_ps(0);
-            __m256 dmeanx = _mm256_set1_ps(0);
-            __m256 rstd2 = _mm256_mul_ps(rstd, rstd);
+                __m256 mean   = _mm256_set1_ps(mean_ptr[node]);
+                __m256 rstd   = _mm256_set1_ps(rstd_ptr[node]);
+                __m256 gamma  = _mm256_set1_ps(gamma_ptr[node]);
+                __m256 dbeta  = _mm256_set1_ps(0);
+                __m256 dgamma = _mm256_set1_ps(0);
+                __m256 dstd = _mm256_set1_ps(0);
+                __m256 dmeanx = _mm256_set1_ps(0);
+                __m256 rstd2 = _mm256_mul_ps(rstd, rstd);
 
-            for (int frame = 0; frame < mm256_frame_size; frame += 8) {
-                __m256 x = _mm256_load_ps(&x_ptr[frame]);
-                __m256 xc = _mm256_sub_ps(x, mean);
-                __m256 xn = _mm256_mul_ps(xc, rstd);
+                for (int frame = 0; frame < mm256_frame_size; frame += 8) {
+                    __m256 x = _mm256_load_ps(&x_ptr[frame]);
+                    __m256 xc = _mm256_sub_ps(x, mean);
+                    __m256 xn = _mm256_mul_ps(xc, rstd);
 
-                __m256 dy = _mm256_load_ps(&dy_ptr[frame]);
-                dbeta = _mm256_add_ps(dy, dbeta);
-                dgamma = _mm256_fmadd_ps(xn, dy, dgamma);
+                    __m256 dy = _mm256_load_ps(&dy_ptr[frame]);
+                    dbeta = _mm256_add_ps(dy, dbeta);
+                    dgamma = _mm256_fmadd_ps(xn, dy, dgamma);
 
-                __m256 dxn = _mm256_mul_ps(dy, gamma);
-                dstd = _mm256_fnmadd_ps(_mm256_mul_ps(dxn, xc), rstd2, dstd);
-                dmeanx = _mm256_fnmadd_ps(dxn, rstd, dmeanx);
+                    __m256 dxn = _mm256_mul_ps(dy, gamma);
+                    dstd = _mm256_fnmadd_ps(_mm256_mul_ps(dxn, xc), rstd2, dstd);
+                    dmeanx = _mm256_fnmadd_ps(dxn, rstd, dmeanx);
+                }
+                dbeta = bb_mm256_hsum_ps(dbeta);
+                dgamma = bb_mm256_hsum_ps(dgamma);
+                dgamma_ptr[node] = bb_mm256_cvtss_f32(dgamma);
+                dbeta_ptr[node] = bb_mm256_cvtss_f32(dbeta);
+
+                dstd = bb_mm256_hsum_ps(dstd);
+                dmeanx = bb_mm256_hsum_ps(dmeanx);
+
+                __m256 dvar  = _mm256_mul_ps(dstd, rstd);
+                __m256 dmean = _mm256_mul_ps(_mm256_fnmadd_ps(mean, dvar, dmeanx), reciprocal_frame_size);
+
+    //			for (int frame = 0; frame < mm256_frame_size; frame += 8) {
+                for (int frame = mm256_frame_size - 8; frame >= 0; frame -= 8) {
+                    __m256 dy = _mm256_load_ps(&dy_ptr[frame]);
+                    __m256 x = _mm256_load_ps(&x_ptr[frame]);
+                    __m256 dxn = _mm256_mul_ps(dy, gamma);
+                    __m256 dxc = _mm256_fmadd_ps(dxn, rstd, dmean);
+                    __m256 dx = _mm256_fmadd_ps(_mm256_mul_ps(x, dvar), reciprocal_frame_size, dxc);
+                    _mm256_store_ps(&dx_ptr[frame], dx);
+                }
             }
-            dbeta = bb_mm256_hsum_ps(dbeta);
-            dgamma = bb_mm256_hsum_ps(dgamma);
-            dgamma_ptr[node] = bb_mm256_cvtss_f32(dgamma);
-            dbeta_ptr[node] = bb_mm256_cvtss_f32(dbeta);
 
-            dstd = bb_mm256_hsum_ps(dstd);
-            dmeanx = bb_mm256_hsum_ps(dmeanx);
+    //      in_err_buf.ClearMargin();
 
-            __m256 dvar  = _mm256_mul_ps(dstd, rstd);
-            __m256 dmean = _mm256_mul_ps(_mm256_fnmadd_ps(mean, dvar, dmeanx), reciprocal_frame_size);
+            // dump
+            if ( 1 ){
+        #ifdef _DEBUG
+                std::string dump_path = "dump_host_dbg\\";
+        #else
+                std::string dump_path = "dump_host_rel\\";
+        #endif
 
-//			for (int frame = 0; frame < mm256_frame_size; frame += 8) {
-            for (int frame = mm256_frame_size - 8; frame >= 0; frame -= 8) {
-                __m256 dy = _mm256_load_ps(&dy_ptr[frame]);
-                __m256 x = _mm256_load_ps(&x_ptr[frame]);
-                __m256 dxn = _mm256_mul_ps(dy, gamma);
-                __m256 dxc = _mm256_fmadd_ps(dxn, rstd, dmean);
-                __m256 dx = _mm256_fmadd_ps(_mm256_mul_ps(x, dvar), reciprocal_frame_size, dxc);
-                _mm256_store_ps(&dx_ptr[frame], dx);
+	            DumpMemory(dump_path + "bk_x.txt",            x_buf_ptr.GetAddr(),       frame_stride * node_size);
+	            DumpMemory(dump_path + "bk_dy.txt",           dy_buf_ptr.GetAddr(),      frame_stride * node_size);
+	            DumpMemory(dump_path + "bk_dx.txt",           dx_buf_ptr.GetAddr(),      frame_stride * node_size);
+	            DumpMemory(dump_path + "bk_gamma.txt",        gamma_ptr.GetAddr(),       node_size);
+	            DumpMemory(dump_path + "bk_dgamma.txt",       dgamma_ptr.GetAddr(),      node_size);
+	            DumpMemory(dump_path + "bk_dbeta.txt",        dbeta_ptr.GetAddr(),       node_size);
+	            DumpMemory(dump_path + "bk_mean.txt",         mean_ptr.GetAddr(),        node_size);
+	            DumpMemory(dump_path + "bk_rstd.txt",         rstd_ptr.GetAddr(),        node_size);
             }
+
+            return m_dx;
         }
-
-//      in_err_buf.ClearMargin();
-
-        return m_dx;
     }
 
 

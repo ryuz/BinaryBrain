@@ -489,7 +489,7 @@ TEST(BatchNormalizationTest, testBatchNormalization)
 TEST(BatchNormalizationTest, testBatchNormalization_test02)
 {
    int const node_size  = 3;
-   int const frame_size = 1024+7;
+   int const frame_size = 8*123;
 
     bb::BatchNormalization<float>::create_t create;
     auto bn = bb::BatchNormalization<float>::Create(create);
@@ -504,9 +504,28 @@ TEST(BatchNormalizationTest, testBatchNormalization_test02)
         }
     }
 
+
     SimpleBatchNorm<double> exp_norm0(frame_size);
 	SimpleBatchNorm<double> exp_norm1(frame_size);
 	SimpleBatchNorm<double> exp_norm2(frame_size);
+
+#if 1
+    {
+        auto gamma_ptr = bn->lock_gamma();
+        auto beta_ptr = bn->lock_beta();
+        for ( int node = 0; node < node_size; ++node ) {
+            gamma_ptr[node] = valgen->GetValue();
+            beta_ptr[node] = valgen->GetValue();
+        }
+
+        exp_norm0.gamma = gamma_ptr[0];
+        exp_norm1.gamma = gamma_ptr[1];
+        exp_norm2.gamma = gamma_ptr[2];
+        exp_norm0.beta  = beta_ptr[0];
+        exp_norm1.beta  = beta_ptr[1];
+        exp_norm2.beta  = beta_ptr[2];
+    }
+#endif
 
     for ( int frame = 0; frame < frame_size; ++frame) {
 		exp_norm0.x[frame] = x_buf.GetFP32(frame, 0);
@@ -521,9 +540,9 @@ TEST(BatchNormalizationTest, testBatchNormalization_test02)
 	exp_norm2.Forward();
 
     for ( int frame = 0; frame < frame_size; ++frame) {
-		EXPECT_NEAR(exp_norm0.y[frame], y_buf.GetFP32(frame, 0), 0.000001);
-		EXPECT_NEAR(exp_norm1.y[frame], y_buf.GetFP32(frame, 1), 0.000001);
-		EXPECT_NEAR(exp_norm2.y[frame], y_buf.GetFP32(frame, 2), 0.000001);
+		EXPECT_NEAR(exp_norm0.y[frame], y_buf.GetFP32(frame, 0), 0.0001f);
+		EXPECT_NEAR(exp_norm1.y[frame], y_buf.GetFP32(frame, 1), 0.0001f);
+		EXPECT_NEAR(exp_norm2.y[frame], y_buf.GetFP32(frame, 2), 0.0001f);
 	}
 
     {

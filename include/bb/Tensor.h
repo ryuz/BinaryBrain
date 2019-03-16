@@ -77,14 +77,14 @@ protected:
 	}
 
 public:
-    TensorTp const & GetTensor(void)
+    TensorTp const & GetTensor(void) const
     {
         return m_tensor;
     }
 
-    inline Tp *GetAddr(void)
+    inline Tp const *GetAddr(void) const
     {
-        return m_ptr.GetAddr();
+        return (Tp const *)m_ptr.GetAddr();
     }
 
     inline Tp const &operator[](index_t index) const

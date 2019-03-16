@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <iostream>
+#include <fstream>
 #include <algorithm>
 #include <cstdint>
 #include <ostream>
@@ -248,6 +250,7 @@ void TrainDataNormalize(TrainData<T> &td)
 }
 
 
+
 inline void* aligned_memory_alloc(size_t size, size_t align)
 {
 #if 1
@@ -290,6 +293,40 @@ template <>
 inline bool Real_IsValid<double>(double val) {
     return (!std::isnan(val) && !std::isinf(val));
 }
+
+
+
+
+// メモリダンプ
+inline void SaveMemory(std::ostream& os, void const *addr, size_t size)
+{
+    os.write((char *)addr, size);
+}
+
+inline void SaveMemory(std::string filename, void const *addr, size_t size)
+{
+    std::ofstream ofs(filename, std::ios::binary);
+    SaveMemory(ofs, addr, size);
+}
+
+
+template<typename T> 
+void DumpMemory(std::ostream& os, T const *addr, size_t size)
+{
+    for (int i = 0; i < size; ++i) {
+        os << addr[i] << std::endl;
+    }
+}
+
+template<typename T> 
+void DumpMemory(std::string filename, T const *addr, size_t size)
+{
+    std::ofstream ofs(filename);
+    DumpMemory<T>(ofs, addr, size);
+}
+
+
+
 
 
 // ostream 用 tee

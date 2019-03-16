@@ -64,9 +64,9 @@ TEST(cudaHorizontalMeanVarTest, test_cudaHorizontalMeanVar)
 				(const float *)x_ptr.GetAddr(),
 				(float       *)m_ptr.GetAddr(),
 				(float       *)v_ptr.GetAddr(),
-				3,
-				n,
-				x_buf.GetFrameStride() / sizeof(float)
+				(int          )3,
+				(int          )n,
+				(int          )x_buf.GetFrameStride() / sizeof(float)
 			);
 	}
 
