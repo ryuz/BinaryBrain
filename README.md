@@ -37,6 +37,16 @@ CUDA(Kepler以降)にも対応しています。
 
 GPUを使わない場合は WITH_CUDA=No として下さい。
 
+### Google Colaboratory
+ランタイムのタイプをGPUに設定
+```
+!git clone --recursive -b ver3_release  https://github.com/ryuz/BinaryBrain.git
+%cd BinaryBrain/sample/mnist
+!make WITH_CUDA=Yes all
+!make WITH_CUDA=Yes run
+```
+
+
 ## LUTネットワークとは?
 ### デザインフロー
 FPGA回路はLUTによって構成されています。
