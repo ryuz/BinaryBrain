@@ -159,8 +159,8 @@ public:
     void SetOptimizer(std::shared_ptr<Optimizer > optimizer)            { m_optimizer = optimizer; }
 
     void SetPrintProgress(bool print_progress) { m_print_progress = print_progress; }
+    void SetFileRead(bool file_read) { m_file_read = file_read; }
     void SetFileWrite(bool file_write) { m_file_write = file_write; }
-    void SetOverWrite(bool over_write) { m_over_write = over_write; }
     void SetInitialEvaluation(bool initial_evaluation) { m_initial_evaluation = false; }
 
     void SetCallback(callback_proc_t callback_proc, void *user)

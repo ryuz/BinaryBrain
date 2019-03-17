@@ -1,30 +1,57 @@
 
+# target
 TARGET  = sample-mnist
+SUB_TARGETS =
+
+# default flag
+DEBUG       ?= No
+WITH_CUDA   ?= Yes
+WITH_CEREAL ?= Yes
 
 BBCU_PATH = ../../cuda
 BBCU_LIB  = $(BBCU_PATH)/libbbcu.a
 
-CC     = nvcc
-#CC     = g++
-#CC    = clang++
+CEREAL_PATH = ../../cereal
 
-CFLAGS = -Xcompiler '-O3 -mavx2 -mfma -fopenmp -std=c++14' \
-         -DBB_WITH_CUDA \
-         -I../../include \
-         -I../../cereal/include \
-         -I../../eigen
+ifeq ($(WITH_CUDA),Yes)
+else
+CC = g++
+#CC ?= clang++
+endif
 
-OBJS = main.cpp \
-    	MnistDenseAffine.o \
-    	MnistSimpleMicroMlp.o \
-		MnistSimpleMicroMlpScratch.o \
-		MnistSimpleLutCnn.o
+CFLAGS = -O3 -mavx2 -mfma -fopenmp -std=c++14
+CINCS  = -I../../include -I../../eigen
+CDEFS  = 
 
+CUDA_FLAGS = 
+
+SRCS   = main.cpp
+SRCS  += MnistDenseAffine.cpp
+SRCS  += MnistSimpleMicroMlp.cpp
+SRCS  += MnistSimpleMicroMlpScratch.cpp
+SRCS  += MnistSimpleLutCnn.cpp
+
+OBJS = $(addsuffix .o, $(basename $(SRCS)))
+
+LIBS = 
+
+ifeq ($(WITH_CEREAL),Yes)
+CDEFS      += -DBB_WITH_CEREAL
+CINCS      += -I$(CEREAL_PATH)/include
+endif
+
+ifeq ($(WITH_CUDA),Yes)
+CC          = nvcc
+CDEFS      += -DBB_WITH_CUDA
+CFLAGS     := -Xcompiler '$(CFLAGS)'
+LIBS       += $(BBCU_LIB)
+SUB_TARGET += bbcu_build
+endif
 
 .SUFFIXES: .c .o
 
 .PHONY: all
-all: $(TARGET)
+all: $(SUB_TARGET) $(TARGET)
 
 .PHONY: clean
 clean:
@@ -32,16 +59,19 @@ clean:
 
 .PHONY: run
 run: $(TARGET) train-images-idx3-ubyte train-labels-idx1-ubyte t10k-images-idx3-ubyte t10k-labels-idx1-ubyte
-	./$(TARGET)
+	./$(TARGET) All
 
-$(TARGET): $(OBJS) $(BBCU_LIB)
-	nvcc -o $(TARGET) $(CFLAGS) $(OBJS) $(BBCU_LIB)
-
-$(BBCU_LIB):
+.PHONY: bbcu_build
+bbcu_build:
 	make -C $(BBCU_PATH)
 
+$(TARGET): $(OBJS) $(BBCU_LIB)
+	$(CC) -o $(TARGET) $(CFLAGS) $(CINCS) $(CDEFS) $(OBJS) $(BBCU_LIB)
+
 .cpp.o:
-	$(CC) $(CFLAGS) -c $<
+	$(CC) $(CFLAGS) $(CINCS) $(CDEFS) -c $<
+
+
 
 # mnist data
 train-images-idx3-ubyte: train-images-idx3-ubyte.gz

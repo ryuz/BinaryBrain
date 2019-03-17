@@ -6,8 +6,11 @@ NVCC = nvcc
 CFLAGS = -I ../include
 
 OBJS = Manager.o \
-	   Im2Col.o \
        MicroMlp.o \
+	   Im2Col.o \
+	   Col2Im.o \
+	   MaxPooling.o \
+	   BatchNormalization.o \
 	   ReLU.o \
 	   Binarize.o \
 	   Vector.o \
