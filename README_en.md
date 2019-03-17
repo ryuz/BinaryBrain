@@ -1,4 +1,7 @@
-﻿# BinaryBrain <br> --binary neural networks evaluation platform for LUT-networks
+﻿# BinaryBrain  version 2 (version3 comming soon)<br>--binary neural networks platform for LUT-networks<br>
+<br>
+please see "ver3" branch.
+<br>
 
 ## High Performance Binary Neural Networks for FPGA
 "LUT(Look-up Table) Networks" is one of the "Binary Deep Neural Networks" for FPGA.
