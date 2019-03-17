@@ -249,7 +249,7 @@ public:
      */
 	explicit FrameBuffer(int data_type, index_t frame_size, index_t node_size, bool hostOnly=false) : m_tensor(hostOnly)
 	{
-        Resize(data_type, frame_size, {node_size});
+        Resize(data_type, frame_size, indices_t({node_size}));
 	}
 
    	/**
@@ -1000,14 +1000,14 @@ public:
     //  演算
     // -------------------------------------
 
-    inline FrameBuffer& operator+=(FrameBuffer src)	{ m_tensor += src.m_tensor; }
-    inline FrameBuffer& operator+=(double src)	    { m_tensor += src; }
-    inline FrameBuffer& operator-=(FrameBuffer src)	{ m_tensor -= src.m_tensor; }
-    inline FrameBuffer& operator-=(double src)	    { m_tensor -= src; }
-    inline FrameBuffer& operator*=(FrameBuffer src)	{ m_tensor *= src.m_tensor; }
-    inline FrameBuffer& operator*=(double src)	    { m_tensor *= src; }
-    inline FrameBuffer& operator/=(FrameBuffer src)	{ m_tensor /= src.m_tensor; }
-    inline FrameBuffer& operator/=(double src)	    { m_tensor /= src; }
+    inline FrameBuffer& operator+=(FrameBuffer src)	{ m_tensor += src.m_tensor; return *this; }
+    inline FrameBuffer& operator+=(double src)	    { m_tensor += src; return *this; }
+    inline FrameBuffer& operator-=(FrameBuffer src)	{ m_tensor -= src.m_tensor; return *this; }
+    inline FrameBuffer& operator-=(double src)	    { m_tensor -= src; return *this; }
+    inline FrameBuffer& operator*=(FrameBuffer src)	{ m_tensor *= src.m_tensor; return *this; }
+    inline FrameBuffer& operator*=(double src)	    { m_tensor *= src; return *this; }
+    inline FrameBuffer& operator/=(FrameBuffer src)	{ m_tensor /= src.m_tensor; return *this; }
+    inline FrameBuffer& operator/=(double src)	    { m_tensor /= src; return *this; }
 
     
     FrameBuffer Sqrt(void)
@@ -1166,7 +1166,7 @@ std::ostream &operator<<(std::ostream& os, FrameBufferConstPtr_<T const, FrameBu
             os << ptr.Get(frame, node) << ", ";
             if ( node % 16 == 15 ) { os << "\n"; }
         }
-        "]\n";
+        os << "]\n";
     }
     os << "]\n";
     return os;

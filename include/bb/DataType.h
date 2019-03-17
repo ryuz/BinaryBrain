@@ -169,8 +169,8 @@ public:
     shape_t(shape_t const &shape) { m_shape = shape.m_shape; }
     shape_t(indices_t const &indices) { m_shape = indices; }
     
-    indices_t& operator=(shape_t const &shape) { m_shape = shape.m_shape; }
-    indices_t& operator=(indices_t const &indices) { m_shape = indices; }
+    shape_t& operator=(shape_t const &shape) { m_shape = shape.m_shape; return *this; }
+    shape_t& operator=(indices_t const &indices) { m_shape = indices;   return *this; } 
 
     operator std::vector<index_t> () { return m_shape; }
 
