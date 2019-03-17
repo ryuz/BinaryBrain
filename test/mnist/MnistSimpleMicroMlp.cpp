@@ -19,7 +19,7 @@
 #include "bb/MicroMlpAffine.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
-#include "bb/LossCrossEntropyWithSoftmax.h"
+#include "bb/LossSoftmaxCrossEntropy.h"
 #include "bb/AccuracyCategoricalClassification.h"
 #include "bb/OptimizerAdam.h"
 #include "bb/OptimizerSgd.h"
@@ -352,11 +352,11 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
 */
 
     MnistSimpleMicroMlpNet   cpu_net;
-    auto cpu_lossFunc = bb::LossCrossEntropyWithSoftmax<float>::Create();
+    auto cpu_lossFunc = bb::LossSoftmaxCrossEntropy<float>::Create();
     auto cpu_accFunc  = bb::AccuracyCategoricalClassification<float>::Create(10);
 
     MnistSimpleMicroMlpNet  gpu_net;
-    auto gpu_lossFunc = bb::LossCrossEntropyWithSoftmax<float>::Create();
+    auto gpu_lossFunc = bb::LossSoftmaxCrossEntropy<float>::Create();
     auto gpu_accFunc  = bb::AccuracyCategoricalClassification<float>::Create(10);
 
     cpu_net.SetInputShape({28, 28, 1});

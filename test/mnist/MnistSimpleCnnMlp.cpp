@@ -20,7 +20,7 @@
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
 #include "bb/MaxPooling.h"
-#include "bb/LossCrossEntropyWithSoftmax.h"
+#include "bb/LossSoftmaxCrossEntropy.h"
 #include "bb/AccuracyCategoricalClassification.h"
 #include "bb/OptimizerAdam.h"
 #include "bb/OptimizerSgd.h"
@@ -96,7 +96,7 @@ void MnistSimpleCnnMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
     bb::Runner<float>::create_t runner_create;
     runner_create.name      = "MnistSimpleCnnMlp";
     runner_create.net       = net;
-    runner_create.lossFunc  = bb::LossCrossEntropyWithSoftmax<float>::Create();
+    runner_create.lossFunc  = bb::LossSoftmaxCrossEntropy<float>::Create();
     runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create(10);
     runner_create.optimizer = bb::OptimizerAdam<float>::Create();
     runner_create.print_progress = true;

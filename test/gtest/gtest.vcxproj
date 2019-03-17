@@ -44,7 +44,6 @@
     <ClCompile Include="cudaHorizontalMeanVarTest.cpp" />
     <ClCompile Include="DenseAffineTest.cpp" />
     <ClCompile Include="FrameBufferTest.cpp" />
-    <ClCompile Include="LossCrossEntropyWithSoftmaxTest.cpp" />
     <ClCompile Include="LoweringConvolutionTest.cpp" />
     <ClCompile Include="MaxPoolingTest.cpp" />
     <ClCompile Include="MemoryTest.cpp" />
@@ -73,6 +72,7 @@
     <ClInclude Include="..\..\include\bb\Layer.h" />
     <ClInclude Include="..\..\include\bb\LossCrossEntropyWithSoftmax.h" />
     <ClInclude Include="..\..\include\bb\LossFunction.h" />
+    <ClInclude Include="..\..\include\bb\LossSoftmaxCrossEntropy.h" />
     <ClInclude Include="..\..\include\bb\LoweringConvolution.h" />
     <ClInclude Include="..\..\include\bb\LutLayer.h" />
     <ClInclude Include="..\..\include\bb\Manager.h" />
@@ -219,7 +219,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>BB_WITH_CEREAL;BB_WITH_CUDA;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\include;$(GTEST_DIR)\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(CUDA_PATH)\include;$(OPENCV2_4_13_DIR)\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\include;$(GTEST_DIR)\include;$(CEREAL_DIR)\include;$(CUDA_PATH)\include;$(OPENCV2_4_13_DIR)\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
@@ -239,7 +239,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>BB_WITH_CEREAL;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\include;$(GTEST_DIR)\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(CUDA_PATH)\include;$(OPENCV2_4_13_DIR)\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\include;$(GTEST_DIR)\include;$(CEREAL_DIR)\include;$(CUDA_PATH)\include;$(OPENCV2_4_13_DIR)\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
@@ -259,7 +259,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>BB_WITH_CEREAL;BB_WITH_CUDA;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\include;$(GTEST_DIR)\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(CUDA_PATH)\include;$(OPENCV2_4_13_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\include;$(GTEST_DIR)\include;$(CEREAL_DIR)\include;$(CUDA_PATH)\include;$(OPENCV2_4_13_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -279,7 +279,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>BB_WITH_CEREAL;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\include;$(GTEST_DIR)\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(CUDA_PATH)\include;$(OPENCV2_4_13_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\include;$(GTEST_DIR)\include;$(CEREAL_DIR)\include;$(CUDA_PATH)\include;$(OPENCV2_4_13_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -301,7 +301,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>BB_WITH_CEREAL;BB_WITH_CUDA;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\include;$(GTEST_DIR)\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(CUDA_PATH)\include;$(OPENCV2_4_13_DIR)\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\include;$(GTEST_DIR)\include;$(CEREAL_DIR)\include;$(CUDA_PATH)\include;$(OPENCV2_4_13_DIR)\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -325,7 +325,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>BB_WITH_CEREAL;BB_WITH_CUDA;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\include;$(GTEST_DIR)\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(CUDA_PATH)\include;$(OPENCV2_4_13_DIR)\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\include;$(GTEST_DIR)\include;$(CEREAL_DIR)\include;$(CUDA_PATH)\include;$(OPENCV2_4_13_DIR)\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -349,7 +349,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>BB_WITH_CEREAL;BB_WITH_CUDA;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\include;$(GTEST_DIR)\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(CUDA_PATH)\include;$(OPENCV2_4_13_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\include;$(GTEST_DIR)\include;$(CEREAL_DIR)\include;$(CUDA_PATH)\include;$(OPENCV2_4_13_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -373,7 +373,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>BB_WITH_CEREAL;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\include;$(GTEST_DIR)\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(CUDA_PATH)\include;$(OPENCV2_4_13_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\include;$(GTEST_DIR)\include;$(CEREAL_DIR)\include;$(CUDA_PATH)\include;$(OPENCV2_4_13_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

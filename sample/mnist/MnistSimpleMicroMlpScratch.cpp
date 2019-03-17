@@ -15,7 +15,7 @@
 #include "bb/MicroMlpAffine.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
-#include "bb/LossCrossEntropyWithSoftmax.h"
+#include "bb/LossSoftmaxCrossEntropy.h"
 #include "bb/AccuracyCategoricalClassification.h"
 #include "bb/OptimizerAdam.h"
 #include "bb/OptimizerSgd.h"
@@ -158,7 +158,7 @@ void MnistSimpleMicroMlpScratch(int epoch_size, size_t mini_batch_size, bool bin
     MnistSimpleMicroMlpNet  net;
     net.SetInputShape(td.x_shape);
 
-    auto lossFunc = bb::LossCrossEntropyWithSoftmax<float>::Create();
+    auto lossFunc = bb::LossSoftmaxCrossEntropy<float>::Create();
     auto accFunc  = bb::AccuracyCategoricalClassification<float>::Create(10);
  
     bb::FrameBuffer x(BB_TYPE_FP32, mini_batch_size, {28, 28, 1});

@@ -42,9 +42,6 @@
     <ClCompile Include="OptimizerAdamTest.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="LossCrossEntropyWithSoftmaxTest.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="ConvolutionCol2ImTest.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -196,6 +193,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\bb\UniformDistributionGenerator.h">
       <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\LossSoftmaxCrossEntropy.h">
+      <Filter>ソース ファイル</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

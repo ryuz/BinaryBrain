@@ -12,7 +12,7 @@
 
 #include <random>
 
-#include <Eigen/Core>
+//#include <Eigen/Core>
 
 #include "bb/Model.h"
 
@@ -25,11 +25,11 @@ template <typename T = float>
 class DenseAffine : public Model
 {
 protected:
-	using Vector = Eigen::Matrix<T, 1, Eigen::Dynamic>;
-	using Matrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
-	using Stride = Eigen::Stride<Eigen::Dynamic, 1>;
-	using MatMap = Eigen::Map<Matrix, 0, Stride>;
-	using VecMap = Eigen::Map<Vector>;
+//	using Vector = Eigen::Matrix<T, 1, Eigen::Dynamic>;
+//	using Matrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
+//	using Stride = Eigen::Stride<Eigen::Dynamic, 1>;
+//	using MatMap = Eigen::Map<Matrix, 0, Stride>;
+//	using VecMap = Eigen::Map<Vector>;
 
     index_t                     m_input_node_size = 0;
     indices_t                   m_input_shape;

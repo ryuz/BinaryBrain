@@ -1,7 +1,7 @@
 ﻿#include <stdio.h>
 #include <iostream>
 #include "gtest/gtest.h"
-#include "bb/LossCrossEntropyWithSoftmax.h"
+#include "bb/LossSoftmaxCrossEntropy.h"
 
 
 
@@ -32,7 +32,7 @@ dx = [[0.01189111  0.02348626 - 0.17144011  0.02146598  0.01292184  0.0148421
 */
 
 
-TEST(LossCrossEntropyWithSoftmaxTest, testLossCrossEntropyWithSoftmax)
+TEST(LossSoftmaxCrossEntropyTest, testLossSoftmaxCrossEntropy)
 {
 	const float x_table[5][10] = {
 		{ 0.03682449f, 0.7174495f, 0.9130372f, 0.6275032f, 0.11995261f, 0.25850186f, 0.9942376f, 0.23910977f, 0.75574166f, 0.38816985f },
@@ -75,7 +75,7 @@ TEST(LossCrossEntropyWithSoftmaxTest, testLossCrossEntropyWithSoftmax)
 		}
 	}
 
-    auto lossFunc = bb::LossCrossEntropyWithSoftmax<float>::Create();
+    auto lossFunc = bb::LossSoftmaxCrossEntropy<float>::Create();
 
 	auto   dy_buf = lossFunc->CalculateLoss(y_buf, t_buf);
     double loss   = lossFunc->GetLoss();
