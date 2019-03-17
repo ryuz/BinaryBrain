@@ -46,7 +46,7 @@ protected:
         std::mt19937_64                     mt(seed);
         std::uniform_int_distribution<int>  rand(0, 1);
         
-        index_t node_size = GetShapeSize(GetOutputShape());
+        index_t node_size = GetShapeSize(this->GetOutputShape());
 
         // LUTテーブルをランダムに初期化
         for ( index_t node = 0; node < node_size; ++node) {
@@ -62,20 +62,20 @@ public:
     template <typename SFT, typename SBT>
     void ImportLayer(const SparseLayer<SFT, SBT>& src)
     {
-        BB_ASSERT(GetShapeSize(src.GetInputShape())  == GetShapeSize(GetInputShape()));
-        BB_ASSERT(GetShapeSize(src.GetOutputShape()) == GetShapeSize(GetOutputShape()));
+        BB_ASSERT(GetShapeSize(src.GetInputShape())  == GetShapeSize(this->GetInputShape()));
+        BB_ASSERT(GetShapeSize(src.GetOutputShape()) == GetShapeSize(this->GetOutputShape()));
         
-        auto node_size  = GetShapeSize(GetOutputShape());
+        auto node_size  = GetShapeSize(this->GetOutputShape());
 
         for (index_t node = 0; node < node_size; ++node) {
-            auto input_size = GetNodeInputSize(node);
-            auto table_size = GetLutTableSize(node);
+            auto input_size = this->GetNodeInputSize(node);
+            auto table_size = this->GetLutTableSize(node);
             
             BB_ASSERT(src.GetNodeInputSize(node) == input_size);
             
             // 入力をコピー
             for (int input_index = 0; input_index < input_size; ++input_index) {
-                SetNodeInput(node, input_index, src.GetNodeInput(node, input_index));
+                this->SetNodeInput(node, input_index, src.GetNodeInput(node, input_index));
             }
 
             // 係数をバイナリ化
@@ -85,7 +85,7 @@ public:
                     vec[bit] = (index & (1 << bit)) ? (SFT)1.0 : (SFT)0.0;
                 }
                 auto v = src.ForwardNode(node, vec);
-                SetLutTable(node, index, (v[0] > 0));
+                this->SetLutTable(node, index, (v[0] > 0));
             }
         }
     }

@@ -164,10 +164,10 @@ public:
         
         // 接続初期化
 //      m_input_index.Resize(m_output_node_size, N);
-        InitializeNodeInput(m_mt());
+        this->InitializeNodeInput(m_mt());
 
         // テーブル初期化
-        InitializeLutTable(m_mt());
+        this->InitializeLutTable(m_mt());
 
         return m_output_shape;
     }
@@ -181,7 +181,7 @@ public:
      */
     void SetOutputShape(indices_t const &shape)
     {
-        BB_ASSERT(GetShapeSize(shape) == m_output_node_size);
+        BB_ASSERT(GetShapeSize(shape) == this->m_output_node_size);
         m_output_shape = shape;
     }
 
@@ -224,7 +224,7 @@ public:
             auto y_ptr = m_y.Lock<FT>();
 
             index_t frame_size = x.GetFrameSize();
-            index_t node_size  = GetOutputNodeSize();
+            index_t node_size  = this->GetOutputNodeSize();
 
        		for (index_t node = 0; node < node_size; ++node) {
                 for (index_t frame = 0; frame < frame_size; ++frame) {
