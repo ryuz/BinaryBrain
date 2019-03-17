@@ -25,6 +25,10 @@ class Sigmoid : public Binarize<T>
 protected:
     bool m_binary_mode = false;
 
+    using Binarize<T>::m_x;
+    using Binarize<T>::m_y;
+    using Binarize<T>::m_dx;
+
 protected:
 	Sigmoid() {}
 
@@ -44,7 +48,7 @@ protected:
         // HostOnlyモード設定
         if (args.size() == 2 && args[0] == "host_only")
         {
-            m_host_only = EvalBool(args[1]);
+            this->m_host_only = EvalBool(args[1]);
         }
 	}
 
@@ -114,8 +118,8 @@ public:
         index_t frame_size = m_x.GetFrameSize();
         index_t node_size = m_x.GetNodeSize();
 
-		auto x_ptr = m_x.LockConst<T>();
-		auto y_ptr = m_y.Lock<T>();
+		auto x_ptr = m_x.template LockConst<T>();
+		auto y_ptr = m_y.template Lock<T>();
 
 		// Sigmoid
 #pragma omp parallel for
@@ -150,9 +154,9 @@ public:
         index_t frame_size = m_dx.GetFrameSize();
         index_t node_size = m_dx.GetNodeSize();
 
-	    auto y_ptr  = m_y.LockConst<T>();
-	    auto dy_ptr = dy.LockConst<T>();
-	    auto dx_ptr = m_dx.Lock<T>();
+	    auto y_ptr  = m_y.template LockConst<T>();
+	    auto dy_ptr = dy.template LockConst<T>();
+	    auto dx_ptr = m_dx.template Lock<T>();
 
         // Sigmoid
 #pragma omp parallel for
