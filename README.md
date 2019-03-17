@@ -7,7 +7,7 @@ FPGAのLUTを直接学習させることで高いパフォーマンスを実現�
 
 ## MNISTサンプルの動かし方
 AXV2以降の命令が使えるCPUと、Windows7以降の環境を想定しております。
-CUDA(Kepler以降)にも対応中です。
+CUDA(Kepler以降)にも対応しています。
 
 ### windows
 1. install VisualStudio 2017 + CUDA 10.1
@@ -34,6 +34,8 @@ CUDA(Kepler以降)にも対応中です。
 % make WITH_CUDA=Yes all
 % make WITH_CUDA=Yes run
 ```
+
+GPUを使わない場合は WITH_CUDA=No として下さい。
 
 ## LUTネットワークとは?
 ### デザインフロー
