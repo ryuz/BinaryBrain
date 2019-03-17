@@ -84,8 +84,8 @@ BBCU_DLL_EXPORT int bbcu_fp32_MaxPooling_Forward
     grid.x = output_h_size;
     grid.y = (output_w_size + (block.y-1)) / block.y;
     grid.z = c_size;
-	block.x = max(block.x, frame_size);
-	block.y = max(block.y, output_w_size);
+	block.x = min(block.x, frame_size);
+	block.y = min(block.y, output_w_size);
 
 	kernal_fp32_MaxPooling_Forward<<<grid, block, 0, streamId>>>(
 			dev_x_buf,
@@ -182,8 +182,8 @@ BBCU_DLL_EXPORT int bbcu_fp32_MaxPooling_Backward
     grid.x = output_h_size;
     grid.y = (output_w_size + (block.y-1)) / block.y;
     grid.z = c_size;
-	block.x = max(block.x, frame_size);
-	block.y = max(block.y, output_w_size);
+	block.x = min(block.x, frame_size);
+	block.y = min(block.y, output_w_size);
 
 	kernal_fp32_MaxPooling_Backward<<<grid, block, 0, streamId>>>(
 			dev_x_buf,

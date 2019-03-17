@@ -3,6 +3,7 @@
 #include "gtest/gtest.h"
 
 #include "bb/MaxPooling.h"
+#include "bb/NormalDistributionGenerator.h"
 
 
 TEST(MaxPoolingTest, testMaxPoolingTest)
@@ -171,4 +172,77 @@ TEST(MaxPoolingTest, testMaxPoolingTest)
 	EXPECT_EQ(1212, dx_buf.GetFP32(1, { 5, 3, 2 }));
 
 }
+
+
+#ifdef BB_WITH_CUDA
+
+// CPU版とGPU版で結果比較
+template<typename FT=float, typename BT=float>
+void MaxPoolingTest_Compare(
+        bb::index_t const frame_size = 121,
+        bb::index_t const c_size = 3,
+        bb::index_t const input_h_size  = 12,
+        bb::index_t const input_w_size  = 8,
+        bb::index_t const filter_h_size = 2,
+        bb::index_t const filter_w_size = 3
+    )
+{
+    bb::index_t const output_h_size = (input_h_size + filter_h_size - 1) / filter_h_size;
+    bb::index_t const output_w_size = (input_w_size + filter_w_size - 1) / filter_w_size;
+
+	auto maxpol_cpu = bb::MaxPooling<>::Create(filter_h_size, filter_w_size);
+	auto maxpol_gpu = bb::MaxPooling<>::Create(filter_h_size, filter_w_size);
+
+    bb::FrameBuffer x_cpu(bb::DataType<FT>::type, frame_size, {input_w_size, input_h_size, c_size}, true);
+    bb::FrameBuffer x_gpu(bb::DataType<FT>::type, frame_size, {input_w_size, input_h_size, c_size});
+
+    maxpol_cpu->SetInputShape(x_cpu.GetShape());
+    maxpol_gpu->SetInputShape(x_gpu.GetShape());
+
+    auto val_gen = bb::NormalDistributionGenerator<double>::Create(0.0, 1.0);
+	for (bb::index_t f = 0; f < frame_size; ++f) {
+		for (bb::index_t c = 0; c < c_size; ++c) {
+			for (bb::index_t y = 0; y < input_h_size; ++y) {
+				for (bb::index_t x = 0; x < input_w_size; ++x) {
+                    FT val = (FT)val_gen->GetValue();
+					x_cpu.SetValue<FT>(f, { x, y, c }, val);
+					x_gpu.SetValue<FT>(f, { x, y, c }, val);
+				}
+			}
+		}
+	}
+
+    EXPECT_EQ(bb::indices_t({output_w_size, output_h_size, c_size}), maxpol_cpu->GetOutputShape());
+    EXPECT_EQ(bb::indices_t({output_w_size, output_h_size, c_size}), maxpol_gpu->GetOutputShape());
+
+    // forward
+	auto y_cpu = maxpol_cpu->Forward(x_cpu);
+	auto y_gpu = maxpol_gpu->Forward(x_gpu);
+
+    EXPECT_EQ(bb::indices_t({output_w_size, output_h_size, c_size}), y_cpu.GetShape());
+    EXPECT_EQ(bb::indices_t({output_w_size, output_h_size, c_size}), y_gpu.GetShape());
+
+	for (bb::index_t f = 0; f < frame_size; ++f) {
+		for (bb::index_t c = 0; c < c_size; ++c) {
+			for (bb::index_t y = 0; y < output_h_size; ++y) {
+				for (bb::index_t x = 0; x < output_w_size; ++x) {
+					auto val_cpu = y_cpu.GetValue<FT>(f, { x, y, c });
+					auto val_gpu = y_gpu.GetValue<FT>(f, { x, y, c });
+                    EXPECT_EQ(val_cpu, val_gpu);
+				}
+			}
+		}
+	}
+
+
+}
+
+
+TEST(MaxPoolingTest, testMaxPooling_cmp_fp32_fp32)
+{
+    MaxPoolingTest_Compare<float, float>();
+}
+
+
+#endif
 

@@ -24,6 +24,8 @@ template <typename FT = float, typename BT = float>
 class MaxPooling : public Model
 {
 protected:
+    bool                m_host_only;
+
    	index_t				m_filter_h_size;
 	index_t				m_filter_w_size;
 
@@ -43,6 +45,20 @@ protected:
 
 protected:
 	MaxPooling() {}
+
+    /**
+     * @brief  コマンド処理
+     * @detail コマンド処理
+     * @param  args   コマンド
+     */
+	void CommandProc(std::vector<std::string> args)
+	{
+        // HostOnlyモード設定
+        if (args.size() == 2 && args[0] == "host_only")
+        {
+            m_host_only = EvalBool(args[1]);
+        }
+	}
 
 public:
 	~MaxPooling() {}
@@ -76,8 +92,8 @@ public:
         m_input_w_size = shape[0];
         m_input_h_size = shape[1];
         m_input_c_size = shape[2];
-		m_output_w_size = m_input_w_size / m_filter_w_size;
-		m_output_h_size = m_input_h_size / m_filter_h_size;
+		m_output_w_size = (m_input_w_size + m_filter_w_size - 1) / m_filter_w_size;
+		m_output_h_size = (m_input_h_size + m_filter_h_size - 1) / m_filter_h_size;
 		m_output_c_size = m_input_c_size;
 
         m_input_shape  = shape;
@@ -148,7 +164,7 @@ public:
         m_y.Resize(DataType<FT>::type, m_x.GetFrameSize(), m_output_shape);
 
 #if BB_WITH_CUDA
-        if ( DataType<FT>::type == BB_TYPE_FP32 && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        if ( DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // CUDA版
             auto ptr_x = x.LockDeviceMemoryConst();
             auto ptr_y = m_y.LockDeviceMemory(true);
@@ -212,9 +228,9 @@ public:
             auto x_ptr = m_x.LockConst<FT>();
             auto y_ptr = m_y.Lock<FT>(true);
 
-			index_t  m256_frame_size = (int)m_y.GetFrameStride() / 8;
+			index_t  m256_frame_size = (int)m_y.GetFrameStride() / sizeof(float);
 
-//		#pragma omp parallel for
+    		#pragma omp parallel for
 			for (index_t c = 0; c < m_input_c_size; ++c) {
 				for (index_t y = 0; y < m_output_h_size; ++y) {
 					for (index_t x = 0; x < m_output_w_size; ++x) {
@@ -224,12 +240,16 @@ public:
 							__m256	max_val = _mm256_set1_ps(-1.0e7f);	// 前段に活性化入れるから0がminだよね？
 							for (index_t fy = 0; fy < m_filter_h_size; ++fy) {
 								index_t iy = y*m_filter_h_size + fy;
-								for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
-									index_t ix = x*m_filter_w_size + fx;
-									float const *x_addr = (float const *)x_ptr.GetAddr(GetInputNode(c, iy, ix));
-									__m256 in_sig = _mm256_load_ps(&x_addr[frame]);
-									max_val = _mm256_max_ps(max_val, in_sig);
-								}
+                                if ( iy < m_input_h_size ) {
+								    for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
+									    index_t ix = x*m_filter_w_size + fx;
+                                        if ( ix < m_input_w_size ) {
+									        float const *x_addr = (float const *)x_ptr.GetAddr(GetInputNode(c, iy, ix));
+									        __m256 in_sig = _mm256_load_ps(&x_addr[frame]);
+									        max_val = _mm256_max_ps(max_val, in_sig);
+                                        }
+								    }
+                                }
 							}
 							_mm256_store_ps(&y_addr[frame], max_val);
 						}
@@ -255,7 +275,8 @@ public:
         m_dx.Resize(DataType<BT>::type, dy.GetFrameSize(), m_input_shape);
 
 #if BB_WITH_CUDA
-        if ( DataType<BT>::type == BB_TYPE_FP32 && DataType<FT>::type == BB_TYPE_FP32 && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        if ( DataType<BT>::type == BB_TYPE_FP32 && DataType<FT>::type == BB_TYPE_FP32 && !m_host_only 
+                && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // CUDA版
             auto ptr_x  = m_x.LockDeviceMemoryConst();
             auto ptr_y  = m_y.LockDeviceMemoryConst();
