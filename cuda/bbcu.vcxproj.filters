@@ -2,7 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <CudaCompile Include="Binarize.cu" />
-    <CudaCompile Include="Col2Im2.cu" />
     <CudaCompile Include="HorizontalMeanVar.cu" />
     <CudaCompile Include="HorizontalSum.cu" />
     <CudaCompile Include="Im2Col.cu" />
@@ -12,6 +11,7 @@
     <CudaCompile Include="Vector.cu" />
     <CudaCompile Include="BatchNormalization.cu" />
     <CudaCompile Include="MaxPooling.cu" />
+    <CudaCompile Include="Col2Im.cu" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile" />

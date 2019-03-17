@@ -13,7 +13,7 @@
   <ItemGroup>
     <CudaCompile Include="BatchNormalization.cu" />
     <CudaCompile Include="Binarize.cu" />
-    <CudaCompile Include="Col2Im2.cu" />
+    <CudaCompile Include="Col2Im.cu" />
     <CudaCompile Include="HorizontalMeanVar.cu" />
     <CudaCompile Include="HorizontalSum.cu" />
     <CudaCompile Include="Im2Col.cu" />
