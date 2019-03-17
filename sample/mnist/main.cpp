@@ -19,7 +19,7 @@ void MnistSimpleMicroMlpScratch(int epoch_size, size_t mini_batch_size, bool bin
 // メイン関数
 int main(int argc, char *argv[])
 {
-	omp_set_num_threads(4);
+ 	omp_set_num_threads(4);
 
 	if ( argc < 2 ) {
 		return 1;
