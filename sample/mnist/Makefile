@@ -3,6 +3,9 @@
 TARGET  = sample-mnist
 SUB_TARGETS =
 
+# run option
+RUN_OPTION = All
+
 # default flag
 DEBUG       ?= No
 WITH_CUDA   ?= Yes
@@ -57,7 +60,7 @@ clean:
 
 .PHONY: run
 run: $(TARGET) train-images-idx3-ubyte train-labels-idx1-ubyte t10k-images-idx3-ubyte t10k-labels-idx1-ubyte
-	./$(TARGET) All
+	./$(TARGET) $(RUN_OPTION)
 
 .PHONY: bbcu_build
 bbcu_build:
