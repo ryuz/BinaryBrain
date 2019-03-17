@@ -1,7 +1,7 @@
 ﻿
 # BinaryBrain  version 2 (version3 comming soon)<br>--binary neural networks platform for LUT-networks<br>
 <br>
-ver3 ブランチにて ver3 開発中です
+"ver3_develop" ブランチにて ver3 開発中です
 <br>
 
 ## 概要
