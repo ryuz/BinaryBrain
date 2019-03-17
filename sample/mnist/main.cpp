@@ -25,13 +25,13 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if ( strcmp(argv[1], "DenseAffine") == 0 ) {
+	if ( strcmp(argv[1], "All") == 0 || strcmp(argv[1], "DenseAffine") == 0 ) {
 		MnistDenseAffine(16, 64);
 	}
-	if ( strcmp(argv[1], "LutCnn") == 0 ) {
+	if ( strcmp(argv[1], "All") == 0 || strcmp(argv[1], "LutCnn") == 0 ) {
     	MnistSimpleLutCnn(64, 16, true);
 	}
-	if ( strcmp(argv[1], "MicroMlp") == 0 ) {
+	if ( strcmp(argv[1], "All") == 0 || strcmp(argv[1], "MicroMlp") == 0 ) {
 		MnistSimpleMicroMlp(16, 64, true);
 	}
 
