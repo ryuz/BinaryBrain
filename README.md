@@ -28,10 +28,10 @@ AXV2以降の命令が使えるCPUと、Windows7以降の環境を想定して�
 ```
 2. build and run
 ```
-% git clone --recursive https://github.com/ryuz/BinaryBrain.git
+% git clone --recursive -b ver3_release  https://github.com/ryuz/BinaryBrain.git
 % cd BinaryBrain/sample/mnist
-% make all
-% make run
+% make WITH_CUDA=Yes all
+% make WITH_CUDA=Yes run
 ```
 
 ## LUTネットワークとは?

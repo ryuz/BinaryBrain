@@ -52,6 +52,11 @@ void MnistSimpleLutMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
         std::cout << "binary mode" << std::endl;
     }
 
+//  net->SendCommand("host_only true", "BatchNormalization");
+
+    net->PrintInfo();
+
+    // fitting
     bb::Runner<float>::create_t runner_create;
     runner_create.name      = "MnistSimpleLutMlp";
     runner_create.net       = net;
@@ -59,6 +64,7 @@ void MnistSimpleLutMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
     runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create(10);
     runner_create.optimizer = bb::OptimizerAdam<float>::Create();
     runner_create.initial_evaluation = true;
+    runner_create.print_progress = true;
     auto runner = bb::Runner<float>::Create(runner_create);
     runner->Fitting(td, epoch_size, mini_batch_size);
 }

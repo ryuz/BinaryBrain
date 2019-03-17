@@ -447,7 +447,7 @@ public:
         m_dx.Resize(dy.GetType(), dy.GetFrameSize(), dy.GetNodeSize());
 
 #ifdef BB_WITH_CUDA
-        if ( !m_host_only && DataType<T>::type == BB_TYPE_FP32 && dy.IsDeviceAvailable() && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        if ( false && !m_host_only && DataType<T>::type == BB_TYPE_FP32 && dy.IsDeviceAvailable() && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             auto dev_x_ptr      = m_x.LockDeviceMemoryConst();
             auto dev_dy_ptr     = dy.LockDeviceMemoryConst();
             auto dev_dx_ptr     = m_dx.LockDeviceMemory(true);

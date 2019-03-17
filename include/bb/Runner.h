@@ -45,7 +45,7 @@ protected:
 	std::shared_ptr<LossFunction>       m_lossFunc;
 	std::shared_ptr<Optimizer>          m_optimizer;
 
-	bool                                m_print_progress     = false;
+	bool                                m_print_progress     = true;
     bool                                m_file_read          = false;
     bool                                m_file_write         = false;
     bool                                m_write_serial       = false;

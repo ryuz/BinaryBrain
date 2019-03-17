@@ -179,7 +179,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MnistDenseAffine.cpp" />
     <ClCompile Include="MnistSimpleLutCnn.cpp" />
-    <ClCompile Include="MnistSimpleMicroMlp.cpp" />
+    <ClCompile Include="MnistSimpleLutMlp.cpp" />
     <ClCompile Include="MnistSimpleMicroMlpScratch.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -42,39 +42,32 @@ void MnistSimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
 
     // create network
     auto cnv0_sub = bb::Sequential::Create();
-    cnv0_sub->Add(bb::MicroMlp<>::Create(512));
-    cnv0_sub->Add(bb::MicroMlp<>::Create(128));
+    cnv0_sub->Add(bb::MicroMlp<>::Create(192));
     cnv0_sub->Add(bb::MicroMlp<>::Create(32));
 
     auto cnv1_sub = bb::Sequential::Create();
-    cnv1_sub->Add(bb::MicroMlp<>::Create(512));
-    cnv1_sub->Add(bb::MicroMlp<>::Create(128));
+    cnv1_sub->Add(bb::MicroMlp<>::Create(192));
     cnv1_sub->Add(bb::MicroMlp<>::Create(32));
 
     auto cnv2_sub = bb::Sequential::Create();
-    cnv2_sub->Add(bb::MicroMlp<>::Create(512));
-    cnv2_sub->Add(bb::MicroMlp<>::Create(128));
+    cnv2_sub->Add(bb::MicroMlp<>::Create(192));
     cnv2_sub->Add(bb::MicroMlp<>::Create(32));
 
     auto cnv3_sub = bb::Sequential::Create();
-    cnv3_sub->Add(bb::MicroMlp<>::Create(512));
-    cnv3_sub->Add(bb::MicroMlp<>::Create(128));
+    cnv3_sub->Add(bb::MicroMlp<>::Create(192));
     cnv3_sub->Add(bb::MicroMlp<>::Create(32));
 
     auto net = bb::Sequential::Create();
+    net->Add(bb::RealToBinary<>::Create(1));
     net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
     net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
-    net->Add(bb::MaxPooling<>::Create(3, 3));
+    net->Add(bb::MaxPooling<>::Create(2, 2));
     net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
     net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
-    net->Add(bb::MaxPooling<>::Create(3, 3));
-    net->Add(bb::MicroMlpAffine<6, 16, float>::Create({360}));
-    net->Add(bb::BatchNormalization<float>::Create());
-    net->Add(bb::ReLU<float>::Create());
-    net->Add(bb::MicroMlpAffine<6, 16, float>::Create({60}));
-    net->Add(bb::BatchNormalization<float>::Create());
-    net->Add(bb::ReLU<float>::Create());
-    net->Add(bb::MicroMlpAffine<6, 16, float>::Create({10}));
+    net->Add(bb::MaxPooling<>::Create(2, 2));
+    net->Add(bb::MicroMlp<>::Create({480}));
+    net->Add(bb::MicroMlp<>::Create({80}));
+    net->Add(bb::BinaryToReal<>::Create({ 10 }, 1));
     net->SetInputShape({28, 28, 1});
 
     if ( binary_mode ) {
@@ -82,17 +75,19 @@ void MnistSimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
         net->SendCommand("binary true");
     }
 
+    // print model information
+    net->PrintInfo();
+
     // run fitting
     bb::Runner<float>::create_t runner_create;
-    runner_create.name      = "MnistSimpleCnnMlp";
+    runner_create.name      = "MnistSimpleLutCnn";
     runner_create.net       = net;
     runner_create.lossFunc  = bb::LossCrossEntropyWithSoftmax<float>::Create();
     runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create(10);
     runner_create.optimizer = bb::OptimizerAdam<float>::Create();
-    runner_create.initial_evaluation = false;
+    runner_create.print_progress = true;
     auto runner = bb::Runner<float>::Create(runner_create);
     runner->Fitting(td, epoch_size, mini_batch_size);
-
 }
 
 // end of file
