@@ -172,12 +172,17 @@ protected:
      * @param  os     出力ストリーム
      * @param  indent インデント文字列
      */
-    virtual	void PrintInfoText(std::ostream& os=std::cout, std::string indent = "", int columns = 60)
+    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
     {
-        os << indent << std::string(columns - indent.length(), '-')  << std::endl;
-        os << indent << "[" << GetName() << "]"  << std::endl;
-        for (auto layer : m_layers) {
-            layer->PrintInfoText(os, indent + " ", columns);
+        // これ以上ネストしないなら自クラス概要
+        if ( depth > 0 && (nest+1) >= depth ) {
+            Model::PrintInfoText(os, indent, columns, nest, depth);
+        }
+        else {
+            // 子レイヤーの表示
+            for (auto layer : m_layers) {
+                layer->PrintInfo(depth, os, columns, nest+1);
+            }
         }
     }
 

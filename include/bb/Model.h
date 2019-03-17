@@ -177,32 +177,48 @@ public:
     }
 
 
-public:
+protected:
     /**
      * @brief  モデルの情報を表示
      * @detail モデルの情報を表示する
      * @param  os      出力ストリーム
      * @param  indent  インデント文字列
      * @param  columns 表示幅
+     * @param  nest    ネストカウンタ
+     * @param  depth   表示したい深さ
      */
-    virtual	void PrintInfoText(std::ostream& os, std::string indent, int columns)
+    virtual	void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
     {
-        os << indent << std::string(columns - indent.length(), '-')  << std::endl;
-        os << indent << "[" << GetName() << "]"  << std::endl;
         os << indent << " input  shape : " << GetInputShape();
         os << indent << " output shape : " << GetOutputShape() << std::endl;
     }
 
+public:
     /**
      * @brief  モデルの情報を表示
      * @detail モデルの情報を表示する
-     * @param  os     出力ストリーム
-     * @param  indent インデント文字列
+     * @param  depth    表示する深さ(0で全表示)
+     * @param  os       出力ストリーム
+     * @param  columns  表示幅
+     * @param  nest     深さ指定(通常は0)
      */
-    virtual	void PrintInfo(std::ostream& os=std::cout, std::string indent="", int columns=60)
+    virtual	void PrintInfo(int depth=0, std::ostream& os=std::cout, int columns=70, int nest=0)
     {
-        PrintInfoText(os ,indent, columns);
-        os << indent << std::string(columns - indent.length(), '-')  << std::endl;
+        // セパレータとインデント文字列生成
+        std::string indent    = std::string(nest*2, ' ');
+        std::string separetor = std::string(columns - indent.length(), '-');
+
+        // モデルタイトル表示
+        os << indent << separetor << std::endl;
+        os << indent << "[" << GetClassName() << "] "  << m_name << std::endl;
+
+        // 内容表示
+        PrintInfoText(os ,indent, columns, nest, depth);
+
+        // 最上段なら末尾セパレータ表示
+        if ( nest == 0 ) {
+            os << indent << separetor << std::endl;
+        }
     }
     
 

@@ -197,20 +197,25 @@ public:
         return dy; 
     }
 	
-public:
+protected:
     /**
      * @brief  モデルの情報を表示
      * @detail モデルの情報を表示する
      * @param  os     出力ストリーム
      * @param  indent インデント文字列
      */
-    virtual	void PrintInfoText(std::ostream& os, std::string indent = "", int columns = 60)
+    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
     {
-        os << indent << std::string(columns - indent.length(), '-')  << std::endl;
-        os << indent << "[" << GetName() << "]"  << std::endl;
-        m_im2col->PrintInfoText(os, indent + " ", columns);
-        m_layer->PrintInfoText(os, indent + " ", columns);
-        m_col2im->PrintInfoText(os, indent + " ", columns);
+        // これ以上ネストしないなら自クラス概要
+        if ( depth > 0 && (nest+1) >= depth ) {
+            Model::PrintInfoText(os, indent, columns, nest, depth);
+        }
+        else {
+            // 子レイヤーの表示
+            m_im2col->PrintInfo(depth, os, columns, nest+1);
+            m_layer->PrintInfo(depth, os, columns, nest+1);
+            m_col2im->PrintInfo(depth, os, columns, nest+1);
+        }
     }
 
 public:
