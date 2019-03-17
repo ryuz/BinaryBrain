@@ -6,8 +6,8 @@ The FPGA's LUT can learn direct from LUT-network on this platform.
 
 ## How to use sample program (MNIST)
 ### windows
-1. install VisualStudio 2015. 
-2. git clone --recursive https://github.com/ryuz/BinaryBrain.git 
+1. install VisualStudio 2017 + CUDA 10.1
+2. git clone --recursive -b ver3_release https://github.com/ryuz/BinaryBrain.git 
 3. download MNIST from http://yann.lecun.com/exdb/mnist/
 4. decompress MNIST for "\sample\mnist"
 5. open VC++ solution "sample\mnist\sample_mnist.sln"
@@ -17,17 +17,18 @@ The FPGA's LUT can learn direct from LUT-network on this platform.
 ### Linux(Ubuntu 18.04.1)
 1. install tools 
 ```
-% sudo apt install make
+% sudo apt install cuda cuda-drivers
+% sudo apt install git
 % sudo apt install g++
-% sudo apt install clang
+% sudo apt install make
 % sudo apt install git
 ```
 2. build and run
 ```
-% git clone --recursive https://github.com/ryuz/BinaryBrain.git
+% git clone --recursive -b ver3_release  https://github.com/ryuz/BinaryBrain.git
 % cd BinaryBrain/sample/mnist
-% make all
-% make run
+% make WITH_CUDA=Yes all
+% make WITH_CUDA=Yes run
 ```
 
 

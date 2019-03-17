@@ -7,10 +7,11 @@ FPGAのLUTを直接学習させることで高いパフォーマンスを実現�
 
 ## MNISTサンプルの動かし方
 AXV2以降の命令が使えるCPUと、Windows7以降の環境を想定しております。
+CUDA(Kepler以降)にも対応中です。
 
 ### windows
 1. install VisualStudio 2017 + CUDA 10.1
-2. git clone --recursive https://github.com/ryuz/BinaryBrain.git 
+2. git clone --recursive -b ver3_release https://github.com/ryuz/BinaryBrain.git 
 3. download MNIST from http://yann.lecun.com/exdb/mnist/
 4. decompress MNIST for "\sample\mnist"
 5. open VC++ solution "sample\mnist\sample_mnist.sln"
