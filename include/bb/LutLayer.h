@@ -62,9 +62,10 @@ public:
     template <typename SFT, typename SBT>
     void ImportLayer(const SparseLayer<SFT, SBT>& src)
     {
-        auto node_size  = GetShapeSize(GetInputShape());
-
-        BB_ASSERT(GetShapeSize(src.GetInputShape()) == node_size);
+        BB_ASSERT(GetShapeSize(src.GetInputShape())  == GetShapeSize(GetInputShape()));
+        BB_ASSERT(GetShapeSize(src.GetOutputShape()) == GetShapeSize(GetOutputShape()));
+        
+        auto node_size  = GetShapeSize(GetOutputShape());
 
         for (index_t node = 0; node < node_size; ++node) {
             auto input_size = GetNodeInputSize(node);

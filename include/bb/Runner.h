@@ -482,7 +482,7 @@ protected:
                 }
 
                 if ( accFunc != nullptr ) {
-                    std::cout << "  acc : " << accFunc->GetAccuracy();
+                    std::cout << "  accuracy : " << accFunc->GetAccuracy();
                 }
 
 				std::cout << "\r" << std::flush;

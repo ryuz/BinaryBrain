@@ -16,24 +16,17 @@
 #include <vector>
 #include <sstream>
 
-
-#include "bb/NeuralNet.h"
-#include "bb/NeuralNetGroup.h"
-#include "bb/NeuralNetBinaryLut.h"
-#include "bb/NeuralNetLoweringConvolution.h"
+#include "bb/LutLayer.h"
 
 
 namespace bb {
 
 
-// NeuralNetBinaryLut Verilog 出力
-template <typename T = float>
-void OutputVerilogBinaryLut(std::ostream& os, std::string module_name, NeuralNetBinaryLut<T>& lut)
+// Verilog 出力
+template <typename FT = Bit, typename BT = float>
+void ExportVerilog_LutLayer(std::ostream& os, std::string module_name, LutLayer<FT, BT> const &lut)
 {
-	int		lut_input_size = lut.GetLutInputSize();
-	int		lut_table_size = lut.GetLutTableSize();
-	INDEX	node_size      = lut.GetOutputNodeSize();
-	
+	index_t node_size      = lut.GetOutputNodeSize();
 	
 	// モジュール出力
 	os <<
@@ -54,7 +47,10 @@ void OutputVerilogBinaryLut(std::ostream& os, std::string module_name, NeuralNet
 		"\n";
 
 
-	for (INDEX node = 0; node < node_size; node++) {
+	for (index_t node = 0; node < node_size; node++) {
+    	index_t lut_input_size = lut.GetNodeInputSize(node);
+    	int		lut_table_size = lut.GetLutTableSize(node);
+
 		if ( 0 && lut_input_size == 6 ) {
 			// LUT 出力(Xilinx)
 			os <<
@@ -78,12 +74,12 @@ void OutputVerilogBinaryLut(std::ostream& os, std::string module_name, NeuralNet
 				"    i_lut6_" << node << "\n"
 				"        (\n"
 				"            .O  (lut_" << node << "_out),\n"
-				"            .I0 (in_data[" << lut.GetLutInput(node, 0) << "]),\n"
-				"            .I1 (in_data[" << lut.GetLutInput(node, 1) << "]),\n"
-				"            .I2 (in_data[" << lut.GetLutInput(node, 2) << "]),\n"
-				"            .I3 (in_data[" << lut.GetLutInput(node, 3) << "]),\n"
-				"            .I4 (in_data[" << lut.GetLutInput(node, 4) << "]),\n"
-				"            .I5 (in_data[" << lut.GetLutInput(node, 5) << "])\n";
+				"            .I0 (in_data[" << lut.GetNodeInput(node, 0) << "]),\n"
+				"            .I1 (in_data[" << lut.GetNodeInput(node, 1) << "]),\n"
+				"            .I2 (in_data[" << lut.GetNodeInput(node, 2) << "]),\n"
+				"            .I3 (in_data[" << lut.GetNodeInput(node, 3) << "]),\n"
+				"            .I4 (in_data[" << lut.GetNodeInput(node, 4) << "]),\n"
+				"            .I5 (in_data[" << lut.GetNodeInput(node, 5) << "])\n";
 			os <<
 				"        );\n"
 				"\n";
@@ -114,12 +110,12 @@ void OutputVerilogBinaryLut(std::ostream& os, std::string module_name, NeuralNet
 				"        (\n"
 				"            .in_data({\n";
 
-			for (int bit = lut_input_size - 1; bit >= 1; --bit) {
+			for (index_t bit = lut_input_size - 1; bit >= 1; --bit) {
 				os <<
-					"                         in_data[" << lut.GetLutInput(node, bit) << "],\n";
+					"                         in_data[" << lut.GetNodeInput(node, bit) << "],\n";
 			}
 			os <<
-				"                         in_data[" << lut.GetLutInput(node, 0) << "]\n"
+				"                         in_data[" << lut.GetNodeInput(node, 0) << "]\n"
 				"                    }),\n"
 				"            .out_data(lut_" << node << "_out)\n"
 				"        );\n"
@@ -151,7 +147,7 @@ void OutputVerilogBinaryLut(std::ostream& os, std::string module_name, NeuralNet
 }
 
 
-
+#if 0
 // Verilog 出力
 template <typename T = float>
 void OutputVerilogLutGroup(std::ostream& os, std::string module_name, NeuralNetGroup<T>& group)
@@ -701,6 +697,7 @@ void OutputVerilogCnnAxi4s(std::ostream& os, std::string module_name, std::vecto
 		}
 	}
 }
+#endif
 
 
 }

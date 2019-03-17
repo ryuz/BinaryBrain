@@ -112,7 +112,7 @@ public:
     void Save(std::ostream &os) const 
     {
         SaveIndex(os, m_node_size);
-        bb::Save(os, m_momentum);
+        bb::SaveValue(os, m_momentum);
         m_gamma->Save(os);
         m_beta->Save(os);
         m_running_mean.Save(os);
@@ -122,7 +122,7 @@ public:
     void Load(std::istream &is)
     {
         m_node_size = LoadIndex(is);
-        bb::Load(is, m_momentum);
+        bb::LoadValue(is, m_momentum);
         m_gamma->Load(is);
         m_beta->Load(is);
         m_running_mean.Load(is);
@@ -411,25 +411,6 @@ public:
                 }
             }
 
-
-            // dump
-            if ( 0 ){
-        #ifdef _DEBUG
-                std::string dump_path = "dump_host_dbg\\";
-        #else
-                std::string dump_path = "dump_host_rel\\";
-        #endif
-
-	            DumpMemory(dump_path + "fw_x.txt",            x_buf_ptr.GetAddr(),        frame_stride * node_size);
-	            DumpMemory(dump_path + "fw_y.txt",            y_buf_ptr.GetAddr(),        frame_stride * node_size);
-	            DumpMemory(dump_path + "fw_gamma.txt",        gamma_ptr.GetAddr(),        node_size);
-	            DumpMemory(dump_path + "fw_beta.txt",         beta_ptr.GetAddr(),         node_size);
-	            DumpMemory(dump_path + "fw_mean.txt",         mean_ptr.GetAddr(),         node_size);
-	            DumpMemory(dump_path + "fw_rstd.txt",         rstd_ptr.GetAddr(),         node_size);
-	            DumpMemory(dump_path + "fw_running_mean.txt", running_mean_ptr.GetAddr(), node_size);
-	            DumpMemory(dump_path + "fw_running_var.txt",  running_var_ptr.GetAddr(),  node_size);
-            }
-
             return m_y;
         }
     }
@@ -480,10 +461,9 @@ public:
             auto node_size    = dy.GetNodeSize();
             auto frame_size   = dy.GetFrameSize();
             auto frame_stride = dy.GetFrameStride() / sizeof(float);
-        
+            
             const int	mm256_frame_size = ((int)frame_size + 7) / 8 * 8;
-
- 
+            
             auto gamma_ptr        = lock_gamma_const();
     //      auto beta_ptr         = lock_beta_const();
             auto dgamma_ptr       = lock_dgamma();
@@ -491,17 +471,10 @@ public:
 
             auto mean_ptr         = m_mean.LockConst();
             auto rstd_ptr         = m_rstd.LockConst();
-    //      auto running_mean_ptr = m_running_mean.Lock();
-    //      auto running_var_ptr  = m_running_var.Lock();
-        
+       
         
             // 逆数生成
             const __m256	reciprocal_frame_size = _mm256_set1_ps(1.0f / (float)frame_size);
-
-    //		auto in_sig_buf = this->GetInputSignalBuffer();
-    //		auto out_sig_buf = this->GetOutputSignalBuffer();
-    //		auto in_err_buf = this->GetInputErrorBuffer();
-    //		auto out_err_buf = this->GetOutputErrorBuffer();
 
             auto x_buf_ptr  = m_x.LockConst<T>();
             auto y_buf_ptr  = m_y.LockConst<T>();
@@ -558,85 +531,9 @@ public:
                 }
             }
 
-    //      in_err_buf.ClearMargin();
-
-            // dump
-            if ( 0 ){
-        #ifdef _DEBUG
-                std::string dump_path = "dump_host_dbg\\";
-        #else
-                std::string dump_path = "dump_host_rel\\";
-        #endif
-
-	            DumpMemory(dump_path + "bk_x.txt",            x_buf_ptr.GetAddr(),       frame_stride * node_size);
-	            DumpMemory(dump_path + "bk_dy.txt",           dy_buf_ptr.GetAddr(),      frame_stride * node_size);
-	            DumpMemory(dump_path + "bk_dx.txt",           dx_buf_ptr.GetAddr(),      frame_stride * node_size);
-	            DumpMemory(dump_path + "bk_gamma.txt",        gamma_ptr.GetAddr(),       node_size);
-	            DumpMemory(dump_path + "bk_dgamma.txt",       dgamma_ptr.GetAddr(),      node_size);
-	            DumpMemory(dump_path + "bk_dbeta.txt",        dbeta_ptr.GetAddr(),       node_size);
-	            DumpMemory(dump_path + "bk_mean.txt",         mean_ptr.GetAddr(),        node_size);
-	            DumpMemory(dump_path + "bk_rstd.txt",         rstd_ptr.GetAddr(),        node_size);
-            }
-
             return m_dx;
         }
     }
-
-
-    #if 0
-
-    std::vector<T> CalcNode(INDEX node, std::vector<T> input_signals) const
-    {
-        std::vector<T> sig(input_signals.size());
-        for (size_t i = 0; i < input_signals.size(); ++i) {
-            sig[i] = input_signals[i];
-            sig[i] -= m_running_mean[node];
-            sig[i] /= (T)sqrt(m_running_var[node] + 10e-7);
-            sig[i] = sig[i] * m_gamma[node] + m_beta[node];
-        }
-        return sig;
-    }
-
-
-
-
-    void Update(void)
-    {
-        // update
-        m_optimizer_gamma->Update(m_gamma, m_dgamma);
-        m_optimizer_beta->Update(m_beta, m_dbeta);
-    }
-
-public:
-    // Serialize
-    template <class Archive>
-    void save(Archive &archive, std::uint32_t const version) const
-    {
-        archive(cereal::make_nvp("gamma", m_gamma));
-        archive(cereal::make_nvp("beta", m_beta));
-        archive(cereal::make_nvp("running_mean", m_running_mean));
-        archive(cereal::make_nvp("running_var", m_running_var));
-    }
-
-    template <class Archive>
-    void load(Archive &archive, std::uint32_t const version)
-    {
-        archive(cereal::make_nvp("gamma", m_gamma));
-        archive(cereal::make_nvp("beta", m_beta));
-        archive(cereal::make_nvp("running_mean", m_running_mean));
-        archive(cereal::make_nvp("running_var", m_running_var));
-    }
-
-    virtual void Save(cereal::JSONOutputArchive& archive) const
-    {
-        archive(cereal::make_nvp("NeuralNetBatchNormalizationAvx", *this));
-    }
-
-    virtual void Load(cereal::JSONInputArchive& archive)
-    {
-        archive(cereal::make_nvp("NeuralNetBatchNormalizationAvx", *this));
-    }
-#endif
 };
 
 }

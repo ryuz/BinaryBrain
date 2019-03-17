@@ -12,8 +12,7 @@
 
 #include <random>
 
-//#include <Eigen/Core>
-
+#include "bb/DataType.h"
 #include "bb/Model.h"
 
 
@@ -24,12 +23,11 @@ namespace bb {
 template <typename T = float>
 class DenseAffine : public Model
 {
+    using super = Model;
+
+
 protected:
-//	using Vector = Eigen::Matrix<T, 1, Eigen::Dynamic>;
-//	using Matrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
-//	using Stride = Eigen::Stride<Eigen::Dynamic, 1>;
-//	using MatMap = Eigen::Map<Matrix, 0, Stride>;
-//	using VecMap = Eigen::Map<Vector>;
+	bool	                	m_binary_mode = false;
 
     index_t                     m_input_node_size = 0;
     indices_t                   m_input_shape;
@@ -46,8 +44,6 @@ protected:
 	std::shared_ptr<Tensor>		m_db;
     
     std::mt19937_64             m_mt;
-
-	bool	                	m_binary_mode = false;
 
 protected:
 	DenseAffine() {
@@ -250,27 +246,6 @@ public:
 
             return m_y;
         }
-
-
-        if ( 0 ) {
-            auto x_ptr = m_x.LockMemoryConst();
-            auto y_ptr = m_y.LockMemory();
-            auto W_ptr = lock_W_const();
-            auto b_ptr = lock_b_const();
-
-            auto frame_size   = x.GetFrameSize();
-
-    //		Eigen::Map<Matrix> x((T*)m_input_signal_buffer.GetBuffer(), m_input_signal_buffer.GetFrameStride() / sizeof(T), m_input_size);
-    //		Eigen::Map<Matrix> y((T*)m_output_signal_buffer.GetBuffer(), m_output_signal_buffer.GetFrameStride() / sizeof(T), m_output_size);
-
-    //     MatMap W(W_ptr.GetAddr(), );
-
-	//	    MatMap x((T*)x_ptr.GetAddr(), frame_size, m_input_size, x.GetFrameStride() / sizeof(T), 1));
-	//	    MatMap y((T*)y_ptr.GetAddr(), frame_size, m_output_size, y.GetFrameStride() / sizeof(T), 1));
-
-	//	    y = x * m_W;
-	//	    y.rowwise() += m_b;
-        }
 	}
 
 
@@ -312,54 +287,63 @@ public:
         }
     }
     
-	
-#if 0
-	void Backward(void)
-	{
-//		Eigen::Map<Matrix> dy((T*)m_output_error_buffer.GetBuffer(), m_output_error_buffer.GetFrameStride() / sizeof(T), m_output_size);
-//		Eigen::Map<Matrix> dx((T*)m_input_error_buffer.GetBuffer(), m_input_error_buffer.GetFrameStride() / sizeof(T), m_input_size);
-//		Eigen::Map<Matrix> x((T*)m_input_signal_buffer.GetBuffer(), m_input_signal_buffer.GetFrameStride() / sizeof(T), m_input_size);
-		MatMap dy((T*)this->m_output_error_buffer.GetBuffer(), m_frame_size, m_output_size, Stride(this->m_output_error_buffer.GetFrameStride() / sizeof(T), 1));
-		MatMap dx((T*)this->m_input_error_buffer.GetBuffer(), m_frame_size, m_input_size, Stride(this->m_input_error_buffer.GetFrameStride() / sizeof(T), 1));
-		MatMap x((T*)this->m_input_signal_buffer.GetBuffer(), m_frame_size, m_input_size, Stride(this->m_input_signal_buffer.GetFrameStride() / sizeof(T), 1));
-
-		dx = dy * m_W.transpose();
-		m_dW = x.transpose() * dy;
-		m_db = dy.colwise().sum();
-	}
-#endif
 
 public:
+    // Serialize
+    void Save(std::ostream &os) const 
+    {
+        SaveValue(os, m_binary_mode);
+        SaveIndices(os, m_input_shape);
+        SaveIndices(os, m_output_shape);
+        m_W->Save(os);
+        m_b->Save(os);
+    }
+
+    void Load(std::istream &is)
+    {
+        bb::LoadValue(is, m_binary_mode);
+        m_input_shape  = bb::LoadIndices(is);
+        m_output_shape = bb::LoadIndices(is);
+        m_W->Load(is);
+        m_b->Load(is);
+    }
+
+
 #ifdef BB_WITH_CEREAL
 	template <class Archive>
-	void save(Archive &archive, std::uint32_t const version) const
+    void save(Archive& archive, std::uint32_t const version) const
 	{
-//		archive(cereal::make_nvp("input_size", m_input_size));
-//		archive(cereal::make_nvp("output_size", m_output_size));
-//		archive(cereal::make_nvp("W", W));
-//		archive(cereal::make_nvp("b", b));
-	}
+        super::save(archive, version);
+        archive(cereal::make_nvp("binary_mode",      m_binary_mode));
+        archive(cereal::make_nvp("input_shape",      m_input_shape));
+        archive(cereal::make_nvp("output_shape",     m_output_shape));
+        archive(cereal::make_nvp("W",                *m_W));
+        archive(cereal::make_nvp("b",                *m_b));
+    }
 
 	template <class Archive>
-	void load(Archive &archive, std::uint32_t const version)
+    void load(Archive& archive, std::uint32_t const version)
 	{
-//		archive(cereal::make_nvp("input_size", m_input_size));
-//		archive(cereal::make_nvp("output_size", m_output_size));
-		
-//		std::vector< std::vector<T> >	W(m_output_size);
-//		std::vector<T>					b(m_output_size);
-//		archive(cereal::make_nvp("W", W));
-//		archive(cereal::make_nvp("b", b));
+        super::load(archive, version);
+        archive(cereal::make_nvp("binary_mode",      m_binary_mode));
+        archive(cereal::make_nvp("input_shape",      m_input_shape));
+        archive(cereal::make_nvp("output_shape",     m_output_shape));
+
+        m_input_node_size  = GetShapeSize(m_input_shape);
+        m_output_node_size = GetShapeSize(m_output_shape);
+
+        archive(cereal::make_nvp("W",                *m_W));
+        archive(cereal::make_nvp("b",                *m_b));
+    }
+
+	void Save(cereal::JSONOutputArchive& archive) const
+	{
+        archive(cereal::make_nvp("DenseAffine", *this));
 	}
 
-	virtual void Save(cereal::JSONOutputArchive& archive) const
+	void Load(cereal::JSONInputArchive& archive)
 	{
-//		archive(cereal::make_nvp("NeuralNetDenseAffine", *this));
-	}
-
-	virtual void Load(cereal::JSONInputArchive& archive)
-	{
-//		archive(cereal::make_nvp("NeuralNetDenseAffine", *this));
+        archive(cereal::make_nvp("DenseAffine", *this));
 	}
 #endif
 };

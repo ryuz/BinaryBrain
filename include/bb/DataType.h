@@ -590,19 +590,19 @@ inline void DataType_Add<Bit>(void* base, index_t index, Bit value)
 
 // シリアライズ
 template<typename T>
-inline void Save(std::ostream &os, T const &val)
+inline void SaveValue(std::ostream &os, T const &val)
 {
     os.write((char const *)&val, sizeof(T));
 }
 
 template<typename T>
-inline void Load(std::istream &is, T &val)
+inline void LoadValue(std::istream &is, T &val)
 {
     is.read((char *)&val, sizeof(T));
 }
 
 template<typename T>
-inline void Save(std::ostream &os, std::vector<T> const &vec)
+inline void SaveValue(std::ostream &os, std::vector<T> const &vec)
 {
     std::uint64_t size = (std::uint64_t)vec.size();
     os.write((char const *)&size, sizeof(size));
@@ -610,7 +610,7 @@ inline void Save(std::ostream &os, std::vector<T> const &vec)
 }
 
 template<typename T>
-inline void Load(std::istream &is, std::vector<T>  &vec)
+inline void LoadValue(std::istream &is, std::vector<T>  &vec)
 {
     std::uint64_t size;
     is.read((char *)&size, sizeof(size));
@@ -620,7 +620,7 @@ inline void Load(std::istream &is, std::vector<T>  &vec)
 
 
 template<typename T>
-inline void Save(std::ostream &os, std::string const &str)
+inline void SaveValue(std::ostream &os, std::string const &str)
 {
     std::uint64_t size = (std::uint64_t)str.size();
     os.write((char const *)&size, sizeof(size));
@@ -628,7 +628,7 @@ inline void Save(std::ostream &os, std::string const &str)
 }
 
 template<typename T>
-inline void Load(std::istream &is, std::string &str)
+inline void LoadValue(std::istream &is, std::string &str)
 {
     std::uint64_t size;
     is.read((char *)&size, sizeof(size));
