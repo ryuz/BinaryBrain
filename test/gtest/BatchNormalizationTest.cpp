@@ -309,10 +309,9 @@ public:
 };
 
 
-// カハンの加算アルゴリズム
 
 
-#if 0
+#if 1
 TEST(BatchNormalizationTest, testBatchNormalization)
 {
     bb::BatchNormalization<float>::create_t create;
@@ -486,6 +485,7 @@ TEST(BatchNormalizationTest, testBatchNormalization)
 #endif
 
 
+#if 1
 TEST(BatchNormalizationTest, testBatchNormalization_test02)
 {
    int const node_size  = 3;
@@ -594,9 +594,10 @@ TEST(BatchNormalizationTest, testBatchNormalization_test02)
 	EXPECT_NEAR(exp_norm2.dbeta, dbeta_ptr[2], 0.001);
 }
 
+#endif
 
-#if 0
-// #ifdef BB_WITH_CUDA
+
+#ifdef BB_WITH_CUDA
 
 TEST(BatchNormalizationTest, testBatchNormalization_cmp)
 {
@@ -624,7 +625,7 @@ TEST(BatchNormalizationTest, testBatchNormalization_cmp)
 
     auto valgen = bb::NormalDistributionGenerator<float>::Create(1.2f, 3.3f, 1);
 
-    for ( int loop = 0; loop < 2; ++ loop ) 
+    for ( int loop = 0; loop < 4; ++ loop ) 
     {
         for ( int frame = 0; frame < frame_size; ++frame) {
             for ( int node = 0; node < node_size; ++node ) {
@@ -733,276 +734,3 @@ TEST(BatchNormalizationTest, testBatchNormalization_cmp)
 #endif
 
 
-
-
-#if 0
-// NeuralNetLutのテスト結果がおかしいので個別確認
-TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalization2)
-{
-	bb::NeuralNetBatchNormalizationAvx<> batch_norm(3);
-	batch_norm.SetBatchSize(2);
-	testSetupLayerBuffer(batch_norm);
-
-	SimpleBatchNorm<double> exp_norm0(2);
-	SimpleBatchNorm<double> exp_norm1(2);
-	SimpleBatchNorm<double> exp_norm2(2);
-
-//  in_sig
-//	[5.65472, 0.590863, -1.56775, ]
-//	[5.80975, 3.49996, -1.82165, ]
-//	out_sig
-//	[-718.6, -0.924596, -1.35898, ]
-//	[-563.573, 0.988387, -1.48246, ]
-
-
-	auto in_sig = batch_norm.GetInputSignalBuffer();
-	auto out_sig = batch_norm.GetOutputSignalBuffer();
-	in_sig.SetReal(0, 0, 5.65472);
-	in_sig.SetReal(1, 0, 5.80975);
-	in_sig.SetReal(0, 1, 0.590863);
-	in_sig.SetReal(1, 1, 3.49996);
-	in_sig.SetReal(0, 2, -1.56775);
-	in_sig.SetReal(1, 2, -1.82165);
-
-	for (int i = 0; i < 2; i++) {
-		exp_norm0.x[i] = in_sig.GetReal(i, 0);
-		exp_norm1.x[i] = in_sig.GetReal(i, 1);
-		exp_norm2.x[i] = in_sig.GetReal(i, 2);
-	}
-
-
-	batch_norm.Forward(true);
-	//	batch_norm.Forward(false);
-
-	exp_norm0.Forward();
-	exp_norm1.Forward();
-	exp_norm2.Forward();
-
-	std::cout << in_sig.GetReal(0, 0) << "  :  " << out_sig.GetReal(0, 0) << "  :  " << exp_norm0.y[0] << std::endl;
-	std::cout << in_sig.GetReal(1, 0) << "  :  " << out_sig.GetReal(1, 0) << "  :  " << exp_norm0.y[1] << std::endl;
-	std::cout << in_sig.GetReal(0, 1) << "  :  " << out_sig.GetReal(0, 1) << "  :  " << exp_norm1.y[0] << std::endl;
-	std::cout << in_sig.GetReal(1, 1) << "  :  " << out_sig.GetReal(1, 1) << "  :  " << exp_norm1.y[1] << std::endl;
-	std::cout << in_sig.GetReal(0, 2) << "  :  " << out_sig.GetReal(0, 2) << "  :  " << exp_norm2.y[0] << std::endl;
-	std::cout << in_sig.GetReal(1, 2) << "  :  " << out_sig.GetReal(1, 2) << "  :  " << exp_norm2.y[1] << std::endl;
-
-	for (int i = 0; i < 2; i++) {
-		EXPECT_TRUE(abs(out_sig.GetReal(i, 0) - exp_norm0.y[i]) < 0.000001);
-		EXPECT_TRUE(abs(out_sig.GetReal(i, 1) - exp_norm1.y[i]) < 0.000001);
-		EXPECT_TRUE(abs(out_sig.GetReal(i, 2) - exp_norm2.y[i]) < 0.000001);
-	}
-
-
-}
-#endif
-
-
-
-
-#if 0
-TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalizationCmp)
-{
-	const int node_size = 9;
-	const int frame_size = 32 * 3 * 3; //  32 * 32 * 32;
-
-	std::vector< SimpleBatchNorm<double> > exp_norm(node_size, SimpleBatchNorm<double>(frame_size));
-	
-
-	bb::NeuralNetBatchNormalizationAvx<>	batch_norm0(node_size);
-	bb::NeuralNetBatchNormalizationEigen<>	batch_norm1(node_size);
-	batch_norm0.SetBatchSize(frame_size);
-	batch_norm1.SetBatchSize(frame_size);
-	testSetupLayerBuffer(batch_norm0);
-	testSetupLayerBuffer(batch_norm1);
-	
-	auto in_sig0 = batch_norm0.GetInputSignalBuffer();
-	auto in_sig1 = batch_norm1.GetInputSignalBuffer();
-	
-	std::mt19937_64 mt(123);
-	std::uniform_real_distribution<float> rand_dist(0.0f, 1.0f);
-	
-	int index = 11;
-	for (int node = 0; node < node_size; ++node) {
-		for (int frame = 0; frame < frame_size; ++frame) {
-	//		float value = (float)index;
-			float value = rand_dist(mt);
-			in_sig0.SetReal(frame, node, value);
-			in_sig1.SetReal(frame, node, value);
-			exp_norm[node].x[frame] = value;
-			index++;
-		}
-	}
-
-	batch_norm0.Forward(true);
-	batch_norm1.Forward(true);
-	for (int node = 0; node < node_size; ++node) {
-		exp_norm[node].Forward();
-	}
-
-	auto out_sig0 = batch_norm0.GetOutputSignalBuffer();
-	auto out_sig1 = batch_norm1.GetOutputSignalBuffer();
-
-#if 0
-	std::cout << out_sig0.GetReal(0, 0) << std::endl;
-	std::cout << out_sig0.GetReal(1, 0) << std::endl;
-	std::cout << out_sig0.GetReal(2, 0) << std::endl;
-	std::cout << out_sig0.GetReal(3, 0) << std::endl;
-	std::cout << out_sig0.GetReal(4, 0) << std::endl;
-	std::cout << out_sig0.GetReal(5, 0) << std::endl;
-	std::cout << out_sig0.GetReal(6, 0) << std::endl;
-	std::cout << out_sig0.GetReal(7, 0) << std::endl;
-
-	std::cout << out_sig1.GetReal(0, 0) << std::endl;
-	std::cout << out_sig1.GetReal(1, 0) << std::endl;
-	std::cout << out_sig1.GetReal(2, 0) << std::endl;
-	std::cout << out_sig1.GetReal(3, 0) << std::endl;
-	std::cout << out_sig1.GetReal(4, 0) << std::endl;
-	std::cout << out_sig1.GetReal(5, 0) << std::endl;
-	std::cout << out_sig1.GetReal(6, 0) << std::endl;
-	std::cout << out_sig1.GetReal(7, 0) << std::endl;
-#endif
-
-	double err = 0;
-	for (int node = 0; node < node_size; ++node) {
-		for (int frame = 0; frame < frame_size; ++frame) {
-			EXPECT_TRUE(abs(out_sig0.GetReal(frame, node) - out_sig1.GetReal(frame, node))  < 0.0001);
-			EXPECT_TRUE(abs(out_sig0.GetReal(frame, node) - exp_norm[node].y[frame]) < 0.00002);
-
-			err += abs(out_sig0.GetReal(frame, node) - exp_norm[node].y[frame]);
-		}
-	}
-//	std::cout << "error : " << err << std::endl;
-
-
-	/// backword
-
-	auto out_err0 = batch_norm0.GetOutputErrorBuffer();
-	auto out_err1 = batch_norm1.GetOutputErrorBuffer();
-
-
-	index = 8;
-	for (int node = 0; node < node_size; ++node) {
-		for (int frame = 0; frame < frame_size; ++frame) {
-	//		float value = (float)index;
-			float value = rand_dist(mt);
-			out_err0.SetReal(frame, node, value);
-			out_err1.SetReal(frame, node, value);
-			exp_norm[node].dy[frame] = value;
-			index++;
-		}
-	}
-
-#if 1
-	out_err0.SetReal(0, 0, 8);
-	out_err0.SetReal(1, 0, 6);
-	out_err0.SetReal(2, 0, 3);
-	out_err0.SetReal(3, 0, 4);
-	out_err0.SetReal(4, 0, 5);
-	out_err0.SetReal(5, 0, 4);
-	out_err0.SetReal(6, 0, 6);
-	out_err0.SetReal(7, 0, 1);
-	out_err0.SetReal(0, 1, 20);
-	out_err0.SetReal(1, 1, 70);
-	out_err0.SetReal(2, 1, 40);
-	out_err0.SetReal(3, 1, 15);
-	out_err0.SetReal(4, 1, 31);
-	out_err0.SetReal(5, 1, 54);
-	out_err0.SetReal(6, 1, 37);
-	out_err0.SetReal(7, 1, 26);
-	for (int node = 0; node < node_size; ++node) {
-		for (int frame = 0; frame < frame_size; ++frame) {
-			out_err1.SetReal(frame, node, out_err0.GetReal(frame, node));
-			exp_norm[node].dy[frame] = out_err0.GetReal(frame, node);
-		}
-	}
-#endif
-	
-	
-	batch_norm0.Backward();
-	batch_norm1.Backward();
-	for (int node = 0; node < node_size; ++node) {
-		exp_norm[node].Backward();
-	}
-
-	auto in_err0 = batch_norm0.GetInputErrorBuffer();
-	auto in_err1 = batch_norm1.GetInputErrorBuffer();
-
-
-	for (int node = 0; node < node_size; ++node) {
-//		std::cout << "node:" << node << std::endl;
-		for (int frame = 0; frame < frame_size; ++frame) {
-//			std::cout << out_err0.GetReal(frame, node) << "," << out_err1.GetReal(frame, node) << "," << exp_norm[node].dy[frame] << std::endl;
-//			std::cout << in_err0.GetReal(frame, node) << "," << in_err1.GetReal(frame, node) << "," << exp_norm[node].dx[frame] << std::endl;
-//			std::cout << in_sig0.GetReal(frame, node) << "," << in_sig1.GetReal(frame, node) << "," << exp_norm[node].x[frame] << std::endl;
-//			std::cout << out_sig0.GetReal(frame, node) << "," << out_sig1.GetReal(frame, node) << "," << exp_norm[node].y[frame] << std::endl;
-
-			EXPECT_TRUE(abs(in_err0.GetReal(frame, node) - in_err1.GetReal(frame, node)) < 0.01);
-			EXPECT_TRUE(abs(in_err0.GetReal(frame, node) - exp_norm[node].dx[frame]) < 0.01);
-		}
-	}
-
-}
-
-
-#if 0
-TEST(NeuralNetBatchNormalizationAvxTest, testBatchNormalizationAccuracy)
-{
-	const int frame_size = 16 * 1024* 1024;
-
-	SimpleBatchNorm<long double>			ref_norm(frame_size);	// 基準
-	SimpleBatchNorm<>						simple_norm0(frame_size);
-	SimpleBatchNorm<>						simple_norm1(frame_size);
-	bb::NeuralNetBatchNormalizationAvx<>	batch_norm0(1);
-	bb::NeuralNetBatchNormalizationEigen<>	batch_norm1(1);
-	batch_norm0.SetBatchSize(frame_size);
-	batch_norm1.SetBatchSize(frame_size);
-	testSetupLayerBuffer(batch_norm0);
-	testSetupLayerBuffer(batch_norm1);
-
-	std::mt19937_64 mt(123);
-	std::normal_distribution<float> rand_dist(0.2f, 0.7f);
-
-	auto in_sig0 = batch_norm0.GetInputSignalBuffer();
-	auto in_sig1 = batch_norm1.GetInputSignalBuffer();
-
-	// データセット
-	for (int frame = 0; frame < frame_size; ++frame) {
-		float value = rand_dist(mt);
-		ref_norm.x[frame] = value;
-		simple_norm0.x[frame] = value;
-		simple_norm1.x[frame] = value;
-		in_sig0.SetReal(frame, 0, value);
-		in_sig1.SetReal(frame, 0, value);
-	}
-
-	// forward
-	ref_norm.Forward();
-	batch_norm0.Forward(true);
-	batch_norm1.Forward(true);
-	simple_norm0.Forward();
-	simple_norm1.Forward3();
-
-	auto out_sig0 = batch_norm0.GetOutputSignalBuffer();
-	auto out_sig1 = batch_norm1.GetOutputSignalBuffer();
-
-	long double simple_norm0_err = 0;
-	long double simple_norm1_err = 0;
-	long double batch_norm0_err  = 0;
-	long double batch_norm1_err  = 0;
-	for (int frame = 0; frame < frame_size; ++frame) {
-		simple_norm0_err += abs(simple_norm0.y[frame] - ref_norm.y[frame]);
-		simple_norm1_err += abs(simple_norm1.y[frame] - ref_norm.y[frame]);
-		batch_norm0_err += abs(out_sig0.GetReal(frame, 0) - ref_norm.y[frame]);
-		batch_norm1_err += abs(out_sig1.GetReal(frame, 0) - ref_norm.y[frame]);
-	}
-	std::cout << "simple_norm0_err : " << simple_norm0_err << std::endl;
-	std::cout << "simple_norm1_err : " << simple_norm1_err << std::endl;
-	std::cout << "batch_norm0_err  : " << batch_norm0_err  << std::endl;
-	std::cout << "batch_norm1_err  : " << batch_norm1_err  << std::endl;
-
-
-}
-
-#endif
-
-
-#endif

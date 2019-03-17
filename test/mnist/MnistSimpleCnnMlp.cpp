@@ -90,8 +90,8 @@ void MnistSimpleCnnMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
 //  net->SendCommand("host_only true");
 //  net->SendCommand("host_only true", "BatchNormalization");
 
-//  net->PrintInfo(2);
-    net->PrintInfo();
+    net->PrintInfo(2);
+//  net->PrintInfo();
 
     bb::Runner<float>::create_t runner_create;
     runner_create.name      = "MnistSimpleCnnMlp";
