@@ -11,6 +11,7 @@
     <CudaCompile Include="ReLU.cu" />
     <CudaCompile Include="Vector.cu" />
     <CudaCompile Include="BatchNormalization.cu" />
+    <CudaCompile Include="MaxPooling.cu" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile" />

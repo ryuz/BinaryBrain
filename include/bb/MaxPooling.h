@@ -147,6 +147,31 @@ public:
         // 出力を設定
         m_y.Resize(DataType<FT>::type, m_x.GetFrameSize(), m_output_shape);
 
+#if BB_WITH_CUDA
+        if ( DataType<FT>::type == BB_TYPE_FP32 && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            // CUDA版
+            auto ptr_x = x.LockDeviceMemoryConst();
+            auto ptr_y = m_y.LockDeviceMemory(true);
+            bbcu_fp32_MaxPooling_Forward
+		        (
+			        (float const *)ptr_x.GetAddr(),
+			        (float*		  )ptr_y.GetAddr(),
+   	                (int		  )m_filter_h_size,
+	                (int 		  )m_filter_w_size,
+                    (int          )m_input_w_size,
+                    (int          )m_input_h_size,
+                    (int          )m_output_w_size,
+                    (int          )m_output_h_size,
+                    (int          )m_output_c_size,
+			        (int          )m_y.GetFrameSize(),
+			        (int          )(m_y.GetFrameStride() / sizeof(float))
+                );
+
+            return m_y;
+        }
+#endif
+
+
 #if 0
         if ( DataType<FT>::type == BB_TYPE_BIT ) {
 			// バイナリ用実装
@@ -228,6 +253,34 @@ public:
         BB_ASSERT(dy.GetType() == DataType<BT>::type);
 
         m_dx.Resize(DataType<BT>::type, dy.GetFrameSize(), m_input_shape);
+
+#if BB_WITH_CUDA
+        if ( DataType<BT>::type == BB_TYPE_FP32 && DataType<FT>::type == BB_TYPE_FP32 && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            // CUDA版
+            auto ptr_x  = m_x.LockDeviceMemoryConst();
+            auto ptr_y  = m_y.LockDeviceMemoryConst();
+            auto ptr_dy = dy.LockDeviceMemoryConst();
+            auto ptr_dx = m_dx.LockDeviceMemory(true);
+            bbcu_fp32_MaxPooling_Backward
+		        (
+			        (float const *)ptr_x.GetAddr(),
+			        (float const *)ptr_y.GetAddr(),
+			        (float const *)ptr_dy.GetAddr(),
+			        (float*		  )ptr_dx.GetAddr(),
+   	                (int		  )m_filter_h_size,
+	                (int 		  )m_filter_w_size,
+                    (int          )m_input_w_size,
+                    (int          )m_input_h_size,
+                    (int          )m_output_w_size,
+                    (int          )m_output_h_size,
+                    (int          )m_output_c_size,
+			        (int          )m_y.GetFrameSize(),
+			        (int          )(m_y.GetFrameStride() / sizeof(float))
+                );
+
+            return m_dx;
+        }
+#endif
 
 		if ( DataType<BT>::type == BB_TYPE_FP32 && DataType<FT>::type == BB_TYPE_FP32 ) {
 			// float用実装
