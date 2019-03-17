@@ -10,9 +10,9 @@
 #include <omp.h>
 #include <string.h>
 
-void MnistDenseAffine(int epoch_size, size_t mini_batch_size);
+void MnistSimpleLutMlp(int epoch_size, size_t mini_batch_size, bool binary_mode);
 void MnistSimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode);
-void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mode);
+void MnistDenseAffine(int epoch_size, size_t mini_batch_size);
 void MnistSimpleMicroMlpScratch(int epoch_size, size_t mini_batch_size, bool binary_mode);
 
 
@@ -25,14 +25,20 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if ( strcmp(argv[1], "All") == 0 || strcmp(argv[1], "DenseAffine") == 0 ) {
-		MnistDenseAffine(16, 64);
+	if ( strcmp(argv[1], "All") == 0 || strcmp(argv[1], "LutMlp") == 0 ) {
+		MnistSimpleLutMlp(16, 64, true);
 	}
+
 	if ( strcmp(argv[1], "All") == 0 || strcmp(argv[1], "LutCnn") == 0 ) {
     	MnistSimpleLutCnn(64, 16, true);
 	}
-	if ( strcmp(argv[1], "All") == 0 || strcmp(argv[1], "MicroMlp") == 0 ) {
-		MnistSimpleMicroMlp(16, 64, true);
+
+	if ( strcmp(argv[1], "All") == 0 || strcmp(argv[1], "DenseAffine") == 0 ) {
+		MnistDenseAffine(16, 64);
+	}
+
+	if ( strcmp(argv[1], "All") == 0 || strcmp(argv[1], "SimpleMicroMlpScratch") == 0 ) {
+		MnistSimpleMicroMlpScratch(16, 64, true);
 	}
 
 	return 0;

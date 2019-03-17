@@ -23,13 +23,11 @@ CFLAGS = -O3 -mavx2 -mfma -fopenmp -std=c++14
 CINCS  = -I../../include -I../../eigen
 CDEFS  = 
 
-CUDA_FLAGS = 
-
 SRCS   = main.cpp
-SRCS  += MnistDenseAffine.cpp
-SRCS  += MnistSimpleMicroMlp.cpp
-SRCS  += MnistSimpleMicroMlpScratch.cpp
+SRCS  += MnistSimpleLutMlp.cpp
 SRCS  += MnistSimpleLutCnn.cpp
+SRCS  += MnistDenseAffine.cpp
+SRCS  += MnistSimpleMicroMlpScratch.cpp
 
 OBJS = $(addsuffix .o, $(basename $(SRCS)))
 

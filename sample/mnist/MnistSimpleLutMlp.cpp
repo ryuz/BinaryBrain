@@ -14,7 +14,7 @@
 
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
-#include "bb/MicroMlpAffine.h"
+#include "bb/MicroMlp.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
 #include "bb/LossCrossEntropyWithSoftmax.h"
@@ -30,7 +30,7 @@
 
 
 // MNIST CNN with LUT networks
-void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
+void MnistSimpleLutMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
 {
   // load MNIST data
 #ifdef _DEBUG
@@ -40,18 +40,11 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
 #endif
 
     auto net = bb::Sequential::Create();
-    net->Add(bb::RealToBinary<float, float>::Create(8));
-    net->Add(bb::MicroMlpAffine<6, 16, float>::Create({1024}));
-    net->Add(bb::BatchNormalization<float>::Create());
-    net->Add(bb::ReLU<float>::Create());
-    net->Add(bb::MicroMlpAffine<6, 16, float>::Create({360}));
-    net->Add(bb::BatchNormalization<float>::Create());
-    net->Add(bb::ReLU<float>::Create());
-    net->Add(bb::MicroMlpAffine<6, 16, float>::Create({60}));
-    net->Add(bb::BatchNormalization<float>::Create());
-    net->Add(bb::ReLU<float>::Create());
-    net->Add(bb::MicroMlpAffine<6, 16, float>::Create({10}));
-    net->Add(bb::BinaryToReal<float, float>::Create({10}, 8));
+    net->Add(bb::RealToBinary<>::Create(7));
+    net->Add(bb::MicroMlp<>::Create({1024}));
+    net->Add(bb::MicroMlp<>::Create({360}));
+    net->Add(bb::MicroMlp<>::Create({60}));
+    net->Add(bb::BinaryToReal<float, float>::Create({10}, 7));
     net->SetInputShape(td.x_shape);
 
     if ( binary_mode ) {
@@ -60,7 +53,7 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
     }
 
     bb::Runner<float>::create_t runner_create;
-    runner_create.name      = "MnistSequentialMicroMlp";
+    runner_create.name      = "MnistSimpleLutMlp";
     runner_create.net       = net;
     runner_create.lossFunc  = bb::LossCrossEntropyWithSoftmax<float>::Create();
     runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create(10);
