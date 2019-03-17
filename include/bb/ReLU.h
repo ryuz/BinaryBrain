@@ -192,7 +192,7 @@ inline FrameBuffer ReLU<float>::Forward(FrameBuffer x, bool train)
     if ( !m_host_only && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         // CUDA版
         auto ptr_x = x.LockDeviceMemoryConst();
-        auto ptr_y = m_y.LockDeviceMemory();
+        auto ptr_y = m_y.LockDeviceMemory(true);
         bbcu_fp32_ReLU_Forward(
                     (float const *)ptr_x.GetAddr(),
                     (float *)ptr_y.GetAddr(),
@@ -207,7 +207,7 @@ inline FrameBuffer ReLU<float>::Forward(FrameBuffer x, bool train)
     {
         // AVX版
         auto x_ptr = m_x.LockConst<float>();
-	    auto y_ptr = m_y.Lock<float>();
+	    auto y_ptr = m_y.Lock<float>(true);
 
 		index_t  m256_frame_size = (int)(((frame_size + 7) / 8) * 8);
 		__m256 zero = _mm256_set1_ps(0);
@@ -252,7 +252,7 @@ inline FrameBuffer ReLU<float>::Backward(FrameBuffer dy)
         // GPU版
         auto ptr_x  = m_x.LockDeviceMemoryConst();
         auto ptr_dy = dy.LockDeviceMemoryConst();
-        auto ptr_dx = m_dx.LockDeviceMemory();
+        auto ptr_dx = m_dx.LockDeviceMemory(true);
         bbcu_fp32_ReLU_Backward(
                     (float const *)ptr_x.GetAddr(),
                     (float const *)ptr_dy.GetAddr(),
@@ -270,7 +270,7 @@ inline FrameBuffer ReLU<float>::Backward(FrameBuffer dy)
 	    auto x_ptr  = m_x.LockConst<float>();
 	    auto y_ptr  = m_y.LockConst<float>();
 	    auto dy_ptr = dy.LockConst<float>();
-	    auto dx_ptr = m_dx.Lock<float>();
+	    auto dx_ptr = m_dx.Lock<float>(true);
 
         index_t  m256_frame_size = (int)(((frame_size + 7) / 8) * 8);
 
