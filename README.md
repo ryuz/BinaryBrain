@@ -1,5 +1,5 @@
 ﻿
-# BinaryBrain <br> --binary neural networks evaluation platform for LUT-networks
+# BinaryBrain Version 3<br> --binary neural networks platform for LUT-networks
 
 ## 概要
 LUT(Look-up Table)ネットワークとはFPGA向けのバイナリ・ディープ・ニューラルネットワークの一種です。
@@ -9,7 +9,7 @@ FPGAのLUTを直接学習させることで高いパフォーマンスを実現�
 AXV2以降の命令が使えるCPUと、Windows7以降の環境を想定しております。
 
 ### windows
-1. install VisualStudio 2017 + CUDA 9.2
+1. install VisualStudio 2017 + CUDA 10.1
 2. git clone --recursive https://github.com/ryuz/BinaryBrain.git 
 3. download MNIST from http://yann.lecun.com/exdb/mnist/
 4. decompress MNIST for "\sample\mnist"

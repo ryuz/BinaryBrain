@@ -162,10 +162,11 @@ public:
 
         // 出力を設定
         m_y.Resize(DataType<FT>::type, m_x.GetFrameSize(), m_output_shape);
+        
 
 #if BB_WITH_CUDA
+        // CUDA版
         if ( DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
-            // CUDA版
             auto ptr_x = x.LockDeviceMemoryConst();
             auto ptr_y = m_y.LockDeviceMemory(true);
             bbcu_fp32_MaxPooling_Forward
@@ -186,15 +187,14 @@ public:
             return m_y;
         }
 #endif
-
-
+     
 #if 0
         if ( DataType<FT>::type == BB_TYPE_BIT ) {
 			// バイナリ用実装
             auto x_ptr = m_x.LockConst();
             auto y_ptr = m_y.Lock(true);
 
-			index_t  m256_frame_size = m_y.GetFrameStride() / 256;
+			index_t  m256_frame_size = m_y.GetFrameStride() / (256/8);
 
 //			auto in_sig_buf = this->GetInputSignalBuffer();
 //			auto out_sig_buf = this->GetOutputSignalBuffer();
@@ -223,8 +223,8 @@ public:
 		}
 #endif
 
+		// float用実装
         if ( DataType<FT>::type == BB_TYPE_FP32 ) {
-			// float用実装
             auto x_ptr = m_x.LockConst<FT>();
             auto y_ptr = m_y.Lock<FT>(true);
 
@@ -260,15 +260,43 @@ public:
             return m_y;
 		}
 
-		else if ( DataType<FT>::type == BB_TYPE_FP64 ) {
-			// double用実装
-		}
-		else {
-			assert(0);
+        // 汎用版実装
+        {
+            auto x_ptr = m_x.LockConst<FT>();
+            auto y_ptr = m_y.Lock<FT>(true);
+
+            auto frame_size = m_x.GetFrameSize();
+
+    		#pragma omp parallel for
+			for (index_t c = 0; c < m_input_c_size; ++c) {
+				for (index_t y = 0; y < m_output_h_size; ++y) {
+					for (index_t x = 0; x < m_output_w_size; ++x) {
+						for (index_t frame = 0; frame < frame_size; ++frame) {
+							FT max_val = 0;
+							for (index_t fy = 0; fy < m_filter_h_size; ++fy) {
+								index_t iy = y*m_filter_h_size + fy;
+                                if ( iy < m_input_h_size ) {
+								    for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
+									    index_t ix = x*m_filter_w_size + fx;
+                                        if ( ix < m_input_w_size ) {
+									        float const *x_addr = (float const *)x_ptr.GetAddr(GetInputNode(c, iy, ix));
+									        FT in_sig = x_ptr.Get(frame, ix, iy);
+									        max_val = (max_val > in_sig) ? max_val : in_sig;
+                                        }
+								    }
+                                }
+							}
+							y_ptr.Set(frame, x, y, max_val);
+						}
+					}
+				}
+			}
+
+            return m_y;
 		}
 	}
 	
-   FrameBuffer Backward(FrameBuffer dy)
+    FrameBuffer Backward(FrameBuffer dy)
     {
         BB_ASSERT(dy.GetType() == DataType<BT>::type);
 

@@ -286,10 +286,10 @@ public:
 		if ( false && !m_host_only && train && DataType<T>::type == BB_TYPE_FP32 && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
 			auto dev_x_ptr     = m_x.LockDeviceMemoryConst();
 			auto dev_y_ptr     = m_y.LockDeviceMemory(true);
-			auto dev_gamma_ptr = m_gamma->LockDeviceMemory();
-			auto dev_beta_ptr  = m_beta->LockDeviceMemory();
-			auto dev_mean_ptr = m_mean.LockDeviceMemory();
-			auto dev_rstd_ptr = m_rstd.LockDeviceMemory();
+			auto dev_gamma_ptr = m_gamma->LockDeviceMemoryConst();
+			auto dev_beta_ptr  = m_beta->LockDeviceMemoryConst();
+			auto dev_mean_ptr = m_mean.LockDeviceMemory(true);
+			auto dev_rstd_ptr = m_rstd.LockDeviceMemory(true);
 			auto dev_running_mean_ptr = m_running_mean.LockDeviceMemory();
 			auto dev_running_var_ptr = m_running_var.LockDeviceMemory();
 

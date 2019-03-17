@@ -160,7 +160,7 @@ protected:
 
     inline index_t GetNodeIndex(indices_t const & indices)
     {
-        return GetShapeIndex(indices, m_buf->m_shape);
+        return GetShapeIndex(indices, m_buf->m_node_shape);
     }
 
   	inline void WriteValue(void *base, index_t frame, Tp value)

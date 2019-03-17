@@ -350,7 +350,7 @@ public:
 			//			log_stream << "[save] " << net_file_name << std::endl;
 					}
 #else
-					if ( m_serial_write ) {
+					if ( m_write_serial ) {
 						std::stringstream fname;
 						fname << m_name << "_net_" << save_epoc << ".bin";
 						SaveBinary(fname.str());
