@@ -16,8 +16,8 @@ TEST(SigmoidTest, testSigmoid)
 
 	auto y_buf = sigmoid->Forward(x_buf);
 
-	EXPECT_EQ(1.0f / (1.0f + exp(-1.0f)), y_buf.GetFP32(0, 0));
-	EXPECT_EQ(1.0f / (1.0f + exp(-2.0f)), y_buf.GetFP32(0, 1));
+	EXPECT_FLOAT_EQ(1.0f / (1.0f + exp(-1.0f)), y_buf.GetFP32(0, 0));
+	EXPECT_FLOAT_EQ(1.0f / (1.0f + exp(-2.0f)), y_buf.GetFP32(0, 1));
 
     bb::FrameBuffer dy_buf(BB_TYPE_FP32, 1, 2);
 
@@ -26,8 +26,8 @@ TEST(SigmoidTest, testSigmoid)
     
 	auto dx_buf = sigmoid->Backward(dy_buf);
     
-	EXPECT_EQ(dy_buf.GetFP32(0, 0) * (1.0f - y_buf.GetFP32(0, 0)) * y_buf.GetFP32(0, 0), dx_buf.GetFP32(0, 0));
-	EXPECT_EQ(dy_buf.GetFP32(0, 1) * (1.0f - y_buf.GetFP32(0, 1)) * y_buf.GetFP32(0, 1), dx_buf.GetFP32(0, 1));
+	EXPECT_FLOAT_EQ(dy_buf.GetFP32(0, 0) * (1.0f - y_buf.GetFP32(0, 0)) * y_buf.GetFP32(0, 0), dx_buf.GetFP32(0, 0));
+	EXPECT_FLOAT_EQ(dy_buf.GetFP32(0, 1) * (1.0f - y_buf.GetFP32(0, 1)) * y_buf.GetFP32(0, 1), dx_buf.GetFP32(0, 1));
 }
 
 
@@ -45,10 +45,10 @@ TEST(SigmoidTest, testSigmoidBatch)
 
 	auto y_buf = sigmoid->Forward(x_buf);
 
-	EXPECT_EQ(1.0f / (1.0f + exp(-1.0f)), y_buf.GetFP32(0, 0));
-	EXPECT_EQ(1.0f / (1.0f + exp(-2.0f)), y_buf.GetFP32(1, 0));
-	EXPECT_EQ(1.0f / (1.0f + exp(-3.0f)), y_buf.GetFP32(0, 1));
-	EXPECT_EQ(1.0f / (1.0f + exp(-4.0f)), y_buf.GetFP32(1, 1));
+	EXPECT_FLOAT_EQ(1.0f / (1.0f + exp(-1.0f)), y_buf.GetFP32(0, 0));
+	EXPECT_FLOAT_EQ(1.0f / (1.0f + exp(-2.0f)), y_buf.GetFP32(1, 0));
+	EXPECT_FLOAT_EQ(1.0f / (1.0f + exp(-3.0f)), y_buf.GetFP32(0, 1));
+	EXPECT_FLOAT_EQ(1.0f / (1.0f + exp(-4.0f)), y_buf.GetFP32(1, 1));
 
 
 
@@ -62,10 +62,10 @@ TEST(SigmoidTest, testSigmoidBatch)
 
 	auto dx_buf = sigmoid->Backward(dy_buf);
 
-	EXPECT_EQ(dy_buf.GetFP32(0, 0) * (1.0f - y_buf.GetFP32(0, 0)) * y_buf.GetFP32(0, 0), dx_buf.GetFP32(0, 0));
-	EXPECT_EQ(dy_buf.GetFP32(1, 0) * (1.0f - y_buf.GetFP32(1, 0)) * y_buf.GetFP32(1, 0), dx_buf.GetFP32(1, 0));
-	EXPECT_EQ(dy_buf.GetFP32(0, 1) * (1.0f - y_buf.GetFP32(0, 1)) * y_buf.GetFP32(0, 1), dx_buf.GetFP32(0, 1));
-	EXPECT_EQ(dy_buf.GetFP32(1, 1) * (1.0f - y_buf.GetFP32(1, 1)) * y_buf.GetFP32(1, 1), dx_buf.GetFP32(1, 1));
+	EXPECT_FLOAT_EQ(dy_buf.GetFP32(0, 0) * (1.0f - y_buf.GetFP32(0, 0)) * y_buf.GetFP32(0, 0), dx_buf.GetFP32(0, 0));
+	EXPECT_FLOAT_EQ(dy_buf.GetFP32(1, 0) * (1.0f - y_buf.GetFP32(1, 0)) * y_buf.GetFP32(1, 0), dx_buf.GetFP32(1, 0));
+	EXPECT_FLOAT_EQ(dy_buf.GetFP32(0, 1) * (1.0f - y_buf.GetFP32(0, 1)) * y_buf.GetFP32(0, 1), dx_buf.GetFP32(0, 1));
+	EXPECT_FLOAT_EQ(dy_buf.GetFP32(1, 1) * (1.0f - y_buf.GetFP32(1, 1)) * y_buf.GetFP32(1, 1), dx_buf.GetFP32(1, 1));
 }
 
 
