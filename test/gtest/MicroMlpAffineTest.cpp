@@ -242,8 +242,10 @@ TEST(MicroMlpAffineTest, testMicroMlpAffine_Serialize)
     mlp->SaveBinary("MicroMlpAffineTest.bin");
     mlp->LoadBinary("MicroMlpAffineTest.bin");
 
+#if BB_WITH_CEREAL
     mlp->SaveJson("MicroMlpAffineTest.json");
     mlp->LoadJson("MicroMlpAffineTest.json");
+#endif
 }
 
 #if 0
