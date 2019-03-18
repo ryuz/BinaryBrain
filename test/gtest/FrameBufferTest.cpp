@@ -97,8 +97,16 @@ TEST(FrameBufferTest, FrameBuffer_IsDeviceAvailable)
   	bb::FrameBuffer buf_h(BB_TYPE_FP32, 2, 3, true);
   	bb::FrameBuffer buf_d(BB_TYPE_FP32, 2, 3, false);
 #if BB_WITH_CUDA
-    EXPECT_FALSE(buf_h.IsDeviceAvailable());
-    EXPECT_TRUE(buf_d.IsDeviceAvailable());
+	int dev_count = 0;
+	auto status = cudaGetDeviceCount(&dev_count);
+	if ( status == cudaSuccess && dev_count > 0 ) {
+		EXPECT_FALSE(buf_h.IsDeviceAvailable());
+		EXPECT_TRUE(buf_d.IsDeviceAvailable());
+	}
+	else {
+		EXPECT_FALSE(buf_h.IsDeviceAvailable());
+		EXPECT_FALSE(buf_d.IsDeviceAvailable());
+	}
 #else
     EXPECT_FALSE(buf_h.IsDeviceAvailable());
     EXPECT_FALSE(buf_d.IsDeviceAvailable());
