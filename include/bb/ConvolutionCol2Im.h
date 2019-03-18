@@ -37,6 +37,20 @@ protected:
 protected:
 	ConvolutionCol2Im() {}
 
+    /**
+     * @brief  コマンド処理
+     * @detail コマンド処理
+     * @param  args   コマンド
+     */
+	void CommandProc(std::vector<std::string> args)
+	{
+        // HostOnlyモード設定
+        if (args.size() == 2 && args[0] == "host_only")
+        {
+            m_host_only = EvalBool(args[1]);
+        }
+	}
+
 public:
 	~ConvolutionCol2Im() {}
 

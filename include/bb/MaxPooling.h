@@ -267,7 +267,7 @@ public:
 
             auto frame_size = m_x.GetFrameSize();
 
-    		#pragma omp parallel for
+       		#pragma omp parallel for
 			for (index_t c = 0; c < m_input_c_size; ++c) {
 				for (index_t y = 0; y < m_output_h_size; ++y) {
 					for (index_t x = 0; x < m_output_w_size; ++x) {
@@ -279,14 +279,13 @@ public:
 								    for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
 									    index_t ix = x*m_filter_w_size + fx;
                                         if ( ix < m_input_w_size ) {
-									        float const *x_addr = (float const *)x_ptr.GetAddr(GetInputNode(c, iy, ix));
-									        FT in_sig = x_ptr.Get(frame, ix, iy);
+                                            FT in_sig = x_ptr.Get(frame, {ix, iy, c});
 									        max_val = (max_val > in_sig) ? max_val : in_sig;
                                         }
 								    }
                                 }
 							}
-							y_ptr.Set(frame, x, y, max_val);
+                            y_ptr.Set(frame, {x, y, c}, max_val);
 						}
 					}
 				}
@@ -333,12 +332,12 @@ public:
 
 		if ( DataType<BT>::type == BB_TYPE_FP32 && DataType<FT>::type == BB_TYPE_FP32 ) {
 			// float用実装
-			index_t  m256_frame_size = m_dx.GetFrameStride() / 8;
+			index_t  m256_frame_size = m_dx.GetFrameStride() / sizeof(float);
 
             auto x_ptr  = m_x.LockConst<FT>();
             auto y_ptr  = m_y.LockConst<FT>();
             auto dy_ptr = dy.LockConst<BT>();
-            auto dx_ptr = m_dx.Lock<BT>();
+            auto dx_ptr = m_dx.Lock<BT>(true);
 
 	#pragma omp parallel for
 			for (index_t n = 0; n < m_input_c_size; ++n) {
@@ -369,11 +368,42 @@ public:
 
             return m_dx;
 		}
-		else if ( DataType<BT>::type == BB_TYPE_FP64 && DataType<FT>::type == BB_TYPE_FP64 ) {
-			// double用実装
-		}
-		else {
-			assert(0);
+
+        // 汎用版実装
+        {
+            auto x_ptr  = m_x.LockConst<FT>();
+            auto y_ptr  = m_y.LockConst<FT>();
+            auto dy_ptr = dy.LockConst<BT>();
+            auto dx_ptr = m_dx.Lock<BT>(true);
+
+            auto frame_size = m_x.GetFrameSize();
+
+    		#pragma omp parallel for
+			for (index_t c = 0; c < m_input_c_size; ++c) {
+				for (index_t y = 0; y < m_output_h_size; ++y) {
+					for (index_t x = 0; x < m_output_w_size; ++x) {
+						for (index_t frame = 0; frame < frame_size; ++frame) {
+                            FT out_sig = y_ptr.Get(frame, x, y);
+                            FT grad    = dy_ptr.Get(frame, x, y);
+
+							for (index_t fy = 0; fy < m_filter_h_size; ++fy) {
+								index_t iy = y*m_filter_h_size + fy;
+                                if ( iy < m_input_h_size ) {
+								    for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
+									    index_t ix = x*m_filter_w_size + fx;
+                                        if ( ix < m_input_w_size ) {
+                                            FT in_sig  = x_ptr.Get(frame, {ix, iy, c});
+                							dx_ptr.Set(frame, {ix, iy, c}, (in_sig == out_sig) ? grad : 0);
+                                        }
+								    }
+                                }
+							}
+						}
+					}
+				}
+			}
+
+            return m_y;
 		}
 	}
 };

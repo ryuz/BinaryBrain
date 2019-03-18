@@ -183,8 +183,8 @@ void MaxPoolingTest_Compare(
         bb::index_t const c_size = 3,
         bb::index_t const input_h_size  = 12,
         bb::index_t const input_w_size  = 8,
-        bb::index_t const filter_h_size = 2,
-        bb::index_t const filter_w_size = 3
+        bb::index_t const filter_h_size = 3,
+        bb::index_t const filter_w_size = 2
     )
 {
     bb::index_t const output_h_size = (input_h_size + filter_h_size - 1) / filter_h_size;
@@ -200,6 +200,8 @@ void MaxPoolingTest_Compare(
     maxpol_gpu->SetInputShape(x_gpu.GetShape());
 
     auto val_gen = bb::NormalDistributionGenerator<double>::Create(0.0, 1.0);
+
+    // forward
 	for (bb::index_t f = 0; f < frame_size; ++f) {
 		for (bb::index_t c = 0; c < c_size; ++c) {
 			for (bb::index_t y = 0; y < input_h_size; ++y) {
@@ -215,7 +217,6 @@ void MaxPoolingTest_Compare(
     EXPECT_EQ(bb::indices_t({output_w_size, output_h_size, c_size}), maxpol_cpu->GetOutputShape());
     EXPECT_EQ(bb::indices_t({output_w_size, output_h_size, c_size}), maxpol_gpu->GetOutputShape());
 
-    // forward
 	auto y_cpu = maxpol_cpu->Forward(x_cpu);
 	auto y_gpu = maxpol_gpu->Forward(x_gpu);
 
@@ -234,6 +235,42 @@ void MaxPoolingTest_Compare(
 		}
 	}
 
+
+
+    // backward
+    bb::FrameBuffer dy_cpu(bb::DataType<FT>::type, frame_size, {output_w_size, output_h_size, c_size}, true);
+    bb::FrameBuffer dy_gpu(bb::DataType<FT>::type, frame_size, {output_w_size, output_h_size, c_size});
+    
+	for (bb::index_t f = 0; f < frame_size; ++f) {
+		for (bb::index_t c = 0; c < c_size; ++c) {
+			for (bb::index_t y = 0; y < output_h_size; ++y) {
+				for (bb::index_t x = 0; x < output_w_size; ++x) {
+                    FT val = (FT)val_gen->GetValue();
+					dy_cpu.SetValue<FT>(f, { x, y, c }, val);
+					dy_gpu.SetValue<FT>(f, { x, y, c }, val);
+				}
+			}
+		}
+	}
+    
+	auto dx_cpu = maxpol_cpu->Backward(dy_cpu);
+	auto dx_gpu = maxpol_gpu->Backward(dy_gpu);
+
+    EXPECT_EQ(bb::indices_t({input_w_size, input_h_size, c_size}), dx_cpu.GetShape());
+    EXPECT_EQ(bb::indices_t({input_w_size, input_h_size, c_size}), dx_gpu.GetShape());
+
+	for (bb::index_t f = 0; f < frame_size; ++f) {
+		for (bb::index_t c = 0; c < c_size; ++c) {
+			for (bb::index_t y = 0; y < input_h_size; ++y) {
+				for (bb::index_t x = 0; x < input_w_size; ++x) {
+//                  std::cout << " f:" << f  << " c:" << c  << " y:" << y  << " x:" << x << std::endl;
+					auto val_cpu = dx_cpu.GetValue<FT>(f, { x, y, c });
+					auto val_gpu = dx_gpu.GetValue<FT>(f, { x, y, c });
+                    EXPECT_EQ(val_cpu, val_gpu);
+				}
+			}
+		}
+	}
 
 }
 

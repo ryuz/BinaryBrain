@@ -87,10 +87,14 @@ void MnistSimpleCnnMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
     std::cout << "binary mode" << std::endl;
     net->SendCommand("binary true");
 
-//  net->SendCommand("host_only true");
+    net->SendCommand("host_only true");
+//  net->SendCommand("host_only true", "MicroMlpAffine");
 //  net->SendCommand("host_only true", "BatchNormalization");
+//  net->SendCommand("host_only true", "ConvolutionCol2Im");
+//  net->SendCommand("host_only true", "ConvolutionIm2Col");
+//  net->SendCommand("host_only true", "MaxPooling");
 
-    net->PrintInfo(2);
+//  net->PrintInfo(2);
 //  net->PrintInfo();
 
     bb::Runner<float>::create_t runner_create;
