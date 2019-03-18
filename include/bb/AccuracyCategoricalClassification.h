@@ -24,7 +24,7 @@ class AccuracyCategoricalClassification : public AccuracyFunction
 protected:
 	index_t m_num_classes;
 	double  m_accuracy = 0;
-    index_t m_frames;
+    index_t m_frames = 0;
 
 
 protected:

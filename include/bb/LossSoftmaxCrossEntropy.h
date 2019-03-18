@@ -23,8 +23,8 @@ class LossSoftmaxCrossEntropy : public LossFunction
 {
 protected:
     FrameBuffer m_dy;
-    double      m_loss;
-    index_t     m_frames;
+    double      m_loss = 0;
+    index_t     m_frames = 0;
 
 protected:
 	LossSoftmaxCrossEntropy() {}
@@ -92,7 +92,7 @@ public:
             m_frames += frame_size;
 
             return m_dy;
-        }        
+        }
     }
 };
 
