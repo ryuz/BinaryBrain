@@ -113,38 +113,43 @@ Binarize層として動作します。
   ConvolutionIm2Col + 引数で渡したモデル + ConvolutionCol2Im
   DenseAffine を渡すと、通常のCNNになり、MicroMlp を用いたサブネットワークを渡すことで、LUT-Network での畳込みが可能です。
 
-#### ConvolutionIm2
+#### ConvolutionIm2 クラス
   畳み込みの為のLoweringを行います。通常、LoweringConvolutionクラス の中で利用されます。
   Loweringされたデータに対して BatchNormalization するのも LUT-Network 学習時の特徴の一つかもしれません。
 
-#### ConvolutionCol2Im
+#### ConvolutionCol2Im クラス
   畳み込みの為のLoweringの復元を行います。通常、LoweringConvolutionクラス の中で利用されます。
 
 #### RealToBinary クラス
   実数値をバイナライズします。
   その際にframe方向に拡張して変調を掛ける(多重化)が可能です。
-  現在、PWM変調と、乱数での変調を実装しており、デフォルトでPWM変調となります。
-  (将来⊿Σなどの誤差蓄積機能も検討中です)
+  現在、PWM変調と、乱数での変調を実装しており、デフォルトでPWM変調となります(将来⊿Σなどの誤差蓄積機能も検討中です)。
+  変調を行うことで、入力値に対して確率的な0/1比率の値を生成できるため、出力も確率的なものとなります。
+ 
 
 #### BinaryToReal クラス
-  多重化されたバイナリ値をカウンティングして実数値を生成します。
+  多重化された確率的な0と1をカウンティングして実数値を生成します。
   RealToBinary 対応しますが、こちらは時間方向だけでなく、空間方向のカウントも可能です。
+  オーバーサンプリングによる十分な多重化数が確保できれば、回路規模を増加させること無く回帰などの実数値へのフィッティング可能性が出てきます。
 
 ---
 
 ## 損失関数
-### LossSoftmaxCrossEntropy
-  普通のLossSoftmaxCrossEntropyです。
+### LossSoftmaxCrossEntropy クラス
+  普通のSoftmax-CrossEntropyクラスです。
+
+### LossSoftmaxCrossEntropy クラス
+  最小二乗誤差を損失とするクラスです。
 
 ## 精度関数
-### AccuracyCategoricalClassification
+### AccuracyCategoricalClassification クラス
   Categorical Classification の精度を計算します。
 
 ## 最適化(Optimizer)
-### OptimizerSgd
+### OptimizerSgd クラス
   普通のSGDです。
 
-### OptimizerAdam
+### OptimizerAdam クラス
   普通のAdamです。
 
 
