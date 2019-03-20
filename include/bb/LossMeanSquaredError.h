@@ -12,7 +12,6 @@
 
 #include <vector>
 
-#include <Eigen/Core>
 
 #include "bb/LossFunction.h"
 
