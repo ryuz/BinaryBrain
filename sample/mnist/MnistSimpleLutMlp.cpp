@@ -36,7 +36,7 @@ static void WriteMnistDataFile(std::string train_file, std::string test_file, in
 void MnistSimpleLutMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
 {
     // RTL simulation 用データの出力
-    WriteMnistDataFile("verilog/mnist_train.txt", "verilog/mnist_test.txt", 60000, 10000);
+    WriteMnistDataFile("verilog/_train.txt", "verilog/mnist_test.txt", 60000, 10000);
 
 
   // load MNIST data
@@ -130,11 +130,6 @@ void MnistSimpleLutMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
             std::string filename = "verilog/MnistSimpleLutMlp.v";
             std::ofstream ofs(filename);
             bb::ExportVerilog_LutLayers<>(ofs, "MnistSimpleLutMlp", lut_net);
-
-//            bb::ExportVerilog_LutLayer(ofs, "layer0", *layer_lut0);
- //           bb::ExportVerilog_LutLayer(ofs, "layer1", *layer_lut1);
-  //          bb::ExportVerilog_LutLayer(ofs, "layer2", *layer_lut2);
-  //          bb::ExportVerilog_LutLayer(ofs, "layer3", *layer_lut2);
             std::cout << "export : " << filename << "\n" << std::endl;
         }
     }

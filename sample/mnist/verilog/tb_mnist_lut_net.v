@@ -59,7 +59,8 @@ module tb_mnist_lut_net();
 			in_valid <= 1'b1;
 			
 			if ( index == DATA_SIZE-1 ) begin
-				index <= 0;
+//				index <= 0;
+				$finish();
 			end
 		end
 	end
