@@ -132,11 +132,13 @@
 
 ---
 
-## 損失関数
-### LossSoftmaxCrossEntropy クラス
+## モデル以外のクラス
+
+### 損失関数
+#### LossSoftmaxCrossEntropy クラス
   普通のSoftmax-CrossEntropyクラスです。
 
-### LossSoftmaxCrossEntropy クラス
+#### LossSoftmaxCrossEntropy クラス
   最小二乗誤差を損失とするクラスです。
 
 ## 精度関数
@@ -151,27 +153,41 @@
   普通のAdamです。
 
 
-## 実行補助
-### Runner
+### 実行補助
+#### Runner クラス
   構築したモデルのフィッティングや評価などの実行を補助します。
   論よりRUN。
-  もろもろの使い方で、Runner のソースが参考になるはずです。
+  Runner のソースが各種の使い方で、参考になるはずです。
 
 ---
 
-## データ保持
-### Tensor クラス
+### データ保持
+#### Tensor クラス
   多次元のデータを保持できるクラスで、演算も可能です。
   名前に反してまだ Tensor演算は実装できていません。
 
-### Variables クラス
+#### Variables クラス
   複数の Tensor を束ねる機能を持ったクラスです。
   形状が同じなら Variables 間での演算も可能です。
   主にOptimizerでの利用を想定しています。
 
-### FrameBuffer
+#### FrameBuffer クラス
   １つの Tensor を 1 frame として、複数frame を保持できるクラスです。
   ただし、内部では、NCHW や NHWC ではなく、CHWN 形式になるように並び替えてデータを保持しています。
   これは Lowering されて frame数が十分増やされた疎行列に特化して性能を出すための配置で、BinaryBrainの特徴の一つです。
   一方で、一般的な算術ライブラリに適合しない(並び替えが必要)ので注意が必要です。
+
+---
+
+## 各種関数
+
+### FPGAへのエクスポート
+
+#### ExportVerilog_LutLayer
+  LutLayer を Verilog-RTL で出力します。
+
+#### ExportVerilog_LutLayers
+  Sequential クラスに含まれる LutLayer を纏めて Verilog-RTL で出力します。
+  階層は追わないので注意ください。CNNにも未対応です。
+
 
