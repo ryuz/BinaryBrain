@@ -55,6 +55,16 @@ public:
     {
         m_layers.push_back(layer);
     }
+
+    int GetSize(void)
+    {
+        return (int)m_layers.size();
+    }
+
+    std::shared_ptr<Model> Get(int index)
+    {
+        return m_layers[index];
+    }
 	
     /**
      * @brief  コマンドを送る

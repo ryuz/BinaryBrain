@@ -44,7 +44,7 @@ public:
 
 	~CudaDevicePush()
 	{
-		if ( m_device >= 0 || (m_old_device != m_device) ) {
+		if ( m_device >= 0 && (m_old_device != m_device) ) {
 			BB_CUDA_SAFE_CALL(cudaSetDevice(m_old_device));
 		}
 	}

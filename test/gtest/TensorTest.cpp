@@ -1239,6 +1239,23 @@ void test_OperatorX(bb::indices_t shape)
         }
     }
         
+    // =
+    {
+        auto dst  = base_dst.Clone();
+        auto src0 = base_src0.Clone();
+        auto src1 = base_src1.Clone();
+
+        dst = (T)13.25;
+        
+        auto b_d  = base_dst.LockConst<T>();
+        auto b_s0 = base_src0.LockConst<T>();
+        auto b_s1 = base_src1.LockConst<T>();
+        auto d  = dst.LockConst<T>();
+       
+        for (bb::index_t i = 0; i < node_size; ++i) {
+            EXPECT_EQ(d[i], (T)13.25);
+        }
+    }
 
     // +
     {

@@ -62,19 +62,21 @@ protected:
 public:
     struct create_t
     {
-        std::string                         name;
-        std::shared_ptr<Model>              net;
-	    std::shared_ptr<AccuracyFunction>   accFunc;
-	    std::shared_ptr<LossFunction>       lossFunc;
-	    std::shared_ptr<Optimizer>          optimizer;
-	    bool                                print_progress = true;
-        bool                                file_read = false;
-        bool                                file_write = false;
-        bool                                write_serial = false;
-	    bool                                initial_evaluation = false;
-        std::int64_t                        seed = 1;
-	    callback_proc_t                     callback_proc = nullptr;
-	    void*                               callback_user = 0;
+        std::string                         name;                               //< ネット名
+        std::shared_ptr<Model>              net;                                //< ネット
+	    std::shared_ptr<LossFunction>       lossFunc;                           //< 損失関数オブジェクト
+	    std::shared_ptr<AccuracyFunction>   accFunc;                            //< 精度関数オブジェクト
+	    std::shared_ptr<Optimizer>          optimizer;                          //< オプティマイザ
+	    bool                                print_progress = true;              //< 途中経過を表示するか
+        bool                                print_progress_loss = true;         //< 途中経過で損失を表示するか
+        bool                                print_progress_accuracy = true;     //< 途中経過で精度を表示するか
+        bool                                file_read = false;                  //< 以前の計算があれば読み込むか
+        bool                                file_write = false;                 //< 計算結果を保存するか
+        bool                                write_serial = false;               //< EPOC単位で計算結果を連番で保存するか
+	    bool                                initial_evaluation = false;         //< 初期評価を行うか
+        std::int64_t                        seed = 1;                           //< 乱数初期値
+	    callback_proc_t                     callback_proc = nullptr;            //< コールバック関数
+	    void*                               callback_user = 0;                  //< コールバック関数のユーザーパラメータ
     };
 
     static std::shared_ptr<Runner> Create(create_t const &create)
