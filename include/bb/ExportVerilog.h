@@ -147,28 +147,28 @@ void ExportVerilog_LutLayer(std::ostream& os, std::string module_name, LutLayer<
 }
 
 
-#if 0
-// Verilog 出力
-template <typename T = float>
-void OutputVerilogLutGroup(std::ostream& os, std::string module_name, NeuralNetGroup<T>& group)
-{
-	auto layer_size = group.GetSize();
-	for (int i = 0; i < layer_size; ++i) {
-		if (!dynamic_cast<NeuralNetBinaryLut<T>*>(group[i])) {
-			std::cout << "error : dynamic_cast<NeuralNetBinaryLut<T>*>" << std::endl;
-			BB_ASSERT(0);
-			return;
-		}
-	}
 
+// Verilog 出力
+template <typename FT = Bit, typename BT = float>
+void ExportVerilog_LutLayers(std::ostream& os, std::string module_name, std::shared_ptr<bb::Sequential> net)
+{
+    std::vector< std::shared_ptr< LutLayer<FT, BT> > >    layers;
+
+	for (int i = 0; i < net->GetSize(); ++i) {
+        auto layer = std::dynamic_pointer_cast< LutLayer<FT, BT> >(net->Get(i));
+        if ( layer != nullptr ) {
+            layers.push_back(layer);
+        }
+	}
+	int layer_size = (int)layers.size();
 
 	std::vector<std::string> sub_modle_name;
-	auto first_layer = dynamic_cast<NeuralNetBinaryLut<T>*>(group[0]);
-	auto last_layer  = dynamic_cast<NeuralNetBinaryLut<T>*>(group[layer_size - 1]);
+	auto first_layer = layers[0];
+	auto last_layer  = layers[layer_size - 1];
 
 	// サブモジュール名生成
 	for (int i = 0; i < layer_size; ++i) {
-		std::stringstream ss_sub_name;
+        std::stringstream ss_sub_name;
 		ss_sub_name << module_name << "_sub" << i;
 		sub_modle_name.push_back(ss_sub_name.str());
 	}
@@ -200,7 +200,7 @@ void OutputVerilogLutGroup(std::ostream& os, std::string module_name, NeuralNetG
 		"\n\n";
 
 	for (int i = 0; i < layer_size; ++i) {
-		auto layer = dynamic_cast<NeuralNetBinaryLut<T>*>(group[i]);
+		auto layer = layers[i];
 
 		os
 			<< "reg   [USER_BITS-1:0]  layer" << i << "_user;\n"
@@ -260,13 +260,13 @@ void OutputVerilogLutGroup(std::ostream& os, std::string module_name, NeuralNetG
 
 	// サブモジュール出力
 	for (int i = 0; i < layer_size; ++i) {
-		auto lut = dynamic_cast<NeuralNetBinaryLut<T>*>(group[i]);
-
-		OutputVerilogBinaryLut<T>(os, sub_modle_name[i], *lut);
+   		auto layer = layers[i];
+		ExportVerilog_LutLayer<FT, BT>(os, sub_modle_name[i], *layer);
 	}
 }
 
 
+#if 0
 
 // Convolution 出力
 inline void OutputVerilogConvolution(std::ostream& os, std::string module_name, std::string mlp_name, int in_c, int out_c, int n, int m)

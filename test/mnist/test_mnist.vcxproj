@@ -351,12 +351,13 @@
     <ClInclude Include="..\..\include\bb\BinaryLutN.h" />
     <ClInclude Include="..\..\include\bb\ConvolutionCol2Im.h" />
     <ClInclude Include="..\..\include\bb\ConvolutionIm2Col.h" />
+    <ClInclude Include="..\..\include\bb\CudaUtility.h" />
     <ClInclude Include="..\..\include\bb\DataType.h" />
     <ClInclude Include="..\..\include\bb\FrameBuffer.h" />
     <ClInclude Include="..\..\include\bb\Layer.h" />
     <ClInclude Include="..\..\include\bb\LoadMnist.h" />
-    <ClInclude Include="..\..\include\bb\LossCrossEntropyWithSoftmax.h" />
     <ClInclude Include="..\..\include\bb\LossFunction.h" />
+    <ClInclude Include="..\..\include\bb\LossSoftmaxCrossEntropy.h" />
     <ClInclude Include="..\..\include\bb\LoweringConvolution.h" />
     <ClInclude Include="..\..\include\bb\LutLayer.h" />
     <ClInclude Include="..\..\include\bb\Manager.h" />

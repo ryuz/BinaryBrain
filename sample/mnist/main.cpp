@@ -26,19 +26,19 @@ int main(int argc, char *argv[])
 	}
 
 	if ( strcmp(argv[1], "All") == 0 || strcmp(argv[1], "LutMlp") == 0 ) {
-		MnistSimpleLutMlp(4, 64, true);
+		MnistSimpleLutMlp(8, 64, true);
 	}
 
 	if ( strcmp(argv[1], "All") == 0 || strcmp(argv[1], "LutCnn") == 0 ) {
-    	MnistSimpleLutCnn(4, 16, true);
+    	MnistSimpleLutCnn(8, 16, true);
 	}
 
 	if ( strcmp(argv[1], "All") == 0 || strcmp(argv[1], "DenseAffine") == 0 ) {
-		MnistDenseAffine(4, 64);
+		MnistDenseAffine(8, 64);
 	}
 
 	if ( strcmp(argv[1], "All") == 0 || strcmp(argv[1], "SimpleMicroMlpScratch") == 0 ) {
-		MnistSimpleMicroMlpScratch(4, 64, true);
+		MnistSimpleMicroMlpScratch(8, 64, true);
 	}
 
 	return 0;

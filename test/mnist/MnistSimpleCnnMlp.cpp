@@ -46,14 +46,17 @@ void MnistSimpleCnnMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
     auto cvn0_mm0 = bb::MicroMlp<>::Create(192);
     auto cvn0_mm1 = bb::MicroMlp<>::Create(32);
 
-    auto cvn1_mm0 = bb::MicroMlp<>::Create(192);
-    auto cvn1_mm1 = bb::MicroMlp<>::Create(32);
+    auto cvn1_mm0 = bb::MicroMlp<>::Create(512);
+    auto cvn1_mm1 = bb::MicroMlp<>::Create(192);
+    auto cvn1_mm2 = bb::MicroMlp<>::Create(32);
 
-    auto cvn2_mm0 = bb::MicroMlp<>::Create(192);
-    auto cvn2_mm1 = bb::MicroMlp<>::Create(32);
+    auto cvn2_mm0 = bb::MicroMlp<>::Create(512);
+    auto cvn2_mm1 = bb::MicroMlp<>::Create(192);
+    auto cvn2_mm2 = bb::MicroMlp<>::Create(32);
 
-    auto cvn3_mm0 = bb::MicroMlp<>::Create(192);
-    auto cvn3_mm1 = bb::MicroMlp<>::Create(32);
+    auto cvn3_mm0 = bb::MicroMlp<>::Create(512);
+    auto cvn3_mm1 = bb::MicroMlp<>::Create(192);
+    auto cvn3_mm2 = bb::MicroMlp<>::Create(32);
 
     auto cnv0_sub = bb::Sequential::Create();
     cnv0_sub->Add(cvn0_mm0);
@@ -62,14 +65,17 @@ void MnistSimpleCnnMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
     auto cnv1_sub = bb::Sequential::Create();
     cnv1_sub->Add(cvn1_mm0);
     cnv1_sub->Add(cvn1_mm1);
+    cnv1_sub->Add(cvn1_mm2);
 
     auto cnv2_sub = bb::Sequential::Create();
     cnv2_sub->Add(cvn2_mm0);
     cnv2_sub->Add(cvn2_mm1);
+    cnv2_sub->Add(cvn2_mm2);
 
     auto cnv3_sub = bb::Sequential::Create();
     cnv3_sub->Add(cvn3_mm0);
     cnv3_sub->Add(cvn3_mm1);
+    cnv3_sub->Add(cvn3_mm2);
 
     auto net = bb::Sequential::Create();
     net->Add(bb::RealToBinary<>::Create(1));

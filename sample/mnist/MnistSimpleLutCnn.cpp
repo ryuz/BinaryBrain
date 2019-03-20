@@ -91,4 +91,51 @@ void MnistSimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
     runner->Fitting(td, epoch_size, mini_batch_size);
 }
 
+
+// RTL simulation 用データの出力
+static void WriteTestImage(void)
+{
+	// load MNIST data
+	auto td = bb::LoadMnist<>::Load();
+
+	const int w = 640 / 4;
+	const int h = 480 / 4;
+
+	unsigned char img[h][w];
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) {
+			int idx = (y / 28) * (w / 28) + (x / 28);
+			int xx = x % 28;
+			int yy = y % 28;
+			img[y][x] = (unsigned char)(td.x_test[idx][yy * 28 + xx] * 255.0f);
+		}
+	}
+
+	{
+		std::ofstream ofs("mnist_test.pgm");
+		ofs << "P2" << std::endl;
+		ofs << w << " " << h << std::endl;
+		ofs << "255" << std::endl;
+		for (int y = 0; y < h; ++y) {
+			for (int x = 0; x < w; ++x) {
+				ofs << (int)img[y][x] << std::endl;
+			}
+		}
+	}
+
+	{
+		std::ofstream ofs("mnist_test.ppm");
+		ofs << "P3" << std::endl;
+		ofs << w << " " << h << std::endl;
+		ofs << "255" << std::endl;
+		for (int y = 0; y < h; ++y) {
+			for (int x = 0; x < w; ++x) {
+				ofs << (int)img[y][x] << " " << (int)img[y][x] << " " << (int)img[y][x] << std::endl;
+			}
+		}
+	}
+}
+
+
+
 // end of file
