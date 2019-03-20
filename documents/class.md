@@ -64,13 +64,11 @@
 
 #### ReLU クラス
   普通のReLU です。
-  Binarize から派生しており、SendCommand() にて、"binary_mode true" を送ることで
-Binarize層として動作します。
+  Binarize から派生しており、SendCommand() にて、"binary true" を送ることでBinarize層として動作します。
 
 #### Sigmoid クラス
   普通のSigmoid です。
-  Binarize から派生しており、SendCommand() にて、"binary_mode true" を送ることで
-Binarize層として動作します。
+  Binarize から派生しており、SendCommand() にて、"binary true" を送ることでBinarize層として動作します。
 
 ---
 
