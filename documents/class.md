@@ -4,6 +4,9 @@
 ## 概要
 本書では BinaryBrain Version 3 のAPIの概要を説明します。
 詳細は、ソースコードに doxygen 形式でコメントを追記していくことを目指しており、本文書では初めに大まかな概要を掴む為の情報を記載します。
+なお BinaryBrain のコードは namespace に bb という名称を持ちます。
+
+---
 
 ## モデルクラス
   すべてのレイヤーはModelクラスからの派生で生成されます。
@@ -50,6 +53,7 @@
   レイヤーの情報を表示します。
   自作レイヤーを作成する場合に実装しておけば独自の情報を出力できます。
 
+---
 
 ### 活性化層
 #### Binarize クラス
@@ -68,11 +72,12 @@ Binarize層として動作します。
   Binarize から派生しており、SendCommand() にて、"binary_mode true" を送ることで
 Binarize層として動作します。
 
+---
 
 ### 演算層
 #### MicroMlp クラス
   LUT-Network の LUT に相当する部分を学習させるためのレイヤーです。
-  内部は MicroMlpAffine, BatchNormalization, 活性化層 の３層で構成されます。
+  内部は MicroMlpAffine + BatchNormalization + 活性化層 の３層で構成されます。
   活性化層 は デフォルトは ReLU ですが、テンプレート引数で変更可能です。
 
 #### MicroMlpAffine クラス
@@ -86,6 +91,18 @@ Binarize層として動作します。
   BatchNormalization層です。
   活性化層でバイナリ化を行う前段ほぼ必須となってくる層です。
 
+#### LutLayer (抽象クラス)
+  LUT-Network を記述する基本モデルです。
+  現在 ver2 の直接学習機能はまだ ver3 には未実装です。
+  MicroMlp などで逆伝播で学習した内容をテーブル化して写し取ることを目的としています。
+  テーブル化取り込みに ImportLayer() メソッドを備えます。
+
+#### BinaryLutN クラス
+  各ノードの入力数を１つに固定したLUTモデルです。一般的なFPGAに適合します。
+  入力数はテンプレート引数で指定でき、FPGAでは 4 か 6 のものが一般的と思われます。
+  入力数を固定することで演算を高速化できますが、ver3 への移植はまだ行えていません。
+
+---
 
 ### 補助層
 #### Sequential クラス
@@ -93,7 +110,15 @@ Binarize層として動作します。
 
 #### LoweringConvolution クラス
   Lowering を行い畳こみ演算を行います。
+  ConvolutionIm2Col + 引数で渡したモデル + ConvolutionCol2Im
   DenseAffine を渡すと、通常のCNNになり、MicroMlp を用いたサブネットワークを渡すことで、LUT-Network での畳込みが可能です。
+
+#### ConvolutionIm2
+  畳み込みの為のLoweringを行います。通常、LoweringConvolutionクラス の中で利用されます。
+  Loweringされたデータに対して BatchNormalization するのも LUT-Network 学習時の特徴の一つかもしれません。
+
+#### ConvolutionCol2Im
+  畳み込みの為のLoweringの復元を行います。通常、LoweringConvolutionクラス の中で利用されます。
 
 #### RealToBinary クラス
   実数値をバイナライズします。
@@ -105,6 +130,7 @@ Binarize層として動作します。
   多重化されたバイナリ値をカウンティングして実数値を生成します。
   RealToBinary 対応しますが、こちらは時間方向だけでなく、空間方向のカウントも可能です。
 
+---
 
 ## 損失関数
 ### LossSoftmaxCrossEntropy
@@ -114,7 +140,7 @@ Binarize層として動作します。
 ### AccuracyCategoricalClassification
   Categorical Classification の精度を計算します。
 
-## 最適化
+## 最適化(Optimizer)
 ### OptimizerSgd
   普通のSGDです。
 
@@ -127,4 +153,22 @@ Binarize層として動作します。
   構築したモデルのフィッティングや評価などの実行を補助します。
   論よりRUN。
   もろもろの使い方で、Runner のソースが参考になるはずです。
+
+---
+
+## データ保持
+### Tensor クラス
+  多次元のデータを保持できるクラスで、演算も可能です。
+  名前に反してまだ Tensor演算は実装できていません。
+
+### Variables クラス
+  複数の Tensor を束ねる機能を持ったクラスです。
+  形状が同じなら Variables 間での演算も可能です。
+  主にOptimizerでの利用を想定しています。
+
+### FrameBuffer
+  １つの Tensor を 1 frame として、複数frame を保持できるクラスです。
+  ただし、内部では、NCHW や NHWC ではなく、CHWN 形式になるように並び替えてデータを保持しています。
+  これは Lowering されて frame数が十分増やされた疎行列に特化して性能を出すための配置で、BinaryBrainの特徴の一つです。
+  一方で、一般的な算術ライブラリに適合しない(並び替えが必要)ので注意が必要です。
 
