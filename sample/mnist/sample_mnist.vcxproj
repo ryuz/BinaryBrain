@@ -352,9 +352,11 @@
     <ClInclude Include="..\..\include\bb\BatchNormalization.h" />
     <ClInclude Include="..\..\include\bb\DataType.h" />
     <ClInclude Include="..\..\include\bb\ExportVerilog.h" />
+    <ClInclude Include="..\..\include\bb\Filter2d.h" />
     <ClInclude Include="..\..\include\bb\FrameBuffer.h" />
     <ClInclude Include="..\..\include\bb\Layer.h" />
     <ClInclude Include="..\..\include\bb\LossFunction.h" />
+    <ClInclude Include="..\..\include\bb\MaxPooling.h" />
     <ClInclude Include="..\..\include\bb\Memory.h" />
     <ClInclude Include="..\..\include\bb\MicroMlp.h" />
     <ClInclude Include="..\..\include\bb\MicroMlpAffine.h" />

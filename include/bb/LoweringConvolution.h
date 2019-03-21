@@ -12,6 +12,7 @@
 
 #include <cstdint>
 
+#include "bb/Filter2d.h"
 #include "bb/ConvolutionIm2Col.h"
 #include "bb/ConvolutionCol2Im.h"
 
@@ -21,7 +22,7 @@ namespace bb {
 
 // 入力数制限Affine Binary Connect版
 template <typename FT = float, typename BT = float>
-class LoweringConvolution : public Model
+class LoweringConvolution : public Filter2d<FT, BT>
 {
 protected:
     index_t m_filter_h_size = 1;
@@ -76,6 +77,16 @@ public:
 	}
 
 	std::string GetClassName(void) const { return "LoweringConvolution"; }
+
+    
+    std::shared_ptr< Model > GetLayer(void)
+    {
+        return m_layer;
+    }
+
+
+    index_t GetFilterHeight(void) { return m_filter_h_size; }
+    index_t GetFilterWidth(void)  { return m_filter_w_size; }
 
 
     /**

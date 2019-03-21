@@ -14,14 +14,14 @@
 #include <vector>
 #include <random>
 
-#include "bb/Model.h"
+#include "bb/Filter2d.h"
 
 
 namespace bb {
 
 // MaxPoolingクラス
 template <typename FT = float, typename BT = float>
-class MaxPooling : public Model
+class MaxPooling : public Filter2d<FT, BT>
 {
 protected:
     bool                m_host_only;
@@ -76,6 +76,8 @@ public:
 
 	std::string GetClassName(void) const { return "MaxPooling"; }
 
+    index_t GetFilterHeight(void) { return m_filter_h_size; }
+    index_t GetFilterWidth(void)  { return m_filter_w_size; }
 
     /**
      * @brief  入力形状設定
