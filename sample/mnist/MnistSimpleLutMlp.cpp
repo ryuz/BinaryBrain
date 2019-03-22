@@ -98,13 +98,6 @@ void MnistSimpleLutMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
         auto layer_lut2 = bb::BinaryLutN<>::Create(layer_mm2->GetOutputShape());
         auto layer_lut3 = bb::BinaryLutN<>::Create(layer_mm3->GetOutputShape());
 
-        // テーブル化して取り込み
-        layer_lut0->ImportLayer(*layer_mm0);
-        layer_lut1->ImportLayer(*layer_mm1);
-        layer_lut2->ImportLayer(*layer_mm2);
-        layer_lut3->ImportLayer(*layer_mm3);
-
-
         auto lut_net = bb::Sequential::Create();
         lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(7));
         lut_net->Add(layer_lut0);
@@ -113,7 +106,13 @@ void MnistSimpleLutMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
         lut_net->Add(layer_lut3);
         lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({10}, 7));
         lut_net->SetInputShape(td.x_shape);
-        
+
+        // テーブル化して取り込み(SetInputShape後に取り込みが必要)
+        layer_lut0->ImportLayer(*layer_mm0);
+        layer_lut1->ImportLayer(*layer_mm1);
+        layer_lut2->ImportLayer(*layer_mm2);
+        layer_lut3->ImportLayer(*layer_mm3);
+
         // 評価
         bb::Runner<float>::create_t lut_runner_create;
         lut_runner_create.name      = "Lut_MnistSimpleLutMlp";

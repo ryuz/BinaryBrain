@@ -101,7 +101,9 @@ void MnistSimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
         runner_create.lossFunc  = bb::LossSoftmaxCrossEntropy<float>::Create();
         runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create(10);
         runner_create.optimizer = bb::OptimizerAdam<float>::Create();
-        runner_create.print_progress = true;
+        runner_create.file_read  = true;        // 前の計算結果があれば読み込んで再開
+        runner_create.file_write = true;        // 計算結果をファイルに保存する
+        runner_create.print_progress = true;    // 途中結果を出力
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
@@ -119,18 +121,6 @@ void MnistSimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
         auto layer_cnv3_lut1 = bb::BinaryLutN<>::Create(layer_cnv3_mm1->GetOutputShape());
         auto layer_lut4      = bb::BinaryLutN<>::Create(layer_mm4->GetOutputShape());
         auto layer_lut5      = bb::BinaryLutN<>::Create(layer_mm5->GetOutputShape());
-
-        // テーブル化して取り込み
-        layer_cnv0_lut0->ImportLayer(*layer_cnv0_mm0);
-        layer_cnv0_lut1->ImportLayer(*layer_cnv0_mm1);
-        layer_cnv1_lut0->ImportLayer(*layer_cnv1_mm0);
-        layer_cnv1_lut1->ImportLayer(*layer_cnv1_mm1);
-        layer_cnv2_lut0->ImportLayer(*layer_cnv2_mm0);
-        layer_cnv2_lut1->ImportLayer(*layer_cnv2_mm1);
-        layer_cnv3_lut0->ImportLayer(*layer_cnv3_mm0);
-        layer_cnv3_lut1->ImportLayer(*layer_cnv3_mm1);
-        layer_lut4     ->ImportLayer(*layer_mm4);
-        layer_lut5     ->ImportLayer(*layer_mm5);
 
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_lut0);
@@ -157,15 +147,28 @@ void MnistSimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
         lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(1));
         lut_net->Add(cnv0);
         lut_net->Add(cnv1);
-        lut_net->Add(bb::MaxPooling<>::Create(2, 2));
+        lut_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
         lut_net->Add(cnv2);
         lut_net->Add(cnv3);
-        lut_net->Add(bb::MaxPooling<>::Create(2, 2));
+        lut_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
         lut_net->Add(layer_lut4);
         lut_net->Add(layer_lut5);
         lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({ 10 }, 1));
         lut_net->SetInputShape({28, 28, 1});
-        
+
+
+        // テーブル化して取り込み(現状まだSetInputShape後の取り込みが必要)
+        layer_cnv0_lut0->ImportLayer(*layer_cnv0_mm0);
+        layer_cnv0_lut1->ImportLayer(*layer_cnv0_mm1);
+        layer_cnv1_lut0->ImportLayer(*layer_cnv1_mm0);
+        layer_cnv1_lut1->ImportLayer(*layer_cnv1_mm1);
+        layer_cnv2_lut0->ImportLayer(*layer_cnv2_mm0);
+        layer_cnv2_lut1->ImportLayer(*layer_cnv2_mm1);
+        layer_cnv3_lut0->ImportLayer(*layer_cnv3_mm0);
+        layer_cnv3_lut1->ImportLayer(*layer_cnv3_mm1);
+        layer_lut4     ->ImportLayer(*layer_mm4);
+        layer_lut5     ->ImportLayer(*layer_mm5);
+
         // 評価
         bb::Runner<float>::create_t lut_runner_create;
         lut_runner_create.name      = "Lut_MnistSimpleLutCnn";
@@ -174,7 +177,7 @@ void MnistSimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
         lut_runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create(10);
         lut_runner_create.optimizer = bb::OptimizerAdam<float>::Create();
         lut_runner_create.initial_evaluation = false;
-        lut_runner_create.print_progress = true;
+        lut_runner_create.print_progress = true;    // 途中結果を出力
         auto lut_runner = bb::Runner<float>::Create(lut_runner_create);
         auto lut_accuracy = lut_runner->Evaluation(td, mini_batch_size);
         std::cout << "lut_accuracy : " << lut_accuracy << std::endl;

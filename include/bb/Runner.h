@@ -175,30 +175,26 @@ public:
     // Serialize
   	void Save(std::ostream &os) const
 	{
-		/*
-        Save(os, m_name);
+        SaveValue(os, m_name);
         SaveIndex(os, m_epoch);
-        SaveIndex(os, m_max_batch_size);
-	    Save(os, m_print_progress);
-	    Save(os, m_file_write);
-	    Save(os, m_over_write);
-	    Save(os, m_initial_evaluation);
+//      SaveIndex(os, m_max_batch_size);
+//	    Save(os, m_print_progress);
+//	    Save(os, m_file_write);
+//	    Save(os, m_over_write);
+//      Save(os, m_initial_evaluation);
         m_net->Save(os);
-		*/
 	}
 
 	void Load(std::istream &is)
 	{
-		/*
-        Load(is, m_name);
+        LoadValue(is, m_name);
         m_epoch = LoadIndex(is);
-        m_max_batch_size = LoadIndex(is);
-	    Load(is, m_print_progress);
-	    Load(is, m_file_write);
-	    Load(is, m_over_write);
-	    Load(is, m_initial_evaluation);
+//      m_max_batch_size = LoadIndex(is);
+//      Load(is, m_print_progress);
+//	    Load(is, m_file_write);
+//	    Load(is, m_over_write);
+//	    Load(is, m_initial_evaluation);
         m_net->Load(is);
-		*/
 	}
 
    	void SaveBinary(std::string filename) const
