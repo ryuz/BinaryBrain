@@ -1,6 +1,4 @@
-﻿# BinaryBrain  version 2 (version3 comming soon)<br>--binary neural networks platform for LUT-networks<br>
-<br>
-please see "ver3_develop" branch.
+﻿# BinaryBrain  version 2<br>--binary neural networks platform for LUT-networks<br>
 <br>
 
 ## High Performance Binary Neural Networks for FPGA
