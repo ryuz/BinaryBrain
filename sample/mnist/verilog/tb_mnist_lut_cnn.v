@@ -205,7 +205,7 @@ module tb_mnist_lut_cnn();
 				.s_axi4s_tlast		(m_axi4s_tlast),
 				.s_axi4s_tnumber	(m_axi4s_tnumber),
 				.s_axi4s_tcount		(m_axi4s_tcount),
-				.s_axi4s_tdata		(24'h202020),		// (m_axi4s_tdata),
+				.s_axi4s_tdata		(32'h00202020),		// (m_axi4s_tdata),
 				.s_axi4s_tbinary	(1'b0),				// (m_axi4s_tbinary),
 				.s_axi4s_tvalid		(m_axi4s_tvalid),
 				.s_axi4s_tready		(m_axi4s_tready),
@@ -218,12 +218,12 @@ module tb_mnist_lut_cnn();
 				
 				.s_wb_rst_i			(s_wb_rst_i),
 				.s_wb_clk_i			(s_wb_clk_i),
-				.s_wb_adr_i			(0),
-				.s_wb_dat_i			(0),
+				.s_wb_adr_i			(8'd0),
+				.s_wb_dat_i			(32'd0),
 				.s_wb_dat_o			(),
-				.s_wb_we_i			(0),
-				.s_wb_sel_i			(0),
-				.s_wb_stb_i			(0),
+				.s_wb_we_i			(1'b0),
+				.s_wb_sel_i			(4'd0),
+				.s_wb_stb_i			(1'b0),
 				.s_wb_ack_o			()
 		);
 	

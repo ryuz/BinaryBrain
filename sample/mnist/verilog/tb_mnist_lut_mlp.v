@@ -9,12 +9,12 @@
 `default_nettype none
 
 
-module tb_mnist_lut_net();
+module tb_mnist_lut_mlp();
 	localparam RATE = 1000.0/300.0;
 	
 	initial begin
-		$dumpfile("tb_mnist_lut_net.vcd");
-		$dumpvars(2, tb_mnist_lut_net);
+		$dumpfile("tb_mnist_lut_mlp.vcd");
+		$dumpvars(2, tb_mnist_lut_mlp);
 
 	#1000000
 		$finish();

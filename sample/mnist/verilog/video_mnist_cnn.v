@@ -87,7 +87,7 @@ module video_mnist_cnn
 				.aresetn			(aresetn),
 				.aclk				(aclk),
 				
-				.param_th			(127),
+				.param_th			(8'd127),
 				.param_inv			(1'b0),
 				
 				.s_axi4s_tuser		(s_axi4s_tuser),
@@ -134,7 +134,7 @@ module video_mnist_cnn
 				.aresetn			(aresetn),
 				.aclk				(aclk),
 				
-				.param_blank_num	(3),
+				.param_blank_num	(8'd3),
 				
 				.s_axi4s_tuser		(axi4s_bin_tuser),
 				.s_axi4s_tlast		(axi4s_bin_tlast),

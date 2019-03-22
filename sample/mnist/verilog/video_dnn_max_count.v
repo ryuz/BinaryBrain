@@ -95,7 +95,7 @@ module video_dnn_max_count
 				.cke				(cke),
 				
 				.s_common_user		({counting_tlast, counting_tuser, counting_tdata}),
-				.s_user				(1'b0),
+				.s_user				({NUM_CALSS{1'b0}}),
 				.s_data				(counting_count),
 				.s_en				({NUM_CALSS{1'b1}}),
 				.s_valid			(counting_valid),
