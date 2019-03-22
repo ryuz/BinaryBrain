@@ -28,8 +28,21 @@
   sample_mnist.vcxproj.filters       Visual-C++ 2017用
   sample_mnist.vcxproj.user          Visual-C++ 2017用
   verilog/bb_lut.v                   LUT の Verilogモデル
-  verilog/tb_mnist_lut_net.v         単純MLP LUT-Network のテストベンチ
-  verilog/tb_mnist_lut_net.vtakprj   単純MLP LUT-Network のVeritakプロジェクト
+  verilog/tb_mnist_lut_mlp.v         単純MLP LUT-Network のテストベンチ
+  verilog/tb_mnist_lut_mlp.vtakprj   単純MLP LUT-Network のVeritakプロジェクト
+  verilog/iverilog_lut_mlp.bat       単純MLP LUT-Network のiverilog実行(Win)
+  verilog/iverilog_lut_mlp.sh        単純MLP LUT-Network のiverilog実行(Linux)
+  verilog/iverilog_lut_mlp_cmd.txt   単純MLP LUT-Network のiverilogコマンド
+  verilog/tb_mnist_lut_cnn.v         単純CNN LUT-Network のテストベンチ
+  verilog/tb_mnist_lut_cnn.vtakprj   単純CNN LUT-Network のVeritakプロジェクト
+  verilog/iverilog_lut_cnn.bat       単純CNN LUT-Network のiverilog実行(Win)
+  verilog/iverilog_lut_cnn.sh        単純CNN LUT-Network のiverilog実行(Linux)
+  verilog/iverilog_lut_cnn_cmd.txt   単純CNN LUT-Network のiverilogコマンド
+  verilog/video_mnist_cnn.v          CNNモジュール
+  verilog/video_mnist_cnn_core.v     CNNモジュールのコア
+  verilog/video_dnn_max_count.v      クラスタリング結果のカウンティング
+  verilog/video_mnist_color.v        結果着色モジュール
+  verilog/video_mnist_color_core.v   結果着色モジュールのコア
 
 
 【ビルド方法】
@@ -60,7 +73,7 @@
   SimpleMicroMlpScratch    単純多層パーセプトロンをベタ書したサンプルを実行
   All                      上のすべてを実行
 
-  となっています。
+  となっており、試したいモデルだけ実行することも可能です。
   また -epoch オプションなどで epoch 数の指定も可能です。詳しくは main.cpp を確認ください。
 
 
@@ -72,9 +85,9 @@
 
 【MLP の Verilog シミュレーションまで】
 
-  ./sample_mnist LutMlp
+  ./sample-mnist LutMlp
 
-  を実行すると、学習完了後 verilog ディレクトリに
+  を実行すると、学習完了後 verilog ディレクトリの下に
 
   mnist_train.txt       トレーニングデータ
   mnist_test.txt        評価データ
@@ -85,21 +98,45 @@
   下記を、何らかのシミュレータでシミュレーション実行すると、
 学習結果が試せます。
 
-  tb_mnist_lut_net.v
+  tb_mnist_lut_mlp.v
   MnistSimpleLutMlp.v
   bb_lut.v
 
-  tb_mnist_lut_net.vtakprj が Veritak 用のプロジェクトとなっておりますので、
-Veritak ご利用のユーザーはすぐに試すことが出来ます。
+  iverilog(Icarus Verilog)用に iverilog_lut_mlp.sh というスクリプトも
+用意しています(が、ネットワークの特性か結構遅いです)。
+
+  tb_mnist_lut_mlp.vtakprj が Veritak 用のプロジェクトとなっておりますので、
+Windowsで Veritak ご利用のユーザーは活用ください。
 
 
 
 【CNN の Verilog シミュレーションまで】
-  現在まだVer3に移植が終わっていません。
-  しばらくお待ちください m(_ _)m
 
-  MaxPooling を 2回通しているため、出力サイズは縦横それぞれ元のサイズ 1/4 となります。
+  ./sample-mnist LutCnn
 
+  を実行すると、学習完了後 verilog ディレクトリの下に
+
+  mnist_test_160x120.ppm  テスト画像(160x120)
+  mnist_test_640x480.ppm  テスト画像(640x480)
+  MnistSimpleLutCnn.v     学習済みの RTL
+
+  iverilog(Icarus Verilog)用に iverilog_lut_cnn.sh というスクリプトも
+用意しています(が、ネットワークの特性か結構遅いです)。
+
+  tb_mnist_lut_cnn.vtakprj が Veritak 用のプロジェクトとなっておりますので、
+Windowsで Veritak ご利用のユーザーは活用ください。
+
+  CNN の動作には Jelly(https://github.com/ryuz/jelly) を利用しており、
+git の submodule にて取り込んで、必要なファイルを参照していますので
+ご注意ください。
+
+  かなり時間が掛かりますが、うまく行けば col_0.ppm などが、ppm形式の色づけされた
+結果画像として出力されます。
+  なお MaxPooling を 2回通しているため、出力サイズは縦横それぞれ元の
+サイズの 1/4 となります。
+
+  色は  0:黒 1:茶 2:赤 3:橙 4:黄 5:緑 6:青 7:紫 8:灰 9:白 のカラーコードで
+着色しています。
 
 
 ------------------------------------------------------------------------------
