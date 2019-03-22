@@ -16,9 +16,10 @@
 #include <vector>
 #include <sstream>
 
-#include "bb/LutLayer.h"
 #include "bb/Sequential.h"
+#include "bb/LutLayer.h"
 #include "bb/LoweringConvolution.h"
+#include "bb/MaxPooling.h"
 
 
 namespace bb {

@@ -36,8 +36,7 @@ static void WriteMnistDataFile(std::string train_file, std::string test_file, in
 void MnistSimpleLutMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
 {
     // RTL simulation 用データの出力
-    WriteMnistDataFile("verilog/_train.txt", "verilog/mnist_test.txt", 60000, 10000);
-
+    WriteMnistDataFile("verilog/mnist_train.txt", "verilog/mnist_test.txt", 60000, 10000);
 
   // load MNIST data
 #ifdef _DEBUG
