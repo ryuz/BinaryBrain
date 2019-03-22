@@ -36,8 +36,7 @@ static void WriteMnistDataFile(std::string train_file, std::string test_file, in
 void MnistSimpleLutMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
 {
     // RTL simulation 用データの出力
-    WriteMnistDataFile("verilog/_train.txt", "verilog/mnist_test.txt", 60000, 10000);
-
+    WriteMnistDataFile("verilog/mnist_train.txt", "verilog/mnist_test.txt", 60000, 10000);
 
   // load MNIST data
 #ifdef _DEBUG
@@ -97,6 +96,7 @@ void MnistSimpleLutMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
         auto layer_lut1 = bb::BinaryLutN<>::Create(layer_mm1->GetOutputShape());
         auto layer_lut2 = bb::BinaryLutN<>::Create(layer_mm2->GetOutputShape());
         auto layer_lut3 = bb::BinaryLutN<>::Create(layer_mm3->GetOutputShape());
+
         auto lut_net = bb::Sequential::Create();
         lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(7));
         lut_net->Add(layer_lut0);
@@ -106,7 +106,7 @@ void MnistSimpleLutMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
         lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({10}, 7));
         lut_net->SetInputShape(td.x_shape);
 
-        // テーブル化して取り込み
+        // テーブル化して取り込み(SetInputShape後に取り込みが必要)
         layer_lut0->ImportLayer(*layer_mm0);
         layer_lut1->ImportLayer(*layer_mm1);
         layer_lut2->ImportLayer(*layer_mm2);

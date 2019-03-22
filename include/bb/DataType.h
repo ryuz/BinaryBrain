@@ -96,6 +96,34 @@ inline index_t GetShapeIndex(indices_t const & indices, indices_t const & shape)
     return index;
 }
 
+inline index_t GetShapeIndex(index_t i0, indices_t const & shape)
+{
+    BB_DEBUG_ASSERT(shape.size() == 1);
+    BB_DEBUG_ASSERT(i0 >= 0 && i0 <= shape[0]);
+
+    return i0;
+}
+
+inline index_t GetShapeIndex(index_t i1, index_t i0, indices_t const & shape)
+{
+    BB_DEBUG_ASSERT(shape.size() == 2);
+    BB_DEBUG_ASSERT(i0 >= 0 && i0 <= shape[0]);
+    BB_DEBUG_ASSERT(i1 >= 0 && i1 <= shape[1]);
+
+    return (i1 * shape[0]) + i0;
+}
+
+inline index_t GetShapeIndex(index_t i2, index_t i1, index_t i0, indices_t const & shape)
+{
+    BB_DEBUG_ASSERT(shape.size() == 3);
+    BB_DEBUG_ASSERT(i0 >= 0 && i0 <= shape[0]);
+    BB_DEBUG_ASSERT(i1 >= 0 && i1 <= shape[1]);
+    BB_DEBUG_ASSERT(i2 >= 0 && i2 <= shape[2]);
+
+    return ((i2 * shape[1] + i1) * shape[0]) + i0;
+}
+
+
 inline index_t GetStrideIndex(indices_t const & indices, indices_t const & stride)
 {
     BB_DEBUG_ASSERT(indices.size() == stride.size());

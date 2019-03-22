@@ -7,9 +7,15 @@
 *.obj
 *.exe
 *.bin
-*.v
 *.dat
 *.hex
+*.out
+
+*.ppm
+*.pgm
+
+*.vvp
+*.vcd
 
 *.VC.db
 *.VC.opendb
@@ -19,6 +25,12 @@
 sample/mnist/sample-mnist
 test/mnist/test-mnist
 test/gtest/gtest
+
+# generate file
+sample/mnist/verilog/mnist_train.txt
+sample/mnist/verilog/mnist_test.txt
+sample/mnist/verilog/MnistSimpleLutMlp.v
+sample/mnist/verilog/MnistSimpleLutCnn.v
 
 .vs/
 Debug/

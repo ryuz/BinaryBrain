@@ -89,6 +89,9 @@
   BatchNormalization層です。
   活性化層でバイナリ化を行う前段ほぼ必須となってくる層です。
 
+#### MaxPooling クラス
+  MaxPooling層です。
+
 #### LutLayer (抽象クラス)
   LUT-Network を記述する基本モデルです。
   現在 ver2 の直接学習機能はまだ ver3 には未実装です。

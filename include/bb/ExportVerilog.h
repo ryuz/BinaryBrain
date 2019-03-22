@@ -16,13 +16,16 @@
 #include <vector>
 #include <sstream>
 
+#include "bb/Sequential.h"
 #include "bb/LutLayer.h"
+#include "bb/LoweringConvolution.h"
+#include "bb/MaxPooling.h"
 
 
 namespace bb {
 
 
-// Verilog 出力
+// LUT-Network 基本レイヤーのVerilog 出力
 template <typename FT = Bit, typename BT = float>
 void ExportVerilog_LutLayer(std::ostream& os, std::string module_name, LutLayer<FT, BT> const &lut)
 {
@@ -148,19 +151,11 @@ void ExportVerilog_LutLayer(std::ostream& os, std::string module_name, LutLayer<
 
 
 
-// Verilog 出力
+// LUT-Network 基本レイヤーの直列接続を出力
 template <typename FT = Bit, typename BT = float>
-void ExportVerilog_LutLayers(std::ostream& os, std::string module_name, std::shared_ptr<bb::Sequential> net)
+void ExportVerilog_LutLayers(std::ostream& os, std::string module_name, std::vector< std::shared_ptr< LutLayer<FT, BT> > > layers)
 {
-    std::vector< std::shared_ptr< LutLayer<FT, BT> > >    layers;
-
-	for (int i = 0; i < net->GetSize(); ++i) {
-        auto layer = std::dynamic_pointer_cast< LutLayer<FT, BT> >(net->Get(i));
-        if ( layer != nullptr ) {
-            layers.push_back(layer);
-        }
-	}
-	int layer_size = (int)layers.size();
+    int layer_size = (int)layers.size();
 
 	std::vector<std::string> sub_modle_name;
 	auto first_layer = layers[0];
@@ -266,10 +261,27 @@ void ExportVerilog_LutLayers(std::ostream& os, std::string module_name, std::sha
 }
 
 
-#if 0
+// LUT-Network 基本レイヤーの直列接続を出力
+template <typename FT = Bit, typename BT = float>
+void ExportVerilog_LutLayers(std::ostream& os, std::string module_name, std::shared_ptr<bb::Sequential> net)
+{
+    std::vector< std::shared_ptr< LutLayer<FT, BT> > > layers;
 
-// Convolution 出力
-inline void OutputVerilogConvolution(std::ostream& os, std::string module_name, std::string mlp_name, int in_c, int out_c, int n, int m)
+    // LutLayer だけを取り出し
+	for (int i = 0; i < net->GetSize(); ++i) {
+        auto layer = std::dynamic_pointer_cast< LutLayer<FT, BT> >(net->Get(i));
+        if ( layer != nullptr ) {
+            layers.push_back(layer);
+        }
+	}
+
+    ExportVerilog_LutLayers<FT, BT>(os, module_name, layers);
+}
+
+
+
+// Convolutionモジュールの出力
+inline void ExportVerilog_LutConvolutionModule(std::ostream& os, std::string module_name, std::string mlp_name, int in_c, int out_c, int n, int m)
 {
 	os << "\n\n\n";
 	os << "module " << module_name << "\n";
@@ -425,39 +437,50 @@ endmodule
 }
 
 
-
-
-template <typename T = float, typename ST = bool>
-void OutputVerilogLoweringConvolution(std::ostream& os, std::string module_name, NeuralNetLoweringConvolution<ST, T>& conv)
+template <typename FT = Bit, typename BT = float>
+void ExportVerilog_LutConvolutionLayer(std::ostream& os, std::string module_name, std::shared_ptr< LoweringConvolution<FT, BT> > conv)
 {
 	// group取得
-	auto grop = dynamic_cast<NeuralNetGroup<T> *>(conv.GetLayer());
-	if ( !grop ) {
-		std::cout << "error : dynamic_cast<NeuralNetGroup<T> *>" << std::endl;
+	auto net = std::dynamic_pointer_cast<Sequential>(conv->GetLayer());
+	if ( !net ) {
+		std::cout << "error : std::dynamic_pinter_cast<Sequential>" << std::endl;
 		BB_ASSERT(0);
 		return;
 	}
 
 	std::string mlp_name = module_name + "_mlp";
 
-	int in_c  = conv.GetInputChannel();
-	int out_c = conv.GetOutputChannel();
-	int n = conv.GetFilterHeight();
-	int m = conv.GetFilterWidth();
+    auto in_shape  = conv->GetInputShape();
+	auto out_shape = conv->GetOutputShape();
+    BB_ASSERT(in_shape.size() == 3);
+    BB_ASSERT(out_shape.size() == 3);
 
-	OutputVerilogConvolution(os, module_name, mlp_name, in_c, out_c, n, m);
-	OutputVerilogLutGroup(os, mlp_name, *grop);
+	int in_c  = (int)in_shape[2];
+	int out_c = (int)out_shape[2];
+	int n = (int)conv->GetFilterHeight();
+	int m = (int)conv->GetFilterWidth();
+
+	ExportVerilog_LutConvolutionModule(os, module_name, mlp_name, in_c, out_c, n, m);
+	ExportVerilog_LutLayers<FT, BT>(os, mlp_name, net);
 }
 
 
 
 
-template <typename T = float, typename ST = bool>
-void OutputVerilogCnnAxi4s(std::ostream& os, std::string module_name, std::vector< NeuralNetFilter2d<T>* > layers)
+template <typename FT = Bit, typename BT = float>
+void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module_name, std::vector< std::shared_ptr< Filter2d<FT, BT> > > layers)
 {
 	int	 layer_size = (int)layers.size();
 	auto fisrt_layer = layers[0];
 	auto last_layer = layers[layer_size - 1];
+
+    auto in_shape  = fisrt_layer->GetInputShape();
+	auto out_shape = last_layer->GetOutputShape();
+    BB_ASSERT(in_shape.size() == 3);
+    BB_ASSERT(out_shape.size() == 3);
+	int in_c  = (int)in_shape[2];
+	int out_c = (int)out_shape[2];
+
 
 	os << "module " << module_name << "\n"; 
 	os << R"(
@@ -476,8 +499,8 @@ void OutputVerilogCnnAxi4s(std::ostream& os, std::string module_name, std::vecto
 			parameter	DEVICE         = "rtl",
 )";
 
-	os << "			parameter	S_TDATA_WIDTH  = " << fisrt_layer->GetInputChannel() << ",\n";
-	os << "			parameter	M_TDATA_WIDTH  = " << last_layer->GetOutputChannel();
+	os << "			parameter	S_TDATA_WIDTH  = " << in_c << ",\n";
+	os << "			parameter	M_TDATA_WIDTH  = " << out_c;
 
 	os << R"(
 		)
@@ -585,9 +608,9 @@ void OutputVerilogCnnAxi4s(std::ostream& os, std::string module_name, std::vecto
 	
 )";
 
-	os << "\tlocalparam DATA0_WIDTH = " << fisrt_layer->GetInputChannel() << ";\n";
+	os << "\tlocalparam DATA0_WIDTH = " << in_c << ";\n";
 	for ( int i = 0; i < layer_size; ++i ) {
-		os << "\tlocalparam DATA" << i+1 << "_WIDTH = " << layers[i]->GetOutputChannel() << ";\n";
+		os << "\tlocalparam DATA" << i+1 << "_WIDTH = " << out_c << ";\n";
 	}
 	os << "\t\n";
 	
@@ -608,8 +631,8 @@ void OutputVerilogCnnAxi4s(std::ostream& os, std::string module_name, std::vecto
 		os << "\n\n";
 
 		auto layer = layers[i];
-		auto cnv = dynamic_cast<NeuralNetLoweringConvolution<ST, T>*>(layer);
-		auto pol = dynamic_cast<NeuralNetMaxPooling<ST, T, T>*>(layer);
+		auto cnv = std::dynamic_pointer_cast<LoweringConvolution<FT, BT> >(layer);
+		auto pol = std::dynamic_pointer_cast<MaxPooling<FT, BT> >(layer);
 		if ( cnv ) {
 			os << "\t" << module_name << "_l" << i << "\n";
 			os << "\t\t\t#(\n";
@@ -623,7 +646,7 @@ void OutputVerilogCnnAxi4s(std::ostream& os, std::string module_name, std::vecto
 		else if (pol) {
 			os << "\t" << "jelly_img_dnn_maxpol" << "\n";
 			os << "\t\t\t#(\n";
-			os << "\t\t\t\t.C						(" << pol->GetOutputChannel() << "),\n";
+			os << "\t\t\t\t.C						(" << pol->GetOutputChannels() << "),\n";
 			os << "\t\t\t\t.N						(" << pol->GetFilterWidth() << "),\n";
 			os << "\t\t\t\t.M						(" << pol->GetFilterHeight() << "),\n";
 			os << "\t\t\t\t.USER_WIDTH				(USER_WIDTH),\n";
@@ -689,15 +712,14 @@ void OutputVerilogCnnAxi4s(std::ostream& os, std::string module_name, std::vecto
 
 	for ( int i = 0; i < layer_size; ++i ) {
 		auto layer = layers[i];
-		auto cnv = dynamic_cast<NeuralNetLoweringConvolution<ST, T>*>(layer);
+		auto cnv = std::dynamic_pointer_cast< LoweringConvolution<FT, BT> >(layer);
 		if ( cnv ) {
 			std::stringstream ss;
 			ss << module_name << "_l" << i;
-			OutputVerilogLoweringConvolution(os, ss.str(), *cnv);
+			ExportVerilog_LutConvolutionLayer(os, ss.str(), cnv);
 		}
 	}
 }
-#endif
 
 
 }

@@ -26,6 +26,8 @@ namespace bb {
 template <int N = 6, int M = 16, typename T = float, class Activation = ReLU<T> >
 class MicroMlp : public SparseLayer<T, T>
 {
+    using super = SparseLayer<T, T>;
+
 protected:
 	// 3層で構成
 	std::shared_ptr< MicroMlpAffine<N, M, T> >	m_affine;
@@ -219,21 +221,51 @@ protected:
     }
 
 public:
-    /*
+    // Serialize
+    void Save(std::ostream &os) const 
+    {
+        m_affine->Save(os);
+        m_batch_norm->Save(os);
+        m_activation->Save(os);
+    }
+
+    void Load(std::istream &is)
+    {
+        m_affine->Load(is);
+        m_batch_norm->Load(is);
+        m_activation->Load(is);
+    }
+
+
+#ifdef BB_WITH_CEREAL
+	template <class Archive>
+    void save(Archive& archive, std::uint32_t const version) const
+	{
+        super::save(archive, version);
+    }
+
+	template <class Archive>
+    void load(Archive& archive, std::uint32_t const version)
+	{
+        super::load(archive, version);
+    }
+
 	void Save(cereal::JSONOutputArchive& archive) const
 	{
-	    m_affine    ->Save(archive);
-	    m_batch_norm->Save(archive);
-	    m_activation->Save(archive);
+        archive(cereal::make_nvp("MicroMlp", *this));
+        m_affine->Save(archive);
+        m_batch_norm->Save(archive);
+        m_activation->Save(archive);
 	}
 
 	void Load(cereal::JSONInputArchive& archive)
 	{
-	    m_affine    ->Load(archive);
-	    m_batch_norm->Load(archive);
-	    m_activation->Load(archive);
+        archive(cereal::make_nvp("MicroMlp", *this));
+        m_affine->Load(archive);
+        m_batch_norm->Load(archive);
+        m_activation->Load(archive);
 	}
-    */
+#endif
 
 };
 

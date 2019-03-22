@@ -199,12 +199,34 @@ protected:
 
 public:
  	// Serialize
-    void Save(std::ostream &os) const { for (auto layer : m_layers) { layer->Save(os); } }
-	void Load(std::istream &is)       { for (auto layer : m_layers) { layer->Load(is); } }
+    void Save(std::ostream &os) const
+    {
+        for (auto layer : m_layers) {
+            layer->Save(os);
+        }
+    }
+
+	void Load(std::istream &is)
+    {
+        for (auto layer : m_layers) {
+            layer->Load(is);
+        }
+    }
 
 #if BB_WITH_CEREAL
-    void Save(cereal::JSONOutputArchive& archive) const { for (auto layer : m_layers) { layer->Save(archive); } }
-    void Load(cereal::JSONInputArchive& archive)        { for (auto layer : m_layers) { layer->Load(archive); } }
+    void Save(cereal::JSONOutputArchive& archive) const
+    {
+        for (auto layer : m_layers) {
+            layer->Save(archive);
+        }
+    }
+
+    void Load(cereal::JSONInputArchive& archive)
+    {
+        for (auto layer : m_layers) {
+            layer->Load(archive);
+        }
+    }
 #endif
 };
 

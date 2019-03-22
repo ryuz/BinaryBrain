@@ -31,11 +31,12 @@ CUDA(Kepler以降)にも対応しています。
 ```
 % git clone --recursive -b ver3_release  https://github.com/ryuz/BinaryBrain.git
 % cd BinaryBrain/sample/mnist
-% make WITH_CUDA=Yes all
-% make WITH_CUDA=Yes run
+% make all
+% make dl_mnist
+% ./sample-mnist All
 ```
 
-GPUを使わない場合は WITH_CUDA=No として下さい。
+GPUを使わない場合は make WITH_CUDA=No として下さい。
 
 ### Google Colaboratory
 ランタイムのタイプをGPUに設定

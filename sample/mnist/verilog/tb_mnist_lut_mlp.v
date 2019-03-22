@@ -9,15 +9,15 @@
 `default_nettype none
 
 
-module tb_mnist_lut_net();
+module tb_mnist_lut_mlp();
 	localparam RATE = 1000.0/300.0;
 	
 	initial begin
-		$dumpfile("tb_mnist_lut_net.vcd");
-		$dumpvars(2, tb_mnist_lut_net);
-		
-	#20000000
-		$finish;
+		$dumpfile("tb_mnist_lut_mlp.vcd");
+		$dumpvars(2, tb_mnist_lut_mlp);
+
+	#1000000
+		$finish();
 	end
 	
 	reg		reset = 1'b1;
@@ -89,7 +89,7 @@ module tb_mnist_lut_net();
 				.out_valid		(out_valid)
 			);
 	
-	// Šú‘Ò’l
+	// æœŸå¾…å€¤
 	wire	[OUTPUT_WIDTH-1:0]	out_expect = (1 << out_user);
 	
 	wire match = out_valid && (out_data == out_expect);

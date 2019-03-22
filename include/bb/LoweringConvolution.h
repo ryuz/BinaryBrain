@@ -12,6 +12,7 @@
 
 #include <cstdint>
 
+#include "bb/Filter2d.h"
 #include "bb/ConvolutionIm2Col.h"
 #include "bb/ConvolutionCol2Im.h"
 
@@ -21,8 +22,10 @@ namespace bb {
 
 // 入力数制限Affine Binary Connect版
 template <typename FT = float, typename BT = float>
-class LoweringConvolution : public Model
+class LoweringConvolution : public Filter2d<FT, BT>
 {
+    using super = Filter2d<FT, BT>;
+
 protected:
     index_t m_filter_h_size = 1;
     index_t m_filter_w_size = 1;
@@ -32,8 +35,6 @@ protected:
 	std::shared_ptr< Model                     >    m_layer;
 	std::shared_ptr< ConvolutionCol2Im<FT, BT> >	m_col2im;
 	
-	index_t 	m_im2col_size = 1;
-
 protected:
 	LoweringConvolution() {}
 
@@ -76,6 +77,16 @@ public:
 	}
 
 	std::string GetClassName(void) const { return "LoweringConvolution"; }
+
+    
+    std::shared_ptr< Model > GetLayer(void)
+    {
+        return m_layer;
+    }
+
+
+    index_t GetFilterHeight(void) { return m_filter_h_size; }
+    index_t GetFilterWidth(void)  { return m_filter_w_size; }
 
 
     /**
@@ -164,7 +175,7 @@ public:
      */
     indices_t GetOutputShape(void) const
     {
-        return m_col2im->GetInputShape();
+        return m_col2im->GetOutputShape();
     }
     
 
@@ -219,9 +230,48 @@ protected:
     }
 
 public:
-#ifdef BB_WITH_CREAL
+    // Serialize
+    void Save(std::ostream &os) const 
+    {
+        SaveValue(os, m_filter_h_size);
+        SaveValue(os, m_filter_w_size);
+
+	    m_im2col->Save(os);
+	    m_layer->Save(os);
+	    m_col2im->Save(os);
+    }
+
+    void Load(std::istream &is)
+    {
+        LoadValue(is, m_filter_h_size);
+        LoadValue(is, m_filter_w_size);
+
+	    m_im2col->Load(is);
+	    m_layer->Load(is);
+	    m_col2im->Load(is);
+    }
+
+
+#ifdef BB_WITH_CEREAL
+	template <class Archive>
+    void save(Archive& archive, std::uint32_t const version) const
+	{
+        super::save(archive, version);
+        archive(cereal::make_nvp("filter_h_size", m_filter_h_size));
+        archive(cereal::make_nvp("filter_w_size", m_filter_w_size));
+    }
+
+	template <class Archive>
+    void load(Archive& archive, std::uint32_t const version)
+	{
+        super::load(archive, version);
+        archive(cereal::make_nvp("filter_h_size", m_filter_h_size));
+        archive(cereal::make_nvp("filter_w_size", m_filter_w_size));
+    }
+
 	void Save(cereal::JSONOutputArchive& archive) const
 	{
+        archive(cereal::make_nvp("LoweringConvolution", *this));
 	    m_im2col->Save(archive);
 	    m_layer->Save(archive);
 	    m_col2im->Save(archive);
@@ -229,6 +279,7 @@ public:
 
 	void Load(cereal::JSONInputArchive& archive)
 	{
+        archive(cereal::make_nvp("LoweringConvolution", *this));
 	    m_im2col->Load(archive);
 	    m_layer->Load(archive);
 	    m_col2im->Load(archive);
