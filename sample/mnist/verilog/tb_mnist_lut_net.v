@@ -15,9 +15,9 @@ module tb_mnist_lut_net();
 	initial begin
 		$dumpfile("tb_mnist_lut_net.vcd");
 		$dumpvars(2, tb_mnist_lut_net);
-		
-	#20000000
-		$finish;
+
+	#1000000
+		$finish();
 	end
 	
 	reg		reset = 1'b1;
