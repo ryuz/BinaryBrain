@@ -175,7 +175,7 @@ public:
      */
     indices_t GetOutputShape(void) const
     {
-        return m_col2im->GetInputShape();
+        return m_col2im->GetOutputShape();
     }
     
 

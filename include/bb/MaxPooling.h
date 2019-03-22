@@ -223,6 +223,8 @@ public:
 					}
 				}
 			}
+
+            return m_y;
 		}
 
 		// float用実装

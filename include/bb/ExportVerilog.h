@@ -468,7 +468,7 @@ void ExportVerilog_LutConvolutionLayer(std::ostream& os, std::string module_name
 
 
 template <typename FT = Bit, typename BT = float>
-void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module_name, std::vector< std::shared_ptr< LoweringConvolution<FT, BT> > > layers)
+void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module_name, std::vector< std::shared_ptr< Filter2d<FT, BT> > > layers)
 {
 	int	 layer_size = (int)layers.size();
 	auto fisrt_layer = layers[0];

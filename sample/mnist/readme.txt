@@ -42,15 +42,15 @@
   make WITH_CUDA=No all
   とすると、CUDA無しのCPU版がビルドされます
 
+  make dl_mnist
 
-  単純に実行するには
+  と実行すると、MNISTのデータをダウンロードします。
 
-  make WITH_CUDA=Yes run
+  試し実行するには
 
-  とすると、MNIST データがなければダウンロードしてから
-  ./sample_mnist All
+  ./sample-mnist All
 
-  が実行されます。
+  とすると、すべての内蔵サンプルが順番に実行されます。
 
   sample_mnist の引数は
 
@@ -61,6 +61,7 @@
   All                      上のすべてを実行
 
   となっています。
+  また -epoch オプションなどで epoch 数の指定も可能です。詳しくは main.cpp を確認ください。
 
 
  [Windowsの場合]
