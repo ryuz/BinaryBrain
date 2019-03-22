@@ -190,40 +190,40 @@ public:
         }
 #endif
      
-#if 0
         if ( DataType<FT>::type == BB_TYPE_BIT ) {
 			// バイナリ用実装
-            auto x_ptr = m_x.LockConst();
-            auto y_ptr = m_y.Lock(true);
+            auto x_ptr = m_x.LockConst<FT>();
+            auto y_ptr = m_y.Lock<FT>(true);
 
-			index_t  m256_frame_size = m_y.GetFrameStride() / (256/8);
+			index_t  m256_frame_size = (int)m_y.GetFrameStride() / 32;
 
-//			auto in_sig_buf = this->GetInputSignalBuffer();
-//			auto out_sig_buf = this->GetOutputSignalBuffer();
-
-			#pragma omp parallel for
+    		#pragma omp parallel for
 			for (index_t c = 0; c < m_input_c_size; ++c) {
 				for (index_t y = 0; y < m_output_h_size; ++y) {
 					for (index_t x = 0; x < m_output_w_size; ++x) {
-						__m256i* out_sig_ptr = (__m256i*)y_ptr.GetAddr(GetOutputNode(out_sig_buf, c, y, x));
-						for (size_t frame = 0; frame < m256_frame_size; ++frame) {
-							__m256i	or_val = _mm256_set1_epi32(0);
-							for (size_t fy = 0; fy < m_filter_h_size; ++fy) {
-								size_t iy = y*m_filter_h_size + fy;
-								for (size_t fx = 0; fx < m_filter_w_size; ++fx) {
-									size_t ix = x*m_filter_w_size + fx;
-									__m256i* in_sig_ptr = (__m256i*)x_ptr.GetAddr(GetInputNode(c, iy, ix));
-									__m256i in_sig = _mm256_load_si256(&in_sig_ptr[frame]);
-									or_val = _mm256_or_si256(or_val, in_sig);
-								}
+						__m256i *y_addr = (__m256i *)y_ptr.GetAddr(GetOutputNode(c, y, x));
+
+						for (index_t frame = 0; frame < m256_frame_size; ++frame) {
+							__m256i	max_val = _mm256_set1_epi8(0);
+                            for (index_t fy = 0; fy < m_filter_h_size; ++fy) {
+								index_t iy = y*m_filter_h_size + fy;
+                                if ( iy < m_input_h_size ) {
+								    for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
+									    index_t ix = x*m_filter_w_size + fx;
+                                        if ( ix < m_input_w_size ) {
+									        __m256i const *x_addr = (__m256i const *)x_ptr.GetAddr(GetInputNode(c, iy, ix));
+									        __m256i in_sig = _mm256_load_si256(&x_addr[frame]);
+									        max_val = _mm256_or_si256(max_val, in_sig);
+                                        }
+								    }
+                                }
 							}
-							_mm256_store_si256(&out_sig_ptr[frame], or_val);
+							_mm256_store_si256(&y_addr[frame], max_val);
 						}
 					}
 				}
 			}
 		}
-#endif
 
 		// float用実装
         if ( DataType<FT>::type == BB_TYPE_FP32 ) {
@@ -332,6 +332,7 @@ public:
         }
 #endif
 
+#if 0
 		if ( DataType<BT>::type == BB_TYPE_FP32 && DataType<FT>::type == BB_TYPE_FP32 ) {
 			// float用実装
 			index_t  m256_frame_size = m_dx.GetFrameStride() / sizeof(float);
@@ -353,16 +354,20 @@ public:
 							__m256 out_grad = _mm256_load_ps(&dy_addr[frame]);
 							for (index_t fy = 0; fy < m_filter_h_size; ++fy) {
 								index_t iy = y*m_filter_h_size + fy;
-								for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
-									index_t ix = x*m_filter_w_size + fx;
-									float const *x_addr  = (float const *)x_ptr.GetAddr(GetInputNode(n, iy, ix));
-									float       *dx_addr = (float       *)dx_ptr.GetAddr(GetInputNode(n, iy, ix));
-									__m256 in_sig  = _mm256_load_ps(&x_addr[frame]);
-									__m256 mask    = _mm256_cmp_ps(in_sig, out_sig, _CMP_EQ_OQ);
-									__m256 in_grad = _mm256_and_ps(mask, out_grad);
-									_mm256_store_ps(&dx_addr[frame], in_grad);
-								}
-							}
+                                if ( iy < m_input_h_size ) {
+								    for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
+									    index_t ix = x*m_filter_w_size + fx;
+                                        if ( ix < m_input_w_size ) {
+									        float const *x_addr  = (float const *)x_ptr.GetAddr(GetInputNode(n, iy, ix));
+									        float       *dx_addr = (float       *)dx_ptr.GetAddr(GetInputNode(n, iy, ix));
+									        __m256 in_sig  = _mm256_load_ps(&x_addr[frame]);
+									        __m256 mask    = _mm256_cmp_ps(in_sig, out_sig, _CMP_EQ_OQ);
+									        __m256 in_grad = _mm256_and_ps(mask, out_grad);
+									        _mm256_store_ps(&dx_addr[frame], in_grad);
+                                        }
+								    }
+							    }
+                            }
 						}
 					}
 				}
@@ -370,6 +375,7 @@ public:
 
             return m_dx;
 		}
+#endif
 
         // 汎用版実装
         {
@@ -385,17 +391,16 @@ public:
 				for (index_t y = 0; y < m_output_h_size; ++y) {
 					for (index_t x = 0; x < m_output_w_size; ++x) {
 						for (index_t frame = 0; frame < frame_size; ++frame) {
-                            FT out_sig = y_ptr.Get(frame, x, y);
-                            FT grad    = dy_ptr.Get(frame, x, y);
-
+                            FT out_sig = y_ptr.Get(frame, c, y, x);
+                            FT grad    = dy_ptr.Get(frame, c, y, x);
 							for (index_t fy = 0; fy < m_filter_h_size; ++fy) {
 								index_t iy = y*m_filter_h_size + fy;
                                 if ( iy < m_input_h_size ) {
 								    for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
 									    index_t ix = x*m_filter_w_size + fx;
                                         if ( ix < m_input_w_size ) {
-                                            FT in_sig  = x_ptr.Get(frame, {ix, iy, c});
-                							dx_ptr.Set(frame, {ix, iy, c}, (in_sig == out_sig) ? grad : 0);
+                                            FT in_sig  = x_ptr.Get(frame, c, iy, ix);
+                							dx_ptr.Set(frame, c, iy, ix, (in_sig == out_sig) ? grad : 0);
                                         }
 								    }
                                 }
@@ -405,7 +410,7 @@ public:
 				}
 			}
 
-            return m_y;
+            return m_dx;
 		}
 	}
 };
