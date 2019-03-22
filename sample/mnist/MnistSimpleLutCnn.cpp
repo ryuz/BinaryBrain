@@ -38,8 +38,8 @@ static void WriteTestImage(std::string filename, int w, int h);
 void MnistSimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
 {
     // write test image
-//    WriteTestImage("verilog/mnist_test_160x120.ppm", 160, 120);
-//    WriteTestImage("verilog/mnist_test_640x480.ppm", 640, 480);
+    WriteTestImage("verilog/mnist_test_160x120.ppm", 160, 120);
+    WriteTestImage("verilog/mnist_test_640x480.ppm", 640, 480);
 
   // load MNIST data
 #ifdef _DEBUG
