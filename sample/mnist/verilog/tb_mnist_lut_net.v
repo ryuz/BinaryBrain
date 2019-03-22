@@ -1,4 +1,4 @@
-// ---------------------------------------------------------------------------
+ï»¿// ---------------------------------------------------------------------------
 //
 //                                  Copyright (C) 2015-2018 by Ryuji Fuchikami
 //                                      http://ryuz.my.coocan.jp/
@@ -89,7 +89,7 @@ module tb_mnist_lut_net();
 				.out_valid		(out_valid)
 			);
 	
-	// Šú‘Ò’l
+	// æœŸå¾…å€¤
 	wire	[OUTPUT_WIDTH-1:0]	out_expect = (1 << out_user);
 	
 	wire match = out_valid && (out_data == out_expect);

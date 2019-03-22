@@ -1,4 +1,3 @@
 tb_mnist_lut_net.v
 MnistSimpleLutMlp.v
 bb_lut.v
-

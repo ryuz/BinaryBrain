@@ -1,4 +1,4 @@
-// ---------------------------------------------------------------------------
+ï»¿// ---------------------------------------------------------------------------
 //  Jelly  -- the soft-core processor system
 //   math
 //
@@ -75,16 +75,16 @@ module video_mnist_color_core
 			st0_data   <= param_mode[0] ? {TDATA_WIDTH{s_axi4s_tbinary}} : s_axi4s_tdata;
 			st0_en     <= (param_mode[1] && (s_axi4s_tcount >= param_th));
 			case ( s_axi4s_tnumber )
-			4'd0:		st0_color <= 24'h00_00_00;	// •
-			4'd1:		st0_color <= 24'h00_00_80;	// ’ƒ
-			4'd2:		st0_color <= 24'h00_00_ff;	// Ô
-			4'd3:		st0_color <= 24'h4c_b7_ff;	// žò
-			4'd4:		st0_color <= 24'h00_ff_ff;	// ‰©
-			4'd5:		st0_color <= 24'h00_80_00;	// —Î
-			4'd6:		st0_color <= 24'hff_00_00;	// Â
-			4'd7:		st0_color <= 24'h80_00_80;	// Ž‡
-			4'd8:		st0_color <= 24'h80_80_80;	// ŠD
-			4'd9:		st0_color <= 24'hff_ff_ff;	// ”’
+			4'd0:		st0_color <= 24'h00_00_00;	// é»’
+			4'd1:		st0_color <= 24'h00_00_80;	// èŒ¶
+			4'd2:		st0_color <= 24'h00_00_ff;	// èµ¤
+			4'd3:		st0_color <= 24'h4c_b7_ff;	// æ©™
+			4'd4:		st0_color <= 24'h00_ff_ff;	// é»„
+			4'd5:		st0_color <= 24'h00_80_00;	// ç·‘
+			4'd6:		st0_color <= 24'hff_00_00;	// é’
+			4'd7:		st0_color <= 24'h80_00_80;	// ç´«
+			4'd8:		st0_color <= 24'h80_80_80;	// ç°
+			4'd9:		st0_color <= 24'hff_ff_ff;	// ç™½
 			default:	st0_color <= 24'hxx_xx_xx;
 			endcase
 			st0_valid  <= s_axi4s_tvalid;

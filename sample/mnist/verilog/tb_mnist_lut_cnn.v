@@ -1,4 +1,4 @@
-// ---------------------------------------------------------------------------
+ï»¿// ---------------------------------------------------------------------------
 //
 //                                  Copyright (C) 2015-2018 by Ryuji Fuchikami
 //                                      http://ryuz.my.coocan.jp/
@@ -229,7 +229,7 @@ module tb_mnist_lut_cnn();
 	
 	
 	
-	// o—ÍŒ‹‰Ê‚ğ•Û‘¶ (ƒTƒCƒY‚Í 1/28 )
+	// å‡ºåŠ›çµæœã‚’ä¿å­˜ (ã‚µã‚¤ã‚ºã¯ 1/28 )
 	jelly_axi4s_slave_model
 			#(
 				.COMPONENT_NUM		(3),
@@ -260,7 +260,7 @@ module tb_mnist_lut_cnn();
 			);
 	
 	
-	// o—ÍƒtƒŒ[ƒ€ƒJƒEƒ“ƒg
+	// å‡ºåŠ›ãƒ•ãƒ¬ãƒ¼ãƒ ã‚«ã‚¦ãƒ³ãƒˆ
 	integer	output_frame = 0;
 	always @(posedge clk) begin
 		if ( !reset ) begin
