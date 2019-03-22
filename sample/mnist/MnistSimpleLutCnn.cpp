@@ -37,10 +37,6 @@ static void WriteTestImage(std::string filename, int w, int h);
 // MNIST CNN with LUT networks
 void MnistSimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
 {
-    // write test image
-    WriteTestImage("verilog/mnist_test_160x120.ppm", 160, 120);
-    WriteTestImage("verilog/mnist_test_640x480.ppm", 640, 480);
-
   // load MNIST data
 #ifdef _DEBUG
 	auto td = bb::LoadMnist<>::Load(10, 512, 128);
@@ -220,6 +216,10 @@ void MnistSimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
             bb::ExportVerilog_LutCnnLayersAxi4s(ofs, "MnistSimpleLutCnnCnv1", vec_cnv1);
             bb::ExportVerilog_LutCnnLayersAxi4s(ofs, "MnistSimpleLutCnnCnv2", vec_cnv2);
             std::cout << "export : " << filename << "\n" << std::endl;
+            
+            // write test image
+            WriteTestImage("verilog/mnist_test_160x120.ppm", 160, 120);
+            WriteTestImage("verilog/mnist_test_640x480.ppm", 640, 480);
         }
     }
 }

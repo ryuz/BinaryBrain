@@ -321,12 +321,12 @@ public:
 
 			// Hostメモリ開放
 			if (m_addr != nullptr) {
-				BB_CUDA_SAFE_CALL(cudaFreeHost(m_addr));
+				bbcu::FreeHost(m_addr);
 			}
 
             // Deviceメモリ開放
 			if (m_devAddr != nullptr) {
-				BB_CUDA_SAFE_CALL(cudaFree(m_devAddr));
+				bbcu::Free(m_devAddr);
 			}
 		}
         else {
@@ -376,7 +376,7 @@ public:
 
             auto ptr_src = LockDeviceConst();
             auto ptr_dst = clone->LockDevice(true);
-            BB_CUDA_SAFE_CALL(cudaMemcpy(ptr_dst.GetAddr(), ptr_src.GetAddr(), m_size, cudaMemcpyDeviceToDevice));
+            bbcu::Memcpy(ptr_dst.GetAddr(), ptr_src.GetAddr(), m_size, cudaMemcpyDeviceToDevice);
         }
         return clone;
 #else
@@ -405,11 +405,11 @@ public:
                 return;
             }
             if (m_addr != nullptr) {
-                BB_CUDA_SAFE_CALL(cudaFreeHost(m_addr));  // Hostメモリ開放
+                bbcu::FreeHost(m_addr);  // Hostメモリ開放
                 m_addr= nullptr;
             }
 			if (m_devAddr != nullptr) {
-                BB_CUDA_SAFE_CALL(cudaFree(m_devAddr));   // Deviceメモリ開放
+                bbcu::Free(m_devAddr);   // Deviceメモリ開放
                 m_devAddr= nullptr;
             }
             m_mem_size = m_size;
@@ -537,13 +537,13 @@ public:
 			if (m_addr == nullptr) {
 				// ホスト側メモリ未確保ならここで確保
 				CudaDevicePush dev_push(m_device);
-				BB_CUDA_SAFE_CALL(cudaMallocHost(&m_addr, m_mem_size));
+				bbcu::MallocHost(&m_addr, m_mem_size);
 			}
 
 			if ( m_devModified ) {
 				// デバイス側メモリが最新ならコピー取得
 				CudaDevicePush dev_push(m_device);
-				BB_CUDA_SAFE_CALL(cudaMemcpy(m_addr, m_devAddr, m_size, cudaMemcpyDeviceToHost));
+				bbcu::Memcpy(m_addr, m_devAddr, m_size, cudaMemcpyDeviceToHost);
 				m_devModified =false;
 			}
 		}
@@ -572,13 +572,13 @@ public:
 			if (m_addr == nullptr) {
 				// ホスト側メモリ未確保ならここで確保
 				CudaDevicePush dev_push(m_device);
-				BB_CUDA_SAFE_CALL(cudaMallocHost(&self->m_addr, m_mem_size));
+				bbcu::MallocHost(&self->m_addr, m_mem_size);
 			}
 
 			if ( m_devModified ) {
 				// デバイス側メモリが最新ならコピー取得
 				CudaDevicePush dev_push(m_device);
-				BB_CUDA_SAFE_CALL(cudaMemcpy(m_addr, m_devAddr, m_size, cudaMemcpyDeviceToHost));
+				bbcu::Memcpy(m_addr, m_devAddr, m_size, cudaMemcpyDeviceToHost);
 				self->m_devModified = false;
 			}
 		}
@@ -608,13 +608,13 @@ public:
 			if (m_devAddr == nullptr) {
 				// デバイス側メモリ未確保ならここで確保
 				CudaDevicePush dev_push(m_device);
-				BB_CUDA_SAFE_CALL(cudaMalloc(&m_devAddr, m_size));
+				bbcu::Malloc(&m_devAddr, m_size);
 			}
 
 			if (m_hostModified) {
 				// ホスト側メモリが最新ならコピー取得
 				CudaDevicePush dev_push(m_device);
-				BB_CUDA_SAFE_CALL(cudaMemcpy(m_devAddr, m_addr, m_size, cudaMemcpyHostToDevice));
+				bbcu::Memcpy(m_devAddr, m_addr, m_size, cudaMemcpyHostToDevice);
 				m_hostModified =false;
 			}
 
@@ -646,13 +646,13 @@ public:
 			if (m_devAddr == nullptr) {
 				// デバイス側メモリ未確保ならここで確保
 				CudaDevicePush dev_push(m_device);
-				BB_CUDA_SAFE_CALL(cudaMalloc(&self->m_devAddr, m_size));
+				bbcu::Malloc(&self->m_devAddr, m_size);
 			}
 
 			if (m_hostModified) {
 				// ホスト側メモリが最新ならコピー取得
 				CudaDevicePush dev_push(m_device);
-				BB_CUDA_SAFE_CALL(cudaMemcpy(m_devAddr, m_addr, m_size, cudaMemcpyHostToDevice));
+				bbcu::Memcpy(m_devAddr, m_addr, m_size, cudaMemcpyHostToDevice);
 				self->m_hostModified =false;
 			}
 
@@ -692,16 +692,16 @@ public:
                 memcpy(newAddr, m_addr, m_size);
             }
             else if ( m_devModified ) {
-                BB_CUDA_SAFE_CALL(cudaMemcpy(newAddr, m_devAddr, m_size, cudaMemcpyDeviceToHost));
+                bbcu::Memcpy(newAddr, m_devAddr, m_size, cudaMemcpyDeviceToHost);
             }
 
             // デバイスメモリ開放
             if (m_addr != nullptr) {
-                BB_CUDA_SAFE_CALL(cudaFreeHost(m_addr));  // Hostメモリ開放
+                bbcu::FreeHost(m_addr);  // Hostメモリ開放
                 m_addr= nullptr;
             }
 			if (m_devAddr != nullptr) {
-                BB_CUDA_SAFE_CALL(cudaFree(m_devAddr));   // Deviceメモリ開放
+                bbcu::Free(m_devAddr);   // Deviceメモリ開放
                 m_devAddr= nullptr;
             }
             m_mem_size = m_size;
@@ -714,7 +714,7 @@ public:
 		    if ( m_hostModified ) {
                 // メモリ確保
                 void *newAddr;
-                BB_CUDA_SAFE_CALL(cudaMallocHost(&newAddr, m_size));
+                bbcu::MallocHost(&newAddr, m_size);
                 m_mem_size = m_size;
 
                 // コピー

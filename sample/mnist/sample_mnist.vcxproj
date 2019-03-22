@@ -344,6 +344,7 @@
     <ClCompile Include="MnistDenseAffine.cpp" />
     <ClCompile Include="MnistSimpleLutCnn.cpp" />
     <ClCompile Include="MnistSimpleLutMlp.cpp" />
+    <ClCompile Include="MnistSimpleLutMlpModulation.cpp" />
     <ClCompile Include="MnistSimpleMicroMlpScratch.cpp" />
   </ItemGroup>
   <ItemGroup>
