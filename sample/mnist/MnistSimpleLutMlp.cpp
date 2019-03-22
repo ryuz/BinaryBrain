@@ -94,11 +94,11 @@ void MnistSimpleLutMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
         auto layer_lut2 = bb::BinaryLutN<>::Create(layer_mm2->GetOutputShape());
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(7));
+        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create());
         lut_net->Add(layer_lut0);
         lut_net->Add(layer_lut1);
         lut_net->Add(layer_lut2);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({10}, 7));
+        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({10}));
         lut_net->SetInputShape(td.x_shape);
 
         // テーブル化して取り込み(SetInputShape後に取り込みが必要)
