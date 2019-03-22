@@ -1,32 +1,32 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="ソース ファイル">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="ヘッダー ファイル">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
+    <CudaCompile Include="Binarize.cu" />
+    <CudaCompile Include="HorizontalMeanVar.cu" />
+    <CudaCompile Include="HorizontalSum.cu" />
+    <CudaCompile Include="Im2Col.cu" />
+    <CudaCompile Include="Manager.cu" />
+    <CudaCompile Include="MicroMlp.cu" />
+    <CudaCompile Include="ReLU.cu" />
+    <CudaCompile Include="Vector.cu" />
+    <CudaCompile Include="BatchNormalization.cu" />
+    <CudaCompile Include="MaxPooling.cu" />
+    <CudaCompile Include="Col2Im.cu" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="Im2Col.cu">
-      <Filter>ソース ファイル</Filter>
-    </CudaCompile>
-    <CudaCompile Include="MicroMlp.cu">
-      <Filter>ソース ファイル</Filter>
-    </CudaCompile>
-    <CudaCompile Include="HorizontalSum.cu">
-      <Filter>ソース ファイル</Filter>
-    </CudaCompile>
+    <None Include="Makefile" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="ヘッダファイル">
+      <UniqueIdentifier>{641d712f-b744-4362-9b3d-e157c86fbd31}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\bbcu\bbcu.h">
-      <Filter>ヘッダー ファイル</Filter>
+      <Filter>ヘッダファイル</Filter>
     </ClInclude>
     <ClInclude Include="..\include\bbcu\bbcu_util.h">
-      <Filter>ヘッダー ファイル</Filter>
+      <Filter>ヘッダファイル</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

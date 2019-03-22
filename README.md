@@ -1,8 +1,5 @@
 ﻿
-# BinaryBrain  version 2 (version3 comming soon)<br>--binary neural networks platform for LUT-networks<br>
-<br>
-"ver3_develop" ブランチにて ver3 開発中です
-<br>
+# BinaryBrain Version 3<br> --binary neural networks platform for LUT-networks
 
 ## 概要
 LUT(Look-up Table)ネットワークとはFPGA向けのバイナリ・ディープ・ニューラルネットワークの一種です。
@@ -10,10 +7,11 @@ FPGAのLUTを直接学習させることで高いパフォーマンスを実現�
 
 ## MNISTサンプルの動かし方
 AXV2以降の命令が使えるCPUと、Windows7以降の環境を想定しております。
+CUDA(Kepler以降)にも対応しています。
 
 ### windows
-1. install VisualStudio 2015. 
-2. git clone --recursive https://github.com/ryuz/BinaryBrain.git 
+1. install VisualStudio 2017 + CUDA 10.1
+2. git clone --recursive -b ver3_release https://github.com/ryuz/BinaryBrain.git 
 3. download MNIST from http://yann.lecun.com/exdb/mnist/
 4. decompress MNIST for "\sample\mnist"
 5. open VC++ solution "sample\mnist\sample_mnist.sln"
@@ -23,18 +21,36 @@ AXV2以降の命令が使えるCPUと、Windows7以降の環境を想定して�
 ### Linux(Ubuntu 18.04.1)
 1. install tools 
 ```
-% sudo apt install make
+% sudo apt install cuda cuda-drivers
+% sudo apt install git
 % sudo apt install g++
-% sudo apt install clang
+% sudo apt install make
 % sudo apt install git
 ```
 2. build and run
 ```
-% git clone --recursive https://github.com/ryuz/BinaryBrain.git
+% git clone --recursive -b ver3_release  https://github.com/ryuz/BinaryBrain.git
 % cd BinaryBrain/sample/mnist
-% make all
-% make run
+% make WITH_CUDA=Yes all
+% make WITH_CUDA=Yes run
 ```
+
+GPUを使わない場合は WITH_CUDA=No として下さい。
+
+### Google Colaboratory
+ランタイムのタイプをGPUに設定
+```
+!git clone --recursive -b ver3_release  https://github.com/ryuz/BinaryBrain.git
+%cd BinaryBrain/sample/mnist
+!make WITH_CUDA=Yes all
+!make WITH_CUDA=Yes run
+```
+
+
+## 学習ネットの作り方
+順次記述予定ですが、現じてでは基本的にはソースを解読ください。<br>
+こちらに手がかり程度に[APIの概要](documents/class.md)を記載しています。
+
 
 ## LUTネットワークとは?
 ### デザインフロー
@@ -87,10 +103,6 @@ LUTモデルとそれに対応するMicro-MLPの単位の関係を示します�
 ## ライセンス
 現在MITライセンスを採用しています。lisense.txtを参照ください。
 ただし、本ソースコードは Eigen や CEREAL を利用しているので、それらに関しては個別に各ライセンスに従ってください。
-
-## 関連資料
-以下に本技術をfpgaxで発表した際のスライドを置いております。<br>
-https://www.slideshare.net/ryuz88/lut-network-fpgx201902
 
 ## 参考
 - BinaryConnect: Training Deep Neural Networks with binary weights during propagations<br>

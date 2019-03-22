@@ -1,7 +1,10 @@
 ﻿
+*.log
+
+*.o
+*.a
 
 *.obj
-*.o
 *.exe
 *.bin
 *.v
@@ -12,9 +15,16 @@
 *.VC.opendb
 *.vspx
 
+# execute
+sample/mnist/sample-mnist
+test/mnist/test-mnist
+test/gtest/gtest
+
 .vs/
 Debug/
 Release/
+DbgCpu/
+RelCpu/
 
 *.gz
 *-ubyte

@@ -29,8 +29,8 @@ TEST(NeuralNetSparseAffineTest, testAffine)
 	auto in_val = affine.GetInputSignalBuffer();
 	auto out_val = affine.GetOutputSignalBuffer();
 
-	auto p0 = (float*)in_val.GetPtr(0);
-	auto p1 = (float*)in_val.GetPtr(1);
+	auto p0 = (float*)in_val.Lock(0);
+	auto p1 = (float*)in_val.Lock(1);
 
 	in_val.SetReal(0, 0, 1);
 	in_val.SetReal(0, 1, 2);
