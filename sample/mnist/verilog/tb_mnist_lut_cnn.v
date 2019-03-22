@@ -33,28 +33,29 @@ module tb_mnist_lut_cnn();
 	wire	cke = 1'b1;
 	
 	
-//	localparam IMG_X_NUM = 640;
-//	localparam IMG_Y_NUM = 480;
-	localparam IMG_X_NUM = 640 / 4;
-	localparam IMG_Y_NUM = 480 / 4;
+	localparam IMG_X_NUM = 640;
+	localparam IMG_Y_NUM = 480;
+//	localparam IMG_X_NUM = 640 / 4;
+//	localparam IMG_Y_NUM = 480 / 4;
 	
 	
-	localparam	DATA_WIDTH    = 8;
+	localparam	DATA_WIDTH         = 8;
 	
-	localparam	IMG_Y_WIDTH   = 12;
+	localparam	IMG_Y_WIDTH        = 12;
 	
-	localparam	TUSER_WIDTH   = 1;
-	localparam	S_TDATA_WIDTH = 8;
-	localparam	M_TDATA_WIDTH = 80;
+	localparam	TUSER_WIDTH        = 1;
+	localparam	S_TDATA_WIDTH      = 8;
 	
-	localparam	WB_ADR_WIDTH   = 8;
-	localparam	WB_DAT_WIDTH   = 32;
-	localparam	WB_SEL_WIDTH   = (WB_DAT_WIDTH / 8);
-	localparam	INIT_PARAM_TH  = 127;
-	localparam	INIT_PARAM_INV = 1'b0;
+	localparam	M_TNUMBER_WIDTH    = 4;
+	localparam	M_TCOUNT_WIDTH     = 4;
+	localparam	M_CLUSTERING_WIDTH = 80;
 	
-	localparam	M_TNUMBER_WIDTH = 4;
-	localparam	M_TCOUNT_WIDTH  = 4;
+	localparam	WB_ADR_WIDTH       = 8;
+	localparam	WB_DAT_WIDTH       = 32;
+	localparam	WB_SEL_WIDTH       = (WB_DAT_WIDTH / 8);
+	localparam	INIT_PARAM_TH      = 127;
+	localparam	INIT_PARAM_INV     = 1'b0;
+	
 	
 	
 	
@@ -73,8 +74,8 @@ module tb_mnist_lut_cnn();
 				.AXI4S_DATA_WIDTH	(24),
 				.X_NUM				(IMG_X_NUM),
 				.Y_NUM				(IMG_Y_NUM),
-		//		.PPM_FILE			("mnist_test_640x480.ppm"),
-				.PPM_FILE			("mnist_test_160x120.ppm"),
+				.PPM_FILE			("mnist_test_640x480.ppm"),
+		//		.PPM_FILE			("mnist_test_160x120.ppm"),
 				.BUSY_RATE			(0), // (5),
 				.RANDOM_SEED		(776),
 				.INTERVAL			(1000)
@@ -115,87 +116,71 @@ module tb_mnist_lut_cnn();
 		end
 	end
 	
-	/*
-	integer frame_count = 0;
-	always @(posedge clk) begin
-		if ( !reset && m_axi4s_tuser[0] && m_axi4s_tvalid && m_axi4s_tready ) begin
-			$display("frame : %d", frame_count);
-			frame_count = frame_count + 1;
-			if ( frame_count > FRAME_NUM+1 ) begin
-				$finish();
-			end
-		end
-	end
-	*/
-	
 	
 	// ----------------------------------
 	//  MNIST
 	// ----------------------------------
 	
-	wire	[TUSER_WIDTH-1:0]		m_axi4s_tuser;
-	wire							m_axi4s_tlast;
-	wire	[79:0]					m_axi4s_tdata;
-	wire	[M_TNUMBER_WIDTH-1:0]	m_axi4s_tnumber;
-	wire	[M_TCOUNT_WIDTH-1:0]	m_axi4s_tcount;
-	wire							m_axi4s_tvalid;
-	wire							m_axi4s_tready;
+	wire	[TUSER_WIDTH-1:0]			m_axi4s_tuser;
+	wire								m_axi4s_tlast;
+	wire	[M_TNUMBER_WIDTH-1:0]		m_axi4s_tnumber;
+	wire	[M_TCOUNT_WIDTH-1:0]		m_axi4s_tcount;
+	wire	[M_CLUSTERING_WIDTH-1:0]	m_axi4s_tclustering;
+	wire								m_axi4s_tvalid;
+	wire								m_axi4s_tready;
 	
-	wire							s_wb_rst_i = reset;
-	wire							s_wb_clk_i = clk;
-	wire	[WB_ADR_WIDTH-1:0]		s_wb_adr_i;
-	wire	[WB_DAT_WIDTH-1:0]		s_wb_dat_i;
-	wire	[WB_DAT_WIDTH-1:0]		s_wb_dat_o;
-	wire							s_wb_we_i;
-	wire	[WB_SEL_WIDTH-1:0]		s_wb_sel_i;
-	wire							s_wb_stb_i;
-	wire							s_wb_ack_o;
+	wire								s_wb_rst_i = reset;
+	wire								s_wb_clk_i = clk;
+	wire	[WB_ADR_WIDTH-1:0]			s_wb_adr_i;
+	wire	[WB_DAT_WIDTH-1:0]			s_wb_dat_i;
+	wire	[WB_DAT_WIDTH-1:0]			s_wb_dat_o;
+	wire								s_wb_we_i;
+	wire	[WB_SEL_WIDTH-1:0]			s_wb_sel_i;
+	wire								s_wb_stb_i;
+	wire								s_wb_ack_o;
 	
-	video_mnist
+	video_mnist_cnn
 			#(
-				.DATA_WIDTH			(DATA_WIDTH),
-				.IMG_Y_NUM			(IMG_Y_NUM),
-				.IMG_Y_WIDTH		(IMG_Y_WIDTH),
-				.TUSER_WIDTH		(TUSER_WIDTH),
-				.S_TDATA_WIDTH		(S_TDATA_WIDTH),
-				.M_TDATA_WIDTH		(M_TDATA_WIDTH),
-				.WB_ADR_WIDTH		(WB_ADR_WIDTH),
-				.WB_DAT_WIDTH		(WB_DAT_WIDTH),
-				.WB_SEL_WIDTH		(WB_SEL_WIDTH),
-				.INIT_PARAM_TH		(INIT_PARAM_TH),
-				.INIT_PARAM_INV		(INIT_PARAM_INV)
+				.DATA_WIDTH				(DATA_WIDTH),
+				.IMG_Y_NUM				(IMG_Y_NUM),
+				.IMG_Y_WIDTH			(IMG_Y_WIDTH),
+				.TUSER_WIDTH			(TUSER_WIDTH),
+				.S_TDATA_WIDTH			(S_TDATA_WIDTH),
+				.WB_ADR_WIDTH			(WB_ADR_WIDTH),
+				.WB_DAT_WIDTH			(WB_DAT_WIDTH),
+				.WB_SEL_WIDTH			(WB_SEL_WIDTH),
+				.INIT_PARAM_TH			(INIT_PARAM_TH),
+				.INIT_PARAM_INV			(INIT_PARAM_INV)
 			)
-		i_video_mnist
+		i_video_mnist_cnn
 			(
-				.aresetn			(~reset),
-				.aclk				(clk),
+				.aresetn				(~reset),
+				.aclk					(clk),
 				
-				.s_axi4s_tuser		(s_axi4s_tuser),
-				.s_axi4s_tlast		(s_axi4s_tlast),
-				.s_axi4s_tdata		(s_axi4s_tdata[7:0]),
-				.s_axi4s_tvalid		(s_axi4s_tvalid),
-				.s_axi4s_tready		(s_axi4s_tready),
+				.s_axi4s_tuser			(s_axi4s_tuser),
+				.s_axi4s_tlast			(s_axi4s_tlast),
+				.s_axi4s_tdata			(s_axi4s_tdata[7:0]),
+				.s_axi4s_tvalid			(s_axi4s_tvalid),
+				.s_axi4s_tready			(s_axi4s_tready),
 				
-				.m_axi4s_tuser		(m_axi4s_tuser),
-				.m_axi4s_tlast		(m_axi4s_tlast),
-				.m_axi4s_tdata		(m_axi4s_tdata),
-				.m_axi4s_tnumber	(m_axi4s_tnumber),
-				.m_axi4s_tcount		(m_axi4s_tcount),
-				.m_axi4s_tvalid		(m_axi4s_tvalid),
-				.m_axi4s_tready		(m_axi4s_tready),
+				.m_axi4s_tuser			(m_axi4s_tuser),
+				.m_axi4s_tlast			(m_axi4s_tlast),
+				.m_axi4s_tclustering	(m_axi4s_tclustering),
+				.m_axi4s_tnumber		(m_axi4s_tnumber),
+				.m_axi4s_tcount			(m_axi4s_tcount),
+				.m_axi4s_tvalid			(m_axi4s_tvalid),
+				.m_axi4s_tready			(m_axi4s_tready),
 				
-				.s_wb_rst_i			(s_wb_rst_i),
-				.s_wb_clk_i			(s_wb_clk_i),
-				.s_wb_adr_i			(s_wb_adr_i),
-				.s_wb_dat_i			(s_wb_dat_i),
-				.s_wb_dat_o			(s_wb_dat_o),
-				.s_wb_we_i			(s_wb_we_i),
-				.s_wb_sel_i			(s_wb_sel_i),
-				.s_wb_stb_i			(s_wb_stb_i),
-				.s_wb_ack_o			(s_wb_ack_o)
+				.s_wb_rst_i				(s_wb_rst_i),
+				.s_wb_clk_i				(s_wb_clk_i),
+				.s_wb_adr_i				(s_wb_adr_i),
+				.s_wb_dat_i				(s_wb_dat_i),
+				.s_wb_dat_o				(s_wb_dat_o),
+				.s_wb_we_i				(s_wb_we_i),
+				.s_wb_sel_i				(s_wb_sel_i),
+				.s_wb_stb_i				(s_wb_stb_i),
+				.s_wb_ack_o				(s_wb_ack_o)
 			);
-	
-//	assign m_axi4s_tready = 1;
 	
 	
 	wire	[0:0]				axi4s_color_tuser;
@@ -221,7 +206,7 @@ module tb_mnist_lut_cnn();
 				.s_axi4s_tnumber	(m_axi4s_tnumber),
 				.s_axi4s_tcount		(m_axi4s_tcount),
 				.s_axi4s_tdata		(24'h202020),		// (m_axi4s_tdata),
-				.s_axi4s_tbinary	(m_axi4s_tdata),	// (m_axi4s_tbinary),
+				.s_axi4s_tbinary	(1'b0),				// (m_axi4s_tbinary),
 				.s_axi4s_tvalid		(m_axi4s_tvalid),
 				.s_axi4s_tready		(m_axi4s_tready),
 				
@@ -244,6 +229,7 @@ module tb_mnist_lut_cnn();
 	
 	
 	
+	// 出力結果を保存 (サイズは 1/28 )
 	jelly_axi4s_slave_model
 			#(
 				.COMPONENT_NUM		(3),
@@ -268,14 +254,28 @@ module tb_mnist_lut_cnn();
 				
 				.s_axi4s_tuser		(axi4s_color_tuser),
 				.s_axi4s_tlast		(axi4s_color_tlast),
-//				.s_axi4s_tdata		(axi4s_color_tdata[23:0]),
 				.s_axi4s_tdata		({axi4s_color_tdata[7:0], axi4s_color_tdata[15:8], axi4s_color_tdata[23:16]}),
 				.s_axi4s_tvalid		(axi4s_color_tvalid),
 				.s_axi4s_tready		(axi4s_color_tready)
 			);
 	
 	
+	// 出力フレームカウント
+	integer	output_frame = 0;
+	always @(posedge clk) begin
+		if ( !reset ) begin
+			if ( axi4s_color_tvalid && axi4s_color_tready && axi4s_color_tuser[0] ) begin
+				output_frame <= output_frame + 1;
+			end
+			
+			if ( output_frame >= 2 ) begin
+				$finish();
+			end
+		end
+	end
 	
+	
+	/*
 	jelly_axi4s_slave_model
 			#(
 				.COMPONENT_NUM		(3),
@@ -304,7 +304,7 @@ module tb_mnist_lut_cnn();
 				.s_axi4s_tvalid		(m_axi4s_tvalid & m_axi4s_tready),
 				.s_axi4s_tready		()
 			);
-	
+	*/
 	
 	
 	// ----------------------------------
@@ -422,11 +422,10 @@ module tb_mnist_lut_cnn();
 	endtask
 	
 	
-	
 	initial begin
 	@(negedge wb_rst_i);
 	#10000;
-		$display("start");
+//		$display("start");
 //		wb_write(32'h00010010, 32'h00, 4'b1111);
 	end
 	

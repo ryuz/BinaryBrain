@@ -38,8 +38,8 @@ static void WriteTestImage(std::string filename, int w, int h);
 void MnistSimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
 {
     // write test image
-    WriteTestImage("verilog/mnist_test_160x120.ppm", 160, 120);
-    WriteTestImage("verilog/mnist_test_640x480.ppm", 640, 480);
+//    WriteTestImage("verilog/mnist_test_160x120.ppm", 160, 120);
+//    WriteTestImage("verilog/mnist_test_640x480.ppm", 640, 480);
 
   // load MNIST data
 #ifdef _DEBUG
@@ -110,7 +110,11 @@ void MnistSimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
         runner_create.file_read  = true;        // 前の計算結果があれば読み込んで再開
         runner_create.file_write = true;        // 計算結果をファイルに保存する
         runner_create.print_progress = true;    // 途中結果を出力
+        runner_create.initial_evaluation = true;
         auto runner = bb::Runner<float>::Create(runner_create);
+
+//        runner->SaveJson("test.json");
+
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
 

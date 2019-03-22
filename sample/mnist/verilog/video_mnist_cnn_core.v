@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-module video_mnist_core
+module video_mnist_cnn_core
 		#(
 			parameter	TUSER_WIDTH    = 1,
 			
