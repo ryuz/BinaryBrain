@@ -13,6 +13,7 @@
 void MnistSimpleLutMlp(int epoch_size, size_t mini_batch_size, bool binary_mode);
 void MnistSimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode);
 void MnistDenseAffine(int epoch_size, size_t mini_batch_size);
+void MnistSimpleLutMlpModulation(int epoch_size, size_t mini_batch_size, bool binary_mode);
 void MnistSimpleMicroMlpScratch(int epoch_size, size_t mini_batch_size, bool binary_mode);
 
 
@@ -72,6 +73,10 @@ int main(int argc, char *argv[])
 
 	if ( netname == "All" || netname == "DenseAffine" ) {
 		MnistDenseAffine(epoch_size, mini_batch_size);
+	}
+
+	if ( netname == "All" || netname == "LutMlpMod" ) {
+    	MnistSimpleLutMlpModulation(epoch_size, mini_batch_size, true);
 	}
 
 	if ( strcmp(argv[1], "All") == 0 || strcmp(argv[1], "SimpleMicroMlpScratch") == 0 ) {

@@ -52,7 +52,7 @@ void MnistSimpleLutMlpModulation(int epoch_size, size_t mini_batch_size, bool bi
     auto layer_mm2 = bb::MicroMlp<>::Create({16});
     auto layer_mm3 = bb::MicroMlp<>::Create({30});
 #else
-    auto layer_mm0 = bb::MicroMlp<>::Create({1024});
+    auto layer_mm0 = bb::MicroMlp<>::Create({512});
     auto layer_mm1 = bb::MicroMlp<>::Create({360});
     auto layer_mm2 = bb::MicroMlp<>::Create({60});
     auto layer_mm3 = bb::MicroMlp<>::Create({10});
@@ -60,12 +60,12 @@ void MnistSimpleLutMlpModulation(int epoch_size, size_t mini_batch_size, bool bi
 
     {
         auto net = bb::Sequential::Create();
-        net->Add(bb::RealToBinary<>::Create(7));	// ここで変調
+        net->Add(bb::RealToBinary<>::Create(1));	// ここで変調
         net->Add(layer_mm0);
         net->Add(layer_mm1);
         net->Add(layer_mm2);
         net->Add(layer_mm3);
-        net->Add(bb::BinaryToReal<float, float>::Create({10}, 7));
+        net->Add(bb::BinaryToReal<float, float>::Create({10}, 1));
         net->SetInputShape(td.x_shape);
 
         if ( binary_mode ) {
@@ -127,9 +127,10 @@ void MnistSimpleLutMlpModulation(int epoch_size, size_t mini_batch_size, bool bi
 
         {
             // Verilog 出力
-            std::string filename = "verilog/MnistSimpleLutMlp.v";
+            std::string filename = "verilog/MnistSimpleLutMlpModulation.v";
             std::ofstream ofs(filename);
-            bb::ExportVerilog_LutLayers<>(ofs, "MnistSimpleLutMlp", lut_net);
+            ofs << "`timescale 1ns / 1ps\n\n";
+            bb::ExportVerilog_LutLayers<>(ofs, "MnistSimpleLutMlpModulation", lut_net);
             std::cout << "export : " << filename << "\n" << std::endl;
         }
     }

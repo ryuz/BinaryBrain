@@ -212,6 +212,7 @@ void MnistSimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
 
             std::string filename = "verilog/MnistSimpleLutCnn.v";
             std::ofstream ofs(filename);
+            ofs << "`timescale 1ns / 1ps\n\n";
             bb::ExportVerilog_LutCnnLayersAxi4s(ofs, "MnistSimpleLutCnnCnv0", vec_cnv0);
             bb::ExportVerilog_LutCnnLayersAxi4s(ofs, "MnistSimpleLutCnnCnv1", vec_cnv1);
             bb::ExportVerilog_LutCnnLayersAxi4s(ofs, "MnistSimpleLutCnnCnv2", vec_cnv2);
