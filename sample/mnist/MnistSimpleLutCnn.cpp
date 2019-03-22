@@ -107,14 +107,11 @@ void MnistSimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
         runner_create.lossFunc  = bb::LossSoftmaxCrossEntropy<float>::Create();
         runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create(10);
         runner_create.optimizer = bb::OptimizerAdam<float>::Create();
-        runner_create.file_read  = true;        // 前の計算結果があれば読み込んで再開
-        runner_create.file_write = true;        // 計算結果をファイルに保存する
+        runner_create.file_read  = false;       // 前の計算結果があれば読み込んで再開するか
+        runner_create.file_write = true;        // 計算結果をファイルに保存するか
         runner_create.print_progress = true;    // 途中結果を出力
-        runner_create.initial_evaluation = true;
+        runner_create.initial_evaluation = false;
         auto runner = bb::Runner<float>::Create(runner_create);
-
-//        runner->SaveJson("test.json");
-
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
 
