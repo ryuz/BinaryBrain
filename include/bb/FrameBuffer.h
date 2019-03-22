@@ -94,7 +94,22 @@ protected:
         return GetShapeIndex(indices, m_buf->GetShape());
     }
 
-  	inline Tp ReadValue(void const *base, index_t frame) const
+    inline index_t GetNodeIndex(index_t i0) const
+    {
+        return GetShapeIndex(i0, m_buf->GetShape());
+    }
+
+    inline index_t GetNodeIndex(index_t i1, index_t i0) const
+    {
+        return GetShapeIndex(i1, i0, m_buf->GetShape());
+    }
+
+    inline index_t GetNodeIndex(index_t i2, index_t i1, index_t i0) const
+    {
+        return GetShapeIndex(i2, i1, i0, m_buf->GetShape());
+    }
+
+   	inline Tp ReadValue(void const *base, index_t frame) const
 	{
         return DataType_Read<Tp>(base, frame);
 	}
@@ -128,7 +143,12 @@ public:
 
     inline Tp Get(index_t frame, index_t i1, index_t i0) const
     {
-        return Get(frame, indices_t{i0, i1});
+        return Get(frame, GetNodeIndex(i1, i0));
+    }
+
+    inline Tp Get(index_t frame, index_t i2, index_t i1, index_t i0) const
+    {
+        return Get(frame, GetNodeIndex(i2, i1, i0));
     }
 };
 
@@ -161,6 +181,21 @@ protected:
     inline index_t GetNodeIndex(indices_t const & indices)
     {
         return GetShapeIndex(indices, m_buf->m_node_shape);
+    }
+
+    inline index_t GetNodeIndex(index_t i0)
+    {
+        return GetShapeIndex(i0, m_buf->m_node_shape);
+    }
+
+    inline index_t GetNodeIndex(index_t i1, index_t i0)
+    {
+        return GetShapeIndex(i1, i0, m_buf->m_node_shape);
+    }
+
+    inline index_t GetNodeIndex(index_t i2, index_t i1, index_t i0)
+    {
+        return GetShapeIndex(i2, i1, i0, m_buf->m_node_shape);
     }
 
   	inline void WriteValue(void *base, index_t frame, Tp value)
@@ -197,7 +232,12 @@ public:
 
     inline void Set(index_t frame, index_t i1, index_t i0, Tp value)
     {
-        return Set(frame, indices_t{i0, i1}, value);
+        return Set(frame, GetNodeIndex(i1, i0), value);
+    }
+
+    inline void Set(index_t frame, index_t i2, index_t i1, index_t i0, Tp value)
+    {
+        return Set(frame, GetNodeIndex(i2, i1, i0), value);
     }
 
 
@@ -213,7 +253,12 @@ public:
 
     inline void Add(index_t frame, index_t i1, index_t i0, Tp value)
     {
-        return Add(frame, indices_t{i0, i1}, value);
+        return Add(frame, GetNodeIndex(i1, i0), value);
+    }
+
+    inline void Add(index_t frame, index_t i2, index_t i1, index_t i0, Tp value)
+    {
+        return Add(frame, GetNodeIndex(i2, i1, i0), value);
     }
 };
 #endif
