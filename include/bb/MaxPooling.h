@@ -332,7 +332,6 @@ public:
         }
 #endif
 
-#if 0
 		if ( DataType<BT>::type == BB_TYPE_FP32 && DataType<FT>::type == BB_TYPE_FP32 ) {
 			// float用実装
 			index_t  m256_frame_size = m_dx.GetFrameStride() / sizeof(float);
@@ -375,7 +374,6 @@ public:
 
             return m_dx;
 		}
-#endif
 
         // 汎用版実装
         {
@@ -392,7 +390,7 @@ public:
 					for (index_t x = 0; x < m_output_w_size; ++x) {
 						for (index_t frame = 0; frame < frame_size; ++frame) {
                             FT out_sig = y_ptr.Get(frame, c, y, x);
-                            FT grad    = dy_ptr.Get(frame, c, y, x);
+                            BT grad    = dy_ptr.Get(frame, c, y, x);
 							for (index_t fy = 0; fy < m_filter_h_size; ++fy) {
 								index_t iy = y*m_filter_h_size + fy;
                                 if ( iy < m_input_h_size ) {
@@ -400,7 +398,7 @@ public:
 									    index_t ix = x*m_filter_w_size + fx;
                                         if ( ix < m_input_w_size ) {
                                             FT in_sig  = x_ptr.Get(frame, c, iy, ix);
-                							dx_ptr.Set(frame, c, iy, ix, (in_sig == out_sig) ? grad : 0);
+                							dx_ptr.Set(frame, c, iy, ix, (in_sig == out_sig) ? grad : (BT)0);
                                         }
 								    }
                                 }
