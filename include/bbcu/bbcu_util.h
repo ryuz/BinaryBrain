@@ -70,6 +70,38 @@ void DumpDeviceMemory(std::string filename, T const *addr, int size)
 }
 
 
+
+inline void Malloc(void **ptr, size_t size)
+{
+    BB_CUDA_SAFE_CALL(cudaMalloc(ptr, size));
+}
+
+inline void Free(void *ptr)
+{
+    BB_CUDA_SAFE_CALL(cudaFree(ptr));
+}
+
+inline void MallocHost(void **ptr, size_t size, unsigned int flags = 0)
+{
+    BB_CUDA_SAFE_CALL(cudaMallocHost(ptr, size, flags));
+}
+
+inline void FreeHost(void *ptr)
+{
+    BB_CUDA_SAFE_CALL(cudaFreeHost(ptr));
+}
+
+inline void Memcpy(void *dst, const void *src, size_t count, enum cudaMemcpyKind kind)
+{
+    if ( kind == cudaMemcpyHostToDevice) {
+        BB_CUDA_SAFE_CALL(cudaMemcpy(dst, src, count, cudaMemcpyHostToDevice));
+    }
+    else {
+        BB_CUDA_SAFE_CALL(cudaMemcpy(dst, src, count, cudaMemcpyDeviceToHost));
+    }
+}
+
+
 }
 
 
