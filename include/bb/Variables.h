@@ -21,6 +21,13 @@ class Variables
 protected:
     std::vector< std::shared_ptr<Tensor> >    m_tensors;
 
+#ifdef BB_WITH_CUDA
+    bool        m_size_table_dirty = true;  // サイズテーブルはクリーンな状態か
+    bool        m_addr_table_dirty = true;  // サイズテーブルはクリーンな状態か
+    void        *m_dev_size_table = nullptr;
+    void        *m_dev_addr_table = nullptr;
+#endif
+
 public:
     explicit Variables(){}
 
@@ -51,6 +58,87 @@ public:
         return true;
     }
 
+
+#ifdef BB_WITH_CUDA
+    // デバイス側にサイズテーブルを確保してポインタ取得
+    void *GetDeviceSizeTable(void)
+    {
+        // 前回作ったものがdirtyでなければそのまま使う
+        if (!m_size_table_dirty) {
+            return m_dev_size_table;
+        }
+
+        // 古いものがあれば開放
+        if ( m_dev_size_table != nullptr ) {
+            bbcu::Free(m_dev_size_table);
+        }
+
+        // 各Tensorのサイズテーブル作成
+        size_t size = m_tensors.size();
+        std::vector<int>    size_table(size);
+        for (size_t i = 0; i < size; ++i) {
+            size_table[i] = (int)m_tensors[i]->GetSize();
+        }
+
+        // デバイスメモリ確保
+        bbcu::Malloc(&m_dev_size_table, sizeof(int) * size);
+
+        // 転送
+        bbcu::Memcpy(m_dev_size_table, &size_table[0],  sizeof(int) * size, cudaMemcpyHostToDevice);
+
+        // dirtyフラグクリア
+        m_size_table_dirty = false;
+
+        return m_dev_size_table;
+    }
+
+    // デバイス側にアドレステーブルを確保してポインタ取得
+    void *GetDeviceAddrTable(bool new_buf=false)
+    {
+        // 前回作ったものがdirtyでなければそのまま使う
+        if (!m_addr_table_dirty) {
+            for (auto& t : m_tensors) {
+                t->LockDeviceMemory(new_buf);   // 一旦ロックして、最新内容をデバイス側に確保
+            }
+            return m_dev_addr_table;
+        }
+
+        // 古いものがあれば開放
+        if ( m_dev_addr_table != nullptr ) {
+            bbcu::Free(m_dev_addr_table);
+        }
+
+        // 各Tensorのサイズテーブル作成
+        size_t size = m_tensors.size();
+        std::vector<void *>    addr_table(size);
+        for (size_t i = 0; i < size; ++i) {
+            auto ptr = m_tensors[i]->LockDeviceMemory(new_buf);
+            addr_table[i] = ptr.GetAddr();
+        }
+
+        // デバイスメモリ確保
+        bbcu::Malloc(&m_dev_addr_table, sizeof(void *) * size);
+
+        // 転送
+        bbcu::Memcpy(m_dev_addr_table, &addr_table[0],  sizeof(void*) * size, cudaMemcpyHostToDevice);
+
+        // dirtyフラグクリア
+        m_addr_table_dirty = false;
+
+        return m_dev_addr_table;
+    }
+#else
+    void *GetDeviceSizeTable(void)
+    {
+        return nullptr;
+    }
+
+    void *GetDeviceAddrTable(void)
+    {
+        return nullptr;
+    }
+#endif
+
     index_t GetSize(void) const
     {
         return (index_t)m_tensors.size();
@@ -77,6 +165,11 @@ public:
     void PushBack(std::shared_ptr<Tensor> t)
     {
         m_tensors.push_back(t);
+
+#ifdef BB_WITH_CUDA
+        m_size_table_dirty = true;
+        m_addr_table_dirty = true;
+#endif
     }
 
     void PushBack(Variables const &v)
@@ -84,6 +177,11 @@ public:
         for ( auto& t : v.m_tensors ) {
             m_tensors.push_back(t);
         }
+
+#ifdef BB_WITH_CUDA
+        m_size_table_dirty = true;
+        m_addr_table_dirty = true;
+#endif
     }
     
     // access operators
@@ -189,6 +287,22 @@ public:
         return *this;
     }
 
+    Variables &Sqrt(void)
+    {
+        for ( size_t i = 0; i < m_tensors.size(); ++i ) {
+            m_tensors[i]->Sqrt();
+        }
+        return *this;
+    }
+
+    Variables &Exp(void)
+    {
+        for ( size_t i = 0; i < m_tensors.size(); ++i ) {
+            m_tensors[i]->Exp();
+        }
+        return *this;
+    }
+
     friend  Variables operator + (Variables const &src0, Variables const &src1);
     friend  Variables operator + (Variables const &src0, double src1);
     friend  Variables operator + (double src0, Variables const &src1);
@@ -203,26 +317,6 @@ public:
     friend  Variables operator / (double src0, Variables const &src1);
     friend  Variables Sqrt(Variables const &src);
     friend  Variables Exp(Variables const &src);
-
-    /*
-    Variables Sqrt(void)
-    {
-        Variables var(GetTypes(), GetShapes());
-        for ( size_t i = 0; i < m_tensors.size(); ++i ) {
-            *var.m_tensors[i] = m_tensors[i]->Sqrt();
-        }
-        return var;
-    }
-
-    Variables Exp(void)
-    {
-        Variables var(GetTypes(), GetShapes());
-        for ( size_t i = 0; i < m_tensors.size(); ++i ) {
-            *var.m_tensors[i] = m_tensors[i]->Exp();
-        }
-        return var;
-    }
-    */
 };
 
 inline Variables operator+(Variables const &src0, Variables const &src1)

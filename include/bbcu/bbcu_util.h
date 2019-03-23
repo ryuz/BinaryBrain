@@ -94,7 +94,6 @@ inline void FreeHost(void *ptr)
 inline void Memcpy(void *dst, const void *src, size_t count, enum cudaMemcpyKind kind)
 {
     BB_CUDA_SAFE_CALL(cudaMemcpy(dst, src, count, kind));
-//  std::cout << "memcpy" << std::endl;
 }
 
 

@@ -37,6 +37,9 @@ static void WriteTestImage(std::string filename, int w, int h);
 // MNIST CNN with LUT networks
 void MnistSimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
 {
+    std::string net_name = "MnistSimpleLutCnn";
+    int const   frame_mux_size = 1;
+
   // load MNIST data
 #ifdef _DEBUG
 	auto td = bb::LoadMnist<>::Load(10, 512, 128);
@@ -76,7 +79,7 @@ void MnistSimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
 
 
         auto net = bb::Sequential::Create();
-        net->Add(bb::RealToBinary<>::Create(1));
+        net->Add(bb::RealToBinary<>::Create(frame_mux_size));
         net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
         net->Add(bb::MaxPooling<>::Create(2, 2));
@@ -85,7 +88,7 @@ void MnistSimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
         net->Add(bb::MaxPooling<>::Create(2, 2));
         net->Add(layer_mm4);
         net->Add(layer_mm5);
-        net->Add(bb::BinaryToReal<>::Create({ 10 }, 1));
+        net->Add(bb::BinaryToReal<>::Create({ 10 }, frame_mux_size));
         net->SetInputShape({28, 28, 1});
 
         if ( binary_mode ) {
@@ -98,7 +101,7 @@ void MnistSimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
 
         // run fitting
         bb::Runner<float>::create_t runner_create;
-        runner_create.name      = "MnistSimpleLutCnn";
+        runner_create.name      = net_name;
         runner_create.net       = net;
         runner_create.lossFunc  = bb::LossSoftmaxCrossEntropy<float>::Create();
         runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create(10);
@@ -157,7 +160,7 @@ void MnistSimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
         auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 4, 4);
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(1));
+        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(frame_mux_size));
         lut_net->Add(cnv0);
         lut_net->Add(cnv1);
         lut_net->Add(pol0);
@@ -165,7 +168,7 @@ void MnistSimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
         lut_net->Add(cnv3);
         lut_net->Add(pol1);
         lut_net->Add(cnv4);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({ 10 }, 1));
+        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({ 10 }, frame_mux_size));
         lut_net->SetInputShape({28, 28, 1});
 
 
@@ -184,7 +187,7 @@ void MnistSimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
         // •]‰¿
         if ( 0 ) {
             bb::Runner<float>::create_t lut_runner_create;
-            lut_runner_create.name      = "Lut_MnistSimpleLutCnn";
+            lut_runner_create.name      = "Lut_" + net_name;
             lut_runner_create.net       = lut_net;
             lut_runner_create.lossFunc  = bb::LossSoftmaxCrossEntropy<float>::Create();
             lut_runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create(10);
@@ -210,12 +213,12 @@ void MnistSimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
             vec_cnv1.push_back(pol1);
             vec_cnv2.push_back(cnv4);
 
-            std::string filename = "verilog/MnistSimpleLutCnn.v";
+            std::string filename = "verilog/" + net_name + ".v";
             std::ofstream ofs(filename);
             ofs << "`timescale 1ns / 1ps\n\n";
-            bb::ExportVerilog_LutCnnLayersAxi4s(ofs, "MnistSimpleLutCnnCnv0", vec_cnv0);
-            bb::ExportVerilog_LutCnnLayersAxi4s(ofs, "MnistSimpleLutCnnCnv1", vec_cnv1);
-            bb::ExportVerilog_LutCnnLayersAxi4s(ofs, "MnistSimpleLutCnnCnv2", vec_cnv2);
+            bb::ExportVerilog_LutCnnLayersAxi4s(ofs, net_name + "Cnv0", vec_cnv0);
+            bb::ExportVerilog_LutCnnLayersAxi4s(ofs, net_name + "Cnv1", vec_cnv1);
+            bb::ExportVerilog_LutCnnLayersAxi4s(ofs, net_name + "Cnv2", vec_cnv2);
             std::cout << "export : " << filename << "\n" << std::endl;
             
             // write test image
