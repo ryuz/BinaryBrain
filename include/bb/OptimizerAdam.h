@@ -171,6 +171,63 @@ public:
 #endif
     }
     
+
+#if 1
+
+  	void Update(void)
+	{
+
+#ifdef BB_WITH_CUDA
+        if ( m_dev_size_table && m_dev_params_buf_table && m_dev_grads_buf_table && m_dev_m_buf_table && m_dev_v_buf_table ) {
+            auto lr_t = m_learning_rate * std::sqrt((T)1.0 - m_b2) / ((T)1.0 - m_b1 /* + 1.0e-7 */ );
+
+            /*
+            for ( index_t i = 0; i < m_params.GetSize(); ++i ) {
+                auto param_tensor = m_params[i];
+                auto grad_tensor  = m_grads[i];
+                auto m_tensor     = m_m[i];
+                auto v_tensor     = m_v[i];
+            
+                auto param_ptr = param_tensor.LockDeviceMemory();
+                auto grad_ptr  = grad_tensor.LockDeviceMemoryConst();
+                auto m_ptr     = m_tensor.LockDeviceMemory();
+                auto v_ptr     = v_tensor.LockDeviceMemory();
+            }
+            */
+
+            bbcu_fp32_Adam
+		            (
+                        (int                  )m_params.GetSize(),
+                        (int           const *)m_params.GetDeviceSizeTable(),
+			            (float       * const *)m_params.GetDeviceAddrTable(),
+			            (float const * const *)m_grads.GetDeviceAddrTable(),
+    		            (float       * const *)m_m.GetDeviceAddrTable(),
+    		            (float       * const *)m_v.GetDeviceAddrTable(),
+ 	                    (float				  )lr_t,
+	                    (float				  )m_beta1,
+	                    (float				  )m_beta2
+                    );
+            
+            m_b1 *= m_beta1;
+            m_b2 *= m_beta2;       
+            return;
+        }
+#endif
+        
+        {
+            auto lr_t = m_learning_rate * std::sqrt((T)1.0 - m_b2) / ((T)1.0 - m_b1 + 1.0e-7 );
+
+            m_m += ((T)1.0 - m_beta1) * (m_grads - m_m);
+            m_v += ((T)1.0 - m_beta2) * (m_grads * m_grads - m_v);
+            m_params -= lr_t * m_m / (Sqrt(m_v) + (T)1e-7);
+
+            m_b1 *= m_beta1;
+            m_b2 *= m_beta2;
+        }
+    }
+
+#else
+
 	void Update(void)
 	{
 #ifdef BB_WITH_CUDA
@@ -217,26 +274,7 @@ public:
         m_b1 *= m_beta1;
         m_b2 *= m_beta2;
     }
-
-#if 0
-    Variables       m_lr_t;
-    Variables       m_tmp0;
-    Variables       m_tmp1;
-	void Update2(void)
-	{
-        m_lr_t  = 1.0f;
-        m_lr_t -= m_b2;
-        m_lr_t.Sqrt();
-
-        m_tmp0  = 1.0f;
-        m_tmp0 -= m_b1;
-
-        m_lr_t /= m_tmp0;
-
-        m_tmp2 
-    }
 #endif
-
 };
 
 
