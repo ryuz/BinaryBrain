@@ -5,7 +5,8 @@ TARGET=libbbcu.a
 NVCC = nvcc
 CFLAGS = -I ../include
 
-OBJS = Manager.o \
+OBJS = BinaryToReal.o \
+	   Manager.o \
        MicroMlp.o \
 	   Im2Col.o \
 	   Col2Im.o \
