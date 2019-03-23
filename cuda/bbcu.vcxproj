@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="Adam.cu" />
     <CudaCompile Include="BatchNormalization.cu" />
     <CudaCompile Include="Binarize.cu" />
     <CudaCompile Include="BinaryToReal.cu" />

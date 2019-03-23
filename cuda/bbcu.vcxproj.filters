@@ -14,6 +14,7 @@
     <CudaCompile Include="Col2Im.cu" />
     <CudaCompile Include="BinaryToReal.cu" />
     <CudaCompile Include="LossSoftmaxCrossEntropy.cu" />
+    <CudaCompile Include="Adam.cu" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile" />
