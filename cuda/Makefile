@@ -14,7 +14,9 @@ OBJS = Manager.o \
 	   ReLU.o \
 	   Binarize.o \
 	   Vector.o \
-       HorizontalSum.o
+       HorizontalSum.o \
+       Adam.cu \
+       LossSoftmaxCrossEntropy.cu
 
 .SUFFIXES: .cu .o
 
