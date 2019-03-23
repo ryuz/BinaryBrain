@@ -157,6 +157,8 @@ public:
                     else {
                         th = m_input_range_lo + (th_step * (FXT)(i + 1));
                     }
+
+                    #pragma omp parallel for
                     for (index_t node = 0; node < node_size; ++node) {
                         FXT real_sig = x_ptr.Get(input_frame, node);
 			            FYT bin_sig  = (real_sig > th) ? (FYT)1 : (FYT)0;
@@ -194,6 +196,7 @@ public:
         auto dy_ptr = dy.LockConst<BT>();
         auto dx_ptr = m_dx.Lock<BT>();
 
+        #pragma omp parallel for
 		for (index_t node = 0; node < node_size; node++) {
     		for (index_t output_frame = 0; output_frame < output_frame_size; ++output_frame) {
                 index_t input_frame = output_frame / m_frame_mux_size;
