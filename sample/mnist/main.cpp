@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
     	MnistSimpleLutMlpModulation(epoch_size, mini_batch_size, true);
 	}
 
-	if ( strcmp(argv[1], "All") == 0 || strcmp(argv[1], "SimpleMicroMlpScratch") == 0 ) {
+	if ( strcmp(argv[1], "SimpleMicroMlpScratch") == 0 ) {
 		MnistSimpleMicroMlpScratch(epoch_size, mini_batch_size, true);
 	}
 

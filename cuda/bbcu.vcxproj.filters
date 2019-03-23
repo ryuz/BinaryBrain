@@ -12,6 +12,7 @@
     <CudaCompile Include="BatchNormalization.cu" />
     <CudaCompile Include="MaxPooling.cu" />
     <CudaCompile Include="Col2Im.cu" />
+    <CudaCompile Include="BinaryToReal.cu" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile" />
