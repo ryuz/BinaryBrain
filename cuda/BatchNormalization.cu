@@ -132,25 +132,6 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Forward
 {
 	BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
-
-    // dump
-    if ( 0 ){
-#ifdef _DEBUG
-        std::string dump_path = "dump_gpu_dbg\\";
-#else
-        std::string dump_path = "dump_gpu_rel\\";
-#endif
-
-	    bbcu::DumpDeviceMemory(dump_path + "fw_pre_x.txt",            dev_x_buf,            frame_stride * node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "fw_pre_y.txt",            dev_y_buf,            frame_stride * node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "fw_pre_gamma.txt",        dev_gamma_buf,        node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "fw_pre_beta.txt",         dev_beta_buf,         node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "fw_pre_mean.txt",         dev_mean_buf,         node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "fw_pre_rstd.txt",         dev_rstd_buf,         node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "fw_pre_running_mean.txt", dev_running_mean_buf, node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "fw_pre_running_var.txt",  dev_running_var_buf,  node_size);
-    }
-
 	dim3	grid(node_size);
 	dim3	block(BBCU_BATCHNORM_FW_BLOCK_SIZE);
 
@@ -169,24 +150,6 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Forward
 			frame_stride
 		);
 	BB_CUDA_CHECK_LAST_ERROR();
-
-    // dump
-    if ( 0 ){
-#ifdef _DEBUG
-        std::string dump_path = "dump_gpu_dbg\\";
-#else
-        std::string dump_path = "dump_gpu_rel\\";
-#endif
-
-	    bbcu::DumpDeviceMemory(dump_path + "fw_x.txt",            dev_x_buf,            frame_stride * node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "fw_y.txt",            dev_y_buf,            frame_stride * node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "fw_gamma.txt",        dev_gamma_buf,        node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "fw_beta.txt",         dev_beta_buf,         node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "fw_mean.txt",         dev_mean_buf,         node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "fw_rstd.txt",         dev_rstd_buf,         node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "fw_running_mean.txt", dev_running_mean_buf, node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "fw_running_var.txt",  dev_running_var_buf,  node_size);
-    }
 
 	return 0;
 }
@@ -295,8 +258,6 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Backward
 	dim3	grid(node_size);
 	dim3	block(BBCU_BATCHNORM_BW_BLOCK_SIZE);
 
-    cudaDeviceSynchronize();
-
 	kernal_fp32_BatchNormalization_Backward << <grid, block, 0, streamId >> > (
             dev_x_buf,
             dev_dy_buf,
@@ -311,25 +272,6 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Backward
             frame_stride
         );
     BB_CUDA_CHECK_LAST_ERROR();
-    
-
-    // dump
-    if ( 0 ){
-#ifdef _DEBUG
-        std::string dump_path = "dump_gpu_dbg\\";
-#else
-        std::string dump_path = "dump_gpu_rel\\";
-#endif
-
-	    bbcu::DumpDeviceMemory(dump_path + "bk_x.txt",      dev_x_buf,      frame_stride * node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "bk_dy.txt",	    dev_dy_buf,     frame_stride * node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "bk_dx.txt",		dev_dx_buf,     frame_stride * node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "bk_gamma.txt",	dev_gamma_buf,  node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "bk_dgamma.txt",	dev_dgamma_buf, node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "bk_dbeta.txt",	dev_dbeta_buf,  node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "bk_mean.txt",	dev_mean_buf,   node_size);
-	    bbcu::DumpDeviceMemory(dump_path + "bk_rstd.txt",	dev_rstd_buf,   node_size);
-    }
 
 	return 0;
 }
