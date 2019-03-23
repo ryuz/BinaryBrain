@@ -41,6 +41,16 @@ public:
 
     ~Variables(){}
 
+    bool IsDeviceAvailable(void) const
+    {
+        for ( auto& t : m_tensors ) {
+            if (!t->IsDeviceAvailable()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     index_t GetSize(void) const
     {
         return (index_t)m_tensors.size();
