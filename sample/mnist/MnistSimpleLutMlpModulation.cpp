@@ -35,8 +35,8 @@ static void WriteMnistDataFile(std::string train_file, std::string test_file, in
 // MNIST CNN with LUT networks
 void MnistSimpleLutMlpModulation(int epoch_size, size_t mini_batch_size, bool binary_mode)
 {
-    // RTL simulation 用データの出力
-    WriteMnistDataFile("verilog/mnist_train.txt", "verilog/mnist_test.txt", 60000, 10000);
+    std::string net_name = "MnistSimpleLutMlpModulation";
+    int const   frame_mux_size = 7;
 
   // load MNIST data
 #ifdef _DEBUG
@@ -60,12 +60,12 @@ void MnistSimpleLutMlpModulation(int epoch_size, size_t mini_batch_size, bool bi
 
     {
         auto net = bb::Sequential::Create();
-        net->Add(bb::RealToBinary<>::Create(1));	// ここで変調
+        net->Add(bb::RealToBinary<>::Create(frame_mux_size));	// ここで変調
         net->Add(layer_mm0);
         net->Add(layer_mm1);
         net->Add(layer_mm2);
         net->Add(layer_mm3);
-        net->Add(bb::BinaryToReal<float, float>::Create({10}, 1));
+        net->Add(bb::BinaryToReal<float, float>::Create({10}, frame_mux_size));
         net->SetInputShape(td.x_shape);
 
         if ( binary_mode ) {
@@ -79,7 +79,7 @@ void MnistSimpleLutMlpModulation(int epoch_size, size_t mini_batch_size, bool bi
 
         // fitting
         bb::Runner<float>::create_t runner_create;
-        runner_create.name      = "MnistSimpleLutMlpModulation";
+        runner_create.name      = net_name;
         runner_create.net       = net;
         runner_create.lossFunc  = bb::LossSoftmaxCrossEntropy<float>::Create();
         runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create(10);
@@ -98,12 +98,12 @@ void MnistSimpleLutMlpModulation(int epoch_size, size_t mini_batch_size, bool bi
         auto layer_lut3 = bb::BinaryLutN<>::Create(layer_mm3->GetOutputShape());
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(7));
+        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(frame_mux_size));
         lut_net->Add(layer_lut0);
         lut_net->Add(layer_lut1);
         lut_net->Add(layer_lut2);
         lut_net->Add(layer_lut3);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({10}, 7));
+        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({10}, frame_mux_size));
         lut_net->SetInputShape(td.x_shape);
 
         // テーブル化して取り込み(SetInputShape後に取り込みが必要)
@@ -114,7 +114,7 @@ void MnistSimpleLutMlpModulation(int epoch_size, size_t mini_batch_size, bool bi
 
         // 評価
         bb::Runner<float>::create_t lut_runner_create;
-        lut_runner_create.name      = "Lut_MnistSimpleLutMlpModulation";
+        lut_runner_create.name      = "Lut_" + net_name;
         lut_runner_create.net       = lut_net;
         lut_runner_create.lossFunc  = bb::LossSoftmaxCrossEntropy<float>::Create();
         lut_runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create(10);
@@ -127,16 +127,17 @@ void MnistSimpleLutMlpModulation(int epoch_size, size_t mini_batch_size, bool bi
 
         {
             // Verilog 出力
-            std::string filename = "verilog/MnistSimpleLutMlpModulation.v";
+            std::string filename = "verilog/" + net_name + ".v";
             std::ofstream ofs(filename);
             ofs << "`timescale 1ns / 1ps\n\n";
-            bb::ExportVerilog_LutLayers<>(ofs, "MnistSimpleLutMlpModulation", lut_net);
+            bb::ExportVerilog_LutLayers<>(ofs, net_name, lut_net);
             std::cout << "export : " << filename << "\n" << std::endl;
-        }
+
+            // RTL simulation 用データの出力
+            WriteMnistDataFile("verilog/mnist_train.txt", "verilog/mnist_test.txt", 60000, 10000);
+       }
     }
 }
-
-
 
 
 
