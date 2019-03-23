@@ -462,4 +462,22 @@ BBCU_DLL_EXPORT int bbcu_fp32_LossSoftmaxCrossEntropy
 
 
 
+// -------------------------------------
+//  Adam
+// -------------------------------------
+
+BBCU_DLL_EXPORT int bbcu_fp32_Adam
+		(
+            int                 size,
+            int           const *dev_size_table,
+			float       * const *dev_params_buf_table,
+			float const * const *dev_grads_buf_table,
+    		float       * const *dev_m_buf_table,
+    		float       * const *dev_v_buf_table,
+ 	        float				lr_t,
+	        float				beta1,
+	        float				beta2,
+            cudaStream_t        streamId = 0
+        );
+
 // end of file
