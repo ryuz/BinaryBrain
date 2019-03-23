@@ -45,11 +45,13 @@ protected:
 	std::shared_ptr<LossFunction>       m_lossFunc;
 	std::shared_ptr<Optimizer>          m_optimizer;
 
-	bool                                m_print_progress     = true;
-    bool                                m_file_read          = false;
-    bool                                m_file_write         = false;
-    bool                                m_write_serial       = false;
-	bool                                m_initial_evaluation = false;
+	bool                                m_print_progress          = true;
+    bool                                m_print_progress_loss     = true;     //< 途中経過で損失を表示するか
+    bool                                m_print_progress_accuracy = true;     //< 途中経過で精度を表示するか
+    bool                                m_file_read               = false;
+    bool                                m_file_write              = false;
+    bool                                m_write_serial            = false;
+	bool                                m_initial_evaluation      = false;
 	
     callback_proc_t                     m_callback_proc = nullptr;
 	void                                *m_callback_user = 0;
@@ -85,18 +87,20 @@ public:
 
         BB_ASSERT(create.net != nullptr);
 
-        self->m_name               = create.name;
-        self->m_net                = create.net;
-	    self->m_accFunc            = create.accFunc;
-	    self->m_lossFunc           = create.lossFunc;
-	    self->m_optimizer          = create.optimizer;
-	    self->m_print_progress     = create.print_progress;
-        self->m_file_read          = create.file_read;
-        self->m_file_write         = create.file_write;
-        self->m_write_serial       = create.write_serial;
-	    self->m_initial_evaluation = create.initial_evaluation;
-	    self->m_callback_proc      = create.callback_proc;
-	    self->m_callback_user      = create.callback_user;
+        self->m_name                    = create.name;
+        self->m_net                     = create.net;
+	    self->m_accFunc                 = create.accFunc;
+	    self->m_lossFunc                = create.lossFunc;
+	    self->m_optimizer               = create.optimizer;
+	    self->m_print_progress          = create.print_progress;
+        self->m_print_progress_loss     = create.print_progress_loss;
+        self->m_print_progress_accuracy = create.print_progress_accuracy;
+        self->m_file_read               = create.file_read;
+        self->m_file_write              = create.file_write;
+        self->m_write_serial            = create.write_serial;
+	    self->m_initial_evaluation      = create.initial_evaluation;
+	    self->m_callback_proc           = create.callback_proc;
+	    self->m_callback_user           = create.callback_user;
         
         self->m_mt.seed(create.seed);
 
@@ -328,7 +332,7 @@ public:
 			for (int epoch = 0; epoch < epoch_size; ++epoch) {
 				// 学習実施
 				auto train_accuracy = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, batch_size,
-                                        m_accFunc, m_lossFunc, m_optimizer, true, m_print_progress);
+                                        m_accFunc, m_lossFunc, m_optimizer, true, m_print_progress, m_print_progress_loss, m_print_progress_accuracy);
 
 				// ネット保存
 				if (m_file_write) {
@@ -410,7 +414,10 @@ protected:
 	            std::shared_ptr< LossFunction > lossFunc = nullptr,	
                 std::shared_ptr< Optimizer > optimizer = nullptr,
 		        bool train = false,
-		        bool print_progress = false)
+		        bool print_progress = false,
+                bool print_progress_loss = true,
+                bool print_progress_accuracy = true
+            )
 
     {
         BB_ASSERT(x.size() == t.size());
@@ -475,11 +482,11 @@ protected:
 
             // 進捗表示
 		    if ( print_progress ) {
-                if ( lossFunc != nullptr ) {
+                if ( print_progress_loss && lossFunc != nullptr ) {
 	    		    std::cout << "  loss : " << lossFunc->GetLoss();
                 }
 
-                if ( accFunc != nullptr ) {
+                if ( print_progress_accuracy && accFunc != nullptr ) {
                     std::cout << "  accuracy : " << accFunc->GetAccuracy();
                 }
 

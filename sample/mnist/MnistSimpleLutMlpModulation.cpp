@@ -86,6 +86,8 @@ void MnistSimpleLutMlpModulation(int epoch_size, size_t mini_batch_size, bool bi
         runner_create.optimizer = bb::OptimizerAdam<float>::Create();
         runner_create.initial_evaluation = false;
         runner_create.print_progress = true;
+        runner_create.print_progress_loss     = false;
+        runner_create.print_progress_accuracy = false;
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }

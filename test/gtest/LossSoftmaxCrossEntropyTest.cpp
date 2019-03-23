@@ -81,7 +81,7 @@ TEST(LossSoftmaxCrossEntropyTest, testLossSoftmaxCrossEntropy)
     double loss   = lossFunc->GetLoss();
 
  	std::cout << "loss = " << loss << " (exp:2.297830009460449)" << std::endl;
-	ASSERT_NEAR(loss, 2.297830009460449, 0.00001);
+	ASSERT_NEAR(loss, 2.297830009460449, 0.0001);
 
 	for (int i = 0; i < 5; i++) {
 		for (int j = 0; j < 10; j++) {

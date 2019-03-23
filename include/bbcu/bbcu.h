@@ -442,4 +442,24 @@ BBCU_DLL_EXPORT int bbcu_fp32_BinaryToReal_Backward
 }
 
 
+
+// -------------------------------------
+//  LossSoftmaxCrossEntropy
+// -------------------------------------
+
+BBCU_DLL_EXPORT int bbcu_fp32_LossSoftmaxCrossEntropy
+		(
+			const float*	dev_y_buf,
+			const float*	dev_t_buf,
+			float*			dev_dy_buf,
+			float*			dev_loss_buf,
+			float*			dev_loss,
+			int				node_size,
+			int				frame_size,
+			int				frame_stride,
+            cudaStream_t    streamId = 0
+        );
+
+
+
 // end of file

@@ -26,6 +26,7 @@
     <CudaCompile Include="HorizontalMeanVar.cu" />
     <CudaCompile Include="HorizontalSum.cu" />
     <CudaCompile Include="Im2Col.cu" />
+    <CudaCompile Include="LossSoftmaxCrossEntropy.cu" />
     <CudaCompile Include="Manager.cu" />
     <CudaCompile Include="MaxPooling.cu" />
     <CudaCompile Include="MicroMlp.cu" />
