@@ -29,6 +29,7 @@ CDEFS  =
 
 SRCS   = main.cpp
 SRCS  += MnistSimpleLutMlp.cpp
+SRCS  += MnistSimpleLutMlpModulation.cpp
 SRCS  += MnistSimpleLutCnn.cpp
 SRCS  += MnistDenseAffine.cpp
 SRCS  += MnistSimpleMicroMlpScratch.cpp
