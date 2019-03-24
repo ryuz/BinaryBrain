@@ -64,12 +64,12 @@ public:
 	static bool Load(std::vector< std::vector<T> >& x_train, std::vector< std::vector<T> >& y_train,
 		std::vector< std::vector<T> >& x_test, std::vector< std::vector<T> >& y_test, int num = 5)
 	{
-		if (!ReadFile("test_batch.bin", x_test, y_test)) { return false; }
-        if ( num >= 1 ) { if (!ReadFile("data_batch_1.bin", x_train, y_train)) { return false; } }
-        if ( num >= 2 ) { if (!ReadFile("data_batch_2.bin", x_train, y_train)) { return false; } }
-        if ( num >= 3 ) { if (!ReadFile("data_batch_3.bin", x_train, y_train)) { return false; } }
-		if ( num >= 4 ) { if (!ReadFile("data_batch_4.bin", x_train, y_train)) { return false; } }
-		if ( num >= 5 ) { if (!ReadFile("data_batch_5.bin", x_train, y_train)) { return false; } }
+		if (!ReadFile("cifar-10-batches-bin/test_batch.bin", x_test, y_test)) { return false; }
+        if ( num >= 1 ) { if (!ReadFile("cifar-10-batches-bin/data_batch_1.bin", x_train, y_train)) { return false; } }
+        if ( num >= 2 ) { if (!ReadFile("cifar-10-batches-bin/data_batch_2.bin", x_train, y_train)) { return false; } }
+        if ( num >= 3 ) { if (!ReadFile("cifar-10-batches-bin/data_batch_3.bin", x_train, y_train)) { return false; } }
+		if ( num >= 4 ) { if (!ReadFile("cifar-10-batches-bin/data_batch_4.bin", x_train, y_train)) { return false; } }
+		if ( num >= 5 ) { if (!ReadFile("cifar-10-batches-bin/data_batch_5.bin", x_train, y_train)) { return false; } }
         return true;
 	}
 	
