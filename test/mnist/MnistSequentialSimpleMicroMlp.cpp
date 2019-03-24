@@ -63,7 +63,7 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
     runner_create.name      = "MnistSequentialMicroMlp";
     runner_create.net       = net;
     runner_create.lossFunc  = bb::LossSoftmaxCrossEntropy<float>::Create();
-    runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create(10);
+    runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create();
     runner_create.optimizer = bb::OptimizerAdam<float>::Create();
     runner_create.print_progress = false; // true;
     runner_create.file_write = true;

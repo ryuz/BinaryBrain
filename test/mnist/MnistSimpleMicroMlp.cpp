@@ -353,11 +353,11 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
 
     MnistSimpleMicroMlpNet   cpu_net;
     auto cpu_lossFunc = bb::LossSoftmaxCrossEntropy<float>::Create();
-    auto cpu_accFunc  = bb::AccuracyCategoricalClassification<float>::Create(10);
+    auto cpu_accFunc  = bb::AccuracyCategoricalClassification<float>::Create();
 
     MnistSimpleMicroMlpNet  gpu_net;
     auto gpu_lossFunc = bb::LossSoftmaxCrossEntropy<float>::Create();
-    auto gpu_accFunc  = bb::AccuracyCategoricalClassification<float>::Create(10);
+    auto gpu_accFunc  = bb::AccuracyCategoricalClassification<float>::Create();
 
     cpu_net.SetInputShape({28, 28, 1});
     gpu_net.SetInputShape({28, 28, 1});

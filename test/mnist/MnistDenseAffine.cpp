@@ -51,7 +51,7 @@ void MnistDenseAffine(int epoch_size, size_t mini_batch_size)
     runner_create.name      = "MnistDenseAffine";
     runner_create.net       = net;
     runner_create.lossFunc  = bb::LossSoftmaxCrossEntropy<float>::Create();
-    runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create(10);
+    runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create();
     runner_create.optimizer = bb::OptimizerAdam<float>::Create();
     runner_create.file_write = true;
     auto runner = bb::Runner<float>::Create(runner_create);

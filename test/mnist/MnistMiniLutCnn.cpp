@@ -85,7 +85,7 @@ void MnistMiniLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
     runner_create.name      = net_name;
     runner_create.net       = net;
     runner_create.lossFunc  = bb::LossSoftmaxCrossEntropy<float>::Create();
-    runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create(10);
+    runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create();
     runner_create.optimizer = bb::OptimizerAdam<float>::Create();
     runner_create.print_progress = true;
     runner_create.print_progress_accuracy = false;
