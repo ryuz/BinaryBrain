@@ -87,6 +87,7 @@ void MnistSimpleCnnMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
     net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
     net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
     net->Add(bb::MaxPooling<>::Create(2, 2));
+    net->Add(bb::MicroMlp<>::Create({1024}));
     net->Add(bb::MicroMlp<>::Create({480}));
     net->Add(bb::MicroMlp<>::Create({80}));
     net->Add(bb::BinaryToReal<>::Create({ 10 }, mux_size));
