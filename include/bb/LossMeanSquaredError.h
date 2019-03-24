@@ -21,10 +21,6 @@ namespace bb {
 template <typename T = float>
 class LossMeanSquaredError : public LossFunction
 {
-	using Vector = Eigen::Matrix<T, 1, Eigen::Dynamic>;
-	using Matrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
-	using Stride = Eigen::Stride<Eigen::Dynamic, 1>;
-	using MatMap = Eigen::Map<Matrix, 0, Stride>;
 protected:
     FrameBuffer m_dy;
     double      m_loss;
