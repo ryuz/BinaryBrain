@@ -1,9 +1,6 @@
 
-TARGET = test-cifar10
-
-
 # target
-TARGET  = sample-mnist
+TARGET  = test-cifar10
 SUB_TARGETS =
 
 # run option
@@ -61,7 +58,7 @@ clean:
 	rm -f $(TARGET) *.o
 
 .PHONY: run
-run: $(TARGET) train-images-idx3-ubyte train-labels-idx1-ubyte t10k-images-idx3-ubyte t10k-labels-idx1-ubyte
+run: $(TARGET) $(DATA_FILES)
 	./$(TARGET) $(RUN_OPTION)
 
 .PHONY: bbcu_build
@@ -76,11 +73,18 @@ $(TARGET): $(OBJS) $(BBCU_LIB)
 
 
 
-# mnist data
-.PHONY: dl_data
-dl_data: data_batch_1.bin
+# cifar-10 binary data
+DATA_FILES  = cifar-10-batches-bin/test_batch.bin
+DATA_FILES += cifar-10-batches-bin/data_batch_1.bin
+DATA_FILES += cifar-10-batches-bin/data_batch_2.bin
+DATA_FILES += cifar-10-batches-bin/data_batch_3.bin
+DATA_FILES += cifar-10-batches-bin/data_batch_4.bin
+DATA_FILES += cifar-10-batches-bin/data_batch_5.bin
 
-data_batch_1.bin: cifar-10-binary.tar.gz
+.PHONY: dl_data
+dl_data: $(DATA_FILES)
+
+$(DATA_FILES): cifar-10-binary.tar.gz
 	tar zxvf cifar-10-binary.tar.gz
 
 cifar-10-binary.tar.gz:
