@@ -526,24 +526,40 @@ __global__ void kernal_fp32_MicroMlp_Backward
 	db1 = device_fp32_LocalSum(db1, buf);
     
 	// å˘îzèoóÕ(å„Ç≈ï¿óÒâªÇ∑ÇÈ)
-	if ( threadIdx.x == 0 ) {
-		for ( int i = 0; i < M; ++i ) {
-			for ( int j = 0; j < N; ++j ) {
-				hidden_dW[(node * M + i) * N + j] = dW0[i][j];
-			}
-		}
-		for ( int i = 0; i < M; ++i ) {
-			hidden_db[node * M + i] = db0[i];
-		}
-		for ( int i = 0; i < M; ++i ) {
-			output_dW[node * M + i] = dW1[i];
-		}
-		output_db[node] = db1;
-	}
+    if (H >= M) {
+        int i = threadIdx.x;
+        if ( i < M ) {
+	        for ( int j = 0; j < N; ++j ) {
+		        hidden_dW[(node * M + i) * N + j] = dW0[i][j];
+	        }
+	        hidden_db[node * M + i] = db0[i];
+	        output_dW[node * M + i] = dW1[i];
+            if ( i == 0 ) {
+		        output_db[node] = db1;
+	        }
+        }
+    }
+    else {
+    	if ( threadIdx.x == 0 ) {
+		    for ( int i = 0; i < M; ++i ) {
+			    for ( int j = 0; j < N; ++j ) {
+				    hidden_dW[(node * M + i) * N + j] = dW0[i][j];
+			    }
+		    }
+		    for ( int i = 0; i < M; ++i ) {
+			    hidden_db[node * M + i] = db0[i];
+		    }
+		    for ( int i = 0; i < M; ++i ) {
+			    output_dW[node * M + i] = dW1[i];
+		    }
+		    output_db[node] = db1;
+	    }
+    }
 }
 #endif
 
 
+#if 1
 template <int N=6>
 __global__ void kernal_fp32_MicroMlp_BackwardMarge(
 			const float*	src_buf,
@@ -567,6 +583,33 @@ __global__ void kernal_fp32_MicroMlp_BackwardMarge(
 		__syncthreads();
 	}
 }
+#else
+
+template <int N=6>
+__global__ void kernal_fp32_MicroMlp_BackwardMarge(
+			const float*	src_buf,
+			float*			dst_buf,
+			const int*		input_index,
+			int				node_size,
+			int				frame_size,
+			int				frame_stride
+		)
+{
+	int n          = blockDim.y * blockIdx.y + threadIdx.y;
+	int frame_base = threadIdx.x;
+	int frame_step = blockDim.x;
+	
+	for ( int node = 0; node < node_size; ++node ) {
+		int in_idx = input_index[node*N + n];
+		float*		 dst_buf_ptr = &dst_buf[frame_size * in_idx];
+		const float* src_buf_ptr = &src_buf[(N * node + n) * frame_size];
+    	for ( int frame = frame_base; frame < frame_size; frame += frame_step ) {
+    		dst_buf_ptr[frame] += src_buf_ptr[frame];
+        }
+	}
+}
+
+#endif
 
 
 template <int N=6, int M=16>
@@ -621,11 +664,16 @@ int bbcu_fp32_MicroMlp_Backward(
     {
         BB_CUDA_SAFE_CALL(cudaMemset(dev_dx_buf, 0, input_node_size * frame_stride * sizeof(float)));
 
+#if 1
 	    int block_x = frame_size;
 	    while ( block_x > 1024 ) { block_x /= 2; }
 
-	    dim3	grid(frame_size/block_x, N);
+	    dim3	grid((frame_size + block_x - 1) /block_x, N);
 	    dim3	block(block_x, 1, 1);
+#else
+	    dim3	grid(1, N);
+	    dim3	block(1024, 1, 1);
+#endif
 
 	    kernal_fp32_MicroMlp_BackwardMarge<N><<<grid, block>>>(
 			    dev_dx_tmp,

@@ -88,6 +88,8 @@ void MnistMiniLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
     runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create(10);
     runner_create.optimizer = bb::OptimizerAdam<float>::Create();
     runner_create.print_progress = true;
+    runner_create.print_progress_accuracy = false;
+    runner_create.print_progress_loss = false;
     runner_create.file_write = true;
     runner_create.initial_evaluation = false;
     auto runner = bb::Runner<float>::Create(runner_create);
