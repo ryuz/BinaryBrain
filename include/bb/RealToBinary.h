@@ -188,6 +188,7 @@ public:
         // 戻り値の型を設定
         m_dx.Resize(DataType<BT>::type, dy.GetFrameSize() / m_frame_mux_size, m_node_shape);
 
+#if 0   // 今のところ計算結果誰も使わないので一旦コメントアウト
 		index_t node_size         = dy.GetNodeSize();
 		index_t output_frame_size = dy.GetFrameSize();
 
@@ -205,6 +206,7 @@ public:
 				dx_ptr.Add(input_frame, node, grad);
 			}
 		}
+#endif
 
         return m_dx;
 	}

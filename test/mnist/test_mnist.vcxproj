@@ -356,6 +356,7 @@
     <ClInclude Include="..\..\include\bb\DataType.h" />
     <ClInclude Include="..\..\include\bb\FrameBuffer.h" />
     <ClInclude Include="..\..\include\bb\Layer.h" />
+    <ClInclude Include="..\..\include\bb\LoadCifar10.h" />
     <ClInclude Include="..\..\include\bb\LoadMnist.h" />
     <ClInclude Include="..\..\include\bb\LossFunction.h" />
     <ClInclude Include="..\..\include\bb\LossSoftmaxCrossEntropy.h" />

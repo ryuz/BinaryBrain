@@ -23,7 +23,7 @@ int main()
 {
 	omp_set_num_threads(4);
 
-    MnistMiniLutCnn(8, 16, true);
+    MnistMiniLutCnn(16, 16, true);
 
 //  bb::Manager::SetHostOnly(true); // GPU版でもCPUのみ利用する場合
 
