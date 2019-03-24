@@ -22,24 +22,24 @@ template <typename T = float>
 class AccuracyCategoricalClassification : public AccuracyFunction
 {
 protected:
-	index_t m_num_classes;
-	double  m_accuracy = 0;
-    index_t m_frames = 0;
-
+    index_t         m_frames = 0;
+    Tensor_<int>    m_accuracy;
 
 protected:
-    AccuracyCategoricalClassification()	{}
+    AccuracyCategoricalClassification() : m_accuracy(1)
+    {
+        Clear();
+    }
 
 public:
 	~AccuracyCategoricalClassification() {}
 
-    static std::shared_ptr<AccuracyCategoricalClassification> Create(index_t num_classes)
+    static std::shared_ptr<AccuracyCategoricalClassification> Create()
     {
         auto self = std::shared_ptr<AccuracyCategoricalClassification>(new AccuracyCategoricalClassification);
-		self->m_num_classes = num_classes;
         return self;
     }
-     
+    
     void Clear(void)
     {
         m_accuracy = 0;
@@ -49,7 +49,9 @@ public:
 
     double GetAccuracy(void) const
     {
-        return m_accuracy / (double)m_frames;
+        auto ptr = m_accuracy.LockConst();
+        auto acc = ptr[0];
+        return (double)acc / (double)m_frames;
     }
 
 	void CalculateAccuracy(FrameBuffer y, FrameBuffer t)
@@ -57,29 +59,54 @@ public:
         BB_ASSERT(y.GetType() == DataType<T>::type);
         BB_ASSERT(t.GetType() == DataType<T>::type);
 
-		index_t frame_size = y.GetFrameSize();
-		index_t node_size = y.GetNodeSize();
+#ifdef BB_WITH_CUDA
+        if ( DataType<T>::type == BB_TYPE_FP32 && y.IsDeviceAvailable() && t.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            auto y_ptr   = y.LockDeviceMemoryConst();
+            auto t_ptr   = t.LockDeviceMemoryConst();
+            auto acc_ptr = m_accuracy.LockDeviceMemory();
 
-        m_frames += frame_size;
+            bbcu_fp32_AccuracyCategoricalClassification
+		        (
+			        (float const *)y_ptr.GetAddr(),
+			        (float const *)t_ptr.GetAddr(),
+			        (int         *)acc_ptr.GetAddr(),
+			        (int          )y.GetNodeSize(),
+			        (int          )y.GetFrameSize(),
+			        (int          )(y.GetFrameStride() / sizeof(float))
+                );
 
-        auto y_ptr  = y.LockConst<T>();
-        auto t_ptr  = t.LockConst<T>();
+            m_frames += y.GetFrameSize();
+
+            return;
+        }
+#endif
+
+        {
+		    index_t frame_size = y.GetFrameSize();
+		    index_t node_size = y.GetNodeSize();
+            auto acc_ptr = m_accuracy.Lock();
+
+            m_frames += frame_size;
+
+            auto y_ptr  = y.LockConst<T>();
+            auto t_ptr  = t.LockConst<T>();
  
-		for (index_t frame = 0; frame < frame_size; ++frame) {
-			index_t	max_node   = 0;
-			T		max_signal = y_ptr.Get(frame, 0);
-			for (index_t node = 1; node < node_size; ++node) {
-				T	sig = y_ptr.Get(frame, node);
-				if (sig > max_signal) {
-					max_node   = node;
-					max_signal = sig;
-				}
-			}
-			if ( t_ptr.Get(frame, max_node) > 0) {
-				m_accuracy += 1.0;
-			}
-		}
-	}
+		    for (index_t frame = 0; frame < frame_size; ++frame) {
+			    index_t	max_node   = 0;
+			    T		max_signal = y_ptr.Get(frame, 0);
+			    for (index_t node = 1; node < node_size; ++node) {
+				    T	sig = y_ptr.Get(frame, node);
+				    if (sig > max_signal) {
+					    max_node   = node;
+					    max_signal = sig;
+				    }
+			    }
+			    if ( t_ptr.Get(frame, max_node) > 0) {
+				    acc_ptr[0] += 1;
+			    }
+		    }
+	    }
+    }
 };
 
 

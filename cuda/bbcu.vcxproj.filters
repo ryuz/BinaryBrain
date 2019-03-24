@@ -15,6 +15,7 @@
     <CudaCompile Include="BinaryToReal.cu" />
     <CudaCompile Include="LossSoftmaxCrossEntropy.cu" />
     <CudaCompile Include="Adam.cu" />
+    <CudaCompile Include="AccuracyCategoricalClassification.cu" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile" />

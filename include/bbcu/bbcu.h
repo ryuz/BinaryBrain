@@ -461,6 +461,20 @@ BBCU_DLL_EXPORT int bbcu_fp32_LossSoftmaxCrossEntropy
         );
 
 
+// -------------------------------------
+//  AccuracyCategoricalClassification
+// -------------------------------------
+
+BBCU_DLL_EXPORT int bbcu_fp32_AccuracyCategoricalClassification
+		(
+			const float*	dev_y_buf,
+			const float*	dev_t_buf,
+			int*			dev_accuracy,
+			int				node_size,
+			int				frame_size,
+			int				frame_stride,
+            cudaStream_t    streamId = 0
+        );
 
 // -------------------------------------
 //  Adam

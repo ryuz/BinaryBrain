@@ -160,8 +160,8 @@ void MnistSimpleMicroMlpScratch(int epoch_size, size_t mini_batch_size, bool bin
     net.SetInputShape(td.x_shape);
 
     auto lossFunc = bb::LossSoftmaxCrossEntropy<float>::Create();
-    auto accFunc  = bb::AccuracyCategoricalClassification<float>::Create(10);
- 
+    auto accFunc  = bb::AccuracyCategoricalClassification<float>::Create();
+    
     bb::FrameBuffer x(BB_TYPE_FP32, mini_batch_size, {28, 28, 1});
     bb::FrameBuffer t(BB_TYPE_FP32, mini_batch_size, 10);
     

@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
 
     std::string netname = "All";
     int         epoch_size      = 8;
-    int         mini_batch_size = 16;
+    int         mini_batch_size = 8;
     bool        binary_mode = true;
 
 	if ( argc < 2 ) {

@@ -35,6 +35,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AccuracyCategoricalClassificationTest.cpp" />
     <ClCompile Include="BatchNormalizationTest.cpp" />
     <ClCompile Include="BinarizeTest.cpp" />
     <ClCompile Include="BinaryLutTest.cpp" />

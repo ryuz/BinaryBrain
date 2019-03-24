@@ -460,7 +460,7 @@ protected:
 			if ( print_progress ) {
 				index_t progress = index + mini_batch_size;
 				index_t rate = progress * 100 / frame_size;
-				std::cout << "[" << rate << "% (" << progress << "/" << frame_size << ")]";
+				std::cout << "\r[" << rate << "% (" << progress << "/" << frame_size << ")]";
 			}
             
             FrameBuffer dy_buf;
@@ -490,14 +490,14 @@ protected:
                     std::cout << "  accuracy : " << accFunc->GetAccuracy();
                 }
 
-				std::cout << "\r" << std::flush;
+				std::cout << std::flush;
 			}
 
             // インデックスを進める
             index += mini_batch_size;
         }
 
-        std::cout << "                                                                               \r" << std::flush;
+        std::cout << "\r                                                                               \r" << std::flush;
 
         return accFunc->GetAccuracy();
     }

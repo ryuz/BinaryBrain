@@ -424,6 +424,7 @@ int Test_MicroMlp_Backward(void)
 			FRAME_SIZE
 		);
 
+    /*
 	std::cout << "output_dW[0] : " << output_dW[0] << std::endl;
 	std::cout << "output_dW[1] : " << output_dW[1] << std::endl;
 	std::cout << "output_dW[2] : " << output_dW[2] << std::endl;
@@ -436,7 +437,7 @@ int Test_MicroMlp_Backward(void)
 	std::cout << "in_err[0] : " << dx_buf[0] << std::endl;
 	std::cout << "in_err[1] : " << dx_buf[1] << std::endl;
 	std::cout << "in_err[2] : " << dx_buf[2] << std::endl;
-	
+	*/
 
 	end = std::chrono::system_clock::now();  // 計測終了時間
 	double elapsed = (double)std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //処理に要した時間をミリ秒に変換

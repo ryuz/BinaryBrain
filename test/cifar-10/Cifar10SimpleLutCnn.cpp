@@ -38,7 +38,7 @@
 void Cifar10SimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
 {
     std::string net_name = "Cifar10SimpleLutCnn";
-    int const   frame_mux_size = 3;
+    int const   frame_mux_size = 7;
 
   // load cifar-10 data
 #ifdef _DEBUG
@@ -57,8 +57,9 @@ void Cifar10SimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mod
     auto layer_cnv2_mm1 = bb::MicroMlp<>::Create(32);
     auto layer_cnv3_mm0 = bb::MicroMlp<>::Create(192);
     auto layer_cnv3_mm1 = bb::MicroMlp<>::Create(32);
-    auto layer_mm4 = bb::MicroMlp<>::Create(480);
-    auto layer_mm5 = bb::MicroMlp<>::Create(80);
+    auto layer_mm4 = bb::MicroMlp<>::Create(1024);
+    auto layer_mm5 = bb::MicroMlp<>::Create(420);
+    auto layer_mm6 = bb::MicroMlp<>::Create(70);
 
     {
         auto cnv0_sub = bb::Sequential::Create();
@@ -88,6 +89,7 @@ void Cifar10SimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mod
         net->Add(bb::MaxPooling<>::Create(2, 2));
         net->Add(layer_mm4);
         net->Add(layer_mm5);
+        net->Add(layer_mm6);
         net->Add(bb::BinaryToReal<>::Create(td.t_shape, frame_mux_size));
         net->SetInputShape(td.x_shape);
 
@@ -127,6 +129,7 @@ void Cifar10SimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mod
         auto layer_cnv3_lut1 = bb::BinaryLutN<>::Create(layer_cnv3_mm1->GetOutputShape());
         auto layer_lut4      = bb::BinaryLutN<>::Create(layer_mm4->GetOutputShape());
         auto layer_lut5      = bb::BinaryLutN<>::Create(layer_mm5->GetOutputShape());
+        auto layer_lut6      = bb::BinaryLutN<>::Create(layer_mm6->GetOutputShape());
 
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_lut0);
@@ -147,6 +150,7 @@ void Cifar10SimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mod
         auto cnv4_sub = bb::Sequential::Create();
         cnv4_sub->Add(layer_lut4);
         cnv4_sub->Add(layer_lut5);
+        cnv4_sub->Add(layer_lut6);
 
         auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3);
         auto cnv1 = bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3);
@@ -156,8 +160,8 @@ void Cifar10SimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mod
         auto cnv3 = bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3);
         auto pol1 = bb::MaxPooling<bb::Bit>::Create(2, 2);
 
-        // 28x28 以外も入力できるように最終段も畳み込みに変換
-        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 4, 4);
+        // 32x32 以外も入力できるように最終段も畳み込みに変換
+        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);
 
         auto lut_net = bb::Sequential::Create();
         lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(frame_mux_size));
