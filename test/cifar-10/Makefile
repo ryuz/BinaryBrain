@@ -82,12 +82,11 @@ DATA_FILES += cifar-10-batches-bin/data_batch_4.bin
 DATA_FILES += cifar-10-batches-bin/data_batch_5.bin
 
 .PHONY: dl_data
-dl_data: $(DATA_FILES)
-
-$(DATA_FILES): cifar-10-binary.tar.gz
+dl_data: cifar-10-binary.tar.gz
 	tar zxvf cifar-10-binary.tar.gz
 
 cifar-10-binary.tar.gz:
 	wget https://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz
+	tar zxvf cifar-10-binary.tar.gz
 
 
