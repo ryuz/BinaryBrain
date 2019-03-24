@@ -33,7 +33,7 @@ protected:
 
     Variables       m_params;
     Variables       m_grads;
-	
+
 protected:
     OptimizerAdam() {}
 
@@ -108,16 +108,44 @@ public:
         m_v = 0;
     }
     
-	void Update(void)
+
+  	void Update(void)
 	{
-        auto lr_t = m_learning_rate * std::sqrt((T)1.0 - m_b2) / ((T)1.0 - m_b1 + 1.0e-7);
 
-        m_m += ((T)1.0 - m_beta1) * (m_grads - m_m);
-        m_v += ((T)1.0 - m_beta2) * (m_grads * m_grads - m_v);
-        m_params -= lr_t * m_m / (Sqrt(m_v) + (T)1e-7);
+#ifdef BB_WITH_CUDA
+        if ( m_params.IsDeviceAvailable() && m_grads.IsDeviceAvailable() && m_m.IsDeviceAvailable() && m_v.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            // CUDA版
+            auto lr_t = m_learning_rate * std::sqrt((T)1.0 - m_b2) / ((T)1.0 - m_b1 );
+            bbcu_fp32_Adam
+		            (
+                        (int                  )m_params.GetSize(),
+                        (int           const *)m_params.GetDeviceSizeTable(),
+			            (float       * const *)m_params.GetDeviceAddrTable(),
+			            (float const * const *)m_grads.GetDeviceAddrTable(),
+    		            (float       * const *)m_m.GetDeviceAddrTable(),
+    		            (float       * const *)m_v.GetDeviceAddrTable(),
+ 	                    (float				  )lr_t,
+	                    (float				  )m_beta1,
+	                    (float				  )m_beta2
+                    );
+            
+            m_b1 *= m_beta1;
+            m_b2 *= m_beta2;       
+            return;
+        }
+#endif
+        
+        {
+            // 汎用版
+            auto lr_t = m_learning_rate * std::sqrt((T)1.0 - m_b2) / ((T)1.0 - m_b1 );
 
-        m_b1 *= m_beta1;
-        m_b2 *= m_beta2;
+            m_m += ((T)1.0 - m_beta1) * (m_grads - m_m);
+            m_v += ((T)1.0 - m_beta2) * (m_grads * m_grads - m_v);
+            m_params -= lr_t * m_m / (Sqrt(m_v) + (T)1e-7);
+
+            m_b1 *= m_beta1;
+            m_b2 *= m_beta2;
+        }
     }
 };
 

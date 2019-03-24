@@ -380,13 +380,6 @@
     <ClInclude Include="..\..\include\bb\MicroMlp.h" />
     <ClInclude Include="..\..\include\bb\MicroMlpAffine.h" />
     <ClInclude Include="..\..\include\bb\Model.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetAccuracyBool.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetBinaryMultiplex.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetDenseConvolution.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetDropout.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetLossMeanSquaredError.h" />
-    <ClInclude Include="..\..\include\bb\NeuralNetSoftmax.h" />
-    <ClInclude Include="..\..\include\bb\NormalDistributionGenerator.h" />
     <ClInclude Include="..\..\include\bb\Optimizer.h" />
     <ClInclude Include="..\..\include\bb\OptimizerAdam.h" />
     <ClInclude Include="..\..\include\bb\OptimizerSgd.h" />

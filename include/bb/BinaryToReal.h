@@ -80,6 +80,11 @@ public:
     {
         // 形状設定
         m_input_shape = shape;
+
+        // 整数倍の多重化のみ許容
+        BB_ASSERT(GetShapeSize(m_input_shape) >= GetShapeSize(m_output_shape));
+        BB_ASSERT(GetShapeSize(m_input_shape) % GetShapeSize(m_output_shape) == 0);
+
         return m_output_shape;
     }
 
@@ -117,34 +122,58 @@ public:
         BB_ASSERT(x.GetFrameSize() % m_frame_mux_size == 0);
         m_y.Resize(DataType<FYT>::type, x.GetFrameSize() / m_frame_mux_size, m_output_shape);
 
-		auto x_ptr = x.LockConst<FXT>();
-		auto y_ptr = m_y.Lock<FYT>();
+#ifdef BB_WITH_CUDA
+        if ( DataType<FXT>::type == BB_TYPE_FP32 && DataType<FYT>::type == BB_TYPE_FP32
+            && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+		    auto x_ptr = x.LockDeviceMemoryConst();
+		    auto y_ptr = m_y.LockDeviceMemory(true);
 
-        index_t input_node_size   = GetInputNodeSize();
-        index_t output_node_size  = GetOutputNodeSize();
-        index_t output_frame_size = m_y.GetFrameSize();
+            bbcu_fp32_BinaryToReal_Forward
+		        (
+			        (float const *)x_ptr.GetAddr(),
+			        (float       *)y_ptr.GetAddr(),
+			        (int          )(GetShapeSize(m_input_shape) / GetShapeSize(m_output_shape)),
+			        (int          )m_frame_mux_size,
+			        (int          )GetOutputNodeSize(),
+			        (int          )(x.GetFrameStride() / sizeof(float)),
+			        (int          )m_y.GetFrameSize(),
+			        (int          )(m_y.GetFrameStride() / sizeof(float))
+                );
 
-		index_t node_size = std::max(input_node_size, output_node_size);
+            return m_y;
+        }
+#endif
 
-		std::vector<FYT>	vec_v(output_node_size, (FYT)0);
-		std::vector<int>	vec_n(output_node_size, 0);
-		for (index_t frame = 0; frame < output_frame_size; ++frame) {
-			std::fill(vec_v.begin(), vec_v.end(), (FYT)0);
-			std::fill(vec_n.begin(), vec_n.end(), 0);
-			for (index_t node = 0; node < node_size; ++node) {
-				for (index_t i = 0; i < m_frame_mux_size; ++i) {
-					FYT bin_sig = (FYT)x_ptr.Get(frame*m_frame_mux_size + i, node);
-					vec_v[node % output_node_size] += bin_sig;
-					vec_n[node % output_node_size] += 1;
-				}
-			}
+        {
+		    auto x_ptr = x.LockConst<FXT>();
+		    auto y_ptr = m_y.Lock<FYT>(true);
 
-			for (index_t node = 0; node < output_node_size; ++node) {
-				y_ptr.Set(frame, node, (FYT)vec_v[node] / vec_n[node]);
-			}
-		}
+            index_t input_node_size   = GetInputNodeSize();
+            index_t output_node_size  = GetOutputNodeSize();
+            index_t output_frame_size = m_y.GetFrameSize();
 
-        return m_y;
+		    index_t node_size = std::max(input_node_size, output_node_size);
+
+		    std::vector<FYT>	vec_v(output_node_size, (FYT)0);
+		    std::vector<int>	vec_n(output_node_size, 0);
+		    for (index_t frame = 0; frame < output_frame_size; ++frame) {
+			    std::fill(vec_v.begin(), vec_v.end(), (FYT)0);
+			    std::fill(vec_n.begin(), vec_n.end(), 0);
+			    for (index_t node = 0; node < node_size; ++node) {
+				    for (index_t i = 0; i < m_frame_mux_size; ++i) {
+					    FYT bin_sig = (FYT)x_ptr.Get(frame*m_frame_mux_size + i, node);
+					    vec_v[node % output_node_size] += bin_sig;
+					    vec_n[node % output_node_size] += 1;
+				    }
+			    }
+
+			    for (index_t node = 0; node < output_node_size; ++node) {
+				    y_ptr.Set(frame, node, (FYT)vec_v[node] / vec_n[node]);
+			    }
+		    }
+
+            return m_y;
+        }
 	}
 	
 
@@ -155,26 +184,51 @@ public:
         // 戻り値の型を設定
         m_dx.Resize(DataType<BT>::type, dy.GetFrameSize() * m_frame_mux_size, m_input_shape);
 
-        index_t input_node_size   = GetInputNodeSize();
-        index_t output_node_size  = GetOutputNodeSize();
-		index_t output_frame_size = dy.GetFrameSize();
+#ifdef BB_WITH_CUDA
+        if ( DataType<BT>::type == BB_TYPE_FP32
+                && dy.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
 
-        auto dy_ptr = dy.LockConst<BT>();
-        auto dx_ptr = m_dx.Lock<BT>();
+		    auto dy_ptr = dy.LockDeviceMemoryConst();
+		    auto dx_ptr = m_dx.LockDeviceMemory(true);
 
-		BT	gain = (BT)output_node_size / (BT)input_node_size;
-		for (index_t node = 0; node < input_node_size; node++) {
-			for (index_t frame = 0; frame < output_frame_size; ++frame) {
-				for (index_t i = 0; i < m_frame_mux_size; i++) {
-					auto grad = dy_ptr.Get(frame, node % output_node_size);
-					grad *= gain;
-					dx_ptr.Set(frame*m_frame_mux_size + i, node, grad);
-				}
-			}
-		}
+            bbcu_fp32_BinaryToReal_Backward
+		        (
+			        (float const *)dy_ptr.GetAddr(),
+			        (float       *)dx_ptr.GetAddr(),
+			        (int          )(GetShapeSize(m_input_shape) / GetShapeSize(m_output_shape)),
+			        (int          )m_frame_mux_size,
+			        (int          )GetOutputNodeSize(),
+			        (int          )(m_dx.GetFrameStride() / sizeof(float)),
+			        (int          )dy.GetFrameSize(),
+			        (int          )(dy.GetFrameStride() / sizeof(float))
+                );
 
-        return m_dx;
-	}
+            return m_dx;
+        }
+#endif
+
+        {
+            index_t input_node_size   = GetInputNodeSize();
+            index_t output_node_size  = GetOutputNodeSize();
+		    index_t output_frame_size = dy.GetFrameSize();
+
+            auto dy_ptr = dy.LockConst<BT>();
+            auto dx_ptr = m_dx.Lock<BT>();
+
+		    BT	gain = (BT)output_node_size / ((BT)input_node_size * (BT)m_frame_mux_size);
+		    for (index_t node = 0; node < input_node_size; node++) {
+			    for (index_t frame = 0; frame < output_frame_size; ++frame) {
+				    for (index_t i = 0; i < m_frame_mux_size; i++) {
+					    auto grad = dy_ptr.Get(frame, node % output_node_size);
+					    grad *= gain;
+					    dx_ptr.Set(frame*m_frame_mux_size + i, node, grad);
+				    }
+			    }
+		    }
+
+            return m_dx;
+	    }
+    }
 };
 
 }

@@ -123,6 +123,7 @@ void MnistSimpleLutMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
             // Verilog 出力
             std::string filename = "verilog/MnistSimpleLutMlp.v";
             std::ofstream ofs(filename);
+            ofs << "`timescale 1ns / 1ps\n\n";
             bb::ExportVerilog_LutLayers<>(ofs, "MnistSimpleLutMlp", lut_net);
             std::cout << "export : " << filename << "\n" << std::endl;
         }

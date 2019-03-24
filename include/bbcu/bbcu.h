@@ -409,8 +409,75 @@ BBCU_DLL_EXPORT int bbcu_fp32_HardTanh_Backward
         );
 
 
+// -------------------------------------
+//  BinaryToReal
+// -------------------------------------
+
+BBCU_DLL_EXPORT int bbcu_fp32_BinaryToReal_Forward
+		(
+			const float*	dev_x_buf,
+			float*			dev_y_buf,
+			int				node_mux_size,
+			int				frame_mux_size,
+			int				y_node_size,
+			int				x_frame_stride,
+			int				y_frame_size,
+			int				y_frame_stride,
+            cudaStream_t    streamId = 0
+        );
+
+BBCU_DLL_EXPORT int bbcu_fp32_BinaryToReal_Backward
+		(
+			const float*	dev_dy_buf,
+			float*			dev_dx_buf,
+			int				node_mux_size,
+			int				frame_mux_size,
+			int				y_node_size,
+			int				x_frame_stride,
+			int				y_frame_size,
+			int				y_frame_stride,
+            cudaStream_t    streamId = 0
+        );
 
 }
 
+
+
+// -------------------------------------
+//  LossSoftmaxCrossEntropy
+// -------------------------------------
+
+BBCU_DLL_EXPORT int bbcu_fp32_LossSoftmaxCrossEntropy
+		(
+			const float*	dev_y_buf,
+			const float*	dev_t_buf,
+			float*			dev_dy_buf,
+			float*			dev_loss_buf,
+			float*			dev_loss,
+			int				node_size,
+			int				frame_size,
+			int				frame_stride,
+            cudaStream_t    streamId = 0
+        );
+
+
+
+// -------------------------------------
+//  Adam
+// -------------------------------------
+
+BBCU_DLL_EXPORT int bbcu_fp32_Adam
+		(
+            int                 size,
+            int           const *dev_size_table,
+			float       * const *dev_params_buf_table,
+			float const * const *dev_grads_buf_table,
+    		float       * const *dev_m_buf_table,
+    		float       * const *dev_v_buf_table,
+ 	        float				lr_t,
+	        float				beta1,
+	        float				beta2,
+            cudaStream_t        streamId = 0
+        );
 
 // end of file

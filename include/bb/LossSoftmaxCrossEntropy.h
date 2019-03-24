@@ -23,11 +23,14 @@ class LossSoftmaxCrossEntropy : public LossFunction
 {
 protected:
     FrameBuffer m_dy;
-    double      m_loss = 0;
+    Tensor_<T>  m_loss_buf;
+    Tensor_<T>  m_loss;
     index_t     m_frames = 0;
 
 protected:
-	LossSoftmaxCrossEntropy() {}
+	LossSoftmaxCrossEntropy() {
+        m_loss.Resize(1);
+    }
 
 public:
 	~LossSoftmaxCrossEntropy() {}
@@ -46,23 +49,52 @@ public:
 
     double GetLoss(void) const 
     {
-        return m_loss / (double)m_frames;
+        auto loss_ptr = m_loss.LockConst();
+        return (double)loss_ptr[0] / (double)m_frames;
     }
 
     FrameBuffer CalculateLoss(FrameBuffer y, FrameBuffer t)
     {
-        index_t frame_size = y.GetFrameSize();
-        index_t node_size = y.GetNodeSize();
-        index_t stride_size = y.GetFrameStride() / sizeof(T);
-
         m_dy.Resize(y.GetType(), y.GetFrameSize(), y.GetShape());
+        m_loss_buf.Resize(y.GetFrameSize());
+
+#if BB_WITH_CUDA
+        if ( DataType<T>::type == BB_TYPE_FP32
+                && y.IsDeviceAvailable() && m_dy.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+
+            auto y_ptr        = y.LockDeviceMemoryConst();
+            auto t_ptr        = t.LockDeviceMemoryConst();
+            auto dy_ptr       = m_dy.LockDeviceMemory(true);
+            auto loss_buf_ptr = m_loss_buf.LockDeviceMemory(true);
+            auto loss_ptr     = m_loss.LockDeviceMemory();
+
+            bbcu_fp32_LossSoftmaxCrossEntropy
+        		(
+			        (float const *)y_ptr.GetAddr(),
+			        (float const *)t_ptr.GetAddr(),
+			        (float       *)dy_ptr.GetAddr(),
+			        (float       *)loss_buf_ptr.GetAddr(),
+			        (float       *)loss_ptr.GetAddr(),
+			        (int          )y.GetNodeSize(),
+			        (int          )y.GetFrameSize(),
+			        (int          )(y.GetFrameStride() / sizeof(float))
+                );
+
+            m_frames += y.GetFrameSize();
+            return m_dy;
+        }
+#endif
 
         {
+            index_t frame_size = y.GetFrameSize();
+            index_t node_size = y.GetNodeSize();
+            index_t stride_size = y.GetFrameStride() / sizeof(T);
+
             auto y_ptr = y.LockConst<T>();
             auto t_ptr = t.LockConst<T>();
             auto dy_ptr = m_dy.Lock<T>(true);
-
-            std::valarray<T> loss(frame_size);
+            auto loss_buf_ptr = m_loss_buf.Lock(true);
+            auto loss_ptr = m_loss.Lock();
 
 #pragma omp parallel for
             for (index_t frame = 0; frame < frame_size; ++frame) {
@@ -81,15 +113,20 @@ public:
                 for (index_t node = 0; node < node_size; ++node) {
                     T softmax = std::exp(y_ptr.Get(frame, node) - c) / sum;
                     if (t_ptr.Get(frame, node) > 0) {
-                        loss[frame] = std::log(softmax);
+                        loss_buf_ptr[frame] = std::log(softmax);
                     }
                     T dy = (softmax - t_ptr.Get(frame, node)) / (T)frame_size;
                     dy_ptr.Set(frame, node, dy);
                 }
             }
 
-            m_loss   += (double)(-loss.sum());
-            m_frames += frame_size;
+            T loss_sum = 0;
+            for ( index_t frame = 0; frame < frame_size; ++frame ) {
+                loss_sum += loss_buf_ptr[frame];
+            }
+
+            loss_ptr[0] += -loss_sum;
+            m_frames    += frame_size;
 
             return m_dy;
         }

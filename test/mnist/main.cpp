@@ -26,8 +26,8 @@ int main()
 //  bb::Manager::SetHostOnly(true); // GPU版でもCPUのみ利用する場合
 
 //  MnistDenseAffine(64, 32);
-//  MnistSimpleCnnMlp(64, 16, true);
-    MnistSequentialMicroMlp(64, 256, true);
+    MnistSimpleCnnMlp(64, 16, true);
+//  MnistSequentialMicroMlp(64, 256, true);
 //  MnistSimpleMicroMlp(64, 16*1024, true);
 
 //	getchar();

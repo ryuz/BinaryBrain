@@ -901,9 +901,9 @@ inline Tensor_<float>& Tensor_<float>::Exp(void)
 template<>
 inline Tensor_<float>& Tensor_<float>::Clamp(float a, float b)
 {
-    if (IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
-        auto ptr = LockMemory();
-        Tensor_Vector_clamp<float>((float *)ptr.GetAddr(), (const float *)ptr.GetAddr(), a, b, m_size);
+    if ( IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+        auto ptr = LockDeviceMemory();
+        bbcu_fp32_Vector_clamp((float *)ptr.GetAddr(), (const float *)ptr.GetAddr(), a, b, (int)m_size);
         return *this;
     }
 

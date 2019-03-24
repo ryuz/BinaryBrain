@@ -5,16 +5,21 @@ TARGET=libbbcu.a
 NVCC = nvcc
 CFLAGS = -I ../include
 
-OBJS = Manager.o \
-       MicroMlp.o \
-	   Im2Col.o \
-	   Col2Im.o \
-	   MaxPooling.o \
-	   BatchNormalization.o \
-	   ReLU.o \
-	   Binarize.o \
-	   Vector.o \
-       HorizontalSum.o
+SRCS += Manager.cu
+SRCS += Vector.cu
+SRCS += HorizontalSum.cu
+SRCS += MicroMlp.cu
+SRCS += BinaryToReal.cu
+SRCS += Im2Col.cu
+SRCS += Col2Im.cu
+SRCS += MaxPooling.cu
+SRCS += BatchNormalization.cu
+SRCS += ReLU.cu
+SRCS += Binarize.cu
+SRCS += Adam.cu
+SRCS += LossSoftmaxCrossEntropy.cu
+
+OBJS = $(addsuffix .o, $(basename $(SRCS)))
 
 .SUFFIXES: .cu .o
 
@@ -30,3 +35,4 @@ $(TARGET): $(OBJS)
 
 .cu.o:
 	$(NVCC) -c $(CFLAGS) $< -o $@
+

@@ -17,6 +17,13 @@
 *.vvp
 *.vcd
 
+*.sdb
+*.pb
+*.ipch
+*.rlx
+*.jou
+*.wdb
+
 *.VC.db
 *.VC.opendb
 *.vspx
@@ -31,6 +38,8 @@ sample/mnist/verilog/mnist_train.txt
 sample/mnist/verilog/mnist_test.txt
 sample/mnist/verilog/MnistSimpleLutMlp.v
 sample/mnist/verilog/MnistSimpleLutCnn.v
+
+xsim.dir/
 
 .vs/
 Debug/
