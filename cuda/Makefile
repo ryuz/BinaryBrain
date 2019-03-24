@@ -18,6 +18,7 @@ SRCS += ReLU.cu
 SRCS += Binarize.cu
 SRCS += Adam.cu
 SRCS += LossSoftmaxCrossEntropy.cu
+SRCS += AccuracyCategoricalClassification.cu
 
 OBJS = $(addsuffix .o, $(basename $(SRCS)))
 
