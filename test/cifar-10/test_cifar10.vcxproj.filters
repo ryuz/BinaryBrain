@@ -18,153 +18,159 @@
     <ClCompile Include="main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="Cifar10SimpleLutCnn.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Cifar10SimpleLutMlp.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\include\bb\ShuffleSet.h">
+    <ClInclude Include="..\..\include\bb\AccuracyCategoricalClassification.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNet.h">
+    <ClInclude Include="..\..\include\bb\AccuracyFunction.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetAffine.h">
+    <ClInclude Include="..\..\include\bb\BatchNormalization.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetBinaryLut.h">
+    <ClInclude Include="..\..\include\bb\DataType.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetBinaryLut6.h">
+    <ClInclude Include="..\..\include\bb\FrameBuffer.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetBinaryLutN.h">
+    <ClInclude Include="..\..\include\bb\Layer.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetBuffer.h">
+    <ClInclude Include="..\..\include\bb\LossFunction.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetGroup.h">
+    <ClInclude Include="..\..\include\bb\Memory.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetLayer.h">
+    <ClInclude Include="..\..\include\bb\MicroMlp.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetSigmoid.h">
+    <ClInclude Include="..\..\include\bb\MicroMlpAffine.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetSoftmax.h">
+    <ClInclude Include="..\..\include\bb\Optimizer.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetType.h">
+    <ClInclude Include="..\..\include\bb\OptimizerAdam.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetBinaryLut6VerilogXilinx.h">
+    <ClInclude Include="..\..\include\bb\OptimizerSgd.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetUtility.h">
+    <ClInclude Include="..\..\include\bb\ReLU.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetConvolution.h">
+    <ClInclude Include="..\..\include\bb\Sequential.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetBinaryFilter.h">
+    <ClInclude Include="..\..\include\bb\Tensor.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetLayerBuf.h">
+    <ClInclude Include="..\..\include\bb\Utility.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetLimitedConnection.h">
+    <ClInclude Include="..\..\include\bb\Variables.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetLimitedConnectionAffine.h">
+    <ClInclude Include="..\..\include\bb\Sigmoid.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetLimitedConnectionAffineBc.h">
+    <ClInclude Include="..\..\include\bb\ExportVerilog.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetRealToBinary.h">
+    <ClInclude Include="..\..\include\bb\Filter2d.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetBinarize.h">
+    <ClInclude Include="..\..\include\bb\MaxPooling.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetBinaryToReal.h">
+    <ClInclude Include="..\..\include\bb\AccuracyMeanSquaredError.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetBatchNormalization.h">
+    <ClInclude Include="..\..\include\bb\Activation.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetSparseBinaryAffine.h">
+    <ClInclude Include="..\..\include\bb\Binarize.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetMaxPooling.h">
+    <ClInclude Include="..\..\include\bb\BinaryLutN.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetConvCollapse.h">
+    <ClInclude Include="..\..\include\bb\BinaryToReal.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetBatchNormalizationAvx.h">
+    <ClInclude Include="..\..\include\bb\ConvolutionCol2Im.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetBatchNormalizationEigen.h">
+    <ClInclude Include="..\..\include\bb\ConvolutionIm2Col.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetBinaryMultiplex.h">
+    <ClInclude Include="..\..\include\bb\CudaUtility.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetConvExpand.h">
+    <ClInclude Include="..\..\include\bb\DataAugmentationMnist.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetConvExpandM.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetConvolutionPack.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetDenseAffineSigmoid.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetOptimizer.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetOptimizerAdam.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetOptimizerSgd.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetReLU.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetSparseAffine.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetSparseAffineBc.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetSparseAffineSigmoid.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetSparseLayer.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetLossFunction.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetAccuracyFunction.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetAccuracyCategoricalClassification.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\bb\NeuralNetLossCrossEntropyWithSoftmax.h">
+    <ClInclude Include="..\..\include\bb\DenseAffine.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\bb\LoadCifar10.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\TrainData.h">
+    <ClInclude Include="..\..\include\bb\LoadMnist.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\LoadMnist.h">
+    <ClInclude Include="..\..\include\bb\LoadXor.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\LossMeanSquaredError.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\LossSoftmaxCrossEntropy.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\LoweringConvolution.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\LutLayer.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\Manager.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\Model.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\RealToBinary.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\Runner.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\ShuffleSet.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\SimdSupport.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\SparseLayer.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\TensorOperator.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\UniformDistributionGenerator.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bb\ValueGenerator.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

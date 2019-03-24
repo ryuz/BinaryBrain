@@ -16,17 +16,19 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
 void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mode);
 void MnistSimpleCnnMlp(int epoch_size, size_t mini_batch_size, bool binary_mode);
 void MnistDenseAffine(int epoch_size, size_t mini_batch_size);
-
+void MnistMiniLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode);
 
 // メイン関数
 int main()
 {
 	omp_set_num_threads(4);
 
+    MnistMiniLutCnn(8, 16, true);
+
 //  bb::Manager::SetHostOnly(true); // GPU版でもCPUのみ利用する場合
 
 //  MnistDenseAffine(64, 32);
-    MnistSimpleCnnMlp(64, 16, true);
+//  MnistSimpleCnnMlp(64, 16, true);
 //  MnistSequentialMicroMlp(64, 256, true);
 //  MnistSimpleMicroMlp(64, 16*1024, true);
 

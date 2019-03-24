@@ -82,6 +82,21 @@ inline index_t GetShapeSize(indices_t const & shape)
     return size;
 }
 
+
+inline bool GetNextIndices(indices_t& indices, indices_t const & shape)
+{
+    auto size = indices.size();
+    BB_DEBUG_ASSERT(shape.size() == size);
+    for (size_t i = 0; i < size; ++i) {
+        if ( ++indices[i] < shape[i] ) {
+            return true;
+        }
+        indices[i] = 0;
+    }
+    return false;
+}
+
+
 inline index_t GetShapeIndex(indices_t const & indices, indices_t const & shape)
 {
     BB_DEBUG_ASSERT(indices.size() == shape.size());

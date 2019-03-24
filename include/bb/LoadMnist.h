@@ -17,6 +17,8 @@
 #include <vector>
 #include <array>
 
+#include "bb/DataType.h"
+
 
 namespace bb {
 
