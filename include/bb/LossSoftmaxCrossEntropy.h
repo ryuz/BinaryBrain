@@ -30,6 +30,7 @@ protected:
 protected:
 	LossSoftmaxCrossEntropy() {
         m_loss.Resize(1);
+        Clear();
     }
 
 public:

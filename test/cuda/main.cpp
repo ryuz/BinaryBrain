@@ -9,8 +9,11 @@ int Test_MicroMlp_Backward(void);
 
 int main()
 {
-//	return Test_MicroMlp_Forward();
-	return Test_MicroMlp_Backward();
+	std::cout << "---- Test_MicroMlp_Forward ----" << std::endl;
+    Test_MicroMlp_Forward();
+	
+	std::cout << "---- Test_MicroMlp_Backward ----" << std::endl;
+    Test_MicroMlp_Backward();
 
 	return 0;
 }
