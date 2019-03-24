@@ -35,6 +35,7 @@ SRCS  += MnistSimpleMicroMlp.cpp
 SRCS  += MnistSimpleCnnMlp.cpp
 SRCS  += MnistDenseAffine.cpp
 SRCS  += MnistSequentialSimpleMicroMlp.cpp
+SRCS  += MnistMiniLutCnn.cpp
 
 OBJS = $(addsuffix .o, $(basename $(SRCS)))
 
