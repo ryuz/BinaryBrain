@@ -214,7 +214,7 @@ public:
         this->InitializeNodeInput(m_mt());
 
         // パラメータ初期化
-        m_W->Resize(DataType<T>::type, m_output_node_size, 16);  m_W->InitNormalDistribution(0.0, 1.0, m_mt());
+        m_W->Resize(DataType<T>::type, m_output_node_size, 16);  m_W->InitUniformDistribution(0.0, 1.0, m_mt());
         m_dW->Resize(DataType<T>::type, m_output_node_size, 16); m_dW->FillZero();
 
         return m_output_shape;
@@ -299,71 +299,73 @@ public:
 
         // バイナリモードならパラメータクリップ
         if ( 1 ) {
-            m_W->Clamp(-1.0, +1.0);
+            m_W->Clamp(0.0, 1.0);
         }
 
-        auto frame_size = m_x.GetFrameSize();
-        auto x_ptr = x.LockConst<T>();
-        auto y_ptr = m_y.Lock<T>();
-        auto input_index_ptr = m_input_index.LockConst();
-        auto W_ptr = lock_W_const();
+        {
+            auto frame_size = m_x.GetFrameSize();
+            auto x_ptr = x.LockConst<T>();
+            auto y_ptr = m_y.Lock<T>();
+            auto input_index_ptr = m_input_index.LockConst();
+            auto W_ptr = lock_W_const();
 
-//#pragma omp parallel for
-		for ( index_t node = 0; node < m_output_node_size; ++node ) {
-            index_t in_idx[4];
-			for ( int i = 0; i < 4; ++i) {
-                in_idx[i] = input_index_ptr(node, i);
-            }
-            T W[16];
-			for ( int i = 0; i < 16; ++i) {
-                W[i] = W_ptr(node, i);
-//              W[i] = W[i] > (T)0.5 ? (T)1.0 : (T)0.0;
-            }
-
-			for (index_t frame = 0; frame < frame_size; ++frame ) {
-				T   xp[4], xn[4];
-    			for ( int i = 0; i < 4; ++i) {
-                    xp[i] = x_ptr.Get(frame, in_idx[i]);
-                    xn[i] = (T)1.0 - xp[i];
+    //#pragma omp parallel for
+		    for ( index_t node = 0; node < m_output_node_size; ++node ) {
+                index_t in_idx[4];
+			    for ( int i = 0; i < 4; ++i) {
+                    in_idx[i] = input_index_ptr(node, i);
+                }
+                T W[16];
+			    for ( int i = 0; i < 16; ++i) {
+                    W[i] = W_ptr(node, i);
+                    W[i] = W[i] > (T)0.5 ? (T)1.0 : (T)0.0;
                 }
 
-                T x000 = xn[1] * xn[0];
-                T x001 = xn[1] * xp[0];
-                T x010 = xp[1] * xn[0];
-                T x011 = xp[1] * xp[0];
-                T x100 = xn[3] * xn[2];
-                T x101 = xn[3] * xp[2];
-                T x110 = xp[3] * xn[2];
-                T x111 = xp[3] * xp[2];
+			    for (index_t frame = 0; frame < frame_size; ++frame ) {
+				    T   xp[4], xn[4];
+    			    for ( int i = 0; i < 4; ++i) {
+                        xp[i] = x_ptr.Get(frame, in_idx[i]);
+                        xn[i] = (T)1.0 - xp[i];
+                    }
 
-                T xi[16];
-                xi[0]  = x100 * x000;
-                xi[1]  = x100 * x001;
-                xi[2]  = x100 * x010;
-                xi[3]  = x100 * x011;
-                xi[4]  = x101 * x000;
-                xi[5]  = x101 * x001;
-                xi[6]  = x101 * x010;
-                xi[7]  = x101 * x011;
-                xi[8]  = x110 * x000;
-                xi[9]  = x110 * x001;
-                xi[10] = x110 * x010;
-                xi[11] = x110 * x011;
-                xi[12] = x111 * x000;
-                xi[13] = x111 * x001;
-                xi[14] = x111 * x010;
-                xi[15] = x111 * x011;
+                    T x000 = xn[1] * xn[0];
+                    T x001 = xn[1] * xp[0];
+                    T x010 = xp[1] * xn[0];
+                    T x011 = xp[1] * xp[0];
+                    T x100 = xn[3] * xn[2];
+                    T x101 = xn[3] * xp[2];
+                    T x110 = xp[3] * xn[2];
+                    T x111 = xp[3] * xp[2];
 
-                T sig = 0;
-				for ( int i = 0; i < 16; ++i) {
-					sig += W[16] * xi[i];
-				}
+                    T xi[16];
+                    xi[0]  = x100 * x000;
+                    xi[1]  = x100 * x001;
+                    xi[2]  = x100 * x010;
+                    xi[3]  = x100 * x011;
+                    xi[4]  = x101 * x000;
+                    xi[5]  = x101 * x001;
+                    xi[6]  = x101 * x010;
+                    xi[7]  = x101 * x011;
+                    xi[8]  = x110 * x000;
+                    xi[9]  = x110 * x001;
+                    xi[10] = x110 * x010;
+                    xi[11] = x110 * x011;
+                    xi[12] = x111 * x000;
+                    xi[13] = x111 * x001;
+                    xi[14] = x111 * x010;
+                    xi[15] = x111 * x011;
 
-                y_ptr.Set(frame, node, sig);
-			}
+                    T sig = 0;
+				    for ( int i = 0; i < 16; ++i) {
+					    sig += W[i] * xi[i];
+				    }
+
+                    y_ptr.Set(frame, node, sig);
+			    }
+            }
+
+            return m_y;
         }
-
-        return m_y;
     }
 
 

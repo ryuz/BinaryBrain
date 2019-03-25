@@ -51,6 +51,7 @@
     <ClCompile Include="MemoryTest.cpp" />
     <ClCompile Include="MicroMlpAffineTest.cpp" />
     <ClCompile Include="OptimizerAdamTest.cpp" />
+    <ClCompile Include="RealLut4.cpp" />
     <ClCompile Include="RealToBinaryTest.cpp" />
     <ClCompile Include="ReLUTest.cpp" />
     <ClCompile Include="SigmoidTest.cpp" />

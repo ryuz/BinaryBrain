@@ -472,6 +472,18 @@ public:
         }
     }
     
+    void InitUniformDistribution(double _Min0 = 0.0, double _Max0 = 1.0, std::uint64_t seed=1)
+    {
+        auto ptr  = m_mem->Lock(true);
+        auto addr = (T *)ptr.GetAddr();
+
+        std::mt19937_64 mt(seed);
+        std::uniform_real_distribution<double> dist(_Min0, _Max0);
+        for (index_t i = 0; i < m_size; ++i) {
+            addr[i] = (T)dist(mt);
+        }
+    }
+
 
     // -------------------------------------
     //  アクセス用ポインタ
@@ -1613,16 +1625,33 @@ public:
     void InitNormalDistribution(double mean = 0.0, double stddev = 1.0, std::uint64_t seed=1)
     {
         switch (m_type) {
-        case BB_TYPE_FP32:   Tensor_<float        >(*this).InitNormalDistribution();  break;
-        case BB_TYPE_FP64:   Tensor_<double       >(*this).InitNormalDistribution();  break;
-        case BB_TYPE_INT8:   Tensor_<std::int8_t  >(*this).InitNormalDistribution();  break;
-        case BB_TYPE_INT16:  Tensor_<std::int16_t >(*this).InitNormalDistribution();  break;
-        case BB_TYPE_INT32:  Tensor_<std::int32_t >(*this).InitNormalDistribution();  break;
-        case BB_TYPE_INT64:  Tensor_<std::int64_t >(*this).InitNormalDistribution();  break;
-        case BB_TYPE_UINT8:  Tensor_<std::uint8_t >(*this).InitNormalDistribution();  break;
-        case BB_TYPE_UINT16: Tensor_<std::uint16_t>(*this).InitNormalDistribution();  break;
-        case BB_TYPE_UINT32: Tensor_<std::uint32_t>(*this).InitNormalDistribution();  break;
-        case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this).InitNormalDistribution();  break;
+        case BB_TYPE_FP32:   Tensor_<float        >(*this).InitNormalDistribution(mean, stddev, seed);  break;
+        case BB_TYPE_FP64:   Tensor_<double       >(*this).InitNormalDistribution(mean, stddev, seed);  break;
+        case BB_TYPE_INT8:   Tensor_<std::int8_t  >(*this).InitNormalDistribution(mean, stddev, seed);  break;
+        case BB_TYPE_INT16:  Tensor_<std::int16_t >(*this).InitNormalDistribution(mean, stddev, seed);  break;
+        case BB_TYPE_INT32:  Tensor_<std::int32_t >(*this).InitNormalDistribution(mean, stddev, seed);  break;
+        case BB_TYPE_INT64:  Tensor_<std::int64_t >(*this).InitNormalDistribution(mean, stddev, seed);  break;
+        case BB_TYPE_UINT8:  Tensor_<std::uint8_t >(*this).InitNormalDistribution(mean, stddev, seed);  break;
+        case BB_TYPE_UINT16: Tensor_<std::uint16_t>(*this).InitNormalDistribution(mean, stddev, seed);  break;
+        case BB_TYPE_UINT32: Tensor_<std::uint32_t>(*this).InitNormalDistribution(mean, stddev, seed);  break;
+        case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this).InitNormalDistribution(mean, stddev, seed);  break;
+        default:    BB_ASSERT(0);  break;
+        } 
+    }
+
+    void InitUniformDistribution(double _Min0 = 0.0, double _Max0 = 1.0, std::uint64_t seed=1)
+    {
+        switch (m_type) {
+        case BB_TYPE_FP32:   Tensor_<float        >(*this).InitUniformDistribution(_Min0, _Max0, seed);  break;
+        case BB_TYPE_FP64:   Tensor_<double       >(*this).InitUniformDistribution(_Min0, _Max0, seed);  break;
+        case BB_TYPE_INT8:   Tensor_<std::int8_t  >(*this).InitUniformDistribution(_Min0, _Max0, seed);  break;
+        case BB_TYPE_INT16:  Tensor_<std::int16_t >(*this).InitUniformDistribution(_Min0, _Max0, seed);  break;
+        case BB_TYPE_INT32:  Tensor_<std::int32_t >(*this).InitUniformDistribution(_Min0, _Max0, seed);  break;
+        case BB_TYPE_INT64:  Tensor_<std::int64_t >(*this).InitUniformDistribution(_Min0, _Max0, seed);  break;
+        case BB_TYPE_UINT8:  Tensor_<std::uint8_t >(*this).InitUniformDistribution(_Min0, _Max0, seed);  break;
+        case BB_TYPE_UINT16: Tensor_<std::uint16_t>(*this).InitUniformDistribution(_Min0, _Max0, seed);  break;
+        case BB_TYPE_UINT32: Tensor_<std::uint32_t>(*this).InitUniformDistribution(_Min0, _Max0, seed);  break;
+        case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this).InitUniformDistribution(_Min0, _Max0, seed);  break;
         default:    BB_ASSERT(0);  break;
         } 
     }

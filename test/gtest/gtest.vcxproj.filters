@@ -78,6 +78,9 @@
     <ClCompile Include="AccuracyCategoricalClassificationTest.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="RealLut4.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\bb\Utility.h">
