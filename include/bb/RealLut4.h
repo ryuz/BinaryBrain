@@ -20,8 +20,10 @@ namespace bb {
 
 // テーブルサイズ固定LUT
 template <typename T = float>
-class RealLut4 : public LutLayer<T, T>
+class RealLut4 : public SparseLayer<T, T>
 {
+    using super = SparseLayer<T, T>;
+
     int const N = 4;
 
 protected:
@@ -42,7 +44,10 @@ protected:
     std::mt19937_64         m_mt;
 
 protected:
-    RealLut4() {}
+    RealLut4() {
+        m_W  = std::make_shared<Tensor>();
+        m_dW = std::make_shared<Tensor>();
+    }
 
     /*
  	void CommandProc(std::vector<std::string> args)
@@ -74,7 +79,8 @@ public:
     {
         auto self = std::shared_ptr<RealLut4>(new RealLut4);
         BB_ASSERT(!create.output_shape.empty());
-        self->m_output_shape = create.output_shape;
+        self->m_output_shape     = create.output_shape;
+        self->m_output_node_size = GetShapeSize(self->m_output_shape);
         self->m_mt.seed(create.seed);
         return self;
     }
@@ -271,33 +277,10 @@ public:
         /*
         auto W = lock_W_const();
 
-		// affine0
-		std::vector<T> value0(M);
-		for (index_t i = 0; i < M; ++i) {
-			value0[i] = b0(node, i);
-			for (index_t j = 0; j < N; ++j) {
-				value0[i] += input_value[j] * W0(node, i, j);
-			}
-		}
-
-		// ReLU
-		for (index_t i = 0; i < M; ++i) {
-			value0[i] = std::max(value0[i], (T)0);;
-		}
-
-		// affine1
-		std::vector<T> value1(1);
-		value1[0] = b1(node);
-		for (index_t i = 0; i < M; ++i) {
-			value1[0] += value0[i] * W1(node, i);
-		}
-
-		return value1;
 		*/
 
-        return std::vector<T>();
+        return input_value;
 	}
-
 
     FrameBuffer Forward(FrameBuffer x, bool train = true)
     {
@@ -325,7 +308,7 @@ public:
         auto input_index_ptr = m_input_index.LockConst();
         auto W_ptr = lock_W_const();
 
-#pragma omp parallel for
+//#pragma omp parallel for
 		for ( index_t node = 0; node < m_output_node_size; ++node ) {
             index_t in_idx[4];
 			for ( int i = 0; i < 4; ++i) {
@@ -334,7 +317,7 @@ public:
             T W[16];
 			for ( int i = 0; i < 16; ++i) {
                 W[i] = W_ptr(node, i);
-                W[i] = W[i] > (T)0.5 ? (T)1.0 : (T)0.0;
+//              W[i] = W[i] > (T)0.5 ? (T)1.0 : (T)0.0;
             }
 
 			for (index_t frame = 0; frame < frame_size; ++frame ) {
@@ -506,6 +489,8 @@ public:
                 dW_ptr(node, i) = dW[i];
             }
         }
+
+        return m_dx;
     }
 };
 

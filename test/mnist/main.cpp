@@ -18,13 +18,16 @@ void MnistSimpleCnnMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
 void MnistDenseAffine(int epoch_size, size_t mini_batch_size);
 void MnistMiniLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode);
 void MnistDeepMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mode);
+void MnistRealLut4(int epoch_size, size_t mini_batch_size, bool binary_mode);
 
 // メイン関数
 int main()
 {
 	omp_set_num_threads(4);
 
-    MnistDeepMicroMlp(128, 64, true);
+    MnistRealLut4(16, 16, true);
+
+//    MnistDeepMicroMlp(128, 64, true);
 
 //    MnistMiniLutCnn(16, 16, true);
 

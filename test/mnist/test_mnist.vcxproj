@@ -340,6 +340,7 @@
     <ClCompile Include="MnistDeepMicroMlp.cpp" />
     <ClCompile Include="MnistDenseAffine.cpp" />
     <ClCompile Include="MnistMiniLutCnn.cpp" />
+    <ClCompile Include="MnistRealLut4.cpp" />
     <ClCompile Include="MnistSequentialSimpleMicroMlp.cpp" />
     <ClCompile Include="MnistSimpleCnnMlp.cpp" />
     <ClCompile Include="MnistSimpleMicroMlp.cpp" />
