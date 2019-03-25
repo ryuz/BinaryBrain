@@ -337,6 +337,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MnistDeepMicroMlp.cpp" />
     <ClCompile Include="MnistDenseAffine.cpp" />
     <ClCompile Include="MnistMiniLutCnn.cpp" />
     <ClCompile Include="MnistSequentialSimpleMicroMlp.cpp" />
