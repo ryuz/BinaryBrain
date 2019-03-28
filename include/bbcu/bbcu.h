@@ -4,7 +4,7 @@
 #include <assert.h>
 
 #include "cuda_runtime.h"
-
+#include "bbcu/bbcu_util.h"
 
 /*
 #ifdef DLL_EXPORT
@@ -38,6 +38,14 @@ BBCU_DLL_EXPORT bool bbcu_IsDeviceAvailable(void);
 // -------------------------------------
 //  Vector Operation
 // -------------------------------------
+
+// dst = a
+BBCU_DLL_EXPORT int bbcu_fp32_Vector_set(
+			float*			dev_dst,
+			float			a,
+			int				size,
+            cudaStream_t	streamId = 0
+		);
 
 // dst = a * src0 + b * src1 + c
 BBCU_DLL_EXPORT int bbcu_fp32_Vector_add_ex
@@ -144,21 +152,24 @@ BBCU_DLL_EXPORT int bbcu_fp32_Vector_clamp(
 		);
 
 
-
+// -------------------------------------
+//  Matrix
+// -------------------------------------
 
 // Horizontal Sum
-BBCU_DLL_EXPORT	int bbcu_fp32_HorizontalSum
+BBCU_DLL_EXPORT	int bbcu_fp32_MatrixColwiseSum
         (
             const float*	dev_src,
             float*			dev_dst,
-            int				x_size,
-            int				y_size,
+            int				node_size,
+            int				frame_size,
+            int				frame_stride,
             cudaStream_t	streamId = 0
         );
 
 
 // Horizontal MeanVar
-BBCU_DLL_EXPORT int bbcu_fp32_HorizontalMeanVar
+BBCU_DLL_EXPORT int bbcu_fp32_MatrixColwiseMeanVar
 		(
 			const float*	dev_src,
 			float*			dev_mean,
@@ -169,6 +180,16 @@ BBCU_DLL_EXPORT int bbcu_fp32_HorizontalMeanVar
 			cudaStream_t	streamId = 0
 		);
 
+
+int bbcu_fp32_MatrixRowwiseSetVector
+        (
+            const float*    dev_x_vec,
+            float*          dev_y_mat,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId = 0
+        );
 
 // -------------------------------------
 //  MicroMlp

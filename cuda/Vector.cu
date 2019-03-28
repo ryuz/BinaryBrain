@@ -10,6 +10,47 @@
 
 
 // -------------------------------------------------
+//  set
+// -------------------------------------------------
+
+__global__ void kernal_fp32_Vector_set
+		(
+			float*			dst,
+			float			a,
+			int				size
+		)
+{
+    int	index = threadIdx.x;
+	while ( index < size ) {
+		dst[index] = a;
+		index += blockDim.x;
+	}
+}
+
+BBCU_DLL_EXPORT int bbcu_fp32_Vector_set(
+			float*			dev_dst,
+			float			a,
+			int				size,
+            cudaStream_t	streamId
+		)
+{
+    BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
+
+	kernal_fp32_Vector_set<<<1, 1024, 0, streamId>>>
+        (
+			dev_dst,
+			a,
+			size
+		);
+    BB_CUDA_CHECK_LAST_ERROR();
+
+    return 0;
+}
+
+
+
+
+// -------------------------------------------------
 //  add_ex
 // -------------------------------------------------
 

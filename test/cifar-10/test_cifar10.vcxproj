@@ -209,7 +209,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\..\cuda\x64\Debug;$(CUDA_PATH)\lib\x64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>bbcu.lib;cuda.lib;cudart.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>bbcu.lib;cublas.lib;cuda.lib;cudart.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DbgCpu|x64'">
@@ -308,7 +308,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\..\cuda\x64\Release;$(CUDA_PATH)\lib\x64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>bbcu.lib;cuda.lib;cudart.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>bbcu.lib;cublas.lib;cuda.lib;cudart.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StackReserveSize>67108864</StackReserveSize>
     </Link>
   </ItemDefinitionGroup>
@@ -340,6 +340,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Cifar10DenseCnn.cpp" />
     <ClCompile Include="Cifar10SimpleLutCnn.cpp" />
     <ClCompile Include="Cifar10SimpleLutMlp.cpp" />
     <ClCompile Include="main.cpp" />

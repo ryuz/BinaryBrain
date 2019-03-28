@@ -15,6 +15,12 @@
 #include "bb/DataType.h"
 #include "bb/Model.h"
 
+#ifdef BB_WITH_CUDA
+#include "cuda_runtime.h"
+#include "cublas_v2.h"
+#include "bbcu/bbcu.h"
+#endif
+
 
 namespace bb {
 
@@ -45,12 +51,20 @@ protected:
     
     std::mt19937_64             m_mt;
 
+#ifdef BB_WITH_CUDA
+    cublasHandle_t              m_cublasHandle;
+#endif
+
 protected:
 	DenseAffine() {
         m_W  = std::make_shared<Tensor>();
         m_b  = std::make_shared<Tensor>();
         m_dW = std::make_shared<Tensor>();
         m_db = std::make_shared<Tensor>();
+
+#ifdef BB_WITH_CUDA
+        BB_CUBLAS_SAFE_CALL(cublasCreate(&m_cublasHandle));
+#endif
     }
 
    	void CommandProc(std::vector<std::string> args)
@@ -78,7 +92,11 @@ protected:
 
 
 public:
-	~DenseAffine() {}		// デストラクタ
+	~DenseAffine() {
+#ifdef BB_WITH_CUDA
+        BB_CUBLAS_SAFE_CALL(cublasDestroy(m_cublasHandle));
+#endif
+    }
 
     struct create_t
     {
@@ -137,7 +155,7 @@ public:
 	auto lock_db_const(void) const { return m_db->LockConst<T>(); }
 
 
-  /**
+   /**
      * @brief  入力のshape設定
      * @detail 入力のshape設定
      * @param shape 新しいshape
@@ -222,13 +240,53 @@ public:
             SetInputShape(m_x.GetShape());
         }
 
-        // フレーム数
-        auto frame_size   = x.GetFrameSize();
-
         // 出力を設定
         m_y.Resize(DataType<T>::type, m_x.GetFrameSize(), m_output_shape);
 
+#ifdef BB_WITH_CUDA
+        if (DataType<T>::type == BB_TYPE_FP32 && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable())
         {
+            auto x_ptr = x.LockDeviceMemoryConst();
+            auto y_ptr = m_y.LockDeviceMemory(true);
+            auto W_ptr = m_W->LockDeviceMemoryConst();
+            auto b_ptr = m_b->LockDeviceMemoryConst();
+            
+            bbcu_fp32_MatrixRowwiseSetVector
+                (
+                    (float const *)b_ptr.GetAddr(),
+                    (float       *)y_ptr.GetAddr(),
+                    (int          )m_y.GetNodeSize(),
+                    (int          )m_y.GetFrameSize(),
+                    (int          )(m_y.GetFrameStride() / sizeof(float))
+                );
+
+            float alpha = 1.0f;
+            float beta = 1.0f;
+            BB_CUBLAS_SAFE_CALL(cublasSgemm
+                (
+                    m_cublasHandle,
+                    CUBLAS_OP_N,
+                    CUBLAS_OP_N,
+                    (int)m_y.GetFrameSize(),
+                    (int)m_y.GetNodeSize(),
+                    (int)x.GetNodeSize(),
+                    &alpha,
+                    (const float *)x_ptr.GetAddr(),
+                    (int)(x.GetFrameStride() / sizeof(float)),
+                    (const float *)W_ptr.GetAddr(),
+                    (int)x.GetNodeSize(),
+                    &beta,
+                    (float *)y_ptr.GetAddr(),
+                    (int)(m_y.GetFrameStride() / sizeof(float))
+                ));
+            
+            return m_y;
+        }
+#endif
+
+        {
+            auto frame_size   = x.GetFrameSize();
+
             auto x_ptr = m_x.LockConst<T>();
             auto y_ptr = m_y.Lock<T>();
             auto W_ptr = lock_W_const();
@@ -257,6 +315,69 @@ public:
         auto frame_size = dy.GetFrameSize();
 
         m_dx.Resize(DataType<T>::type, dy.GetFrameSize(), m_input_node_size);
+
+
+        #ifdef BB_WITH_CUDA
+        if (DataType<T>::type == BB_TYPE_FP32 && dy.IsDeviceAvailable() && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && Manager::IsDeviceAvailable())
+        {
+            auto dy_ptr = dy.LockDeviceMemoryConst();
+            auto x_ptr  = m_x.LockDeviceMemoryConst();
+            auto dx_ptr = m_dx.LockDeviceMemory(true);
+            auto W_ptr  = m_W->LockDeviceMemoryConst();
+            auto b_ptr  = m_b->LockDeviceMemoryConst();
+            auto dW_ptr = m_dW->LockDeviceMemory(true);
+            auto db_ptr = m_db->LockDeviceMemory(true);
+            
+            bbcu_fp32_MatrixColwiseSum
+                (
+                    (float const *)dy_ptr.GetAddr(),
+                    (float       *)db_ptr.GetAddr(),
+                    (int          )dy.GetNodeSize(),
+                    (int          )dy.GetFrameSize(),
+                    (int          )(dy.GetFrameStride() / sizeof(float))
+                );
+
+            float alpha = 1.0f;
+            float beta = 0.0f;
+            BB_CUBLAS_SAFE_CALL(cublasSgemm
+                (
+                    m_cublasHandle,
+                    CUBLAS_OP_N,
+                    CUBLAS_OP_T,
+                    (int)m_dx.GetFrameSize(),
+                    (int)m_dx.GetNodeSize(),
+                    (int)dy.GetNodeSize(),
+                    &alpha,
+                    (const float *)dy_ptr.GetAddr(),
+                    (int)(dy.GetFrameStride() / sizeof(float)),
+                    (const float *)W_ptr.GetAddr(),
+                    (int)m_dx.GetNodeSize(),
+                    &beta,
+                    (float *)dx_ptr.GetAddr(),
+                    (int)(m_dx.GetFrameStride() / sizeof(float))
+                ));
+            
+            BB_CUBLAS_SAFE_CALL(cublasSgemm
+                (
+                    m_cublasHandle,
+                    CUBLAS_OP_T,
+                    CUBLAS_OP_N,
+                    (int)m_dx.GetNodeSize(),
+                    (int)m_y.GetNodeSize(),
+                    (int)m_dx.GetFrameSize(),
+                    &alpha,
+                    (const float *)x_ptr.GetAddr(),
+                    (int)(m_x.GetFrameStride() / sizeof(float)),
+                    (const float *)dy_ptr.GetAddr(),
+                    (int)(dy.GetFrameStride() / sizeof(float)),
+                    &beta,
+                    (float *)dW_ptr.GetAddr(),
+                    (int)m_dx.GetNodeSize()
+                ));
+            
+            return m_dx;
+        }
+#endif
 
         m_dx.FillZero();
         m_dW->FillZero();

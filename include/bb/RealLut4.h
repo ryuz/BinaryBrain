@@ -393,7 +393,7 @@ public:
             T W[16];
 			for ( int i = 0; i < 16; ++i) {
                 W[i] = W_ptr(node, i);
-                W[i] = W[i] > (T)0.5 ? (T)1.0 : (T)0.0;
+        //      W[i] = W[i] > (T)0.5 ? (T)1.0 : (T)0.0;
             }
 
             T dW[16]  = {0};
@@ -483,7 +483,7 @@ public:
                 dx[3] = (dxp[3] - dxn[3]);
 
     			for ( int i = 0; i < 4; ++i) {
-                    dx_ptr.Add(frame, node, dx[i]);
+                    dx_ptr.Add(frame, in_idx[i], dx[i]);
                 }
 			}
 

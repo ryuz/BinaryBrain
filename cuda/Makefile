@@ -7,7 +7,8 @@ CFLAGS = -I ../include
 
 SRCS += Manager.cu
 SRCS += Vector.cu
-SRCS += HorizontalSum.cu
+SRCS += MatrixColwiseSum.cu
+SRCS += MatrixColwiseMeanVar.cu
 SRCS += MicroMlp.cu
 SRCS += BinaryToReal.cu
 SRCS += Im2Col.cu

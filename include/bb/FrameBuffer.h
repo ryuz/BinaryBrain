@@ -658,12 +658,14 @@ protected:
 
     void *GetNodeBaseAddr(void* base_addr, index_t node) const
     {
+        BB_DEBUG_ASSERT(node < m_node_size);
         auto addr = (std::uint8_t*)base_addr;
         return addr + (m_frame_stride * node);
     }
 
     void const *GetNodeBaseAddr(const void* base_addr, index_t node) const
     {
+        BB_DEBUG_ASSERT(node < m_node_size);
         auto addr = (std::uint8_t const *)base_addr;
         return addr + (m_frame_stride * node);
     }

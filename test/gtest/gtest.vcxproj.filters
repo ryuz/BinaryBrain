@@ -66,9 +66,6 @@
     <ClCompile Include="BinaryToRealTest.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="cudaHorizontalMeanVarTest.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="BinarizeTest.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -79,6 +76,12 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="RealLut4.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="cudaMatrixColwiseMeanVarTest.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="cudaMatrixColwiseSumTest.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

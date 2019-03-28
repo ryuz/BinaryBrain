@@ -13,6 +13,7 @@
 
 void Cifar10SimpleLutMlp(int epoch_size, size_t mini_batch_size, bool binary_mode);
 void Cifar10SimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode);
+void Cifar10DenseCnn(int epoch_size, size_t mini_batch_size, bool binary_mode);
 
 
 // メイン関数
@@ -21,8 +22,8 @@ int main(int argc, char *argv[])
  	omp_set_num_threads(2);
 
     std::string netname = "All";
-    int         epoch_size      = 8;
-    int         mini_batch_size = 8;
+    int         epoch_size      = 16;
+    int         mini_batch_size = 16;
     bool        binary_mode = true;
 
 	if ( argc < 2 ) {
@@ -66,6 +67,10 @@ int main(int argc, char *argv[])
 
 	if ( netname == "All" || netname == "LutCnn" ) {
     	Cifar10SimpleLutCnn(epoch_size, mini_batch_size, true);
+	}
+
+	if ( netname == "All" || netname == "DenseCnn" ) {
+    	Cifar10DenseCnn(epoch_size, mini_batch_size, true);
 	}
 
 	return 0;

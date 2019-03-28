@@ -28,7 +28,7 @@ static double calc_var(std::valarray<double> const &varray)
 }
 
 
-TEST(cudaHorizontalMeanVarTest, test_cudaHorizontalMeanVar)
+TEST(cudaMatrixColwiseMeanVarTest, test_MatrixColwiseMeanVar)
 {
 	const int n = 1027;
 
@@ -59,7 +59,7 @@ TEST(cudaHorizontalMeanVarTest, test_cudaHorizontalMeanVar)
 		auto x_ptr = x_buf.LockDeviceMemoryConst();
 		auto m_ptr = m_buf.LockDeviceMemory();
 		auto v_ptr = v_buf.LockDeviceMemory();
-		bbcu_fp32_HorizontalMeanVar
+		bbcu_fp32_MatrixColwiseMeanVar
 			(
 				(const float *)x_ptr.GetAddr(),
 				(float       *)m_ptr.GetAddr(),
