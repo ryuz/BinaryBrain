@@ -22,6 +22,9 @@ SRCS += Adam.cu
 SRCS += LossSoftmaxCrossEntropy.cu
 SRCS += AccuracyCategoricalClassification.cu
 
+HDRS  = ../include/bbcu/bbcu.h
+HDRS += ../include/bbcu/bbcu_util.h
+
 OBJS = $(addsuffix .o, $(basename $(SRCS)))
 
 .SUFFIXES: .cu .o
@@ -39,3 +42,4 @@ $(TARGET): $(OBJS)
 .cu.o:
 	$(NVCC) -c $(CFLAGS) $< -o $@
 
+$(OBJS): $(HDRS)
