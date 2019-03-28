@@ -28,11 +28,11 @@ CINCS  = -I../../include -I../../eigen
 CDEFS  = 
 
 SRCS   = main.cpp
-SRCS  += MnistSimpleLutMlp.cpp
-SRCS  += MnistSimpleLutMlpModulation.cpp
-SRCS  += MnistSimpleLutCnn.cpp
-SRCS  += MnistDenseAffine.cpp
-SRCS  += MnistSimpleMicroMlpScratch.cpp
+SRCS  += MnistDenseMlp.cpp
+SRCS  += MnistDenseCnn.cpp
+SRCS  += MnistLutMlp.cpp
+SRCS  += MnistLutCnn.cpp
+SRCS  += MnistMicroMlpScratch.cpp
 
 OBJS = $(addsuffix .o, $(basename $(SRCS)))
 

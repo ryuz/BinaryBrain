@@ -18,19 +18,19 @@
     <ClCompile Include="main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="MnistDenseAffine.cpp">
+    <ClCompile Include="MnistDenseCnn.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="MnistSimpleMicroMlpScratch.cpp">
+    <ClCompile Include="MnistDenseMlp.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="MnistSimpleLutCnn.cpp">
+    <ClCompile Include="MnistLutCnn.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="MnistSimpleLutMlp.cpp">
+    <ClCompile Include="MnistLutMlp.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="MnistSimpleLutMlpModulation.cpp">
+    <ClCompile Include="MnistMicroMlpScratch.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

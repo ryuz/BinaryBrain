@@ -66,7 +66,7 @@ module video_mnist_cnn_core
 	wire							axi4s_l0_tvalid;
 	wire							axi4s_l0_tready;
 	
-	MnistSimpleLutCnnCnv0
+	MnistLutCnnCnv0
 			#(
 				.TUSER_WIDTH		(TUSER_WIDTH),
 				.IMG_X_WIDTH		(IMG_X_WIDTH),
@@ -80,7 +80,7 @@ module video_mnist_cnn_core
 				.IMG_CKE_BUFG		(IMG_CKE_BUFG),
 				.DEVICE         	(DEVICE)
 			)
-		i_MnistSimpleLutCnnCnv0
+		i_MnistLutCnnCnv0
 			(
 				.reset				(~aresetn),
 				.clk				(aclk),
@@ -108,7 +108,7 @@ module video_mnist_cnn_core
 	wire							axi4s_l1_tvalid;
 	wire							axi4s_l1_tready;
 	
-	MnistSimpleLutCnnCnv1
+	MnistLutCnnCnv1
 			#(
 				.TUSER_WIDTH		(TUSER_WIDTH),
 				.IMG_X_WIDTH		(IMG_X_WIDTH),
@@ -122,7 +122,7 @@ module video_mnist_cnn_core
 				.IMG_CKE_BUFG		(IMG_CKE_BUFG),
 				.DEVICE         	(DEVICE)
 			)
-		i_MnistSimpleLutCnnCnv1
+		i_MnistLutCnnCnv1
 			(
 				.reset				(~aresetn),
 				.clk				(aclk),
@@ -144,7 +144,7 @@ module video_mnist_cnn_core
 	
 	
 	// L2
-	MnistSimpleLutCnnCnv2
+	MnistLutCnnCnv2
 			#(
 				.TUSER_WIDTH		(TUSER_WIDTH),
 				.IMG_X_WIDTH		(IMG_X_WIDTH),
@@ -158,7 +158,7 @@ module video_mnist_cnn_core
 				.IMG_CKE_BUFG		(IMG_CKE_BUFG),
 				.DEVICE         	(DEVICE)
 			)
-		i_MnistSimpleLutCnnCnv2
+		i_MnistLutCnnCnv2
 			(
 				.reset				(~aresetn),
 				.clk				(aclk),

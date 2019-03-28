@@ -69,7 +69,7 @@ module tb_mnist_lut_mlp();
 	wire		[OUTPUT_WIDTH-1:0]		out_data;
 	wire								out_valid;
 	
-	MnistSimpleLutMlp
+	MnistLutMlp
 			#(
 				.USER_WIDTH		(1+USER_WIDTH)
 			)

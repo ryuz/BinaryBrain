@@ -209,7 +209,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\..\cuda\x64\Debug;$(CUDA_PATH)\lib\x64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>bbcu.lib;cuda.lib;cudart.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>bbcu.lib;cublas.lib;cuda.lib;cudart.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DbgCpu|x64'">
@@ -308,7 +308,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\..\cuda\x64\Release;$(CUDA_PATH)\lib\x64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>bbcu.lib;cuda.lib;cudart.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>bbcu.lib;cublas.lib;cuda.lib;cudart.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StackReserveSize>67108864</StackReserveSize>
     </Link>
   </ItemDefinitionGroup>
@@ -341,11 +341,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="MnistDenseAffine.cpp" />
-    <ClCompile Include="MnistSimpleLutCnn.cpp" />
-    <ClCompile Include="MnistSimpleLutMlp.cpp" />
-    <ClCompile Include="MnistSimpleLutMlpModulation.cpp" />
-    <ClCompile Include="MnistSimpleMicroMlpScratch.cpp" />
+    <ClCompile Include="MnistDenseCnn.cpp" />
+    <ClCompile Include="MnistDenseMlp.cpp" />
+    <ClCompile Include="MnistLutCnn.cpp" />
+    <ClCompile Include="MnistLutMlp.cpp" />
+    <ClCompile Include="MnistMicroMlpScratch.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\bb\AccuracyCategoricalClassification.h" />

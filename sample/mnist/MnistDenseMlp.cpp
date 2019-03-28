@@ -27,9 +27,9 @@
 
 
 
-void MnistDenseAffine(int epoch_size, size_t mini_batch_size)
+void MnistDenseMlp(int epoch_size, size_t mini_batch_size)
 {
-  // load MNIST data
+    // load MNIST data
 #ifdef _DEBUG
     auto td = bb::LoadMnist<>::Load(10, 512, 128);
     std::cout << "!!! debug mode !!!" << std::endl;
@@ -41,12 +41,12 @@ void MnistDenseAffine(int epoch_size, size_t mini_batch_size)
     auto net = bb::Sequential::Create();
     net->Add(bb::DenseAffine<float>::Create({256}));
     net->Add(bb::ReLU<float>::Create());
-    net->Add(bb::DenseAffine<float>::Create({10}));
-    net->SetInputShape({28, 28, 1});
+    net->Add(bb::DenseAffine<float>::Create(td.t_shape));
+    net->SetInputShape(td.x_shape);
     
     // run fitting
     bb::Runner<float>::create_t runner_create;
-    runner_create.name      = "MnistDenseAffine";
+    runner_create.name      = "MnistDenseMlp";
     runner_create.net       = net;
     runner_create.lossFunc  = bb::LossSoftmaxCrossEntropy<float>::Create();
     runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create();

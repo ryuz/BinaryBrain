@@ -146,7 +146,7 @@ public:
 
 
 // MNIST CNN with LUT networks
-void MnistSimpleMicroMlpScratch(int epoch_size, size_t mini_batch_size, bool binary_mode)
+void MnistMicroMlpScratch(int epoch_size, size_t mini_batch_size, bool binary_mode)
 {
     // load MNIST data
 #ifdef _DEBUG

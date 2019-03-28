@@ -32,11 +32,11 @@
 
 static void WriteMnistDataFile(std::string train_file, std::string test_file, int train_size, int test_size);
 
+
 // MNIST CNN with LUT networks
-void MnistSimpleLutMlpModulation(int epoch_size, size_t mini_batch_size, bool binary_mode)
+void MnistLutMlp(int epoch_size, size_t mini_batch_size, int frame_mux_size, bool binary_mode)
 {
-    std::string net_name = "MnistSimpleLutMlpModulation";
-    int const   frame_mux_size = 7;
+    std::string net_name = "MnistLutMlp";
 
   // load MNIST data
 #ifdef _DEBUG
@@ -50,22 +50,19 @@ void MnistSimpleLutMlpModulation(int epoch_size, size_t mini_batch_size, bool bi
     auto layer_mm0 = bb::MicroMlp<>::Create({16});
     auto layer_mm1 = bb::MicroMlp<>::Create({16});
     auto layer_mm2 = bb::MicroMlp<>::Create({16});
-    auto layer_mm3 = bb::MicroMlp<>::Create({30});
 #else
-    auto layer_mm0 = bb::MicroMlp<>::Create({512});
-    auto layer_mm1 = bb::MicroMlp<>::Create({360});
-    auto layer_mm2 = bb::MicroMlp<>::Create({60});
-    auto layer_mm3 = bb::MicroMlp<>::Create({10});
+    auto layer_mm0 = bb::MicroMlp<>::Create({1024});
+    auto layer_mm1 = bb::MicroMlp<>::Create({480});
+    auto layer_mm2 = bb::MicroMlp<>::Create({80});
 #endif
 
     {
         auto net = bb::Sequential::Create();
-        net->Add(bb::RealToBinary<>::Create(frame_mux_size));	// ここで変調
+        net->Add(bb::RealToBinary<>::Create());
         net->Add(layer_mm0);
         net->Add(layer_mm1);
         net->Add(layer_mm2);
-        net->Add(layer_mm3);
-        net->Add(bb::BinaryToReal<float, float>::Create({10}, frame_mux_size));
+        net->Add(bb::BinaryToReal<float, float>::Create({10}));
         net->SetInputShape(td.x_shape);
 
         if ( binary_mode ) {
@@ -86,8 +83,6 @@ void MnistSimpleLutMlpModulation(int epoch_size, size_t mini_batch_size, bool bi
         runner_create.optimizer = bb::OptimizerAdam<float>::Create();
         runner_create.initial_evaluation = false;
         runner_create.print_progress = true;
-        runner_create.print_progress_loss     = false;
-        runner_create.print_progress_accuracy = false;
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
@@ -97,22 +92,19 @@ void MnistSimpleLutMlpModulation(int epoch_size, size_t mini_batch_size, bool bi
         auto layer_lut0 = bb::BinaryLutN<>::Create(layer_mm0->GetOutputShape());
         auto layer_lut1 = bb::BinaryLutN<>::Create(layer_mm1->GetOutputShape());
         auto layer_lut2 = bb::BinaryLutN<>::Create(layer_mm2->GetOutputShape());
-        auto layer_lut3 = bb::BinaryLutN<>::Create(layer_mm3->GetOutputShape());
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(frame_mux_size));
+        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create());
         lut_net->Add(layer_lut0);
         lut_net->Add(layer_lut1);
         lut_net->Add(layer_lut2);
-        lut_net->Add(layer_lut3);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({10}, frame_mux_size));
+        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({10}));
         lut_net->SetInputShape(td.x_shape);
 
         // テーブル化して取り込み(SetInputShape後に取り込みが必要)
         layer_lut0->ImportLayer(*layer_mm0);
         layer_lut1->ImportLayer(*layer_mm1);
         layer_lut2->ImportLayer(*layer_mm2);
-        layer_lut3->ImportLayer(*layer_mm3);
 
         // 評価
         bb::Runner<float>::create_t lut_runner_create;
@@ -137,7 +129,7 @@ void MnistSimpleLutMlpModulation(int epoch_size, size_t mini_batch_size, bool bi
 
             // RTL simulation 用データの出力
             WriteMnistDataFile("verilog/mnist_train.txt", "verilog/mnist_test.txt", 60000, 10000);
-       }
+        }
     }
 }
 
