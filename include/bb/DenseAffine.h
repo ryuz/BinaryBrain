@@ -33,37 +33,40 @@ class DenseAffine : public Model
 
 
 protected:
-	bool	                	m_binary_mode = false;
+    bool	                	m_binary_mode = false;
 
     index_t                     m_input_node_size = 0;
     indices_t                   m_input_shape;
     index_t                     m_output_node_size = 0;
-	indices_t	                m_output_shape;
+    indices_t	                m_output_shape;
 
     FrameBuffer                 m_x;
     FrameBuffer                 m_y;
     FrameBuffer                 m_dx;
 
-	std::shared_ptr<Tensor>		m_W;
-	std::shared_ptr<Tensor>		m_b;
-	std::shared_ptr<Tensor>		m_dW;
-	std::shared_ptr<Tensor>		m_db;
-    
+    std::shared_ptr<Tensor>		m_W;
+    std::shared_ptr<Tensor>		m_b;
+    std::shared_ptr<Tensor>		m_dW;
+    std::shared_ptr<Tensor>		m_db;
+
     std::mt19937_64             m_mt;
 
 #ifdef BB_WITH_CUDA
+    bool                        m_cublasEnable = false;
     cublasHandle_t              m_cublasHandle;
 #endif
 
 protected:
-	DenseAffine() {
-        m_W  = std::make_shared<Tensor>();
-        m_b  = std::make_shared<Tensor>();
+    DenseAffine() {
+        m_W = std::make_shared<Tensor>();
+        m_b = std::make_shared<Tensor>();
         m_dW = std::make_shared<Tensor>();
         m_db = std::make_shared<Tensor>();
 
 #ifdef BB_WITH_CUDA
-        BB_CUBLAS_SAFE_CALL(cublasCreate(&m_cublasHandle));
+        if ( cublasCreate(&m_cublasHandle) == CUBLAS_STATUS_SUCCESS ) {
+            m_cublasEnable = true;
+        }
 #endif
     }
 
@@ -94,7 +97,9 @@ protected:
 public:
 	~DenseAffine() {
 #ifdef BB_WITH_CUDA
-        BB_CUBLAS_SAFE_CALL(cublasDestroy(m_cublasHandle));
+        if ( m_cublasEnable ) {
+            BB_CUBLAS_SAFE_CALL(cublasDestroy(m_cublasHandle));
+        }
 #endif
     }
 
@@ -244,7 +249,7 @@ public:
         m_y.Resize(DataType<T>::type, m_x.GetFrameSize(), m_output_shape);
 
 #ifdef BB_WITH_CUDA
-        if (DataType<T>::type == BB_TYPE_FP32 && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable())
+        if (DataType<T>::type == BB_TYPE_FP32 && m_cublasEnable && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable())
         {
             auto x_ptr = x.LockDeviceMemoryConst();
             auto y_ptr = m_y.LockDeviceMemory(true);
@@ -318,7 +323,7 @@ public:
 
 
         #ifdef BB_WITH_CUDA
-        if (DataType<T>::type == BB_TYPE_FP32 && dy.IsDeviceAvailable() && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && Manager::IsDeviceAvailable())
+        if (DataType<T>::type == BB_TYPE_FP32 && m_cublasEnable && dy.IsDeviceAvailable() && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && Manager::IsDeviceAvailable())
         {
             auto dy_ptr = dy.LockDeviceMemoryConst();
             auto x_ptr  = m_x.LockDeviceMemoryConst();
