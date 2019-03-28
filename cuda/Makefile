@@ -9,6 +9,7 @@ SRCS += Manager.cu
 SRCS += Vector.cu
 SRCS += MatrixColwiseSum.cu
 SRCS += MatrixColwiseMeanVar.cu
+SRCS += MatrixRowwiseSetVector.cu
 SRCS += MicroMlp.cu
 SRCS += BinaryToReal.cu
 SRCS += Im2Col.cu

@@ -46,7 +46,7 @@ endif
 ifeq ($(WITH_CUDA),Yes)
 CC          = nvcc
 CDEFS      += -DBB_WITH_CUDA
-CFLAGS     := -Xcompiler '$(CFLAGS)'
+CFLAGS     := -Xcompiler '$(CFLAGS)' -lcublas
 LIBS       += $(BBCU_LIB)
 SUB_TARGET += bbcu_build
 endif
