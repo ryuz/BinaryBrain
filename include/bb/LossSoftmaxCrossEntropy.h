@@ -114,7 +114,7 @@ public:
                 for (index_t node = 0; node < node_size; ++node) {
                     T softmax = std::exp(y_ptr.Get(frame, node) - c) / sum;
                     if (t_ptr.Get(frame, node) > 0) {
-                        loss_buf_ptr[frame] = std::log(softmax);
+                        loss_buf_ptr[frame] = std::log(softmax + (T)1.0e-7);
                     }
                     T dy = (softmax - t_ptr.Get(frame, node)) / (T)frame_size;
                     dy_ptr.Set(frame, node, dy);

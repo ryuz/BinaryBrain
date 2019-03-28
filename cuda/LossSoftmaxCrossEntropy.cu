@@ -53,7 +53,7 @@ __global__ void kernal_fp32_LossSoftmaxCrossEntropy(
             loss_softmax = softmax;
         }
     }
-    loss_buf[frame] = log(loss_softmax);
+    loss_buf[frame] = log(loss_softmax + 1.0e-7);
 }
 
 
