@@ -89,6 +89,7 @@ int main(int argc, char *argv[])
 
 
 
+#if 0
 
 #include <opencv2/opencv.hpp>
 #include "bb/RealToBinary.h"
@@ -198,3 +199,4 @@ void DataTest(void)
     }
 }
 
+#endif
