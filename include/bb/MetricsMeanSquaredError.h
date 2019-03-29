@@ -32,6 +32,8 @@ protected:
 public:
 	~MetricsMeanSquaredError() {}
 
+    std::string GetMetricsString(void) { return "MSE"; }
+
     static std::shared_ptr<MetricsMeanSquaredError> Create(void)
     {
         auto self = std::shared_ptr<MetricsMeanSquaredError>(new MetricsMeanSquaredError);

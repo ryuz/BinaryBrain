@@ -20,8 +20,8 @@ int main()
 {
 	omp_set_num_threads(4);
 
-	DiabetesAffineRegression(128, 16);
-	DiabetesRegressionBinaryLut(128, 16, 255);
+	DiabetesAffineRegression(32, 16);
+	DiabetesRegressionBinaryLut(32, 16, 255);
 
 	return 0;
 }
