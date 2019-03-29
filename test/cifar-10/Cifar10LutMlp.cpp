@@ -34,9 +34,9 @@
 
 
 // MNIST CNN with LUT networks
-void Cifar10SimpleLutMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
+void Cifar10LutMlp(int epoch_size, size_t mini_batch_size, bool binary_mode)
 {
-    std::string net_name = "Cifar10SimpleLutMlp";
+    std::string net_name = "Cifar10LutMlp";
     int const mux_size = 7;
 
   // load cifar-10 data

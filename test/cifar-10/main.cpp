@@ -13,8 +13,8 @@
 
 
 
-void Cifar10SimpleLutMlp(int epoch_size, size_t mini_batch_size, bool binary_mode);
-void Cifar10SimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode);
+void Cifar10LutMlp(int epoch_size, size_t mini_batch_size, bool binary_mode);
+void Cifar10LutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode);
 void Cifar10DenseCnn(int epoch_size, size_t mini_batch_size, bool binary_mode);
 void Cifar10DenseMlp(int epoch_size, size_t mini_batch_size, bool binary_mode);
 
@@ -69,11 +69,11 @@ int main(int argc, char *argv[])
 
 
 	if ( netname == "All" || netname == "LutMlp" ) {
-		Cifar10SimpleLutMlp(epoch_size, mini_batch_size, true);
+		Cifar10LutMlp(epoch_size, mini_batch_size, true);
 	}
 
 	if ( netname == "All" || netname == "LutCnn" ) {
-    	Cifar10SimpleLutCnn(epoch_size, mini_batch_size, true);
+    	Cifar10LutCnn(epoch_size, mini_batch_size, true);
 	}
 
 	if ( netname == "All" || netname == "DenseMlp" ) {
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 #include "bb/Runner.h"
 #include "bb/ExportVerilog.h"
 
-#include <Windows.h>
+//#include <Windows.h>
 
 
 void DataTest(void)

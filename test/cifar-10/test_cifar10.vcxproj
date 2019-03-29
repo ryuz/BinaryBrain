@@ -338,8 +338,8 @@
   <ItemGroup>
     <ClCompile Include="Cifar10DenseCnn.cpp" />
     <ClCompile Include="Cifar10DenseMlp.cpp" />
-    <ClCompile Include="Cifar10SimpleLutCnn.cpp" />
-    <ClCompile Include="Cifar10SimpleLutMlp.cpp" />
+    <ClCompile Include="Cifar10LutCnn.cpp" />
+    <ClCompile Include="Cifar10LutMlp.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
