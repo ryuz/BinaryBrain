@@ -34,6 +34,11 @@ class DenseAffine : public Model
 
 protected:
     bool	                	m_binary_mode = false;
+    bool                        m_host_only = false;
+
+    T                           m_initialize_std = (T)0.01;
+    std::string                 m_initializer = "he";
+    std::mt19937_64             m_mt;
 
     index_t                     m_input_node_size = 0;
     indices_t                   m_input_shape;
@@ -48,9 +53,7 @@ protected:
     std::shared_ptr<Tensor>		m_b;
     std::shared_ptr<Tensor>		m_dW;
     std::shared_ptr<Tensor>		m_db;
-
-    std::mt19937_64             m_mt;
-
+    
 #ifdef BB_WITH_CUDA
     bool                        m_cublasEnable = false;
     cublasHandle_t              m_cublasHandle;
@@ -78,19 +81,11 @@ protected:
             m_binary_mode = EvalBool(args[1]);
         }
 
-        /*
         // HostOnlyモード設定
         if (args.size() == 2 && args[0] == "host_only")
         {
             m_host_only = EvalBool(args[1]);
         }
-
-        // Host SIMDモード設定
-        if (args.size() == 2 && args[0] == "host_simd")
-        {
-            m_host_simd = EvalBool(args[1]);
-        }
-        */
 	}
 
 
@@ -106,6 +101,8 @@ public:
     struct create_t
     {
         indices_t       output_shape;
+        T               initialize_std = (T)0.01;
+        std::string     initializer = "he";
         std::uint64_t   seed = 1;
     };
 
@@ -114,6 +111,8 @@ public:
         auto self = std::shared_ptr<DenseAffine>(new DenseAffine);
         BB_ASSERT(!create.output_shape.empty());
 
+        self->m_initialize_std = create.initialize_std;
+        self->m_initializer    = create.initializer;
         self->m_mt.seed(create.seed);
 
         self->m_output_shape = create.output_shape;
@@ -173,8 +172,14 @@ public:
         m_input_node_size = GetShapeSize(shape);
 
         // パラメータ初期化
-        m_W->Resize(DataType<T>::type, m_output_node_size, m_input_node_size);      m_W->InitNormalDistribution(0.0, 1.0, m_mt());
-        m_b->Resize(DataType<T>::type, m_output_node_size);                         m_b->InitNormalDistribution(0.0, 1.0, m_mt());
+        if (m_initializer == "he" || m_initializer == "He") {
+            m_initialize_std = (T)2.0 / std::sqrt((T)m_input_node_size);
+        }
+        else if (m_initializer == "xavier" || m_initializer == "Xavier" ) {
+            m_initialize_std = (T)1.0 / std::sqrt((T)m_input_node_size);
+        }
+        m_W->Resize(DataType<T>::type, m_output_node_size, m_input_node_size);      m_W->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+        m_b->Resize(DataType<T>::type, m_output_node_size);                         m_b->InitNormalDistribution(0.0, m_initialize_std, m_mt());
         m_dW->Resize(DataType<T>::type, m_output_node_size, m_input_node_size);     m_dW->FillZero();
         m_db->Resize(DataType<T>::type, m_output_node_size);                        m_db->FillZero();
 
