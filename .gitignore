@@ -33,12 +33,16 @@ sample/mnist/sample-mnist
 test/gtest/gtest
 test/mnist/test-mnist
 test/cifar-10/test-cifar10
+test/diabetes/test-diabetes
 
 # generate file
 sample/mnist/verilog/mnist_train.txt
 sample/mnist/verilog/mnist_test.txt
 sample/mnist/verilog/MnistSimpleLutMlp.v
 sample/mnist/verilog/MnistSimpleLutCnn.v
+
+test/diabetes/diabetes_data.txt
+test/diabetes/diabetes_target.txt
 
 *.tar.gz
 cifar-10-batches-bin/

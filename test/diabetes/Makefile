@@ -1,6 +1,6 @@
 
 # target
-TARGET  = test-diabets
+TARGET  = test-diabetes
 SUB_TARGETS =
 
 # run option
