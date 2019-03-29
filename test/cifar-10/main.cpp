@@ -29,8 +29,8 @@ int main(int argc, char *argv[])
 //  DataTest();
 
     std::string netname = "All";
-    int         epoch_size      = 20;
-    int         mini_batch_size = 128;
+    int         epoch_size      = 16;
+    int         mini_batch_size = 32;
     bool        binary_mode = true;
 
 	if ( argc < 2 ) {
