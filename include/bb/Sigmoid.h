@@ -116,7 +116,7 @@ public:
         m_y.ResizeLike(x);
 
 #if BB_WITH_CUDA
-        if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only
+        if ( DataType<T>::type == BB_TYPE_FP32 && !this->m_host_only
             && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // CUDA版
             auto ptr_x = x.LockDeviceMemoryConst();
@@ -170,7 +170,7 @@ public:
         m_dx.ResizeLike(dy);
 
         #if BB_WITH_CUDA
-        if (  DataType<T>::type == BB_TYPE_FP32 && !m_host_only
+        if (  DataType<T>::type == BB_TYPE_FP32 && !this->m_host_only
             && m_y.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // GPU版
             auto ptr_y  = m_y.LockDeviceMemoryConst();
