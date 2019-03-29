@@ -31,17 +31,18 @@ CUDA(Kepler以降)にも対応しています。
 ### Linux(Ubuntu 18.04.1)
 1. install tools 
 ```
-% sudo apt install cuda cuda-drivers
+% sudo apt update
+% sudo apt upgrade
 % sudo apt install git
-% sudo apt install g++
 % sudo apt install make
-% sudo apt install git
+% sudo apt install g++
+% sudo apt install nvidia-cuda-toolkit
 ```
 2. build and run
 ```
 % git clone --recursive -b ver3_release  https://github.com/ryuz/BinaryBrain.git
 % cd BinaryBrain/sample/mnist
-% make all
+% make
 % make dl_mnist
 % ./sample-mnist All
 ```
