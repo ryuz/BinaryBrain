@@ -30,7 +30,7 @@ TEST(MetricsCategoricalAccuracyTest, testMetricsCategoricalAccuracyTest)
     accFunc->CalculateMetrics(y_buf, t_buf);
 
     auto acc = accFunc->GetMetrics();
-    EXPECT_FLOAT_EQ(0.5, acc);
+    EXPECT_DOUBLE_EQ(0.5, acc);
 //  std::cout << "acc : " << acc << std::endl;
 }
 

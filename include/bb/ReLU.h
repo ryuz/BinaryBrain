@@ -184,9 +184,6 @@ inline FrameBuffer ReLU<float>::Forward(FrameBuffer x, bool train)
     // 戻り値サイズ設定
     m_y.ResizeLike(x);
 
-    index_t frame_size = m_x.GetFrameSize();
-    index_t node_size = m_x.GetNodeSize();
-
     // ReLU
 #if BB_WITH_CUDA
     if ( !m_host_only && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
@@ -195,10 +192,10 @@ inline FrameBuffer ReLU<float>::Forward(FrameBuffer x, bool train)
         auto ptr_y = m_y.LockDeviceMemory(true);
         bbcu_fp32_ReLU_Forward(
                     (float const *)ptr_x.GetAddr(),
-                    (float *)ptr_y.GetAddr(),
-                    (int)frame_size,
-                    (int)(m_x.GetFrameStride() / sizeof(float)),
-                    (int)node_size
+                    (float       *)ptr_y.GetAddr(),
+                    (int          )m_x.GetNodeSize(),
+                    (int          )m_x.GetFrameSize(),
+                    (int          )(m_x.GetFrameStride() / sizeof(float))
                 );
         return m_y;
     }
@@ -206,6 +203,9 @@ inline FrameBuffer ReLU<float>::Forward(FrameBuffer x, bool train)
 
     {
         // AVX版
+        index_t frame_size = m_x.GetFrameSize();
+        index_t node_size = m_x.GetNodeSize();
+
         auto x_ptr = m_x.LockConst<float>();
 	    auto y_ptr = m_y.Lock<float>(true);
 
@@ -244,9 +244,6 @@ inline FrameBuffer ReLU<float>::Backward(FrameBuffer dy)
     // 戻り値サイズ設定
     m_dx.ResizeLike(dy);
 
-    index_t frame_size = m_dx.GetFrameSize();
-    index_t node_size = m_dx.GetNodeSize();
-
 #if BB_WITH_CUDA
     if ( !m_host_only && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         // GPU版
@@ -256,10 +253,10 @@ inline FrameBuffer ReLU<float>::Backward(FrameBuffer dy)
         bbcu_fp32_ReLU_Backward(
                     (float const *)ptr_x.GetAddr(),
                     (float const *)ptr_dy.GetAddr(),
-                    (float *)ptr_dx.GetAddr(),
-                    (int)frame_size,
-                    (int)(m_x.GetFrameStride() / sizeof(float)),
-                    (int)node_size
+                    (float       *)ptr_dx.GetAddr(),
+                    (int          )dy.GetNodeSize(),
+                    (int          )dy.GetFrameSize(),
+                    (int          )(dy.GetFrameStride() / sizeof(float))
                 );
         return m_dx;
     }
@@ -267,7 +264,10 @@ inline FrameBuffer ReLU<float>::Backward(FrameBuffer dy)
 
     {
         // AVX
-	    auto x_ptr  = m_x.LockConst<float>();
+        index_t frame_size = m_dx.GetFrameSize();
+        index_t node_size = m_dx.GetNodeSize();
+
+        auto x_ptr  = m_x.LockConst<float>();
 	    auto y_ptr  = m_y.LockConst<float>();
 	    auto dy_ptr = dy.LockConst<float>();
 	    auto dx_ptr = m_dx.Lock<float>(true);

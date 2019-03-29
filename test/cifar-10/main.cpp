@@ -11,9 +11,14 @@
 #include <string.h>
 
 
+
+
 void Cifar10SimpleLutMlp(int epoch_size, size_t mini_batch_size, bool binary_mode);
 void Cifar10SimpleLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode);
 void Cifar10DenseCnn(int epoch_size, size_t mini_batch_size, bool binary_mode);
+void Cifar10DenseMlp(int epoch_size, size_t mini_batch_size, bool binary_mode);
+
+void DataTest(void);
 
 
 // メイン関数
@@ -21,9 +26,11 @@ int main(int argc, char *argv[])
 {
  	omp_set_num_threads(2);
 
+//  DataTest();
+
     std::string netname = "All";
-    int         epoch_size      = 16;
-    int         mini_batch_size = 16;
+    int         epoch_size      = 20;
+    int         mini_batch_size = 128;
     bool        binary_mode = true;
 
 	if ( argc < 2 ) {
@@ -69,10 +76,125 @@ int main(int argc, char *argv[])
     	Cifar10SimpleLutCnn(epoch_size, mini_batch_size, true);
 	}
 
+	if ( netname == "All" || netname == "DenseMlp" ) {
+    	Cifar10DenseMlp(epoch_size, mini_batch_size, true);
+	}
+
 	if ( netname == "All" || netname == "DenseCnn" ) {
     	Cifar10DenseCnn(epoch_size, mini_batch_size, true);
 	}
 
 	return 0;
+}
+
+
+
+
+#include <opencv2/opencv.hpp>
+#include "bb/RealToBinary.h"
+#include "bb/BinaryToReal.h"
+#include "bb/DenseAffine.h"
+#include "bb/LoweringConvolution.h"
+#include "bb/BatchNormalization.h"
+#include "bb/ReLU.h"
+#include "bb/MaxPooling.h"
+#include "bb/LossSoftmaxCrossEntropy.h"
+#include "bb/MetricsCategoricalAccuracy.h"
+#include "bb/OptimizerAdam.h"
+#include "bb/OptimizerSgd.h"
+#include "bb/LoadCifar10.h"
+#include "bb/ShuffleSet.h"
+#include "bb/Utility.h"
+#include "bb/Sequential.h"
+#include "bb/Runner.h"
+#include "bb/ExportVerilog.h"
+
+#include <Windows.h>
+
+
+void DataTest(void)
+{
+    auto td = bb::LoadCifar10<>::Load();
+
+#if 0
+    {
+        for (int i = 0; i < td.x_train.size(); ++i) {
+            cv::Mat img(32, 32, CV_32FC3);
+		    for (int y = 0; y < 32; ++y) {
+   		        for (int x = 0; x < 32; ++x) {
+   	    	        img.at<cv::Vec3f>(y, x)[0] = td.x_train[i][(2*32+y)*32+x];
+   	    	        img.at<cv::Vec3f>(y, x)[1] = td.x_train[i][(1*32+y)*32+x];
+   	    	        img.at<cv::Vec3f>(y, x)[2] = td.x_train[i][(0*32+y)*32+x];
+                }
+            }
+            int label = bb::argmax(td.t_train[i]);
+
+            std::stringstream ss;
+            ss << "image/train/" << label;
+            ::CreateDirectoryA(ss.str().c_str(), NULL);
+            ss << "/" << i << ".png";
+            cv::imwrite(ss.str(), img * 255.0);
+        }
+        for (int i = 0; i < td.x_test.size(); ++i) {
+            cv::Mat img(32, 32, CV_32FC3);
+		    for (int y = 0; y < 32; ++y) {
+   		        for (int x = 0; x < 32; ++x) {
+   	    	        img.at<cv::Vec3f>(y, x)[0] = td.x_test[i][(2*32+y)*32+x];
+   	    	        img.at<cv::Vec3f>(y, x)[1] = td.x_test[i][(1*32+y)*32+x];
+   	    	        img.at<cv::Vec3f>(y, x)[2] = td.x_test[i][(0*32+y)*32+x];
+                }
+            }
+            int label = bb::argmax(td.t_test[i]);
+
+            std::stringstream ss;
+            ss << "image/test/" << label;
+            ::CreateDirectoryA(ss.str().c_str(), NULL);
+            ss << "/" << i << ".png";
+            cv::imwrite(ss.str(), img * 255.0);
+        }
+    }
+#endif
+
+
+    bb::FrameBuffer x_buf;
+    x_buf.Resize(BB_TYPE_FP32, 16, td.x_shape);
+    x_buf.SetVector(td.x_train, 0);
+
+    auto im2col = bb::ConvolutionIm2Col<>::Create(3, 3);
+    auto y_buf = im2col->Forward(x_buf);
+
+    for ( int i = 0; i < 10; ++i ) {
+        cv::Mat img0(30, 30, CV_32FC3);
+        for (int y = 0; y < 30; ++y) {
+            for (int x = 0; x < 30; ++x) {
+                img0.at<cv::Vec3f>(y, x)[0] = y_buf.GetFP32(30*30*i + y*30+x, 2*9+0);
+                img0.at<cv::Vec3f>(y, x)[1] = y_buf.GetFP32(30*30*i + y*30+x, 1*9+0);
+                img0.at<cv::Vec3f>(y, x)[2] = y_buf.GetFP32(30*30*i + y*30+x, 0*9+0);
+            }
+        }
+
+        cv::Mat img5(30, 30, CV_32FC3);
+        for (int y = 0; y < 30; ++y) {
+            for (int x = 0; x < 30; ++x) {
+                img5.at<cv::Vec3f>(y, x)[0] = y_buf.GetFP32(30*30*i + y*30+x, 2*9+5);
+                img5.at<cv::Vec3f>(y, x)[1] = y_buf.GetFP32(30*30*i + y*30+x, 1*9+5);
+                img5.at<cv::Vec3f>(y, x)[2] = y_buf.GetFP32(30*30*i + y*30+x, 0*9+5);
+            }
+        }
+
+        cv::Mat img8(30, 30, CV_32FC3);
+        for (int y = 0; y < 30; ++y) {
+            for (int x = 0; x < 30; ++x) {
+                img8.at<cv::Vec3f>(y, x)[0] = y_buf.GetFP32(30*30*i + y*30+x, 2*9+8);
+                img8.at<cv::Vec3f>(y, x)[1] = y_buf.GetFP32(30*30*i + y*30+x, 1*9+8);
+                img8.at<cv::Vec3f>(y, x)[2] = y_buf.GetFP32(30*30*i + y*30+x, 0*9+8);
+            }
+        }
+
+        cv::imshow("img0", img0);
+        cv::imshow("img5", img5);
+        cv::imshow("img8", img8);
+        cv::waitKey();
+    }
 }
 

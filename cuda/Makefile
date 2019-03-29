@@ -17,6 +17,7 @@ SRCS += Col2Im.cu
 SRCS += MaxPooling.cu
 SRCS += BatchNormalization.cu
 SRCS += ReLU.cu
+SRCS += Sigmoid.cu
 SRCS += Binarize.cu
 SRCS += Adam.cu
 SRCS += LossSoftmaxCrossEntropy.cu

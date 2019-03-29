@@ -12,14 +12,13 @@
 #include <random>
 #include <chrono>
 
-#include <opencv2/opencv.hpp>
-
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
 #include "bb/DenseAffine.h"
 #include "bb/LoweringConvolution.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
+#include "bb/Sigmoid.h"
 #include "bb/MaxPooling.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
 #include "bb/MetricsCategoricalAccuracy.h"
@@ -32,7 +31,6 @@
 #include "bb/Runner.h"
 #include "bb/ExportVerilog.h"
 
-#include <Windows.h>
 
 // MNIST CNN with LUT networks
 void Cifar10DenseCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
@@ -46,45 +44,6 @@ void Cifar10DenseCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
     std::cout << "!!! debug mode !!!" << std::endl;
 #else
     auto td = bb::LoadCifar10<>::Load();
-#endif
-
-#if 0
-    {
-        for (int i = 0; i < td.x_train.size(); ++i) {
-            cv::Mat img(32, 32, CV_32FC3);
-		    for (int y = 0; y < 32; ++y) {
-   		        for (int x = 0; x < 32; ++x) {
-   	    	        img.at<cv::Vec3f>(y, x)[0] = td.x_train[i][(2*32+y)*32+x];
-   	    	        img.at<cv::Vec3f>(y, x)[1] = td.x_train[i][(1*32+y)*32+x];
-   	    	        img.at<cv::Vec3f>(y, x)[2] = td.x_train[i][(0*32+y)*32+x];
-                }
-            }
-            int label = bb::argmax(td.t_train[i]);
-
-            std::stringstream ss;
-            ss << "image/train/" << label;
-            ::CreateDirectoryA(ss.str().c_str(), NULL);
-            ss << "/" << i << ".png";
-            cv::imwrite(ss.str(), img * 255.0);
-        }
-        for (int i = 0; i < td.x_test.size(); ++i) {
-            cv::Mat img(32, 32, CV_32FC3);
-		    for (int y = 0; y < 32; ++y) {
-   		        for (int x = 0; x < 32; ++x) {
-   	    	        img.at<cv::Vec3f>(y, x)[0] = td.x_test[i][(2*32+y)*32+x];
-   	    	        img.at<cv::Vec3f>(y, x)[1] = td.x_test[i][(1*32+y)*32+x];
-   	    	        img.at<cv::Vec3f>(y, x)[2] = td.x_test[i][(0*32+y)*32+x];
-                }
-            }
-            int label = bb::argmax(td.t_test[i]);
-
-            std::stringstream ss;
-            ss << "image/test/" << label;
-            ::CreateDirectoryA(ss.str().c_str(), NULL);
-            ss << "/" << i << ".png";
-            cv::imwrite(ss.str(), img * 255.0);
-        }
-    }
 #endif
 
     // create network
@@ -105,7 +64,7 @@ void Cifar10DenseCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
     net->SetInputShape(td.x_shape);
 
     // print model information
-    net->PrintInfo(2);
+    net->PrintInfo();
 
     // run fitting
     bb::Runner<float>::create_t runner_create;
@@ -116,7 +75,7 @@ void Cifar10DenseCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
     runner_create.optimizer   = bb::OptimizerAdam<>::Create();
     runner_create.file_read   = false;       // 前の計算結果があれば読み込んで再開するか
     runner_create.file_write  = true;        // 計算結果をファイルに保存するか
-    runner_create.write_serial = true; 
+    runner_create.write_serial = false; 
     runner_create.print_progress = true;    // 途中結果を表示
     runner_create.initial_evaluation = false;
     auto runner = bb::Runner<float>::Create(runner_create);

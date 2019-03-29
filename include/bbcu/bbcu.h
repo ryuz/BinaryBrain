@@ -378,31 +378,6 @@ BBCU_DLL_EXPORT int bbcu_fp32_Col2Im_Backward
 		);
 
 
-// -------------------------------------
-// ReLU
-// -------------------------------------
-
-BBCU_DLL_EXPORT int bbcu_fp32_ReLU_Forward
-		(
-			const float*	dev_x_buf,
-			float*			dev_y_buf,
-			int				frame_size,
-			int				frame_stride,
-			int				node_size,
-            cudaStream_t    streamId = 0
-        );
-
-BBCU_DLL_EXPORT int bbcu_fp32_ReLU_Backward
-		(
-			const float*	dev_x_buf,
-			const float*	dev_dy_buf,
-			float*			dev_dx_buf,
-			int				frame_size,
-			int				frame_stride,
-			int				node_size,
-            cudaStream_t    streamId = 0
-        );
-
 
 // -------------------------------------
 //  Binarize
@@ -419,6 +394,59 @@ BBCU_DLL_EXPORT int bbcu_fp32_Binarize_Forward
         );
 
 BBCU_DLL_EXPORT int bbcu_fp32_HardTanh_Backward
+		(
+			const float*	dev_x_buf,
+			const float*	dev_dy_buf,
+			float*			dev_dx_buf,
+			int				node_size,
+			int				frame_size,
+			int				frame_stride,
+            cudaStream_t    streamId = 0
+        );
+
+
+// -------------------------------------
+//  Sigmoid
+// -------------------------------------
+
+BBCU_DLL_EXPORT int bbcu_fp32_Sigmoid_Forward
+		(
+			const float*	dev_x_buf,
+			float*			dev_y_buf,
+			int				node_size,
+			int				frame_size,
+			int				frame_stride,
+            cudaStream_t    streamId = 0
+        );
+
+
+BBCU_DLL_EXPORT int bbcu_fp32_Sigmoid_Backward
+		(
+			const float*	dev_y_buf,
+			const float*	dev_dy_buf,
+			float*			dev_dx_buf,
+			int				node_size,
+			int				frame_size,
+			int				frame_stride,
+            cudaStream_t    streamId = 0
+        );
+
+
+// -------------------------------------
+//  ReLU
+// -------------------------------------
+
+BBCU_DLL_EXPORT int bbcu_fp32_ReLU_Forward
+		(
+			const float*	dev_x_buf,
+			float*			dev_y_buf,
+			int				node_size,
+			int				frame_size,
+			int				frame_stride,
+            cudaStream_t    streamId = 0
+        );
+
+BBCU_DLL_EXPORT int bbcu_fp32_ReLU_Backward
 		(
 			const float*	dev_x_buf,
 			const float*	dev_dy_buf,
