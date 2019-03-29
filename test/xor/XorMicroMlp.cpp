@@ -19,8 +19,7 @@
 #include "bb/Sigmoid.h"
 #include "bb/ReLU.h"
 #include "bb/LossMeanSquaredError.h"
-#include "bb/AccuracyCategoricalClassification.h"
-#include "bb/AccuracyBool.h"
+#include "bb/MetricsBinaryAccuracy.h"
 #include "bb/OptimizerAdam.h"
 #include "bb/LoadXor.h"
 #include "bb/Utility.h"
@@ -56,11 +55,11 @@ void XorMicroMlp(int epoch_size, bool binary_mode)
     }
 
     bb::Runner<float>::create_t runner_create;
-    runner_create.name      = "XorMicroMlp";
-    runner_create.net       = net;
-    runner_create.lossFunc  = bb::LossMeanSquaredError<float>::Create();
-    runner_create.accFunc   = bb::AccuracyBool<float>::Create();
-    runner_create.optimizer = bb::OptimizerAdam<float>::Create();
+    runner_create.name        = "XorMicroMlp";
+    runner_create.net         = net;
+    runner_create.lossFunc    = bb::LossMeanSquaredError<float>::Create();
+    runner_create.metricsFunc = bb::MetricsBinaryAccuracy<float>::Create();
+    runner_create.optimizer   = bb::OptimizerAdam<float>::Create();
     runner_create.print_progress = true;
     runner_create.file_write = true;
     runner_create.initial_evaluation = false;

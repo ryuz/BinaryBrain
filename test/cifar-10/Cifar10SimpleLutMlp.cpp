@@ -19,7 +19,7 @@
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
-#include "bb/AccuracyCategoricalClassification.h"
+#include "bb/MetricsCategoricalAccuracy.h"
 #include "bb/OptimizerAdam.h"
 #include "bb/OptimizerSgd.h"
 #include "bb/LoadCifar10.h"
@@ -77,12 +77,11 @@ void Cifar10SimpleLutMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
 
         // fitting
         bb::Runner<float>::create_t runner_create;
-        runner_create.name      = net_name;
-        runner_create.net       = net;
-        runner_create.lossFunc  = bb::LossSoftmaxCrossEntropy<float>::Create();
-        runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create();
-        runner_create.optimizer = bb::OptimizerAdam<float>::Create();
-        runner_create.initial_evaluation = false;
+        runner_create.name           = net_name;
+        runner_create.net            = net;
+        runner_create.lossFunc       = bb::LossSoftmaxCrossEntropy<float>::Create();
+        runner_create.metricsFunc    = bb::MetricsCategoricalAccuracy<float>::Create();
+        runner_create.optimizer      = bb::OptimizerAdam<float>::Create();
         runner_create.print_progress = true;
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
@@ -109,12 +108,11 @@ void Cifar10SimpleLutMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
 
         // 評価
         bb::Runner<float>::create_t lut_runner_create;
-        lut_runner_create.name      = "Lut_" + net_name;
-        lut_runner_create.net       = lut_net;
-        lut_runner_create.lossFunc  = bb::LossSoftmaxCrossEntropy<float>::Create();
-        lut_runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create();
-        lut_runner_create.optimizer = bb::OptimizerAdam<float>::Create();
-        lut_runner_create.initial_evaluation = false;
+        lut_runner_create.name           = "Lut_" + net_name;
+        lut_runner_create.net            = lut_net;
+        lut_runner_create.lossFunc       = bb::LossSoftmaxCrossEntropy<float>::Create();
+        lut_runner_create.metricsFunc    = bb::MetricsCategoricalAccuracy<float>::Create();
+        lut_runner_create.optimizer      = bb::OptimizerAdam<float>::Create();
         lut_runner_create.print_progress = true;
         auto lut_runner = bb::Runner<float>::Create(lut_runner_create);
         auto lut_accuracy = lut_runner->Evaluation(td, mini_batch_size);

@@ -72,9 +72,6 @@
     <ClCompile Include="LossSoftmaxCrossEntropyTest.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="AccuracyCategoricalClassificationTest.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="RealLut4.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -82,6 +79,9 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="cudaMatrixColwiseSumTest.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="MetricsCategoricalAccuracyTest.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

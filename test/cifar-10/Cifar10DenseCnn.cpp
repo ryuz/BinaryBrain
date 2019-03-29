@@ -22,7 +22,7 @@
 #include "bb/ReLU.h"
 #include "bb/MaxPooling.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
-#include "bb/AccuracyCategoricalClassification.h"
+#include "bb/MetricsCategoricalAccuracy.h"
 #include "bb/OptimizerAdam.h"
 #include "bb/OptimizerSgd.h"
 #include "bb/LoadCifar10.h"
@@ -109,13 +109,13 @@ void Cifar10DenseCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
 
     // run fitting
     bb::Runner<float>::create_t runner_create;
-    runner_create.name      = net_name;
-    runner_create.net       = net;
-    runner_create.lossFunc  = bb::LossSoftmaxCrossEntropy<>::Create();
-    runner_create.accFunc   = bb::AccuracyCategoricalClassification<>::Create();
-    runner_create.optimizer = bb::OptimizerAdam<>::Create();
-    runner_create.file_read  = false;       // 前の計算結果があれば読み込んで再開するか
-    runner_create.file_write = true;        // 計算結果をファイルに保存するか
+    runner_create.name        = net_name;
+    runner_create.net         = net;
+    runner_create.lossFunc    = bb::LossSoftmaxCrossEntropy<>::Create();
+    runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<>::Create();
+    runner_create.optimizer   = bb::OptimizerAdam<>::Create();
+    runner_create.file_read   = false;       // 前の計算結果があれば読み込んで再開するか
+    runner_create.file_write  = true;        // 計算結果をファイルに保存するか
     runner_create.write_serial = true; 
     runner_create.print_progress = true;    // 途中結果を表示
     runner_create.initial_evaluation = false;

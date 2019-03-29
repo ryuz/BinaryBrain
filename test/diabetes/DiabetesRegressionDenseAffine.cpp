@@ -17,7 +17,7 @@
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
 #include "bb/Sigmoid.h"
-#include "bb/AccuracyMeanSquaredError.h"
+#include "bb/MetricsMeanSquaredError.h"
 #include "bb/LossMeanSquaredError.h"
 #include "bb/OptimizerAdam.h"
 #include "bb/OptimizerSgd.h"
@@ -91,14 +91,15 @@ void DiabetesAffineRegression(int epoch_size, size_t mini_batch_size)
 	bb::FrameBuffer t(BB_TYPE_FP32, mini_batch_size, { 1 });
 
     bb::Runner<float>::create_t runner_create;
-    runner_create.name      = "DiabetesAffineRegression";
-    runner_create.net       = net;
-    runner_create.lossFunc  = bb::LossMeanSquaredError<float>::Create();
-    runner_create.accFunc   = bb::AccuracyMeanSquaredError<float>::Create();
-    runner_create.optimizer = bb::OptimizerSgd<float>::Create(0.0001f);
-//  runner_create.optimizer = bb::OptimizerAdam<float>::Create();
-	runner_create.serial_write = false;
-	runner_create.over_write = true;
+    runner_create.name        = "DiabetesAffineRegression";
+    runner_create.net         = net;
+    runner_create.lossFunc    = bb::LossMeanSquaredError<float>::Create();
+    runner_create.metricsFunc = bb::MetricsMeanSquaredError<float>::Create();
+//  runner_create.optimizer = bb::OptimizerSgd<float>::Create(0.0001f);
+    runner_create.optimizer = bb::OptimizerAdam<float>::Create();
+	runner_create.write_serial = false;
+	runner_create.file_read  = false;
+	runner_create.file_write = true;
 	runner_create.print_progress = false;
 	runner_create.initial_evaluation = false;
     auto runner = bb::Runner<float>::Create(runner_create);

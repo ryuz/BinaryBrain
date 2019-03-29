@@ -16,7 +16,7 @@
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
-#include "bb/AccuracyCategoricalClassification.h"
+#include "bb/MetricsCategoricalAccuracy.h"
 #include "bb/OptimizerAdam.h"
 #include "bb/OptimizerSgd.h"
 #include "bb/LoadMnist.h"
@@ -46,11 +46,11 @@ void MnistDenseMlp(int epoch_size, size_t mini_batch_size)
     
     // run fitting
     bb::Runner<float>::create_t runner_create;
-    runner_create.name      = "MnistDenseMlp";
-    runner_create.net       = net;
-    runner_create.lossFunc  = bb::LossSoftmaxCrossEntropy<float>::Create();
-    runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create();
-    runner_create.optimizer = bb::OptimizerAdam<float>::Create();
+    runner_create.name        = "MnistDenseMlp";
+    runner_create.net         = net;
+    runner_create.lossFunc    = bb::LossSoftmaxCrossEntropy<float>::Create();
+    runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
+    runner_create.optimizer   = bb::OptimizerAdam<float>::Create();
     runner_create.initial_evaluation = true;
     auto runner = bb::Runner<float>::Create(runner_create);
 

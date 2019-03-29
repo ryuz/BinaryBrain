@@ -18,7 +18,7 @@
 
 #include "bb/Model.h"
 #include "bb/LossFunction.h"
-#include "bb/AccuracyFunction.h"
+#include "bb/MetricsFunction.h"
 #include "bb/Optimizer.h"
 #include "bb/Utility.h"
 
@@ -41,7 +41,7 @@ protected:
 	index_t                             m_epoch = 0;
 	index_t                             m_max_batch_size = 16;
 
-	std::shared_ptr<AccuracyFunction>   m_accFunc;
+	std::shared_ptr<MetricsFunction>    m_metricsFunc;
 	std::shared_ptr<LossFunction>       m_lossFunc;
 	std::shared_ptr<Optimizer>          m_optimizer;
 
@@ -67,7 +67,7 @@ public:
         std::string                         name;                               //< ネット名
         std::shared_ptr<Model>              net;                                //< ネット
 	    std::shared_ptr<LossFunction>       lossFunc;                           //< 損失関数オブジェクト
-	    std::shared_ptr<AccuracyFunction>   accFunc;                            //< 精度関数オブジェクト
+	    std::shared_ptr<MetricsFunction>    metricsFunc;                        //< 評価関数オブジェクト
 	    std::shared_ptr<Optimizer>          optimizer;                          //< オプティマイザ
 	    bool                                print_progress = true;              //< 途中経過を表示するか
         bool                                print_progress_loss = true;         //< 途中経過で損失を表示するか
@@ -89,7 +89,7 @@ public:
 
         self->m_name                    = create.name;
         self->m_net                     = create.net;
-	    self->m_accFunc                 = create.accFunc;
+	    self->m_metricsFunc             = create.metricsFunc;
 	    self->m_lossFunc                = create.lossFunc;
 	    self->m_optimizer               = create.optimizer;
 	    self->m_print_progress          = create.print_progress;
@@ -116,7 +116,7 @@ public:
                 std::shared_ptr<Model>              net,
 	            index_t                             epoch_size,
 	            index_t                             batch_size,
-	            std::shared_ptr<AccuracyFunction>   accFunc,
+	            std::shared_ptr<MetricsFunction>    metricsFunc,
 	            std::shared_ptr<LossFunction>       lossFunc,
 	            std::shared_ptr<Optimizer>          optimizer,
 	            bool                                print_progress = false,
@@ -133,7 +133,7 @@ public:
 
         create.name               = name;
         create.net                = net;
-        create.accFunc            = accFunc;
+        create.metricsFunc        = metricsFunc;
         create.lossFunc           = lossFunc;
         create.optimizer          = optimizer;
         create.print_progress     = print_progress;
@@ -158,8 +158,8 @@ public:
     void    SetMaxBatchSize(index_t batch) { m_max_batch_size = batch; }
     index_t GetMaxBatchSize(void) const  { return m_max_batch_size; }
 
-    void                              SetAccuracyFunction(std::shared_ptr<AccuracyFunction> accFunc) { m_accFunc = accFunc; }
-    std::shared_ptr<AccuracyFunction> GetAccuracyFunction(void) const { return m_accFunc; }
+    void                                SetMetricsFunction(std::shared_ptr<MetricsFunction> metricsFunc) { m_metricsFunc = metricsFunc; }
+    std::shared_ptr<MetricsFunction>    GetMetricsFunction(void) const { return m_metricsFunc; }
 
     void SetLossFunction(std::shared_ptr<LossFunction > lossFunc)       { m_lossFunc = lossFunc; }
     void SetOptimizer(std::shared_ptr<Optimizer > optimizer)            { m_optimizer = optimizer; }
@@ -181,11 +181,6 @@ public:
 	{
         SaveValue(os, m_name);
         SaveIndex(os, m_epoch);
-//      SaveIndex(os, m_max_batch_size);
-//	    Save(os, m_print_progress);
-//	    Save(os, m_file_write);
-//	    Save(os, m_over_write);
-//      Save(os, m_initial_evaluation);
         m_net->Save(os);
 	}
 
@@ -193,11 +188,6 @@ public:
 	{
         LoadValue(is, m_name);
         m_epoch = LoadIndex(is);
-//      m_max_batch_size = LoadIndex(is);
-//      Load(is, m_print_progress);
-//	    Load(is, m_file_write);
-//	    Load(is, m_over_write);
-//	    Load(is, m_initial_evaluation);
         m_net->Load(is);
 	}
 
@@ -220,9 +210,6 @@ public:
 	{
 		archive(cereal::make_nvp("name", m_name));
 		archive(cereal::make_nvp("epoch", m_epoch));
-//		archive(cereal::make_nvp("max_batch_size", m_max_batch_size));
-//		archive(cereal::make_nvp("print_progress", m_print_progress));
-//		archive(cereal::make_nvp("file_write", m_file_write));
         m_net->Save(archive);
 	}
 
@@ -231,9 +218,6 @@ public:
 	{
 		archive(cereal::make_nvp("name", m_name));
 		archive(cereal::make_nvp("epoch", m_epoch));
-//		archive(cereal::make_nvp("max_batch_size", m_max_batch_size));
-//		archive(cereal::make_nvp("print_progress", m_print_progress));
-//		archive(cereal::make_nvp("file_write", m_file_write));
         m_net->Load(archive);
 	}
 
@@ -271,7 +255,7 @@ public:
 		    index_t      batch_size
         )
     {
-		std::string csv_file_name = m_name + "_acc.txt";
+		std::string csv_file_name = m_name + "_metrics.txt";
 		std::string log_file_name = m_name + "_log.txt";
 #ifdef BB_WITH_CEREAL
 		std::string net_file_name = m_name + "_net.json";
@@ -319,11 +303,11 @@ public:
 
 			// 初期評価
 			if (m_initial_evaluation) {
-				auto test_accuracy  = Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_accFunc);
-				auto train_accuracy = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, 0, m_accFunc);
+				auto test_metrics  = Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_metricsFunc);
+				auto train_metrics = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, 0, m_metricsFunc);
 				log_stream << "[initial] "
-					<< "test_accuracy : " << std::setw(6) << std::fixed << std::setprecision(4) << test_accuracy << " "
-					<< "train_accuracy : " << std::setw(6) << std::fixed << std::setprecision(4) << train_accuracy << std::endl;
+					<< "test " << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << test_metrics  << " "
+					<< "train " << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << train_metrics << std::endl;
 			}
 
 			// 開始時間記録
@@ -332,7 +316,7 @@ public:
 			for (int epoch = 0; epoch < epoch_size; ++epoch) {
 				// 学習実施
 				auto train_accuracy = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, batch_size,
-                                        m_accFunc, m_lossFunc, m_optimizer, true, m_print_progress, m_print_progress_loss, m_print_progress_accuracy);
+                                        m_metricsFunc, m_lossFunc, m_optimizer, true, m_print_progress, m_print_progress_loss, m_print_progress_accuracy);
 
 				// ネット保存
 				if (m_file_write) {
@@ -370,12 +354,12 @@ public:
 				// 学習状況評価
                 {
 				    double now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
-				    auto test_accuracy  = Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_accFunc);
-				    auto train_accuracy = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, 0, m_accFunc);
+				    auto test_metrics  = Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_metricsFunc);
+				    auto train_metrics = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, 0, m_metricsFunc);
 				    log_stream	<< std::setw(10) << std::fixed << std::setprecision(2) << now_time << "s "
 							    << "epoch[" << std::setw(3) << epoch + 1 + prev_epoch << "] "
-							    << "test_accuracy : "  << std::setw(6) << std::fixed << std::setprecision(4) << test_accuracy  << " "
-							    << "train_accuracy : " << std::setw(6) << std::fixed << std::setprecision(4) << train_accuracy << std::endl;
+							    << "test "  << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << test_metrics  << " "
+							    << "train " << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << train_metrics << std::endl;
                 }
 
 				// callback
@@ -398,7 +382,7 @@ public:
 		    index_t      batch_size
         )
     {
-        return Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_accFunc);
+        return Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_metricsFunc);
     }
 
     
@@ -410,20 +394,20 @@ protected:
                 indices_t t_shape,
 		        index_t max_batch_size,
 		        index_t min_batch_size,
-	            std::shared_ptr< AccuracyFunction > accFunc = nullptr,
-	            std::shared_ptr< LossFunction > lossFunc = nullptr,	
-                std::shared_ptr< Optimizer > optimizer = nullptr,
+	            std::shared_ptr< MetricsFunction > metricsFunc = nullptr,
+	            std::shared_ptr< LossFunction >    lossFunc = nullptr,	
+                std::shared_ptr< Optimizer >       optimizer = nullptr,
 		        bool train = false,
 		        bool print_progress = false,
                 bool print_progress_loss = true,
-                bool print_progress_accuracy = true
+                bool print_progress_metrics = true
             )
 
     {
         BB_ASSERT(x.size() == t.size());
 
-        if ( accFunc  != nullptr ) {
-            accFunc->Clear();
+        if ( metricsFunc  != nullptr ) {
+            metricsFunc->Clear();
         }
         if ( lossFunc != nullptr ) {
             lossFunc->Clear();
@@ -468,8 +452,8 @@ protected:
                 dy_buf = lossFunc->CalculateLoss(y_buf, t_buf);
             }
 
-            if ( accFunc != nullptr ) {
-                accFunc->CalculateAccuracy(y_buf, t_buf);
+            if ( metricsFunc != nullptr ) {
+                metricsFunc->CalculateMetrics(y_buf, t_buf);
             }
 
             if ( train && lossFunc != nullptr ) {
@@ -486,8 +470,8 @@ protected:
 	    		    std::cout << "  loss : " << lossFunc->GetLoss();
                 }
 
-                if ( print_progress_accuracy && accFunc != nullptr ) {
-                    std::cout << "  accuracy : " << accFunc->GetAccuracy();
+                if ( print_progress_metrics && metricsFunc != nullptr ) {
+                    std::cout << "  " << metricsFunc->GetMetricsString() << " : " << metricsFunc->GetMetrics();
                 }
 
 				std::cout << std::flush;
@@ -499,7 +483,7 @@ protected:
 
         std::cout << "\r                                                                               \r" << std::flush;
 
-        return accFunc->GetAccuracy();
+        return metricsFunc->GetMetrics();
     }
 
 };

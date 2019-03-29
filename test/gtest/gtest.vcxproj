@@ -35,7 +35,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AccuracyCategoricalClassificationTest.cpp" />
     <ClCompile Include="BatchNormalizationTest.cpp" />
     <ClCompile Include="BinarizeTest.cpp" />
     <ClCompile Include="BinaryLutTest.cpp" />
@@ -50,6 +49,7 @@
     <ClCompile Include="LoweringConvolutionTest.cpp" />
     <ClCompile Include="MaxPoolingTest.cpp" />
     <ClCompile Include="MemoryTest.cpp" />
+    <ClCompile Include="MetricsCategoricalAccuracyTest.cpp" />
     <ClCompile Include="MicroMlpAffineTest.cpp" />
     <ClCompile Include="OptimizerAdamTest.cpp" />
     <ClCompile Include="RealLut4.cpp" />

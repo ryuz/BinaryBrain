@@ -12,31 +12,31 @@
 
 #include <vector>
 
-#include "bb/AccuracyFunction.h"
+#include "bb/MetricsFunction.h"
 
 
 namespace bb {
 
 
 template <typename T = float>
-class AccuracyCategoricalClassification : public AccuracyFunction
+class MetricsCategoricalAccuracy : public MetricsFunction
 {
 protected:
     index_t         m_frames = 0;
     Tensor_<int>    m_accuracy;
 
 protected:
-    AccuracyCategoricalClassification() : m_accuracy(1)
+    MetricsCategoricalAccuracy() : m_accuracy(1)
     {
         Clear();
     }
 
 public:
-	~AccuracyCategoricalClassification() {}
+	~MetricsCategoricalAccuracy() {}
 
-    static std::shared_ptr<AccuracyCategoricalClassification> Create()
+    static std::shared_ptr<MetricsCategoricalAccuracy> Create()
     {
-        auto self = std::shared_ptr<AccuracyCategoricalClassification>(new AccuracyCategoricalClassification);
+        auto self = std::shared_ptr<MetricsCategoricalAccuracy>(new MetricsCategoricalAccuracy);
         return self;
     }
     
@@ -47,14 +47,14 @@ public:
     }
 
 
-    double GetAccuracy(void) const
+    double GetMetrics(void) const
     {
         auto ptr = m_accuracy.LockConst();
         auto acc = ptr[0];
         return (double)acc / (double)m_frames;
     }
 
-	void CalculateAccuracy(FrameBuffer y, FrameBuffer t)
+	void CalculateMetrics(FrameBuffer y, FrameBuffer t)
 	{
         BB_ASSERT(y.GetType() == DataType<T>::type);
         BB_ASSERT(t.GetType() == DataType<T>::type);

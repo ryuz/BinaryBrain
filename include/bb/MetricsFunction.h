@@ -9,7 +9,7 @@
 
 #pragma once
 
-
+#include <string>
 #include <vector>
 
 #include "bb/FrameBuffer.h"
@@ -18,14 +18,16 @@
 namespace bb {
 
 
-class AccuracyFunction
+class MetricsFunction
 {
 public:
-	virtual ~AccuracyFunction() {}
-	
-    virtual void   Clear(void) = 0;
-    virtual double GetAccuracy(void) const = 0;
-	virtual void   CalculateAccuracy(FrameBuffer y, FrameBuffer t) = 0;
+    virtual ~MetricsFunction() {}
+    
+    virtual std::string GetMetricsString(void) { return "accuracy"; }
+    
+    virtual void        Clear(void) = 0;
+    virtual double      GetMetrics(void) const = 0;
+    virtual void        CalculateMetrics(FrameBuffer y, FrameBuffer t) = 0;
 };
 
 

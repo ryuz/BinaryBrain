@@ -12,14 +12,14 @@
 
 #include <vector>
 
-#include "bb/AccuracyFunction.h"
+#include "bb/MetricsFunction.h"
 
 
 namespace bb {
 
 
 template <typename T = float>
-class AccuracyMeanSquaredError : public AccuracyFunction
+class MetricsMeanSquaredError : public MetricsFunction
 {
 protected:
 	double  m_accuracy = 0;
@@ -27,14 +27,14 @@ protected:
 
 
 protected:
-	AccuracyMeanSquaredError()	{}
+	MetricsMeanSquaredError()	{}
 
 public:
-	~AccuracyMeanSquaredError() {}
+	~MetricsMeanSquaredError() {}
 
-    static std::shared_ptr<AccuracyMeanSquaredError> Create(void)
+    static std::shared_ptr<MetricsMeanSquaredError> Create(void)
     {
-        auto self = std::shared_ptr<AccuracyMeanSquaredError>(new AccuracyMeanSquaredError);
+        auto self = std::shared_ptr<MetricsMeanSquaredError>(new MetricsMeanSquaredError);
         return self;
     }
      
@@ -45,12 +45,12 @@ public:
     }
 
 
-    double GetAccuracy(void) const
+    double GetMetrics(void) const
     {
         return m_accuracy / (double)m_frames;
     }
 
-	void CalculateAccuracy(FrameBuffer y, FrameBuffer t)
+	void CalculateMetrics(FrameBuffer y, FrameBuffer t)
 	{
 		BB_ASSERT(y.GetType() == DataType<T>::type);
 		BB_ASSERT(t.GetType() == DataType<T>::type);

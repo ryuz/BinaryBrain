@@ -12,28 +12,28 @@
 #include <iostream>
 #include <vector>
 
-#include "bb/AccuracyFunction.h"
+#include "bb/MetricsFunction.h"
 
 
 namespace bb {
 
 
 template <typename T = float>
-class AccuracyBool : public AccuracyFunction
+class MetricsBinaryAccuracy : public MetricsFunction
 {
 protected:
     index_t     m_frames = 0;
     double      m_accuracy = 0;
 
 protected:
-    AccuracyBool() {}
+    MetricsBinaryAccuracy() {}
 
 public:
-	~AccuracyBool() {}
+	~MetricsBinaryAccuracy() {}
 
-    static std::shared_ptr<AccuracyBool> Create()
+    static std::shared_ptr<MetricsBinaryAccuracy> Create()
     {
-        auto self = std::shared_ptr<AccuracyBool>(new AccuracyBool);
+        auto self = std::shared_ptr<MetricsBinaryAccuracy>(new MetricsBinaryAccuracy);
         return self;
     }
     
@@ -43,12 +43,12 @@ public:
         m_frames   = 0;
     }
     
-    double GetAccuracy(void) const
+    double GetMetrics(void) const
     {
         return m_accuracy/ (double)m_frames;
     }
     
-	void CalculateAccuracy(FrameBuffer y, FrameBuffer t)
+	void CalculateMetrics(FrameBuffer y, FrameBuffer t)
 	{
         BB_ASSERT(y.GetType() == DataType<T>::type);
         BB_ASSERT(t.GetType() == DataType<T>::type);

@@ -16,7 +16,7 @@
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
-#include "bb/AccuracyCategoricalClassification.h"
+#include "bb/MetricsCategoricalAccuracy.h"
 #include "bb/OptimizerAdam.h"
 #include "bb/OptimizerSgd.h"
 #include "bb/LoadMnist.h"
@@ -159,8 +159,8 @@ void MnistMicroMlpScratch(int epoch_size, size_t mini_batch_size, bool binary_mo
     MnistSimpleMicroMlpNet  net;
     net.SetInputShape(td.x_shape);
 
-    auto lossFunc = bb::LossSoftmaxCrossEntropy<float>::Create();
-    auto accFunc  = bb::AccuracyCategoricalClassification<float>::Create();
+    auto lossFunc    = bb::LossSoftmaxCrossEntropy<float>::Create();
+    auto metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
     
     bb::FrameBuffer x(BB_TYPE_FP32, mini_batch_size, {28, 28, 1});
     bb::FrameBuffer t(BB_TYPE_FP32, mini_batch_size, 10);
@@ -175,7 +175,7 @@ void MnistMicroMlpScratch(int epoch_size, size_t mini_batch_size, bool binary_mo
     }
 
     for ( bb::index_t epoch = 0; epoch < epoch_size; ++epoch ) {
-        accFunc->Clear();
+        metricsFunc->Clear();
         for (bb::index_t i = 0; i < (bb::index_t)(td.x_train.size() - mini_batch_size); i += mini_batch_size)
         {
             x.SetVector(td.x_train, i);
@@ -184,13 +184,13 @@ void MnistMicroMlpScratch(int epoch_size, size_t mini_batch_size, bool binary_mo
             auto y = net.Forward(x);
             
             auto dy = lossFunc->CalculateLoss(y, t);
-            accFunc->CalculateAccuracy(y, t);
+            metricsFunc->CalculateMetrics(y, t);
             
             dy = net.Backward(dy);
             
             optimizer->Update();            
         }
-        std::cout << "accuracy : " << accFunc->GetAccuracy() << std::endl;
+        std::cout << "accuracy : " << metricsFunc->GetMetrics() << std::endl;
 
         bb::ShuffleDataSet(mt(), td.x_train, td.t_train);
     }

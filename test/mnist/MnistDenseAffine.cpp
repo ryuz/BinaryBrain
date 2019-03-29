@@ -16,7 +16,7 @@
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
-#include "bb/AccuracyCategoricalClassification.h"
+#include "bb/MetricsCategoricalAccuracy.h"
 #include "bb/OptimizerAdam.h"
 #include "bb/OptimizerSgd.h"
 #include "bb/LoadMnist.h"
@@ -48,12 +48,12 @@ void MnistDenseAffine(int epoch_size, size_t mini_batch_size)
     bb::FrameBuffer t(BB_TYPE_FP32, mini_batch_size, 10);
 
     bb::Runner<float>::create_t runner_create;
-    runner_create.name      = "MnistDenseAffine";
-    runner_create.net       = net;
-    runner_create.lossFunc  = bb::LossSoftmaxCrossEntropy<float>::Create();
-    runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create();
-    runner_create.optimizer = bb::OptimizerAdam<float>::Create();
-    runner_create.file_write = true;
+    runner_create.name        = "MnistDenseAffine";
+    runner_create.net         = net;
+    runner_create.lossFunc    = bb::LossSoftmaxCrossEntropy<float>::Create();
+    runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
+    runner_create.optimizer   = bb::OptimizerAdam<float>::Create();
+    runner_create.file_write  = true;
     auto runner = bb::Runner<float>::Create(runner_create);
 
     runner->Fitting(td, epoch_size, mini_batch_size);

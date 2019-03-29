@@ -19,7 +19,7 @@
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
-#include "bb/AccuracyCategoricalClassification.h"
+#include "bb/MetricsCategoricalAccuracy.h"
 #include "bb/OptimizerAdam.h"
 #include "bb/OptimizerSgd.h"
 #include "bb/LoadMnist.h"
@@ -49,11 +49,11 @@ void MnistRealLut4(int epoch_size, size_t mini_batch_size, bool binary_mode)
     net->SetInputShape(td.x_shape);
     
     bb::Runner<float>::create_t runner_create;
-    runner_create.name      = "MnistRealLut4";
-    runner_create.net       = net;
-    runner_create.lossFunc  = bb::LossSoftmaxCrossEntropy<float>::Create();
-    runner_create.accFunc   = bb::AccuracyCategoricalClassification<float>::Create();
-    runner_create.optimizer = bb::OptimizerSgd<float>::Create(0.0001);
+    runner_create.name        = "MnistRealLut4";
+    runner_create.net         = net;
+    runner_create.lossFunc    = bb::LossSoftmaxCrossEntropy<float>::Create();
+    runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
+    runner_create.optimizer   = bb::OptimizerSgd<float>::Create(0.0001);
     runner_create.print_progress = true;
     runner_create.file_write = true;
     runner_create.initial_evaluation = false;

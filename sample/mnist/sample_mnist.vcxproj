@@ -348,9 +348,6 @@
     <ClCompile Include="MnistMicroMlpScratch.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\include\bb\AccuracyCategoricalClassification.h" />
-    <ClInclude Include="..\..\include\bb\AccuracyFunction.h" />
-    <ClInclude Include="..\..\include\bb\AccuracyMeanSquaredError.h" />
     <ClInclude Include="..\..\include\bb\Activation.h" />
     <ClInclude Include="..\..\include\bb\BatchNormalization.h" />
     <ClInclude Include="..\..\include\bb\Binarize.h" />
@@ -377,6 +374,8 @@
     <ClInclude Include="..\..\include\bb\Manager.h" />
     <ClInclude Include="..\..\include\bb\MaxPooling.h" />
     <ClInclude Include="..\..\include\bb\Memory.h" />
+    <ClInclude Include="..\..\include\bb\MetricsCategoricalAccuracy.h" />
+    <ClInclude Include="..\..\include\bb\MetricsFunction.h" />
     <ClInclude Include="..\..\include\bb\MicroMlp.h" />
     <ClInclude Include="..\..\include\bb\MicroMlpAffine.h" />
     <ClInclude Include="..\..\include\bb\Model.h" />
