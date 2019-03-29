@@ -53,10 +53,10 @@ void Cifar10LutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
     auto layer_cnv0_mm1 = bb::MicroMlp<>::Create(32);
     auto layer_cnv1_mm0 = bb::MicroMlp<>::Create(192);
     auto layer_cnv1_mm1 = bb::MicroMlp<>::Create(32);
-    auto layer_cnv2_mm0 = bb::MicroMlp<>::Create(192);
-    auto layer_cnv2_mm1 = bb::MicroMlp<>::Create(32);
-    auto layer_cnv3_mm0 = bb::MicroMlp<>::Create(192);
-    auto layer_cnv3_mm1 = bb::MicroMlp<>::Create(32);
+    auto layer_cnv2_mm0 = bb::MicroMlp<>::Create(384);
+    auto layer_cnv2_mm1 = bb::MicroMlp<>::Create(64);
+    auto layer_cnv3_mm0 = bb::MicroMlp<>::Create(384);
+    auto layer_cnv3_mm1 = bb::MicroMlp<>::Create(64);
     auto layer_mm4 = bb::MicroMlp<>::Create(1024);
     auto layer_mm5 = bb::MicroMlp<>::Create(420);
     auto layer_mm6 = bb::MicroMlp<>::Create(70);
