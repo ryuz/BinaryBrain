@@ -238,7 +238,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_MicroMlp6x16_Backward(
 //  BatchNormalization
 // -------------------------------------
 
-BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Forward
+BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_ForwardTraining
 		(
 			float const     *dev_x_buf,
 			float           *dev_y_buf,
@@ -254,6 +254,20 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Forward
 			int				frame_stride,
 			cudaStream_t    streamId = 0
 		);
+
+BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_ForwardInference
+		(
+			float const     *dev_x_buf,
+			float           *dev_y_buf,
+			float const     *dev_gamma_buf,
+			float const     *dev_beta_buf,
+			float const     *dev_running_mean_buf,
+			float const     *dev_running_var_buf,
+			int				node_size,
+			int				frame_size,
+			int				frame_stride,
+            cudaStream_t    streamId = 0
+        );
 
 BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Backward
         (

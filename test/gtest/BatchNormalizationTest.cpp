@@ -67,11 +67,11 @@ public:
 		var /= (T)n;
 
 		// 偏差
-		std = sqrt(var + (T)10e-7);
+		std = sqrt(var);
 
 		// 正規化
 		for (int i = 0; i < n; ++i) {
-			xn[i] = xc[i] / std;
+			xn[i] = xc[i] / (std + (T)10e-7);
 		}
 
 		// シフト
@@ -92,7 +92,7 @@ public:
 		}
 		mean /= (T)n;
 		var = (var / (T)n) - (mean * mean);
-		std = sqrt(var + (T)10e-7);
+		std = sqrt(var);
 
 		// 平均を引く
 		for (int i = 0; i < n; ++i) {
@@ -101,7 +101,7 @@ public:
 
 		// 正規化
 		for (int i = 0; i < n; ++i) {
-			xn[i] = xc[i] / std;
+			xn[i] = xc[i] / (std + (T)10e-7);
 		}
 			// シフト
 		for (int i = 0; i < n; ++i) {
@@ -121,14 +121,14 @@ public:
 		}
 		mean /= (T)n;
 		var = (var / (T)n) - (mean * mean);
-		std = sqrt(var + (T)10e-7);
+		std = sqrt(var);
 
 		for (int i = 0; i < n; ++i) {
 			// 平均を引く
 			xc[i] = x[i] - mean;
 
 			// 正規化
-			xn[i] = xc[i] / std;
+			xn[i] = xc[i] / (std + (T)10e-7);
 
 			// シフト
 			y[i] = xn[i] * gamma + beta;
@@ -148,14 +148,14 @@ public:
 		}
 		mean /= (T)n;
 		var = (var / (T)n) - (mean * mean);
-		std = sqrt(var + (T)10e-7);
+		std = sqrt(var);
 
 		for (int i = 0; i < n; ++i) {
 			// 平均を引く
 			T _xc = x[i] - mean;
 
 			// 正規化
-			T _xn = _xc / std;
+			T _xn = _xc / (std + (T)10e-7);
 
 			// シフト
 			y[i] = _xn * gamma + beta;
@@ -726,6 +726,36 @@ TEST(BatchNormalizationTest, testBatchNormalization_cmp)
                 auto val_cpu = beta_cpu[node];
                 auto val_gpu = beta_gpu[node];
                 EXPECT_NEAR(val_cpu, val_gpu, 0.001f);
+            }
+        }
+    }
+
+
+    for ( int loop = 0; loop < 4; ++ loop ) 
+    {
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < node_size; ++node ) {
+                x_cpu.SetFP32(frame, node, valgen->GetValue());
+                x_gpu.SetFP32(frame, node, x_cpu.GetFP32(frame, node));
+            }
+        }
+
+        auto y_cpu = bn_cpu->Forward(x_cpu, false);
+        auto y_gpu = bn_gpu->Forward(x_gpu, false);
+
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < node_size; ++node ) {
+                auto val_cpu = x_cpu.GetFP32(frame, node);
+                auto val_gpu = x_gpu.GetFP32(frame, node);
+                EXPECT_FLOAT_EQ(val_cpu, val_gpu);
+            }
+        }
+
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < node_size; ++node ) {
+                auto val_cpu = y_cpu.GetFP32(frame, node);
+                auto val_gpu = y_gpu.GetFP32(frame, node);
+                EXPECT_NEAR(val_cpu, val_gpu, 0.0001f);
             }
         }
     }

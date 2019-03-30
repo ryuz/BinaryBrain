@@ -51,10 +51,10 @@ BBCU_DLL_EXPORT int bbcu_fp32_ReLU_Forward
 
     block.x = std::min(frame_size, 1024);
     block.y = std::min(node_size, 1024);
-    while (block.y > 1 && block.x * block.y >= 1024) {
+    while (block.y > 1 && block.x * block.y > 1024) {
         block.y = (block.y + 1) / 2;
     }
-    while (block.x > 1 && block.x * block.y >= 1024) {
+    while (block.x > 1 && block.x * block.y > 1024) {
         block.x = (block.x + 1) / 2;
     }
     grid.x = (frame_size + (block.x - 1)) /  block.x;
@@ -119,10 +119,10 @@ BBCU_DLL_EXPORT int bbcu_fp32_ReLU_Backward
 
     block.x = std::min(frame_size, 1024);
     block.y = std::min(node_size, 1024);
-    while (block.y > 1 && block.x * block.y >= 1024) {
+    while (block.y > 1 && block.x * block.y > 1024) {
         block.y = (block.y + 1) / 2;
     }
-    while (block.x > 1 && block.x * block.y >= 1024) {
+    while (block.x > 1 && block.x * block.y > 1024) {
         block.x = (block.x + 1) / 2;
     }
     grid.x = (frame_size + (block.x - 1)) /  block.x;

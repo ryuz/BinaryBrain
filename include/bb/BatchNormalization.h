@@ -259,7 +259,7 @@ public:
 		for (size_t i = 0; i < x_vec.size(); ++i) {
 			y_vec[i]  = x_vec[i];
 			y_vec[i] -= running_mean_ptr(node);
-			y_vec[i] /= (T)sqrt(running_var_ptr(node) + 10e-7);
+			y_vec[i] /= (T)sqrt(running_var_ptr(node)) + 10e-7;
 			y_vec[i]  = y_vec[i] * gamma_ptr(node) + beta_ptr(node);
 		}
 		return y_vec;
@@ -283,33 +283,56 @@ public:
 
 
 #ifdef BB_WITH_CUDA
-		if ( !m_host_only && train && DataType<T>::type == BB_TYPE_FP32 && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
-			auto dev_x_ptr     = m_x.LockDeviceMemoryConst();
-			auto dev_y_ptr     = m_y.LockDeviceMemory(true);
-			auto dev_gamma_ptr = m_gamma->LockDeviceMemoryConst();
-			auto dev_beta_ptr  = m_beta->LockDeviceMemoryConst();
-			auto dev_mean_ptr = m_mean.LockDeviceMemory(true);
-			auto dev_rstd_ptr = m_rstd.LockDeviceMemory(true);
-			auto dev_running_mean_ptr = m_running_mean.LockDeviceMemory();
-			auto dev_running_var_ptr = m_running_var.LockDeviceMemory();
+		if ( !m_host_only && DataType<T>::type == BB_TYPE_FP32 && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            if ( train ) {
+                auto dev_x_ptr     = m_x.LockDeviceMemoryConst();
+			    auto dev_y_ptr     = m_y.LockDeviceMemory(true);
+			    auto dev_gamma_ptr = m_gamma->LockDeviceMemoryConst();
+			    auto dev_beta_ptr  = m_beta->LockDeviceMemoryConst();
+			    auto dev_mean_ptr = m_mean.LockDeviceMemory(true);
+			    auto dev_rstd_ptr = m_rstd.LockDeviceMemory(true);
+			    auto dev_running_mean_ptr = m_running_mean.LockDeviceMemory();
+			    auto dev_running_var_ptr = m_running_var.LockDeviceMemory();
 
-			bbcu_fp32_BatchNormalization_Forward
-				(
-					(float const *)dev_x_ptr.GetAddr(),
-					(float       *)dev_y_ptr.GetAddr(),
-					(float const *)dev_gamma_ptr.GetAddr(),
-					(float const *)dev_beta_ptr.GetAddr(),
-					(float       *)dev_mean_ptr.GetAddr(),
-					(float       *)dev_rstd_ptr.GetAddr(),
-					(float       *)dev_running_mean_ptr.GetAddr(),
-					(float       *)dev_running_var_ptr.GetAddr(),
-					(float        )m_momentum,
-					(int          )m_x.GetNodeSize(),
-					(int          )m_x.GetFrameSize(),
-					(int          )m_x.GetFrameStride() / sizeof(float)
-				);
+			    bbcu_fp32_BatchNormalization_ForwardTraining
+				    (
+					    (float const *)dev_x_ptr.GetAddr(),
+					    (float       *)dev_y_ptr.GetAddr(),
+					    (float const *)dev_gamma_ptr.GetAddr(),
+					    (float const *)dev_beta_ptr.GetAddr(),
+					    (float       *)dev_mean_ptr.GetAddr(),
+					    (float       *)dev_rstd_ptr.GetAddr(),
+					    (float       *)dev_running_mean_ptr.GetAddr(),
+					    (float       *)dev_running_var_ptr.GetAddr(),
+					    (float        )m_momentum,
+					    (int          )m_x.GetNodeSize(),
+					    (int          )m_x.GetFrameSize(),
+					    (int          )m_x.GetFrameStride() / sizeof(float)
+				    );
+    			return m_y;
+            }
+            else {
+                auto dev_x_ptr            = m_x.LockDeviceMemoryConst();
+			    auto dev_y_ptr            = m_y.LockDeviceMemory(true);
+			    auto dev_gamma_ptr        = m_gamma->LockDeviceMemoryConst();
+			    auto dev_beta_ptr         = m_beta->LockDeviceMemoryConst();
+			    auto dev_running_mean_ptr = m_running_mean.LockDeviceMemoryConst();
+			    auto dev_running_var_ptr  = m_running_var.LockDeviceMemoryConst();
 
-			return m_y;
+			    bbcu_fp32_BatchNormalization_ForwardInference
+				    (
+					    (float const *)dev_x_ptr.GetAddr(),
+					    (float       *)dev_y_ptr.GetAddr(),
+					    (float const *)dev_gamma_ptr.GetAddr(),
+					    (float const *)dev_beta_ptr.GetAddr(),
+					    (float       *)dev_running_mean_ptr.GetAddr(),
+					    (float       *)dev_running_var_ptr.GetAddr(),
+					    (int          )m_x.GetNodeSize(),
+					    (int          )m_x.GetFrameSize(),
+					    (int          )m_x.GetFrameStride() / sizeof(float)
+				    );
+    			return m_y;
+            }
 		}
 #endif
 
@@ -396,7 +419,7 @@ public:
                     auto y_ptr = y_buf_ptr.GetAddr(node);
 
                     __m256 running_mean = _mm256_set1_ps(running_mean_ptr[node]);
-                    __m256 running_var = _mm256_set1_ps(1.0f / sqrt(running_var_ptr[node] + 10e-7f));
+                    __m256 running_var = _mm256_set1_ps(1.0f / (sqrt(running_var_ptr[node]) + 10e-7f));
 
                     __m256 gamma = _mm256_set1_ps(gamma_ptr[node]);
                     __m256 beta = _mm256_set1_ps(beta_ptr[node]);

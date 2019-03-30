@@ -1,5 +1,6 @@
 #include <iostream>
 #include <chrono>
+#include <algorithm>
 
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
@@ -43,10 +44,10 @@ __device__ __forceinline__ float device_fp32_LocalSum(float v, float *buf)
 
 
 //////////////////////////////
-// forward
+// forward training
 //////////////////////////////
 
-__global__ void kernal_fp32_BatchNormalization_Forward(
+__global__ void kernal_fp32_BatchNormalization_ForwardTraining(
 			const float     *x_buf,
 			float           *y_buf,
 			float const     *gamma_buf,
@@ -113,7 +114,7 @@ __global__ void kernal_fp32_BatchNormalization_Forward(
 }
 
 
-BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Forward
+BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_ForwardTraining
 		(
 			float const     *dev_x_buf,
 			float           *dev_y_buf,
@@ -135,7 +136,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Forward
 	dim3	grid(node_size);
 	dim3	block(BBCU_BATCHNORM_FW_BLOCK_SIZE);
 
-	kernal_fp32_BatchNormalization_Forward<<<grid, block, 0, streamId>>> (
+	kernal_fp32_BatchNormalization_ForwardTraining<<<grid, block, 0, streamId>>> (
 			dev_x_buf,
             dev_y_buf,
 			dev_gamma_buf,
@@ -155,9 +156,93 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Forward
 }
 
 
+//////////////////////////////
+// Forward Inference
+//////////////////////////////
+
+__global__ void kernal_fp32_BatchNormalization_ForwardInference(
+			const float     *x_buf,
+			float           *y_buf,
+			float const     *gamma_buf,
+			float const     *beta_buf,
+			float const     *running_mean_buf,
+			float const     *running_var_buf,
+            int             node_size,
+			int				frame_size,
+			int				frame_stride
+		)
+{
+	int node       = blockDim.y * blockIdx.y + threadIdx.y;
+    int frame_base = threadIdx.x;
+    int frame_step = blockDim.x;
+
+    if ( node >= node_size) {
+        return;
+    }
+
+    float gamma = gamma_buf[node];
+	float beta  = beta_buf[node];
+    float mean  = running_mean_buf[node];
+    float var   = running_var_buf[node];
+
+    var = 1.0 / (sqrt(var) + 10e-7);
+
+    float const *x_ptr = &x_buf[frame_stride * node];
+    float       *y_ptr = &y_buf[frame_stride * node];
+    for ( int frame = frame_base; frame < frame_size; frame += frame_step )  {
+        float x = x_ptr[frame];
+        y_ptr[frame] = ((x - mean) * var) * gamma + beta;
+    }
+}
+
+
+BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_ForwardInference
+		(
+			float const     *dev_x_buf,
+			float           *dev_y_buf,
+			float const     *dev_gamma_buf,
+			float const     *dev_beta_buf,
+			float const     *dev_running_mean_buf,
+			float const     *dev_running_var_buf,
+			int				node_size,
+			int				frame_size,
+			int				frame_stride,
+            cudaStream_t    streamId
+        )
+{
+    BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
+
+	dim3	block;
+	dim3	grid;
+
+    block.x = std::min(frame_size, 1024);
+    block.y = std::min(node_size, 1024);
+    while (block.y > 1 && block.x * block.y > 1024) {
+        block.y = (block.y + 1) / 2;
+    }
+    grid.x = 1;
+    grid.y = (node_size  + (block.y - 1)) /  block.y;
+	
+	kernal_fp32_BatchNormalization_ForwardInference<<<grid, block, 0, streamId>>>(
+			dev_x_buf,
+            dev_y_buf,
+			dev_gamma_buf,
+			dev_beta_buf,
+			dev_running_mean_buf,
+			dev_running_var_buf,
+			node_size,
+			frame_size,
+			frame_stride
+		);
+	BB_CUDA_CHECK_LAST_ERROR();
+
+	return 0;
+}
+
+
 
 //////////////////////////////
-// backward
+// Backward
 //////////////////////////////
 
 
