@@ -106,7 +106,7 @@ void Cifar10LutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
         }
 
         // print model information
-        net->PrintInfo(2);
+        net->PrintInfo();
 
         // run fitting
         bb::Runner<float>::create_t runner_create;
