@@ -38,7 +38,7 @@
 void Cifar10LutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
 {
     std::string net_name = "Cifar10LutCnn";
-    int const   frame_mux_size = 7;
+    int const   frame_mux_size = 15;
 
   // load cifar-10 data
 #ifdef _DEBUG
