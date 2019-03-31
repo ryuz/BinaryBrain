@@ -280,12 +280,116 @@ public:
     // ノード単位でのForward計算
     std::vector<T> ForwardNode(index_t node, std::vector<T> input_value) const
 	{
-        /*
-        auto W = lock_W_const();
+        BB_ASSERT(input_value.size() == 6);
 
-		*/
+        auto W_ptr = lock_W_const();
+        T W[64];
+		for ( int i = 0; i < 64; ++i) {
+            W[i] = W_ptr(node, i);
+            BB_ASSERT(W[i] >= 0 && W[i] <= 1.0f);
+            if ( m_binary_mode ) {
+                W[i] = W[i] > (T)0.5 ? (T)1.0 : (T)0.0;
+            }
+        }
 
-        return input_value;
+	    T   xp[6], xn[6];
+        for ( int i = 0; i < 6; ++i) {
+            xp[i] = input_value[i];
+            BB_ASSERT(xp[i] >= 0 && xp[i] <= 1.0f);
+            xn[i] = (T)1.0 - xp[i];
+        }
+
+        T x0_00 = xn[1] * xn[0];
+        T x0_01 = xn[1] * xp[0];
+        T x0_10 = xp[1] * xn[0];
+        T x0_11 = xp[1] * xp[0];
+        T x1_00 = xn[3] * xn[2];
+        T x1_01 = xn[3] * xp[2];
+        T x1_10 = xp[3] * xn[2];
+        T x1_11 = xp[3] * xp[2];
+        T x2_00 = xn[5] * xn[4];
+        T x2_01 = xn[5] * xp[4];
+        T x2_10 = xp[5] * xn[4];
+        T x2_11 = xp[5] * xp[4];
+
+        T xi[64];
+        xi[0]  = x2_00 * x1_00 * x0_00;
+        xi[1]  = x2_00 * x1_00 * x0_01;
+        xi[2]  = x2_00 * x1_00 * x0_10;
+        xi[3]  = x2_00 * x1_00 * x0_11;
+        xi[4]  = x2_00 * x1_01 * x0_00;
+        xi[5]  = x2_00 * x1_01 * x0_01;
+        xi[6]  = x2_00 * x1_01 * x0_10;
+        xi[7]  = x2_00 * x1_01 * x0_11;
+        xi[8]  = x2_00 * x1_10 * x0_00;
+        xi[9]  = x2_00 * x1_10 * x0_01;
+        xi[10] = x2_00 * x1_10 * x0_10;
+        xi[11] = x2_00 * x1_10 * x0_11;
+        xi[12] = x2_00 * x1_11 * x0_00;
+        xi[13] = x2_00 * x1_11 * x0_01;
+        xi[14] = x2_00 * x1_11 * x0_10;
+        xi[15] = x2_00 * x1_11 * x0_11;
+        xi[16] = x2_01 * x1_00 * x0_00;
+        xi[17] = x2_01 * x1_00 * x0_01;
+        xi[18] = x2_01 * x1_00 * x0_10;
+        xi[19] = x2_01 * x1_00 * x0_11;
+        xi[20] = x2_01 * x1_01 * x0_00;
+        xi[21] = x2_01 * x1_01 * x0_01;
+        xi[22] = x2_01 * x1_01 * x0_10;
+        xi[23] = x2_01 * x1_01 * x0_11;
+        xi[24] = x2_01 * x1_10 * x0_00;
+        xi[25] = x2_01 * x1_10 * x0_01;
+        xi[26] = x2_01 * x1_10 * x0_10;
+        xi[27] = x2_01 * x1_10 * x0_11;
+        xi[28] = x2_01 * x1_11 * x0_00;
+        xi[29] = x2_01 * x1_11 * x0_01;
+        xi[30] = x2_01 * x1_11 * x0_10;
+        xi[31] = x2_01 * x1_11 * x0_11;
+        xi[32] = x2_10 * x1_00 * x0_00;
+        xi[33] = x2_10 * x1_00 * x0_01;
+        xi[34] = x2_10 * x1_00 * x0_10;
+        xi[35] = x2_10 * x1_00 * x0_11;
+        xi[36] = x2_10 * x1_01 * x0_00;
+        xi[37] = x2_10 * x1_01 * x0_01;
+        xi[38] = x2_10 * x1_01 * x0_10;
+        xi[39] = x2_10 * x1_01 * x0_11;
+        xi[40] = x2_10 * x1_10 * x0_00;
+        xi[41] = x2_10 * x1_10 * x0_01;
+        xi[42] = x2_10 * x1_10 * x0_10;
+        xi[43] = x2_10 * x1_10 * x0_11;
+        xi[44] = x2_10 * x1_11 * x0_00;
+        xi[45] = x2_10 * x1_11 * x0_01;
+        xi[46] = x2_10 * x1_11 * x0_10;
+        xi[47] = x2_10 * x1_11 * x0_11;
+        xi[48] = x2_11 * x1_00 * x0_00;
+        xi[49] = x2_11 * x1_00 * x0_01;
+        xi[50] = x2_11 * x1_00 * x0_10;
+        xi[51] = x2_11 * x1_00 * x0_11;
+        xi[52] = x2_11 * x1_01 * x0_00;
+        xi[53] = x2_11 * x1_01 * x0_01;
+        xi[54] = x2_11 * x1_01 * x0_10;
+        xi[55] = x2_11 * x1_01 * x0_11;
+        xi[56] = x2_11 * x1_10 * x0_00;
+        xi[57] = x2_11 * x1_10 * x0_01;
+        xi[58] = x2_11 * x1_10 * x0_10;
+        xi[59] = x2_11 * x1_10 * x0_11;
+        xi[60] = x2_11 * x1_11 * x0_00;
+        xi[61] = x2_11 * x1_11 * x0_01;
+        xi[62] = x2_11 * x1_11 * x0_10;
+        xi[63] = x2_11 * x1_11 * x0_11;
+
+        T sig = 0;
+		for ( int i = 0; i < 64; ++i) {
+		    sig += W[i] * xi[i];
+		}
+
+        sig = std::max((T)0.0, sig);
+        sig = std::min((T)1.0, sig);
+        
+        std::vector<T> result;
+        result.push_back(sig);
+
+        return result;
 	}
 
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
@@ -554,7 +658,7 @@ public:
                 T grad = dy_ptr.Get(frame, node);
 
                 T dxi[64];
-				for ( int i = 0; i < 16; ++i) {
+				for ( int i = 0; i < 64; ++i) {
 					dW[i]  += xi[i] * grad;
 					dxi[i]  = W[i]  * grad;
 				}
@@ -664,7 +768,7 @@ public:
                 }
 			}
 
- 			for ( int i = 0; i < 16; ++i) {
+ 			for ( int i = 0; i < 64; ++i) {
                 dW_ptr(node, i) = dW[i];
             }
         }
