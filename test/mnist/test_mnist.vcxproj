@@ -344,6 +344,7 @@
     <ClCompile Include="MnistSequentialSimpleMicroMlp.cpp" />
     <ClCompile Include="MnistSimpleCnnMlp.cpp" />
     <ClCompile Include="MnistSimpleMicroMlp.cpp" />
+    <ClCompile Include="MnistStochasticCnn.cpp" />
     <ClCompile Include="MnistStochasticLut6.cpp" />
   </ItemGroup>
   <ItemGroup>

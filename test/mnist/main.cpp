@@ -20,6 +20,7 @@ void MnistMiniLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode);
 void MnistDeepMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mode);
 void MnistRealLut4(int epoch_size, size_t mini_batch_size, bool binary_mode);
 void MnistStochasticLut6(int epoch_size, size_t mini_batch_size, bool binary_mode);
+void MnistStochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binary_mode);
 
 
 // メイン関数
@@ -27,7 +28,8 @@ int main()
 {
 	omp_set_num_threads(4);
 
-    MnistStochasticLut6(64, 256, true);
+    MnistStochasticLut6Cnn(8, 16, true);
+//    MnistStochasticLut6(8, 256, true);
 
 //    MnistRealLut4(64, 256, true);
 
