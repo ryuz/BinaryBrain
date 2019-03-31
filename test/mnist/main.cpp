@@ -25,9 +25,9 @@ int main()
 {
 	omp_set_num_threads(4);
 
-//    MnistRealLut4(64, 16, true);
+    MnistRealLut4(64, 256, true);
 
-    MnistDeepMicroMlp(128, 64, true);
+//   MnistDeepMicroMlp(128, 64, true);
 
 //    MnistMiniLutCnn(16, 16, true);
 

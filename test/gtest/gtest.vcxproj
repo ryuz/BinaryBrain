@@ -52,6 +52,7 @@
     <ClCompile Include="MetricsCategoricalAccuracyTest.cpp" />
     <ClCompile Include="MicroMlpAffineTest.cpp" />
     <ClCompile Include="OptimizerAdamTest.cpp" />
+    <ClCompile Include="RealLut2Test.cpp" />
     <ClCompile Include="RealLut4.cpp" />
     <ClCompile Include="RealToBinaryTest.cpp" />
     <ClCompile Include="ReLUTest.cpp" />
@@ -91,6 +92,8 @@
     <ClInclude Include="..\..\include\bb\Optimizer.h" />
     <ClInclude Include="..\..\include\bb\OptimizerAdam.h" />
     <ClInclude Include="..\..\include\bb\OptimizerSgd.h" />
+    <ClInclude Include="..\..\include\bb\RealLut2.h" />
+    <ClInclude Include="..\..\include\bb\RealLut4.h" />
     <ClInclude Include="..\..\include\bb\RealToBinary.h" />
     <ClInclude Include="..\..\include\bb\ReLU.h" />
     <ClInclude Include="..\..\include\bb\Sequential.h" />

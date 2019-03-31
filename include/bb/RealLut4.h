@@ -27,7 +27,7 @@ class RealLut4 : public SparseLayer<T, T>
     int const N = 4;
 
 protected:
-    bool            m_binary_mode = false;
+    bool            m_binary_mode = true;
 
     index_t         m_input_node_size = 0;
     index_t         m_output_node_size = 0;
@@ -216,7 +216,7 @@ public:
         this->InitializeNodeInput(m_mt());
 
         // パラメータ初期化
-        m_W->Resize(DataType<T>::type, m_output_node_size, 16);  m_W->InitUniformDistribution(0.0, 1.0, m_mt());
+        m_W->Resize(DataType<T>::type, m_output_node_size, 16);  m_W->InitUniformDistribution(0.4, 0.6, m_mt());
         m_dW->Resize(DataType<T>::type, m_output_node_size, 16); m_dW->FillZero();
 
         return m_output_shape;
@@ -300,9 +300,9 @@ public:
         m_y.Resize(DataType<T>::type, m_x.GetFrameSize(), m_output_shape);
 
         // バイナリモードならパラメータクリップ
-        if ( m_binary_mode ) {
-            m_W->Clamp(0.0, 1.0);
-        }
+//        if ( m_binary_mode ) {
+        m_W->Clamp(0.0, 1.0);
+//        }
 
         {
             auto frame_size = m_x.GetFrameSize();
@@ -320,6 +320,7 @@ public:
                 T W[16];
 			    for ( int i = 0; i < 16; ++i) {
                     W[i] = W_ptr(node, i);
+                    BB_ASSERT(W[i] >= 0 && W[i] <= 1.0f);
                     if ( m_binary_mode ) {
                         W[i] = W[i] > (T)0.5 ? (T)1.0 : (T)0.0;
                     }
@@ -329,6 +330,7 @@ public:
 				    T   xp[4], xn[4];
     			    for ( int i = 0; i < 4; ++i) {
                         xp[i] = x_ptr.Get(frame, in_idx[i]);
+                        BB_ASSERT(xp[i] >= 0 && xp[i] <= 1.0f);
                         xn[i] = (T)1.0 - xp[i];
                     }
 
@@ -364,6 +366,10 @@ public:
 					    sig += W[i] * xi[i];
 				    }
 
+                    sig = std::max((T)0.0, sig);
+                    sig = std::min((T)1.0, sig);
+
+                    BB_ASSERT(sig >= 0 && sig <= 1.0f);
                     y_ptr.Set(frame, node, sig);
 			    }
             }
@@ -380,6 +386,7 @@ public:
         m_dx.Resize(DataType<T>::type, dy.GetFrameSize(), m_input_node_size);
 
         m_dW->FillZero();
+        m_dx.FillZero();
 
         auto frame_size = m_x.GetFrameSize();
         auto x_ptr = m_x.LockConst<T>();
@@ -437,12 +444,16 @@ public:
                 xi[14] = x111 * x010;
                 xi[15] = x111 * x011;
 
-                T dy = dy_ptr.Get(frame, node);
+                T grad = dy_ptr.Get(frame, node);
+                if (!Real_IsValid(grad)) {
+                    std::cout << "grad : nan" << std::endl;
+      //            getchar();
+                }
 
                 T dxi[16];
 				for ( int i = 0; i < 16; ++i) {
-					dW[i]  += xi[i] * dy;
-					dxi[i]  = W[i]  * dy;
+					dW[i]  += xi[i] * grad;
+					dxi[i]  = W[i]  * grad;
 				}
 
                 T dx000 = 0;
@@ -481,14 +492,14 @@ public:
                 dxn[2] += xp[3] * dx110; dxp[3] += xn[2] * dx110;
                 dxp[2] += xp[3] * dx111; dxp[3] += xp[2] * dx111;
 
-                T dx[4];
-                dx[0] = (dxp[0] - dxn[0]);
-                dx[1] = (dxp[1] - dxn[1]);
-                dx[2] = (dxp[2] - dxn[2]);
-                dx[3] = (dxp[3] - dxn[3]);
+                T dx_grad[4];
+                dx_grad[0] = (dxp[0] - dxn[0]);
+                dx_grad[1] = (dxp[1] - dxn[1]);
+                dx_grad[2] = (dxp[2] - dxn[2]);
+                dx_grad[3] = (dxp[3] - dxn[3]);
 
     			for ( int i = 0; i < 4; ++i) {
-                    dx_ptr.Add(frame, in_idx[i], dx[i]);
+                    dx_ptr.Add(frame, in_idx[i], dx_grad[i]);
                 }
 			}
 
