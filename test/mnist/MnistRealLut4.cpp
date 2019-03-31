@@ -41,10 +41,11 @@ void MnistRealLut4(int epoch_size, size_t mini_batch_size, bool binary_mode)
 #endif
     
     auto net = bb::Sequential::Create();
-    net->Add(bb::RealLut4<>::Create({2560}));
-    net->Add(bb::RealLut4<>::Create({640}));
+//    net->Add(bb::BatchNormalization<>::Create());
     net->Add(bb::RealLut4<>::Create({160}));
+//    net->Add(bb::BatchNormalization<>::Create());
     net->Add(bb::RealLut4<>::Create({40}));
+//    net->Add(bb::BatchNormalization<>::Create());
     net->Add(bb::RealLut4<>::Create({10}));
     net->SetInputShape(td.x_shape);
     
@@ -53,7 +54,8 @@ void MnistRealLut4(int epoch_size, size_t mini_batch_size, bool binary_mode)
     runner_create.net         = net;
     runner_create.lossFunc    = bb::LossSoftmaxCrossEntropy<float>::Create();
     runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
-    runner_create.optimizer   = bb::OptimizerSgd<float>::Create(0.0001);
+//    runner_create.optimizer   = bb::OptimizerSgd<float>::Create(0.0001f);
+  runner_create.optimizer   = bb::OptimizerAdam<float>::Create();
     runner_create.print_progress = true;
     runner_create.file_write = true;
     runner_create.initial_evaluation = false;

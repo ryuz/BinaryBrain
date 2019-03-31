@@ -27,6 +27,8 @@ class RealLut4 : public SparseLayer<T, T>
     int const N = 4;
 
 protected:
+    bool            m_binary_mode = false;
+
     index_t         m_input_node_size = 0;
     index_t         m_output_node_size = 0;
     indices_t       m_input_shape;
@@ -298,7 +300,7 @@ public:
         m_y.Resize(DataType<T>::type, m_x.GetFrameSize(), m_output_shape);
 
         // バイナリモードならパラメータクリップ
-        if ( 1 ) {
+        if ( m_binary_mode ) {
             m_W->Clamp(0.0, 1.0);
         }
 
@@ -318,7 +320,9 @@ public:
                 T W[16];
 			    for ( int i = 0; i < 16; ++i) {
                     W[i] = W_ptr(node, i);
-                    W[i] = W[i] > (T)0.5 ? (T)1.0 : (T)0.0;
+                    if ( m_binary_mode ) {
+                        W[i] = W[i] > (T)0.5 ? (T)1.0 : (T)0.0;
+                    }
                 }
 
 			    for (index_t frame = 0; frame < frame_size; ++frame ) {
@@ -393,7 +397,9 @@ public:
             T W[16];
 			for ( int i = 0; i < 16; ++i) {
                 W[i] = W_ptr(node, i);
-        //      W[i] = W[i] > (T)0.5 ? (T)1.0 : (T)0.0;
+                if ( m_binary_mode ) {
+                    W[i] = W[i] > (T)0.5 ? (T)1.0 : (T)0.0;
+                }
             }
 
             T dW[16]  = {0};
@@ -408,13 +414,12 @@ public:
                 T x001 = xn[1] * xp[0];
                 T x010 = xp[1] * xn[0];
                 T x011 = xp[1] * xp[0];
-
                 T x100 = xn[3] * xn[2];
                 T x101 = xn[3] * xp[2];
                 T x110 = xp[3] * xn[2];
                 T x111 = xp[3] * xp[2];
 
-                T xi[16];
+                T xi[16];   // 各テーブルの選択確率
                 xi[0]  = x100 * x000;
                 xi[1]  = x100 * x001;
                 xi[2]  = x100 * x010;
@@ -434,10 +439,10 @@ public:
 
                 T dy = dy_ptr.Get(frame, node);
 
-                T dxi[16] = {0};
+                T dxi[16];
 				for ( int i = 0; i < 16; ++i) {
 					dW[i]  += xi[i] * dy;
-					dxi[i] += W[i]  * dy;
+					dxi[i]  = W[i]  * dy;
 				}
 
                 T dx000 = 0;
@@ -469,12 +474,12 @@ public:
                 T dxp[4] = {0};
                 dxn[0] += xn[1] * dx000; dxn[1] += xn[0] * dx000;
                 dxp[0] += xn[1] * dx001; dxn[1] += xp[0] * dx001;
-                dxn[0] += xp[1] * dx010; dxn[1] += xn[0] * dx010;
-                dxp[0] += xp[1] * dx011; dxn[1] += xp[0] * dx011;
+                dxn[0] += xp[1] * dx010; dxp[1] += xn[0] * dx010;
+                dxp[0] += xp[1] * dx011; dxp[1] += xp[0] * dx011;
                 dxn[2] += xn[3] * dx100; dxn[3] += xn[2] * dx100;
                 dxp[2] += xn[3] * dx101; dxn[3] += xp[2] * dx101;
-                dxn[2] += xp[3] * dx110; dxn[3] += xn[2] * dx110;
-                dxp[2] += xp[3] * dx111; dxn[3] += xp[2] * dx111;
+                dxn[2] += xp[3] * dx110; dxp[3] += xn[2] * dx110;
+                dxp[2] += xp[3] * dx111; dxp[3] += xp[2] * dx111;
 
                 T dx[4];
                 dx[0] = (dxp[0] - dxn[0]);

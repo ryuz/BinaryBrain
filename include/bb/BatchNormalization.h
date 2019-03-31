@@ -259,7 +259,7 @@ public:
 		for (size_t i = 0; i < x_vec.size(); ++i) {
 			y_vec[i]  = x_vec[i];
 			y_vec[i] -= running_mean_ptr(node);
-			y_vec[i] /= (T)sqrt(running_var_ptr(node)) + 10e-7;
+			y_vec[i] /= (T)sqrt(running_var_ptr(node)) + (T)10e-7;
 			y_vec[i]  = y_vec[i] * gamma_ptr(node) + beta_ptr(node);
 		}
 		return y_vec;

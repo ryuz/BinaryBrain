@@ -49,14 +49,18 @@ void Cifar10LutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
 #endif
 
     // create network
-    auto layer_cnv0_mm0 = bb::MicroMlp<>::Create(192);
-    auto layer_cnv0_mm1 = bb::MicroMlp<>::Create(32);
-    auto layer_cnv1_mm0 = bb::MicroMlp<>::Create(192);
-    auto layer_cnv1_mm1 = bb::MicroMlp<>::Create(32);
-    auto layer_cnv2_mm0 = bb::MicroMlp<>::Create(384);
-    auto layer_cnv2_mm1 = bb::MicroMlp<>::Create(64);
-    auto layer_cnv3_mm0 = bb::MicroMlp<>::Create(384);
-    auto layer_cnv3_mm1 = bb::MicroMlp<>::Create(64);
+    auto layer_cnv0_mm0 = bb::MicroMlp<>::Create(256);
+    auto layer_cnv0_mm1 = bb::MicroMlp<>::Create(192);
+    auto layer_cnv0_mm2 = bb::MicroMlp<>::Create(32);
+    auto layer_cnv1_mm0 = bb::MicroMlp<>::Create(256);
+    auto layer_cnv1_mm1 = bb::MicroMlp<>::Create(192);
+    auto layer_cnv1_mm2 = bb::MicroMlp<>::Create(32);
+    auto layer_cnv2_mm0 = bb::MicroMlp<>::Create(512);
+    auto layer_cnv2_mm1 = bb::MicroMlp<>::Create(384);
+    auto layer_cnv2_mm2 = bb::MicroMlp<>::Create(64);
+    auto layer_cnv3_mm0 = bb::MicroMlp<>::Create(512);
+    auto layer_cnv3_mm1 = bb::MicroMlp<>::Create(384);
+    auto layer_cnv3_mm2 = bb::MicroMlp<>::Create(64);
     auto layer_mm4 = bb::MicroMlp<>::Create(1024);
     auto layer_mm5 = bb::MicroMlp<>::Create(420);
     auto layer_mm6 = bb::MicroMlp<>::Create(70);
@@ -65,20 +69,23 @@ void Cifar10LutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_mm0);
         cnv0_sub->Add(layer_cnv0_mm1);
+        cnv0_sub->Add(layer_cnv0_mm2);
 
         auto cnv1_sub = bb::Sequential::Create();
         cnv1_sub->Add(layer_cnv1_mm0);
         cnv1_sub->Add(layer_cnv1_mm1);
+        cnv1_sub->Add(layer_cnv1_mm2);
 
         auto cnv2_sub = bb::Sequential::Create();
         cnv2_sub->Add(layer_cnv2_mm0);
         cnv2_sub->Add(layer_cnv2_mm1);
+        cnv2_sub->Add(layer_cnv2_mm2);
 
         auto cnv3_sub = bb::Sequential::Create();
         cnv3_sub->Add(layer_cnv3_mm0);
         cnv3_sub->Add(layer_cnv3_mm1);
-
-
+        cnv3_sub->Add(layer_cnv3_mm2);
+        
         auto net = bb::Sequential::Create();
         net->Add(bb::RealToBinary<>::Create(frame_mux_size));
         net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
