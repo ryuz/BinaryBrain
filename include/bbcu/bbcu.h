@@ -252,6 +252,21 @@ int bbcu_fp32_StochasticLut6_Forward
             cudaStream_t    streamId = 0
         );
 
+int bbcu_fp32_StochasticLut6_Backward(
+            float const     *dev_x_buf,
+            float const     *dev_dy_buf,
+            float           *dev_dx_buf,
+            float           *dev_dx_tmp,
+            int   const     *dev_input_index,
+            float const     *dev_W,
+            float           *dev_dW,
+            int             input_node_size,
+            int             output_node_size,
+            int             frame_size,
+            int             frame_stride,
+            int             binary_mode,
+            cudaStream_t    streamId = 0
+        );
 
 // -------------------------------------
 //  BatchNormalization

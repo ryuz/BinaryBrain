@@ -28,8 +28,8 @@ int main()
 {
 	omp_set_num_threads(4);
 
-//    MnistStochasticLut6Cnn(0, 16, true);
-    MnistStochasticLut6(8, 256, true);
+    MnistStochasticLut6Cnn(8, 16, true);
+//  MnistStochasticLut6(8, 256, true);
 
 //    MnistRealLut4(64, 256, true);
 
