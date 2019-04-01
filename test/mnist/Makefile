@@ -1,9 +1,7 @@
 
-TARGET = test-mnist
-
 
 # target
-TARGET  = sample-mnist
+TARGET = test-mnist
 SUB_TARGETS =
 
 # run option

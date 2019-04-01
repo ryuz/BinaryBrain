@@ -11,6 +11,7 @@ SRCS += MatrixColwiseSum.cu
 SRCS += MatrixColwiseMeanVar.cu
 SRCS += MatrixRowwiseSetVector.cu
 SRCS += MicroMlp.cu
+SRCS += StochasticLut6.cu
 SRCS += BinaryToReal.cu
 SRCS += Im2Col.cu
 SRCS += Col2Im.cu
