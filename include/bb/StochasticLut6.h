@@ -282,11 +282,14 @@ public:
 	{
         BB_ASSERT(input_value.size() == 6);
 
+        // パラメータクリップ
+        m_W->Clamp((T)0.0, (T)1.0);
+
         auto W_ptr = lock_W_const();
         T W[64];
 		for ( int i = 0; i < 64; ++i) {
             W[i] = W_ptr(node, i);
-            BB_ASSERT(W[i] >= 0 && W[i] <= 1.0f);
+//          BB_ASSERT(W[i] >= 0 && W[i] <= 1.0f);
             if ( m_binary_mode ) {
                 W[i] = W[i] > (T)0.5 ? (T)1.0 : (T)0.0;
             }
@@ -295,7 +298,7 @@ public:
 	    T   xp[6], xn[6];
         for ( int i = 0; i < 6; ++i) {
             xp[i] = input_value[i];
-            BB_ASSERT(xp[i] >= 0 && xp[i] <= 1.0f);
+//          BB_ASSERT(xp[i] >= 0 && xp[i] <= 1.0f);
             xn[i] = (T)1.0 - xp[i];
         }
 
@@ -409,6 +412,29 @@ public:
 
         // パラメータクリップ
         m_W->Clamp((T)0.0, (T)1.0);
+
+#ifdef BB_WITH_CUDA
+        if (DataType<T>::type == BB_TYPE_FP32 && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+            auto x_ptr           = x_buf.LockDeviceMemoryConst();
+            auto y_ptr           = m_y.LockDeviceMemory(true);
+            auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
+            auto W_ptr           = m_W->LockDeviceMemoryConst();
+               
+            bbcu_fp32_StochasticLut6_Forward
+                (
+                    (const float *)x_ptr.GetAddr(),
+                    (float       *)y_ptr.GetAddr(),
+                    (int   const *)input_index_ptr.GetAddr(),
+                    (float const *)W_ptr.GetAddr(),
+                    (int          )m_y.GetNodeSize(),
+                    (int          )m_y.GetFrameSize(),
+                    (int          )(m_y.GetFrameStride() / sizeof(float)),
+                    (int          )(m_binary_mode ? 1 : 0)
+                );
+
+            return m_y;
+        }
+#endif
 
         {
             auto frame_size = m_x.GetFrameSize();

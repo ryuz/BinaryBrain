@@ -35,6 +35,7 @@
     <CudaCompile Include="MicroMlp.cu" />
     <CudaCompile Include="ReLU.cu" />
     <CudaCompile Include="Sigmoid.cu" />
+    <CudaCompile Include="StochasticLut6.cu" />
     <CudaCompile Include="Vector.cu" />
   </ItemGroup>
   <ItemGroup>

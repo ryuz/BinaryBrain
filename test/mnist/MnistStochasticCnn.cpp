@@ -106,7 +106,7 @@ void MnistStochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binary_
         runner_create.lossFunc    = bb::LossSoftmaxCrossEntropy<float>::Create();
         runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer   = bb::OptimizerAdam<float>::Create();
-        runner_create.file_read   = false;       // 前の計算結果があれば読み込んで再開するか
+        runner_create.file_read   = true; // false;       // 前の計算結果があれば読み込んで再開するか
         runner_create.file_write  = true;        // 計算結果をファイルに保存するか
         runner_create.print_progress = true;    // 途中結果を出力
         runner_create.initial_evaluation = false;
@@ -187,9 +187,10 @@ void MnistStochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binary_
         layer_cnv3_lut1->ImportLayer(*layer_cnv3_mm1);
         layer_lut4     ->ImportLayer(*layer_mm4);
         layer_lut5     ->ImportLayer(*layer_mm5);
+        layer_lut6     ->ImportLayer(*layer_mm6);
 
         // 評価
-        if ( 0 ) {
+        if ( 1 ) {
             bb::Runner<float>::create_t lut_runner_create;
             lut_runner_create.name        = "Lut_" + net_name;
             lut_runner_create.net         = lut_net;
