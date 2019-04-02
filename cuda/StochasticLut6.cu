@@ -30,17 +30,16 @@ __global__ void kernal_fp32_StochasticLut6_Forward(
     int frame_step = blockDim.x;
     int frame_base = threadIdx.x;
     
-#if 0
+#if 1
     __shared__ float    W[64];
-    if ( threadIdx.x == 0 ) {
-        for ( int i = 0; i < 64; ++i) {
-            W[i] = W_buf[node * 64 + i];
-            if ( binary_mode ) {
-                W[i] = W[i] > 0.5 ? 1.0 : 0.0;
-            }
+    for ( int i = frame_base; i < 64; i += frame_step ) {
+        W[i] = W_buf[node * 64 + i];
+        if ( binary_mode ) {
+            W[i] = W[i] > 0.5 ? 1.0 : 0.0;
         }
     }
     __syncthreads();
+
 #else
     float        W[64];
     for ( int i = 0; i < 64; ++i) {
