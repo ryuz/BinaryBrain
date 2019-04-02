@@ -17,6 +17,7 @@ void Cifar10LutMlp(int epoch_size, size_t mini_batch_size, bool binary_mode);
 void Cifar10LutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode);
 void Cifar10DenseCnn(int epoch_size, size_t mini_batch_size, bool binary_mode);
 void Cifar10DenseMlp(int epoch_size, size_t mini_batch_size, bool binary_mode);
+void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binary_mode);
 
 void DataTest(void);
 
@@ -73,7 +74,7 @@ int main(int argc, char *argv[])
 	}
 
 	if ( netname == "All" || netname == "LutCnn" ) {
-    	Cifar10LutCnn(epoch_size, mini_batch_size, true);
+    	Cifar10StochasticLut6Cnn(epoch_size, mini_batch_size, true);
 	}
 
 	if ( netname == "All" || netname == "DenseMlp" ) {
