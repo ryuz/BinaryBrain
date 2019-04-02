@@ -33,7 +33,7 @@
 
 
 
-#if 0
+#if 1
 
 // static void WriteTestImage(std::string filename, int w, int h);
 
