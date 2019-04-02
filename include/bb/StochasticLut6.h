@@ -26,6 +26,7 @@ class StochasticLut6 : public SparseLayer<T, T>
 
 protected:
     bool                    m_binary_mode = true;
+    bool                    m_host_only = false;
 
     index_t                 m_input_node_size = 0;
     index_t                 m_output_node_size = 0;
@@ -62,13 +63,13 @@ protected:
             m_binary_mode = EvalBool(args[1]);
         }
 
-        /*
         // HostOnlyモード設定
         if (args.size() == 2 && args[0] == "host_only")
         {
             m_host_only = EvalBool(args[1]);
         }
 
+        /*
         // Host SIMDモード設定
         if (args.size() == 2 && args[0] == "host_simd")
         {
@@ -419,7 +420,8 @@ public:
         m_W->Clamp((T)0.0, (T)1.0);
 
 #ifdef BB_WITH_CUDA
-        if (DataType<T>::type == BB_TYPE_FP32 && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+        if (DataType<T>::type == BB_TYPE_FP32 && !m_host_only
+                && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
             auto x_ptr           = x_buf.LockDeviceMemoryConst();
             auto y_ptr           = m_y.LockDeviceMemory(true);
             auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
@@ -575,7 +577,8 @@ public:
         m_dx.Resize(DataType<T>::type, dy_buf.GetFrameSize(), m_input_node_size);
         
 #ifdef BB_WITH_CUDA
-        if (DataType<T>::type == BB_TYPE_FP32 && dy_buf.IsDeviceAvailable() && m_y.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+        if (DataType<T>::type == BB_TYPE_FP32 && !m_host_only
+                && dy_buf.IsDeviceAvailable() && m_y.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
             auto x_ptr           = m_x.LockDeviceMemoryConst();
             auto dy_ptr          = dy_buf.LockDeviceMemoryConst();
             auto dx_ptr          = m_dx.LockDeviceMemory(true);
@@ -600,7 +603,7 @@ public:
                     (int          )(m_dx.GetFrameStride() / sizeof(float)),
                     (int          )(m_binary_mode ? 1 : 0)
                 );
-
+       
             return m_dx;
         }
 #endif

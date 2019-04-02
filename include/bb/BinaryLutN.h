@@ -226,6 +226,7 @@ public:
             index_t frame_size = x.GetFrameSize();
             index_t node_size  = this->GetOutputNodeSize();
 
+            #pragma omp parallel for
        		for (index_t node = 0; node < node_size; ++node) {
                 for (index_t frame = 0; frame < frame_size; ++frame) {
 			        int index = 0;
@@ -245,104 +246,12 @@ public:
 		}
     }
 
-
+    // Backwardは存在しない
     FrameBuffer Backward(FrameBuffer dy)
     {
         FrameBuffer dx(DataType<BT>::type, dy.GetFrameSize(), m_input_shape);
         return dx;
     }
-
-
-    /*
-    virtual void Forward(bool train = true)
-	{
-		INDEX node_size = this->GetOutputNodeSize();
-		int   lut_input_size = this->GetLutInputSize();
-
-		#pragma omp parallel for
-		for ( int node = 0; node < (int)node_size; ++node) {
-			ForwardNode(node);
-		}
-	}
-    */
-	
-
-    // なんか昔こころみたっぽい
-    /*
-    void Backward(void)
-	{
-		auto& out_err = this->GetOutputErrorBuffer();
-		auto& in_err = this->GetInputErrorBuffer();
-
-		INDEX frame_size = this->GetOutputFrameSize();
-		INDEX node_size = this->GetOutputNodeSize();
-		int lut_input_size = this->GetLutInputSize();
-		int lut_table_size = this->GetLutTableSize();
-
-		// ゼロ初期化
-		INDEX input_node_size = this->GetInputNodeSize();
-		for (INDEX node = 0; node < input_node_size; ++node) {
-			for (INDEX frame = 0; frame < frame_size; ++frame) {
-				in_err.template Set<T>(frame, node, 0);
-			}
-		}
-
-		std::mt19937_64 mt(1);
-
-		// 計算
-		std::vector<T> table_err(lut_table_size);
-		for (INDEX node = 0; node < node_size; ++node) {
-			std::fill(table_err.begin(), table_err.end(), (T)0);
-			for (INDEX frame = 0; frame < frame_size; ++frame) {
-				// 入力値取得
-				int input_index = this->GetLutInputIndex(frame, node);
-				T err = out_err.template Get<T>(frame, node);
-
-				// テーブルに対する誤差計算
-				table_err[input_index] += err;	// 積算していく
-			}
-
-			for (int bitpos = 0; bitpos < lut_input_size; ++bitpos) {
-				if ( std::abs(table_err[bitpos]) > (mt() % 16)+5 ) {
-					this->SetLutTable(node, bitpos, table_err[bitpos] > 0);
-				}
-			}
-			
-			for (INDEX frame = 0; frame < frame_size; ++frame) {
-				int input_index = this->GetLutInputIndex(frame, node);
-				T err = out_err.template Get<T>(frame, node);
-
-				bool val = GetLutTable(node, input_index);
-				if ((val && err < 0) || (val && err > 0)) {
-
-					// 入力に対する伝播誤差計算
-					int mask = 1;
-			//		for (int bitpos = 0; bitpos < lut_input_size; ++bitpos) {
-					{
-						int bitpos = (int)(mt() % lut_input_size);
-
-						INDEX input_node = GetLutInput(node, bitpos);
-						// 各入力項に対するテーブルの偏微分を計算
-						int index0 = (input_index & ~mask);
-						int index1 = (input_index | mask);
-						bool val0 = this->GetLutTable(node, index0);
-						bool val1 = this->GetLutTable(node, index1);
-
-						if (!val0 && val1) {
-							in_err.template Set<T>(frame, input_node, in_err.template Get<T>(frame, input_node) + err);
-						}
-						else if (val0 && !val1) {
-							in_err.template Set<T>(frame, input_node, in_err.template Get<T>(frame, input_node) - err);
-						}
-						mask <<= 1;
-					}
-				}
-			}
-
-		}
-	}
-	*/
-
 };
 
 
