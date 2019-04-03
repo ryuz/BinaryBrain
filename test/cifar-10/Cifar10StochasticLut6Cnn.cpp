@@ -33,7 +33,7 @@
 
 
 
-#if 1
+#if 0
 
 // static void WriteTestImage(std::string filename, int w, int h);
 
@@ -314,7 +314,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
         runner_create.lossFunc    = bb::LossSoftmaxCrossEntropy<float>::Create();
         runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer   = bb::OptimizerAdam<float>::Create();
-        runner_create.file_read   = true;        // 前の計算結果があれば読み込んで再開するか
+        runner_create.file_read   = false;//true;        // 前の計算結果があれば読み込んで再開するか
         runner_create.file_write  = true;        // 計算結果をファイルに保存するか
         runner_create.write_serial = true; 
         runner_create.print_progress = true;     // 途中結果を出力

@@ -246,13 +246,13 @@ int bbcu_fp32_StochasticLut6_Forward
     dim3    block(512, 1);
     while ( frame_size < (int)block.x / 2 ) {
         block.x /= 2;
-        block.y *= 2;
+//      block.y *= 2;
     }
     block.y = std::min((int)block.y, node_size);
 
     dim3    grid;
     grid.x = 1;
-    grid.y = (node_size + (block.y - 1)) / block.y;
+    grid.y = node_size; //  + (block.y - 1)) / block.y;
     
     kernal_fp32_StochasticLut6_Forward<<<grid, block, 0, streamId>>>(
             dev_x_buf,
@@ -608,13 +608,13 @@ int bbcu_fp32_StochasticLut6_Backward(
         dim3    block(thread_size, 1);
         while ( frame_size < (int)block.x / 2 ) {
             block.x /= 2;
-            block.y *= 2;
+//          block.y *= 2;
         }
-        block.y = std::min((int)block.y, output_node_size);
+//      block.y = std::min((int)block.y, output_node_size);
 
         dim3    grid;
         grid.x = 1;
-        grid.y = (output_node_size + (block.y - 1)) / block.y;
+        grid.y = output_node_size; //  + (block.y - 1)) / block.y;
 
         kernal_fp32_StochasticLut6_Backward<thread_size><<<grid, block, 0, streamId>>>(
                 dev_x_buf,
