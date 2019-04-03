@@ -338,6 +338,7 @@
   <ItemGroup>
     <ClCompile Include="DiabetesRegressionBinaryLut.cpp" />
     <ClCompile Include="DiabetesRegressionDenseAffine.cpp" />
+    <ClCompile Include="DiabetesRegressionStochasticLut6.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
