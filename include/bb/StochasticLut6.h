@@ -226,7 +226,8 @@ public:
         this->InitializeNodeInput(m_mt());
 
         // パラメータ初期化
-        m_W->Resize(DataType<T>::type, m_output_node_size, 64);  m_W->InitUniformDistribution(0.4, 0.6, m_mt());
+//      m_W->Resize(DataType<T>::type, m_output_node_size, 64);  m_W->InitUniformDistribution(0.4, 0.6, m_mt());
+        m_W->Resize(DataType<T>::type, m_output_node_size, 64);  m_W->InitNormalDistribution(0.5, 0.01, m_mt());
         m_dW->Resize(DataType<T>::type, m_output_node_size, 64); m_dW->FillZero();
 
         return m_output_shape;

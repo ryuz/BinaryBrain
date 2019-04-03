@@ -262,9 +262,10 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
     auto layer_cnv3_sl0 = bb::StochasticLut6<>::Create(512);
     auto layer_cnv3_sl1 = bb::StochasticLut6<>::Create(384);
     auto layer_cnv3_sl2 = bb::StochasticLut6<>::Create(64);
-    auto layer_sl4 = bb::StochasticLut6<>::Create(1024);
-    auto layer_sl5 = bb::StochasticLut6<>::Create(420);
-    auto layer_sl6 = bb::StochasticLut6<>::Create(70);
+    auto layer_sl4 = bb::StochasticLut6<>::Create(2048);
+    auto layer_sl5 = bb::StochasticLut6<>::Create(360);
+    auto layer_sl6 = bb::StochasticLut6<>::Create(60);
+    auto layer_sl7 = bb::StochasticLut6<>::Create(10);
 
     {
         auto cnv0_sub = bb::Sequential::Create();
@@ -297,6 +298,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
         net->Add(layer_sl4);
         net->Add(layer_sl5);
         net->Add(layer_sl6);
+        net->Add(layer_sl7);
         net->SetInputShape(td.x_shape);
 
         if ( binary_mode ) {
@@ -343,6 +345,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
         auto layer_lut4      = bb::BinaryLutN<>::Create(layer_sl4->GetOutputShape());
         auto layer_lut5      = bb::BinaryLutN<>::Create(layer_sl5->GetOutputShape());
         auto layer_lut6      = bb::BinaryLutN<>::Create(layer_sl6->GetOutputShape());
+        auto layer_lut7      = bb::BinaryLutN<>::Create(layer_sl7->GetOutputShape());
 
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_lut0);
@@ -368,6 +371,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
         cnv4_sub->Add(layer_lut4);
         cnv4_sub->Add(layer_lut5);
         cnv4_sub->Add(layer_lut6);
+        cnv4_sub->Add(layer_lut7);
 
         auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3);
         auto cnv1 = bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3);
@@ -409,6 +413,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
         layer_lut4     ->ImportLayer(*layer_sl4);
         layer_lut5     ->ImportLayer(*layer_sl5);
         layer_lut6     ->ImportLayer(*layer_sl6);
+        layer_lut6     ->ImportLayer(*layer_sl7);
 
         // •]‰¿
         if ( 1 ) {
