@@ -37,15 +37,16 @@ __global__ void kernal_fp32_StochasticLut6_Forward(
             W[i] = W[i] > 0.5 ? 1.0 : 0.0;
         }
     }
-    __syncthreads();
     
     // read input index
-    float const  *x_ptr[6];
-    for ( int i = 0; i < 6; ++i) {
+    __shared__ float const  *x_ptr[6];
+    for ( int i = id; i < 6; i += id_step ) {
         x_ptr[i] = &x_buf[frame_stride * input_index[6*node + i]];
     }
-    float *y_ptr = &y_buf[node*frame_stride];
-    
+    float        *y_ptr = &y_buf[node * frame_stride];
+
+    __syncthreads();
+
     for (int frame = id; frame < frame_size; frame += id_step) {
 	    float   xp[6], xn[6];
         for ( int i = 0; i < 6; ++i) {
@@ -228,28 +229,31 @@ __global__ void kernal_fp32_StochasticLut6_Backward
     int node    = blockIdx.x;
     int id      = threadIdx.x;
     int id_step = blockDim.x;
-    
-    
-    float W[64];
-    for ( int i = 0; i < 64; ++i) {
-        W[i] = W_buf[node * 64 + i];
-        if ( binary_mode ) {
-            W[i] = W[i] > 0.5 ? 1.0 : 0.0;
-        }
-    }
 
+    // initialize dW
     float dW[64];
     for ( int i = 0; i < 64; ++i) {
         dW[i] = 0;
     }
 
-    float const *x_ptr[6];
-    for ( int i = 0; i < 6; ++i) {
+    // read W
+    __shared__ float    W[64];
+    for ( int i = id; i < 64; i += id_step ) {
+        W[i] = W_buf[node * 64 + i];
+        if ( binary_mode ) {
+            W[i] = W[i] > 0.5 ? 1.0 : 0.0;
+        }
+    }
+    
+    // init pointer
+    __shared__  float const *x_ptr[6];
+    for ( int i = id; i < 6; i += id_step ) {
         int input_node = input_index[6*node + i];
         x_ptr[i]  = &x_buf[frame_stride * input_node];
     }
-
     float const *dy_ptr = &dy_buf[node*frame_stride];
+
+    __syncthreads();
 
     for ( int frame = id; frame < frame_size; frame += id_step ) {
         float xp[6], xn[6];
@@ -472,21 +476,19 @@ __global__ void kernal_fp32_StochasticLut6_BackwardMarge(
 			int				frame_stride
 		)
 {
-//	int n          = blockDim.y * blockIdx.y + threadIdx.y;
-	int frame      = blockDim.x * blockIdx.x + threadIdx.x;
-	
+	int frame = blockDim.x * blockIdx.x + threadIdx.x;
 
 	for ( int node = 0; node < node_size; ++node ) {
         if ( frame < frame_size ) {
     	    for ( int n = 0; n < 6; ++n ) {
 		        int in_idx = input_index[node*6 + n];
 		        float*		 dst_buf_ptr = &dst_buf[frame_stride * in_idx];
+                float        prev_data = dst_buf_ptr[frame];
 		        const float* src_buf_ptr = &src_buf[(6 * node + n) * frame_stride];
-		
-		        dst_buf_ptr[frame] += src_buf_ptr[frame];
+		        
+		        dst_buf_ptr[frame] = prev_data + src_buf_ptr[frame];
             }
         }
-
 		__syncthreads();
 	}
 }
@@ -510,7 +512,6 @@ int bbcu_fp32_StochasticLut6_Backward(
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
-    
     {
         int const thread_size = 256;
         dim3    block(thread_size);
