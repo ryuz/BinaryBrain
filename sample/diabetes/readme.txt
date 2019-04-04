@@ -1,5 +1,5 @@
-
-ƒf[ƒ^‚Ì€”õ
+ï»¿
+ãƒ‡ãƒ¼ã‚¿ã®æº–å‚™
 
 sudo apt install python3-pip
 sudo pip3 install scikit-learn
