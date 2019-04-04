@@ -74,9 +74,9 @@ $(TARGET): $(OBJS) $(BBCU_LIB)
 
 
 
-# cifar-10 binary data
-DATA_FILES  = cifar-10-batches-bin/test_batch.bin
-DATA_FILES += cifar-10-batches-bin/data_batch_1.bin
+# data
+DATA_FILES  = diabetes_data.txt
+DATA_FILES += diabetes_target.txt
 
 .PHONY: dl_data
 dl_data: $(DATA_FILES)
