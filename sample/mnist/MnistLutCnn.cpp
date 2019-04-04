@@ -172,16 +172,16 @@ void MnistLutCnn(int epoch_size, size_t mini_batch_size, int frame_mux_size, boo
 
 
         // テーブル化して取り込み(現状まだSetInputShape後の取り込みが必要)
-        layer_cnv0_lut0->ImportLayer(*layer_cnv0_mm0);
-        layer_cnv0_lut1->ImportLayer(*layer_cnv0_mm1);
-        layer_cnv1_lut0->ImportLayer(*layer_cnv1_mm0);
-        layer_cnv1_lut1->ImportLayer(*layer_cnv1_mm1);
-        layer_cnv2_lut0->ImportLayer(*layer_cnv2_mm0);
-        layer_cnv2_lut1->ImportLayer(*layer_cnv2_mm1);
-        layer_cnv3_lut0->ImportLayer(*layer_cnv3_mm0);
-        layer_cnv3_lut1->ImportLayer(*layer_cnv3_mm1);
-        layer_lut4     ->ImportLayer(*layer_mm4);
-        layer_lut5     ->ImportLayer(*layer_mm5);
+        layer_cnv0_lut0->ImportLayer<float, float>(layer_cnv0_mm0);
+        layer_cnv0_lut1->ImportLayer<float, float>(layer_cnv0_mm1);
+        layer_cnv1_lut0->ImportLayer<float, float>(layer_cnv1_mm0);
+        layer_cnv1_lut1->ImportLayer<float, float>(layer_cnv1_mm1);
+        layer_cnv2_lut0->ImportLayer<float, float>(layer_cnv2_mm0);
+        layer_cnv2_lut1->ImportLayer<float, float>(layer_cnv2_mm1);
+        layer_cnv3_lut0->ImportLayer<float, float>(layer_cnv3_mm0);
+        layer_cnv3_lut1->ImportLayer<float, float>(layer_cnv3_mm1);
+        layer_lut4     ->ImportLayer<float, float>(layer_mm4);
+        layer_lut5     ->ImportLayer<float, float>(layer_mm5);
 
         // 評価
         if ( 0 ) {

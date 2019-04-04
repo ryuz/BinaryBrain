@@ -59,11 +59,11 @@ protected:
     
 public:
     // 形状が同一のSparceLayerをテーブル化して取り込む
-    template <typename SFT, typename SBT>
-    void ImportLayer(const SparseLayer<SFT, SBT>& src)
+    template <typename SFT=float, typename SBT=float>
+    void ImportLayer(std::shared_ptr< SparseLayer<SFT, SBT> > src)
     {
-        BB_ASSERT(GetShapeSize(src.GetInputShape())  == GetShapeSize(this->GetInputShape()));
-        BB_ASSERT(GetShapeSize(src.GetOutputShape()) == GetShapeSize(this->GetOutputShape()));
+        BB_ASSERT(GetShapeSize(src->GetInputShape())  == GetShapeSize(this->GetInputShape()));
+        BB_ASSERT(GetShapeSize(src->GetOutputShape()) == GetShapeSize(this->GetOutputShape()));
         
         auto node_size  = GetShapeSize(this->GetOutputShape());
 
@@ -71,11 +71,11 @@ public:
             auto input_size = this->GetNodeInputSize(node);
             auto table_size = this->GetLutTableSize(node);
             
-            BB_ASSERT(src.GetNodeInputSize(node) == input_size);
+            BB_ASSERT(src->GetNodeInputSize(node) == input_size);
             
             // 入力をコピー
             for (int input_index = 0; input_index < input_size; ++input_index) {
-                this->SetNodeInput(node, input_index, src.GetNodeInput(node, input_index));
+                this->SetNodeInput(node, input_index, src->GetNodeInput(node, input_index));
             }
 
             // 係数をバイナリ化
@@ -84,7 +84,7 @@ public:
                 for (int bit = 0; bit < input_size; ++bit) {
                     vec[bit] = (index & (1 << bit)) ? (SFT)1.0 : (SFT)0.0;
                 }
-                auto v = src.ForwardNode(node, vec);
+                auto v = src->ForwardNode(node, vec);
                 this->SetLutTable(node, index, (v[0] > 0));
             }
         }

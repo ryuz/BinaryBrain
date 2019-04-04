@@ -396,22 +396,22 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
 
 
         // テーブル化して取り込み(現状まだSetInputShape後の取り込みが必要)
-        layer_cnv0_lut0->ImportLayer(*layer_cnv0_sl0);
-        layer_cnv0_lut1->ImportLayer(*layer_cnv0_sl1);
-        layer_cnv0_lut2->ImportLayer(*layer_cnv0_sl2);
-        layer_cnv1_lut0->ImportLayer(*layer_cnv1_sl0);
-        layer_cnv1_lut1->ImportLayer(*layer_cnv1_sl1);
-        layer_cnv1_lut2->ImportLayer(*layer_cnv1_sl2);
-        layer_cnv2_lut0->ImportLayer(*layer_cnv2_sl0);
-        layer_cnv2_lut1->ImportLayer(*layer_cnv2_sl1);
-        layer_cnv2_lut2->ImportLayer(*layer_cnv2_sl2);
-        layer_cnv3_lut0->ImportLayer(*layer_cnv3_sl0);
-        layer_cnv3_lut1->ImportLayer(*layer_cnv3_sl1);
-        layer_cnv3_lut2->ImportLayer(*layer_cnv3_sl2);
-        layer_lut4     ->ImportLayer(*layer_sl4);
-        layer_lut5     ->ImportLayer(*layer_sl5);
-        layer_lut6     ->ImportLayer(*layer_sl6);
-        layer_lut6     ->ImportLayer(*layer_sl7);
+        layer_cnv0_lut0->ImportLayer<float, float>(layer_cnv0_sl0);
+        layer_cnv0_lut1->ImportLayer<float, float>(layer_cnv0_sl1);
+        layer_cnv0_lut2->ImportLayer<float, float>(layer_cnv0_sl2);
+        layer_cnv1_lut0->ImportLayer<float, float>(layer_cnv1_sl0);
+        layer_cnv1_lut1->ImportLayer<float, float>(layer_cnv1_sl1);
+        layer_cnv1_lut2->ImportLayer<float, float>(layer_cnv1_sl2);
+        layer_cnv2_lut0->ImportLayer<float, float>(layer_cnv2_sl0);
+        layer_cnv2_lut1->ImportLayer<float, float>(layer_cnv2_sl1);
+        layer_cnv2_lut2->ImportLayer<float, float>(layer_cnv2_sl2);
+        layer_cnv3_lut0->ImportLayer<float, float>(layer_cnv3_sl0);
+        layer_cnv3_lut1->ImportLayer<float, float>(layer_cnv3_sl1);
+        layer_cnv3_lut2->ImportLayer<float, float>(layer_cnv3_sl2);
+        layer_lut4     ->ImportLayer<float, float>(layer_sl4);
+        layer_lut5     ->ImportLayer<float, float>(layer_sl5);
+        layer_lut6     ->ImportLayer<float, float>(layer_sl6);
+        layer_lut6     ->ImportLayer<float, float>(layer_sl7);
 
         // 評価
         if ( 1 ) {

@@ -54,7 +54,7 @@ public:
     {
         index_t                                 frame_mux_size = 1;         //< フレームを何倍するか
         std::shared_ptr< ValueGenerator<FXT> >  value_generator;            //< 閾値のジェネレーター
-        bool                                    framewise = true;           //< true でフレーム単位で閾値、falseでデータ単位
+        bool                                    framewise = false;          //< true でフレーム単位で閾値、falseでデータ単位
     	FXT                                     input_range_lo = (FXT)0.0;  //< 入力データの下限値
 	    FXT                                     input_range_hi = (FXT)1.0;  //< 入力データの上限値
     };
@@ -75,7 +75,7 @@ public:
     static std::shared_ptr<RealToBinary> Create(
                 index_t                                 frame_mux_size  = 1,
                 std::shared_ptr< ValueGenerator<FXT> >  value_generator = nullptr,
-                bool                                    framewise       = true,
+                bool                                    framewise       = false,
     	        FXT                                     input_range_lo  = (FXT)0.0,
 	            FXT                                     input_range_hi  = (FXT)1.0)
     {

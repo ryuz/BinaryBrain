@@ -88,9 +88,9 @@ void MnistStochasticLut6(int epoch_size, size_t mini_batch_size, bool binary_mod
         lut_net->SetInputShape(td.x_shape);
 
         // テーブル化して取り込み(SetInputShape後に取り込みが必要)
-        layer_lut0->ImportLayer(*layer_sl0);
-        layer_lut1->ImportLayer(*layer_sl1);
-        layer_lut2->ImportLayer(*layer_sl2);
+        layer_lut0->ImportLayer<float, float>(layer_sl0);
+        layer_lut1->ImportLayer<float, float>(layer_sl1);
+        layer_lut2->ImportLayer<float, float>(layer_sl2);
 
         // 評価
         bb::Runner<float>::create_t lut_runner_create;
