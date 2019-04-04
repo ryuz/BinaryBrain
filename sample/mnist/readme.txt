@@ -18,8 +18,10 @@
   get_nmist.bat                      NMISTダウンロード用(Windows+cygwinなど)
   get_nmist.sh                       NMISTダウンロード用(Linux)
   main.cpp                           main関数
-  MnistLutMlp.cpp                    Binary LUT-Network MLPサンプル
-  MnistLutCnn.cpp                    Binary LUT-Network CNNサンプル
+  MnistStochasticLut6Mlp.cpp         確率的LUT方式 Binary LUT-Network MLPサンプル
+  MnistStochasticLut6Cnn.cpp         確率的LUT方式 Binary LUT-Network CNNサンプル
+  MnistMicroMlpLutMlp.cpp            uMLP方式 Binary LUT-Network MLPサンプル
+  MnistMicroMlpLutCnn.cpp            uMLP方式 Binary LUT-Network CNNサンプル
   MnistDenseMlp.cpp                  FP32の全結合DNNの MLPサンプル
   MnistDenseCnn.cpp                  FP32の全結合CNNの CNNサンプル
   readme.txt                         本ファイル

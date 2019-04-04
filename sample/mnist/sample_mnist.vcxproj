@@ -343,9 +343,11 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MnistDenseCnn.cpp" />
     <ClCompile Include="MnistDenseMlp.cpp" />
-    <ClCompile Include="MnistLutCnn.cpp" />
-    <ClCompile Include="MnistLutMlp.cpp" />
+    <ClCompile Include="MnistMicroMlpLutCnn.cpp" />
+    <ClCompile Include="MnistMicroMlpLutMlp.cpp" />
     <ClCompile Include="MnistMicroMlpScratch.cpp" />
+    <ClCompile Include="MnistStochasticLut6Cnn.cpp" />
+    <ClCompile Include="MnistStochasticLut6Mlp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\bb\Activation.h" />

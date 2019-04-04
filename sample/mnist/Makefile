@@ -30,8 +30,10 @@ CDEFS  =
 SRCS   = main.cpp
 SRCS  += MnistDenseMlp.cpp
 SRCS  += MnistDenseCnn.cpp
-SRCS  += MnistLutMlp.cpp
-SRCS  += MnistLutCnn.cpp
+SRCS  += MnistStochasticLut6Mlp.cpp
+SRCS  += MnistStochasticLut6Cnn.cpp
+SRCS  += MnistMicroMlpLutMlp.cpp
+SRCS  += MnistMicroMlpLutCnn.cpp
 SRCS  += MnistMicroMlpScratch.cpp
 
 OBJS = $(addsuffix .o, $(basename $(SRCS)))
