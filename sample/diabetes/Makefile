@@ -79,7 +79,7 @@ DATA_FILES  = cifar-10-batches-bin/test_batch.bin
 DATA_FILES += cifar-10-batches-bin/data_batch_1.bin
 
 .PHONY: dl_data
-dl_data: $(DATA_FILES)
-	python diabets_data.py
+dl_data:
+	python3 diabets_data.py
 
 
