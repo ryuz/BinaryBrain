@@ -35,9 +35,9 @@
 static void WriteTestImage(std::string filename, int w, int h);
 
 // MNIST CNN with LUT networks
-void MnistLutCnn(int epoch_size, size_t mini_batch_size, int frame_mux_size, bool binary_mode)
+void MnistMicroMlpLutCnn(int epoch_size, size_t mini_batch_size, int frame_mux_size, bool binary_mode)
 {
-    std::string net_name = "MnistLutCnn";
+    std::string net_name = "MnistMicroMlpLutCnn";
 
   // load MNIST data
 #ifdef _DEBUG

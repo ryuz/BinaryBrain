@@ -52,11 +52,9 @@ void MnistStochasticLut6Mlp(int epoch_size, size_t mini_batch_size, int frame_mu
 
     {
         auto net = bb::Sequential::Create();
-        net->Add(bb::RealToBinary<>::Create());
         net->Add(layer_sl0);
         net->Add(layer_sl1);
         net->Add(layer_sl2);
-        net->Add(bb::BinaryToReal<float, float>::Create({10}));
         net->SetInputShape(td.x_shape);
 
         if ( binary_mode ) {

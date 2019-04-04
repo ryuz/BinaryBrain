@@ -88,7 +88,6 @@ void MnistStochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int frame_mu
 
 
         auto net = bb::Sequential::Create();
-        net->Add(bb::RealToBinary<>::Create(frame_mux_size));
         net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
         net->Add(bb::MaxPooling<>::Create(2, 2));
@@ -99,7 +98,6 @@ void MnistStochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int frame_mu
         net->Add(layer_sl5);
         net->Add(layer_sl6);
         net->Add(layer_sl7);
-        net->Add(bb::BinaryToReal<>::Create({ 10 }, frame_mux_size));
         net->SetInputShape({28, 28, 1});
 
         if ( binary_mode ) {

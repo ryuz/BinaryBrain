@@ -14,8 +14,8 @@ void MnistDenseMlp(int epoch_size, size_t mini_batch_size);
 void MnistDenseCnn(int epoch_size, size_t mini_batch_size);
 void MnistStochasticLut6Mlp(int epoch_size, size_t mini_batch_size, int frame_mux_size, bool binary_mode);
 void MnistStochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int frame_mux_size, bool binary_mode);
-void MnistLutMlp(int epoch_size, size_t mini_batch_size, int frame_mux_size, bool binary_mode);
-void MnistLutCnn(int epoch_size, size_t mini_batch_size, int frame_mux_size, bool binary_mode);
+void MnistMicroMlpLutMlp(int epoch_size, size_t mini_batch_size, int frame_mux_size, bool binary_mode);
+void MnistMicroMlpLutCnn(int epoch_size, size_t mini_batch_size, int frame_mux_size, bool binary_mode);
 void MnistMicroMlpScratch(int epoch_size, size_t mini_batch_size, bool binary_mode);
 
 
@@ -41,11 +41,13 @@ int main(int argc, char *argv[])
         std::cout << "  -binary <0|1>                      set binary mode" << std::endl;
         std::cout << "" << std::endl;
         std::cout << "netname" << std::endl;
-        std::cout << "  LutMlp     LUT-Network Simple Multi Layer Perceptron" << std::endl;
-        std::cout << "  LutCnn     LUT-Network Simple CNN" << std::endl;
-        std::cout << "  DenseMlp   FP32 Fully Connection Simple Multi Layer Perceptron" << std::endl;
-        std::cout << "  DenseCnn   FP32 Fully Connection Simple Multi Layer Perceptron" << std::endl;
-        std::cout << "  All        run all" << std::endl;
+        std::cout << "  StochasticLutMlp Stochastic-Lut LUT-Network Simple Multi Layer Perceptron" << std::endl;
+        std::cout << "  StochasticLutCnn Stochastic-Lut  LUT-Network Simple Multi Layer Perceptron" << std::endl;
+        std::cout << "  LutMlp           micro-MLP LUT-Network Simple Multi Layer Perceptron" << std::endl;
+        std::cout << "  LutCnn           micro-MLP LUT-Network Simple CNN" << std::endl;
+        std::cout << "  DenseMlp         FP32 Fully Connection Simple Multi Layer Perceptron" << std::endl;
+        std::cout << "  DenseCnn         FP32 Fully Connection Simple Multi Layer Perceptron" << std::endl;
+        std::cout << "  All              run all" << std::endl;
 		return 1;
 	}
 
@@ -71,20 +73,20 @@ int main(int argc, char *argv[])
         }
     }
 
-	if ( netname == "All" || netname == "LutMlp" ) {
+	if ( netname == "All" || netname == "StochasticLutMlp" ) {
 		MnistStochasticLut6Mlp(epoch_size, mini_batch_size, frame_mux_size, true);
 	}
 
-	if ( netname == "All" || netname == "LutCnn" ) {
+	if ( netname == "All" || netname == "StochasticLutCnn" ) {
     	MnistStochasticLut6Cnn(epoch_size, mini_batch_size, frame_mux_size, true);
 	}
 
 	if ( netname == "All" || netname == "LutMlp" ) {
-		MnistLutMlp(epoch_size, mini_batch_size, frame_mux_size, true);
+		MnistMicroMlpLutMlp(epoch_size, mini_batch_size, frame_mux_size, true);
 	}
 
 	if ( netname == "All" || netname == "LutCnn" ) {
-    	MnistLutCnn(epoch_size, mini_batch_size, frame_mux_size, true);
+    	MnistMicroMlpLutCnn(epoch_size, mini_batch_size, frame_mux_size, true);
 	}
 
 	if ( netname == "All" || netname == "DenseMlp" ) {

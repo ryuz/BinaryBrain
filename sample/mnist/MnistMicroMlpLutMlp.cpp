@@ -34,9 +34,9 @@ static void WriteMnistDataFile(std::string train_file, std::string test_file, in
 
 
 // MNIST CNN with LUT networks
-void MnistLutMlp(int epoch_size, size_t mini_batch_size, int frame_mux_size, bool binary_mode)
+void MnistMicroMlpLutMlp(int epoch_size, size_t mini_batch_size, int frame_mux_size, bool binary_mode)
 {
-    std::string net_name = "MnistLutMlp";
+    std::string net_name = "MnistMicroMlpLutMlp";
 
   // load MNIST data
 #ifdef _DEBUG

@@ -60,6 +60,15 @@ nvcc が利用可能な Google Colaboratory でも動作可能なようです。
 ```
 のような操作で、ビルドして動作させることができます。
 
+## 基本的な使い方
+CPU版に関してはヘッダオンリーライブラリとなっているため、include 以下にあるヘッダファイルをインクルードするだけでご利用いただけます。
+
+GPUを使う場合は、ヘッダ読み込みの際に BB_WITH_CUDA マクロを定義した上で、cuda 以下にあるライブラリをビルドした上でリンクする必要があります。
+
+また、BB_WITH_CEREAL マクロを定義すると、途中経過を json 経由で保存可能となります。
+
+
+
 ## 学習ネットの作り方
 順次記述予定ですが、現じてでは基本的にはソースを解読ください。<br>
 こちらに手がかり程度に[APIの概要](documents/class.md)を記載しています。
@@ -90,9 +99,9 @@ FPGAではハードウェアの素子としてLUTを大量に保有しており�
 ![LutNet_layer_model.png](documents/images/LutNet_layer_model.png "layer_model")
 
 中間層を有したMLP(多層パーセプトロン)は、誤差逆伝播によりXORなどの複雑な論理も学習できることが知られています。そこで、LUTと等価の表現能力を有するバイナリMLPをMicro-MLPと呼ぶことにします。Micro-MLPは最小で4個の中間層を保持すれば、6次のXORを学習できる可能性を持ちますが、実際に実験を行ったところ、16~64個程度の中間層を持つMicro-MLPであれば、局所解に陥る可能性も低いままLUTの表現範囲を広く学習できることが分かってきました。
-この Micro-MLP を束ねて作ったレイヤーをさらに多段に重ねることで、従来のDenseAffineに近い性能のレイヤーを、高パフォーマンスで実現できます。
+この Micro-MLP を束ねて作ったレイヤーをさらに多段に重ねることで、従来のDenseAffineに近い学習性能のレイヤーをバイナリで構築可能です。
 
-### LUTモデル
+### Micro-MLPの LUTモデル
 LUTモデルとそれに対応するMicro-MLPの単位の関係を示します。
 
 ![LutNet_lut_equivalent_model.png](documents/images/LutNet_lut_equivalent_model.png "LUT node model")
@@ -108,10 +117,31 @@ LUTモデルとそれに対応するMicro-MLPの単位の関係を示します�
 
 ![difference_other_networks.png](documents/images/difference_other_networks.png "difference from other networks")
 
-### 性能予測
+### Micro-MLPの 性能予測
 残念ながらLUT-Networkは学習時はそれほど高速ではありません。またCPU/GPUで予測を実装した場合も速くなりません。FPGA化した場合に驚異的な性能を発揮します。
 
 ![performance.png](documents/images/performance.png "parformance")
+
+
+### 確率的MLP
+さらにここで、Micro-MLPの課題を解決し、効率を上げるために確率的LUTのモデルを提案いたします。
+簡単な説明のために、2入力LUT(テーブルサイズ4個)のモデルを以下に示します。
+
+![stochastic_lut2.png](documents/images/stochastic_lut2.png "stochastic_lut2")
+
+これは、入力をX0-X1の確率変数とし、バイナリ値が1となる確率を実数値で入力します。
+また、W0-W3はルックアップテーブルの各値を示す実数値とします。
+そうすると
+
+- W0が引かれる確率 : (1- X1) * (1- X0)
+- W1が引かれる確率 : (1- X1) * X0
+- W2が引かれる確率 : X1 * (1- X0)
+- W3が引かれる確率 : X1 * X0
+
+となるので、出力であるYである確率は、これらにW0-W3の値を乗じたものの和になります。
+そしてこの計算ツリーは逆伝播可能であるので、W0-W3を学習させることが出来ます。
+結果的に、多値の入力をバイナリ変調した場合に結果を確率的に出力する回路を高パフォーマンスで実現できます。
+この回路で得られた出力はカウンティングして実数値にすることで回帰問題などにも応用できます。
 
 ## ライセンス
 現在MITライセンスを採用しています。lisense.txtを参照ください。
