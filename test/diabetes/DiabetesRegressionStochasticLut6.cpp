@@ -22,7 +22,9 @@
 #include "bb/Runner.h"
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
+#include "bb/UniformDistributionGenerator.h"
 #include "bb/ExportVerilog.h"
+
 
 #include "LoadDiabetes.h"
 
@@ -35,7 +37,7 @@ void DiabetesRegressionStochasticLut6(int epoch_size, size_t mini_batch_size)
 
 	bb::TrainDataNormalize(td);
 
-    auto layer_sl0 = bb::StochasticLut6<>::Create({ 1024 });
+	auto layer_sl0 = bb::StochasticLut6<>::Create({ 1024 });
 	auto layer_sl1 = bb::StochasticLut6<>::Create({ 512 });
 	auto layer_sl2 = bb::StochasticLut6<>::Create({ 216 });
 	auto layer_sl3 = bb::StochasticLut6<>::Create({ 36 });
@@ -82,7 +84,7 @@ void DiabetesRegressionStochasticLut6(int epoch_size, size_t mini_batch_size)
         auto layer_lut5 = bb::BinaryLutN<>::Create(layer_sl5->GetOutputShape());
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(mux_size));
+        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
         lut_net->Add(layer_lut0);
         lut_net->Add(layer_lut1);
         lut_net->Add(layer_lut2);
@@ -93,20 +95,18 @@ void DiabetesRegressionStochasticLut6(int epoch_size, size_t mini_batch_size)
         lut_net->SetInputShape(td.x_shape);
 
         // テーブル化して取り込み(SetInputShape後に取り込みが必要)
-        layer_lut0->ImportLayer(*layer_sl0);
-        layer_lut1->ImportLayer(*layer_sl1);
-        layer_lut2->ImportLayer(*layer_sl2);
-        layer_lut3->ImportLayer(*layer_sl3);
-        layer_lut4->ImportLayer(*layer_sl4);
-        layer_lut5->ImportLayer(*layer_sl5);
+        layer_lut0->ImportLayer<float, float>(layer_sl0);
+        layer_lut1->ImportLayer<float, float>(layer_sl1);
+        layer_lut2->ImportLayer<float, float>(layer_sl2);
+        layer_lut3->ImportLayer<float, float>(layer_sl3);
+        layer_lut4->ImportLayer<float, float>(layer_sl4);
+        layer_lut5->ImportLayer<float, float>(layer_sl5);
 
         // 評価
         bb::Runner<float>::create_t lut_runner_create;
         lut_runner_create.name           = "DiabetesRegressionBinaryLut";
         lut_runner_create.net            = lut_net;
-        lut_runner_create.lossFunc       = bb::LossMeanSquaredError<float>::Create();
         lut_runner_create.metricsFunc    = bb::MetricsMeanSquaredError<float>::Create();
-//      lut_runner_create.optimizer      = bb::OptimizerAdam<float>::Create();
         lut_runner_create.print_progress = true;
         auto lut_runner = bb::Runner<float>::Create(lut_runner_create);
         auto lut_accuracy = lut_runner->Evaluation(td, mini_batch_size);
