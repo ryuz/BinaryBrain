@@ -69,8 +69,10 @@
 
   sample_mnist の引数は
 
-  LutMlp                   LUT-Networkの多層パーセプトロンを実行
-  LutCnn                   LUT-NetworkのCNNを実行
+  StochasticLutMlp         確率的LUT-Networkの多層パーセプトロンを実行
+  StochasticLutCnn         確率的LUT-NetworkのCNNを実行
+  LutMlp                   μMLP方式のLUT-Networkの多層パーセプトロンを実行
+  LutCnn                   μMLP方式のLUT-NetworkのCNNを実行
   DenseMlp                 FP32全結合の多層パーセプトロンを実行
   DenseCnn                 FP32全結合のCNNを実行
   All                      上のすべてを実行
@@ -91,9 +93,9 @@
 
   を実行すると、学習完了後 verilog ディレクトリの下に
 
-  mnist_train.txt  トレーニングデータ
-  mnist_test.txt   評価データ
-  MnistLutMlp.v    学習済みの RTL
+  mnist_train.txt            トレーニングデータ
+  mnist_test.txt             評価データ
+  MnistMicroMlpLutMlp.v.v    学習済みの RTL
 
   が出力されます。
 
@@ -102,7 +104,7 @@
 
   tb_mnist_lut_mlp.v
   bb_lut.v
-  MnistLutMlp.v
+  MnistMicroMlpLutMlp.v
 
   iverilog(Icarus Verilog)用に iverilog_lut_mlp.sh というスクリプトも
 用意しています(が、ネットワークの特性か結構遅いです)。
@@ -110,6 +112,7 @@
   tb_mnist_lut_mlp.vtakprj が Veritak 用のプロジェクトとなっておりますので、
 Windowsで Veritak ご利用のユーザーは活用ください。
 
+  Vivadoシミュレータ(xsim)を利用する場合は、xsim_lut_mlp.bat が利用可能です。
 
 
 【CNN の Verilog シミュレーションまで】
@@ -120,7 +123,7 @@ Windowsで Veritak ご利用のユーザーは活用ください。
 
   mnist_test_160x120.ppm  テスト画像(160x120)
   mnist_test_640x480.ppm  テスト画像(640x480)
-  MnistLutCnn.v           学習済みの RTL
+  MnistMicroMlpLutCnn.v   学習済みの RTL
 
   iverilog(Icarus Verilog)用に iverilog_lut_cnn.sh というスクリプトも
 用意しています(が、ネットワークの特性か結構遅いです)。

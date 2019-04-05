@@ -354,8 +354,8 @@ public:
 				// 学習状況評価
                 {
 				    double now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
-				    auto test_metrics  = Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_metricsFunc);
-				    auto train_metrics = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, 0, m_metricsFunc);
+				    auto test_metrics  = Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
+				    auto train_metrics = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
 				    log_stream	<< std::setw(10) << std::fixed << std::setprecision(2) << now_time << "s "
 							    << "epoch[" << std::setw(3) << epoch + 1 + prev_epoch << "] "
 							    << "test "  << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << test_metrics  << " "
@@ -382,7 +382,7 @@ public:
 		    index_t      batch_size
         )
     {
-        return Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_metricsFunc);
+        return Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
     }
 
     

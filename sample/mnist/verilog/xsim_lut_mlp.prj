@@ -1,3 +1,3 @@
 verilog work tb_mnist_lut_mlp.v
-verilog work MnistLutMlp.v
+verilog work MnistMicroMlpLutMlp.v
 verilog work bb_lut.v

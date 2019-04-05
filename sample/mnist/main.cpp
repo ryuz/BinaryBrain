@@ -26,8 +26,8 @@ int main(int argc, char *argv[])
 
     std::string netname = "All";
     int         epoch_size      = 8;
-    int         mini_batch_size = 32;
-    int         frame_mux_size  = 15;
+    int         mini_batch_size = 8;
+    int         frame_mux_size  = 7;
     bool        binary_mode = true;
 
 	if ( argc < 2 ) {

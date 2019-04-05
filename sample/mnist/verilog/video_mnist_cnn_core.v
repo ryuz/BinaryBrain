@@ -25,7 +25,7 @@ module video_mnist_cnn_core
 			parameter	INIT_Y_NUM     = IMG_Y_NUM,
 			
 			parameter	S_TDATA_WIDTH  = 1,
-			parameter	M_TDATA_WIDTH  = 80,
+			parameter	M_TDATA_WIDTH  = 70,
 
 			parameter	RAM_TYPE       = "block",
 			parameter	FIFO_PTR_WIDTH = 9,
@@ -66,7 +66,7 @@ module video_mnist_cnn_core
 	wire							axi4s_l0_tvalid;
 	wire							axi4s_l0_tready;
 	
-	MnistLutCnnCnv0
+	MnistMicroMlpLutCnnCnv0
 			#(
 				.TUSER_WIDTH		(TUSER_WIDTH),
 				.IMG_X_WIDTH		(IMG_X_WIDTH),
@@ -80,7 +80,7 @@ module video_mnist_cnn_core
 				.IMG_CKE_BUFG		(IMG_CKE_BUFG),
 				.DEVICE         	(DEVICE)
 			)
-		i_MnistLutCnnCnv0
+		i_MnistMicroMlpLutCnnCnv0
 			(
 				.reset				(~aresetn),
 				.clk				(aclk),
@@ -108,7 +108,7 @@ module video_mnist_cnn_core
 	wire							axi4s_l1_tvalid;
 	wire							axi4s_l1_tready;
 	
-	MnistLutCnnCnv1
+	MnistMicroMlpLutCnnCnv1
 			#(
 				.TUSER_WIDTH		(TUSER_WIDTH),
 				.IMG_X_WIDTH		(IMG_X_WIDTH),
@@ -122,7 +122,7 @@ module video_mnist_cnn_core
 				.IMG_CKE_BUFG		(IMG_CKE_BUFG),
 				.DEVICE         	(DEVICE)
 			)
-		i_MnistLutCnnCnv1
+		i_MnistMicroMlpLutCnnCnv1
 			(
 				.reset				(~aresetn),
 				.clk				(aclk),
@@ -144,7 +144,7 @@ module video_mnist_cnn_core
 	
 	
 	// L2
-	MnistLutCnnCnv2
+	MnistMicroMlpLutCnnCnv2
 			#(
 				.TUSER_WIDTH		(TUSER_WIDTH),
 				.IMG_X_WIDTH		(IMG_X_WIDTH),
@@ -158,7 +158,7 @@ module video_mnist_cnn_core
 				.IMG_CKE_BUFG		(IMG_CKE_BUFG),
 				.DEVICE         	(DEVICE)
 			)
-		i_MnistLutCnnCnv2
+		i_MnistMicroMlpLutCnnCnv2
 			(
 				.reset				(~aresetn),
 				.clk				(aclk),

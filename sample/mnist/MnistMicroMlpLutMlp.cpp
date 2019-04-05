@@ -98,16 +98,18 @@ void MnistMicroMlpLutMlp(int epoch_size, size_t mini_batch_size, int frame_mux_s
         layer_lut2->ImportLayer<float, float>(layer_mm2);
 
         // 評価
-        bb::Runner<float>::create_t lut_runner_create;
-        lut_runner_create.name           = "Lut_" + net_name;
-        lut_runner_create.net            = lut_net;
-        lut_runner_create.lossFunc       = bb::LossSoftmaxCrossEntropy<float>::Create();
-        lut_runner_create.metricsFunc    = bb::MetricsCategoricalAccuracy<float>::Create();
-        lut_runner_create.optimizer      = bb::OptimizerAdam<float>::Create();
-        lut_runner_create.print_progress = true;
-        auto lut_runner = bb::Runner<float>::Create(lut_runner_create);
-        auto lut_accuracy = lut_runner->Evaluation(td, mini_batch_size);
-        std::cout << "lut_accuracy : " << lut_accuracy << std::endl;
+        if ( 1 ) {
+            bb::Runner<float>::create_t lut_runner_create;
+            lut_runner_create.name           = "Lut_" + net_name;
+            lut_runner_create.net            = lut_net;
+            lut_runner_create.lossFunc       = bb::LossSoftmaxCrossEntropy<float>::Create();
+            lut_runner_create.metricsFunc    = bb::MetricsCategoricalAccuracy<float>::Create();
+            lut_runner_create.optimizer      = bb::OptimizerAdam<float>::Create();
+            lut_runner_create.print_progress = true;
+            auto lut_runner = bb::Runner<float>::Create(lut_runner_create);
+            auto lut_accuracy = lut_runner->Evaluation(td, mini_batch_size);
+            std::cout << "lut_accuracy : " << lut_accuracy << std::endl;
+        }
 
         {
             // Verilog 出力

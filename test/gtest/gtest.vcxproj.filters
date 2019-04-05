@@ -212,12 +212,6 @@
     <ClInclude Include="..\..\include\bb\Sigmoid.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\RealLut2.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\bb\RealLut4.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\bb\StochasticLut2.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>

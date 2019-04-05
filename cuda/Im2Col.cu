@@ -99,6 +99,112 @@ BBCU_DLL_EXPORT int bbcu_fp32_Im2Col_Forward
 }
 
 
+__device__ __forceinline__ int read_bit(int const *buf, int index)
+{
+    int bit = index % 32;
+    index /= 32;
+    return ((buf[index] >> bit) & 1);
+}
+
+__device__ __forceinline__ void write_bit(int *buf, int index, int value)
+{
+    int bit = index % 32;
+    index /= 32;
+    if ( value ) {
+        buf[index] |= (1 << bit);
+    }
+    else {
+        buf[index] &= ~(1 << bit);
+    }
+}
+
+
+__global__ void kernal_bit_Im2Col_Forward(
+			const int*  	input_sig_buf,
+			int				input_frame_stride,
+			int				input_w_size,
+			int				input_h_size,
+            
+			int*			output_sig_buf,
+			int				output_frame_size,
+			int				output_frame_stride,
+			int				output_w_size,
+			int				output_size
+		)
+{
+	int filter_w_size = blockDim.y;
+	int filter_h_size = blockDim.z;
+
+	int output_frame = blockDim.x * blockIdx.x + threadIdx.x;
+	int fx           = threadIdx.y;
+	int fy           = threadIdx.z;
+	int c            = blockIdx.y;
+	
+    if ( output_frame < output_frame_size ) {
+	    int input_frame = output_frame / output_size;
+	    int f           = output_frame % output_size;
+	    int ix = f % output_w_size + fx;
+	    int iy = f / output_w_size + fy;
+
+	    int input_node  = (c * input_h_size  + iy) * input_w_size  + ix;
+
+        int sig = read_bit(input_sig_buf, input_node * input_frame_stride + input_frame);
+	    int output_node = (c * filter_h_size + fy) * filter_w_size + fx;	
+        write_bit(output_sig_buf, output_node * output_frame_stride + output_frame, sig);
+    }
+}
+
+
+BBCU_DLL_EXPORT int bbcu_bit_Im2Col_Forward
+		(
+			int const       *input_sig_dev_buf,
+			int				input_frame_size,
+			int				input_frame_stride,
+			int				input_w_size,
+			int				input_h_size,
+			int				input_c_size,
+
+			int*			output_sig_dev_buf,
+			int				output_frame_stride,
+
+			int				filter_w_size,
+			int				filter_h_size,
+
+            cudaStream_t	streamId
+		)
+{
+    BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
+
+	int output_c_size = input_c_size;
+	int output_w_size = input_w_size - filter_w_size + 1;
+	int output_h_size = input_h_size - filter_h_size + 1;
+	int output_size   = output_w_size * output_h_size;
+	
+	int output_frame_size = input_frame_size * output_size;
+    
+	int		frame_unit = 16;
+	dim3	grid((output_frame_size + (frame_unit-1))/frame_unit, output_c_size);
+	dim3	block(frame_unit, filter_w_size, filter_h_size);
+	
+	kernal_bit_Im2Col_Forward<<<grid, block, 0, streamId>>>(
+			input_sig_dev_buf,
+            input_frame_stride,
+			input_w_size,
+			input_h_size,
+            
+			output_sig_dev_buf,
+			output_frame_size,
+			output_frame_stride,
+			output_w_size,
+			output_size
+		);
+	BB_CUDA_CHECK_LAST_ERROR();
+
+	return 0;
+}
+
+
+
 
 //////////////////////////////
 // backward

@@ -56,8 +56,8 @@ void MnistMicroMlpLutCnn(int epoch_size, size_t mini_batch_size, int frame_mux_s
     auto layer_cnv2_mm1 = bb::MicroMlp<>::Create(32);
     auto layer_cnv3_mm0 = bb::MicroMlp<>::Create(192);
     auto layer_cnv3_mm1 = bb::MicroMlp<>::Create(32);
-    auto layer_mm4 = bb::MicroMlp<>::Create(480);
-    auto layer_mm5 = bb::MicroMlp<>::Create(80);
+    auto layer_mm4 = bb::MicroMlp<>::Create(420);
+    auto layer_mm5 = bb::MicroMlp<>::Create(70);
 
     {
         auto cnv0_sub = bb::Sequential::Create();
@@ -184,7 +184,7 @@ void MnistMicroMlpLutCnn(int epoch_size, size_t mini_batch_size, int frame_mux_s
         layer_lut5     ->ImportLayer<float, float>(layer_mm5);
 
         // •]‰¿
-        if ( 1 ) {
+        if ( 0 ) {
             bb::Runner<float>::create_t lut_runner_create;
             lut_runner_create.name        = "Lut_" + net_name;
             lut_runner_create.net         = lut_net;
