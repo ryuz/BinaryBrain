@@ -34,6 +34,7 @@
 
 static void WriteTestImage(std::string filename, int w, int h);
 
+
 // MNIST CNN with LUT networks
 void MnistStochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int frame_mux_size, bool binary_mode)
 {
@@ -128,16 +129,16 @@ void MnistStochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int frame_mu
         // LUT-network
         auto layer_cnv0_lut0 = bb::BinaryLutN<>::Create(layer_cnv0_sl0->GetOutputShape());
         auto layer_cnv0_lut1 = bb::BinaryLutN<>::Create(layer_cnv0_sl1->GetOutputShape());
-        auto layer_cnv0_lut2 = bb::BinaryLutN<>::Create(layer_cnv0_sl1->GetOutputShape());
+        auto layer_cnv0_lut2 = bb::BinaryLutN<>::Create(layer_cnv0_sl2->GetOutputShape());
         auto layer_cnv1_lut0 = bb::BinaryLutN<>::Create(layer_cnv1_sl0->GetOutputShape());
         auto layer_cnv1_lut1 = bb::BinaryLutN<>::Create(layer_cnv1_sl1->GetOutputShape());
-        auto layer_cnv1_lut2 = bb::BinaryLutN<>::Create(layer_cnv1_sl1->GetOutputShape());
+        auto layer_cnv1_lut2 = bb::BinaryLutN<>::Create(layer_cnv1_sl2->GetOutputShape());
         auto layer_cnv2_lut0 = bb::BinaryLutN<>::Create(layer_cnv2_sl0->GetOutputShape());
         auto layer_cnv2_lut1 = bb::BinaryLutN<>::Create(layer_cnv2_sl1->GetOutputShape());
-        auto layer_cnv2_lut2 = bb::BinaryLutN<>::Create(layer_cnv2_sl1->GetOutputShape());
+        auto layer_cnv2_lut2 = bb::BinaryLutN<>::Create(layer_cnv2_sl2->GetOutputShape());
         auto layer_cnv3_lut0 = bb::BinaryLutN<>::Create(layer_cnv3_sl0->GetOutputShape());
         auto layer_cnv3_lut1 = bb::BinaryLutN<>::Create(layer_cnv3_sl1->GetOutputShape());
-        auto layer_cnv3_lut2 = bb::BinaryLutN<>::Create(layer_cnv3_sl1->GetOutputShape());
+        auto layer_cnv3_lut2 = bb::BinaryLutN<>::Create(layer_cnv3_sl2->GetOutputShape());
         auto layer_lut4      = bb::BinaryLutN<>::Create(layer_sl4->GetOutputShape());
         auto layer_lut5      = bb::BinaryLutN<>::Create(layer_sl5->GetOutputShape());
         auto layer_lut6      = bb::BinaryLutN<>::Create(layer_sl6->GetOutputShape());

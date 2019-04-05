@@ -46,15 +46,9 @@ void MnistMicroMlpLutMlp(int epoch_size, size_t mini_batch_size, int frame_mux_s
     auto td = bb::LoadMnist<>::Load(10);
 #endif
 
-#ifdef _DEBUG
-    auto layer_mm0 = bb::MicroMlp<>::Create({16});
-    auto layer_mm1 = bb::MicroMlp<>::Create({16});
-    auto layer_mm2 = bb::MicroMlp<>::Create({16});
-#else
     auto layer_mm0 = bb::MicroMlp<>::Create({1024});
     auto layer_mm1 = bb::MicroMlp<>::Create({480});
-    auto layer_mm2 = bb::MicroMlp<>::Create({80});
-#endif
+    auto layer_mm2 = bb::MicroMlp<>::Create({70});
 
     {
         auto net = bb::Sequential::Create();
@@ -62,15 +56,13 @@ void MnistMicroMlpLutMlp(int epoch_size, size_t mini_batch_size, int frame_mux_s
         net->Add(layer_mm0);
         net->Add(layer_mm1);
         net->Add(layer_mm2);
-        net->Add(bb::BinaryToReal<float, float>::Create({10}));
+        net->Add(bb::BinaryToReal<float, float>::Create({10}, frame_mux_size));
         net->SetInputShape(td.x_shape);
 
         if ( binary_mode ) {
             net->SendCommand("binary true");
             std::cout << "binary mode" << std::endl;
         }
-
-    //  net->SendCommand("host_only true", "BatchNormalization");
 
         net->PrintInfo();
 
@@ -93,11 +85,11 @@ void MnistMicroMlpLutMlp(int epoch_size, size_t mini_batch_size, int frame_mux_s
         auto layer_lut2 = bb::BinaryLutN<>::Create(layer_mm2->GetOutputShape());
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create());
+        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(frame_mux_size));
         lut_net->Add(layer_lut0);
         lut_net->Add(layer_lut1);
         lut_net->Add(layer_lut2);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({10}));
+        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({10}, frame_mux_size));
         lut_net->SetInputShape(td.x_shape);
 
         // テーブル化して取り込み(SetInputShape後に取り込みが必要)
