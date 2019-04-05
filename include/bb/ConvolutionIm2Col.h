@@ -186,12 +186,12 @@ public:
             auto ptr_y = m_y.LockDeviceMemory();
             bbcu_fp32_Im2Col_Forward(
                 (const float *)ptr_x.GetAddr(),
+                (float *)ptr_y.GetAddr(),
                 (int)m_input_frame_size,
                 (int)x.GetFrameStride() / sizeof(float),
                 (int)m_input_w_size,
                 (int)m_input_h_size,
                 (int)m_input_c_size,
-                (float *)ptr_y.GetAddr(),
                 (int)m_y.GetFrameStride() / sizeof(float),
                 (int)m_filter_w_size,
                 (int)m_filter_h_size);
@@ -246,16 +246,16 @@ public:
             auto ptr_dy = dy.LockDeviceMemoryConst();
             auto ptr_dx = m_dx.LockDeviceMemory();
             bbcu_fp32_Im2Col_Backward(
-                (float *)ptr_dx.GetAddr(),
-                (int)m_input_frame_size,
-                (int)m_dx.GetFrameStride() / sizeof(float),
-                (int)m_input_w_size,
-                (int)m_input_h_size,
-                (int)m_input_c_size,
-                (const float *)ptr_dy.GetAddr(),
-                (int)dy.GetFrameStride() / sizeof(float),
-                (int)m_filter_w_size,
-                (int)m_filter_h_size);
+                (float const *)ptr_dy.GetAddr(),
+                (float       *)ptr_dx.GetAddr(),
+                (int          )m_input_frame_size,
+                (int          )(m_dx.GetFrameStride() / sizeof(float)),
+                (int          )m_input_w_size,
+                (int          )m_input_h_size,
+                (int          )m_input_c_size,
+                (int          )(dy.GetFrameStride() / sizeof(float)),
+                (int          )m_filter_w_size,
+                (int          )m_filter_h_size);
             return m_dx;
         }
 #endif
