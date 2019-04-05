@@ -52,7 +52,7 @@ void MnistMicroMlpLutMlp(int epoch_size, size_t mini_batch_size, int frame_mux_s
 
     {
         auto net = bb::Sequential::Create();
-        net->Add(bb::RealToBinary<>::Create());
+        net->Add(bb::RealToBinary<>::Create(frame_mux_size));
         net->Add(layer_mm0);
         net->Add(layer_mm1);
         net->Add(layer_mm2);

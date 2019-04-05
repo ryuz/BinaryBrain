@@ -56,14 +56,13 @@ void MnistStochasticLut6Mlp(int epoch_size, size_t mini_batch_size, int frame_mu
         net->Add(layer_sl0);
         net->Add(layer_sl1);
         net->Add(layer_sl2);
+        net->Add(layer_sl3);
         net->SetInputShape(td.x_shape);
 
         if ( binary_mode ) {
             net->SendCommand("binary true");
             std::cout << "binary mode" << std::endl;
         }
-
-    //  net->SendCommand("host_only true", "BatchNormalization");
 
         net->PrintInfo();
 
@@ -99,7 +98,7 @@ void MnistStochasticLut6Mlp(int epoch_size, size_t mini_batch_size, int frame_mu
         layer_lut0->ImportLayer<float, float>(layer_sl0);
         layer_lut1->ImportLayer<float, float>(layer_sl1);
         layer_lut2->ImportLayer<float, float>(layer_sl2);
-        layer_lut2->ImportLayer<float, float>(layer_sl3);
+        layer_lut3->ImportLayer<float, float>(layer_sl3);
 
         // 評価
         bb::Runner<float>::create_t lut_runner_create;
