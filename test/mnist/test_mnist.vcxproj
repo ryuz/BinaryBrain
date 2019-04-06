@@ -348,6 +348,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\sample\mnist\MnistStochasticLut2Mlp.cpp" />
+    <ClCompile Include="..\..\sample\mnist\MnistStochasticLut4Mlp.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MnistDenseCnn.cpp" />
     <ClCompile Include="MnistDenseMlp.cpp" />

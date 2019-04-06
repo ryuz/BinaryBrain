@@ -12,6 +12,8 @@
 
 void MnistDenseMlp(int epoch_size, size_t mini_batch_size);
 void MnistDenseCnn(int epoch_size, size_t mini_batch_size);
+void MnistStochasticLut2Mlp(int epoch_size, size_t mini_batch_size, int lut_frame_mux_size, bool binary_mode);
+void MnistStochasticLut4Mlp(int epoch_size, size_t mini_batch_size, int lut_frame_mux_size, bool binary_mode);
 void MnistStochasticLut6Mlp(int epoch_size, size_t mini_batch_size, int lutframe_mux_size, bool binary_mode);
 void MnistStochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int lutframe_mux_size, bool binary_mode);
 void MnistMicroMlpLutMlp(int epoch_size, size_t mini_batch_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode);
@@ -78,6 +80,9 @@ int main(int argc, char *argv[])
             netname = argv[i];
         }
     }
+
+    MnistStochasticLut2Mlp(epoch_size, mini_batch_size, lut_frame_mux_size, true);
+	MnistStochasticLut4Mlp(epoch_size, mini_batch_size, lut_frame_mux_size, true);
 
 	if ( netname == "All" || netname == "StochasticLutMlp" ) {
 		MnistStochasticLut6Mlp(epoch_size, mini_batch_size, lut_frame_mux_size, true);

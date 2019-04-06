@@ -196,7 +196,7 @@ TEST(LoweringConvolutionTest, testLoweringConvolution_cmp_float)
 TEST(LoweringConvolutionTest, testLoweringConvolution_cmp_bit)
 {
 //    testLoweringConvolution_cmpare<bb::Bit, float>(bb::BinaryLutN<6, bb::Bit>::Create(32), 2, 16, 32);
-    testLoweringConvolution_cmpare<bb::Bit, float>(bb::BinaryLutN<6, bb::Bit>::Create(10), 4, 16*15, 10);
+      testLoweringConvolution_cmpare<bb::Bit, float>(bb::BinaryLutN<6, bb::Bit>::Create(10), 4, 16*15, 10);
 }
 
 
