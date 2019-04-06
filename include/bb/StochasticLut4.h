@@ -46,27 +46,19 @@ protected:
     std::mt19937_64         m_mt;
 
 protected:
-    RealLut4() {
+    StochasticLut4() {
         m_W  = std::make_shared<Tensor>();
         m_dW = std::make_shared<Tensor>();
     }
 
-    /*
  	void CommandProc(std::vector<std::string> args)
 	{
-        // HostOnlyモード設定
-        if (args.size() == 2 && args[0] == "host_only")
+        // バイナリモード設定
+        if ( args.size() == 2 && args[0] == "binary" )
         {
-            m_host_only = EvalBool(args[1]);
-        }
-
-        // Host SIMDモード設定
-        if (args.size() == 2 && args[0] == "host_simd")
-        {
-            m_host_simd = EvalBool(args[1]);
+            m_binary_mode = EvalBool(args[1]);
         }
 	}
-    */
 
 public:
 	~StochasticLut4() {}

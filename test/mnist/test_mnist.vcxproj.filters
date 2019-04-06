@@ -39,5 +39,11 @@
     <ClCompile Include="MnistMicroMlpLutMlp.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\sample\mnist\MnistStochasticLut4Mlp.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sample\mnist\MnistStochasticLut2Mlp.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
