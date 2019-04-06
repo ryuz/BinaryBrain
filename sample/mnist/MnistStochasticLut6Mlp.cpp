@@ -34,7 +34,7 @@ static void WriteMnistDataFile(std::string train_file, std::string test_file, in
 
 
 // MNIST CNN with LUT networks
-void MnistStochasticLut6Mlp(int epoch_size, size_t mini_batch_size, int frame_mux_size, bool binary_mode)
+void MnistStochasticLut6Mlp(int epoch_size, size_t mini_batch_size, int lut_frame_mux_size, bool binary_mode)
 {
     std::string net_name = "MnistStochasticLut6Mlp";
 
@@ -86,15 +86,16 @@ void MnistStochasticLut6Mlp(int epoch_size, size_t mini_batch_size, int frame_mu
         auto layer_lut3 = bb::BinaryLutN<>::Create(layer_sl3->GetOutputShape());
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(frame_mux_size));
+        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(layer_lut0);
         lut_net->Add(layer_lut1);
         lut_net->Add(layer_lut2);
         lut_net->Add(layer_lut3);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, frame_mux_size));
+        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, lut_frame_mux_size));
         lut_net->SetInputShape(td.x_shape);
 
         // テーブル化して取り込み(SetInputShape後に取り込みが必要)
+        std::cout << "parameter copy to LUT-Network" << std::endl;
         layer_lut0->ImportLayer<float, float>(layer_sl0);
         layer_lut1->ImportLayer<float, float>(layer_sl1);
         layer_lut2->ImportLayer<float, float>(layer_sl2);

@@ -27,8 +27,9 @@ __global__ void kernal_fp32_Col2Im_Forward(
     int xy           = blockDim.y * blockIdx.y + threadIdx.y;
     int c            = blockDim.z * blockIdx.z + threadIdx.z;
 
+    int output_node  = c * hw_size + xy;
+
     if (output_frame < output_frame_size && xy < hw_size ) {
-        int output_node = c * hw_size + xy;
         int input_frame = output_frame * hw_size + xy;
         int input_node  = c;
 
@@ -73,25 +74,6 @@ BBCU_DLL_EXPORT int bbcu_fp32_Col2Im_Forward
 
 
 
-__device__ __forceinline__ int read_bit(int const *buf, int index)
-{
-    int bit = index % 32;
-    index /= 32;
-    return ((buf[index] >> bit) & 1);
-}
-
-__device__ __forceinline__ void write_bit(int *buf, int index, int value)
-{
-    int bit = index % 32;
-    index /= 32;
-    if ( value ) {
-        buf[index] |= (1 << bit);
-    }
-    else {
-        buf[index] &= ~(1 << bit);
-    }
-}
-
 __global__ void kernal_bit_Col2Im_Forward(
             int const       *x_buf,
             int             *y_buf,          
@@ -102,19 +84,28 @@ __global__ void kernal_bit_Col2Im_Forward(
             int             input_frame_stride
         )
 {
-    int output_frame = blockDim.x * blockIdx.x + threadIdx.x;
-    int xy           = blockDim.y * blockIdx.y + threadIdx.y;
-    int c            = blockDim.z * blockIdx.z + threadIdx.z;
+    int output_frame_unit = blockDim.x * blockIdx.x + threadIdx.x;
 
-    if (output_frame < output_frame_size && xy < hw_size ) {
-        int output_node = c * hw_size + xy;
-        int input_frame = output_frame * hw_size + xy;
-        int input_node  = c;
+    if ( output_frame_unit < output_frame_stride ) {
+        int xy                = blockDim.y * blockIdx.y + threadIdx.y;
+        int c                 = blockDim.z * blockIdx.z + threadIdx.z;
+        int output_node  = c * hw_size + xy;
 
-        int const *x_ptr = &x_buf[input_node * input_frame_stride];
-        int       *y_ptr = &y_buf[output_node * output_frame_stride];
+        int y = 0;
+        for ( int i = 0; i < 32; ++i ) {
+            int output_frame = output_frame_unit * 32 + i;
+            if (output_frame < output_frame_size && xy < hw_size ) {
+                int       input_frame = output_frame * hw_size + xy;
+                int       input_node  = c;
+                int const *x_ptr = &x_buf[input_node * input_frame_stride];
 
-        write_bit(y_ptr, output_frame, read_bit(x_ptr, input_frame));
+                int x = ((x_ptr[input_frame / 32] >> (input_frame % 32)) & 1);
+                y |= (x << i);
+            }
+        }
+
+        int *y_ptr = &y_buf[output_node * output_frame_stride];
+        y_ptr[output_frame_unit] = y;
     }
 }
 
@@ -136,8 +127,11 @@ BBCU_DLL_EXPORT int bbcu_bit_Col2Im_Forward
     
     int     hw_size = h_size * w_size;
     
+    // 32bit’PˆÊ‚Åˆ—
+    int     output_frame_unit = (output_frame_size + 31) / 32 ;
+
     dim3    block(32, 32, 1);
-    dim3    grid((output_frame_size+31)/32, (hw_size+31)/32, c_size);
+    dim3    grid((output_frame_unit+31)/32, (hw_size+31)/32, c_size);
     
     kernal_bit_Col2Im_Forward<<<grid, block, 0, streamId>>>(
             dev_x_buf,
@@ -179,7 +173,7 @@ __global__ void kernal_fp32_Col2Im_Backward(
         int input_frame = output_frame * hw_size + xy;
         int input_node  = c;
 
-         dx_buf[input_node * input_frame_stride + input_frame] = dy_buf[output_node * output_frame_stride + output_frame];
+        dx_buf[input_node * input_frame_stride + input_frame] = dy_buf[output_node * output_frame_stride + output_frame];
     }
 }
 

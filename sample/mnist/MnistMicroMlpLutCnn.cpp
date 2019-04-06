@@ -35,7 +35,7 @@
 static void WriteTestImage(std::string filename, int w, int h);
 
 // MNIST CNN with LUT networks
-void MnistMicroMlpLutCnn(int epoch_size, size_t mini_batch_size, int frame_mux_size, bool binary_mode)
+void MnistMicroMlpLutCnn(int epoch_size, size_t mini_batch_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode)
 {
     std::string net_name = "MnistMicroMlpLutCnn";
 
@@ -159,7 +159,7 @@ void MnistMicroMlpLutCnn(int epoch_size, size_t mini_batch_size, int frame_mux_s
         auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 4, 4);
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(frame_mux_size));
+        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(cnv0);
         lut_net->Add(cnv1);
         lut_net->Add(pol0);
@@ -167,11 +167,12 @@ void MnistMicroMlpLutCnn(int epoch_size, size_t mini_batch_size, int frame_mux_s
         lut_net->Add(cnv3);
         lut_net->Add(pol1);
         lut_net->Add(cnv4);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({ 10 }, frame_mux_size));
+        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({ 10 }, lut_frame_mux_size));
         lut_net->SetInputShape({28, 28, 1});
 
 
         // テーブル化して取り込み(現状まだSetInputShape後の取り込みが必要)
+        std::cout << "parameter copy to LUT-Network" << std::endl;
         layer_cnv0_lut0->ImportLayer<float, float>(layer_cnv0_mm0);
         layer_cnv0_lut1->ImportLayer<float, float>(layer_cnv0_mm1);
         layer_cnv1_lut0->ImportLayer<float, float>(layer_cnv1_mm0);

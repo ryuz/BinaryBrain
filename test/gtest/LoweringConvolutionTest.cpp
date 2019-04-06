@@ -2,8 +2,12 @@
 #include <iostream>
 #include "gtest/gtest.h"
 
+#include "bb/NormalDistributionGenerator.h"
+#include "bb/UniformDistributionGenerator.h"
 #include "bb/LoweringConvolution.h"
 #include "bb/DenseAffine.h"
+#include "bb/BinaryLutN.h"
+#include "bb/Sequential.h"
 
 
 TEST(LoweringConvolutionTest, testLoweringConvolution)
@@ -94,6 +98,104 @@ TEST(LoweringConvolutionTest, testLoweringConvolution)
 	EXPECT_NEAR(exp01, y_buf.GetFP32(0, 1), 0.000001);
 	EXPECT_NEAR(exp10, y_buf.GetFP32(0, 2), 0.000001);
 	EXPECT_NEAR(exp11, y_buf.GetFP32(0, 3), 0.000001);
+}
+
+
+
+
+template<typename FT=float, typename BT=float>
+void testLoweringConvolution_cmpare(
+        std::shared_ptr<bb::Model> cnv_layer,
+        int loop_num,
+        int frame_size,
+        int y_c = 32,
+        int x_c = 3,
+        int x_h = 28,
+        int x_w = 28,
+        int f_h = 3,
+        int f_w = 3)
+{
+    int y_h = x_h - f_h + 1;
+    int y_w = x_w - f_w + 1;
+
+	auto layer_cpu = bb::LoweringConvolution<FT, BT>::Create(cnv_layer, f_h, f_w);
+	auto layer_gpu = bb::LoweringConvolution<FT, BT>::Create(cnv_layer, f_h, f_w);
+
+    bb::FrameBuffer x_cpu(bb::DataType<FT>::type, frame_size, {x_w, x_h, x_c}, true);
+    bb::FrameBuffer x_gpu(bb::DataType<FT>::type, frame_size, {x_w, x_h, x_c});
+    
+    layer_cpu->SetInputShape(x_cpu.GetShape());
+    layer_gpu->SetInputShape(x_gpu.GetShape());
+
+    layer_cpu->SendCommand("host_only true");
+
+    auto valgen = bb::UniformDistributionGenerator<FT>::Create(0, 1, 1);
+
+    for ( int loop = 0; loop < loop_num; ++ loop ) 
+    {
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < x_cpu.GetNodeSize(); ++node ) {
+                x_cpu.SetFP32(frame, node, valgen->GetValue());
+                x_gpu.SetFP32(frame, node, x_cpu.GetFP32(frame, node));
+            }
+        }
+
+        auto y_cpu = layer_cpu->Forward(x_cpu);
+        auto y_gpu = layer_gpu->Forward(x_gpu);
+
+        // 壊れていないことを一応確認
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < x_cpu.GetNodeSize(); ++node ) {
+                auto val_cpu = x_cpu.GetFP32(frame, node);
+                auto val_gpu = x_gpu.GetFP32(frame, node);
+                EXPECT_EQ(val_cpu, val_gpu);
+            }
+        }
+
+        // 結果比較
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < y_cpu.GetNodeSize(); ++node ) {
+                auto val_cpu = y_cpu.GetFP32(frame, node);
+                auto val_gpu = y_gpu.GetFP32(frame, node);
+                EXPECT_NEAR(val_cpu, val_gpu, 0.0001f);
+            }
+        }
+
+        if ( bb::DataType<FT>::type != BB_TYPE_BIT ) {
+            // backward
+            bb::FrameBuffer dy_cpu(BB_TYPE_FP32, frame_size, {y_w, y_h, y_c}, true);
+            bb::FrameBuffer dy_gpu(BB_TYPE_FP32, frame_size, {y_w, y_h, y_c});
+            for ( int frame = 0; frame < frame_size; ++frame) {
+                for ( int node = 0; node < dy_cpu.GetNodeSize(); ++node ) {
+                    dy_cpu.SetFP32(frame, node, valgen->GetValue());
+                    dy_gpu.SetFP32(frame, node, dy_cpu.GetFP32(frame, node));
+                }
+            }
+
+            auto dx_cpu = layer_cpu->Backward(dy_cpu);
+            auto dx_gpu = layer_gpu->Backward(dy_gpu);
+
+            for ( int frame = 0; frame < frame_size; ++frame) {
+                for ( int node = 0; node < dx_cpu.GetNodeSize(); ++node ) {
+                    auto val_cpu = dx_cpu.GetFP32(frame, node);
+                    auto val_gpu = dx_gpu.GetFP32(frame, node);
+                    EXPECT_NEAR(val_cpu, val_gpu, 0.0001f);
+                }
+            }
+        }
+    }
+}
+
+
+
+TEST(LoweringConvolutionTest, testLoweringConvolution_cmp_float)
+{
+//  testLoweringConvolution_cmpare<float, float>(bb::DenseAffine<float>::Create(32), 2, 16, 32);
+}
+
+TEST(LoweringConvolutionTest, testLoweringConvolution_cmp_bit)
+{
+    testLoweringConvolution_cmpare<bb::Bit, float>(bb::BinaryLutN<6, bb::Bit>::Create(32), 2, 16, 32);
 }
 
 
