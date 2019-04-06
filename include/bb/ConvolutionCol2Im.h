@@ -25,7 +25,7 @@ class ConvolutionCol2Im : public Model
 protected:
     indices_t       m_input_shape;
 
-    bool            m_host_only = false;
+    bool            m_host_only = true;
 
 	index_t			m_c_size = 1;
 	index_t			m_h_size = 1;

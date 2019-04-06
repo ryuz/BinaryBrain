@@ -26,7 +26,7 @@ template <typename FT = float, typename BT = float>
 class ConvolutionIm2Col : public Model
 {
 protected:
-	bool			m_host_only   = false;
+	bool			m_host_only   = true;
  
     indices_t       m_input_shape;
     indices_t       m_output_shape;

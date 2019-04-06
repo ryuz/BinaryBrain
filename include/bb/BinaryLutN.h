@@ -24,7 +24,7 @@ class BinaryLutN : public LutLayer<FT, BT>
 {
 protected:
     bool            m_host_only = false;
-    bool            m_host_simd = true;
+    bool            m_host_simd = false;
 
     indices_t       m_input_shape;
     indices_t       m_output_shape;
