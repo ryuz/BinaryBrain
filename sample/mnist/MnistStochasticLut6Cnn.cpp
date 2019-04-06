@@ -196,6 +196,8 @@ void MnistStochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int lut_fram
 
         // •]‰¿
         if ( 1 ) {
+//          lut_net->SendCommand("host_only true");
+
             std::cout << "lut_frame_mux_size : "  << lut_frame_mux_size << std::endl;
 
             bb::Runner<float>::create_t lut_runner_create;

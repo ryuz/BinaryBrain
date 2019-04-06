@@ -26,8 +26,8 @@ template <typename FT = float, typename BT = float>
 class ConvolutionIm2Col : public Model
 {
 protected:
-	bool			m_host_only   = false;
- 
+	bool			m_host_only = false;
+    
     indices_t       m_input_shape;
     indices_t       m_output_shape;
 	index_t 		m_input_frame_size;
@@ -188,7 +188,7 @@ public:
 #endif
 
 #ifdef BB_WITH_CUDA
-        if ( !m_host_only && x.GetType() == BB_TYPE_BIT && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable())
+        if ( false && !m_host_only && x.GetType() == BB_TYPE_BIT && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable())
         {
             // bit CUDA
             auto ptr_x = x.LockDeviceMemoryConst();
