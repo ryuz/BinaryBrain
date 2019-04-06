@@ -45,7 +45,7 @@ void StochasticLut6_cmp(int const input_node_size, int const output_node_size, i
     // 係数を同一化
     {
         auto W_cpu = lut_cpu->lock_W_const();
-        auto W_gpu = lut_cpu->lock_W();
+        auto W_gpu = lut_gpu->lock_W();
         for (int node = 0; node < output_node_size; ++node) {
             for (int i = 0; i < 64; ++i) {
                 auto W = W_cpu(node, i);
@@ -81,17 +81,23 @@ void StochasticLut6_cmp(int const input_node_size, int const output_node_size, i
                 auto val_cpu = x_cpu.GetFP32(frame, node);
                 auto val_gpu = x_gpu.GetFP32(frame, node);
                 EXPECT_FLOAT_EQ(val_cpu, val_gpu);
+                if (std::abs(val_cpu - val_gpu) >= 0.0001f) {
+                    std::cout << frame << " " << node << std::endl;
+                }
             }
         }
 
         {
             auto W_cpu = lut_cpu->lock_W_const();
-            auto W_gpu = lut_cpu->lock_W_const();
+            auto W_gpu = lut_gpu->lock_W_const();
             for (int node = 0; node < output_node_size; ++node) {
                 for (int i = 0; i < 64; ++i) {
                     auto val_cpu = W_cpu(node, i);
                     auto val_gpu = W_gpu(node, i);
                     EXPECT_NEAR(val_cpu, val_gpu, 0.0001f);
+                    if (std::abs(val_cpu - val_gpu) >= 0.0001f) {
+                        std::cout <<  node << std::endl;
+                    }
                 }
             }
         }
@@ -101,6 +107,9 @@ void StochasticLut6_cmp(int const input_node_size, int const output_node_size, i
                 auto val_cpu = y_cpu.GetFP32(frame, node);
                 auto val_gpu = y_gpu.GetFP32(frame, node);
                 EXPECT_NEAR(val_cpu, val_gpu, 0.0001f);
+                if (std::abs(val_cpu - val_gpu) >= 0.0001f) {
+                    std::cout << frame << " " << node << std::endl;
+                }
             }
         }
 
@@ -123,18 +132,6 @@ void StochasticLut6_cmp(int const input_node_size, int const output_node_size, i
         EXPECT_EQ(frame_size, dx_cpu.GetFrameSize());
         EXPECT_EQ(frame_size, dx_gpu.GetFrameSize());
 
-        {
-            auto dW_cpu = lut_cpu->lock_dW_const();
-            auto dW_gpu = lut_cpu->lock_dW_const();
-            for (int node = 0; node < output_node_size; ++node) {
-                for (int i = 0; i < 64; ++i) {
-                    auto val_cpu = dW_cpu(node, i);
-                    auto val_gpu = dW_gpu(node, i);
-                    EXPECT_NEAR(val_cpu, val_gpu, 0.0001f);
-                }
-            }
-        }
-
         for ( int frame = 0; frame < frame_size; ++frame) {
             for ( int node = 0; node < input_node_size; ++node ) {
                 auto val_cpu = dx_cpu.GetFP32(frame, node);
@@ -146,8 +143,57 @@ void StochasticLut6_cmp(int const input_node_size, int const output_node_size, i
             }
         }
 
+        {
+            auto W_cpu = lut_cpu->lock_W_const();
+            auto W_gpu = lut_gpu->lock_W_const();
+            for (int node = 0; node < output_node_size; ++node) {
+                for (int i = 0; i < 64; ++i) {
+                    auto val_cpu = W_cpu(node, i);
+                    auto val_gpu = W_gpu(node, i);
+                    EXPECT_NEAR(val_cpu, val_gpu, 0.0001f);
+                    if (std::abs(val_cpu - val_gpu) >= 0.0001f) {
+                        std::cout <<  node << std::endl;
+                    }
+                }
+            }
+        }
+
+        {
+            auto dW_cpu = lut_cpu->lock_dW_const();
+            auto dW_gpu = lut_gpu->lock_dW_const();
+            for (int node = 0; node < output_node_size; ++node) {
+                for (int i = 0; i < 64; ++i) {
+                    auto val_cpu = dW_cpu(node, i);
+                    auto val_gpu = dW_gpu(node, i);
+                    EXPECT_NEAR(val_cpu, val_gpu, 0.0001f);
+                    if ( !(abs(val_cpu - val_gpu) < 0.0001f) ) {
+                        std::cout << node << std::endl;
+                        getchar();
+                    }
+                }
+            }
+        }
+
         opt_cpu->Update();
         opt_gpu->Update();
+
+        {
+            auto W_cpu = lut_cpu->lock_W_const();
+            auto W_gpu = lut_gpu->lock_W_const();
+            for (int node = 0; node < output_node_size; ++node) {
+                for (int i = 0; i < 64; ++i) {
+                    auto val_cpu = W_cpu(node, i);
+                    auto val_gpu = W_gpu(node, i);
+                    EXPECT_NEAR(val_cpu, val_gpu, 0.0001f);
+                    if ( !(std::abs(val_cpu - val_gpu) < 0.0001f) ) {
+                        auto dW_cpu = lut_cpu->lock_dW_const();
+                        auto dW_gpu = lut_gpu->lock_dW_const();                      
+                        std::cout <<  node << "cpu_dW: " << dW_cpu(node, i) << "  gpu_dW : " << dW_gpu(node, i) << std::endl;
+                        getchar();
+                    }
+                }
+            }
+        }
     }
 
 

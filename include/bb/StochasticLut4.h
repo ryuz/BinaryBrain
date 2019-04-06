@@ -20,7 +20,7 @@ namespace bb {
 
 // テーブルサイズ固定LUT
 template <typename T = float>
-class StochasticLut6 : public SparseLayer<T, T>
+class StochasticLut4 : public SparseLayer<T, T>
 {
     using super = SparseLayer<T, T>;
 
@@ -69,7 +69,7 @@ protected:
     */
 
 public:
-	~RealLut4() {}
+	~StochasticLut4() {}
 
     struct create_t
     {
@@ -77,9 +77,9 @@ public:
         std::uint64_t   seed = 1;
     };
 
-    static std::shared_ptr<RealLut4> Create(create_t const &create)
+    static std::shared_ptr<StochasticLut4> Create(create_t const &create)
     {
-        auto self = std::shared_ptr<RealLut4>(new RealLut4);
+        auto self = std::shared_ptr<StochasticLut4>(new StochasticLut4);
         BB_ASSERT(!create.output_shape.empty());
         self->m_output_shape     = create.output_shape;
         self->m_output_node_size = GetShapeSize(self->m_output_shape);
@@ -87,7 +87,7 @@ public:
         return self;
     }
 
-    static std::shared_ptr<RealLut4> Create(indices_t const &output_shape, std::uint64_t seed = 1)
+    static std::shared_ptr<StochasticLut4> Create(indices_t const &output_shape, std::uint64_t seed = 1)
     {
         create_t create;
         create.output_shape = output_shape;
@@ -95,7 +95,7 @@ public:
         return Create(create);
     }
 
-    static std::shared_ptr<RealLut4> Create(index_t output_node_size, std::uint64_t seed = 1)
+    static std::shared_ptr<StochasticLut4> Create(index_t output_node_size, std::uint64_t seed = 1)
     {
         create_t create;
         create.output_shape.resize(1);
@@ -103,7 +103,7 @@ public:
         return Create(create);
     }
 
-	std::string GetClassName(void) const { return "RealLut4"; }
+	std::string GetClassName(void) const { return "StochasticLut4"; }
 
 
 public:
