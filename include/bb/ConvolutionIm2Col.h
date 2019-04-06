@@ -188,7 +188,7 @@ public:
 #endif
 
 #ifdef BB_WITH_CUDA
-        if ( !m_host_only && x.GetType() == BB_TYPE_BIT && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable())
+        if ( false && !m_host_only && x.GetType() == BB_TYPE_BIT && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable())
         {
             // bit CUDA
             auto ptr_x = x.LockDeviceMemoryConst();
