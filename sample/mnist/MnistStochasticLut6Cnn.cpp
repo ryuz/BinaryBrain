@@ -45,7 +45,7 @@ void MnistStochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int lut_fram
 	auto td = bb::LoadMnist<>::Load(10, 512, 128);
     std::cout << "!!! debug mode !!!" << std::endl;
 #else
-    auto td = bb::LoadMnist<>::Load(10, 10000, 10000);
+    auto td = bb::LoadMnist<>::Load(10);
 #endif
 
     // create network
