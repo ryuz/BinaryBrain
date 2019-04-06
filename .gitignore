@@ -45,6 +45,8 @@ sample/mnist/verilog/MnistSimpleLutCnn.v
 sample/diabetes/diabetes_data.txt
 sample/diabetes/diabetes_target.txt
 
+sample/diabetes/DiabetesRegressionBinaryLut.v
+
 test/diabetes/diabetes_data.txt
 test/diabetes/diabetes_target.txt
 
