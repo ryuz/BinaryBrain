@@ -85,9 +85,9 @@ __global__ void kernal_bit_Col2Im_Forward(
         )
 {
     int output_frame_unit = blockDim.x * blockIdx.x + threadIdx.x;
+    int xy                = blockDim.y * blockIdx.y + threadIdx.y;
 
-    if ( output_frame_unit < output_frame_stride ) {
-        int xy                = blockDim.y * blockIdx.y + threadIdx.y;
+    if ( output_frame_unit < output_frame_stride && xy < hw_size ) {
         int c                 = blockDim.z * blockIdx.z + threadIdx.z;
         int output_node  = c * hw_size + xy;
 

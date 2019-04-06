@@ -101,19 +101,6 @@ __device__ __forceinline__ int read_bit(int const *buf, int index)
     return ((buf[index] >> bit) & 1);
 }
 
-__device__ __forceinline__ void write_bit(int *buf, int index, int value)
-{
-    int bit = index % 32;
-    index /= 32;
-    if ( value ) {
-        buf[index] |= (1 << bit);
-    }
-    else {
-        buf[index] &= ~(1 << bit);
-    }
-}
-
-
 __global__ void kernal_bit_Im2Col_Forward(
             const int*      x_buf,
             int*            y_buf,
