@@ -4,7 +4,7 @@
 #include <assert.h>
 
 #include "cuda_runtime.h"
-
+#include "bbcu/bbcu_util.h"
 
 /*
 #ifdef DLL_EXPORT
@@ -38,6 +38,14 @@ BBCU_DLL_EXPORT bool bbcu_IsDeviceAvailable(void);
 // -------------------------------------
 //  Vector Operation
 // -------------------------------------
+
+// dst = a
+BBCU_DLL_EXPORT int bbcu_fp32_Vector_set(
+			float*			dev_dst,
+			float			a,
+			int				size,
+            cudaStream_t	streamId = 0
+		);
 
 // dst = a * src0 + b * src1 + c
 BBCU_DLL_EXPORT int bbcu_fp32_Vector_add_ex
@@ -144,21 +152,24 @@ BBCU_DLL_EXPORT int bbcu_fp32_Vector_clamp(
 		);
 
 
-
+// -------------------------------------
+//  Matrix
+// -------------------------------------
 
 // Horizontal Sum
-BBCU_DLL_EXPORT	int bbcu_fp32_HorizontalSum
+BBCU_DLL_EXPORT	int bbcu_fp32_MatrixColwiseSum
         (
             const float*	dev_src,
             float*			dev_dst,
-            int				x_size,
-            int				y_size,
+            int				node_size,
+            int				frame_size,
+            int				frame_stride,
             cudaStream_t	streamId = 0
         );
 
 
 // Horizontal MeanVar
-BBCU_DLL_EXPORT int bbcu_fp32_HorizontalMeanVar
+BBCU_DLL_EXPORT int bbcu_fp32_MatrixColwiseMeanVar
 		(
 			const float*	dev_src,
 			float*			dev_mean,
@@ -169,6 +180,16 @@ BBCU_DLL_EXPORT int bbcu_fp32_HorizontalMeanVar
 			cudaStream_t	streamId = 0
 		);
 
+
+int bbcu_fp32_MatrixRowwiseSetVector
+        (
+            const float*    dev_x_vec,
+            float*          dev_y_mat,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId = 0
+        );
 
 // -------------------------------------
 //  MicroMlp
@@ -214,10 +235,44 @@ BBCU_DLL_EXPORT int bbcu_fp32_MicroMlp6x16_Backward(
 
 
 // -------------------------------------
+//  StochasticLut
+// -------------------------------------
+
+
+int bbcu_fp32_StochasticLut6_Forward
+        (
+            const float     *dev_x_buf,
+            float           *dev_y_buf,
+            int   const     *dev_input_index,
+            float const     *dev_W,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride,
+            int             binary_mode,
+            cudaStream_t    streamId = 0
+        );
+
+int bbcu_fp32_StochasticLut6_Backward(
+            float const     *dev_x_buf,
+            float const     *dev_dy_buf,
+            float           *dev_dx_buf,
+            float           *dev_dx_tmp,
+            int   const     *dev_input_index,
+            float const     *dev_W,
+            float           *dev_dW,
+            int             input_node_size,
+            int             output_node_size,
+            int             frame_size,
+            int             frame_stride,
+            int             binary_mode,
+            cudaStream_t    streamId = 0
+        );
+
+// -------------------------------------
 //  BatchNormalization
 // -------------------------------------
 
-BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Forward
+BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_ForwardTraining
 		(
 			float const     *dev_x_buf,
 			float           *dev_y_buf,
@@ -233,6 +288,20 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Forward
 			int				frame_stride,
 			cudaStream_t    streamId = 0
 		);
+
+BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_ForwardInference
+		(
+			float const     *dev_x_buf,
+			float           *dev_y_buf,
+			float const     *dev_gamma_buf,
+			float const     *dev_beta_buf,
+			float const     *dev_running_mean_buf,
+			float const     *dev_running_var_buf,
+			int				node_size,
+			int				frame_size,
+			int				frame_stride,
+            cudaStream_t    streamId = 0
+        );
 
 BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Backward
         (
@@ -297,28 +366,42 @@ BBCU_DLL_EXPORT int bbcu_fp32_MaxPooling_Backward
 
 BBCU_DLL_EXPORT	int bbcu_fp32_Im2Col_Forward
         (
-            const float*	input_sig_dev_buf,
+            float const     *dev_x_buf,
+            float           *dev_y_buf,
             int				input_frame_size,
             int				input_frame_stride,
             int				input_w_size,
             int				input_h_size,
             int				input_c_size,
-            float*			output_sig_dev_buf,
             int				output_frame_stride,
             int				filter_w_size,
             int				filter_h_size,
             cudaStream_t    streamId = 0   
         );
 
+BBCU_DLL_EXPORT int bbcu_bit_Col2Im_Forward
+        (
+            int const       *dev_x_buf,
+            int             *dev_y_buf,
+            int             w_size,
+            int             h_size,
+            int             c_size,
+            int             input_frame_stride,
+            int             output_frame_size,
+            int             output_frame_stride,
+            cudaStream_t    streamId = 0
+        );
+
+
 BBCU_DLL_EXPORT int bbcu_fp32_Im2Col_Backward
         (
-			float*			input_grad_dev_buf,
+			float const     *dev_fy_buf,
+			float           *dev_dx_buf,
 			int				input_frame_size,
 			int				input_frame_stride,
 			int				input_w_size,
 			int				input_h_size,
 			int				input_c_size,
-			const float*	out_grad_dev_buf,
 			int				output_frame_stride,			
             int				filter_w_size,
 			int				filter_h_size,            
@@ -343,6 +426,22 @@ BBCU_DLL_EXPORT int bbcu_fp32_Col2Im_Forward
             cudaStream_t	streamId = 0
         );
 
+BBCU_DLL_EXPORT int bbcu_bit_Im2Col_Forward
+        (
+            int const       *dev_x_buf,
+            int             *dev_y_buf,
+            int             input_frame_size,
+            int             input_frame_stride,
+            int             input_w_size,
+            int             input_h_size,
+            int             input_c_size,
+            int             output_frame_stride,
+            int             filter_w_size,
+            int             filter_h_size,
+            cudaStream_t    streamId = 0
+        );
+
+
 BBCU_DLL_EXPORT int bbcu_fp32_Col2Im_Backward
 		(
 			float const     *dev_dy_buf,
@@ -356,31 +455,6 @@ BBCU_DLL_EXPORT int bbcu_fp32_Col2Im_Backward
             cudaStream_t	streamId = 0
 		);
 
-
-// -------------------------------------
-// ReLU
-// -------------------------------------
-
-BBCU_DLL_EXPORT int bbcu_fp32_ReLU_Forward
-		(
-			const float*	dev_x_buf,
-			float*			dev_y_buf,
-			int				frame_size,
-			int				frame_stride,
-			int				node_size,
-            cudaStream_t    streamId = 0
-        );
-
-BBCU_DLL_EXPORT int bbcu_fp32_ReLU_Backward
-		(
-			const float*	dev_x_buf,
-			const float*	dev_dy_buf,
-			float*			dev_dx_buf,
-			int				frame_size,
-			int				frame_stride,
-			int				node_size,
-            cudaStream_t    streamId = 0
-        );
 
 
 // -------------------------------------
@@ -398,6 +472,59 @@ BBCU_DLL_EXPORT int bbcu_fp32_Binarize_Forward
         );
 
 BBCU_DLL_EXPORT int bbcu_fp32_HardTanh_Backward
+		(
+			const float*	dev_x_buf,
+			const float*	dev_dy_buf,
+			float*			dev_dx_buf,
+			int				node_size,
+			int				frame_size,
+			int				frame_stride,
+            cudaStream_t    streamId = 0
+        );
+
+
+// -------------------------------------
+//  Sigmoid
+// -------------------------------------
+
+BBCU_DLL_EXPORT int bbcu_fp32_Sigmoid_Forward
+		(
+			const float*	dev_x_buf,
+			float*			dev_y_buf,
+			int				node_size,
+			int				frame_size,
+			int				frame_stride,
+            cudaStream_t    streamId = 0
+        );
+
+
+BBCU_DLL_EXPORT int bbcu_fp32_Sigmoid_Backward
+		(
+			const float*	dev_y_buf,
+			const float*	dev_dy_buf,
+			float*			dev_dx_buf,
+			int				node_size,
+			int				frame_size,
+			int				frame_stride,
+            cudaStream_t    streamId = 0
+        );
+
+
+// -------------------------------------
+//  ReLU
+// -------------------------------------
+
+BBCU_DLL_EXPORT int bbcu_fp32_ReLU_Forward
+		(
+			const float*	dev_x_buf,
+			float*			dev_y_buf,
+			int				node_size,
+			int				frame_size,
+			int				frame_stride,
+            cudaStream_t    streamId = 0
+        );
+
+BBCU_DLL_EXPORT int bbcu_fp32_ReLU_Backward
 		(
 			const float*	dev_x_buf,
 			const float*	dev_dy_buf,
@@ -461,6 +588,20 @@ BBCU_DLL_EXPORT int bbcu_fp32_LossSoftmaxCrossEntropy
         );
 
 
+// -------------------------------------
+//  AccuracyCategoricalClassification
+// -------------------------------------
+
+BBCU_DLL_EXPORT int bbcu_fp32_AccuracyCategoricalClassification
+		(
+			const float*	dev_y_buf,
+			const float*	dev_t_buf,
+			int*			dev_accuracy,
+			int				node_size,
+			int				frame_size,
+			int				frame_stride,
+            cudaStream_t    streamId = 0
+        );
 
 // -------------------------------------
 //  Adam

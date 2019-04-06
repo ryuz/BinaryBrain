@@ -32,6 +32,8 @@ template <typename FXT = float, typename FYT = float, typename BT = float>
 class BinaryToReal : public Model
 {
 protected:
+    bool                m_host_only = false;
+
     FrameBuffer         m_y;
     FrameBuffer         m_dx;
 
@@ -41,6 +43,21 @@ protected:
 
 protected:
 	BinaryToReal() {}
+
+    /**
+     * @brief  コマンド処理
+     * @detail コマンド処理
+     * @param  args   コマンド
+     */
+	void CommandProc(std::vector<std::string> args)
+	{
+        // HostOnlyモード設定
+        if (args.size() == 2 && args[0] == "host_only")
+        {
+            m_host_only = EvalBool(args[1]);
+        }
+	}
+
 public:
 	~BinaryToReal() {}
 
@@ -123,7 +140,7 @@ public:
         m_y.Resize(DataType<FYT>::type, x.GetFrameSize() / m_frame_mux_size, m_output_shape);
 
 #ifdef BB_WITH_CUDA
-        if ( DataType<FXT>::type == BB_TYPE_FP32 && DataType<FYT>::type == BB_TYPE_FP32
+        if ( DataType<FXT>::type == BB_TYPE_FP32 && !m_host_only && DataType<FYT>::type == BB_TYPE_FP32
             && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
 		    auto x_ptr = x.LockDeviceMemoryConst();
 		    auto y_ptr = m_y.LockDeviceMemory(true);
@@ -185,7 +202,7 @@ public:
         m_dx.Resize(DataType<BT>::type, dy.GetFrameSize() * m_frame_mux_size, m_input_shape);
 
 #ifdef BB_WITH_CUDA
-        if ( DataType<BT>::type == BB_TYPE_FP32
+        if ( DataType<BT>::type == BB_TYPE_FP32 && !m_host_only 
                 && dy.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
 
 		    auto dy_ptr = dy.LockDeviceMemoryConst();

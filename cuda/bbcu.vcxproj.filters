@@ -1,27 +1,67 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <CudaCompile Include="Binarize.cu" />
-    <CudaCompile Include="HorizontalMeanVar.cu" />
-    <CudaCompile Include="HorizontalSum.cu" />
-    <CudaCompile Include="Im2Col.cu" />
-    <CudaCompile Include="Manager.cu" />
-    <CudaCompile Include="MicroMlp.cu" />
-    <CudaCompile Include="ReLU.cu" />
-    <CudaCompile Include="Vector.cu" />
-    <CudaCompile Include="BatchNormalization.cu" />
-    <CudaCompile Include="MaxPooling.cu" />
-    <CudaCompile Include="Col2Im.cu" />
-    <CudaCompile Include="BinaryToReal.cu" />
-    <CudaCompile Include="LossSoftmaxCrossEntropy.cu" />
-    <CudaCompile Include="Adam.cu" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Makefile" />
+    <CudaCompile Include="AccuracyCategoricalClassification.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+    <CudaCompile Include="Adam.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+    <CudaCompile Include="BatchNormalization.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+    <CudaCompile Include="Binarize.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+    <CudaCompile Include="BinaryToReal.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+    <CudaCompile Include="Col2Im.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+    <CudaCompile Include="Im2Col.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+    <CudaCompile Include="LossSoftmaxCrossEntropy.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+    <CudaCompile Include="Manager.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+    <CudaCompile Include="MatrixColwiseMeanVar.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+    <CudaCompile Include="MatrixColwiseSum.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+    <CudaCompile Include="MatrixRowwiseSetVector.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+    <CudaCompile Include="MaxPooling.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+    <CudaCompile Include="MicroMlp.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+    <CudaCompile Include="ReLU.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+    <CudaCompile Include="Vector.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+    <CudaCompile Include="Sigmoid.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+    <CudaCompile Include="StochasticLut6.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ヘッダファイル">
       <UniqueIdentifier>{641d712f-b744-4362-9b3d-e157c86fbd31}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル">
+      <UniqueIdentifier>{ea600b9c-b72f-4583-ab74-e525f53bce2a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

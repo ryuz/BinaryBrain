@@ -44,7 +44,7 @@ TEST(DenseAffineTest, testAffine)
     
     // backward
     
-    bb::FrameBuffer dy_buf(BB_TYPE_FP32, 1, 2);
+    bb::FrameBuffer dy_buf(BB_TYPE_FP32, 1, 3);
 
     dy_buf.SetFP32(0, 0, 998);
 	dy_buf.SetFP32(0, 1, 2042);
@@ -66,6 +66,150 @@ TEST(DenseAffineTest, testAffine)
 	    EXPECT_EQ(6982, dW(2, 1));
     }
 }
+
+#ifdef BB_WITH_CUDA
+TEST(DenseAffineTest, testAffine_cudaBlas1)
+{
+    cublasHandle_t handle;
+    BB_CUBLAS_SAFE_CALL(cublasCreate(&handle));
+
+    bb::FrameBuffer a(BB_TYPE_FP32, 2, 3);
+    bb::FrameBuffer b(BB_TYPE_FP32, 3, 2);
+    bb::FrameBuffer c(BB_TYPE_FP32, 2, 2);
+
+    a.SetFP32(0, 0, 1);
+    a.SetFP32(0, 1, 2);
+    a.SetFP32(0, 2, 3);
+    a.SetFP32(1, 0, 4);
+    a.SetFP32(1, 1, 5);
+    a.SetFP32(1, 2, 6);
+
+    b.SetFP32(0, 0, 7);
+    b.SetFP32(0, 1, 8);
+    b.SetFP32(1, 0, 9);
+    b.SetFP32(1, 1, 10);
+    b.SetFP32(2, 0, 11);
+    b.SetFP32(2, 1, 12);
+
+    {
+        auto a_ptr = a.LockDeviceMemoryConst();
+        auto b_ptr = b.LockDeviceMemoryConst();
+        auto c_ptr = c.LockDeviceMemory(true);
+
+        float alpha = 1.0f;
+        float beta = 0.0f;
+        BB_CUBLAS_SAFE_CALL(cublasSgemm
+            (
+                handle,
+                CUBLAS_OP_N,
+                CUBLAS_OP_N,
+                (int)a.GetFrameSize(),   // = c.GetFrameSize() = 2
+                (int)b.GetNodeSize(),    // = c.GetNodeSize()  = 2
+                (int)a.GetNodeSize(),    // = b.GetFrameSize() = 3
+                &alpha,
+                (const float *)a_ptr.GetAddr(),
+                (int)(a.GetFrameStride() / sizeof(float)),
+                (const float *)b_ptr.GetAddr(),
+                (int)(b.GetFrameStride() / sizeof(float)),
+                &beta,
+                (float *)c_ptr.GetAddr(),
+                (int)(c.GetFrameStride() / sizeof(float))
+            ));
+    }
+
+    cublasDestroy(handle);
+
+    EXPECT_FLOAT_EQ(1*7 + 2*9  + 3*11, c.GetFP32(0, 0));
+    EXPECT_FLOAT_EQ(1*8 + 2*10 + 3*12, c.GetFP32(0, 1));
+    EXPECT_FLOAT_EQ(4*7 + 5*9  + 6*11, c.GetFP32(1, 0));
+    EXPECT_FLOAT_EQ(4*8 + 5*10 + 6*12, c.GetFP32(1, 1));
+    
+#if 0
+    for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 2; j++) {
+            std::cout << i << " " << j << " : " << c.GetFP32(i, j) << std::endl;
+        }
+    }
+#endif
+}
+
+
+TEST(DenseAffineTest, testAffine_cudaBlas2)
+{
+    cublasHandle_t handle;
+    BB_CUBLAS_SAFE_CALL(cublasCreate(&handle));
+
+    bb::FrameBuffer a(BB_TYPE_FP32, 2, 3);
+    bb::Tensor      b(BB_TYPE_FP32, {3, 2});
+    bb::FrameBuffer c(BB_TYPE_FP32, 2, 2);
+
+    a.SetFP32(0, 0, 1);
+    a.SetFP32(0, 1, 2);
+    a.SetFP32(0, 2, 3);
+    a.SetFP32(1, 0, 4);
+    a.SetFP32(1, 1, 5);
+    a.SetFP32(1, 2, 6);
+
+    {
+        auto b_ptr = b.Lock<float>();
+        b_ptr(0, 0) = 7;
+        b_ptr(1, 0) = 8;
+        b_ptr(0, 1) = 9;
+        b_ptr(1, 1) = 10;
+        b_ptr(0, 2) = 11;
+        b_ptr(1, 2) = 12;
+    }
+
+    c.SetFP32(0, 0, 21);
+    c.SetFP32(0, 1, 22);
+    c.SetFP32(1, 0, 23);
+    c.SetFP32(1, 1, 24);
+
+    {
+        auto a_ptr = a.LockDeviceMemoryConst();
+        auto b_ptr = b.LockDeviceMemoryConst();
+        auto c_ptr = c.LockDeviceMemory();
+
+        float alpha = 1.0f;
+        float beta = 1.0f;
+        BB_CUBLAS_SAFE_CALL(cublasSgemm
+            (
+                handle,
+                CUBLAS_OP_N,
+                CUBLAS_OP_N,
+                (int)c.GetFrameSize(),   // = a.GetFrameSize() = 2
+                (int)c.GetNodeSize(),    // = 2
+                (int)a.GetNodeSize(),    // = 3
+                &alpha,
+                (const float *)a_ptr.GetAddr(),
+                (int)(a.GetFrameStride() / sizeof(float)),
+                (const float *)b_ptr.GetAddr(),
+                3,
+                &beta,
+                (float *)c_ptr.GetAddr(),
+                (int)(c.GetFrameStride() / sizeof(float))
+            ));
+    }
+
+    cublasDestroy(handle);
+
+    EXPECT_FLOAT_EQ(21 + 1*7 + 2*9  + 3*11, c.GetFP32(0, 0));
+    EXPECT_FLOAT_EQ(22 + 1*8 + 2*10 + 3*12, c.GetFP32(0, 1));
+    EXPECT_FLOAT_EQ(23 + 4*7 + 5*9  + 6*11, c.GetFP32(1, 0));
+    EXPECT_FLOAT_EQ(24 + 4*8 + 5*10 + 6*12, c.GetFP32(1, 1));
+    
+#if 0
+    for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 2; j++) {
+            std::cout << i << " " << j << " : " << c.GetFP32(i, j) << std::endl;
+        }
+    }
+#endif
+}
+
+#endif
+
+
 
 #if 0
 TEST(NeuralNetDenseAffineTest, testAffineBatch)

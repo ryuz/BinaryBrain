@@ -3,13 +3,14 @@
 #include "gtest/gtest.h"
 
 #include "bb/Sigmoid.h"
+#include "bb/NormalDistributionGenerator.h"
 
 
 TEST(SigmoidTest, testSigmoid)
 {
   	auto sigmoid = bb::Sigmoid<>::Create();
-	
     bb::FrameBuffer x_buf(BB_TYPE_FP32, 1, 2);
+    sigmoid->SetInputShape(x_buf.GetShape());
 
 	x_buf.SetFP32(0, 0, 1);
 	x_buf.SetFP32(0, 1, 2);
@@ -37,7 +38,8 @@ TEST(SigmoidTest, testSigmoidBatch)
 	
     // forward
     bb::FrameBuffer x_buf(BB_TYPE_FP32, 2, 2);
-      
+    sigmoid->SetInputShape(x_buf.GetShape());
+
     x_buf.SetFP32(0, 0, 1);
 	x_buf.SetFP32(1, 0, 2);
 	x_buf.SetFP32(0, 1, 3);
@@ -68,4 +70,92 @@ TEST(SigmoidTest, testSigmoidBatch)
 	EXPECT_FLOAT_EQ(dy_buf.GetFP32(1, 1) * (1.0f - y_buf.GetFP32(1, 1)) * y_buf.GetFP32(1, 1), dx_buf.GetFP32(1, 1));
 }
 
+
+
+
+#ifdef BB_WITH_CUDA
+
+template<typename T = float>
+void testSigmoid_cmp(int node_size, int frame_size, int loop_num = 3)
+{
+    auto act_cpu = bb::Sigmoid<T>::Create();
+    auto act_gpu = bb::Sigmoid<T>::Create();
+
+    act_cpu->SendCommand("host_only true");
+
+    bb::FrameBuffer x_cpu(BB_TYPE_FP32, frame_size, node_size, true);
+    bb::FrameBuffer x_gpu(BB_TYPE_FP32, frame_size, node_size);
+    
+    act_cpu->SetInputShape(x_cpu.GetShape());
+    act_gpu->SetInputShape(x_gpu.GetShape());
+
+    auto valgen = bb::NormalDistributionGenerator<float>::Create(1.2f, 3.3f, 1);
+    for ( int loop = 0; loop < loop_num; ++ loop ) 
+    {
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < node_size; ++node ) {
+                x_cpu.SetFP32(frame, node, valgen->GetValue());
+                x_gpu.SetFP32(frame, node, x_cpu.GetFP32(frame, node));
+            }
+        }
+
+        auto y_cpu = act_cpu->Forward(x_cpu);
+        auto y_gpu = act_gpu->Forward(x_gpu);
+
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < node_size; ++node ) {
+                auto val_cpu = x_cpu.GetFP32(frame, node);
+                auto val_gpu = x_gpu.GetFP32(frame, node);
+                EXPECT_FLOAT_EQ(val_cpu, val_gpu);
+            }
+        }
+
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < node_size; ++node ) {
+                auto val_cpu = y_cpu.GetFP32(frame, node);
+                auto val_gpu = y_gpu.GetFP32(frame, node);
+                EXPECT_NEAR(val_cpu, val_gpu, 0.00001f);
+            }
+        }
+
+
+        // backward
+        bb::FrameBuffer dy_cpu(BB_TYPE_FP32, frame_size, node_size, true);
+        bb::FrameBuffer dy_gpu(BB_TYPE_FP32, frame_size, node_size);
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < node_size; ++node ) {
+                dy_cpu.SetFP32(frame, node, valgen->GetValue());
+                dy_gpu.SetFP32(frame, node, dy_cpu.GetFP32(frame, node));
+            }
+        }
+
+        auto dx_cpu = act_cpu->Backward(dy_cpu);
+        auto dx_gpu = act_gpu->Backward(dy_gpu);
+
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < node_size; ++node ) {
+                auto val_cpu = dx_cpu.GetFP32(frame, node);
+                auto val_gpu = dx_gpu.GetFP32(frame, node);
+                EXPECT_NEAR(val_cpu, val_gpu, 0.0001f);
+            }
+        }
+    }
+}
+
+
+TEST(SigmoidTest, testSigmoid_test_cmp0) { testSigmoid_cmp<float>(1, 1); }
+TEST(SigmoidTest, testSigmoid_test_cmp1) { testSigmoid_cmp<float>(7, 7); }
+TEST(SigmoidTest, testSigmoid_test_cmp2) { testSigmoid_cmp<float>(8, 8); }
+TEST(SigmoidTest, testSigmoid_test_cmp3) { testSigmoid_cmp<float>(9, 9); }
+TEST(SigmoidTest, testSigmoid_test_cmp4)
+{ 
+    testSigmoid_cmp<float>(1024, 1);
+}
+TEST(SigmoidTest, testSigmoid_test_cmp5) { testSigmoid_cmp<float>(1, 1024); }
+TEST(SigmoidTest, testSigmoid_test_cmp6) { testSigmoid_cmp<float>(1023, 2); }
+TEST(SigmoidTest, testSigmoid_test_cmp7) { testSigmoid_cmp<float>(2, 1025); }
+TEST(SigmoidTest, testSigmoid_test_cmp8) { testSigmoid_cmp<float>(1025, 3); }
+
+
+#endif
 

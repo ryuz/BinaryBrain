@@ -13,7 +13,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "TrainData.h"
+#include "bb/DataType.h"
 
 
 namespace bb {
@@ -29,10 +29,10 @@ public:
 		
 		int data_size = (1 << bit_size);
 		td.x_train.resize(data_size);
-		td.y_train.resize(data_size);
+		td.t_train.resize(data_size);
 		for (size_t i = 0; i < data_size; ++i) {
 			td.x_train[i].resize(bit_size);
-			td.y_train[i].resize(1);
+			td.t_train[i].resize(1);
 
 			int y = 0;
 			for (int j = 0; j < bit_size; ++j) {
@@ -44,18 +44,21 @@ public:
 					td.x_train[i][j] = (T)0.0;
 				}
 			}
-			td.y_train[i][0] = (T)y;
+			td.t_train[i][0] = (T)y;
 		}
 
 		td.x_test = td.x_train;
-		td.y_test = td.y_train;
+		td.t_test = td.t_train;
 
 		td.x_train.resize(data_size*mul);
-		td.y_train.resize(data_size*mul);
+		td.t_train.resize(data_size*mul);
 		for (size_t i = data_size; i < data_size*mul; ++i) {
 			td.x_train[i] = td.x_train[i%data_size];
-			td.y_train[i] = td.y_train[i%data_size];
+			td.t_train[i] = td.t_train[i%data_size];
 		}
+
+        td.x_shape = indices_t({bit_size});
+        td.t_shape = indices_t({1});
 
 		return td;
 	}
@@ -63,3 +66,4 @@ public:
 
 
 }
+

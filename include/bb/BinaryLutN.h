@@ -23,6 +23,9 @@ template <int N = 6, typename FT = Bit, typename BT = float>
 class BinaryLutN : public LutLayer<FT, BT>
 {
 protected:
+    bool            m_host_only = false;
+    bool            m_host_simd = true;
+
     indices_t       m_input_shape;
     indices_t       m_output_shape;
 
@@ -41,9 +44,14 @@ protected:
 protected:
     BinaryLutN() {}
 
-    /*
  	void CommandProc(std::vector<std::string> args)
 	{
+        // バイナリモード設定
+//      if ( args.size() == 2 && args[0] == "binary" )
+//      {
+//          m_binary_mode = EvalBool(args[1]);
+//      }
+
         // HostOnlyモード設定
         if (args.size() == 2 && args[0] == "host_only")
         {
@@ -56,7 +64,6 @@ protected:
             m_host_simd = EvalBool(args[1]);
         }
 	}
-    */
 
 public:
 	~BinaryLutN() {}
@@ -132,7 +139,7 @@ public:
     {
         BB_ASSERT(node >= 0 && (size_t)node < m_lut.size());
         BB_ASSERT(bitpos >= 0 && bitpos < (1 << N));
-        m_lut[node].table[bitpos] = value;
+        m_lut[node].table[bitpos] = value ? -1 : 0;
     }
 
     bool GetLutTable(index_t node, int bitpos) const
@@ -206,6 +213,32 @@ public:
         return m_output_shape;
     }
     
+
+private:
+    template<int LUT, int VAL>
+    inline __m256i lut_mask_unit(__m256i& val, __m256i& lut)
+    {
+        if ((LUT & (1 << VAL)) == 0) {
+            return _mm256_andnot_si256(val, lut);
+        }
+	    else {
+	        return _mm256_and_si256(val, lut);
+	    }
+    }
+    
+    template<int LUT>
+    inline void lut_mask(__m256i& msk, __m256i lut, __m256i val[6])
+    {
+	    lut = lut_mask_unit<LUT, 0>(val[0], lut);
+	    lut = lut_mask_unit<LUT, 1>(val[1], lut);
+	    lut = lut_mask_unit<LUT, 2>(val[2], lut);
+	    lut = lut_mask_unit<LUT, 3>(val[3], lut);
+	    lut = lut_mask_unit<LUT, 4>(val[4], lut);
+	    lut = lut_mask_unit<LUT, 5>(val[5], lut);
+	    msk = _mm256_or_si256(msk, lut);
+    }
+
+public:
     FrameBuffer Forward(FrameBuffer x, bool train = true)
     {
         BB_ASSERT(x.GetType() == DataType<FT>::type);
@@ -218,14 +251,123 @@ public:
         // 出力を設定
         m_y.Resize(DataType<FT>::type, x.GetFrameSize(), m_output_shape);
 
+        if ( N == 6 && DataType<FT>::type == BB_TYPE_BIT && m_host_simd ) {
+            auto x_ptr = x.LockConst<Bit>();
+            auto y_ptr = m_y.Lock<Bit>(true);
+
+            index_t node_size  = m_y.GetNodeSize();
+            index_t frame_size = m_y.GetFrameStride() / sizeof(__m256i);
+
+            #pragma omp parallel for
+            for (index_t node = 0; node < node_size; ++node) {
+
+        		auto& lut = m_lut[node];
+
+		        __m256i*	in_sig_ptr[6];
+		        __m256i*	out_sig_ptr;
+		        __m256i		in_sig[6];
+
+		        in_sig_ptr[0] = (__m256i*)x_ptr.GetAddr(lut.input[0]);
+		        in_sig_ptr[1] = (__m256i*)x_ptr.GetAddr(lut.input[1]);
+		        in_sig_ptr[2] = (__m256i*)x_ptr.GetAddr(lut.input[2]);
+		        in_sig_ptr[3] = (__m256i*)x_ptr.GetAddr(lut.input[3]);
+		        in_sig_ptr[4] = (__m256i*)x_ptr.GetAddr(lut.input[4]);
+		        in_sig_ptr[5] = (__m256i*)x_ptr.GetAddr(lut.input[5]);
+		        out_sig_ptr   = (__m256i*)y_ptr.GetAddr(node);
+
+		        for (index_t i = 0; i < frame_size; i++) {
+			        // input
+			        in_sig[0] = _mm256_loadu_si256(&in_sig_ptr[0][i]);
+			        in_sig[1] = _mm256_loadu_si256(&in_sig_ptr[1][i]);
+			        in_sig[2] = _mm256_loadu_si256(&in_sig_ptr[2][i]);
+			        in_sig[3] = _mm256_loadu_si256(&in_sig_ptr[3][i]);
+			        in_sig[4] = _mm256_loadu_si256(&in_sig_ptr[4][i]);
+			        in_sig[5] = _mm256_loadu_si256(&in_sig_ptr[5][i]);
+
+			        // LUT
+			        __m256i msk = _mm256_set1_epi8(0);
+			        lut_mask<0>(msk, _mm256_set1_epi8(lut.table[0]), in_sig);
+			        lut_mask<1>(msk, _mm256_set1_epi8(lut.table[1]), in_sig);
+			        lut_mask<2>(msk, _mm256_set1_epi8(lut.table[2]), in_sig);
+			        lut_mask<3>(msk, _mm256_set1_epi8(lut.table[3]), in_sig);
+			        lut_mask<4>(msk, _mm256_set1_epi8(lut.table[4]), in_sig);
+			        lut_mask<5>(msk, _mm256_set1_epi8(lut.table[5]), in_sig);
+			        lut_mask<6>(msk, _mm256_set1_epi8(lut.table[6]), in_sig);
+			        lut_mask<7>(msk, _mm256_set1_epi8(lut.table[7]), in_sig);
+			        lut_mask<8>(msk, _mm256_set1_epi8(lut.table[8]), in_sig);
+			        lut_mask<9>(msk, _mm256_set1_epi8(lut.table[9]), in_sig);
+			        lut_mask<10>(msk, _mm256_set1_epi8(lut.table[10]), in_sig);
+			        lut_mask<11>(msk, _mm256_set1_epi8(lut.table[11]), in_sig);
+			        lut_mask<12>(msk, _mm256_set1_epi8(lut.table[12]), in_sig);
+			        lut_mask<13>(msk, _mm256_set1_epi8(lut.table[13]), in_sig);
+			        lut_mask<14>(msk, _mm256_set1_epi8(lut.table[14]), in_sig);
+			        lut_mask<15>(msk, _mm256_set1_epi8(lut.table[15]), in_sig);
+			        lut_mask<16>(msk, _mm256_set1_epi8(lut.table[16]), in_sig);
+			        lut_mask<17>(msk, _mm256_set1_epi8(lut.table[17]), in_sig);
+			        lut_mask<18>(msk, _mm256_set1_epi8(lut.table[18]), in_sig);
+			        lut_mask<19>(msk, _mm256_set1_epi8(lut.table[19]), in_sig);
+			        lut_mask<20>(msk, _mm256_set1_epi8(lut.table[20]), in_sig);
+			        lut_mask<21>(msk, _mm256_set1_epi8(lut.table[21]), in_sig);
+			        lut_mask<22>(msk, _mm256_set1_epi8(lut.table[22]), in_sig);
+			        lut_mask<23>(msk, _mm256_set1_epi8(lut.table[23]), in_sig);
+			        lut_mask<24>(msk, _mm256_set1_epi8(lut.table[24]), in_sig);
+			        lut_mask<25>(msk, _mm256_set1_epi8(lut.table[25]), in_sig);
+			        lut_mask<26>(msk, _mm256_set1_epi8(lut.table[26]), in_sig);
+			        lut_mask<27>(msk, _mm256_set1_epi8(lut.table[27]), in_sig);
+			        lut_mask<28>(msk, _mm256_set1_epi8(lut.table[28]), in_sig);
+			        lut_mask<29>(msk, _mm256_set1_epi8(lut.table[29]), in_sig);
+			        lut_mask<30>(msk, _mm256_set1_epi8(lut.table[30]), in_sig);
+			        lut_mask<31>(msk, _mm256_set1_epi8(lut.table[31]), in_sig);
+			        lut_mask<32>(msk, _mm256_set1_epi8(lut.table[32]), in_sig);
+			        lut_mask<33>(msk, _mm256_set1_epi8(lut.table[33]), in_sig);
+			        lut_mask<34>(msk, _mm256_set1_epi8(lut.table[34]), in_sig);
+			        lut_mask<35>(msk, _mm256_set1_epi8(lut.table[35]), in_sig);
+			        lut_mask<36>(msk, _mm256_set1_epi8(lut.table[36]), in_sig);
+			        lut_mask<37>(msk, _mm256_set1_epi8(lut.table[37]), in_sig);
+			        lut_mask<38>(msk, _mm256_set1_epi8(lut.table[38]), in_sig);
+			        lut_mask<39>(msk, _mm256_set1_epi8(lut.table[39]), in_sig);
+			        lut_mask<40>(msk, _mm256_set1_epi8(lut.table[40]), in_sig);
+			        lut_mask<41>(msk, _mm256_set1_epi8(lut.table[41]), in_sig);
+			        lut_mask<42>(msk, _mm256_set1_epi8(lut.table[42]), in_sig);
+			        lut_mask<43>(msk, _mm256_set1_epi8(lut.table[43]), in_sig);
+			        lut_mask<44>(msk, _mm256_set1_epi8(lut.table[44]), in_sig);
+			        lut_mask<45>(msk, _mm256_set1_epi8(lut.table[45]), in_sig);
+			        lut_mask<46>(msk, _mm256_set1_epi8(lut.table[46]), in_sig);
+			        lut_mask<47>(msk, _mm256_set1_epi8(lut.table[47]), in_sig);
+			        lut_mask<48>(msk, _mm256_set1_epi8(lut.table[48]), in_sig);
+			        lut_mask<49>(msk, _mm256_set1_epi8(lut.table[49]), in_sig);
+			        lut_mask<50>(msk, _mm256_set1_epi8(lut.table[50]), in_sig);
+			        lut_mask<51>(msk, _mm256_set1_epi8(lut.table[51]), in_sig);
+			        lut_mask<52>(msk, _mm256_set1_epi8(lut.table[52]), in_sig);
+			        lut_mask<53>(msk, _mm256_set1_epi8(lut.table[53]), in_sig);
+			        lut_mask<54>(msk, _mm256_set1_epi8(lut.table[54]), in_sig);
+			        lut_mask<55>(msk, _mm256_set1_epi8(lut.table[55]), in_sig);
+			        lut_mask<56>(msk, _mm256_set1_epi8(lut.table[56]), in_sig);
+			        lut_mask<57>(msk, _mm256_set1_epi8(lut.table[57]), in_sig);
+			        lut_mask<58>(msk, _mm256_set1_epi8(lut.table[58]), in_sig);
+			        lut_mask<59>(msk, _mm256_set1_epi8(lut.table[59]), in_sig);
+			        lut_mask<60>(msk, _mm256_set1_epi8(lut.table[60]), in_sig);
+			        lut_mask<61>(msk, _mm256_set1_epi8(lut.table[61]), in_sig);
+			        lut_mask<62>(msk, _mm256_set1_epi8(lut.table[62]), in_sig);
+			        lut_mask<63>(msk, _mm256_set1_epi8(lut.table[63]), in_sig);
+
+			        _mm256_storeu_si256(&out_sig_ptr[i], msk);
+		        }
+	        }
+
+            return m_y;
+        }
+
 
     	{
+            // 汎用版
             auto x_ptr = x.LockConst<FT>();
             auto y_ptr = m_y.Lock<FT>();
 
             index_t frame_size = x.GetFrameSize();
             index_t node_size  = this->GetOutputNodeSize();
 
+            #pragma omp parallel for
        		for (index_t node = 0; node < node_size; ++node) {
                 for (index_t frame = 0; frame < frame_size; ++frame) {
 			        int index = 0;
@@ -245,103 +387,13 @@ public:
 		}
     }
 
-
+    // Backwardは存在しない
     FrameBuffer Backward(FrameBuffer dy)
     {
         FrameBuffer dx(DataType<BT>::type, dy.GetFrameSize(), m_input_shape);
         return dx;
     }
 
-
-    /*
-    virtual void Forward(bool train = true)
-	{
-		INDEX node_size = this->GetOutputNodeSize();
-		int   lut_input_size = this->GetLutInputSize();
-
-		#pragma omp parallel for
-		for ( int node = 0; node < (int)node_size; ++node) {
-			ForwardNode(node);
-		}
-	}
-    */
-	
-
-    // なんか昔こころみたっぽい
-    /*
-    void Backward(void)
-	{
-		auto& out_err = this->GetOutputErrorBuffer();
-		auto& in_err = this->GetInputErrorBuffer();
-
-		INDEX frame_size = this->GetOutputFrameSize();
-		INDEX node_size = this->GetOutputNodeSize();
-		int lut_input_size = this->GetLutInputSize();
-		int lut_table_size = this->GetLutTableSize();
-
-		// ゼロ初期化
-		INDEX input_node_size = this->GetInputNodeSize();
-		for (INDEX node = 0; node < input_node_size; ++node) {
-			for (INDEX frame = 0; frame < frame_size; ++frame) {
-				in_err.template Set<T>(frame, node, 0);
-			}
-		}
-
-		std::mt19937_64 mt(1);
-
-		// 計算
-		std::vector<T> table_err(lut_table_size);
-		for (INDEX node = 0; node < node_size; ++node) {
-			std::fill(table_err.begin(), table_err.end(), (T)0);
-			for (INDEX frame = 0; frame < frame_size; ++frame) {
-				// 入力値取得
-				int input_index = this->GetLutInputIndex(frame, node);
-				T err = out_err.template Get<T>(frame, node);
-
-				// テーブルに対する誤差計算
-				table_err[input_index] += err;	// 積算していく
-			}
-
-			for (int bitpos = 0; bitpos < lut_input_size; ++bitpos) {
-				if ( std::abs(table_err[bitpos]) > (mt() % 16)+5 ) {
-					this->SetLutTable(node, bitpos, table_err[bitpos] > 0);
-				}
-			}
-			
-			for (INDEX frame = 0; frame < frame_size; ++frame) {
-				int input_index = this->GetLutInputIndex(frame, node);
-				T err = out_err.template Get<T>(frame, node);
-
-				bool val = GetLutTable(node, input_index);
-				if ((val && err < 0) || (val && err > 0)) {
-
-					// 入力に対する伝播誤差計算
-					int mask = 1;
-			//		for (int bitpos = 0; bitpos < lut_input_size; ++bitpos) {
-					{
-						int bitpos = (int)(mt() % lut_input_size);
-
-						INDEX input_node = GetLutInput(node, bitpos);
-						// 各入力項に対するテーブルの偏微分を計算
-						int index0 = (input_index & ~mask);
-						int index1 = (input_index | mask);
-						bool val0 = this->GetLutTable(node, index0);
-						bool val1 = this->GetLutTable(node, index1);
-
-						if (!val0 && val1) {
-							in_err.template Set<T>(frame, input_node, in_err.template Get<T>(frame, input_node) + err);
-						}
-						else if (val0 && !val1) {
-							in_err.template Set<T>(frame, input_node, in_err.template Get<T>(frame, input_node) - err);
-						}
-						mask <<= 1;
-					}
-				}
-			}
-
-		}
-	}
-	*/
 
 };
 

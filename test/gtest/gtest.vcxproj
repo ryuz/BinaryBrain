@@ -41,28 +41,30 @@
     <ClCompile Include="BinaryToRealTest.cpp" />
     <ClCompile Include="ConvolutionCol2ImTest.cpp" />
     <ClCompile Include="ConvolutionIm2ColTest.cpp" />
-    <ClCompile Include="cudaHorizontalMeanVarTest.cpp" />
+    <ClCompile Include="cudaMatrixColwiseMeanVarTest.cpp" />
+    <ClCompile Include="cudaMatrixColwiseSumTest.cpp" />
     <ClCompile Include="DenseAffineTest.cpp" />
     <ClCompile Include="FrameBufferTest.cpp" />
     <ClCompile Include="LossSoftmaxCrossEntropyTest.cpp" />
     <ClCompile Include="LoweringConvolutionTest.cpp" />
     <ClCompile Include="MaxPoolingTest.cpp" />
     <ClCompile Include="MemoryTest.cpp" />
+    <ClCompile Include="MetricsCategoricalAccuracyTest.cpp" />
     <ClCompile Include="MicroMlpAffineTest.cpp" />
     <ClCompile Include="OptimizerAdamTest.cpp" />
     <ClCompile Include="RealToBinaryTest.cpp" />
     <ClCompile Include="ReLUTest.cpp" />
     <ClCompile Include="SigmoidTest.cpp" />
+    <ClCompile Include="StochasticLut6Test.cpp" />
     <ClCompile Include="TensorTest.cpp" />
     <ClCompile Include="VariablesTest.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\include\bb\AccuracyCategoricalClassification.h" />
-    <ClInclude Include="..\..\include\bb\AccuracyFunction.h" />
     <ClInclude Include="..\..\include\bb\Activation.h" />
     <ClInclude Include="..\..\include\bb\BatchNormalization.h" />
     <ClInclude Include="..\..\include\bb\Binarize.h" />
     <ClInclude Include="..\..\include\bb\BinaryLutN.h" />
+    <ClInclude Include="..\..\include\bb\BinaryModulation.h" />
     <ClInclude Include="..\..\include\bb\BinaryToReal.h" />
     <ClInclude Include="..\..\include\bb\ConvolutionCol2Im.h" />
     <ClInclude Include="..\..\include\bb\ConvolutionIm2Col.h" />
@@ -80,6 +82,10 @@
     <ClInclude Include="..\..\include\bb\Manager.h" />
     <ClInclude Include="..\..\include\bb\MaxPooling.h" />
     <ClInclude Include="..\..\include\bb\Memory.h" />
+    <ClInclude Include="..\..\include\bb\MetricsBinaryAccuracy.h" />
+    <ClInclude Include="..\..\include\bb\MetricsCategoricalAccuracy.h" />
+    <ClInclude Include="..\..\include\bb\MetricsFunction.h" />
+    <ClInclude Include="..\..\include\bb\MetricsMeanSquaredError.h" />
     <ClInclude Include="..\..\include\bb\MicroMlp.h" />
     <ClInclude Include="..\..\include\bb\MicroMlpAffine.h" />
     <ClInclude Include="..\..\include\bb\Model.h" />
@@ -91,8 +97,11 @@
     <ClInclude Include="..\..\include\bb\ReLU.h" />
     <ClInclude Include="..\..\include\bb\Sequential.h" />
     <ClInclude Include="..\..\include\bb\ShuffleSet.h" />
+    <ClInclude Include="..\..\include\bb\Sigmoid.h" />
     <ClInclude Include="..\..\include\bb\SimdSupport.h" />
     <ClInclude Include="..\..\include\bb\SparseLayer.h" />
+    <ClInclude Include="..\..\include\bb\StochasticLut2.h" />
+    <ClInclude Include="..\..\include\bb\StochasticLut6.h" />
     <ClInclude Include="..\..\include\bb\Tensor.h" />
     <ClInclude Include="..\..\include\bb\TensorOperator.h" />
     <ClInclude Include="..\..\include\bb\UniformDistributionGenerator.h" />
@@ -271,7 +280,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OPENCV2_4_13_DIR)\x64\vc14\staticlib;$(CUDA_PATH)\lib\x64;$(GTEST_DIR)\vc14\x64\Debug;..\..\cuda\x64\Debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>bbcu.lib;gtest.lib;gtest_main.lib;cuda.lib;cudart.lib;IlmImfd.lib;libjasperd.lib;libjpegd.lib;libpngd.lib;libtiffd.lib;opencv_calib3d2413d.lib;opencv_contrib2413d.lib;opencv_core2413d.lib;opencv_features2d2413d.lib;opencv_flann2413d.lib;opencv_gpu2413d.lib;opencv_highgui2413d.lib;opencv_imgproc2413d.lib;opencv_legacy2413d.lib;opencv_ml2413d.lib;opencv_nonfree2413d.lib;opencv_objdetect2413d.lib;opencv_ocl2413d.lib;opencv_photo2413d.lib;opencv_stitching2413d.lib;opencv_superres2413d.lib;opencv_ts2413d.lib;opencv_video2413d.lib;opencv_videostab2413d.lib;zlibd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>bbcu.lib;gtest.lib;gtest_main.lib;cublas.lib;cuda.lib;cudart.lib;IlmImfd.lib;libjasperd.lib;libjpegd.lib;libpngd.lib;libtiffd.lib;opencv_calib3d2413d.lib;opencv_contrib2413d.lib;opencv_core2413d.lib;opencv_features2d2413d.lib;opencv_flann2413d.lib;opencv_gpu2413d.lib;opencv_highgui2413d.lib;opencv_imgproc2413d.lib;opencv_legacy2413d.lib;opencv_ml2413d.lib;opencv_nonfree2413d.lib;opencv_objdetect2413d.lib;opencv_ocl2413d.lib;opencv_photo2413d.lib;opencv_stitching2413d.lib;opencv_superres2413d.lib;opencv_ts2413d.lib;opencv_video2413d.lib;opencv_videostab2413d.lib;zlibd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DbgCpu|x64'">

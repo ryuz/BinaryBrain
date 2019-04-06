@@ -35,7 +35,7 @@ module tb_mnist_lut_mlp();
 	localparam	USER_WIDTH   = 8;
 	localparam	INPUT_WIDTH  = 28*28;
 	localparam	CLASS_NUM    = 10;
-	localparam	CHANNEL_NUM  = 8;		// チャネル方向(空間的に)多重
+	localparam	CHANNEL_NUM  = 7;		// チャネル方向(空間的に)多重
 	localparam	OUTPUT_WIDTH = CLASS_NUM * CHANNEL_NUM;
 	
 	reg		[USER_WIDTH+INPUT_WIDTH-1:0]	mem		[0:DATA_SIZE-1];
@@ -69,7 +69,7 @@ module tb_mnist_lut_mlp();
 	wire		[OUTPUT_WIDTH-1:0]		out_data;
 	wire								out_valid;
 	
-	MnistSimpleLutMlp
+	MnistMicroMlpLutMlp
 			#(
 				.USER_WIDTH		(1+USER_WIDTH)
 			)

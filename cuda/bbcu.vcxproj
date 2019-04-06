@@ -19,23 +19,24 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="AccuracyCategoricalClassification.cu" />
     <CudaCompile Include="Adam.cu" />
     <CudaCompile Include="BatchNormalization.cu" />
     <CudaCompile Include="Binarize.cu" />
     <CudaCompile Include="BinaryToReal.cu" />
     <CudaCompile Include="Col2Im.cu" />
-    <CudaCompile Include="HorizontalMeanVar.cu" />
-    <CudaCompile Include="HorizontalSum.cu" />
     <CudaCompile Include="Im2Col.cu" />
     <CudaCompile Include="LossSoftmaxCrossEntropy.cu" />
     <CudaCompile Include="Manager.cu" />
+    <CudaCompile Include="MatrixColwiseMeanVar.cu" />
+    <CudaCompile Include="MatrixColwiseSum.cu" />
+    <CudaCompile Include="MatrixRowwiseSetVector.cu" />
     <CudaCompile Include="MaxPooling.cu" />
     <CudaCompile Include="MicroMlp.cu" />
     <CudaCompile Include="ReLU.cu" />
+    <CudaCompile Include="Sigmoid.cu" />
+    <CudaCompile Include="StochasticLut6.cu" />
     <CudaCompile Include="Vector.cu" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Makefile" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\bbcu\bbcu.h" />

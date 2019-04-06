@@ -17,6 +17,8 @@
 #include <vector>
 #include <array>
 
+#include "bb/DataType.h"
+
 
 namespace bb {
 
@@ -37,9 +39,9 @@ public:
 		is.read((char*)&header[0], 16);
 
 		int magic = ReadWord(&header[0]);
-		int num = ReadWord(&header[4]);
-		int rows = ReadWord(&header[8]);
-		int cols = ReadWord(&header[12]);
+		int num   = ReadWord(&header[4]);
+		int rows  = ReadWord(&header[8]);
+		int cols  = ReadWord(&header[12]);
 
 		if (max_size > 0 && num > max_size) {
 			num = max_size;

@@ -18,26 +18,28 @@
   get_nmist.bat                      NMISTダウンロード用(Windows+cygwinなど)
   get_nmist.sh                       NMISTダウンロード用(Linux)
   main.cpp                           main関数
-  MnistSimpleLutMlp.cpp              LUT-Network 単純MLPサンプル
-  MnistSimpleLutCnn.cpp              LUT-Network CNNサンプル
-  MnistDenseAffine.cpp               通常DNNの単純MLPサンプル
-  MnistSimpleMicroMlpScratch.cpp     ネットをスクラッチで書く場合のサンプル
+  MnistStochasticLut6Mlp.cpp         確率的LUT方式 Binary LUT-Network MLPサンプル
+  MnistStochasticLut6Cnn.cpp         確率的LUT方式 Binary LUT-Network CNNサンプル
+  MnistMicroMlpLutMlp.cpp            uMLP方式 Binary LUT-Network MLPサンプル
+  MnistMicroMlpLutCnn.cpp            uMLP方式 Binary LUT-Network CNNサンプル
+  MnistDenseMlp.cpp                  FP32の全結合DNNの MLPサンプル
+  MnistDenseCnn.cpp                  FP32の全結合CNNの CNNサンプル
   readme.txt                         本ファイル
   sample_mnist.sln                   Visual-C++ 2017用ソリューション
   sample_mnist.vcxproj               Visual-C++ 2017用プロジェクト
   sample_mnist.vcxproj.filters       Visual-C++ 2017用
   sample_mnist.vcxproj.user          Visual-C++ 2017用
   verilog/bb_lut.v                   LUT の Verilogモデル
-  verilog/tb_mnist_lut_mlp.v         単純MLP LUT-Network のテストベンチ
-  verilog/tb_mnist_lut_mlp.vtakprj   単純MLP LUT-Network のVeritakプロジェクト
-  verilog/iverilog_lut_mlp.bat       単純MLP LUT-Network のiverilog実行(Win)
-  verilog/iverilog_lut_mlp.sh        単純MLP LUT-Network のiverilog実行(Linux)
-  verilog/iverilog_lut_mlp_cmd.txt   単純MLP LUT-Network のiverilogコマンド
-  verilog/tb_mnist_lut_cnn.v         単純CNN LUT-Network のテストベンチ
-  verilog/tb_mnist_lut_cnn.vtakprj   単純CNN LUT-Network のVeritakプロジェクト
-  verilog/iverilog_lut_cnn.bat       単純CNN LUT-Network のiverilog実行(Win)
-  verilog/iverilog_lut_cnn.sh        単純CNN LUT-Network のiverilog実行(Linux)
-  verilog/iverilog_lut_cnn_cmd.txt   単純CNN LUT-Network のiverilogコマンド
+  verilog/tb_mnist_lut_mlp.v         MLP LUT-Network のテストベンチ
+  verilog/tb_mnist_lut_mlp.vtakprj   MLP LUT-Network のVeritakプロジェクト
+  verilog/iverilog_lut_mlp.bat       MLP LUT-Network のiverilog実行(Win)
+  verilog/iverilog_lut_mlp.sh        MLP LUT-Network のiverilog実行(Linux)
+  verilog/iverilog_lut_mlp_cmd.txt   MLP LUT-Network のiverilogコマンド
+  verilog/tb_mnist_lut_cnn.v         CNN LUT-Network のテストベンチ
+  verilog/tb_mnist_lut_cnn.vtakprj   CNN LUT-Network のVeritakプロジェクト
+  verilog/iverilog_lut_cnn.bat       CNN LUT-Network のiverilog実行(Win)
+  verilog/iverilog_lut_cnn.sh        CNN LUT-Network のiverilog実行(Linux)
+  verilog/iverilog_lut_cnn_cmd.txt   CNN LUT-Network のiverilogコマンド
   verilog/video_mnist_cnn.v          CNNモジュール
   verilog/video_mnist_cnn_core.v     CNNモジュールのコア
   verilog/video_dnn_max_count.v      クラスタリング結果のカウンティング
@@ -49,7 +51,7 @@
  [Linuxの場合]
   make all
 
-  でビルドすると 実行ファイル sample_mnist が出来ます
+  でビルドすると 実行ファイル sample-mnist が出来ます
 
   なお、ここで
   make WITH_CUDA=No all
@@ -67,10 +69,12 @@
 
   sample_mnist の引数は
 
-  LutMlp                   LUT-Networkの単純多層パーセプトロンを実行
-  LutCnn                   LUT-NetworkのCNNを実行
-  DenseAffine              普通の単純多層パーセプトロンを実行
-  SimpleMicroMlpScratch    単純多層パーセプトロンをベタ書したサンプルを実行
+  StochasticLutMlp         確率的LUT-Networkの多層パーセプトロンを実行
+  StochasticLutCnn         確率的LUT-NetworkのCNNを実行
+  LutMlp                   μMLP方式のLUT-Networkの多層パーセプトロンを実行
+  LutCnn                   μMLP方式のLUT-NetworkのCNNを実行
+  DenseMlp                 FP32全結合の多層パーセプトロンを実行
+  DenseCnn                 FP32全結合のCNNを実行
   All                      上のすべてを実行
 
   となっており、試したいモデルだけ実行することも可能です。
@@ -89,9 +93,9 @@
 
   を実行すると、学習完了後 verilog ディレクトリの下に
 
-  mnist_train.txt       トレーニングデータ
-  mnist_test.txt        評価データ
-  MnistSimpleLutMlp.v   学習済みの RTL
+  mnist_train.txt            トレーニングデータ
+  mnist_test.txt             評価データ
+  MnistMicroMlpLutMlp.v.v    学習済みの RTL
 
   が出力されます。
 
@@ -99,8 +103,8 @@
 学習結果が試せます。
 
   tb_mnist_lut_mlp.v
-  MnistSimpleLutMlp.v
   bb_lut.v
+  MnistMicroMlpLutMlp.v
 
   iverilog(Icarus Verilog)用に iverilog_lut_mlp.sh というスクリプトも
 用意しています(が、ネットワークの特性か結構遅いです)。
@@ -108,6 +112,7 @@
   tb_mnist_lut_mlp.vtakprj が Veritak 用のプロジェクトとなっておりますので、
 Windowsで Veritak ご利用のユーザーは活用ください。
 
+  Vivadoシミュレータ(xsim)を利用する場合は、xsim_lut_mlp.bat が利用可能です。
 
 
 【CNN の Verilog シミュレーションまで】
@@ -118,7 +123,7 @@ Windowsで Veritak ご利用のユーザーは活用ください。
 
   mnist_test_160x120.ppm  テスト画像(160x120)
   mnist_test_640x480.ppm  テスト画像(640x480)
-  MnistSimpleLutCnn.v     学習済みの RTL
+  MnistMicroMlpLutCnn.v   学習済みの RTL
 
   iverilog(Icarus Verilog)用に iverilog_lut_cnn.sh というスクリプトも
 用意しています(が、ネットワークの特性か結構遅いです)。

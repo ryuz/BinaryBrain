@@ -19,7 +19,7 @@ module video_mnist_cnn
 			parameter	RAM_TYPE           = "block",
 			
 			parameter	NUM_CALSS          = 10,
-			parameter	CHANNEL_WIDTH      = 8,
+			parameter	CHANNEL_WIDTH      = 7,
 			
 			parameter	IMG_Y_NUM          = 480,
 			parameter	IMG_Y_WIDTH        = 12,

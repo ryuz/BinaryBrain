@@ -54,7 +54,7 @@ public:
     {
         index_t                                 frame_mux_size = 1;         //< フレームを何倍するか
         std::shared_ptr< ValueGenerator<FXT> >  value_generator;            //< 閾値のジェネレーター
-        bool                                    framewise = true;           //< true でフレーム単位で閾値、falseでデータ単位
+        bool                                    framewise = false;          //< true でフレーム単位で閾値、falseでデータ単位
     	FXT                                     input_range_lo = (FXT)0.0;  //< 入力データの下限値
 	    FXT                                     input_range_hi = (FXT)1.0;  //< 入力データの上限値
     };
@@ -75,7 +75,7 @@ public:
     static std::shared_ptr<RealToBinary> Create(
                 index_t                                 frame_mux_size  = 1,
                 std::shared_ptr< ValueGenerator<FXT> >  value_generator = nullptr,
-                bool                                    framewise       = true,
+                bool                                    framewise       = false,
     	        FXT                                     input_range_lo  = (FXT)0.0,
 	            FXT                                     input_range_hi  = (FXT)1.0)
     {
@@ -188,6 +188,7 @@ public:
         // 戻り値の型を設定
         m_dx.Resize(DataType<BT>::type, dy.GetFrameSize() / m_frame_mux_size, m_node_shape);
 
+#if 0   // 今のところ計算結果誰も使わないので一旦コメントアウト
 		index_t node_size         = dy.GetNodeSize();
 		index_t output_frame_size = dy.GetFrameSize();
 
@@ -205,6 +206,7 @@ public:
 				dx_ptr.Add(input_frame, node, grad);
 			}
 		}
+#endif
 
         return m_dx;
 	}

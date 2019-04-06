@@ -33,6 +33,8 @@ public:
 	bool			        m_host_only   = false;
     bool                    m_host_simd   = true;
 
+    T                       m_initialize_std = (T)0.01;
+    std::string             m_initializer = "he";
     std::mt19937_64         m_mt;
 
     index_t                 m_input_node_size = 0;
@@ -103,6 +105,8 @@ public:
     struct create_t
     {
         indices_t       output_shape;
+        T               initialize_std = (T)0.01;
+        std::string     initializer = "";
         std::uint64_t   seed = 1;
     };
 
@@ -111,6 +115,8 @@ public:
         auto self = std::shared_ptr<MicroMlpAffine>(new MicroMlpAffine);
         BB_ASSERT(!create.output_shape.empty());
 
+        self->m_initialize_std = create.initialize_std;
+        self->m_initializer    = create.initializer;
         self->m_mt.seed(create.seed);
 
         self->m_output_shape = create.output_shape;
@@ -299,24 +305,17 @@ public:
         m_input_index.Resize(m_output_node_size, N);
         this->InitializeNodeInput(m_mt());
 
-        /*
-        {
-            auto ptr = m_input_index.Lock();
-            ShuffleSet<std::int32_t> shuffle((std::int32_t)m_input_node_size);
-            for ( index_t i = 0; i < m_output_node_size; ++i ) {
-                auto idx = shuffle.GetRandomSet(N);
-                for ( index_t j = 0; j < N; ++j ) {
-                    ptr(i, j) = idx[j];
-                }
-            }
-        }
-        */
-
         // パラメータ初期化
-        m_W0->Resize(DataType<T>::type, m_output_node_size, M, N);  m_W0->InitNormalDistribution(0.0, 1.0, m_mt());
-        m_b0->Resize(DataType<T>::type, m_output_node_size, M);     m_b0->InitNormalDistribution(0.0, 1.0, m_mt());
-        m_W1->Resize(DataType<T>::type, m_output_node_size, M);     m_W1->InitNormalDistribution(0.0, 1.0, m_mt());
-        m_b1->Resize(DataType<T>::type, m_output_node_size);        m_b1->InitNormalDistribution(0.0, 1.0, m_mt());
+        if (m_initializer == "he" || m_initializer == "He") {
+            m_initialize_std = (T)2.0 / std::sqrt((T)N);
+        }
+        else if (m_initializer == "xavier" || m_initializer == "Xavier" ) {
+            m_initialize_std = (T)1.0 / std::sqrt((T)N);
+        }
+        m_W0->Resize(DataType<T>::type, m_output_node_size, M, N);  m_W0->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+        m_b0->Resize(DataType<T>::type, m_output_node_size, M);     m_b0->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+        m_W1->Resize(DataType<T>::type, m_output_node_size, M);     m_W1->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+        m_b1->Resize(DataType<T>::type, m_output_node_size);        m_b1->InitNormalDistribution(0.0, m_initialize_std, m_mt());
 
         m_dW0->Resize(DataType<T>::type, m_output_node_size, M, N); m_dW0->FillZero();
         m_db0->Resize(DataType<T>::type, m_output_node_size, M);    m_db0->FillZero();

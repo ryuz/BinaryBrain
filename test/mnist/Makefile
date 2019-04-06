@@ -1,9 +1,7 @@
 
-TARGET = test-mnist
-
 
 # target
-TARGET  = sample-mnist
+TARGET = test-mnist
 SUB_TARGETS =
 
 # run option
@@ -35,6 +33,10 @@ SRCS  += MnistSimpleMicroMlp.cpp
 SRCS  += MnistSimpleCnnMlp.cpp
 SRCS  += MnistDenseAffine.cpp
 SRCS  += MnistSequentialSimpleMicroMlp.cpp
+SRCS  += MnistMiniLutCnn.cpp
+SRCS  += MnistDeepMicroMlp.cpp
+SRCS  += MnistStochasticLut6.cpp
+SRCS  += MnistStochasticCnn.cpp
 
 OBJS = $(addsuffix .o, $(basename $(SRCS)))
 
@@ -48,7 +50,7 @@ endif
 ifeq ($(WITH_CUDA),Yes)
 CC          = nvcc
 CDEFS      += -DBB_WITH_CUDA
-CFLAGS     := -Xcompiler '$(CFLAGS)'
+CFLAGS     := -Xcompiler '$(CFLAGS)' -lcublas
 LIBS       += $(BBCU_LIB)
 SUB_TARGET += bbcu_build
 endif

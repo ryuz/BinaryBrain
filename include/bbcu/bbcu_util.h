@@ -9,6 +9,9 @@
 #include <fstream>
 #include <string>
 
+#include "cuda_runtime.h"
+#include "cublas_v2.h"
+
 
 #define BB_CUDA_SAFE_CALL(func) \
 do { \
@@ -30,6 +33,16 @@ do { \
 		exit(1); \
     } \
 }  while(0)
+
+#define BB_CUBLAS_SAFE_CALL(func) \
+do { \
+    cublasStatus_t status = (func); \
+    if (status != CUBLAS_STATUS_SUCCESS) { \
+        fprintf(stderr, "[Error] (status code: %d) at %s line %d\n\n", status, __FILE__, __LINE__); \
+        getchar(); \
+        exit(1); \
+    } \
+} while(0)
 
 
 

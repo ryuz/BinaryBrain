@@ -11,8 +11,8 @@ TEST(ConvolutionIm2ColTest, testConvolutionIm2Col_xy)
 	auto cnvim2col = bb::ConvolutionIm2Col<>::Create(2, 3);
 
     bb::FrameBuffer buf_x(BB_TYPE_FP32, 16, {28, 28, 3});
+//  cnvim2col->SetInputShape({28, 28, 3});
     bb::FrameBuffer buf_y = cnvim2col->Forward(buf_x);
-
 }
 
 
@@ -190,3 +190,188 @@ TEST(ConvolutionIm2ColTest, testConvolutionIm2Col)
 }
 
 
+
+TEST(ConvolutionIm2ColTest, testConvolutionIm2Col_float)
+{
+	auto cnvim2col = bb::ConvolutionIm2Col<float>::Create(2, 2);
+	
+    bb::FrameBuffer buf_x(BB_TYPE_FP32, 1, {3, 3, 1});
+
+    // 0 1 1
+    // 1 0 1
+    // 0 1 0
+
+    buf_x.SetFP32(0, {0, 0, 0}, 0);
+    buf_x.SetFP32(0, {1, 0, 0}, 1);
+    buf_x.SetFP32(0, {2, 0, 0}, 1);
+    buf_x.SetFP32(0, {0, 1, 0}, 1);
+    buf_x.SetFP32(0, {1, 1, 0}, 0);
+    buf_x.SetFP32(0, {2, 1, 0}, 1);
+    buf_x.SetFP32(0, {0, 2, 0}, 0);
+    buf_x.SetFP32(0, {1, 2, 0}, 1);
+    buf_x.SetFP32(0, {2, 2, 0}, 0);
+
+	auto buf_y = cnvim2col->Forward(buf_x);
+
+	EXPECT_EQ(0, buf_y.GetFP32(0, { 0, 0, 0 }));
+	EXPECT_EQ(1, buf_y.GetFP32(0, { 1, 0, 0 }));
+	EXPECT_EQ(1, buf_y.GetFP32(0, { 0, 1, 0 }));
+	EXPECT_EQ(0, buf_y.GetFP32(0, { 1, 1, 0 }));
+	EXPECT_EQ(1, buf_y.GetFP32(1, { 0, 0, 0 }));
+	EXPECT_EQ(1, buf_y.GetFP32(1, { 1, 0, 0 }));
+	EXPECT_EQ(0, buf_y.GetFP32(1, { 0, 1, 0 }));
+	EXPECT_EQ(1, buf_y.GetFP32(1, { 1, 1, 0 }));
+	EXPECT_EQ(1, buf_y.GetFP32(2, { 0, 0, 0 }));
+	EXPECT_EQ(0, buf_y.GetFP32(2, { 1, 0, 0 }));
+	EXPECT_EQ(0, buf_y.GetFP32(2, { 0, 1, 0 }));
+	EXPECT_EQ(1, buf_y.GetFP32(2, { 1, 1, 0 }));
+	EXPECT_EQ(0, buf_y.GetFP32(3, { 0, 0, 0 }));
+	EXPECT_EQ(1, buf_y.GetFP32(3, { 1, 0, 0 }));
+	EXPECT_EQ(1, buf_y.GetFP32(3, { 0, 1, 0 }));
+	EXPECT_EQ(0, buf_y.GetFP32(3, { 1, 1, 0 }));
+}
+
+
+TEST(ConvolutionIm2ColTest, testConvolutionIm2Col_bit)
+{
+	auto cnvim2col = bb::ConvolutionIm2Col<bb::Bit>::Create(2, 2);
+	
+    bb::FrameBuffer buf_x(BB_TYPE_BIT, 2, {3, 3, 2});
+
+    // 0 1 1
+    // 1 0 1
+    // 0 1 0
+
+    buf_x.SetBit(0, {0, 0, 0}, 0);
+    buf_x.SetBit(0, {1, 0, 0}, 1);
+    buf_x.SetBit(0, {2, 0, 0}, 1);
+    buf_x.SetBit(0, {0, 1, 0}, 1);
+    buf_x.SetBit(0, {1, 1, 0}, 0);
+    buf_x.SetBit(0, {2, 1, 0}, 1);
+    buf_x.SetBit(0, {0, 2, 0}, 0);
+    buf_x.SetBit(0, {1, 2, 0}, 1);
+    buf_x.SetBit(0, {2, 2, 0}, 0);
+    
+    // 1 1 0
+    // 1 0 0
+    // 1 1 0
+    buf_x.SetBit(0, {0, 0, 1}, 1);
+    buf_x.SetBit(0, {1, 0, 1}, 1);
+    buf_x.SetBit(0, {2, 0, 1}, 0);
+    buf_x.SetBit(0, {0, 1, 1}, 1);
+    buf_x.SetBit(0, {1, 1, 1}, 0);
+    buf_x.SetBit(0, {2, 1, 1}, 0);
+    buf_x.SetBit(0, {0, 2, 1}, 1);
+    buf_x.SetBit(0, {1, 2, 1}, 1);
+    buf_x.SetBit(0, {2, 2, 1}, 0);
+
+
+    // 1 0 1
+    // 1 1 0
+    // 0 0 1
+
+    buf_x.SetBit(1, {0, 0, 0}, 1);
+    buf_x.SetBit(1, {1, 0, 0}, 0);
+    buf_x.SetBit(1, {2, 0, 0}, 1);
+    buf_x.SetBit(1, {0, 1, 0}, 1);
+    buf_x.SetBit(1, {1, 1, 0}, 1);
+    buf_x.SetBit(1, {2, 1, 0}, 0);
+    buf_x.SetBit(1, {0, 2, 0}, 0);
+    buf_x.SetBit(1, {1, 2, 0}, 0);
+    buf_x.SetBit(1, {2, 2, 0}, 1);
+    
+    // 1 1 0
+    // 0 1 1
+    // 0 1 0
+    buf_x.SetBit(1, {0, 0, 1}, 1);
+    buf_x.SetBit(1, {1, 0, 1}, 1);
+    buf_x.SetBit(1, {2, 0, 1}, 0);
+    buf_x.SetBit(1, {0, 1, 1}, 0);
+    buf_x.SetBit(1, {1, 1, 1}, 1);
+    buf_x.SetBit(1, {2, 1, 1}, 1);
+    buf_x.SetBit(1, {0, 2, 1}, 0);
+    buf_x.SetBit(1, {1, 2, 1}, 1);
+    buf_x.SetBit(1, {2, 2, 1}, 0);
+
+	auto buf_y = cnvim2col->Forward(buf_x);
+
+    // 0 1 1
+    // 1 0 1
+    // 0 1 0
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(0, { 0, 0, 0 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(0, { 1, 0, 0 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(0, { 0, 1, 0 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(0, { 1, 1, 0 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(1, { 0, 0, 0 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(1, { 1, 0, 0 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(1, { 0, 1, 0 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(1, { 1, 1, 0 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(2, { 0, 0, 0 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(2, { 1, 0, 0 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(2, { 0, 1, 0 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(2, { 1, 1, 0 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(3, { 0, 0, 0 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(3, { 1, 0, 0 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(3, { 0, 1, 0 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(3, { 1, 1, 0 }));
+
+    // 1 1 0
+    // 1 0 0
+    // 1 1 0
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(0, { 0, 0, 1 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(0, { 1, 0, 1 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(0, { 0, 1, 1 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(0, { 1, 1, 1 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(1, { 0, 0, 1 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(1, { 1, 0, 1 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(1, { 0, 1, 1 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(1, { 1, 1, 1 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(2, { 0, 0, 1 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(2, { 1, 0, 1 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(2, { 0, 1, 1 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(2, { 1, 1, 1 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(3, { 0, 0, 1 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(3, { 1, 0, 1 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(3, { 0, 1, 1 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(3, { 1, 1, 1 }));
+
+    // 1 0 1
+    // 1 1 0
+    // 0 0 1
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(4, { 0, 0, 0 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(4, { 1, 0, 0 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(4, { 0, 1, 0 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(4, { 1, 1, 0 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(5, { 0, 0, 0 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(5, { 1, 0, 0 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(5, { 0, 1, 0 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(5, { 1, 1, 0 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(6, { 0, 0, 0 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(6, { 1, 0, 0 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(6, { 0, 1, 0 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(6, { 1, 1, 0 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(7, { 0, 0, 0 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(7, { 1, 0, 0 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(7, { 0, 1, 0 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(7, { 1, 1, 0 }));
+
+    // 1 1 0
+    // 0 1 1
+    // 0 1 0
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(4, { 0, 0, 1 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(4, { 1, 0, 1 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(4, { 0, 1, 1 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(4, { 1, 1, 1 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(5, { 0, 0, 1 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(5, { 1, 0, 1 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(5, { 0, 1, 1 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(5, { 1, 1, 1 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(6, { 0, 0, 1 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(6, { 1, 0, 1 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(6, { 0, 1, 1 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(6, { 1, 1, 1 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(7, { 0, 0, 1 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(7, { 1, 0, 1 }));
+	EXPECT_EQ((bb::Bit)1, buf_y.GetBit(7, { 0, 1, 1 }));
+	EXPECT_EQ((bb::Bit)0, buf_y.GetBit(7, { 1, 1, 1 }));
+}

@@ -1,0 +1,200 @@
+﻿#include <stdio.h>
+#include <iostream>
+#include <random>
+#include "gtest/gtest.h"
+
+#include "bb/StochasticLut6.h"
+#include "bb/OptimizerAdam.h"
+#include "bb/UniformDistributionGenerator.h"
+
+
+
+
+#ifdef BB_WITH_CUDA
+
+
+
+template<typename T=float>
+void StochasticLut6_cmp(int const input_node_size, int const output_node_size, int const frame_size, int loop_num)
+{
+    auto lut_cpu = bb::StochasticLut6<float>::Create(output_node_size);
+    auto lut_gpu = bb::StochasticLut6<float>::Create(output_node_size);
+
+    auto opt_cpu = bb::OptimizerAdam<float>::Create();
+    auto opt_gpu = bb::OptimizerAdam<float>::Create();
+
+    lut_cpu->SendCommand("host_only true");
+
+    lut_cpu->SendCommand("binary true");
+    lut_gpu->SendCommand("binary true");
+
+
+    bb::FrameBuffer x_cpu(BB_TYPE_FP32, frame_size, input_node_size, true);
+    bb::FrameBuffer x_gpu(BB_TYPE_FP32, frame_size, input_node_size);
+    
+    lut_cpu->SetInputShape(x_cpu.GetShape());
+    lut_gpu->SetInputShape(x_gpu.GetShape());
+
+    // 接続を同一化
+    for (int node = 0; node < output_node_size; ++node) {
+        for (int i = 0; i < 6; ++i) {
+            lut_gpu->SetNodeInput(node, i, lut_cpu->GetNodeInput(node, i));
+        }
+    }
+
+    // 係数を同一化
+    {
+        auto W_cpu = lut_cpu->lock_W_const();
+        auto W_gpu = lut_cpu->lock_W();
+        for (int node = 0; node < output_node_size; ++node) {
+            for (int i = 0; i < 64; ++i) {
+                auto W = W_cpu(node, i);
+                W_gpu(node, i) = W;
+            }
+        }
+    }
+    
+    opt_cpu->SetVariables(lut_cpu->GetParameters(), lut_cpu->GetGradients());
+    opt_gpu->SetVariables(lut_gpu->GetParameters(), lut_gpu->GetGradients());
+
+    auto valgen = bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1);
+
+    for ( int loop = 0; loop < loop_num; ++ loop ) 
+    {
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < input_node_size; ++node ) {
+                x_cpu.SetFP32(frame, node, valgen->GetValue());
+                x_gpu.SetFP32(frame, node, x_cpu.GetFP32(frame, node));
+            }
+        }
+
+        auto y_cpu = lut_cpu->Forward(x_cpu);
+        auto y_gpu = lut_gpu->Forward(x_gpu);
+
+        EXPECT_EQ(output_node_size, y_cpu.GetNodeSize());
+        EXPECT_EQ(output_node_size, y_gpu.GetNodeSize());
+        EXPECT_EQ(frame_size, y_cpu.GetFrameSize());
+        EXPECT_EQ(frame_size, y_gpu.GetFrameSize());
+
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < input_node_size; ++node ) {
+                auto val_cpu = x_cpu.GetFP32(frame, node);
+                auto val_gpu = x_gpu.GetFP32(frame, node);
+                EXPECT_FLOAT_EQ(val_cpu, val_gpu);
+            }
+        }
+
+        {
+            auto W_cpu = lut_cpu->lock_W_const();
+            auto W_gpu = lut_cpu->lock_W_const();
+            for (int node = 0; node < output_node_size; ++node) {
+                for (int i = 0; i < 64; ++i) {
+                    auto val_cpu = W_cpu(node, i);
+                    auto val_gpu = W_gpu(node, i);
+                    EXPECT_NEAR(val_cpu, val_gpu, 0.0001f);
+                }
+            }
+        }
+
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < output_node_size; ++node ) {
+                auto val_cpu = y_cpu.GetFP32(frame, node);
+                auto val_gpu = y_gpu.GetFP32(frame, node);
+                EXPECT_NEAR(val_cpu, val_gpu, 0.0001f);
+            }
+        }
+
+
+        // backward
+        bb::FrameBuffer dy_cpu(BB_TYPE_FP32, frame_size, output_node_size, true);
+        bb::FrameBuffer dy_gpu(BB_TYPE_FP32, frame_size, output_node_size);
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < output_node_size; ++node ) {
+                dy_cpu.SetFP32(frame, node, valgen->GetValue());
+                dy_gpu.SetFP32(frame, node, dy_cpu.GetFP32(frame, node));
+            }
+        }
+
+        auto dx_cpu = lut_cpu->Backward(dy_cpu);
+        auto dx_gpu = lut_gpu->Backward(dy_gpu);
+
+        EXPECT_EQ(input_node_size, dx_cpu.GetNodeSize());
+        EXPECT_EQ(input_node_size, dx_gpu.GetNodeSize());
+        EXPECT_EQ(frame_size, dx_cpu.GetFrameSize());
+        EXPECT_EQ(frame_size, dx_gpu.GetFrameSize());
+
+        {
+            auto dW_cpu = lut_cpu->lock_dW_const();
+            auto dW_gpu = lut_cpu->lock_dW_const();
+            for (int node = 0; node < output_node_size; ++node) {
+                for (int i = 0; i < 64; ++i) {
+                    auto val_cpu = dW_cpu(node, i);
+                    auto val_gpu = dW_gpu(node, i);
+                    EXPECT_NEAR(val_cpu, val_gpu, 0.0001f);
+                }
+            }
+        }
+
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < input_node_size; ++node ) {
+                auto val_cpu = dx_cpu.GetFP32(frame, node);
+                auto val_gpu = dx_gpu.GetFP32(frame, node);
+                EXPECT_NEAR(val_cpu, val_gpu, 0.0001f);
+                if (abs(val_cpu - val_gpu) >= 0.0001f) {
+                    std::cout << frame << " " << node << std::endl;
+                }
+            }
+        }
+
+        opt_cpu->Update();
+        opt_gpu->Update();
+    }
+
+
+    lut_cpu->SendCommand("binary false");
+    lut_gpu->SendCommand("binary false");
+
+    for ( int loop = 0; loop < loop_num; ++ loop ) 
+    {
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < input_node_size; ++node ) {
+                x_cpu.SetFP32(frame, node, valgen->GetValue());
+                x_gpu.SetFP32(frame, node, x_cpu.GetFP32(frame, node));
+            }
+        }
+
+        auto y_cpu = lut_cpu->Forward(x_cpu, false);
+        auto y_gpu = lut_gpu->Forward(x_gpu, false);
+
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < input_node_size; ++node ) {
+                auto val_cpu = x_cpu.GetFP32(frame, node);
+                auto val_gpu = x_gpu.GetFP32(frame, node);
+                EXPECT_FLOAT_EQ(val_cpu, val_gpu);
+            }
+        }
+
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < output_node_size; ++node ) {
+                auto val_cpu = y_cpu.GetFP32(frame, node);
+                auto val_gpu = y_gpu.GetFP32(frame, node);
+                EXPECT_NEAR(val_cpu, val_gpu, 0.0001f);
+            }
+        }
+    }
+}
+
+
+TEST(StochasticLut6Test, testStochasticLut6_cmp)
+{
+    StochasticLut6_cmp<float>(14, 1024, 3, 4);
+    StochasticLut6_cmp<float>(6, 1, 1, 4);
+    StochasticLut6_cmp<float>(14, 21, 1024, 4);
+    StochasticLut6_cmp<float>(13, 17, 1024 + 512 - 7, 4);
+//  StochasticLut6_cmp<float>(17, 256, 28*28*16, 4);
+}
+
+
+#endif
+
+

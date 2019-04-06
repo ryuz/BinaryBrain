@@ -4,6 +4,8 @@
 #include "bb/RealToBinary.h"
 
 
+#define USE_BACKWARD    0
+
 TEST(RealToBinaryTest, testRealToBinary)
 {
 	const int node_size = 3;
@@ -30,7 +32,7 @@ TEST(RealToBinaryTest, testRealToBinary)
 	EXPECT_EQ(true,  y_buf.GetBit(0, 1));
 	EXPECT_EQ(true,  y_buf.GetBit(1, 1));
 
-
+#if USE_BACKWARD 
     // backward
     bb::FrameBuffer dy_buf(BB_TYPE_FP32, y_buf.GetFrameSize(), y_buf.GetShape());
 
@@ -46,6 +48,7 @@ TEST(RealToBinaryTest, testRealToBinary)
 	EXPECT_EQ(0.0f, dx_buf.GetFP32(0, 0));
 	EXPECT_EQ(2.0f, dx_buf.GetFP32(0, 1));
 	EXPECT_EQ(4.0f, dx_buf.GetFP32(0, 2));
+#endif
 }
 
 
@@ -79,6 +82,7 @@ TEST(RealToBinaryTest, testRealToBinaryyBatch)
 	EXPECT_EQ(false, y_buf.GetBit(3, 2));
 
     // backward
+#if USE_BACKWARD 
     bb::FrameBuffer dy_buf(BB_TYPE_FP32, frame_size*mux_size, node_size);
 
 	dy_buf.SetFP32(0, 0, 0);
@@ -103,5 +107,6 @@ TEST(RealToBinaryTest, testRealToBinaryyBatch)
 	EXPECT_EQ(11.0f, dx_buf.GetFP32(1, 0));
 	EXPECT_EQ(15.0f, dx_buf.GetFP32(1, 1));
 	EXPECT_EQ(19.0f, dx_buf.GetFP32(1, 2));
+#endif
 }
 

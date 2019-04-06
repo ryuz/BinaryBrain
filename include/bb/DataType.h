@@ -82,6 +82,21 @@ inline index_t GetShapeSize(indices_t const & shape)
     return size;
 }
 
+
+inline bool GetNextIndices(indices_t& indices, indices_t const & shape)
+{
+    auto size = indices.size();
+    BB_DEBUG_ASSERT(shape.size() == size);
+    for (size_t i = 0; i < size; ++i) {
+        if ( ++indices[i] < shape[i] ) {
+            return true;
+        }
+        indices[i] = 0;
+    }
+    return false;
+}
+
+
 inline index_t GetShapeIndex(indices_t const & indices, indices_t const & shape)
 {
     BB_DEBUG_ASSERT(indices.size() == shape.size());
@@ -95,6 +110,19 @@ inline index_t GetShapeIndex(indices_t const & indices, indices_t const & shape)
     }
     return index;
 }
+
+inline indices_t GetShapeIndices(index_t index, indices_t const & shape)
+{
+    indices_t indices(shape.size());
+    BB_DEBUG_ASSERT(index >= 0 && index < GetShapeSize(shape));
+
+    for ( index_t i = 0; i < (index_t)shape.size(); ++i ) {
+        indices[i] = index % shape[i];
+        index /= shape[i];
+    }
+    return indices;
+}
+
 
 inline index_t GetShapeIndex(index_t i0, indices_t const & shape)
 {

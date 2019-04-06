@@ -28,11 +28,13 @@ CINCS  = -I../../include -I../../eigen
 CDEFS  = 
 
 SRCS   = main.cpp
-SRCS  += MnistSimpleLutMlp.cpp
-SRCS  += MnistSimpleLutMlpModulation.cpp
-SRCS  += MnistSimpleLutCnn.cpp
-SRCS  += MnistDenseAffine.cpp
-SRCS  += MnistSimpleMicroMlpScratch.cpp
+SRCS  += MnistDenseMlp.cpp
+SRCS  += MnistDenseCnn.cpp
+SRCS  += MnistStochasticLut6Mlp.cpp
+SRCS  += MnistStochasticLut6Cnn.cpp
+SRCS  += MnistMicroMlpLutMlp.cpp
+SRCS  += MnistMicroMlpLutCnn.cpp
+SRCS  += MnistMicroMlpScratch.cpp
 
 OBJS = $(addsuffix .o, $(basename $(SRCS)))
 
@@ -46,7 +48,7 @@ endif
 ifeq ($(WITH_CUDA),Yes)
 CC          = nvcc
 CDEFS      += -DBB_WITH_CUDA
-CFLAGS     := -Xcompiler '$(CFLAGS)'
+CFLAGS     := -Xcompiler '$(CFLAGS)' -lcublas
 LIBS       += $(BBCU_LIB)
 SUB_TARGET += bbcu_build
 endif

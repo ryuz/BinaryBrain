@@ -1,5 +1,5 @@
 tb_mnist_lut_cnn.v
-MnistSimpleLutCnn.v
+MnistMicroMlpLutCnn.v
 video_dnn_max_count.v
 video_mnist_cnn.v
 video_mnist_cnn_core.v

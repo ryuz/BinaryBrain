@@ -16,7 +16,7 @@
 #include <vector>
 #include <array>
 
-#include "TrainData.h"
+#include "bb/DataType.h"
 
 
 namespace bb {
@@ -62,20 +62,23 @@ public:
 	}
 
 	static bool Load(std::vector< std::vector<T> >& x_train, std::vector< std::vector<T> >& y_train,
-		std::vector< std::vector<T> >& x_test, std::vector< std::vector<T> >& y_test)
+		std::vector< std::vector<T> >& x_test, std::vector< std::vector<T> >& y_test, int num = 5)
 	{
-		if (!ReadFile("data_batch_1.bin", x_train, y_train)) { return false; }
-		if (!ReadFile("data_batch_2.bin", x_train, y_train)) { return false; }
-		if (!ReadFile("data_batch_3.bin", x_train, y_train)) { return false; }
-		if (!ReadFile("data_batch_4.bin", x_train, y_train)) { return false; }
-		if (!ReadFile("data_batch_5.bin", x_train, y_train)) { return false; }
-		if (!ReadFile("test_batch.bin", x_test, y_test)) { return false; }
+		if (!ReadFile("cifar-10-batches-bin/test_batch.bin", x_test, y_test)) { return false; }
+        if ( num >= 1 ) { if (!ReadFile("cifar-10-batches-bin/data_batch_1.bin", x_train, y_train)) { return false; } }
+        if ( num >= 2 ) { if (!ReadFile("cifar-10-batches-bin/data_batch_2.bin", x_train, y_train)) { return false; } }
+        if ( num >= 3 ) { if (!ReadFile("cifar-10-batches-bin/data_batch_3.bin", x_train, y_train)) { return false; } }
+		if ( num >= 4 ) { if (!ReadFile("cifar-10-batches-bin/data_batch_4.bin", x_train, y_train)) { return false; } }
+		if ( num >= 5 ) { if (!ReadFile("cifar-10-batches-bin/data_batch_5.bin", x_train, y_train)) { return false; } }
+        return true;
 	}
 	
-	static TrainData<T> Load(void)
+	static TrainData<T> Load(int num = 5)
 	{
 		TrainData<T>	td;
-		if (!Load(td.x_train, td.y_train, td.x_test, td.y_test)) {
+        td.x_shape = indices_t({32, 32, 3});
+        td.t_shape = indices_t({10});
+		if (!Load(td.x_train, td.t_train, td.x_test, td.t_test, num)) {
 			td.clear();
 		}
 		return td;

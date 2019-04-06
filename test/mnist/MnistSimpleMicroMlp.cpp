@@ -20,7 +20,7 @@
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
-#include "bb/AccuracyCategoricalClassification.h"
+#include "bb/MetricsCategoricalAccuracy.h"
 #include "bb/OptimizerAdam.h"
 #include "bb/OptimizerSgd.h"
 #include "bb/LoadMnist.h"
@@ -353,11 +353,11 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
 
     MnistSimpleMicroMlpNet   cpu_net;
     auto cpu_lossFunc = bb::LossSoftmaxCrossEntropy<float>::Create();
-    auto cpu_accFunc  = bb::AccuracyCategoricalClassification<float>::Create(10);
+    auto cpu_accFunc  = bb::MetricsCategoricalAccuracy<float>::Create();
 
     MnistSimpleMicroMlpNet  gpu_net;
     auto gpu_lossFunc = bb::LossSoftmaxCrossEntropy<float>::Create();
-    auto gpu_accFunc  = bb::AccuracyCategoricalClassification<float>::Create(10);
+    auto gpu_accFunc  = bb::MetricsCategoricalAccuracy<float>::Create();
 
     cpu_net.SetInputShape({28, 28, 1});
     gpu_net.SetInputShape({28, 28, 1});
@@ -423,9 +423,9 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
             auto gpu_dy = gpu_lossFunc->CalculateLoss(gpu_y, gpu_t);
             tc.ChackPoint("loss_gpu");
 
-            cpu_accFunc->CalculateAccuracy(cpu_y, cpu_t);
+            cpu_accFunc->CalculateMetrics(cpu_y, cpu_t);
             tc.ChackPoint("acc_cpu");
-            gpu_accFunc->CalculateAccuracy(gpu_y, gpu_t);
+            gpu_accFunc->CalculateMetrics(gpu_y, gpu_t);
             tc.ChackPoint("acc_gpu");
 
             cpu_dy = cpu_net.Backward(cpu_dy);
@@ -439,8 +439,8 @@ void MnistSimpleMicroMlp(int epoch_size, size_t mini_batch_size, bool binary_mod
 
 //          DumpLayerUpdate(ofs, cpu_net, gpu_net);
         }
-        std::cout << "cpu : " << cpu_accFunc->GetAccuracy() << std::endl;
-        std::cout << "gpu : " << gpu_accFunc->GetAccuracy() << std::endl;
+        std::cout << "cpu : " << cpu_accFunc->GetMetrics() << std::endl;
+        std::cout << "gpu : " << gpu_accFunc->GetMetrics() << std::endl;
 
         bb::ShuffleDataSet(mt(), td.x_train, td.t_train);
     }

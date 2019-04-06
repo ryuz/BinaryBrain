@@ -3,21 +3,29 @@
 TARGET=libbbcu.a
 
 NVCC = nvcc
-CFLAGS = -I ../include
+CFLAGS = -I ../include -gencode arch=compute_35,code=sm_35
 
 SRCS += Manager.cu
 SRCS += Vector.cu
-SRCS += HorizontalSum.cu
+SRCS += MatrixColwiseSum.cu
+SRCS += MatrixColwiseMeanVar.cu
+SRCS += MatrixRowwiseSetVector.cu
 SRCS += MicroMlp.cu
+SRCS += StochasticLut6.cu
 SRCS += BinaryToReal.cu
 SRCS += Im2Col.cu
 SRCS += Col2Im.cu
 SRCS += MaxPooling.cu
 SRCS += BatchNormalization.cu
 SRCS += ReLU.cu
+SRCS += Sigmoid.cu
 SRCS += Binarize.cu
 SRCS += Adam.cu
 SRCS += LossSoftmaxCrossEntropy.cu
+SRCS += AccuracyCategoricalClassification.cu
+
+HDRS  = ../include/bbcu/bbcu.h
+HDRS += ../include/bbcu/bbcu_util.h
 
 OBJS = $(addsuffix .o, $(basename $(SRCS)))
 
@@ -36,3 +44,4 @@ $(TARGET): $(OBJS)
 .cu.o:
 	$(NVCC) -c $(CFLAGS) $< -o $@
 
+$(OBJS): $(HDRS)
