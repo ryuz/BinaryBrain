@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
     int         epoch_size         = 8;
     int         mini_batch_size    = 32;
     int         frame_mux_size     = 1;
-    int         lut_frame_mux_size = 15;
+    int         lut_frame_mux_size = 255;
     bool        binary_mode = true;
 
 	if ( argc < 2 ) {

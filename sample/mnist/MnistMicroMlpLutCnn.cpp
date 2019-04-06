@@ -185,7 +185,7 @@ void MnistMicroMlpLutCnn(int epoch_size, size_t mini_batch_size, int frame_mux_s
         layer_lut5     ->ImportLayer<float, float>(layer_mm5);
 
         // •]‰¿
-        if ( 0 ) {
+        if ( 1 ) {
             bb::Runner<float>::create_t lut_runner_create;
             lut_runner_create.name        = "Lut_" + net_name;
             lut_runner_create.net         = lut_net;

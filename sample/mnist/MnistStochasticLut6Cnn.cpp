@@ -45,7 +45,7 @@ void MnistStochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int lut_fram
 	auto td = bb::LoadMnist<>::Load(10, 512, 128);
     std::cout << "!!! debug mode !!!" << std::endl;
 #else
-    auto td = bb::LoadMnist<>::Load(10);
+    auto td = bb::LoadMnist<>::Load();
 #endif
 
     // create network
@@ -108,10 +108,10 @@ void MnistStochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int lut_fram
         runner_create.lossFunc    = bb::LossSoftmaxCrossEntropy<float>::Create();
         runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer   = bb::OptimizerAdam<float>::Create();
-        runner_create.file_read   = false;       // 前の計算結果があれば読み込んで再開するか
+        runner_create.file_read   = true;       // 前の計算結果があれば読み込んで再開するか
         runner_create.file_write  = true;        // 計算結果をファイルに保存するか
         runner_create.print_progress = true;    // 途中結果を出力
-        runner_create.initial_evaluation = false;
+        runner_create.initial_evaluation = true;
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
@@ -174,8 +174,8 @@ void MnistStochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int lut_fram
         lut_net->Add(cnv3);
         lut_net->Add(pol1);
         lut_net->Add(cnv4);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({ 10 }, lut_frame_mux_size));
-        lut_net->SetInputShape({28, 28, 1});
+        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, lut_frame_mux_size));
+        lut_net->SetInputShape(td.x_shape);
 
 
         // テーブル化して取り込み(現状まだSetInputShape後の取り込みが必要)
@@ -195,6 +195,8 @@ void MnistStochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int lut_fram
 
         // 評価
         if ( 1 ) {
+            std::cout << "lut_frame_mux_size : "  << lut_frame_mux_size << std::endl;
+
             bb::Runner<float>::create_t lut_runner_create;
             lut_runner_create.name        = "Lut_" + net_name;
             lut_runner_create.net         = lut_net;
