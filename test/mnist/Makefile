@@ -1,7 +1,6 @@
 
-
 # target
-TARGET = test-mnist
+TARGET  = test-mnist
 SUB_TARGETS =
 
 # run option
@@ -29,14 +28,13 @@ CINCS  = -I../../include -I../../eigen
 CDEFS  = 
 
 SRCS   = main.cpp
-SRCS  += MnistSimpleMicroMlp.cpp
-SRCS  += MnistSimpleCnnMlp.cpp
-SRCS  += MnistDenseAffine.cpp
-SRCS  += MnistSequentialSimpleMicroMlp.cpp
-SRCS  += MnistMiniLutCnn.cpp
-SRCS  += MnistDeepMicroMlp.cpp
-SRCS  += MnistStochasticLut6.cpp
-SRCS  += MnistStochasticCnn.cpp
+SRCS  += MnistDenseMlp.cpp
+SRCS  += MnistDenseCnn.cpp
+SRCS  += MnistStochasticLut6Mlp.cpp
+SRCS  += MnistStochasticLut6Cnn.cpp
+SRCS  += MnistMicroMlpLutMlp.cpp
+SRCS  += MnistMicroMlpLutCnn.cpp
+SRCS  += MnistMicroMlpScratch.cpp
 
 OBJS = $(addsuffix .o, $(basename $(SRCS)))
 
@@ -72,8 +70,8 @@ run: $(TARGET) train-images-idx3-ubyte train-labels-idx1-ubyte t10k-images-idx3-
 bbcu_build:
 	make -C $(BBCU_PATH)
 
-$(TARGET): $(OBJS) $(BBCU_LIB)
-	$(CC) -o $(TARGET) $(CFLAGS) $(CINCS) $(CDEFS) $(OBJS) $(BBCU_LIB)
+$(TARGET): $(OBJS) $(LIBS)
+	$(CC) -o $(TARGET) $(CFLAGS) $(CINCS) $(CDEFS) $(OBJS) $(LIBS)
 
 .cpp.o:
 	$(CC) $(CFLAGS) $(CINCS) $(CDEFS) -c $<
