@@ -25,7 +25,7 @@ class ConvolutionCol2Im : public Model
 protected:
     indices_t       m_input_shape;
 
-    bool            m_host_only = true;
+    bool            m_host_only = false;
 
 	index_t			m_c_size = 1;
 	index_t			m_h_size = 1;
@@ -154,7 +154,7 @@ public:
 #endif
 
 #ifdef BB_WITH_CUDA
-        if ( !m_host_only && DataType<FT>::type == BB_TYPE_BIT && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        if ( false && !m_host_only && DataType<FT>::type == BB_TYPE_BIT && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // Bit CUDA
             auto x_ptr = x.LockDeviceMemoryConst();
             auto y_ptr = m_y.LockDeviceMemory(true);
