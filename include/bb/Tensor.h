@@ -929,13 +929,13 @@ inline Tensor_<float> & Tensor_<float>::operator=(float src)
 {
     // CUDA
     if ( m_mem->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
-        auto op3 = Memory::GetDevOp3Ptr(m_mem, m_mem, m_mem);
-        bbcu_fp32_Vector_add_ex((float *)op3.dst.GetAddr(), (const float *)op3.src0.GetAddr(), (const float *)op3.src1.GetAddr(), 0.0f, 0.0f, src, (int)m_size);
+        auto ptr = m_mem->LockDevice(true);
+        bbcu_fp32_Vector_set((float *)ptr.GetAddr(), src, (int)m_size);
         return *this;
     }
 
     // CPU
-    auto ptr = m_mem->Lock();
+    auto ptr = m_mem->Lock(true);
     Tensor_Vector_set<float>((float *)ptr.GetAddr(), src, m_size);
 	return *this;
 }
