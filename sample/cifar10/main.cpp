@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------
 //  BinaryBrain  -- binary network evaluation platform
-//   MNIST sample
+//   CIFAR-10 sample
 //
 //                                Copyright (C) 2018-2019 by Ryuji Fuchikami
 // --------------------------------------------------------------------------
@@ -10,13 +10,13 @@
 #include <omp.h>
 #include <string.h>
 
-void MnistDenseMlp(int epoch_size, size_t mini_batch_size);
-void MnistDenseCnn(int epoch_size, size_t mini_batch_size);
-void MnistStochasticLut6Mlp(int epoch_size, size_t mini_batch_size, int lut_frame_mux_size, bool binary_mode);
-void MnistStochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int lut_frame_mux_size, bool binary_mode);
-void MnistMicroMlpLutMlp(int epoch_size, size_t mini_batch_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode);
-void MnistMicroMlpLutCnn(int epoch_size, size_t mini_batch_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode);
-void MnistMicroMlpScratch(int epoch_size, size_t mini_batch_size, bool binary_mode);
+
+void Cifar10DenseMlp(int epoch_size, size_t mini_batch_size, bool binary_mode);
+void Cifar10DenseCnn(int epoch_size, size_t mini_batch_size, bool binary_mode);
+void Cifar10StochasticLut6Mlp(int epoch_size, size_t mini_batch_size, int lut_frame_mux_size, bool binary_mode);
+void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int lut_frame_mux_size, bool binary_mode);
+void Cifar10MicroMlpLutMlp(int epoch_size, size_t mini_batch_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode);
+void Cifar10MicroMlpLutCnn(int epoch_size, size_t mini_batch_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode);
 
 
 // メイン関数
@@ -80,32 +80,27 @@ int main(int argc, char *argv[])
     }
 
 	if ( netname == "All" || netname == "StochasticLutMlp" ) {
-		MnistStochasticLut6Mlp(epoch_size, mini_batch_size, lut_frame_mux_size, binary_mode);
+		Cifar10StochasticLut6Mlp(epoch_size, mini_batch_size, lut_frame_mux_size, binary_mode);
 	}
 
 	if ( netname == "All" || netname == "StochasticLutCnn" ) {
-    	MnistStochasticLut6Cnn(epoch_size, mini_batch_size, lut_frame_mux_size, binary_mode);
+    	Cifar10StochasticLut6Cnn(epoch_size, mini_batch_size, lut_frame_mux_size, binary_mode);
 	}
 
 	if ( netname == "All" || netname == "LutMlp" ) {
-		MnistMicroMlpLutMlp(epoch_size, mini_batch_size, frame_mux_size, lut_frame_mux_size, binary_mode);
+		Cifar10MicroMlpLutMlp(epoch_size, mini_batch_size, frame_mux_size, lut_frame_mux_size, binary_mode);
 	}
 
 	if ( netname == "All" || netname == "LutCnn" ) {
-    	MnistMicroMlpLutCnn(epoch_size, mini_batch_size, frame_mux_size, lut_frame_mux_size, binary_mode);
+    	Cifar10MicroMlpLutCnn(epoch_size, mini_batch_size, frame_mux_size, lut_frame_mux_size, binary_mode);
 	}
 
 	if ( netname == "All" || netname == "DenseMlp" ) {
-		MnistDenseMlp(epoch_size, mini_batch_size);
+		Cifar10DenseMlp(epoch_size, mini_batch_size, false);
 	}
 
 	if ( netname == "All" || netname == "DenseCnn" ) {
-		MnistDenseCnn(epoch_size, mini_batch_size);
-	}
-
-	if ( strcmp(argv[1], "Scratch") == 0 ) {
-        // レイヤー内部を自分で書く人向けサンプル
-		MnistMicroMlpScratch(epoch_size, mini_batch_size, binary_mode);
+		Cifar10DenseCnn(epoch_size, mini_batch_size, false);
 	}
 
 	return 0;
