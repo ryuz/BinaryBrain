@@ -81,8 +81,8 @@ int main(int argc, char *argv[])
         }
     }
 
-    MnistStochasticLut2Mlp(epoch_size, mini_batch_size, lut_frame_mux_size, true);
-	MnistStochasticLut4Mlp(epoch_size, mini_batch_size, lut_frame_mux_size, true);
+//  MnistStochasticLut2Mlp(epoch_size, mini_batch_size, lut_frame_mux_size, true);
+//  MnistStochasticLut4Mlp(epoch_size, mini_batch_size, lut_frame_mux_size, true);
 
 	if ( netname == "All" || netname == "StochasticLutMlp" ) {
 		MnistStochasticLut6Mlp(epoch_size, mini_batch_size, lut_frame_mux_size, true);

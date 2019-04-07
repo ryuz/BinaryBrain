@@ -22,10 +22,10 @@ int main()
 	omp_set_num_threads(4);
 
     // 普通のDenseAffineでの回帰
-    DiabetesAffineRegression(32, 16);
+    DiabetesAffineRegression(64, 16);
 
     // μMLPによるバイナリネットでの回帰
-    DiabetesRegressionMicroMlpLut(32, 16, 255);
+    DiabetesRegressionMicroMlpLut(64, 16, 255);
 
     // 確率的LUTによる回帰と、バイナリネットでの再生
 	DiabetesRegressionStochasticLut6(64, 16);

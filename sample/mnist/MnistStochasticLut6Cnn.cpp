@@ -104,15 +104,15 @@ void MnistStochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int lut_fram
 
         // run fitting
         bb::Runner<float>::create_t runner_create;
-        runner_create.name        = net_name;
-        runner_create.net         = net;
-        runner_create.lossFunc    = bb::LossSoftmaxCrossEntropy<float>::Create();
-        runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
-        runner_create.optimizer   = bb::OptimizerAdam<float>::Create();
-        runner_create.file_read   = true;       // 前の計算結果があれば読み込んで再開するか
-        runner_create.file_write  = true;       // 計算結果をファイルに保存するか
-        runner_create.print_progress = true;    // 途中結果を出力
-        runner_create.initial_evaluation = true;
+        runner_create.name               = net_name;
+        runner_create.net                = net;
+        runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
+        runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
+        runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
+        runner_create.file_read          = false;   // 前の計算結果があれば読み込んで再開するか
+        runner_create.file_write         = true;    // 計算結果をファイルに保存するか
+        runner_create.print_progress     = true;    // 途中結果を出力
+        runner_create.initial_evaluation = false;   // 計算前に初期評価を計算(file_read時などに活用)
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
@@ -196,8 +196,6 @@ void MnistStochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int lut_fram
 
         // 評価
         if ( 1 ) {
-            std::cout << "lut_frame_mux_size : "  << lut_frame_mux_size << std::endl;
-
             bb::Runner<float>::create_t lut_runner_create;
             lut_runner_create.name        = "Lut_" + net_name;
             lut_runner_create.net         = lut_net;

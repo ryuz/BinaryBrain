@@ -303,8 +303,8 @@ public:
 
 			// 初期評価
 			if (m_initial_evaluation) {
-				auto test_metrics  = Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_metricsFunc);
-				auto train_metrics = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, 0, m_metricsFunc);
+				auto test_metrics  = Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
+				auto train_metrics = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
 				log_stream << "[initial] "
 					<< "test " << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << test_metrics  << " "
 					<< "train " << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << train_metrics << std::endl;

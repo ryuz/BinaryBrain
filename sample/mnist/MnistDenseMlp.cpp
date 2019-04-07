@@ -46,12 +46,12 @@ void MnistDenseMlp(int epoch_size, size_t mini_batch_size)
     
     // run fitting
     bb::Runner<float>::create_t runner_create;
-    runner_create.name        = "MnistDenseMlp";
-    runner_create.net         = net;
-    runner_create.lossFunc    = bb::LossSoftmaxCrossEntropy<float>::Create();
-    runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
-    runner_create.optimizer   = bb::OptimizerAdam<float>::Create();
-    runner_create.initial_evaluation = true;
+    runner_create.name               = "MnistDenseMlp";
+    runner_create.net                = net;
+    runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
+    runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
+    runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
+    runner_create.initial_evaluation = false;
     auto runner = bb::Runner<float>::Create(runner_create);
 
     runner->Fitting(td, epoch_size, mini_batch_size);

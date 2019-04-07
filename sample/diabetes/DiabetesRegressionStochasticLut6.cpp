@@ -95,6 +95,7 @@ void DiabetesRegressionStochasticLut6(int epoch_size, size_t mini_batch_size)
         lut_net->SetInputShape(td.x_shape);
 
         // テーブル化して取り込み(SetInputShape後に取り込みが必要)
+        std::cout << "parameter copy to LUT-Network" << std::endl;
         layer_lut0->ImportLayer<float, float>(layer_sl0);
         layer_lut1->ImportLayer<float, float>(layer_sl1);
         layer_lut2->ImportLayer<float, float>(layer_sl2);

@@ -94,12 +94,6 @@ BBCU_DLL_EXPORT int bbcu_fp32_Im2Col_Forward
 }
 
 
-__device__ __forceinline__ int read_bit(int const *buf, int index)
-{
-    int bit = index % 32;
-    index /= 32;
-    return ((buf[index] >> bit) & 1);
-}
 
 __global__ void kernal_bit_Im2Col_Forward(
             const int*      x_buf,
@@ -137,8 +131,9 @@ __global__ void kernal_bit_Im2Col_Forward(
                 int input_node  = (c * input_h_size  + iy) * input_w_size  + ix;
 
                 int const *x_ptr = &x_buf[input_node  * input_frame_stride];
-            
-                y |= (read_bit(x_ptr, input_frame) << i);
+                
+                int x = ((x_ptr[input_frame / 32] >> (input_frame % 32)) & 1);
+                y |= (x << i);
             }
         }
 

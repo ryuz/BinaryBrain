@@ -24,6 +24,7 @@
 #include "bb/Utility.h"
 
 
+// スクラッチでモデル構築する例
 class MnistSimpleMicroMlpNet : public bb::Model
 {
 protected:
