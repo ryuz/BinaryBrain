@@ -51,17 +51,17 @@ __global__ void kernal_bit_BinaryLut6_Forward(
   	int id       = threadIdx.x;
     int id_step  = blockDim.x;
 
-    int node_idx  = blockIdx.y;
+    int node_idx  = threadIdx.y;
     int node_step = blockDim.y;
-    int node      = blockIdx.y * blockDim.y + blockIdx.y;
+    int node      = blockIdx.y * blockDim.y + threadIdx.y;
     
     extern __shared__ int buf[];
-    int         *table  = (int        *)&buf[0];
-    int const   **x_ptr = (int const **)&table[64 * node_step];
+    int *table  = &buf[0];
+    int *in_idx = &table[64 * node_step];
 
     if ( node < node_size ) {
         for ( int i = id; i < 6; i += id_step ) {
-            x_ptr[node_idx*6 + i] = &x_buf[input_index[node*6 + i] * frame_stride];
+            in_idx[node_idx*6 + i] = input_index[node*6 + i];
         }
 
         int t0 = lut_table[node*2 + 0];
@@ -82,12 +82,12 @@ __global__ void kernal_bit_BinaryLut6_Forward(
 	    for ( int frame = id; frame < frame_size; frame += id_step ) {
 	        // input
             int x[6];
-	        x[0] = x_ptr[node_idx*6 + 0][frame];
-	        x[1] = x_ptr[node_idx*6 + 1][frame];
-	        x[2] = x_ptr[node_idx*6 + 2][frame];
-	        x[3] = x_ptr[node_idx*6 + 3][frame];
-	        x[4] = x_ptr[node_idx*6 + 4][frame];
-	        x[5] = x_ptr[node_idx*6 + 5][frame];
+	        x[0] = x_buf[in_idx[node_idx*6 + 0]*frame_stride + frame];
+	        x[1] = x_buf[in_idx[node_idx*6 + 1]*frame_stride + frame];
+	        x[2] = x_buf[in_idx[node_idx*6 + 2]*frame_stride + frame];
+	        x[3] = x_buf[in_idx[node_idx*6 + 3]*frame_stride + frame];
+	        x[4] = x_buf[in_idx[node_idx*6 + 4]*frame_stride + frame];
+	        x[5] = x_buf[in_idx[node_idx*6 + 5]*frame_stride + frame];
 
 	        // LUT
 	        int y = 0;
@@ -187,7 +187,7 @@ int bbcu_fp32_BinatyLut6_Forward
             dev_input_index,
             dev_table,
             node_size,
-            frame_size,
+            (frame_size + 31) / 32,
             frame_stride
         );
     BB_CUDA_CHECK_LAST_ERROR();
