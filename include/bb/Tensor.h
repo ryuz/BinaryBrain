@@ -300,9 +300,11 @@ class Tensor;
 template<typename T>
 class Tensor_
 {
+public:
     using ConstPtr = TensorConstPtr_<T, Tensor_<T> const, Memory::ConstPtr>;
     using Ptr      = TensorPtr_<T, Tensor_<T>, Memory::Ptr>;
 
+private:
     friend Tensor;
     friend ConstPtr;
     friend Ptr;
