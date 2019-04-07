@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
  	omp_set_num_threads(4);
 
     std::string netname = "All";
-    int         epoch_size         = 8;
+    int         epoch_size         = 32;
     int         mini_batch_size    = 32;
     int         frame_mux_size     = 1;
     int         lut_frame_mux_size = 15;

@@ -184,6 +184,7 @@ void Cifar10MicroMlpLutCnn(int epoch_size, size_t mini_batch_size, int frame_mux
 
 
         // テーブル化して取り込み(現状まだSetInputShape後の取り込みが必要)
+        std::cout << "parameter copy to LUT-Network" << std::endl;
         layer_cnv0_lut0->ImportLayer<float, float>(layer_cnv0_mm0);
         layer_cnv0_lut1->ImportLayer<float, float>(layer_cnv0_mm1);
         layer_cnv1_lut0->ImportLayer<float, float>(layer_cnv1_mm0);
@@ -194,6 +195,7 @@ void Cifar10MicroMlpLutCnn(int epoch_size, size_t mini_batch_size, int frame_mux
         layer_cnv3_lut1->ImportLayer<float, float>(layer_cnv3_mm1);
         layer_lut4     ->ImportLayer<float, float>(layer_mm4);
         layer_lut5     ->ImportLayer<float, float>(layer_mm5);
+        layer_lut6     ->ImportLayer<float, float>(layer_mm6);
 
         // 評価
         if ( 0 ) {
