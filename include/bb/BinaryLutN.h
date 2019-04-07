@@ -278,6 +278,28 @@ public:
         // 出力を設定
         m_y_buf.Resize(DataType<FT>::type, x_buf.GetFrameSize(), m_output_shape);
 
+#ifdef BB_WITH_CUDA
+        if ( N == 6 && DataType<FT>::type == BB_TYPE_BIT && !m_host_only ) {
+            auto x_ptr           = x_buf.LockDeviceMemoryConst();
+            auto y_ptr           = m_y_buf.LockDeviceMemory(true);
+            auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
+            auto table_ptr       = m_table.LockDeviceMemoryConst();
+
+            bbcu_fp32_BinatyLut6_Forward
+                (
+                    (int const *)x_ptr.GetAddr(),
+                    (int       *)y_ptr.GetAddr(),
+                    (int const *)input_index_ptr.GetAddr(),
+                    (int const *)table_ptr.GetAddr(),
+                    (int        )m_y_buf.GetNodeSize(),
+                    (int        )m_y_buf.GetFrameSize(),
+                    (int        )(m_y_buf.GetFrameStride() / sizeof(int))
+                );
+
+            return m_y_buf;
+        }
+#endif
+
         if ( N == 6 && DataType<FT>::type == BB_TYPE_BIT && m_host_simd ) {
             auto x_ptr = x_buf.LockConst<Bit>();
             auto y_ptr = m_y_buf.Lock<Bit>(true);
@@ -290,9 +312,6 @@ public:
 
             #pragma omp parallel for
             for (index_t node = 0; node < node_size; ++node) {
-
-//        		auto& lut = m_lut[node];
-
 		        __m256i*	x_addr[6];
 		        __m256i*	y_addr;
 		        __m256i		x[6];
@@ -416,8 +435,7 @@ public:
     		    		index |= x ? mask : 0;
 	    		    	mask <<= 1;
 		    	    }
-//    			    bool y = GetLutTable(node, index);
-                    bool y = GetLutTableFromPtr(table_ptr, node, index);
+                    auto y = GetLutTableFromPtr(table_ptr, node, index);
     			    y_ptr.Set(frame, node, y);
                 }
             }

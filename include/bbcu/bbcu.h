@@ -191,6 +191,23 @@ int bbcu_fp32_MatrixRowwiseSetVector
             cudaStream_t    streamId = 0
         );
 
+
+// -------------------------------------
+//  Binary LUT
+// -------------------------------------
+
+int bbcu_fp32_BinatyLut6_Forward
+        (
+            int const       *dev_x_buf,
+            int             *dev_y_buf,
+            int const       *dev_input_index,
+            int const       *dev_table,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId = 0
+        );
+
 // -------------------------------------
 //  MicroMlp
 // -------------------------------------
@@ -267,6 +284,7 @@ int bbcu_fp32_StochasticLut6_Backward(
             int             binary_mode,
             cudaStream_t    streamId = 0
         );
+
 
 // -------------------------------------
 //  BatchNormalization
