@@ -46,7 +46,7 @@ It has the following features
 % ./sample-mnist All
 ```
 
-If you don't use GPU, please add "make WITH_CUDA=No" option.
+If you don't use GPU, please add "WITH_CUDA=No" option to make.
 
 ### Google Colaboratory
 Currently you can use nvcc on Google Colaboratory.
@@ -133,7 +133,7 @@ LUT-network's learning cost is heavy, but prediction computing performanse of FP
 ## License
 This source code's license is MIT license.
 
-(Note : This program using Eigen and CEREAL)
+(Note : This program using CEREAL)
 
 ## Reference
 - BinaryConnect: Training Deep Neural Networks with binary weights during propagations<br>
