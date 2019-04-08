@@ -133,7 +133,7 @@ LUT-network's learning cost is heavy, but prediction computing performanse of FP
 ## License
 This source code's license is MIT license.
 
-(Note : This program using Eigen and CEREAL)
+(Note : This program using CEREAL)
 
 ## Reference
 - BinaryConnect: Training Deep Neural Networks with binary weights during propagations<br>
