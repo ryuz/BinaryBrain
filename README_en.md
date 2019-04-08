@@ -46,7 +46,7 @@ It has the following features
 % ./sample-mnist All
 ```
 
-If you don't use GPU, please add "make WITH_CUDA=No" option.
+If you don't use GPU, please add "WITH_CUDA=No" option to make.
 
 ### Google Colaboratory
 Currently you can use nvcc on Google Colaboratory.
