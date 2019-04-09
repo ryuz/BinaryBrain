@@ -61,6 +61,9 @@ You can build C++ source code from iPython Notebook.
 
 
 ## What is LUT networks?
+
+There is also a document on [slideshare](https://www.slideshare.net/ryuz88/lutnetwork-revision2-english-version).
+
 ### Design flow
 FPGA circuit is constructed from LUTs.
 This platform let the LUT's table learn directly.

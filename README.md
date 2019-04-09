@@ -90,7 +90,11 @@ GPUを使う場合は、ヘッダ読み込みの際に BB_WITH_CUDA マクロを
 こちらに手がかり程度に[APIの概要](documents/class.md)を記載しています。
 
 
-## LUTネットワークとは?
+## LUT-Networkとは?
+
+LUT-Networについて説明します。
+なお[slideshare](https://www.slideshare.net/ryuz88/lutnetwork-revision2)にも少し資料を置いております。
+
 ### デザインフロー
 FPGA回路はLUTによって構成されています。
 このプラットフォームはLUTを直接学習させます。
