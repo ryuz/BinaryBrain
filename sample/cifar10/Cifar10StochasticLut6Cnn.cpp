@@ -376,6 +376,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int lut_fr
         cnv4_sub->Add(layer_lut5);
         cnv4_sub->Add(layer_lut6);
         cnv4_sub->Add(layer_lut7);
+        cnv4_sub->Add(layer_lut8);
+        cnv4_sub->Add(layer_lut9);
 
         auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3);
         auto cnv1 = bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3);
@@ -397,8 +399,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int lut_fr
         lut_net->Add(cnv3);
         lut_net->Add(pol1);
         lut_net->Add(cnv4);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({ 10 }, lut_frame_mux_size));
-        lut_net->SetInputShape({28, 28, 1});
+        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, lut_frame_mux_size));
+        lut_net->SetInputShape(td.x_shape);
 
 
         // テーブル化して取り込み(現状まだSetInputShape後の取り込みが必要)
