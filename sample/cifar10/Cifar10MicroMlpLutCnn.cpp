@@ -195,7 +195,8 @@ void Cifar10MicroMlpLutCnn(int epoch_size, size_t mini_batch_size, int frame_mux
         layer_cnv3_lut1->ImportLayer<float, float>(layer_cnv3_mm1);
         layer_lut4     ->ImportLayer<float, float>(layer_mm4);
         layer_lut5     ->ImportLayer<float, float>(layer_mm5);
-        layer_lut6     ->ImportLayer<float, float>(layer_mm6);
+        layer_lut6
+            ->ImportLayer<float, float>(layer_mm6);
 
         // •]‰¿
         if ( 0 ) {
