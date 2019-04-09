@@ -67,6 +67,13 @@ This platform let the LUT's table learn directly.
 
 ![LutNet_design_flow.png](documents/images/LutNet_design_flow.png "design flow")
 
+### Difference from other binary deep neural network
+Though LUT-Network is binary nwtwork, it has FP32 weight parameter.
+
+![difference_other_networks.png](documents/images/difference_other_networks.png "difference from other networks")
+
+high-performance prediction, and fast learning.
+
 ### Binary modulation model
 BinaryBrain can handle binary modulated models.
 The binary modulation model is as follows.
@@ -119,16 +126,12 @@ One LUT's equivalent model is many perceptron that has hidden layer.
 Learning model of LUT-Network is shown below.
 ![LutNet_lut_node_model.png](documents/images/LutNet_node_model.png "LUT node model")
 
-### Difference from other binary deep neural network
-Though LUT-Network is binary nwtwork, it has FP32 weight parameter. Only activation layer's output is binary.
-
-
-![difference_other_networks.png](documents/images/difference_other_networks.png "difference from other networks")
 
 ### Performance  estimations
-LUT-network's learning cost is heavy, but prediction computing performanse of FPGA is very high.
 
 ![performance.png](documents/images/performance.png "parformance")
+
+This estimate is when using a Stochastic-LUT.
 
 ## License
 This source code's license is MIT license.
