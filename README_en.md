@@ -95,7 +95,7 @@ x0-x1 is input stochastic variables. W0-W3 is table value.
 
 y =   W0 * (1 - x1) * (1 - x0)
       + W1 * (1 - x1) * x0
-      + W2 * x1 *  * (1 - x0)
+      + W2 * x1 * (1 - x0)
       + W3 * x1 * x0
 
  Because this calculation tree is differentiable, it can be calculate back-propagation.
