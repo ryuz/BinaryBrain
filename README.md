@@ -182,6 +182,7 @@ LUT-Networkを扱う上で重要なのは、学習時の演算時間と、推論
 
 ![performance.png](documents/images/performance.png "parformance")
 
+この見積もりは確率的LUTモデルを用いたときのものです。
 学習時は、Intel Core-i CPU を前提に計算していますが、Version3 からはGPUにも対応しています。
 推論に関してはCPUでもある程度性能の出るインプリは可能と思われますが、特にFPGA化した場合に驚異的な性能を発揮します。
 
