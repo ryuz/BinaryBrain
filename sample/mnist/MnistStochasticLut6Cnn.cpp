@@ -98,6 +98,10 @@ void MnistStochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int lut_fram
             std::cout << "binary mode" << std::endl;
             net->SendCommand("binary true");
         }
+        else {
+            std::cout << "real mode" << std::endl;
+            net->SendCommand("binary false");
+        }
 
         // print model information
         net->PrintInfo(2);
