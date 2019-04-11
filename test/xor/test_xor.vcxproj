@@ -337,6 +337,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="StochasticLut6.cpp" />
     <ClCompile Include="XorMicroMlp.cpp" />
   </ItemGroup>
   <ItemGroup>

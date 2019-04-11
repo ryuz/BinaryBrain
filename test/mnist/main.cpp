@@ -20,6 +20,7 @@ void MnistMicroMlpLutMlp(int epoch_size, size_t mini_batch_size, int frame_mux_s
 void MnistMicroMlpLutCnn(int epoch_size, size_t mini_batch_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode);
 void MnistMicroMlpScratch(int epoch_size, size_t mini_batch_size, bool binary_mode);
 
+void MnistCompare(int epoch_size, size_t mini_batch_size, bool binary_mode);
 
 // メイン関数
 int main(int argc, char *argv[])
@@ -81,23 +82,26 @@ int main(int argc, char *argv[])
         }
     }
 
+//    MnistCompare(epoch_size, mini_batch_size, true);
+//    return 0;
+
 //  MnistStochasticLut2Mlp(epoch_size, mini_batch_size, lut_frame_mux_size, true);
 //  MnistStochasticLut4Mlp(epoch_size, mini_batch_size, lut_frame_mux_size, true);
 
 	if ( netname == "All" || netname == "StochasticLutMlp" ) {
-		MnistStochasticLut6Mlp(epoch_size, mini_batch_size, lut_frame_mux_size, true);
+		MnistStochasticLut6Mlp(epoch_size, mini_batch_size, lut_frame_mux_size, binary_mode);
 	}
 
 	if ( netname == "All" || netname == "StochasticLutCnn" ) {
-    	MnistStochasticLut6Cnn(epoch_size, mini_batch_size, lut_frame_mux_size, true);
+    	MnistStochasticLut6Cnn(epoch_size, mini_batch_size, lut_frame_mux_size, binary_mode);
 	}
 
 	if ( netname == "All" || netname == "LutMlp" ) {
-		MnistMicroMlpLutMlp(epoch_size, mini_batch_size, frame_mux_size, lut_frame_mux_size, true);
+		MnistMicroMlpLutMlp(epoch_size, mini_batch_size, frame_mux_size, lut_frame_mux_size, binary_mode);
 	}
 
 	if ( netname == "All" || netname == "LutCnn" ) {
-    	MnistMicroMlpLutCnn(epoch_size, mini_batch_size, frame_mux_size, lut_frame_mux_size, true);
+    	MnistMicroMlpLutCnn(epoch_size, mini_batch_size, frame_mux_size, lut_frame_mux_size, binary_mode);
 	}
 
 	if ( netname == "All" || netname == "DenseMlp" ) {

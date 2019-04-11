@@ -348,14 +348,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\sample\mnist\MnistStochasticLut2Mlp.cpp" />
-    <ClCompile Include="..\..\sample\mnist\MnistStochasticLut4Mlp.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MnistCompare.cpp" />
     <ClCompile Include="MnistDenseCnn.cpp" />
     <ClCompile Include="MnistDenseMlp.cpp" />
     <ClCompile Include="MnistMicroMlpLutCnn.cpp" />
     <ClCompile Include="MnistMicroMlpLutMlp.cpp" />
     <ClCompile Include="MnistMicroMlpScratch.cpp" />
+    <ClCompile Include="MnistStochasticLut4.cpp" />
     <ClCompile Include="MnistStochasticLut6Cnn.cpp" />
     <ClCompile Include="MnistStochasticLut6Mlp.cpp" />
   </ItemGroup>
