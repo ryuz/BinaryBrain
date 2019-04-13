@@ -28,6 +28,8 @@ protected:
     bool                    m_binary_mode = true;
     bool                    m_host_only = false;
 
+    std::string             m_connection;
+
     index_t                 m_input_node_size = 0;
     index_t                 m_output_node_size = 0;
     indices_t               m_input_shape;
@@ -83,8 +85,9 @@ public:
 
     struct create_t
     {
-        indices_t       output_shape;
-        std::uint64_t   seed = 1;
+        indices_t       output_shape;   //< 出力形状
+        std::string     connection;     //< 結線ルール
+        std::uint64_t   seed = 1;       //< 乱数シード
     };
 
     static std::shared_ptr<StochasticLut6> Create(create_t const &create)
@@ -93,23 +96,27 @@ public:
         BB_ASSERT(!create.output_shape.empty());
         self->m_output_shape     = create.output_shape;
         self->m_output_node_size = GetShapeSize(self->m_output_shape);
+        self->m_connection       = create.connection;
         self->m_mt.seed(create.seed);
         return self;
     }
 
-    static std::shared_ptr<StochasticLut6> Create(indices_t const &output_shape, std::uint64_t seed = 1)
+    static std::shared_ptr<StochasticLut6> Create(indices_t const &output_shape, std::string connection = "", std::uint64_t seed = 1)
     {
         create_t create;
         create.output_shape = output_shape;
+        create.connection   = connection;
         create.seed         = seed;
         return Create(create);
     }
 
-    static std::shared_ptr<StochasticLut6> Create(index_t output_node_size, std::uint64_t seed = 1)
+    static std::shared_ptr<StochasticLut6> Create(index_t output_node_size, std::string connection = "", std::uint64_t seed = 1)
     {
         create_t create;
         create.output_shape.resize(1);
         create.output_shape[0] = output_node_size;
+        create.connection      = connection;
+        create.seed            = seed;
         return Create(create);
     }
 
@@ -223,12 +230,14 @@ public:
         
         // 接続初期化
         m_input_index.Resize(m_output_node_size, 6);
-        this->InitializeNodeInput(m_mt());
+        this->InitializeNodeInput(m_mt(), m_connection);
 
-        // パラメータ初期化
+        // パラメータ初期化(結局初期値は何が良いのかまだよくわからない)
 //      m_W->Resize(DataType<T>::type, m_output_node_size, 64);  m_W->InitUniformDistribution(0.4, 0.6, m_mt());
-//      m_W->Resize(DataType<T>::type, m_output_node_size, 64);  m_W->InitNormalDistribution(0.5, 0.01, m_mt());
-        m_W->Resize(DataType<T>::type, m_output_node_size, 64);  m_W->InitNormalDistribution(0.5, 0.1, m_mt());
+//      m_W->Resize(DataType<T>::type, m_output_node_size, 64);  m_W->InitUniformDistribution(0.0, 1.0, m_mt());
+//      m_W->Resize(DataType<T>::type, m_output_node_size, 64);  m_W->InitNormalDistribution(0.5, 0.001, m_mt());
+        m_W->Resize(DataType<T>::type, m_output_node_size, 64);  m_W->InitNormalDistribution(0.5, 0.01, m_mt());
+
         m_dW->Resize(DataType<T>::type, m_output_node_size, 64); m_dW->FillZero();
 
         return m_output_shape;

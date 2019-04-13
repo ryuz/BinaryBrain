@@ -107,7 +107,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
         runner_create.lossFunc    = bb::LossSoftmaxCrossEntropy<float>::Create();
         runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer   = bb::OptimizerAdam<float>::Create();
-        runner_create.file_read   = true;        // 前の計算結果があれば読み込んで再開するか
+//      runner_create.optimizer   = bb::OptimizerSgd<float>::Create();
+        runner_create.file_read   = false;        // 前の計算結果があれば読み込んで再開するか
         runner_create.file_write  = true;        // 計算結果をファイルに保存するか
         runner_create.write_serial = true; 
         runner_create.print_progress = true;     // 途中結果を出力
@@ -179,16 +180,16 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
 
 
         // テーブル化して取り込み(現状まだSetInputShape後の取り込みが必要)
-        layer_cnv0_lut0->ImportLayer(*layer_cnv0_sl0);
-        layer_cnv0_lut1->ImportLayer(*layer_cnv0_sl1);
-        layer_cnv1_lut0->ImportLayer(*layer_cnv1_sl0);
-        layer_cnv1_lut1->ImportLayer(*layer_cnv1_sl1);
-        layer_cnv2_lut0->ImportLayer(*layer_cnv2_sl0);
-        layer_cnv2_lut1->ImportLayer(*layer_cnv2_sl1);
-        layer_cnv3_lut0->ImportLayer(*layer_cnv3_sl0);
-        layer_cnv3_lut1->ImportLayer(*layer_cnv3_sl1);
-        layer_lut4     ->ImportLayer(*layer_sl4);
-        layer_lut5     ->ImportLayer(*layer_sl5);
+        layer_cnv0_lut0->ImportLayer<float, float>(layer_cnv0_sl0);
+        layer_cnv0_lut1->ImportLayer<float, float>(layer_cnv0_sl1);
+        layer_cnv1_lut0->ImportLayer<float, float>(layer_cnv1_sl0);
+        layer_cnv1_lut1->ImportLayer<float, float>(layer_cnv1_sl1);
+        layer_cnv2_lut0->ImportLayer<float, float>(layer_cnv2_sl0);
+        layer_cnv2_lut1->ImportLayer<float, float>(layer_cnv2_sl1);
+        layer_cnv3_lut0->ImportLayer<float, float>(layer_cnv3_sl0);
+        layer_cnv3_lut1->ImportLayer<float, float>(layer_cnv3_sl1);
+        layer_lut4     ->ImportLayer<float, float>(layer_sl4);
+        layer_lut5     ->ImportLayer<float, float>(layer_sl5);
 
         // 評価
         if ( 1 ) {
@@ -250,43 +251,53 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
 #endif
 
     // create network
-    auto layer_cnv0_sl0 = bb::StochasticLut6<>::Create(256);
-    auto layer_cnv0_sl1 = bb::StochasticLut6<>::Create(192);
-    auto layer_cnv0_sl2 = bb::StochasticLut6<>::Create(32);
-    auto layer_cnv1_sl0 = bb::StochasticLut6<>::Create(256);
-    auto layer_cnv1_sl1 = bb::StochasticLut6<>::Create(192);
-    auto layer_cnv1_sl2 = bb::StochasticLut6<>::Create(32);
-    auto layer_cnv2_sl0 = bb::StochasticLut6<>::Create(512);
-    auto layer_cnv2_sl1 = bb::StochasticLut6<>::Create(384);
-    auto layer_cnv2_sl2 = bb::StochasticLut6<>::Create(64);
-    auto layer_cnv3_sl0 = bb::StochasticLut6<>::Create(512);
-    auto layer_cnv3_sl1 = bb::StochasticLut6<>::Create(384);
-    auto layer_cnv3_sl2 = bb::StochasticLut6<>::Create(64);
-    auto layer_sl4 = bb::StochasticLut6<>::Create(2048);
-    auto layer_sl5 = bb::StochasticLut6<>::Create(360);
-    auto layer_sl6 = bb::StochasticLut6<>::Create(60);
-    auto layer_sl7 = bb::StochasticLut6<>::Create(10);
+    auto layer_cnv0_sl0 = bb::StochasticLut6<>::Create({4, 4, 16}, "gauss");
+    auto layer_cnv0_sl1 = bb::StochasticLut6<>::Create({4, 4, 16}, "gauss");
+    auto layer_cnv0_sl2 = bb::StochasticLut6<>::Create(192, "serial");
+    auto layer_cnv0_sl3 = bb::StochasticLut6<>::Create(32, "serial");
+    auto layer_cnv1_sl0 = bb::StochasticLut6<>::Create({4, 4, 16},  "gauss");
+    auto layer_cnv1_sl1 = bb::StochasticLut6<>::Create({4, 4, 16},  "gauss");
+    auto layer_cnv1_sl2 = bb::StochasticLut6<>::Create(192, "serial");
+    auto layer_cnv1_sl3 = bb::StochasticLut6<>::Create(32, "serial");
+    auto layer_cnv2_sl0 = bb::StochasticLut6<>::Create({4, 4, 16});
+    auto layer_cnv2_sl1 = bb::StochasticLut6<>::Create({4, 4, 16});
+    auto layer_cnv2_sl2 = bb::StochasticLut6<>::Create(384, "serial");
+    auto layer_cnv2_sl3 = bb::StochasticLut6<>::Create(64, "serial");
+    auto layer_cnv3_sl0 = bb::StochasticLut6<>::Create({4, 4, 16});
+    auto layer_cnv3_sl1 = bb::StochasticLut6<>::Create({4, 4, 16});
+    auto layer_cnv3_sl2 = bb::StochasticLut6<>::Create(384, "serial");
+    auto layer_cnv3_sl3 = bb::StochasticLut6<>::Create(64, "serial");
+    auto layer_sl4 = bb::StochasticLut6<>::Create({8, 8, 64}, "gauss");
+    auto layer_sl5 = bb::StochasticLut6<>::Create({4, 4, 64}, "gauss");
+    auto layer_sl6 = bb::StochasticLut6<>::Create({4, 4, 64}, "gauss");
+    auto layer_sl7 = bb::StochasticLut6<>::Create(360, "serial");
+    auto layer_sl8 = bb::StochasticLut6<>::Create(60, "serial");
+    auto layer_sl9 = bb::StochasticLut6<>::Create(10, "serial");
 
     {
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_sl0);
         cnv0_sub->Add(layer_cnv0_sl1);
         cnv0_sub->Add(layer_cnv0_sl2);
+        cnv0_sub->Add(layer_cnv0_sl3);
 
         auto cnv1_sub = bb::Sequential::Create();
         cnv1_sub->Add(layer_cnv1_sl0);
         cnv1_sub->Add(layer_cnv1_sl1);
         cnv1_sub->Add(layer_cnv1_sl2);
+        cnv1_sub->Add(layer_cnv1_sl3);
 
         auto cnv2_sub = bb::Sequential::Create();
         cnv2_sub->Add(layer_cnv2_sl0);
         cnv2_sub->Add(layer_cnv2_sl1);
         cnv2_sub->Add(layer_cnv2_sl2);
+        cnv2_sub->Add(layer_cnv2_sl3);
 
         auto cnv3_sub = bb::Sequential::Create();
         cnv3_sub->Add(layer_cnv3_sl0);
         cnv3_sub->Add(layer_cnv3_sl1);
         cnv3_sub->Add(layer_cnv3_sl2);
+        cnv3_sub->Add(layer_cnv3_sl3);
         
         auto net = bb::Sequential::Create();
         net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
@@ -299,6 +310,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
         net->Add(layer_sl5);
         net->Add(layer_sl6);
         net->Add(layer_sl7);
+        net->Add(layer_sl8);
+        net->Add(layer_sl9);
         net->SetInputShape(td.x_shape);
 
         if ( binary_mode ) {
@@ -316,7 +329,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
         runner_create.lossFunc       = bb::LossSoftmaxCrossEntropy<float>::Create();
         runner_create.metricsFunc    = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer      = bb::OptimizerAdam<float>::Create();
-        runner_create.file_read      = true;     // 前の計算結果があれば読み込んで再開するか
+//      runner_create.optimizer      = bb::OptimizerSgd<float>::Create(0.001);
+        runner_create.file_read      = false;    // 前の計算結果があれば読み込んで再開するか
         runner_create.file_write     = true;     // 計算結果をファイルに保存するか
         runner_create.print_progress = true;     // 途中結果を出力
         auto runner = bb::Runner<float>::Create(runner_create);
