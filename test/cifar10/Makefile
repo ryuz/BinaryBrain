@@ -68,8 +68,8 @@ run: $(TARGET) $(DATA_FILES)
 bbcu_build:
 	make -C $(BBCU_PATH)
 
-$(TARGET): $(OBJS) $(BBCU_LIB)
-	$(CC) -o $(TARGET) $(CFLAGS) $(CINCS) $(CDEFS) $(OBJS) $(BBCU_LIB)
+$(TARGET): $(OBJS) $(LIBS)
+	$(CC) -o $(TARGET) $(CFLAGS) $(CINCS) $(CDEFS) $(OBJS) $(LIBS)
 
 .cpp.o:
 	$(CC) $(CFLAGS) $(CINCS) $(CDEFS) -c $<
