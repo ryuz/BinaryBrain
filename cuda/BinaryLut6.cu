@@ -162,7 +162,7 @@ __global__ void kernal_bit_BinaryLut6_Forward(
 }
 
 
-int bbcu_fp32_BinatyLut6_Forward
+int bbcu_bit_BinatyLut6_Forward
         (
             int const       *dev_x_buf,
             int             *dev_y_buf,
