@@ -244,6 +244,10 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
 {
     std::string net_name = "Cifar10StochasticLut6Cnn";
 
+    std::cout << "epoch_size      : " << epoch_size      << std::endl;
+    std::cout << "mini_batch_size : " << mini_batch_size << std::endl;
+    std::cout << "binary_mode     : " << binary_mode     << std::endl;
+
   // load cifar-10 data
 #ifdef _DEBUG
 	auto td = bb::LoadCifar10<>::Load(1);
@@ -332,7 +336,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
         runner_create.metricsFunc    = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer      = bb::OptimizerAdam<float>::Create();
 //      runner_create.optimizer      = bb::OptimizerSgd<float>::Create(0.001);
-        runner_create.file_read      = false;    // 前の計算結果があれば読み込んで再開するか
+        runner_create.file_read      = true;    // 前の計算結果があれば読み込んで再開するか
         runner_create.file_write     = true;     // 計算結果をファイルに保存するか
         runner_create.print_progress = true;     // 途中結果を出力
         runner_create.initial_evaluation = true;
