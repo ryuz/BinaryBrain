@@ -25,8 +25,6 @@ void DataTest(void);
 // メイン関数
 int main(int argc, char *argv[])
 {
- 	omp_set_num_threads(2);
-
 //  DataTest();
 
     std::string netname = "All";
@@ -51,7 +49,12 @@ int main(int argc, char *argv[])
 	}
 
     for (int i = 1; i < argc; ++i) {
-        if (strcmp(argv[i], "-epoch") == 0 && i + 1 < argc) {
+        if (strcmp(argv[i], "-num_threads") == 0 && i + 1 < argc) {
+            ++i;
+            int num_threads = (int)strtoul(argv[i], NULL, 0);
+            omp_set_num_threads(num_threads);
+        }
+        else if (strcmp(argv[i], "-epoch") == 0 && i + 1 < argc) {
             ++i;
             epoch_size = (int)strtoul(argv[i], NULL, 0);
         }
