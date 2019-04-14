@@ -196,7 +196,7 @@ int bbcu_fp32_MatrixRowwiseSetVector
 //  Binary LUT
 // -------------------------------------
 
-int bbcu_fp32_BinatyLut6_Forward
+int bbcu_bit_BinatyLut6_Forward
         (
             int const       *dev_x_buf,
             int             *dev_y_buf,
@@ -207,6 +207,7 @@ int bbcu_fp32_BinatyLut6_Forward
             int             frame_stride,
             cudaStream_t    streamId = 0
         );
+
 
 // -------------------------------------
 //  MicroMlp
