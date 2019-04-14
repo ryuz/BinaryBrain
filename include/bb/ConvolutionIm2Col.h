@@ -187,7 +187,7 @@ public:
 #endif
 
 #ifdef BB_WITH_CUDA
-        if ( DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+        if ( DataType<FT>::type == BB_TYPE_BIT && !m_host_only && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
             // bit CUDA
             auto ptr_x = x_buf.LockDeviceMemoryConst();
             auto ptr_y = m_y_buf.LockDeviceMemory();
@@ -311,9 +311,9 @@ public:
             auto dx_ptr = m_dx_buf.Lock<BT>();
 
    		    for (index_t c = 0; c < m_input_c_size; ++c) {
-//              #pragma omp parallel for
+                #pragma omp parallel for
 			    for (index_t y = 0; y < m_input_h_size; ++y ) {
-//                  #pragma omp parallel for
+                    #pragma omp parallel for
     			    for (index_t x = 0; x < m_input_w_size; ++x ) {
                         index_t input_node = (c * m_input_h_size + y) * m_input_w_size + x;
                         for ( index_t input_frame = 0; input_frame < m_input_frame_size; ++input_frame ) {
