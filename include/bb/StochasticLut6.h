@@ -744,8 +744,8 @@ public:
         }
 #endif
 
-        if (DataType<T>::type == BB_TYPE_FP32 && m_host_simd) {
-//          m_dW->FillZero();
+        if ( DataType<T>::type == BB_TYPE_FP32 && m_host_simd && m_y_buf.GetFrameSize() % 8 == 0 ) {
+            m_dW->FillZero();
             m_dx_buf.FillZero();
 
             auto node_size  = m_y_buf.GetNodeSize();
