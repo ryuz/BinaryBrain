@@ -22,8 +22,6 @@ void MnistMicroMlpScratch(int epoch_size, size_t mini_batch_size, bool binary_mo
 // メイン関数
 int main(int argc, char *argv[])
 {
- 	omp_set_num_threads(4);
-
     std::string netname = "All";
     int         epoch_size         = 8;
     int         mini_batch_size    = 32;
@@ -36,11 +34,11 @@ int main(int argc, char *argv[])
         std::cout << argv[0] << " [options] <netname>" << std::endl;
         std::cout << "" << std::endl;
         std::cout << "options" << std::endl;
-        std::cout << "  -epoch <epoch size>                set epoch size" << std::endl;
-        std::cout << "  -mini_batch <mini_batch size>      set mini batch size" << std::endl;
+        std::cout << "  -epoch <epoch size>                  set epoch size" << std::endl;
+        std::cout << "  -mini_batch <mini_batch size>        set mini batch size" << std::endl;
         std::cout << "  -frame_mux_size <frame_mux_size>     set training modulation size" << std::endl;
         std::cout << "  -lut_frame_mux_size <frame_mux_size> set binary-lut modulation size" << std::endl;
-        std::cout << "  -binary <0|1>                      set binary mode" << std::endl;
+        std::cout << "  -binary <0|1>                        set binary mode" << std::endl;
         std::cout << "" << std::endl;
         std::cout << "netname" << std::endl;
         std::cout << "  StochasticLutMlp Stochastic-Lut LUT-Network Simple Multi Layer Perceptron" << std::endl;
@@ -54,7 +52,12 @@ int main(int argc, char *argv[])
 	}
 
     for (int i = 1; i < argc; ++i) {
-        if (strcmp(argv[i], "-epoch") == 0 && i + 1 < argc) {
+        if (strcmp(argv[i], "-num_threads") == 0 && i + 1 < argc) {
+            ++i;
+            int num_threads = (int)strtoul(argv[i], NULL, 0);
+            omp_set_num_threads(num_threads);
+        }
+        else if (strcmp(argv[i], "-epoch") == 0 && i + 1 < argc) {
             ++i;
             epoch_size = (int)strtoul(argv[i], NULL, 0);
         }
