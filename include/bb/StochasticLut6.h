@@ -430,7 +430,7 @@ public:
         m_W->Clamp((T)0.0, (T)1.0);
 
 #ifdef BB_WITH_CUDA
-        if (DataType<T>::type == BB_TYPE_FP32 && !m_host_only
+        if ( false && DataType<T>::type == BB_TYPE_FP32 && !m_host_only
                 && m_x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
             auto x_ptr           = x_buf.LockDeviceMemoryConst();
             auto y_ptr           = m_y_buf.LockDeviceMemory(true);
