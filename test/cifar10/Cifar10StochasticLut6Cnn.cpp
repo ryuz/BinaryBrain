@@ -794,12 +794,15 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
         cnv3_sub->Add(layer_cnv3_sl5);
         
         auto net = bb::Sequential::Create();
+        net->Add(bb::BatchNormalization<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
         net->Add(bb::MaxPooling<>::Create(2, 2));
+        net->Add(bb::BatchNormalization<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
         net->Add(bb::MaxPooling<>::Create(2, 2));
+        net->Add(bb::BatchNormalization<>::Create());
         net->Add(layer_sl4);
         net->Add(layer_sl5);
         net->Add(layer_sl6);
@@ -825,10 +828,10 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
         runner_create.metricsFunc    = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer      = bb::OptimizerAdam<float>::Create();
 //      runner_create.optimizer      = bb::OptimizerSgd<float>::Create(0.001);
-        runner_create.file_read      = true;    // 前の計算結果があれば読み込んで再開するか
+        runner_create.file_read      = false;    // 前の計算結果があれば読み込んで再開するか
         runner_create.file_write     = true;     // 計算結果をファイルに保存するか
         runner_create.print_progress = true;     // 途中結果を出力
-        runner_create.initial_evaluation = true;
+//      runner_create.initial_evaluation = true;
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
