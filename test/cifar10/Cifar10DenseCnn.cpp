@@ -19,6 +19,7 @@
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
 #include "bb/Sigmoid.h"
+#include "bb/Dropout.h"
 #include "bb/MaxPooling.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
 #include "bb/MetricsCategoricalAccuracy.h"
@@ -53,13 +54,18 @@ void Cifar10DenseCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
     net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(32), 3, 3));
     net->Add(bb::ReLU<>::Create());
     net->Add(bb::MaxPooling<>::Create(2, 2));
+    net->Add(bb::Dropout<>::Create(0.25));
+
     net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3));
     net->Add(bb::ReLU<>::Create());
     net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3));
     net->Add(bb::ReLU<>::Create());
     net->Add(bb::MaxPooling<>::Create(2, 2));
+    net->Add(bb::Dropout<>::Create(0.25));
+
     net->Add(bb::DenseAffine<>::Create(512));
     net->Add(bb::ReLU<>::Create());
+    net->Add(bb::Dropout<>::Create(0.25));
     net->Add(bb::DenseAffine<>::Create(td.t_shape));
     net->SetInputShape(td.x_shape);
 
