@@ -60,7 +60,7 @@ public:
         BB_ASSERT(t.GetType() == DataType<T>::type);
 
 #ifdef BB_WITH_CUDA
-        if ( DataType<T>::type == BB_TYPE_FP32 && y.IsDeviceAvailable() && t.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        if ( false && DataType<T>::type == BB_TYPE_FP32 && y.IsDeviceAvailable() && t.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             auto y_ptr   = y.LockDeviceMemoryConst();
             auto t_ptr   = t.LockDeviceMemoryConst();
             auto acc_ptr = m_accuracy.LockDeviceMemory();
