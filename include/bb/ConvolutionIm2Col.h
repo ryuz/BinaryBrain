@@ -311,9 +311,9 @@ public:
             auto dx_ptr = m_dx_buf.Lock<BT>();
 
    		    for (index_t c = 0; c < m_input_c_size; ++c) {
-                #pragma omp parallel for
+//              #pragma omp parallel for
 			    for (index_t y = 0; y < m_input_h_size; ++y ) {
-                    #pragma omp parallel for
+//                  #pragma omp parallel for
     			    for (index_t x = 0; x < m_input_w_size; ++x ) {
                         index_t input_node = (c * m_input_h_size + y) * m_input_w_size + x;
                         for ( index_t input_frame = 0; input_frame < m_input_frame_size; ++input_frame ) {
@@ -321,11 +321,15 @@ public:
                             float dy = 0;
                             for (int fy = 0; fy < m_filter_h_size; ++fy) {
                                 index_t iy = y - fy;
-                                for (int fx = 0; fx < m_filter_w_size; ++fx) {
-                                    index_t ix = x - fx;
-                                    index_t output_frame = (input_frame * m_output_h_size + iy) * m_output_w_size + ix;
-                                    index_t output_node  = fy * m_filter_w_size + fx;
-                                    dy += dy_ptr.Get(output_node, output_node);
+                                if ( iy >= 0 && iy < (m_input_h_size - m_filter_h_size + 1)) {
+                                    for (int fx = 0; fx < m_filter_w_size; ++fx) {
+                                        index_t ix = x - fx;
+                                        if (ix >= 0 && ix < (m_input_w_size - m_filter_w_size + 1)) {
+                                            index_t output_frame = (input_frame * m_output_h_size + iy) * m_output_w_size + ix;
+                                            index_t output_node  = (c * m_filter_h_size + fy) * m_filter_w_size + fx;
+                                            dy += dy_ptr.Get(output_frame, output_node);
+                                        }
+                                    }
                                 }
                             }
                             dx_ptr.Set(input_frame, input_node, dx + dy);
