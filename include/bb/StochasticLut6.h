@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <vector>
 #include "bb/LutLayer.h"
@@ -314,6 +315,7 @@ public:
 	    T   xp[6], xn[6];
         for ( int i = 0; i < 6; ++i) {
             xp[i] = input_value[i];
+            xp[i] = std::min((T)1.0, std::max((T)0.0, xp[i]));
 //          BB_ASSERT(xp[i] >= 0 && xp[i] <= 1.0f);
             xn[i] = (T)1.0 - xp[i];
         }
@@ -485,6 +487,8 @@ public:
 	                __m256   xp[6], xn[6];
                     for ( int i = 0; i < 6; ++i) {
                         xp[i] = _mm256_loadu_ps(&x_addr[i][frame]);
+                        xp[i] = _mm256_min_ps(xp[i], _mm256_set1_ps(1.0));
+                        xp[i] = _mm256_max_ps(xp[i], _mm256_set1_ps(0.0));
                         xn[i] = _mm256_sub_ps(_mm256_set1_ps(1.0f), xp[i]);
                     }
 
@@ -605,7 +609,8 @@ public:
 				    T   xp[6], xn[6];
     			    for ( int i = 0; i < 6; ++i) {
                         xp[i] = x_ptr.Get(frame, in_idx[i]);
-                        BB_ASSERT(xp[i] >= 0 && xp[i] <= 1.0f);
+                        xp[i] = std::min((T)1.0, std::max((T)0.0, xp[i]));
+//                      BB_ASSERT(xp[i] >= 0 && xp[i] <= 1.0f);
                         xn[i] = (T)1.0 - xp[i];
                     }
 
@@ -796,6 +801,8 @@ public:
 	                __m256   xp[6], xn[6];
                     for ( int i = 0; i < 6; ++i) {
                         xp[i] = _mm256_loadu_ps(&x_addr[i][frame]);
+                        xp[i] = _mm256_min_ps(xp[i], _mm256_set1_ps(1.0));
+                        xp[i] = _mm256_max_ps(xp[i], _mm256_set1_ps(0.0));
                         xn[i] = _mm256_sub_ps(_mm256_set1_ps(1.0f), xp[i]);
                     }
 
@@ -1049,7 +1056,8 @@ public:
 				    T   xp[6], xn[6];
     			    for ( int i = 0; i < 6; ++i) {
                         xp[i] = x_ptr.Get(frame, in_idx[i]);
-                        BB_ASSERT(xp[i] >= 0 && xp[i] <= 1.0f);
+                        xp[i] = std::min((T)1.0, std::max((T)0.0, xp[i]));
+//                      BB_ASSERT(xp[i] >= 0 && xp[i] <= 1.0f);
                         xn[i] = (T)1.0 - xp[i];
                     }
 

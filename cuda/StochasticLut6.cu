@@ -51,6 +51,7 @@ __global__ void kernal_fp32_StochasticLut6_Forward(
 	    float   xp[6], xn[6];
         for ( int i = 0; i < 6; ++i) {
             xp[i] = x_ptr[i][frame];
+            xp[i] = min(1.0, max(0.0, xp[i]));
             xn[i] = 1.0 - xp[i];
         }
 
@@ -259,6 +260,7 @@ __global__ void kernal_fp32_StochasticLut6_Backward
         float xp[6], xn[6];
         for ( int i = 0; i < 6; ++i) {
             xp[i] = x_ptr[i][frame];
+            xp[i] = min(1.0, max(0.0, xp[i]));
             xn[i] = 1.0 - xp[i];
         }
 
