@@ -14,11 +14,13 @@
 
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
+#include "bb/MicroMlp.h"
 #include "bb/StochasticLut6.h"
 #include "bb/BinaryLutN.h"
 #include "bb/LoweringConvolution.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
+#include "bb/Sigmoid.h"
 #include "bb/MaxPooling.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
 #include "bb/MetricsCategoricalAccuracy.h"
@@ -31,6 +33,17 @@
 #include "bb/Runner.h"
 #include "bb/ExportVerilog.h"
 
+
+void DumpFrameBuffer(std::ostream& os, bb::FrameBuffer buf)
+{
+    for (bb::index_t f = 0; f < buf.GetFrameSize(); ++f) {
+        for (bb::index_t n = 0; n < buf.GetNodeSize(); ++n) {
+            os << buf.GetFP32(f, n) << "\n";
+        }
+        os << "\n";
+    }
+    os << "\n";
+}
 
 
 #if 0
@@ -728,6 +741,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
 #endif
 
     // create network
+#if 0
     auto layer_cnv0_sl0 = bb::StochasticLut6<>::Create({4, 4, 32}, "gauss");
     auto layer_cnv0_sl1 = bb::StochasticLut6<>::Create({4, 4, 32}, "gauss");
     auto layer_cnv0_sl2 = bb::StochasticLut6<>::Create({4, 4, 32}, "gauss");
@@ -759,6 +773,73 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
     auto layer_sl8 = bb::StochasticLut6<>::Create(360, "random");
     auto layer_sl9 = bb::StochasticLut6<>::Create(60, "serial");
     auto layer_sl10 = bb::StochasticLut6<>::Create(10, "serial");
+#endif
+
+#if 0
+    auto layer_cnv0_sl0 = bb::StochasticLut6<>::Create({4, 4, 32});
+    auto layer_cnv0_sl1 = bb::StochasticLut6<>::Create({4, 4, 32});
+    auto layer_cnv0_sl2 = bb::StochasticLut6<>::Create({4, 4, 32});
+    auto layer_cnv0_sl3 = bb::StochasticLut6<>::Create(192);
+    auto layer_cnv0_sl4 = bb::StochasticLut6<>::Create(192);
+    auto layer_cnv0_sl5 = bb::StochasticLut6<>::Create(32);
+    auto layer_cnv1_sl0 = bb::StochasticLut6<>::Create({4, 4, 32});
+    auto layer_cnv1_sl1 = bb::StochasticLut6<>::Create({4, 4, 32});
+    auto layer_cnv1_sl2 = bb::StochasticLut6<>::Create({4, 4, 32});
+    auto layer_cnv1_sl3 = bb::StochasticLut6<>::Create(192);
+    auto layer_cnv1_sl4 = bb::StochasticLut6<>::Create(192);
+    auto layer_cnv1_sl5 = bb::StochasticLut6<>::Create(32);
+    auto layer_cnv2_sl0 = bb::StochasticLut6<>::Create({4, 4, 32});
+    auto layer_cnv2_sl1 = bb::StochasticLut6<>::Create({4, 4, 32});
+    auto layer_cnv2_sl2 = bb::StochasticLut6<>::Create({4, 4, 32});
+    auto layer_cnv2_sl3 = bb::StochasticLut6<>::Create(384);
+    auto layer_cnv2_sl4 = bb::StochasticLut6<>::Create(384);
+    auto layer_cnv2_sl5 = bb::StochasticLut6<>::Create(64);
+    auto layer_cnv3_sl0 = bb::StochasticLut6<>::Create({4, 4, 32});
+    auto layer_cnv3_sl1 = bb::StochasticLut6<>::Create({4, 4, 32});
+    auto layer_cnv3_sl2 = bb::StochasticLut6<>::Create({4, 4, 32});
+    auto layer_cnv3_sl3 = bb::StochasticLut6<>::Create(384);
+    auto layer_cnv3_sl4 = bb::StochasticLut6<>::Create(384);
+    auto layer_cnv3_sl5 = bb::StochasticLut6<>::Create(64);
+    auto layer_sl4 = bb::StochasticLut6<>::Create({8, 8, 64});
+    auto layer_sl5 = bb::StochasticLut6<>::Create({4, 4, 64});
+    auto layer_sl6 = bb::StochasticLut6<>::Create({4, 4, 64});
+    auto layer_sl7 = bb::StochasticLut6<>::Create(360);
+    auto layer_sl8 = bb::StochasticLut6<>::Create(360);
+    auto layer_sl9 = bb::StochasticLut6<>::Create(60);
+    auto layer_sl10 = bb::StochasticLut6<>::Create(10);
+#else
+    auto layer_cnv0_sl0 = bb::MicroMlp<>::Create({4, 4, 32});
+    auto layer_cnv0_sl1 = bb::MicroMlp<>::Create({4, 4, 32});
+    auto layer_cnv0_sl2 = bb::MicroMlp<>::Create({4, 4, 32});
+    auto layer_cnv0_sl3 = bb::MicroMlp<>::Create(192);
+    auto layer_cnv0_sl4 = bb::MicroMlp<>::Create(192);
+    auto layer_cnv0_sl5 = bb::MicroMlp<>::Create(32);
+    auto layer_cnv1_sl0 = bb::MicroMlp<>::Create({4, 4, 32});
+    auto layer_cnv1_sl1 = bb::MicroMlp<>::Create({4, 4, 32});
+    auto layer_cnv1_sl2 = bb::MicroMlp<>::Create({4, 4, 32});
+    auto layer_cnv1_sl3 = bb::MicroMlp<>::Create(192);
+    auto layer_cnv1_sl4 = bb::MicroMlp<>::Create(192);
+    auto layer_cnv1_sl5 = bb::MicroMlp<>::Create(32);
+    auto layer_cnv2_sl0 = bb::MicroMlp<>::Create({4, 4, 32});
+    auto layer_cnv2_sl1 = bb::MicroMlp<>::Create({4, 4, 32});
+    auto layer_cnv2_sl2 = bb::MicroMlp<>::Create({4, 4, 32});
+    auto layer_cnv2_sl3 = bb::MicroMlp<>::Create(384);
+    auto layer_cnv2_sl4 = bb::MicroMlp<>::Create(384);
+    auto layer_cnv2_sl5 = bb::MicroMlp<>::Create(64);
+    auto layer_cnv3_sl0 = bb::MicroMlp<>::Create({4, 4, 32});
+    auto layer_cnv3_sl1 = bb::MicroMlp<>::Create({4, 4, 32});
+    auto layer_cnv3_sl2 = bb::MicroMlp<>::Create({4, 4, 32});
+    auto layer_cnv3_sl3 = bb::MicroMlp<>::Create(384);
+    auto layer_cnv3_sl4 = bb::MicroMlp<>::Create(384);
+    auto layer_cnv3_sl5 = bb::MicroMlp<>::Create(64);
+    auto layer_sl4 = bb::MicroMlpAffine<>::Create({8, 8, 64});
+    auto layer_sl5 = bb::MicroMlpAffine<>::Create({4, 4, 64});
+    auto layer_sl6 = bb::MicroMlpAffine<>::Create({4, 4, 64});
+    auto layer_sl7 = bb::MicroMlpAffine<>::Create(360);
+    auto layer_sl8 = bb::MicroMlpAffine<>::Create(360);
+    auto layer_sl9 = bb::MicroMlpAffine<>::Create(60);
+    auto layer_sl10 = bb::MicroMlpAffine<>::Create(10);
+#endif
 
     {
         auto cnv0_sub = bb::Sequential::Create();
@@ -794,15 +875,12 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
         cnv3_sub->Add(layer_cnv3_sl5);
         
         auto net = bb::Sequential::Create();
-        net->Add(bb::BatchNormalization<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
         net->Add(bb::MaxPooling<>::Create(2, 2));
-        net->Add(bb::BatchNormalization<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
         net->Add(bb::MaxPooling<>::Create(2, 2));
-        net->Add(bb::BatchNormalization<>::Create());
         net->Add(layer_sl4);
         net->Add(layer_sl5);
         net->Add(layer_sl6);
@@ -819,6 +897,65 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
 
         // print model information
         net->PrintInfo();
+
+        if (0) {
+            auto lossFunc    = bb::LossSoftmaxCrossEntropy<float>::Create();
+            auto metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
+            auto optimizer   = bb::OptimizerAdam<float>::Create();
+
+            bb::FrameBuffer x_buf;
+            bb::FrameBuffer t_buf;
+
+            optimizer->SetVariables(net->GetParameters(), net->GetGradients());
+
+            std::ofstream ofs_dx4("dbg_dx4.txt");
+            std::ofstream ofs_dx5("dbg_dx5.txt");
+            std::ofstream ofs_dx6("dbg_dx6.txt");
+            std::ofstream ofs_dx7("dbg_dx7.txt");
+            std::ofstream ofs_dx8("dbg_dx8.txt");
+            std::ofstream ofs_dx9("dbg_dx9.txt");
+            std::ofstream ofs_dx10("dbg_dx10.txt");
+
+            bb::index_t index = 0;
+            for ( int loop = 0; loop < 3; ++loop ) {
+                // ミニバッチサイズ計算
+         //     bb::index_t  mini_batch_size = std::min(max_batch_size, frame_size - index);
+
+                // 学習データセット
+                x_buf.Resize(BB_TYPE_FP32, mini_batch_size, td.x_shape);
+                x_buf.SetVector(td.x_train, index);
+
+                // Forward
+                auto y_buf = net->Forward(x_buf, true);
+
+                // 期待値データセット
+                t_buf.Resize(BB_TYPE_FP32, mini_batch_size, td.t_shape);
+                t_buf.SetVector(td.t_train, index);
+                
+                bb::FrameBuffer dy_buf;
+                dy_buf = lossFunc->CalculateLoss(y_buf, t_buf);
+                metricsFunc->CalculateMetrics(y_buf, t_buf);
+
+                auto dx_buf = net->Backward(dy_buf);
+                
+                DumpFrameBuffer(ofs_dx4,  layer_sl4->m_dx_buf);
+                DumpFrameBuffer(ofs_dx5,  layer_sl5->m_dx_buf);
+                DumpFrameBuffer(ofs_dx6,  layer_sl6->m_dx_buf);
+                DumpFrameBuffer(ofs_dx7,  layer_sl7->m_dx_buf);
+                DumpFrameBuffer(ofs_dx8,  layer_sl8->m_dx_buf);
+                DumpFrameBuffer(ofs_dx9,  layer_sl9->m_dx_buf);
+                DumpFrameBuffer(ofs_dx10, layer_sl10->m_dx_buf);
+
+
+                optimizer->Update();
+
+                // インデックスを進める
+                index += mini_batch_size;
+            }
+
+            return;
+        }
+
 
         // run fitting
         bb::Runner<float>::create_t runner_create;
