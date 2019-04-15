@@ -13,7 +13,6 @@
 //  Forward
 // -------------------------------------------------
 
-#define FORWARD_USE_SHARED_MEM  0
 
 template <int N=6, int M=16>
 __global__ void kernal_fp32_MicroMlp_Forward(
@@ -28,20 +27,16 @@ __global__ void kernal_fp32_MicroMlp_Forward(
    			int				frame_stride
         )
 {
-	int frame_step = blockDim.x;
-	int frame      = threadIdx.x;
-	int node       = blockIdx.x;
+	int const node    = blockIdx.x;
+	int	const id      = threadIdx.x;
+	int const id_step = blockDim.x;
 
-#if FORWARD_USE_SHARED_MEM
+	// 係数読み込み
 	__shared__   float W0[M][N];
 	__shared__   float b0[M];
 	__shared__   float W1[M];
 	__shared__	 float b1;
-
-	// 係数読み込み
-	if (threadIdx.x < M) {
-		int i = threadIdx.x;
-
+	for ( int i = id; i < M; i += id_step ) {
 		for ( int j = 0; j < N; ++j ) {
 			W0[i][j] = hidden_W[(node * M + i) * N + j];
 		}
@@ -49,38 +44,24 @@ __global__ void kernal_fp32_MicroMlp_Forward(
 		b0[i] = hidden_b[node * M + i];
 		W1[i] = output_W[node * M + i];
 	}
-	if (threadIdx.x == 0) {
+	if ( id == 0 ) {
 		b1 = output_b[node];
 	}
 
-	__syncthreads();
-#else
-	float W0[M][N];
-	float b0[M];
-	float W1[M];
-	float b1;
-	// 係数読み込み
-	for ( int i = 0; i < M; ++i ) {
-		for ( int j = 0; j < N; ++j ) {
-			W0[i][j] = hidden_W[(node * M + i) * N + j];
-		}
-
-		b0[i] = hidden_b[node * M + i];
-		W1[i] = output_W[node * M + i];
-	}
-	b1 = output_b[node];
-#endif
-
-	const float *x_ptr[N];
+    // 読み込みアドレス
+	__shared__ float const  *x_ptr[N];
 	for ( int i = 0; i < N; ++i ) {
 		int in_idx = input_index[node*N + i];
 		x_ptr[i] = &x_buf[frame_stride * in_idx];
 	}
+	
+    __syncthreads();
 
+    // 書き込みアドレス
 	float *y_ptr = &y_buf[frame_stride * node];
-
+    
 	// 1つのSMで1nodeを全フレーム処理
-	while ( frame <  frame_size ) {
+    for ( int frame = id; frame < frame_size; frame += id_step ) {
 		// 入力データ読み込み
 		float	x[N];
 		for ( int i = 0; i < N; ++i ) {
@@ -102,8 +83,6 @@ __global__ void kernal_fp32_MicroMlp_Forward(
 
 		// 出力
 		y_ptr[frame] = sig1;
-
-		frame += frame_step;
 	}
 }
 
@@ -127,14 +106,12 @@ int bbcu_fp32_MicroMlp_Forward
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
-	dim3	grid(output_node_size);
-#if FORWARD_USE_SHARED_MEM
-	dim3	block(512, 1, 1);
-#else
-    dim3	block(192, 1, 1);
-#endif
+    int const thread_size = 512;
+    dim3    block(thread_size);
+    dim3    grid(output_node_size);
+    while ( block.x / 2 >= frame_size ) {  block.x /= 2; }
 
-	kernal_fp32_MicroMlp_Forward<N, M><<<grid, block, 0, streamId>>>(
+    kernal_fp32_MicroMlp_Forward<N, M><<<grid, block, 0, streamId>>>(
 			dev_x_buf,
 			dev_y_buf,
 			dev_input_index,
@@ -144,9 +121,9 @@ int bbcu_fp32_MicroMlp_Forward
 			dev_output_b,
 			frame_size,
 			frame_stride
-		);
-	BB_CUDA_CHECK_LAST_ERROR();
-	
+        );
+    BB_CUDA_CHECK_LAST_ERROR();
+    
 	return 0;
 }
 
@@ -237,7 +214,7 @@ __global__ void kernal_fp32_MicroMlp_Backward
 {
 	int const node    = blockIdx.x;
 	int	const id      = threadIdx.x;
-	int const id_step = THREAD_SIZE;
+	int const id_step = blockDim.x;
 
     __shared__  float sbuf[THREAD_SIZE];
 	__shared__  float W0[M][N];
@@ -417,9 +394,7 @@ int bbcu_fp32_MicroMlp_Backward(
         int const thread_size = 128;
         dim3    block(thread_size);
         dim3    grid(output_node_size);
-        while ( frame_size < (int)block.x / 2 ) {
-            block.x /= 2;
-        }
+        while ( block.x / 2 >= frame_size ) {  block.x /= 2; }
 
         kernal_fp32_MicroMlp_Backward<N, M, thread_size><<<grid, block, 0, streamId>>>
             (
@@ -447,7 +422,6 @@ int bbcu_fp32_MicroMlp_Backward(
 
         int block_x = 1024;
         while ( block_x / 2 >= frame_size ) { block_x /= 2; }
-
         dim3    grid((frame_size + (block_x - 1)) / block_x);
         dim3    block(block_x);
         kernal_fp32_MicroMlp_BackwardMarge<N><<<grid, block>>>
