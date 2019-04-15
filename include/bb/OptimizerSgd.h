@@ -63,6 +63,7 @@ public:
 	void Update(void)
 	{
    		m_params -= m_learning_rate * m_grads;
+        m_grads   = 0;
     }
 };
 
