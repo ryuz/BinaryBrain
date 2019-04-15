@@ -109,7 +109,7 @@ int bbcu_fp32_MicroMlp_Forward
     int const thread_size = 512;
     dim3    block(thread_size);
     dim3    grid(output_node_size);
-    while ( block.x / 2 >= frame_size ) {  block.x /= 2; }
+    while ( (int)block.x / 2 >= frame_size ) {  block.x /= 2; }
 
     kernal_fp32_MicroMlp_Forward<N, M><<<grid, block, 0, streamId>>>(
 			dev_x_buf,
@@ -232,6 +232,24 @@ __global__ void kernal_fp32_MicroMlp_Backward
 		W1[i] = output_W[node * M + i];
 	}
 
+    // 直前の係数読み込み
+	__shared__   float dW0_prev[M][N];
+	__shared__   float db0_prev[M];
+	__shared__   float dW1_prev[M];
+	__shared__	 float db1_prev;
+	for ( int i = id; i < M; i += id_step ) {
+		for ( int j = 0; j < N; ++j ) {
+			dW0_prev[i][j] = hidden_dW[(node * M + i) * N + j];
+		}
+
+		db0_prev[i] = hidden_db[node * M + i];
+		dW1_prev[i] = output_dW[node * M + i];
+	}
+	if ( id == 0 ) {
+		db1_prev = output_db[node];
+	}
+
+
     // ポインタ読み込み
     __shared__ float const *x_ptr[N];
 	for ( int i = 0; i < N; ++i ) {
@@ -322,16 +340,16 @@ __global__ void kernal_fp32_MicroMlp_Backward
     }
    	db1 = device_fp32_LocalSum(db1, sbuf);
 
-    // 勾配出力込み
+    // 勾配出力
     for ( int i = id; i < M; i += id_step ) {
 		for ( int j = 0; j < N; ++j ) {
-			hidden_dW[(node * M + i) * N + j] = dW0[i][j];
+			hidden_dW[(node * M + i) * N + j] = dW0[i][j] + dW0_prev[i][j];
 		}
-		 hidden_db[node * M + i] = db0[i];
-		 output_dW[node * M + i] = dW1[i];
+		 hidden_db[node * M + i] = db0[i] + db0_prev[i];
+		 output_dW[node * M + i] = dW1[i] + dW1_prev[i];
 	}
     if (id == 0) {
-		 output_db[node] = db1;
+		 output_db[node] = db1 + db1_prev;
     }
     __syncthreads();
 }
@@ -394,7 +412,7 @@ int bbcu_fp32_MicroMlp_Backward(
         int const thread_size = 128;
         dim3    block(thread_size);
         dim3    grid(output_node_size);
-        while ( block.x / 2 >= frame_size ) {  block.x /= 2; }
+        while ( (int)block.x / 2 >= frame_size ) {  block.x /= 2; }
 
         kernal_fp32_MicroMlp_Backward<N, M, thread_size><<<grid, block, 0, streamId>>>
             (
