@@ -775,7 +775,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
     auto layer_sl10 = bb::StochasticLut6<>::Create(10, "serial");
 #endif
 
-#if 1
+#if 0
     auto layer_cnv0_sl0 = bb::StochasticLut6<>::Create({4, 4, 32});
     auto layer_cnv0_sl1 = bb::StochasticLut6<>::Create({4, 4, 32});
     auto layer_cnv0_sl2 = bb::StochasticLut6<>::Create({4, 4, 32});
@@ -892,8 +892,9 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
 
         if ( binary_mode ) {
             std::cout << "binary mode" << std::endl;
-            net->SendCommand("binary true");
+//          net->SendCommand("binary true");
         }
+        net->SendCommand("binary false");
 
         // print model information
         net->PrintInfo();
@@ -965,7 +966,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
         runner_create.metricsFunc    = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer      = bb::OptimizerAdam<float>::Create();
 //      runner_create.optimizer      = bb::OptimizerSgd<float>::Create(0.001);
-        runner_create.max_run_size   = 8;
+//      runner_create.max_run_size   = 8;
         runner_create.file_read      = false;    // 前の計算結果があれば読み込んで再開するか
         runner_create.file_write     = true;     // 計算結果をファイルに保存するか
         runner_create.print_progress = true;     // 途中結果を出力
