@@ -725,7 +725,7 @@ public:
             auto dx_ptr          = m_dx_buf.LockDeviceMemory(true);
             auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
             auto W_ptr           = m_W->LockDeviceMemoryConst();
-            auto dW_ptr          = m_dW->LockDeviceMemory(true);
+            auto dW_ptr          = m_dW->LockDeviceMemory();
 
             m_dx_tmp.Resize(BB_TYPE_FP32, dy_buf.GetFrameSize(), m_output_node_size * 6);
             auto dx_tmp_ptr = m_dx_tmp.LockDeviceMemory();
@@ -750,7 +750,7 @@ public:
 #endif
 
         if ( DataType<T>::type == BB_TYPE_FP32 && m_host_simd && m_y_buf.GetFrameSize() % 8 == 0 ) {
-            m_dW->FillZero();
+     //     m_dW->FillZero();
             m_dx_buf.FillZero();
 
             auto node_size  = m_y_buf.GetNodeSize();
@@ -761,7 +761,7 @@ public:
             auto dx_ptr          = m_dx_buf.Lock<float>(true);
             auto input_index_ptr = m_input_index.LockConst();
             auto W_ptr           = m_W->LockConst<float>();
-            auto dW_ptr          = m_dW->Lock<float>(true);
+            auto dW_ptr          = m_dW->Lock<float>();
 
             // 並列化用tmpバッファ確保
             m_dx_tmp.Resize(BB_TYPE_FP32, dy_buf.GetFrameSize(), m_output_node_size * 6);
@@ -1004,7 +1004,7 @@ public:
                 
                 // dW水平加算
                 for ( int i = 0; i < 64; ++i) {
-                    dW_ptr(node, i) = bb_mm256_cvtss_f32(bb_mm256_hsum_ps(dW[i]));
+                    dW_ptr(node, i) += bb_mm256_cvtss_f32(bb_mm256_hsum_ps(dW[i]));
                 }
             }
 
@@ -1027,7 +1027,7 @@ public:
 
 
         {
-            m_dW->FillZero();
+//          m_dW->FillZero();
             m_dx_buf.FillZero();
 
             auto frame_size = m_x_buf.GetFrameSize();

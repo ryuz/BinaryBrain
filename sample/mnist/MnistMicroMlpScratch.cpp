@@ -184,7 +184,7 @@ void MnistMicroMlpScratch(int epoch_size, size_t mini_batch_size, bool binary_mo
             
             auto y = net.Forward(x);
             
-            auto dy = lossFunc->CalculateLoss(y, t);
+            auto dy = lossFunc->CalculateLoss(y, t, y.GetFrameSize());
             metricsFunc->CalculateMetrics(y, t);
             
             dy = net.Backward(dy);

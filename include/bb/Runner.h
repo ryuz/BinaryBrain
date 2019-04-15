@@ -39,7 +39,7 @@ protected:
   	std::mt19937_64                     m_mt;
 
 	index_t                             m_epoch = 0;
-	index_t                             m_max_batch_size = 16;
+    index_t                             m_max_run_size = 0;
 
 	std::shared_ptr<MetricsFunction>    m_metricsFunc;
 	std::shared_ptr<LossFunction>       m_lossFunc;
@@ -69,6 +69,7 @@ public:
 	    std::shared_ptr<LossFunction>       lossFunc;                           //< 損失関数オブジェクト
 	    std::shared_ptr<MetricsFunction>    metricsFunc;                        //< 評価関数オブジェクト
 	    std::shared_ptr<Optimizer>          optimizer;                          //< オプティマイザ
+        index_t                             max_run_size = 0;                   //< 最大実行バッチ数
 	    bool                                print_progress = true;              //< 途中経過を表示するか
         bool                                print_progress_loss = true;         //< 途中経過で損失を表示するか
         bool                                print_progress_accuracy = true;     //< 途中経過で精度を表示するか
@@ -92,6 +93,7 @@ public:
 	    self->m_metricsFunc             = create.metricsFunc;
 	    self->m_lossFunc                = create.lossFunc;
 	    self->m_optimizer               = create.optimizer;
+        self->m_max_run_size            = create.max_run_size;
 	    self->m_print_progress          = create.print_progress;
         self->m_print_progress_loss     = create.print_progress_loss;
         self->m_print_progress_accuracy = create.print_progress_accuracy;
@@ -154,9 +156,6 @@ public:
     std::string GetName(void) const { return m_name; }
 
     void SetSeed(std::int64_t seed)     { m_mt.seed(seed); }
-
-    void    SetMaxBatchSize(index_t batch) { m_max_batch_size = batch; }
-    index_t GetMaxBatchSize(void) const  { return m_max_batch_size; }
 
     void                                SetMetricsFunction(std::shared_ptr<MetricsFunction> metricsFunc) { m_metricsFunc = metricsFunc; }
     std::shared_ptr<MetricsFunction>    GetMetricsFunction(void) const { return m_metricsFunc; }
@@ -418,47 +417,59 @@ protected:
         FrameBuffer x_buf;
         FrameBuffer t_buf;
 
-        bb::index_t index = 0;
+        index_t index = 0;
         while ( index < frame_size )
         {
             // ミニバッチサイズ計算
-            bb::index_t  mini_batch_size = std::min(max_batch_size, frame_size - index);
+            index_t  mini_batch_size = std::min(max_batch_size, frame_size - index);
 
             // 残数が規定以下なら抜ける
             if ( mini_batch_size < min_batch_size ) {
                 break;
             }
 
-            // 学習データセット
-            x_buf.Resize(DataType<T>::type, mini_batch_size, x_shape);
-            x_buf.SetVector(x, index);
-
-            // Forward
-            auto y_buf = m_net->Forward(x_buf, train);
-
-            // 期待値データセット
-            t_buf.Resize(DataType<T>::type, mini_batch_size, t_shape);
-            t_buf.SetVector(t, index);
-
-			// 進捗表示
+            // 進捗表示
 			if ( print_progress ) {
 				index_t progress = index + mini_batch_size;
 				index_t rate = progress * 100 / frame_size;
 				std::cout << "\r[" << rate << "% (" << progress << "/" << frame_size << ")]";
 			}
-            
-            FrameBuffer dy_buf;
-            if ( lossFunc != nullptr ) {
-                dy_buf = lossFunc->CalculateLoss(y_buf, t_buf);
-            }
 
-            if ( metricsFunc != nullptr ) {
-                metricsFunc->CalculateMetrics(y_buf, t_buf);
+            index_t i = 0;
+            while ( i < mini_batch_size ) {
+                index_t  run_size = std::min(run_size, mini_batch_size - i);
+                if (m_max_run_size > 0 && run_size > m_max_run_size) {
+                    run_size = m_max_run_size;
+                }
+
+                // 学習データセット
+                x_buf.Resize(DataType<T>::type, run_size, x_shape);
+                x_buf.SetVector(x, index + i);
+
+                // Forward
+                auto y_buf = m_net->Forward(x_buf, train);
+
+                // 期待値データセット
+                t_buf.Resize(DataType<T>::type, run_size, t_shape);
+                t_buf.SetVector(t, index + i);
+                
+                FrameBuffer dy_buf;
+                if ( lossFunc != nullptr ) {
+                    dy_buf = lossFunc->CalculateLoss(y_buf, t_buf, mini_batch_size);
+                }
+
+                if ( metricsFunc != nullptr ) {
+                    metricsFunc->CalculateMetrics(y_buf, t_buf);
+                }
+
+                if ( train && lossFunc != nullptr ) {
+                    auto dx = m_net->Backward(dy_buf);
+                }
+
+                i += run_size;
             }
 
             if ( train && lossFunc != nullptr ) {
-                auto dx = m_net->Backward(dy_buf);
-                
                 if ( optimizer != nullptr ) {
                     optimizer->Update();
                 }

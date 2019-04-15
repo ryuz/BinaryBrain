@@ -54,7 +54,7 @@ public:
         return (double)loss_ptr[0] / (double)m_frames;
     }
 
-    FrameBuffer CalculateLoss(FrameBuffer y, FrameBuffer t)
+    FrameBuffer CalculateLoss(FrameBuffer y, FrameBuffer t, index_t batch_size)
     {
         m_dy.Resize(y.GetType(), y.GetFrameSize(), y.GetShape());
         m_loss_buf.Resize(y.GetFrameSize());
@@ -78,7 +78,8 @@ public:
 			        (float       *)loss_ptr.GetAddr(),
 			        (int          )y.GetNodeSize(),
 			        (int          )y.GetFrameSize(),
-			        (int          )(y.GetFrameStride() / sizeof(float))
+			        (int          )(y.GetFrameStride() / sizeof(float)),
+                    (int          )batch_size
                 );
 
             m_frames += y.GetFrameSize();
@@ -120,7 +121,7 @@ public:
                     if (t_ptr.Get(frame, node) > 0) {
                         loss_buf_ptr[frame] = std::log(softmax + (T)1.0e-7);
                     }
-                    T dy = (softmax - t_ptr.Get(frame, node)) / (T)frame_size;
+                    T dy = (softmax - t_ptr.Get(frame, node)) / (T)batch_size;
                     if (!Real_IsValid(dy)) {
                         std::cout << "loss dy : nan" << std::endl;
  //                     getchar();

@@ -237,6 +237,11 @@ __global__ void kernal_fp32_StochasticLut6_Backward
         dW[i] = 0;
     }
 
+    __shared__ float    dW_prev[64];
+    for ( int i = id; i < 64; i += id_step ) {
+        dW_prev[i] = dW_buf[node * 64 + i];
+    }
+
     // read W
     __shared__ float    W[64];
     for ( int i = id; i < 64; i += id_step ) {
@@ -462,8 +467,10 @@ __global__ void kernal_fp32_StochasticLut6_Backward
 
     for ( int i = 0; i < 64; ++i) {
         dW[i] = device_fp32_LocalSum(dW[i], buf);
-        if ( threadIdx.x == 0 ) {
-            dW_buf[node*64 + i] = dW[i];
+    }
+    if ( id == 0 ) {
+        for ( int i = 0; i < 64; ++i) {
+            dW_buf[node*64 + i] = dW[i] + dW_prev[i];
         }
     }
 }
