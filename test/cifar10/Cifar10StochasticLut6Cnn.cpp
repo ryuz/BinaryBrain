@@ -775,7 +775,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
     auto layer_sl10 = bb::StochasticLut6<>::Create(10, "serial");
 #endif
 
-#if 0
+#if 1
     auto layer_cnv0_sl0 = bb::StochasticLut6<>::Create({4, 4, 32});
     auto layer_cnv0_sl1 = bb::StochasticLut6<>::Create({4, 4, 32});
     auto layer_cnv0_sl2 = bb::StochasticLut6<>::Create({4, 4, 32});
@@ -933,18 +933,18 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
                 t_buf.SetVector(td.t_train, index);
                 
                 bb::FrameBuffer dy_buf;
-                dy_buf = lossFunc->CalculateLoss(y_buf, t_buf);
+                dy_buf = lossFunc->CalculateLoss(y_buf, t_buf, y_buf.GetFrameSize());
                 metricsFunc->CalculateMetrics(y_buf, t_buf);
 
                 auto dx_buf = net->Backward(dy_buf);
                 
-                DumpFrameBuffer(ofs_dx4,  layer_sl4->m_dx_buf);
-                DumpFrameBuffer(ofs_dx5,  layer_sl5->m_dx_buf);
-                DumpFrameBuffer(ofs_dx6,  layer_sl6->m_dx_buf);
-                DumpFrameBuffer(ofs_dx7,  layer_sl7->m_dx_buf);
-                DumpFrameBuffer(ofs_dx8,  layer_sl8->m_dx_buf);
-                DumpFrameBuffer(ofs_dx9,  layer_sl9->m_dx_buf);
-                DumpFrameBuffer(ofs_dx10, layer_sl10->m_dx_buf);
+         //       DumpFrameBuffer(ofs_dx4,  layer_sl4->m_dx_buf);
+         //       DumpFrameBuffer(ofs_dx5,  layer_sl5->m_dx_buf);
+         //       DumpFrameBuffer(ofs_dx6,  layer_sl6->m_dx_buf);
+         //       DumpFrameBuffer(ofs_dx7,  layer_sl7->m_dx_buf);
+         //       DumpFrameBuffer(ofs_dx8,  layer_sl8->m_dx_buf);
+         //       DumpFrameBuffer(ofs_dx9,  layer_sl9->m_dx_buf);
+         //       DumpFrameBuffer(ofs_dx10, layer_sl10->m_dx_buf);
 
 
                 optimizer->Update();
@@ -965,6 +965,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
         runner_create.metricsFunc    = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer      = bb::OptimizerAdam<float>::Create();
 //      runner_create.optimizer      = bb::OptimizerSgd<float>::Create(0.001);
+        runner_create.max_run_size   = 8;
         runner_create.file_read      = false;    // 前の計算結果があれば読み込んで再開するか
         runner_create.file_write     = true;     // 計算結果をファイルに保存するか
         runner_create.print_progress = true;     // 途中結果を出力
