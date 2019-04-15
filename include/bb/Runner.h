@@ -437,7 +437,7 @@ protected:
 
             index_t i = 0;
             while ( i < mini_batch_size ) {
-                index_t  run_size = std::min(run_size, mini_batch_size - i);
+                index_t  run_size = mini_batch_size - i;
                 if (m_max_run_size > 0 && run_size > m_max_run_size) {
                     run_size = m_max_run_size;
                 }
