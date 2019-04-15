@@ -534,8 +534,8 @@ public:
                 }
                 dbeta = bb_mm256_hsum_ps(dbeta);
                 dgamma = bb_mm256_hsum_ps(dgamma);
-                dgamma_ptr[node] = bb_mm256_cvtss_f32(dgamma);
-                dbeta_ptr[node] = bb_mm256_cvtss_f32(dbeta);
+                dgamma_ptr[node] += bb_mm256_cvtss_f32(dgamma);
+                dbeta_ptr[node]  += bb_mm256_cvtss_f32(dbeta);
 
                 dstd = bb_mm256_hsum_ps(dstd);
                 dmeanx = bb_mm256_hsum_ps(dmeanx);

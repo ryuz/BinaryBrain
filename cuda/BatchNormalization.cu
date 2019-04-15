@@ -265,8 +265,8 @@ __global__ void kernal_fp32_BatchNormalization_Backward
 
 	// èâä˙âª
 	int const node = blockIdx.x;
-	int const frame_base = threadIdx.x;
-	int const frame_step = blockDim.x;
+	int const id = threadIdx.x;
+	int const id_step = blockDim.x;
 
 	float mean = mean_buf[node];
 	float rstd = rstd_buf[node];
@@ -276,12 +276,19 @@ __global__ void kernal_fp32_BatchNormalization_Backward
 	float dmeanx = 0;
 	float dstd = 0;
 
+    float dgamma_prev;
+	float dbeta_prev;
+	if (id == 0) {
+		dgamma_prev = dgamma_buf[node];
+		dbeta_prev  = dbeta_buf[node];
+	}
+    
 	float rstd2 = rstd * rstd;
 
 	float const * const x_ptr  = &x_buf[node * frame_stride];
 	float const * const dy_ptr = &dy_buf[node * frame_stride];
 
-	for ( int frame = frame_base; frame < frame_size; frame += frame_step) {
+	for ( int frame = id; frame < frame_size; frame += id_step) {
 		float x = x_ptr[frame];
 		float dy = dy_ptr[frame];
 		float xc = x - mean;
@@ -296,9 +303,9 @@ __global__ void kernal_fp32_BatchNormalization_Backward
 
 	dbeta = device_fp32_LocalSum(dbeta, buf);
 	dgamma = device_fp32_LocalSum(dgamma, buf);
-	if (threadIdx.x == 0) {
-		dgamma_buf[node] = dgamma;
-		dbeta_buf[node] = dbeta;
+	if (id == 0) {
+		dgamma_buf[node] = dgamma + dgamma_prev;
+		dbeta_buf[node]  = dbeta  + dbeta_prev;
 	}
 	dstd   = device_fp32_LocalSum(dstd, buf);
 	dmeanx = device_fp32_LocalSum(dmeanx, buf);
@@ -308,7 +315,7 @@ __global__ void kernal_fp32_BatchNormalization_Backward
 	float dvar  = dstd * rstd;
 	float dmean = (dmeanx - (mean * dvar)) * reciprocal_frame_size;
 
-	for ( int frame = frame_base; frame < frame_size; frame += frame_step) {
+	for ( int frame = id; frame < frame_size; frame += id_step) {
 		float dy = dy_ptr[frame];
 		float x  = x_ptr[frame];
 		float dxn = dy * gamma;
