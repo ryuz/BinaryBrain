@@ -3,7 +3,7 @@
 TARGET=libbbcu.a
 
 NVCC = nvcc
-CFLAGS = -I ../include -gencode arch=compute_35,code=sm_35 -std=c++11
+CFLAGS = -I ../include -gencode arch=compute_35,code=sm_35 --generate-code arch=compute_75,code=sm_75 -std=c++11
 
 SRCS += Manager.cu
 SRCS += Vector.cu
