@@ -21,10 +21,61 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
 
 void DataTest(void);
 
+#ifdef BB_WITH_CUDA
+
+#include "bbcu/bbcu.h"
+
+void PrintCudaDeviceProp(void)
+{
+    int dev_count;
+
+    BB_CUDA_SAFE_CALL(cudaGetDeviceCount(&dev_count));
+    
+    if ( dev_count <= 0 ) {
+        std::cout << "no CUDA" << std::endl;
+        return;
+    }
+
+    cudaDeviceProp dev_prop;
+    BB_CUDA_SAFE_CALL(cudaGetDeviceProperties(&dev_prop, 0));
+ 
+    std::cout << std::endl;
+    std::cout << "name                     : " << dev_prop.name                     << std::endl;
+    std::cout << "totalGlobalMem           : " << dev_prop.totalGlobalMem           << std::endl;
+    std::cout << "sharedMemPerBlock        : " << dev_prop.sharedMemPerBlock        << std::endl;
+    std::cout << "regsPerBlock             : " << dev_prop.regsPerBlock             << std::endl;
+    std::cout << "warpSize                 : " << dev_prop.warpSize                 << std::endl;
+    std::cout << "memPitch                 : " << dev_prop.memPitch                 << std::endl;
+    std::cout << "maxThreadsPerBlock       : " << dev_prop.maxThreadsPerBlock       << std::endl;
+    std::cout << "maxThreadsDim[0]         : " << dev_prop.maxThreadsDim[0]         << std::endl;
+    std::cout << "maxThreadsDim[1]         : " << dev_prop.maxThreadsDim[1]         << std::endl;
+    std::cout << "maxThreadsDim[2]         : " << dev_prop.maxThreadsDim[2]         << std::endl;
+    std::cout << "maxGridSize[0]           : " << dev_prop.maxGridSize[0]           << std::endl;
+    std::cout << "maxGridSize[1]           : " << dev_prop.maxGridSize[1]           << std::endl;
+    std::cout << "maxGridSize[2]           : " << dev_prop.maxGridSize[2]           << std::endl;
+    std::cout << "clockRate                : " << dev_prop.clockRate                << std::endl;
+    std::cout << "totalConstMem            : " << dev_prop.totalConstMem            << std::endl;
+    std::cout << "major                    : " << dev_prop.major                    << std::endl;
+    std::cout << "minor                    : " << dev_prop.minor                    << std::endl;
+    std::cout << "textureAlignment         : " << dev_prop.textureAlignment         << std::endl;
+    std::cout << "deviceOverlap            : " << dev_prop.deviceOverlap            << std::endl;
+    std::cout << "multiProcessorCount      : " << dev_prop.multiProcessorCount      << std::endl;
+    std::cout << "kernelExecTimeoutEnabled : " << dev_prop.kernelExecTimeoutEnabled << std::endl;
+    std::cout << "integrated               : " << dev_prop.integrated               << std::endl;
+    std::cout << "canMapHostMemory         : " << dev_prop.canMapHostMemory         << std::endl;
+    std::cout << "computeMode              : " << dev_prop.computeMode              << std::endl;
+    std::cout << std::endl;        
+}
+
+#endif
 
 // メイン関数
 int main(int argc, char *argv[])
 {
+#ifdef BB_WITH_CUDA
+    PrintCudaDeviceProp();
+#endif
+
 //  DataTest();
 
     std::string netname = "All";
