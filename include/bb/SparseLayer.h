@@ -29,6 +29,24 @@ public:
 	virtual void    SetNodeInput(index_t node, index_t input_index, index_t input_node) = 0;
 	virtual index_t GetNodeInput(index_t node, index_t input_index) const = 0;
 	
+	index_t GetNodeInputSize(indices_t node) const
+    {
+        return GetNodeInputSize(GetShapeIndex(node, this->GetOutputShape()));
+    }
+	void SetNodeInput(indices_t node, index_t input_index, indices_t input_node)
+    {
+        return SetNodeInput(GetShapeIndex(node, this->GetOutputShape()), input_index, GetShapeIndex(node, this->GetInputShape()));
+    }
+	void SetNodeInput(indices_t node, index_t input_index, index_t input_node)
+    {
+        return SetNodeInput(GetShapeIndex(node, this->GetOutputShape()), input_index, input_node);
+    }
+	indices_t GetNodeInput(indices_t node, index_t input_index) const
+    {
+        index_t input_node = GetOutputShape(GetShapeIndex(node, this->GetOutputShape()), input_index);
+        return GetShapeIndices(input_node, this->GetInputShape());
+    }
+
 protected:
 	void InitializeNodeInput(std::uint64_t seed, std::string connection = "")
 	{
@@ -39,6 +57,53 @@ protected:
         auto output_node_size = GetShapeSize(output_shape);
 
         auto argv = SplitString(connection);
+
+        if (argv.size() > 0 && argv[0] == "pointwise") {
+            BB_ASSERT(input_shape.size() == 3);
+            BB_ASSERT(output_shape.size() == 3);
+            BB_ASSERT(input_shape[0] = output_shape[0]);
+            BB_ASSERT(input_shape[1] = output_shape[1]);
+            std::mt19937_64 mt(seed);
+            for (index_t y = 0; y < output_shape[1]; ++y) {
+                for (index_t x = 0; x < output_shape[0]; ++x) {
+                    // 接続先をシャッフル
+                    ShuffleSet<index_t>	ss(input_shape[2], mt());
+                    for (index_t c = 0; c < output_shape[2]; ++c) {
+             		    // 入力をランダム接続
+                        index_t  input_size = GetNodeInputSize({x, y, c});
+        			    auto random_set = ss.GetRandomSet(input_size);
+		        	    for (index_t i = 0; i < input_size; ++i) {
+                            SetNodeInput({x, y, x}, i, {x, y, random_set[i]});
+			            }
+                    }
+                }
+            }
+            return;
+        }
+
+        if (argv.size() > 0 && argv[0] == "channelwise") {
+            BB_ASSERT(input_shape.size() == 3);
+            BB_ASSERT(output_shape.size() == 3);
+            BB_ASSERT(input_shape[2] = output_shape[2]);
+            std::mt19937_64 mt(seed);
+            for (index_t c = 0; c < output_shape[2]; ++c) {
+                // 接続先をシャッフル
+                ShuffleSet<index_t>	ss(input_shape[0] * input_shape[1], mt());
+                for (index_t y = 0; y < output_shape[1]; ++y) {
+                    for (index_t x = 0; x < output_shape[0]; ++x) {
+             		    // 入力をランダム接続
+                        index_t  input_size = GetNodeInputSize({x, y, c});
+        			    auto random_set = ss.GetRandomSet(input_size);
+		        	    for (index_t i = 0; i < input_size; ++i) {
+                            index_t ix = random_set[i] % output_shape[0];
+                            index_t iy = random_set[i] / output_shape[0];
+                            SetNodeInput({x, y, c}, i, {ix, iy, c});
+			            }
+                    }
+                }
+            }
+            return;
+        }
 
         if ( (argv.size() > 0 && argv[0] == "gauss")
                 || (argv.size() == 0 && input_shape.size() >= 2 && input_shape.size() == output_shape.size()) ) {
