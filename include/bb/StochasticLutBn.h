@@ -109,6 +109,8 @@ public:
      */   
     void SendCommand(std::string command, std::string send_to = "all")
     {
+        super::SendCommand(command, send_to);
+
 	    m_batch_norm->SendCommand(command, send_to);
 	    m_lut       ->SendCommand(command, send_to);
     }
@@ -125,7 +127,7 @@ public:
         if ( m_bn_enable ) {
     	    parameters.PushBack(m_batch_norm->GetParameters());
         }
-	    parameters.PushBack(m_lut       ->GetParameters());
+	    parameters.PushBack(m_lut->GetParameters());
         return parameters;
     }
 
@@ -156,7 +158,7 @@ public:
     indices_t SetInputShape(indices_t shape)
     {
 	    shape = m_batch_norm->SetInputShape(shape);
-	    shape = m_lut       ->SetInputShape(shape);
+	    shape = m_lut->SetInputShape(shape);
         return shape;
     }
 
