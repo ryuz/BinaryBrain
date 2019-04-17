@@ -55,9 +55,12 @@ protected:
     Tensor_<T>  	            m_mean;		// 平均値
     Tensor_<T>  	            m_rstd;		// 標準偏差の逆数
 
-    T				            m_momentum = (T)0.001;
     Tensor_<T> 	                m_running_mean;
     Tensor_<T>  	            m_running_var;
+
+    T				            m_momentum = (T)0.001;
+    T                           m_init_gamma;
+    T                           m_init_beta;
 
 protected:
     BatchNormalization() {
@@ -88,19 +91,25 @@ public:
     struct create_t
     {
         T   momentum = (T)0.001;
+        T   gamma    = (T)1.0;
+        T   beta     = (T)0.0;
     };
 
     static std::shared_ptr<BatchNormalization> Create(create_t const &create)
     {
         auto self = std::shared_ptr<BatchNormalization>(new BatchNormalization);
-        self->m_momentum = create.momentum;
+        self->m_momentum   = create.momentum;
+        self->m_init_gamma = create.gamma;
+        self->m_init_beta  = create.beta;
         return self;
     }
 
-    static std::shared_ptr<BatchNormalization> Create(T momentum = (T)0.001)
+    static std::shared_ptr<BatchNormalization> Create(T momentum = (T)0.001, T gamma=(T)1.0, T beta=(T)0.0)
     {
         auto self = std::shared_ptr<BatchNormalization>(new BatchNormalization);
-        self->m_momentum = momentum;
+        self->m_momentum   = momentum;
+        self->m_init_gamma = gamma;
+        self->m_init_beta  = beta;
         return self;
     }
 
@@ -200,8 +209,8 @@ public:
         m_node_size = GetShapeSize(shape);
         
         // パラメータ初期化
-        m_gamma->Resize(DataType<T>::type, m_node_size);    *m_gamma  = (T)1.0;
-        m_beta->Resize(DataType<T>::type, m_node_size);     *m_beta   = (T)0.0;
+        m_gamma->Resize(DataType<T>::type, m_node_size);    *m_gamma  = m_init_gamma;
+        m_beta->Resize(DataType<T>::type, m_node_size);     *m_beta   = m_init_beta;
         m_dgamma->Resize(DataType<T>::type, m_node_size);   *m_dgamma = (T)0.0;
         m_dbeta->Resize(DataType<T>::type, m_node_size);    *m_dbeta  = (T)0.0;
 
