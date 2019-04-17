@@ -122,7 +122,7 @@ public:
     Variables GetParameters(void)
     {
         Variables parameters;
-        if ( binary_mode ) {
+        if ( m_bn_enable ) {
     	    parameters.PushBack(m_batch_norm->GetParameters());
         }
 	    parameters.PushBack(m_lut       ->GetParameters());
@@ -138,7 +138,7 @@ public:
     virtual Variables GetGradients(void)
     {
         Variables gradients;
-        if ( binary_mode ) {
+        if ( m_bn_enable ) {
             gradients.PushBack(m_batch_norm->GetGradients());
         }
 	    gradients.PushBack(m_lut       ->GetGradients());
