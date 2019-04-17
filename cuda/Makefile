@@ -21,6 +21,7 @@ SRCS += BatchNormalization.cu
 SRCS += ReLU.cu
 SRCS += Sigmoid.cu
 SRCS += Binarize.cu
+SRCS += HardTanh.cu
 SRCS += Adam.cu
 SRCS += LossSoftmaxCrossEntropy.cu
 SRCS += AccuracyCategoricalClassification.cu

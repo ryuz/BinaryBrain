@@ -58,6 +58,9 @@
     <CudaCompile Include="BinaryLut6.cu">
       <Filter>ソース ファイル</Filter>
     </CudaCompile>
+    <CudaCompile Include="HardTanh.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ヘッダファイル">

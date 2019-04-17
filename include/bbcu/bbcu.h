@@ -490,6 +490,22 @@ BBCU_DLL_EXPORT int bbcu_fp32_Binarize_Forward
             cudaStream_t    streamId = 0
         );
 
+
+
+// -------------------------------------
+//  Hard-Tanh
+// -------------------------------------
+
+BBCU_DLL_EXPORT int bbcu_fp32_HardTanh_Forward
+		(
+			float const *	dev_x_buf,
+			float*			dev_y_buf,
+			int				node_size,
+			int				frame_size,
+			int				frame_stride,
+            cudaStream_t    streamId = 0
+        );
+
 BBCU_DLL_EXPORT int bbcu_fp32_HardTanh_Backward
 		(
 			const float*	dev_x_buf,
