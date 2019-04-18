@@ -561,39 +561,39 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
     // create network
     auto layer_cnv0_sl0  = bb::StochasticLut6<>::Create(256);
 
-    auto layer_cnv0p_sl0 = bb::StochasticLut6<>::Create(192);
-    auto layer_cnv0p_sl1 = bb::StochasticLut6<>::Create(32);
+    auto layer_cnv0p_sl0 = bb::StochasticLutBn<6>::Create(192);
+    auto layer_cnv0p_sl1 = bb::StochasticLutBn<6>::Create(32);
 
-    auto layer_cnv1_sl0 = bb::StochasticLut6<>::Create({1, 16, 32}, "channelwise");
-    auto layer_cnv1_sl1 = bb::StochasticLut6<>::Create({1,  1, 32}, "channelwise");
+    auto layer_cnv1_sl0 = bb::StochasticLutBn<6>::Create({1, 16, 32}, "channelwise");
+    auto layer_cnv1_sl1 = bb::StochasticLutBn<6>::Create({1,  1, 32}, "channelwise");
 
-    auto layer_cnv1p_sl0 = bb::StochasticLut6<>::Create(192);
-    auto layer_cnv1p_sl1 = bb::StochasticLut6<>::Create(32);
+    auto layer_cnv1p_sl0 = bb::StochasticLutBn<6>::Create(192);
+    auto layer_cnv1p_sl1 = bb::StochasticLutBn<6>::Create(32);
 
-    auto layer_cnv2_sl0 = bb::StochasticLut6<>::Create({1, 16, 32}, "channelwise");
-    auto layer_cnv2_sl1 = bb::StochasticLut6<>::Create({1,  1, 32}, "channelwise");
+    auto layer_cnv2_sl0 = bb::StochasticLutBn<6>::Create({1, 16, 32}, "channelwise");
+    auto layer_cnv2_sl1 = bb::StochasticLutBn<6>::Create({1,  1, 32}, "channelwise");
 
-    auto layer_cnv2p_sl0 = bb::StochasticLut6<>::Create(384);
-    auto layer_cnv2p_sl1 = bb::StochasticLut6<>::Create(64);
+    auto layer_cnv2p_sl0 = bb::StochasticLutBn<6>::Create(384);
+    auto layer_cnv2p_sl1 = bb::StochasticLutBn<6>::Create(64);
     
 
-    auto layer_cnv3_sl0 = bb::StochasticLut6<>::Create({1, 16, 64}, "channelwise");
-    auto layer_cnv3_sl1 = bb::StochasticLut6<>::Create({1,  1, 64}, "channelwise");
+    auto layer_cnv3_sl0 = bb::StochasticLutBn<6>::Create({1, 16, 64}, "channelwise");
+    auto layer_cnv3_sl1 = bb::StochasticLutBn<6>::Create({1,  1, 64}, "channelwise");
 
-    auto layer_cnv3p_sl0 = bb::StochasticLut6<>::Create(384);
-    auto layer_cnv3p_sl1 = bb::StochasticLut6<>::Create(64);
+    auto layer_cnv3p_sl0 = bb::StochasticLutBn<6>::Create(384);
+    auto layer_cnv3p_sl1 = bb::StochasticLutBn<6>::Create(64);
 
-    auto layer_cnv4_sl0 = bb::StochasticLut6<>::Create({1, 16, 64}, "channelwise");
-    auto layer_cnv4_sl1 = bb::StochasticLut6<>::Create({1,  1, 64}, "channelwise");
+    auto layer_cnv4_sl0 = bb::StochasticLutBn<6>::Create({1, 16, 64}, "channelwise");
+    auto layer_cnv4_sl1 = bb::StochasticLutBn<6>::Create({1,  1, 64}, "channelwise");
 
-    auto layer_cnv4p_sl0 = bb::StochasticLut6<>::Create(384);
-    auto layer_cnv4p_sl1 = bb::StochasticLut6<>::Create(64);
+    auto layer_cnv4p_sl0 = bb::StochasticLutBn<6>::Create(384);
+    auto layer_cnv4p_sl1 = bb::StochasticLutBn<6>::Create(64);
 
-    auto layer_cnv5_sl0 = bb::StochasticLut6<>::Create({1, 16, 64}, "channelwise");
-    auto layer_cnv5_sl1 = bb::StochasticLut6<>::Create({1,  1, 64}, "channelwise");
+    auto layer_cnv5_sl0 = bb::StochasticLutBn<6>::Create({1, 16, 64}, "channelwise");
+    auto layer_cnv5_sl1 = bb::StochasticLutBn<6>::Create({1,  1, 64}, "channelwise");
 
-    auto layer_cnv5p_sl0 = bb::StochasticLut6<>::Create(512);
-    auto layer_cnv5p_sl1 = bb::StochasticLut6<>::Create(128);
+    auto layer_cnv5p_sl0 = bb::StochasticLutBn<6>::Create(512);
+    auto layer_cnv5p_sl1 = bb::StochasticLutBn<6>::Create(128);
 
     auto layer_sl6 = bb::StochasticLutBn<6>::Create(1024);
     auto layer_sl7 = bb::StochasticLutBn<6>::Create(360);
@@ -717,8 +717,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
             net->SendCommand("binary true");
         }
 
-        std::cout << "batch_normalization false" << std::endl;
-        net->SendCommand("batch_normalization false");
+        std::cout << "batch_normalization true" << std::endl;
+        net->SendCommand("batch_normalization true");
 
         // print model information
         net->PrintInfo();
@@ -736,7 +736,13 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
         runner_create.print_progress = true;     // ìríÜåãâ ÇèoóÕ
 //      runner_create.max_run_size   = 8;
         runner_create.initial_evaluation = false;
+        
         auto runner = bb::Runner<float>::Create(runner_create);
+        runner->Fitting(td, 2, mini_batch_size);
+
+        std::cout << "batch_normalization false" << std::endl;
+        net->SendCommand("batch_normalization false");
+
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
 
