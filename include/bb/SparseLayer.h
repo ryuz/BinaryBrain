@@ -97,7 +97,13 @@ protected:
 		        	    for (index_t i = 0; i < input_size; ++i) {
                             index_t iy = random_set[i] / input_shape[0];
                             index_t ix = random_set[i] % input_shape[0];
-                            SetNodeInput({x, y, c}, i, {ix, iy, c});
+
+                            index_t output_node = GetShapeIndex({x, y, c}, output_shape);
+                            index_t input_node  = GetShapeIndex({ix, iy, c}, input_shape);
+
+                            BB_ASSERT(output_node >= 0 && output_node < output_node_size);
+                            BB_ASSERT(input_node  >= 0 && input_node  < input_node_size);
+                            SetNodeInput(output_node, i, input_node);
 			            }
                     }
                 }
