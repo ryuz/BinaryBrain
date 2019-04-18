@@ -557,6 +557,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
     auto td = bb::LoadCifar10<>::Load();
 #endif
 
+#if 0
     // create network
     auto layer_cnv0_sl0  = bb::StochasticLut6<>::Create(256);
 
@@ -590,6 +591,48 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
 
     auto layer_cnv5_sl0 = bb::StochasticLut6<>::Create({1, 16, 64}, "channelwise");
     auto layer_cnv5_sl1 = bb::StochasticLut6<>::Create({1,  1, 64}, "channelwise");
+
+    auto layer_cnv5p_sl0 = bb::StochasticLut6<>::Create(512);
+    auto layer_cnv5p_sl1 = bb::StochasticLut6<>::Create(128);
+
+    auto layer_sl6 = bb::StochasticLutBn<6>::Create(1024);
+    auto layer_sl7 = bb::StochasticLutBn<6>::Create(360);
+    auto layer_sl8 = bb::StochasticLutBn<6>::Create(60);
+    auto layer_sl9 = bb::StochasticLutBn<6>::Create(10);
+#endif
+
+    auto layer_cnv0_sl0  = bb::StochasticLut6<>::Create(256);
+
+    auto layer_cnv0p_sl0 = bb::StochasticLut6<>::Create(192);
+    auto layer_cnv0p_sl1 = bb::StochasticLut6<>::Create(32);
+
+    auto layer_cnv1_sl0 = bb::StochasticLut6<>::Create({1, 16, 32});
+    auto layer_cnv1_sl1 = bb::StochasticLut6<>::Create({1,  1, 32});
+
+    auto layer_cnv1p_sl0 = bb::StochasticLut6<>::Create(192);
+    auto layer_cnv1p_sl1 = bb::StochasticLut6<>::Create(32);
+
+    auto layer_cnv2_sl0 = bb::StochasticLut6<>::Create({1, 16, 32});
+    auto layer_cnv2_sl1 = bb::StochasticLut6<>::Create({1,  1, 32});
+
+    auto layer_cnv2p_sl0 = bb::StochasticLut6<>::Create(384);
+    auto layer_cnv2p_sl1 = bb::StochasticLut6<>::Create(64);
+    
+
+    auto layer_cnv3_sl0 = bb::StochasticLut6<>::Create({1, 16, 64});
+    auto layer_cnv3_sl1 = bb::StochasticLut6<>::Create({1,  1, 64});
+
+    auto layer_cnv3p_sl0 = bb::StochasticLut6<>::Create(384);
+    auto layer_cnv3p_sl1 = bb::StochasticLut6<>::Create(64);
+
+    auto layer_cnv4_sl0 = bb::StochasticLut6<>::Create({1, 16, 64});
+    auto layer_cnv4_sl1 = bb::StochasticLut6<>::Create({1,  1, 64});
+
+    auto layer_cnv4p_sl0 = bb::StochasticLut6<>::Create(384);
+    auto layer_cnv4p_sl1 = bb::StochasticLut6<>::Create(64);
+
+    auto layer_cnv5_sl0 = bb::StochasticLut6<>::Create({1, 16, 64});
+    auto layer_cnv5_sl1 = bb::StochasticLut6<>::Create({1,  1, 64});
 
     auto layer_cnv5p_sl0 = bb::StochasticLut6<>::Create(512);
     auto layer_cnv5p_sl1 = bb::StochasticLut6<>::Create(128);
