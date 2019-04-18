@@ -557,7 +557,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
     auto td = bb::LoadCifar10<>::Load();
 #endif
 
-#if 1
+#if 0
     // create network
     auto layer_cnv0_sl0  = bb::StochasticLut6<>::Create(256);
 
@@ -636,10 +636,10 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
     auto layer_cnv5p_sl0 = bb::StochasticLut6<>::Create(512);
     auto layer_cnv5p_sl1 = bb::StochasticLut6<>::Create(128);
 
-    auto layer_sl6 = bb::StochasticLutBn<6>::Create(1024);
-    auto layer_sl7 = bb::StochasticLutBn<6>::Create(360);
-    auto layer_sl8 = bb::StochasticLutBn<6>::Create(60);
-    auto layer_sl9 = bb::StochasticLutBn<6>::Create(10);
+    auto layer_sl6 = bb::StochasticLut6<>::Create(1024);
+    auto layer_sl7 = bb::StochasticLut6<>::Create(360);
+    auto layer_sl8 = bb::StochasticLut6<>::Create(60);
+    auto layer_sl9 = bb::StochasticLut6<>::Create(10);
 #endif
 
     {
@@ -738,10 +738,11 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
         runner_create.initial_evaluation = false;
         
         auto runner = bb::Runner<float>::Create(runner_create);
-        runner->Fitting(td, 2, mini_batch_size);
-
-        std::cout << "batch_normalization false" << std::endl;
-        net->SendCommand("batch_normalization false");
+  
+//        runner->Fitting(td, 2, mini_batch_size);
+//        std::cout << "batch_normalization false" << std::endl;
+//        net->SendCommand("batch_normalization false");
+//        net->PrintInfo();
 
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
