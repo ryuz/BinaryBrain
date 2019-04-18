@@ -93,9 +93,9 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
-        BB_ASSERT(shape.size() == 1);
+//      BB_ASSERT(shape.size() == 1);
         m_input_shape  = shape;
-        m_c_size = shape[0];
+        m_c_size = GetShapeSize(shape);
         return indices_t({m_w_size, m_h_size, m_c_size});
     }
 

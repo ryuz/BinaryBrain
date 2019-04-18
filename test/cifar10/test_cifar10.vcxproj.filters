@@ -176,5 +176,8 @@
     <ClInclude Include="..\..\include\bb\StochasticLut6.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bb\ConvolutionDwIm2Col.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
