@@ -61,8 +61,8 @@ protected:
         if (argv.size() > 0 && argv[0] == "pointwise") {
             BB_ASSERT(input_shape.size() == 3);
             BB_ASSERT(output_shape.size() == 3);
-            BB_ASSERT(input_shape[0] = output_shape[0]);
-            BB_ASSERT(input_shape[1] = output_shape[1]);
+            BB_ASSERT(input_shape[0] == output_shape[0]);
+            BB_ASSERT(input_shape[1] == output_shape[1]);
             std::mt19937_64 mt(seed);
             for (index_t y = 0; y < output_shape[1]; ++y) {
                 for (index_t x = 0; x < output_shape[0]; ++x) {
@@ -84,7 +84,7 @@ protected:
         if (argv.size() > 0 && argv[0] == "channelwise") {
             BB_ASSERT(input_shape.size() == 3);
             BB_ASSERT(output_shape.size() == 3);
-            BB_ASSERT(input_shape[2] = output_shape[2]);
+            BB_ASSERT(input_shape[2] == output_shape[2]);
             std::mt19937_64 mt(seed);
             for (index_t c = 0; c < output_shape[2]; ++c) {
                 // 接続先をシャッフル
@@ -95,8 +95,8 @@ protected:
                         index_t  input_size = GetNodeInputSize({x, y, c});
         			    auto random_set = ss.GetRandomSet(input_size);
 		        	    for (index_t i = 0; i < input_size; ++i) {
-                            index_t ix = random_set[i] % output_shape[0];
-                            index_t iy = random_set[i] / output_shape[0];
+                            index_t iy = random_set[i] / input_shape[0];
+                            index_t ix = random_set[i] % input_shape[0];
                             SetNodeInput({x, y, c}, i, {ix, iy, c});
 			            }
                     }
