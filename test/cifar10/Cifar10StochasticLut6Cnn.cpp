@@ -607,33 +607,33 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
     auto layer_cnv0p_sl0 = bb::MicroMlp<6>::Create(192);
     auto layer_cnv0p_sl1 = bb::MicroMlp<6>::Create(32);
 
-    auto layer_cnv1_sl0 = bb::MicroMlp<6>::Create({1, 16, 32}, "channelwise");
-    auto layer_cnv1_sl1 = bb::MicroMlp<6>::Create({1,  1, 32}, "channelwise");
+    auto layer_cnv1_sl0 = bb::MicroMlp<6>::Create({1, 16, 32});
+    auto layer_cnv1_sl1 = bb::MicroMlp<6>::Create({1,  1, 32});
 
     auto layer_cnv1p_sl0 = bb::MicroMlp<6>::Create(192);
     auto layer_cnv1p_sl1 = bb::MicroMlp<6>::Create(32);
 
-    auto layer_cnv2_sl0 = bb::MicroMlp<6>::Create({1, 16, 32}, "channelwise");
-    auto layer_cnv2_sl1 = bb::MicroMlp<6>::Create({1,  1, 32}, "channelwise");
+    auto layer_cnv2_sl0 = bb::MicroMlp<6>::Create({1, 16, 32});
+    auto layer_cnv2_sl1 = bb::MicroMlp<6>::Create({1,  1, 32});
 
     auto layer_cnv2p_sl0 = bb::MicroMlp<6>::Create(384);
     auto layer_cnv2p_sl1 = bb::MicroMlp<6>::Create(64);
     
 
-    auto layer_cnv3_sl0 = bb::MicroMlp<6>::Create({1, 16, 64}, "channelwise");
-    auto layer_cnv3_sl1 = bb::MicroMlp<6>::Create({1,  1, 64}, "channelwise");
+    auto layer_cnv3_sl0 = bb::MicroMlp<6>::Create({1, 16, 64});
+    auto layer_cnv3_sl1 = bb::MicroMlp<6>::Create({1,  1, 64});
 
     auto layer_cnv3p_sl0 = bb::MicroMlp<6>::Create(384);
     auto layer_cnv3p_sl1 = bb::MicroMlp<6>::Create(64);
 
-    auto layer_cnv4_sl0 = bb::MicroMlp<6>::Create({1, 16, 64}, "channelwise");
-    auto layer_cnv4_sl1 = bb::MicroMlp<6>::Create({1,  1, 64}, "channelwise");
+    auto layer_cnv4_sl0 = bb::MicroMlp<6>::Create({1, 16, 64});
+    auto layer_cnv4_sl1 = bb::MicroMlp<6>::Create({1,  1, 64});
 
     auto layer_cnv4p_sl0 = bb::MicroMlp<6>::Create(384);
     auto layer_cnv4p_sl1 = bb::MicroMlp<6>::Create(64);
 
-    auto layer_cnv5_sl0 = bb::MicroMlp<6>::Create({1, 16, 64}, "channelwise");
-    auto layer_cnv5_sl1 = bb::MicroMlp<6>::Create({1,  1, 64}, "channelwise");
+    auto layer_cnv5_sl0 = bb::MicroMlp<6>::Create({1, 16, 64});
+    auto layer_cnv5_sl1 = bb::MicroMlp<6>::Create({1,  1, 64});
 
     auto layer_cnv5p_sl0 = bb::MicroMlp<6>::Create(512);
     auto layer_cnv5p_sl1 = bb::MicroMlp<6>::Create(128);
