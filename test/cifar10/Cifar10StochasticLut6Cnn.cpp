@@ -558,6 +558,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
 #endif
 
 #if 1
+#if 0
     // create network
     auto layer_cnv0_sl0  = bb::StochasticLut6<>::Create(256);
 
@@ -599,6 +600,50 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
     auto layer_sl7 = bb::StochasticLutBn<6>::Create(360);
     auto layer_sl8 = bb::StochasticLutBn<6>::Create(60);
     auto layer_sl9 = bb::StochasticLutBn<6>::Create(10);
+#else
+    // create network
+    auto layer_cnv0_sl0  = bb::MicroMlp<6>::Create(256);
+
+    auto layer_cnv0p_sl0 = bb::MicroMlp<6>::Create(192);
+    auto layer_cnv0p_sl1 = bb::MicroMlp<6>::Create(32);
+
+    auto layer_cnv1_sl0 = bb::MicroMlp<6>::Create({1, 16, 32}, "channelwise");
+    auto layer_cnv1_sl1 = bb::MicroMlp<6>::Create({1,  1, 32}, "channelwise");
+
+    auto layer_cnv1p_sl0 = bb::MicroMlp<6>::Create(192);
+    auto layer_cnv1p_sl1 = bb::MicroMlp<6>::Create(32);
+
+    auto layer_cnv2_sl0 = bb::MicroMlp<6>::Create({1, 16, 32}, "channelwise");
+    auto layer_cnv2_sl1 = bb::MicroMlp<6>::Create({1,  1, 32}, "channelwise");
+
+    auto layer_cnv2p_sl0 = bb::MicroMlp<6>::Create(384);
+    auto layer_cnv2p_sl1 = bb::MicroMlp<6>::Create(64);
+    
+
+    auto layer_cnv3_sl0 = bb::MicroMlp<6>::Create({1, 16, 64}, "channelwise");
+    auto layer_cnv3_sl1 = bb::MicroMlp<6>::Create({1,  1, 64}, "channelwise");
+
+    auto layer_cnv3p_sl0 = bb::MicroMlp<6>::Create(384);
+    auto layer_cnv3p_sl1 = bb::MicroMlp<6>::Create(64);
+
+    auto layer_cnv4_sl0 = bb::MicroMlp<6>::Create({1, 16, 64}, "channelwise");
+    auto layer_cnv4_sl1 = bb::MicroMlp<6>::Create({1,  1, 64}, "channelwise");
+
+    auto layer_cnv4p_sl0 = bb::MicroMlp<6>::Create(384);
+    auto layer_cnv4p_sl1 = bb::MicroMlp<6>::Create(64);
+
+    auto layer_cnv5_sl0 = bb::MicroMlp<6>::Create({1, 16, 64}, "channelwise");
+    auto layer_cnv5_sl1 = bb::MicroMlp<6>::Create({1,  1, 64}, "channelwise");
+
+    auto layer_cnv5p_sl0 = bb::MicroMlp<6>::Create(512);
+    auto layer_cnv5p_sl1 = bb::MicroMlp<6>::Create(128);
+
+    auto layer_sl6 = bb::MicroMlp<6>::Create(1024);
+    auto layer_sl7 = bb::MicroMlp<6>::Create(360);
+    auto layer_sl8 = bb::MicroMlp<6>::Create(60);
+    auto layer_sl9 = bb::MicroMlp<6>::Create(10);
+#endif
+
 #else
     auto layer_cnv0_sl0  = bb::StochasticLut6<>::Create(256);
 
@@ -693,38 +738,26 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
         auto net = bb::Sequential::Create();
 //      net->Add(bb::RealToBinary<>::Create(7));
         net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
-        net->Add(bb::Binarize<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv0p_sub, 1, 1));
-        net->Add(bb::Binarize<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
-        net->Add(bb::Binarize<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv1p_sub, 1, 1));
-        net->Add(bb::Binarize<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
-        net->Add(bb::Binarize<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv2p_sub, 1, 1));
-        net->Add(bb::Binarize<>::Create());
         net->Add(bb::MaxPooling<>::Create(2, 2));
+        net->Add(bb::Binarize<>::Create());
         
         net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
-        net->Add(bb::Binarize<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv3p_sub, 1, 1));
-        net->Add(bb::Binarize<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv4_sub, 3, 3));
-        net->Add(bb::Binarize<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv4p_sub, 1, 1));
-        net->Add(bb::Binarize<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv5_sub, 3, 3));
-        net->Add(bb::Binarize<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv5p_sub, 1, 1));
-        net->Add(bb::Binarize<>::Create());
         net->Add(bb::MaxPooling<>::Create(2, 2));
-        net->Add(layer_sl6);
         net->Add(bb::Binarize<>::Create());
+        net->Add(layer_sl6);
         net->Add(layer_sl7);
         net->Add(bb::Binarize<>::Create());
         net->Add(layer_sl8);
-        net->Add(bb::Binarize<>::Create());
         net->Add(layer_sl9);
 //      net->Add(bb::BinaryToReal<>::Create({ 10 }, 7));
         net->SetInputShape(td.x_shape);

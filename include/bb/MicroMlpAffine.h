@@ -32,6 +32,8 @@ public:   // debug
 	bool			        m_binary_mode = false;
 	bool			        m_host_only   = false;
     bool                    m_host_simd   = true;
+    
+    std::string             m_connection;
 
     T                       m_initialize_std = (T)0.01;
     std::string             m_initializer = "he";
@@ -103,6 +105,7 @@ public:
     struct create_t
     {
         indices_t       output_shape;
+        std::string     connection;
         T               initialize_std = (T)0.01;
         std::string     initializer = "";
         std::uint64_t   seed = 1;
@@ -119,23 +122,27 @@ public:
 
         self->m_output_shape = create.output_shape;
         self->m_output_node_size = GetShapeSize(self->m_output_shape);
+        self->m_connection = create.connection;
 
         return self;
     }
 
-    static std::shared_ptr<MicroMlpAffine> Create(indices_t const &output_shape, std::uint64_t seed = 1)
+    static std::shared_ptr<MicroMlpAffine> Create(indices_t const &output_shape, std::string connection = "", std::uint64_t seed = 1)
     {
         create_t create;
         create.output_shape = output_shape;
-        create.seed         = seed;
+        create.connection = connection;
+        create.seed = seed;
         return Create(create);
     }
 
-    static std::shared_ptr<MicroMlpAffine> Create(index_t output_node_size)
+    static std::shared_ptr<MicroMlpAffine> Create(index_t output_node_size, std::string connection = "", std::uint64_t seed = 1)
     {
         create_t create;
         create.output_shape.resize(1);
         create.output_shape[0] = output_node_size;
+        create.connection = connection;
+        create.seed = seed;
         return Create(create);
     }
 	
@@ -301,7 +308,7 @@ public:
         
         // 接続初期化
         m_input_index.Resize(m_output_node_size, N);
-        this->InitializeNodeInput(m_mt());
+        this->InitializeNodeInput(m_mt(), m_connection);
 
         // パラメータ初期化
         if (m_initializer == "he" || m_initializer == "He") {

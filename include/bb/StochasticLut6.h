@@ -26,7 +26,8 @@ class StochasticLut6 : public SparseLayer<T, T>
     using super = SparseLayer<T, T>;
 
 protected:
-    bool                    m_binary_mode = true;
+    bool                    m_lut_binarize = true;
+    bool                    m_y_binarize = false;
     bool                    m_host_only = false;
     bool                    m_host_simd = true;
 
@@ -61,10 +62,16 @@ protected:
 
  	void CommandProc(std::vector<std::string> args)
 	{
-        // バイナリモード設定
-        if ( args.size() == 2 && args[0] == "binary" )
+        // LUTバイナライズ設定
+        if ( args.size() == 2 && args[0] == "lut_binarize" )
         {
-            m_binary_mode = EvalBool(args[1]);
+            m_lut_binarize = EvalBool(args[1]);
+        }
+
+        // Y出力バイナライズ設定
+        if ( args.size() == 2 && args[0] == "y_binarize" )
+        {
+            m_y_binarize = EvalBool(args[1]);
         }
 
         // HostOnlyモード設定
@@ -307,7 +314,7 @@ public:
 		for ( int i = 0; i < 64; ++i) {
             W[i] = W_ptr(node, i);
 //          BB_ASSERT(W[i] >= 0 && W[i] <= 1.0f);
-            if ( m_binary_mode ) {
+            if ( m_lut_binarize ) {
                 W[i] = W[i] > (T)0.5 ? (T)1.0 : (T)0.0;
             }
         }
@@ -448,7 +455,7 @@ public:
                     (int          )m_y_buf.GetNodeSize(),
                     (int          )m_y_buf.GetFrameSize(),
                     (int          )(m_y_buf.GetFrameStride() / sizeof(float)),
-                    (int          )(m_binary_mode ? 1 : 0)
+                    (int          )(m_lut_binarize ? 1 : 0)
                 );
 
             return m_y_buf;
@@ -470,7 +477,7 @@ public:
                 __m256   W[64];
                 for ( int i = 0; i < 64; ++i ) {
                     float W_val = W_ptr(node, i);
-                    if ( m_binary_mode ) {
+                    if ( m_lut_binarize ) {
                         W_val = W_val > 0.5f ? 1.0f : 0.0f;
                     }
                     W[i] = _mm256_set1_ps(W_val);
@@ -600,7 +607,7 @@ public:
 			    for ( int i = 0; i < 64; ++i) {
                     W[i] = W_ptr(node, i);
                     BB_ASSERT(W[i] >= 0 && W[i] <= 1.0f);
-                    if ( m_binary_mode ) {
+                    if ( m_lut_binarize ) {
                         W[i] = W[i] > (T)0.5 ? (T)1.0 : (T)0.0;
                     }
                 }
@@ -742,7 +749,7 @@ public:
                     (int          )m_y_buf.GetNodeSize(),
                     (int          )m_dx_buf.GetFrameSize(),
                     (int          )(m_dx_buf.GetFrameStride() / sizeof(float)),
-                    (int          )(m_binary_mode ? 1 : 0)
+                    (int          )(m_lut_binarize ? 1 : 0)
                 );
        
             return m_dx_buf;
@@ -778,7 +785,7 @@ public:
                 __m256   W[64];
                 for ( int i = 0; i < 64; ++i ) {
                     float W_val = W_ptr(node, i);
-                    if ( m_binary_mode ) {
+                    if ( m_lut_binarize ) {
                         W_val = W_val > 0.5f ? 1.0f : 0.0f;
                     }
                     W[i] = _mm256_set1_ps(W_val);
@@ -1046,7 +1053,7 @@ public:
                 T W[64];
 			    for ( int i = 0; i < 64; ++i) {
                     W[i] = W_ptr(node, i);
-                    if ( m_binary_mode ) {
+                    if ( m_lut_binarize ) {
                         W[i] = W[i] > (T)0.5 ? (T)1.0 : (T)0.0;
                     }
                 }
