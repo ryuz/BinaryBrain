@@ -557,7 +557,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
     auto td = bb::LoadCifar10<>::Load();
 #endif
 
-#if 0
+#if 1
     // create network
     auto layer_cnv0_sl0  = bb::StochasticLut6<>::Create(256);
 
@@ -691,25 +691,42 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
         cnv5p_sub->Add(layer_cnv5p_sl1);
 
         auto net = bb::Sequential::Create();
+//      net->Add(bb::RealToBinary<>::Create(7));
         net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
+        net->Add(bb::Binarize<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv0p_sub, 1, 1));
+        net->Add(bb::Binarize<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
+        net->Add(bb::Binarize<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv1p_sub, 1, 1));
+        net->Add(bb::Binarize<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
+        net->Add(bb::Binarize<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv2p_sub, 1, 1));
+        net->Add(bb::Binarize<>::Create());
         net->Add(bb::MaxPooling<>::Create(2, 2));
         
         net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
+        net->Add(bb::Binarize<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv3p_sub, 1, 1));
+        net->Add(bb::Binarize<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv4_sub, 3, 3));
+        net->Add(bb::Binarize<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv4p_sub, 1, 1));
+        net->Add(bb::Binarize<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv5_sub, 3, 3));
+        net->Add(bb::Binarize<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv5p_sub, 1, 1));
+        net->Add(bb::Binarize<>::Create());
         net->Add(bb::MaxPooling<>::Create(2, 2));
         net->Add(layer_sl6);
+        net->Add(bb::Binarize<>::Create());
         net->Add(layer_sl7);
+        net->Add(bb::Binarize<>::Create());
         net->Add(layer_sl8);
+        net->Add(bb::Binarize<>::Create());
         net->Add(layer_sl9);
+//      net->Add(bb::BinaryToReal<>::Create({ 10 }, 7));
         net->SetInputShape(td.x_shape);
 
         if ( binary_mode ) {
@@ -717,8 +734,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
             net->SendCommand("binary true");
         }
 
-        std::cout << "batch_normalization true" << std::endl;
-        net->SendCommand("batch_normalization true");
+        std::cout << "batch_normalization false" << std::endl;
+        net->SendCommand("batch_normalization false");
 
         // print model information
         net->PrintInfo();
@@ -734,7 +751,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
         runner_create.file_read      = false;    // 前の計算結果があれば読み込んで再開するか
         runner_create.file_write     = true;     // 計算結果をファイルに保存するか
         runner_create.print_progress = true;     // 途中結果を出力
-//      runner_create.max_run_size   = 8;
+        runner_create.max_run_size   = 8;
         runner_create.initial_evaluation = false;
         
         auto runner = bb::Runner<float>::Create(runner_create);

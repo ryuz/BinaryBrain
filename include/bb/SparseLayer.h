@@ -111,8 +111,7 @@ protected:
             return;
         }
 
-        if ( (argv.size() > 0 && argv[0] == "gauss")
-                || (argv.size() == 0 && input_shape.size() >= 2 && input_shape.size() == output_shape.size()) ) {
+        if ( argv.size() > 0 && argv[0] == "gauss") {
             // ガウス分布で結線
             int n = (int)input_shape.size();
             std::vector<double> step(n);

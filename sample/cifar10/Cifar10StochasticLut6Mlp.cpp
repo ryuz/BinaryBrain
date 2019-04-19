@@ -65,8 +65,6 @@ void Cifar10StochasticLut6Mlp(int epoch_size, size_t mini_batch_size, int lut_fr
             std::cout << "binary mode" << std::endl;
         }
 
-    //  net->SendCommand("host_only true", "BatchNormalization");
-
         net->PrintInfo();
 
         // fitting
