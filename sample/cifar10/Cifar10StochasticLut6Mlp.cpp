@@ -47,17 +47,17 @@ void Cifar10StochasticLut6Mlp(int epoch_size, size_t mini_batch_size, int lut_fr
     auto td = bb::LoadCifar10<>::Load();
 #endif
 
-    auto layer_mm0 = bb::StochasticLut6<>::Create({1024});
-    auto layer_mm1 = bb::StochasticLut6<>::Create({480});
-    auto layer_mm2 = bb::StochasticLut6<>::Create({80});
+    auto layer_sl0 = bb::StochasticLut6<>::Create({1024});
+    auto layer_sl1 = bb::StochasticLut6<>::Create({360});
+    auto layer_sl2 = bb::StochasticLut6<>::Create({60});
+    auto layer_sl3 = bb::StochasticLut6<>::Create({10});
 
     {
         auto net = bb::Sequential::Create();
-        net->Add(bb::RealToBinary<>::Create(mux_size));
-        net->Add(layer_mm0);
-        net->Add(layer_mm1);
-        net->Add(layer_mm2);
-        net->Add(bb::BinaryToReal<float, float>::Create({10}, mux_size));
+        net->Add(layer_sl0);
+        net->Add(layer_sl1);
+        net->Add(layer_sl2);
+        net->Add(layer_sl3);
         net->SetInputShape(td.x_shape);
 
         if ( binary_mode ) {
@@ -81,9 +81,10 @@ void Cifar10StochasticLut6Mlp(int epoch_size, size_t mini_batch_size, int lut_fr
 
     {
         // LUT-network
-        auto layer_lut0 = bb::BinaryLutN<>::Create(layer_mm0->GetOutputShape());
-        auto layer_lut1 = bb::BinaryLutN<>::Create(layer_mm1->GetOutputShape());
-        auto layer_lut2 = bb::BinaryLutN<>::Create(layer_mm2->GetOutputShape());
+        auto layer_lut0 = bb::BinaryLutN<>::Create(layer_sl0->GetOutputShape());
+        auto layer_lut1 = bb::BinaryLutN<>::Create(layer_sl1->GetOutputShape());
+        auto layer_lut2 = bb::BinaryLutN<>::Create(layer_sl2->GetOutputShape());
+        auto layer_lut3 = bb::BinaryLutN<>::Create(layer_sl3->GetOutputShape());
 
         auto lut_net = bb::Sequential::Create();
         lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
@@ -95,9 +96,10 @@ void Cifar10StochasticLut6Mlp(int epoch_size, size_t mini_batch_size, int lut_fr
 
         // テーブル化して取り込み(SetInputShape後に取り込みが必要)
         std::cout << "parameter copy to LUT-Network" << std::endl;
-        layer_lut0->ImportLayer<float, float>(layer_mm0);
-        layer_lut1->ImportLayer<float, float>(layer_mm1);
-        layer_lut2->ImportLayer<float, float>(layer_mm2);
+        layer_lut0->ImportLayer<float, float>(layer_sl0);
+        layer_lut1->ImportLayer<float, float>(layer_sl1);
+        layer_lut2->ImportLayer<float, float>(layer_sl2);
+        layer_lut3->ImportLayer<float, float>(layer_sl3);
 
         // 評価
         bb::Runner<float>::create_t lut_runner_create;
