@@ -22,8 +22,9 @@
 #include "bb/MaxPooling.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
 #include "bb/MetricsCategoricalAccuracy.h"
-#include "bb/OptimizerAdam.h"
 #include "bb/OptimizerSgd.h"
+#include "bb/OptimizerAdaGrad.h"
+#include "bb/OptimizerAdam.h"
 #include "bb/LoadCifar10.h"
 #include "bb/ShuffleSet.h"
 #include "bb/Utility.h"
@@ -350,7 +351,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         runner_create.net                = net;
         runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
         runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
-        runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
+//        runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
+        runner_create.optimizer          = bb::OptimizerAdaGrad<float>::Create();
         runner_create.max_run_size       = max_run_size;    // 実際の1回の実行サイズ
         runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
         runner_create.file_write         = true;            // 計算結果をファイルに保存するか
