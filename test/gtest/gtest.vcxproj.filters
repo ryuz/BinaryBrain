@@ -245,5 +245,8 @@
     <ClInclude Include="..\..\include\bb\Reduce.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bb\OptimizerAdaGrad.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

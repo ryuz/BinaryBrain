@@ -17,8 +17,9 @@
 #include "bb/ReLU.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
 #include "bb/MetricsCategoricalAccuracy.h"
-#include "bb/OptimizerAdam.h"
 #include "bb/OptimizerSgd.h"
+#include "bb/OptimizerAdaGrad.h"
+#include "bb/OptimizerAdam.h"
 #include "bb/LoadMnist.h"
 #include "bb/ShuffleSet.h"
 #include "bb/Utility.h"
@@ -50,7 +51,9 @@ void MnistDenseMlp(int epoch_size, size_t mini_batch_size)
     runner_create.net         = net;
     runner_create.lossFunc    = bb::LossSoftmaxCrossEntropy<float>::Create();
     runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
-    runner_create.optimizer   = bb::OptimizerAdam<float>::Create();
+//  runner_create.optimizer   = bb::OptimizerAdam<float>::Create();
+    runner_create.optimizer   = bb::OptimizerAdaGrad<float>::Create();
+//  runner_create.optimizer   = bb::OptimizerSgd<float>::Create();
     runner_create.initial_evaluation = true;
     auto runner = bb::Runner<float>::Create(runner_create);
 
