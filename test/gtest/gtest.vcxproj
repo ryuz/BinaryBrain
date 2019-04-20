@@ -76,6 +76,7 @@
     <ClInclude Include="..\..\include\bb\Dropout.h" />
     <ClInclude Include="..\..\include\bb\Filter2d.h" />
     <ClInclude Include="..\..\include\bb\FrameBuffer.h" />
+    <ClInclude Include="..\..\include\bb\HardTanh.h" />
     <ClInclude Include="..\..\include\bb\Layer.h" />
     <ClInclude Include="..\..\include\bb\LossFunction.h" />
     <ClInclude Include="..\..\include\bb\LossMeanSquaredError.h" />
@@ -105,6 +106,7 @@
     <ClInclude Include="..\..\include\bb\Sigmoid.h" />
     <ClInclude Include="..\..\include\bb\SimdSupport.h" />
     <ClInclude Include="..\..\include\bb\SparseLayer.h" />
+    <ClInclude Include="..\..\include\bb\StochasticLut.h" />
     <ClInclude Include="..\..\include\bb\StochasticLut2.h" />
     <ClInclude Include="..\..\include\bb\StochasticLut6.h" />
     <ClInclude Include="..\..\include\bb\StochasticLutBn.h" />
