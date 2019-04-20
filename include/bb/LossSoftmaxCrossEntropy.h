@@ -98,7 +98,7 @@ public:
             auto loss_buf_ptr = m_loss_buf.Lock(true);
             auto loss_ptr = m_loss.Lock();
 
-//#pragma omp parallel for
+            #pragma omp parallel for
             for (index_t frame = 0; frame < frame_size; ++frame) {
                 // max
                 auto c = y_ptr.Get(frame, 0);
@@ -107,7 +107,6 @@ public:
                 }
                 if (!Real_IsValid(c)) {
                     std::cout << "loss c : nan" << std::endl;
- //                 getchar();
                 }
 
                 // sum(exp(y - c))
@@ -124,7 +123,6 @@ public:
                     T dy = (softmax - t_ptr.Get(frame, node)) / (T)batch_size;
                     if (!Real_IsValid(dy)) {
                         std::cout << "loss dy : nan" << std::endl;
- //                     getchar();
                     }
 
                     dy_ptr.Set(frame, node, dy);
