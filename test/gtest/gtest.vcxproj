@@ -68,8 +68,6 @@
     <ClInclude Include="..\..\include\bb\BinaryModulation.h" />
     <ClInclude Include="..\..\include\bb\BinaryToReal.h" />
     <ClInclude Include="..\..\include\bb\ConvolutionCol2Im.h" />
-    <ClInclude Include="..\..\include\bb\ConvolutionDwCol2Im.h" />
-    <ClInclude Include="..\..\include\bb\ConvolutionDwIm2Col.h" />
     <ClInclude Include="..\..\include\bb\ConvolutionIm2Col.h" />
     <ClInclude Include="..\..\include\bb\CudaUtility.h" />
     <ClInclude Include="..\..\include\bb\DataType.h" />
