@@ -30,8 +30,6 @@
 #include "bb/ExportVerilog.h"
 
 
-// static void WriteMnistDataFile(std::string train_file, std::string test_file, int train_size, int test_size);
-
 
 // MNIST CNN with LUT networks
 void Cifar10MicroMlpLutMlp(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read)

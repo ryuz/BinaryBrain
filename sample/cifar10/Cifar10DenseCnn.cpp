@@ -35,7 +35,7 @@
 // MNIST CNN with LUT networks
 void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "Cifar10SimpleLutCnn";
+    std::string net_name = "Cifar10DenseCnn";
 
   // load cifar-10 data
 #ifdef _DEBUG
