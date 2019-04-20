@@ -28,11 +28,12 @@ CINCS  = -I../../include -I../../eigen
 CDEFS  = 
 
 SRCS   = main.cpp
-SRCS  += Cifar10LutMlp.cpp
-SRCS  += Cifar10LutCnn.cpp
+SRCS  += Cifar10StochasticLut6Cnn.cpp
+SRCS  += Cifar10StochasticLut6Mlp.cpp
+SRCS  += Cifar10MicroMlpLutMlp.cpp
+SRCS  += Cifar10MicroMlpLutCnn.cpp
 SRCS  += Cifar10DenseMlp.cpp
 SRCS  += Cifar10DenseCnn.cpp
-SRCS  += Cifar10StochasticLut6Cnn.cpp
 
 OBJS = $(addsuffix .o, $(basename $(SRCS)))
 
@@ -68,8 +69,8 @@ run: $(TARGET) $(DATA_FILES)
 bbcu_build:
 	make -C $(BBCU_PATH)
 
-$(TARGET): $(OBJS) $(BBCU_LIB)
-	$(CC) -o $(TARGET) $(CFLAGS) $(CINCS) $(CDEFS) $(OBJS) $(BBCU_LIB)
+$(TARGET): $(OBJS) $(LIBS)
+	$(CC) -o $(TARGET) $(CFLAGS) $(CINCS) $(CDEFS) $(OBJS) $(LIBS)
 
 .cpp.o:
 	$(CC) $(CFLAGS) $(CINCS) $(CDEFS) -c $<

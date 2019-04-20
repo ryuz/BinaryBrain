@@ -10,28 +10,28 @@
 
 
 __global__ void kernal_fp32_Adam(
-            int           const *size_table,
-			float       * const *params_buf_table,
-			float const * const *grads_buf_table,
-    		float       * const *m_buf_table,
-    		float       * const *v_buf_table,
- 	        float				lr_t,
-	        float				neg_beta1,
-	        float				neg_beta2
+            int     const   *size_table,
+			float * const   *params_buf_table,
+			float * const   *grads_buf_table,
+    		float * const   *m_buf_table,
+    		float * const   *v_buf_table,
+ 	        float           lr_t,
+	        float			neg_beta1,
+	        float			neg_beta2
 		)
 {
-	int n_base = threadIdx.x;
-	int n_step = blockDim.x;
-    int index  = blockDim.y * blockIdx.y + threadIdx.y;
+	int id      = threadIdx.x;
+	int id_step = blockDim.x;
+    int index   = blockDim.y * blockIdx.y + threadIdx.y;
     
-    int         size       = size_table[index];
+    int   size       = size_table[index];
 
-	float       *params_buf = params_buf_table[index];
-    float const *grads_buf  = grads_buf_table[index];
-    float       *m_buf      = m_buf_table[index];
-    float       *v_buf      = v_buf_table[index];
+	float *params_buf = params_buf_table[index];
+    float *grads_buf  = grads_buf_table[index];
+    float *m_buf      = m_buf_table[index];
+    float *v_buf      = v_buf_table[index];
     
-    for ( int n = n_base; n < size; n += n_step ) {
+    for ( int n = id; n < size; n += id_step ) {
         float param = params_buf[n];
         float grad  = grads_buf[n];
         float m     = m_buf[n];
@@ -44,22 +44,23 @@ __global__ void kernal_fp32_Adam(
         m_buf[n]      = m;
         v_buf[n]      = v;
         params_buf[n] = param;
+        grads_buf[n]  = 0;
     }
 }
 
 
 BBCU_DLL_EXPORT int bbcu_fp32_Adam
 		(
-            int                 size,
-            int           const *dev_size_table,
-			float       * const *dev_params_buf_table,
-			float const * const *dev_grads_buf_table,
-    		float       * const *dev_m_buf_table,
-    		float       * const *dev_v_buf_table,
- 	        float				lr_t,
-	        float				beta1,
-	        float				beta2,
-            cudaStream_t        streamId
+            int             size,
+            int     const   *dev_size_table,
+			float * const   *dev_params_buf_table,
+			float * const   *dev_grads_buf_table,
+    		float * const   *dev_m_buf_table,
+    		float * const   *dev_v_buf_table,
+ 	        float		    lr_t,
+	        float		    beta1,
+	        float			beta2,
+            cudaStream_t    streamId
         )
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());

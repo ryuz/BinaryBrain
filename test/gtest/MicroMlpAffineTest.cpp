@@ -6,6 +6,7 @@
 
 #include "bb/MicroMlpAffine.h"
 #include "bb/OptimizerAdam.h"
+#include "bb/OptimizerSgd.h"
 #include "bb/ShuffleSet.h"
 #include "bb/Utility.h"
 
@@ -350,7 +351,12 @@ TEST(MicroMlpAffineTest, testMicroMlpAffineCmp)
     mlp1->SetInputShape({input_node_size});
     mlp2->SetInputShape({input_node_size});
 	
+    auto opt1 = bb::OptimizerSgd<float>::Create();
+    auto opt2 = bb::OptimizerSgd<float>::Create();
     
+    opt1->SetVariables(mlp1->GetParameters(), mlp1->GetGradients());
+    opt2->SetVariables(mlp2->GetParameters(), mlp2->GetGradients());
+
     bb::ShuffleSet<bb::index_t> ss(input_node_size, 1);
 	for (int i = 0; i < output_node_size; i++) {
         auto s = ss.GetRandomSet(N);
@@ -401,6 +407,37 @@ TEST(MicroMlpAffineTest, testMicroMlpAffineCmp)
         }
     }
 
+    {
+        auto p1_W0 = mlp1->lock_W0_const();
+        auto p1_b0 = mlp1->lock_b0_const();
+        auto p1_W1 = mlp1->lock_W1_const();
+        auto p1_b1 = mlp1->lock_b1_const();
+        auto p2_W0 = mlp2->lock_W0_const();
+        auto p2_b0 = mlp2->lock_b0_const();
+        auto p2_W1 = mlp2->lock_W1_const();
+        auto p2_b1 = mlp2->lock_b1_const();
+
+	    for (int i = 0; i < output_node_size; i++) {
+    	    for (int j = 0; j < M; j++) {
+                for (int k = 0; k < N; k++) {
+	    	        EXPECT_FLOAT_EQ(W0[i][j][k], p1_W0(i, j, k));
+	    	        EXPECT_FLOAT_EQ(W0[i][j][k], p2_W0(i, j, k));
+                }
+
+                EXPECT_FLOAT_EQ(b0[i][j], p1_b0(i, j));
+                EXPECT_FLOAT_EQ(b0[i][j], p2_b0(i, j));
+            }
+
+	        for (int j = 0; j < M; j++) {
+                EXPECT_FLOAT_EQ(W1[i][j], p1_W1(i, j));
+                EXPECT_FLOAT_EQ(W1[i][j], p2_W1(i, j));
+	        }
+
+      	    EXPECT_FLOAT_EQ(b1[i], p1_b1(i));
+      	    EXPECT_FLOAT_EQ(b1[i], p2_b1(i));
+        }
+    }
+
     for ( int loop = 0; loop < 2; ++loop ) {
 
 	    for (int i = 0; i < frame_size; i++) {
@@ -411,36 +448,7 @@ TEST(MicroMlpAffineTest, testMicroMlpAffineCmp)
             }
         }
 
-        {
-            auto p1_W0 = mlp1->lock_W0_const();
-            auto p1_b0 = mlp1->lock_b0_const();
-            auto p1_W1 = mlp1->lock_W1_const();
-            auto p1_b1 = mlp1->lock_b1_const();
-            auto p2_W0 = mlp2->lock_W0_const();
-            auto p2_b0 = mlp2->lock_b0_const();
-            auto p2_W1 = mlp2->lock_W1_const();
-            auto p2_b1 = mlp2->lock_b1_const();
 
-	        for (int i = 0; i < output_node_size; i++) {
-    	        for (int j = 0; j < M; j++) {
-        	        for (int k = 0; k < N; k++) {
-	        	        EXPECT_FLOAT_EQ(W0[i][j][k], p1_W0(i, j, k));
-	        	        EXPECT_FLOAT_EQ(W0[i][j][k], p2_W0(i, j, k));
-                    }
-
-        	        EXPECT_FLOAT_EQ(b0[i][j], p1_b0(i, j));
-        	        EXPECT_FLOAT_EQ(b0[i][j], p2_b0(i, j));
-                }
-
-	            for (int j = 0; j < M; j++) {
-        	        EXPECT_FLOAT_EQ(W1[i][j], p1_W1(i, j));
-        	        EXPECT_FLOAT_EQ(W1[i][j], p2_W1(i, j));
-	            }
-
-      	        EXPECT_FLOAT_EQ(b1[i], p1_b1(i));
-      	        EXPECT_FLOAT_EQ(b1[i], p2_b1(i));
-            }
-        }
 
 
 	    auto y_cpu = mlp1->Forward(x_cpu);
@@ -481,37 +489,6 @@ TEST(MicroMlpAffineTest, testMicroMlpAffineCmp)
         }
 
         {
-            auto p1_W0 = mlp1->lock_W0_const();
-            auto p1_b0 = mlp1->lock_b0_const();
-            auto p1_W1 = mlp1->lock_W1_const();
-            auto p1_b1 = mlp1->lock_b1_const();
-            auto p2_W0 = mlp2->lock_W0_const();
-            auto p2_b0 = mlp2->lock_b0_const();
-            auto p2_W1 = mlp2->lock_W1_const();
-            auto p2_b1 = mlp2->lock_b1_const();
-
-	        for (int i = 0; i < output_node_size; i++) {
-    	        for (int j = 0; j < M; j++) {
-        	        for (int k = 0; k < N; k++) {
-	        	        EXPECT_FLOAT_EQ(W0[i][j][k], p1_W0(i, j, k));
-	        	        EXPECT_FLOAT_EQ(W0[i][j][k], p2_W0(i, j, k));
-                    }
-
-        	        EXPECT_FLOAT_EQ(b0[i][j], p1_b0(i, j));
-        	        EXPECT_FLOAT_EQ(b0[i][j], p2_b0(i, j));
-                }
-
-	            for (int j = 0; j < M; j++) {
-        	        EXPECT_FLOAT_EQ(W1[i][j], p1_W1(i, j));
-        	        EXPECT_FLOAT_EQ(W1[i][j], p2_W1(i, j));
-	            }
-
-      	        EXPECT_FLOAT_EQ(b1[i], p1_b1(i));
-      	        EXPECT_FLOAT_EQ(b1[i], p2_b1(i));
-            }
-        }
-
-        {
             auto p1_dW0 = mlp1->lock_dW0_const();
             auto p1_db0 = mlp1->lock_db0_const();
             auto p1_dW1 = mlp1->lock_dW1_const();
@@ -538,6 +515,36 @@ TEST(MicroMlpAffineTest, testMicroMlpAffineCmp)
 
                 EXPECT_FLOAT_EQ(p1_db1(i), p2_db1(i));
 //              std::cout << "db1 : " << p1_db1(i) << ", " << p2_db1(i) << "\n";
+            }
+        }
+
+        opt1->Update();
+        opt2->Update();
+
+        {
+            auto p1_W0 = mlp1->lock_W0_const();
+            auto p1_b0 = mlp1->lock_b0_const();
+            auto p1_W1 = mlp1->lock_W1_const();
+            auto p1_b1 = mlp1->lock_b1_const();
+            auto p2_W0 = mlp2->lock_W0_const();
+            auto p2_b0 = mlp2->lock_b0_const();
+            auto p2_W1 = mlp2->lock_W1_const();
+            auto p2_b1 = mlp2->lock_b1_const();
+
+	        for (int i = 0; i < output_node_size; i++) {
+    	        for (int j = 0; j < M; j++) {
+                    for (int k = 0; k < N; k++) {
+	    	            EXPECT_FLOAT_EQ(p1_W0(i, j, k), p2_W0(i, j, k));
+                    }
+
+                    EXPECT_FLOAT_EQ(p1_b0(i, j), p2_b0(i, j));
+                }
+
+	            for (int j = 0; j < M; j++) {
+                    EXPECT_FLOAT_EQ(p1_W1(i, j), p2_W1(i, j));
+	            }
+
+      	        EXPECT_FLOAT_EQ(p1_b1(i), p2_b1(i));
             }
         }
     }

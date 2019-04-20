@@ -285,7 +285,7 @@ public:
             auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
             auto table_ptr       = m_table.LockDeviceMemoryConst();
 
-            bbcu_fp32_BinatyLut6_Forward
+            bbcu_bit_BinatyLut6_Forward
                 (
                     (int const *)x_ptr.GetAddr(),
                     (int       *)y_ptr.GetAddr(),

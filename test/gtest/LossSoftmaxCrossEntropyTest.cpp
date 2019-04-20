@@ -77,7 +77,7 @@ TEST(LossSoftmaxCrossEntropyTest, testLossSoftmaxCrossEntropy)
 
     auto lossFunc = bb::LossSoftmaxCrossEntropy<float>::Create();
     lossFunc->Clear();
-	auto   dy_buf = lossFunc->CalculateLoss(y_buf, t_buf);
+	auto   dy_buf = lossFunc->CalculateLoss(y_buf, t_buf, y_buf.GetFrameSize());
     double loss   = lossFunc->GetLoss();
 
  //	std::cout << "loss = " << loss << " (exp:2.297830009460449)" << std::endl;

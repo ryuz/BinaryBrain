@@ -1,6 +1,6 @@
 // --------------------------------------------------------------------------
 //  BinaryBrain  -- binary network evaluation platform
-//   MNIST sample
+//   CIFAR-10 sample
 //
 //                                Copyright (C) 2018-2019 by Ryuji Fuchikami
 // --------------------------------------------------------------------------
@@ -35,10 +35,8 @@
 
 #if 0
 
-// static void WriteTestImage(std::string filename, int w, int h);
-
-// MNIST CNN with LUT networks
-void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
+// CNN with LUT networks
+void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
 {
     std::string net_name = "Cifar10StochasticLut6Cnn";
 
@@ -102,16 +100,16 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
 
         // run fitting
         bb::Runner<float>::create_t runner_create;
-        runner_create.name        = net_name;
-        runner_create.net         = net;
-        runner_create.lossFunc    = bb::LossSoftmaxCrossEntropy<float>::Create();
-        runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
-        runner_create.optimizer   = bb::OptimizerAdam<float>::Create();
-        runner_create.file_read   = true;        // 前の計算結果があれば読み込んで再開するか
-        runner_create.file_write  = true;        // 計算結果をファイルに保存するか
-        runner_create.write_serial = true; 
-        runner_create.print_progress = true;     // 途中結果を出力
-        runner_create.initial_evaluation = false;
+        runner_create.name               = net_name;
+        runner_create.net                = net;
+        runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
+        runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
+        runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
+        runner_create.max_run_size       = max_run_size;    // 実際の1回の実行サイズ
+        runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
+        runner_create.file_write         = true;            // 計算結果をファイルに保存するか
+        runner_create.print_progress     = true;            // 途中結果を表示
+        runner_create.initial_evaluation = file_read;       // ファイルを読んだ場合は最初に評価しておく
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
@@ -174,21 +172,22 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
         lut_net->Add(cnv3);
         lut_net->Add(pol1);
         lut_net->Add(cnv4);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({ 10 }, frame_mux_size));
-        lut_net->SetInputShape({28, 28, 1});
+        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, frame_mux_size));
+        lut_net->SetInputShape(td.x_shape);
 
 
         // テーブル化して取り込み(現状まだSetInputShape後の取り込みが必要)
-        layer_cnv0_lut0->ImportLayer(*layer_cnv0_sl0);
-        layer_cnv0_lut1->ImportLayer(*layer_cnv0_sl1);
-        layer_cnv1_lut0->ImportLayer(*layer_cnv1_sl0);
-        layer_cnv1_lut1->ImportLayer(*layer_cnv1_sl1);
-        layer_cnv2_lut0->ImportLayer(*layer_cnv2_sl0);
-        layer_cnv2_lut1->ImportLayer(*layer_cnv2_sl1);
-        layer_cnv3_lut0->ImportLayer(*layer_cnv3_sl0);
-        layer_cnv3_lut1->ImportLayer(*layer_cnv3_sl1);
-        layer_lut4     ->ImportLayer(*layer_sl4);
-        layer_lut5     ->ImportLayer(*layer_sl5);
+        layer_cnv0_lut0->ImportLayer<float, float>(layer_cnv0_sl0);
+        layer_cnv0_lut1->ImportLayer<float, float>(layer_cnv0_sl1);
+        layer_cnv1_lut0->ImportLayer<float, float>(layer_cnv1_sl0);
+        layer_cnv1_lut1->ImportLayer<float, float>(layer_cnv1_sl1);
+        layer_cnv2_lut0->ImportLayer<float, float>(layer_cnv2_sl0);
+        layer_cnv2_lut1->ImportLayer<float, float>(layer_cnv2_sl1);
+        layer_cnv3_lut0->ImportLayer<float, float>(layer_cnv3_sl0);
+        layer_cnv3_lut1->ImportLayer<float, float>(layer_cnv3_sl1);
+        layer_lut4     ->ImportLayer<float, float>(layer_sl4);
+        layer_lut5     ->ImportLayer<float, float>(layer_sl5);
+        layer_lut6     ->ImportLayer<float, float>(layer_sl6);
 
         // 評価
         if ( 1 ) {
@@ -228,16 +227,16 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, bool binar
             std::cout << "export : " << filename << "\n" << std::endl;
             
             // write test image
-//          WriteTestImage("verilog/mnist_test_160x120.ppm", 160, 120);
-//          WriteTestImage("verilog/mnist_test_640x480.ppm", 640, 480);
+            bb::WriteTestDataImage<float>("verilog/cifar10_test_160x120.ppm", 160, 120, td);
+            bb::WriteTestDataImage<float>("verilog/cifar10_test_640x480.ppm", 640, 480, td);
         }
     }
 }
 
 #else
 
-// MNIST CNN with LUT networks
-void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int lut_frame_mux_size, bool binary_mode)
+// CNN with LUT networks
+void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
 {
     std::string net_name = "Cifar10StochasticLut6Cnn";
 
@@ -315,14 +314,16 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int lut_fr
 
         // run fitting
         bb::Runner<float>::create_t runner_create;
-        runner_create.name           = net_name;
-        runner_create.net            = net;
-        runner_create.lossFunc       = bb::LossSoftmaxCrossEntropy<float>::Create();
-        runner_create.metricsFunc    = bb::MetricsCategoricalAccuracy<float>::Create();
-        runner_create.optimizer      = bb::OptimizerAdam<float>::Create();
-        runner_create.file_read      = false;     // 前の計算結果があれば読み込んで再開するか
-        runner_create.file_write     = true;     // 計算結果をファイルに保存するか
-        runner_create.print_progress = true;     // 途中結果を出力
+        runner_create.name               = net_name;
+        runner_create.net                = net;
+        runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
+        runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
+        runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
+        runner_create.max_run_size       = max_run_size;    // 実際の1回の実行サイズ
+        runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
+        runner_create.file_write         = true;            // 計算結果をファイルに保存するか
+        runner_create.print_progress     = true;            // 途中結果を表示
+        runner_create.initial_evaluation = file_read;       // ファイルを読んだ場合は最初に評価しておく
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
@@ -462,58 +463,14 @@ void Cifar10StochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int lut_fr
             std::cout << "export : " << filename << "\n" << std::endl;
             
             // write test image
-//          WriteTestImage("verilog/mnist_test_160x120.ppm", 160, 120);
-//          WriteTestImage("verilog/mnist_test_640x480.ppm", 640, 480);
+            bb::WriteTestDataImage<float>("verilog/cifar10_test_160x120.ppm", 160, 120, td);
+            bb::WriteTestDataImage<float>("verilog/cifar10_test_640x480.ppm", 640, 480, td);
         }
     }
 }
 
 #endif
 
-/*
-// RTL simulation 用データの出力
-static void WriteTestImage(std::string filename, const int w, const int h)
-{
-	// load MNIST data
-	auto td = bb::LoadMnist<>::Load();
 
-	unsigned char* img = new unsigned char[h * w];
-	for (int y = 0; y < h; ++y) {
-		for (int x = 0; x < w; ++x) {
-			int idx = (y / 28) * (w / 28) + (x / 28);
-			int xx = x % 28;
-			int yy = y % 28;
-			img[y*w+x] = (unsigned char)(td.x_test[idx][yy * 28 + xx] * 255.0f);
-		}
-	}
-
-	if ( 0 ) {
-		std::ofstream ofs(filename);
-		ofs << "P2" << std::endl;
-		ofs << w << " " << h << std::endl;
-		ofs << "255" << std::endl;
-		for (int y = 0; y < h; ++y) {
-			for (int x = 0; x < w; ++x) {
-				ofs << (int)img[y*w+x] << std::endl;
-			}
-		}
-	}
-
-	if ( 1 ) {
-		std::ofstream ofs(filename);
-		ofs << "P3" << std::endl;
-		ofs << w << " " << h << std::endl;
-		ofs << "255" << std::endl;
-		for (int y = 0; y < h; ++y) {
-			for (int x = 0; x < w; ++x) {
-				ofs << (int)img[y*w+x] << " " << (int)img[y*w+x] << " " << (int)img[y*w+x] << std::endl;
-			}
-		}
-	}
-
-    delete[] img;
-}
-
-*/
 
 // end of file

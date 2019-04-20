@@ -1,6 +1,6 @@
 // --------------------------------------------------------------------------
 //  BinaryBrain  -- binary network evaluation platform
-//   MNIST sample
+//   CIFAR-10 sample
 //
 //                                Copyright (C) 2018-2019 by Ryuji Fuchikami
 // --------------------------------------------------------------------------
@@ -32,13 +32,12 @@
 #include "bb/ExportVerilog.h"
 
 
-// static void WriteTestImage(std::string filename, int w, int h);
 
-// MNIST CNN with LUT networks
-void Cifar10LutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
+// CNN with LUT networks
+void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size,
+                                    int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "Cifar10LutCnn";
-    int const   frame_mux_size = 15;
+    std::string net_name = "Cifar10MiroMlpLutCnn";
 
   // load cifar-10 data
 #ifdef _DEBUG
@@ -110,16 +109,16 @@ void Cifar10LutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
 
         // run fitting
         bb::Runner<float>::create_t runner_create;
-        runner_create.name        = net_name;
-        runner_create.net         = net;
-        runner_create.lossFunc    = bb::LossSoftmaxCrossEntropy<float>::Create();
-        runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
-        runner_create.optimizer   = bb::OptimizerAdam<float>::Create();
-        runner_create.file_read   = true;        // 前の計算結果があれば読み込んで再開するか
-        runner_create.file_write  = true;        // 計算結果をファイルに保存するか
-        runner_create.write_serial = true; 
-        runner_create.print_progress = true;     // 途中結果を出力
-        runner_create.initial_evaluation = false;
+        runner_create.name               = net_name;
+        runner_create.net                = net;
+        runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
+        runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
+        runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
+        runner_create.max_run_size       = max_run_size;    // 実際の1回の実行サイズ
+        runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
+        runner_create.file_write         = true;            // 計算結果をファイルに保存するか
+        runner_create.print_progress     = true;            // 途中結果を表示
+        runner_create.initial_evaluation = file_read;       // ファイルを読んだ場合は最初に評価しておく
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
@@ -129,12 +128,16 @@ void Cifar10LutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
         // LUT-network
         auto layer_cnv0_lut0 = bb::BinaryLutN<>::Create(layer_cnv0_mm0->GetOutputShape());
         auto layer_cnv0_lut1 = bb::BinaryLutN<>::Create(layer_cnv0_mm1->GetOutputShape());
+        auto layer_cnv0_lut2 = bb::BinaryLutN<>::Create(layer_cnv0_mm2->GetOutputShape());
         auto layer_cnv1_lut0 = bb::BinaryLutN<>::Create(layer_cnv1_mm0->GetOutputShape());
         auto layer_cnv1_lut1 = bb::BinaryLutN<>::Create(layer_cnv1_mm1->GetOutputShape());
+        auto layer_cnv1_lut2 = bb::BinaryLutN<>::Create(layer_cnv1_mm2->GetOutputShape());
         auto layer_cnv2_lut0 = bb::BinaryLutN<>::Create(layer_cnv2_mm0->GetOutputShape());
         auto layer_cnv2_lut1 = bb::BinaryLutN<>::Create(layer_cnv2_mm1->GetOutputShape());
+        auto layer_cnv2_lut2 = bb::BinaryLutN<>::Create(layer_cnv2_mm2->GetOutputShape());
         auto layer_cnv3_lut0 = bb::BinaryLutN<>::Create(layer_cnv3_mm0->GetOutputShape());
         auto layer_cnv3_lut1 = bb::BinaryLutN<>::Create(layer_cnv3_mm1->GetOutputShape());
+        auto layer_cnv3_lut2 = bb::BinaryLutN<>::Create(layer_cnv3_mm2->GetOutputShape());
         auto layer_lut4      = bb::BinaryLutN<>::Create(layer_mm4->GetOutputShape());
         auto layer_lut5      = bb::BinaryLutN<>::Create(layer_mm5->GetOutputShape());
         auto layer_lut6      = bb::BinaryLutN<>::Create(layer_mm6->GetOutputShape());
@@ -142,18 +145,22 @@ void Cifar10LutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_lut0);
         cnv0_sub->Add(layer_cnv0_lut1);
+        cnv0_sub->Add(layer_cnv0_lut2);
 
         auto cnv1_sub = bb::Sequential::Create();
         cnv1_sub->Add(layer_cnv1_lut0);
         cnv1_sub->Add(layer_cnv1_lut1);
+        cnv1_sub->Add(layer_cnv1_lut2);
 
         auto cnv2_sub = bb::Sequential::Create();
         cnv2_sub->Add(layer_cnv2_lut0);
         cnv2_sub->Add(layer_cnv2_lut1);
+        cnv2_sub->Add(layer_cnv2_lut2);
 
         auto cnv3_sub = bb::Sequential::Create();
         cnv3_sub->Add(layer_cnv3_lut0);
         cnv3_sub->Add(layer_cnv3_lut1);
+        cnv3_sub->Add(layer_cnv3_lut2);
 
         auto cnv4_sub = bb::Sequential::Create();
         cnv4_sub->Add(layer_lut4);
@@ -172,7 +179,7 @@ void Cifar10LutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
         auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(frame_mux_size));
+        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(cnv0);
         lut_net->Add(cnv1);
         lut_net->Add(pol0);
@@ -180,24 +187,30 @@ void Cifar10LutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
         lut_net->Add(cnv3);
         lut_net->Add(pol1);
         lut_net->Add(cnv4);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({ 10 }, frame_mux_size));
-        lut_net->SetInputShape({28, 28, 1});
+        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, lut_frame_mux_size));
+        lut_net->SetInputShape(td.x_shape);
 
 
         // テーブル化して取り込み(現状まだSetInputShape後の取り込みが必要)
+        std::cout << "parameter copy to LUT-Network" << std::endl;
         layer_cnv0_lut0->ImportLayer<float, float>(layer_cnv0_mm0);
         layer_cnv0_lut1->ImportLayer<float, float>(layer_cnv0_mm1);
+        layer_cnv0_lut2->ImportLayer<float, float>(layer_cnv0_mm2);
         layer_cnv1_lut0->ImportLayer<float, float>(layer_cnv1_mm0);
         layer_cnv1_lut1->ImportLayer<float, float>(layer_cnv1_mm1);
+        layer_cnv1_lut2->ImportLayer<float, float>(layer_cnv1_mm2);
         layer_cnv2_lut0->ImportLayer<float, float>(layer_cnv2_mm0);
         layer_cnv2_lut1->ImportLayer<float, float>(layer_cnv2_mm1);
+        layer_cnv2_lut2->ImportLayer<float, float>(layer_cnv2_mm2);
         layer_cnv3_lut0->ImportLayer<float, float>(layer_cnv3_mm0);
         layer_cnv3_lut1->ImportLayer<float, float>(layer_cnv3_mm1);
+        layer_cnv3_lut2->ImportLayer<float, float>(layer_cnv3_mm2);
         layer_lut4     ->ImportLayer<float, float>(layer_mm4);
         layer_lut5     ->ImportLayer<float, float>(layer_mm5);
+        layer_lut6     ->ImportLayer<float, float>(layer_mm6);
 
         // 評価
-        if ( 0 ) {
+        if ( 1 ) {
             bb::Runner<float>::create_t lut_runner_create;
             lut_runner_create.name        = "Lut_" + net_name;
             lut_runner_create.net         = lut_net;
@@ -234,57 +247,11 @@ void Cifar10LutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
             std::cout << "export : " << filename << "\n" << std::endl;
             
             // write test image
-//          WriteTestImage("verilog/mnist_test_160x120.ppm", 160, 120);
-//          WriteTestImage("verilog/mnist_test_640x480.ppm", 640, 480);
+            bb::WriteTestDataImage<float>("verilog/cifar10_test_160x120.ppm", 160, 120, td);
+            bb::WriteTestDataImage<float>("verilog/cifar10_test_640x480.ppm", 640, 480, td);
         }
     }
 }
 
-
-/*
-// RTL simulation 用データの出力
-static void WriteTestImage(std::string filename, const int w, const int h)
-{
-	// load MNIST data
-	auto td = bb::LoadMnist<>::Load();
-
-	unsigned char* img = new unsigned char[h * w];
-	for (int y = 0; y < h; ++y) {
-		for (int x = 0; x < w; ++x) {
-			int idx = (y / 28) * (w / 28) + (x / 28);
-			int xx = x % 28;
-			int yy = y % 28;
-			img[y*w+x] = (unsigned char)(td.x_test[idx][yy * 28 + xx] * 255.0f);
-		}
-	}
-
-	if ( 0 ) {
-		std::ofstream ofs(filename);
-		ofs << "P2" << std::endl;
-		ofs << w << " " << h << std::endl;
-		ofs << "255" << std::endl;
-		for (int y = 0; y < h; ++y) {
-			for (int x = 0; x < w; ++x) {
-				ofs << (int)img[y*w+x] << std::endl;
-			}
-		}
-	}
-
-	if ( 1 ) {
-		std::ofstream ofs(filename);
-		ofs << "P3" << std::endl;
-		ofs << w << " " << h << std::endl;
-		ofs << "255" << std::endl;
-		for (int y = 0; y < h; ++y) {
-			for (int x = 0; x < w; ++x) {
-				ofs << (int)img[y*w+x] << " " << (int)img[y*w+x] << " " << (int)img[y*w+x] << std::endl;
-			}
-		}
-	}
-
-    delete[] img;
-}
-
-*/
 
 // end of file

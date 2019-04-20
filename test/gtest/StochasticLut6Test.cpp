@@ -233,6 +233,7 @@ void StochasticLut6_cmp(int const input_node_size, int const output_node_size, i
 
 TEST(StochasticLut6Test, testStochasticLut6_cmp)
 {
+    StochasticLut6_cmp<float>(14, 1024, 8, 4);
     StochasticLut6_cmp<float>(14, 1024, 3, 4);
     StochasticLut6_cmp<float>(6, 1, 1, 4);
 //  StochasticLut6_cmp<float>(14, 21, 1024, 4);

@@ -196,7 +196,7 @@ int bbcu_fp32_MatrixRowwiseSetVector
 //  Binary LUT
 // -------------------------------------
 
-int bbcu_fp32_BinatyLut6_Forward
+int bbcu_bit_BinatyLut6_Forward
         (
             int const       *dev_x_buf,
             int             *dev_y_buf,
@@ -207,6 +207,7 @@ int bbcu_fp32_BinatyLut6_Forward
             int             frame_stride,
             cudaStream_t    streamId = 0
         );
+
 
 // -------------------------------------
 //  MicroMlp
@@ -489,6 +490,22 @@ BBCU_DLL_EXPORT int bbcu_fp32_Binarize_Forward
             cudaStream_t    streamId = 0
         );
 
+
+
+// -------------------------------------
+//  Hard-Tanh
+// -------------------------------------
+
+BBCU_DLL_EXPORT int bbcu_fp32_HardTanh_Forward
+		(
+			float const *	dev_x_buf,
+			float*			dev_y_buf,
+			int				node_size,
+			int				frame_size,
+			int				frame_stride,
+            cudaStream_t    streamId = 0
+        );
+
 BBCU_DLL_EXPORT int bbcu_fp32_HardTanh_Backward
 		(
 			const float*	dev_x_buf,
@@ -594,14 +611,15 @@ BBCU_DLL_EXPORT int bbcu_fp32_BinaryToReal_Backward
 
 BBCU_DLL_EXPORT int bbcu_fp32_LossSoftmaxCrossEntropy
 		(
-			const float*	dev_y_buf,
-			const float*	dev_t_buf,
-			float*			dev_dy_buf,
-			float*			dev_loss_buf,
-			float*			dev_loss,
+			float const     *dev_y_buf,
+			float const     *dev_t_buf,
+			float           *dev_dy_buf,
+			float           *dev_loss_buf,
+			float           *dev_loss,
 			int				node_size,
 			int				frame_size,
 			int				frame_stride,
+            int             batch_size,
             cudaStream_t    streamId = 0
         );
 
@@ -612,9 +630,9 @@ BBCU_DLL_EXPORT int bbcu_fp32_LossSoftmaxCrossEntropy
 
 BBCU_DLL_EXPORT int bbcu_fp32_AccuracyCategoricalClassification
 		(
-			const float*	dev_y_buf,
-			const float*	dev_t_buf,
-			int*			dev_accuracy,
+			float const     *dev_y_buf,
+			float const     *dev_t_buf,
+			int             *dev_accuracy,
 			int				node_size,
 			int				frame_size,
 			int				frame_stride,
@@ -627,16 +645,16 @@ BBCU_DLL_EXPORT int bbcu_fp32_AccuracyCategoricalClassification
 
 BBCU_DLL_EXPORT int bbcu_fp32_Adam
 		(
-            int                 size,
-            int           const *dev_size_table,
-			float       * const *dev_params_buf_table,
-			float const * const *dev_grads_buf_table,
-    		float       * const *dev_m_buf_table,
-    		float       * const *dev_v_buf_table,
- 	        float				lr_t,
-	        float				beta1,
-	        float				beta2,
-            cudaStream_t        streamId = 0
+            int             size,
+            int     const   *dev_size_table,
+			float * const   *dev_params_buf_table,
+			float * const   *dev_grads_buf_table,
+    		float * const   *dev_m_buf_table,
+    		float * const   *dev_v_buf_table,
+ 	        float		    lr_t,
+	        float		    beta1,
+	        float		    beta2,
+            cudaStream_t    streamId = 0
         );
 
 // end of file

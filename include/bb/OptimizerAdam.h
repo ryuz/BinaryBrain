@@ -118,15 +118,15 @@ public:
             auto lr_t = m_learning_rate * std::sqrt((T)1.0 - m_b2) / ((T)1.0 - m_b1 );
             bbcu_fp32_Adam
 		            (
-                        (int                  )m_params.GetSize(),
-                        (int           const *)m_params.GetDeviceSizeTable(),
-			            (float       * const *)m_params.GetDeviceAddrTable(),
-			            (float const * const *)m_grads.GetDeviceAddrTable(),
-    		            (float       * const *)m_m.GetDeviceAddrTable(),
-    		            (float       * const *)m_v.GetDeviceAddrTable(),
- 	                    (float				  )lr_t,
-	                    (float				  )m_beta1,
-	                    (float				  )m_beta2
+                        (int            )m_params.GetSize(),
+                        (int     const *)m_params.GetDeviceSizeTable(),
+			            (float * const *)m_params.GetDeviceAddrTable(),
+			            (float * const *)m_grads.GetDeviceAddrTable(),
+    		            (float * const *)m_m.GetDeviceAddrTable(),
+    		            (float * const *)m_v.GetDeviceAddrTable(),
+ 	                    (float		    )lr_t,
+	                    (float		    )m_beta1,
+	                    (float		    )m_beta2
                     );
             
             m_b1 *= m_beta1;

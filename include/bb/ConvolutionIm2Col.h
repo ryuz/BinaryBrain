@@ -41,8 +41,8 @@ protected:
 	index_t			m_output_w_size;
 
     // メモリの確保/開放を繰り返さないように演算後も確保
-    FrameBuffer     m_y;
-    FrameBuffer     m_dx;
+    FrameBuffer     m_y_buf;
+    FrameBuffer     m_dx_buf;
 
 protected:
 	ConvolutionIm2Col() {}
@@ -149,72 +149,104 @@ protected:
 
 public:
 
-    FrameBuffer Forward(FrameBuffer x, bool train = true)
+    FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-        BB_ASSERT(x.GetType() == DataType<FT>::type);
+        BB_ASSERT(x_buf.GetType() == DataType<FT>::type);
 
         // SetInputShpaeされていなければ初回に設定
-        if ( x.GetShape() != m_input_shape ) {
-            SetInputShape(x.GetShape());
+        if ( x_buf.GetShape() != m_input_shape ) {
+            SetInputShape(x_buf.GetShape());
         }
 
         // 出力Frameサイズ計算
-        m_input_frame_size = x.GetFrameSize();
+        m_input_frame_size = x_buf.GetFrameSize();
         m_output_frame_size = m_input_frame_size * m_output_h_size * m_output_w_size;
 
         // 出力形状設定
-        m_y.Resize(x.GetType(), m_output_frame_size, m_output_shape);
+        m_y_buf.Resize(x_buf.GetType(), m_output_frame_size, m_output_shape);
         
 
 #ifdef BB_WITH_CUDA
-        if ( !m_host_only && x.GetType() == BB_TYPE_FP32 && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable())
-        {
+        if ( DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
             // FP32 CUDA
-            auto ptr_x = x.LockDeviceMemoryConst();
-            auto ptr_y = m_y.LockDeviceMemory();
+            auto ptr_x = x_buf.LockDeviceMemoryConst();
+            auto ptr_y = m_y_buf.LockDeviceMemory();
             bbcu_fp32_Im2Col_Forward(
                 (float const *)ptr_x.GetAddr(),
                 (float       *)ptr_y.GetAddr(),
                 (int          )m_input_frame_size,
-                (int          )x.GetFrameStride() / sizeof(float),
+                (int          )x_buf.GetFrameStride() / sizeof(float),
                 (int          )m_input_w_size,
                 (int          )m_input_h_size,
                 (int          )m_input_c_size,
-                (int          )m_y.GetFrameStride() / sizeof(float),
+                (int          )m_y_buf.GetFrameStride() / sizeof(float),
                 (int          )m_filter_w_size,
                 (int          )m_filter_h_size);
-            return m_y;
+            return m_y_buf;
         }
 #endif
 
 #ifdef BB_WITH_CUDA
-        if ( !m_host_only && x.GetType() == BB_TYPE_BIT && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable())
-        {
+        if ( DataType<FT>::type == BB_TYPE_BIT && !m_host_only && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
             // bit CUDA
-            auto ptr_x = x.LockDeviceMemoryConst();
-            auto ptr_y = m_y.LockDeviceMemory();
+            auto ptr_x = x_buf.LockDeviceMemoryConst();
+            auto ptr_y = m_y_buf.LockDeviceMemory();
             bbcu_bit_Im2Col_Forward(
                 (int const *)ptr_x.GetAddr(),
                 (int       *)ptr_y.GetAddr(),
                 (int        )m_input_frame_size,
-                (int        )x.GetFrameStride() / sizeof(int),
+                (int        )x_buf.GetFrameStride() / sizeof(int),
                 (int        )m_input_w_size,
                 (int        )m_input_h_size,
                 (int        )m_input_c_size,
-                (int        )m_y.GetFrameStride() / sizeof(int),
+                (int        )m_y_buf.GetFrameStride() / sizeof(int),
                 (int        )m_filter_w_size,
                 (int        )m_filter_h_size);
-            return m_y;
+            return m_y_buf;
+        }
+#endif
+
+#if 1
+        {
+            // 汎用版
+   		    index_t const output_frame_size = m_y_buf.GetFrameSize();
+            index_t const output_size       = m_output_w_size * m_output_h_size;
+
+            auto x_ptr = x_buf.LockConst<FT>();
+            auto y_ptr = m_y_buf.Lock<FT>(true);
+
+            for (index_t c = 0; c < m_input_c_size; ++c ) {
+                #pragma omp parallel for
+    		    for (index_t fy = 0; fy < m_filter_h_size; ++fy) {
+                    #pragma omp parallel for
+	    		    for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
+                        for ( index_t output_frame = 0; output_frame < output_frame_size; ++output_frame ) {
+                            index_t input_frame = output_frame / output_size;
+                            index_t f           = output_frame % output_size;
+                            index_t ix = f % m_output_w_size + fx;
+                            index_t iy = f / m_output_w_size + fy;
+
+                            index_t input_node  = (c * m_input_h_size  + iy) * m_input_w_size  + ix;
+                            FT x = x_ptr.Get(input_frame, input_node);
+
+                            index_t output_node = (c * m_filter_h_size + fy) * m_filter_w_size + fx;    
+                            y_ptr.Set(output_frame, output_node, x);
+                        }
+                    }
+                }
+            }
+
+            return m_y_buf;
         }
 #endif
 
         {
             // 汎用版
-   		    const index_t frame_size = m_y.GetFrameStride() * 8 / DataType<FT>::bit_size;
+   		    const index_t frame_size = m_y_buf.GetFrameStride() * 8 / DataType<FT>::bit_size;
 		    const index_t frame_unit = 256 / DataType<FT>::bit_size;
 
-            auto ptr_x = x.LockMemoryConst();
-            auto ptr_y = m_y.LockMemory();
+            auto ptr_x = x_buf.LockMemoryConst();
+            auto ptr_y = m_y_buf.LockMemory();
             auto addr_x = ptr_x.GetAddr();
             auto addr_y = ptr_y.GetAddr();
 
@@ -233,79 +265,118 @@ public:
 							    ix += fx;
 							    iy += fy;
     						    index_t input_node = GetInputNode(c, iy, ix);
-							    FT sig = x.template Get<FT, FT>(addr_x, input_frame, input_node);
-							    m_y.template Set<FT, FT>(addr_y, output_frame, output_node, sig);
+							    FT sig = x_buf.template Get<FT, FT>(addr_x, input_frame, input_node);
+							    m_y_buf.template Set<FT, FT>(addr_y, output_frame, output_node, sig);
 						    }
 					    }
 				    }
 			    }
 		    }
 
-            return m_y;
+            return m_y_buf;
         }
     }
 
 
-	FrameBuffer Backward(FrameBuffer dy)
+	FrameBuffer Backward(FrameBuffer dy_buf)
 	{
-        BB_ASSERT(dy.GetType() == DataType<BT>::type);
-        m_dx.Resize(DataType<BT>::type, m_input_frame_size, m_input_shape);
+        BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
+        m_dx_buf.Resize(DataType<BT>::type, m_input_frame_size, m_input_shape);
 
 #ifdef BB_WITH_CUDA
-        if ( !m_host_only && dy.GetType() == BB_TYPE_FP32 && dy.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && Manager::IsDeviceAvailable())
+        if ( DataType<BT>::type == BB_TYPE_FP32 && !m_host_only && dy_buf.IsDeviceAvailable() && m_dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable())
         {
-            auto ptr_dy = dy.LockDeviceMemoryConst();
-            auto ptr_dx = m_dx.LockDeviceMemory();
+            auto ptr_dy = dy_buf.LockDeviceMemoryConst();
+            auto ptr_dx = m_dx_buf.LockDeviceMemory();
             bbcu_fp32_Im2Col_Backward(
                 (float const *)ptr_dy.GetAddr(),
                 (float       *)ptr_dx.GetAddr(),
                 (int          )m_input_frame_size,
-                (int          )(m_dx.GetFrameStride() / sizeof(float)),
+                (int          )(m_dx_buf.GetFrameStride() / sizeof(float)),
                 (int          )m_input_w_size,
                 (int          )m_input_h_size,
                 (int          )m_input_c_size,
-                (int          )(dy.GetFrameStride() / sizeof(float)),
+                (int          )(dy_buf.GetFrameStride() / sizeof(float)),
                 (int          )m_filter_w_size,
                 (int          )m_filter_h_size);
-            return m_dx;
+            return m_dx_buf;
         }
 #endif
 
+        {
+            // 汎用版
+            m_dx_buf.FillZero();
 
-		const index_t frame_size = dy.GetFrameStride() * 8 / DataType<BT>::bit_size;
-		const index_t frame_unit = 256 / DataType<BT>::bit_size;
+            auto dy_ptr = dy_buf.LockConst<BT>();
+            auto dx_ptr = m_dx_buf.Lock<BT>();
 
-        auto ptr_dy = dy.LockMemoryConst();
-        auto ptr_dx = m_dx.LockMemory();
-        auto addr_dy = ptr_dy.GetAddr();
-        auto addr_dx = ptr_dx.GetAddr();
+   		    for (index_t c = 0; c < m_input_c_size; ++c) {
+                #pragma omp parallel for
+			    for (index_t y = 0; y < m_input_h_size; ++y ) {
+                    #pragma omp parallel for
+    			    for (index_t x = 0; x < m_input_w_size; ++x ) {
+                        index_t input_node = (c * m_input_h_size + y) * m_input_w_size + x;
+                        for ( index_t input_frame = 0; input_frame < m_input_frame_size; ++input_frame ) {
+                            BT dx = dx_ptr.Get(input_frame, input_node);
+                            float dy = 0;
+                            for (int fy = 0; fy < m_filter_h_size; ++fy) {
+                                index_t iy = y - fy;
+                                if ( iy >= 0 && iy < (m_input_h_size - m_filter_h_size + 1)) {
+                                    for (int fx = 0; fx < m_filter_w_size; ++fx) {
+                                        index_t ix = x - fx;
+                                        if (ix >= 0 && ix < (m_input_w_size - m_filter_w_size + 1)) {
+                                            index_t output_frame = (input_frame * m_output_h_size + iy) * m_output_w_size + ix;
+                                            index_t output_node  = (c * m_filter_h_size + fy) * m_filter_w_size + fx;
+                                            dy += dy_ptr.Get(output_frame, output_node);
+                                        }
+                                    }
+                                }
+                            }
+                            dx_ptr.Set(input_frame, input_node, dx + dy);
+                        }
+                    }
+                }
+            }
 
-   		m_dx.FillZero();
+            return m_dx_buf;
+        }
 
-		for (index_t c = 0; c < m_input_c_size; ++c) {
-#pragma omp parallel for
-			for (index_t frame_base = 0; frame_base < frame_size; frame_base += frame_unit) {
-				for (index_t fy = 0; fy < m_filter_h_size; ++fy) {
-					for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
-						index_t output_node = GetOutputNode(c, fy, fx);
-						for (index_t frame_step = 0; frame_step < frame_unit; ++frame_step) {
-							index_t output_frame = frame_base + frame_step;
-							index_t input_frame = output_frame / (m_output_h_size * m_output_w_size);
-							index_t f = output_frame % (m_output_h_size * m_output_w_size);
-							index_t ix = f % m_output_w_size;
-							index_t iy = f / m_output_w_size;
-							ix += fx;
-							iy += fy;
-							index_t input_node = GetInputNode(c, iy, ix);
-							BT grad = dy.template Get<BT, BT>(addr_dy, output_frame, output_node);
-							m_dx.template Add<BT, BT>(addr_dx, input_frame, input_node, grad);
-						}
-					}
-				}
-			}
-		}
+        {
+		    const index_t frame_size = dy_buf.GetFrameStride() * 8 / DataType<BT>::bit_size;
+		    const index_t frame_unit = 256 / DataType<BT>::bit_size;
 
-        return m_dx;
+            auto ptr_dy = dy_buf.LockMemoryConst();
+            auto ptr_dx = m_dx_buf.LockMemory();
+            auto addr_dy = ptr_dy.GetAddr();
+            auto addr_dx = ptr_dx.GetAddr();
+
+   		    m_dx_buf.FillZero();
+
+		    for (index_t c = 0; c < m_input_c_size; ++c) {
+    #pragma omp parallel for
+			    for (index_t frame_base = 0; frame_base < frame_size; frame_base += frame_unit) {
+				    for (index_t fy = 0; fy < m_filter_h_size; ++fy) {
+					    for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
+						    index_t output_node = GetOutputNode(c, fy, fx);
+						    for (index_t frame_step = 0; frame_step < frame_unit; ++frame_step) {
+							    index_t output_frame = frame_base + frame_step;
+							    index_t input_frame = output_frame / (m_output_h_size * m_output_w_size);
+							    index_t f = output_frame % (m_output_h_size * m_output_w_size);
+							    index_t ix = f % m_output_w_size;
+							    index_t iy = f / m_output_w_size;
+							    ix += fx;
+							    iy += fy;
+							    index_t input_node = GetInputNode(c, iy, ix);
+							    BT grad = dy_buf.template Get<BT, BT>(addr_dy, output_frame, output_node);
+							    m_dx_buf.template Add<BT, BT>(addr_dx, input_frame, input_node, grad);
+						    }
+					    }
+				    }
+			    }
+		    }
+
+            return m_dx_buf;
+        }
 	}
 };
 

@@ -3,7 +3,7 @@
 TARGET=libbbcu.a
 
 NVCC = nvcc
-CFLAGS = -I ../include -gencode arch=compute_35,code=sm_35 -std=c++11
+CFLAGS = -I ../include -gencode=arch=compute_35,code=sm_35 -gencode=arch=compute_75,code=sm_75 -std=c++11
 
 SRCS += Manager.cu
 SRCS += Vector.cu
@@ -21,6 +21,7 @@ SRCS += BatchNormalization.cu
 SRCS += ReLU.cu
 SRCS += Sigmoid.cu
 SRCS += Binarize.cu
+SRCS += HardTanh.cu
 SRCS += Adam.cu
 SRCS += LossSoftmaxCrossEntropy.cu
 SRCS += AccuracyCategoricalClassification.cu

@@ -31,8 +31,8 @@ protected:
 	index_t			m_h_size = 1;
 	index_t			m_w_size = 1;
     
-    FrameBuffer     m_y;
-    FrameBuffer     m_dx;
+    FrameBuffer     m_y_buf;
+    FrameBuffer     m_dx_buf;
     
 protected:
 	ConvolutionCol2Im() {}
@@ -93,9 +93,9 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
-        BB_ASSERT(shape.size() == 1);
+//      BB_ASSERT(shape.size() == 1);
         m_input_shape  = shape;
-        m_c_size = shape[0];
+        m_c_size = GetShapeSize(shape);
         return indices_t({m_w_size, m_h_size, m_c_size});
     }
 
@@ -120,22 +120,22 @@ public:
     }
 
 
-    FrameBuffer Forward(FrameBuffer x, bool train=true)
+    FrameBuffer Forward(FrameBuffer x_buf, bool train=true)
  	{
-        BB_ASSERT(x.GetType() == DataType<FT>::type);
+        BB_ASSERT(x_buf.GetType() == DataType<FT>::type);
 
-       	index_t input_frame_size  = x.GetFrameSize();
+       	index_t input_frame_size  = x_buf.GetFrameSize();
         BB_ASSERT(input_frame_size % (m_h_size * m_w_size) == 0);
     	index_t output_frame_size = input_frame_size / (m_h_size * m_w_size);
 
-        m_y.Resize(DataType<FT>::type, output_frame_size, indices_t({m_w_size, m_h_size, m_c_size}));
+        m_y_buf.Resize(DataType<FT>::type, output_frame_size, indices_t({m_w_size, m_h_size, m_c_size}));
 
 
 #ifdef BB_WITH_CUDA
-        if ( !m_host_only && DataType<FT>::type == BB_TYPE_FP32 && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        if ( !m_host_only && DataType<FT>::type == BB_TYPE_FP32 && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // FP32 CUDA
-            auto x_ptr = x.LockDeviceMemoryConst();
-            auto y_ptr = m_y.LockDeviceMemory(true);
+            auto x_ptr = x_buf.LockDeviceMemoryConst();
+            auto y_ptr = m_y_buf.LockDeviceMemory(true);
 
             bbcu_fp32_Col2Im_Forward
                 (
@@ -144,20 +144,20 @@ public:
                     (int          )m_w_size,
                     (int          )m_h_size,
                     (int          )m_c_size,
-                    (int          )(x.GetFrameStride() / sizeof(float)),
-                    (int          )m_y.GetFrameSize(),
-                    (int          )(m_y.GetFrameStride() / sizeof(float))
+                    (int          )(x_buf.GetFrameStride() / sizeof(float)),
+                    (int          )m_y_buf.GetFrameSize(),
+                    (int          )(m_y_buf.GetFrameStride() / sizeof(float))
                 );
 
-            return m_y;
+            return m_y_buf;
         }
 #endif
 
 #ifdef BB_WITH_CUDA
-        if ( !m_host_only && DataType<FT>::type == BB_TYPE_BIT && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        if ( !m_host_only && DataType<FT>::type == BB_TYPE_BIT && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // Bit CUDA
-            auto x_ptr = x.LockDeviceMemoryConst();
-            auto y_ptr = m_y.LockDeviceMemory(true);
+            auto x_ptr = x_buf.LockDeviceMemoryConst();
+            auto y_ptr = m_y_buf.LockDeviceMemory(true);
 
             bbcu_bit_Col2Im_Forward
                 (
@@ -166,19 +166,40 @@ public:
                     (int        )m_w_size,
                     (int        )m_h_size,
                     (int        )m_c_size,
-                    (int        )(x.GetFrameStride() / sizeof(int)),
-                    (int        )m_y.GetFrameSize(),
-                    (int        )(m_y.GetFrameStride() / sizeof(int))
+                    (int        )(x_buf.GetFrameStride() / sizeof(int)),
+                    (int        )m_y_buf.GetFrameSize(),
+                    (int        )(m_y_buf.GetFrameStride() / sizeof(int))
                 );
 
-            return m_y;
+            return m_y_buf;
         }
 #endif
 
         {
             // 汎用版
-            auto x_ptr = x.LockConst<FT>();
-            auto y_ptr = m_y.Lock<FT>(true);
+            auto x_ptr = x_buf.LockConst<FT>();
+            auto y_ptr = m_y_buf.Lock<FT>(true);
+
+            auto hw_size = m_h_size * m_w_size;
+
+    	    for (index_t c = 0; c < m_c_size; ++c) {
+                #pragma omp parallel for
+			    for (index_t xy = 0; xy < hw_size; ++xy) {
+                    for ( index_t output_frame = 0; output_frame < output_frame_size; ++output_frame ) {
+                        index_t output_node = c * hw_size + xy;
+                        index_t input_frame = output_frame * hw_size + xy;
+                        index_t input_node  = c;
+                        y_ptr.Set(output_frame, output_node, x_ptr.Get(input_frame, input_node));
+                    }
+                }
+            }
+            return m_y_buf;
+        }
+
+        {
+            // 汎用版(旧)
+            auto x_ptr = x_buf.LockConst<FT>();
+            auto y_ptr = m_y_buf.Lock<FT>(true);
 		    index_t input_frame = 0;
 		    for (index_t output_frame = 0; output_frame < output_frame_size; ++output_frame) {
 			    for (index_t y = 0; y < m_h_size; ++y) {
@@ -193,24 +214,24 @@ public:
 				    }
 			    }
 		    }
-            return m_y;
+            return m_y_buf;
         }
 	}
 	
-	FrameBuffer Backward(FrameBuffer dy)
+	FrameBuffer Backward(FrameBuffer dy_buf)
 	{
-        BB_ASSERT(dy.GetType() == DataType<BT>::type);
+        BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
 
-    	index_t output_frame_size = dy.GetFrameSize();
+    	index_t output_frame_size = dy_buf.GetFrameSize();
        	index_t input_frame_size  = output_frame_size *(m_h_size * m_w_size);
 
-        m_dx.Resize(DataType<BT>::type, input_frame_size, m_c_size);
+        m_dx_buf.Resize(DataType<BT>::type, input_frame_size, m_c_size);
 
 #ifdef BB_WITH_CUDA
-        if ( !m_host_only && DataType<FT>::type == BB_TYPE_FP32 && dy.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && Manager::IsDeviceAvailable() )
+        if ( !m_host_only && DataType<FT>::type == BB_TYPE_FP32 && dy_buf.IsDeviceAvailable() && m_dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() )
         {
-            auto dy_ptr = dy.LockDeviceMemoryConst();
-            auto dx_ptr = m_dx.LockDeviceMemory(true);
+            auto dy_ptr = dy_buf.LockDeviceMemoryConst();
+            auto dx_ptr = m_dx_buf.LockDeviceMemory(true);
 
             bbcu_fp32_Col2Im_Backward
                 (
@@ -219,18 +240,42 @@ public:
                     (int          )m_w_size,
                     (int          )m_h_size,
                     (int          )m_c_size,
-                    (int          )(m_dx.GetFrameStride() / sizeof(float)),
-                    (int          )dy.GetFrameSize(),
-                    (int          )(dy.GetFrameStride() / sizeof(float))
+                    (int          )(m_dx_buf.GetFrameStride() / sizeof(float)),
+                    (int          )dy_buf.GetFrameSize(),
+                    (int          )(dy_buf.GetFrameStride() / sizeof(float))
                 );
 
-            return m_dx;
+            return m_dx_buf;
         }
 #endif
 
         {
-		    auto dy_ptr = dy.LockConst<BT>();
-		    auto dx_ptr = m_dx.Lock<BT>(true);
+            // 汎用版
+            auto dy_ptr = dy_buf.LockConst<BT>();
+            auto dx_ptr = m_dx_buf.Lock<BT>(true);
+            
+            auto hw_size = m_h_size * m_w_size;
+
+		    for (index_t c = 0; c < m_c_size; ++c) {
+    		    #pragma omp parallel for
+			    for (index_t xy = 0; xy < hw_size; ++xy) {
+           		    for (index_t output_frame = 0; output_frame < output_frame_size; ++output_frame) {
+                        index_t output_node = c * hw_size + xy;
+                        index_t input_frame = output_frame * hw_size + xy;
+                        index_t input_node  = c;
+
+                        dx_ptr.Set(input_frame, input_node, dy_ptr.Get(output_frame, output_node));
+                    }
+                }
+            }
+
+            return m_dx_buf;
+        }
+
+        {
+            // 汎用版
+		    auto dy_ptr = dy_buf.LockConst<BT>();
+		    auto dx_ptr = m_dx_buf.Lock<BT>(true);
 
 		    index_t input_frame = 0;
 		    for (index_t output_frame = 0; output_frame < output_frame_size; ++output_frame) {
@@ -246,7 +291,7 @@ public:
 				    }
 			    }
 		    }
-            return m_dx;
+            return m_dx_buf;
         }
 	}
 };

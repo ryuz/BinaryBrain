@@ -43,9 +43,9 @@ protected:
 
     index_t 		            m_node_size;
     
-    FrameBuffer                 m_x;
-    FrameBuffer                 m_y;
-    FrameBuffer                 m_dx;
+    FrameBuffer                 m_x_buf;
+    FrameBuffer                 m_y_buf;
+    FrameBuffer                 m_dx_buf;
 
     std::shared_ptr<Tensor>  	m_gamma;
     std::shared_ptr<Tensor>    	m_beta;
@@ -55,9 +55,12 @@ protected:
     Tensor_<T>  	            m_mean;		// 平均値
     Tensor_<T>  	            m_rstd;		// 標準偏差の逆数
 
-    T				            m_momentum = (T)0.001;
     Tensor_<T> 	                m_running_mean;
     Tensor_<T>  	            m_running_var;
+
+    T				            m_momentum = (T)0.001;
+    T                           m_init_gamma;
+    T                           m_init_beta;
 
 protected:
     BatchNormalization() {
@@ -88,19 +91,25 @@ public:
     struct create_t
     {
         T   momentum = (T)0.001;
+        T   gamma    = (T)1.0;
+        T   beta     = (T)0.0;
     };
 
     static std::shared_ptr<BatchNormalization> Create(create_t const &create)
     {
         auto self = std::shared_ptr<BatchNormalization>(new BatchNormalization);
-        self->m_momentum = create.momentum;
+        self->m_momentum   = create.momentum;
+        self->m_init_gamma = create.gamma;
+        self->m_init_beta  = create.beta;
         return self;
     }
 
-    static std::shared_ptr<BatchNormalization> Create(T momentum = (T)0.001)
+    static std::shared_ptr<BatchNormalization> Create(T momentum = (T)0.001, T gamma=(T)1.0, T beta=(T)0.0)
     {
         auto self = std::shared_ptr<BatchNormalization>(new BatchNormalization);
-        self->m_momentum = momentum;
+        self->m_momentum   = momentum;
+        self->m_init_gamma = gamma;
+        self->m_init_beta  = beta;
         return self;
     }
 
@@ -200,8 +209,8 @@ public:
         m_node_size = GetShapeSize(shape);
         
         // パラメータ初期化
-        m_gamma->Resize(DataType<T>::type, m_node_size);    *m_gamma  = (T)1.0;
-        m_beta->Resize(DataType<T>::type, m_node_size);     *m_beta   = (T)0.0;
+        m_gamma->Resize(DataType<T>::type, m_node_size);    *m_gamma  = m_init_gamma;
+        m_beta->Resize(DataType<T>::type, m_node_size);     *m_beta   = m_init_beta;
         m_dgamma->Resize(DataType<T>::type, m_node_size);   *m_dgamma = (T)0.0;
         m_dbeta->Resize(DataType<T>::type, m_node_size);    *m_dbeta  = (T)0.0;
 
@@ -273,20 +282,20 @@ public:
      * @param  train 学習時にtrueを指定
      * @return forward演算結果
      */
-    FrameBuffer Forward(FrameBuffer x, bool train=true)
+    FrameBuffer Forward(FrameBuffer x_buf, bool train=true)
     {
         // forwardの為に保存
-        m_x = x;
+        m_x_buf = x_buf;
 
         // 出力設定
-        m_y.Resize(x.GetType(), x.GetFrameSize(), x.GetNodeSize());
+        m_y_buf.Resize(x_buf.GetType(), x_buf.GetFrameSize(), x_buf.GetShape());
 
 
 #ifdef BB_WITH_CUDA
-		if ( !m_host_only && DataType<T>::type == BB_TYPE_FP32 && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+		if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && m_x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             if ( train ) {
-                auto dev_x_ptr     = m_x.LockDeviceMemoryConst();
-			    auto dev_y_ptr     = m_y.LockDeviceMemory(true);
+                auto dev_x_ptr     = m_x_buf.LockDeviceMemoryConst();
+			    auto dev_y_ptr     = m_y_buf.LockDeviceMemory(true);
 			    auto dev_gamma_ptr = m_gamma->LockDeviceMemoryConst();
 			    auto dev_beta_ptr  = m_beta->LockDeviceMemoryConst();
 			    auto dev_mean_ptr = m_mean.LockDeviceMemory(true);
@@ -305,15 +314,15 @@ public:
 					    (float       *)dev_running_mean_ptr.GetAddr(),
 					    (float       *)dev_running_var_ptr.GetAddr(),
 					    (float        )m_momentum,
-					    (int          )m_x.GetNodeSize(),
-					    (int          )m_x.GetFrameSize(),
-					    (int          )m_x.GetFrameStride() / sizeof(float)
+					    (int          )m_x_buf.GetNodeSize(),
+					    (int          )m_x_buf.GetFrameSize(),
+					    (int          )m_x_buf.GetFrameStride() / sizeof(float)
 				    );
-    			return m_y;
+    			return m_y_buf;
             }
             else {
-                auto dev_x_ptr            = m_x.LockDeviceMemoryConst();
-			    auto dev_y_ptr            = m_y.LockDeviceMemory(true);
+                auto dev_x_ptr            = m_x_buf.LockDeviceMemoryConst();
+			    auto dev_y_ptr            = m_y_buf.LockDeviceMemory(true);
 			    auto dev_gamma_ptr        = m_gamma->LockDeviceMemoryConst();
 			    auto dev_beta_ptr         = m_beta->LockDeviceMemoryConst();
 			    auto dev_running_mean_ptr = m_running_mean.LockDeviceMemoryConst();
@@ -327,25 +336,25 @@ public:
 					    (float const *)dev_beta_ptr.GetAddr(),
 					    (float       *)dev_running_mean_ptr.GetAddr(),
 					    (float       *)dev_running_var_ptr.GetAddr(),
-					    (int          )m_x.GetNodeSize(),
-					    (int          )m_x.GetFrameSize(),
-					    (int          )m_x.GetFrameStride() / sizeof(float)
+					    (int          )m_x_buf.GetNodeSize(),
+					    (int          )m_x_buf.GetFrameSize(),
+					    (int          )m_x_buf.GetFrameStride() / sizeof(float)
 				    );
-    			return m_y;
+    			return m_y_buf;
             }
 		}
 #endif
 
 
         {
-            auto node_size    = x.GetNodeSize();
-            auto frame_size   = x.GetFrameSize();
-            auto frame_stride = x.GetFrameStride() / sizeof(float);
+            auto node_size    = x_buf.GetNodeSize();
+            auto frame_size   = x_buf.GetFrameSize();
+            auto frame_stride = x_buf.GetFrameStride() / sizeof(float);
         
             const int	mm256_frame_size = ((int)frame_size + 7) / 8 * 8;
 
-            auto x_buf_ptr = m_x.LockConst<T>();
-            auto y_buf_ptr = m_y.Lock<T>();
+            auto x_ptr            = m_x_buf.LockConst<T>();
+            auto y_ptr            = m_y_buf.Lock<T>();
 
             auto gamma_ptr        = lock_gamma_const();
             auto beta_ptr         = lock_beta_const();
@@ -361,8 +370,8 @@ public:
 
 		  	    #pragma omp parallel for
                 for (int node = 0; node < (int)m_node_size; ++node) {
-                    float const *x_ptr = x_buf_ptr.GetAddr(node);
-                    float       *y_ptr = y_buf_ptr.GetAddr(node);
+                    float const *x_addr = x_ptr.GetAddr(node);
+                    float       *y_addr = y_ptr.GetAddr(node);
 
                     // 平均と分散計算
                     __m256 mean_sum = _mm256_set1_ps(0.0f);
@@ -370,7 +379,7 @@ public:
                     __m256 var_sum  = _mm256_set1_ps(0.0f);
                     __m256 var_c    = _mm256_set1_ps(0.0f);
                     for ( int frame = 0; frame < mm256_frame_size; frame += 8) {
-                        __m256 x = _mm256_load_ps(&x_ptr[frame + 0]);
+                        __m256 x = _mm256_load_ps(&x_addr[frame + 0]);
                         __m256 mean_y = _mm256_sub_ps(x, mean_c);
                         __m256 mean_t = _mm256_add_ps(mean_sum, mean_y);
                         __m256 mean_c = _mm256_sub_ps(_mm256_sub_ps(mean_t, mean_sum), mean_y);
@@ -405,18 +414,18 @@ public:
                     __m256 beta = _mm256_set1_ps(beta_ptr[node]);
     //				for (int frame = 0; frame < mm256_frame_size; frame += 8) {
                     for (int frame = mm256_frame_size-8; frame >= 0; frame -= 8) {
-                    __m256 x = _mm256_load_ps(&x_ptr[frame]);
+                    __m256 x = _mm256_load_ps(&x_addr[frame]);
                         __m256 xn = _mm256_mul_ps(_mm256_sub_ps(x, mean), rstd);
                         __m256 y = _mm256_fmadd_ps(xn, gamma, beta);
-                        _mm256_store_ps(&y_ptr[frame], y);
+                        _mm256_store_ps(&y_addr[frame], y);
                     }
                 }
             }
             else {
                 #pragma omp parallel for
                 for (int node = 0; node < (int)m_node_size; ++node) {
-                    auto x_ptr = x_buf_ptr.GetAddr(node);
-                    auto y_ptr = y_buf_ptr.GetAddr(node);
+                    auto x_addr = x_ptr.GetAddr(node);
+                    auto y_addr = y_ptr.GetAddr(node);
 
                     __m256 running_mean = _mm256_set1_ps(running_mean_ptr[node]);
                     __m256 running_var = _mm256_set1_ps(1.0f / (sqrt(running_var_ptr[node]) + 10e-7f));
@@ -425,16 +434,16 @@ public:
                     __m256 beta = _mm256_set1_ps(beta_ptr[node]);
 
                     for (int frame = 0; frame < mm256_frame_size; frame += 8) {
-                        __m256 x = _mm256_load_ps(&x_ptr[frame]);
+                        __m256 x = _mm256_load_ps(&x_addr[frame]);
                         __m256 xc = _mm256_sub_ps(x, running_mean);
                         __m256 xn = _mm256_mul_ps(xc, running_var);
                         __m256 y = _mm256_fmadd_ps(xn, gamma, beta);
-                        _mm256_store_ps(&y_ptr[frame], y);
+                        _mm256_store_ps(&y_addr[frame], y);
                     }
                 }
             }
 
-            return m_y;
+            return m_y_buf;
         }
     }
 
@@ -445,16 +454,16 @@ public:
      *         
      * @return backward演算結果
      */
-    FrameBuffer Backward(FrameBuffer dy)
+    FrameBuffer Backward(FrameBuffer dy_buf)
     {
         // 出力設定
-        m_dx.Resize(dy.GetType(), dy.GetFrameSize(), dy.GetNodeSize());
+        m_dx_buf.Resize(dy_buf.GetType(), dy_buf.GetFrameSize(), dy_buf.GetShape());
 
 #ifdef BB_WITH_CUDA
-        if ( !m_host_only && DataType<T>::type == BB_TYPE_FP32 && dy.IsDeviceAvailable() && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
-            auto dev_x_ptr      = m_x.LockDeviceMemoryConst();
-            auto dev_dy_ptr     = dy.LockDeviceMemoryConst();
-            auto dev_dx_ptr     = m_dx.LockDeviceMemory(true);
+        if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && dy_buf.IsDeviceAvailable() && m_x_buf.IsDeviceAvailable() && m_dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            auto dev_x_ptr      = m_x_buf.LockDeviceMemoryConst();
+            auto dev_dy_ptr     = dy_buf.LockDeviceMemoryConst();
+            auto dev_dx_ptr     = m_dx_buf.LockDeviceMemory(true);
             auto dev_gamma_ptr  = m_gamma->LockDeviceMemoryConst();
             auto dev_dgamma_ptr = m_dgamma->LockDeviceMemory();
             auto dev_dbeta_ptr  = m_dbeta->LockDeviceMemory();
@@ -470,20 +479,20 @@ public:
                     (float       *)dev_dbeta_ptr.GetAddr(),
                     (float const *)dev_mean_ptr.GetAddr(),
                     (float const *)dev_rstd_ptr.GetAddr(),
-                    (float        )1.0f / dy.GetFrameSize(),
-                    (int          )dy.GetNodeSize(),
-                    (int          )dy.GetFrameSize(),
-                    (int          )dy.GetFrameStride() / sizeof(float)
+                    (float        )1.0f / (float)dy_buf.GetFrameSize(),
+                    (int          )dy_buf.GetNodeSize(),
+                    (int          )dy_buf.GetFrameSize(),
+                    (int          )dy_buf.GetFrameStride() / sizeof(float)
                 );
 
-            return m_dx;
+            return m_dx_buf;
         }
 #endif
 
         {
-            auto node_size    = dy.GetNodeSize();
-            auto frame_size   = dy.GetFrameSize();
-            auto frame_stride = dy.GetFrameStride() / sizeof(float);
+            auto node_size    = dy_buf.GetNodeSize();
+            auto frame_size   = dy_buf.GetFrameSize();
+            auto frame_stride = dy_buf.GetFrameStride() / sizeof(float);
             
             const int	mm256_frame_size = ((int)frame_size + 7) / 8 * 8;
             
@@ -499,16 +508,16 @@ public:
             // 逆数生成
             const __m256	reciprocal_frame_size = _mm256_set1_ps(1.0f / (float)frame_size);
 
-            auto x_buf_ptr  = m_x.LockConst<T>();
-            auto y_buf_ptr  = m_y.LockConst<T>();
-            auto dx_buf_ptr = m_dx.Lock<T>();
-            auto dy_buf_ptr = dy.LockConst<T>();
+            auto x_ptr  = m_x_buf.LockConst<T>();
+//          auto y_ptr  = m_y_buf.LockConst<T>();
+            auto dx_ptr = m_dx_buf.Lock<T>();
+            auto dy_ptr = dy_buf.LockConst<T>();
 
             #pragma omp parallel for
             for (int node = 0; node < (int)m_node_size; ++node) {
-                auto dy_ptr = dy_buf_ptr.GetAddr(node);
-                auto dx_ptr = dx_buf_ptr.GetAddr(node);
-                auto x_ptr  = x_buf_ptr.GetAddr(node);
+                auto dy_addr = dy_ptr.GetAddr(node);
+                auto dx_addr = dx_ptr.GetAddr(node);
+                auto x_addr  = x_ptr.GetAddr(node);
 
                 __m256 mean   = _mm256_set1_ps(mean_ptr[node]);
                 __m256 rstd   = _mm256_set1_ps(rstd_ptr[node]);
@@ -520,11 +529,11 @@ public:
                 __m256 rstd2 = _mm256_mul_ps(rstd, rstd);
 
                 for (int frame = 0; frame < mm256_frame_size; frame += 8) {
-                    __m256 x = _mm256_load_ps(&x_ptr[frame]);
+                    __m256 x = _mm256_load_ps(&x_addr[frame]);
                     __m256 xc = _mm256_sub_ps(x, mean);
                     __m256 xn = _mm256_mul_ps(xc, rstd);
 
-                    __m256 dy = _mm256_load_ps(&dy_ptr[frame]);
+                    __m256 dy = _mm256_load_ps(&dy_addr[frame]);
                     dbeta = _mm256_add_ps(dy, dbeta);
                     dgamma = _mm256_fmadd_ps(xn, dy, dgamma);
 
@@ -534,8 +543,8 @@ public:
                 }
                 dbeta = bb_mm256_hsum_ps(dbeta);
                 dgamma = bb_mm256_hsum_ps(dgamma);
-                dgamma_ptr[node] = bb_mm256_cvtss_f32(dgamma);
-                dbeta_ptr[node] = bb_mm256_cvtss_f32(dbeta);
+                dgamma_ptr[node] += bb_mm256_cvtss_f32(dgamma);
+                dbeta_ptr[node]  += bb_mm256_cvtss_f32(dbeta);
 
                 dstd = bb_mm256_hsum_ps(dstd);
                 dmeanx = bb_mm256_hsum_ps(dmeanx);
@@ -545,16 +554,16 @@ public:
 
     //			for (int frame = 0; frame < mm256_frame_size; frame += 8) {
                 for (int frame = mm256_frame_size - 8; frame >= 0; frame -= 8) {
-                    __m256 dy = _mm256_load_ps(&dy_ptr[frame]);
-                    __m256 x = _mm256_load_ps(&x_ptr[frame]);
+                    __m256 dy = _mm256_load_ps(&dy_addr[frame]);
+                    __m256 x = _mm256_load_ps(&x_addr[frame]);
                     __m256 dxn = _mm256_mul_ps(dy, gamma);
                     __m256 dxc = _mm256_fmadd_ps(dxn, rstd, dmean);
                     __m256 dx = _mm256_fmadd_ps(_mm256_mul_ps(x, dvar), reciprocal_frame_size, dxc);
-                    _mm256_store_ps(&dx_ptr[frame], dx);
+                    _mm256_store_ps(&dx_addr[frame], dx);
                 }
             }
 
-            return m_dx;
+            return m_dx_buf;
         }
     }
 };

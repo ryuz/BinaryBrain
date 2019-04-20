@@ -14,7 +14,9 @@
 #include <random>
 
 #include "bb/Model.h"
-#include "bb/MicroMlpAffine.h"
+#include "bb/StochasticLut2.h"
+#include "bb/StochasticLut4.h"
+#include "bb/StochasticLut6.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
 
@@ -23,57 +25,83 @@ namespace bb {
 
 
 // Sparce Mini-MLP(Multilayer perceptron) Layer [Affine-ReLU-Affine-BatchNorm-Binarize]
-template <int N = 6, int M = 16, typename T = float, class Activation = ReLU<T> >
-class MicroMlp : public SparseLayer<T, T>
+template <int N = 6, typename T = float >
+class StochasticLutBn : public SparseLayer<T, T>
 {
     using super = SparseLayer<T, T>;
 
 protected:
-	// 3層で構成
-	std::shared_ptr< MicroMlpAffine<N, M, T> >	m_affine;
+	// 2層で構成
 	std::shared_ptr< BatchNormalization<T>   >  m_batch_norm;
-	std::shared_ptr< Activation              >  m_activation;
+	std::shared_ptr< SparseLayer<T, T> >	    m_lut;
+
+    bool                                        m_bn_enable = true;
 
 protected:
-	MicroMlp() {}
+	StochasticLutBn() {}
+
+    /**
+     * @brief  コマンド処理
+     * @detail コマンド処理
+     * @param  args   コマンド
+     */
+	void CommandProc(std::vector<std::string> args)
+	{
+        // BatchNormalization設定
+        if ( args.size() == 2 && args[0] == "batch_normalization" )
+        {
+            m_bn_enable = EvalBool(args[1]);
+        }
+	}
 
 public:
-	~MicroMlp() {}
+	~StochasticLutBn() {}
 
     struct create_t
     {
-        typename MicroMlpAffine<N, M, T>::create_t   affine;
-        typename BatchNormalization<T>::create_t     bn;
+        indices_t  output_shape;
+        bool       bn_enable = true;
+        T          momentum = (T)0.001;
+        T          gamma    = (T)0.5;
+        T          beta     = (T)0.5;
     };
 
-    static std::shared_ptr< MicroMlp > Create(create_t const &create)
+    static std::shared_ptr< StochasticLutBn > Create(create_t const &create)
     {
-        auto self = std::shared_ptr<MicroMlp>(new MicroMlp);
-        self->m_affine     = MicroMlpAffine<N, M, T>::Create(create.affine);
-        self->m_batch_norm = BatchNormalization<T>::Create(create.bn);
-        self->m_activation = Activation::Create();
+        auto self = std::shared_ptr<StochasticLutBn>(new StochasticLutBn);
+        switch ( N ) {
+        case 2: self->m_lut = StochasticLut2<T>::Create(create.output_shape);   break;
+        case 4: self->m_lut = StochasticLut4<T>::Create(create.output_shape);   break;
+        case 6: self->m_lut = StochasticLut6<T>::Create(create.output_shape);   break;
+        default: BB_ASSERT(0);  break;
+        }
+        self->m_batch_norm = BatchNormalization<T>::Create(create.momentum, create.gamma, create.beta);
         return self;
     }
 
-    static std::shared_ptr< MicroMlp > Create(index_t output_node_size, std::string connection = "", T momentum = (T)0.001)
+    static std::shared_ptr< StochasticLutBn > Create(indices_t output_shape, bool bn_enable = true, T momentum = (T)0.001, T gamma = (T)0.5, T beta = (T)0.5)
     {
-        auto self = std::shared_ptr<MicroMlp>(new MicroMlp);
-        self->m_affine     = MicroMlpAffine<N, M, T>::Create(output_node_size, connection);
-        self->m_batch_norm = BatchNormalization<T>::Create(momentum);
-        self->m_activation = Activation::Create();
-        return self;
-    }
-       
-    static std::shared_ptr< MicroMlp > Create(indices_t const &output_shape, std::string connection = "", T momentum = (T)0.001)
-    {
-        auto self = std::shared_ptr<MicroMlp>(new MicroMlp);
-        self->m_affine     = MicroMlpAffine<N, M, T>::Create(output_shape, connection);
-        self->m_batch_norm = BatchNormalization<T>::Create(momentum);
-        self->m_activation = Activation::Create();
-        return self;
+        create_t create;
+        create.output_shape = output_shape;
+        create.bn_enable    = bn_enable;
+        create.momentum     = momentum;
+        create.gamma        = gamma;
+        create.beta         = beta;
+        return Create(create);
     }
 
-	std::string GetClassName(void) const { return "MicroMlp"; }
+    static std::shared_ptr< StochasticLutBn > Create(index_t output_node_size, bool bn_enable = true, T momentum = (T)0.001, T gamma = (T)0.5, T beta = (T)0.5)
+    {
+        create_t create;
+        create.output_shape = indices_t({output_node_size});
+        create.bn_enable    = bn_enable;
+        create.momentum     = momentum;
+        create.gamma        = gamma;
+        create.beta         = beta;
+        return Create(create);
+    }
+
+	std::string GetClassName(void) const { return "StochasticLutBn"; }
 
     /**
      * @brief  コマンドを送る
@@ -81,9 +109,10 @@ public:
      */   
     void SendCommand(std::string command, std::string send_to = "all")
     {
-	    m_affine    ->SendCommand(command, send_to);
+        super::SendCommand(command, send_to);
+
 	    m_batch_norm->SendCommand(command, send_to);
-	    m_activation->SendCommand(command, send_to);
+	    m_lut       ->SendCommand(command, send_to);
     }
     
     /**
@@ -95,9 +124,10 @@ public:
     Variables GetParameters(void)
     {
         Variables parameters;
-	    parameters.PushBack(m_affine    ->GetParameters());
-	    parameters.PushBack(m_batch_norm->GetParameters());
-	    parameters.PushBack(m_activation->GetParameters());
+        if ( m_bn_enable ) {
+    	    parameters.PushBack(m_batch_norm->GetParameters());
+        }
+	    parameters.PushBack(m_lut->GetParameters());
         return parameters;
     }
 
@@ -110,9 +140,10 @@ public:
     virtual Variables GetGradients(void)
     {
         Variables gradients;
-	    gradients.PushBack(m_affine    ->GetGradients());
-	    gradients.PushBack(m_batch_norm->GetGradients());
-	    gradients.PushBack(m_activation->GetGradients());
+        if ( m_bn_enable ) {
+            gradients.PushBack(m_batch_norm->GetGradients());
+        }
+	    gradients.PushBack(m_lut       ->GetGradients());
         return gradients;
     }  
 
@@ -126,9 +157,8 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
-	    shape = m_affine    ->SetInputShape(shape);
 	    shape = m_batch_norm->SetInputShape(shape);
-	    shape = m_activation->SetInputShape(shape);
+	    shape = m_lut->SetInputShape(shape);
         return shape;
     }
 
@@ -139,7 +169,7 @@ public:
      */
     indices_t GetInputShape(void) const
     {
-        return m_affine->GetInputShape();
+        return m_batch_norm->GetInputShape();
     }
 
     /**
@@ -149,31 +179,40 @@ public:
      */
     indices_t GetOutputShape(void) const
     {
-        return m_activation->GetOutputShape();
+        return m_lut->GetOutputShape();
     }
-
-
-
+    
     index_t GetNodeInputSize(index_t node) const
     {
-        return m_affine->GetNodeInputSize(node);
+        return m_lut->GetNodeInputSize(node);
     }
 
     void SetNodeInput(index_t node, index_t input_index, index_t input_node)
     {
-        m_affine->SetNodeInput(node, input_index, input_node);
+        m_lut->SetNodeInput(node, input_index, input_node);
     }
 
     index_t GetNodeInput(index_t node, index_t input_index) const
     {
-        return m_affine->GetNodeInput(node, input_index);
+        return m_lut->GetNodeInput(node, input_index);
     }
 
     std::vector<T> ForwardNode(index_t node, std::vector<T> x_vec) const
     {
-        x_vec = m_affine    ->ForwardNode(node, x_vec);
-        x_vec = m_batch_norm->ForwardNode(node, x_vec);
-        x_vec = m_activation->ForwardNode(node, x_vec);
+        index_t input_size = this->GetNodeInputSize(node);
+        BB_ASSERT(input_size == x_vec.size());
+
+        if ( m_bn_enable ) {
+            std::vector<T> tmp(1);
+            for (index_t i = 0; i < input_size; ++i) {
+                index_t input_node = this->GetNodeInput(node, i);
+                tmp[0] = x_vec[i];
+                tmp = m_batch_norm->ForwardNode(input_node, tmp);
+                x_vec[i] = tmp[0];
+            }
+        }
+
+        x_vec = m_lut->ForwardNode(node, x_vec);
         return x_vec;
     }
 
@@ -186,9 +225,10 @@ public:
      */
     FrameBuffer Forward(FrameBuffer x, bool train = true)
     {
-	    x = m_affine    ->Forward(x, train);
-	    x = m_batch_norm->Forward(x, train);
-	    x = m_activation->Forward(x, train);
+        if ( m_bn_enable ) {
+    	    x = m_batch_norm->Forward(x, train);
+        }
+	    x = m_lut->Forward(x, train);
         return x;
     }
 
@@ -200,9 +240,10 @@ public:
      */
     FrameBuffer Backward(FrameBuffer dy)
     {
-	    dy = m_activation->Backward(dy);
-	    dy = m_batch_norm->Backward(dy);
-	    dy = m_affine    ->Backward(dy);
+	    dy = m_lut->Backward(dy);
+        if ( m_bn_enable ) {
+    	    dy = m_batch_norm->Backward(dy);
+        }
         return dy; 
     }
 
@@ -221,9 +262,10 @@ protected:
         }
         else {
             // 子レイヤーの表示
-            m_affine->PrintInfo(depth, os, columns, nest+1);
-            m_batch_norm->PrintInfo(depth, os, columns, nest+1);
-            m_activation->PrintInfo(depth, os, columns, nest+1);
+            if ( m_bn_enable ) {
+                m_batch_norm->PrintInfo(depth, os, columns, nest+1);
+            }
+            m_lut->PrintInfo(depth, os, columns, nest+1);
         }
     }
 
@@ -231,16 +273,14 @@ public:
     // Serialize
     void Save(std::ostream &os) const 
     {
-        m_affine->Save(os);
         m_batch_norm->Save(os);
-        m_activation->Save(os);
+        m_lut->Save(os);
     }
 
     void Load(std::istream &is)
     {
-        m_affine->Load(is);
         m_batch_norm->Load(is);
-        m_activation->Load(is);
+        m_lut->Load(is);
     }
 
 
@@ -259,18 +299,16 @@ public:
 
 	void Save(cereal::JSONOutputArchive& archive) const
 	{
-        archive(cereal::make_nvp("MicroMlp", *this));
-        m_affine->Save(archive);
+        archive(cereal::make_nvp("StochasticLutBn", *this));
         m_batch_norm->Save(archive);
-        m_activation->Save(archive);
+        m_lut       ->Save(archive);
 	}
 
 	void Load(cereal::JSONInputArchive& archive)
 	{
-        archive(cereal::make_nvp("MicroMlp", *this));
-        m_affine->Load(archive);
+        archive(cereal::make_nvp("StochasticLutBn", *this));
         m_batch_norm->Load(archive);
-        m_activation->Load(archive);
+        m_lut       ->Load(archive);
 	}
 #endif
 

@@ -27,11 +27,13 @@ class MicroMlpAffine : public SparseLayer<T, T>
     using super = SparseLayer<T, T>;
 
 protected:
-public:
+public:   // debug
 
 	bool			        m_binary_mode = false;
 	bool			        m_host_only   = false;
     bool                    m_host_simd   = true;
+    
+    std::string             m_connection;
 
     T                       m_initialize_std = (T)0.01;
     std::string             m_initializer = "he";
@@ -55,15 +57,13 @@ public:
     std::shared_ptr<Tensor> m_db1;
 
 public:
-    FrameBuffer             m_x;
-    FrameBuffer             m_y;
-    FrameBuffer             m_dx;
+    FrameBuffer             m_x_buf;
+    FrameBuffer             m_y_buf;
+    FrameBuffer             m_dx_buf;
 
-    FrameBuffer             m_dy;   // debug
+    FrameBuffer             m_dy_buf;   // debug
     
-#ifdef BB_WITH_CUDA
     FrameBuffer             m_dx_tmp;
-#endif
 
 protected:
 	MicroMlpAffine() {
@@ -105,6 +105,7 @@ public:
     struct create_t
     {
         indices_t       output_shape;
+        std::string     connection;
         T               initialize_std = (T)0.01;
         std::string     initializer = "";
         std::uint64_t   seed = 1;
@@ -121,23 +122,27 @@ public:
 
         self->m_output_shape = create.output_shape;
         self->m_output_node_size = GetShapeSize(self->m_output_shape);
+        self->m_connection = create.connection;
 
         return self;
     }
 
-    static std::shared_ptr<MicroMlpAffine> Create(indices_t const &output_shape, std::uint64_t seed = 1)
+    static std::shared_ptr<MicroMlpAffine> Create(indices_t const &output_shape, std::string connection = "", std::uint64_t seed = 1)
     {
         create_t create;
         create.output_shape = output_shape;
-        create.seed         = seed;
+        create.connection = connection;
+        create.seed = seed;
         return Create(create);
     }
 
-    static std::shared_ptr<MicroMlpAffine> Create(index_t output_node_size)
+    static std::shared_ptr<MicroMlpAffine> Create(index_t output_node_size, std::string connection = "", std::uint64_t seed = 1)
     {
         create_t create;
         create.output_shape.resize(1);
         create.output_shape[0] = output_node_size;
+        create.connection = connection;
+        create.seed = seed;
         return Create(create);
     }
 	
@@ -303,7 +308,7 @@ public:
         
         // 接続初期化
         m_input_index.Resize(m_output_node_size, N);
-        this->InitializeNodeInput(m_mt());
+        this->InitializeNodeInput(m_mt(), m_connection);
 
         // パラメータ初期化
         if (m_initializer == "he" || m_initializer == "He") {
@@ -415,20 +420,20 @@ public:
 	}
 
 
-    FrameBuffer Forward(FrameBuffer x, bool train = true)
+    FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-        BB_ASSERT(x.GetType() == DataType<T>::type);
+        BB_ASSERT(x_buf.GetType() == DataType<T>::type);
 
         // backwardの為に保存
-        m_x = x;
+        m_x_buf = x_buf;
 
         // SetInputShpaeされていなければ初回に設定
-        if (m_x.GetNodeSize() != m_input_node_size) {
-            SetInputShape(m_x.GetShape());
+        if (m_x_buf.GetNodeSize() != m_input_node_size) {
+            SetInputShape(m_x_buf.GetShape());
         }
 
         // 出力を設定
-        m_y.Resize(DataType<T>::type, m_x.GetFrameSize(), m_output_shape);
+        m_y_buf.Resize(DataType<T>::type, m_x_buf.GetFrameSize(), m_output_shape);
 
         // バイナリモードならパラメータクリップ
         if (m_binary_mode) {
@@ -441,386 +446,351 @@ public:
         // CUDA版
 #ifdef BB_WITH_CUDA
         if ( N == 6 && M == 16 && DataType<T>::type == BB_TYPE_FP32
-            && !m_host_only && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
-            ForwardCudaFP32();
-            return m_y;
+                && !m_host_only && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
+            auto x_ptr  = m_x_buf.LockDeviceMemoryConst();
+            auto y_ptr  = m_y_buf.LockDeviceMemory();
+            auto W0_ptr = m_W0->LockDeviceMemoryConst();
+            auto b0_ptr = m_b0->LockDeviceMemoryConst();
+            auto W1_ptr = m_W1->LockDeviceMemoryConst();
+            auto b1_ptr = m_b1->LockDeviceMemoryConst();
+            bbcu_fp32_MicroMlp6x16_Forward
+    		    (
+                    (float const *)x_ptr.GetAddr(),
+                    (float       *)y_ptr.GetAddr(),
+                    (int   const *)input_index_ptr.GetAddr(),
+                    (float const *)W0_ptr.GetAddr(),
+                    (float const *)b0_ptr.GetAddr(),
+                    (float const *)W1_ptr.GetAddr(),
+                    (float const *)b1_ptr.GetAddr(),
+                    (int          )m_input_node_size,
+                    (int          )m_output_node_size,
+                    (int          )m_x_buf.GetFrameSize(),
+                    (int          )(m_x_buf.GetFrameStride() / sizeof(float))
+                );
+
+            return m_y_buf;
         }
 #endif
 
         // AVX版
         if ( DataType<T>::type == BB_TYPE_FP32 && m_host_simd ) {
-            ForwardHostSimdFP32();
-            return m_y;
+ 		    const index_t   frame_size = m_x_buf.GetFrameStride() / sizeof(float);
+		    const __m256	zero = _mm256_set1_ps(0);
+
+            auto x_ptr = m_x_buf.LockMemoryConst();
+            auto y_ptr = m_y_buf.LockMemory();
+            auto input_index_ptr = m_input_index.LockConst();
+            auto W0_ptr = lock_W0_const();
+            auto b0_ptr = lock_b0_const();
+            auto W1_ptr = lock_W1_const();
+            auto b1_ptr = lock_b1_const();
+        
+		    auto in_sig_buf  = (float const *)x_ptr.GetAddr();
+		    auto out_sig_buf = (float       *)y_ptr.GetAddr();
+
+    #pragma omp parallel for
+		    for (index_t node = 0; node < m_output_node_size; ++node) {
+			    __m256	W0[M][N];
+			    __m256	b0[M];
+			    __m256	W1[M];
+			    __m256	b1;
+			    for (int i = 0; i < M; ++i) {
+				    for (int j = 0; j < N; ++j) {
+					    W0[i][j] = _mm256_set1_ps(W0_ptr(node, i, j));
+				    }
+				    b0[i] = _mm256_set1_ps(b0_ptr(node, i));
+				    W1[i] = _mm256_set1_ps(W1_ptr(node, i));
+			    }
+			    b1 = _mm256_set1_ps(b1_ptr(node));
+
+			    float const *in_sig_ptr[N];
+			    float       *out_sig_ptr;
+			    for (int i = 0; i < N; ++i) {
+				    in_sig_ptr[i] = &in_sig_buf[input_index_ptr(node, i) * frame_size];
+			    }
+			    out_sig_ptr = &out_sig_buf[node * frame_size];
+
+			    for (index_t frame = 0; frame < frame_size; frame += 8) {
+				    __m256	in_sig[N];
+				    for (int i = 0; i < N; ++i) {
+					    in_sig[i] = _mm256_load_ps(&in_sig_ptr[i][frame]);
+				    }
+
+				    __m256	sum1 = b1;
+				    for (int i = 0; i < M; ++i) {
+					    // sub-layer0
+					    __m256	sum0 = b0[i];
+					    for (int j = 0; j < N; ++j) {
+						    sum0 = _mm256_fmadd_ps(in_sig[j], W0[i][j], sum0);
+					    }
+
+					    // ReLU
+					    sum0 = _mm256_max_ps(sum0, zero);
+
+					    // sub-layer1
+					    sum1 = _mm256_fmadd_ps(sum0, W1[i], sum1);
+				    }
+
+				    _mm256_store_ps(&out_sig_ptr[frame], sum1);
+			    }
+            }
+            return m_y_buf;
         }
         
-        ForwardHost(x, train);
-        return m_y;
+        {
+            // 汎用版
+            auto frame_size = m_x_buf.GetFrameSize();
+            auto x_ptr = x_buf.LockConst<T>();
+            auto y_ptr = m_y_buf.Lock<T>();
+            auto input_index_ptr = m_input_index.LockConst();
+            auto W0_ptr = lock_W0_const();
+            auto b0_ptr = lock_b0_const();
+            auto W1_ptr = lock_W1_const();
+            auto b1_ptr = lock_b1_const();
+
+#pragma omp parallel for
+		    for ( index_t node = 0; node < m_output_node_size; ++node ) {
+                index_t in_idx[N];
+			    for ( int i = 0; i < N; ++i) {
+                    in_idx[i] = input_index_ptr(node, i);
+                }
+			    for (index_t frame = 0; frame < frame_size; ++frame ) {
+				    T   in_sig[N];
+				    for ( int i = 0; i < N; ++i) {
+					    in_sig[i] = x_ptr.Get(frame, in_idx[i]);
+				    }
+
+				    T	sum1 = b1_ptr(node);
+				    for (int i = 0; i < M; ++i) {
+					    // sub-layer0
+					    T	sum0 = b0_ptr(node, i);
+					    for (int j = 0; j < N; ++j) {
+						    sum0 += in_sig[j] * W0_ptr(node, i, j);
+					    }
+
+					    // ReLU
+					    sum0 = sum0 > (T)0 ? sum0 : (T)0;
+
+					    // sub-layer1
+					    sum1 += sum0 * W1_ptr(node, i);
+				    }
+
+                    y_ptr.Set(frame, node, sum1);
+			    }
+            }
+            return m_y_buf;
+        }
     }
 
 
-    FrameBuffer Backward(FrameBuffer dy)
+    FrameBuffer Backward(FrameBuffer dy_buf)
     {
-        BB_ASSERT(dy.GetType() == DataType<T>::type);
+        BB_ASSERT(dy_buf.GetType() == DataType<T>::type);
 
-        m_dy = dy;
+        m_dy_buf = dy_buf;
 
-        m_dx.Resize(DataType<T>::type, dy.GetFrameSize(), m_input_node_size);
+        // 出力設定
+        m_dx_buf.Resize(DataType<T>::type, dy_buf.GetFrameSize(), m_input_node_size);
 
         // CUDA版
 #ifdef BB_WITH_CUDA
         if ( N == 6 && M == 16 && DataType<T>::type == BB_TYPE_FP32
-                && !m_host_only && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
-            BackwardCudaFP32(dy);
-            return m_dx;
+                && !m_host_only && m_x_buf.IsDeviceAvailable() && m_dx_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            // CUDA版
+            auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
+            auto x_ptr  = m_x_buf.LockDeviceMemoryConst();
+            auto dy_ptr = dy_buf.LockDeviceMemoryConst();
+    //      auto y_ptr  = m_y_buf.LockDeviceMemoryConst();
+            auto dx_ptr = m_dx_buf.LockDeviceMemory();
+            auto W0_ptr = m_W0->LockDeviceMemoryConst();
+            auto b0_ptr = m_b0->LockDeviceMemoryConst();
+            auto W1_ptr = m_W1->LockDeviceMemoryConst();
+            auto b1_ptr = m_b1->LockDeviceMemoryConst();
+            auto dW0_ptr = m_dW0->LockDeviceMemory();
+            auto db0_ptr = m_db0->LockDeviceMemory();
+            auto dW1_ptr = m_dW1->LockDeviceMemory();
+            auto db1_ptr = m_db1->LockDeviceMemory();
+
+            m_dx_tmp.Resize(BB_TYPE_FP32, dy_buf.GetFrameSize(), m_output_node_size * N);
+            auto dx_tmp_ptr = m_dx_tmp.LockDeviceMemory();
+
+            bbcu_fp32_MicroMlp6x16_Backward
+                (
+			        (float const *)x_ptr.GetAddr(),
+			        (float       *)dy_ptr.GetAddr(),
+			        (float       *)dx_ptr.GetAddr(),
+			        (float       *)dx_tmp_ptr.GetAddr(),
+			        (int   const *)input_index_ptr.GetAddr(),
+			        (float const *)W0_ptr.GetAddr(),
+			        (float const *)b0_ptr.GetAddr(),
+			        (float       *)dW0_ptr.GetAddr(),
+			        (float       *)db0_ptr.GetAddr(),
+			        (float const *)W1_ptr.GetAddr(),
+			        (float const *)b1_ptr.GetAddr(),
+			        (float       *)dW1_ptr.GetAddr(),
+			        (float       *)db1_ptr.GetAddr(),
+			        (int          )m_input_node_size,
+			        (int          )m_output_node_size,
+			        (int          )dy_buf.GetFrameSize(),
+			        (int          )dy_buf.GetFrameStride() / sizeof(float)
+		        );
+            return m_dx_buf;
         }
 #endif
 
-        m_dW0->FillZero();
-        m_db0->FillZero();
-        m_dW1->FillZero();
-        m_db1->FillZero();
+//      m_dW0->FillZero();
+//      m_db0->FillZero();
+//      m_dW1->FillZero();
+//      m_db1->FillZero();
 
+        // AVX版
         if ( DataType<T>::type == BB_TYPE_FP32 ) {
-            BackwardHostSimdFP32(dy);
-            return m_dx;
-        }
-    }
-    
+		    index_t frame_size = dy_buf.GetFrameStride() / sizeof(float);
+		    index_t node_size  = m_output_node_size;
 
+   		    m_dx_buf.FillZero();
 
-protected:
-    // Forward
-    FrameBuffer ForwardHost(FrameBuffer const &x, bool train = true)
-	{
-        BB_ASSERT(x.GetType() == DataType<T>::type);
+            auto dy_ptr = dy_buf.LockMemoryConst();
+            auto dx_ptr = m_dx_buf.LockMemory();
+            auto x_ptr  = m_x_buf.LockMemoryConst();
 
-        auto frame_size = m_x.GetFrameSize();
-        auto x_ptr = x.LockConst<T>();
-        auto y_ptr = m_y.Lock<T>();
-        auto input_index_ptr = m_input_index.LockConst();
-        auto W0_ptr = lock_W0_const();
-        auto b0_ptr = lock_b0_const();
-        auto W1_ptr = lock_W1_const();
-        auto b1_ptr = lock_b1_const();
+            auto input_index_ptr = m_input_index.LockConst();
+            auto W0_ptr = lock_W0_const();
+            auto b0_ptr = lock_b0_const();
+            auto W1_ptr = lock_W1_const();
+            auto b1_ptr = lock_b1_const();
+            auto dW0_ptr = lock_dW0();
+            auto db0_ptr = lock_db0();
+            auto dW1_ptr = lock_dW1();
+            auto db1_ptr = lock_db1();
+        
+		    auto dy_addr = (float const *)dy_ptr.GetAddr();
+		    auto dx_addr = (float       *)dx_ptr.GetAddr();
+		    auto x_addr  = (float const *)x_ptr.GetAddr();
 
-#pragma omp parallel for
-		for ( index_t node = 0; node < m_output_node_size; ++node ) {
-            index_t in_idx[N];
-			for ( int i = 0; i < N; ++i) {
-                in_idx[i] = input_index_ptr(node, i);
+		    const __m256	zero = _mm256_set1_ps(0);
+
+            m_dx_tmp.Resize(BB_TYPE_FP32, dy_buf.GetFrameSize(), m_output_node_size * N);
+            auto dx_tmp_ptr = m_dx_tmp.Lock<float>();
+		    
+            #pragma omp parallel for
+		    for (int node = 0; node < (int)node_size; ++node) {
+			    __m256	W0[M][N];
+			    __m256	b0[M];
+			    __m256	dW0[M][N];
+			    __m256	db0[M];
+			    __m256	W1[M];
+			    __m256	dW1[M];
+			    __m256	db1;
+			    for (int i = 0; i < M; ++i) {
+				    for (int j = 0; j < N; ++j) {
+					    W0[i][j]  = _mm256_set1_ps(W0_ptr (node, i, j));
+					    dW0[i][j] = _mm256_set1_ps(0.0f);
+				    }
+				    b0[i]  = _mm256_set1_ps(b0_ptr(node, i));
+				    db0[i] = _mm256_set1_ps(0.0f);
+				    W1[i]  = _mm256_set1_ps(W1_ptr(node, i));
+				    dW1[i] = _mm256_set1_ps(0.0f);
+			    }
+			    db1 = _mm256_set1_ps(0.0f);
+
+			    float const *out_err_ptr;
+			    float const *in_sig_ptr[N];
+                
+			    out_err_ptr = &dy_addr[frame_size * node];
+			    for (int i = 0; i < N; ++i) {
+				    in_sig_ptr[i] = &x_addr[frame_size * input_index_ptr(node, i)];
+			    }
+
+			    for (int frame = 0; frame < frame_size; frame += 8) {
+				    __m256	in_sig[N];
+				    for (int i = 0; i < N; ++i) {
+					    in_sig[i] = _mm256_load_ps(&in_sig_ptr[i][frame]);
+				    }
+
+				    // 一層目の信号を再構成
+				    __m256	sig0[M];
+				    for (int i = 0; i < M; ++i) {
+					    // sub-layer0
+					    __m256	sum0 = b0[i];
+					    for (int j = 0; j < N; ++j) {
+						    sum0 = _mm256_fmadd_ps(in_sig[j], W0[i][j], sum0);
+					    }
+
+					    // ReLU
+					    sum0 = _mm256_max_ps(sum0, zero);
+
+					    sig0[i] = sum0;
+				    }
+
+				    // 逆伝播
+				    __m256	in_err[N];
+				    for (int i = 0; i < N; ++i) {
+					    in_err[i] = zero;
+				    }
+
+				    __m256 out_err = _mm256_load_ps(&out_err_ptr[frame]);
+				    db1 = _mm256_add_ps(db1, out_err);
+				    for (int i = 0; i < M; ++i) {
+					    __m256 err0 = _mm256_mul_ps(W1[i], out_err);
+					    __m256 mask = _mm256_cmp_ps(sig0[i], zero, _CMP_GT_OS);
+					    dW1[i] = _mm256_fmadd_ps(sig0[i], out_err, dW1[i]);
+
+					    err0 = _mm256_and_ps(err0, mask);		// ReLU
+
+					    db0[i] = _mm256_add_ps(db0[i], err0);
+					    for (int j = 0; j < N; ++j) {
+						    in_err[j] = _mm256_fmadd_ps(err0, W0[i][j], in_err[j]);
+						    dW0[i][j] = _mm256_fmadd_ps(err0, in_sig[j], dW0[i][j]);
+					    }
+				    }
+
+				    for (int i = 0; i < N; ++i) {
+                        float*	tmp_dx_addr = dx_tmp_ptr.GetAddr(node * N + i);
+					    _mm256_store_ps(&tmp_dx_addr[frame], in_err[i]);
+				    }
+			    }
+
+			    for (int i = 0; i < M; ++i) {
+				    for (int j = 0; j < N; ++j) {
+					    dW0_ptr(node, i, j) += bb_mm256_cvtss_f32(bb_mm256_hsum_ps(dW0[i][j]));
+				    }
+				    db0_ptr(node, i) += bb_mm256_cvtss_f32(bb_mm256_hsum_ps(db0[i]));
+				    dW1_ptr(node, i) += bb_mm256_cvtss_f32(bb_mm256_hsum_ps(dW1[i]));
+			    }
+			    db1_ptr(node) += bb_mm256_cvtss_f32(bb_mm256_hsum_ps(db1));
+		    }
+
+		    // 足しこみ
+		    for (int node = 0; node < (int)node_size; ++node) {
+			    float*	in_err_ptr[N];
+			    for (int i = 0; i < N; ++i) {
+				    in_err_ptr[i] = &dx_addr[frame_size * input_index_ptr(node, i)];
+			    }
+
+                #pragma omp parallel for
+			    for (int frame = 0; frame < frame_size; frame += 8) {
+				    for (int i = 0; i < N; ++i) {
+					    __m256 in_err = _mm256_load_ps(&in_err_ptr[i][frame]);
+
+                         float*	tmp_dx_addr = dx_tmp_ptr.GetAddr(node * N + i);
+					    __m256 tmp_err = _mm256_load_ps(&tmp_dx_addr[frame]);
+
+					    in_err = _mm256_add_ps(in_err, tmp_err);
+					    _mm256_store_ps(&in_err_ptr[i][frame], in_err);
+				    }
+			    }
             }
-			for (index_t frame = 0; frame < frame_size; ++frame ) {
-				T   in_sig[N];
-				for ( int i = 0; i < N; ++i) {
-					in_sig[i] = x_ptr.Get(frame, in_idx[i]);
-				}
-
-				T	sum1 = b1_ptr(node);
-				for (int i = 0; i < M; ++i) {
-					// sub-layer0
-					T	sum0 = b0_ptr(node, i);
-					for (int j = 0; j < N; ++j) {
-						sum0 += in_sig[j] * W0_ptr(node, i, j);
-					}
-
-					// ReLU
-					sum0 = sum0 > (T)0 ? sum0 : (T)0;
-
-					// sub-layer1
-					sum1 += sum0 * W1_ptr(node, i);
-				}
-
-                y_ptr.Set(frame, node, sum1);
-			}
+	        
+            return m_dx_buf;
         }
 
-        return m_y;
-	}
-    
-    void ForwardHostSimdFP32(void)
-	{
-		const index_t   frame_size = m_x.GetFrameStride() / sizeof(float);
-		const __m256	zero = _mm256_set1_ps(0);
-
-        auto x_ptr = m_x.LockMemoryConst();
-        auto y_ptr = m_y.LockMemory();
-        auto input_index_ptr = m_input_index.LockConst();
-        auto W0_ptr = lock_W0_const();
-        auto b0_ptr = lock_b0_const();
-        auto W1_ptr = lock_W1_const();
-        auto b1_ptr = lock_b1_const();
-        
-		auto in_sig_buf  = (float const *)x_ptr.GetAddr();
-		auto out_sig_buf = (float       *)y_ptr.GetAddr();
-
-#pragma omp parallel for
-		for (index_t node = 0; node < m_output_node_size; ++node) {
-			__m256	W0[M][N];
-			__m256	b0[M];
-			__m256	W1[M];
-			__m256	b1;
-			for (int i = 0; i < M; ++i) {
-				for (int j = 0; j < N; ++j) {
-					W0[i][j] = _mm256_set1_ps(W0_ptr(node, i, j));
-				}
-				b0[i] = _mm256_set1_ps(b0_ptr(node, i));
-				W1[i] = _mm256_set1_ps(W1_ptr(node, i));
-			}
-			b1 = _mm256_set1_ps(b1_ptr(node));
-
-			float const *in_sig_ptr[N];
-			float       *out_sig_ptr;
-			for (int i = 0; i < N; ++i) {
-				in_sig_ptr[i] = &in_sig_buf[input_index_ptr(node, i) * frame_size];
-			}
-			out_sig_ptr = &out_sig_buf[node * frame_size];
-
-			for (index_t frame = 0; frame < frame_size; frame += 8) {
-				__m256	in_sig[N];
-				for (int i = 0; i < N; ++i) {
-					in_sig[i] = _mm256_load_ps(&in_sig_ptr[i][frame]);
-				}
-
-				__m256	sum1 = b1;
-				for (int i = 0; i < M; ++i) {
-					// sub-layer0
-					__m256	sum0 = b0[i];
-					for (int j = 0; j < N; ++j) {
-						sum0 = _mm256_fmadd_ps(in_sig[j], W0[i][j], sum0);
-					}
-
-					// ReLU
-					sum0 = _mm256_max_ps(sum0, zero);
-
-					// sub-layer1
-					sum1 = _mm256_fmadd_ps(sum0, W1[i], sum1);
-				}
-
-				_mm256_store_ps(&out_sig_ptr[frame], sum1);
-			}
+        // 汎用版
+        {
+            // 未作成
         }
-	}
-    
-#ifdef BB_WITH_CUDA
-    void ForwardCudaFP32(void)
-    {
-        // 出力を設定
-        auto frame_size = m_x.GetFrameSize();
-        m_y.Resize(DataType<T>::type, frame_size, m_output_shape);
-
-        // CUDA版
-        auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
-        auto x_ptr  = m_x.LockDeviceMemoryConst();
-        auto y_ptr  = m_y.LockDeviceMemory();
-        auto W0_ptr = m_W0->LockDeviceMemoryConst();
-        auto b0_ptr = m_b0->LockDeviceMemoryConst();
-        auto W1_ptr = m_W1->LockDeviceMemoryConst();
-        auto b1_ptr = m_b1->LockDeviceMemoryConst();
-        bbcu_fp32_MicroMlp6x16_Forward
-    		(
-                (float const *)x_ptr.GetAddr(),
-                (float       *)y_ptr.GetAddr(),
-                (int   const *)input_index_ptr.GetAddr(),
-                (float const *)W0_ptr.GetAddr(),
-                (float const *)b0_ptr.GetAddr(),
-                (float const *)W1_ptr.GetAddr(),
-                (float const *)b1_ptr.GetAddr(),
-                (int          )m_input_node_size,
-                (int          )m_output_node_size,
-                (int          )m_x.GetFrameSize(),
-                (int          )(m_x.GetFrameStride() / sizeof(float))
-            );
     }
-#endif
-    
-
-    // Backward
-    void BackwardHostSimdFP32(FrameBuffer const &dy)
-	{
-		index_t frame_size = dy.GetFrameStride() / sizeof(float);
-		index_t node_size  = m_output_node_size;
-
-   		m_dx.FillZero();
-
-        auto dy_ptr = dy.LockMemoryConst();
-        auto dx_ptr = m_dx.LockMemory();
-        auto x_ptr  = m_x.LockMemoryConst();
-
-        auto input_index_ptr = m_input_index.LockConst();
-        auto W0_ptr = lock_W0_const();
-        auto b0_ptr = lock_b0_const();
-        auto W1_ptr = lock_W1_const();
-        auto b1_ptr = lock_b1_const();
-        auto dW0_ptr = lock_dW0();
-        auto db0_ptr = lock_db0();
-        auto dW1_ptr = lock_dW1();
-        auto db1_ptr = lock_db1();
-        
-		auto dy_buf = (float const *)dy_ptr.GetAddr();
-		auto dx_buf = (float       *)dx_ptr.GetAddr();
-		auto x_buf  = (float const *)x_ptr.GetAddr();
-
-		const __m256	zero = _mm256_set1_ps(0);
-
-		float* tmp_err_buf = (float *)aligned_memory_alloc(node_size*N*frame_size*sizeof(float), 32);
-		
-#pragma omp parallel for
-		for (int node = 0; node < (int)node_size; ++node) {
-			__m256	W0[M][N];
-			__m256	b0[M];
-			__m256	dW0[M][N];
-			__m256	db0[M];
-			__m256	W1[M];
-			__m256	dW1[M];
-			__m256	db1;
-			for (int i = 0; i < M; ++i) {
-				for (int j = 0; j < N; ++j) {
-					W0[i][j]  = _mm256_set1_ps(W0_ptr (node, i, j));
-					dW0[i][j] = _mm256_set1_ps(dW0_ptr(node, i, j));
-				}
-				b0[i]  = _mm256_set1_ps(b0_ptr(node, i));
-				db0[i] = _mm256_set1_ps(db0_ptr(node, i));
-				W1[i]  = _mm256_set1_ps(W1_ptr(node, i));
-				dW1[i] = _mm256_set1_ps(dW1_ptr(node, i));
-			}
-			db1 = _mm256_set1_ps(db1_ptr(node));
-
-			float const *out_err_ptr;
-			float const *in_sig_ptr[N];
-
-			float*	tmp_err_ptr = &tmp_err_buf[node * N*frame_size];
-
-
-			out_err_ptr = &dy_buf[frame_size * node];
-			for (int i = 0; i < N; ++i) {
-				in_sig_ptr[i] = &x_buf[frame_size * input_index_ptr(node, i)];
-			}
-
-			for (int frame = 0; frame < frame_size; frame += 8) {
-				__m256	in_sig[N];
-				for (int i = 0; i < N; ++i) {
-					in_sig[i] = _mm256_load_ps(&in_sig_ptr[i][frame]);
-				}
-
-				// 一層目の信号を再構成
-				__m256	sig0[M];
-				for (int i = 0; i < M; ++i) {
-					// sub-layer0
-					__m256	sum0 = b0[i];
-					for (int j = 0; j < N; ++j) {
-						sum0 = _mm256_fmadd_ps(in_sig[j], W0[i][j], sum0);
-					}
-
-					// ReLU
-					sum0 = _mm256_max_ps(sum0, zero);
-
-					sig0[i] = sum0;
-				}
-
-				// 逆伝播
-				__m256	in_err[N];
-				for (int i = 0; i < N; ++i) {
-					in_err[i] = zero;
-				}
-
-				__m256 out_err = _mm256_load_ps(&out_err_ptr[frame]);
-				db1 = _mm256_add_ps(db1, out_err);
-				for (int i = 0; i < M; ++i) {
-					__m256 err0 = _mm256_mul_ps(W1[i], out_err);
-					__m256 mask = _mm256_cmp_ps(sig0[i], zero, _CMP_GT_OS);
-					dW1[i] = _mm256_fmadd_ps(sig0[i], out_err, dW1[i]);
-
-					err0 = _mm256_and_ps(err0, mask);		// ReLU
-
-					db0[i] = _mm256_add_ps(db0[i], err0);
-					for (int j = 0; j < N; ++j) {
-						in_err[j] = _mm256_fmadd_ps(err0, W0[i][j], in_err[j]);
-						dW0[i][j] = _mm256_fmadd_ps(err0, in_sig[j], dW0[i][j]);
-					}
-				}
-
-				for (int i = 0; i < N; ++i) {
-					_mm256_store_ps(&tmp_err_ptr[i*frame_size + frame], in_err[i]);
-				}
-			}
-
-			for (int i = 0; i < M; ++i) {
-				for (int j = 0; j < N; ++j) {
-					dW0_ptr(node, i, j) += bb_mm256_cvtss_f32(bb_mm256_hsum_ps(dW0[i][j]));
-				}
-				db0_ptr(node, i) += bb_mm256_cvtss_f32(bb_mm256_hsum_ps(db0[i]));
-				dW1_ptr(node, i) += bb_mm256_cvtss_f32(bb_mm256_hsum_ps(dW1[i]));
-			}
-			db1_ptr(node) += bb_mm256_cvtss_f32(bb_mm256_hsum_ps(db1));
-		}
-
-		// 足しこみ
-		for (int node = 0; node < (int)node_size; ++node) {
-			float*	in_err_ptr[N];
-			for (int i = 0; i < N; ++i) {
-				in_err_ptr[i] = &dx_buf[frame_size * input_index_ptr(node, i)];
-			}
-			float*	tmp_err_ptr = &tmp_err_buf[node * N*frame_size];
-
-#pragma omp parallel for
-			for (int frame = 0; frame < frame_size; frame += 8) {
-				for (int i = 0; i < N; ++i) {
-					__m256 in_err = _mm256_load_ps(&in_err_ptr[i][frame]);
-					__m256 tmp_err = _mm256_load_ps(&tmp_err_ptr[i*frame_size + frame]);
-					in_err = _mm256_add_ps(in_err, tmp_err);
-					_mm256_store_ps(&in_err_ptr[i][frame], in_err);
-				}
-			}
-
-        }
-		aligned_memory_free(tmp_err_buf);
-	}
-    
-
-#ifdef BB_WITH_CUDA
-    void BackwardCudaFP32(FrameBuffer const &dy)
-    {
-        // CUDA版
-        auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
-        auto x_ptr  = m_x.LockDeviceMemoryConst();
-        auto dy_ptr = dy.LockDeviceMemoryConst();
-//      auto y_ptr  = m_y.LockDeviceMemoryConst();
-        auto dx_ptr = m_dx.LockDeviceMemory();
-        auto W0_ptr = m_W0->LockDeviceMemoryConst();
-        auto b0_ptr = m_b0->LockDeviceMemoryConst();
-        auto W1_ptr = m_W1->LockDeviceMemoryConst();
-        auto b1_ptr = m_b1->LockDeviceMemoryConst();
-        auto dW0_ptr = m_dW0->LockDeviceMemory();
-        auto db0_ptr = m_db0->LockDeviceMemory();
-        auto dW1_ptr = m_dW1->LockDeviceMemory();
-        auto db1_ptr = m_db1->LockDeviceMemory();
-
-        m_dx_tmp.Resize(BB_TYPE_FP32, dy.GetFrameSize(), m_output_node_size * N);
-        auto dx_tmp_ptr = m_dx_tmp.LockDeviceMemory();
-
-        bbcu_fp32_MicroMlp6x16_Backward
-            (
-			    (float const *)x_ptr.GetAddr(),
-			    (float       *)dy_ptr.GetAddr(),
-			    (float       *)dx_ptr.GetAddr(),
-			    (float       *)dx_tmp_ptr.GetAddr(),
-			    (int   const *)input_index_ptr.GetAddr(),
-			    (float const *)W0_ptr.GetAddr(),
-			    (float const *)b0_ptr.GetAddr(),
-			    (float       *)dW0_ptr.GetAddr(),
-			    (float       *)db0_ptr.GetAddr(),
-			    (float const *)W1_ptr.GetAddr(),
-			    (float const *)b1_ptr.GetAddr(),
-			    (float       *)dW1_ptr.GetAddr(),
-			    (float       *)db1_ptr.GetAddr(),
-			    (int          )m_input_node_size,
-			    (int          )m_output_node_size,
-			    (int          )dy.GetFrameSize(),
-			    (int          )dy.GetFrameStride() / sizeof(float)
-		    );
-    }
-#endif
-       
 };
 
 

@@ -1,6 +1,6 @@
 
 # target
-TARGET  = test-cifar10
+TARGET  = sample-cifar10
 SUB_TARGETS =
 
 # run option

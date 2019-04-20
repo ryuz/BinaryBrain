@@ -97,6 +97,27 @@ inline bool GetNextIndices(indices_t& indices, indices_t const & shape)
 }
 
 
+template <typename T=double>
+inline indices_t RegurerlizeIndices(std::vector<T> indices, indices_t const &shape)
+{
+    BB_ASSERT(indices.size() == shape.size());
+
+    // 負数の折り返し
+    for ( size_t i = 0; i < indices.size(); ++i ) {
+        while ( indices[i] < 0 ) {
+            indices[i] += (T)shape[i];
+        }
+    }
+
+    indices_t   reg_indices(indices.size());
+    for ( size_t i = 0; i < indices.size(); ++i ) {
+        reg_indices[i] = (index_t)indices[i] % shape[i];
+    }
+
+    return reg_indices;
+}
+
+
 inline index_t GetShapeIndex(indices_t const & indices, indices_t const & shape)
 {
     BB_DEBUG_ASSERT(indices.size() == shape.size());

@@ -81,6 +81,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_LossSoftmaxCrossEntropy
 			int				node_size,
 			int				frame_size,
 			int				frame_stride,
+            int             batch_size,
             cudaStream_t    streamId
         )
 {
@@ -95,7 +96,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_LossSoftmaxCrossEntropy
 			dev_t_buf,
 			dev_dy_buf,
 			dev_loss_buf,
-			1.0f / (float)frame_size,
+			1.0f / (float)batch_size,
 			node_size,
 			frame_size,
 			frame_stride

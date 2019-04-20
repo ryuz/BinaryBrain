@@ -186,12 +186,12 @@ public:
      * @param  train 学習時にtrueを指定
      * @return forward演算結果
      */
-    FrameBuffer Forward(FrameBuffer x, bool train = true)
+    FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-	    x = m_im2col->Forward(x, train);
-	    x = m_layer->Forward(x, train);
-	    x = m_col2im->Forward(x, train);
-        return x;
+	    x_buf = m_im2col->Forward(x_buf, train);
+	    x_buf = m_layer->Forward(x_buf, train);
+	    x_buf = m_col2im->Forward(x_buf, train);
+        return x_buf;
     }
 
    /**
@@ -200,12 +200,12 @@ public:
      *         
      * @return backward演算結果
      */
-    FrameBuffer Backward(FrameBuffer dy)
+    FrameBuffer Backward(FrameBuffer dy_buf)
     {
-	    dy = m_col2im->Backward(dy);
-	    dy = m_layer->Backward(dy);
-	    dy = m_im2col->Backward(dy);
-        return dy; 
+	    dy_buf = m_col2im->Backward(dy_buf);
+	    dy_buf = m_layer->Backward(dy_buf);
+	    dy_buf = m_im2col->Backward(dy_buf);
+        return dy_buf; 
     }
 	
 protected:
@@ -217,12 +217,10 @@ protected:
      */
     void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
     {
-        // これ以上ネストしないなら自クラス概要
-        if ( depth > 0 && (nest+1) >= depth ) {
-            Model::PrintInfoText(os, indent, columns, nest, depth);
-        }
-        else {
-            // 子レイヤーの表示
+        super::PrintInfoText(os, indent, columns, nest, depth);
+
+        // 子レイヤーの表示
+        if ( depth == 0 || (nest+1) < depth ) {
             m_im2col->PrintInfo(depth, os, columns, nest+1);
             m_layer->PrintInfo(depth, os, columns, nest+1);
             m_col2im->PrintInfo(depth, os, columns, nest+1);

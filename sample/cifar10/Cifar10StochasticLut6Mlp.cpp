@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------
 //  BinaryBrain  -- binary network evaluation platform
-//   MNIST sample
+//   CIFAR-10 sample
 //
 //                                Copyright (C) 2018-2019 by Ryuji Fuchikami
 // --------------------------------------------------------------------------
@@ -30,11 +30,9 @@
 #include "bb/ExportVerilog.h"
 
 
-// static void WriteMnistDataFile(std::string train_file, std::string test_file, int train_size, int test_size);
 
-
-// MNIST CNN with LUT networks
-void Cifar10StochasticLut6Mlp(int epoch_size, size_t mini_batch_size, int lut_frame_mux_size, bool binary_mode)
+// MLP with LUT networks
+void Cifar10StochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
 {
     std::string net_name = "Cifar10StochasticLut6Mlp";
     int const mux_size = 7;
@@ -47,17 +45,17 @@ void Cifar10StochasticLut6Mlp(int epoch_size, size_t mini_batch_size, int lut_fr
     auto td = bb::LoadCifar10<>::Load();
 #endif
 
-    auto layer_mm0 = bb::StochasticLut6<>::Create({1024});
-    auto layer_mm1 = bb::StochasticLut6<>::Create({480});
-    auto layer_mm2 = bb::StochasticLut6<>::Create({80});
+    auto layer_sl0 = bb::StochasticLut6<>::Create({1024});
+    auto layer_sl1 = bb::StochasticLut6<>::Create({360});
+    auto layer_sl2 = bb::StochasticLut6<>::Create({60});
+    auto layer_sl3 = bb::StochasticLut6<>::Create({10});
 
     {
         auto net = bb::Sequential::Create();
-        net->Add(bb::RealToBinary<>::Create(mux_size));
-        net->Add(layer_mm0);
-        net->Add(layer_mm1);
-        net->Add(layer_mm2);
-        net->Add(bb::BinaryToReal<float, float>::Create({10}, mux_size));
+        net->Add(layer_sl0);
+        net->Add(layer_sl1);
+        net->Add(layer_sl2);
+        net->Add(layer_sl3);
         net->SetInputShape(td.x_shape);
 
         if ( binary_mode ) {
@@ -65,41 +63,46 @@ void Cifar10StochasticLut6Mlp(int epoch_size, size_t mini_batch_size, int lut_fr
             std::cout << "binary mode" << std::endl;
         }
 
-    //  net->SendCommand("host_only true", "BatchNormalization");
-
         net->PrintInfo();
 
         // fitting
         bb::Runner<float>::create_t runner_create;
-        runner_create.name           = net_name;
-        runner_create.net            = net;
-        runner_create.lossFunc       = bb::LossSoftmaxCrossEntropy<float>::Create();
-        runner_create.metricsFunc    = bb::MetricsCategoricalAccuracy<float>::Create();
-        runner_create.optimizer      = bb::OptimizerAdam<float>::Create();
-        runner_create.print_progress = true;
+        runner_create.name               = net_name;
+        runner_create.net                = net;
+        runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
+        runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
+        runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
+        runner_create.max_run_size       = max_run_size;    // 実際の1回の実行サイズ
+        runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
+        runner_create.file_write         = true;            // 計算結果をファイルに保存するか
+        runner_create.print_progress     = true;            // 途中結果を表示
+        runner_create.initial_evaluation = file_read;       // ファイルを読んだ場合は最初に評価しておく
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
 
     {
         // LUT-network
-        auto layer_lut0 = bb::BinaryLutN<>::Create(layer_mm0->GetOutputShape());
-        auto layer_lut1 = bb::BinaryLutN<>::Create(layer_mm1->GetOutputShape());
-        auto layer_lut2 = bb::BinaryLutN<>::Create(layer_mm2->GetOutputShape());
+        auto layer_lut0 = bb::BinaryLutN<>::Create(layer_sl0->GetOutputShape());
+        auto layer_lut1 = bb::BinaryLutN<>::Create(layer_sl1->GetOutputShape());
+        auto layer_lut2 = bb::BinaryLutN<>::Create(layer_sl2->GetOutputShape());
+        auto layer_lut3 = bb::BinaryLutN<>::Create(layer_sl3->GetOutputShape());
 
         auto lut_net = bb::Sequential::Create();
         lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(layer_lut0);
         lut_net->Add(layer_lut1);
         lut_net->Add(layer_lut2);
+        lut_net->Add(layer_lut3);
         lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({10}, lut_frame_mux_size));
         lut_net->SetInputShape(td.x_shape);
 
         // テーブル化して取り込み(SetInputShape後に取り込みが必要)
         std::cout << "parameter copy to LUT-Network" << std::endl;
-        layer_lut0->ImportLayer<float, float>(layer_mm0);
-        layer_lut1->ImportLayer<float, float>(layer_mm1);
-        layer_lut2->ImportLayer<float, float>(layer_mm2);
+        layer_lut0->ImportLayer<float, float>(layer_sl0);
+        layer_lut1->ImportLayer<float, float>(layer_sl1);
+        layer_lut2->ImportLayer<float, float>(layer_sl2);
+        layer_lut3->ImportLayer<float, float>(layer_sl3);
 
         // 評価
         bb::Runner<float>::create_t lut_runner_create;
@@ -122,54 +125,9 @@ void Cifar10StochasticLut6Mlp(int epoch_size, size_t mini_batch_size, int lut_fr
             std::cout << "export : " << filename << "\n" << std::endl;
 
             // RTL simulation 用データの出力
-//          WriteMnistDataFile("verilog/mnist_train.txt", "verilog/mnist_test.txt", 60000, 10000);
+            bb::WriteTestDataBinTextFile<float>("verilog/cifar10_train.txt", "verilog/cifar10_test.txt", td);
         }
     }
 }
 
-
-/*
-static void WriteMnistDataFile(std::ostream& ofs, std::vector< std::vector<float> > x, std::vector< std::vector<float> > y)
-{
-	for (size_t i = 0; i < x.size(); ++i) {
-		auto yi = bb::argmax<>(y[i]);
-
-		for (int j = 7; j >= 0; --j) {
-			ofs << ((yi >> j) & 1);
-		}
-		ofs << "_";
-
-		for (int j = 28*28-1; j >= 0; --j) {
-			if (x[i][j] > 0.5f) {
-				ofs << "1";
-			}
-			else {
-				ofs << "0";
-			}
-		}
-		ofs << std::endl;
-	}
-}
-
-
-// write data file for verilog testbench
-static void WriteMnistDataFile(std::string train_file, std::string test_file, int train_size, int test_size)
-{
-	// load MNIST data
-	auto td = bb::LoadMnist<>::Load(10, train_size, test_size);
-
-	// write train data
-	{
-		std::ofstream ofs_train(train_file);
-		WriteMnistDataFile(ofs_train, td.x_train, td.t_train);
-	}
-
-	// write test data
-	{
-		std::ofstream ofs_test(test_file);
-		WriteMnistDataFile(ofs_test, td.x_test, td.t_test);
-	}
-}
-
-
-*/
+// end of file

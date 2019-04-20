@@ -51,6 +51,7 @@ __global__ void kernal_fp32_StochasticLut6_Forward(
 	    float   xp[6], xn[6];
         for ( int i = 0; i < 6; ++i) {
             xp[i] = x_ptr[i][frame];
+            xp[i] = min(1.0, max(0.0, xp[i]));
             xn[i] = 1.0 - xp[i];
         }
 
@@ -236,6 +237,11 @@ __global__ void kernal_fp32_StochasticLut6_Backward
         dW[i] = 0;
     }
 
+    __shared__ float    dW_prev[64];
+    for ( int i = id; i < 64; i += id_step ) {
+        dW_prev[i] = dW_buf[node * 64 + i];
+    }
+
     // read W
     __shared__ float    W[64];
     for ( int i = id; i < 64; i += id_step ) {
@@ -259,6 +265,7 @@ __global__ void kernal_fp32_StochasticLut6_Backward
         float xp[6], xn[6];
         for ( int i = 0; i < 6; ++i) {
             xp[i] = x_ptr[i][frame];
+            xp[i] = min(1.0, max(0.0, xp[i]));
             xn[i] = 1.0 - xp[i];
         }
 
@@ -423,45 +430,60 @@ __global__ void kernal_fp32_StochasticLut6_Backward
         float *dx_ptr = &dx_buf[(node*6)*frame_stride + frame];
         float dxn;
         float dxp;
+        float dx;
         dxn  = dx0_00 * xn[1];    dxn += dx0_10 * xp[1];
         dxp  = dx0_01 * xn[1];    dxp += dx0_11 * xp[1];
-        dx_ptr[0 * frame_stride] = (dxp - dxn);
+        dx = dxp - dxn;
+        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        dx_ptr[0 * frame_stride] = dx;
 
         dxn  = dx0_00 * xn[0];
         dxn += dx0_01 * xp[0];
         dxp  = dx0_10 * xn[0];
         dxp += dx0_11 * xp[0];
-        dx_ptr[1 * frame_stride] = (dxp - dxn);
+        dx = dxp - dxn;
+        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        dx_ptr[1 * frame_stride] = dx;
 
         dxn  = dx1_00 * xn[3];     
         dxp  = dx1_01 * xn[3];     
         dxn += dx1_10 * xp[3];     
         dxp += dx1_11 * xp[3];     
-        dx_ptr[2 * frame_stride] = (dxp - dxn);
+        dx = dxp - dxn;
+        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        dx_ptr[2 * frame_stride] = dx;
 
         dxn  = dx1_00 * xn[2];
         dxn += dx1_01 * xp[2];
         dxp  = dx1_10 * xn[2];
         dxp += dx1_11 * xp[2];
-        dx_ptr[3 * frame_stride] = (dxp - dxn);
+        dx = dxp - dxn;
+        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        dx_ptr[3 * frame_stride] = dx;
 
         dxn  = dx2_00 * xn[5];     
         dxp  = dx2_01 * xn[5];     
         dxn += dx2_10 * xp[5];     
         dxp += dx2_11 * xp[5];     
-        dx_ptr[4 * frame_stride] = (dxp - dxn);
+        dx = dxp - dxn;
+        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        dx_ptr[4 * frame_stride] = dx;
 
         dxn  = dx2_00 * xn[4];
         dxn += dx2_01 * xp[4];
         dxp  = dx2_10 * xn[4];
         dxp += dx2_11 * xp[4];
-        dx_ptr[5 * frame_stride] = (dxp - dxn);
+        dx = dxp - dxn;
+        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        dx_ptr[5 * frame_stride] = dx;
 	}
 
     for ( int i = 0; i < 64; ++i) {
         dW[i] = device_fp32_LocalSum(dW[i], buf);
-        if ( threadIdx.x == 0 ) {
-            dW_buf[node*64 + i] = dW[i];
+    }
+    if ( id == 0 ) {
+        for ( int i = 0; i < 64; ++i) {
+            dW_buf[node*64 + i] = dW[i] + dW_prev[i];
         }
     }
 }

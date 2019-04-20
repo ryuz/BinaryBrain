@@ -49,7 +49,7 @@ public:
         return m_loss / m_frames;
     }
 
-    FrameBuffer CalculateLoss(FrameBuffer y, FrameBuffer t)
+    FrameBuffer CalculateLoss(FrameBuffer y, FrameBuffer t, index_t batch_size)
 	{
 		index_t frame_size  = y.GetFrameSize();
 		index_t node_size   = y.GetNodeSize();
@@ -67,11 +67,11 @@ public:
 				auto grad = signal - target;
 				auto error = grad * grad;
 
-				dy_ptr.Set(frame, node, grad / (T)frame_size);
+				dy_ptr.Set(frame, node, grad / (T)batch_size);
 				m_loss += error;
 			}
-			m_frames++;
 		}
+    	m_frames += frame_size;
 
         return m_dy;
 	}
