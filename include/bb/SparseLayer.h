@@ -81,7 +81,7 @@ protected:
             return;
         }
 
-        if (argv.size() > 0 && argv[0] == "channelwise") {
+        if (argv.size() > 0 && argv[0] == "depthwise") {
             BB_ASSERT(input_shape.size() == 3);
             BB_ASSERT(output_shape.size() == 3);
             BB_ASSERT(input_shape[2] == output_shape[2]);
@@ -111,7 +111,7 @@ protected:
             return;
         }
 
-        if ( argv.size() > 0 && argv[0] == "gauss") {
+        if ( argv.size() > 0 && argv[0] == "gauss" ) {
             // ガウス分布で結線
             int n = (int)input_shape.size();
             std::vector<double> step(n);
@@ -180,7 +180,7 @@ protected:
             return;
         }
 #endif
-        if ( (argv.size() > 0 && argv[0] == "serial") ) {
+        if ( argv.size() > 0 && argv[0] == "serial" ) {
             // 連番結線
             index_t input_node = 0;
             for ( index_t output_node = 0; output_node < output_node_size; ++output_node ) {
@@ -193,7 +193,7 @@ protected:
             return;
         }
 
-        {
+        if ( argv.size() == 0 || argv[0] == "random" ) {
             // ランダム結線
             ShuffleSet<index_t> ss(input_node_size, seed);    // 接続先をシャッフル
             for (index_t node = 0; node < output_node_size; ++node) {
@@ -206,6 +206,9 @@ protected:
             }
             return;
         }
+
+        std::cout << "unknown connection rule : \"" << argv[0] <<  "\"" << std::endl;
+        BB_ASSERT(0);
     }
 };
 

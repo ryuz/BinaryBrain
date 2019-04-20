@@ -30,10 +30,11 @@
 #include "bb/Sequential.h"
 #include "bb/Runner.h"
 #include "bb/ExportVerilog.h"
+#include "bb/Reduce.h"
 
 
 
-#if 0
+#if 1
 
 // CNN with LUT networks
 void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
@@ -57,9 +58,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
     auto layer_cnv2_sl1 = bb::StochasticLut6<>::Create(32);
     auto layer_cnv3_sl0 = bb::StochasticLut6<>::Create(192);
     auto layer_cnv3_sl1 = bb::StochasticLut6<>::Create(32);
-    auto layer_sl4 = bb::StochasticLut6<>::Create(360);
-    auto layer_sl5 = bb::StochasticLut6<>::Create(60);
-    auto layer_sl6 = bb::StochasticLut6<>::Create(10);
+    auto layer_sl4 = bb::StochasticLut6<>::Create(420);
+    auto layer_sl5 = bb::StochasticLut6<>::Create(70);
 
     {
         auto cnv0_sub = bb::Sequential::Create();
@@ -87,7 +87,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         net->Add(bb::MaxPooling<>::Create(2, 2));
         net->Add(layer_sl4);
         net->Add(layer_sl5);
-        net->Add(layer_sl6);
+        net->Add(bb::Reduce<>::Create(td.t_shape));
         net->SetInputShape(td.x_shape);
 
         if ( binary_mode ) {
@@ -129,7 +129,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto layer_cnv3_lut1 = bb::BinaryLutN<>::Create(layer_cnv3_sl1->GetOutputShape());
         auto layer_lut4      = bb::BinaryLutN<>::Create(layer_sl4->GetOutputShape());
         auto layer_lut5      = bb::BinaryLutN<>::Create(layer_sl5->GetOutputShape());
-        auto layer_lut6      = bb::BinaryLutN<>::Create(layer_sl6->GetOutputShape());
+//        auto layer_lut6      = bb::BinaryLutN<>::Create(layer_sl6->GetOutputShape());
 
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_lut0);
@@ -150,7 +150,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto cnv4_sub = bb::Sequential::Create();
         cnv4_sub->Add(layer_lut4);
         cnv4_sub->Add(layer_lut5);
-        cnv4_sub->Add(layer_lut6);
+//        cnv4_sub->Add(layer_lut6);
 
         auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3);
         auto cnv1 = bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3);
@@ -187,7 +187,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         layer_cnv3_lut1->ImportLayer<float, float>(layer_cnv3_sl1);
         layer_lut4     ->ImportLayer<float, float>(layer_sl4);
         layer_lut5     ->ImportLayer<float, float>(layer_sl5);
-        layer_lut6     ->ImportLayer<float, float>(layer_sl6);
+//        layer_lut6     ->ImportLayer<float, float>(layer_sl6);
 
         // •]‰¿
         if ( 1 ) {
@@ -253,11 +253,11 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
     auto layer_cnv0_sl1 = bb::StochasticLut6<>::Create(192);
     auto layer_cnv0_sl2 = bb::StochasticLut6<>::Create(32);
 
-    auto layer_cnv1_sl0 = bb::StochasticLut6<>::Create({1, 8, 32}, "channelwise");
-    auto layer_cnv1_sl1 = bb::StochasticLut6<>::Create(192);
-    auto layer_cnv1_sl2 = bb::StochasticLut6<>::Create(32);
+    auto layer_cnv1_sl0 = bb::StochasticLut6<>::Create({1, 8, 32},  "depthwise");
+    auto layer_cnv1_sl1 = bb::StochasticLut6<>::Create({1, 1, 192}, "pointwise");
+    auto layer_cnv1_sl2 = bb::StochasticLut6<>::Create({1, 1, 32},  "pointwise");
 
-    auto layer_cnv2_sl0 = bb::StochasticLut6<>::Create({1, 16, 32}, "channelwise");
+    auto layer_cnv2_sl0 = bb::StochasticLut6<>::Create({1, 16, 32}, "depthwise");
     auto layer_cnv2_sl1 = bb::StochasticLut6<>::Create(384);
     auto layer_cnv2_sl2 = bb::StochasticLut6<>::Create(64);
 
