@@ -716,6 +716,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 
         // •]‰¿
         if ( 1 ) {
+            std::cout << "frame_mux_size : " << lut_frame_mux_size << std::endl;
+
             bb::Runner<float>::create_t lut_runner_create;
             lut_runner_create.name        = "Lut_" + net_name;
             lut_runner_create.net         = lut_net;
