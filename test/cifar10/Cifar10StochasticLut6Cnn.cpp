@@ -253,16 +253,22 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
     auto layer_cnv0_sl1 = bb::StochasticLut6<>::Create(384);
     auto layer_cnv0_sl2 = bb::StochasticLut6<>::Create(64);
 
-    auto layer_cnv1d_sl0 = bb::StochasticLut6<>::Create({1, 8, 64},  "depthwise");
+    auto layer_cnv1d_sl0 = bb::StochasticLut6<>::Create({3, 3, 64},  "depthwise");
 //  auto layer_cnv1d_sl1 = bb::StochasticLut6<>::Create({1, 1, 32},  "depthwise");
 
     auto layer_cnv1p_sl0 = bb::StochasticLut6<>::Create({1, 1, 384}, "pointwise");
     auto layer_cnv1p_sl1 = bb::StochasticLut6<>::Create({1, 1, 64},  "pointwise");
+    
+    auto layer_cnv1r_sl0 = bb::StochasticLut6<>::Create(384);
+    auto layer_cnv1r_sl1 = bb::StochasticLut6<>::Create(64);
 
-    auto layer_cnv2d_sl0 = bb::StochasticLut6<>::Create({1, 16, 64}, "depthwise");
+    auto layer_cnv2d_sl0 = bb::StochasticLut6<>::Create({3, 3, 64}, "depthwise");
 
     auto layer_cnv2p_sl0 = bb::StochasticLut6<>::Create({1, 1, 384}, "pointwise");
     auto layer_cnv2p_sl1 = bb::StochasticLut6<>::Create({1, 1, 64},  "pointwise");
+
+    auto layer_cnv2r_sl0 = bb::StochasticLut6<>::Create(384);
+    auto layer_cnv2r_sl1 = bb::StochasticLut6<>::Create(64);
 
     auto layer_cnv3_sl0 = bb::StochasticLut6<>::Create(512);
     auto layer_cnv3_sl1 = bb::StochasticLut6<>::Create(384);
@@ -289,17 +295,21 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 
         auto cnv1d_sub = bb::Sequential::Create();
         cnv1d_sub->Add(layer_cnv1d_sl0);
- //     cnv1d_sub->Add(layer_cnv1d_sl1);
-
         auto cnv1p_sub = bb::Sequential::Create();
         cnv1p_sub->Add(layer_cnv1p_sl0);
         cnv1p_sub->Add(layer_cnv1p_sl1);
+        auto cnv1r_sub = bb::Sequential::Create();
+        cnv1r_sub->Add(layer_cnv1r_sl0);
+        cnv1r_sub->Add(layer_cnv1r_sl1);
 
         auto cnv2d_sub = bb::Sequential::Create();
         cnv2d_sub->Add(layer_cnv2d_sl0);
         auto cnv2p_sub = bb::Sequential::Create();
         cnv2p_sub->Add(layer_cnv2p_sl0);
         cnv2p_sub->Add(layer_cnv2p_sl1);
+        auto cnv2r_sub = bb::Sequential::Create();
+        cnv2r_sub->Add(layer_cnv2r_sl0);
+        cnv2r_sub->Add(layer_cnv2r_sl1);
 
         auto cnv3_sub = bb::Sequential::Create();
         cnv3_sub->Add(layer_cnv3_sl0);
@@ -310,9 +320,11 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv1d_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv1p_sub, 1, 1));
+        net->Add(bb::LoweringConvolution<>::Create(cnv1r_sub, 3, 3));
         net->Add(bb::MaxPooling<>::Create(2, 2));
         net->Add(bb::LoweringConvolution<>::Create(cnv2d_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv2p_sub, 1, 1));
+        net->Add(bb::LoweringConvolution<>::Create(cnv2r_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
         net->Add(bb::MaxPooling<>::Create(2, 2));
         net->Add(layer_sl4);
