@@ -29,7 +29,7 @@ namespace bb {
 template <typename T = float>
 class DenseAffine : public Model
 {
-    using super = Model;
+    using _super = Model;
 
 
 protected:
@@ -444,7 +444,7 @@ public:
     template <class Archive>
     void save(Archive& archive, std::uint32_t const version) const
     {
-        super::save(archive, version);
+        _super::save(archive, version);
         archive(cereal::make_nvp("binary_mode",      m_binary_mode));
         archive(cereal::make_nvp("input_shape",      m_input_shape));
         archive(cereal::make_nvp("output_shape",     m_output_shape));
@@ -455,7 +455,7 @@ public:
     template <class Archive>
     void load(Archive& archive, std::uint32_t const version)
     {
-        super::load(archive, version);
+        _super::load(archive, version);
         archive(cereal::make_nvp("binary_mode",      m_binary_mode));
         archive(cereal::make_nvp("input_shape",      m_input_shape));
         archive(cereal::make_nvp("output_shape",     m_output_shape));

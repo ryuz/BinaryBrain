@@ -23,7 +23,7 @@ namespace bb {
 template <typename T = float>
 class StochasticLut6 : public SparseLayer<T, T>
 {
-    using super = SparseLayer<T, T>;
+    using _super = SparseLayer<T, T>;
 
 protected:
     bool                    m_lut_binarize = true;
@@ -157,7 +157,7 @@ public:
     template <class Archive>
     void save(Archive& archive, std::uint32_t const version) const
     {
-        super::save(archive, version);
+        _super::save(archive, version);
         archive(cereal::make_nvp("input_node_size",  m_input_node_size));
         archive(cereal::make_nvp("output_node_size", m_output_node_size));
         archive(cereal::make_nvp("input_shape",      m_input_shape));
@@ -169,7 +169,7 @@ public:
     template <class Archive>
     void load(Archive& archive, std::uint32_t const version)
     {
-        super::load(archive, version);
+        _super::load(archive, version);
         archive(cereal::make_nvp("input_node_size",  m_input_node_size));
         archive(cereal::make_nvp("output_node_size", m_output_node_size));
         archive(cereal::make_nvp("input_shape",      m_input_shape));

@@ -24,7 +24,7 @@ namespace bb {
 template <typename FT = float, typename BT = float>
 class LoweringConvolution : public Filter2d<FT, BT>
 {
-    using super = Filter2d<FT, BT>;
+    using _super = Filter2d<FT, BT>;
 
 protected:
     index_t m_filter_h_size = 1;
@@ -217,7 +217,7 @@ protected:
      */
     void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
     {
-        super::PrintInfoText(os, indent, columns, nest, depth);
+        _super::PrintInfoText(os, indent, columns, nest, depth);
 
         // 子レイヤーの表示
         if ( depth == 0 || (nest+1) < depth ) {
@@ -254,7 +254,7 @@ public:
     template <class Archive>
     void save(Archive& archive, std::uint32_t const version) const
     {
-        super::save(archive, version);
+        _super::save(archive, version);
         archive(cereal::make_nvp("filter_h_size", m_filter_h_size));
         archive(cereal::make_nvp("filter_w_size", m_filter_w_size));
     }
@@ -262,7 +262,7 @@ public:
     template <class Archive>
     void load(Archive& archive, std::uint32_t const version)
     {
-        super::load(archive, version);
+        _super::load(archive, version);
         archive(cereal::make_nvp("filter_h_size", m_filter_h_size));
         archive(cereal::make_nvp("filter_w_size", m_filter_w_size));
     }

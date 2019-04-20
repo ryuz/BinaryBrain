@@ -24,7 +24,7 @@ namespace bb {
 template <int N = 6, int M = 16, typename T = float>
 class MicroMlpAffine : public SparseLayer<T, T>
 {
-    using super = SparseLayer<T, T>;
+    using _super = SparseLayer<T, T>;
 
 protected:
 public:   // debug
@@ -188,7 +188,7 @@ public:
     template <class Archive>
     void save(Archive& archive, std::uint32_t const version) const
     {
-        super::save(archive, version);
+        _super::save(archive, version);
         archive(cereal::make_nvp("input_node_size",  m_input_node_size));
         archive(cereal::make_nvp("output_node_size", m_output_node_size));
         archive(cereal::make_nvp("input_shape",      m_input_shape));
@@ -207,7 +207,7 @@ public:
     template <class Archive>
     void load(Archive& archive, std::uint32_t const version)
     {
-        super::load(archive, version);
+        _super::load(archive, version);
         archive(cereal::make_nvp("input_node_size",  m_input_node_size));
         archive(cereal::make_nvp("output_node_size", m_output_node_size));
         archive(cereal::make_nvp("input_shape",      m_input_shape));

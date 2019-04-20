@@ -28,7 +28,7 @@ namespace bb {
 template <int N = 6, typename T = float >
 class StochasticLutBn : public SparseLayer<T, T>
 {
-    using super = SparseLayer<T, T>;
+    using _super = SparseLayer<T, T>;
 
 protected:
     // 2層で構成
@@ -109,7 +109,7 @@ public:
      */   
     void SendCommand(std::string command, std::string send_to = "all")
     {
-        super::SendCommand(command, send_to);
+        _super::SendCommand(command, send_to);
 
         m_batch_norm->SendCommand(command, send_to);
         m_lut       ->SendCommand(command, send_to);
@@ -288,13 +288,13 @@ public:
     template <class Archive>
     void save(Archive& archive, std::uint32_t const version) const
     {
-        super::save(archive, version);
+        _super::save(archive, version);
     }
 
     template <class Archive>
     void load(Archive& archive, std::uint32_t const version)
     {
-        super::load(archive, version);
+        _super::load(archive, version);
     }
 
     void Save(cereal::JSONOutputArchive& archive) const

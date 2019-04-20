@@ -22,7 +22,7 @@ namespace bb {
 template <typename FRT = float, typename FBT = float, typename BT = float>
 class BinaryModulation : public Model
 {
-    using super = Model;
+    using _super = Model;
 
 protected:
 
@@ -224,13 +224,13 @@ public:
     template <class Archive>
     void save(Archive& archive, std::uint32_t const version) const
     {
-        super::save(archive, version);
+        _super::save(archive, version);
     }
 
     template <class Archive>
     void load(Archive& archive, std::uint32_t const version)
     {
-        super::load(archive, version);
+        _super::load(archive, version);
     }
 
     void Save(cereal::JSONOutputArchive& archive) const

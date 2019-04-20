@@ -26,7 +26,7 @@ namespace bb {
 template <int N = 6, int M = 16, typename T = float, class Activation = ReLU<T> >
 class MicroMlp : public SparseLayer<T, T>
 {
-    using super = SparseLayer<T, T>;
+    using _super = SparseLayer<T, T>;
 
 protected:
     // 3層で構成
@@ -248,13 +248,13 @@ public:
     template <class Archive>
     void save(Archive& archive, std::uint32_t const version) const
     {
-        super::save(archive, version);
+        _super::save(archive, version);
     }
 
     template <class Archive>
     void load(Archive& archive, std::uint32_t const version)
     {
-        super::load(archive, version);
+        _super::load(archive, version);
     }
 
     void Save(cereal::JSONOutputArchive& archive) const
