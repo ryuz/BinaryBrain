@@ -318,18 +318,23 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         cnv3_sub->Add(layer_cnv3_sl2);
         
         auto net = bb::Sequential::Create();
+        net->Add(bb::BatchNormalization<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
+        net->Add(bb::BatchNormalization<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv1d_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv1p_sub, 1, 1));
         net->Add(bb::LoweringConvolution<>::Create(cnv1r_sub, 3, 3));
         net->Add(bb::MaxPooling<>::Create(2, 2));
+        net->Add(bb::BatchNormalization<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv2d_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv2p_sub, 1, 1));
+        net->Add(bb::BatchNormalization<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv2r_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
         net->Add(bb::MaxPooling<>::Create(2, 2));
         net->Add(layer_sl4);
         net->Add(layer_sl5);
+        net->Add(bb::BatchNormalization<>::Create());
         net->Add(layer_sl6);
         net->Add(layer_sl7);
 //        net->Add(layer_sl8);
@@ -342,6 +347,11 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
             net->SendCommand("binary true");
         }
 
+        net->SendCommand("fix_gamma true");
+        net->SendCommand("fix_beta  true");
+        net->SendCommand("set_gamma 0.2");
+        net->SendCommand("set_beta  0.5");
+
         // print model information
         net->PrintInfo();
 
@@ -351,8 +361,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         runner_create.net                = net;
         runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
         runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
-//        runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
-        runner_create.optimizer          = bb::OptimizerAdaGrad<float>::Create();
+        runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
+//      runner_create.optimizer          = bb::OptimizerAdaGrad<float>::Create();
         runner_create.max_run_size       = max_run_size;    // 実際の1回の実行サイズ
         runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
         runner_create.file_write         = true;            // 計算結果をファイルに保存するか
