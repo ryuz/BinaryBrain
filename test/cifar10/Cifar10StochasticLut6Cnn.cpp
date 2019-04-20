@@ -623,8 +623,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
 
-#if 0
-        {
+#if 1
+    {
         // LUT-network
         int const   frame_mux_size = 15;
 
@@ -644,8 +644,6 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto layer_lut5      = bb::BinaryLutN<>::Create(layer_sl5->GetOutputShape());
         auto layer_lut6      = bb::BinaryLutN<>::Create(layer_sl6->GetOutputShape());
         auto layer_lut7      = bb::BinaryLutN<>::Create(layer_sl7->GetOutputShape());
-//        auto layer_lut8      = bb::BinaryLutN<>::Create(layer_sl8->GetOutputShape());
-//        auto layer_lut9      = bb::BinaryLutN<>::Create(layer_sl9->GetOutputShape());
 
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_lut0);
@@ -672,8 +670,6 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         cnv4_sub->Add(layer_lut5);
         cnv4_sub->Add(layer_lut6);
         cnv4_sub->Add(layer_lut7);
-//        cnv4_sub->Add(layer_lut8);
-//        cnv4_sub->Add(layer_lut9);
 
         auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3);
         auto cnv1 = bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3);
@@ -700,25 +696,23 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 
 
         // テーブル化して取り込み(現状まだSetInputShape後の取り込みが必要)
-        std::cout << "parameter copy to LUT-Network" << std::endl;
-        layer_cnv0_lut0->ImportLayer<float, float>(layer_cnv0_sl0);
-        layer_cnv0_lut1->ImportLayer<float, float>(layer_cnv0_sl1);
-        layer_cnv0_lut2->ImportLayer<float, float>(layer_cnv0_sl2);
-        layer_cnv1_lut0->ImportLayer<float, float>(layer_cnv1_sl0);
-        layer_cnv1_lut1->ImportLayer<float, float>(layer_cnv1_sl1);
-        layer_cnv1_lut2->ImportLayer<float, float>(layer_cnv1_sl2);
-        layer_cnv2_lut0->ImportLayer<float, float>(layer_cnv2_sl0);
-        layer_cnv2_lut1->ImportLayer<float, float>(layer_cnv2_sl1);
-        layer_cnv2_lut2->ImportLayer<float, float>(layer_cnv2_sl2);
-        layer_cnv3_lut0->ImportLayer<float, float>(layer_cnv3_sl0);
-        layer_cnv3_lut1->ImportLayer<float, float>(layer_cnv3_sl1);
-        layer_cnv3_lut2->ImportLayer<float, float>(layer_cnv3_sl2);
-        layer_lut4     ->ImportLayer<float, float>(layer_sl4);
-        layer_lut5     ->ImportLayer<float, float>(layer_sl5);
-        layer_lut6     ->ImportLayer<float, float>(layer_sl6);
-        layer_lut7     ->ImportLayer<float, float>(layer_sl7);
-//        layer_lut8     ->ImportLayer<float, float>(layer_sl8);
-//        layer_lut9     ->ImportLayer<float, float>(layer_sl9);
+        std::cout << "parameter copy to LUT-Network.";
+        layer_cnv0_lut0->ImportLayer<float, float>(layer_cnv0_sl0);     std::cout << ".";
+        layer_cnv0_lut1->ImportLayer<float, float>(layer_cnv0_sl1);     std::cout << ".";
+        layer_cnv0_lut2->ImportLayer<float, float>(layer_cnv0_sl2);     std::cout << ".";
+        layer_cnv1_lut0->ImportLayer<float, float>(layer_cnv1_sl0);     std::cout << ".";
+        layer_cnv1_lut1->ImportLayer<float, float>(layer_cnv1_sl1);     std::cout << ".";
+        layer_cnv1_lut2->ImportLayer<float, float>(layer_cnv1_sl2);     std::cout << ".";
+        layer_cnv2_lut0->ImportLayer<float, float>(layer_cnv2_sl0);     std::cout << ".";
+        layer_cnv2_lut1->ImportLayer<float, float>(layer_cnv2_sl1);     std::cout << ".";
+        layer_cnv2_lut2->ImportLayer<float, float>(layer_cnv2_sl2);     std::cout << ".";
+        layer_cnv3_lut0->ImportLayer<float, float>(layer_cnv3_sl0);     std::cout << ".";
+        layer_cnv3_lut1->ImportLayer<float, float>(layer_cnv3_sl1);     std::cout << ".";
+        layer_cnv3_lut2->ImportLayer<float, float>(layer_cnv3_sl2);     std::cout << ".";
+        layer_lut4     ->ImportLayer<float, float>(layer_sl4);          std::cout << ".";
+        layer_lut5     ->ImportLayer<float, float>(layer_sl5);          std::cout << ".";
+        layer_lut6     ->ImportLayer<float, float>(layer_sl6);          std::cout << ".";
+        layer_lut7     ->ImportLayer<float, float>(layer_sl7);          std::cout << "." << std::endl;
 
         // 評価
         if ( 1 ) {
