@@ -22,8 +22,6 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
 // メイン関数
 int main(int argc, char *argv[])
 {
- 	omp_set_num_threads(4);
-
     std::string netname = "All";
     int         epoch_size         = 8;
     int         mini_batch_size    = 32;
