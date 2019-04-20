@@ -28,7 +28,7 @@
 #include "bb/Sequential.h"
 #include "bb/Runner.h"
 #include "bb/ExportVerilog.h"
-
+#include "bb/UniformDistributionGenerator.h"
 
 
 // MLP with LUT networks
@@ -89,7 +89,8 @@ void Cifar10StochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_s
         auto layer_lut3 = bb::BinaryLutN<>::Create(layer_sl3->GetOutputShape());
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
+ //     lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
+        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
         lut_net->Add(layer_lut0);
         lut_net->Add(layer_lut1);
         lut_net->Add(layer_lut2);
