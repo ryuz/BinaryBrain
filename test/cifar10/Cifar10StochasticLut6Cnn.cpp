@@ -33,6 +33,7 @@
 #include "bb/Runner.h"
 #include "bb/ExportVerilog.h"
 #include "bb/Reduce.h"
+#include "bb/UniformDistributionGenerator.h"
 
 
 
@@ -683,7 +684,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
+        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
         lut_net->Add(cnv0);
         lut_net->Add(cnv1);
         lut_net->Add(pol0);
@@ -696,22 +697,22 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 
 
         // テーブル化して取り込み(現状まだSetInputShape後の取り込みが必要)
-        std::cout << "parameter copy to LUT-Network.";
-        layer_cnv0_lut0->ImportLayer<float, float>(layer_cnv0_sl0);     std::cout << ".";
-        layer_cnv0_lut1->ImportLayer<float, float>(layer_cnv0_sl1);     std::cout << ".";
-        layer_cnv0_lut2->ImportLayer<float, float>(layer_cnv0_sl2);     std::cout << ".";
-        layer_cnv1_lut0->ImportLayer<float, float>(layer_cnv1_sl0);     std::cout << ".";
-        layer_cnv1_lut1->ImportLayer<float, float>(layer_cnv1_sl1);     std::cout << ".";
-        layer_cnv1_lut2->ImportLayer<float, float>(layer_cnv1_sl2);     std::cout << ".";
-        layer_cnv2_lut0->ImportLayer<float, float>(layer_cnv2_sl0);     std::cout << ".";
-        layer_cnv2_lut1->ImportLayer<float, float>(layer_cnv2_sl1);     std::cout << ".";
-        layer_cnv2_lut2->ImportLayer<float, float>(layer_cnv2_sl2);     std::cout << ".";
-        layer_cnv3_lut0->ImportLayer<float, float>(layer_cnv3_sl0);     std::cout << ".";
-        layer_cnv3_lut1->ImportLayer<float, float>(layer_cnv3_sl1);     std::cout << ".";
-        layer_cnv3_lut2->ImportLayer<float, float>(layer_cnv3_sl2);     std::cout << ".";
-        layer_lut4     ->ImportLayer<float, float>(layer_sl4);          std::cout << ".";
-        layer_lut5     ->ImportLayer<float, float>(layer_sl5);          std::cout << ".";
-        layer_lut6     ->ImportLayer<float, float>(layer_sl6);          std::cout << ".";
+        std::cout << "parameter copy to LUT-Network."  << std::flush;
+        layer_cnv0_lut0->ImportLayer<float, float>(layer_cnv0_sl0);     std::cout << "." << std::flush;
+        layer_cnv0_lut1->ImportLayer<float, float>(layer_cnv0_sl1);     std::cout << "." << std::flush;
+        layer_cnv0_lut2->ImportLayer<float, float>(layer_cnv0_sl2);     std::cout << "." << std::flush;
+        layer_cnv1_lut0->ImportLayer<float, float>(layer_cnv1_sl0);     std::cout << "." << std::flush;
+        layer_cnv1_lut1->ImportLayer<float, float>(layer_cnv1_sl1);     std::cout << "." << std::flush;
+        layer_cnv1_lut2->ImportLayer<float, float>(layer_cnv1_sl2);     std::cout << "." << std::flush;
+        layer_cnv2_lut0->ImportLayer<float, float>(layer_cnv2_sl0);     std::cout << "." << std::flush;
+        layer_cnv2_lut1->ImportLayer<float, float>(layer_cnv2_sl1);     std::cout << "." << std::flush;
+        layer_cnv2_lut2->ImportLayer<float, float>(layer_cnv2_sl2);     std::cout << "." << std::flush;
+        layer_cnv3_lut0->ImportLayer<float, float>(layer_cnv3_sl0);     std::cout << "." << std::flush;
+        layer_cnv3_lut1->ImportLayer<float, float>(layer_cnv3_sl1);     std::cout << "." << std::flush;
+        layer_cnv3_lut2->ImportLayer<float, float>(layer_cnv3_sl2);     std::cout << "." << std::flush;
+        layer_lut4     ->ImportLayer<float, float>(layer_sl4);          std::cout << "." << std::flush;
+        layer_lut5     ->ImportLayer<float, float>(layer_sl5);          std::cout << "." << std::flush;
+        layer_lut6     ->ImportLayer<float, float>(layer_sl6);          std::cout << "." << std::flush;
         layer_lut7     ->ImportLayer<float, float>(layer_sl7);          std::cout << "." << std::endl;
 
         // 評価
