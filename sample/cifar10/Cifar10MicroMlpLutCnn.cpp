@@ -129,12 +129,16 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
         // LUT-network
         auto layer_cnv0_lut0 = bb::BinaryLutN<>::Create(layer_cnv0_mm0->GetOutputShape());
         auto layer_cnv0_lut1 = bb::BinaryLutN<>::Create(layer_cnv0_mm1->GetOutputShape());
+        auto layer_cnv0_lut2 = bb::BinaryLutN<>::Create(layer_cnv0_mm2->GetOutputShape());
         auto layer_cnv1_lut0 = bb::BinaryLutN<>::Create(layer_cnv1_mm0->GetOutputShape());
         auto layer_cnv1_lut1 = bb::BinaryLutN<>::Create(layer_cnv1_mm1->GetOutputShape());
+        auto layer_cnv1_lut2 = bb::BinaryLutN<>::Create(layer_cnv1_mm2->GetOutputShape());
         auto layer_cnv2_lut0 = bb::BinaryLutN<>::Create(layer_cnv2_mm0->GetOutputShape());
         auto layer_cnv2_lut1 = bb::BinaryLutN<>::Create(layer_cnv2_mm1->GetOutputShape());
+        auto layer_cnv2_lut2 = bb::BinaryLutN<>::Create(layer_cnv2_mm2->GetOutputShape());
         auto layer_cnv3_lut0 = bb::BinaryLutN<>::Create(layer_cnv3_mm0->GetOutputShape());
         auto layer_cnv3_lut1 = bb::BinaryLutN<>::Create(layer_cnv3_mm1->GetOutputShape());
+        auto layer_cnv3_lut2 = bb::BinaryLutN<>::Create(layer_cnv3_mm2->GetOutputShape());
         auto layer_lut4      = bb::BinaryLutN<>::Create(layer_mm4->GetOutputShape());
         auto layer_lut5      = bb::BinaryLutN<>::Create(layer_mm5->GetOutputShape());
         auto layer_lut6      = bb::BinaryLutN<>::Create(layer_mm6->GetOutputShape());
@@ -142,18 +146,22 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_lut0);
         cnv0_sub->Add(layer_cnv0_lut1);
+        cnv0_sub->Add(layer_cnv0_lut2);
 
         auto cnv1_sub = bb::Sequential::Create();
         cnv1_sub->Add(layer_cnv1_lut0);
         cnv1_sub->Add(layer_cnv1_lut1);
+        cnv1_sub->Add(layer_cnv1_lut2);
 
         auto cnv2_sub = bb::Sequential::Create();
         cnv2_sub->Add(layer_cnv2_lut0);
         cnv2_sub->Add(layer_cnv2_lut1);
+        cnv2_sub->Add(layer_cnv2_lut2);
 
         auto cnv3_sub = bb::Sequential::Create();
         cnv3_sub->Add(layer_cnv3_lut0);
         cnv3_sub->Add(layer_cnv3_lut1);
+        cnv3_sub->Add(layer_cnv3_lut2);
 
         auto cnv4_sub = bb::Sequential::Create();
         cnv4_sub->Add(layer_lut4);
@@ -188,12 +196,16 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
         std::cout << "parameter copy to LUT-Network" << std::endl;
         layer_cnv0_lut0->ImportLayer<float, float>(layer_cnv0_mm0);
         layer_cnv0_lut1->ImportLayer<float, float>(layer_cnv0_mm1);
+        layer_cnv0_lut2->ImportLayer<float, float>(layer_cnv0_mm2);
         layer_cnv1_lut0->ImportLayer<float, float>(layer_cnv1_mm0);
         layer_cnv1_lut1->ImportLayer<float, float>(layer_cnv1_mm1);
+        layer_cnv1_lut2->ImportLayer<float, float>(layer_cnv1_mm2);
         layer_cnv2_lut0->ImportLayer<float, float>(layer_cnv2_mm0);
         layer_cnv2_lut1->ImportLayer<float, float>(layer_cnv2_mm1);
+        layer_cnv2_lut2->ImportLayer<float, float>(layer_cnv2_mm2);
         layer_cnv3_lut0->ImportLayer<float, float>(layer_cnv3_mm0);
         layer_cnv3_lut1->ImportLayer<float, float>(layer_cnv3_mm1);
+        layer_cnv3_lut2->ImportLayer<float, float>(layer_cnv3_mm2);
         layer_lut4     ->ImportLayer<float, float>(layer_mm4);
         layer_lut5     ->ImportLayer<float, float>(layer_mm5);
         layer_lut6     ->ImportLayer<float, float>(layer_mm6);
