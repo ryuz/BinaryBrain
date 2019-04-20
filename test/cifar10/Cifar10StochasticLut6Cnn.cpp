@@ -34,7 +34,7 @@
 
 
 
-#if 1
+#if 0
 
 // CNN with LUT networks
 void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
@@ -253,9 +253,11 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
     auto layer_cnv0_sl1 = bb::StochasticLut6<>::Create(192);
     auto layer_cnv0_sl2 = bb::StochasticLut6<>::Create(32);
 
-    auto layer_cnv1_sl0 = bb::StochasticLut6<>::Create({1, 8, 32},  "depthwise");
-    auto layer_cnv1_sl1 = bb::StochasticLut6<>::Create({1, 1, 192}, "pointwise");
-    auto layer_cnv1_sl2 = bb::StochasticLut6<>::Create({1, 1, 32},  "pointwise");
+    auto layer_cnv1d_sl0 = bb::StochasticLut6<>::Create({1, 8, 32},  "depthwise");
+    auto layer_cnv1d_sl1 = bb::StochasticLut6<>::Create({1, 1, 32},  "depthwise");
+
+    auto layer_cnv1p_sl1 = bb::StochasticLut6<>::Create({1, 1, 192}, "pointwise");
+    auto layer_cnv1p_sl2 = bb::StochasticLut6<>::Create({1, 1, 32},  "pointwise");
 
     auto layer_cnv2_sl0 = bb::StochasticLut6<>::Create({1, 16, 32}, "depthwise");
     auto layer_cnv2_sl1 = bb::StochasticLut6<>::Create(384);
@@ -264,12 +266,19 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
     auto layer_cnv3_sl0 = bb::StochasticLut6<>::Create(512);
     auto layer_cnv3_sl1 = bb::StochasticLut6<>::Create(384);
     auto layer_cnv3_sl2 = bb::StochasticLut6<>::Create(64);
+#if 0
     auto layer_sl4 = bb::StochasticLut6<>::Create(2048);
     auto layer_sl5 = bb::StochasticLut6<>::Create(1024);
     auto layer_sl6 = bb::StochasticLut6<>::Create(512);
     auto layer_sl7 = bb::StochasticLut6<>::Create(360);
     auto layer_sl8 = bb::StochasticLut6<>::Create(60);
     auto layer_sl9 = bb::StochasticLut6<>::Create(10);
+#else
+    auto layer_sl4 = bb::StochasticLut6<>::Create(2048);
+    auto layer_sl5 = bb::StochasticLut6<>::Create(1024);
+    auto layer_sl6 = bb::StochasticLut6<>::Create(420);
+    auto layer_sl7 = bb::StochasticLut6<>::Create(70);
+#endif
 
     {
         auto cnv0_sub = bb::Sequential::Create();
@@ -277,12 +286,13 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         cnv0_sub->Add(layer_cnv0_sl1);
         cnv0_sub->Add(layer_cnv0_sl2);
 
-        auto cnv1_sub = bb::Sequential::Create();
-        cnv1_sub->Add(layer_cnv1_sl0);
+        auto cnv1d_sub = bb::Sequential::Create();
+        cnv1d_sub->Add(layer_cnv1d_sl0);
+        cnv1d_sub->Add(layer_cnv1d_sl1);
 
         auto cnv1p_sub = bb::Sequential::Create();
-        cnv1p_sub->Add(layer_cnv1_sl1);
-        cnv1p_sub->Add(layer_cnv1_sl2);
+        cnv1p_sub->Add(layer_cnv1p_sl1);
+        cnv1p_sub->Add(layer_cnv1p_sl2);
 
         auto cnv2_sub = bb::Sequential::Create();
         cnv2_sub->Add(layer_cnv2_sl0);
@@ -297,7 +307,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         
         auto net = bb::Sequential::Create();
         net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
-        net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
+        net->Add(bb::LoweringConvolution<>::Create(cnv1d_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv1p_sub, 1, 1));
         net->Add(bb::MaxPooling<>::Create(2, 2));
         net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
@@ -308,8 +318,9 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         net->Add(layer_sl5);
         net->Add(layer_sl6);
         net->Add(layer_sl7);
-        net->Add(layer_sl8);
-        net->Add(layer_sl9);
+//        net->Add(layer_sl8);
+//        net->Add(layer_sl9);
+        net->Add(bb::Reduce<>::Create(td.t_shape));
         net->SetInputShape(td.x_shape);
 
         if ( binary_mode ) {
@@ -336,7 +347,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
 
-
+#if 0
     {
         // LUT-network
         int const   frame_mux_size = 15;
@@ -357,8 +368,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto layer_lut5      = bb::BinaryLutN<>::Create(layer_sl5->GetOutputShape());
         auto layer_lut6      = bb::BinaryLutN<>::Create(layer_sl6->GetOutputShape());
         auto layer_lut7      = bb::BinaryLutN<>::Create(layer_sl7->GetOutputShape());
-        auto layer_lut8      = bb::BinaryLutN<>::Create(layer_sl8->GetOutputShape());
-        auto layer_lut9      = bb::BinaryLutN<>::Create(layer_sl9->GetOutputShape());
+//        auto layer_lut8      = bb::BinaryLutN<>::Create(layer_sl8->GetOutputShape());
+//        auto layer_lut9      = bb::BinaryLutN<>::Create(layer_sl9->GetOutputShape());
 
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_lut0);
@@ -385,8 +396,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         cnv4_sub->Add(layer_lut5);
         cnv4_sub->Add(layer_lut6);
         cnv4_sub->Add(layer_lut7);
-        cnv4_sub->Add(layer_lut8);
-        cnv4_sub->Add(layer_lut9);
+//        cnv4_sub->Add(layer_lut8);
+//        cnv4_sub->Add(layer_lut9);
 
         auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3);
         auto cnv1 = bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3);
@@ -430,8 +441,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         layer_lut5     ->ImportLayer<float, float>(layer_sl5);
         layer_lut6     ->ImportLayer<float, float>(layer_sl6);
         layer_lut7     ->ImportLayer<float, float>(layer_sl7);
-        layer_lut8     ->ImportLayer<float, float>(layer_sl8);
-        layer_lut9     ->ImportLayer<float, float>(layer_sl9);
+//        layer_lut8     ->ImportLayer<float, float>(layer_sl8);
+//        layer_lut9     ->ImportLayer<float, float>(layer_sl9);
 
         // •]‰¿
         if ( 1 ) {
@@ -475,6 +486,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
             bb::WriteTestDataImage<float>("verilog/cifar10_test_640x480.ppm", 640, 480, td);
         }
     }
+#endif
 }
 
 #endif
