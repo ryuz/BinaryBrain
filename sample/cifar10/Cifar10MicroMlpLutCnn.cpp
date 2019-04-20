@@ -196,11 +196,10 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
         layer_cnv3_lut1->ImportLayer<float, float>(layer_cnv3_mm1);
         layer_lut4     ->ImportLayer<float, float>(layer_mm4);
         layer_lut5     ->ImportLayer<float, float>(layer_mm5);
-        layer_lut6
-            ->ImportLayer<float, float>(layer_mm6);
+        layer_lut6     ->ImportLayer<float, float>(layer_mm6);
 
         // 評価
-        if ( 0 ) {
+        if ( 1 ) {
             bb::Runner<float>::create_t lut_runner_create;
             lut_runner_create.name        = "Lut_" + net_name;
             lut_runner_create.net         = lut_net;
@@ -237,57 +236,11 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
             std::cout << "export : " << filename << "\n" << std::endl;
             
             // write test image
-//          WriteTestImage("verilog/mnist_test_160x120.ppm", 160, 120);
-//          WriteTestImage("verilog/mnist_test_640x480.ppm", 640, 480);
+            bb::WriteTestDataImage<float>("verilog/mnist_test_160x120.ppm", 160, 120, td);
+            bb::WriteTestDataImage<float>("verilog/mnist_test_640x480.ppm", 640, 480, td);
         }
     }
 }
 
-
-/*
-// RTL simulation 用データの出力
-static void WriteTestImage(std::string filename, const int w, const int h)
-{
-	// load MNIST data
-	auto td = bb::LoadMnist<>::Load();
-
-	unsigned char* img = new unsigned char[h * w];
-	for (int y = 0; y < h; ++y) {
-		for (int x = 0; x < w; ++x) {
-			int idx = (y / 28) * (w / 28) + (x / 28);
-			int xx = x % 28;
-			int yy = y % 28;
-			img[y*w+x] = (unsigned char)(td.x_test[idx][yy * 28 + xx] * 255.0f);
-		}
-	}
-
-	if ( 0 ) {
-		std::ofstream ofs(filename);
-		ofs << "P2" << std::endl;
-		ofs << w << " " << h << std::endl;
-		ofs << "255" << std::endl;
-		for (int y = 0; y < h; ++y) {
-			for (int x = 0; x < w; ++x) {
-				ofs << (int)img[y*w+x] << std::endl;
-			}
-		}
-	}
-
-	if ( 1 ) {
-		std::ofstream ofs(filename);
-		ofs << "P3" << std::endl;
-		ofs << w << " " << h << std::endl;
-		ofs << "255" << std::endl;
-		for (int y = 0; y < h; ++y) {
-			for (int x = 0; x < w; ++x) {
-				ofs << (int)img[y*w+x] << " " << (int)img[y*w+x] << " " << (int)img[y*w+x] << std::endl;
-			}
-		}
-	}
-
-    delete[] img;
-}
-
-*/
 
 // end of file
