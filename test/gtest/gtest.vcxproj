@@ -61,6 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\bb\Activation.h" />
+    <ClInclude Include="..\..\include\bb\AveragePooling.h" />
     <ClInclude Include="..\..\include\bb\BatchNormalization.h" />
     <ClInclude Include="..\..\include\bb\Binarize.h" />
     <ClInclude Include="..\..\include\bb\BinaryLutN.h" />
@@ -97,6 +98,7 @@
     <ClInclude Include="..\..\include\bb\OptimizerAdam.h" />
     <ClInclude Include="..\..\include\bb\OptimizerSgd.h" />
     <ClInclude Include="..\..\include\bb\RealToBinary.h" />
+    <ClInclude Include="..\..\include\bb\Reduce.h" />
     <ClInclude Include="..\..\include\bb\ReLU.h" />
     <ClInclude Include="..\..\include\bb\Sequential.h" />
     <ClInclude Include="..\..\include\bb\ShuffleSet.h" />
