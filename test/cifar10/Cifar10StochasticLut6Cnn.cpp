@@ -38,14 +38,14 @@
 
 
 
-#if 0
+#if 1
 
 // 単純版
 
 // CNN with LUT networks
 void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "Cifar10StochasticLut6Cnn";
+    std::string net_name = "Cifar10StochasticLut6Cnn_Simple";
 
   // load cifar-10 data
 #ifdef _DEBUG
@@ -135,7 +135,6 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto layer_cnv3_lut1 = bb::BinaryLutN<>::Create(layer_cnv3_sl1->GetOutputShape());
         auto layer_lut4      = bb::BinaryLutN<>::Create(layer_sl4->GetOutputShape());
         auto layer_lut5      = bb::BinaryLutN<>::Create(layer_sl5->GetOutputShape());
-//        auto layer_lut6      = bb::BinaryLutN<>::Create(layer_sl6->GetOutputShape());
 
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_lut0);
@@ -156,7 +155,6 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto cnv4_sub = bb::Sequential::Create();
         cnv4_sub->Add(layer_lut4);
         cnv4_sub->Add(layer_lut5);
-//        cnv4_sub->Add(layer_lut6);
 
         auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3);
         auto cnv1 = bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3);
@@ -170,7 +168,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(frame_mux_size));
+        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
+//      lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(cnv0);
         lut_net->Add(cnv1);
         lut_net->Add(pol0);
@@ -178,9 +177,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         lut_net->Add(cnv3);
         lut_net->Add(pol1);
         lut_net->Add(cnv4);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, frame_mux_size));
+        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, lut_frame_mux_size));
         lut_net->SetInputShape(td.x_shape);
-
 
         // テーブル化して取り込み(現状まだSetInputShape後の取り込みが必要)
         layer_cnv0_lut0->ImportLayer<float, float>(layer_cnv0_sl0);
@@ -193,10 +191,14 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         layer_cnv3_lut1->ImportLayer<float, float>(layer_cnv3_sl1);
         layer_lut4     ->ImportLayer<float, float>(layer_sl4);
         layer_lut5     ->ImportLayer<float, float>(layer_sl5);
-//        layer_lut6     ->ImportLayer<float, float>(layer_sl6);
+
+        // print model information
+        lut_net->PrintInfo();
 
         // 評価
         if ( 1 ) {
+            std::cout << "frame_mux_size : " << lut_frame_mux_size << std::endl;
+
             bb::Runner<float>::create_t lut_runner_create;
             lut_runner_create.name        = "Lut_" + net_name;
             lut_runner_create.net         = lut_net;
@@ -526,6 +528,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 #endif
 
 
+#if 0
 
 // BatchNorm実験
 
@@ -769,6 +772,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 #endif
 }
 
+#endif
 
 
 // end of file

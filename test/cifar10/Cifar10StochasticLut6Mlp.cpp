@@ -105,17 +105,21 @@ void Cifar10StochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_s
         layer_lut2->ImportLayer<float, float>(layer_sl2);
         layer_lut3->ImportLayer<float, float>(layer_sl3);
 
-        // 評価
-        bb::Runner<float>::create_t lut_runner_create;
-        lut_runner_create.name           = "Lut_" + net_name;
-        lut_runner_create.net            = lut_net;
-        lut_runner_create.lossFunc       = bb::LossSoftmaxCrossEntropy<float>::Create();
-        lut_runner_create.metricsFunc    = bb::MetricsCategoricalAccuracy<float>::Create();
-        lut_runner_create.optimizer      = bb::OptimizerAdam<float>::Create();
-        lut_runner_create.print_progress = true;
-        auto lut_runner = bb::Runner<float>::Create(lut_runner_create);
-        auto lut_accuracy = lut_runner->Evaluation(td, mini_batch_size);
-        std::cout << "lut_accuracy : " << lut_accuracy << std::endl;
+        if ( 1 ) {
+            // 評価
+            std::cout << "frame_mux_size : " << lut_frame_mux_size << std::endl;
+
+            bb::Runner<float>::create_t lut_runner_create;
+            lut_runner_create.name           = "Lut_" + net_name;
+            lut_runner_create.net            = lut_net;
+            lut_runner_create.lossFunc       = bb::LossSoftmaxCrossEntropy<float>::Create();
+            lut_runner_create.metricsFunc    = bb::MetricsCategoricalAccuracy<float>::Create();
+            lut_runner_create.optimizer      = bb::OptimizerAdam<float>::Create();
+            lut_runner_create.print_progress = true;
+            auto lut_runner = bb::Runner<float>::Create(lut_runner_create);
+            auto lut_accuracy = lut_runner->Evaluation(td, mini_batch_size);
+            std::cout << "lut_accuracy : " << lut_accuracy << std::endl;
+        }
 
         {
             // Verilog 出力
