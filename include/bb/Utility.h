@@ -328,6 +328,60 @@ void DumpMemory(std::string filename, T const *addr, size_t size)
 
 
 
+// RTL simulation 用画像データの出力
+template<typename T> 
+void WriteTestDataImage(std::string filename, int width, int height, TrainData<T> const &td, bool pgm = false)
+{
+    BB_ASSERT(td.x_shape.size() == 3);
+
+    // イメージ作成
+    auto w_size = td.x_shape[0];
+    auto h_size = td.x_shape[1];
+    auto c_size = td.x_shape[2];
+	unsigned char* img = new unsigned char[height * width * 3];
+	for (int c = 0; c < 3; ++c) {
+	    for (int y = 0; y < height; ++y) {
+		    for (int x = 0; x < width; ++x) {
+			    auto idx = (y / h_size) * (width / w_size) + (x / w_size);
+			    auto xx = x % w_size;
+			    auto yy = y % h_size;
+                auto cc = c % c_size;
+			    img[(y*width + x) * 3 + c] = (unsigned char)(td.x_test[idx][(cc * h_size + yy) * w_size + xx] * (T)255.0);
+		    }
+	    }
+    }
+
+    // ファイル出力
+	std::ofstream ofs(filename);
+    if ( pgm ) {
+        // pgm(モノクロ)出力
+		std::ofstream ofs(filename);
+		ofs << "P2" << std::endl;
+		ofs << width << " " << height << std::endl;
+		ofs << "255" << std::endl;
+		for (int y = 0; y < height; ++y) {
+			for (int x = 0; x < width; ++x) {
+				ofs << ((int)img[(y*width + x) * 3 + 0] + (int)img[(y*width + x) * 3 + 1] + (int)img[(y*width + x) * 3 + 2]) / 3 << std::endl;
+			}
+		}
+	}
+    else {
+        // ppm 出力
+		ofs << "P3" << std::endl;
+		ofs << width << " " << height << std::endl;
+		ofs << "255" << std::endl;
+		for (int y = 0; y < height; ++y) {
+			for (int x = 0; x < width; ++x) {
+				ofs << (int)img[(y*width + x) * 3 + 0] << " " << (int)img[(y*width + x) * 3 + 1] << " " << (int)img[(y*width + x) * 3 + 2] << std::endl;
+			}
+		}
+	}
+
+    delete[] img;
+}
+
+
+
 
 // ostream 用 tee
 template<class _Elem, class _Traits = std::char_traits<_Elem> >
