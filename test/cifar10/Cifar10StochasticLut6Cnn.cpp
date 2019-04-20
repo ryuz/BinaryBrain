@@ -252,12 +252,15 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
     auto layer_cnv0_sl0 = bb::StochasticLut6<>::Create(256);
     auto layer_cnv0_sl1 = bb::StochasticLut6<>::Create(192);
     auto layer_cnv0_sl2 = bb::StochasticLut6<>::Create(32);
-    auto layer_cnv1_sl0 = bb::StochasticLut6<>::Create(256);
+
+    auto layer_cnv1_sl0 = bb::StochasticLut6<>::Create({1, 8, 32}, "channelwise");
     auto layer_cnv1_sl1 = bb::StochasticLut6<>::Create(192);
     auto layer_cnv1_sl2 = bb::StochasticLut6<>::Create(32);
-    auto layer_cnv2_sl0 = bb::StochasticLut6<>::Create(512);
+
+    auto layer_cnv2_sl0 = bb::StochasticLut6<>::Create({1, 16, 32}, "channelwise");
     auto layer_cnv2_sl1 = bb::StochasticLut6<>::Create(384);
     auto layer_cnv2_sl2 = bb::StochasticLut6<>::Create(64);
+
     auto layer_cnv3_sl0 = bb::StochasticLut6<>::Create(512);
     auto layer_cnv3_sl1 = bb::StochasticLut6<>::Create(384);
     auto layer_cnv3_sl2 = bb::StochasticLut6<>::Create(64);
@@ -276,13 +279,16 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 
         auto cnv1_sub = bb::Sequential::Create();
         cnv1_sub->Add(layer_cnv1_sl0);
-        cnv1_sub->Add(layer_cnv1_sl1);
-        cnv1_sub->Add(layer_cnv1_sl2);
+
+        auto cnv1p_sub = bb::Sequential::Create();
+        cnv1p_sub->Add(layer_cnv1_sl1);
+        cnv1p_sub->Add(layer_cnv1_sl2);
 
         auto cnv2_sub = bb::Sequential::Create();
         cnv2_sub->Add(layer_cnv2_sl0);
-        cnv2_sub->Add(layer_cnv2_sl1);
-        cnv2_sub->Add(layer_cnv2_sl2);
+        auto cnv2p_sub = bb::Sequential::Create();
+        cnv2p_sub->Add(layer_cnv2_sl1);
+        cnv2p_sub->Add(layer_cnv2_sl2);
 
         auto cnv3_sub = bb::Sequential::Create();
         cnv3_sub->Add(layer_cnv3_sl0);
@@ -292,8 +298,10 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto net = bb::Sequential::Create();
         net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
+        net->Add(bb::LoweringConvolution<>::Create(cnv1p_sub, 1, 1));
         net->Add(bb::MaxPooling<>::Create(2, 2));
         net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
+        net->Add(bb::LoweringConvolution<>::Create(cnv2p_sub, 1, 1));
         net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
         net->Add(bb::MaxPooling<>::Create(2, 2));
         net->Add(layer_sl4);
