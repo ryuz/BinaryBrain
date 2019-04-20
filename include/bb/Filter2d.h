@@ -20,6 +20,19 @@ namespace bb {
 template <typename FT = float, typename BT = float>
 class Filter2d : public Model
 {
+protected:
+    /**
+     * @brief  モデルの情報を表示
+     * @detail モデルの情報を表示する
+     * @param  os     出力ストリーム
+     * @param  indent インデント文字列
+     */
+    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
+    {
+        os << indent << " filter size : (" << GetFilterHeight() << ", " << GetFilterWidth() << ")" << std::endl;
+        Model::PrintInfoText(os, indent, columns, nest, depth);
+    }
+
 public:
     virtual index_t GetFilterHeight(void) = 0;
     virtual index_t GetFilterWidth(void)  = 0;

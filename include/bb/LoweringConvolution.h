@@ -217,12 +217,10 @@ protected:
      */
     void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
     {
-        // これ以上ネストしないなら自クラス概要
-        if ( depth > 0 && (nest+1) >= depth ) {
-            Model::PrintInfoText(os, indent, columns, nest, depth);
-        }
-        else {
-            // 子レイヤーの表示
+        super::PrintInfoText(os, indent, columns, nest, depth);
+
+        // 子レイヤーの表示
+        if ( depth == 0 || (nest+1) < depth ) {
             m_im2col->PrintInfo(depth, os, columns, nest+1);
             m_layer->PrintInfo(depth, os, columns, nest+1);
             m_col2im->PrintInfo(depth, os, columns, nest+1);
