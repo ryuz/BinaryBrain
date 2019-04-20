@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <cstdlib>
 
 #include <cereal/archives/json.hpp>
 #include <cereal/types/vector.hpp>
@@ -39,7 +40,8 @@ class BatchNormalization : public Activation<T, T>
 protected:
     bool                        m_host_only = false;
     bool                        m_host_simd = true;
-
+    bool                        m_fix_gamma = false;
+    bool                        m_fix_beta  = false;
 
     index_t                     m_node_size;
     
@@ -82,6 +84,19 @@ protected:
         if (args.size() == 2 && args[0] == "host_simd")
         {
             m_host_simd = EvalBool(args[1]);
+        }
+
+        if (args.size() == 2 && args[0] == "fix_gamma") {
+            m_fix_gamma = EvalBool(args[1]);
+        }
+        if (args.size() == 2 && args[0] == "fix_beta") {
+            m_fix_beta = EvalBool(args[1]);
+        }
+        if (args.size() == 2 && args[0] == "set_gamma") {
+            *m_gamma = (T)std::atof(args[1].c_str());
+        }
+        if (args.size() == 2 && args[0] == "set_beta") {
+            *m_beta  = (T)std::atof(args[1].c_str());
         }
     }
 
@@ -234,8 +249,8 @@ public:
     Variables GetParameters(void)
     {
         Variables parameters;
-        parameters.PushBack(m_gamma);
-        parameters.PushBack(m_beta);
+        if ( !m_fix_gamma ) { parameters.PushBack(m_gamma); }
+        if ( !m_fix_beta  ) { parameters.PushBack(m_beta);  }
         return parameters;
     }
 
@@ -248,8 +263,8 @@ public:
     Variables GetGradients(void)
     {
         Variables gradients;
-        gradients.PushBack(m_dgamma);
-        gradients.PushBack(m_dbeta);
+        if ( !m_fix_gamma ) { gradients.PushBack(m_dgamma); }
+        if ( !m_fix_beta  ) { gradients.PushBack(m_dbeta);  }
         return gradients;
     }
     
