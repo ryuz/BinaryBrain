@@ -10,6 +10,10 @@
 #include <iostream>
 #include <string.h>
 
+#ifdef BB_WITH_CUDA
+#include "bbcu/bbcu_util.h"
+#endif
+
 
 void Cifar10DenseMlp(int epoch_size, int mini_batch_size, int max_run_size, bool binary_mode, bool file_read);
 void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, bool binary_mode, bool file_read);
@@ -22,7 +26,9 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
 // メイン関数
 int main(int argc, char *argv[])
 {
- 	omp_set_num_threads(4);
+#ifdef BB_WITH_CUDA
+    bbcu::PrintDeviceProperties();
+#endif
 
     std::string netname = "All";
     int         epoch_size         = 8;
