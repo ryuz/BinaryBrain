@@ -78,7 +78,7 @@ public:
         default: BB_ASSERT(0);  break;
         }
 
-        BatchNormalization<T>::create_t bn_create;
+        typename BatchNormalization<T>::create_t bn_create;
         bn_create.momentum  = create.momentum;
         bn_create.gamma     = create.gamma; 
         bn_create.beta      = create.beta;    
