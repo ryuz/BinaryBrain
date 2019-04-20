@@ -62,8 +62,10 @@ public:
         indices_t  output_shape;
         bool       bn_enable = true;
         T          momentum = (T)0.001;
-        T          gamma    = (T)0.5;
+        T          gamma    = (T)0.2;
         T          beta     = (T)0.5;
+        bool       fix_gamma = true;
+        bool       fix_beta = true;
     };
 
     static std::shared_ptr< StochasticLutBn > Create(create_t const &create)
@@ -75,7 +77,14 @@ public:
         case 6: self->m_lut = StochasticLut6<T>::Create(create.output_shape);   break;
         default: BB_ASSERT(0);  break;
         }
-        self->m_batch_norm = BatchNormalization<T>::Create(create.momentum, create.gamma, create.beta);
+
+        BatchNormalization<T>::create_t bn_create;
+        bn_create.momentum  = create.momentum;
+        bn_create.gamma     = create.gamma; 
+        bn_create.beta      = create.beta;    
+        bn_create.fix_gamma = create.fix_gamma;
+        bn_create.fix_beta  = create.fix_beta;
+        self->m_batch_norm = BatchNormalization<T>::Create(bn_create);
         return self;
     }
 

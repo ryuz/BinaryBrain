@@ -105,9 +105,11 @@ public:
 
     struct create_t
     {
-        T   momentum = (T)0.001;
-        T   gamma    = (T)1.0;
-        T   beta     = (T)0.0;
+        T       momentum  = (T)0.001;
+        T       gamma     = (T)1.0;
+        T       beta      = (T)0.0;
+        bool    fix_gamma = false;
+        bool    fix_beta  = false;
     };
 
     static std::shared_ptr<BatchNormalization> Create(create_t const &create)
@@ -116,6 +118,8 @@ public:
         self->m_momentum   = create.momentum;
         self->m_init_gamma = create.gamma;
         self->m_init_beta  = create.beta;
+        self->m_fix_gamma  = create.fix_gamma;
+        self->m_fix_beta   = create.fix_beta;
         return self;
     }
 
