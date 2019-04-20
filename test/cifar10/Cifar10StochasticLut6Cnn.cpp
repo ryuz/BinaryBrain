@@ -253,7 +253,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
     auto layer_cnv0_sl1 = bb::StochasticLut6<>::Create(384);
     auto layer_cnv0_sl2 = bb::StochasticLut6<>::Create(64);
 
-    auto layer_cnv1d_sl0 = bb::StochasticLut6<>::Create({1, 8, 32},  "depthwise");
+    auto layer_cnv1d_sl0 = bb::StochasticLut6<>::Create({1, 8, 64},  "depthwise");
 //  auto layer_cnv1d_sl1 = bb::StochasticLut6<>::Create({1, 1, 32},  "depthwise");
 
     auto layer_cnv1p_sl1 = bb::StochasticLut6<>::Create({1, 1, 192}, "pointwise");
