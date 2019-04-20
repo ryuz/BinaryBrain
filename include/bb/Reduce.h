@@ -36,28 +36,28 @@ protected:
     FrameBuffer         m_y;
     FrameBuffer         m_dx;
 
-	indices_t			m_input_shape;
-	indices_t			m_output_shape;
+    indices_t           m_input_shape;
+    indices_t           m_output_shape;
 
 protected:
-	Reduce() {}
+    Reduce() {}
 
     /**
      * @brief  コマンド処理
      * @detail コマンド処理
      * @param  args   コマンド
      */
-	void CommandProc(std::vector<std::string> args)
-	{
+    void CommandProc(std::vector<std::string> args)
+    {
         // HostOnlyモード設定
         if (args.size() == 2 && args[0] == "host_only")
         {
             m_host_only = EvalBool(args[1]);
         }
-	}
+    }
 
 public:
-	~Reduce() {}
+    ~Reduce() {}
 
     struct create_t
     {
@@ -81,7 +81,7 @@ public:
         return Create(create);
     }
 
-	std::string GetClassName(void) const { return "Reduce"; }
+    std::string GetClassName(void) const { return "Reduce"; }
 
     /**
      * @brief  入力のshape設定
@@ -138,19 +138,19 @@ public:
 #if 0 // #ifdef BB_WITH_CUDA
         if ( DataType<FXT>::type == BB_TYPE_FP32 && !m_host_only && DataType<FYT>::type == BB_TYPE_FP32
             && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
-		    auto x_ptr = x.LockDeviceMemoryConst();
-		    auto y_ptr = m_y.LockDeviceMemory(true);
+            auto x_ptr = x.LockDeviceMemoryConst();
+            auto y_ptr = m_y.LockDeviceMemory(true);
 
             bbcu_fp32_BinaryToReal_Forward
-		        (
-			        (float const *)x_ptr.GetAddr(),
-			        (float       *)y_ptr.GetAddr(),
-			        (int          )(GetShapeSize(m_input_shape) / GetShapeSize(m_output_shape)),
-			        (int          )m_frame_mux_size,
-			        (int          )GetOutputNodeSize(),
-			        (int          )(x.GetFrameStride() / sizeof(float)),
-			        (int          )m_y.GetFrameSize(),
-			        (int          )(m_y.GetFrameStride() / sizeof(float))
+                (
+                    (float const *)x_ptr.GetAddr(),
+                    (float       *)y_ptr.GetAddr(),
+                    (int          )(GetShapeSize(m_input_shape) / GetShapeSize(m_output_shape)),
+                    (int          )m_frame_mux_size,
+                    (int          )GetOutputNodeSize(),
+                    (int          )(x.GetFrameStride() / sizeof(float)),
+                    (int          )m_y.GetFrameSize(),
+                    (int          )(m_y.GetFrameStride() / sizeof(float))
                 );
 
             return m_y;
@@ -159,8 +159,8 @@ public:
 
         {
             // 汎用版
-		    auto x_ptr = x.LockConst<FT>();
-		    auto y_ptr = m_y.Lock<FT>(true);
+            auto x_ptr = x.LockConst<FT>();
+            auto y_ptr = m_y.Lock<FT>(true);
 
             index_t input_node_size   = GetInputNodeSize();
             index_t output_node_size  = GetOutputNodeSize();
@@ -168,25 +168,25 @@ public:
 
             index_t mux_size          = input_node_size / output_node_size;
 
-		    index_t node_size = std::max(input_node_size, output_node_size);
+            index_t node_size = std::max(input_node_size, output_node_size);
 
             #pragma omp parallel for
-    	    for (index_t output_node = 0; output_node < output_node_size; ++output_node) {
-    		    for (index_t frame = 0; frame < output_frame_size; ++frame) {
+            for (index_t output_node = 0; output_node < output_node_size; ++output_node) {
+                for (index_t frame = 0; frame < output_frame_size; ++frame) {
                     FT sum = 0;
-				    for (index_t i = 0; i < mux_size; ++i) {
-					    sum += x_ptr.Get(frame, output_node_size * i + output_node);
-				    }
-			    }
-			    y_ptr.Set(frame, output_node, sum / (FT)mux_size);
-		    }
+                    for (index_t i = 0; i < mux_size; ++i) {
+                        sum += x_ptr.Get(frame, output_node_size * i + output_node);
+                    }
+                }
+                y_ptr.Set(frame, output_node, sum / (FT)mux_size);
+            }
 
             return m_y;
         }
-	}
+    }
 
-	FrameBuffer Backward(FrameBuffer dy)
-	{
+    FrameBuffer Backward(FrameBuffer dy)
+    {
         BB_ASSERT(dy.GetType() == DataType<BT>::type);
 
         // 戻り値の型を設定
@@ -196,19 +196,19 @@ public:
         if ( DataType<BT>::type == BB_TYPE_FP32 && !m_host_only 
                 && dy.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
 
-		    auto dy_ptr = dy.LockDeviceMemoryConst();
-		    auto dx_ptr = m_dx.LockDeviceMemory(true);
+            auto dy_ptr = dy.LockDeviceMemoryConst();
+            auto dx_ptr = m_dx.LockDeviceMemory(true);
 
             bbcu_fp32_BinaryToReal_Backward
-		        (
-			        (float const *)dy_ptr.GetAddr(),
-			        (float       *)dx_ptr.GetAddr(),
-			        (int          )(GetShapeSize(m_input_shape) / GetShapeSize(m_output_shape)),
-			        (int          )m_frame_mux_size,
-			        (int          )GetOutputNodeSize(),
-			        (int          )(m_dx.GetFrameStride() / sizeof(float)),
-			        (int          )dy.GetFrameSize(),
-			        (int          )(dy.GetFrameStride() / sizeof(float))
+                (
+                    (float const *)dy_ptr.GetAddr(),
+                    (float       *)dx_ptr.GetAddr(),
+                    (int          )(GetShapeSize(m_input_shape) / GetShapeSize(m_output_shape)),
+                    (int          )m_frame_mux_size,
+                    (int          )GetOutputNodeSize(),
+                    (int          )(m_dx.GetFrameStride() / sizeof(float)),
+                    (int          )dy.GetFrameSize(),
+                    (int          )(dy.GetFrameStride() / sizeof(float))
                 );
 
             return m_dx;
@@ -219,7 +219,7 @@ public:
             // 汎用版
             index_t input_node_size   = GetInputNodeSize();
             index_t output_node_size  = GetOutputNodeSize();
-		    index_t frame_size        = dy.GetFrameSize();
+            index_t frame_size        = dy.GetFrameSize();
 
             index_t mux_size          = input_node_size / output_node_size;
 
@@ -227,18 +227,18 @@ public:
             auto dx_ptr = m_dx.Lock<BT>();
 
             #pragma omp parallel for
-    	    for (index_t output_node = 0; output_node < output_node_size; ++output_node) {
-    		    for (index_t frame = 0; frame < output_frame_size; ++frame) {
-    			    BT dy = dy_ptr.Get(frame, output_node);
+            for (index_t output_node = 0; output_node < output_node_size; ++output_node) {
+                for (index_t frame = 0; frame < output_frame_size; ++frame) {
+                    BT dy = dy_ptr.Get(frame, output_node);
                     BT dx = dy / (BT)mux_size;
-				    for (index_t i = 0; i < mux_size; i++) {
-					    dx_ptr.Set(frame, output_node_size * i + output_node, dx);
-				    }
-			    }
-		    }
+                    for (index_t i = 0; i < mux_size; i++) {
+                        dx_ptr.Set(frame, output_node_size * i + output_node, dx);
+                    }
+                }
+            }
 
             return m_dx;
-	    }
+        }
     }
 };
 

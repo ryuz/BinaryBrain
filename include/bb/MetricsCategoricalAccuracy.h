@@ -32,7 +32,7 @@ protected:
     }
 
 public:
-	~MetricsCategoricalAccuracy() {}
+    ~MetricsCategoricalAccuracy() {}
 
     static std::shared_ptr<MetricsCategoricalAccuracy> Create()
     {
@@ -54,8 +54,8 @@ public:
         return (double)acc / (double)m_frames;
     }
 
-	void CalculateMetrics(FrameBuffer y, FrameBuffer t)
-	{
+    void CalculateMetrics(FrameBuffer y, FrameBuffer t)
+    {
         BB_ASSERT(y.GetType() == DataType<T>::type);
         BB_ASSERT(t.GetType() == DataType<T>::type);
 
@@ -66,13 +66,13 @@ public:
             auto acc_ptr = m_accuracy.LockDeviceMemory();
 
             bbcu_fp32_AccuracyCategoricalClassification
-		        (
-			        (float const *)y_ptr.GetAddr(),
-			        (float const *)t_ptr.GetAddr(),
-			        (int         *)acc_ptr.GetAddr(),
-			        (int          )y.GetNodeSize(),
-			        (int          )y.GetFrameSize(),
-			        (int          )(y.GetFrameStride() / sizeof(float))
+                (
+                    (float const *)y_ptr.GetAddr(),
+                    (float const *)t_ptr.GetAddr(),
+                    (int         *)acc_ptr.GetAddr(),
+                    (int          )y.GetNodeSize(),
+                    (int          )y.GetFrameSize(),
+                    (int          )(y.GetFrameStride() / sizeof(float))
                 );
 
             m_frames += y.GetFrameSize();
@@ -82,8 +82,8 @@ public:
 #endif
 
         {
-		    index_t frame_size = y.GetFrameSize();
-		    index_t node_size = y.GetNodeSize();
+            index_t frame_size = y.GetFrameSize();
+            index_t node_size = y.GetNodeSize();
             auto acc_ptr = m_accuracy.Lock();
 
             m_frames += frame_size;
@@ -91,21 +91,21 @@ public:
             auto y_ptr  = y.LockConst<T>();
             auto t_ptr  = t.LockConst<T>();
  
-		    for (index_t frame = 0; frame < frame_size; ++frame) {
-			    index_t	max_node   = 0;
-			    T		max_signal = y_ptr.Get(frame, 0);
-			    for (index_t node = 1; node < node_size; ++node) {
-				    T	sig = y_ptr.Get(frame, node);
-				    if (sig > max_signal) {
-					    max_node   = node;
-					    max_signal = sig;
-				    }
-			    }
-			    if ( t_ptr.Get(frame, max_node) > 0) {
-				    acc_ptr[0] += 1;
-			    }
-		    }
-	    }
+            for (index_t frame = 0; frame < frame_size; ++frame) {
+                index_t max_node   = 0;
+                T       max_signal = y_ptr.Get(frame, 0);
+                for (index_t node = 1; node < node_size; ++node) {
+                    T   sig = y_ptr.Get(frame, node);
+                    if (sig > max_signal) {
+                        max_node   = node;
+                        max_signal = sig;
+                    }
+                }
+                if ( t_ptr.Get(frame, max_node) > 0) {
+                    acc_ptr[0] += 1;
+                }
+            }
+        }
     }
 };
 

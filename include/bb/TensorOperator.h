@@ -26,7 +26,7 @@ template<typename T>
 inline void Tensor_Vector_set
 (
     T       *dst,
-    T	    a,
+    T       a,
     index_t size
 )
 {
@@ -43,9 +43,9 @@ inline void Tensor_Vector_add_ex
     T       *dst,
     T const *src0,
     T const *src1,
-    T	    a,
-    T	    b,
-    T	    c,
+    T       a,
+    T       b,
+    T       c,
     index_t size
 )
 {
@@ -62,9 +62,9 @@ inline void Tensor_Vector_sub_ex
     T       *dst,
     T const *src0,
     T const *src1,
-    T	    a,
-    T	    b,
-    T	    c,
+    T       a,
+    T       b,
+    T       c,
     index_t size
 )
 {
@@ -81,8 +81,8 @@ inline void Tensor_Vector_mul_ex
     T       *dst,
     T const *src0,
     T const *src1,
-    T	    a,
-    T	    b,
+    T       a,
+    T       b,
     index_t size
 )
 {
@@ -98,10 +98,10 @@ inline void Tensor_Vector_div_ex
     T       *dst,
     T const *src0,
     T const *src1,
-    T	    a,
-    T	    b,
-    T	    c,
-    T	    d,
+    T       a,
+    T       b,
+    T       c,
+    T       d,
     index_t size
 )
 {

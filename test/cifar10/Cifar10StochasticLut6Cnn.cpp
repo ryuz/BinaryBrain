@@ -42,7 +42,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 
   // load cifar-10 data
 #ifdef _DEBUG
-	auto td = bb::LoadCifar10<>::Load(1);
+    auto td = bb::LoadCifar10<>::Load(1);
     std::cout << "!!! debug mode !!!" << std::endl;
 #else
     auto td = bb::LoadCifar10<>::Load();
@@ -242,7 +242,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 
   // load cifar-10 data
 #ifdef _DEBUG
-	auto td = bb::LoadCifar10<>::Load(1);
+    auto td = bb::LoadCifar10<>::Load(1);
     std::cout << "!!! debug mode !!!" << std::endl;
 #else
     auto td = bb::LoadCifar10<>::Load();

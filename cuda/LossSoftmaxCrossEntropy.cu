@@ -13,17 +13,17 @@
 
 
 __global__ void kernal_fp32_LossSoftmaxCrossEntropy(
-			const float*	y_buf,
-			const float*	t_buf,
-			float*			dy_buf,
-			float*			loss_buf,
-			float			reciprocal_frame_size,
-			int				node_size,
-			int				frame_size,
-			int				frame_stride
-		)
+            const float*    y_buf,
+            const float*    t_buf,
+            float*          dy_buf,
+            float*          loss_buf,
+            float           reciprocal_frame_size,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride
+        )
 {
-	int frame = blockDim.x * blockIdx.x + threadIdx.x;
+    int frame = blockDim.x * blockIdx.x + threadIdx.x;
     if (frame >= frame_size) {
         return;
     }
@@ -58,10 +58,10 @@ __global__ void kernal_fp32_LossSoftmaxCrossEntropy(
 
 
 __global__ void kernal_fp32_LossSoftmaxCrossEntropy_Sum(
-			float*			loss_buf,
-			float*			loss,
-			int				frame_size
-		)
+            float*          loss_buf,
+            float*          loss,
+            int             frame_size
+        )
 {
     float sum = 0;
     for ( int frame = 0; frame < frame_size; ++frame) {
@@ -72,15 +72,15 @@ __global__ void kernal_fp32_LossSoftmaxCrossEntropy_Sum(
 
 
 BBCU_DLL_EXPORT int bbcu_fp32_LossSoftmaxCrossEntropy
-		(
-			const float*	dev_y_buf,
-			const float*	dev_t_buf,
-			float*			dev_dy_buf,
-			float*			dev_loss_buf,
-			float*			dev_loss,
-			int				node_size,
-			int				frame_size,
-			int				frame_stride,
+        (
+            const float*    dev_y_buf,
+            const float*    dev_t_buf,
+            float*          dev_dy_buf,
+            float*          dev_loss_buf,
+            float*          dev_loss,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride,
             int             batch_size,
             cudaStream_t    streamId
         )
@@ -88,20 +88,20 @@ BBCU_DLL_EXPORT int bbcu_fp32_LossSoftmaxCrossEntropy
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
     
     // åvéZ
-	dim3	block(512);
-	dim3	grid((frame_size + (block.x-1)) / block.x);
-	block.x = std::min((int)block.x, (int)frame_size);
-	kernal_fp32_LossSoftmaxCrossEntropy<<<grid, block, 0, streamId>>>(
-			dev_y_buf,
-			dev_t_buf,
-			dev_dy_buf,
-			dev_loss_buf,
-			1.0f / (float)batch_size,
-			node_size,
-			frame_size,
-			frame_stride
-		);
-	BB_CUDA_CHECK_LAST_ERROR();
+    dim3    block(512);
+    dim3    grid((frame_size + (block.x-1)) / block.x);
+    block.x = std::min((int)block.x, (int)frame_size);
+    kernal_fp32_LossSoftmaxCrossEntropy<<<grid, block, 0, streamId>>>(
+            dev_y_buf,
+            dev_t_buf,
+            dev_dy_buf,
+            dev_loss_buf,
+            1.0f / (float)batch_size,
+            node_size,
+            frame_size,
+            frame_stride
+        );
+    BB_CUDA_CHECK_LAST_ERROR();
 
     // ëπé∏èWåv
     kernal_fp32_LossSoftmaxCrossEntropy_Sum << <1, 1, 0, streamId >> > (
@@ -109,7 +109,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_LossSoftmaxCrossEntropy
             dev_loss,
             frame_size
         );
-	BB_CUDA_CHECK_LAST_ERROR();
+    BB_CUDA_CHECK_LAST_ERROR();
     
     return 0;
 }

@@ -38,25 +38,25 @@ protected:
     FrameBuffer                             m_y;
     FrameBuffer                             m_dx;
 
-	indices_t			                    m_node_shape;
+    indices_t                               m_node_shape;
     index_t                                 m_frame_mux_size;
     std::shared_ptr< ValueGenerator<FXT> >  m_value_generator;
     bool                                    m_framewise;
-	FXT                                     m_input_range_lo;
-	FXT                                     m_input_range_hi;
+    FXT                                     m_input_range_lo;
+    FXT                                     m_input_range_hi;
 
 protected:
-	RealToBinary() {}
+    RealToBinary() {}
 public:
-	~RealToBinary() {}
+    ~RealToBinary() {}
 
     struct create_t
     {
         index_t                                 frame_mux_size = 1;         //< フレームを何倍するか
         std::shared_ptr< ValueGenerator<FXT> >  value_generator;            //< 閾値のジェネレーター
         bool                                    framewise = false;          //< true でフレーム単位で閾値、falseでデータ単位
-    	FXT                                     input_range_lo = (FXT)0.0;  //< 入力データの下限値
-	    FXT                                     input_range_hi = (FXT)1.0;  //< 入力データの上限値
+        FXT                                     input_range_lo = (FXT)0.0;  //< 入力データの下限値
+        FXT                                     input_range_hi = (FXT)1.0;  //< 入力データの上限値
     };
 
     static std::shared_ptr<RealToBinary> Create(create_t const &create)
@@ -66,8 +66,8 @@ public:
         self->m_frame_mux_size  = create.frame_mux_size;
         self->m_value_generator = create.value_generator;
         self->m_framewise       = create.framewise;
-	    self->m_input_range_lo  = create.input_range_lo;
-	    self->m_input_range_hi  = create.input_range_hi;
+        self->m_input_range_lo  = create.input_range_lo;
+        self->m_input_range_hi  = create.input_range_hi;
 
         return self;
     }
@@ -76,19 +76,19 @@ public:
                 index_t                                 frame_mux_size  = 1,
                 std::shared_ptr< ValueGenerator<FXT> >  value_generator = nullptr,
                 bool                                    framewise       = false,
-    	        FXT                                     input_range_lo  = (FXT)0.0,
-	            FXT                                     input_range_hi  = (FXT)1.0)
+                FXT                                     input_range_lo  = (FXT)0.0,
+                FXT                                     input_range_hi  = (FXT)1.0)
     {
         create_t create;
         create.frame_mux_size   = frame_mux_size;
         create.value_generator  = value_generator;
         create.framewise        = framewise;
-	    create.input_range_lo   = input_range_lo;
-	    create.input_range_hi   = input_range_hi;
+        create.input_range_lo   = input_range_lo;
+        create.input_range_hi   = input_range_hi;
         return Create(create);
     }
 
-	std::string GetClassName(void) const { return "RealToBinary"; }
+    std::string GetClassName(void) const { return "RealToBinary"; }
 
 
     /**
@@ -137,22 +137,22 @@ public:
         // 戻り値の型を設定
         m_y.Resize(DataType<FYT>::type, x.GetFrameSize() * m_frame_mux_size, m_node_shape);
 
-		index_t node_size        = x.GetNodeSize();
-		index_t input_frame_size = x.GetFrameSize();
+        index_t node_size        = x.GetNodeSize();
+        index_t input_frame_size = x.GetFrameSize();
 
         auto x_ptr = x.LockConst<FXT>();
         auto y_ptr = m_y.Lock<FYT>();
 
         FXT th_step = (m_input_range_hi - m_input_range_lo) / (FXT)(m_frame_mux_size + 1);
-   	    for ( index_t input_frame = 0; input_frame < input_frame_size; ++input_frame) {
-       	    for ( index_t i = 0; i < m_frame_mux_size; ++i ) {
+        for ( index_t input_frame = 0; input_frame < input_frame_size; ++input_frame) {
+            for ( index_t i = 0; i < m_frame_mux_size; ++i ) {
                 index_t output_frame = input_frame * m_frame_mux_size + i;
 
                 if ( m_framewise || m_value_generator == nullptr ) {
                     // frame毎に閾値変調
                     FXT th;
                     if ( m_value_generator != nullptr ) {
-    	    	        th = m_value_generator->GetValue();
+                        th = m_value_generator->GetValue();
                     }
                     else {
                         th = m_input_range_lo + (th_step * (FXT)(i + 1));
@@ -161,36 +161,36 @@ public:
                     #pragma omp parallel for
                     for (index_t node = 0; node < node_size; ++node) {
                         FXT real_sig = x_ptr.Get(input_frame, node);
-			            FYT bin_sig  = (real_sig > th) ? (FYT)1 : (FYT)0;
-			            y_ptr.Set(output_frame, node, bin_sig);
-		            }
+                        FYT bin_sig  = (real_sig > th) ? (FYT)1 : (FYT)0;
+                        y_ptr.Set(output_frame, node, bin_sig);
+                    }
                 }
                 else {
                     // データ毎に閾値変調
                     for (index_t node = 0; node < node_size; ++node) {
                         FXT th = m_value_generator->GetValue();
                         FXT real_sig = x_ptr.Get(input_frame, node);
-			            FYT bin_sig  = (real_sig > th) ? (FYT)1 : (FYT)0;
-			            y_ptr.Set(output_frame, node, bin_sig);
-		            }
+                        FYT bin_sig  = (real_sig > th) ? (FYT)1 : (FYT)0;
+                        y_ptr.Set(output_frame, node, bin_sig);
+                    }
                 }
             }
-		}
+        }
 
         return m_y;
-	}
+    }
 
 
-	FrameBuffer Backward(FrameBuffer dy)
-	{
+    FrameBuffer Backward(FrameBuffer dy)
+    {
         BB_ASSERT(dy.GetType() == DataType<BT>::type);
 
         // 戻り値の型を設定
         m_dx.Resize(DataType<BT>::type, dy.GetFrameSize() / m_frame_mux_size, m_node_shape);
 
 #if 0   // 今のところ計算結果誰も使わないので一旦コメントアウト
-		index_t node_size         = dy.GetNodeSize();
-		index_t output_frame_size = dy.GetFrameSize();
+        index_t node_size         = dy.GetNodeSize();
+        index_t output_frame_size = dy.GetFrameSize();
 
         m_dx.FillZero();
 
@@ -198,18 +198,18 @@ public:
         auto dx_ptr = m_dx.Lock<BT>();
 
         #pragma omp parallel for
-		for (index_t node = 0; node < node_size; node++) {
-    		for (index_t output_frame = 0; output_frame < output_frame_size; ++output_frame) {
+        for (index_t node = 0; node < node_size; node++) {
+            for (index_t output_frame = 0; output_frame < output_frame_size; ++output_frame) {
                 index_t input_frame = output_frame / m_frame_mux_size;
 
                 BT grad = dy_ptr.Get(output_frame, node);
-				dx_ptr.Add(input_frame, node, grad);
-			}
-		}
+                dx_ptr.Add(input_frame, node, grad);
+            }
+        }
 #endif
 
         return m_dx;
-	}
+    }
 };
 
 

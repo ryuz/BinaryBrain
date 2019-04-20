@@ -60,8 +60,8 @@ protected:
         m_dW = std::make_shared<Tensor>();
     }
 
- 	void CommandProc(std::vector<std::string> args)
-	{
+    void CommandProc(std::vector<std::string> args)
+    {
         // LUTバイナライズ設定
         if ( args.size() == 2 && args[0] == "lut_binarize" )
         {
@@ -85,10 +85,10 @@ protected:
         {
             m_host_simd = EvalBool(args[1]);
         }
-	}
+    }
 
 public:
-	~StochasticLut6() {}
+    ~StochasticLut6() {}
 
     struct create_t
     {
@@ -127,7 +127,7 @@ public:
         return Create(create);
     }
 
-	std::string GetClassName(void) const { return "StochasticLut6"; }
+    std::string GetClassName(void) const { return "StochasticLut6"; }
 
 
 public:
@@ -154,9 +154,9 @@ public:
 
 
 #ifdef BB_WITH_CEREAL
-	template <class Archive>
+    template <class Archive>
     void save(Archive& archive, std::uint32_t const version) const
-	{
+    {
         super::save(archive, version);
         archive(cereal::make_nvp("input_node_size",  m_input_node_size));
         archive(cereal::make_nvp("output_node_size", m_output_node_size));
@@ -166,9 +166,9 @@ public:
         archive(cereal::make_nvp("W",                *m_W));
     }
 
-	template <class Archive>
+    template <class Archive>
     void load(Archive& archive, std::uint32_t const version)
-	{
+    {
         super::load(archive, version);
         archive(cereal::make_nvp("input_node_size",  m_input_node_size));
         archive(cereal::make_nvp("output_node_size", m_output_node_size));
@@ -178,31 +178,31 @@ public:
         archive(cereal::make_nvp("W",                *m_W));
     }
 
-	void Save(cereal::JSONOutputArchive& archive) const
-	{
+    void Save(cereal::JSONOutputArchive& archive) const
+    {
         archive(cereal::make_nvp("RealLut4", *this));
-	}
+    }
 
-	void Load(cereal::JSONInputArchive& archive)
-	{
+    void Load(cereal::JSONInputArchive& archive)
+    {
         archive(cereal::make_nvp("RealLut4", *this));
-	}
+    }
 #endif
 
 
-  	Tensor       &W(void)       { return *m_W; }
-	Tensor const &W(void) const { return *m_W; }
+    Tensor       &W(void)       { return *m_W; }
+    Tensor const &W(void) const { return *m_W; }
     
-   	Tensor       &dW(void)       { return *m_dW; }
-	Tensor const &dW(void) const { return *m_dW; }
+    Tensor       &dW(void)       { return *m_dW; }
+    Tensor const &dW(void) const { return *m_dW; }
 
-   	auto lock_InputIndex(void)             { return m_input_index.Lock(); }
-	auto lock_InputIndex_const(void) const { return m_input_index.LockConst(); }
+    auto lock_InputIndex(void)             { return m_input_index.Lock(); }
+    auto lock_InputIndex_const(void) const { return m_input_index.LockConst(); }
 
-	auto lock_W(void)              { return m_W->Lock<T>(); }
-	auto lock_W_const(void) const  { return m_W->LockConst<T>(); }
-	auto lock_dW(void)             { return m_dW->Lock<T>(); }
-	auto lock_dW_const(void) const { return m_dW->LockConst<T>(); }
+    auto lock_W(void)              { return m_W->Lock<T>(); }
+    auto lock_W_const(void) const  { return m_W->LockConst<T>(); }
+    auto lock_dW(void)             { return m_dW->Lock<T>(); }
+    auto lock_dW_const(void) const { return m_dW->LockConst<T>(); }
 
 
     index_t GetNodeInputSize(index_t node) const
@@ -303,7 +303,7 @@ public:
 
     // ノード単位でのForward計算
     std::vector<T> ForwardNode(index_t node, std::vector<T> input_value) const
-	{
+    {
         BB_ASSERT(input_value.size() == 6);
 
         // パラメータクリップ
@@ -311,7 +311,7 @@ public:
 
         auto W_ptr = lock_W_const();
         T W[64];
-		for ( int i = 0; i < 64; ++i) {
+        for ( int i = 0; i < 64; ++i) {
             W[i] = W_ptr(node, i);
 //          BB_ASSERT(W[i] >= 0 && W[i] <= 1.0f);
             if ( m_lut_binarize ) {
@@ -319,7 +319,7 @@ public:
             }
         }
 
-	    T   xp[6], xn[6];
+        T   xp[6], xn[6];
         for ( int i = 0; i < 6; ++i) {
             xp[i] = input_value[i];
             xp[i] = std::min((T)1.0, std::max((T)0.0, xp[i]));
@@ -407,9 +407,9 @@ public:
         xi[63] = x2_11 * x1_11 * x0_11;
 
         T sig = 0;
-		for ( int i = 0; i < 64; ++i) {
-		    sig += W[i] * xi[i];
-		}
+        for ( int i = 0; i < 64; ++i) {
+            sig += W[i] * xi[i];
+        }
 
         sig = std::max((T)0.0, sig);
         sig = std::min((T)1.0, sig);
@@ -418,7 +418,7 @@ public:
         result.push_back(sig);
 
         return result;
-	}
+    }
 
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
@@ -491,7 +491,7 @@ public:
                 float *y_addr = y_ptr.GetAddr(node);
 
                 for ( index_t frame = 0; frame < frame_size; frame += 8) {
-	                __m256   xp[6], xn[6];
+                    __m256   xp[6], xn[6];
                     for ( int i = 0; i < 6; ++i) {
                         xp[i] = _mm256_loadu_ps(&x_addr[i][frame]);
                         xp[i] = _mm256_min_ps(xp[i], _mm256_set1_ps(1.0));
@@ -598,13 +598,13 @@ public:
             auto W_ptr = lock_W_const();
 
 #pragma omp parallel for
-		    for ( index_t node = 0; node < m_output_node_size; ++node ) {
+            for ( index_t node = 0; node < m_output_node_size; ++node ) {
                 index_t in_idx[6];
-			    for ( int i = 0; i < 6; ++i) {
+                for ( int i = 0; i < 6; ++i) {
                     in_idx[i] = input_index_ptr(node, i);
                 }
                 T W[64];
-			    for ( int i = 0; i < 64; ++i) {
+                for ( int i = 0; i < 64; ++i) {
                     W[i] = W_ptr(node, i);
                     BB_ASSERT(W[i] >= 0 && W[i] <= 1.0f);
                     if ( m_lut_binarize ) {
@@ -612,9 +612,9 @@ public:
                     }
                 }
 
-			    for (index_t frame = 0; frame < frame_size; ++frame ) {
-				    T   xp[6], xn[6];
-    			    for ( int i = 0; i < 6; ++i) {
+                for (index_t frame = 0; frame < frame_size; ++frame ) {
+                    T   xp[6], xn[6];
+                    for ( int i = 0; i < 6; ++i) {
                         xp[i] = x_ptr.Get(frame, in_idx[i]);
                         xp[i] = std::min((T)1.0, std::max((T)0.0, xp[i]));
 //                      BB_ASSERT(xp[i] >= 0 && xp[i] <= 1.0f);
@@ -701,16 +701,16 @@ public:
                     xi[63] = x2_11 * x1_11 * x0_11;
 
                     T sig = 0;
-				    for ( int i = 0; i < 64; ++i) {
-					    sig += W[i] * xi[i];
-				    }
+                    for ( int i = 0; i < 64; ++i) {
+                        sig += W[i] * xi[i];
+                    }
 
                     sig = std::max((T)0.0, sig);
                     sig = std::min((T)1.0, sig);
 
                     BB_ASSERT(sig >= 0 && sig <= 1.0f);
                     y_ptr.Set(frame, node, sig);
-			    }
+                }
             }
 
             return m_y_buf;
@@ -775,7 +775,7 @@ public:
             auto dx_tmp_ptr = m_dx_tmp.Lock<float>();
 
             #pragma omp parallel for
-		    for ( index_t node = 0; node < m_output_node_size; ++node ) {           // initialize dW
+            for ( index_t node = 0; node < m_output_node_size; ++node ) {           // initialize dW
                 __m256  dW[64];
                 for ( int i = 0; i < 64; ++i) {
                     dW[i] = _mm256_set1_ps(0.0f);
@@ -805,7 +805,7 @@ public:
                 }
                 
                 for ( index_t frame = 0; frame < frame_size; frame += 8 ) {
-	                __m256   xp[6], xn[6];
+                    __m256   xp[6], xn[6];
                     for ( int i = 0; i < 6; ++i) {
                         xp[i] = _mm256_loadu_ps(&x_addr[i][frame]);
                         xp[i] = _mm256_min_ps(xp[i], _mm256_set1_ps(1.0));
@@ -1007,7 +1007,7 @@ public:
                     dxp = _mm256_mul_ps  (dx2_10, xn[4]);
                     dxp = _mm256_fmadd_ps(dx2_11, xp[4], dxp);
                     _mm256_store_ps(&dx_addr[5][frame], _mm256_sub_ps(dxp, dxn));
-	            }
+                }
                 
                 // dW水平加算
                 for ( int i = 0; i < 64; ++i) {
@@ -1045,13 +1045,13 @@ public:
             auto W_ptr  = lock_W_const();
             auto dW_ptr = lock_dW();
         
-		    for ( index_t node = 0; node < m_output_node_size; ++node ) {
+            for ( index_t node = 0; node < m_output_node_size; ++node ) {
                 index_t in_idx[6];
-			    for ( int i = 0; i < 6; ++i) {
+                for ( int i = 0; i < 6; ++i) {
                     in_idx[i] = input_index_ptr(node, i);
                 }
                 T W[64];
-			    for ( int i = 0; i < 64; ++i) {
+                for ( int i = 0; i < 64; ++i) {
                     W[i] = W_ptr(node, i);
                     if ( m_lut_binarize ) {
                         W[i] = W[i] > (T)0.5 ? (T)1.0 : (T)0.0;
@@ -1059,9 +1059,9 @@ public:
                 }
 
                 T dW[64]  = {0};
-			    for (index_t frame = 0; frame < frame_size; ++frame ) {
-				    T   xp[6], xn[6];
-    			    for ( int i = 0; i < 6; ++i) {
+                for (index_t frame = 0; frame < frame_size; ++frame ) {
+                    T   xp[6], xn[6];
+                    for ( int i = 0; i < 6; ++i) {
                         xp[i] = x_ptr.Get(frame, in_idx[i]);
                         xp[i] = std::min((T)1.0, std::max((T)0.0, xp[i]));
 //                      BB_ASSERT(xp[i] >= 0 && xp[i] <= 1.0f);
@@ -1150,10 +1150,10 @@ public:
                     T grad = dy_ptr.Get(frame, node);
 
                     T dxi[64];
-				    for ( int i = 0; i < 64; ++i) {
-					    dW[i]  += xi[i] * grad;
-					    dxi[i]  = W[i]  * grad;
-				    }
+                    for ( int i = 0; i < 64; ++i) {
+                        dW[i]  += xi[i] * grad;
+                        dxi[i]  = W[i]  * grad;
+                    }
 
                     T dx0_00 = 0;
                     T dx0_01 = 0;
@@ -1255,12 +1255,12 @@ public:
                     dx_grad[3] = (dxp[3] - dxn[3]);
                     dx_grad[4] = (dxp[4] - dxn[4]);
                     dx_grad[5] = (dxp[5] - dxn[5]);
-    			    for ( int i = 0; i < 6; ++i) {
+                    for ( int i = 0; i < 6; ++i) {
                         dx_ptr.Add(frame, in_idx[i], dx_grad[i]);
                     }
-			    }
+                }
 
- 			    for ( int i = 0; i < 64; ++i) {
+                for ( int i = 0; i < 64; ++i) {
                     dW_ptr(node, i) = dW[i];
                 }
             }

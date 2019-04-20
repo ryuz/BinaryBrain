@@ -36,25 +36,25 @@ protected:
     std::string                         m_name;
     std::shared_ptr<Model>              m_net;
 
-  	std::mt19937_64                     m_mt;
+    std::mt19937_64                     m_mt;
 
-	index_t                             m_epoch = 0;
+    index_t                             m_epoch = 0;
     index_t                             m_max_run_size = 0;
 
-	std::shared_ptr<MetricsFunction>    m_metricsFunc;
-	std::shared_ptr<LossFunction>       m_lossFunc;
-	std::shared_ptr<Optimizer>          m_optimizer;
+    std::shared_ptr<MetricsFunction>    m_metricsFunc;
+    std::shared_ptr<LossFunction>       m_lossFunc;
+    std::shared_ptr<Optimizer>          m_optimizer;
 
-	bool                                m_print_progress          = true;
+    bool                                m_print_progress          = true;
     bool                                m_print_progress_loss     = true;     //< 途中経過で損失を表示するか
     bool                                m_print_progress_accuracy = true;     //< 途中経過で精度を表示するか
     bool                                m_file_read               = false;
     bool                                m_file_write              = false;
     bool                                m_write_serial            = false;
-	bool                                m_initial_evaluation      = false;
-	
+    bool                                m_initial_evaluation      = false;
+    
     callback_proc_t                     m_callback_proc = nullptr;
-	void                                *m_callback_user = 0;
+    void                                *m_callback_user = 0;
     
 protected:
     // コンストラクタ
@@ -66,20 +66,20 @@ public:
     {
         std::string                         name;                               //< ネット名
         std::shared_ptr<Model>              net;                                //< ネット
-	    std::shared_ptr<LossFunction>       lossFunc;                           //< 損失関数オブジェクト
-	    std::shared_ptr<MetricsFunction>    metricsFunc;                        //< 評価関数オブジェクト
-	    std::shared_ptr<Optimizer>          optimizer;                          //< オプティマイザ
+        std::shared_ptr<LossFunction>       lossFunc;                           //< 損失関数オブジェクト
+        std::shared_ptr<MetricsFunction>    metricsFunc;                        //< 評価関数オブジェクト
+        std::shared_ptr<Optimizer>          optimizer;                          //< オプティマイザ
         index_t                             max_run_size = 0;                   //< 最大実行バッチ数
-	    bool                                print_progress = true;              //< 途中経過を表示するか
+        bool                                print_progress = true;              //< 途中経過を表示するか
         bool                                print_progress_loss = true;         //< 途中経過で損失を表示するか
         bool                                print_progress_accuracy = true;     //< 途中経過で精度を表示するか
         bool                                file_read = false;                  //< 以前の計算があれば読み込むか
         bool                                file_write = false;                 //< 計算結果を保存するか
         bool                                write_serial = false;               //< EPOC単位で計算結果を連番で保存するか
-	    bool                                initial_evaluation = false;         //< 初期評価を行うか
+        bool                                initial_evaluation = false;         //< 初期評価を行うか
         std::int64_t                        seed = 1;                           //< 乱数初期値
-	    callback_proc_t                     callback_proc = nullptr;            //< コールバック関数
-	    void*                               callback_user = 0;                  //< コールバック関数のユーザーパラメータ
+        callback_proc_t                     callback_proc = nullptr;            //< コールバック関数
+        void*                               callback_user = 0;                  //< コールバック関数のユーザーパラメータ
     };
 
     static std::shared_ptr<Runner> Create(create_t const &create)
@@ -90,19 +90,19 @@ public:
 
         self->m_name                    = create.name;
         self->m_net                     = create.net;
-	    self->m_metricsFunc             = create.metricsFunc;
-	    self->m_lossFunc                = create.lossFunc;
-	    self->m_optimizer               = create.optimizer;
+        self->m_metricsFunc             = create.metricsFunc;
+        self->m_lossFunc                = create.lossFunc;
+        self->m_optimizer               = create.optimizer;
         self->m_max_run_size            = create.max_run_size;
-	    self->m_print_progress          = create.print_progress;
+        self->m_print_progress          = create.print_progress;
         self->m_print_progress_loss     = create.print_progress_loss;
         self->m_print_progress_accuracy = create.print_progress_accuracy;
         self->m_file_read               = create.file_read;
         self->m_file_write              = create.file_write;
         self->m_write_serial            = create.write_serial;
-	    self->m_initial_evaluation      = create.initial_evaluation;
-	    self->m_callback_proc           = create.callback_proc;
-	    self->m_callback_user           = create.callback_user;
+        self->m_initial_evaluation      = create.initial_evaluation;
+        self->m_callback_proc           = create.callback_proc;
+        self->m_callback_user           = create.callback_user;
         
         self->m_mt.seed(create.seed);
 
@@ -116,19 +116,19 @@ public:
     static std::shared_ptr<Runner> Create(
                 std::string                         name,
                 std::shared_ptr<Model>              net,
-	            index_t                             epoch_size,
-	            index_t                             batch_size,
-	            std::shared_ptr<MetricsFunction>    metricsFunc,
-	            std::shared_ptr<LossFunction>       lossFunc,
-	            std::shared_ptr<Optimizer>          optimizer,
-	            bool                                print_progress = false,
+                index_t                             epoch_size,
+                index_t                             batch_size,
+                std::shared_ptr<MetricsFunction>    metricsFunc,
+                std::shared_ptr<LossFunction>       lossFunc,
+                std::shared_ptr<Optimizer>          optimizer,
+                bool                                print_progress = false,
                 bool                                file_read  = false,
                 bool                                file_write = false,
                 bool                                write_serial = false,
-	            bool                                initial_evaluation = false,
+                bool                                initial_evaluation = false,
                 std::int64_t                        seed = 1,
-	            callback_proc_t                     callback_proc = nullptr,
-	            void*                               callback_user = 0
+                callback_proc_t                     callback_proc = nullptr,
+                void*                               callback_user = 0
         )
     {
         create_t create;
@@ -171,214 +171,214 @@ public:
     void SetCallback(callback_proc_t callback_proc, void *user)
     {
         m_callback_proc = callback_proc;
-	    m_callback_user = user;
+        m_callback_user = user;
     }
     
 
     // Serialize
-  	void Save(std::ostream &os) const
-	{
+    void Save(std::ostream &os) const
+    {
         SaveValue(os, m_name);
         SaveIndex(os, m_epoch);
         m_net->Save(os);
-	}
+    }
 
-	void Load(std::istream &is)
-	{
+    void Load(std::istream &is)
+    {
         LoadValue(is, m_name);
         m_epoch = LoadIndex(is);
         m_net->Load(is);
-	}
+    }
 
-   	void SaveBinary(std::string filename) const
-	{
-		std::ofstream ofs(filename, std::ios::binary);
-		Save(ofs);
-	}
+    void SaveBinary(std::string filename) const
+    {
+        std::ofstream ofs(filename, std::ios::binary);
+        Save(ofs);
+    }
 
-   	void LoadBinary(std::string filename)
-	{
-		std::ifstream ifs(filename, std::ios::binary);
-		Load(ifs);
-	}
+    void LoadBinary(std::string filename)
+    {
+        std::ifstream ifs(filename, std::ios::binary);
+        Load(ifs);
+    }
     
 
 #ifdef BB_WITH_CEREAL
-	template <class Archive>
-	void save(Archive& archive, std::uint32_t const version) const
-	{
-		archive(cereal::make_nvp("name", m_name));
-		archive(cereal::make_nvp("epoch", m_epoch));
+    template <class Archive>
+    void save(Archive& archive, std::uint32_t const version) const
+    {
+        archive(cereal::make_nvp("name", m_name));
+        archive(cereal::make_nvp("epoch", m_epoch));
         m_net->Save(archive);
-	}
+    }
 
-	template <class Archive>
-	void load(Archive& archive, std::uint32_t const version)
-	{
-		archive(cereal::make_nvp("name", m_name));
-		archive(cereal::make_nvp("epoch", m_epoch));
+    template <class Archive>
+    void load(Archive& archive, std::uint32_t const version)
+    {
+        archive(cereal::make_nvp("name", m_name));
+        archive(cereal::make_nvp("epoch", m_epoch));
         m_net->Load(archive);
-	}
+    }
 
-   	void SaveJson(std::string filename) const
+    void SaveJson(std::string filename) const
     {
         std::ofstream ofs(filename);
         cereal::JSONOutputArchive archive(ofs);
-		archive(cereal::make_nvp("runner", *this));
-	}
+        archive(cereal::make_nvp("runner", *this));
+    }
 
-   	void SaveJson(std::ostream &os) const
+    void SaveJson(std::ostream &os) const
     {
         cereal::JSONOutputArchive archive(os);
-		archive(cereal::make_nvp("runner", *this));
-	}
+        archive(cereal::make_nvp("runner", *this));
+    }
 
-	void LoadJson(std::string filename)
+    void LoadJson(std::string filename)
     {
         std::ifstream ifs(filename);
         cereal::JSONInputArchive archive(ifs);
-		archive(cereal::make_nvp("runner", *this));
-	}
+        archive(cereal::make_nvp("runner", *this));
+    }
 
-	void LoadJson(std::istream &is)
+    void LoadJson(std::istream &is)
     {
         cereal::JSONInputArchive archive(is);
-		archive(cereal::make_nvp("runner", *this));
-	}
+        archive(cereal::make_nvp("runner", *this));
+    }
 #endif
 
 
-	void Fitting(
+    void Fitting(
             TrainData<T> &td,
-		    index_t      epoch_size,
-		    index_t      batch_size
+            index_t      epoch_size,
+            index_t      batch_size
         )
     {
-		std::string csv_file_name = m_name + "_metrics.txt";
-		std::string log_file_name = m_name + "_log.txt";
+        std::string csv_file_name = m_name + "_metrics.txt";
+        std::string log_file_name = m_name + "_log.txt";
 #ifdef BB_WITH_CEREAL
-		std::string net_file_name = m_name + "_net.json";
+        std::string net_file_name = m_name + "_net.json";
 #else
-		std::string net_file_name = m_name + "_net.bin";
+        std::string net_file_name = m_name + "_net.bin";
 #endif
 
-		// ログファイルオープン
-		std::ofstream ofs_log;
-		if ( m_file_write ) {
-			ofs_log.open(log_file_name, m_file_read ? std::ios::app : std::ios::out);
-		}
+        // ログファイルオープン
+        std::ofstream ofs_log;
+        if ( m_file_write ) {
+            ofs_log.open(log_file_name, m_file_read ? std::ios::app : std::ios::out);
+        }
 
-		{
-			// ログ出力先設定
-			ostream_tee log_stream;
-			log_stream.add(std::cout);
-			if (ofs_log.is_open()) { log_stream.add(ofs_log); }
+        {
+            // ログ出力先設定
+            ostream_tee log_stream;
+            log_stream.add(std::cout);
+            if (ofs_log.is_open()) { log_stream.add(ofs_log); }
 
-			int prev_epoch = 0;
+            int prev_epoch = 0;
             
             // 以前の計算があれば読み込み
             if ( m_file_read ) {
 #ifdef BB_WITH_CEREAL
                 std::ifstream ifs(net_file_name);
-				if (ifs.is_open()) {
+                if (ifs.is_open()) {
                     LoadJson(ifs);
                     std::cout << "[load] " << net_file_name << std::endl;
-				}
+                }
 #else
                 std::ifstream ifs(net_file_name, std::ios::binary);
-				if (ifs.is_open()) {
+                if (ifs.is_open()) {
                     Load(ifs);
                     std::cout << "[load] " << net_file_name << std::endl;
-				}
+                }
 #endif
             }
             
 
-			// 開始メッセージ
-			log_stream << "fitting start : " << m_name << std::endl;
+            // 開始メッセージ
+            log_stream << "fitting start : " << m_name << std::endl;
 
             // オプティマイザ設定
             m_optimizer->SetVariables(m_net->GetParameters(), m_net->GetGradients());
 
-			// 初期評価
-			if (m_initial_evaluation) {
-				auto test_metrics  = Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
-				auto train_metrics = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
-				log_stream << "[initial] "
-					<< "test " << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << test_metrics  << " "
-					<< "train " << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << train_metrics << std::endl;
-			}
+            // 初期評価
+            if (m_initial_evaluation) {
+                auto test_metrics  = Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
+                auto train_metrics = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
+                log_stream << "[initial] "
+                    << "test " << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << test_metrics  << " "
+                    << "train " << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << train_metrics << std::endl;
+            }
 
-			// 開始時間記録
-			auto start_time = std::chrono::system_clock::now();
+            // 開始時間記録
+            auto start_time = std::chrono::system_clock::now();
 
-			for (int epoch = 0; epoch < epoch_size; ++epoch) {
-				// 学習実施
-				auto train_accuracy = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, batch_size,
+            for (int epoch = 0; epoch < epoch_size; ++epoch) {
+                // 学習実施
+                auto train_accuracy = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, batch_size,
                                         m_metricsFunc, m_lossFunc, m_optimizer, true, m_print_progress, m_print_progress_loss, m_print_progress_accuracy);
 
-				// ネット保存
-				if (m_file_write) {
-					int save_epoc = epoch + 1 + prev_epoch;
+                // ネット保存
+                if (m_file_write) {
+                    int save_epoc = epoch + 1 + prev_epoch;
 
 #ifdef BB_WITH_CEREAL
-					if ( m_write_serial ) {
-						std::stringstream fname;
-						fname << m_name << "_net_" << save_epoc << ".json";
-						SaveJson(fname.str());
-						std::cout << "[save] " << fname.str() << std::endl;
-			//			log_streamt << "[save] " << fname.str() << std::endl;
-					}
+                    if ( m_write_serial ) {
+                        std::stringstream fname;
+                        fname << m_name << "_net_" << save_epoc << ".json";
+                        SaveJson(fname.str());
+                        std::cout << "[save] " << fname.str() << std::endl;
+            //          log_streamt << "[save] " << fname.str() << std::endl;
+                    }
 
-					{
-						SaveJson(net_file_name);
-			//			log_stream << "[save] " << net_file_name << std::endl;
-					}
+                    {
+                        SaveJson(net_file_name);
+            //          log_stream << "[save] " << net_file_name << std::endl;
+                    }
 #else
-					if ( m_write_serial ) {
-						std::stringstream fname;
-						fname << m_name << "_net_" << save_epoc << ".bin";
-						SaveBinary(fname.str());
-						std::cout << "[save] " << fname.str() << std::endl;
-			//			log_streamt << "[save] " << fname.str() << std::endl;
-					}
+                    if ( m_write_serial ) {
+                        std::stringstream fname;
+                        fname << m_name << "_net_" << save_epoc << ".bin";
+                        SaveBinary(fname.str());
+                        std::cout << "[save] " << fname.str() << std::endl;
+            //          log_streamt << "[save] " << fname.str() << std::endl;
+                    }
 
-					{
-						SaveBinary(net_file_name);
-			//			log_stream << "[save] " << net_file_name << std::endl;
-					}
+                    {
+                        SaveBinary(net_file_name);
+            //          log_stream << "[save] " << net_file_name << std::endl;
+                    }
 #endif
                 }
 
-				// 学習状況評価
+                // 学習状況評価
                 {
-				    double now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
-				    auto test_metrics  = Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
-				    auto train_metrics = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
-				    log_stream	<< std::setw(10) << std::fixed << std::setprecision(2) << now_time << "s "
-							    << "epoch[" << std::setw(3) << epoch + 1 + prev_epoch << "] "
-							    << "test "  << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << test_metrics  << " "
-							    << "train " << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << train_metrics << std::endl;
+                    double now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
+                    auto test_metrics  = Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
+                    auto train_metrics = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
+                    log_stream  << std::setw(10) << std::fixed << std::setprecision(2) << now_time << "s "
+                                << "epoch[" << std::setw(3) << epoch + 1 + prev_epoch << "] "
+                                << "test "  << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << test_metrics  << " "
+                                << "train " << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << train_metrics << std::endl;
                 }
 
-				// callback
-				if (m_callback_proc != nullptr) {
-					m_callback_proc(m_net, m_callback_user);
-				}
+                // callback
+                if (m_callback_proc != nullptr) {
+                    m_callback_proc(m_net, m_callback_user);
+                }
 
-				// Shuffle
-				ShuffleDataSet(m_mt(), td.x_train, td.t_train);
-			}
+                // Shuffle
+                ShuffleDataSet(m_mt(), td.x_train, td.t_train);
+            }
 
-			// 終了メッセージ
-			log_stream << "fitting end\n" << std::endl;
-		}
-	}
+            // 終了メッセージ
+            log_stream << "fitting end\n" << std::endl;
+        }
+    }
 
 
-	double Evaluation(
+    double Evaluation(
             TrainData<T> &td,
-		    index_t      batch_size
+            index_t      batch_size
         )
     {
         return Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
@@ -391,13 +391,13 @@ protected:
                 indices_t x_shape,
                 std::vector< std::vector<T> > const &t,
                 indices_t t_shape,
-		        index_t max_batch_size,
-		        index_t min_batch_size,
-	            std::shared_ptr< MetricsFunction > metricsFunc = nullptr,
-	            std::shared_ptr< LossFunction >    lossFunc = nullptr,	
+                index_t max_batch_size,
+                index_t min_batch_size,
+                std::shared_ptr< MetricsFunction > metricsFunc = nullptr,
+                std::shared_ptr< LossFunction >    lossFunc = nullptr,  
                 std::shared_ptr< Optimizer >       optimizer = nullptr,
-		        bool train = false,
-		        bool print_progress = false,
+                bool train = false,
+                bool print_progress = false,
                 bool print_progress_loss = true,
                 bool print_progress_metrics = true
             )
@@ -429,11 +429,11 @@ protected:
             }
 
             // 進捗表示
-			if ( print_progress ) {
-				index_t progress = index + mini_batch_size;
-				index_t rate = progress * 100 / frame_size;
-				std::cout << "\r[" << rate << "% (" << progress << "/" << frame_size << ")]";
-			}
+            if ( print_progress ) {
+                index_t progress = index + mini_batch_size;
+                index_t rate = progress * 100 / frame_size;
+                std::cout << "\r[" << rate << "% (" << progress << "/" << frame_size << ")]";
+            }
 
             index_t i = 0;
             while ( i < mini_batch_size ) {
@@ -476,17 +476,17 @@ protected:
             }
 
             // 進捗表示
-		    if ( print_progress ) {
+            if ( print_progress ) {
                 if ( print_progress_loss && lossFunc != nullptr ) {
-	    		    std::cout << "  loss : " << lossFunc->GetLoss();
+                    std::cout << "  loss : " << lossFunc->GetLoss();
                 }
 
                 if ( print_progress_metrics && metricsFunc != nullptr ) {
                     std::cout << "  " << metricsFunc->GetMetricsString() << " : " << metricsFunc->GetMetrics();
                 }
 
-				std::cout << std::flush;
-			}
+                std::cout << std::flush;
+            }
 
             // インデックスを進める
             index += mini_batch_size;

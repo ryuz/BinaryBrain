@@ -41,24 +41,24 @@ protected:
     bool                        m_host_simd = true;
 
 
-    index_t 		            m_node_size;
+    index_t                     m_node_size;
     
     FrameBuffer                 m_x_buf;
     FrameBuffer                 m_y_buf;
     FrameBuffer                 m_dx_buf;
 
-    std::shared_ptr<Tensor>  	m_gamma;
-    std::shared_ptr<Tensor>    	m_beta;
-    std::shared_ptr<Tensor>	    m_dgamma;
-    std::shared_ptr<Tensor>  	m_dbeta;
+    std::shared_ptr<Tensor>     m_gamma;
+    std::shared_ptr<Tensor>     m_beta;
+    std::shared_ptr<Tensor>     m_dgamma;
+    std::shared_ptr<Tensor>     m_dbeta;
 
-    Tensor_<T>  	            m_mean;		// 平均値
-    Tensor_<T>  	            m_rstd;		// 標準偏差の逆数
+    Tensor_<T>                  m_mean;     // 平均値
+    Tensor_<T>                  m_rstd;     // 標準偏差の逆数
 
-    Tensor_<T> 	                m_running_mean;
-    Tensor_<T>  	            m_running_var;
+    Tensor_<T>                  m_running_mean;
+    Tensor_<T>                  m_running_var;
 
-    T				            m_momentum = (T)0.001;
+    T                           m_momentum = (T)0.001;
     T                           m_init_gamma;
     T                           m_init_beta;
 
@@ -70,8 +70,8 @@ protected:
         m_dbeta  = std::make_shared<Tensor>();
     }
 
-   	void CommandProc(std::vector<std::string> args)
-	{
+    void CommandProc(std::vector<std::string> args)
+    {
         // HostOnlyモード設定
         if (args.size() == 2 && args[0] == "host_only")
         {
@@ -83,7 +83,7 @@ protected:
         {
             m_host_simd = EvalBool(args[1]);
         }
-	}
+    }
 
 public:
     ~BatchNormalization() {}
@@ -140,9 +140,9 @@ public:
 
 
 #ifdef BB_WITH_CEREAL
-	template <class Archive>
+    template <class Archive>
     void save(Archive& archive, std::uint32_t const version) const
-	{
+    {
         _super::save(archive, version);
         archive(cereal::make_nvp("node_size",    m_node_size));
         archive(cereal::make_nvp("gamma",        *m_gamma));
@@ -151,9 +151,9 @@ public:
         archive(cereal::make_nvp("running_var",  m_running_var));
     }
 
-	template <class Archive>
+    template <class Archive>
     void load(Archive& archive, std::uint32_t const version)
-	{
+    {
         _super::load(archive, version);
         archive(cereal::make_nvp("node_size",    m_node_size));
         archive(cereal::make_nvp("gamma",        *m_gamma));
@@ -162,15 +162,15 @@ public:
         archive(cereal::make_nvp("running_var",  m_running_var));
      }
 
-	void Save(cereal::JSONOutputArchive& archive) const
-	{
+    void Save(cereal::JSONOutputArchive& archive) const
+    {
         archive(cereal::make_nvp("BatchNormalization", *this));
-	}
+    }
 
-	void Load(cereal::JSONInputArchive& archive)
-	{
+    void Load(cereal::JSONInputArchive& archive)
+    {
         archive(cereal::make_nvp("BatchNormalization", *this));
-	}
+    }
 #endif
 
 
@@ -256,7 +256,7 @@ public:
 
     // ノード単位でのForward計算
     std::vector<T> ForwardNode(index_t node, std::vector<T> x_vec) const
- 	{
+    {
         BB_DEBUG_ASSERT(node >= 0 && node < m_node_size);
 
         auto gamma_ptr        = lock_gamma_const();
@@ -265,14 +265,14 @@ public:
         auto running_var_ptr  = m_running_var.LockConst();
 
         std::vector<T> y_vec(x_vec.size());
-		for (size_t i = 0; i < x_vec.size(); ++i) {
-			y_vec[i]  = x_vec[i];
-			y_vec[i] -= running_mean_ptr(node);
-			y_vec[i] /= (T)sqrt(running_var_ptr(node)) + (T)10e-7;
-			y_vec[i]  = y_vec[i] * gamma_ptr(node) + beta_ptr(node);
-		}
-		return y_vec;
-	}
+        for (size_t i = 0; i < x_vec.size(); ++i) {
+            y_vec[i]  = x_vec[i];
+            y_vec[i] -= running_mean_ptr(node);
+            y_vec[i] /= (T)sqrt(running_var_ptr(node)) + (T)10e-7;
+            y_vec[i]  = y_vec[i] * gamma_ptr(node) + beta_ptr(node);
+        }
+        return y_vec;
+    }
 
 
     /**
@@ -292,57 +292,57 @@ public:
 
 
 #ifdef BB_WITH_CUDA
-		if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && m_x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && m_x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             if ( train ) {
                 auto dev_x_ptr     = m_x_buf.LockDeviceMemoryConst();
-			    auto dev_y_ptr     = m_y_buf.LockDeviceMemory(true);
-			    auto dev_gamma_ptr = m_gamma->LockDeviceMemoryConst();
-			    auto dev_beta_ptr  = m_beta->LockDeviceMemoryConst();
-			    auto dev_mean_ptr = m_mean.LockDeviceMemory(true);
-			    auto dev_rstd_ptr = m_rstd.LockDeviceMemory(true);
-			    auto dev_running_mean_ptr = m_running_mean.LockDeviceMemory();
-			    auto dev_running_var_ptr = m_running_var.LockDeviceMemory();
+                auto dev_y_ptr     = m_y_buf.LockDeviceMemory(true);
+                auto dev_gamma_ptr = m_gamma->LockDeviceMemoryConst();
+                auto dev_beta_ptr  = m_beta->LockDeviceMemoryConst();
+                auto dev_mean_ptr = m_mean.LockDeviceMemory(true);
+                auto dev_rstd_ptr = m_rstd.LockDeviceMemory(true);
+                auto dev_running_mean_ptr = m_running_mean.LockDeviceMemory();
+                auto dev_running_var_ptr = m_running_var.LockDeviceMemory();
 
-			    bbcu_fp32_BatchNormalization_ForwardTraining
-				    (
-					    (float const *)dev_x_ptr.GetAddr(),
-					    (float       *)dev_y_ptr.GetAddr(),
-					    (float const *)dev_gamma_ptr.GetAddr(),
-					    (float const *)dev_beta_ptr.GetAddr(),
-					    (float       *)dev_mean_ptr.GetAddr(),
-					    (float       *)dev_rstd_ptr.GetAddr(),
-					    (float       *)dev_running_mean_ptr.GetAddr(),
-					    (float       *)dev_running_var_ptr.GetAddr(),
-					    (float        )m_momentum,
-					    (int          )m_x_buf.GetNodeSize(),
-					    (int          )m_x_buf.GetFrameSize(),
-					    (int          )m_x_buf.GetFrameStride() / sizeof(float)
-				    );
-    			return m_y_buf;
+                bbcu_fp32_BatchNormalization_ForwardTraining
+                    (
+                        (float const *)dev_x_ptr.GetAddr(),
+                        (float       *)dev_y_ptr.GetAddr(),
+                        (float const *)dev_gamma_ptr.GetAddr(),
+                        (float const *)dev_beta_ptr.GetAddr(),
+                        (float       *)dev_mean_ptr.GetAddr(),
+                        (float       *)dev_rstd_ptr.GetAddr(),
+                        (float       *)dev_running_mean_ptr.GetAddr(),
+                        (float       *)dev_running_var_ptr.GetAddr(),
+                        (float        )m_momentum,
+                        (int          )m_x_buf.GetNodeSize(),
+                        (int          )m_x_buf.GetFrameSize(),
+                        (int          )m_x_buf.GetFrameStride() / sizeof(float)
+                    );
+                return m_y_buf;
             }
             else {
                 auto dev_x_ptr            = m_x_buf.LockDeviceMemoryConst();
-			    auto dev_y_ptr            = m_y_buf.LockDeviceMemory(true);
-			    auto dev_gamma_ptr        = m_gamma->LockDeviceMemoryConst();
-			    auto dev_beta_ptr         = m_beta->LockDeviceMemoryConst();
-			    auto dev_running_mean_ptr = m_running_mean.LockDeviceMemoryConst();
-			    auto dev_running_var_ptr  = m_running_var.LockDeviceMemoryConst();
+                auto dev_y_ptr            = m_y_buf.LockDeviceMemory(true);
+                auto dev_gamma_ptr        = m_gamma->LockDeviceMemoryConst();
+                auto dev_beta_ptr         = m_beta->LockDeviceMemoryConst();
+                auto dev_running_mean_ptr = m_running_mean.LockDeviceMemoryConst();
+                auto dev_running_var_ptr  = m_running_var.LockDeviceMemoryConst();
 
-			    bbcu_fp32_BatchNormalization_ForwardInference
-				    (
-					    (float const *)dev_x_ptr.GetAddr(),
-					    (float       *)dev_y_ptr.GetAddr(),
-					    (float const *)dev_gamma_ptr.GetAddr(),
-					    (float const *)dev_beta_ptr.GetAddr(),
-					    (float       *)dev_running_mean_ptr.GetAddr(),
-					    (float       *)dev_running_var_ptr.GetAddr(),
-					    (int          )m_x_buf.GetNodeSize(),
-					    (int          )m_x_buf.GetFrameSize(),
-					    (int          )m_x_buf.GetFrameStride() / sizeof(float)
-				    );
-    			return m_y_buf;
+                bbcu_fp32_BatchNormalization_ForwardInference
+                    (
+                        (float const *)dev_x_ptr.GetAddr(),
+                        (float       *)dev_y_ptr.GetAddr(),
+                        (float const *)dev_gamma_ptr.GetAddr(),
+                        (float const *)dev_beta_ptr.GetAddr(),
+                        (float       *)dev_running_mean_ptr.GetAddr(),
+                        (float       *)dev_running_var_ptr.GetAddr(),
+                        (int          )m_x_buf.GetNodeSize(),
+                        (int          )m_x_buf.GetFrameSize(),
+                        (int          )m_x_buf.GetFrameStride() / sizeof(float)
+                    );
+                return m_y_buf;
             }
-		}
+        }
 #endif
 
 
@@ -351,7 +351,7 @@ public:
             auto frame_size   = x_buf.GetFrameSize();
             auto frame_stride = x_buf.GetFrameStride() / sizeof(float);
         
-            const int	mm256_frame_size = ((int)frame_size + 7) / 8 * 8;
+            const int   mm256_frame_size = ((int)frame_size + 7) / 8 * 8;
 
             auto x_ptr            = m_x_buf.LockConst<T>();
             auto y_ptr            = m_y_buf.Lock<T>();
@@ -365,10 +365,10 @@ public:
             auto running_var_ptr  = m_running_var.Lock();
 
             if (train) {
-                const __m256	reciprocal_frame_size = _mm256_set1_ps(1.0f / (float)frame_size);
-                const __m256	epsilon = _mm256_set1_ps(10e-7f);
+                const __m256    reciprocal_frame_size = _mm256_set1_ps(1.0f / (float)frame_size);
+                const __m256    epsilon = _mm256_set1_ps(10e-7f);
 
-		  	    #pragma omp parallel for
+                #pragma omp parallel for
                 for (int node = 0; node < (int)m_node_size; ++node) {
                     float const *x_addr = x_ptr.GetAddr(node);
                     float       *y_addr = y_ptr.GetAddr(node);
@@ -392,7 +392,7 @@ public:
                     }
                     __m256 mean = _mm256_mul_ps(bb_mm256_hsum_ps(mean_sum), reciprocal_frame_size);
                     __m256 var = _mm256_fmsub_ps(bb_mm256_hsum_ps(var_sum), reciprocal_frame_size, _mm256_mul_ps(mean, mean));
-                    var = _mm256_max_ps(var, _mm256_set1_ps(0.0f));	// 誤差対策(負にならないようにクリップ)
+                    var = _mm256_max_ps(var, _mm256_set1_ps(0.0f)); // 誤差対策(負にならないようにクリップ)
 
                     __m256 varx = _mm256_max_ps(var, epsilon);
                     __m256 rstd = _mm256_rsqrt_ps(varx);
@@ -412,7 +412,7 @@ public:
                     // 正規化 と gamma/beta 処理
                     __m256 gamma = _mm256_set1_ps(gamma_ptr[node]);
                     __m256 beta = _mm256_set1_ps(beta_ptr[node]);
-    //				for (int frame = 0; frame < mm256_frame_size; frame += 8) {
+    //              for (int frame = 0; frame < mm256_frame_size; frame += 8) {
                     for (int frame = mm256_frame_size-8; frame >= 0; frame -= 8) {
                     __m256 x = _mm256_load_ps(&x_addr[frame]);
                         __m256 xn = _mm256_mul_ps(_mm256_sub_ps(x, mean), rstd);
@@ -494,7 +494,7 @@ public:
             auto frame_size   = dy_buf.GetFrameSize();
             auto frame_stride = dy_buf.GetFrameStride() / sizeof(float);
             
-            const int	mm256_frame_size = ((int)frame_size + 7) / 8 * 8;
+            const int   mm256_frame_size = ((int)frame_size + 7) / 8 * 8;
             
             auto gamma_ptr        = lock_gamma_const();
     //      auto beta_ptr         = lock_beta_const();
@@ -506,7 +506,7 @@ public:
        
         
             // 逆数生成
-            const __m256	reciprocal_frame_size = _mm256_set1_ps(1.0f / (float)frame_size);
+            const __m256    reciprocal_frame_size = _mm256_set1_ps(1.0f / (float)frame_size);
 
             auto x_ptr  = m_x_buf.LockConst<T>();
 //          auto y_ptr  = m_y_buf.LockConst<T>();
@@ -552,7 +552,7 @@ public:
                 __m256 dvar  = _mm256_mul_ps(dstd, rstd);
                 __m256 dmean = _mm256_mul_ps(_mm256_fnmadd_ps(mean, dvar, dmeanx), reciprocal_frame_size);
 
-    //			for (int frame = 0; frame < mm256_frame_size; frame += 8) {
+    //          for (int frame = 0; frame < mm256_frame_size; frame += 8) {
                 for (int frame = mm256_frame_size - 8; frame >= 0; frame -= 8) {
                     __m256 dy = _mm256_load_ps(&dy_addr[frame]);
                     __m256 x = _mm256_load_ps(&x_addr[frame]);

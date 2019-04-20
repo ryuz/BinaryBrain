@@ -21,11 +21,11 @@ void StochasticLut6(int epoch_size, bool binary_mode);
 // メイン関数
 int main()
 {
-	omp_set_num_threads(1);
+    omp_set_num_threads(1);
 
-//	XorMicroMlp(65536, true);
+//  XorMicroMlp(65536, true);
     StochasticLut6(65536, true);
 
-	return 0;
+    return 0;
 }
 

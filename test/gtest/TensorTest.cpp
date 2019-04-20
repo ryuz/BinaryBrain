@@ -207,14 +207,14 @@ TEST(TensorTest, testTensor_Json)
         bb::Tensor t1(t);
         std::ofstream ofs("TensorTest.json");
         cereal::JSONOutputArchive ar(ofs);
-		ar(cereal::make_nvp("tensot", t1));
+        ar(cereal::make_nvp("tensot", t1));
     }
 
     {
         bb::Tensor t2;
         std::ifstream ifs("TensorTest.json");
         cereal::JSONInputArchive ar(ifs);
-		ar(cereal::make_nvp("tensot", t2));
+        ar(cereal::make_nvp("tensot", t2));
 
         auto ptr = t2.LockConst<float>();
         for ( int i = 0; i < L; ++i ) {

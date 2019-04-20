@@ -27,15 +27,15 @@ class BinaryModulation : public Model
 protected:
 
     // 3層で構成
-	std::shared_ptr< RealToBinary<FRT, FBT, BT> >	m_real2bin;
-	std::shared_ptr< Model                      >   m_layer;
-	std::shared_ptr< BinaryToReal<FBT, FRT, BT> >	m_bin2real;
-	
+    std::shared_ptr< RealToBinary<FRT, FBT, BT> >   m_real2bin;
+    std::shared_ptr< Model                      >   m_layer;
+    std::shared_ptr< BinaryToReal<FBT, FRT, BT> >   m_bin2real;
+    
 protected:
-	BinaryModulation() {}
+    BinaryModulation() {}
 
 public:
-	~BinaryModulation() {}
+    ~BinaryModulation() {}
 
     struct create_t
     {
@@ -43,28 +43,28 @@ public:
     };
 
     static std::shared_ptr<BinaryModulation> Create(create_t const & create)
-	{
+    {
         auto self = std::shared_ptr<BinaryModulation>(new BinaryModulation);
 
-  		self->m_real2bin = RealToBinary<FRT, FBT, BT>::Create();
+        self->m_real2bin = RealToBinary<FRT, FBT, BT>::Create();
         self->m_layer    = create.layer;
-  		self->m_bin2real =  BinaryToReal<FBT, FRT, BT>::Create();
+        self->m_bin2real =  BinaryToReal<FBT, FRT, BT>::Create();
 
         return self;
-	}
+    }
 
     static std::shared_ptr<BinaryModulation> Create(std::shared_ptr<Model> layer)
-	{
+    {
         auto self = std::shared_ptr<BinaryModulation>(new BinaryModulation);
 
-  		self->m_real2bin = RealToBinary<FRT, FBT, BT>::Create();
+        self->m_real2bin = RealToBinary<FRT, FBT, BT>::Create();
         self->m_layer    = create.layer;
-  		self->m_bin2real =  BinaryToReal<FBT, FRT, BT>::Create();
+        self->m_bin2real =  BinaryToReal<FBT, FRT, BT>::Create();
 
         return self;
-	}
+    }
 
-	std::string GetClassName(void) const { return "BinaryModulation"; }
+    std::string GetClassName(void) const { return "BinaryModulation"; }
 
     
     std::shared_ptr< Model > GetLayer(void)
@@ -79,9 +79,9 @@ public:
      */   
     void SendCommand(std::string command, std::string send_to = "all")
     {
-	    m_real2bin->SendCommand(command, send_to);
-	    m_layer->SendCommand(command, send_to);
-	    m_bin2real->SendCommand(command, send_to);
+        m_real2bin->SendCommand(command, send_to);
+        m_layer->SendCommand(command, send_to);
+        m_bin2real->SendCommand(command, send_to);
     }
     
     /**
@@ -93,9 +93,9 @@ public:
     Variables GetParameters(void)
     {
         Variables parameters;
-	    parameters.PushBack(m_real2bin->GetParameters());
-	    parameters.PushBack(m_layer->GetParameters());
-	    parameters.PushBack(m_bin2real->GetParameters());
+        parameters.PushBack(m_real2bin->GetParameters());
+        parameters.PushBack(m_layer->GetParameters());
+        parameters.PushBack(m_bin2real->GetParameters());
         return parameters;
     }
 
@@ -108,9 +108,9 @@ public:
     virtual Variables GetGradients(void)
     {
         Variables gradients;
-	    gradients.PushBack(m_real2bin->GetGradients());
-	    gradients.PushBack(m_layer->GetGradients());
-	    gradients.PushBack(m_bin2real->GetGradients());
+        gradients.PushBack(m_real2bin->GetGradients());
+        gradients.PushBack(m_layer->GetGradients());
+        gradients.PushBack(m_bin2real->GetGradients());
         return gradients;
     }  
 
@@ -162,9 +162,9 @@ public:
      */
     FrameBuffer Forward(FrameBuffer x, bool train = true)
     {
-	    x = m_real2bin->Forward(x, train);
-	    x = m_layer->Forward(x, train);
-	    x = m_bin2real->Forward(x, train);
+        x = m_real2bin->Forward(x, train);
+        x = m_layer->Forward(x, train);
+        x = m_bin2real->Forward(x, train);
         return x;
     }
 
@@ -176,12 +176,12 @@ public:
      */
     FrameBuffer Backward(FrameBuffer dy)
     {
-	    dy = m_bin2real->Backward(dy);
-	    dy = m_layer->Backward(dy);
-	    dy = m_real2bin->Backward(dy);
+        dy = m_bin2real->Backward(dy);
+        dy = m_layer->Backward(dy);
+        dy = m_real2bin->Backward(dy);
         return dy; 
     }
-	
+    
 protected:
     /**
      * @brief  モデルの情報を表示
@@ -207,47 +207,47 @@ public:
     // Serialize
     void Save(std::ostream &os) const 
     {
-	    m_real2bin->Save(os);
-	    m_layer->Save(os);
-	    m_bin2real->Save(os);
+        m_real2bin->Save(os);
+        m_layer->Save(os);
+        m_bin2real->Save(os);
     }
 
     void Load(std::istream &is)
     {
-	    m_real2bin->Load(is);
-	    m_layer->Load(is);
-	    m_bin2real->Load(is);
+        m_real2bin->Load(is);
+        m_layer->Load(is);
+        m_bin2real->Load(is);
     }
 
 
 #ifdef BB_WITH_CEREAL
-	template <class Archive>
+    template <class Archive>
     void save(Archive& archive, std::uint32_t const version) const
-	{
+    {
         super::save(archive, version);
     }
 
-	template <class Archive>
+    template <class Archive>
     void load(Archive& archive, std::uint32_t const version)
-	{
+    {
         super::load(archive, version);
     }
 
-	void Save(cereal::JSONOutputArchive& archive) const
-	{
+    void Save(cereal::JSONOutputArchive& archive) const
+    {
         archive(cereal::make_nvp("BinaryModulation", *this));
-	    m_real2bin->Save(archive);
-	    m_layer->Save(archive);
-	    m_bin2real->Save(archive);
-	}
+        m_real2bin->Save(archive);
+        m_layer->Save(archive);
+        m_bin2real->Save(archive);
+    }
 
-	void Load(cereal::JSONInputArchive& archive)
-	{
+    void Load(cereal::JSONInputArchive& archive)
+    {
         archive(cereal::make_nvp("BinaryModulation", *this));
-	    m_real2bin->Load(archive);
-	    m_layer->Load(archive);
-	    m_bin2real->Load(archive);
-	}
+        m_real2bin->Load(archive);
+        m_layer->Load(archive);
+        m_bin2real->Load(archive);
+    }
 #endif
 };
 

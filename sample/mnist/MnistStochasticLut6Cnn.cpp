@@ -43,7 +43,7 @@ void MnistStochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int lut_fram
 
   // load MNIST data
 #ifdef _DEBUG
-	auto td = bb::LoadMnist<>::Load(10, 512, 128);
+    auto td = bb::LoadMnist<>::Load(10, 512, 128);
     std::cout << "!!! debug mode !!!" << std::endl;
 #else
     auto td = bb::LoadMnist<>::Load();
@@ -247,42 +247,42 @@ void MnistStochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int lut_fram
 // RTL simulation 用データの出力
 static void WriteTestImage(std::string filename, const int w, const int h)
 {
-	// load MNIST data
-	auto td = bb::LoadMnist<>::Load();
+    // load MNIST data
+    auto td = bb::LoadMnist<>::Load();
 
-	unsigned char* img = new unsigned char[h * w];
-	for (int y = 0; y < h; ++y) {
-		for (int x = 0; x < w; ++x) {
-			int idx = (y / 28) * (w / 28) + (x / 28);
-			int xx = x % 28;
-			int yy = y % 28;
-			img[y*w+x] = (unsigned char)(td.x_test[idx][yy * 28 + xx] * 255.0f);
-		}
-	}
+    unsigned char* img = new unsigned char[h * w];
+    for (int y = 0; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
+            int idx = (y / 28) * (w / 28) + (x / 28);
+            int xx = x % 28;
+            int yy = y % 28;
+            img[y*w+x] = (unsigned char)(td.x_test[idx][yy * 28 + xx] * 255.0f);
+        }
+    }
 
-	if ( 0 ) {
-		std::ofstream ofs(filename);
-		ofs << "P2" << std::endl;
-		ofs << w << " " << h << std::endl;
-		ofs << "255" << std::endl;
-		for (int y = 0; y < h; ++y) {
-			for (int x = 0; x < w; ++x) {
-				ofs << (int)img[y*w+x] << std::endl;
-			}
-		}
-	}
+    if ( 0 ) {
+        std::ofstream ofs(filename);
+        ofs << "P2" << std::endl;
+        ofs << w << " " << h << std::endl;
+        ofs << "255" << std::endl;
+        for (int y = 0; y < h; ++y) {
+            for (int x = 0; x < w; ++x) {
+                ofs << (int)img[y*w+x] << std::endl;
+            }
+        }
+    }
 
-	if ( 1 ) {
-		std::ofstream ofs(filename);
-		ofs << "P3" << std::endl;
-		ofs << w << " " << h << std::endl;
-		ofs << "255" << std::endl;
-		for (int y = 0; y < h; ++y) {
-			for (int x = 0; x < w; ++x) {
-				ofs << (int)img[y*w+x] << " " << (int)img[y*w+x] << " " << (int)img[y*w+x] << std::endl;
-			}
-		}
-	}
+    if ( 1 ) {
+        std::ofstream ofs(filename);
+        ofs << "P3" << std::endl;
+        ofs << w << " " << h << std::endl;
+        ofs << "255" << std::endl;
+        for (int y = 0; y < h; ++y) {
+            for (int x = 0; x < w; ++x) {
+                ofs << (int)img[y*w+x] << " " << (int)img[y*w+x] << " " << (int)img[y*w+x] << std::endl;
+            }
+        }
+    }
 
     delete[] img;
 }

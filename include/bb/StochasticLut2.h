@@ -50,14 +50,14 @@ protected:
         m_dW = std::make_shared<Tensor>();
     }
 
- 	void CommandProc(std::vector<std::string> args)
-	{
+    void CommandProc(std::vector<std::string> args)
+    {
         // バイナリモード設定
         if ( args.size() == 2 && args[0] == "binary" )
         {
             m_binary_mode = EvalBool(args[1]);
         }
-	}
+    }
 
 public:
     ~StochasticLut2() {}

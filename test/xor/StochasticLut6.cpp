@@ -14,7 +14,6 @@
 
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
-#include "bb/MicroMlpAffine.h"
 #include "bb/StochasticLut6.h"
 #include "bb/BatchNormalization.h"
 #include "bb/Sigmoid.h"
@@ -29,7 +28,7 @@
 
 
 // MNIST CNN with LUT networks
-void XorMicroMlp(int epoch_size, bool binary_mode)
+void StochasticLut6(int epoch_size, bool binary_mode)
 {
     // load data
     auto td = bb::LoadXor<>::Load(6, 256);
@@ -45,9 +44,7 @@ void XorMicroMlp(int epoch_size, bool binary_mode)
     */
 
     auto net = bb::Sequential::Create();
-    net->Add(bb::MicroMlpAffine<6, 16, float>::Create(td.t_shape));
-    net->Add(bb::BatchNormalization<float>::Create());
-    net->Add(bb::Sigmoid<float>::Create());
+    net->Add(bb::StochasticLut6<>::Create(td.t_shape));
     net->SetInputShape(td.x_shape);
 
     if ( binary_mode ) {
@@ -56,7 +53,7 @@ void XorMicroMlp(int epoch_size, bool binary_mode)
     }
 
     bb::Runner<float>::create_t runner_create;
-    runner_create.name        = "XorMicroMlp";
+    runner_create.name        = "StochasticLut6";
     runner_create.net         = net;
     runner_create.lossFunc    = bb::LossMeanSquaredError<float>::Create();
     runner_create.metricsFunc = bb::MetricsBinaryAccuracy<float>::Create();

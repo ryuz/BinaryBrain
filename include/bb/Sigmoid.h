@@ -30,15 +30,15 @@ protected:
     using Binarize<T>::m_dx;
 
 protected:
-	Sigmoid() {}
+    Sigmoid() {}
 
     /**
      * @brief  コマンド処理
      * @detail コマンド処理
      * @param  args   コマンド
      */
-	void CommandProc(std::vector<std::string> args)
-	{
+    void CommandProc(std::vector<std::string> args)
+    {
         // バイナリモード設定
         if ( args.size() == 2 && args[0] == "binary" )
         {
@@ -50,7 +50,7 @@ protected:
         {
             this->m_host_only = EvalBool(args[1]);
         }
-	}
+    }
 
 
 public:
@@ -60,9 +60,9 @@ public:
         return self;
     }
 
-	~Sigmoid() {}
+    ~Sigmoid() {}
 
-	std::string GetClassName(void) const { return "Sigmoid"; }
+    std::string GetClassName(void) const { return "Sigmoid"; }
 
 
     /**
@@ -87,7 +87,7 @@ public:
 
         std::vector<T> y_vec;
         for ( auto x : x_vec ) {
-		    y_vec.push_back((T)1 / ((T)1 + std::exp(-x))); // Sigmoid
+            y_vec.push_back((T)1 / ((T)1 + std::exp(-x))); // Sigmoid
         }
 
         return y_vec;
@@ -103,7 +103,7 @@ public:
     inline FrameBuffer Forward(FrameBuffer x, bool train = true)
     {
         // binaryモード
-    	if (m_binary_mode) {
+        if (m_binary_mode) {
             return Binarize<T>::Forward(x, train);
         }
 
@@ -136,17 +136,17 @@ public:
             index_t frame_size = x.GetFrameSize();
             index_t node_size = x.GetNodeSize();
 
-		    auto x_ptr = x.template LockConst<T>();
-		    auto y_ptr = m_y.template Lock<T>();
+            auto x_ptr = x.template LockConst<T>();
+            auto y_ptr = m_y.template Lock<T>();
 
-		    // Sigmoid
+            // Sigmoid
     #pragma omp parallel for
-		    for (index_t node = 0; node < node_size; ++node) {
-			    for (index_t frame = 0; frame < frame_size; ++frame) {
+            for (index_t node = 0; node < node_size; ++node) {
+                for (index_t frame = 0; frame < frame_size; ++frame) {
                     T sig = x_ptr.Get(frame, node);
-				    y_ptr.Set(frame, node, (T)1 / ((T)1 + std::exp(-sig)));
-			    }
-		    }
+                    y_ptr.Set(frame, node, (T)1 / ((T)1 + std::exp(-sig)));
+                }
+            }
             return m_y;
         }
     }
@@ -157,10 +157,10 @@ public:
      *         
      * @return backward演算結果
      */
-	inline FrameBuffer Backward(FrameBuffer dy)
+    inline FrameBuffer Backward(FrameBuffer dy)
     {
         // binaryモード
-  		if (m_binary_mode) {
+        if (m_binary_mode) {
             return Binarize<T>::Backward(dy);
         }
 
@@ -192,19 +192,19 @@ public:
             index_t frame_size = m_dx.GetFrameSize();
             index_t node_size = m_dx.GetNodeSize();
 
-	        auto y_ptr  = m_y.template LockConst<T>();
-	        auto dy_ptr = dy.template LockConst<T>();
-	        auto dx_ptr = m_dx.template Lock<T>();
+            auto y_ptr  = m_y.template LockConst<T>();
+            auto dy_ptr = dy.template LockConst<T>();
+            auto dx_ptr = m_dx.template Lock<T>();
 
             // Sigmoid
     #pragma omp parallel for
-		    for (index_t node = 0; node < node_size; ++node) {
-			    for (index_t frame = 0; frame < frame_size; ++frame) {
+            for (index_t node = 0; node < node_size; ++node) {
+                for (index_t frame = 0; frame < frame_size; ++frame) {
                     auto sig  = y_ptr.Get(frame, node);
                     auto grad = dy_ptr.Get(frame, node);
-				    dx_ptr.Set(frame, node, grad * (-sig + (T)1) * sig);
-			    }
-		    }
+                    dx_ptr.Set(frame, node, grad * (-sig + (T)1) * sig);
+                }
+            }
             return m_dx;
         }
     }

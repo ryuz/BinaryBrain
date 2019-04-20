@@ -40,7 +40,7 @@ void MnistStochasticLut6Mlp(int epoch_size, size_t mini_batch_size, int lut_fram
 
   // load MNIST data
 #ifdef _DEBUG
-	auto td = bb::LoadMnist<>::Load(10, 64, 32);
+    auto td = bb::LoadMnist<>::Load(10, 64, 32);
     std::cout << "!!! debug mode !!!" << std::endl;
 #else
     auto td = bb::LoadMnist<>::Load(10);
@@ -135,44 +135,44 @@ void MnistStochasticLut6Mlp(int epoch_size, size_t mini_batch_size, int lut_fram
 
 static void WriteMnistDataFile(std::ostream& ofs, std::vector< std::vector<float> > x, std::vector< std::vector<float> > y)
 {
-	for (size_t i = 0; i < x.size(); ++i) {
-		auto yi = bb::argmax<>(y[i]);
+    for (size_t i = 0; i < x.size(); ++i) {
+        auto yi = bb::argmax<>(y[i]);
 
-		for (int j = 7; j >= 0; --j) {
-			ofs << ((yi >> j) & 1);
-		}
-		ofs << "_";
+        for (int j = 7; j >= 0; --j) {
+            ofs << ((yi >> j) & 1);
+        }
+        ofs << "_";
 
-		for (int j = 28*28-1; j >= 0; --j) {
-			if (x[i][j] > 0.5f) {
-				ofs << "1";
-			}
-			else {
-				ofs << "0";
-			}
-		}
-		ofs << std::endl;
-	}
+        for (int j = 28*28-1; j >= 0; --j) {
+            if (x[i][j] > 0.5f) {
+                ofs << "1";
+            }
+            else {
+                ofs << "0";
+            }
+        }
+        ofs << std::endl;
+    }
 }
 
 
 // write data file for verilog testbench
 static void WriteMnistDataFile(std::string train_file, std::string test_file, int train_size, int test_size)
 {
-	// load MNIST data
-	auto td = bb::LoadMnist<>::Load(10, train_size, test_size);
+    // load MNIST data
+    auto td = bb::LoadMnist<>::Load(10, train_size, test_size);
 
-	// write train data
-	{
-		std::ofstream ofs_train(train_file);
-		WriteMnistDataFile(ofs_train, td.x_train, td.t_train);
-	}
+    // write train data
+    {
+        std::ofstream ofs_train(train_file);
+        WriteMnistDataFile(ofs_train, td.x_train, td.t_train);
+    }
 
-	// write test data
-	{
-		std::ofstream ofs_test(test_file);
-		WriteMnistDataFile(ofs_test, td.x_test, td.t_test);
-	}
+    // write test data
+    {
+        std::ofstream ofs_test(test_file);
+        WriteMnistDataFile(ofs_test, td.x_test, td.t_test);
+    }
 }
 
 

@@ -20,8 +20,8 @@ TEST(cudaMatrixColwiseSumTest, test_cudaMatrixColwiseSum)
     int const node_size  = 2;
     int const frame_size = 3;
 
-	bb::FrameBuffer x_buf(BB_TYPE_FP32, frame_size, node_size);
-	bb::Tensor      y_buf(BB_TYPE_FP32, node_size);
+    bb::FrameBuffer x_buf(BB_TYPE_FP32, frame_size, node_size);
+    bb::Tensor      y_buf(BB_TYPE_FP32, node_size);
 
     {
         x_buf.SetFP32(0, 0, 1);
@@ -44,14 +44,14 @@ TEST(cudaMatrixColwiseSumTest, test_cudaMatrixColwiseSum)
                 (int          )x_buf.GetFrameSize(),
                 (int          )(x_buf.GetFrameStride() / sizeof(float))
             );
-	}
+    }
 
-	{
+    {
         auto y_ptr = y_buf.LockConst<float>();
 
         EXPECT_FLOAT_EQ(1+2+3, y_ptr(0));
         EXPECT_FLOAT_EQ(4+5+6, y_ptr(1));
-	}
+    }
 }
 
 

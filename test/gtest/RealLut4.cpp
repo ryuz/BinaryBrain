@@ -9,7 +9,7 @@
 TEST(RealLut4, testRealLut4_test0)
 {
     auto lut = bb::RealLut4<>::Create(1);
-	
+    
     bb::FrameBuffer x(BB_TYPE_FP32, 16, 4);
     lut->SetInputShape(x.GetShape());
 
@@ -28,11 +28,11 @@ TEST(RealLut4, testRealLut4_test0)
         }
     }
 
-	auto y = lut->Forward(x);
+    auto y = lut->Forward(x);
 
     for (int i = 0; i < 16; ++i) {
         float exp = (i == 2) ? 1.0f : 0.0f;
-//    	EXPECT_FLOAT_EQ(exp, y.GetFP32(i, 0));
+//      EXPECT_FLOAT_EQ(exp, y.GetFP32(i, 0));
     }
 
 
@@ -41,7 +41,7 @@ TEST(RealLut4, testRealLut4_test0)
         float val = (i == 2) ? -0.1f : +0.1f;
         dy.SetFP32(i, 0, val);
     }
-	auto dx = lut->Backward(dy);
+    auto dx = lut->Backward(dy);
 
 
 
@@ -99,7 +99,7 @@ TEST(RealLut4, testRealLut4_test0)
 TEST(RealLut4, testRealLut4_test1)
 {
     auto lut = bb::RealLut4<>::Create(1);
-	
+    
     bb::FrameBuffer x(BB_TYPE_FP32, 16, 4);
     lut->SetInputShape(x.GetShape());
 
@@ -118,11 +118,11 @@ TEST(RealLut4, testRealLut4_test1)
         }
     }
 
-	auto y = lut->Forward(x);
+    auto y = lut->Forward(x);
 
     for (int i = 0; i < 16; ++i) {
         float exp = (i == 2) ? 1.0f : 0.0f;
-//    	EXPECT_FLOAT_EQ(exp, y.GetFP32(i, 0));
+//      EXPECT_FLOAT_EQ(exp, y.GetFP32(i, 0));
     }
 
 
@@ -135,7 +135,7 @@ TEST(RealLut4, testRealLut4_test1)
         float val = (b0^b1^b2^b3) ? 1.0f : 0.0f;
         dy.SetFP32(i, 0, y.GetFP32(i, 0) - val);
     }
-	auto dx = lut->Backward(dy);
+    auto dx = lut->Backward(dy);
 
 
     {
@@ -192,7 +192,7 @@ TEST(RealLut4, testRealLut4_test1)
 TEST(RealLut4, testRealLut4_test1)
 {
     auto lut = bb::RealLut4<>::Create(1);
-	
+    
     bb::FrameBuffer x(BB_TYPE_FP32, 16, 4);
     lut->SetInputShape(x.GetShape());
 
@@ -211,11 +211,11 @@ TEST(RealLut4, testRealLut4_test1)
         }
     }
 
-	auto y = lut->Forward(x);
+    auto y = lut->Forward(x);
 
     for (int i = 0; i < 16; ++i) {
         float exp = (i == 2) ? 1.0f : 0.0f;
-//    	EXPECT_FLOAT_EQ(exp, y.GetFP32(i, 0));
+//      EXPECT_FLOAT_EQ(exp, y.GetFP32(i, 0));
     }
 
 
@@ -228,7 +228,7 @@ TEST(RealLut4, testRealLut4_test1)
 //      float val = (b0^b1^b2^b3) ? 1.0f : 0.0f;
         dy.SetFP32(i, 0, -1);
     }
-	auto dx = lut->Backward(dy);
+    auto dx = lut->Backward(dy);
 
 
     {
@@ -285,7 +285,7 @@ TEST(RealLut4, testRealLut4_test1)
 TEST(RealLut4, testRealLut4_test1)
 {
     auto lut = bb::RealLut4<>::Create(1);
-	
+    
     bb::FrameBuffer x(BB_TYPE_FP32, 16, 4);
     lut->SetInputShape(x.GetShape());
 
@@ -316,11 +316,11 @@ TEST(RealLut4, testRealLut4_test1)
         W_ptr(0, 15) = 0;
     }
 
-	auto y = lut->Forward(x);
+    auto y = lut->Forward(x);
 
     for (int i = 0; i < 16; ++i) {
         float exp = (i == 2) ? 1.0f : 0.0f;
-//    	EXPECT_FLOAT_EQ(exp, y.GetFP32(i, 0));
+//      EXPECT_FLOAT_EQ(exp, y.GetFP32(i, 0));
     }
 
 
@@ -333,7 +333,7 @@ TEST(RealLut4, testRealLut4_test1)
 //      float val = (b0^b1^b2^b3) ? 1.0f : 0.0f;
         dy.SetFP32(i, 0, -1);
     }
-	auto dx = lut->Backward(dy);
+    auto dx = lut->Backward(dy);
 
 
     {

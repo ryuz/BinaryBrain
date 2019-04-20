@@ -30,21 +30,21 @@ protected:
     bool        m_host_only = false;
 
 protected:
-	Binarize() {}
+    Binarize() {}
 
     /**
      * @brief  コマンド処理
      * @detail コマンド処理
      * @param  args   コマンド
      */
-	void CommandProc(std::vector<std::string> args)
-	{
+    void CommandProc(std::vector<std::string> args)
+    {
         // HostOnlyモード設定
         if (args.size() == 2 && args[0] == "host_only")
         {
             m_host_only = EvalBool(args[1]);
         }
-	}
+    }
 
 
 public:
@@ -54,9 +54,9 @@ public:
         return self;
     }
 
-	~Binarize() {}
+    ~Binarize() {}
 
-	std::string GetClassName(void) const { return "Binarize"; }
+    std::string GetClassName(void) const { return "Binarize"; }
     
     
     // ノード単位でのForward計算
@@ -64,7 +64,7 @@ public:
     {
         std::vector<T> y_vec;
         for ( auto x : x_vec ) {
-		    y_vec.push_back((x > (T)0.0) ? (T)1.0 : (T)0.0);
+            y_vec.push_back((x > (T)0.0) ? (T)1.0 : (T)0.0);
         }
         return y_vec;
     }
@@ -90,16 +90,16 @@ public:
         index_t frame_size = m_x.GetFrameSize();
         index_t node_size = m_x.GetNodeSize();
 
-		auto x_ptr = m_x.LockConst<T>();
-		auto y_ptr = m_y.Lock<T>();
+        auto x_ptr = m_x.LockConst<T>();
+        auto y_ptr = m_y.Lock<T>();
 
-		// Binarize
+        // Binarize
 #pragma omp parallel for
-		for (index_t node = 0; node < node_size; ++node) {
-			for (index_t frame = 0; frame < frame_size; ++frame) {
-				y_ptr.Set(frame, node, x_ptr.Get(frame, node) > (T)0.0 ? (T)1.0 : (T)0.0);
-			}
-		}
+        for (index_t node = 0; node < node_size; ++node) {
+            for (index_t frame = 0; frame < frame_size; ++frame) {
+                y_ptr.Set(frame, node, x_ptr.Get(frame, node) > (T)0.0 ? (T)1.0 : (T)0.0);
+            }
+        }
 
         return m_y;
     }
@@ -111,7 +111,7 @@ public:
      *         
      * @return backward演算結果
      */
-	inline FrameBuffer Backward(FrameBuffer dy)
+    inline FrameBuffer Backward(FrameBuffer dy)
     {
         BB_ASSERT(dy.GetType() == DataType<T>::type);
 
@@ -121,20 +121,20 @@ public:
         index_t frame_size = m_dx.GetFrameSize();
         index_t node_size = m_dx.GetNodeSize();
 
-		auto x_ptr  = m_x.LockConst<T>();
-		auto y_ptr  = m_y.LockConst<T>();
-		auto dy_ptr = dy.LockConst<T>();
-		auto dx_ptr = m_dx.Lock<T>();
+        auto x_ptr  = m_x.LockConst<T>();
+        auto y_ptr  = m_y.LockConst<T>();
+        auto dy_ptr = dy.LockConst<T>();
+        auto dx_ptr = m_dx.Lock<T>();
         
-    	// hard-tanh
+        // hard-tanh
 #pragma omp parallel for
-		for (index_t node = 0; node < node_size; ++node) {
-			for (index_t frame = 0; frame < frame_size; ++frame) {
-				auto grad = dy_ptr.Get(frame, node);
-				auto sig  = x_ptr.Get(frame, node);
-				dx_ptr.Set(frame, node, (sig >= (T)-1.0 && sig <= (T)1.0) ? grad : 0);
-			}
-		}
+        for (index_t node = 0; node < node_size; ++node) {
+            for (index_t frame = 0; frame < frame_size; ++frame) {
+                auto grad = dy_ptr.Get(frame, node);
+                auto sig  = x_ptr.Get(frame, node);
+                dx_ptr.Set(frame, node, (sig >= (T)-1.0 && sig <= (T)1.0) ? grad : 0);
+            }
+        }
 
         return m_dx;
     }
@@ -163,7 +163,7 @@ inline FrameBuffer Binarize<float>::Forward(FrameBuffer x, bool train)
     index_t frame_size = m_x.GetFrameSize();
     index_t node_size = m_x.GetNodeSize();
 
-  	// Binarize
+    // Binarize
 #if BB_WITH_CUDA
     if ( !m_host_only && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
         // CUDA版
@@ -183,14 +183,14 @@ inline FrameBuffer Binarize<float>::Forward(FrameBuffer x, bool train)
     {
         // CPU版
         auto x_ptr = m_x.LockConst<float>();
-	    auto y_ptr = m_y.Lock<float>();
+        auto y_ptr = m_y.Lock<float>();
 
 #pragma omp parallel for
-		for (index_t node = 0; node < node_size; ++node) {
-			for (index_t frame = 0; frame < frame_size; ++frame) {
-				y_ptr.Set(frame, node, x_ptr.Get(frame, node) > 0.0f ? 1.0f : 0.0f);
-			}
-		}
+        for (index_t node = 0; node < node_size; ++node) {
+            for (index_t frame = 0; frame < frame_size; ++frame) {
+                y_ptr.Set(frame, node, x_ptr.Get(frame, node) > 0.0f ? 1.0f : 0.0f);
+            }
+        }
         return m_y;
     }
 }
@@ -235,18 +235,18 @@ inline FrameBuffer Binarize<float>::Backward(FrameBuffer dy)
     {
         // CPU版
         auto x_ptr  = m_x.LockConst<float>();
-	    auto dy_ptr = dy.LockConst<float>();
-	    auto dx_ptr = m_dx.Lock<float>(true);
+        auto dy_ptr = dy.LockConst<float>();
+        auto dx_ptr = m_dx.Lock<float>(true);
 
 #pragma omp parallel for
-		for (index_t node = 0; node < node_size; ++node) {
-			for (index_t frame = 0; frame < frame_size; ++frame) {
-				// hard-tanh
-				auto grad = dy_ptr.Get(frame, node);
-				auto sig  = x_ptr.Get(frame, node);
-				dx_ptr.Set(frame, node, (sig >= -1.0f && sig <= 1.0f) ? grad : 0);
-			}
-		}
+        for (index_t node = 0; node < node_size; ++node) {
+            for (index_t frame = 0; frame < frame_size; ++frame) {
+                // hard-tanh
+                auto grad = dy_ptr.Get(frame, node);
+                auto sig  = x_ptr.Get(frame, node);
+                dx_ptr.Set(frame, node, (sig >= -1.0f && sig <= 1.0f) ? grad : 0);
+            }
+        }
         return m_dx;
     }
 }

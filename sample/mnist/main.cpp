@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
     int         lut_frame_mux_size = 15;
     bool        binary_mode = true;
 
-	if ( argc < 2 ) {
+    if ( argc < 2 ) {
         std::cout << "usage:" << std::endl;
         std::cout << argv[0] << " [options] <netname>" << std::endl;
         std::cout << "" << std::endl;
@@ -48,8 +48,8 @@ int main(int argc, char *argv[])
         std::cout << "  DenseMlp         FP32 Fully Connection Simple Multi Layer Perceptron" << std::endl;
         std::cout << "  DenseCnn         FP32 Fully Connection Simple Multi Layer Perceptron" << std::endl;
         std::cout << "  All              run all" << std::endl;
-		return 1;
-	}
+        return 1;
+    }
 
     for (int i = 1; i < argc; ++i) {
         if (strcmp(argv[i], "-num_threads") == 0 && i + 1 < argc) {
@@ -82,35 +82,35 @@ int main(int argc, char *argv[])
         }
     }
 
-	if ( netname == "All" || netname == "StochasticLutMlp" ) {
-		MnistStochasticLut6Mlp(epoch_size, mini_batch_size, lut_frame_mux_size, binary_mode);
-	}
+    if ( netname == "All" || netname == "StochasticLutMlp" ) {
+        MnistStochasticLut6Mlp(epoch_size, mini_batch_size, lut_frame_mux_size, binary_mode);
+    }
 
-	if ( netname == "All" || netname == "StochasticLutCnn" ) {
-    	MnistStochasticLut6Cnn(epoch_size, mini_batch_size, lut_frame_mux_size, binary_mode);
-	}
+    if ( netname == "All" || netname == "StochasticLutCnn" ) {
+        MnistStochasticLut6Cnn(epoch_size, mini_batch_size, lut_frame_mux_size, binary_mode);
+    }
 
-	if ( netname == "All" || netname == "LutMlp" ) {
-		MnistMicroMlpLutMlp(epoch_size, mini_batch_size, frame_mux_size, lut_frame_mux_size, binary_mode);
-	}
+    if ( netname == "All" || netname == "LutMlp" ) {
+        MnistMicroMlpLutMlp(epoch_size, mini_batch_size, frame_mux_size, lut_frame_mux_size, binary_mode);
+    }
 
-	if ( netname == "All" || netname == "LutCnn" ) {
-    	MnistMicroMlpLutCnn(epoch_size, mini_batch_size, frame_mux_size, lut_frame_mux_size, binary_mode);
-	}
+    if ( netname == "All" || netname == "LutCnn" ) {
+        MnistMicroMlpLutCnn(epoch_size, mini_batch_size, frame_mux_size, lut_frame_mux_size, binary_mode);
+    }
 
-	if ( netname == "All" || netname == "DenseMlp" ) {
-		MnistDenseMlp(epoch_size, mini_batch_size);
-	}
+    if ( netname == "All" || netname == "DenseMlp" ) {
+        MnistDenseMlp(epoch_size, mini_batch_size);
+    }
 
-	if ( netname == "All" || netname == "DenseCnn" ) {
-		MnistDenseCnn(epoch_size, mini_batch_size);
-	}
+    if ( netname == "All" || netname == "DenseCnn" ) {
+        MnistDenseCnn(epoch_size, mini_batch_size);
+    }
 
-	if ( strcmp(argv[1], "Scratch") == 0 ) {
+    if ( strcmp(argv[1], "Scratch") == 0 ) {
         // レイヤー内部を自分で書く人向けサンプル
-		MnistMicroMlpScratch(epoch_size, mini_batch_size, binary_mode);
-	}
+        MnistMicroMlpScratch(epoch_size, mini_batch_size, binary_mode);
+    }
 
-	return 0;
+    return 0;
 }
 

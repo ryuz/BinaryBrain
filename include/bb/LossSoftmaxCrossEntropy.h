@@ -28,14 +28,14 @@ protected:
     index_t     m_frames = 0;
 
 protected:
-	LossSoftmaxCrossEntropy() {
+    LossSoftmaxCrossEntropy() {
         m_loss.Resize(1);
         Clear();
     }
 
 public:
-	~LossSoftmaxCrossEntropy() {}
-	
+    ~LossSoftmaxCrossEntropy() {}
+    
     static std::shared_ptr<LossSoftmaxCrossEntropy> Create(void)
     {
         auto self = std::shared_ptr<LossSoftmaxCrossEntropy>(new LossSoftmaxCrossEntropy);
@@ -70,15 +70,15 @@ public:
             auto loss_ptr     = m_loss.LockDeviceMemory();
 
             bbcu_fp32_LossSoftmaxCrossEntropy
-        		(
-			        (float const *)y_ptr.GetAddr(),
-			        (float const *)t_ptr.GetAddr(),
-			        (float       *)dy_ptr.GetAddr(),
-			        (float       *)loss_buf_ptr.GetAddr(),
-			        (float       *)loss_ptr.GetAddr(),
-			        (int          )y.GetNodeSize(),
-			        (int          )y.GetFrameSize(),
-			        (int          )(y.GetFrameStride() / sizeof(float)),
+                (
+                    (float const *)y_ptr.GetAddr(),
+                    (float const *)t_ptr.GetAddr(),
+                    (float       *)dy_ptr.GetAddr(),
+                    (float       *)loss_buf_ptr.GetAddr(),
+                    (float       *)loss_ptr.GetAddr(),
+                    (int          )y.GetNodeSize(),
+                    (int          )y.GetFrameSize(),
+                    (int          )(y.GetFrameStride() / sizeof(float)),
                     (int          )batch_size
                 );
 

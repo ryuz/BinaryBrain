@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
     bool        file_read   = false;
     bool        binary_mode = true;
 
-	if ( argc < 2 ) {
+    if ( argc < 2 ) {
         std::cout << "usage:" << std::endl;
         std::cout << argv[0] << " [options] <netname>" << std::endl;
         std::cout << "" << std::endl;
@@ -59,8 +59,8 @@ int main(int argc, char *argv[])
         std::cout << "  DenseMlp         FP32 Fully Connection Simple Multi Layer Perceptron" << std::endl;
         std::cout << "  DenseCnn         FP32 Fully Connection Simple Multi Layer Perceptron" << std::endl;
         std::cout << "  All              run all" << std::endl;
-		return 1;
-	}
+        return 1;
+    }
 
     for (int i = 1; i < argc; ++i) {
         if (strcmp(argv[i], "-num_threads") == 0 && i + 1 < argc) {
@@ -109,30 +109,30 @@ int main(int argc, char *argv[])
     }
 
 
-	if ( netname == "All" || netname == "StochasticLutMlp" ) {
-		Cifar10StochasticLut6Mlp(epoch_size, mini_batch_size, max_run_size, lut_frame_mux_size, binary_mode, file_read);
-	}
+    if ( netname == "All" || netname == "StochasticLutMlp" ) {
+        Cifar10StochasticLut6Mlp(epoch_size, mini_batch_size, max_run_size, lut_frame_mux_size, binary_mode, file_read);
+    }
 
-	if ( netname == "All" || netname == "StochasticLutCnn" ) {
-    	Cifar10StochasticLut6Cnn(epoch_size, mini_batch_size, max_run_size, lut_frame_mux_size, binary_mode, file_read);
-	}
+    if ( netname == "All" || netname == "StochasticLutCnn" ) {
+        Cifar10StochasticLut6Cnn(epoch_size, mini_batch_size, max_run_size, lut_frame_mux_size, binary_mode, file_read);
+    }
 
-	if ( netname == "All" || netname == "LutMlp" ) {
-		Cifar10MicroMlpLutMlp(epoch_size, mini_batch_size, max_run_size, frame_mux_size, lut_frame_mux_size, binary_mode, file_read);
-	}
+    if ( netname == "All" || netname == "LutMlp" ) {
+        Cifar10MicroMlpLutMlp(epoch_size, mini_batch_size, max_run_size, frame_mux_size, lut_frame_mux_size, binary_mode, file_read);
+    }
 
-	if ( netname == "All" || netname == "LutCnn" ) {
-    	Cifar10MicroMlpLutCnn(epoch_size, mini_batch_size, max_run_size, frame_mux_size, lut_frame_mux_size, binary_mode, file_read);
-	}
+    if ( netname == "All" || netname == "LutCnn" ) {
+        Cifar10MicroMlpLutCnn(epoch_size, mini_batch_size, max_run_size, frame_mux_size, lut_frame_mux_size, binary_mode, file_read);
+    }
 
-	if ( netname == "All" || netname == "DenseMlp" ) {
-		Cifar10DenseMlp(epoch_size, mini_batch_size, max_run_size, false, file_read);
-	}
+    if ( netname == "All" || netname == "DenseMlp" ) {
+        Cifar10DenseMlp(epoch_size, mini_batch_size, max_run_size, false, file_read);
+    }
 
-	if ( netname == "All" || netname == "DenseCnn" ) {
-		Cifar10DenseCnn(epoch_size, mini_batch_size, max_run_size, false, file_read);
-	}
+    if ( netname == "All" || netname == "DenseCnn" ) {
+        Cifar10DenseCnn(epoch_size, mini_batch_size, max_run_size, false, file_read);
+    }
 
-	return 0;
+    return 0;
 }
 

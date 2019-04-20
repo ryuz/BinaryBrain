@@ -19,40 +19,40 @@ TEST(BinaryLutTest, testBinaryLut)
     
     lut->SetInputShape(x_buf.GetShape());
 
-	x_buf.SetBit(0, 0, false);
-	x_buf.SetBit(0, 1, true);
-	x_buf.SetBit(0, 2, true);
-	x_buf.SetBit(0, 3, false);
-	x_buf.SetBit(0, 4, false);
-	x_buf.SetBit(0, 5, true);
-	x_buf.SetBit(0, 6, true);
-	x_buf.SetBit(0, 7, true);
+    x_buf.SetBit(0, 0, false);
+    x_buf.SetBit(0, 1, true);
+    x_buf.SetBit(0, 2, true);
+    x_buf.SetBit(0, 3, false);
+    x_buf.SetBit(0, 4, false);
+    x_buf.SetBit(0, 5, true);
+    x_buf.SetBit(0, 6, true);
+    x_buf.SetBit(0, 7, true);
 
-	// 0x1d
-    lut->SetNodeInput(0, 0, 6);	// 1
-	lut->SetNodeInput(0, 1, 4);	// 0
-	lut->SetNodeInput(0, 2, 1);	// 1
-	lut->SetNodeInput(0, 3, 7);	// 1
-	lut->SetNodeInput(0, 4, 2);	// 1
-	lut->SetNodeInput(0, 5, 3);	// 0
+    // 0x1d
+    lut->SetNodeInput(0, 0, 6); // 1
+    lut->SetNodeInput(0, 1, 4); // 0
+    lut->SetNodeInput(0, 2, 1); // 1
+    lut->SetNodeInput(0, 3, 7); // 1
+    lut->SetNodeInput(0, 4, 2); // 1
+    lut->SetNodeInput(0, 5, 3); // 0
 
-	// 0x1c
-	lut->SetNodeInput(1, 0, 0);	// 0
-	lut->SetNodeInput(1, 1, 4);	// 0
-	lut->SetNodeInput(1, 2, 1);	// 1
-	lut->SetNodeInput(1, 3, 5);	// 1
-	lut->SetNodeInput(1, 4, 6);	// 1
-	lut->SetNodeInput(1, 5, 3);	// 0
+    // 0x1c
+    lut->SetNodeInput(1, 0, 0); // 0
+    lut->SetNodeInput(1, 1, 4); // 0
+    lut->SetNodeInput(1, 2, 1); // 1
+    lut->SetNodeInput(1, 3, 5); // 1
+    lut->SetNodeInput(1, 4, 6); // 1
+    lut->SetNodeInput(1, 5, 3); // 0
 
-	for (int i = 0; i < 64; i++) {
-		lut->SetLutTable(0, i, i == 0x1d);
-		lut->SetLutTable(1, i, i != 0x1c);
-	}
-	
-	auto y_buf = lut->Forward(x_buf);
+    for (int i = 0; i < 64; i++) {
+        lut->SetLutTable(0, i, i == 0x1d);
+        lut->SetLutTable(1, i, i != 0x1c);
+    }
+    
+    auto y_buf = lut->Forward(x_buf);
 
-	EXPECT_EQ(true,  y_buf.GetBit(0, 0));
-	EXPECT_EQ(false, y_buf.GetBit(0, 1));
+    EXPECT_EQ(true,  y_buf.GetBit(0, 0));
+    EXPECT_EQ(false, y_buf.GetBit(0, 1));
 }
 
 
@@ -65,52 +65,52 @@ TEST(NeuralNetBinaryLut6, testNeuralNetBinaryLut6Batch)
     
     lut->SetInputShape(x_buf.GetShape());
 
-	x_buf.SetBit(0, 0, false);
-	x_buf.SetBit(0, 1, true);
-	x_buf.SetBit(0, 2, true);
-	x_buf.SetBit(0, 3, false);
-	x_buf.SetBit(0, 4, false);
-	x_buf.SetBit(0, 5, true);
-	x_buf.SetBit(0, 6, true);
-	x_buf.SetBit(0, 7, true);
+    x_buf.SetBit(0, 0, false);
+    x_buf.SetBit(0, 1, true);
+    x_buf.SetBit(0, 2, true);
+    x_buf.SetBit(0, 3, false);
+    x_buf.SetBit(0, 4, false);
+    x_buf.SetBit(0, 5, true);
+    x_buf.SetBit(0, 6, true);
+    x_buf.SetBit(0, 7, true);
 
-	x_buf.SetBit(1, 0, true);
-	x_buf.SetBit(1, 1, false);
-	x_buf.SetBit(1, 2, false);
-	x_buf.SetBit(1, 3, true);
-	x_buf.SetBit(1, 4, true);
-	x_buf.SetBit(1, 5, false);
-	x_buf.SetBit(1, 6, false);
-	x_buf.SetBit(1, 7, false);
+    x_buf.SetBit(1, 0, true);
+    x_buf.SetBit(1, 1, false);
+    x_buf.SetBit(1, 2, false);
+    x_buf.SetBit(1, 3, true);
+    x_buf.SetBit(1, 4, true);
+    x_buf.SetBit(1, 5, false);
+    x_buf.SetBit(1, 6, false);
+    x_buf.SetBit(1, 7, false);
 
 
-	// 0x1d
-	lut->SetNodeInput(0, 0, 6);	// 1
-	lut->SetNodeInput(0, 1, 4);	// 0
-	lut->SetNodeInput(0, 2, 1);	// 1
-	lut->SetNodeInput(0, 3, 7);	// 1
-	lut->SetNodeInput(0, 4, 2);	// 1
-	lut->SetNodeInput(0, 5, 3);	// 0
+    // 0x1d
+    lut->SetNodeInput(0, 0, 6); // 1
+    lut->SetNodeInput(0, 1, 4); // 0
+    lut->SetNodeInput(0, 2, 1); // 1
+    lut->SetNodeInput(0, 3, 7); // 1
+    lut->SetNodeInput(0, 4, 2); // 1
+    lut->SetNodeInput(0, 5, 3); // 0
 
-	// 0x1c
-	lut->SetNodeInput(1, 0, 0);	// 0
-	lut->SetNodeInput(1, 1, 4);	// 0
-	lut->SetNodeInput(1, 2, 1);	// 1
-	lut->SetNodeInput(1, 3, 5);	// 1
-	lut->SetNodeInput(1, 4, 6);	// 1
-	lut->SetNodeInput(1, 5, 3);	// 0
+    // 0x1c
+    lut->SetNodeInput(1, 0, 0); // 0
+    lut->SetNodeInput(1, 1, 4); // 0
+    lut->SetNodeInput(1, 2, 1); // 1
+    lut->SetNodeInput(1, 3, 5); // 1
+    lut->SetNodeInput(1, 4, 6); // 1
+    lut->SetNodeInput(1, 5, 3); // 0
 
-	for (int i = 0; i < 64; i++) {
-		lut->SetLutTable(0, i, i == 0x1d || i == 0x22 );
-		lut->SetLutTable(1, i, i != 0x1c && i != 0x23 );
-	}
+    for (int i = 0; i < 64; i++) {
+        lut->SetLutTable(0, i, i == 0x1d || i == 0x22 );
+        lut->SetLutTable(1, i, i != 0x1c && i != 0x23 );
+    }
 
-	auto y_buf = lut->Forward(x_buf);
+    auto y_buf = lut->Forward(x_buf);
 
-	EXPECT_EQ(true,  y_buf.GetBit(0, 0));
-	EXPECT_EQ(false, y_buf.GetBit(0, 1));
-	EXPECT_EQ(true,  y_buf.GetBit(1, 0));
-	EXPECT_EQ(false, y_buf.GetBit(1, 1));
+    EXPECT_EQ(true,  y_buf.GetBit(0, 0));
+    EXPECT_EQ(false, y_buf.GetBit(0, 1));
+    EXPECT_EQ(true,  y_buf.GetBit(1, 0));
+    EXPECT_EQ(false, y_buf.GetBit(1, 1));
 }
 
 #endif
@@ -123,8 +123,8 @@ void testBinaryLut6_cmpare(
         int output_node_size,
         int frame_size)
 {
-	auto layer_cpu = bb::BinaryLutN<N, FT, BT>::Create(output_node_size);
-	auto layer_gpu = bb::BinaryLutN<N, FT, BT>::Create(output_node_size);
+    auto layer_cpu = bb::BinaryLutN<N, FT, BT>::Create(output_node_size);
+    auto layer_gpu = bb::BinaryLutN<N, FT, BT>::Create(output_node_size);
 
     bb::FrameBuffer x_cpu(bb::DataType<FT>::type, frame_size, input_node_size, true);
     bb::FrameBuffer x_gpu(bb::DataType<FT>::type, frame_size, input_node_size);

@@ -44,8 +44,8 @@ protected:
 protected:
     BinaryLutN() {}
 
- 	void CommandProc(std::vector<std::string> args)
-	{
+    void CommandProc(std::vector<std::string> args)
+    {
         // バイナリモード設定
 //      if ( args.size() == 2 && args[0] == "binary" )
 //      {
@@ -63,10 +63,10 @@ protected:
         {
             m_host_simd = EvalBool(args[1]);
         }
-	}
+    }
 
 public:
-	~BinaryLutN() {}
+    ~BinaryLutN() {}
 
     struct create_t
     {
@@ -105,12 +105,12 @@ public:
         return Create(create);
     }
 
-	std::string GetClassName(void) const { return "BinaryLutN"; }
+    std::string GetClassName(void) const { return "BinaryLutN"; }
 
-   	auto lock_InputIndex(void)             { return m_input_index.Lock(); }
-	auto lock_InputIndex_const(void) const { return m_input_index.LockConst(); }
+    auto lock_InputIndex(void)             { return m_input_index.Lock(); }
+    auto lock_InputIndex_const(void) const { return m_input_index.LockConst(); }
 
-  	// 疎結合の管理
+    // 疎結合の管理
     index_t GetNodeInputSize(index_t node) const
     {
         return N;
@@ -241,21 +241,21 @@ private:
         if ((LUT & (1 << VAL)) == 0) {
             return _mm256_andnot_si256(val, lut);
         }
-	    else {
-	        return _mm256_and_si256(val, lut);
-	    }
+        else {
+            return _mm256_and_si256(val, lut);
+        }
     }
     
     template<int LUT>
     inline void lut6_mask(__m256i& msk, __m256i lut, __m256i val[6])
     {
-	    lut = lut_mask_unit<LUT, 0>(val[0], lut);
-	    lut = lut_mask_unit<LUT, 1>(val[1], lut);
-	    lut = lut_mask_unit<LUT, 2>(val[2], lut);
-	    lut = lut_mask_unit<LUT, 3>(val[3], lut);
-	    lut = lut_mask_unit<LUT, 4>(val[4], lut);
-	    lut = lut_mask_unit<LUT, 5>(val[5], lut);
-	    msk = _mm256_or_si256(msk, lut);
+        lut = lut_mask_unit<LUT, 0>(val[0], lut);
+        lut = lut_mask_unit<LUT, 1>(val[1], lut);
+        lut = lut_mask_unit<LUT, 2>(val[2], lut);
+        lut = lut_mask_unit<LUT, 3>(val[3], lut);
+        lut = lut_mask_unit<LUT, 4>(val[4], lut);
+        lut = lut_mask_unit<LUT, 5>(val[5], lut);
+        msk = _mm256_or_si256(msk, lut);
     }
 
     inline bool GetLutTableFromPtr(Tensor_<std::int32_t>::ConstPtr ptr, index_t node, int index)
@@ -312,109 +312,109 @@ public:
 
             #pragma omp parallel for
             for (index_t node = 0; node < node_size; ++node) {
-		        __m256i*	x_addr[6];
-		        __m256i*	y_addr;
-		        __m256i		x[6];
+                __m256i*    x_addr[6];
+                __m256i*    y_addr;
+                __m256i     x[6];
 
-		        x_addr[0] = (__m256i*)x_ptr.GetAddr(input_index_ptr(node, 0));
-		        x_addr[1] = (__m256i*)x_ptr.GetAddr(input_index_ptr(node, 1));
-		        x_addr[2] = (__m256i*)x_ptr.GetAddr(input_index_ptr(node, 2));
-		        x_addr[3] = (__m256i*)x_ptr.GetAddr(input_index_ptr(node, 3));
-		        x_addr[4] = (__m256i*)x_ptr.GetAddr(input_index_ptr(node, 4));
-		        x_addr[5] = (__m256i*)x_ptr.GetAddr(input_index_ptr(node, 5));
-		        y_addr    = (__m256i*)y_ptr.GetAddr(node);
+                x_addr[0] = (__m256i*)x_ptr.GetAddr(input_index_ptr(node, 0));
+                x_addr[1] = (__m256i*)x_ptr.GetAddr(input_index_ptr(node, 1));
+                x_addr[2] = (__m256i*)x_ptr.GetAddr(input_index_ptr(node, 2));
+                x_addr[3] = (__m256i*)x_ptr.GetAddr(input_index_ptr(node, 3));
+                x_addr[4] = (__m256i*)x_ptr.GetAddr(input_index_ptr(node, 4));
+                x_addr[5] = (__m256i*)x_ptr.GetAddr(input_index_ptr(node, 5));
+                y_addr    = (__m256i*)y_ptr.GetAddr(node);
 
                 char    table[64];
                 std::int32_t t0 = table_ptr(node, 0);
                 std::int32_t t1 = table_ptr(node, 1);
-		        for (int i = 0; i < 32; ++i) { table[i]    = (t0 & (1 << i)) ? -1 : 0; }
-		        for (int i = 0; i < 32; ++i) { table[i+32] = (t1 & (1 << i)) ? -1 : 0; }
+                for (int i = 0; i < 32; ++i) { table[i]    = (t0 & (1 << i)) ? -1 : 0; }
+                for (int i = 0; i < 32; ++i) { table[i+32] = (t1 & (1 << i)) ? -1 : 0; }
 
-		        for (index_t frame = 0; frame < frame_size; ++frame) {
-			        // input
-			        x[0] = _mm256_loadu_si256(&x_addr[0][frame]);
-			        x[1] = _mm256_loadu_si256(&x_addr[1][frame]);
-			        x[2] = _mm256_loadu_si256(&x_addr[2][frame]);
-			        x[3] = _mm256_loadu_si256(&x_addr[3][frame]);
-			        x[4] = _mm256_loadu_si256(&x_addr[4][frame]);
-			        x[5] = _mm256_loadu_si256(&x_addr[5][frame]);
+                for (index_t frame = 0; frame < frame_size; ++frame) {
+                    // input
+                    x[0] = _mm256_loadu_si256(&x_addr[0][frame]);
+                    x[1] = _mm256_loadu_si256(&x_addr[1][frame]);
+                    x[2] = _mm256_loadu_si256(&x_addr[2][frame]);
+                    x[3] = _mm256_loadu_si256(&x_addr[3][frame]);
+                    x[4] = _mm256_loadu_si256(&x_addr[4][frame]);
+                    x[5] = _mm256_loadu_si256(&x_addr[5][frame]);
 
-			        // LUT
-			        __m256i y = _mm256_set1_epi8(0);
-			        lut6_mask< 0>(y, _mm256_set1_epi8(table[0]), x);
-			        lut6_mask< 1>(y, _mm256_set1_epi8(table[1]), x);
-			        lut6_mask< 2>(y, _mm256_set1_epi8(table[2]), x);
-			        lut6_mask< 3>(y, _mm256_set1_epi8(table[3]), x);
-			        lut6_mask< 4>(y, _mm256_set1_epi8(table[4]), x);
-			        lut6_mask< 5>(y, _mm256_set1_epi8(table[5]), x);
-			        lut6_mask< 6>(y, _mm256_set1_epi8(table[6]), x);
-			        lut6_mask< 7>(y, _mm256_set1_epi8(table[7]), x);
-			        lut6_mask< 8>(y, _mm256_set1_epi8(table[8]), x);
-			        lut6_mask< 9>(y, _mm256_set1_epi8(table[9]), x);
-			        lut6_mask<10>(y, _mm256_set1_epi8(table[10]), x);
-			        lut6_mask<11>(y, _mm256_set1_epi8(table[11]), x);
-			        lut6_mask<12>(y, _mm256_set1_epi8(table[12]), x);
-			        lut6_mask<13>(y, _mm256_set1_epi8(table[13]), x);
-			        lut6_mask<14>(y, _mm256_set1_epi8(table[14]), x);
-			        lut6_mask<15>(y, _mm256_set1_epi8(table[15]), x);
-			        lut6_mask<16>(y, _mm256_set1_epi8(table[16]), x);
-			        lut6_mask<17>(y, _mm256_set1_epi8(table[17]), x);
-			        lut6_mask<18>(y, _mm256_set1_epi8(table[18]), x);
-			        lut6_mask<19>(y, _mm256_set1_epi8(table[19]), x);
-			        lut6_mask<20>(y, _mm256_set1_epi8(table[20]), x);
-			        lut6_mask<21>(y, _mm256_set1_epi8(table[21]), x);
-			        lut6_mask<22>(y, _mm256_set1_epi8(table[22]), x);
-			        lut6_mask<23>(y, _mm256_set1_epi8(table[23]), x);
-			        lut6_mask<24>(y, _mm256_set1_epi8(table[24]), x);
-			        lut6_mask<25>(y, _mm256_set1_epi8(table[25]), x);
-			        lut6_mask<26>(y, _mm256_set1_epi8(table[26]), x);
-			        lut6_mask<27>(y, _mm256_set1_epi8(table[27]), x);
-			        lut6_mask<28>(y, _mm256_set1_epi8(table[28]), x);
-			        lut6_mask<29>(y, _mm256_set1_epi8(table[29]), x);
-			        lut6_mask<30>(y, _mm256_set1_epi8(table[30]), x);
-			        lut6_mask<31>(y, _mm256_set1_epi8(table[31]), x);
-			        lut6_mask<32>(y, _mm256_set1_epi8(table[32]), x);
-			        lut6_mask<33>(y, _mm256_set1_epi8(table[33]), x);
-			        lut6_mask<34>(y, _mm256_set1_epi8(table[34]), x);
-			        lut6_mask<35>(y, _mm256_set1_epi8(table[35]), x);
-			        lut6_mask<36>(y, _mm256_set1_epi8(table[36]), x);
-			        lut6_mask<37>(y, _mm256_set1_epi8(table[37]), x);
-			        lut6_mask<38>(y, _mm256_set1_epi8(table[38]), x);
-			        lut6_mask<39>(y, _mm256_set1_epi8(table[39]), x);
-			        lut6_mask<40>(y, _mm256_set1_epi8(table[40]), x);
-			        lut6_mask<41>(y, _mm256_set1_epi8(table[41]), x);
-			        lut6_mask<42>(y, _mm256_set1_epi8(table[42]), x);
-			        lut6_mask<43>(y, _mm256_set1_epi8(table[43]), x);
-			        lut6_mask<44>(y, _mm256_set1_epi8(table[44]), x);
-			        lut6_mask<45>(y, _mm256_set1_epi8(table[45]), x);
-			        lut6_mask<46>(y, _mm256_set1_epi8(table[46]), x);
-			        lut6_mask<47>(y, _mm256_set1_epi8(table[47]), x);
-			        lut6_mask<48>(y, _mm256_set1_epi8(table[48]), x);
-			        lut6_mask<49>(y, _mm256_set1_epi8(table[49]), x);
-			        lut6_mask<50>(y, _mm256_set1_epi8(table[50]), x);
-			        lut6_mask<51>(y, _mm256_set1_epi8(table[51]), x);
-			        lut6_mask<52>(y, _mm256_set1_epi8(table[52]), x);
-			        lut6_mask<53>(y, _mm256_set1_epi8(table[53]), x);
-			        lut6_mask<54>(y, _mm256_set1_epi8(table[54]), x);
-			        lut6_mask<55>(y, _mm256_set1_epi8(table[55]), x);
-			        lut6_mask<56>(y, _mm256_set1_epi8(table[56]), x);
-			        lut6_mask<57>(y, _mm256_set1_epi8(table[57]), x);
-			        lut6_mask<58>(y, _mm256_set1_epi8(table[58]), x);
-			        lut6_mask<59>(y, _mm256_set1_epi8(table[59]), x);
-			        lut6_mask<60>(y, _mm256_set1_epi8(table[60]), x);
-			        lut6_mask<61>(y, _mm256_set1_epi8(table[61]), x);
-			        lut6_mask<62>(y, _mm256_set1_epi8(table[62]), x);
-			        lut6_mask<63>(y, _mm256_set1_epi8(table[63]), x);
+                    // LUT
+                    __m256i y = _mm256_set1_epi8(0);
+                    lut6_mask< 0>(y, _mm256_set1_epi8(table[0]), x);
+                    lut6_mask< 1>(y, _mm256_set1_epi8(table[1]), x);
+                    lut6_mask< 2>(y, _mm256_set1_epi8(table[2]), x);
+                    lut6_mask< 3>(y, _mm256_set1_epi8(table[3]), x);
+                    lut6_mask< 4>(y, _mm256_set1_epi8(table[4]), x);
+                    lut6_mask< 5>(y, _mm256_set1_epi8(table[5]), x);
+                    lut6_mask< 6>(y, _mm256_set1_epi8(table[6]), x);
+                    lut6_mask< 7>(y, _mm256_set1_epi8(table[7]), x);
+                    lut6_mask< 8>(y, _mm256_set1_epi8(table[8]), x);
+                    lut6_mask< 9>(y, _mm256_set1_epi8(table[9]), x);
+                    lut6_mask<10>(y, _mm256_set1_epi8(table[10]), x);
+                    lut6_mask<11>(y, _mm256_set1_epi8(table[11]), x);
+                    lut6_mask<12>(y, _mm256_set1_epi8(table[12]), x);
+                    lut6_mask<13>(y, _mm256_set1_epi8(table[13]), x);
+                    lut6_mask<14>(y, _mm256_set1_epi8(table[14]), x);
+                    lut6_mask<15>(y, _mm256_set1_epi8(table[15]), x);
+                    lut6_mask<16>(y, _mm256_set1_epi8(table[16]), x);
+                    lut6_mask<17>(y, _mm256_set1_epi8(table[17]), x);
+                    lut6_mask<18>(y, _mm256_set1_epi8(table[18]), x);
+                    lut6_mask<19>(y, _mm256_set1_epi8(table[19]), x);
+                    lut6_mask<20>(y, _mm256_set1_epi8(table[20]), x);
+                    lut6_mask<21>(y, _mm256_set1_epi8(table[21]), x);
+                    lut6_mask<22>(y, _mm256_set1_epi8(table[22]), x);
+                    lut6_mask<23>(y, _mm256_set1_epi8(table[23]), x);
+                    lut6_mask<24>(y, _mm256_set1_epi8(table[24]), x);
+                    lut6_mask<25>(y, _mm256_set1_epi8(table[25]), x);
+                    lut6_mask<26>(y, _mm256_set1_epi8(table[26]), x);
+                    lut6_mask<27>(y, _mm256_set1_epi8(table[27]), x);
+                    lut6_mask<28>(y, _mm256_set1_epi8(table[28]), x);
+                    lut6_mask<29>(y, _mm256_set1_epi8(table[29]), x);
+                    lut6_mask<30>(y, _mm256_set1_epi8(table[30]), x);
+                    lut6_mask<31>(y, _mm256_set1_epi8(table[31]), x);
+                    lut6_mask<32>(y, _mm256_set1_epi8(table[32]), x);
+                    lut6_mask<33>(y, _mm256_set1_epi8(table[33]), x);
+                    lut6_mask<34>(y, _mm256_set1_epi8(table[34]), x);
+                    lut6_mask<35>(y, _mm256_set1_epi8(table[35]), x);
+                    lut6_mask<36>(y, _mm256_set1_epi8(table[36]), x);
+                    lut6_mask<37>(y, _mm256_set1_epi8(table[37]), x);
+                    lut6_mask<38>(y, _mm256_set1_epi8(table[38]), x);
+                    lut6_mask<39>(y, _mm256_set1_epi8(table[39]), x);
+                    lut6_mask<40>(y, _mm256_set1_epi8(table[40]), x);
+                    lut6_mask<41>(y, _mm256_set1_epi8(table[41]), x);
+                    lut6_mask<42>(y, _mm256_set1_epi8(table[42]), x);
+                    lut6_mask<43>(y, _mm256_set1_epi8(table[43]), x);
+                    lut6_mask<44>(y, _mm256_set1_epi8(table[44]), x);
+                    lut6_mask<45>(y, _mm256_set1_epi8(table[45]), x);
+                    lut6_mask<46>(y, _mm256_set1_epi8(table[46]), x);
+                    lut6_mask<47>(y, _mm256_set1_epi8(table[47]), x);
+                    lut6_mask<48>(y, _mm256_set1_epi8(table[48]), x);
+                    lut6_mask<49>(y, _mm256_set1_epi8(table[49]), x);
+                    lut6_mask<50>(y, _mm256_set1_epi8(table[50]), x);
+                    lut6_mask<51>(y, _mm256_set1_epi8(table[51]), x);
+                    lut6_mask<52>(y, _mm256_set1_epi8(table[52]), x);
+                    lut6_mask<53>(y, _mm256_set1_epi8(table[53]), x);
+                    lut6_mask<54>(y, _mm256_set1_epi8(table[54]), x);
+                    lut6_mask<55>(y, _mm256_set1_epi8(table[55]), x);
+                    lut6_mask<56>(y, _mm256_set1_epi8(table[56]), x);
+                    lut6_mask<57>(y, _mm256_set1_epi8(table[57]), x);
+                    lut6_mask<58>(y, _mm256_set1_epi8(table[58]), x);
+                    lut6_mask<59>(y, _mm256_set1_epi8(table[59]), x);
+                    lut6_mask<60>(y, _mm256_set1_epi8(table[60]), x);
+                    lut6_mask<61>(y, _mm256_set1_epi8(table[61]), x);
+                    lut6_mask<62>(y, _mm256_set1_epi8(table[62]), x);
+                    lut6_mask<63>(y, _mm256_set1_epi8(table[63]), x);
 
-			        _mm256_storeu_si256(&y_addr[frame], y);
-		        }
-	        }
+                    _mm256_storeu_si256(&y_addr[frame], y);
+                }
+            }
 
             return m_y_buf;
         }
 
 
-    	{
+        {
             // 汎用版
             auto x_ptr           = x_buf.LockConst<FT>();
             auto y_ptr           = m_y_buf.Lock<FT>();
@@ -425,23 +425,23 @@ public:
             index_t node_size  = this->GetOutputNodeSize();
 
             #pragma omp parallel for
-       		for (index_t node = 0; node < node_size; ++node) {
+            for (index_t node = 0; node < node_size; ++node) {
                 for (index_t frame = 0; frame < frame_size; ++frame) {
-			        int index = 0;
-			        int mask  = 1;
-			        for (index_t i = 0; i < N; i++) {
-    				    index_t input_node = input_index_ptr(node, i);
-	    			    bool x = x_ptr.Get(frame, input_node);
-    		    		index |= x ? mask : 0;
-	    		    	mask <<= 1;
-		    	    }
+                    int index = 0;
+                    int mask  = 1;
+                    for (index_t i = 0; i < N; i++) {
+                        index_t input_node = input_index_ptr(node, i);
+                        bool x = x_ptr.Get(frame, input_node);
+                        index |= x ? mask : 0;
+                        mask <<= 1;
+                    }
                     auto y = GetLutTableFromPtr(table_ptr, node, index);
-    			    y_ptr.Set(frame, node, y);
+                    y_ptr.Set(frame, node, y);
                 }
             }
 
             return m_y_buf;
-		}
+        }
     }
 
     // Backwardは存在しない

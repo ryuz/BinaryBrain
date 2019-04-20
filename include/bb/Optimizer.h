@@ -17,11 +17,11 @@ namespace bb {
 class Optimizer
 {
 public:
-	virtual ~Optimizer() {}
+    virtual ~Optimizer() {}
 
 public:
-	virtual void SetVariables(Variables params, Variables grads) = 0;
-	virtual void Update(void) = 0;
+    virtual void SetVariables(Variables params, Variables grads) = 0;
+    virtual void Update(void) = 0;
 };
 
 

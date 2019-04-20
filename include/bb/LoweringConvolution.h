@@ -31,15 +31,15 @@ protected:
     index_t m_filter_w_size = 1;
 
     // 3層で構成
-	std::shared_ptr< ConvolutionIm2Col<FT, BT> >	m_im2col;
-	std::shared_ptr< Model                     >    m_layer;
-	std::shared_ptr< ConvolutionCol2Im<FT, BT> >	m_col2im;
-	
+    std::shared_ptr< ConvolutionIm2Col<FT, BT> >    m_im2col;
+    std::shared_ptr< Model                     >    m_layer;
+    std::shared_ptr< ConvolutionCol2Im<FT, BT> >    m_col2im;
+    
 protected:
-	LoweringConvolution() {}
+    LoweringConvolution() {}
 
 public:
-	~LoweringConvolution() {}
+    ~LoweringConvolution() {}
 
     struct create_t
     {
@@ -49,34 +49,34 @@ public:
     };
 
     static std::shared_ptr<LoweringConvolution> Create(create_t const & create)
-	{
+    {
         auto self = std::shared_ptr<LoweringConvolution>(new LoweringConvolution);
         
         self->m_filter_w_size = create.filter_w_size;
         self->m_filter_h_size = create.filter_h_size;
 
-  		self->m_im2col = ConvolutionIm2Col<FT, BT>::Create(self->m_filter_h_size, self->m_filter_w_size);
+        self->m_im2col = ConvolutionIm2Col<FT, BT>::Create(self->m_filter_h_size, self->m_filter_w_size);
         self->m_layer  = create.layer;
         // col2im の形状は入力形状確定時に決まる
 
         return self;
-	}
+    }
 
     static std::shared_ptr<LoweringConvolution> Create(std::shared_ptr<Model> layer, index_t filter_h_size, index_t filter_w_size)
-	{
+    {
         auto self = std::shared_ptr<LoweringConvolution>(new LoweringConvolution);
         
         self->m_filter_w_size = filter_w_size;
         self->m_filter_h_size = filter_h_size;
 
-  		self->m_im2col = ConvolutionIm2Col<FT, BT>::Create(filter_h_size, filter_w_size);
+        self->m_im2col = ConvolutionIm2Col<FT, BT>::Create(filter_h_size, filter_w_size);
         self->m_layer  = layer;
         // col2im の形状は入力形状確定時に決まる
 
         return self;
-	}
+    }
 
-	std::string GetClassName(void) const { return "LoweringConvolution"; }
+    std::string GetClassName(void) const { return "LoweringConvolution"; }
 
     
     std::shared_ptr< Model > GetLayer(void)
@@ -95,9 +95,9 @@ public:
      */   
     void SendCommand(std::string command, std::string send_to = "all")
     {
-	    m_im2col->SendCommand(command, send_to);
-	    m_layer->SendCommand(command, send_to);
-	    m_col2im->SendCommand(command, send_to);
+        m_im2col->SendCommand(command, send_to);
+        m_layer->SendCommand(command, send_to);
+        m_col2im->SendCommand(command, send_to);
     }
     
     /**
@@ -109,9 +109,9 @@ public:
     Variables GetParameters(void)
     {
         Variables parameters;
-	    parameters.PushBack(m_im2col->GetParameters());
-	    parameters.PushBack(m_layer->GetParameters());
-	    parameters.PushBack(m_col2im->GetParameters());
+        parameters.PushBack(m_im2col->GetParameters());
+        parameters.PushBack(m_layer->GetParameters());
+        parameters.PushBack(m_col2im->GetParameters());
         return parameters;
     }
 
@@ -124,9 +124,9 @@ public:
     virtual Variables GetGradients(void)
     {
         Variables gradients;
-	    gradients.PushBack(m_im2col->GetGradients());
-	    gradients.PushBack(m_layer->GetGradients());
-	    gradients.PushBack(m_col2im->GetGradients());
+        gradients.PushBack(m_im2col->GetGradients());
+        gradients.PushBack(m_layer->GetGradients());
+        gradients.PushBack(m_col2im->GetGradients());
         return gradients;
     }  
 
@@ -145,10 +145,10 @@ public:
         index_t input_w_size = shape[0];
         index_t input_h_size = shape[1];
         index_t input_c_size = shape[2];
-		index_t output_w_size = input_w_size - m_filter_w_size + 1;
-		index_t output_h_size = input_h_size - m_filter_h_size + 1;
+        index_t output_w_size = input_w_size - m_filter_w_size + 1;
+        index_t output_h_size = input_h_size - m_filter_h_size + 1;
 
-		m_col2im = ConvolutionCol2Im<FT, BT>::Create(output_h_size, output_w_size);
+        m_col2im = ConvolutionCol2Im<FT, BT>::Create(output_h_size, output_w_size);
 
         shape = m_im2col->SetInputShape(shape);
         shape = m_layer->SetInputShape(shape);
@@ -188,9 +188,9 @@ public:
      */
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-	    x_buf = m_im2col->Forward(x_buf, train);
-	    x_buf = m_layer->Forward(x_buf, train);
-	    x_buf = m_col2im->Forward(x_buf, train);
+        x_buf = m_im2col->Forward(x_buf, train);
+        x_buf = m_layer->Forward(x_buf, train);
+        x_buf = m_col2im->Forward(x_buf, train);
         return x_buf;
     }
 
@@ -202,12 +202,12 @@ public:
      */
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
-	    dy_buf = m_col2im->Backward(dy_buf);
-	    dy_buf = m_layer->Backward(dy_buf);
-	    dy_buf = m_im2col->Backward(dy_buf);
+        dy_buf = m_col2im->Backward(dy_buf);
+        dy_buf = m_layer->Backward(dy_buf);
+        dy_buf = m_im2col->Backward(dy_buf);
         return dy_buf; 
     }
-	
+    
 protected:
     /**
      * @brief  モデルの情報を表示
@@ -234,9 +234,9 @@ public:
         SaveValue(os, m_filter_h_size);
         SaveValue(os, m_filter_w_size);
 
-	    m_im2col->Save(os);
-	    m_layer->Save(os);
-	    m_col2im->Save(os);
+        m_im2col->Save(os);
+        m_layer->Save(os);
+        m_col2im->Save(os);
     }
 
     void Load(std::istream &is)
@@ -244,44 +244,44 @@ public:
         LoadValue(is, m_filter_h_size);
         LoadValue(is, m_filter_w_size);
 
-	    m_im2col->Load(is);
-	    m_layer->Load(is);
-	    m_col2im->Load(is);
+        m_im2col->Load(is);
+        m_layer->Load(is);
+        m_col2im->Load(is);
     }
 
 
 #ifdef BB_WITH_CEREAL
-	template <class Archive>
+    template <class Archive>
     void save(Archive& archive, std::uint32_t const version) const
-	{
+    {
         super::save(archive, version);
         archive(cereal::make_nvp("filter_h_size", m_filter_h_size));
         archive(cereal::make_nvp("filter_w_size", m_filter_w_size));
     }
 
-	template <class Archive>
+    template <class Archive>
     void load(Archive& archive, std::uint32_t const version)
-	{
+    {
         super::load(archive, version);
         archive(cereal::make_nvp("filter_h_size", m_filter_h_size));
         archive(cereal::make_nvp("filter_w_size", m_filter_w_size));
     }
 
-	void Save(cereal::JSONOutputArchive& archive) const
-	{
+    void Save(cereal::JSONOutputArchive& archive) const
+    {
         archive(cereal::make_nvp("LoweringConvolution", *this));
-	    m_im2col->Save(archive);
-	    m_layer->Save(archive);
-	    m_col2im->Save(archive);
-	}
+        m_im2col->Save(archive);
+        m_layer->Save(archive);
+        m_col2im->Save(archive);
+    }
 
-	void Load(cereal::JSONInputArchive& archive)
-	{
+    void Load(cereal::JSONInputArchive& archive)
+    {
         archive(cereal::make_nvp("LoweringConvolution", *this));
-	    m_im2col->Load(archive);
-	    m_layer->Load(archive);
-	    m_col2im->Load(archive);
-	}
+        m_im2col->Load(archive);
+        m_layer->Load(archive);
+        m_col2im->Load(archive);
+    }
 #endif
 };
 

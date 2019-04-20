@@ -32,40 +32,40 @@
 
 void DiabetesRegressionStochasticLut6(int epoch_size, size_t mini_batch_size)
 {
-	// load diabetes data
-	auto td = LoadDiabetes<>();
+    // load diabetes data
+    auto td = LoadDiabetes<>();
 
-	bb::TrainDataNormalize(td);
+    bb::TrainDataNormalize(td);
 
-	auto layer_sl0 = bb::StochasticLut6<>::Create({ 1024 });
-	auto layer_sl1 = bb::StochasticLut6<>::Create({ 512 });
-	auto layer_sl2 = bb::StochasticLut6<>::Create({ 216 });
-	auto layer_sl3 = bb::StochasticLut6<>::Create({ 36 });
+    auto layer_sl0 = bb::StochasticLut6<>::Create({ 1024 });
+    auto layer_sl1 = bb::StochasticLut6<>::Create({ 512 });
+    auto layer_sl2 = bb::StochasticLut6<>::Create({ 216 });
+    auto layer_sl3 = bb::StochasticLut6<>::Create({ 36 });
     auto layer_sl4 = bb::StochasticLut6<>::Create({ 6 });
     auto layer_sl5 = bb::StochasticLut6<>::Create({ 1 });
 
     {
         // 確率的LUTで学習
         auto net = bb::Sequential::Create();
-	    net->Add(layer_sl0);
-	    net->Add(layer_sl1);
-	    net->Add(layer_sl2);
-	    net->Add(layer_sl3);
+        net->Add(layer_sl0);
+        net->Add(layer_sl1);
+        net->Add(layer_sl2);
+        net->Add(layer_sl3);
         net->Add(layer_sl4);
         net->Add(layer_sl5);
-	    net->SetInputShape({ 10 });
+        net->SetInputShape({ 10 });
 
         bb::Runner<float>::create_t runner_create;
         runner_create.name        = "DiabetesRegressionStochasticLut6";
         runner_create.net         = net;
         runner_create.lossFunc    = bb::LossMeanSquaredError<float>::Create();
         runner_create.metricsFunc = bb::MetricsMeanSquaredError<float>::Create();
-    //	runner_create.optimizer = bb::OptimizerSgd<float>::Create(0.00001f);
-	    runner_create.optimizer = bb::OptimizerAdam<float>::Create();
-	    runner_create.file_read = false;
-	    runner_create.file_write = true;
+    //  runner_create.optimizer = bb::OptimizerSgd<float>::Create(0.00001f);
+        runner_create.optimizer = bb::OptimizerAdam<float>::Create();
+        runner_create.file_read = false;
+        runner_create.file_write = true;
         runner_create.write_serial = false;
-	    runner_create.print_progress = false;
+        runner_create.print_progress = false;
         runner_create.initial_evaluation = true;
         auto runner = bb::Runner<float>::Create(runner_create);
 

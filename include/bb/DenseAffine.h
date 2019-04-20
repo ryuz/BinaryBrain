@@ -33,7 +33,7 @@ class DenseAffine : public Model
 
 
 protected:
-    bool	                	m_binary_mode = false;
+    bool                        m_binary_mode = false;
     bool                        m_host_only = false;
 
     T                           m_initialize_std = (T)0.01;
@@ -43,16 +43,16 @@ protected:
     index_t                     m_input_node_size = 0;
     indices_t                   m_input_shape;
     index_t                     m_output_node_size = 0;
-    indices_t	                m_output_shape;
+    indices_t                   m_output_shape;
 
     FrameBuffer                 m_x;
     FrameBuffer                 m_y;
     FrameBuffer                 m_dx;
 
-    std::shared_ptr<Tensor>		m_W;
-    std::shared_ptr<Tensor>		m_b;
-    std::shared_ptr<Tensor>		m_dW;
-    std::shared_ptr<Tensor>		m_db;
+    std::shared_ptr<Tensor>     m_W;
+    std::shared_ptr<Tensor>     m_b;
+    std::shared_ptr<Tensor>     m_dW;
+    std::shared_ptr<Tensor>     m_db;
     
 #ifdef BB_WITH_CUDA
     bool                        m_cublasEnable = false;
@@ -73,8 +73,8 @@ protected:
 #endif
     }
 
-   	void CommandProc(std::vector<std::string> args)
-	{
+    void CommandProc(std::vector<std::string> args)
+    {
         // バイナリモード設定
         if ( args.size() == 2 && args[0] == "binary" )
         {
@@ -86,11 +86,11 @@ protected:
         {
             m_host_only = EvalBool(args[1]);
         }
-	}
+    }
 
 
 public:
-	~DenseAffine() {
+    ~DenseAffine() {
 #ifdef BB_WITH_CUDA
         if ( m_cublasEnable ) {
             BB_CUBLAS_SAFE_CALL(cublasDestroy(m_cublasHandle));
@@ -137,26 +137,26 @@ public:
     }
 
     std::string GetClassName(void) const { return "DenseAffine"; }
-	
-  	Tensor       &W(void)       { return *m_W; }
-	Tensor const &W(void) const { return *m_W; }
-  	Tensor       &b(void)       { return *m_b; }
-	Tensor const &b(void) const { return *m_b; }
+    
+    Tensor       &W(void)       { return *m_W; }
+    Tensor const &W(void) const { return *m_W; }
+    Tensor       &b(void)       { return *m_b; }
+    Tensor const &b(void) const { return *m_b; }
    
-   	Tensor       &dW(void)       { return *m_dW; }
-	Tensor const &dW(void) const { return *m_dW; }
-  	Tensor       &db(void)       { return *m_db; }
-	Tensor const &db(void) const { return *m_db; }
+    Tensor       &dW(void)       { return *m_dW; }
+    Tensor const &dW(void) const { return *m_dW; }
+    Tensor       &db(void)       { return *m_db; }
+    Tensor const &db(void) const { return *m_db; }
 
-	auto lock_W(void)             { return m_W->Lock<T>(); }
-	auto lock_W_const(void) const { return m_W->LockConst<T>(); }
-	auto lock_b(void)             { return m_b->Lock<T>(); }
-	auto lock_b_const(void) const { return m_b->LockConst<T>(); }
+    auto lock_W(void)             { return m_W->Lock<T>(); }
+    auto lock_W_const(void) const { return m_W->LockConst<T>(); }
+    auto lock_b(void)             { return m_b->Lock<T>(); }
+    auto lock_b_const(void) const { return m_b->LockConst<T>(); }
 
-	auto lock_dW(void)             { return m_dW->Lock<T>(); }
-	auto lock_dW_const(void) const { return m_dW->LockConst<T>(); }
-	auto lock_db(void)             { return m_db->Lock<T>(); }
-	auto lock_db_const(void) const { return m_db->LockConst<T>(); }
+    auto lock_dW(void)             { return m_dW->Lock<T>(); }
+    auto lock_dW_const(void) const { return m_dW->LockConst<T>(); }
+    auto lock_db(void)             { return m_db->Lock<T>(); }
+    auto lock_db_const(void) const { return m_db->LockConst<T>(); }
 
 
    /**
@@ -314,7 +314,7 @@ public:
 
             return m_y;
         }
-	}
+    }
 
 
     FrameBuffer Backward(FrameBuffer dy)
@@ -441,9 +441,9 @@ public:
 
 
 #ifdef BB_WITH_CEREAL
-	template <class Archive>
+    template <class Archive>
     void save(Archive& archive, std::uint32_t const version) const
-	{
+    {
         super::save(archive, version);
         archive(cereal::make_nvp("binary_mode",      m_binary_mode));
         archive(cereal::make_nvp("input_shape",      m_input_shape));
@@ -452,9 +452,9 @@ public:
         archive(cereal::make_nvp("b",                *m_b));
     }
 
-	template <class Archive>
+    template <class Archive>
     void load(Archive& archive, std::uint32_t const version)
-	{
+    {
         super::load(archive, version);
         archive(cereal::make_nvp("binary_mode",      m_binary_mode));
         archive(cereal::make_nvp("input_shape",      m_input_shape));
@@ -467,15 +467,15 @@ public:
         archive(cereal::make_nvp("b",                *m_b));
     }
 
-	void Save(cereal::JSONOutputArchive& archive) const
-	{
+    void Save(cereal::JSONOutputArchive& archive) const
+    {
         archive(cereal::make_nvp("DenseAffine", *this));
-	}
+    }
 
-	void Load(cereal::JSONInputArchive& archive)
-	{
+    void Load(cereal::JSONInputArchive& archive)
+    {
         archive(cereal::make_nvp("DenseAffine", *this));
-	}
+    }
 #endif
 };
 

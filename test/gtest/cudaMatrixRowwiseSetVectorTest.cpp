@@ -19,8 +19,8 @@ TEST(cudacudaMatrixRowwiseSetVectorTest, test_cudaMatrixRowwiseSetVector)
     int const node_size  = 513;
     int const frame_size = 1021;
 
-	bb::Tensor      x_buf(BB_TYPE_FP32, node_size);
-	bb::FrameBuffer y_buf(BB_TYPE_FP32, frame_size, node_size);
+    bb::Tensor      x_buf(BB_TYPE_FP32, node_size);
+    bb::FrameBuffer y_buf(BB_TYPE_FP32, frame_size, node_size);
 
     {
         auto x_ptr = x_buf.Lock<float>();
@@ -40,15 +40,15 @@ TEST(cudacudaMatrixRowwiseSetVectorTest, test_cudaMatrixRowwiseSetVector)
                 (int          )y_buf.GetFrameSize(),
                 (int          )(y_buf.GetFrameStride() / sizeof(float))
             );
-	}
+    }
 
-	{
+    {
         for (int node = 0; node < node_size; ++node) {
             for (int frame = 0; frame < frame_size; ++frame) {
                 EXPECT_FLOAT_EQ((float)(node+1), y_buf.GetFP32(frame, node));
             }
         }
-	}
+    }
 }
 
 
