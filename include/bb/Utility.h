@@ -327,6 +327,49 @@ void DumpMemory(std::string filename, T const *addr, size_t size)
 
 
 
+// verilog の $readmemb 用ファイル出力
+template<typename T> 
+void WriteTestDataBinTextFile(std::ostream& ofs, std::vector< std::vector<T> > x, std::vector< std::vector<T> > y)
+{
+	for (index_t i = 0; i < (index_t)x.size(); ++i) {
+		auto yi = argmax<>(y[i]);
+
+		for (int j = 7; j >= 0; --j) {
+			ofs << ((yi >> j) & 1);
+		}
+		ofs << "_";
+
+		for (index_t j = (index_t)x[i].size()-1; j >= 0; --j) {
+			if (x[i][j] > (T)0.5) {
+				ofs << "1";
+			}
+			else {
+				ofs << "0";
+			}
+		}
+		ofs << std::endl;
+	}
+}
+
+
+// verilog の $readmemb 用ファイル出力
+template<typename T> 
+static void WriteTestDataBinTextFile(std::string train_file, std::string test_file, TrainData<T> const &td)
+{
+	// write train data
+	{
+		std::ofstream ofs_train(train_file);
+		WriteTestDataBinTextFile<T>(ofs_train, td.x_train, td.t_train);
+	}
+
+	// write test data
+	{
+		std::ofstream ofs_test(test_file);
+		WriteTestDataBinTextFile<T>(ofs_test, td.x_test, td.t_test);
+	}
+}
+
+
 
 // RTL simulation 用画像データの出力
 template<typename T> 
