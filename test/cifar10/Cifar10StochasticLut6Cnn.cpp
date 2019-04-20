@@ -1,6 +1,6 @@
 // --------------------------------------------------------------------------
 //  BinaryBrain  -- binary network evaluation platform
-//   MNIST sample
+//   CIFAR-10 sample
 //
 //                                Copyright (C) 2018-2019 by Ryuji Fuchikami
 // --------------------------------------------------------------------------
@@ -35,7 +35,7 @@
 
 #if 0
 
-// MNIST CNN with LUT networks
+// CNN with LUT networks
 void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
 {
     std::string net_name = "Cifar10StochasticLut6Cnn";
@@ -227,15 +227,15 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
             std::cout << "export : " << filename << "\n" << std::endl;
             
             // write test image
-            bb::WriteTestDataImage<float>("verilog/mnist_test_160x120.ppm", 160, 120, td);
-            bb::WriteTestDataImage<float>("verilog/mnist_test_640x480.ppm", 640, 480, td);
+            bb::WriteTestDataImage<float>("verilog/cifar10_test_160x120.ppm", 160, 120, td);
+            bb::WriteTestDataImage<float>("verilog/cifar10_test_640x480.ppm", 640, 480, td);
         }
     }
 }
 
 #else
 
-// MNIST CNN with LUT networks
+// CNN with LUT networks
 void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
 {
     std::string net_name = "Cifar10StochasticLut6Cnn";
@@ -463,8 +463,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
             std::cout << "export : " << filename << "\n" << std::endl;
             
             // write test image
-            bb::WriteTestDataImage<float>("verilog/mnist_test_160x120.ppm", 160, 120, td);
-            bb::WriteTestDataImage<float>("verilog/mnist_test_640x480.ppm", 640, 480, td);
+            bb::WriteTestDataImage<float>("verilog/cifar10_test_160x120.ppm", 160, 120, td);
+            bb::WriteTestDataImage<float>("verilog/cifar10_test_640x480.ppm", 640, 480, td);
         }
     }
 }

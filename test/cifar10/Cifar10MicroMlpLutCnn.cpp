@@ -1,6 +1,6 @@
 // --------------------------------------------------------------------------
 //  BinaryBrain  -- binary network evaluation platform
-//   MNIST sample
+//   CIFAR-10 sample
 //
 //                                Copyright (C) 2018-2019 by Ryuji Fuchikami
 // --------------------------------------------------------------------------
@@ -32,9 +32,8 @@
 #include "bb/ExportVerilog.h"
 
 
-// static void WriteTestImage(std::string filename, int w, int h);
 
-// MNIST CNN with LUT networks
+// CNN with LUT networks
 void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size,
                                     int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
 {
@@ -248,8 +247,8 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
             std::cout << "export : " << filename << "\n" << std::endl;
             
             // write test image
-            bb::WriteTestDataImage<float>("verilog/mnist_test_160x120.ppm", 160, 120, td);
-            bb::WriteTestDataImage<float>("verilog/mnist_test_640x480.ppm", 640, 480, td);
+            bb::WriteTestDataImage<float>("verilog/cifar10_test_160x120.ppm", 160, 120, td);
+            bb::WriteTestDataImage<float>("verilog/cifar10_test_640x480.ppm", 640, 480, td);
         }
     }
 }

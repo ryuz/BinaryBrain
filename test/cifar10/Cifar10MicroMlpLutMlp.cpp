@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------
 //  BinaryBrain  -- binary network evaluation platform
-//   MNIST sample
+//   CIFAR-10 sample
 //
 //                                Copyright (C) 2018-2019 by Ryuji Fuchikami
 // --------------------------------------------------------------------------
@@ -31,7 +31,7 @@
 
 
 
-// MNIST CNN with LUT networks
+// MLP with LUT networks
 void Cifar10MicroMlpLutMlp(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
 {
     std::string net_name = "Cifar10MiroMlpLutMlp";
@@ -122,7 +122,7 @@ void Cifar10MicroMlpLutMlp(int epoch_size, int mini_batch_size, int max_run_size
             std::cout << "export : " << filename << "\n" << std::endl;
 
             // RTL simulation 用データの出力
-            bb::WriteTestDataBinTextFile<float>("verilog/mnist_train.txt", "verilog/mnist_test.txt", td);
+            bb::WriteTestDataBinTextFile<float>("verilog/cifar10_train.txt", "verilog/cifar10_test.txt", td);
         }
     }
 }
