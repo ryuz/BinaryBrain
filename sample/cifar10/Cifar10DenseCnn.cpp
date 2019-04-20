@@ -33,7 +33,7 @@
 
 
 // MNIST CNN with LUT networks
-void Cifar10DenseCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
+void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, bool binary_mode, bool file_read)
 {
     std::string net_name = "Cifar10SimpleLutCnn";
     int const   frame_mux_size = 7;
@@ -78,15 +78,14 @@ void Cifar10DenseCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
     runner_create.lossFunc    = bb::LossSoftmaxCrossEntropy<>::Create();
     runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<>::Create();
     runner_create.optimizer   = bb::OptimizerAdam<>::Create();
-    runner_create.file_read   = false;       // 前の計算結果があれば読み込んで再開するか
-    runner_create.file_write  = true;        // 計算結果をファイルに保存するか
-    runner_create.write_serial = false; 
-    runner_create.print_progress = true;    // 途中結果を表示
-    runner_create.initial_evaluation = false;
+    runner_create.max_run_size       = max_run_size;    // 実際の1回の実行サイズ
+    runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
+    runner_create.file_write         = true;            // 計算結果をファイルに保存するか
+    runner_create.print_progress     = true;            // 途中結果を表示
+    runner_create.initial_evaluation = file_read;       // ファイルを読んだ場合は最初に評価しておく
     auto runner = bb::Runner<float>::Create(runner_create);
     runner->Fitting(td, epoch_size, mini_batch_size);
 }
-
 
 
 // end of file
