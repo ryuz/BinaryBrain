@@ -109,7 +109,7 @@ public:
         return Create(create);
     }
 
-    std::string GetClassName(void) const { return "StochasticLutBn"; }
+    std::string GetClassName(void) const { return "StochasticLut"; }
 
     /**
      * @brief  コマンドを送る
