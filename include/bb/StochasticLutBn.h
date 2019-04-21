@@ -215,7 +215,7 @@ public:
             std::vector<T> tmp(1);
             for (index_t i = 0; i < input_size; ++i) {
                 index_t input_node = this->GetNodeInput(node, i);
-                tmp[0] = x_vec[i] == 0 ? (T)0.3 : (T)0.7;
+                tmp[0] = x_vec[i];
                 tmp = m_batch_norm->ForwardNode(input_node, tmp);
                 x_vec[i] = tmp[0];
             }

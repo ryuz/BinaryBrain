@@ -153,9 +153,9 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         cnv3_sub->Add(layer_cnv3_lut0);
         cnv3_sub->Add(layer_cnv3_lut1);
 
-        auto cnv4_sub = bb::Sequential::Create();
-        cnv4_sub->Add(layer_lut4);
-        cnv4_sub->Add(layer_lut5);
+//        auto cnv4_sub = bb::Sequential::Create();
+//        cnv4_sub->Add(layer_lut4);
+//        cnv4_sub->Add(layer_lut5);
 
         auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3);
         auto cnv1 = bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3);
@@ -166,7 +166,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto pol1 = bb::MaxPooling<bb::Bit>::Create(2, 2);
 
         // 32x32 à»äOÇ‡ì¸óÕÇ≈Ç´ÇÈÇÊÇ§Ç…ç≈èIíiÇ‡èÙÇ›çûÇ›Ç…ïœä∑
-        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);
+//        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);
 
         auto lut_net = bb::Sequential::Create();
         lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
@@ -177,7 +177,9 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         lut_net->Add(cnv2);
         lut_net->Add(cnv3);
         lut_net->Add(pol1);
-        lut_net->Add(cnv4);
+//        lut_net->Add(cnv4);
+        lut_net->Add(layer_lut4);
+        lut_net->Add(layer_lut5);
         lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, lut_frame_mux_size));
         lut_net->SetInputShape(td.x_shape);
 
@@ -225,7 +227,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
             vec_cnv1.push_back(cnv2);
             vec_cnv1.push_back(cnv3);
             vec_cnv1.push_back(pol1);
-            vec_cnv2.push_back(cnv4);
+//          vec_cnv2.push_back(cnv4);
 
             std::string filename = "verilog/" + net_name + ".v";
             std::ofstream ofs(filename);
@@ -689,8 +691,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 //        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);
 
         auto lut_net = bb::Sequential::Create();
-//      lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
+        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
+//      lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(cnv0);
         lut_net->Add(cnv1);
         lut_net->Add(pol0);

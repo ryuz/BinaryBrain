@@ -45,10 +45,11 @@ void Cifar10StochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_s
     auto td = bb::LoadCifar10<>::Load();
 #endif
 
-    auto layer_sl0 = bb::StochasticLut6<>::Create({1024});
-    auto layer_sl1 = bb::StochasticLut6<>::Create({360});
-    auto layer_sl2 = bb::StochasticLut6<>::Create({60});
-    auto layer_sl3 = bb::StochasticLut6<>::Create({10});
+    auto layer_sl0 = bb::StochasticLut6<>::Create({4096});
+    auto layer_sl1 = bb::StochasticLut6<>::Create({1024});
+    auto layer_sl2 = bb::StochasticLut6<>::Create({360});
+    auto layer_sl3 = bb::StochasticLut6<>::Create({60});
+    auto layer_sl4 = bb::StochasticLut6<>::Create({10});
 
     {
         auto net = bb::Sequential::Create();
@@ -56,6 +57,7 @@ void Cifar10StochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_s
         net->Add(layer_sl1);
         net->Add(layer_sl2);
         net->Add(layer_sl3);
+        net->Add(layer_sl4);
         net->SetInputShape(td.x_shape);
 
         if ( binary_mode ) {
@@ -87,6 +89,7 @@ void Cifar10StochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_s
         auto layer_lut1 = bb::BinaryLutN<>::Create(layer_sl1->GetOutputShape());
         auto layer_lut2 = bb::BinaryLutN<>::Create(layer_sl2->GetOutputShape());
         auto layer_lut3 = bb::BinaryLutN<>::Create(layer_sl3->GetOutputShape());
+        auto layer_lut4 = bb::BinaryLutN<>::Create(layer_sl4->GetOutputShape());
 
         auto lut_net = bb::Sequential::Create();
  //     lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
@@ -95,6 +98,7 @@ void Cifar10StochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_s
         lut_net->Add(layer_lut1);
         lut_net->Add(layer_lut2);
         lut_net->Add(layer_lut3);
+        lut_net->Add(layer_lut4);
         lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({10}, lut_frame_mux_size));
         lut_net->SetInputShape(td.x_shape);
 
@@ -104,6 +108,7 @@ void Cifar10StochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_s
         layer_lut1->ImportLayer<float, float>(layer_sl1);
         layer_lut2->ImportLayer<float, float>(layer_sl2);
         layer_lut3->ImportLayer<float, float>(layer_sl3);
+        layer_lut3->ImportLayer<float, float>(layer_sl4);
 
         if ( 1 ) {
             // 評価
