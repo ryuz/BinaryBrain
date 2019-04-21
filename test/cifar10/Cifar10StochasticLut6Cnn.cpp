@@ -39,7 +39,7 @@
 
 
 
-#if 1
+#if 0
 
 // íPèÉî≈
 
@@ -219,7 +219,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
             // Verilog èoóÕ
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv0;
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv1;
-            std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv2;
+//          std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv2;
 
             vec_cnv0.push_back(cnv0);
             vec_cnv0.push_back(cnv1);
@@ -234,7 +234,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
             ofs << "`timescale 1ns / 1ps\n\n";
             bb::ExportVerilog_LutCnnLayersAxi4s(ofs, net_name + "Cnv0", vec_cnv0);
             bb::ExportVerilog_LutCnnLayersAxi4s(ofs, net_name + "Cnv1", vec_cnv1);
-            bb::ExportVerilog_LutCnnLayersAxi4s(ofs, net_name + "Cnv2", vec_cnv2);
+//          bb::ExportVerilog_LutCnnLayersAxi4s(ofs, net_name + "Cnv2", vec_cnv2);
             std::cout << "export : " << filename << "\n" << std::endl;
             
             // write test image
@@ -531,7 +531,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 #endif
 
 
-#if 0
+#if 1
 
 // BatchNormé¿å±
 
@@ -605,6 +605,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
             std::cout << "binary mode" << std::endl;
             net->SendCommand("binary true");
         }
+
+        net->SendCommand("batch_normalization false");
 
         net->SendCommand("fix_gamma true");
         net->SendCommand("fix_beta  true");
