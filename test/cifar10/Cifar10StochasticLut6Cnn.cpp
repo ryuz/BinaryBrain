@@ -606,7 +606,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
             net->SendCommand("binary true");
         }
 
-        net->SendCommand("batch_normalization false");
+//      net->SendCommand("batch_normalization false");
 
         net->SendCommand("fix_gamma true");
         net->SendCommand("fix_beta  true");
