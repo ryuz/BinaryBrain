@@ -36,7 +36,6 @@
 void Cifar10StochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
 {
     std::string net_name = "Cifar10StochasticLut6Mlp";
-    int const mux_size = 7;
 
   // load cifar-10 data
 #ifdef _DEBUG
