@@ -16,6 +16,7 @@
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
 #include "bb/StochasticLut6.h"
+#include "bb/StochasticLut.h"
 #include "bb/BinaryLutN.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
@@ -45,11 +46,19 @@ void Cifar10StochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_s
     auto td = bb::LoadCifar10<>::Load();
 #endif
 
+#if 0
     auto layer_sl0 = bb::StochasticLut6<>::Create({4096});
     auto layer_sl1 = bb::StochasticLut6<>::Create({1024});
     auto layer_sl2 = bb::StochasticLut6<>::Create({360});
     auto layer_sl3 = bb::StochasticLut6<>::Create({60});
 //  auto layer_sl4 = bb::StochasticLut6<>::Create({10});
+#else
+    auto layer_sl0 = bb::StochasticLut<6>::Create({4096});
+    auto layer_sl1 = bb::StochasticLut<6>::Create({1024});
+    auto layer_sl2 = bb::StochasticLut<6>::Create({360});
+    auto layer_sl3 = bb::StochasticLut<6>::Create({60});
+//  auto layer_sl4 = bb::StochasticLut<6>::Create({10});
+#endif
 
     {
         auto net = bb::Sequential::Create();
