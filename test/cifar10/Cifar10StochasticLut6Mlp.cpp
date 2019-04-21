@@ -99,7 +99,7 @@ void Cifar10StochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_s
         lut_net->Add(layer_lut2);
         lut_net->Add(layer_lut3);
         lut_net->Add(layer_lut4);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({10}, lut_frame_mux_size));
+        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, lut_frame_mux_size));
         lut_net->SetInputShape(td.x_shape);
 
         // テーブル化して取り込み(SetInputShape後に取り込みが必要)
@@ -108,7 +108,7 @@ void Cifar10StochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_s
         layer_lut1->ImportLayer<float, float>(layer_sl1);
         layer_lut2->ImportLayer<float, float>(layer_sl2);
         layer_lut3->ImportLayer<float, float>(layer_sl3);
-        layer_lut3->ImportLayer<float, float>(layer_sl4);
+        layer_lut4->ImportLayer<float, float>(layer_sl4);
 
         if ( 1 ) {
             // 評価
