@@ -268,7 +268,7 @@ public:
 
             auto frame_size = m_x_buf.GetFrameSize();
 
-//            #pragma omp parallel for
+            #pragma omp parallel for
             for (index_t c = 0; c < m_input_c_size; ++c) {
                 for (index_t y = 0; y < m_output_h_size; ++y) {
                     for (index_t x = 0; x < m_output_w_size; ++x) {
@@ -387,7 +387,7 @@ public:
 
             auto frame_size = m_x_buf.GetFrameSize();
 
-//            #pragma omp parallel for
+            #pragma omp parallel for
             for (index_t c = 0; c < m_input_c_size; ++c) {
                 for (index_t y = 0; y < m_output_h_size; ++y) {
                     for (index_t x = 0; x < m_output_w_size; ++x) {
