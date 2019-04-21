@@ -159,27 +159,25 @@ public:
         m_y_buf.Resize(DataType<FT>::type, m_x_buf.GetFrameSize(), m_output_shape);
         
 
-#if 0 // #ifdef BB_WITH_CUDA
+#ifdef BB_WITH_CUDA
         // CUDA版
-        if ( DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
-            auto ptr_x = x.LockDeviceMemoryConst();
-            auto ptr_y = m_y.LockDeviceMemory(true);
-            bbcu_fp32_MaxPooling_Forward
+        if ( DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && m_x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            auto ptr_x = x_buf.LockDeviceMemoryConst();
+            auto ptr_y = m_y_buf.LockDeviceMemory(true);
+            bbcu_fp32_StochasticMaxPooling2x2_Forward
                 (
                     (float const *)ptr_x.GetAddr(),
                     (float*       )ptr_y.GetAddr(),
-                    (int          )2,
-                    (int          )2,
                     (int          )m_input_w_size,
                     (int          )m_input_h_size,
                     (int          )m_output_w_size,
                     (int          )m_output_h_size,
                     (int          )m_output_c_size,
-                    (int          )m_y.GetFrameSize(),
-                    (int          )(m_y.GetFrameStride() / sizeof(float))
+                    (int          )m_y_buf.GetFrameSize(),
+                    (int          )(m_y_buf.GetFrameStride() / sizeof(float))
                 );
 
-            return m_y;
+            return m_y_buf;
         }
 #endif
      
@@ -304,32 +302,30 @@ public:
 
         m_dx_buf.Resize(DataType<BT>::type, dy_buf.GetFrameSize(), m_input_shape);
 
-#if 0 // #ifdef BB_WITH_CUDA
+#ifdef BB_WITH_CUDA
         if ( DataType<BT>::type == BB_TYPE_FP32 && DataType<FT>::type == BB_TYPE_FP32 && !m_host_only 
-                && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+                && m_x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // CUDA版
-            auto ptr_x  = m_x.LockDeviceMemoryConst();
-            auto ptr_y  = m_y.LockDeviceMemoryConst();
-            auto ptr_dy = dy.LockDeviceMemoryConst();
-            auto ptr_dx = m_dx.LockDeviceMemory(true);
-            bbcu_fp32_MaxPooling_Backward
+            auto ptr_x  = m_x_buf.LockDeviceMemoryConst();
+            auto ptr_y  = m_y_buf.LockDeviceMemoryConst();
+            auto ptr_dy = dy_buf.LockDeviceMemoryConst();
+            auto ptr_dx = m_dx_buf.LockDeviceMemory(true);
+            bbcu_fp32_StochasticMaxPooling2x2_Backward
                 (
                     (float const *)ptr_x.GetAddr(),
                     (float const *)ptr_y.GetAddr(),
                     (float const *)ptr_dy.GetAddr(),
                     (float*       )ptr_dx.GetAddr(),
-                    (int          )2,
-                    (int          )2,
                     (int          )m_input_w_size,
                     (int          )m_input_h_size,
                     (int          )m_output_w_size,
                     (int          )m_output_h_size,
                     (int          )m_output_c_size,
-                    (int          )m_y.GetFrameSize(),
-                    (int          )(m_y.GetFrameStride() / sizeof(float))
+                    (int          )m_y_buf.GetFrameSize(),
+                    (int          )(m_y_buf.GetFrameStride() / sizeof(float))
                 );
 
-            return m_dx;
+            return m_dx_buf;
         }
 #endif
 
