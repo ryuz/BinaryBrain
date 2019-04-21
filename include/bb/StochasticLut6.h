@@ -722,7 +722,7 @@ public:
     {
         BB_ASSERT(dy_buf.GetType() == DataType<T>::type);
 
-        m_dx_buf.Resize(DataType<T>::type, dy_buf.GetFrameSize(), m_input_node_size);
+        m_dx_buf.Resize(DataType<T>::type, dy_buf.GetFrameSize(), m_input_shape);
         
 #ifdef BB_WITH_CUDA
         if (DataType<T>::type == BB_TYPE_FP32 && !m_host_only
