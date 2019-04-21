@@ -39,7 +39,7 @@
 
 
 
-#if 0
+#if 1
 
 // íPèÉî≈
 
@@ -529,7 +529,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 #endif
 
 
-#if 1
+#if 0
 
 // BatchNormé¿å±
 
