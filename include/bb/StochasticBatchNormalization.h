@@ -79,7 +79,7 @@ public:
         return self;
     }
 
-    static std::shared_ptr<BatchNormalization> Create(T momentum = (T)0.001, T gamma=(T)1.0, T beta=(T)0.0)
+    static std::shared_ptr<StochasticBatchNormalization> Create(T gain = (T)1.0)
     {
         auto self = std::shared_ptr<StochasticBatchNormalization>(new StochasticBatchNormalization);
         self->m_gain = gain;
@@ -87,7 +87,7 @@ public:
     }
 
     std::string GetClassName(void) const { return "StochasticBatchNormalization"; }
-       
+    
     // Serialize
     void Save(std::ostream &os) const 
     {
@@ -216,13 +216,13 @@ public:
             for (index_t node = 0; node < node_size; ++node) {
                 T sum = 0;
                 for (index_t frame = 0; frame < frame_size; ++frame) {
-                    sum += x_ptr(frame, node);
+                    sum += x_ptr.Get(frame, node);
                 }
                 T mean = sum / frame_size;
 
                 T dmean = (mean - (T)0.5) * m_gain;
                 for (index_t frame = 0; frame < frame_size; ++frame) {
-                    dx_ptr(frame, node) = dy_ptr(frame, node) + dmean;
+                    dx_ptr.Set(frame, node, dy_ptr.Get(frame, node) + dmean);
                 }
             }
 
