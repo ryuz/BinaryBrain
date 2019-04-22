@@ -567,7 +567,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
     auto layer_sl6      = bb::StochasticLut6<>::Create(420);
     auto layer_sl7      = bb::StochasticLut6<>::Create(70);
 
-    float bn_gain = 1.0f;
+    float bn_gain = 0.1f;
 
     {
         auto cnv0_sub = bb::Sequential::Create();
