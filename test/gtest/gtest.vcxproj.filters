@@ -260,5 +260,8 @@
     <ClInclude Include="..\..\include\bb\StochasticMaxPooling2x2.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bb\StochasticBatchNormalization.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
