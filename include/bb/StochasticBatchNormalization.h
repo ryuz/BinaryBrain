@@ -238,14 +238,25 @@ public:
 
             #pragma omp parallel for
             for (index_t node = 0; node < node_size; ++node) {
-                T sum = 0;
+                T mean = 0;
                 for (index_t frame = 0; frame < frame_size; ++frame) {
-                    sum += (x_ptr.Get(frame, node) - (T)0.5);
+                    mean += x_ptr.Get(frame, node);
                 }
-                T mean = sum / frame_size;
+                mean /= frame_size;
+
+                T var = 0;
+                for (index_t frame = 0; frame < frame_size; ++frame) {
+                    auto d = x_ptr.Get(frame, node) - mean;
+                    var += d * d;
+                }
+                var /= frame_size;
+                T std = std::sqrt(var);
 
                 for (index_t frame = 0; frame < frame_size; ++frame) {
-                    dx_ptr.Set(frame, node, dy_ptr.Get(frame, node) + mean * m_gain);
+                    auto dy = dy_ptr.Get(frame, node);
+                    auto t  = (dy - mean) / (std + (T)10e-7);
+
+                    dx_ptr.Set(frame, node, (dy - t) * m_gain);
                 }
             }
 
