@@ -43,7 +43,7 @@ protected:
     FrameBuffer                 m_x_buf;
     FrameBuffer                 m_dx_buf;
 
-    T                           m_gain = (T)0.001;
+    T                           m_gain = (T)1.0;
 
 protected:
     StochasticBatchNormalization() {
@@ -69,7 +69,7 @@ public:
 
     struct create_t
     {
-        T   gain = (T)0.001;
+        T   gain = (T)1.0;
     };
 
     static std::shared_ptr<StochasticBatchNormalization> Create(create_t const &create)
@@ -79,7 +79,7 @@ public:
         return self;
     }
 
-    static std::shared_ptr<StochasticBatchNormalization> Create(T gain = (T)1.0)
+    static std::shared_ptr<StochasticBatchNormalization> Create(T gain = (T)0.1)
     {
         auto self = std::shared_ptr<StochasticBatchNormalization>(new StochasticBatchNormalization);
         self->m_gain = gain;
@@ -213,16 +213,16 @@ public:
             auto dy_ptr          = dy_buf.LockConst<T>();
             auto dx_ptr          = m_dx_buf.Lock<T>(true);
 
+            #pragma omp parallel for
             for (index_t node = 0; node < node_size; ++node) {
                 T sum = 0;
                 for (index_t frame = 0; frame < frame_size; ++frame) {
-                    sum += x_ptr.Get(frame, node);
+                    sum += (x_ptr.Get(frame, node) - (T)0.5);
                 }
                 T mean = sum / frame_size;
 
-                T dmean = (mean - (T)0.5) * m_gain;
                 for (index_t frame = 0; frame < frame_size; ++frame) {
-                    dx_ptr.Set(frame, node, dy_ptr.Get(frame, node) + dmean);
+                    dx_ptr.Set(frame, node, dy_ptr.Get(frame, node) + mean * m_gain);
                 }
             }
 
