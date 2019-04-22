@@ -40,6 +40,8 @@ protected:
     bool                        m_host_only = false;
     bool                        m_host_simd = true;
     
+    indices_t                   m_shape;
+
     FrameBuffer                 m_x_buf;
     FrameBuffer                 m_dx_buf;
 
@@ -141,7 +143,28 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
+        m_shape = shape;
         return shape;
+    }
+
+    /**
+     * @brief  入力形状取得
+     * @detail 入力形状を取得する
+     * @return 入力形状を返す
+     */
+    indices_t GetInputShape(void) const
+    {
+        return m_shape;
+    }
+
+    /**
+     * @brief  出力形状取得
+     * @detail 出力形状を取得する
+     * @return 出力形状を返す
+     */
+    indices_t GetOutputShape(void) const
+    {
+        return m_shape;
     }
 
 
