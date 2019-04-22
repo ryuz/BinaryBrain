@@ -253,10 +253,12 @@ public:
                 T std = std::sqrt(var);
 
                 for (index_t frame = 0; frame < frame_size; ++frame) {
-                    auto dy = dy_ptr.Get(frame, node);
-                    auto t  = (dy - mean) / (std + (T)10e-7);
+                    auto x = x_ptr.Get(frame, node);
+                    auto t = (x - mean) / (std + (T)10e-7);
+                    t = (t * 0.2) + 0.5;
 
-                    dx_ptr.Set(frame, node, (dy - t) * m_gain);
+                    auto dy = dy_ptr.Get(frame, node);
+                    dx_ptr.Set(frame, node, dy + (x - t) * m_gain);
                 }
             }
 
