@@ -32,7 +32,7 @@ namespace bb {
 
 // BatchNormalization
 template <typename T = float>
-class StochasticBatchNormalization : public Activation<T, T>
+class BackpropagatedBatchNormalization : public Activation<T, T>
 {
     using _super = Activation<T, T>;
 
@@ -48,7 +48,7 @@ protected:
     T                           m_gain = (T)1.0;
 
 protected:
-    StochasticBatchNormalization() {
+    BackpropagatedBatchNormalization() {
     }
 
     void CommandProc(std::vector<std::string> args)
@@ -67,28 +67,28 @@ protected:
     }
 
 public:
-    ~StochasticBatchNormalization() {}
+    ~BackpropagatedBatchNormalization() {}
 
     struct create_t
     {
         T   gain = (T)1.0;
     };
 
-    static std::shared_ptr<StochasticBatchNormalization> Create(create_t const &create)
+    static std::shared_ptr<BackpropagatedBatchNormalization> Create(create_t const &create)
     {
-        auto self = std::shared_ptr<StochasticBatchNormalization>(new StochasticBatchNormalization);
+        auto self = std::shared_ptr<BackpropagatedBatchNormalization>(new BackpropagatedBatchNormalization);
         self->m_gain = create.gain;
         return self;
     }
 
-    static std::shared_ptr<StochasticBatchNormalization> Create(T gain = (T)0.1)
+    static std::shared_ptr<BackpropagatedBatchNormalization> Create(T gain = (T)0.1)
     {
-        auto self = std::shared_ptr<StochasticBatchNormalization>(new StochasticBatchNormalization);
+        auto self = std::shared_ptr<BackpropagatedBatchNormalization>(new BackpropagatedBatchNormalization);
         self->m_gain = gain;
         return self;
     }
 
-    std::string GetClassName(void) const { return "StochasticBatchNormalization"; }
+    std::string GetClassName(void) const { return "BackpropagatedBatchNormalization"; }
     
     // Serialize
     void Save(std::ostream &os) const 
@@ -255,7 +255,7 @@ public:
                 for (index_t frame = 0; frame < frame_size; ++frame) {
                     auto x = x_ptr.Get(frame, node);
                     auto t = (x - mean) / (std + (T)10e-7);
-                    t = (t * 0.2) + 0.5;
+                    t = (t * (T)0.2) + (T)0.5;
 
                     auto dy = dy_ptr.Get(frame, node);
                     dx_ptr.Set(frame, node, dy + (x - t) * m_gain);

@@ -126,11 +126,11 @@ int main(int argc, char *argv[])
     }
 
     if ( netname == "All" || netname == "DenseMlp" ) {
-        Cifar10DenseMlp(epoch_size, mini_batch_size, max_run_size, false, file_read);
+        Cifar10DenseMlp(epoch_size, mini_batch_size, max_run_size, binary_mode, file_read);
     }
 
     if ( netname == "All" || netname == "DenseCnn" ) {
-        Cifar10DenseCnn(epoch_size, mini_batch_size, max_run_size, false, file_read);
+        Cifar10DenseCnn(epoch_size, mini_batch_size, max_run_size, binary_mode, file_read);
     }
 
     return 0;

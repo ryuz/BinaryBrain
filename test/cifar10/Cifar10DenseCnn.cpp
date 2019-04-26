@@ -48,16 +48,21 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, bool
     // create network
     auto net = bb::Sequential::Create();
     net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(32), 3, 3));
+    net->Add(bb::BatchNormalization<>::Create());
     net->Add(bb::ReLU<>::Create());
     net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(32), 3, 3));
+    net->Add(bb::BatchNormalization<>::Create());
     net->Add(bb::ReLU<>::Create());
     net->Add(bb::MaxPooling<>::Create(2, 2));
     net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3));
+    net->Add(bb::BatchNormalization<>::Create());
     net->Add(bb::ReLU<>::Create());
     net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3));
+    net->Add(bb::BatchNormalization<>::Create());
     net->Add(bb::ReLU<>::Create());
     net->Add(bb::MaxPooling<>::Create(2, 2));
     net->Add(bb::DenseAffine<>::Create(512));
+    net->Add(bb::BatchNormalization<>::Create());
     net->Add(bb::ReLU<>::Create());
     net->Add(bb::DenseAffine<>::Create(td.t_shape));
     net->SetInputShape(td.x_shape);

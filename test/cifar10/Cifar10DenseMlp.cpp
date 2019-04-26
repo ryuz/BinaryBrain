@@ -46,12 +46,28 @@ void Cifar10DenseMlp(int epoch_size, int mini_batch_size, int max_run_size, bool
 
     // create network
     auto net = bb::Sequential::Create();
+    net->Add(bb::BatchNormalization<>::Create());
     net->Add(bb::DenseAffine<>::Create(1024));
     net->Add(bb::ReLU<>::Create());
+    net->Add(bb::BatchNormalization<>::Create());
+    net->Add(bb::DenseAffine<>::Create(1024));
+    net->Add(bb::ReLU<>::Create());
+    net->Add(bb::BatchNormalization<>::Create());
+    net->Add(bb::DenseAffine<>::Create(1024));
+    net->Add(bb::ReLU<>::Create());
+    net->Add(bb::BatchNormalization<>::Create());
+    net->Add(bb::DenseAffine<>::Create(1024));
+    net->Add(bb::ReLU<>::Create());
+    net->Add(bb::BatchNormalization<>::Create());
+    net->Add(bb::DenseAffine<>::Create(1024));
+    net->Add(bb::ReLU<>::Create());
+    net->Add(bb::BatchNormalization<>::Create());
     net->Add(bb::DenseAffine<>::Create(512));
     net->Add(bb::ReLU<>::Create());
+    net->Add(bb::BatchNormalization<>::Create());
     net->Add(bb::DenseAffine<>::Create(256));
     net->Add(bb::ReLU<>::Create());
+    net->Add(bb::BatchNormalization<>::Create());
     net->Add(bb::DenseAffine<>::Create(td.t_shape));
 //  net->Add(bb::ReLU<>::Create());
     net->SetInputShape(td.x_shape);
