@@ -181,16 +181,23 @@ public:
     void Import(std::shared_ptr<T> bn)
     {
         auto a_ptr = m_a.Lock();
-        auto b_ptr = m_a.Lock();
+        auto b_ptr = m_b.Lock();
 
         auto node_size  = GetShapeSize(m_shape);
 
         for (index_t node = 0; node < node_size; ++node) {
             auto gain   = bn->GetNormalizeGain(node);
             auto offset = bn->GetNormalizeOffset(node);
-
-            a_ptr[node] = offset / (gain + offset);
-            b_ptr[node] = gain + offset;
+            auto a      = offset / (gain + offset);
+            auto b      = gain + offset;
+#if 0
+            std::cout << "gain="    << gain;
+            std::cout << " offset=" << offset;
+            std::cout << " a="      << a;
+            std::cout << " b="      << b << std::endl;
+#endif
+            a_ptr[node] = a;
+            b_ptr[node] = b;
         }
     }
 
@@ -224,15 +231,16 @@ public:
             auto y_ptr = m_y_buf.Lock<FT>(true);
 
             auto a_ptr = m_a.LockConst();
-            auto b_ptr = m_a.LockConst();
+            auto b_ptr = m_b.LockConst();
 
             for (index_t node = 0; node < node_size; ++node) {
                 ST a = a_ptr[node];
-                ST b = a_ptr[node];
+                ST b = b_ptr[node];
+//              std::cout << "a=" << a << " b=" << b << std::endl;
                 for (index_t frame = 0; frame < frame_size; ++frame) {
                     auto x = x_ptr.Get(frame, node);
-                    if ( uniform_dist(m_mt) <= a ) { x = 1; }
-                    if ( uniform_dist(m_mt) <= b ) { x = 0; }
+                    if ( uniform_dist(m_mt) < a ) { x = 1; }
+                    if ( uniform_dist(m_mt) > b ) { x = 0; }
                     y_ptr.Set(frame, node, x);
                 }
             }

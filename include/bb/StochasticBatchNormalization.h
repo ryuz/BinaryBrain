@@ -38,7 +38,7 @@ class StochasticBatchNormalization : public Activation<T, T>
     using _super = Activation<T, T>;
 
 protected:
-    bool                        m_host_only = false;
+    bool                        m_host_only = true;
     bool                        m_host_simd = false;
 
     index_t                     m_node_size;
@@ -507,16 +507,21 @@ public:
                 }
             }
             else {
-                #pragma omp parallel for
+//              #pragma omp parallel for
                 for (index_t node = 0; node < m_node_size; ++node) {
                     T   mean  = running_mean_ptr[node];
                     T   var   = running_var_ptr[node];
 
                     T   rstd  = (T)1.0 / (std::sqrt(var) + (T)1.0e-7);
 
+                    T   gain   = m_gamma / (std::sqrt(var) + (T)1.0e-7);
+                    T   offset = m_beta - (m_gamma * mean_ptr[node] / (sqrt(var) + (T)1.0e-7));
+
                     for ( index_t frame = 0; frame < frame_size; ++frame) {
                         T x = x_ptr.Get(frame, node);
-                        y_ptr.Set(frame, node, ((x - mean) * rstd) * m_gamma + m_beta);
+//                      T y = ((x - mean) * rstd) * m_gamma + m_beta);
+                        T y = gain * x + offset;
+                        y_ptr.Set(frame, node, y);
                     }
                 }
             }
