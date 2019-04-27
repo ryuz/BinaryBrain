@@ -38,7 +38,7 @@
 #include "bb/ExportVerilog.h"
 #include "bb/Reduce.h"
 #include "bb/UniformDistributionGenerator.h"
-
+#include "bb/BinaryNormalization.h"
 
 
 #if 0
@@ -568,60 +568,50 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
     auto layer_sl6      = bb::StochasticLut6<>::Create(420);
     auto layer_sl7      = bb::StochasticLut6<>::Create(70);
 
+    auto layer_sbn0     = bb::StochasticBatchNormalization<>::Create();
+    auto layer_sbn1     = bb::StochasticBatchNormalization<>::Create();
+    auto layer_sbn2     = bb::StochasticBatchNormalization<>::Create();
+
+
     float bn_gain = 0.001f;
 
     {
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_sl0);
-//        cnv0_sub->Add(bb::StochasticBatchNormalization<>::Create());
         cnv0_sub->Add(layer_cnv0_sl1);
-//        cnv0_sub->Add(bb::StochasticBatchNormalization<>::Create());
         cnv0_sub->Add(layer_cnv0_sl2);
-//        cnv0_sub->Add(bb::StochasticBatchNormalization<>::Create());
 
         auto cnv1_sub = bb::Sequential::Create();
         cnv1_sub->Add(layer_cnv1_sl0);
-//        cnv1_sub->Add(bb::StochasticBatchNormalization<>::Create());
         cnv1_sub->Add(layer_cnv1_sl1);
-//        cnv1_sub->Add(bb::StochasticBatchNormalization<>::Create());
         cnv1_sub->Add(layer_cnv1_sl2);
-//        cnv1_sub->Add(bb::StochasticBatchNormalization<>::Create());
 
         auto cnv2_sub = bb::Sequential::Create();
         cnv2_sub->Add(layer_cnv2_sl0);
-//        cnv2_sub->Add(bb::StochasticBatchNormalization<>::Create());
         cnv2_sub->Add(layer_cnv2_sl1);
-//        cnv2_sub->Add(bb::StochasticBatchNormalization<>::Create());
         cnv2_sub->Add(layer_cnv2_sl2);
-//        cnv2_sub->Add(bb::StochasticBatchNormalization<>::Create());
 
         auto cnv3_sub = bb::Sequential::Create();
         cnv3_sub->Add(layer_cnv3_sl0);
-//      cnv3_sub->Add(bb::StochasticBatchNormalization<>::Create());
         cnv3_sub->Add(layer_cnv3_sl1);
-//      cnv3_sub->Add(bb::StochasticBatchNormalization<>::Create());
         cnv3_sub->Add(layer_cnv3_sl2);
-//      cnv3_sub->Add(bb::StochasticBatchNormalization<>::Create());
         
         auto net = bb::Sequential::Create();
         net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
         net->Add(bb::StochasticMaxPooling2x2<>::Create());
 //      net->Add(bb::MaxPooling<>::Create(2, 2));
-        net->Add(bb::StochasticBatchNormalization<>::Create());
+        net->Add(layer_sbn0);
         net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
         net->Add(bb::StochasticMaxPooling2x2<>::Create());
 //      net->Add(bb::MaxPooling<>::Create(2, 2));
-        net->Add(bb::StochasticBatchNormalization<>::Create());
+        net->Add(layer_sbn1);
         net->Add(layer_sl4);
-//      net->Add(bb::StochasticBatchNormalization<>::Create());
         net->Add(layer_sl5);
-        net->Add(bb::StochasticBatchNormalization<>::Create());
+        net->Add(layer_sbn2);
         net->Add(layer_sl6);
-//      net->Add(bb::StochasticBatchNormalization<>::Create());
         net->Add(layer_sl7);
-//      net->Add(bb::StochasticBatchNormalization<>::Create());
         net->Add(bb::Reduce<>::Create(td.t_shape));
         net->SetInputShape(td.x_shape);
 
@@ -660,8 +650,6 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 #if 1
     {
         // LUT-network
-        int const   frame_mux_size = 15;
-
         auto layer_cnv0_lut0 = bb::BinaryLutN<>::Create(layer_cnv0_sl0->GetOutputShape());
         auto layer_cnv0_lut1 = bb::BinaryLutN<>::Create(layer_cnv0_sl1->GetOutputShape());
         auto layer_cnv0_lut2 = bb::BinaryLutN<>::Create(layer_cnv0_sl2->GetOutputShape());
@@ -678,6 +666,11 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto layer_lut5      = bb::BinaryLutN<>::Create(layer_sl5->GetOutputShape());
         auto layer_lut6      = bb::BinaryLutN<>::Create(layer_sl6->GetOutputShape());
         auto layer_lut7      = bb::BinaryLutN<>::Create(layer_sl7->GetOutputShape());
+
+        auto layer_bn0 =  bb::BinaryNormalization<>::Create();
+        auto layer_bn1 =  bb::BinaryNormalization<>::Create();
+        auto layer_bn2 =  bb::BinaryNormalization<>::Create();
+
 
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_lut0);
@@ -722,11 +715,14 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         lut_net->Add(cnv0);
         lut_net->Add(cnv1);
         lut_net->Add(pol0);
+        lut_net->Add(layer_bn0);
         lut_net->Add(cnv2);
         lut_net->Add(cnv3);
         lut_net->Add(pol1);
+        lut_net->Add(layer_bn1);
         lut_net->Add(layer_lut4);
         lut_net->Add(layer_lut5);
+        lut_net->Add(layer_bn2);
         lut_net->Add(layer_lut6);
         lut_net->Add(layer_lut7);
 //        lut_net->Add(cnv4);
@@ -737,6 +733,11 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 
         // テーブル化して取り込み(現状まだSetInputShape後の取り込みが必要)
         std::cout << "parameter copy to LUT-Network."  << std::flush;
+
+        layer_bn0      ->Import(layer_sbn0);
+        layer_bn1      ->Import(layer_sbn1);
+        layer_bn2      ->Import(layer_sbn2);
+
         layer_cnv0_lut0->ImportLayer<float, float>(layer_cnv0_sl0);     std::cout << "." << std::flush;
         layer_cnv0_lut1->ImportLayer<float, float>(layer_cnv0_sl1);     std::cout << "." << std::flush;
         layer_cnv0_lut2->ImportLayer<float, float>(layer_cnv0_sl2);     std::cout << "." << std::flush;
@@ -753,6 +754,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         layer_lut5     ->ImportLayer<float, float>(layer_sl5);          std::cout << "." << std::flush;
         layer_lut6     ->ImportLayer<float, float>(layer_sl6);          std::cout << "." << std::flush;
         layer_lut7     ->ImportLayer<float, float>(layer_sl7);          std::cout << "." << std::endl;
+
 
         // 評価
         if ( 1 ) {

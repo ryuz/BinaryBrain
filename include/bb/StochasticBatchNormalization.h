@@ -57,8 +57,6 @@ protected:
     Tensor_<T>                  m_running_var;
 
     T                           m_momentum = (T)0.001;
-    T                           m_init_gamma;
-    T                           m_init_beta;
 
 protected:
     StochasticBatchNormalization() {}
@@ -92,32 +90,29 @@ public:
     struct create_t
     {
         T       momentum  = (T)0.001;
-        T       gamma     = (T)1.0;
-        T       beta      = (T)0.0;
+        T       gamma     = (T)0.2;
+        T       beta      = (T)0.5;
     };
 
     static std::shared_ptr<StochasticBatchNormalization> Create(create_t const &create)
     {
         auto self = std::shared_ptr<StochasticBatchNormalization>(new StochasticBatchNormalization);
-        self->m_momentum   = create.momentum;
-        self->m_init_gamma = create.gamma;
-        self->m_init_beta  = create.beta;
-        self->m_fix_gamma  = create.fix_gamma;
-        self->m_fix_beta   = create.fix_beta;
+        self->m_momentum = create.momentum;
+        self->m_gamma    = create.gamma;
+        self->m_beta     = create.beta;
         return self;
     }
 
-    static std::shared_ptr<StochasticBatchNormalization> Create(T momentum = (T)0.001, T gamma=(T)1.0, T beta=(T)0.0)
+    static std::shared_ptr<StochasticBatchNormalization> Create(T momentum = (T)0.001, T gamma=(T)0.2, T beta=(T)0.5)
     {
         auto self = std::shared_ptr<StochasticBatchNormalization>(new StochasticBatchNormalization);
-        self->m_momentum   = momentum;
-        self->m_init_gamma = gamma;
-        self->m_init_beta  = beta;
+        self->m_momentum = momentum;
+        self->m_gamma    = gamma;
+        self->m_beta     = beta;
         return self;
     }
 
     std::string GetClassName(void) const { return "StochasticBatchNormalization"; }
-
 
 
     // Serialize
@@ -235,6 +230,19 @@ public:
         return gradients;
     }
     
+    T GetNormalizeGain(index_t node)
+    {
+        auto var_ptr  = m_running_var.LockConst();
+        return m_gamma / (sqrt(var_ptr[node]) + (T)1.0e-7);
+    }
+
+    T GetNormalizeOffset(index_t node)
+    {
+        auto mean_ptr = m_running_mean.LockConst();
+        auto var_ptr  = m_running_var.LockConst();
+
+        return m_beta - (m_gamma * mean_ptr[node] / (sqrt(var_ptr[node]) + (T)1.0e-7));
+    }
 
     // ノード単位でのForward計算
     std::vector<T> ForwardNode(index_t node, std::vector<T> x_vec) const
@@ -484,7 +492,7 @@ public:
                     T rstd = (T)1.0 / (std + (T)1.0e-7);
 
                     running_mean_ptr[node] = running_mean_ptr[node] * m_momentum + mean * ((T)1.0 - m_momentum);
-                    running_var_ptr[node]  = running_var_ptr[node]  * m_momentum + var *  ((T)1.0 - m_momentum);
+                    running_var_ptr[node]  = running_var_ptr[node]  * m_momentum + var  * ((T)1.0 - m_momentum);
                     
                     mean_ptr[node] = mean;
                     rstd_ptr[node] = rstd;
