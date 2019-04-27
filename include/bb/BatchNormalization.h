@@ -105,7 +105,7 @@ public:
 
     struct create_t
     {
-        T       momentum  = (T)0.001;
+        T       momentum  = (T)0.9;
         T       gamma     = (T)1.0;
         T       beta      = (T)0.0;
         bool    fix_gamma = false;

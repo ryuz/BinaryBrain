@@ -95,8 +95,8 @@ __global__ void kernal_fp32_BatchNormalization_ForwardTraining(
     float rstd = rsqrt(var);
 
     if (id == 0) {
-        running_mean_buf[node] = running_mean_buf[node] * momentum + mean * (1.0f - momentum);
-        running_var_buf[node] = running_var_buf[node] * momentum + var * (1.0f - momentum);
+        running_mean_buf[node] = (running_mean_buf[node] * momentum) + (mean * (1.0 - momentum));
+        running_var_buf[node]  = (running_var_buf[node]  * momentum) + (var  * (1.0 - momentum));
         mean_buf[node] = mean;
         rstd_buf[node] = rstd;
     }
