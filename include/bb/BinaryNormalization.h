@@ -185,16 +185,19 @@ public:
 
         auto node_size  = GetShapeSize(m_shape);
 
+//      std::ofstream ofs("bn.txt", std::ios::app);
+
         for (index_t node = 0; node < node_size; ++node) {
             auto gain   = bn->GetNormalizeGain(node);
             auto offset = bn->GetNormalizeOffset(node);
             auto a      = offset / (gain + offset);
             auto b      = gain + offset;
 #if 0
-            std::cout << "gain="    << gain;
-            std::cout << " offset=" << offset;
-            std::cout << " a="      << a;
-            std::cout << " b="      << b << std::endl;
+            ofs << node 
+                << " gain="   << gain
+                << " offset=" << offset
+                << " a="      << a
+                << " b="      << b << std::endl;
 #endif
             a_ptr[node] = a;
             b_ptr[node] = b;

@@ -47,8 +47,8 @@ protected:
     FrameBuffer                 m_y_buf;
     FrameBuffer                 m_dx_buf;
 
-    T                           m_gamma = (T)0.2;
-    T                           m_beta  = (T)0.5;
+    T                           m_gamma;
+    T                           m_beta;
 
     Tensor_<T>                  m_mean;     // 平均値
     Tensor_<T>                  m_rstd;     // 標準偏差の逆数
@@ -90,7 +90,7 @@ public:
     struct create_t
     {
         T       momentum  = (T)0.001;
-        T       gamma     = (T)0.2;
+        T       gamma     = (T)0.1;
         T       beta      = (T)0.5;
     };
 
@@ -103,13 +103,13 @@ public:
         return self;
     }
 
-    static std::shared_ptr<StochasticBatchNormalization> Create(T momentum = (T)0.001, T gamma=(T)0.2, T beta=(T)0.5)
+    static std::shared_ptr<StochasticBatchNormalization> Create(T momentum = (T)0.001, T gamma=(T)0.1, T beta=(T)0.5)
     {
-        auto self = std::shared_ptr<StochasticBatchNormalization>(new StochasticBatchNormalization);
-        self->m_momentum = momentum;
-        self->m_gamma    = gamma;
-        self->m_beta     = beta;
-        return self;
+        create_t create;
+        create.momentum = momentum;
+        create.gamma    = gamma;
+        create.beta     = beta;
+        return Create(create);
     }
 
     std::string GetClassName(void) const { return "StochasticBatchNormalization"; }
