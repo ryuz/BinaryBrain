@@ -60,7 +60,7 @@ protected:
     Tensor_<T>                  m_running_mean;
     Tensor_<T>                  m_running_var;
 
-    T                           m_momentum = (T)0.001;
+    T                           m_momentum = (T)0.9;
     T                           m_init_gamma;
     T                           m_init_beta;
 
@@ -123,7 +123,7 @@ public:
         return self;
     }
 
-    static std::shared_ptr<BatchNormalization> Create(T momentum = (T)0.001, T gamma=(T)1.0, T beta=(T)0.0)
+    static std::shared_ptr<BatchNormalization> Create(T momentum = (T)0.9, T gamma=(T)1.0, T beta=(T)0.0)
     {
         auto self = std::shared_ptr<BatchNormalization>(new BatchNormalization);
         self->m_momentum   = momentum;
@@ -303,8 +303,6 @@ public:
      */
     FrameBuffer Forward(FrameBuffer x_buf, bool train=true)
     {
-        train = true;   // ちょっと実験
-
         // forwardの為に保存
         m_x_buf = x_buf;
 
@@ -425,7 +423,7 @@ public:
 
                     // 実行時の mean と var 保存
                     running_mean_ptr[node] = running_mean_ptr[node] * m_momentum + bb_mm256_cvtss_f32(mean) * (1 - m_momentum);
-                    running_var_ptr[node]  = running_var_ptr[node] * m_momentum + bb_mm256_cvtss_f32(var) * (1 - m_momentum);
+                    running_var_ptr[node]  = running_var_ptr[node]  * m_momentum + bb_mm256_cvtss_f32(var) * (1 - m_momentum);
 
                     // 結果の保存
                     mean_ptr[node] = bb_mm256_cvtss_f32(mean);

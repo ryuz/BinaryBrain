@@ -357,6 +357,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\include\bb\BatchNormalization.h" />
     <ClInclude Include="..\..\include\bb\BinaryNormalization.h" />
     <ClInclude Include="..\..\include\bb\StochasticBatchNormalization.h" />
     <ClInclude Include="..\..\include\bb\StochasticMinMaxNormalization.h" />

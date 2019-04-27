@@ -47,5 +47,8 @@
     <ClInclude Include="..\..\include\bb\BinaryNormalization.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bb\BatchNormalization.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
