@@ -573,53 +573,55 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
     {
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_sl0);
-        cnv0_sub->Add(bb::StochasticBatchNormalization<>::Create());
+//        cnv0_sub->Add(bb::StochasticBatchNormalization<>::Create());
         cnv0_sub->Add(layer_cnv0_sl1);
-        cnv0_sub->Add(bb::StochasticBatchNormalization<>::Create());
+//        cnv0_sub->Add(bb::StochasticBatchNormalization<>::Create());
         cnv0_sub->Add(layer_cnv0_sl2);
-        cnv0_sub->Add(bb::StochasticBatchNormalization<>::Create());
+//        cnv0_sub->Add(bb::StochasticBatchNormalization<>::Create());
 
         auto cnv1_sub = bb::Sequential::Create();
         cnv1_sub->Add(layer_cnv1_sl0);
-        cnv1_sub->Add(bb::StochasticBatchNormalization<>::Create());
+//        cnv1_sub->Add(bb::StochasticBatchNormalization<>::Create());
         cnv1_sub->Add(layer_cnv1_sl1);
-        cnv1_sub->Add(bb::StochasticBatchNormalization<>::Create());
+//        cnv1_sub->Add(bb::StochasticBatchNormalization<>::Create());
         cnv1_sub->Add(layer_cnv1_sl2);
-        cnv1_sub->Add(bb::StochasticBatchNormalization<>::Create());
+//        cnv1_sub->Add(bb::StochasticBatchNormalization<>::Create());
 
         auto cnv2_sub = bb::Sequential::Create();
         cnv2_sub->Add(layer_cnv2_sl0);
-        cnv2_sub->Add(bb::StochasticBatchNormalization<>::Create());
+//        cnv2_sub->Add(bb::StochasticBatchNormalization<>::Create());
         cnv2_sub->Add(layer_cnv2_sl1);
-        cnv2_sub->Add(bb::StochasticBatchNormalization<>::Create());
+//        cnv2_sub->Add(bb::StochasticBatchNormalization<>::Create());
         cnv2_sub->Add(layer_cnv2_sl2);
-        cnv2_sub->Add(bb::StochasticBatchNormalization<>::Create());
+//        cnv2_sub->Add(bb::StochasticBatchNormalization<>::Create());
 
         auto cnv3_sub = bb::Sequential::Create();
         cnv3_sub->Add(layer_cnv3_sl0);
-        cnv3_sub->Add(bb::StochasticBatchNormalization<>::Create());
+//      cnv3_sub->Add(bb::StochasticBatchNormalization<>::Create());
         cnv3_sub->Add(layer_cnv3_sl1);
-        cnv3_sub->Add(bb::StochasticBatchNormalization<>::Create());
+//      cnv3_sub->Add(bb::StochasticBatchNormalization<>::Create());
         cnv3_sub->Add(layer_cnv3_sl2);
-        cnv3_sub->Add(bb::StochasticBatchNormalization<>::Create());
+//      cnv3_sub->Add(bb::StochasticBatchNormalization<>::Create());
         
         auto net = bb::Sequential::Create();
         net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
 //      net->Add(bb::StochasticMaxPooling2x2<>::Create());
         net->Add(bb::MaxPooling<>::Create(2, 2));
+        net->Add(bb::StochasticBatchNormalization<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
 //      net->Add(bb::StochasticMaxPooling2x2<>::Create());
         net->Add(bb::MaxPooling<>::Create(2, 2));
-        net->Add(layer_sl4);
         net->Add(bb::StochasticBatchNormalization<>::Create());
+        net->Add(layer_sl4);
+//      net->Add(bb::StochasticBatchNormalization<>::Create());
         net->Add(layer_sl5);
         net->Add(bb::StochasticBatchNormalization<>::Create());
         net->Add(layer_sl6);
-        net->Add(bb::StochasticBatchNormalization<>::Create());
+//      net->Add(bb::StochasticBatchNormalization<>::Create());
         net->Add(layer_sl7);
-        net->Add(bb::StochasticBatchNormalization<>::Create());
+//      net->Add(bb::StochasticBatchNormalization<>::Create());
         net->Add(bb::Reduce<>::Create(td.t_shape));
         net->SetInputShape(td.x_shape);
 

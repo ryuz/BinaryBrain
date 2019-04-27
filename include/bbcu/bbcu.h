@@ -376,6 +376,60 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Backward
         );
 
 
+
+// -------------------------------------
+//  Stochastic BatchNormalization
+// -------------------------------------
+
+BBCU_DLL_EXPORT int bbcu_fp32_StochasticBatchNormalization_ForwardTraining
+        (
+            float const     *dev_x_buf,
+            float           *dev_y_buf,
+            float const     *dev_gamma_buf,
+            float const     *dev_beta_buf,
+            float           *dev_mean_buf,
+            float           *dev_rstd_buf,
+            float           *dev_running_mean_buf,
+            float           *dev_running_var_buf,
+            float           momentum,
+            int             node_size,  
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId = 0
+        );
+
+BBCU_DLL_EXPORT int bbcu_fp32_StochasticBatchNormalization_ForwardInference
+        (
+            float const     *dev_x_buf,
+            float           *dev_y_buf,
+            float const     *dev_gamma_buf,
+            float const     *dev_beta_buf,
+            float const     *dev_running_mean_buf,
+            float const     *dev_running_var_buf,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId = 0
+        );
+
+BBCU_DLL_EXPORT int bbcu_fp32_StochasticBatchNormalization_Backward
+        (
+            float const     *dev_x_buf,
+            float const     *dev_dy_buf,
+            float           *dev_dx_buf,
+            float const     *dev_gamma_buf,
+            float           *dev_dgamma_buf,
+            float           *dev_dbeta_buf,
+            float const     *dev_mean_buf,
+            float const     *dev_rstd_buf,
+            float           reciprocal_frame_size,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId = 0
+        );
+
+
 // -------------------------------------
 //  MaxPooling
 // -------------------------------------

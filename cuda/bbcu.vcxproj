@@ -37,6 +37,7 @@
     <CudaCompile Include="MicroMlp.cu" />
     <CudaCompile Include="ReLU.cu" />
     <CudaCompile Include="Sigmoid.cu" />
+    <CudaCompile Include="StochasticBatchNormalization.cu" />
     <CudaCompile Include="StochasticLut6.cu" />
     <CudaCompile Include="StochasticMaxPooling.cu" />
     <CudaCompile Include="Vector.cu" />

@@ -309,7 +309,7 @@ public:
         // 出力設定
         m_y_buf.Resize(x_buf.GetType(), x_buf.GetFrameSize(), x_buf.GetShape());
 
-#if 0 // #ifdef BB_WITH_CUDA
+#ifdef BB_WITH_CUDA
         if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && m_x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             if ( train ) {
                 auto dev_x_ptr     = m_x_buf.LockDeviceMemoryConst();
@@ -321,7 +321,7 @@ public:
                 auto dev_running_mean_ptr = m_running_mean.LockDeviceMemory();
                 auto dev_running_var_ptr = m_running_var.LockDeviceMemory();
 
-                bbcu_fp32_BatchNormalization_ForwardTraining
+                bbcu_fp32_StochasticBatchNormalization_ForwardTraining
                     (
                         (float const *)dev_x_ptr.GetAddr(),
                         (float       *)dev_y_ptr.GetAddr(),
@@ -580,7 +580,7 @@ public:
         // 出力設定
         m_dx_buf.Resize(dy_buf.GetType(), dy_buf.GetFrameSize(), dy_buf.GetShape());
 
-#if 0 // #ifdef BB_WITH_CUDA
+#ifdef BB_WITH_CUDA
         if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && dy_buf.IsDeviceAvailable() && m_x_buf.IsDeviceAvailable() && m_dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             auto dev_x_ptr      = m_x_buf.LockDeviceMemoryConst();
             auto dev_dy_ptr     = dy_buf.LockDeviceMemoryConst();
@@ -590,7 +590,7 @@ public:
             auto dev_dbeta_ptr  = m_dbeta->LockDeviceMemory();
             auto dev_mean_ptr   = m_mean.LockDeviceMemoryConst();
             auto dev_rstd_ptr   = m_rstd.LockDeviceMemoryConst();
-            bbcu_fp32_BatchNormalization_Backward
+            bbcu_fp32_StochasticBatchNormalization_Backward
                 (
                     (const float *)dev_x_ptr.GetAddr(),
                     (const float *)dev_dy_ptr.GetAddr(),

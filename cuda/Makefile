@@ -14,6 +14,7 @@ SRCS += MicroMlp.cu
 SRCS += BinaryLut6.cu
 SRCS += StochasticLut6.cu
 SRCS += StochasticMaxPooling.cu
+SRCS += StochasticBatchNormalization.cu
 SRCS += BinaryToReal.cu
 SRCS += Im2Col.cu
 SRCS += Col2Im.cu
