@@ -367,6 +367,7 @@ public:
                     (int)(m_dx.GetFrameStride() / sizeof(float))
                 ));
             
+            beta = 1.0f;
             BB_CUBLAS_SAFE_CALL(cublasSgemm
                 (
                     m_cublasHandle,

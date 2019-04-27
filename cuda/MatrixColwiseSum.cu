@@ -47,7 +47,7 @@ __global__ void kernel_fp32_MatrixColwiseSum(
     }
     
     if ( threadIdx.x == 0 ) {
-        y_vec[node] = buf[0];
+        y_vec[node] += buf[0];
     }
 }
 
