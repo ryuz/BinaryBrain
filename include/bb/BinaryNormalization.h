@@ -231,8 +231,8 @@ public:
                 ST b = a_ptr[node];
                 for (index_t frame = 0; frame < frame_size; ++frame) {
                     auto x = x_ptr.Get(frame, node);
-                    if ( uniform_dist(m_mt) <= a ) { x = 0; }
-                    if ( uniform_dist(m_mt) <= b ) { x = 1; }
+                    if ( uniform_dist(m_mt) <= a ) { x = 1; }
+                    if ( uniform_dist(m_mt) <= b ) { x = 0; }
                     y_ptr.Set(frame, node, x);
                 }
             }
