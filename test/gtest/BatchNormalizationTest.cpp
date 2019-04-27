@@ -71,7 +71,7 @@ public:
 
         // 正規化
         for (int i = 0; i < n; ++i) {
-            xn[i] = xc[i] / (std + (T)10e-7);
+            xn[i] = xc[i] / (std + (T)1.0e-7);
         }
 
         // シフト
@@ -101,7 +101,7 @@ public:
 
         // 正規化
         for (int i = 0; i < n; ++i) {
-            xn[i] = xc[i] / (std + (T)10e-7);
+            xn[i] = xc[i] / (std + (T)1.0e-7);
         }
             // シフト
         for (int i = 0; i < n; ++i) {
@@ -128,7 +128,7 @@ public:
             xc[i] = x[i] - mean;
 
             // 正規化
-            xn[i] = xc[i] / (std + (T)10e-7);
+            xn[i] = xc[i] / (std + (T)1.0e-7);
 
             // シフト
             y[i] = xn[i] * gamma + beta;
@@ -155,7 +155,7 @@ public:
             T _xc = x[i] - mean;
 
             // 正規化
-            T _xn = _xc / (std + (T)10e-7);
+            T _xn = _xc / (std + (T)1.0e-7);
 
             // シフト
             y[i] = _xn * gamma + beta;
