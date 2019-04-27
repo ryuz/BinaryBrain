@@ -56,7 +56,7 @@ protected:
     Tensor_<T>                  m_running_mean;
     Tensor_<T>                  m_running_var;
 
-    T                           m_momentum = (T)0.001;
+    T                           m_momentum = (T)0.9;
 
 protected:
     StochasticBatchNormalization() {}
@@ -103,7 +103,7 @@ public:
         return self;
     }
 
-    static std::shared_ptr<StochasticBatchNormalization> Create(T momentum = (T)0.001, T gamma=(T)0.1, T beta=(T)0.5)
+    static std::shared_ptr<StochasticBatchNormalization> Create(T momentum = (T)0.9, T gamma=(T)0.1, T beta=(T)0.5)
     {
         create_t create;
         create.momentum = momentum;

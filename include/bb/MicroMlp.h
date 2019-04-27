@@ -55,16 +55,7 @@ public:
         return self;
     }
 
-    static std::shared_ptr< MicroMlp > Create(index_t output_node_size, std::string connection = "", T momentum = (T)0.001)
-    {
-        auto self = std::shared_ptr<MicroMlp>(new MicroMlp);
-        self->m_affine     = MicroMlpAffine<N, M, T>::Create(output_node_size, connection);
-        self->m_batch_norm = BatchNormalization<T>::Create(momentum);
-        self->m_activation = Activation::Create();
-        return self;
-    }
-       
-    static std::shared_ptr< MicroMlp > Create(indices_t const &output_shape, std::string connection = "", T momentum = (T)0.001)
+    static std::shared_ptr< MicroMlp > Create(indices_t const &output_shape, std::string connection = "", T momentum = (T)0.9)
     {
         auto self = std::shared_ptr<MicroMlp>(new MicroMlp);
         self->m_affine     = MicroMlpAffine<N, M, T>::Create(output_shape, connection);
@@ -72,6 +63,12 @@ public:
         self->m_activation = Activation::Create();
         return self;
     }
+
+    static std::shared_ptr< MicroMlp > Create(index_t output_node_size, std::string connection = "", T momentum = (T)0.9)
+    {
+        return Create(indices_t({output_node_size}), connection, momentum);
+    }
+    
 
     std::string GetClassName(void) const { return "MicroMlp"; }
 
