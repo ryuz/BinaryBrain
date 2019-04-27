@@ -303,6 +303,8 @@ public:
      */
     FrameBuffer Forward(FrameBuffer x_buf, bool train=true)
     {
+        train = true;   // ちょっと実験
+
         // forwardの為に保存
         m_x_buf = x_buf;
 
