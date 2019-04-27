@@ -632,10 +632,10 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 
 //      net->SendCommand("batch_normalization false");
 
-        net->SendCommand("fix_gamma true");
-        net->SendCommand("fix_beta  true");
-        net->SendCommand("set_gamma 0.2");
-        net->SendCommand("set_beta  0.5");
+//        net->SendCommand("fix_gamma true");
+//        net->SendCommand("fix_beta  true");
+//        net->SendCommand("set_gamma 0.2");
+//        net->SendCommand("set_beta  0.5");
 
         // print model information
         net->PrintInfo();

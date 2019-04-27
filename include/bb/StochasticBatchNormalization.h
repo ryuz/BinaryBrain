@@ -40,8 +40,6 @@ class StochasticBatchNormalization : public Activation<T, T>
 protected:
     bool                        m_host_only = false;
     bool                        m_host_simd = false;
-    bool                        m_fix_gamma = false;
-    bool                        m_fix_beta  = false;
 
     index_t                     m_node_size;
     
@@ -49,10 +47,8 @@ protected:
     FrameBuffer                 m_y_buf;
     FrameBuffer                 m_dx_buf;
 
-    std::shared_ptr<Tensor>     m_gamma;
-    std::shared_ptr<Tensor>     m_beta;
-    std::shared_ptr<Tensor>     m_dgamma;
-    std::shared_ptr<Tensor>     m_dbeta;
+    T                           m_gamma = (T)0.2;
+    T                           m_beta  = (T)0.5;
 
     Tensor_<T>                  m_mean;     // 平均値
     Tensor_<T>                  m_rstd;     // 標準偏差の逆数
@@ -65,12 +61,7 @@ protected:
     T                           m_init_beta;
 
 protected:
-    StochasticBatchNormalization() {
-        m_gamma  = std::make_shared<Tensor>();
-        m_beta   = std::make_shared<Tensor>();
-        m_dgamma = std::make_shared<Tensor>();
-        m_dbeta  = std::make_shared<Tensor>();
-    }
+    StochasticBatchNormalization() {}
 
     void CommandProc(std::vector<std::string> args)
     {
@@ -86,17 +77,12 @@ protected:
             m_host_simd = EvalBool(args[1]);
         }
 
-        if (args.size() == 2 && args[0] == "fix_gamma") {
-            m_fix_gamma = EvalBool(args[1]);
-        }
-        if (args.size() == 2 && args[0] == "fix_beta") {
-            m_fix_beta = EvalBool(args[1]);
-        }
         if (args.size() == 2 && args[0] == "set_gamma") {
-            *m_gamma = (T)std::atof(args[1].c_str());
+            m_gamma = (T)std::atof(args[1].c_str());
         }
+
         if (args.size() == 2 && args[0] == "set_beta") {
-            *m_beta  = (T)std::atof(args[1].c_str());
+            m_beta  = (T)std::atof(args[1].c_str());
         }
     }
 
@@ -108,8 +94,6 @@ public:
         T       momentum  = (T)0.001;
         T       gamma     = (T)1.0;
         T       beta      = (T)0.0;
-        bool    fix_gamma = false;
-        bool    fix_beta  = false;
     };
 
     static std::shared_ptr<StochasticBatchNormalization> Create(create_t const &create)
@@ -141,8 +125,8 @@ public:
     {
         SaveIndex(os, m_node_size);
         bb::SaveValue(os, m_momentum);
-        m_gamma->Save(os);
-        m_beta->Save(os);
+        bb::SaveValue(os, m_gamma);
+        bb::SaveValue(os, m_beta);
         m_running_mean.Save(os);
         m_running_var.Save(os);
     }
@@ -151,8 +135,8 @@ public:
     {
         m_node_size = LoadIndex(is);
         bb::LoadValue(is, m_momentum);
-        m_gamma->Load(is);
-        m_beta->Load(is);
+        bb::LoadValue(is, m_gamma);
+        bb::LoadValue(is, m_beta);
         m_running_mean.Load(is);
         m_running_var.Load(is);
     }
@@ -164,8 +148,8 @@ public:
     {
         _super::save(archive, version);
         archive(cereal::make_nvp("node_size",    m_node_size));
-        archive(cereal::make_nvp("gamma",        *m_gamma));
-        archive(cereal::make_nvp("beta",         *m_beta));
+        archive(cereal::make_nvp("gamma",        m_gamma));
+        archive(cereal::make_nvp("beta",         m_beta));
         archive(cereal::make_nvp("running_mean", m_running_mean));
         archive(cereal::make_nvp("running_var",  m_running_var));
     }
@@ -175,8 +159,8 @@ public:
     {
         _super::load(archive, version);
         archive(cereal::make_nvp("node_size",    m_node_size));
-        archive(cereal::make_nvp("gamma",        *m_gamma));
-        archive(cereal::make_nvp("beta",         *m_beta));
+        archive(cereal::make_nvp("gamma",        m_gamma));
+        archive(cereal::make_nvp("beta",         m_beta));
         archive(cereal::make_nvp("running_mean", m_running_mean));
         archive(cereal::make_nvp("running_var",  m_running_var));
      }
@@ -192,18 +176,6 @@ public:
     }
 #endif
 
-
-
-
-
-    auto lock_gamma(void)              { return m_gamma->Lock<T>(); }
-    auto lock_gamma_const(void)  const { return m_gamma->LockConst<T>(); }
-    auto lock_beta(void)               { return m_beta->Lock<T>(); }
-    auto lock_beta_const(void)   const { return m_beta->LockConst<T>(); }
-    auto lock_dgamma(void)             { return m_dgamma->Lock<T>(); }
-    auto lock_dgamma_const(void) const { return m_dgamma->LockConst<T>(); }
-    auto lock_dbeta(void)              { return m_dbeta->Lock<T>(); }
-    auto lock_dbeta_const(void)  const { return m_dbeta->LockConst<T>(); }
     auto lock_mean(void)               { return m_running_mean.Lock(); }
     auto lock_mean_const(void)   const { return m_running_mean.LockConst(); }
     auto lock_var(void)                { return m_running_var.Lock(); }
@@ -228,11 +200,6 @@ public:
         m_node_size = GetShapeSize(shape);
         
         // パラメータ初期化
-        m_gamma->Resize(DataType<T>::type, m_node_size);    *m_gamma  = m_init_gamma;
-        m_beta->Resize(DataType<T>::type, m_node_size);     *m_beta   = m_init_beta;
-        m_dgamma->Resize(DataType<T>::type, m_node_size);   *m_dgamma = (T)0.0;
-        m_dbeta->Resize(DataType<T>::type, m_node_size);    *m_dbeta  = (T)0.0;
-
         m_mean.Resize(m_node_size);
         m_rstd.Resize(m_node_size);
 
@@ -253,8 +220,6 @@ public:
     Variables GetParameters(void)
     {
         Variables parameters;
-        if ( !m_fix_gamma ) { parameters.PushBack(m_gamma); }
-        if ( !m_fix_beta  ) { parameters.PushBack(m_beta);  }
         return parameters;
     }
 
@@ -267,8 +232,6 @@ public:
     Variables GetGradients(void)
     {
         Variables gradients;
-        if ( !m_fix_gamma ) { gradients.PushBack(m_dgamma); }
-        if ( !m_fix_beta  ) { gradients.PushBack(m_dbeta);  }
         return gradients;
     }
     
@@ -278,8 +241,6 @@ public:
     {
         BB_DEBUG_ASSERT(node >= 0 && node < m_node_size);
 
-        auto gamma_ptr        = lock_gamma_const();
-        auto beta_ptr         = lock_beta_const();
         auto running_mean_ptr = m_running_mean.LockConst();
         auto running_var_ptr  = m_running_var.LockConst();
 
@@ -288,7 +249,7 @@ public:
             y_vec[i]  = x_vec[i];
             y_vec[i] -= running_mean_ptr(node);
             y_vec[i] /= (T)sqrt(running_var_ptr(node)) + (T)1.0e-7;
-            y_vec[i]  = y_vec[i] * gamma_ptr(node) + beta_ptr(node);
+            y_vec[i]  = y_vec[i] * m_gamma + m_beta;
         }
         return y_vec;
     }
@@ -314,8 +275,6 @@ public:
             if ( train ) {
                 auto dev_x_ptr     = m_x_buf.LockDeviceMemoryConst();
                 auto dev_y_ptr     = m_y_buf.LockDeviceMemory(true);
-                auto dev_gamma_ptr = m_gamma->LockDeviceMemoryConst();
-                auto dev_beta_ptr  = m_beta->LockDeviceMemoryConst();
                 auto dev_mean_ptr = m_mean.LockDeviceMemory(true);
                 auto dev_rstd_ptr = m_rstd.LockDeviceMemory(true);
                 auto dev_running_mean_ptr = m_running_mean.LockDeviceMemory();
@@ -325,12 +284,12 @@ public:
                     (
                         (float const *)dev_x_ptr.GetAddr(),
                         (float       *)dev_y_ptr.GetAddr(),
-                        (float const *)dev_gamma_ptr.GetAddr(),
-                        (float const *)dev_beta_ptr.GetAddr(),
                         (float       *)dev_mean_ptr.GetAddr(),
                         (float       *)dev_rstd_ptr.GetAddr(),
                         (float       *)dev_running_mean_ptr.GetAddr(),
                         (float       *)dev_running_var_ptr.GetAddr(),
+                        (float        )m_gamma,
+                        (float        )m_beta,
                         (float        )m_momentum,
                         (int          )m_x_buf.GetNodeSize(),
                         (int          )m_x_buf.GetFrameSize(),
@@ -341,19 +300,17 @@ public:
             else {
                 auto dev_x_ptr            = m_x_buf.LockDeviceMemoryConst();
                 auto dev_y_ptr            = m_y_buf.LockDeviceMemory(true);
-                auto dev_gamma_ptr        = m_gamma->LockDeviceMemoryConst();
-                auto dev_beta_ptr         = m_beta->LockDeviceMemoryConst();
                 auto dev_running_mean_ptr = m_running_mean.LockDeviceMemoryConst();
                 auto dev_running_var_ptr  = m_running_var.LockDeviceMemoryConst();
 
-                bbcu_fp32_BatchNormalization_ForwardInference
+                bbcu_fp32_StochasticBatchNormalization_ForwardInference
                     (
                         (float const *)dev_x_ptr.GetAddr(),
                         (float       *)dev_y_ptr.GetAddr(),
-                        (float const *)dev_gamma_ptr.GetAddr(),
-                        (float const *)dev_beta_ptr.GetAddr(),
                         (float       *)dev_running_mean_ptr.GetAddr(),
                         (float       *)dev_running_var_ptr.GetAddr(),
+                        (float        )m_gamma,
+                        (float        )m_beta,
                         (int          )m_x_buf.GetNodeSize(),
                         (int          )m_x_buf.GetFrameSize(),
                         (int          )m_x_buf.GetFrameStride() / sizeof(float)
@@ -474,9 +431,6 @@ public:
             auto x_ptr            = m_x_buf.LockConst<T>();
             auto y_ptr            = m_y_buf.Lock<T>();
             
-            auto gamma_ptr        = lock_gamma_const();
-            auto beta_ptr         = lock_beta_const();
-
             auto mean_ptr         = m_mean.Lock();
             auto rstd_ptr         = m_rstd.Lock();        
             auto running_mean_ptr = m_running_mean.Lock();
@@ -536,12 +490,10 @@ public:
                     rstd_ptr[node] = rstd;
 
                     // 正規化
-                    T   gamma = gamma_ptr[node];
-                    T   beta  = beta_ptr[node];
                     for ( index_t frame = 0; frame < frame_size; ++frame) {
                         T x = x_ptr.Get(frame, node);
                         x = (x - mean) * rstd;
-                        x = x * gamma + beta;
+                        x = x * m_gamma + m_beta;
                         y_ptr.Set(frame, node, x);
                     }
                 }
@@ -549,8 +501,6 @@ public:
             else {
                 #pragma omp parallel for
                 for (index_t node = 0; node < m_node_size; ++node) {
-                    T   gamma = gamma_ptr[node];
-                    T   beta  = beta_ptr[node];
                     T   mean  = running_mean_ptr[node];
                     T   var   = running_var_ptr[node];
 
@@ -558,7 +508,7 @@ public:
 
                     for ( index_t frame = 0; frame < frame_size; ++frame) {
                         T x = x_ptr.Get(frame, node);
-                        y_ptr.Set(frame, node, ((x - mean) * rstd) * gamma + beta);
+                        y_ptr.Set(frame, node, ((x - mean) * rstd) * m_gamma + m_beta);
                     }
                 }
             }
@@ -585,9 +535,6 @@ public:
             auto dev_x_ptr      = m_x_buf.LockDeviceMemoryConst();
             auto dev_dy_ptr     = dy_buf.LockDeviceMemoryConst();
             auto dev_dx_ptr     = m_dx_buf.LockDeviceMemory(true);
-            auto dev_gamma_ptr  = m_gamma->LockDeviceMemoryConst();
-            auto dev_dgamma_ptr = m_dgamma->LockDeviceMemory();
-            auto dev_dbeta_ptr  = m_dbeta->LockDeviceMemory();
             auto dev_mean_ptr   = m_mean.LockDeviceMemoryConst();
             auto dev_rstd_ptr   = m_rstd.LockDeviceMemoryConst();
             bbcu_fp32_StochasticBatchNormalization_Backward
@@ -595,11 +542,9 @@ public:
                     (const float *)dev_x_ptr.GetAddr(),
                     (const float *)dev_dy_ptr.GetAddr(),
                     (float       *)dev_dx_ptr.GetAddr(),
-                    (float const *)dev_gamma_ptr.GetAddr(),
-                    (float       *)dev_dgamma_ptr.GetAddr(),
-                    (float       *)dev_dbeta_ptr.GetAddr(),
                     (float const *)dev_mean_ptr.GetAddr(),
                     (float const *)dev_rstd_ptr.GetAddr(),
+                    (float        )m_gamma,
                     (float        )1.0f / (float)dy_buf.GetFrameSize(),
                     (int          )dy_buf.GetNodeSize(),
                     (int          )dy_buf.GetFrameSize(),
@@ -696,11 +641,6 @@ public:
             auto frame_stride = dy_buf.GetFrameStride() / sizeof(float);
             
             const int   mm256_frame_size = ((int)frame_size + 7) / 8 * 8;
-            
-            auto gamma_ptr        = lock_gamma_const();
-    //      auto beta_ptr         = lock_beta_const();
-            auto dgamma_ptr       = lock_dgamma();
-            auto dbeta_ptr        = lock_dbeta();
 
             auto mean_ptr         = m_mean.LockConst();
             auto rstd_ptr         = m_rstd.LockConst();
@@ -714,9 +654,6 @@ public:
             for (index_t node = 0; node < m_node_size; ++node) {
                 T   mean   = mean_ptr[node];
                 T   rstd   = rstd_ptr[node];
-                T   gamma  = gamma_ptr[node];
-                T   dgamma = 0;
-                T   dbeta  = 0;
                 T   dmeanx = 0;
                 T   dstd   = 0;
 
@@ -725,16 +662,11 @@ public:
                     T dy = dy_ptr.Get(frame, node);
                     T xc = x - mean;
                     T xn = xc * rstd;
-                    dbeta  += dy;
-                    dgamma += xn * dy;
 
-                    T dxn = gamma * dy;
+                    T dxn = m_gamma * dy;
                     dstd += -(dxn * xc * (rstd * rstd));
                     dmeanx += -(dxn * rstd);
                 }
-
-                dgamma_ptr[node] += dgamma;
-                dbeta_ptr[node]  += dbeta;
 
                 T dvar  = dstd * rstd;
                 T dmean = (dmeanx - (mean * dvar)) / (T)frame_size;
@@ -742,7 +674,7 @@ public:
                 for ( index_t frame = 0; frame < frame_size; ++frame) {
                     T dy = dy_ptr.Get(frame, node);
                     T x  = x_ptr.Get(frame, node);
-                    T dxn = dy * gamma;
+                    T dxn = dy * m_gamma;
                     T dxc = dxn * rstd;
                     T dx  = dxc + dmean + (x * dvar / (T)frame_size);
                     dx_ptr.Set(frame, node, dx);
