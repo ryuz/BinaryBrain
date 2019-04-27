@@ -39,7 +39,7 @@ class BatchNormalization : public Activation<T, T>
 
 protected:
     bool                        m_host_only = false;
-    bool                        m_host_simd = true;
+    bool                        m_host_simd = false;
     bool                        m_fix_gamma = false;
     bool                        m_fix_beta  = false;
 
@@ -287,7 +287,7 @@ public:
         for (size_t i = 0; i < x_vec.size(); ++i) {
             y_vec[i]  = x_vec[i];
             y_vec[i] -= running_mean_ptr(node);
-            y_vec[i] /= (T)sqrt(running_var_ptr(node)) + (T)10e-7;
+            y_vec[i] /= (T)sqrt(running_var_ptr(node)) + (T)1.0e-7;
             y_vec[i]  = y_vec[i] * gamma_ptr(node) + beta_ptr(node);
         }
         return y_vec;
@@ -365,7 +365,8 @@ public:
 #endif
 
 
-        {
+        if ( DataType<T>::type == BB_TYPE_FP32 && m_host_simd ) {
+            // SIMD版
             auto node_size    = x_buf.GetNodeSize();
             auto frame_size   = x_buf.GetFrameSize();
             auto frame_stride = x_buf.GetFrameStride() / sizeof(float);
@@ -385,7 +386,7 @@ public:
 
             if (train) {
                 const __m256    reciprocal_frame_size = _mm256_set1_ps(1.0f / (float)frame_size);
-                const __m256    epsilon = _mm256_set1_ps(10e-7f);
+                const __m256    epsilon = _mm256_set1_ps(1.0e-7f);
 
                 #pragma omp parallel for
                 for (int node = 0; node < (int)m_node_size; ++node) {
@@ -447,7 +448,7 @@ public:
                     auto y_addr = y_ptr.GetAddr(node);
 
                     __m256 running_mean = _mm256_set1_ps(running_mean_ptr[node]);
-                    __m256 running_var = _mm256_set1_ps(1.0f / (sqrt(running_var_ptr[node]) + 10e-7f));
+                    __m256 running_var = _mm256_set1_ps(1.0f / (sqrt(running_var_ptr[node]) + 1.0e-7f));
 
                     __m256 gamma = _mm256_set1_ps(gamma_ptr[node]);
                     __m256 beta = _mm256_set1_ps(beta_ptr[node]);
@@ -464,6 +465,232 @@ public:
 
             return m_y_buf;
         }
+        
+#if 0
+        {
+            // 汎用版
+            auto node_size    = x_buf.GetNodeSize();
+            auto frame_size   = x_buf.GetFrameSize();
+
+            auto x_ptr            = m_x_buf.LockConst<T>();
+            auto y_ptr            = m_y_buf.Lock<T>();
+            
+            auto gamma_ptr        = lock_gamma_const();
+            auto beta_ptr         = lock_beta_const();
+
+            auto mean_ptr         = m_mean.Lock();
+            auto rstd_ptr         = m_rstd.Lock();        
+            auto running_mean_ptr = m_running_mean.Lock();
+            auto running_var_ptr  = m_running_var.Lock();
+
+            if ( train ) {
+                for (index_t node = 0; node < node_size; ++node) {
+                    if ( 1 ) {
+                        // 平均/分散一括
+                        T mean = 0;
+                        T var = 0;
+#if 0
+                        for ( index_t frame = 0; frame < frame_size; ++frame) {
+                            T x = x_ptr.Get(frame, node);
+                            mean += x;
+                            var += x * x;
+                        }
+                        mean /= (T)frame_size;
+                        var = (var / (T)frame_size) - (mean * mean);
+#else
+
+                        T s1 = 0, c1 = 0, y1, t1;
+                        T s2 = 0, c2 = 0, y2, t2;
+                        for ( index_t frame = 0; frame < frame_size; ++frame) {
+                            T x = x_ptr.Get(frame, node);
+
+                            y1 = x - c1;
+                            t1 = s1 + y1;
+                            c1 = (t1 - s1) - y1;
+                            s1 = t1;
+
+                            y2 = (x * x) - c2;
+                            t2 = s2 + y2;
+                            c2 = (t2 - s2) - y2;
+                            s2 = t2;
+                        }
+
+                        // 集計
+                        mean = s1 / (T)frame_size;
+                        var  = (s2 / (T)frame_size) - (mean * mean);
+#endif
+
+                        // 偏差
+                        T std = std::sqrt(var);
+
+                        // 保存
+                        running_mean_ptr[node] = running_mean_ptr[node] * m_momentum + mean * ((T)1.0 - m_momentum);
+                        running_var_ptr[node]  = running_var_ptr[node]  * m_momentum + var *  ((T)1.0 - m_momentum);
+                        mean_ptr[node] = mean;
+                        rstd_ptr[node] = (T)1.0 / std;
+
+                        T   gamma = gamma_ptr[node];
+                        T   beta  = beta_ptr[node];
+                        for ( index_t frame = 0; frame < frame_size; ++frame) {
+                            T x = x_ptr.Get(frame, node);
+
+                            // 平均を引く
+                            T xc = x - mean;
+
+                            // 正規化
+                            T xn = xc / (std + (T)1.0e-7);
+
+                            // スケーリング
+                            T y = xn * gamma + beta;
+                            y_ptr.Set(frame, node, (T)y);
+                        }
+
+                    }
+                    else {
+                        // 平均
+                        T mean = 0;
+                        for ( index_t frame = 0; frame < frame_size; ++frame) {
+                            mean += x_ptr.Get(frame, node);
+                        }
+                        mean /= (T)frame_size;
+
+                        // 平均を引く
+                        T var = 0;
+                        std::vector<T> xc(frame_size);
+                        for ( index_t frame = 0; frame < frame_size; ++frame) {
+                            xc[frame] = x_ptr.Get(frame, node) - mean;
+                        }
+
+                        // 分散
+                        for ( index_t frame = 0; frame < frame_size; ++frame) {
+                            var += xc[frame] * xc[frame];
+                        }
+                        var /= (T)frame_size;
+
+                        // 偏差
+                        T std = std::sqrt(var);
+
+                        running_mean_ptr[node] = running_mean_ptr[node] * m_momentum + mean * ((T)1.0 - m_momentum);
+                        running_var_ptr[node]  = running_var_ptr[node]  * m_momentum + var *  ((T)1.0 - m_momentum);
+                        mean_ptr[node] = mean;
+                        rstd_ptr[node] = (T)1.0 / std;
+
+                        // 正規化
+                        std::vector<T> xn(frame_size);
+                        for ( index_t frame = 0; frame < frame_size; ++frame) {
+                            xn[frame] = xc[frame] / (std + (T)1.0e-7);
+                        }
+
+                        // スケーリング
+                        T   gamma = gamma_ptr[node];
+                        T   beta  = beta_ptr[node];
+                        for ( index_t frame = 0; frame < frame_size; ++frame) {
+                            T y = xn[frame] * gamma + beta;
+                            y_ptr.Set(frame, node, (T)y);
+                        }
+                    }
+                }
+            }
+            else {
+                for (index_t node = 0; node < node_size; ++node) {
+                    T   gamma = gamma_ptr[node];
+                    T   beta  = beta_ptr[node];
+                    T   mean  = running_mean_ptr[node];
+                    T   var   = running_var_ptr[node];
+
+                    T   rstd  = (T)1.0 / (std::sqrt(var) + (T)1.0e-7);
+
+                    for ( index_t frame = 0; frame < frame_size; ++frame) {
+                        T x = x_ptr.Get(frame, node);
+                        y_ptr.Set(frame, node, ((x - mean) * rstd) * gamma + beta);
+                    }
+                }
+            }
+
+            return m_y_buf;
+        }
+#endif
+
+        {
+            // 汎用版
+            auto node_size    = x_buf.GetNodeSize();
+            auto frame_size   = x_buf.GetFrameSize();
+
+            auto x_ptr            = m_x_buf.LockConst<T>();
+            auto y_ptr            = m_y_buf.Lock<T>();
+            
+            auto gamma_ptr        = lock_gamma_const();
+            auto beta_ptr         = lock_beta_const();
+
+            auto mean_ptr         = m_mean.Lock();
+            auto rstd_ptr         = m_rstd.Lock();        
+            auto running_mean_ptr = m_running_mean.Lock();
+            auto running_var_ptr  = m_running_var.Lock();
+
+            if ( train ) {
+                #pragma omp parallel for
+                for (index_t node = 0; node < node_size; ++node) {
+                    // カハンの加算アルゴリズム(Kahan summation algorithm) [意味があるかは分からないが、どうせバス律速だろうからついで]
+                    T s1 = 0, c1 = 0, y1, t1;
+                    T s2 = 0, c2 = 0, y2, t2;
+                    for ( index_t frame = 0; frame < frame_size; ++frame) {
+                        T x = x_ptr.Get(frame, node);
+
+                        y1 = x - c1;
+                        t1 = s1 + y1;
+                        c1 = (t1 - s1) - y1;
+                        s1 = t1;
+
+                        y2 = (x * x) - c2;
+                        t2 = s2 + y2;
+                        c2 = (t2 - s2) - y2;
+                        s2 = t2;
+                    }
+
+                    // 集計
+                    T mean = s1 / (T)frame_size;
+                    T var  = (s2 / (T)frame_size) - (mean * mean);
+                    var = std::max((T)0, var);  // 演算誤差で負にならないようにクリップ  // 演算誤差で負にならないようにクリップ
+                    T std  = std::sqrt(var);
+                    T rstd = (T)1.0 / (std + (T)1.0e-7);
+
+                    running_mean_ptr[node] = running_mean_ptr[node] * m_momentum + mean * ((T)1.0 - m_momentum);
+                    running_var_ptr[node]  = running_var_ptr[node]  * m_momentum + var *  ((T)1.0 - m_momentum);
+                    
+                    mean_ptr[node] = mean;
+                    rstd_ptr[node] = rstd;
+
+                    // 正規化
+                    T   gamma = gamma_ptr[node];
+                    T   beta  = beta_ptr[node];
+                    for ( index_t frame = 0; frame < frame_size; ++frame) {
+                        T x = x_ptr.Get(frame, node);
+                        x = (x - mean) * rstd;
+                        x = x * gamma + beta;
+                        y_ptr.Set(frame, node, x);
+                    }
+                }
+            }
+            else {
+                #pragma omp parallel for
+                for (index_t node = 0; node < m_node_size; ++node) {
+                    T   gamma = gamma_ptr[node];
+                    T   beta  = beta_ptr[node];
+                    T   mean  = running_mean_ptr[node];
+                    T   var   = running_var_ptr[node];
+
+                    T   rstd  = (T)1.0 / (std::sqrt(var) + (T)1.0e-7);
+
+                    for ( index_t frame = 0; frame < frame_size; ++frame) {
+                        T x = x_ptr.Get(frame, node);
+                        y_ptr.Set(frame, node, ((x - mean) * rstd) * gamma + beta);
+                    }
+                }
+            }
+
+            return m_y_buf;
+        }
+ 
     }
 
 
