@@ -60,7 +60,7 @@ protected:
     Tensor_<T>                  m_running_mean;
     Tensor_<T>                  m_running_var;
 
-    T                           m_momentum = (T)0.9;
+    T                           m_momentum = (T)0.99;
     T                           m_init_gamma;
     T                           m_init_beta;
 
@@ -105,7 +105,7 @@ public:
 
     struct create_t
     {
-        T       momentum  = (T)0.9;
+        T       momentum  = (T)0.99;
         T       gamma     = (T)1.0;
         T       beta      = (T)0.0;
         bool    fix_gamma = false;
@@ -123,7 +123,7 @@ public:
         return self;
     }
 
-    static std::shared_ptr<BatchNormalization> Create(T momentum = (T)0.9, T gamma=(T)1.0, T beta=(T)0.0)
+    static std::shared_ptr<BatchNormalization> Create(T momentum = (T)0.99, T gamma=(T)1.0, T beta=(T)0.0)
     {
         auto self = std::shared_ptr<BatchNormalization>(new BatchNormalization);
         self->m_momentum   = momentum;
