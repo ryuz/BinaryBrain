@@ -45,7 +45,7 @@ protected:
     FrameBuffer                 m_x_buf;
     FrameBuffer                 m_dx_buf;
 
-    T                           m_gain = (T)1.0;
+    T                           m_gain = (T)0.001;
 
 protected:
     BackpropagatedBatchNormalization() {
@@ -81,7 +81,7 @@ public:
         return self;
     }
 
-    static std::shared_ptr<BackpropagatedBatchNormalization> Create(T gain = (T)0.1)
+    static std::shared_ptr<BackpropagatedBatchNormalization> Create(T gain = (T)0.001)
     {
         auto self = std::shared_ptr<BackpropagatedBatchNormalization>(new BackpropagatedBatchNormalization);
         self->m_gain = gain;
