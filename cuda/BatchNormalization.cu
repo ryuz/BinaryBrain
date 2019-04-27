@@ -65,25 +65,25 @@ __global__ void kernal_fp32_BatchNormalization_ForwardTraining(
     __shared__   float  buf[BBCU_BATCHNORM_FW_BLOCK_SIZE];
 
     // 初期化
-    int const node = blockIdx.x;
-    int const frame_base = threadIdx.x;
-    int const frame_step = blockDim.x;
+    int const node    = blockIdx.x;
+    int const id      = threadIdx.x;
+    int const id_step = blockDim.x;
     
     // カハンの加算アルゴリズム(Kahan summation algorithm)
     float s1 = 0, c1 = 0, y1, t1;
     float s2 = 0, c2 = 0, y2, t2;
     const float* x_ptr = &x_buf[frame_stride * node];
-    for ( int frame = frame_base; frame < frame_size; frame += frame_step) {
+    for ( int frame = id; frame < frame_size; frame += id_step) {
         float x = x_ptr[frame];
 
         y1 = x - c1;
         t1 = s1 + y1;
-        c1 += (t1 - s1) - y1;
+        c1 = (t1 - s1) - y1;
         s1 = t1;
 
         y2 = (x * x) - c2;
         t2 = s2 + y2;
-        c2 += (t2 - s2) - y2;
+        c2 = (t2 - s2) - y2;
         s2 = t2;
     }
 
@@ -91,10 +91,10 @@ __global__ void kernal_fp32_BatchNormalization_ForwardTraining(
     s1 = device_fp32_LocalSum(s1, buf);
     s2 = device_fp32_LocalSum(s2, buf);
     float mean = s1 * reciprocal_frame_size;
-    float var = max(10e-7f, (s2 * reciprocal_frame_size) - (mean * mean));
+    float var = max(1.0e-7f, (s2 * reciprocal_frame_size) - (mean * mean));
     float rstd = rsqrt(var);
 
-    if (threadIdx.x == BBCU_BATCHNORM_FW_BLOCK_SIZE-1) {
+    if (id == 0) {
         running_mean_buf[node] = running_mean_buf[node] * momentum + mean * (1.0f - momentum);
         running_var_buf[node] = running_var_buf[node] * momentum + var * (1.0f - momentum);
         mean_buf[node] = mean;
@@ -105,7 +105,7 @@ __global__ void kernal_fp32_BatchNormalization_ForwardTraining(
     float gamma = gamma_buf[node];
     float beta  = beta_buf[node];
     float* y_ptr = &y_buf[frame_stride * node];
-    for ( int frame = frame_base; frame < frame_size; frame += frame_step) {
+    for ( int frame = id; frame < frame_size; frame += id_step) {
         float x = x_ptr[frame];
         x = (x - mean) * rstd;
         x = x * gamma + beta;
@@ -172,9 +172,9 @@ __global__ void kernal_fp32_BatchNormalization_ForwardInference(
             int             frame_stride
         )
 {
-    int node       = blockDim.y * blockIdx.y + threadIdx.y;
-    int frame_base = threadIdx.x;
-    int frame_step = blockDim.x;
+    int node    = blockDim.y * blockIdx.y + threadIdx.y;
+    int id      = threadIdx.x;
+    int id_step = blockDim.x;
 
     if ( node >= node_size) {
         return;
@@ -185,11 +185,11 @@ __global__ void kernal_fp32_BatchNormalization_ForwardInference(
     float mean  = running_mean_buf[node];
     float var   = running_var_buf[node];
 
-    var = 1.0 / (sqrt(var) + 10e-7);
+    var = 1.0 / (sqrt(var) + 1.0e-7);
 
     float const *x_ptr = &x_buf[frame_stride * node];
     float       *y_ptr = &y_buf[frame_stride * node];
-    for ( int frame = frame_base; frame < frame_size; frame += frame_step )  {
+    for ( int frame = id; frame < frame_size; frame += id_step )  {
         float x = x_ptr[frame];
         y_ptr[frame] = ((x - mean) * var) * gamma + beta;
     }
@@ -264,8 +264,8 @@ __global__ void kernal_fp32_BatchNormalization_Backward
     __shared__   float  buf[BBCU_BATCHNORM_BW_BLOCK_SIZE];
 
     // 初期化
-    int const node = blockIdx.x;
-    int const id = threadIdx.x;
+    int const node    = blockIdx.x;
+    int const id      = threadIdx.x;
     int const id_step = blockDim.x;
 
     float mean = mean_buf[node];
