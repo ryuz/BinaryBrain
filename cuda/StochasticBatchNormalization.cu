@@ -69,10 +69,12 @@ __global__ void kernal_fp32_StochasticBatchNormalization_ForwardTraining(
     int const id      = threadIdx.x;
     int const id_step = blockDim.x;
     
+    const float* x_ptr = &x_buf[frame_stride * node];
+
+#if 0
     // カハンの加算アルゴリズム(Kahan summation algorithm)
     float s1 = 0, c1 = 0, y1, t1;
     float s2 = 0, c2 = 0, y2, t2;
-    const float* x_ptr = &x_buf[frame_stride * node];
     for ( int frame = id; frame < frame_size; frame += id_step) {
         float x = x_ptr[frame];
 
@@ -86,14 +88,34 @@ __global__ void kernal_fp32_StochasticBatchNormalization_ForwardTraining(
         c2 = (t2 - s2) - y2;
         s2 = t2;
     }
-
-    // 集計
     s1 = device_fp32_LocalSum(s1, buf);
     s2 = device_fp32_LocalSum(s2, buf);
     float mean = s1 * reciprocal_frame_size;
     float var = max(1.0e-7f, (s2 * reciprocal_frame_size) - (mean * mean));
+#else
+    // 平均
+    float mean = 0;
+    for ( int frame = id; frame < frame_size; frame += id_step) {
+        float x = x_ptr[frame];
+        mean += x;
+    }
+    mean = device_fp32_LocalSum(mean, buf);
+    mean *= reciprocal_frame_size;
+
+    // 分散
+    float var = 0;
+    for ( int frame = id; frame < frame_size; frame += id_step) {
+        float x = x_ptr[frame];
+        float xc = x - mean; 
+        var += xc * xc;
+    }
+    var = device_fp32_LocalSum(var, buf);
+    var *= reciprocal_frame_size;
+#endif
+
     float rstd = rsqrt(var);
 
+    // 書き込み
     if (id == 0) {
         running_mean_buf[node] = running_mean_buf[node] * momentum + mean * (1.0f - momentum);
         running_var_buf[node] = running_var_buf[node] * momentum + var * (1.0f - momentum);
