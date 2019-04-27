@@ -440,9 +440,6 @@ public:
                         _mm256_store_ps(&y_addr[frame], y);
                     }
                 }
-
-                std::cout << "running_mean : " << running_mean_ptr[0] << "  mean : " << mean_ptr[0]
-                    << "running_var : " << 1.0f / (sqrt(running_var_ptr[0]) + 1.0e-7)  << "  rstd : " << rstd_ptr[0] << std::endl;
             }
             else {
                 #pragma omp parallel for
