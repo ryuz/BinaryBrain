@@ -102,6 +102,8 @@ __global__ void kernal_fp32_StochasticBatchNormalization_ForwardTraining(
     mean = device_fp32_LocalSum(mean, buf);
     mean *= reciprocal_frame_size;
 
+//  mean = 0.5; // 平均を0.5に固定してみるテスト → だめ
+
     // 分散
     float var = 0;
     for ( int frame = id; frame < frame_size; frame += id_step) {
@@ -112,7 +114,7 @@ __global__ void kernal_fp32_StochasticBatchNormalization_ForwardTraining(
     var = device_fp32_LocalSum(var, buf);
     var *= reciprocal_frame_size;
 #endif
-    var = 1.0*1.0;  // 標準偏差を1.0に固定してみるテスト
+//  var = 1.0*1.0;  // 標準偏差を1.0に固定してみるテスト → だめ
 
     float rstd = rsqrt(var);
 
