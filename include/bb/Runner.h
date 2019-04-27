@@ -485,7 +485,7 @@ protected:
                     std::cout << "  " << metricsFunc->GetMetricsString() << " : " << metricsFunc->GetMetrics();
                 }
 
-                std::cout << std::flush;
+                std::cout << "        " << std::flush;
             }
 
             // インデックスを進める

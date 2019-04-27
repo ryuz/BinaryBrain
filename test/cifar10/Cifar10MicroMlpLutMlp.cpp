@@ -45,9 +45,9 @@ void Cifar10MicroMlpLutMlp(int epoch_size, int mini_batch_size, int max_run_size
 #endif
 
 
-    auto layer_mm0 = bb::MicroMlp<>::Create({1024});
-    auto layer_mm1 = bb::MicroMlp<>::Create({420});
-    auto layer_mm2 = bb::MicroMlp<>::Create({70});
+    auto layer_mm0 = bb::MicroMlp<>::Create({1024}, "random", 0.99);
+    auto layer_mm1 = bb::MicroMlp<>::Create({420},  "random", 0.99);
+    auto layer_mm2 = bb::MicroMlp<>::Create({70},   "random", 0.99);
 
     {
         auto net = bb::Sequential::Create();

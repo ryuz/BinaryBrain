@@ -424,7 +424,7 @@ public:
                     // 実行時の mean と var 保存
                     running_mean_ptr[node] = running_mean_ptr[node] * m_momentum + bb_mm256_cvtss_f32(mean) * (1 - m_momentum);
                     running_var_ptr[node]  = running_var_ptr[node]  * m_momentum + bb_mm256_cvtss_f32(var) * (1 - m_momentum);
-
+                    
                     // 結果の保存
                     mean_ptr[node] = bb_mm256_cvtss_f32(mean);
                     rstd_ptr[node] = bb_mm256_cvtss_f32(rstd);
@@ -440,6 +440,9 @@ public:
                         _mm256_store_ps(&y_addr[frame], y);
                     }
                 }
+
+                std::cout << "running_mean : " << running_mean_ptr[0] << "  mean : " << mean_ptr[0]
+                    << "running_var : " << 1.0f / (sqrt(running_var_ptr[0]) + 1.0e-7)  << "  rstd : " << rstd_ptr[0] << std::endl;
             }
             else {
                 #pragma omp parallel for
