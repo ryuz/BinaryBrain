@@ -112,7 +112,7 @@ __global__ void kernal_fp32_StochasticBatchNormalization_ForwardTraining(
     var = device_fp32_LocalSum(var, buf);
     var *= reciprocal_frame_size;
 #endif
-    var = 0.2*0.2;  // 標準偏差を0.2に固定してみるテスト
+    var = 1.0*1.0;  // 標準偏差を1.0に固定してみるテスト
 
     float rstd = rsqrt(var);
 
