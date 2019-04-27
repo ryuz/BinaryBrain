@@ -39,7 +39,7 @@ class BatchNormalization : public Activation<T, T>
 
 protected:
     bool                        m_host_only = false;
-    bool                        m_host_simd = false;
+    bool                        m_host_simd = true;
     bool                        m_fix_gamma = false;
     bool                        m_fix_beta  = false;
 
