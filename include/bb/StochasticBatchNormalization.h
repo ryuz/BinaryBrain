@@ -38,7 +38,7 @@ class StochasticBatchNormalization : public Activation<T, T>
     using _super = Activation<T, T>;
 
 protected:
-    bool                        m_host_only = true;
+    bool                        m_host_only = false;
     bool                        m_host_simd = false;
 
     index_t                     m_node_size;
