@@ -55,7 +55,7 @@ protected:
     {
         this->SetName(create.name);
 
-        MicroMlpAffine<N, M, T>::create_t affine_create;
+        typename MicroMlpAffine<N, M, T>::create_t affine_create;
         affine_create.output_shape   = create.output_shape;
         affine_create.connection     = create.connection;
         affine_create.initialize_std = create.initialize_std;
@@ -63,7 +63,7 @@ protected:
         affine_create.seed           = create.seed;
         m_affine = MicroMlpAffine<N, M, T>::Create(affine_create);
 
-        BatchNormalization<T>::create_t bn_create;
+        typename BatchNormalization<T>::create_t bn_create;
         bn_create.momentum  = create.momentum;
         bn_create.gamma     = create.gamma;
         bn_create.beta      = create.beta;

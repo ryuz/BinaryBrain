@@ -124,8 +124,8 @@ public:
             index_t frame_size = m_x_buf.GetFrameSize();
             index_t node_size = m_x_buf.GetNodeSize();
 
-            auto x_ptr = m_x_buf.LockConst<float>();
-            auto y_ptr = m_y_buf.Lock<float>(true);
+            auto x_ptr = m_x_buf.template LockConst<float>();
+            auto y_ptr = m_y_buf.template Lock<float>(true);
 
             index_t  m256_frame_size = (int)(((frame_size + 7) / 8) * 8);
             __m256 zero = _mm256_set1_ps(0);
@@ -204,10 +204,10 @@ public:
             index_t frame_size = m_dx_buf.GetFrameSize();
             index_t node_size = m_dx_buf.GetNodeSize();
 
-            auto x_ptr  = m_x_buf.LockConst<float>();
-            auto y_ptr  = m_y_buf.LockConst<float>();
-            auto dy_ptr = dy_buf.LockConst<float>();
-            auto dx_ptr = m_dx_buf.Lock<float>(true);
+            auto x_ptr  = m_x_buf.template LockConst<float>();
+            auto y_ptr  = m_y_buf.template LockConst<float>();
+            auto dy_ptr = dy_buf.template LockConst<float>();
+            auto dx_ptr = m_dx_buf.template Lock<float>(true);
 
             index_t  m256_frame_size = (int)(((frame_size + 7) / 8) * 8);
 
