@@ -10,13 +10,13 @@
 #include <omp.h>
 #include <string.h>
 
-void MnistDenseMlp(int epoch_size, size_t mini_batch_size);
-void MnistDenseCnn(int epoch_size, size_t mini_batch_size);
-void MnistStochasticLut6Mlp(int epoch_size, size_t mini_batch_size, int lut_frame_mux_size, bool binary_mode);
-void MnistStochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int lut_frame_mux_size, bool binary_mode);
-void MnistMicroMlpLutMlp(int epoch_size, size_t mini_batch_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode);
-void MnistMicroMlpLutCnn(int epoch_size, size_t mini_batch_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode);
-void MnistMicroMlpScratch(int epoch_size, size_t mini_batch_size, bool binary_mode);
+void MnistDenseMlp(int epoch_size, int mini_batch_size, int max_run_size, bool binary_mode, bool file_read);
+void MnistDenseCnn(int epoch_size, int mini_batch_size, int max_run_size, bool binary_mode, bool file_read);
+void MnistStochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_size, int lut_frame_mux_size, bool binary_mode, bool file_read);
+void MnistStochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_size, int lut_frame_mux_size, bool binary_mode, bool file_read);
+void MnistMicroMlpLutMlp(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read);
+void MnistMicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read);
+void MnistMicroMlpScratch(int epoch_size, int mini_batch_size, bool binary_mode);
 
 
 // メイン関数
@@ -25,8 +25,10 @@ int main(int argc, char *argv[])
     std::string netname = "All";
     int         epoch_size         = 8;
     int         mini_batch_size    = 32;
+    int         max_run_size       = 0;
     int         frame_mux_size     = 1;
     int         lut_frame_mux_size = 15;
+    bool        file_read   = false;
     bool        binary_mode = true;
 
     if ( argc < 2 ) {
@@ -55,7 +57,9 @@ int main(int argc, char *argv[])
         if (strcmp(argv[i], "-num_threads") == 0 && i + 1 < argc) {
             ++i;
             int num_threads = (int)strtoul(argv[i], NULL, 0);
+#ifdef _OPENMP
             omp_set_num_threads(num_threads);
+#endif
         }
         else if (strcmp(argv[i], "-epoch") == 0 && i + 1 < argc) {
             ++i;
@@ -64,6 +68,10 @@ int main(int argc, char *argv[])
         else if (strcmp(argv[i], "-mini_batch") == 0 && i + 1 < argc) {
             ++i;
             mini_batch_size = (int)strtoul(argv[i], NULL, 0);
+        }
+        else if (strcmp(argv[i], "-run_size") == 0 && i + 1 < argc) {
+            ++i;
+            max_run_size = (int)strtoul(argv[i], NULL, 0);
         }
         else if (strcmp(argv[i], "-frame_mux_size") == 0 && i + 1 < argc) {
             ++i;
@@ -77,37 +85,47 @@ int main(int argc, char *argv[])
             ++i;
             binary_mode = (strtoul(argv[i], NULL, 0) != 0);
         }
+        else if (strcmp(argv[i], "-read") == 0 && i + 1 < argc) {
+            ++i;
+            file_read = (strtoul(argv[i], NULL, 0) != 0);
+        }
         else {
             netname = argv[i];
         }
     }
 
+    // run_size はデフォルトで mini_batchサイズ
+    if (max_run_size <= 0) {
+        max_run_size = mini_batch_size;
+    }
+
     if ( netname == "All" || netname == "StochasticLutMlp" ) {
-        MnistStochasticLut6Mlp(epoch_size, mini_batch_size, lut_frame_mux_size, binary_mode);
+        MnistStochasticLut6Mlp(epoch_size, mini_batch_size, max_run_size, lut_frame_mux_size, binary_mode, file_read);
     }
 
     if ( netname == "All" || netname == "StochasticLutCnn" ) {
-        MnistStochasticLut6Cnn(epoch_size, mini_batch_size, lut_frame_mux_size, binary_mode);
+        MnistStochasticLut6Cnn(epoch_size, mini_batch_size, max_run_size, lut_frame_mux_size, binary_mode, file_read);
     }
 
     if ( netname == "All" || netname == "LutMlp" ) {
-        MnistMicroMlpLutMlp(epoch_size, mini_batch_size, frame_mux_size, lut_frame_mux_size, binary_mode);
+        MnistMicroMlpLutMlp(epoch_size, mini_batch_size, max_run_size, frame_mux_size, lut_frame_mux_size, binary_mode, file_read);
     }
 
     if ( netname == "All" || netname == "LutCnn" ) {
-        MnistMicroMlpLutCnn(epoch_size, mini_batch_size, frame_mux_size, lut_frame_mux_size, binary_mode);
+        MnistMicroMlpLutCnn(epoch_size, mini_batch_size, max_run_size, frame_mux_size, lut_frame_mux_size, binary_mode, file_read);
     }
 
     if ( netname == "All" || netname == "DenseMlp" ) {
-        MnistDenseMlp(epoch_size, mini_batch_size);
+        MnistDenseMlp(epoch_size, mini_batch_size, max_run_size, binary_mode, file_read);
     }
 
     if ( netname == "All" || netname == "DenseCnn" ) {
-        MnistDenseCnn(epoch_size, mini_batch_size);
+        MnistDenseCnn(epoch_size, mini_batch_size, max_run_size, binary_mode, file_read);
     }
 
+
+    // (おまけ)レイヤー内部を自分で書く人向けサンプル
     if ( strcmp(argv[1], "Scratch") == 0 ) {
-        // レイヤー内部を自分で書く人向けサンプル
         MnistMicroMlpScratch(epoch_size, mini_batch_size, binary_mode);
     }
 
