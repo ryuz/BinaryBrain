@@ -17,7 +17,7 @@ void Cifar10StochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_s
 void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_size, int lut_frame_mux_size, bool binary_mode, bool file_read);
 void Cifar10MicroMlpLutMlp(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read);
 void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read);
-
+void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bool binary_mode, bool file_read);
 
 // メイン関数
 int main(int argc, char *argv[])
@@ -123,6 +123,10 @@ int main(int argc, char *argv[])
 
     if ( netname == "All" || netname == "DenseCnn" ) {
         Cifar10DenseCnn(epoch_size, mini_batch_size, max_run_size, false, file_read);
+    }
+
+    if ( netname == "All" || netname == "SparseCnn" ) {
+        Cifar10Sparse6Cnn(epoch_size, mini_batch_size, max_run_size, false, file_read);
     }
 
     return 0;
