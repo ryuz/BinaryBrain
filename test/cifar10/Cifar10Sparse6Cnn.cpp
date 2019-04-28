@@ -159,7 +159,10 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
     }
 }
 
-#else
+#endif
+
+
+#if 0
 
 // CNN with LUT networks
 void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bool binary_mode, bool file_read)
@@ -251,6 +254,87 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
 }
 
 #endif
+
+
+// CNN with LUT networks
+void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bool binary_mode, bool file_read)
+{
+    std::string net_name = "Cifar10Sparse6Cnn";
+
+  // load cifar-10 data
+#ifdef _DEBUG
+    auto td = bb::LoadCifar10<>::Load(1);
+    std::cout << "!!! debug mode !!!" << std::endl;
+#else
+    auto td = bb::LoadCifar10<>::Load();
+#endif
+
+    // create network
+    auto layer_cnv0_sl0 = bb::StochasticLutBn<6>::Create(192);
+    auto layer_cnv0_sl1 = bb::StochasticLutBn<6>::Create(32);
+    auto layer_cnv1_sl0 = bb::StochasticLutBn<6>::Create(192);
+    auto layer_cnv1_sl1 = bb::StochasticLutBn<6>::Create(32);
+    auto layer_cnv2_sl0 = bb::StochasticLutBn<6>::Create(384);
+    auto layer_cnv2_sl1 = bb::StochasticLutBn<6>::Create(64);
+    auto layer_cnv3_sl0 = bb::StochasticLutBn<6>::Create(384);
+    auto layer_cnv3_sl1 = bb::StochasticLutBn<6>::Create(64);
+    auto layer_sl4      = bb::StochasticLutBn<6>::Create(512);
+    auto layer_sl5      = bb::StochasticLutBn<6>::Create(360);
+    auto layer_sl6      = bb::StochasticLutBn<6>::Create(60);
+    auto layer_sl7      = bb::StochasticLutBn<6>::Create(10);
+
+    {
+        auto cnv0_sub = bb::Sequential::Create();
+        cnv0_sub->Add(layer_cnv0_sl0);
+        cnv0_sub->Add(layer_cnv0_sl1);
+
+        auto cnv1_sub = bb::Sequential::Create();
+        cnv1_sub->Add(layer_cnv1_sl0);
+        cnv1_sub->Add(layer_cnv1_sl1);
+
+        auto cnv2_sub = bb::Sequential::Create();
+        cnv2_sub->Add(layer_cnv2_sl0);
+        cnv2_sub->Add(layer_cnv2_sl1);
+
+        auto cnv3_sub = bb::Sequential::Create();
+        cnv3_sub->Add(layer_cnv3_sl0);
+        cnv3_sub->Add(layer_cnv3_sl1);
+        
+        auto net = bb::Sequential::Create();
+        net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
+        net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
+        net->Add(bb::MaxPooling<>::Create(2, 2));
+        net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
+        net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
+        net->Add(bb::MaxPooling<>::Create(2, 2));
+        net->Add(layer_sl4);
+        net->Add(layer_sl5);
+        net->Add(layer_sl6);
+        net->Add(layer_sl7);
+        net->SetInputShape(td.x_shape);
+
+        net->SendCommand("lut_binarize false");
+
+        // print model information
+        net->PrintInfo();
+
+        // run fitting
+        bb::Runner<float>::create_t runner_create;
+        runner_create.name               = net_name;
+        runner_create.net                = net;
+        runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
+        runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
+        runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
+//      runner_create.optimizer          = bb::OptimizerAdaGrad<float>::Create();
+        runner_create.max_run_size       = max_run_size;    // 実際の1回の実行サイズ
+        runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
+        runner_create.file_write         = true;            // 計算結果をファイルに保存するか
+        runner_create.print_progress     = true;            // 途中結果を表示
+        runner_create.initial_evaluation = false; // file_read;       // ファイルを読んだ場合は最初に評価しておく
+        auto runner = bb::Runner<float>::Create(runner_create);
+        runner->Fitting(td, epoch_size, mini_batch_size);
+    }
+}
 
 
 // end of file
