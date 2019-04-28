@@ -313,7 +313,6 @@ public:
             bbcu_fp32_StochasticMaxPooling2x2_Backward
                 (
                     (float const *)ptr_x.GetAddr(),
-                    (float const *)ptr_y.GetAddr(),
                     (float const *)ptr_dy.GetAddr(),
                     (float*       )ptr_dx.GetAddr(),
                     (int          )m_input_w_size,
