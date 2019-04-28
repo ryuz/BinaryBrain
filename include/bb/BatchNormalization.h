@@ -316,25 +316,6 @@ public:
 
         // 出力設定
         m_y_buf.Resize(x_buf.GetType(), x_buf.GetFrameSize(), x_buf.GetShape());
-
-        // ちょっとデバッグ
-#if 0
-        if ( m_x_buf.GetNodeSize() == 420)
-        {
-            std::ofstream ofs("bn_log.txt", std::ios::app);
-            auto mean_ptr = m_mean.LockConst();
-            auto rstd_ptr = m_rstd.LockConst();
-            auto running_mean_ptr = m_running_mean.LockConst();
-            auto running_var_ptr = m_running_var.LockConst();
-            int n = 10;
-            ofs << mean_ptr[n] << "\t"
-                << rstd_ptr[n] << "\t"
-                << running_mean_ptr[n] << "\t"
-                << running_var_ptr[n]  << "\t"
-                << 1.0f / sqrt(running_var_ptr[n]) << "\t"
-                << momentum <<  "\n";
-        }
-#endif
         
 
 #ifdef BB_WITH_CUDA

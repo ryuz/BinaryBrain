@@ -136,13 +136,13 @@ public:
 
         // 戻り値のサイズ設定
         m_dx_buf.ResizeLike(dy_buf);
-
-#if 0 // #ifdef BB_WITH_CUDA
+        
+#ifdef BB_WITH_CUDA
         if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && m_x_buf.IsDeviceAvailable() && m_dx_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // GPU版
-            auto ptr_x  = m_x.LockDeviceMemoryConst();
-            auto ptr_dy = dy.LockDeviceMemoryConst();
-            auto ptr_dx = m_dx.LockDeviceMemory(true);
+            auto ptr_x  = m_x_buf.LockDeviceMemoryConst();
+            auto ptr_dy = dy_buf.LockDeviceMemoryConst();
+            auto ptr_dx = m_dx_buf.LockDeviceMemory(true);
             bbcu_fp32_HardTanh_Backward(
                         (float const *)ptr_x.GetAddr(),
                         (float const *)ptr_dy.GetAddr(),
@@ -151,7 +151,7 @@ public:
                         (int          )m_dx_buf.GetFrameSize(),
                         (int          )(m_dx_buf.GetFrameStride() / sizeof(float))
                     );
-            return m_dx;
+            return m_dx_buf;
         }
 #endif
 
@@ -161,17 +161,17 @@ public:
             index_t node_size = m_dx_buf.GetNodeSize();
 
             auto x_ptr  = m_x_buf.LockConst<T>();
-            auto y_ptr  = m_y_buf.LockConst<T>();
             auto dy_ptr = dy_buf.LockConst<T>();
             auto dx_ptr = m_dx_buf.Lock<T>();
-        
+            
             // hard-tanh
     #pragma omp parallel for
             for (index_t node = 0; node < node_size; ++node) {
                 for (index_t frame = 0; frame < frame_size; ++frame) {
-                    auto grad = dy_ptr.Get(frame, node);
-                    auto sig  = x_ptr.Get(frame, node);
-                    dx_ptr.Set(frame, node, (sig >= (T)-1.0 && sig <= (T)1.0) ? grad : 0);
+                    auto dy = dy_ptr.Get(frame, node);
+                    auto x  = x_ptr.Get(frame, node);
+                    if ( x <= (T)-1.0 || x >= (T)1.0) { dy = (T)0.0; }
+                    dx_ptr.Set(frame, node, dy);
                 }
             }
 
