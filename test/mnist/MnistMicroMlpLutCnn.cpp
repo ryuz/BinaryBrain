@@ -41,10 +41,10 @@ void MnistMicroMlpLutCnn(int epoch_size, size_t mini_batch_size, int frame_mux_s
 
   // load MNIST data
 #ifdef _DEBUG
-    auto td = bb::LoadMnist<>::Load(10, 512, 128);
     std::cout << "!!! debug mode !!!" << std::endl;
+    auto td = bb::LoadMnist<>::Load(10, 512, 128);
 #else
-    auto td = bb::LoadMnist<>::Load(10);
+    auto td = bb::LoadMnist<>::Load(10, 5000, 2000);
 #endif
 
     // create network
@@ -94,6 +94,11 @@ void MnistMicroMlpLutCnn(int epoch_size, size_t mini_batch_size, int frame_mux_s
             std::cout << "binary mode" << std::endl;
             net->SendCommand("binary true");
         }
+
+//        net->SendCommand("host_only true");
+//        net->SendCommand("host_only false", "BatchNormalization");
+//        net->SendCommand("host_only false", "MicroMlpAffine");
+//        net->SendCommand("host_only true", "ReLU");
 
         // print model information
         net->PrintInfo(2);

@@ -34,37 +34,64 @@ protected:
     std::shared_ptr< BatchNormalization<T>   >  m_batch_norm;
     std::shared_ptr< Activation              >  m_activation;
 
-protected:
-    MicroMlp() {}
-
 public:
-    ~MicroMlp() {}
-
+    // 生成情報
     struct create_t
     {
-        typename MicroMlpAffine<N, M, T>::create_t   affine;
-        typename BatchNormalization<T>::create_t     bn;
+        std::string     name;
+        indices_t       output_shape;
+        std::string     connection;
+        T               initialize_std = (T)0.01;
+        std::string     initializer    = "";
+        T               momentum       = (T)0.0;
+        T               gamma          = (T)1.0;
+        T               beta           = (T)0.0;
+        std::uint64_t   seed           = 1;
     };
 
+protected:
+    // コンストラクタ
+    MicroMlp(create_t const &create)
+    {
+        this->SetName(create.name);
+
+        MicroMlpAffine<N, M, T>::create_t affine_create;
+        affine_create.output_shape   = create.output_shape;
+        affine_create.connection     = create.connection;
+        affine_create.initialize_std = create.initialize_std;
+        affine_create.initializer    = create.initializer;
+        affine_create.seed           = create.seed;
+        m_affine = MicroMlpAffine<N, M, T>::Create(affine_create);
+
+        BatchNormalization<T>::create_t bn_create;
+        bn_create.momentum  = create.momentum;
+        bn_create.gamma     = create.gamma;
+        bn_create.beta      = create.beta;
+        m_batch_norm = BatchNormalization<T>::Create(bn_create);
+        
+        m_activation = Activation::Create();
+    }
+
+public:
+    // デストラクタ
+    ~MicroMlp() {}
+    
+    // 生成
     static std::shared_ptr< MicroMlp > Create(create_t const &create)
     {
-        auto self = std::shared_ptr<MicroMlp>(new MicroMlp);
-        self->m_affine     = MicroMlpAffine<N, M, T>::Create(create.affine);
-        self->m_batch_norm = BatchNormalization<T>::Create(create.bn);
-        self->m_activation = Activation::Create();
-        return self;
+        return std::shared_ptr<MicroMlp>(new MicroMlp(create));
     }
 
-    static std::shared_ptr< MicroMlp > Create(indices_t const &output_shape, std::string connection = "", T momentum = (T)0.9)
+    static std::shared_ptr< MicroMlp > Create(indices_t const &output_shape, std::string connection = "", T momentum = (T)0.001)
     {
-        auto self = std::shared_ptr<MicroMlp>(new MicroMlp);
-        self->m_affine     = MicroMlpAffine<N, M, T>::Create(output_shape, connection);
-        self->m_batch_norm = BatchNormalization<T>::Create(momentum);
-        self->m_activation = Activation::Create();
-        return self;
+        create_t create;
+        create.output_shape = output_shape;
+        create.connection   = connection;
+        create.momentum     = momentum;
+        return Create(create);
     }
 
-    static std::shared_ptr< MicroMlp > Create(index_t output_node_size, std::string connection = "", T momentum = (T)0.9)
+    static std::shared_ptr< MicroMlp > Create(index_t output_node_size, std::string connection = "", T momentum = (T)0.001)
     {
         return Create(indices_t({output_node_size}), connection, momentum);
     }

@@ -59,7 +59,7 @@ public:
         m_dy.Resize(y.GetType(), y.GetFrameSize(), y.GetShape());
         m_loss_buf.Resize(y.GetFrameSize());
 
-#if BB_WITH_CUDA
+#ifdef BB_WITH_CUDA
         if ( DataType<T>::type == BB_TYPE_FP32
                 && y.IsDeviceAvailable() && m_dy.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
 

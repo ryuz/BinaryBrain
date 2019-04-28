@@ -25,9 +25,10 @@ class Sigmoid : public Binarize<T>
 protected:
     bool m_binary_mode = false;
 
-    using Binarize<T>::m_y;
-    using Binarize<T>::m_x;
-    using Binarize<T>::m_dx;
+    using Binarize<T>::m_host_only;
+    using Binarize<T>::m_y_buf;
+    using Binarize<T>::m_x_buf;
+    using Binarize<T>::m_dx_buf;
 
 protected:
     Sigmoid() {}
@@ -48,7 +49,7 @@ protected:
         // HostOnlyモード設定
         if (args.size() == 2 && args[0] == "host_only")
         {
-            this->m_host_only = EvalBool(args[1]);
+            m_host_only = EvalBool(args[1]);
         }
     }
 
@@ -100,44 +101,44 @@ public:
      * @param  train 学習時にtrueを指定
      * @return forward演算結果
      */
-    inline FrameBuffer Forward(FrameBuffer x, bool train = true)
+    inline FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
         // binaryモード
         if (m_binary_mode) {
-            return Binarize<T>::Forward(x, train);
+            return Binarize<T>::Forward(x_buf, train);
         }
 
-        BB_ASSERT(x.GetType() == DataType<T>::type);
+        BB_ASSERT(x_buf.GetType() == DataType<T>::type);
 
         // ローカルに保存
-        m_x = x;
+        m_x_buf = x_buf;
 
         // 戻り値のサイズ設定
-        m_y.ResizeLike(x);
+        m_y_buf.ResizeLike(x_buf);
 
-#if BB_WITH_CUDA
+#ifdef BB_WITH_CUDA
         if ( DataType<T>::type == BB_TYPE_FP32 && !this->m_host_only
-            && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // CUDA版
-            auto ptr_x = x.LockDeviceMemoryConst();
-            auto ptr_y = m_y.LockDeviceMemory(true);
+            auto ptr_x = x_buf.LockDeviceMemoryConst();
+            auto ptr_y = m_y_buf.LockDeviceMemory(true);
             bbcu_fp32_Sigmoid_Forward(
                         (float const *)ptr_x.GetAddr(),
                         (float       *)ptr_y.GetAddr(),
-                        (int          )x.GetNodeSize(),
-                        (int          )x.GetFrameSize(),
-                        (int          )(x.GetFrameStride() / sizeof(float))
+                        (int          )x_buf.GetNodeSize(),
+                        (int          )x_buf.GetFrameSize(),
+                        (int          )(x_buf.GetFrameStride() / sizeof(float))
                     );
-            return m_y;
+            return m_y_buf;
         }
 #endif
 
         {
-            index_t frame_size = x.GetFrameSize();
-            index_t node_size = x.GetNodeSize();
+            index_t frame_size = x_buf.GetFrameSize();
+            index_t node_size = x_buf.GetNodeSize();
 
-            auto x_ptr = x.template LockConst<T>();
-            auto y_ptr = m_y.template Lock<T>();
+            auto x_ptr = x_buf.template LockConst<T>();
+            auto y_ptr = m_y_buf.template Lock<T>();
 
             // Sigmoid
     #pragma omp parallel for
@@ -147,7 +148,7 @@ public:
                     y_ptr.Set(frame, node, (T)1 / ((T)1 + std::exp(-sig)));
                 }
             }
-            return m_y;
+            return m_y_buf;
         }
     }
 
@@ -157,44 +158,44 @@ public:
      *         
      * @return backward演算結果
      */
-    inline FrameBuffer Backward(FrameBuffer dy)
+    inline FrameBuffer Backward(FrameBuffer dy_buf)
     {
         // binaryモード
         if (m_binary_mode) {
-            return Binarize<T>::Backward(dy);
+            return Binarize<T>::Backward(dy_buf);
         }
 
-        BB_ASSERT(dy.GetType() == DataType<T>::type);
+        BB_ASSERT(dy_buf.GetType() == DataType<T>::type);
 
         // 戻り値のサイズ設定
-        m_dx.ResizeLike(dy);
+        m_dx_buf.ResizeLike(dy_buf);
 
-        #if BB_WITH_CUDA
+#ifdef BB_WITH_CUDA
         if (  DataType<T>::type == BB_TYPE_FP32 && !this->m_host_only
-            && m_y.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            && m_y_buf.IsDeviceAvailable() && m_dx_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // GPU版
-            auto ptr_y  = m_y.LockDeviceMemoryConst();
-            auto ptr_dy = dy.LockDeviceMemoryConst();
-            auto ptr_dx = m_dx.LockDeviceMemory(true);
+            auto ptr_y  = m_y_buf.LockDeviceMemoryConst();
+            auto ptr_dy = dy_buf.LockDeviceMemoryConst();
+            auto ptr_dx = m_dx_buf.LockDeviceMemory(true);
             bbcu_fp32_Sigmoid_Backward(
                         (float const *)ptr_y.GetAddr(),
                         (float const *)ptr_dy.GetAddr(),
                         (float       *)ptr_dx.GetAddr(),
-                        (int          )dy.GetNodeSize(),
-                        (int          )dy.GetFrameSize(),
-                        (int          )(dy.GetFrameStride() / sizeof(float))
+                        (int          )dy_buf.GetNodeSize(),
+                        (int          )dy_buf.GetFrameSize(),
+                        (int          )(dy_buf.GetFrameStride() / sizeof(float))
                     );
-            return m_dx;
+            return m_dx_buf;
         }
 #endif
         {
             // 汎用版
-            index_t frame_size = m_dx.GetFrameSize();
-            index_t node_size = m_dx.GetNodeSize();
+            index_t frame_size = m_dx_buf.GetFrameSize();
+            index_t node_size = m_dx_buf.GetNodeSize();
 
-            auto y_ptr  = m_y.template LockConst<T>();
-            auto dy_ptr = dy.template LockConst<T>();
-            auto dx_ptr = m_dx.template Lock<T>();
+            auto y_ptr  = m_y_buf.template LockConst<T>();
+            auto dy_ptr = dy_buf.template LockConst<T>();
+            auto dx_ptr = m_dx_buf.template Lock<T>();
 
             // Sigmoid
     #pragma omp parallel for
@@ -205,7 +206,7 @@ public:
                     dx_ptr.Set(frame, node, grad * (-sig + (T)1) * sig);
                 }
             }
-            return m_dx;
+            return m_dx_buf;
         }
     }
 };

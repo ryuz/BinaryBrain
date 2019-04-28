@@ -22,7 +22,7 @@
 #include "bb/FrameBuffer.h"
 #include "bb/SimdSupport.h"
 
-#if BB_WITH_CUDA
+#ifdef BB_WITH_CUDA
 #include "bbcu/bbcu.h"
 #include "bbcu/bbcu_util.h"
 #endif

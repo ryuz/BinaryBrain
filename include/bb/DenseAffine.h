@@ -335,8 +335,8 @@ public:
             auto dx_ptr = m_dx.LockDeviceMemory(true);
             auto W_ptr  = m_W->LockDeviceMemoryConst();
             auto b_ptr  = m_b->LockDeviceMemoryConst();
-            auto dW_ptr = m_dW->LockDeviceMemory(true);
-            auto db_ptr = m_db->LockDeviceMemory(true);
+            auto dW_ptr = m_dW->LockDeviceMemory();
+            auto db_ptr = m_db->LockDeviceMemory();
             
             bbcu_fp32_MatrixColwiseSum
                 (
@@ -390,11 +390,11 @@ public:
         }
 #endif
 
-        m_dx.FillZero();
-        m_dW->FillZero();
-        m_db->FillZero();
-
         {
+            m_dx.FillZero();
+    //      m_dW->FillZero();
+    //      m_db->FillZero();
+
             auto x_ptr  = m_x.LockConst<T>();
             auto dy_ptr = dy.LockConst<T>();
             auto dx_ptr = m_dx.Lock<T>();

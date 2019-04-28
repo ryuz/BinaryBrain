@@ -33,9 +33,11 @@ TEST(cudaMatrixColwiseSumTest, test_cudaMatrixColwiseSum)
         x_buf.SetFP32(2, 1, 6);
     }
 
+    y_buf = 0;
+
     {
         auto x_ptr = x_buf.LockDeviceMemoryConst();
-        auto y_ptr = y_buf.LockDeviceMemory(true);
+        auto y_ptr = y_buf.LockDeviceMemory();
         bbcu_fp32_MatrixColwiseSum
             (
                 (float const *)x_ptr.GetAddr(),
