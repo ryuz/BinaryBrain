@@ -103,7 +103,7 @@ public:
         return self;
     }
 
-    static std::shared_ptr<StochasticBatchNormalization> Create(T momentum = (T)0.9, T gamma=(T)0.1, T beta=(T)0.5)
+    static std::shared_ptr<StochasticBatchNormalization> Create(T momentum = (T)0.9, T gamma=(T)0.2, T beta=(T)0.5)
     {
         create_t create;
         create.momentum = momentum;
@@ -649,17 +649,13 @@ public:
 
         {
             // 汎用版
-            auto node_size    = dy_buf.GetNodeSize();
-            auto frame_size   = dy_buf.GetFrameSize();
-            auto frame_stride = dy_buf.GetFrameStride() / sizeof(float);
+            auto node_size  = dy_buf.GetNodeSize();
+            auto frame_size = dy_buf.GetFrameSize();
             
-            const int   mm256_frame_size = ((int)frame_size + 7) / 8 * 8;
-
-            auto mean_ptr         = m_mean.LockConst();
-            auto rstd_ptr         = m_rstd.LockConst();
+            auto mean_ptr = m_mean.LockConst();
+            auto rstd_ptr = m_rstd.LockConst();
             
             auto x_ptr  = m_x_buf.LockConst<T>();
-//          auto y_ptr  = m_y_buf.LockConst<T>();
             auto dx_ptr = m_dx_buf.Lock<T>();
             auto dy_ptr = dy_buf.LockConst<T>();
 

@@ -352,6 +352,7 @@
     <ClCompile Include="Cifar10DenseMlp.cpp" />
     <ClCompile Include="Cifar10MicroMlpLutCnn.cpp" />
     <ClCompile Include="Cifar10MicroMlpLutMlp.cpp" />
+    <ClCompile Include="Cifar10Sparse6Cnn.cpp" />
     <ClCompile Include="Cifar10StochasticLut6Cnn.cpp" />
     <ClCompile Include="Cifar10StochasticLut6Mlp.cpp" />
     <ClCompile Include="main.cpp" />
