@@ -124,7 +124,7 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
             net->SendCommand("binary true");
         }
 
-//      net->SendCommand("lut_binarize false");
+        net->SendCommand("lut_binarize false");
 
 //      net->SendCommand("batch_normalization false");
 
