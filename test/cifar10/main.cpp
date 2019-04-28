@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
     }
 
     if ( netname == "All" || netname == "SparseCnn" ) {
-        Cifar10Sparse6Cnn(epoch_size, mini_batch_size, max_run_size, false, file_read);
+        Cifar10Sparse6Cnn(epoch_size, mini_batch_size, max_run_size, binary_mode, file_read);
     }
 
     return 0;
