@@ -377,7 +377,7 @@ public:
         // 汎用版実装
         {
             auto x_ptr  = m_x_buf.LockConst<FT>();
-            auto y_ptr  = m_y_buf.LockConst<FT>();
+//          auto y_ptr  = m_y_buf.LockConst<FT>();
             auto dy_ptr = dy_buf.LockConst<BT>();
             auto dx_ptr = m_dx_buf.Lock<BT>(true);
 

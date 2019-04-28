@@ -309,7 +309,6 @@ BBCU_DLL_EXPORT int bbcu_fp32_StochasticMaxPooling2x2_Forward
 BBCU_DLL_EXPORT int bbcu_fp32_StochasticMaxPooling2x2_Backward
         (
             float const     *dev_x_buf,
-            float const     *dev_y_buf,
             float const     *dev_dy_buf,
             float           *dev_dx_buf,
             int             input_w_size,
