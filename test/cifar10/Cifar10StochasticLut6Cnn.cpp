@@ -551,22 +551,22 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 #endif
 
     // create network
-    auto layer_cnv0_sl0 = bb::StochasticLut6<>::Create(512);
-    auto layer_cnv0_sl1 = bb::StochasticLut6<>::Create(384);
-    auto layer_cnv0_sl2 = bb::StochasticLut6<>::Create(64);
-    auto layer_cnv1_sl0 = bb::StochasticLut6<>::Create(512);
-    auto layer_cnv1_sl1 = bb::StochasticLut6<>::Create(384);
-    auto layer_cnv1_sl2 = bb::StochasticLut6<>::Create(64);
-    auto layer_cnv2_sl0 = bb::StochasticLut6<>::Create(1024);
-    auto layer_cnv2_sl1 = bb::StochasticLut6<>::Create(768);
-    auto layer_cnv2_sl2 = bb::StochasticLut6<>::Create(128);
-    auto layer_cnv3_sl0 = bb::StochasticLut6<>::Create(1024);
-    auto layer_cnv3_sl1 = bb::StochasticLut6<>::Create(768);
-    auto layer_cnv3_sl2 = bb::StochasticLut6<>::Create(64);
-    auto layer_sl4      = bb::StochasticLut6<>::Create(2048);
-    auto layer_sl5      = bb::StochasticLut6<>::Create(1024);
-    auto layer_sl6      = bb::StochasticLut6<>::Create(420);
-    auto layer_sl7      = bb::StochasticLut6<>::Create(70);
+    auto layer_cnv0_sl0 = bb::StochasticLutBn<6>::Create(512);
+    auto layer_cnv0_sl1 = bb::StochasticLutBn<6>::Create(384);
+    auto layer_cnv0_sl2 = bb::StochasticLutBn<6>::Create(64);
+    auto layer_cnv1_sl0 = bb::StochasticLutBn<6>::Create(512);
+    auto layer_cnv1_sl1 = bb::StochasticLutBn<6>::Create(384);
+    auto layer_cnv1_sl2 = bb::StochasticLutBn<6>::Create(64);
+    auto layer_cnv2_sl0 = bb::StochasticLutBn<6>::Create(1024);
+    auto layer_cnv2_sl1 = bb::StochasticLutBn<6>::Create(768);
+    auto layer_cnv2_sl2 = bb::StochasticLutBn<6>::Create(128);
+    auto layer_cnv3_sl0 = bb::StochasticLutBn<6>::Create(1024);
+    auto layer_cnv3_sl1 = bb::StochasticLutBn<6>::Create(768);
+    auto layer_cnv3_sl2 = bb::StochasticLutBn<6>::Create(64);
+    auto layer_sl4      = bb::StochasticLutBn<6>::Create(2048);
+    auto layer_sl5      = bb::StochasticLutBn<6>::Create(1024);
+    auto layer_sl6      = bb::StochasticLutBn<6>::Create(420);
+    auto layer_sl7      = bb::StochasticLutBn<6>::Create(70);
 
 //    auto layer_sbn0     = bb::StochasticBatchNormalization<>::Create();
 //    auto layer_sbn1     = bb::StochasticBatchNormalization<>::Create();
@@ -599,7 +599,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto net = bb::Sequential::Create();
         net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
-        net->Add(bb::StochasticMaxPooling2x2<>::Create());
+      net->Add(bb::StochasticMaxPooling2x2<>::Create());
 //      net->Add(bb::BackpropagatedBatchNormalization<>::Create());
 //      net->Add(bb::MaxPooling<>::Create(2, 2));
 //        net->Add(layer_sbn0);
@@ -623,12 +623,14 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
             net->SendCommand("binary true");
         }
 
+        net->SendCommand("lut_binarize false");
+
 //      net->SendCommand("batch_normalization false");
 
-//        net->SendCommand("fix_gamma true");
-//        net->SendCommand("fix_beta  true");
-//        net->SendCommand("set_gamma 0.2");
-//        net->SendCommand("set_beta  0.5");
+        net->SendCommand("fix_gamma true");
+        net->SendCommand("fix_beta  true");
+        net->SendCommand("set_gamma 0.2");
+        net->SendCommand("set_beta  0.5");
 
         // print model information
         net->PrintInfo();

@@ -17,7 +17,7 @@
 #include "bb/StochasticLut2.h"
 #include "bb/StochasticLut4.h"
 #include "bb/StochasticLut6.h"
-#include "bb/BatchNormalization.h"
+#include "bb/StochasticBatchNormalization.h"
 #include "bb/ReLU.h"
 
 
@@ -32,10 +32,10 @@ class StochasticLutBn : public SparseLayer<T, T>
 
 protected:
     // 2層で構成
-    std::shared_ptr< BatchNormalization<T>   >  m_batch_norm;
-    std::shared_ptr< SparseLayer<T, T> >        m_lut;
+    std::shared_ptr< StochasticBatchNormalization<T>   >    m_batch_norm;
+    std::shared_ptr< SparseLayer<T, T> >                    m_lut;
 
-    bool                                        m_bn_enable = true;
+    bool                                                    m_bn_enable = true;
 
 protected:
     StochasticLutBn() {}
@@ -78,13 +78,11 @@ public:
         default: BB_ASSERT(0);  break;
         }
 
-        typename BatchNormalization<T>::create_t bn_create;
+        typename StochasticBatchNormalization<T>::create_t bn_create;
         bn_create.momentum  = create.momentum;
         bn_create.gamma     = create.gamma; 
-        bn_create.beta      = create.beta;    
-        bn_create.fix_gamma = create.fix_gamma;
-        bn_create.fix_beta  = create.fix_beta;
-        self->m_batch_norm = BatchNormalization<T>::Create(bn_create);
+        bn_create.beta      = create.beta;
+        self->m_batch_norm = StochasticBatchNormalization<T>::Create(bn_create);
         return self;
     }
 
