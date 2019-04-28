@@ -101,7 +101,6 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
         net->Add(layer_sl6);
         net->Add(layer_sl7);
         net->Add(layer_sl8);
-//        net->Add(bb::Reduce<>::Create(td.t_shape));
         net->SetInputShape(td.x_shape);
 
         // À”ƒe[ƒuƒ‹‚Æ‚·‚é
