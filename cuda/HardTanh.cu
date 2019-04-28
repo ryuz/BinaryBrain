@@ -69,22 +69,26 @@ BBCU_DLL_EXPORT int bbcu_fp32_HardTanh_Forward
 
 __global__ void kernal_fp32_HardTanh_Backward
         (
-            const float*    x_buf,
-            const float*    dy_buf,
-            float*          dx_buf,
-            int             frame_size,
-            int             frame_stride
+            float const *x_buf,
+            float const *dy_buf,
+            float       *dx_buf,
+            int         frame_size,
+            int         frame_stride
         )
 {
     int node    = blockIdx.x;
     int id      = threadIdx.x;
     int id_step = blockDim.x;
     
+    float const *x_ptr  = &x_buf[frame_stride*node];
+    float const *dy_ptr = &dy_buf[frame_stride*node];
+    float       *dx_ptr = &dx_buf[frame_stride*node];
+
     for ( int frame = id; frame < frame_size; frame += id_step ) {
-        float x  = x_buf[frame_stride*node + frame];
-        float dy = dy_buf[frame_stride*node + frame];
-        if ( x <= -1.0f && x >= 1.0f) { dy = 0.0f; }
-        dx_buf[frame_stride*node + frame] = dy;
+        float x  = x_ptr[frame];
+        float dy = dy_ptr[frame];
+        if ( x <= -1.0f || x >= 1.0f) { dy = 0.0f; }
+        dx_ptr[frame] = dy;
     }
 }
 
