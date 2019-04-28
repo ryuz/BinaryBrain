@@ -60,7 +60,6 @@ protected:
     Tensor_<T>                  m_running_mean;
     Tensor_<T>                  m_running_var;
 
-    bool                        m_first    = true;
     T                           m_momentum = (T)0.9;
     T                           m_init_gamma;
     T                           m_init_beta;
@@ -304,13 +303,6 @@ public:
      */
     FrameBuffer Forward(FrameBuffer x_buf, bool train=true)
     {
-        // 初回のみモーメンタムを変える
-        T   momentum = m_momentum;
-        if (train && m_first) {
-            momentum = 0;
-            m_first  = false;
-        }
-
         // forwardの為に保存
         m_x_buf = x_buf;
 
@@ -340,7 +332,7 @@ public:
                         (float       *)dev_rstd_ptr.GetAddr(),
                         (float       *)dev_running_mean_ptr.GetAddr(),
                         (float       *)dev_running_var_ptr.GetAddr(),
-                        (float        )momentum,
+                        (float        )m_momentum,
                         (int          )m_x_buf.GetNodeSize(),
                         (int          )m_x_buf.GetFrameSize(),
                         (int          )m_x_buf.GetFrameStride() / sizeof(float)
@@ -430,8 +422,8 @@ public:
                     rstd = _mm256_mul_ps(rstd, _mm256_fnmadd_ps(varx, _mm256_mul_ps(rstd, rstd), _mm256_set1_ps(1.5f)));
 
                     // 実行時の mean と var 保存
-                    running_mean_ptr[node] = running_mean_ptr[node] * momentum + bb_mm256_cvtss_f32(mean) * (1 - momentum);
-                    running_var_ptr[node]  = running_var_ptr[node]  * momentum + bb_mm256_cvtss_f32(var)  * (1 - momentum);
+                    running_mean_ptr[node] = running_mean_ptr[node] * m_momentum + bb_mm256_cvtss_f32(mean) * (1.0f - m_momentum);
+                    running_var_ptr[node]  = running_var_ptr[node]  * m_momentum + bb_mm256_cvtss_f32(var)  * (1.0f - m_momentum);
                     
                     // 結果の保存
                     mean_ptr[node] = bb_mm256_cvtss_f32(mean);
@@ -517,8 +509,8 @@ public:
                     T std  = std::sqrt(var);
                     T rstd = (T)1.0 / (std + (T)1.0e-7);
 
-                    running_mean_ptr[node] = running_mean_ptr[node] * momentum + mean * ((T)1.0 - momentum);
-                    running_var_ptr[node]  = running_var_ptr[node]  * momentum + var *  ((T)1.0 - momentum);
+                    running_mean_ptr[node] = (running_mean_ptr[node] * m_momentum) + (mean * ((T)1.0 - m_momentum));
+                    running_var_ptr[node]  = (running_var_ptr[node]  * m_momentum) + (var *  ((T)1.0 - m_momentum));
                     
                     mean_ptr[node] = mean;
                     rstd_ptr[node] = rstd;

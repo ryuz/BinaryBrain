@@ -15,6 +15,7 @@
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
 #include "bb/StochasticLut6.h"
+#include "bb/StochasticMaxPooling2x2.h"
 #include "bb/BinaryLutN.h"
 #include "bb/LoweringConvolution.h"
 #include "bb/BatchNormalization.h"
@@ -93,10 +94,10 @@ void MnistStochasticLut6Cnn(int epoch_size, size_t mini_batch_size, int lut_fram
         auto net = bb::Sequential::Create();
         net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
-        net->Add(bb::MaxPooling<>::Create(2, 2));
+        net->Add(bb::StochasticMaxPooling2x2<>::Create());
         net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
-        net->Add(bb::MaxPooling<>::Create(2, 2));
+        net->Add(bb::StochasticMaxPooling2x2<>::Create());
         net->Add(layer_sl4);
         net->Add(layer_sl5);
         net->Add(layer_sl6);

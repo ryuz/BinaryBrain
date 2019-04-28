@@ -82,7 +82,7 @@ public:
         return std::shared_ptr<MicroMlp>(new MicroMlp(create));
     }
 
-    static std::shared_ptr< MicroMlp > Create(indices_t const &output_shape, std::string connection = "", T momentum = (T)0.001)
+    static std::shared_ptr< MicroMlp > Create(indices_t const &output_shape, std::string connection = "", T momentum = (T)0.0)
     {
         create_t create;
         create.output_shape = output_shape;
@@ -91,7 +91,7 @@ public:
         return Create(create);
     }
 
-    static std::shared_ptr< MicroMlp > Create(index_t output_node_size, std::string connection = "", T momentum = (T)0.001)
+    static std::shared_ptr< MicroMlp > Create(index_t output_node_size, std::string connection = "", T momentum = (T)0.0)
     {
         return Create(indices_t({output_node_size}), connection, momentum);
     }
