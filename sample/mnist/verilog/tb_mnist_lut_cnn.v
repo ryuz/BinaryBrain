@@ -48,7 +48,7 @@ module tb_mnist_lut_cnn();
 	
 	localparam	M_TNUMBER_WIDTH    = 4;
 	localparam	M_TCOUNT_WIDTH     = 4;
-	localparam	M_CLUSTERING_WIDTH = 80;
+	localparam	M_CLUSTERING_WIDTH = 70;
 	
 	localparam	WB_ADR_WIDTH       = 8;
 	localparam	WB_DAT_WIDTH       = 32;

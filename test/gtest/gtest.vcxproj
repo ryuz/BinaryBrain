@@ -53,6 +53,7 @@
     <ClCompile Include="MicroMlpAffineTest.cpp" />
     <ClCompile Include="OptimizerAdamTest.cpp" />
     <ClCompile Include="RealToBinaryTest.cpp" />
+    <ClCompile Include="ReduceTest.cpp" />
     <ClCompile Include="ReLUTest.cpp" />
     <ClCompile Include="SigmoidTest.cpp" />
     <ClCompile Include="StochasticLut6Test.cpp" />
@@ -75,6 +76,7 @@
     <ClInclude Include="..\..\include\bb\Dropout.h" />
     <ClInclude Include="..\..\include\bb\Filter2d.h" />
     <ClInclude Include="..\..\include\bb\FrameBuffer.h" />
+    <ClInclude Include="..\..\include\bb\HardTanh.h" />
     <ClInclude Include="..\..\include\bb\Layer.h" />
     <ClInclude Include="..\..\include\bb\LossFunction.h" />
     <ClInclude Include="..\..\include\bb\LossMeanSquaredError.h" />
@@ -93,6 +95,7 @@
     <ClInclude Include="..\..\include\bb\Model.h" />
     <ClInclude Include="..\..\include\bb\NormalDistributionGenerator.h" />
     <ClInclude Include="..\..\include\bb\Optimizer.h" />
+    <ClInclude Include="..\..\include\bb\OptimizerAdaGrad.h" />
     <ClInclude Include="..\..\include\bb\OptimizerAdam.h" />
     <ClInclude Include="..\..\include\bb\OptimizerSgd.h" />
     <ClInclude Include="..\..\include\bb\RealToBinary.h" />
@@ -103,9 +106,13 @@
     <ClInclude Include="..\..\include\bb\Sigmoid.h" />
     <ClInclude Include="..\..\include\bb\SimdSupport.h" />
     <ClInclude Include="..\..\include\bb\SparseLayer.h" />
+    <ClInclude Include="..\..\include\bb\StochasticBatchNormalization.h" />
+    <ClInclude Include="..\..\include\bb\StochasticLut.h" />
     <ClInclude Include="..\..\include\bb\StochasticLut2.h" />
     <ClInclude Include="..\..\include\bb\StochasticLut6.h" />
     <ClInclude Include="..\..\include\bb\StochasticLutBn.h" />
+    <ClInclude Include="..\..\include\bb\StochasticMaxPooling.h" />
+    <ClInclude Include="..\..\include\bb\StochasticMaxPooling2x2.h" />
     <ClInclude Include="..\..\include\bb\Tensor.h" />
     <ClInclude Include="..\..\include\bb\TensorOperator.h" />
     <ClInclude Include="..\..\include\bb\UniformDistributionGenerator.h" />

@@ -13,15 +13,15 @@
 
 
 __global__ void kernal_fp32_AccuracyCategoricalClassification(
-			float const *y_buf,
-			float const *t_buf,
-			int 		*accuracy,
-			int			node_size,
-			int			frame_size,
-			int			frame_stride
-		)
+            float const *y_buf,
+            float const *t_buf,
+            int         *accuracy,
+            int         node_size,
+            int         frame_size,
+            int         frame_stride
+        )
 {
-    __shared__   int	buf[THREAD_UNIT];
+    __shared__   int    buf[THREAD_UNIT];
 
     int frame_base = threadIdx.x;
     int frame_step = blockDim.x;
@@ -50,20 +50,20 @@ __global__ void kernal_fp32_AccuracyCategoricalClassification(
         prev_accuracy = accuracy[0];
     }
 
-	// スレッド間集計
-   	buf[threadIdx.x] = acc_sum;
-	__syncthreads();
+    // スレッド間集計
+    buf[threadIdx.x] = acc_sum;
+    __syncthreads();
 
-	int comb = 1;
-	while (comb < blockDim.x) {
-		int next = comb * 2;
-		int mask = next - 1;
-		if ((threadIdx.x & mask) == 0) {
-			buf[threadIdx.x] += buf[threadIdx.x + comb];
-		}
-		comb = next;
-		__syncthreads();
-	}
+    int comb = 1;
+    while (comb < blockDim.x) {
+        int next = comb * 2;
+        int mask = next - 1;
+        if ((threadIdx.x & mask) == 0) {
+            buf[threadIdx.x] += buf[threadIdx.x + comb];
+        }
+        comb = next;
+        __syncthreads();
+    }
 
     if ( threadIdx.x == 0 ) {
         accuracy[0] = prev_accuracy + buf[0];
@@ -72,31 +72,31 @@ __global__ void kernal_fp32_AccuracyCategoricalClassification(
 
 
 BBCU_DLL_EXPORT int bbcu_fp32_AccuracyCategoricalClassification
-		(
-			const float*	dev_y_buf,
-			const float*	dev_t_buf,
-			int*			dev_accuracy,
-			int				node_size,
-			int				frame_size,
-			int				frame_stride,
+        (
+            const float*    dev_y_buf,
+            const float*    dev_t_buf,
+            int*            dev_accuracy,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride,
             cudaStream_t    streamId
         )
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
     
     // 計算
-	dim3	block(THREAD_UNIT);
-	dim3	grid(1);
-	block.x = std::min((int)block.x, (int)frame_size);
-	kernal_fp32_AccuracyCategoricalClassification<<<grid, block, 0, streamId>>>(
-			dev_y_buf,
-			dev_t_buf,
-			dev_accuracy,
-			node_size,
-			frame_size,
-			frame_stride
-		);
-	BB_CUDA_CHECK_LAST_ERROR();
+    dim3    block(THREAD_UNIT);
+    dim3    grid(1);
+    block.x = std::min((int)block.x, (int)frame_size);
+    kernal_fp32_AccuracyCategoricalClassification<<<grid, block, 0, streamId>>>(
+            dev_y_buf,
+            dev_t_buf,
+            dev_accuracy,
+            node_size,
+            frame_size,
+            frame_stride
+        );
+    BB_CUDA_CHECK_LAST_ERROR();
     
     return 0;
 }

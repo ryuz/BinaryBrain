@@ -202,21 +202,21 @@ public:
     };
 
 protected:
-	void*        	    m_addr = nullptr;
-	size_t	            m_size = 0;
+    void*               m_addr = nullptr;
+    size_t              m_size = 0;
     std::atomic<int>    m_hostRefCnt;
-    bool	            m_hostOnly = true;
-	bool	            m_hostModified = false;
+    bool                m_hostOnly = true;
+    bool                m_hostModified = false;
 
 #ifdef BB_WITH_CUDA
-	size_t	            m_mem_size = 0;
+    size_t              m_mem_size = 0;
     bool                m_devAvailable = false;
 
     // 将来下記を多重化して複数GPU対応もケアできるようにするかも
-	int		            m_device = 0;
-	void*	            m_devAddr = nullptr;
-	bool	            m_devModified = false;
-	std::atomic<int>  	m_devRefCnt;
+    int                 m_device = 0;
+    void*               m_devAddr = nullptr;
+    bool                m_devModified = false;
+    std::atomic<int>    m_devRefCnt;
 #endif
 
 #ifdef BB_WITH_CUDA
@@ -232,7 +232,7 @@ protected:
 #endif
 
 public:
-    using ConstPtr    = ConstPtr_<GetRef, RelRef>;						  //< 読み書き可能なHOSTメモリのポインタオブジェクト
+    using ConstPtr    = ConstPtr_<GetRef, RelRef>;                        //< 読み書き可能なHOSTメモリのポインタオブジェクト
     using Ptr         = Ptr_<ConstPtr, GetRef, RelRef>;                   //< リードオンリーなHOSTメモリのポインタオブジェクト
     using DevConstPtr = ConstPtr_<&GetRefDevice, &RelRefDevice>;          //< 読み書き可能なDeviceメモリのポインタオブジェクト
     using DevPtr      = Ptr_<DevConstPtr, &GetRefDevice, &RelRefDevice>;  //< リードオンリーなDeviceTメモリのポインタオブジェクト
@@ -244,36 +244,36 @@ public:
 
 
 public:
-	/**
+    /**
      * @brief  メモリオブジェクトの生成
      * @detail メモリオブジェクトの生成
      * @param size 確保するメモリサイズ(バイト単位)
-	 * @param device 利用するGPUデバイス
-	 *           0以上  現在の選択中のGPU
-	 *           -1     現在の選択中のGPU
-	 *           -2     GPUは利用しない
+     * @param device 利用するGPUデバイス
+     *           0以上  現在の選択中のGPU
+     *           -1     現在の選択中のGPU
+     *           -2     GPUは利用しない
      * @return メモリオブジェクトへのshared_ptr
      */
-	static std::shared_ptr<Memory> Create(size_t size, bool hostOnly=false)
+    static std::shared_ptr<Memory> Create(size_t size, bool hostOnly=false)
     {
         return std::shared_ptr<Memory>(new Memory(size, hostOnly));
     }
 
 protected:
-	/**
+    /**
      * @brief  コンストラクタ
      * @detail コンストラクタ
      * @param size 確保するメモリサイズ(バイト単位)
-	 * @param device 利用するGPUデバイス
-	 *           0以上  現在の選択中のGPU
-	 *           -1     現在の選択中のGPU
-	 *           -2     GPUは利用しない
+     * @param device 利用するGPUデバイス
+     *           0以上  現在の選択中のGPU
+     *           -1     現在の選択中のGPU
+     *           -2     GPUは利用しない
      * @return なし
      */
-	Memory(size_t size, bool hostOnly=false) : m_hostRefCnt(0)
-	{
-		// 初期化
-		m_size       = size;
+    Memory(size_t size, bool hostOnly=false) : m_hostRefCnt(0)
+    {
+        // 初期化
+        m_size       = size;
         m_hostRefCnt = 0;
         m_hostOnly   = hostOnly;
 
@@ -282,79 +282,79 @@ protected:
         m_devRefCnt    = 0;
         m_devAvailable = false;
 
-		// デバイス設定
-		int dev_count = 0;
-		auto status = cudaGetDeviceCount(&dev_count);
-		if (status != cudaSuccess) {
-			dev_count = 0;
-		}
+        // デバイス設定
+        int dev_count = 0;
+        auto status = cudaGetDeviceCount(&dev_count);
+        if (status != cudaSuccess) {
+            dev_count = 0;
+        }
 
         // デバイスがあれば有効化
-		if ( dev_count > 0 && !m_hostOnly ) {
+        if ( dev_count > 0 && !m_hostOnly ) {
             m_devAvailable = true;
-		}
+        }
 
-		// デバイスが使えなければここでホストメモリ確保
-		if ( !m_devAvailable ) {
-			m_addr = aligned_memory_alloc(m_size, 32);
-		}
+        // デバイスが使えなければここでホストメモリ確保
+        if ( !m_devAvailable ) {
+            m_addr = aligned_memory_alloc(m_size, 32);
+        }
 #else
-		// メモリ確保
-		m_addr = aligned_memory_alloc(m_size, 32);
+        // メモリ確保
+        m_addr = aligned_memory_alloc(m_size, 32);
 #endif
-	}
+    }
 
 public:
-	/**
+    /**
      * @brief  デストラクタ
      * @detail デストラクタ
      */
-	~Memory()
-	{
+    ~Memory()
+    {
         BB_DEBUG_ASSERT(m_hostRefCnt == 0);
 
 #ifdef BB_WITH_CUDA
         BB_DEBUG_ASSERT(m_devRefCnt == 0);
 
         if ( m_devAvailable ) {
-			CudaDevicePush dev_push(m_device);
+            CudaDevicePush dev_push(m_device);
 
-			// Hostメモリ開放
-			if (m_addr != nullptr) {
-				bbcu::FreeHost(m_addr);
-			}
+            // Hostメモリ開放
+            if (m_addr != nullptr) {
+                bbcu::FreeHost(m_addr);
+            }
 
             // Deviceメモリ開放
-			if (m_devAddr != nullptr) {
-				bbcu::Free(m_devAddr);
-			}
-		}
+            if (m_devAddr != nullptr) {
+                bbcu::Free(m_devAddr);
+            }
+        }
         else {
-			// メモリ開放
-			if (m_addr != nullptr) {
-				aligned_memory_free(m_addr);
-			}
+            // メモリ開放
+            if (m_addr != nullptr) {
+                aligned_memory_free(m_addr);
+            }
         }
 
 #else
-		// メモリ開放
-		if (m_addr != nullptr) {
-			aligned_memory_free(m_addr);
-		}
+        // メモリ開放
+        if (m_addr != nullptr) {
+            aligned_memory_free(m_addr);
+        }
 #endif
-	}
+    }
 
    /**
      * @brief  メモリオブジェクトの生成
      * @detail メモリオブジェクトの生成
      * @param size 確保するメモリサイズ(バイト単位)
-	 * @param device 利用するGPUデバイス
-	 *           0以上  現在の選択中のGPU
-	 *           -1     現在の選択中のGPU
-	 *           -2     GPUは利用しない
+     * @param device 利用するGPUデバイス
+     *           0以上  現在の選択中のGPU
+     *           -1     現在の選択中のGPU
+     *           -2     GPUは利用しない
      * @return メモリオブジェクトへのshared_ptr
      */
-	std::shared_ptr<Memory> Clone(void) const
+    std::shared_ptr<Memory> Clone(void) const
     {
 #ifdef BB_WITH_CUDA
         auto clone = std::shared_ptr<Memory>(new Memory(m_size, m_hostOnly));
@@ -387,7 +387,7 @@ public:
     }
     
 
-	/**
+    /**
      * @brief  メモリのサイズを変更する
      * @detail メモリのサイズを変更する
      *         古い中身はサイズに関わらず破棄する
@@ -408,7 +408,7 @@ public:
                 bbcu::FreeHost(m_addr);  // Hostメモリ開放
                 m_addr= nullptr;
             }
-			if (m_devAddr != nullptr) {
+            if (m_devAddr != nullptr) {
                 bbcu::Free(m_devAddr);   // Deviceメモリ開放
                 m_devAddr= nullptr;
             }
@@ -431,60 +431,60 @@ public:
     }
 
 
-   	/**
+    /**
      * @brief  メモリサイズの取得
      * @detail メモリサイズの取得
      * @return メモリサイズ(バイト単位)
      */
-	index_t GetSize(void) const
-	{
-		return m_size;
-	}
+    index_t GetSize(void) const
+    {
+        return m_size;
+    }
 
-	/**
+    /**
      * @brief  ホスト専用かどうか問い合わせる
      * @detail ホスト専用かどうか問い合わせる
      * @return ホスト専用ならtrue
      */
-	bool IsHostOnly(void) const
-	{
+    bool IsHostOnly(void) const
+    {
 #ifdef BB_WITH_CUDA
         return m_hostOnly;
 #else
-		return true;
+        return true;
 #endif
     }
 
-	/**
+    /**
      * @brief  デバイスが利用可能か問い合わせる
      * @detail デバイスが利用可能か問い合わせる
      * @return デバイスが利用可能ならtrue
      */
-	bool IsDeviceAvailable(void) const
-	{
+    bool IsDeviceAvailable(void) const
+    {
 #ifdef BB_WITH_CUDA
-		return m_devAvailable;
+        return m_devAvailable;
 #else
-		return false;
+        return false;
 #endif
-	}
-	
+    }
+    
     /**
      * @brief  ゼロ初期化する
      * @detail ゼロ初期化する
      */
-	void FillZero(void)
-	{
+    void FillZero(void)
+    {
         if ( m_size == 0 ) { return; }
 
 #ifdef BB_WITH_CUDA
-		// メモリ未確保なら確保
-		if (m_addr == nullptr && m_devAddr == nullptr) {
-			Lock(true);
-		}
-		
-		// クリア
-		if (m_addr != nullptr) {
+        // メモリ未確保なら確保
+        if (m_addr == nullptr && m_devAddr == nullptr) {
+            Lock(true);
+        }
+        
+        // クリア
+        if (m_addr != nullptr) {
             memset(m_addr, 0, m_size);
         }
         m_hostModified = false;
@@ -494,178 +494,178 @@ public:
         }
         m_devModified  = false;
 #else
-		// メモリ未確保なら確保
-		if (m_addr == nullptr ) {
-			Lock(true);
-		}
+        // メモリ未確保なら確保
+        if (m_addr == nullptr ) {
+            Lock(true);
+        }
 
-		// クリア
-		memset(m_addr, 0, m_size);
-		m_hostModified = false;
+        // クリア
+        memset(m_addr, 0, m_size);
+        m_hostModified = false;
 #endif
     }
 
-	/**
+    /**
      * @brief  メモリ内容の破棄
      * @detail メモリ内容を破棄する
-     */	void Dispose(void)
-	{
-		// 更新の破棄
-		m_hostModified = false;
+     */ void Dispose(void)
+    {
+        // 更新の破棄
+        m_hostModified = false;
 
 #ifdef BB_WITH_CUDA
-		m_devModified = false;
+        m_devModified = false;
 #endif
-	}
+    }
 
-	/**
+    /**
      * @brief  ポインタの取得
      * @detail アクセス用に確保したホスト側のメモリポインタの取得
      * @param  new_buffer true なら古い内容を破棄する
      * @return ホスト側のメモリポインタ
      */
-	Ptr Lock(bool new_buffer=false)
-	{
+    Ptr Lock(bool new_buffer=false)
+    {
 #ifdef BB_WITH_CUDA
-		if ( m_devAvailable ) {
-			// 新規であれば過去の更新情報は破棄
-			if ( new_buffer ) {
-				m_hostModified = false;
-				m_devModified = false;
-			}
+        if ( m_devAvailable ) {
+            // 新規であれば過去の更新情報は破棄
+            if ( new_buffer ) {
+                m_hostModified = false;
+                m_devModified = false;
+            }
 
-			if (m_addr == nullptr) {
-				// ホスト側メモリ未確保ならここで確保
-				CudaDevicePush dev_push(m_device);
-				bbcu::MallocHost(&m_addr, m_mem_size);
-			}
+            if (m_addr == nullptr) {
+                // ホスト側メモリ未確保ならここで確保
+                CudaDevicePush dev_push(m_device);
+                bbcu::MallocHost(&m_addr, m_mem_size);
+            }
 
-			if ( m_devModified ) {
-				// デバイス側メモリが最新ならコピー取得
-				CudaDevicePush dev_push(m_device);
-				bbcu::Memcpy(m_addr, m_devAddr, m_size, cudaMemcpyDeviceToHost);
-				m_devModified =false;
-			}
-		}
+            if ( m_devModified ) {
+                // デバイス側メモリが最新ならコピー取得
+                CudaDevicePush dev_push(m_device);
+                bbcu::Memcpy(m_addr, m_devAddr, m_size, cudaMemcpyDeviceToHost);
+                m_devModified =false;
+            }
+        }
 #endif
 
-		// 修正フラグセット
-		m_hostModified = true;
+        // 修正フラグセット
+        m_hostModified = true;
 
         // ポインタオブジェクトを生成して返す
-		return Ptr(m_addr, this);
-	}
+        return Ptr(m_addr, this);
+    }
 
-   	/**
+    /**
      * @brief  読み取り専用ポインタの取得
      * @detail アクセス用に確保したホスト側のメモリポインタの取得
      *         実際にはメモリのロックなどで内部状態が変わるが、
      *         メモリ内容が変わらないので便宜上 const とする
      * @return アクセス用に確保したホスト側のメモリポインタ
      */
-	ConstPtr LockConst(void) const
-	{
+    ConstPtr LockConst(void) const
+    {
         auto self = const_cast<Memory *>(this);
 
 #ifdef BB_WITH_CUDA
-		if ( m_devAvailable ) {
-			if (m_addr == nullptr) {
-				// ホスト側メモリ未確保ならここで確保
-				CudaDevicePush dev_push(m_device);
-				bbcu::MallocHost(&self->m_addr, m_mem_size);
-			}
+        if ( m_devAvailable ) {
+            if (m_addr == nullptr) {
+                // ホスト側メモリ未確保ならここで確保
+                CudaDevicePush dev_push(m_device);
+                bbcu::MallocHost(&self->m_addr, m_mem_size);
+            }
 
-			if ( m_devModified ) {
-				// デバイス側メモリが最新ならコピー取得
-				CudaDevicePush dev_push(m_device);
-				bbcu::Memcpy(m_addr, m_devAddr, m_size, cudaMemcpyDeviceToHost);
-				self->m_devModified = false;
-			}
-		}
+            if ( m_devModified ) {
+                // デバイス側メモリが最新ならコピー取得
+                CudaDevicePush dev_push(m_device);
+                bbcu::Memcpy(m_addr, m_devAddr, m_size, cudaMemcpyDeviceToHost);
+                self->m_devModified = false;
+            }
+        }
 #endif
 
         // ポインタを生成して返す
-		return ConstPtr(m_addr, self);
-	}
+        return ConstPtr(m_addr, self);
+    }
 
 
-  	/**
+    /**
      * @brief  デバイス側ポインタの取得
      * @detail アクセス用に確保したデバイス側のメモリポインタの取得
      * @param  new_buffer true なら古い内容を破棄する
      * @return デバイス側のメモリポインタ
      */
-	DevPtr LockDevice(bool new_buffer=false)
-	{
-	#ifdef BB_WITH_CUDA
-		if ( m_devAvailable ) {
-			// 新規であれば過去の更新情報は破棄
-			if (new_buffer) {
-				m_hostModified = false;
-				m_devModified = false;
-			}
+    DevPtr LockDevice(bool new_buffer=false)
+    {
+    #ifdef BB_WITH_CUDA
+        if ( m_devAvailable ) {
+            // 新規であれば過去の更新情報は破棄
+            if (new_buffer) {
+                m_hostModified = false;
+                m_devModified = false;
+            }
 
-			if (m_devAddr == nullptr) {
-				// デバイス側メモリ未確保ならここで確保
-				CudaDevicePush dev_push(m_device);
-				bbcu::Malloc(&m_devAddr, m_size);
-			}
+            if (m_devAddr == nullptr) {
+                // デバイス側メモリ未確保ならここで確保
+                CudaDevicePush dev_push(m_device);
+                bbcu::Malloc(&m_devAddr, m_size);
+            }
 
-			if (m_hostModified) {
-				// ホスト側メモリが最新ならコピー取得
-				CudaDevicePush dev_push(m_device);
-				bbcu::Memcpy(m_devAddr, m_addr, m_size, cudaMemcpyHostToDevice);
-				m_hostModified =false;
-			}
+            if (m_hostModified) {
+                // ホスト側メモリが最新ならコピー取得
+                CudaDevicePush dev_push(m_device);
+                bbcu::Memcpy(m_devAddr, m_addr, m_size, cudaMemcpyHostToDevice);
+                m_hostModified =false;
+            }
 
-			// 修正フラグセット
-			m_devModified = true;
+            // 修正フラグセット
+            m_devModified = true;
 
-			return DevPtr(m_devAddr, this);
-		}
+            return DevPtr(m_devAddr, this);
+        }
 #endif
 
         BB_ASSERT(0);
-		return DevPtr();    // エラー
-	}
+        return DevPtr();    // エラー
+    }
 
 
-   	/**
+    /**
      * @brief  デバイス側ポインタの取得
      * @detail アクセス用に確保したデバイス側のメモリポインタの取得
      * @param  new_buffer true なら古い内容を破棄する
      * @return デバイス側のメモリポインタ
      */
-	DevConstPtr LockDeviceConst(void) const
-	{
+    DevConstPtr LockDeviceConst(void) const
+    {
         // 便宜上constをはずす
         auto self = const_cast<Memory *>(this);
 
 #ifdef BB_WITH_CUDA
-		if ( m_devAvailable ) {
-			if (m_devAddr == nullptr) {
-				// デバイス側メモリ未確保ならここで確保
-				CudaDevicePush dev_push(m_device);
-				bbcu::Malloc(&self->m_devAddr, m_size);
-			}
+        if ( m_devAvailable ) {
+            if (m_devAddr == nullptr) {
+                // デバイス側メモリ未確保ならここで確保
+                CudaDevicePush dev_push(m_device);
+                bbcu::Malloc(&self->m_devAddr, m_size);
+            }
 
-			if (m_hostModified) {
-				// ホスト側メモリが最新ならコピー取得
-				CudaDevicePush dev_push(m_device);
-				bbcu::Memcpy(m_devAddr, m_addr, m_size, cudaMemcpyHostToDevice);
-				self->m_hostModified =false;
-			}
+            if (m_hostModified) {
+                // ホスト側メモリが最新ならコピー取得
+                CudaDevicePush dev_push(m_device);
+                bbcu::Memcpy(m_devAddr, m_addr, m_size, cudaMemcpyHostToDevice);
+                self->m_hostModified =false;
+            }
 
-			return DevConstPtr(m_devAddr, self);
-		}
+            return DevConstPtr(m_devAddr, self);
+        }
 #endif
 
         BB_ASSERT(0);
-		return DevConstPtr();    // エラー
-	}
+        return DevConstPtr();    // エラー
+    }
 
 
-   	/**
+    /**
      * @brief  hostOnlyフラグの変更
      * @detail hostOnlyフラグの変更
      * @param  新しいhostOnlyフラグの
@@ -683,8 +683,8 @@ public:
         }
 
         if (hostOnly) {
-		    // メモリ確保
-		    auto newAddr = aligned_memory_alloc(m_size, 32);
+            // メモリ確保
+            auto newAddr = aligned_memory_alloc(m_size, 32);
             BB_ASSERT(m_addr != nullptr);
 
             // データがあればコピー
@@ -700,7 +700,7 @@ public:
                 bbcu::FreeHost(m_addr);  // Hostメモリ開放
                 m_addr= nullptr;
             }
-			if (m_devAddr != nullptr) {
+            if (m_devAddr != nullptr) {
                 bbcu::Free(m_devAddr);   // Deviceメモリ開放
                 m_devAddr= nullptr;
             }
@@ -711,7 +711,7 @@ public:
             m_addr = newAddr;
         }
         else {
-		    if ( m_hostModified ) {
+            if ( m_hostModified ) {
                 // メモリ確保
                 void *newAddr;
                 bbcu::MallocHost(&newAddr, m_size);
@@ -722,7 +722,7 @@ public:
 
                 // メモリ開放
                 if ( m_addr != nullptr ) {
-        		    aligned_memory_free(m_addr);
+                    aligned_memory_free(m_addr);
                 }
 
                 m_hostModified = false;

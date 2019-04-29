@@ -9,12 +9,12 @@
 
 TEST(MemoryTest, testMem)
 {
-	{
-		auto mem = bb::Memory::Create(1024, true);
-		mem->Lock();
+    {
+        auto mem = bb::Memory::Create(1024, true);
+        mem->Lock();
         EXPECT_TRUE(mem->IsHostOnly());
         EXPECT_FALSE(mem->IsDeviceAvailable());
-		mem->IsDeviceAvailable();
+        mem->IsDeviceAvailable();
 
         auto wp = mem->Lock();
         auto rp = mem->LockConst();
@@ -22,25 +22,25 @@ TEST(MemoryTest, testMem)
 //      bb::Memory::ConstPtr rr(wp.GetConst());
 //      bb::Memory::ConstPtr rr = (bb::Memory::ConstPtr)wp;
         rp = wp;
-	}
+    }
 
-	{
-		auto mem = bb::Memory::Create(1024);
-		mem->Lock();
+    {
+        auto mem = bb::Memory::Create(1024);
+        mem->Lock();
         if ( mem->IsDeviceAvailable() ) {
             mem->LockDevice();
         }
         mem->IsDeviceAvailable();
-	}
+    }
 
-	{
-		auto mem = bb::Memory::Create(1024, false);
-		mem->Lock();
+    {
+        auto mem = bb::Memory::Create(1024, false);
+        mem->Lock();
         if ( mem->IsDeviceAvailable() ) {
-    		mem->LockDevice();
+            mem->LockDevice();
         }
-		mem->IsDeviceAvailable();
-	}
+        mem->IsDeviceAvailable();
+    }
     
 
 #if 0
@@ -71,8 +71,8 @@ TEST(MemoryTest, testMem)
 
 TEST(MemoryTest, testHostOnly)
 {
-	{
-		auto mem = bb::Memory::Create(4);
+    {
+        auto mem = bb::Memory::Create(4);
 
         mem->Lock();
         if ( mem->IsDeviceAvailable() ) {

@@ -16,21 +16,21 @@
 //////////////////////////////
 
 __global__ void kernal_fp32_MaxPooling_Forward(
-			float const *x_buf,
-			float       *y_buf,
-   	        int			filter_h_size,
-	        int 		filter_w_size,
+            float const *x_buf,
+            float       *y_buf,
+            int         filter_h_size,
+            int         filter_w_size,
             int         input_w_size,
             int         input_h_size,
             int         output_w_size,
             int         output_h_size,
             int         c_size,
-			int         frame_size,
-			int         frame_stride
-		)
+            int         frame_size,
+            int         frame_stride
+        )
 {
-	int frame_base = threadIdx.x;
-	int frame_step = blockDim.x;
+    int frame_base = threadIdx.x;
+    int frame_step = blockDim.x;
     int x = blockIdx.y * blockDim.y + threadIdx.y;
     int y = blockIdx.x;
     int c = blockIdx.z * blockDim.z + threadIdx.z;
@@ -62,47 +62,47 @@ __global__ void kernal_fp32_MaxPooling_Forward(
 
 
 BBCU_DLL_EXPORT int bbcu_fp32_MaxPooling_Forward
-		(
-			float const *	dev_x_buf,
-			float*			dev_y_buf,
-   	        int			    filter_h_size,
-	        int 		    filter_w_size,
+        (
+            float const *   dev_x_buf,
+            float*          dev_y_buf,
+            int             filter_h_size,
+            int             filter_w_size,
             int             input_w_size,
             int             input_h_size,
             int             output_w_size,
             int             output_h_size,
             int             c_size,
-			int             frame_size,
-			int             frame_stride,
+            int             frame_size,
+            int             frame_stride,
             cudaStream_t    streamId
         )
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
-	dim3	block(32, 32, 1);
-	dim3	grid;
+    dim3    block(32, 32, 1);
+    dim3    grid;
     grid.x = output_h_size;
     grid.y = (output_w_size + (block.y-1)) / block.y;
     grid.z = c_size;
-	block.x = min(block.x, frame_size);
-	block.y = min(block.y, output_w_size);
+    block.x = min(block.x, frame_size);
+    block.y = min(block.y, output_w_size);
 
-	kernal_fp32_MaxPooling_Forward<<<grid, block, 0, streamId>>>(
-			dev_x_buf,
+    kernal_fp32_MaxPooling_Forward<<<grid, block, 0, streamId>>>(
+            dev_x_buf,
             dev_y_buf,
-   	        filter_h_size,
-	        filter_w_size,
+            filter_h_size,
+            filter_w_size,
             input_w_size,
             input_h_size,
             output_w_size,
             output_h_size,
             c_size,
-			frame_size,
-			frame_stride
-		);
-	BB_CUDA_CHECK_LAST_ERROR();
+            frame_size,
+            frame_stride
+        );
+    BB_CUDA_CHECK_LAST_ERROR();
 
-	return 0;
+    return 0;
 }
 
 
@@ -112,23 +112,23 @@ BBCU_DLL_EXPORT int bbcu_fp32_MaxPooling_Forward
 //////////////////////////////
 
 __global__ void kernal_fp32_MaxPooling_Backward(
-			float const *x_buf,
-			float const *y_buf,
-			float const *dy_buf,
-			float       *dx_buf,
-   	        int			filter_h_size,
-	        int 		filter_w_size,
+            float const *x_buf,
+            float const *y_buf,
+            float const *dy_buf,
+            float       *dx_buf,
+            int         filter_h_size,
+            int         filter_w_size,
             int         input_w_size,
             int         input_h_size,
             int         output_w_size,
             int         output_h_size,
             int         c_size,
-			int         frame_size,
-			int         frame_stride
-		)
+            int         frame_size,
+            int         frame_stride
+        )
 {
-	int frame_base = threadIdx.x;
-	int frame_step = blockDim.x;
+    int frame_base = threadIdx.x;
+    int frame_step = blockDim.x;
     int x = blockIdx.y * blockDim.y + threadIdx.y;
     int y = blockIdx.x;
     int c = blockIdx.z * blockDim.z + threadIdx.z;
@@ -158,50 +158,50 @@ __global__ void kernal_fp32_MaxPooling_Backward(
 
 
 BBCU_DLL_EXPORT int bbcu_fp32_MaxPooling_Backward
-		(
-			float const     *dev_x_buf,
-			float const     *dev_y_buf,
-			float const     *dev_dy_buf,
-			float           *dev_dx_buf,
-            int			    filter_h_size,
-	        int 		    filter_w_size,
+        (
+            float const     *dev_x_buf,
+            float const     *dev_y_buf,
+            float const     *dev_dy_buf,
+            float           *dev_dx_buf,
+            int             filter_h_size,
+            int             filter_w_size,
             int             input_w_size,
             int             input_h_size,
             int             output_w_size,
             int             output_h_size,
             int             c_size,
-			int             frame_size,
-			int             frame_stride,
+            int             frame_size,
+            int             frame_stride,
             cudaStream_t    streamId
         )
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
-	dim3	block(32, 32, 1);
-	dim3	grid;
+    dim3    block(32, 32, 1);
+    dim3    grid;
     grid.x = output_h_size;
     grid.y = (output_w_size + (block.y-1)) / block.y;
     grid.z = c_size;
-	block.x = min(block.x, frame_size);
-	block.y = min(block.y, output_w_size);
+    block.x = min(block.x, frame_size);
+    block.y = min(block.y, output_w_size);
 
-	kernal_fp32_MaxPooling_Backward<<<grid, block, 0, streamId>>>(
-			dev_x_buf,
+    kernal_fp32_MaxPooling_Backward<<<grid, block, 0, streamId>>>(
+            dev_x_buf,
             dev_y_buf,
-			dev_dy_buf,
-			dev_dx_buf,
-   	        filter_h_size,
-	        filter_w_size,
+            dev_dy_buf,
+            dev_dx_buf,
+            filter_h_size,
+            filter_w_size,
             input_w_size,
             input_h_size,
             output_w_size,
             output_h_size,
             c_size,
-			frame_size,
-			frame_stride
-		);
-	BB_CUDA_CHECK_LAST_ERROR();
+            frame_size,
+            frame_stride
+        );
+    BB_CUDA_CHECK_LAST_ERROR();
 
-	return 0;
+    return 0;
 }
 

@@ -21,12 +21,12 @@ template <typename T = float>
 class OptimizerAdam : public Optimizer
 {
 protected:
-	T				m_learning_rate;
-	T				m_beta1;
-	T				m_beta2;
-	int				m_iter;
-	T				m_b1;
-	T				m_b2;
+    T               m_learning_rate;
+    T               m_beta1;
+    T               m_beta2;
+    int             m_iter;
+    T               m_b1;
+    T               m_b2;
 
     Variables       m_m;
     Variables       m_v;
@@ -47,39 +47,39 @@ public:
         T beta2         = (T)0.999;
     };
 
-   	static std::shared_ptr<OptimizerAdam> Create(create_t const &create) 
-	{
+    static std::shared_ptr<OptimizerAdam> Create(create_t const &create) 
+    {
         auto self = std::shared_ptr<OptimizerAdam>(new OptimizerAdam);
 
-		self->m_learning_rate = create.learning_rate;
-		self->m_beta1         = create.beta1;
-		self->m_beta2         = create.beta2;
-		self->m_iter          = 0;
+        self->m_learning_rate = create.learning_rate;
+        self->m_beta1         = create.beta1;
+        self->m_beta2         = create.beta2;
+        self->m_iter          = 0;
 
         self->m_b1            = self->m_beta1;
         self->m_b2            = self->m_beta2;
 
         return self;
-	}
+    }
 
-  	static std::shared_ptr<OptimizerAdam> Create(T learning_rate = (T)0.001, T beta1 = (T)0.9, T beta2 = (T)0.999) 
-	{
+    static std::shared_ptr<OptimizerAdam> Create(T learning_rate = (T)0.001, T beta1 = (T)0.9, T beta2 = (T)0.999) 
+    {
         auto self = std::shared_ptr<OptimizerAdam>(new OptimizerAdam);
 
-		self->m_learning_rate = learning_rate;
-		self->m_beta1         = beta1;
-		self->m_beta2         = beta2;
-		self->m_iter          = 0;
+        self->m_learning_rate = learning_rate;
+        self->m_beta1         = beta1;
+        self->m_beta2         = beta2;
+        self->m_iter          = 0;
 
         self->m_b1            = self->m_beta1;
         self->m_b2            = self->m_beta2;
 
         return self;
-	}
+    }
 
-	OptimizerAdam(create_t const &create, Variables params, Variables grads) 
+    OptimizerAdam(create_t const &create, Variables params, Variables grads) 
         : m_m(params.GetTypes(), params.GetShapes()), m_v(params.GetTypes(), params.GetShapes())
-	{
+    {
         BB_ASSERT(params.GetShapes() == grads.GetShapes());
         m_params        = params;
         m_grads         = grads;
@@ -87,16 +87,16 @@ public:
         m_m = 0;
         m_v = 0;
 
-		m_learning_rate = create.learning_rate;
-		m_beta1         = create.beta1;
-		m_beta2         = create.beta2;
-		m_iter          = 0;
+        m_learning_rate = create.learning_rate;
+        m_beta1         = create.beta1;
+        m_beta2         = create.beta2;
+        m_iter          = 0;
 
         m_b1            = m_beta1;
         m_b2            = m_beta2;
     }
-	
-	void SetVariables(Variables params, Variables grads)
+    
+    void SetVariables(Variables params, Variables grads)
     {
         BB_ASSERT(params.GetShapes() == grads.GetShapes());
         m_params = params;
@@ -109,24 +109,24 @@ public:
     }
     
 
-  	void Update(void)
-	{
+    void Update(void)
+    {
 
 #ifdef BB_WITH_CUDA
         if ( m_params.IsDeviceAvailable() && m_grads.IsDeviceAvailable() && m_m.IsDeviceAvailable() && m_v.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // CUDA版
             auto lr_t = m_learning_rate * std::sqrt((T)1.0 - m_b2) / ((T)1.0 - m_b1 );
             bbcu_fp32_Adam
-		            (
+                    (
                         (int            )m_params.GetSize(),
                         (int     const *)m_params.GetDeviceSizeTable(),
-			            (float * const *)m_params.GetDeviceAddrTable(),
-			            (float * const *)m_grads.GetDeviceAddrTable(),
-    		            (float * const *)m_m.GetDeviceAddrTable(),
-    		            (float * const *)m_v.GetDeviceAddrTable(),
- 	                    (float		    )lr_t,
-	                    (float		    )m_beta1,
-	                    (float		    )m_beta2
+                        (float * const *)m_params.GetDeviceAddrTable(),
+                        (float * const *)m_grads.GetDeviceAddrTable(),
+                        (float * const *)m_m.GetDeviceAddrTable(),
+                        (float * const *)m_v.GetDeviceAddrTable(),
+                        (float          )lr_t,
+                        (float          )m_beta1,
+                        (float          )m_beta2
                     );
             
             m_b1 *= m_beta1;
@@ -141,7 +141,9 @@ public:
 
             m_m += ((T)1.0 - m_beta1) * (m_grads - m_m);
             m_v += ((T)1.0 - m_beta2) * (m_grads * m_grads - m_v);
+
             m_params -= lr_t * m_m / (Sqrt(m_v) + (T)1e-7);
+            m_grads   = 0;
 
             m_b1 *= m_beta1;
             m_b2 *= m_beta2;
@@ -151,5 +153,3 @@ public:
 
 
 }
-
-

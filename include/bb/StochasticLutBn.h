@@ -1,9 +1,9 @@
 ﻿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
-//                                     Copyright (C) 2018 by Ryuji Fuchikami
-//                                     https://github.com/ryuz
-//                                     ryuji.fuchikami@nifty.com
+//                                Copyright (C) 2018-2019 by Ryuji Fuchikami
+//                                https://github.com/ryuz
+//                                ryuji.fuchikami@nifty.com
 // --------------------------------------------------------------------------
 
 
@@ -17,7 +17,7 @@
 #include "bb/StochasticLut2.h"
 #include "bb/StochasticLut4.h"
 #include "bb/StochasticLut6.h"
-#include "bb/BatchNormalization.h"
+#include "bb/StochasticBatchNormalization.h"
 #include "bb/ReLU.h"
 
 
@@ -28,42 +28,44 @@ namespace bb {
 template <int N = 6, typename T = float >
 class StochasticLutBn : public SparseLayer<T, T>
 {
-    using super = SparseLayer<T, T>;
+    using _super = SparseLayer<T, T>;
 
 protected:
-	// 2層で構成
-	std::shared_ptr< BatchNormalization<T>   >  m_batch_norm;
-	std::shared_ptr< SparseLayer<T, T> >	    m_lut;
+    // 2層で構成
+    std::shared_ptr< StochasticBatchNormalization<T>   >    m_norm;
+    std::shared_ptr< SparseLayer<T, T> >                    m_lut;
 
-    bool                                        m_bn_enable = true;
+    bool                                                    m_bn_enable = true;
 
 protected:
-	StochasticLutBn() {}
+    StochasticLutBn() {}
 
     /**
      * @brief  コマンド処理
      * @detail コマンド処理
      * @param  args   コマンド
      */
-	void CommandProc(std::vector<std::string> args)
-	{
+    void CommandProc(std::vector<std::string> args)
+    {
         // BatchNormalization設定
         if ( args.size() == 2 && args[0] == "batch_normalization" )
         {
             m_bn_enable = EvalBool(args[1]);
         }
-	}
+    }
 
 public:
-	~StochasticLutBn() {}
+    ~StochasticLutBn() {}
 
     struct create_t
     {
         indices_t  output_shape;
         bool       bn_enable = true;
-        T          momentum = (T)0.001;
-        T          gamma    = (T)0.5;
+        T          momentum = (T)0.9;
+        T          gamma    = (T)0.2;
         T          beta     = (T)0.5;
+        bool       fix_gamma = true;
+        bool       fix_beta = true;
     };
 
     static std::shared_ptr< StochasticLutBn > Create(create_t const &create)
@@ -75,11 +77,16 @@ public:
         case 6: self->m_lut = StochasticLut6<T>::Create(create.output_shape);   break;
         default: BB_ASSERT(0);  break;
         }
-        self->m_batch_norm = BatchNormalization<T>::Create(create.momentum, create.gamma, create.beta);
+
+        typename StochasticBatchNormalization<T>::create_t bn_create;
+        bn_create.momentum  = create.momentum;
+        bn_create.gamma     = create.gamma; 
+        bn_create.beta      = create.beta;
+        self->m_norm = StochasticBatchNormalization<T>::Create(bn_create);
         return self;
     }
 
-    static std::shared_ptr< StochasticLutBn > Create(indices_t output_shape, bool bn_enable = true, T momentum = (T)0.001, T gamma = (T)0.5, T beta = (T)0.5)
+    static std::shared_ptr< StochasticLutBn > Create(indices_t output_shape, bool bn_enable = true, T momentum = (T)0.9, T gamma = (T)0.2, T beta = (T)0.5)
     {
         create_t create;
         create.output_shape = output_shape;
@@ -90,7 +97,7 @@ public:
         return Create(create);
     }
 
-    static std::shared_ptr< StochasticLutBn > Create(index_t output_node_size, bool bn_enable = true, T momentum = (T)0.001, T gamma = (T)0.5, T beta = (T)0.5)
+    static std::shared_ptr< StochasticLutBn > Create(index_t output_node_size, bool bn_enable = true, T momentum = (T)0.9, T gamma = (T)0.2, T beta = (T)0.5)
     {
         create_t create;
         create.output_shape = indices_t({output_node_size});
@@ -101,7 +108,7 @@ public:
         return Create(create);
     }
 
-	std::string GetClassName(void) const { return "StochasticLutBn"; }
+    std::string GetClassName(void) const { return "StochasticLutBn"; }
 
     /**
      * @brief  コマンドを送る
@@ -109,10 +116,10 @@ public:
      */   
     void SendCommand(std::string command, std::string send_to = "all")
     {
-        super::SendCommand(command, send_to);
+        _super::SendCommand(command, send_to);
 
-	    m_batch_norm->SendCommand(command, send_to);
-	    m_lut       ->SendCommand(command, send_to);
+        m_norm->SendCommand(command, send_to);
+        m_lut       ->SendCommand(command, send_to);
     }
     
     /**
@@ -125,9 +132,9 @@ public:
     {
         Variables parameters;
         if ( m_bn_enable ) {
-    	    parameters.PushBack(m_batch_norm->GetParameters());
+            parameters.PushBack(m_norm->GetParameters());
         }
-	    parameters.PushBack(m_lut->GetParameters());
+        parameters.PushBack(m_lut->GetParameters());
         return parameters;
     }
 
@@ -141,9 +148,9 @@ public:
     {
         Variables gradients;
         if ( m_bn_enable ) {
-            gradients.PushBack(m_batch_norm->GetGradients());
+            gradients.PushBack(m_norm->GetGradients());
         }
-	    gradients.PushBack(m_lut       ->GetGradients());
+        gradients.PushBack(m_lut       ->GetGradients());
         return gradients;
     }  
 
@@ -157,8 +164,8 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
-	    shape = m_batch_norm->SetInputShape(shape);
-	    shape = m_lut->SetInputShape(shape);
+        shape = m_norm->SetInputShape(shape);
+        shape = m_lut->SetInputShape(shape);
         return shape;
     }
 
@@ -169,7 +176,7 @@ public:
      */
     indices_t GetInputShape(void) const
     {
-        return m_batch_norm->GetInputShape();
+        return m_norm->GetInputShape();
     }
 
     /**
@@ -207,12 +214,17 @@ public:
             for (index_t i = 0; i < input_size; ++i) {
                 index_t input_node = this->GetNodeInput(node, i);
                 tmp[0] = x_vec[i];
-                tmp = m_batch_norm->ForwardNode(input_node, tmp);
+                tmp = m_norm->ForwardNode(input_node, tmp);
                 x_vec[i] = tmp[0];
             }
         }
 
         x_vec = m_lut->ForwardNode(node, x_vec);
+
+        for (auto &x : x_vec) {
+            x = (x - (T)0.5);
+        }
+
         return x_vec;
     }
 
@@ -226,9 +238,9 @@ public:
     FrameBuffer Forward(FrameBuffer x, bool train = true)
     {
         if ( m_bn_enable ) {
-    	    x = m_batch_norm->Forward(x, train);
+            x = m_norm->Forward(x, train);
         }
-	    x = m_lut->Forward(x, train);
+        x = m_lut->Forward(x, train);
         return x;
     }
 
@@ -240,9 +252,9 @@ public:
      */
     FrameBuffer Backward(FrameBuffer dy)
     {
-	    dy = m_lut->Backward(dy);
+        dy = m_lut->Backward(dy);
         if ( m_bn_enable ) {
-    	    dy = m_batch_norm->Backward(dy);
+            dy = m_norm->Backward(dy);
         }
         return dy; 
     }
@@ -263,7 +275,7 @@ protected:
         else {
             // 子レイヤーの表示
             if ( m_bn_enable ) {
-                m_batch_norm->PrintInfo(depth, os, columns, nest+1);
+                m_norm->PrintInfo(depth, os, columns, nest+1);
             }
             m_lut->PrintInfo(depth, os, columns, nest+1);
         }
@@ -273,43 +285,43 @@ public:
     // Serialize
     void Save(std::ostream &os) const 
     {
-        m_batch_norm->Save(os);
+        m_norm->Save(os);
         m_lut->Save(os);
     }
 
     void Load(std::istream &is)
     {
-        m_batch_norm->Load(is);
+        m_norm->Load(is);
         m_lut->Load(is);
     }
 
 
 #ifdef BB_WITH_CEREAL
-	template <class Archive>
+    template <class Archive>
     void save(Archive& archive, std::uint32_t const version) const
-	{
-        super::save(archive, version);
+    {
+        _super::save(archive, version);
     }
 
-	template <class Archive>
+    template <class Archive>
     void load(Archive& archive, std::uint32_t const version)
-	{
-        super::load(archive, version);
+    {
+        _super::load(archive, version);
     }
 
-	void Save(cereal::JSONOutputArchive& archive) const
-	{
+    void Save(cereal::JSONOutputArchive& archive) const
+    {
         archive(cereal::make_nvp("StochasticLutBn", *this));
-        m_batch_norm->Save(archive);
+        m_norm->Save(archive);
         m_lut       ->Save(archive);
-	}
+    }
 
-	void Load(cereal::JSONInputArchive& archive)
-	{
+    void Load(cereal::JSONInputArchive& archive)
+    {
         archive(cereal::make_nvp("StochasticLutBn", *this));
-        m_batch_norm->Load(archive);
+        m_norm->Load(archive);
         m_lut       ->Load(archive);
-	}
+    }
 #endif
 
 };

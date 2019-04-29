@@ -32,7 +32,7 @@
 void XorMicroMlp(int epoch_size, bool binary_mode)
 {
     // load data
-	auto td = bb::LoadXor<>::Load(6, 256);
+    auto td = bb::LoadXor<>::Load(6, 256);
 
     /*
     for (int i = 0; i < 64; ++i) {

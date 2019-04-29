@@ -30,7 +30,7 @@
 #include "bb/Sequential.h"
 #include "bb/Runner.h"
 #include "bb/ExportVerilog.h"
-
+#include "bb/UniformDistributionGenerator.h"
 
 
 #if 0
@@ -42,7 +42,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 
   // load cifar-10 data
 #ifdef _DEBUG
-	auto td = bb::LoadCifar10<>::Load(1);
+    auto td = bb::LoadCifar10<>::Load(1);
     std::cout << "!!! debug mode !!!" << std::endl;
 #else
     auto td = bb::LoadCifar10<>::Load();
@@ -164,7 +164,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(frame_mux_size));
+        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
+//      lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(cnv0);
         lut_net->Add(cnv1);
         lut_net->Add(pol0);
@@ -172,7 +173,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         lut_net->Add(cnv3);
         lut_net->Add(pol1);
         lut_net->Add(cnv4);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, frame_mux_size));
+        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, lut_frame_mux_size));
         lut_net->SetInputShape(td.x_shape);
 
 
@@ -189,8 +190,10 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         layer_lut5     ->ImportLayer<float, float>(layer_sl5);
         layer_lut6     ->ImportLayer<float, float>(layer_sl6);
 
-        // •]‰¿
         if ( 1 ) {
+            // •]‰¿
+            std::cout << "frame_mux_size : " << lut_frame_mux_size << std::endl;
+
             bb::Runner<float>::create_t lut_runner_create;
             lut_runner_create.name        = "Lut_" + net_name;
             lut_runner_create.net         = lut_net;
@@ -242,7 +245,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 
   // load cifar-10 data
 #ifdef _DEBUG
-	auto td = bb::LoadCifar10<>::Load(1);
+    auto td = bb::LoadCifar10<>::Load(1);
     std::cout << "!!! debug mode !!!" << std::endl;
 #else
     auto td = bb::LoadCifar10<>::Load();
@@ -392,7 +395,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
+        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
+//      lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(cnv0);
         lut_net->Add(cnv1);
         lut_net->Add(pol0);
@@ -425,8 +429,10 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         layer_lut8     ->ImportLayer<float, float>(layer_sl8);
         layer_lut9     ->ImportLayer<float, float>(layer_sl9);
 
-        // •]‰¿
         if ( 1 ) {
+            // •]‰¿
+            std::cout << "frame_mux_size : " << lut_frame_mux_size << std::endl;
+
             bb::Runner<float>::create_t lut_runner_create;
             lut_runner_create.name        = "Lut_" + net_name;
             lut_runner_create.net         = lut_net;

@@ -32,16 +32,14 @@
 #include "bb/ExportVerilog.h"
 
 
-static void WriteTestImage(std::string filename, int w, int h);
-
 // MNIST CNN with LUT networks
-void MnistMicroMlpLutCnn(int epoch_size, size_t mini_batch_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode)
+void MnistMicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
 {
     std::string net_name = "MnistMicroMlpLutCnn";
 
   // load MNIST data
 #ifdef _DEBUG
-	auto td = bb::LoadMnist<>::Load(10, 512, 128);
+    auto td = bb::LoadMnist<>::Load(10, 512, 128);
     std::cout << "!!! debug mode !!!" << std::endl;
 #else
     auto td = bb::LoadMnist<>::Load(10);
@@ -105,10 +103,11 @@ void MnistMicroMlpLutCnn(int epoch_size, size_t mini_batch_size, int frame_mux_s
         runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
         runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
-        runner_create.file_read          = false;   // 前の計算結果があれば読み込んで再開するか
-        runner_create.file_write         = true;    // 計算結果をファイルに保存するか
-        runner_create.print_progress     = true;    // 途中結果を出力
-        runner_create.initial_evaluation = false;
+        runner_create.max_run_size       = max_run_size;    // 実際の1回の実行サイズ
+        runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
+        runner_create.file_write         = true;            // 計算結果をファイルに保存するか
+        runner_create.print_progress     = true;            // 途中結果を表示
+        runner_create.initial_evaluation = file_read;       // ファイルを読んだ場合は最初に評価しておく
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
@@ -222,56 +221,11 @@ void MnistMicroMlpLutCnn(int epoch_size, size_t mini_batch_size, int frame_mux_s
             std::cout << "export : " << filename << "\n" << std::endl;
             
             // write test image
-            WriteTestImage("verilog/mnist_test_160x120.ppm", 160, 120);
-            WriteTestImage("verilog/mnist_test_640x480.ppm", 640, 480);
+            bb::WriteTestDataImage<float>("verilog/mnist_test_160x120.ppm", 160, 120, td);
+            bb::WriteTestDataImage<float>("verilog/mnist_test_640x480.ppm", 640, 480, td);
         }
     }
 }
-
-
-// RTL simulation 用データの出力
-static void WriteTestImage(std::string filename, const int w, const int h)
-{
-	// load MNIST data
-	auto td = bb::LoadMnist<>::Load();
-
-	unsigned char* img = new unsigned char[h * w];
-	for (int y = 0; y < h; ++y) {
-		for (int x = 0; x < w; ++x) {
-			int idx = (y / 28) * (w / 28) + (x / 28);
-			int xx = x % 28;
-			int yy = y % 28;
-			img[y*w+x] = (unsigned char)(td.x_test[idx][yy * 28 + xx] * 255.0f);
-		}
-	}
-
-	if ( 0 ) {
-		std::ofstream ofs(filename);
-		ofs << "P2" << std::endl;
-		ofs << w << " " << h << std::endl;
-		ofs << "255" << std::endl;
-		for (int y = 0; y < h; ++y) {
-			for (int x = 0; x < w; ++x) {
-				ofs << (int)img[y*w+x] << std::endl;
-			}
-		}
-	}
-
-	if ( 1 ) {
-		std::ofstream ofs(filename);
-		ofs << "P3" << std::endl;
-		ofs << w << " " << h << std::endl;
-		ofs << "255" << std::endl;
-		for (int y = 0; y < h; ++y) {
-			for (int x = 0; x < w; ++x) {
-				ofs << (int)img[y*w+x] << " " << (int)img[y*w+x] << " " << (int)img[y*w+x] << std::endl;
-			}
-		}
-	}
-
-    delete[] img;
-}
-
 
 
 // end of file

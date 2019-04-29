@@ -27,27 +27,27 @@ namespace bb {
 class CudaDevicePush
 {
 protected:
-	int	m_old_device;
-	int	m_device;
+    int m_old_device;
+    int m_device;
 
 public:
-	CudaDevicePush(int device)
-	{
-		m_device = device;
-		if ( m_device >= 0 ) {
-			BB_CUDA_SAFE_CALL(cudaGetDevice(&m_old_device));
-			if ( m_old_device != m_device ) {
-				BB_CUDA_SAFE_CALL(cudaSetDevice(m_device));
-			}
-		}
-	}
+    CudaDevicePush(int device)
+    {
+        m_device = device;
+        if ( m_device >= 0 ) {
+            BB_CUDA_SAFE_CALL(cudaGetDevice(&m_old_device));
+            if ( m_old_device != m_device ) {
+                BB_CUDA_SAFE_CALL(cudaSetDevice(m_device));
+            }
+        }
+    }
 
-	~CudaDevicePush()
-	{
-		if ( m_device >= 0 && (m_old_device != m_device) ) {
-			BB_CUDA_SAFE_CALL(cudaSetDevice(m_old_device));
-		}
-	}
+    ~CudaDevicePush()
+    {
+        if ( m_device >= 0 && (m_old_device != m_device) ) {
+            BB_CUDA_SAFE_CALL(cudaSetDevice(m_old_device));
+        }
+    }
 };
 
 #else
@@ -55,8 +55,8 @@ public:
 class CudaDevicePush
 {
 public:
-	CudaDevicePush(int device) {}
-	~CudaDevicePush() {}
+    CudaDevicePush(int device) {}
+    ~CudaDevicePush() {}
 };
 
 #endif

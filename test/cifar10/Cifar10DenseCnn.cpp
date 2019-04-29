@@ -39,7 +39,7 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, bool
 
   // load cifar-10 data
 #ifdef _DEBUG
-	auto td = bb::LoadCifar10<>::Load(1);
+    auto td = bb::LoadCifar10<>::Load(1);
     std::cout << "!!! debug mode !!!" << std::endl;
 #else
     auto td = bb::LoadCifar10<>::Load();
@@ -47,19 +47,26 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, bool
 
     // create network
     auto net = bb::Sequential::Create();
+    net->Add(bb::RealToBinary<>::Create(15));
     net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(32), 3, 3));
+    net->Add(bb::BatchNormalization<>::Create());
     net->Add(bb::ReLU<>::Create());
     net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(32), 3, 3));
+    net->Add(bb::BatchNormalization<>::Create());
     net->Add(bb::ReLU<>::Create());
     net->Add(bb::MaxPooling<>::Create(2, 2));
     net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3));
+    net->Add(bb::BatchNormalization<>::Create());
     net->Add(bb::ReLU<>::Create());
     net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3));
+    net->Add(bb::BatchNormalization<>::Create());
     net->Add(bb::ReLU<>::Create());
     net->Add(bb::MaxPooling<>::Create(2, 2));
     net->Add(bb::DenseAffine<>::Create(512));
+    net->Add(bb::BatchNormalization<>::Create());
     net->Add(bb::ReLU<>::Create());
     net->Add(bb::DenseAffine<>::Create(td.t_shape));
+    net->Add(bb::BinaryToReal<>::Create(td.t_shape, 15));
     net->SetInputShape(td.x_shape);
 
     if ( binary_mode ) {

@@ -36,29 +36,29 @@
 
 void DiabetesRegressionMicroMlpLut(int epoch_size, size_t mini_batch_size, size_t mux_size)
 {
-	// load diabetes data
-	auto td = LoadDiabetes<>();
-	bb::TrainDataNormalize(td);
+    // load diabetes data
+    auto td = LoadDiabetes<>();
+    bb::TrainDataNormalize(td);
 
-	auto layer_mm0 = bb::MicroMlp<6, 16>::Create({ 1024 });
-	auto layer_mm1 = bb::MicroMlp<6, 16>::Create({ 512 });
-	auto layer_mm2 = bb::MicroMlp<6, 16>::Create({ 216 });
-	auto layer_mm3 = bb::MicroMlp<6, 16>::Create({ 36 });
+    auto layer_mm0 = bb::MicroMlp<6, 16>::Create({ 1024 });
+    auto layer_mm1 = bb::MicroMlp<6, 16>::Create({ 512 });
+    auto layer_mm2 = bb::MicroMlp<6, 16>::Create({ 216 });
+    auto layer_mm3 = bb::MicroMlp<6, 16>::Create({ 36 });
     auto layer_mm4 = bb::MicroMlp<6, 16>::Create({ 6 });
     auto layer_mm5 = bb::MicroMlp<6, 16>::Create({ 1 });
 
     {
         // uMLPで学習
         auto net = bb::Sequential::Create();
-	    net->Add(bb::RealToBinary<>::Create(mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
-	    net->Add(layer_mm0);
-	    net->Add(layer_mm1);
-	    net->Add(layer_mm2);
+        net->Add(bb::RealToBinary<>::Create(mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
+        net->Add(layer_mm0);
+        net->Add(layer_mm1);
+        net->Add(layer_mm2);
         net->Add(layer_mm3);
         net->Add(layer_mm4);
         net->Add(layer_mm5);
-	    net->Add(bb::BinaryToReal<>::Create({ 1 }, mux_size));
-	    net->SetInputShape(td.x_shape);
+        net->Add(bb::BinaryToReal<>::Create({ 1 }, mux_size));
+        net->SetInputShape(td.x_shape);
 
         net->SendCommand("binary true");
 
@@ -67,10 +67,10 @@ void DiabetesRegressionMicroMlpLut(int epoch_size, size_t mini_batch_size, size_
         runner_create.net                = net;
         runner_create.lossFunc           = bb::LossMeanSquaredError<float>::Create();
         runner_create.metricsFunc        = bb::MetricsMeanSquaredError<float>::Create();
-	    runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
-	    runner_create.file_read          = false;
-	    runner_create.file_write         = true;
-	    runner_create.print_progress     = false;
+        runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
+        runner_create.file_read          = false;
+        runner_create.file_write         = true;
+        runner_create.print_progress     = false;
         runner_create.initial_evaluation = true;
         auto runner = bb::Runner<float>::Create(runner_create);
 

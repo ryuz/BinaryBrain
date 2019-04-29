@@ -26,11 +26,11 @@ do { \
 
 #define BB_CUDA_CHECK_LAST_ERROR() \
 do { \
-	cudaError_t cudaStatus = cudaGetLastError(); \
+    cudaError_t cudaStatus = cudaGetLastError(); \
     if (cudaStatus != cudaSuccess) { \
         fprintf(stderr, "[Error] %s (error code: %d) at %s line %d\n", cudaGetErrorString(cudaStatus), cudaStatus, __FILE__, __LINE__); \
         getchar(); \
-		exit(1); \
+        exit(1); \
     } \
 }  while(0)
 

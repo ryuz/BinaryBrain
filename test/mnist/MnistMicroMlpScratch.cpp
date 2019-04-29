@@ -24,6 +24,7 @@
 #include "bb/Utility.h"
 
 
+// スクラッチでモデル構築する例
 class MnistSimpleMicroMlpNet : public bb::Model
 {
 protected:
@@ -146,11 +147,11 @@ public:
 
 
 // MNIST CNN with LUT networks
-void MnistMicroMlpScratch(int epoch_size, size_t mini_batch_size, bool binary_mode)
+void MnistMicroMlpScratch(int epoch_size, int mini_batch_size, bool binary_mode)
 {
     // load MNIST data
 #ifdef _DEBUG
-	auto td = bb::LoadMnist<>::Load(10, 512, 128);
+    auto td = bb::LoadMnist<>::Load(10, 512, 128);
     std::cout << "!!! debug mode !!!" << std::endl;
 #else
     auto td = bb::LoadMnist<>::Load(10);

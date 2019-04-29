@@ -26,54 +26,78 @@ namespace bb {
 template <int N = 6, int M = 16, typename T = float, class Activation = ReLU<T> >
 class MicroMlp : public SparseLayer<T, T>
 {
-    using super = SparseLayer<T, T>;
+    using _super = SparseLayer<T, T>;
 
 protected:
-	// 3層で構成
-	std::shared_ptr< MicroMlpAffine<N, M, T> >	m_affine;
-	std::shared_ptr< BatchNormalization<T>   >  m_batch_norm;
-	std::shared_ptr< Activation              >  m_activation;
-
-protected:
-	MicroMlp() {}
+    // 3層で構成
+    std::shared_ptr< MicroMlpAffine<N, M, T> >  m_affine;
+    std::shared_ptr< BatchNormalization<T>   >  m_batch_norm;
+    std::shared_ptr< Activation              >  m_activation;
 
 public:
-	~MicroMlp() {}
-
+    // 生成情報
     struct create_t
     {
-        typename MicroMlpAffine<N, M, T>::create_t   affine;
-        typename BatchNormalization<T>::create_t     bn;
+        std::string     name;
+        indices_t       output_shape;
+        std::string     connection;
+        T               initialize_std = (T)0.01;
+        std::string     initializer    = "";
+        T               momentum       = (T)0.0;
+        T               gamma          = (T)1.0;
+        T               beta           = (T)0.0;
+        std::uint64_t   seed           = 1;
     };
 
+protected:
+    // コンストラクタ
+    MicroMlp(create_t const &create)
+    {
+        this->SetName(create.name);
+
+        typename MicroMlpAffine<N, M, T>::create_t affine_create;
+        affine_create.output_shape   = create.output_shape;
+        affine_create.connection     = create.connection;
+        affine_create.initialize_std = create.initialize_std;
+        affine_create.initializer    = create.initializer;
+        affine_create.seed           = create.seed;
+        m_affine = MicroMlpAffine<N, M, T>::Create(affine_create);
+
+        typename BatchNormalization<T>::create_t bn_create;
+        bn_create.momentum  = create.momentum;
+        bn_create.gamma     = create.gamma;
+        bn_create.beta      = create.beta;
+        m_batch_norm = BatchNormalization<T>::Create(bn_create);
+        
+        m_activation = Activation::Create();
+    }
+
+public:
+    // デストラクタ
+    ~MicroMlp() {}
+    
+    // 生成
     static std::shared_ptr< MicroMlp > Create(create_t const &create)
     {
-        auto self = std::shared_ptr<MicroMlp>(new MicroMlp);
-        self->m_affine     = MicroMlpAffine<N, M, T>::Create(create.affine);
-        self->m_batch_norm = BatchNormalization<T>::Create(create.bn);
-        self->m_activation = Activation::Create();
-        return self;
+        return std::shared_ptr<MicroMlp>(new MicroMlp(create));
     }
 
-    static std::shared_ptr< MicroMlp > Create(index_t output_node_size, std::string connection = "", T momentum = (T)0.001)
+    static std::shared_ptr< MicroMlp > Create(indices_t const &output_shape, std::string connection = "", T momentum = (T)0.0)
     {
-        auto self = std::shared_ptr<MicroMlp>(new MicroMlp);
-        self->m_affine     = MicroMlpAffine<N, M, T>::Create(output_node_size, connection);
-        self->m_batch_norm = BatchNormalization<T>::Create(momentum);
-        self->m_activation = Activation::Create();
-        return self;
-    }
-       
-    static std::shared_ptr< MicroMlp > Create(indices_t const &output_shape, std::string connection = "", T momentum = (T)0.001)
-    {
-        auto self = std::shared_ptr<MicroMlp>(new MicroMlp);
-        self->m_affine     = MicroMlpAffine<N, M, T>::Create(output_shape, connection);
-        self->m_batch_norm = BatchNormalization<T>::Create(momentum);
-        self->m_activation = Activation::Create();
-        return self;
+        create_t create;
+        create.output_shape = output_shape;
+        create.connection   = connection;
+        create.momentum     = momentum;
+        return Create(create);
     }
 
-	std::string GetClassName(void) const { return "MicroMlp"; }
+    static std::shared_ptr< MicroMlp > Create(index_t output_node_size, std::string connection = "", T momentum = (T)0.0)
+    {
+        return Create(indices_t({output_node_size}), connection, momentum);
+    }
+    
+
+    std::string GetClassName(void) const { return "MicroMlp"; }
 
     /**
      * @brief  コマンドを送る
@@ -81,9 +105,9 @@ public:
      */   
     void SendCommand(std::string command, std::string send_to = "all")
     {
-	    m_affine    ->SendCommand(command, send_to);
-	    m_batch_norm->SendCommand(command, send_to);
-	    m_activation->SendCommand(command, send_to);
+        m_affine    ->SendCommand(command, send_to);
+        m_batch_norm->SendCommand(command, send_to);
+        m_activation->SendCommand(command, send_to);
     }
     
     /**
@@ -95,9 +119,9 @@ public:
     Variables GetParameters(void)
     {
         Variables parameters;
-	    parameters.PushBack(m_affine    ->GetParameters());
-	    parameters.PushBack(m_batch_norm->GetParameters());
-	    parameters.PushBack(m_activation->GetParameters());
+        parameters.PushBack(m_affine    ->GetParameters());
+        parameters.PushBack(m_batch_norm->GetParameters());
+        parameters.PushBack(m_activation->GetParameters());
         return parameters;
     }
 
@@ -110,9 +134,9 @@ public:
     virtual Variables GetGradients(void)
     {
         Variables gradients;
-	    gradients.PushBack(m_affine    ->GetGradients());
-	    gradients.PushBack(m_batch_norm->GetGradients());
-	    gradients.PushBack(m_activation->GetGradients());
+        gradients.PushBack(m_affine    ->GetGradients());
+        gradients.PushBack(m_batch_norm->GetGradients());
+        gradients.PushBack(m_activation->GetGradients());
         return gradients;
     }  
 
@@ -126,9 +150,9 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
-	    shape = m_affine    ->SetInputShape(shape);
-	    shape = m_batch_norm->SetInputShape(shape);
-	    shape = m_activation->SetInputShape(shape);
+        shape = m_affine    ->SetInputShape(shape);
+        shape = m_batch_norm->SetInputShape(shape);
+        shape = m_activation->SetInputShape(shape);
         return shape;
     }
 
@@ -186,9 +210,9 @@ public:
      */
     FrameBuffer Forward(FrameBuffer x, bool train = true)
     {
-	    x = m_affine    ->Forward(x, train);
-	    x = m_batch_norm->Forward(x, train);
-	    x = m_activation->Forward(x, train);
+        x = m_affine    ->Forward(x, train);
+        x = m_batch_norm->Forward(x, train);
+        x = m_activation->Forward(x, train);
         return x;
     }
 
@@ -200,9 +224,9 @@ public:
      */
     FrameBuffer Backward(FrameBuffer dy)
     {
-	    dy = m_activation->Backward(dy);
-	    dy = m_batch_norm->Backward(dy);
-	    dy = m_affine    ->Backward(dy);
+        dy = m_activation->Backward(dy);
+        dy = m_batch_norm->Backward(dy);
+        dy = m_affine    ->Backward(dy);
         return dy; 
     }
 
@@ -245,33 +269,33 @@ public:
 
 
 #ifdef BB_WITH_CEREAL
-	template <class Archive>
+    template <class Archive>
     void save(Archive& archive, std::uint32_t const version) const
-	{
-        super::save(archive, version);
+    {
+        _super::save(archive, version);
     }
 
-	template <class Archive>
+    template <class Archive>
     void load(Archive& archive, std::uint32_t const version)
-	{
-        super::load(archive, version);
+    {
+        _super::load(archive, version);
     }
 
-	void Save(cereal::JSONOutputArchive& archive) const
-	{
+    void Save(cereal::JSONOutputArchive& archive) const
+    {
         archive(cereal::make_nvp("MicroMlp", *this));
         m_affine->Save(archive);
         m_batch_norm->Save(archive);
         m_activation->Save(archive);
-	}
+    }
 
-	void Load(cereal::JSONInputArchive& archive)
-	{
+    void Load(cereal::JSONInputArchive& archive)
+    {
         archive(cereal::make_nvp("MicroMlp", *this));
         m_affine->Load(archive);
         m_batch_norm->Load(archive);
         m_activation->Load(archive);
-	}
+    }
 #endif
 
 };

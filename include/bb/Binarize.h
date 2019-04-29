@@ -23,28 +23,28 @@ template <typename T = float>
 class Binarize : public Activation<T, T>
 {
 protected:
-    FrameBuffer m_x;
-    FrameBuffer m_y;
-    FrameBuffer m_dx;
+    FrameBuffer m_x_buf;
+    FrameBuffer m_y_buf;
+    FrameBuffer m_dx_buf;
 
     bool        m_host_only = false;
 
 protected:
-	Binarize() {}
+    Binarize() {}
 
     /**
      * @brief  コマンド処理
      * @detail コマンド処理
      * @param  args   コマンド
      */
-	void CommandProc(std::vector<std::string> args)
-	{
+    void CommandProc(std::vector<std::string> args)
+    {
         // HostOnlyモード設定
         if (args.size() == 2 && args[0] == "host_only")
         {
             m_host_only = EvalBool(args[1]);
         }
-	}
+    }
 
 
 public:
@@ -54,9 +54,9 @@ public:
         return self;
     }
 
-	~Binarize() {}
+    ~Binarize() {}
 
-	std::string GetClassName(void) const { return "Binarize"; }
+    std::string GetClassName(void) const { return "Binarize"; }
     
     
     // ノード単位でのForward計算
@@ -64,7 +64,7 @@ public:
     {
         std::vector<T> y_vec;
         for ( auto x : x_vec ) {
-		    y_vec.push_back((x > (T)0.0) ? (T)1.0 : (T)0.0);
+            y_vec.push_back((x > (T)0.0) ? (T)1.0 : (T)0.0);
         }
         return y_vec;
     }
@@ -77,31 +77,50 @@ public:
      * @param  train 学習時にtrueを指定
      * @return forward演算結果
      */
-    inline FrameBuffer Forward(FrameBuffer x, bool train = true)
+    inline FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-        BB_ASSERT(x.GetType() == DataType<T>::type);
+        BB_ASSERT(x_buf.GetType() == DataType<T>::type);
 
         // backwardの為に保存
-        m_x = x;
+        m_x_buf = x_buf;
 
         // 戻り値のサイズ設定
-        m_y.ResizeLike(x);
+        m_y_buf.ResizeLike(x_buf);
 
-        index_t frame_size = m_x.GetFrameSize();
-        index_t node_size = m_x.GetNodeSize();
+#ifdef BB_WITH_CUDA
+        if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && m_x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            // CUDA版
+            auto ptr_x = x_buf.LockDeviceMemoryConst();
+            auto ptr_y = m_y_buf.LockDeviceMemory();
+            bbcu_fp32_Binarize_Forward(
+                        (float const *)ptr_x.GetAddr(),
+                        (float       *)ptr_y.GetAddr(),
+                        (int          )m_y_buf.GetNodeSize(),
+                        (int          )m_y_buf.GetFrameSize(),
+                        (int          )(m_y_buf.GetFrameStride() / sizeof(float))
+                    );
+            return m_y_buf;
+        }
+#endif
+        
+        {
+            // 汎用版
+            index_t frame_size = m_x_buf.GetFrameSize();
+            index_t node_size = m_x_buf.GetNodeSize();
 
-		auto x_ptr = m_x.LockConst<T>();
-		auto y_ptr = m_y.Lock<T>();
+            auto x_ptr = m_x_buf.LockConst<T>();
+            auto y_ptr = m_y_buf.Lock<T>();
 
-		// Binarize
-#pragma omp parallel for
-		for (index_t node = 0; node < node_size; ++node) {
-			for (index_t frame = 0; frame < frame_size; ++frame) {
-				y_ptr.Set(frame, node, x_ptr.Get(frame, node) > (T)0.0 ? (T)1.0 : (T)0.0);
-			}
-		}
+            // Binarize
+            #pragma omp parallel for
+            for (index_t node = 0; node < node_size; ++node) {
+                for (index_t frame = 0; frame < frame_size; ++frame) {
+                    y_ptr.Set(frame, node, x_ptr.Get(frame, node) > (T)0.0 ? (T)1.0 : (T)0.0);
+                }
+            }
 
-        return m_y;
+            return m_y_buf;
+        }
     }
 
 
@@ -111,145 +130,55 @@ public:
      *         
      * @return backward演算結果
      */
-	inline FrameBuffer Backward(FrameBuffer dy)
+    inline FrameBuffer Backward(FrameBuffer dy_buf)
     {
-        BB_ASSERT(dy.GetType() == DataType<T>::type);
+        BB_ASSERT(dy_buf.GetType() == DataType<T>::type);
 
         // 戻り値のサイズ設定
-        m_dx.ResizeLike(dy);
-
-        index_t frame_size = m_dx.GetFrameSize();
-        index_t node_size = m_dx.GetNodeSize();
-
-		auto x_ptr  = m_x.LockConst<T>();
-		auto y_ptr  = m_y.LockConst<T>();
-		auto dy_ptr = dy.LockConst<T>();
-		auto dx_ptr = m_dx.Lock<T>();
+        m_dx_buf.ResizeLike(dy_buf);
         
-    	// hard-tanh
-#pragma omp parallel for
-		for (index_t node = 0; node < node_size; ++node) {
-			for (index_t frame = 0; frame < frame_size; ++frame) {
-				auto grad = dy_ptr.Get(frame, node);
-				auto sig  = x_ptr.Get(frame, node);
-				dx_ptr.Set(frame, node, (sig >= (T)-1.0 && sig <= (T)1.0) ? grad : 0);
-			}
-		}
+#ifdef BB_WITH_CUDA
+        if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && m_x_buf.IsDeviceAvailable() && m_dx_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            // GPU版
+            auto ptr_x  = m_x_buf.LockDeviceMemoryConst();
+            auto ptr_dy = dy_buf.LockDeviceMemoryConst();
+            auto ptr_dx = m_dx_buf.LockDeviceMemory(true);
+            bbcu_fp32_HardTanh_Backward(
+                        (float const *)ptr_x.GetAddr(),
+                        (float const *)ptr_dy.GetAddr(),
+                        (float       *)ptr_dx.GetAddr(),
+                        (int          )m_dx_buf.GetNodeSize(),
+                        (int          )m_dx_buf.GetFrameSize(),
+                        (int          )(m_dx_buf.GetFrameStride() / sizeof(float))
+                    );
+            return m_dx_buf;
+        }
+#endif
 
-        return m_dx;
+        {
+            // 汎用版
+            index_t frame_size = m_dx_buf.GetFrameSize();
+            index_t node_size = m_dx_buf.GetNodeSize();
+
+            auto x_ptr  = m_x_buf.LockConst<T>();
+            auto dy_ptr = dy_buf.LockConst<T>();
+            auto dx_ptr = m_dx_buf.Lock<T>();
+            
+            // hard-tanh
+    #pragma omp parallel for
+            for (index_t node = 0; node < node_size; ++node) {
+                for (index_t frame = 0; frame < frame_size; ++frame) {
+                    auto dy = dy_ptr.Get(frame, node);
+                    auto x  = x_ptr.Get(frame, node);
+                    if ( x <= (T)-1.0 || x >= (T)1.0) { dy = (T)0.0; }
+                    dx_ptr.Set(frame, node, dy);
+                }
+            }
+
+            return m_dx_buf;
+        }
     }
 };
-
-
-
-/**
- * @brief  forward演算
- * @detail forward演算を行う
- * @param  x     入力データ
- * @param  train 学習時にtrueを指定
- * @return forward演算結果
- */
-template<>
-inline FrameBuffer Binarize<float>::Forward(FrameBuffer x, bool train)
-{
-    BB_ASSERT(x.GetType() == BB_TYPE_FP32);
-
-    // backwardの為に保存
-    m_x = x;
-
-    // 戻り値のサイズ設定
-    m_y.ResizeLike(x);
-
-    index_t frame_size = m_x.GetFrameSize();
-    index_t node_size = m_x.GetNodeSize();
-
-  	// Binarize
-#if BB_WITH_CUDA
-    if ( !m_host_only && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
-        // CUDA版
-        auto ptr_x = x.LockDeviceMemoryConst();
-        auto ptr_y = m_y.LockDeviceMemory();
-        bbcu_fp32_Binarize_Forward(
-                    (float const *)ptr_x.GetAddr(),
-                    (float *)ptr_y.GetAddr(),
-                    (int)node_size,
-                    (int)frame_size,
-                    (int)(m_x.GetFrameStride() / sizeof(float))
-                );
-        return m_y;
-    }
-#endif
-
-    {
-        // CPU版
-        auto x_ptr = m_x.LockConst<float>();
-	    auto y_ptr = m_y.Lock<float>();
-
-#pragma omp parallel for
-		for (index_t node = 0; node < node_size; ++node) {
-			for (index_t frame = 0; frame < frame_size; ++frame) {
-				y_ptr.Set(frame, node, x_ptr.Get(frame, node) > 0.0f ? 1.0f : 0.0f);
-			}
-		}
-        return m_y;
-    }
-}
-
-
-
-/**
-  * @brief  backward演算
-  * @detail backward演算を行う
-  *         
-  * @return backward演算結果
-  */
-template<>
-inline FrameBuffer Binarize<float>::Backward(FrameBuffer dy)
-{
-    BB_ASSERT(dy.GetType() == BB_TYPE_FP32);
-    
-    // 戻り値のサイズ設定
-    m_dx.ResizeLike(dy);
-
-    index_t frame_size = m_dx.GetFrameSize();
-    index_t node_size = m_dx.GetNodeSize();
-
-    #if BB_WITH_CUDA
-    if ( !m_host_only && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && dy.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
-        // GPU版
-        auto ptr_x  = m_x.LockDeviceMemoryConst();
-        auto ptr_dy = dy.LockDeviceMemoryConst();
-        auto ptr_dx = m_dx.LockDeviceMemory(true);
-        bbcu_fp32_HardTanh_Backward(
-                    (float const *)ptr_x.GetAddr(),
-                    (float const *)ptr_dy.GetAddr(),
-                    (float       *)ptr_dx.GetAddr(),
-                    (int          )node_size,
-                    (int          )frame_size,
-                    (int          )(m_x.GetFrameStride() / sizeof(float))
-                );
-        return m_dx;
-    }
-#endif
-
-    {
-        // CPU版
-        auto x_ptr  = m_x.LockConst<float>();
-	    auto dy_ptr = dy.LockConst<float>();
-	    auto dx_ptr = m_dx.Lock<float>(true);
-
-#pragma omp parallel for
-		for (index_t node = 0; node < node_size; ++node) {
-			for (index_t frame = 0; frame < frame_size; ++frame) {
-				// hard-tanh
-				auto grad = dy_ptr.Get(frame, node);
-				auto sig  = x_ptr.Get(frame, node);
-				dx_ptr.Set(frame, node, (sig >= -1.0f && sig <= 1.0f) ? grad : 0);
-			}
-		}
-        return m_dx;
-    }
-}
 
 
 };

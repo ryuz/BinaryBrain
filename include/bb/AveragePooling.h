@@ -166,7 +166,7 @@ public:
         m_y.Resize(DataType<FT>::type, m_x.GetFrameSize(), m_output_shape);
         
 
-#if 0 // #if BB_WITH_CUDA
+#if 0 // #ifdef BB_WITH_CUDA
         // CUDA版
         if ( DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             auto ptr_x = x.LockDeviceMemoryConst();

@@ -30,17 +30,14 @@
 #include "bb/ExportVerilog.h"
 
 
-static void WriteMnistDataFile(std::string train_file, std::string test_file, int train_size, int test_size);
-
-
 // MNIST CNN with LUT networks
-void MnistMicroMlpLutMlp(int epoch_size, size_t mini_batch_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode)
+void MnistMicroMlpLutMlp(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
 {
     std::string net_name = "MnistMicroMlpLutMlp";
 
   // load MNIST data
 #ifdef _DEBUG
-	auto td = bb::LoadMnist<>::Load(10, 64, 32);
+    auto td = bb::LoadMnist<>::Load(10, 64, 32);
     std::cout << "!!! debug mode !!!" << std::endl;
 #else
     auto td = bb::LoadMnist<>::Load(10);
@@ -68,12 +65,16 @@ void MnistMicroMlpLutMlp(int epoch_size, size_t mini_batch_size, int frame_mux_s
 
         // fitting
         bb::Runner<float>::create_t runner_create;
-        runner_create.name           = net_name;
-        runner_create.net            = net;
-        runner_create.lossFunc       = bb::LossSoftmaxCrossEntropy<float>::Create();
-        runner_create.metricsFunc    = bb::MetricsCategoricalAccuracy<float>::Create();
-        runner_create.optimizer      = bb::OptimizerAdam<float>::Create();
-        runner_create.print_progress = true;
+        runner_create.name               = net_name;
+        runner_create.net                = net;
+        runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
+        runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
+        runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
+        runner_create.max_run_size       = max_run_size;    // 実際の1回の実行サイズ
+        runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
+        runner_create.file_write         = true;            // 計算結果をファイルに保存するか
+        runner_create.print_progress     = true;            // 途中結果を表示
+        runner_create.initial_evaluation = file_read;       // ファイルを読んだ場合は最初に評価しておく
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
@@ -121,53 +122,10 @@ void MnistMicroMlpLutMlp(int epoch_size, size_t mini_batch_size, int frame_mux_s
             std::cout << "export : " << filename << "\n" << std::endl;
 
             // RTL simulation 用データの出力
-            WriteMnistDataFile("verilog/mnist_train.txt", "verilog/mnist_test.txt", 60000, 10000);
+            bb::WriteTestDataBinTextFile<float>("verilog/mnist_train.txt", "verilog/mnist_test.txt", td);
         }
     }
 }
 
 
-
-static void WriteMnistDataFile(std::ostream& ofs, std::vector< std::vector<float> > x, std::vector< std::vector<float> > y)
-{
-	for (size_t i = 0; i < x.size(); ++i) {
-		auto yi = bb::argmax<>(y[i]);
-
-		for (int j = 7; j >= 0; --j) {
-			ofs << ((yi >> j) & 1);
-		}
-		ofs << "_";
-
-		for (int j = 28*28-1; j >= 0; --j) {
-			if (x[i][j] > 0.5f) {
-				ofs << "1";
-			}
-			else {
-				ofs << "0";
-			}
-		}
-		ofs << std::endl;
-	}
-}
-
-
-// write data file for verilog testbench
-static void WriteMnistDataFile(std::string train_file, std::string test_file, int train_size, int test_size)
-{
-	// load MNIST data
-	auto td = bb::LoadMnist<>::Load(10, train_size, test_size);
-
-	// write train data
-	{
-		std::ofstream ofs_train(train_file);
-		WriteMnistDataFile(ofs_train, td.x_train, td.t_train);
-	}
-
-	// write test data
-	{
-		std::ofstream ofs_test(test_file);
-		WriteMnistDataFile(ofs_test, td.x_test, td.t_test);
-	}
-}
-
-
+// end of file

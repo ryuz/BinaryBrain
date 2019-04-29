@@ -85,7 +85,7 @@ public:
                     vec[bit] = (index & (1 << bit)) ? (SFT)1.0 : (SFT)0.0;
                 }
                 auto v = src->ForwardNode(node, vec);
-                this->SetLutTable(node, index, (v[0] > 0));
+                this->SetLutTable(node, index, (v[0] >= (SFT)0.5));
             }
         }
     }

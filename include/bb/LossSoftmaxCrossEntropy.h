@@ -28,14 +28,14 @@ protected:
     index_t     m_frames = 0;
 
 protected:
-	LossSoftmaxCrossEntropy() {
+    LossSoftmaxCrossEntropy() {
         m_loss.Resize(1);
         Clear();
     }
 
 public:
-	~LossSoftmaxCrossEntropy() {}
-	
+    ~LossSoftmaxCrossEntropy() {}
+    
     static std::shared_ptr<LossSoftmaxCrossEntropy> Create(void)
     {
         auto self = std::shared_ptr<LossSoftmaxCrossEntropy>(new LossSoftmaxCrossEntropy);
@@ -59,7 +59,7 @@ public:
         m_dy.Resize(y.GetType(), y.GetFrameSize(), y.GetShape());
         m_loss_buf.Resize(y.GetFrameSize());
 
-#if BB_WITH_CUDA
+#ifdef BB_WITH_CUDA
         if ( DataType<T>::type == BB_TYPE_FP32
                 && y.IsDeviceAvailable() && m_dy.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
 
@@ -70,15 +70,15 @@ public:
             auto loss_ptr     = m_loss.LockDeviceMemory();
 
             bbcu_fp32_LossSoftmaxCrossEntropy
-        		(
-			        (float const *)y_ptr.GetAddr(),
-			        (float const *)t_ptr.GetAddr(),
-			        (float       *)dy_ptr.GetAddr(),
-			        (float       *)loss_buf_ptr.GetAddr(),
-			        (float       *)loss_ptr.GetAddr(),
-			        (int          )y.GetNodeSize(),
-			        (int          )y.GetFrameSize(),
-			        (int          )(y.GetFrameStride() / sizeof(float)),
+                (
+                    (float const *)y_ptr.GetAddr(),
+                    (float const *)t_ptr.GetAddr(),
+                    (float       *)dy_ptr.GetAddr(),
+                    (float       *)loss_buf_ptr.GetAddr(),
+                    (float       *)loss_ptr.GetAddr(),
+                    (int          )y.GetNodeSize(),
+                    (int          )y.GetFrameSize(),
+                    (int          )(y.GetFrameStride() / sizeof(float)),
                     (int          )batch_size
                 );
 
@@ -98,7 +98,7 @@ public:
             auto loss_buf_ptr = m_loss_buf.Lock(true);
             auto loss_ptr = m_loss.Lock();
 
-//#pragma omp parallel for
+            #pragma omp parallel for
             for (index_t frame = 0; frame < frame_size; ++frame) {
                 // max
                 auto c = y_ptr.Get(frame, 0);
@@ -107,7 +107,6 @@ public:
                 }
                 if (!Real_IsValid(c)) {
                     std::cout << "loss c : nan" << std::endl;
- //                 getchar();
                 }
 
                 // sum(exp(y - c))
@@ -124,7 +123,6 @@ public:
                     T dy = (softmax - t_ptr.Get(frame, node)) / (T)batch_size;
                     if (!Real_IsValid(dy)) {
                         std::cout << "loss dy : nan" << std::endl;
- //                     getchar();
                     }
 
                     dy_ptr.Set(frame, node, dy);

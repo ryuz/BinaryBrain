@@ -22,7 +22,7 @@ namespace bb {
 class Sequential : public Model
 {
 protected:
-	std::vector< std::shared_ptr<Model> > m_layers;
+    std::vector< std::shared_ptr<Model> > m_layers;
 
 protected:
     Sequential() {}
@@ -32,7 +32,7 @@ public:
      * @brief  デストラクタ(仮想関数)
      * @detail デストラクタ(仮想関数)
      */
-	~Sequential() {}
+    ~Sequential() {}
 
     static std::shared_ptr<Sequential> Create(void)
     {
@@ -65,7 +65,7 @@ public:
     {
         return m_layers[index];
     }
-	
+    
     /**
      * @brief  コマンドを送る
      * @detail コマンドを送る
@@ -174,7 +174,7 @@ public:
         }
         return dy; 
     }
-	
+    
 protected:
     /**
      * @brief  モデルの情報を表示
@@ -198,7 +198,7 @@ protected:
 
 
 public:
- 	// Serialize
+    // Serialize
     void Save(std::ostream &os) const
     {
         for (auto layer : m_layers) {
@@ -206,7 +206,7 @@ public:
         }
     }
 
-	void Load(std::istream &is)
+    void Load(std::istream &is)
     {
         for (auto layer : m_layers) {
             layer->Load(is);

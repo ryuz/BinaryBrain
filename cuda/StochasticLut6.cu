@@ -48,7 +48,7 @@ __global__ void kernal_fp32_StochasticLut6_Forward(
     __syncthreads();
 
     for (int frame = id; frame < frame_size; frame += id_step) {
-	    float   xp[6], xn[6];
+        float   xp[6], xn[6];
         for ( int i = 0; i < 6; ++i) {
             xp[i] = x_ptr[i][frame];
             xp[i] = min(1.0, max(0.0, xp[i]));
@@ -187,24 +187,24 @@ int bbcu_fp32_StochasticLut6_Forward
 
 __device__ __forceinline__ float device_fp32_LocalSum(float v, float *buf)
 {
-	buf[threadIdx.x] = v;
-	__syncthreads();
+    buf[threadIdx.x] = v;
+    __syncthreads();
 
-	// スレッド間集計
-	int comb = 1;
-	while (comb < blockDim.x) {
-		int next = comb * 2;
-		int mask = next - 1;
-		if ((threadIdx.x & mask) == 0) {
-			buf[threadIdx.x] += buf[threadIdx.x + comb];
-		}
-		comb = next;
-		__syncthreads();
-	}
+    // スレッド間集計
+    int comb = 1;
+    while (comb < blockDim.x) {
+        int next = comb * 2;
+        int mask = next - 1;
+        if ((threadIdx.x & mask) == 0) {
+            buf[threadIdx.x] += buf[threadIdx.x + comb];
+        }
+        comb = next;
+        __syncthreads();
+    }
 
     float sum = buf[0];
     __syncthreads();
-	
+    
     return sum;
 }
 
@@ -476,7 +476,7 @@ __global__ void kernal_fp32_StochasticLut6_Backward
         dx = dxp - dxn;
         if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
         dx_ptr[5 * frame_stride] = dx;
-	}
+    }
 
     for ( int i = 0; i < 64; ++i) {
         dW[i] = device_fp32_LocalSum(dW[i], buf);
@@ -490,29 +490,29 @@ __global__ void kernal_fp32_StochasticLut6_Backward
 
 
 __global__ void kernal_fp32_StochasticLut6_BackwardMarge(
-			const float*	src_buf,
-			float*			dst_buf,
-			const int*		input_index,
-			int				node_size,
-			int				frame_size,
-			int				frame_stride
-		)
+            const float*    src_buf,
+            float*          dst_buf,
+            const int*      input_index,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride
+        )
 {
-	int frame = blockDim.x * blockIdx.x + threadIdx.x;
+    int frame = blockDim.x * blockIdx.x + threadIdx.x;
 
-	for ( int node = 0; node < node_size; ++node ) {
+    for ( int node = 0; node < node_size; ++node ) {
         if ( frame < frame_size ) {
-    	    for ( int n = 0; n < 6; ++n ) {
-		        int in_idx = input_index[node*6 + n];
-		        float*		 dst_buf_ptr = &dst_buf[frame_stride * in_idx];
+            for ( int n = 0; n < 6; ++n ) {
+                int in_idx = input_index[node*6 + n];
+                float*       dst_buf_ptr = &dst_buf[frame_stride * in_idx];
                 float        prev_data = dst_buf_ptr[frame];
-		        const float* src_buf_ptr = &src_buf[(6 * node + n) * frame_stride];
-		        
-		        dst_buf_ptr[frame] = prev_data + src_buf_ptr[frame];
+                const float* src_buf_ptr = &src_buf[(6 * node + n) * frame_stride];
+                
+                dst_buf_ptr[frame] = prev_data + src_buf_ptr[frame];
             }
         }
-		__syncthreads();
-	}
+        __syncthreads();
+    }
 }
 
 

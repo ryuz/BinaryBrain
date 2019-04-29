@@ -23,7 +23,7 @@ namespace bb {
 template <typename T = float>
 class StochasticLut6 : public SparseLayer<T, T>
 {
-    using super = SparseLayer<T, T>;
+    using _super = SparseLayer<T, T>;
 
 protected:
     bool                    m_lut_binarize = true;
@@ -60,8 +60,8 @@ protected:
         m_dW = std::make_shared<Tensor>();
     }
 
- 	void CommandProc(std::vector<std::string> args)
-	{
+    void CommandProc(std::vector<std::string> args)
+    {
         // LUTバイナライズ設定
         if ( args.size() == 2 && args[0] == "lut_binarize" )
         {
@@ -85,10 +85,10 @@ protected:
         {
             m_host_simd = EvalBool(args[1]);
         }
-	}
+    }
 
 public:
-	~StochasticLut6() {}
+    ~StochasticLut6() {}
 
     struct create_t
     {
@@ -127,7 +127,7 @@ public:
         return Create(create);
     }
 
-	std::string GetClassName(void) const { return "StochasticLut6"; }
+    std::string GetClassName(void) const { return "StochasticLut6"; }
 
 
 public:
@@ -154,10 +154,10 @@ public:
 
 
 #ifdef BB_WITH_CEREAL
-	template <class Archive>
+    template <class Archive>
     void save(Archive& archive, std::uint32_t const version) const
-	{
-        super::save(archive, version);
+    {
+        _super::save(archive, version);
         archive(cereal::make_nvp("input_node_size",  m_input_node_size));
         archive(cereal::make_nvp("output_node_size", m_output_node_size));
         archive(cereal::make_nvp("input_shape",      m_input_shape));
@@ -166,10 +166,10 @@ public:
         archive(cereal::make_nvp("W",                *m_W));
     }
 
-	template <class Archive>
+    template <class Archive>
     void load(Archive& archive, std::uint32_t const version)
-	{
-        super::load(archive, version);
+    {
+        _super::load(archive, version);
         archive(cereal::make_nvp("input_node_size",  m_input_node_size));
         archive(cereal::make_nvp("output_node_size", m_output_node_size));
         archive(cereal::make_nvp("input_shape",      m_input_shape));
@@ -178,31 +178,31 @@ public:
         archive(cereal::make_nvp("W",                *m_W));
     }
 
-	void Save(cereal::JSONOutputArchive& archive) const
-	{
+    void Save(cereal::JSONOutputArchive& archive) const
+    {
         archive(cereal::make_nvp("RealLut4", *this));
-	}
+    }
 
-	void Load(cereal::JSONInputArchive& archive)
-	{
+    void Load(cereal::JSONInputArchive& archive)
+    {
         archive(cereal::make_nvp("RealLut4", *this));
-	}
+    }
 #endif
 
 
-  	Tensor       &W(void)       { return *m_W; }
-	Tensor const &W(void) const { return *m_W; }
+    Tensor       &W(void)       { return *m_W; }
+    Tensor const &W(void) const { return *m_W; }
     
-   	Tensor       &dW(void)       { return *m_dW; }
-	Tensor const &dW(void) const { return *m_dW; }
+    Tensor       &dW(void)       { return *m_dW; }
+    Tensor const &dW(void) const { return *m_dW; }
 
-   	auto lock_InputIndex(void)             { return m_input_index.Lock(); }
-	auto lock_InputIndex_const(void) const { return m_input_index.LockConst(); }
+    auto lock_InputIndex(void)             { return m_input_index.Lock(); }
+    auto lock_InputIndex_const(void) const { return m_input_index.LockConst(); }
 
-	auto lock_W(void)              { return m_W->Lock<T>(); }
-	auto lock_W_const(void) const  { return m_W->LockConst<T>(); }
-	auto lock_dW(void)             { return m_dW->Lock<T>(); }
-	auto lock_dW_const(void) const { return m_dW->LockConst<T>(); }
+    auto lock_W(void)              { return m_W->Lock<T>(); }
+    auto lock_W_const(void) const  { return m_W->LockConst<T>(); }
+    auto lock_dW(void)             { return m_dW->Lock<T>(); }
+    auto lock_dW_const(void) const { return m_dW->LockConst<T>(); }
 
 
     index_t GetNodeInputSize(index_t node) const
@@ -303,7 +303,7 @@ public:
 
     // ノード単位でのForward計算
     std::vector<T> ForwardNode(index_t node, std::vector<T> input_value) const
-	{
+    {
         BB_ASSERT(input_value.size() == 6);
 
         // パラメータクリップ
@@ -311,19 +311,17 @@ public:
 
         auto W_ptr = lock_W_const();
         T W[64];
-		for ( int i = 0; i < 64; ++i) {
+        for ( int i = 0; i < 64; ++i) {
             W[i] = W_ptr(node, i);
-//          BB_ASSERT(W[i] >= 0 && W[i] <= 1.0f);
             if ( m_lut_binarize ) {
                 W[i] = W[i] > (T)0.5 ? (T)1.0 : (T)0.0;
             }
         }
 
-	    T   xp[6], xn[6];
+        T   xp[6], xn[6];
         for ( int i = 0; i < 6; ++i) {
             xp[i] = input_value[i];
             xp[i] = std::min((T)1.0, std::max((T)0.0, xp[i]));
-//          BB_ASSERT(xp[i] >= 0 && xp[i] <= 1.0f);
             xn[i] = (T)1.0 - xp[i];
         }
 
@@ -340,85 +338,80 @@ public:
         T x2_10 = xp[5] * xn[4];
         T x2_11 = xp[5] * xp[4];
 
-        T xi[64];
-        xi[0]  = x2_00 * x1_00 * x0_00;
-        xi[1]  = x2_00 * x1_00 * x0_01;
-        xi[2]  = x2_00 * x1_00 * x0_10;
-        xi[3]  = x2_00 * x1_00 * x0_11;
-        xi[4]  = x2_00 * x1_01 * x0_00;
-        xi[5]  = x2_00 * x1_01 * x0_01;
-        xi[6]  = x2_00 * x1_01 * x0_10;
-        xi[7]  = x2_00 * x1_01 * x0_11;
-        xi[8]  = x2_00 * x1_10 * x0_00;
-        xi[9]  = x2_00 * x1_10 * x0_01;
-        xi[10] = x2_00 * x1_10 * x0_10;
-        xi[11] = x2_00 * x1_10 * x0_11;
-        xi[12] = x2_00 * x1_11 * x0_00;
-        xi[13] = x2_00 * x1_11 * x0_01;
-        xi[14] = x2_00 * x1_11 * x0_10;
-        xi[15] = x2_00 * x1_11 * x0_11;
-        xi[16] = x2_01 * x1_00 * x0_00;
-        xi[17] = x2_01 * x1_00 * x0_01;
-        xi[18] = x2_01 * x1_00 * x0_10;
-        xi[19] = x2_01 * x1_00 * x0_11;
-        xi[20] = x2_01 * x1_01 * x0_00;
-        xi[21] = x2_01 * x1_01 * x0_01;
-        xi[22] = x2_01 * x1_01 * x0_10;
-        xi[23] = x2_01 * x1_01 * x0_11;
-        xi[24] = x2_01 * x1_10 * x0_00;
-        xi[25] = x2_01 * x1_10 * x0_01;
-        xi[26] = x2_01 * x1_10 * x0_10;
-        xi[27] = x2_01 * x1_10 * x0_11;
-        xi[28] = x2_01 * x1_11 * x0_00;
-        xi[29] = x2_01 * x1_11 * x0_01;
-        xi[30] = x2_01 * x1_11 * x0_10;
-        xi[31] = x2_01 * x1_11 * x0_11;
-        xi[32] = x2_10 * x1_00 * x0_00;
-        xi[33] = x2_10 * x1_00 * x0_01;
-        xi[34] = x2_10 * x1_00 * x0_10;
-        xi[35] = x2_10 * x1_00 * x0_11;
-        xi[36] = x2_10 * x1_01 * x0_00;
-        xi[37] = x2_10 * x1_01 * x0_01;
-        xi[38] = x2_10 * x1_01 * x0_10;
-        xi[39] = x2_10 * x1_01 * x0_11;
-        xi[40] = x2_10 * x1_10 * x0_00;
-        xi[41] = x2_10 * x1_10 * x0_01;
-        xi[42] = x2_10 * x1_10 * x0_10;
-        xi[43] = x2_10 * x1_10 * x0_11;
-        xi[44] = x2_10 * x1_11 * x0_00;
-        xi[45] = x2_10 * x1_11 * x0_01;
-        xi[46] = x2_10 * x1_11 * x0_10;
-        xi[47] = x2_10 * x1_11 * x0_11;
-        xi[48] = x2_11 * x1_00 * x0_00;
-        xi[49] = x2_11 * x1_00 * x0_01;
-        xi[50] = x2_11 * x1_00 * x0_10;
-        xi[51] = x2_11 * x1_00 * x0_11;
-        xi[52] = x2_11 * x1_01 * x0_00;
-        xi[53] = x2_11 * x1_01 * x0_01;
-        xi[54] = x2_11 * x1_01 * x0_10;
-        xi[55] = x2_11 * x1_01 * x0_11;
-        xi[56] = x2_11 * x1_10 * x0_00;
-        xi[57] = x2_11 * x1_10 * x0_01;
-        xi[58] = x2_11 * x1_10 * x0_10;
-        xi[59] = x2_11 * x1_10 * x0_11;
-        xi[60] = x2_11 * x1_11 * x0_00;
-        xi[61] = x2_11 * x1_11 * x0_01;
-        xi[62] = x2_11 * x1_11 * x0_10;
-        xi[63] = x2_11 * x1_11 * x0_11;
+        T y = (T)0;
+        y += W[ 0]  * x2_00 * x1_00 * x0_00;
+        y += W[ 1]  * x2_00 * x1_00 * x0_01;
+        y += W[ 2]  * x2_00 * x1_00 * x0_10;
+        y += W[ 3]  * x2_00 * x1_00 * x0_11;
+        y += W[ 4]  * x2_00 * x1_01 * x0_00;
+        y += W[ 5]  * x2_00 * x1_01 * x0_01;
+        y += W[ 6]  * x2_00 * x1_01 * x0_10;
+        y += W[ 7]  * x2_00 * x1_01 * x0_11;
+        y += W[ 8]  * x2_00 * x1_10 * x0_00;
+        y += W[ 9]  * x2_00 * x1_10 * x0_01;
+        y += W[10] * x2_00 * x1_10 * x0_10;
+        y += W[11] * x2_00 * x1_10 * x0_11;
+        y += W[12] * x2_00 * x1_11 * x0_00;
+        y += W[13] * x2_00 * x1_11 * x0_01;
+        y += W[14] * x2_00 * x1_11 * x0_10;
+        y += W[15] * x2_00 * x1_11 * x0_11;
+        y += W[16] * x2_01 * x1_00 * x0_00;
+        y += W[17] * x2_01 * x1_00 * x0_01;
+        y += W[18] * x2_01 * x1_00 * x0_10;
+        y += W[19] * x2_01 * x1_00 * x0_11;
+        y += W[20] * x2_01 * x1_01 * x0_00;
+        y += W[21] * x2_01 * x1_01 * x0_01;
+        y += W[22] * x2_01 * x1_01 * x0_10;
+        y += W[23] * x2_01 * x1_01 * x0_11;
+        y += W[24] * x2_01 * x1_10 * x0_00;
+        y += W[25] * x2_01 * x1_10 * x0_01;
+        y += W[26] * x2_01 * x1_10 * x0_10;
+        y += W[27] * x2_01 * x1_10 * x0_11;
+        y += W[28] * x2_01 * x1_11 * x0_00;
+        y += W[29] * x2_01 * x1_11 * x0_01;
+        y += W[30] * x2_01 * x1_11 * x0_10;
+        y += W[31] * x2_01 * x1_11 * x0_11;
+        y += W[32] * x2_10 * x1_00 * x0_00;
+        y += W[33] * x2_10 * x1_00 * x0_01;
+        y += W[34] * x2_10 * x1_00 * x0_10;
+        y += W[35] * x2_10 * x1_00 * x0_11;
+        y += W[36] * x2_10 * x1_01 * x0_00;
+        y += W[37] * x2_10 * x1_01 * x0_01;
+        y += W[38] * x2_10 * x1_01 * x0_10;
+        y += W[39] * x2_10 * x1_01 * x0_11;
+        y += W[40] * x2_10 * x1_10 * x0_00;
+        y += W[41] * x2_10 * x1_10 * x0_01;
+        y += W[42] * x2_10 * x1_10 * x0_10;
+        y += W[43] * x2_10 * x1_10 * x0_11;
+        y += W[44] * x2_10 * x1_11 * x0_00;
+        y += W[45] * x2_10 * x1_11 * x0_01;
+        y += W[46] * x2_10 * x1_11 * x0_10;
+        y += W[47] * x2_10 * x1_11 * x0_11;
+        y += W[48] * x2_11 * x1_00 * x0_00;
+        y += W[49] * x2_11 * x1_00 * x0_01;
+        y += W[50] * x2_11 * x1_00 * x0_10;
+        y += W[51] * x2_11 * x1_00 * x0_11;
+        y += W[52] * x2_11 * x1_01 * x0_00;
+        y += W[53] * x2_11 * x1_01 * x0_01;
+        y += W[54] * x2_11 * x1_01 * x0_10;
+        y += W[55] * x2_11 * x1_01 * x0_11;
+        y += W[56] * x2_11 * x1_10 * x0_00;
+        y += W[57] * x2_11 * x1_10 * x0_01;
+        y += W[58] * x2_11 * x1_10 * x0_10;
+        y += W[59] * x2_11 * x1_10 * x0_11;
+        y += W[60] * x2_11 * x1_11 * x0_00;
+        y += W[61] * x2_11 * x1_11 * x0_01;
+        y += W[62] * x2_11 * x1_11 * x0_10;
+        y += W[63] * x2_11 * x1_11 * x0_11;
 
-        T sig = 0;
-		for ( int i = 0; i < 64; ++i) {
-		    sig += W[i] * xi[i];
-		}
-
-        sig = std::max((T)0.0, sig);
-        sig = std::min((T)1.0, sig);
+        y = std::max((T)0.0, y);
+        y = std::min((T)1.0, y);
         
         std::vector<T> result;
-        result.push_back(sig);
+        result.push_back(y);
 
         return result;
-	}
+    }
 
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
@@ -462,7 +455,7 @@ public:
         }
 #endif
 
-        if (DataType<T>::type == BB_TYPE_FP32 && m_host_simd) {
+        if ( DataType<T>::type == BB_TYPE_FP32 && m_host_simd) {
             auto x_ptr           = x_buf.LockConst<float>();
             auto y_ptr           = m_y_buf.Lock<float>(true);
             auto input_index_ptr = m_input_index.LockConst();
@@ -491,7 +484,7 @@ public:
                 float *y_addr = y_ptr.GetAddr(node);
 
                 for ( index_t frame = 0; frame < frame_size; frame += 8) {
-	                __m256   xp[6], xn[6];
+                    __m256   xp[6], xn[6];
                     for ( int i = 0; i < 6; ++i) {
                         xp[i] = _mm256_loadu_ps(&x_addr[i][frame]);
                         xp[i] = _mm256_min_ps(xp[i], _mm256_set1_ps(1.0));
@@ -598,13 +591,13 @@ public:
             auto W_ptr = lock_W_const();
 
 #pragma omp parallel for
-		    for ( index_t node = 0; node < m_output_node_size; ++node ) {
+            for ( index_t node = 0; node < m_output_node_size; ++node ) {
                 index_t in_idx[6];
-			    for ( int i = 0; i < 6; ++i) {
+                for ( int i = 0; i < 6; ++i) {
                     in_idx[i] = input_index_ptr(node, i);
                 }
                 T W[64];
-			    for ( int i = 0; i < 64; ++i) {
+                for ( int i = 0; i < 64; ++i) {
                     W[i] = W_ptr(node, i);
                     BB_ASSERT(W[i] >= 0 && W[i] <= 1.0f);
                     if ( m_lut_binarize ) {
@@ -612,9 +605,9 @@ public:
                     }
                 }
 
-			    for (index_t frame = 0; frame < frame_size; ++frame ) {
-				    T   xp[6], xn[6];
-    			    for ( int i = 0; i < 6; ++i) {
+                for (index_t frame = 0; frame < frame_size; ++frame ) {
+                    T   xp[6], xn[6];
+                    for ( int i = 0; i < 6; ++i) {
                         xp[i] = x_ptr.Get(frame, in_idx[i]);
                         xp[i] = std::min((T)1.0, std::max((T)0.0, xp[i]));
 //                      BB_ASSERT(xp[i] >= 0 && xp[i] <= 1.0f);
@@ -634,83 +627,77 @@ public:
                     T x2_10 = xp[5] * xn[4];
                     T x2_11 = xp[5] * xp[4];
 
-                    T xi[64];
-                    xi[0]  = x2_00 * x1_00 * x0_00;
-                    xi[1]  = x2_00 * x1_00 * x0_01;
-                    xi[2]  = x2_00 * x1_00 * x0_10;
-                    xi[3]  = x2_00 * x1_00 * x0_11;
-                    xi[4]  = x2_00 * x1_01 * x0_00;
-                    xi[5]  = x2_00 * x1_01 * x0_01;
-                    xi[6]  = x2_00 * x1_01 * x0_10;
-                    xi[7]  = x2_00 * x1_01 * x0_11;
-                    xi[8]  = x2_00 * x1_10 * x0_00;
-                    xi[9]  = x2_00 * x1_10 * x0_01;
-                    xi[10] = x2_00 * x1_10 * x0_10;
-                    xi[11] = x2_00 * x1_10 * x0_11;
-                    xi[12] = x2_00 * x1_11 * x0_00;
-                    xi[13] = x2_00 * x1_11 * x0_01;
-                    xi[14] = x2_00 * x1_11 * x0_10;
-                    xi[15] = x2_00 * x1_11 * x0_11;
-                    xi[16] = x2_01 * x1_00 * x0_00;
-                    xi[17] = x2_01 * x1_00 * x0_01;
-                    xi[18] = x2_01 * x1_00 * x0_10;
-                    xi[19] = x2_01 * x1_00 * x0_11;
-                    xi[20] = x2_01 * x1_01 * x0_00;
-                    xi[21] = x2_01 * x1_01 * x0_01;
-                    xi[22] = x2_01 * x1_01 * x0_10;
-                    xi[23] = x2_01 * x1_01 * x0_11;
-                    xi[24] = x2_01 * x1_10 * x0_00;
-                    xi[25] = x2_01 * x1_10 * x0_01;
-                    xi[26] = x2_01 * x1_10 * x0_10;
-                    xi[27] = x2_01 * x1_10 * x0_11;
-                    xi[28] = x2_01 * x1_11 * x0_00;
-                    xi[29] = x2_01 * x1_11 * x0_01;
-                    xi[30] = x2_01 * x1_11 * x0_10;
-                    xi[31] = x2_01 * x1_11 * x0_11;
-                    xi[32] = x2_10 * x1_00 * x0_00;
-                    xi[33] = x2_10 * x1_00 * x0_01;
-                    xi[34] = x2_10 * x1_00 * x0_10;
-                    xi[35] = x2_10 * x1_00 * x0_11;
-                    xi[36] = x2_10 * x1_01 * x0_00;
-                    xi[37] = x2_10 * x1_01 * x0_01;
-                    xi[38] = x2_10 * x1_01 * x0_10;
-                    xi[39] = x2_10 * x1_01 * x0_11;
-                    xi[40] = x2_10 * x1_10 * x0_00;
-                    xi[41] = x2_10 * x1_10 * x0_01;
-                    xi[42] = x2_10 * x1_10 * x0_10;
-                    xi[43] = x2_10 * x1_10 * x0_11;
-                    xi[44] = x2_10 * x1_11 * x0_00;
-                    xi[45] = x2_10 * x1_11 * x0_01;
-                    xi[46] = x2_10 * x1_11 * x0_10;
-                    xi[47] = x2_10 * x1_11 * x0_11;
-                    xi[48] = x2_11 * x1_00 * x0_00;
-                    xi[49] = x2_11 * x1_00 * x0_01;
-                    xi[50] = x2_11 * x1_00 * x0_10;
-                    xi[51] = x2_11 * x1_00 * x0_11;
-                    xi[52] = x2_11 * x1_01 * x0_00;
-                    xi[53] = x2_11 * x1_01 * x0_01;
-                    xi[54] = x2_11 * x1_01 * x0_10;
-                    xi[55] = x2_11 * x1_01 * x0_11;
-                    xi[56] = x2_11 * x1_10 * x0_00;
-                    xi[57] = x2_11 * x1_10 * x0_01;
-                    xi[58] = x2_11 * x1_10 * x0_10;
-                    xi[59] = x2_11 * x1_10 * x0_11;
-                    xi[60] = x2_11 * x1_11 * x0_00;
-                    xi[61] = x2_11 * x1_11 * x0_01;
-                    xi[62] = x2_11 * x1_11 * x0_10;
-                    xi[63] = x2_11 * x1_11 * x0_11;
+                    T y = (T)0;
+                    y += W[ 0] * x2_00 * x1_00 * x0_00;
+                    y += W[ 1] * x2_00 * x1_00 * x0_01;
+                    y += W[ 2] * x2_00 * x1_00 * x0_10;
+                    y += W[ 3] * x2_00 * x1_00 * x0_11;
+                    y += W[ 4] * x2_00 * x1_01 * x0_00;
+                    y += W[ 5] * x2_00 * x1_01 * x0_01;
+                    y += W[ 6] * x2_00 * x1_01 * x0_10;
+                    y += W[ 7] * x2_00 * x1_01 * x0_11;
+                    y += W[ 8] * x2_00 * x1_10 * x0_00;
+                    y += W[ 9] * x2_00 * x1_10 * x0_01;
+                    y += W[10] * x2_00 * x1_10 * x0_10;
+                    y += W[11] * x2_00 * x1_10 * x0_11;
+                    y += W[12] * x2_00 * x1_11 * x0_00;
+                    y += W[13] * x2_00 * x1_11 * x0_01;
+                    y += W[14] * x2_00 * x1_11 * x0_10;
+                    y += W[15] * x2_00 * x1_11 * x0_11;
+                    y += W[16] * x2_01 * x1_00 * x0_00;
+                    y += W[17] * x2_01 * x1_00 * x0_01;
+                    y += W[18] * x2_01 * x1_00 * x0_10;
+                    y += W[19] * x2_01 * x1_00 * x0_11;
+                    y += W[20] * x2_01 * x1_01 * x0_00;
+                    y += W[21] * x2_01 * x1_01 * x0_01;
+                    y += W[22] * x2_01 * x1_01 * x0_10;
+                    y += W[23] * x2_01 * x1_01 * x0_11;
+                    y += W[24] * x2_01 * x1_10 * x0_00;
+                    y += W[25] * x2_01 * x1_10 * x0_01;
+                    y += W[26] * x2_01 * x1_10 * x0_10;
+                    y += W[27] * x2_01 * x1_10 * x0_11;
+                    y += W[28] * x2_01 * x1_11 * x0_00;
+                    y += W[29] * x2_01 * x1_11 * x0_01;
+                    y += W[30] * x2_01 * x1_11 * x0_10;
+                    y += W[31] * x2_01 * x1_11 * x0_11;
+                    y += W[32] * x2_10 * x1_00 * x0_00;
+                    y += W[33] * x2_10 * x1_00 * x0_01;
+                    y += W[34] * x2_10 * x1_00 * x0_10;
+                    y += W[35] * x2_10 * x1_00 * x0_11;
+                    y += W[36] * x2_10 * x1_01 * x0_00;
+                    y += W[37] * x2_10 * x1_01 * x0_01;
+                    y += W[38] * x2_10 * x1_01 * x0_10;
+                    y += W[39] * x2_10 * x1_01 * x0_11;
+                    y += W[40] * x2_10 * x1_10 * x0_00;
+                    y += W[41] * x2_10 * x1_10 * x0_01;
+                    y += W[42] * x2_10 * x1_10 * x0_10;
+                    y += W[43] * x2_10 * x1_10 * x0_11;
+                    y += W[44] * x2_10 * x1_11 * x0_00;
+                    y += W[45] * x2_10 * x1_11 * x0_01;
+                    y += W[46] * x2_10 * x1_11 * x0_10;
+                    y += W[47] * x2_10 * x1_11 * x0_11;
+                    y += W[48] * x2_11 * x1_00 * x0_00;
+                    y += W[49] * x2_11 * x1_00 * x0_01;
+                    y += W[50] * x2_11 * x1_00 * x0_10;
+                    y += W[51] * x2_11 * x1_00 * x0_11;
+                    y += W[52] * x2_11 * x1_01 * x0_00;
+                    y += W[53] * x2_11 * x1_01 * x0_01;
+                    y += W[54] * x2_11 * x1_01 * x0_10;
+                    y += W[55] * x2_11 * x1_01 * x0_11;
+                    y += W[56] * x2_11 * x1_10 * x0_00;
+                    y += W[57] * x2_11 * x1_10 * x0_01;
+                    y += W[58] * x2_11 * x1_10 * x0_10;
+                    y += W[59] * x2_11 * x1_10 * x0_11;
+                    y += W[60] * x2_11 * x1_11 * x0_00;
+                    y += W[61] * x2_11 * x1_11 * x0_01;
+                    y += W[62] * x2_11 * x1_11 * x0_10;
+                    y += W[63] * x2_11 * x1_11 * x0_11;
 
-                    T sig = 0;
-				    for ( int i = 0; i < 64; ++i) {
-					    sig += W[i] * xi[i];
-				    }
+                    y = std::max((T)0.0, y);
+                    y = std::min((T)1.0, y);
 
-                    sig = std::max((T)0.0, sig);
-                    sig = std::min((T)1.0, sig);
-
-                    BB_ASSERT(sig >= 0 && sig <= 1.0f);
-                    y_ptr.Set(frame, node, sig);
-			    }
+                    y_ptr.Set(frame, node, y);
+                }
             }
 
             return m_y_buf;
@@ -722,7 +709,7 @@ public:
     {
         BB_ASSERT(dy_buf.GetType() == DataType<T>::type);
 
-        m_dx_buf.Resize(DataType<T>::type, dy_buf.GetFrameSize(), m_input_node_size);
+        m_dx_buf.Resize(DataType<T>::type, dy_buf.GetFrameSize(), m_input_shape);
         
 #ifdef BB_WITH_CUDA
         if (DataType<T>::type == BB_TYPE_FP32 && !m_host_only
@@ -775,7 +762,7 @@ public:
             auto dx_tmp_ptr = m_dx_tmp.Lock<float>();
 
             #pragma omp parallel for
-		    for ( index_t node = 0; node < m_output_node_size; ++node ) {           // initialize dW
+            for ( index_t node = 0; node < m_output_node_size; ++node ) {           // initialize dW
                 __m256  dW[64];
                 for ( int i = 0; i < 64; ++i) {
                     dW[i] = _mm256_set1_ps(0.0f);
@@ -805,7 +792,7 @@ public:
                 }
                 
                 for ( index_t frame = 0; frame < frame_size; frame += 8 ) {
-	                __m256   xp[6], xn[6];
+                    __m256   xp[6], xn[6];
                     for ( int i = 0; i < 6; ++i) {
                         xp[i] = _mm256_loadu_ps(&x_addr[i][frame]);
                         xp[i] = _mm256_min_ps(xp[i], _mm256_set1_ps(1.0));
@@ -1007,7 +994,7 @@ public:
                     dxp = _mm256_mul_ps  (dx2_10, xn[4]);
                     dxp = _mm256_fmadd_ps(dx2_11, xp[4], dxp);
                     _mm256_store_ps(&dx_addr[5][frame], _mm256_sub_ps(dxp, dxn));
-	            }
+                }
                 
                 // dW水平加算
                 for ( int i = 0; i < 64; ++i) {
@@ -1034,7 +1021,7 @@ public:
 
 
         {
-//          m_dW->FillZero();
+//          m_dW->FillZero();       // update時にクリア
             m_dx_buf.FillZero();
 
             auto frame_size = m_x_buf.GetFrameSize();
@@ -1045,13 +1032,13 @@ public:
             auto W_ptr  = lock_W_const();
             auto dW_ptr = lock_dW();
         
-		    for ( index_t node = 0; node < m_output_node_size; ++node ) {
+            for ( index_t node = 0; node < m_output_node_size; ++node ) {
                 index_t in_idx[6];
-			    for ( int i = 0; i < 6; ++i) {
+                for ( int i = 0; i < 6; ++i) {
                     in_idx[i] = input_index_ptr(node, i);
                 }
                 T W[64];
-			    for ( int i = 0; i < 64; ++i) {
+                for ( int i = 0; i < 64; ++i) {
                     W[i] = W_ptr(node, i);
                     if ( m_lut_binarize ) {
                         W[i] = W[i] > (T)0.5 ? (T)1.0 : (T)0.0;
@@ -1059,12 +1046,11 @@ public:
                 }
 
                 T dW[64]  = {0};
-			    for (index_t frame = 0; frame < frame_size; ++frame ) {
-				    T   xp[6], xn[6];
-    			    for ( int i = 0; i < 6; ++i) {
+                for (index_t frame = 0; frame < frame_size; ++frame ) {
+                    T   xp[6], xn[6];
+                    for ( int i = 0; i < 6; ++i) {
                         xp[i] = x_ptr.Get(frame, in_idx[i]);
                         xp[i] = std::min((T)1.0, std::max((T)0.0, xp[i]));
-//                      BB_ASSERT(xp[i] >= 0 && xp[i] <= 1.0f);
                         xn[i] = (T)1.0 - xp[i];
                     }
 
@@ -1080,187 +1066,203 @@ public:
                     T x2_01 = xn[5] * xp[4];
                     T x2_10 = xp[5] * xn[4];
                     T x2_11 = xp[5] * xp[4];
-
-                    T xi[64];
-                    xi[0]  = x2_00 * x1_00 * x0_00;
-                    xi[1]  = x2_00 * x1_00 * x0_01;
-                    xi[2]  = x2_00 * x1_00 * x0_10;
-                    xi[3]  = x2_00 * x1_00 * x0_11;
-                    xi[4]  = x2_00 * x1_01 * x0_00;
-                    xi[5]  = x2_00 * x1_01 * x0_01;
-                    xi[6]  = x2_00 * x1_01 * x0_10;
-                    xi[7]  = x2_00 * x1_01 * x0_11;
-                    xi[8]  = x2_00 * x1_10 * x0_00;
-                    xi[9]  = x2_00 * x1_10 * x0_01;
-                    xi[10] = x2_00 * x1_10 * x0_10;
-                    xi[11] = x2_00 * x1_10 * x0_11;
-                    xi[12] = x2_00 * x1_11 * x0_00;
-                    xi[13] = x2_00 * x1_11 * x0_01;
-                    xi[14] = x2_00 * x1_11 * x0_10;
-                    xi[15] = x2_00 * x1_11 * x0_11;
-                    xi[16] = x2_01 * x1_00 * x0_00;
-                    xi[17] = x2_01 * x1_00 * x0_01;
-                    xi[18] = x2_01 * x1_00 * x0_10;
-                    xi[19] = x2_01 * x1_00 * x0_11;
-                    xi[20] = x2_01 * x1_01 * x0_00;
-                    xi[21] = x2_01 * x1_01 * x0_01;
-                    xi[22] = x2_01 * x1_01 * x0_10;
-                    xi[23] = x2_01 * x1_01 * x0_11;
-                    xi[24] = x2_01 * x1_10 * x0_00;
-                    xi[25] = x2_01 * x1_10 * x0_01;
-                    xi[26] = x2_01 * x1_10 * x0_10;
-                    xi[27] = x2_01 * x1_10 * x0_11;
-                    xi[28] = x2_01 * x1_11 * x0_00;
-                    xi[29] = x2_01 * x1_11 * x0_01;
-                    xi[30] = x2_01 * x1_11 * x0_10;
-                    xi[31] = x2_01 * x1_11 * x0_11;
-                    xi[32] = x2_10 * x1_00 * x0_00;
-                    xi[33] = x2_10 * x1_00 * x0_01;
-                    xi[34] = x2_10 * x1_00 * x0_10;
-                    xi[35] = x2_10 * x1_00 * x0_11;
-                    xi[36] = x2_10 * x1_01 * x0_00;
-                    xi[37] = x2_10 * x1_01 * x0_01;
-                    xi[38] = x2_10 * x1_01 * x0_10;
-                    xi[39] = x2_10 * x1_01 * x0_11;
-                    xi[40] = x2_10 * x1_10 * x0_00;
-                    xi[41] = x2_10 * x1_10 * x0_01;
-                    xi[42] = x2_10 * x1_10 * x0_10;
-                    xi[43] = x2_10 * x1_10 * x0_11;
-                    xi[44] = x2_10 * x1_11 * x0_00;
-                    xi[45] = x2_10 * x1_11 * x0_01;
-                    xi[46] = x2_10 * x1_11 * x0_10;
-                    xi[47] = x2_10 * x1_11 * x0_11;
-                    xi[48] = x2_11 * x1_00 * x0_00;
-                    xi[49] = x2_11 * x1_00 * x0_01;
-                    xi[50] = x2_11 * x1_00 * x0_10;
-                    xi[51] = x2_11 * x1_00 * x0_11;
-                    xi[52] = x2_11 * x1_01 * x0_00;
-                    xi[53] = x2_11 * x1_01 * x0_01;
-                    xi[54] = x2_11 * x1_01 * x0_10;
-                    xi[55] = x2_11 * x1_01 * x0_11;
-                    xi[56] = x2_11 * x1_10 * x0_00;
-                    xi[57] = x2_11 * x1_10 * x0_01;
-                    xi[58] = x2_11 * x1_10 * x0_10;
-                    xi[59] = x2_11 * x1_10 * x0_11;
-                    xi[60] = x2_11 * x1_11 * x0_00;
-                    xi[61] = x2_11 * x1_11 * x0_01;
-                    xi[62] = x2_11 * x1_11 * x0_10;
-                    xi[63] = x2_11 * x1_11 * x0_11;
-
+                    
                     T grad = dy_ptr.Get(frame, node);
 
-                    T dxi[64];
-				    for ( int i = 0; i < 64; ++i) {
-					    dW[i]  += xi[i] * grad;
-					    dxi[i]  = W[i]  * grad;
-				    }
+                    dW[0]  += x2_00 * x1_00 * x0_00 * grad;
+                    dW[1]  += x2_00 * x1_00 * x0_01 * grad;
+                    dW[2]  += x2_00 * x1_00 * x0_10 * grad;
+                    dW[3]  += x2_00 * x1_00 * x0_11 * grad;
+                    dW[4]  += x2_00 * x1_01 * x0_00 * grad;
+                    dW[5]  += x2_00 * x1_01 * x0_01 * grad;
+                    dW[6]  += x2_00 * x1_01 * x0_10 * grad;
+                    dW[7]  += x2_00 * x1_01 * x0_11 * grad;
+                    dW[8]  += x2_00 * x1_10 * x0_00 * grad;
+                    dW[9]  += x2_00 * x1_10 * x0_01 * grad;
+                    dW[10] += x2_00 * x1_10 * x0_10 * grad;
+                    dW[11] += x2_00 * x1_10 * x0_11 * grad;
+                    dW[12] += x2_00 * x1_11 * x0_00 * grad;
+                    dW[13] += x2_00 * x1_11 * x0_01 * grad;
+                    dW[14] += x2_00 * x1_11 * x0_10 * grad;
+                    dW[15] += x2_00 * x1_11 * x0_11 * grad;
+                    dW[16] += x2_01 * x1_00 * x0_00 * grad;
+                    dW[17] += x2_01 * x1_00 * x0_01 * grad;
+                    dW[18] += x2_01 * x1_00 * x0_10 * grad;
+                    dW[19] += x2_01 * x1_00 * x0_11 * grad;
+                    dW[20] += x2_01 * x1_01 * x0_00 * grad;
+                    dW[21] += x2_01 * x1_01 * x0_01 * grad;
+                    dW[22] += x2_01 * x1_01 * x0_10 * grad;
+                    dW[23] += x2_01 * x1_01 * x0_11 * grad;
+                    dW[24] += x2_01 * x1_10 * x0_00 * grad;
+                    dW[25] += x2_01 * x1_10 * x0_01 * grad;
+                    dW[26] += x2_01 * x1_10 * x0_10 * grad;
+                    dW[27] += x2_01 * x1_10 * x0_11 * grad;
+                    dW[28] += x2_01 * x1_11 * x0_00 * grad;
+                    dW[29] += x2_01 * x1_11 * x0_01 * grad;
+                    dW[30] += x2_01 * x1_11 * x0_10 * grad;
+                    dW[31] += x2_01 * x1_11 * x0_11 * grad;
+                    dW[32] += x2_10 * x1_00 * x0_00 * grad;
+                    dW[33] += x2_10 * x1_00 * x0_01 * grad;
+                    dW[34] += x2_10 * x1_00 * x0_10 * grad;
+                    dW[35] += x2_10 * x1_00 * x0_11 * grad;
+                    dW[36] += x2_10 * x1_01 * x0_00 * grad;
+                    dW[37] += x2_10 * x1_01 * x0_01 * grad;
+                    dW[38] += x2_10 * x1_01 * x0_10 * grad;
+                    dW[39] += x2_10 * x1_01 * x0_11 * grad;
+                    dW[40] += x2_10 * x1_10 * x0_00 * grad;
+                    dW[41] += x2_10 * x1_10 * x0_01 * grad;
+                    dW[42] += x2_10 * x1_10 * x0_10 * grad;
+                    dW[43] += x2_10 * x1_10 * x0_11 * grad;
+                    dW[44] += x2_10 * x1_11 * x0_00 * grad;
+                    dW[45] += x2_10 * x1_11 * x0_01 * grad;
+                    dW[46] += x2_10 * x1_11 * x0_10 * grad;
+                    dW[47] += x2_10 * x1_11 * x0_11 * grad;
+                    dW[48] += x2_11 * x1_00 * x0_00 * grad;
+                    dW[49] += x2_11 * x1_00 * x0_01 * grad;
+                    dW[50] += x2_11 * x1_00 * x0_10 * grad;
+                    dW[51] += x2_11 * x1_00 * x0_11 * grad;
+                    dW[52] += x2_11 * x1_01 * x0_00 * grad;
+                    dW[53] += x2_11 * x1_01 * x0_01 * grad;
+                    dW[54] += x2_11 * x1_01 * x0_10 * grad;
+                    dW[55] += x2_11 * x1_01 * x0_11 * grad;
+                    dW[56] += x2_11 * x1_10 * x0_00 * grad;
+                    dW[57] += x2_11 * x1_10 * x0_01 * grad;
+                    dW[58] += x2_11 * x1_10 * x0_10 * grad;
+                    dW[59] += x2_11 * x1_10 * x0_11 * grad;
+                    dW[60] += x2_11 * x1_11 * x0_00 * grad;
+                    dW[61] += x2_11 * x1_11 * x0_01 * grad;
+                    dW[62] += x2_11 * x1_11 * x0_10 * grad;
+                    dW[63] += x2_11 * x1_11 * x0_11 * grad;
 
-                    T dx0_00 = 0;
-                    T dx0_01 = 0;
-                    T dx0_10 = 0;
-                    T dx0_11 = 0;
-                    T dx1_00 = 0;
-                    T dx1_01 = 0;
-                    T dx1_10 = 0;
-                    T dx1_11 = 0;
-                    T dx2_00 = 0;
-                    T dx2_01 = 0;
-                    T dx2_10 = 0;
-                    T dx2_11 = 0;
-                    dx0_00 += dxi[0]  * x2_00 * x1_00;  dx1_00 += dxi[0]  * x2_00 * x0_00;  dx2_00 += dxi[0]  * x1_00 * x0_00;
-                    dx0_01 += dxi[1]  * x2_00 * x1_00;  dx1_00 += dxi[1]  * x2_00 * x0_01;  dx2_00 += dxi[1]  * x1_00 * x0_01;
-                    dx0_10 += dxi[2]  * x2_00 * x1_00;  dx1_00 += dxi[2]  * x2_00 * x0_10;  dx2_00 += dxi[2]  * x1_00 * x0_10;
-                    dx0_11 += dxi[3]  * x2_00 * x1_00;  dx1_00 += dxi[3]  * x2_00 * x0_11;  dx2_00 += dxi[3]  * x1_00 * x0_11;
-                    dx0_00 += dxi[4]  * x2_00 * x1_01;  dx1_01 += dxi[4]  * x2_00 * x0_00;  dx2_00 += dxi[4]  * x1_01 * x0_00;
-                    dx0_01 += dxi[5]  * x2_00 * x1_01;  dx1_01 += dxi[5]  * x2_00 * x0_01;  dx2_00 += dxi[5]  * x1_01 * x0_01;
-                    dx0_10 += dxi[6]  * x2_00 * x1_01;  dx1_01 += dxi[6]  * x2_00 * x0_10;  dx2_00 += dxi[6]  * x1_01 * x0_10;
-                    dx0_11 += dxi[7]  * x2_00 * x1_01;  dx1_01 += dxi[7]  * x2_00 * x0_11;  dx2_00 += dxi[7]  * x1_01 * x0_11;
-                    dx0_00 += dxi[8]  * x2_00 * x1_10;  dx1_10 += dxi[8]  * x2_00 * x0_00;  dx2_00 += dxi[8]  * x1_10 * x0_00;
-                    dx0_01 += dxi[9]  * x2_00 * x1_10;  dx1_10 += dxi[9]  * x2_00 * x0_01;  dx2_00 += dxi[9]  * x1_10 * x0_01;
-                    dx0_10 += dxi[10] * x2_00 * x1_10;  dx1_10 += dxi[10] * x2_00 * x0_10;  dx2_00 += dxi[10] * x1_10 * x0_10;
-                    dx0_11 += dxi[11] * x2_00 * x1_10;  dx1_10 += dxi[11] * x2_00 * x0_11;  dx2_00 += dxi[11] * x1_10 * x0_11;
-                    dx0_00 += dxi[12] * x2_00 * x1_11;  dx1_11 += dxi[12] * x2_00 * x0_00;  dx2_00 += dxi[12] * x1_11 * x0_00;
-                    dx0_01 += dxi[13] * x2_00 * x1_11;  dx1_11 += dxi[13] * x2_00 * x0_01;  dx2_00 += dxi[13] * x1_11 * x0_01;
-                    dx0_10 += dxi[14] * x2_00 * x1_11;  dx1_11 += dxi[14] * x2_00 * x0_10;  dx2_00 += dxi[14] * x1_11 * x0_10;
-                    dx0_11 += dxi[15] * x2_00 * x1_11;  dx1_11 += dxi[15] * x2_00 * x0_11;  dx2_00 += dxi[15] * x1_11 * x0_11;
-                    dx0_00 += dxi[16] * x2_01 * x1_00;  dx1_00 += dxi[16] * x2_01 * x0_00;  dx2_01 += dxi[16] * x1_00 * x0_00;
-                    dx0_01 += dxi[17] * x2_01 * x1_00;  dx1_00 += dxi[17] * x2_01 * x0_01;  dx2_01 += dxi[17] * x1_00 * x0_01;
-                    dx0_10 += dxi[18] * x2_01 * x1_00;  dx1_00 += dxi[18] * x2_01 * x0_10;  dx2_01 += dxi[18] * x1_00 * x0_10;
-                    dx0_11 += dxi[19] * x2_01 * x1_00;  dx1_00 += dxi[19] * x2_01 * x0_11;  dx2_01 += dxi[19] * x1_00 * x0_11;
-                    dx0_00 += dxi[20] * x2_01 * x1_01;  dx1_01 += dxi[20] * x2_01 * x0_00;  dx2_01 += dxi[20] * x1_01 * x0_00;
-                    dx0_01 += dxi[21] * x2_01 * x1_01;  dx1_01 += dxi[21] * x2_01 * x0_01;  dx2_01 += dxi[21] * x1_01 * x0_01;
-                    dx0_10 += dxi[22] * x2_01 * x1_01;  dx1_01 += dxi[22] * x2_01 * x0_10;  dx2_01 += dxi[22] * x1_01 * x0_10;
-                    dx0_11 += dxi[23] * x2_01 * x1_01;  dx1_01 += dxi[23] * x2_01 * x0_11;  dx2_01 += dxi[23] * x1_01 * x0_11;
-                    dx0_00 += dxi[24] * x2_01 * x1_10;  dx1_10 += dxi[24] * x2_01 * x0_00;  dx2_01 += dxi[24] * x1_10 * x0_00;
-                    dx0_01 += dxi[25] * x2_01 * x1_10;  dx1_10 += dxi[25] * x2_01 * x0_01;  dx2_01 += dxi[25] * x1_10 * x0_01;
-                    dx0_10 += dxi[26] * x2_01 * x1_10;  dx1_10 += dxi[26] * x2_01 * x0_10;  dx2_01 += dxi[26] * x1_10 * x0_10;
-                    dx0_11 += dxi[27] * x2_01 * x1_10;  dx1_10 += dxi[27] * x2_01 * x0_11;  dx2_01 += dxi[27] * x1_10 * x0_11;
-                    dx0_00 += dxi[28] * x2_01 * x1_11;  dx1_11 += dxi[28] * x2_01 * x0_00;  dx2_01 += dxi[28] * x1_11 * x0_00;
-                    dx0_01 += dxi[29] * x2_01 * x1_11;  dx1_11 += dxi[29] * x2_01 * x0_01;  dx2_01 += dxi[29] * x1_11 * x0_01;
-                    dx0_10 += dxi[30] * x2_01 * x1_11;  dx1_11 += dxi[30] * x2_01 * x0_10;  dx2_01 += dxi[30] * x1_11 * x0_10;
-                    dx0_11 += dxi[31] * x2_01 * x1_11;  dx1_11 += dxi[31] * x2_01 * x0_11;  dx2_01 += dxi[31] * x1_11 * x0_11;
-                    dx0_00 += dxi[32] * x2_10 * x1_00;  dx1_00 += dxi[32] * x2_10 * x0_00;  dx2_10 += dxi[32] * x1_00 * x0_00;
-                    dx0_01 += dxi[33] * x2_10 * x1_00;  dx1_00 += dxi[33] * x2_10 * x0_01;  dx2_10 += dxi[33] * x1_00 * x0_01;
-                    dx0_10 += dxi[34] * x2_10 * x1_00;  dx1_00 += dxi[34] * x2_10 * x0_10;  dx2_10 += dxi[34] * x1_00 * x0_10;
-                    dx0_11 += dxi[35] * x2_10 * x1_00;  dx1_00 += dxi[35] * x2_10 * x0_11;  dx2_10 += dxi[35] * x1_00 * x0_11;
-                    dx0_00 += dxi[36] * x2_10 * x1_01;  dx1_01 += dxi[36] * x2_10 * x0_00;  dx2_10 += dxi[36] * x1_01 * x0_00;
-                    dx0_01 += dxi[37] * x2_10 * x1_01;  dx1_01 += dxi[37] * x2_10 * x0_01;  dx2_10 += dxi[37] * x1_01 * x0_01;
-                    dx0_10 += dxi[38] * x2_10 * x1_01;  dx1_01 += dxi[38] * x2_10 * x0_10;  dx2_10 += dxi[38] * x1_01 * x0_10;
-                    dx0_11 += dxi[39] * x2_10 * x1_01;  dx1_01 += dxi[39] * x2_10 * x0_11;  dx2_10 += dxi[39] * x1_01 * x0_11;
-                    dx0_00 += dxi[40] * x2_10 * x1_10;  dx1_10 += dxi[40] * x2_10 * x0_00;  dx2_10 += dxi[40] * x1_10 * x0_00;
-                    dx0_01 += dxi[41] * x2_10 * x1_10;  dx1_10 += dxi[41] * x2_10 * x0_01;  dx2_10 += dxi[41] * x1_10 * x0_01;
-                    dx0_10 += dxi[42] * x2_10 * x1_10;  dx1_10 += dxi[42] * x2_10 * x0_10;  dx2_10 += dxi[42] * x1_10 * x0_10;
-                    dx0_11 += dxi[43] * x2_10 * x1_10;  dx1_10 += dxi[43] * x2_10 * x0_11;  dx2_10 += dxi[43] * x1_10 * x0_11;
-                    dx0_00 += dxi[44] * x2_10 * x1_11;  dx1_11 += dxi[44] * x2_10 * x0_00;  dx2_10 += dxi[44] * x1_11 * x0_00;
-                    dx0_01 += dxi[45] * x2_10 * x1_11;  dx1_11 += dxi[45] * x2_10 * x0_01;  dx2_10 += dxi[45] * x1_11 * x0_01;
-                    dx0_10 += dxi[46] * x2_10 * x1_11;  dx1_11 += dxi[46] * x2_10 * x0_10;  dx2_10 += dxi[46] * x1_11 * x0_10;
-                    dx0_11 += dxi[47] * x2_10 * x1_11;  dx1_11 += dxi[47] * x2_10 * x0_11;  dx2_10 += dxi[47] * x1_11 * x0_11;
-                    dx0_00 += dxi[48] * x2_11 * x1_00;  dx1_00 += dxi[48] * x2_11 * x0_00;  dx2_11 += dxi[48] * x1_00 * x0_00;
-                    dx0_01 += dxi[49] * x2_11 * x1_00;  dx1_00 += dxi[49] * x2_11 * x0_01;  dx2_11 += dxi[49] * x1_00 * x0_01;
-                    dx0_10 += dxi[50] * x2_11 * x1_00;  dx1_00 += dxi[50] * x2_11 * x0_10;  dx2_11 += dxi[50] * x1_00 * x0_10;
-                    dx0_11 += dxi[51] * x2_11 * x1_00;  dx1_00 += dxi[51] * x2_11 * x0_11;  dx2_11 += dxi[51] * x1_00 * x0_11;
-                    dx0_00 += dxi[52] * x2_11 * x1_01;  dx1_01 += dxi[52] * x2_11 * x0_00;  dx2_11 += dxi[52] * x1_01 * x0_00;
-                    dx0_01 += dxi[53] * x2_11 * x1_01;  dx1_01 += dxi[53] * x2_11 * x0_01;  dx2_11 += dxi[53] * x1_01 * x0_01;
-                    dx0_10 += dxi[54] * x2_11 * x1_01;  dx1_01 += dxi[54] * x2_11 * x0_10;  dx2_11 += dxi[54] * x1_01 * x0_10;
-                    dx0_11 += dxi[55] * x2_11 * x1_01;  dx1_01 += dxi[55] * x2_11 * x0_11;  dx2_11 += dxi[55] * x1_01 * x0_11;
-                    dx0_00 += dxi[56] * x2_11 * x1_10;  dx1_10 += dxi[56] * x2_11 * x0_00;  dx2_11 += dxi[56] * x1_10 * x0_00;
-                    dx0_01 += dxi[57] * x2_11 * x1_10;  dx1_10 += dxi[57] * x2_11 * x0_01;  dx2_11 += dxi[57] * x1_10 * x0_01;
-                    dx0_10 += dxi[58] * x2_11 * x1_10;  dx1_10 += dxi[58] * x2_11 * x0_10;  dx2_11 += dxi[58] * x1_10 * x0_10;
-                    dx0_11 += dxi[59] * x2_11 * x1_10;  dx1_10 += dxi[59] * x2_11 * x0_11;  dx2_11 += dxi[59] * x1_10 * x0_11;
-                    dx0_00 += dxi[60] * x2_11 * x1_11;  dx1_11 += dxi[60] * x2_11 * x0_00;  dx2_11 += dxi[60] * x1_11 * x0_00;
-                    dx0_01 += dxi[61] * x2_11 * x1_11;  dx1_11 += dxi[61] * x2_11 * x0_01;  dx2_11 += dxi[61] * x1_11 * x0_01;
-                    dx0_10 += dxi[62] * x2_11 * x1_11;  dx1_11 += dxi[62] * x2_11 * x0_10;  dx2_11 += dxi[62] * x1_11 * x0_10;
-                    dx0_11 += dxi[63] * x2_11 * x1_11;  dx1_11 += dxi[63] * x2_11 * x0_11;  dx2_11 += dxi[63] * x1_11 * x0_11;
+                    T dxi;
+                    T dx0_00 = (T)0;
+                    T dx0_01 = (T)0;
+                    T dx0_10 = (T)0;
+                    T dx0_11 = (T)0;
+                    T dx1_00 = (T)0;
+                    T dx1_01 = (T)0;
+                    T dx1_10 = (T)0;
+                    T dx1_11 = (T)0;
+                    T dx2_00 = (T)0;
+                    T dx2_01 = (T)0;
+                    T dx2_10 = (T)0;
+                    T dx2_11 = (T)0;
+                    dxi = W[ 0] * grad;  dx0_00 += dxi * x2_00 * x1_00;  dx1_00 += dxi * x2_00 * x0_00;  dx2_00 += dxi * x1_00 * x0_00;
+                    dxi = W[ 1] * grad;  dx0_01 += dxi * x2_00 * x1_00;  dx1_00 += dxi * x2_00 * x0_01;  dx2_00 += dxi * x1_00 * x0_01;
+                    dxi = W[ 2] * grad;  dx0_10 += dxi * x2_00 * x1_00;  dx1_00 += dxi * x2_00 * x0_10;  dx2_00 += dxi * x1_00 * x0_10;
+                    dxi = W[ 3] * grad;  dx0_11 += dxi * x2_00 * x1_00;  dx1_00 += dxi * x2_00 * x0_11;  dx2_00 += dxi * x1_00 * x0_11;
+                    dxi = W[ 4] * grad;  dx0_00 += dxi * x2_00 * x1_01;  dx1_01 += dxi * x2_00 * x0_00;  dx2_00 += dxi * x1_01 * x0_00;
+                    dxi = W[ 5] * grad;  dx0_01 += dxi * x2_00 * x1_01;  dx1_01 += dxi * x2_00 * x0_01;  dx2_00 += dxi * x1_01 * x0_01;
+                    dxi = W[ 6] * grad;  dx0_10 += dxi * x2_00 * x1_01;  dx1_01 += dxi * x2_00 * x0_10;  dx2_00 += dxi * x1_01 * x0_10;
+                    dxi = W[ 7] * grad;  dx0_11 += dxi * x2_00 * x1_01;  dx1_01 += dxi * x2_00 * x0_11;  dx2_00 += dxi * x1_01 * x0_11;
+                    dxi = W[ 8] * grad;  dx0_00 += dxi * x2_00 * x1_10;  dx1_10 += dxi * x2_00 * x0_00;  dx2_00 += dxi * x1_10 * x0_00;
+                    dxi = W[ 9] * grad;  dx0_01 += dxi * x2_00 * x1_10;  dx1_10 += dxi * x2_00 * x0_01;  dx2_00 += dxi * x1_10 * x0_01;
+                    dxi = W[10] * grad;  dx0_10 += dxi * x2_00 * x1_10;  dx1_10 += dxi * x2_00 * x0_10;  dx2_00 += dxi * x1_10 * x0_10;
+                    dxi = W[11] * grad;  dx0_11 += dxi * x2_00 * x1_10;  dx1_10 += dxi * x2_00 * x0_11;  dx2_00 += dxi * x1_10 * x0_11;
+                    dxi = W[12] * grad;  dx0_00 += dxi * x2_00 * x1_11;  dx1_11 += dxi * x2_00 * x0_00;  dx2_00 += dxi * x1_11 * x0_00;
+                    dxi = W[13] * grad;  dx0_01 += dxi * x2_00 * x1_11;  dx1_11 += dxi * x2_00 * x0_01;  dx2_00 += dxi * x1_11 * x0_01;
+                    dxi = W[14] * grad;  dx0_10 += dxi * x2_00 * x1_11;  dx1_11 += dxi * x2_00 * x0_10;  dx2_00 += dxi * x1_11 * x0_10;
+                    dxi = W[15] * grad;  dx0_11 += dxi * x2_00 * x1_11;  dx1_11 += dxi * x2_00 * x0_11;  dx2_00 += dxi * x1_11 * x0_11;
+                    dxi = W[16] * grad;  dx0_00 += dxi * x2_01 * x1_00;  dx1_00 += dxi * x2_01 * x0_00;  dx2_01 += dxi * x1_00 * x0_00;
+                    dxi = W[17] * grad;  dx0_01 += dxi * x2_01 * x1_00;  dx1_00 += dxi * x2_01 * x0_01;  dx2_01 += dxi * x1_00 * x0_01;
+                    dxi = W[18] * grad;  dx0_10 += dxi * x2_01 * x1_00;  dx1_00 += dxi * x2_01 * x0_10;  dx2_01 += dxi * x1_00 * x0_10;
+                    dxi = W[19] * grad;  dx0_11 += dxi * x2_01 * x1_00;  dx1_00 += dxi * x2_01 * x0_11;  dx2_01 += dxi * x1_00 * x0_11;
+                    dxi = W[20] * grad;  dx0_00 += dxi * x2_01 * x1_01;  dx1_01 += dxi * x2_01 * x0_00;  dx2_01 += dxi * x1_01 * x0_00;
+                    dxi = W[21] * grad;  dx0_01 += dxi * x2_01 * x1_01;  dx1_01 += dxi * x2_01 * x0_01;  dx2_01 += dxi * x1_01 * x0_01;
+                    dxi = W[22] * grad;  dx0_10 += dxi * x2_01 * x1_01;  dx1_01 += dxi * x2_01 * x0_10;  dx2_01 += dxi * x1_01 * x0_10;
+                    dxi = W[23] * grad;  dx0_11 += dxi * x2_01 * x1_01;  dx1_01 += dxi * x2_01 * x0_11;  dx2_01 += dxi * x1_01 * x0_11;
+                    dxi = W[24] * grad;  dx0_00 += dxi * x2_01 * x1_10;  dx1_10 += dxi * x2_01 * x0_00;  dx2_01 += dxi * x1_10 * x0_00;
+                    dxi = W[25] * grad;  dx0_01 += dxi * x2_01 * x1_10;  dx1_10 += dxi * x2_01 * x0_01;  dx2_01 += dxi * x1_10 * x0_01;
+                    dxi = W[26] * grad;  dx0_10 += dxi * x2_01 * x1_10;  dx1_10 += dxi * x2_01 * x0_10;  dx2_01 += dxi * x1_10 * x0_10;
+                    dxi = W[27] * grad;  dx0_11 += dxi * x2_01 * x1_10;  dx1_10 += dxi * x2_01 * x0_11;  dx2_01 += dxi * x1_10 * x0_11;
+                    dxi = W[28] * grad;  dx0_00 += dxi * x2_01 * x1_11;  dx1_11 += dxi * x2_01 * x0_00;  dx2_01 += dxi * x1_11 * x0_00;
+                    dxi = W[29] * grad;  dx0_01 += dxi * x2_01 * x1_11;  dx1_11 += dxi * x2_01 * x0_01;  dx2_01 += dxi * x1_11 * x0_01;
+                    dxi = W[30] * grad;  dx0_10 += dxi * x2_01 * x1_11;  dx1_11 += dxi * x2_01 * x0_10;  dx2_01 += dxi * x1_11 * x0_10;
+                    dxi = W[31] * grad;  dx0_11 += dxi * x2_01 * x1_11;  dx1_11 += dxi * x2_01 * x0_11;  dx2_01 += dxi * x1_11 * x0_11;
+                    dxi = W[32] * grad;  dx0_00 += dxi * x2_10 * x1_00;  dx1_00 += dxi * x2_10 * x0_00;  dx2_10 += dxi * x1_00 * x0_00;
+                    dxi = W[33] * grad;  dx0_01 += dxi * x2_10 * x1_00;  dx1_00 += dxi * x2_10 * x0_01;  dx2_10 += dxi * x1_00 * x0_01;
+                    dxi = W[34] * grad;  dx0_10 += dxi * x2_10 * x1_00;  dx1_00 += dxi * x2_10 * x0_10;  dx2_10 += dxi * x1_00 * x0_10;
+                    dxi = W[35] * grad;  dx0_11 += dxi * x2_10 * x1_00;  dx1_00 += dxi * x2_10 * x0_11;  dx2_10 += dxi * x1_00 * x0_11;
+                    dxi = W[36] * grad;  dx0_00 += dxi * x2_10 * x1_01;  dx1_01 += dxi * x2_10 * x0_00;  dx2_10 += dxi * x1_01 * x0_00;
+                    dxi = W[37] * grad;  dx0_01 += dxi * x2_10 * x1_01;  dx1_01 += dxi * x2_10 * x0_01;  dx2_10 += dxi * x1_01 * x0_01;
+                    dxi = W[38] * grad;  dx0_10 += dxi * x2_10 * x1_01;  dx1_01 += dxi * x2_10 * x0_10;  dx2_10 += dxi * x1_01 * x0_10;
+                    dxi = W[39] * grad;  dx0_11 += dxi * x2_10 * x1_01;  dx1_01 += dxi * x2_10 * x0_11;  dx2_10 += dxi * x1_01 * x0_11;
+                    dxi = W[40] * grad;  dx0_00 += dxi * x2_10 * x1_10;  dx1_10 += dxi * x2_10 * x0_00;  dx2_10 += dxi * x1_10 * x0_00;
+                    dxi = W[41] * grad;  dx0_01 += dxi * x2_10 * x1_10;  dx1_10 += dxi * x2_10 * x0_01;  dx2_10 += dxi * x1_10 * x0_01;
+                    dxi = W[42] * grad;  dx0_10 += dxi * x2_10 * x1_10;  dx1_10 += dxi * x2_10 * x0_10;  dx2_10 += dxi * x1_10 * x0_10;
+                    dxi = W[43] * grad;  dx0_11 += dxi * x2_10 * x1_10;  dx1_10 += dxi * x2_10 * x0_11;  dx2_10 += dxi * x1_10 * x0_11;
+                    dxi = W[44] * grad;  dx0_00 += dxi * x2_10 * x1_11;  dx1_11 += dxi * x2_10 * x0_00;  dx2_10 += dxi * x1_11 * x0_00;
+                    dxi = W[45] * grad;  dx0_01 += dxi * x2_10 * x1_11;  dx1_11 += dxi * x2_10 * x0_01;  dx2_10 += dxi * x1_11 * x0_01;
+                    dxi = W[46] * grad;  dx0_10 += dxi * x2_10 * x1_11;  dx1_11 += dxi * x2_10 * x0_10;  dx2_10 += dxi * x1_11 * x0_10;
+                    dxi = W[47] * grad;  dx0_11 += dxi * x2_10 * x1_11;  dx1_11 += dxi * x2_10 * x0_11;  dx2_10 += dxi * x1_11 * x0_11;
+                    dxi = W[48] * grad;  dx0_00 += dxi * x2_11 * x1_00;  dx1_00 += dxi * x2_11 * x0_00;  dx2_11 += dxi * x1_00 * x0_00;
+                    dxi = W[49] * grad;  dx0_01 += dxi * x2_11 * x1_00;  dx1_00 += dxi * x2_11 * x0_01;  dx2_11 += dxi * x1_00 * x0_01;
+                    dxi = W[50] * grad;  dx0_10 += dxi * x2_11 * x1_00;  dx1_00 += dxi * x2_11 * x0_10;  dx2_11 += dxi * x1_00 * x0_10;
+                    dxi = W[51] * grad;  dx0_11 += dxi * x2_11 * x1_00;  dx1_00 += dxi * x2_11 * x0_11;  dx2_11 += dxi * x1_00 * x0_11;
+                    dxi = W[52] * grad;  dx0_00 += dxi * x2_11 * x1_01;  dx1_01 += dxi * x2_11 * x0_00;  dx2_11 += dxi * x1_01 * x0_00;
+                    dxi = W[53] * grad;  dx0_01 += dxi * x2_11 * x1_01;  dx1_01 += dxi * x2_11 * x0_01;  dx2_11 += dxi * x1_01 * x0_01;
+                    dxi = W[54] * grad;  dx0_10 += dxi * x2_11 * x1_01;  dx1_01 += dxi * x2_11 * x0_10;  dx2_11 += dxi * x1_01 * x0_10;
+                    dxi = W[55] * grad;  dx0_11 += dxi * x2_11 * x1_01;  dx1_01 += dxi * x2_11 * x0_11;  dx2_11 += dxi * x1_01 * x0_11;
+                    dxi = W[56] * grad;  dx0_00 += dxi * x2_11 * x1_10;  dx1_10 += dxi * x2_11 * x0_00;  dx2_11 += dxi * x1_10 * x0_00;
+                    dxi = W[57] * grad;  dx0_01 += dxi * x2_11 * x1_10;  dx1_10 += dxi * x2_11 * x0_01;  dx2_11 += dxi * x1_10 * x0_01;
+                    dxi = W[58] * grad;  dx0_10 += dxi * x2_11 * x1_10;  dx1_10 += dxi * x2_11 * x0_10;  dx2_11 += dxi * x1_10 * x0_10;
+                    dxi = W[59] * grad;  dx0_11 += dxi * x2_11 * x1_10;  dx1_10 += dxi * x2_11 * x0_11;  dx2_11 += dxi * x1_10 * x0_11;
+                    dxi = W[60] * grad;  dx0_00 += dxi * x2_11 * x1_11;  dx1_11 += dxi * x2_11 * x0_00;  dx2_11 += dxi * x1_11 * x0_00;
+                    dxi = W[61] * grad;  dx0_01 += dxi * x2_11 * x1_11;  dx1_11 += dxi * x2_11 * x0_01;  dx2_11 += dxi * x1_11 * x0_01;
+                    dxi = W[62] * grad;  dx0_10 += dxi * x2_11 * x1_11;  dx1_11 += dxi * x2_11 * x0_10;  dx2_11 += dxi * x1_11 * x0_10;
+                    dxi = W[63] * grad;  dx0_11 += dxi * x2_11 * x1_11;  dx1_11 += dxi * x2_11 * x0_11;  dx2_11 += dxi * x1_11 * x0_11;
 
+                    T dxn;
+                    T dxp;
+                    T dx;
+                    dxn  = dx0_00 * xn[1];    dxn += dx0_10 * xp[1];
+                    dxp  = dx0_01 * xn[1];    dxp += dx0_11 * xp[1];
+                    dx = dxp - dxn;
+                    if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+                    dx_ptr.Add(frame, in_idx[0], dx);
 
-                    T dxn[6] = {0};
-                    T dxp[6] = {0};
-                    dxn[0] += dx0_00 * xn[1];     dxn[1] += dx0_00 * xn[0];
-                    dxp[0] += dx0_01 * xn[1];     dxn[1] += dx0_01 * xp[0];
-                    dxn[0] += dx0_10 * xp[1];     dxp[1] += dx0_10 * xn[0];
-                    dxp[0] += dx0_11 * xp[1];     dxp[1] += dx0_11 * xp[0];
-                    dxn[2] += dx1_00 * xn[3];     dxn[3] += dx1_00 * xn[2];
-                    dxp[2] += dx1_01 * xn[3];     dxn[3] += dx1_01 * xp[2];
-                    dxn[2] += dx1_10 * xp[3];     dxp[3] += dx1_10 * xn[2];
-                    dxp[2] += dx1_11 * xp[3];     dxp[3] += dx1_11 * xp[2];
-                    dxn[4] += dx2_00 * xn[5];     dxn[5] += dx2_00 * xn[4];
-                    dxp[4] += dx2_01 * xn[5];     dxn[5] += dx2_01 * xp[4];
-                    dxn[4] += dx2_10 * xp[5];     dxp[5] += dx2_10 * xn[4];
-                    dxp[4] += dx2_11 * xp[5];     dxp[5] += dx2_11 * xp[4];
+                    dxn  = dx0_00 * xn[0];
+                    dxn += dx0_01 * xp[0];
+                    dxp  = dx0_10 * xn[0];
+                    dxp += dx0_11 * xp[0];
+                    dx = dxp - dxn;
+                    if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+                    dx_ptr.Add(frame, in_idx[1], dx);
 
-                    T dx_grad[6];
-                    dx_grad[0] = (dxp[0] - dxn[0]);
-                    dx_grad[1] = (dxp[1] - dxn[1]);
-                    dx_grad[2] = (dxp[2] - dxn[2]);
-                    dx_grad[3] = (dxp[3] - dxn[3]);
-                    dx_grad[4] = (dxp[4] - dxn[4]);
-                    dx_grad[5] = (dxp[5] - dxn[5]);
-    			    for ( int i = 0; i < 6; ++i) {
-                        dx_ptr.Add(frame, in_idx[i], dx_grad[i]);
-                    }
-			    }
+                    dxn  = dx1_00 * xn[3];     
+                    dxp  = dx1_01 * xn[3];     
+                    dxn += dx1_10 * xp[3];     
+                    dxp += dx1_11 * xp[3];     
+                    dx = dxp - dxn;
+                    if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+                    dx_ptr.Add(frame, in_idx[2], dx);
 
- 			    for ( int i = 0; i < 64; ++i) {
+                    dxn  = dx1_00 * xn[2];
+                    dxn += dx1_01 * xp[2];
+                    dxp  = dx1_10 * xn[2];
+                    dxp += dx1_11 * xp[2];
+                    dx = dxp - dxn;
+                    if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+                    dx_ptr.Add(frame, in_idx[3], dx);
+
+                    dxn  = dx2_00 * xn[5];     
+                    dxp  = dx2_01 * xn[5];     
+                    dxn += dx2_10 * xp[5];     
+                    dxp += dx2_11 * xp[5];     
+                    dx = dxp - dxn;
+                    if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+                    dx_ptr.Add(frame, in_idx[4], dx);
+
+                    dxn  = dx2_00 * xn[4];
+                    dxn += dx2_01 * xp[4];
+                    dxp  = dx2_10 * xn[4];
+                    dxp += dx2_11 * xp[4];
+                    dx = dxp - dxn;
+                    if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+                    dx_ptr.Add(frame, in_idx[5], dx);
+                }
+
+                for ( int i = 0; i < 64; ++i) {
                     dW_ptr(node, i) = dW[i];
                 }
             }

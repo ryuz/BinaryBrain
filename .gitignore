@@ -31,6 +31,7 @@
 # execute
 sample/mnist/sample-mnist
 sample/diabetes/sample-diabetes
+sample/cifar10/sample-cifar10
 
 test/gtest/gtest
 test/mnist/test-mnist

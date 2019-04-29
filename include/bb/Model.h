@@ -31,7 +31,7 @@ namespace bb {
 class Model
 {
 protected:
-	std::string		m_name;
+    std::string     m_name;
 
     /**
      * @brief  コマンドを処理
@@ -46,7 +46,7 @@ public:
      * @brief  デストラクタ(仮想関数)
      * @detail デストラクタ(仮想関数)
      */
-	virtual ~Model() {}
+    virtual ~Model() {}
 
     /**
      * @brief  クラス名取得
@@ -54,16 +54,16 @@ public:
      *         シリアライズ時などの便宜上、クラス名を返すようにする
      * @return クラス名
      */
-	virtual std::string GetClassName(void) const = 0;
+    virtual std::string GetClassName(void) const = 0;
 
     /**
      * @brief  名前設定
      * @detail 名前設定
      *         インスタンスの名前を設定する
      */
-	virtual void  SetName(const std::string name) {
-		m_name = name;
-	}
+    virtual void  SetName(const std::string name) {
+        m_name = name;
+    }
     
     /**
      * @brief  名前取得
@@ -71,14 +71,14 @@ public:
      *         インスタンスの名前を取得する
      * @return 名前を返す
      */
-	virtual std::string GetName(void) const
-	{
-		if (m_name.empty()) {
-			return GetClassName();
-		}
-		return m_name;
-	}
-	
+    virtual std::string GetName(void) const
+    {
+        if (m_name.empty()) {
+            return GetClassName();
+        }
+        return m_name;
+    }
+    
     /**
      * @brief  コマンドを送信
      * @detail コマンドを送信
@@ -161,7 +161,7 @@ public:
      * @param  train 学習時にtrueを指定
      * @return forward演算結果
      */
-    virtual	FrameBuffer Forward(FrameBuffer x, bool train=true) = 0;
+    virtual FrameBuffer Forward(FrameBuffer x, bool train=true) = 0;
 
    /**
      * @brief  forward演算(複数入力対応)
@@ -169,7 +169,7 @@ public:
      *         分岐や合流演算を可能とするために汎用版を定義しておく
      * @return forward演算結果
      */
-    virtual	std::vector<FrameBuffer> Forward(std::vector<FrameBuffer> vx, bool train = true)
+    virtual std::vector<FrameBuffer> Forward(std::vector<FrameBuffer> vx, bool train = true)
     {
         BB_ASSERT(vx.size() == 1);
         auto y = Forward(vx[0], train);
@@ -187,7 +187,7 @@ protected:
      * @param  nest    ネストカウンタ
      * @param  depth   表示したい深さ
      */
-    virtual	void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
+    virtual void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
     {
         os << indent << " input  shape : " << GetInputShape();
         os << indent << " output shape : " << GetOutputShape() << std::endl;
@@ -202,7 +202,7 @@ public:
      * @param  columns  表示幅
      * @param  nest     深さ指定(通常は0)
      */
-    virtual	void PrintInfo(int depth=0, std::ostream& os=std::cout, int columns=70, int nest=0)
+    virtual void PrintInfo(int depth=0, std::ostream& os=std::cout, int columns=70, int nest=0)
     {
         // セパレータとインデント文字列生成
         std::string indent    = std::string(nest*2, ' ');
@@ -228,7 +228,7 @@ public:
      *         
      * @return backward演算結果
      */
-	virtual	FrameBuffer Backward(FrameBuffer dy) = 0;
+    virtual FrameBuffer Backward(FrameBuffer dy) = 0;
 
    /**
      * @brief  backward演算(複数入力対応)
@@ -236,30 +236,30 @@ public:
      *         分岐や合流演算を可能とするために汎用版を定義しておく
      * @return backward演算結果
      */
-    virtual	std::vector<FrameBuffer> Backward(std::vector<FrameBuffer> vdy)
+    virtual std::vector<FrameBuffer> Backward(std::vector<FrameBuffer> vdy)
     {
         BB_ASSERT(vdy.size() == 1);
         auto dx = Backward(vdy[0]);
         return {dx};
     }
-	
-	
+    
+    
 public:
-	// Serialize
-  	virtual void Save(std::ostream &os) const
-	{
+    // Serialize
+    virtual void Save(std::ostream &os) const
+    {
         int size = (int)m_name.size();
         os.write((char const *)&size, sizeof(size));
         os.write((char const *)&m_name[0], size);
-	}
+    }
 
-	virtual void Load(std::istream &is)
-	{
+    virtual void Load(std::istream &is)
+    {
         int size;
         is.read((char*)&size, sizeof(size));
         m_name.resize(size);
         is.read((char*)&m_name[0], size);
-	}
+    }
 
     void SaveBinary(std::string filename) const
     {
@@ -274,43 +274,43 @@ public:
     }
 
 
-	// Serialize(CEREAL)
+    // Serialize(CEREAL)
 #if BB_WITH_CEREAL
-	template <class Archive>
-	void save(Archive& archive, std::uint32_t const version) const
-	{
-		archive(cereal::make_nvp("name", m_name));
-	}
+    template <class Archive>
+    void save(Archive& archive, std::uint32_t const version) const
+    {
+        archive(cereal::make_nvp("name", m_name));
+    }
 
-	template <class Archive>
-	void load(Archive& archive, std::uint32_t const version)
-	{
-		archive(cereal::make_nvp("name", m_name));
-	}
+    template <class Archive>
+    void load(Archive& archive, std::uint32_t const version)
+    {
+        archive(cereal::make_nvp("name", m_name));
+    }
 
-	virtual void Save(cereal::JSONOutputArchive& archive) const
-	{
-		archive(cereal::make_nvp("Model", *this));
-	}
+    virtual void Save(cereal::JSONOutputArchive& archive) const
+    {
+        archive(cereal::make_nvp("Model", *this));
+    }
 
-	virtual void Load(cereal::JSONInputArchive& archive)
-	{
-		archive(cereal::make_nvp("Model", *this));
-	}
+    virtual void Load(cereal::JSONInputArchive& archive)
+    {
+        archive(cereal::make_nvp("Model", *this));
+    }
 
-	void SaveJson(std::string filename) const
+    void SaveJson(std::string filename) const
     {
         std::ofstream ofs(filename);
         cereal::JSONOutputArchive archive(ofs);
-		Save(archive);
-	}
+        Save(archive);
+    }
 
-	void LoadJson(std::string filename)
+    void LoadJson(std::string filename)
     {
         std::ifstream ifs(filename);
         cereal::JSONInputArchive archive(ifs);
-		Load(archive);
-	}
+        Load(archive);
+    }
 #endif
 
 

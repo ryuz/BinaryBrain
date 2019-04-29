@@ -72,9 +72,9 @@ protected:
     inline Tp const &At(index_t index) const 
     {
         BB_DEBUG_ASSERT(m_tensor->GetType() == DataType<Tp>::type);
-	    BB_DEBUG_ASSERT(index >= 0 && index < m_tensor->m_size);
-    	return ((Tp const *)m_ptr.GetAddr())[index];
-	}
+        BB_DEBUG_ASSERT(index >= 0 && index < m_tensor->m_size);
+        return ((Tp const *)m_ptr.GetAddr())[index];
+    }
 
 public:
     TensorTp const & GetTensor(void) const
@@ -89,79 +89,79 @@ public:
 
     inline Tp const &operator[](index_t index) const
     {
-    	return At(index);
+        return At(index);
     }
 
     inline Tp const &operator()(index_t i0) const
     {
-	    BB_DEBUG_ASSERT(m_tensor->m_shape.size() == 1);
+        BB_DEBUG_ASSERT(m_tensor->m_shape.size() == 1);
         BB_DEBUG_ASSERT(i0 >= 0 && i0 < m_tensor->m_shape[0]);
-	    index_t index = 0;
+        index_t index = 0;
         index += i0 * m_tensor->m_stride[0];
-    	return At(index);
+        return At(index);
     }
 
     inline Tp const &operator()(index_t i1, index_t i0) const 
     {
-	    BB_DEBUG_ASSERT(m_tensor->m_shape.size() == 2);
+        BB_DEBUG_ASSERT(m_tensor->m_shape.size() == 2);
         BB_DEBUG_ASSERT(i0 >= 0 && i0 < m_tensor->m_shape[0]);
         BB_DEBUG_ASSERT(i1 >= 0 && i1 < m_tensor->m_shape[1]);
-	    index_t index = 0;
+        index_t index = 0;
         index += i0 * m_tensor->m_stride[0];
         index += i1 * m_tensor->m_stride[1];
-    	return At(index);
-	}
+        return At(index);
+    }
 
     inline Tp const &operator()(index_t i2, index_t i1, index_t i0) const 
     {
-	    BB_DEBUG_ASSERT(m_tensor->m_shape.size() == 3);
+        BB_DEBUG_ASSERT(m_tensor->m_shape.size() == 3);
         BB_DEBUG_ASSERT(i0 >= 0 && i0 < m_tensor->m_shape[0]);
         BB_DEBUG_ASSERT(i1 >= 0 && i1 < m_tensor->m_shape[1]);
         BB_DEBUG_ASSERT(i2 >= 0 && i2 < m_tensor->m_shape[2]);
-	    index_t index = 0;
+        index_t index = 0;
         index += i0 * m_tensor->m_stride[0];
         index += i1 * m_tensor->m_stride[1];
         index += i2 * m_tensor->m_stride[2];
-    	return At(index);
-	}
+        return At(index);
+    }
 
     inline Tp const &operator()(index_t i3, index_t i2, index_t i1, index_t i0) const 
     {
-	    BB_DEBUG_ASSERT(m_tensor->m_shape.size() == 4);
+        BB_DEBUG_ASSERT(m_tensor->m_shape.size() == 4);
         BB_DEBUG_ASSERT(i0 >= 0 && i0 < m_tensor->m_shape[0]);
         BB_DEBUG_ASSERT(i1 >= 0 && i1 < m_tensor->m_shape[1]);
         BB_DEBUG_ASSERT(i2 >= 0 && i2 < m_tensor->m_shape[2]);
         BB_DEBUG_ASSERT(i3 >= 0 && i3 < m_tensor->m_shape[3]);
-	    index_t index = 0;
+        index_t index = 0;
         index += i0 * m_tensor->m_stride[0];
         index += i1 * m_tensor->m_stride[1];
         index += i2 * m_tensor->m_stride[2];
         index += i3 * m_tensor->m_stride[3];
-    	return At(index);
-	}
+        return At(index);
+    }
 
     inline Tp const &operator()(indices_t indices) const
     {
-	    BB_DEBUG_ASSERT(indices.size() == m_tensor->m_shape.size());
-	    index_t index = 0;
-	    for (int i = 0; i < (int)indices.size(); ++i) {
+        BB_DEBUG_ASSERT(indices.size() == m_tensor->m_shape.size());
+        index_t index = 0;
+        for (int i = 0; i < (int)indices.size(); ++i) {
             BB_DEBUG_ASSERT(indices[i] >= 0 && indices[i] < m_tensor->m_shape[i]);
-		    index += indices[i] * m_tensor->m_stride[i];
-	    }
-    	return At(index);
+            index += indices[i] * m_tensor->m_stride[i];
+        }
+        return At(index);
     }
 
     inline Tp const &operator()(indices_t indices, index_t i0) const
     {
-	    BB_DEBUG_ASSERT(indices.size() + 1 == m_tensor->m_shape.size());
+        BB_DEBUG_ASSERT(indices.size() + 1 == m_tensor->m_shape.size());
         BB_DEBUG_ASSERT(i0 >= 0 && i0 < m_tensor->m_shape[0]);
-	    index_t index = 0;
+        index_t index = 0;
         index += i0 * m_tensor->m_stride[0];
-	    for (int i = 0; i < (int)indices.size(); ++i) {
+        for (int i = 0; i < (int)indices.size(); ++i) {
             BB_DEBUG_ASSERT(indices[i] >= 0 && indices[i] < m_tensor->m_shape[i+1]);
-		    index += indices[i] * m_tensor->m_stride[i+1];
-	    }
-    	return At(index);
+            index += indices[i] * m_tensor->m_stride[i+1];
+        }
+        return At(index);
     }
 };
 
@@ -187,52 +187,52 @@ protected:
     inline Tp &At(index_t index) 
     {
         BB_DEBUG_ASSERT(m_tensor->GetType()== DataType<Tp>::type);
-	    BB_DEBUG_ASSERT(index >= 0 && index < m_tensor->m_size);
-    	return ((Tp *)m_ptr.GetAddr())[index];
-	}
+        BB_DEBUG_ASSERT(index >= 0 && index < m_tensor->m_size);
+        return ((Tp *)m_ptr.GetAddr())[index];
+    }
 
 public:
     inline Tp &operator[](index_t index)
     {
-    	return At(index);
+        return At(index);
     }
 
     inline Tp &operator()(index_t i0)
     {
-	    BB_DEBUG_ASSERT(m_tensor->m_shape.size() == 1);
+        BB_DEBUG_ASSERT(m_tensor->m_shape.size() == 1);
         BB_DEBUG_ASSERT(i0 >= 0 && i0 < m_tensor->m_shape[0]);
-	    index_t index = 0;
+        index_t index = 0;
         index += i0 * m_tensor->m_stride[0];
-    	return At(index);
+        return At(index);
     }
 
     inline Tp &operator()(index_t i1, index_t i0)
     {
-	    BB_DEBUG_ASSERT(m_tensor->m_shape.size() == 2);
+        BB_DEBUG_ASSERT(m_tensor->m_shape.size() == 2);
         BB_DEBUG_ASSERT(i0 >= 0 && i0 < m_tensor->m_shape[0]);
         BB_DEBUG_ASSERT(i1 >= 0 && i1 < m_tensor->m_shape[1]);
-	    index_t index = 0;
+        index_t index = 0;
         index += i0 * m_tensor->m_stride[0];
         index += i1 * m_tensor->m_stride[1];
-    	return At(index);
-	}
+        return At(index);
+    }
 
     inline Tp &operator()(index_t i2, index_t i1, index_t i0)
     {
-	    BB_DEBUG_ASSERT(m_tensor->m_shape.size() == 3);
+        BB_DEBUG_ASSERT(m_tensor->m_shape.size() == 3);
         BB_DEBUG_ASSERT(i0 >= 0 && i0 < m_tensor->m_shape[0]);
         BB_DEBUG_ASSERT(i1 >= 0 && i1 < m_tensor->m_shape[1]);
         BB_DEBUG_ASSERT(i2 >= 0 && i2 < m_tensor->m_shape[2]);
-	    index_t index = 0;
+        index_t index = 0;
         index += i0 * m_tensor->m_stride[0];
         index += i1 * m_tensor->m_stride[1];
         index += i2 * m_tensor->m_stride[2];
-    	return At(index);
-	}
+        return At(index);
+    }
 
     inline Tp &operator()(index_t i3, index_t i2, index_t i1, index_t i0)
     {
-	    BB_DEBUG_ASSERT(m_tensor->m_shape.size() == 4);
+        BB_DEBUG_ASSERT(m_tensor->m_shape.size() == 4);
         BB_DEBUG_ASSERT(i0 >= 0 && i0 < m_tensor->m_shape[0]);
         BB_DEBUG_ASSERT(i1 >= 0 && i1 < m_tensor->m_shape[1]);
         BB_DEBUG_ASSERT(i2 >= 0 && i2 < m_tensor->m_shape[2]);
@@ -310,94 +310,94 @@ private:
     friend Ptr;
     
 protected:
-	std::shared_ptr<Memory>	    m_mem;
-	index_t					    m_size = 0;
+    std::shared_ptr<Memory>     m_mem;
+    index_t                     m_size = 0;
 
-	std::vector<index_t>		m_shape;
-	std::vector<index_t>		m_stride;
+    std::vector<index_t>        m_shape;
+    std::vector<index_t>        m_stride;
 public:
-   	explicit Tensor_(index_t size=0, bool hostOnly=false)
-	{
+    explicit Tensor_(index_t size=0, bool hostOnly=false)
+    {
         m_mem = Memory::Create(0, hostOnly);
-		Resize(size);
-	}
+        Resize(size);
+    }
 
-	explicit Tensor_(std::vector<index_t> shape, bool hostOnly=false)
-	{
+    explicit Tensor_(std::vector<index_t> shape, bool hostOnly=false)
+    {
         m_mem = Memory::Create(0, hostOnly);
-		Resize(shape);
-	}
+        Resize(shape);
+    }
 
     Tensor_(const Tensor_& tensor)
-	{
-		*this = tensor;
-	}
+    {
+        *this = tensor;
+    }
     
-	Tensor_& operator=(const Tensor_ &src)
-	{
-		m_mem  = src.m_mem;
-		m_size = src.m_size;
-		m_shape  = src.m_shape;
-		m_stride = src.m_stride;
-		return *this;
-	}
+    Tensor_& operator=(const Tensor_ &src)
+    {
+        m_mem  = src.m_mem;
+        m_size = src.m_size;
+        m_shape  = src.m_shape;
+        m_stride = src.m_stride;
+        return *this;
+    }
     
     bool IsHostOnly(void) const
     {
         return m_mem->IsHostOnly();
     }
 
-	bool IsDeviceAvailable(void) const
-	{
-		return m_mem->IsDeviceAvailable();
-	}
+    bool IsDeviceAvailable(void) const
+    {
+        return m_mem->IsDeviceAvailable();
+    }
 
     index_t GetMemorySize(void) const
     {
         return m_mem->GetSize();
     }
 
-	Tensor_ Clone(void) const
-	{
-		Tensor_ tensor;
+    Tensor_ Clone(void) const
+    {
+        Tensor_ tensor;
         tensor.m_mem = m_mem->Clone();
-		tensor.m_size = m_size;
-		tensor.m_shape  = m_shape;
-		tensor.m_stride = m_stride;
-		return tensor;
-	}
+        tensor.m_size = m_size;
+        tensor.m_shape  = m_shape;
+        tensor.m_stride = m_stride;
+        return tensor;
+    }
 
     int GetType(void) const
     {
         return DataType<T>::type;
     }
 
-	void Resize(indices_t shape)
-	{
-		// サイズ算出
-		m_shape = shape;
+    void Resize(indices_t shape)
+    {
+        // サイズ算出
+        m_shape = shape;
         m_stride.clear();
-		index_t total = 1;
-		for (auto len : m_shape) {
-			m_stride.push_back(total);
-			total *= len;
-		}
+        index_t total = 1;
+        for (auto len : m_shape) {
+            m_stride.push_back(total);
+            total *= len;
+        }
         m_size = total;
 
-		// メモリ確保
-//		m_mem = Memory::Create(m_size * DataType<T>::size);
-		m_mem->Resize(m_size * DataType<T>::size);
-	}
+        // メモリ確保
+//      m_mem = Memory::Create(m_size * DataType<T>::size);
+        m_mem->Resize(m_size * DataType<T>::size);
+    }
 
     void Resize(index_t i0)                                        { Resize(indices_t({i0})); }
     void Resize(index_t i1, index_t i0)                            { Resize(indices_t({i0, i1})); }
     void Resize(index_t i2, index_t i1, index_t i0)                { Resize(indices_t({i0, i1, i2})); }
     void Resize(index_t i3, index_t i2, index_t i1, index_t i0)    { Resize(indices_t({i0, i1, i2, i3})); }
 
-  	void Reshape(indices_t shape)
-	{
+    void Reshape(indices_t shape)
+    {
         index_t auto_index = -1;
-		index_t total = 1;
+        index_t total = 1;
         for (index_t i = 0; i < (index_t)shape.size(); ++i)
         {
             if (shape[i] < 0) {
@@ -411,36 +411,36 @@ public:
             shape[auto_index] = m_size / total;
         }
 
-       	// 再計算
-		m_shape = shape;
+        // 再計算
+        m_shape = shape;
         m_stride.clear();
-		total = 1;
-		for (auto len : m_shape) {
-			m_stride.push_back(total);
-			total *= len;
-		}
+        total = 1;
+        for (auto len : m_shape) {
+            m_stride.push_back(total);
+            total *= len;
+        }
         BB_ASSERT(m_size == total);
-	}
+    }
 
     void Reshape(index_t i0)                                        { Reshape(indices_t({i0})); }
     void Reshape(index_t i1, index_t i0)                            { Reshape(indices_t({i0, i1})); }
     void Reshape(index_t i2, index_t i1, index_t i0)                { Reshape(indices_t({i0, i1, i2})); }
     void Reshape(index_t i3, index_t i2, index_t i1, index_t i0)    { Reshape(indices_t({i0, i1, i2, i3})); }
 
-	std::vector<index_t> GetShape(void) const
-	{
-		return m_shape;
-	}
+    std::vector<index_t> GetShape(void) const
+    {
+        return m_shape;
+    }
 
-   	int GetDim(void) const
-	{
-		return (int)m_shape.size();
-	}
+    int GetDim(void) const
+    {
+        return (int)m_shape.size();
+    }
 
     index_t GetSize(void) const
-	{
-		return m_size;
-	}
+    {
+        return m_size;
+    }
 
     void Transpose(std::vector<index_t> axes)
     {
@@ -546,39 +546,39 @@ public:
     }
 
 #ifdef BB_WITH_CEREAL
-	template <class Archive>
-	void save(Archive& archive, std::uint32_t const version) const
-	{
+    template <class Archive>
+    void save(Archive& archive, std::uint32_t const version) const
+    {
         bool hostOnly = m_mem->IsHostOnly();
-		archive(cereal::make_nvp("host_only", hostOnly));
+        archive(cereal::make_nvp("host_only", hostOnly));
 
-		archive(cereal::make_nvp("shape",    m_shape));
-		archive(cereal::make_nvp("stride", m_stride));
+        archive(cereal::make_nvp("shape",    m_shape));
+        archive(cereal::make_nvp("stride", m_stride));
 
         auto ptr = m_mem->LockConst();
         std::vector<T> vec(m_size);
         memcpy(&vec[0], (T const *)ptr.GetAddr(), m_size*sizeof(T));
-		archive(cereal::make_nvp("data", vec));
-	}
+        archive(cereal::make_nvp("data", vec));
+    }
 
-	template <class Archive>
-	void load(Archive& archive, std::uint32_t const version)
-	{
+    template <class Archive>
+    void load(Archive& archive, std::uint32_t const version)
+    {
         bool hostOnly;
-		archive(cereal::make_nvp("host_only", hostOnly));
+        archive(cereal::make_nvp("host_only", hostOnly));
         m_mem->SetHostOnly(hostOnly);
 
-		archive(cereal::make_nvp("shape",    m_shape));
+        archive(cereal::make_nvp("shape",    m_shape));
         Resize(m_shape);
-		archive(cereal::make_nvp("stride", m_stride));
+        archive(cereal::make_nvp("stride", m_stride));
 
         std::vector<T> vec;
-		archive(cereal::make_nvp("data", vec));
+        archive(cereal::make_nvp("data", vec));
         BB_ASSERT(m_size == (index_t)vec.size());
 
         auto ptr = m_mem->Lock();
         memcpy(ptr.GetAddr(), &vec[0], m_size*sizeof(T));
-	}
+    }
 #endif
 
 
@@ -597,11 +597,11 @@ public:
     // -------------------------------------
 
     inline Tensor_& operator=(T src)
-	{
+    {
         auto ptr = m_mem->Lock();
         Tensor_Vector_set<T>((T *)ptr.GetAddr(), src, m_size);
-		return *this;
-	}
+        return *this;
+    }
     
     inline Tensor_& operator+=(Tensor_ const &src)
     {
@@ -939,7 +939,7 @@ inline Tensor_<float> & Tensor_<float>::operator=(float src)
     // CPU
     auto ptr = m_mem->Lock(true);
     Tensor_Vector_set<float>((float *)ptr.GetAddr(), src, m_size);
-	return *this;
+    return *this;
 }
 
 template<>
@@ -1404,73 +1404,73 @@ class Tensor
     friend TensorPtr_<std::uint64_t, Tensor, Memory::Ptr>;
 
 protected:
-	int							m_type = 0;
+    int                         m_type = 0;
 
-	std::shared_ptr<Memory>		m_mem;
-	index_t						m_size = 0;
+    std::shared_ptr<Memory>     m_mem;
+    index_t                     m_size = 0;
 
-	std::vector<index_t>		m_shape;
-	std::vector<index_t>		m_stride;
+    std::vector<index_t>        m_shape;
+    std::vector<index_t>        m_stride;
 
 public:
-	explicit Tensor(bool hostOnly=false) {
+    explicit Tensor(bool hostOnly=false) {
         m_mem = Memory::Create(0, hostOnly);
     }
 
-   	explicit Tensor(int type, std::vector<index_t> shape, bool hostOnly=false)
-	{
+    explicit Tensor(int type, std::vector<index_t> shape, bool hostOnly=false)
+    {
         m_mem = Memory::Create(0, hostOnly);
-		Resize(type, shape);
-	}
+        Resize(type, shape);
+    }
 
-	explicit Tensor(int type, index_t size, bool hostOnly=false)
-	{
+    explicit Tensor(int type, index_t size, bool hostOnly=false)
+    {
         m_mem = Memory::Create(0, hostOnly);
-		Resize(type, size);
-	}
+        Resize(type, size);
+    }
     
-   	Tensor(const Tensor& tensor)
-	{
-		*this = tensor;
-	}
-
-    template<typename Tp>
-   	Tensor(const Tensor_<Tp>& tensor)
-	{
+    Tensor(const Tensor& tensor)
+    {
         *this = tensor;
-	}
-    
-	Tensor& operator=(const Tensor &src)
-	{
-		m_mem  = src.m_mem;
-		m_type = src.m_type;
-		m_size = src.m_size;
-		m_shape  = src.m_shape;
-		m_stride = src.m_stride;
-
-		return *this;
-	}
+    }
 
     template<typename Tp>
-   	Tensor& operator=(const Tensor_<Tp>& tensor)
-	{
+    Tensor(const Tensor_<Tp>& tensor)
+    {
+        *this = tensor;
+    }
+    
+    Tensor& operator=(const Tensor &src)
+    {
+        m_mem  = src.m_mem;
+        m_type = src.m_type;
+        m_size = src.m_size;
+        m_shape  = src.m_shape;
+        m_stride = src.m_stride;
+
+        return *this;
+    }
+
+    template<typename Tp>
+    Tensor& operator=(const Tensor_<Tp>& tensor)
+    {
         m_mem = tensor.m_mem;
         m_type = DataType<Tp>::type;
         m_size = tensor.m_size;
         m_shape  = tensor.m_shape;
         m_stride = tensor.m_stride;
         return *this;
-	}
+    }
 
     template<typename Tp>
     operator Tensor_<Tp>() const
     {
         if (DataType<Tp>::type == m_type) {
             Tensor_<Tp> tensor;
-   	        tensor.m_mem  = m_mem;
-	        tensor.m_size = m_size;
-	        tensor.m_shape = m_shape;
-	        tensor.m_stride = m_stride;
+            tensor.m_mem  = m_mem;
+            tensor.m_size = m_size;
+            tensor.m_shape = m_shape;
+            tensor.m_stride = m_stride;
             return tensor;
         }
         else {
@@ -1494,21 +1494,21 @@ public:
         }
     }
 
-	Tensor Clone(void) const
-	{
-		Tensor tensor(m_type, m_shape);
+    Tensor Clone(void) const
+    {
+        Tensor tensor(m_type, m_shape);
 
         auto src_ptr = m_mem->LockConst();
         auto dst_ptr = tensor.m_mem->Lock(true);
-		memcpy(dst_ptr.GetAddr(), src_ptr.GetAddr(), m_mem->GetSize());
+        memcpy(dst_ptr.GetAddr(), src_ptr.GetAddr(), m_mem->GetSize());
 
-		tensor.m_type = m_type;
-		tensor.m_size = m_size;
-		tensor.m_shape  = m_shape;
-		tensor.m_stride = m_stride;
+        tensor.m_type = m_type;
+        tensor.m_size = m_size;
+        tensor.m_shape  = m_shape;
+        tensor.m_stride = m_stride;
 
-		return tensor;
-	}
+        return tensor;
+    }
 
     int GetType(void) const
     {
@@ -1530,31 +1530,31 @@ public:
      * @detail デバイスが利用可能か問い合わせる
      * @return デバイスが利用可能ならtrue
      */
-	bool IsDeviceAvailable(void) const
-	{
-		return m_mem->IsDeviceAvailable();
-	}
+    bool IsDeviceAvailable(void) const
+    {
+        return m_mem->IsDeviceAvailable();
+    }
 
-	void Resize(int type, indices_t shape)
-	{
-		// 設定保存
-		m_type = type;
+    void Resize(int type, indices_t shape)
+    {
+        // 設定保存
+        m_type = type;
 
-		// サイズ算出
-		m_shape = shape;
+        // サイズ算出
+        m_shape = shape;
         m_stride.clear();
-		index_t total = 1;
-		for (auto size : m_shape) {
+        index_t total = 1;
+        for (auto size : m_shape) {
             BB_ASSERT(size > 0);
-			m_stride.push_back(total);
-			total *= size;
-		}
+            m_stride.push_back(total);
+            total *= size;
+        }
         m_size = total;
 
-		// メモリ確保
-//		m_mem = Memory::Create(m_size * DataType_GetByteSize(type));
-		m_mem->Resize(m_size * DataType_GetByteSize(type));
-	}
+        // メモリ確保
+//      m_mem = Memory::Create(m_size * DataType_GetByteSize(type));
+        m_mem->Resize(m_size * DataType_GetByteSize(type));
+    }
 
     void Resize(int type, index_t i0)                                        { Resize(type, indices_t({i0})); }
     void Resize(int type, index_t i1, index_t i0)                            { Resize(type, indices_t({i0, i1})); }
@@ -1562,10 +1562,10 @@ public:
     void Resize(int type, index_t i3, index_t i2, index_t i1, index_t i0)    { Resize(type, indices_t({i0, i1, i2, i3})); }
 
 
-   	void Reshape(indices_t shape)
-	{
+    void Reshape(indices_t shape)
+    {
         index_t auto_index = -1;
-		index_t total = 1;
+        index_t total = 1;
         for (index_t i = 0; i < (index_t)shape.size(); ++i)
         {
             if (shape[i] < 0) {
@@ -1579,36 +1579,36 @@ public:
             shape[auto_index] = m_size / total;
         }
 
-       	// 再計算
-		m_shape = shape;
+        // 再計算
+        m_shape = shape;
         m_stride.clear();
-		total = 1;
-		for (auto len : m_shape) {
-			m_stride.push_back(total);
-			total *= len;
-		}
+        total = 1;
+        for (auto len : m_shape) {
+            m_stride.push_back(total);
+            total *= len;
+        }
         BB_ASSERT(m_size == total);
-	}
+    }
 
     void Reshape(index_t i0)                                        { Reshape(indices_t({i0})); }
     void Reshape(index_t i1, index_t i0)                            { Reshape(indices_t({i0, i1})); }
     void Reshape(index_t i2, index_t i1, index_t i0)                { Reshape(indices_t({i0, i1, i2})); }
     void Reshape(index_t i3, index_t i2, index_t i1, index_t i0)    { Reshape(indices_t({i0, i1, i2, i3})); }
 
-	std::vector<index_t> GetShape(void) const
-	{
-		return m_shape;
-	}
+    std::vector<index_t> GetShape(void) const
+    {
+        return m_shape;
+    }
 
-  	int GetDim(void) const
-	{
-		return (int)m_shape.size();
-	}
+    int GetDim(void) const
+    {
+        return (int)m_shape.size();
+    }
 
-	index_t GetSize(void) const
-	{
-		return m_size;
-	}
+    index_t GetSize(void) const
+    {
+        return m_size;
+    }
     
     void Transpose(std::vector<index_t> axes)
     {
@@ -1721,8 +1721,8 @@ public:
 
 #ifdef BB_WITH_CEREAL
     template <class Archive>
-	void save(Archive& archive, std::uint32_t const version) const
-	{
+    void save(Archive& archive, std::uint32_t const version) const
+    {
         archive(cereal::make_nvp("type", m_type));
 
         switch (m_type) {
@@ -1738,11 +1738,11 @@ public:
         case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this).save(archive, version);  break;
         default:    BB_ASSERT(0);  break;
         } 
-	}
+    }
 
-	template <class Archive>
-	void load(Archive& archive, std::uint32_t const version)
-	{
+    template <class Archive>
+    void load(Archive& archive, std::uint32_t const version)
+    {
         archive(cereal::make_nvp("type", m_type));
 
         switch (m_type) {
@@ -1758,7 +1758,7 @@ public:
         case BB_TYPE_UINT64: { Tensor_<std::uint64_t> t; t.load(archive, version); *this = t; break; }
         default:    BB_ASSERT(0);  break;
         }
-	}
+    }
 #endif
 
 

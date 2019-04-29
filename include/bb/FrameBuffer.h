@@ -109,10 +109,10 @@ protected:
         return GetShapeIndex(i2, i1, i0, m_buf->GetShape());
     }
 
-   	inline Tp ReadValue(void const *base, index_t frame) const
-	{
+    inline Tp ReadValue(void const *base, index_t frame) const
+    {
         return DataType_Read<Tp>(base, frame);
-	}
+    }
 
 
 public:
@@ -198,15 +198,15 @@ protected:
         return GetShapeIndex(i2, i1, i0, m_buf->m_node_shape);
     }
 
-  	inline void WriteValue(void *base, index_t frame, Tp value)
-	{
+    inline void WriteValue(void *base, index_t frame, Tp value)
+    {
         return DataType_Write<Tp>(base, frame, value);
-	}
+    }
 
-  	inline void AddValue(void *base, index_t frame, Tp value)
-	{
+    inline void AddValue(void *base, index_t frame, Tp value)
+    {
         return DataType_Add<Tp>(base, frame, value);
-	}
+    }
 
 
 public:
@@ -271,88 +271,88 @@ class FrameBuffer
 protected:
     Tensor                  m_tensor;
 
-	int		                m_data_type = 0;
-	index_t	                m_frame_size = 0;
-	index_t                 m_frame_stride = 0;
-	index_t	                m_node_size = 0;
+    int                     m_data_type = 0;
+    index_t                 m_frame_size = 0;
+    index_t                 m_frame_stride = 0;
+    index_t                 m_node_size = 0;
     std::vector<index_t>    m_node_shape;
 
 public:
-   	/**
+    /**
       * @brief  デフォルトコンストラクタ
       * @detail デフォルトコンストラクタ
       */
-	explicit FrameBuffer(bool hostOnly=false) : m_tensor(hostOnly) {}
+    explicit FrameBuffer(bool hostOnly=false) : m_tensor(hostOnly) {}
 
-  	/**
+    /**
      * @brief  コンストラクタ
      * @detail コンストラクタ
      *        tensor は node_size サイズの1次元で初期化
      * @param frame_size フレーム数
      * @param node_size  1フレームのノード数
-	 * @param data_type  1ノードのデータ型
+     * @param data_type  1ノードのデータ型
      */
-	explicit FrameBuffer(int data_type, index_t frame_size, index_t node_size, bool hostOnly=false) : m_tensor(hostOnly)
-	{
+    explicit FrameBuffer(int data_type, index_t frame_size, index_t node_size, bool hostOnly=false) : m_tensor(hostOnly)
+    {
         Resize(data_type, frame_size, indices_t({node_size}));
-	}
+    }
 
-   	/**
+    /**
      * @brief  コンストラクタ
      * @detail コンストラクタ
      * @param frame_size フレーム数
      * @param shape      1フレームのノードを構成するshape
-	 * @param data_type  1ノードのデータ型
+     * @param data_type  1ノードのデータ型
      */
-	explicit FrameBuffer(int data_type, index_t frame_size, std::vector<index_t> shape, bool hostOnly=false) : m_tensor(hostOnly)
-	{
-		Resize(data_type, frame_size, shape);
-	}
+    explicit FrameBuffer(int data_type, index_t frame_size, std::vector<index_t> shape, bool hostOnly=false) : m_tensor(hostOnly)
+    {
+        Resize(data_type, frame_size, shape);
+    }
 
-   	/**
+    /**
       * @brief  コピーコンストラクタ
       * @detail コピーコンストラクタ
       */
-	FrameBuffer(FrameBuffer const &buf)
-	{
-		*this = buf;
-	}
+    FrameBuffer(FrameBuffer const &buf)
+    {
+        *this = buf;
+    }
 
-   	/**
+    /**
      * @brief  代入演算子
      * @detail 代入演算子
      *         代入演算子でのコピーは、メモリは同じ箇所を指す
      */
     FrameBuffer& operator=(FrameBuffer const &buf)
-	{
-		m_tensor        = buf.m_tensor;
-		m_data_type     = buf.m_data_type;
-		m_frame_size    = buf.m_frame_size;
-		m_frame_stride  = buf.m_frame_stride;
-		m_node_size     = buf.m_node_size;
+    {
+        m_tensor        = buf.m_tensor;
+        m_data_type     = buf.m_data_type;
+        m_frame_size    = buf.m_frame_size;
+        m_frame_stride  = buf.m_frame_stride;
+        m_node_size     = buf.m_node_size;
         m_node_shape    = buf.m_node_shape;
 
-		return *this;
-	}
+        return *this;
+    }
 
-   	/**
+    /**
      * @brief  クローン
      * @detail クローン
      * @return メモリ内容をコピーしたクローンを返す
      */
-	FrameBuffer Clone(void) const
-	{
-		FrameBuffer clone_buf;
+    FrameBuffer Clone(void) const
+    {
+        FrameBuffer clone_buf;
 
         clone_buf.m_tensor       = m_tensor.Clone();
-		clone_buf.m_data_type    = m_data_type;
-		clone_buf.m_frame_size   = m_frame_size;
-		clone_buf.m_frame_stride = m_frame_stride;
-		clone_buf.m_node_size    = m_node_size;
+        clone_buf.m_data_type    = m_data_type;
+        clone_buf.m_frame_size   = m_frame_size;
+        clone_buf.m_frame_stride = m_frame_stride;
+        clone_buf.m_node_size    = m_node_size;
         clone_buf.m_node_shape   = m_node_shape;
 
-		return clone_buf;
-	}
+        return clone_buf;
+    }
     
     bool IsHostOnly(void) const
     {
@@ -365,21 +365,21 @@ public:
      * @detail デバイスが利用可能か問い合わせる
      * @return デバイスが利用可能ならtrue
      */
-	bool IsDeviceAvailable(void) const
-	{
-		return m_tensor.IsDeviceAvailable();
-	}
+    bool IsDeviceAvailable(void) const
+    {
+        return m_tensor.IsDeviceAvailable();
+    }
 
 
-   	/**
+    /**
      * @brief  サイズ設定
      * @detail サイズ設定
      * @param frame_size フレーム数
      * @param shape      1フレームのノードを構成するshape
-	 * @param data_type  1ノードのデータ型
+     * @param data_type  1ノードのデータ型
      */
     void Resize(int data_type, index_t frame_size, indices_t shape)
-	{
+    {
         m_data_type    = data_type;
         m_frame_size   = frame_size;
         m_frame_stride = ((frame_size * DataType_GetBitSize(data_type) + 255) / 256) * (256 / 8);        // frame軸は256bit境界にあわせる(SIMD命令用)
@@ -394,20 +394,20 @@ public:
         }
 
         // サイズ計算
-		m_node_size = 1;
+        m_node_size = 1;
         std::vector<index_t>    tensor_shape;
         tensor_shape.push_back(m_frame_stride / DataType_GetByteSize(tensor_type));
         for ( auto size : shape ) {
             tensor_shape.push_back(size);
-    		m_node_size *= size;
+            m_node_size *= size;
         }
 
-		// メモリ確保
-		m_tensor.Resize(tensor_type, tensor_shape);
-	}
+        // メモリ確保
+        m_tensor.Resize(tensor_type, tensor_shape);
+    }
 
 
-  	/**
+    /**
      * @brief  同じ型同じサイズにする
      * @detail 同じ型同じサイズにする
      * @param buf 型とサイズをあわせる対象
@@ -426,9 +426,9 @@ public:
     void Save(std::ostream &os) const 
     {
         os.write((char const *)&m_data_type, sizeof(m_data_type));
-    	SaveIndex(os, m_frame_size);
-	    SaveIndex(os, m_frame_stride);
-	    SaveIndex(os, m_node_size);
+        SaveIndex(os, m_frame_size);
+        SaveIndex(os, m_frame_stride);
+        SaveIndex(os, m_node_size);
         SaveIndices(os, m_node_shape);
         m_tensor.Save(os);
     }
@@ -437,8 +437,8 @@ public:
     {
         is.read((char *)&m_data_type, sizeof(m_data_type));
         m_frame_size   = LoadIndex(is); 
-	    m_frame_stride = LoadIndex(is);
-	    m_node_size    = LoadIndex(is);
+        m_frame_stride = LoadIndex(is);
+        m_node_size    = LoadIndex(is);
         m_node_shape   = LoadIndices(is);
         m_tensor.Load(is);
     }
@@ -457,12 +457,12 @@ public:
 
 #ifdef BB_WITH_CEREAL
     template <class Archive>
-	void serialize(Archive& archive, std::uint32_t const version)
-	{
+    void serialize(Archive& archive, std::uint32_t const version)
+    {
         archive(cereal::make_nvp("data_type",    m_data_type));
-    	archive(cereal::make_nvp("frame_size",   m_frame_size));
-	    archive(cereal::make_nvp("frame_stride", m_frame_stride));
-	    archive(cereal::make_nvp("node_size",    m_node_size));
+        archive(cereal::make_nvp("frame_size",   m_frame_size));
+        archive(cereal::make_nvp("frame_stride", m_frame_stride));
+        archive(cereal::make_nvp("node_size",    m_node_size));
         archive(cereal::make_nvp("node_shape",   m_node_shape));
         archive(cereal::make_nvp("tensor",       m_tensor));
     }
@@ -478,10 +478,10 @@ public:
     void Resize(int type, index_t frame_size, index_t i0, index_t i1, index_t i2)              { Resize(type, frame_size, indices_t({i0, i1, i2})); }
     void Resize(int type, index_t frame_size, index_t i0, index_t i1, index_t i2, index_t i3)  { Resize(type, frame_size, indices_t({i0, i1, i2, i3})); }
     
-   	void Reshape(std::vector<index_t> shape)
-	{
+    void Reshape(std::vector<index_t> shape)
+    {
         index_t auto_index = -1;
-		index_t total = 1;
+        index_t total = 1;
         for (index_t i = 0; i < (index_t)shape.size(); ++i)
         {
             if (shape[i] < 0) {
@@ -495,11 +495,11 @@ public:
             shape[auto_index] = m_node_size / total;
         }
 
-       	// 再計算
-   		total = 1;
-		for (auto size : shape) {
-			total *= size;
-		}
+        // 再計算
+        total = 1;
+        for (auto size : shape) {
+            total *= size;
+        }
         BB_ASSERT(total == m_node_size);
 
         m_node_shape = shape;
@@ -511,30 +511,30 @@ public:
         }
 
         m_tensor.Reshape(tensor_shape);
-	}
+    }
 
-  	std::vector<index_t> GetShape(void) const
-	{
-		return m_node_shape;
-	}
+    std::vector<index_t> GetShape(void) const
+    {
+        return m_node_shape;
+    }
 
-   	/**
+    /**
      * @brief  内容のゼロ埋め
      * @detail 内容のゼロ埋め
      */
-	void FillZero(void)
+    void FillZero(void)
     {
         m_tensor.FillZero();
     }
 
-//	void FillZeroMargin(void)
-//	{
-//	}
+//  void FillZeroMargin(void)
+//  {
+//  }
     
 
-	int     GetType(void)  const { return m_data_type; }
-	index_t GetFrameSize(void)  const { return m_frame_size; }
-	index_t GetNodeSize(void)  const { return m_node_size; }
+    int     GetType(void)  const { return m_data_type; }
+    index_t GetFrameSize(void)  const { return m_frame_size; }
+    index_t GetNodeSize(void)  const { return m_node_size; }
 
 
     // debug
@@ -562,7 +562,7 @@ public:
     //  ダイレクトアクセス用
     // ---------------------------------
 
-	index_t GetFrameStride(void)  const { return m_frame_stride; }
+    index_t GetFrameStride(void)  const { return m_frame_stride; }
 
     Memory::Ptr         LockMemory(bool new_buf=false) const    { return m_tensor.LockMemory(new_buf); }
     Memory::ConstPtr    LockMemoryConst(void) const             { return m_tensor.LockMemoryConst(); }
@@ -570,81 +570,81 @@ public:
     Memory::DevConstPtr LockDeviceMemoryConst(void) const          { return m_tensor.LockDeviceMemoryConst(); }
 
     // 型指定アクセス
-   	template <typename MemTp, typename ValueTp>
-	inline ValueTp Get(void const *addr, index_t frame, index_t node) const
-	{
+    template <typename MemTp, typename ValueTp>
+    inline ValueTp Get(void const *addr, index_t frame, index_t node) const
+    {
         BB_DEBUG_ASSERT(m_data_type == DataType<MemTp>::type);
         auto ptr = LockMemoryConst();
-		return static_cast<ValueTp>(DataType_Read<MemTp>(GetNodeBaseAddr(addr, node), frame)); 
-	}
+        return static_cast<ValueTp>(DataType_Read<MemTp>(GetNodeBaseAddr(addr, node), frame)); 
+    }
     
-   	template <typename MemTp, typename ValueTp>
-	inline ValueTp Get(void const *addr, index_t frame, std::vector<index_t> const & indices)
-	{
+    template <typename MemTp, typename ValueTp>
+    inline ValueTp Get(void const *addr, index_t frame, std::vector<index_t> const & indices)
+    {
         return Get<MemTp, ValueTp>(addr, frame, GetNodeIndex(indices));
-	}
+    }
 
     template <typename MemTp, typename ValueTp>
-	inline void Set(void *addr, index_t frame, index_t node, ValueTp value)
-	{
+    inline void Set(void *addr, index_t frame, index_t node, ValueTp value)
+    {
         BB_DEBUG_ASSERT(m_data_type == DataType<MemTp>::type);
         auto ptr = LockMemory();
         DataType_Write<MemTp>(GetNodeBaseAddr(addr, node), frame, static_cast<MemTp>(value));
-	}
-
-   	template <typename MemTp, typename ValueTp>
-	inline void Set(void *addr, index_t frame, std::vector<index_t> const & indices, ValueTp value)
-	{
-        Set<MemTp, ValueTp>(addr, frame, GetNodeIndex(indices), value);
-	}
+    }
 
     template <typename MemTp, typename ValueTp>
-	inline void Add(void *addr, index_t frame, index_t node, ValueTp value)
-	{
+    inline void Set(void *addr, index_t frame, std::vector<index_t> const & indices, ValueTp value)
+    {
+        Set<MemTp, ValueTp>(addr, frame, GetNodeIndex(indices), value);
+    }
+
+    template <typename MemTp, typename ValueTp>
+    inline void Add(void *addr, index_t frame, index_t node, ValueTp value)
+    {
         BB_DEBUG_ASSERT(m_data_type == DataType<MemTp>::type);
         auto ptr = LockMemory();
         DataType_Add<MemTp>(GetNodeBaseAddr(addr, node), frame, static_cast<MemTp>(value));
-	}
+    }
 
-   	template <typename MemTp, typename ValueTp>
-	inline void Add(void *addr, index_t frame, std::vector<index_t> const & indices, ValueTp value)
-	{
+    template <typename MemTp, typename ValueTp>
+    inline void Add(void *addr, index_t frame, std::vector<index_t> const & indices, ValueTp value)
+    {
         Add<MemTp, ValueTp>(addr, frame, GetNodeIndex(indices), value);
-	}
+    }
 
 
     // 汎用アクセス
     template <typename Tp>
-	inline Tp GetValue(void const *addr, index_t frame, index_t node)
-	{
+    inline Tp GetValue(void const *addr, index_t frame, index_t node)
+    {
         return ReadValue<Tp>(GetNodeBaseAddr(addr, node), frame);
-	}
+    }
 
-   	template <typename Tp>
+    template <typename Tp>
     inline Tp GetValue(void const *addr, index_t frame, std::vector<index_t> const & indices)
     {
         return GetValue<Tp>(addr, frame, GetNodeIndex(indices));
     }
 
-   	template <typename Tp>
-	inline void SetValue(void *addr, index_t frame, index_t node, Tp value)
-	{
+    template <typename Tp>
+    inline void SetValue(void *addr, index_t frame, index_t node, Tp value)
+    {
         WriteValue<Tp>(GetNodeBaseAddr(addr, node), frame, value);
-	}
+    }
 
-   	template <typename Tp>
+    template <typename Tp>
     inline void SetValue(void *addr, index_t frame, std::vector<index_t> const & indices, Tp value)
     {
         SetValue<Tp>(addr, frame, GetNodeIndex(indices), value);
     }
 
-   	template <typename Tp>
-	inline void AddValue(void *addr, index_t frame, index_t node, Tp value)
-	{
+    template <typename Tp>
+    inline void AddValue(void *addr, index_t frame, index_t node, Tp value)
+    {
         AddValue<Tp>(GetNodeBaseAddr(addr, node), frame, value);
-	}
+    }
 
-   	template <typename Tp>
+    template <typename Tp>
     inline void AddValue(void *addr, index_t frame, std::vector<index_t> const & indices, Tp value)
     {
         AddValue<Tp>(addr, frame, GetNodeIndex(indices), value);
@@ -685,62 +685,62 @@ protected:
     }
 
     template<typename Tp>
-  	Tp ReadValue(void *base, index_t frame) const
-	{
-		switch (m_data_type) {
+    Tp ReadValue(void *base, index_t frame) const
+    {
+        switch (m_data_type) {
         case BB_TYPE_BIT:    return static_cast<Tp>(DataType_Read<Bit>         (base, frame));  break;
-		case BB_TYPE_FP32:   return static_cast<Tp>(DataType_Read<float>       (base, frame));	break;
-		case BB_TYPE_FP64:   return static_cast<Tp>(DataType_Read<double>      (base, frame));	break;
+        case BB_TYPE_FP32:   return static_cast<Tp>(DataType_Read<float>       (base, frame));  break;
+        case BB_TYPE_FP64:   return static_cast<Tp>(DataType_Read<double>      (base, frame));  break;
         case BB_TYPE_INT8:   return static_cast<Tp>(DataType_Read<std::int8_t> (base, frame));  break;
-		case BB_TYPE_INT16:  return static_cast<Tp>(DataType_Read<std::int16_t>(base, frame));	break;
-   		case BB_TYPE_INT32:  return static_cast<Tp>(DataType_Read<std::int32_t>(base, frame));	break;
-		case BB_TYPE_INT64:  return static_cast<Tp>(DataType_Read<std::int64_t>(base, frame));	break;
+        case BB_TYPE_INT16:  return static_cast<Tp>(DataType_Read<std::int16_t>(base, frame));  break;
+        case BB_TYPE_INT32:  return static_cast<Tp>(DataType_Read<std::int32_t>(base, frame));  break;
+        case BB_TYPE_INT64:  return static_cast<Tp>(DataType_Read<std::int64_t>(base, frame));  break;
         case BB_TYPE_UINT8:  return static_cast<Tp>(DataType_Read<std::int8_t> (base, frame));  break;
-		case BB_TYPE_UINT16: return static_cast<Tp>(DataType_Read<std::int16_t>(base, frame));	break;
-   		case BB_TYPE_UINT32: return static_cast<Tp>(DataType_Read<std::int32_t>(base, frame));	break;
-		case BB_TYPE_UINT64: return static_cast<Tp>(DataType_Read<std::int64_t>(base, frame));	break;
+        case BB_TYPE_UINT16: return static_cast<Tp>(DataType_Read<std::int16_t>(base, frame));  break;
+        case BB_TYPE_UINT32: return static_cast<Tp>(DataType_Read<std::int32_t>(base, frame));  break;
+        case BB_TYPE_UINT64: return static_cast<Tp>(DataType_Read<std::int64_t>(base, frame));  break;
         default:   BB_ASSERT(0);
         }
-		return 0;
-	}
+        return 0;
+    }
 
     template<typename Tp>
     void WriteValue(void *base, index_t frame, Tp value) const
-	{
-		switch (m_data_type) {
-		case BB_TYPE_BIT:    DataType_Write<Bit>         (base, frame, static_cast<Bit>     (value));   break;
-		case BB_TYPE_FP32:   DataType_Write<float>       (base, frame, static_cast<float>   (value));	break;
-		case BB_TYPE_FP64:   DataType_Write<double>      (base, frame, static_cast<double>  (value));	break;
+    {
+        switch (m_data_type) {
+        case BB_TYPE_BIT:    DataType_Write<Bit>         (base, frame, static_cast<Bit>     (value));   break;
+        case BB_TYPE_FP32:   DataType_Write<float>       (base, frame, static_cast<float>   (value));   break;
+        case BB_TYPE_FP64:   DataType_Write<double>      (base, frame, static_cast<double>  (value));   break;
         case BB_TYPE_INT8:   DataType_Write<std::int8_t> (base, frame, static_cast<int8_t>  (value));   break;
-		case BB_TYPE_INT16:  DataType_Write<std::int16_t>(base, frame, static_cast<int16_t> (value));	break;
-   		case BB_TYPE_INT32:  DataType_Write<std::int32_t>(base, frame, static_cast<int32_t> (value));	break;
-		case BB_TYPE_INT64:  DataType_Write<std::int64_t>(base, frame, static_cast<int64_t> (value));	break;
+        case BB_TYPE_INT16:  DataType_Write<std::int16_t>(base, frame, static_cast<int16_t> (value));   break;
+        case BB_TYPE_INT32:  DataType_Write<std::int32_t>(base, frame, static_cast<int32_t> (value));   break;
+        case BB_TYPE_INT64:  DataType_Write<std::int64_t>(base, frame, static_cast<int64_t> (value));   break;
         case BB_TYPE_UINT8:  DataType_Write<std::int8_t> (base, frame, static_cast<uint8_t> (value));   break;
-		case BB_TYPE_UINT16: DataType_Write<std::int16_t>(base, frame, static_cast<uint16_t>(value));	break;
-   		case BB_TYPE_UINT32: DataType_Write<std::int32_t>(base, frame, static_cast<uint32_t>(value));	break;
-		case BB_TYPE_UINT64: DataType_Write<std::int64_t>(base, frame, static_cast<uint64_t>(value));	break;
+        case BB_TYPE_UINT16: DataType_Write<std::int16_t>(base, frame, static_cast<uint16_t>(value));   break;
+        case BB_TYPE_UINT32: DataType_Write<std::int32_t>(base, frame, static_cast<uint32_t>(value));   break;
+        case BB_TYPE_UINT64: DataType_Write<std::int64_t>(base, frame, static_cast<uint64_t>(value));   break;
         default:   BB_ASSERT(0);
         }
-	}
+    }
 
     template<typename Tp>
     void AddValue(void *base, index_t frame, Tp value) const
-	{
-		switch (m_data_type) {
-		case BB_TYPE_BIT:    DataType_Add<Bit>         (base, frame, static_cast<Bit>     (value)); break;
-		case BB_TYPE_FP32:   DataType_Add<float>       (base, frame, static_cast<float>   (value));	break;
-		case BB_TYPE_FP64:   DataType_Add<double>      (base, frame, static_cast<double>  (value)); break;
+    {
+        switch (m_data_type) {
+        case BB_TYPE_BIT:    DataType_Add<Bit>         (base, frame, static_cast<Bit>     (value)); break;
+        case BB_TYPE_FP32:   DataType_Add<float>       (base, frame, static_cast<float>   (value)); break;
+        case BB_TYPE_FP64:   DataType_Add<double>      (base, frame, static_cast<double>  (value)); break;
         case BB_TYPE_INT8:   DataType_Add<std::int8_t> (base, frame, static_cast<int8_t>  (value)); break;
-		case BB_TYPE_INT16:  DataType_Add<std::int16_t>(base, frame, static_cast<int16_t> (value));	break;
-   		case BB_TYPE_INT32:  DataType_Add<std::int32_t>(base, frame, static_cast<int32_t> (value));	break;
-		case BB_TYPE_INT64:  DataType_Add<std::int64_t>(base, frame, static_cast<int64_t> (value));	break;
+        case BB_TYPE_INT16:  DataType_Add<std::int16_t>(base, frame, static_cast<int16_t> (value)); break;
+        case BB_TYPE_INT32:  DataType_Add<std::int32_t>(base, frame, static_cast<int32_t> (value)); break;
+        case BB_TYPE_INT64:  DataType_Add<std::int64_t>(base, frame, static_cast<int64_t> (value)); break;
         case BB_TYPE_UINT8:  DataType_Add<std::int8_t> (base, frame, static_cast<uint8_t> (value)); break;
-		case BB_TYPE_UINT16: DataType_Add<std::int16_t>(base, frame, static_cast<uint16_t>(value));	break;
-   		case BB_TYPE_UINT32: DataType_Add<std::int32_t>(base, frame, static_cast<uint32_t>(value));	break;
-		case BB_TYPE_UINT64: DataType_Add<std::int64_t>(base, frame, static_cast<uint64_t>(value));	break;
+        case BB_TYPE_UINT16: DataType_Add<std::int16_t>(base, frame, static_cast<uint16_t>(value)); break;
+        case BB_TYPE_UINT32: DataType_Add<std::int32_t>(base, frame, static_cast<uint32_t>(value)); break;
+        case BB_TYPE_UINT64: DataType_Add<std::int64_t>(base, frame, static_cast<uint64_t>(value)); break;
         default:   BB_ASSERT(0);
         }
-	}
+    }
 
 
 public:
@@ -801,84 +801,84 @@ public:
 public:
 
     // 型指定アクセス
-	template <typename MemTp, typename ValueTp>
-	inline ValueTp Get(index_t frame, index_t node) const
-	{
+    template <typename MemTp, typename ValueTp>
+    inline ValueTp Get(index_t frame, index_t node) const
+    {
         BB_DEBUG_ASSERT(m_data_type == DataType<MemTp>::type);
         auto ptr = LockMemoryConst();
-		return static_cast<ValueTp>(DataType_Read<MemTp>(GetNodeBaseAddr(ptr.GetAddr(), node), frame)); 
-	}
+        return static_cast<ValueTp>(DataType_Read<MemTp>(GetNodeBaseAddr(ptr.GetAddr(), node), frame)); 
+    }
     
-   	template <typename MemTp, typename ValueTp>
-	inline ValueTp Get(index_t frame, std::vector<index_t> const & indices)
-	{
+    template <typename MemTp, typename ValueTp>
+    inline ValueTp Get(index_t frame, std::vector<index_t> const & indices)
+    {
         return Get<MemTp, ValueTp>(frame, GetNodeIndex(indices));
-	}
+    }
 
-	template <typename MemTp, typename ValueTp>
-	inline void Set(index_t frame, index_t node, ValueTp value)
-	{
+    template <typename MemTp, typename ValueTp>
+    inline void Set(index_t frame, index_t node, ValueTp value)
+    {
         BB_DEBUG_ASSERT(m_data_type == DataType<MemTp>::type);
         auto ptr = LockMemory();
         DataType_Write<MemTp>(GetNodeBaseAddr(ptr.GetAddr(), node), frame, static_cast<MemTp>(value));
-	}
+    }
 
-   	template <typename MemTp, typename ValueTp>
-	inline void Set(index_t frame, std::vector<index_t> const & indices, ValueTp value)
-	{
+    template <typename MemTp, typename ValueTp>
+    inline void Set(index_t frame, std::vector<index_t> const & indices, ValueTp value)
+    {
         Set<MemTp, ValueTp>(frame, GetNodeIndex(indices), value);
-	}
+    }
 
-	template <typename MemTp, typename ValueTp>
-	inline void Add(index_t frame, index_t node, ValueTp value)
-	{
+    template <typename MemTp, typename ValueTp>
+    inline void Add(index_t frame, index_t node, ValueTp value)
+    {
         BB_DEBUG_ASSERT(m_data_type == DataType<MemTp>::type);
         auto ptr = LockMemory();
         DataType_Add<MemTp>(GetNodeBaseAddr(ptr.GetAddr(), node), frame, static_cast<MemTp>(value));
-	}
+    }
 
-   	template <typename MemTp, typename ValueTp>
-	inline void Add(index_t frame, std::vector<index_t> const & indices, ValueTp value)
-	{
+    template <typename MemTp, typename ValueTp>
+    inline void Add(index_t frame, std::vector<index_t> const & indices, ValueTp value)
+    {
         Add<MemTp, ValueTp>(frame, GetNodeIndex(indices), value);
-	}
+    }
 
 
     // 汎用アクセス
     template <typename Tp>
-	inline Tp GetValue(index_t frame, index_t node) const
-	{
+    inline Tp GetValue(index_t frame, index_t node) const
+    {
         auto ptr = LockMemory();
         return ReadValue<Tp>(GetNodeBaseAddr(ptr.GetAddr(), node), frame);
-	}
+    }
 
-   	template <typename Tp>
+    template <typename Tp>
     inline Tp GetValue(index_t frame, std::vector<index_t> const & indices) const
     {
         return GetValue<Tp>(frame, GetNodeIndex(indices));
     }
 
-   	template <typename Tp>
-	inline void SetValue(index_t frame, index_t node, Tp value)
-	{
+    template <typename Tp>
+    inline void SetValue(index_t frame, index_t node, Tp value)
+    {
         auto ptr = LockMemory();
         WriteValue<Tp>(GetNodeBaseAddr(ptr.GetAddr(), node), frame, value);
-	}
+    }
 
-   	template <typename Tp>
+    template <typename Tp>
     inline void SetValue(index_t frame, std::vector<index_t> const & indices, Tp value)
     {
         SetValue<Tp>(frame, GetNodeIndex(indices), value);
     }
 
     template <typename Tp>
-	inline void AddValue(index_t frame, index_t node, Tp value)
-	{
+    inline void AddValue(index_t frame, index_t node, Tp value)
+    {
         auto ptr = LockMemory();
         AddValue<Tp>(GetNodeBaseAddr(ptr.GetAddr(), node), frame, value);
-	}
+    }
 
-   	template <typename Tp>
+    template <typename Tp>
     inline void AddValue(index_t frame, std::vector<index_t> const & indices, Tp value)
     {
         AddValue<Tp>(frame, GetNodeIndex(indices), value);
@@ -1047,14 +1047,14 @@ public:
     //  演算
     // -------------------------------------
 
-    inline FrameBuffer& operator+=(FrameBuffer src)	{ m_tensor += src.m_tensor; return *this; }
-    inline FrameBuffer& operator+=(double src)	    { m_tensor += src; return *this; }
-    inline FrameBuffer& operator-=(FrameBuffer src)	{ m_tensor -= src.m_tensor; return *this; }
-    inline FrameBuffer& operator-=(double src)	    { m_tensor -= src; return *this; }
-    inline FrameBuffer& operator*=(FrameBuffer src)	{ m_tensor *= src.m_tensor; return *this; }
-    inline FrameBuffer& operator*=(double src)	    { m_tensor *= src; return *this; }
-    inline FrameBuffer& operator/=(FrameBuffer src)	{ m_tensor /= src.m_tensor; return *this; }
-    inline FrameBuffer& operator/=(double src)	    { m_tensor /= src; return *this; }
+    inline FrameBuffer& operator+=(FrameBuffer src) { m_tensor += src.m_tensor; return *this; }
+    inline FrameBuffer& operator+=(double src)      { m_tensor += src; return *this; }
+    inline FrameBuffer& operator-=(FrameBuffer src) { m_tensor -= src.m_tensor; return *this; }
+    inline FrameBuffer& operator-=(double src)      { m_tensor -= src; return *this; }
+    inline FrameBuffer& operator*=(FrameBuffer src) { m_tensor *= src.m_tensor; return *this; }
+    inline FrameBuffer& operator*=(double src)      { m_tensor *= src; return *this; }
+    inline FrameBuffer& operator/=(FrameBuffer src) { m_tensor /= src.m_tensor; return *this; }
+    inline FrameBuffer& operator/=(double src)      { m_tensor /= src; return *this; }
 
     
     FrameBuffer Sqrt(void)
@@ -1222,18 +1222,18 @@ std::ostream &operator<<(std::ostream& os, FrameBufferConstPtr_<T const, FrameBu
 
 inline std::ostream& operator<<(std::ostream& os, FrameBuffer const &buf)
 {
-	switch (buf.GetType()) {
-	case BB_TYPE_BIT:    return os << buf.LockConst<Bit     >();
-	case BB_TYPE_FP32:   return os << buf.LockConst<float   >();
-	case BB_TYPE_FP64:   return os << buf.LockConst<double  >();
+    switch (buf.GetType()) {
+    case BB_TYPE_BIT:    return os << buf.LockConst<Bit     >();
+    case BB_TYPE_FP32:   return os << buf.LockConst<float   >();
+    case BB_TYPE_FP64:   return os << buf.LockConst<double  >();
     case BB_TYPE_INT8:   return os << buf.LockConst<int8_t  >();
-	case BB_TYPE_INT16:  return os << buf.LockConst<int16_t >();
-   	case BB_TYPE_INT32:  return os << buf.LockConst<int32_t >();
-	case BB_TYPE_INT64:  return os << buf.LockConst<int64_t >();
+    case BB_TYPE_INT16:  return os << buf.LockConst<int16_t >();
+    case BB_TYPE_INT32:  return os << buf.LockConst<int32_t >();
+    case BB_TYPE_INT64:  return os << buf.LockConst<int64_t >();
     case BB_TYPE_UINT8:  return os << buf.LockConst<uint8_t >();
-	case BB_TYPE_UINT16: return os << buf.LockConst<uint16_t>();
-   	case BB_TYPE_UINT32: return os << buf.LockConst<uint32_t>();
-	case BB_TYPE_UINT64: return os << buf.LockConst<uint64_t>();
+    case BB_TYPE_UINT16: return os << buf.LockConst<uint16_t>();
+    case BB_TYPE_UINT32: return os << buf.LockConst<uint32_t>();
+    case BB_TYPE_UINT64: return os << buf.LockConst<uint64_t>();
     default:   BB_ASSERT(0);
     }
     return os;

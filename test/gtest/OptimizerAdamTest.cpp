@@ -70,7 +70,7 @@ TEST(NeuralNetOptimizerAdamTest, testNeuralNetOptimizerAdamTest)
     for ( int i = 0; i < 10; i++ ) {
         {
             auto param_ptr = param_tensor->LockConst<float>();
-        	EXPECT_FLOAT_EQ(exp_p, param_ptr(0));
+            EXPECT_FLOAT_EQ(exp_p, param_ptr(0));
         }
 
         float grad = norm_dist(mt);
@@ -87,7 +87,7 @@ TEST(NeuralNetOptimizerAdamTest, testNeuralNetOptimizerAdamTest)
         
         {
             auto param_ptr = param_tensor->LockConst<float>();
-        	EXPECT_FLOAT_EQ(exp_p, param_ptr(0));
+            EXPECT_FLOAT_EQ(exp_p, param_ptr(0));
 //          std::cout << grad << ", " << exp_p << ", " << param_ptr(0) << std::endl;
         }
     }
@@ -132,7 +132,7 @@ TEST(NeuralNetOptimizerAdamTest, testNeuralNetOptimizerAdam2)
         opt->Update(test_p, grad);
         
         for ( int i = 0; i < n; ++ i ) {
-        	EXPECT_FLOAT_EQ(exp_p[i], test_p[i]);
+            EXPECT_FLOAT_EQ(exp_p[i], test_p[i]);
 //          std::cout << loop << " " << i << " : " << exp_p[i] << ", " << test_p[i] << std::endl;
         }
     }
@@ -194,8 +194,8 @@ TEST(OptimizerAdamTest, testOptimizerAdam_Cmp)
             auto grad_ptr_cpu = grad_cpu->LockConst<float>();
             auto grad_ptr_gpu = grad_gpu->LockConst<float>();
             for ( bb::index_t i = 0; i < param_cpu->GetSize(); ++i ) {
-            	EXPECT_FLOAT_EQ(param_ptr_cpu[i], param_ptr_gpu[i]);
-            	EXPECT_FLOAT_EQ(grad_ptr_cpu[i], grad_ptr_gpu[i]);
+                EXPECT_FLOAT_EQ(param_ptr_cpu[i], param_ptr_gpu[i]);
+                EXPECT_FLOAT_EQ(grad_ptr_cpu[i], grad_ptr_gpu[i]);
             }
         }
 
