@@ -75,26 +75,26 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_sl0);
         cnv0_sub->Add(layer_cnv0_sl1);
-        cnv0_sub->Add(bb::BackpropagatedBatchNormalization<>::Create());
-        cnv0_sub->Add(bb::ConcatenateCoefficient<>::Create(16));
+//        cnv0_sub->Add(bb::BackpropagatedBatchNormalization<>::Create());
+//        cnv0_sub->Add(bb::ConcatenateCoefficient<>::Create(16));
 
         auto cnv1_sub = bb::Sequential::Create();
         cnv1_sub->Add(layer_cnv1_sl0);
         cnv1_sub->Add(layer_cnv1_sl1);
-        cnv1_sub->Add(bb::BackpropagatedBatchNormalization<>::Create());
-        cnv1_sub->Add(bb::ConcatenateCoefficient<>::Create(16));
+//        cnv1_sub->Add(bb::BackpropagatedBatchNormalization<>::Create());
+//        cnv1_sub->Add(bb::ConcatenateCoefficient<>::Create(16));
 
         auto cnv2_sub = bb::Sequential::Create();
         cnv2_sub->Add(layer_cnv2_sl0);
         cnv2_sub->Add(layer_cnv2_sl1);
-        cnv2_sub->Add(bb::BackpropagatedBatchNormalization<>::Create());
-        cnv2_sub->Add(bb::ConcatenateCoefficient<>::Create(16));
+ //       cnv2_sub->Add(bb::BackpropagatedBatchNormalization<>::Create());
+ //       cnv2_sub->Add(bb::ConcatenateCoefficient<>::Create(16));
 
         auto cnv3_sub = bb::Sequential::Create();
         cnv3_sub->Add(layer_cnv3_sl0);
         cnv3_sub->Add(layer_cnv3_sl1);
-        cnv2_sub->Add(bb::BackpropagatedBatchNormalization<>::Create());
-        cnv3_sub->Add(bb::ConcatenateCoefficient<>::Create(16));
+ //       cnv2_sub->Add(bb::BackpropagatedBatchNormalization<>::Create());
+ //       cnv3_sub->Add(bb::ConcatenateCoefficient<>::Create(16));
 
         auto net = bb::Sequential::Create();
         net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
