@@ -3,7 +3,7 @@
 #include <random>
 #include "gtest/gtest.h"
 
-#include "bb/BinaryNormalization.h"
+#include "bb/BinaryScaling.h"
 
 
 
@@ -12,9 +12,9 @@ TEST(BinaryNormalizationTest, testBinaryNormalization)
     int const frame_size = 65536;
     int const node_size  = 8;
 
-    auto norm = bb::BinaryNormalization<bb::Bit, float>::Create();
+    auto scale = bb::BinaryScaling<bb::Bit, float>::Create();
     bb::FrameBuffer x_buf(BB_TYPE_BIT, frame_size, node_size);
-    norm->SetInputShape(x_buf.GetShape());
+    scale->SetInputShape(x_buf.GetShape());
     
     std::mt19937_64                         mt(1);
     std::uniform_real_distribution<float>   dist(0.0f, 1.0f);
@@ -59,11 +59,11 @@ TEST(BinaryNormalizationTest, testBinaryNormalization)
 
     // パラメータ設定
     for (int node = 0; node < node_size; ++node) {
-        norm->SetParameter(node, gain[node], offset[node]);
+        scale->SetParameter(node, gain[node], offset[node]);
     }
 
     // forward
-    auto y_buf = norm->Forward(x_buf);
+    auto y_buf = scale->Forward(x_buf);
 
     // 出力頻度計測
     for (int node = 0; node < node_size; ++node) {

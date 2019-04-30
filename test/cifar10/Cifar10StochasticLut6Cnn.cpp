@@ -38,10 +38,11 @@
 #include "bb/ExportVerilog.h"
 #include "bb/Reduce.h"
 #include "bb/UniformDistributionGenerator.h"
-#include "bb/BinaryNormalization.h"
+#include "bb/BinaryScaling.h"
+#include "bb/ConcatenateCoefficient.h"
 
 
-#if 0
+#if 1
 
 // ’Pƒ”Å
 
@@ -74,19 +75,27 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_sl0);
         cnv0_sub->Add(layer_cnv0_sl1);
+        cnv0_sub->Add(bb::BackpropagatedBatchNormalization<>::Create());
+        cnv0_sub->Add(bb::ConcatenateCoefficient<>::Create(16));
 
         auto cnv1_sub = bb::Sequential::Create();
         cnv1_sub->Add(layer_cnv1_sl0);
         cnv1_sub->Add(layer_cnv1_sl1);
+        cnv1_sub->Add(bb::BackpropagatedBatchNormalization<>::Create());
+        cnv1_sub->Add(bb::ConcatenateCoefficient<>::Create(16));
 
         auto cnv2_sub = bb::Sequential::Create();
         cnv2_sub->Add(layer_cnv2_sl0);
         cnv2_sub->Add(layer_cnv2_sl1);
+        cnv2_sub->Add(bb::BackpropagatedBatchNormalization<>::Create());
+        cnv2_sub->Add(bb::ConcatenateCoefficient<>::Create(16));
 
         auto cnv3_sub = bb::Sequential::Create();
         cnv3_sub->Add(layer_cnv3_sl0);
         cnv3_sub->Add(layer_cnv3_sl1);
-        
+        cnv2_sub->Add(bb::BackpropagatedBatchNormalization<>::Create());
+        cnv3_sub->Add(bb::ConcatenateCoefficient<>::Create(16));
+
         auto net = bb::Sequential::Create();
         net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
@@ -811,6 +820,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 #endif
 
 
+#if 0
 
 // CNN with LUT networks
 void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
@@ -929,6 +939,9 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
 }
+
+#endif
+
 
 
 // end of file

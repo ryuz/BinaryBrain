@@ -169,7 +169,7 @@ public:
      *         分岐や合流演算を可能とするために汎用版を定義しておく
      * @return forward演算結果
      */
-    virtual std::vector<FrameBuffer> Forward(std::vector<FrameBuffer> vx, bool train = true)
+    virtual std::vector<FrameBuffer> ForwardMulti(std::vector<FrameBuffer> vx, bool train = true)
     {
         BB_ASSERT(vx.size() == 1);
         auto y = Forward(vx[0], train);
@@ -236,7 +236,7 @@ public:
      *         分岐や合流演算を可能とするために汎用版を定義しておく
      * @return backward演算結果
      */
-    virtual std::vector<FrameBuffer> Backward(std::vector<FrameBuffer> vdy)
+    virtual std::vector<FrameBuffer> BackwardMulti(std::vector<FrameBuffer> vdy)
     {
         BB_ASSERT(vdy.size() == 1);
         auto dx = Backward(vdy[0]);

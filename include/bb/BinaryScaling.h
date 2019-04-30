@@ -33,7 +33,7 @@ namespace bb {
 
 // BatchNormalization
 template <typename FT = Bit, typename ST = float>
-class BinaryNormalization : public Activation<FT, FT>
+class BinaryScaling : public Activation<FT, FT>
 {
     using _super = Activation<FT, FT>;
 
@@ -51,7 +51,7 @@ protected:
     std::mt19937_64             m_mt;
 
 protected:
-    BinaryNormalization() {
+    BinaryScaling() {
     }
 
     void CommandProc(std::vector<std::string> args)
@@ -70,28 +70,28 @@ protected:
     }
 
 public:
-    ~BinaryNormalization() {}
+    ~BinaryScaling() {}
 
     struct create_t
     {
         std::uint64_t   seed = 1;
     };
 
-    static std::shared_ptr<BinaryNormalization> Create(create_t const &create)
+    static std::shared_ptr<BinaryScaling> Create(create_t const &create)
     {
-        auto self = std::shared_ptr<BinaryNormalization>(new BinaryNormalization);
+        auto self = std::shared_ptr<BinaryScaling>(new BinaryScaling);
         self->m_mt.seed(create.seed);
         return self;
     }
 
-    static std::shared_ptr<BinaryNormalization> Create(std::uint64_t seed = 1)
+    static std::shared_ptr<BinaryScaling> Create(std::uint64_t seed = 1)
     {
-        auto self = std::shared_ptr<BinaryNormalization>(new BinaryNormalization);
+        auto self = std::shared_ptr<BinaryScaling>(new BinaryScaling);
         self->m_mt.seed(seed);
         return self;
     }
 
-    std::string GetClassName(void) const { return "BinaryNormalization"; }
+    std::string GetClassName(void) const { return "BinaryScaling"; }
     
     // Serialize
     void Save(std::ostream &os) const 

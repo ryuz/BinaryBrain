@@ -32,7 +32,7 @@
 #include "bb/ExportVerilog.h"
 #include "bb/UniformDistributionGenerator.h"
 #include "bb/StochasticBatchNormalization.h"
-#include "bb/BinaryNormalization.h"
+#include "bb/BinaryScaling.h"
 
 
 
@@ -93,8 +93,8 @@ void Cifar10StochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_s
         auto layer_lut0 = bb::BinaryLutN<>::Create(layer_sl0->GetOutputShape());
         auto layer_lut1 = bb::BinaryLutN<>::Create(layer_sl1->GetOutputShape());
         auto layer_lut2 = bb::BinaryLutN<>::Create(layer_sl2->GetOutputShape());
-        auto layer_bn0  = bb::BinaryNormalization<>::Create();
-        auto layer_bn1  = bb::BinaryNormalization<>::Create();
+        auto layer_bn0  = bb::BinaryScaling<>::Create();
+        auto layer_bn1  = bb::BinaryScaling<>::Create();
 
         auto lut_net = bb::Sequential::Create();
  //     lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
