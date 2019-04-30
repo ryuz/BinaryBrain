@@ -204,6 +204,18 @@ public:
         }
     }
 
+    void SetParameter(index_t node, ST gain, ST offset)
+    {
+        auto a_ptr = m_a.Lock();
+        auto b_ptr = m_b.Lock();
+        auto a = offset / (gain + offset);
+        auto b = gain + offset;
+        BB_ASSERT(a >= (ST)0 && a <= (ST)1);
+        BB_ASSERT(b >= (ST)0 && b <= (ST)1);
+        a_ptr[node] = offset / (gain + offset);
+        b_ptr[node] = gain + offset;
+    }
+
     // ノード単位でのForward計算
     std::vector<FT> ForwardNode(index_t node, std::vector<FT> x_vec) const
     {

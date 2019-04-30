@@ -38,6 +38,7 @@
     <ClCompile Include="BatchNormalizationTest.cpp" />
     <ClCompile Include="BinarizeTest.cpp" />
     <ClCompile Include="BinaryLutTest.cpp" />
+    <ClCompile Include="BinaryNormalizationTest.cpp" />
     <ClCompile Include="BinaryToRealTest.cpp" />
     <ClCompile Include="ConvolutionCol2ImTest.cpp" />
     <ClCompile Include="ConvolutionIm2ColTest.cpp" />
@@ -67,6 +68,7 @@
     <ClInclude Include="..\..\include\bb\Binarize.h" />
     <ClInclude Include="..\..\include\bb\BinaryLutN.h" />
     <ClInclude Include="..\..\include\bb\BinaryModulation.h" />
+    <ClInclude Include="..\..\include\bb\BinaryNormalization.h" />
     <ClInclude Include="..\..\include\bb\BinaryToReal.h" />
     <ClInclude Include="..\..\include\bb\ConvolutionCol2Im.h" />
     <ClInclude Include="..\..\include\bb\ConvolutionIm2Col.h" />
@@ -113,6 +115,7 @@
     <ClInclude Include="..\..\include\bb\StochasticLutBn.h" />
     <ClInclude Include="..\..\include\bb\StochasticMaxPooling.h" />
     <ClInclude Include="..\..\include\bb\StochasticMaxPooling2x2.h" />
+    <ClInclude Include="..\..\include\bb\StochasticOperator.h" />
     <ClInclude Include="..\..\include\bb\Tensor.h" />
     <ClInclude Include="..\..\include\bb\TensorOperator.h" />
     <ClInclude Include="..\..\include\bb\UniformDistributionGenerator.h" />
