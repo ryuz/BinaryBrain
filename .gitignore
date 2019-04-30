@@ -35,7 +35,7 @@ sample/cifar10/sample-cifar10
 
 test/gtest/gtest
 test/mnist/test-mnist
-test/cifar-10/test-cifar10
+test/cifar10/test-cifar10
 test/diabetes/test-diabetes
 
 # generate file

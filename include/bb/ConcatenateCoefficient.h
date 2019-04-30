@@ -119,19 +119,6 @@ public:
     }
 
     /**
-     * @brief  出力のshape設定
-     * @detail 出力のshape設定
-     *         出力ノード数が変わらない限りshpeは自由
-     * @param shape 新しいshape
-     * @return なし
-     */
-    void SetOutputShape(indices_t const &shape)
-    {
-        BB_ASSERT(GetShapeSize(shape) == m_output_node_size);
-        m_output_shape = shape;
-    }
-
-    /**
      * @brief  入力形状取得
      * @detail 入力形状を取得する
      * @return 入力形状を返す
