@@ -53,13 +53,6 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
         net->Add(bb::RealToBinary<>::Create(frame_mux_size));
 //      net->Add(bb::RealToBinary<>::Create(frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
     }
-    net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(32), 3, 3));
-    net->Add(bb::BatchNormalization<>::Create());
-    net->Add(bb::ReLU<>::Create());
-    net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(32), 3, 3));
-    net->Add(bb::BatchNormalization<>::Create());
-    net->Add(bb::ReLU<>::Create());
-    net->Add(bb::MaxPooling<>::Create(2, 2));
     net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3));
     net->Add(bb::BatchNormalization<>::Create());
     net->Add(bb::ReLU<>::Create());
@@ -67,10 +60,17 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
     net->Add(bb::BatchNormalization<>::Create());
     net->Add(bb::ReLU<>::Create());
     net->Add(bb::MaxPooling<>::Create(2, 2));
-    net->Add(bb::DenseAffine<>::Create(512));
+    net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(128), 3, 3));
     net->Add(bb::BatchNormalization<>::Create());
     net->Add(bb::ReLU<>::Create());
-    net->Add(bb::DenseAffine<>::Create(70));
+    net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(128), 3, 3));
+    net->Add(bb::BatchNormalization<>::Create());
+    net->Add(bb::ReLU<>::Create());
+    net->Add(bb::MaxPooling<>::Create(2, 2));
+    net->Add(bb::DenseAffine<>::Create(1024));
+    net->Add(bb::BatchNormalization<>::Create());
+    net->Add(bb::ReLU<>::Create());
+    net->Add(bb::DenseAffine<>::Create(310));
     if ( binary_mode ) {
         net->Add(bb::BatchNormalization<>::Create());
         net->Add(bb::Binarize<>::Create());
