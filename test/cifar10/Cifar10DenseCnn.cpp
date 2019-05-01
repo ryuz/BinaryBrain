@@ -30,10 +30,11 @@
 #include "bb/Sequential.h"
 #include "bb/Runner.h"
 #include "bb/ExportVerilog.h"
+#include "bb/UniformDistributionGenerator.h"
 
 
 // Dense CNN
-void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, bool binary_mode, bool file_read)
+void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
 {
     std::string net_name = "Cifar10DenseCnn";
 
@@ -47,7 +48,10 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, bool
 
     // create network
     auto net = bb::Sequential::Create();
-    net->Add(bb::RealToBinary<>::Create(15));
+    if ( binary_mode ) {
+//      net->Add(bb::RealToBinary<>::Create(frame_mux_size));
+        net->Add(bb::RealToBinary<>::Create(frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
+    }
     net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(32), 3, 3));
     net->Add(bb::BatchNormalization<>::Create());
     net->Add(bb::ReLU<>::Create());
@@ -66,7 +70,11 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, bool
     net->Add(bb::BatchNormalization<>::Create());
     net->Add(bb::ReLU<>::Create());
     net->Add(bb::DenseAffine<>::Create(td.t_shape));
-    net->Add(bb::BinaryToReal<>::Create(td.t_shape, 15));
+    if ( binary_mode ) {
+        net->Add(bb::BatchNormalization<>::Create());
+        net->Add(bb::Binarize<>::Create());
+        net->Add(bb::BinaryToReal<>::Create(td.t_shape, frame_mux_size));
+    }
     net->SetInputShape(td.x_shape);
 
     if ( binary_mode ) {
