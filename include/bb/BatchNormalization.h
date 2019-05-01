@@ -38,6 +38,7 @@ class BatchNormalization : public Activation<T, T>
     using _super = Activation<T, T>;
 
 protected:
+    bool                        m_bypass    = false;
     bool                        m_host_only = false;
     bool                        m_host_simd = true;
     bool                        m_fix_gamma = false;
@@ -74,6 +75,12 @@ protected:
 
     void CommandProc(std::vector<std::string> args)
     {
+        // HostOnlyモード設定
+        if (args.size() == 2 && args[0] == "bypass")
+        {
+            m_bypass = EvalBool(args[1]);
+        }
+
         // HostOnlyモード設定
         if (args.size() == 2 && args[0] == "host_only")
         {
@@ -303,13 +310,16 @@ public:
      */
     FrameBuffer Forward(FrameBuffer x_buf, bool train=true)
     {
+        if (m_bypass) {
+            return x_buf;
+        }
+
         // forwardの為に保存
         m_x_buf = x_buf;
 
         // 出力設定
         m_y_buf.Resize(x_buf.GetType(), x_buf.GetFrameSize(), x_buf.GetShape());
         
-
 #ifdef BB_WITH_CUDA
         if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && m_x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             if ( train ) {
@@ -557,6 +567,10 @@ public:
      */
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
+        if (m_bypass) {
+            return dy_buf;
+        }
+
         // 出力設定
         m_dx_buf.Resize(dy_buf.GetType(), dy_buf.GetFrameSize(), dy_buf.GetShape());
 
