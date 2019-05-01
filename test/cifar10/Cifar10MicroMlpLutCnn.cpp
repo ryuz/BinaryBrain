@@ -272,22 +272,21 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
 #endif
 
     // create network
-    auto layer_cnv0_mm0 = bb::MicroMlp<>::Create(512);
+    auto layer_cnv0_mm0 = bb::MicroMlp<>::Create(2048);
     auto layer_cnv0_mm1 = bb::MicroMlp<>::Create(384);
     auto layer_cnv0_mm2 = bb::MicroMlp<>::Create(64);
-    auto layer_cnv1_mm0 = bb::MicroMlp<>::Create(512);
+    auto layer_cnv1_mm0 = bb::MicroMlp<>::Create(2048);
     auto layer_cnv1_mm1 = bb::MicroMlp<>::Create(384);
     auto layer_cnv1_mm2 = bb::MicroMlp<>::Create(64);
-    auto layer_cnv2_mm0 = bb::MicroMlp<>::Create(1024);
+    auto layer_cnv2_mm0 = bb::MicroMlp<>::Create(4096);
     auto layer_cnv2_mm1 = bb::MicroMlp<>::Create(768);
     auto layer_cnv2_mm2 = bb::MicroMlp<>::Create(128);
-    auto layer_cnv3_mm0 = bb::MicroMlp<>::Create(1024);
+    auto layer_cnv3_mm0 = bb::MicroMlp<>::Create(4096);
     auto layer_cnv3_mm1 = bb::MicroMlp<>::Create(768);
-    auto layer_cnv3_mm2 = bb::MicroMlp<>::Create(64);
-    auto layer_mm4      = bb::MicroMlp<>::Create(2048);
+    auto layer_cnv3_mm2 = bb::MicroMlp<>::Create(128);
+    auto layer_mm4      = bb::MicroMlp<>::Create(4096);
     auto layer_mm5      = bb::MicroMlp<>::Create(1024);
-    auto layer_mm6      = bb::MicroMlp<>::Create(420);
-    auto layer_mm7      = bb::MicroMlp<>::Create(70);
+    auto layer_mm6      = bb::MicroMlp<>::Create(310);
 
     {
         auto cnv0_sub = bb::Sequential::Create();
@@ -311,8 +310,8 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
         cnv3_sub->Add(layer_cnv3_mm2);
         
         auto net = bb::Sequential::Create();
- //     net->Add(bb::RealToBinary<>::Create(frame_mux_size));
-        net->Add(bb::RealToBinary<>::Create(frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
+        net->Add(bb::RealToBinary<>::Create(frame_mux_size));
+//      net->Add(bb::RealToBinary<>::Create(frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
         net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
         net->Add(bb::MaxPooling<>::Create(2, 2));
@@ -322,7 +321,6 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
         net->Add(layer_mm4);
         net->Add(layer_mm5);
         net->Add(layer_mm6);
-        net->Add(layer_mm7);
         net->Add(bb::BinaryToReal<>::Create(td.t_shape, frame_mux_size));
         net->SetInputShape(td.x_shape);
 
@@ -370,7 +368,6 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
         auto layer_lut4      = bb::BinaryLutN<>::Create(layer_mm4->GetOutputShape());
         auto layer_lut5      = bb::BinaryLutN<>::Create(layer_mm5->GetOutputShape());
         auto layer_lut6      = bb::BinaryLutN<>::Create(layer_mm6->GetOutputShape());
-        auto layer_lut7      = bb::BinaryLutN<>::Create(layer_mm6->GetOutputShape());
 
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_lut0);
@@ -396,7 +393,6 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
         cnv4_sub->Add(layer_lut4);
         cnv4_sub->Add(layer_lut5);
         cnv4_sub->Add(layer_lut6);
-        cnv4_sub->Add(layer_lut7);
 
         auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3);
         auto cnv1 = bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3);
@@ -410,8 +406,8 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
         auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
- //     lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
+//      lut_net->Add(bb::RealToBinary<>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
+        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(cnv0);
         lut_net->Add(cnv1);
         lut_net->Add(pol0);
@@ -440,7 +436,6 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
         layer_lut4     ->ImportLayer<float, float>(layer_mm4);
         layer_lut5     ->ImportLayer<float, float>(layer_mm5);
         layer_lut6     ->ImportLayer<float, float>(layer_mm6);
-        layer_lut7     ->ImportLayer<float, float>(layer_mm7);
 
         // •]‰¿
         if ( 1 ) {
