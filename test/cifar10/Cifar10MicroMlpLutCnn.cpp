@@ -272,21 +272,21 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
 #endif
 
     // create network
-    auto layer_cnv0_mm0 = bb::MicroMlp<>::Create(2048);
+    auto layer_cnv0_mm0 = bb::MicroMlp<>::Create(2304);
     auto layer_cnv0_mm1 = bb::MicroMlp<>::Create(384);
     auto layer_cnv0_mm2 = bb::MicroMlp<>::Create(64);
-    auto layer_cnv1_mm0 = bb::MicroMlp<>::Create(2048);
+    auto layer_cnv1_mm0 = bb::MicroMlp<>::Create(2304);
     auto layer_cnv1_mm1 = bb::MicroMlp<>::Create(384);
     auto layer_cnv1_mm2 = bb::MicroMlp<>::Create(64);
-    auto layer_cnv2_mm0 = bb::MicroMlp<>::Create(4096);
-    auto layer_cnv2_mm1 = bb::MicroMlp<>::Create(768);
-    auto layer_cnv2_mm2 = bb::MicroMlp<>::Create(128);
-    auto layer_cnv3_mm0 = bb::MicroMlp<>::Create(4096);
-    auto layer_cnv3_mm1 = bb::MicroMlp<>::Create(768);
-    auto layer_cnv3_mm2 = bb::MicroMlp<>::Create(128);
-    auto layer_mm4      = bb::MicroMlp<>::Create(4096);
-    auto layer_mm5      = bb::MicroMlp<>::Create(1024);
-    auto layer_mm6      = bb::MicroMlp<>::Create(310);
+    auto layer_cnv2_mm0 = bb::MicroMlp<>::Create(2304);
+    auto layer_cnv2_mm1 = bb::MicroMlp<>::Create(384);
+    auto layer_cnv2_mm2 = bb::MicroMlp<>::Create(64);
+    auto layer_cnv3_mm0 = bb::MicroMlp<>::Create(2304);
+    auto layer_cnv3_mm1 = bb::MicroMlp<>::Create(384);
+    auto layer_cnv3_mm2 = bb::MicroMlp<>::Create(64);
+    auto layer_mm4      = bb::MicroMlp<>::Create(2520);
+    auto layer_mm5      = bb::MicroMlp<>::Create(420);
+    auto layer_mm6      = bb::MicroMlp<>::Create(70);
 
     {
         auto cnv0_sub = bb::Sequential::Create();
