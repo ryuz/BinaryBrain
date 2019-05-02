@@ -180,12 +180,12 @@ public:
 
     void Save(cereal::JSONOutputArchive& archive) const
     {
-        archive(cereal::make_nvp("RealLut4", *this));
+        archive(cereal::make_nvp("StochasticLut6", *this));
     }
 
     void Load(cereal::JSONInputArchive& archive)
     {
-        archive(cereal::make_nvp("RealLut4", *this));
+        archive(cereal::make_nvp("StochasticLut6", *this));
     }
 #endif
 
