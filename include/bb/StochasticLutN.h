@@ -392,6 +392,7 @@ public:
             auto input_index_ptr = m_input_index.LockConst();
             auto W_ptr           = lock_W_const();
 
+            #pragma omp parallel for
             for ( index_t node = 0; node < node_size; ++node ) {
                 T W[NN];
                 for ( int i = 0; i < NN; ++i) {
@@ -485,6 +486,7 @@ public:
             auto W_ptr           = lock_W_const();
             auto dW_ptr          = lock_dW();
             
+            #pragma omp parallel for
             for ( index_t node = 0; node < node_size; ++node ) {
                 T W[NN][2];
                 for ( int i = 0; i < NN; ++i) {
@@ -668,6 +670,8 @@ public:
             }
 
             auto dx_ptr = m_dx_buf.Lock<T>();
+
+            #pragma omp parallel for
             for ( index_t frame = 0; frame < frame_size; ++frame ) {
                 for ( index_t node = 0; node < node_size; ++node ) {
                     for (int i = 0; i < N; ++i) {
