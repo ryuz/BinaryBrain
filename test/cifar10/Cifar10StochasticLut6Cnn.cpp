@@ -40,6 +40,7 @@
 #include "bb/UniformDistributionGenerator.h"
 #include "bb/BinaryScaling.h"
 #include "bb/ConcatenateCoefficient.h"
+#include "bb/Shuffle.h"
 
 
 #if 0
@@ -323,9 +324,11 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
         net->Add(bb::StochasticMaxPooling2x2<>::Create());
+        net->Add(bb::BackpropagatedBatchNormalization<>::Create(0.0001f));
         net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
         net->Add(bb::StochasticMaxPooling2x2<>::Create());
+        net->Add(bb::BackpropagatedBatchNormalization<>::Create(0.0001f));
         net->Add(layer_sl4);
         net->Add(layer_sl5);
         net->Add(bb::Reduce<>::Create(td.t_shape));
@@ -406,13 +409,18 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
 //      lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(cnv0);
+//        lut_net->Add(bb::Shuffle<>::Create(lut_frame_mux_size));
         lut_net->Add(cnv1);
         lut_net->Add(pol0);
+//        lut_net->Add(bb::Shuffle<>::Create(lut_frame_mux_size));
         lut_net->Add(cnv2);
+//        lut_net->Add(bb::Shuffle<>::Create(lut_frame_mux_size));
         lut_net->Add(cnv3);
         lut_net->Add(pol1);
+//        lut_net->Add(bb::Shuffle<>::Create(lut_frame_mux_size));
 //        lut_net->Add(cnv4);
         lut_net->Add(layer_lut4);
+//        lut_net->Add(bb::Shuffle<>::Create(lut_frame_mux_size));
         lut_net->Add(layer_lut5);
         lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, lut_frame_mux_size));
         lut_net->SetInputShape(td.x_shape);

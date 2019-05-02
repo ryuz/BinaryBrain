@@ -278,5 +278,8 @@
     <ClInclude Include="..\..\include\bb\ConcatenateCoefficient.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bb\Shuffle.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
