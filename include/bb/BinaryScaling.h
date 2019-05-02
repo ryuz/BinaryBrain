@@ -210,8 +210,8 @@ public:
         auto b_ptr = m_b.Lock();
         auto a = offset / (gain + offset);
         auto b = gain + offset;
-        BB_ASSERT(a >= (ST)0 && a <= (ST)1);
-        BB_ASSERT(b >= (ST)0 && b <= (ST)1);
+//        BB_ASSERT(a >= (ST)0 && a <= (ST)1);
+//        BB_ASSERT(b >= (ST)0 && b <= (ST)1);
         a_ptr[node] = offset / (gain + offset);
         b_ptr[node] = gain + offset;
     }
