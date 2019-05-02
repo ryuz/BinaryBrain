@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <random>
 
 #include "bb/Model.h"
@@ -28,7 +29,7 @@ namespace bb {
  * @tparam BT  backward型 (dy, dx)
  */
 template <typename FT = Bit, typename BT = float>
-class Shuffle : public Model
+class ShuffleModulation : public Model
 {
 protected:
     FrameBuffer         m_y_buf;
@@ -46,22 +47,22 @@ public:
     };
 
 protected:
-    Shuffle(create_t const &create)
+    ShuffleModulation(create_t const &create)
     {
         m_frame_unit = create.frame_unit;
         m_mt.seed(create.seed);
     }
 
 public:
-    ~Shuffle() {}
+    ~ShuffleModulation() {}
 
 
-    static std::shared_ptr<Shuffle> Create(create_t const &create)
+    static std::shared_ptr<ShuffleModulation> Create(create_t const &create)
     {
-        return std::shared_ptr<Shuffle>(new Shuffle(create));
+        return std::shared_ptr<ShuffleModulation>(new ShuffleModulation(create));
     }
 
-    static std::shared_ptr<Shuffle> Create(
+    static std::shared_ptr<ShuffleModulation> Create(
                 index_t         frame_unit = 1,
                 std::uint64_t   seed       = 1)
     {
@@ -71,7 +72,7 @@ public:
         return Create(create);
     }
 
-    std::string GetClassName(void) const { return "Shuffle"; }
+    std::string GetClassName(void) const { return "ShuffleModulation"; }
 
 
     /**
