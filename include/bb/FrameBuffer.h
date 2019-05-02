@@ -174,6 +174,7 @@ protected:
 protected:
     inline void *GetNodeBaseAddr(index_t node)
     {
+        BB_DEBUG_ASSERT(node >= 0 && node < m_buf->GetNodeSize());
         auto addr = (std::uint8_t *)m_ptr.GetAddr();
         return addr + (m_buf->m_frame_stride * node);
     }
