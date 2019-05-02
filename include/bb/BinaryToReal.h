@@ -34,12 +34,14 @@ class BinaryToReal : public Model
 protected:
     bool                m_host_only = false;
 
-    FrameBuffer         m_y;
-    FrameBuffer         m_dx;
+    index_t             m_frame_unit;
 
     indices_t           m_input_shape;
     indices_t           m_output_shape;
-    index_t             m_frame_mux_size;
+
+    FrameBuffer         m_y_buf;
+    FrameBuffer         m_dx_buf;
+
 
 protected:
     BinaryToReal() {}
@@ -64,24 +66,24 @@ public:
     struct create_t
     {
         indices_t       output_shape;   
-        index_t         frame_mux_size = 1;
+        index_t         frame_unit = 1;
     };
 
     static std::shared_ptr<BinaryToReal> Create(create_t const &create)
     {
         auto self = std::shared_ptr<BinaryToReal>(new BinaryToReal);
 
-        self->m_output_shape   = create.output_shape;
-        self->m_frame_mux_size = create.frame_mux_size;
+        self->m_output_shape = create.output_shape;
+        self->m_frame_unit   = create.frame_unit;
 
         return self;
     }
 
-    static std::shared_ptr<BinaryToReal> Create(indices_t output_shape, index_t frame_mux_size=1)
+    static std::shared_ptr<BinaryToReal> Create(indices_t output_shape, index_t frame_unit=1)
     {
         create_t create;
-        create.output_shape   = output_shape;
-        create.frame_mux_size = frame_mux_size;
+        create.output_shape = output_shape;
+        create.frame_unit   = frame_unit;
         return Create(create);
     }
 
@@ -126,48 +128,48 @@ public:
     }
     
 
-    FrameBuffer Forward(FrameBuffer x, bool train = true)
+    FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-        BB_ASSERT(x.GetType() == DataType<FXT>::type);
+        BB_ASSERT(x_buf.GetType() == DataType<FXT>::type);
 
         // SetInputShpaeされていなければ初回に設定
-        if (x.GetShape() != m_input_shape) {
-            SetInputShape(x.GetShape());
+        if (x_buf.GetShape() != m_input_shape) {
+            SetInputShape(x_buf.GetShape());
         }
 
         // 戻り値の型を設定
-        BB_ASSERT(x.GetFrameSize() % m_frame_mux_size == 0);
-        m_y.Resize(DataType<FYT>::type, x.GetFrameSize() / m_frame_mux_size, m_output_shape);
+        BB_ASSERT(x_buf.GetFrameSize() % m_frame_unit == 0);
+        m_y_buf.Resize(DataType<FYT>::type, x_buf.GetFrameSize() / m_frame_unit, m_output_shape);
 
 #ifdef BB_WITH_CUDA
         if ( DataType<FXT>::type == BB_TYPE_FP32 && !m_host_only && DataType<FYT>::type == BB_TYPE_FP32
-            && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
-            auto x_ptr = x.LockDeviceMemoryConst();
-            auto y_ptr = m_y.LockDeviceMemory(true);
+            && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            auto x_ptr = x_buf.LockDeviceMemoryConst();
+            auto y_ptr = m_y_buf.LockDeviceMemory(true);
 
             bbcu_fp32_BinaryToReal_Forward
                 (
                     (float const *)x_ptr.GetAddr(),
                     (float       *)y_ptr.GetAddr(),
                     (int          )(GetShapeSize(m_input_shape) / GetShapeSize(m_output_shape)),
-                    (int          )m_frame_mux_size,
+                    (int          )m_frame_unit,
                     (int          )GetOutputNodeSize(),
-                    (int          )(x.GetFrameStride() / sizeof(float)),
-                    (int          )m_y.GetFrameSize(),
-                    (int          )(m_y.GetFrameStride() / sizeof(float))
+                    (int          )(x_buf.GetFrameStride() / sizeof(float)),
+                    (int          )m_y_buf.GetFrameSize(),
+                    (int          )(m_y_buf.GetFrameStride() / sizeof(float))
                 );
 
-            return m_y;
+            return m_y_buf;
         }
 #endif
 
         {
-            auto x_ptr = x.LockConst<FXT>();
-            auto y_ptr = m_y.Lock<FYT>(true);
+            auto x_ptr = x_buf.LockConst<FXT>();
+            auto y_ptr = m_y_buf.Lock<FYT>(true);
 
             index_t input_node_size   = GetInputNodeSize();
             index_t output_node_size  = GetOutputNodeSize();
-            index_t output_frame_size = m_y.GetFrameSize();
+            index_t output_frame_size = m_y_buf.GetFrameSize();
 
             index_t node_size = std::max(input_node_size, output_node_size);
 
@@ -177,8 +179,8 @@ public:
                 std::fill(vec_v.begin(), vec_v.end(), (FYT)0);
                 std::fill(vec_n.begin(), vec_n.end(), 0);
                 for (index_t node = 0; node < node_size; ++node) {
-                    for (index_t i = 0; i < m_frame_mux_size; ++i) {
-                        FYT bin_sig = (FYT)x_ptr.Get(frame*m_frame_mux_size + i, node);
+                    for (index_t i = 0; i < m_frame_unit; ++i) {
+                        FYT bin_sig = (FYT)x_ptr.Get(frame*m_frame_unit + i, node);
                         vec_v[node % output_node_size] += bin_sig;
                         vec_n[node % output_node_size] += 1;
                     }
@@ -189,61 +191,61 @@ public:
                 }
             }
 
-            return m_y;
+            return m_y_buf;
         }
     }
     
 
-    FrameBuffer Backward(FrameBuffer dy)
+    FrameBuffer Backward(FrameBuffer dy_buf)
     {
-        BB_ASSERT(dy.GetType() == DataType<BT>::type);
+        BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
 
         // 戻り値の型を設定
-        m_dx.Resize(DataType<BT>::type, dy.GetFrameSize() * m_frame_mux_size, m_input_shape);
+        m_dx_buf.Resize(DataType<BT>::type, dy_buf.GetFrameSize() * m_frame_unit, m_input_shape);
 
 #ifdef BB_WITH_CUDA
         if ( DataType<BT>::type == BB_TYPE_FP32 && !m_host_only 
-                && dy.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+                && dy_buf.IsDeviceAvailable() && m_dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
 
-            auto dy_ptr = dy.LockDeviceMemoryConst();
-            auto dx_ptr = m_dx.LockDeviceMemory(true);
+            auto dy_ptr = dy_buf.LockDeviceMemoryConst();
+            auto dx_ptr = m_dx_buf.LockDeviceMemory(true);
 
             bbcu_fp32_BinaryToReal_Backward
                 (
                     (float const *)dy_ptr.GetAddr(),
                     (float       *)dx_ptr.GetAddr(),
                     (int          )(GetShapeSize(m_input_shape) / GetShapeSize(m_output_shape)),
-                    (int          )m_frame_mux_size,
+                    (int          )m_frame_unit,
                     (int          )GetOutputNodeSize(),
-                    (int          )(m_dx.GetFrameStride() / sizeof(float)),
-                    (int          )dy.GetFrameSize(),
-                    (int          )(dy.GetFrameStride() / sizeof(float))
+                    (int          )(m_dx_buf.GetFrameStride() / sizeof(float)),
+                    (int          )dy_buf.GetFrameSize(),
+                    (int          )(dy_buf.GetFrameStride() / sizeof(float))
                 );
 
-            return m_dx;
+            return m_dx_buf;
         }
 #endif
 
         {
             index_t input_node_size   = GetInputNodeSize();
             index_t output_node_size  = GetOutputNodeSize();
-            index_t output_frame_size = dy.GetFrameSize();
+            index_t output_frame_size = dy_buf.GetFrameSize();
 
-            auto dy_ptr = dy.LockConst<BT>();
-            auto dx_ptr = m_dx.Lock<BT>();
+            auto dy_ptr = dy_buf.LockConst<BT>();
+            auto dx_ptr = m_dx_buf.Lock<BT>();
 
-            BT  gain = (BT)output_node_size / ((BT)input_node_size * (BT)m_frame_mux_size);
+            BT  gain = (BT)output_node_size / ((BT)input_node_size * (BT)m_frame_unit);
             for (index_t node = 0; node < input_node_size; node++) {
                 for (index_t frame = 0; frame < output_frame_size; ++frame) {
-                    for (index_t i = 0; i < m_frame_mux_size; i++) {
+                    for (index_t i = 0; i < m_frame_unit; i++) {
                         auto grad = dy_ptr.Get(frame, node % output_node_size);
                         grad *= gain;
-                        dx_ptr.Set(frame*m_frame_mux_size + i, node, grad);
+                        dx_ptr.Set(frame*m_frame_unit + i, node, grad);
                     }
                 }
             }
 
-            return m_dx;
+            return m_dx_buf;
         }
     }
 };
