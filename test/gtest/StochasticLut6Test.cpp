@@ -8,8 +8,6 @@
 #include "bb/UniformDistributionGenerator.h"
 
 
-
-
 #ifdef BB_WITH_CUDA
 
 
