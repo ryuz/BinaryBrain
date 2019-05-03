@@ -272,7 +272,7 @@ public:
      */
     FrameBuffer Forward(FrameBuffer x_buf, bool train=true)
     {
-        // forwardの為に保存
+        // backwardの為に保存
         m_x_buf = x_buf;
 
         // 出力設定
