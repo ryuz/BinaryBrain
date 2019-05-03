@@ -567,7 +567,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         net->Add(bb::LoweringConvolution<>::Create(cnv3d_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv3p_sub, 1, 1));
         net->Add(bb::StochasticMaxPooling2x2<>::Create());
-        net->Add(bb::BackpropagatedBatchNormalization<>::Create(0.0001f));
+//      net->Add(bb::BackpropagatedBatchNormalization<>::Create(0.0001f));
         net->Add(layer_sl4);
         net->Add(layer_sl5);
         net->Add(bb::Reduce<>::Create(td.t_shape));
