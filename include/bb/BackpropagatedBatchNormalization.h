@@ -45,10 +45,21 @@ protected:
     FrameBuffer                 m_x_buf;
     FrameBuffer                 m_dx_buf;
 
-    T                           m_gain = (T)0.001;
+    T                           m_gain = (T)1.00;
+    T                           m_beta = (T)0.99;
+
+public:
+    struct create_t
+    {
+        T   gain = (T)1.00;
+        T   beta = (T)0.99;
+    };
 
 protected:
-    BackpropagatedBatchNormalization() {
+    BackpropagatedBatchNormalization(create_t const &create)
+    {
+        m_gain = create.gain;
+        m_beta = create.beta;
     }
 
     void CommandProc(std::vector<std::string> args)
@@ -69,23 +80,17 @@ protected:
 public:
     ~BackpropagatedBatchNormalization() {}
 
-    struct create_t
-    {
-        T   gain = (T)1.0;
-    };
-
     static std::shared_ptr<BackpropagatedBatchNormalization> Create(create_t const &create)
     {
-        auto self = std::shared_ptr<BackpropagatedBatchNormalization>(new BackpropagatedBatchNormalization);
-        self->m_gain = create.gain;
-        return self;
+        return std::shared_ptr<BackpropagatedBatchNormalization>(new BackpropagatedBatchNormalization(create));
     }
 
-    static std::shared_ptr<BackpropagatedBatchNormalization> Create(T gain = (T)0.001)
+    static std::shared_ptr<BackpropagatedBatchNormalization> Create(T gain = (T)1.00, T beta = (T)0.99)
     {
-        auto self = std::shared_ptr<BackpropagatedBatchNormalization>(new BackpropagatedBatchNormalization);
-        self->m_gain = gain;
-        return self;
+        create_t create;
+        create.gain = gain;
+        create.beta = beta;
+        return Create(create);
     }
 
     std::string GetClassName(void) const { return "BackpropagatedBatchNormalization"; }
@@ -93,14 +98,16 @@ public:
     // Serialize
     void Save(std::ostream &os) const 
     {
-//        SaveIndex(os, m_node_size);
-//        bb::SaveValue(os, m_gain);
+          SaveIndices(os, m_shape);
+          bb::SaveValue(os, m_gain);
+          bb::SaveValue(os, m_beta);
     }
 
     void Load(std::istream &is)
     {
-//       m_node_size = LoadIndex(is);
-//       bb::LoadValue(is, m_gain);
+         m_shape = LoadIndices(is);
+         bb::LoadValue(is, m_gain);
+         bb::LoadValue(is, m_beta);
     }
 
 
@@ -108,27 +115,29 @@ public:
     template <class Archive>
     void save(Archive& archive, std::uint32_t const version) const
     {
-//        _super::save(archive, version);
-//        archive(cereal::make_nvp("node_size",    m_node_size));
-//        archive(cereal::make_nvp("gain",         m_gain));
+        _super::save(archive, version);
+        archive(cereal::make_nvp("node_shape", m_shape));
+        archive(cereal::make_nvp("gain",       m_gain));
+        archive(cereal::make_nvp("beta",       m_beta));
     }
 
     template <class Archive>
     void load(Archive& archive, std::uint32_t const version)
     {
-//        _super::load(archive, version);
-//        archive(cereal::make_nvp("node_size",    m_node_size));
-//        archive(cereal::make_nvp("gain",         m_gamma));
+        _super::load(archive, version);
+        archive(cereal::make_nvp("node_shape", m_shape));
+        archive(cereal::make_nvp("gain",       m_gain));
+        archive(cereal::make_nvp("beta",       m_beta));
      }
 
     void Save(cereal::JSONOutputArchive& archive) const
     {
-//        archive(cereal::make_nvp("StochasticBatchNormalization", *this));
+        archive(cereal::make_nvp("BackpropagatedBatchNormalization", *this));
     }
 
     void Load(cereal::JSONInputArchive& archive)
     {
-//        archive(cereal::make_nvp("StochasticBatchNormalization", *this));
+        archive(cereal::make_nvp("BackpropagatedBatchNormalization", *this));
     }
 #endif
 
@@ -261,6 +270,9 @@ public:
                     dx_ptr.Set(frame, node, dy + (x - t) * m_gain);
                 }
             }
+
+            // ゲイン減衰
+            m_gain *= m_beta;
 
             return m_dx_buf;
         }
