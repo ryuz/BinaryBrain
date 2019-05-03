@@ -35,7 +35,7 @@ public:
     }
     void SetNodeInput(indices_t node, index_t input_index, indices_t input_node)
     {
-        return SetNodeInput(GetShapeIndex(node, this->GetOutputShape()), input_index, GetShapeIndex(node, this->GetInputShape()));
+        return SetNodeInput(GetShapeIndex(node, this->GetOutputShape()), input_index, GetShapeIndex(input_node, this->GetInputShape()));
     }
     void SetNodeInput(indices_t node, index_t input_index, index_t input_node)
     {
@@ -73,7 +73,7 @@ protected:
                         index_t  input_size = GetNodeInputSize({x, y, c});
                         auto random_set = ss.GetRandomSet(input_size);
                         for (index_t i = 0; i < input_size; ++i) {
-                            SetNodeInput({x, y, x}, i, {x, y, random_set[i]});
+                            SetNodeInput({x, y, c}, i, {x, y, random_set[i]});
                         }
                     }
                 }
