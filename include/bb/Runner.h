@@ -273,8 +273,6 @@ public:
             ostream_tee log_stream;
             log_stream.add(std::cout);
             if (ofs_log.is_open()) { log_stream.add(ofs_log); }
-
-            int prev_epoch = 0;
             
             // 以前の計算があれば読み込み
             if ( m_file_read ) {
@@ -314,17 +312,16 @@ public:
 
             for (int epoch = 0; epoch < epoch_size; ++epoch) {
                 // 学習実施
+                m_epoch++;
                 auto train_accuracy = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, batch_size,
                                         m_metricsFunc, m_lossFunc, m_optimizer, true, m_print_progress, m_print_progress_loss, m_print_progress_accuracy);
 
                 // ネット保存
                 if (m_file_write) {
-                    int save_epoc = epoch + 1 + prev_epoch;
-
 #ifdef BB_WITH_CEREAL
                     if ( m_write_serial ) {
                         std::stringstream fname;
-                        fname << m_name << "_net_" << save_epoc << ".json";
+                        fname << m_name << "_net_" << m_epoch << ".json";
                         SaveJson(fname.str());
                         std::cout << "[save] " << fname.str() << std::endl;
             //          log_streamt << "[save] " << fname.str() << std::endl;
@@ -356,7 +353,7 @@ public:
                     auto test_metrics  = Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
                     auto train_metrics = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
                     log_stream  << std::setw(10) << std::fixed << std::setprecision(2) << now_time << "s "
-                                << "epoch[" << std::setw(3) << epoch + 1 + prev_epoch << "] "
+                                << "epoch[" << std::setw(3) << m_epoch << "] "
                                 << "test "  << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << test_metrics  << " "
                                 << "train " << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << train_metrics << std::endl;
                 }
