@@ -69,6 +69,88 @@ __global__ void kernal_fp32_StochasticLut6_Forward(
         float x2_11 = xp[5] * xp[4];
 
         float y = 0;
+#if 1
+        float x2_00_x1_00 = x2_00 * x1_00;
+        y += W[0 ] * x2_00_x1_00 * x0_00;
+        y += W[1 ] * x2_00_x1_00 * x0_01;
+        y += W[2 ] * x2_00_x1_00 * x0_10;
+        y += W[3 ] * x2_00_x1_00 * x0_11;
+        float x2_00_x1_01 = x2_00 * x1_01;
+        y += W[4 ] * x2_00_x1_01 * x0_00;
+        y += W[5 ] * x2_00_x1_01 * x0_01;
+        y += W[6 ] * x2_00_x1_01 * x0_10;
+        y += W[7 ] * x2_00_x1_01 * x0_11;
+        float x2_00_x1_10 = x2_00 * x1_10;
+        y += W[8 ] * x2_00_x1_10 * x0_00;
+        y += W[9 ] * x2_00_x1_10 * x0_01;
+        y += W[10] * x2_00_x1_10 * x0_10;
+        y += W[11] * x2_00_x1_10 * x0_11;
+        float x2_00_x1_11 = x2_00 * x1_11;
+        y += W[12] * x2_00_x1_11 * x0_00;
+        y += W[13] * x2_00_x1_11 * x0_01;
+        y += W[14] * x2_00_x1_11 * x0_10;
+        y += W[15] * x2_00_x1_11 * x0_11;
+        float x2_01_x1_00 = x2_01 * x1_00;
+        y += W[16] * x2_01_x1_00 * x0_00;
+        y += W[17] * x2_01_x1_00 * x0_01;
+        y += W[18] * x2_01_x1_00 * x0_10;
+        y += W[19] * x2_01_x1_00 * x0_11;
+        float x2_01_x1_01 = x2_01 * x1_01;
+        y += W[20] * x2_01_x1_01 * x0_00;
+        y += W[21] * x2_01_x1_01 * x0_01;
+        y += W[22] * x2_01_x1_01 * x0_10;
+        y += W[23] * x2_01_x1_01 * x0_11;
+        float x2_01_x1_10 = x2_01 * x1_10;
+        y += W[24] * x2_01_x1_10 * x0_00;
+        y += W[25] * x2_01_x1_10 * x0_01;
+        y += W[26] * x2_01_x1_10 * x0_10;
+        y += W[27] * x2_01_x1_10 * x0_11;
+        float x2_01_x1_11 = x2_01 * x1_11;
+        y += W[28] * x2_01_x1_11 * x0_00;
+        y += W[29] * x2_01_x1_11 * x0_01;
+        y += W[30] * x2_01_x1_11 * x0_10;
+        y += W[31] * x2_01_x1_11 * x0_11;
+        float x2_10_x1_00 = x2_10 * x1_00;
+        y += W[32] * x2_10_x1_00 * x0_00;
+        y += W[33] * x2_10_x1_00 * x0_01;
+        y += W[34] * x2_10_x1_00 * x0_10;
+        y += W[35] * x2_10_x1_00 * x0_11;
+        float x2_10_x1_01 = x2_10 * x1_01;
+        y += W[36] * x2_10_x1_01 * x0_00;
+        y += W[37] * x2_10_x1_01 * x0_01;
+        y += W[38] * x2_10_x1_01 * x0_10;
+        y += W[39] * x2_10_x1_01 * x0_11;
+        float x2_10_x1_10 = x2_10 * x1_10;
+        y += W[40] * x2_10_x1_10 * x0_00;
+        y += W[41] * x2_10_x1_10 * x0_01;
+        y += W[42] * x2_10_x1_10 * x0_10;
+        y += W[43] * x2_10_x1_10 * x0_11;
+        float x2_10_x1_11 = x2_10 * x1_11;
+        y += W[44] * x2_10_x1_11 * x0_00;
+        y += W[45] * x2_10_x1_11 * x0_01;
+        y += W[46] * x2_10_x1_11 * x0_10;
+        y += W[47] * x2_10_x1_11 * x0_11;
+        float x2_11_x1_00 = x2_11 * x1_00;
+        y += W[48] * x2_11_x1_00 * x0_00;
+        y += W[49] * x2_11_x1_00 * x0_01;
+        y += W[50] * x2_11_x1_00 * x0_10;
+        y += W[51] * x2_11_x1_00 * x0_11;
+        float x2_11_x1_01 = x2_11 * x1_01;
+        y += W[52] * x2_11_x1_01 * x0_00;
+        y += W[53] * x2_11_x1_01 * x0_01;
+        y += W[54] * x2_11_x1_01 * x0_10;
+        y += W[55] * x2_11_x1_01 * x0_11;
+        float x2_11_x1_10 = x2_11 * x1_10;
+        y += W[56] * x2_11_x1_10 * x0_00;
+        y += W[57] * x2_11_x1_10 * x0_01;
+        y += W[58] * x2_11_x1_10 * x0_10;
+        y += W[59] * x2_11_x1_10 * x0_11;
+        float x2_11_x1_11 = x2_11 * x1_11;
+        y += W[60] * x2_11_x1_11 * x0_00;
+        y += W[61] * x2_11_x1_11 * x0_01;
+        y += W[62] * x2_11_x1_11 * x0_10;
+        y += W[63] * x2_11_x1_11 * x0_11;
+#else
         y += W[0 ] * x2_00 * x1_00 * x0_00;
         y += W[1 ] * x2_00 * x1_00 * x0_01;
         y += W[2 ] * x2_00 * x1_00 * x0_10;
@@ -133,7 +215,8 @@ __global__ void kernal_fp32_StochasticLut6_Forward(
         y += W[61] * x2_11 * x1_11 * x0_01;
         y += W[62] * x2_11 * x1_11 * x0_10;
         y += W[63] * x2_11 * x1_11 * x0_11;
-        
+#endif
+
         // clamp
         y = max(0.0, y);
         y = min(1.0, y);
@@ -209,6 +292,7 @@ __device__ __forceinline__ float device_fp32_LocalSum(float v, float *buf)
 }
 
 
+#if 0
 
 // kernel
 template<int THREAD_SIZE=256>
@@ -488,6 +572,339 @@ __global__ void kernal_fp32_StochasticLut6_Backward
     }
 }
 
+#else
+
+// kernel
+template<int THREAD_SIZE=256>
+__global__ void kernal_fp32_StochasticLut6_Backward
+        (
+            float const     *x_buf,
+            float const     *dy_buf,
+            float           *dx_buf,
+            int   const     *input_index,
+            float const     *W_buf,
+            float           *dW_buf,
+            int             frame_size,
+            int             frame_stride,
+            int             binary_mode
+        )
+{
+    __shared__ float buf[THREAD_SIZE];
+
+    int node    = blockIdx.x;
+    int id      = threadIdx.x;
+    int id_step = blockDim.x;
+
+    // initialize dW
+    float dW[64];
+    for ( int i = 0; i < 64; ++i) {
+        dW[i] = 0;
+    }
+
+    __shared__ float    dW_prev[64];
+    for ( int i = id; i < 64; i += id_step ) {
+        dW_prev[i] = dW_buf[node * 64 + i];
+    }
+
+    // read W
+    __shared__ float    W[64];
+    for ( int i = id; i < 64; i += id_step ) {
+        W[i] = W_buf[node * 64 + i];
+        if ( binary_mode ) {
+            W[i] = W[i] > 0.5 ? 1.0 : 0.0;
+        }
+    }
+    
+    // init pointer
+    __shared__  float const *x_ptr[6];
+    for ( int i = id; i < 6; i += id_step ) {
+        int input_node = input_index[6*node + i];
+        x_ptr[i]  = &x_buf[frame_stride * input_node];
+    }
+    float const *dy_ptr = &dy_buf[node*frame_stride];
+
+    __syncthreads();
+
+    for ( int frame = id; frame < frame_size; frame += id_step ) {
+        float xp[6], xn[6];
+        for ( int i = 0; i < 6; ++i) {
+            xp[i] = x_ptr[i][frame];
+            xp[i] = min(1.0, max(0.0, xp[i]));
+            xn[i] = 1.0 - xp[i];
+        }
+
+        float x0_00 = xn[1] * xn[0];
+        float x0_01 = xn[1] * xp[0];
+        float x0_10 = xp[1] * xn[0];
+        float x0_11 = xp[1] * xp[0];
+        float x1_00 = xn[3] * xn[2];
+        float x1_01 = xn[3] * xp[2];
+        float x1_10 = xp[3] * xn[2];
+        float x1_11 = xp[3] * xp[2];
+        float x2_00 = xn[5] * xn[4];
+        float x2_01 = xn[5] * xp[4];
+        float x2_10 = xp[5] * xn[4];
+        float x2_11 = xp[5] * xp[4];
+
+        float grad = dy_ptr[frame];
+
+        float  x2_00_x1_00 =  x2_00 * x1_00;
+        float  x2_00_x1_01 =  x2_00 * x1_01;
+        float  x2_00_x1_10 =  x2_00 * x1_10;
+        float  x2_00_x1_11 =  x2_00 * x1_11;
+        float  x2_01_x1_00 =  x2_01 * x1_00;
+        float  x2_01_x1_01 =  x2_01 * x1_01;
+        float  x2_01_x1_10 =  x2_01 * x1_10;
+        float  x2_01_x1_11 =  x2_01 * x1_11;
+        float  x2_10_x1_00 =  x2_10 * x1_00;
+        float  x2_10_x1_01 =  x2_10 * x1_01;
+        float  x2_10_x1_10 =  x2_10 * x1_10;
+        float  x2_10_x1_11 =  x2_10 * x1_11;
+        float  x2_11_x1_00 =  x2_11 * x1_00;
+        float  x2_11_x1_01 =  x2_11 * x1_01;
+        float  x2_11_x1_10 =  x2_11 * x1_10;
+        float  x2_11_x1_11 =  x2_11 * x1_11;
+
+        dW[0]  += x2_00_x1_00 * x0_00 * grad;
+        dW[1]  += x2_00_x1_00 * x0_01 * grad;
+        dW[2]  += x2_00_x1_00 * x0_10 * grad;
+        dW[3]  += x2_00_x1_00 * x0_11 * grad;
+        dW[4]  += x2_00_x1_01 * x0_00 * grad;
+        dW[5]  += x2_00_x1_01 * x0_01 * grad;
+        dW[6]  += x2_00_x1_01 * x0_10 * grad;
+        dW[7]  += x2_00_x1_01 * x0_11 * grad;
+        dW[8]  += x2_00_x1_10 * x0_00 * grad;
+        dW[9]  += x2_00_x1_10 * x0_01 * grad;
+        dW[10] += x2_00_x1_10 * x0_10 * grad;
+        dW[11] += x2_00_x1_10 * x0_11 * grad;
+        dW[12] += x2_00_x1_11 * x0_00 * grad;
+        dW[13] += x2_00_x1_11 * x0_01 * grad;
+        dW[14] += x2_00_x1_11 * x0_10 * grad;
+        dW[15] += x2_00_x1_11 * x0_11 * grad;
+        dW[16] += x2_01_x1_00 * x0_00 * grad;
+        dW[17] += x2_01_x1_00 * x0_01 * grad;
+        dW[18] += x2_01_x1_00 * x0_10 * grad;
+        dW[19] += x2_01_x1_00 * x0_11 * grad;
+        dW[20] += x2_01_x1_01 * x0_00 * grad;
+        dW[21] += x2_01_x1_01 * x0_01 * grad;
+        dW[22] += x2_01_x1_01 * x0_10 * grad;
+        dW[23] += x2_01_x1_01 * x0_11 * grad;
+        dW[24] += x2_01_x1_10 * x0_00 * grad;
+        dW[25] += x2_01_x1_10 * x0_01 * grad;
+        dW[26] += x2_01_x1_10 * x0_10 * grad;
+        dW[27] += x2_01_x1_10 * x0_11 * grad;
+        dW[28] += x2_01_x1_11 * x0_00 * grad;
+        dW[29] += x2_01_x1_11 * x0_01 * grad;
+        dW[30] += x2_01_x1_11 * x0_10 * grad;
+        dW[31] += x2_01_x1_11 * x0_11 * grad;
+        dW[32] += x2_10_x1_00 * x0_00 * grad;
+        dW[33] += x2_10_x1_00 * x0_01 * grad;
+        dW[34] += x2_10_x1_00 * x0_10 * grad;
+        dW[35] += x2_10_x1_00 * x0_11 * grad;
+        dW[36] += x2_10_x1_01 * x0_00 * grad;
+        dW[37] += x2_10_x1_01 * x0_01 * grad;
+        dW[38] += x2_10_x1_01 * x0_10 * grad;
+        dW[39] += x2_10_x1_01 * x0_11 * grad;
+        dW[40] += x2_10_x1_10 * x0_00 * grad;
+        dW[41] += x2_10_x1_10 * x0_01 * grad;
+        dW[42] += x2_10_x1_10 * x0_10 * grad;
+        dW[43] += x2_10_x1_10 * x0_11 * grad;
+        dW[44] += x2_10_x1_11 * x0_00 * grad;
+        dW[45] += x2_10_x1_11 * x0_01 * grad;
+        dW[46] += x2_10_x1_11 * x0_10 * grad;
+        dW[47] += x2_10_x1_11 * x0_11 * grad;
+        dW[48] += x2_11_x1_00 * x0_00 * grad;
+        dW[49] += x2_11_x1_00 * x0_01 * grad;
+        dW[50] += x2_11_x1_00 * x0_10 * grad;
+        dW[51] += x2_11_x1_00 * x0_11 * grad;
+        dW[52] += x2_11_x1_01 * x0_00 * grad;
+        dW[53] += x2_11_x1_01 * x0_01 * grad;
+        dW[54] += x2_11_x1_01 * x0_10 * grad;
+        dW[55] += x2_11_x1_01 * x0_11 * grad;
+        dW[56] += x2_11_x1_10 * x0_00 * grad;
+        dW[57] += x2_11_x1_10 * x0_01 * grad;
+        dW[58] += x2_11_x1_10 * x0_10 * grad;
+        dW[59] += x2_11_x1_10 * x0_11 * grad;
+        dW[60] += x2_11_x1_11 * x0_00 * grad;
+        dW[61] += x2_11_x1_11 * x0_01 * grad;
+        dW[62] += x2_11_x1_11 * x0_10 * grad;
+        dW[63] += x2_11_x1_11 * x0_11 * grad;
+
+        float  x2_00_x0_00 =  x2_00 * x0_00;
+        float  x2_00_x0_01 =  x2_00 * x0_01;
+        float  x2_00_x0_10 =  x2_00 * x0_10;
+        float  x2_00_x0_11 =  x2_00 * x0_11;
+        float  x2_01_x0_00 =  x2_01 * x0_00;
+        float  x2_01_x0_01 =  x2_01 * x0_01;
+        float  x2_01_x0_10 =  x2_01 * x0_10;
+        float  x2_01_x0_11 =  x2_01 * x0_11;
+        float  x2_10_x0_00 =  x2_10 * x0_00;
+        float  x2_10_x0_01 =  x2_10 * x0_01;
+        float  x2_10_x0_10 =  x2_10 * x0_10;
+        float  x2_10_x0_11 =  x2_10 * x0_11;
+        float  x2_11_x0_00 =  x2_11 * x0_00;
+        float  x2_11_x0_01 =  x2_11 * x0_01;
+        float  x2_11_x0_10 =  x2_11 * x0_10;
+        float  x2_11_x0_11 =  x2_11 * x0_11;
+
+        float  x1_00_x0_00 =  x1_00 * x0_00;
+        float  x1_00_x0_01 =  x1_00 * x0_01;
+        float  x1_00_x0_10 =  x1_00 * x0_10;
+        float  x1_00_x0_11 =  x1_00 * x0_11;
+        float  x1_01_x0_00 =  x1_01 * x0_00;
+        float  x1_01_x0_01 =  x1_01 * x0_01;
+        float  x1_01_x0_10 =  x1_01 * x0_10;
+        float  x1_01_x0_11 =  x1_01 * x0_11;
+        float  x1_10_x0_00 =  x1_10 * x0_00;
+        float  x1_10_x0_01 =  x1_10 * x0_01;
+        float  x1_10_x0_10 =  x1_10 * x0_10;
+        float  x1_10_x0_11 =  x1_10 * x0_11;
+        float  x1_11_x0_00 =  x1_11 * x0_00;
+        float  x1_11_x0_01 =  x1_11 * x0_01;
+        float  x1_11_x0_10 =  x1_11 * x0_10;
+        float  x1_11_x0_11 =  x1_11 * x0_11;
+
+
+        float dxi;
+        float dx0_00 = 0;
+        float dx0_01 = 0;
+        float dx0_10 = 0;
+        float dx0_11 = 0;
+        float dx1_00 = 0;
+        float dx1_01 = 0;
+        float dx1_10 = 0;
+        float dx1_11 = 0;
+        float dx2_00 = 0;
+        float dx2_01 = 0;
+        float dx2_10 = 0;
+        float dx2_11 = 0;
+        dxi = W[ 0];  dx0_00 += dxi * x2_00_x1_00;  dx1_00 += dxi * x2_00_x0_00;  dx2_00 += dxi * x1_00_x0_00;
+        dxi = W[ 1];  dx0_01 += dxi * x2_00_x1_00;  dx1_00 += dxi * x2_00_x0_01;  dx2_00 += dxi * x1_00_x0_01;
+        dxi = W[ 2];  dx0_10 += dxi * x2_00_x1_00;  dx1_00 += dxi * x2_00_x0_10;  dx2_00 += dxi * x1_00_x0_10;
+        dxi = W[ 3];  dx0_11 += dxi * x2_00_x1_00;  dx1_00 += dxi * x2_00_x0_11;  dx2_00 += dxi * x1_00_x0_11;
+        dxi = W[ 4];  dx0_00 += dxi * x2_00_x1_01;  dx1_01 += dxi * x2_00_x0_00;  dx2_00 += dxi * x1_01_x0_00;
+        dxi = W[ 5];  dx0_01 += dxi * x2_00_x1_01;  dx1_01 += dxi * x2_00_x0_01;  dx2_00 += dxi * x1_01_x0_01;
+        dxi = W[ 6];  dx0_10 += dxi * x2_00_x1_01;  dx1_01 += dxi * x2_00_x0_10;  dx2_00 += dxi * x1_01_x0_10;
+        dxi = W[ 7];  dx0_11 += dxi * x2_00_x1_01;  dx1_01 += dxi * x2_00_x0_11;  dx2_00 += dxi * x1_01_x0_11;
+        dxi = W[ 8];  dx0_00 += dxi * x2_00_x1_10;  dx1_10 += dxi * x2_00_x0_00;  dx2_00 += dxi * x1_10_x0_00;
+        dxi = W[ 9];  dx0_01 += dxi * x2_00_x1_10;  dx1_10 += dxi * x2_00_x0_01;  dx2_00 += dxi * x1_10_x0_01;
+        dxi = W[10];  dx0_10 += dxi * x2_00_x1_10;  dx1_10 += dxi * x2_00_x0_10;  dx2_00 += dxi * x1_10_x0_10;
+        dxi = W[11];  dx0_11 += dxi * x2_00_x1_10;  dx1_10 += dxi * x2_00_x0_11;  dx2_00 += dxi * x1_10_x0_11;
+        dxi = W[12];  dx0_00 += dxi * x2_00_x1_11;  dx1_11 += dxi * x2_00_x0_00;  dx2_00 += dxi * x1_11_x0_00;
+        dxi = W[13];  dx0_01 += dxi * x2_00_x1_11;  dx1_11 += dxi * x2_00_x0_01;  dx2_00 += dxi * x1_11_x0_01;
+        dxi = W[14];  dx0_10 += dxi * x2_00_x1_11;  dx1_11 += dxi * x2_00_x0_10;  dx2_00 += dxi * x1_11_x0_10;
+        dxi = W[15];  dx0_11 += dxi * x2_00_x1_11;  dx1_11 += dxi * x2_00_x0_11;  dx2_00 += dxi * x1_11_x0_11;
+        dxi = W[16];  dx0_00 += dxi * x2_01_x1_00;  dx1_00 += dxi * x2_01_x0_00;  dx2_01 += dxi * x1_00_x0_00;
+        dxi = W[17];  dx0_01 += dxi * x2_01_x1_00;  dx1_00 += dxi * x2_01_x0_01;  dx2_01 += dxi * x1_00_x0_01;
+        dxi = W[18];  dx0_10 += dxi * x2_01_x1_00;  dx1_00 += dxi * x2_01_x0_10;  dx2_01 += dxi * x1_00_x0_10;
+        dxi = W[19];  dx0_11 += dxi * x2_01_x1_00;  dx1_00 += dxi * x2_01_x0_11;  dx2_01 += dxi * x1_00_x0_11;
+        dxi = W[20];  dx0_00 += dxi * x2_01_x1_01;  dx1_01 += dxi * x2_01_x0_00;  dx2_01 += dxi * x1_01_x0_00;
+        dxi = W[21];  dx0_01 += dxi * x2_01_x1_01;  dx1_01 += dxi * x2_01_x0_01;  dx2_01 += dxi * x1_01_x0_01;
+        dxi = W[22];  dx0_10 += dxi * x2_01_x1_01;  dx1_01 += dxi * x2_01_x0_10;  dx2_01 += dxi * x1_01_x0_10;
+        dxi = W[23];  dx0_11 += dxi * x2_01_x1_01;  dx1_01 += dxi * x2_01_x0_11;  dx2_01 += dxi * x1_01_x0_11;
+        dxi = W[24];  dx0_00 += dxi * x2_01_x1_10;  dx1_10 += dxi * x2_01_x0_00;  dx2_01 += dxi * x1_10_x0_00;
+        dxi = W[25];  dx0_01 += dxi * x2_01_x1_10;  dx1_10 += dxi * x2_01_x0_01;  dx2_01 += dxi * x1_10_x0_01;
+        dxi = W[26];  dx0_10 += dxi * x2_01_x1_10;  dx1_10 += dxi * x2_01_x0_10;  dx2_01 += dxi * x1_10_x0_10;
+        dxi = W[27];  dx0_11 += dxi * x2_01_x1_10;  dx1_10 += dxi * x2_01_x0_11;  dx2_01 += dxi * x1_10_x0_11;
+        dxi = W[28];  dx0_00 += dxi * x2_01_x1_11;  dx1_11 += dxi * x2_01_x0_00;  dx2_01 += dxi * x1_11_x0_00;
+        dxi = W[29];  dx0_01 += dxi * x2_01_x1_11;  dx1_11 += dxi * x2_01_x0_01;  dx2_01 += dxi * x1_11_x0_01;
+        dxi = W[30];  dx0_10 += dxi * x2_01_x1_11;  dx1_11 += dxi * x2_01_x0_10;  dx2_01 += dxi * x1_11_x0_10;
+        dxi = W[31];  dx0_11 += dxi * x2_01_x1_11;  dx1_11 += dxi * x2_01_x0_11;  dx2_01 += dxi * x1_11_x0_11;
+        dxi = W[32];  dx0_00 += dxi * x2_10_x1_00;  dx1_00 += dxi * x2_10_x0_00;  dx2_10 += dxi * x1_00_x0_00;
+        dxi = W[33];  dx0_01 += dxi * x2_10_x1_00;  dx1_00 += dxi * x2_10_x0_01;  dx2_10 += dxi * x1_00_x0_01;
+        dxi = W[34];  dx0_10 += dxi * x2_10_x1_00;  dx1_00 += dxi * x2_10_x0_10;  dx2_10 += dxi * x1_00_x0_10;
+        dxi = W[35];  dx0_11 += dxi * x2_10_x1_00;  dx1_00 += dxi * x2_10_x0_11;  dx2_10 += dxi * x1_00_x0_11;
+        dxi = W[36];  dx0_00 += dxi * x2_10_x1_01;  dx1_01 += dxi * x2_10_x0_00;  dx2_10 += dxi * x1_01_x0_00;
+        dxi = W[37];  dx0_01 += dxi * x2_10_x1_01;  dx1_01 += dxi * x2_10_x0_01;  dx2_10 += dxi * x1_01_x0_01;
+        dxi = W[38];  dx0_10 += dxi * x2_10_x1_01;  dx1_01 += dxi * x2_10_x0_10;  dx2_10 += dxi * x1_01_x0_10;
+        dxi = W[39];  dx0_11 += dxi * x2_10_x1_01;  dx1_01 += dxi * x2_10_x0_11;  dx2_10 += dxi * x1_01_x0_11;
+        dxi = W[40];  dx0_00 += dxi * x2_10_x1_10;  dx1_10 += dxi * x2_10_x0_00;  dx2_10 += dxi * x1_10_x0_00;
+        dxi = W[41];  dx0_01 += dxi * x2_10_x1_10;  dx1_10 += dxi * x2_10_x0_01;  dx2_10 += dxi * x1_10_x0_01;
+        dxi = W[42];  dx0_10 += dxi * x2_10_x1_10;  dx1_10 += dxi * x2_10_x0_10;  dx2_10 += dxi * x1_10_x0_10;
+        dxi = W[43];  dx0_11 += dxi * x2_10_x1_10;  dx1_10 += dxi * x2_10_x0_11;  dx2_10 += dxi * x1_10_x0_11;
+        dxi = W[44];  dx0_00 += dxi * x2_10_x1_11;  dx1_11 += dxi * x2_10_x0_00;  dx2_10 += dxi * x1_11_x0_00;
+        dxi = W[45];  dx0_01 += dxi * x2_10_x1_11;  dx1_11 += dxi * x2_10_x0_01;  dx2_10 += dxi * x1_11_x0_01;
+        dxi = W[46];  dx0_10 += dxi * x2_10_x1_11;  dx1_11 += dxi * x2_10_x0_10;  dx2_10 += dxi * x1_11_x0_10;
+        dxi = W[47];  dx0_11 += dxi * x2_10_x1_11;  dx1_11 += dxi * x2_10_x0_11;  dx2_10 += dxi * x1_11_x0_11;
+        dxi = W[48];  dx0_00 += dxi * x2_11_x1_00;  dx1_00 += dxi * x2_11_x0_00;  dx2_11 += dxi * x1_00_x0_00;
+        dxi = W[49];  dx0_01 += dxi * x2_11_x1_00;  dx1_00 += dxi * x2_11_x0_01;  dx2_11 += dxi * x1_00_x0_01;
+        dxi = W[50];  dx0_10 += dxi * x2_11_x1_00;  dx1_00 += dxi * x2_11_x0_10;  dx2_11 += dxi * x1_00_x0_10;
+        dxi = W[51];  dx0_11 += dxi * x2_11_x1_00;  dx1_00 += dxi * x2_11_x0_11;  dx2_11 += dxi * x1_00_x0_11;
+        dxi = W[52];  dx0_00 += dxi * x2_11_x1_01;  dx1_01 += dxi * x2_11_x0_00;  dx2_11 += dxi * x1_01_x0_00;
+        dxi = W[53];  dx0_01 += dxi * x2_11_x1_01;  dx1_01 += dxi * x2_11_x0_01;  dx2_11 += dxi * x1_01_x0_01;
+        dxi = W[54];  dx0_10 += dxi * x2_11_x1_01;  dx1_01 += dxi * x2_11_x0_10;  dx2_11 += dxi * x1_01_x0_10;
+        dxi = W[55];  dx0_11 += dxi * x2_11_x1_01;  dx1_01 += dxi * x2_11_x0_11;  dx2_11 += dxi * x1_01_x0_11;
+        dxi = W[56];  dx0_00 += dxi * x2_11_x1_10;  dx1_10 += dxi * x2_11_x0_00;  dx2_11 += dxi * x1_10_x0_00;
+        dxi = W[57];  dx0_01 += dxi * x2_11_x1_10;  dx1_10 += dxi * x2_11_x0_01;  dx2_11 += dxi * x1_10_x0_01;
+        dxi = W[58];  dx0_10 += dxi * x2_11_x1_10;  dx1_10 += dxi * x2_11_x0_10;  dx2_11 += dxi * x1_10_x0_10;
+        dxi = W[59];  dx0_11 += dxi * x2_11_x1_10;  dx1_10 += dxi * x2_11_x0_11;  dx2_11 += dxi * x1_10_x0_11;
+        dxi = W[60];  dx0_00 += dxi * x2_11_x1_11;  dx1_11 += dxi * x2_11_x0_00;  dx2_11 += dxi * x1_11_x0_00;
+        dxi = W[61];  dx0_01 += dxi * x2_11_x1_11;  dx1_11 += dxi * x2_11_x0_01;  dx2_11 += dxi * x1_11_x0_01;
+        dxi = W[62];  dx0_10 += dxi * x2_11_x1_11;  dx1_11 += dxi * x2_11_x0_10;  dx2_11 += dxi * x1_11_x0_10;
+        dxi = W[63];  dx0_11 += dxi * x2_11_x1_11;  dx1_11 += dxi * x2_11_x0_11;  dx2_11 += dxi * x1_11_x0_11;
+        
+        float *dx_ptr = &dx_buf[(node*6)*frame_stride + frame];
+        float dxn;
+        float dxp;
+        float dx;
+        dxn  = dx0_00 * xn[1];    dxn += dx0_10 * xp[1];
+        dxp  = dx0_01 * xn[1];    dxp += dx0_11 * xp[1];
+        dx = (dxp - dxn) * grad;
+        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        dx_ptr[0 * frame_stride] = dx;
+
+        dxn  = dx0_00 * xn[0];
+        dxn += dx0_01 * xp[0];
+        dxp  = dx0_10 * xn[0];
+        dxp += dx0_11 * xp[0];
+        dx = (dxp - dxn) * grad;
+        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        dx_ptr[1 * frame_stride] = dx;
+
+        dxn  = dx1_00 * xn[3];     
+        dxp  = dx1_01 * xn[3];     
+        dxn += dx1_10 * xp[3];     
+        dxp += dx1_11 * xp[3];     
+        dx = (dxp - dxn) * grad;
+        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        dx_ptr[2 * frame_stride] = dx;
+
+        dxn  = dx1_00 * xn[2];
+        dxn += dx1_01 * xp[2];
+        dxp  = dx1_10 * xn[2];
+        dxp += dx1_11 * xp[2];
+        dx = (dxp - dxn) * grad;
+        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        dx_ptr[3 * frame_stride] = dx;
+
+        dxn  = dx2_00 * xn[5];     
+        dxp  = dx2_01 * xn[5];     
+        dxn += dx2_10 * xp[5];     
+        dxp += dx2_11 * xp[5];     
+        dx = (dxp - dxn) * grad;
+        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        dx_ptr[4 * frame_stride] = dx;
+
+        dxn  = dx2_00 * xn[4];
+        dxn += dx2_01 * xp[4];
+        dxp  = dx2_10 * xn[4];
+        dxp += dx2_11 * xp[4];
+        dx = (dxp - dxn) * grad;
+        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        dx_ptr[5 * frame_stride] = dx;
+    }
+
+    for ( int i = 0; i < 64; ++i) {
+        dW[i] = device_fp32_LocalSum(dW[i], buf);
+    }
+    if ( id == 0 ) {
+        for ( int i = 0; i < 64; ++i) {
+            dW_buf[node*64 + i] = dW[i] + dW_prev[i];
+        }
+    }
+}
+
+#endif
 
 __global__ void kernal_fp32_StochasticLut6_BackwardMarge(
             const float*    src_buf,
