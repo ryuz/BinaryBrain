@@ -234,6 +234,11 @@ public:
      */
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
+        // 無視できるゲインになったらバイパス
+        if (m_gain <= (T)1.0e-14) {
+            return dy_buf;
+        }
+        
         // 出力設定
         m_dx_buf.Resize(dy_buf.GetType(), dy_buf.GetFrameSize(), dy_buf.GetShape());
 
