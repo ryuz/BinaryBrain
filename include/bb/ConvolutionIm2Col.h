@@ -49,8 +49,25 @@ protected:
     FrameBuffer     m_y_buf;
     FrameBuffer     m_dx_buf;
 
+public:
+    struct create_t
+    {
+        index_t         filter_h_size = 1;
+        index_t         filter_w_size = 1;
+        index_t         x_stride      = 1;
+        index_t         y_stride      = 1;
+        std::string     padding       = "valid";
+    };
+
 protected:
-    ConvolutionIm2Col() {}
+    ConvolutionIm2Col(create_t const & create)
+    {
+        m_filter_h_size = create.filter_h_size;
+        m_filter_w_size = create.filter_w_size;
+        m_x_stride      = create.x_stride;
+        m_y_stride      = create.y_stride;
+        m_padding       = create.padding;
+    }
 
     /**
      * @brief  コマンド処理
@@ -69,35 +86,20 @@ protected:
 public:
     ~ConvolutionIm2Col() {}
 
-    struct create_t
+    static std::shared_ptr<ConvolutionIm2Col> Create(create_t const &create)
     {
-        index_t         filter_h_size = 3;
-        index_t         filter_w_size = 3;
-        index_t         stride_x      = 1;
-        index_t         stride_y      = 1;
-        std::string     padding       = "valid";
-    };
-
-    static std::shared_ptr<ConvolutionIm2Col> Create(create_t const & create)
-    {
-        auto self = std::shared_ptr<ConvolutionIm2Col>(new ConvolutionIm2Col);
-        self->m_filter_h_size = create.filter_h_size;
-        self->m_filter_w_size = create.filter_w_size;
-        self->m_stride_x      = create.stride_x;
-        self->m_stride_y      = create.stride_y;
-        self->m_padding       = create.padding;
-        return self;
+        return std::shared_ptr<ConvolutionIm2Col>(new ConvolutionIm2Col(create));
     }
 
-    static std::shared_ptr<ConvolutionIm2Col> Create(size_t filter_h_size, size_t filter_w_size, size_t y_stride=1, size_t x_stride=1, std::string padding="valid")
+    static std::shared_ptr<ConvolutionIm2Col> Create(index_t filter_h_size, index_t filter_w_size, index_t y_stride=1, index_t x_stride=1, std::string padding="valid")
     {
-        auto self = std::shared_ptr<ConvolutionIm2Col>(new ConvolutionIm2Col);
-        self->m_filter_h_size = filter_h_size;
-        self->m_filter_w_size = filter_w_size;
-        self->m_y_stride      = y_stride;
-        self->m_x_stride      = x_stride;
-        self->m_padding       = padding;
-        return self;
+        create_t create;
+        create.filter_h_size = filter_h_size;
+        create.filter_w_size = filter_w_size;
+        create.y_stride      = y_stride;
+        create.x_stride      = x_stride;
+        create.padding       = padding;
+        return Create(create);
     }
 
     std::string GetClassName(void) const { return "ConvolutionIm2Col"; }
@@ -121,13 +123,13 @@ public:
 
         // 出力サイズ計算
         if ( m_padding == "valid" ) {
-            m_output_h_size = ((m_input_h_size - m_filter_h_size + 1) + (m_x_stride - 1)) / m_x_stride;
-            m_output_w_size = ((m_input_w_size - m_filter_w_size + 1) + (m_x_stride - 1)) / m_y_stride;
+            m_output_h_size = ((m_input_h_size - m_filter_h_size + 1) + (m_y_stride - 1)) / m_y_stride;
+            m_output_w_size = ((m_input_w_size - m_filter_w_size + 1) + (m_x_stride - 1)) / m_x_stride;
             m_y_offset = 0;
             m_x_offset = 0;
         }
         else if ( m_padding == "same" ) {
-            m_output_h_size = (m_input_h_size + (m_x_stride - 1)) / m_y_stride;
+            m_output_h_size = (m_input_h_size + (m_y_stride - 1)) / m_y_stride;
             m_output_w_size = (m_input_w_size + (m_x_stride - 1)) / m_x_stride;
             m_y_offset = (m_filter_h_size - 1) / 2;
             m_x_offset = (m_filter_w_size - 1) / 2;
@@ -245,9 +247,9 @@ public:
             auto y_ptr = m_y_buf.Lock<FT>(true);
 
             for (index_t c = 0; c < m_input_c_size; ++c ) {
-//              #pragma omp parallel for
+                #pragma omp parallel for
                 for (index_t fy = 0; fy < m_filter_h_size; ++fy) {
-//                  #pragma omp parallel for
+                    #pragma omp parallel for
                     for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
                         for ( index_t output_frame = 0; output_frame < output_frame_size; ++output_frame ) {
                             index_t input_frame = output_frame / output_size;
@@ -352,9 +354,9 @@ public:
             index_t ix_limit = (m_output_w_size -1 ) * m_x_stride;
 
             for (index_t c = 0; c < m_input_c_size; ++c) {
-//                #pragma omp parallel for
+                #pragma omp parallel for
                 for (index_t y = 0; y < m_input_h_size; ++y ) {
-//                    #pragma omp parallel for
+                    #pragma omp parallel for
                     for (index_t x = 0; x < m_input_w_size; ++x ) {
                         index_t input_node = (c * m_input_h_size + y) * m_input_w_size + x;
                         index_t x_align = x % m_x_stride;

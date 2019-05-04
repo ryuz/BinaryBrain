@@ -77,11 +77,11 @@ void MnistMicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size, 
 
         auto net = bb::Sequential::Create();
         net->Add(bb::RealToBinary<>::Create(frame_mux_size));
-        net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
-        net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
+        net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3, 1, 1, "same"));
+        net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3, 1, 1, "same"));
         net->Add(bb::MaxPooling<>::Create(2, 2));
-        net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
-        net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
+        net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3, 1, 1, "same"));
+        net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3, 1, 1, "same"));
         net->Add(bb::MaxPooling<>::Create(2, 2));
         net->Add(layer_mm4);
         net->Add(layer_mm5);
