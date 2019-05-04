@@ -106,8 +106,8 @@ public:
             auto input_size = this->GetNodeInputSize(node);
             auto table_size = this->GetLutTableSize(node);
             
-            BB_ASSERT(input_size == N);
-            BB_ASSERT(table_size == (1 << N));
+//            BB_ASSERT(input_size == N);
+//            BB_ASSERT(table_size == (1 << N));
             
             // 入力をコピー
             for (int input_index = 0; input_index < input_size; ++input_index) {
