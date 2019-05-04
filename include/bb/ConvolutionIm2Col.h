@@ -129,7 +129,7 @@ public:
         else if ( m_padding == "same" ) {
             m_output_h_size = (m_input_h_size + (m_x_stride - 1)) / m_y_stride;
             m_output_w_size = (m_input_w_size + (m_x_stride - 1)) / m_x_stride;
-            m_y_offset = (m_filter_w_size - 1) / 2;
+            m_y_offset = (m_filter_h_size - 1) / 2;
             m_x_offset = (m_filter_w_size - 1) / 2;
         }
         else {
@@ -348,6 +348,9 @@ public:
             auto dy_ptr = dy_buf.LockConst<BT>();
             auto dx_ptr = m_dx_buf.Lock<BT>();
 
+            index_t iy_limit = (m_output_h_size - 1) * m_y_stride;
+            index_t ix_limit = (m_output_w_size -1 ) * m_x_stride;
+
             for (index_t c = 0; c < m_input_c_size; ++c) {
 //                #pragma omp parallel for
                 for (index_t y = 0; y < m_input_h_size; ++y ) {
@@ -360,11 +363,11 @@ public:
                             BT dx = dx_ptr.Get(input_frame, input_node);
                             float dy = 0;
                             for (index_t fy = y_align; fy < m_filter_h_size; fy += m_y_stride ) {
-                                index_t iy = y - fy;
-                                if ( iy >= 0 && iy < (m_input_h_size - m_filter_h_size + 1)) {
+                                index_t iy = y - fy + m_y_offset;
+                                if ( iy >= 0 && iy <= iy_limit ) {
                                     for (index_t fx = x_align; fx < m_filter_w_size; fx += m_x_stride) {
-                                        index_t ix = x - fx;
-                                        if (ix >= 0 && ix < (m_input_w_size - m_filter_w_size + 1)) {
+                                        index_t ix = x - fx + m_x_offset;
+                                        if ( ix >= 0 && ix <= ix_limit ) {
                                             index_t output_frame = (input_frame * m_output_h_size + (iy/m_y_stride)) * m_output_w_size + (ix/m_x_stride);
                                             index_t output_node  = (c * m_filter_h_size + fy) * m_filter_w_size + fx;
                                             dy += dy_ptr.Get(output_frame, output_node);
