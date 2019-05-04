@@ -297,19 +297,25 @@ public:
         m_dx_buf.Resize(DataType<BT>::type, m_input_frame_size, m_input_shape);
 
 #ifdef BB_WITH_CUDA
-        if ( m_padding == "valid" && m_y_stride == 1 &&  m_x_stride == 1 && 
-            DataType<BT>::type == BB_TYPE_FP32 && !m_host_only && dy_buf.IsDeviceAvailable() && m_dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable())
-        {
+//        if ( m_padding == "valid" && m_y_stride == 1 &&  m_x_stride == 1 && 
+//            DataType<BT>::type == BB_TYPE_FP32 && !m_host_only && dy_buf.IsDeviceAvailable() && m_dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable())
+        if ( DataType<BT>::type == BB_TYPE_FP32 && !m_host_only && dy_buf.IsDeviceAvailable() && m_dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
             auto ptr_dy = dy_buf.LockDeviceMemoryConst();
             auto ptr_dx = m_dx_buf.LockDeviceMemory();
             bbcu_fp32_Im2Col_Backward(
                 (float const *)ptr_dy.GetAddr(),
                 (float       *)ptr_dx.GetAddr(),
+                (int          )m_x_stride,
+                (int          )m_y_stride,
+                (int          )m_x_offset,
+                (int          )m_y_offset,
                 (int          )m_input_frame_size,
                 (int          )(m_dx_buf.GetFrameStride() / sizeof(float)),
                 (int          )m_input_w_size,
                 (int          )m_input_h_size,
                 (int          )m_input_c_size,
+                (int          )m_output_w_size,
+                (int          )m_output_h_size,
                 (int          )(dy_buf.GetFrameStride() / sizeof(float)),
                 (int          )m_filter_w_size,
                 (int          )m_filter_h_size);
@@ -365,7 +371,7 @@ public:
             auto dx_ptr = m_dx_buf.Lock<BT>();
 
             index_t iy_limit = (m_output_h_size - 1) * m_y_stride;
-            index_t ix_limit = (m_output_w_size -1 ) * m_x_stride;
+            index_t ix_limit = (m_output_w_size - 1) * m_x_stride;
 
             for (index_t c = 0; c < m_input_c_size; ++c) {
                 #pragma omp parallel for
@@ -376,7 +382,7 @@ public:
                         index_t x_align = x % m_x_stride;
                         index_t y_align = y % m_y_stride;
                         for ( index_t input_frame = 0; input_frame < m_input_frame_size; ++input_frame ) {
-                            BT dx = dx_ptr.Get(input_frame, input_node);
+                            BT dx = 0; // dx_ptr.Get(input_frame, input_node);
                             float dy = 0;
                             for (index_t fy = y_align; fy < m_filter_h_size; fy += m_y_stride ) {
                                 index_t iy = y - fy + m_y_offset;
