@@ -597,19 +597,22 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
 
-#if 0
+#if 1
     {
         // LUT-network
-        auto layer_cnv0_lut0 = bb::BinaryLutN<>::Create(layer_cnv0_sl0->GetOutputShape());
-        auto layer_cnv0_lut1 = bb::BinaryLutN<>::Create(layer_cnv0_sl1->GetOutputShape());
-        auto layer_cnv1_lut0 = bb::BinaryLutN<>::Create(layer_cnv1_sl0->GetOutputShape());
-        auto layer_cnv1_lut1 = bb::BinaryLutN<>::Create(layer_cnv1_sl1->GetOutputShape());
-        auto layer_cnv2_lut0 = bb::BinaryLutN<>::Create(layer_cnv2_sl0->GetOutputShape());
-        auto layer_cnv2_lut1 = bb::BinaryLutN<>::Create(layer_cnv2_sl1->GetOutputShape());
-        auto layer_cnv3_lut0 = bb::BinaryLutN<>::Create(layer_cnv3_sl0->GetOutputShape());
-        auto layer_cnv3_lut1 = bb::BinaryLutN<>::Create(layer_cnv3_sl1->GetOutputShape());
-        auto layer_lut4      = bb::BinaryLutN<>::Create(layer_sl4->GetOutputShape());
-        auto layer_lut5      = bb::BinaryLutN<>::Create(layer_sl5->GetOutputShape());
+        auto layer_cnv0_lut0  = bb::BinaryLutN<>::Create(layer_cnv0_sl0->GetOutputShape());
+        auto layer_cnv0_lut1  = bb::BinaryLutN<>::Create(layer_cnv0_sl1->GetOutputShape());
+        auto layer_cnv1d_lut0 = bb::BinaryLutN<>::Create(layer_cnv1d_sl0->GetOutputShape());
+        auto layer_cnv1d_lut1 = bb::BinaryLutN<>::Create(layer_cnv1d_sl1->GetOutputShape());
+        auto layer_cnv1p_lut0 = bb::BinaryLutN<>::Create(layer_cnv1p_sl0->GetOutputShape());
+        auto layer_cnv2d_lut0 = bb::BinaryLutN<>::Create(layer_cnv2d_sl0->GetOutputShape());
+        auto layer_cnv2d_lut1 = bb::BinaryLutN<>::Create(layer_cnv2d_sl1->GetOutputShape());
+        auto layer_cnv2p_lut0 = bb::BinaryLutN<>::Create(layer_cnv2p_sl0->GetOutputShape());
+        auto layer_cnv3d_lut0 = bb::BinaryLutN<>::Create(layer_cnv3d_sl0->GetOutputShape());
+        auto layer_cnv3d_lut1 = bb::BinaryLutN<>::Create(layer_cnv3d_sl1->GetOutputShape());
+        auto layer_cnv3p_lut0 = bb::BinaryLutN<>::Create(layer_cnv3p_sl0->GetOutputShape());
+        auto layer_lut4       = bb::BinaryLutN<>::Create(layer_sl4->GetOutputShape());
+        auto layer_lut5       = bb::BinaryLutN<>::Create(layer_sl5->GetOutputShape());
 
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size, 30*30, 2));
@@ -617,23 +620,35 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         cnv0_sub->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size, 30*30, 3));
         cnv0_sub->Add(layer_cnv0_lut1);
 
-        auto cnv1_sub = bb::Sequential::Create();
-        cnv1_sub->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size, 28*28, 10));
-        cnv1_sub->Add(layer_cnv1_lut0);
-        cnv1_sub->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size, 28*28, 11));
-        cnv1_sub->Add(layer_cnv1_lut1);
+        auto cnv1d_sub = bb::Sequential::Create();
+        cnv1d_sub->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size, 28*28, 10));
+        cnv1d_sub->Add(layer_cnv1d_lut0);
+        cnv1d_sub->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size, 28*28, 11));
+        cnv1d_sub->Add(layer_cnv1d_lut1);
 
-        auto cnv2_sub = bb::Sequential::Create();
-        cnv2_sub->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size, 12*12, 21));
-        cnv2_sub->Add(layer_cnv2_lut0);
-        cnv2_sub->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size, 12*12, 22));
-        cnv2_sub->Add(layer_cnv2_lut1);
+        auto cnv1p_sub = bb::Sequential::Create();
+        cnv1p_sub->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size, 28*28, 12));
+        cnv1p_sub->Add(layer_cnv1p_lut0);
 
-        auto cnv3_sub = bb::Sequential::Create();
-        cnv3_sub->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size, 10*10, 31));
-        cnv3_sub->Add(layer_cnv3_lut0);
-        cnv3_sub->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size, 10*10, 32));
-        cnv3_sub->Add(layer_cnv3_lut1);
+        auto cnv2d_sub = bb::Sequential::Create();
+        cnv2d_sub->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size, 12*12, 21));
+        cnv2d_sub->Add(layer_cnv2d_lut0);
+        cnv2d_sub->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size, 12*12, 22));
+        cnv2d_sub->Add(layer_cnv2d_lut1);
+
+        auto cnv2p_sub = bb::Sequential::Create();
+        cnv2p_sub->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size, 12*12, 23));
+        cnv2p_sub->Add(layer_cnv2p_lut0);
+
+        auto cnv3d_sub = bb::Sequential::Create();
+        cnv3d_sub->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size, 10*10, 31));
+        cnv3d_sub->Add(layer_cnv3d_lut0);
+        cnv3d_sub->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size, 10*10, 32));
+        cnv3d_sub->Add(layer_cnv3d_lut1);
+
+        auto cnv3p_sub = bb::Sequential::Create();
+        cnv3p_sub->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size, 10*10, 31));
+        cnv3p_sub->Add(layer_cnv3p_lut0);
 
         auto cnv4_sub = bb::Sequential::Create();
         cnv4_sub->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size, 1, 41));
@@ -642,11 +657,14 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         cnv4_sub->Add(layer_lut5);
 
         auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3);
-        auto cnv1 = bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3);
+        auto cnv1d = bb::LoweringConvolution<bb::Bit>::Create(cnv1d_sub, 3, 3);
+        auto cnv1p = bb::LoweringConvolution<bb::Bit>::Create(cnv1p_sub, 1, 1);
         auto pol0 = bb::MaxPooling<bb::Bit>::Create(2, 2);
 
-        auto cnv2 = bb::LoweringConvolution<bb::Bit>::Create(cnv2_sub, 3, 3);
-        auto cnv3 = bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3);
+        auto cnv2d = bb::LoweringConvolution<bb::Bit>::Create(cnv2d_sub, 3, 3);
+        auto cnv2p = bb::LoweringConvolution<bb::Bit>::Create(cnv2p_sub, 1, 1);
+        auto cnv3d = bb::LoweringConvolution<bb::Bit>::Create(cnv3d_sub, 3, 3);
+        auto cnv3p = bb::LoweringConvolution<bb::Bit>::Create(cnv3p_sub, 1, 1);
         auto pol1 = bb::MaxPooling<bb::Bit>::Create(2, 2);
 
         // 32x32 以外も入力できるように最終段も畳み込みに変換
@@ -655,33 +673,33 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto lut_net = bb::Sequential::Create();
 //      lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
         lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
-        lut_net->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size));
         lut_net->Add(cnv0);
-        lut_net->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size));
-        lut_net->Add(cnv1);
+        lut_net->Add(cnv1d);
+        lut_net->Add(cnv1p);
         lut_net->Add(pol0);
-        lut_net->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size));
-        lut_net->Add(cnv2);
-        lut_net->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size));
-        lut_net->Add(cnv3);
+        lut_net->Add(cnv2d);
+        lut_net->Add(cnv2p);
+        lut_net->Add(cnv3d);
+        lut_net->Add(cnv3p);
         lut_net->Add(pol1);
-        lut_net->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size));
         lut_net->Add(cnv4);
-//      lut_net->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size));
         lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, lut_frame_mux_size));
         lut_net->SetInputShape(td.x_shape);
 
         // テーブル化して取り込み(現状まだSetInputShape後の取り込みが必要)
-        layer_cnv0_lut0->ImportLayer<float, float>(layer_cnv0_sl0);
-        layer_cnv0_lut1->ImportLayer<float, float>(layer_cnv0_sl1);
-        layer_cnv1_lut0->ImportLayer<float, float>(layer_cnv1_sl0);
-        layer_cnv1_lut1->ImportLayer<float, float>(layer_cnv1_sl1);
-        layer_cnv2_lut0->ImportLayer<float, float>(layer_cnv2_sl0);
-        layer_cnv2_lut1->ImportLayer<float, float>(layer_cnv2_sl1);
-        layer_cnv3_lut0->ImportLayer<float, float>(layer_cnv3_sl0);
-        layer_cnv3_lut1->ImportLayer<float, float>(layer_cnv3_sl1);
-        layer_lut4     ->ImportLayer<float, float>(layer_sl4);
-        layer_lut5     ->ImportLayer<float, float>(layer_sl5);
+        layer_cnv0_lut0 ->ImportLayer<float, float>(layer_cnv0_sl0);
+        layer_cnv0_lut1 ->ImportLayer<float, float>(layer_cnv0_sl1);
+        layer_cnv1d_lut0->ImportLayer<float, float>(layer_cnv1d_sl0);
+        layer_cnv1d_lut1->ImportLayer<float, float>(layer_cnv1d_sl1);
+        layer_cnv1p_lut0->ImportLayer<float, float>(layer_cnv1p_sl0);
+        layer_cnv2d_lut0->ImportLayer<float, float>(layer_cnv2d_sl0);
+        layer_cnv2d_lut1->ImportLayer<float, float>(layer_cnv2d_sl1);
+        layer_cnv2p_lut0->ImportLayer<float, float>(layer_cnv2p_sl0);
+        layer_cnv3d_lut0->ImportLayer<float, float>(layer_cnv3d_sl0);
+        layer_cnv3d_lut1->ImportLayer<float, float>(layer_cnv3d_sl1);
+        layer_cnv3p_lut0->ImportLayer<float, float>(layer_cnv3p_sl0);
+        layer_lut4      ->ImportLayer<float, float>(layer_sl4);
+        layer_lut5      ->ImportLayer<float, float>(layer_sl5);
 
         // print model information
         lut_net->PrintInfo();
@@ -703,17 +721,20 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
             std::cout << "lut_accuracy : " << lut_accuracy << std::endl;
         }
 
-        {
+        if ( 0 ) {
             // Verilog 出力
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv0;
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv1;
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv2;
 
             vec_cnv0.push_back(cnv0);
-            vec_cnv0.push_back(cnv1);
+            vec_cnv0.push_back(cnv1d);
+            vec_cnv0.push_back(cnv1p);
             vec_cnv0.push_back(pol0);
-            vec_cnv1.push_back(cnv2);
-            vec_cnv1.push_back(cnv3);
+            vec_cnv1.push_back(cnv2d);
+            vec_cnv1.push_back(cnv2p);
+            vec_cnv1.push_back(cnv3d);
+            vec_cnv1.push_back(cnv3p);
             vec_cnv1.push_back(pol1);
             vec_cnv2.push_back(cnv4);
 

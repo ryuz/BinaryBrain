@@ -45,7 +45,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>LutCnn -num_threads 4 -run_size 4 -mini_batch 32 -epoch 256 -binary 1  -read 0 -frame_mux_size 7 -lut_frame_mux_size 7</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>StochasticLutCnn -num_threads 4 -run_size 4 -mini_batch 32 -epoch 0 -binary 1  -read 1 -frame_mux_size 7 -lut_frame_mux_size 15</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelCpu|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>

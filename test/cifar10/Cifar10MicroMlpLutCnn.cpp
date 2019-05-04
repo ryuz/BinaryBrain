@@ -493,7 +493,7 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
 void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size,
                                     int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "Cifar10MiroMlpLutCnn_dp";
+    std::string net_name = "Cifar10MiroMlpLutCnn_dp2";
 
   // load cifar-10 data
 #ifdef _DEBUG
@@ -505,19 +505,19 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
 
     // create network
     auto layer_cnv0_sl0 = bb::MicroMlp<6>::Create(384);
-    auto layer_cnv0_sl1 = bb::MicroMlp<6>::Create(64);
+    auto layer_cnv0_sl1 = bb::MicroMlp<6>::Create(128);
     
-    auto layer_cnv1d_sl0 = bb::MicroMlp<6>::Create({3, 3, 64}, "depthwise");
-    auto layer_cnv1d_sl1 = bb::MicroMlp<6>::Create({1, 1, 64}, "depthwise");
-    auto layer_cnv1p_sl0 = bb::MicroMlp<6>::Create({1, 1, 64}, "pointwise");
+    auto layer_cnv1d_sl0 = bb::MicroMlp<6>::Create({3, 3, 128}, "depthwise");
+    auto layer_cnv1d_sl1 = bb::MicroMlp<6>::Create({1, 1, 128}, "depthwise");
+    auto layer_cnv1p_sl0 = bb::MicroMlp<6>::Create({1, 1, 128}, "pointwise");
 
-    auto layer_cnv2d_sl0 = bb::MicroMlp<6>::Create({3, 3, 64}, "depthwise");
-    auto layer_cnv2d_sl1 = bb::MicroMlp<6>::Create({1, 1, 64}, "depthwise");
-    auto layer_cnv2p_sl0 = bb::MicroMlp<6>::Create({1, 1, 64}, "pointwise");
+    auto layer_cnv2d_sl0 = bb::MicroMlp<6>::Create({3, 3, 128}, "depthwise");
+    auto layer_cnv2d_sl1 = bb::MicroMlp<6>::Create({1, 1, 128}, "depthwise");
+    auto layer_cnv2p_sl0 = bb::MicroMlp<6>::Create({1, 1, 128}, "pointwise");
     
-    auto layer_cnv3d_sl0 = bb::MicroMlp<6>::Create({3, 3, 64}, "depthwise");
-    auto layer_cnv3d_sl1 = bb::MicroMlp<6>::Create({1, 1, 64}, "depthwise");
-    auto layer_cnv3p_sl0 = bb::MicroMlp<6>::Create({1, 1, 64}, "pointwise");
+    auto layer_cnv3d_sl0 = bb::MicroMlp<6>::Create({3, 3, 128}, "depthwise");
+    auto layer_cnv3d_sl1 = bb::MicroMlp<6>::Create({1, 1, 128}, "depthwise");
+    auto layer_cnv3p_sl0 = bb::MicroMlp<6>::Create({1, 1, 128}, "pointwise");
 
     auto layer_sl4 = bb::MicroMlp<6>::Create(1860);
     auto layer_sl5 = bb::MicroMlp<6>::Create(310);

@@ -14,7 +14,7 @@
 #include <vector>
 
 #include "bb/SparseLayer.h"
-
+#include "bb/StochasticLutN.h"
 
 namespace bb {
 
@@ -86,6 +86,37 @@ public:
                 }
                 auto v = src->ForwardNode(node, vec);
                 this->SetLutTable(node, index, (v[0] >= (SFT)0.5));
+            }
+        }
+    }
+
+    // 形状が同一のSparceLayerをテーブル化して取り込む
+    template <class T>
+    void Import(std::shared_ptr<T> src)
+    {
+        BB_ASSERT(GetShapeSize(src->GetInputShape())  == GetShapeSize(this->GetInputShape()));
+        BB_ASSERT(GetShapeSize(src->GetOutputShape()) == GetShapeSize(this->GetOutputShape()));
+        
+        auto node_size  = GetShapeSize(this->GetOutputShape());
+
+        auto input_index_ptr = src->lock_InputIndex_const();
+        auto W_ptr           = src->lock_W_const();
+
+        for (index_t node = 0; node < node_size; ++node) {
+            auto input_size = this->GetNodeInputSize(node);
+            auto table_size = this->GetLutTableSize(node);
+            
+            BB_ASSERT(input_size == N);
+            BB_ASSERT(table_size == (1 << N));
+            
+            // 入力をコピー
+            for (int input_index = 0; input_index < input_size; ++input_index) {
+                this->SetNodeInput(node, input_index, input_index_ptr(node, input_index));
+            }
+
+            // 係数をコピー
+            for (int index = 0; index < table_size; ++index) {
+                this->SetLutTable(node, index, (W_ptr(node, index) >= (T)0.5));
             }
         }
     }
