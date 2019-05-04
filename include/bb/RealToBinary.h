@@ -188,7 +188,7 @@ public:
         // 戻り値の型を設定
         m_dx_buf.Resize(DataType<BT>::type, dy_buf.GetFrameSize() / m_frame_unit, m_node_shape);
 
-#if 1   // 今のところ計算結果誰も使わないので一旦コメントアウト
+#if 0   // 今のところ計算結果誰も使わないので一旦コメントアウト
         index_t node_size         = dy_buf.GetNodeSize();
         index_t output_frame_size = dy_buf.GetFrameSize();
 

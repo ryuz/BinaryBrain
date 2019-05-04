@@ -40,10 +40,10 @@ TEST(BinarizeTest, testBinarize_test0)
     auto dx_buf = bin->Backward(dy_buf);
 
     EXPECT_EQ(0, dx_buf.GetFP32(0, 0));
-    EXPECT_EQ(2, dx_buf.GetFP32(0, 1));
+//    EXPECT_EQ(2, dx_buf.GetFP32(0, 1));   // 未定義
     EXPECT_EQ(3, dx_buf.GetFP32(0, 2));
     EXPECT_EQ(4, dx_buf.GetFP32(1, 0));
-    EXPECT_EQ(5, dx_buf.GetFP32(1, 1));
+//    EXPECT_EQ(5, dx_buf.GetFP32(1, 1));   // 未定義
     EXPECT_EQ(0, dx_buf.GetFP32(1, 2));
 }
 
