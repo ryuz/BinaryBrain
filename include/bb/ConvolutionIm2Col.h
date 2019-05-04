@@ -197,19 +197,26 @@ public:
         m_y_buf.Resize(x_buf.GetType(), m_output_frame_size, m_output_shape);
         
 #ifdef BB_WITH_CUDA
-        if ( m_padding == "valid" && m_y_stride == 1 &&  m_x_stride == 1 && 
-            DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+//        if ( m_padding == "valid" && m_y_stride == 1 &&  m_x_stride == 1 && 
+//            DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+        if ( DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
             // FP32 CUDA
             auto ptr_x = x_buf.LockDeviceMemoryConst();
             auto ptr_y = m_y_buf.LockDeviceMemory();
             bbcu_fp32_Im2Col_Forward(
                 (float const *)ptr_x.GetAddr(),
                 (float       *)ptr_y.GetAddr(),
+                (int          )m_x_stride,
+                (int          )m_y_stride,
+                (int          )m_x_offset,
+                (int          )m_y_offset,
                 (int          )m_input_frame_size,
                 (int          )x_buf.GetFrameStride() / sizeof(float),
                 (int          )m_input_w_size,
                 (int          )m_input_h_size,
                 (int          )m_input_c_size,
+                (int          )m_output_w_size,
+                (int          )m_output_h_size,
                 (int          )m_y_buf.GetFrameStride() / sizeof(float),
                 (int          )m_filter_w_size,
                 (int          )m_filter_h_size);

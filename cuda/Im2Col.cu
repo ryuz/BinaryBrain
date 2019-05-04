@@ -18,9 +18,13 @@
 __global__ void kernal_fp32_Im2Col_Forward(
             float const     *x_buf,
             float           *y_buf,
+            int             x_stride,
+            int             y_stride,
+            int             x_offset,
+            int             y_offset,
             int             input_frame_stride,
             int             input_w_size,
-            int             input_h_size,            
+            int             input_h_size,
             int             output_frame_size,
             int             output_frame_stride,
             int             output_w_size,
@@ -38,11 +42,14 @@ __global__ void kernal_fp32_Im2Col_Forward(
     if ( output_frame < output_frame_size ) {
         int input_frame = output_frame / output_size;
         int f           = output_frame % output_size;
-        int ix = f % output_w_size + fx;
-        int iy = f / output_w_size + fy;
+        int iy = (f / output_w_size) * y_stride - y_offset + fy;
+        int ix = (f % output_w_size) * x_stride - x_offset + fx;
 
-        int input_node  = (c * input_h_size  + iy) * input_w_size  + ix;
-        float x = x_buf[input_node * input_frame_stride + input_frame];
+        float x = 0;
+        if ( iy >= 0 && iy < input_h_size && ix >= 0 && ix < input_w_size ) {
+            int input_node  = (c * input_h_size  + iy) * input_w_size  + ix;
+            x = x_buf[input_node * input_frame_stride + input_frame];
+        }
 
         int output_node = (c * filter_h_size + fy) * filter_w_size + fx;    
         y_buf[output_node * output_frame_stride + output_frame] = x;
@@ -54,11 +61,17 @@ BBCU_DLL_EXPORT int bbcu_fp32_Im2Col_Forward
         (
             float const     *dev_x_buf,
             float           *dev_y_buf,
+            int             x_stride,
+            int             y_stride,
+            int             x_offset,
+            int             y_offset,
             int             input_frame_size,
             int             input_frame_stride,
             int             input_w_size,
             int             input_h_size,
             int             input_c_size,
+            int             output_w_size,
+            int             output_h_size,
             int             output_frame_stride,
             int             filter_w_size,
             int             filter_h_size,
@@ -68,8 +81,6 @@ BBCU_DLL_EXPORT int bbcu_fp32_Im2Col_Forward
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
     int output_c_size = input_c_size;
-    int output_w_size = input_w_size - filter_w_size + 1;
-    int output_h_size = input_h_size - filter_h_size + 1;
     int output_size   = output_w_size * output_h_size;
     
     int output_frame_size = input_frame_size * output_size;
@@ -84,6 +95,10 @@ BBCU_DLL_EXPORT int bbcu_fp32_Im2Col_Forward
     kernal_fp32_Im2Col_Forward<<<grid, block, 0, streamId>>>(
             dev_x_buf,
             dev_y_buf,
+            x_stride,
+            y_stride,
+            x_offset,
+            y_offset,
             input_frame_stride,
             input_w_size,
             input_h_size,          
