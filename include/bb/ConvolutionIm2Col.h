@@ -225,19 +225,26 @@ public:
 #endif
 
 #ifdef BB_WITH_CUDA
-        if (  m_padding == "valid" && m_y_stride == 1 &&  m_x_stride == 1 && 
-            DataType<FT>::type == BB_TYPE_BIT && !m_host_only && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+//      if (  m_padding == "valid" && m_y_stride == 1 &&  m_x_stride == 1 && 
+//          DataType<FT>::type == BB_TYPE_BIT && !m_host_only && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+        if ( DataType<FT>::type == BB_TYPE_BIT && !m_host_only && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
             // bit CUDA
             auto ptr_x = x_buf.LockDeviceMemoryConst();
             auto ptr_y = m_y_buf.LockDeviceMemory();
             bbcu_bit_Im2Col_Forward(
                 (int const *)ptr_x.GetAddr(),
                 (int       *)ptr_y.GetAddr(),
+                (int        )m_x_stride,
+                (int        )m_y_stride,
+                (int        )m_x_offset,
+                (int        )m_y_offset,
                 (int        )m_input_frame_size,
                 (int        )x_buf.GetFrameStride() / sizeof(int),
                 (int        )m_input_w_size,
                 (int        )m_input_h_size,
                 (int        )m_input_c_size,
+                (int        )m_output_w_size,
+                (int        )m_output_h_size,
                 (int        )m_y_buf.GetFrameStride() / sizeof(int),
                 (int        )m_filter_w_size,
                 (int        )m_filter_h_size);

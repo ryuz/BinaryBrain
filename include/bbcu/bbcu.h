@@ -491,16 +491,24 @@ BBCU_DLL_EXPORT int bbcu_fp32_Im2Col_Forward
             cudaStream_t    streamId = 0
         );
 
-BBCU_DLL_EXPORT int bbcu_bit_Col2Im_Forward
+BBCU_DLL_EXPORT int bbcu_bit_Im2Col_Forward
         (
             int const       *dev_x_buf,
             int             *dev_y_buf,
-            int             w_size,
-            int             h_size,
-            int             c_size,
+            int             x_stride,
+            int             y_stride,
+            int             x_offset,
+            int             y_offset,
+            int             input_frame_size,
             int             input_frame_stride,
-            int             output_frame_size,
+            int             input_w_size,
+            int             input_h_size,
+            int             input_c_size,
+            int             output_w_size,
+            int             output_h_size,
             int             output_frame_stride,
+            int             filter_w_size,
+            int             filter_h_size,
             cudaStream_t    streamId = 0
         );
 
@@ -538,18 +546,16 @@ BBCU_DLL_EXPORT int bbcu_fp32_Col2Im_Forward
             cudaStream_t    streamId = 0
         );
 
-BBCU_DLL_EXPORT int bbcu_bit_Im2Col_Forward
+BBCU_DLL_EXPORT int bbcu_bit_Col2Im_Forward
         (
             int const       *dev_x_buf,
             int             *dev_y_buf,
-            int             input_frame_size,
+            int             w_size,
+            int             h_size,
+            int             c_size,
             int             input_frame_stride,
-            int             input_w_size,
-            int             input_h_size,
-            int             input_c_size,
+            int             output_frame_size,
             int             output_frame_stride,
-            int             filter_w_size,
-            int             filter_h_size,
             cudaStream_t    streamId = 0
         );
 
