@@ -548,7 +548,7 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
         cnv3p_sub->Add(layer_cnv3p_sl0);
 
         auto net = bb::Sequential::Create();
-        net->Add(bb::RealToBinary<>::Create(frame_mux_size));
+        net->Add(bb::RealToBinary<>::Create(frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1), true));
         net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv1d_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv1p_sub, 1, 1));
