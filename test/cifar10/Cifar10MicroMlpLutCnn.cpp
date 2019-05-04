@@ -509,15 +509,18 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
     
     auto layer_cnv1d_sl0 = bb::MicroMlp<6>::Create({1, 6, 128}, "depthwise");
     auto layer_cnv1d_sl1 = bb::MicroMlp<6>::Create({1, 1, 128}, "depthwise");
-    auto layer_cnv1p_sl0 = bb::MicroMlp<6>::Create({1, 1, 128}, "pointwise");
+    auto layer_cnv1p_sl0 = bb::MicroMlp<6>::Create({1, 1, 768}, "pointwise");
+    auto layer_cnv1p_sl1 = bb::MicroMlp<6>::Create({1, 1, 128}, "pointwise");
 
     auto layer_cnv2d_sl0 = bb::MicroMlp<6>::Create({1, 6, 128}, "depthwise");
     auto layer_cnv2d_sl1 = bb::MicroMlp<6>::Create({1, 1, 128}, "depthwise");
-    auto layer_cnv2p_sl0 = bb::MicroMlp<6>::Create({1, 1, 128}, "pointwise");
+    auto layer_cnv2p_sl0 = bb::MicroMlp<6>::Create({1, 1, 768}, "pointwise");
+    auto layer_cnv2p_sl1 = bb::MicroMlp<6>::Create({1, 1, 128}, "pointwise");
     
     auto layer_cnv3d_sl0 = bb::MicroMlp<6>::Create({1, 6, 128}, "depthwise");
     auto layer_cnv3d_sl1 = bb::MicroMlp<6>::Create({1, 1, 128}, "depthwise");
-    auto layer_cnv3p_sl0 = bb::MicroMlp<6>::Create({1, 1, 128}, "pointwise");
+    auto layer_cnv3p_sl0 = bb::MicroMlp<6>::Create({1, 1, 768}, "pointwise");
+    auto layer_cnv3p_sl1 = bb::MicroMlp<6>::Create({1, 1, 128}, "pointwise");
 
     auto layer_sl4 = bb::MicroMlp<6>::Create(1860);
     auto layer_sl5 = bb::MicroMlp<6>::Create(310);
@@ -534,18 +537,21 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
         cnv1d_sub->Add(layer_cnv1d_sl1);
         auto cnv1p_sub = bb::Sequential::Create();
         cnv1p_sub->Add(layer_cnv1p_sl0);
+        cnv1p_sub->Add(layer_cnv1p_sl1);
 
         auto cnv2d_sub = bb::Sequential::Create();
         cnv2d_sub->Add(layer_cnv2d_sl0);
         cnv2d_sub->Add(layer_cnv2d_sl1);
         auto cnv2p_sub = bb::Sequential::Create();
         cnv2p_sub->Add(layer_cnv2p_sl0);
+        cnv2p_sub->Add(layer_cnv2p_sl1);
 
         auto cnv3d_sub = bb::Sequential::Create();
         cnv3d_sub->Add(layer_cnv3d_sl0);
         cnv3d_sub->Add(layer_cnv3d_sl1);
         auto cnv3p_sub = bb::Sequential::Create();
         cnv3p_sub->Add(layer_cnv3p_sl0);
+        cnv3p_sub->Add(layer_cnv3p_sl1);
 
         auto net = bb::Sequential::Create();
         net->Add(bb::RealToBinary<>::Create(frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1), true));
