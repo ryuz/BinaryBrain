@@ -32,7 +32,8 @@ template <typename FXT = float, typename FYT = float, typename BT = float>
 class BinaryToReal : public Model
 {
 protected:
-    bool                m_host_only = false;
+    bool                m_binary_mode = true;
+    bool                m_host_only   = false;
 
     index_t             m_frame_unit;
 
@@ -53,6 +54,12 @@ protected:
      */
     void CommandProc(std::vector<std::string> args)
     {
+        // バイナリモード設定
+        if ( args.size() == 2 && args[0] == "binary" )
+        {
+            m_binary_mode = EvalBool(args[1]);
+        }
+
         // HostOnlyモード設定
         if (args.size() == 2 && args[0] == "host_only")
         {
@@ -130,6 +137,10 @@ public:
 
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
+        if (!m_binary_mode) {
+            return x_buf;
+        }
+
         BB_ASSERT(x_buf.GetType() == DataType<FXT>::type);
 
         // SetInputShpaeされていなければ初回に設定
@@ -198,6 +209,10 @@ public:
 
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
+        if (!m_binary_mode) {
+            return dy_buf;
+        }
+        
         BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
 
         // 戻り値の型を設定

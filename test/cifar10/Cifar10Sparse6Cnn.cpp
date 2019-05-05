@@ -20,6 +20,7 @@
 #include "bb/LoweringConvolution.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
+#include "bb/HardTanh.h"
 #include "bb/MaxPooling.h"
 #include "bb/Reduce.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
@@ -377,37 +378,37 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(bb::StochasticLut6<>::Create(192));
         cnv0_sub->Add(bb::StochasticBatchNormalization<>::Create(bn_momentum));
-        if ( binary_mode ) { cnv0_sub->Add(bb::Binarize<>::Create(0.5f, 0.0f, 1.0f)); }
+        cnv0_sub->Add(bb::HardTanh<>::Create(0.0f, 1.0f));
         cnv0_sub->Add(bb::StochasticLut6<>::Create(32));
         cnv0_sub->Add(bb::StochasticBatchNormalization<>::Create(bn_momentum));
-        if ( binary_mode ) { cnv0_sub->Add(bb::Binarize<>::Create(0.5f, 0.0f, 1.0f)); }
+        cnv0_sub->Add(bb::HardTanh<>::Create(0.0f, 1.0f));
 
         auto cnv1_sub = bb::Sequential::Create();
         cnv1_sub->Add(bb::StochasticLut6<>::Create(192));
         cnv1_sub->Add(bb::StochasticBatchNormalization<>::Create(bn_momentum));
-        if ( binary_mode ) { cnv1_sub->Add(bb::Binarize<>::Create(0.5f, 0.0f, 1.0f)); }
+        cnv0_sub->Add(bb::HardTanh<>::Create(0.0f, 1.0f));
         cnv1_sub->Add(bb::StochasticLut6<>::Create(32));
         cnv1_sub->Add(bb::StochasticBatchNormalization<>::Create(bn_momentum));
-        if ( binary_mode ) { cnv1_sub->Add(bb::Binarize<>::Create(0.5f, 0.0f, 1.0f)); }
+        cnv0_sub->Add(bb::HardTanh<>::Create(0.0f, 1.0f));
 
         auto cnv2_sub = bb::Sequential::Create();
         cnv2_sub->Add(bb::StochasticLut6<>::Create(384));
         cnv2_sub->Add(bb::StochasticBatchNormalization<>::Create(bn_momentum));
-        if ( binary_mode ) { cnv2_sub->Add(bb::Binarize<>::Create(0.5f, 0.0f, 1.0f)); }
+        cnv0_sub->Add(bb::HardTanh<>::Create(0.0f, 1.0f));
         cnv2_sub->Add(bb::StochasticLut6<>::Create(64));
         cnv2_sub->Add(bb::StochasticBatchNormalization<>::Create(bn_momentum));
-        if ( binary_mode ) { cnv2_sub->Add(bb::Binarize<>::Create(0.5f, 0.0f, 1.0f)); }
+        cnv0_sub->Add(bb::HardTanh<>::Create(0.0f, 1.0f));
 
         auto cnv3_sub = bb::Sequential::Create();
         cnv3_sub->Add(bb::StochasticLut6<>::Create(384));
         cnv3_sub->Add(bb::StochasticBatchNormalization<>::Create(bn_momentum));
-        if ( binary_mode ) { cnv3_sub->Add(bb::Binarize<>::Create(0.5f, 0.0f, 1.0f)); }
+        cnv0_sub->Add(bb::HardTanh<>::Create(0.0f, 1.0f));
         cnv3_sub->Add(bb::StochasticLut6<>::Create(64));
         cnv3_sub->Add(bb::StochasticBatchNormalization<>::Create(bn_momentum));
-        if ( binary_mode ) { cnv3_sub->Add(bb::Binarize<>::Create(0.5f, 0.0f, 1.0f)); }
+        cnv0_sub->Add(bb::HardTanh<>::Create(0.0f, 1.0f));
         
         auto net = bb::Sequential::Create();
-        if ( binary_mode ) {  net->Add(bb::RealToBinary<>::Create(7)); }
+        net->Add(bb::RealToBinary<>::Create(7));
         net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
         net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
         net->Add(bb::MaxPooling<>::Create(2, 2));
@@ -416,19 +417,23 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
         net->Add(bb::MaxPooling<>::Create(2, 2));
         net->Add(bb::StochasticLut6<>::Create(1024));
         net->Add(bb::StochasticBatchNormalization<>::Create(bn_momentum));
-        if ( binary_mode ) { net->Add(bb::Binarize<>::Create(0.5f, 0.0f, 1.0f)); }
+        net->Add(bb::HardTanh<>::Create(0.0f, 1.0f));
         net->Add(bb::StochasticLut6<>::Create(150));
         net->Add(bb::StochasticBatchNormalization<>::Create(bn_momentum));
-        if ( binary_mode ) { net->Add(bb::Binarize<>::Create(0.5f, 0.0f, 1.0f)); }
-        if ( binary_mode ) {
-            net->Add(bb::BinaryToReal<>::Create(td.t_shape, 7));
-        }
-        else {
-            net->Add(bb::Reduce<>::Create(td.t_shape));
-        }
+        net->Add(bb::HardTanh<>::Create(0.0f, 1.0f));
+        net->Add(bb::Reduce<>::Create(td.t_shape));
+        net->Add(bb::BinaryToReal<>::Create(td.t_shape, 7));
+
         net->SetInputShape(td.x_shape);
 
         net->SendCommand("lut_binarize false");
+
+        if (binary_mode) {
+            net->SendCommand("binary true");
+        }
+        else {
+            net->SendCommand("binary false");
+        }
 
         // print model information
         net->PrintInfo();

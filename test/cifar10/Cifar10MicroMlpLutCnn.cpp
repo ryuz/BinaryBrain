@@ -31,6 +31,7 @@
 #include "bb/Runner.h"
 #include "bb/ExportVerilog.h"
 #include "bb/UniformDistributionGenerator.h"
+#include "bb/Reduce.h"
 
 
 #if 0
@@ -566,6 +567,7 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
         net->Add(bb::MaxPooling<>::Create(2, 2));
         net->Add(layer_sl4);
         net->Add(layer_sl5);
+        net->Add(bb::Reduce<>::Create(td.t_shape));
         net->Add(bb::BinaryToReal<>::Create(td.t_shape, frame_mux_size));
         net->SetInputShape(td.x_shape);
 

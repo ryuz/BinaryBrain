@@ -35,6 +35,8 @@ template <typename FXT = float, typename FYT = float, typename BT = float>
 class RealToBinary : public Model
 {
 protected:
+    bool                                    m_binary_mode = true;
+
     FrameBuffer                             m_y_buf;
     FrameBuffer                             m_dx_buf;
 
@@ -47,6 +49,21 @@ protected:
 
 protected:
     RealToBinary() {}
+
+    /**
+     * @brief  コマンド処理
+     * @detail コマンド処理
+     * @param  args   コマンド
+     */
+    void CommandProc(std::vector<std::string> args)
+    {
+        // バイナリモード設定
+        if ( args.size() == 2 && args[0] == "binary" )
+        {
+            m_binary_mode = EvalBool(args[1]);
+        }
+    }
+
 public:
     ~RealToBinary() {}
 
@@ -127,6 +144,10 @@ public:
 
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
+        if (!m_binary_mode) {
+            return x_buf;
+        }
+
         BB_ASSERT(x_buf.GetType() == DataType<FXT>::type);
 
         // SetInputShpaeされていなければ初回に設定
@@ -183,6 +204,10 @@ public:
 
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
+        if (!m_binary_mode) {
+            return dy_buf;
+        }
+
         BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
 
         // 戻り値の型を設定
