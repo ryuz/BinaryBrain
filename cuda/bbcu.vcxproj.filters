@@ -67,6 +67,9 @@
     <CudaCompile Include="StochasticBatchNormalization.cu">
       <Filter>ソース ファイル</Filter>
     </CudaCompile>
+    <CudaCompile Include="LocalHeap.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ヘッダファイル">

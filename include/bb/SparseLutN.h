@@ -46,7 +46,7 @@ public:
 protected:
     SparseLutN(create_t const &create)
     {
-        m_norm_pre  = StochasticBatchNormalization<T>::Create(0.001f);
+        m_norm_pre  = StochasticBatchNormalization<T>::Create(0.01f);
 
         typename StochasticLutN<N, T>::create_t lut_create;
         lut_create.output_shape = create.output_shape;
@@ -54,7 +54,7 @@ protected:
         lut_create.seed         = create.seed;
         m_lut = StochasticLutN<N, T>::Create(lut_create);
 
-        m_norm_post = StochasticBatchNormalization<T>::Create(0.001f);
+        m_norm_post = StochasticBatchNormalization<T>::Create(0.01f);
 
         m_activate = HardTanh<T>::Create((T)0, (T)1);
     }

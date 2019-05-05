@@ -344,7 +344,7 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
 #endif
 
 
-#if 0
+#if 1
 
 void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bool binary_mode, bool file_read)
 {
@@ -378,6 +378,7 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
     {
         float bn_momentum = 0.01f;
 
+#if 0
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(bb::StochasticBatchNormalization<>::Create(bn_momentum));
         cnv0_sub->Add(bb::StochasticLut6<>::Create(192));
@@ -436,6 +437,36 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
         net->Add(bb::HardTanh<>::Create(0.0f, 1.0f));
         net->Add(bb::Reduce<>::Create(td.t_shape));
         net->Add(bb::BinaryToReal<>::Create(td.t_shape, 7));
+#else
+        auto cnv0_sub = bb::Sequential::Create();
+        cnv0_sub->Add(bb::SparseLutN<6>::Create(192));
+        cnv0_sub->Add(bb::SparseLutN<6>::Create(32));
+
+        auto cnv1_sub = bb::Sequential::Create();
+        cnv1_sub->Add(bb::SparseLutN<6>::Create(192));
+        cnv1_sub->Add(bb::SparseLutN<6>::Create(32));
+
+        auto cnv2_sub = bb::Sequential::Create();
+        cnv2_sub->Add(bb::SparseLutN<6>::Create(384));
+        cnv2_sub->Add(bb::SparseLutN<6>::Create(64));
+
+        auto cnv3_sub = bb::Sequential::Create();
+        cnv3_sub->Add(bb::SparseLutN<6>::Create(384));
+        cnv3_sub->Add(bb::SparseLutN<6>::Create(64));
+        
+        auto net = bb::Sequential::Create();
+        net->Add(bb::RealToBinary<>::Create(7));
+        net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
+        net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
+        net->Add(bb::MaxPooling<>::Create(2, 2));
+        net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
+        net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
+        net->Add(bb::MaxPooling<>::Create(2, 2));
+        net->Add(bb::SparseLutN<>::Create(1024));
+        net->Add(bb::SparseLutN<>::Create(150));
+        net->Add(bb::Reduce<>::Create(td.t_shape));
+        net->Add(bb::BinaryToReal<>::Create(td.t_shape, 7));
+#endif
 
         net->SetInputShape(td.x_shape);
 
@@ -472,6 +503,7 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
 #endif
 
 
+#if 0
 
 void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bool binary_mode, bool file_read)
 {
@@ -724,6 +756,7 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
 #endif
 }
 
+#endif
 
 
 // end of file

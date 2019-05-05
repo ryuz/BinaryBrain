@@ -17,7 +17,7 @@
 
 #ifdef BB_WITH_CUDA
 #include "cuda_runtime.h"
-#include "bbcu/bbcu_util.h"
+#include "bbcu/bbcu.h"
 #endif
 
 #include "bb/DataType.h"

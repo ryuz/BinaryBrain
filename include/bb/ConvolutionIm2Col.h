@@ -46,8 +46,8 @@ protected:
     std::string     m_padding;
 
     // メモリの確保/開放を繰り返さないように演算後も確保
-    FrameBuffer     m_y_buf;
-    FrameBuffer     m_dx_buf;
+//    FrameBuffer     m_y_buf;
+//    FrameBuffer     m_dx_buf;
 
 public:
     struct create_t
@@ -194,15 +194,15 @@ public:
         m_output_frame_size = m_input_frame_size * m_output_h_size * m_output_w_size;
 
         // 出力形状設定
-        m_y_buf.Resize(x_buf.GetType(), m_output_frame_size, m_output_shape);
+        FrameBuffer y_buf(x_buf.GetType(), m_output_frame_size, m_output_shape);
         
 #ifdef BB_WITH_CUDA
 //        if ( m_padding == "valid" && m_y_stride == 1 &&  m_x_stride == 1 && 
-//            DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
-        if ( DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+//            DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+        if ( DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
             // FP32 CUDA
             auto ptr_x = x_buf.LockDeviceMemoryConst();
-            auto ptr_y = m_y_buf.LockDeviceMemory();
+            auto ptr_y = y_buf.LockDeviceMemory();
             bbcu_fp32_Im2Col_Forward(
                 (float const *)ptr_x.GetAddr(),
                 (float       *)ptr_y.GetAddr(),
@@ -217,20 +217,18 @@ public:
                 (int          )m_input_c_size,
                 (int          )m_output_w_size,
                 (int          )m_output_h_size,
-                (int          )m_y_buf.GetFrameStride() / sizeof(float),
+                (int          )y_buf.GetFrameStride() / sizeof(float),
                 (int          )m_filter_w_size,
                 (int          )m_filter_h_size);
-            return m_y_buf;
+            return y_buf;
         }
 #endif
 
 #ifdef BB_WITH_CUDA
-//      if (  m_padding == "valid" && m_y_stride == 1 &&  m_x_stride == 1 && 
-//          DataType<FT>::type == BB_TYPE_BIT && !m_host_only && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
-        if ( DataType<FT>::type == BB_TYPE_BIT && !m_host_only && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+        if ( DataType<FT>::type == BB_TYPE_BIT && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
             // bit CUDA
             auto ptr_x = x_buf.LockDeviceMemoryConst();
-            auto ptr_y = m_y_buf.LockDeviceMemory();
+            auto ptr_y = y_buf.LockDeviceMemory();
             bbcu_bit_Im2Col_Forward(
                 (int const *)ptr_x.GetAddr(),
                 (int       *)ptr_y.GetAddr(),
@@ -245,20 +243,20 @@ public:
                 (int        )m_input_c_size,
                 (int        )m_output_w_size,
                 (int        )m_output_h_size,
-                (int        )m_y_buf.GetFrameStride() / sizeof(int),
+                (int        )y_buf.GetFrameStride() / sizeof(int),
                 (int        )m_filter_w_size,
                 (int        )m_filter_h_size);
-            return m_y_buf;
+            return y_buf;
         }
 #endif
 
         {
             // 汎用版
-            index_t const output_frame_size = m_y_buf.GetFrameSize();
+            index_t const output_frame_size = y_buf.GetFrameSize();
             index_t const output_size       = m_output_w_size * m_output_h_size;
 
             auto x_ptr = x_buf.LockConst<FT>();
-            auto y_ptr = m_y_buf.Lock<FT>(true);
+            auto y_ptr = y_buf.Lock<FT>(true);
 
             for (index_t c = 0; c < m_input_c_size; ++c ) {
                 #pragma omp parallel for
@@ -284,7 +282,7 @@ public:
                 }
             }
 
-            return m_y_buf;
+            return y_buf;
         }
     }
 
@@ -294,14 +292,12 @@ public:
         BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
         
         // 出力設定
-        m_dx_buf.Resize(DataType<BT>::type, m_input_frame_size, m_input_shape);
+        FrameBuffer dx_buf(DataType<BT>::type, m_input_frame_size, m_input_shape);
 
 #ifdef BB_WITH_CUDA
-//        if ( m_padding == "valid" && m_y_stride == 1 &&  m_x_stride == 1 && 
-//            DataType<BT>::type == BB_TYPE_FP32 && !m_host_only && dy_buf.IsDeviceAvailable() && m_dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable())
-        if ( DataType<BT>::type == BB_TYPE_FP32 && !m_host_only && dy_buf.IsDeviceAvailable() && m_dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+        if ( DataType<BT>::type == BB_TYPE_FP32 && !m_host_only && dy_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
             auto ptr_dy = dy_buf.LockDeviceMemoryConst();
-            auto ptr_dx = m_dx_buf.LockDeviceMemory();
+            auto ptr_dx = dx_buf.LockDeviceMemory();
             bbcu_fp32_Im2Col_Backward(
                 (float const *)ptr_dy.GetAddr(),
                 (float       *)ptr_dx.GetAddr(),
@@ -310,7 +306,7 @@ public:
                 (int          )m_x_offset,
                 (int          )m_y_offset,
                 (int          )m_input_frame_size,
-                (int          )(m_dx_buf.GetFrameStride() / sizeof(float)),
+                (int          )(dx_buf.GetFrameStride() / sizeof(float)),
                 (int          )m_input_w_size,
                 (int          )m_input_h_size,
                 (int          )m_input_c_size,
@@ -319,17 +315,17 @@ public:
                 (int          )(dy_buf.GetFrameStride() / sizeof(float)),
                 (int          )m_filter_w_size,
                 (int          )m_filter_h_size);
-            return m_dx_buf;
+            return dx_buf;
         }
 #endif
 
 #if 0
         if ( 0 ) {
             // 汎用版
-            m_dx_buf.FillZero();
+            dx_buf.FillZero();
 
             auto dy_ptr = dy_buf.LockConst<BT>();
-            auto dx_ptr = m_dx_buf.Lock<BT>();
+            auto dx_ptr = dx_buf.Lock<BT>();
 
             for (index_t c = 0; c < m_input_c_size; ++c) {
                 #pragma omp parallel for
@@ -359,16 +355,16 @@ public:
                 }
             }
 
-            return m_dx_buf;
+            return dx_buf;
         }
 #endif
 
         {
             // stride版
-            m_dx_buf.FillZero();
+            dx_buf.FillZero();
 
             auto dy_ptr = dy_buf.LockConst<BT>();
-            auto dx_ptr = m_dx_buf.Lock<BT>();
+            auto dx_ptr = dx_buf.Lock<BT>();
 
             index_t iy_limit = (m_output_h_size - 1) * m_y_stride;
             index_t ix_limit = (m_output_w_size - 1) * m_x_stride;
@@ -403,7 +399,7 @@ public:
                 }
             }
 
-            return m_dx_buf;
+            return dx_buf;
         }
     }
 };

@@ -4,7 +4,8 @@
 #include <assert.h>
 
 #include "cuda_runtime.h"
-#include "bbcu/bbcu_util.h"
+
+
 
 /*
 #ifdef DLL_EXPORT
@@ -26,7 +27,7 @@ extern "C" {
 
 
 // -------------------------------------
-//  Vector Operation
+//  Maneger
 // -------------------------------------
 
 BBCU_DLL_EXPORT void bbcu_SetHostOnly(bool hostOnly);
@@ -34,6 +35,22 @@ BBCU_DLL_EXPORT bool bbcu_IsHostOnly(void);
 BBCU_DLL_EXPORT bool bbcu_IsDeviceAvailable(void);
 
 
+
+// -------------------------------------
+//  Local Heap
+// -------------------------------------
+
+BBCU_DLL_EXPORT void *bbcu_LocalHeap_Malloc(size_t size);
+BBCU_DLL_EXPORT void bbcu_LocalHeap_Free(void* ptr);
+
+}
+
+
+#include "bbcu/bbcu_util.h"
+
+
+
+extern "C" {
 
 // -------------------------------------
 //  Vector Operation

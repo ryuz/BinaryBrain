@@ -58,12 +58,9 @@ public:   // debug
 
 public:
     FrameBuffer             m_x_buf;
-    FrameBuffer             m_y_buf;
-    FrameBuffer             m_dx_buf;
 
-    FrameBuffer             m_dy_buf;   // debug
-    
-    FrameBuffer             m_dx_tmp;
+//    FrameBuffer             m_y_buf;
+//    FrameBuffer             m_dx_tmp;
 
 protected:
     MicroMlpAffine() {
@@ -424,16 +421,19 @@ public:
     {
         BB_ASSERT(x_buf.GetType() == DataType<T>::type);
 
-        // backwardの為に保存
-        m_x_buf = x_buf;
-
         // SetInputShpaeされていなければ初回に設定
-        if (m_x_buf.GetNodeSize() != m_input_node_size) {
-            SetInputShape(m_x_buf.GetShape());
+        if ( x_buf.GetNodeSize() != m_input_node_size) {
+            SetInputShape(x_buf.GetShape());
         }
 
+        // backwardの為に保存
+        if ( train ) {
+            m_x_buf = x_buf;
+        }
+        
+
         // 出力を設定
-        m_y_buf.Resize(DataType<T>::type, m_x_buf.GetFrameSize(), m_output_shape);
+        FrameBuffer y_buf(DataType<T>::type, x_buf.GetFrameSize(), m_output_shape);
 
         // バイナリモードならパラメータクリップ
         if (m_binary_mode) {
@@ -446,10 +446,10 @@ public:
         // CUDA版
 #ifdef BB_WITH_CUDA
         if ( N == 6 && M == 16 && DataType<T>::type == BB_TYPE_FP32
-                && !m_host_only && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+                && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
-            auto x_ptr  = m_x_buf.LockDeviceMemoryConst();
-            auto y_ptr  = m_y_buf.LockDeviceMemory();
+            auto x_ptr  = x_buf.LockDeviceMemoryConst();
+            auto y_ptr  = y_buf.LockDeviceMemory();
             auto W0_ptr = m_W0->LockDeviceMemoryConst();
             auto b0_ptr = m_b0->LockDeviceMemoryConst();
             auto W1_ptr = m_W1->LockDeviceMemoryConst();
@@ -465,21 +465,21 @@ public:
                     (float const *)b1_ptr.GetAddr(),
                     (int          )m_input_node_size,
                     (int          )m_output_node_size,
-                    (int          )m_x_buf.GetFrameSize(),
-                    (int          )(m_x_buf.GetFrameStride() / sizeof(float))
+                    (int          )x_buf.GetFrameSize(),
+                    (int          )(x_buf.GetFrameStride() / sizeof(float))
                 );
 
-            return m_y_buf;
+            return y_buf;
         }
 #endif
 
         // AVX版
         if ( DataType<T>::type == BB_TYPE_FP32 && m_host_simd ) {
-            const index_t   frame_size = m_x_buf.GetFrameStride() / sizeof(float);
+            const index_t   frame_size = x_buf.GetFrameStride() / sizeof(float);
             const __m256    zero = _mm256_set1_ps(0);
 
-            auto x_ptr = m_x_buf.LockMemoryConst();
-            auto y_ptr = m_y_buf.LockMemory();
+            auto x_ptr = x_buf.LockMemoryConst();
+            auto y_ptr = y_buf.LockMemory();
             auto input_index_ptr = m_input_index.LockConst();
             auto W0_ptr = lock_W0_const();
             auto b0_ptr = lock_b0_const();
@@ -535,14 +535,14 @@ public:
                     _mm256_store_ps(&out_sig_ptr[frame], sum1);
                 }
             }
-            return m_y_buf;
+            return y_buf;
         }
         
         {
             // 汎用版
-            auto frame_size = m_x_buf.GetFrameSize();
+            auto frame_size = x_buf.GetFrameSize();
             auto x_ptr = x_buf.LockConst<T>();
-            auto y_ptr = m_y_buf.Lock<T>();
+            auto y_ptr = y_buf.Lock<T>();
             auto input_index_ptr = m_input_index.LockConst();
             auto W0_ptr = lock_W0_const();
             auto b0_ptr = lock_b0_const();
@@ -579,7 +579,7 @@ public:
                     y_ptr.Set(frame, node, sum1);
                 }
             }
-            return m_y_buf;
+            return y_buf;
         }
     }
 
@@ -588,21 +588,23 @@ public:
     {
         BB_ASSERT(dy_buf.GetType() == DataType<T>::type);
 
-        m_dy_buf = dy_buf;
+        // forward時データ取り出し
+        FrameBuffer  x_buf = m_x_buf;
+        m_x_buf = FrameBuffer();
 
         // 出力設定
-        m_dx_buf.Resize(DataType<T>::type, dy_buf.GetFrameSize(), m_input_node_size);
+        FrameBuffer  dx_buf(DataType<T>::type, dy_buf.GetFrameSize(), m_input_node_size);
 
         // CUDA版
 #ifdef BB_WITH_CUDA
         if ( N == 6 && M == 16 && DataType<T>::type == BB_TYPE_FP32
-                && !m_host_only && m_x_buf.IsDeviceAvailable() && m_dx_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+                && !m_host_only && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // CUDA版
             auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
-            auto x_ptr  = m_x_buf.LockDeviceMemoryConst();
+            auto x_ptr  = x_buf.LockDeviceMemoryConst();
             auto dy_ptr = dy_buf.LockDeviceMemoryConst();
     //      auto y_ptr  = m_y_buf.LockDeviceMemoryConst();
-            auto dx_ptr = m_dx_buf.LockDeviceMemory();
+            auto dx_ptr = dx_buf.LockDeviceMemory();
             auto W0_ptr = m_W0->LockDeviceMemoryConst();
             auto b0_ptr = m_b0->LockDeviceMemoryConst();
             auto W1_ptr = m_W1->LockDeviceMemoryConst();
@@ -612,8 +614,8 @@ public:
             auto dW1_ptr = m_dW1->LockDeviceMemory();
             auto db1_ptr = m_db1->LockDeviceMemory();
 
-            m_dx_tmp.Resize(BB_TYPE_FP32, dy_buf.GetFrameSize(), m_output_node_size * N);
-            auto dx_tmp_ptr = m_dx_tmp.LockDeviceMemory();
+            FrameBuffer dx_tmp(BB_TYPE_FP32, dy_buf.GetFrameSize(), m_output_node_size * N);
+            auto dx_tmp_ptr = dx_tmp.LockDeviceMemory();
 
             bbcu_fp32_MicroMlp6x16_Backward
                 (
@@ -635,7 +637,7 @@ public:
                     (int          )dy_buf.GetFrameSize(),
                     (int          )dy_buf.GetFrameStride() / sizeof(float)
                 );
-            return m_dx_buf;
+            return dx_buf;
         }
 #endif
 
@@ -649,11 +651,11 @@ public:
             index_t frame_size = dy_buf.GetFrameStride() / sizeof(float);
             index_t node_size  = m_output_node_size;
 
-            m_dx_buf.FillZero();
+            dx_buf.FillZero();
 
             auto dy_ptr = dy_buf.LockMemoryConst();
-            auto dx_ptr = m_dx_buf.LockMemory();
-            auto x_ptr  = m_x_buf.LockMemoryConst();
+            auto dx_ptr = dx_buf.LockMemory();
+            auto x_ptr  = x_buf.LockMemoryConst();
 
             auto input_index_ptr = m_input_index.LockConst();
             auto W0_ptr = lock_W0_const();
@@ -671,8 +673,8 @@ public:
 
             const __m256    zero = _mm256_set1_ps(0);
 
-            m_dx_tmp.Resize(BB_TYPE_FP32, dy_buf.GetFrameSize(), m_output_node_size * N);
-            auto dx_tmp_ptr = m_dx_tmp.Lock<float>();
+            FrameBuffer dx_tmp(BB_TYPE_FP32, dy_buf.GetFrameSize(), m_output_node_size * N);
+            auto dx_tmp_ptr = dx_tmp.Lock<float>();
             
             #pragma omp parallel for
             for (int node = 0; node < (int)node_size; ++node) {
@@ -783,7 +785,7 @@ public:
                 }
             }
             
-            return m_dx_buf;
+            return dx_buf;
         }
 
         // 汎用版

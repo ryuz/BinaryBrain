@@ -28,6 +28,7 @@
     <CudaCompile Include="Col2Im.cu" />
     <CudaCompile Include="HardTanh.cu" />
     <CudaCompile Include="Im2Col.cu" />
+    <CudaCompile Include="LocalHeap.cu" />
     <CudaCompile Include="LossSoftmaxCrossEntropy.cu" />
     <CudaCompile Include="Manager.cu" />
     <CudaCompile Include="MatrixColwiseMeanVar.cu" />
@@ -170,6 +171,7 @@
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <AdditionalCompilerOptions>/wd"4819"</AdditionalCompilerOptions>
       <Runtime>MT</Runtime>
+      <CodeGeneration>compute_35,sm_35;compute_61,sm_61</CodeGeneration>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelCpu|x64'">

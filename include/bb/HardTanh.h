@@ -32,8 +32,8 @@ protected:
     using Binarize<T>::m_hardtanh_max;
 
     using Binarize<T>::m_x_buf;
-    using Binarize<T>::m_y_buf;
-    using Binarize<T>::m_dx_buf;
+    FrameBuffer m_y_buf;
+    FrameBuffer m_dx_buf;
 
 public:
     // 生成情報

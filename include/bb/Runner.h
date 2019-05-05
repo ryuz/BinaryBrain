@@ -334,7 +334,7 @@ public:
 #else
                     if ( m_write_serial ) {
                         std::stringstream fname;
-                        fname << m_name << "_net_" << save_epoc << ".bin";
+                        fname << m_name << "_net_" << m_epoch << ".bin";
                         SaveBinary(fname.str());
                         std::cout << "[save] " << fname.str() << std::endl;
             //          log_streamt << "[save] " << fname.str() << std::endl;

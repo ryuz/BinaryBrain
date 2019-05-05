@@ -86,12 +86,14 @@ void DumpDeviceMemory(std::string filename, T const *addr, int size)
 
 inline void Malloc(void **ptr, size_t size)
 {
-    BB_CUDA_SAFE_CALL(cudaMalloc(ptr, size));
+    *ptr = bbcu_LocalHeap_Malloc(size);
+//  BB_CUDA_SAFE_CALL(cudaMalloc(ptr, size));
 }
 
 inline void Free(void *ptr)
 {
-    BB_CUDA_SAFE_CALL(cudaFree(ptr));
+    bbcu_LocalHeap_Free(ptr);
+//  BB_CUDA_SAFE_CALL(cudaFree(ptr));
 }
 
 inline void MallocHost(void **ptr, size_t size, unsigned int flags = 0)
