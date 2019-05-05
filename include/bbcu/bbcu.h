@@ -589,6 +589,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_Binarize_Forward
         (
             const float*    dev_x_buf,
             float*          dev_y_buf,
+            float           binary_th,
             int             node_size,
             int             frame_size,
             int             frame_stride,
@@ -605,6 +606,8 @@ BBCU_DLL_EXPORT int bbcu_fp32_HardTanh_Forward
         (
             float const *   dev_x_buf,
             float*          dev_y_buf,
+            float           limit_min,
+            float           limit_max,
             int             node_size,
             int             frame_size,
             int             frame_stride,
@@ -616,6 +619,8 @@ BBCU_DLL_EXPORT int bbcu_fp32_HardTanh_Backward
             const float*    dev_x_buf,
             const float*    dev_dy_buf,
             float*          dev_dx_buf,
+            float           limit_min,
+            float           limit_max,
             int             node_size,
             int             frame_size,
             int             frame_stride,

@@ -574,6 +574,12 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
             net->SendCommand("binary true");
         }
 
+        net->SendCommand("fix_gamma true", "BatchNormalization");
+        net->SendCommand("set_gamma 0.2",  "BatchNormalization");
+        net->SendCommand("fix_beta true",  "BatchNormalization");
+        net->SendCommand("set_beta 0.0",   "BatchNormalization");
+
+
         // print model information
         net->PrintInfo();
 

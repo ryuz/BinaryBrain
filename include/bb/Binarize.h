@@ -23,14 +23,34 @@ template <typename T = float>
 class Binarize : public Activation<T, T>
 {
 protected:
+    T           m_binary_th    = (T)0;
+    T           m_hardtanh_min = (T)-1;
+    T           m_hardtanh_max = (T)+1;
+
     FrameBuffer m_x_buf;
     FrameBuffer m_y_buf;
     FrameBuffer m_dx_buf;
 
     bool        m_host_only = false;
 
+public:
+    // 生成情報
+    struct create_t
+    {
+        T   binary_th    = (T)0;
+        T   hardtanh_min = (T)-1;
+        T   hardtanh_max = (T)+1;
+    };
+    
 protected:
     Binarize() {}
+
+    Binarize(create_t const &create)
+    {
+        m_binary_th    = create.binary_th;
+        m_hardtanh_min = create.hardtanh_min;
+        m_hardtanh_max = create.hardtanh_max;
+    }
 
     /**
      * @brief  コマンド処理
@@ -45,16 +65,24 @@ protected:
             m_host_only = EvalBool(args[1]);
         }
     }
-
-
+    
 public:
-    static std::shared_ptr<Binarize> Create(void)
+    ~Binarize() {}
+
+    static std::shared_ptr<Binarize> Create(create_t const &create)
     {
-        auto self = std::shared_ptr<Binarize>(new Binarize);
-        return self;
+        return std::shared_ptr<Binarize>(new Binarize(create));
     }
 
-    ~Binarize() {}
+    static std::shared_ptr<Binarize> Create(T binary_th = (T)0, T hardtanh_min = (T)-1, T hardtanh_max = (T)+1)
+    {
+        create_t create;
+        create.binary_th    = binary_th;
+        create.hardtanh_min = hardtanh_min;
+        create.hardtanh_max = hardtanh_max;
+        return Create(create);
+    }
+
 
     std::string GetClassName(void) const { return "Binarize"; }
     
@@ -95,6 +123,7 @@ public:
             bbcu_fp32_Binarize_Forward(
                         (float const *)ptr_x.GetAddr(),
                         (float       *)ptr_y.GetAddr(),
+                        (float        )m_binary_th,
                         (int          )m_y_buf.GetNodeSize(),
                         (int          )m_y_buf.GetFrameSize(),
                         (int          )(m_y_buf.GetFrameStride() / sizeof(float))
@@ -147,6 +176,8 @@ public:
                         (float const *)ptr_x.GetAddr(),
                         (float const *)ptr_dy.GetAddr(),
                         (float       *)ptr_dx.GetAddr(),
+                        (float        )m_hardtanh_min,
+                        (float        )m_hardtanh_max,
                         (int          )m_dx_buf.GetNodeSize(),
                         (int          )m_dx_buf.GetFrameSize(),
                         (int          )(m_dx_buf.GetFrameStride() / sizeof(float))
