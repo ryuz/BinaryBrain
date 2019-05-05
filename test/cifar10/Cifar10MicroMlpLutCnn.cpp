@@ -575,6 +575,10 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
             std::cout << "binary mode" << std::endl;
             net->SendCommand("binary true");
         }
+        else {
+            std::cout << "binary mode off" << std::endl;
+            net->SendCommand("binary false");
+        }
 
         net->SendCommand("fix_gamma true", "BatchNormalization");
         net->SendCommand("set_gamma 0.2",  "BatchNormalization");
