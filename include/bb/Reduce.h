@@ -33,9 +33,6 @@ class Reduce : public Model
 protected:
     bool                m_host_only = false;
 
-    FrameBuffer         m_y_buf;
-    FrameBuffer         m_dx_buf;
-
     indices_t           m_input_shape;
     indices_t           m_output_shape;
 
@@ -137,13 +134,13 @@ public:
         }
 
         // 戻り値の型を設定
-        m_y_buf.Resize(DataType<FT>::type, x_buf.GetFrameSize(), m_output_shape);
+        FrameBuffer y_buf(DataType<FT>::type, x_buf.GetFrameSize(), m_output_shape);
 
 #if 0 // #ifdef BB_WITH_CUDA
         if ( DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && DataType<FT>::type == BB_TYPE_FP32
-            && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             auto x_ptr = x_buf.LockDeviceMemoryConst();
-            auto y_ptr = m_y_buf.LockDeviceMemory(true);
+            auto y_ptr = y_buf.LockDeviceMemory(true);
 
             bbcu_fp32_BinaryToReal_Forward
                 (
@@ -153,22 +150,22 @@ public:
                     (int          )m_frame_mux_size,
                     (int          )GetOutputNodeSize(),
                     (int          )(x.GetFrameStride() / sizeof(float)),
-                    (int          )m_y.GetFrameSize(),
-                    (int          )(m_y.GetFrameStride() / sizeof(float))
+                    (int          )y_buf.GetFrameSize(),
+                    (int          )(y_buf.GetFrameStride() / sizeof(float))
                 );
 
-            return m_y;
+            return y_buf;
         }
 #endif
 
         {
             // 汎用版
             auto x_ptr = x_buf.LockConst<FT>();
-            auto y_ptr = m_y_buf.Lock<FT>(true);
+            auto y_ptr = y_buf.Lock<FT>(true);
 
             index_t input_node_size   = GetInputNodeSize();
             index_t output_node_size  = GetOutputNodeSize();
-            index_t frame_size        = m_y_buf.GetFrameSize();
+            index_t frame_size        = y_buf.GetFrameSize();
 
             index_t mux_size          = input_node_size / output_node_size;
 
@@ -185,7 +182,7 @@ public:
                 }
             }
 
-            return m_y_buf;
+            return y_buf;
         }
     }
 
@@ -194,14 +191,14 @@ public:
         BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
 
         // 戻り値の型を設定
-        m_dx_buf.Resize(DataType<BT>::type, dy_buf.GetFrameSize(), m_input_shape);
+        FrameBuffer dx_buf(DataType<BT>::type, dy_buf.GetFrameSize(), m_input_shape);
 
 #if 0 // #ifdef BB_WITH_CUDA
         if ( DataType<BT>::type == BB_TYPE_FP32 && !m_host_only 
-                && dy_buf.IsDeviceAvailable() && m_dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+                && dy_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
 
             auto dy_ptr = dy_buf.LockDeviceMemoryConst();
-            auto dx_ptr = m_dx_buf.LockDeviceMemory(true);
+            auto dx_ptr = dx_buf.LockDeviceMemory(true);
 
             bbcu_fp32_BinaryToReal_Backward
                 (
@@ -210,12 +207,12 @@ public:
                     (int          )(GetShapeSize(m_input_shape) / GetShapeSize(m_output_shape)),
                     (int          )m_frame_mux_size,
                     (int          )GetOutputNodeSize(),
-                    (int          )(m_dx.GetFrameStride() / sizeof(float)),
+                    (int          )(dx_buf.GetFrameStride() / sizeof(float)),
                     (int          )dy.GetFrameSize(),
                     (int          )(dy.GetFrameStride() / sizeof(float))
                 );
 
-            return m_dx;
+            return dx_buf;
         }
 #endif
 
@@ -228,7 +225,7 @@ public:
             index_t mux_size          = input_node_size / output_node_size;
 
             auto dy_ptr = dy_buf.LockConst<BT>();
-            auto dx_ptr = m_dx_buf.Lock<BT>();
+            auto dx_ptr = dx_buf.Lock<BT>();
 
             #pragma omp parallel for
             for (index_t output_node = 0; output_node < output_node_size; ++output_node) {
@@ -241,7 +238,7 @@ public:
                 }
             }
 
-            return m_dx_buf;
+            return dx_buf;
         }
     }
 };

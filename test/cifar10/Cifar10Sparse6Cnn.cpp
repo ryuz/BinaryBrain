@@ -344,7 +344,7 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
 #endif
 
 
-#if 1
+#if 0
 
 void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bool binary_mode, bool file_read)
 {
@@ -757,6 +757,98 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
 }
 
 #endif
+
+
+
+
+#if 1
+
+void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bool binary_mode, bool file_read)
+{
+    std::string net_name = "Cifar10Sparse6Cnn_X";
+
+  // load cifar-10 data
+#ifdef _DEBUG
+    auto td = bb::LoadCifar10<>::Load(1);
+    std::cout << "!!! debug mode !!!" << std::endl;
+#else
+    auto td = bb::LoadCifar10<>::Load();
+#endif
+
+
+    std::cout << "binary mode : " << binary_mode << std::endl;
+
+    int frame_mux_size = 1;
+
+    {
+        auto cnv0_sub = bb::Sequential::Create();
+        cnv0_sub->Add(bb::SparseLutN<6>::Create(4608, "random"));
+        cnv0_sub->Add(bb::SparseLutN<6>::Create(768,  "serial"));
+        cnv0_sub->Add(bb::SparseLutN<6>::Create(64,   "serial"));
+
+        auto cnv1_sub = bb::Sequential::Create();
+        cnv1_sub->Add(bb::SparseLutN<6>::Create(4608, "random"));
+        cnv1_sub->Add(bb::SparseLutN<6>::Create(768,  "serial"));
+        cnv1_sub->Add(bb::SparseLutN<6>::Create(64,   "serial"));
+
+        auto cnv2_sub = bb::Sequential::Create();
+        cnv2_sub->Add(bb::SparseLutN<6>::Create(4608, "random"));
+        cnv2_sub->Add(bb::SparseLutN<6>::Create(768,  "serial"));
+        cnv2_sub->Add(bb::SparseLutN<6>::Create(64,   "serial"));
+
+        auto cnv3_sub = bb::Sequential::Create();
+        cnv3_sub->Add(bb::SparseLutN<6>::Create(4608, "random"));
+        cnv3_sub->Add(bb::SparseLutN<6>::Create(768,  "serial"));
+        cnv3_sub->Add(bb::SparseLutN<6>::Create(64,   "serial"));
+        
+        auto net = bb::Sequential::Create();
+        net->Add(bb::RealToBinary<>::Create(frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
+        net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
+        net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
+        net->Add(bb::MaxPooling<>::Create(2, 2));
+        net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
+        net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
+        net->Add(bb::MaxPooling<>::Create(2, 2));
+        net->Add(bb::SparseLutN<>::Create(5400, "random"));
+        net->Add(bb::SparseLutN<>::Create(900,  "serial"));
+        net->Add(bb::SparseLutN<>::Create(150,  "serial"));
+        net->Add(bb::Reduce<>::Create(td.t_shape));
+        net->Add(bb::BinaryToReal<>::Create(td.t_shape, frame_mux_size));
+
+        net->SetInputShape(td.x_shape);
+
+        net->SendCommand("lut_binarize false");
+
+        if (binary_mode) {
+            net->SendCommand("binary true");
+        }
+        else {
+            net->SendCommand("binary false");
+        }
+
+        // print model information
+        net->PrintInfo();
+
+        // run fitting
+        bb::Runner<float>::create_t runner_create;
+        runner_create.name               = net_name;
+        runner_create.net                = net;
+        runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
+        runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
+        runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
+//      runner_create.optimizer          = bb::OptimizerAdaGrad<float>::Create();
+        runner_create.max_run_size       = max_run_size;    // 実際の1回の実行サイズ
+        runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
+        runner_create.file_write         = true;            // 計算結果をファイルに保存するか
+        runner_create.print_progress     = true;            // 途中結果を表示
+        runner_create.initial_evaluation = false; // file_read;       // ファイルを読んだ場合は最初に評価しておく
+        auto runner = bb::Runner<float>::Create(runner_create);
+        runner->Fitting(td, epoch_size, mini_batch_size);
+    }
+}
+
+#endif
+
 
 
 // end of file

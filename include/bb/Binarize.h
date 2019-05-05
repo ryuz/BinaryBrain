@@ -28,8 +28,6 @@ protected:
     T           m_hardtanh_max = (T)+1;
 
     FrameBuffer m_x_buf;
-//    FrameBuffer m_y_buf;
-//    FrameBuffer m_dx_buf;
 
     bool        m_host_only = false;
 
