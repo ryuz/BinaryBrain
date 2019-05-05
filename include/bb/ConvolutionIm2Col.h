@@ -197,8 +197,6 @@ public:
         FrameBuffer y_buf(x_buf.GetType(), m_output_frame_size, m_output_shape);
         
 #ifdef BB_WITH_CUDA
-//        if ( m_padding == "valid" && m_y_stride == 1 &&  m_x_stride == 1 && 
-//            DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
         if ( DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
             // FP32 CUDA
             auto ptr_x = x_buf.LockDeviceMemoryConst();

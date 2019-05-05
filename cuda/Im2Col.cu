@@ -114,7 +114,6 @@ BBCU_DLL_EXPORT int bbcu_fp32_Im2Col_Forward
 }
 
 
-/*
 __global__ void kernal_bit_Im2Col_Forward(
             int const       *x_buf,
             int             *y_buf,
@@ -158,58 +157,6 @@ __global__ void kernal_bit_Im2Col_Forward(
                     int x = ((x_ptr[input_frame / 32] >> (input_frame % 32)) & 1);
                     y |= (x << i);
                 }
-            }
-        }
-
-        int *y_ptr = &y_buf[output_node * output_frame_stride];
-        y_ptr[output_frame_unit] = y;
-    }
-}
-*/
-
-__global__ void kernal_bit_Im2Col_Forward(
-            int const       *x_buf,
-            int             *y_buf,
-            int             x_stride,
-            int             y_stride,
-            int             x_offset,
-            int             y_offset,
-            int             input_frame_stride,
-            int             input_w_size,
-            int             input_h_size,           
-            int             output_frame_size,
-            int             output_frame_stride,
-            int             output_w_size,
-            int             output_size
-        )
-{
-    int output_frame_unit = blockDim.x * blockIdx.x + threadIdx.x;
-
-    if ( output_frame_unit < output_frame_stride ) {
-        int filter_w_size = blockDim.y;
-        int filter_h_size = blockDim.z;
-
-        int fx          = threadIdx.y;
-        int fy          = threadIdx.z;
-        int c           = blockIdx.y;
-
-        int output_node = (c * filter_h_size + fy) * filter_w_size + fx;
-
-        int y = 0;
-        for ( int i = 0; i < 32; ++i ) {
-            int output_frame = output_frame_unit * 32 + i;
-            if ( output_frame < output_frame_size ) {
-                int input_frame = output_frame / output_size;
-                int f           = output_frame % output_size;
-                int ix = f % output_w_size + fx;
-                int iy = f / output_w_size + fy;
-
-                int input_node  = (c * input_h_size  + iy) * input_w_size  + ix;
-
-                int const *x_ptr = &x_buf[input_node  * input_frame_stride];
-                
-                int x = ((x_ptr[input_frame / 32] >> (input_frame % 32)) & 1);
-                y |= (x << i);
             }
         }
 
