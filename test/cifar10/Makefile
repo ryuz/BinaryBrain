@@ -61,6 +61,7 @@ all: $(SUB_TARGET) $(TARGET)
 .PHONY: clean
 clean:
 	rm -f $(TARGET) *.o
+	rm -f depend
 
 .PHONY: run
 run: $(TARGET) $(DATA_FILES)
@@ -76,7 +77,10 @@ $(TARGET): $(OBJS) $(LIBS)
 .cpp.o:
 	$(CC) $(CFLAGS) $(CINCS) $(CDEFS) -c $<
 
+depend: $(SRCS)
+	$(CC) -M $(CFLAGS) $(CINCS) $(CDEFS) $^ > $@
 
+include depend
 
 # cifar-10 binary data
 DATA_FILES  = cifar-10-batches-bin/test_batch.bin
