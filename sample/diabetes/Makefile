@@ -56,7 +56,7 @@ all: $(SUB_TARGET) $(TARGET)
 
 .PHONY: clean
 clean:
-	rm -f $(TARGET) *.o depend
+	rm -f $(TARGET) *.o
 
 .PHONY: run
 run: $(TARGET) $(DATA_FILES)
