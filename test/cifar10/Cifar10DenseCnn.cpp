@@ -251,10 +251,10 @@ void Cifar10DenseCnnX(int epoch_size, int mini_batch_size, int max_run_size, int
 
 void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
 {
-    Cifar10DenseCnnX(epoch_size, mini_batch_size, max_run_size, 1,  binary_mode, file_read, false, false, false);
-    Cifar10DenseCnnX(epoch_size, mini_batch_size, max_run_size, 3,  binary_mode, file_read, false, false);
-    Cifar10DenseCnnX(epoch_size, mini_batch_size, max_run_size, 7,  binary_mode, file_read, false, false);
-    Cifar10DenseCnnX(epoch_size, mini_batch_size, max_run_size, 15, binary_mode, file_read, false, false);
+//    Cifar10DenseCnnX(epoch_size, mini_batch_size, max_run_size, 1,  binary_mode, file_read, false, false, false);
+//    Cifar10DenseCnnX(epoch_size, mini_batch_size, max_run_size, 3,  binary_mode, file_read, false, false);
+//    Cifar10DenseCnnX(epoch_size, mini_batch_size, max_run_size, 7,  binary_mode, file_read, false, false);
+//    Cifar10DenseCnnX(epoch_size, mini_batch_size, max_run_size, 15, binary_mode, file_read, false, false);
     Cifar10DenseCnnX(epoch_size, mini_batch_size, max_run_size, 31, binary_mode, file_read, false, false);
 
     Cifar10DenseCnnX(epoch_size, mini_batch_size, max_run_size, 1,  binary_mode, file_read, true,  false);
