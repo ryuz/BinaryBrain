@@ -80,22 +80,6 @@ BBCU_DLL_EXPORT int bbcu_bit_ShuffleModulation_Forward
     grid.x = (f_size    + (block.x - 1)) / block.x;
     grid.y = (node_size + (block.y - 1)) / block.y;
 
-    /*
-    std::cout << "shuffle_size  : " << shuffle_size << std::endl;
-    std::cout << "lowering_size : " << lowering_size << std::endl;
-    std::cout << "node_size     : " << node_size << std::endl;
-    std::cout << "frame_size    : " << frame_size << std::endl;
-    std::cout << "frame_stride  : " << frame_stride << std::endl;
-
-    std::cout << "block x : " << block.x << std::endl;
-    std::cout << "block y : " << block.y << std::endl;
-    std::cout << "block z : " << block.z << std::endl;
-
-    std::cout << "grid x : " << grid.x << std::endl;
-    std::cout << "grid y : " << grid.y << std::endl;
-    std::cout << "grid z : " << grid.z << std::endl;
-    */
-
     kernal_bit_ShuffleModulation_Forward<<<grid, block, 0, streamId>>>(
             dev_x_buf,
             dev_y_buf,

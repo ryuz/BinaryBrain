@@ -152,6 +152,7 @@ public:
 #ifdef BB_WITH_CUDA
         if ( DataType<FT>::type == BB_TYPE_BIT && !m_host_only
                 && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+            // GPU版
             auto x_ptr     = x_buf.LockDeviceMemoryConst();
             auto y_ptr     = m_y_buf.LockDeviceMemory(true);
             auto table_ptr = m_table.LockDeviceMemoryConst();
@@ -172,7 +173,8 @@ public:
         }
 #endif
 
-        {
+         if ( DataType<FT>::type == BB_TYPE_BIT ) {
+            // Bit版
             int node_size     = (int)x_buf.GetNodeSize();
             int frame_size    = (int)x_buf.GetFrameSize();
             int frame_stride  = (int)(x_buf.GetFrameStride() / sizeof(int));
@@ -186,9 +188,6 @@ public:
             auto x_addr     = (int const *)x_ptr.GetAddr();
             auto y_addr     = (int       *)y_ptr.GetAddr();    
             auto table_addr = (int const *)table_ptr.GetAddr();
-
-//            std::cout << "frame_size/32 : " << frame_size/32 << std::endl;
-//            std::cout << "frame_stride  : " << frame_stride  << std::endl;
 
             for ( int node = 0; node < node_size; ++node) {
                 for ( int f = 0; f < frame_size/32; ++f ) {
@@ -214,109 +213,7 @@ public:
 
 
         {
-            int node_size     = (int)x_buf.GetNodeSize();
-            int frame_size    = (int)x_buf.GetFrameSize();
-            int frame_stride  = (int)(x_buf.GetFrameStride() / sizeof(int));
-            int shuffle_size  = (int)m_shuffle_size;
-            int lowering_size = (int)m_lowering_size;
-
-            auto x_ptr     = x_buf.LockMemoryConst();
-            auto y_ptr     = m_y_buf.LockMemory();
-            auto table_ptr = m_table.LockMemoryConst();
-
-            auto x_addr     = (int const *)x_ptr.GetAddr();
-            auto y_addr     = (int       *)y_ptr.GetAddr();    
-            auto table_addr = (int const *)table_ptr.GetAddr();
-
-            for ( int node = 0; node < node_size; ++node) {
-                for ( int frame_unit = 0; frame_unit < frame_size; frame_unit += 32 ) {
-                    int y = 0;
-                    for ( int frame_x = 0; frame_x < 32; ++frame_x ) {
-                        int f = frame_unit + frame_x;
-
-                        int i = f / (lowering_size * shuffle_size);
-                        int j = f / lowering_size % shuffle_size;
-                        int k = f % lowering_size;
-
-                        int input_frame  = i * (lowering_size * shuffle_size) + table_addr[node * shuffle_size + j] * lowering_size + k;
-                        int output_frame = i * (lowering_size * shuffle_size) +                                  j  * lowering_size + k;
-                        int x = ((x_addr[node*frame_stride + (input_frame / 32)] >> (input_frame % 32)) & 1);
-                        y |= (x << frame_x);
-
-                //        if ( x != 0 ) {
-                //            y_addr[node*frame_stride + (output_frame / 32)] |= (1 << (output_frame % 32));
-                //        }
-                //       else {
-                //            y_addr[node*frame_stride + (output_frame / 32)] &= ~(1 << (output_frame % 32));
-                //        }
-                    }
-                    y_addr[node*frame_stride + (frame_unit/32)] = y;
-                }
-            }
-            return m_y_buf;
-        }
-
-
-        {
-            int node_size     = (int)x_buf.GetNodeSize();
-            int frame_size    = (int)x_buf.GetFrameSize();
-            int frame_stride  = (int)(x_buf.GetFrameStride() / sizeof(int));
-            int shuffle_size  = (int)m_shuffle_size;
-            int lowering_size = (int)m_lowering_size;
-
-            auto x_ptr     = x_buf.LockMemoryConst();
-            auto y_ptr     = m_y_buf.LockMemory();
-            auto table_ptr = m_table.LockMemoryConst();
-
-            auto x_addr     = (int const *)x_ptr.GetAddr();
-            auto y_addr     = (int       *)y_ptr.GetAddr();    
-            auto table_addr = (int const *)table_ptr.GetAddr();
-
-            for ( int node = 0; node < node_size; ++node) {
-                for ( int frame = 0; frame < frame_size; ++frame ) {
-                    int i = frame / (lowering_size * shuffle_size);
-                    int j = frame / lowering_size % shuffle_size;
-                    int k = frame % lowering_size;
-
-                    int input_frame  = i * (lowering_size * shuffle_size) + table_addr[node * shuffle_size + j] * lowering_size + k;
-                    int output_frame = i * (lowering_size * shuffle_size) +                                  j  * lowering_size + k;
-                    int x = ((x_addr[node*frame_stride + (input_frame / 32)] >> (input_frame % 32)) & 1);
-
-                    if ( x != 0 ) {
-                        y_addr[node*frame_stride + (output_frame / 32)] |= (1 << (output_frame % 32));
-                    }
-                    else {
-                        y_addr[node*frame_stride + (output_frame / 32)] &= ~(1 << (output_frame % 32));
-                    }
-                }
-            }
-            return m_y_buf;
-
-
-            for ( int node = 0; node < node_size; ++node) {
-                for ( int frame = 0; frame < frame_size; frame += (shuffle_size * lowering_size)) {
-                    for ( int i = 0; i < shuffle_size; ++i ) {
-                        for ( int j = 0; j < lowering_size; ++j ) {
-                            int input_frame  = frame + table_addr[node * shuffle_size + i] * lowering_size + j;
-                            int output_frame = frame + i                                   * lowering_size + j;
-                            int x = ((x_addr[node*frame_stride + (input_frame / 32)] >> (input_frame % 32)) & 1);
-
-                            if ( x != 0 ) {
-                                y_addr[node*frame_stride + (output_frame / 32)] |= (1 << (output_frame % 32));
-                            }
-                            else {
-                                y_addr[node*frame_stride + (output_frame / 32)] &= ~(1 << (output_frame % 32));
-                            }
-                        }
-                    }
-                }
-            }
-
-            return m_y_buf;
-        }
-
-
-        {
+            // 汎用版
             index_t node_size  = x_buf.GetNodeSize();
             index_t frame_size = x_buf.GetFrameSize();
 
