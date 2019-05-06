@@ -10,10 +10,11 @@
 
 #pragma once
 
-
+#ifdef BB_WITH_CEREAL
 #include <cereal/archives/json.hpp>
 #include <cereal/types/vector.hpp>
 #include <cereal/types/array.hpp>
+#endif
 
 #include "bb/Manager.h"
 #include "bb/DataType.h"
