@@ -36,7 +36,7 @@
 
 // Dense CNN
 void Cifar10DenseCnnX(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, bool binary_mode, bool file_read,
-            bool gen_rand, bool framewise)
+            bool gen_rand, bool framewise, bool log_append = true)
 {
     std::string net_name = "Cifar10DenseCnn";
 
@@ -100,6 +100,8 @@ void Cifar10DenseCnnX(int epoch_size, int mini_batch_size, int max_run_size, int
 //  net->PrintInfo();
 
     std::cout << "-----------------------------------" << std::endl;
+    std::cout << "file_read          : " << file_read          << std::endl;
+    std::cout << "log_append         : " << log_append         << std::endl;
     std::cout << "epoch_size         : " << epoch_size         << std::endl;
     std::cout << "mini_batch_size    : " << mini_batch_size    << std::endl;
     std::cout << "max_run_size       : " << max_run_size       << std::endl;
@@ -116,6 +118,7 @@ void Cifar10DenseCnnX(int epoch_size, int mini_batch_size, int max_run_size, int
     runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<>::Create();
     runner_create.optimizer          = bb::OptimizerAdam<>::Create();
     runner_create.max_run_size       = max_run_size;    // 実際の1回の実行サイズ
+    runner_create.log_append         = log_append;
     runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
     runner_create.file_write         = true;            // 計算結果をファイルに保存するか
     runner_create.print_progress     = true;            // 途中結果を表示
@@ -127,7 +130,7 @@ void Cifar10DenseCnnX(int epoch_size, int mini_batch_size, int max_run_size, int
 
 void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
 {
-    Cifar10DenseCnnX(epoch_size, mini_batch_size, max_run_size, 1,  binary_mode, file_read, false, false);
+    Cifar10DenseCnnX(epoch_size, mini_batch_size, max_run_size, 1,  binary_mode, file_read, false, false, false);
     Cifar10DenseCnnX(epoch_size, mini_batch_size, max_run_size, 1,  binary_mode, file_read, true,  false);
     Cifar10DenseCnnX(epoch_size, mini_batch_size, max_run_size, 3,  binary_mode, file_read, true,  false);
     Cifar10DenseCnnX(epoch_size, mini_batch_size, max_run_size, 7,  binary_mode, file_read, true,  false);
