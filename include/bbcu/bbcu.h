@@ -4,7 +4,8 @@
 #include <assert.h>
 
 #include "cuda_runtime.h"
-#include "bbcu/bbcu_util.h"
+
+
 
 /*
 #ifdef DLL_EXPORT
@@ -26,7 +27,7 @@ extern "C" {
 
 
 // -------------------------------------
-//  Vector Operation
+//  Maneger
 // -------------------------------------
 
 BBCU_DLL_EXPORT void bbcu_SetHostOnly(bool hostOnly);
@@ -34,6 +35,22 @@ BBCU_DLL_EXPORT bool bbcu_IsHostOnly(void);
 BBCU_DLL_EXPORT bool bbcu_IsDeviceAvailable(void);
 
 
+
+// -------------------------------------
+//  Local Heap
+// -------------------------------------
+
+BBCU_DLL_EXPORT void *bbcu_LocalHeap_Malloc(size_t size);
+BBCU_DLL_EXPORT void bbcu_LocalHeap_Free(void* ptr);
+
+}
+
+
+#include "bbcu/bbcu_util.h"
+
+
+
+extern "C" {
 
 // -------------------------------------
 //  Vector Operation
@@ -474,27 +491,41 @@ BBCU_DLL_EXPORT int bbcu_fp32_Im2Col_Forward
         (
             float const     *dev_x_buf,
             float           *dev_y_buf,
+            int             x_stride,
+            int             y_stride,
+            int             x_offset,
+            int             y_offset,
             int             input_frame_size,
             int             input_frame_stride,
             int             input_w_size,
             int             input_h_size,
             int             input_c_size,
+            int             output_w_size,
+            int             output_h_size,
             int             output_frame_stride,
             int             filter_w_size,
             int             filter_h_size,
-            cudaStream_t    streamId = 0   
+            cudaStream_t    streamId = 0
         );
 
-BBCU_DLL_EXPORT int bbcu_bit_Col2Im_Forward
+BBCU_DLL_EXPORT int bbcu_bit_Im2Col_Forward
         (
             int const       *dev_x_buf,
             int             *dev_y_buf,
-            int             w_size,
-            int             h_size,
-            int             c_size,
+            int             x_stride,
+            int             y_stride,
+            int             x_offset,
+            int             y_offset,
+            int             input_frame_size,
             int             input_frame_stride,
-            int             output_frame_size,
+            int             input_w_size,
+            int             input_h_size,
+            int             input_c_size,
+            int             output_w_size,
+            int             output_h_size,
             int             output_frame_stride,
+            int             filter_w_size,
+            int             filter_h_size,
             cudaStream_t    streamId = 0
         );
 
@@ -503,11 +534,17 @@ BBCU_DLL_EXPORT int bbcu_fp32_Im2Col_Backward
         (
             float const     *dev_fy_buf,
             float           *dev_dx_buf,
+            int             x_stride,
+            int             y_stride,
+            int             x_offset,
+            int             y_offset,
             int             input_frame_size,
             int             input_frame_stride,
             int             input_w_size,
             int             input_h_size,
             int             input_c_size,
+            int             output_w_size,
+            int             output_h_size,
             int             output_frame_stride,            
             int             filter_w_size,
             int             filter_h_size,            
@@ -532,18 +569,16 @@ BBCU_DLL_EXPORT int bbcu_fp32_Col2Im_Forward
             cudaStream_t    streamId = 0
         );
 
-BBCU_DLL_EXPORT int bbcu_bit_Im2Col_Forward
+BBCU_DLL_EXPORT int bbcu_bit_Col2Im_Forward
         (
             int const       *dev_x_buf,
             int             *dev_y_buf,
-            int             input_frame_size,
+            int             w_size,
+            int             h_size,
+            int             c_size,
             int             input_frame_stride,
-            int             input_w_size,
-            int             input_h_size,
-            int             input_c_size,
+            int             output_frame_size,
             int             output_frame_stride,
-            int             filter_w_size,
-            int             filter_h_size,
             cudaStream_t    streamId = 0
         );
 
@@ -571,6 +606,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_Binarize_Forward
         (
             const float*    dev_x_buf,
             float*          dev_y_buf,
+            float           binary_th,
             int             node_size,
             int             frame_size,
             int             frame_stride,
@@ -587,6 +623,8 @@ BBCU_DLL_EXPORT int bbcu_fp32_HardTanh_Forward
         (
             float const *   dev_x_buf,
             float*          dev_y_buf,
+            float           limit_min,
+            float           limit_max,
             int             node_size,
             int             frame_size,
             int             frame_stride,
@@ -598,6 +636,8 @@ BBCU_DLL_EXPORT int bbcu_fp32_HardTanh_Backward
             const float*    dev_x_buf,
             const float*    dev_dy_buf,
             float*          dev_dx_buf,
+            float           limit_min,
+            float           limit_max,
             int             node_size,
             int             frame_size,
             int             frame_stride,

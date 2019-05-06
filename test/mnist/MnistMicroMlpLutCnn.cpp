@@ -77,11 +77,11 @@ void MnistMicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size, 
 
         auto net = bb::Sequential::Create();
         net->Add(bb::RealToBinary<>::Create(frame_mux_size));
-        net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
-        net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
+        net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3, 1, 1, "same"));
+        net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3, 1, 1, "same"));
         net->Add(bb::MaxPooling<>::Create(2, 2));
-        net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
-        net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
+        net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3, 1, 1, "same"));
+        net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3, 1, 1, "same"));
         net->Add(bb::MaxPooling<>::Create(2, 2));
         net->Add(layer_mm4);
         net->Add(layer_mm5);
@@ -94,7 +94,7 @@ void MnistMicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size, 
         }
 
         // print model information
-        net->PrintInfo(2);
+        net->PrintInfo();
 
         // run fitting
         bb::Runner<float>::create_t runner_create;
@@ -107,7 +107,7 @@ void MnistMicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size, 
         runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
         runner_create.file_write         = true;            // 計算結果をファイルに保存するか
         runner_create.print_progress     = true;            // 途中結果を表示
-        runner_create.initial_evaluation = file_read;       // ファイルを読んだ場合は最初に評価しておく
+        runner_create.initial_evaluation = false; // file_read;       // ファイルを読んだ場合は最初に評価しておく
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
@@ -146,16 +146,16 @@ void MnistMicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size, 
         cnv4_sub->Add(layer_lut4);
         cnv4_sub->Add(layer_lut5);
 
-        auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3);
-        auto cnv1 = bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3);
+        auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3, 1, 1, "same");
+        auto cnv1 = bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3, 1, 1, "same");
         auto pol0 = bb::MaxPooling<bb::Bit>::Create(2, 2);
 
-        auto cnv2 = bb::LoweringConvolution<bb::Bit>::Create(cnv2_sub, 3, 3);
-        auto cnv3 = bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3);
+        auto cnv2 = bb::LoweringConvolution<bb::Bit>::Create(cnv2_sub, 3, 3, 1, 1, "same");
+        auto cnv3 = bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3, 1, 1, "same");
         auto pol1 = bb::MaxPooling<bb::Bit>::Create(2, 2);
 
         // 28x28 以外も入力できるように最終段も畳み込みに変換
-        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 4, 4);
+        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 7, 7);
 
         auto lut_net = bb::Sequential::Create();
         lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));

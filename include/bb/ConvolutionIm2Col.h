@@ -46,11 +46,28 @@ protected:
     std::string     m_padding;
 
     // メモリの確保/開放を繰り返さないように演算後も確保
-    FrameBuffer     m_y_buf;
-    FrameBuffer     m_dx_buf;
+//    FrameBuffer     m_y_buf;
+//    FrameBuffer     m_dx_buf;
+
+public:
+    struct create_t
+    {
+        index_t         filter_h_size = 1;
+        index_t         filter_w_size = 1;
+        index_t         x_stride      = 1;
+        index_t         y_stride      = 1;
+        std::string     padding       = "valid";
+    };
 
 protected:
-    ConvolutionIm2Col() {}
+    ConvolutionIm2Col(create_t const & create)
+    {
+        m_filter_h_size = create.filter_h_size;
+        m_filter_w_size = create.filter_w_size;
+        m_x_stride      = create.x_stride;
+        m_y_stride      = create.y_stride;
+        m_padding       = create.padding;
+    }
 
     /**
      * @brief  コマンド処理
@@ -69,35 +86,20 @@ protected:
 public:
     ~ConvolutionIm2Col() {}
 
-    struct create_t
+    static std::shared_ptr<ConvolutionIm2Col> Create(create_t const &create)
     {
-        index_t         filter_h_size = 3;
-        index_t         filter_w_size = 3;
-        index_t         stride_x      = 1;
-        index_t         stride_y      = 1;
-        std::string     padding       = "valid";
-    };
-
-    static std::shared_ptr<ConvolutionIm2Col> Create(create_t const & create)
-    {
-        auto self = std::shared_ptr<ConvolutionIm2Col>(new ConvolutionIm2Col);
-        self->m_filter_h_size = create.filter_h_size;
-        self->m_filter_w_size = create.filter_w_size;
-        self->m_stride_x      = create.stride_x;
-        self->m_stride_y      = create.stride_y;
-        self->m_padding       = create.padding;
-        return self;
+        return std::shared_ptr<ConvolutionIm2Col>(new ConvolutionIm2Col(create));
     }
 
-    static std::shared_ptr<ConvolutionIm2Col> Create(size_t filter_h_size, size_t filter_w_size, size_t y_stride=1, size_t x_stride=1, std::string padding="valid")
+    static std::shared_ptr<ConvolutionIm2Col> Create(index_t filter_h_size, index_t filter_w_size, index_t y_stride=1, index_t x_stride=1, std::string padding="valid")
     {
-        auto self = std::shared_ptr<ConvolutionIm2Col>(new ConvolutionIm2Col);
-        self->m_filter_h_size = filter_h_size;
-        self->m_filter_w_size = filter_w_size;
-        self->m_y_stride      = y_stride;
-        self->m_x_stride      = x_stride;
-        self->m_padding       = padding;
-        return self;
+        create_t create;
+        create.filter_h_size = filter_h_size;
+        create.filter_w_size = filter_w_size;
+        create.y_stride      = y_stride;
+        create.x_stride      = x_stride;
+        create.padding       = padding;
+        return Create(create);
     }
 
     std::string GetClassName(void) const { return "ConvolutionIm2Col"; }
@@ -121,13 +123,13 @@ public:
 
         // 出力サイズ計算
         if ( m_padding == "valid" ) {
-            m_output_h_size = ((m_input_h_size - m_filter_h_size + 1) + (m_x_stride - 1)) / m_x_stride;
-            m_output_w_size = ((m_input_w_size - m_filter_w_size + 1) + (m_x_stride - 1)) / m_y_stride;
+            m_output_h_size = ((m_input_h_size - m_filter_h_size + 1) + (m_y_stride - 1)) / m_y_stride;
+            m_output_w_size = ((m_input_w_size - m_filter_w_size + 1) + (m_x_stride - 1)) / m_x_stride;
             m_y_offset = 0;
             m_x_offset = 0;
         }
         else if ( m_padding == "same" ) {
-            m_output_h_size = (m_input_h_size + (m_x_stride - 1)) / m_y_stride;
+            m_output_h_size = (m_input_h_size + (m_y_stride - 1)) / m_y_stride;
             m_output_w_size = (m_input_w_size + (m_x_stride - 1)) / m_x_stride;
             m_y_offset = (m_filter_h_size - 1) / 2;
             m_x_offset = (m_filter_w_size - 1) / 2;
@@ -192,62 +194,72 @@ public:
         m_output_frame_size = m_input_frame_size * m_output_h_size * m_output_w_size;
 
         // 出力形状設定
-        m_y_buf.Resize(x_buf.GetType(), m_output_frame_size, m_output_shape);
+        FrameBuffer y_buf(x_buf.GetType(), m_output_frame_size, m_output_shape);
         
 #ifdef BB_WITH_CUDA
-        if ( m_padding == "valid" && m_y_stride == 1 &&  m_x_stride == 1 && 
-            DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+        if ( DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
             // FP32 CUDA
             auto ptr_x = x_buf.LockDeviceMemoryConst();
-            auto ptr_y = m_y_buf.LockDeviceMemory();
+            auto ptr_y = y_buf.LockDeviceMemory();
             bbcu_fp32_Im2Col_Forward(
                 (float const *)ptr_x.GetAddr(),
                 (float       *)ptr_y.GetAddr(),
+                (int          )m_x_stride,
+                (int          )m_y_stride,
+                (int          )m_x_offset,
+                (int          )m_y_offset,
                 (int          )m_input_frame_size,
                 (int          )x_buf.GetFrameStride() / sizeof(float),
                 (int          )m_input_w_size,
                 (int          )m_input_h_size,
                 (int          )m_input_c_size,
-                (int          )m_y_buf.GetFrameStride() / sizeof(float),
+                (int          )m_output_w_size,
+                (int          )m_output_h_size,
+                (int          )y_buf.GetFrameStride() / sizeof(float),
                 (int          )m_filter_w_size,
                 (int          )m_filter_h_size);
-            return m_y_buf;
+            return y_buf;
         }
 #endif
 
 #ifdef BB_WITH_CUDA
-        if (  m_padding == "valid" && m_y_stride == 1 &&  m_x_stride == 1 && 
-            DataType<FT>::type == BB_TYPE_BIT && !m_host_only && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+        if ( DataType<FT>::type == BB_TYPE_BIT && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
             // bit CUDA
             auto ptr_x = x_buf.LockDeviceMemoryConst();
-            auto ptr_y = m_y_buf.LockDeviceMemory();
+            auto ptr_y = y_buf.LockDeviceMemory();
             bbcu_bit_Im2Col_Forward(
                 (int const *)ptr_x.GetAddr(),
                 (int       *)ptr_y.GetAddr(),
+                (int        )m_x_stride,
+                (int        )m_y_stride,
+                (int        )m_x_offset,
+                (int        )m_y_offset,
                 (int        )m_input_frame_size,
                 (int        )x_buf.GetFrameStride() / sizeof(int),
                 (int        )m_input_w_size,
                 (int        )m_input_h_size,
                 (int        )m_input_c_size,
-                (int        )m_y_buf.GetFrameStride() / sizeof(int),
+                (int        )m_output_w_size,
+                (int        )m_output_h_size,
+                (int        )y_buf.GetFrameStride() / sizeof(int),
                 (int        )m_filter_w_size,
                 (int        )m_filter_h_size);
-            return m_y_buf;
+            return y_buf;
         }
 #endif
 
         {
             // 汎用版
-            index_t const output_frame_size = m_y_buf.GetFrameSize();
+            index_t const output_frame_size = y_buf.GetFrameSize();
             index_t const output_size       = m_output_w_size * m_output_h_size;
 
             auto x_ptr = x_buf.LockConst<FT>();
-            auto y_ptr = m_y_buf.Lock<FT>(true);
+            auto y_ptr = y_buf.Lock<FT>(true);
 
             for (index_t c = 0; c < m_input_c_size; ++c ) {
-//              #pragma omp parallel for
+                #pragma omp parallel for
                 for (index_t fy = 0; fy < m_filter_h_size; ++fy) {
-//                  #pragma omp parallel for
+                    #pragma omp parallel for
                     for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
                         for ( index_t output_frame = 0; output_frame < output_frame_size; ++output_frame ) {
                             index_t input_frame = output_frame / output_size;
@@ -268,7 +280,7 @@ public:
                 }
             }
 
-            return m_y_buf;
+            return y_buf;
         }
     }
 
@@ -278,36 +290,40 @@ public:
         BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
         
         // 出力設定
-        m_dx_buf.Resize(DataType<BT>::type, m_input_frame_size, m_input_shape);
+        FrameBuffer dx_buf(DataType<BT>::type, m_input_frame_size, m_input_shape);
 
 #ifdef BB_WITH_CUDA
-        if ( m_padding == "valid" && m_y_stride == 1 &&  m_x_stride == 1 && 
-            DataType<BT>::type == BB_TYPE_FP32 && !m_host_only && dy_buf.IsDeviceAvailable() && m_dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable())
-        {
+        if ( DataType<BT>::type == BB_TYPE_FP32 && !m_host_only && dy_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
             auto ptr_dy = dy_buf.LockDeviceMemoryConst();
-            auto ptr_dx = m_dx_buf.LockDeviceMemory();
+            auto ptr_dx = dx_buf.LockDeviceMemory();
             bbcu_fp32_Im2Col_Backward(
                 (float const *)ptr_dy.GetAddr(),
                 (float       *)ptr_dx.GetAddr(),
+                (int          )m_x_stride,
+                (int          )m_y_stride,
+                (int          )m_x_offset,
+                (int          )m_y_offset,
                 (int          )m_input_frame_size,
-                (int          )(m_dx_buf.GetFrameStride() / sizeof(float)),
+                (int          )(dx_buf.GetFrameStride() / sizeof(float)),
                 (int          )m_input_w_size,
                 (int          )m_input_h_size,
                 (int          )m_input_c_size,
+                (int          )m_output_w_size,
+                (int          )m_output_h_size,
                 (int          )(dy_buf.GetFrameStride() / sizeof(float)),
                 (int          )m_filter_w_size,
                 (int          )m_filter_h_size);
-            return m_dx_buf;
+            return dx_buf;
         }
 #endif
 
 #if 0
         if ( 0 ) {
             // 汎用版
-            m_dx_buf.FillZero();
+            dx_buf.FillZero();
 
             auto dy_ptr = dy_buf.LockConst<BT>();
-            auto dx_ptr = m_dx_buf.Lock<BT>();
+            auto dx_ptr = dx_buf.Lock<BT>();
 
             for (index_t c = 0; c < m_input_c_size; ++c) {
                 #pragma omp parallel for
@@ -337,30 +353,30 @@ public:
                 }
             }
 
-            return m_dx_buf;
+            return dx_buf;
         }
 #endif
 
         {
             // stride版
-            m_dx_buf.FillZero();
+            dx_buf.FillZero();
 
             auto dy_ptr = dy_buf.LockConst<BT>();
-            auto dx_ptr = m_dx_buf.Lock<BT>();
+            auto dx_ptr = dx_buf.Lock<BT>();
 
             index_t iy_limit = (m_output_h_size - 1) * m_y_stride;
-            index_t ix_limit = (m_output_w_size -1 ) * m_x_stride;
+            index_t ix_limit = (m_output_w_size - 1) * m_x_stride;
 
             for (index_t c = 0; c < m_input_c_size; ++c) {
-//                #pragma omp parallel for
+                #pragma omp parallel for
                 for (index_t y = 0; y < m_input_h_size; ++y ) {
-//                    #pragma omp parallel for
+                    #pragma omp parallel for
                     for (index_t x = 0; x < m_input_w_size; ++x ) {
                         index_t input_node = (c * m_input_h_size + y) * m_input_w_size + x;
                         index_t x_align = x % m_x_stride;
                         index_t y_align = y % m_y_stride;
                         for ( index_t input_frame = 0; input_frame < m_input_frame_size; ++input_frame ) {
-                            BT dx = dx_ptr.Get(input_frame, input_node);
+                            BT dx = 0; // dx_ptr.Get(input_frame, input_node);
                             float dy = 0;
                             for (index_t fy = y_align; fy < m_filter_h_size; fy += m_y_stride ) {
                                 index_t iy = y - fy + m_y_offset;
@@ -381,7 +397,7 @@ public:
                 }
             }
 
-            return m_dx_buf;
+            return dx_buf;
         }
     }
 };

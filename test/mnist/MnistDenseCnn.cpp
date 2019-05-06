@@ -56,6 +56,8 @@ void MnistDenseCnn(int epoch_size, int mini_batch_size, int max_run_size, bool b
     net->Add(bb::DenseAffine<float>::Create(td.t_shape));
     net->SetInputShape(td.x_shape);
     
+    net->PrintInfo();
+
     // run fitting
     bb::Runner<float>::create_t runner_create;
     runner_create.name               = "MnistDenseCnn";

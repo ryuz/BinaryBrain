@@ -290,5 +290,8 @@
     <ClInclude Include="..\..\include\bb\BackpropagatedBatchNormalization.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bb\SparseLutN.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

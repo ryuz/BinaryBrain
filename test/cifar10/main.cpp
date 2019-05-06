@@ -11,7 +11,7 @@
 #include <string.h>
 
 #ifdef BB_WITH_CUDA
-#include "bbcu/bbcu_util.h"
+#include "bbcu/bbcu.h"
 #endif
 
 

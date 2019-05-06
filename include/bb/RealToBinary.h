@@ -35,8 +35,7 @@ template <typename FXT = float, typename FYT = float, typename BT = float>
 class RealToBinary : public Model
 {
 protected:
-    FrameBuffer                             m_y_buf;
-    FrameBuffer                             m_dx_buf;
+    bool                                    m_binary_mode = true;
 
     indices_t                               m_node_shape;
     index_t                                 m_frame_unit;
@@ -47,6 +46,21 @@ protected:
 
 protected:
     RealToBinary() {}
+
+    /**
+     * @brief  コマンド処理
+     * @detail コマンド処理
+     * @param  args   コマンド
+     */
+    void CommandProc(std::vector<std::string> args)
+    {
+        // バイナリモード設定
+        if ( args.size() == 2 && args[0] == "binary" )
+        {
+            m_binary_mode = EvalBool(args[1]);
+        }
+    }
+
 public:
     ~RealToBinary() {}
 
@@ -127,6 +141,10 @@ public:
 
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
+        if (!m_binary_mode) {
+            return x_buf;
+        }
+
         BB_ASSERT(x_buf.GetType() == DataType<FXT>::type);
 
         // SetInputShpaeされていなければ初回に設定
@@ -135,13 +153,13 @@ public:
         }
 
         // 戻り値の型を設定
-        m_y_buf.Resize(DataType<FYT>::type, x_buf.GetFrameSize() * m_frame_unit, m_node_shape);
+        FrameBuffer y_buf(DataType<FYT>::type, x_buf.GetFrameSize() * m_frame_unit, m_node_shape);
 
         index_t node_size        = x_buf.GetNodeSize();
         index_t input_frame_size = x_buf.GetFrameSize();
 
         auto x_ptr = x_buf.LockConst<FXT>();
-        auto y_ptr = m_y_buf.Lock<FYT>();
+        auto y_ptr = y_buf.Lock<FYT>();
 
         FXT th_step = (m_input_range_hi - m_input_range_lo) / (FXT)(m_frame_unit + 1);
         for ( index_t input_frame = 0; input_frame < input_frame_size; ++input_frame) {
@@ -177,25 +195,29 @@ public:
             }
         }
 
-        return m_y_buf;
+        return y_buf;
     }
 
 
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
+        if (!m_binary_mode) {
+            return dy_buf;
+        }
+
         BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
 
         // 戻り値の型を設定
-        m_dx_buf.Resize(DataType<BT>::type, dy_buf.GetFrameSize() / m_frame_unit, m_node_shape);
+        FrameBuffer dx_buf(DataType<BT>::type, dy_buf.GetFrameSize() / m_frame_unit, m_node_shape);
 
-#if 1   // 今のところ計算結果誰も使わないので一旦コメントアウト
+#if 0   // 今のところ計算結果誰も使わないので一旦コメントアウト
         index_t node_size         = dy_buf.GetNodeSize();
         index_t output_frame_size = dy_buf.GetFrameSize();
 
-        m_dx_buf.FillZero();
+        dx_buf.FillZero();
 
         auto dy_ptr = dy_buf.LockConst<BT>();
-        auto dx_ptr = m_dx_buf.Lock<BT>();
+        auto dx_ptr = dx_buf.Lock<BT>();
 
         #pragma omp parallel for
         for (index_t node = 0; node < node_size; node++) {
@@ -208,7 +230,7 @@ public:
         }
 #endif
 
-        return m_dx_buf;
+        return dx_buf;
     }
 };
 

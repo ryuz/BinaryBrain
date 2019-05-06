@@ -813,70 +813,7 @@ TEST(ConvolutionIm2ColTest, testConvolutionIm2Col_same)
                     + dy_data[(f*6)+4][c][0][2]
                     + dy_data[(f*6)+5][c][0][1],
                     dx_buf.GetFP32(f, { 2, 1, c }));
-
-#if 0
-
-            EXPECT_EQ(dy_data[(f*6)+0][c][1][0 ],
-                    dx_buf.GetFP32(f, { 0, 1, c }));
-
-            EXPECT_EQ(dy_data[(f*6)+0][c][1][1],
-                    dx_buf.GetFP32(f, { 1, 1, c }));
-
-            EXPECT_EQ(dy_data[(f*6)+0][c][1][2]
-                    + dy_data[(f*6)+1][c][1][0],
-                    dx_buf.GetFP32(f, { 2, 1, c }));
-
-            EXPECT_EQ(dy_data[(f*6)+1][c][1][1],
-                    dx_buf.GetFP32(f, { 3, 1, c }));
-
-            EXPECT_EQ(dy_data[(f*6)+1][c][1][2]
-                    + dy_data[(f*6)+2][c][1][0],
-                    dx_buf.GetFP32(f, { 4, 1, c }));
-
-            EXPECT_EQ(dy_data[(f*6)+2][c][1][1],
-                    dx_buf.GetFP32(f, { 5, 1, c }));
-
-            EXPECT_EQ(dy_data[(f*6)+2][c][1][2],
-                    dx_buf.GetFP32(f, { 6, 1, c }));
-
-
-            EXPECT_EQ(dy_data[(f*6)+0][c][2][0]
-                    + dy_data[(f*6)+3][c][0][0],
-                    dx_buf.GetFP32(f, { 0, 2, c }));
-
-            EXPECT_EQ(dy_data[(f*6)+0][c][2][1]
-                    + dy_data[(f*6)+3][c][0][1],
-                    dx_buf.GetFP32(f, { 1, 2, c }));
-
-            EXPECT_EQ(dy_data[(f*6)+0][c][2][2]
-                    + dy_data[(f*6)+1][c][2][0]
-                    + dy_data[(f*6)+3][c][0][2]
-                    + dy_data[(f*6)+4][c][0][0],
-                    dx_buf.GetFP32(f, { 2, 2, c }));
-
-            EXPECT_EQ(dy_data[(f*6)+1][c][2][1]
-                    + dy_data[(f*6)+4][c][0][1],
-                    dx_buf.GetFP32(f, { 3, 2, c }));
-
-            EXPECT_EQ(dy_data[(f*6)+1][c][2][2]
-                    + dy_data[(f*6)+2][c][2][0]
-                    + dy_data[(f*6)+4][c][0][2]
-                    + dy_data[(f*6)+5][c][0][0],
-                    dx_buf.GetFP32(f, { 4, 2, c }));
-
-            EXPECT_EQ(dy_data[(f*6)+4][c][1][2]
-                    + dy_data[(f*6)+5][c][1][0],
-                    dx_buf.GetFP32(f, { 4, 3, c }));
-
-            EXPECT_EQ(dy_data[(f*6)+5][c][1][1],
-                    dx_buf.GetFP32(f, { 5, 3, c }));
-
-            EXPECT_EQ(dy_data[(f*6)+5][c][2][2],
-                    dx_buf.GetFP32(f, { 6, 4, c }));
-
-#endif
         }
     }
-
 }
 

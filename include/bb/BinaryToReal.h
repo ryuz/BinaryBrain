@@ -32,15 +32,16 @@ template <typename FXT = float, typename FYT = float, typename BT = float>
 class BinaryToReal : public Model
 {
 protected:
-    bool                m_host_only = false;
+    bool                m_binary_mode = true;
+    bool                m_host_only   = false;
 
     index_t             m_frame_unit;
 
     indices_t           m_input_shape;
     indices_t           m_output_shape;
 
-    FrameBuffer         m_y_buf;
-    FrameBuffer         m_dx_buf;
+//    FrameBuffer         m_y_buf;
+//    FrameBuffer         m_dx_buf;
 
 
 protected:
@@ -53,6 +54,12 @@ protected:
      */
     void CommandProc(std::vector<std::string> args)
     {
+        // バイナリモード設定
+        if ( args.size() == 2 && args[0] == "binary" )
+        {
+            m_binary_mode = EvalBool(args[1]);
+        }
+
         // HostOnlyモード設定
         if (args.size() == 2 && args[0] == "host_only")
         {
@@ -130,6 +137,10 @@ public:
 
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
+        if (!m_binary_mode) {
+            return x_buf;
+        }
+
         BB_ASSERT(x_buf.GetType() == DataType<FXT>::type);
 
         // SetInputShpaeされていなければ初回に設定
@@ -139,13 +150,13 @@ public:
 
         // 戻り値の型を設定
         BB_ASSERT(x_buf.GetFrameSize() % m_frame_unit == 0);
-        m_y_buf.Resize(DataType<FYT>::type, x_buf.GetFrameSize() / m_frame_unit, m_output_shape);
+        FrameBuffer y_buf(DataType<FYT>::type, x_buf.GetFrameSize() / m_frame_unit, m_output_shape);
 
 #ifdef BB_WITH_CUDA
         if ( DataType<FXT>::type == BB_TYPE_FP32 && !m_host_only && DataType<FYT>::type == BB_TYPE_FP32
-            && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             auto x_ptr = x_buf.LockDeviceMemoryConst();
-            auto y_ptr = m_y_buf.LockDeviceMemory(true);
+            auto y_ptr = y_buf.LockDeviceMemory(true);
 
             bbcu_fp32_BinaryToReal_Forward
                 (
@@ -155,21 +166,21 @@ public:
                     (int          )m_frame_unit,
                     (int          )GetOutputNodeSize(),
                     (int          )(x_buf.GetFrameStride() / sizeof(float)),
-                    (int          )m_y_buf.GetFrameSize(),
-                    (int          )(m_y_buf.GetFrameStride() / sizeof(float))
+                    (int          )y_buf.GetFrameSize(),
+                    (int          )(y_buf.GetFrameStride() / sizeof(float))
                 );
 
-            return m_y_buf;
+            return y_buf;
         }
 #endif
 
         {
             auto x_ptr = x_buf.LockConst<FXT>();
-            auto y_ptr = m_y_buf.Lock<FYT>(true);
+            auto y_ptr = y_buf.Lock<FYT>(true);
 
             index_t input_node_size   = GetInputNodeSize();
             index_t output_node_size  = GetOutputNodeSize();
-            index_t output_frame_size = m_y_buf.GetFrameSize();
+            index_t output_frame_size = y_buf.GetFrameSize();
 
             index_t node_size = std::max(input_node_size, output_node_size);
 
@@ -191,24 +202,28 @@ public:
                 }
             }
 
-            return m_y_buf;
+            return y_buf;
         }
     }
     
 
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
+        if (!m_binary_mode) {
+            return dy_buf;
+        }
+        
         BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
 
         // 戻り値の型を設定
-        m_dx_buf.Resize(DataType<BT>::type, dy_buf.GetFrameSize() * m_frame_unit, m_input_shape);
+        FrameBuffer dx_buf(DataType<BT>::type, dy_buf.GetFrameSize() * m_frame_unit, m_input_shape);
 
 #ifdef BB_WITH_CUDA
         if ( DataType<BT>::type == BB_TYPE_FP32 && !m_host_only 
-                && dy_buf.IsDeviceAvailable() && m_dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+                && dy_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
 
             auto dy_ptr = dy_buf.LockDeviceMemoryConst();
-            auto dx_ptr = m_dx_buf.LockDeviceMemory(true);
+            auto dx_ptr = dx_buf.LockDeviceMemory(true);
 
             bbcu_fp32_BinaryToReal_Backward
                 (
@@ -217,12 +232,12 @@ public:
                     (int          )(GetShapeSize(m_input_shape) / GetShapeSize(m_output_shape)),
                     (int          )m_frame_unit,
                     (int          )GetOutputNodeSize(),
-                    (int          )(m_dx_buf.GetFrameStride() / sizeof(float)),
+                    (int          )(dx_buf.GetFrameStride() / sizeof(float)),
                     (int          )dy_buf.GetFrameSize(),
                     (int          )(dy_buf.GetFrameStride() / sizeof(float))
                 );
 
-            return m_dx_buf;
+            return dx_buf;
         }
 #endif
 
@@ -232,7 +247,7 @@ public:
             index_t output_frame_size = dy_buf.GetFrameSize();
 
             auto dy_ptr = dy_buf.LockConst<BT>();
-            auto dx_ptr = m_dx_buf.Lock<BT>();
+            auto dx_ptr = dx_buf.Lock<BT>();
 
             BT  gain = (BT)output_node_size / ((BT)input_node_size * (BT)m_frame_unit);
             for (index_t node = 0; node < input_node_size; node++) {
@@ -245,7 +260,7 @@ public:
                 }
             }
 
-            return m_dx_buf;
+            return dx_buf;
         }
     }
 };

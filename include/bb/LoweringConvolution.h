@@ -27,53 +27,67 @@ class LoweringConvolution : public Filter2d<FT, BT>
     using _super = Filter2d<FT, BT>;
 
 protected:
-    index_t m_filter_h_size = 1;
-    index_t m_filter_w_size = 1;
+    index_t     m_filter_h_size = 1;
+    index_t     m_filter_w_size = 1;
+    index_t     m_x_stride = 1;
+    index_t     m_y_stride = 1;
+    std::string m_padding = "valid";
 
     // 3層で構成
     std::shared_ptr< ConvolutionIm2Col<FT, BT> >    m_im2col;
     std::shared_ptr< Model                     >    m_layer;
     std::shared_ptr< ConvolutionCol2Im<FT, BT> >    m_col2im;
-    
-protected:
-    LoweringConvolution() {}
 
-public:
-    ~LoweringConvolution() {}
-
+public:    
     struct create_t
     {
         std::shared_ptr<Model>  layer;
         index_t                 filter_h_size = 1;
         index_t                 filter_w_size = 1;
+        index_t                 x_stride      = 1;
+        index_t                 y_stride      = 1;
+        std::string             padding       = "valid";
     };
+    
+protected:
+    LoweringConvolution(create_t const & create)
+    {
+        m_filter_w_size = create.filter_w_size;
+        m_filter_h_size = create.filter_h_size;
+        m_x_stride      = create.x_stride;
+        m_y_stride      = create.y_stride;
+        m_padding       = create.padding;
+       
+        typename ConvolutionIm2Col<FT, BT>::create_t im2col_create;
+        im2col_create.filter_h_size = create.filter_h_size;
+        im2col_create.filter_w_size = create.filter_w_size;
+        im2col_create.x_stride      = create.x_stride;
+        im2col_create.y_stride      = create.y_stride;
+        im2col_create.padding       = create.padding;
+        m_im2col = ConvolutionIm2Col<FT, BT>::Create(im2col_create);
+        m_layer  = create.layer;
+        // col2im の形状は入力形状確定時に決まる
+    }
+
+public:
+    ~LoweringConvolution() {}
 
     static std::shared_ptr<LoweringConvolution> Create(create_t const & create)
     {
-        auto self = std::shared_ptr<LoweringConvolution>(new LoweringConvolution);
-        
-        self->m_filter_w_size = create.filter_w_size;
-        self->m_filter_h_size = create.filter_h_size;
-
-        self->m_im2col = ConvolutionIm2Col<FT, BT>::Create(self->m_filter_h_size, self->m_filter_w_size);
-        self->m_layer  = create.layer;
-        // col2im の形状は入力形状確定時に決まる
-
-        return self;
+        return std::shared_ptr<LoweringConvolution>(new LoweringConvolution(create));
     }
 
-    static std::shared_ptr<LoweringConvolution> Create(std::shared_ptr<Model> layer, index_t filter_h_size, index_t filter_w_size)
+    static std::shared_ptr<LoweringConvolution> Create(std::shared_ptr<Model> layer,
+        index_t filter_h_size, index_t filter_w_size, index_t y_stride=1, index_t x_stride=1, std::string padding="valid")
     {
-        auto self = std::shared_ptr<LoweringConvolution>(new LoweringConvolution);
-        
-        self->m_filter_w_size = filter_w_size;
-        self->m_filter_h_size = filter_h_size;
-
-        self->m_im2col = ConvolutionIm2Col<FT, BT>::Create(filter_h_size, filter_w_size);
-        self->m_layer  = layer;
-        // col2im の形状は入力形状確定時に決まる
-
-        return self;
+        create_t create;
+        create.layer         = layer;
+        create.filter_h_size = filter_h_size;
+        create.filter_w_size = filter_w_size;
+        create.y_stride      = y_stride;
+        create.x_stride      = x_stride;
+        create.padding       = padding;
+        return Create(create);
     }
 
     std::string GetClassName(void) const { return "LoweringConvolution"; }
@@ -145,8 +159,21 @@ public:
         index_t input_w_size = shape[0];
         index_t input_h_size = shape[1];
         index_t input_c_size = shape[2];
-        index_t output_w_size = input_w_size - m_filter_w_size + 1;
-        index_t output_h_size = input_h_size - m_filter_h_size + 1;
+
+        // 出力サイズ計算
+        index_t output_w_size;
+        index_t output_h_size;
+        if ( m_padding == "valid" ) {
+            output_h_size = ((input_h_size - m_filter_h_size + 1) + (m_y_stride - 1)) / m_y_stride;
+            output_w_size = ((input_w_size - m_filter_w_size + 1) + (m_x_stride - 1)) / m_x_stride;
+        }
+        else if ( m_padding == "same" ) {
+            output_h_size = (input_h_size + (m_y_stride - 1)) / m_y_stride;
+            output_w_size = (input_w_size + (m_x_stride - 1)) / m_x_stride;
+        }
+        else {
+            BB_ASSERT(0);
+        }
 
         m_col2im = ConvolutionCol2Im<FT, BT>::Create(output_h_size, output_w_size);
 

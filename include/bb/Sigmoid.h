@@ -23,12 +23,10 @@ template <typename T = float>
 class Sigmoid : public Binarize<T>
 {
 protected:
-    bool m_binary_mode = false;
-
     using Binarize<T>::m_host_only;
-    using Binarize<T>::m_y_buf;
-    using Binarize<T>::m_x_buf;
-    using Binarize<T>::m_dx_buf;
+
+    bool        m_binary_mode = false;
+    FrameBuffer m_y_buf;
 
 protected:
     Sigmoid() {}
@@ -110,18 +108,21 @@ public:
 
         BB_ASSERT(x_buf.GetType() == DataType<T>::type);
 
-        // ローカルに保存
-        m_x_buf = x_buf;
-
         // 戻り値のサイズ設定
-        m_y_buf.ResizeLike(x_buf);
+        FrameBuffer y_buf(x_buf.GetType(), x_buf.GetFrameSize(), x_buf.GetShape());
+
+        // ローカルに保存
+        if ( train ) {
+            m_y_buf = y_buf;
+        }
+
 
 #ifdef BB_WITH_CUDA
         if ( DataType<T>::type == BB_TYPE_FP32 && !this->m_host_only
-            && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // CUDA版
             auto ptr_x = x_buf.LockDeviceMemoryConst();
-            auto ptr_y = m_y_buf.LockDeviceMemory(true);
+            auto ptr_y = y_buf.LockDeviceMemory(true);
             bbcu_fp32_Sigmoid_Forward(
                         (float const *)ptr_x.GetAddr(),
                         (float       *)ptr_y.GetAddr(),
@@ -129,7 +130,7 @@ public:
                         (int          )x_buf.GetFrameSize(),
                         (int          )(x_buf.GetFrameStride() / sizeof(float))
                     );
-            return m_y_buf;
+            return y_buf;
         }
 #endif
 
@@ -138,7 +139,7 @@ public:
             index_t node_size = x_buf.GetNodeSize();
 
             auto x_ptr = x_buf.template LockConst<T>();
-            auto y_ptr = m_y_buf.template Lock<T>();
+            auto y_ptr = y_buf.template Lock<T>();
 
             // Sigmoid
     #pragma omp parallel for
@@ -148,7 +149,7 @@ public:
                     y_ptr.Set(frame, node, (T)1 / ((T)1 + std::exp(-sig)));
                 }
             }
-            return m_y_buf;
+            return y_buf;
         }
     }
 
@@ -168,15 +169,18 @@ public:
         BB_ASSERT(dy_buf.GetType() == DataType<T>::type);
 
         // 戻り値のサイズ設定
-        m_dx_buf.ResizeLike(dy_buf);
+        FrameBuffer dx_buf(dy_buf.GetType(), dy_buf.GetFrameSize(), dy_buf.GetShape());
+
+        FrameBuffer y_buf = m_y_buf;
+        m_y_buf = FrameBuffer();
 
 #ifdef BB_WITH_CUDA
         if (  DataType<T>::type == BB_TYPE_FP32 && !this->m_host_only
-            && m_y_buf.IsDeviceAvailable() && m_dx_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            && y_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // GPU版
-            auto ptr_y  = m_y_buf.LockDeviceMemoryConst();
+            auto ptr_y  = y_buf.LockDeviceMemoryConst();
             auto ptr_dy = dy_buf.LockDeviceMemoryConst();
-            auto ptr_dx = m_dx_buf.LockDeviceMemory(true);
+            auto ptr_dx = dx_buf.LockDeviceMemory(true);
             bbcu_fp32_Sigmoid_Backward(
                         (float const *)ptr_y.GetAddr(),
                         (float const *)ptr_dy.GetAddr(),
@@ -185,17 +189,17 @@ public:
                         (int          )dy_buf.GetFrameSize(),
                         (int          )(dy_buf.GetFrameStride() / sizeof(float))
                     );
-            return m_dx_buf;
+            return dx_buf;
         }
 #endif
         {
             // 汎用版
-            index_t frame_size = m_dx_buf.GetFrameSize();
-            index_t node_size = m_dx_buf.GetNodeSize();
+            index_t frame_size = dx_buf.GetFrameSize();
+            index_t node_size = dx_buf.GetNodeSize();
 
-            auto y_ptr  = m_y_buf.template LockConst<T>();
+            auto y_ptr  = y_buf.template LockConst<T>();
             auto dy_ptr = dy_buf.template LockConst<T>();
-            auto dx_ptr = m_dx_buf.template Lock<T>();
+            auto dx_ptr = dx_buf.template Lock<T>();
 
             // Sigmoid
     #pragma omp parallel for
@@ -206,7 +210,7 @@ public:
                     dx_ptr.Set(frame, node, grad * (-sig + (T)1) * sig);
                 }
             }
-            return m_dx_buf;
+            return dx_buf;
         }
     }
 };
