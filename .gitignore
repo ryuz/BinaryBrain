@@ -28,6 +28,8 @@
 *.VC.opendb
 *.vspx
 
+depend
+
 # execute
 sample/mnist/sample-mnist
 sample/diabetes/sample-diabetes

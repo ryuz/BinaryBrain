@@ -76,7 +76,10 @@ $(TARGET): $(OBJS) $(LIBS)
 .cpp.o:
 	$(CC) $(CFLAGS) $(CINCS) $(CDEFS) -c $<
 
+depend: $(SRCS)
+	$(CC) -M $(CFLAGS) $(CINCS) $(CDEFS) $^ > $@
 
+include depend
 
 # mnist data
 .PHONY: dl_mnist

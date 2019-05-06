@@ -56,7 +56,7 @@ all: $(SUB_TARGET) $(TARGET)
 
 .PHONY: clean
 clean:
-	rm -f $(TARGET) *.o
+	rm -f $(TARGET) *.o depend
 
 .PHONY: run
 run: $(TARGET) $(DATA_FILES)
@@ -72,6 +72,10 @@ $(TARGET): $(OBJS) $(LIBS)
 .cpp.o:
 	$(CC) $(CFLAGS) $(CINCS) $(CDEFS) -c $<
 
+depend: $(SRCS)
+	$(CC) -M $(CFLAGS) $(CINCS) $(CDEFS) $^ > $@
+
+include depend
 
 
 # data
