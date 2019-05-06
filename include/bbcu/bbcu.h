@@ -227,6 +227,24 @@ int bbcu_bit_BinatyLut6_Forward
 
 
 // -------------------------------------
+//  Binary LUT
+// -------------------------------------
+
+BBCU_DLL_EXPORT int bbcu_bit_ShuffleModulation_Forward
+        (
+            int const       *dev_x_buf,
+            int             *dev_y_buf,
+            int const       *dev_table,
+            int             shuffle_size,
+            int             lowering_size,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId = 0
+        );
+
+
+// -------------------------------------
 //  MicroMlp
 // -------------------------------------
 

@@ -10,6 +10,9 @@
 #include <iostream>
 #include <string.h>
 
+#ifdef BB_WITH_CUDA
+#include "bbcu/bbcu.h"
+#endif
 
 void Cifar10DenseMlp(int epoch_size, int mini_batch_size, int max_run_size, bool binary_mode, bool file_read);
 void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, bool binary_mode, bool file_read);
@@ -28,8 +31,9 @@ int main(int argc, char *argv[])
     int         max_run_size       = 0;
     int         frame_mux_size     = 1;
     int         lut_frame_mux_size = 15;
-    bool        file_read   = false;
-    bool        binary_mode = true;
+    bool        file_read    = false;
+    bool        binary_mode  = true;
+    bool        print_device = false;
 
     if ( argc < 2 ) {
         std::cout << "usage:" << std::endl;
@@ -90,10 +94,19 @@ int main(int argc, char *argv[])
             ++i;
             file_read = (strtoul(argv[i], NULL, 0) != 0);
         }
+        else if (strcmp(argv[i], "-print_device") == 0 ) {
+            print_device = true;
+        }
         else {
             netname = argv[i];
         }
     }
+
+#ifdef BB_WITH_CUDA
+    if ( print_device ) {
+        bbcu::PrintDeviceProperties();
+    }
+#endif
 
     // run_size はデフォルトで mini_batchサイズ
     if (max_run_size <= 0) {

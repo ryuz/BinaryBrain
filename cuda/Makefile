@@ -16,6 +16,7 @@ SRCS += BinaryLut6.cu
 SRCS += StochasticLut6.cu
 SRCS += StochasticMaxPooling.cu
 SRCS += StochasticBatchNormalization.cu
+SRCS += ShuffleModulation.cu
 SRCS += BinaryToReal.cu
 SRCS += Im2Col.cu
 SRCS += Col2Im.cu

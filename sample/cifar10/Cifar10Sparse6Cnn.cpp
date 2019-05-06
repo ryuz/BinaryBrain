@@ -14,7 +14,7 @@
 
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
-#include "bb/StochasticLut6.h"
+#include "bb/StochasticLutN.h"
 #include "bb/StochasticLutBn.h"
 #include "bb/BinaryLutN.h"
 #include "bb/LoweringConvolution.h"

@@ -32,12 +32,16 @@ template <typename FT = Bit, typename BT = float>
 class ShuffleModulation : public Model
 {
 protected:
-    FrameBuffer         m_y_buf;
+    bool                    m_host_only = false;
 
-    indices_t           m_node_shape;
-    index_t             m_shuffle_size = 1;
-    index_t             m_lowering_size = 1;
-    std::mt19937_64     m_mt;
+    FrameBuffer             m_y_buf;
+
+    Tensor_<std::int32_t>   m_table;
+
+    indices_t               m_node_shape;
+    index_t                 m_shuffle_size = 1;
+    index_t                 m_lowering_size = 1;
+    std::mt19937_64         m_mt;
 
 
 public:
@@ -90,8 +94,26 @@ public:
     {
         // 形状設定
         m_node_shape = shape;
+
+        auto node_size = GetShapeSize(shape);
+        m_table.Resize(node_size, m_shuffle_size);
+
+        std::vector<int> table(m_shuffle_size);
+        for ( int i = 0; i < (int)m_shuffle_size; ++i ) {
+            table[i] = i;
+        }
+
+        auto table_ptr = m_table.Lock(true);
+        for ( index_t node = 0; node < node_size; ++node) {
+            std::shuffle(table.begin(), table.end(), m_mt);
+            for ( index_t i = 0; i < m_shuffle_size; ++i ) {
+                table_ptr(node, i) = table[i];
+            }
+        }
+        
         return m_node_shape;
     }
+
 
     /**
      * @brief  入力形状取得
@@ -117,6 +139,7 @@ public:
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
         BB_ASSERT(x_buf.GetType() == DataType<FT>::type);
+        BB_ASSERT(x_buf.GetFrameSize() % (m_shuffle_size * m_lowering_size) == 0);
 
         // SetInputShpaeされていなければ初回に設定
         if (x_buf.GetShape() != m_node_shape) {
@@ -126,32 +149,201 @@ public:
         // 戻り値の型を設定
         m_y_buf.Resize(DataType<FT>::type, x_buf.GetFrameSize(), m_node_shape);
 
-        index_t node_size  = x_buf.GetNodeSize();
-        index_t frame_size = x_buf.GetFrameSize();
+#ifdef BB_WITH_CUDA
+        if ( DataType<FT>::type == BB_TYPE_BIT && !m_host_only
+                && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+            auto x_ptr     = x_buf.LockDeviceMemoryConst();
+            auto y_ptr     = m_y_buf.LockDeviceMemory(true);
+            auto table_ptr = m_table.LockDeviceMemoryConst();
 
-        BB_ASSERT(frame_size % (m_shuffle_size * m_lowering_size) == 0);
+            bbcu_bit_ShuffleModulation_Forward
+                (
+                    (int const *)x_ptr.GetAddr(),
+                    (int       *)y_ptr.GetAddr(),
+                    (int const *)table_ptr.GetAddr(),
+                    (int        )m_shuffle_size,
+                    (int        )m_lowering_size,
+                    (int        )x_buf.GetNodeSize(),
+                    (int        )x_buf.GetFrameSize(),
+                    (int        )(x_buf.GetFrameStride() / sizeof(int))
+                );
 
-        auto x_ptr = x_buf.LockConst<FT>();
-        auto y_ptr = m_y_buf.Lock<FT>();
+            return m_y_buf;
+        }
+#endif
 
-        std::vector<int> table(m_shuffle_size);
-        for ( int i = 0; i < (int)m_shuffle_size; ++i ) {
-            table[i] = i;
+        {
+            int node_size     = (int)x_buf.GetNodeSize();
+            int frame_size    = (int)x_buf.GetFrameSize();
+            int frame_stride  = (int)(x_buf.GetFrameStride() / sizeof(int));
+            int shuffle_size  = (int)m_shuffle_size;
+            int lowering_size = (int)m_lowering_size;
+
+            auto x_ptr     = x_buf.LockMemoryConst();
+            auto y_ptr     = m_y_buf.LockMemory();
+            auto table_ptr = m_table.LockMemoryConst();
+
+            auto x_addr     = (int const *)x_ptr.GetAddr();
+            auto y_addr     = (int       *)y_ptr.GetAddr();    
+            auto table_addr = (int const *)table_ptr.GetAddr();
+
+//            std::cout << "frame_size/32 : " << frame_size/32 << std::endl;
+//            std::cout << "frame_stride  : " << frame_stride  << std::endl;
+
+            for ( int node = 0; node < node_size; ++node) {
+                for ( int f = 0; f < frame_size/32; ++f ) {
+                    int y = 0;
+                    for ( int bit = 0; bit < 32; ++bit ) {
+                        int frame = f*32 + bit;
+                        if ( frame < frame_size ) {
+                            int i = frame / (lowering_size * shuffle_size);
+                            int j = frame / lowering_size % shuffle_size;
+                            int k = frame % lowering_size;
+
+                            int input_frame  = i * (lowering_size * shuffle_size) + table_addr[node * shuffle_size + j] * lowering_size + k;
+                            int output_frame = i * (lowering_size * shuffle_size) +                                  j  * lowering_size + k;
+                            int x = ((x_addr[node*frame_stride + (input_frame / 32)] >> (input_frame % 32)) & 1);
+                            y |= (x << bit);
+                        }
+                    }
+                    y_addr[node*frame_stride + f] = y;
+                }
+            }
+            return m_y_buf;
         }
 
-        for ( index_t node = 0; node < node_size; ++node) {
-            for ( index_t frame = 0; frame < frame_size; frame += (m_shuffle_size * m_lowering_size)) {
-                for ( index_t i = 0; i < m_lowering_size; ++i ) {
-                    std::shuffle(table.begin(), table.end(), m_mt);
-                    for ( index_t j = 0; j < m_shuffle_size; ++j ) {
-                        auto x = x_ptr.Get(frame + (table[j] * m_lowering_size) + i, node);
-                        y_ptr.Set(frame + (j * m_lowering_size) + i, node, x);
+
+        {
+            int node_size     = (int)x_buf.GetNodeSize();
+            int frame_size    = (int)x_buf.GetFrameSize();
+            int frame_stride  = (int)(x_buf.GetFrameStride() / sizeof(int));
+            int shuffle_size  = (int)m_shuffle_size;
+            int lowering_size = (int)m_lowering_size;
+
+            auto x_ptr     = x_buf.LockMemoryConst();
+            auto y_ptr     = m_y_buf.LockMemory();
+            auto table_ptr = m_table.LockMemoryConst();
+
+            auto x_addr     = (int const *)x_ptr.GetAddr();
+            auto y_addr     = (int       *)y_ptr.GetAddr();    
+            auto table_addr = (int const *)table_ptr.GetAddr();
+
+            for ( int node = 0; node < node_size; ++node) {
+                for ( int frame_unit = 0; frame_unit < frame_size; frame_unit += 32 ) {
+                    int y = 0;
+                    for ( int frame_x = 0; frame_x < 32; ++frame_x ) {
+                        int f = frame_unit + frame_x;
+
+                        int i = f / (lowering_size * shuffle_size);
+                        int j = f / lowering_size % shuffle_size;
+                        int k = f % lowering_size;
+
+                        int input_frame  = i * (lowering_size * shuffle_size) + table_addr[node * shuffle_size + j] * lowering_size + k;
+                        int output_frame = i * (lowering_size * shuffle_size) +                                  j  * lowering_size + k;
+                        int x = ((x_addr[node*frame_stride + (input_frame / 32)] >> (input_frame % 32)) & 1);
+                        y |= (x << frame_x);
+
+                //        if ( x != 0 ) {
+                //            y_addr[node*frame_stride + (output_frame / 32)] |= (1 << (output_frame % 32));
+                //        }
+                //       else {
+                //            y_addr[node*frame_stride + (output_frame / 32)] &= ~(1 << (output_frame % 32));
+                //        }
+                    }
+                    y_addr[node*frame_stride + (frame_unit/32)] = y;
+                }
+            }
+            return m_y_buf;
+        }
+
+
+        {
+            int node_size     = (int)x_buf.GetNodeSize();
+            int frame_size    = (int)x_buf.GetFrameSize();
+            int frame_stride  = (int)(x_buf.GetFrameStride() / sizeof(int));
+            int shuffle_size  = (int)m_shuffle_size;
+            int lowering_size = (int)m_lowering_size;
+
+            auto x_ptr     = x_buf.LockMemoryConst();
+            auto y_ptr     = m_y_buf.LockMemory();
+            auto table_ptr = m_table.LockMemoryConst();
+
+            auto x_addr     = (int const *)x_ptr.GetAddr();
+            auto y_addr     = (int       *)y_ptr.GetAddr();    
+            auto table_addr = (int const *)table_ptr.GetAddr();
+
+            for ( int node = 0; node < node_size; ++node) {
+                for ( int frame = 0; frame < frame_size; ++frame ) {
+                    int i = frame / (lowering_size * shuffle_size);
+                    int j = frame / lowering_size % shuffle_size;
+                    int k = frame % lowering_size;
+
+                    int input_frame  = i * (lowering_size * shuffle_size) + table_addr[node * shuffle_size + j] * lowering_size + k;
+                    int output_frame = i * (lowering_size * shuffle_size) +                                  j  * lowering_size + k;
+                    int x = ((x_addr[node*frame_stride + (input_frame / 32)] >> (input_frame % 32)) & 1);
+
+                    if ( x != 0 ) {
+                        y_addr[node*frame_stride + (output_frame / 32)] |= (1 << (output_frame % 32));
+                    }
+                    else {
+                        y_addr[node*frame_stride + (output_frame / 32)] &= ~(1 << (output_frame % 32));
                     }
                 }
             }
+            return m_y_buf;
+
+
+            for ( int node = 0; node < node_size; ++node) {
+                for ( int frame = 0; frame < frame_size; frame += (shuffle_size * lowering_size)) {
+                    for ( int i = 0; i < shuffle_size; ++i ) {
+                        for ( int j = 0; j < lowering_size; ++j ) {
+                            int input_frame  = frame + table_addr[node * shuffle_size + i] * lowering_size + j;
+                            int output_frame = frame + i                                   * lowering_size + j;
+                            int x = ((x_addr[node*frame_stride + (input_frame / 32)] >> (input_frame % 32)) & 1);
+
+                            if ( x != 0 ) {
+                                y_addr[node*frame_stride + (output_frame / 32)] |= (1 << (output_frame % 32));
+                            }
+                            else {
+                                y_addr[node*frame_stride + (output_frame / 32)] &= ~(1 << (output_frame % 32));
+                            }
+                        }
+                    }
+                }
+            }
+
+            return m_y_buf;
         }
 
-        return m_y_buf;
+
+        {
+            index_t node_size  = x_buf.GetNodeSize();
+            index_t frame_size = x_buf.GetFrameSize();
+
+            auto x_ptr = x_buf.LockConst<FT>();
+            auto y_ptr = m_y_buf.Lock<FT>();
+
+//          std::vector<int> table(m_shuffle_size);
+//          for ( int i = 0; i < (int)m_shuffle_size; ++i ) {
+//              table[i] = i;
+//          }
+
+            auto table_ptr = m_table.Lock(true);
+            for ( index_t node = 0; node < node_size; ++node) {
+                for ( index_t frame = 0; frame < frame_size; frame += (m_shuffle_size * m_lowering_size)) {
+                    for ( index_t i = 0; i < m_shuffle_size; ++i ) {
+    //                  std::shuffle(table.begin(), table.end(), m_mt);
+                        for ( index_t j = 0; j < m_lowering_size; ++j ) {
+    //                      auto x = x_ptr.Get(frame + (table[i] * m_lowering_size) + j, node);
+                            auto x = x_ptr.Get(frame + (table_ptr(node, i) * m_lowering_size) + j, node);
+                            y_ptr.Set(frame + (i * m_lowering_size) + j, node, x);
+                        }
+                    }
+                }
+            }
+
+            return m_y_buf;
+        }
     }
 
     FrameBuffer Backward(FrameBuffer dy_buf)
