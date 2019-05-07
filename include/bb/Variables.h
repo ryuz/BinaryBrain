@@ -46,7 +46,11 @@ public:
     }
 
 
-    ~Variables(){}
+    ~Variables()
+    {
+        if (m_dev_size_table != nullptr) { bbcu::Free(m_dev_size_table); }
+        if (m_dev_addr_table != nullptr) { bbcu::Free(m_dev_addr_table); }
+    }
 
     bool IsDeviceAvailable(void) const
     {

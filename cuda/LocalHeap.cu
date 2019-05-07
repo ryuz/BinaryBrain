@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <unordered_map>
 #include <algorithm>
 
 #include "cuda_runtime.h"
@@ -16,7 +17,9 @@ protected:
     {
         void    *ptr;
         size_t  size;
-        bool    allocated;
+
+        heap_t(){}
+        heap_t(void *p, size_t sz) { ptr = p; size = sz; }
 
         bool operator<(const heap_t &h) const
         {
@@ -24,33 +27,43 @@ protected:
         }
     };
 
-    std::vector<heap_t> m_heap;
+    std::unordered_map<void*, size_t>   m_allocated_map;
+    size_t                              m_allocated_size = 0;
+    size_t                              m_max_alloc_size = 0;
 
-
+    std::vector<heap_t>                 m_reserve_vec;
+    size_t                              m_reserve_size = 0;
+    
 public:
     // constructor
     bbcuLocalHeap() {}
     
     // destructor
-    ~bbcuLocalHeap() {
-        for (auto& h : m_heap) {
-            BBCU_ASSERT(!h.allocated);
-            BB_CUDA_SAFE_CALL(cudaFree(h.ptr));
+    ~bbcuLocalHeap()
+    {
+        BBCU_ASSERT(m_allocated_map.empty());
+        BBCU_ASSERT(m_allocated_size == 0);
+
+        for (auto& heap : m_reserve_vec) {
+            m_reserve_size -= heap.size;
+            BB_CUDA_SAFE_CALL(cudaFree(heap.ptr));
         }
+        BBCU_ASSERT(m_reserve_size == 0);
     }
 
 protected:
     // –¢Žg—p‚Ì‚à‚Ì‚ª‚ ‚ê‚Î‚P‚ÂŠJ•ú
     bool FreeGarbage(void)
     {
-        for ( auto it = m_heap.begin(); it != m_heap.end(); ++it ) {
-            if ( !it->allocated ) {
-                BB_CUDA_SAFE_CALL(cudaFree(it->ptr));
-                m_heap.erase(it);
-                return true;
-            }
+        if (m_reserve_vec.empty()) {
+            return false;
         }
-        return false;
+
+        auto it = m_reserve_vec.begin();
+        m_reserve_size -= it->size;
+        BB_CUDA_SAFE_CALL(cudaFree(it->ptr));
+        m_reserve_vec.erase(it);
+        return true;
     }
 
 public:
@@ -58,9 +71,20 @@ public:
     void* Malloc(size_t size)
     {
         // Žg‚¦‚é‚à‚Ì‚ª‚ ‚ê‚ÎŠ„‚è“–‚Ä
-        for (auto& h : m_heap) {
-            if (!h.allocated && h.size >= size) {
-                h.allocated = true;
+        for ( auto it = m_reserve_vec.begin(); it != m_reserve_vec.end(); ++it ) {
+            if ( it->size >= size ) {
+                // reserve‚©‚çŽæ‚èo‚µ
+                auto h = *it;
+                m_reserve_vec.erase(it);
+                m_reserve_size -= h.size;
+
+                // Š„‚è“–‚ÄÏ‚Ý‚É’Ç‰Á
+                BBCU_ASSERT(m_allocated_map.count(h.ptr) == 0); 
+                m_allocated_map[h.ptr] = h.size;
+                m_allocated_size += h.size;
+
+                m_max_alloc_size = std::max(m_max_alloc_size, m_allocated_size);
+
                 return h.ptr;
             }
         }
@@ -71,12 +95,15 @@ public:
             cudaError_t err = cudaMalloc(&ptr, size);
             if (err == cudaSuccess) {
                 // “o˜^
-                heap_t t;
-                t.ptr       = ptr;
-                t.size      = size;
-                t.allocated = true;
-                m_heap.push_back(t);
-                std::sort(m_heap.begin(), m_heap.end());
+                BBCU_ASSERT(m_allocated_map.count(ptr) == 0); 
+                m_allocated_map[ptr] = size;
+                m_allocated_size += size;
+
+                m_max_alloc_size = std::max(m_max_alloc_size, m_allocated_size);
+
+                while ((m_allocated_size + m_reserve_size) > m_max_alloc_size + 32 * 1024 * 1024) {
+                    FreeGarbage();
+                }
 
                 return ptr;
             }
@@ -90,14 +117,15 @@ public:
 
     void Free(void* ptr)
     {
-        for (auto& h : m_heap) {
-            if ( h.ptr == ptr ) {
-                h.allocated = false;
-                return;
-            }
-        }
+        BBCU_ASSERT(m_allocated_map.count(ptr) == 1); 
 
-        BBCU_ASSERT(0);
+        size_t size = m_allocated_map[ptr];
+        m_allocated_map.erase(ptr);
+        m_allocated_size -= size;
+
+        m_reserve_vec.push_back(heap_t(ptr, size));
+        m_reserve_size += size;
+        std::sort(m_reserve_vec.begin(), m_reserve_vec.end());
     }
 };
 

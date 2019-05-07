@@ -21,8 +21,8 @@
 extern "C" {
 
 
-#define BBCU_ASSERT(x)          assert(x)
-#define BBCU_DEBUG_ASSERT(x)    assert(x)
+#define BBCU_ASSERT(x)          do { if (!(x)) { std::cout << "assert"; getchar(); assert(x); } } while(0)
+#define BBCU_DEBUG_ASSERT(x)    do { if (!(x)) { std::cout << "assert"; getchar(); assert(x); } } while(0)
 
 
 
