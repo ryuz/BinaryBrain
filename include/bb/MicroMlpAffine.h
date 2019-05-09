@@ -21,10 +21,10 @@ namespace bb {
 
 
 // Mini-MLP (SparseAffine - ReLU - SparseAffine)
-template <int N = 6, int M = 16, typename T = float>
-class MicroMlpAffine : public SparseLayer<T, T>
+template <int N = 6, int M = 16, typename FXT = float, typename T = float>
+class MicroMlpAffine : public SparseLayer<FXT, T>
 {
-    using _super = SparseLayer<T, T>;
+    using _super = SparseLayer<FXT, T>;
 
 protected:
 public:   // debug
@@ -58,9 +58,6 @@ public:   // debug
 
 public:
     FrameBuffer             m_x_buf;
-
-//    FrameBuffer             m_y_buf;
-//    FrameBuffer             m_dx_tmp;
 
 protected:
     MicroMlpAffine() {
@@ -385,7 +382,7 @@ public:
     
 
     // ノード単位でのForward計算
-    std::vector<T> ForwardNode(index_t node, std::vector<T> input_value) const
+    std::vector<FXT> ForwardNode(index_t node, std::vector<FXT> input_value) const
     {
         auto W0 = lock_W0_const();
         auto b0 = lock_b0_const();
@@ -419,7 +416,7 @@ public:
 
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-        BB_ASSERT(x_buf.GetType() == DataType<T>::type);
+        BB_ASSERT(x_buf.GetType() == DataType<FXT>::type);
 
         // SetInputShpaeされていなければ初回に設定
         if ( x_buf.GetNodeSize() != m_input_node_size) {
@@ -443,9 +440,9 @@ public:
             m_b1->Clamp(-1.0, +1.0);
         }
 
-        // CUDA版
 #ifdef BB_WITH_CUDA
-        if ( N == 6 && M == 16 && DataType<T>::type == BB_TYPE_FP32
+        // FP32 CUDA版
+        if ( N == 6 && M == 16 && DataType<FXT>::type == BB_TYPE_FP32 && DataType<T>::type == BB_TYPE_FP32
                 && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
             auto x_ptr  = x_buf.LockDeviceMemoryConst();
@@ -473,8 +470,39 @@ public:
         }
 #endif
 
+#ifdef BB_WITH_CUDA
+        // Bit CUDA版
+        if ( N == 6 && M == 16 && DataType<FXT>::type == BB_TYPE_BIT && DataType<T>::type == BB_TYPE_FP32
+                && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
+            auto x_ptr  = x_buf.LockDeviceMemoryConst();
+            auto y_ptr  = y_buf.LockDeviceMemory();
+            auto W0_ptr = m_W0->LockDeviceMemoryConst();
+            auto b0_ptr = m_b0->LockDeviceMemoryConst();
+            auto W1_ptr = m_W1->LockDeviceMemoryConst();
+            auto b1_ptr = m_b1->LockDeviceMemoryConst();
+            bbcu_bit_fp32_MicroMlp6x16_Forward
+                (
+                    (int   const *)x_ptr.GetAddr(),
+                    (float       *)y_ptr.GetAddr(),
+                    (int   const *)input_index_ptr.GetAddr(),
+                    (float const *)W0_ptr.GetAddr(),
+                    (float const *)b0_ptr.GetAddr(),
+                    (float const *)W1_ptr.GetAddr(),
+                    (float const *)b1_ptr.GetAddr(),
+                    (int          )m_input_node_size,
+                    (int          )m_output_node_size,
+                    (int          )x_buf.GetFrameSize(),
+                    (int          )(x_buf.GetFrameStride() / sizeof(float)),
+                    (int          )(y_buf.GetFrameStride() / sizeof(float))
+                );
+
+            return y_buf;
+        }
+#endif
+
         // AVX版
-        if ( DataType<T>::type == BB_TYPE_FP32 && m_host_simd ) {
+        if ( DataType<FXT>::type == BB_TYPE_FP32 && DataType<T>::type == BB_TYPE_FP32 && m_host_simd ) {
             const index_t   frame_size = x_buf.GetFrameStride() / sizeof(float);
             const __m256    zero = _mm256_set1_ps(0);
 
@@ -541,7 +569,7 @@ public:
         {
             // 汎用版
             auto frame_size = x_buf.GetFrameSize();
-            auto x_ptr = x_buf.LockConst<T>();
+            auto x_ptr = x_buf.LockConst<FXT>();
             auto y_ptr = y_buf.Lock<T>();
             auto input_index_ptr = m_input_index.LockConst();
             auto W0_ptr = lock_W0_const();

@@ -264,6 +264,25 @@ BBCU_DLL_EXPORT int bbcu_fp32_MicroMlp6x16_Forward
             cudaStream_t    streamId = 0
         );
 
+
+BBCU_DLL_EXPORT int bbcu_bit_fp32_MicroMlp6x16_Forward
+        (
+            int   const     *dev_x_buf,
+            float           *dev_y_buf,
+            int   const     *dev_input_index,
+            float const     *dev_hidden_W,
+            float const     *dev_hidden_b,
+            float const     *dev_output_W,
+            float const     *dev_output_b,
+            int             input_node_size,
+            int             output_node_size,
+            int             frame_size,
+            int             input_frame_stride,
+            int             output_frame_stride,
+            cudaStream_t    streamId = 0
+        );
+
+
 BBCU_DLL_EXPORT int bbcu_fp32_MicroMlp6x16_Backward(
             float const     *dev_x_buf,
             float const     *dev_dy_buf,

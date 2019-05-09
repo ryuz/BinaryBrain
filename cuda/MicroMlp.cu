@@ -15,16 +15,17 @@
 
 
 template <int N=6, int M=16>
-__global__ void kernal_fp32_MicroMlp_Forward(
-            const float*    x_buf,
-            float*          y_buf,
-            const int*      input_index,
-            const float*    hidden_W,
-            const float*    hidden_b,
-            const float*    output_W,
-            const float*    output_b,
-            int             frame_size,
-            int             frame_stride
+__global__ void kernal_fp32_MicroMlp_Forward
+        (
+            float const *x_buf,
+            float       *y_buf,
+            int   const *input_index,
+            float const *hidden_W,
+            float const *hidden_b,
+            float const *output_W,
+            float const *output_b,
+            int         frame_size,
+            int         frame_stride
         )
 {
     int const node    = blockIdx.x;
@@ -86,17 +87,16 @@ __global__ void kernal_fp32_MicroMlp_Forward(
     }
 }
 
-
 template <int N=6, int M=16>
 int bbcu_fp32_MicroMlp_Forward
         (
-            const float*    dev_x_buf,
-            float*          dev_y_buf,
-            const int*      dev_input_index,
-            const float*    dev_hidden_W,
-            const float*    dev_hidden_b,
-            const float*    dev_output_W,
-            const float*    dev_output_b,
+            float const     *dev_x_buf,
+            float           *dev_y_buf,
+            int   const     *dev_input_index,
+            float const     *dev_hidden_W,
+            float const     *dev_hidden_b,
+            float const     *dev_output_W,
+            float const     *dev_output_b,
             int             input_node_size,
             int             output_node_size,
             int             frame_size,
@@ -126,7 +126,6 @@ int bbcu_fp32_MicroMlp_Forward
     
     return 0;
 }
-
 
 int bbcu_fp32_MicroMlp6x16_Forward
         (
@@ -160,6 +159,172 @@ int bbcu_fp32_MicroMlp6x16_Forward
         );
 }
 
+
+
+
+// bit入力版
+template <int N=6, int M=16>
+__global__ void kernal_bit_fp32_MicroMlp_Forward(
+            int const       *x_buf,
+            float           *y_buf,
+            int   const     *input_index,
+            float const     *hidden_W,
+            float const     *hidden_b,
+            float const     *output_W,
+            float const     *output_b,
+            int             frame_size,
+            int             input_frame_stride,
+            int             output_frame_stride
+        )
+{
+    int const node    = blockIdx.x;
+    int const id      = threadIdx.x;
+    int const id_step = blockDim.x;
+
+    // 係数読み込み
+    __shared__   float W0[M][N];
+    __shared__   float b0[M];
+    __shared__   float W1[M];
+    __shared__   float b1;
+    for ( int i = id; i < M; i += id_step ) {
+        for ( int j = 0; j < N; ++j ) {
+            W0[i][j] = hidden_W[(node * M + i) * N + j];
+        }
+
+        b0[i] = hidden_b[node * M + i];
+        W1[i] = output_W[node * M + i];
+    }
+    if ( id == 0 ) {
+        b1 = output_b[node];
+    }
+
+    // 読み込みアドレス
+    __shared__ int const  *x_ptr[N];
+    for ( int i = 0; i < N; ++i ) {
+        int in_idx = input_index[node*N + i];
+        x_ptr[i] = &x_buf[input_frame_stride * in_idx];
+    }
+    
+    __syncthreads();
+
+    // 書き込みアドレス
+    float *y_ptr = &y_buf[output_frame_stride * node];
+    
+    // 1つのSMで1nodeを全フレーム処理
+    int unit_size = (frame_size + 31) / 32;
+    for (int unit = id; unit < unit_size; unit += id_step) {
+        // 入力データ読み込み
+        int   x[N];
+        for ( int i = 0; i < N; ++i ) {
+            x[i] = x_ptr[i][unit];
+        }
+        
+        for (int bit = 0; bit < 32; ++bit) {
+            int frame = unit * 32 + bit;
+            if ( frame < frame_size ) {
+                // 計算
+                float sig1 = b1;
+                for ( int i = 0; i < M; ++i ) {
+                    float sig0 = b0[i];
+                    for ( int j = 0; j < N; ++j ) {
+                        if ( x[j] & 1 ) {
+                            sig0 += W0[i][j];
+                        }
+                    }
+                    
+                    sig0 = fmaxf(sig0, 0);  // ReLU
+                    
+                    sig1 += sig0 * W1[i];
+                }
+
+                for ( int i = 0; i < N; ++i ) {
+                    x[i] >>= 1;
+                }
+
+                // 出力
+                y_ptr[frame] = sig1;
+            }
+        }
+    }
+}
+
+
+template <int N=6, int M=16>
+int bbcu_bit_fp32_MicroMlp_Forward
+        (
+            int   const     *dev_x_buf,
+            float           *dev_y_buf,
+            int   const     *dev_input_index,
+            float const     *dev_hidden_W,
+            float const     *dev_hidden_b,
+            float const     *dev_output_W,
+            float const     *dev_output_b,
+            int             input_node_size,
+            int             output_node_size,
+            int             frame_size,
+            int             input_frame_stride,
+            int             output_frame_stride,
+            cudaStream_t    streamId = 0
+        )
+{
+    BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
+
+    int const thread_size = 512;
+    dim3    block(thread_size);
+    dim3    grid(output_node_size);
+    while ( (int)block.x / 2 >= ((frame_size + 31) / 32) ) {  block.x /= 2; }
+
+    kernal_bit_fp32_MicroMlp_Forward<N, M><<<grid, block, 0, streamId>>>(
+            dev_x_buf,
+            dev_y_buf,
+            dev_input_index,
+            dev_hidden_W,
+            dev_hidden_b,
+            dev_output_W,
+            dev_output_b,
+            frame_size,
+            input_frame_stride,
+            output_frame_stride
+        );
+    BB_CUDA_CHECK_LAST_ERROR();
+    
+    return 0;
+}
+
+
+int bbcu_bit_fp32_MicroMlp6x16_Forward
+        (
+            int   const     *dev_x_buf,
+            float           *dev_y_buf,
+            int   const     *dev_input_index,
+            float const     *dev_hidden_W,
+            float const     *dev_hidden_b,
+            float const     *dev_output_W,
+            float const     *dev_output_b,
+            int             input_node_size,
+            int             output_node_size,
+            int             frame_size,
+            int             input_frame_stride,
+            int             output_frame_stride,
+            cudaStream_t    streamId
+        )
+{
+    return bbcu_bit_fp32_MicroMlp_Forward<6, 16>(
+            dev_x_buf,
+            dev_y_buf,
+            dev_input_index,
+            dev_hidden_W,
+            dev_hidden_b,
+            dev_output_W,
+            dev_output_b,
+            input_node_size,
+            output_node_size,
+            frame_size,
+            input_frame_stride,
+            output_frame_stride,
+            streamId
+        );
+}
 
 
 
