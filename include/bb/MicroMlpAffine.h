@@ -404,10 +404,10 @@ public:
         }
 
         // affine1
-        std::vector<T> value1(1);
+        std::vector<FXT> value1(1);
         value1[0] = b1(node);
         for (index_t i = 0; i < M; ++i) {
-            value1[0] += value0[i] * W1(node, i);
+            value1[0] = value1[0] + value0[i] * W1(node, i);
         }
         
         return value1;
@@ -625,7 +625,7 @@ public:
 
         // CUDA版
 #ifdef BB_WITH_CUDA
-        if ( N == 6 && M == 16 && DataType<T>::type == BB_TYPE_FP32
+        if ( N == 6 && M == 16 && DataType<FXT>::type == BB_TYPE_FP32 && DataType<T>::type == BB_TYPE_FP32
                 && !m_host_only && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // CUDA版
             auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
@@ -675,7 +675,7 @@ public:
 //      m_db1->FillZero();
 
         // AVX版
-        if ( DataType<T>::type == BB_TYPE_FP32 ) {
+        if ( DataType<FXT>::type == BB_TYPE_FP32 && DataType<T>::type == BB_TYPE_FP32 ) {
             index_t frame_size = dy_buf.GetFrameStride() / sizeof(float);
             index_t node_size  = m_output_node_size;
 
@@ -816,9 +816,113 @@ public:
             return dx_buf;
         }
 
-        // 汎用版
         {
-            // 未作成
+            // 汎用版
+            index_t frame_size = dy_buf.GetFrameSize();
+            index_t node_size  = m_output_node_size;
+
+            dx_buf.FillZero();
+
+            auto dy_ptr = dy_buf.LockConst<T>();
+            auto dx_ptr = dx_buf.Lock<T>();
+            auto x_ptr  = x_buf.LockConst<FXT>();
+
+            auto input_index_ptr = m_input_index.Lock();
+            auto W0_ptr = lock_W0_const();
+            auto b0_ptr = lock_b0_const();
+            auto W1_ptr = lock_W1_const();
+            auto b1_ptr = lock_b1_const();
+            auto dW0_ptr = lock_dW0();
+            auto db0_ptr = lock_db0();
+            auto dW1_ptr = lock_dW1();
+            auto db1_ptr = lock_db1();
+            
+//            FrameBuffer dx_tmp(BB_TYPE_FP32, dy_buf.GetFrameSize(), m_output_node_size * N);
+//            auto dx_tmp_ptr = dx_tmp.Lock<float>();
+            
+//          #pragma omp parallel for
+            for (int node = 0; node < (int)node_size; ++node) {
+                float  W0[M][N];
+                float  b0[M];
+                float  dW0[M][N];
+                float  db0[M];
+                float  W1[M];
+                float  dW1[M];
+                float  db1;
+                for (int i = 0; i < M; ++i) {
+                    for (int j = 0; j < N; ++j) {
+                        W0[i][j]  = W0_ptr(node, i, j);
+                        dW0[i][j] = (T)0.0;
+                    }
+                    b0[i]  = b0_ptr(node, i);
+                    db0[i] = (T)0.0;
+                    W1[i]  = W1_ptr(node, i);
+                    dW1[i] = (T)0.0;
+                }
+                db1 = (T)0.0;
+
+                // 1つのSMで1nodeを全フレーム処理
+                for ( index_t frame = 0; frame < frame_size; ++frame ) {
+                    // 入力データ読み込み
+                    T   x[N];
+                    for ( int i = 0; i < N; ++i ) {
+                        x[i] = x_ptr.Get(frame, input_index_ptr(node, i));
+                    }
+                    
+                    // 1段目再計算して2段目逆伝播
+                    T   grad1 = dy_ptr.Get(frame, node);
+                    T   grad0[M];
+                    db1 += grad1;
+                    for ( int i = 0; i < M; ++i ) {
+                        T sig0 = b0[i];
+                        for ( int j = 0; j < N; ++j ) {
+                            sig0 += x[j] * W0[i][j];
+                        }
+            
+                        sig0 = std::max(sig0, (T)0);  // ReLU
+
+                        dW1[i] += grad1 * sig0;
+
+                        if ( sig0 > 0 ) {       // ReLU
+                            grad0[i] = grad1 * W1[i];
+                        }
+                        else {
+                            grad0[i] = 0;
+                        }
+                    }
+        
+                    // 1段目逆伝播
+                    T   dx[N];
+                    for ( int i = 0; i < N; ++i ) {
+                        dx[i] = 0;  // dx_ptr[frame_stride * i + frame];
+                    }
+
+                    for ( int i = 0; i < M; ++i ) {
+                        db0[i] += grad0[i];
+                        for ( int j = 0; j < N; ++j ) {
+                            dW0[i][j] += grad0[i] * x[j];
+                            dx[j] += grad0[i] * W0[i][j];
+                        }
+                    }
+                    
+                    // 誤差書き込み
+                    for ( int i = 0; i < N; ++i ) {
+                        dx_ptr.Add(frame, input_index_ptr(node, i), dx[i]);
+                    }
+                }
+
+                // パラメータ設定
+                for ( int i = 0; i < M; ++i ) {
+                    for ( int j = 0; j < N; ++j ) {
+                        dW0_ptr(node, i, j) += dW0[i][j];
+                    }
+                     db0_ptr(node, i) += db0[i];
+                     dW1_ptr(node, i) += dW1[i];
+                }
+               db1_ptr(node) = db1;
+            }
+            
+            return dx_buf;
         }
     }
 };
