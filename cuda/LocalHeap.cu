@@ -72,7 +72,7 @@ public:
     {
         // 使えるものがあれば割り当て
         for ( auto it = m_reserve_vec.begin(); it != m_reserve_vec.end(); ++it ) {
-            if ( it->size >= size ) {
+            if ( it->size >= size && it->size < (size * 3 / 2) ) {
                 // reserveから取り出し
                 auto h = *it;
                 m_reserve_vec.erase(it);
@@ -89,7 +89,7 @@ public:
             }
         }
 
-        // 無ければ新規取得
+        // 適切なサイズのリザーブが無ければ新規取得
         do {
             void *ptr;
             cudaError_t err = cudaMalloc(&ptr, size);
@@ -101,7 +101,7 @@ public:
 
                 m_max_alloc_size = std::max(m_max_alloc_size, m_allocated_size);
 
-                while ((m_allocated_size + m_reserve_size) > m_max_alloc_size + 32 * 1024 * 1024) {
+                while ((m_allocated_size + m_reserve_size) > (m_max_alloc_size * 3 / 2) ) {
                     FreeGarbage();
                 }
 

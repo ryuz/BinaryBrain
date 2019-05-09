@@ -274,27 +274,44 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
     }
     
     auto cnv0_sub = bb::Sequential::Create();
+#if 0
     cnv0_sub->Add(bb::MicroMlp<>::Create(384));
     cnv0_sub->Add(bb::MicroMlp<>::Create(64));
-//    cnv0_sub->Add(bb::DenseAffine<>::Create(64));
-//    cnv0_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
-//    cnv0_sub->Add(bb::ReLU<>::Create());
+#else
+    cnv0_sub->Add(bb::DenseAffine<>::Create(64));
+    cnv0_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    cnv0_sub->Add(bb::ReLU<>::Create());
+#endif
 
     auto cnv1_sub = bb::Sequential::Create();
+#if 0
+    cnv1_sub->Add(bb::MicroMlp<>::Create(384));
+    cnv1_sub->Add(bb::MicroMlp<>::Create(64));
+#else
     cnv1_sub->Add(bb::DenseAffine<>::Create(64));
     cnv1_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
     cnv1_sub->Add(bb::ReLU<>::Create());
+#endif
 
     auto cnv2_sub = bb::Sequential::Create();
+#if 1
+    cnv2_sub->Add(bb::MicroMlp<>::Create(768));
+    cnv2_sub->Add(bb::MicroMlp<>::Create(128));
+#else
     cnv2_sub->Add(bb::DenseAffine<>::Create(128));
     cnv2_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
     cnv2_sub->Add(bb::ReLU<>::Create());
+#endif
 
+#if 0
+    cnv3_sub->Add(bb::MicroMlp<>::Create(768));
+    cnv3_sub->Add(bb::MicroMlp<>::Create(128));
+#else
     auto cnv3_sub = bb::Sequential::Create();
     cnv3_sub->Add(bb::DenseAffine<>::Create(128));
     cnv3_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
     cnv3_sub->Add(bb::ReLU<>::Create());
-
+#endif
 
     // create network
     auto net = bb::Sequential::Create();
