@@ -349,7 +349,7 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
     }
 
     // print model information
-//  net->PrintInfo();
+    net->PrintInfo();
 
     std::cout << "-----------------------------------" << std::endl;
     std::cout << "file_read          : " << file_read          << std::endl;
