@@ -274,7 +274,7 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
     }
     
     auto cnv0_sub = bb::Sequential::Create();
-#if 0
+#if 1
     cnv0_sub->Add(bb::MicroMlp<>::Create(384));
     cnv0_sub->Add(bb::MicroMlp<>::Create(64));
 #else
@@ -284,7 +284,7 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
 #endif
 
     auto cnv1_sub = bb::Sequential::Create();
-#if 0
+#if 1
     cnv1_sub->Add(bb::MicroMlp<>::Create(384));
     cnv1_sub->Add(bb::MicroMlp<>::Create(64));
 #else
@@ -303,11 +303,11 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
     cnv2_sub->Add(bb::ReLU<>::Create());
 #endif
 
-#if 0
+    auto cnv3_sub = bb::Sequential::Create();
+#if 1
     cnv3_sub->Add(bb::MicroMlp<>::Create(768));
     cnv3_sub->Add(bb::MicroMlp<>::Create(128));
 #else
-    auto cnv3_sub = bb::Sequential::Create();
     cnv3_sub->Add(bb::DenseAffine<>::Create(128));
     cnv3_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
     cnv3_sub->Add(bb::ReLU<>::Create());
@@ -329,8 +329,8 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
     net->Add(bb::ReLU<>::Create());
     net->Add(bb::DenseAffine<>::Create(310));
     if ( binary_mode ) {
-        net->Add(bb::BatchNormalization<>::Create(bn_momentum));
-        net->Add(bb::Binarize<>::Create());
+//        net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+//        net->Add(bb::Binarize<>::Create());
         net->Add(bb::Reduce<>::Create(td.t_shape));
         net->Add(bb::BinaryToReal<>::Create(td.t_shape, frame_mux_size));
     }
