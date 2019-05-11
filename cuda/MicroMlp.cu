@@ -14,7 +14,7 @@
 // -------------------------------------------------
 
 
-template <int N=6, int M=16, int NODE_UNIT>
+template <int N=6, int M=16, int MAX_NODE_UNIT>
 __global__ void kernal_fp32_MicroMlp_Forward
         (
             float const *x_buf,
@@ -35,11 +35,11 @@ __global__ void kernal_fp32_MicroMlp_Forward
     int const id_step = blockDim.x;
 
     // åWêîì«Ç›çûÇ›
-    __shared__ float        W0[M][N][NODE_UNIT];
-    __shared__ float        b0[M][NODE_UNIT];
-    __shared__ float        W1[M][NODE_UNIT];
-    __shared__ float        b1[NODE_UNIT];
-    __shared__ float const  *x_ptr[N][NODE_UNIT];
+    __shared__ float        W0[M][N][MAX_NODE_UNIT];
+    __shared__ float        b0[M][MAX_NODE_UNIT];
+    __shared__ float        W1[M][MAX_NODE_UNIT];
+    __shared__ float        b1[MAX_NODE_UNIT];
+    __shared__ float const  *x_ptr[N][MAX_NODE_UNIT];
 
     if ( node < node_size ) {
         for ( int i = id; i < M; i += id_step ) {
@@ -113,16 +113,25 @@ int bbcu_fp32_MicroMlp_Forward
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
-    int const FRAME_UNIT = 512;
-    int const NODE_UNIT  = 32;
-    
-    dim3    block(FRAME_UNIT, 1);
+    unsigned int const THREAD_SIZE    = 512;
+    unsigned int const MAX_FRAME_UNIT = 256;
+    unsigned int const MAX_NODE_UNIT  = 16;
+
+#if 0
+    dim3    block(MAX_FRAME_UNIT, THREAD_SIZE / MAX_FRAME_UNIT);
     while ( (int)block.x / 2 >= frame_size )       { block.x /= 2; block.y *= 2; }
     while ( (int)block.y / 2 >= output_node_size ) { block.y /= 2; }
-    if (  block.y > NODE_UNIT ) { block.y = NODE_UNIT; }
+#else
+    dim3    block(THREAD_SIZE / MAX_NODE_UNIT, MAX_NODE_UNIT);
+    while ( (int)block.y / 2 >= output_node_size) { block.y /= 2; block.x *= 2;}
+    while ( (int)block.x / 2 >= frame_size      ) { block.x /= 2; }
+#endif
+
+    block.x = std::min(block.x, MAX_FRAME_UNIT);
+    block.y = std::min(block.y, MAX_NODE_UNIT);
     dim3    grid(1, (output_node_size + (block.y - 1)) / block.y);
 
-    kernal_fp32_MicroMlp_Forward<N, M, NODE_UNIT><<<grid, block, 0, streamId>>>(
+    kernal_fp32_MicroMlp_Forward<N, M, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
             dev_x_buf,
             dev_y_buf,
             dev_input_index,
@@ -175,7 +184,7 @@ int bbcu_fp32_MicroMlp6x16_Forward
 
 
 // bitì¸óÕî≈
-template <int N=6, int M=16, int NODE_UNIT=16>
+template <int N=6, int M=16, int MAX_NODE_UNIT=16>
 __global__ void kernal_bit_fp32_MicroMlp_Forward(
             int const       *x_buf,
             float           *y_buf,
@@ -196,11 +205,11 @@ __global__ void kernal_bit_fp32_MicroMlp_Forward(
     int const id_step = blockDim.x;
 
     // åWêîì«Ç›çûÇ›
-    __shared__ float        W0[M][N][NODE_UNIT];
-    __shared__ float        b0[M][NODE_UNIT];
-    __shared__ float        W1[M][NODE_UNIT];
-    __shared__ float        b1[NODE_UNIT];
-    __shared__ int const    *x_ptr[N][NODE_UNIT];
+    __shared__ float        W0[M][N][MAX_NODE_UNIT];
+    __shared__ float        b0[M][MAX_NODE_UNIT];
+    __shared__ float        W1[M][MAX_NODE_UNIT];
+    __shared__ float        b1[MAX_NODE_UNIT];
+    __shared__ int const    *x_ptr[N][MAX_NODE_UNIT];
 
     if ( node < node_size) {
         for ( int i = id; i < M; i += id_step ) {
@@ -285,15 +294,25 @@ int bbcu_bit_fp32_MicroMlp_Forward
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
-    int const FRAME_UNIT = 512;
-    int const NODE_UNIT  = 32;
-    dim3    block(FRAME_UNIT, 1);
+    unsigned int const THREAD_SIZE    = 512;
+    unsigned int const MAX_FRAME_UNIT = 256;
+    unsigned int const MAX_NODE_UNIT  = 16;
+
+#if 0
+    dim3    block(MAX_FRAME_UNIT, THREAD_SIZE / MAX_FRAME_UNIT);
     while ( (int)block.x / 2 >= frame_size )       { block.x /= 2; block.y *= 2; }
     while ( (int)block.y / 2 >= output_node_size ) { block.y /= 2; }
-    if (  block.y > NODE_UNIT ) { block.y = NODE_UNIT; }
+#else
+    dim3    block(THREAD_SIZE / MAX_NODE_UNIT, MAX_NODE_UNIT);
+    while ( (int)block.y / 2 >= output_node_size) { block.y /= 2; block.x *= 2;}
+    while ( (int)block.x / 2 >= frame_size      ) { block.x /= 2; }
+#endif
+
+    block.x = std::min(block.x, MAX_FRAME_UNIT);
+    block.y = std::min(block.y, MAX_NODE_UNIT);
     dim3    grid(1, (output_node_size + (block.y - 1)) / block.y);
 
-    kernal_bit_fp32_MicroMlp_Forward<N, M, NODE_UNIT><<<grid, block, 0, streamId>>>
+    kernal_bit_fp32_MicroMlp_Forward<N, M, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>
         (
             dev_x_buf,
             dev_y_buf,
@@ -609,18 +628,18 @@ int bbcu_fp32_MicroMlp_Backward
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
     {
-        unsigned int const THREAD_SIZE    = 256;
+        unsigned int const THREAD_SIZE    = 512;
         unsigned int const MAX_FRAME_UNIT = 256;
         unsigned int const MAX_NODE_UNIT  = 16;
 
 #if 0
-        dim3    block(THREAD_SIZE, 1);
+        dim3    block(MAX_FRAME_UNIT, THREAD_SIZE / MAX_FRAME_UNIT);
         while ( (int)block.x / 2 >= frame_size )       { block.x /= 2; block.y *= 2; }
         while ( (int)block.y / 2 >= output_node_size ) { block.y /= 2; }
 #else
-        dim3    block(1, THREAD_SIZE);
-        while ( (int)block.y / 2 >= output_node_size ) { block.y /= 2; block.x *= 2;}
-        while ( (int)block.x / 2 >= frame_size )       { block.x /= 2; }
+        dim3    block(THREAD_SIZE / MAX_NODE_UNIT, MAX_NODE_UNIT);
+        while ( (int)block.y / 2 >= output_node_size) { block.y /= 2; block.x *= 2;}
+        while ( (int)block.x / 2 >= frame_size      ) { block.x /= 2; }
 #endif
 
         block.x = std::min(block.x, MAX_FRAME_UNIT);

@@ -327,7 +327,7 @@ TEST(MicroMlpAffineTest, testMicroMlpAffineCmp)
 #if 1
     const int input_node_size = 360;
     const int output_node_size = 60;
-    const int frame_size = 64;
+    const int frame_size = 1024;
 #else
     const int input_node_size = 6;
     const int output_node_size = 1;
