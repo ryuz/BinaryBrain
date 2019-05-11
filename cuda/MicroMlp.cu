@@ -14,7 +14,7 @@
 // -------------------------------------------------
 
 
-template <int N=6, int M=16>
+template <int N=6, int M=16, int NODE_UNIT>
 __global__ void kernal_fp32_MicroMlp_Forward
         (
             float const *x_buf,
@@ -24,66 +24,73 @@ __global__ void kernal_fp32_MicroMlp_Forward
             float const *hidden_b,
             float const *output_W,
             float const *output_b,
+            int         node_size,
             int         frame_size,
             int         frame_stride
         )
 {
-    int const node    = blockIdx.x;
+    int const node_id = threadIdx.y;
+    int const node    = blockIdx.y * blockDim.y + threadIdx.y;
     int const id      = threadIdx.x;
     int const id_step = blockDim.x;
 
     // 係数読み込み
-    __shared__   float W0[M][N];
-    __shared__   float b0[M];
-    __shared__   float W1[M];
-    __shared__   float b1;
-    for ( int i = id; i < M; i += id_step ) {
-        for ( int j = 0; j < N; ++j ) {
-            W0[i][j] = hidden_W[(node * M + i) * N + j];
+    __shared__ float        W0[M][N][NODE_UNIT];
+    __shared__ float        b0[M][NODE_UNIT];
+    __shared__ float        W1[M][NODE_UNIT];
+    __shared__ float        b1[NODE_UNIT];
+    __shared__ float const  *x_ptr[N][NODE_UNIT];
+
+    if ( node < node_size ) {
+        for ( int i = id; i < M; i += id_step ) {
+            for ( int j = 0; j < N; ++j ) {
+                W0[i][j][node_id] = hidden_W[(node * M + i) * N + j];
+            }
+
+            b0[i][node_id] = hidden_b[node * M + i];
+            W1[i][node_id] = output_W[node * M + i];
+        }
+        if ( id == 0 ) {
+            b1[node_id] = output_b[node];
         }
 
-        b0[i] = hidden_b[node * M + i];
-        W1[i] = output_W[node * M + i];
-    }
-    if ( id == 0 ) {
-        b1 = output_b[node];
-    }
-
-    // 読み込みアドレス
-    __shared__ float const  *x_ptr[N];
-    for ( int i = 0; i < N; ++i ) {
-        int in_idx = input_index[node*N + i];
-        x_ptr[i] = &x_buf[frame_stride * in_idx];
+        // 読み込みアドレス
+        for ( int i = 0; i < N; ++i ) {
+            int in_idx = input_index[node*N + i];
+            x_ptr[i][node_id] = &x_buf[frame_stride * in_idx];
+        }
     }
     
     __syncthreads();
 
-    // 書き込みアドレス
-    float *y_ptr = &y_buf[frame_stride * node];
+    if ( node < node_size ) {
+        // 書き込みアドレス
+        float *y_ptr = &y_buf[frame_stride * node];
     
-    // 1つのSMで1nodeを全フレーム処理
-    for ( int frame = id; frame < frame_size; frame += id_step ) {
-        // 入力データ読み込み
-        float   x[N];
-        for ( int i = 0; i < N; ++i ) {
-            x[i] = x_ptr[i][frame];
-        }
-
-        // 計算
-        float sig1 = b1;
-        for ( int i = 0; i < M; ++i ) {
-            float sig0 = b0[i];
-            for ( int j = 0; j < N; ++j ) {
-                sig0 += x[j] * W0[i][j];
+        // 1つのSMで1nodeを全フレーム処理
+        for ( int frame = id; frame < frame_size; frame += id_step ) {
+            // 入力データ読み込み
+            float   x[N];
+            for ( int i = 0; i < N; ++i ) {
+                x[i] = x_ptr[i][node_id][frame];
             }
-        
-            sig0 = fmaxf(sig0, 0);  // ReLU
-        
-            sig1 += sig0 * W1[i];
-        }
 
-        // 出力
-        y_ptr[frame] = sig1;
+            // 計算
+            float sig1 = b1[node_id];
+            for ( int i = 0; i < M; ++i ) {
+                float sig0 = b0[i][node_id];
+                for ( int j = 0; j < N; ++j ) {
+                    sig0 += x[j] * W0[i][j][node_id];
+                }
+        
+                sig0 = fmaxf(sig0, 0);  // ReLU
+        
+                sig1 += sig0 * W1[i][node_id];
+            }
+
+            // 出力
+            y_ptr[frame] = sig1;
+        }
     }
 }
 
@@ -106,12 +113,16 @@ int bbcu_fp32_MicroMlp_Forward
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
-    int const thread_size = 512;
-    dim3    block(thread_size);
-    dim3    grid(output_node_size);
-    while ( (int)block.x / 2 >= frame_size ) {  block.x /= 2; }
+    int const FRAME_UNIT = 32;
+    int const NODE_UNIT  = 32;
+    
+    dim3    block(FRAME_UNIT, 1);
+    while ( (int)block.x / 2 >= frame_size )       { block.x /= 2; block.y *= 2; }
+    while ( (int)block.y / 2 >= output_node_size ) { block.y /= 2; }
+    if (  block.y > NODE_UNIT ) { block.y = NODE_UNIT; }
+    dim3    grid(1, (output_node_size + (block.y - 1)) / block.y);
 
-    kernal_fp32_MicroMlp_Forward<N, M><<<grid, block, 0, streamId>>>(
+    kernal_fp32_MicroMlp_Forward<N, M, NODE_UNIT><<<grid, block, 0, streamId>>>(
             dev_x_buf,
             dev_y_buf,
             dev_input_index,
@@ -119,6 +130,7 @@ int bbcu_fp32_MicroMlp_Forward
             dev_hidden_b,
             dev_output_W,
             dev_output_b,
+            output_node_size,
             frame_size,
             frame_stride
         );
@@ -358,7 +370,7 @@ __device__ __forceinline__ float device_fp32_LocalSum(float v, float *buf)
 
 
 // kernel
-template <int N=6, int M=16, int THREAD_SIZE=256>
+template <int N=6, int M=16, int FRAME_UNIT=32, int NODE_UNIT=8>
 __global__ void kernal_fp32_MicroMlp_Backward
         (
             float const     *x_buf,
@@ -381,7 +393,7 @@ __global__ void kernal_fp32_MicroMlp_Backward
     int const id      = threadIdx.x;
     int const id_step = blockDim.x;
 
-    __shared__  float sbuf[THREAD_SIZE];
+    __shared__  float sbuf[FRAME_UNIT];
     __shared__  float W0[M][N];
     __shared__  float b0[M];
     __shared__  float W1[M];
@@ -574,12 +586,13 @@ int bbcu_fp32_MicroMlp_Backward(
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
     {
-        int const thread_size = 128;
-        dim3    block(thread_size);
+        int const FRAME_UNIT = 128;
+        int const NODE_UNIT  = 1;
+        dim3    block(FRAME_UNIT);
         dim3    grid(output_node_size);
         while ( (int)block.x / 2 >= frame_size ) {  block.x /= 2; }
 
-        kernal_fp32_MicroMlp_Backward<N, M, thread_size><<<grid, block, 0, streamId>>>
+        kernal_fp32_MicroMlp_Backward<N, M, FRAME_UNIT, NODE_UNIT><<<grid, block, 0, streamId>>>
             (
                 dev_x_buf,
                 dev_dy_buf,
