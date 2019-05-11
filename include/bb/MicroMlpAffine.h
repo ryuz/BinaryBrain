@@ -620,6 +620,8 @@ public:
         FrameBuffer  x_buf = m_x_buf;
         m_x_buf = FrameBuffer();
 
+        BB_ASSERT(x_buf.GetType() == DataType<FXT>::type);
+
         // 出力設定
         FrameBuffer  dx_buf(DataType<T>::type, dy_buf.GetFrameSize(), m_input_node_size);
 
@@ -631,7 +633,6 @@ public:
             auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
             auto x_ptr  = x_buf.LockDeviceMemoryConst();
             auto dy_ptr = dy_buf.LockDeviceMemoryConst();
-    //      auto y_ptr  = m_y_buf.LockDeviceMemoryConst();
             auto dx_ptr = dx_buf.LockDeviceMemory();
             auto W0_ptr = m_W0->LockDeviceMemoryConst();
             auto b0_ptr = m_b0->LockDeviceMemoryConst();
@@ -668,6 +669,53 @@ public:
             return dx_buf;
         }
 #endif
+
+
+#ifdef BB_WITH_CUDA
+        if ( N == 6 && M == 16 && DataType<FXT>::type == BB_TYPE_BIT && DataType<T>::type == BB_TYPE_FP32
+                && !m_host_only && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            // CUDA版
+            auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
+            auto x_ptr  = x_buf.LockDeviceMemoryConst();
+            auto dy_ptr = dy_buf.LockDeviceMemoryConst();
+            auto dx_ptr = dx_buf.LockDeviceMemory();
+            auto W0_ptr = m_W0->LockDeviceMemoryConst();
+            auto b0_ptr = m_b0->LockDeviceMemoryConst();
+            auto W1_ptr = m_W1->LockDeviceMemoryConst();
+            auto b1_ptr = m_b1->LockDeviceMemoryConst();
+            auto dW0_ptr = m_dW0->LockDeviceMemory();
+            auto db0_ptr = m_db0->LockDeviceMemory();
+            auto dW1_ptr = m_dW1->LockDeviceMemory();
+            auto db1_ptr = m_db1->LockDeviceMemory();
+
+            FrameBuffer dx_tmp(BB_TYPE_FP32, dy_buf.GetFrameSize(), m_output_node_size * N);
+            auto dx_tmp_ptr = dx_tmp.LockDeviceMemory();
+
+            bbcu_bit_fp32_MicroMlp6x16_Backward
+                (
+                    (int   const *)x_ptr.GetAddr(),
+                    (float       *)dy_ptr.GetAddr(),
+                    (float       *)dx_ptr.GetAddr(),
+                    (float       *)dx_tmp_ptr.GetAddr(),
+                    (int   const *)input_index_ptr.GetAddr(),
+                    (float const *)W0_ptr.GetAddr(),
+                    (float const *)b0_ptr.GetAddr(),
+                    (float       *)dW0_ptr.GetAddr(),
+                    (float       *)db0_ptr.GetAddr(),
+                    (float const *)W1_ptr.GetAddr(),
+                    (float const *)b1_ptr.GetAddr(),
+                    (float       *)dW1_ptr.GetAddr(),
+                    (float       *)db1_ptr.GetAddr(),
+                    (int          )m_input_node_size,
+                    (int          )m_output_node_size,
+                    (int          )dy_buf.GetFrameSize(),
+                    (int          )x_buf.GetFrameStride() / sizeof(int),
+                    (int          )dy_buf.GetFrameStride() / sizeof(float)
+                );
+            return dx_buf;
+        }
+#endif
+
 
 //      m_dW0->FillZero();
 //      m_db0->FillZero();

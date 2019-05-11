@@ -304,7 +304,28 @@ BBCU_DLL_EXPORT int bbcu_fp32_MicroMlp6x16_Backward(
             cudaStream_t    streamId = 0
         );
 
-
+BBCU_DLL_EXPORT int bbcu_bit_fp32_MicroMlp6x16_Backward
+        (
+            int   const     *dev_x_buf,
+            float const     *dev_dy_buf,
+            float           *dev_dx_buf,
+            float           *dev_dx_tmp,
+            int   const     *dev_input_index,
+            float const     *dev_hidden_W,
+            float const     *dev_hidden_b,
+            float           *dev_hidden_dW,
+            float           *dev_hidden_db,
+            float const     *dev_output_W,
+            float const     *dev_output_b,
+            float           *dev_output_dW,
+            float           *dev_output_db,
+            int             input_node_size,
+            int             output_node_size,
+            int             frame_size,
+            int             x_frame_stride,
+            int             frame_stride,
+            cudaStream_t    streamId = 0
+        );
 
 // -------------------------------------
 //  StochasticLut
