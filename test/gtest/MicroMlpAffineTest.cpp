@@ -534,7 +534,10 @@ TEST(MicroMlpAffineTest, testMicroMlpAffineCmp)
             for (int i = 0; i < output_node_size; i++) {
                 for (int j = 0; j < M; j++) {
                     for (int k = 0; k < N; k++) {
-                        EXPECT_FLOAT_EQ(p1_W0(i, j, k), p2_W0(i, j, k));
+//                        EXPECT_FLOAT_EQ(p1_W0(i, j, k), p2_W0(i, j, k));
+
+                        float th = std::max(std::abs(p1_W0(i, j, k)) * 0.0001f, 0.0001f);
+                        EXPECT_NEAR(p1_W0(i, j, k), p2_W0(i, j, k), th);
                     }
 
                     EXPECT_FLOAT_EQ(p1_b0(i, j), p2_b0(i, j));
@@ -554,7 +557,7 @@ TEST(MicroMlpAffineTest, testMicroMlpAffine_CmpBit)
 {
     const int N = 6;
     const int M = 16;
-#if 0
+#if 1
     const int input_node_size = 360;
     const int output_node_size = 60;
     const int frame_size = 64;

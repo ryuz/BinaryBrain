@@ -113,7 +113,7 @@ int bbcu_fp32_MicroMlp_Forward
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
-    int const FRAME_UNIT = 32;
+    int const FRAME_UNIT = 512;
     int const NODE_UNIT  = 32;
     
     dim3    block(FRAME_UNIT, 1);
@@ -175,7 +175,7 @@ int bbcu_fp32_MicroMlp6x16_Forward
 
 
 // bit入力版
-template <int N=6, int M=16>
+template <int N=6, int M=16, int NODE_UNIT=16>
 __global__ void kernal_bit_fp32_MicroMlp_Forward(
             int const       *x_buf,
             float           *y_buf,
@@ -184,78 +184,82 @@ __global__ void kernal_bit_fp32_MicroMlp_Forward(
             float const     *hidden_b,
             float const     *output_W,
             float const     *output_b,
+            int             node_size,
             int             frame_size,
             int             input_frame_stride,
             int             output_frame_stride
         )
 {
-    int const node    = blockIdx.x;
+    int const node_id = threadIdx.y;
+    int const node    = blockIdx.y * blockDim.y + threadIdx.y;
     int const id      = threadIdx.x;
     int const id_step = blockDim.x;
 
     // 係数読み込み
-    __shared__   float W0[M][N];
-    __shared__   float b0[M];
-    __shared__   float W1[M];
-    __shared__   float b1;
-    for ( int i = id; i < M; i += id_step ) {
-        for ( int j = 0; j < N; ++j ) {
-            W0[i][j] = hidden_W[(node * M + i) * N + j];
+    __shared__ float        W0[M][N][NODE_UNIT];
+    __shared__ float        b0[M][NODE_UNIT];
+    __shared__ float        W1[M][NODE_UNIT];
+    __shared__ float        b1[NODE_UNIT];
+    __shared__ int const    *x_ptr[N][NODE_UNIT];
+
+    if ( node < node_size) {
+        for ( int i = id; i < M; i += id_step ) {
+            for ( int j = 0; j < N; ++j ) {
+                W0[i][j][node_id] = hidden_W[(node * M + i) * N + j];
+            }
+
+            b0[i][node_id] = hidden_b[node * M + i];
+            W1[i][node_id] = output_W[node * M + i];
+        }
+        if ( id == 0 ) {
+            b1[node_id] = output_b[node];
         }
 
-        b0[i] = hidden_b[node * M + i];
-        W1[i] = output_W[node * M + i];
-    }
-    if ( id == 0 ) {
-        b1 = output_b[node];
-    }
-
-    // 読み込みアドレス
-    __shared__ int const  *x_ptr[N];
-    for ( int i = 0; i < N; ++i ) {
-        int in_idx = input_index[node*N + i];
-        x_ptr[i] = &x_buf[input_frame_stride * in_idx];
+        // 読み込みアドレス
+        for ( int i = 0; i < N; ++i ) {
+            int in_idx = input_index[node*N + i];
+            x_ptr[i][node_id] = &x_buf[input_frame_stride * in_idx];
+        }
     }
     
     __syncthreads();
 
-    // 書き込みアドレス
-    float *y_ptr = &y_buf[output_frame_stride * node];
+    if ( node < node_size) {
+        // 書き込みアドレス
+        float *y_ptr = &y_buf[output_frame_stride * node];
     
-    // 1つのSMで1nodeを全フレーム処理
-    int unit_size = (frame_size + 31) / 32;
-    for (int unit = id; unit < unit_size; unit += id_step) {
-        // 入力データ読み込み
-        int   x[N];
-        for ( int i = 0; i < N; ++i ) {
-            x[i] = x_ptr[i][unit];
-        }
-        
-        for (int bit = 0; bit < 32; ++bit) {
-            int frame = unit * 32 + bit;
-            if ( frame < frame_size ) {
-                // 計算
-                float sig1 = b1;
-                for ( int i = 0; i < M; ++i ) {
-                    float sig0 = b0[i];
-                    for ( int j = 0; j < N; ++j ) {
-                        if ( x[j] & 1 ) {
-                            sig0 += W0[i][j];
-                        }
-                    }
-                    
-                    sig0 = fmaxf(sig0, 0);  // ReLU
-                    
-                    sig1 += sig0 * W1[i];
-                }
+        // 1つのSMで1nodeを全フレーム処理
+        for ( int frame = id; frame < frame_size; frame += id_step ) {
+            int bit  = (1 << (frame & 0x1f));
+            int unit = (frame >> 5);
 
-                for ( int i = 0; i < N; ++i ) {
-                    x[i] >>= 1;
-                }
-
-                // 出力
-                y_ptr[frame] = sig1;
+            // 入力データ読み込み
+            int   x[N];
+            for ( int i = 0; i < N; ++i ) {
+                x[i] = x_ptr[i][node_id][unit];
             }
+        
+            // 計算
+            float sig1 = b1[node_id];
+            for ( int i = 0; i < M; ++i ) {
+                float sig0 = b0[i][node_id];
+                for ( int j = 0; j < N; ++j ) {
+                    if ( x[j] & bit ) {
+                        sig0 += W0[i][j][node_id];
+                    }
+                }
+            
+                sig0 = fmaxf(sig0, 0);  // ReLU
+            
+                sig1 += sig0 * W1[i][node_id];
+            }
+
+            for ( int i = 0; i < N; ++i ) {
+                x[i] >>= 1;
+            }
+
+            // 出力
+            y_ptr[frame] = sig1;
         }
     }
 }
@@ -281,12 +285,15 @@ int bbcu_bit_fp32_MicroMlp_Forward
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
-    int const thread_size = 512;
-    dim3    block(thread_size);
-    dim3    grid(output_node_size);
-    while ( (int)block.x / 2 >= ((frame_size + 31) / 32) ) {  block.x /= 2; }
+    int const FRAME_UNIT = 512;
+    int const NODE_UNIT  = 32;
+    dim3    block(FRAME_UNIT, 1);
+    while ( (int)block.x / 2 >= frame_size )       { block.x /= 2; block.y *= 2; }
+    while ( (int)block.y / 2 >= output_node_size ) { block.y /= 2; }
+    if (  block.y > NODE_UNIT ) { block.y = NODE_UNIT; }
+    dim3    grid(1, (output_node_size + (block.y - 1)) / block.y);
 
-    kernal_bit_fp32_MicroMlp_Forward<N, M><<<grid, block, 0, streamId>>>(
+    kernal_bit_fp32_MicroMlp_Forward<N, M, NODE_UNIT><<<grid, block, 0, streamId>>>(
             dev_x_buf,
             dev_y_buf,
             dev_input_index,
@@ -294,6 +301,7 @@ int bbcu_bit_fp32_MicroMlp_Forward
             dev_hidden_b,
             dev_output_W,
             dev_output_b,
+            output_node_size,
             frame_size,
             input_frame_stride,
             output_frame_stride
