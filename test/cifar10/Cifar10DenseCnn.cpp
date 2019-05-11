@@ -324,10 +324,17 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
     net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
     net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
     net->Add(bb::MaxPooling<>::Create(2, 2));
+    
+#if 1
+    net->Add(bb::MicroMlp<>::Create(1860));
+    net->Add(bb::MicroMlp<>::Create(310));
+#else
     net->Add(bb::DenseAffine<>::Create(1024));
     net->Add(bb::BatchNormalization<>::Create(bn_momentum));
     net->Add(bb::ReLU<>::Create());
     net->Add(bb::DenseAffine<>::Create(310));
+#endif
+
     if ( binary_mode ) {
 //        net->Add(bb::BatchNormalization<>::Create(bn_momentum));
 //        net->Add(bb::Binarize<>::Create());
