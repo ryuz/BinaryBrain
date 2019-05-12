@@ -52,6 +52,7 @@
     <ClCompile Include="MemoryTest.cpp" />
     <ClCompile Include="MetricsCategoricalAccuracyTest.cpp" />
     <ClCompile Include="MicroMlpAffineTest.cpp" />
+    <ClCompile Include="MicroMlpTest.cpp" />
     <ClCompile Include="OptimizerAdamTest.cpp" />
     <ClCompile Include="RealToBinaryTest.cpp" />
     <ClCompile Include="ReduceTest.cpp" />

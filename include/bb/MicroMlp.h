@@ -121,7 +121,16 @@ public:
         m_batch_norm->SendCommand(command, send_to);
         m_activation->SendCommand(command, send_to);
     }
-    
+
+    auto lock_W0(void)             { return m_affine->lock_W0(); }     
+    auto lock_W0_const(void) const { return m_affine->lock_W0_const(); }
+    auto lock_b0(void)             { return m_affine->lock_b0(); }      
+    auto lock_b0_const(void) const { return m_affine->lock_b0_const(); }
+    auto lock_W1(void)             { return m_affine->lock_W1(); }
+    auto lock_W1_const(void) const { return m_affine->lock_W1_const(); }
+    auto lock_b1(void)             { return m_affine->lock_b1(); }
+    auto lock_b1_const(void) const { return m_affine->lock_b1_const(); }
+
     /**
      * @brief  パラメータ取得
      * @detail パラメータを取得する

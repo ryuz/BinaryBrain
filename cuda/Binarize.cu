@@ -164,21 +164,19 @@ BBCU_DLL_EXPORT int bbcu_fp32_bit_Binarize_Forward
 
     unsigned int const THREAD_SIZE    = 1024;
     unsigned int const MAX_FRAME_UNIT = 1024;
-    unsigned int const MIN_FRAME_UNIT = 32;
     unsigned int const MAX_NODE_UNIT  = 1024;
 
 #if 1
     dim3    block(MAX_FRAME_UNIT, THREAD_SIZE / MAX_FRAME_UNIT);
-    while ( (int)block.x / 2 >= frame_size ) { block.x /= 2; block.y *= 2; }
-    while ( (int)block.y / 2 >= node_size )  { block.y /= 2; }
+    while ( (int)block.x / 2 >= frame_size && block.x > 32 ) { block.x /= 2; block.y *= 2; }
+    while ( (int)block.y / 2 >= node_size )                  { block.y /= 2; }
 #else
     dim3    block(THREAD_SIZE / MAX_NODE_UNIT, MAX_NODE_UNIT);
-    while ( (int)block.y / 2 >= node_size)  { block.y /= 2; block.x *= 2;}
-    while ( (int)block.x / 2 >= frame_size) { block.x /= 2; }
+    while ( (int)block.y / 2 >= node_size)                   { block.y /= 2; block.x *= 2;}
+    while ( (int)block.x / 2 >= frame_size && block.x > 32 ) { block.x /= 2; }
 #endif
 
     block.x = std::min(block.x, MAX_FRAME_UNIT);
-    block.x = std::max(block.x, MIN_FRAME_UNIT);
     block.y = std::min(block.y, MAX_NODE_UNIT);
     dim3    grid((frame_size + (block.x - 1)) / block.x , (node_size + (block.y - 1)) / block.y);
 
