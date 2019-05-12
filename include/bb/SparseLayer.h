@@ -41,11 +41,11 @@ public:
     {
         return SetNodeInput(GetShapeIndex(node, this->GetOutputShape()), input_index, input_node);
     }
-    indices_t GetNodeInput(indices_t node, index_t input_index) const
-    {
-        index_t input_node = GetOutputShape(GetShapeIndex(node, this->GetOutputShape()), input_index);
-        return GetShapeIndices(input_node, this->GetInputShape());
-    }
+//    indices_t GetNodeInput(indices_t node, index_t input_index) const
+//    {
+//        index_t input_node = GetOutputShape(GetShapeIndex(node, this->GetOutputShape()), input_index);
+//        return GetShapeIndices(input_node, this->GetInputShape());
+//    }
 
 protected:
     void InitializeNodeInput(std::uint64_t seed, std::string connection = "")
