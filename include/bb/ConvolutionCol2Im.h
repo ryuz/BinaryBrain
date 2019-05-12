@@ -228,7 +228,7 @@ public:
         FrameBuffer dx_buf(DataType<BT>::type, input_frame_size, m_c_size);
 
 #ifdef BB_WITH_CUDA
-        if ( !m_host_only && DataType<FT>::type == BB_TYPE_FP32 && dy_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() )
+        if ( !m_host_only && DataType<BT>::type == BB_TYPE_FP32 && dy_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() )
         {
             auto dy_ptr = dy_buf.LockDeviceMemoryConst();
             auto dx_ptr = dx_buf.LockDeviceMemory(true);

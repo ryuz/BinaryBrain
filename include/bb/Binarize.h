@@ -118,10 +118,11 @@ public:
         FrameBuffer y_buf(DataType<YT>::type, x_buf.GetFrameSize(), x_buf.GetShape());
 
 #ifdef BB_WITH_CUDA
-        if ( DataType<T>::type == BB_TYPE_FP32 && DataType<YT>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        if ( DataType<T>::type == BB_TYPE_FP32 && DataType<YT>::type == BB_TYPE_FP32 && !m_host_only
+            && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // CUDA版
             auto ptr_x = x_buf.LockDeviceMemoryConst();
-            auto ptr_y = y_buf.LockDeviceMemory();
+            auto ptr_y = y_buf.LockDeviceMemory(true);
             bbcu_fp32_Binarize_Forward(
                         (float const *)ptr_x.GetAddr(),
                         (float       *)ptr_y.GetAddr(),
@@ -134,6 +135,26 @@ public:
         }
 #endif
         
+#ifdef BB_WITH_CUDA
+        if ( DataType<T>::type == BB_TYPE_FP32 && DataType<YT>::type == BB_TYPE_BIT && !m_host_only
+            && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            // CUDA版
+            auto ptr_x = x_buf.LockDeviceMemoryConst();
+            auto ptr_y = y_buf.LockDeviceMemory(true);
+            bbcu_fp32_bit_Binarize_Forward
+                    (
+                        (float const *)ptr_x.GetAddr(),
+                        (int         *)ptr_y.GetAddr(),
+                        (float        )m_binary_th,
+                        (int          )x_buf.GetNodeSize(),
+                        (int          )x_buf.GetFrameSize(),
+                        (int          )(x_buf.GetFrameStride() / sizeof(float)),
+                        (int          )(y_buf.GetFrameStride() / sizeof(int))
+                    );
+            return y_buf;
+        }
+#endif
+
         {
             // 汎用版
             index_t frame_size = x_buf.GetFrameSize();

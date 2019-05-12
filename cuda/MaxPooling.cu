@@ -205,3 +205,108 @@ BBCU_DLL_EXPORT int bbcu_fp32_MaxPooling_Backward
     return 0;
 }
 
+
+
+///////////
+
+
+__global__ void kernal_bit_fp32_MaxPooling_Backward(
+            int   const *x_buf,
+            int   const *y_buf,
+            float const *dy_buf,
+            float       *dx_buf,
+            int         filter_h_size,
+            int         filter_w_size,
+            int         input_w_size,
+            int         input_h_size,
+            int         output_w_size,
+            int         output_h_size,
+            int         c_size,
+            int         frame_size,
+            int         forward_frame_stride,
+            int         backward_frame_stride
+        )
+{
+    int id      = threadIdx.x;
+    int id_step = blockDim.x;
+    int x = blockIdx.y * blockDim.y + threadIdx.y;
+    int y = blockIdx.x;
+    int c = blockIdx.z * blockDim.z + threadIdx.z;
+
+    if (y < output_h_size && x < output_w_size) {
+        // Å‘å’l‰ÓŠ‚Ì‚Ý“`”d
+        for ( int frame = id; frame < frame_size; frame += id_step ) {
+            int bit  = (1 << (frame & 0x1f));
+            int unit = (frame >> 5);
+
+            int   out_sig = (y_buf[((c * output_h_size + y) * output_w_size + x) * forward_frame_stride + unit] & bit);
+            float grad    = dy_buf[((c * output_h_size + y) * output_w_size + x) * backward_frame_stride + frame];
+            for (int fy = 0; fy < filter_h_size; ++fy) {
+                int iy = y * filter_h_size + fy;
+                if ( iy < input_h_size ) {
+                    for (int fx = 0; fx < filter_w_size; ++fx) {
+                        int ix = x * filter_w_size + fx;
+                        if ( ix < input_w_size ) {
+                            float in_sig  = (x_buf[((c * input_h_size + iy) * input_w_size + ix) * forward_frame_stride + unit] & bit);
+                            dx_buf[((c * input_h_size + iy) * input_w_size + ix) * backward_frame_stride + frame] = (in_sig == out_sig) ? grad : 0;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+BBCU_DLL_EXPORT int bbcu_bit_fp32_MaxPooling_Backward
+        (
+            int   const     *dev_x_buf,
+            int   const     *dev_y_buf,
+            float const     *dev_dy_buf,
+            float           *dev_dx_buf,
+            int             filter_h_size,
+            int             filter_w_size,
+            int             input_w_size,
+            int             input_h_size,
+            int             output_w_size,
+            int             output_h_size,
+            int             c_size,
+            int             frame_size,
+            int             forward_frame_stride,
+            int             backward_frame_stride,
+            cudaStream_t    streamId
+        )
+{
+    BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
+
+    dim3    block(32, 32, 1);
+    dim3    grid;
+    grid.x = output_h_size;
+    grid.y = (output_w_size + (block.y-1)) / block.y;
+    grid.z = c_size;
+    block.x = std::min((int)block.x, frame_size);
+    block.y = std::min((int)block.y, output_w_size);
+
+    kernal_bit_fp32_MaxPooling_Backward<<<grid, block, 0, streamId>>>(
+            dev_x_buf,
+            dev_y_buf,
+            dev_dy_buf,
+            dev_dx_buf,
+            filter_h_size,
+            filter_w_size,
+            input_w_size,
+            input_h_size,
+            output_w_size,
+            output_h_size,
+            c_size,
+            frame_size,
+            forward_frame_stride,
+            backward_frame_stride
+        );
+    BB_CUDA_CHECK_LAST_ERROR();
+
+    return 0;
+}
+
+
+// end of file

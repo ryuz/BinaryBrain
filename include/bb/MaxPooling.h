@@ -336,8 +336,38 @@ public:
                     (int          )m_output_w_size,
                     (int          )m_output_h_size,
                     (int          )m_output_c_size,
-                    (int          )y_buf.GetFrameSize(),
-                    (int          )(y_buf.GetFrameStride() / sizeof(float))
+                    (int          )dy_buf.GetFrameSize(),
+                    (int          )(dy_buf.GetFrameStride() / sizeof(float))
+                );
+
+            return dx_buf;
+        }
+#endif
+
+#ifdef BB_WITH_CUDA
+        if ( DataType<FT>::type == BB_TYPE_BIT && DataType<BT>::type == BB_TYPE_FP32 && !m_host_only 
+                && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            // CUDA版
+            auto ptr_x  = x_buf.LockDeviceMemoryConst();
+            auto ptr_y  = y_buf.LockDeviceMemoryConst();
+            auto ptr_dy = dy_buf.LockDeviceMemoryConst();
+            auto ptr_dx = dx_buf.LockDeviceMemory(true);
+            bbcu_bit_fp32_MaxPooling_Backward
+                (
+                    (int   const *)ptr_x.GetAddr(),
+                    (int   const *)ptr_y.GetAddr(),
+                    (float const *)ptr_dy.GetAddr(),
+                    (float*       )ptr_dx.GetAddr(),
+                    (int          )m_filter_h_size,
+                    (int          )m_filter_w_size,
+                    (int          )m_input_w_size,
+                    (int          )m_input_h_size,
+                    (int          )m_output_w_size,
+                    (int          )m_output_h_size,
+                    (int          )m_output_c_size,
+                    (int          )dy_buf.GetFrameSize(),
+                    (int          )(x_buf.GetFrameStride() / sizeof(int)),
+                    (int          )(dy_buf.GetFrameStride() / sizeof(float))
                 );
 
             return dx_buf;

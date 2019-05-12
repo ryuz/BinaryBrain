@@ -84,18 +84,18 @@ BBCU_DLL_EXPORT int bbcu_fp32_Binarize_Forward
 
 ////////////////
 
-__device__ __forceinline__ float device_int_LocalOr(int v, int *sbuf)
+__device__ __forceinline__ float device_int_LocalOr(int v, int id, int *sbuf)
 {
-    sbuf[threadIdx.x] = v;
+    sbuf[id] = v;
     __syncthreads();
 
     // スレッド間集計
     int comb = 1;
-    while (comb < blockDim.x) {
+    while (comb < 32) {
         int next = comb * 2;
         int mask = next - 1;
-        if ((threadIdx.x & mask) == 0) {
-            sbuf[threadIdx.x] |= sbuf[threadIdx.x + comb];
+        if ((id & mask) == 0) {
+            sbuf[id] |= sbuf[id + comb];
         }
         comb = next;
         __syncthreads();
@@ -120,14 +120,15 @@ __global__ void kernal_fp32_bit_Binarize_Forward(
 {
     int const frame = blockIdx.x * blockDim.x + threadIdx.x;
     int const node  = blockIdx.y * blockDim.y + threadIdx.y;
+    int const id    = threadIdx.y * blockDim.x + threadIdx.x;
     
     __shared__  int sbuf[32][32];
 
     float const *x_ptr = &x_buf[x_frame_stride * node];
-    int         *y_ptr = &y_buf[y_frame_stride  *node];
+    int         *y_ptr = &y_buf[y_frame_stride * node];
 
     int bit  = (frame & 0x1f);
-    int unit = ((frame >> 5) & 0x1f);
+    int unit = ((id >> 5) & 0x1f);
 
     int mask = 0;
     if ( node < node_size && frame < frame_size ) {
@@ -136,12 +137,12 @@ __global__ void kernal_fp32_bit_Binarize_Forward(
     }
 
     // 統合
-    mask = device_int_LocalOr(mask, sbuf[unit]);
+    mask = device_int_LocalOr(mask, bit, sbuf[unit]);
 
     // 書き出し
     if ( node < node_size && frame < frame_size ) {
-        if ( unit == 0 ) {
-            y_ptr[unit] = mask;
+        if ( bit == 0 ) {
+            y_ptr[frame >> 5] = mask;
         }
     }
 }
@@ -163,6 +164,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_bit_Binarize_Forward
 
     unsigned int const THREAD_SIZE    = 1024;
     unsigned int const MAX_FRAME_UNIT = 1024;
+    unsigned int const MIN_FRAME_UNIT = 32;
     unsigned int const MAX_NODE_UNIT  = 1024;
 
 #if 1
@@ -176,6 +178,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_bit_Binarize_Forward
 #endif
 
     block.x = std::min(block.x, MAX_FRAME_UNIT);
+    block.x = std::max(block.x, MIN_FRAME_UNIT);
     block.y = std::min(block.y, MAX_NODE_UNIT);
     dim3    grid((frame_size + (block.x - 1)) / block.x , (node_size + (block.y - 1)) / block.y);
 
