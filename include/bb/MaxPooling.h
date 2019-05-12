@@ -312,6 +312,9 @@ public:
         m_x_buf = FrameBuffer();
         m_y_buf = FrameBuffer();
 
+        BB_ASSERT(x_buf.GetType() == DataType<FT>::type);
+        BB_ASSERT(y_buf.GetType() == DataType<FT>::type);
+
 #ifdef BB_WITH_CUDA
         if ( DataType<BT>::type == BB_TYPE_FP32 && DataType<FT>::type == BB_TYPE_FP32 && !m_host_only 
                 && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {

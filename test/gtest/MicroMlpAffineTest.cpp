@@ -4,6 +4,8 @@
 
 #include "gtest/gtest.h"
 
+#include "bb/MicroMlp.h"
+
 #include "bb/MicroMlpAffine.h"
 #include "bb/OptimizerAdam.h"
 #include "bb/OptimizerSgd.h"
@@ -83,8 +85,10 @@ public:
 
 TEST(MicroMlpAffineTest, testMicroMlpAffine)
 {
-    auto mlp = bb::MicroMlpAffine<4, 2>::Create(1);
+    auto mlpx = bb::MicroMlp<>::Create(1);
 
+    auto mlp = bb::MicroMlpAffine<4, 2>::Create(1);
+       
     bb::FrameBuffer x(BB_TYPE_FP32, 1, 6);
 
     auto x_ptr = x.Lock<float>();

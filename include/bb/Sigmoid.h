@@ -20,7 +20,7 @@ namespace bb {
 
 // Sigmoid(活性化層)
 template <typename T = float>
-class Sigmoid : public Binarize<T>
+class Sigmoid : public Binarize<T, T>
 {
 protected:
     using Binarize<T>::m_host_only;

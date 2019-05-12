@@ -626,7 +626,7 @@ int bbcu_fp32_MicroMlp_Backward
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
     {
-        unsigned int const THREAD_SIZE    = 512;
+        unsigned int const THREAD_SIZE    = 256;
         unsigned int const MAX_FRAME_UNIT = 256;
         unsigned int const MAX_NODE_UNIT  = 16;
 
@@ -943,7 +943,7 @@ int bbcu_bit_fp32_MicroMlp_Backward
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
     {
-        unsigned int const THREAD_SIZE    = 512;
+        unsigned int const THREAD_SIZE    = 256;
         unsigned int const MAX_FRAME_UNIT = 256;
         unsigned int const MAX_NODE_UNIT  = 16;
 

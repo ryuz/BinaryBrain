@@ -629,7 +629,7 @@ public:
         BB_ASSERT(x_buf.GetType() == DataType<FXT>::type);
 
         // 出力設定
-        FrameBuffer  dx_buf(DataType<T>::type, dy_buf.GetFrameSize(), m_input_node_size);
+        FrameBuffer  dx_buf(DataType<T>::type, dy_buf.GetFrameSize(), m_input_shape);
 
         // CUDA版
 #ifdef BB_WITH_CUDA

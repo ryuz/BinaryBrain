@@ -43,17 +43,17 @@ void MnistMicroMlpLutMlp(int epoch_size, int mini_batch_size, int max_run_size, 
     auto td = bb::LoadMnist<>::Load(10);
 #endif
 
-    auto layer_mm0 = bb::MicroMlp<>::Create({1024});
-    auto layer_mm1 = bb::MicroMlp<>::Create({480});
-    auto layer_mm2 = bb::MicroMlp<>::Create({70});
+    auto layer_mm0 = bb::MicroMlp<6, 16, bb::Bit, float>::Create({1024});
+    auto layer_mm1 = bb::MicroMlp<6, 16, bb::Bit, float>::Create({480});
+    auto layer_mm2 = bb::MicroMlp<6, 16, bb::Bit, float>::Create({70});
 
     {
         auto net = bb::Sequential::Create();
-        net->Add(bb::RealToBinary<>::Create(frame_mux_size));
+        net->Add(bb::RealToBinary<float, bb::Bit>::Create(frame_mux_size));
         net->Add(layer_mm0);
         net->Add(layer_mm1);
         net->Add(layer_mm2);
-        net->Add(bb::BinaryToReal<float, float>::Create({10}, frame_mux_size));
+        net->Add(bb::BinaryToReal<bb::Bit, float>::Create({10}, frame_mux_size));
         net->SetInputShape(td.x_shape);
 
         if ( binary_mode ) {

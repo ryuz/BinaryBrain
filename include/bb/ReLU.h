@@ -20,7 +20,7 @@ namespace bb {
 
 // ReLU(活性化層)
 template <typename T = float>
-class ReLU : public Binarize<T>
+class ReLU : public Binarize<T, T>
 {
 protected:
     bool        m_binary_mode = false;

@@ -19,7 +19,7 @@ namespace bb {
 
 
 // Binarize(活性化層)
-template <typename T = float>
+template <typename T = float, typename YT = float>
 class Binarize : public Activation<T, T>
 {
 protected:
@@ -113,10 +113,10 @@ public:
         }
 
         // 戻り値のサイズ設定
-        FrameBuffer y_buf(x_buf.GetType(), x_buf.GetFrameSize(), x_buf.GetShape());
+        FrameBuffer y_buf(DataType<YT>::type, x_buf.GetFrameSize(), x_buf.GetShape());
 
 #ifdef BB_WITH_CUDA
-        if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        if ( DataType<T>::type == BB_TYPE_FP32 && DataType<YT>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // CUDA版
             auto ptr_x = x_buf.LockDeviceMemoryConst();
             auto ptr_y = y_buf.LockDeviceMemory();
@@ -138,13 +138,13 @@ public:
             index_t node_size = x_buf.GetNodeSize();
 
             auto x_ptr = x_buf.LockConst<T>();
-            auto y_ptr = y_buf.Lock<T>();
+            auto y_ptr = y_buf.Lock<YT>();
 
             // Binarize
             #pragma omp parallel for
             for (index_t node = 0; node < node_size; ++node) {
                 for (index_t frame = 0; frame < frame_size; ++frame) {
-                    y_ptr.Set(frame, node, x_ptr.Get(frame, node) > (T)0.0 ? (T)1.0 : (T)0.0);
+                    y_ptr.Set(frame, node, x_ptr.Get(frame, node) > (T)0.0 ? (YT)1.0 : (YT)0.0);
                 }
             }
 
