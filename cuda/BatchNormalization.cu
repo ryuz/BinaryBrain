@@ -156,6 +156,81 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_ForwardTraining
 }
 
 
+
+//////////////////////////////
+// Forward Inference
+//////////////////////////////
+
+__global__ void kernal_fp32_BatchNormalization_ReForward(
+            const float     *x_buf,
+            float           *y_buf,
+            float const     *gamma_buf,
+            float const     *beta_buf,
+            float const     *mean_buf,
+            float const     *rstd_buf,
+            int             frame_size,
+            int             frame_stride
+        )
+{
+    // èâä˙âª
+    int const node    = blockIdx.x;
+    int const id      = threadIdx.x;
+    int const id_step = blockDim.x;
+
+    float mean  = mean_buf[node];
+    float rstd  = rstd_buf[node];
+    float gamma = gamma_buf[node];
+    float beta  = beta_buf[node];
+
+    float const *x_ptr = &x_buf[frame_stride * node];
+    float       *y_ptr = &y_buf[frame_stride * node];
+
+    for ( int frame = id; frame < frame_size; frame += id_step) {
+        float x = x_ptr[frame];
+        x = (x - mean) * rstd;
+        x = x * gamma + beta;
+        y_ptr[frame] = x;
+    }
+}
+
+
+BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_ReForward
+        (
+            float const     *dev_x_buf,
+            float           *dev_y_buf,
+            float const     *dev_gamma_buf,
+            float const     *dev_beta_buf,
+            float const     *dev_mean_buf,
+            float const     *dev_rstd_buf,
+            int             node_size,  
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId
+        )
+{
+    BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
+
+    dim3    grid(node_size);
+    dim3    block(BBCU_BATCHNORM_FW_BLOCK_SIZE);
+
+    kernal_fp32_BatchNormalization_ReForward<<<grid, block, 0, streamId>>>
+        (
+            dev_x_buf,
+            dev_y_buf,
+            dev_gamma_buf,
+            dev_beta_buf,
+            dev_mean_buf,
+            dev_rstd_buf,
+            frame_size,
+            frame_stride
+        );
+    BB_CUDA_CHECK_LAST_ERROR();
+
+    return 0;
+}
+
+
+
 //////////////////////////////
 // Forward Inference
 //////////////////////////////

@@ -381,6 +381,10 @@ public:
     }
     
 
+    void        SetFrameBufferX(FrameBuffer x) { m_x_buf = x; }
+    FrameBuffer GetFrameBufferX(void)          { return m_x_buf; }
+
+
     // ノード単位でのForward計算
     std::vector<double> ForwardNode(index_t node, std::vector<double> input_value) const
     {
@@ -979,6 +983,7 @@ public:
             return dx_buf;
         }
     }
+
 };
 
 

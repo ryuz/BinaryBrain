@@ -300,6 +300,8 @@ public:
         return y_vec;
     }
 
+    void        SetFrameBufferX(FrameBuffer x_buf) { m_x_buf = x_buf; }
+    FrameBuffer GetFrameBufferX(void)              { return m_x_buf; }
 
     /**
      * @brief  forward演算
@@ -559,6 +561,85 @@ public:
             return y_buf;
         }
  
+    }
+
+
+    // forward 再計算
+    FrameBuffer ReForward(FrameBuffer x_buf)
+    {
+        // bypass
+        if (m_bypass) {
+            return x_buf;
+        }
+
+        // 出力設定
+        FrameBuffer y_buf(x_buf.GetType(), x_buf.GetFrameSize(), x_buf.GetShape());
+
+        // backwardの為に保存
+        m_x_buf = x_buf;
+
+        
+#ifdef BB_WITH_CUDA
+        if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            // CUDA版
+            auto dev_x_ptr     = x_buf.LockDeviceMemoryConst();
+            auto dev_y_ptr     = y_buf.LockDeviceMemory(true);
+            auto dev_gamma_ptr = m_gamma->LockDeviceMemoryConst();
+            auto dev_beta_ptr  = m_beta->LockDeviceMemoryConst();
+            auto dev_mean_ptr  = m_mean.LockDeviceMemoryConst();
+            auto dev_rstd_ptr  = m_rstd.LockDeviceMemoryConst();
+
+            bbcu_fp32_BatchNormalization_ReForward
+                (
+                    (float const *)dev_x_ptr.GetAddr(),
+                    (float       *)dev_y_ptr.GetAddr(),
+                    (float const *)dev_gamma_ptr.GetAddr(),
+                    (float const *)dev_beta_ptr.GetAddr(),
+                    (float       *)dev_mean_ptr.GetAddr(),
+                    (float       *)dev_rstd_ptr.GetAddr(),
+                    (int          )x_buf.GetNodeSize(),
+                    (int          )x_buf.GetFrameSize(),
+                    (int          )x_buf.GetFrameStride() / sizeof(float)
+                );
+            return y_buf;
+        }
+#endif
+
+        {
+            // 汎用版
+            auto node_size        = x_buf.GetNodeSize();
+            auto frame_size       = x_buf.GetFrameSize();
+
+            auto x_ptr            = x_buf.LockConst<T>();
+            auto y_ptr            = y_buf.Lock<T>();
+            
+            auto gamma_ptr        = lock_gamma_const();
+            auto beta_ptr         = lock_beta_const();
+
+            auto mean_ptr         = m_mean.Lock();
+            auto rstd_ptr         = m_rstd.Lock();        
+            auto running_mean_ptr = m_running_mean.Lock();
+            auto running_var_ptr  = m_running_var.Lock();
+
+            #pragma omp parallel for
+            for (index_t node = 0; node < node_size; ++node) {
+                // 集計
+                T mean = mean_ptr[node];
+                T rstd = rstd_ptr[node];
+
+                // 正規化
+                T   gamma = gamma_ptr[node];
+                T   beta  = beta_ptr[node];
+                for ( index_t frame = 0; frame < frame_size; ++frame) {
+                    T x = x_ptr.Get(frame, node);
+                    x = (x - mean) * rstd;
+                    x = x * gamma + beta;
+                    y_ptr.Set(frame, node, x);
+                }
+            }
+
+            return y_buf;
+        }
     }
 
 

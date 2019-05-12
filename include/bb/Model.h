@@ -153,7 +153,6 @@ public:
         return GetShapeSize(GetOutputShape());
     }
 
-
     // ノード単位でのForward計算
     virtual std::vector<double> ForwardNode(index_t node, std::vector<double> x) const { return x; }
 //  virtual std::vector<double> BackwardNode(index_t node, std::vector<double> dy) const { return dy; }
@@ -166,7 +165,7 @@ public:
      * @param  train 学習時にtrueを指定
      * @return forward演算結果
      */
-    virtual FrameBuffer Forward(FrameBuffer x, bool train=true) = 0;
+    virtual FrameBuffer Forward(FrameBuffer x_buf, bool train=true) = 0;
 
    /**
      * @brief  forward演算(複数入力対応)
@@ -181,6 +180,14 @@ public:
         return {y};
     }
 
+    virtual FrameBuffer ReForward(FrameBuffer x_buf)
+    {
+        return Forward(x_buf, false);
+    }
+
+    virtual void        SetFrameBufferX(FrameBuffer x_buf) {}
+    virtual FrameBuffer GetFrameBufferX(void) { return FrameBuffer(); }
+    
 
 protected:
     /**
@@ -233,7 +240,7 @@ public:
      *         
      * @return backward演算結果
      */
-    virtual FrameBuffer Backward(FrameBuffer dy) = 0;
+    virtual FrameBuffer Backward(FrameBuffer dy_buf) = 0;
 
    /**
      * @brief  backward演算(複数入力対応)

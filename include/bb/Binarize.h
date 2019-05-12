@@ -95,6 +95,8 @@ public:
         return y_vec;
     }
     
+    void        SetFrameBufferX(FrameBuffer x_buf) { m_x_buf = x_buf; }
+    FrameBuffer GetFrameBufferX(void)              { return m_x_buf; }
 
     /**
      * @brief  forward演算

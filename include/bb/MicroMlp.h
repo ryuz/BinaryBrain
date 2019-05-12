@@ -29,6 +29,8 @@ class MicroMlp : public SparseLayer<T, T>
     using _super = SparseLayer<T, T>;
 
 protected:
+    bool                                            m_memory_saving = true;
+
     // 3層で構成
     std::shared_ptr< MicroMlpAffine<N, M, FT, T> >  m_affine;
     std::shared_ptr< BatchNormalization<T>       >  m_batch_norm;
@@ -72,6 +74,14 @@ protected:
         m_activation = Binarize<T, FT>::Create();
     }
 
+    void CommandProc(std::vector<std::string> args)
+    {
+        if ( args.size() == 2 && args[0] == "memory_saving" )
+        {
+            m_memory_saving = EvalBool(args[1]);
+        }
+    }
+
 public:
     // デストラクタ
     ~MicroMlp() {}
@@ -105,6 +115,8 @@ public:
      */   
     void SendCommand(std::string command, std::string send_to = "all")
     {
+        _super::SendCommand(command, send_to);
+
         m_affine    ->SendCommand(command, send_to);
         m_batch_norm->SendCommand(command, send_to);
         m_activation->SendCommand(command, send_to);
@@ -208,12 +220,18 @@ public:
      * @param  train 学習時にtrueを指定
      * @return forward演算結果
      */
-    FrameBuffer Forward(FrameBuffer x, bool train = true)
+    FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-        x = m_affine    ->Forward(x, train);
-        x = m_batch_norm->Forward(x, train);
-        x = m_activation->Forward(x, train);
-        return x;
+        x_buf = m_affine    ->Forward(x_buf, train);
+        x_buf = m_batch_norm->Forward(x_buf, train);
+        x_buf = m_activation->Forward(x_buf, train);
+
+        if (m_memory_saving) {
+            m_batch_norm->SetFrameBufferX(FrameBuffer());   // クリア
+            m_activation->SetFrameBufferX(FrameBuffer());   // クリア
+        }
+
+        return x_buf;
     }
 
    /**
@@ -222,13 +240,22 @@ public:
      *         
      * @return backward演算結果
      */
-    FrameBuffer Backward(FrameBuffer dy)
+    FrameBuffer Backward(FrameBuffer dy_buf)
     {
-        dy = m_activation->Backward(dy);
-        dy = m_batch_norm->Backward(dy);
-        dy = m_affine    ->Backward(dy);
-        return dy; 
+        if (m_memory_saving) {
+            // 再計算
+            FrameBuffer x_buf;
+            x_buf = m_affine    ->ReForward(m_affine->GetFrameBufferX());
+            x_buf = m_batch_norm->ReForward(x_buf);
+            m_activation->SetFrameBufferX(x_buf);
+        }
+
+        dy_buf = m_activation->Backward(dy_buf);
+        dy_buf = m_batch_norm->Backward(dy_buf);
+        dy_buf = m_affine    ->Backward(dy_buf);
+        return dy_buf; 
     }
+
 
 protected:
     /**

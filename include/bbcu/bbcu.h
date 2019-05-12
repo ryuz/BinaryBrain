@@ -418,6 +418,20 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_ForwardTraining
             cudaStream_t    streamId = 0
         );
 
+BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_ReForward
+        (
+            float const     *dev_x_buf,
+            float           *dev_y_buf,
+            float const     *dev_gamma_buf,
+            float const     *dev_beta_buf,
+            float const     *dev_mean_buf,
+            float const     *dev_rstd_buf,
+            int             node_size,  
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId = 0
+        );
+
 BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_ForwardInference
         (
             float const     *dev_x_buf,

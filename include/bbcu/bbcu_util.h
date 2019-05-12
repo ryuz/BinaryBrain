@@ -83,17 +83,24 @@ void DumpDeviceMemory(std::string filename, T const *addr, int size)
 }
 
 
+#define BB_USE_LOCAL_HEAP   1
 
 inline void Malloc(void **ptr, size_t size)
 {
+#if BB_USE_LOCAL_HEAP
     *ptr = bbcu_LocalHeap_Malloc(size);
-//  BB_CUDA_SAFE_CALL(cudaMalloc(ptr, size));
+#else
+    BB_CUDA_SAFE_CALL(cudaMalloc(ptr, size));
+#endif
 }
 
 inline void Free(void *ptr)
 {
+#if BB_USE_LOCAL_HEAP
     bbcu_LocalHeap_Free(ptr);
-//  BB_CUDA_SAFE_CALL(cudaFree(ptr));
+#else
+    BB_CUDA_SAFE_CALL(cudaFree(ptr));
+#endif
 }
 
 inline void MallocHost(void **ptr, size_t size, unsigned int flags = 0)
