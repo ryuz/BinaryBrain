@@ -154,6 +154,11 @@ public:
     }
 
 
+    // ノード単位でのForward計算
+    virtual std::vector<double> ForwardNode(index_t node, std::vector<double> x) const { return x; }
+//  virtual std::vector<double> BackwardNode(index_t node, std::vector<double> dy) const { return dy; }
+
+
    /**
      * @brief  forward演算
      * @detail forward演算を行う

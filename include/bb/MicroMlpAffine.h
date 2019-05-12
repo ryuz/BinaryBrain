@@ -382,7 +382,7 @@ public:
     
 
     // ノード単位でのForward計算
-    std::vector<FXT> ForwardNode(index_t node, std::vector<FXT> input_value) const
+    std::vector<double> ForwardNode(index_t node, std::vector<double> input_value) const
     {
         auto W0 = lock_W0_const();
         auto b0 = lock_b0_const();
@@ -394,23 +394,29 @@ public:
         for (index_t i = 0; i < M; ++i) {
             value0[i] = b0(node, i);
             for (index_t j = 0; j < N; ++j) {
-                value0[i] += input_value[j] * W0(node, i, j);
+                value0[i] += (T)input_value[j] * W0(node, i, j);
             }
         }
 
         // ReLU
         for (index_t i = 0; i < M; ++i) {
-            value0[i] = std::max(value0[i], (T)0);;
+            value0[i] = std::max(value0[i], (T)0.0);
         }
 
         // affine1
-        std::vector<FXT> value1(1);
+        std::vector<T> value1(1);
         value1[0] = b1(node);
         for (index_t i = 0; i < M; ++i) {
             value1[0] = value1[0] + value0[i] * W1(node, i);
         }
-        
-        return value1;
+
+        // 型変換
+        std::vector<double> value2(M);
+        for (index_t i = 0; i < M; ++i) {
+            value2[i] = (double)value1[i];
+        }
+
+        return value2;
     }
 
 

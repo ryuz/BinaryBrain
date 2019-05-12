@@ -543,17 +543,17 @@ __global__ void kernal_fp32_MicroMlp_Backward
     __syncthreads();
 
     // 係数統合
-    if ( node < node_size ) {
-        for ( int i = 0; i < M; ++i ) {
-            for ( int j = 0; j < N; ++j ) {
-                dW0[i][j] = device_fp32_LocalSum(dW0[i][j], sbuf[node_id]);
-            }
-            db0[i] = device_fp32_LocalSum(db0[i], sbuf[node_id]);
-            dW1[i] = device_fp32_LocalSum(dW1[i], sbuf[node_id]);
+    for ( int i = 0; i < M; ++i ) {
+        for ( int j = 0; j < N; ++j ) {
+            dW0[i][j] = device_fp32_LocalSum(dW0[i][j], sbuf[node_id]);
         }
-        db1 = device_fp32_LocalSum(db1, sbuf[node_id]);
+        db0[i] = device_fp32_LocalSum(db0[i], sbuf[node_id]);
+        dW1[i] = device_fp32_LocalSum(dW1[i], sbuf[node_id]);
+    }
+    db1 = device_fp32_LocalSum(db1, sbuf[node_id]);
 
-        // 勾配出力
+    // 勾配出力
+    if ( node < node_size ) {
         for ( int i = id; i < M; i += id_step ) {
             for ( int j = 0; j < N; ++j ) {
                 hidden_dW[(node * M + i) * N + j] = dW0[i][j] + dW0_prev[i][j][node_id];
@@ -889,17 +889,17 @@ __global__ void kernal_bit_fp32_MicroMlp_Backward
     __syncthreads();
 
     // 係数統合
-    if ( node < node_size ) {
-        for ( int i = 0; i < M; ++i ) {
-            for ( int j = 0; j < N; ++j ) {
-                dW0[i][j] = device_fp32_LocalSum(dW0[i][j], sbuf[node_id]);
-            }
-            db0[i] = device_fp32_LocalSum(db0[i], sbuf[node_id]);
-            dW1[i] = device_fp32_LocalSum(dW1[i], sbuf[node_id]);
+    for ( int i = 0; i < M; ++i ) {
+        for ( int j = 0; j < N; ++j ) {
+            dW0[i][j] = device_fp32_LocalSum(dW0[i][j], sbuf[node_id]);
         }
-        db1 = device_fp32_LocalSum(db1, sbuf[node_id]);
+        db0[i] = device_fp32_LocalSum(db0[i], sbuf[node_id]);
+        dW1[i] = device_fp32_LocalSum(dW1[i], sbuf[node_id]);
+    }
+    db1 = device_fp32_LocalSum(db1, sbuf[node_id]);
 
-        // 勾配出力
+    // 勾配出力
+    if ( node < node_size ) {
         for ( int i = id; i < M; i += id_step ) {
             for ( int j = 0; j < N; ++j ) {
                 hidden_dW[(node * M + i) * N + j] = dW0[i][j] + dW0_prev[i][j][node_id];

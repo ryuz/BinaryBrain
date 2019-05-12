@@ -92,15 +92,15 @@ public:
 
 
     // 1ノードのみForward計算
-    std::vector<T> ForwardNode(index_t node, std::vector<T> x_vec) const
+    std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
     {
         if ( m_binary_mode ) {
             return Binarize<T>::ForwardNode(node, x_vec);
         }
 
         for ( auto& x : x_vec ) {
-            if ( x <= m_hardtanh_min ) { x = m_hardtanh_min; }
-            if ( x >= m_hardtanh_max ) { x = m_hardtanh_max; }
+            if ( x <= m_hardtanh_min ) { x = (double)m_hardtanh_min; }
+            if ( x >= m_hardtanh_max ) { x = (double)m_hardtanh_max; }
         }
         return x_vec;
     }

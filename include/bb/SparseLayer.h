@@ -11,7 +11,7 @@
 
 #include <set>
 
-#include "bb/Layer.h"
+#include "bb/Model.h"
 #include "bb/ShuffleSet.h"
 #include "bb/Utility.h"
 
@@ -21,7 +21,7 @@ namespace bb {
 
 // 入力接続数に制限のあるネット
 template <typename FT = float, typename BT = float>
-class SparseLayer : public Layer<FT, BT>
+class SparseLayer : public Model
 {
 public:
     //ノードの 疎結合の管理

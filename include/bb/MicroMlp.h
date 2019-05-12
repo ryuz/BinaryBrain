@@ -193,7 +193,7 @@ public:
         return m_affine->GetNodeInput(node, input_index);
     }
 
-    std::vector<T> ForwardNode(index_t node, std::vector<T> x_vec) const
+    std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
     {
         x_vec = m_affine    ->ForwardNode(node, x_vec);
         x_vec = m_batch_norm->ForwardNode(node, x_vec);

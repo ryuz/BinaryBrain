@@ -204,13 +204,13 @@ public:
         return m_lut->GetNodeInput(node, input_index);
     }
 
-    std::vector<T> ForwardNode(index_t node, std::vector<T> x_vec) const
+    std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
     {
         index_t input_size = this->GetNodeInputSize(node);
         BB_ASSERT(input_size == x_vec.size());
 
         if ( m_bn_enable ) {
-            std::vector<T> tmp(1);
+            std::vector<double> tmp(1);
             for (index_t i = 0; i < input_size; ++i) {
                 index_t input_node = this->GetNodeInput(node, i);
                 tmp[0] = x_vec[i];
@@ -222,7 +222,7 @@ public:
         x_vec = m_lut->ForwardNode(node, x_vec);
 
         for (auto &x : x_vec) {
-            x = (x - (T)0.5);
+            x = (x - 0.5);
         }
 
         return x_vec;

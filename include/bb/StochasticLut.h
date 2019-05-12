@@ -205,7 +205,7 @@ public:
         return m_lut->GetNodeInput(node, input_index);
     }
 
-    std::vector<T> ForwardNode(index_t node, std::vector<T> x_vec) const
+    std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
     {
         index_t input_size = this->GetNodeInputSize(node);
         BB_ASSERT(input_size == x_vec.size());

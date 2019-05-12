@@ -86,11 +86,11 @@ public:
     
     
     // ノード単位でのForward計算
-    std::vector<T> ForwardNode(index_t node, std::vector<T> x_vec) const
+    std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
     {
-        std::vector<T> y_vec;
+        std::vector<double> y_vec;
         for ( auto x : x_vec ) {
-            y_vec.push_back((x > (T)0.0) ? (T)1.0 : (T)0.0);
+            y_vec.push_back((x > 0.0) ? 1.0 : 0.0);
         }
         return y_vec;
     }

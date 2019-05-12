@@ -302,7 +302,7 @@ public:
     
 
     // ノード単位でのForward計算
-    std::vector<T> ForwardNode(index_t node, std::vector<T> input_value) const
+    std::vector<double> ForwardNode(index_t node, std::vector<double> input_value) const
     {
         BB_ASSERT(input_value.size() == 6);
 
@@ -320,7 +320,7 @@ public:
 
         T   xp[6], xn[6];
         for ( int i = 0; i < 6; ++i) {
-            xp[i] = input_value[i];
+            xp[i] = (T)input_value[i];
             xp[i] = std::min((T)1.0, std::max((T)0.0, xp[i]));
             xn[i] = (T)1.0 - xp[i];
         }
@@ -407,8 +407,8 @@ public:
         y = std::max((T)0.0, y);
         y = std::min((T)1.0, y);
         
-        std::vector<T> result;
-        result.push_back(y);
+        std::vector<double> result;
+        result.push_back((double)y);
 
         return result;
     }

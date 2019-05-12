@@ -69,15 +69,15 @@ public:
 
 
     // 1ノードのみForward計算
-    std::vector<T> ForwardNode(index_t node, std::vector<T> x_vec) const
+    std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
     {
         if ( m_binary_mode ) {
             return Binarize<T>::ForwardNode(node, x_vec);
         }
 
-        std::vector<T> y_vec;
+        std::vector<double> y_vec;
         for ( auto x : x_vec ) {
-            y_vec.push_back((x > (T)0.0) ? x : (T)0.0); // ReLU
+            y_vec.push_back((x > 0.0) ? x : 0.0); // ReLU
         }
 
         return y_vec;

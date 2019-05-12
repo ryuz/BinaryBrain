@@ -79,13 +79,13 @@ public:
             }
 
             // 係数をバイナリ化
-            std::vector<SFT> vec(input_size);
+            std::vector<double> vec(input_size);
             for (int index = 0; index < table_size; ++index) {
                 for (int bit = 0; bit < input_size; ++bit) {
-                    vec[bit] = (index & (1 << bit)) ? (SFT)1.0 : (SFT)0.0;
+                    vec[bit] = (index & (1 << bit)) ? 1.0 : 0.0;
                 }
                 auto v = src->ForwardNode(node, vec);
-                this->SetLutTable(node, index, (v[0] >= (SFT)0.5));
+                this->SetLutTable(node, index, (v[0] >= 0.5));
             }
         }
     }

@@ -281,7 +281,7 @@ public:
     
 
     // ノード単位でのForward計算
-    std::vector<T> ForwardNode(index_t node, std::vector<T> x_vec) const
+    std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
     {
         BB_DEBUG_ASSERT(node >= 0 && node < m_node_size);
 
@@ -290,12 +290,12 @@ public:
         auto running_mean_ptr = m_running_mean.LockConst();
         auto running_var_ptr  = m_running_var.LockConst();
 
-        std::vector<T> y_vec(x_vec.size());
+        std::vector<double> y_vec(x_vec.size());
         for (size_t i = 0; i < x_vec.size(); ++i) {
             y_vec[i]  = x_vec[i];
-            y_vec[i] -= running_mean_ptr(node);
-            y_vec[i] /= (T)sqrt(running_var_ptr(node)) + (T)1.0e-7;
-            y_vec[i]  = y_vec[i] * gamma_ptr(node) + beta_ptr(node);
+            y_vec[i] -= (double)running_mean_ptr(node);
+            y_vec[i] /= sqrt((double)running_var_ptr(node)) + 1.0e-7;
+            y_vec[i]  = y_vec[i] * (double)gamma_ptr(node) + (double)beta_ptr(node);
         }
         return y_vec;
     }

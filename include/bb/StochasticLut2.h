@@ -271,7 +271,7 @@ public:
     
 
     // ノード単位でのForward計算
-    std::vector<T> ForwardNode(index_t node, std::vector<T> input_value) const
+    std::vector<double> ForwardNode(index_t node, std::vector<double> input_value) const
     {
         /*
         auto W = lock_W_const();
