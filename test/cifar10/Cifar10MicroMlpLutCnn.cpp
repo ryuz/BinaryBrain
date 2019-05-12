@@ -39,6 +39,112 @@
 void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size,
                                     int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
 {
+    std::string net_name = "Cifar10MiroMlpLutCnn_bit2";
+
+  // load cifar-10 data
+#ifdef _DEBUG
+    auto td = bb::LoadCifar10<>::Load(1);
+    std::cout << "!!! debug mode !!!" << std::endl;
+#else
+    auto td = bb::LoadCifar10<>::Load();
+#endif
+
+    // create network
+    auto layer_cnv0_mm0 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(512);
+    auto layer_cnv0_mm1 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(384);
+    auto layer_cnv0_mm2 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(64);
+    
+    auto layer_cnv1_mm0 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(512);
+    auto layer_cnv1_mm1 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(384);
+    auto layer_cnv1_mm2 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(64);
+    
+    auto layer_cnv2_mm0 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(1024);
+    auto layer_cnv2_mm1 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(768);
+    auto layer_cnv2_mm2 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(128);
+    
+    auto layer_cnv3_mm0 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(1024);
+    auto layer_cnv3_mm1 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(768);
+    auto layer_cnv3_mm2 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(128);
+
+    auto layer_mm4      = bb::MicroMlp<6, 16, bb::Bit, float>::Create(2048);
+    auto layer_mm5      = bb::MicroMlp<6, 16, bb::Bit, float>::Create(1024);
+    auto layer_mm6      = bb::MicroMlp<6, 16, bb::Bit, float>::Create(310);
+
+    {
+        auto cnv0_sub = bb::Sequential::Create();
+        cnv0_sub->Add(layer_cnv0_mm0);
+        cnv0_sub->Add(layer_cnv0_mm1);
+        cnv0_sub->Add(layer_cnv0_mm2);
+
+        auto cnv1_sub = bb::Sequential::Create();
+        cnv1_sub->Add(layer_cnv1_mm0);
+        cnv1_sub->Add(layer_cnv1_mm1);
+        cnv1_sub->Add(layer_cnv1_mm2);
+
+        auto cnv2_sub = bb::Sequential::Create();
+        cnv2_sub->Add(layer_cnv2_mm0);
+        cnv2_sub->Add(layer_cnv2_mm1);
+        cnv2_sub->Add(layer_cnv2_mm2);
+
+        auto cnv3_sub = bb::Sequential::Create();
+        cnv3_sub->Add(layer_cnv3_mm0);
+        cnv3_sub->Add(layer_cnv3_mm1);
+        cnv3_sub->Add(layer_cnv3_mm2);
+        
+        auto net = bb::Sequential::Create();
+        net->Add(bb::RealToBinary<float, bb::Bit>::Create(frame_mux_size));
+        net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3));
+        net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3));
+        net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
+        net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv2_sub, 3, 3));
+        net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3));
+        net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
+        net->Add(layer_mm4);
+        net->Add(layer_mm5);
+        net->Add(layer_mm6);
+        net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, frame_mux_size));
+        net->SetInputShape(td.x_shape);
+
+        if ( binary_mode ) {
+            std::cout << "binary mode" << std::endl;
+            net->SendCommand("binary true");
+        }
+
+        // print model information
+        net->PrintInfo();
+
+        std::cout << "epoch_size         : " << epoch_size         << std::endl;
+        std::cout << "mini_batch_size    : " << mini_batch_size    << std::endl;
+        std::cout << "max_run_size       : " << max_run_size       << std::endl;
+        std::cout << "frame_mux_size     : " << frame_mux_size     << std::endl;
+        std::cout << "lut_frame_mux_size : " << lut_frame_mux_size << std::endl;
+        std::cout << "binary_mode        : " << binary_mode        << std::endl;
+        std::cout << "file_read          : " << file_read          << std::endl;
+
+        // run fitting
+        bb::Runner<float>::create_t runner_create;
+        runner_create.name               = net_name;
+        runner_create.net                = net;
+        runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
+        runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
+        runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
+        runner_create.max_run_size       = max_run_size;    // 実際の1回の実行サイズ
+        runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
+        runner_create.file_write         = true;            // 計算結果をファイルに保存するか
+        runner_create.print_progress     = true;            // 途中結果を表示
+        runner_create.initial_evaluation = file_read;       // ファイルを読んだ場合は最初に評価しておく
+        auto runner = bb::Runner<float>::Create(runner_create);
+        runner->Fitting(td, epoch_size, mini_batch_size);
+    }
+}
+
+
+#if 0
+
+// CNN with LUT networks
+void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size,
+                                    int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
+{
     std::string net_name = "Cifar10MiroMlpLutCnn_bit";
 
   // load cifar-10 data
@@ -262,6 +368,8 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
         }
     }
 }
+
+#endif
 
 
 #if 0

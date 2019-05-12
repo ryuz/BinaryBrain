@@ -30,10 +30,7 @@ protected:
     index_t         m_c_size = 1;
     index_t         m_h_size = 1;
     index_t         m_w_size = 1;
-    
-//    FrameBuffer     m_y_buf;
-//    FrameBuffer     m_dx_buf;
-    
+        
 protected:
     ConvolutionCol2Im() {}
 

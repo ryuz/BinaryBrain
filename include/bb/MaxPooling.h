@@ -41,7 +41,6 @@ protected:
 
     FrameBuffer         m_x_buf;
     FrameBuffer         m_y_buf;
-//    FrameBuffer         m_dx;
 
 protected:
     MaxPooling() {}
