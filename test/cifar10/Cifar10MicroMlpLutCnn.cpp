@@ -50,25 +50,24 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
 #endif
 
     // create network
-    auto layer_cnv0_mm0 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(512);
+    auto layer_cnv0_mm0 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(2304);
     auto layer_cnv0_mm1 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(384);
     auto layer_cnv0_mm2 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(64);
     
-    auto layer_cnv1_mm0 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(512);
+    auto layer_cnv1_mm0 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(2304);
     auto layer_cnv1_mm1 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(384);
     auto layer_cnv1_mm2 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(64);
     
-    auto layer_cnv2_mm0 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(1024);
+    auto layer_cnv2_mm0 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(4608);
     auto layer_cnv2_mm1 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(768);
     auto layer_cnv2_mm2 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(128);
     
-    auto layer_cnv3_mm0 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(1024);
+    auto layer_cnv3_mm0 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(4608);
     auto layer_cnv3_mm1 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(768);
     auto layer_cnv3_mm2 = bb::MicroMlp<6, 16, bb::Bit, float>::Create(128);
 
-    auto layer_mm4      = bb::MicroMlp<6, 16, bb::Bit, float>::Create(2048);
-    auto layer_mm5      = bb::MicroMlp<6, 16, bb::Bit, float>::Create(1024);
-    auto layer_mm6      = bb::MicroMlp<6, 16, bb::Bit, float>::Create(310);
+    auto layer_mm4      = bb::MicroMlp<6, 16, bb::Bit, float>::Create(1860);
+    auto layer_mm5      = bb::MicroMlp<6, 16, bb::Bit, float>::Create(310);
 
     {
         auto cnv0_sub = bb::Sequential::Create();
@@ -101,7 +100,6 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
         net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
         net->Add(layer_mm4);
         net->Add(layer_mm5);
-        net->Add(layer_mm6);
         net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, frame_mux_size));
         net->SetInputShape(td.x_shape);
 

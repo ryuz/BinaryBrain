@@ -45,10 +45,6 @@ protected:
     index_t         m_output_w_size;
     std::string     m_padding;
 
-    // メモリの確保/開放を繰り返さないように演算後も確保
-//    FrameBuffer     m_y_buf;
-//    FrameBuffer     m_dx_buf;
-
 public:
     struct create_t
     {
