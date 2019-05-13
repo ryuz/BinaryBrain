@@ -3,12 +3,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>LutCnn -run_size 12 -mini_batch 24 -frame_mux_size 1 -lut_frame_mux_size 1 -read 0 -epoch 32</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>LutCnn -run_size 12 -mini_batch 12 -frame_mux_size 3 -lut_frame_mux_size 3 -read 0 -epoch 32</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DbgCpu|Win32'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>LutCnn -run_size 12 -mini_batch 24 -frame_mux_size 1 -lut_frame_mux_size 1 -read 0 -epoch 32</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>LutCnn -run_size 12 -mini_batch 12 -frame_mux_size 3 -lut_frame_mux_size 3 -read 0 -epoch 32</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugCpu|Win32'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
@@ -17,12 +17,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>LutCnn -run_size 12 -mini_batch 24 -frame_mux_size 1 -lut_frame_mux_size 1 -read 0 -epoch 32</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>LutCnn -run_size 12 -mini_batch 12 -frame_mux_size 3 -lut_frame_mux_size 3 -read 0 -epoch 32</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelCpu|Win32'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>LutCnn -run_size 12 -mini_batch 24 -frame_mux_size 1 -lut_frame_mux_size 1 -read 0 -epoch 32</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>LutCnn -run_size 12 -mini_batch 12 -frame_mux_size 3 -lut_frame_mux_size 3 -read 0 -epoch 32</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseCpu|Win32'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
@@ -31,12 +31,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>LutCnn -run_size 12 -mini_batch 24 -frame_mux_size 1 -lut_frame_mux_size 1 -read 0 -epoch 32</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>LutCnn -run_size 12 -mini_batch 12 -frame_mux_size 3 -lut_frame_mux_size 3 -read 0 -epoch 32</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DbgCpu|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>LutCnn -run_size 12 -mini_batch 24 -frame_mux_size 1 -lut_frame_mux_size 1 -read 0 -epoch 32</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>LutCnn -run_size 12 -mini_batch 12 -frame_mux_size 3 -lut_frame_mux_size 3 -read 0 -epoch 32</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugCpu|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
@@ -45,12 +45,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>LutCnn -run_size 12 -mini_batch 24 -frame_mux_size 1 -lut_frame_mux_size 1 -read 0 -epoch 32</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>LutCnn -run_size 12 -mini_batch 12 -frame_mux_size 3 -lut_frame_mux_size 3 -read 0 -epoch 32</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelCpu|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>LutCnn -run_size 12 -mini_batch 24 -frame_mux_size 1 -lut_frame_mux_size 1 -read 0 -epoch 32</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>LutCnn -run_size 12 -mini_batch 12 -frame_mux_size 3 -lut_frame_mux_size 3 -read 0 -epoch 32</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseCpu|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>

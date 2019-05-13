@@ -90,6 +90,15 @@ public:
         }
 
         // 適切なサイズのリザーブが無ければ新規取得
+
+        // 先にサイズ加算して開放を動かす
+        m_allocated_size += size;
+        m_max_alloc_size = std::max(m_max_alloc_size, m_allocated_size);
+        while ((m_allocated_size + m_reserve_size) > (m_max_alloc_size * 3 / 2) ) {
+            FreeGarbage();
+        }
+
+        // 新規メモリ確保
         do {
             void *ptr;
             cudaError_t err = cudaMalloc(&ptr, size);
@@ -97,17 +106,12 @@ public:
                 // 登録
                 BBCU_ASSERT(m_allocated_map.count(ptr) == 0); 
                 m_allocated_map[ptr] = size;
-                m_allocated_size += size;
-
-                m_max_alloc_size = std::max(m_max_alloc_size, m_allocated_size);
-
-                while ((m_allocated_size + m_reserve_size) > (m_max_alloc_size * 3 / 2) ) {
-                    FreeGarbage();
-                }
 
                 return ptr;
             }
         } while ( FreeGarbage() );
+
+        m_allocated_size -= size;
 
         BBCU_ASSERT(0);
 
