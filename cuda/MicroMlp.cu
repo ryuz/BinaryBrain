@@ -40,6 +40,7 @@ __global__ void kernal_fp32_MicroMlp_Forward
     __shared__ float        W1[M][MAX_NODE_UNIT];
     __shared__ float        b1[MAX_NODE_UNIT];
     __shared__ float const  *x_ptr[N][MAX_NODE_UNIT];
+               float        *y_ptr;
 
     if ( node < node_size ) {
         for ( int i = id; i < M; i += id_step ) {
@@ -59,16 +60,16 @@ __global__ void kernal_fp32_MicroMlp_Forward
             int in_idx = input_index[node*N + i];
             x_ptr[i][node_id] = &x_buf[frame_stride * in_idx];
         }
+
+        // 書き込みアドレス
+        y_ptr = &y_buf[frame_stride * node];
     }
     
     __syncthreads();
-
-    if ( node < node_size ) {
-        // 書き込みアドレス
-        float *y_ptr = &y_buf[frame_stride * node];
     
-        // 1つのSMで1nodeを全フレーム処理
-        for ( int frame = id; frame < frame_size; frame += id_step ) {
+    // 1つのSMで1nodeを全フレーム処理
+    for ( int frame = id; frame < frame_size; frame += id_step ) {
+        if ( node < node_size ) {
             // 入力データ読み込み
             float   x[N];
             for ( int i = 0; i < N; ++i ) {
@@ -91,6 +92,7 @@ __global__ void kernal_fp32_MicroMlp_Forward
             // 出力
             y_ptr[frame] = sig1;
         }
+        __syncthreads();
     }
 }
 

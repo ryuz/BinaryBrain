@@ -30,7 +30,7 @@ __global__ void kernal_fp32_Binarize_Forward(
     if ( node < node_size ) {
         for ( int frame = id; frame < frame_size; frame += id_step ) {
             float x = x_buf[frame_stride*node + frame];
-            x = (x >= binary_th) ? 1 : 0;
+            x = (x > binary_th) ? 1 : 0;
             y_buf[frame_stride*node + frame] = x;
         }
     }
@@ -133,7 +133,7 @@ __global__ void kernal_fp32_bit_Binarize_Forward(
     int mask = 0;
     if ( node < node_size && frame < frame_size ) {
         float x = x_ptr[frame];
-        mask = (x >= binary_th) ? (1 << bit) : 0;
+        mask = (x > binary_th) ? (1 << bit) : 0;
     }
 
     // “‡

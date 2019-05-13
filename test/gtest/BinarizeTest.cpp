@@ -13,10 +13,10 @@ TEST(BinarizeTest, testBinarize_test0)
     bin->SetInputShape(x_buf.GetShape());
 
     x_buf.SetFP32(0, 0, -1.01f);
-    x_buf.SetFP32(0, 1, -1.0f); 
+    x_buf.SetFP32(0, 1, -0.9f); 
     x_buf.SetFP32(0, 2, -0.5f); 
-    x_buf.SetFP32(1, 0,  0.0f); 
-    x_buf.SetFP32(1, 1, +1.0f); 
+    x_buf.SetFP32(1, 0, -0.1f); 
+    x_buf.SetFP32(1, 1, +0.9f); 
     x_buf.SetFP32(1, 2, +1.01f);
 
     auto y_buf = bin->Forward(x_buf);
@@ -40,10 +40,10 @@ TEST(BinarizeTest, testBinarize_test0)
     auto dx_buf = bin->Backward(dy_buf);
 
     EXPECT_EQ(0, dx_buf.GetFP32(0, 0));
-//    EXPECT_EQ(2, dx_buf.GetFP32(0, 1));   // 未定義
+    EXPECT_EQ(2, dx_buf.GetFP32(0, 1));   // 未定義
     EXPECT_EQ(3, dx_buf.GetFP32(0, 2));
     EXPECT_EQ(4, dx_buf.GetFP32(1, 0));
-//    EXPECT_EQ(5, dx_buf.GetFP32(1, 1));   // 未定義
+    EXPECT_EQ(5, dx_buf.GetFP32(1, 1));   // 未定義
     EXPECT_EQ(0, dx_buf.GetFP32(1, 2));
 }
 
