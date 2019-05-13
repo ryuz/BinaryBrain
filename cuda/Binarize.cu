@@ -84,7 +84,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_Binarize_Forward
 
 ////////////////
 
-__device__ __forceinline__ float device_int_LocalOr(int v, int id, int *sbuf)
+__device__ __forceinline__ int device_int_LocalOr(int v, int id, int *sbuf)
 {
     sbuf[id] = v;
     __syncthreads();
@@ -101,7 +101,7 @@ __device__ __forceinline__ float device_int_LocalOr(int v, int id, int *sbuf)
         __syncthreads();
     }
 
-    float sum = sbuf[0];
+    int sum = sbuf[0];
     __syncthreads();
     
     return sum;
