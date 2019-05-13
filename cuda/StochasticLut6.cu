@@ -54,8 +54,8 @@ __global__ void kernal_fp32_StochasticLut6_Forward(
 
     __syncthreads();
     
-    if ( node < node_size ) {
-        for (int frame = id; frame < frame_size; frame += id_step) {
+    for (int frame = id; frame < frame_size; frame += id_step) {
+        if ( node < node_size ) {
             float   xp[6], xn[6];
             for ( int i = 0; i < 6; ++i) {
                 xp[i] = x_ptr[i][frame];
@@ -164,6 +164,8 @@ __global__ void kernal_fp32_StochasticLut6_Forward(
         
             y_ptr[frame] = y;
         }
+
+        __syncthreads();
     }
 }
 
@@ -221,150 +223,162 @@ int bbcu_fp32_StochasticLut6_Forward
 
 
 
+template<int MAX_NODE_UNIT=32>
 __global__ void kernal_bit_fp32_StochasticLut6_Forward(
             int   const     *x_buf,
             float           *y_buf,
             int   const     *input_index,
             float const     *W_buf,
+            int             node_size,
             int             frame_size,
             int             x_frame_stride,
             int             y_frame_stride,
             int             binary_mode
         )
 {
-    int node    = blockIdx.x;
+    int node_id = threadIdx.y;
+    int node    = blockIdx.y * blockDim.y + threadIdx.y;
     int id      = threadIdx.x;
     int id_step = blockDim.x;
+
+    __shared__ float    W[64][MAX_NODE_UNIT];
+    int   const         *x_ptr[6];
+    float               *y_ptr;
     
-    // read W
-    __shared__ float    W[64];
-    for ( int i = id; i < 64; i += id_step ) {
-        W[i] = W_buf[node * 64 + i];
-        if ( binary_mode ) {
-            W[i] = W[i] > 0.5 ? 1.0 : 0.0;
+    if ( node < node_size ) {
+        // read W
+        for ( int i = id; i < 64; i += id_step ) {
+            W[i][node_id] = W_buf[node * 64 + i];
+            if ( binary_mode ) {
+                W[i][node_id] = W[i][node_id] > 0.5 ? 1.0 : 0.0;
+            }
         }
+        
+        // read input index
+        for ( int i = 0; i < 6; ++i ) {
+            x_ptr[i] = &x_buf[x_frame_stride * input_index[6*node + i]];
+        }
+
+        y_ptr = &y_buf[node * y_frame_stride];
     }
-    
-    // read input index
-    __shared__ int const  *x_ptr[6];
-    for ( int i = id; i < 6; i += id_step ) {
-        x_ptr[i] = &x_buf[x_frame_stride * input_index[6*node + i]];
-    }
-    float        *y_ptr = &y_buf[node * y_frame_stride];
 
     __syncthreads();
-
+    
     for (int frame = id; frame < frame_size; frame += id_step) {
-        int bit  = (1 << (frame & 0x1f));
-        int unit = frame >> 5;
+        if ( node < node_size ) {
+            int bit  = (1 << (frame & 0x1f));
+            int unit = (frame >> 5);
 
-        float   xp[6], xn[6];
-        for ( int i = 0; i < 6; ++i) {
-            xp[i] = (x_ptr[i][unit] & bit) ? 0.7 : 0.3;
-            xp[i] = min(1.0, max(0.0, xp[i]));
-            xn[i] = 1.0 - xp[i];
+            float   xp[6], xn[6];
+            for ( int i = 0; i < 6; ++i) {
+                xp[i] = (x_ptr[i][unit] & bit) ? 0.7 : 0.3;
+                xp[i] = min(1.0, max(0.0, xp[i]));
+                xn[i] = 1.0 - xp[i];
+            }
+
+            float x0_00 = xn[1] * xn[0];
+            float x0_01 = xn[1] * xp[0];
+            float x0_10 = xp[1] * xn[0];
+            float x0_11 = xp[1] * xp[0];
+            float x1_00 = xn[3] * xn[2];
+            float x1_01 = xn[3] * xp[2];
+            float x1_10 = xp[3] * xn[2];
+            float x1_11 = xp[3] * xp[2];
+            float x2_00 = xn[5] * xn[4];
+            float x2_01 = xn[5] * xp[4];
+            float x2_10 = xp[5] * xn[4];
+            float x2_11 = xp[5] * xp[4];
+
+            float y = 0;
+            float x2_00_x1_00 = x2_00 * x1_00;
+            y += W[0 ][node_id] * x2_00_x1_00 * x0_00;
+            y += W[1 ][node_id] * x2_00_x1_00 * x0_01;
+            y += W[2 ][node_id] * x2_00_x1_00 * x0_10;
+            y += W[3 ][node_id] * x2_00_x1_00 * x0_11;
+            float x2_00_x1_01 = x2_00 * x1_01;
+            y += W[4 ][node_id] * x2_00_x1_01 * x0_00;
+            y += W[5 ][node_id] * x2_00_x1_01 * x0_01;
+            y += W[6 ][node_id] * x2_00_x1_01 * x0_10;
+            y += W[7 ][node_id] * x2_00_x1_01 * x0_11;
+            float x2_00_x1_10 = x2_00 * x1_10;
+            y += W[8 ][node_id] * x2_00_x1_10 * x0_00;
+            y += W[9 ][node_id] * x2_00_x1_10 * x0_01;
+            y += W[10][node_id] * x2_00_x1_10 * x0_10;
+            y += W[11][node_id] * x2_00_x1_10 * x0_11;
+            float x2_00_x1_11 = x2_00 * x1_11;
+            y += W[12][node_id] * x2_00_x1_11 * x0_00;
+            y += W[13][node_id] * x2_00_x1_11 * x0_01;
+            y += W[14][node_id] * x2_00_x1_11 * x0_10;
+            y += W[15][node_id] * x2_00_x1_11 * x0_11;
+            float x2_01_x1_00 = x2_01 * x1_00;
+            y += W[16][node_id] * x2_01_x1_00 * x0_00;
+            y += W[17][node_id] * x2_01_x1_00 * x0_01;
+            y += W[18][node_id] * x2_01_x1_00 * x0_10;
+            y += W[19][node_id] * x2_01_x1_00 * x0_11;
+            float x2_01_x1_01 = x2_01 * x1_01;
+            y += W[20][node_id] * x2_01_x1_01 * x0_00;
+            y += W[21][node_id] * x2_01_x1_01 * x0_01;
+            y += W[22][node_id] * x2_01_x1_01 * x0_10;
+            y += W[23][node_id] * x2_01_x1_01 * x0_11;
+            float x2_01_x1_10 = x2_01 * x1_10;
+            y += W[24][node_id] * x2_01_x1_10 * x0_00;
+            y += W[25][node_id] * x2_01_x1_10 * x0_01;
+            y += W[26][node_id] * x2_01_x1_10 * x0_10;
+            y += W[27][node_id] * x2_01_x1_10 * x0_11;
+            float x2_01_x1_11 = x2_01 * x1_11;
+            y += W[28][node_id] * x2_01_x1_11 * x0_00;
+            y += W[29][node_id] * x2_01_x1_11 * x0_01;
+            y += W[30][node_id] * x2_01_x1_11 * x0_10;
+            y += W[31][node_id] * x2_01_x1_11 * x0_11;
+            float x2_10_x1_00 = x2_10 * x1_00;
+            y += W[32][node_id] * x2_10_x1_00 * x0_00;
+            y += W[33][node_id] * x2_10_x1_00 * x0_01;
+            y += W[34][node_id] * x2_10_x1_00 * x0_10;
+            y += W[35][node_id] * x2_10_x1_00 * x0_11;
+            float x2_10_x1_01 = x2_10 * x1_01;
+            y += W[36][node_id] * x2_10_x1_01 * x0_00;
+            y += W[37][node_id] * x2_10_x1_01 * x0_01;
+            y += W[38][node_id] * x2_10_x1_01 * x0_10;
+            y += W[39][node_id] * x2_10_x1_01 * x0_11;
+            float x2_10_x1_10 = x2_10 * x1_10;
+            y += W[40][node_id] * x2_10_x1_10 * x0_00;
+            y += W[41][node_id] * x2_10_x1_10 * x0_01;
+            y += W[42][node_id] * x2_10_x1_10 * x0_10;
+            y += W[43][node_id] * x2_10_x1_10 * x0_11;
+            float x2_10_x1_11 = x2_10 * x1_11;
+            y += W[44][node_id] * x2_10_x1_11 * x0_00;
+            y += W[45][node_id] * x2_10_x1_11 * x0_01;
+            y += W[46][node_id] * x2_10_x1_11 * x0_10;
+            y += W[47][node_id] * x2_10_x1_11 * x0_11;
+            float x2_11_x1_00 = x2_11 * x1_00;
+            y += W[48][node_id] * x2_11_x1_00 * x0_00;
+            y += W[49][node_id] * x2_11_x1_00 * x0_01;
+            y += W[50][node_id] * x2_11_x1_00 * x0_10;
+            y += W[51][node_id] * x2_11_x1_00 * x0_11;
+            float x2_11_x1_01 = x2_11 * x1_01;
+            y += W[52][node_id] * x2_11_x1_01 * x0_00;
+            y += W[53][node_id] * x2_11_x1_01 * x0_01;
+            y += W[54][node_id] * x2_11_x1_01 * x0_10;
+            y += W[55][node_id] * x2_11_x1_01 * x0_11;
+            float x2_11_x1_10 = x2_11 * x1_10;
+            y += W[56][node_id] * x2_11_x1_10 * x0_00;
+            y += W[57][node_id] * x2_11_x1_10 * x0_01;
+            y += W[58][node_id] * x2_11_x1_10 * x0_10;
+            y += W[59][node_id] * x2_11_x1_10 * x0_11;
+            float x2_11_x1_11 = x2_11 * x1_11;
+            y += W[60][node_id] * x2_11_x1_11 * x0_00;
+            y += W[61][node_id] * x2_11_x1_11 * x0_01;
+            y += W[62][node_id] * x2_11_x1_11 * x0_10;
+            y += W[63][node_id] * x2_11_x1_11 * x0_11;
+
+            // clamp
+            y = max(0.0, y);
+            y = min(1.0, y);
+        
+            y_ptr[frame] = y;
         }
 
-        float x0_00 = xn[1] * xn[0];
-        float x0_01 = xn[1] * xp[0];
-        float x0_10 = xp[1] * xn[0];
-        float x0_11 = xp[1] * xp[0];
-        float x1_00 = xn[3] * xn[2];
-        float x1_01 = xn[3] * xp[2];
-        float x1_10 = xp[3] * xn[2];
-        float x1_11 = xp[3] * xp[2];
-        float x2_00 = xn[5] * xn[4];
-        float x2_01 = xn[5] * xp[4];
-        float x2_10 = xp[5] * xn[4];
-        float x2_11 = xp[5] * xp[4];
-
-        float y = 0;
-        float x2_00_x1_00 = x2_00 * x1_00;
-        y += W[0 ] * x2_00_x1_00 * x0_00;
-        y += W[1 ] * x2_00_x1_00 * x0_01;
-        y += W[2 ] * x2_00_x1_00 * x0_10;
-        y += W[3 ] * x2_00_x1_00 * x0_11;
-        float x2_00_x1_01 = x2_00 * x1_01;
-        y += W[4 ] * x2_00_x1_01 * x0_00;
-        y += W[5 ] * x2_00_x1_01 * x0_01;
-        y += W[6 ] * x2_00_x1_01 * x0_10;
-        y += W[7 ] * x2_00_x1_01 * x0_11;
-        float x2_00_x1_10 = x2_00 * x1_10;
-        y += W[8 ] * x2_00_x1_10 * x0_00;
-        y += W[9 ] * x2_00_x1_10 * x0_01;
-        y += W[10] * x2_00_x1_10 * x0_10;
-        y += W[11] * x2_00_x1_10 * x0_11;
-        float x2_00_x1_11 = x2_00 * x1_11;
-        y += W[12] * x2_00_x1_11 * x0_00;
-        y += W[13] * x2_00_x1_11 * x0_01;
-        y += W[14] * x2_00_x1_11 * x0_10;
-        y += W[15] * x2_00_x1_11 * x0_11;
-        float x2_01_x1_00 = x2_01 * x1_00;
-        y += W[16] * x2_01_x1_00 * x0_00;
-        y += W[17] * x2_01_x1_00 * x0_01;
-        y += W[18] * x2_01_x1_00 * x0_10;
-        y += W[19] * x2_01_x1_00 * x0_11;
-        float x2_01_x1_01 = x2_01 * x1_01;
-        y += W[20] * x2_01_x1_01 * x0_00;
-        y += W[21] * x2_01_x1_01 * x0_01;
-        y += W[22] * x2_01_x1_01 * x0_10;
-        y += W[23] * x2_01_x1_01 * x0_11;
-        float x2_01_x1_10 = x2_01 * x1_10;
-        y += W[24] * x2_01_x1_10 * x0_00;
-        y += W[25] * x2_01_x1_10 * x0_01;
-        y += W[26] * x2_01_x1_10 * x0_10;
-        y += W[27] * x2_01_x1_10 * x0_11;
-        float x2_01_x1_11 = x2_01 * x1_11;
-        y += W[28] * x2_01_x1_11 * x0_00;
-        y += W[29] * x2_01_x1_11 * x0_01;
-        y += W[30] * x2_01_x1_11 * x0_10;
-        y += W[31] * x2_01_x1_11 * x0_11;
-        float x2_10_x1_00 = x2_10 * x1_00;
-        y += W[32] * x2_10_x1_00 * x0_00;
-        y += W[33] * x2_10_x1_00 * x0_01;
-        y += W[34] * x2_10_x1_00 * x0_10;
-        y += W[35] * x2_10_x1_00 * x0_11;
-        float x2_10_x1_01 = x2_10 * x1_01;
-        y += W[36] * x2_10_x1_01 * x0_00;
-        y += W[37] * x2_10_x1_01 * x0_01;
-        y += W[38] * x2_10_x1_01 * x0_10;
-        y += W[39] * x2_10_x1_01 * x0_11;
-        float x2_10_x1_10 = x2_10 * x1_10;
-        y += W[40] * x2_10_x1_10 * x0_00;
-        y += W[41] * x2_10_x1_10 * x0_01;
-        y += W[42] * x2_10_x1_10 * x0_10;
-        y += W[43] * x2_10_x1_10 * x0_11;
-        float x2_10_x1_11 = x2_10 * x1_11;
-        y += W[44] * x2_10_x1_11 * x0_00;
-        y += W[45] * x2_10_x1_11 * x0_01;
-        y += W[46] * x2_10_x1_11 * x0_10;
-        y += W[47] * x2_10_x1_11 * x0_11;
-        float x2_11_x1_00 = x2_11 * x1_00;
-        y += W[48] * x2_11_x1_00 * x0_00;
-        y += W[49] * x2_11_x1_00 * x0_01;
-        y += W[50] * x2_11_x1_00 * x0_10;
-        y += W[51] * x2_11_x1_00 * x0_11;
-        float x2_11_x1_01 = x2_11 * x1_01;
-        y += W[52] * x2_11_x1_01 * x0_00;
-        y += W[53] * x2_11_x1_01 * x0_01;
-        y += W[54] * x2_11_x1_01 * x0_10;
-        y += W[55] * x2_11_x1_01 * x0_11;
-        float x2_11_x1_10 = x2_11 * x1_10;
-        y += W[56] * x2_11_x1_10 * x0_00;
-        y += W[57] * x2_11_x1_10 * x0_01;
-        y += W[58] * x2_11_x1_10 * x0_10;
-        y += W[59] * x2_11_x1_10 * x0_11;
-        float x2_11_x1_11 = x2_11 * x1_11;
-        y += W[60] * x2_11_x1_11 * x0_00;
-        y += W[61] * x2_11_x1_11 * x0_01;
-        y += W[62] * x2_11_x1_11 * x0_10;
-        y += W[63] * x2_11_x1_11 * x0_11;
-
-        // clamp
-        y = max(0.0, y);
-        y = min(1.0, y);
-        
-        y_ptr[frame] = y;
+        __syncthreads();
     }
 }
 
@@ -385,17 +399,30 @@ int bbcu_bit_fp32_StochasticLut6_Forward
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
-    dim3    block(512);
-    dim3    grid(node_size);
-    while ( frame_size < (int)block.x / 2 ) {
-        block.x /= 2;
-    }
+    unsigned int const THREAD_SIZE    = 512;
+    unsigned int const MAX_FRAME_UNIT = 512;
+    unsigned int const MAX_NODE_UNIT  = 64;
+
+#if 0
+    dim3    block(MAX_FRAME_UNIT, THREAD_SIZE / MAX_FRAME_UNIT);
+    while ( (int)block.x / 2 >= frame_size ) { block.x /= 2; block.y *= 2; }
+    while ( (int)block.y / 2 >= node_size  ) { block.y /= 2; }
+#else
+    dim3    block(THREAD_SIZE / MAX_NODE_UNIT, MAX_NODE_UNIT);
+    while ( (int)block.y / 2 >= node_size  ) { block.y /= 2; block.x *= 2;}
+    while ( (int)block.x / 2 >= frame_size ) { block.x /= 2; }
+#endif
+
+    block.x = std::min(block.x, MAX_FRAME_UNIT);
+    block.y = std::min(block.y, MAX_NODE_UNIT);
+    dim3    grid(1, (node_size + (block.y - 1)) / block.y);
     
-    kernal_bit_fp32_StochasticLut6_Forward<<<grid, block, 0, streamId>>>(
+    kernal_bit_fp32_StochasticLut6_Forward<MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
             dev_x_buf,
             dev_y_buf,
             dev_input_index,
             dev_W,
+            node_size,
             frame_size,
             x_frame_stride,
             y_frame_stride,
@@ -405,7 +432,6 @@ int bbcu_bit_fp32_StochasticLut6_Forward
     
     return 0;
 }
-
 
 
 
