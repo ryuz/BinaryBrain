@@ -35,17 +35,24 @@ protected:
     bool                m_binary_mode = true;
     bool                m_host_only   = false;
 
-    index_t             m_frame_unit;
+    index_t             m_modulation_size;
 
     indices_t           m_input_shape;
     indices_t           m_output_shape;
 
-//    FrameBuffer         m_y_buf;
-//    FrameBuffer         m_dx_buf;
-
+public:
+    struct create_t
+    {
+        indices_t       output_shape;   
+        index_t         modulation_size = 1;
+    };
 
 protected:
-    BinaryToReal() {}
+    BinaryToReal(create_t const &create)
+    {
+        m_output_shape    = create.output_shape;
+        m_modulation_size = create.modulation_size;
+    }
 
     /**
      * @brief  コマンド処理
@@ -70,31 +77,26 @@ protected:
 public:
     ~BinaryToReal() {}
 
-    struct create_t
-    {
-        indices_t       output_shape;   
-        index_t         frame_unit = 1;
-    };
-
     static std::shared_ptr<BinaryToReal> Create(create_t const &create)
     {
-        auto self = std::shared_ptr<BinaryToReal>(new BinaryToReal);
-
-        self->m_output_shape = create.output_shape;
-        self->m_frame_unit   = create.frame_unit;
-
-        return self;
+        return std::shared_ptr<BinaryToReal>(new BinaryToReal(create));
     }
 
-    static std::shared_ptr<BinaryToReal> Create(indices_t output_shape, index_t frame_unit=1)
+    static std::shared_ptr<BinaryToReal> Create(indices_t output_shape, index_t modulation_size=1)
     {
         create_t create;
-        create.output_shape = output_shape;
-        create.frame_unit   = frame_unit;
+        create.output_shape    = output_shape;
+        create.modulation_size = modulation_size;
         return Create(create);
     }
 
     std::string GetClassName(void) const { return "BinaryToReal"; }
+
+    
+    void SetModulationSize(index_t modulation_size)
+    {
+        m_modulation_size = modulation_size;
+    }
 
     /**
      * @brief  入力のshape設定
@@ -149,8 +151,8 @@ public:
         }
 
         // 戻り値の型を設定
-        BB_ASSERT(x_buf.GetFrameSize() % m_frame_unit == 0);
-        FrameBuffer y_buf(DataType<FYT>::type, x_buf.GetFrameSize() / m_frame_unit, m_output_shape);
+        BB_ASSERT(x_buf.GetFrameSize() % m_modulation_size == 0);
+        FrameBuffer y_buf(DataType<FYT>::type, x_buf.GetFrameSize() / m_modulation_size, m_output_shape);
 
 #ifdef BB_WITH_CUDA
         if ( DataType<FXT>::type == BB_TYPE_FP32 && !m_host_only && DataType<FYT>::type == BB_TYPE_FP32
@@ -163,7 +165,7 @@ public:
                     (float const *)x_ptr.GetAddr(),
                     (float       *)y_ptr.GetAddr(),
                     (int          )(GetShapeSize(m_input_shape) / GetShapeSize(m_output_shape)),
-                    (int          )m_frame_unit,
+                    (int          )m_modulation_size,
                     (int          )GetOutputNodeSize(),
                     (int          )(x_buf.GetFrameStride() / sizeof(float)),
                     (int          )y_buf.GetFrameSize(),
@@ -190,8 +192,8 @@ public:
                 std::fill(vec_v.begin(), vec_v.end(), (FYT)0);
                 std::fill(vec_n.begin(), vec_n.end(), 0);
                 for (index_t node = 0; node < node_size; ++node) {
-                    for (index_t i = 0; i < m_frame_unit; ++i) {
-                        FYT bin_sig = (FYT)x_ptr.Get(frame*m_frame_unit + i, node);
+                    for (index_t i = 0; i < m_modulation_size; ++i) {
+                        FYT bin_sig = (FYT)x_ptr.Get(frame*m_modulation_size + i, node);
                         vec_v[node % output_node_size] += bin_sig;
                         vec_n[node % output_node_size] += 1;
                     }
@@ -216,7 +218,7 @@ public:
         BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
 
         // 戻り値の型を設定
-        FrameBuffer dx_buf(DataType<BT>::type, dy_buf.GetFrameSize() * m_frame_unit, m_input_shape);
+        FrameBuffer dx_buf(DataType<BT>::type, dy_buf.GetFrameSize() * m_modulation_size, m_input_shape);
 
 #ifdef BB_WITH_CUDA
         if ( DataType<BT>::type == BB_TYPE_FP32 && !m_host_only 
@@ -230,7 +232,7 @@ public:
                     (float const *)dy_ptr.GetAddr(),
                     (float       *)dx_ptr.GetAddr(),
                     (int          )(GetShapeSize(m_input_shape) / GetShapeSize(m_output_shape)),
-                    (int          )m_frame_unit,
+                    (int          )m_modulation_size,
                     (int          )GetOutputNodeSize(),
                     (int          )(dx_buf.GetFrameStride() / sizeof(float)),
                     (int          )dy_buf.GetFrameSize(),
@@ -249,13 +251,13 @@ public:
             auto dy_ptr = dy_buf.LockConst<BT>();
             auto dx_ptr = dx_buf.Lock<BT>();
 
-            BT  gain = (BT)output_node_size / ((BT)input_node_size * (BT)m_frame_unit);
+            BT  gain = (BT)output_node_size / ((BT)input_node_size * (BT)m_modulation_size);
             for (index_t node = 0; node < input_node_size; node++) {
                 for (index_t frame = 0; frame < output_frame_size; ++frame) {
-                    for (index_t i = 0; i < m_frame_unit; i++) {
+                    for (index_t i = 0; i < m_modulation_size; i++) {
                         auto grad = dy_ptr.Get(frame, node % output_node_size);
                         grad *= gain;
-                        dx_ptr.Set(frame*m_frame_unit + i, node, grad);
+                        dx_ptr.Set(frame*m_modulation_size + i, node, grad);
                     }
                 }
             }

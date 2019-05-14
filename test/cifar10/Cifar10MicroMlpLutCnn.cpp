@@ -14,6 +14,7 @@
 
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
+#include "bb/BinaryModulation.h"
 #include "bb/MicroMlp.h"
 #include "bb/BinaryLutN.h"
 #include "bb/LoweringConvolution.h"
@@ -89,19 +90,31 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
         cnv3_sub->Add(layer_cnv3_mm1);
         cnv3_sub->Add(layer_cnv3_mm2);
         
-        auto net = bb::Sequential::Create();
-        net->Add(bb::RealToBinary<float, bb::Bit>::Create(frame_mux_size));
-        net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3));
-        net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3));
-        net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
-        net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv2_sub, 3, 3));
-        net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3));
-        net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
-        net->Add(layer_mm4);
-        net->Add(layer_mm5);
-        net->Add(layer_mm6);
-        net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, frame_mux_size));
+        auto main_net = bb::Sequential::Create();
+//      main_net->Add(bb::RealToBinary<float, bb::Bit>::Create(frame_mux_size));
+        main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3));
+        main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3));
+        main_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
+        main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv2_sub, 3, 3));
+        main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3));
+        main_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
+        main_net->Add(layer_mm4);
+        main_net->Add(layer_mm5);
+        main_net->Add(layer_mm6);
+//      main_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, frame_mux_size));
+
+        bb::BinaryModulation<>::create_t mod_create;
+        mod_create.layer                     = main_net;
+        mod_create.output_shape              = td.t_shape;
+        mod_create.training_modulation_size  = 1;
+        mod_create.training_value_generator  = bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 12345);
+        mod_create.inference_modulation_size = frame_mux_size;
+        mod_create.inference_value_generator = nullptr;
+        auto net = bb::BinaryModulation<>::Create(mod_create);
+
         net->SetInputShape(td.x_shape);
+
+//        auto bb::
 
         if ( binary_mode ) {
             std::cout << "binary mode" << std::endl;

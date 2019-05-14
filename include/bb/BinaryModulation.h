@@ -19,7 +19,7 @@
 namespace bb {
 
 
-template <typename FRT = float, typename FBT = float, typename BT = float>
+template <typename FRT = float, typename FBT = bb::Bit, typename BT = float>
 class BinaryModulation : public Model
 {
     using _super = Model;
@@ -30,39 +30,48 @@ protected:
     std::shared_ptr< RealToBinary<FRT, FBT, BT> >   m_real2bin;
     std::shared_ptr< Model                      >   m_layer;
     std::shared_ptr< BinaryToReal<FBT, FRT, BT> >   m_bin2real;
-    
+
+    bool                                            m_training;
+
+    index_t                                         m_training_modulation_size;
+    std::shared_ptr< ValueGenerator<FRT> >          m_training_value_generator; 
+    index_t                                         m_inference_modulation_size;
+    std::shared_ptr< ValueGenerator<FRT> >          m_inference_value_generator; 
+
+public:
+    struct create_t
+    {
+        std::shared_ptr<Model>                       layer;
+        indices_t                                    output_shape;
+        index_t                                      training_modulation_size = 1;
+        std::shared_ptr< ValueGenerator<FRT> >       training_value_generator; 
+        index_t                                      inference_modulation_size = 1;
+        std::shared_ptr< ValueGenerator<FRT> >       inference_value_generator; 
+    };
+
 protected:
-    BinaryModulation() {}
+    BinaryModulation(create_t const &create)
+    {
+        m_training_modulation_size  = create.training_modulation_size;
+        m_training_value_generator  = create.training_value_generator;
+        m_inference_modulation_size = create.inference_modulation_size;
+        m_inference_value_generator = create.inference_value_generator;
+
+        m_training = true;
+        m_real2bin = RealToBinary<FRT, FBT, BT>::Create(create.training_modulation_size, create.training_value_generator, true);
+        m_layer    = create.layer;
+        m_bin2real = BinaryToReal<FBT, FRT, BT>::Create(create.output_shape, create.training_modulation_size);
+    }
 
 public:
     ~BinaryModulation() {}
 
-    struct create_t
-    {
-        std::shared_ptr<Model>  layer;
-    };
 
     static std::shared_ptr<BinaryModulation> Create(create_t const & create)
     {
-        auto self = std::shared_ptr<BinaryModulation>(new BinaryModulation);
-
-        self->m_real2bin = RealToBinary<FRT, FBT, BT>::Create();
-        self->m_layer    = create.layer;
-        self->m_bin2real =  BinaryToReal<FBT, FRT, BT>::Create();
-
-        return self;
+        return std::shared_ptr<BinaryModulation>(new BinaryModulation(create));
     }
 
-    static std::shared_ptr<BinaryModulation> Create(std::shared_ptr<Model> layer)
-    {
-        auto self = std::shared_ptr<BinaryModulation>(new BinaryModulation);
-
-        self->m_real2bin = RealToBinary<FRT, FBT, BT>::Create();
-        self->m_layer    = create.layer;
-        self->m_bin2real =  BinaryToReal<FBT, FRT, BT>::Create();
-
-        return self;
-    }
 
     std::string GetClassName(void) const { return "BinaryModulation"; }
 
@@ -162,6 +171,18 @@ public:
      */
     FrameBuffer Forward(FrameBuffer x, bool train = true)
     {
+        // 切り替え
+        if (train && !m_training) {
+            m_real2bin->SetModulationSize(m_training_modulation_size);
+            m_real2bin->SetValueGenerator(m_training_value_generator);
+            m_training = true;
+        }
+        else if (!train && m_training) {
+            m_real2bin->SetModulationSize(m_inference_modulation_size);
+            m_real2bin->SetValueGenerator(m_inference_value_generator);
+            m_training = false;
+        }
+
         x = m_real2bin->Forward(x, train);
         x = m_layer->Forward(x, train);
         x = m_bin2real->Forward(x, train);
