@@ -233,12 +233,9 @@ public:
     {
         x_buf = m_affine    ->Forward(x_buf, train);
         x_buf = m_batch_norm->Forward(x_buf, train);
+        if (m_memory_saving || !train ) { m_batch_norm->SetFrameBufferX(FrameBuffer()); }
         x_buf = m_activation->Forward(x_buf, train);
-
-        if (m_memory_saving) {
-            m_batch_norm->SetFrameBufferX(FrameBuffer());   // クリア
-            m_activation->SetFrameBufferX(FrameBuffer());   // クリア
-        }
+        if (m_memory_saving || !train ) { m_activation->SetFrameBufferX(FrameBuffer()); }
 
         return x_buf;
     }
