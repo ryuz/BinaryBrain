@@ -40,7 +40,7 @@
 void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size,
                                     int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "Cifar10MiroMlpLutCnn_bit2";
+    std::string net_name = "Cifar10MiroMlpLutCnn_bit3";
 
   // load cifar-10 data
 #ifdef _DEBUG
