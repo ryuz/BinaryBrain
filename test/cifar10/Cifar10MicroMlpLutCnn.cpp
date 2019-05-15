@@ -32,6 +32,7 @@
 #include "bb/Runner.h"
 #include "bb/ExportVerilog.h"
 #include "bb/UniformDistributionGenerator.h"
+#include "bb/NormalDistributionGenerator.h"
 #include "bb/Reduce.h"
 
 
@@ -107,7 +108,8 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
         mod_create.layer                     = main_net;
         mod_create.output_shape              = td.t_shape;
         mod_create.training_modulation_size  = 1;
-        mod_create.training_value_generator  = bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 12345);
+//      mod_create.training_value_generator  = bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 12345);
+        mod_create.training_value_generator  = bb::NormalDistributionGenerator<float>::Create(0.5f, 0.3f, 777);
         mod_create.inference_modulation_size = frame_mux_size;
         mod_create.inference_value_generator = nullptr;
         auto net = bb::BinaryModulation<>::Create(mod_create);
@@ -143,7 +145,7 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
         runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
         runner_create.file_write         = true;            // 計算結果をファイルに保存するか
         runner_create.print_progress     = true;            // 途中結果を表示
-        runner_create.initial_evaluation = file_read;       // ファイルを読んだ場合は最初に評価しておく
+        runner_create.initial_evaluation = false; // file_read;       // ファイルを読んだ場合は最初に評価しておく
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }

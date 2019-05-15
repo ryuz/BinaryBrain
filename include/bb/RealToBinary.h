@@ -182,6 +182,8 @@ public:
                     FXT th;
                     if ( m_value_generator != nullptr ) {
                         th = m_value_generator->GetValue();
+                        th = std::max(th, m_input_range_lo);
+                        th = std::min(th, m_input_range_hi);
                     }
                     else {
                         th = m_input_range_lo + (th_step * (FXT)(i + 1));

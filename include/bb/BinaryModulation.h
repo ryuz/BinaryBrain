@@ -33,32 +33,59 @@ protected:
 
     bool                                            m_training;
 
+    typename RealToBinary<FRT, FBT, BT>::create_t   m_training_create;
+    typename RealToBinary<FRT, FBT, BT>::create_t   m_inference_create;
+    
+    /*
     index_t                                         m_training_modulation_size;
-    std::shared_ptr< ValueGenerator<FRT> >          m_training_value_generator; 
+    std::shared_ptr< ValueGenerator<FRT> >          m_training_value_generator;
+    bool                                            m_training_framewise;
+    FRT                                             m_training_input_range_lo;
+    FRT                                             m_training_input_range_hi;
+
     index_t                                         m_inference_modulation_size;
     std::shared_ptr< ValueGenerator<FRT> >          m_inference_value_generator; 
+    bool                                            m_inference_framewise;
+    FRT                                             m_inference_input_range_lo;
+    FRT                                             m_inference_input_range_hi;
+    */
 
 public:
     struct create_t
     {
-        std::shared_ptr<Model>                       layer;
-        indices_t                                    output_shape;
-        index_t                                      training_modulation_size = 1;
-        std::shared_ptr< ValueGenerator<FRT> >       training_value_generator; 
-        index_t                                      inference_modulation_size = 1;
-        std::shared_ptr< ValueGenerator<FRT> >       inference_value_generator; 
+        std::shared_ptr<Model>                      layer;
+        indices_t                                   output_shape;
+        
+        index_t                                     training_modulation_size  = 1;
+        std::shared_ptr< ValueGenerator<FRT> >      training_value_generator;
+        bool                                        training_framewise        = true;
+        FRT                                         training_input_range_lo   = (FRT)0.0;
+        FRT                                         training_input_range_hi   = (FRT)1.0;
+
+        index_t                                     inference_modulation_size = 1;
+        std::shared_ptr< ValueGenerator<FRT> >      inference_value_generator; 
+        bool                                        inference_framewise       = true;
+        FRT                                         inference_input_range_lo  = (FRT)0.0;
+        FRT                                         inference_input_range_hi  = (FRT)1.0;
     };
 
 protected:
     BinaryModulation(create_t const &create)
     {
-        m_training_modulation_size  = create.training_modulation_size;
-        m_training_value_generator  = create.training_value_generator;
-        m_inference_modulation_size = create.inference_modulation_size;
-        m_inference_value_generator = create.inference_value_generator;
+        m_training_create.modulation_size  = create.training_modulation_size;
+        m_training_create.value_generator  = create.training_value_generator;
+        m_training_create.framewise        = create.training_framewise;
+        m_training_create.input_range_lo   = create.training_input_range_lo;
+        m_training_create.input_range_hi   = create.training_input_range_hi;
+
+        m_inference_create.modulation_size = create.inference_modulation_size;
+        m_inference_create.value_generator = create.inference_value_generator;
+        m_inference_create.framewise       = create.inference_framewise;
+        m_inference_create.input_range_lo  = create.inference_input_range_lo;
+        m_inference_create.input_range_hi  = create.inference_input_range_hi;
 
         m_training = true;
-        m_real2bin = RealToBinary<FRT, FBT, BT>::Create(create.training_modulation_size, create.training_value_generator, true);
+        m_real2bin = RealToBinary<FRT, FBT, BT>::Create(m_training_create);
         m_layer    = create.layer;
         m_bin2real = BinaryToReal<FBT, FRT, BT>::Create(create.output_shape, create.training_modulation_size);
     }
@@ -173,15 +200,15 @@ public:
     {
         // 切り替え
         if (train && !m_training) {
-            m_real2bin->SetModulationSize(m_training_modulation_size);
-            m_real2bin->SetValueGenerator(m_training_value_generator);
-            m_bin2real->SetModulationSize(m_training_modulation_size);
+            m_real2bin->SetModulationSize(m_training_create.modulation_size);
+            m_real2bin->SetValueGenerator(m_training_create.value_generator);
+            m_bin2real->SetModulationSize(m_training_create.modulation_size);
             m_training = true;
         }
         else if (!train && m_training) {
-            m_real2bin->SetModulationSize(m_inference_modulation_size);
-            m_real2bin->SetValueGenerator(m_inference_value_generator);
-            m_bin2real->SetModulationSize(m_inference_modulation_size);
+            m_real2bin->SetModulationSize(m_inference_create.modulation_size);
+            m_real2bin->SetValueGenerator(m_inference_create.value_generator);
+            m_bin2real->SetModulationSize(m_inference_create.modulation_size);
             m_training = false;
         }
 
@@ -200,7 +227,7 @@ public:
     FrameBuffer Backward(FrameBuffer dy)
     {
         dy = m_bin2real->Backward(dy);
-        dy = m_layer->Backward(dy);
+        dy = m_layer   ->Backward(dy);
         dy = m_real2bin->Backward(dy);
         return dy; 
     }
