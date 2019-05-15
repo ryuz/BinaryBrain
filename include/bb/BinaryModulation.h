@@ -175,11 +175,13 @@ public:
         if (train && !m_training) {
             m_real2bin->SetModulationSize(m_training_modulation_size);
             m_real2bin->SetValueGenerator(m_training_value_generator);
+            m_bin2real->SetModulationSize(m_training_modulation_size);
             m_training = true;
         }
         else if (!train && m_training) {
             m_real2bin->SetModulationSize(m_inference_modulation_size);
             m_real2bin->SetValueGenerator(m_inference_value_generator);
+            m_bin2real->SetModulationSize(m_inference_modulation_size);
             m_training = false;
         }
 
