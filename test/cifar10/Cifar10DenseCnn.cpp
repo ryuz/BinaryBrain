@@ -339,7 +339,7 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
 //        net->Add(bb::BatchNormalization<>::Create(bn_momentum));
 //        net->Add(bb::Binarize<>::Create());
         net->Add(bb::Reduce<>::Create(td.t_shape));
-        net->Add(bb::BinaryToReal<>::Create(td.t_shape, frame_mux_size));
+        net->Add(bb::BinaryToReal<>::Create(frame_mux_size, td.t_shape));
     }
     else {
         net->Add(bb::Reduce<>::Create(td.t_shape));

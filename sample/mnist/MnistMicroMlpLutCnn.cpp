@@ -14,6 +14,7 @@
 
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
+#include "bb/Reduce.h"
 #include "bb/MicroMlp.h"
 #include "bb/BinaryLutN.h"
 #include "bb/LoweringConvolution.h"
@@ -85,8 +86,9 @@ void MnistMicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size, 
         net->Add(bb::MaxPooling<>::Create(2, 2));
         net->Add(layer_mm4);
         net->Add(layer_mm5);
-        net->Add(bb::BinaryToReal<>::Create({ 10 }, frame_mux_size));
-        net->SetInputShape({28, 28, 1});
+        net->Add(bb::BinaryToReal<>::Create(frame_mux_size));
+        net->Add(bb::Reduce<>::Create(td.t_shape));
+        net->SetInputShape(td.x_shape);
 
         if ( binary_mode ) {
             std::cout << "binary mode" << std::endl;
@@ -166,8 +168,9 @@ void MnistMicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size, 
         lut_net->Add(cnv3);
         lut_net->Add(pol1);
         lut_net->Add(cnv4);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({ 10 }, lut_frame_mux_size));
-        lut_net->SetInputShape({28, 28, 1});
+        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(lut_frame_mux_size));
+        lut_net->Add(bb::Reduce<>::Create(td.t_shape));
+        lut_net->SetInputShape(td.x_shape);
 
 
         // テーブル化して取り込み(現状まだSetInputShape後の取り込みが必要)

@@ -14,6 +14,7 @@
 
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
+#include "bb/Reduce.h"
 #include "bb/MicroMlp.h"
 #include "bb/BinaryLutN.h"
 #include "bb/LoweringConvolution.h"
@@ -96,7 +97,8 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
         net->Add(layer_mm4);
         net->Add(layer_mm5);
         net->Add(layer_mm6);
-        net->Add(bb::BinaryToReal<>::Create(td.t_shape, frame_mux_size));
+        net->Add(bb::BinaryToReal<>::Create(frame_mux_size));
+        net->Add(bb::Reduce<>::Create(td.t_shape));
         net->SetInputShape(td.x_shape);
 
         if ( binary_mode ) {
@@ -187,7 +189,7 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size
         lut_net->Add(cnv3);
         lut_net->Add(pol1);
         lut_net->Add(cnv4);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, lut_frame_mux_size));
+        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(lut_frame_mux_size, td.t_shape));
         lut_net->SetInputShape(td.x_shape);
 
 

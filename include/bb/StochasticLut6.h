@@ -712,7 +712,7 @@ public:
         m_dx_buf.Resize(DataType<T>::type, dy_buf.GetFrameSize(), m_input_shape);
         
 #ifdef BB_WITH_CUDA
-        if (DataType<T>::type == BB_TYPE_FP32 && !m_host_only
+        if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only
                 && dy_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && m_dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
             auto x_ptr           = m_x_buf.LockDeviceMemoryConst();
             auto dy_ptr          = dy_buf.LockDeviceMemoryConst();

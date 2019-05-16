@@ -57,7 +57,7 @@ void DiabetesRegressionMicroMlpLut(int epoch_size, size_t mini_batch_size, size_
         net->Add(layer_mm3);
         net->Add(layer_mm4);
         net->Add(layer_mm5);
-        net->Add(bb::BinaryToReal<>::Create({ 1 }, mux_size));
+        net->Add(bb::BinaryToReal<>::Create(mux_size, td.t_shape));
         net->SetInputShape(td.x_shape);
 
         net->SendCommand("binary true");
@@ -94,7 +94,7 @@ void DiabetesRegressionMicroMlpLut(int epoch_size, size_t mini_batch_size, size_
         lut_net->Add(layer_lut3);
         lut_net->Add(layer_lut4);
         lut_net->Add(layer_lut5);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({1}, mux_size));
+        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(mux_size, td.t_shape));
         lut_net->SetInputShape(td.x_shape);
 
         // テーブル化して取り込み(SetInputShape後に取り込みが必要)

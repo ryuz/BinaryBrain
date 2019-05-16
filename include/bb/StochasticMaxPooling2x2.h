@@ -156,7 +156,7 @@ public:
         }
 
         // 出力を設定
-        FrameBuffer y_buf(DataType<FT>::type, m_x_buf.GetFrameSize(), m_output_shape);
+        FrameBuffer y_buf(DataType<FT>::type, x_buf.GetFrameSize(), m_output_shape);
         
 
 #ifdef BB_WITH_CUDA

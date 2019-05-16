@@ -14,6 +14,7 @@
 
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
+#include "bb/Reduce.h"
 #include "bb/MicroMlp.h"
 #include "bb/BinaryLutN.h"
 #include "bb/BatchNormalization.h"
@@ -53,7 +54,8 @@ void MnistMicroMlpLutMlp(int epoch_size, int mini_batch_size, int max_run_size, 
         net->Add(layer_mm0);
         net->Add(layer_mm1);
         net->Add(layer_mm2);
-        net->Add(bb::BinaryToReal<float, float>::Create({10}, frame_mux_size));
+        net->Add(bb::BinaryToReal<>::Create(frame_mux_size));
+        net->Add(bb::Reduce<>::Create(td.t_shape));
         net->SetInputShape(td.x_shape);
 
         if ( binary_mode ) {
@@ -90,7 +92,8 @@ void MnistMicroMlpLutMlp(int epoch_size, int mini_batch_size, int max_run_size, 
         lut_net->Add(layer_lut0);
         lut_net->Add(layer_lut1);
         lut_net->Add(layer_lut2);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({10}, lut_frame_mux_size));
+        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(lut_frame_mux_size));
+        lut_net->Add(bb::Reduce<>::Create(td.t_shape));
         lut_net->SetInputShape(td.x_shape);
 
         // テーブル化して取り込み(SetInputShape後に取り込みが必要)

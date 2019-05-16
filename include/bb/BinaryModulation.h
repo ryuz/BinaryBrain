@@ -87,7 +87,7 @@ protected:
         m_training = true;
         m_real2bin = RealToBinary<FRT, FBT, BT>::Create(m_training_create);
         m_layer    = create.layer;
-        m_bin2real = BinaryToReal<FBT, FRT, BT>::Create(create.output_shape, create.training_modulation_size);
+        m_bin2real = BinaryToReal<FBT, FRT, BT>::Create(create.training_modulation_size, create.output_shape);
     }
 
 public:

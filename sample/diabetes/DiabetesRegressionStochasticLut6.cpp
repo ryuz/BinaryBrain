@@ -91,7 +91,7 @@ void DiabetesRegressionStochasticLut6(int epoch_size, size_t mini_batch_size)
         lut_net->Add(layer_lut3);
         lut_net->Add(layer_lut4);
         lut_net->Add(layer_lut5);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({1}, mux_size));
+        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(mux_size, td.t_shape));
         lut_net->SetInputShape(td.x_shape);
 
         // テーブル化して取り込み(SetInputShape後に取り込みが必要)

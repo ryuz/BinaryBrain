@@ -15,6 +15,7 @@
 #include <fstream>
 #include <vector>
 #include <assert.h>
+#include <string>
 
 #include "bb/Model.h"
 #include "bb/LossFunction.h"

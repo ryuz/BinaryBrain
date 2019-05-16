@@ -82,7 +82,7 @@ public:
         return std::shared_ptr<BinaryToReal>(new BinaryToReal(create));
     }
 
-    static std::shared_ptr<BinaryToReal> Create(indices_t output_shape, index_t modulation_size=1)
+    static std::shared_ptr<BinaryToReal> Create(index_t modulation_size=1, indices_t output_shape = indices_t())
     {
         create_t create;
         create.output_shape    = output_shape;
@@ -108,6 +108,10 @@ public:
     {
         // 形状設定
         m_input_shape = shape;
+
+        if (m_output_shape.empty()) {
+            m_output_shape = m_input_shape;
+        }
 
         // 整数倍の多重化のみ許容
         BB_ASSERT(GetShapeSize(m_input_shape) >= GetShapeSize(m_output_shape));
@@ -211,7 +215,7 @@ public:
 
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
-        if (!m_binary_mode) {
+        if (!m_binary_mode || m_modulation_size == 1 && m_input_shape == m_output_shape) {
             return dy_buf;
         }
         

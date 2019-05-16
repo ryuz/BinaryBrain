@@ -14,6 +14,7 @@
 
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
+#include "bb/Reduce.h"
 #include "bb/StochasticLut6.h"
 #include "bb/BinaryLutN.h"
 #include "bb/BatchNormalization.h"
@@ -96,7 +97,8 @@ void MnistStochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_siz
         lut_net->Add(layer_lut1);
         lut_net->Add(layer_lut2);
         lut_net->Add(layer_lut3);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, lut_frame_mux_size));
+        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(lut_frame_mux_size));
+        lut_net->Add(bb::Reduce<>::Create(td.t_shape));
         lut_net->SetInputShape(td.x_shape);
 
         // テーブル化して取り込み(SetInputShape後に取り込みが必要)
