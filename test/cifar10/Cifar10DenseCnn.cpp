@@ -16,6 +16,7 @@
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
 #include "bb/DenseAffine.h"
+#include "bb/BinaryModulation.h"
 #include "bb/LoweringConvolution.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
@@ -274,7 +275,7 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
     }
     
     auto cnv0_sub = bb::Sequential::Create();
-#if 1
+#if 0
     cnv0_sub->Add(bb::MicroMlp<>::Create(384));
     cnv0_sub->Add(bb::MicroMlp<>::Create(64));
 #else
@@ -284,7 +285,7 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
 #endif
 
     auto cnv1_sub = bb::Sequential::Create();
-#if 1
+#if 0
     cnv1_sub->Add(bb::MicroMlp<>::Create(384));
     cnv1_sub->Add(bb::MicroMlp<>::Create(64));
 #else
@@ -294,7 +295,7 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
 #endif
 
     auto cnv2_sub = bb::Sequential::Create();
-#if 1
+#if 0
     cnv2_sub->Add(bb::MicroMlp<>::Create(768));
     cnv2_sub->Add(bb::MicroMlp<>::Create(128));
 #else
@@ -304,7 +305,7 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
 #endif
 
     auto cnv3_sub = bb::Sequential::Create();
-#if 1
+#if 0
     cnv3_sub->Add(bb::MicroMlp<>::Create(768));
     cnv3_sub->Add(bb::MicroMlp<>::Create(128));
 #else
@@ -314,36 +315,39 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
 #endif
 
     // create network
-    auto net = bb::Sequential::Create();
+    auto main_net = bb::Sequential::Create();
     if ( binary_mode ) {
-        net->Add(bb::RealToBinary<>::Create(frame_mux_size));
+        main_net->Add(bb::RealToBinary<>::Create(frame_mux_size));
     }
-    net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
-    net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
-    net->Add(bb::MaxPooling<>::Create(2, 2));
-    net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
-    net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
-    net->Add(bb::MaxPooling<>::Create(2, 2));
+    main_net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
+    main_net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
+    main_net->Add(bb::MaxPooling<>::Create(2, 2));
+    main_net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
+    main_net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
+    main_net->Add(bb::MaxPooling<>::Create(2, 2));
     
-#if 1
-    net->Add(bb::MicroMlp<>::Create(1860));
-    net->Add(bb::MicroMlp<>::Create(310));
+#if 0
+    main_net->Add(bb::MicroMlp<>::Create(1860));
+    main_net->Add(bb::MicroMlp<>::Create(310));
 #else
-    net->Add(bb::DenseAffine<>::Create(1024));
-    net->Add(bb::BatchNormalization<>::Create(bn_momentum));
-    net->Add(bb::ReLU<>::Create());
-    net->Add(bb::DenseAffine<>::Create(310));
+    main_net->Add(bb::DenseAffine<>::Create(1024));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::ReLU<>::Create());
+    main_net->Add(bb::DenseAffine<>::Create(10));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::ReLU<>::Create());
 #endif
 
-    if ( binary_mode ) {
-//        net->Add(bb::BatchNormalization<>::Create(bn_momentum));
-//        net->Add(bb::Binarize<>::Create());
-        net->Add(bb::Reduce<>::Create(td.t_shape));
-        net->Add(bb::BinaryToReal<>::Create(frame_mux_size, td.t_shape));
-    }
-    else {
-        net->Add(bb::Reduce<>::Create(td.t_shape));
-    }
+    bb::BinaryModulation<float, float>::create_t mod_create;
+    mod_create.layer                     = main_net;
+    mod_create.output_shape              = td.t_shape;
+    mod_create.training_modulation_size  = 1;
+    mod_create.training_value_generator  = bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 12345);
+//  mod_create.training_value_generator  = bb::NormalDistributionGenerator<float>::Create(0.5f, 0.3f, 777);
+    mod_create.inference_modulation_size = frame_mux_size;
+    mod_create.inference_value_generator = nullptr;
+    auto net = bb::BinaryModulation<float, float>::Create(mod_create);
+
     net->SetInputShape(td.x_shape);
 
     if ( binary_mode ) {
