@@ -147,7 +147,7 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
     main_net->Add(bb::MicroMlp<>::Create( 180));
     main_net->Add(bb::MicroMlp<>::Create(  30));
 #else
-    main_net->Add(bb::DenseAffine<>::Create(512));
+    main_net->Add(bb::DenseAffine<>::Create(1024));
     main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
     main_net->Add(bb::Binarize<>::Create());
     main_net->Add(bb::DenseAffine<>::Create(30));
