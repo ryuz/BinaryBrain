@@ -126,28 +126,50 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
     }
 
     // create network
-    auto net = bb::Sequential::Create();
-    net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(32), 3, 3));
-    net->Add(bb::BatchNormalization<>::Create(bn_momentum));
-    net->Add(bb::ReLU<>::Create());
-    net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(32), 3, 3));
-    net->Add(bb::BatchNormalization<>::Create(bn_momentum));
-    net->Add(bb::ReLU<>::Create());
-    net->Add(bb::MaxPooling<>::Create(2, 2));
-    net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3));
-    net->Add(bb::BatchNormalization<>::Create(bn_momentum));
-    net->Add(bb::ReLU<>::Create());
-    net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3));
-    net->Add(bb::BatchNormalization<>::Create(bn_momentum));
-    net->Add(bb::ReLU<>::Create());
-    net->Add(bb::MaxPooling<>::Create(2, 2));
-    net->Add(bb::DenseAffine<>::Create(512));
-    net->Add(bb::BatchNormalization<>::Create(bn_momentum));
-    net->Add(bb::ReLU<>::Create());
-    net->Add(bb::DenseAffine<>::Create(td.t_shape));
-    net->Add(bb::BatchNormalization<>::Create(bn_momentum));
-    net->Add(bb::ReLU<>::Create());
-    net->SetInputShape(td.x_shape);
+    auto main_net = bb::Sequential::Create();
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(32), 3, 3));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::ReLU<>::Create());
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(32), 3, 3));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::ReLU<>::Create());
+    main_net->Add(bb::MaxPooling<>::Create(2, 2));
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::ReLU<>::Create());
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::ReLU<>::Create());
+    main_net->Add(bb::MaxPooling<>::Create(2, 2));
+    main_net->Add(bb::DenseAffine<>::Create(512));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::ReLU<>::Create());
+    main_net->Add(bb::DenseAffine<>::Create(td.t_shape));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::ReLU<>::Create());
+    main_net->SetInputShape(td.x_shape);
+
+
+#if 1
+    bb::BinaryModulation<float, float>::create_t mod_create;
+    mod_create.layer                     = main_net;
+    mod_create.output_shape              = td.t_shape;
+#if 1
+    mod_create.training_modulation_size  = frame_mux_size;
+    mod_create.training_value_generator  = nullptr;
+#else
+    mod_create.training_modulation_size  = 1;
+//  mod_create.training_value_generator  = bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 12345);
+//  mod_create.training_value_generator  = bb::NormalDistributionGenerator<float>::Create(0.5f, 0.3f, 777);
+#endif
+
+    mod_create.inference_modulation_size = frame_mux_size;
+    mod_create.inference_value_generator = nullptr;
+    auto net = bb::BinaryModulation<float, float>::Create(mod_create);
+#else
+    auto net = main_net;
+#endif
+
 
     if ( binary_mode ) {
         net->SendCommand("binary true");
