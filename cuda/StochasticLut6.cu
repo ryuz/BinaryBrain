@@ -24,7 +24,8 @@ __global__ void kernal_fp32_StochasticLut6_Forward(
             int             node_size,
             int             frame_size,
             int             frame_stride,
-            int             binary_mode
+            int             input_binary,
+            int             lut_binarize
         )
 {
     int node_id = threadIdx.y;
@@ -40,7 +41,7 @@ __global__ void kernal_fp32_StochasticLut6_Forward(
         // read W
         for ( int i = id; i < 64; i += id_step ) {
             W[i][node_id] = W_buf[node * 64 + i];
-            if ( binary_mode ) {
+            if ( lut_binarize ) {
                 W[i][node_id] = W[i][node_id] > 0.5 ? 1.0 : 0.0;
             }
         }
@@ -59,9 +60,16 @@ __global__ void kernal_fp32_StochasticLut6_Forward(
         if ( node < node_size ) {
             float   xp[6], xn[6];
             for ( int i = 0; i < 6; ++i) {
-                xp[i] = x_ptr[i][frame];
-                xp[i] = min(1.0, max(0.0, xp[i]));
-                xn[i] = 1.0 - xp[i];
+                float x_val = x_ptr[i][frame];
+                if ( input_binary ) {
+                    x_val = (x_val > 0.5) ? 0.7 : 0.3;
+                }
+                else {
+                    x_val = min(1.0, max(0.0, x_val));
+                }
+
+                xp[i] = x_val;
+                xn[i] = 1.0 - x_val;
             }
 
             float x0_00 = xn[1] * xn[0];
@@ -180,7 +188,8 @@ int bbcu_fp32_StochasticLut6_Forward
             int             node_size,
             int             frame_size,
             int             frame_stride,
-            int             binary_mode,
+            int             input_binary,
+            int             lut_binarize,
             cudaStream_t    streamId
         )
 {
@@ -212,7 +221,8 @@ int bbcu_fp32_StochasticLut6_Forward
             node_size,
             frame_size,
             frame_stride,
-            binary_mode
+            input_binary,
+            lut_binarize
         );
     BB_CUDA_CHECK_LAST_ERROR();
     
@@ -480,7 +490,8 @@ __global__ void kernal_fp32_StochasticLut6_Backward
             int             node_size,
             int             frame_size,
             int             frame_stride,
-            int             binary_mode
+            int             input_binary,
+            int             lut_binarize
         )
 {
 
@@ -509,7 +520,7 @@ __global__ void kernal_fp32_StochasticLut6_Backward
         // read W
         for ( int i = id; i < 64; i += id_step ) {
             W[i][node_id] = W_buf[node * 64 + i];
-            if ( binary_mode ) {
+            if ( lut_binarize ) {
                 W[i][node_id] = W[i][node_id] > 0.5 ? 1.0 : 0.0;
             }
         }
@@ -529,9 +540,16 @@ __global__ void kernal_fp32_StochasticLut6_Backward
         for ( int frame = id; frame < frame_size; frame += id_step ) {
             float xp[6], xn[6];
             for ( int i = 0; i < 6; ++i) {
-                xp[i] = x_ptr[i][frame];
-                xp[i] = min(1.0, max(0.0, xp[i]));
-                xn[i] = 1.0 - xp[i];
+                float x_val = x_ptr[i][frame];
+                if ( input_binary ) {
+                    x_val = (x_val > 0.5) ? 0.7 : 0.3;
+                }
+                else {
+                    x_val = min(1.0, max(0.0, x_val));
+                }
+
+                xp[i] = x_val;
+                xn[i] = 1.0 - x_val;
             }
 
             float x0_00 = xn[1] * xn[0];
@@ -849,7 +867,8 @@ int bbcu_fp32_StochasticLut6_Backward(
             int             output_node_size,
             int             frame_size,
             int             frame_stride,
-            int             binary_mode,
+            int             input_binary,
+            int             lut_binarize,
             cudaStream_t    streamId
     )
 {
@@ -884,7 +903,8 @@ int bbcu_fp32_StochasticLut6_Backward(
                 output_node_size,
                 frame_size,
                 frame_stride,
-                binary_mode
+                input_binary,
+                lut_binarize
             );
         BB_CUDA_CHECK_LAST_ERROR();
     }

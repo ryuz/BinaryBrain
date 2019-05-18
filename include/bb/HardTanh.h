@@ -32,8 +32,9 @@ protected:
     using Binarize<T>::m_hardtanh_max;
 
     using Binarize<T>::m_x_buf;
-    FrameBuffer m_y_buf;
-    FrameBuffer m_dx_buf;
+//    FrameBuffer m_y_buf;
+//    FrameBuffer m_dx_buf;
+
 
 public:
     // 生成情報
@@ -90,6 +91,8 @@ public:
 
     std::string GetClassName(void) const { return "HardTanh"; }
 
+    void        SetFrameBufferX(FrameBuffer x) { m_x_buf = x; }
+    FrameBuffer GetFrameBufferX(void)          { return m_x_buf; }
 
     // 1ノードのみForward計算
     std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
@@ -122,36 +125,39 @@ public:
         BB_ASSERT(x_buf.GetType() == DataType<T>::type);
 
         // backward用に保存
-        m_x_buf = x_buf;
+        if ( train ) {
+            m_x_buf = x_buf;
+        }
 
-        // 戻り値のサイズ設定
-        m_y_buf.ResizeLike(x_buf);
+        // 戻り値の設定
+        FrameBuffer y_buf(x_buf.GetType(), x_buf.GetFrameSize(), x_buf.GetShape());
 
 #ifdef BB_WITH_CUDA
-        if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && m_x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // CUDA版
             auto ptr_x = x_buf.LockDeviceMemoryConst();
-            auto ptr_y = m_y_buf.LockDeviceMemory();
+            auto ptr_y = y_buf.LockDeviceMemory();
             bbcu_fp32_HardTanh_Forward(
                         (float const *)ptr_x.GetAddr(),
                         (float       *)ptr_y.GetAddr(),
                         (float        )m_hardtanh_min,
                         (float        )m_hardtanh_max,
-                        (int          )m_y_buf.GetNodeSize(),
-                        (int          )m_y_buf.GetFrameSize(),
-                        (int          )(m_y_buf.GetFrameStride() / sizeof(float))
+                        (int          )y_buf.GetNodeSize(),
+                        (int          )y_buf.GetFrameSize(),
+                        (int          )(y_buf.GetFrameStride() / sizeof(float))
                     );
-            return m_y_buf;
+            
+            return y_buf;
         }
 #endif
 
         {
             // 汎用版
-            index_t frame_size = m_x_buf.GetFrameSize();
-            index_t node_size = m_x_buf.GetNodeSize();
+            index_t frame_size = x_buf.GetFrameSize();
+            index_t node_size  = x_buf.GetNodeSize();
 
-            auto x_ptr = m_x_buf.template LockConst<T>();
-            auto y_ptr = m_y_buf.template Lock<T>();
+            auto x_ptr = x_buf.template LockConst<T>();
+            auto y_ptr = y_buf.template Lock<T>();
 
             // Hard-Tanh
     #pragma omp parallel for
@@ -163,7 +169,7 @@ public:
                     y_ptr.Set(frame, node, x);
                 }
             }
-            return m_y_buf;
+            return y_buf;
         }
     }
 
@@ -184,36 +190,39 @@ public:
         BB_ASSERT(dy_buf.GetType() == DataType<T>::type);
 
         // 戻り値のサイズ設定
-        m_dx_buf.ResizeLike(dy_buf);
+        FrameBuffer dx_buf(dy_buf.GetType(), dy_buf.GetFrameSize(), dy_buf.GetShape());
+
+        auto x_buf = m_x_buf;
+        m_x_buf = FrameBuffer();
 
 #ifdef BB_WITH_CUDA
-        if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && m_x_buf.IsDeviceAvailable() && m_dx_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // GPU版
-            auto ptr_x  = m_x_buf.LockDeviceMemoryConst();
+            auto ptr_x  = x_buf.LockDeviceMemoryConst();
             auto ptr_dy = dy_buf.LockDeviceMemoryConst();
-            auto ptr_dx = m_dx_buf.LockDeviceMemory(true);
+            auto ptr_dx = dx_buf.LockDeviceMemory(true);
             bbcu_fp32_HardTanh_Backward(
                         (float const *)ptr_x.GetAddr(),
                         (float const *)ptr_dy.GetAddr(),
                         (float       *)ptr_dx.GetAddr(),
                         (float        )m_hardtanh_min,
                         (float        )m_hardtanh_max,
-                        (int          )m_dx_buf.GetNodeSize(),
-                        (int          )m_dx_buf.GetFrameSize(),
-                        (int          )(m_dx_buf.GetFrameStride() / sizeof(float))
+                        (int          )dx_buf.GetNodeSize(),
+                        (int          )dx_buf.GetFrameSize(),
+                        (int          )(dx_buf.GetFrameStride() / sizeof(float))
                     );
-            return m_dx_buf;
+            return dx_buf;
         }
 #endif
 
         {
             // 汎用版
-            index_t frame_size = m_dx_buf.GetFrameSize();
-            index_t node_size = m_dx_buf.GetNodeSize();
+            index_t frame_size = dx_buf.GetFrameSize();
+            index_t node_size  = dx_buf.GetNodeSize();
 
-            auto x_ptr  = m_x_buf.template LockConst<T>();
+            auto x_ptr  = x_buf.template LockConst<T>();
             auto dy_ptr = dy_buf.template LockConst<T>();
-            auto dx_ptr = m_dx_buf.template Lock<T>();
+            auto dx_ptr = dx_buf.template Lock<T>();
 
             // Hard-Tanh
             #pragma omp parallel for
@@ -227,7 +236,7 @@ public:
                 }
             }
 
-            return m_dx_buf;
+            return dx_buf;
         }
     }
 };

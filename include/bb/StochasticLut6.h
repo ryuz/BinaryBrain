@@ -26,6 +26,7 @@ class StochasticLut6 : public SparseLayer<T, T>
     using _super = SparseLayer<T, T>;
 
 protected:
+    bool                    m_binary_mode = false;
     bool                    m_lut_binarize = true;
     bool                    m_y_binarize = false;
     bool                    m_host_only = false;
@@ -62,6 +63,12 @@ protected:
 
     void CommandProc(std::vector<std::string> args)
     {
+        // バイナリモード設定
+        if ( args.size() == 2 && args[0] == "binary" )
+        {
+            m_binary_mode = EvalBool(args[1]);
+        }
+
         // LUTバイナライズ設定
         if ( args.size() == 2 && args[0] == "lut_binarize" )
         {
@@ -438,7 +445,7 @@ public:
             auto y_ptr           = m_y_buf.LockDeviceMemory(true);
             auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
             auto W_ptr           = m_W->LockDeviceMemoryConst();
-               
+            
             bbcu_fp32_StochasticLut6_Forward
                 (
                     (const float *)x_ptr.GetAddr(),
@@ -448,6 +455,7 @@ public:
                     (int          )m_y_buf.GetNodeSize(),
                     (int          )m_y_buf.GetFrameSize(),
                     (int          )(m_y_buf.GetFrameStride() / sizeof(float)),
+                    (int          )(m_binary_mode ? 1 : 0),
                     (int          )(m_lut_binarize ? 1 : 0)
                 );
 
@@ -736,6 +744,7 @@ public:
                     (int          )m_y_buf.GetNodeSize(),
                     (int          )m_dx_buf.GetFrameSize(),
                     (int          )(m_dx_buf.GetFrameStride() / sizeof(float)),
+                    (int          )(m_binary_mode ? 1 : 0),
                     (int          )(m_lut_binarize ? 1 : 0)
                 );
        

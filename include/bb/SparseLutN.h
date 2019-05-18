@@ -29,11 +29,12 @@ class SparseLutN : public SparseLayer<T, T>
     using _super = SparseLayer<T, T>;
 
 protected:
+    bool                                                    m_memory_saving = true;
+
     // 2層で構成
-    std::shared_ptr< StochasticBatchNormalization<T>   >    m_norm_pre;
     std::shared_ptr< StochasticLutN<N, T> >                 m_lut;
-    std::shared_ptr< StochasticBatchNormalization<T>   >    m_norm_post;
-    std::shared_ptr< HardTanh<T>   >                        m_activate;
+    std::shared_ptr< StochasticBatchNormalization<T>   >    m_batch_norm;
+    std::shared_ptr< HardTanh<T>   >                        m_activation;
 
 public:
     struct create_t
@@ -46,17 +47,15 @@ public:
 protected:
     SparseLutN(create_t const &create)
     {
-        m_norm_pre  = StochasticBatchNormalization<T>::Create(0.01f);
-
         typename StochasticLutN<N, T>::create_t lut_create;
         lut_create.output_shape = create.output_shape;
         lut_create.connection   = create.connection;
         lut_create.seed         = create.seed;
         m_lut = StochasticLutN<N, T>::Create(lut_create);
 
-        m_norm_post = StochasticBatchNormalization<T>::Create(0.01f);
+        m_batch_norm = StochasticBatchNormalization<T>::Create(0.01f);
 
-        m_activate = HardTanh<T>::Create((T)0, (T)1);
+        m_activation = HardTanh<T>::Create((T)0, (T)1);
     }
 
     /**
@@ -66,6 +65,10 @@ protected:
      */
     void CommandProc(std::vector<std::string> args)
     {
+        if ( args.size() == 2 && args[0] == "memory_saving" )
+        {
+            m_memory_saving = EvalBool(args[1]);
+        }
     }
 
 
@@ -101,10 +104,9 @@ public:
     {
         _super::SendCommand(command, send_to);
 
-        m_norm_pre ->SendCommand(command, send_to);
-        m_lut      ->SendCommand(command, send_to);
-        m_norm_post->SendCommand(command, send_to);
-        m_activate ->SendCommand(command, send_to);
+        m_lut       ->SendCommand(command, send_to);
+        m_batch_norm->SendCommand(command, send_to);
+        m_activation->SendCommand(command, send_to);
     }
     
     /**
@@ -116,9 +118,8 @@ public:
     Variables GetParameters(void)
     {
         Variables parameters;
-        parameters.PushBack(m_norm_pre ->GetParameters());
-        parameters.PushBack(m_lut      ->GetParameters());
-        parameters.PushBack(m_norm_post->GetParameters());
+        parameters.PushBack(m_lut       ->GetParameters());
+        parameters.PushBack(m_batch_norm->GetParameters());
         return parameters;
     }
 
@@ -131,9 +132,8 @@ public:
     virtual Variables GetGradients(void)
     {
         Variables gradients;
-        gradients.PushBack(m_norm_pre ->GetGradients());
-        gradients.PushBack(m_lut      ->GetGradients());
-        gradients.PushBack(m_norm_post->GetGradients());
+        gradients.PushBack(m_lut       ->GetGradients());
+        gradients.PushBack(m_batch_norm->GetGradients());
         return gradients;
     }  
 
@@ -147,10 +147,9 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
-        shape = m_norm_pre ->SetInputShape(shape);
-        shape = m_lut      ->SetInputShape(shape);
-        shape = m_norm_post->SetInputShape(shape);
-        shape = m_activate ->SetInputShape(shape);
+        shape = m_lut       ->SetInputShape(shape);
+        shape = m_batch_norm->SetInputShape(shape);
+        shape = m_activation->SetInputShape(shape);
         return shape;
     }
 
@@ -161,7 +160,7 @@ public:
      */
     indices_t GetInputShape(void) const
     {
-        return m_norm_pre->GetInputShape();
+        return m_lut->GetInputShape();
     }
 
     /**
@@ -171,7 +170,7 @@ public:
      */
     indices_t GetOutputShape(void) const
     {
-        return m_activate->GetOutputShape();
+        return m_activation->GetOutputShape();
     }
     
     index_t GetNodeInputSize(index_t node) const
@@ -194,20 +193,9 @@ public:
         index_t input_size = this->GetNodeInputSize(node);
         BB_ASSERT(input_size == x_vec.size());
 
-        std::vector<double> tmp(1);
-        for (index_t i = 0; i < input_size; ++i) {
-            index_t input_node = this->GetNodeInput(node, i);
-            tmp[0] = x_vec[i];
-            tmp = m_norm_pre->ForwardNode(input_node, tmp);
-            x_vec[i] = tmp[0];
-        }
-
         x_vec = m_lut->ForwardNode(node, x_vec);
-
-        x_vec = m_norm_post->ForwardNode(node, x_vec);
-
-        x_vec = m_activate->ForwardNode(node, x_vec);
-
+        x_vec = m_batch_norm->ForwardNode(node, x_vec);
+        x_vec = m_activation->ForwardNode(node, x_vec);
         return x_vec;
     }
 
@@ -218,13 +206,15 @@ public:
      * @param  train 学習時にtrueを指定
      * @return forward演算結果
      */
-    FrameBuffer Forward(FrameBuffer x, bool train = true)
+    FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-        x = m_norm_pre ->Forward(x, train);
-        x = m_lut      ->Forward(x, train);
-        x = m_norm_post->Forward(x, train);
-        x = m_activate ->Forward(x, train);
-        return x;
+        x_buf = m_lut->Forward(x_buf, train);
+        x_buf = m_batch_norm->Forward(x_buf, train);
+        if (m_memory_saving || !train ) { m_batch_norm->SetFrameBufferX(FrameBuffer()); }
+        x_buf = m_activation->Forward(x_buf, train);
+        if (m_memory_saving || !train ) { m_activation->SetFrameBufferX(FrameBuffer()); }
+
+        return x_buf;
     }
 
    /**
@@ -233,14 +223,20 @@ public:
      *         
      * @return backward演算結果
      */
-    FrameBuffer Backward(FrameBuffer dy)
+    FrameBuffer Backward(FrameBuffer dy_buf)
     {
-        dy = m_activate ->Backward(dy);
-        dy = m_norm_post->Backward(dy);
-        dy = m_lut      ->Backward(dy);
-        dy = m_norm_pre ->Backward(dy);
+       if (m_memory_saving) {
+            // 再計算
+            FrameBuffer x_buf;
+            x_buf = m_lut       ->ReForward(m_lut->GetFrameBufferX());
+            x_buf = m_batch_norm->ReForward(x_buf);
+            m_activation->SetFrameBufferX(x_buf);
+        }
 
-        return dy; 
+        dy_buf = m_activation->Backward(dy_buf);
+        dy_buf = m_batch_norm->Backward(dy_buf);
+        dy_buf = m_lut       ->Backward(dy_buf);
+        return dy_buf; 
     }
 
 protected:
@@ -258,10 +254,9 @@ protected:
         }
         else {
             // 子レイヤーの表示
-            m_norm_pre ->PrintInfo(depth, os, columns, nest+1);
-            m_lut      ->PrintInfo(depth, os, columns, nest+1);
-            m_norm_post->PrintInfo(depth, os, columns, nest+1);
-            m_activate ->PrintInfo(depth, os, columns, nest+1);
+            m_lut       ->PrintInfo(depth, os, columns, nest+1);
+            m_batch_norm->PrintInfo(depth, os, columns, nest+1);
+            m_activation->PrintInfo(depth, os, columns, nest+1);
         }
     }
 
@@ -269,18 +264,16 @@ public:
     // Serialize
     void Save(std::ostream &os) const 
     {
-        m_norm_pre ->Save(os);
-        m_lut      ->Save(os);
-        m_norm_post->Save(os);
-        m_activate ->Save(os);
+        m_lut       ->Save(os);
+        m_batch_norm->Save(os);
+        m_activation->Save(os);
     }
 
     void Load(std::istream &is)
     {
-        m_norm_pre ->Load(is);
-        m_lut      ->Load(is);
-        m_norm_post->Load(is);
-        m_activate ->Load(is);
+        m_lut       ->Load(is);
+        m_batch_norm->Load(is);
+        m_activation->Load(is);
     }
 
 
@@ -300,19 +293,17 @@ public:
     void Save(cereal::JSONOutputArchive& archive) const
     {
         archive(cereal::make_nvp("SparseLutN", *this));
-        m_norm_pre ->Save(archive);
-        m_lut      ->Save(archive);
-        m_norm_post->Save(archive);
-        m_activate ->Save(archive);
+        m_lut       ->Save(archive);
+        m_batch_norm->Save(archive);
+        m_activation->Save(archive);
     }
 
     void Load(cereal::JSONInputArchive& archive)
     {
         archive(cereal::make_nvp("SparseLutN", *this));
-        m_norm_pre ->Load(archive);
-        m_lut      ->Load(archive);
-        m_norm_post->Load(archive);
-        m_activate ->Load(archive);
+        m_lut       ->Load(archive);
+        m_batch_norm->Load(archive);
+        m_activation->Load(archive);
     }
 #endif
 

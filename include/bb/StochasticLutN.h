@@ -27,6 +27,7 @@ class StochasticLutN : public SparseLayer<T, T>
     static int const NN = (1 << N);
 
 protected:
+    bool                    m_binary_mode = false;
     bool                    m_lut_binarize = true;
     bool                    m_y_binarize = false;
     bool                    m_host_only = false;
@@ -38,10 +39,6 @@ protected:
     indices_t               m_output_shape;
 
     FrameBuffer             m_x_buf;
-//    FrameBuffer             m_y_buf;
-//    FrameBuffer             m_dx_buf;
-//    FrameBuffer             m_tmp_buf;
-
 
     Tensor_<std::int32_t>   m_input_index;
 
@@ -73,6 +70,12 @@ protected:
 
     void CommandProc(std::vector<std::string> args)
     {
+        // バイナリモード設定
+        if ( args.size() == 2 && args[0] == "binary" )
+        {
+            m_binary_mode = EvalBool(args[1]);
+        }
+
         // LUTバイナライズ設定
         if ( args.size() == 2 && args[0] == "lut_binarize" )
         {
@@ -279,6 +282,9 @@ public:
     }
     
 
+    void        SetFrameBufferX(FrameBuffer x) { m_x_buf = x; }
+    FrameBuffer GetFrameBufferX(void)          { return m_x_buf; }
+
     // ノード単位でのForward計算
     std::vector<double> ForwardNode(index_t node, std::vector<double> input_value) const
     {
@@ -364,6 +370,7 @@ public:
                     (int          )y_buf.GetNodeSize(),
                     (int          )y_buf.GetFrameSize(),
                     (int          )(y_buf.GetFrameStride() / sizeof(float)),
+                    (int          )(m_binary_mode  ? 1 : 0),
                     (int          )(m_lut_binarize ? 1 : 0)
                 );
 
@@ -395,7 +402,12 @@ public:
                     T   x[N][2];
                     for ( int i = 0; i < N; ++i) {
                         T in_sig = x_ptr.Get(frame, input_index_ptr(node, i));
-                        in_sig = std::min((T)1.0, std::max((T)0.0, in_sig));  // clip
+                        if (m_binary_mode) {
+                            in_sig = in_sig > (T)0.5 ? (T)0.7 : (T)0.3;
+                        }
+                        else {
+                            in_sig = std::min((T)1.0, std::max((T)0.0, in_sig));  // clip
+                        }
 
                         x[i][0] = (T)1.0 - in_sig;
                         x[i][1] = in_sig;
@@ -457,6 +469,7 @@ public:
                     (int          )dy_buf.GetNodeSize(),
                     (int          )dx_buf.GetFrameSize(),
                     (int          )(dx_buf.GetFrameStride() / sizeof(float)),
+                    (int          )(m_binary_mode  ? 1 : 0),
                     (int          )(m_lut_binarize ? 1 : 0)
                 );
             
@@ -464,7 +477,7 @@ public:
         }
 #endif
 
-        {
+        if ( N == 6 ) {
             // 汎用版
             dx_buf.FillZero();
 
@@ -495,7 +508,12 @@ public:
                     T   x[N][2];
                     for ( int i = 0; i < N; ++i) {
                         T in_sig = x_ptr.Get(frame, input_index_ptr(node, i));
-                        in_sig = std::min((T)1.0, std::max((T)0.0, in_sig));  // clip
+                        if (m_binary_mode) {
+                            in_sig = in_sig > (T)0.5 ? (T)0.7 : (T)0.3;
+                        }
+                        else {
+                            in_sig = std::min((T)1.0, std::max((T)0.0, in_sig));  // clip
+                        }
 
                         x[i][0] = (T)1.0 - in_sig;
                         x[i][1] = in_sig;

@@ -100,11 +100,11 @@ int main(int argc, char *argv[])
     }
 
     if ( netname == "All" || netname == "StochasticLutMlp" ) {
-        MnistStochasticLut6Mlp(epoch_size, mini_batch_size, max_run_size, lut_frame_mux_size, binary_mode, file_read);
+        MnistStochasticLut6Mlp(epoch_size, mini_batch_size, max_run_size, lut_frame_mux_size, false, file_read);
     }
 
     if ( netname == "All" || netname == "StochasticLutCnn" ) {
-        MnistStochasticLut6Cnn(epoch_size, mini_batch_size, max_run_size, lut_frame_mux_size, binary_mode, file_read);
+        MnistStochasticLut6Cnn(epoch_size, mini_batch_size, max_run_size, lut_frame_mux_size, false, file_read);
     }
 
     if ( netname == "All" || netname == "LutMlp" ) {

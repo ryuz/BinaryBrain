@@ -341,7 +341,8 @@ int bbcu_fp32_StochasticLut6_Forward
             int             node_size,
             int             frame_size,
             int             frame_stride,
-            int             binary_mode,
+            int             input_binary,
+            int             lut_binarize,
             cudaStream_t    streamId = 0
         );
 
@@ -357,7 +358,8 @@ int bbcu_fp32_StochasticLut6_Backward(
             int             output_node_size,
             int             frame_size,
             int             frame_stride,
-            int             binary_mode,
+            int             input_binary,
+            int             lut_binarize,
             cudaStream_t    streamId = 0
         );
 
