@@ -141,18 +141,25 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
     main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
     main_net->Add(bb::Binarize<>::Create());
     main_net->Add(bb::MaxPooling<>::Create(2, 2));
+#if 0
+    main_net->Add(bb::MicroMlp<>::Create(6480));
+    main_net->Add(bb::MicroMlp<>::Create(1080));
+    main_net->Add(bb::MicroMlp<>::Create( 180));
+    main_net->Add(bb::MicroMlp<>::Create(  30));
+#else
     main_net->Add(bb::DenseAffine<>::Create(512));
     main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
     main_net->Add(bb::Binarize<>::Create());
     main_net->Add(bb::DenseAffine<>::Create(30));
     main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
     main_net->Add(bb::Binarize<>::Create());
+#endif
 
     auto net = bb::Sequential::Create();
 #if 1
     bb::BinaryModulation<float, float>::create_t mod_create;
     mod_create.layer                     = main_net;
-//  mod_create.output_shape              = td.t_shape;
+    mod_create.output_shape              = td.t_shape;
 #if 1
     mod_create.training_modulation_size  = frame_mux_size;
     mod_create.training_value_generator  = nullptr;
@@ -168,7 +175,7 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
     net->Add(main_net);
 
 #endif
-    net->Add(bb::Reduce<>::Create(td.t_shape));
+//  net->Add(bb::Reduce<>::Create(td.t_shape));
 
     net->SetInputShape(td.x_shape);
 
