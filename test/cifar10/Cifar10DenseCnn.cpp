@@ -35,6 +35,73 @@
 #include "bb/Reduce.h"
 #include "bb/UniformDistributionGenerator.h"
 
+
+
+// Dense CNN
+void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
+{
+    std::string net_name = "Cifar10DenseCnn";
+
+  // load cifar-10 data
+#ifdef _DEBUG
+    auto td = bb::LoadCifar10<>::Load(1);
+    std::cout << "!!! debug mode !!!" << std::endl;
+#else
+    auto td = bb::LoadCifar10<>::Load();
+#endif
+
+    // create network
+    auto net = bb::Sequential::Create();
+    net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(32), 3, 3));
+    net->Add(bb::ReLU<>::Create());
+    net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(32), 3, 3));
+    net->Add(bb::ReLU<>::Create());
+    net->Add(bb::MaxPooling<>::Create(2, 2));
+    net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3));
+    net->Add(bb::ReLU<>::Create());
+    net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3));
+    net->Add(bb::ReLU<>::Create());
+    net->Add(bb::MaxPooling<>::Create(2, 2));
+    net->Add(bb::DenseAffine<>::Create(512));
+    net->Add(bb::ReLU<>::Create());
+    net->Add(bb::DenseAffine<>::Create(td.t_shape));
+    net->SetInputShape(td.x_shape);
+
+    std::cout << "-----------------------------------" << std::endl;
+    std::cout << "file_read          : " << file_read          << std::endl;
+    std::cout << "epoch_size         : " << epoch_size         << std::endl;
+    std::cout << "mini_batch_size    : " << mini_batch_size    << std::endl;
+    std::cout << "max_run_size       : " << max_run_size       << std::endl;
+    std::cout << "frame_mux_size     : " << frame_mux_size     << std::endl;
+    std::cout << "binary_mode        : " << binary_mode        << std::endl;
+
+    if ( binary_mode ) {
+        net->SendCommand("binary true");
+        std::cout << "binary mode" << std::endl;
+    }
+
+    // print model information
+    net->PrintInfo();
+
+    // run fitting
+    bb::Runner<float>::create_t runner_create;
+    runner_create.name        = net_name;
+    runner_create.net         = net;
+    runner_create.lossFunc    = bb::LossSoftmaxCrossEntropy<>::Create();
+    runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<>::Create();
+    runner_create.optimizer   = bb::OptimizerAdam<>::Create();
+    runner_create.max_run_size       = max_run_size;    // 実際の1回の実行サイズ
+    runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
+    runner_create.file_write         = true;            // 計算結果をファイルに保存するか
+    runner_create.print_progress     = true;            // 途中結果を表示
+    runner_create.initial_evaluation = file_read;       // ファイルを読んだ場合は最初に評価しておく
+    auto runner = bb::Runner<float>::Create(runner_create);
+    runner->Fitting(td, epoch_size, mini_batch_size);
+}
+
+
+
+
 #if 0
 
 // Dense CNN
@@ -249,7 +316,10 @@ void Cifar10DenseCnnX(int epoch_size, int mini_batch_size, int max_run_size, int
     runner->Fitting(td, epoch_size, mini_batch_size);
 }
 
-#else
+#endif
+
+
+#if 0
 
 // Dense CNN
 void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
