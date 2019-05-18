@@ -111,7 +111,7 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
 
 void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "Cifar10DenseCnn";
+    std::string net_name = "Cifar10DenseCnn_full_cnn";
 
   // load cifar-10 data
 #ifdef _DEBUG
@@ -128,31 +128,50 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
 
     // create network
     auto main_net = bb::Sequential::Create();
-    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3));
+
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3, 1, 1, "same"));
     main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
     main_net->Add(bb::Binarize<>::Create());
-    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3));
-    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
-    main_net->Add(bb::Binarize<>::Create());
-    main_net->Add(bb::MaxPooling<>::Create(2, 2));
-    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(128), 3, 3));
-    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
-    main_net->Add(bb::Binarize<>::Create());
-    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(128), 3, 3));
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3, 1, 1, "same"));
     main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
     main_net->Add(bb::Binarize<>::Create());
     main_net->Add(bb::MaxPooling<>::Create(2, 2));
-#if 1
+
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(128), 3, 3, 1, 1, "same"));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::Binarize<>::Create());
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(128), 3, 3, 1, 1, "same"));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::Binarize<>::Create());
+    main_net->Add(bb::MaxPooling<>::Create(2, 2));
+
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(256), 3, 3, 1, 1, "same"));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::Binarize<>::Create());
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(256), 3, 3, 1, 1, "same"));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::Binarize<>::Create());
+    main_net->Add(bb::MaxPooling<>::Create(2, 2));
+
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(512), 3, 3, 1, 1, "same"));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::Binarize<>::Create());
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(512), 3, 3, 1, 1, "same"));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::Binarize<>::Create());
+    main_net->Add(bb::MaxPooling<>::Create(2, 2));
+
+#if 0
     main_net->Add(bb::SparseLutN<>::Create(36864));
     main_net->Add(bb::SparseLutN<>::Create(6144));
     main_net->Add(bb::SparseLutN<>::Create(1024));
 
     main_net->Add(bb::SparseLutN<>::Create(2160));
     main_net->Add(bb::SparseLutN<>::Create(360));
-    main_net->Add(bb::SparseLutN<6>::Create(60));
+    main_net->Add(bb::SparseLutN<>::Create(60));
     main_net->Add(bb::SparseLutN<>::Create(10));
 #else
-    main_net->Add(bb::DenseAffine<>::Create(1024));
+    main_net->Add(bb::DenseAffine<>::Create(512));
     main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
     main_net->Add(bb::Binarize<>::Create());
     main_net->Add(bb::DenseAffine<>::Create(10));
