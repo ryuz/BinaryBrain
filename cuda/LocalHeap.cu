@@ -46,8 +46,15 @@ public:
 
         for (auto& heap : m_reserve_vec) {
             m_reserve_size -= heap.size;
-            BB_CUDA_SAFE_CALL(cudaFree(heap.ptr));
+//          BB_CUDA_SAFE_CALL(cudaFree(heap.ptr));
+            auto err = cudaFree(heap.ptr);
+            if ( err == 29 ) { break; }     // driver shutting down
+
+            if (err != cudaSuccess) {
+                BBCU_ASSERT(0);
+            }
         }
+
         BBCU_ASSERT(m_reserve_size == 0);
     }
 

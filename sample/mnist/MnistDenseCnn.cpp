@@ -55,7 +55,12 @@ void MnistDenseCnn(int epoch_size, int mini_batch_size, int max_run_size, bool b
     net->Add(bb::ReLU<float>::Create());
     net->Add(bb::DenseAffine<float>::Create(td.t_shape));
     net->SetInputShape(td.x_shape);
-    
+
+    if ( binary_mode ) {
+        std::cout << "binary true" << std::endl;
+        net->SendCommand("binary true");
+    }
+
     // run fitting
     bb::Runner<float>::create_t runner_create;
     runner_create.name               = "MnistDenseCnn";
