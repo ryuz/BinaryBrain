@@ -134,11 +134,8 @@ inline void Memcpy(void *dst, const void *src, size_t count, enum cudaMemcpyKind
 
 inline void PrintDeviceProperties(void)
 {
-    int dev_count;
-
-    BB_CUDA_SAFE_CALL(cudaGetDeviceCount(&dev_count));
-    
-    if ( dev_count <= 0 ) {
+    int dev_count = GetDeviceCount();
+   if ( dev_count <= 0 ) {
         std::cout << "no CUDA" << std::endl;
         return;
     }
