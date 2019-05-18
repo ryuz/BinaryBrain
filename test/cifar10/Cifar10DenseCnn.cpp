@@ -338,6 +338,7 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
     main_net->Add(bb::ReLU<>::Create());
 #endif
 
+#if 0
     bb::BinaryModulation<float, float>::create_t mod_create;
     mod_create.layer                     = main_net;
     mod_create.output_shape              = td.t_shape;
@@ -347,6 +348,9 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
     mod_create.inference_modulation_size = frame_mux_size;
     mod_create.inference_value_generator = nullptr;
     auto net = bb::BinaryModulation<float, float>::Create(mod_create);
+#else
+    auto net = main_net;
+#endif
 
     net->SetInputShape(td.x_shape);
 

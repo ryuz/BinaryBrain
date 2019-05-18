@@ -44,11 +44,11 @@ void MnistDenseMlp(int epoch_size, int mini_batch_size, int max_run_size, bool b
     net->Add(bb::DenseAffine<float>::Create(td.t_shape));
     net->SetInputShape(td.x_shape);
 
+    std::cout << "binary_mode : " << binary_mode << std::endl;
     if ( binary_mode ) {
-        std::cout << "binary true" << std::endl;
         net->SendCommand("binary true");
     }
-   
+    
     // run fitting
     bb::Runner<float>::create_t runner_create;
     runner_create.name               = "MnistDenseMlp";

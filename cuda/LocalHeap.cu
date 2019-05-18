@@ -48,10 +48,10 @@ public:
             m_reserve_size -= heap.size;
 //          BB_CUDA_SAFE_CALL(cudaFree(heap.ptr));
             auto err = cudaFree(heap.ptr);
-            if ( err == 29 ) { break; }     // driver shutting down
+            if ( err == 29 ) { return; }     // driver shutting down
 
             if (err != cudaSuccess) {
-                BBCU_ASSERT(0);
+                fprintf(stderr, "[Error] %s (error code: %d) at %s line %d\n", cudaGetErrorString(err), err, __FILE__, __LINE__); \
             }
         }
 
