@@ -45,7 +45,7 @@ CUDA(Kepler以降)にも対応しています。
 % git clone --recursive -b ver3_release  https://github.com/ryuz/BinaryBrain.git
 % cd BinaryBrain/sample/mnist
 % make
-% make dl_mnist
+% make dl_data
 % ./sample-mnist All
 ```
 

@@ -42,7 +42,7 @@ It has the following features
 % git clone --recursive -b ver3_release  https://github.com/ryuz/BinaryBrain.git
 % cd BinaryBrain/sample/mnist
 % make
-% make dl_mnist
+% make dl_data
 % ./sample-mnist All
 ```
 
