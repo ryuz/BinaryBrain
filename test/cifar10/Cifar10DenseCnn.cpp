@@ -127,17 +127,17 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
 
     // create network
     auto main_net = bb::Sequential::Create();
-    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(32), 3, 3));
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3));
     main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
     main_net->Add(bb::Binarize<>::Create());
-    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(32), 3, 3));
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3));
     main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
     main_net->Add(bb::Binarize<>::Create());
     main_net->Add(bb::MaxPooling<>::Create(2, 2));
-    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3));
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(128), 3, 3));
     main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
     main_net->Add(bb::Binarize<>::Create());
-    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3));
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(128), 3, 3));
     main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
     main_net->Add(bb::Binarize<>::Create());
     main_net->Add(bb::MaxPooling<>::Create(2, 2));
