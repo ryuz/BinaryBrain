@@ -83,6 +83,17 @@ void DumpDeviceMemory(std::string filename, T const *addr, int size)
 }
 
 
+inline int GetDeviceCount(void)
+{
+    int dev_count = 0;
+    auto status = cudaGetDeviceCount(&dev_count);
+    if (status != cudaSuccess) {
+        dev_count = 0;
+    }
+    return dev_count;
+}
+
+
 #define BB_USE_LOCAL_HEAP   1
 
 inline void Malloc(void **ptr, size_t size)
