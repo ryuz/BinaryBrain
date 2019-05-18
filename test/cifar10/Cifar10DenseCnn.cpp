@@ -349,6 +349,7 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
     mod_create.inference_value_generator = nullptr;
     auto net = bb::BinaryModulation<float, float>::Create(mod_create);
 #else
+    main_net->Add(bb::Reduce<>::Create(td.t_shape));
     auto net = main_net;
 #endif
 
