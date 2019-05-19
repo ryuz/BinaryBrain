@@ -143,7 +143,7 @@ public:
 
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-        if ( DataType<BinType>::type == DataType<RealType>::type && !m_binary_mode ) {
+        if ( typeid(BinType) == typeid(RealType) && !m_binary_mode ) {
             return x_buf;
         }
 
