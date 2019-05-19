@@ -10,15 +10,9 @@
 
 #pragma once
 
-#ifdef BB_WITH_CEREAL
-#include <cereal/archives/json.hpp>
-#include <cereal/types/vector.hpp>
-#include <cereal/types/array.hpp>
-#endif
-
 #include "bb/Manager.h"
 #include "bb/DataType.h"
-#include "bb/Activation.h"
+#include "bb/Model.h"
 #include "bb/FrameBuffer.h"
 #include "bb/SimdSupport.h"
 
@@ -33,18 +27,18 @@ namespace bb {
 
 // BatchNormalization
 template <typename T = float>
-class BackpropagatedBatchNormalization : public Activation
+class BackpropagatedBatchNormalization : public Model
 {
-    using _super = Activation;
+    using _super = Model;
 
 protected:
     bool                        m_host_only = false;
     bool                        m_host_simd = true;
     
-    indices_t                   m_shape;
+    indices_t                   m_node_shape;
 
     FrameBuffer                 m_x_buf;
-    FrameBuffer                 m_dx_buf;
+//  FrameBuffer                 m_dx_buf;
 
     T                           m_gain = (T)1.00;
     T                           m_beta = (T)0.99;
@@ -99,14 +93,14 @@ public:
     // Serialize
     void Save(std::ostream &os) const 
     {
-          SaveIndices(os, m_shape);
+          SaveIndices(os, m_node_shape);
           bb::SaveValue(os, m_gain);
           bb::SaveValue(os, m_beta);
     }
 
     void Load(std::istream &is)
     {
-         m_shape = LoadIndices(is);
+         m_node_shape = LoadIndices(is);
          bb::LoadValue(is, m_gain);
          bb::LoadValue(is, m_beta);
     }
@@ -117,7 +111,7 @@ public:
     void save(Archive& archive, std::uint32_t const version) const
     {
         _super::save(archive, version);
-        archive(cereal::make_nvp("node_shape", m_shape));
+        archive(cereal::make_nvp("node_shape", m_node_shape));
         archive(cereal::make_nvp("gain",       m_gain));
         archive(cereal::make_nvp("beta",       m_beta));
     }
@@ -126,7 +120,7 @@ public:
     void load(Archive& archive, std::uint32_t const version)
     {
         _super::load(archive, version);
-        archive(cereal::make_nvp("node_shape", m_shape));
+        archive(cereal::make_nvp("node_shape", m_node_shape));
         archive(cereal::make_nvp("gain",       m_gain));
         archive(cereal::make_nvp("beta",       m_beta));
      }
@@ -153,7 +147,7 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
-        m_shape = shape;
+        m_node_shape = shape;
         return shape;
     }
 
@@ -164,7 +158,7 @@ public:
      */
     indices_t GetInputShape(void) const
     {
-        return m_shape;
+        return m_node_shape;
     }
 
     /**
@@ -174,7 +168,7 @@ public:
      */
     indices_t GetOutputShape(void) const
     {
-        return m_shape;
+        return m_node_shape;
     }
 
 
@@ -221,7 +215,9 @@ public:
     FrameBuffer Forward(FrameBuffer x_buf, bool train=true)
     {
         // backwardの為に保存
-        m_x_buf = x_buf;
+        if ( train ) {
+            m_x_buf = x_buf;
+        }
 
         return x_buf;
     }
@@ -240,16 +236,19 @@ public:
             return dy_buf;
         }
         
+        FrameBuffer x_buf = m_x_buf;
+        m_x_buf = FrameBuffer();
+
         // 出力設定
-        m_dx_buf.Resize(dy_buf.GetType(), dy_buf.GetFrameSize(), dy_buf.GetShape());
+        FrameBuffer dx_buf(dy_buf.GetType(), dy_buf.GetFrameSize(), dy_buf.GetShape());
 
         {
             auto node_size  = dy_buf.GetNodeSize();
             auto frame_size = dy_buf.GetFrameSize();
 
-            auto x_ptr           = m_x_buf.LockConst<T>();
+            auto x_ptr           = x_buf.LockConst<T>();
             auto dy_ptr          = dy_buf.LockConst<T>();
-            auto dx_ptr          = m_dx_buf.Lock<T>(true);
+            auto dx_ptr          = dx_buf.Lock<T>(true);
 
             #pragma omp parallel for
             for (index_t node = 0; node < node_size; ++node) {
@@ -280,7 +279,7 @@ public:
             // ゲイン減衰
             m_gain *= m_beta;
 
-            return m_dx_buf;
+            return dx_buf;
         }
     }
 };

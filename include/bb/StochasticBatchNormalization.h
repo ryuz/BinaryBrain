@@ -20,7 +20,7 @@
 
 #include "bb/Manager.h"
 #include "bb/DataType.h"
-#include "bb/Activation.h"
+#include "bb/Model.h"
 #include "bb/FrameBuffer.h"
 #include "bb/SimdSupport.h"
 
@@ -35,15 +35,15 @@ namespace bb {
 
 // BatchNormalization
 template <typename T = float>
-class StochasticBatchNormalization : public Activation
+class StochasticBatchNormalization : public Model
 {
-    using _super = Activation;
+    using _super = Model;
 
 protected:
     bool                        m_host_only = false;
     bool                        m_host_simd = false;
 
-    index_t                     m_node_size;
+    indices_t                   m_node_shape;
     
     FrameBuffer                 m_x_buf;
 
@@ -118,7 +118,7 @@ public:
     // Serialize
     void Save(std::ostream &os) const 
     {
-        SaveIndex(os, m_node_size);
+        SaveIndices(os, m_node_shape);
         bb::SaveValue(os, m_momentum);
         bb::SaveValue(os, m_gamma);
         bb::SaveValue(os, m_beta);
@@ -128,7 +128,7 @@ public:
 
     void Load(std::istream &is)
     {
-        m_node_size = LoadIndex(is);
+        m_node_shape = LoadIndices(is);
         bb::LoadValue(is, m_momentum);
         bb::LoadValue(is, m_gamma);
         bb::LoadValue(is, m_beta);
@@ -142,7 +142,7 @@ public:
     void save(Archive& archive, std::uint32_t const version) const
     {
         _super::save(archive, version);
-        archive(cereal::make_nvp("node_size",    m_node_size));
+        archive(cereal::make_nvp("node_shape",   m_node_shape));
         archive(cereal::make_nvp("gamma",        m_gamma));
         archive(cereal::make_nvp("beta",         m_beta));
         archive(cereal::make_nvp("running_mean", m_running_mean));
@@ -153,7 +153,7 @@ public:
     void load(Archive& archive, std::uint32_t const version)
     {
         _super::load(archive, version);
-        archive(cereal::make_nvp("node_size",    m_node_size));
+        archive(cereal::make_nvp("node_shape",   m_node_shape));
         archive(cereal::make_nvp("gamma",        m_gamma));
         archive(cereal::make_nvp("beta",         m_beta));
         archive(cereal::make_nvp("running_mean", m_running_mean));
@@ -162,12 +162,12 @@ public:
 
     void Save(cereal::JSONOutputArchive& archive) const
     {
-        archive(cereal::make_nvp("BatchNormalization", *this));
+        archive(cereal::make_nvp("StochasticBatchNormalization", *this));
     }
 
     void Load(cereal::JSONInputArchive& archive)
     {
-        archive(cereal::make_nvp("BatchNormalization", *this));
+        archive(cereal::make_nvp("StochasticBatchNormalization", *this));
     }
 #endif
 
@@ -190,18 +190,38 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
-        _super::SetInputShape(shape);
-
-        m_node_size = GetShapeSize(shape);
+        m_node_shape = shape;
+        
+        auto node_size = GetShapeSize(shape);
         
         // パラメータ初期化
-        m_mean.Resize(m_node_size);
-        m_rstd.Resize(m_node_size);
+        m_mean.Resize(m_node_shape);
+        m_rstd.Resize(m_node_shape);
 
-        m_running_mean.Resize(m_node_size); m_running_mean = (T)0.0;
-        m_running_var.Resize(m_node_size);  m_running_var  = (T)1.0;
+        m_running_mean.Resize(m_node_shape); m_running_mean = (T)0.0;
+        m_running_var.Resize(m_node_shape);  m_running_var  = (T)1.0;
 
         return shape;
+    }
+
+    /**
+     * @brief  入力形状取得
+     * @detail 入力形状を取得する
+     * @return 入力形状を返す
+     */
+    indices_t GetInputShape(void) const
+    {
+        return m_node_shape;
+    }
+
+    /**
+     * @brief  出力形状取得
+     * @detail 出力形状を取得する
+     * @return 出力形状を返す
+     */
+    indices_t GetOutputShape(void) const
+    {
+        return m_node_shape;
     }
 
 
@@ -247,7 +267,7 @@ public:
     // ノード単位でのForward計算
     std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
     {
-        BB_DEBUG_ASSERT(node >= 0 && node < m_node_size);
+        BB_DEBUG_ASSERT(node >= 0 && node < GetShapeSize(m_node_shape));
 
         auto running_mean_ptr = m_running_mean.LockConst();
         auto running_var_ptr  = m_running_var.LockConst();
@@ -360,7 +380,7 @@ public:
                 const __m256    epsilon = _mm256_set1_ps(1.0e-7f);
 
                 #pragma omp parallel for
-                for (int node = 0; node < (int)m_node_size; ++node) {
+                for (int node = 0; node < (int)node_size; ++node) {
                     float const *x_addr = x_ptr.GetAddr(node);
                     float       *y_addr = y_ptr.GetAddr(node);
 
@@ -414,7 +434,7 @@ public:
             }
             else {
                 #pragma omp parallel for
-                for (int node = 0; node < (int)m_node_size; ++node) {
+                for (int node = 0; node < (int)node_size; ++node) {
                     auto x_addr = x_ptr.GetAddr(node);
                     auto y_addr = y_ptr.GetAddr(node);
 
@@ -515,7 +535,7 @@ public:
             }
             else {
 //              #pragma omp parallel for
-                for (index_t node = 0; node < m_node_size; ++node) {
+                for (index_t node = 0; node < node_size; ++node) {
                     T   mean  = running_mean_ptr[node];
                     T   var   = running_var_ptr[node];
 
@@ -604,7 +624,7 @@ public:
             auto dy_ptr = dy_buf.LockConst<T>();
 
             #pragma omp parallel for
-            for (int node = 0; node < (int)m_node_size; ++node) {
+            for (int node = 0; node < (int)node_size; ++node) {
                 auto dy_addr = dy_ptr.GetAddr(node);
                 auto dx_addr = dx_ptr.GetAddr(node);
                 auto x_addr  = x_ptr.GetAddr(node);
@@ -670,7 +690,7 @@ public:
             auto dy_ptr = dy_buf.LockConst<T>();
 
             #pragma omp parallel for
-            for (index_t node = 0; node < m_node_size; ++node) {
+            for (index_t node = 0; node < node_size; ++node) {
                 T   mean   = mean_ptr[node];
                 T   rstd   = rstd_ptr[node];
                 T   dmeanx = 0;

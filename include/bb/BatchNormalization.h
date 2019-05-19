@@ -200,9 +200,6 @@ public:
 #endif
 
 
-
-
-
     auto lock_gamma(void)              { return m_gamma->Lock<T>(); }
     auto lock_gamma_const(void)  const { return m_gamma->LockConst<T>(); }
     auto lock_beta(void)               { return m_beta->Lock<T>(); }
@@ -249,6 +246,11 @@ public:
         return shape;
     }
 
+    /**
+     * @brief  入力形状取得
+     * @detail 入力形状を取得する
+     * @return 入力形状を返す
+     */
     indices_t GetInputShape(void) const
     {
         return m_node_shape;
