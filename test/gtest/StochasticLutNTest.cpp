@@ -256,9 +256,11 @@ void StochasticLutN_cmp_bit(int const input_node_size, int const output_node_siz
     auto opt1 = bb::OptimizerAdam<float>::Create();
 
     lut0->SendCommand("binary true");
+    lut1->SendCommand("tmp_max_mem_size 4096");
 
     lut0->SendCommand("lut_binarize true");
     lut1->SendCommand("lut_binarize true");
+
 
     bb::FrameBuffer x_buf0(BB_TYPE_FP32, frame_size, input_node_size);
     bb::FrameBuffer x_buf1(BB_TYPE_BIT,  frame_size, input_node_size);
@@ -429,6 +431,8 @@ void StochasticLutN_cmp_bit(int const input_node_size, int const output_node_siz
 
 TEST(StochasticLutNTest, testStochasticLutN_cmp_bit)
 {
+    StochasticLutN_cmp_bit<float>(14, 16, 4096, 2);
+
     StochasticLutN_cmp_bit<float>(14, 16, 8, 2);
     StochasticLutN_cmp_bit<float>(14, 1024, 8, 4);
     StochasticLutN_cmp_bit<float>(14, 1024, 3, 4);
