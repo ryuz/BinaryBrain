@@ -76,6 +76,9 @@
     <CudaCompile Include="RealToBinary.cu">
       <Filter>ソース ファイル</Filter>
     </CudaCompile>
+    <CudaCompile Include="SparseBinaryLut6.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ヘッダファイル">

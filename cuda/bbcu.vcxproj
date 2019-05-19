@@ -40,6 +40,7 @@
     <CudaCompile Include="ReLU.cu" />
     <CudaCompile Include="ShuffleModulation.cu" />
     <CudaCompile Include="Sigmoid.cu" />
+    <CudaCompile Include="SparseBinaryLut6.cu" />
     <CudaCompile Include="StochasticBatchNormalization.cu" />
     <CudaCompile Include="StochasticLut6.cu" />
     <CudaCompile Include="StochasticMaxPooling.cu" />
