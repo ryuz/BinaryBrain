@@ -2,6 +2,7 @@
 #include <iostream>
 #include "gtest/gtest.h"
 #include "bb/RealToBinary.h"
+#include "bb/UniformDistributionGenerator.h"
 
 
 #define USE_BACKWARD    0
@@ -108,5 +109,65 @@ TEST(RealToBinaryTest, testRealToBinaryyBatch)
     EXPECT_EQ(15.0f, dx_buf.GetFP32(1, 1));
     EXPECT_EQ(19.0f, dx_buf.GetFP32(1, 2));
 #endif
+}
+
+
+void RealToBinaryTest_cmp_bit(int node_size, int frame_size, int loop_num = 1)
+{
+    auto real2bin0 = bb::RealToBinary<float, float>::Create();
+    auto real2bin1 = bb::RealToBinary<float, bb::Bit>::Create();
+
+    // forward
+    bb::FrameBuffer x_buf0(BB_TYPE_FP32, frame_size, node_size);
+    bb::FrameBuffer x_buf1(BB_TYPE_FP32, frame_size, node_size);
+    real2bin0->SetInputShape(x_buf0.GetShape());
+    real2bin1->SetInputShape(x_buf1.GetShape());
+
+    auto valgen = bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1);
+
+    for ( int loop = 0; loop < loop_num; ++ loop ) 
+    {
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < node_size; ++node ) {
+                float val = valgen->GetValue();
+                x_buf0.SetFP32(frame, node, val);
+                x_buf1.SetFP32(frame, node, val);
+            }
+        }
+
+        auto y_buf0 = real2bin0->Forward(x_buf0);
+        auto y_buf1 = real2bin1->Forward(x_buf1);
+
+        EXPECT_EQ(BB_TYPE_FP32, y_buf0.GetType());
+        EXPECT_EQ(BB_TYPE_BIT,  y_buf1.GetType());
+
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < node_size; ++node ) {
+                float val0 = x_buf0.GetFP32(frame, node);
+                float val1 = x_buf1.GetFP32(frame, node);
+                EXPECT_EQ(val0, val1);
+            }
+        }
+
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < node_size; ++node ) {
+                auto val0 = (float)y_buf0.GetFP32(frame, node);
+                auto val1 = (float)y_buf1.GetBit(frame, node);
+//                std::cout << "fp32 x : " << x_buf0.GetFP32(frame, node) << "  y : " << y_buf0.GetFP32(frame, node) << std::endl;
+//                std::cout << "bit  x : " << x_buf1.GetFP32(frame, node) << "  y : " << (float)y_buf1.GetBit(frame, node) << std::endl;
+                EXPECT_EQ(val0, val1);
+            }
+        }
+    }
+}
+
+
+TEST(RealToBinaryTest, testRealToBinary_cmp_bit)
+{
+    RealToBinaryTest_cmp_bit(1, 8);
+    RealToBinaryTest_cmp_bit(1, 2048);
+    RealToBinaryTest_cmp_bit(2048, 1);
+    RealToBinaryTest_cmp_bit(32, 32);
+    RealToBinaryTest_cmp_bit(1024, 1024);
 }
 

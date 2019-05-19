@@ -296,5 +296,6 @@
     <ClInclude Include="..\..\include\bb\SparseLutN.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\cuda\Common.cuh" />
   </ItemGroup>
 </Project>

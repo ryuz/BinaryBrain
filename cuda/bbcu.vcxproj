@@ -48,6 +48,7 @@
   <ItemGroup>
     <ClInclude Include="..\include\bbcu\bbcu.h" />
     <ClInclude Include="..\include\bbcu\bbcu_util.h" />
+    <ClInclude Include="Common.cuh" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{ACAFEE7F-E3FF-431C-AC93-E6591C0E358D}</ProjectGuid>

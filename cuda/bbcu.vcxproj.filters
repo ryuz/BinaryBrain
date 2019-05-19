@@ -92,5 +92,8 @@
     <ClInclude Include="..\include\bbcu\bbcu_util.h">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
+    <ClInclude Include="Common.cuh">
+      <Filter>ヘッダファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

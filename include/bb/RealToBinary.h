@@ -35,6 +35,7 @@ class RealToBinary : public Model
 {
 protected:
     bool                                    m_binary_mode = true;
+    bool                                    m_host_only = false;
 
     indices_t                               m_node_shape;
     index_t                                 m_modulation_size;
@@ -76,7 +77,14 @@ protected:
         {
             m_binary_mode = EvalBool(args[1]);
         }
+
+        // HostOnlyモード設定
+        if (args.size() == 2 && args[0] == "host_only")
+        {
+            m_host_only = EvalBool(args[1]);
+        }
     }
+
 
 public:
     ~RealToBinary() {}
@@ -165,55 +173,79 @@ public:
         // 戻り値の型を設定
         FrameBuffer y_buf(DataType<FYT>::type, x_buf.GetFrameSize() * m_modulation_size, m_node_shape);
 
-        index_t node_size        = x_buf.GetNodeSize();
-        index_t input_frame_size = x_buf.GetFrameSize();
+#ifdef BB_WITH_CUDA
+        if ( DataType<FXT>::type == BB_TYPE_FP32 && DataType<FYT>::type == BB_TYPE_BIT && m_modulation_size == 1 && !m_host_only
+                && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+            auto x_ptr           = x_buf.LockDeviceMemoryConst();
+            auto y_ptr           = y_buf.LockDeviceMemory(true);
+            
+            bbcu_fp32_bit_no_modulation_RealToBinary_Forward
+                (
+                    (const float *)x_ptr.GetAddr(),
+                    (int         *)y_ptr.GetAddr(),
+                    (float        )0.5f,
+                    (int          )x_buf.GetNodeSize(),
+                    (int          )x_buf.GetFrameSize(),
+                    (int          )(x_buf.GetFrameStride() / sizeof(float)),
+                    (int          )(y_buf.GetFrameStride() / sizeof(int))
+                );
 
-        auto x_ptr = x_buf.LockConst<FXT>();
-        auto y_ptr = y_buf.Lock<FYT>();
+            return y_buf;
+        }
+#endif
 
-        FXT th_step = (m_input_range_hi - m_input_range_lo) / (FXT)(m_modulation_size + 1);
-        for ( index_t input_frame = 0; input_frame < input_frame_size; ++input_frame) {
-            for ( index_t i = 0; i < m_modulation_size; ++i ) {
-                index_t output_frame = input_frame * m_modulation_size + i;
+        {
+            // 汎用
+            index_t node_size        = x_buf.GetNodeSize();
+            index_t input_frame_size = x_buf.GetFrameSize();
 
-                if ( m_framewise || m_value_generator == nullptr ) {
-                    // frame毎に閾値変調
-                    FXT th;
-                    if ( m_value_generator != nullptr ) {
-                        th = m_value_generator->GetValue();
-                        th = std::max(th, m_input_range_lo);
-                        th = std::min(th, m_input_range_hi);
+            auto x_ptr = x_buf.LockConst<FXT>();
+            auto y_ptr = y_buf.Lock<FYT>();
+
+            FXT th_step = (m_input_range_hi - m_input_range_lo) / (FXT)(m_modulation_size + 1);
+            for ( index_t input_frame = 0; input_frame < input_frame_size; ++input_frame) {
+                for ( index_t i = 0; i < m_modulation_size; ++i ) {
+                    index_t output_frame = input_frame * m_modulation_size + i;
+
+                    if ( m_framewise || m_value_generator == nullptr ) {
+                        // frame毎に閾値変調
+                        FXT th;
+                        if ( m_value_generator != nullptr ) {
+                            th = m_value_generator->GetValue();
+                            th = std::max(th, m_input_range_lo);
+                            th = std::min(th, m_input_range_hi);
+                        }
+                        else {
+                            th = m_input_range_lo + (th_step * (FXT)(i + 1));
+                        }
+
+                        #pragma omp parallel for
+                        for (index_t node = 0; node < node_size; ++node) {
+                            FXT real_sig = x_ptr.Get(input_frame, node);
+                            FYT bin_sig  = (real_sig > th) ? (FYT)1 : (FYT)0;
+                            y_ptr.Set(output_frame, node, bin_sig);
+                        }
                     }
                     else {
-                        th = m_input_range_lo + (th_step * (FXT)(i + 1));
-                    }
-
-                    #pragma omp parallel for
-                    for (index_t node = 0; node < node_size; ++node) {
-                        FXT real_sig = x_ptr.Get(input_frame, node);
-                        FYT bin_sig  = (real_sig > th) ? (FYT)1 : (FYT)0;
-                        y_ptr.Set(output_frame, node, bin_sig);
-                    }
-                }
-                else {
-                    // データ毎に閾値変調
-                    for (index_t node = 0; node < node_size; ++node) {
-                        FXT th = m_value_generator->GetValue();
-                        FXT real_sig = x_ptr.Get(input_frame, node);
-                        FYT bin_sig  = (real_sig > th) ? (FYT)1 : (FYT)0;
-                        y_ptr.Set(output_frame, node, bin_sig);
+                        // データ毎に閾値変調
+                        for (index_t node = 0; node < node_size; ++node) {
+                            FXT th = m_value_generator->GetValue();
+                            FXT real_sig = x_ptr.Get(input_frame, node);
+                            FYT bin_sig  = (real_sig > th) ? (FYT)1 : (FYT)0;
+                            y_ptr.Set(output_frame, node, bin_sig);
+                        }
                     }
                 }
             }
-        }
 
-        return y_buf;
+            return y_buf;
+        }
     }
 
 
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
-        if (!m_binary_mode) {
+        if (!m_binary_mode || m_modulation_size == 1) {
             return dy_buf;
         }
 
