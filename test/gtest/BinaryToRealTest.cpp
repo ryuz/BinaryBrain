@@ -127,8 +127,8 @@ TEST(BinaryToRealTest, testBinaryToRealTest_cmp)
     const int x_node_size  = y_node_size  * node_mux_size;
     const int x_frame_size = y_frame_size * frame_mux_size;
 
-    auto bin2real_cpu = bb::BinaryToReal<float, float, float>::Create(frame_mux_size, bb::indices_t({y_node_size}));
-    auto bin2real_gpu = bb::BinaryToReal<float, float, float>::Create(frame_mux_size, bb::indices_t({y_node_size}));
+    auto bin2real_cpu = bb::BinaryToReal<float, float>::Create(frame_mux_size, bb::indices_t({y_node_size}));
+    auto bin2real_gpu = bb::BinaryToReal<float, float>::Create(frame_mux_size, bb::indices_t({y_node_size}));
 
     bb::FrameBuffer x_cpu(BB_TYPE_FP32, x_frame_size, x_node_size, true);
     bb::FrameBuffer x_gpu(BB_TYPE_FP32, x_frame_size, x_node_size);

@@ -34,7 +34,7 @@ protected:
     // 3層で構成
     std::shared_ptr< MicroMlpAffine<N, M, FT, T> >  m_affine;
     std::shared_ptr< BatchNormalization<T>       >  m_batch_norm;
-    std::shared_ptr< Binarize<T, FT>             >  m_activation;
+    std::shared_ptr< Binarize<FT, T>             >  m_activation;
 
 public:
     // 生成情報
@@ -71,7 +71,7 @@ protected:
         bn_create.beta      = create.beta;
         m_batch_norm = BatchNormalization<T>::Create(bn_create);
         
-        m_activation = Binarize<T, FT>::Create();
+        m_activation = Binarize<FT, T>::Create();
     }
 
     void CommandProc(std::vector<std::string> args)

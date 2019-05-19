@@ -12,7 +12,6 @@
 
 
 
-template<typename T=float>
 void MicroMlp_cmp_bit(int const input_node_size, int const output_node_size, int const frame_size, int loop_num)
 {
     auto mlp0 = bb::MicroMlp<6, 16, float>::Create(output_node_size);
@@ -206,7 +205,7 @@ void MicroMlp_cmp_bit(int const input_node_size, int const output_node_size, int
 TEST(MicroMlpTest, testMicroMlp_cmp_bit)
 {
 //    MicroMlp_cmp_bit<float>(6, 1, 1, 4);
-    MicroMlp_cmp_bit<float>(6, 1, 32, 1);
+    MicroMlp_cmp_bit(6, 1, 32, 1);
 
 //  MicroMlp_cmp_bit<float>(14, 1024, 8, 4);
 //  MicroMlp_cmp_bit<float>(14, 1024, 3, 4);

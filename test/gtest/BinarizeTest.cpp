@@ -50,7 +50,7 @@ TEST(BinarizeTest, testBinarize_test0)
 
 TEST(BinarizeTest, testBinarize_bit_test)
 {
-    auto bin = bb::Binarize<float, bb::Bit>::Create();
+    auto bin = bb::Binarize<bb::Bit>::Create();
     
     bb::FrameBuffer x_buf(BB_TYPE_FP32, 3, 2);
     bin->SetInputShape(x_buf.GetShape());
