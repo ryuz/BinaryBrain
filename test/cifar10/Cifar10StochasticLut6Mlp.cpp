@@ -109,9 +109,9 @@ void Cifar10StochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_s
 
         // テーブル化して取り込み(SetInputShape後に取り込みが必要)
         std::cout << "parameter copy to LUT-Network" << std::endl;
-        layer_lut0->ImportLayer<float, float>(layer_sl0);
-        layer_lut1->ImportLayer<float, float>(layer_sl1);
-        layer_lut2->ImportLayer<float, float>(layer_sl2);
+        layer_lut0->ImportLayer(layer_sl0);
+        layer_lut1->ImportLayer(layer_sl1);
+        layer_lut2->ImportLayer(layer_sl2);
         layer_bn0->Import(layer_sbn0);
         layer_bn1->Import(layer_sbn1);
 

@@ -23,18 +23,18 @@ namespace bb {
 
 
 // Sparce Mini-MLP(Multilayer perceptron) Layer [Affine-ReLU-Affine-BatchNorm-Binarize]
-template <int N = 6, typename T = float >
-class SparseLutN : public SparseLayer<T, T>
+template <int N = 6, typename BinType = float, typename RealType = float>
+class SparseLutN : public SparseLayer
 {
-    using _super = SparseLayer<T, T>;
+    using _super = SparseLayer;
 
 protected:
-    bool                                                    m_memory_saving = true;
+    bool                                                            m_memory_saving = true;
 
     // 2層で構成
-    std::shared_ptr< StochasticLutN<N, T> >                 m_lut;
-    std::shared_ptr< StochasticBatchNormalization<T>   >    m_batch_norm;
-    std::shared_ptr< HardTanh<T>   >                        m_activation;
+    std::shared_ptr< StochasticLutN<N, BinType, RealType> >         m_lut;
+    std::shared_ptr< StochasticBatchNormalization<RealType>   >     m_batch_norm;
+    std::shared_ptr< HardTanh<BinType, RealType>   >                m_activation;
 
 public:
     struct create_t
@@ -47,15 +47,15 @@ public:
 protected:
     SparseLutN(create_t const &create)
     {
-        typename StochasticLutN<N, T>::create_t lut_create;
+        typename StochasticLutN<N, BinType, RealType>::create_t lut_create;
         lut_create.output_shape = create.output_shape;
         lut_create.connection   = create.connection;
         lut_create.seed         = create.seed;
-        m_lut = StochasticLutN<N, T>::Create(lut_create);
+        m_lut = StochasticLutN<N, BinType, RealType>::Create(lut_create);
 
-        m_batch_norm = StochasticBatchNormalization<T>::Create(0.01f);
+        m_batch_norm = StochasticBatchNormalization<RealType>::Create(0.01f);
 
-        m_activation = HardTanh<T>::Create((T)0, (T)1);
+        m_activation = HardTanh<BinType, RealType>::Create((RealType)0, (RealType)1);
     }
 
     /**

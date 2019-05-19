@@ -21,7 +21,7 @@ namespace bb {
 
 // LUT方式基底クラス
 template <typename FT = Bit, typename BT = float>
-class LutLayer : public SparseLayer<FT, BT>
+class LutLayer : public SparseLayer
 {
 public:
     // LUT操作の定義
@@ -59,8 +59,7 @@ protected:
     
 public:
     // 形状が同一のSparceLayerをテーブル化して取り込む
-    template <typename SFT=float, typename SBT=float>
-    void ImportLayer(std::shared_ptr< SparseLayer<SFT, SBT> > src)
+    void ImportLayer(std::shared_ptr< SparseLayer > src)
     {
         BB_ASSERT(GetShapeSize(src->GetInputShape())  == GetShapeSize(this->GetInputShape()));
         BB_ASSERT(GetShapeSize(src->GetOutputShape()) == GetShapeSize(this->GetOutputShape()));

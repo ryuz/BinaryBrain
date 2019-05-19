@@ -20,7 +20,6 @@ namespace bb {
 
 
 // 入力接続数に制限のあるネット
-template <typename FT = float, typename BT = float>
 class SparseLayer : public Model
 {
 public:

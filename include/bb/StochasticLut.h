@@ -25,14 +25,14 @@ namespace bb {
 
 // Sparce Mini-MLP(Multilayer perceptron) Layer [Affine-ReLU-Affine-BatchNorm-Binarize]
 template <int N = 6, typename T = float >
-class StochasticLut : public SparseLayer<T, T>
+class StochasticLut : public SparseLayer
 {
-    using _super = SparseLayer<T, T>;
+    using _super = SparseLayer;
 
 protected:
     // 2層で構成
-    std::shared_ptr< SparseLayer<T, T> >        m_lut;
-    std::shared_ptr< BatchNormalization<T>   >  m_batch_norm;
+    std::shared_ptr< SparseLayer >              m_lut;
+    std::shared_ptr< BatchNormalization<T> >    m_batch_norm;
 
     bool                                        m_bn_enable = true;
 

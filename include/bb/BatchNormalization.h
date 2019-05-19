@@ -35,9 +35,9 @@ namespace bb {
 
 // BatchNormalization
 template <typename T = float>
-class BatchNormalization : public Activation<T, T>
+class BatchNormalization : public Activation
 {
-    using _super = Activation<T, T>;
+    using _super = Activation;
 
 protected:
     bool                        m_bypass    = false;

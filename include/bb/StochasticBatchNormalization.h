@@ -35,9 +35,9 @@ namespace bb {
 
 // BatchNormalization
 template <typename T = float>
-class StochasticBatchNormalization : public Activation<T, T>
+class StochasticBatchNormalization : public Activation
 {
-    using _super = Activation<T, T>;
+    using _super = Activation;
 
 protected:
     bool                        m_host_only = false;

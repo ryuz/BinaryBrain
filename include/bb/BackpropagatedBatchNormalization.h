@@ -33,9 +33,9 @@ namespace bb {
 
 // BatchNormalization
 template <typename T = float>
-class BackpropagatedBatchNormalization : public Activation<T, T>
+class BackpropagatedBatchNormalization : public Activation
 {
-    using _super = Activation<T, T>;
+    using _super = Activation;
 
 protected:
     bool                        m_host_only = false;

@@ -23,8 +23,8 @@ void StochasticLut6_cmp(int const input_node_size, int const output_node_size, i
 
     lut_cpu->SendCommand("host_only true");
 
-    lut_cpu->SendCommand("binary true");
-    lut_gpu->SendCommand("binary true");
+    lut_cpu->SendCommand("lut_binarize true");
+    lut_gpu->SendCommand("lut_binarize true");
 
 
     bb::FrameBuffer x_cpu(BB_TYPE_FP32, frame_size, input_node_size, true);
@@ -195,8 +195,8 @@ void StochasticLut6_cmp(int const input_node_size, int const output_node_size, i
     }
 
 
-    lut_cpu->SendCommand("binary false");
-    lut_gpu->SendCommand("binary false");
+    lut_cpu->SendCommand("lut_binarize false");
+    lut_gpu->SendCommand("lut_binarize false");
 
     for ( int loop = 0; loop < loop_num; ++ loop ) 
     {
@@ -238,6 +238,7 @@ TEST(StochasticLut6Test, testStochasticLut6_cmp)
     StochasticLut6_cmp<float>(13, 17, 1024 + 512 - 7, 4);
 //  StochasticLut6_cmp<float>(17, 256, 28*28*16, 4);
 }
+
 
 
 #endif

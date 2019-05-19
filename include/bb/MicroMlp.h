@@ -24,9 +24,9 @@ namespace bb {
 
 // Sparce Mini-MLP(Multilayer perceptron) Layer [Affine-ReLU-Affine-BatchNorm-Binarize]
 template <int N = 6, int M = 16, typename FT = float, typename T = float>
-class MicroMlp : public SparseLayer<T, T>
+class MicroMlp : public SparseLayer
 {
-    using _super = SparseLayer<T, T>;
+    using _super = SparseLayer;
 
 protected:
     bool                                            m_memory_saving = true;

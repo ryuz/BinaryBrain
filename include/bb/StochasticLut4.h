@@ -20,9 +20,9 @@ namespace bb {
 
 // テーブルサイズ固定LUT
 template <typename T = float>
-class StochasticLut4 : public SparseLayer<T, T>
+class StochasticLut4 : public SparseLayer
 {
-    using super = SparseLayer<T, T>;
+    using super = SparseLayer;
 
     int const N = 4;
 

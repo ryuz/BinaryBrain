@@ -34,9 +34,9 @@ namespace bb {
 
 // BatchNormalization
 template <typename FT = Bit, typename ST = float>
-class BinaryScaling : public Activation<FT, FT>
+class BinaryScaling : public Activation
 {
-    using _super = Activation<FT, FT>;
+    using _super = Activation;
 
 protected:
     bool                        m_host_only = false;

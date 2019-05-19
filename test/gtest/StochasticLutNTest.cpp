@@ -23,8 +23,8 @@ void StochasticLutN_cmp(int const input_node_size, int const output_node_size, i
 
     lut_cpu->SendCommand("host_only true");
 
-    lut_cpu->SendCommand("binary true");
-    lut_gpu->SendCommand("binary true");
+    lut_cpu->SendCommand("lut_binarize true");
+    lut_gpu->SendCommand("lut_binarize true");
 
 
     bb::FrameBuffer x_cpu(BB_TYPE_FP32, frame_size, input_node_size, true);
@@ -195,8 +195,8 @@ void StochasticLutN_cmp(int const input_node_size, int const output_node_size, i
     }
 
 
-    lut_cpu->SendCommand("binary false");
-    lut_gpu->SendCommand("binary false");
+    lut_cpu->SendCommand("lut_binarize false");
+    lut_gpu->SendCommand("lut_binarize false");
 
     for ( int loop = 0; loop < loop_num; ++ loop ) 
     {
@@ -241,8 +241,209 @@ TEST(StochasticLutNTest, testStochasticLutN_cmp)
 //  StochasticLutN_cmp<float>(17, 256, 28*28*16, 4);
 }
 
+
+/////////////////
+
+
+
+template<typename T=float>
+void StochasticLutN_cmp_bit(int const input_node_size, int const output_node_size, int const frame_size, int loop_num)
+{
+    auto lut0 = bb::StochasticLutN<6, float>::Create(output_node_size);
+    auto lut1 = bb::StochasticLutN<6, bb::Bit>::Create(output_node_size);
+
+    auto opt0 = bb::OptimizerAdam<float>::Create();
+    auto opt1 = bb::OptimizerAdam<float>::Create();
+
+    lut0->SendCommand("binary true");
+
+    lut0->SendCommand("lut_binarize true");
+    lut1->SendCommand("lut_binarize true");
+
+    bb::FrameBuffer x_buf0(BB_TYPE_FP32, frame_size, input_node_size);
+    bb::FrameBuffer x_buf1(BB_TYPE_BIT,  frame_size, input_node_size);
+    
+    lut0->SetInputShape(x_buf0.GetShape());
+    lut1->SetInputShape(x_buf1.GetShape());
+
+    // 接続を同一化
+    for (int node = 0; node < output_node_size; ++node) {
+        for (int i = 0; i < 6; ++i) {
+            lut1->SetNodeInput(node, i, lut1->GetNodeInput(node, i));
+        }
+    }
+
+    // 係数を同一化
+    {
+        auto W_ptr0 = lut0->lock_W_const();
+        auto W_ptr1 = lut1->lock_W();
+        for (int node = 0; node < output_node_size; ++node) {
+            for (int i = 0; i < 64; ++i) {
+                auto W = W_ptr0(node, i);
+                W_ptr1(node, i) = W;
+            }
+        }
+    }
+    
+    opt0->SetVariables(lut0->GetParameters(), lut0->GetGradients());
+    opt1->SetVariables(lut1->GetParameters(), lut1->GetGradients());
+
+    auto valgen = bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1);
+
+    for ( int loop = 0; loop < loop_num; ++ loop ) 
+    {
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < input_node_size; ++node ) {
+                bool val = (valgen->GetValue() > 0.5);
+                x_buf0.SetFP32(frame, node, val ? 1.0f : 0.0f);
+                x_buf1.SetBit(frame, node, val);
+            }
+        }
+
+        auto y_buf0 = lut0->Forward(x_buf0);
+        auto y_buf1 = lut1->Forward(x_buf1);
+
+        EXPECT_EQ(output_node_size, y_buf0.GetNodeSize());
+        EXPECT_EQ(output_node_size, y_buf1.GetNodeSize());
+        EXPECT_EQ(frame_size, y_buf0.GetFrameSize());
+        EXPECT_EQ(frame_size, y_buf1.GetFrameSize());
+
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < input_node_size; ++node ) {
+                bb::Bit val0 = x_buf0.GetFP32(frame, node);
+                bb::Bit val1 = x_buf1.GetBit(frame, node);
+                EXPECT_EQ(val0, val1);
+            }
+        }
+
+        {
+            auto W_ptr0 = lut0->lock_W_const();
+            auto W_ptr1 = lut1->lock_W_const();
+            for (int node = 0; node < output_node_size; ++node) {
+                for (int i = 0; i < 64; ++i) {
+                    auto val0 = W_ptr0(node, i);
+                    auto val1 = W_ptr1(node, i);
+                    EXPECT_NEAR(val0, val1, 0.0001f);
+                    if (std::abs(val0 - val1) >= 0.0001f) {
+                        std::cout <<  node << std::endl;
+                    }
+                }
+            }
+        }
+
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < output_node_size; ++node ) {
+                auto val0 = y_buf0.GetFP32(frame, node);
+                auto val1 = y_buf1.GetFP32(frame, node);
+                EXPECT_NEAR(val0, val1, 0.0001f);
+                if (std::abs(val0 - val1) >= 0.0001f) {
+                    std::cout << frame << " " << node << std::endl;
+                }
+            }
+        }
+
+
+        // backward
+        bb::FrameBuffer dy_buf0(BB_TYPE_FP32, frame_size, output_node_size, true);
+        bb::FrameBuffer dy_buf1(BB_TYPE_FP32, frame_size, output_node_size);
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < output_node_size; ++node ) {
+                dy_buf0.SetFP32(frame, node, valgen->GetValue());
+                dy_buf1.SetFP32(frame, node, dy_buf0.GetFP32(frame, node));
+            }
+        }
+
+        auto dx_buf0 = lut0->Backward(dy_buf0);
+        auto dx_buf1 = lut1->Backward(dy_buf1);
+
+        EXPECT_EQ(input_node_size, dx_buf0.GetNodeSize());
+        EXPECT_EQ(input_node_size, dx_buf1.GetNodeSize());
+        EXPECT_EQ(frame_size, dx_buf0.GetFrameSize());
+        EXPECT_EQ(frame_size, dx_buf1.GetFrameSize());
+
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < input_node_size; ++node ) {
+                auto val0 = dx_buf0.GetFP32(frame, node);
+                auto val1 = dx_buf1.GetFP32(frame, node);
+                EXPECT_NEAR(val0, val1, 0.0001f);
+                if (abs(val0 - val1) >= 0.0001f) {
+                    std::cout << frame << " " << node << std::endl;
+                }
+            }
+        }
+
+        {
+            auto W_ptr0 = lut0->lock_W_const();
+            auto W_ptr1 = lut1->lock_W_const();
+            for (int node = 0; node < output_node_size; ++node) {
+                for (int i = 0; i < 64; ++i) {
+                    auto val0 = W_ptr0(node, i);
+                    auto val1 = W_ptr1(node, i);
+                    EXPECT_NEAR(val0, val1, 0.0001f);
+                    if (std::abs(val0 - val1) >= 0.0001f) {
+                        std::cout <<  node << std::endl;
+                    }
+                }
+            }
+        }
+
+        {
+            auto dW_ptr0 = lut0->lock_dW_const();
+            auto dW_ptr1 = lut1->lock_dW_const();
+            for (int node = 0; node < output_node_size; ++node) {
+                for (int i = 0; i < 64; ++i) {
+                    auto val0 = dW_ptr0(node, i);
+                    auto val1 = dW_ptr1(node, i);
+                    EXPECT_NEAR(val0, val1, 0.0001f);
+                    if ( !(abs(val0 - val1) < 0.0001f) ) {
+                        std::cout << node << std::endl;
+                        getchar();
+                    }
+                }
+            }
+        }
+
+        opt0->Update();
+        opt1->Update();
+
+        {
+            auto W_ptr0 = lut0->lock_W_const();
+            auto W_ptr1 = lut1->lock_W_const();
+            for (int node = 0; node < output_node_size; ++node) {
+                for (int i = 0; i < 64; ++i) {
+                    auto val0 = W_ptr0(node, i);
+                    auto val1 = W_ptr1(node, i);
+                    EXPECT_NEAR(val0, val1, 0.0001f);
+                    if ( !(std::abs(val0 - val1) < 0.0001f) ) {
+                        auto dW_val0 = lut0->lock_dW_const();
+                        auto dW_val1 = lut1->lock_dW_const();                      
+                        std::cout <<  node << "W0: " << W_ptr0(node, i) << "  W1 : " << W_ptr1(node, i) << std::endl;
+                        getchar();
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+TEST(StochasticLutNTest, testStochasticLutN_cmp_bit)
+{
+    StochasticLutN_cmp_bit<float>(14, 16, 8, 2);
+    StochasticLutN_cmp_bit<float>(14, 1024, 8, 4);
+    StochasticLutN_cmp_bit<float>(14, 1024, 3, 4);
+    StochasticLutN_cmp_bit<float>(6, 1, 1, 4);
+////  StochasticLutN_cmp_bit<float>(14, 21, 1024, 4);
+    StochasticLutN_cmp_bit<float>(13, 17, 1024 + 512 - 7, 4);
+////  StochasticLutN_cmp_bit<float>(17, 256, 28*28*16, 4);
+}
+
+
 #endif
 
+
+
+#if 0
 
 TEST(StochasticLutNTest, testStochasticLutN_connection_depthwise)
 {
@@ -311,5 +512,6 @@ TEST(StochasticLutNTest, testStochasticLutN_connection_pointwise)
 }
 
 
+#endif
 
 

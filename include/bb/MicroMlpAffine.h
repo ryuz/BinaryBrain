@@ -22,9 +22,9 @@ namespace bb {
 
 // Mini-MLP (SparseAffine - ReLU - SparseAffine)
 template <int N = 6, int M = 16, typename FXT = float, typename T = float>
-class MicroMlpAffine : public SparseLayer<FXT, T>
+class MicroMlpAffine : public SparseLayer
 {
-    using _super = SparseLayer<FXT, T>;
+    using _super = SparseLayer;
 
 protected:
 public:   // debug

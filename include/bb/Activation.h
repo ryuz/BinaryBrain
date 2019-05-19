@@ -19,7 +19,6 @@ namespace bb {
 
 
 // Activation
-template <typename FT = float, typename BT = float>
 class Activation : public Model
 {
 protected:

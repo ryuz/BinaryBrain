@@ -19,13 +19,13 @@ namespace bb {
 
 
 // Binarize(活性化層)
-template <typename T = float, typename YT = float>
-class Binarize : public Activation<T, T>
+template <typename BinType = float, typename RealType = float>
+class Binarize : public Activation
 {
 protected:
-    T           m_binary_th    = (T)0;
-    T           m_hardtanh_min = (T)-1;
-    T           m_hardtanh_max = (T)+1;
+    RealType    m_binary_th    = (RealType)0;
+    RealType    m_hardtanh_min = (RealType)-1;
+    RealType    m_hardtanh_max = (RealType)+1;
 
     FrameBuffer m_x_buf;
 
@@ -35,9 +35,9 @@ public:
     // 生成情報
     struct create_t
     {
-        T   binary_th    = (T)0;
-        T   hardtanh_min = (T)-1;
-        T   hardtanh_max = (T)+1;
+        RealType    binary_th    = (RealType)0;
+        RealType    hardtanh_min = (RealType)-1;
+        RealType    hardtanh_max = (RealType)+1;
     };
     
 protected:
@@ -72,7 +72,7 @@ public:
         return std::shared_ptr<Binarize>(new Binarize(create));
     }
 
-    static std::shared_ptr<Binarize> Create(T binary_th = (T)0, T hardtanh_min = (T)-1, T hardtanh_max = (T)+1)
+    static std::shared_ptr<Binarize> Create(RealType binary_th = (RealType)0, RealType hardtanh_min = (RealType)-1, RealType hardtanh_max = (RealType)+1)
     {
         create_t create;
         create.binary_th    = binary_th;
@@ -107,7 +107,7 @@ public:
      */
     inline FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-        BB_ASSERT(x_buf.GetType() == DataType<T>::type);
+        BB_ASSERT(x_buf.GetType() == DataType<RealType>::type);
 
         // backwardの為に保存
         if ( train ) {
@@ -115,10 +115,10 @@ public:
         }
 
         // 戻り値のサイズ設定
-        FrameBuffer y_buf(DataType<YT>::type, x_buf.GetFrameSize(), x_buf.GetShape());
+        FrameBuffer y_buf(DataType<BinType>::type, x_buf.GetFrameSize(), x_buf.GetShape());
 
 #ifdef BB_WITH_CUDA
-        if ( DataType<T>::type == BB_TYPE_FP32 && DataType<YT>::type == BB_TYPE_FP32 && !m_host_only
+        if ( DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
             && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // CUDA版
             auto ptr_x = x_buf.LockDeviceMemoryConst();
@@ -136,7 +136,7 @@ public:
 #endif
         
 #ifdef BB_WITH_CUDA
-        if ( DataType<T>::type == BB_TYPE_FP32 && DataType<YT>::type == BB_TYPE_BIT && !m_host_only
+        if ( DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
             && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // CUDA版
             auto ptr_x = x_buf.LockDeviceMemoryConst();
@@ -160,14 +160,14 @@ public:
             index_t frame_size = x_buf.GetFrameSize();
             index_t node_size = x_buf.GetNodeSize();
 
-            auto x_ptr = x_buf.LockConst<T>();
-            auto y_ptr = y_buf.Lock<YT>();
+            auto x_ptr = x_buf.LockConst<RealType>();
+            auto y_ptr = y_buf.Lock<BinType>();
 
             // Binarize
             #pragma omp parallel for
             for (index_t node = 0; node < node_size; ++node) {
                 for (index_t frame = 0; frame < frame_size; ++frame) {
-                    y_ptr.Set(frame, node, x_ptr.Get(frame, node) > (T)0.0 ? (YT)1.0 : (YT)0.0);
+                    y_ptr.Set(frame, node, x_ptr.Get(frame, node) > (RealType)0.0 ? (BinType)1.0 : (BinType)0.0);
                 }
             }
 
@@ -184,7 +184,7 @@ public:
      */
     inline FrameBuffer Backward(FrameBuffer dy_buf)
     {
-        BB_ASSERT(dy_buf.GetType() == DataType<T>::type);
+        BB_ASSERT(dy_buf.GetType() == DataType<RealType>::type);
 
         // 戻り値のサイズ設定
         FrameBuffer dx_buf(dy_buf.GetType(), dy_buf.GetFrameSize(), dy_buf.GetShape());
@@ -193,7 +193,7 @@ public:
         m_x_buf = FrameBuffer();
 
 #ifdef BB_WITH_CUDA
-        if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        if ( DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // GPU版
             auto ptr_x  = x_buf.LockDeviceMemoryConst();
             auto ptr_dy = dy_buf.LockDeviceMemoryConst();
@@ -217,9 +217,9 @@ public:
             index_t frame_size = dx_buf.GetFrameSize();
             index_t node_size = dx_buf.GetNodeSize();
 
-            auto x_ptr  = x_buf.LockConst<T>();
-            auto dy_ptr = dy_buf.LockConst<T>();
-            auto dx_ptr = dx_buf.Lock<T>();
+            auto x_ptr  = x_buf.LockConst<RealType>();
+            auto dy_ptr = dy_buf.LockConst<RealType>();
+            auto dx_ptr = dx_buf.Lock<RealType>();
             
             // hard-tanh
     #pragma omp parallel for
@@ -227,7 +227,7 @@ public:
                 for (index_t frame = 0; frame < frame_size; ++frame) {
                     auto dy = dy_ptr.Get(frame, node);
                     auto x  = x_ptr.Get(frame, node);
-                    if ( x <= (T)-1.0 || x >= (T)1.0) { dy = (T)0.0; }
+                    if ( x <= (RealType)-1.0 || x >= (RealType)1.0) { dy = (RealType)0.0; }
                     dx_ptr.Set(frame, node, dy);
                 }
             }
