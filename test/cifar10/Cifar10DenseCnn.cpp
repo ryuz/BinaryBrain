@@ -156,6 +156,7 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
 #if 1
     main_net->Add(bb::RealToBinary<float, bb::Bit>::Create());
 
+#if 0
     auto sub6_net = bb::Sequential::Create();
     sub6_net->Add(bb::SparseLutN<6, bb::Bit>::Create({1, 16, 512}, "random"));
     sub6_net->Add(bb::SparseLutN<6, bb::Bit>::Create({1, 6, 512}, "depthwise"));
@@ -167,6 +168,19 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
     sub7_net->Add(bb::SparseLutN<6, bb::Bit>::Create({1, 1, 512}, "depthwise"));
     main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(sub7_net, 3, 3, 1, 1, "same"));
     main_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
+#else
+    auto sub6_net = bb::Sequential::Create();
+    sub6_net->Add(bb::SparseLutN<6, bb::Bit>::Create(18432));
+    sub6_net->Add(bb::SparseLutN<6, bb::Bit>::Create(3072));
+    sub6_net->Add(bb::SparseLutN<6, bb::Bit>::Create(512));
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(sub6_net, 3, 3, 1, 1, "same"));
+    auto sub7_net = bb::Sequential::Create();
+    sub7_net->Add(bb::SparseLutN<6, bb::Bit>::Create(18432));
+    sub7_net->Add(bb::SparseLutN<6, bb::Bit>::Create(3072));
+    sub7_net->Add(bb::SparseLutN<6, bb::Bit>::Create(512));
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(sub7_net, 3, 3, 1, 1, "same"));
+    main_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
+#endif
 
 //  main_net->Add(bb::BinaryToReal<bb::Bit, float>::Create());
 #else
