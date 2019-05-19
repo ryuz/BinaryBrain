@@ -45,9 +45,9 @@ protected:
     index_t                     m_output_node_size = 0;
     indices_t                   m_output_shape;
 
-    FrameBuffer                 m_x;
-    FrameBuffer                 m_y;
-    FrameBuffer                 m_dx;
+    FrameBuffer                 m_x_buf;
+//    FrameBuffer                 m_y_buf;
+//    FrameBuffer                 m_dx_buf;
 
     std::shared_ptr<Tensor>     m_W;
     std::shared_ptr<Tensor>     m_b;
@@ -237,27 +237,29 @@ public:
     }
 
 
-    FrameBuffer Forward(FrameBuffer x, bool train = true)
+    FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-        BB_ASSERT(x.GetType() == DataType<T>::type);
-        BB_ASSERT(x.GetNodeSize() == m_input_node_size);
+        BB_ASSERT(x_buf.GetType() == DataType<T>::type);
+        BB_ASSERT(x_buf.GetNodeSize() == m_input_node_size);
 
         // backwardの為に保存
-        m_x = x;
+        if ( train ) {
+            m_x_buf = x_buf;
+        }
 
         // SetInputShpaeされていなければ初回に設定
-        if (m_x.GetNodeSize() != m_input_node_size) {
-            SetInputShape(m_x.GetShape());
+        if (x_buf.GetNodeSize() != m_input_node_size) {
+            SetInputShape(x_buf.GetShape());
         }
 
         // 出力を設定
-        m_y.Resize(DataType<T>::type, m_x.GetFrameSize(), m_output_shape);
+        FrameBuffer y_buf(DataType<T>::type, x_buf.GetFrameSize(), m_output_shape);
 
 #ifdef BB_WITH_CUDA
-        if (DataType<T>::type == BB_TYPE_FP32 && m_cublasEnable && x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable())
+        if (DataType<T>::type == BB_TYPE_FP32 && m_cublasEnable && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable())
         {
-            auto x_ptr = x.LockDeviceMemoryConst();
-            auto y_ptr = m_y.LockDeviceMemory(true);
+            auto x_ptr = x_buf.LockDeviceMemoryConst();
+            auto y_ptr = y_buf.LockDeviceMemory(true);
             auto W_ptr = m_W->LockDeviceMemoryConst();
             auto b_ptr = m_b->LockDeviceMemoryConst();
             
@@ -265,9 +267,9 @@ public:
                 (
                     (float const *)b_ptr.GetAddr(),
                     (float       *)y_ptr.GetAddr(),
-                    (int          )m_y.GetNodeSize(),
-                    (int          )m_y.GetFrameSize(),
-                    (int          )(m_y.GetFrameStride() / sizeof(float))
+                    (int          )y_buf.GetNodeSize(),
+                    (int          )y_buf.GetFrameSize(),
+                    (int          )(y_buf.GetFrameStride() / sizeof(float))
                 );
 
             float alpha = 1.0f;
@@ -277,28 +279,28 @@ public:
                     m_cublasHandle,
                     CUBLAS_OP_N,
                     CUBLAS_OP_N,
-                    (int)m_y.GetFrameSize(),
-                    (int)m_y.GetNodeSize(),
-                    (int)x.GetNodeSize(),
+                    (int)y_buf.GetFrameSize(),
+                    (int)y_buf.GetNodeSize(),
+                    (int)x_buf.GetNodeSize(),
                     &alpha,
                     (const float *)x_ptr.GetAddr(),
-                    (int)(x.GetFrameStride() / sizeof(float)),
+                    (int)(x_buf.GetFrameStride() / sizeof(float)),
                     (const float *)W_ptr.GetAddr(),
-                    (int)x.GetNodeSize(),
+                    (int)x_buf.GetNodeSize(),
                     &beta,
                     (float *)y_ptr.GetAddr(),
-                    (int)(m_y.GetFrameStride() / sizeof(float))
+                    (int)(y_buf.GetFrameStride() / sizeof(float))
                 ));
             
-            return m_y;
+            return y_buf;
         }
 #endif
 
         {
-            auto frame_size   = x.GetFrameSize();
+            auto frame_size   = x_buf.GetFrameSize();
 
-            auto x_ptr = m_x.LockConst<T>();
-            auto y_ptr = m_y.Lock<T>();
+            auto x_ptr = x_buf.LockConst<T>();
+            auto y_ptr = y_buf.Lock<T>();
             auto W_ptr = lock_W_const();
             auto b_ptr = lock_b_const();
 
@@ -312,27 +314,30 @@ public:
                 }
             }
 
-            return m_y;
+            return y_buf;
         }
     }
 
 
-    FrameBuffer Backward(FrameBuffer dy)
+    FrameBuffer Backward(FrameBuffer dy_buf)
     {
-        BB_ASSERT(dy.GetType() == DataType<T>::type);
+        BB_ASSERT(dy_buf.GetType() == DataType<T>::type);
 
         // フレーム数
-        auto frame_size = dy.GetFrameSize();
+        auto frame_size = dy_buf.GetFrameSize();
 
-        m_dx.Resize(DataType<T>::type, dy.GetFrameSize(), m_input_node_size);
+        FrameBuffer x_buf = m_x_buf;
+        m_x_buf = FrameBuffer();
+
+        FrameBuffer dx_buf(DataType<T>::type, dy_buf.GetFrameSize(), m_input_node_size);
 
 
         #ifdef BB_WITH_CUDA
-        if (DataType<T>::type == BB_TYPE_FP32 && m_cublasEnable && dy.IsDeviceAvailable() && m_x.IsDeviceAvailable() && m_dx.IsDeviceAvailable() && Manager::IsDeviceAvailable())
+        if (DataType<T>::type == BB_TYPE_FP32 && m_cublasEnable && dy_buf.IsDeviceAvailable() && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable())
         {
-            auto dy_ptr = dy.LockDeviceMemoryConst();
-            auto x_ptr  = m_x.LockDeviceMemoryConst();
-            auto dx_ptr = m_dx.LockDeviceMemory(true);
+            auto dy_ptr = dy_buf.LockDeviceMemoryConst();
+            auto x_ptr  = x_buf.LockDeviceMemoryConst();
+            auto dx_ptr = dx_buf.LockDeviceMemory(true);
             auto W_ptr  = m_W->LockDeviceMemoryConst();
             auto b_ptr  = m_b->LockDeviceMemoryConst();
             auto dW_ptr = m_dW->LockDeviceMemory();
@@ -342,9 +347,9 @@ public:
                 (
                     (float const *)dy_ptr.GetAddr(),
                     (float       *)db_ptr.GetAddr(),
-                    (int          )dy.GetNodeSize(),
-                    (int          )dy.GetFrameSize(),
-                    (int          )(dy.GetFrameStride() / sizeof(float))
+                    (int          )dy_buf.GetNodeSize(),
+                    (int          )dy_buf.GetFrameSize(),
+                    (int          )(dy_buf.GetFrameStride() / sizeof(float))
                 );
 
             float alpha = 1.0f;
@@ -354,17 +359,17 @@ public:
                     m_cublasHandle,
                     CUBLAS_OP_N,
                     CUBLAS_OP_T,
-                    (int)m_dx.GetFrameSize(),
-                    (int)m_dx.GetNodeSize(),
-                    (int)dy.GetNodeSize(),
+                    (int)dx_buf.GetFrameSize(),
+                    (int)dx_buf.GetNodeSize(),
+                    (int)dy_buf.GetNodeSize(),
                     &alpha,
                     (const float *)dy_ptr.GetAddr(),
-                    (int)(dy.GetFrameStride() / sizeof(float)),
+                    (int)(dy_buf.GetFrameStride() / sizeof(float)),
                     (const float *)W_ptr.GetAddr(),
-                    (int)m_dx.GetNodeSize(),
+                    (int)dx_buf.GetNodeSize(),
                     &beta,
                     (float *)dx_ptr.GetAddr(),
-                    (int)(m_dx.GetFrameStride() / sizeof(float))
+                    (int)(dx_buf.GetFrameStride() / sizeof(float))
                 ));
             
             beta = 1.0f;
@@ -373,31 +378,29 @@ public:
                     m_cublasHandle,
                     CUBLAS_OP_T,
                     CUBLAS_OP_N,
-                    (int)m_dx.GetNodeSize(),
-                    (int)m_y.GetNodeSize(),
-                    (int)m_dx.GetFrameSize(),
+                    (int)dx_buf.GetNodeSize(),
+                    (int)dy_buf.GetNodeSize(),
+                    (int)dx_buf.GetFrameSize(),
                     &alpha,
                     (const float *)x_ptr.GetAddr(),
-                    (int)(m_x.GetFrameStride() / sizeof(float)),
+                    (int)(x_buf.GetFrameStride() / sizeof(float)),
                     (const float *)dy_ptr.GetAddr(),
-                    (int)(dy.GetFrameStride() / sizeof(float)),
+                    (int)(dy_buf.GetFrameStride() / sizeof(float)),
                     &beta,
                     (float *)dW_ptr.GetAddr(),
-                    (int)m_dx.GetNodeSize()
+                    (int)dx_buf.GetNodeSize()
                 ));
             
-            return m_dx;
+            return dx_buf;
         }
 #endif
 
         {
-            m_dx.FillZero();
-    //      m_dW->FillZero();
-    //      m_db->FillZero();
+            dx_buf.FillZero();
 
-            auto x_ptr  = m_x.LockConst<T>();
-            auto dy_ptr = dy.LockConst<T>();
-            auto dx_ptr = m_dx.Lock<T>();
+            auto x_ptr  = x_buf.LockConst<T>();
+            auto dy_ptr = dy_buf.LockConst<T>();
+            auto dx_ptr = dx_buf.Lock<T>();
             auto W_ptr  = lock_W_const();
             auto b_ptr  = lock_b_const();
             auto dW_ptr = lock_dW();
@@ -415,7 +418,7 @@ public:
                 }
             }
 
-            return m_dx;
+            return dx_buf;
         }
     }
     
