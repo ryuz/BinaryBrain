@@ -191,8 +191,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 //        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
-//      lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
+        lut_net->Add(bb::RealToBinary<bb::Bit>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
+//      lut_net->Add(bb::RealToBinary<bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(cnv0);
         lut_net->Add(cnv1);
         lut_net->Add(pol0);
@@ -415,8 +415,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);
 
         auto lut_net = bb::Sequential::Create();
-//      lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
+//      lut_net->Add(bb::RealToBinary<bb::Bit>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
+        lut_net->Add(bb::RealToBinary<bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size));
         lut_net->Add(cnv0);
         lut_net->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size));
@@ -434,16 +434,16 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         lut_net->SetInputShape(td.x_shape);
 
         // テーブル化して取り込み(現状まだSetInputShape後の取り込みが必要)
-        layer_cnv0_lut0->ImportLayer<float, float>(layer_cnv0_sl0);
-        layer_cnv0_lut1->ImportLayer<float, float>(layer_cnv0_sl1);
-        layer_cnv1_lut0->ImportLayer<float, float>(layer_cnv1_sl0);
-        layer_cnv1_lut1->ImportLayer<float, float>(layer_cnv1_sl1);
-        layer_cnv2_lut0->ImportLayer<float, float>(layer_cnv2_sl0);
-        layer_cnv2_lut1->ImportLayer<float, float>(layer_cnv2_sl1);
-        layer_cnv3_lut0->ImportLayer<float, float>(layer_cnv3_sl0);
-        layer_cnv3_lut1->ImportLayer<float, float>(layer_cnv3_sl1);
-        layer_lut4     ->ImportLayer<float, float>(layer_sl4);
-        layer_lut5     ->ImportLayer<float, float>(layer_sl5);
+        layer_cnv0_lut0->ImportLayer(layer_cnv0_sl0);
+        layer_cnv0_lut1->ImportLayer(layer_cnv0_sl1);
+        layer_cnv1_lut0->ImportLayer(layer_cnv1_sl0);
+        layer_cnv1_lut1->ImportLayer(layer_cnv1_sl1);
+        layer_cnv2_lut0->ImportLayer(layer_cnv2_sl0);
+        layer_cnv2_lut1->ImportLayer(layer_cnv2_sl1);
+        layer_cnv3_lut0->ImportLayer(layer_cnv3_sl0);
+        layer_cnv3_lut1->ImportLayer(layer_cnv3_sl1);
+        layer_lut4     ->ImportLayer(layer_sl4);
+        layer_lut5     ->ImportLayer(layer_sl5);
 
         // print model information
         lut_net->PrintInfo();
@@ -677,8 +677,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);
 
         auto lut_net = bb::Sequential::Create();
-//      lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
+//      lut_net->Add(bb::RealToBinary<bb::Bit>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
+        lut_net->Add(bb::RealToBinary<bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(cnv0);
         lut_net->Add(cnv1d);
         lut_net->Add(cnv1p);
@@ -693,19 +693,19 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         lut_net->SetInputShape(td.x_shape);
 
         // テーブル化して取り込み(現状まだSetInputShape後の取り込みが必要)
-        layer_cnv0_lut0 ->ImportLayer<float, float>(layer_cnv0_sl0);
-        layer_cnv0_lut1 ->ImportLayer<float, float>(layer_cnv0_sl1);
-        layer_cnv1d_lut0->ImportLayer<float, float>(layer_cnv1d_sl0);
-        layer_cnv1d_lut1->ImportLayer<float, float>(layer_cnv1d_sl1);
-        layer_cnv1p_lut0->ImportLayer<float, float>(layer_cnv1p_sl0);
-        layer_cnv2d_lut0->ImportLayer<float, float>(layer_cnv2d_sl0);
-        layer_cnv2d_lut1->ImportLayer<float, float>(layer_cnv2d_sl1);
-        layer_cnv2p_lut0->ImportLayer<float, float>(layer_cnv2p_sl0);
-        layer_cnv3d_lut0->ImportLayer<float, float>(layer_cnv3d_sl0);
-        layer_cnv3d_lut1->ImportLayer<float, float>(layer_cnv3d_sl1);
-        layer_cnv3p_lut0->ImportLayer<float, float>(layer_cnv3p_sl0);
-        layer_lut4      ->ImportLayer<float, float>(layer_sl4);
-        layer_lut5      ->ImportLayer<float, float>(layer_sl5);
+        layer_cnv0_lut0 ->ImportLayer(layer_cnv0_sl0);
+        layer_cnv0_lut1 ->ImportLayer(layer_cnv0_sl1);
+        layer_cnv1d_lut0->ImportLayer(layer_cnv1d_sl0);
+        layer_cnv1d_lut1->ImportLayer(layer_cnv1d_sl1);
+        layer_cnv1p_lut0->ImportLayer(layer_cnv1p_sl0);
+        layer_cnv2d_lut0->ImportLayer(layer_cnv2d_sl0);
+        layer_cnv2d_lut1->ImportLayer(layer_cnv2d_sl1);
+        layer_cnv2p_lut0->ImportLayer(layer_cnv2p_sl0);
+        layer_cnv3d_lut0->ImportLayer(layer_cnv3d_sl0);
+        layer_cnv3d_lut1->ImportLayer(layer_cnv3d_sl1);
+        layer_cnv3p_lut0->ImportLayer(layer_cnv3p_sl0);
+        layer_lut4      ->ImportLayer(layer_sl4);
+        layer_lut5      ->ImportLayer(layer_sl5);
 
         // print model information
         lut_net->PrintInfo();
@@ -927,8 +927,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 //        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
-//      lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
+        lut_net->Add(bb::RealToBinary<bb::Bit>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
+//      lut_net->Add(bb::RealToBinary<bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(cnv0);
         lut_net->Add(cnv1);
         lut_net->Add(pol0);
@@ -1230,7 +1230,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
+        lut_net->Add(bb::RealToBinary<bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(cnv0);
         lut_net->Add(cnv1);
         lut_net->Add(pol0);
@@ -1493,8 +1493,8 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 //        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
-//      lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
+        lut_net->Add(bb::RealToBinary<bb::Bit>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
+//      lut_net->Add(bb::RealToBinary<bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(cnv0);
         lut_net->Add(cnv1);
         lut_net->Add(pol0);

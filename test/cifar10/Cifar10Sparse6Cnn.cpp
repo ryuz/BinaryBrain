@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+﻿// --------------------------------------------------------------------------
 //  BinaryBrain  -- binary network evaluation platform
 //   CIFAR-10 sample
 //
@@ -151,11 +151,11 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
         runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
 //      runner_create.optimizer          = bb::OptimizerAdaGrad<float>::Create();
-        runner_create.max_run_size       = max_run_size;    // ���ۂ�1��̎��s�T�C�Y
-        runner_create.file_read          = file_read;       // �O�̌v�Z���ʂ�����Γǂݍ���ōĊJ���邩
-        runner_create.file_write         = true;            // �v�Z���ʂ��t�@�C���ɕۑ����邩
-        runner_create.print_progress     = true;            // �r�����ʂ�\��
-        runner_create.initial_evaluation = false; // file_read;       // �t�@�C����ǂ񂾏ꍇ�͍ŏ��ɕ]�����Ă���
+        runner_create.max_run_size       = max_run_size;    // ・ｽ・ｽ・ｽﾛゑｿｽ1・ｽ・ｽﾌ趣ｿｽ・ｽs・ｽT・ｽC・ｽY
+        runner_create.file_read          = file_read;       // ・ｽO・ｽﾌ計・ｽZ・ｽ・ｽ・ｽﾊゑｿｽ・ｽ・ｽ・ｽ・ｽﾎ読み搾ｿｽ・ｽ・ｽﾅ再開・ｽ・ｽ・ｽ驍ｩ
+        runner_create.file_write         = true;            // ・ｽv・ｽZ・ｽ・ｽ・ｽﾊゑｿｽ・ｽt・ｽ@・ｽC・ｽ・ｽ・ｽﾉ保托ｿｽ・ｽ・ｽ・ｽ驍ｩ
+        runner_create.print_progress     = true;            // ・ｽr・ｽ・ｽ・ｽ・ｽ・ｽﾊゑｿｽ\・ｽ・ｽ
+        runner_create.initial_evaluation = false; // file_read;       // ・ｽt・ｽ@・ｽC・ｽ・ｽ・ｽ・ｽﾇんだ場合・ｽﾍ最擾ｿｽ・ｽﾉ評・ｽ・ｽ・ｽ・ｽ・ｽﾄゑｿｽ・ｽ・ｽ
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
@@ -245,11 +245,11 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
         runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
 //      runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
         runner_create.optimizer          = bb::OptimizerAdaGrad<float>::Create();
-        runner_create.max_run_size       = max_run_size;    // ���ۂ�1��̎��s�T�C�Y
-        runner_create.file_read          = file_read;       // �O�̌v�Z���ʂ�����Γǂݍ���ōĊJ���邩
-        runner_create.file_write         = true;            // �v�Z���ʂ��t�@�C���ɕۑ����邩
-        runner_create.print_progress     = true;            // �r�����ʂ�\��
-        runner_create.initial_evaluation = false; // file_read;       // �t�@�C����ǂ񂾏ꍇ�͍ŏ��ɕ]�����Ă���
+        runner_create.max_run_size       = max_run_size;    // ・ｽ・ｽ・ｽﾛゑｿｽ1・ｽ・ｽﾌ趣ｿｽ・ｽs・ｽT・ｽC・ｽY
+        runner_create.file_read          = file_read;       // ・ｽO・ｽﾌ計・ｽZ・ｽ・ｽ・ｽﾊゑｿｽ・ｽ・ｽ・ｽ・ｽﾎ読み搾ｿｽ・ｽ・ｽﾅ再開・ｽ・ｽ・ｽ驍ｩ
+        runner_create.file_write         = true;            // ・ｽv・ｽZ・ｽ・ｽ・ｽﾊゑｿｽ・ｽt・ｽ@・ｽC・ｽ・ｽ・ｽﾉ保托ｿｽ・ｽ・ｽ・ｽ驍ｩ
+        runner_create.print_progress     = true;            // ・ｽr・ｽ・ｽ・ｽ・ｽ・ｽﾊゑｿｽ\・ｽ・ｽ
+        runner_create.initial_evaluation = false; // file_read;       // ・ｽt・ｽ@・ｽC・ｽ・ｽ・ｽ・ｽﾇんだ場合・ｽﾍ最擾ｿｽ・ｽﾉ評・ｽ・ｽ・ｽ・ｽ・ｽﾄゑｿｽ・ｽ・ｽ
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
@@ -330,11 +330,11 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
         runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
 //      runner_create.optimizer          = bb::OptimizerAdaGrad<float>::Create();
-        runner_create.max_run_size       = max_run_size;    // ���ۂ�1��̎��s�T�C�Y
-        runner_create.file_read          = file_read;       // �O�̌v�Z���ʂ�����Γǂݍ���ōĊJ���邩
-        runner_create.file_write         = true;            // �v�Z���ʂ��t�@�C���ɕۑ����邩
-        runner_create.print_progress     = true;            // �r�����ʂ�\��
-        runner_create.initial_evaluation = false; // file_read;       // �t�@�C����ǂ񂾏ꍇ�͍ŏ��ɕ]�����Ă���
+        runner_create.max_run_size       = max_run_size;    // ・ｽ・ｽ・ｽﾛゑｿｽ1・ｽ・ｽﾌ趣ｿｽ・ｽs・ｽT・ｽC・ｽY
+        runner_create.file_read          = file_read;       // ・ｽO・ｽﾌ計・ｽZ・ｽ・ｽ・ｽﾊゑｿｽ・ｽ・ｽ・ｽ・ｽﾎ読み搾ｿｽ・ｽ・ｽﾅ再開・ｽ・ｽ・ｽ驍ｩ
+        runner_create.file_write         = true;            // ・ｽv・ｽZ・ｽ・ｽ・ｽﾊゑｿｽ・ｽt・ｽ@・ｽC・ｽ・ｽ・ｽﾉ保托ｿｽ・ｽ・ｽ・ｽ驍ｩ
+        runner_create.print_progress     = true;            // ・ｽr・ｽ・ｽ・ｽ・ｽ・ｽﾊゑｿｽ\・ｽ・ｽ
+        runner_create.initial_evaluation = false; // file_read;       // ・ｽt・ｽ@・ｽC・ｽ・ｽ・ｽ・ｽﾇんだ場合・ｽﾍ最擾ｿｽ・ｽﾉ評・ｽ・ｽ・ｽ・ｽ・ｽﾄゑｿｽ・ｽ・ｽ
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
@@ -490,11 +490,11 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
         runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
 //      runner_create.optimizer          = bb::OptimizerAdaGrad<float>::Create();
-        runner_create.max_run_size       = max_run_size;    // ���ۂ�1��̎��s�T�C�Y
-        runner_create.file_read          = file_read;       // �O�̌v�Z���ʂ�����Γǂݍ���ōĊJ���邩
-        runner_create.file_write         = true;            // �v�Z���ʂ��t�@�C���ɕۑ����邩
-        runner_create.print_progress     = true;            // �r�����ʂ�\��
-        runner_create.initial_evaluation = false; // file_read;       // �t�@�C����ǂ񂾏ꍇ�͍ŏ��ɕ]�����Ă���
+        runner_create.max_run_size       = max_run_size;    // ・ｽ・ｽ・ｽﾛゑｿｽ1・ｽ・ｽﾌ趣ｿｽ・ｽs・ｽT・ｽC・ｽY
+        runner_create.file_read          = file_read;       // ・ｽO・ｽﾌ計・ｽZ・ｽ・ｽ・ｽﾊゑｿｽ・ｽ・ｽ・ｽ・ｽﾎ読み搾ｿｽ・ｽ・ｽﾅ再開・ｽ・ｽ・ｽ驍ｩ
+        runner_create.file_write         = true;            // ・ｽv・ｽZ・ｽ・ｽ・ｽﾊゑｿｽ・ｽt・ｽ@・ｽC・ｽ・ｽ・ｽﾉ保托ｿｽ・ｽ・ｽ・ｽ驍ｩ
+        runner_create.print_progress     = true;            // ・ｽr・ｽ・ｽ・ｽ・ｽ・ｽﾊゑｿｽ\・ｽ・ｽ
+        runner_create.initial_evaluation = false; // file_read;       // ・ｽt・ｽ@・ｽC・ｽ・ｽ・ｽ・ｽﾇんだ場合・ｽﾍ最擾ｿｽ・ｽﾉ評・ｽ・ｽ・ｽ・ｽ・ｽﾄゑｿｽ・ｽ・ｽ
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
@@ -611,11 +611,11 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
         runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
         runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
-        runner_create.max_run_size       = max_run_size;    // ���ۂ�1��̎��s�T�C�Y
-        runner_create.file_read          = file_read;       // �O�̌v�Z���ʂ�����Γǂݍ���ōĊJ���邩
-        runner_create.file_write         = true;            // �v�Z���ʂ��t�@�C���ɕۑ����邩
-        runner_create.print_progress     = true;            // �r�����ʂ�\��
-        runner_create.initial_evaluation = false; // file_read;       // �t�@�C����ǂ񂾏ꍇ�͍ŏ��ɕ]�����Ă���
+        runner_create.max_run_size       = max_run_size;    // ・ｽ・ｽ・ｽﾛゑｿｽ1・ｽ・ｽﾌ趣ｿｽ・ｽs・ｽT・ｽC・ｽY
+        runner_create.file_read          = file_read;       // ・ｽO・ｽﾌ計・ｽZ・ｽ・ｽ・ｽﾊゑｿｽ・ｽ・ｽ・ｽ・ｽﾎ読み搾ｿｽ・ｽ・ｽﾅ再開・ｽ・ｽ・ｽ驍ｩ
+        runner_create.file_write         = true;            // ・ｽv・ｽZ・ｽ・ｽ・ｽﾊゑｿｽ・ｽt・ｽ@・ｽC・ｽ・ｽ・ｽﾉ保托ｿｽ・ｽ・ｽ・ｽ驍ｩ
+        runner_create.print_progress     = true;            // ・ｽr・ｽ・ｽ・ｽ・ｽ・ｽﾊゑｿｽ\・ｽ・ｽ
+        runner_create.initial_evaluation = false; // file_read;       // ・ｽt・ｽ@・ｽC・ｽ・ｽ・ｽ・ｽﾇんだ場合・ｽﾍ最擾ｿｽ・ｽﾉ評・ｽ・ｽ・ｽ・ｽ・ｽﾄゑｿｽ・ｽ・ｽ
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
@@ -672,12 +672,12 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
         auto cnv3 = bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3);
         auto pol1 = bb::MaxPooling<bb::Bit>::Create(2, 2);
 
-        // 32x32 �ȊO�����͂ł���悤�ɍŏI�i����ݍ��݂ɕϊ�
+        // 32x32 
         auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);
 
         auto lut_net = bb::Sequential::Create();
-//      lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
+//      lut_net->Add(bb::RealToBinary<bb::Bit>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
+        lut_net->Add(bb::RealToBinary<bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size));
         lut_net->Add(cnv0);
         lut_net->Add(bb::ShuffleModulation<>::Create(lut_frame_mux_size));
@@ -694,7 +694,7 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
         lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, lut_frame_mux_size));
         lut_net->SetInputShape(td.x_shape);
 
-        // �e�[�u�������Ď�荞��(����܂�SetInputShape��̎�荞�݂��K�v)
+        // 
         layer_cnv0_lut0->ImportLayer<float, float>(layer_cnv0_sl0);
         layer_cnv0_lut1->ImportLayer<float, float>(layer_cnv0_sl1);
         layer_cnv1_lut0->ImportLayer<float, float>(layer_cnv1_sl0);
@@ -709,7 +709,7 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
         // print model information
         lut_net->PrintInfo();
 
-        // �]��
+        // ・ｽ]・ｽ・ｽ
         if ( 1 ) {
             std::cout << "modulation_unit_size : " << lut_frame_mux_size << std::endl;
 
@@ -720,14 +720,14 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
             lut_runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
             lut_runner_create.optimizer   = bb::OptimizerAdam<float>::Create();
             lut_runner_create.initial_evaluation = false;
-            lut_runner_create.print_progress = true;    // �r�����ʂ��o��
+            lut_runner_create.print_progress = true;    // ・ｽr・ｽ・ｽ・ｽ・ｽ・ｽﾊゑｿｽ・ｽo・ｽ・ｽ
             auto lut_runner = bb::Runner<float>::Create(lut_runner_create);
             auto lut_accuracy = lut_runner->Evaluation(td, mini_batch_size);
             std::cout << "lut_accuracy : " << lut_accuracy << std::endl;
         }
 
         {
-            // Verilog �o��
+            // Verilog ・ｽo・ｽ・ｽ
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv0;
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv1;
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv2;
@@ -837,11 +837,11 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
         runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
 //      runner_create.optimizer          = bb::OptimizerAdaGrad<float>::Create();
-        runner_create.max_run_size       = max_run_size;    // ���ۂ�1��̎��s�T�C�Y
-        runner_create.file_read          = file_read;       // �O�̌v�Z���ʂ�����Γǂݍ���ōĊJ���邩
-        runner_create.file_write         = true;            // �v�Z���ʂ��t�@�C���ɕۑ����邩
-        runner_create.print_progress     = true;            // �r�����ʂ�\��
-        runner_create.initial_evaluation = false; // file_read;       // �t�@�C����ǂ񂾏ꍇ�͍ŏ��ɕ]�����Ă���
+        runner_create.max_run_size       = max_run_size;    // 
+        runner_create.file_read          = file_read;       // 
+        runner_create.file_write         = true;            // 
+        runner_create.print_progress     = true;            // 
+        runner_create.initial_evaluation = false; // file_read;       // 
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
@@ -930,11 +930,11 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
         runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
 //      runner_create.optimizer          = bb::OptimizerAdaGrad<float>::Create();
-        runner_create.max_run_size       = max_run_size;    // ���ۂ�1��̎��s�T�C�Y
-        runner_create.file_read          = file_read;       // �O�̌v�Z���ʂ�����Γǂݍ���ōĊJ���邩
-        runner_create.file_write         = true;            // �v�Z���ʂ��t�@�C���ɕۑ����邩
-        runner_create.print_progress     = true;            // �r�����ʂ�\��
-        runner_create.initial_evaluation = false; // file_read;       // �t�@�C����ǂ񂾏ꍇ�͍ŏ��ɕ]�����Ă���
+        runner_create.max_run_size       = max_run_size;    // ・ｽ・ｽ・ｽﾛゑｿｽ1・ｽ・ｽﾌ趣ｿｽ・ｽs・ｽT・ｽC・ｽY
+        runner_create.file_read          = file_read;       // ・ｽO・ｽﾌ計・ｽZ・ｽ・ｽ・ｽﾊゑｿｽ・ｽ・ｽ・ｽ・ｽﾎ読み搾ｿｽ・ｽ・ｽﾅ再開・ｽ・ｽ・ｽ驍ｩ
+        runner_create.file_write         = true;            // ・ｽv・ｽZ・ｽ・ｽ・ｽﾊゑｿｽ・ｽt・ｽ@・ｽC・ｽ・ｽ・ｽﾉ保托ｿｽ・ｽ・ｽ・ｽ驍ｩ
+        runner_create.print_progress     = true;            // ・ｽr・ｽ・ｽ・ｽ・ｽ・ｽﾊゑｿｽ\・ｽ・ｽ
+        runner_create.initial_evaluation = false; // file_read;       // ・ｽt・ｽ@・ｽC・ｽ・ｽ・ｽ・ｽﾇんだ場合・ｽﾍ最擾ｿｽ・ｽﾉ評・ｽ・ｽ・ｽ・ｽ・ｽﾄゑｿｽ・ｽ・ｽ
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }

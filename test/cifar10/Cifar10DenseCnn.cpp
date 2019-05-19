@@ -154,7 +154,7 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
     main_net->Add(bb::MaxPooling<>::Create(2, 2));
 
 #if 1
-    main_net->Add(bb::RealToBinary<float, bb::Bit>::Create());
+    main_net->Add(bb::RealToBinary<bb::Bit>::Create());
 
 #if 0
     auto sub6_net = bb::Sequential::Create();
@@ -195,7 +195,7 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
 #endif
 
 #if 1
-//  main_net->Add(bb::RealToBinary<float, bb::Bit>::Create());
+//  main_net->Add(bb::RealToBinary<bb::Bit>::Create());
 
     main_net->Add(bb::SparseLutN<6, bb::Bit>::Create(9216));
     main_net->Add(bb::SparseLutN<6, bb::Bit>::Create(1536));
@@ -281,7 +281,7 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
 
 void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "Cifar10DenseCnn_full_cnn";
+    std::string net_name = "Cifar10DenseCnn_full_cnn_mini";
 
   // load cifar-10 data
 #ifdef _DEBUG
@@ -299,32 +299,32 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
     // create network
     auto main_net = bb::Sequential::Create();
 
-    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3, 1, 1, "same"));
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3, 1, 1, "valid"));
     main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
     main_net->Add(bb::Binarize<>::Create());
-    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3, 1, 1, "same"));
-    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
-    main_net->Add(bb::Binarize<>::Create());
-    main_net->Add(bb::MaxPooling<>::Create(2, 2));
-
-    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3, 1, 1, "same"));
-    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
-    main_net->Add(bb::Binarize<>::Create());
-    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3, 1, 1, "same"));
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3, 1, 1, "valid"));
     main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
     main_net->Add(bb::Binarize<>::Create());
     main_net->Add(bb::MaxPooling<>::Create(2, 2));
 
-    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(128), 3, 3, 1, 1, "same"));
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3, 1, 1, "valid"));
     main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
     main_net->Add(bb::Binarize<>::Create());
-    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(128), 3, 3, 1, 1, "same"));
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3, 1, 1, "valid"));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::Binarize<>::Create());
+    main_net->Add(bb::MaxPooling<>::Create(2, 2));
+
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(128), 3, 3, 1, 1, "valid"));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::Binarize<>::Create());
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(128), 3, 3, 1, 1, "valid"));
     main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
     main_net->Add(bb::Binarize<>::Create());
     main_net->Add(bb::MaxPooling<>::Create(2, 2));
 
 #if 0
-    main_net->Add(bb::RealToBinary<float, bb::Bit>::Create());
+    main_net->Add(bb::RealToBinary<bb::Bit>::Create());
 
 #if 0
     auto sub6_net = bb::Sequential::Create();
@@ -355,17 +355,18 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
 
 //  main_net->Add(bb::BinaryToReal<bb::Bit, float>::Create());
 #else
-    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(128), 3, 3, 1, 1, "same"));
-    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
-    main_net->Add(bb::Binarize<>::Create());
-    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(128), 3, 3, 1, 1, "same"));
-    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
-    main_net->Add(bb::Binarize<>::Create());
-    main_net->Add(bb::MaxPooling<>::Create(2, 2));
+//    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(128), 3, 3, 1, 1, "valid"));
+//    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+//    main_net->Add(bb::Binarize<>::Create());
+
+//    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(128), 3, 3, 1, 1, "valid"));
+ //   main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+ //   main_net->Add(bb::Binarize<>::Create());
+//    main_net->Add(bb::MaxPooling<>::Create(2, 2));
 #endif
 
 #if 0
-//  main_net->Add(bb::RealToBinary<float, bb::Bit>::Create());
+//  main_net->Add(bb::RealToBinary<bb::Bit>::Create());
 
     main_net->Add(bb::SparseLutN<6, bb::Bit>::Create(9216));
     main_net->Add(bb::SparseLutN<6, bb::Bit>::Create(1536));
@@ -419,7 +420,7 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
     }
 
     // print model information
-    net->PrintInfo();
+    net->PrintInfo(3);
 
     std::cout << "-----------------------------------" << std::endl;
     std::cout << "file_read          : " << file_read          << std::endl;

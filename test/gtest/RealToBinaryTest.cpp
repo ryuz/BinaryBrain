@@ -13,7 +13,7 @@ TEST(RealToBinaryTest, testRealToBinary)
     const int mux_size = 2;
     const int frame_size = 1;
 
-    auto real2bin = bb::RealToBinary<float, bb::Bit>::Create(mux_size);
+    auto real2bin = bb::RealToBinary<bb::Bit>::Create(mux_size);
 
     // forward
     bb::FrameBuffer x_buf(BB_TYPE_FP32, frame_size, node_size);
@@ -53,13 +53,13 @@ TEST(RealToBinaryTest, testRealToBinary)
 }
 
 
-TEST(RealToBinaryTest, testRealToBinaryyBatch)
+TEST(RealToBinaryTest, testRealToBinaryBatch)
 {
     const int node_size = 3;
     const int mux_size  = 2;
     const int frame_size = 2;
 
-    auto real2bin = bb::RealToBinary<float, bb::Bit>::Create(mux_size);
+    auto real2bin = bb::RealToBinary<bb::Bit>::Create(mux_size);
 
     // forward
     bb::FrameBuffer x_buf(BB_TYPE_FP32, frame_size, node_size);
@@ -114,8 +114,8 @@ TEST(RealToBinaryTest, testRealToBinaryyBatch)
 
 void RealToBinaryTest_cmp_bit(int node_size, int frame_size, int loop_num = 1)
 {
-    auto real2bin0 = bb::RealToBinary<float, float>::Create();
-    auto real2bin1 = bb::RealToBinary<float, bb::Bit>::Create();
+    auto real2bin0 = bb::RealToBinary<float>::Create();
+    auto real2bin1 = bb::RealToBinary<bb::Bit>::Create();
 
     // forward
     bb::FrameBuffer x_buf0(BB_TYPE_FP32, frame_size, node_size);

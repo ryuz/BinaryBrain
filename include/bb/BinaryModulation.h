@@ -19,7 +19,7 @@
 namespace bb {
 
 
-template <typename FRT = float, typename FBT = bb::Bit, typename BT = float>
+template <typename BinType = float, typename RealType = float>
 class BinaryModulation : public Model
 {
     using _super = Model;
@@ -27,29 +27,15 @@ class BinaryModulation : public Model
 protected:
 
     // 3層で構成
-    std::shared_ptr< RealToBinary<FRT, FBT, BT> >   m_real2bin;
-    std::shared_ptr< Model                      >   m_layer;
-    std::shared_ptr< BinaryToReal<FBT, FRT, BT> >   m_bin2real;
+    std::shared_ptr< RealToBinary<BinType, RealType> >  m_real2bin;
+    std::shared_ptr< Model >                            m_layer;
+    std::shared_ptr< BinaryToReal<BinType, RealType> >  m_bin2real;
 
     bool                                            m_training;
 
-    typename RealToBinary<FRT, FBT, BT>::create_t   m_training_create;
-    typename RealToBinary<FRT, FBT, BT>::create_t   m_inference_create;
+    typename RealToBinary<BinType, RealType>::create_t   m_training_create;
+    typename RealToBinary<BinType, RealType>::create_t   m_inference_create;
     
-    /*
-    index_t                                         m_training_modulation_size;
-    std::shared_ptr< ValueGenerator<FRT> >          m_training_value_generator;
-    bool                                            m_training_framewise;
-    FRT                                             m_training_input_range_lo;
-    FRT                                             m_training_input_range_hi;
-
-    index_t                                         m_inference_modulation_size;
-    std::shared_ptr< ValueGenerator<FRT> >          m_inference_value_generator; 
-    bool                                            m_inference_framewise;
-    FRT                                             m_inference_input_range_lo;
-    FRT                                             m_inference_input_range_hi;
-    */
-
 public:
     struct create_t
     {
@@ -57,16 +43,16 @@ public:
         indices_t                                   output_shape;
         
         index_t                                     training_modulation_size  = 1;
-        std::shared_ptr< ValueGenerator<FRT> >      training_value_generator;
+        std::shared_ptr< ValueGenerator<RealType> > training_value_generator;
         bool                                        training_framewise        = true;
-        FRT                                         training_input_range_lo   = (FRT)0.0;
-        FRT                                         training_input_range_hi   = (FRT)1.0;
+        RealType                                    training_input_range_lo   = (RealType)0.0;
+        RealType                                    training_input_range_hi   = (RealType)1.0;
 
         index_t                                     inference_modulation_size = 1;
-        std::shared_ptr< ValueGenerator<FRT> >      inference_value_generator; 
+        std::shared_ptr< ValueGenerator<RealType> > inference_value_generator; 
         bool                                        inference_framewise       = true;
-        FRT                                         inference_input_range_lo  = (FRT)0.0;
-        FRT                                         inference_input_range_hi  = (FRT)1.0;
+        RealType                                    inference_input_range_lo  = (RealType)0.0;
+        RealType                                    inference_input_range_hi  = (RealType)1.0;
     };
 
 protected:
@@ -85,9 +71,9 @@ protected:
         m_inference_create.input_range_hi  = create.inference_input_range_hi;
 
         m_training = true;
-        m_real2bin = RealToBinary<FRT, FBT, BT>::Create(m_training_create);
+        m_real2bin = RealToBinary<BinType, RealType>::Create(m_training_create);
         m_layer    = create.layer;
-        m_bin2real = BinaryToReal<FBT, FRT, BT>::Create(create.training_modulation_size, create.output_shape);
+        m_bin2real = BinaryToReal<BinType, RealType>::Create(create.training_modulation_size, create.output_shape);
     }
 
 public:
