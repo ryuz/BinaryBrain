@@ -327,6 +327,33 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_MicroMlp6x16_Backward
             cudaStream_t    streamId = 0
         );
 
+
+
+// -------------------------------------
+//  SparseBinaryLut
+// -------------------------------------
+
+int bbcu_bit_fp32_SparseBinaryLut6_Forward
+        (
+            int   const     *dev_x_buf,
+            int             *dev_y_buf,
+            int   const     *dev_input_index,
+            float const     *dev_W,
+            float           *mean_buf,
+            float           *rstd_buf,
+            float           *running_mean_buf,
+            float           *running_var_buf,
+            float           gamma,
+            float           beta,
+            float           momentum,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride,
+            int             lut_binarize,
+            cudaStream_t    streamId = 0
+        );
+
+
 // -------------------------------------
 //  StochasticLut
 // -------------------------------------

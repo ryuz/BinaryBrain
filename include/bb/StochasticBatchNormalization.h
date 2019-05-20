@@ -90,7 +90,7 @@ public:
     struct create_t
     {
         T       momentum  = (T)0.9;
-        T       gamma     = (T)0.1;
+        T       gamma     = (T)0.2;
         T       beta      = (T)0.5;
     };
 

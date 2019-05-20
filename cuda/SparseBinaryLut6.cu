@@ -155,6 +155,7 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_Forward(
             int             lut_binarize
         )
 {
+    int unit_id = ((threadIdx.x % MAX_FRAME_UNIT) & ~0x1f);
     int node_id = threadIdx.y;
     int node    = blockIdx.y * blockDim.y + threadIdx.y;
     int id      = threadIdx.x;
@@ -226,35 +227,52 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_Forward(
             running_var_buf[node] = running_var_buf[node] * momentum + var * (1.0f - momentum);
             mean_buf[node] = mean;
             rstd_buf[node] = rstd;
+
+//          printf("SparseBinaryLut6 node=%d mean=%f\n", node, mean);
+//          printf("SparseBinaryLut6 node=%d var =%f\n", node, var);
+//          printf("SparseBinaryLut6 node=%d rstd=%f\n", node, rstd);
         }
     }
 
     // ê≥ãKâª
-    for ( int frame = id; frame < frame_size; frame += id_step) {
-        int bit  = (1 << (frame & 0x1f));
-        int unit = (frame >> 5);
+    int loop_size = ((frame_size + blockDim.x - 1) & ~(blockDim.x - 1));
+    for ( int frame = id; frame < loop_size; frame += id_step) {
+        int unit     = (frame >> 5);
+        int bit      = (frame & 0x1f);
+        int bit_mask = (1 << bit);
 
-        int y_bit = 0;
-        if ( node < node_size ) {
+        int y_mask = 0;
+        if ( node < node_size && frame < frame_size) {
             // ForwardåvéZ
             float x[6];
             for ( int i = 0; i < 6; ++i) {
-                x[i] = (x_ptr[i][unit] & bit) ? 0.7 : 0.3;
+                x[i] = (x_ptr[i][unit] & bit_mask) ? 0.7 : 0.3;
             }
             float y = device_fp32_SparseBinaryLut6_NodeForward<MAX_NODE_UNIT>(node_id, x, W);
+//          printf("SparseBinaryLut6 frame=%d node=%d x=%f\n", frame, node, y);
 
             y = (y - mean) * rstd;
             y = y * gamma + beta;
 
+//          printf("SparseBinaryLut6 frame=%d node=%d gamma=%f\n", frame, node, gamma);
+//          printf("SparseBinaryLut6 frame=%d node=%d beta=%f\n",  frame, node, beta);
+//          printf("SparseBinaryLut6 frame=%d node=%d y=%f\n",     frame, node, y);
+
             if ( y > 0.5 ) {
-                y_bit = bit;
+                y_mask = bit_mask;
             }
         }
 
-        y_bit = device_int_LocalOr(y_bit, bit, (int *)&sbuf[node_id][unit << 5]);
+//        if ( bit == 0 ) {
+//            printf("SparseBinaryLut6 node_id=%d unit_id=%d\n", node_id, unit_id);
+//        }
+        y_mask = device_int_LocalOr(y_mask, bit, (int *)&sbuf[node_id][unit_id]);
+
+//      printf("SparseBinaryLut6 node=%d bit=%x, y_mask=%x\n", node, bit, y_mask);
         if ( bit == 0 ) {
-            if ( node < node_size ) {
-                y_ptr[unit] = y_bit;
+            if ( node < node_size && frame < frame_size ) {
+                y_ptr[unit] = y_mask;
+//              printf("SparseBinaryLut6 w unit=%d node=%d y_mask=%x\n", unit, node, y_mask);
             }
         }
     }
@@ -274,7 +292,6 @@ int bbcu_bit_fp32_SparseBinaryLut6_Forward
             float           gamma,
             float           beta,
             float           momentum,
-            float           reciprocal_frame_size,
             int             node_size,
             int             frame_size,
             int             frame_stride,
@@ -290,12 +307,12 @@ int bbcu_bit_fp32_SparseBinaryLut6_Forward
 
 #if 0
     dim3    block(MAX_FRAME_UNIT, THREAD_SIZE / MAX_FRAME_UNIT);
-    while ( (int)block.x / 2 >= frame_size ) { block.x /= 2; block.y *= 2; }
-    while ( (int)block.y / 2 >= node_size  ) { block.y /= 2; }
+    while ( (int)block.x / 2 >= frame_size && block.x > 32 ) { block.x /= 2; block.y *= 2; }
+    while ( (int)block.y / 2 >= node_size                  ) { block.y /= 2; }
 #else
     dim3    block(THREAD_SIZE / MAX_NODE_UNIT, MAX_NODE_UNIT);
-    while ( (int)block.y / 2 >= node_size  ) { block.y /= 2; block.x *= 2;}
-    while ( (int)block.x / 2 >= frame_size ) { block.x /= 2; }
+    while ( (int)block.y / 2 >= node_size  )                { block.y /= 2; block.x *= 2;}
+    while ( (int)block.x / 2 >= frame_size && block.x > 32) { block.x /= 2; }
 #endif
 
     block.x = std::min(block.x, MAX_FRAME_UNIT);

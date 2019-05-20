@@ -108,6 +108,13 @@ public:
         m_batch_norm->SendCommand(command, send_to);
         m_activation->SendCommand(command, send_to);
     }
+
+    auto lock_InputIndex(void)             { return m_lut->lock_InputIndex(); }
+    auto lock_InputIndex_const(void) const { return m_lut->lock_InputIndex_const(); }
+    auto lock_W(void)                      { return m_lut->lock_W(); }
+    auto lock_W_const(void) const          { return m_lut->lock_W_const(); }
+    auto lock_dW(void)                     { return m_lut->lock_dW(); }
+    auto lock_dW_const(void) const         { return m_lut->lock_dW_const(); }
     
     /**
      * @brief  パラメータ取得

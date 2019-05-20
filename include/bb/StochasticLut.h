@@ -123,6 +123,7 @@ public:
         m_batch_norm->SendCommand(command, send_to);
     }
     
+
     /**
      * @brief  パラメータ取得
      * @detail パラメータを取得する
