@@ -33,8 +33,6 @@ protected:
     bool                    m_host_only = false;
     bool                    m_host_simd = true;
 
-    size_t                  m_max_tmp_mem_size = 256 * 1024 * 1024;
-
     std::string             m_connection;
 
     indices_t               m_input_shape;
@@ -84,12 +82,6 @@ protected:
         if ( args.size() == 2 && args[0] == "lut_binarize" )
         {
             m_lut_binarize = EvalBool(args[1]);
-        }
-
-        // 最大 tmp メモリサイズ
-        if ( args.size() == 2 && args[0] == "tmp_max_mem_size" )
-        {
-            m_max_tmp_mem_size = EvalInt(args[1]);
         }
 
         // Y出力バイナライズ設定
@@ -477,15 +469,13 @@ public:
         m_x_buf = FrameBuffer();
 
         FrameBuffer dx_buf(DataType<RealType>::type, dy_buf.GetFrameSize(), m_input_shape);
+        FrameBuffer tmp_buf(DataType<RealType>::type, dy_buf.GetFrameSize(), GetShapeSize(m_output_shape)*N);
         
 
 #ifdef BB_WITH_CUDA
         // LUT6 FP32 CUDA
         if ( N == 6, DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
                 && dy_buf.IsDeviceAvailable() && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
-
-            FrameBuffer tmp_buf(DataType<RealType>::type, dy_buf.GetFrameSize(), GetShapeSize(m_output_shape)*N);
-
             auto x_ptr           = x_buf.LockDeviceMemoryConst();
             auto dy_ptr          = dy_buf.LockDeviceMemoryConst();
             auto dx_ptr          = dx_buf.LockDeviceMemory(true);
@@ -516,21 +506,6 @@ public:
         // LUT6 Bit CUDA
         if ( N == 6, DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
                 && dy_buf.IsDeviceAvailable() && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
-
-            auto tmp_node_size = GetShapeSize(m_output_shape) * N;
-            auto frame_size    = dy_buf.GetFrameSize();
-
-            // tmp frame 確保
-            index_t tmp_frame_size = 32;
-            while ( ((size_t)tmp_frame_size * 2) * (size_t)tmp_node_size * sizeof(float) < m_max_tmp_mem_size) {
-                tmp_frame_size *= 2;
-            }
-            if (tmp_frame_size > frame_size) {
-                tmp_frame_size = frame_size;
-            }
-
-            FrameBuffer tmp_buf(DataType<RealType>::type, tmp_frame_size, tmp_node_size);
-
             auto x_ptr           = x_buf.LockDeviceMemoryConst();
             auto dy_ptr          = dy_buf.LockDeviceMemoryConst();
             auto dx_ptr          = dx_buf.LockDeviceMemory(true);
@@ -539,8 +514,7 @@ public:
             auto dW_ptr          = m_dW->LockDeviceMemory();
             auto tmp_ptr         = tmp_buf.LockDeviceMemory();
             
-            bbcu_bit_fp32_StochasticLut6_Backward
-                (
+            bbcu_bit_fp32_StochasticLut6_Backward(
                     (int   const *)x_ptr.GetAddr(),
                     (float const *)dy_ptr.GetAddr(),
                     (float       *)dx_ptr.GetAddr(),
@@ -553,8 +527,6 @@ public:
                     (int          )dx_buf.GetFrameSize(),
                     (int          )(dx_buf.GetFrameStride() / sizeof(float)),
                     (int          )(x_buf.GetFrameStride() / sizeof(int)),
-                    (int          )tmp_frame_size,
-                    (int          )(tmp_buf.GetFrameStride() / sizeof(float)),
                     (int          )(m_lut_binarize ? 1 : 0)
                 );
             
@@ -565,8 +537,6 @@ public:
         if ( N == 6 ) {
             // 汎用版
             dx_buf.FillZero();
-
-            FrameBuffer tmp_buf(DataType<RealType>::type, dy_buf.GetFrameSize(), GetShapeSize(m_output_shape)*N);
 
             auto node_size  = dy_buf.GetNodeSize();
             auto frame_size = dy_buf.GetFrameSize();

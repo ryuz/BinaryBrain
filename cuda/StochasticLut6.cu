@@ -835,8 +835,7 @@ __global__ void kernal_fp32_StochasticLut6_BackwardMarge(
             const int*      input_index,
             int             node_size,
             int             frame_size,
-            int             src_frame_stride,
-            int             dst_frame_stride
+            int             frame_stride
         )
 {
     int frame = blockDim.x * blockIdx.x + threadIdx.x;
@@ -845,9 +844,9 @@ __global__ void kernal_fp32_StochasticLut6_BackwardMarge(
         if ( frame < frame_size ) {
             for ( int n = 0; n < 6; ++n ) {
                 int in_idx = input_index[node*6 + n];
-                float*       dst_buf_ptr = &dst_buf[dst_frame_stride * in_idx];
+                float*       dst_buf_ptr = &dst_buf[frame_stride * in_idx];
                 float        prev_data = dst_buf_ptr[frame];
-                const float* src_buf_ptr = &src_buf[(6 * node + n) * src_frame_stride];
+                const float* src_buf_ptr = &src_buf[(6 * node + n) * frame_stride];
                 
                 dst_buf_ptr[frame] = prev_data + src_buf_ptr[frame];
             }
@@ -926,7 +925,6 @@ int bbcu_fp32_StochasticLut6_Backward(
                 dev_input_index,
                 output_node_size,
                 frame_size,
-                frame_stride,
                 frame_stride
             );
         BB_CUDA_CHECK_LAST_ERROR();
@@ -951,9 +949,8 @@ __global__ void kernal_bit_fp32_StochasticLut6_Backward
             float           *dW_buf,
             int             node_size,
             int             frame_size,
-            int             x_frame_stride,
-            int             dy_frame_stride,
-            int             dx_frame_stride,
+            int             frame_stride,
+            int             bin_frame_stride,
             int             lut_binarize
         )
 {
@@ -991,10 +988,10 @@ __global__ void kernal_bit_fp32_StochasticLut6_Backward
         // init pointer
         for ( int i = 0; i < 6; ++i ) {
             int input_node = input_index[6*node + i];
-            x_ptr[i]  = &x_buf[input_node * x_frame_stride];
+            x_ptr[i]  = &x_buf[input_node * bin_frame_stride];
         }
 
-        dy_ptr = &dy_buf[node * dy_frame_stride];
+        dy_ptr = &dy_buf[node * frame_stride];
     }
 
     __syncthreads();
@@ -1221,7 +1218,7 @@ __global__ void kernal_bit_fp32_StochasticLut6_Backward
             dxi = W[62][node_id];  dx0_10 += dxi * x2_11_x1_11;  dx1_11 += dxi * x2_11_x0_10;  dx2_11 += dxi * x1_11_x0_10;
             dxi = W[63][node_id];  dx0_11 += dxi * x2_11_x1_11;  dx1_11 += dxi * x2_11_x0_11;  dx2_11 += dxi * x1_11_x0_11;
         
-            float *dx_ptr = &dx_buf[(node*6)*dx_frame_stride + frame];
+            float *dx_ptr = &dx_buf[(node*6)*frame_stride + frame];
             float dxn;
             float dxp;
             float dx;
@@ -1229,7 +1226,7 @@ __global__ void kernal_bit_fp32_StochasticLut6_Backward
             dxp  = dx0_01 * xn[1];    dxp += dx0_11 * xp[1];
             dx = (dxp - dxn) * grad;
             if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
-            dx_ptr[0 * dx_frame_stride] = dx;
+            dx_ptr[0 * frame_stride] = dx;
 
             dxn  = dx0_00 * xn[0];
             dxn += dx0_01 * xp[0];
@@ -1237,7 +1234,7 @@ __global__ void kernal_bit_fp32_StochasticLut6_Backward
             dxp += dx0_11 * xp[0];
             dx = (dxp - dxn) * grad;
             if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
-            dx_ptr[1 * dx_frame_stride] = dx;
+            dx_ptr[1 * frame_stride] = dx;
 
             dxn  = dx1_00 * xn[3];     
             dxp  = dx1_01 * xn[3];     
@@ -1245,7 +1242,7 @@ __global__ void kernal_bit_fp32_StochasticLut6_Backward
             dxp += dx1_11 * xp[3];     
             dx = (dxp - dxn) * grad;
             if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
-            dx_ptr[2 * dx_frame_stride] = dx;
+            dx_ptr[2 * frame_stride] = dx;
 
             dxn  = dx1_00 * xn[2];
             dxn += dx1_01 * xp[2];
@@ -1253,7 +1250,7 @@ __global__ void kernal_bit_fp32_StochasticLut6_Backward
             dxp += dx1_11 * xp[2];
             dx = (dxp - dxn) * grad;
             if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
-            dx_ptr[3 * dx_frame_stride] = dx;
+            dx_ptr[3 * frame_stride] = dx;
 
             dxn  = dx2_00 * xn[5];     
             dxp  = dx2_01 * xn[5];     
@@ -1261,7 +1258,7 @@ __global__ void kernal_bit_fp32_StochasticLut6_Backward
             dxp += dx2_11 * xp[5];     
             dx = (dxp - dxn) * grad;
             if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
-            dx_ptr[4 * dx_frame_stride] = dx;
+            dx_ptr[4 * frame_stride] = dx;
 
             dxn  = dx2_00 * xn[4];
             dxn += dx2_01 * xp[4];
@@ -1269,7 +1266,7 @@ __global__ void kernal_bit_fp32_StochasticLut6_Backward
             dxp += dx2_11 * xp[4];
             dx = (dxp - dxn) * grad;
             if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
-            dx_ptr[5 * dx_frame_stride] = dx;
+            dx_ptr[5 * frame_stride] = dx;
         }
     }
 
@@ -1286,8 +1283,7 @@ __global__ void kernal_bit_fp32_StochasticLut6_Backward
     }
 }
 
-
-int bbcu_bit_fp32_StochasticLut6_BackwardUnit(
+int bbcu_bit_fp32_StochasticLut6_Backward(
             int   const     *dev_x_buf,
             float const     *dev_dy_buf,
             float           *dev_dx_buf,
@@ -1299,8 +1295,7 @@ int bbcu_bit_fp32_StochasticLut6_BackwardUnit(
             int             output_node_size,
             int             frame_size,
             int             frame_stride,
-            int             bit_frame_stride,
-            int             tmp_frame_stride,
+            int             bin_frame_stride,
             int             lut_binarize,
             cudaStream_t    streamId
     )
@@ -1326,8 +1321,7 @@ int bbcu_bit_fp32_StochasticLut6_BackwardUnit(
         block.y = std::min(block.y, MAX_NODE_UNIT);
         dim3    grid(1, (output_node_size + (block.y - 1)) / block.y);
 
-        kernal_bit_fp32_StochasticLut6_Backward<MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>
-            (
+        kernal_bit_fp32_StochasticLut6_Backward<MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
                 dev_x_buf,
                 dev_dy_buf,
                 dev_dx_tmp,
@@ -1336,9 +1330,8 @@ int bbcu_bit_fp32_StochasticLut6_BackwardUnit(
                 dev_dW,
                 output_node_size,
                 frame_size,
-                bit_frame_stride,   // x_stride
-                frame_stride,       // dy_stride
-                tmp_frame_stride,   // dx_stride
+                frame_stride,
+                bin_frame_stride,
                 lut_binarize
             );
         BB_CUDA_CHECK_LAST_ERROR();
@@ -1346,79 +1339,23 @@ int bbcu_bit_fp32_StochasticLut6_BackwardUnit(
     
 
     {
+        BB_CUDA_SAFE_CALL(cudaMemset(dev_dx_buf, 0, input_node_size * frame_stride * sizeof(float)));
+
         int block_x = frame_size;
         while ( block_x > 1024 ) { block_x /= 2; }
 
         dim3    grid((frame_size + block_x - 1) /block_x, 1);
         dim3    block(block_x, 1, 1);
-        kernal_fp32_StochasticLut6_BackwardMarge<<<grid, block>>>
-            (
+        kernal_fp32_StochasticLut6_BackwardMarge<<<grid, block>>>(
                 dev_dx_tmp,
                 dev_dx_buf,
                 dev_input_index,
                 output_node_size,
                 frame_size,
-                tmp_frame_stride,
                 frame_stride
             );
         BB_CUDA_CHECK_LAST_ERROR();
     }
-
-    return 0;
-}
-
-
-int bbcu_bit_fp32_StochasticLut6_Backward
-    (
-            int   const     *dev_x_buf,
-            float const     *dev_dy_buf,
-            float           *dev_dx_buf,
-            float           *dev_dx_tmp,
-            int   const     *dev_input_index,
-            float const     *dev_W,
-            float           *dev_dW,
-            int             input_node_size,
-            int             output_node_size,
-            int             frame_size,
-            int             frame_stride,
-            int             bit_frame_stride,
-            int             tmp_frame_size,
-            int             tmp_frame_stride,
-            int             lut_binarize,
-            cudaStream_t    streamId
-    )
-{
-    BB_CUDA_SAFE_CALL(cudaMemset(dev_dx_buf, 0, input_node_size * frame_stride * sizeof(float)));
-    
-    int frame_offset = 0;
-    do {
-        // calculate run size
-        int run_frame_size = frame_size - frame_offset;
-        run_frame_size = std::min(run_frame_size, tmp_frame_size);
-
-        // run
-        bbcu_bit_fp32_StochasticLut6_BackwardUnit
-            (
-                dev_x_buf  + (frame_offset / 32),
-                dev_dy_buf + frame_offset,
-                dev_dx_buf + frame_offset,
-                dev_dx_tmp,
-                dev_input_index,
-                dev_W,
-                dev_dW,
-                input_node_size,
-                output_node_size,
-                run_frame_size,
-                frame_stride,
-                bit_frame_stride,
-                tmp_frame_stride,
-                lut_binarize,
-                streamId
-            );
-
-        // next
-        frame_offset += run_frame_size;
-    } while ( frame_offset < frame_size );
 
     return 0;
 }

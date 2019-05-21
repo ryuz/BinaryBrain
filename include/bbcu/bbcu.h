@@ -406,7 +406,8 @@ int bbcu_bit_fp32_StochasticLut6_Forward
             cudaStream_t    streamId = 0
         );
 
-int bbcu_bit_fp32_StochasticLut6_Backward(
+int bbcu_bit_fp32_StochasticLut6_Backward
+        (
             int   const     *dev_x_buf,
             float const     *dev_dy_buf,
             float           *dev_dx_buf,
@@ -419,11 +420,9 @@ int bbcu_bit_fp32_StochasticLut6_Backward(
             int             frame_size,
             int             frame_stride,
             int             bit_frame_stride,
-            int             tmp_frame_size,
-            int             tmp_frame_stride,
             int             lut_binarize,
             cudaStream_t    streamId = 0
-    );
+        );
 
 
 // -------------------------------------

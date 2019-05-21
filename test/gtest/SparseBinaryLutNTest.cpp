@@ -56,11 +56,15 @@ void SparseBinaryLutNTest_cmp(int const input_node_size, int const output_node_s
 
     for ( int loop = 0; loop < loop_num; ++ loop ) 
     {
-        for ( int frame = 0; frame < frame_size; ++frame) {
-            for ( int node = 0; node < input_node_size; ++node ) {
-                bool val = (valgen->GetValue() > 0.5);
-                x_buf0.SetFP32(frame, node, val ? 1.0f : 0.0f);
-                x_buf1.SetBit(frame, node, val);
+        {
+            auto x_ptr0 = x_buf0.Lock<bb::Bit>();
+            auto x_ptr1 = x_buf1.Lock<bb::Bit>();
+            for ( int frame = 0; frame < frame_size; ++frame) {
+                for ( int node = 0; node < input_node_size; ++node ) {
+                    bool val = (valgen->GetValue() > 0.5);
+                    x_ptr0.Set(frame, node, val);
+                    x_ptr1.Set(frame, node, val);
+                }
             }
         }
 
@@ -72,11 +76,15 @@ void SparseBinaryLutNTest_cmp(int const input_node_size, int const output_node_s
         EXPECT_EQ(frame_size, y_buf0.GetFrameSize());
         EXPECT_EQ(frame_size, y_buf1.GetFrameSize());
 
-        for ( int frame = 0; frame < frame_size; ++frame) {
-            for ( int node = 0; node < input_node_size; ++node ) {
-                bb::Bit val0 = x_buf0.GetBit(frame, node);
-                bb::Bit val1 = x_buf1.GetBit(frame, node);
-                EXPECT_EQ(val0, val1);
+        {
+            auto x_ptr0 = x_buf0.LockConst<bb::Bit>();
+            auto x_ptr1 = x_buf1.LockConst<bb::Bit>();
+            for ( int frame = 0; frame < frame_size; ++frame) {
+                for ( int node = 0; node < input_node_size; ++node ) {
+                    bb::Bit val0 = x_ptr0.Get(frame, node);
+                    bb::Bit val1 = x_ptr1.Get(frame, node);
+                    EXPECT_EQ(val0, val1);
+                }
             }
         }
 
@@ -95,22 +103,69 @@ void SparseBinaryLutNTest_cmp(int const input_node_size, int const output_node_s
             }
         }
 
-        for ( int frame = 0; frame < frame_size; ++frame) {
-            for ( int node = 0; node < output_node_size; ++node ) {
-                bb::Bit val0 = y_buf0.GetBit(frame, node);
-                bb::Bit val1 = y_buf1.GetBit(frame, node);
-                EXPECT_EQ(val0, val1);
+        {
+            auto mean_ptr0 = lut0->lock_mean_const();
+            auto mean_ptr1 = lut1->lock_mean_const();
+            for (int node = 0; node < output_node_size; ++node) {
+                auto val0 = mean_ptr0(node);
+                auto val1 = mean_ptr1(node);
+                EXPECT_NEAR(val0, val1, 0.001f);
             }
         }
 
-#if 0
+        {
+            auto var_ptr0 = lut0->lock_var_const();
+            auto var_ptr1 = lut1->lock_var_const();
+            for (int node = 0; node < output_node_size; ++node) {
+                auto val0 = var_ptr0(node);
+                auto val1 = var_ptr1(node);
+                EXPECT_NEAR(val0, val1, 0.001f);
+            }
+        }
+
+        {
+            auto mean_ptr0 = lut0->lock_tmp_mean_const();
+            auto mean_ptr1 = lut1->lock_tmp_mean_const();
+            for (int node = 0; node < output_node_size; ++node) {
+                auto val0 = mean_ptr0(node);
+                auto val1 = mean_ptr1(node);
+                EXPECT_NEAR(val0, val1, 0.001f);
+            }
+        }
+
+        {
+            auto rstd_ptr0 = lut0->lock_tmp_rstd_const();
+            auto rstd_ptr1 = lut1->lock_tmp_rstd_const();
+            for (int node = 0; node < output_node_size; ++node) {
+                auto val0 = rstd_ptr0(node);
+                auto val1 = rstd_ptr1(node);
+                EXPECT_NEAR(val0, val1, 0.001f);
+            }
+        }
+
+
+        {
+            auto y_ptr0 = y_buf0.LockConst<bb::Bit>();
+            auto y_ptr1 = y_buf1.LockConst<bb::Bit>();
+            for ( int frame = 0; frame < frame_size; ++frame) {
+                for ( int node = 0; node < output_node_size; ++node ) {
+                    bb::Bit val0 = y_ptr0.Get(frame, node);
+                    bb::Bit val1 = y_ptr1.Get(frame, node);
+                    EXPECT_EQ(val0, val1);
+                }
+            }
+        }
+
+
+#if 1
         // backward
-        bb::FrameBuffer dy_buf0(BB_TYPE_FP32, frame_size, output_node_size, true);
+        bb::FrameBuffer dy_buf0(BB_TYPE_FP32, frame_size, output_node_size);
         bb::FrameBuffer dy_buf1(BB_TYPE_FP32, frame_size, output_node_size);
         for ( int frame = 0; frame < frame_size; ++frame) {
             for ( int node = 0; node < output_node_size; ++node ) {
-                dy_buf0.SetFP32(frame, node, valgen->GetValue());
-                dy_buf1.SetFP32(frame, node, dy_buf0.GetFP32(frame, node));
+                float val = valgen->GetValue();
+                dy_buf0.SetFP32(frame, node, val);
+                dy_buf1.SetFP32(frame, node, val);
             }
         }
 
@@ -195,11 +250,10 @@ TEST(SparseBinaryLutNTest, testSparseBinaryLutN_cmp)
     SparseBinaryLutNTest_cmp(6,    1,    1024, 2);
     SparseBinaryLutNTest_cmp(6,    1024,    1, 2);
     SparseBinaryLutNTest_cmp(6,    1024, 1024, 2);
-    SparseBinaryLutNTest_cmp(2048, 2048, 2048, 2);
-
-//    SparseBinaryLutNTest_cmp(14, 16, 4096, 2);
+    
+//  SparseBinaryLutNTest_cmp(2048, 2048, 2048, 2);
+//  SparseBinaryLutNTest_cmp(14, 16, 4096, 2);
 }
-
 
 #endif
 

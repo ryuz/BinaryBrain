@@ -435,7 +435,8 @@ TEST(StochasticLutNTest, testStochasticLutN_cmp_bit)
 
     StochasticLutN_cmp_bit<float>(14, 16, 8, 2);
     StochasticLutN_cmp_bit<float>(14, 1024, 8, 4);
-    StochasticLutN_cmp_bit<float>(14, 1024, 3, 4);
+    StochasticLutN_cmp_bit<float>(14, 16, 1024, 2);
+    StochasticLutN_cmp_bit<float>(14, 1024, 1024, 1);
     StochasticLutN_cmp_bit<float>(6, 1, 1, 4);
 ////  StochasticLutN_cmp_bit<float>(14, 21, 1024, 4);
     StochasticLutN_cmp_bit<float>(13, 17, 1024 + 512 - 7, 4);

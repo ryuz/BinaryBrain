@@ -42,7 +42,7 @@ protected:
     std::shared_ptr<Tensor> m_W;
     std::shared_ptr<Tensor> m_dW;
 
-    RealType                m_momentum = (RealType)0.9;
+    RealType                m_momentum = (RealType)0.01;
 
     RealType                m_gamma;
     RealType                m_beta;
@@ -61,7 +61,7 @@ public:
     {
         indices_t       output_shape;               //< 出力形状
         std::string     connection;                 //< 結線ルール
-        RealType        momentum  = (RealType)0.9;
+        RealType        momentum  = (RealType)0.01;
         RealType        gamma     = (RealType)0.2;
         RealType        beta      = (RealType)0.5;
         std::uint64_t   seed      = 1;              //< 乱数シード
@@ -218,6 +218,10 @@ public:
     auto lock_mean_const(void)   const { return m_running_mean.LockConst(); }
     auto lock_var(void)                { return m_running_var.Lock(); }
     auto lock_var_const(void)    const { return m_running_var.LockConst(); }
+    
+    // debug
+    auto lock_tmp_mean_const(void)   const { return m_mean.LockConst(); }
+    auto lock_tmp_rstd_const(void)   const { return m_rstd.LockConst(); }
 
     index_t GetNodeInputSize(index_t node) const
     {
@@ -479,280 +483,92 @@ public:
 
         FrameBuffer dx_buf(DataType<RealType>::type, dy_buf.GetFrameSize(), m_input_shape);
         
+        // 再計算用バッファ
+        FrameBuffer tmp_y_buf(DataType<RealType>::type, dy_buf.GetFrameSize(), dy_buf.GetShape());
+        FrameBuffer tmp_dy_buf(DataType<RealType>::type, dy_buf.GetFrameSize(), dy_buf.GetShape());
 
 #ifdef BB_WITH_CUDA
-        // LUT6 Bit CUDA
         if ( N == 6, DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
-                && dy_buf.IsDeviceAvailable() && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
-
-            /*
-            auto tmp_node_size = GetShapeSize(m_output_shape) * N;
-            auto frame_size    = dy_buf.GetFrameSize();
-
-            // tmp frame 確保
-            index_t tmp_frame_size = 32;
-            while ( ((size_t)tmp_frame_size * 2) * (size_t)tmp_node_size * sizeof(float) < m_max_tmp_mem_size) {
-                tmp_frame_size *= 2;
-            }
-            if (tmp_frame_size > frame_size) {
-                tmp_frame_size = frame_size;
-            }
-
-            FrameBuffer tmp_buf(DataType<RealType>::type, tmp_frame_size, tmp_node_size);
-
-            auto x_ptr           = x_buf.LockDeviceMemoryConst();
-            auto dy_ptr          = dy_buf.LockDeviceMemoryConst();
-            auto dx_ptr          = dx_buf.LockDeviceMemory(true);
-            auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
-            auto W_ptr           = m_W->LockDeviceMemoryConst();
-            auto dW_ptr          = m_dW->LockDeviceMemory();
-            auto tmp_ptr         = tmp_buf.LockDeviceMemory();
+                && x_buf.IsDeviceAvailable() && tmp_y_buf.IsDeviceAvailable()
+                && tmp_dy_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
             
-            bbcu_bit_fp32_StochasticLut6_Backward
-                (
-                    (int   const *)x_ptr.GetAddr(),
-                    (float const *)dy_ptr.GetAddr(),
-                    (float       *)dx_ptr.GetAddr(),
-                    (float       *)tmp_ptr.GetAddr(),
-                    (int   const *)input_index_ptr.GetAddr(),
-                    (float const *)W_ptr.GetAddr(),
-                    (float       *)dW_ptr.GetAddr(),
-                    (int          )dx_buf.GetNodeSize(),
-                    (int          )dy_buf.GetNodeSize(),
-                    (int          )dx_buf.GetFrameSize(),
-                    (int          )(dx_buf.GetFrameStride() / sizeof(float)),
-                    (int          )(x_buf.GetFrameStride() / sizeof(int)),
-                    (int          )tmp_frame_size,
-                    (int          )(tmp_buf.GetFrameStride() / sizeof(float)),
-                    (int          )(m_lut_binarize ? 1 : 0)
-                );
-            */
+            // 再計算用
+            {
+                auto x_ptr           = x_buf.LockDeviceMemoryConst();
+                auto y_ptr           = tmp_y_buf.LockDeviceMemory(true);
+                auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
+                auto W_ptr           = m_W->LockDeviceMemoryConst();
+            
+                bbcu_bit_fp32_StochasticLut6_Forward
+                    (
+                        (int   const *)x_ptr.GetAddr(),
+                        (float       *)y_ptr.GetAddr(),
+                        (int   const *)input_index_ptr.GetAddr(),
+                        (float const *)W_ptr.GetAddr(),
+                        (int          )tmp_y_buf.GetNodeSize(),
+                        (int          )tmp_y_buf.GetFrameSize(),
+                        (int          )(tmp_y_buf.GetFrameStride() / sizeof(float)),
+                        (int          )(x_buf.GetFrameStride() / sizeof(int)),
+                        (int          )(m_lut_binarize ? 1 : 0)
+                    );
+            }
 
+            // BatchNorm
+            {
+                auto dev_x_ptr      = tmp_y_buf.LockDeviceMemoryConst();
+                auto dev_dy_ptr     = dy_buf.LockDeviceMemoryConst();
+                auto dev_dx_ptr     = tmp_dy_buf.LockDeviceMemory(true);
+                auto dev_mean_ptr   = m_mean.LockDeviceMemoryConst();
+                auto dev_rstd_ptr   = m_rstd.LockDeviceMemoryConst();
+                bbcu_fp32_StochasticBatchNormalization_Backward
+                    (
+                        (const float *)dev_x_ptr.GetAddr(),
+                        (const float *)dev_dy_ptr.GetAddr(),
+                        (float       *)dev_dx_ptr.GetAddr(),
+                        (float const *)dev_mean_ptr.GetAddr(),
+                        (float const *)dev_rstd_ptr.GetAddr(),
+                        (float        )m_gamma,
+                        (float        )1.0f / (float)dy_buf.GetFrameSize(),
+                        (int          )dy_buf.GetNodeSize(),
+                        (int          )dy_buf.GetFrameSize(),
+                        (int          )dy_buf.GetFrameStride() / sizeof(float)
+                    );
+            }
+
+            // LUT
+            {
+                FrameBuffer tmp_buf(DataType<RealType>::type, dy_buf.GetFrameSize(), GetShapeSize(m_output_shape)*N);
+
+                auto x_ptr           = x_buf.LockDeviceMemoryConst();
+                auto dy_ptr          = tmp_dy_buf.LockDeviceMemoryConst();
+                auto dx_ptr          = dx_buf.LockDeviceMemory(true);
+                auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
+                auto W_ptr           = m_W->LockDeviceMemoryConst();
+                auto dW_ptr          = m_dW->LockDeviceMemory();
+                auto tmp_ptr         = tmp_buf.LockDeviceMemory();
+                
+                bbcu_bit_fp32_StochasticLut6_Backward
+                    (
+                        (int   const *)x_ptr.GetAddr(),
+                        (float const *)dy_ptr.GetAddr(),
+                        (float       *)dx_ptr.GetAddr(),
+                        (float       *)tmp_ptr.GetAddr(),
+                        (int   const *)input_index_ptr.GetAddr(),
+                        (float const *)W_ptr.GetAddr(),
+                        (float       *)dW_ptr.GetAddr(),
+                        (int          )dx_buf.GetNodeSize(),
+                        (int          )dy_buf.GetNodeSize(),
+                        (int          )dx_buf.GetFrameSize(),
+                        (int          )(dx_buf.GetFrameStride() / sizeof(float)),
+                        (int          )(x_buf.GetFrameStride() / sizeof(int)),
+                        (int          )(m_lut_binarize ? 1 : 0)
+                    );
+            }
+            
             return dx_buf;
         }
 #endif
-
-        if ( N == 6 ) {
-#if 0
-            // 汎用版
-            dx_buf.FillZero();
-
-            FrameBuffer tmp_buf(DataType<RealType>::type, dy_buf.GetFrameSize(), GetShapeSize(m_output_shape)*N);
-
-            auto node_size  = dy_buf.GetNodeSize();
-            auto frame_size = dy_buf.GetFrameSize();
-
-            auto x_ptr           = x_buf.LockConst<BinType>();
-            auto dy_ptr          = dy_buf.LockConst<RealType>();
-            auto tmp_ptr         = tmp_buf.Lock<RealType>(true);
-            auto input_index_ptr = m_input_index.LockConst();
-            auto W_ptr           = lock_W_const();
-            auto dW_ptr          = lock_dW();
-            
-            #pragma omp parallel for
-            for ( index_t node = 0; node < node_size; ++node ) {
-                RealType W[NN][2];
-                for ( int i = 0; i < NN; ++i) {
-                    RealType tmp = W_ptr(node, i);
-                    if ( m_lut_binarize ) {
-                        tmp = (tmp > (RealType)0.5) ? (RealType)1.0 : (RealType)0.0;
-                    }
-                    W[i][0] = -tmp;
-                    W[i][1] = +tmp;
-                }
-
-                RealType dW[NN] = {0};
-                for ( index_t frame = 0; frame < frame_size; ++frame ) {
-                    RealType   x[N][2];
-                    for ( int i = 0; i < N; ++i) {
-                        RealType in_sig = x_ptr.Get(frame, input_index_ptr(node, i));
-                        if (m_binary_mode) {
-                            in_sig = in_sig > (RealType)0.5 ? (RealType)0.7 : (RealType)0.3;
-                        }
-                        else {
-                            in_sig = std::min((RealType)1.0, std::max((RealType)0.0, in_sig));  // clip
-                        }
-
-                        x[i][0] = (RealType)1.0 - in_sig;
-                        x[i][1] = in_sig;
-                    }
-
-                    RealType dy = dy_ptr.Get(frame, node);
-
-                    for (int i = 0; i < NN; ++i) {
-                        RealType dw = dy;
-                        for (int j = 0; j < N; ++j) {
-                            dw *= x[j][(i >> j) & 1];
-                        }
-                        dW[i] += dw;
-                    }
-                    
-                    RealType dx0 = - dy * W[ 0][1] * x[5][0] * x[4][0] * x[3][0] * x[2][0] * x[1][0]
-                                   + dy * W[ 1][1] * x[5][0] * x[4][0] * x[3][0] * x[2][0] * x[1][0]
-                                   - dy * W[ 2][1] * x[5][0] * x[4][0] * x[3][0] * x[2][0] * x[1][1]
-                                   + dy * W[ 3][1] * x[5][0] * x[4][0] * x[3][0] * x[2][0] * x[1][1]
-                                   - dy * W[ 4][1] * x[5][0] * x[4][0] * x[3][0] * x[2][1] * x[1][0]
-                                   + dy * W[ 5][1] * x[5][0] * x[4][0] * x[3][0] * x[2][1] * x[1][0]
-                                   - dy * W[ 6][1] * x[5][0] * x[4][0] * x[3][0] * x[2][1] * x[1][1]
-                                   + dy * W[ 7][1] * x[5][0] * x[4][0] * x[3][0] * x[2][1] * x[1][1]
-                                   - dy * W[ 8][1] * x[5][0] * x[4][0] * x[3][1] * x[2][0] * x[1][0]
-                                   + dy * W[ 9][1] * x[5][0] * x[4][0] * x[3][1] * x[2][0] * x[1][0]
-                                   - dy * W[10][1] * x[5][0] * x[4][0] * x[3][1] * x[2][0] * x[1][1]
-                                   + dy * W[11][1] * x[5][0] * x[4][0] * x[3][1] * x[2][0] * x[1][1]
-                                   - dy * W[12][1] * x[5][0] * x[4][0] * x[3][1] * x[2][1] * x[1][0]
-                                   + dy * W[13][1] * x[5][0] * x[4][0] * x[3][1] * x[2][1] * x[1][0]
-                                   - dy * W[14][1] * x[5][0] * x[4][0] * x[3][1] * x[2][1] * x[1][1]
-                                   + dy * W[15][1] * x[5][0] * x[4][0] * x[3][1] * x[2][1] * x[1][1]
-                                   - dy * W[16][1] * x[5][0] * x[4][1] * x[3][0] * x[2][0] * x[1][0]
-                                   + dy * W[17][1] * x[5][0] * x[4][1] * x[3][0] * x[2][0] * x[1][0]
-                                   - dy * W[18][1] * x[5][0] * x[4][1] * x[3][0] * x[2][0] * x[1][1]
-                                   + dy * W[19][1] * x[5][0] * x[4][1] * x[3][0] * x[2][0] * x[1][1]
-                                   - dy * W[20][1] * x[5][0] * x[4][1] * x[3][0] * x[2][1] * x[1][0]
-                                   + dy * W[21][1] * x[5][0] * x[4][1] * x[3][0] * x[2][1] * x[1][0]
-                                   - dy * W[22][1] * x[5][0] * x[4][1] * x[3][0] * x[2][1] * x[1][1]
-                                   + dy * W[23][1] * x[5][0] * x[4][1] * x[3][0] * x[2][1] * x[1][1]
-                                   - dy * W[24][1] * x[5][0] * x[4][1] * x[3][1] * x[2][0] * x[1][0]
-                                   + dy * W[25][1] * x[5][0] * x[4][1] * x[3][1] * x[2][0] * x[1][0]
-                                   - dy * W[26][1] * x[5][0] * x[4][1] * x[3][1] * x[2][0] * x[1][1]
-                                   + dy * W[27][1] * x[5][0] * x[4][1] * x[3][1] * x[2][0] * x[1][1]
-                                   - dy * W[28][1] * x[5][0] * x[4][1] * x[3][1] * x[2][1] * x[1][0]
-                                   + dy * W[29][1] * x[5][0] * x[4][1] * x[3][1] * x[2][1] * x[1][0]
-                                   - dy * W[30][1] * x[5][0] * x[4][1] * x[3][1] * x[2][1] * x[1][1]
-                                   + dy * W[31][1] * x[5][0] * x[4][1] * x[3][1] * x[2][1] * x[1][1]
-                                   - dy * W[32][1] * x[5][1] * x[4][0] * x[3][0] * x[2][0] * x[1][0]
-                                   + dy * W[33][1] * x[5][1] * x[4][0] * x[3][0] * x[2][0] * x[1][0]
-                                   - dy * W[34][1] * x[5][1] * x[4][0] * x[3][0] * x[2][0] * x[1][1]
-                                   + dy * W[35][1] * x[5][1] * x[4][0] * x[3][0] * x[2][0] * x[1][1]
-                                   - dy * W[36][1] * x[5][1] * x[4][0] * x[3][0] * x[2][1] * x[1][0]
-                                   + dy * W[37][1] * x[5][1] * x[4][0] * x[3][0] * x[2][1] * x[1][0]
-                                   - dy * W[38][1] * x[5][1] * x[4][0] * x[3][0] * x[2][1] * x[1][1]
-                                   + dy * W[39][1] * x[5][1] * x[4][0] * x[3][0] * x[2][1] * x[1][1]
-                                   - dy * W[40][1] * x[5][1] * x[4][0] * x[3][1] * x[2][0] * x[1][0]
-                                   + dy * W[41][1] * x[5][1] * x[4][0] * x[3][1] * x[2][0] * x[1][0]
-                                   - dy * W[42][1] * x[5][1] * x[4][0] * x[3][1] * x[2][0] * x[1][1]
-                                   + dy * W[43][1] * x[5][1] * x[4][0] * x[3][1] * x[2][0] * x[1][1]
-                                   - dy * W[44][1] * x[5][1] * x[4][0] * x[3][1] * x[2][1] * x[1][0]
-                                   + dy * W[45][1] * x[5][1] * x[4][0] * x[3][1] * x[2][1] * x[1][0]
-                                   - dy * W[46][1] * x[5][1] * x[4][0] * x[3][1] * x[2][1] * x[1][1]
-                                   + dy * W[47][1] * x[5][1] * x[4][0] * x[3][1] * x[2][1] * x[1][1]
-                                   - dy * W[48][1] * x[5][1] * x[4][1] * x[3][0] * x[2][0] * x[1][0]
-                                   + dy * W[49][1] * x[5][1] * x[4][1] * x[3][0] * x[2][0] * x[1][0]
-                                   - dy * W[50][1] * x[5][1] * x[4][1] * x[3][0] * x[2][0] * x[1][1]
-                                   + dy * W[51][1] * x[5][1] * x[4][1] * x[3][0] * x[2][0] * x[1][1]
-                                   - dy * W[52][1] * x[5][1] * x[4][1] * x[3][0] * x[2][1] * x[1][0]
-                                   + dy * W[53][1] * x[5][1] * x[4][1] * x[3][0] * x[2][1] * x[1][0]
-                                   - dy * W[54][1] * x[5][1] * x[4][1] * x[3][0] * x[2][1] * x[1][1]
-                                   + dy * W[55][1] * x[5][1] * x[4][1] * x[3][0] * x[2][1] * x[1][1]
-                                   - dy * W[56][1] * x[5][1] * x[4][1] * x[3][1] * x[2][0] * x[1][0]
-                                   + dy * W[57][1] * x[5][1] * x[4][1] * x[3][1] * x[2][0] * x[1][0]
-                                   - dy * W[58][1] * x[5][1] * x[4][1] * x[3][1] * x[2][0] * x[1][1]
-                                   + dy * W[59][1] * x[5][1] * x[4][1] * x[3][1] * x[2][0] * x[1][1]
-                                   - dy * W[60][1] * x[5][1] * x[4][1] * x[3][1] * x[2][1] * x[1][0]
-                                   + dy * W[61][1] * x[5][1] * x[4][1] * x[3][1] * x[2][1] * x[1][0]
-                                   - dy * W[62][1] * x[5][1] * x[4][1] * x[3][1] * x[2][1] * x[1][1]
-                                   + dy * W[63][1] * x[5][1] * x[4][1] * x[3][1] * x[2][1] * x[1][1];
-
-                    RealType dx1 = - dy * W[ 0][1] * x[5][0] * x[4][0] * x[3][0] * x[2][0] * x[0][0]
-                                   - dy * W[ 1][1] * x[5][0] * x[4][0] * x[3][0] * x[2][0] * x[0][1]
-                                   + dy * W[ 2][1] * x[5][0] * x[4][0] * x[3][0] * x[2][0] * x[0][0]
-                                   + dy * W[ 3][1] * x[5][0] * x[4][0] * x[3][0] * x[2][0] * x[0][1]
-                                   - dy * W[ 4][1] * x[5][0] * x[4][0] * x[3][0] * x[2][1] * x[0][0]
-                                   - dy * W[ 5][1] * x[5][0] * x[4][0] * x[3][0] * x[2][1] * x[0][1]
-                                   + dy * W[ 6][1] * x[5][0] * x[4][0] * x[3][0] * x[2][1] * x[0][0]
-                                   + dy * W[ 7][1] * x[5][0] * x[4][0] * x[3][0] * x[2][1] * x[0][1]
-                                   - dy * W[ 8][1] * x[5][0] * x[4][0] * x[3][1] * x[2][0] * x[0][0]
-                                   - dy * W[ 9][1] * x[5][0] * x[4][0] * x[3][1] * x[2][0] * x[0][1]
-                                   + dy * W[10][1] * x[5][0] * x[4][0] * x[3][1] * x[2][0] * x[0][0]
-                                   + dy * W[11][1] * x[5][0] * x[4][0] * x[3][1] * x[2][0] * x[0][1]
-                                   - dy * W[12][1] * x[5][0] * x[4][0] * x[3][1] * x[2][1] * x[0][0]
-                                   - dy * W[13][1] * x[5][0] * x[4][0] * x[3][1] * x[2][1] * x[0][1]
-                                   + dy * W[14][1] * x[5][0] * x[4][0] * x[3][1] * x[2][1] * x[0][0]
-                                   + dy * W[15][1] * x[5][0] * x[4][0] * x[3][1] * x[2][1] * x[0][1]
-                                   - dy * W[16][1] * x[5][0] * x[4][1] * x[3][0] * x[2][0] * x[0][0]
-                                   - dy * W[17][1] * x[5][0] * x[4][1] * x[3][0] * x[2][0] * x[0][1]
-                                   + dy * W[18][1] * x[5][0] * x[4][1] * x[3][0] * x[2][0] * x[0][0]
-                                   + dy * W[19][1] * x[5][0] * x[4][1] * x[3][0] * x[2][0] * x[0][1]
-                                   - dy * W[20][1] * x[5][0] * x[4][1] * x[3][0] * x[2][1] * x[0][0]
-                                   - dy * W[21][1] * x[5][0] * x[4][1] * x[3][0] * x[2][1] * x[0][1]
-                                   + dy * W[22][1] * x[5][0] * x[4][1] * x[3][0] * x[2][1] * x[0][0]
-                                   + dy * W[23][1] * x[5][0] * x[4][1] * x[3][0] * x[2][1] * x[0][1]
-                                   - dy * W[24][1] * x[5][0] * x[4][1] * x[3][1] * x[2][0] * x[0][0]
-                                   - dy * W[25][1] * x[5][0] * x[4][1] * x[3][1] * x[2][0] * x[0][1]
-                                   + dy * W[26][1] * x[5][0] * x[4][1] * x[3][1] * x[2][0] * x[0][0]
-                                   + dy * W[27][1] * x[5][0] * x[4][1] * x[3][1] * x[2][0] * x[0][1]
-                                   - dy * W[28][1] * x[5][0] * x[4][1] * x[3][1] * x[2][1] * x[0][0]
-                                   - dy * W[29][1] * x[5][0] * x[4][1] * x[3][1] * x[2][1] * x[0][1]
-                                   + dy * W[30][1] * x[5][0] * x[4][1] * x[3][1] * x[2][1] * x[0][0]
-                                   + dy * W[31][1] * x[5][0] * x[4][1] * x[3][1] * x[2][1] * x[0][1]
-                                   - dy * W[32][1] * x[5][1] * x[4][0] * x[3][0] * x[2][0] * x[0][0]
-                                   - dy * W[33][1] * x[5][1] * x[4][0] * x[3][0] * x[2][0] * x[0][1]
-                                   + dy * W[34][1] * x[5][1] * x[4][0] * x[3][0] * x[2][0] * x[0][0]
-                                   + dy * W[35][1] * x[5][1] * x[4][0] * x[3][0] * x[2][0] * x[0][1]
-                                   - dy * W[36][1] * x[5][1] * x[4][0] * x[3][0] * x[2][1] * x[0][0]
-                                   - dy * W[37][1] * x[5][1] * x[4][0] * x[3][0] * x[2][1] * x[0][1]
-                                   + dy * W[38][1] * x[5][1] * x[4][0] * x[3][0] * x[2][1] * x[0][0]
-                                   + dy * W[39][1] * x[5][1] * x[4][0] * x[3][0] * x[2][1] * x[0][1]
-                                   - dy * W[40][1] * x[5][1] * x[4][0] * x[3][1] * x[2][0] * x[0][0]
-                                   - dy * W[41][1] * x[5][1] * x[4][0] * x[3][1] * x[2][0] * x[0][1]
-                                   + dy * W[42][1] * x[5][1] * x[4][0] * x[3][1] * x[2][0] * x[0][0]
-                                   + dy * W[43][1] * x[5][1] * x[4][0] * x[3][1] * x[2][0] * x[0][1]
-                                   - dy * W[44][1] * x[5][1] * x[4][0] * x[3][1] * x[2][1] * x[0][0]
-                                   - dy * W[45][1] * x[5][1] * x[4][0] * x[3][1] * x[2][1] * x[0][1]
-                                   + dy * W[46][1] * x[5][1] * x[4][0] * x[3][1] * x[2][1] * x[0][0]
-                                   + dy * W[47][1] * x[5][1] * x[4][0] * x[3][1] * x[2][1] * x[0][1]
-                                   - dy * W[48][1] * x[5][1] * x[4][1] * x[3][0] * x[2][0] * x[0][0]
-                                   - dy * W[49][1] * x[5][1] * x[4][1] * x[3][0] * x[2][0] * x[0][1]
-                                   + dy * W[50][1] * x[5][1] * x[4][1] * x[3][0] * x[2][0] * x[0][0]
-                                   + dy * W[51][1] * x[5][1] * x[4][1] * x[3][0] * x[2][0] * x[0][1]
-                                   - dy * W[52][1] * x[5][1] * x[4][1] * x[3][0] * x[2][1] * x[0][0]
-                                   - dy * W[53][1] * x[5][1] * x[4][1] * x[3][0] * x[2][1] * x[0][1]
-                                   + dy * W[54][1] * x[5][1] * x[4][1] * x[3][0] * x[2][1] * x[0][0]
-                                   + dy * W[55][1] * x[5][1] * x[4][1] * x[3][0] * x[2][1] * x[0][1]
-                                   - dy * W[56][1] * x[5][1] * x[4][1] * x[3][1] * x[2][0] * x[0][0]
-                                   - dy * W[57][1] * x[5][1] * x[4][1] * x[3][1] * x[2][0] * x[0][1]
-                                   + dy * W[58][1] * x[5][1] * x[4][1] * x[3][1] * x[2][0] * x[0][0]
-                                   + dy * W[59][1] * x[5][1] * x[4][1] * x[3][1] * x[2][0] * x[0][1]
-                                   - dy * W[60][1] * x[5][1] * x[4][1] * x[3][1] * x[2][1] * x[0][0]
-                                   - dy * W[61][1] * x[5][1] * x[4][1] * x[3][1] * x[2][1] * x[0][1]
-                                   + dy * W[62][1] * x[5][1] * x[4][1] * x[3][1] * x[2][1] * x[0][0]
-                                   + dy * W[63][1] * x[5][1] * x[4][1] * x[3][1] * x[2][1] * x[0][1];
-
-                    for (int i = 0; i < N; ++i) {
-                        RealType dx = 0;
-                        for (int j = 0; j < NN; ++j) {
-                            RealType w = W[j][(j >> i) & 1];
-                            for (int k = 0; k < N; ++k) {
-                                if (i != k) {
-                                    w *= x[k][(j >> k) & 1];
-                                }
-                            }
-                            dx += w;
-                        }
-                        dx *= dy;
-                        tmp_ptr.Set(frame, node * N + i, dx);
-                    }
-                }
-                for ( int i = 0; i < NN; ++i) {
-                    dW_ptr(node, i) += dW[i];
-                }
-            }
-
-            auto dx_ptr = dx_buf.Lock<RealType>();
-
-            #pragma omp parallel for
-            for ( index_t frame = 0; frame < frame_size; ++frame ) {
-                for ( index_t node = 0; node < node_size; ++node ) {
-                    for (int i = 0; i < N; ++i) {
-                        RealType dx = tmp_ptr.Get(frame, node * N + i);
-                        auto input_node = input_index_ptr(node, i);
-                        dx_ptr.Add(frame, input_node, dx);
-                    }
-                }
-            }
-#endif
-
-            return dx_buf;
-        }
+        return dx_buf;
     }
 };
 

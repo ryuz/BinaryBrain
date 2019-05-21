@@ -116,6 +116,16 @@ public:
     auto lock_dW(void)                     { return m_lut->lock_dW(); }
     auto lock_dW_const(void) const         { return m_lut->lock_dW_const(); }
     
+    auto lock_mean(void)               { return m_batch_norm->lock_mean(); }
+    auto lock_mean_const(void)   const { return m_batch_norm->lock_mean_const(); }
+    auto lock_var(void)                { return m_batch_norm->lock_var(); }
+    auto lock_var_const(void)    const { return m_batch_norm->lock_var_const(); }
+    
+    // debug
+    auto lock_tmp_mean_const(void)   const { return m_batch_norm->lock_tmp_mean_const(); }
+    auto lock_tmp_rstd_const(void)   const { return m_batch_norm->lock_tmp_rstd_const(); }
+
+
     /**
      * @brief  パラメータ取得
      * @detail パラメータを取得する
