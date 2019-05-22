@@ -155,7 +155,7 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_Forward(
             int             lut_binarize
         )
 {
-    int unit_id = ((threadIdx.x % MAX_FRAME_UNIT) & ~0x1f);
+//  int unit_id = ((threadIdx.x % MAX_FRAME_UNIT) & ~0x1f);
     int node_id = threadIdx.y;
     int node    = blockIdx.y * blockDim.y + threadIdx.y;
     int id      = threadIdx.x;
