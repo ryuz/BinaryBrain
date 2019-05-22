@@ -445,8 +445,10 @@ public:
     }
 
     // Backwardは存在しない
-    FrameBuffer Backward(FrameBuffer dy_buf)
+    FrameBuffer Backward(FrameBuffer dy_buf, index_t x_frame_offset = 0)
     {
+        BB_ASSERT(x_frame_offset == 0); // offset未対応
+
         FrameBuffer dx_buf(DataType<BT>::type, dy_buf.GetFrameSize(), m_input_shape);
         return dx_buf;
     }

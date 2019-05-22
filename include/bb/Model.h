@@ -240,7 +240,7 @@ public:
      *         
      * @return backward演算結果
      */
-    virtual FrameBuffer Backward(FrameBuffer dy_buf) = 0;
+    virtual FrameBuffer Backward(FrameBuffer dy_buf, index_t x_frame_offset = 0) = 0;
 
    /**
      * @brief  backward演算(複数入力対応)

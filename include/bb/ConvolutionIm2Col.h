@@ -281,7 +281,7 @@ public:
     }
 
 
-    FrameBuffer Backward(FrameBuffer dy_buf)
+    FrameBuffer Backward(FrameBuffer dy_buf, index_t x_frame_offset = 0)
     {
         BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
         

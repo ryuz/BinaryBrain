@@ -31,10 +31,11 @@ protected:
     std::shared_ptr< Model >                            m_layer;
     std::shared_ptr< BinaryToReal<BinType, RealType> >  m_bin2real;
 
-    bool                                            m_training;
+    bool                                                m_training;
+    indices_t                                           m_modulation_size = 1;
 
-    typename RealToBinary<BinType, RealType>::create_t   m_training_create;
-    typename RealToBinary<BinType, RealType>::create_t   m_inference_create;
+    typename RealToBinary<BinType, RealType>::create_t  m_training_create;
+    typename RealToBinary<BinType, RealType>::create_t  m_inference_create;
     
 public:
     struct create_t
@@ -71,9 +72,10 @@ protected:
         m_inference_create.input_range_hi  = create.inference_input_range_hi;
 
         m_training = true;
+        m_modulation_size = create.training_modulation_size;
         m_real2bin = RealToBinary<BinType, RealType>::Create(m_training_create);
         m_layer    = create.layer;
-        m_bin2real = BinaryToReal<BinType, RealType>::Create(create.training_modulation_size, create.output_shape);
+        m_bin2real = BinaryToReal<BinType, RealType>::Create(m_modulation_size, create.output_shape);
     }
 
 public:
@@ -186,16 +188,20 @@ public:
     {
         // 切り替え
         if (train && !m_training) {
+            m_training = true;
+            m_modulation_size = (m_training_create.modulation_size;
+
             m_real2bin->SetModulationSize(m_training_create.modulation_size);
             m_real2bin->SetValueGenerator(m_training_create.value_generator);
             m_bin2real->SetModulationSize(m_training_create.modulation_size);
-            m_training = true;
         }
         else if (!train && m_training) {
+            m_training = false;
+            m_modulation_size = m_inference_create.modulation_size;
+
             m_real2bin->SetModulationSize(m_inference_create.modulation_size);
             m_real2bin->SetValueGenerator(m_inference_create.value_generator);
             m_bin2real->SetModulationSize(m_inference_create.modulation_size);
-            m_training = false;
         }
 
         x = m_real2bin->Forward(x, train);
@@ -210,11 +216,11 @@ public:
      *         
      * @return backward演算結果
      */
-    FrameBuffer Backward(FrameBuffer dy)
+    FrameBuffer Backward(FrameBuffer dy, index_t x_frame_offset = 0)
     {
-        dy = m_bin2real->Backward(dy);
-        dy = m_layer   ->Backward(dy);
-        dy = m_real2bin->Backward(dy);
+        dy = m_bin2real->Backward(dy, x_frame_offset);
+        dy = m_layer   ->Backward(dy, x_frame_offset * m_modulation_size);
+        dy = m_real2bin->Backward(dy, x_frame_offset);
         return dy; 
     }
     

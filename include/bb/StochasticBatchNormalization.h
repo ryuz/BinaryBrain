@@ -565,8 +565,10 @@ public:
      *         
      * @return backward演算結果
      */
-    FrameBuffer Backward(FrameBuffer dy_buf)
+    FrameBuffer Backward(FrameBuffer dy_buf, index_t x_frame_offset = 0)
     {
+        BB_ASSERT(x_frame_offset == 0); // offset未対応
+
         // 出力設定
         FrameBuffer dx_buf(dy_buf.GetType(), dy_buf.GetFrameSize(), dy_buf.GetShape());
 

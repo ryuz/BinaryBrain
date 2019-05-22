@@ -390,33 +390,59 @@ public:
         // LUT6 Bit CUDA
         if ( N == 6 && DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
                 && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
-            auto x_ptr            = x_buf.LockDeviceMemoryConst();
-            auto y_ptr            = y_buf.LockDeviceMemory(true);
-            auto input_index_ptr  = m_input_index.LockDeviceMemoryConst();
-            auto W_ptr            = m_W->LockDeviceMemoryConst();
-            auto mean_ptr         = m_mean.LockDeviceMemory(true);
-            auto rstd_ptr         = m_rstd.LockDeviceMemory(true);
-            auto running_mean_ptr = m_running_mean.LockDeviceMemory();
-            auto running_var_ptr  = m_running_var.LockDeviceMemory();
+            if ( train ) {
+                auto x_ptr            = x_buf.LockDeviceMemoryConst();
+                auto y_ptr            = y_buf.LockDeviceMemory(true);
+                auto input_index_ptr  = m_input_index.LockDeviceMemoryConst();
+                auto W_ptr            = m_W->LockDeviceMemoryConst();
+                auto mean_ptr         = m_mean.LockDeviceMemory(true);
+                auto rstd_ptr         = m_rstd.LockDeviceMemory(true);
+                auto running_mean_ptr = m_running_mean.LockDeviceMemory();
+                auto running_var_ptr  = m_running_var.LockDeviceMemory();
 
-            bbcu_bit_fp32_SparseBinaryLut6_Forward
-                (
-                    (int   const *)x_ptr.GetAddr(),
-                    (int         *)y_ptr.GetAddr(),
-                    (int   const *)input_index_ptr.GetAddr(),
-                    (float const *)W_ptr.GetAddr(),
-                    (float       *)mean_ptr.GetAddr(),
-                    (float       *)rstd_ptr.GetAddr(),
-                    (float       *)running_mean_ptr.GetAddr(),
-                    (float       *)running_var_ptr.GetAddr(),
-                    (float        )m_gamma,
-                    (float        )m_beta,
-                    (float        )m_momentum,
-                    (int          )y_buf.GetNodeSize(),
-                    (int          )y_buf.GetFrameSize(),
-                    (int          )(y_buf.GetFrameStride() / sizeof(int)),
-                    (int          )(m_lut_binarize ? 1 : 0)
-                );
+                bbcu_bit_fp32_SparseBinaryLut6_Forward
+                    (
+                        (int   const *)x_ptr.GetAddr(),
+                        (int         *)y_ptr.GetAddr(),
+                        (int   const *)input_index_ptr.GetAddr(),
+                        (float const *)W_ptr.GetAddr(),
+                        (float       *)mean_ptr.GetAddr(),
+                        (float       *)rstd_ptr.GetAddr(),
+                        (float       *)running_mean_ptr.GetAddr(),
+                        (float       *)running_var_ptr.GetAddr(),
+                        (float        )m_gamma,
+                        (float        )m_beta,
+                        (float        )m_momentum,
+                        (int          )y_buf.GetNodeSize(),
+                        (int          )y_buf.GetFrameSize(),
+                        (int          )(y_buf.GetFrameStride() / sizeof(int)),
+                        (int          )(m_lut_binarize ? 1 : 0)
+                    );
+            }
+            else {
+                auto x_ptr            = x_buf.LockDeviceMemoryConst();
+                auto y_ptr            = y_buf.LockDeviceMemory(true);
+                auto input_index_ptr  = m_input_index.LockDeviceMemoryConst();
+                auto W_ptr            = m_W->LockDeviceMemoryConst();
+                auto running_mean_ptr = m_running_mean.LockDeviceMemory();
+                auto running_var_ptr  = m_running_var.LockDeviceMemory();
+
+                bbcu_bit_fp32_SparseBinaryLut6_ForwardInference
+                    (
+                        (int   const *)x_ptr.GetAddr(),
+                        (int         *)y_ptr.GetAddr(),
+                        (int   const *)input_index_ptr.GetAddr(),
+                        (float const *)W_ptr.GetAddr(),
+                        (float       *)running_mean_ptr.GetAddr(),
+                        (float       *)running_var_ptr.GetAddr(),
+                        (float        )m_gamma,
+                        (float        )m_beta,
+                        (int          )y_buf.GetNodeSize(),
+                        (int          )y_buf.GetFrameSize(),
+                        (int          )(y_buf.GetFrameStride() / sizeof(int)),
+                        (int          )(m_lut_binarize ? 1 : 0)
+                    );
+            }
 
             return y_buf;
         }
@@ -474,8 +500,10 @@ public:
     }
 
 
-    FrameBuffer Backward(FrameBuffer dy_buf)
+    FrameBuffer Backward(FrameBuffer dy_buf, index_t x_frame_offset = 0)
     {
+        BB_ASSERT(x_frame_offset == 0); // offset未対応
+
         BB_ASSERT(dy_buf.GetType() == DataType<RealType>::type);
 
         FrameBuffer x_buf = m_x_buf;

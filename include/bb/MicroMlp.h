@@ -246,8 +246,10 @@ public:
      *         
      * @return backward演算結果
      */
-    FrameBuffer Backward(FrameBuffer dy_buf)
+    FrameBuffer Backward(FrameBuffer dy_buf, index_t x_frame_offset = 0)
     {
+        BB_ASSERT(x_frame_offset == 0); // offset未対応
+
         if (m_memory_saving) {
             // 再計算
             FrameBuffer x_buf;

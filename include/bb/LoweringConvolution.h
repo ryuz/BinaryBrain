@@ -31,6 +31,8 @@ protected:
     index_t     m_filter_w_size = 1;
     index_t     m_x_stride = 1;
     index_t     m_y_stride = 1;
+    index_t     m_output_w_size = 1;
+    index_t     m_output_h_size = 1;
     std::string m_padding = "valid";
 
     // 3層で構成
@@ -161,21 +163,19 @@ public:
         index_t input_c_size = shape[2];
 
         // 出力サイズ計算
-        index_t output_w_size;
-        index_t output_h_size;
         if ( m_padding == "valid" ) {
-            output_h_size = ((input_h_size - m_filter_h_size + 1) + (m_y_stride - 1)) / m_y_stride;
-            output_w_size = ((input_w_size - m_filter_w_size + 1) + (m_x_stride - 1)) / m_x_stride;
+            m_output_h_size = ((input_h_size - m_filter_h_size + 1) + (m_y_stride - 1)) / m_y_stride;
+            m_output_w_size = ((input_w_size - m_filter_w_size + 1) + (m_x_stride - 1)) / m_x_stride;
         }
         else if ( m_padding == "same" ) {
-            output_h_size = (input_h_size + (m_y_stride - 1)) / m_y_stride;
-            output_w_size = (input_w_size + (m_x_stride - 1)) / m_x_stride;
+            m_output_h_size = (input_h_size + (m_y_stride - 1)) / m_y_stride;
+            m_output_w_size = (input_w_size + (m_x_stride - 1)) / m_x_stride;
         }
         else {
             BB_ASSERT(0);
         }
 
-        m_col2im = ConvolutionCol2Im<FT, BT>::Create(output_h_size, output_w_size);
+        m_col2im = ConvolutionCol2Im<FT, BT>::Create(m_output_h_size, m_output_w_size);
 
         shape = m_im2col->SetInputShape(shape);
         shape = m_layer->SetInputShape(shape);
@@ -227,11 +227,11 @@ public:
      *         
      * @return backward演算結果
      */
-    FrameBuffer Backward(FrameBuffer dy_buf)
+    FrameBuffer Backward(FrameBuffer dy_buf, index_t x_frame_offset = 0)
     {
-        dy_buf = m_col2im->Backward(dy_buf);
-        dy_buf = m_layer->Backward(dy_buf);
-        dy_buf = m_im2col->Backward(dy_buf);
+        dy_buf = m_col2im->Backward(dy_buf, x_frame_offset);
+        dy_buf = m_layer->Backward(dy_buf, x_frame_offset * m_output_w_size * m_output_h_size);
+        dy_buf = m_im2col->Backward(dy_buf, x_frame_offset);
         return dy_buf; 
     }
     
