@@ -91,20 +91,20 @@ void MnistStochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_siz
         auto layer_lut3 = bb::BinaryLutN<>::Create(layer_sl3->GetOutputShape());
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
+        lut_net->Add(bb::RealToBinary<bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(layer_lut0);
         lut_net->Add(layer_lut1);
         lut_net->Add(layer_lut2);
         lut_net->Add(layer_lut3);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, lut_frame_mux_size));
+        lut_net->Add(bb::BinaryToReal<bb::Bit>::Create(lut_frame_mux_size, td.t_shape));
         lut_net->SetInputShape(td.x_shape);
 
         // テーブル化して取り込み(SetInputShape後に取り込みが必要)
         std::cout << "parameter copy to LUT-Network" << std::endl;
-        layer_lut0->ImportLayer<float, float>(layer_sl0);
-        layer_lut1->ImportLayer<float, float>(layer_sl1);
-        layer_lut2->ImportLayer<float, float>(layer_sl2);
-        layer_lut3->ImportLayer<float, float>(layer_sl3);
+        layer_lut0->ImportLayer(layer_sl0);
+        layer_lut1->ImportLayer(layer_sl1);
+        layer_lut2->ImportLayer(layer_sl2);
+        layer_lut3->ImportLayer(layer_sl3);
 
         // 評価
         bb::Runner<float>::create_t lut_runner_create;

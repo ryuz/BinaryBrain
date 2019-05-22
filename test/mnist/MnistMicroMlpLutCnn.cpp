@@ -152,7 +152,7 @@ void MnistMicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size, 
 
 
         auto net = bb::Sequential::Create();
-        net->Add(bb::RealToBinary<float, bb::Bit>::Create(frame_mux_size));
+        net->Add(bb::RealToBinary<bb::Bit>::Create(frame_mux_size));
         net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3, 1, 1, "same"));
         net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3, 1, 1, "same"));
         net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
@@ -161,7 +161,7 @@ void MnistMicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size, 
         net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
         net->Add(layer_mm4);
         net->Add(layer_mm5);
-        net->Add(bb::BinaryToReal<bb::Bit, float>::Create({ 10 }, frame_mux_size));
+        net->Add(bb::BinaryToReal<bb::Bit>::Create(frame_mux_size, { 10 }));
         net->SetInputShape({28, 28, 1});
 
         if ( binary_mode ) {
@@ -242,7 +242,7 @@ void MnistMicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size, 
         auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 7, 7);
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
+        lut_net->Add(bb::RealToBinary<bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(cnv0);
         lut_net->Add(cnv1);
         lut_net->Add(pol0);
@@ -250,22 +250,22 @@ void MnistMicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size, 
         lut_net->Add(cnv3);
         lut_net->Add(pol1);
         lut_net->Add(cnv4);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({ 10 }, lut_frame_mux_size));
+        lut_net->Add(bb::BinaryToReal<bb::Bit>::Create(lut_frame_mux_size, { 10 }));
         lut_net->SetInputShape({28, 28, 1});
 
 
         // テーブル化して取り込み(現状まだSetInputShape後の取り込みが必要)
         std::cout << "parameter copy to LUT-Network" << std::endl;
-        layer_cnv0_lut0->ImportLayer<float, float>(layer_cnv0_mm0);
-        layer_cnv0_lut1->ImportLayer<float, float>(layer_cnv0_mm1);
-        layer_cnv1_lut0->ImportLayer<float, float>(layer_cnv1_mm0);
-        layer_cnv1_lut1->ImportLayer<float, float>(layer_cnv1_mm1);
-        layer_cnv2_lut0->ImportLayer<float, float>(layer_cnv2_mm0);
-        layer_cnv2_lut1->ImportLayer<float, float>(layer_cnv2_mm1);
-        layer_cnv3_lut0->ImportLayer<float, float>(layer_cnv3_mm0);
-        layer_cnv3_lut1->ImportLayer<float, float>(layer_cnv3_mm1);
-        layer_lut4     ->ImportLayer<float, float>(layer_mm4);
-        layer_lut5     ->ImportLayer<float, float>(layer_mm5);
+        layer_cnv0_lut0->ImportLayer(layer_cnv0_mm0);
+        layer_cnv0_lut1->ImportLayer(layer_cnv0_mm1);
+        layer_cnv1_lut0->ImportLayer(layer_cnv1_mm0);
+        layer_cnv1_lut1->ImportLayer(layer_cnv1_mm1);
+        layer_cnv2_lut0->ImportLayer(layer_cnv2_mm0);
+        layer_cnv2_lut1->ImportLayer(layer_cnv2_mm1);
+        layer_cnv3_lut0->ImportLayer(layer_cnv3_mm0);
+        layer_cnv3_lut1->ImportLayer(layer_cnv3_mm1);
+        layer_lut4     ->ImportLayer(layer_mm4);
+        layer_lut5     ->ImportLayer(layer_mm5);
 
         // 評価
         if ( 1 ) {

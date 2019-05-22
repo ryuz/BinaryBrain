@@ -249,8 +249,8 @@ TEST(SparseBinaryLutNTest, testSparseBinaryLutN_cmp)
     SparseBinaryLutNTest_cmp(6,    1,       8, 2);
     SparseBinaryLutNTest_cmp(6,    1,    1024, 2);
     SparseBinaryLutNTest_cmp(6,    1024,    1, 2);
-    SparseBinaryLutNTest_cmp(6,    1024, 1024, 2);
-    
+
+//  SparseBinaryLutNTest_cmp(6,    1024, 1024, 2);  
 //  SparseBinaryLutNTest_cmp(2048, 2048, 2048, 2);
 //  SparseBinaryLutNTest_cmp(14, 16, 4096, 2);
 }
