@@ -60,11 +60,11 @@ __device__ __forceinline__ int device_int_LocalOr(int v, int id, int *sbuf)
 
 __device__ __forceinline__ int device_int_ShuffleOr(int v)
 {
-    v = (v | __shfl_xor(v, 1));
-    v = (v | __shfl_xor(v, 2));
-    v = (v | __shfl_xor(v, 4));
-    v = (v | __shfl_xor(v, 8));
-    v = (v | __shfl_xor(v, 16));    
+    v |= __shfl_xor_sync(0xffffffff, v,  1, 32);
+    v |= __shfl_xor_sync(0xffffffff, v,  2, 32);
+    v |= __shfl_xor_sync(0xffffffff, v,  4, 32);
+    v |= __shfl_xor_sync(0xffffffff, v,  8, 32);
+    v |= __shfl_xor_sync(0xffffffff, v, 16, 32);    
     return v;
 }
 
