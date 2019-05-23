@@ -353,6 +353,23 @@ int bbcu_bit_fp32_SparseBinaryLut6_Forward
             cudaStream_t    streamId = 0
         );
 
+int bbcu_bit_fp32_SparseBinaryLut6_ForwardInference
+        (
+            int   const     *dev_x_buf,
+            int             *dev_y_buf,
+            int   const     *dev_input_index,
+            float const     *dev_W,
+            float const     *running_mean_buf,
+            float const     *running_var_buf,
+            float           gamma,
+            float           beta,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride,
+            int             lut_binarize,
+            cudaStream_t    streamId = 0
+        );
+
 
 // -------------------------------------
 //  StochasticLut
@@ -433,6 +450,22 @@ BBCU_DLL_EXPORT int bbcu_fp32_StochasticMaxPooling2x2_Forward
         (
             float const *   dev_x_buf,
             float*          dev_y_buf,
+            int             input_w_size,
+            int             input_h_size,
+            int             output_w_size,
+            int             output_h_size,
+            int             c_size,
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId = 0
+        );
+
+BBCU_DLL_EXPORT int bbcu_bit_MaxPooling_Forward
+        (
+            int const       *dev_x_buf,
+            int             *dev_y_buf,
+            int             filter_h_size,
+            int             filter_w_size,
             int             input_w_size,
             int             input_h_size,
             int             output_w_size,

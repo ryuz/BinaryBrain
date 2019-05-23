@@ -330,6 +330,154 @@ int bbcu_bit_fp32_SparseBinaryLut6_Forward
 }
 
 
+// -------------------------------------------------
+//  Forward Inference
+// -------------------------------------------------
+
+
+template<int MAX_FRAME_UNIT=32, int MAX_NODE_UNIT=32>
+__global__ void kernal_bit_fp32_SparseBinaryLut6_ForwardInference
+        (
+            int   const     *x_buf,
+            int             *y_buf,
+            int   const     *input_index,
+            float const     *W_buf,
+            float const     *running_mean_buf,
+            float const     *running_var_buf,
+            float           gamma,
+            float           beta,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride,
+            int             lut_binarize
+        )
+{
+    int node_id = threadIdx.y;
+    int node    = blockIdx.y * blockDim.y + threadIdx.y;
+    int id      = threadIdx.x;
+    int id_step = blockDim.x;
+
+    __shared__  float       W[64][MAX_NODE_UNIT];
+                int   const *x_ptr[6];
+                int         *y_ptr;
+    
+    if ( node < node_size ) {
+        // read W
+        for ( int i = id; i < 64; i += id_step ) {
+            W[i][node_id] = W_buf[node * 64 + i];
+            if ( lut_binarize ) {
+                W[i][node_id] = W[i][node_id] > 0.5 ? 1.0 : 0.0;
+            }
+        }
+        
+        // read input index
+        for ( int i = 0; i < 6; ++i ) {
+            x_ptr[i] = &x_buf[frame_stride * input_index[6*node + i]];
+        }
+                     
+        y_ptr = &y_buf[node * frame_stride];
+    }
+
+    __syncthreads();
+    
+    if ( node < node_size ) {
+        float mean  = running_mean_buf[node];
+        float var   = running_var_buf[node];
+        float rstd = 1.0 / (sqrt(var) + 1.0e-7);
+
+        int loop_size = ((frame_size + blockDim.x - 1) & ~(blockDim.x - 1));
+        for ( int frame = id; frame < loop_size; frame += id_step) {
+            int unit     = (frame >> 5);
+            int bit      = (frame & 0x1f);
+            int bit_mask = (1 << bit);
+
+            int y_mask = 0;
+            if ( node < node_size && frame < frame_size) {
+                // ForwardŒvŽZ
+                float x[6];
+                for ( int i = 0; i < 6; ++i) {
+                    x[i] = (x_ptr[i][unit] & bit_mask) ? 0.7 : 0.3;
+                }
+                float y = device_fp32_SparseBinaryLut6_NodeForward<MAX_NODE_UNIT>(node_id, x, W);
+
+                y = ((y - mean) * rstd) * gamma + beta;
+
+                if ( y > 0.5 ) {
+                    y_mask = bit_mask;
+                }
+            }
+
+            y_mask = device_int_ShuffleOr(y_mask);
+
+            if ( bit == 0 ) {
+                if ( node < node_size && frame < frame_size ) {
+                    y_ptr[unit] = y_mask;
+                }
+            }
+        }
+    }
+}
+
+
+int bbcu_bit_fp32_SparseBinaryLut6_ForwardInference
+        (
+            int   const     *dev_x_buf,
+            int             *dev_y_buf,
+            int   const     *dev_input_index,
+            float const     *dev_W,
+            float const     *running_mean_buf,
+            float const     *running_var_buf,
+            float           gamma,
+            float           beta,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride,
+            int             lut_binarize,
+            cudaStream_t    streamId
+        )
+{
+    BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
+
+    unsigned int const THREAD_SIZE    = 512;
+    unsigned int const MAX_FRAME_UNIT = 256;
+    unsigned int const MAX_NODE_UNIT  = 16;
+
+#if 0
+    dim3    block(MAX_FRAME_UNIT, THREAD_SIZE / MAX_FRAME_UNIT);
+    while ( (int)block.x / 2 >= frame_size && block.x > 32 ) { block.x /= 2; block.y *= 2; }
+    while ( (int)block.y / 2 >= node_size                  ) { block.y /= 2; }
+#else
+    dim3    block(THREAD_SIZE / MAX_NODE_UNIT, MAX_NODE_UNIT);
+    while ( (int)block.y / 2 >= node_size  )                { block.y /= 2; block.x *= 2;}
+    while ( (int)block.x / 2 >= frame_size && block.x > 32) { block.x /= 2; }
+#endif
+
+    block.x = std::min(block.x, MAX_FRAME_UNIT);
+    block.y = std::min(block.y, MAX_NODE_UNIT);
+    dim3    grid(1, (node_size + (block.y - 1)) / block.y);
+    
+    kernal_bit_fp32_SparseBinaryLut6_ForwardInference<MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
+            dev_x_buf,
+            dev_y_buf,
+            dev_input_index,
+            dev_W,
+            running_mean_buf,
+            running_var_buf,
+            gamma,
+            beta,
+            node_size,
+            frame_size,
+            frame_stride,
+            lut_binarize
+        );
+    BB_CUDA_CHECK_LAST_ERROR();
+    
+    return 0;
+}
+
+
+
+
 #if 0
 
 // -------------------------------------------------

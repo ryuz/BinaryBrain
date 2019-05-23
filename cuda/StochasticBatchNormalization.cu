@@ -217,13 +217,13 @@ __global__ void kernal_fp32_StochasticBatchNormalization_ForwardInference(
     float mean  = running_mean_buf[node];
     float var   = running_var_buf[node];
 
-    var = 1.0 / (sqrt(var) + 1.0e-7);
+    float rstd = 1.0 / (sqrt(var) + 1.0e-7);
 
     float const *x_ptr = &x_buf[frame_stride * node];
     float       *y_ptr = &y_buf[frame_stride * node];
     for ( int frame = id; frame < frame_size; frame += id_step )  {
         float x = x_ptr[frame];
-        y_ptr[frame] = ((x - mean) * var) * gamma + beta;
+        y_ptr[frame] = ((x - mean) * rstd) * gamma + beta;
     }
 }
 

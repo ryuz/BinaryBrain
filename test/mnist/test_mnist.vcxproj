@@ -413,13 +413,10 @@
     <ClInclude Include="..\..\include\bb\ShuffleSet.h" />
     <ClInclude Include="..\..\include\bb\Sigmoid.h" />
     <ClInclude Include="..\..\include\bb\SimdSupport.h" />
+    <ClInclude Include="..\..\include\bb\SparseBinaryLutN.h" />
     <ClInclude Include="..\..\include\bb\SparseLayer.h" />
     <ClInclude Include="..\..\include\bb\StochasticBatchNormalization.h" />
     <ClInclude Include="..\..\include\bb\StochasticLut.h" />
-    <ClInclude Include="..\..\include\bb\StochasticLut2.h" />
-    <ClInclude Include="..\..\include\bb\StochasticLut4.h" />
-    <ClInclude Include="..\..\include\bb\StochasticLut6.h" />
-    <ClInclude Include="..\..\include\bb\StochasticLutBn.h" />
     <ClInclude Include="..\..\include\bb\StochasticMaxPooling.h" />
     <ClInclude Include="..\..\include\bb\StochasticMaxPooling2x2.h" />
     <ClInclude Include="..\..\include\bb\StochasticMinMaxNormalization.h" />
