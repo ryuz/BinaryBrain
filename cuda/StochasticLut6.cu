@@ -387,11 +387,10 @@ __global__ void kernal_bit_fp32_StochasticLut6_Forward(
             y = max(0.0, y);
             y = min(1.0, y);
             
+//          printf("[StochasticLut6] node=%d frame=%d y=%f\n", node, frame, y);
 
             y_ptr[frame] = y;
         }
-
-        __syncthreads();
     }
 }
 

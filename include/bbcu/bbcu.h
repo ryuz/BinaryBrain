@@ -354,7 +354,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_MicroMlp6x16_Backward
 //  SparseBinaryLut
 // -------------------------------------
 
-BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_Forward
+BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_ForwardTraining
         (
             int   const     *dev_x_buf,
             int             *dev_y_buf,
@@ -390,6 +390,27 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_ForwardInference
             int             lut_binarize,
             cudaStream_t    streamId = 0
         );
+
+BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_Backward
+        (
+            int   const     *dev_x_buf,
+            float const     *dev_dy_buf,
+            float           *dev_dx_buf,
+            float           *dev_dx_tmp,
+            int   const     *dev_input_index,
+            float const     *dev_W,
+            float           *dev_dW,
+            float const     *dev_mean_buf,
+            float const     *dev_rstd_buf,
+            float           gamma,
+            int             input_node_size,
+            int             output_node_size,
+            int             frame_size,
+            int             frame_stride,
+            int             x_frame_stride,
+            int             lut_binarize,
+            cudaStream_t    streamId=0
+    );
 
 
 // -------------------------------------

@@ -119,18 +119,14 @@ __global__ void kernal_fp32_StochasticBatchNormalization_ForwardTraining(
 
     float rstd = rsqrt(var);
 
-//   if (id == 0) {
-//        printf("StochasticBatchNorm node=%d mean=%f\n", node, mean);
-//        printf("StochasticBatchNorm node=%d var =%f\n", node, var);
-//        printf("StochasticBatchNorm node=%d rstd=%f\n", node, rstd);
-//   }
-
     // èëÇ´çûÇ›
     if (id == 0) {
         running_mean_buf[node] = running_mean_buf[node] * momentum + mean * (1.0f - momentum);
         running_var_buf[node]  = running_var_buf[node]  * momentum + var  * (1.0f - momentum);
         mean_buf[node] = mean;
         rstd_buf[node] = rstd;
+
+//      printf("[StochasticBatchNormalization] node=%d mean=%f rstd=%f\n", node, mean, rstd);
     }
 
     // ê≥ãKâª
@@ -141,9 +137,7 @@ __global__ void kernal_fp32_StochasticBatchNormalization_ForwardTraining(
         x = x * gamma + beta;
 
         y_ptr[frame] = x;
-//        printf("StochasticBatchNorm frame=%d node=%d gamma=%f\n", frame, node, gamma);
-//        printf("StochasticBatchNorm frame=%d node=%d beta=%f\n",  frame, node, beta);
-//        printf("StochasticBatchNorm frame=%d node=%d y=%f\n",     frame, node, x);
+//      printf("[StochasticBatchNormalization] frame=%d node=%d y=%f\n", frame, node, x);
     }
 }
 
@@ -319,6 +313,8 @@ __global__ void kernal_fp32_StochasticBatchNormalization_Backward
         float dxn = gamma * dy;
         dstd += -(dxn * xc * rstd2);
         dmeanx += -(dxn * rstd);
+
+//      printf("[StochasticBatchNormalization bw] frame=%d node=%d x=%f dy=%f\n", frame, node, x, dy);
     }
 
     dstd   = device_fp32_LocalSum(dstd, buf);

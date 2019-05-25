@@ -15,6 +15,7 @@
 #include "bb/BinaryModulation.h"
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
+#include "bb/SparseBinaryLutN.h"
 #include "bb/StochasticLut6.h"
 #include "bb/StochasticLutBn.h"
 #include "bb/SparseLutN.h"
@@ -56,60 +57,87 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, in
 
     float bn_momentum = 0.0f;
     
+#if 0
     auto cnv0_sub = bb::Sequential::Create();
-    cnv0_sub->Add(bb::DenseAffine<>::Create(64));
+    cnv0_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
+    cnv0_sub->Add(bb::DenseAffine<>::Create(32));
     cnv0_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
-    cnv0_sub->Add(bb::Binarize<>::Create());
+    cnv0_sub->Add(bb::Binarize<bb::Bit>::Create());
+#else
+    auto bin_cnv0_sub0 = bb::Sequential::Create();
+    bin_cnv0_sub0->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create({1,  6, 8}));
+    bin_cnv0_sub0->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create({1,  1, 8}));
+
+    auto bin_cnv0_sub1 = bb::Sequential::Create();
+    bin_cnv0_sub1->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create({1,  6, 16}));
+    bin_cnv0_sub1->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create({1,  1, 16}));
+
+    auto bin_cnv0_sub2p = bb::Sequential::Create();
+    bin_cnv0_sub2p->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create({1,  6, 32}));
+    bin_cnv0_sub2p->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create({1,  1, 32}));
+
+    auto bin_cnv0_sub2d = bb::Sequential::Create();
+    bin_cnv0_sub2d->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create({1,  6, 32}, "depthwise"));
+    bin_cnv0_sub2d->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create({1,  1, 32}, "depthwise"));
+#endif
 
     auto cnv1_sub = bb::Sequential::Create();
-    cnv1_sub->Add(bb::DenseAffine<>::Create(64));
+    cnv1_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
+    cnv1_sub->Add(bb::DenseAffine<>::Create(32));
     cnv1_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
-    cnv1_sub->Add(bb::Binarize<>::Create());
+    cnv1_sub->Add(bb::Binarize<bb::Bit>::Create());
 
     auto cnv2_sub = bb::Sequential::Create();
-    cnv2_sub->Add(bb::DenseAffine<>::Create(128));
+    cnv2_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
+    cnv2_sub->Add(bb::DenseAffine<>::Create(64));
     cnv2_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
-    cnv2_sub->Add(bb::Binarize<>::Create());
+    cnv2_sub->Add(bb::Binarize<bb::Bit>::Create());
 
     auto cnv3_sub = bb::Sequential::Create();
-    cnv3_sub->Add(bb::DenseAffine<>::Create(128));
+    cnv3_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
+    cnv3_sub->Add(bb::DenseAffine<>::Create(64));
     cnv3_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
-    cnv3_sub->Add(bb::Binarize<>::Create());
+    cnv3_sub->Add(bb::Binarize<bb::Bit>::Create());
 
     // create network
     auto main_net = bb::Sequential::Create();
-    main_net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
-    main_net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
-    main_net->Add(bb::MaxPooling<>::Create(2, 2));
-    main_net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
-    main_net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
-    main_net->Add(bb::MaxPooling<>::Create(2, 2));
+#if 0
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3));
+#else
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(bin_cnv0_sub0,  3, 3, 1, 1, "valid"));
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(bin_cnv0_sub1,  3, 3, 1, 1, "same"));
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(bin_cnv0_sub2p, 1, 1, 1, 1, "same"));
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(bin_cnv0_sub2d, 3, 3, 1, 1, "same"));
+#endif
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3));
+    main_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv2_sub, 3, 3));
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3));
+    main_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
+
+    main_net->Add(bb::BinaryToReal<bb::Bit>::Create());
     main_net->Add(bb::DenseAffine<>::Create(512));
     main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
-    main_net->Add(bb::Binarize<>::Create());
+    main_net->Add(bb::Binarize<bb::Bit>::Create());
+
+    main_net->Add(bb::BinaryToReal<bb::Bit>::Create());
     main_net->Add(bb::DenseAffine<>::Create(10));
     main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
-    main_net->Add(bb::Binarize<>::Create());
+    main_net->Add(bb::Binarize<bb::Bit>::Create());
 
-    bb::BinaryModulation<float, float>::create_t mod_create;
+    bb::BinaryModulation<bb::Bit>::create_t mod_create;
     mod_create.layer                     = main_net;
     mod_create.output_shape              = td.t_shape;
     mod_create.training_modulation_size  = frame_mux_size;
     mod_create.training_value_generator  = nullptr;
     mod_create.inference_modulation_size = frame_mux_size;
     mod_create.inference_value_generator = nullptr;
-    auto net = bb::BinaryModulation<float, float>::Create(mod_create);
+    auto net = bb::BinaryModulation<bb::Bit>::Create(mod_create);
 
     net->SetInputShape(td.x_shape);
 
-    if ( binary_mode ) {
-        std::cout << "binary true" << std::endl;
-        net->SendCommand("binary true");
-    }
-    else {
-        std::cout << "binary false" << std::endl;
-        net->SendCommand("binary false");
-    }
+    std::cout << "binary true" << std::endl;
+    net->SendCommand("binary true");
 
     // print model information
     net->PrintInfo();

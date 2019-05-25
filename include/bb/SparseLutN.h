@@ -53,7 +53,7 @@ protected:
         lut_create.seed         = create.seed;
         m_lut = StochasticLutN<N, BinType, RealType>::Create(lut_create);
 
-        m_batch_norm = StochasticBatchNormalization<RealType>::Create(0.01f);
+        m_batch_norm = StochasticBatchNormalization<RealType>::Create(0.00f);
 
         m_activation = HardTanh<BinType, RealType>::Create((RealType)0, (RealType)1);
     }
@@ -252,7 +252,7 @@ public:
             m_activation->SetFrameBufferX(x_buf);
         }
 
-        dy_buf = m_activation->Backward(dy_buf);
+ //     dy_buf = m_activation->Backward(dy_buf);
         dy_buf = m_batch_norm->Backward(dy_buf);
         dy_buf = m_lut       ->Backward(dy_buf);
         return dy_buf; 

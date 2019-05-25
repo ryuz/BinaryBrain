@@ -178,6 +178,16 @@ void SparseBinaryLutNTest_cmp(int const input_node_size, int const output_node_s
         EXPECT_EQ(frame_size, dx_buf0.GetFrameSize());
         EXPECT_EQ(frame_size, dx_buf1.GetFrameSize());
 
+        // dy一応確認
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < output_node_size; ++node ) {
+                auto val0 = dy_buf0.GetFP32(frame, node);
+                auto val1 = dy_buf1.GetFP32(frame, node);
+                EXPECT_FLOAT_EQ(val0, val1);
+//              std::cout << "frame : " << frame << "  node : " << node << " dy : " << val0 << " " << val1 << std::endl;
+            }
+        }
+
         for ( int frame = 0; frame < frame_size; ++frame) {
             for ( int node = 0; node < input_node_size; ++node ) {
                 auto val0 = dx_buf0.GetFP32(frame, node);
@@ -185,6 +195,7 @@ void SparseBinaryLutNTest_cmp(int const input_node_size, int const output_node_s
                 EXPECT_NEAR(val0, val1, 0.0001f);
                 if (abs(val0 - val1) >= 0.0001f) {
                     std::cout << frame << " " << node << std::endl;
+                    getchar();
                 }
             }
         }
@@ -199,6 +210,7 @@ void SparseBinaryLutNTest_cmp(int const input_node_size, int const output_node_s
                     EXPECT_NEAR(val0, val1, 0.0001f);
                     if (std::abs(val0 - val1) >= 0.0001f) {
                         std::cout <<  node << std::endl;
+                        getchar();
                     }
                 }
             }
@@ -250,8 +262,9 @@ TEST(SparseBinaryLutNTest, testSparseBinaryLutN_cmp)
     SparseBinaryLutNTest_cmp(6,    1,       8, 2);
     SparseBinaryLutNTest_cmp(6,    1,    1024, 2);
     SparseBinaryLutNTest_cmp(6,    1024,    1, 2);
+    SparseBinaryLutNTest_cmp(6,    2, 32, 1);
+    SparseBinaryLutNTest_cmp(6,    1024, 1024, 2);
 
-//  SparseBinaryLutNTest_cmp(6,    1024, 1024, 2);  
 //  SparseBinaryLutNTest_cmp(2048, 2048, 2048, 2);
 //  SparseBinaryLutNTest_cmp(14, 16, 4096, 2);
 }
