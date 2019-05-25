@@ -138,6 +138,11 @@ public:
         m_reserve_size += size;
         std::sort(m_reserve_vec.begin(), m_reserve_vec.end());
     }
+
+    size_t GetMaxAllocSize(void)
+    {
+        return m_max_alloc_size;
+    }
 };
 
 
@@ -155,5 +160,10 @@ BBCU_DLL_EXPORT void bbcu_LocalHeap_Free(void* ptr)
     g_bbcu_local_heap.Free(ptr);
 }
 
+
+BBCU_DLL_EXPORT size_t bbcu_LocalHeap_GetMaxAllocSize(void)
+{
+    return g_bbcu_local_heap.GetMaxAllocSize();
+}
 
 // end of file

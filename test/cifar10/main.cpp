@@ -143,6 +143,11 @@ int main(int argc, char *argv[])
         Cifar10DenseCnnTest(epoch_size, mini_batch_size, max_run_size);
     }
 
+
+#ifdef BB_WITH_CUDA
+    std::cout << "\nMaxAllocSize : " << bbcu::GetMaxAllocSize() << std::endl;
+#endif
+
     return 0;
 }
 

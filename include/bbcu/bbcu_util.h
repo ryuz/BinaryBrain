@@ -114,6 +114,16 @@ inline void Free(void *ptr)
 #endif
 }
 
+inline size_t GetMaxAllocSize(void)
+{
+#if BB_USE_LOCAL_HEAP
+    return bbcu_LocalHeap_GetMaxAllocSize();
+#else
+    return 0;
+#endif
+}
+
+
 inline void MallocHost(void **ptr, size_t size, unsigned int flags = 0)
 {
     BB_CUDA_SAFE_CALL(cudaMallocHost(ptr, size, flags));
