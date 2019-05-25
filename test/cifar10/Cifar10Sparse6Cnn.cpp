@@ -211,7 +211,7 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, in
 #endif
 
     auto cnv2_sub = bb::Sequential::Create();
-#if 0
+#if 1
     cnv2_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(768));
     cnv2_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(128));
 #else
@@ -222,7 +222,7 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, in
 #endif
 
     auto cnv3_sub = bb::Sequential::Create();
-#if 0
+#if 1
     cnv3_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(768));
     cnv3_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(128));
 #else
@@ -242,7 +242,7 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, in
     main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3));
     main_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
     
-#if 0
+#if 1
     main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(18432));
     main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(3072));
     main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(512));
