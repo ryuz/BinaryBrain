@@ -32,7 +32,7 @@ protected:
     std::shared_ptr< BinaryToReal<BinType, RealType> >  m_bin2real;
 
     bool                                                m_training;
-    indices_t                                           m_modulation_size = 1;
+    index_t                                             m_modulation_size = 1;
 
     typename RealToBinary<BinType, RealType>::create_t  m_training_create;
     typename RealToBinary<BinType, RealType>::create_t  m_inference_create;
@@ -189,7 +189,7 @@ public:
         // 切り替え
         if (train && !m_training) {
             m_training = true;
-            m_modulation_size = (m_training_create.modulation_size;
+            m_modulation_size = m_training_create.modulation_size;
 
             m_real2bin->SetModulationSize(m_training_create.modulation_size);
             m_real2bin->SetValueGenerator(m_training_create.value_generator);

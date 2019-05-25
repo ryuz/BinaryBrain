@@ -298,309 +298,142 @@ TEST(FrameBufferTest, testFrameBuffer_Json)
 
 
 
-
-#if 0
-
-TEST(NeuralNetBufferTest, testNeuralNetBufferTest)
+TEST(FrameBufferTest, FrameBuffer_CopyTo_fp32)
 {
-    bb::NeuralNetBuffer<> buf(10, 2 * 3 * 4, BB_TYPE_REAL32);
-
-    for (int i = 0; i < 2 * 3 * 4; ++i) {
-        buf.Set<float>(0, i, (float)i);
-    }
-
-    // 多次元配列構成
-    buf.SetDimensions({ 2, 3, 4 });
-    EXPECT_EQ(0, *(float *)buf.Lock3(0, 0, 0));
-    EXPECT_EQ(1, *(float *)buf.Lock3(0, 0, 1));
-    EXPECT_EQ(2, *(float *)buf.Lock3(0, 1, 0));
-    EXPECT_EQ(3, *(float *)buf.Lock3(0, 1, 1));
-    EXPECT_EQ(4, *(float *)buf.Lock3(0, 2, 0));
-    EXPECT_EQ(5, *(float *)buf.Lock3(0, 2, 1));
-    EXPECT_EQ(6, *(float *)buf.Lock3(1, 0, 0));
-    EXPECT_EQ(7, *(float *)buf.Lock3(1, 0, 1));
-    EXPECT_EQ(8, *(float *)buf.Lock3(1, 1, 0));
-    EXPECT_EQ(9, *(float *)buf.Lock3(1, 1, 1));
-    EXPECT_EQ(10, *(float *)buf.Lock3(1, 2, 0));
-    EXPECT_EQ(11, *(float *)buf.Lock3(1, 2, 1));
-    EXPECT_EQ(12, *(float *)buf.Lock3(2, 0, 0));
-    EXPECT_EQ(13, *(float *)buf.Lock3(2, 0, 1));
-    EXPECT_EQ(14, *(float *)buf.Lock3(2, 1, 0));
-    EXPECT_EQ(15, *(float *)buf.Lock3(2, 1, 1));
-    EXPECT_EQ(16, *(float *)buf.Lock3(2, 2, 0));
-    EXPECT_EQ(17, *(float *)buf.Lock3(2, 2, 1));
-    EXPECT_EQ(18, *(float *)buf.Lock3(3, 0, 0));
-    EXPECT_EQ(19, *(float *)buf.Lock3(3, 0, 1));
-    EXPECT_EQ(20, *(float *)buf.Lock3(3, 1, 0));
-    EXPECT_EQ(21, *(float *)buf.Lock3(3, 1, 1));
-    EXPECT_EQ(22, *(float *)buf.Lock3(3, 2, 0));
-    EXPECT_EQ(23, *(float *)buf.Lock3(3, 2, 1));
-
-    // シーケンシャルアクセス確認
-    {
-        int i = 0;
-        buf.ResetPtr();
-        while (!buf.IsEnd()) {
-            EXPECT_EQ((float)i, *(float *)buf.NextPtr());
-            i++;
+    int const src_frame_size = 5;
+    int const src_node_size  = 7;
+    bb::FrameBuffer src_buf(BB_TYPE_FP32, src_frame_size, src_node_size);
+    for ( bb::index_t frame = 0; frame < src_frame_size; ++frame ) {
+        for ( bb::index_t node = 0; node < src_node_size; ++node ) {
+            src_buf.SetFP32(frame, node, (float)(frame*100 + node));
         }
-        EXPECT_EQ(i, 24);
     }
-
-#if BB_NEURALNET_BUFFER_USE_ROI
-    // オフセットのみのROI
-    buf.SetRoi({ 0, 1, 0 });
-    EXPECT_EQ(2, *(float *)buf.Lock3(0, 0, 0));
-    EXPECT_EQ(3, *(float *)buf.Lock3(0, 0, 1));
-    EXPECT_EQ(4, *(float *)buf.Lock3(0, 1, 0));
-    EXPECT_EQ(5, *(float *)buf.Lock3(0, 1, 1));
-    EXPECT_EQ(8, *(float *)buf.Lock3(1, 0, 0));
-    EXPECT_EQ(9, *(float *)buf.Lock3(1, 0, 1));
-    EXPECT_EQ(10, *(float *)buf.Lock3(1, 1, 0));
-    EXPECT_EQ(11, *(float *)buf.Lock3(1, 1, 1));
-    EXPECT_EQ(14, *(float *)buf.Lock3(2, 0, 0));
-    EXPECT_EQ(15, *(float *)buf.Lock3(2, 0, 1));
-    EXPECT_EQ(16, *(float *)buf.Lock3(2, 1, 0));
-    EXPECT_EQ(17, *(float *)buf.Lock3(2, 1, 1));
-    EXPECT_EQ(20, *(float *)buf.Lock3(3, 0, 0));
-    EXPECT_EQ(21, *(float *)buf.Lock3(3, 0, 1));
-    EXPECT_EQ(22, *(float *)buf.Lock3(3, 1, 0));
-    EXPECT_EQ(23, *(float *)buf.Lock3(3, 1, 1));
-
-    buf.ResetPtr();
-    EXPECT_EQ(false, buf.IsEnd());
-    EXPECT_EQ(2, *(float *)buf.NextPtr());
-    EXPECT_EQ(false, buf.IsEnd());
-    EXPECT_EQ(3, *(float *)buf.NextPtr());
-    EXPECT_EQ(4, *(float *)buf.NextPtr());
-    EXPECT_EQ(5, *(float *)buf.NextPtr());
-    EXPECT_EQ(8, *(float *)buf.NextPtr());
-    EXPECT_EQ(9, *(float *)buf.NextPtr());
-    EXPECT_EQ(10, *(float *)buf.NextPtr());
-    EXPECT_EQ(11, *(float *)buf.NextPtr());
-    EXPECT_EQ(14, *(float *)buf.NextPtr());
-    EXPECT_EQ(15, *(float *)buf.NextPtr());
-    EXPECT_EQ(16, *(float *)buf.NextPtr());
-    EXPECT_EQ(17, *(float *)buf.NextPtr());
-    EXPECT_EQ(20, *(float *)buf.NextPtr());
-    EXPECT_EQ(21, *(float *)buf.NextPtr());
-    EXPECT_EQ(22, *(float *)buf.NextPtr());
-    EXPECT_EQ(false, buf.IsEnd());
-    EXPECT_EQ(23, *(float *)buf.NextPtr());
-    EXPECT_EQ(true, buf.IsEnd());
-
-    buf.SetRoi({ 0, 0, 2 });
-    EXPECT_EQ(14, *(float *)buf.Lock3(0, 0, 0));
-    EXPECT_EQ(15, *(float *)buf.Lock3(0, 0, 1));
-    EXPECT_EQ(16, *(float *)buf.Lock3(0, 1, 0));
-    EXPECT_EQ(17, *(float *)buf.Lock3(0, 1, 1));
-    EXPECT_EQ(20, *(float *)buf.Lock3(1, 0, 0));
-    EXPECT_EQ(21, *(float *)buf.Lock3(1, 0, 1));
-    EXPECT_EQ(22, *(float *)buf.Lock3(1, 1, 0));
-    EXPECT_EQ(23, *(float *)buf.Lock3(1, 1, 1));
-
-    EXPECT_EQ(14, *(float *)buf.Lock(0));
-    EXPECT_EQ(15, *(float *)buf.Lock(1));
-    EXPECT_EQ(16, *(float *)buf.Lock(2));
-    EXPECT_EQ(17, *(float *)buf.Lock(3));
-    EXPECT_EQ(20, *(float *)buf.Lock(4));
-    EXPECT_EQ(21, *(float *)buf.Lock(5));
-    EXPECT_EQ(22, *(float *)buf.Lock(6));
-    EXPECT_EQ(23, *(float *)buf.Lock(7));
-
-    buf.ResetPtr();
-    EXPECT_EQ(false, buf.IsEnd());
-    EXPECT_EQ(14, *(float *)buf.NextPtr());
-    EXPECT_EQ(false, buf.IsEnd());
-    EXPECT_EQ(15, *(float *)buf.NextPtr());
-    EXPECT_EQ(16, *(float *)buf.NextPtr());
-    EXPECT_EQ(17, *(float *)buf.NextPtr());
-    EXPECT_EQ(20, *(float *)buf.NextPtr());
-    EXPECT_EQ(21, *(float *)buf.NextPtr());
-    EXPECT_EQ(false, buf.IsEnd());
-    EXPECT_EQ(22, *(float *)buf.NextPtr());
-    EXPECT_EQ(false, buf.IsEnd());
-    EXPECT_EQ(23, *(float *)buf.NextPtr());
-    EXPECT_EQ(true, buf.IsEnd());
-
-
-    // ROI解除
-    buf.ClearRoi();
-#endif
-
-    // シーケンシャルアクセス確認
-    {
-        int i = 0;
-        buf.ResetPtr();
-        while (!buf.IsEnd()) {
-            EXPECT_EQ((float)i, *(float *)buf.NextPtr());
-            i++;
+    
+    bb::FrameBuffer dst0_buf(BB_TYPE_FP32, 6, 5);
+    for ( bb::index_t frame = 0; frame < 6; ++frame ) {
+        for ( bb::index_t node = 0; node < 5; ++node ) {
+            dst0_buf.SetFP32(frame, node, (float)(1000 + frame*100 + node));
         }
-        EXPECT_EQ(i, 24);
     }
 
-#if BB_NEURALNET_BUFFER_USE_ROI
-    // 範囲付きROI
-    buf.SetRoi({ 0, 1, 1 }, { 1, 2, 2 });
+    src_buf.CopyTo(dst0_buf, 2, 2, 1, 2, 3, 2);
 
-    EXPECT_EQ(8, *(float *)buf.Lock(0));    // (1, 1, 0) : 8
-    EXPECT_EQ(10, *(float *)buf.Lock(1));   // (1, 2, 0) : 8
-    EXPECT_EQ(14, *(float *)buf.Lock(2));   // (2, 1, 0) : 14
-    EXPECT_EQ(16, *(float *)buf.Lock(3));   // (2, 2, 0) : 16
+    EXPECT_EQ(1101, dst0_buf.GetFP32(1, 1));
+    EXPECT_EQ( 203, dst0_buf.GetFP32(1, 2));
+    EXPECT_EQ( 204, dst0_buf.GetFP32(1, 3));
+    EXPECT_EQ(1104, dst0_buf.GetFP32(1, 4));
 
-    buf.ResetPtr();
-    EXPECT_EQ(false, buf.IsEnd());
-    EXPECT_EQ(8, *(float *)buf.NextPtr());
-    EXPECT_EQ(false, buf.IsEnd());
-    EXPECT_EQ(10, *(float *)buf.NextPtr());
-    EXPECT_EQ(false, buf.IsEnd());
-    EXPECT_EQ(14, *(float *)buf.NextPtr());
-    EXPECT_EQ(false, buf.IsEnd());
-    EXPECT_EQ(16, *(float *)buf.NextPtr());
-    EXPECT_EQ(true, buf.IsEnd());
-#endif
+    EXPECT_EQ(1201, dst0_buf.GetFP32(2, 1));
+    EXPECT_EQ( 303, dst0_buf.GetFP32(2, 2));
+    EXPECT_EQ( 304, dst0_buf.GetFP32(2, 3));
+    EXPECT_EQ(1204, dst0_buf.GetFP32(2, 4));
+
+    EXPECT_EQ(1002, dst0_buf.GetFP32(0, 2));
+    EXPECT_EQ( 203, dst0_buf.GetFP32(1, 2));
+    EXPECT_EQ( 303, dst0_buf.GetFP32(2, 2));
+    EXPECT_EQ(1302, dst0_buf.GetFP32(3, 2));
+
+    EXPECT_EQ(1003, dst0_buf.GetFP32(0, 3));
+    EXPECT_EQ( 204, dst0_buf.GetFP32(1, 3));
+    EXPECT_EQ( 304, dst0_buf.GetFP32(2, 3));
+    EXPECT_EQ(1303, dst0_buf.GetFP32(3, 3));
 }
 
 
-#if BB_NEURALNET_BUFFER_USE_ROI
-
-TEST(NeuralNetBufferTest, testNeuralNetBufferTest2)
+TEST(FrameBufferTest, FrameBuffer_CopyTo_bit)
 {
-    bb::NeuralNetBuffer<> base_buf(2, 2 * 3 * 4, BB_TYPE_REAL32);
-    
-    // 入力データ作成
-    for (size_t node = 0; node < 24; node++) {
-        base_buf.SetReal(0, node, (float)node);
-        base_buf.SetReal(1, node, (float)node + 1000);
-    }
-    
-    auto buf = base_buf;
-    buf.SetDimensions({ 4, 3, 2 });
-    
-    //  0  1  2  3
-    //  4  5  6  7
-    //  8  9 10 11
-    //
-    // 12 13 14 15
-    // 16 17 18 19
-    // 20 21 22 23
+    int const src_frame_size = 32*7;
+    int const src_node_size  = 7;
 
-    
-    buf.SetRoi({ 0, 0, 0 }, { 2, 2, 2 });
-
-    EXPECT_EQ(0, ((float*)buf.Lock(0))[0]);
-    EXPECT_EQ(1, ((float*)buf.Lock(1))[0]);
-    EXPECT_EQ(4, ((float*)buf.Lock(2))[0]);
-    EXPECT_EQ(5, ((float*)buf.Lock(3))[0]);
-    EXPECT_EQ(12, ((float*)buf.Lock(4))[0]);
-    EXPECT_EQ(13, ((float*)buf.Lock(5))[0]);
-    EXPECT_EQ(16, ((float*)buf.Lock(6))[0]);
-    EXPECT_EQ(17, ((float*)buf.Lock(7))[0]);
-
-    EXPECT_EQ(0, buf.GetReal(0, 0));
-    EXPECT_EQ(1, buf.GetReal(0, 1));
-    EXPECT_EQ(4, buf.GetReal(0, 2));
-    EXPECT_EQ(5, buf.GetReal(0, 3));
-    EXPECT_EQ(12, buf.GetReal(0, 4));
-    EXPECT_EQ(13, buf.GetReal(0, 5));
-    EXPECT_EQ(16, buf.GetReal(0, 6));
-    EXPECT_EQ(17, buf.GetReal(0, 7));
-
-    EXPECT_EQ(0+1000, buf.GetReal(1, 0));
-    EXPECT_EQ(1+1000, buf.GetReal(1, 1));
-    EXPECT_EQ(4+1000, buf.GetReal(1, 2));
-    EXPECT_EQ(5+1000, buf.GetReal(1, 3));
-    EXPECT_EQ(12+1000, buf.GetReal(1, 4));
-    EXPECT_EQ(13+1000, buf.GetReal(1, 5));
-    EXPECT_EQ(16+1000, buf.GetReal(1, 6));
-    EXPECT_EQ(17+1000, buf.GetReal(1, 7));
-
-    buf.ClearRoi();
-    buf.SetRoi({ 1, 0, 0 }, { 2, 2, 2 });
-    EXPECT_EQ(1, buf.GetReal(0, 0));
-    EXPECT_EQ(2, buf.GetReal(0, 1));
-    EXPECT_EQ(5, buf.GetReal(0, 2));
-    EXPECT_EQ(6, buf.GetReal(0, 3));
-    EXPECT_EQ(13, buf.GetReal(0, 4));
-    EXPECT_EQ(14, buf.GetReal(0, 5));
-    EXPECT_EQ(17, buf.GetReal(0, 6));
-    EXPECT_EQ(18, buf.GetReal(0, 7));
-
-    buf.ClearRoi();
-    buf.SetRoi({ 1, 1, 0 }, { 2, 2, 2 });
-    EXPECT_EQ(5, buf.GetReal(0, 0));
-    EXPECT_EQ(6, buf.GetReal(0, 1));
-    EXPECT_EQ(9, buf.GetReal(0, 2));
-    EXPECT_EQ(10, buf.GetReal(0, 3));
-    EXPECT_EQ(17, buf.GetReal(0, 4));
-    EXPECT_EQ(18, buf.GetReal(0, 5));
-    EXPECT_EQ(21, buf.GetReal(0, 6));
-    EXPECT_EQ(22, buf.GetReal(0, 7));
-
-    buf.ClearRoi();
-    buf.SetRoi({ 1, 1, 1 }, { 2, 2, 1 });
-    EXPECT_EQ(17, buf.GetReal(0, 0));
-    EXPECT_EQ(18, buf.GetReal(0, 1));
-    EXPECT_EQ(21, buf.GetReal(0, 2));
-    EXPECT_EQ(22, buf.GetReal(0, 3));
-
-
-}
-
-
-TEST(NeuralNetBufferTest, testNeuralNetBufferTest3)
-{
-    size_t input_c_size = 1;
-    size_t input_h_size = 15;
-    size_t input_w_size = 14;
-    size_t output_c_size = 1;
-    size_t output_h_size = 9;
-    size_t output_w_size = 8;
-    size_t y_step = 1;
-    size_t x_step = 1;
-    size_t filter_h_size = 5;
-    size_t filter_w_size = 5;
-
-    size_t input_node_size = input_c_size * input_h_size * input_w_size;
-    size_t output_node_size = output_c_size * output_h_size * output_w_size;
-
-    bb::NeuralNetBuffer<> in_buf(1, input_node_size, BB_TYPE_BINARY);
-    bb::NeuralNetBuffer<> out_buf(1, output_node_size, BB_TYPE_BINARY);
-
-    // 入力データ作成
     std::mt19937_64 mt(1);
-    for (size_t node = 0; node < input_node_size; node++) {
-        in_buf.SetBinary(0, node, mt() % 2 != 0);
-    }
 
-    auto in_val = in_buf;
-    auto out_val = out_buf;
-    in_val.SetDimensions({ input_w_size, input_h_size, input_c_size });
-    out_val.SetDimensions({ output_w_size, output_h_size, output_c_size });
-
-    size_t in_y = 0;
-    for (size_t out_y = 0; out_y < output_h_size; out_y++) {
-        size_t in_x = 0;
-        for (size_t out_x = 0; out_x < output_w_size; out_x++) {
-            in_val.ClearRoi();
-            in_val.SetRoi({ in_x, in_y, 0}, { filter_w_size , filter_h_size , input_c_size });
-            out_val.ClearRoi();
-            out_val.SetRoi({ out_x, out_y, 0}, { 1, 1, output_c_size });
-
-            out_val.SetBinary(0, 0, in_val.GetBinary(0, 0));
-            in_x += x_step;
-        }
-        in_y += y_step;
-    }
-
-    for (size_t y = 0; y < output_h_size; y++) {
-        for (size_t x = 0; x < output_w_size; x++) {
-            EXPECT_EQ(in_buf.GetBinary(0, y*input_w_size+x), out_buf.GetBinary(0, y*output_w_size + x));
+    bb::Bit src_tbl[src_frame_size][src_node_size];
+    bb::FrameBuffer src_buf(BB_TYPE_FP32, src_frame_size, src_node_size);
+    for ( bb::index_t frame = 0; frame < src_frame_size; ++frame ) {
+        for ( bb::index_t node = 0; node < src_node_size; ++node ) {
+            src_tbl[frame][node] = mt() % 2;
+            src_buf.SetBit(frame, node, src_tbl[frame][node]);
         }
     }
+    
+    int const dst_frame_size = 32*14;
+    int const dst_node_size  = 8;
+
+    bb::Bit dst_tbl[dst_frame_size][dst_node_size];
+    bb::FrameBuffer dst0_buf(BB_TYPE_FP32, dst_frame_size, dst_node_size);
+    for ( bb::index_t frame = 0; frame < dst_frame_size; ++frame ) {
+        for ( bb::index_t node = 0; node < dst_node_size; ++node ) {
+            dst_tbl[frame][node] = mt() % 2;
+            dst0_buf.SetBit(frame, node, dst_tbl[frame][node]);
+        }
+    }
+
+    src_buf.CopyTo
+        (
+            dst0_buf,
+            32*3, 32*2, 32,
+            2,       3,  2
+        );
+
+    EXPECT_EQ(dst_tbl[32*1][0], dst0_buf.GetBit(32, 0));
+    EXPECT_EQ(dst_tbl[32*1][1], dst0_buf.GetBit(32, 1));
+    EXPECT_EQ(src_tbl[32*2][3], dst0_buf.GetBit(32, 2));
+    EXPECT_EQ(src_tbl[32*2][4], dst0_buf.GetBit(32, 3));
+    EXPECT_EQ(dst_tbl[32*1][4], dst0_buf.GetBit(32, 4));
+    EXPECT_EQ(dst_tbl[32*1][5], dst0_buf.GetBit(32, 5));
+    EXPECT_EQ(dst_tbl[32*1][6], dst0_buf.GetBit(32, 6));
+    EXPECT_EQ(dst_tbl[32*1][7], dst0_buf.GetBit(32, 7));
+
+    EXPECT_EQ(dst_tbl[32*1+31][0], dst0_buf.GetBit(32+31, 0));
+    EXPECT_EQ(dst_tbl[32*1+31][1], dst0_buf.GetBit(32+31, 1));
+    EXPECT_EQ(src_tbl[32*2+31][3], dst0_buf.GetBit(32+31, 2));
+    EXPECT_EQ(src_tbl[32*2+31][4], dst0_buf.GetBit(32+31, 3));
+    EXPECT_EQ(dst_tbl[32*1+31][4], dst0_buf.GetBit(32+31, 4));
+    EXPECT_EQ(dst_tbl[32*1+31][5], dst0_buf.GetBit(32+31, 5));
+    EXPECT_EQ(dst_tbl[32*1+31][6], dst0_buf.GetBit(32+31, 6));
+    EXPECT_EQ(dst_tbl[32*1+31][7], dst0_buf.GetBit(32+31, 7));
+
+    EXPECT_EQ(dst_tbl[32*1 -4][2], dst0_buf.GetBit(32 -4, 2));
+    EXPECT_EQ(dst_tbl[32*1 -3][2], dst0_buf.GetBit(32 -3, 2));
+    EXPECT_EQ(dst_tbl[32*1 -2][2], dst0_buf.GetBit(32 -2, 2));
+    EXPECT_EQ(dst_tbl[32*1 -1][2], dst0_buf.GetBit(32 -1, 2));
+    EXPECT_EQ(src_tbl[32*2 +0][3], dst0_buf.GetBit(32 +0, 2));
+    EXPECT_EQ(src_tbl[32*2 +1][3], dst0_buf.GetBit(32 +1, 2));
+    EXPECT_EQ(src_tbl[32*2 +2][3], dst0_buf.GetBit(32 +2, 2));
+    EXPECT_EQ(src_tbl[32*2 +3][3], dst0_buf.GetBit(32 +3, 2));
+    EXPECT_EQ(src_tbl[32*2 +4][3], dst0_buf.GetBit(32 +4, 2));
+    EXPECT_EQ(src_tbl[32*2 +5][3], dst0_buf.GetBit(32 +5, 2));
+    EXPECT_EQ(src_tbl[32*2 +6][3], dst0_buf.GetBit(32 +6, 2));
+    EXPECT_EQ(src_tbl[32*2+90][3], dst0_buf.GetBit(32+90, 2));
+    EXPECT_EQ(src_tbl[32*2+91][3], dst0_buf.GetBit(32+91, 2));
+    EXPECT_EQ(src_tbl[32*2+92][3], dst0_buf.GetBit(32+92, 2));
+    EXPECT_EQ(src_tbl[32*2+93][3], dst0_buf.GetBit(32+93, 2));
+    EXPECT_EQ(src_tbl[32*2+94][3], dst0_buf.GetBit(32+94, 2));
+    EXPECT_EQ(src_tbl[32*2+95][3], dst0_buf.GetBit(32+95, 2));
+    EXPECT_EQ(dst_tbl[32*1+96][2], dst0_buf.GetBit(32+96, 2));
+    EXPECT_EQ(dst_tbl[32*1+97][2], dst0_buf.GetBit(32+97, 2));
+    EXPECT_EQ(dst_tbl[32*1+98][2], dst0_buf.GetBit(32+98, 2));
+    EXPECT_EQ(dst_tbl[32*1+99][2], dst0_buf.GetBit(32+99, 2));
+
+    EXPECT_EQ(dst_tbl[32*1 -4][3], dst0_buf.GetBit(32 -4, 3));
+    EXPECT_EQ(dst_tbl[32*1 -3][3], dst0_buf.GetBit(32 -3, 3));
+    EXPECT_EQ(dst_tbl[32*1 -2][3], dst0_buf.GetBit(32 -2, 3));
+    EXPECT_EQ(dst_tbl[32*1 -1][3], dst0_buf.GetBit(32 -1, 3));
+    EXPECT_EQ(src_tbl[32*2 +0][4], dst0_buf.GetBit(32 +0, 3));
+    EXPECT_EQ(src_tbl[32*2 +1][4], dst0_buf.GetBit(32 +1, 3));
+    EXPECT_EQ(src_tbl[32*2 +2][4], dst0_buf.GetBit(32 +2, 3));
+    EXPECT_EQ(src_tbl[32*2 +3][4], dst0_buf.GetBit(32 +3, 3));
+    EXPECT_EQ(src_tbl[32*2 +4][4], dst0_buf.GetBit(32 +4, 3));
+    EXPECT_EQ(src_tbl[32*2 +5][4], dst0_buf.GetBit(32 +5, 3));
+    EXPECT_EQ(src_tbl[32*2 +6][4], dst0_buf.GetBit(32 +6, 3));
+    EXPECT_EQ(src_tbl[32*2+90][4], dst0_buf.GetBit(32+90, 3));
+    EXPECT_EQ(src_tbl[32*2+91][4], dst0_buf.GetBit(32+91, 3));
+    EXPECT_EQ(src_tbl[32*2+92][4], dst0_buf.GetBit(32+92, 3));
+    EXPECT_EQ(src_tbl[32*2+93][4], dst0_buf.GetBit(32+93, 3));
+    EXPECT_EQ(src_tbl[32*2+94][4], dst0_buf.GetBit(32+94, 3));
+    EXPECT_EQ(src_tbl[32*2+95][4], dst0_buf.GetBit(32+95, 3));
+    EXPECT_EQ(dst_tbl[32*1+96][3], dst0_buf.GetBit(32+96, 3));
+    EXPECT_EQ(dst_tbl[32*1+97][3], dst0_buf.GetBit(32+97, 3));
+    EXPECT_EQ(dst_tbl[32*1+98][3], dst0_buf.GetBit(32+98, 3));
+    EXPECT_EQ(dst_tbl[32*1+99][3], dst0_buf.GetBit(32+99, 3));
 }
-
-#endif
-
-#endif
-

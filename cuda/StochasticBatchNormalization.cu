@@ -288,7 +288,8 @@ __global__ void kernal_fp32_StochasticBatchNormalization_Backward
             float       gamma,
             float       reciprocal_frame_size,
             int         frame_size,
-            int         frame_stride
+            int         frame_stride,
+            int         x_frame_stride
         )
 {
     __shared__   float  buf[BBCU_BATCHNORM_BW_BLOCK_SIZE];
@@ -306,7 +307,7 @@ __global__ void kernal_fp32_StochasticBatchNormalization_Backward
     
     float rstd2 = rstd * rstd;
 
-    float const * const x_ptr  = &x_buf[node * frame_stride];
+    float const * const x_ptr  = &x_buf[node * x_frame_stride];
     float const * const dy_ptr = &dy_buf[node * frame_stride];
 
     for ( int frame = id; frame < frame_size; frame += id_step) {
@@ -352,6 +353,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_StochasticBatchNormalization_Backward
             int             node_size,
             int             frame_size,
             int             frame_stride,
+            int             x_frame_stride,
             cudaStream_t    streamId
         )
 {
@@ -370,7 +372,8 @@ BBCU_DLL_EXPORT int bbcu_fp32_StochasticBatchNormalization_Backward
             gamma,
             reciprocal_frame_size,
             frame_size,
-            frame_stride
+            frame_stride,
+            x_frame_stride
         );
     BB_CUDA_CHECK_LAST_ERROR();
 

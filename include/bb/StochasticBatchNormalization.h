@@ -593,7 +593,8 @@ public:
                     (float        )1.0f / (float)dy_buf.GetFrameSize(),
                     (int          )dy_buf.GetNodeSize(),
                     (int          )dy_buf.GetFrameSize(),
-                    (int          )dy_buf.GetFrameStride() / sizeof(float)
+                    (int          )dy_buf.GetFrameStride() / sizeof(float),
+                    (int          )x_buf.GetFrameStride() / sizeof(float)
                 );
 
             return dx_buf;
