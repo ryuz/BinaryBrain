@@ -42,7 +42,7 @@ protected:
     std::shared_ptr<Tensor> m_W;
     std::shared_ptr<Tensor> m_dW;
 
-    RealType                m_momentum = (RealType)0.01;
+    RealType                m_momentum = (RealType)0.0;
 
     RealType                m_gamma;
     RealType                m_beta;
@@ -61,7 +61,7 @@ public:
     {
         indices_t       output_shape;               //< 出力形状
         std::string     connection;                 //< 結線ルール
-        RealType        momentum  = (RealType)0.01;
+        RealType        momentum  = (RealType)0.0;
         RealType        gamma     = (RealType)0.2;
         RealType        beta      = (RealType)0.5;
         std::uint64_t   seed      = 1;              //< 乱数シード

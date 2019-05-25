@@ -130,8 +130,6 @@ inline void Memcpy(void *dst, const void *src, size_t count, enum cudaMemcpyKind
 }
 
 
-
-
 inline void PrintDeviceProperties(void)
 {
     int dev_count = GetDeviceCount();

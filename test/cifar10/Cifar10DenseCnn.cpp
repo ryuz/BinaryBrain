@@ -279,6 +279,7 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
 #endif
 
 
+#if 0
 
 void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
 {
@@ -441,7 +442,7 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
     runner->Fitting(td, epoch_size, mini_batch_size);
 }
 
-
+#endif
 
 
 
@@ -449,11 +450,11 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int 
 
 
 
-#if 0
+#if 1
+
 
 // Dense CNN
-void Cifar10DenseCnnX(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, bool binary_mode, bool file_read,
-            bool gen_rand, bool framewise, bool log_append = true)
+void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, bool binary_mode, bool file_read)
 {
     std::string net_name = "Cifar10DenseCnn";
 
@@ -465,48 +466,52 @@ void Cifar10DenseCnnX(int epoch_size, int mini_batch_size, int max_run_size, int
     auto td = bb::LoadCifar10<>::Load();
 #endif
 
+    // BatchNorm momentum
     float bn_momentum = 0.9f;
     if (binary_mode) {
         bn_momentum = 0.1f;
     }
     
     // create network
+    auto main_net = bb::Sequential::Create();
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::ReLU<>::Create());
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::ReLU<>::Create());
+    main_net->Add(bb::MaxPooling<>::Create(2, 2));
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(128), 3, 3));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::ReLU<>::Create());
+    main_net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(128), 3, 3));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::ReLU<>::Create());
+    main_net->Add(bb::MaxPooling<>::Create(2, 2));
+    main_net->Add(bb::DenseAffine<>::Create(512));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::ReLU<>::Create());
+    main_net->Add(bb::DenseAffine<>::Create(10));
+    if ( binary_mode ) {
+        main_net->Add(bb::BatchNormalization<>::Create());
+        main_net->Add(bb::Binarize<>::Create());
+    }
+
     auto net = bb::Sequential::Create();
     if ( binary_mode ) {
-        if ( gen_rand ) {
-            net->Add(bb::RealToBinary<>::Create(frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1), framewise));
-        }
-        else {
-            net->Add(bb::RealToBinary<>::Create(frame_mux_size));
-        }
-    }
-    net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3));
-    net->Add(bb::BatchNormalization<>::Create(bn_momentum));
-    net->Add(bb::ReLU<>::Create());
-    net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(64), 3, 3));
-    net->Add(bb::BatchNormalization<>::Create(bn_momentum));
-    net->Add(bb::ReLU<>::Create());
-    net->Add(bb::MaxPooling<>::Create(2, 2));
-    net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(128), 3, 3));
-    net->Add(bb::BatchNormalization<>::Create(bn_momentum));
-    net->Add(bb::ReLU<>::Create());
-    net->Add(bb::LoweringConvolution<>::Create(bb::DenseAffine<>::Create(128), 3, 3));
-    net->Add(bb::BatchNormalization<>::Create(bn_momentum));
-    net->Add(bb::ReLU<>::Create());
-    net->Add(bb::MaxPooling<>::Create(2, 2));
-    net->Add(bb::DenseAffine<>::Create(1024));
-    net->Add(bb::BatchNormalization<>::Create(bn_momentum));
-    net->Add(bb::ReLU<>::Create());
-    net->Add(bb::DenseAffine<>::Create(310));
-    if ( binary_mode ) {
-    net->Add(bb::BatchNormalization<>::Create());
-        net->Add(bb::Binarize<>::Create());
-        net->Add(bb::Reduce<>::Create(td.t_shape));
-        net->Add(bb::BinaryToReal<>::Create(td.t_shape, frame_mux_size));
+        bb::BinaryModulation<float, float>::create_t mod_create;
+        mod_create.layer                     = main_net;
+        mod_create.output_shape              = td.t_shape;
+        mod_create.training_modulation_size  = frame_mux_size;
+        mod_create.training_value_generator  = nullptr;
+        mod_create.inference_modulation_size = frame_mux_size;
+        mod_create.inference_value_generator = nullptr;
+        net->Add(bb::BinaryModulation<float, float>::Create(mod_create));
     }
     else {
-        net->Add(bb::Reduce<>::Create(td.t_shape));
+        net->Add(main_net);
     }
+
     net->SetInputShape(td.x_shape);
 
     if ( binary_mode ) {
@@ -518,19 +523,15 @@ void Cifar10DenseCnnX(int epoch_size, int mini_batch_size, int max_run_size, int
         net->SendCommand("binary false");
     }
 
-    // print model information
-//  net->PrintInfo();
+    net->PrintInfo();
 
     std::cout << "-----------------------------------" << std::endl;
     std::cout << "file_read          : " << file_read          << std::endl;
-    std::cout << "log_append         : " << log_append         << std::endl;
     std::cout << "epoch_size         : " << epoch_size         << std::endl;
     std::cout << "mini_batch_size    : " << mini_batch_size    << std::endl;
     std::cout << "max_run_size       : " << max_run_size       << std::endl;
     std::cout << "frame_mux_size     : " << frame_mux_size     << std::endl;
     std::cout << "binary_mode        : " << binary_mode        << std::endl;
-    std::cout << "gen_rand           : " << gen_rand           << std::endl;
-    std::cout << "framewise          : " << framewise          << std::endl;
 
     // run fitting
     bb::Runner<float>::create_t runner_create;
@@ -540,7 +541,7 @@ void Cifar10DenseCnnX(int epoch_size, int mini_batch_size, int max_run_size, int
     runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<>::Create();
     runner_create.optimizer          = bb::OptimizerAdam<>::Create();
     runner_create.max_run_size       = max_run_size;    // 実際の1回の実行サイズ
-    runner_create.log_append         = log_append;
+    runner_create.log_append         = true;
     runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
     runner_create.file_write         = true;            // 計算結果をファイルに保存するか
     runner_create.print_progress     = true;            // 途中結果を表示
@@ -548,6 +549,19 @@ void Cifar10DenseCnnX(int epoch_size, int mini_batch_size, int max_run_size, int
     auto runner = bb::Runner<float>::Create(runner_create);
     runner->Fitting(td, epoch_size, mini_batch_size);
 }
+
+
+void Cifar10DenseCnnTest(int epoch_size, int mini_batch_size, int max_run_size)
+{
+    Cifar10DenseCnn(epoch_size, mini_batch_size, max_run_size, 1,  false, false);
+    Cifar10DenseCnn(epoch_size, mini_batch_size, max_run_size, 1,  true,  false);
+    Cifar10DenseCnn(epoch_size, mini_batch_size, max_run_size, 3,  true,  false);
+    Cifar10DenseCnn(epoch_size, mini_batch_size, max_run_size, 7,  true,  false);
+    Cifar10DenseCnn(epoch_size, mini_batch_size, max_run_size, 15, true,  false);
+    Cifar10DenseCnn(epoch_size, mini_batch_size, max_run_size, 31, true,  false);
+}
+
+
 
 #else
 
