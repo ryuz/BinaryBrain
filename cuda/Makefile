@@ -7,6 +7,7 @@ CFLAGS = -I ../include -gencode=arch=compute_35,code=sm_35 -gencode=arch=compute
 
 SRCS += Manager.cu
 SRCS += LocalHeap.cu
+SRCS += FrameBufferCopy.cu
 SRCS += Vector.cu
 SRCS += MatrixColwiseSum.cu
 SRCS += MatrixColwiseMeanVar.cu
@@ -14,6 +15,7 @@ SRCS += MatrixRowwiseSetVector.cu
 SRCS += MicroMlp.cu
 SRCS += BinaryLut6.cu
 SRCS += StochasticLut6.cu
+SRCS += SparseBinaryLut6.cu
 SRCS += StochasticMaxPooling.cu
 SRCS += StochasticBatchNormalization.cu
 SRCS += ShuffleModulation.cu
