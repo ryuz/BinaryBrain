@@ -291,7 +291,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_ForwardInference
     unsigned int const MAX_FRAME_UNIT = 1024;
     unsigned int const MAX_NODE_UNIT  = 1024;
 
-#if 0
+#if 1
     dim3    block(MAX_FRAME_UNIT, THREAD_SIZE / MAX_FRAME_UNIT);
     while ( (int)block.x / 2 >= frame_size ) { block.x /= 2; block.y *= 2; }
     while ( (int)block.y / 2 >= node_size  ) { block.y /= 2; }
