@@ -158,7 +158,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_ForwardTraining
 
 
 //////////////////////////////
-// Forward Inference
+// ReForward
 //////////////////////////////
 
 __global__ void kernal_fp32_BatchNormalization_ReForward(
@@ -287,11 +287,11 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_ForwardInference
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
-    unsigned int const THREAD_SIZE    = 512;
-    unsigned int const MAX_FRAME_UNIT = 512;
-    unsigned int const MAX_NODE_UNIT  = 512;
+    unsigned int const THREAD_SIZE    = 1024;
+    unsigned int const MAX_FRAME_UNIT = 1024;
+    unsigned int const MAX_NODE_UNIT  = 1024;
 
-#if 1
+#if 0
     dim3    block(MAX_FRAME_UNIT, THREAD_SIZE / MAX_FRAME_UNIT);
     while ( (int)block.x / 2 >= frame_size ) { block.x /= 2; block.y *= 2; }
     while ( (int)block.y / 2 >= node_size  ) { block.y /= 2; }

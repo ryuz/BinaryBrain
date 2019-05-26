@@ -404,6 +404,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_Backward
             float const     *dev_mean_buf,
             float const     *dev_rstd_buf,
             float           gamma,
+            float           beta,
             int             input_node_size,
             int             output_node_size,
             int             frame_size,
@@ -618,6 +619,20 @@ BBCU_DLL_EXPORT int bbcu_fp32_StochasticBatchNormalization_ForwardTraining
             float           gamma,
             float           beta,
             float           momentum,
+            int             node_size,  
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId = 0
+        );
+
+BBCU_DLL_EXPORT int bbcu_fp32_StochasticBatchNormalization_ReForward
+        (
+            float const     *dev_x_buf,
+            float           *dev_y_buf,
+            float const     *dev_mean_buf,
+            float const     *dev_rstd_buf,
+            float           gamma,
+            float           beta,
             int             node_size,  
             int             frame_size,
             int             frame_stride,

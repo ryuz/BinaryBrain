@@ -135,7 +135,6 @@ __global__ void kernal_fp32_StochasticBatchNormalization_ForwardTraining(
         float x = x_ptr[frame];
         x = (x - mean) * rstd;
         x = x * gamma + beta;
-
         y_ptr[frame] = x;
 //      printf("[StochasticBatchNormalization] frame=%d node=%d y=%f\n", frame, node, x);
     }
@@ -182,6 +181,79 @@ BBCU_DLL_EXPORT int bbcu_fp32_StochasticBatchNormalization_ForwardTraining
 
     return 0;
 }
+
+
+
+//////////////////////////////
+// ReForward
+//////////////////////////////
+
+__global__ void kernal_fp32_StochasticBatchNormalization_ReForward(
+            const float     *x_buf,
+            float           *y_buf,
+            float const     *mean_buf,
+            float const     *rstd_buf,
+            float           gamma,
+            float           beta,
+            int             frame_size,
+            int             frame_stride
+        )
+{
+    // èâä˙âª
+    int const node    = blockIdx.x;
+    int const id      = threadIdx.x;
+    int const id_step = blockDim.x;
+
+    float mean  = mean_buf[node];
+    float rstd  = rstd_buf[node];
+
+    float const *x_ptr = &x_buf[frame_stride * node];
+    float       *y_ptr = &y_buf[frame_stride * node];
+
+    for ( int frame = id; frame < frame_size; frame += id_step) {
+        float x = x_ptr[frame];
+        x = (x - mean) * rstd;
+        x = x * gamma + beta;
+        y_ptr[frame] = x;
+    }
+}
+
+
+BBCU_DLL_EXPORT int bbcu_fp32_StochasticBatchNormalization_ReForward
+        (
+            float const     *dev_x_buf,
+            float           *dev_y_buf,
+            float const     *dev_mean_buf,
+            float const     *dev_rstd_buf,
+            float           gamma,
+            float           beta,
+            int             node_size,  
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId
+        )
+{
+    BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
+
+    dim3    grid(node_size);
+    dim3    block(BBCU_BATCHNORM_FW_BLOCK_SIZE);
+
+    kernal_fp32_StochasticBatchNormalization_ReForward<<<grid, block, 0, streamId>>>
+        (
+            dev_x_buf,
+            dev_y_buf,
+            dev_mean_buf,
+            dev_rstd_buf,
+            gamma,
+            beta,
+            frame_size,
+            frame_stride
+        );
+    BB_CUDA_CHECK_LAST_ERROR();
+
+    return 0;
+}
+
 
 
 //////////////////////////////
@@ -311,7 +383,7 @@ __global__ void kernal_fp32_StochasticBatchNormalization_Backward
 //      float xn = xc * rstd;
 
         float dxn = gamma * dy;
-        dstd += -(dxn * xc * rstd2);
+        dstd   += -(dxn * xc * rstd2);
         dmeanx += -(dxn * rstd);
 
 //      printf("[StochasticBatchNormalization bw] frame=%d node=%d x=%f dy=%f\n", frame, node, x, dy);

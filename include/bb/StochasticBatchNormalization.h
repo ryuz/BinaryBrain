@@ -558,6 +558,70 @@ public:
  
     }
 
+// forward 再計算
+    FrameBuffer ReForward(FrameBuffer x_buf)
+    {
+        // 出力設定
+        FrameBuffer y_buf(x_buf.GetType(), x_buf.GetFrameSize(), x_buf.GetShape());
+
+        // backwardの為に保存
+        m_x_buf = x_buf;
+
+        
+#ifdef BB_WITH_CUDA
+        if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            // CUDA版
+            auto x_ptr     = x_buf.LockDeviceMemoryConst();
+            auto y_ptr     = y_buf.LockDeviceMemory(true);
+            auto mean_ptr  = m_mean.LockDeviceMemoryConst();
+            auto rstd_ptr  = m_rstd.LockDeviceMemoryConst();
+
+            bbcu_fp32_StochasticBatchNormalization_ReForward
+                (
+                    (float const *)x_ptr.GetAddr(),
+                    (float       *)y_ptr.GetAddr(),
+                    (float       *)mean_ptr.GetAddr(),
+                    (float       *)rstd_ptr.GetAddr(),
+                    (float        )m_gamma,
+                    (float        )m_beta,
+                    (int          )x_buf.GetNodeSize(),
+                    (int          )x_buf.GetFrameSize(),
+                    (int          )x_buf.GetFrameStride() / sizeof(float)
+                );
+            return y_buf;
+        }
+#endif
+
+        {
+            // 汎用版
+            auto node_size        = x_buf.GetNodeSize();
+            auto frame_size       = x_buf.GetFrameSize();
+
+            auto x_ptr            = x_buf.LockConst<T>();
+            auto y_ptr            = y_buf.Lock<T>();
+
+            auto mean_ptr         = m_mean.Lock();
+            auto rstd_ptr         = m_rstd.Lock();        
+
+            #pragma omp parallel for
+            for (index_t node = 0; node < node_size; ++node) {
+                // 集計
+                T mean = mean_ptr[node];
+                T rstd = rstd_ptr[node];
+
+                // 正規化
+                for ( index_t frame = 0; frame < frame_size; ++frame) {
+                    T x = x_ptr.Get(frame, node);
+                    x = (x - mean) * rstd;
+                    x = x * m_gamma + m_beta;
+                    y_ptr.Set(frame, node, x);
+                }
+            }
+
+            return y_buf;
+        }
+    }
+
 
     /**
      * @brief  backward演算

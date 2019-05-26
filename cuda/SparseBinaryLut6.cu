@@ -772,6 +772,7 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_Backward
             float const     *mean_buf,
             float const     *rstd_buf,
             float           gamma,
+            float           beta,
             float           reciprocal_frame_size,
             int             node_size,
             int             frame_size,
@@ -840,15 +841,20 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_Backward
                 x_vec[i] = (x_ptr[i][unit] & bit) ? 0.7 : 0.3;
             }
             float x = device_fp32_SparseBinaryLut6_NodeForward<MAX_NODE_UNIT>(node_id, x_vec, W);
+            float tanh_x = ((x - mean) * rstd) * gamma + beta;
+            
+            // hard-tanh
             float dy = dy_ptr[frame];
+            if (tanh_x <= 0.0) { dy = 0.0; }
+            if (tanh_x >= 1.0) { dy = 0.0; }
 
             // BatchNorm
             float xc = x - mean;
     //      float xn = xc * rstd;
+            float dxn = gamma * dy;
 
     //      printf("[SparseBinaryLut6 bw] frame=%d node=%d x=%f dy=%f\n", frame, node, x, dy);
 
-            float dxn = gamma * dy;
             dstd   += -(dxn * xc * rstd2);
             dmeanx += -(dxn * rstd);
         }
@@ -871,8 +877,13 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_Backward
                 x_vec[i] = (x_ptr[i][unit] & bit) ? 0.7 : 0.3;
             }
             float x = device_fp32_SparseBinaryLut6_NodeForward<MAX_NODE_UNIT>(node_id, x_vec, W);
+            float tanh_x = ((x - mean) * rstd) * gamma + beta;
 
+            // hard-tanh
             float dy = dy_ptr[frame];
+            if (tanh_x <= 0.0) { dy = 0.0; }
+            if (tanh_x >= 1.0) { dy = 0.0; }
+
             float dxn = dy * gamma;
             float dxc = dxn * rstd;
             float dx  = dxc + dmean + (x * dvar * reciprocal_frame_size);
@@ -934,6 +945,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_Backward(
             float const     *dev_mean_buf,
             float const     *dev_rstd_buf,
             float           gamma,
+            float           beta,
             int             input_node_size,
             int             output_node_size,
             int             frame_size,
@@ -974,6 +986,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_Backward(
                 dev_mean_buf,
                 dev_rstd_buf,
                 gamma,
+                beta,
                 1.0f / frame_size,
                 output_node_size,
                 frame_size,

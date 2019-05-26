@@ -29,7 +29,7 @@ class SparseLutN : public SparseLayer
     using _super = SparseLayer;
 
 protected:
-    bool                                                            m_memory_saving = true;
+    bool                                                            m_memory_saving = false;
 
     // 2層で構成
     std::shared_ptr< StochasticLutN<N, BinType, RealType> >         m_lut;
@@ -252,7 +252,7 @@ public:
             m_activation->SetFrameBufferX(x_buf);
         }
 
-//      dy_buf = m_activation->Backward(dy_buf);
+        dy_buf = m_activation->Backward(dy_buf);
         dy_buf = m_batch_norm->Backward(dy_buf);
         dy_buf = m_lut       ->Backward(dy_buf);
         return dy_buf; 

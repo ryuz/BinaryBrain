@@ -542,6 +542,7 @@ public:
                     (float const *)mean_ptr.GetAddr(),
                     (float const *)rstd_ptr.GetAddr(),
                     (float        )m_gamma,
+                    (float        )m_beta,
                     (int          )dx_buf.GetNodeSize(),
                     (int          )dy_buf.GetNodeSize(),
                     (int          )dy_buf.GetFrameSize(),
