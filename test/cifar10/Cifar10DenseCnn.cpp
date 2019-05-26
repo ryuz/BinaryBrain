@@ -300,7 +300,7 @@ void Cifar10DenseCnnTest(int epoch_size, int mini_batch_size, int max_run_size)
 //  Cifar10DenseCnn(epoch_size, mini_batch_size, max_run_size, 1,  true,  false);
 //  Cifar10DenseCnn(epoch_size, mini_batch_size, max_run_size, 3,  true,  false);
 //  Cifar10DenseCnn(epoch_size, mini_batch_size, max_run_size, 7,  true,  false);
-    Cifar10DenseCnn(epoch_size, mini_batch_size, max_run_size, 15, true,  false);
+//  Cifar10DenseCnn(epoch_size, mini_batch_size, max_run_size, 15, true,  false);
     Cifar10DenseCnn(epoch_size, mini_batch_size, max_run_size, 31, true,  false);
 }
 

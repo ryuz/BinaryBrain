@@ -293,7 +293,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_ForwardTraining
 
     unsigned int const THREAD_SIZE    = 512;
     unsigned int const MAX_FRAME_UNIT = 256;
-    unsigned int const MAX_NODE_UNIT  = 1; // 16;
+    unsigned int const MAX_NODE_UNIT  = 16;
 
 #if 0
     dim3    block(MAX_FRAME_UNIT, THREAD_SIZE / MAX_FRAME_UNIT);
@@ -443,7 +443,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_ForwardInference
 
     unsigned int const THREAD_SIZE    = 512;
     unsigned int const MAX_FRAME_UNIT = 256;
-    unsigned int const MAX_NODE_UNIT  = 1; // 16;
+    unsigned int const MAX_NODE_UNIT  = 16;
 
 #if 0
     dim3    block(MAX_FRAME_UNIT, THREAD_SIZE / MAX_FRAME_UNIT);
@@ -948,7 +948,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_Backward(
     {
         unsigned int const THREAD_SIZE    = 256;
         unsigned int const MAX_FRAME_UNIT = 256;
-        unsigned int const MAX_NODE_UNIT  = 1; // 16;
+        unsigned int const MAX_NODE_UNIT  = 16;
 
 #if 0
         dim3    block(MAX_FRAME_UNIT, THREAD_SIZE / MAX_FRAME_UNIT);

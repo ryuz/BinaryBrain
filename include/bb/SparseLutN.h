@@ -252,7 +252,7 @@ public:
             m_activation->SetFrameBufferX(x_buf);
         }
 
- //     dy_buf = m_activation->Backward(dy_buf);
+//      dy_buf = m_activation->Backward(dy_buf);
         dy_buf = m_batch_norm->Backward(dy_buf);
         dy_buf = m_lut       ->Backward(dy_buf);
         return dy_buf; 

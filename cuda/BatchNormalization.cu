@@ -287,18 +287,26 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_ForwardInference
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
-    dim3    block;
-    dim3    grid;
+    unsigned int const THREAD_SIZE    = 512;
+    unsigned int const MAX_FRAME_UNIT = 512;
+    unsigned int const MAX_NODE_UNIT  = 512;
 
-    block.x = std::min(frame_size, 1024);
-    block.y = std::min(node_size, 1024);
-    while (block.y > 1 && block.x * block.y > 1024) {
-        block.y = (block.y + 1) / 2;
-    }
-    grid.x = 1;
-    grid.y = (node_size  + (block.y - 1)) /  block.y;
+#if 1
+    dim3    block(MAX_FRAME_UNIT, THREAD_SIZE / MAX_FRAME_UNIT);
+    while ( (int)block.x / 2 >= frame_size ) { block.x /= 2; block.y *= 2; }
+    while ( (int)block.y / 2 >= node_size  ) { block.y /= 2; }
+#else
+    dim3    block(THREAD_SIZE / MAX_NODE_UNIT, MAX_NODE_UNIT);
+    while ( (int)block.y / 2 >= node_size  ) { block.y /= 2; block.x *= 2;}
+    while ( (int)block.x / 2 >= frame_size ) { block.x /= 2; }
+#endif
+
+    block.x = std::min(block.x, MAX_FRAME_UNIT);
+    block.y = std::min(block.y, MAX_NODE_UNIT);
+    dim3    grid(1, (node_size + (block.y - 1)) / block.y);
     
-    kernal_fp32_BatchNormalization_ForwardInference<<<grid, block, 0, streamId>>>(
+    kernal_fp32_BatchNormalization_ForwardInference<<<grid, block, 0, streamId>>>
+        (
             dev_x_buf,
             dev_y_buf,
             dev_gamma_buf,
