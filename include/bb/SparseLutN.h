@@ -34,8 +34,7 @@ protected:
 
     // 2層で構成
     std::shared_ptr< StochasticLutN<N, BinType, RealType> >         m_lut;
-//  std::shared_ptr< StochasticBatchNormalization<RealType>   >     m_batch_norm;
-    std::shared_ptr< BatchNormalization<RealType>   >               m_batch_norm;
+    std::shared_ptr< StochasticBatchNormalization<RealType>   >     m_batch_norm;
     std::shared_ptr< HardTanh<BinType, RealType>   >                m_activation;
 
 public:
@@ -55,8 +54,7 @@ protected:
         lut_create.seed         = create.seed;
         m_lut = StochasticLutN<N, BinType, RealType>::Create(lut_create);
 
-//      m_batch_norm = StochasticBatchNormalization<RealType>::Create(0.00f);
-        m_batch_norm = BatchNormalization<RealType>::Create(0.00f);
+        m_batch_norm = StochasticBatchNormalization<RealType>::Create(0.00f);
 
         m_activation = HardTanh<BinType, RealType>::Create((RealType)0, (RealType)1);
     }
@@ -243,10 +241,8 @@ public:
      *         
      * @return backward演算結果
      */
-    FrameBuffer Backward(FrameBuffer dy_buf, index_t x_frame_offset = 0)
+    FrameBuffer Backward(FrameBuffer dy_buf)
     {
-        BB_ASSERT(x_frame_offset == 0); // offset未対応
-
         if (m_memory_saving) {
             // 再計算
             FrameBuffer x_buf;

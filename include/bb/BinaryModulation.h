@@ -216,11 +216,11 @@ public:
      *         
      * @return backward演算結果
      */
-    FrameBuffer Backward(FrameBuffer dy, index_t x_frame_offset = 0)
+    FrameBuffer Backward(FrameBuffer dy)
     {
-        dy = m_bin2real->Backward(dy, x_frame_offset);
-        dy = m_layer   ->Backward(dy, x_frame_offset * m_modulation_size);
-        dy = m_real2bin->Backward(dy, x_frame_offset);
+        dy = m_bin2real->Backward(dy);
+        dy = m_layer   ->Backward(dy);
+        dy = m_real2bin->Backward(dy);
         return dy; 
     }
     

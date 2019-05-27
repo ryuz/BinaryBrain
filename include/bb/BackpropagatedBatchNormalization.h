@@ -229,10 +229,8 @@ public:
      *         
      * @return backward演算結果
      */
-    FrameBuffer Backward(FrameBuffer dy_buf, index_t x_frame_offset = 0)
+    FrameBuffer Backward(FrameBuffer dy_buf)
     {
-        BB_ASSERT(x_frame_offset == 0); // offset未対応
-
         // 無視できるゲインになったらバイパス
         if (m_gain <= (T)1.0e-14) {
             return dy_buf;

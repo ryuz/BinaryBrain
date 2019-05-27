@@ -227,11 +227,11 @@ public:
      *         
      * @return backward演算結果
      */
-    FrameBuffer Backward(FrameBuffer dy_buf, index_t x_frame_offset = 0)
+    FrameBuffer Backward(FrameBuffer dy_buf)
     {
-        dy_buf = m_col2im->Backward(dy_buf, x_frame_offset);
-        dy_buf = m_layer->Backward(dy_buf, x_frame_offset * m_output_w_size * m_output_h_size);
-        dy_buf = m_im2col->Backward(dy_buf, x_frame_offset);
+        dy_buf = m_col2im->Backward(dy_buf);
+        dy_buf = m_layer->Backward(dy_buf);
+        dy_buf = m_im2col->Backward(dy_buf);
         return dy_buf; 
     }
     

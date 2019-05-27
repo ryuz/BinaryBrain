@@ -186,10 +186,8 @@ public:
         }
     }
 
-    FrameBuffer Backward(FrameBuffer dy_buf, index_t x_frame_offset = 0)
+    FrameBuffer Backward(FrameBuffer dy_buf)
     {
-        BB_ASSERT(x_frame_offset == 0); // offset未対応
-
         BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
 
         // 戻り値の型を設定

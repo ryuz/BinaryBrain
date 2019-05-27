@@ -153,41 +153,6 @@ public:
         return GetShapeSize(GetOutputShape());
     }
 
-    // ノード単位でのForward計算
-    virtual std::vector<double> ForwardNode(index_t node, std::vector<double> x) const { return x; }
-//  virtual std::vector<double> BackwardNode(index_t node, std::vector<double> dy) const { return dy; }
-
-
-   /**
-     * @brief  forward演算
-     * @detail forward演算を行う
-     * @param  x     入力データ
-     * @param  train 学習時にtrueを指定
-     * @return forward演算結果
-     */
-    virtual FrameBuffer Forward(FrameBuffer x_buf, bool train=true) = 0;
-
-   /**
-     * @brief  forward演算(複数入力対応)
-     * @detail forward演算を行う
-     *         分岐や合流演算を可能とするために汎用版を定義しておく
-     * @return forward演算結果
-     */
-    virtual std::vector<FrameBuffer> ForwardMulti(std::vector<FrameBuffer> vx, bool train = true)
-    {
-        BB_ASSERT(vx.size() == 1);
-        auto y = Forward(vx[0], train);
-        return {y};
-    }
-
-    virtual FrameBuffer ReForward(FrameBuffer x_buf)
-    {
-        return Forward(x_buf, false);
-    }
-
-    virtual void        SetFrameBufferX(FrameBuffer x_buf) {}
-    virtual FrameBuffer GetFrameBufferX(void) { return FrameBuffer(); }
-    
 
 protected:
     /**
@@ -232,15 +197,63 @@ public:
             os << indent << separetor << std::endl;
         }
     }
+
+
+   /**
+     * @brief  ノード単位でのForward計算
+     * @detail ノード単位でforward演算を行う
+     * @param  node  計算対象のノード
+     * @param  x_vec 入力データ
+     * @return forward演算結果
+     */
+    virtual std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
+    {
+        return x_vec;
+    }
+
+
+   /**
+     * @brief  forward演算
+     * @detail forward演算を行う
+     * @param  x_buf 入力データ
+     * @param  train 学習時にtrueを指定
+     * @return forward演算結果
+     */
+    virtual FrameBuffer Forward(FrameBuffer x_buf, bool train=true) = 0;
+
+   /**
+     * @brief  forward演算(複数入力対応)
+     * @detail forward演算を行う
+     *         分岐や合流演算を可能とするために汎用版を定義しておく
+     * @return forward演算結果
+     */
+    virtual std::vector<FrameBuffer> ForwardMulti(std::vector<FrameBuffer> vx, bool train = true)
+    {
+        BB_ASSERT(vx.size() == 1);
+        auto y = Forward(vx[0], train);
+        return {y};
+    }
+
+    virtual FrameBuffer ReForward(FrameBuffer x_buf)
+    {
+        return Forward(x_buf, false);
+    }
+
+    virtual void        SetFrameBufferX(FrameBuffer x_buf) {}
+    virtual FrameBuffer GetFrameBufferX(void) { return FrameBuffer(); }
+    
+
+
     
 
    /**
      * @brief  backward演算
      * @detail backward演算を行う
      *         
+     * @param  dy_buf 逆伝播させる誤差
      * @return backward演算結果
      */
-    virtual FrameBuffer Backward(FrameBuffer dy_buf, index_t x_frame_offset = 0) = 0;
+    virtual FrameBuffer Backward(FrameBuffer dy_buf) = 0;
 
    /**
      * @brief  backward演算(複数入力対応)

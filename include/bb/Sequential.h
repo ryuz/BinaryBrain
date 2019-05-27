@@ -167,10 +167,10 @@ public:
      *         
      * @return backward演算結果
      */
-    FrameBuffer Backward(FrameBuffer dy, index_t x_frame_offset = 0)
+    FrameBuffer Backward(FrameBuffer dy)
     {
         for (auto it = m_layers.rbegin(); it != m_layers.rend(); ++it) {
-            dy = (*it)->Backward(dy, x_frame_offset);
+            dy = (*it)->Backward(dy);
         }
         return dy; 
     }

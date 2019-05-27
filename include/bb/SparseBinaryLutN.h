@@ -500,17 +500,12 @@ public:
     }
 
 
-    FrameBuffer Backward(FrameBuffer dy_buf, index_t x_frame_offset = 0)
+    FrameBuffer Backward(FrameBuffer dy_buf)
     {
-        BB_ASSERT(x_frame_offset == 0); // offset未対応
-
         BB_ASSERT(dy_buf.GetType() == DataType<RealType>::type);
 
         FrameBuffer x_buf = m_x_buf;
-        BB_ASSERT(dy_buf.GetFrameSize() + x_frame_offset <= x_buf.GetFrameSize());
-        if ( dy_buf.GetFrameSize() + x_frame_offset == x_buf.GetFrameSize() ) {
-            m_x_buf = FrameBuffer();    // 最後まで参照したら開放
-        }
+        m_x_buf = FrameBuffer();
 
         FrameBuffer dx_buf(DataType<RealType>::type, dy_buf.GetFrameSize(), m_input_shape);
 
@@ -572,11 +567,9 @@ public:
                 auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
                 auto W_ptr           = m_W->LockDeviceMemoryConst();
                 
-                BB_ASSERT(x_frame_offset % 32 == 0);
-
                 bbcu_bit_fp32_StochasticLut6_Forward
                     (
-                        (int   const *)x_ptr.GetAddr() + (x_frame_offset / 32),
+                        (int   const *)x_ptr.GetAddr(),
                         (float       *)y_ptr.GetAddr(),
                         (int   const *)input_index_ptr.GetAddr(),
                         (float const *)W_ptr.GetAddr(),
@@ -625,7 +618,7 @@ public:
                 
                 bbcu_bit_fp32_StochasticLut6_Backward
                     (
-                        (int   const *)x_ptr.GetAddr() + (x_frame_offset / 32),
+                        (int   const *)x_ptr.GetAddr(),
                         (float const *)dy_ptr.GetAddr(),
                         (float       *)dx_ptr.GetAddr(),
                         (float       *)tmp_ptr.GetAddr(),
