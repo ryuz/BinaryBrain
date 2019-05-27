@@ -190,8 +190,8 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, in
     
     auto cnv0_sub = bb::Sequential::Create();
 #if 1
-    cnv0_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(384));
-    cnv0_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(64));
+    cnv0_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(192));
+    cnv0_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(32));
 #else
     cnv0_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
     cnv0_sub->Add(bb::DenseAffine<>::Create(32));
