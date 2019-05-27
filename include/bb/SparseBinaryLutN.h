@@ -62,7 +62,7 @@ public:
         indices_t       output_shape;               //< 出力形状
         std::string     connection;                 //< 結線ルール
         RealType        momentum  = (RealType)0.0;
-        RealType        gamma     = (RealType)0.2;
+        RealType        gamma     = (RealType)0.5;
         RealType        beta      = (RealType)0.5;
         std::uint64_t   seed      = 1;              //< 乱数シード
     };

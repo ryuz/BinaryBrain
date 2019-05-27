@@ -90,7 +90,7 @@ public:
     struct create_t
     {
         T       momentum  = (T)0.9;
-        T       gamma     = (T)0.2;
+        T       gamma     = (T)0.5;
         T       beta      = (T)0.5;
     };
 
@@ -103,7 +103,7 @@ public:
         return self;
     }
 
-    static std::shared_ptr<StochasticBatchNormalization> Create(T momentum = (T)0.9, T gamma=(T)0.2, T beta=(T)0.5)
+    static std::shared_ptr<StochasticBatchNormalization> Create(T momentum = (T)0.9, T gamma=(T)0.5, T beta=(T)0.5)
     {
         create_t create;
         create.momentum = momentum;
