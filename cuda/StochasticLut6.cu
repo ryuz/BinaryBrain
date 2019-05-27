@@ -25,7 +25,9 @@ __global__ void kernal_fp32_StochasticLut6_Forward(
             int             frame_size,
             int             frame_stride,
             int             input_binary,
-            int             lut_binarize
+            int             lut_binarize,
+            float           param_min,
+            float           param_max
         )
 {
     int node_id = threadIdx.y;
@@ -168,8 +170,8 @@ __global__ void kernal_fp32_StochasticLut6_Forward(
             y += W[63][node_id] * x2_11_x1_11 * x0_11;
 
             // clamp
-            y = max(0.0, y);
-            y = min(1.0, y);
+            y = max(param_min, y);
+            y = min(param_max, y);
         
             y_ptr[frame] = y;
         }
@@ -190,6 +192,8 @@ int bbcu_fp32_StochasticLut6_Forward
             int             frame_stride,
             int             input_binary,
             int             lut_binarize,
+            float           param_min,
+            float           param_max,
             cudaStream_t    streamId
         )
 {
@@ -222,7 +226,9 @@ int bbcu_fp32_StochasticLut6_Forward
             frame_size,
             frame_stride,
             input_binary,
-            lut_binarize
+            lut_binarize,
+            param_min,
+            param_max
         );
     BB_CUDA_CHECK_LAST_ERROR();
     
@@ -245,7 +251,9 @@ __global__ void kernal_bit_fp32_StochasticLut6_Forward(
             int             frame_size,
             int             frame_stride,
             int             bin_frame_stride,
-            int             binary_mode
+            int             binary_mode,
+            float           param_min,
+            float           param_max
         )
 {
     int node_id = threadIdx.y;
@@ -384,8 +392,8 @@ __global__ void kernal_bit_fp32_StochasticLut6_Forward(
             y += W[63][node_id] * x2_11_x1_11 * x0_11;
 
             // clamp
-            y = max(0.0, y);
-            y = min(1.0, y);
+            y = max(param_min, y);
+            y = min(param_max, y);
             
 //          printf("[StochasticLut6] node=%d frame=%d y=%f\n", node, frame, y);
 
@@ -405,7 +413,9 @@ int bbcu_bit_fp32_StochasticLut6_Forward
             int             frame_size,
             int             frame_stride,
             int             bin_frame_stride,
-            int             binary_mode,
+            int             lut_binarize,
+            float           param_min,
+            float           param_max,
             cudaStream_t    streamId
         )
 {
@@ -438,7 +448,9 @@ int bbcu_bit_fp32_StochasticLut6_Forward
             frame_size,
             frame_stride,
             bin_frame_stride,
-            binary_mode
+            lut_binarize,
+            param_min,
+            param_max
         );
     BB_CUDA_CHECK_LAST_ERROR();
     

@@ -35,6 +35,9 @@ protected:
 
     std::string             m_connection;
 
+    RealType                m_param_min = (RealType)0.0;
+    RealType                m_param_max = (RealType)1.0;
+
     indices_t               m_input_shape;
     indices_t               m_output_shape;
 
@@ -239,7 +242,7 @@ public:
 //      m_W->Resize(DataType<RealType>::type, m_output_node_size, NN);  m_W->InitUniformDistribution(0.4, 0.6, m_mt());
 //      m_W->Resize(DataType<RealType>::type, m_output_node_size, NN);  m_W->InitUniformDistribution(0.0, 1.0, m_mt());
 //      m_W->Resize(DataType<RealType>::type, m_output_node_size, NN);  m_W->InitNormalDistribution(0.5, 0.001, m_mt());
-        m_W->Resize(DataType<RealType>::type, GetShapeSize(m_output_shape), NN);  m_W->InitNormalDistribution(0.5, 0.01, m_mt());
+        m_W->Resize(DataType<RealType>::type, GetShapeSize(m_output_shape), NN);  m_W->InitNormalDistribution((m_param_min+m_param_max)*0.5, 0.01, m_mt());
 
         m_dW->Resize(DataType<RealType>::type, GetShapeSize(m_output_shape), NN); m_dW->FillZero();
 
@@ -293,7 +296,7 @@ public:
         BB_ASSERT(input_value.size() == N);
 
         // パラメータクリップ
-        m_W->Clamp((RealType)0.0, (RealType)1.0);
+        m_W->Clamp(m_param_min, m_param_max);
 
         auto W_ptr = lock_W_const();
         RealType W[NN];
@@ -322,8 +325,8 @@ public:
         }
 
         // clip
-        y = std::max((RealType)0.0, y);
-        y = std::min((RealType)1.0, y);
+        y = std::max(m_param_min, y);
+        y = std::min(m_param_max, y);
         
         std::vector<double> result;
         result.push_back((double)y);
@@ -373,7 +376,9 @@ public:
                     (int          )y_buf.GetFrameSize(),
                     (int          )(y_buf.GetFrameStride() / sizeof(float)),
                     (int          )(m_binary_mode  ? 1 : 0),
-                    (int          )(m_lut_binarize ? 1 : 0)
+                    (int          )(m_lut_binarize ? 1 : 0),
+                    (float        )m_param_min,
+                    (float        )m_param_max
                 );
 
             return y_buf;
@@ -397,7 +402,9 @@ public:
                     (int          )y_buf.GetFrameSize(),
                     (int          )(y_buf.GetFrameStride() / sizeof(float)),
                     (int          )(x_buf.GetFrameStride() / sizeof(int)),
-                    (int          )(m_lut_binarize ? 1 : 0)
+                    (int          )(m_lut_binarize ? 1 : 0),
+                    (float        )m_param_min,
+                    (float        )m_param_max
                 );
 
             return y_buf;
@@ -449,8 +456,8 @@ public:
                     }
 
                     // clip
-                    y = std::max((RealType)0.0, y);
-                    y = std::min((RealType)1.0, y);
+                    y = std::max((RealType)m_param_min, y);
+                    y = std::min((RealType)m_param_max, y);
 
                     y_ptr.Set(frame, node, y);
                 }
