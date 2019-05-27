@@ -173,7 +173,7 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, in
 // Dense CNN
 void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "Cifar10Sparse6Cnn_dense_mix_bn5";
+    std::string net_name = "Cifar10Sparse6Cnn_dense_mix";
     
   // load cifar-10 data
 #ifdef _DEBUG
@@ -189,45 +189,45 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, in
     }
     
     auto cnv0_sub = bb::Sequential::Create();
-#if 1
+#if 0
     cnv0_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(384));
     cnv0_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(64));
 #else
     cnv0_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
-    cnv0_sub->Add(bb::DenseAffine<>::Create(64));
+    cnv0_sub->Add(bb::DenseAffine<>::Create(32));
     cnv0_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
     cnv0_sub->Add(bb::Binarize<bb::Bit>::Create());
 #endif
 
     auto cnv1_sub = bb::Sequential::Create();
-#if 1
+#if 0
     cnv1_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(384));
     cnv1_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(64));
 #else
     cnv1_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
-    cnv1_sub->Add(bb::DenseAffine<>::Create(64));
+    cnv1_sub->Add(bb::DenseAffine<>::Create(32));
     cnv1_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
     cnv1_sub->Add(bb::Binarize<bb::Bit>::Create());
 #endif
 
     auto cnv2_sub = bb::Sequential::Create();
-#if 1
+#if 0
     cnv2_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(768));
     cnv2_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(128));
 #else
     cnv2_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
-    cnv2_sub->Add(bb::DenseAffine<>::Create(128));
+    cnv2_sub->Add(bb::DenseAffine<>::Create(64));
     cnv2_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
     cnv2_sub->Add(bb::Binarize<bb::Bit>::Create());
 #endif
 
     auto cnv3_sub = bb::Sequential::Create();
-#if 1
+#if 0
     cnv3_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(768));
     cnv3_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(128));
 #else
     cnv3_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
-    cnv3_sub->Add(bb::DenseAffine<>::Create(128));
+    cnv3_sub->Add(bb::DenseAffine<>::Create(64));
     cnv3_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
     cnv3_sub->Add(bb::Binarize<bb::Bit>::Create());
 #endif
@@ -242,7 +242,7 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, in
     main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3));
     main_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
     
-#if 1
+#if 0
     main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(18432));
     main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(3072));
     main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(512));
@@ -253,12 +253,12 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, in
     main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(10));
 #else
     main_net->Add(bb::BinaryToReal<bb::Bit>::Create());
-    main_net->Add(bb::DenseAffine<>::Create(1024));
+    main_net->Add(bb::DenseAffine<>::Create(512));
     main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
     main_net->Add(bb::Binarize<bb::Bit>::Create());
 
     main_net->Add(bb::BinaryToReal<bb::Bit>::Create());
-    main_net->Add(bb::DenseAffine<>::Create(30));
+    main_net->Add(bb::DenseAffine<>::Create(10));
     main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
     main_net->Add(bb::Binarize<bb::Bit>::Create());
 #endif
@@ -281,11 +281,6 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, in
 
     std::cout << "binary true" << std::endl;
     net->SendCommand("binary true");
-
-    net->SendCommand("fix_gamma true");
-    net->SendCommand("fix_beta  true");
-    net->SendCommand("set_gamma 0.5");
-    net->SendCommand("set_beta  0.5");
 
 
     // print model information

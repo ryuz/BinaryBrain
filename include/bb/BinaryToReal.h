@@ -178,6 +178,26 @@ public:
 
             return y_buf;
         }
+
+        if ( DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
+            && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            auto x_ptr = x_buf.LockDeviceMemoryConst();
+            auto y_ptr = y_buf.LockDeviceMemory(true);
+
+            bbcu_bit_fp32_BinaryToReal_Forward
+                (
+                    (int   const *)x_ptr.GetAddr(),
+                    (float       *)y_ptr.GetAddr(),
+                    (int          )(GetShapeSize(m_input_shape) / GetShapeSize(m_output_shape)),
+                    (int          )m_modulation_size,
+                    (int          )GetOutputNodeSize(),
+                    (int          )(x_buf.GetFrameStride() / sizeof(int)),
+                    (int          )y_buf.GetFrameSize(),
+                    (int          )(y_buf.GetFrameStride() / sizeof(float))
+                );
+
+            return y_buf;
+        }
 #endif
 
         {
