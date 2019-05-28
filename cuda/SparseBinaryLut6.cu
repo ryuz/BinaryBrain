@@ -889,8 +889,9 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_BackwardPhase1
             float           reciprocal_frame_size,
             int             node_size,
             int             frame_size,
-            int             frame_stride,
-            int             bin_frame_stride,
+            int             x_frame_stride,
+            int             dy_frame_stride,
+            int             dx_frame_stride,
             int             lut_binarize
         )
 {
@@ -927,10 +928,10 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_BackwardPhase1
         // init pointer
         for ( int i = 0; i < 6; ++i ) {
             int input_node = input_index[6*node + i];
-            x_ptr[i]  = &x_buf[input_node * bin_frame_stride];
+            x_ptr[i]  = &x_buf[input_node * x_frame_stride];
         }
 
-        dy_ptr = &dy_buf[node * frame_stride];
+        dy_ptr = &dy_buf[node * dy_frame_stride];
     }
     
     float   mean;
@@ -966,7 +967,7 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_BackwardPhase1
             float dxc = dxn * rstd;
             float dx  = dxc + dmean + (x * dvar * reciprocal_frame_size);
 
-            device_fp32_SparseBinaryLut6_NodeBackward<MAX_NODE_UNIT>(node_id, x_vec, dx, &dx_buf[node*6*frame_stride + frame], W, dW, frame_stride);
+            device_fp32_SparseBinaryLut6_NodeBackward<MAX_NODE_UNIT>(node_id, x_vec, dx, &dx_buf[node*6*dx_frame_stride + frame], W, dW, dx_frame_stride);
         }
     }
 
@@ -990,7 +991,8 @@ __global__ void kernal_fp32_SparseBinaryLut6_BackwardMarge(
             const int*      input_index,
             int             node_size,
             int             frame_size,
-            int             frame_stride
+            int             src_frame_stride,
+            int             dst_frame_stride
         )
 {
     int frame = blockDim.x * blockIdx.x + threadIdx.x;
@@ -999,9 +1001,9 @@ __global__ void kernal_fp32_SparseBinaryLut6_BackwardMarge(
         if ( frame < frame_size ) {
             for ( int n = 0; n < 6; ++n ) {
                 int in_idx = input_index[node*6 + n];
-                float*       dst_buf_ptr = &dst_buf[frame_stride * in_idx];
+                float*       dst_buf_ptr = &dst_buf[dst_frame_stride * in_idx];
                 float        prev_data = dst_buf_ptr[frame];
-                const float* src_buf_ptr = &src_buf[(6 * node + n) * frame_stride];
+                const float* src_buf_ptr = &src_buf[(6 * node + n) * src_frame_stride];
                 
                 dst_buf_ptr[frame] = prev_data + src_buf_ptr[frame];
             }
@@ -1033,6 +1035,8 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_Backward
             int             frame_size,
             int             frame_stride,
             int             x_frame_stride,
+            int             tmp_frame_size,
+            int             tmp_frame_stride,
             int             lut_binarize,
             cudaStream_t    streamId
         )
@@ -1080,67 +1084,80 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_Backward
         BB_CUDA_CHECK_LAST_ERROR();
     }
 
-    {
-        unsigned int const THREAD_SIZE    = 256;
-        unsigned int const MAX_FRAME_UNIT = 256;
-        unsigned int const MAX_NODE_UNIT  = 16;
+    
+    BB_CUDA_SAFE_CALL(cudaMemset(dev_dx_buf, 0, input_node_size * frame_stride * sizeof(float)));
 
-#if 0
-        dim3    block(MAX_FRAME_UNIT, THREAD_SIZE / MAX_FRAME_UNIT);
-        while ( (int)block.x / 2 >= frame_size && frame_size > 32 ) { block.x /= 2; block.y *= 2; }
-        while ( (int)block.y / 2 >= output_node_size              ) { block.y /= 2; }
-#else
-        dim3    block(THREAD_SIZE / MAX_NODE_UNIT, MAX_NODE_UNIT);
-        while ( (int)block.y / 2 >= output_node_size              ) { block.y /= 2; block.x *= 2;}
-        while ( (int)block.x / 2 >= frame_size && frame_size > 32 ) { block.x /= 2; }
-#endif
+    int frame_offset = 0;
+    do {
+        int unit_frame_size = frame_size - frame_offset;
+        if (unit_frame_size > tmp_frame_size) {
+            unit_frame_size = tmp_frame_size;
+        }
 
-        block.x = std::min(block.x, MAX_FRAME_UNIT);
-        block.y = std::min(block.y, MAX_NODE_UNIT);
-        dim3    grid(1, (output_node_size + (block.y - 1)) / block.y);
-        kernal_bit_fp32_SparseBinaryLut6_BackwardPhase1<MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>
-            (
-                dev_x_buf,
-                dev_dy_buf,
-                dev_dx_tmp,
-                dev_input_index,
-                dev_W,
-                dev_dW,
-                dev_mean_buf,
-                dev_rstd_buf,
-                dev_dmean_tmp,
-                dev_dvar_tmp,
-                gamma,
-                beta,
-                1.0f / frame_size,
-                output_node_size,
-                frame_size,
-                frame_stride,
-                x_frame_stride,
-                lut_binarize
-            );
-        BB_CUDA_CHECK_LAST_ERROR();
-    }
+        {
+            unsigned int const THREAD_SIZE    = 256;
+            unsigned int const MAX_FRAME_UNIT = 256;
+            unsigned int const MAX_NODE_UNIT  = 16;
 
-    {
-        BB_CUDA_SAFE_CALL(cudaMemset(dev_dx_buf, 0, input_node_size * frame_stride * sizeof(float)));
+    #if 0
+            dim3    block(MAX_FRAME_UNIT, THREAD_SIZE / MAX_FRAME_UNIT);
+            while ( (int)block.x / 2 >= unit_frame_size && unit_frame_size > 32 ) { block.x /= 2; block.y *= 2; }
+            while ( (int)block.y / 2 >= output_node_size                        ) { block.y /= 2; }
+    #else
+            dim3    block(THREAD_SIZE / MAX_NODE_UNIT, MAX_NODE_UNIT);
+            while ( (int)block.y / 2 >= output_node_size                        ) { block.y /= 2; block.x *= 2;}
+            while ( (int)block.x / 2 >= unit_frame_size && unit_frame_size > 32 ) { block.x /= 2; }
+    #endif
 
-        int block_x = frame_size;
-        while ( block_x > 1024 ) { block_x /= 2; }
+            block.x = std::min(block.x, MAX_FRAME_UNIT);
+            block.y = std::min(block.y, MAX_NODE_UNIT);
+            dim3    grid(1, (output_node_size + (block.y - 1)) / block.y);
+            kernal_bit_fp32_SparseBinaryLut6_BackwardPhase1<MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>
+                (
+                    dev_x_buf  + (frame_offset / 32),
+                    dev_dy_buf + frame_offset,
+                    dev_dx_tmp,
+                    dev_input_index,
+                    dev_W,
+                    dev_dW,
+                    dev_mean_buf,
+                    dev_rstd_buf,
+                    dev_dmean_tmp,
+                    dev_dvar_tmp,
+                    gamma,
+                    beta,
+                    1.0f / frame_size,
+                    output_node_size,
+                    unit_frame_size,
+                    x_frame_stride,
+                    frame_stride,
+                    tmp_frame_stride,
+                    lut_binarize
+                );
+            BB_CUDA_CHECK_LAST_ERROR();
+        }
 
-        dim3    grid((frame_size + block_x - 1) /block_x, 1);
-        dim3    block(block_x, 1, 1);
-        kernal_fp32_SparseBinaryLut6_BackwardMarge<<<grid, block>>>
-            (
-                dev_dx_tmp,
-                dev_dx_buf,
-                dev_input_index,
-                output_node_size,
-                frame_size,
-                frame_stride
-            );
-        BB_CUDA_CHECK_LAST_ERROR();
-    }
+        {
+            int block_x = frame_size;
+            while ( block_x > 1024 ) { block_x /= 2; }
+
+            dim3    grid((frame_size + block_x - 1) /block_x, 1);
+            dim3    block(block_x, 1, 1);
+            kernal_fp32_SparseBinaryLut6_BackwardMarge<<<grid, block>>>
+                (
+                    dev_dx_tmp,
+                    dev_dx_buf + frame_offset,
+                    dev_input_index,
+                    output_node_size,
+                    unit_frame_size,
+                    tmp_frame_stride,
+                    frame_stride
+                );
+            BB_CUDA_CHECK_LAST_ERROR();
+        }
+
+        frame_offset += unit_frame_size;
+    } while ( frame_offset < frame_size );
 
     return 0;
 }    

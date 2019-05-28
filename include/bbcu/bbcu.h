@@ -412,6 +412,8 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_Backward
             int             frame_size,
             int             frame_stride,
             int             x_frame_stride,
+            int             tmp_frame_size,
+            int             tmp_frame_stride,
             int             lut_binarize,
             cudaStream_t    streamId=0
     );

@@ -29,6 +29,7 @@ class SparseBinaryLutN : public SparseLayer
 protected:
     bool                    m_lut_binarize = true;
     bool                    m_host_only    = false;
+    index_t                 m_max_tmp_mem_size = 64 * 1024 * 1024;
 
     std::string             m_connection;
 
@@ -509,7 +510,12 @@ public:
         FrameBuffer dx_buf(DataType<RealType>::type, dy_buf.GetFrameSize(), m_input_shape);
 
 #if 1
-        FrameBuffer tmp_buf(DataType<RealType>::type, dy_buf.GetFrameSize(), GetShapeSize(m_output_shape)*N);
+//      FrameBuffer tmp_buf(DataType<RealType>::type, dy_buf.GetFrameSize(), GetShapeSize(m_output_shape)*N);
+
+        index_t tmp_frame_size = m_max_tmp_mem_size / (sizeof(float) *  GetShapeSize(m_output_shape)*N);
+        tmp_frame_size = ((tmp_frame_size + 31) & ~0x1f);
+        tmp_frame_size = std::min(tmp_frame_size, dy_buf.GetFrameSize());
+        FrameBuffer tmp_buf(DataType<RealType>::type, tmp_frame_size, GetShapeSize(m_output_shape)*N);
 
         if ( N == 6, DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
                 && x_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && tmp_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
@@ -549,6 +555,8 @@ public:
                     (int          )dy_buf.GetFrameSize(),
                     (int          )(dy_buf.GetFrameStride() / sizeof(float)),
                     (int          )(x_buf.GetFrameStride() / sizeof(int)),
+                    (int          )tmp_buf.GetFrameSize(),
+                    (int          )(tmp_buf.GetFrameStride() / sizeof(int)),
                     (int          )m_lut_binarize
                 );
             
