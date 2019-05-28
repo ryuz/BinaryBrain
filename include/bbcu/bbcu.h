@@ -403,6 +403,8 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_Backward
             float           *dev_dW,
             float const     *dev_mean_buf,
             float const     *dev_rstd_buf,
+            float           *dev_dmean_tmp,
+            float           *dev_dvar_tmp,
             float           gamma,
             float           beta,
             int             input_node_size,

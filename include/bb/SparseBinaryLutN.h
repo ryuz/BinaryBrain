@@ -53,7 +53,6 @@ protected:
     Tensor_<RealType>       m_running_mean;
     Tensor_<RealType>       m_running_var;
 
-
     std::mt19937_64         m_mt;
 
 public:
@@ -515,6 +514,9 @@ public:
         if ( N == 6, DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
                 && x_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && tmp_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
 
+            Tensor_<RealType>   dmean(m_output_shape);
+            Tensor_<RealType>   dvar(m_output_shape);
+
             auto x_ptr           = x_buf.LockDeviceMemoryConst();
             auto dy_ptr          = dy_buf.LockDeviceMemoryConst();
             auto dx_ptr          = dx_buf.LockDeviceMemory(true);
@@ -524,6 +526,8 @@ public:
             auto dW_ptr          = m_dW->LockDeviceMemory();
             auto mean_ptr        = m_mean.LockDeviceMemoryConst();
             auto rstd_ptr        = m_rstd.LockDeviceMemoryConst();
+            auto dmean_ptr       = dmean.LockDeviceMemory(true);
+            auto dvar_ptr        = dvar.LockDeviceMemory(true);
             
             bbcu_bit_fp32_SparseBinaryLut6_Backward
                 (
@@ -536,6 +540,8 @@ public:
                     (float       *)dW_ptr.GetAddr(),
                     (float const *)mean_ptr.GetAddr(),
                     (float const *)rstd_ptr.GetAddr(),
+                    (float       *)dmean_ptr.GetAddr(),
+                    (float       *)dvar_ptr.GetAddr(),
                     (float        )m_gamma,
                     (float        )m_beta,
                     (int          )dx_buf.GetNodeSize(),
