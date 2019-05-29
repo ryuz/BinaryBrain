@@ -29,7 +29,7 @@ class SparseBinaryLutN : public SparseLayer
 protected:
     bool                    m_lut_binarize = true;
     bool                    m_host_only    = false;
-    index_t                 m_max_tmp_mem_size = 64 * 1024 * 1024;
+    index_t                 m_max_tmp_mem_size = 256 * 1024 * 1024;
 
     std::string             m_connection;
 
