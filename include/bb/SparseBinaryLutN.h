@@ -512,18 +512,18 @@ public:
 
         FrameBuffer dx_buf(DataType<RealType>::type, dy_buf.GetFrameSize(), m_input_shape);
 
-#if 1
-//      FrameBuffer tmp_buf(DataType<RealType>::type, dy_buf.GetFrameSize(), GetShapeSize(m_output_shape)*N);
+        // make reverse index table
+        if ( m_reverse_index_dirty ) {
+            m_reverse_index = this->MakeReverseIndexTable(m_input_index, GetShapeSize(m_input_shape));
+            m_reverse_index_dirty = false;
+        }
 
+        // tmp buffer
         index_t tmp_frame_size = m_max_tmp_mem_size / (sizeof(float) *  GetShapeSize(m_output_shape)*N);
         tmp_frame_size = ((tmp_frame_size + 31) & ~0x1f);
         tmp_frame_size = std::min(tmp_frame_size, dy_buf.GetFrameSize());
         FrameBuffer tmp_buf(DataType<RealType>::type, tmp_frame_size, GetShapeSize(m_output_shape)*N);
 
-        if ( m_reverse_index_dirty ) {
-            m_reverse_index = MakeReverseIndexTable(m_input_index, GetShapeSize(m_input_shape));
-            m_reverse_index_dirty = false;
-        }
 
 #ifdef BB_WITH_CUDA
         if ( N == 6, DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
@@ -572,97 +572,6 @@ public:
                     (int          )m_lut_binarize
                 );
             
-            return dx_buf;
-        }
-#endif
-
-#else
-        
-#ifdef BB_WITH_CUDA
-        // 再計算用バッファ
-        FrameBuffer tmp_y_buf(DataType<RealType>::type, dy_buf.GetFrameSize(), dy_buf.GetShape());
-        FrameBuffer tmp_dy_buf(DataType<RealType>::type, dy_buf.GetFrameSize(), dy_buf.GetShape());
-
-        if ( N == 6, DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
-                && x_buf.IsDeviceAvailable() && tmp_y_buf.IsDeviceAvailable()
-                && tmp_dy_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
-           
-
-            // 再計算
-            {
-                auto x_ptr           = x_buf.LockDeviceMemoryConst();
-                auto y_ptr           = tmp_y_buf.LockDeviceMemory(true);
-                auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
-                auto W_ptr           = m_W->LockDeviceMemoryConst();
-                
-                bbcu_bit_fp32_StochasticLut6_Forward
-                    (
-                        (int   const *)x_ptr.GetAddr(),
-                        (float       *)y_ptr.GetAddr(),
-                        (int   const *)input_index_ptr.GetAddr(),
-                        (float const *)W_ptr.GetAddr(),
-                        (int          )tmp_y_buf.GetNodeSize(),
-                        (int          )tmp_y_buf.GetFrameSize(),
-                        (int          )(tmp_y_buf.GetFrameStride() / sizeof(float)),
-                        (int          )(x_buf.GetFrameStride() / sizeof(int)),
-                        (int          )(m_lut_binarize ? 1 : 0)
-                    );
-            }
-
-            // BatchNorm
-            {
-                auto dev_x_ptr      = tmp_y_buf.LockDeviceMemoryConst();
-                auto dev_dy_ptr     = dy_buf.LockDeviceMemoryConst();
-                auto dev_dx_ptr     = tmp_dy_buf.LockDeviceMemory(true);
-                auto dev_mean_ptr   = m_mean.LockDeviceMemoryConst();
-                auto dev_rstd_ptr   = m_rstd.LockDeviceMemoryConst();
-                bbcu_fp32_StochasticBatchNormalization_Backward
-                    (
-                        (const float *)dev_x_ptr.GetAddr(),
-                        (const float *)dev_dy_ptr.GetAddr(),
-                        (float       *)dev_dx_ptr.GetAddr(),
-                        (float const *)dev_mean_ptr.GetAddr(),
-                        (float const *)dev_rstd_ptr.GetAddr(),
-                        (float        )m_gamma,
-                        (float        )1.0f / (float)x_buf.GetFrameSize(),
-                        (int          )dy_buf.GetNodeSize(),
-                        (int          )dy_buf.GetFrameSize(),
-                        (int          )dy_buf.GetFrameStride() / sizeof(float),
-                        (int          )tmp_y_buf.GetFrameStride() / sizeof(float)
-                    );
-            }
-
-            // LUT
-            {
-                FrameBuffer tmp_buf(DataType<RealType>::type, dy_buf.GetFrameSize(), GetShapeSize(m_output_shape)*N);
-
-                auto x_ptr           = x_buf.LockDeviceMemoryConst();
-                auto dy_ptr          = tmp_dy_buf.LockDeviceMemoryConst();
-                auto dx_ptr          = dx_buf.LockDeviceMemory(true);
-                auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
-                auto W_ptr           = m_W->LockDeviceMemoryConst();
-                auto dW_ptr          = m_dW->LockDeviceMemory();
-                auto tmp_ptr         = tmp_buf.LockDeviceMemory();
-                
-                bbcu_bit_fp32_StochasticLut6_Backward
-                    (
-                        (int   const *)x_ptr.GetAddr(),
-                        (float const *)dy_ptr.GetAddr(),
-                        (float       *)dx_ptr.GetAddr(),
-                        (float       *)tmp_ptr.GetAddr(),
-                        (int   const *)input_index_ptr.GetAddr(),
-                        (float const *)W_ptr.GetAddr(),
-                        (float       *)dW_ptr.GetAddr(),
-                        (int          )dx_buf.GetNodeSize(),
-                        (int          )dy_buf.GetNodeSize(),
-                        (int          )dx_buf.GetFrameSize(),
-                        (int          )(dx_buf.GetFrameStride() / sizeof(float)),
-                        (int          )(x_buf.GetFrameStride() / sizeof(int)),
-                        (int          )(m_lut_binarize ? 1 : 0)
-                    );
-            }
-#endif
-
             return dx_buf;
         }
 #endif
