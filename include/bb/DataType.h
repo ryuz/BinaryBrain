@@ -315,7 +315,7 @@ public:
     inline Bit(const Sign& sign);
 
     template<typename Tp>
-    Bit& operator=(const Tp& v)    { m_value = (v > 0) ? 0xff : 0x00; return *this; }
+    Bit& operator=(const Tp& v)    { m_value = (v > 0); return *this; }
     Bit& operator=(const Bit& bit) { m_value = bit.m_value; return *this; }
     Bit& operator=(const bool& v)  { m_value = v; return *this; }
     inline Bit& operator=(const Binary& sign);

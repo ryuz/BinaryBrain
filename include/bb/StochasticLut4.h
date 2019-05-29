@@ -371,10 +371,8 @@ public:
     }
 
 
-    FrameBuffer Backward(FrameBuffer dy, index_t x_frame_offset = 0)
+    FrameBuffer Backward(FrameBuffer dy)
     {
-        BB_ASSERT(x_frame_offset == 0); // offset未対応
-        
         BB_ASSERT(dy.GetType() == DataType<T>::type);
 
         m_dx.Resize(DataType<T>::type, dy.GetFrameSize(), m_input_node_size);

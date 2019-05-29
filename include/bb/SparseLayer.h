@@ -10,6 +10,7 @@
 #pragma once
 
 #include <set>
+#include <algorithm>
 
 #include "bb/Model.h"
 #include "bb/ShuffleSet.h"
@@ -47,6 +48,42 @@ public:
     }
 
 protected:
+
+    Tensor_<std::int32_t> MakeReverseIndexTable(Tensor_<std::int32_t> input_index, index_t input_node_size)
+    {
+        indices_t shape = input_index.GetShape();
+        index_t output_node_size = shape[1];
+        index_t input_index_size = shape[0];
+
+        auto input_index_ptr = input_index.LockConst();
+        std::vector<index_t> n(input_node_size, 0);
+        for ( index_t node = 0; node < output_node_size; ++node ) {
+            for ( index_t input = 0; input < input_index_size; ++input ) {
+                n[input_index_ptr(node, input)]++;
+            }
+        }
+
+        index_t max_n = 0;
+        for ( index_t node = 0; node < input_node_size; ++node ) {
+            max_n = std::max(max_n, n[node]);
+        }
+
+        Tensor_<std::int32_t> reverse_index(indices_t({max_n+1, input_node_size}));
+        reverse_index = 0;
+        auto reverse_index_ptr = reverse_index.Lock();
+        for ( index_t node = 0; node < output_node_size; ++node ) {
+            for ( index_t input = 0; input < input_index_size; ++input ) {
+                std::int32_t idx = input_index_ptr(node, input);
+                auto cnt = reverse_index_ptr(idx, 0) + 1;
+                reverse_index_ptr(idx, 0)   = cnt;
+                reverse_index_ptr(idx, cnt) = (std::int32_t)node;
+            }
+        }
+
+        return reverse_index;
+    }
+
+
     void InitializeNodeInput(std::uint64_t seed, std::string connection = "")
     {
         auto input_shape  = this->GetInputShape();

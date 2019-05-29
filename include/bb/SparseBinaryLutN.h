@@ -39,6 +39,8 @@ protected:
     FrameBuffer             m_x_buf;
 
     Tensor_<std::int32_t>   m_input_index;
+    Tensor_<std::int32_t>   m_reverse_index;
+    bool                    m_reverse_index_dirty = true;
 
     std::shared_ptr<Tensor> m_W;
     std::shared_ptr<Tensor> m_dW;
@@ -232,6 +234,7 @@ public:
     {
         auto ptr = lock_InputIndex();
         ptr(node, input_index) = (std::int32_t)input_node;
+        m_reverse_index_dirty = true;
     }
 
     index_t GetNodeInput(index_t node, index_t input_index) const
@@ -256,6 +259,7 @@ public:
         auto output_node_size = GetShapeSize(m_output_shape);
         m_input_index.Resize(output_node_size, N);
         this->InitializeNodeInput(m_mt(), m_connection);
+        m_reverse_index_dirty = true;
 
         // パラメータ初期化(結局初期値は何が良いのかまだよくわからない)
         m_W->Resize(DataType<RealType>::type, GetShapeSize(m_output_shape), NN);  m_W->InitNormalDistribution(0.5, 0.01, m_mt());
@@ -384,7 +388,6 @@ public:
 
         // パラメータクリップ
         m_W->Clamp((RealType)0.0, (RealType)1.0);
-
 
 #ifdef BB_WITH_CUDA
         // LUT6 Bit CUDA
@@ -517,23 +520,30 @@ public:
         tmp_frame_size = std::min(tmp_frame_size, dy_buf.GetFrameSize());
         FrameBuffer tmp_buf(DataType<RealType>::type, tmp_frame_size, GetShapeSize(m_output_shape)*N);
 
+        if ( m_reverse_index_dirty ) {
+            m_reverse_index = MakeReverseIndexTable(m_input_index, GetShapeSize(m_input_shape));
+            m_reverse_index_dirty = false;
+        }
+
+#ifdef BB_WITH_CUDA
         if ( N == 6, DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
                 && x_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && tmp_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
 
             Tensor_<RealType>   dmean(m_output_shape);
             Tensor_<RealType>   dvar(m_output_shape);
 
-            auto x_ptr           = x_buf.LockDeviceMemoryConst();
-            auto dy_ptr          = dy_buf.LockDeviceMemoryConst();
-            auto dx_ptr          = dx_buf.LockDeviceMemory(true);
-            auto tmp_ptr         = tmp_buf.LockDeviceMemory(true);
-            auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
-            auto W_ptr           = m_W->LockDeviceMemoryConst();
-            auto dW_ptr          = m_dW->LockDeviceMemory();
-            auto mean_ptr        = m_mean.LockDeviceMemoryConst();
-            auto rstd_ptr        = m_rstd.LockDeviceMemoryConst();
-            auto dmean_ptr       = dmean.LockDeviceMemory(true);
-            auto dvar_ptr        = dvar.LockDeviceMemory(true);
+            auto x_ptr             = x_buf.LockDeviceMemoryConst();
+            auto dy_ptr            = dy_buf.LockDeviceMemoryConst();
+            auto dx_ptr            = dx_buf.LockDeviceMemory(true);
+            auto tmp_ptr           = tmp_buf.LockDeviceMemory(true);
+            auto input_index_ptr   = m_input_index.LockDeviceMemoryConst();
+            auto reverse_index_ptr = m_reverse_index.LockDeviceMemoryConst();
+            auto W_ptr             = m_W->LockDeviceMemoryConst();
+            auto dW_ptr            = m_dW->LockDeviceMemory();
+            auto mean_ptr          = m_mean.LockDeviceMemoryConst();
+            auto rstd_ptr          = m_rstd.LockDeviceMemoryConst();
+            auto dmean_ptr         = dmean.LockDeviceMemory(true);
+            auto dvar_ptr          = dvar.LockDeviceMemory(true);
             
             bbcu_bit_fp32_SparseBinaryLut6_Backward
                 (
@@ -542,6 +552,7 @@ public:
                     (float       *)dx_ptr.GetAddr(),
                     (float       *)tmp_ptr.GetAddr(),
                     (int   const *)input_index_ptr.GetAddr(),
+                    (int   const *)reverse_index_ptr.GetAddr(),
                     (float const *)W_ptr.GetAddr(),
                     (float       *)dW_ptr.GetAddr(),
                     (float const *)mean_ptr.GetAddr(),
@@ -550,6 +561,7 @@ public:
                     (float       *)dvar_ptr.GetAddr(),
                     (float        )m_gamma,
                     (float        )m_beta,
+                    (int          )m_reverse_index.GetShape()[0],
                     (int          )dx_buf.GetNodeSize(),
                     (int          )dy_buf.GetNodeSize(),
                     (int          )dy_buf.GetFrameSize(),
@@ -562,6 +574,8 @@ public:
             
             return dx_buf;
         }
+#endif
+
 #else
         
 #ifdef BB_WITH_CUDA

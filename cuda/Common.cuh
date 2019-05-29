@@ -69,6 +69,36 @@ __device__ __forceinline__ int device_int_ShuffleOr(int v)
 }
 
 
+template<typename T = float>
+__global__ void kernal_BackwardMarge(
+            T   const   *src_buf,
+            T           *dst_buf,
+            int const   *reverse_index,
+            int         index_stride,
+            int         node_size,
+            int         frame_size,
+            int         src_frame_stride,
+            int         dst_frame_stride
+        )
+{
+    int frame = blockDim.x * blockIdx.x + threadIdx.x;
+    int node  = blockDim.y * blockIdx.y + threadIdx.y;
+
+    if ( frame < frame_size && node < node_size ) {
+        T   const *src_ptr = &src_buf[frame];
+        int const *reverse_index_ptr = &reverse_index[index_stride * node];
+        
+        int size = reverse_index_ptr[0];
+        T   sum = 0;
+        for ( int i = 1; i <= size; ++i ) {
+            int index = reverse_index_ptr[i];
+            sum += src_ptr[index * src_frame_stride];
+        }
+
+        dst_buf[node * dst_frame_stride + frame] = sum;
+    }
+}
+
 
 
 // end of file

@@ -132,15 +132,15 @@ public:
         return x;
     }
 
-    bb::FrameBuffer Backward(bb::FrameBuffer dy, bb::index_t x_frame_offset=0)
+    bb::FrameBuffer Backward(bb::FrameBuffer dy)
     {
-        dy = m_affine3->Backward(dy, x_frame_offset);
-        dy = m_activate2->Backward(dy, x_frame_offset);
-        dy = m_affine2->Backward(dy, x_frame_offset);
-        dy = m_activate1->Backward(dy, x_frame_offset);
-        dy = m_affine1->Backward(dy, x_frame_offset);
-        dy = m_activate0->Backward(dy, x_frame_offset);
-        dy = m_affine0->Backward(dy, x_frame_offset);
+        dy = m_affine3->Backward(dy);
+        dy = m_activate2->Backward(dy);
+        dy = m_affine2->Backward(dy); 
+        dy = m_activate1->Backward(dy);
+        dy = m_affine1->Backward(dy);
+        dy = m_activate0->Backward(dy);
+        dy = m_affine0->Backward(dy);
         return dy;
     }
 };

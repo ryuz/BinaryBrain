@@ -1022,6 +1022,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_Backward
             float           *dev_dx_buf,
             float           *dev_dx_tmp,
             int   const     *dev_input_index,
+            int   const     *dev_reverse_index,
             float const     *dev_W,
             float           *dev_dW,
             float const     *dev_mean_buf,
@@ -1030,6 +1031,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_Backward
             float           *dev_dvar_tmp,
             float           gamma,
             float           beta,
+            int             reverse_index_stride,
             int             input_node_size,
             int             output_node_size,
             int             frame_size,
@@ -1137,6 +1139,40 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_Backward
             BB_CUDA_CHECK_LAST_ERROR();
         }
 
+#if 1
+        {
+            unsigned int const THREAD_SIZE    = 1024;
+            unsigned int const MAX_FRAME_UNIT = 1024;
+            unsigned int const MAX_NODE_UNIT  = 1024;
+
+    #if 1
+            dim3    block(MAX_FRAME_UNIT, THREAD_SIZE / MAX_FRAME_UNIT);
+            while ( (int)block.x / 2 >= unit_frame_size ) { block.x /= 2; block.y *= 2; }
+            while ( (int)block.y / 2 >= input_node_size ) { block.y /= 2; }
+    #else
+            dim3    block(THREAD_SIZE / MAX_NODE_UNIT, MAX_NODE_UNIT);
+            while ( (int)block.y / 2 >= input_node_size ) { block.y /= 2; block.x *= 2;}
+            while ( (int)block.x / 2 >= unit_frame_size ) { block.x /= 2; }
+    #endif
+
+            block.x = std::min(block.x, MAX_FRAME_UNIT);
+            block.y = std::min(block.y, MAX_NODE_UNIT);
+            dim3    grid((unit_frame_size + (block.x - 1)) / block.x, (input_node_size + (block.y - 1)) / block.y);
+
+            kernal_BackwardMarge<float><<<grid, block>>>
+                (
+                    dev_dx_tmp,
+                    dev_dx_buf + frame_offset,
+                    dev_reverse_index,
+                    reverse_index_stride,
+                    input_node_size,
+                    unit_frame_size,
+                    tmp_frame_stride,
+                    frame_stride
+                );
+            BB_CUDA_CHECK_LAST_ERROR();
+        }
+#else
         {
             int block_x = frame_size;
             while ( block_x > 1024 ) { block_x /= 2; }
@@ -1155,6 +1191,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_Backward
                 );
             BB_CUDA_CHECK_LAST_ERROR();
         }
+#endif
 
         frame_offset += unit_frame_size;
     } while ( frame_offset < frame_size );
