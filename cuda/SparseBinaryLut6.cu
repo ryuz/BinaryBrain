@@ -12,6 +12,14 @@
 #include "Common.cuh"
 
 
+#define BINARY_BIAS     (0.125/2)
+//#define BINARY_BIAS     0.125
+#define BINARY_ZERO     (0.5 - BINARY_BIAS)
+#define BINARY_ONE      (0.5 + BINARY_BIAS)
+
+//#define BINARY_ZERO     0.0
+//#define BINARY_ONE      1.0
+
 
 // -------------------------------------------------
 //  Forward
@@ -195,7 +203,7 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_ForwardTraining
             int unit = (frame >> 5);
             float x[6];
             for ( int i = 0; i < 6; ++i) {
-                x[i] = (x_ptr[i][unit] & bit) ? 0.7 : 0.3;
+                x[i] = (x_ptr[i][unit] & bit) ? BINARY_ONE : BINARY_ZERO;
             }
             float y = device_fp32_SparseBinaryLut6_NodeForward<MAX_NODE_UNIT>(node_id, x, W);
 
@@ -244,7 +252,7 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_ForwardTraining
             // ForwardŒvZ
             float x[6];
             for ( int i = 0; i < 6; ++i) {
-                x[i] = (x_ptr[i][unit] & bit_mask) ? 0.7 : 0.3;
+                x[i] = (x_ptr[i][unit] & bit_mask) ? BINARY_ONE : BINARY_ZERO;
             }
             float y = device_fp32_SparseBinaryLut6_NodeForward<MAX_NODE_UNIT>(node_id, x, W);
 
@@ -399,7 +407,7 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_ForwardInference
                 // ForwardŒvZ
                 float x[6];
                 for ( int i = 0; i < 6; ++i) {
-                    x[i] = (x_ptr[i][unit] & bit_mask) ? 0.7 : 0.3;
+                    x[i] = (x_ptr[i][unit] & bit_mask) ? BINARY_ONE : BINARY_ZERO;
                 }
                 float y = device_fp32_SparseBinaryLut6_NodeForward<MAX_NODE_UNIT>(node_id, x, W);
 
@@ -835,7 +843,7 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_BackwardPhase0
             // x ‚ğÄŒvZ
             float x_vec[6];
             for ( int i = 0; i < 6; ++i) {
-                x_vec[i] = (x_ptr[i][unit] & bit) ? 0.7 : 0.3;
+                x_vec[i] = (x_ptr[i][unit] & bit) ? BINARY_ONE : BINARY_ZERO;
             }
             float x = device_fp32_SparseBinaryLut6_NodeForward<MAX_NODE_UNIT>(node_id, x_vec, W);
             float tanh_x = ((x - mean) * rstd) * gamma + beta;
@@ -953,7 +961,7 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_BackwardPhase1
             // x ‚ğÄŒvZ
             float x_vec[6];
             for ( int i = 0; i < 6; ++i) {
-                x_vec[i] = (x_ptr[i][unit] & bit) ? 0.7 : 0.3;
+                x_vec[i] = (x_ptr[i][unit] & bit) ? BINARY_ONE : BINARY_ZERO;
             }
             float x = device_fp32_SparseBinaryLut6_NodeForward<MAX_NODE_UNIT>(node_id, x_vec, W);
             float tanh_x = ((x - mean) * rstd) * gamma + beta;
@@ -1282,7 +1290,7 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_Backward
             // x ‚ğÄŒvZ
             float x_vec[6];
             for ( int i = 0; i < 6; ++i) {
-                x_vec[i] = (x_ptr[i][unit] & bit) ? 0.7 : 0.3;
+                x_vec[i] = (x_ptr[i][unit] & bit) ? BINARY_ONE : BINARY_ZERO;
             }
             float x = device_fp32_SparseBinaryLut6_NodeForward<MAX_NODE_UNIT>(node_id, x_vec, W);
             float tanh_x = ((x - mean) * rstd) * gamma + beta;
@@ -1318,7 +1326,7 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_Backward
             // x ‚ğÄŒvZ
             float x_vec[6];
             for ( int i = 0; i < 6; ++i) {
-                x_vec[i] = (x_ptr[i][unit] & bit) ? 0.7 : 0.3;
+                x_vec[i] = (x_ptr[i][unit] & bit) ? BINARY_ONE : BINARY_ZERO;
             }
             float x = device_fp32_SparseBinaryLut6_NodeForward<MAX_NODE_UNIT>(node_id, x_vec, W);
             float tanh_x = ((x - mean) * rstd) * gamma + beta;

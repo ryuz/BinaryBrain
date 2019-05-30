@@ -76,7 +76,7 @@ protected:
                 std::int32_t idx = input_index_ptr(node, input);
                 auto cnt = reverse_index_ptr(idx, 0) + 1;
                 reverse_index_ptr(idx, 0)   = cnt;
-                reverse_index_ptr(idx, cnt) = (std::int32_t)node;
+                reverse_index_ptr(idx, cnt) = (std::int32_t)(node*input_index_size + input);
             }
         }
 

@@ -173,7 +173,7 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, in
 // Dense CNN
 void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "Cifar10Sparse6Cnn_dense_mix";
+    std::string net_name = "Cifar10Sparse6Cnn";
     
   // load cifar-10 data
 #ifdef _DEBUG
@@ -235,6 +235,18 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, in
     cnv3_sub->Add(bb::Binarize<bb::Bit>::Create());
 #endif
 
+    auto cnv4_sub = bb::Sequential::Create();
+#if 4
+    cnv4_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(4608));
+    cnv4_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(768));
+    cnv4_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(128));
+#else
+    cnv4_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
+    cnv4_sub->Add(bb::DenseAffine<>::Create(128));
+    cnv4_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    cnv4_sub->Add(bb::Binarize<bb::Bit>::Create());
+#endif
+
     // create network
     auto main_net = bb::Sequential::Create();
     main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3));
@@ -244,11 +256,13 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, in
     main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv2_sub, 3, 3));
     main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3));
     main_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
+
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 3, 3));
     
 #if 1
-    main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(18432));
-    main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(3072));
-    main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(512));
+    main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(4608));
+    main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(768));
+    main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(128));
 
     main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(2160));
     main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(360));
@@ -285,6 +299,7 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, in
     std::cout << "binary true" << std::endl;
     net->SendCommand("binary true");
 
+    net->SendCommand("lut_binarize false");
 
     // print model information
     net->PrintInfo();
