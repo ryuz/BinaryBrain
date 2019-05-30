@@ -27,7 +27,7 @@ class SparseBinaryLutN : public SparseLayer
     static int const NN = (1 << N);
 
 protected:
-    bool                    m_lut_binarize = false; //true;
+    bool                    m_lut_binarize = true;
     bool                    m_host_only    = false;
     index_t                 m_max_tmp_mem_size = 256 * 1024 * 1024;
 

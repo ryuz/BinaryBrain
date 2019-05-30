@@ -12,8 +12,8 @@
 #include "Common.cuh"
 
 
-#define BINARY_BIAS     (0.125/2)
-//#define BINARY_BIAS     0.125
+//#define BINARY_BIAS     (0.125/2)
+#define BINARY_BIAS     0.125
 #define BINARY_ZERO     (0.5 - BINARY_BIAS)
 #define BINARY_ONE      (0.5 + BINARY_BIAS)
 

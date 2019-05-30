@@ -9,7 +9,7 @@
 
 
 
-#ifdef BB_WITH_CUDA
+#if 1 // #ifdef BB_WITH_CUDA
 
 
 template<typename T=float>
