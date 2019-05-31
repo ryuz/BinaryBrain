@@ -29,6 +29,9 @@ class SparseBinaryLutN : public SparseLayer
 protected:
     bool                    m_lut_binarize = true;
     bool                    m_host_only    = false;
+
+    RealType                m_unbinarize_bias = (RealType)0.2;
+
     index_t                 m_max_tmp_mem_size = 256 * 1024 * 1024;
 
     std::string             m_connection;
@@ -55,7 +58,7 @@ protected:
 
     Tensor_<RealType>       m_running_mean;
     Tensor_<RealType>       m_running_var;
-
+    
     std::mt19937_64         m_mt;
 
 public:
@@ -416,6 +419,7 @@ public:
                         (float        )m_gamma,
                         (float        )m_beta,
                         (float        )m_momentum,
+                        (float        )m_unbinarize_bias, 
                         (int          )y_buf.GetNodeSize(),
                         (int          )y_buf.GetFrameSize(),
                         (int          )(y_buf.GetFrameStride() / sizeof(int)),
@@ -440,6 +444,7 @@ public:
                         (float       *)running_var_ptr.GetAddr(),
                         (float        )m_gamma,
                         (float        )m_beta,
+                        (float        )m_unbinarize_bias,
                         (int          )y_buf.GetNodeSize(),
                         (int          )y_buf.GetFrameSize(),
                         (int          )(y_buf.GetFrameStride() / sizeof(int)),
@@ -561,6 +566,7 @@ public:
                     (float       *)dvar_ptr.GetAddr(),
                     (float        )m_gamma,
                     (float        )m_beta,
+                    (float        )m_unbinarize_bias,
                     (int          )m_reverse_index.GetShape()[0],
                     (int          )dx_buf.GetNodeSize(),
                     (int          )dy_buf.GetNodeSize(),

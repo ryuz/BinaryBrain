@@ -15,9 +15,10 @@
 
 //#define BINARY_BIAS     (0.125/2)
 //#define BINARY_BIAS     0.125
-#define BINARY_BIAS     0.2
-#define BINARY_ZERO     (0.5 - BINARY_BIAS)
-#define BINARY_ONE      (0.5 + BINARY_BIAS)
+
+//#define BINARY_BIAS     0.2
+//#define BINARY_ZERO     (0.5 - BINARY_BIAS)
+//#define BINARY_ONE      (0.5 + BINARY_BIAS)
 
 
 // -------------------------------------------------
@@ -38,6 +39,7 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_ForwardTraining
             float           gamma,
             float           beta,
             float           momentum,
+            float           unbinarize_bias,
             float           reciprocal_frame_size,
             int             node_size,
             int             frame_size,
@@ -85,7 +87,7 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_ForwardTraining
             int unit = (frame >> 5);
             float x[6];
             for ( int i = 0; i < 6; ++i) {
-                x[i] = (x_ptr[i][unit] & bit) ? BINARY_ONE : BINARY_ZERO;
+                x[i] = 0.5 + ((x_ptr[i][unit] & bit) ? +unbinarize_bias : -unbinarize_bias);
             }
             float y = StochasticLut<6, float, MAX_NODE_UNIT>::NodeForward(node_id, x, W);
 
@@ -131,7 +133,7 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_ForwardTraining
             // ForwardåvéZ
             float x[6];
             for ( int i = 0; i < 6; ++i) {
-                x[i] = (x_ptr[i][unit] & bit_mask) ? BINARY_ONE : BINARY_ZERO;
+                x[i] = 0.5 + ((x_ptr[i][unit] & bit_mask)  ? +unbinarize_bias : -unbinarize_bias);
             }
             float y = StochasticLut<6, float, MAX_NODE_UNIT>::NodeForward(node_id, x, W);
 
@@ -167,6 +169,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_ForwardTraining
             float           gamma,
             float           beta,
             float           momentum,
+            float           unbinarize_bias,
             int             node_size,
             int             frame_size,
             int             frame_stride,
@@ -206,6 +209,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_ForwardTraining
             gamma,
             beta,
             momentum,
+            unbinarize_bias,
             1.0f / (float)frame_size,
             node_size,
             frame_size,
@@ -234,6 +238,7 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_ForwardInference
             float const     *running_var_buf,
             float           gamma,
             float           beta,
+            float           unbinarize_bias,
             int             node_size,
             int             frame_size,
             int             frame_stride,
@@ -284,7 +289,7 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_ForwardInference
                 // ForwardåvéZ
                 float x[6];
                 for ( int i = 0; i < 6; ++i) {
-                    x[i] = (x_ptr[i][unit] & bit_mask) ? BINARY_ONE : BINARY_ZERO;
+                    x[i] = 0.5 + ((x_ptr[i][unit] & bit_mask) ? +unbinarize_bias : -unbinarize_bias);
                 }
                 float y = StochasticLut<6, float, MAX_NODE_UNIT>::NodeForward(node_id, x, W);
 
@@ -317,6 +322,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_ForwardInference
             float const     *running_var_buf,
             float           gamma,
             float           beta,
+            float           unbinarize_bias,
             int             node_size,
             int             frame_size,
             int             frame_stride,
@@ -353,6 +359,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_ForwardInference
             running_var_buf,
             gamma,
             beta,
+            unbinarize_bias,
             node_size,
             frame_size,
             frame_stride,
@@ -384,6 +391,7 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_BackwardPhase0
             float           *dvar_buf,
             float           gamma,
             float           beta,
+            float           unbinarize_bias,
             float           reciprocal_frame_size,
             int             node_size,
             int             frame_size,
@@ -443,7 +451,7 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_BackwardPhase0
             // x ÇçƒåvéZ
             float x_vec[6];
             for ( int i = 0; i < 6; ++i) {
-                x_vec[i] = (x_ptr[i][unit] & bit) ? BINARY_ONE : BINARY_ZERO;
+                x_vec[i] = 0.5 +((x_ptr[i][unit] & bit)  ? +unbinarize_bias : -unbinarize_bias);
             }
             float x = StochasticLut<6, float, MAX_NODE_UNIT>::NodeForward(node_id, x_vec, W);
             float tanh_x = ((x - mean) * rstd) * gamma + beta;
@@ -492,6 +500,7 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_BackwardPhase1
             float const     *dvar_buf,
             float           gamma,
             float           beta,
+            float           unbinarize_bias,
             float           reciprocal_frame_size,
             int             node_size,
             int             frame_size,
@@ -559,7 +568,7 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_BackwardPhase1
             // x ÇçƒåvéZ
             float x_vec[6];
             for ( int i = 0; i < 6; ++i) {
-                x_vec[i] = (x_ptr[i][unit] & bit) ? BINARY_ONE : BINARY_ZERO;
+                x_vec[i] = 0.5 + ((x_ptr[i][unit] & bit) ? +unbinarize_bias : -unbinarize_bias);
             }
             float x = StochasticLut<6, float, MAX_NODE_UNIT>::NodeForward(node_id, x_vec, W);
             float tanh_x = ((x - mean) * rstd) * gamma + beta;
@@ -607,6 +616,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_Backward
             float           *dev_dvar_tmp,
             float           gamma,
             float           beta,
+            float           unbinarize_bias,
             int             reverse_index_stride,
             int             input_node_size,
             int             output_node_size,
@@ -652,6 +662,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_Backward
                 dev_dvar_tmp,
                 gamma,
                 beta,
+                unbinarize_bias,
                 1.0f / frame_size,
                 output_node_size,
                 frame_size,
@@ -701,6 +712,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_Backward
                     dev_dvar_tmp,
                     gamma,
                     beta,
+                    unbinarize_bias,
                     1.0f / frame_size,
                     output_node_size,
                     unit_frame_size,
