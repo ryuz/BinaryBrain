@@ -101,5 +101,8 @@
     <ClInclude Include="Common.cuh">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\bb\StochasticOperation.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

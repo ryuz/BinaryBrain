@@ -458,7 +458,8 @@ public:
                     (int          )(m_binary_mode ? 1 : 0),
                     (int          )(m_lut_binarize ? 1 : 0),
                     (float        )0,
-                    (float        )1
+                    (float        )1,
+                    (float        )0.2f
                 );
 
             return m_y_buf;

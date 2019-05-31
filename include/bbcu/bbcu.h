@@ -439,6 +439,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut6_Forward
             int             lut_binarize,
             float           param_min,
             float           param_max,
+            float           unbinarize_bias,
             cudaStream_t    streamId = 0
         );
 
@@ -474,6 +475,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut6_Forward
             int             lut_binarize,
             float           param_min,
             float           param_max,
+            float           unbinarize_bias,
             cudaStream_t    streamId = 0
         );
 

@@ -231,6 +231,7 @@ void StochasticLutN_cmp(int const input_node_size, int const output_node_size, i
 
 TEST(StochasticLutNTest, testStochasticLutN_cmp)
 {
+    StochasticLutN_cmp<float>(6, 1, 1, 1);
     StochasticLutN_cmp<float>(14, 16, 8, 2);
 
     StochasticLutN_cmp<float>(14, 1024, 8, 4);

@@ -65,7 +65,6 @@
     <ClCompile Include="VariablesTest.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\cuda\Common.cuh" />
     <ClInclude Include="..\..\include\bb\Activation.h" />
     <ClInclude Include="..\..\include\bb\AveragePooling.h" />
     <ClInclude Include="..\..\include\bb\BackpropagatedBatchNormalization.h" />

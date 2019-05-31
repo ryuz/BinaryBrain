@@ -14,7 +14,7 @@
 #include <array>
 #include <vector>
 #include "bb/LutLayer.h"
-
+#include "bb/StochasticOperation.h"
 
 namespace bb {
 
@@ -34,6 +34,8 @@ protected:
     bool                    m_host_simd = true;
 
     std::string             m_connection;
+
+    RealType                m_unbinarize_bias = (RealType)0.2;
 
     RealType                m_param_min = (RealType)0.0;
     RealType                m_param_max = (RealType)1.0;
@@ -366,8 +368,7 @@ public:
             auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
             auto W_ptr           = m_W->LockDeviceMemoryConst();
                
-            bbcu_fp32_StochasticLut6_Forward
-                (
+            bbcu_fp32_StochasticLut6_Forward(
                     (float const *)x_ptr.GetAddr(),
                     (float       *)y_ptr.GetAddr(),
                     (int   const *)input_index_ptr.GetAddr(),
@@ -378,7 +379,8 @@ public:
                     (int          )(m_binary_mode  ? 1 : 0),
                     (int          )(m_lut_binarize ? 1 : 0),
                     (float        )m_param_min,
-                    (float        )m_param_max
+                    (float        )m_param_max,
+                    (float        )m_unbinarize_bias
                 );
 
             return y_buf;
@@ -392,8 +394,7 @@ public:
             auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
             auto W_ptr           = m_W->LockDeviceMemoryConst();
             
-            bbcu_bit_fp32_StochasticLut6_Forward
-                (
+            bbcu_bit_fp32_StochasticLut6_Forward(
                     (int   const *)x_ptr.GetAddr(),
                     (float       *)y_ptr.GetAddr(),
                     (int   const *)input_index_ptr.GetAddr(),
@@ -404,7 +405,8 @@ public:
                     (int          )(x_buf.GetFrameStride() / sizeof(int)),
                     (int          )(m_lut_binarize ? 1 : 0),
                     (float        )m_param_min,
-                    (float        )m_param_max
+                    (float        )m_param_max,
+                    (float        )m_unbinarize_bias
                 );
 
             return y_buf;
@@ -423,37 +425,31 @@ public:
 
             #pragma omp parallel for
             for ( index_t node = 0; node < node_size; ++node ) {
-                RealType W[NN];
-                for ( int i = 0; i < NN; ++i) {
+                // read W
+                RealType W[(1 << N)];
+                for ( int i = 0; i < (1 << N); ++i) {
                     W[i] = W_ptr(node, i);
                     if ( m_lut_binarize ) {
-                        W[i] = W[i] > (RealType)0.5 ? (RealType)1.0 : (RealType)0.0;
+                        W[i] = W[i] > (RealType)0.5 ? (RealType)1.0 : (RealType)0.0;   // binarize
                     }
                 }
 
                 for ( index_t frame = 0; frame < frame_size; ++frame ) {
-                    RealType   x[N][2];
+                    // read x
+                    RealType    x[N];
                     for ( int i = 0; i < N; ++i) {
-                        RealType in_sig = (RealType)x_ptr.Get(frame, input_index_ptr(node, i));
-                        if (m_binary_mode) {
-                            in_sig = in_sig > (RealType)0.5 ? (RealType)0.7 : (RealType)0.3;
+                        RealType x_tmp = (RealType)x_ptr.Get(frame, input_index_ptr(node, i));
+                        if ( m_binary_mode || DataType<BinType>::type == BB_TYPE_BIT ) {
+                            x[i] = (RealType)0.5 + (x_tmp > (RealType)0.5 ? +m_unbinarize_bias : -m_unbinarize_bias);   // unbinarize
                         }
                         else {
-                            in_sig = std::min((RealType)1.0, std::max((RealType)0.0, in_sig));  // clip
+                            x[i] = std::min((RealType)1.0, std::max((RealType)0.0, x_tmp));  // clip
                         }
-
-                        x[i][0] = (RealType)1.0 - in_sig;
-                        x[i][1] = in_sig;
                     }
 
-                    RealType y = (RealType)0;
-                    for (int i = 0; i < NN; ++i) {
-                        RealType w = W[i];
-                        for (int j = 0; j < N; ++j) {
-                            w *= x[j][(i >> j) & 1];
-                        }
-                        y += w;
-                    }
+                    // calculate
+                    RealType    y;
+                    StochasticOperation_Lut_Forward<RealType>(x, &y, W, N);
 
                     // clip
                     y = std::max((RealType)m_param_min, y);
@@ -463,7 +459,7 @@ public:
                 }
             }
 
-            return y_buf;
+             return y_buf;
         }
     }
 
@@ -542,7 +538,7 @@ public:
 #endif
 
         {
-            // 汎用版
+            // generic
             dx_buf.FillZero();
 
             auto node_size  = dy_buf.GetNodeSize();
@@ -557,64 +553,52 @@ public:
             
             #pragma omp parallel for
             for ( index_t node = 0; node < node_size; ++node ) {
-                RealType W[NN][2];
+                // read W
+                RealType W[1 << N];
                 for ( int i = 0; i < NN; ++i) {
-                    RealType tmp = W_ptr(node, i);
+                    W[i] = W_ptr(node, i);
                     if ( m_lut_binarize ) {
-                        tmp = (tmp > (RealType)0.5) ? (RealType)1.0 : (RealType)0.0;
+                        W[i] = (W[i] > (RealType)0.5) ? (RealType)1.0 : (RealType)0.0;
                     }
-                    W[i][0] = -tmp;
-                    W[i][1] = +tmp;
                 }
 
+                // setup dW
                 RealType dW[NN] = {0};
+
                 for ( index_t frame = 0; frame < frame_size; ++frame ) {
-                    RealType   x[N][2];
+                    // read x
+                    RealType    x[N];
                     for ( int i = 0; i < N; ++i) {
-                        RealType in_sig = x_ptr.Get(frame, input_index_ptr(node, i));
-                        if (m_binary_mode) {
-                            in_sig = in_sig > (RealType)0.5 ? (RealType)0.7 : (RealType)0.3;
+                        RealType x_tmp = (RealType)x_ptr.Get(frame, input_index_ptr(node, i));
+                        if ( m_binary_mode || DataType<BinType>::type == BB_TYPE_BIT ) {
+                            x[i] = (RealType)0.5 + (x_tmp > (RealType)0.5 ? +m_unbinarize_bias : -m_unbinarize_bias);   // unbinarize
                         }
                         else {
-                            in_sig = std::min((RealType)1.0, std::max((RealType)0.0, in_sig));  // clip
+                            x[i] = std::min((RealType)1.0, std::max((RealType)0.0, x_tmp));  // clip
                         }
-
-                        x[i][0] = (RealType)1.0 - in_sig;
-                        x[i][1] = in_sig;
                     }
 
+                    // read dy
                     RealType dy = dy_ptr.Get(frame, node);
 
-                    for (int i = 0; i < NN; ++i) {
-                        RealType dw = dy;
-                        for (int j = 0; j < N; ++j) {
-                            dw *= x[j][(i >> j) & 1];
-                        }
-                        dW[i] += dw;
-                    }
-                    
+                    // calculate
+                    RealType    dx[N];
+                    StochasticOperation_Lut_Backward<RealType>(x, dx, &dy, W, dW, N);
+
+                    // write dx
                     for (int i = 0; i < N; ++i) {
-                        RealType dx = 0;
-                        for (int j = 0; j < NN; ++j) {
-                            RealType w = W[j][(j >> i) & 1];
-                            for (int k = 0; k < N; ++k) {
-                                if (i != k) {
-                                    w *= x[k][(j >> k) & 1];
-                                }
-                            }
-                            dx += w;
-                        }
-                        dx *= dy;
-                        tmp_ptr.Set(frame, node * N + i, dx);
+                        tmp_ptr.Set(frame, node * N + i, dx[i]);
                     }
                 }
+
+                // write dW
                 for ( int i = 0; i < NN; ++i) {
                     dW_ptr(node, i) += dW[i];
                 }
             }
 
+            // integrate dx
             auto dx_ptr = dx_buf.Lock<RealType>();
-
             #pragma omp parallel for
             for ( index_t frame = 0; frame < frame_size; ++frame ) {
                 for ( index_t node = 0; node < node_size; ++node ) {
