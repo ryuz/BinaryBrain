@@ -29,7 +29,7 @@
 
 #if 0
 template<int MAX_NODE_UNIT=32>
-__device__ __forceinline__ float device_fp32_SparseBinaryLut6_NodeForward
+__device__ float device_fp32_SparseBinaryLut6_NodeForward
         (
             int             node_id,
             float           xp[6],
@@ -260,7 +260,7 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_ForwardTraining
             for ( int i = 0; i < 6; ++i) {
                 x[i] = (x_ptr[i][unit] & bit_mask) ? BINARY_ONE : BINARY_ZERO;
             }
-//            float y = device_fp32_SparseBinaryLut6_NodeForward<MAX_NODE_UNIT>(node_id, x, W);
+//          float y = device_fp32_SparseBinaryLut6_NodeForward<MAX_NODE_UNIT>(node_id, x, W);
             float y = StochasticLut<6, float, MAX_NODE_UNIT>::NodeForward(node_id, x, W);
 
             y = (y - mean) * rstd;
@@ -308,7 +308,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_ForwardTraining
 
     unsigned int const THREAD_SIZE    = 256;
     unsigned int const MAX_FRAME_UNIT = 256;
-    unsigned int const MAX_NODE_UNIT  = 16;
+    unsigned int const MAX_NODE_UNIT  = 8;
 
 #if 0
     dim3    block(MAX_FRAME_UNIT, THREAD_SIZE / MAX_FRAME_UNIT);
@@ -459,7 +459,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_ForwardInference
 
     unsigned int const THREAD_SIZE    = 256;
     unsigned int const MAX_FRAME_UNIT = 256;
-    unsigned int const MAX_NODE_UNIT  = 16;
+    unsigned int const MAX_NODE_UNIT  = 8;
 
 #if 0
     dim3    block(MAX_FRAME_UNIT, THREAD_SIZE / MAX_FRAME_UNIT);
@@ -974,7 +974,7 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_BackwardPhase1
             for ( int i = 0; i < 6; ++i) {
                 x_vec[i] = (x_ptr[i][unit] & bit) ? BINARY_ONE : BINARY_ZERO;
             }
-//            float x = device_fp32_SparseBinaryLut6_NodeForward<MAX_NODE_UNIT>(node_id, x_vec, W);
+//          float x = device_fp32_SparseBinaryLut6_NodeForward<MAX_NODE_UNIT>(node_id, x_vec, W);
             float x = StochasticLut<6, float, MAX_NODE_UNIT>::NodeForward(node_id, x_vec, W);
             float tanh_x = ((x - mean) * rstd) * gamma + beta;
 
