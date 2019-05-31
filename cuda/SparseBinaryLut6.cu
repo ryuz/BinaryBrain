@@ -13,38 +13,31 @@
 #include "StochasticLut.cuh"
 
 
-//#define BINARY_BIAS     (0.125/2)
-//#define BINARY_BIAS     0.125
-
-//#define BINARY_BIAS     0.2
-//#define BINARY_ZERO     (0.5 - BINARY_BIAS)
-//#define BINARY_ONE      (0.5 + BINARY_BIAS)
-
 
 // -------------------------------------------------
 //  Forward
 // -------------------------------------------------
 
-template<int MAX_FRAME_UNIT=32, int MAX_NODE_UNIT=32>
-__global__ void kernal_bit_fp32_SparseBinaryLut6_ForwardTraining
+template<int N=6, typename T=float, int MAX_FRAME_UNIT=32, int MAX_NODE_UNIT=32>
+__global__ void kernal_bit_SparseBinaryLut_ForwardTraining
         (
-            int   const     *x_buf,
-            int             *y_buf,
-            int   const     *input_index,
-            float const     *W_buf,
-            float           *mean_buf,
-            float           *rstd_buf,
-            float           *running_mean_buf,
-            float           *running_var_buf,
-            float           gamma,
-            float           beta,
-            float           momentum,
-            float           unbinarize_bias,
-            float           reciprocal_frame_size,
-            int             node_size,
-            int             frame_size,
-            int             frame_stride,
-            int             lut_binarize
+            int const   *x_buf,
+            int         *y_buf,
+            int const   *input_index,
+            T   const   *W_buf,
+            T           *mean_buf,
+            T           *rstd_buf,
+            T           *running_mean_buf,
+            T           *running_var_buf,
+            T           gamma,
+            T           beta,
+            T           momentum,
+            T           unbinarize_bias,
+            T           reciprocal_frame_size,
+            int         node_size,
+            int         frame_size,
+            int         frame_stride,
+            int         lut_binarize
         )
 {
     int node_id = threadIdx.y;
@@ -52,24 +45,24 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_ForwardTraining
     int id      = threadIdx.x;
     int id_step = blockDim.x;
 
-    __shared__  float       sbuf[MAX_NODE_UNIT][MAX_FRAME_UNIT];
+    __shared__  T           sbuf[MAX_NODE_UNIT][MAX_FRAME_UNIT];
 
-    __shared__  float       W[64][MAX_NODE_UNIT];
-                int   const *x_ptr[6];
+    __shared__  T           W[(1 << N)][MAX_NODE_UNIT];
+                int   const *x_ptr[N];
                 int         *y_ptr;
     
     if ( node < node_size ) {
         // read W
-        for ( int i = id; i < 64; i += id_step ) {
-            W[i][node_id] = W_buf[node * 64 + i];
+        for ( int i = id; i < (1 << N); i += id_step ) {
+            W[i][node_id] = W_buf[node * (1 << N) + i];
             if ( lut_binarize ) {
                 W[i][node_id] = W[i][node_id] > 0.5 ? 1.0 : 0.0;
             }
         }
         
         // read input index
-        for ( int i = 0; i < 6; ++i ) {
-            x_ptr[i] = &x_buf[frame_stride * input_index[6*node + i]];
+        for ( int i = 0; i < N; ++i ) {
+            x_ptr[i] = &x_buf[frame_stride * input_index[N*node + i]];
         }
                      
         y_ptr = &y_buf[node * frame_stride];
@@ -78,18 +71,18 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_ForwardTraining
     __syncthreads();
     
     // ïΩãœÇ∆ï™éUåvë™
-    float s1 = 0, c1 = 0, y1, t1;
-    float s2 = 0, c2 = 0, y2, t2;
+    T s1 = 0, c1 = 0, y1, t1;
+    T s2 = 0, c2 = 0, y2, t2;
     for (int frame = id; frame < frame_size; frame += id_step) {
         if ( node < node_size ) {
             // ForwardåvéZ
             int bit  = (1 << (frame & 0x1f));
             int unit = (frame >> 5);
-            float x[6];
-            for ( int i = 0; i < 6; ++i) {
+            T x[N];
+            for ( int i = 0; i < N; ++i) {
                 x[i] = 0.5 + ((x_ptr[i][unit] & bit) ? +unbinarize_bias : -unbinarize_bias);
             }
-            float y = StochasticLut<6, float, MAX_NODE_UNIT>::NodeForward(node_id, x, W);
+            T y = StochasticLut<N, T, MAX_NODE_UNIT>::NodeForward(node_id, x, W);
 
             // èWåv
             y1 = y - c1;
@@ -106,10 +99,10 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_ForwardTraining
 
     s1 = device_fp32_LocalSum(s1, sbuf[node_id]);
     s2 = device_fp32_LocalSum(s2, sbuf[node_id]);
-    float mean = s1 * reciprocal_frame_size;
-    float var = max(1.0e-7f, (s2 * reciprocal_frame_size) - (mean * mean));
+    T mean = s1 * reciprocal_frame_size;
+    T var = max(1.0e-7f, (s2 * reciprocal_frame_size) - (mean * mean));
   
-    float rstd = rsqrt(var);
+    T rstd = rsqrt(var);
 
     // èëÇ´çûÇ›
     if (id == 0) {
@@ -131,11 +124,11 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_ForwardTraining
         int y_mask = 0;
         if ( node < node_size && frame < frame_size) {
             // ForwardåvéZ
-            float x[6];
-            for ( int i = 0; i < 6; ++i) {
+            T x[N];
+            for ( int i = 0; i < N; ++i) {
                 x[i] = 0.5 + ((x_ptr[i][unit] & bit_mask)  ? +unbinarize_bias : -unbinarize_bias);
             }
-            float y = StochasticLut<6, float, MAX_NODE_UNIT>::NodeForward(node_id, x, W);
+            T y = StochasticLut<N, T, MAX_NODE_UNIT>::NodeForward(node_id, x, W);
 
             y = (y - mean) * rstd;
             y = y * gamma + beta;
@@ -197,7 +190,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_ForwardTraining
     block.y = std::min(block.y, MAX_NODE_UNIT);
     dim3    grid(1, (node_size + (block.y - 1)) / block.y);
     
-    kernal_bit_fp32_SparseBinaryLut6_ForwardTraining<MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
+    kernal_bit_SparseBinaryLut_ForwardTraining<6, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
             dev_x_buf,
             dev_y_buf,
             dev_input_index,
@@ -222,27 +215,27 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_ForwardTraining
 }
 
 
+
 // -------------------------------------------------
 //  Forward Inference
 // -------------------------------------------------
 
-
-template<int MAX_FRAME_UNIT=32, int MAX_NODE_UNIT=32>
-__global__ void kernal_bit_fp32_SparseBinaryLut6_ForwardInference
+template<int N=6, typename T=float, int MAX_FRAME_UNIT=32, int MAX_NODE_UNIT=32>
+__global__ void kernal_bit_SparseBinaryLut_ForwardInference
         (
-            int   const     *x_buf,
-            int             *y_buf,
-            int   const     *input_index,
-            float const     *W_buf,
-            float const     *running_mean_buf,
-            float const     *running_var_buf,
-            float           gamma,
-            float           beta,
-            float           unbinarize_bias,
-            int             node_size,
-            int             frame_size,
-            int             frame_stride,
-            int             lut_binarize
+            int const   *x_buf,
+            int         *y_buf,
+            int const   *input_index,
+            T   const   *W_buf,
+            T   const   *running_mean_buf,
+            T   const   *running_var_buf,
+            T           gamma,
+            T           beta,
+            T           unbinarize_bias,
+            int         node_size,
+            int         frame_size,
+            int         frame_stride,
+            int         lut_binarize
         )
 {
     int node_id = threadIdx.y;
@@ -250,22 +243,22 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_ForwardInference
     int id      = threadIdx.x;
     int id_step = blockDim.x;
 
-    __shared__  float       W[64][MAX_NODE_UNIT];
-                int   const *x_ptr[6];
+    __shared__  T           W[(1 << N)][MAX_NODE_UNIT];
+                int const   *x_ptr[N];
                 int         *y_ptr;
     
     if ( node < node_size ) {
         // read W
-        for ( int i = id; i < 64; i += id_step ) {
-            W[i][node_id] = W_buf[node * 64 + i];
+        for ( int i = id; i < (1 << N); i += id_step ) {
+            W[i][node_id] = W_buf[node * (1 << N) + i];
             if ( lut_binarize ) {
                 W[i][node_id] = W[i][node_id] > 0.5 ? 1.0 : 0.0;
             }
         }
         
         // read input index
-        for ( int i = 0; i < 6; ++i ) {
-            x_ptr[i] = &x_buf[frame_stride * input_index[6*node + i]];
+        for ( int i = 0; i < N; ++i ) {
+            x_ptr[i] = &x_buf[frame_stride * input_index[N * node + i]];
         }
                      
         y_ptr = &y_buf[node * frame_stride];
@@ -274,9 +267,9 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_ForwardInference
     __syncthreads();
     
     if ( node < node_size ) {
-        float mean  = running_mean_buf[node];
-        float var   = running_var_buf[node];
-        float rstd = 1.0 / (sqrt(var) + 1.0e-7);
+        T   mean  = running_mean_buf[node];
+        T   var   = running_var_buf[node];
+        T   rstd = 1.0 / (sqrt(var) + 1.0e-7);
 
         int loop_size = ((frame_size + blockDim.x - 1) & ~(blockDim.x - 1));
         for ( int frame = id; frame < loop_size; frame += id_step) {
@@ -287,11 +280,11 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_ForwardInference
             int y_mask = 0;
             if ( node < node_size && frame < frame_size) {
                 // ForwardåvéZ
-                float x[6];
-                for ( int i = 0; i < 6; ++i) {
+                T   x[N];
+                for ( int i = 0; i < N; ++i) {
                     x[i] = 0.5 + ((x_ptr[i][unit] & bit_mask) ? +unbinarize_bias : -unbinarize_bias);
                 }
-                float y = StochasticLut<6, float, MAX_NODE_UNIT>::NodeForward(node_id, x, W);
+                T   y = StochasticLut<N, T, MAX_NODE_UNIT>::NodeForward(node_id, x, W);
 
                 y = ((y - mean) * rstd) * gamma + beta;
 
@@ -350,7 +343,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_ForwardInference
     block.y = std::min(block.y, MAX_NODE_UNIT);
     dim3    grid(1, (node_size + (block.y - 1)) / block.y);
     
-    kernal_bit_fp32_SparseBinaryLut6_ForwardInference<MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
+    kernal_bit_SparseBinaryLut_ForwardInference<6, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
             dev_x_buf,
             dev_y_buf,
             dev_input_index,
@@ -377,27 +370,27 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_ForwardInference
 // -------------------------------------------------
 
 
-template<int MAX_FRAME_UNIT=256, int MAX_NODE_UNIT=16>
-__global__ void kernal_bit_fp32_SparseBinaryLut6_BackwardPhase0
+template<int N=6, typename T=float, int MAX_FRAME_UNIT=256, int MAX_NODE_UNIT=16>
+__global__ void kernal_bit_SparseBinaryLut_BackwardPhase0
         (
-            int   const     *x_buf,
-            float const     *dy_buf,
-            int   const     *input_index,
-            float const     *W_buf,
-            float           *dW_buf,
-            float const     *mean_buf,
-            float const     *rstd_buf,
-            float           *dmean_buf,
-            float           *dvar_buf,
-            float           gamma,
-            float           beta,
-            float           unbinarize_bias,
-            float           reciprocal_frame_size,
-            int             node_size,
-            int             frame_size,
-            int             frame_stride,
-            int             bin_frame_stride,
-            int             lut_binarize
+            int const   *x_buf,
+            T   const   *dy_buf,
+            int const   *input_index,
+            T   const   *W_buf,
+            T           *dW_buf,
+            T   const   *mean_buf,
+            T   const   *rstd_buf,
+            T           *dmean_buf,
+            T           *dvar_buf,
+            T           gamma,
+            T           beta,
+            T           unbinarize_bias,
+            T           reciprocal_frame_size,
+            int         node_size,
+            int         frame_size,
+            int         frame_stride,
+            int         bin_frame_stride,
+            int         lut_binarize
         )
 {
 
@@ -406,24 +399,24 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_BackwardPhase0
     int id      = threadIdx.x;
     int id_step = blockDim.x;
 
-    __shared__  float       sbuf[MAX_NODE_UNIT][MAX_FRAME_UNIT];
-    __shared__  float       W[64][MAX_NODE_UNIT];
-                int   const *x_ptr[6];
-                float const *dy_ptr;
+    __shared__  T           sbuf[MAX_NODE_UNIT][MAX_FRAME_UNIT];
+    __shared__  T           W[(1 << N)][MAX_NODE_UNIT];
+                int const   *x_ptr[N];
+                T   const   *dy_ptr;
     
     // initialize dW
     if ( node < node_size ) {
         // read W
-        for ( int i = id; i < 64; i += id_step ) {
-            W[i][node_id] = W_buf[node * 64 + i];
+        for ( int i = id; i < (1 << N); i += id_step ) {
+            W[i][node_id] = W_buf[node * (1 << N) + i];
             if ( lut_binarize ) {
                 W[i][node_id] = W[i][node_id] > 0.5 ? 1.0 : 0.0;
             }
         }
         
         // init pointer
-        for ( int i = 0; i < 6; ++i ) {
-            int input_node = input_index[6*node + i];
+        for ( int i = 0; i < N; ++i ) {
+            int input_node = input_index[N*node + i];
             x_ptr[i]  = &x_buf[input_node * bin_frame_stride];
         }
 
@@ -433,38 +426,38 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_BackwardPhase0
     __syncthreads();
     
 
-    float mean;
-    float rstd;
+    T   mean;
+    T   rstd;
     if ( node < node_size ) {
         mean = mean_buf[node];
         rstd = rstd_buf[node];
     }
-    float rstd2 = rstd * rstd;
+    T   rstd2 = rstd * rstd;
 
-    float dmeanx = 0;
-    float dstd   = 0;
+    T   dmeanx = 0;
+    T   dstd   = 0;
     for ( int frame = id; frame < frame_size; frame += id_step ) {
         if ( node < node_size ) {
             int bit  = (1 << (frame & 0x1f));
             int unit = (frame >> 5);
             
             // x ÇçƒåvéZ
-            float x_vec[6];
-            for ( int i = 0; i < 6; ++i) {
+            T   x_vec[N];
+            for ( int i = 0; i < N; ++i) {
                 x_vec[i] = 0.5 +((x_ptr[i][unit] & bit)  ? +unbinarize_bias : -unbinarize_bias);
             }
-            float x = StochasticLut<6, float, MAX_NODE_UNIT>::NodeForward(node_id, x_vec, W);
-            float tanh_x = ((x - mean) * rstd) * gamma + beta;
+            T   x = StochasticLut<N, T, MAX_NODE_UNIT>::NodeForward(node_id, x_vec, W);
+            T   tanh_x = ((x - mean) * rstd) * gamma + beta;
             
             // hard-tanh
-            float dy = dy_ptr[frame];
+            T   dy = dy_ptr[frame];
             if (tanh_x <= 0.0) { dy = 0.0; }
             if (tanh_x >= 1.0) { dy = 0.0; }
 
             // BatchNorm
-            float xc = x - mean;
-    //      float xn = xc * rstd;
-            float dxn = gamma * dy;
+            T   xc = x - mean;
+    //      T   xn = xc * rstd;
+            T   dxn = gamma * dy;
 
             dstd   += -(dxn * xc * rstd2);
             dmeanx += -(dxn * rstd);
@@ -474,8 +467,8 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_BackwardPhase0
     dstd   = device_fp32_LocalSum(dstd,   sbuf[node_id]);
     dmeanx = device_fp32_LocalSum(dmeanx, sbuf[node_id]);
 
-    float dvar  = dstd * rstd;
-    float dmean = (dmeanx - (mean * dvar)) * reciprocal_frame_size;
+    T   dvar  = dstd * rstd;
+    T   dmean = (dmeanx - (mean * dvar)) * reciprocal_frame_size;
 
     if ( node < node_size ) {
         if ( id == 0 ) {
@@ -485,29 +478,30 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_BackwardPhase0
     }  
 }
 
-template<int MAX_FRAME_UNIT=256, int MAX_NODE_UNIT=16>
-__global__ void kernal_bit_fp32_SparseBinaryLut6_BackwardPhase1
+
+template<int N=6, typename T=float, int MAX_FRAME_UNIT=256, int MAX_NODE_UNIT=16>
+__global__ void kernal_bit_SparseBinaryLut_BackwardPhase1
         (
-            int   const     *x_buf,
-            float const     *dy_buf,
-            float           *dx_buf,
-            int   const     *input_index,
-            float const     *W_buf,
-            float           *dW_buf,
-            float const     *mean_buf,
-            float const     *rstd_buf,
-            float const     *dmean_buf,
-            float const     *dvar_buf,
-            float           gamma,
-            float           beta,
-            float           unbinarize_bias,
-            float           reciprocal_frame_size,
-            int             node_size,
-            int             frame_size,
-            int             x_frame_stride,
-            int             dy_frame_stride,
-            int             dx_frame_stride,
-            int             lut_binarize
+            int const   *x_buf,
+            T   const   *dy_buf,
+            T           *dx_buf,
+            int const   *input_index,
+            T   const   *W_buf,
+            T           *dW_buf,
+            T   const   *mean_buf,
+            T   const   *rstd_buf,
+            T   const   *dmean_buf,
+            T   const   *dvar_buf,
+            T           gamma,
+            T           beta,
+            T           unbinarize_bias,
+            T           reciprocal_frame_size,
+            int         node_size,
+            int         frame_size,
+            int         x_frame_stride,
+            int         dy_frame_stride,
+            int         dx_frame_stride,
+            int         lut_binarize
         )
 {
     int node_id = threadIdx.y;
@@ -515,44 +509,44 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_BackwardPhase1
     int id      = threadIdx.x;
     int id_step = blockDim.x;
 
-    __shared__  float       sbuf[MAX_NODE_UNIT][MAX_FRAME_UNIT];
-    __shared__  float       dW_prev[64][MAX_NODE_UNIT];
-    __shared__  float       W[64][MAX_NODE_UNIT];
-                float       dW[64];
-                int   const *x_ptr[6];
-                float const *dy_ptr;
+    __shared__  T           sbuf[MAX_NODE_UNIT][MAX_FRAME_UNIT];
+    __shared__  T           dW_prev[(1 << N)][MAX_NODE_UNIT];
+    __shared__  T           W[(1 << N)][MAX_NODE_UNIT];
+                T           dW[(1 << N)];
+                int const   *x_ptr[N];
+                T   const   *dy_ptr;
     
     // initialize dW
     if ( node < node_size ) {
-        for ( int i = 0; i < 64; ++i) {
+        for ( int i = 0; i < (1 << N); ++i) {
             dW[i] = 0;
         }
 
-        for ( int i = id; i < 64; i += id_step ) {
-            dW_prev[i][node_id] = dW_buf[node * 64 + i];
+        for ( int i = id; i < (1 << N); i += id_step ) {
+            dW_prev[i][node_id] = dW_buf[node * (1 << N) + i];
         }
 
         // read W
-        for ( int i = id; i < 64; i += id_step ) {
-            W[i][node_id] = W_buf[node * 64 + i];
+        for ( int i = id; i < (1 << N); i += id_step ) {
+            W[i][node_id] = W_buf[node * (1 << N) + i];
             if ( lut_binarize ) {
                 W[i][node_id] = W[i][node_id] > 0.5 ? 1.0 : 0.0;
             }
         }
         
         // init pointer
-        for ( int i = 0; i < 6; ++i ) {
-            int input_node = input_index[6*node + i];
+        for ( int i = 0; i < N; ++i ) {
+            int input_node = input_index[N*node + i];
             x_ptr[i]  = &x_buf[input_node * x_frame_stride];
         }
 
         dy_ptr = &dy_buf[node * dy_frame_stride];
     }
     
-    float   mean;
-    float   rstd;
-    float   dmean;
-    float   dvar;
+    T   mean;
+    T   rstd;
+    T   dmean;
+    T   dvar;
     if ( node < node_size ) {
         mean  = mean_buf[node];
         rstd  = rstd_buf[node];
@@ -566,34 +560,34 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_BackwardPhase1
             int unit = (frame >> 5);
             
             // x ÇçƒåvéZ
-            float x_vec[6];
-            for ( int i = 0; i < 6; ++i) {
+            T   x_vec[N];
+            for ( int i = 0; i < N; ++i) {
                 x_vec[i] = 0.5 + ((x_ptr[i][unit] & bit) ? +unbinarize_bias : -unbinarize_bias);
             }
-            float x = StochasticLut<6, float, MAX_NODE_UNIT>::NodeForward(node_id, x_vec, W);
-            float tanh_x = ((x - mean) * rstd) * gamma + beta;
+            T   x = StochasticLut<N, T, MAX_NODE_UNIT>::NodeForward(node_id, x_vec, W);
+            T   tanh_x = ((x - mean) * rstd) * gamma + beta;
 
             // hard-tanh
-            float dy = dy_ptr[frame];
+            T   dy = dy_ptr[frame];
             if (tanh_x <= 0.0) { dy = 0.0; }
             if (tanh_x >= 1.0) { dy = 0.0; }
 
-            float dxn = dy * gamma;
-            float dxc = dxn * rstd;
-            float dx  = dxc + dmean + (x * dvar * reciprocal_frame_size);
+            T   dxn = dy * gamma;
+            T   dxc = dxn * rstd;
+            T   dx  = dxc + dmean + (x * dvar * reciprocal_frame_size);
 
-            StochasticLut<6, float, MAX_NODE_UNIT>::NodeBackward(node_id, x_vec, dx, &dx_buf[node*6*dx_frame_stride + frame], W, dW, dx_frame_stride);
+            StochasticLut<N, T, MAX_NODE_UNIT>::NodeBackward(node_id, x_vec, dx, &dx_buf[node*N*dx_frame_stride + frame], W, dW, dx_frame_stride);
         }
     }
 
-    for ( int i = 0; i < 64; ++i ) {
+    for ( int i = 0; i < (1 << N); ++i ) {
         dW[i] = device_fp32_LocalSum(dW[i], sbuf[node_id]);
     }
 
     if ( node < node_size ) {
         if ( id == 0 ) {
-            for ( int i = 0; i < 64; ++i) {
-                dW_buf[node*64 + i] = dW[i] + dW_prev[i][node_id];
+            for ( int i = 0; i < (1 << N); ++i) {
+                dW_buf[node*(1 << N) + i] = dW[i] + dW_prev[i][node_id];
             }
         }
     }
@@ -649,7 +643,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_Backward
         block.x = std::min(block.x, MAX_FRAME_UNIT);
         block.y = std::min(block.y, MAX_NODE_UNIT);
         dim3    grid(1, (output_node_size + (block.y - 1)) / block.y);
-        kernal_bit_fp32_SparseBinaryLut6_BackwardPhase0<MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>
+        kernal_bit_SparseBinaryLut_BackwardPhase0<6, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>
             (
                 dev_x_buf,
                 dev_dy_buf,
@@ -698,7 +692,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_Backward
             block.x = std::min(block.x, MAX_FRAME_UNIT);
             block.y = std::min(block.y, MAX_NODE_UNIT);
             dim3    grid(1, (output_node_size + (block.y - 1)) / block.y);
-            kernal_bit_fp32_SparseBinaryLut6_BackwardPhase1<MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>
+            kernal_bit_SparseBinaryLut_BackwardPhase1<6, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>
                 (
                     dev_x_buf  + (frame_offset / 32),
                     dev_dy_buf + frame_offset,
