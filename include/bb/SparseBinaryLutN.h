@@ -519,7 +519,7 @@ public:
         }
 
         // tmp buffer
-        index_t tmp_frame_size = m_max_tmp_mem_size / (sizeof(float) *  GetShapeSize(m_output_shape)*N);
+        index_t tmp_frame_size = m_max_tmp_mem_size / (sizeof(float) * GetShapeSize(m_output_shape)*N);
         tmp_frame_size = ((tmp_frame_size + 31) & ~0x1f);
         tmp_frame_size = std::min(tmp_frame_size, dy_buf.GetFrameSize());
         FrameBuffer tmp_buf(DataType<RealType>::type, tmp_frame_size, GetShapeSize(m_output_shape)*N);

@@ -10,12 +10,21 @@ struct StochasticLut
 {
     static __device__ __forceinline__ T NodeForward
         (
-            int             node_id,
+            int         node_id,
             T           xp[],
             T   const   W[][MAX_NODE_UNIT]
         )
     {
-        return 0;
+        T y = 0;
+        for (int i = 0; i < (1 << N); ++i) {
+            T w = W[i][node_id];
+            for (int j = 0; j < N; ++j) {
+                w *= ((i >> j) & 1) ? xp[j] : ((T)1.0 - xp[j]);
+            }
+            y += w;
+        }
+
+        return y;
     }
 
     static __device__ __forceinline__ void NodeBackward

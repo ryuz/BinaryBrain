@@ -259,11 +259,16 @@ void SparseBinaryLutNTest_cmp(int const input_node_size, int const output_node_s
 
 TEST(SparseBinaryLutNTest, testSparseBinaryLutN_cmp)
 {
-    SparseBinaryLutNTest_cmp(6,    1,       8, 2);
+    SparseBinaryLutNTest_cmp(6,    16, 128, 2);
+    return;
+
+    //  SparseBinaryLutNTest_cmp(1024, 4096, 4096, 2);
+
+    SparseBinaryLutNTest_cmp(6,    1,      64, 2);
     SparseBinaryLutNTest_cmp(6,    1,    1024, 2);
     SparseBinaryLutNTest_cmp(6,    1024,    1, 2);
     SparseBinaryLutNTest_cmp(6,    2,      32, 2);
-//  SparseBinaryLutNTest_cmp(6,    1024, 1024, 2);
+    SparseBinaryLutNTest_cmp(6,    1024, 1024, 2);
 }
 
 #endif
