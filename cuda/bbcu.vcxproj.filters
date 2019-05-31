@@ -104,5 +104,8 @@
     <ClInclude Include="..\include\bb\StochasticOperation.h">
       <Filter>ソース ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="StochasticLut.cuh">
+      <Filter>ヘッダファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

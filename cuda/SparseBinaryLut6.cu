@@ -10,10 +10,12 @@
 
 
 #include "Common.cuh"
+#include "StochasticLut.cuh"
 
 
 //#define BINARY_BIAS     (0.125/2)
-#define BINARY_BIAS     0.125
+//#define BINARY_BIAS     0.125
+#define BINARY_BIAS     0.2
 #define BINARY_ZERO     (0.5 - BINARY_BIAS)
 #define BINARY_ONE      (0.5 + BINARY_BIAS)
 
@@ -25,8 +27,9 @@
 //  Forward
 // -------------------------------------------------
 
+#if 0
 template<int MAX_NODE_UNIT=32>
-__device__ float device_fp32_SparseBinaryLut6_NodeForward
+__device__ __forceinline__ float device_fp32_SparseBinaryLut6_NodeForward
         (
             int             node_id,
             float           xp[6],
@@ -139,6 +142,8 @@ __device__ float device_fp32_SparseBinaryLut6_NodeForward
 
     return y;
 }
+#endif
+
 
 
 template<int MAX_FRAME_UNIT=32, int MAX_NODE_UNIT=32>
@@ -205,7 +210,8 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_ForwardTraining
             for ( int i = 0; i < 6; ++i) {
                 x[i] = (x_ptr[i][unit] & bit) ? BINARY_ONE : BINARY_ZERO;
             }
-            float y = device_fp32_SparseBinaryLut6_NodeForward<MAX_NODE_UNIT>(node_id, x, W);
+//          float y = device_fp32_SparseBinaryLut6_NodeForward<MAX_NODE_UNIT>(node_id, x, W);
+            float y = StochasticLut<6, float, MAX_NODE_UNIT>::NodeForward(node_id, x, W);
 
 //          printf("[SparseBinaryLut6] node=%d frame=%d lut_y=%f\n", node, frame, y);
 
@@ -254,7 +260,8 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_ForwardTraining
             for ( int i = 0; i < 6; ++i) {
                 x[i] = (x_ptr[i][unit] & bit_mask) ? BINARY_ONE : BINARY_ZERO;
             }
-            float y = device_fp32_SparseBinaryLut6_NodeForward<MAX_NODE_UNIT>(node_id, x, W);
+//            float y = device_fp32_SparseBinaryLut6_NodeForward<MAX_NODE_UNIT>(node_id, x, W);
+            float y = StochasticLut<6, float, MAX_NODE_UNIT>::NodeForward(node_id, x, W);
 
             y = (y - mean) * rstd;
             y = y * gamma + beta;
@@ -299,7 +306,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_ForwardTraining
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
-    unsigned int const THREAD_SIZE    = 512;
+    unsigned int const THREAD_SIZE    = 256;
     unsigned int const MAX_FRAME_UNIT = 256;
     unsigned int const MAX_NODE_UNIT  = 16;
 
@@ -409,7 +416,8 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_ForwardInference
                 for ( int i = 0; i < 6; ++i) {
                     x[i] = (x_ptr[i][unit] & bit_mask) ? BINARY_ONE : BINARY_ZERO;
                 }
-                float y = device_fp32_SparseBinaryLut6_NodeForward<MAX_NODE_UNIT>(node_id, x, W);
+//              float y = device_fp32_SparseBinaryLut6_NodeForward<MAX_NODE_UNIT>(node_id, x, W);
+                float y = StochasticLut<6, float, MAX_NODE_UNIT>::NodeForward(node_id, x, W);
 
                 y = ((y - mean) * rstd) * gamma + beta;
 
@@ -449,7 +457,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_ForwardInference
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
-    unsigned int const THREAD_SIZE    = 512;
+    unsigned int const THREAD_SIZE    = 256;
     unsigned int const MAX_FRAME_UNIT = 256;
     unsigned int const MAX_NODE_UNIT  = 16;
 
@@ -492,6 +500,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_ForwardInference
 //  Backward
 // -------------------------------------------------
 
+#if 0
 template<int MAX_NODE_UNIT=32>
 __device__ void device_fp32_SparseBinaryLut6_NodeBackward
         (
@@ -766,6 +775,7 @@ __device__ void device_fp32_SparseBinaryLut6_NodeBackward
     if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
     dx_ptr[5 * frame_stride] = dx;
 }
+#endif
 
 
 #if 1
@@ -845,7 +855,8 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_BackwardPhase0
             for ( int i = 0; i < 6; ++i) {
                 x_vec[i] = (x_ptr[i][unit] & bit) ? BINARY_ONE : BINARY_ZERO;
             }
-            float x = device_fp32_SparseBinaryLut6_NodeForward<MAX_NODE_UNIT>(node_id, x_vec, W);
+//            float x = device_fp32_SparseBinaryLut6_NodeForward<MAX_NODE_UNIT>(node_id, x_vec, W);
+            float x = StochasticLut<6, float, MAX_NODE_UNIT>::NodeForward(node_id, x_vec, W);
             float tanh_x = ((x - mean) * rstd) * gamma + beta;
             
             // hard-tanh
@@ -963,7 +974,8 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_BackwardPhase1
             for ( int i = 0; i < 6; ++i) {
                 x_vec[i] = (x_ptr[i][unit] & bit) ? BINARY_ONE : BINARY_ZERO;
             }
-            float x = device_fp32_SparseBinaryLut6_NodeForward<MAX_NODE_UNIT>(node_id, x_vec, W);
+//            float x = device_fp32_SparseBinaryLut6_NodeForward<MAX_NODE_UNIT>(node_id, x_vec, W);
+            float x = StochasticLut<6, float, MAX_NODE_UNIT>::NodeForward(node_id, x_vec, W);
             float tanh_x = ((x - mean) * rstd) * gamma + beta;
 
             // hard-tanh
@@ -975,7 +987,8 @@ __global__ void kernal_bit_fp32_SparseBinaryLut6_BackwardPhase1
             float dxc = dxn * rstd;
             float dx  = dxc + dmean + (x * dvar * reciprocal_frame_size);
 
-            device_fp32_SparseBinaryLut6_NodeBackward<MAX_NODE_UNIT>(node_id, x_vec, dx, &dx_buf[node*6*dx_frame_stride + frame], W, dW, dx_frame_stride);
+//          device_fp32_SparseBinaryLut6_NodeBackward<MAX_NODE_UNIT>(node_id, x_vec, dx, &dx_buf[node*6*dx_frame_stride + frame], W, dW, dx_frame_stride);
+            StochasticLut<6, float, MAX_NODE_UNIT>::NodeBackward(node_id, x_vec, dx, &dx_buf[node*6*dx_frame_stride + frame], W, dW, dx_frame_stride);
         }
     }
 
