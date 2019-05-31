@@ -23,9 +23,9 @@
 namespace bb {
 
 
-// Sparce Mini-MLP(Multilayer perceptron) Layer [Affine-ReLU-Affine-BatchNorm-Binarize]
+// Sparce LUT (Discrite version)
 template <int N = 6, typename BinType = float, typename RealType = float>
-class SparseLutN : public SparseLayer
+class SparseLutDiscreteN : public SparseLayer
 {
     using _super = SparseLayer;
 
@@ -46,7 +46,7 @@ public:
     };
 
 protected:
-    SparseLutN(create_t const &create)
+    SparseLutDiscreteN(create_t const &create)
     {
         typename StochasticLutN<N, BinType, RealType>::create_t lut_create;
         lut_create.output_shape = create.output_shape;
@@ -75,14 +75,14 @@ protected:
 
 
 public:
-    ~SparseLutN() {}
+    ~SparseLutDiscreteN() {}
 
-    static std::shared_ptr< SparseLutN > Create(create_t const &create)
+    static std::shared_ptr< SparseLutDiscreteN > Create(create_t const &create)
     {
-        return std::shared_ptr< SparseLutN >(new SparseLutN(create));
+        return std::shared_ptr< SparseLutDiscreteN >(new SparseLutDiscreteN(create));
     }
 
-    static std::shared_ptr< SparseLutN > Create(indices_t output_shape, std::string connection = "random", std::uint64_t seed = 1)
+    static std::shared_ptr< SparseLutDiscreteN > Create(indices_t output_shape, std::string connection = "random", std::uint64_t seed = 1)
     {
         create_t create;
         create.output_shape = output_shape;
@@ -90,7 +90,7 @@ public:
         return Create(create);
     }
 
-    static std::shared_ptr< SparseLutN > Create(index_t output_node_size, std::string connection = "random", std::uint64_t seed = 1)
+    static std::shared_ptr< SparseLutDiscreteN > Create(index_t output_node_size, std::string connection = "random", std::uint64_t seed = 1)
     {
         return Create(indices_t({output_node_size}), connection, seed);
     }
