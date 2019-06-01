@@ -28,7 +28,8 @@ inline void simd_fp32_StochasticLut6_Forward
         Tensor_<std::int32_t>   input_index,
         std::shared_ptr<Tensor> W,
         bool                    binary_mode,
-        bool                    lut_binarize
+        bool                    lut_binarize,
+        float                   unbinarize_bias
     )
 {
     auto x_ptr           = x_buf.LockConst<float>();
@@ -46,7 +47,7 @@ inline void simd_fp32_StochasticLut6_Forward
         for ( int i = 0; i < 64; ++i ) {
             float W_val = W_ptr(node, i);
             if ( lut_binarize ) {
-                W_val = W_val > 0.5f ? 1.0f : 0.0f;
+                W_val = ((W_val > 0.5f) ? 1.0f : 0.0f);
             }
             W[i] = _mm256_set1_ps(W_val);
         }
@@ -62,8 +63,14 @@ inline void simd_fp32_StochasticLut6_Forward
             __m256   xp[6], xn[6];
             for ( int i = 0; i < 6; ++i) {
                 xp[i] = _mm256_loadu_ps(&x_addr[i][frame]);
-                xp[i] = _mm256_min_ps(xp[i], _mm256_set1_ps(1.0));
-                xp[i] = _mm256_max_ps(xp[i], _mm256_set1_ps(0.0));
+               if ( binary_mode ) {
+                    __m256 mask =  _mm256_cmp_ps(xp[i], _mm256_set1_ps(0.5f), _CMP_GT_OS);
+                    xp[i] = _mm256_blendv_ps(_mm256_set1_ps(0.5f - unbinarize_bias), _mm256_set1_ps(0.5f + unbinarize_bias), mask);
+                }
+                else {
+                    xp[i] = _mm256_min_ps(xp[i], _mm256_set1_ps(1.0f));
+                    xp[i] = _mm256_max_ps(xp[i], _mm256_set1_ps(0.0f));
+               }
                 xn[i] = _mm256_sub_ps(_mm256_set1_ps(1.0f), xp[i]);
             }
 
@@ -164,15 +171,16 @@ inline void simd_fp32_StochasticLut6_Backward
         Tensor_<std::int32_t>   input_index,
         std::shared_ptr<Tensor> W,
         std::shared_ptr<Tensor> dW,
+        float                   unbinarize_bias,
         bool                    binary_mode,
         bool                    lut_binarize
     )
 {
     dx_buf.FillZero();
 
-    auto input_node_size  = x_buf.GetNodeSize();
-    auto output_node_size = dy_buf.GetNodeSize();
-    auto frame_size       = dy_buf.GetFrameStride() / (index_t)sizeof(float);
+    index_t input_node_size  = x_buf.GetNodeSize();
+    index_t output_node_size = dy_buf.GetNodeSize();
+    index_t frame_size       = dy_buf.GetFrameStride() / sizeof(float);
 
     // 並列化用tmpバッファ確保
     FrameBuffer dx_tmp(BB_TYPE_FP32, dy_buf.GetFrameSize(), output_node_size * 6);
@@ -219,8 +227,14 @@ inline void simd_fp32_StochasticLut6_Backward
             __m256   xp[6], xn[6];
             for ( int i = 0; i < 6; ++i) {
                 xp[i] = _mm256_loadu_ps(&x_addr[i][frame]);
-                xp[i] = _mm256_min_ps(xp[i], _mm256_set1_ps(1.0));
-                xp[i] = _mm256_max_ps(xp[i], _mm256_set1_ps(0.0));
+                if ( binary_mode ) {
+                    __m256 mask =  _mm256_cmp_ps(xp[i], _mm256_set1_ps(0.5f), _CMP_GT_OS);
+                    xp[i] = _mm256_blendv_ps(_mm256_set1_ps(0.5f - unbinarize_bias), _mm256_set1_ps(0.5f + unbinarize_bias), mask);
+                }
+                else {
+                    xp[i] = _mm256_min_ps(xp[i], _mm256_set1_ps(1.0));
+                    xp[i] = _mm256_max_ps(xp[i], _mm256_set1_ps(0.0));
+                }
                 xn[i] = _mm256_sub_ps(_mm256_set1_ps(1.0f), xp[i]);
             }
 

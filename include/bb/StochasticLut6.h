@@ -457,8 +457,6 @@ public:
                     (int          )(m_y_buf.GetFrameStride() / sizeof(float)),
                     (int          )(m_binary_mode ? 1 : 0),
                     (int          )(m_lut_binarize ? 1 : 0),
-                    (float        )0,
-                    (float        )1,
                     (float        )0.2f
                 );
 
@@ -748,7 +746,8 @@ public:
                     (int          )m_dx_buf.GetFrameSize(),
                     (int          )(m_dx_buf.GetFrameStride() / sizeof(float)),
                     (int          )(m_binary_mode ? 1 : 0),
-                    (int          )(m_lut_binarize ? 1 : 0)
+                    (int          )(m_lut_binarize ? 1 : 0),
+                    (float        )0.2
                 );
        
             return m_dx_buf;

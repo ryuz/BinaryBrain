@@ -15,6 +15,8 @@
 #include <vector>
 #include "bb/LutLayer.h"
 #include "bb/StochasticOperation.h"
+#include "bb/StochasticLutSimd.h"
+
 
 namespace bb {
 
@@ -37,9 +39,6 @@ protected:
     std::string             m_connection;
 
     RealType                m_unbinarize_bias = (RealType)0.2;
-
-    RealType                m_param_min = (RealType)0.0;
-    RealType                m_param_max = (RealType)1.0;
 
     indices_t               m_input_shape;
     indices_t               m_output_shape;
@@ -245,7 +244,7 @@ public:
 //      m_W->Resize(DataType<RealType>::type, m_output_node_size, NN);  m_W->InitUniformDistribution(0.4, 0.6, m_mt());
 //      m_W->Resize(DataType<RealType>::type, m_output_node_size, NN);  m_W->InitUniformDistribution(0.0, 1.0, m_mt());
 //      m_W->Resize(DataType<RealType>::type, m_output_node_size, NN);  m_W->InitNormalDistribution(0.5, 0.001, m_mt());
-        m_W->Resize(DataType<RealType>::type, GetShapeSize(m_output_shape), NN);  m_W->InitNormalDistribution((m_param_min+m_param_max)*0.5, 0.01, m_mt());
+        m_W->Resize(DataType<RealType>::type, GetShapeSize(m_output_shape), NN);  m_W->InitNormalDistribution(0.5, 0.01, m_mt());
 
         m_dW->Resize(DataType<RealType>::type, GetShapeSize(m_output_shape), NN); m_dW->FillZero();
 
@@ -332,8 +331,8 @@ public:
         }
 
         // clip
-        y = std::max(m_param_min, y);
-        y = std::min(m_param_max, y);
+        y = std::max((RealType)0.0, y);
+        y = std::min((RealType)1.0, y);
         
         std::vector<double> result;
         result.push_back((double)y);
@@ -383,8 +382,6 @@ public:
                     (int          )(y_buf.GetFrameStride() / sizeof(float)),
                     (int          )(m_binary_mode  ? 1 : 0),
                     (int          )(m_lut_binarize ? 1 : 0),
-                    (float        )m_param_min,
-                    (float        )m_param_max,
                     (float        )m_unbinarize_bias
                 );
 
@@ -409,14 +406,19 @@ public:
                     (int          )(y_buf.GetFrameStride() / sizeof(float)),
                     (int          )(x_buf.GetFrameStride() / sizeof(int)),
                     (int          )(m_lut_binarize ? 1 : 0),
-                    (float        )m_param_min,
-                    (float        )m_param_max,
                     (float        )m_unbinarize_bias
                 );
 
             return y_buf;
         }
 #endif
+
+        // LUT6 SIMD
+        if ( N == 6 && DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && m_host_simd
+            && y_buf.GetFrameSize() % 8 == 0 ) {
+            simd_fp32_StochasticLut6_Forward(x_buf, y_buf, m_input_index, m_W, m_binary_mode, m_lut_binarize, m_unbinarize_bias);
+            return y_buf;
+        }
 
         {
             // Generic
@@ -457,8 +459,8 @@ public:
                     StochasticOperation_Lut_Forward<RealType>(x, &y, W, N);
 
                     // clip
-                    y = std::max((RealType)m_param_min, y);
-                    y = std::min((RealType)m_param_max, y);
+                    y = std::max((RealType)0.0, y);
+                    y = std::min((RealType)1.0, y);
 
                     y_ptr.Set(frame, node, y);
                 }
@@ -505,7 +507,8 @@ public:
                     (int          )dx_buf.GetFrameSize(),
                     (int          )(dx_buf.GetFrameStride() / sizeof(float)),
                     (int          )(m_binary_mode  ? 1 : 0),
-                    (int          )(m_lut_binarize ? 1 : 0)
+                    (int          )(m_lut_binarize ? 1 : 0),
+                    (float        )m_unbinarize_bias
                 );
             
             return dx_buf;
@@ -535,12 +538,20 @@ public:
                     (int          )dx_buf.GetFrameSize(),
                     (int          )(dx_buf.GetFrameStride() / sizeof(float)),
                     (int          )(x_buf.GetFrameStride() / sizeof(int)),
-                    (int          )(m_lut_binarize ? 1 : 0)
+                    (int          )(m_lut_binarize ? 1 : 0),
+                    (float        )m_unbinarize_bias
                 );
             
             return dx_buf;
         }
 #endif
+
+        // LUT6 SIMD
+        if ( N == 6 && DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && m_host_simd
+            && dy_buf.GetFrameSize() % 8 == 0 ) {
+            simd_fp32_StochasticLut6_Backward(x_buf, dy_buf, dx_buf, m_input_index, m_W, m_dW, m_unbinarize_bias, m_binary_mode, m_lut_binarize);
+            return dx_buf;
+        }
 
         {
             // generic
