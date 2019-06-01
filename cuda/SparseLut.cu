@@ -66,7 +66,7 @@ __global__ void kernal_SparseLut_ForwardTraining
         for ( int i = 0; i < N; ++i ) {
             x_ptr[i] = &x_buf[frame_stride * input_index[N*node + i]];
         }
-                     
+        
         y_ptr = &y_buf[node * frame_stride];
     }
 
@@ -91,7 +91,6 @@ __global__ void kernal_SparseLut_ForwardTraining
             }
 
             T y = StochasticLut<N, T, MAX_NODE_UNIT>::NodeForward(node_id, x, W);
-//          printf("[0] n=%3d f=%3d y=%10f\n", node, frame, y);
 
             // èWåv
             y1 = y - c1;
@@ -154,7 +153,6 @@ __global__ void kernal_SparseLut_ForwardTraining
                 y = max(y, 0.0);
             }
 
-//          printf("[0] f=%d y=%f\n", frame, y);
             y_ptr[frame] = y;
         }
     }

@@ -127,6 +127,7 @@
     <ClInclude Include="..\..\include\bb\StochasticLutN.h" />
     <ClInclude Include="..\..\include\bb\StochasticMaxPooling.h" />
     <ClInclude Include="..\..\include\bb\StochasticMaxPooling2x2.h" />
+    <ClInclude Include="..\..\include\bb\StochasticOperation.h" />
     <ClInclude Include="..\..\include\bb\StochasticOperator.h" />
     <ClInclude Include="..\..\include\bb\Tensor.h" />
     <ClInclude Include="..\..\include\bb\TensorOperator.h" />
