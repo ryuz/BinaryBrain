@@ -1109,7 +1109,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_SparseLut6_Backward
             block.y = std::min(block.y, MAX_NODE_UNIT);
             dim3    grid((unit_frame_size + (block.x - 1)) / block.x, (input_node_size + (block.y - 1)) / block.y);
 
-            kernal_NodeIntegrate<float><<<grid, block>>>
+            kernal_NodeIntegrateWithTable<float><<<grid, block>>>
                 (
                     dev_dx_tmp,
                     dev_dx_buf + frame_offset,
@@ -1500,7 +1500,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLut6_Backward
             block.y = std::min(block.y, MAX_NODE_UNIT);
             dim3    grid((unit_frame_size + (block.x - 1)) / block.x, (input_node_size + (block.y - 1)) / block.y);
 
-            kernal_NodeIntegrate<float><<<grid, block>>>
+            kernal_NodeIntegrateWithTable<float><<<grid, block>>>
                 (
                     dev_dx_tmp,
                     dev_dx_buf + frame_offset,

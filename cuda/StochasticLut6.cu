@@ -7,26 +7,27 @@
 
 #include "bbcu/bbcu.h"
 #include "bbcu/bbcu_util.h"
-
+#include "Common.cuh"
+#include "StochasticLut.cuh"
 
 
 // -------------------------------------------------
 //  Forward
 // -------------------------------------------------
 
-
-template<int MAX_NODE_UNIT=32>
-__global__ void kernal_fp32_StochasticLut6_Forward(
-            float const     *x_buf,
-            float           *y_buf,
-            int   const     *input_index,
-            float const     *W_buf,
-            int             node_size,
-            int             frame_size,
-            int             frame_stride,
-            int             input_binary,
-            int             lut_binarize,
-            float           unbinarize_bias
+// real type
+template<int N=6, typename T=float, int MAX_NODE_UNIT=32>
+__global__ void kernal_StochasticLut_Forward(
+            T   const   *x_buf,
+            T           *y_buf,
+            int const   *input_index,
+            T   const   *W_buf,
+            int         node_size,
+            int         frame_size,
+            int         frame_stride,
+            int         input_binary,
+            int         lut_binarize,
+            T           unbinarize_bias
         )
 {
     int node_id = threadIdx.y;
@@ -34,22 +35,22 @@ __global__ void kernal_fp32_StochasticLut6_Forward(
     int id      = threadIdx.x;
     int id_step = blockDim.x;
 
-    __shared__  float       W[64][MAX_NODE_UNIT];
-                float const *x_ptr[6];
-                float       *y_ptr;
+    __shared__  T       W[(1<<N)][MAX_NODE_UNIT];
+                T const *x_ptr[N];
+                T       *y_ptr;
     
     if ( node < node_size ) {
         // read W
-        for ( int i = id; i < 64; i += id_step ) {
-            W[i][node_id] = W_buf[node * 64 + i];
+        for ( int i = id; i < (1<<N); i += id_step ) {
+            W[i][node_id] = W_buf[node * (1<<N) + i];
             if ( lut_binarize ) {
                 W[i][node_id] = W[i][node_id] > 0.5 ? 1.0 : 0.0;
             }
         }
         
         // read input index
-        for ( int i = 0; i < 6; ++i ) {
-            x_ptr[i] = &x_buf[frame_stride * input_index[6*node + i]];
+        for ( int i = 0; i < N; ++i ) {
+            x_ptr[i] = &x_buf[frame_stride * input_index[N*node + i]];
         }
 
         y_ptr = &y_buf[node * frame_stride];
@@ -59,9 +60,24 @@ __global__ void kernal_fp32_StochasticLut6_Forward(
     
     for (int frame = id; frame < frame_size; frame += id_step) {
         if ( node < node_size ) {
-            float   xp[6], xn[6];
-            for ( int i = 0; i < 6; ++i) {
-                float x_val = x_ptr[i][frame];
+            T   x[N];
+            if ( input_binary ) {
+                for ( int i = 0; i < N; ++i) {
+                    x[i] = 0.5 + ((x_ptr[i][frame] > 0.5) ? +unbinarize_bias : -unbinarize_bias);
+                }
+            }
+            else {
+                for ( int i = 0; i < N; ++i) {
+                    x[i] = min(1.0, max(0.0, x_ptr[i][frame]));
+                }
+            }
+
+            T   y = StochasticLut<N, T, MAX_NODE_UNIT>::NodeForward(node_id, x, W);
+
+#if 0
+            T   xp[N], xn[N];
+            for ( int i = 0; i < N; ++i) {
+                T x_val = x_ptr[i][frame];
                 if ( input_binary ) {
                     x_val = 0.5 + ((x_val > 0.5) ? +unbinarize_bias : -unbinarize_bias);
                 }
@@ -73,100 +89,101 @@ __global__ void kernal_fp32_StochasticLut6_Forward(
                 xn[i] = 1.0 - x_val;
             }
 
-            float x0_00 = xn[1] * xn[0];
-            float x0_01 = xn[1] * xp[0];
-            float x0_10 = xp[1] * xn[0];
-            float x0_11 = xp[1] * xp[0];
-            float x1_00 = xn[3] * xn[2];
-            float x1_01 = xn[3] * xp[2];
-            float x1_10 = xp[3] * xn[2];
-            float x1_11 = xp[3] * xp[2];
-            float x2_00 = xn[5] * xn[4];
-            float x2_01 = xn[5] * xp[4];
-            float x2_10 = xp[5] * xn[4];
-            float x2_11 = xp[5] * xp[4];
+            T x0_00 = xn[1] * xn[0];
+            T x0_01 = xn[1] * xp[0];
+            T x0_10 = xp[1] * xn[0];
+            T x0_11 = xp[1] * xp[0];
+            T x1_00 = xn[3] * xn[2];
+            T x1_01 = xn[3] * xp[2];
+            T x1_10 = xp[3] * xn[2];
+            T x1_11 = xp[3] * xp[2];
+            T x2_00 = xn[5] * xn[4];
+            T x2_01 = xn[5] * xp[4];
+            T x2_10 = xp[5] * xn[4];
+            T x2_11 = xp[5] * xp[4];
 
-            float y = 0;
-            float x2_00_x1_00 = x2_00 * x1_00;
+            T y = 0;
+            T x2_00_x1_00 = x2_00 * x1_00;
             y += W[0 ][node_id] * x2_00_x1_00 * x0_00;
             y += W[1 ][node_id] * x2_00_x1_00 * x0_01;
             y += W[2 ][node_id] * x2_00_x1_00 * x0_10;
             y += W[3 ][node_id] * x2_00_x1_00 * x0_11;
-            float x2_00_x1_01 = x2_00 * x1_01;
+            T x2_00_x1_01 = x2_00 * x1_01;
             y += W[4 ][node_id] * x2_00_x1_01 * x0_00;
             y += W[5 ][node_id] * x2_00_x1_01 * x0_01;
             y += W[6 ][node_id] * x2_00_x1_01 * x0_10;
             y += W[7 ][node_id] * x2_00_x1_01 * x0_11;
-            float x2_00_x1_10 = x2_00 * x1_10;
+            T x2_00_x1_10 = x2_00 * x1_10;
             y += W[8 ][node_id] * x2_00_x1_10 * x0_00;
             y += W[9 ][node_id] * x2_00_x1_10 * x0_01;
             y += W[10][node_id] * x2_00_x1_10 * x0_10;
             y += W[11][node_id] * x2_00_x1_10 * x0_11;
-            float x2_00_x1_11 = x2_00 * x1_11;
+            T x2_00_x1_11 = x2_00 * x1_11;
             y += W[12][node_id] * x2_00_x1_11 * x0_00;
             y += W[13][node_id] * x2_00_x1_11 * x0_01;
             y += W[14][node_id] * x2_00_x1_11 * x0_10;
             y += W[15][node_id] * x2_00_x1_11 * x0_11;
-            float x2_01_x1_00 = x2_01 * x1_00;
+            T x2_01_x1_00 = x2_01 * x1_00;
             y += W[16][node_id] * x2_01_x1_00 * x0_00;
             y += W[17][node_id] * x2_01_x1_00 * x0_01;
             y += W[18][node_id] * x2_01_x1_00 * x0_10;
             y += W[19][node_id] * x2_01_x1_00 * x0_11;
-            float x2_01_x1_01 = x2_01 * x1_01;
+            T x2_01_x1_01 = x2_01 * x1_01;
             y += W[20][node_id] * x2_01_x1_01 * x0_00;
             y += W[21][node_id] * x2_01_x1_01 * x0_01;
             y += W[22][node_id] * x2_01_x1_01 * x0_10;
             y += W[23][node_id] * x2_01_x1_01 * x0_11;
-            float x2_01_x1_10 = x2_01 * x1_10;
+            T x2_01_x1_10 = x2_01 * x1_10;
             y += W[24][node_id] * x2_01_x1_10 * x0_00;
             y += W[25][node_id] * x2_01_x1_10 * x0_01;
             y += W[26][node_id] * x2_01_x1_10 * x0_10;
             y += W[27][node_id] * x2_01_x1_10 * x0_11;
-            float x2_01_x1_11 = x2_01 * x1_11;
+            T x2_01_x1_11 = x2_01 * x1_11;
             y += W[28][node_id] * x2_01_x1_11 * x0_00;
             y += W[29][node_id] * x2_01_x1_11 * x0_01;
             y += W[30][node_id] * x2_01_x1_11 * x0_10;
             y += W[31][node_id] * x2_01_x1_11 * x0_11;
-            float x2_10_x1_00 = x2_10 * x1_00;
+            T x2_10_x1_00 = x2_10 * x1_00;
             y += W[32][node_id] * x2_10_x1_00 * x0_00;
             y += W[33][node_id] * x2_10_x1_00 * x0_01;
             y += W[34][node_id] * x2_10_x1_00 * x0_10;
             y += W[35][node_id] * x2_10_x1_00 * x0_11;
-            float x2_10_x1_01 = x2_10 * x1_01;
+            T x2_10_x1_01 = x2_10 * x1_01;
             y += W[36][node_id] * x2_10_x1_01 * x0_00;
             y += W[37][node_id] * x2_10_x1_01 * x0_01;
             y += W[38][node_id] * x2_10_x1_01 * x0_10;
             y += W[39][node_id] * x2_10_x1_01 * x0_11;
-            float x2_10_x1_10 = x2_10 * x1_10;
+            T x2_10_x1_10 = x2_10 * x1_10;
             y += W[40][node_id] * x2_10_x1_10 * x0_00;
             y += W[41][node_id] * x2_10_x1_10 * x0_01;
             y += W[42][node_id] * x2_10_x1_10 * x0_10;
             y += W[43][node_id] * x2_10_x1_10 * x0_11;
-            float x2_10_x1_11 = x2_10 * x1_11;
+            T x2_10_x1_11 = x2_10 * x1_11;
             y += W[44][node_id] * x2_10_x1_11 * x0_00;
             y += W[45][node_id] * x2_10_x1_11 * x0_01;
             y += W[46][node_id] * x2_10_x1_11 * x0_10;
             y += W[47][node_id] * x2_10_x1_11 * x0_11;
-            float x2_11_x1_00 = x2_11 * x1_00;
+            T x2_11_x1_00 = x2_11 * x1_00;
             y += W[48][node_id] * x2_11_x1_00 * x0_00;
             y += W[49][node_id] * x2_11_x1_00 * x0_01;
             y += W[50][node_id] * x2_11_x1_00 * x0_10;
             y += W[51][node_id] * x2_11_x1_00 * x0_11;
-            float x2_11_x1_01 = x2_11 * x1_01;
+            T x2_11_x1_01 = x2_11 * x1_01;
             y += W[52][node_id] * x2_11_x1_01 * x0_00;
             y += W[53][node_id] * x2_11_x1_01 * x0_01;
             y += W[54][node_id] * x2_11_x1_01 * x0_10;
             y += W[55][node_id] * x2_11_x1_01 * x0_11;
-            float x2_11_x1_10 = x2_11 * x1_10;
+            T x2_11_x1_10 = x2_11 * x1_10;
             y += W[56][node_id] * x2_11_x1_10 * x0_00;
             y += W[57][node_id] * x2_11_x1_10 * x0_01;
             y += W[58][node_id] * x2_11_x1_10 * x0_10;
             y += W[59][node_id] * x2_11_x1_10 * x0_11;
-            float x2_11_x1_11 = x2_11 * x1_11;
+            T x2_11_x1_11 = x2_11 * x1_11;
             y += W[60][node_id] * x2_11_x1_11 * x0_00;
             y += W[61][node_id] * x2_11_x1_11 * x0_01;
             y += W[62][node_id] * x2_11_x1_11 * x0_10;
             y += W[63][node_id] * x2_11_x1_11 * x0_11;
+#endif
 
             // clamp
             y = max(0.0, y);
@@ -174,8 +191,6 @@ __global__ void kernal_fp32_StochasticLut6_Forward(
         
             y_ptr[frame] = y;
         }
-
-        __syncthreads();
     }
 }
 
@@ -215,7 +230,7 @@ int bbcu_fp32_StochasticLut6_Forward
     block.y = std::min(block.y, MAX_NODE_UNIT);
     dim3    grid(1, (node_size + (block.y - 1)) / block.y);
     
-    kernal_fp32_StochasticLut6_Forward<MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
+    kernal_StochasticLut_Forward<6, float, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
             dev_x_buf,
             dev_y_buf,
             dev_input_index,
@@ -234,20 +249,19 @@ int bbcu_fp32_StochasticLut6_Forward
 
 
 
-// --- bit ---
-
-template<int MAX_NODE_UNIT=32>
-__global__ void kernal_bit_fp32_StochasticLut6_Forward(
-            int   const     *x_buf,
-            float           *y_buf,
-            int   const     *input_index,
-            float const     *W_buf,
-            int             node_size,
-            int             frame_size,
-            int             frame_stride,
-            int             bin_frame_stride,
-            int             binary_mode,
-            float           unbinarize_bias
+// bit packing
+template<int N=6, typename T=float, int MAX_NODE_UNIT=32>
+__global__ void kernal_bit_StochasticLut_Forward(
+            int const   *x_buf,
+            T           *y_buf,
+            int const   *input_index,
+            T   const   *W_buf,
+            int         node_size,
+            int         frame_size,
+            int         frame_stride,
+            int         bin_frame_stride,
+            int         binary_mode,
+            T           unbinarize_bias
         )
 {
     int node_id = threadIdx.y;
@@ -255,22 +269,22 @@ __global__ void kernal_bit_fp32_StochasticLut6_Forward(
     int id      = threadIdx.x;
     int id_step = blockDim.x;
 
-    __shared__ float    W[64][MAX_NODE_UNIT];
-    int   const         *x_ptr[6];
-    float               *y_ptr;
+    __shared__ T    W[(1 << N)][MAX_NODE_UNIT];
+    int   const     *x_ptr[N];
+    T               *y_ptr;
     
     if ( node < node_size ) {
         // read W
-        for ( int i = id; i < 64; i += id_step ) {
-            W[i][node_id] = W_buf[node * 64 + i];
+        for ( int i = id; i < (1 << N); i += id_step ) {
+            W[i][node_id] = W_buf[node * (1 << N) + i];
             if ( binary_mode ) {
                 W[i][node_id] = W[i][node_id] > 0.5 ? 1.0 : 0.0;
             }
         }
         
         // read input index
-        for ( int i = 0; i < 6; ++i ) {
-            x_ptr[i] = &x_buf[bin_frame_stride * input_index[6*node + i]];
+        for ( int i = 0; i < N; ++i ) {
+            x_ptr[i] = &x_buf[bin_frame_stride * input_index[N*node + i]];
         }
 
         y_ptr = &y_buf[node * frame_stride];
@@ -280,110 +294,119 @@ __global__ void kernal_bit_fp32_StochasticLut6_Forward(
     
     for (int frame = id; frame < frame_size; frame += id_step) {
         if ( node < node_size ) {
-            int bit  = (1 << (frame & 0x1f));
-            int unit = (frame >> 5);
+            int bit_mask = (1 << (frame & 0x1f));
+            int unit     = (frame >> 5);
+            
+            T   x[N];
+            for ( int i = 0; i < N; ++i) {
+                x[i] = 0.5 + ((x_ptr[i][unit] & bit_mask) ? +unbinarize_bias : -unbinarize_bias);
+            }
 
-            float   xp[6], xn[6];
-            for ( int i = 0; i < 6; ++i) {
-                float x_val =  0.5 + ((x_ptr[i][unit] & bit) ? +unbinarize_bias : -unbinarize_bias);
+            T   y = StochasticLut<N, T, MAX_NODE_UNIT>::NodeForward(node_id, x, W);
+
+#if 0
+            T   xp[N], xn[N];
+            for ( int i = 0; i < N; ++i) {
+                T x_val =  0.5 + ((x_ptr[i][unit] & bit) ? +unbinarize_bias : -unbinarize_bias);
                 xp[i] = x_val;
                 xn[i] = 1.0 - x_val;
             }
 
-            float x0_00 = xn[1] * xn[0];
-            float x0_01 = xn[1] * xp[0];
-            float x0_10 = xp[1] * xn[0];
-            float x0_11 = xp[1] * xp[0];
-            float x1_00 = xn[3] * xn[2];
-            float x1_01 = xn[3] * xp[2];
-            float x1_10 = xp[3] * xn[2];
-            float x1_11 = xp[3] * xp[2];
-            float x2_00 = xn[5] * xn[4];
-            float x2_01 = xn[5] * xp[4];
-            float x2_10 = xp[5] * xn[4];
-            float x2_11 = xp[5] * xp[4];
+            T x0_00 = xn[1] * xn[0];
+            T x0_01 = xn[1] * xp[0];
+            T x0_10 = xp[1] * xn[0];
+            T x0_11 = xp[1] * xp[0];
+            T x1_00 = xn[3] * xn[2];
+            T x1_01 = xn[3] * xp[2];
+            T x1_10 = xp[3] * xn[2];
+            T x1_11 = xp[3] * xp[2];
+            T x2_00 = xn[5] * xn[4];
+            T x2_01 = xn[5] * xp[4];
+            T x2_10 = xp[5] * xn[4];
+            T x2_11 = xp[5] * xp[4];
 
-            float y = 0;
-            float x2_00_x1_00 = x2_00 * x1_00;
+            T y = 0;
+            T x2_00_x1_00 = x2_00 * x1_00;
             y += W[0 ][node_id] * x2_00_x1_00 * x0_00;
             y += W[1 ][node_id] * x2_00_x1_00 * x0_01;
             y += W[2 ][node_id] * x2_00_x1_00 * x0_10;
             y += W[3 ][node_id] * x2_00_x1_00 * x0_11;
-            float x2_00_x1_01 = x2_00 * x1_01;
+            T x2_00_x1_01 = x2_00 * x1_01;
             y += W[4 ][node_id] * x2_00_x1_01 * x0_00;
             y += W[5 ][node_id] * x2_00_x1_01 * x0_01;
             y += W[6 ][node_id] * x2_00_x1_01 * x0_10;
             y += W[7 ][node_id] * x2_00_x1_01 * x0_11;
-            float x2_00_x1_10 = x2_00 * x1_10;
+            T x2_00_x1_10 = x2_00 * x1_10;
             y += W[8 ][node_id] * x2_00_x1_10 * x0_00;
             y += W[9 ][node_id] * x2_00_x1_10 * x0_01;
             y += W[10][node_id] * x2_00_x1_10 * x0_10;
             y += W[11][node_id] * x2_00_x1_10 * x0_11;
-            float x2_00_x1_11 = x2_00 * x1_11;
+            T x2_00_x1_11 = x2_00 * x1_11;
             y += W[12][node_id] * x2_00_x1_11 * x0_00;
             y += W[13][node_id] * x2_00_x1_11 * x0_01;
             y += W[14][node_id] * x2_00_x1_11 * x0_10;
             y += W[15][node_id] * x2_00_x1_11 * x0_11;
-            float x2_01_x1_00 = x2_01 * x1_00;
+            T x2_01_x1_00 = x2_01 * x1_00;
             y += W[16][node_id] * x2_01_x1_00 * x0_00;
             y += W[17][node_id] * x2_01_x1_00 * x0_01;
             y += W[18][node_id] * x2_01_x1_00 * x0_10;
             y += W[19][node_id] * x2_01_x1_00 * x0_11;
-            float x2_01_x1_01 = x2_01 * x1_01;
+            T x2_01_x1_01 = x2_01 * x1_01;
             y += W[20][node_id] * x2_01_x1_01 * x0_00;
             y += W[21][node_id] * x2_01_x1_01 * x0_01;
             y += W[22][node_id] * x2_01_x1_01 * x0_10;
             y += W[23][node_id] * x2_01_x1_01 * x0_11;
-            float x2_01_x1_10 = x2_01 * x1_10;
+            T x2_01_x1_10 = x2_01 * x1_10;
             y += W[24][node_id] * x2_01_x1_10 * x0_00;
             y += W[25][node_id] * x2_01_x1_10 * x0_01;
             y += W[26][node_id] * x2_01_x1_10 * x0_10;
             y += W[27][node_id] * x2_01_x1_10 * x0_11;
-            float x2_01_x1_11 = x2_01 * x1_11;
+            T x2_01_x1_11 = x2_01 * x1_11;
             y += W[28][node_id] * x2_01_x1_11 * x0_00;
             y += W[29][node_id] * x2_01_x1_11 * x0_01;
             y += W[30][node_id] * x2_01_x1_11 * x0_10;
             y += W[31][node_id] * x2_01_x1_11 * x0_11;
-            float x2_10_x1_00 = x2_10 * x1_00;
+            T x2_10_x1_00 = x2_10 * x1_00;
             y += W[32][node_id] * x2_10_x1_00 * x0_00;
             y += W[33][node_id] * x2_10_x1_00 * x0_01;
             y += W[34][node_id] * x2_10_x1_00 * x0_10;
             y += W[35][node_id] * x2_10_x1_00 * x0_11;
-            float x2_10_x1_01 = x2_10 * x1_01;
+            T x2_10_x1_01 = x2_10 * x1_01;
             y += W[36][node_id] * x2_10_x1_01 * x0_00;
             y += W[37][node_id] * x2_10_x1_01 * x0_01;
             y += W[38][node_id] * x2_10_x1_01 * x0_10;
             y += W[39][node_id] * x2_10_x1_01 * x0_11;
-            float x2_10_x1_10 = x2_10 * x1_10;
+            T x2_10_x1_10 = x2_10 * x1_10;
             y += W[40][node_id] * x2_10_x1_10 * x0_00;
             y += W[41][node_id] * x2_10_x1_10 * x0_01;
             y += W[42][node_id] * x2_10_x1_10 * x0_10;
             y += W[43][node_id] * x2_10_x1_10 * x0_11;
-            float x2_10_x1_11 = x2_10 * x1_11;
+            T x2_10_x1_11 = x2_10 * x1_11;
             y += W[44][node_id] * x2_10_x1_11 * x0_00;
             y += W[45][node_id] * x2_10_x1_11 * x0_01;
             y += W[46][node_id] * x2_10_x1_11 * x0_10;
             y += W[47][node_id] * x2_10_x1_11 * x0_11;
-            float x2_11_x1_00 = x2_11 * x1_00;
+            T x2_11_x1_00 = x2_11 * x1_00;
             y += W[48][node_id] * x2_11_x1_00 * x0_00;
             y += W[49][node_id] * x2_11_x1_00 * x0_01;
             y += W[50][node_id] * x2_11_x1_00 * x0_10;
             y += W[51][node_id] * x2_11_x1_00 * x0_11;
-            float x2_11_x1_01 = x2_11 * x1_01;
+            T x2_11_x1_01 = x2_11 * x1_01;
             y += W[52][node_id] * x2_11_x1_01 * x0_00;
             y += W[53][node_id] * x2_11_x1_01 * x0_01;
             y += W[54][node_id] * x2_11_x1_01 * x0_10;
             y += W[55][node_id] * x2_11_x1_01 * x0_11;
-            float x2_11_x1_10 = x2_11 * x1_10;
+            T x2_11_x1_10 = x2_11 * x1_10;
             y += W[56][node_id] * x2_11_x1_10 * x0_00;
             y += W[57][node_id] * x2_11_x1_10 * x0_01;
             y += W[58][node_id] * x2_11_x1_10 * x0_10;
             y += W[59][node_id] * x2_11_x1_10 * x0_11;
-            float x2_11_x1_11 = x2_11 * x1_11;
+            T x2_11_x1_11 = x2_11 * x1_11;
             y += W[60][node_id] * x2_11_x1_11 * x0_00;
             y += W[61][node_id] * x2_11_x1_11 * x0_01;
             y += W[62][node_id] * x2_11_x1_11 * x0_10;
             y += W[63][node_id] * x2_11_x1_11 * x0_11;
+#endif
 
             // clamp
             y = max(0.0, y);
@@ -430,7 +453,7 @@ int bbcu_bit_fp32_StochasticLut6_Forward
     block.y = std::min(block.y, MAX_NODE_UNIT);
     dim3    grid(1, (node_size + (block.y - 1)) / block.y);
     
-    kernal_bit_fp32_StochasticLut6_Forward<MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
+    kernal_bit_StochasticLut_Forward<6, float, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
             dev_x_buf,
             dev_y_buf,
             dev_input_index,
@@ -454,75 +477,49 @@ int bbcu_bit_fp32_StochasticLut6_Forward
 //  Backward
 // -------------------------------------------------
 
-
-__device__ __forceinline__ float device_fp32_LocalSum(float v, float *buf)
-{
-    buf[threadIdx.x] = v;
-    __syncthreads();
-
-    // スレッド間集計
-    int comb = 1;
-    while (comb < blockDim.x) {
-        int next = comb * 2;
-        int mask = next - 1;
-        if ((threadIdx.x & mask) == 0) {
-            buf[threadIdx.x] += buf[threadIdx.x + comb];
-        }
-        comb = next;
-        __syncthreads();
-    }
-
-    float sum = buf[0];
-    __syncthreads();
-    
-    return sum;
-}
-
-
-// kernel
-template<int MAX_FRAME_UNIT=256, int MAX_NODE_UNIT=16>
-__global__ void kernal_fp32_StochasticLut6_Backward
+// real type
+template<int N=6, typename T=float, int MAX_FRAME_UNIT=256, int MAX_NODE_UNIT=16>
+__global__ void kernal_StochasticLut_Backward
         (
-            float const     *x_buf,
-            float const     *dy_buf,
-            float           *dx_buf,
-            int   const     *input_index,
-            float const     *W_buf,
-            float           *dW_buf,
-            int             node_size,
-            int             frame_size,
-            int             frame_stride,
-            int             input_binary,
-            int             lut_binarize,
-            float           unbinarize_bias
+            T   const   *x_buf,
+            T   const   *dy_buf,
+            T           *dx_buf,
+            int const   *input_index,
+            T   const   *W_buf,
+            T           *dW_buf,
+            int         node_size,
+            int         frame_size,
+            int         frame_stride,
+            int         input_binary,
+            int         lut_binarize,
+            T           unbinarize_bias
         )
 {
-
     int node_id = threadIdx.y;
     int node    = blockIdx.y * blockDim.y + threadIdx.y;
     int id      = threadIdx.x;
     int id_step = blockDim.x;
 
-    __shared__  float       sbuf[MAX_NODE_UNIT][MAX_FRAME_UNIT];
-    __shared__  float       dW_prev[64][MAX_NODE_UNIT];
-    __shared__  float       W[64][MAX_NODE_UNIT];
-                float       dW[64];
-                float const *x_ptr[6];
-                float const *dy_ptr;
+    __shared__  T       sbuf[MAX_NODE_UNIT][MAX_FRAME_UNIT];
+    __shared__  T       dW_prev[(1 << N)][MAX_NODE_UNIT];
+    __shared__  T       W[(1 << N)][MAX_NODE_UNIT];
+                T       dW[(1 << N)];
+                T const *x_ptr[6];
+                T const *dy_ptr;
     
     // initialize dW
     if ( node < node_size ) {
-        for ( int i = 0; i < 64; ++i) {
+        for ( int i = 0; i < (1 << N); ++i) {
             dW[i] = 0;
         }
 
-        for ( int i = id; i < 64; i += id_step ) {
-            dW_prev[i][node_id] = dW_buf[node * 64 + i];
+        for ( int i = id; i < (1 << N); i += id_step ) {
+            dW_prev[i][node_id] = dW_buf[node * (1 << N) + i];
         }
 
         // read W
-        for ( int i = id; i < 64; i += id_step ) {
-            W[i][node_id] = W_buf[node * 64 + i];
+        for ( int i = id; i < (1 << N); i += id_step ) {
+            W[i][node_id] = W_buf[node * (1 << N) + i];
             if ( lut_binarize ) {
                 W[i][node_id] = W[i][node_id] > 0.5 ? 1.0 : 0.0;
             }
@@ -539,11 +536,30 @@ __global__ void kernal_fp32_StochasticLut6_Backward
 
     __syncthreads();
 
-    if ( node < node_size ) {
-        for ( int frame = id; frame < frame_size; frame += id_step ) {
-            float xp[6], xn[6];
+    for ( int frame = id; frame < frame_size; frame += id_step ) {
+        if ( node < node_size ) {
+            // read x
+            T   x[N];
+            if ( input_binary ) {
+                for ( int i = 0; i < N; ++i) {
+                    x[i] = 0.5 +((x_ptr[i][frame] > 0.5)  ? +unbinarize_bias : -unbinarize_bias);
+                }
+            }
+            else {
+                for ( int i = 0; i < N; ++i) {
+                    x[i] = max(0.0, min(1.0, x_ptr[i][frame]));
+                }
+            }
+
+            // read dy
+            T   dy = dy_ptr[frame];
+
+            // calc
+            StochasticLut<N, T, MAX_NODE_UNIT>::NodeBackward(node_id, x, dy, &dx_buf[node*N*frame_stride + frame], W, dW, frame_stride);
+#if 0
+            T xp[6], xn[6];
             for ( int i = 0; i < 6; ++i) {
-                float x_val = x_ptr[i][frame];
+                T x_val = x_ptr[i][frame];
                 if ( input_binary ) {
                     x_val = 0.5 + ((x_val > 0.5) ? +unbinarize_bias : -unbinarize_bias);
                 }
@@ -555,37 +571,37 @@ __global__ void kernal_fp32_StochasticLut6_Backward
                 xn[i] = 1.0 - x_val;
             }
 
-            float x0_00 = xn[1] * xn[0];
-            float x0_01 = xn[1] * xp[0];
-            float x0_10 = xp[1] * xn[0];
-            float x0_11 = xp[1] * xp[0];
-            float x1_00 = xn[3] * xn[2];
-            float x1_01 = xn[3] * xp[2];
-            float x1_10 = xp[3] * xn[2];
-            float x1_11 = xp[3] * xp[2];
-            float x2_00 = xn[5] * xn[4];
-            float x2_01 = xn[5] * xp[4];
-            float x2_10 = xp[5] * xn[4];
-            float x2_11 = xp[5] * xp[4];
+            T x0_00 = xn[1] * xn[0];
+            T x0_01 = xn[1] * xp[0];
+            T x0_10 = xp[1] * xn[0];
+            T x0_11 = xp[1] * xp[0];
+            T x1_00 = xn[3] * xn[2];
+            T x1_01 = xn[3] * xp[2];
+            T x1_10 = xp[3] * xn[2];
+            T x1_11 = xp[3] * xp[2];
+            T x2_00 = xn[5] * xn[4];
+            T x2_01 = xn[5] * xp[4];
+            T x2_10 = xp[5] * xn[4];
+            T x2_11 = xp[5] * xp[4];
 
-            float grad = dy_ptr[frame];
+            T grad = dy_ptr[frame];
 
-            float  x2_00_x1_00 =  x2_00 * x1_00;
-            float  x2_00_x1_01 =  x2_00 * x1_01;
-            float  x2_00_x1_10 =  x2_00 * x1_10;
-            float  x2_00_x1_11 =  x2_00 * x1_11;
-            float  x2_01_x1_00 =  x2_01 * x1_00;
-            float  x2_01_x1_01 =  x2_01 * x1_01;
-            float  x2_01_x1_10 =  x2_01 * x1_10;
-            float  x2_01_x1_11 =  x2_01 * x1_11;
-            float  x2_10_x1_00 =  x2_10 * x1_00;
-            float  x2_10_x1_01 =  x2_10 * x1_01;
-            float  x2_10_x1_10 =  x2_10 * x1_10;
-            float  x2_10_x1_11 =  x2_10 * x1_11;
-            float  x2_11_x1_00 =  x2_11 * x1_00;
-            float  x2_11_x1_01 =  x2_11 * x1_01;
-            float  x2_11_x1_10 =  x2_11 * x1_10;
-            float  x2_11_x1_11 =  x2_11 * x1_11;
+            T  x2_00_x1_00 =  x2_00 * x1_00;
+            T  x2_00_x1_01 =  x2_00 * x1_01;
+            T  x2_00_x1_10 =  x2_00 * x1_10;
+            T  x2_00_x1_11 =  x2_00 * x1_11;
+            T  x2_01_x1_00 =  x2_01 * x1_00;
+            T  x2_01_x1_01 =  x2_01 * x1_01;
+            T  x2_01_x1_10 =  x2_01 * x1_10;
+            T  x2_01_x1_11 =  x2_01 * x1_11;
+            T  x2_10_x1_00 =  x2_10 * x1_00;
+            T  x2_10_x1_01 =  x2_10 * x1_01;
+            T  x2_10_x1_10 =  x2_10 * x1_10;
+            T  x2_10_x1_11 =  x2_10 * x1_11;
+            T  x2_11_x1_00 =  x2_11 * x1_00;
+            T  x2_11_x1_01 =  x2_11 * x1_01;
+            T  x2_11_x1_10 =  x2_11 * x1_10;
+            T  x2_11_x1_11 =  x2_11 * x1_11;
 
             dW[ 0] += x2_00_x1_00 * x0_00 * grad;
             dW[ 1] += x2_00_x1_00 * x0_01 * grad;
@@ -652,54 +668,54 @@ __global__ void kernal_fp32_StochasticLut6_Backward
             dW[62] += x2_11_x1_11 * x0_10 * grad;
             dW[63] += x2_11_x1_11 * x0_11 * grad;
 
-            float  x2_00_x0_00 =  x2_00 * x0_00;
-            float  x2_00_x0_01 =  x2_00 * x0_01;
-            float  x2_00_x0_10 =  x2_00 * x0_10;
-            float  x2_00_x0_11 =  x2_00 * x0_11;
-            float  x2_01_x0_00 =  x2_01 * x0_00;
-            float  x2_01_x0_01 =  x2_01 * x0_01;
-            float  x2_01_x0_10 =  x2_01 * x0_10;
-            float  x2_01_x0_11 =  x2_01 * x0_11;
-            float  x2_10_x0_00 =  x2_10 * x0_00;
-            float  x2_10_x0_01 =  x2_10 * x0_01;
-            float  x2_10_x0_10 =  x2_10 * x0_10;
-            float  x2_10_x0_11 =  x2_10 * x0_11;
-            float  x2_11_x0_00 =  x2_11 * x0_00;
-            float  x2_11_x0_01 =  x2_11 * x0_01;
-            float  x2_11_x0_10 =  x2_11 * x0_10;
-            float  x2_11_x0_11 =  x2_11 * x0_11;
+            T  x2_00_x0_00 =  x2_00 * x0_00;
+            T  x2_00_x0_01 =  x2_00 * x0_01;
+            T  x2_00_x0_10 =  x2_00 * x0_10;
+            T  x2_00_x0_11 =  x2_00 * x0_11;
+            T  x2_01_x0_00 =  x2_01 * x0_00;
+            T  x2_01_x0_01 =  x2_01 * x0_01;
+            T  x2_01_x0_10 =  x2_01 * x0_10;
+            T  x2_01_x0_11 =  x2_01 * x0_11;
+            T  x2_10_x0_00 =  x2_10 * x0_00;
+            T  x2_10_x0_01 =  x2_10 * x0_01;
+            T  x2_10_x0_10 =  x2_10 * x0_10;
+            T  x2_10_x0_11 =  x2_10 * x0_11;
+            T  x2_11_x0_00 =  x2_11 * x0_00;
+            T  x2_11_x0_01 =  x2_11 * x0_01;
+            T  x2_11_x0_10 =  x2_11 * x0_10;
+            T  x2_11_x0_11 =  x2_11 * x0_11;
 
-            float  x1_00_x0_00 =  x1_00 * x0_00;
-            float  x1_00_x0_01 =  x1_00 * x0_01;
-            float  x1_00_x0_10 =  x1_00 * x0_10;
-            float  x1_00_x0_11 =  x1_00 * x0_11;
-            float  x1_01_x0_00 =  x1_01 * x0_00;
-            float  x1_01_x0_01 =  x1_01 * x0_01;
-            float  x1_01_x0_10 =  x1_01 * x0_10;
-            float  x1_01_x0_11 =  x1_01 * x0_11;
-            float  x1_10_x0_00 =  x1_10 * x0_00;
-            float  x1_10_x0_01 =  x1_10 * x0_01;
-            float  x1_10_x0_10 =  x1_10 * x0_10;
-            float  x1_10_x0_11 =  x1_10 * x0_11;
-            float  x1_11_x0_00 =  x1_11 * x0_00;
-            float  x1_11_x0_01 =  x1_11 * x0_01;
-            float  x1_11_x0_10 =  x1_11 * x0_10;
-            float  x1_11_x0_11 =  x1_11 * x0_11;
+            T  x1_00_x0_00 =  x1_00 * x0_00;
+            T  x1_00_x0_01 =  x1_00 * x0_01;
+            T  x1_00_x0_10 =  x1_00 * x0_10;
+            T  x1_00_x0_11 =  x1_00 * x0_11;
+            T  x1_01_x0_00 =  x1_01 * x0_00;
+            T  x1_01_x0_01 =  x1_01 * x0_01;
+            T  x1_01_x0_10 =  x1_01 * x0_10;
+            T  x1_01_x0_11 =  x1_01 * x0_11;
+            T  x1_10_x0_00 =  x1_10 * x0_00;
+            T  x1_10_x0_01 =  x1_10 * x0_01;
+            T  x1_10_x0_10 =  x1_10 * x0_10;
+            T  x1_10_x0_11 =  x1_10 * x0_11;
+            T  x1_11_x0_00 =  x1_11 * x0_00;
+            T  x1_11_x0_01 =  x1_11 * x0_01;
+            T  x1_11_x0_10 =  x1_11 * x0_10;
+            T  x1_11_x0_11 =  x1_11 * x0_11;
 
 
-            float dxi;
-            float dx0_00 = 0;
-            float dx0_01 = 0;
-            float dx0_10 = 0;
-            float dx0_11 = 0;
-            float dx1_00 = 0;
-            float dx1_01 = 0;
-            float dx1_10 = 0;
-            float dx1_11 = 0;
-            float dx2_00 = 0;
-            float dx2_01 = 0;
-            float dx2_10 = 0;
-            float dx2_11 = 0;
+            T dxi;
+            T dx0_00 = 0;
+            T dx0_01 = 0;
+            T dx0_10 = 0;
+            T dx0_11 = 0;
+            T dx1_00 = 0;
+            T dx1_01 = 0;
+            T dx1_10 = 0;
+            T dx1_11 = 0;
+            T dx2_00 = 0;
+            T dx2_01 = 0;
+            T dx2_10 = 0;
+            T dx2_11 = 0;
             dxi = W[ 0][node_id];  dx0_00 += dxi * x2_00_x1_00;  dx1_00 += dxi * x2_00_x0_00;  dx2_00 += dxi * x1_00_x0_00;
             dxi = W[ 1][node_id];  dx0_01 += dxi * x2_00_x1_00;  dx1_00 += dxi * x2_00_x0_01;  dx2_00 += dxi * x1_00_x0_01;
             dxi = W[ 2][node_id];  dx0_10 += dxi * x2_00_x1_00;  dx1_00 += dxi * x2_00_x0_10;  dx2_00 += dxi * x1_00_x0_10;
@@ -765,10 +781,10 @@ __global__ void kernal_fp32_StochasticLut6_Backward
             dxi = W[62][node_id];  dx0_10 += dxi * x2_11_x1_11;  dx1_11 += dxi * x2_11_x0_10;  dx2_11 += dxi * x1_11_x0_10;
             dxi = W[63][node_id];  dx0_11 += dxi * x2_11_x1_11;  dx1_11 += dxi * x2_11_x0_11;  dx2_11 += dxi * x1_11_x0_11;
         
-            float *dx_ptr = &dx_buf[(node*6)*frame_stride + frame];
-            float dxn;
-            float dxp;
-            float dx;
+            T *dx_ptr = &dx_buf[(node*6)*frame_stride + frame];
+            T dxn;
+            T dxp;
+            T dx;
             dxn  = dx0_00 * xn[1];    dxn += dx0_10 * xp[1];
             dxp  = dx0_01 * xn[1];    dxp += dx0_11 * xp[1];
             dx = (dxp - dxn) * grad;
@@ -814,23 +830,24 @@ __global__ void kernal_fp32_StochasticLut6_Backward
             dx = (dxp - dxn) * grad;
             if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
             dx_ptr[5 * frame_stride] = dx;
+#endif
         }
     }
 
-    for ( int i = 0; i < 64; ++i ) {
+    for ( int i = 0; i < (1 << N); ++i ) {
         dW[i] = device_fp32_LocalSum(dW[i], sbuf[node_id]);
     }
 
     if ( node < node_size ) {
         if ( id == 0 ) {
-            for ( int i = 0; i < 64; ++i) {
-                dW_buf[node*64 + i] = dW[i] + dW_prev[i][node_id];
+            for ( int i = 0; i < (1 << N); ++i) {
+                dW_buf[node*(1 << N) + i] = dW[i] + dW_prev[i][node_id];
             }
         }
     }
 }
 
-
+/*
 __global__ void kernal_fp32_StochasticLut6_BackwardMarge(
             const float*    src_buf,
             float*          dst_buf,
@@ -847,7 +864,7 @@ __global__ void kernal_fp32_StochasticLut6_BackwardMarge(
             for ( int n = 0; n < 6; ++n ) {
                 int in_idx = input_index[node*6 + n];
                 float*       dst_buf_ptr = &dst_buf[frame_stride * in_idx];
-                float        prev_data = dst_buf_ptr[frame];
+                float        prev_data   = dst_buf_ptr[frame];
                 const float* src_buf_ptr = &src_buf[(6 * node + n) * frame_stride];
                 
                 dst_buf_ptr[frame] = prev_data + src_buf_ptr[frame];
@@ -856,7 +873,7 @@ __global__ void kernal_fp32_StochasticLut6_BackwardMarge(
         __syncthreads();
     }
 }
-
+*/
 
 int bbcu_fp32_StochasticLut6_Backward(
             float const     *dev_x_buf,
@@ -897,7 +914,7 @@ int bbcu_fp32_StochasticLut6_Backward(
         block.y = std::min(block.y, MAX_NODE_UNIT);
         dim3    grid(1, (output_node_size + (block.y - 1)) / block.y);
 
-        kernal_fp32_StochasticLut6_Backward<MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
+        kernal_StochasticLut_Backward<6, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
                 dev_x_buf,
                 dev_dy_buf,
                 dev_dx_tmp,
@@ -923,12 +940,25 @@ int bbcu_fp32_StochasticLut6_Backward(
 
         dim3    grid((frame_size + block_x - 1) /block_x, 1);
         dim3    block(block_x, 1, 1);
+
+        /*
         kernal_fp32_StochasticLut6_BackwardMarge<<<grid, block>>>(
                 dev_dx_tmp,
                 dev_dx_buf,
                 dev_input_index,
                 output_node_size,
                 frame_size,
+                frame_stride
+            );
+        */
+
+        kernal_NodeIntegrate<6, float><<<grid, block>>>(
+                dev_dx_tmp,
+                dev_dx_buf,
+                dev_input_index,
+                output_node_size,
+                frame_size,
+                frame_stride,
                 frame_stride
             );
         BB_CUDA_CHECK_LAST_ERROR();
@@ -939,60 +969,57 @@ int bbcu_fp32_StochasticLut6_Backward(
 
 
 
-////////////////////////////
-
-
-template<int MAX_FRAME_UNIT=256, int MAX_NODE_UNIT=16>
-__global__ void kernal_bit_fp32_StochasticLut6_Backward
+// bit packing
+template<int N=6, typename T=float, int MAX_FRAME_UNIT=256, int MAX_NODE_UNIT=16>
+__global__ void kernal_bit_StochasticLut_Backward
         (
-            int   const     *x_buf,
-            float const     *dy_buf,
-            float           *dx_buf,
-            int   const     *input_index,
-            float const     *W_buf,
-            float           *dW_buf,
-            int             node_size,
-            int             frame_size,
-            int             frame_stride,
-            int             bin_frame_stride,
-            int             lut_binarize,
-            float           unbinarize_bias
+            int const   *x_buf,
+            T   const   *dy_buf,
+            T           *dx_buf,
+            int const   *input_index,
+            T   const   *W_buf,
+            T           *dW_buf,
+            int         node_size,
+            int         frame_size,
+            int         frame_stride,
+            int         bin_frame_stride,
+            int         lut_binarize,
+            T           unbinarize_bias
         )
 {
-
     int node_id = threadIdx.y;
     int node    = blockIdx.y * blockDim.y + threadIdx.y;
     int id      = threadIdx.x;
     int id_step = blockDim.x;
 
-    __shared__  float       sbuf[MAX_NODE_UNIT][MAX_FRAME_UNIT];
-    __shared__  float       dW_prev[64][MAX_NODE_UNIT];
-    __shared__  float       W[64][MAX_NODE_UNIT];
-                float       dW[64];
-                int   const *x_ptr[6];
-                float const *dy_ptr;
+    __shared__  T       sbuf[MAX_NODE_UNIT][MAX_FRAME_UNIT];
+    __shared__  T       dW_prev[(1 << N)][MAX_NODE_UNIT];
+    __shared__  T       W[(1 << N)][MAX_NODE_UNIT];
+                T       dW[(1 << N)];
+                int   const *x_ptr[N];
+                T const *dy_ptr;
     
     // initialize dW
     if ( node < node_size ) {
-        for ( int i = 0; i < 64; ++i) {
+        for ( int i = 0; i < (1 << N); ++i) {
             dW[i] = 0;
         }
 
-        for ( int i = id; i < 64; i += id_step ) {
-            dW_prev[i][node_id] = dW_buf[node * 64 + i];
+        for ( int i = id; i < (1 << N); i += id_step ) {
+            dW_prev[i][node_id] = dW_buf[node * (1 << N) + i];
         }
 
         // read W
-        for ( int i = id; i < 64; i += id_step ) {
-            W[i][node_id] = W_buf[node * 64 + i];
+        for ( int i = id; i < (1 << N); i += id_step ) {
+            W[i][node_id] = W_buf[node * (1 << N) + i];
             if ( lut_binarize ) {
                 W[i][node_id] = W[i][node_id] > 0.5 ? 1.0 : 0.0;
             }
         }
         
         // init pointer
-        for ( int i = 0; i < 6; ++i ) {
-            int input_node = input_index[6*node + i];
+        for ( int i = 0; i < N; ++i ) {
+            int input_node = input_index[N*node + i];
             x_ptr[i]  = &x_buf[input_node * bin_frame_stride];
         }
 
@@ -1001,49 +1028,62 @@ __global__ void kernal_bit_fp32_StochasticLut6_Backward
 
     __syncthreads();
 
-    if ( node < node_size ) {
-        for ( int frame = id; frame < frame_size; frame += id_step ) {
+    for ( int frame = id; frame < frame_size; frame += id_step ) {
+        if ( node < node_size ) {
             int bit  = (1 << (frame & 0x1f));
             int unit = (frame >> 5);
 
-            float   xp[6], xn[6];
+            // read x
+            T   x[N];
+            for ( int i = 0; i < N; ++i) {
+                x[i] = 0.5 +((x_ptr[i][unit] & bit) ? +unbinarize_bias : -unbinarize_bias);
+            }
+
+            // read dy
+            T   dy = dy_ptr[frame];
+
+            // calc
+            StochasticLut<N, T, MAX_NODE_UNIT>::NodeBackward(node_id, x, dy, &dx_buf[node*N*frame_stride + frame], W, dW, frame_stride);
+
+#if 0
+            T   xp[6], xn[6];
             for ( int i = 0; i < 6; ++i) {
-                float x_val = 0.5 + ((x_ptr[i][unit] & bit) ? +unbinarize_bias : -unbinarize_bias);
+                T x_val = 0.5 + ((x_ptr[i][unit] & bit) ? +unbinarize_bias : -unbinarize_bias);
                 xp[i] = x_val;
                 xn[i] = 1.0 - x_val;
             }
 
-            float x0_00 = xn[1] * xn[0];
-            float x0_01 = xn[1] * xp[0];
-            float x0_10 = xp[1] * xn[0];
-            float x0_11 = xp[1] * xp[0];
-            float x1_00 = xn[3] * xn[2];
-            float x1_01 = xn[3] * xp[2];
-            float x1_10 = xp[3] * xn[2];
-            float x1_11 = xp[3] * xp[2];
-            float x2_00 = xn[5] * xn[4];
-            float x2_01 = xn[5] * xp[4];
-            float x2_10 = xp[5] * xn[4];
-            float x2_11 = xp[5] * xp[4];
+            T x0_00 = xn[1] * xn[0];
+            T x0_01 = xn[1] * xp[0];
+            T x0_10 = xp[1] * xn[0];
+            T x0_11 = xp[1] * xp[0];
+            T x1_00 = xn[3] * xn[2];
+            T x1_01 = xn[3] * xp[2];
+            T x1_10 = xp[3] * xn[2];
+            T x1_11 = xp[3] * xp[2];
+            T x2_00 = xn[5] * xn[4];
+            T x2_01 = xn[5] * xp[4];
+            T x2_10 = xp[5] * xn[4];
+            T x2_11 = xp[5] * xp[4];
 
-            float grad = dy_ptr[frame];
+            T grad = dy_ptr[frame];
 
-            float  x2_00_x1_00 =  x2_00 * x1_00;
-            float  x2_00_x1_01 =  x2_00 * x1_01;
-            float  x2_00_x1_10 =  x2_00 * x1_10;
-            float  x2_00_x1_11 =  x2_00 * x1_11;
-            float  x2_01_x1_00 =  x2_01 * x1_00;
-            float  x2_01_x1_01 =  x2_01 * x1_01;
-            float  x2_01_x1_10 =  x2_01 * x1_10;
-            float  x2_01_x1_11 =  x2_01 * x1_11;
-            float  x2_10_x1_00 =  x2_10 * x1_00;
-            float  x2_10_x1_01 =  x2_10 * x1_01;
-            float  x2_10_x1_10 =  x2_10 * x1_10;
-            float  x2_10_x1_11 =  x2_10 * x1_11;
-            float  x2_11_x1_00 =  x2_11 * x1_00;
-            float  x2_11_x1_01 =  x2_11 * x1_01;
-            float  x2_11_x1_10 =  x2_11 * x1_10;
-            float  x2_11_x1_11 =  x2_11 * x1_11;
+            T  x2_00_x1_00 =  x2_00 * x1_00;
+            T  x2_00_x1_01 =  x2_00 * x1_01;
+            T  x2_00_x1_10 =  x2_00 * x1_10;
+            T  x2_00_x1_11 =  x2_00 * x1_11;
+            T  x2_01_x1_00 =  x2_01 * x1_00;
+            T  x2_01_x1_01 =  x2_01 * x1_01;
+            T  x2_01_x1_10 =  x2_01 * x1_10;
+            T  x2_01_x1_11 =  x2_01 * x1_11;
+            T  x2_10_x1_00 =  x2_10 * x1_00;
+            T  x2_10_x1_01 =  x2_10 * x1_01;
+            T  x2_10_x1_10 =  x2_10 * x1_10;
+            T  x2_10_x1_11 =  x2_10 * x1_11;
+            T  x2_11_x1_00 =  x2_11 * x1_00;
+            T  x2_11_x1_01 =  x2_11 * x1_01;
+            T  x2_11_x1_10 =  x2_11 * x1_10;
+            T  x2_11_x1_11 =  x2_11 * x1_11;
 
             dW[ 0] += x2_00_x1_00 * x0_00 * grad;
             dW[ 1] += x2_00_x1_00 * x0_01 * grad;
@@ -1110,54 +1150,54 @@ __global__ void kernal_bit_fp32_StochasticLut6_Backward
             dW[62] += x2_11_x1_11 * x0_10 * grad;
             dW[63] += x2_11_x1_11 * x0_11 * grad;
 
-            float  x2_00_x0_00 =  x2_00 * x0_00;
-            float  x2_00_x0_01 =  x2_00 * x0_01;
-            float  x2_00_x0_10 =  x2_00 * x0_10;
-            float  x2_00_x0_11 =  x2_00 * x0_11;
-            float  x2_01_x0_00 =  x2_01 * x0_00;
-            float  x2_01_x0_01 =  x2_01 * x0_01;
-            float  x2_01_x0_10 =  x2_01 * x0_10;
-            float  x2_01_x0_11 =  x2_01 * x0_11;
-            float  x2_10_x0_00 =  x2_10 * x0_00;
-            float  x2_10_x0_01 =  x2_10 * x0_01;
-            float  x2_10_x0_10 =  x2_10 * x0_10;
-            float  x2_10_x0_11 =  x2_10 * x0_11;
-            float  x2_11_x0_00 =  x2_11 * x0_00;
-            float  x2_11_x0_01 =  x2_11 * x0_01;
-            float  x2_11_x0_10 =  x2_11 * x0_10;
-            float  x2_11_x0_11 =  x2_11 * x0_11;
+            T  x2_00_x0_00 =  x2_00 * x0_00;
+            T  x2_00_x0_01 =  x2_00 * x0_01;
+            T  x2_00_x0_10 =  x2_00 * x0_10;
+            T  x2_00_x0_11 =  x2_00 * x0_11;
+            T  x2_01_x0_00 =  x2_01 * x0_00;
+            T  x2_01_x0_01 =  x2_01 * x0_01;
+            T  x2_01_x0_10 =  x2_01 * x0_10;
+            T  x2_01_x0_11 =  x2_01 * x0_11;
+            T  x2_10_x0_00 =  x2_10 * x0_00;
+            T  x2_10_x0_01 =  x2_10 * x0_01;
+            T  x2_10_x0_10 =  x2_10 * x0_10;
+            T  x2_10_x0_11 =  x2_10 * x0_11;
+            T  x2_11_x0_00 =  x2_11 * x0_00;
+            T  x2_11_x0_01 =  x2_11 * x0_01;
+            T  x2_11_x0_10 =  x2_11 * x0_10;
+            T  x2_11_x0_11 =  x2_11 * x0_11;
 
-            float  x1_00_x0_00 =  x1_00 * x0_00;
-            float  x1_00_x0_01 =  x1_00 * x0_01;
-            float  x1_00_x0_10 =  x1_00 * x0_10;
-            float  x1_00_x0_11 =  x1_00 * x0_11;
-            float  x1_01_x0_00 =  x1_01 * x0_00;
-            float  x1_01_x0_01 =  x1_01 * x0_01;
-            float  x1_01_x0_10 =  x1_01 * x0_10;
-            float  x1_01_x0_11 =  x1_01 * x0_11;
-            float  x1_10_x0_00 =  x1_10 * x0_00;
-            float  x1_10_x0_01 =  x1_10 * x0_01;
-            float  x1_10_x0_10 =  x1_10 * x0_10;
-            float  x1_10_x0_11 =  x1_10 * x0_11;
-            float  x1_11_x0_00 =  x1_11 * x0_00;
-            float  x1_11_x0_01 =  x1_11 * x0_01;
-            float  x1_11_x0_10 =  x1_11 * x0_10;
-            float  x1_11_x0_11 =  x1_11 * x0_11;
+            T  x1_00_x0_00 =  x1_00 * x0_00;
+            T  x1_00_x0_01 =  x1_00 * x0_01;
+            T  x1_00_x0_10 =  x1_00 * x0_10;
+            T  x1_00_x0_11 =  x1_00 * x0_11;
+            T  x1_01_x0_00 =  x1_01 * x0_00;
+            T  x1_01_x0_01 =  x1_01 * x0_01;
+            T  x1_01_x0_10 =  x1_01 * x0_10;
+            T  x1_01_x0_11 =  x1_01 * x0_11;
+            T  x1_10_x0_00 =  x1_10 * x0_00;
+            T  x1_10_x0_01 =  x1_10 * x0_01;
+            T  x1_10_x0_10 =  x1_10 * x0_10;
+            T  x1_10_x0_11 =  x1_10 * x0_11;
+            T  x1_11_x0_00 =  x1_11 * x0_00;
+            T  x1_11_x0_01 =  x1_11 * x0_01;
+            T  x1_11_x0_10 =  x1_11 * x0_10;
+            T  x1_11_x0_11 =  x1_11 * x0_11;
 
 
-            float dxi;
-            float dx0_00 = 0;
-            float dx0_01 = 0;
-            float dx0_10 = 0;
-            float dx0_11 = 0;
-            float dx1_00 = 0;
-            float dx1_01 = 0;
-            float dx1_10 = 0;
-            float dx1_11 = 0;
-            float dx2_00 = 0;
-            float dx2_01 = 0;
-            float dx2_10 = 0;
-            float dx2_11 = 0;
+            T dxi;
+            T dx0_00 = 0;
+            T dx0_01 = 0;
+            T dx0_10 = 0;
+            T dx0_11 = 0;
+            T dx1_00 = 0;
+            T dx1_01 = 0;
+            T dx1_10 = 0;
+            T dx1_11 = 0;
+            T dx2_00 = 0;
+            T dx2_01 = 0;
+            T dx2_10 = 0;
+            T dx2_11 = 0;
             dxi = W[ 0][node_id];  dx0_00 += dxi * x2_00_x1_00;  dx1_00 += dxi * x2_00_x0_00;  dx2_00 += dxi * x1_00_x0_00;
             dxi = W[ 1][node_id];  dx0_01 += dxi * x2_00_x1_00;  dx1_00 += dxi * x2_00_x0_01;  dx2_00 += dxi * x1_00_x0_01;
             dxi = W[ 2][node_id];  dx0_10 += dxi * x2_00_x1_00;  dx1_00 += dxi * x2_00_x0_10;  dx2_00 += dxi * x1_00_x0_10;
@@ -1223,10 +1263,10 @@ __global__ void kernal_bit_fp32_StochasticLut6_Backward
             dxi = W[62][node_id];  dx0_10 += dxi * x2_11_x1_11;  dx1_11 += dxi * x2_11_x0_10;  dx2_11 += dxi * x1_11_x0_10;
             dxi = W[63][node_id];  dx0_11 += dxi * x2_11_x1_11;  dx1_11 += dxi * x2_11_x0_11;  dx2_11 += dxi * x1_11_x0_11;
         
-            float *dx_ptr = &dx_buf[(node*6)*frame_stride + frame];
-            float dxn;
-            float dxp;
-            float dx;
+            T *dx_ptr = &dx_buf[(node*6)*frame_stride + frame];
+            T dxn;
+            T dxp;
+            T dx;
             dxn  = dx0_00 * xn[1];    dxn += dx0_10 * xp[1];
             dxp  = dx0_01 * xn[1];    dxp += dx0_11 * xp[1];
             dx = (dxp - dxn) * grad;
@@ -1272,17 +1312,18 @@ __global__ void kernal_bit_fp32_StochasticLut6_Backward
             dx = (dxp - dxn) * grad;
             if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
             dx_ptr[5 * frame_stride] = dx;
+#endif
         }
     }
 
-    for ( int i = 0; i < 64; ++i ) {
+    for ( int i = 0; i < (1 << N); ++i ) {
         dW[i] = device_fp32_LocalSum(dW[i], sbuf[node_id]);
     }
 
     if ( node < node_size ) {
         if ( id == 0 ) {
-            for ( int i = 0; i < 64; ++i) {
-                dW_buf[node*64 + i] = dW[i] + dW_prev[i][node_id];
+            for ( int i = 0; i < (1 << N); ++i) {
+                dW_buf[node*(1 << N) + i] = dW[i] + dW_prev[i][node_id];
             }
         }
     }
@@ -1327,7 +1368,7 @@ int bbcu_bit_fp32_StochasticLut6_Backward(
         block.y = std::min(block.y, MAX_NODE_UNIT);
         dim3    grid(1, (output_node_size + (block.y - 1)) / block.y);
 
-        kernal_bit_fp32_StochasticLut6_Backward<MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
+        kernal_bit_StochasticLut_Backward<6, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
                 dev_x_buf,
                 dev_dy_buf,
                 dev_dx_tmp,
@@ -1353,12 +1394,24 @@ int bbcu_bit_fp32_StochasticLut6_Backward(
 
         dim3    grid((frame_size + block_x - 1) /block_x, 1);
         dim3    block(block_x, 1, 1);
+        /*
         kernal_fp32_StochasticLut6_BackwardMarge<<<grid, block>>>(
                 dev_dx_tmp,
                 dev_dx_buf,
                 dev_input_index,
                 output_node_size,
                 frame_size,
+                frame_stride
+            );
+        */
+        
+        kernal_NodeIntegrate<6, float><<<grid, block>>>(
+                dev_dx_tmp,
+                dev_dx_buf,
+                dev_input_index,
+                output_node_size,
+                frame_size,
+                frame_stride,
                 frame_stride
             );
         BB_CUDA_CHECK_LAST_ERROR();

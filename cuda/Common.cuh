@@ -94,8 +94,37 @@ __device__ __forceinline__ int device_int_ShuffleOr(int v)
 }
 
 
-template<typename T = float>
+
+template<int N=6, typename T = float>
 __global__ void kernal_NodeIntegrate(
+            T   const   *src_buf,
+            T           *dst_buf,
+            int const   *input_index,
+            int         node_size,
+            int         frame_size,
+            int         src_frame_stride,
+            int         dst_frame_stride
+        )
+{
+    int frame = blockDim.x * blockIdx.x + threadIdx.x;
+
+    for ( int node = 0; node < node_size; ++node ) {
+        if ( frame < frame_size ) {
+            for ( int n = 0; n < N; ++n ) {
+                int in_idx = input_index[node*N + n];
+                T       *dst_buf_ptr = &dst_buf[in_idx * dst_frame_stride];
+                T       prev_data    = dst_buf_ptr[frame];
+                T const *src_buf_ptr = &src_buf[(N * node + n) * src_frame_stride];
+                
+                dst_buf_ptr[frame] = prev_data + src_buf_ptr[frame];
+            }
+        }
+    }
+}
+
+
+template<typename T = float>
+__global__ void kernal_NodeIntegrateWithTable(
             T   const   *src_buf,
             T           *dst_buf,
             int const   *index_table,
