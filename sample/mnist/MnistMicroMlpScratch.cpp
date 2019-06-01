@@ -47,13 +47,13 @@ public:
 
     MnistSimpleMicroMlpNet()
     {
-        m_affine0   = Affine::Create({1024});
+        m_affine0   = Affine::Create(1024);
         m_activate0 = Activate::Create();
-        m_affine1   = Affine::Create({360});
+        m_affine1   = Affine::Create(360);
         m_activate1 = Activate::Create();
-        m_affine2   = Affine::Create({60});
+        m_affine2   = Affine::Create(60);
         m_activate2 = Activate::Create();
-        m_affine3   = Affine::Create({10});
+        m_affine3   = Affine::Create(10);
     }
 
     std::string GetClassName(void) const
