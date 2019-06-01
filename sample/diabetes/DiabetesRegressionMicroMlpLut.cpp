@@ -87,24 +87,24 @@ void DiabetesRegressionMicroMlpLut(int epoch_size, size_t mini_batch_size, size_
         auto layer_lut5 = bb::BinaryLutN<>::Create(layer_mm5->GetOutputShape());
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
+        lut_net->Add(bb::RealToBinary<bb::Bit>::Create(mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
         lut_net->Add(layer_lut0);
         lut_net->Add(layer_lut1);
         lut_net->Add(layer_lut2);
         lut_net->Add(layer_lut3);
         lut_net->Add(layer_lut4);
         lut_net->Add(layer_lut5);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(mux_size, td.t_shape));
+        lut_net->Add(bb::BinaryToReal<bb::Bit>::Create(mux_size, td.t_shape));
         lut_net->SetInputShape(td.x_shape);
 
         // テーブル化して取り込み(SetInputShape後に取り込みが必要)
         std::cout << "parameter copy to LUT-Network" << std::endl;
-        layer_lut0->ImportLayer<float, float>(layer_mm0);
-        layer_lut1->ImportLayer<float, float>(layer_mm1);
-        layer_lut2->ImportLayer<float, float>(layer_mm2);
-        layer_lut3->ImportLayer<float, float>(layer_mm3);
-        layer_lut4->ImportLayer<float, float>(layer_mm4);
-        layer_lut5->ImportLayer<float, float>(layer_mm5);
+        layer_lut0->ImportLayer(layer_mm0);
+        layer_lut1->ImportLayer(layer_mm1);
+        layer_lut2->ImportLayer(layer_mm2);
+        layer_lut3->ImportLayer(layer_mm3);
+        layer_lut4->ImportLayer(layer_mm4);
+        layer_lut5->ImportLayer(layer_mm5);
 
         // 評価
         bb::Runner<float>::create_t lut_runner_create;

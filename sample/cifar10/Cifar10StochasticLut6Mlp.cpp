@@ -14,7 +14,7 @@
 
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
-#include "bb/StochasticLut6.h"
+#include "bb/StochasticLutN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
@@ -35,7 +35,6 @@
 void Cifar10StochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
 {
     std::string net_name = "Cifar10StochasticLut6Mlp";
-    int const mux_size = 7;
 
   // load cifar-10 data
 #ifdef _DEBUG
@@ -45,10 +44,10 @@ void Cifar10StochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_s
     auto td = bb::LoadCifar10<>::Load();
 #endif
 
-    auto layer_sl0 = bb::StochasticLut6<>::Create({1024});
-    auto layer_sl1 = bb::StochasticLut6<>::Create({360});
-    auto layer_sl2 = bb::StochasticLut6<>::Create({60});
-    auto layer_sl3 = bb::StochasticLut6<>::Create({10});
+    auto layer_sl0 = bb::StochasticLutN<6>::Create({1024});
+    auto layer_sl1 = bb::StochasticLutN<6>::Create({360});
+    auto layer_sl2 = bb::StochasticLutN<6>::Create({60});
+    auto layer_sl3 = bb::StochasticLutN<6>::Create({10});
 
     {
         auto net = bb::Sequential::Create();
@@ -89,21 +88,21 @@ void Cifar10StochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_s
         auto layer_lut3 = bb::BinaryLutN<>::Create(layer_sl3->GetOutputShape());
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
-//      lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
+        lut_net->Add(bb::RealToBinary<bb::Bit>::Create(lut_frame_mux_size, bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1)));
+//      lut_net->Add(bb::RealToBinary<bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(layer_lut0);
         lut_net->Add(layer_lut1);
         lut_net->Add(layer_lut2);
         lut_net->Add(layer_lut3);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({10}, lut_frame_mux_size));
+        lut_net->Add(bb::BinaryToReal<bb::Bit>::Create(lut_frame_mux_size, td.t_shape));
         lut_net->SetInputShape(td.x_shape);
 
         // テーブル化して取り込み(SetInputShape後に取り込みが必要)
         std::cout << "parameter copy to LUT-Network" << std::endl;
-        layer_lut0->ImportLayer<float, float>(layer_sl0);
-        layer_lut1->ImportLayer<float, float>(layer_sl1);
-        layer_lut2->ImportLayer<float, float>(layer_sl2);
-        layer_lut3->ImportLayer<float, float>(layer_sl3);
+        layer_lut0->ImportLayer(layer_sl0);
+        layer_lut1->ImportLayer(layer_sl1);
+        layer_lut2->ImportLayer(layer_sl2);
+        layer_lut3->ImportLayer(layer_sl3);
 
         if ( 1 ) {
             // 評価

@@ -88,18 +88,18 @@ void Cifar10MicroMlpLutMlp(int epoch_size, int mini_batch_size, int max_run_size
         auto layer_lut2 = bb::BinaryLutN<>::Create(layer_mm2->GetOutputShape());
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
+        lut_net->Add(bb::RealToBinary<bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(layer_lut0);
         lut_net->Add(layer_lut1);
         lut_net->Add(layer_lut2);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(lut_frame_mux_size, td.t_shape));
+        lut_net->Add(bb::BinaryToReal<bb::Bit>::Create(lut_frame_mux_size, td.t_shape));
         lut_net->SetInputShape(td.x_shape);
 
         // テーブル化して取り込み(SetInputShape後に取り込みが必要)
         std::cout << "parameter copy to LUT-Network" << std::endl;
-        layer_lut0->ImportLayer<float, float>(layer_mm0);
-        layer_lut1->ImportLayer<float, float>(layer_mm1);
-        layer_lut2->ImportLayer<float, float>(layer_mm2);
+        layer_lut0->ImportLayer(layer_mm0);
+        layer_lut1->ImportLayer(layer_mm1);
+        layer_lut2->ImportLayer(layer_mm2);
 
         if ( 1 ) {
             // 評価

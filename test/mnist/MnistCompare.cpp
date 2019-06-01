@@ -15,7 +15,7 @@
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
 #include "bb/MicroMlp.h"
-#include "bb/StochasticLut6.h"
+#include "bb/StochasticLutN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
@@ -74,9 +74,9 @@ void MnistCompareRun(std::string net_name, int epoch_size, size_t mini_batch_siz
 
 void MnistCompare(int epoch_size, size_t mini_batch_size, bool binary_mode)
 {
-    MnistCompareRun< bb::StochasticLut6<> >("StochasticLut6", epoch_size, mini_batch_size, binary_mode);
-    MnistCompareRun< bb::MicroMlp<6, 32> >("MicroMlp32", epoch_size, mini_batch_size, binary_mode);
-    MnistCompareRun< bb::MicroMlp<6, 16> >("MicroMlp16", epoch_size, mini_batch_size, binary_mode);
-    MnistCompareRun< bb::MicroMlp<6, 8> >("MicroMlp8", epoch_size, mini_batch_size, binary_mode);
-    MnistCompareRun< bb::MicroMlp<6, 4> >("MicroMlp4", epoch_size, mini_batch_size, binary_mode);
+    MnistCompareRun< bb::StochasticLutN<6> >("StochasticLut6", epoch_size, mini_batch_size, binary_mode);
+    MnistCompareRun< bb::MicroMlp<6, 32>   >("MicroMlp32", epoch_size, mini_batch_size, binary_mode);
+    MnistCompareRun< bb::MicroMlp<6, 16>   >("MicroMlp16", epoch_size, mini_batch_size, binary_mode);
+    MnistCompareRun< bb::MicroMlp<6, 8>    >("MicroMlp8", epoch_size, mini_batch_size, binary_mode);
+    MnistCompareRun< bb::MicroMlp<6, 4>    >("MicroMlp4", epoch_size, mini_batch_size, binary_mode);
 }

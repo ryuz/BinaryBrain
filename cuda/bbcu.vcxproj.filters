@@ -52,9 +52,6 @@
     <CudaCompile Include="Sigmoid.cu">
       <Filter>ソース ファイル</Filter>
     </CudaCompile>
-    <CudaCompile Include="StochasticLut6.cu">
-      <Filter>ソース ファイル</Filter>
-    </CudaCompile>
     <CudaCompile Include="BinaryLut6.cu">
       <Filter>ソース ファイル</Filter>
     </CudaCompile>
@@ -76,13 +73,13 @@
     <CudaCompile Include="RealToBinary.cu">
       <Filter>ソース ファイル</Filter>
     </CudaCompile>
-    <CudaCompile Include="SparseBinaryLut6.cu">
-      <Filter>ソース ファイル</Filter>
-    </CudaCompile>
     <CudaCompile Include="FrameBufferCopy.cu">
       <Filter>ソース ファイル</Filter>
     </CudaCompile>
     <CudaCompile Include="SparseLut.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+    <CudaCompile Include="StochasticLut.cu">
       <Filter>ソース ファイル</Filter>
     </CudaCompile>
   </ItemGroup>

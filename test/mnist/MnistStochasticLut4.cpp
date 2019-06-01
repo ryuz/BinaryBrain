@@ -16,7 +16,7 @@
 #include "bb/BinaryToReal.h"
 #include "bb/BinaryLutN.h"
 #include "bb/MicroMlp.h"
-#include "bb/StochasticLut4.h"
+#include "bb/StochasticLutN.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
@@ -43,9 +43,9 @@ void MnistStochasticLut4(int epoch_size, size_t mini_batch_size, bool binary_mod
     auto td = bb::LoadMnist<>::Load(10);
 #endif
 
-    auto layer_sl0 = bb::StochasticLut4<>::Create({360});
-    auto layer_sl1 = bb::StochasticLut4<>::Create({60});
-    auto layer_sl2 = bb::StochasticLut4<>::Create({10});
+    auto layer_sl0 = bb::StochasticLutN<4>::Create({360});
+    auto layer_sl1 = bb::StochasticLutN<4>::Create({60});
+    auto layer_sl2 = bb::StochasticLutN<4>::Create({10});
 
     {
         auto net = bb::Sequential::Create();

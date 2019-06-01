@@ -78,9 +78,6 @@
     <ClCompile Include="MetricsCategoricalAccuracyTest.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="StochasticLut6Test.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="BinaryLutTest.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>

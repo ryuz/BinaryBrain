@@ -14,8 +14,7 @@
 
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
-#include "bb/StochasticLutN.h"
-#include "bb/StochasticLutBn.h"
+#include "bb/SparseLutN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/LoweringConvolution.h"
 #include "bb/BatchNormalization.h"
@@ -50,23 +49,23 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
 #endif
 
      // create network
-    auto layer_cnv0_sl0 = bb::StochasticLutBn<6>::Create(512);
-    auto layer_cnv0_sl1 = bb::StochasticLutBn<6>::Create(384);
-    auto layer_cnv0_sl2 = bb::StochasticLutBn<6>::Create(64);
-    auto layer_cnv1_sl0 = bb::StochasticLutBn<6>::Create(512);
-    auto layer_cnv1_sl1 = bb::StochasticLutBn<6>::Create(384);
-    auto layer_cnv1_sl2 = bb::StochasticLutBn<6>::Create(64);
-    auto layer_cnv2_sl0 = bb::StochasticLutBn<6>::Create(1024);
-    auto layer_cnv2_sl1 = bb::StochasticLutBn<6>::Create(768);
-    auto layer_cnv2_sl2 = bb::StochasticLutBn<6>::Create(128);
-    auto layer_cnv3_sl0 = bb::StochasticLutBn<6>::Create(1024);
-    auto layer_cnv3_sl1 = bb::StochasticLutBn<6>::Create(768);
-    auto layer_cnv3_sl2 = bb::StochasticLutBn<6>::Create(64);
-    auto layer_sl4      = bb::StochasticLutBn<6>::Create(2048);
-    auto layer_sl5      = bb::StochasticLutBn<6>::Create(1024);
-    auto layer_sl6      = bb::StochasticLutBn<6>::Create(360);
-    auto layer_sl7      = bb::StochasticLutBn<6>::Create(60);
-    auto layer_sl8      = bb::StochasticLutBn<6>::Create(10);
+    auto layer_cnv0_sl0 = bb::SparseLutN<6>::Create(512);
+    auto layer_cnv0_sl1 = bb::SparseLutN<6>::Create(384);
+    auto layer_cnv0_sl2 = bb::SparseLutN<6>::Create(64);
+    auto layer_cnv1_sl0 = bb::SparseLutN<6>::Create(512);
+    auto layer_cnv1_sl1 = bb::SparseLutN<6>::Create(384);
+    auto layer_cnv1_sl2 = bb::SparseLutN<6>::Create(64);
+    auto layer_cnv2_sl0 = bb::SparseLutN<6>::Create(1024);
+    auto layer_cnv2_sl1 = bb::SparseLutN<6>::Create(768);
+    auto layer_cnv2_sl2 = bb::SparseLutN<6>::Create(128);
+    auto layer_cnv3_sl0 = bb::SparseLutN<6>::Create(1024);
+    auto layer_cnv3_sl1 = bb::SparseLutN<6>::Create(768);
+    auto layer_cnv3_sl2 = bb::SparseLutN<6>::Create(64);
+    auto layer_sl4      = bb::SparseLutN<6>::Create(2048);
+    auto layer_sl5      = bb::SparseLutN<6>::Create(1024);
+    auto layer_sl6      = bb::SparseLutN<6>::Create(360);
+    auto layer_sl7      = bb::SparseLutN<6>::Create(60);
+    auto layer_sl8      = bb::SparseLutN<6>::Create(10);
 
     {
         auto cnv0_sub = bb::Sequential::Create();

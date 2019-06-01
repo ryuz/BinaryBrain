@@ -59,7 +59,6 @@
     <ClCompile Include="ReLUTest.cpp" />
     <ClCompile Include="SigmoidTest.cpp" />
     <ClCompile Include="SparseLutNTest.cpp" />
-    <ClCompile Include="StochasticLut6Test.cpp" />
     <ClCompile Include="StochasticLutNTest.cpp" />
     <ClCompile Include="TensorTest.cpp" />
     <ClCompile Include="VariablesTest.cpp" />

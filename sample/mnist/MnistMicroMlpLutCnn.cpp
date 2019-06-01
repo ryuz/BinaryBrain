@@ -160,7 +160,7 @@ void MnistMicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size, 
         auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 4, 4);
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
+        lut_net->Add(bb::RealToBinary<bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(cnv0);
         lut_net->Add(cnv1);
         lut_net->Add(pol0);
@@ -168,7 +168,7 @@ void MnistMicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size, 
         lut_net->Add(cnv3);
         lut_net->Add(pol1);
         lut_net->Add(cnv4);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(lut_frame_mux_size));
+        lut_net->Add(bb::BinaryToReal<bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(bb::Reduce<>::Create(td.t_shape));
         lut_net->SetInputShape(td.x_shape);
 

@@ -15,7 +15,7 @@
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
 #include "bb/Reduce.h"
-#include "bb/StochasticLut6.h"
+#include "bb/StochasticLutN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
@@ -44,10 +44,10 @@ void MnistStochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_siz
     auto td = bb::LoadMnist<>::Load(10);
 #endif
 
-    auto layer_sl0 = bb::StochasticLut6<>::Create({1024});
-    auto layer_sl1 = bb::StochasticLut6<>::Create({360});
-    auto layer_sl2 = bb::StochasticLut6<>::Create({60});
-    auto layer_sl3 = bb::StochasticLut6<>::Create({10});
+    auto layer_sl0 = bb::StochasticLutN<6>::Create({1024});
+    auto layer_sl1 = bb::StochasticLutN<6>::Create({360});
+    auto layer_sl2 = bb::StochasticLutN<6>::Create({60});
+    auto layer_sl3 = bb::StochasticLutN<6>::Create({10});
 
     {
         auto net = bb::Sequential::Create();
@@ -92,12 +92,12 @@ void MnistStochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_siz
         auto layer_lut3 = bb::BinaryLutN<>::Create(layer_sl3->GetOutputShape());
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
+        lut_net->Add(bb::RealToBinary<bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(layer_lut0);
         lut_net->Add(layer_lut1);
         lut_net->Add(layer_lut2);
         lut_net->Add(layer_lut3);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(lut_frame_mux_size));
+        lut_net->Add(bb::BinaryToReal<bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(bb::Reduce<>::Create(td.t_shape));
         lut_net->SetInputShape(td.x_shape);
 
