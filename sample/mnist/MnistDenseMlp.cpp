@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+﻿// --------------------------------------------------------------------------
 //  BinaryBrain  -- binary network evaluation platform
 //   MNIST sample
 //
@@ -56,11 +56,11 @@ void MnistDenseMlp(int epoch_size, int mini_batch_size, int max_run_size, bool b
     runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
     runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
     runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
-    runner_create.max_run_size       = max_run_size;    // ���ۂ�1��̎��s�T�C�Y
-    runner_create.file_read          = file_read;       // �O�̌v�Z���ʂ�����Γǂݍ���ōĊJ���邩
-    runner_create.file_write         = true;            // �v�Z���ʂ��t�@�C���ɕۑ����邩
-    runner_create.print_progress     = true;            // �r�����ʂ�\��
-    runner_create.initial_evaluation = file_read;       // �t�@�C����ǂ񂾏ꍇ�͍ŏ��ɕ]�����Ă���
+    runner_create.max_run_size       = max_run_size;    // 実際の1回の実行サイズ
+    runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
+    runner_create.file_write         = true;            // 計算結果をファイルに保存するか
+    runner_create.print_progress     = true;            // 途中結果を表示
+    runner_create.initial_evaluation = file_read;       // ファイルを読んだ場合は最初に評価しておく
     auto runner = bb::Runner<float>::Create(runner_create);
     runner->Fitting(td, epoch_size, mini_batch_size);
 }

@@ -44,10 +44,10 @@ void MnistStochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_siz
     auto td = bb::LoadMnist<>::Load(10);
 #endif
 
-    auto layer_sl0 = bb::StochasticLutN<6>::Create({1024});
-    auto layer_sl1 = bb::StochasticLutN<6>::Create({360});
-    auto layer_sl2 = bb::StochasticLutN<6>::Create({60});
-    auto layer_sl3 = bb::StochasticLutN<6>::Create({10});
+    auto layer_sl0 = bb::StochasticLutN<6>::Create(1024);
+    auto layer_sl1 = bb::StochasticLutN<6>::Create(360);
+    auto layer_sl2 = bb::StochasticLutN<6>::Create(60);
+    auto layer_sl3 = bb::StochasticLutN<6>::Create(10);
 
     {
         auto net = bb::Sequential::Create();
