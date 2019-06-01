@@ -15,9 +15,6 @@
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
 #include "bb/StochasticLutN.h"
-#include "bb/StochasticLut6.h"
-#include "bb/StochasticLutBn.h"
-#include "bb/StochasticLut.h"
 #include "bb/StochasticBatchNormalization.h"
 #include "bb/BinaryLutN.h"
 #include "bb/LoweringConvolution.h"
@@ -46,7 +43,7 @@
 
 #if 0
 
-// ’Pƒ”Å
+// ï¿½Pï¿½ï¿½ï¿½ï¿½
 
 // CNN with LUT networks
 void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
@@ -134,11 +131,11 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
         runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
-        runner_create.max_run_size       = max_run_size;    // ÀÛ‚Ì1‰ñ‚ÌÀsƒTƒCƒY
-        runner_create.file_read          = file_read;       // ‘O‚ÌŒvZŒ‹‰Ê‚ª‚ ‚ê‚Î“Ç‚İ‚ñ‚ÅÄŠJ‚·‚é‚©
-        runner_create.file_write         = true;            // ŒvZŒ‹‰Ê‚ğƒtƒ@ƒCƒ‹‚É•Û‘¶‚·‚é‚©
-        runner_create.print_progress     = true;            // “r’†Œ‹‰Ê‚ğ•\¦
-        runner_create.initial_evaluation = file_read;       // ƒtƒ@ƒCƒ‹‚ğ“Ç‚ñ‚¾ê‡‚ÍÅ‰‚É•]‰¿‚µ‚Ä‚¨‚­
+        runner_create.max_run_size       = max_run_size;    // ï¿½ï¿½ï¿½Û‚ï¿½1ï¿½ï¿½Ìï¿½ï¿½sï¿½Tï¿½Cï¿½Y
+        runner_create.file_read          = file_read;       // ï¿½Oï¿½ÌŒvï¿½Zï¿½ï¿½ï¿½Ê‚ï¿½ï¿½ï¿½ï¿½ï¿½Î“Ç‚İï¿½ï¿½ï¿½ÅÄŠJï¿½ï¿½ï¿½é‚©
+        runner_create.file_write         = true;            // ï¿½vï¿½Zï¿½ï¿½ï¿½Ê‚ï¿½ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½É•Û‘ï¿½ï¿½ï¿½ï¿½é‚©
+        runner_create.print_progress     = true;            // ï¿½rï¿½ï¿½ï¿½ï¿½ï¿½Ê‚ï¿½\ï¿½ï¿½
+        runner_create.initial_evaluation = file_read;       // ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½Ç‚ñ‚¾ê‡ï¿½ÍÅï¿½ï¿½É•]ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
@@ -187,7 +184,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto cnv3 = bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3);
         auto pol1 = bb::MaxPooling<bb::Bit>::Create(2, 2);
 
-        // 32x32 ˆÈŠO‚à“ü—Í‚Å‚«‚é‚æ‚¤‚ÉÅI’i‚àô‚İ‚İ‚É•ÏŠ·
+        // 32x32 ï¿½ÈŠOï¿½ï¿½ï¿½ï¿½ï¿½Í‚Å‚ï¿½ï¿½ï¿½æ‚¤ï¿½ÉÅIï¿½iï¿½ï¿½ï¿½ï¿½İï¿½ï¿½İ‚É•ÏŠï¿½
 //        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);
 
         auto lut_net = bb::Sequential::Create();
@@ -205,7 +202,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, lut_frame_mux_size));
         lut_net->SetInputShape(td.x_shape);
 
-        // ƒe[ƒuƒ‹‰»‚µ‚Äæ‚è‚İ(Œ»ó‚Ü‚¾SetInputShapeŒã‚Ìæ‚è‚İ‚ª•K—v)
+        // ï¿½eï¿½[ï¿½uï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Äï¿½èï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½Ü‚ï¿½SetInputShapeï¿½ï¿½Ìï¿½èï¿½İ‚ï¿½ï¿½Kï¿½v)
         layer_cnv0_lut0->ImportLayer<float, float>(layer_cnv0_sl0);
         layer_cnv0_lut1->ImportLayer<float, float>(layer_cnv0_sl1);
         layer_cnv1_lut0->ImportLayer<float, float>(layer_cnv1_sl0);
@@ -220,7 +217,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         // print model information
         lut_net->PrintInfo();
 
-        // •]‰¿
+        // ï¿½]ï¿½ï¿½
         if ( 1 ) {
             std::cout << "frame_mux_size : " << lut_frame_mux_size << std::endl;
 
@@ -231,14 +228,14 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
             lut_runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
             lut_runner_create.optimizer   = bb::OptimizerAdam<float>::Create();
             lut_runner_create.initial_evaluation = false;
-            lut_runner_create.print_progress = true;    // “r’†Œ‹‰Ê‚ğo—Í
+            lut_runner_create.print_progress = true;    // ï¿½rï¿½ï¿½ï¿½ï¿½ï¿½Ê‚ï¿½ï¿½oï¿½ï¿½
             auto lut_runner = bb::Runner<float>::Create(lut_runner_create);
             auto lut_accuracy = lut_runner->Evaluation(td, mini_batch_size);
             std::cout << "lut_accuracy : " << lut_accuracy << std::endl;
         }
 
         {
-            // Verilog o—Í
+            // Verilog ï¿½oï¿½ï¿½
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv0;
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv1;
 //          std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv2;
@@ -269,7 +266,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 
 
 #if 0
-// ’Pƒ”Å2
+// ï¿½Pï¿½ï¿½ï¿½ï¿½2
 
 // CNN with LUT networks
 void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
@@ -350,11 +347,11 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
         runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
-        runner_create.max_run_size       = max_run_size;    // ÀÛ‚Ì1‰ñ‚ÌÀsƒTƒCƒY
-        runner_create.file_read          = file_read;       // ‘O‚ÌŒvZŒ‹‰Ê‚ª‚ ‚ê‚Î“Ç‚İ‚ñ‚ÅÄŠJ‚·‚é‚©
-        runner_create.file_write         = true;            // ŒvZŒ‹‰Ê‚ğƒtƒ@ƒCƒ‹‚É•Û‘¶‚·‚é‚©
-        runner_create.print_progress     = true;            // “r’†Œ‹‰Ê‚ğ•\¦
-        runner_create.initial_evaluation = false; // file_read;       // ƒtƒ@ƒCƒ‹‚ğ“Ç‚ñ‚¾ê‡‚ÍÅ‰‚É•]‰¿‚µ‚Ä‚¨‚­
+        runner_create.max_run_size       = max_run_size;    // ï¿½ï¿½ï¿½Û‚ï¿½1ï¿½ï¿½Ìï¿½ï¿½sï¿½Tï¿½Cï¿½Y
+        runner_create.file_read          = file_read;       // ï¿½Oï¿½ÌŒvï¿½Zï¿½ï¿½ï¿½Ê‚ï¿½ï¿½ï¿½ï¿½ï¿½Î“Ç‚İï¿½ï¿½ï¿½ÅÄŠJï¿½ï¿½ï¿½é‚©
+        runner_create.file_write         = true;            // ï¿½vï¿½Zï¿½ï¿½ï¿½Ê‚ï¿½ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½É•Û‘ï¿½ï¿½ï¿½ï¿½é‚©
+        runner_create.print_progress     = true;            // ï¿½rï¿½ï¿½ï¿½ï¿½ï¿½Ê‚ï¿½\ï¿½ï¿½
+        runner_create.initial_evaluation = false; // file_read;       // ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½Ç‚ñ‚¾ê‡ï¿½ÍÅï¿½ï¿½É•]ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
@@ -411,7 +408,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto cnv3 = bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3);
         auto pol1 = bb::MaxPooling<bb::Bit>::Create(2, 2);
 
-        // 32x32 ˆÈŠO‚à“ü—Í‚Å‚«‚é‚æ‚¤‚ÉÅI’i‚àô‚İ‚İ‚É•ÏŠ·
+        // 32x32 ï¿½ÈŠOï¿½ï¿½ï¿½ï¿½ï¿½Í‚Å‚ï¿½ï¿½ï¿½æ‚¤ï¿½ÉÅIï¿½iï¿½ï¿½ï¿½ï¿½İï¿½ï¿½İ‚É•ÏŠï¿½
         auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);
 
         auto lut_net = bb::Sequential::Create();
@@ -433,7 +430,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, lut_frame_mux_size));
         lut_net->SetInputShape(td.x_shape);
 
-        // ƒe[ƒuƒ‹‰»‚µ‚Äæ‚è‚İ(Œ»ó‚Ü‚¾SetInputShapeŒã‚Ìæ‚è‚İ‚ª•K—v)
+        // ï¿½eï¿½[ï¿½uï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Äï¿½èï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½Ü‚ï¿½SetInputShapeï¿½ï¿½Ìï¿½èï¿½İ‚ï¿½ï¿½Kï¿½v)
         layer_cnv0_lut0->ImportLayer(layer_cnv0_sl0);
         layer_cnv0_lut1->ImportLayer(layer_cnv0_sl1);
         layer_cnv1_lut0->ImportLayer(layer_cnv1_sl0);
@@ -448,7 +445,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         // print model information
         lut_net->PrintInfo();
 
-        // •]‰¿
+        // ï¿½]ï¿½ï¿½
         if ( 1 ) {
             std::cout << "modulation_unit_size : " << lut_frame_mux_size << std::endl;
 
@@ -459,14 +456,14 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
             lut_runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
             lut_runner_create.optimizer   = bb::OptimizerAdam<float>::Create();
             lut_runner_create.initial_evaluation = false;
-            lut_runner_create.print_progress = true;    // “r’†Œ‹‰Ê‚ğo—Í
+            lut_runner_create.print_progress = true;    // ï¿½rï¿½ï¿½ï¿½ï¿½ï¿½Ê‚ï¿½ï¿½oï¿½ï¿½
             auto lut_runner = bb::Runner<float>::Create(lut_runner_create);
             auto lut_accuracy = lut_runner->Evaluation(td, mini_batch_size);
             std::cout << "lut_accuracy : " << lut_accuracy << std::endl;
         }
 
         {
-            // Verilog o—Í
+            // Verilog ï¿½oï¿½ï¿½
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv0;
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv1;
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv2;
@@ -497,7 +494,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 
 
 #if 1
-// ’Pƒ”Å3
+// ï¿½Pï¿½ï¿½ï¿½ï¿½3
 
 // CNN with LUT networks
 void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
@@ -594,11 +591,11 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
         runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
-        runner_create.max_run_size       = max_run_size;    // ÀÛ‚Ì1‰ñ‚ÌÀsƒTƒCƒY
-        runner_create.file_read          = file_read;       // ‘O‚ÌŒvZŒ‹‰Ê‚ª‚ ‚ê‚Î“Ç‚İ‚ñ‚ÅÄŠJ‚·‚é‚©
-        runner_create.file_write         = true;            // ŒvZŒ‹‰Ê‚ğƒtƒ@ƒCƒ‹‚É•Û‘¶‚·‚é‚©
-        runner_create.print_progress     = true;            // “r’†Œ‹‰Ê‚ğ•\¦
-        runner_create.initial_evaluation = false; // file_read;       // ƒtƒ@ƒCƒ‹‚ğ“Ç‚ñ‚¾ê‡‚ÍÅ‰‚É•]‰¿‚µ‚Ä‚¨‚­
+        runner_create.max_run_size       = max_run_size;    // ï¿½ï¿½ï¿½Û‚ï¿½1ï¿½ï¿½Ìï¿½ï¿½sï¿½Tï¿½Cï¿½Y
+        runner_create.file_read          = file_read;       // ï¿½Oï¿½ÌŒvï¿½Zï¿½ï¿½ï¿½Ê‚ï¿½ï¿½ï¿½ï¿½ï¿½Î“Ç‚İï¿½ï¿½ï¿½ÅÄŠJï¿½ï¿½ï¿½é‚©
+        runner_create.file_write         = true;            // ï¿½vï¿½Zï¿½ï¿½ï¿½Ê‚ï¿½ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½É•Û‘ï¿½ï¿½ï¿½ï¿½é‚©
+        runner_create.print_progress     = true;            // ï¿½rï¿½ï¿½ï¿½ï¿½ï¿½Ê‚ï¿½\ï¿½ï¿½
+        runner_create.initial_evaluation = false; // file_read;       // ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½Ç‚ñ‚¾ê‡ï¿½ÍÅï¿½ï¿½É•]ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
@@ -673,7 +670,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto cnv3p = bb::LoweringConvolution<bb::Bit>::Create(cnv3p_sub, 1, 1);
         auto pol1 = bb::MaxPooling<bb::Bit>::Create(2, 2);
 
-        // 32x32 ˆÈŠO‚à“ü—Í‚Å‚«‚é‚æ‚¤‚ÉÅI’i‚àô‚İ‚İ‚É•ÏŠ·
+        // 32x32 ï¿½ÈŠOï¿½ï¿½ï¿½ï¿½ï¿½Í‚Å‚ï¿½ï¿½ï¿½æ‚¤ï¿½ÉÅIï¿½iï¿½ï¿½ï¿½ï¿½İï¿½ï¿½İ‚É•ÏŠï¿½
         auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);
 
         auto lut_net = bb::Sequential::Create();
@@ -692,7 +689,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, lut_frame_mux_size));
         lut_net->SetInputShape(td.x_shape);
 
-        // ƒe[ƒuƒ‹‰»‚µ‚Äæ‚è‚İ(Œ»ó‚Ü‚¾SetInputShapeŒã‚Ìæ‚è‚İ‚ª•K—v)
+        // ï¿½eï¿½[ï¿½uï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Äï¿½èï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½Ü‚ï¿½SetInputShapeï¿½ï¿½Ìï¿½èï¿½İ‚ï¿½ï¿½Kï¿½v)
         layer_cnv0_lut0 ->ImportLayer(layer_cnv0_sl0);
         layer_cnv0_lut1 ->ImportLayer(layer_cnv0_sl1);
         layer_cnv1d_lut0->ImportLayer(layer_cnv1d_sl0);
@@ -710,7 +707,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         // print model information
         lut_net->PrintInfo();
 
-        // •]‰¿
+        // ï¿½]ï¿½ï¿½
         if ( 1 ) {
             std::cout << "modulation_unit_size : " << lut_frame_mux_size << std::endl;
 
@@ -721,14 +718,14 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
             lut_runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
             lut_runner_create.optimizer   = bb::OptimizerAdam<float>::Create();
             lut_runner_create.initial_evaluation = false;
-            lut_runner_create.print_progress = true;    // “r’†Œ‹‰Ê‚ğo—Í
+            lut_runner_create.print_progress = true;    // ï¿½rï¿½ï¿½ï¿½ï¿½ï¿½Ê‚ï¿½ï¿½oï¿½ï¿½
             auto lut_runner = bb::Runner<float>::Create(lut_runner_create);
             auto lut_accuracy = lut_runner->Evaluation(td, mini_batch_size);
             std::cout << "lut_accuracy : " << lut_accuracy << std::endl;
         }
 
         if ( 0 ) {
-            // Verilog o—Í
+            // Verilog ï¿½oï¿½ï¿½
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv0;
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv1;
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv2;
@@ -855,11 +852,11 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
 //      runner_create.optimizer          = bb::OptimizerAdaGrad<float>::Create();
-        runner_create.max_run_size       = max_run_size;    // ÀÛ‚Ì1‰ñ‚ÌÀsƒTƒCƒY
-        runner_create.file_read          = file_read;       // ‘O‚ÌŒvZŒ‹‰Ê‚ª‚ ‚ê‚Î“Ç‚İ‚ñ‚ÅÄŠJ‚·‚é‚©
-        runner_create.file_write         = true;            // ŒvZŒ‹‰Ê‚ğƒtƒ@ƒCƒ‹‚É•Û‘¶‚·‚é‚©
-        runner_create.print_progress     = true;            // “r’†Œ‹‰Ê‚ğ•\¦
-        runner_create.initial_evaluation = false; // file_read;       // ƒtƒ@ƒCƒ‹‚ğ“Ç‚ñ‚¾ê‡‚ÍÅ‰‚É•]‰¿‚µ‚Ä‚¨‚­
+        runner_create.max_run_size       = max_run_size;    // ï¿½ï¿½ï¿½Û‚ï¿½1ï¿½ï¿½Ìï¿½ï¿½sï¿½Tï¿½Cï¿½Y
+        runner_create.file_read          = file_read;       // ï¿½Oï¿½ÌŒvï¿½Zï¿½ï¿½ï¿½Ê‚ï¿½ï¿½ï¿½ï¿½ï¿½Î“Ç‚İï¿½ï¿½ï¿½ÅÄŠJï¿½ï¿½ï¿½é‚©
+        runner_create.file_write         = true;            // ï¿½vï¿½Zï¿½ï¿½ï¿½Ê‚ï¿½ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½É•Û‘ï¿½ï¿½ï¿½ï¿½é‚©
+        runner_create.print_progress     = true;            // ï¿½rï¿½ï¿½ï¿½ï¿½ï¿½Ê‚ï¿½\ï¿½ï¿½
+        runner_create.initial_evaluation = false; // file_read;       // ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½Ç‚ñ‚¾ê‡ï¿½ÍÅï¿½ï¿½É•]ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
@@ -923,7 +920,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto cnv3 = bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3);
         auto pol1 = bb::MaxPooling<bb::Bit>::Create(2, 2);
 
-        // 32x32 ˆÈŠO‚à“ü—Í‚Å‚«‚é‚æ‚¤‚ÉÅI’i‚àô‚İ‚İ‚É•ÏŠ·
+        // 32x32 ï¿½ÈŠOï¿½ï¿½ï¿½ï¿½ï¿½Í‚Å‚ï¿½ï¿½ï¿½æ‚¤ï¿½ÉÅIï¿½iï¿½ï¿½ï¿½ï¿½İï¿½ï¿½İ‚É•ÏŠï¿½
 //        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);
 
         auto lut_net = bb::Sequential::Create();
@@ -948,7 +945,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 
         lut_net->PrintInfo();
 
-        // ƒe[ƒuƒ‹‰»‚µ‚Äæ‚è‚İ(Œ»ó‚Ü‚¾SetInputShapeŒã‚Ìæ‚è‚İ‚ª•K—v)
+        // ï¿½eï¿½[ï¿½uï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Äï¿½èï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½Ü‚ï¿½SetInputShapeï¿½ï¿½Ìï¿½èï¿½İ‚ï¿½ï¿½Kï¿½v)
         std::cout << "parameter copy to LUT-Network."  << std::flush;
 
 //        layer_bn0      ->Import(layer_sbn0);
@@ -973,7 +970,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         layer_lut7     ->ImportLayer<float, float>(layer_sl7);          std::cout << "." << std::endl;
 
 
-        // •]‰¿
+        // ï¿½]ï¿½ï¿½
         if ( 1 ) {
             std::cout << "frame_mux_size : " << lut_frame_mux_size << std::endl;
 
@@ -984,14 +981,14 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
             lut_runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
             lut_runner_create.optimizer   = bb::OptimizerAdam<float>::Create();
             lut_runner_create.initial_evaluation = false;
-            lut_runner_create.print_progress = true;    // “r’†Œ‹‰Ê‚ğo—Í
+            lut_runner_create.print_progress = true;    // ï¿½rï¿½ï¿½ï¿½ï¿½ï¿½Ê‚ï¿½ï¿½oï¿½ï¿½
             auto lut_runner = bb::Runner<float>::Create(lut_runner_create);
             auto lut_accuracy = lut_runner->Evaluation(td, mini_batch_size);
             std::cout << "lut_accuracy : " << lut_accuracy << std::endl;
         }
 
         {
-            // Verilog o—Í
+            // Verilog ï¿½oï¿½ï¿½
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv0;
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv1;
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv2;
@@ -1157,11 +1154,11 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
 //      runner_create.optimizer          = bb::OptimizerAdaGrad<float>::Create();
-        runner_create.max_run_size       = max_run_size;    // ÀÛ‚Ì1‰ñ‚ÌÀsƒTƒCƒY
-        runner_create.file_read          = file_read;       // ‘O‚ÌŒvZŒ‹‰Ê‚ª‚ ‚ê‚Î“Ç‚İ‚ñ‚ÅÄŠJ‚·‚é‚©
-        runner_create.file_write         = true;            // ŒvZŒ‹‰Ê‚ğƒtƒ@ƒCƒ‹‚É•Û‘¶‚·‚é‚©
-        runner_create.print_progress     = true;            // “r’†Œ‹‰Ê‚ğ•\¦
-        runner_create.initial_evaluation = file_read;       // ƒtƒ@ƒCƒ‹‚ğ“Ç‚ñ‚¾ê‡‚ÍÅ‰‚É•]‰¿‚µ‚Ä‚¨‚­
+        runner_create.max_run_size       = max_run_size;    // ï¿½ï¿½ï¿½Û‚ï¿½1ï¿½ï¿½Ìï¿½ï¿½sï¿½Tï¿½Cï¿½Y
+        runner_create.file_read          = file_read;       // ï¿½Oï¿½ÌŒvï¿½Zï¿½ï¿½ï¿½Ê‚ï¿½ï¿½ï¿½ï¿½ï¿½Î“Ç‚İï¿½ï¿½ï¿½ÅÄŠJï¿½ï¿½ï¿½é‚©
+        runner_create.file_write         = true;            // ï¿½vï¿½Zï¿½ï¿½ï¿½Ê‚ï¿½ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½É•Û‘ï¿½ï¿½ï¿½ï¿½é‚©
+        runner_create.print_progress     = true;            // ï¿½rï¿½ï¿½ï¿½ï¿½ï¿½Ê‚ï¿½\ï¿½ï¿½
+        runner_create.initial_evaluation = file_read;       // ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½Ç‚ñ‚¾ê‡ï¿½ÍÅï¿½ï¿½É•]ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
@@ -1226,7 +1223,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto cnv3 = bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3);
         auto pol1 = bb::MaxPooling<bb::Bit>::Create(2, 2);
 
-        // 32x32 ˆÈŠO‚à“ü—Í‚Å‚«‚é‚æ‚¤‚ÉÅI’i‚àô‚İ‚İ‚É•ÏŠ·
+        // 32x32 ï¿½ÈŠOï¿½ï¿½ï¿½ï¿½ï¿½Í‚Å‚ï¿½ï¿½ï¿½æ‚¤ï¿½ÉÅIï¿½iï¿½ï¿½ï¿½ï¿½İï¿½ï¿½İ‚É•ÏŠï¿½
         auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);
 
         auto lut_net = bb::Sequential::Create();
@@ -1242,7 +1239,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         lut_net->SetInputShape(td.x_shape);
 
 
-        // ƒe[ƒuƒ‹‰»‚µ‚Äæ‚è‚İ(Œ»ó‚Ü‚¾SetInputShapeŒã‚Ìæ‚è‚İ‚ª•K—v)
+        // ï¿½eï¿½[ï¿½uï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Äï¿½èï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½Ü‚ï¿½SetInputShapeï¿½ï¿½Ìï¿½èï¿½İ‚ï¿½ï¿½Kï¿½v)
         std::cout << "parameter copy to LUT-Network" << std::endl;
         layer_cnv0_lut0->ImportLayer<float, float>(layer_cnv0_sl0);
         layer_cnv0_lut1->ImportLayer<float, float>(layer_cnv0_sl1);
@@ -1263,7 +1260,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 //        layer_lut8     ->ImportLayer<float, float>(layer_sl8);
 //        layer_lut9     ->ImportLayer<float, float>(layer_sl9);
 
-        // •]‰¿
+        // ï¿½]ï¿½ï¿½
         if ( 1 ) {
             bb::Runner<float>::create_t lut_runner_create;
             lut_runner_create.name        = "Lut_" + net_name;
@@ -1272,14 +1269,14 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
             lut_runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
             lut_runner_create.optimizer   = bb::OptimizerAdam<float>::Create();
             lut_runner_create.initial_evaluation = false;
-            lut_runner_create.print_progress = true;    // “r’†Œ‹‰Ê‚ğo—Í
+            lut_runner_create.print_progress = true;    // ï¿½rï¿½ï¿½ï¿½ï¿½ï¿½Ê‚ï¿½ï¿½oï¿½ï¿½
             auto lut_runner = bb::Runner<float>::Create(lut_runner_create);
             auto lut_accuracy = lut_runner->Evaluation(td, mini_batch_size);
             std::cout << "lut_accuracy : " << lut_accuracy << std::endl;
         }
 
         {
-            // Verilog o—Í
+            // Verilog ï¿½oï¿½ï¿½
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv0;
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv1;
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv2;
@@ -1313,7 +1310,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 
 #if 0
 
-// BatchNormÀŒ±
+// BatchNormï¿½ï¿½ï¿½ï¿½
 
 // CNN with LUT networks
 void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
@@ -1421,11 +1418,11 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
 //      runner_create.optimizer          = bb::OptimizerAdaGrad<float>::Create();
-        runner_create.max_run_size       = max_run_size;    // ÀÛ‚Ì1‰ñ‚ÌÀsƒTƒCƒY
-        runner_create.file_read          = file_read;       // ‘O‚ÌŒvZŒ‹‰Ê‚ª‚ ‚ê‚Î“Ç‚İ‚ñ‚ÅÄŠJ‚·‚é‚©
-        runner_create.file_write         = true;            // ŒvZŒ‹‰Ê‚ğƒtƒ@ƒCƒ‹‚É•Û‘¶‚·‚é‚©
-        runner_create.print_progress     = true;            // “r’†Œ‹‰Ê‚ğ•\¦
-        runner_create.initial_evaluation = false; // file_read;       // ƒtƒ@ƒCƒ‹‚ğ“Ç‚ñ‚¾ê‡‚ÍÅ‰‚É•]‰¿‚µ‚Ä‚¨‚­
+        runner_create.max_run_size       = max_run_size;    // ï¿½ï¿½ï¿½Û‚ï¿½1ï¿½ï¿½Ìï¿½ï¿½sï¿½Tï¿½Cï¿½Y
+        runner_create.file_read          = file_read;       // ï¿½Oï¿½ÌŒvï¿½Zï¿½ï¿½ï¿½Ê‚ï¿½ï¿½ï¿½ï¿½ï¿½Î“Ç‚İï¿½ï¿½ï¿½ÅÄŠJï¿½ï¿½ï¿½é‚©
+        runner_create.file_write         = true;            // ï¿½vï¿½Zï¿½ï¿½ï¿½Ê‚ï¿½ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½É•Û‘ï¿½ï¿½ï¿½ï¿½é‚©
+        runner_create.print_progress     = true;            // ï¿½rï¿½ï¿½ï¿½ï¿½ï¿½Ê‚ï¿½\ï¿½ï¿½
+        runner_create.initial_evaluation = false; // file_read;       // ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½Ç‚ñ‚¾ê‡ï¿½ÍÅï¿½ï¿½É•]ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
@@ -1489,7 +1486,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         auto cnv3 = bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3);
         auto pol1 = bb::MaxPooling<bb::Bit>::Create(2, 2);
 
-        // 32x32 ˆÈŠO‚à“ü—Í‚Å‚«‚é‚æ‚¤‚ÉÅI’i‚àô‚İ‚İ‚É•ÏŠ·
+        // 32x32 ï¿½ÈŠOï¿½ï¿½ï¿½ï¿½ï¿½Í‚Å‚ï¿½ï¿½ï¿½æ‚¤ï¿½ÉÅIï¿½iï¿½ï¿½ï¿½ï¿½İï¿½ï¿½İ‚É•ÏŠï¿½
 //        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);
 
         auto lut_net = bb::Sequential::Create();
@@ -1514,7 +1511,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
 
         lut_net->PrintInfo();
 
-        // ƒe[ƒuƒ‹‰»‚µ‚Äæ‚è‚İ(Œ»ó‚Ü‚¾SetInputShapeŒã‚Ìæ‚è‚İ‚ª•K—v)
+        // ï¿½eï¿½[ï¿½uï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Äï¿½èï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½Ü‚ï¿½SetInputShapeï¿½ï¿½Ìï¿½èï¿½İ‚ï¿½ï¿½Kï¿½v)
         std::cout << "parameter copy to LUT-Network."  << std::flush;
 
 //        layer_bn0      ->Import(layer_sbn0);
@@ -1539,7 +1536,7 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         layer_lut7     ->ImportLayer<float, float>(layer_sl7);          std::cout << "." << std::endl;
 
 
-        // •]‰¿
+        // ï¿½]ï¿½ï¿½
         if ( 1 ) {
             std::cout << "frame_mux_size : " << lut_frame_mux_size << std::endl;
 
@@ -1550,14 +1547,14 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
             lut_runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
             lut_runner_create.optimizer   = bb::OptimizerAdam<float>::Create();
             lut_runner_create.initial_evaluation = false;
-            lut_runner_create.print_progress = true;    // “r’†Œ‹‰Ê‚ğo—Í
+            lut_runner_create.print_progress = true;    // ï¿½rï¿½ï¿½ï¿½ï¿½ï¿½Ê‚ï¿½ï¿½oï¿½ï¿½
             auto lut_runner = bb::Runner<float>::Create(lut_runner_create);
             auto lut_accuracy = lut_runner->Evaluation(td, mini_batch_size);
             std::cout << "lut_accuracy : " << lut_accuracy << std::endl;
         }
 
         {
-            // Verilog o—Í
+            // Verilog ï¿½oï¿½ï¿½
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv0;
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv1;
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv2;
@@ -1699,11 +1696,11 @@ void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_s
         runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
 //      runner_create.optimizer          = bb::OptimizerAdaGrad<float>::Create();
-        runner_create.max_run_size       = max_run_size;    // ÀÛ‚Ì1‰ñ‚ÌÀsƒTƒCƒY
-        runner_create.file_read          = file_read;       // ‘O‚ÌŒvZŒ‹‰Ê‚ª‚ ‚ê‚Î“Ç‚İ‚ñ‚ÅÄŠJ‚·‚é‚©
-        runner_create.file_write         = true;            // ŒvZŒ‹‰Ê‚ğƒtƒ@ƒCƒ‹‚É•Û‘¶‚·‚é‚©
-        runner_create.print_progress     = true;            // “r’†Œ‹‰Ê‚ğ•\¦
-        runner_create.initial_evaluation = false; // file_read;       // ƒtƒ@ƒCƒ‹‚ğ“Ç‚ñ‚¾ê‡‚ÍÅ‰‚É•]‰¿‚µ‚Ä‚¨‚­
+        runner_create.max_run_size       = max_run_size;    // ï¿½ï¿½ï¿½Û‚ï¿½1ï¿½ï¿½Ìï¿½ï¿½sï¿½Tï¿½Cï¿½Y
+        runner_create.file_read          = file_read;       // ï¿½Oï¿½ÌŒvï¿½Zï¿½ï¿½ï¿½Ê‚ï¿½ï¿½ï¿½ï¿½ï¿½Î“Ç‚İï¿½ï¿½ï¿½ÅÄŠJï¿½ï¿½ï¿½é‚©
+        runner_create.file_write         = true;            // ï¿½vï¿½Zï¿½ï¿½ï¿½Ê‚ï¿½ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½É•Û‘ï¿½ï¿½ï¿½ï¿½é‚©
+        runner_create.print_progress     = true;            // ï¿½rï¿½ï¿½ï¿½ï¿½ï¿½Ê‚ï¿½\ï¿½ï¿½
+        runner_create.initial_evaluation = false; // file_read;       // ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½Ç‚ñ‚¾ê‡ï¿½ÍÅï¿½ï¿½É•]ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
