@@ -15,6 +15,7 @@
 
 #include "bb/SparseLayer.h"
 #include "bb/Tensor.h"
+#include "bb/StochasticOperation.h"
 
 
 namespace bb {
