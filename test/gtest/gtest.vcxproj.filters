@@ -308,5 +308,8 @@
     <ClInclude Include="..\..\include\bb\SparseLutDiscreteN.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bb\StochasticOperation.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
