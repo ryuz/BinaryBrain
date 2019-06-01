@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <algorithm>
 #include <chrono>
 
@@ -42,7 +42,7 @@ __global__ void kernal_fp32_MaxPooling_Forward(
     }
 
     for ( int frame = frame_base; frame < frame_size; frame += frame_step ) {
-        // Å‘å’l’Tõ
+        // æœ€å¤§å€¤æŽ¢ç´¢
         float max_val = -1.0e7f;
         for (int fy = 0; fy < filter_h_size; ++fy) {
             int iy = y * filter_h_size + fy;
@@ -57,7 +57,7 @@ __global__ void kernal_fp32_MaxPooling_Forward(
             }
         }
 
-        // o—Í
+        // å‡ºåŠ›
         y_buf[((c * output_h_size + y) * output_w_size + x) * frame_stride + frame] = max_val;
     }
 }
@@ -138,7 +138,7 @@ __global__ void kernal_bit_MaxPooling_Forward(
             int bit      = (frame & 0x1f);
             int bit_mask = (1 << bit);
 
-            // Å‘å’l’Tõ
+            // æœ€å¤§å€¤æŽ¢ç´¢
             int y_val = 0;
             if ( frame < frame_size ) {
                 for (int fy = 0; fy < filter_h_size; ++fy) {
@@ -157,7 +157,7 @@ __global__ void kernal_bit_MaxPooling_Forward(
 
             y_val = device_int_ShuffleOr(y_val & bit_mask);
 
-            // o—Í
+            // å‡ºåŠ›
             if ( bit == 0 ) {
                 y_buf[((c * output_h_size + y) * output_w_size + x) * frame_stride + unit] = y_val;
             }
@@ -243,7 +243,7 @@ __global__ void kernal_fp32_MaxPooling_Backward(
         return;
     }
     
-    // Å‘å’l‰ÓŠ‚Ì‚Ý“`”d
+    // æœ€å¤§å€¤ç®‡æ‰€ã®ã¿ä¼æ’­
     for ( int frame = frame_base; frame < frame_size; frame += frame_step ) {
         float out_sig = y_buf[((c * output_h_size + y) * output_w_size + x) * frame_stride + frame];
         float grad    = dy_buf[((c * output_h_size + y) * output_w_size + x) * frame_stride + frame];
@@ -340,7 +340,7 @@ __global__ void kernal_bit_fp32_MaxPooling_Backward(
     int c = blockIdx.z * blockDim.z + threadIdx.z;
 
     if (y < output_h_size && x < output_w_size) {
-        // Å‘å’l‰ÓŠ‚Ì‚Ý“`”d
+        // æœ€å¤§å€¤ç®‡æ‰€ã®ã¿ä¼æ’­
         for ( int frame = id; frame < frame_size; frame += id_step ) {
             int bit  = (1 << (frame & 0x1f));
             int unit = (frame >> 5);

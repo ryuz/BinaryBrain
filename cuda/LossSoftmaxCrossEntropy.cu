@@ -1,4 +1,4 @@
-#include <algorithm>
+Ôªø#include <algorithm>
 #include <iostream>
 #include <chrono>
 
@@ -28,7 +28,7 @@ __global__ void kernal_fp32_LossSoftmaxCrossEntropy(
         return;
     }
 
-    // maxíTçı
+    // maxÊé¢Á¥¢
     float c = y_buf[frame];
     for ( int node = 1; node < node_size; ++node) {
         c = max(c, y_buf[node * frame_stride + frame]);
@@ -87,7 +87,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_LossSoftmaxCrossEntropy
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
     
-    // åvéZ
+    // Ë®àÁÆó
     dim3    block(512);
     dim3    grid((frame_size + (block.x-1)) / block.x);
     block.x = std::min((int)block.x, (int)frame_size);
@@ -103,7 +103,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_LossSoftmaxCrossEntropy
         );
     BB_CUDA_CHECK_LAST_ERROR();
 
-    // ëπé∏èWåv
+    // ÊêçÂ§±ÈõÜË®à
     kernal_fp32_LossSoftmaxCrossEntropy_Sum << <1, 1, 0, streamId >> > (
             dev_loss_buf,
             dev_loss,

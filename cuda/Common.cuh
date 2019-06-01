@@ -1,4 +1,4 @@
-
+ï»¿
 #pragma once
 
 
@@ -15,7 +15,7 @@ __device__ __forceinline__ T device_LocalSumX(T v, T *sbuf)
     sbuf[threadIdx.x] = v;
     __syncthreads();
 
-    // ƒXƒŒƒbƒhŠÔWŒv
+    // ã‚¹ãƒ¬ãƒƒãƒ‰é–“é›†è¨ˆ
     int comb = 1;
     while (comb < blockDim.x) {
         int next = comb * 2;
@@ -39,7 +39,7 @@ __device__ __forceinline__ float device_fp32_LocalSum(float v, float *buf)
     buf[threadIdx.x] = v;
     __syncthreads();
 
-    // ƒXƒŒƒbƒhŠÔWŒv
+    // ã‚¹ãƒ¬ãƒƒãƒ‰é–“é›†è¨ˆ
     int comb = 1;
     while (comb < blockDim.x) {
         int next = comb * 2;
@@ -64,7 +64,7 @@ __device__ __forceinline__ int device_int_LocalOr(int v, int id, int *sbuf)
     sbuf[id] = v;
     __syncthreads();
 
-    // ƒXƒŒƒbƒhŠÔWŒv
+    // ã‚¹ãƒ¬ãƒƒãƒ‰é–“é›†è¨ˆ
     int comb = 1;
     while (comb < 32) {
         int next = comb * 2;

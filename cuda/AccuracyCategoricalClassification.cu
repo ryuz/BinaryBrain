@@ -1,4 +1,4 @@
-#include <algorithm>
+ï»¿#include <algorithm>
 #include <iostream>
 #include <chrono>
 
@@ -29,7 +29,7 @@ __global__ void kernal_fp32_AccuracyCategoricalClassification(
     int acc_sum = 0;
     
     for ( int frame = id; frame < frame_size; frame += id_step ) {
-        // max’Tõ
+        // maxæŽ¢ç´¢
         float max_val = y_buf[frame];
         int   max_idx = 0;
         for ( int node = 1; node < node_size; ++node) {
@@ -50,7 +50,7 @@ __global__ void kernal_fp32_AccuracyCategoricalClassification(
         prev_accuracy = accuracy[0];
     }
 
-    // ƒXƒŒƒbƒhŠÔWŒv
+    // ã‚¹ãƒ¬ãƒƒãƒ‰é–“é›†è¨ˆ
     buf[threadIdx.x] = acc_sum;
     __syncthreads();
 
@@ -84,7 +84,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_AccuracyCategoricalClassification
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
     
-    // ŒvŽZ
+    // è¨ˆç®—
     dim3    block(THREAD_UNIT);
     dim3    grid(1);
     while ((int)block.x / 2 < frame_size) { block.x /= 2; }

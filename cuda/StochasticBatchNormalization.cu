@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <chrono>
 #include <algorithm>
 
@@ -24,7 +24,7 @@ __device__ __forceinline__ float device_fp32_LocalSum(float v, float *buf)
     buf[threadIdx.x] = v;
     __syncthreads();
 
-    // ƒXƒŒƒbƒhŠÔWŒv
+    // ã‚¹ãƒ¬ãƒƒãƒ‰é–“é›†è¨ˆ
     int comb = 1;
     while (comb < blockDim.x) {
         int next = comb * 2;
@@ -65,14 +65,14 @@ __global__ void kernal_fp32_StochasticBatchNormalization_ForwardTraining(
 {
     __shared__   float  buf[BBCU_BATCHNORM_FW_BLOCK_SIZE];
 
-    // ‰Šú‰»
+    // åˆæœŸåŒ–
     int const node    = blockIdx.x;
     int const id      = threadIdx.x;
     int const id_step = blockDim.x;
     
     const float* x_ptr = &x_buf[frame_stride * node];
 
-    // ƒJƒnƒ“‚Ì‰ÁZƒAƒ‹ƒSƒŠƒYƒ€(Kahan summation algorithm)
+    // ã‚«ãƒãƒ³ã®åŠ ç®—ã‚¢ãƒ«ã‚´ãƒªã‚ºãƒ (Kahan summation algorithm)
     float s1 = 0, c1 = 0, y1, t1;
     float s2 = 0, c2 = 0, y2, t2;
     for ( int frame = id; frame < frame_size; frame += id_step) {
@@ -100,7 +100,7 @@ __global__ void kernal_fp32_StochasticBatchNormalization_ForwardTraining(
 //      printf("1\t%3d\t%.20e\t%.20e\t%.20e\t%.20e\t%.20e\n", node, s1, s2, mean, var, rstd);
 //  }
 
-    // ‘‚«‚İ
+    // æ›¸ãè¾¼ã¿
     if (id == 0) {
         running_mean_buf[node] = running_mean_buf[node] * momentum + mean * (1.0f - momentum);
         running_var_buf[node]  = running_var_buf[node]  * momentum + var  * (1.0f - momentum);
@@ -110,7 +110,7 @@ __global__ void kernal_fp32_StochasticBatchNormalization_ForwardTraining(
 //      printf("[StochasticBatchNormalization] node=%d mean=%f rstd=%f\n", node, mean, rstd);
     }
 
-    // ³‹K‰»
+    // æ­£è¦åŒ–
     float* y_ptr = &y_buf[frame_stride * node];
     for ( int frame = id; frame < frame_size; frame += id_step) {
         float x = x_ptr[frame];
@@ -181,7 +181,7 @@ __global__ void kernal_fp32_StochasticBatchNormalization_ReForward(
             int             frame_stride
         )
 {
-    // ‰Šú‰»
+    // åˆæœŸåŒ–
     int const node    = blockIdx.x;
     int const id      = threadIdx.x;
     int const id_step = blockDim.x;
@@ -342,7 +342,7 @@ __global__ void kernal_fp32_StochasticBatchNormalization_Backward
 {
     __shared__   float  buf[BBCU_BATCHNORM_BW_BLOCK_SIZE];
 
-    // ‰Šú‰»
+    // åˆæœŸåŒ–
     int const node    = blockIdx.x;
     int const id      = threadIdx.x;
     int const id_step = blockDim.x;

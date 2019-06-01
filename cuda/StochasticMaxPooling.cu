@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <algorithm>
 #include <chrono>
 
@@ -37,7 +37,7 @@ __global__ void kernal_fp32_StochasticMaxPooling_Forward(
     
     if ( x < output_w_size && y < output_h_size ) {
         for ( int frame = id; frame < frame_size; frame += id_step ) {
-            /// OR‰‰ŽZ‚ðŽÀŽ{(”½“]‚µ‚ÄAND‚ðŽæ‚Á‚ÄAo—Í”½“])
+            /// ORæ¼”ç®—ã‚’å®Ÿæ–½(åè»¢ã—ã¦ANDã‚’å–ã£ã¦ã€å‡ºåŠ›åè»¢)
             float out_sig = 1.0;
             for (int fy = 0; fy < filter_h_size; ++fy) {
                 int iy = y * filter_h_size + fy;
@@ -52,7 +52,7 @@ __global__ void kernal_fp32_StochasticMaxPooling_Forward(
                 }
             }
 
-            // o—Í
+            // å‡ºåŠ›
             y_buf[((c * output_h_size + y) * output_w_size + x) * frame_stride + frame] = (1.0 - out_sig);
         }
     }
@@ -130,7 +130,7 @@ __global__ void kernal_fp32_StochasticMaxPooling2x2_Forward(
     
     if ( x < output_w_size && y < output_h_size ) {
         for ( int frame = id; frame < frame_size; frame += id_step ) {
-            // OR‰‰ŽZ
+            // ORæ¼”ç®—
             float out_sig = 1.0;
             for (int fy = 0; fy < 2; ++fy) {
                 int iy = y * 2 + fy;
@@ -145,7 +145,7 @@ __global__ void kernal_fp32_StochasticMaxPooling2x2_Forward(
                 }
             }
 
-            // o—Í
+            // å‡ºåŠ›
             y_buf[((c * output_h_size + y) * output_w_size + x) * frame_stride + frame] = (1.0 - out_sig);
         }
     }

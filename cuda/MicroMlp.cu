@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <algorithm>
 
 #include "cuda_runtime.h"
@@ -34,7 +34,7 @@ __global__ void kernal_fp32_MicroMlp_Forward
     int const id      = threadIdx.x;
     int const id_step = blockDim.x;
 
-    // ŒW”“Ç‚İ‚İ
+    // ä¿‚æ•°èª­ã¿è¾¼ã¿
     __shared__ float        W0[M][N][MAX_NODE_UNIT];
     __shared__ float        b0[M][MAX_NODE_UNIT];
     __shared__ float        W1[M][MAX_NODE_UNIT];
@@ -55,28 +55,28 @@ __global__ void kernal_fp32_MicroMlp_Forward
             b1[node_id] = output_b[node];
         }
 
-        // “Ç‚İ‚İƒAƒhƒŒƒX
+        // èª­ã¿è¾¼ã¿ã‚¢ãƒ‰ãƒ¬ã‚¹
         for ( int i = 0; i < N; ++i ) {
             int in_idx = input_index[node*N + i];
             x_ptr[i][node_id] = &x_buf[frame_stride * in_idx];
         }
 
-        // ‘‚«‚İƒAƒhƒŒƒX
+        // æ›¸ãè¾¼ã¿ã‚¢ãƒ‰ãƒ¬ã‚¹
         y_ptr = &y_buf[frame_stride * node];
     }
     
     __syncthreads();
     
-    // 1‚Â‚ÌSM‚Å1node‚ğ‘SƒtƒŒ[ƒ€ˆ—
+    // 1ã¤ã®SMã§1nodeã‚’å…¨ãƒ•ãƒ¬ãƒ¼ãƒ å‡¦ç†
     for ( int frame = id; frame < frame_size; frame += id_step ) {
         if ( node < node_size ) {
-            // “ü—Íƒf[ƒ^“Ç‚İ‚İ
+            // å…¥åŠ›ãƒ‡ãƒ¼ã‚¿èª­ã¿è¾¼ã¿
             float   x[N];
             for ( int i = 0; i < N; ++i ) {
                 x[i] = x_ptr[i][node_id][frame];
             }
 
-            // ŒvZ
+            // è¨ˆç®—
             float sig1 = b1[node_id];
             for ( int i = 0; i < M; ++i ) {
                 float sig0 = b0[i][node_id];
@@ -89,7 +89,7 @@ __global__ void kernal_fp32_MicroMlp_Forward
                 sig1 += sig0 * W1[i][node_id];
             }
 
-            // o—Í
+            // å‡ºåŠ›
             y_ptr[frame] = sig1;
         }
         __syncthreads();
@@ -187,7 +187,7 @@ int bbcu_fp32_MicroMlp6x16_Forward
 /////////////////////
 
 
-// bit“ü—Í”Å
+// bitå…¥åŠ›ç‰ˆ
 template <int N=6, int M=16, int MAX_NODE_UNIT=16>
 __global__ void kernal_bit_fp32_MicroMlp_Forward(
             int const       *x_buf,
@@ -208,7 +208,7 @@ __global__ void kernal_bit_fp32_MicroMlp_Forward(
     int const id      = threadIdx.x;
     int const id_step = blockDim.x;
 
-    // ŒW”“Ç‚İ‚İ
+    // ä¿‚æ•°èª­ã¿è¾¼ã¿
     __shared__ float        W0[M][N][MAX_NODE_UNIT];
     __shared__ float        b0[M][MAX_NODE_UNIT];
     __shared__ float        W1[M][MAX_NODE_UNIT];
@@ -228,7 +228,7 @@ __global__ void kernal_bit_fp32_MicroMlp_Forward(
             b1[node_id] = output_b[node];
         }
 
-        // “Ç‚İ‚İƒAƒhƒŒƒX
+        // èª­ã¿è¾¼ã¿ã‚¢ãƒ‰ãƒ¬ã‚¹
         for ( int i = 0; i < N; ++i ) {
             int input_node = input_index[node*N + i];
             x_ptr[i][node_id] = &x_buf[input_frame_stride * input_node];
@@ -238,21 +238,21 @@ __global__ void kernal_bit_fp32_MicroMlp_Forward(
     __syncthreads();
 
     if ( node < node_size) {
-        // ‘‚«‚İƒAƒhƒŒƒX
+        // æ›¸ãè¾¼ã¿ã‚¢ãƒ‰ãƒ¬ã‚¹
         float *y_ptr = &y_buf[output_frame_stride * node];
     
-        // 1‚Â‚ÌSM‚Å1node‚ğ‘SƒtƒŒ[ƒ€ˆ—
+        // 1ã¤ã®SMã§1nodeã‚’å…¨ãƒ•ãƒ¬ãƒ¼ãƒ å‡¦ç†
         for ( int frame = id; frame < frame_size; frame += id_step ) {
             int bit  = (1 << (frame & 0x1f));
             int unit = (frame >> 5);
 
-            // “ü—Íƒf[ƒ^“Ç‚İ‚İ
+            // å…¥åŠ›ãƒ‡ãƒ¼ã‚¿èª­ã¿è¾¼ã¿
             int   x[N];
             for ( int i = 0; i < N; ++i ) {
                 x[i] = x_ptr[i][node_id][unit];
             }
         
-            // ŒvZ
+            // è¨ˆç®—
             float sig1 = b1[node_id];
             for ( int i = 0; i < M; ++i ) {
                 float sig0 = b0[i][node_id];
@@ -267,7 +267,7 @@ __global__ void kernal_bit_fp32_MicroMlp_Forward(
                 sig1 += sig0 * W1[i][node_id];
             }
 
-            // o—Í
+            // å‡ºåŠ›
             y_ptr[frame] = sig1;
         }
     }
@@ -379,7 +379,7 @@ __device__ __forceinline__ float device_fp32_LocalSum(float v, float *buf)
     buf[threadIdx.x] = v;
     __syncthreads();
 
-    // ƒXƒŒƒbƒhŠÔWŒv
+    // ã‚¹ãƒ¬ãƒƒãƒ‰é–“é›†è¨ˆ
     int comb = 1;
     while (comb < blockDim.x) {
         int next = comb * 2;
@@ -439,7 +439,7 @@ __global__ void kernal_fp32_MicroMlp_Backward
                 float const *dy_ptr;
 
     if ( node < node_size ) {
-        // ŒW”“Ç‚İ‚İ
+        // ä¿‚æ•°èª­ã¿è¾¼ã¿
         for ( int i = id; i < M; i += id_step ) {
             for ( int j = 0; j < N; ++j ) {
                 W0[i][j][node_id] = hidden_W[(node * M + i) * N + j];
@@ -449,7 +449,7 @@ __global__ void kernal_fp32_MicroMlp_Backward
             W1[i][node_id] = output_W[node * M + i];
         }
 
-        // ’¼‘O‚ÌŒW”“Ç‚İ‚İ
+        // ç›´å‰ã®ä¿‚æ•°èª­ã¿è¾¼ã¿
         for ( int i = id; i < M; i += id_step ) {
             for ( int j = 0; j < N; ++j ) {
                 dW0_prev[i][j][node_id] = hidden_dW[(node * M + i) * N + j];
@@ -462,7 +462,7 @@ __global__ void kernal_fp32_MicroMlp_Backward
             db1_prev[node_id] = output_db[node];
         }
 
-        // ƒ|ƒCƒ“ƒ^“Ç‚İ‚İ
+        // ãƒã‚¤ãƒ³ã‚¿èª­ã¿è¾¼ã¿
         for ( int i = 0; i < N; ++i ) {
             int input_node = input_index[node*N + i];
             x_ptr[i][node_id] = &x_buf[frame_stride * input_node];
@@ -473,7 +473,7 @@ __global__ void kernal_fp32_MicroMlp_Backward
 
     __syncthreads();
     
-    // Œù”z‰Šú‰»
+    // å‹¾é…åˆæœŸåŒ–
     float dW0[M][N];
     float db0[M];
     float dW1[M];
@@ -490,15 +490,15 @@ __global__ void kernal_fp32_MicroMlp_Backward
     db1 = 0;
     
     if ( node < node_size ) {
-        // 1‚Â‚ÌSM‚Å1node‚ğ‘SƒtƒŒ[ƒ€ˆ—
+        // 1ã¤ã®SMã§1nodeã‚’å…¨ãƒ•ãƒ¬ãƒ¼ãƒ å‡¦ç†
         for ( int frame = id; frame < frame_size; frame += id_step ) {
-            // “ü—Íƒf[ƒ^“Ç‚İ‚İ
+            // å…¥åŠ›ãƒ‡ãƒ¼ã‚¿èª­ã¿è¾¼ã¿
             float   x[N];
             for ( int i = 0; i < N; ++i ) {
                 x[i] = x_ptr[i][node_id][frame];
             }
         
-            // 1’i–ÚÄŒvZ‚µ‚Ä2’i–Ú‹t“`”d
+            // 1æ®µç›®å†è¨ˆç®—ã—ã¦2æ®µç›®é€†ä¼æ’­
             float   grad1 = dy_ptr[frame];
             float   grad0[M];
             db1 += grad1;
@@ -520,7 +520,7 @@ __global__ void kernal_fp32_MicroMlp_Backward
                 }
             }
         
-            // 1’i–Ú‹t“`”d
+            // 1æ®µç›®é€†ä¼æ’­
             float *dx_ptr  = &dx_buf[frame_stride * N * node];
             float   dx[N];
             for ( int i = 0; i < N; ++i ) {
@@ -535,7 +535,7 @@ __global__ void kernal_fp32_MicroMlp_Backward
                 }
             }
             
-            // Œë·‘‚«‚İ
+            // èª¤å·®æ›¸ãè¾¼ã¿
             for ( int i = 0; i < N; ++i ) {
                 dx_ptr[frame_stride * i + frame] = dx[i];
             }
@@ -544,7 +544,7 @@ __global__ void kernal_fp32_MicroMlp_Backward
     
     __syncthreads();
 
-    // ŒW”“‡
+    // ä¿‚æ•°çµ±åˆ
     for ( int i = 0; i < M; ++i ) {
         for ( int j = 0; j < N; ++j ) {
             dW0[i][j] = device_fp32_LocalSum(dW0[i][j], sbuf[node_id]);
@@ -554,7 +554,7 @@ __global__ void kernal_fp32_MicroMlp_Backward
     }
     db1 = device_fp32_LocalSum(db1, sbuf[node_id]);
 
-    // Œù”zo—Í
+    // å‹¾é…å‡ºåŠ›
     if ( node < node_size ) {
         for ( int i = id; i < M; i += id_step ) {
             for ( int j = 0; j < N; ++j ) {
@@ -780,7 +780,7 @@ __global__ void kernal_bit_fp32_MicroMlp_Backward
                 float const *dy_ptr;
 
     if ( node < node_size ) {
-        // ŒW”“Ç‚İ‚İ
+        // ä¿‚æ•°èª­ã¿è¾¼ã¿
         for ( int i = id; i < M; i += id_step ) {
             for ( int j = 0; j < N; ++j ) {
                 W0[i][j][node_id] = hidden_W[(node * M + i) * N + j];
@@ -790,7 +790,7 @@ __global__ void kernal_bit_fp32_MicroMlp_Backward
             W1[i][node_id] = output_W[node * M + i];
         }
 
-        // ’¼‘O‚ÌŒW”“Ç‚İ‚İ
+        // ç›´å‰ã®ä¿‚æ•°èª­ã¿è¾¼ã¿
         for ( int i = id; i < M; i += id_step ) {
             for ( int j = 0; j < N; ++j ) {
                 dW0_prev[i][j][node_id] = hidden_dW[(node * M + i) * N + j];
@@ -803,7 +803,7 @@ __global__ void kernal_bit_fp32_MicroMlp_Backward
             db1_prev[node_id] = output_db[node];
         }
 
-        // ƒ|ƒCƒ“ƒ^“Ç‚İ‚İ
+        // ãƒã‚¤ãƒ³ã‚¿èª­ã¿è¾¼ã¿
         for ( int i = 0; i < N; ++i ) {
             int input_node = input_index[node*N + i];
             x_ptr[i][node_id] = &x_buf[x_frame_stride * input_node];
@@ -814,7 +814,7 @@ __global__ void kernal_bit_fp32_MicroMlp_Backward
 
     __syncthreads();
     
-    // Œù”z‰Šú‰»
+    // å‹¾é…åˆæœŸåŒ–
     float dW0[M][N];
     float db0[M];
     float dW1[M];
@@ -831,18 +831,18 @@ __global__ void kernal_bit_fp32_MicroMlp_Backward
     db1 = 0;
     
     if ( node < node_size ) {
-        // 1‚Â‚ÌSM‚Å1node‚ğ‘SƒtƒŒ[ƒ€ˆ—
+        // 1ã¤ã®SMã§1nodeã‚’å…¨ãƒ•ãƒ¬ãƒ¼ãƒ å‡¦ç†
         for ( int frame = id; frame < frame_size; frame += id_step ) {
             int bit  = (1 << (frame & 0x1f));
             int unit = (frame >> 5);
 
-            // “ü—Íƒf[ƒ^“Ç‚İ‚İ
+            // å…¥åŠ›ãƒ‡ãƒ¼ã‚¿èª­ã¿è¾¼ã¿
             int   x[N];
             for ( int i = 0; i < N; ++i ) {
                 x[i] = x_ptr[i][node_id][unit];
             }
             
-            // 1’i–ÚÄŒvZ‚µ‚Ä2’i–Ú‹t“`”d
+            // 1æ®µç›®å†è¨ˆç®—ã—ã¦2æ®µç›®é€†ä¼æ’­
             float   grad1 = dy_ptr[frame];
             float   grad0[M];
             db1 += grad1;
@@ -866,7 +866,7 @@ __global__ void kernal_bit_fp32_MicroMlp_Backward
                 }
             }
         
-            // 1’i–Ú‹t“`”d
+            // 1æ®µç›®é€†ä¼æ’­
             float *dx_ptr  = &dx_buf[frame_stride * N * node];
             float   dx[N];
             for ( int i = 0; i < N; ++i ) {
@@ -881,7 +881,7 @@ __global__ void kernal_bit_fp32_MicroMlp_Backward
                 }
             }
             
-            // Œë·‘‚«‚İ
+            // èª¤å·®æ›¸ãè¾¼ã¿
             for ( int i = 0; i < N; ++i ) {
                 dx_ptr[frame_stride * i + frame] = dx[i];
             }
@@ -890,7 +890,7 @@ __global__ void kernal_bit_fp32_MicroMlp_Backward
     
     __syncthreads();
 
-    // ŒW”“‡
+    // ä¿‚æ•°çµ±åˆ
     for ( int i = 0; i < M; ++i ) {
         for ( int j = 0; j < N; ++j ) {
             dW0[i][j] = device_fp32_LocalSum(dW0[i][j], sbuf[node_id]);
@@ -900,7 +900,7 @@ __global__ void kernal_bit_fp32_MicroMlp_Backward
     }
     db1 = device_fp32_LocalSum(db1, sbuf[node_id]);
 
-    // Œù”zo—Í
+    // å‹¾é…å‡ºåŠ›
     if ( node < node_size ) {
         for ( int i = id; i < M; i += id_step ) {
             for ( int j = 0; j < N; ++j ) {

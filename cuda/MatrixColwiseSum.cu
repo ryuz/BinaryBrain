@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <chrono>
 
 #include "cuda_runtime.h"
@@ -19,12 +19,12 @@ __global__ void kernel_fp32_MatrixColwiseSum(
 {
     __shared__   float   buf[THREAD_X_UNIT];
 
-    // ‰Šú‰»
+    // åˆæœŸåŒ–
     int node       = blockIdx.x;
     int frame_base = threadIdx.x;
     int frame_step = blockDim.x;
 
-    // “Ç‚İ‚İ
+    // èª­ã¿è¾¼ã¿
     float acc = 0;
     const float* x_ptr = &x_mat[frame_stride * node];
     for ( int frame = frame_base; frame < frame_size; frame += frame_step ) {

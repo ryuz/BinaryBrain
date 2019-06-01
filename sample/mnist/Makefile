@@ -1,4 +1,4 @@
-
+﻿
 # target
 TARGET  = sample-mnist
 SUB_TARGETS =

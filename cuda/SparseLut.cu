@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <chrono>
 #include <algorithm>
 
@@ -72,12 +72,12 @@ __global__ void kernal_SparseLut_ForwardTraining
 
     __syncthreads();
     
-    // •½‹Ï‚Æ•ªUŒv‘ª
+    // å¹³å‡ã¨åˆ†æ•£è¨ˆæ¸¬
     T s1 = 0, c1 = 0, y1, t1;
     T s2 = 0, c2 = 0, y2, t2;
     for (int frame = id; frame < frame_size; frame += id_step) {
         if ( node < node_size ) {
-            // ForwardŒvZ
+            // Forwardè¨ˆç®—
             T x[N];
             if ( binary_mode ) {
                 for ( int i = 0; i < N; ++i) {
@@ -92,7 +92,7 @@ __global__ void kernal_SparseLut_ForwardTraining
 
             T y = StochasticLut<N, T, MAX_NODE_UNIT>::NodeForward(node_id, x, W);
 
-            // WŒv
+            // é›†è¨ˆ
             y1 = y - c1;
             t1 = s1 + y1;
             c1 = (t1 - s1) - y1;
@@ -112,7 +112,7 @@ __global__ void kernal_SparseLut_ForwardTraining
   
     T rstd = rsqrt(var);
 
-    // ‘‚«‚İ
+    // æ›¸ãè¾¼ã¿
     if (id == 0) {
         if ( node < node_size ) {
             running_mean_buf[node] = running_mean_buf[node] * momentum + mean * (1.0f - momentum);
@@ -122,10 +122,10 @@ __global__ void kernal_SparseLut_ForwardTraining
         }
     }
 
-    // ³‹K‰»
+    // æ­£è¦åŒ–
     for ( int frame = id; frame < frame_size; frame += id_step) {
         if ( node < node_size ) {
-            // ForwardŒvZ
+            // Forwardè¨ˆç®—
             T x[N];
             if ( binary_mode ) {
                 for ( int i = 0; i < N; ++i) {
@@ -282,12 +282,12 @@ __global__ void kernal_bit_SparseLut_ForwardTraining
 
     __syncthreads();
     
-    // •½‹Ï‚Æ•ªUŒv‘ª
+    // å¹³å‡ã¨åˆ†æ•£è¨ˆæ¸¬
     T s1 = 0, c1 = 0, y1, t1;
     T s2 = 0, c2 = 0, y2, t2;
     for (int frame = id; frame < frame_size; frame += id_step) {
         if ( node < node_size ) {
-            // ForwardŒvZ
+            // Forwardè¨ˆç®—
             int bit  = (1 << (frame & 0x1f));
             int unit = (frame >> 5);
             T x[N];
@@ -297,7 +297,7 @@ __global__ void kernal_bit_SparseLut_ForwardTraining
             T y = StochasticLut<N, T, MAX_NODE_UNIT>::NodeForward(node_id, x, W);
 //          printf("[0] n=%3d f=%3d y=%10f\n", node, frame, y);
 
-            // WŒv
+            // é›†è¨ˆ
             y1 = y - c1;
             t1 = s1 + y1;
             c1 = (t1 - s1) - y1;
@@ -322,7 +322,7 @@ __global__ void kernal_bit_SparseLut_ForwardTraining
 //      printf("0\t%3d\t%.20e\t%.20e\t%.20e\t%.20e\t%.20e\n", node, s1, s2, mean, var, rstd);
 //  }
 
-    // ‘‚«‚İ
+    // æ›¸ãè¾¼ã¿
     if (id == 0) {
         if ( node < node_size ) {
             running_mean_buf[node] = running_mean_buf[node] * momentum + mean * (1.0f - momentum);
@@ -332,7 +332,7 @@ __global__ void kernal_bit_SparseLut_ForwardTraining
         }
     }
 
-    // ³‹K‰»
+    // æ­£è¦åŒ–
     int loop_size = ((frame_size + blockDim.x - 1) & ~(blockDim.x - 1));
     for ( int frame = id; frame < loop_size; frame += id_step) {
         int unit     = (frame >> 5);
@@ -341,7 +341,7 @@ __global__ void kernal_bit_SparseLut_ForwardTraining
 
         int y_mask = 0;
         if ( node < node_size && frame < frame_size) {
-            // ForwardŒvZ
+            // Forwardè¨ˆç®—
             T x[N];
             for ( int i = 0; i < N; ++i) {
                 x[i] = 0.5 + ((x_ptr[i][unit] & bit_mask)  ? +unbinarize_bias : -unbinarize_bias);
@@ -392,7 +392,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLut6_ForwardTraining
 
     unsigned int const THREAD_SIZE    = 256;
     unsigned int const MAX_FRAME_UNIT = 256;
-    unsigned int const MAX_NODE_UNIT  = 8;  // THREAD_SIZE/32 ‚æ‚è¬‚³‚­‚·‚é‚±‚Æ
+    unsigned int const MAX_NODE_UNIT  = 8;  // THREAD_SIZE/32 ã‚ˆã‚Šå°ã•ãã™ã‚‹ã“ã¨
 
 #if 0
     dim3    block(MAX_FRAME_UNIT, THREAD_SIZE / MAX_FRAME_UNIT);
@@ -492,7 +492,7 @@ __global__ void kernal_SparseLut_ForwardInference
         T   rstd = 1.0 / (sqrt(var) + 1.0e-7);
 
         for ( int frame = id; frame < frame_size; frame += id_step) {
-            // ForwardŒvZ
+            // Forwardè¨ˆç®—
             T   x[N];
             if ( binary_mode ) {
                 for ( int i = 0; i < N; ++i) {
@@ -542,7 +542,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_SparseLut6_ForwardInference
 
     unsigned int const THREAD_SIZE    = 256;
     unsigned int const MAX_FRAME_UNIT = 256;
-    unsigned int const MAX_NODE_UNIT  = 8;  // THREAD_SIZE/32 ‚æ‚è¬‚³‚­‚·‚é‚±‚Æ
+    unsigned int const MAX_NODE_UNIT  = 8;  // THREAD_SIZE/32 ã‚ˆã‚Šå°ã•ãã™ã‚‹ã“ã¨
 
 #if 0
     dim3    block(MAX_FRAME_UNIT, THREAD_SIZE / MAX_FRAME_UNIT);
@@ -641,7 +641,7 @@ __global__ void kernal_bit_SparseLut_ForwardInference
 
             int y_mask = 0;
             if ( node < node_size && frame < frame_size) {
-                // ForwardŒvZ
+                // Forwardè¨ˆç®—
                 T   x[N];
                 for ( int i = 0; i < N; ++i) {
                     x[i] = 0.5 + ((x_ptr[i][unit] & bit_mask) ? +unbinarize_bias : -unbinarize_bias);
@@ -689,7 +689,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLut6_ForwardInference
 
     unsigned int const THREAD_SIZE    = 256;
     unsigned int const MAX_FRAME_UNIT = 256;
-    unsigned int const MAX_NODE_UNIT  = 8;  // THREAD_SIZE/32 ‚æ‚è¬‚³‚­‚·‚é‚±‚Æ
+    unsigned int const MAX_NODE_UNIT  = 8;  // THREAD_SIZE/32 ã‚ˆã‚Šå°ã•ãã™ã‚‹ã“ã¨
 
 #if 0
     dim3    block(MAX_FRAME_UNIT, THREAD_SIZE / MAX_FRAME_UNIT);
@@ -801,7 +801,7 @@ __global__ void kernal_SparseLut_BackwardPhase0
     T   dstd   = 0;
     for ( int frame = id; frame < frame_size; frame += id_step ) {
         if ( node < node_size ) {
-            // x ‚ğÄŒvZ
+            // x ã‚’å†è¨ˆç®—
             T   x_vec[N];
             if ( binary_mode ) {
                 for ( int i = 0; i < N; ++i) {
@@ -831,7 +831,7 @@ __global__ void kernal_SparseLut_BackwardPhase0
         }
     }
 
-    // block“à‚ÅX²‚ÅWŒv
+    // blockå†…ã§Xè»¸ã§é›†è¨ˆ
     dstd   = device_LocalSumX<T>(dstd,   sbuf[node_id]);
     dmeanx = device_LocalSumX<T>(dmeanx, sbuf[node_id]);
 
@@ -924,7 +924,7 @@ __global__ void kernal_SparseLut_BackwardPhase1
 
     for ( int frame = id; frame < frame_size; frame += id_step ) {
         if ( node < node_size ) {
-            // x ‚ğÄŒvZ
+            // x ã‚’å†è¨ˆç®—
             T   x_vec[N];
             if ( binary_mode ) {
                 for ( int i = 0; i < N; ++i) {
@@ -1203,7 +1203,7 @@ __global__ void kernal_bit_SparseLut_BackwardPhase0
             int bit  = (1 << (frame & 0x1f));
             int unit = (frame >> 5);
             
-            // x ‚ğÄŒvZ
+            // x ã‚’å†è¨ˆç®—
             T   x_vec[N];
             for ( int i = 0; i < N; ++i) {
                 x_vec[i] = 0.5 +((x_ptr[i][unit] & bit)  ? +unbinarize_bias : -unbinarize_bias);
@@ -1322,7 +1322,7 @@ __global__ void kernal_bit_SparseLut_BackwardPhase1
             int bit  = (1 << (frame & 0x1f));
             int unit = (frame >> 5);
             
-            // x ‚ğÄŒvZ
+            // x ã‚’å†è¨ˆç®—
             T   x_vec[N];
             for ( int i = 0; i < N; ++i) {
                 x_vec[i] = 0.5 + ((x_ptr[i][unit] & bit) ? +unbinarize_bias : -unbinarize_bias);

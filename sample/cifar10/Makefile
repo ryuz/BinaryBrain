@@ -1,4 +1,4 @@
-
+﻿
 # target
 TARGET  = sample-cifar10
 SUB_TARGETS =

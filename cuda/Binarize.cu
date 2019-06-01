@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <algorithm>
 
 #include "cuda_runtime.h"
@@ -89,7 +89,7 @@ __device__ __forceinline__ int device_int_LocalOr(int v, int id, int *sbuf)
     sbuf[id] = v;
     __syncthreads();
 
-    // ƒXƒŒƒbƒhŠÔWŒv
+    // ã‚¹ãƒ¬ãƒƒãƒ‰é–“é›†è¨ˆ
     int comb = 1;
     while (comb < 32) {
         int next = comb * 2;
@@ -136,10 +136,10 @@ __global__ void kernal_fp32_bit_Binarize_Forward(
         mask = (x > binary_th) ? (1 << bit) : 0;
     }
 
-    // “‡
+    // çµ±åˆ
     mask = device_int_LocalOr(mask, bit, sbuf[unit]);
 
-    // ‘‚«o‚µ
+    // æ›¸ãå‡ºã—
     if ( node < node_size && frame < frame_size ) {
         if ( bit == 0 ) {
             y_ptr[frame >> 5] = mask;

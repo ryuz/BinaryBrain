@@ -1,4 +1,4 @@
-#include <iostream>
+Ôªø#include <iostream>
 #include <vector>
 #include <unordered_map>
 #include <algorithm>
@@ -59,7 +59,7 @@ public:
     }
 
 protected:
-    // ñ¢égópÇÃÇ‡ÇÃÇ™Ç†ÇÍÇŒÇPÇ¬äJï˙
+    // Êú™‰ΩøÁî®„ÅÆ„ÇÇ„ÅÆ„Åå„ÅÇ„Çå„Å∞Ôºë„Å§ÈñãÊîæ
     bool FreeGarbage(void)
     {
         if (m_reserve_vec.empty()) {
@@ -77,15 +77,15 @@ public:
 
     void* Malloc(size_t size)
     {
-        // égÇ¶ÇÈÇ‡ÇÃÇ™Ç†ÇÍÇŒäÑÇËìñÇƒ
+        // ‰Ωø„Åà„Çã„ÇÇ„ÅÆ„Åå„ÅÇ„Çå„Å∞Ââ≤„ÇäÂΩì„Å¶
         for ( auto it = m_reserve_vec.begin(); it != m_reserve_vec.end(); ++it ) {
             if ( it->size >= size && it->size < (size * 3 / 2) ) {
-                // reserveÇ©ÇÁéÊÇËèoÇµ
+                // reserve„Åã„ÇâÂèñ„ÇäÂá∫„Åó
                 auto h = *it;
                 m_reserve_vec.erase(it);
                 m_reserve_size -= h.size;
 
-                // äÑÇËìñÇƒçœÇ›Ç…í«â¡
+                // Ââ≤„ÇäÂΩì„Å¶Ê∏à„Åø„Å´ËøΩÂä†
                 BBCU_ASSERT(m_allocated_map.count(h.ptr) == 0); 
                 m_allocated_map[h.ptr] = h.size;
                 m_allocated_size += h.size;
@@ -96,21 +96,21 @@ public:
             }
         }
 
-        // ìKêÿÇ»ÉTÉCÉYÇÃÉäÉUÅ[ÉuÇ™ñ≥ÇØÇÍÇŒêVãKéÊìæ
+        // ÈÅ©Âàá„Å™„Çµ„Ç§„Ç∫„ÅÆ„É™„Ç∂„Éº„Éñ„ÅåÁÑ°„Åë„Çå„Å∞Êñ∞Ë¶èÂèñÂæó
 
-        // êÊÇ…ÉTÉCÉYâ¡éZÇµÇƒäJï˙ÇìÆÇ©Ç∑
+        // ÂÖà„Å´„Çµ„Ç§„Ç∫Âä†ÁÆó„Åó„Å¶ÈñãÊîæ„ÇíÂãï„Åã„Åô
         m_allocated_size += size;
         m_max_alloc_size = std::max(m_max_alloc_size, m_allocated_size);
         while ((m_allocated_size + m_reserve_size) > (m_max_alloc_size * 3 / 2) ) {
             FreeGarbage();
         }
 
-        // êVãKÉÅÉÇÉäämï€
+        // Êñ∞Ë¶è„É°„É¢„É™Á¢∫‰øù
         do {
             void *ptr;
             cudaError_t err = cudaMalloc(&ptr, size);
             if (err == cudaSuccess) {
-                // ìoò^
+                // ÁôªÈå≤
                 BBCU_ASSERT(m_allocated_map.count(ptr) == 0); 
                 m_allocated_map[ptr] = size;
 

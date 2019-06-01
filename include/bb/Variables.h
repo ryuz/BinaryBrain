@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
 //                                Copyright (C) 2018-2019 by Ryuji Fuchikami
@@ -22,8 +22,8 @@ protected:
     std::vector< std::shared_ptr<Tensor> >    m_tensors;
 
 #ifdef BB_WITH_CUDA
-    bool        m_size_table_dirty = true;  // ƒTƒCƒYƒe[ƒuƒ‹‚ÍƒNƒŠ[ƒ“‚Èó‘Ô‚©
-    bool        m_addr_table_dirty = true;  // ƒTƒCƒYƒe[ƒuƒ‹‚ÍƒNƒŠ[ƒ“‚Èó‘Ô‚©
+    bool        m_size_table_dirty = true;  // ã‚µã‚¤ã‚ºãƒ†ãƒ¼ãƒ–ãƒ«ã¯ã‚¯ãƒªãƒ¼ãƒ³ãªçŠ¶æ…‹ã‹
+    bool        m_addr_table_dirty = true;  // ã‚µã‚¤ã‚ºãƒ†ãƒ¼ãƒ–ãƒ«ã¯ã‚¯ãƒªãƒ¼ãƒ³ãªçŠ¶æ…‹ã‹
     void        *m_dev_size_table = nullptr;
     void        *m_dev_addr_table = nullptr;
 #endif
@@ -66,55 +66,55 @@ public:
 
 
 #ifdef BB_WITH_CUDA
-    // ƒfƒoƒCƒX‘¤‚ÉƒTƒCƒYƒe[ƒuƒ‹‚ğŠm•Û‚µ‚Äƒ|ƒCƒ“ƒ^æ“¾
+    // ãƒ‡ãƒã‚¤ã‚¹å´ã«ã‚µã‚¤ã‚ºãƒ†ãƒ¼ãƒ–ãƒ«ã‚’ç¢ºä¿ã—ã¦ãƒã‚¤ãƒ³ã‚¿å–å¾—
     void *GetDeviceSizeTable(void)
     {
-        // ‘O‰ñì‚Á‚½‚à‚Ì‚ªdirty‚Å‚È‚¯‚ê‚Î‚»‚Ì‚Ü‚Üg‚¤
+        // å‰å›ä½œã£ãŸã‚‚ã®ãŒdirtyã§ãªã‘ã‚Œã°ãã®ã¾ã¾ä½¿ã†
         if (!m_size_table_dirty) {
             return m_dev_size_table;
         }
 
-        // ŒÃ‚¢‚à‚Ì‚ª‚ ‚ê‚ÎŠJ•ú
+        // å¤ã„ã‚‚ã®ãŒã‚ã‚Œã°é–‹æ”¾
         if ( m_dev_size_table != nullptr ) {
             bbcu::Free(m_dev_size_table);
         }
 
-        // ŠeTensor‚ÌƒTƒCƒYƒe[ƒuƒ‹ì¬
+        // å„Tensorã®ã‚µã‚¤ã‚ºãƒ†ãƒ¼ãƒ–ãƒ«ä½œæˆ
         size_t size = m_tensors.size();
         std::vector<int>    size_table(size);
         for (size_t i = 0; i < size; ++i) {
             size_table[i] = (int)m_tensors[i]->GetSize();
         }
 
-        // ƒfƒoƒCƒXƒƒ‚ƒŠŠm•Û
+        // ãƒ‡ãƒã‚¤ã‚¹ãƒ¡ãƒ¢ãƒªç¢ºä¿
         bbcu::Malloc(&m_dev_size_table, sizeof(int) * size);
 
-        // “]‘—
+        // è»¢é€
         bbcu::Memcpy(m_dev_size_table, &size_table[0],  sizeof(int) * size, cudaMemcpyHostToDevice);
 
-        // dirtyƒtƒ‰ƒOƒNƒŠƒA
+        // dirtyãƒ•ãƒ©ã‚°ã‚¯ãƒªã‚¢
         m_size_table_dirty = false;
 
         return m_dev_size_table;
     }
 
-    // ƒfƒoƒCƒX‘¤‚ÉƒAƒhƒŒƒXƒe[ƒuƒ‹‚ğŠm•Û‚µ‚Äƒ|ƒCƒ“ƒ^æ“¾
+    // ãƒ‡ãƒã‚¤ã‚¹å´ã«ã‚¢ãƒ‰ãƒ¬ã‚¹ãƒ†ãƒ¼ãƒ–ãƒ«ã‚’ç¢ºä¿ã—ã¦ãƒã‚¤ãƒ³ã‚¿å–å¾—
     void *GetDeviceAddrTable(bool new_buf=false)
     {
-        // ‘O‰ñì‚Á‚½‚à‚Ì‚ªdirty‚Å‚È‚¯‚ê‚Î‚»‚Ì‚Ü‚Üg‚¤
+        // å‰å›ä½œã£ãŸã‚‚ã®ãŒdirtyã§ãªã‘ã‚Œã°ãã®ã¾ã¾ä½¿ã†
         if (!m_addr_table_dirty) {
             for (auto& t : m_tensors) {
-                t->LockDeviceMemory(new_buf);   // ˆê’UƒƒbƒN‚µ‚ÄAÅV“à—e‚ğƒfƒoƒCƒX‘¤‚ÉŠm•Û
+                t->LockDeviceMemory(new_buf);   // ä¸€æ—¦ãƒ­ãƒƒã‚¯ã—ã¦ã€æœ€æ–°å†…å®¹ã‚’ãƒ‡ãƒã‚¤ã‚¹å´ã«ç¢ºä¿
             }
             return m_dev_addr_table;
         }
 
-        // ŒÃ‚¢‚à‚Ì‚ª‚ ‚ê‚ÎŠJ•ú
+        // å¤ã„ã‚‚ã®ãŒã‚ã‚Œã°é–‹æ”¾
         if ( m_dev_addr_table != nullptr ) {
             bbcu::Free(m_dev_addr_table);
         }
 
-        // ŠeTensor‚ÌƒTƒCƒYƒe[ƒuƒ‹ì¬
+        // å„Tensorã®ã‚µã‚¤ã‚ºãƒ†ãƒ¼ãƒ–ãƒ«ä½œæˆ
         size_t size = m_tensors.size();
         std::vector<void *>    addr_table(size);
         for (size_t i = 0; i < size; ++i) {
@@ -122,13 +122,13 @@ public:
             addr_table[i] = ptr.GetAddr();
         }
 
-        // ƒfƒoƒCƒXƒƒ‚ƒŠŠm•Û
+        // ãƒ‡ãƒã‚¤ã‚¹ãƒ¡ãƒ¢ãƒªç¢ºä¿
         bbcu::Malloc(&m_dev_addr_table, sizeof(void *) * size);
 
-        // “]‘—
+        // è»¢é€
         bbcu::Memcpy(m_dev_addr_table, &addr_table[0],  sizeof(void*) * size, cudaMemcpyHostToDevice);
 
-        // dirtyƒtƒ‰ƒOƒNƒŠƒA
+        // dirtyãƒ•ãƒ©ã‚°ã‚¯ãƒªã‚¢
         m_addr_table_dirty = false;
 
         return m_dev_addr_table;

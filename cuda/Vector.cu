@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <chrono>
 
 #include "cuda_runtime.h"
@@ -287,7 +287,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_Vector_exp(
 //  min
 // -------------------------------------------------
 
-// ƒxƒNƒgƒ‹“¯m
+// ãƒ™ã‚¯ãƒˆãƒ«åŒå£«
 __global__ void kernal_fp32_Vector_min(
             float*          dst,
             const float*    src0,
@@ -325,7 +325,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_Vector_min(
 }
 
 
-// ŒW”
+// ä¿‚æ•°
 __global__ void kernal_fp32_Vector_min_v(
             float*          dst,
             const float*    src,
@@ -368,7 +368,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_Vector_min_v(
 // -------------------------------------------------
 
 
-// ƒxƒNƒgƒ‹“¯m
+// ãƒ™ã‚¯ãƒˆãƒ«åŒå£«
 __global__ void kernal_fp32_Vector_max(
             float*          dst,
             const float*    src0,
@@ -406,7 +406,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_Vector_max(
 }
 
 
-// ŒW”
+// ä¿‚æ•°
 __global__ void kernal_fp32_Vector_max_v(
             float*          dst,
             const float*    src,

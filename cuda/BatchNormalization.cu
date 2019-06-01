@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <chrono>
 #include <algorithm>
 
@@ -23,7 +23,7 @@ __device__ __forceinline__ float device_fp32_LocalSum(float v, float *buf)
     buf[threadIdx.x] = v;
     __syncthreads();
 
-    // ƒXƒŒƒbƒhŠÔWŒv
+    // ã‚¹ãƒ¬ãƒƒãƒ‰é–“é›†è¨ˆ
     int comb = 1;
     while (comb < blockDim.x) {
         int next = comb * 2;
@@ -64,12 +64,12 @@ __global__ void kernal_fp32_BatchNormalization_ForwardTraining(
 {
     __shared__   float  buf[BBCU_BATCHNORM_FW_BLOCK_SIZE];
 
-    // ‰Šú‰»
+    // åˆæœŸåŒ–
     int const node    = blockIdx.x;
     int const id      = threadIdx.x;
     int const id_step = blockDim.x;
     
-    // ƒJƒnƒ“‚Ì‰ÁZƒAƒ‹ƒSƒŠƒYƒ€(Kahan summation algorithm)
+    // ã‚«ãƒãƒ³ã®åŠ ç®—ã‚¢ãƒ«ã‚´ãƒªã‚ºãƒ (Kahan summation algorithm)
     float s1 = 0, c1 = 0, y1, t1;
     float s2 = 0, c2 = 0, y2, t2;
     const float* x_ptr = &x_buf[frame_stride * node];
@@ -87,7 +87,7 @@ __global__ void kernal_fp32_BatchNormalization_ForwardTraining(
         s2 = t2;
     }
 
-    // WŒv
+    // é›†è¨ˆ
     s1 = device_fp32_LocalSum(s1, buf);
     s2 = device_fp32_LocalSum(s2, buf);
     float mean = s1 * reciprocal_frame_size;
@@ -101,7 +101,7 @@ __global__ void kernal_fp32_BatchNormalization_ForwardTraining(
         rstd_buf[node] = rstd;
     }
 
-    // ³‹K‰»
+    // æ­£è¦åŒ–
     float gamma = gamma_buf[node];
     float beta  = beta_buf[node];
     float* y_ptr = &y_buf[frame_stride * node];
@@ -172,7 +172,7 @@ __global__ void kernal_fp32_BatchNormalization_ReForward(
             int             frame_stride
         )
 {
-    // ‰Šú‰»
+    // åˆæœŸåŒ–
     int const node    = blockIdx.x;
     int const id      = threadIdx.x;
     int const id_step = blockDim.x;
@@ -346,7 +346,7 @@ __global__ void kernal_fp32_BatchNormalization_Backward
 {
     __shared__   float  buf[BBCU_BATCHNORM_BW_BLOCK_SIZE];
 
-    // ‰Šú‰»
+    // åˆæœŸåŒ–
     int const node    = blockIdx.x;
     int const id      = threadIdx.x;
     int const id_step = blockDim.x;
