@@ -279,7 +279,8 @@ public:
         m_y_buf.Resize(DataType<FT>::type, x_buf.GetFrameSize(), m_output_shape);
 
 #ifdef BB_WITH_CUDA
-        if ( N == 6 && DataType<FT>::type == BB_TYPE_BIT && !m_host_only ) {
+        if ( N == 6 && DataType<FT>::type == BB_TYPE_BIT && !m_host_only
+                && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             auto x_ptr           = x_buf.LockDeviceMemoryConst();
             auto y_ptr           = m_y_buf.LockDeviceMemory(true);
             auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
