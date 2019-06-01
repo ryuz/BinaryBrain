@@ -39,7 +39,7 @@ void MnistDenseMlp(int epoch_size, int mini_batch_size, int max_run_size, bool b
 
     // create network
     auto net = bb::Sequential::Create();
-    net->Add(bb::DenseAffine<float>::Create({256}));
+    net->Add(bb::DenseAffine<float>::Create(256));
     net->Add(bb::ReLU<float>::Create());
     net->Add(bb::DenseAffine<float>::Create(td.t_shape));
     net->SetInputShape(td.x_shape);
@@ -56,11 +56,11 @@ void MnistDenseMlp(int epoch_size, int mini_batch_size, int max_run_size, bool b
     runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
     runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
     runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
-    runner_create.max_run_size       = max_run_size;    // ÀÛ‚Ì1‰ñ‚ÌÀsƒTƒCƒY
-    runner_create.file_read          = file_read;       // ‘O‚ÌŒvZŒ‹‰Ê‚ª‚ ‚ê‚Î“Ç‚İ‚ñ‚ÅÄŠJ‚·‚é‚©
-    runner_create.file_write         = true;            // ŒvZŒ‹‰Ê‚ğƒtƒ@ƒCƒ‹‚É•Û‘¶‚·‚é‚©
-    runner_create.print_progress     = true;            // “r’†Œ‹‰Ê‚ğ•\¦
-    runner_create.initial_evaluation = file_read;       // ƒtƒ@ƒCƒ‹‚ğ“Ç‚ñ‚¾ê‡‚ÍÅ‰‚É•]‰¿‚µ‚Ä‚¨‚­
+    runner_create.max_run_size       = max_run_size;    // ï¿½ï¿½ï¿½Û‚ï¿½1ï¿½ï¿½Ìï¿½ï¿½sï¿½Tï¿½Cï¿½Y
+    runner_create.file_read          = file_read;       // ï¿½Oï¿½ÌŒvï¿½Zï¿½ï¿½ï¿½Ê‚ï¿½ï¿½ï¿½ï¿½ï¿½Î“Ç‚İï¿½ï¿½ï¿½ÅÄŠJï¿½ï¿½ï¿½é‚©
+    runner_create.file_write         = true;            // ï¿½vï¿½Zï¿½ï¿½ï¿½Ê‚ï¿½ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½É•Û‘ï¿½ï¿½ï¿½ï¿½é‚©
+    runner_create.print_progress     = true;            // ï¿½rï¿½ï¿½ï¿½ï¿½ï¿½Ê‚ï¿½\ï¿½ï¿½
+    runner_create.initial_evaluation = file_read;       // ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½Ç‚ñ‚¾ê‡ï¿½ÍÅï¿½ï¿½É•]ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½
     auto runner = bb::Runner<float>::Create(runner_create);
     runner->Fitting(td, epoch_size, mini_batch_size);
 }

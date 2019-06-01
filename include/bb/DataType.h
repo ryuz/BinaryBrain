@@ -318,8 +318,14 @@ public:
     Bit& operator=(const Tp& v)    { m_value = (v > 0); return *this; }
     Bit& operator=(const Bit& bit) { m_value = bit.m_value; return *this; }
     Bit& operator=(const bool& v)  { m_value = v; return *this; }
-    inline Bit& operator=(const Binary& sign);
+    inline Bit& operator=(const Binary& bin);
     inline Bit& operator=(const Sign& sign);
+
+    bool operator==(Bit const &bit) { return (m_value == bit.m_value); }
+    bool operator>(Bit const &bit) { return ((int)m_value > (int)bit.m_value); }
+    bool operator>=(Bit const &bit) { return ((int)m_value >= (int)bit.m_value); }
+    bool operator<(Bit const &bit) { return ((int)m_value < (int)bit.m_value); }
+    bool operator<=(Bit const &bit) { return ((int)m_value <= (int)bit.m_value); }
 
     template<typename Tp>
     operator Tp() { return m_value ? (Tp)1.0 : (Tp)0.0; }

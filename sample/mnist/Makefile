@@ -23,8 +23,7 @@ CC = g++
 endif
 
 CFLAGS = -O2 -mavx2 -mfma -fopenmp -std=c++14
-#CFLAGS = -O1 -mavx2 -mfma -std=c++14
-CINCS  = -I../../include -I../../eigen
+CINCS  = -I../../include
 CDEFS  = 
 
 SRCS   = main.cpp

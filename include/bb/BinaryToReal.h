@@ -235,7 +235,7 @@ public:
 
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
-        if ( !m_binary_mode || m_modulation_size == 1 && m_input_shape == m_output_shape ) {
+        if ( !m_binary_mode || (m_modulation_size == 1 && m_input_shape == m_output_shape) ) {
             return dy_buf;
         }
         

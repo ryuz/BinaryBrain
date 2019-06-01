@@ -44,9 +44,9 @@ void MnistMicroMlpLutMlp(int epoch_size, int mini_batch_size, int max_run_size, 
     auto td = bb::LoadMnist<>::Load(10);
 #endif
 
-    auto layer_mm0 = bb::MicroMlp<>::Create({1024});
-    auto layer_mm1 = bb::MicroMlp<>::Create({480});
-    auto layer_mm2 = bb::MicroMlp<>::Create({70});
+    auto layer_mm0 = bb::MicroMlp<>::Create(1024);
+    auto layer_mm1 = bb::MicroMlp<>::Create(480);
+    auto layer_mm2 = bb::MicroMlp<>::Create(70);
 
     {
         auto net = bb::Sequential::Create();

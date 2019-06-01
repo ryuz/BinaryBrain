@@ -3,6 +3,7 @@
 
 *.o
 *.a
+*.tmp
 
 *.obj
 *.exe
