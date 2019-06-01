@@ -14,11 +14,15 @@
 #ifdef BB_WITH_CUDA
 
 
-template<typename BinType>
-void SparseLutNTest_cmp(int const input_node_size, int const output_node_size, int const frame_size, int loop_num, bool lut_binarize= true, bool binary_mode=true)
+template<typename BinType, typename Model0=bb::SparseLutN<6, BinType>, typename Model1=bb::SparseLutDiscreteN<6, BinType> >
+void SparseLutNTest_cmp(int const input_node_size, int const output_node_size, int const frame_size, int loop_num, bool lut_binarize= true, bool binary_mode=true, bool host_only=false)
 {
-    auto lut0 = bb::SparseLutN<6, BinType>::Create(output_node_size);
-    auto lut1 = bb::SparseLutDiscreteN<6, BinType>::Create(output_node_size);
+    auto lut0 = Model0::Create(output_node_size);
+    auto lut1 = Model1::Create(output_node_size);
+
+    if ( host_only ) {
+        lut1->SendCommand("host_only true");
+    }
 
     auto opt0 = bb::OptimizerAdam<float>::Create();
     auto opt1 = bb::OptimizerAdam<float>::Create();
@@ -221,7 +225,7 @@ void SparseLutNTest_cmp(int const input_node_size, int const output_node_size, i
                 EXPECT_NEAR(val0, val1, 0.1f);
                 if (abs(val0 - val1) >= 0.1f) {
                     std::cout << frame << " " << node << std::endl;
-//                    getchar();
+ //                 getchar();
                 }
             }
         }
@@ -329,6 +333,22 @@ TEST(SparseLutNTest, testSparseLutN_cmp_bit)
     SparseLutNTest_cmp<bb::Bit>(6,    1,   1024, 2, false);
     SparseLutNTest_cmp<bb::Bit>(6, 1024,      1, 2, false);
     SparseLutNTest_cmp<bb::Bit>(6,    2,     32, 2, false);
+}
+
+
+TEST(SparseLutNTest, testSparseLutN_cmp_gpu)
+{
+//  SparseLutNTest_cmp<float, bb::SparseLutN<6, float>, bb::SparseLutN<6, float>>(6,  1,  1, 2, true, true, true);
+
+    SparseLutNTest_cmp<float, bb::SparseLutN<6, float>, bb::SparseLutN<6, float>>(6, 16, 32, 2, true,  true,  true);
+    SparseLutNTest_cmp<float, bb::SparseLutN<6, float>, bb::SparseLutN<6, float>>(6, 16, 32, 2, false, true,  true);
+    SparseLutNTest_cmp<float, bb::SparseLutN<6, float>, bb::SparseLutN<6, float>>(6, 16, 32, 2, true,  false, true);
+//  SparseLutNTest_cmp<float, bb::SparseLutN<6, float>, bb::SparseLutN<6, float>>(6, 16, 32, 2, false, false, true);
+
+//  SparseLutNTest_cmp<bb::Bit, bb::SparseLutN<6, bb::Bit>, bb::SparseLutN<6, bb::Bit>>(6,  1,   1, 2, true,  true, true);
+
+    SparseLutNTest_cmp<bb::Bit, bb::SparseLutN<6, bb::Bit>, bb::SparseLutN<6, bb::Bit>>(6,  16, 32, 2, true,  true, true);
+    SparseLutNTest_cmp<bb::Bit, bb::SparseLutN<6, bb::Bit>, bb::SparseLutN<6, bb::Bit>>(6,  16, 32, 2, false, true, true);
 }
 
 

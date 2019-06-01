@@ -546,7 +546,7 @@ public:
 
             if ( train ) {
                 auto x_ptr            = x_buf.LockConst<BinType>();
-                auto y_ptr            = y_buf.Lock<RealType>();
+                auto y_ptr            = y_buf.Lock<BinType>();
                 auto input_index_ptr  = m_input_index.LockConst();
                 auto W_ptr            = lock_W_const();
                 auto mean_ptr         = m_mean.Lock(true);
@@ -554,14 +554,13 @@ public:
                 auto running_mean_ptr = m_running_mean.Lock();
                 auto running_var_ptr  = m_running_var.Lock();
 
-
                 #pragma omp parallel for
                 for ( index_t node = 0; node < node_size; ++node ) {
                     RealType W[(1 << N)];
                     for ( int i = 0; i < (1 << N); ++i) {
                         W[i] = W_ptr(node, i);
                         if ( m_lut_binarize ) {
-                            W[i] = W[i] > (RealType)0.5 ? (RealType)1.0 : (RealType)0.0;
+                            W[i] = ((W[i] > (RealType)0.5) ? (RealType)1.0 : (RealType)0.0);
                         }
                     }
                     
@@ -573,7 +572,7 @@ public:
                         for ( int i = 0; i < N; ++i) {
                             x[i] = (RealType)x_ptr.Get(frame, input_index_ptr(node, i));
                             if ( m_binary_mode ) {
-                                x[i] = (RealType)0.5 + (x[i] > (RealType)0.5) ? +m_unbinarize_bias : -m_unbinarize_bias;
+                                x[i] = (RealType)0.5 + ((x[i] > (RealType)0.5) ? +m_unbinarize_bias : -m_unbinarize_bias);
                             }
                             else {
                                 x[i] = std::min((RealType)1.0, std::max((RealType)0.0, x[i]));
@@ -612,7 +611,7 @@ public:
                         for ( int i = 0; i < N; ++i) {
                             x[i] = (RealType)x_ptr.Get(frame, input_index_ptr(node, i));
                             if ( m_binary_mode ) {
-                                x[i] = (RealType)0.5 + (x[i] > (RealType)0.5) ? +m_unbinarize_bias : -m_unbinarize_bias;
+                                x[i] = (RealType)0.5 + ((x[i] > (RealType)0.5) ? +m_unbinarize_bias : -m_unbinarize_bias);
                             }
                             else {
                                 x[i] = std::min((RealType)1.0, std::max((RealType)0.0, x[i]));
@@ -627,7 +626,7 @@ public:
 
                         if ( m_binary_mode ) {
                             // binarize
-                            y = (y > (RealType)0.5) ? (RealType)1.0 : (RealType)0.0;
+                            y = ((y > (RealType)0.5) ? (RealType)1.0 : (RealType)0.0);
                         }
                         else {
                             // hard-tanh
@@ -641,7 +640,7 @@ public:
             }
             else {
                 auto x_ptr            = x_buf.LockConst<BinType>();
-                auto y_ptr            = y_buf.Lock<RealType>();
+                auto y_ptr            = y_buf.Lock<BinType>();
                 auto input_index_ptr  = m_input_index.LockConst();
                 auto W_ptr            = lock_W_const();
                 auto running_mean_ptr = m_running_mean.LockConst();
@@ -653,7 +652,7 @@ public:
                     for ( int i = 0; i < (1 << N); ++i) {
                         W[i] = W_ptr(node, i);
                         if ( m_lut_binarize ) {
-                            W[i] = W[i] > (RealType)0.5 ? (RealType)1.0 : (RealType)0.0;
+                            W[i] = ((W[i] > (RealType)0.5) ? (RealType)1.0 : (RealType)0.0);
                         }
                     }
                     
@@ -667,7 +666,7 @@ public:
                         for ( int i = 0; i < N; ++i) {
                             x[i] = (RealType)x_ptr.Get(frame, input_index_ptr(node, i));
                             if ( m_binary_mode ) {
-                                x[i] = (RealType)0.5 + (x[i] > (RealType)0.5) ? +m_unbinarize_bias : -m_unbinarize_bias;
+                                x[i] = (RealType)0.5 + ((x[i] > (RealType)0.5) ? +m_unbinarize_bias : -m_unbinarize_bias);
                             }
                             else {
                                 x[i] = std::min((RealType)1.0, std::max((RealType)0.0, x[i]));
@@ -682,7 +681,7 @@ public:
 
                         if ( m_binary_mode ) {
                             // binarize
-                            y = (y > (RealType)0.5) ? (RealType)1.0 : (RealType)0.0;
+                            y = ((y > (RealType)0.5) ? (RealType)1.0 : (RealType)0.0);
                         }
                         else {
                             // hard-tanh
@@ -825,6 +824,115 @@ public:
             return dx_buf;
         }
 #endif
+        {
+            dx_buf.FillZero();
+
+            auto node_size  = dy_buf.GetNodeSize();
+            auto frame_size = dy_buf.GetFrameSize();
+            auto reciprocal_frame_size = (RealType)1.0 / (RealType)frame_size;
+
+            auto x_ptr             = x_buf.LockConst<BinType>();
+            auto dy_ptr            = dy_buf.LockConst<RealType>();
+            auto dx_ptr            = dx_buf.Lock<RealType>(true);
+            auto input_index_ptr   = m_input_index.LockConst();
+            auto W_ptr             = lock_W_const();
+            auto dW_ptr            = lock_dW();
+            auto mean_ptr          = m_mean.LockConst();
+            auto rstd_ptr          = m_rstd.LockConst();
+
+            for ( index_t node = 0; node < node_size; ++node ) {
+                RealType W[(1 << N)];
+                for ( int i = 0; i < (1 << N); ++i) {
+                    W[i] = W_ptr(node, i);
+                    if ( m_lut_binarize ) {
+                        W[i] = ((W[i] > (RealType)0.5) ? (RealType)1.0 : (RealType)0.0);
+                    }
+                }
+                RealType dW[(1 << N)] = {0};
+                
+                // 平均分散の勾配計算
+                RealType    mean   = mean_ptr[node];
+                RealType    rstd   = rstd_ptr[node];
+                RealType    rstd2  = rstd * rstd;
+                RealType    dmeanx = 0;
+                RealType    dstd   = 0;
+                for ( index_t frame = 0; frame < frame_size; ++frame ) {
+                    // x を再計算
+                    RealType   x_vec[N];
+                    for ( int i = 0; i < N; ++i) {
+                        x_vec[i] = (RealType)x_ptr.Get(frame, input_index_ptr(node, i));
+                        if ( m_binary_mode ) {
+                            x_vec[i] = (RealType)0.5 + ((x_vec[i] > (RealType)0.5) ? +m_unbinarize_bias : -m_unbinarize_bias);
+                        }
+                        else {
+                            x_vec[i] = std::min((RealType)1.0, std::max((RealType)0.0, x_vec[i]));
+                        }
+                    }
+                    RealType x;
+                    StochasticOperation_Lut_Forward<RealType>(x_vec, &x, W, N);
+
+                    // hard-tanh の入力 x を求める
+                    RealType tanh_x = ((x - mean) * rstd) * m_gamma + m_beta;
+
+                    // hard-tanh
+                    RealType   dy = dy_ptr.Get(frame, node);
+                    if (tanh_x <= 0.0) { dy = 0.0; }
+                    if (tanh_x >= 1.0) { dy = 0.0; }
+
+                    // BatchNorm
+                    RealType   xc = x - mean;
+            //      RealType   xn = xc * rstd;
+                    RealType   dxn = m_gamma * dy;
+
+                    dstd   += -(dxn * xc * rstd2);
+                    dmeanx += -(dxn * rstd);
+                }
+                RealType    dvar  = dstd * rstd;
+                RealType    dmean = (dmeanx - (mean * dvar)) * reciprocal_frame_size;
+
+                // 入力の勾配 dx を求める
+                for ( index_t frame = 0; frame < frame_size; ++frame ) {
+                    // x を再計算
+                    RealType   x_vec[N];
+                    for ( int i = 0; i < N; ++i) {
+                        x_vec[i] = (RealType)x_ptr.Get(frame, input_index_ptr(node, i));
+                        if ( m_binary_mode ) {
+                            x_vec[i] = (RealType)0.5 + ((x_vec[i] > (RealType)0.5) ? +m_unbinarize_bias : -m_unbinarize_bias);
+                        }
+                        else {
+                            x_vec[i] = std::min((RealType)1.0, std::max((RealType)0.0, x_vec[i]));
+                        }
+                    }
+                    RealType x;
+                    StochasticOperation_Lut_Forward<RealType>(x_vec, &x, W, N);
+
+                    // hard-tanh の入力 x を求める
+                    RealType tanh_x = ((x - mean) * rstd) * m_gamma + m_beta;
+
+                    // hard-tanh
+                    RealType   dy = dy_ptr.Get(frame, node);
+                    if (tanh_x <= 0.0) { dy = 0.0; }
+                    if (tanh_x >= 1.0) { dy = 0.0; }
+
+                    RealType   dxn = dy * m_gamma;
+                    RealType   dxc = dxn * rstd;
+                    RealType   dx  = dxc + dmean + (x * dvar * reciprocal_frame_size);
+
+                    RealType   dx_vec[N];
+                    StochasticOperation_Lut_Backward<RealType>(x_vec, dx_vec, &dx, W, dW, N);
+
+                    for ( int i = 0; i < N; ++i) {
+                        dx_ptr.Add(frame, input_index_ptr(node, i), dx_vec[i]);
+                    }
+                }
+
+                for ( int i = 0; i < (1 << N); ++i ) {
+                    dW_ptr(node, i) += dW[i];
+                }
+            }
+
+            return dx_buf;
+        }
 
         BB_ASSERT(0);
 
