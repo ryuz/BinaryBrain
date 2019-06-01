@@ -16,6 +16,7 @@ SRCS += MicroMlp.cu
 SRCS += BinaryLut6.cu
 SRCS += StochasticLut6.cu
 SRCS += SparseBinaryLut6.cu
+SRCS += SparseLut.cu
 SRCS += StochasticMaxPooling.cu
 SRCS += StochasticBatchNormalization.cu
 SRCS += ShuffleModulation.cu
@@ -34,6 +35,7 @@ SRCS += AccuracyCategoricalClassification.cu
 
 HDRS  = ../include/bbcu/bbcu.h
 HDRS += ../include/bbcu/bbcu_util.h
+HDRS += Common.cuh
 
 OBJS = $(addsuffix .o, $(basename $(SRCS)))
 
