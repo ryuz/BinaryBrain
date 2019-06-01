@@ -15,8 +15,7 @@
 #include "bb/Reduce.h"
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
-#include "bb/StochasticLut6.h"
-#include "bb/StochasticLut.h"
+#include "bb/StochasticLutN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
@@ -49,11 +48,11 @@ void Cifar10StochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_s
     auto td = bb::LoadCifar10<>::Load();
 #endif
 
-    auto layer_sl0  = bb::StochasticLut6<>::Create({1024});
+    auto layer_sl0  = bb::StochasticLutN<6>::Create({1024});
     auto layer_sbn0 = bb::StochasticBatchNormalization<>::Create(0.001f, 0.1f, 0.5f);
-    auto layer_sl1  = bb::StochasticLut6<>::Create({360});
+    auto layer_sl1  = bb::StochasticLutN<6>::Create({360});
     auto layer_sbn1 = bb::StochasticBatchNormalization<>::Create(0.001f, 0.1f, 0.5f);
-    auto layer_sl2  = bb::StochasticLut6<>::Create({60});
+    auto layer_sl2  = bb::StochasticLutN<6>::Create({60});
 
     {
         auto net = bb::Sequential::Create();
@@ -104,7 +103,7 @@ void Cifar10StochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_s
         lut_net->Add(layer_lut1);
         lut_net->Add(layer_bn1);
         lut_net->Add(layer_lut2);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(lut_frame_mux_size, td.t_shape));
+        lut_net->Add(bb::BinaryToReal<bb::Bit>::Create(lut_frame_mux_size, td.t_shape));
         lut_net->SetInputShape(td.x_shape);
 
         // テーブル化して取り込み(SetInputShape後に取り込みが必要)

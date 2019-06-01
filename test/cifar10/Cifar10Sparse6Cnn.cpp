@@ -16,8 +16,6 @@
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
 #include "bb/SparseBinaryLutN.h"
-#include "bb/StochasticLut6.h"
-#include "bb/StochasticLutBn.h"
 #include "bb/SparseLutN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/DenseAffine.h"
