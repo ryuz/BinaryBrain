@@ -46,6 +46,7 @@ sample/mnist/verilog/mnist_train.txt
 sample/mnist/verilog/mnist_test.txt
 sample/mnist/verilog/MnistSimpleLutMlp.v
 sample/mnist/verilog/MnistSimpleLutCnn.v
+sample/mnist/verilog/MnistStochasticLut6Mlp.v
 sample/diabetes/diabetes_data.txt
 sample/diabetes/diabetes_target.txt
 

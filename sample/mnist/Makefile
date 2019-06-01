@@ -22,7 +22,7 @@ CC = g++
 #CC ?= clang++
 endif
 
-CFLAGS = -O2 -mavx2 -mfma -fopenmp -std=c++14
+CFLAGS = -mavx2 -mfma -fopenmp -std=c++14
 CINCS  = -I../../include
 CDEFS  = 
 
@@ -38,6 +38,12 @@ SRCS  += MnistMicroMlpScratch.cpp
 OBJS = $(addsuffix .o, $(basename $(SRCS)))
 
 LIBS = 
+
+ifeq ($(DEBUG),Yes)
+CFLAGS += -O0 -g
+else
+CFLAGS += -O2
+endif
 
 ifeq ($(WITH_CEREAL),Yes)
 CDEFS      += -DBB_WITH_CEREAL
