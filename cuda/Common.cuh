@@ -9,6 +9,31 @@
 #include "bbcu/bbcu_util.h"
 
 
+template<typename T=float>
+__device__ __forceinline__ T device_LocalSumX(T v, T *sbuf)
+{
+    sbuf[threadIdx.x] = v;
+    __syncthreads();
+
+    // スレッド間集計
+    int comb = 1;
+    while (comb < blockDim.x) {
+        int next = comb * 2;
+        int mask = next - 1;
+        if ((threadIdx.x & mask) == 0) {
+            sbuf[threadIdx.x] += sbuf[threadIdx.x + comb];
+        }
+        comb = next;
+        __syncthreads();
+    }
+
+    T sum = sbuf[0];
+    __syncthreads();
+    
+    return sum;
+}
+
+
 __device__ __forceinline__ float device_fp32_LocalSum(float v, float *buf)
 {
     buf[threadIdx.x] = v;
@@ -70,11 +95,11 @@ __device__ __forceinline__ int device_int_ShuffleOr(int v)
 
 
 template<typename T = float>
-__global__ void kernal_BackwardMarge(
+__global__ void kernal_NodeIntegrate(
             T   const   *src_buf,
             T           *dst_buf,
-            int const   *reverse_index,
-            int         index_stride,
+            int const   *index_table,
+            int         table_stride,
             int         node_size,
             int         frame_size,
             int         src_frame_stride,
@@ -85,13 +110,13 @@ __global__ void kernal_BackwardMarge(
     int node  = blockDim.y * blockIdx.y + threadIdx.y;
 
     if ( frame < frame_size && node < node_size ) {
-        T   const *src_ptr = &src_buf[frame];
-        int const *reverse_index_ptr = &reverse_index[index_stride * node];
+        T   const *src_ptr   = &src_buf[frame];
+        int const *index_ptr = &index_table[table_stride * node];
         
-        int size = reverse_index_ptr[0];
-        T   sum = 0;
+        int size = index_ptr[0];
+        T   sum  = 0;
         for ( int i = 1; i <= size; ++i ) {
-            int index = reverse_index_ptr[i];
+            int index = index_ptr[i];
             sum += src_ptr[index * src_frame_stride];
         }
 

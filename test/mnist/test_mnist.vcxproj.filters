@@ -245,5 +245,8 @@
     <ClInclude Include="..\..\include\bb\SparseBinaryLutN.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bb\SparseLutDiscrete.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

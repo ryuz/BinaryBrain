@@ -59,6 +59,7 @@
     <ClCompile Include="ReLUTest.cpp" />
     <ClCompile Include="SigmoidTest.cpp" />
     <ClCompile Include="SparseBinaryLutNTest.cpp" />
+    <ClCompile Include="SparseLutNTest.cpp" />
     <ClCompile Include="StochasticLut6Test.cpp" />
     <ClCompile Include="StochasticLutNTest.cpp" />
     <ClCompile Include="TensorTest.cpp" />
@@ -116,6 +117,7 @@
     <ClInclude Include="..\..\include\bb\SimdSupport.h" />
     <ClInclude Include="..\..\include\bb\SparseBinaryLutN.h" />
     <ClInclude Include="..\..\include\bb\SparseLayer.h" />
+    <ClInclude Include="..\..\include\bb\SparseLutDiscreteN.h" />
     <ClInclude Include="..\..\include\bb\SparseLutN.h" />
     <ClInclude Include="..\..\include\bb\StochasticBatchNormalization.h" />
     <ClInclude Include="..\..\include\bb\StochasticLut.h" />

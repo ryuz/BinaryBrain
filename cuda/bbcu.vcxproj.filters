@@ -82,6 +82,9 @@
     <CudaCompile Include="FrameBufferCopy.cu">
       <Filter>ソース ファイル</Filter>
     </CudaCompile>
+    <CudaCompile Include="SparseLut.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ヘッダファイル">

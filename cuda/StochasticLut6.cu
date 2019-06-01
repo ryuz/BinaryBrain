@@ -175,6 +175,7 @@ __global__ void kernal_fp32_StochasticLut6_Forward(
             y = min(param_max, y);
         
             y_ptr[frame] = y;
+//          printf("[1] f=%d y=%f\n", frame, y);
         }
 
         __syncthreads();
@@ -398,6 +399,7 @@ __global__ void kernal_bit_fp32_StochasticLut6_Forward(
             y = min(param_max, y);
 
             y_ptr[frame] = y;
+//          printf("[1] n=%3d f=%3d y=%10f\n", node, frame, y);
         }
     }
 }

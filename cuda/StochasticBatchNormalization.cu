@@ -7,13 +7,14 @@
 
 #include "bbcu/bbcu.h"
 #include "bbcu/bbcu_util.h"
-
+#include "Common.cuh"
 
 
 #define BBCU_BATCHNORM_FW_BLOCK_SIZE   128
 #define BBCU_BATCHNORM_BW_BLOCK_SIZE   128
 
 
+/*
 //////////////////////////////
 // common
 //////////////////////////////
@@ -40,7 +41,7 @@ __device__ __forceinline__ float device_fp32_LocalSum(float v, float *buf)
     
     return sum;
 }
-
+*/
 
 
 //////////////////////////////
@@ -71,7 +72,6 @@ __global__ void kernal_fp32_StochasticBatchNormalization_ForwardTraining(
     
     const float* x_ptr = &x_buf[frame_stride * node];
 
-#if 1
     // カハンの加算アルゴリズム(Kahan summation algorithm)
     float s1 = 0, c1 = 0, y1, t1;
     float s2 = 0, c2 = 0, y2, t2;
@@ -92,32 +92,13 @@ __global__ void kernal_fp32_StochasticBatchNormalization_ForwardTraining(
     s1 = device_fp32_LocalSum(s1, buf);
     s2 = device_fp32_LocalSum(s2, buf);
     float mean = s1 * reciprocal_frame_size;
-    float var = max(1.0e-7f, (s2 * reciprocal_frame_size) - (mean * mean));
-#else
-    // 平均
-    float mean = 0;
-    for ( int frame = id; frame < frame_size; frame += id_step) {
-        float x = x_ptr[frame];
-        mean += x;
-    }
-    mean = device_fp32_LocalSum(mean, buf);
-    mean *= reciprocal_frame_size;
-
-//  mean = 0.5; // 平均を0.5に固定してみるテスト → だめ
-
-    // 分散
-    float var = 0;
-    for ( int frame = id; frame < frame_size; frame += id_step) {
-        float x = x_ptr[frame];
-        float xc = x - mean; 
-        var += xc * xc;
-    }
-    var = device_fp32_LocalSum(var, buf);
-    var *= reciprocal_frame_size;
-#endif
-//  var = 1.0*1.0;  // 標準偏差を1.0に固定してみるテスト → だめ
-
+    float var  = max(1.0e-5f, (s2 * reciprocal_frame_size) - (mean * mean));
     float rstd = rsqrt(var);
+
+//  if ( id == 0 ) {
+//      printf("[1] n=%3d s1=%10f s2=%10f mean=%10f var=%10f rstd=%10f\n", node, s1, s2, mean, var, rstd);
+//      printf("1\t%3d\t%.20e\t%.20e\t%.20e\t%.20e\t%.20e\n", node, s1, s2, mean, var, rstd);
+//  }
 
     // 書き込み
     if (id == 0) {
@@ -136,6 +117,7 @@ __global__ void kernal_fp32_StochasticBatchNormalization_ForwardTraining(
         x = (x - mean) * rstd;
         x = x * gamma + beta;
         y_ptr[frame] = x;
+
 //      printf("[StochasticBatchNormalization] frame=%d node=%d y=%f\n", frame, node, x);
     }
 }
