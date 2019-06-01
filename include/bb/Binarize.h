@@ -90,7 +90,7 @@ public:
     {
         std::vector<double> y_vec;
         for ( auto x : x_vec ) {
-            y_vec.push_back((x > 0.0) ? 1.0 : 0.0);
+            y_vec.push_back((x > m_binary_th) ? m_hardtanh_max : m_hardtanh_min);
         }
         return y_vec;
     }
@@ -227,7 +227,7 @@ public:
                 for (index_t frame = 0; frame < frame_size; ++frame) {
                     auto dy = dy_ptr.Get(frame, node);
                     auto x  = x_ptr.Get(frame, node);
-                    if ( x <= (RealType)-1.0 || x >= (RealType)1.0) { dy = (RealType)0.0; }
+                    if ( x <= m_hardtanh_min || x >= m_hardtanh_max) { dy = (RealType)0.0; }
                     dx_ptr.Set(frame, node, dy);
                 }
             }

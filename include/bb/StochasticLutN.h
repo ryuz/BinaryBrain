@@ -27,8 +27,9 @@ class StochasticLutN : public SparseLayer
     static int const NN = (1 << N);
 
 protected:
-    bool                    m_binary_mode = (DataType<BinType>::type == BB_TYPE_BIT);
+    bool                    m_binary_mode  = (DataType<BinType>::type == BB_TYPE_BIT);
     bool                    m_lut_binarize = true;
+
     bool                    m_y_binarize = false;
     bool                    m_host_only = false;
     bool                    m_host_simd = true;
@@ -297,13 +298,12 @@ public:
     {
         BB_ASSERT(input_value.size() == N);
 
-        // パラメータクリップ
-        m_W->Clamp(m_param_min, m_param_max);
-
         auto W_ptr = lock_W_const();
-        RealType W[NN];
-        for ( int i = 0; i < NN; ++i) {
+        RealType W[(1 << N)];
+        for ( int i = 0; i < (1 << N); ++i) {
             W[i] = W_ptr(node, i);
+            W[i] = std::min((RealType)1.0, std::max((RealType)0.0, W[i]));  // clip
+
             if ( m_lut_binarize ) {
                 W[i] = W[i] > (RealType)0.5 ? (RealType)1.0 : (RealType)0.0;
             }
@@ -311,10 +311,15 @@ public:
 
         RealType   x[N][2];
         for ( int i = 0; i < N; ++i) {
-            RealType in_sig = (RealType)input_value[i];
-            in_sig = std::min((RealType)1.0, std::max((RealType)0.0, in_sig));  // clip
-            x[i][0] = (RealType)1.0 - in_sig;
-            x[i][1] = in_sig;
+            RealType x_tmp = (RealType)input_value[i];
+            if ( m_binary_mode ) {
+                x_tmp = (RealType)0.5 + ((x_tmp > (RealType)0.5) ? +m_unbinarize_bias : -m_unbinarize_bias);  // unbinarize
+            }
+            else {
+                x_tmp = std::min((RealType)1.0, std::max((RealType)0.0, x_tmp));  // clip
+            }
+            x[i][0] = (RealType)1.0 - x_tmp;
+            x[i][1] = x_tmp;
         }
 
         RealType y = (RealType)0;
@@ -459,7 +464,7 @@ public:
                 }
             }
 
-             return y_buf;
+            return y_buf;
         }
     }
 

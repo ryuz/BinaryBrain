@@ -311,5 +311,8 @@
     <ClInclude Include="..\..\include\bb\StochasticOperation.h">
       <Filter>ソース ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bb\StochasticLutSimd.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

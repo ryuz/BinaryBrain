@@ -14,7 +14,7 @@
 #ifdef BB_WITH_CUDA
 
 
-template<typename BinType, typename Model0=bb::SparseLutN<6, BinType>, typename Model1=bb::SparseLutDiscreteN<6, BinType> >
+template<int N, typename BinType, typename Model0=bb::SparseLutN<N, BinType>, typename Model1=bb::SparseLutDiscreteN<N, BinType> >
 void SparseLutNTest_cmp(int const input_node_size, int const output_node_size, int const frame_size, int loop_num, bool lut_binarize= true, bool binary_mode=true, bool host_only=false)
 {
     auto lut0 = Model0::Create(output_node_size);
@@ -53,7 +53,7 @@ void SparseLutNTest_cmp(int const input_node_size, int const output_node_size, i
 
     // 接続を同一化
     for (int node = 0; node < output_node_size; ++node) {
-        for (int i = 0; i < 6; ++i) {
+        for (int i = 0; i < N; ++i) {
             lut1->SetNodeInput(node, i, lut1->GetNodeInput(node, i));
         }
     }
@@ -63,7 +63,7 @@ void SparseLutNTest_cmp(int const input_node_size, int const output_node_size, i
         auto W_ptr0 = lut0->lock_W_const();
         auto W_ptr1 = lut1->lock_W();
         for (int node = 0; node < output_node_size; ++node) {
-            for (int i = 0; i < 64; ++i) {
+            for (int i = 0; i < (1 << N); ++i) {
                 auto W = W_ptr0(node, i);
                 W_ptr1(node, i) = W;
             }
@@ -120,7 +120,7 @@ void SparseLutNTest_cmp(int const input_node_size, int const output_node_size, i
             auto W_ptr0 = lut0->lock_W_const();
             auto W_ptr1 = lut1->lock_W_const();
             for (int node = 0; node < output_node_size; ++node) {
-                for (int i = 0; i < 64; ++i) {
+                for (int i = 0; i < (1 << N); ++i) {
                     auto val0 = W_ptr0(node, i);
                     auto val1 = W_ptr1(node, i);
                     EXPECT_NEAR(val0, val1, 0.0001f);
@@ -234,7 +234,7 @@ void SparseLutNTest_cmp(int const input_node_size, int const output_node_size, i
             auto W_ptr0 = lut0->lock_W_const();
             auto W_ptr1 = lut1->lock_W_const();
             for (int node = 0; node < output_node_size; ++node) {
-                for (int i = 0; i < 64; ++i) {
+                for (int i = 0; i < (1 << N); ++i) {
                     auto val0 = W_ptr0(node, i);
                     auto val1 = W_ptr1(node, i);
                     EXPECT_NEAR(val0, val1, 0.001f);
@@ -250,7 +250,7 @@ void SparseLutNTest_cmp(int const input_node_size, int const output_node_size, i
             auto dW_ptr0 = lut0->lock_dW_const();
             auto dW_ptr1 = lut1->lock_dW_const();
             for (int node = 0; node < output_node_size; ++node) {
-                for (int i = 0; i < 64; ++i) {
+                for (int i = 0; i < (1 << N); ++i) {
                     auto val0 = dW_ptr0(node, i);
                     auto val1 = dW_ptr1(node, i);
                     EXPECT_NEAR(val0, val1, 0.01f);
@@ -269,7 +269,7 @@ void SparseLutNTest_cmp(int const input_node_size, int const output_node_size, i
             auto W_ptr0 = lut0->lock_W_const();
             auto W_ptr1 = lut1->lock_W_const();
             for (int node = 0; node < output_node_size; ++node) {
-                for (int i = 0; i < 64; ++i) {
+                for (int i = 0; i < (1 << N); ++i) {
                     auto val0 = W_ptr0(node, i);
                     auto val1 = W_ptr1(node, i);
                     EXPECT_NEAR(val0, val1, 0.001f);
@@ -282,73 +282,84 @@ void SparseLutNTest_cmp(int const input_node_size, int const output_node_size, i
                 }
             }
         }
+
+        for ( int node = 0; node < output_node_size; ++node )
+        {
+            std::vector<double> x_vec(N);
+            for ( int i = 0; i < N; ++i ) {
+                x_vec[i] = (double)valgen->GetValue();
+            }
+            auto y0_vec = lut0->ForwardNode(node, x_vec);
+            auto y1_vec = lut1->ForwardNode(node, x_vec);
+            EXPECT_NEAR(y0_vec[0], y1_vec[0], 0.0001);
+        }
     }
 }
 
 
 TEST(SparseLutNTest, testSparseLutN_cmp_float)
 {
-    SparseLutNTest_cmp<float>(6,    1,       1, 2, true,  true);
-    SparseLutNTest_cmp<float>(6,    1,    32+7, 2, true,  true);
-    SparseLutNTest_cmp<float>(6,    1,      64, 2, true,  true);
-    SparseLutNTest_cmp<float>(6,    1,    1024, 2, true,  true);
-    SparseLutNTest_cmp<float>(6,    1024,    1, 2, true,  true);
-    SparseLutNTest_cmp<float>(6,    2,      32, 2, true,  true);
+    SparseLutNTest_cmp<6, float>(6,    1,       1, 2, true,  true);
+    SparseLutNTest_cmp<6, float>(6,    1,    32+7, 2, true,  true);
+    SparseLutNTest_cmp<6, float>(6,    1,      64, 2, true,  true);
+    SparseLutNTest_cmp<6, float>(6,    1,    1024, 2, true,  true);
+    SparseLutNTest_cmp<6, float>(6,    1024,    1, 2, true,  true);
+    SparseLutNTest_cmp<6, float>(6,    2,      32, 2, true,  true);
 
-    SparseLutNTest_cmp<float>(6,    1,       1, 2, false, true);
-    SparseLutNTest_cmp<float>(6,    1,    32+7, 2, false, true);
-    SparseLutNTest_cmp<float>(6,    1,      64, 2, false, true);
-    SparseLutNTest_cmp<float>(6,    1,    1024, 2, false, true);
-    SparseLutNTest_cmp<float>(6,    1024,    1, 2, false, true);
-    SparseLutNTest_cmp<float>(6,    2,      32, 2, false, true);
+    SparseLutNTest_cmp<6, float>(6,    1,       1, 2, false, true);
+    SparseLutNTest_cmp<6, float>(6,    1,    32+7, 2, false, true);
+    SparseLutNTest_cmp<6, float>(6,    1,      64, 2, false, true);
+    SparseLutNTest_cmp<6, float>(6,    1,    1024, 2, false, true);
+    SparseLutNTest_cmp<6, float>(6,    1024,    1, 2, false, true);
+    SparseLutNTest_cmp<6, float>(6,    2,      32, 2, false, true);
 
-    SparseLutNTest_cmp<float>(6,    1,       1, 2, true,  false);
-    SparseLutNTest_cmp<float>(6,    1,    32+7, 2, true,  false);
-    SparseLutNTest_cmp<float>(6,    1,      64, 2, true,  false);
-    SparseLutNTest_cmp<float>(6,    1,    1024, 2, true,  false);
-    SparseLutNTest_cmp<float>(6,    1024,    1, 2, true,  false);
-    SparseLutNTest_cmp<float>(6,    2,      32, 2, true,  false);
+    SparseLutNTest_cmp<6, float>(6,    1,       1, 2, true,  false);
+    SparseLutNTest_cmp<6, float>(6,    1,    32+7, 2, true,  false);
+    SparseLutNTest_cmp<6, float>(6,    1,      64, 2, true,  false);
+    SparseLutNTest_cmp<6, float>(6,    1,    1024, 2, true,  false);
+    SparseLutNTest_cmp<6, float>(6,    1024,    1, 2, true,  false);
+    SparseLutNTest_cmp<6, float>(6,    2,      32, 2, true,  false);
 
-    SparseLutNTest_cmp<float>(6,    1,       1, 2, false, false);
-    SparseLutNTest_cmp<float>(6,    1,    32+7, 2, false, false);
-    SparseLutNTest_cmp<float>(6,    1,      64, 2, false, false);
-    SparseLutNTest_cmp<float>(6,    1,    1024, 2, false, false);
-    SparseLutNTest_cmp<float>(6,    1024,    1, 2, false, false);
-    SparseLutNTest_cmp<float>(6,    2,      32, 2, false, false);
+    SparseLutNTest_cmp<6, float>(6,    1,       1, 2, false, false);
+    SparseLutNTest_cmp<6, float>(6,    1,    32+7, 2, false, false);
+    SparseLutNTest_cmp<6, float>(6,    1,      64, 2, false, false);
+    SparseLutNTest_cmp<6, float>(6,    1,    1024, 2, false, false);
+    SparseLutNTest_cmp<6, float>(6,    1024,    1, 2, false, false);
+    SparseLutNTest_cmp<6, float>(6,    2,      32, 2, false, false);
 }
 
 
 TEST(SparseLutNTest, testSparseLutN_cmp_bit)
 {
-    SparseLutNTest_cmp<bb::Bit>(6,  1,   32+7, 2, true);
-    SparseLutNTest_cmp<bb::Bit>(6, 16,  128+3, 2, true);
-    SparseLutNTest_cmp<bb::Bit>(6, 1,      64, 2, true);
-    SparseLutNTest_cmp<bb::Bit>(6, 1,    1024, 2, true);
-    SparseLutNTest_cmp<bb::Bit>(6, 1024,    1, 2, true);
-    SparseLutNTest_cmp<bb::Bit>(6, 2,      32, 2, true);
+    SparseLutNTest_cmp<6, bb::Bit>(6,  1,   32+7, 2, true);
+    SparseLutNTest_cmp<6, bb::Bit>(6, 16,  128+3, 2, true);
+    SparseLutNTest_cmp<6, bb::Bit>(6, 1,      64, 2, true);
+    SparseLutNTest_cmp<6, bb::Bit>(6, 1,    1024, 2, true);
+    SparseLutNTest_cmp<6, bb::Bit>(6, 1024,    1, 2, true);
+    SparseLutNTest_cmp<6, bb::Bit>(6, 2,      32, 2, true);
     
-    SparseLutNTest_cmp<bb::Bit>(6,    1,   32+7, 2, false);
-    SparseLutNTest_cmp<bb::Bit>(6,   16,    128, 2, false);
-    SparseLutNTest_cmp<bb::Bit>(6,    1,     64, 2, false);
-    SparseLutNTest_cmp<bb::Bit>(6,    1,   1024, 2, false);
-    SparseLutNTest_cmp<bb::Bit>(6, 1024,      1, 2, false);
-    SparseLutNTest_cmp<bb::Bit>(6,    2,     32, 2, false);
+    SparseLutNTest_cmp<6, bb::Bit>(6,    1,   32+7, 2, false);
+    SparseLutNTest_cmp<6, bb::Bit>(6,   16,    128, 2, false);
+    SparseLutNTest_cmp<6, bb::Bit>(6,    1,     64, 2, false);
+    SparseLutNTest_cmp<6, bb::Bit>(6,    1,   1024, 2, false);
+    SparseLutNTest_cmp<6, bb::Bit>(6, 1024,      1, 2, false);
+    SparseLutNTest_cmp<6, bb::Bit>(6,    2,     32, 2, false);
 }
 
 
 TEST(SparseLutNTest, testSparseLutN_cmp_gpu)
 {
-//  SparseLutNTest_cmp<float, bb::SparseLutN<6, float>, bb::SparseLutN<6, float>>(6,  1,  1, 2, true, true, true);
+//  SparseLutNTest_cmp<6, float, bb::SparseLutN<6, float>, bb::SparseLutN<6, float>>(6,  1,  1, 2, true, true, true);
+    
+    SparseLutNTest_cmp<6, float, bb::SparseLutN<6, float>, bb::SparseLutN<6, float>>(6, 16, 32, 2, true,  true,  true);
+    SparseLutNTest_cmp<6, float, bb::SparseLutN<6, float>, bb::SparseLutN<6, float>>(6, 16, 32, 2, false, true,  true);
+    SparseLutNTest_cmp<6, float, bb::SparseLutN<6, float>, bb::SparseLutN<6, float>>(6, 16, 32, 2, true,  false, true);
+//  SparseLutNTest_cmp<6, float, bb::SparseLutN<6, float>, bb::SparseLutN<6, float>>(6, 16, 32, 2, false, false, true);
 
-    SparseLutNTest_cmp<float, bb::SparseLutN<6, float>, bb::SparseLutN<6, float>>(6, 16, 32, 2, true,  true,  true);
-    SparseLutNTest_cmp<float, bb::SparseLutN<6, float>, bb::SparseLutN<6, float>>(6, 16, 32, 2, false, true,  true);
-    SparseLutNTest_cmp<float, bb::SparseLutN<6, float>, bb::SparseLutN<6, float>>(6, 16, 32, 2, true,  false, true);
-//  SparseLutNTest_cmp<float, bb::SparseLutN<6, float>, bb::SparseLutN<6, float>>(6, 16, 32, 2, false, false, true);
+//  SparseLutNTest_cmp<6, bb::Bit, bb::SparseLutN<6, bb::Bit>, bb::SparseLutN<6, bb::Bit>>(6,  1,   1, 2, true,  true, true);
 
-//  SparseLutNTest_cmp<bb::Bit, bb::SparseLutN<6, bb::Bit>, bb::SparseLutN<6, bb::Bit>>(6,  1,   1, 2, true,  true, true);
-
-    SparseLutNTest_cmp<bb::Bit, bb::SparseLutN<6, bb::Bit>, bb::SparseLutN<6, bb::Bit>>(6,  16, 32, 2, true,  true, true);
-    SparseLutNTest_cmp<bb::Bit, bb::SparseLutN<6, bb::Bit>, bb::SparseLutN<6, bb::Bit>>(6,  16, 32, 2, false, true, true);
+    SparseLutNTest_cmp<6, bb::Bit, bb::SparseLutN<6, bb::Bit>, bb::SparseLutN<6, bb::Bit>>(6,  16, 32, 2, true,  true, true);
+    SparseLutNTest_cmp<6, bb::Bit, bb::SparseLutN<6, bb::Bit>, bb::SparseLutN<6, bb::Bit>>(6,  16, 32, 2, false, true, true);
 }
 
 

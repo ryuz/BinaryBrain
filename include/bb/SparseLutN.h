@@ -339,46 +339,47 @@ public:
         // パラメータクリップ
         m_W->Clamp((RealType)0.0, (RealType)1.0);
 
-        auto W_ptr = lock_W_const();
-        RealType W[NN];
-        for ( int i = 0; i < NN; ++i) {
-            W[i] = W_ptr(node, i);
-            if ( m_lut_binarize ) {
-                W[i] = W[i] > (RealType)0.5 ? (RealType)1.0 : (RealType)0.0;
-            }
-        }
-
-        RealType   x[N][2];
-        for ( int i = 0; i < N; ++i) {
-            RealType x_tmp = (RealType)input_value[i];
-            x_tmp = std::min((RealType)1.0, std::max((RealType)0.0, x_tmp));  // clip
-            x[i][0] = (RealType)1.0 - x_tmp;
-            x[i][1] = x_tmp;
-        }
-
-        RealType y = (RealType)0;
-        for (int i = 0; i < NN; ++i) {
-            RealType w = W[i];
-            for (int j = 0; j < N; ++j) {
-                w *= x[j][(i >> j) & 1];
-            }
-            y += w;
-        }
-
-        // clip
-        y = std::max((RealType)0.0, y);
-        y = std::min((RealType)1.0, y);
-        
-        // batch_noerm
+        auto W_ptr            = lock_W_const();
         auto running_mean_ptr = m_running_mean.LockConst();
         auto running_var_ptr  = m_running_var.LockConst();
-        y -= running_mean_ptr(node);
-        y /= (RealType)sqrt(running_var_ptr(node)) + (RealType)1.0e-7;
-        y  = y * m_gamma + m_beta;
 
-        // binary
+        RealType W[(1 << N)];
+        for ( int i = 0; i < (1 << N); ++i) {
+            W[i] = W_ptr(node, i);
+            if ( m_lut_binarize ) {
+                W[i] = ((W[i] > (RealType)0.5) ? (RealType)1.0 : (RealType)0.0);
+            }
+        }
+
+        RealType mean = running_mean_ptr[node];
+        RealType var  = running_var_ptr[node];
+        RealType rstd = (RealType)1.0 / std::sqrt(var);
+
+        RealType x[N];
+        for ( int i = 0; i < N; ++i) {
+            x[i] = (RealType)input_value[i];
+            if ( m_binary_mode ) {
+                x[i] = (RealType)0.5 + ((x[i] > (RealType)0.5) ? +m_unbinarize_bias : -m_unbinarize_bias);
+            }
+            else {
+                x[i] = std::min((RealType)1.0, std::max((RealType)0.0, x[i]));
+            }
+        }
+
+        RealType y;
+        StochasticOperation_Lut_Forward<RealType>(x, &y, W, N);
+
+        y = (y - mean) * rstd;
+        y = y * m_gamma + m_beta;
+
         if ( m_binary_mode ) {
-            y = (y > (RealType)0.5) ? (RealType)1.0 : (RealType)0.0;
+            // binarize
+            y = ((y > (RealType)0.5) ? (RealType)1.0 : (RealType)0.0);
+        }
+        else {
+            // hard-tanh
+            y = std::min(y, (RealType)1.0);
+            y = std::max(y, (RealType)0.0);
         }
 
         std::vector<double> result;

@@ -125,6 +125,7 @@
     <ClInclude Include="..\..\include\bb\StochasticLut6.h" />
     <ClInclude Include="..\..\include\bb\StochasticLutBn.h" />
     <ClInclude Include="..\..\include\bb\StochasticLutN.h" />
+    <ClInclude Include="..\..\include\bb\StochasticLutSimd.h" />
     <ClInclude Include="..\..\include\bb\StochasticMaxPooling.h" />
     <ClInclude Include="..\..\include\bb\StochasticMaxPooling2x2.h" />
     <ClInclude Include="..\..\include\bb\StochasticOperation.h" />
