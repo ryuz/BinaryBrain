@@ -29,6 +29,7 @@ public:
     virtual void  SetLutTable(index_t node, int bitpos, bool value) = 0;
     virtual bool  GetLutTable(index_t node, int bitpos) const = 0;
 
+    /*
     virtual bool  GetLutInput(index_t frame, index_t node, int bitpos) const = 0;
     virtual int   GetLutInputIndex(index_t frame, index_t node) const
     {
@@ -39,6 +40,7 @@ public:
         }
         return index;
     }
+    */
 
 protected:
     void InitializeLutTable(std::uint64_t seed)

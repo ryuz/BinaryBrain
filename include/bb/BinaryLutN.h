@@ -29,8 +29,8 @@ protected:
     indices_t               m_input_shape;
     indices_t               m_output_shape;
 
-    FrameBuffer             m_x_buf;
-    FrameBuffer             m_y_buf;
+//    FrameBuffer             m_x_buf;
+//    FrameBuffer             m_y_buf;
 
     static int const        m_table_size = (1 << N);
     static int const        m_table_bits = sizeof(std::int32_t) * 8;
@@ -170,13 +170,14 @@ public:
         return ((ptr(node, idx) & (1 << bit)) != 0);
     }
 
+    /*
     bool GetLutInput(index_t frame, index_t node, int bitpos) const
     {
         auto input_node = GetNodeInput(node, (index_t)bitpos);
         auto ptr = m_x_buf.LockConst<FT>();
         return ptr.Get(frame, input_node);
     }
-    
+    */
 
 
    /**
@@ -272,17 +273,17 @@ public:
 
         // SetInputShpaeされていなければ初回に設定
         if (x_buf.GetShape() != m_input_shape) {
-            SetInputShape(m_x_buf.GetShape());
+            SetInputShape(x_buf.GetShape());
         }
         
         // 出力を設定
-        m_y_buf.Resize(DataType<FT>::type, x_buf.GetFrameSize(), m_output_shape);
+        FrameBuffer y_buf(DataType<FT>::type, x_buf.GetFrameSize(), m_output_shape);
 
 #ifdef BB_WITH_CUDA
         if ( N == 6 && DataType<FT>::type == BB_TYPE_BIT && !m_host_only
-                && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+                && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             auto x_ptr           = x_buf.LockDeviceMemoryConst();
-            auto y_ptr           = m_y_buf.LockDeviceMemory(true);
+            auto y_ptr           = y_buf.LockDeviceMemory(true);
             auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
             auto table_ptr       = m_table.LockDeviceMemoryConst();
 
@@ -292,24 +293,24 @@ public:
                     (int       *)y_ptr.GetAddr(),
                     (int const *)input_index_ptr.GetAddr(),
                     (int const *)table_ptr.GetAddr(),
-                    (int        )m_y_buf.GetNodeSize(),
-                    (int        )m_y_buf.GetFrameSize(),
-                    (int        )(m_y_buf.GetFrameStride() / sizeof(int))
+                    (int        )y_buf.GetNodeSize(),
+                    (int        )y_buf.GetFrameSize(),
+                    (int        )(y_buf.GetFrameStride() / sizeof(int))
                 );
 
-            return m_y_buf;
+            return y_buf;
         }
 #endif
 
         if ( N == 6 && DataType<FT>::type == BB_TYPE_BIT && m_host_simd ) {
             auto x_ptr = x_buf.LockConst<Bit>();
-            auto y_ptr = m_y_buf.Lock<Bit>(true);
+            auto y_ptr = y_buf.Lock<Bit>(true);
 
             auto input_index_ptr = m_input_index.LockConst();
             auto table_ptr       = m_table.LockConst();
 
-            index_t node_size  = m_y_buf.GetNodeSize();
-            index_t frame_size = m_y_buf.GetFrameStride() / sizeof(__m256i);
+            index_t node_size  = y_buf.GetNodeSize();
+            index_t frame_size = y_buf.GetFrameStride() / sizeof(__m256i);
 
             #pragma omp parallel for
             for (index_t node = 0; node < node_size; ++node) {
@@ -411,14 +412,14 @@ public:
                 }
             }
 
-            return m_y_buf;
+            return y_buf;
         }
 
 
         {
             // 汎用版
             auto x_ptr           = x_buf.LockConst<FT>();
-            auto y_ptr           = m_y_buf.Lock<FT>();
+            auto y_ptr           = y_buf.Lock<FT>();
             auto input_index_ptr = m_input_index.LockConst();
             auto table_ptr       = m_table.LockConst();
 
@@ -441,7 +442,7 @@ public:
                 }
             }
 
-            return m_y_buf;
+            return y_buf;
         }
     }
 
