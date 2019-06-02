@@ -256,7 +256,7 @@ void SparseLutNTest_cmp(int const input_node_size, int const output_node_size, i
                     EXPECT_NEAR(val0, val1, 0.01f);
                     if ( !(abs(val0 - val1) < 0.01f) ) {
                         std::cout << node << std::endl;
-                        getchar();
+//                      getchar();
                     }
                 }
             }

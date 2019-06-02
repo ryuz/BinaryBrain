@@ -58,8 +58,21 @@ protected:
 
     T                           m_momentum = (T)0.9;
 
+public:
+    struct create_t
+    {
+        T       momentum  = (T)0.9;
+        T       gamma     = (T)0.3;
+        T       beta      = (T)0.5;
+    };
+
 protected:
-    StochasticBatchNormalization() {}
+    StochasticBatchNormalization(create_t const &create)
+    {
+        m_momentum = create.momentum;
+        m_gamma    = create.gamma;
+        m_beta     = create.beta;
+    }
 
     void CommandProc(std::vector<std::string> args)
     {
@@ -87,23 +100,12 @@ protected:
 public:
     ~StochasticBatchNormalization() {}
 
-    struct create_t
-    {
-        T       momentum  = (T)0.9;
-        T       gamma     = (T)0.3;
-        T       beta      = (T)0.5;
-    };
-
     static std::shared_ptr<StochasticBatchNormalization> Create(create_t const &create)
     {
-        auto self = std::shared_ptr<StochasticBatchNormalization>(new StochasticBatchNormalization);
-        self->m_momentum = create.momentum;
-        self->m_gamma    = create.gamma;
-        self->m_beta     = create.beta;
-        return self;
+        return std::shared_ptr<StochasticBatchNormalization>(new StochasticBatchNormalization(create));
     }
 
-    static std::shared_ptr<StochasticBatchNormalization> Create(T momentum = (T)0.9, T gamma=(T)0.5, T beta=(T)0.5)
+    static std::shared_ptr<StochasticBatchNormalization> Create(T momentum = (T)0.9, T gamma=(T)0.3, T beta=(T)0.5)
     {
         create_t create;
         create.momentum = momentum;
