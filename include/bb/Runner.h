@@ -476,19 +476,22 @@ protected:
 
             // print progress
             if ( print_progress ) {
+                std::stringstream ss;
+
                 index_t progress = index + mini_batch_size;
                 index_t rate = progress * 100 / frame_size;
-                std::cerr << "\r[" << rate << "% (" << progress << "/" << frame_size << ")]";
+                ss << "\r[" << rate << "% (" << progress << "/" << frame_size << ")]";
 
                 if ( print_progress_loss && lossFunc != nullptr ) {
-                    std::cerr << "  loss : " << lossFunc->GetLoss();
+                    ss << "  loss : " << lossFunc->GetLoss();
                 }
 
                 if ( print_progress_metrics && metricsFunc != nullptr ) {
-                    std::cerr << "  " << metricsFunc->GetMetricsString() << " : " << metricsFunc->GetMetrics();
+                    ss << "  " << metricsFunc->GetMetricsString() << " : " << metricsFunc->GetMetrics();
                 }
+                ss << "        ";
 
-                std::cerr << "        " << std::flush;
+                std::cerr << ss.str() << std::flush;
             }
 
             // インデックスを進める
