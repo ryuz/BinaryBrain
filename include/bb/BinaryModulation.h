@@ -98,17 +98,17 @@ public:
         return std::shared_ptr<BinaryModulation>(new BinaryModulation(create));
     }
 
-    static std::shared_ptr<BinaryModulation> Create(std::shared_ptr<Model> layer, index_t train_modulation_size, index_t test_modulation_size=0)
+    static std::shared_ptr<BinaryModulation> Create(std::shared_ptr<Model> layer, index_t train_modulation_size, index_t inference_modulation_size=0)
     {
         BB_ASSERT(train_modulation_size > 0);
-        if ( test_modulation_size <= 0 ) {
-            test_modulation_size = train_modulation_size;
+        if ( inference_modulation_size <= 0 ) {
+            inference_modulation_size = train_modulation_size;
         }
 
         create_t create;
         create.layer = layer;
-        create.training_modulation_size = train_modulation_size;
-        create.training_modulation_size = test_modulation_size;
+        create.training_modulation_size  = train_modulation_size;
+        create.inference_modulation_size = inference_modulation_size;
         return Create(create);
     }
 
