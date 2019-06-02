@@ -35,7 +35,7 @@ void MnistSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation
 #endif
 
     // create network
-#ifdef BB_WITH_CUD
+#ifdef BB_WITH_CUDA
     auto layer_cnv0_sl0 = bb::SparseLutN<6, float>::Create(192);
     auto layer_cnv0_sl1 = bb::SparseLutN<6, float>::Create(32);
     auto layer_cnv1_sl0 = bb::SparseLutN<6, float>::Create(192);

@@ -34,7 +34,7 @@ void MnistSparseLutMlp(int epoch_size, int mini_batch_size, int train_modulation
     auto td = bb::LoadMnist<>::Load(10);
 #endif
 
-#ifdef BB_WITH_CUD
+#ifdef BB_WITH_CUDA
     auto layer_sl0 = bb::SparseLutN<6, float>::Create(1024);
     auto layer_sl1 = bb::SparseLutN<6, float>::Create(480);
     auto layer_sl2 = bb::SparseLutN<6, float>::Create(70);
