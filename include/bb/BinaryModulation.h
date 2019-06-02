@@ -25,14 +25,14 @@ class BinaryModulation : public Model
     using _super = Model;
 
 protected:
+    bool                                                m_binary_mode = true;
+    bool                                                m_training;
+    index_t                                             m_modulation_size = 1;
 
     // 3層で構成
     std::shared_ptr< RealToBinary<BinType, RealType> >  m_real2bin;
     std::shared_ptr< Model >                            m_layer;
     std::shared_ptr< BinaryToReal<BinType, RealType> >  m_bin2real;
-
-    bool                                                m_training;
-    index_t                                             m_modulation_size = 1;
 
     typename RealToBinary<BinType, RealType>::create_t  m_training_create;
     typename RealToBinary<BinType, RealType>::create_t  m_inference_create;
@@ -78,15 +78,39 @@ protected:
         m_bin2real = BinaryToReal<BinType, RealType>::Create(m_modulation_size, create.output_shape);
     }
 
+
+    void CommandProc(std::vector<std::string> args)
+    {
+        // binary mode
+        if ( DataType<BinType>::type != BB_TYPE_BIT ) {
+            if ( args.size() == 2 && args[0] == "binary" )
+            {
+                m_binary_mode = EvalBool(args[1]);
+            }
+        }
+    }
+
 public:
     ~BinaryModulation() {}
-
 
     static std::shared_ptr<BinaryModulation> Create(create_t const & create)
     {
         return std::shared_ptr<BinaryModulation>(new BinaryModulation(create));
     }
 
+    static std::shared_ptr<BinaryModulation> Create(std::shared_ptr<Model> layer, index_t train_modulation_size, index_t test_modulation_size=0)
+    {
+        BB_ASSERT(train_modulation_size > 0);
+        if ( test_modulation_size <= 0 ) {
+            test_modulation_size = train_modulation_size;
+        }
+
+        create_t create;
+        create.layer = layer;
+        create.training_modulation_size = train_modulation_size;
+        create.training_modulation_size = test_modulation_size;
+        return Create(create);
+    }
 
     std::string GetClassName(void) const { return "BinaryModulation"; }
 
@@ -184,9 +208,14 @@ public:
      * @param  train 学習時にtrueを指定
      * @return forward演算結果
      */
-    FrameBuffer Forward(FrameBuffer x, bool train = true)
+    FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-        // 切り替え
+        // bypass
+        if ( !m_binary_mode ) {
+            return m_layer->Forward(x_buf, train);
+        }
+
+        // change mode
         if (train && !m_training) {
             m_training = true;
             m_modulation_size = m_training_create.modulation_size;
@@ -204,10 +233,10 @@ public:
             m_bin2real->SetModulationSize(m_inference_create.modulation_size);
         }
 
-        x = m_real2bin->Forward(x, train);
-        x = m_layer->Forward(x, train);
-        x = m_bin2real->Forward(x, train);
-        return x;
+        x_buf = m_real2bin->Forward(x_buf, train);
+        x_buf = m_layer->Forward(x_buf, train);
+        x_buf = m_bin2real->Forward(x_buf, train);
+        return x_buf;
     }
 
    /**
@@ -216,12 +245,16 @@ public:
      *         
      * @return backward演算結果
      */
-    FrameBuffer Backward(FrameBuffer dy)
+    FrameBuffer Backward(FrameBuffer dy_buf)
     {
-        dy = m_bin2real->Backward(dy);
-        dy = m_layer   ->Backward(dy);
-        dy = m_real2bin->Backward(dy);
-        return dy; 
+        if ( !m_binary_mode ) {
+            return dy_buf = m_layer->Backward(dy_buf);
+        }
+
+        dy_buf = m_bin2real->Backward(dy_buf);
+        dy_buf = m_layer   ->Backward(dy_buf);
+        dy_buf = m_real2bin->Backward(dy_buf);
+        return dy_buf; 
     }
     
 protected:
@@ -239,9 +272,14 @@ protected:
         }
         else {
             // 子レイヤーの表示
-            m_real2bin->PrintInfo(depth, os, columns, nest+1);
-            m_layer->PrintInfo(depth, os, columns, nest+1);
-            m_bin2real->PrintInfo(depth, os, columns, nest+1);
+            if ( m_binary_mode ) {
+                m_real2bin->PrintInfo(depth, os, columns, nest+1);
+                m_layer->PrintInfo(depth, os, columns, nest+1);
+                m_bin2real->PrintInfo(depth, os, columns, nest+1);
+            }
+            else {
+                m_layer->PrintInfo(depth, os, columns, nest+1);
+            }
         }
     }
 

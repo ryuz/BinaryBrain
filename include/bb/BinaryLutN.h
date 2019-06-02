@@ -46,12 +46,6 @@ protected:
 
     void CommandProc(std::vector<std::string> args)
     {
-        // バイナリモード設定
-//      if ( args.size() == 2 && args[0] == "binary" )
-//      {
-//          m_binary_mode = EvalBool(args[1]);
-//      }
-
         // HostOnlyモード設定
         if (args.size() == 2 && args[0] == "host_only")
         {

@@ -12,23 +12,23 @@
 #include <random>
 #include <chrono>
 
+#include "bb/Sequential.h"
+#include "bb/BinaryModulation.h"
 #include "bb/DenseAffine.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
+#include "bb/OptimizerAdam.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
 #include "bb/MetricsCategoricalAccuracy.h"
-#include "bb/OptimizerAdam.h"
-#include "bb/OptimizerSgd.h"
-#include "bb/LoadMnist.h"
-#include "bb/ShuffleSet.h"
-#include "bb/Utility.h"
-#include "bb/Sequential.h"
 #include "bb/Runner.h"
+#include "bb/LoadMnist.h"
 
 
 
-void MnistDenseMlp(int epoch_size, int mini_batch_size, int max_run_size, bool binary_mode, bool file_read)
+void MnistDenseMlp(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
+    std::string net_name = "MnistDenseMlp";
+
     // load MNIST data
 #ifdef _DEBUG
     auto td = bb::LoadMnist<>::Load(10, 512, 128);
@@ -37,31 +37,65 @@ void MnistDenseMlp(int epoch_size, int mini_batch_size, int max_run_size, bool b
     auto td = bb::LoadMnist<>::Load(10);
 #endif
 
-    // create network
-    auto net = bb::Sequential::Create();
-    net->Add(bb::DenseAffine<float>::Create(256));
-    net->Add(bb::ReLU<float>::Create());
-    net->Add(bb::DenseAffine<float>::Create(td.t_shape));
-    net->SetInputShape(td.x_shape);
+    {
+        std::cout << "\n<Training>" << std::endl;
 
-    std::cout << "binary_mode : " << binary_mode << std::endl;
-    if ( binary_mode ) {
-        net->SendCommand("binary true");
-    }
+        // create network (ReLU acts as a Binarizer when in binary mode)
+        auto main_net = bb::Sequential::Create();
+        main_net->Add(bb::DenseAffine<float>::Create(1024));
+        main_net->Add(bb::BatchNormalization<float>::Create());
+        main_net->Add(bb::ReLU<float>::Create());
+        main_net->Add(bb::DenseAffine<float>::Create(512));
+        main_net->Add(bb::BatchNormalization<float>::Create());
+        main_net->Add(bb::ReLU<float>::Create());
+        main_net->Add(bb::DenseAffine<float>::Create(td.t_shape));
+        if ( binary_mode ) {
+            main_net->Add(bb::BatchNormalization<float>::Create());
+            main_net->Add(bb::ReLU<float>::Create());
+        }
+
+        // modulation wrapper
+        auto net = bb::BinaryModulation<float>::Create(main_net, train_modulation_size, test_modulation_size);
+
+        // set input shape
+        net->SetInputShape(td.x_shape);
+
+        // set binary mode
+        if ( binary_mode ) {
+            net->SendCommand("binary true");
+        }
+        else {
+            net->SendCommand("binary false");
+        }
+
+        // print model information
+        net->PrintInfo();
+
+        std::cout << "-----------------------------------" << std::endl;
+        std::cout << "epoch_size            : " << epoch_size            << std::endl;
+        std::cout << "mini_batch_size       : " << mini_batch_size       << std::endl;
+        if ( binary_mode ) {
+        std::cout << "train_modulation_size : " << train_modulation_size << std::endl;
+        std::cout << "test_modulation_size  : " << test_modulation_size  << std::endl;
+        }
+        std::cout << "binary_mode           : " << binary_mode           << std::endl;
+        std::cout << "file_read             : " << file_read             << std::endl;
+        std::cout << "-----------------------------------" << std::endl;
+
     
-    // run fitting
-    bb::Runner<float>::create_t runner_create;
-    runner_create.name               = "MnistDenseMlp";
-    runner_create.net                = net;
-    runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
-    runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
-    runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
-    runner_create.max_run_size       = max_run_size;    // 実際の1回の実行サイズ
-    runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
-    runner_create.file_write         = true;            // 計算結果をファイルに保存するか
-    runner_create.print_progress     = true;            // 途中結果を表示
-    runner_create.initial_evaluation = file_read;       // ファイルを読んだ場合は最初に評価しておく
-    auto runner = bb::Runner<float>::Create(runner_create);
-    runner->Fitting(td, epoch_size, mini_batch_size);
+        // run fitting
+        bb::Runner<float>::create_t runner_create;
+        runner_create.name               = net_name;
+        runner_create.net                = net;
+        runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
+        runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
+        runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
+        runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
+        runner_create.file_write         = true;            // 計算結果をファイルに保存するか
+        runner_create.print_progress     = true;            // 途中結果を表示
+        runner_create.initial_evaluation = file_read;       // ファイルを読んだ場合は最初に評価しておく
+        auto runner = bb::Runner<float>::Create(runner_create);
+        runner->Fitting(td, epoch_size, mini_batch_size);
+    }
 }
 
