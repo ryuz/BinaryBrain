@@ -29,7 +29,7 @@ class MicroMlp : public SparseLayer
     using _super = SparseLayer;
 
 protected:
-    bool                                            m_memory_saving = true;
+    bool                                            m_memory_saving = false;// true;
 
     // 3層で構成
     std::shared_ptr< MicroMlpAffine<N, M, FT, T> >  m_affine;
