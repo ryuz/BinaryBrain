@@ -52,11 +52,12 @@ void MnistStochasticLutMlp(int epoch_size, int mini_batch_size, int test_modulat
         net->SetInputShape(td.x_shape);
 
         // set binary mode
+        net->SendCommand("binary false");
         if ( binary_mode ) {
-            net->SendCommand("binary true");
+            net->SendCommand("lut_binarize true");
         }
         else {
-            net->SendCommand("binary false");
+            net->SendCommand("lut_binarize false");
         }
 
         // print model information
@@ -65,7 +66,7 @@ void MnistStochasticLutMlp(int epoch_size, int mini_batch_size, int test_modulat
         std::cout << "-----------------------------------" << std::endl;
         std::cout << "epoch_size            : " << epoch_size            << std::endl;
         std::cout << "mini_batch_size       : " << mini_batch_size       << std::endl;
-        std::cout << "binary_mode           : " << binary_mode           << std::endl;
+        std::cout << "lut_binarize          : " << binary_mode           << std::endl;
         std::cout << "file_read             : " << file_read             << std::endl;
         std::cout << "-----------------------------------" << std::endl;
 
@@ -103,7 +104,6 @@ void MnistStochasticLutMlp(int epoch_size, int mini_batch_size, int test_modulat
 
         // set input shape
         eval_net->SetInputShape(td.x_shape);
-
 
         // テーブル化して取り込み(SetInputShape後に取り込みが必要)
         std::cout << "parameter copy to binary LUT-Network" << std::endl;
