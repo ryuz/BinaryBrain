@@ -66,7 +66,7 @@ module video_mnist_cnn_core
 	wire							axi4s_l0_tvalid;
 	wire							axi4s_l0_tready;
 	
-	MnistMicroMlpLutCnnCnv0
+	MnistSparseLutCnnCnv0
 			#(
 				.TUSER_WIDTH		(TUSER_WIDTH),
 				.IMG_X_WIDTH		(IMG_X_WIDTH),
@@ -108,7 +108,7 @@ module video_mnist_cnn_core
 	wire							axi4s_l1_tvalid;
 	wire							axi4s_l1_tready;
 	
-	MnistMicroMlpLutCnnCnv1
+	MnistSparseLutCnnCnv1
 			#(
 				.TUSER_WIDTH		(TUSER_WIDTH),
 				.IMG_X_WIDTH		(IMG_X_WIDTH),
@@ -144,7 +144,7 @@ module video_mnist_cnn_core
 	
 	
 	// L2
-	MnistMicroMlpLutCnnCnv2
+	MnistSparseLutCnnCnv2
 			#(
 				.TUSER_WIDTH		(TUSER_WIDTH),
 				.IMG_X_WIDTH		(IMG_X_WIDTH),

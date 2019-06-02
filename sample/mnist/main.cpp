@@ -6,9 +6,13 @@
 // --------------------------------------------------------------------------
 
 
-#include <iostream>
 #include <omp.h>
+#include <iostream>
 #include <string.h>
+
+#ifdef BB_WITH_CUDA
+#include "bbcu/bbcu.h"
+#endif
 
 
 void MnistStochasticLutMlp(int epoch_size, int mini_batch_size,                            int test_modulation_size, bool binary_mode, bool file_read);
@@ -33,6 +37,7 @@ int main(int argc, char *argv[])
     int         test_modulation_size  = 0;
     bool        file_read             = false;
     bool        binary_mode           = true;
+    bool        print_device          = false;
 
     if ( argc < 2 ) {
         std::cout << "usage:" << std::endl;
@@ -44,14 +49,15 @@ int main(int argc, char *argv[])
         std::cout << "  -modulation_size <modulation_size>      set train modulation size" << std::endl;
         std::cout << "  -test_modulation_size <modulation_size> set test modulation size" << std::endl;
         std::cout << "  -binary <0|1>                           set binary mode" << std::endl;
+        std::cout << "  -read <0|1>                             file read" << std::endl;
         std::cout << "" << std::endl;
         std::cout << "netname" << std::endl;
         std::cout << "  StochasticLutMlp Stochastic-Lut LUT-Network Simple Multi Layer Perceptron" << std::endl;
         std::cout << "  StochasticLutCnn Stochastic-Lut LUT-Network Simple CNN" << std::endl;
         std::cout << "  SparseLutMlp     Sparse LUT-Network Simple Multi Layer Perceptron" << std::endl;
         std::cout << "  SparseLutCnn     Sparse LUT-Network CNN" << std::endl;
-        std::cout << "  DenseMlp         Fully Connection Simple Multi Layer Perceptron" << std::endl;
-        std::cout << "  DenseCnn         Fully Connection CNN" << std::endl;
+        std::cout << "  DenseMlp         Dense Simple Multi Layer Perceptron" << std::endl;
+        std::cout << "  DenseCnn         Dense Simple CNN" << std::endl;
         std::cout << "  All              run all" << std::endl;
         return 1;
     }
@@ -88,6 +94,9 @@ int main(int argc, char *argv[])
             ++i;
             file_read = (strtoul(argv[i], NULL, 0) != 0);
         }
+        else if (strcmp(argv[i], "-print_device") == 0 ) {
+            print_device = true;
+        }
         else {
             netname = argv[i];
         }
@@ -96,6 +105,13 @@ int main(int argc, char *argv[])
     if (test_modulation_size <= 0) {
         test_modulation_size = train_modulation_size;
     }
+
+#ifdef BB_WITH_CUDA
+    if ( print_device ) {
+        bbcu::PrintDeviceProperties();
+    }
+#endif
+
 
     if ( netname == "All" || netname == "StochasticLutMlp" ) {
         MnistStochasticLutMlp(epoch_size, mini_batch_size, test_modulation_size, binary_mode, file_read);

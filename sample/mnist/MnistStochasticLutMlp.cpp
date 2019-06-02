@@ -86,6 +86,8 @@ void MnistStochasticLutMlp(int epoch_size, int mini_batch_size, int test_modulat
     }
 
     {
+        std::cout << "\n<Evaluation binary LUT-Network>" << std::endl;
+
         // LUT-network
         auto layer_lut0 = bb::BinaryLutN<>::Create(layer_sl0->GetOutputShape());
         auto layer_lut1 = bb::BinaryLutN<>::Create(layer_sl1->GetOutputShape());
@@ -97,7 +99,6 @@ void MnistStochasticLutMlp(int epoch_size, int mini_batch_size, int test_modulat
         lut_net->Add(layer_lut1);
         lut_net->Add(layer_lut2);
         lut_net->Add(layer_lut3);
-        lut_net->SetInputShape(td.x_shape);
 
         // evaluation network
         auto eval_net = bb::BinaryModulation<bb::Bit>::Create(lut_net, test_modulation_size);

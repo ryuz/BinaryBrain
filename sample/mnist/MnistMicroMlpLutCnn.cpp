@@ -129,36 +129,36 @@ void MnistMicroMlpLutCnn(int epoch_size, int mini_batch_size, int train_modulati
         std::cout << "\n<Evaluation binary LUT-Network>" << std::endl;
 
         // LUT-network
-        auto layer_cnv0_lut0 = bb::BinaryLutN<>::Create(layer_cnv0_mm0->GetOutputShape());
-        auto layer_cnv0_lut1 = bb::BinaryLutN<>::Create(layer_cnv0_mm1->GetOutputShape());
-        auto layer_cnv1_lut0 = bb::BinaryLutN<>::Create(layer_cnv1_mm0->GetOutputShape());
-        auto layer_cnv1_lut1 = bb::BinaryLutN<>::Create(layer_cnv1_mm1->GetOutputShape());
-        auto layer_cnv2_lut0 = bb::BinaryLutN<>::Create(layer_cnv2_mm0->GetOutputShape());
-        auto layer_cnv2_lut1 = bb::BinaryLutN<>::Create(layer_cnv2_mm1->GetOutputShape());
-        auto layer_cnv3_lut0 = bb::BinaryLutN<>::Create(layer_cnv3_mm0->GetOutputShape());
-        auto layer_cnv3_lut1 = bb::BinaryLutN<>::Create(layer_cnv3_mm1->GetOutputShape());
-        auto layer_lut4      = bb::BinaryLutN<>::Create(layer_mm4->GetOutputShape());
-        auto layer_lut5      = bb::BinaryLutN<>::Create(layer_mm5->GetOutputShape());
+        auto layer_cnv0_bl0 = bb::BinaryLutN<>::Create(layer_cnv0_mm0->GetOutputShape());
+        auto layer_cnv0_bl1 = bb::BinaryLutN<>::Create(layer_cnv0_mm1->GetOutputShape());
+        auto layer_cnv1_bl0 = bb::BinaryLutN<>::Create(layer_cnv1_mm0->GetOutputShape());
+        auto layer_cnv1_bl1 = bb::BinaryLutN<>::Create(layer_cnv1_mm1->GetOutputShape());
+        auto layer_cnv2_bl0 = bb::BinaryLutN<>::Create(layer_cnv2_mm0->GetOutputShape());
+        auto layer_cnv2_bl1 = bb::BinaryLutN<>::Create(layer_cnv2_mm1->GetOutputShape());
+        auto layer_cnv3_bl0 = bb::BinaryLutN<>::Create(layer_cnv3_mm0->GetOutputShape());
+        auto layer_cnv3_bl1 = bb::BinaryLutN<>::Create(layer_cnv3_mm1->GetOutputShape());
+        auto layer_bl4      = bb::BinaryLutN<>::Create(layer_mm4->GetOutputShape());
+        auto layer_bl5      = bb::BinaryLutN<>::Create(layer_mm5->GetOutputShape());
 
         auto cnv0_sub = bb::Sequential::Create();
-        cnv0_sub->Add(layer_cnv0_lut0);
-        cnv0_sub->Add(layer_cnv0_lut1);
+        cnv0_sub->Add(layer_cnv0_bl0);
+        cnv0_sub->Add(layer_cnv0_bl1);
 
         auto cnv1_sub = bb::Sequential::Create();
-        cnv1_sub->Add(layer_cnv1_lut0);
-        cnv1_sub->Add(layer_cnv1_lut1);
+        cnv1_sub->Add(layer_cnv1_bl0);
+        cnv1_sub->Add(layer_cnv1_bl1);
 
         auto cnv2_sub = bb::Sequential::Create();
-        cnv2_sub->Add(layer_cnv2_lut0);
-        cnv2_sub->Add(layer_cnv2_lut1);
+        cnv2_sub->Add(layer_cnv2_bl0);
+        cnv2_sub->Add(layer_cnv2_bl1);
 
         auto cnv3_sub = bb::Sequential::Create();
-        cnv3_sub->Add(layer_cnv3_lut0);
-        cnv3_sub->Add(layer_cnv3_lut1);
+        cnv3_sub->Add(layer_cnv3_bl0);
+        cnv3_sub->Add(layer_cnv3_bl1);
 
         auto cnv4_sub = bb::Sequential::Create();
-        cnv4_sub->Add(layer_lut4);
-        cnv4_sub->Add(layer_lut5);
+        cnv4_sub->Add(layer_bl4);
+        cnv4_sub->Add(layer_bl5);
 
         auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3);
         auto cnv1 = bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3);
@@ -190,16 +190,16 @@ void MnistMicroMlpLutCnn(int epoch_size, int mini_batch_size, int train_modulati
 
         // テーブル化して取り込み(現状まだSetInputShape後の取り込みが必要)
         std::cout << "parameter copy to binary LUT-Network" << std::endl;
-        layer_cnv0_lut0->ImportLayer(layer_cnv0_mm0);
-        layer_cnv0_lut1->ImportLayer(layer_cnv0_mm1);
-        layer_cnv1_lut0->ImportLayer(layer_cnv1_mm0);
-        layer_cnv1_lut1->ImportLayer(layer_cnv1_mm1);
-        layer_cnv2_lut0->ImportLayer(layer_cnv2_mm0);
-        layer_cnv2_lut1->ImportLayer(layer_cnv2_mm1);
-        layer_cnv3_lut0->ImportLayer(layer_cnv3_mm0);
-        layer_cnv3_lut1->ImportLayer(layer_cnv3_mm1);
-        layer_lut4     ->ImportLayer(layer_mm4);
-        layer_lut5     ->ImportLayer(layer_mm5);
+        layer_cnv0_bl0->ImportLayer(layer_cnv0_mm0);
+        layer_cnv0_bl1->ImportLayer(layer_cnv0_mm1);
+        layer_cnv1_bl0->ImportLayer(layer_cnv1_mm0);
+        layer_cnv1_bl1->ImportLayer(layer_cnv1_mm1);
+        layer_cnv2_bl0->ImportLayer(layer_cnv2_mm0);
+        layer_cnv2_bl1->ImportLayer(layer_cnv2_mm1);
+        layer_cnv3_bl0->ImportLayer(layer_cnv3_mm0);
+        layer_cnv3_bl1->ImportLayer(layer_cnv3_mm1);
+        layer_bl4     ->ImportLayer(layer_mm4);
+        layer_bl5     ->ImportLayer(layer_mm5);
 
         // 評価
         if ( 1 ) {

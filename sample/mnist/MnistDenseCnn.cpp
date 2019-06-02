@@ -7,10 +7,6 @@
 
 
 #include <iostream>
-#include <fstream>
-#include <numeric>
-#include <random>
-#include <chrono>
 
 #include "bb/Sequential.h"
 #include "bb/DenseAffine.h"

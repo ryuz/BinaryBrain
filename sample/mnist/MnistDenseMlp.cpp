@@ -7,10 +7,6 @@
 
 
 #include <iostream>
-#include <fstream>
-#include <numeric>
-#include <random>
-#include <chrono>
 
 #include "bb/Sequential.h"
 #include "bb/BinaryModulation.h"
@@ -99,3 +95,4 @@ void MnistDenseMlp(int epoch_size, int mini_batch_size, int train_modulation_siz
     }
 }
 
+// end of file

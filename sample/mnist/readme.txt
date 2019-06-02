@@ -18,12 +18,15 @@
   get_nmist.bat                      NMISTダウンロード用(Windows+cygwinなど)
   get_nmist.sh                       NMISTダウンロード用(Linux)
   main.cpp                           main関数
-  MnistStochasticLut6Mlp.cpp         確率的LUT方式 Binary LUT-Network MLPサンプル
-  MnistStochasticLut6Cnn.cpp         確率的LUT方式 Binary LUT-Network CNNサンプル
+  MnistStochasticLutMlp.cpp          確率的LUT方式 Binary LUT-Network MLPサンプル
+  MnistStochasticLutCnn.cpp          確率的LUT方式 Binary LUT-Network CNNサンプル
+  MnistSparseLutMlp.cpp              疎結合LUT方式 Binary LUT-Network MLPサンプル
+  MnistSparseLutCnn.cpp              疎結合LUT方式 Binary LUT-Network CNNサンプル
   MnistMicroMlpLutMlp.cpp            uMLP方式 Binary LUT-Network MLPサンプル
   MnistMicroMlpLutCnn.cpp            uMLP方式 Binary LUT-Network CNNサンプル
   MnistDenseMlp.cpp                  FP32の全結合DNNの MLPサンプル
   MnistDenseCnn.cpp                  FP32の全結合CNNの CNNサンプル
+  MnistCustomModel.cpp               カスタムモデル作成用サンプル
   readme.txt                         本ファイル
   sample_mnist.sln                   Visual-C++ 2017用ソリューション
   sample_mnist.vcxproj               Visual-C++ 2017用プロジェクト
@@ -57,7 +60,7 @@
   make WITH_CUDA=No all
   とすると、CUDA無しのCPU版がビルドされます
 
-  make dl_mnist
+  make dl_data
 
   と実行すると、MNISTのデータをダウンロードします。
 
@@ -71,10 +74,12 @@
 
   StochasticLutMlp         確率的LUT-Networkの多層パーセプトロンを実行
   StochasticLutCnn         確率的LUT-NetworkのCNNを実行
-  LutMlp                   μMLP方式のLUT-Networkの多層パーセプトロンを実行
-  LutCnn                   μMLP方式のLUT-NetworkのCNNを実行
-  DenseMlp                 FP32全結合の多層パーセプトロンを実行
-  DenseCnn                 FP32全結合のCNNを実行
+  SparseLutMlp             疎結合LUT-Networkの多層パーセプトロンを実行
+  SparseLutCnn             疎結合LUT-NetworkのCNNを実行
+  MicroMlpLutMlp           μMLP方式のLUT-Networkの多層パーセプトロンを実行
+  MicroMlpLutCnn           μMLP方式のLUT-NetworkのCNNを実行
+  DenseMlp                 全結合の多層パーセプトロンを実行
+  DenseCnn                 全結合のCNNを実行
   All                      上のすべてを実行
 
   となっており、試したいモデルだけ実行することも可能です。
@@ -89,13 +94,13 @@
 
 【MLP の Verilog シミュレーションまで】
 
-  ./sample-mnist LutMlp
+  ./sample-mnist SparseLutMlp
 
   を実行すると、学習完了後 verilog ディレクトリの下に
 
   mnist_train.txt            トレーニングデータ
   mnist_test.txt             評価データ
-  MnistMicroMlpLutMlp.v.v    学習済みの RTL
+  MnistSparseLutMlp.v.v      学習済みの RTL
 
   が出力されます。
 
@@ -104,32 +109,32 @@
 
   tb_mnist_lut_mlp.v
   bb_lut.v
-  MnistMicroMlpLutMlp.v
+  MnistSparseLutMlp.v
 
-  iverilog(Icarus Verilog)用に iverilog_lut_mlp.sh というスクリプトも
-用意しています(が、ネットワークの特性か結構遅いです)。
+  Vivadoシミュレータ(xsim)を利用する場合は、xsim_lut_mlp.bat が利用可能です。
 
   tb_mnist_lut_mlp.vtakprj が Veritak 用のプロジェクトとなっておりますので、
 Windowsで Veritak ご利用のユーザーは活用ください。
 
-  Vivadoシミュレータ(xsim)を利用する場合は、xsim_lut_mlp.bat が利用可能です。
+  iverilog(Icarus Verilog)用に iverilog_lut_mlp.sh というスクリプトも
+用意しています(が、ネットワークの特性か結構遅いです)。
 
 
 【CNN の Verilog シミュレーションまで】
 
-  ./sample-mnist LutCnn
+  ./sample-mnist SparseLutCnn
 
   を実行すると、学習完了後 verilog ディレクトリの下に
 
   mnist_test_160x120.ppm  テスト画像(160x120)
   mnist_test_640x480.ppm  テスト画像(640x480)
-  MnistMicroMlpLutCnn.v   学習済みの RTL
-
-  iverilog(Icarus Verilog)用に iverilog_lut_cnn.sh というスクリプトも
-用意しています(が、ネットワークの特性か結構遅いです)。
+  MnistSparseLutCnn.v     学習済みの RTL
 
   tb_mnist_lut_cnn.vtakprj が Veritak 用のプロジェクトとなっておりますので、
 Windowsで Veritak ご利用のユーザーは活用ください。
+
+  iverilog(Icarus Verilog)用に iverilog_lut_cnn.sh というスクリプトも
+用意しています(が、ネットワークの特性か結構遅いです)。
 
   CNN の動作には Jelly(https://github.com/ryuz/jelly) を利用しており、
 git の submodule にて取り込んで、必要なファイルを参照していますので
