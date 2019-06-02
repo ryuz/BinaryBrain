@@ -47,7 +47,7 @@ namespace bb {
 #define BB_ASSERT(v)    \
     do {    \
         if(!(v)) {  \
-            std::cout << "assert(" << #v << ") at " << __FILE__ << " line " << __LINE__ << std::endl;  \
+            std::cout << "\nBB_ASSERT(" << #v << ") at " << __FILE__ << " line " << __LINE__ << std::endl;  \
             for(;;);    \
         }   \
     } while(0)
@@ -57,7 +57,7 @@ namespace bb {
 #define BB_DEBUG_ASSERT(v)  \
     do {    \
         if(!(v)) {  \
-            std::cout << "assert(" << #v << ") at " << __FILE__ << " line " << __LINE__ << std::endl;  \
+            std::cout << "\nBB_DEBUG_ASSERT(" << #v << ") at " << __FILE__ << " line " << __LINE__ << std::endl;  \
             for(;;);    \
         }   \
     } while(0)
