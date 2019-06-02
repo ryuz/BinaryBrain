@@ -28,13 +28,14 @@ CINCS  = -I../../include -I../../eigen
 CDEFS  = 
 
 SRCS   = main.cpp
-SRCS  += Cifar10StochasticLut6Cnn.cpp
-SRCS  += Cifar10StochasticLut6Mlp.cpp
+SRCS  += Cifar10StochasticLutCnn.cpp
+SRCS  += Cifar10StochasticLutMlp.cpp
+SRCS  += Cifar10SparseMlp.cpp
+SRCS  += Cifar10SparseCnn.cpp
 SRCS  += Cifar10MicroMlpLutMlp.cpp
 SRCS  += Cifar10MicroMlpLutCnn.cpp
 SRCS  += Cifar10DenseMlp.cpp
 SRCS  += Cifar10DenseCnn.cpp
-SRCS  += Cifar10Sparse6Cnn.cpp
 
 OBJS = $(addsuffix .o, $(basename $(SRCS)))
 
