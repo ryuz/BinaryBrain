@@ -34,10 +34,12 @@ void Cifar10StochasticLutMlp(int epoch_size, int mini_batch_size, int test_modul
     auto td = bb::LoadCifar10<>::Load();
 #endif
 
-    auto layer_sl0 = bb::StochasticLutN<6>::Create(1024);
-    auto layer_sl1 = bb::StochasticLutN<6>::Create(360);
-    auto layer_sl2 = bb::StochasticLutN<6>::Create(60);
-    auto layer_sl3 = bb::StochasticLutN<6>::Create(10);
+    auto layer_sl0 = bb::StochasticLutN<6>::Create(3072);
+    auto layer_sl1 = bb::StochasticLutN<6>::Create(512);
+    auto layer_sl2 = bb::StochasticLutN<6>::Create(2160);
+    auto layer_sl3 = bb::StochasticLutN<6>::Create(360);
+    auto layer_sl4 = bb::StochasticLutN<6>::Create(60);
+    auto layer_sl5 = bb::StochasticLutN<6>::Create(10);
 
     {
         std::cout << "\n<Training>" << std::endl;
@@ -48,6 +50,8 @@ void Cifar10StochasticLutMlp(int epoch_size, int mini_batch_size, int test_modul
         net->Add(layer_sl1);
         net->Add(layer_sl2);
         net->Add(layer_sl3);
+        net->Add(layer_sl4);
+        net->Add(layer_sl5);
 
         // set input shape
         net->SetInputShape(td.x_shape);
@@ -94,16 +98,22 @@ void Cifar10StochasticLutMlp(int epoch_size, int mini_batch_size, int test_modul
         auto layer_lut1 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl1->GetOutputShape());
         auto layer_lut2 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl2->GetOutputShape());
         auto layer_lut3 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl3->GetOutputShape());
+        auto layer_lut4 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl4->GetOutputShape());
+        auto layer_lut5 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl5->GetOutputShape());
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::ShuffleModulation<bb::Bit>::Create(test_modulation_size));
+        lut_net->Add(bb::ShuffleModulation<bb::Bit>::Create(test_modulation_size, 1, 1));
         lut_net->Add(layer_lut0);
-        lut_net->Add(bb::ShuffleModulation<bb::Bit>::Create(test_modulation_size));
+        lut_net->Add(bb::ShuffleModulation<bb::Bit>::Create(test_modulation_size, 1, 2));
         lut_net->Add(layer_lut1);
-        lut_net->Add(bb::ShuffleModulation<bb::Bit>::Create(test_modulation_size));
+        lut_net->Add(bb::ShuffleModulation<bb::Bit>::Create(test_modulation_size, 1, 3));
         lut_net->Add(layer_lut2);
-        lut_net->Add(bb::ShuffleModulation<bb::Bit>::Create(test_modulation_size));
+        lut_net->Add(bb::ShuffleModulation<bb::Bit>::Create(test_modulation_size, 1, 4));
         lut_net->Add(layer_lut3);
+        lut_net->Add(bb::ShuffleModulation<bb::Bit>::Create(test_modulation_size, 1, 5));
+        lut_net->Add(layer_lut4);
+        lut_net->Add(bb::ShuffleModulation<bb::Bit>::Create(test_modulation_size, 1, 6));
+        lut_net->Add(layer_lut5);
 
         // evaluation network
         auto eval_net = bb::BinaryModulation<bb::Bit>::Create(lut_net, test_modulation_size);
@@ -117,6 +127,8 @@ void Cifar10StochasticLutMlp(int epoch_size, int mini_batch_size, int test_modul
         layer_lut1->ImportLayer(layer_sl1);
         layer_lut2->ImportLayer(layer_sl2);
         layer_lut3->ImportLayer(layer_sl3);
+        layer_lut4->ImportLayer(layer_sl4);
+        layer_lut5->ImportLayer(layer_sl5);
 
         if ( 1 ) {
             // 評価
