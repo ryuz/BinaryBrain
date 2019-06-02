@@ -19,6 +19,7 @@ void MnistMicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size, 
 void MnistMicroMlpScratch(int epoch_size, int mini_batch_size, bool binary_mode);
 void MnistSparseBinaryLutCnn(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read);
 
+void MnistCompare(int epoch_size, size_t mini_batch_size, bool binary_mode);
 
 // メイン関数
 int main(int argc, char *argv[])
@@ -100,8 +101,11 @@ int main(int argc, char *argv[])
         max_run_size = mini_batch_size;
     }
 
-    MnistSparseBinaryLutCnn(epoch_size, mini_batch_size, max_run_size, frame_mux_size, lut_frame_mux_size, binary_mode, file_read);
+    MnistCompare(8, 256, true);
     return 0;
+
+//    MnistSparseBinaryLutCnn(epoch_size, mini_batch_size, max_run_size, frame_mux_size, lut_frame_mux_size, binary_mode, file_read);
+//    return 0;
 
 
     if ( netname == "All" || netname == "StochasticLutMlp" ) {
