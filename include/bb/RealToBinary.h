@@ -19,7 +19,6 @@
 namespace bb {
 
 
-
 /**
  * @brief   バイナリ変調を行いながらバイナライズを行う
  * @details 閾値を乱数などで変調して実数をバイナリに変換する
@@ -31,56 +30,72 @@ namespace bb {
  * @tparam FXT  foward出力型 (y)
  * @tparam BT   backward型 (dy, dx)
  */
-template <typename FXT = float, typename FYT = float, typename BT = float>
+template <typename BinType = float, typename RealType = float>
 class RealToBinary : public Model
 {
 protected:
-    FrameBuffer                             m_y;
-    FrameBuffer                             m_dx;
+    bool                                        m_binary_mode = true;
 
-    indices_t                               m_node_shape;
-    index_t                                 m_frame_mux_size;
-    std::shared_ptr< ValueGenerator<FXT> >  m_value_generator;
-    bool                                    m_framewise;
-    FXT                                     m_input_range_lo;
-    FXT                                     m_input_range_hi;
+    indices_t                                   m_node_shape;
+    index_t                                     m_modulation_size;
+    std::shared_ptr< ValueGenerator<RealType> > m_value_generator;
+    bool                                        m_framewise;
+    RealType                                    m_input_range_lo;
+    RealType                                    m_input_range_hi;
+    
+
+public:
+    struct create_t
+    {
+        index_t                                     modulation_size = 1;        //< 変調するフレームの単位
+        std::shared_ptr< ValueGenerator<RealType> > value_generator;            //< 閾値のジェネレーター
+        bool                                        framewise = false;          //< true でフレーム単位で閾値、falseでデータ単位
+        RealType                                    input_range_lo = (RealType)0.0;  //< 入力データの下限値
+        RealType                                    input_range_hi = (RealType)1.0;  //< 入力データの上限値
+    };
 
 protected:
-    RealToBinary() {}
+    RealToBinary(create_t const &create)
+    {
+        m_modulation_size = create.modulation_size;
+        m_value_generator = create.value_generator;
+        m_framewise       = create.framewise;
+        m_input_range_lo  = create.input_range_lo;
+        m_input_range_hi  = create.input_range_hi;
+    }
+
+    /**
+     * @brief  コマンド処理
+     * @detail コマンド処理
+     * @param  args   コマンド
+     */
+    void CommandProc(std::vector<std::string> args)
+    {
+        // バイナリモード設定
+        if ( args.size() == 2 && args[0] == "binary" )
+        {
+            m_binary_mode = EvalBool(args[1]);
+        }
+    }
+
 public:
     ~RealToBinary() {}
 
-    struct create_t
-    {
-        index_t                                 frame_mux_size = 1;         //< フレームを何倍するか
-        std::shared_ptr< ValueGenerator<FXT> >  value_generator;            //< 閾値のジェネレーター
-        bool                                    framewise = false;          //< true でフレーム単位で閾値、falseでデータ単位
-        FXT                                     input_range_lo = (FXT)0.0;  //< 入力データの下限値
-        FXT                                     input_range_hi = (FXT)1.0;  //< 入力データの上限値
-    };
 
     static std::shared_ptr<RealToBinary> Create(create_t const &create)
     {
-        auto self = std::shared_ptr<RealToBinary>(new RealToBinary);
-
-        self->m_frame_mux_size  = create.frame_mux_size;
-        self->m_value_generator = create.value_generator;
-        self->m_framewise       = create.framewise;
-        self->m_input_range_lo  = create.input_range_lo;
-        self->m_input_range_hi  = create.input_range_hi;
-
-        return self;
+        return std::shared_ptr<RealToBinary>(new RealToBinary(create));
     }
 
     static std::shared_ptr<RealToBinary> Create(
-                index_t                                 frame_mux_size  = 1,
-                std::shared_ptr< ValueGenerator<FXT> >  value_generator = nullptr,
-                bool                                    framewise       = false,
-                FXT                                     input_range_lo  = (FXT)0.0,
-                FXT                                     input_range_hi  = (FXT)1.0)
+                index_t                                     modulation_size = 1,
+                std::shared_ptr< ValueGenerator<RealType> > value_generator = nullptr,
+                bool                                        framewise       = false,
+                RealType                                    input_range_lo  = (RealType)0.0,
+                RealType                                    input_range_hi  = (RealType)1.0)
     {
         create_t create;
-        create.frame_mux_size   = frame_mux_size;
+        create.modulation_size  = modulation_size;
         create.value_generator  = value_generator;
         create.framewise        = framewise;
         create.input_range_lo   = input_range_lo;
@@ -90,6 +105,15 @@ public:
 
     std::string GetClassName(void) const { return "RealToBinary"; }
 
+    void SetModulationSize(index_t modulation_size)
+    {
+        m_modulation_size = modulation_size;
+    }
+
+    void SetValueGenerator(std::shared_ptr< ValueGenerator<RealType> > value_generator)
+    {
+        m_value_generator = value_generator;
+    }
 
     /**
      * @brief  入力のshape設定
@@ -125,90 +149,100 @@ public:
     }
     
 
-    FrameBuffer Forward(FrameBuffer x, bool train = true)
+    FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-        BB_ASSERT(x.GetType() == DataType<FXT>::type);
+        if (!m_binary_mode) {
+            return x_buf;
+        }
+
+        BB_ASSERT(x_buf.GetType() == DataType<RealType>::type);
 
         // SetInputShpaeされていなければ初回に設定
-        if (x.GetShape() != m_node_shape) {
-            SetInputShape(x.GetShape());
+        if (x_buf.GetShape() != m_node_shape) {
+            SetInputShape(x_buf.GetShape());
         }
 
         // 戻り値の型を設定
-        m_y.Resize(DataType<FYT>::type, x.GetFrameSize() * m_frame_mux_size, m_node_shape);
+        FrameBuffer y_buf(DataType<BinType>::type, x_buf.GetFrameSize() * m_modulation_size, m_node_shape);
 
-        index_t node_size        = x.GetNodeSize();
-        index_t input_frame_size = x.GetFrameSize();
+        index_t node_size        = x_buf.GetNodeSize();
+        index_t input_frame_size = x_buf.GetFrameSize();
 
-        auto x_ptr = x.LockConst<FXT>();
-        auto y_ptr = m_y.Lock<FYT>();
+        auto x_ptr = x_buf.LockConst<RealType>();
+        auto y_ptr = y_buf.Lock<BinType>();
 
-        FXT th_step = (m_input_range_hi - m_input_range_lo) / (FXT)(m_frame_mux_size + 1);
+        RealType th_step = (m_input_range_hi - m_input_range_lo) / (RealType)(m_modulation_size + 1);
         for ( index_t input_frame = 0; input_frame < input_frame_size; ++input_frame) {
-            for ( index_t i = 0; i < m_frame_mux_size; ++i ) {
-                index_t output_frame = input_frame * m_frame_mux_size + i;
+            for ( index_t i = 0; i < m_modulation_size; ++i ) {
+                index_t output_frame = input_frame * m_modulation_size + i;
 
                 if ( m_framewise || m_value_generator == nullptr ) {
                     // frame毎に閾値変調
-                    FXT th;
+                    RealType th;
                     if ( m_value_generator != nullptr ) {
                         th = m_value_generator->GetValue();
+                        th = std::max(th, m_input_range_lo);
+                        th = std::min(th, m_input_range_hi);
                     }
                     else {
-                        th = m_input_range_lo + (th_step * (FXT)(i + 1));
+                        th = m_input_range_lo + (th_step * (RealType)(i + 1));
                     }
 
                     #pragma omp parallel for
                     for (index_t node = 0; node < node_size; ++node) {
-                        FXT real_sig = x_ptr.Get(input_frame, node);
-                        FYT bin_sig  = (real_sig > th) ? (FYT)1 : (FYT)0;
-                        y_ptr.Set(output_frame, node, bin_sig);
+                        RealType x = x_ptr.Get(input_frame, node);
+                        BinType  y = (x > th) ? (BinType)1 : (BinType)0;
+                        y_ptr.Set(output_frame, node, y);
                     }
                 }
                 else {
                     // データ毎に閾値変調
                     for (index_t node = 0; node < node_size; ++node) {
-                        FXT th = m_value_generator->GetValue();
-                        FXT real_sig = x_ptr.Get(input_frame, node);
-                        FYT bin_sig  = (real_sig > th) ? (FYT)1 : (FYT)0;
-                        y_ptr.Set(output_frame, node, bin_sig);
+                        RealType th = m_value_generator->GetValue();
+                        RealType x = x_ptr.Get(input_frame, node);
+                        BinType  y  = (x > th) ? (BinType)1 : (BinType)0;
+                        y_ptr.Set(output_frame, node, y);
                     }
                 }
             }
         }
 
-        return m_y;
+        return y_buf;
     }
 
 
-    FrameBuffer Backward(FrameBuffer dy)
+    FrameBuffer Backward(FrameBuffer dy_buf)
     {
-        BB_ASSERT(dy.GetType() == DataType<BT>::type);
+        if (!m_binary_mode || m_modulation_size == 1) {
+            return dy_buf;
+        }
+
+        BB_ASSERT(dy_buf.GetType() == DataType<RealType>::type);
 
         // 戻り値の型を設定
-        m_dx.Resize(DataType<BT>::type, dy.GetFrameSize() / m_frame_mux_size, m_node_shape);
+        FrameBuffer dx_buf(DataType<RealType>::type, dy_buf.GetFrameSize() / m_modulation_size, m_node_shape);
 
-#if 0   // 今のところ計算結果誰も使わないので一旦コメントアウト
-        index_t node_size         = dy.GetNodeSize();
-        index_t output_frame_size = dy.GetFrameSize();
+#if 1   // 今のところ計算結果誰も使わないので一旦コメントアウト
+        index_t node_size         = dy_buf.GetNodeSize();
+        index_t output_frame_size = dy_buf.GetFrameSize();
 
-        m_dx.FillZero();
+        dx_buf.FillZero();
 
-        auto dy_ptr = dy.LockConst<BT>();
-        auto dx_ptr = m_dx.Lock<BT>();
+        auto dy_ptr = dy_buf.LockConst<RealType>();
+        auto dx_ptr = dx_buf.Lock<RealType>();
 
         #pragma omp parallel for
         for (index_t node = 0; node < node_size; node++) {
             for (index_t output_frame = 0; output_frame < output_frame_size; ++output_frame) {
-                index_t input_frame = output_frame / m_frame_mux_size;
+                index_t input_frame = output_frame / m_modulation_size;
 
-                BT grad = dy_ptr.Get(output_frame, node);
-                dx_ptr.Add(input_frame, node, grad);
+                RealType dy = dy_ptr.Get(output_frame, node);
+                dx_ptr.Add(input_frame, node, dy);
             }
         }
 #endif
 
-        return m_dx;
+        return dx_buf;
     }
 };
 

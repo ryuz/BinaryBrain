@@ -1,147 +1,152 @@
-------------------------------------------------------------------------------
- BinaryBrain  MNISTƒTƒ“ƒvƒ‹
+ï»¿------------------------------------------------------------------------------
+ BinaryBrain  MNISTã‚µãƒ³ãƒ—ãƒ«
                                     Copyright (C) 2018-2019 by Ryuji Fuchikami
                                     https://github.com/ryuz
                                     ryuji.fuchikami@nifty.com
 ------------------------------------------------------------------------------
 
 
-yŠT—vz
-  –{ƒfƒBƒŒƒNƒgƒŠ‚Í LUT-Network ‚É‚Ä MNIST ƒf[ƒ^‚ğŠwK‚·‚éƒTƒ“ƒvƒ‹ˆê®‚Æ
-‚È‚è‚Ü‚·B
-  “®‚©‚µ•û‚ğà–¾‚·‚é‚à‚Ì‚ÅAŠwKŠÔ‚ğ’Z‚ß‚Éİ’è‚µ‚Ä‚¨‚èA”F¯—¦‚È‚Ç‚Í
-‚‚­‚ ‚è‚Ü‚¹‚ñ‚Ì‚Å‚ ‚ç‚©‚¶‚ß‚²—¹³‚­‚¾‚³‚¢B
+ã€æ¦‚è¦ã€‘
+  æœ¬ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¯ LUT-Network ã«ã¦ MNIST ãƒ‡ãƒ¼ã‚¿ã‚’å­¦ç¿’ã™ã‚‹ã‚µãƒ³ãƒ—ãƒ«ä¸€å¼ã¨
+ãªã‚Šã¾ã™ã€‚
+  å‹•ã‹ã—æ–¹ã‚’èª¬æ˜ã™ã‚‹ã‚‚ã®ã§ã€å­¦ç¿’æ™‚é–“ã‚’çŸ­ã‚ã«è¨­å®šã—ã¦ãŠã‚Šã€èªè­˜ç‡ãªã©ã¯
+é«˜ãã‚ã‚Šã¾ã›ã‚“ã®ã§ã‚ã‚‰ã‹ã˜ã‚ã”äº†æ‰¿ãã ã•ã„ã€‚
 
 
-yƒtƒ@ƒCƒ‹\¬z
-  Makefile                           Linux—pƒƒCƒNƒtƒ@ƒCƒ‹
-  get_nmist.bat                      NMISTƒ_ƒEƒ“ƒ[ƒh—p(Windows+cygwin‚È‚Ç)
-  get_nmist.sh                       NMISTƒ_ƒEƒ“ƒ[ƒh—p(Linux)
-  main.cpp                           mainŠÖ”
-  MnistStochasticLut6Mlp.cpp         Šm—¦“ILUT•û® Binary LUT-Network MLPƒTƒ“ƒvƒ‹
-  MnistStochasticLut6Cnn.cpp         Šm—¦“ILUT•û® Binary LUT-Network CNNƒTƒ“ƒvƒ‹
-  MnistMicroMlpLutMlp.cpp            uMLP•û® Binary LUT-Network MLPƒTƒ“ƒvƒ‹
-  MnistMicroMlpLutCnn.cpp            uMLP•û® Binary LUT-Network CNNƒTƒ“ƒvƒ‹
-  MnistDenseMlp.cpp                  FP32‚Ì‘SŒ‹‡DNN‚Ì MLPƒTƒ“ƒvƒ‹
-  MnistDenseCnn.cpp                  FP32‚Ì‘SŒ‹‡CNN‚Ì CNNƒTƒ“ƒvƒ‹
-  readme.txt                         –{ƒtƒ@ƒCƒ‹
-  sample_mnist.sln                   Visual-C++ 2017—pƒ\ƒŠƒ…[ƒVƒ‡ƒ“
-  sample_mnist.vcxproj               Visual-C++ 2017—pƒvƒƒWƒFƒNƒg
-  sample_mnist.vcxproj.filters       Visual-C++ 2017—p
-  sample_mnist.vcxproj.user          Visual-C++ 2017—p
-  verilog/bb_lut.v                   LUT ‚Ì Verilogƒ‚ƒfƒ‹
-  verilog/tb_mnist_lut_mlp.v         MLP LUT-Network ‚ÌƒeƒXƒgƒxƒ“ƒ`
-  verilog/tb_mnist_lut_mlp.vtakprj   MLP LUT-Network ‚ÌVeritakƒvƒƒWƒFƒNƒg
-  verilog/iverilog_lut_mlp.bat       MLP LUT-Network ‚ÌiverilogÀs(Win)
-  verilog/iverilog_lut_mlp.sh        MLP LUT-Network ‚ÌiverilogÀs(Linux)
-  verilog/iverilog_lut_mlp_cmd.txt   MLP LUT-Network ‚ÌiverilogƒRƒ}ƒ“ƒh
-  verilog/tb_mnist_lut_cnn.v         CNN LUT-Network ‚ÌƒeƒXƒgƒxƒ“ƒ`
-  verilog/tb_mnist_lut_cnn.vtakprj   CNN LUT-Network ‚ÌVeritakƒvƒƒWƒFƒNƒg
-  verilog/iverilog_lut_cnn.bat       CNN LUT-Network ‚ÌiverilogÀs(Win)
-  verilog/iverilog_lut_cnn.sh        CNN LUT-Network ‚ÌiverilogÀs(Linux)
-  verilog/iverilog_lut_cnn_cmd.txt   CNN LUT-Network ‚ÌiverilogƒRƒ}ƒ“ƒh
-  verilog/video_mnist_cnn.v          CNNƒ‚ƒWƒ…[ƒ‹
-  verilog/video_mnist_cnn_core.v     CNNƒ‚ƒWƒ…[ƒ‹‚ÌƒRƒA
-  verilog/video_dnn_max_count.v      ƒNƒ‰ƒXƒ^ƒŠƒ“ƒOŒ‹‰Ê‚ÌƒJƒEƒ“ƒeƒBƒ“ƒO
-  verilog/video_mnist_color.v        Œ‹‰Ê’…Fƒ‚ƒWƒ…[ƒ‹
-  verilog/video_mnist_color_core.v   Œ‹‰Ê’…Fƒ‚ƒWƒ…[ƒ‹‚ÌƒRƒA
+ã€ãƒ•ã‚¡ã‚¤ãƒ«æ§‹æˆã€‘
+  Makefile                           Linuxç”¨ãƒ¡ã‚¤ã‚¯ãƒ•ã‚¡ã‚¤ãƒ«
+  get_nmist.bat                      NMISTãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ç”¨(Windows+cygwinãªã©)
+  get_nmist.sh                       NMISTãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ç”¨(Linux)
+  main.cpp                           mainé–¢æ•°
+  MnistStochasticLutMlp.cpp          ç¢ºç‡çš„LUTæ–¹å¼ Binary LUT-Network MLPã‚µãƒ³ãƒ—ãƒ«
+  MnistStochasticLutCnn.cpp          ç¢ºç‡çš„LUTæ–¹å¼ Binary LUT-Network CNNã‚µãƒ³ãƒ—ãƒ«
+  MnistSparseLutMlp.cpp              ç–çµåˆLUTæ–¹å¼ Binary LUT-Network MLPã‚µãƒ³ãƒ—ãƒ«
+  MnistSparseLutCnn.cpp              ç–çµåˆLUTæ–¹å¼ Binary LUT-Network CNNã‚µãƒ³ãƒ—ãƒ«
+  MnistMicroMlpLutMlp.cpp            uMLPæ–¹å¼ Binary LUT-Network MLPã‚µãƒ³ãƒ—ãƒ«
+  MnistMicroMlpLutCnn.cpp            uMLPæ–¹å¼ Binary LUT-Network CNNã‚µãƒ³ãƒ—ãƒ«
+  MnistDenseMlp.cpp                  FP32ã®å…¨çµåˆDNNã® MLPã‚µãƒ³ãƒ—ãƒ«
+  MnistDenseCnn.cpp                  FP32ã®å…¨çµåˆCNNã® CNNã‚µãƒ³ãƒ—ãƒ«
+  MnistCustomModel.cpp               ã‚«ã‚¹ã‚¿ãƒ ãƒ¢ãƒ‡ãƒ«ä½œæˆç”¨ã‚µãƒ³ãƒ—ãƒ«
+  readme.txt                         æœ¬ãƒ•ã‚¡ã‚¤ãƒ«
+  sample_mnist.sln                   Visual-C++ 2017ç”¨ã‚½ãƒªãƒ¥ãƒ¼ã‚·ãƒ§ãƒ³
+  sample_mnist.vcxproj               Visual-C++ 2017ç”¨ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆ
+  sample_mnist.vcxproj.filters       Visual-C++ 2017ç”¨
+  sample_mnist.vcxproj.user          Visual-C++ 2017ç”¨
+  verilog/bb_lut.v                   LUT ã® Verilogãƒ¢ãƒ‡ãƒ«
+  verilog/tb_mnist_lut_mlp.v         MLP LUT-Network ã®ãƒ†ã‚¹ãƒˆãƒ™ãƒ³ãƒ
+  verilog/tb_mnist_lut_mlp.vtakprj   MLP LUT-Network ã®Veritakãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆ
+  verilog/iverilog_lut_mlp.bat       MLP LUT-Network ã®iverilogå®Ÿè¡Œ(Win)
+  verilog/iverilog_lut_mlp.sh        MLP LUT-Network ã®iverilogå®Ÿè¡Œ(Linux)
+  verilog/iverilog_lut_mlp_cmd.txt   MLP LUT-Network ã®iverilogã‚³ãƒãƒ³ãƒ‰
+  verilog/tb_mnist_lut_cnn.v         CNN LUT-Network ã®ãƒ†ã‚¹ãƒˆãƒ™ãƒ³ãƒ
+  verilog/tb_mnist_lut_cnn.vtakprj   CNN LUT-Network ã®Veritakãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆ
+  verilog/iverilog_lut_cnn.bat       CNN LUT-Network ã®iverilogå®Ÿè¡Œ(Win)
+  verilog/iverilog_lut_cnn.sh        CNN LUT-Network ã®iverilogå®Ÿè¡Œ(Linux)
+  verilog/iverilog_lut_cnn_cmd.txt   CNN LUT-Network ã®iverilogã‚³ãƒãƒ³ãƒ‰
+  verilog/video_mnist_cnn.v          CNNãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«
+  verilog/video_mnist_cnn_core.v     CNNãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã®ã‚³ã‚¢
+  verilog/video_dnn_max_count.v      ã‚¯ãƒ©ã‚¹ã‚¿ãƒªãƒ³ã‚°çµæœã®ã‚«ã‚¦ãƒ³ãƒ†ã‚£ãƒ³ã‚°
+  verilog/video_mnist_color.v        çµæœç€è‰²ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«
+  verilog/video_mnist_color_core.v   çµæœç€è‰²ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã®ã‚³ã‚¢
 
 
-yƒrƒ‹ƒh•û–@z
- [Linux‚Ìê‡]
+ã€ãƒ“ãƒ«ãƒ‰æ–¹æ³•ã€‘
+ [Linuxã®å ´åˆ]
   make all
 
-  ‚Åƒrƒ‹ƒh‚·‚é‚Æ Àsƒtƒ@ƒCƒ‹ sample-mnist ‚ªo—ˆ‚Ü‚·
+  ã§ãƒ“ãƒ«ãƒ‰ã™ã‚‹ã¨ å®Ÿè¡Œãƒ•ã‚¡ã‚¤ãƒ« sample-mnist ãŒå‡ºæ¥ã¾ã™
 
-  ‚È‚¨A‚±‚±‚Å
+  ãªãŠã€ã“ã“ã§
   make WITH_CUDA=No all
-  ‚Æ‚·‚é‚ÆACUDA–³‚µ‚ÌCPU”Å‚ªƒrƒ‹ƒh‚³‚ê‚Ü‚·
+  ã¨ã™ã‚‹ã¨ã€CUDAç„¡ã—ã®CPUç‰ˆãŒãƒ“ãƒ«ãƒ‰ã•ã‚Œã¾ã™
 
-  make dl_mnist
+  make dl_data
 
-  ‚ÆÀs‚·‚é‚ÆAMNIST‚Ìƒf[ƒ^‚ğƒ_ƒEƒ“ƒ[ƒh‚µ‚Ü‚·B
+  ã¨å®Ÿè¡Œã™ã‚‹ã¨ã€MNISTã®ãƒ‡ãƒ¼ã‚¿ã‚’ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã—ã¾ã™ã€‚
 
-  ‚µÀs‚·‚é‚É‚Í
+  è©¦ã—å®Ÿè¡Œã™ã‚‹ã«ã¯
 
   ./sample-mnist All
 
-  ‚Æ‚·‚é‚ÆA‚·‚×‚Ä‚Ì“à‘ ƒTƒ“ƒvƒ‹‚ª‡”Ô‚ÉÀs‚³‚ê‚Ü‚·B
+  ã¨ã™ã‚‹ã¨ã€ã™ã¹ã¦ã®å†…è”µã‚µãƒ³ãƒ—ãƒ«ãŒé †ç•ªã«å®Ÿè¡Œã•ã‚Œã¾ã™ã€‚
 
-  sample_mnist ‚Ìˆø”‚Í
+  sample_mnist ã®å¼•æ•°ã¯
 
-  StochasticLutMlp         Šm—¦“ILUT-Network‚Ì‘½‘wƒp[ƒZƒvƒgƒƒ“‚ğÀs
-  StochasticLutCnn         Šm—¦“ILUT-Network‚ÌCNN‚ğÀs
-  LutMlp                   ƒÊMLP•û®‚ÌLUT-Network‚Ì‘½‘wƒp[ƒZƒvƒgƒƒ“‚ğÀs
-  LutCnn                   ƒÊMLP•û®‚ÌLUT-Network‚ÌCNN‚ğÀs
-  DenseMlp                 FP32‘SŒ‹‡‚Ì‘½‘wƒp[ƒZƒvƒgƒƒ“‚ğÀs
-  DenseCnn                 FP32‘SŒ‹‡‚ÌCNN‚ğÀs
-  All                      ã‚Ì‚·‚×‚Ä‚ğÀs
+  StochasticLutMlp         ç¢ºç‡çš„LUT-Networkã®å¤šå±¤ãƒ‘ãƒ¼ã‚»ãƒ—ãƒˆãƒ­ãƒ³ã‚’å®Ÿè¡Œ
+  StochasticLutCnn         ç¢ºç‡çš„LUT-Networkã®CNNã‚’å®Ÿè¡Œ
+  SparseLutMlp             ç–çµåˆLUT-Networkã®å¤šå±¤ãƒ‘ãƒ¼ã‚»ãƒ—ãƒˆãƒ­ãƒ³ã‚’å®Ÿè¡Œ
+  SparseLutCnn             ç–çµåˆLUT-Networkã®CNNã‚’å®Ÿè¡Œ
+  MicroMlpLutMlp           Î¼MLPæ–¹å¼ã®LUT-Networkã®å¤šå±¤ãƒ‘ãƒ¼ã‚»ãƒ—ãƒˆãƒ­ãƒ³ã‚’å®Ÿè¡Œ
+  MicroMlpLutCnn           Î¼MLPæ–¹å¼ã®LUT-Networkã®CNNã‚’å®Ÿè¡Œ
+  DenseMlp                 å…¨çµåˆã®å¤šå±¤ãƒ‘ãƒ¼ã‚»ãƒ—ãƒˆãƒ­ãƒ³ã‚’å®Ÿè¡Œ
+  DenseCnn                 å…¨çµåˆã®CNNã‚’å®Ÿè¡Œ
+  All                      ä¸Šã®ã™ã¹ã¦ã‚’å®Ÿè¡Œ
 
-  ‚Æ‚È‚Á‚Ä‚¨‚èA‚µ‚½‚¢ƒ‚ƒfƒ‹‚¾‚¯Às‚·‚é‚±‚Æ‚à‰Â”\‚Å‚·B
-  ‚Ü‚½ -epoch ƒIƒvƒVƒ‡ƒ“‚È‚Ç‚Å epoch ”‚Ìw’è‚à‰Â”\‚Å‚·BÚ‚µ‚­‚Í main.cpp ‚ğŠm”F‚­‚¾‚³‚¢B
-
-
- [Windows‚Ìê‡]
-  Visual C++ 2017 ‚Åƒrƒ‹ƒh‚Å‚«‚Ü‚·B
-  MNISTƒtƒ@ƒCƒ‹‚È‚Ç‚Íè“®ƒ_ƒEƒ“ƒ[ƒh‚ª•K—v‚Å‚·B
+  ã¨ãªã£ã¦ãŠã‚Šã€è©¦ã—ãŸã„ãƒ¢ãƒ‡ãƒ«ã ã‘å®Ÿè¡Œã™ã‚‹ã“ã¨ã‚‚å¯èƒ½ã§ã™ã€‚
+  ã¾ãŸ -epoch ã‚ªãƒ—ã‚·ãƒ§ãƒ³ãªã©ã§ epoch æ•°ã®æŒ‡å®šã‚‚å¯èƒ½ã§ã™ã€‚è©³ã—ãã¯ main.cpp ã‚’ç¢ºèªãã ã•ã„ã€‚
 
 
+ [Windowsã®å ´åˆ]
+  Visual C++ 2017 ã§ãƒ“ãƒ«ãƒ‰ã§ãã¾ã™ã€‚
+  MNISTãƒ•ã‚¡ã‚¤ãƒ«ãªã©ã¯æ‰‹å‹•ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ãŒå¿…è¦ã§ã™ã€‚
 
-yMLP ‚Ì Verilog ƒVƒ~ƒ…ƒŒ[ƒVƒ‡ƒ“‚Ü‚Åz
 
-  ./sample-mnist LutMlp
 
-  ‚ğÀs‚·‚é‚ÆAŠwKŠ®—¹Œã verilog ƒfƒBƒŒƒNƒgƒŠ‚Ì‰º‚É
+ã€MLP ã® Verilog ã‚·ãƒŸãƒ¥ãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³ã¾ã§ã€‘
 
-  mnist_train.txt            ƒgƒŒ[ƒjƒ“ƒOƒf[ƒ^
-  mnist_test.txt             •]‰¿ƒf[ƒ^
-  MnistMicroMlpLutMlp.v.v    ŠwKÏ‚İ‚Ì RTL
+  ./sample-mnist SparseLutMlp
 
-  ‚ªo—Í‚³‚ê‚Ü‚·B
+  ã‚’å®Ÿè¡Œã™ã‚‹ã¨ã€å­¦ç¿’å®Œäº†å¾Œ verilog ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®ä¸‹ã«
 
-  ‰º‹L‚ğA‰½‚ç‚©‚ÌƒVƒ~ƒ…ƒŒ[ƒ^‚ÅƒVƒ~ƒ…ƒŒ[ƒVƒ‡ƒ“Às‚·‚é‚ÆA
-ŠwKŒ‹‰Ê‚ª‚¹‚Ü‚·B
+  mnist_train.txt            ãƒˆãƒ¬ãƒ¼ãƒ‹ãƒ³ã‚°ãƒ‡ãƒ¼ã‚¿
+  mnist_test.txt             è©•ä¾¡ãƒ‡ãƒ¼ã‚¿
+  MnistSparseLutMlp.v.v      å­¦ç¿’æ¸ˆã¿ã® RTL
+
+  ãŒå‡ºåŠ›ã•ã‚Œã¾ã™ã€‚
+
+  ä¸‹è¨˜ã‚’ã€ä½•ã‚‰ã‹ã®ã‚·ãƒŸãƒ¥ãƒ¬ãƒ¼ã‚¿ã§ã‚·ãƒŸãƒ¥ãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³å®Ÿè¡Œã™ã‚‹ã¨ã€
+å­¦ç¿’çµæœãŒè©¦ã›ã¾ã™ã€‚
 
   tb_mnist_lut_mlp.v
   bb_lut.v
-  MnistMicroMlpLutMlp.v
+  MnistSparseLutMlp.v
 
-  iverilog(Icarus Verilog)—p‚É iverilog_lut_mlp.sh ‚Æ‚¢‚¤ƒXƒNƒŠƒvƒg‚à
-—pˆÓ‚µ‚Ä‚¢‚Ü‚·(‚ªAƒlƒbƒgƒ[ƒN‚Ì“Á«‚©Œ‹\’x‚¢‚Å‚·)B
+  Vivadoã‚·ãƒŸãƒ¥ãƒ¬ãƒ¼ã‚¿(xsim)ã‚’åˆ©ç”¨ã™ã‚‹å ´åˆã¯ã€xsim_lut_mlp.bat ãŒåˆ©ç”¨å¯èƒ½ã§ã™ã€‚
 
-  tb_mnist_lut_mlp.vtakprj ‚ª Veritak —p‚ÌƒvƒƒWƒFƒNƒg‚Æ‚È‚Á‚Ä‚¨‚è‚Ü‚·‚Ì‚ÅA
-Windows‚Å Veritak ‚²—˜—p‚Ìƒ†[ƒU[‚ÍŠˆ—p‚­‚¾‚³‚¢B
+  tb_mnist_lut_mlp.vtakprj ãŒ Veritak ç”¨ã®ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆã¨ãªã£ã¦ãŠã‚Šã¾ã™ã®ã§ã€
+Windowsã§ Veritak ã”åˆ©ç”¨ã®ãƒ¦ãƒ¼ã‚¶ãƒ¼ã¯æ´»ç”¨ãã ã•ã„ã€‚
 
-  VivadoƒVƒ~ƒ…ƒŒ[ƒ^(xsim)‚ğ—˜—p‚·‚éê‡‚ÍAxsim_lut_mlp.bat ‚ª—˜—p‰Â”\‚Å‚·B
+  iverilog(Icarus Verilog)ç”¨ã« iverilog_lut_mlp.sh ã¨ã„ã†ã‚¹ã‚¯ãƒªãƒ—ãƒˆã‚‚
+ç”¨æ„ã—ã¦ã„ã¾ã™(ãŒã€ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯ã®ç‰¹æ€§ã‹çµæ§‹é…ã„ã§ã™)ã€‚
 
 
-yCNN ‚Ì Verilog ƒVƒ~ƒ…ƒŒ[ƒVƒ‡ƒ“‚Ü‚Åz
+ã€CNN ã® Verilog ã‚·ãƒŸãƒ¥ãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³ã¾ã§ã€‘
 
-  ./sample-mnist LutCnn
+  ./sample-mnist SparseLutCnn
 
-  ‚ğÀs‚·‚é‚ÆAŠwKŠ®—¹Œã verilog ƒfƒBƒŒƒNƒgƒŠ‚Ì‰º‚É
+  ã‚’å®Ÿè¡Œã™ã‚‹ã¨ã€å­¦ç¿’å®Œäº†å¾Œ verilog ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®ä¸‹ã«
 
-  mnist_test_160x120.ppm  ƒeƒXƒg‰æ‘œ(160x120)
-  mnist_test_640x480.ppm  ƒeƒXƒg‰æ‘œ(640x480)
-  MnistMicroMlpLutCnn.v   ŠwKÏ‚İ‚Ì RTL
+  mnist_test_160x120.ppm  ãƒ†ã‚¹ãƒˆç”»åƒ(160x120)
+  mnist_test_640x480.ppm  ãƒ†ã‚¹ãƒˆç”»åƒ(640x480)
+  MnistSparseLutCnn.v     å­¦ç¿’æ¸ˆã¿ã® RTL
 
-  iverilog(Icarus Verilog)—p‚É iverilog_lut_cnn.sh ‚Æ‚¢‚¤ƒXƒNƒŠƒvƒg‚à
-—pˆÓ‚µ‚Ä‚¢‚Ü‚·(‚ªAƒlƒbƒgƒ[ƒN‚Ì“Á«‚©Œ‹\’x‚¢‚Å‚·)B
+  tb_mnist_lut_cnn.vtakprj ãŒ Veritak ç”¨ã®ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆã¨ãªã£ã¦ãŠã‚Šã¾ã™ã®ã§ã€
+Windowsã§ Veritak ã”åˆ©ç”¨ã®ãƒ¦ãƒ¼ã‚¶ãƒ¼ã¯æ´»ç”¨ãã ã•ã„ã€‚
 
-  tb_mnist_lut_cnn.vtakprj ‚ª Veritak —p‚ÌƒvƒƒWƒFƒNƒg‚Æ‚È‚Á‚Ä‚¨‚è‚Ü‚·‚Ì‚ÅA
-Windows‚Å Veritak ‚²—˜—p‚Ìƒ†[ƒU[‚ÍŠˆ—p‚­‚¾‚³‚¢B
+  iverilog(Icarus Verilog)ç”¨ã« iverilog_lut_cnn.sh ã¨ã„ã†ã‚¹ã‚¯ãƒªãƒ—ãƒˆã‚‚
+ç”¨æ„ã—ã¦ã„ã¾ã™(ãŒã€ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯ã®ç‰¹æ€§ã‹çµæ§‹é…ã„ã§ã™)ã€‚
 
-  CNN ‚Ì“®ì‚É‚Í Jelly(https://github.com/ryuz/jelly) ‚ğ—˜—p‚µ‚Ä‚¨‚èA
-git ‚Ì submodule ‚É‚Äæ‚è‚ñ‚ÅA•K—v‚Èƒtƒ@ƒCƒ‹‚ğQÆ‚µ‚Ä‚¢‚Ü‚·‚Ì‚Å
-‚²’ˆÓ‚­‚¾‚³‚¢B
+  CNN ã®å‹•ä½œã«ã¯ Jelly(https://github.com/ryuz/jelly) ã‚’åˆ©ç”¨ã—ã¦ãŠã‚Šã€
+git ã® submodule ã«ã¦å–ã‚Šè¾¼ã‚“ã§ã€å¿…è¦ãªãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‚ç…§ã—ã¦ã„ã¾ã™ã®ã§
+ã”æ³¨æ„ãã ã•ã„ã€‚
 
-  ‚©‚È‚èŠÔ‚ªŠ|‚©‚è‚Ü‚·‚ªA‚¤‚Ü‚­s‚¯‚Î col_0.ppm ‚È‚Ç‚ªAppmŒ`®‚ÌF‚Ã‚¯‚³‚ê‚½
-Œ‹‰Ê‰æ‘œ‚Æ‚µ‚Äo—Í‚³‚ê‚Ü‚·B
-  ‚È‚¨ MaxPooling ‚ğ 2‰ñ’Ê‚µ‚Ä‚¢‚é‚½‚ßAo—ÍƒTƒCƒY‚Íc‰¡‚»‚ê‚¼‚êŒ³‚Ì
-ƒTƒCƒY‚Ì 1/4 ‚Æ‚È‚è‚Ü‚·B
+  ã‹ãªã‚Šæ™‚é–“ãŒæ›ã‹ã‚Šã¾ã™ãŒã€ã†ã¾ãè¡Œã‘ã° col_0.ppm ãªã©ãŒã€ppmå½¢å¼ã®è‰²ã¥ã‘ã•ã‚ŒãŸ
+çµæœç”»åƒã¨ã—ã¦å‡ºåŠ›ã•ã‚Œã¾ã™ã€‚
+  ãªãŠ MaxPooling ã‚’ 2å›é€šã—ã¦ã„ã‚‹ãŸã‚ã€å‡ºåŠ›ã‚µã‚¤ã‚ºã¯ç¸¦æ¨ªãã‚Œãã‚Œå…ƒã®
+ã‚µã‚¤ã‚ºã® 1/4 ã¨ãªã‚Šã¾ã™ã€‚
 
-  F‚Í  0:• 1:’ƒ 2:Ô 3:ò 4:‰© 5:—Î 6:Â 7:‡ 8:ŠD 9:”’ ‚ÌƒJƒ‰[ƒR[ƒh‚Å
-’…F‚µ‚Ä‚¢‚Ü‚·B
+  è‰²ã¯  0:é»’ 1:èŒ¶ 2:èµ¤ 3:æ©™ 4:é»„ 5:ç·‘ 6:é’ 7:ç´« 8:ç° 9:ç™½ ã®ã‚«ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰ã§
+ç€è‰²ã—ã¦ã„ã¾ã™ã€‚
 
 
 ------------------------------------------------------------------------------

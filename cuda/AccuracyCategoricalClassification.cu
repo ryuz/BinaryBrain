@@ -1,4 +1,4 @@
-#include <algorithm>
+ï»¿#include <algorithm>
 #include <iostream>
 #include <chrono>
 
@@ -23,13 +23,13 @@ __global__ void kernal_fp32_AccuracyCategoricalClassification(
 {
     __shared__   int    buf[THREAD_UNIT];
 
-    int frame_base = threadIdx.x;
-    int frame_step = blockDim.x;
+    int id      = threadIdx.x;
+    int id_step = blockDim.x;
     
     int acc_sum = 0;
     
-    for ( int frame = frame_base; frame < frame_size; frame += frame_step ) {
-        // max’Tõ
+    for ( int frame = id; frame < frame_size; frame += id_step ) {
+        // maxæŽ¢ç´¢
         float max_val = y_buf[frame];
         int   max_idx = 0;
         for ( int node = 1; node < node_size; ++node) {
@@ -46,11 +46,11 @@ __global__ void kernal_fp32_AccuracyCategoricalClassification(
     }
 
     int prev_accuracy;
-    if ( threadIdx.x == 0 ) {
+    if ( id == 0 ) {
         prev_accuracy = accuracy[0];
     }
 
-    // ƒXƒŒƒbƒhŠÔWŒv
+    // ã‚¹ãƒ¬ãƒƒãƒ‰é–“é›†è¨ˆ
     buf[threadIdx.x] = acc_sum;
     __syncthreads();
 
@@ -59,13 +59,13 @@ __global__ void kernal_fp32_AccuracyCategoricalClassification(
         int next = comb * 2;
         int mask = next - 1;
         if ((threadIdx.x & mask) == 0) {
-            buf[threadIdx.x] += buf[threadIdx.x + comb];
+            buf[id] += buf[id + comb];
         }
         comb = next;
         __syncthreads();
     }
 
-    if ( threadIdx.x == 0 ) {
+    if ( id == 0 ) {
         accuracy[0] = prev_accuracy + buf[0];
     }
 }
@@ -84,10 +84,11 @@ BBCU_DLL_EXPORT int bbcu_fp32_AccuracyCategoricalClassification
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
     
-    // ŒvŽZ
+    // è¨ˆç®—
     dim3    block(THREAD_UNIT);
     dim3    grid(1);
-    block.x = std::min((int)block.x, (int)frame_size);
+    while ((int)block.x / 2 < frame_size) { block.x /= 2; }
+
     kernal_fp32_AccuracyCategoricalClassification<<<grid, block, 0, streamId>>>(
             dev_y_buf,
             dev_t_buf,

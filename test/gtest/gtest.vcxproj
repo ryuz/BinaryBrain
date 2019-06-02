@@ -38,6 +38,7 @@
     <ClCompile Include="BatchNormalizationTest.cpp" />
     <ClCompile Include="BinarizeTest.cpp" />
     <ClCompile Include="BinaryLutTest.cpp" />
+    <ClCompile Include="BinaryScalingTest.cpp" />
     <ClCompile Include="BinaryToRealTest.cpp" />
     <ClCompile Include="ConvolutionCol2ImTest.cpp" />
     <ClCompile Include="ConvolutionIm2ColTest.cpp" />
@@ -51,33 +52,42 @@
     <ClCompile Include="MemoryTest.cpp" />
     <ClCompile Include="MetricsCategoricalAccuracyTest.cpp" />
     <ClCompile Include="MicroMlpAffineTest.cpp" />
+    <ClCompile Include="MicroMlpTest.cpp" />
     <ClCompile Include="OptimizerAdamTest.cpp" />
     <ClCompile Include="RealToBinaryTest.cpp" />
     <ClCompile Include="ReduceTest.cpp" />
     <ClCompile Include="ReLUTest.cpp" />
     <ClCompile Include="SigmoidTest.cpp" />
-    <ClCompile Include="StochasticLut6Test.cpp" />
+    <ClCompile Include="SparseLutNTest.cpp" />
+    <ClCompile Include="StochasticLutNTest.cpp" />
     <ClCompile Include="TensorTest.cpp" />
     <ClCompile Include="VariablesTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\bb\Activation.h" />
     <ClInclude Include="..\..\include\bb\AveragePooling.h" />
+    <ClInclude Include="..\..\include\bb\BackpropagatedBatchNormalization.h" />
     <ClInclude Include="..\..\include\bb\BatchNormalization.h" />
     <ClInclude Include="..\..\include\bb\Binarize.h" />
     <ClInclude Include="..\..\include\bb\BinaryLutN.h" />
     <ClInclude Include="..\..\include\bb\BinaryModulation.h" />
+    <ClInclude Include="..\..\include\bb\BinaryScaling.h" />
     <ClInclude Include="..\..\include\bb\BinaryToReal.h" />
+    <ClInclude Include="..\..\include\bb\ConcatenateCoefficient.h" />
     <ClInclude Include="..\..\include\bb\ConvolutionCol2Im.h" />
     <ClInclude Include="..\..\include\bb\ConvolutionIm2Col.h" />
     <ClInclude Include="..\..\include\bb\CudaUtility.h" />
+    <ClInclude Include="..\..\include\bb\DataAugmentationMnist.h" />
     <ClInclude Include="..\..\include\bb\DataType.h" />
     <ClInclude Include="..\..\include\bb\DenseAffine.h" />
     <ClInclude Include="..\..\include\bb\Dropout.h" />
+    <ClInclude Include="..\..\include\bb\ExportVerilog.h" />
     <ClInclude Include="..\..\include\bb\Filter2d.h" />
     <ClInclude Include="..\..\include\bb\FrameBuffer.h" />
     <ClInclude Include="..\..\include\bb\HardTanh.h" />
-    <ClInclude Include="..\..\include\bb\Layer.h" />
+    <ClInclude Include="..\..\include\bb\LoadCifar10.h" />
+    <ClInclude Include="..\..\include\bb\LoadMnist.h" />
+    <ClInclude Include="..\..\include\bb\LoadXor.h" />
     <ClInclude Include="..\..\include\bb\LossFunction.h" />
     <ClInclude Include="..\..\include\bb\LossMeanSquaredError.h" />
     <ClInclude Include="..\..\include\bb\LossSoftmaxCrossEntropy.h" />
@@ -101,18 +111,22 @@
     <ClInclude Include="..\..\include\bb\RealToBinary.h" />
     <ClInclude Include="..\..\include\bb\Reduce.h" />
     <ClInclude Include="..\..\include\bb\ReLU.h" />
+    <ClInclude Include="..\..\include\bb\Runner.h" />
     <ClInclude Include="..\..\include\bb\Sequential.h" />
+    <ClInclude Include="..\..\include\bb\ShuffleModulation.h" />
     <ClInclude Include="..\..\include\bb\ShuffleSet.h" />
     <ClInclude Include="..\..\include\bb\Sigmoid.h" />
     <ClInclude Include="..\..\include\bb\SimdSupport.h" />
+    <ClInclude Include="..\..\include\bb\SparseBinaryLutN.h" />
     <ClInclude Include="..\..\include\bb\SparseLayer.h" />
+    <ClInclude Include="..\..\include\bb\SparseLutDiscreteN.h" />
+    <ClInclude Include="..\..\include\bb\SparseLutN.h" />
     <ClInclude Include="..\..\include\bb\StochasticBatchNormalization.h" />
-    <ClInclude Include="..\..\include\bb\StochasticLut.h" />
-    <ClInclude Include="..\..\include\bb\StochasticLut2.h" />
-    <ClInclude Include="..\..\include\bb\StochasticLut6.h" />
-    <ClInclude Include="..\..\include\bb\StochasticLutBn.h" />
+    <ClInclude Include="..\..\include\bb\StochasticLutN.h" />
+    <ClInclude Include="..\..\include\bb\StochasticLutSimd.h" />
     <ClInclude Include="..\..\include\bb\StochasticMaxPooling.h" />
     <ClInclude Include="..\..\include\bb\StochasticMaxPooling2x2.h" />
+    <ClInclude Include="..\..\include\bb\StochasticOperation.h" />
     <ClInclude Include="..\..\include\bb\Tensor.h" />
     <ClInclude Include="..\..\include\bb\TensorOperator.h" />
     <ClInclude Include="..\..\include\bb\UniformDistributionGenerator.h" />
@@ -383,7 +397,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OPENCV2_4_13_DIR)\x64\vc14\staticlib;$(CUDA_PATH)\lib\x64;$(GTEST_DIR)\vc14\x64\Release;..\..\cuda\x64\Release</AdditionalLibraryDirectories>
-      <AdditionalDependencies>bbcu.lib;gtest.lib;gtest_main.lib;cuda.lib;cudart.lib;IlmImf.lib;libjasper.lib;libjpeg.lib;libpng.lib;libtiff.lib;opencv_calib3d2413.lib;opencv_contrib2413.lib;opencv_core2413.lib;opencv_features2d2413.lib;opencv_flann2413.lib;opencv_gpu2413.lib;opencv_highgui2413.lib;opencv_imgproc2413.lib;opencv_legacy2413.lib;opencv_ml2413.lib;opencv_nonfree2413.lib;opencv_objdetect2413.lib;opencv_ocl2413.lib;opencv_photo2413.lib;opencv_stitching2413.lib;opencv_superres2413.lib;opencv_ts2413.lib;opencv_video2413.lib;opencv_videostab2413.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>bbcu.lib;gtest.lib;gtest_main.lib;cublas.lib;cuda.lib;cudart.lib;IlmImf.lib;libjasper.lib;libjpeg.lib;libpng.lib;libtiff.lib;opencv_calib3d2413.lib;opencv_contrib2413.lib;opencv_core2413.lib;opencv_features2d2413.lib;opencv_flann2413.lib;opencv_gpu2413.lib;opencv_highgui2413.lib;opencv_imgproc2413.lib;opencv_legacy2413.lib;opencv_ml2413.lib;opencv_nonfree2413.lib;opencv_objdetect2413.lib;opencv_ocl2413.lib;opencv_photo2413.lib;opencv_stitching2413.lib;opencv_superres2413.lib;opencv_ts2413.lib;opencv_video2413.lib;opencv_videostab2413.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelCpu|x64'">

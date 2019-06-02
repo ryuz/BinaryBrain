@@ -35,6 +35,7 @@ SRCS  += MnistStochasticLut6Cnn.cpp
 SRCS  += MnistMicroMlpLutMlp.cpp
 SRCS  += MnistMicroMlpLutCnn.cpp
 SRCS  += MnistMicroMlpScratch.cpp
+SRCS  += MnistSparseBinaryLutCnn.cpp
 
 OBJS = $(addsuffix .o, $(basename $(SRCS)))
 

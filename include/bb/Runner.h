@@ -15,6 +15,7 @@
 #include <fstream>
 #include <vector>
 #include <assert.h>
+#include <string>
 
 #include "bb/Model.h"
 #include "bb/LossFunction.h"
@@ -48,6 +49,8 @@ protected:
     bool                                m_print_progress          = true;
     bool                                m_print_progress_loss     = true;     //< 途中経過で損失を表示するか
     bool                                m_print_progress_accuracy = true;     //< 途中経過で精度を表示するか
+    bool                                m_log_write               = true;     //< ログを書き込むか
+    bool                                m_log_append              = true;     //< ログを追記モードにするか
     bool                                m_file_read               = false;
     bool                                m_file_write              = false;
     bool                                m_write_serial            = false;
@@ -56,11 +59,6 @@ protected:
     callback_proc_t                     m_callback_proc = nullptr;
     void                                *m_callback_user = 0;
     
-protected:
-    // コンストラクタ
-    Runner() {}
-    
-
 public:
     struct create_t
     {
@@ -73,6 +71,8 @@ public:
         bool                                print_progress = true;              //< 途中経過を表示するか
         bool                                print_progress_loss = true;         //< 途中経過で損失を表示するか
         bool                                print_progress_accuracy = true;     //< 途中経過で精度を表示するか
+        bool                                log_write               = true;     //< ログを書き込むか
+        bool                                log_append              = true;     //< ログを追記モードにするか
         bool                                file_read = false;                  //< 以前の計算があれば読み込むか
         bool                                file_write = false;                 //< 計算結果を保存するか
         bool                                write_serial = false;               //< EPOC単位で計算結果を連番で保存するか
@@ -82,35 +82,44 @@ public:
         void*                               callback_user = 0;                  //< コールバック関数のユーザーパラメータ
     };
 
-    static std::shared_ptr<Runner> Create(create_t const &create)
+protected:
+    // コンストラクタ
+    Runner(create_t const &create)
     {
-        auto self = std::shared_ptr<Runner>(new Runner);
-
         BB_ASSERT(create.net != nullptr);
 
-        self->m_name                    = create.name;
-        self->m_net                     = create.net;
-        self->m_metricsFunc             = create.metricsFunc;
-        self->m_lossFunc                = create.lossFunc;
-        self->m_optimizer               = create.optimizer;
-        self->m_max_run_size            = create.max_run_size;
-        self->m_print_progress          = create.print_progress;
-        self->m_print_progress_loss     = create.print_progress_loss;
-        self->m_print_progress_accuracy = create.print_progress_accuracy;
-        self->m_file_read               = create.file_read;
-        self->m_file_write              = create.file_write;
-        self->m_write_serial            = create.write_serial;
-        self->m_initial_evaluation      = create.initial_evaluation;
-        self->m_callback_proc           = create.callback_proc;
-        self->m_callback_user           = create.callback_user;
+        m_name                    = create.name;
+        m_net                     = create.net;
+        m_metricsFunc             = create.metricsFunc;
+        m_lossFunc                = create.lossFunc;
+        m_optimizer               = create.optimizer;
+        m_max_run_size            = create.max_run_size;
+        m_print_progress          = create.print_progress;
+        m_print_progress_loss     = create.print_progress_loss;
+        m_print_progress_accuracy = create.print_progress_accuracy;
+        m_log_write               = create.log_write;
+        m_log_append              = create.log_append;
+        m_file_read               = create.file_read;
+        m_file_write              = create.file_write;
+        m_write_serial            = create.write_serial;
+        m_initial_evaluation      = create.initial_evaluation;
+        m_callback_proc           = create.callback_proc;
+        m_callback_user           = create.callback_user;
         
-        self->m_mt.seed(create.seed);
+        m_mt.seed(create.seed);
 
-        if ( self->m_name.empty() ) {
-            self->m_name = self->m_net->GetName();
+        if ( m_name.empty() ) {
+            m_name = m_net->GetName();
         }
+    }
+    
 
-        return self;
+public:
+    ~Runner() {}
+
+    static std::shared_ptr<Runner> Create(create_t const &create)
+    {
+        return std::shared_ptr<Runner>(new Runner(create));
     }
   
     static std::shared_ptr<Runner> Create(
@@ -264,8 +273,8 @@ public:
 
         // ログファイルオープン
         std::ofstream ofs_log;
-        if ( m_file_write ) {
-            ofs_log.open(log_file_name, m_file_read ? std::ios::app : std::ios::out);
+        if ( m_log_write ) {
+            ofs_log.open(log_file_name, m_log_append ? std::ios::app : std::ios::out);
         }
 
         {
@@ -273,8 +282,6 @@ public:
             ostream_tee log_stream;
             log_stream.add(std::cout);
             if (ofs_log.is_open()) { log_stream.add(ofs_log); }
-
-            int prev_epoch = 0;
             
             // 以前の計算があれば読み込み
             if ( m_file_read ) {
@@ -314,17 +321,16 @@ public:
 
             for (int epoch = 0; epoch < epoch_size; ++epoch) {
                 // 学習実施
+                m_epoch++;
                 auto train_accuracy = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, batch_size,
                                         m_metricsFunc, m_lossFunc, m_optimizer, true, m_print_progress, m_print_progress_loss, m_print_progress_accuracy);
 
                 // ネット保存
                 if (m_file_write) {
-                    int save_epoc = epoch + 1 + prev_epoch;
-
 #ifdef BB_WITH_CEREAL
                     if ( m_write_serial ) {
                         std::stringstream fname;
-                        fname << m_name << "_net_" << save_epoc << ".json";
+                        fname << m_name << "_net_" << m_epoch << ".json";
                         SaveJson(fname.str());
                         std::cout << "[save] " << fname.str() << std::endl;
             //          log_streamt << "[save] " << fname.str() << std::endl;
@@ -337,7 +343,7 @@ public:
 #else
                     if ( m_write_serial ) {
                         std::stringstream fname;
-                        fname << m_name << "_net_" << save_epoc << ".bin";
+                        fname << m_name << "_net_" << m_epoch << ".bin";
                         SaveBinary(fname.str());
                         std::cout << "[save] " << fname.str() << std::endl;
             //          log_streamt << "[save] " << fname.str() << std::endl;
@@ -356,7 +362,7 @@ public:
                     auto test_metrics  = Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
                     auto train_metrics = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
                     log_stream  << std::setw(10) << std::fixed << std::setprecision(2) << now_time << "s "
-                                << "epoch[" << std::setw(3) << epoch + 1 + prev_epoch << "] "
+                                << "epoch[" << std::setw(3) << m_epoch << "] "
                                 << "test "  << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << test_metrics  << " "
                                 << "train " << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << train_metrics << std::endl;
                 }
@@ -428,13 +434,6 @@ protected:
                 break;
             }
 
-            // 進捗表示
-            if ( print_progress ) {
-                index_t progress = index + mini_batch_size;
-                index_t rate = progress * 100 / frame_size;
-                std::cout << "\r[" << rate << "% (" << progress << "/" << frame_size << ")]";
-            }
-
             index_t i = 0;
             while ( i < mini_batch_size ) {
                 index_t  run_size = mini_batch_size - i;
@@ -475,24 +474,34 @@ protected:
                 }
             }
 
-            // 進捗表示
+            // print progress
             if ( print_progress ) {
+                std::stringstream ss;
+
+                index_t progress = index + mini_batch_size;
+                index_t rate = progress * 100 / frame_size;
+                ss << "\r[" << rate << "% (" << progress << "/" << frame_size << ")]";
+
                 if ( print_progress_loss && lossFunc != nullptr ) {
-                    std::cout << "  loss : " << lossFunc->GetLoss();
+                    ss << "  loss : " << lossFunc->GetLoss();
                 }
 
                 if ( print_progress_metrics && metricsFunc != nullptr ) {
-                    std::cout << "  " << metricsFunc->GetMetricsString() << " : " << metricsFunc->GetMetrics();
+                    ss << "  " << metricsFunc->GetMetricsString() << " : " << metricsFunc->GetMetrics();
                 }
+                ss << "        ";
 
-                std::cout << "        " << std::flush;
+                std::cerr << ss.str() << std::flush;
             }
 
             // インデックスを進める
             index += mini_batch_size;
         }
 
-        std::cout << "\r                                                                               \r" << std::flush;
+        // clear progress
+        if ( print_progress ) {
+            std::cerr << "\r                                                                               \r" << std::flush;
+        }
 
         return metricsFunc->GetMetrics();
     }

@@ -22,9 +22,9 @@ CC = g++
 #CC ?= clang++
 endif
 
-CFLAGS = -O2 -mavx2 -mfma -fopenmp -std=c++14
+CFLAGS = -mavx2 -mfma -fopenmp -std=c++14
 #CFLAGS = -O1 -mavx2 -mfma -std=c++14
-CINCS  = -I../../include -I../../eigen
+CINCS  = -I../../include
 CDEFS  = 
 
 SRCS  = main.cpp
@@ -39,6 +39,13 @@ SRCS += Cifar10Sparse6Cnn.cpp
 OBJS = $(addsuffix .o, $(basename $(SRCS)))
 
 LIBS = 
+
+ifeq ($(DEBUG),Yes)
+CFLAGS += -g -O0
+CDEFS  += -D_DEBUG
+else
+CFLAGS += -O2
+endif
 
 ifeq ($(WITH_CEREAL),Yes)
 CDEFS      += -DBB_WITH_CEREAL
@@ -76,7 +83,10 @@ $(TARGET): $(OBJS) $(LIBS)
 .cpp.o:
 	$(CC) $(CFLAGS) $(CINCS) $(CDEFS) -c $<
 
+depend: $(SRCS)
+	$(CC) -M $(CFLAGS) $(CINCS) $(CDEFS) $^ > $@
 
+include depend
 
 # cifar-10 binary data
 DATA_FILES  = cifar-10-batches-bin/test_batch.bin

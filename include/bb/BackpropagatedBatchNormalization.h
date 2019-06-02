@@ -10,14 +10,9 @@
 
 #pragma once
 
-
-#include <cereal/archives/json.hpp>
-#include <cereal/types/vector.hpp>
-#include <cereal/types/array.hpp>
-
 #include "bb/Manager.h"
 #include "bb/DataType.h"
-#include "bb/Activation.h"
+#include "bb/Model.h"
 #include "bb/FrameBuffer.h"
 #include "bb/SimdSupport.h"
 
@@ -32,23 +27,34 @@ namespace bb {
 
 // BatchNormalization
 template <typename T = float>
-class BackpropagatedBatchNormalization : public Activation<T, T>
+class BackpropagatedBatchNormalization : public Model
 {
-    using _super = Activation<T, T>;
+    using _super = Model;
 
 protected:
     bool                        m_host_only = false;
     bool                        m_host_simd = true;
     
-    indices_t                   m_shape;
+    indices_t                   m_node_shape;
 
     FrameBuffer                 m_x_buf;
-    FrameBuffer                 m_dx_buf;
+//  FrameBuffer                 m_dx_buf;
 
-    T                           m_gain = (T)0.001;
+    T                           m_gain = (T)1.00;
+    T                           m_beta = (T)0.99;
+
+public:
+    struct create_t
+    {
+        T   gain = (T)1.00;
+        T   beta = (T)0.99;
+    };
 
 protected:
-    BackpropagatedBatchNormalization() {
+    BackpropagatedBatchNormalization(create_t const &create)
+    {
+        m_gain = create.gain;
+        m_beta = create.beta;
     }
 
     void CommandProc(std::vector<std::string> args)
@@ -69,23 +75,17 @@ protected:
 public:
     ~BackpropagatedBatchNormalization() {}
 
-    struct create_t
-    {
-        T   gain = (T)1.0;
-    };
-
     static std::shared_ptr<BackpropagatedBatchNormalization> Create(create_t const &create)
     {
-        auto self = std::shared_ptr<BackpropagatedBatchNormalization>(new BackpropagatedBatchNormalization);
-        self->m_gain = create.gain;
-        return self;
+        return std::shared_ptr<BackpropagatedBatchNormalization>(new BackpropagatedBatchNormalization(create));
     }
 
-    static std::shared_ptr<BackpropagatedBatchNormalization> Create(T gain = (T)0.001)
+    static std::shared_ptr<BackpropagatedBatchNormalization> Create(T gain = (T)1.00, T beta = (T)0.99)
     {
-        auto self = std::shared_ptr<BackpropagatedBatchNormalization>(new BackpropagatedBatchNormalization);
-        self->m_gain = gain;
-        return self;
+        create_t create;
+        create.gain = gain;
+        create.beta = beta;
+        return Create(create);
     }
 
     std::string GetClassName(void) const { return "BackpropagatedBatchNormalization"; }
@@ -93,14 +93,16 @@ public:
     // Serialize
     void Save(std::ostream &os) const 
     {
-//        SaveIndex(os, m_node_size);
-//        bb::SaveValue(os, m_gain);
+          SaveIndices(os, m_node_shape);
+          bb::SaveValue(os, m_gain);
+          bb::SaveValue(os, m_beta);
     }
 
     void Load(std::istream &is)
     {
-//       m_node_size = LoadIndex(is);
-//       bb::LoadValue(is, m_gain);
+         m_node_shape = LoadIndices(is);
+         bb::LoadValue(is, m_gain);
+         bb::LoadValue(is, m_beta);
     }
 
 
@@ -108,27 +110,29 @@ public:
     template <class Archive>
     void save(Archive& archive, std::uint32_t const version) const
     {
-//        _super::save(archive, version);
-//        archive(cereal::make_nvp("node_size",    m_node_size));
-//        archive(cereal::make_nvp("gain",         m_gain));
+        _super::save(archive, version);
+        archive(cereal::make_nvp("node_shape", m_node_shape));
+        archive(cereal::make_nvp("gain",       m_gain));
+        archive(cereal::make_nvp("beta",       m_beta));
     }
 
     template <class Archive>
     void load(Archive& archive, std::uint32_t const version)
     {
-//        _super::load(archive, version);
-//        archive(cereal::make_nvp("node_size",    m_node_size));
-//        archive(cereal::make_nvp("gain",         m_gamma));
+        _super::load(archive, version);
+        archive(cereal::make_nvp("node_shape", m_node_shape));
+        archive(cereal::make_nvp("gain",       m_gain));
+        archive(cereal::make_nvp("beta",       m_beta));
      }
 
     void Save(cereal::JSONOutputArchive& archive) const
     {
-//        archive(cereal::make_nvp("StochasticBatchNormalization", *this));
+        archive(cereal::make_nvp("BackpropagatedBatchNormalization", *this));
     }
 
     void Load(cereal::JSONInputArchive& archive)
     {
-//        archive(cereal::make_nvp("StochasticBatchNormalization", *this));
+        archive(cereal::make_nvp("BackpropagatedBatchNormalization", *this));
     }
 #endif
 
@@ -143,7 +147,7 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
-        m_shape = shape;
+        m_node_shape = shape;
         return shape;
     }
 
@@ -154,7 +158,7 @@ public:
      */
     indices_t GetInputShape(void) const
     {
-        return m_shape;
+        return m_node_shape;
     }
 
     /**
@@ -164,7 +168,7 @@ public:
      */
     indices_t GetOutputShape(void) const
     {
-        return m_shape;
+        return m_node_shape;
     }
 
 
@@ -195,7 +199,7 @@ public:
     
 
     // ノード単位でのForward計算
-    std::vector<T> ForwardNode(index_t node, std::vector<T> x_vec) const
+    std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
     {
         return x_vec;
     }
@@ -210,8 +214,10 @@ public:
      */
     FrameBuffer Forward(FrameBuffer x_buf, bool train=true)
     {
-        // forwardの為に保存
-        m_x_buf = x_buf;
+        // backwardの為に保存
+        if ( train ) {
+            m_x_buf = x_buf;
+        }
 
         return x_buf;
     }
@@ -225,16 +231,24 @@ public:
      */
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
+        // 無視できるゲインになったらバイパス
+        if (m_gain <= (T)1.0e-14) {
+            return dy_buf;
+        }
+        
+        FrameBuffer x_buf = m_x_buf;
+        m_x_buf = FrameBuffer();
+
         // 出力設定
-        m_dx_buf.Resize(dy_buf.GetType(), dy_buf.GetFrameSize(), dy_buf.GetShape());
+        FrameBuffer dx_buf(dy_buf.GetType(), dy_buf.GetFrameSize(), dy_buf.GetShape());
 
         {
             auto node_size  = dy_buf.GetNodeSize();
             auto frame_size = dy_buf.GetFrameSize();
 
-            auto x_ptr           = m_x_buf.LockConst<T>();
+            auto x_ptr           = x_buf.LockConst<T>();
             auto dy_ptr          = dy_buf.LockConst<T>();
-            auto dx_ptr          = m_dx_buf.Lock<T>(true);
+            auto dx_ptr          = dx_buf.Lock<T>(true);
 
             #pragma omp parallel for
             for (index_t node = 0; node < node_size; ++node) {
@@ -262,7 +276,10 @@ public:
                 }
             }
 
-            return m_dx_buf;
+            // ゲイン減衰
+            m_gain *= m_beta;
+
+            return dx_buf;
         }
     }
 };

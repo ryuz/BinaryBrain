@@ -1,8 +1,8 @@
 ﻿// --------------------------------------------------------------------------
 //  BinaryBrain  -- binary network evaluation platform
-//   MNIST sample
+//   diabetes regression sample
 //
-//                                     Copyright (C) 2018 by Ryuji Fuchikami
+//                                Copyright (C) 2018-2019 by Ryuji Fuchikami
 // --------------------------------------------------------------------------
 
 

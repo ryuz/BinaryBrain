@@ -26,8 +26,10 @@
     <CudaCompile Include="BinaryLut6.cu" />
     <CudaCompile Include="BinaryToReal.cu" />
     <CudaCompile Include="Col2Im.cu" />
+    <CudaCompile Include="FrameBufferCopy.cu" />
     <CudaCompile Include="HardTanh.cu" />
     <CudaCompile Include="Im2Col.cu" />
+    <CudaCompile Include="LocalHeap.cu" />
     <CudaCompile Include="LossSoftmaxCrossEntropy.cu" />
     <CudaCompile Include="Manager.cu" />
     <CudaCompile Include="MatrixColwiseMeanVar.cu" />
@@ -35,16 +37,22 @@
     <CudaCompile Include="MatrixRowwiseSetVector.cu" />
     <CudaCompile Include="MaxPooling.cu" />
     <CudaCompile Include="MicroMlp.cu" />
+    <CudaCompile Include="RealToBinary.cu" />
     <CudaCompile Include="ReLU.cu" />
+    <CudaCompile Include="ShuffleModulation.cu" />
     <CudaCompile Include="Sigmoid.cu" />
+    <CudaCompile Include="SparseLut.cu" />
     <CudaCompile Include="StochasticBatchNormalization.cu" />
-    <CudaCompile Include="StochasticLut6.cu" />
+    <CudaCompile Include="StochasticLut.cu" />
     <CudaCompile Include="StochasticMaxPooling.cu" />
     <CudaCompile Include="Vector.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\bbcu\bbcu.h" />
     <ClInclude Include="..\include\bbcu\bbcu_util.h" />
+    <ClInclude Include="..\include\bb\StochasticOperation.h" />
+    <ClInclude Include="Common.cuh" />
+    <ClInclude Include="StochasticLut.cuh" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{ACAFEE7F-E3FF-431C-AC93-E6591C0E358D}</ProjectGuid>
@@ -170,6 +178,7 @@
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <AdditionalCompilerOptions>/wd"4819"</AdditionalCompilerOptions>
       <Runtime>MT</Runtime>
+      <CodeGeneration>compute_35,sm_35;compute_61,sm_61</CodeGeneration>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelCpu|x64'">

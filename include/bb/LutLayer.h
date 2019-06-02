@@ -14,14 +14,14 @@
 #include <vector>
 
 #include "bb/SparseLayer.h"
-
+#include "bb/StochasticLutN.h"
 
 namespace bb {
 
 
 // LUT方式基底クラス
 template <typename FT = Bit, typename BT = float>
-class LutLayer : public SparseLayer<FT, BT>
+class LutLayer : public SparseLayer
 {
 public:
     // LUT操作の定義
@@ -29,6 +29,7 @@ public:
     virtual void  SetLutTable(index_t node, int bitpos, bool value) = 0;
     virtual bool  GetLutTable(index_t node, int bitpos) const = 0;
 
+    /*
     virtual bool  GetLutInput(index_t frame, index_t node, int bitpos) const = 0;
     virtual int   GetLutInputIndex(index_t frame, index_t node) const
     {
@@ -39,6 +40,7 @@ public:
         }
         return index;
     }
+    */
 
 protected:
     void InitializeLutTable(std::uint64_t seed)
@@ -59,8 +61,7 @@ protected:
     
 public:
     // 形状が同一のSparceLayerをテーブル化して取り込む
-    template <typename SFT=float, typename SBT=float>
-    void ImportLayer(std::shared_ptr< SparseLayer<SFT, SBT> > src)
+    void ImportLayer(std::shared_ptr< SparseLayer > src)
     {
         BB_ASSERT(GetShapeSize(src->GetInputShape())  == GetShapeSize(this->GetInputShape()));
         BB_ASSERT(GetShapeSize(src->GetOutputShape()) == GetShapeSize(this->GetOutputShape()));
@@ -79,13 +80,44 @@ public:
             }
 
             // 係数をバイナリ化
-            std::vector<SFT> vec(input_size);
+            std::vector<double> vec(input_size);
             for (int index = 0; index < table_size; ++index) {
                 for (int bit = 0; bit < input_size; ++bit) {
-                    vec[bit] = (index & (1 << bit)) ? (SFT)1.0 : (SFT)0.0;
+                    vec[bit] = (index & (1 << bit)) ? 1.0 : 0.0;
                 }
                 auto v = src->ForwardNode(node, vec);
-                this->SetLutTable(node, index, (v[0] >= (SFT)0.5));
+                this->SetLutTable(node, index, (v[0] >= 0.5));
+            }
+        }
+    }
+
+    // 形状が同一のSparceLayerをテーブル化して取り込む
+    template <class T>
+    void Import(std::shared_ptr<T> src)
+    {
+        BB_ASSERT(GetShapeSize(src->GetInputShape())  == GetShapeSize(this->GetInputShape()));
+        BB_ASSERT(GetShapeSize(src->GetOutputShape()) == GetShapeSize(this->GetOutputShape()));
+        
+        auto node_size  = GetShapeSize(this->GetOutputShape());
+
+        auto input_index_ptr = src->lock_InputIndex_const();
+        auto W_ptr           = src->lock_W_const();
+
+        for (index_t node = 0; node < node_size; ++node) {
+            auto input_size = this->GetNodeInputSize(node);
+            auto table_size = this->GetLutTableSize(node);
+            
+//            BB_ASSERT(input_size == N);
+//            BB_ASSERT(table_size == (1 << N));
+            
+            // 入力をコピー
+            for (int input_index = 0; input_index < input_size; ++input_index) {
+                this->SetNodeInput(node, input_index, input_index_ptr(node, input_index));
+            }
+
+            // 係数をコピー
+            for (int index = 0; index < table_size; ++index) {
+                this->SetLutTable(node, index, (W_ptr(node, index) >= (T)0.5));
             }
         }
     }

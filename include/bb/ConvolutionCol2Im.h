@@ -30,10 +30,7 @@ protected:
     index_t         m_c_size = 1;
     index_t         m_h_size = 1;
     index_t         m_w_size = 1;
-    
-    FrameBuffer     m_y_buf;
-    FrameBuffer     m_dx_buf;
-    
+        
 protected:
     ConvolutionCol2Im() {}
 
@@ -128,14 +125,14 @@ public:
         BB_ASSERT(input_frame_size % (m_h_size * m_w_size) == 0);
         index_t output_frame_size = input_frame_size / (m_h_size * m_w_size);
 
-        m_y_buf.Resize(DataType<FT>::type, output_frame_size, indices_t({m_w_size, m_h_size, m_c_size}));
+        FrameBuffer y_buf(DataType<FT>::type, output_frame_size, indices_t({m_w_size, m_h_size, m_c_size}));
 
 
 #ifdef BB_WITH_CUDA
-        if ( !m_host_only && DataType<FT>::type == BB_TYPE_FP32 && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        if ( !m_host_only && DataType<FT>::type == BB_TYPE_FP32 && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // FP32 CUDA
             auto x_ptr = x_buf.LockDeviceMemoryConst();
-            auto y_ptr = m_y_buf.LockDeviceMemory(true);
+            auto y_ptr = y_buf.LockDeviceMemory(true);
 
             bbcu_fp32_Col2Im_Forward
                 (
@@ -145,19 +142,19 @@ public:
                     (int          )m_h_size,
                     (int          )m_c_size,
                     (int          )(x_buf.GetFrameStride() / sizeof(float)),
-                    (int          )m_y_buf.GetFrameSize(),
-                    (int          )(m_y_buf.GetFrameStride() / sizeof(float))
+                    (int          )y_buf.GetFrameSize(),
+                    (int          )(y_buf.GetFrameStride() / sizeof(float))
                 );
 
-            return m_y_buf;
+            return y_buf;
         }
 #endif
 
 #ifdef BB_WITH_CUDA
-        if ( !m_host_only && DataType<FT>::type == BB_TYPE_BIT && x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        if ( !m_host_only && DataType<FT>::type == BB_TYPE_BIT && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // Bit CUDA
             auto x_ptr = x_buf.LockDeviceMemoryConst();
-            auto y_ptr = m_y_buf.LockDeviceMemory(true);
+            auto y_ptr = y_buf.LockDeviceMemory(true);
 
             bbcu_bit_Col2Im_Forward
                 (
@@ -167,18 +164,18 @@ public:
                     (int        )m_h_size,
                     (int        )m_c_size,
                     (int        )(x_buf.GetFrameStride() / sizeof(int)),
-                    (int        )m_y_buf.GetFrameSize(),
-                    (int        )(m_y_buf.GetFrameStride() / sizeof(int))
+                    (int        )y_buf.GetFrameSize(),
+                    (int        )(y_buf.GetFrameStride() / sizeof(int))
                 );
 
-            return m_y_buf;
+            return y_buf;
         }
 #endif
 
         {
             // 汎用版
             auto x_ptr = x_buf.LockConst<FT>();
-            auto y_ptr = m_y_buf.Lock<FT>(true);
+            auto y_ptr = y_buf.Lock<FT>(true);
 
             auto hw_size = m_h_size * m_w_size;
 
@@ -193,13 +190,13 @@ public:
                     }
                 }
             }
-            return m_y_buf;
+            return y_buf;
         }
 
         {
             // 汎用版(旧)
             auto x_ptr = x_buf.LockConst<FT>();
-            auto y_ptr = m_y_buf.Lock<FT>(true);
+            auto y_ptr = y_buf.Lock<FT>(true);
             index_t input_frame = 0;
             for (index_t output_frame = 0; output_frame < output_frame_size; ++output_frame) {
                 for (index_t y = 0; y < m_h_size; ++y) {
@@ -214,7 +211,7 @@ public:
                     }
                 }
             }
-            return m_y_buf;
+            return y_buf;
         }
     }
     
@@ -225,13 +222,13 @@ public:
         index_t output_frame_size = dy_buf.GetFrameSize();
         index_t input_frame_size  = output_frame_size *(m_h_size * m_w_size);
 
-        m_dx_buf.Resize(DataType<BT>::type, input_frame_size, m_c_size);
+        FrameBuffer dx_buf(DataType<BT>::type, input_frame_size, m_c_size);
 
 #ifdef BB_WITH_CUDA
-        if ( !m_host_only && DataType<FT>::type == BB_TYPE_FP32 && dy_buf.IsDeviceAvailable() && m_dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() )
+        if ( !m_host_only && DataType<BT>::type == BB_TYPE_FP32 && dy_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() )
         {
             auto dy_ptr = dy_buf.LockDeviceMemoryConst();
-            auto dx_ptr = m_dx_buf.LockDeviceMemory(true);
+            auto dx_ptr = dx_buf.LockDeviceMemory(true);
 
             bbcu_fp32_Col2Im_Backward
                 (
@@ -240,19 +237,19 @@ public:
                     (int          )m_w_size,
                     (int          )m_h_size,
                     (int          )m_c_size,
-                    (int          )(m_dx_buf.GetFrameStride() / sizeof(float)),
+                    (int          )(dx_buf.GetFrameStride() / sizeof(float)),
                     (int          )dy_buf.GetFrameSize(),
                     (int          )(dy_buf.GetFrameStride() / sizeof(float))
                 );
 
-            return m_dx_buf;
+            return dx_buf;
         }
 #endif
 
         {
             // 汎用版
             auto dy_ptr = dy_buf.LockConst<BT>();
-            auto dx_ptr = m_dx_buf.Lock<BT>(true);
+            auto dx_ptr = dx_buf.Lock<BT>(true);
             
             auto hw_size = m_h_size * m_w_size;
 
@@ -269,13 +266,13 @@ public:
                 }
             }
 
-            return m_dx_buf;
+            return dx_buf;
         }
 
         {
             // 汎用版
             auto dy_ptr = dy_buf.LockConst<BT>();
-            auto dx_ptr = m_dx_buf.Lock<BT>(true);
+            auto dx_ptr = dx_buf.Lock<BT>(true);
 
             index_t input_frame = 0;
             for (index_t output_frame = 0; output_frame < output_frame_size; ++output_frame) {
@@ -291,7 +288,7 @@ public:
                     }
                 }
             }
-            return m_dx_buf;
+            return dx_buf;
         }
     }
 };

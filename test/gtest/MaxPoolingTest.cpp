@@ -179,7 +179,7 @@ TEST(MaxPoolingTest, testMaxPoolingTest)
 // CPU版とGPU版で結果比較
 template<typename FT=float, typename BT=float>
 void MaxPoolingTest_Compare(
-        bb::index_t const frame_size = 121,
+        bb::index_t const frame_size = 1221,
         bb::index_t const c_size = 3,
         bb::index_t const input_h_size  = 12,
         bb::index_t const input_w_size  = 8,
@@ -190,8 +190,8 @@ void MaxPoolingTest_Compare(
     bb::index_t const output_h_size = (input_h_size + filter_h_size - 1) / filter_h_size;
     bb::index_t const output_w_size = (input_w_size + filter_w_size - 1) / filter_w_size;
 
-    auto maxpol_cpu = bb::MaxPooling<>::Create(filter_h_size, filter_w_size);
-    auto maxpol_gpu = bb::MaxPooling<>::Create(filter_h_size, filter_w_size);
+    auto maxpol_cpu = bb::MaxPooling<FT, BT>::Create(filter_h_size, filter_w_size);
+    auto maxpol_gpu = bb::MaxPooling<FT, BT>::Create(filter_h_size, filter_w_size);
 
     bb::FrameBuffer x_cpu(bb::DataType<FT>::type, frame_size, {input_w_size, input_h_size, c_size}, true);
     bb::FrameBuffer x_gpu(bb::DataType<FT>::type, frame_size, {input_w_size, input_h_size, c_size});
@@ -238,8 +238,8 @@ void MaxPoolingTest_Compare(
 
 
     // backward
-    bb::FrameBuffer dy_cpu(bb::DataType<FT>::type, frame_size, {output_w_size, output_h_size, c_size}, true);
-    bb::FrameBuffer dy_gpu(bb::DataType<FT>::type, frame_size, {output_w_size, output_h_size, c_size});
+    bb::FrameBuffer dy_cpu(bb::DataType<BT>::type, frame_size, {output_w_size, output_h_size, c_size}, true);
+    bb::FrameBuffer dy_gpu(bb::DataType<BT>::type, frame_size, {output_w_size, output_h_size, c_size});
     
     for (bb::index_t f = 0; f < frame_size; ++f) {
         for (bb::index_t c = 0; c < c_size; ++c) {
@@ -278,6 +278,7 @@ void MaxPoolingTest_Compare(
 TEST(MaxPoolingTest, testMaxPooling_cmp_fp32_fp32)
 {
     MaxPoolingTest_Compare<float, float>();
+    MaxPoolingTest_Compare<bb::Bit, float>();
 }
 
 

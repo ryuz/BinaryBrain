@@ -12,13 +12,15 @@
 
 #include <cstdlib>
 
+#ifdef BB_WITH_CEREAL
 #include <cereal/archives/json.hpp>
 #include <cereal/types/vector.hpp>
 #include <cereal/types/array.hpp>
+#endif
 
 #include "bb/Manager.h"
 #include "bb/DataType.h"
-#include "bb/Activation.h"
+#include "bb/Model.h"
 #include "bb/FrameBuffer.h"
 #include "bb/SimdSupport.h"
 
@@ -33,19 +35,17 @@ namespace bb {
 
 // BatchNormalization
 template <typename T = float>
-class StochasticBatchNormalization : public Activation<T, T>
+class StochasticBatchNormalization : public Model
 {
-    using _super = Activation<T, T>;
+    using _super = Model;
 
 protected:
     bool                        m_host_only = false;
     bool                        m_host_simd = false;
 
-    index_t                     m_node_size;
+    indices_t                   m_node_shape;
     
     FrameBuffer                 m_x_buf;
-    FrameBuffer                 m_y_buf;
-    FrameBuffer                 m_dx_buf;
 
     T                           m_gamma;
     T                           m_beta;
@@ -58,8 +58,21 @@ protected:
 
     T                           m_momentum = (T)0.9;
 
+public:
+    struct create_t
+    {
+        T       momentum  = (T)0.9;
+        T       gamma     = (T)0.3;
+        T       beta      = (T)0.5;
+    };
+
 protected:
-    StochasticBatchNormalization() {}
+    StochasticBatchNormalization(create_t const &create)
+    {
+        m_momentum = create.momentum;
+        m_gamma    = create.gamma;
+        m_beta     = create.beta;
+    }
 
     void CommandProc(std::vector<std::string> args)
     {
@@ -87,23 +100,12 @@ protected:
 public:
     ~StochasticBatchNormalization() {}
 
-    struct create_t
-    {
-        T       momentum  = (T)0.9;
-        T       gamma     = (T)0.1;
-        T       beta      = (T)0.5;
-    };
-
     static std::shared_ptr<StochasticBatchNormalization> Create(create_t const &create)
     {
-        auto self = std::shared_ptr<StochasticBatchNormalization>(new StochasticBatchNormalization);
-        self->m_momentum = create.momentum;
-        self->m_gamma    = create.gamma;
-        self->m_beta     = create.beta;
-        return self;
+        return std::shared_ptr<StochasticBatchNormalization>(new StochasticBatchNormalization(create));
     }
 
-    static std::shared_ptr<StochasticBatchNormalization> Create(T momentum = (T)0.9, T gamma=(T)0.2, T beta=(T)0.5)
+    static std::shared_ptr<StochasticBatchNormalization> Create(T momentum = (T)0.9, T gamma=(T)0.3, T beta=(T)0.5)
     {
         create_t create;
         create.momentum = momentum;
@@ -118,7 +120,7 @@ public:
     // Serialize
     void Save(std::ostream &os) const 
     {
-        SaveIndex(os, m_node_size);
+        SaveIndices(os, m_node_shape);
         bb::SaveValue(os, m_momentum);
         bb::SaveValue(os, m_gamma);
         bb::SaveValue(os, m_beta);
@@ -128,7 +130,7 @@ public:
 
     void Load(std::istream &is)
     {
-        m_node_size = LoadIndex(is);
+        m_node_shape = LoadIndices(is);
         bb::LoadValue(is, m_momentum);
         bb::LoadValue(is, m_gamma);
         bb::LoadValue(is, m_beta);
@@ -142,7 +144,7 @@ public:
     void save(Archive& archive, std::uint32_t const version) const
     {
         _super::save(archive, version);
-        archive(cereal::make_nvp("node_size",    m_node_size));
+        archive(cereal::make_nvp("node_shape",   m_node_shape));
         archive(cereal::make_nvp("gamma",        m_gamma));
         archive(cereal::make_nvp("beta",         m_beta));
         archive(cereal::make_nvp("running_mean", m_running_mean));
@@ -153,7 +155,7 @@ public:
     void load(Archive& archive, std::uint32_t const version)
     {
         _super::load(archive, version);
-        archive(cereal::make_nvp("node_size",    m_node_size));
+        archive(cereal::make_nvp("node_shape",   m_node_shape));
         archive(cereal::make_nvp("gamma",        m_gamma));
         archive(cereal::make_nvp("beta",         m_beta));
         archive(cereal::make_nvp("running_mean", m_running_mean));
@@ -162,12 +164,12 @@ public:
 
     void Save(cereal::JSONOutputArchive& archive) const
     {
-        archive(cereal::make_nvp("BatchNormalization", *this));
+        archive(cereal::make_nvp("StochasticBatchNormalization", *this));
     }
 
     void Load(cereal::JSONInputArchive& archive)
     {
-        archive(cereal::make_nvp("BatchNormalization", *this));
+        archive(cereal::make_nvp("StochasticBatchNormalization", *this));
     }
 #endif
 
@@ -190,18 +192,38 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
-        _super::SetInputShape(shape);
-
-        m_node_size = GetShapeSize(shape);
+        m_node_shape = shape;
+        
+        auto node_size = GetShapeSize(shape);
         
         // パラメータ初期化
-        m_mean.Resize(m_node_size);
-        m_rstd.Resize(m_node_size);
+        m_mean.Resize(m_node_shape);
+        m_rstd.Resize(m_node_shape);
 
-        m_running_mean.Resize(m_node_size); m_running_mean = (T)0.0;
-        m_running_var.Resize(m_node_size);  m_running_var  = (T)1.0;
+        m_running_mean.Resize(m_node_shape); m_running_mean = (T)0.0;
+        m_running_var.Resize(m_node_shape);  m_running_var  = (T)1.0;
 
         return shape;
+    }
+
+    /**
+     * @brief  入力形状取得
+     * @detail 入力形状を取得する
+     * @return 入力形状を返す
+     */
+    indices_t GetInputShape(void) const
+    {
+        return m_node_shape;
+    }
+
+    /**
+     * @brief  出力形状取得
+     * @detail 出力形状を取得する
+     * @return 出力形状を返す
+     */
+    indices_t GetOutputShape(void) const
+    {
+        return m_node_shape;
     }
 
 
@@ -245,19 +267,24 @@ public:
     }
 
     // ノード単位でのForward計算
-    std::vector<T> ForwardNode(index_t node, std::vector<T> x_vec) const
+    std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
     {
-        BB_DEBUG_ASSERT(node >= 0 && node < m_node_size);
+        BB_DEBUG_ASSERT(node >= 0 && node < GetShapeSize(m_node_shape));
 
         auto running_mean_ptr = m_running_mean.LockConst();
         auto running_var_ptr  = m_running_var.LockConst();
 
-        std::vector<T> y_vec(x_vec.size());
+        std::vector<double> y_vec(x_vec.size());
         for (size_t i = 0; i < x_vec.size(); ++i) {
-            y_vec[i]  = x_vec[i];
-            y_vec[i] -= running_mean_ptr(node);
-            y_vec[i] /= (T)sqrt(running_var_ptr(node)) + (T)1.0e-7;
-            y_vec[i]  = y_vec[i] * m_gamma + m_beta;
+//            y_vec[i]  = x_vec[i];
+//            y_vec[i] -= running_mean_ptr(node);
+//            y_vec[i] /= (T)sqrt(running_var_ptr(node)) + (T)1.0e-7;
+//            y_vec[i]  = y_vec[i] * m_gamma + m_beta;
+              T x = (T)x_vec[i];
+              x -= running_mean_ptr(node);
+              x /= (T)sqrt(running_var_ptr(node)) + (T)1.0e-7;
+              x  = x * m_gamma + m_beta;
+              y_vec[i] = (double)x;
         }
         return y_vec;
     }
@@ -272,21 +299,23 @@ public:
      */
     FrameBuffer Forward(FrameBuffer x_buf, bool train=true)
     {
-        // forwardの為に保存
-        m_x_buf = x_buf;
-
         // 出力設定
-        m_y_buf.Resize(x_buf.GetType(), x_buf.GetFrameSize(), x_buf.GetShape());
+        FrameBuffer y_buf(x_buf.GetType(), x_buf.GetFrameSize(), x_buf.GetShape());
+
+        // backwardの為に保存
+        if ( train ) {
+            m_x_buf = x_buf;
+        }
 
 #ifdef BB_WITH_CUDA
-        if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && m_x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             if ( train ) {
-                auto dev_x_ptr     = m_x_buf.LockDeviceMemoryConst();
-                auto dev_y_ptr     = m_y_buf.LockDeviceMemory(true);
+                auto dev_x_ptr    = x_buf.LockDeviceMemoryConst();
+                auto dev_y_ptr    = y_buf.LockDeviceMemory(true);
                 auto dev_mean_ptr = m_mean.LockDeviceMemory(true);
                 auto dev_rstd_ptr = m_rstd.LockDeviceMemory(true);
                 auto dev_running_mean_ptr = m_running_mean.LockDeviceMemory();
-                auto dev_running_var_ptr = m_running_var.LockDeviceMemory();
+                auto dev_running_var_ptr  = m_running_var.LockDeviceMemory();
 
                 bbcu_fp32_StochasticBatchNormalization_ForwardTraining
                     (
@@ -299,15 +328,15 @@ public:
                         (float        )m_gamma,
                         (float        )m_beta,
                         (float        )m_momentum,
-                        (int          )m_x_buf.GetNodeSize(),
-                        (int          )m_x_buf.GetFrameSize(),
-                        (int          )m_x_buf.GetFrameStride() / sizeof(float)
+                        (int          )x_buf.GetNodeSize(),
+                        (int          )x_buf.GetFrameSize(),
+                        (int          )x_buf.GetFrameStride() / sizeof(float)
                     );
-                return m_y_buf;
+                return y_buf;
             }
             else {
-                auto dev_x_ptr            = m_x_buf.LockDeviceMemoryConst();
-                auto dev_y_ptr            = m_y_buf.LockDeviceMemory(true);
+                auto dev_x_ptr            = x_buf.LockDeviceMemoryConst();
+                auto dev_y_ptr            = y_buf.LockDeviceMemory(true);
                 auto dev_running_mean_ptr = m_running_mean.LockDeviceMemoryConst();
                 auto dev_running_var_ptr  = m_running_var.LockDeviceMemoryConst();
 
@@ -319,11 +348,11 @@ public:
                         (float       *)dev_running_var_ptr.GetAddr(),
                         (float        )m_gamma,
                         (float        )m_beta,
-                        (int          )m_x_buf.GetNodeSize(),
-                        (int          )m_x_buf.GetFrameSize(),
-                        (int          )m_x_buf.GetFrameStride() / sizeof(float)
+                        (int          )x_buf.GetNodeSize(),
+                        (int          )x_buf.GetFrameSize(),
+                        (int          )x_buf.GetFrameStride() / sizeof(float)
                     );
-                return m_y_buf;
+                return y_buf;
             }
         }
 #endif
@@ -337,8 +366,8 @@ public:
         
             const int   mm256_frame_size = ((int)frame_size + 7) / 8 * 8;
 
-            auto x_ptr            = m_x_buf.LockConst<T>();
-            auto y_ptr            = m_y_buf.Lock<T>();
+            auto x_ptr            = x_buf.LockConst<T>();
+            auto y_ptr            = y_buf.Lock<T>();
 
             auto gamma_ptr        = lock_gamma_const();
             auto beta_ptr         = lock_beta_const();
@@ -353,7 +382,7 @@ public:
                 const __m256    epsilon = _mm256_set1_ps(1.0e-7f);
 
                 #pragma omp parallel for
-                for (int node = 0; node < (int)m_node_size; ++node) {
+                for (int node = 0; node < (int)node_size; ++node) {
                     float const *x_addr = x_ptr.GetAddr(node);
                     float       *y_addr = y_ptr.GetAddr(node);
 
@@ -407,7 +436,7 @@ public:
             }
             else {
                 #pragma omp parallel for
-                for (int node = 0; node < (int)m_node_size; ++node) {
+                for (int node = 0; node < (int)node_size; ++node) {
                     auto x_addr = x_ptr.GetAddr(node);
                     auto y_addr = y_ptr.GetAddr(node);
 
@@ -427,7 +456,7 @@ public:
                 }
             }
 
-            return m_y_buf;
+            return y_buf;
         }
 #endif
 
@@ -436,8 +465,8 @@ public:
             auto node_size    = x_buf.GetNodeSize();
             auto frame_size   = x_buf.GetFrameSize();
 
-            auto x_ptr            = m_x_buf.LockConst<T>();
-            auto y_ptr            = m_y_buf.Lock<T>();
+            auto x_ptr            = x_buf.LockConst<T>();
+            auto y_ptr            = y_buf.Lock<T>();
             
             auto mean_ptr         = m_mean.Lock();
             auto rstd_ptr         = m_rstd.Lock();        
@@ -508,7 +537,7 @@ public:
             }
             else {
 //              #pragma omp parallel for
-                for (index_t node = 0; node < m_node_size; ++node) {
+                for (index_t node = 0; node < node_size; ++node) {
                     T   mean  = running_mean_ptr[node];
                     T   var   = running_var_ptr[node];
 
@@ -526,9 +555,73 @@ public:
                 }
             }
 
-            return m_y_buf;
+            return y_buf;
         }
  
+    }
+
+// forward 再計算
+    FrameBuffer ReForward(FrameBuffer x_buf)
+    {
+        // 出力設定
+        FrameBuffer y_buf(x_buf.GetType(), x_buf.GetFrameSize(), x_buf.GetShape());
+
+        // backwardの為に保存
+        m_x_buf = x_buf;
+
+        
+#ifdef BB_WITH_CUDA
+        if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            // CUDA版
+            auto x_ptr     = x_buf.LockDeviceMemoryConst();
+            auto y_ptr     = y_buf.LockDeviceMemory(true);
+            auto mean_ptr  = m_mean.LockDeviceMemoryConst();
+            auto rstd_ptr  = m_rstd.LockDeviceMemoryConst();
+
+            bbcu_fp32_StochasticBatchNormalization_ReForward
+                (
+                    (float const *)x_ptr.GetAddr(),
+                    (float       *)y_ptr.GetAddr(),
+                    (float       *)mean_ptr.GetAddr(),
+                    (float       *)rstd_ptr.GetAddr(),
+                    (float        )m_gamma,
+                    (float        )m_beta,
+                    (int          )x_buf.GetNodeSize(),
+                    (int          )x_buf.GetFrameSize(),
+                    (int          )x_buf.GetFrameStride() / sizeof(float)
+                );
+            return y_buf;
+        }
+#endif
+
+        {
+            // 汎用版
+            auto node_size        = x_buf.GetNodeSize();
+            auto frame_size       = x_buf.GetFrameSize();
+
+            auto x_ptr            = x_buf.LockConst<T>();
+            auto y_ptr            = y_buf.Lock<T>();
+
+            auto mean_ptr         = m_mean.Lock();
+            auto rstd_ptr         = m_rstd.Lock();        
+
+            #pragma omp parallel for
+            for (index_t node = 0; node < node_size; ++node) {
+                // 集計
+                T mean = mean_ptr[node];
+                T rstd = rstd_ptr[node];
+
+                // 正規化
+                for ( index_t frame = 0; frame < frame_size; ++frame) {
+                    T x = x_ptr.Get(frame, node);
+                    x = (x - mean) * rstd;
+                    x = x * m_gamma + m_beta;
+                    y_ptr.Set(frame, node, x);
+                }
+            }
+
+            return y_buf;
+        }
     }
 
 
@@ -541,13 +634,16 @@ public:
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
         // 出力設定
-        m_dx_buf.Resize(dy_buf.GetType(), dy_buf.GetFrameSize(), dy_buf.GetShape());
+        FrameBuffer dx_buf(dy_buf.GetType(), dy_buf.GetFrameSize(), dy_buf.GetShape());
 
+        FrameBuffer x_buf = m_x_buf;
+        m_x_buf = FrameBuffer();
+        
 #ifdef BB_WITH_CUDA
-        if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && dy_buf.IsDeviceAvailable() && m_x_buf.IsDeviceAvailable() && m_dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
-            auto dev_x_ptr      = m_x_buf.LockDeviceMemoryConst();
+        if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && dy_buf.IsDeviceAvailable() && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            auto dev_x_ptr      = x_buf.LockDeviceMemoryConst();
             auto dev_dy_ptr     = dy_buf.LockDeviceMemoryConst();
-            auto dev_dx_ptr     = m_dx_buf.LockDeviceMemory(true);
+            auto dev_dx_ptr     = dx_buf.LockDeviceMemory(true);
             auto dev_mean_ptr   = m_mean.LockDeviceMemoryConst();
             auto dev_rstd_ptr   = m_rstd.LockDeviceMemoryConst();
             bbcu_fp32_StochasticBatchNormalization_Backward
@@ -561,10 +657,11 @@ public:
                     (float        )1.0f / (float)dy_buf.GetFrameSize(),
                     (int          )dy_buf.GetNodeSize(),
                     (int          )dy_buf.GetFrameSize(),
-                    (int          )dy_buf.GetFrameStride() / sizeof(float)
+                    (int          )dy_buf.GetFrameStride() / sizeof(float),
+                    (int          )x_buf.GetFrameStride() / sizeof(float)
                 );
 
-            return m_dx_buf;
+            return dx_buf;
         }
 #endif
 
@@ -588,13 +685,13 @@ public:
             // 逆数生成
             const __m256    reciprocal_frame_size = _mm256_set1_ps(1.0f / (float)frame_size);
 
-            auto x_ptr  = m_x_buf.LockConst<T>();
-//          auto y_ptr  = m_y_buf.LockConst<T>();
-            auto dx_ptr = m_dx_buf.Lock<T>();
+            auto x_ptr  = x_buf.LockConst<T>();
+//          auto y_ptr  = y_buf.LockConst<T>();
+            auto dx_ptr = dx_buf.Lock<T>();
             auto dy_ptr = dy_buf.LockConst<T>();
 
             #pragma omp parallel for
-            for (int node = 0; node < (int)m_node_size; ++node) {
+            for (int node = 0; node < (int)node_size; ++node) {
                 auto dy_addr = dy_ptr.GetAddr(node);
                 auto dx_addr = dx_ptr.GetAddr(node);
                 auto x_addr  = x_ptr.GetAddr(node);
@@ -643,7 +740,7 @@ public:
                 }
             }
 
-            return m_dx_buf;
+            return dx_buf;
         }
 #endif
 
@@ -655,12 +752,12 @@ public:
             auto mean_ptr = m_mean.LockConst();
             auto rstd_ptr = m_rstd.LockConst();
             
-            auto x_ptr  = m_x_buf.LockConst<T>();
-            auto dx_ptr = m_dx_buf.Lock<T>();
+            auto x_ptr  = x_buf.LockConst<T>();
+            auto dx_ptr = dx_buf.Lock<T>();
             auto dy_ptr = dy_buf.LockConst<T>();
 
             #pragma omp parallel for
-            for (index_t node = 0; node < m_node_size; ++node) {
+            for (index_t node = 0; node < node_size; ++node) {
                 T   mean   = mean_ptr[node];
                 T   rstd   = rstd_ptr[node];
                 T   dmeanx = 0;
@@ -690,7 +787,7 @@ public:
                 }
             }
 
-            return m_dx_buf;
+            return dx_buf;
         } 
     }
 };

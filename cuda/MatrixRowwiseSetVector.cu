@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <chrono>
 
 #include "cuda_runtime.h"
@@ -18,7 +18,7 @@ __global__ void kernel_fp32_MatrixRowwiseSetVector(
             int             frame_stride
         )
 {
-    // ‰Šú‰»
+    // åˆæœŸåŒ–
     int frame_base = threadIdx.x;
     int frame_step = blockDim.x;
     int node       = blockIdx.y * blockDim.y + threadIdx.y;
@@ -27,7 +27,7 @@ __global__ void kernel_fp32_MatrixRowwiseSetVector(
         return;
     }
 
-    // “Ç‚İ‚İ
+    // èª­ã¿è¾¼ã¿
     float x = x_vec[node];
     
     float *y_ptr = &y_mat[node * frame_stride];

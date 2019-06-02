@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <chrono>
 
 #include "cuda_runtime.h"
@@ -127,7 +127,7 @@ BBCU_DLL_EXPORT int bbcu_bit_Col2Im_Forward
     
     int     hw_size = h_size * w_size;
     
-    // 32bit’PˆÊ‚Åˆ—
+    // 32bitå˜ä½ã§å‡¦ç†
     int     output_frame_unit = (output_frame_size + 31) / 32 ;
 
     dim3    block(32, 32, 1);

@@ -1,4 +1,4 @@
-
+﻿
 
 TARGET=libbbcu.a
 
@@ -6,15 +6,19 @@ NVCC = nvcc
 CFLAGS = -I ../include -gencode=arch=compute_35,code=sm_35 -gencode=arch=compute_75,code=sm_75 -std=c++11
 
 SRCS += Manager.cu
+SRCS += LocalHeap.cu
+SRCS += FrameBufferCopy.cu
 SRCS += Vector.cu
 SRCS += MatrixColwiseSum.cu
 SRCS += MatrixColwiseMeanVar.cu
 SRCS += MatrixRowwiseSetVector.cu
 SRCS += MicroMlp.cu
 SRCS += BinaryLut6.cu
-SRCS += StochasticLut6.cu
+SRCS += SparseLut.cu
+SRCS += StochasticLut.cu
 SRCS += StochasticMaxPooling.cu
 SRCS += StochasticBatchNormalization.cu
+SRCS += ShuffleModulation.cu
 SRCS += BinaryToReal.cu
 SRCS += Im2Col.cu
 SRCS += Col2Im.cu
@@ -30,6 +34,7 @@ SRCS += AccuracyCategoricalClassification.cu
 
 HDRS  = ../include/bbcu/bbcu.h
 HDRS += ../include/bbcu/bbcu_util.h
+HDRS += Common.cuh
 
 OBJS = $(addsuffix .o, $(basename $(SRCS)))
 

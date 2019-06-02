@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  BinaryBrain  -- binary network evaluation platform
 //   CIFAR-10 sample
 //
@@ -12,14 +12,17 @@
 #include <random>
 #include <chrono>
 
+#include "bb/BinaryModulation.h"
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
-#include "bb/StochasticLut6.h"
-#include "bb/StochasticLutBn.h"
+#include "bb/SparseBinaryLutN.h"
+#include "bb/SparseLutN.h"
 #include "bb/BinaryLutN.h"
+#include "bb/DenseAffine.h"
 #include "bb/LoweringConvolution.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
+#include "bb/HardTanh.h"
 #include "bb/MaxPooling.h"
 #include "bb/Reduce.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
@@ -38,10 +41,9 @@
 
 #if 0
 
-// CNN with LUT networks
-void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bool binary_mode, bool file_read)
+void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "Cifar10Sparse6Cnn";
+    std::string net_name = "Cifar10Sparse6Cnn_pd";
 
   // load cifar-10 data
 #ifdef _DEBUG
@@ -51,112 +53,277 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
     auto td = bb::LoadCifar10<>::Load();
 #endif
 
+    float bn_momentum = 0.0f;
+    
+#if 0
+    auto cnv0_sub = bb::Sequential::Create();
+    cnv0_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
+    cnv0_sub->Add(bb::DenseAffine<>::Create(32));
+    cnv0_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    cnv0_sub->Add(bb::Binarize<bb::Bit>::Create());
+#else
+    auto bin_cnv0_sub0 = bb::Sequential::Create();
+    bin_cnv0_sub0->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create({1,  6, 8}));
+    bin_cnv0_sub0->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create({1,  1, 8}));
+
+    auto bin_cnv0_sub1 = bb::Sequential::Create();
+    bin_cnv0_sub1->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create({1,  6, 16}));
+    bin_cnv0_sub1->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create({1,  1, 16}));
+
+    auto bin_cnv0_sub2p = bb::Sequential::Create();
+    bin_cnv0_sub2p->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create({1,  6, 32}));
+    bin_cnv0_sub2p->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create({1,  1, 32}));
+
+    auto bin_cnv0_sub2d = bb::Sequential::Create();
+    bin_cnv0_sub2d->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create({1,  6, 32}, "depthwise"));
+    bin_cnv0_sub2d->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create({1,  1, 32}, "depthwise"));
+#endif
+
+    auto cnv1_sub = bb::Sequential::Create();
+    cnv1_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
+    cnv1_sub->Add(bb::DenseAffine<>::Create(32));
+    cnv1_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    cnv1_sub->Add(bb::Binarize<bb::Bit>::Create());
+
+    auto cnv2_sub = bb::Sequential::Create();
+    cnv2_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
+    cnv2_sub->Add(bb::DenseAffine<>::Create(64));
+    cnv2_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    cnv2_sub->Add(bb::Binarize<bb::Bit>::Create());
+
+    auto cnv3_sub = bb::Sequential::Create();
+    cnv3_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
+    cnv3_sub->Add(bb::DenseAffine<>::Create(64));
+    cnv3_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    cnv3_sub->Add(bb::Binarize<bb::Bit>::Create());
+
     // create network
-    auto layer_cnv0_sl0 = bb::StochasticLut6<>::Create(512);
-    auto layer_cnv0_sl1 = bb::StochasticLut6<>::Create(384);
-    auto layer_cnv0_sl2 = bb::StochasticLut6<>::Create(64);
-    auto layer_cnv1_sl0 = bb::StochasticLut6<>::Create(512);
-    auto layer_cnv1_sl1 = bb::StochasticLut6<>::Create(384);
-    auto layer_cnv1_sl2 = bb::StochasticLut6<>::Create(64);
-    auto layer_cnv2_sl0 = bb::StochasticLut6<>::Create(1024);
-    auto layer_cnv2_sl1 = bb::StochasticLut6<>::Create(768);
-    auto layer_cnv2_sl2 = bb::StochasticLut6<>::Create(128);
-    auto layer_cnv3_sl0 = bb::StochasticLut6<>::Create(1024);
-    auto layer_cnv3_sl1 = bb::StochasticLut6<>::Create(768);
-    auto layer_cnv3_sl2 = bb::StochasticLut6<>::Create(64);
-    auto layer_sl4      = bb::StochasticLut6<>::Create(2048);
-    auto layer_sl5      = bb::StochasticLut6<>::Create(1024);
-    auto layer_sl6      = bb::StochasticLut6<>::Create(420);
-    auto layer_sl7      = bb::StochasticLut6<>::Create(70);
+    auto main_net = bb::Sequential::Create();
+#if 0
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3));
+#else
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(bin_cnv0_sub0,  3, 3, 1, 1, "valid"));
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(bin_cnv0_sub1,  3, 3, 1, 1, "same"));
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(bin_cnv0_sub2p, 1, 1, 1, 1, "same"));
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(bin_cnv0_sub2d, 3, 3, 1, 1, "same"));
+#endif
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3));
+    main_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv2_sub, 3, 3));
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3));
+    main_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
 
-    {
-        auto cnv0_sub = bb::Sequential::Create();
-        cnv0_sub->Add(bb::StochasticBatchNormalization<>::Create());
-        cnv0_sub->Add(layer_cnv0_sl0);
-        cnv0_sub->Add(bb::StochasticBatchNormalization<>::Create());
-        cnv0_sub->Add(layer_cnv0_sl1);
-        cnv0_sub->Add(bb::StochasticBatchNormalization<>::Create());
-        cnv0_sub->Add(layer_cnv0_sl2);
+    main_net->Add(bb::BinaryToReal<bb::Bit>::Create());
+    main_net->Add(bb::DenseAffine<>::Create(512));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::Binarize<bb::Bit>::Create());
 
-        auto cnv1_sub = bb::Sequential::Create();
-        cnv1_sub->Add(bb::StochasticBatchNormalization<>::Create());
-        cnv1_sub->Add(layer_cnv1_sl0);
-        cnv1_sub->Add(bb::StochasticBatchNormalization<>::Create());
-        cnv1_sub->Add(layer_cnv1_sl1);
-        cnv1_sub->Add(bb::StochasticBatchNormalization<>::Create());
-        cnv1_sub->Add(layer_cnv1_sl2);
+    main_net->Add(bb::BinaryToReal<bb::Bit>::Create());
+    main_net->Add(bb::DenseAffine<>::Create(10));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::Binarize<bb::Bit>::Create());
 
-        auto cnv2_sub = bb::Sequential::Create();
-        cnv2_sub->Add(bb::StochasticBatchNormalization<>::Create());
-        cnv2_sub->Add(layer_cnv2_sl0);
-        cnv2_sub->Add(bb::StochasticBatchNormalization<>::Create());
-        cnv2_sub->Add(layer_cnv2_sl1);
-        cnv2_sub->Add(bb::StochasticBatchNormalization<>::Create());
-        cnv2_sub->Add(layer_cnv2_sl2);
+    bb::BinaryModulation<bb::Bit>::create_t mod_create;
+    mod_create.layer                     = main_net;
+    mod_create.output_shape              = td.t_shape;
+    mod_create.training_modulation_size  = frame_mux_size;
+    mod_create.training_value_generator  = nullptr;
+    mod_create.inference_modulation_size = frame_mux_size;
+    mod_create.inference_value_generator = nullptr;
+    auto net = bb::BinaryModulation<bb::Bit>::Create(mod_create);
 
-        auto cnv3_sub = bb::Sequential::Create();
-        cnv3_sub->Add(bb::StochasticBatchNormalization<>::Create());
-        cnv3_sub->Add(layer_cnv3_sl0);
-        cnv3_sub->Add(bb::StochasticBatchNormalization<>::Create());
-        cnv3_sub->Add(layer_cnv3_sl1);
-        cnv3_sub->Add(bb::StochasticBatchNormalization<>::Create());
-        cnv3_sub->Add(layer_cnv3_sl2);
-        
-        auto net = bb::Sequential::Create();
-        net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
-        net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
-//      net->Add(bb::StochasticMaxPooling2x2<>::Create());
-        net->Add(bb::MaxPooling<>::Create(2, 2));
-        net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
-        net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
-//      net->Add(bb::StochasticMaxPooling2x2<>::Create());
-        net->Add(bb::MaxPooling<>::Create(2, 2));
-        net->Add(bb::StochasticBatchNormalization<>::Create());
-        net->Add(layer_sl4);
-        net->Add(bb::StochasticBatchNormalization<>::Create());
-        net->Add(layer_sl5);
-        net->Add(bb::StochasticBatchNormalization<>::Create());
-        net->Add(layer_sl6);
-        net->Add(bb::StochasticBatchNormalization<>::Create());
-        net->Add(layer_sl7);
-        net->Add(bb::Reduce<>::Create(td.t_shape));
-        net->SetInputShape(td.x_shape);
+    net->SetInputShape(td.x_shape);
 
-        if ( binary_mode ) {
-            std::cout << "binary mode" << std::endl;
-            net->SendCommand("binary true");
-        }
+    std::cout << "binary true" << std::endl;
+    net->SendCommand("binary true");
 
-        net->SendCommand("lut_binarize false");
+    // print model information
+    net->PrintInfo();
 
-//      net->SendCommand("batch_normalization false");
+    std::cout << "-----------------------------------" << std::endl;
+    std::cout << "file_read          : " << file_read          << std::endl;
+    std::cout << "epoch_size         : " << epoch_size         << std::endl;
+    std::cout << "mini_batch_size    : " << mini_batch_size    << std::endl;
+    std::cout << "max_run_size       : " << max_run_size       << std::endl;
+    std::cout << "frame_mux_size     : " << frame_mux_size     << std::endl;
+    std::cout << "binary_mode        : " << binary_mode        << std::endl;
 
-        /*
-        net->SendCommand("fix_gamma true");
-        net->SendCommand("fix_beta  true");
-        net->SendCommand("set_gamma 0.2");
-        net->SendCommand("set_beta  0.5");
-        */
+    // run fitting
+    bb::Runner<float>::create_t runner_create;
+    runner_create.name               = net_name;
+    runner_create.net                = net;
+    runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<>::Create();
+    runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<>::Create();
+    runner_create.optimizer          = bb::OptimizerAdam<>::Create();
+    runner_create.max_run_size       = max_run_size;    // å®Ÿéš›ã®1å›ã®å®Ÿè¡Œã‚µã‚¤ã‚º
+    runner_create.file_read          = file_read;       // å‰ã®è¨ˆç®—çµæœãŒã‚ã‚Œã°èª­ã¿è¾¼ã‚“ã§å†é–‹ã™ã‚‹ã‹
+    runner_create.file_write         = true;            // è¨ˆç®—çµæœã‚’ãƒ•ã‚¡ã‚¤ãƒ«ã«ä¿å­˜ã™ã‚‹ã‹
+    runner_create.print_progress     = true;            // é€”ä¸­çµæœã‚’è¡¨ç¤º
+    runner_create.initial_evaluation = false;//true;            // ãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã‚“ã å ´åˆã¯æœ€åˆã«è©•ä¾¡ã—ã¦ãŠã
+    auto runner = bb::Runner<float>::Create(runner_create);
+    runner->Fitting(td, epoch_size, mini_batch_size);
+}
 
-        // print model information
-        net->PrintInfo();
+#endif
 
-        // run fitting
-        bb::Runner<float>::create_t runner_create;
-        runner_create.name               = net_name;
-        runner_create.net                = net;
-        runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
-        runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
-        runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
-//      runner_create.optimizer          = bb::OptimizerAdaGrad<float>::Create();
-        runner_create.max_run_size       = max_run_size;    // ÀÛ‚Ì1‰ñ‚ÌÀsƒTƒCƒY
-        runner_create.file_read          = file_read;       // ‘O‚ÌŒvZŒ‹‰Ê‚ª‚ ‚ê‚Î“Ç‚İ‚ñ‚ÅÄŠJ‚·‚é‚©
-        runner_create.file_write         = true;            // ŒvZŒ‹‰Ê‚ğƒtƒ@ƒCƒ‹‚É•Û‘¶‚·‚é‚©
-        runner_create.print_progress     = true;            // “r’†Œ‹‰Ê‚ğ•\¦
-        runner_create.initial_evaluation = false; // file_read;       // ƒtƒ@ƒCƒ‹‚ğ“Ç‚ñ‚¾ê‡‚ÍÅ‰‚É•]‰¿‚µ‚Ä‚¨‚­
-        auto runner = bb::Runner<float>::Create(runner_create);
-        runner->Fitting(td, epoch_size, mini_batch_size);
+#if 0
+
+// Dense CNN
+void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, bool binary_mode, bool file_read)
+{
+    std::string net_name = "Cifar10Sparse6Cnn";
+    
+  // load cifar-10 data
+#ifdef _DEBUG
+    auto td = bb::LoadCifar10<>::Load(1);
+    std::cout << "!!! debug mode !!!" << std::endl;
+#else
+    auto td = bb::LoadCifar10<>::Load();
+#endif
+
+    float bn_momentum = 0.9f;
+    if (binary_mode) {
+        bn_momentum = 0.0f;
     }
+    
+    auto cnv0_sub = bb::Sequential::Create();
+#if 1
+    cnv0_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(192));
+    cnv0_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(32));
+#else
+    cnv0_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
+    cnv0_sub->Add(bb::DenseAffine<>::Create(32));
+    cnv0_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    cnv0_sub->Add(bb::Binarize<bb::Bit>::Create());
+#endif
+
+    auto cnv1_sub = bb::Sequential::Create();
+#if 1
+    cnv1_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(1152));
+    cnv1_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(192));
+    cnv1_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(32));
+#else
+    cnv1_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
+    cnv1_sub->Add(bb::DenseAffine<>::Create(32));
+    cnv1_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    cnv1_sub->Add(bb::Binarize<bb::Bit>::Create());
+#endif
+
+    auto cnv2_sub = bb::Sequential::Create();
+#if 1
+    cnv2_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(2304));
+    cnv2_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(384));
+    cnv2_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(64));
+#else
+    cnv2_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
+    cnv2_sub->Add(bb::DenseAffine<>::Create(64));
+    cnv2_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    cnv2_sub->Add(bb::Binarize<bb::Bit>::Create());
+#endif
+
+    auto cnv3_sub = bb::Sequential::Create();
+#if 1
+    cnv3_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(2304));
+    cnv3_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(384));
+    cnv3_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(64));
+#else
+    cnv3_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
+    cnv3_sub->Add(bb::DenseAffine<>::Create(64));
+    cnv3_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    cnv3_sub->Add(bb::Binarize<bb::Bit>::Create());
+#endif
+
+    auto cnv4_sub = bb::Sequential::Create();
+#if 4
+    cnv4_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(4608));
+    cnv4_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(768));
+    cnv4_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(128));
+#else
+    cnv4_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
+    cnv4_sub->Add(bb::DenseAffine<>::Create(128));
+    cnv4_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    cnv4_sub->Add(bb::Binarize<bb::Bit>::Create());
+#endif
+
+    // create network
+    auto main_net = bb::Sequential::Create();
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3));
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3));
+    main_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
+
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv2_sub, 3, 3));
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3));
+    main_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
+
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 3, 3));
+    
+#if 1
+    main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(4608));
+    main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(768));
+    main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(128));
+
+    main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(2160));
+    main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(360));
+    main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(60));
+    main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(10));
+#else
+    main_net->Add(bb::BinaryToReal<bb::Bit>::Create());
+    main_net->Add(bb::DenseAffine<>::Create(512));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::Binarize<bb::Bit>::Create());
+
+    main_net->Add(bb::BinaryToReal<bb::Bit>::Create());
+    main_net->Add(bb::DenseAffine<>::Create(10));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::Binarize<bb::Bit>::Create());
+#endif
+
+    // PWM
+#if 1
+    bb::BinaryModulation<bb::Bit, float>::create_t mod_create;
+    mod_create.layer                     = main_net;
+    mod_create.output_shape              = td.t_shape;
+    mod_create.training_modulation_size  = frame_mux_size;
+    mod_create.training_value_generator  = nullptr;
+    mod_create.inference_modulation_size = frame_mux_size;
+    mod_create.inference_value_generator = nullptr;
+    auto net = bb::BinaryModulation<bb::Bit, float>::Create(mod_create);
+#else
+    auto net = main_net;
+#endif
+
+    net->SetInputShape(td.x_shape);
+
+    std::cout << "binary true" << std::endl;
+    net->SendCommand("binary true");
+
+//  net->SendCommand("lut_binarize false");
+
+    // print model information
+    net->PrintInfo();
+
+    std::cout << "-----------------------------------" << std::endl;
+    std::cout << "file_read          : " << file_read          << std::endl;
+    std::cout << "epoch_size         : " << epoch_size         << std::endl;
+    std::cout << "mini_batch_size    : " << mini_batch_size    << std::endl;
+    std::cout << "max_run_size       : " << max_run_size       << std::endl;
+    std::cout << "frame_mux_size     : " << frame_mux_size     << std::endl;
+    std::cout << "binary_mode        : " << binary_mode        << std::endl;
+
+    // run fitting
+    bb::Runner<float>::create_t runner_create;
+    runner_create.name               = net_name;
+    runner_create.net                = net;
+    runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<>::Create();
+    runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<>::Create();
+    runner_create.optimizer          = bb::OptimizerAdam<>::Create();
+    runner_create.max_run_size       = max_run_size;    // å®Ÿéš›ã®1å›ã®å®Ÿè¡Œã‚µã‚¤ã‚º
+    runner_create.file_read          = file_read;       // å‰ã®è¨ˆç®—çµæœãŒã‚ã‚Œã°èª­ã¿è¾¼ã‚“ã§å†é–‹ã™ã‚‹ã‹
+    runner_create.file_write         = true;            // è¨ˆç®—çµæœã‚’ãƒ•ã‚¡ã‚¤ãƒ«ã«ä¿å­˜ã™ã‚‹ã‹
+    runner_create.print_progress     = true;            // é€”ä¸­çµæœã‚’è¡¨ç¤º
+    runner_create.initial_evaluation = false;//true;            // ãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã‚“ã å ´åˆã¯æœ€åˆã«è©•ä¾¡ã—ã¦ãŠã
+    auto runner = bb::Runner<float>::Create(runner_create);
+    runner->Fitting(td, epoch_size, mini_batch_size);
 }
 
 #endif
@@ -164,11 +331,11 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
 
 #if 0
 
-// CNN with LUT networks
-void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bool binary_mode, bool file_read)
+// Dense CNN
+void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "Cifar10Sparse6Cnn";
-
+    std::string net_name = "Cifar10Sparse6Cnn_dense_mix";
+    
   // load cifar-10 data
 #ifdef _DEBUG
     auto td = bb::LoadCifar10<>::Load(1);
@@ -177,92 +344,147 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
     auto td = bb::LoadCifar10<>::Load();
 #endif
 
-    // create network
-    auto layer_cnv0_sl0 = bb::StochasticLutBn<6>::Create(512);
-    auto layer_cnv0_sl1 = bb::StochasticLutBn<6>::Create(384);
-    auto layer_cnv0_sl2 = bb::StochasticLutBn<6>::Create(64);
-    auto layer_cnv1_sl0 = bb::StochasticLutBn<6>::Create(512);
-    auto layer_cnv1_sl1 = bb::StochasticLutBn<6>::Create(384);
-    auto layer_cnv1_sl2 = bb::StochasticLutBn<6>::Create(64);
-    auto layer_cnv2_sl0 = bb::StochasticLutBn<6>::Create(1024);
-    auto layer_cnv2_sl1 = bb::StochasticLutBn<6>::Create(768);
-    auto layer_cnv2_sl2 = bb::StochasticLutBn<6>::Create(128);
-    auto layer_cnv3_sl0 = bb::StochasticLutBn<6>::Create(1024);
-    auto layer_cnv3_sl1 = bb::StochasticLutBn<6>::Create(768);
-    auto layer_cnv3_sl2 = bb::StochasticLutBn<6>::Create(64);
-    auto layer_sl4      = bb::StochasticLutBn<6>::Create(2048);
-    auto layer_sl5      = bb::StochasticLutBn<6>::Create(1024);
-    auto layer_sl6      = bb::StochasticLutBn<6>::Create(420);
-    auto layer_sl7      = bb::StochasticLutBn<6>::Create(70);
-
-    {
-        auto cnv0_sub = bb::Sequential::Create();
-        cnv0_sub->Add(layer_cnv0_sl0);
-        cnv0_sub->Add(layer_cnv0_sl1);
-        cnv0_sub->Add(layer_cnv0_sl2);
-
-        auto cnv1_sub = bb::Sequential::Create();
-        cnv1_sub->Add(layer_cnv1_sl0);
-        cnv1_sub->Add(layer_cnv1_sl1);
-        cnv1_sub->Add(layer_cnv1_sl2);
-
-        auto cnv2_sub = bb::Sequential::Create();
-        cnv2_sub->Add(layer_cnv2_sl0);
-        cnv2_sub->Add(layer_cnv2_sl1);
-        cnv2_sub->Add(layer_cnv2_sl2);
-
-        auto cnv3_sub = bb::Sequential::Create();
-        cnv3_sub->Add(layer_cnv3_sl0);
-        cnv3_sub->Add(layer_cnv3_sl1);
-        cnv3_sub->Add(layer_cnv3_sl2);
-        
-        auto net = bb::Sequential::Create();
-        net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
-        net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
-        net->Add(bb::MaxPooling<>::Create(2, 2));
-        net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
-        net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
-        net->Add(bb::MaxPooling<>::Create(2, 2));
-        net->Add(layer_sl4);
-        net->Add(layer_sl5);
-        net->Add(layer_sl6);
-        net->Add(layer_sl7);
-        net->Add(bb::Reduce<>::Create(td.t_shape));
-        net->SetInputShape(td.x_shape);
-
-        net->SendCommand("lut_binarize false");
-
-        // print model information
-        net->PrintInfo();
-
-        // run fitting
-        bb::Runner<float>::create_t runner_create;
-        runner_create.name               = net_name;
-        runner_create.net                = net;
-        runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
-        runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
-//      runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
-        runner_create.optimizer          = bb::OptimizerAdaGrad<float>::Create();
-        runner_create.max_run_size       = max_run_size;    // ÀÛ‚Ì1‰ñ‚ÌÀsƒTƒCƒY
-        runner_create.file_read          = file_read;       // ‘O‚ÌŒvZŒ‹‰Ê‚ª‚ ‚ê‚Î“Ç‚İ‚ñ‚ÅÄŠJ‚·‚é‚©
-        runner_create.file_write         = true;            // ŒvZŒ‹‰Ê‚ğƒtƒ@ƒCƒ‹‚É•Û‘¶‚·‚é‚©
-        runner_create.print_progress     = true;            // “r’†Œ‹‰Ê‚ğ•\¦
-        runner_create.initial_evaluation = false; // file_read;       // ƒtƒ@ƒCƒ‹‚ğ“Ç‚ñ‚¾ê‡‚ÍÅ‰‚É•]‰¿‚µ‚Ä‚¨‚­
-        auto runner = bb::Runner<float>::Create(runner_create);
-        runner->Fitting(td, epoch_size, mini_batch_size);
+    float bn_momentum = 0.9f;
+    if (binary_mode) {
+        bn_momentum = 0.0f;
     }
+    
+    auto cnv0_sub = bb::Sequential::Create();
+#if 1
+    cnv0_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(192));
+    cnv0_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(32));
+#else
+    cnv0_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
+    cnv0_sub->Add(bb::DenseAffine<>::Create(32));
+    cnv0_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    cnv0_sub->Add(bb::Binarize<bb::Bit>::Create());
+#endif
+
+    auto cnv1_sub = bb::Sequential::Create();
+#if 1
+    cnv1_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(1152));
+    cnv1_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(192));
+    cnv1_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(32));
+#else
+    cnv1_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
+    cnv1_sub->Add(bb::DenseAffine<>::Create(32));
+    cnv1_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    cnv1_sub->Add(bb::Binarize<bb::Bit>::Create());
+#endif
+
+    auto cnv2_sub = bb::Sequential::Create();
+#if 1
+    cnv2_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(2304));
+    cnv2_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(384));
+    cnv2_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(64));
+#else
+    cnv2_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
+    cnv2_sub->Add(bb::DenseAffine<>::Create(64));
+    cnv2_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    cnv2_sub->Add(bb::Binarize<bb::Bit>::Create());
+#endif
+
+    auto cnv3_sub = bb::Sequential::Create();
+#if 1
+    cnv3_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(2304));
+    cnv3_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(384));
+    cnv3_sub->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(64));
+#else
+    cnv3_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
+    cnv3_sub->Add(bb::DenseAffine<>::Create(64));
+    cnv3_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    cnv3_sub->Add(bb::Binarize<bb::Bit>::Create());
+#endif
+
+    // create network
+    auto main_net = bb::Sequential::Create();
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3));
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3));
+    main_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
+
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv2_sub, 3, 3));
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3));
+    main_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
+    
+#if 1
+    main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(18432));
+    main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(3072));
+    main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(512));
+
+    main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(2160));
+    main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(360));
+    main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(60));
+    main_net->Add(bb::SparseBinaryLutN<6, bb::Bit>::Create(10));
+#else
+    main_net->Add(bb::BinaryToReal<bb::Bit>::Create());
+    main_net->Add(bb::DenseAffine<>::Create(512));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::Binarize<bb::Bit>::Create());
+
+    main_net->Add(bb::BinaryToReal<bb::Bit>::Create());
+    main_net->Add(bb::DenseAffine<>::Create(10));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::Binarize<bb::Bit>::Create());
+#endif
+
+    // PWM
+#if 1
+    bb::BinaryModulation<bb::Bit, float>::create_t mod_create;
+    mod_create.layer                     = main_net;
+    mod_create.output_shape              = td.t_shape;
+    mod_create.training_modulation_size  = frame_mux_size;
+    mod_create.training_value_generator  = nullptr;
+    mod_create.inference_modulation_size = frame_mux_size;
+    mod_create.inference_value_generator = nullptr;
+    auto net = bb::BinaryModulation<bb::Bit, float>::Create(mod_create);
+#else
+    auto net = main_net;
+#endif
+
+    net->SetInputShape(td.x_shape);
+
+    std::cout << "binary true" << std::endl;
+    net->SendCommand("binary true");
+
+
+    // print model information
+    net->PrintInfo();
+
+    std::cout << "-----------------------------------" << std::endl;
+    std::cout << "file_read          : " << file_read          << std::endl;
+    std::cout << "epoch_size         : " << epoch_size         << std::endl;
+    std::cout << "mini_batch_size    : " << mini_batch_size    << std::endl;
+    std::cout << "max_run_size       : " << max_run_size       << std::endl;
+    std::cout << "frame_mux_size     : " << frame_mux_size     << std::endl;
+    std::cout << "binary_mode        : " << binary_mode        << std::endl;
+
+    // run fitting
+    bb::Runner<float>::create_t runner_create;
+    runner_create.name               = net_name;
+    runner_create.net                = net;
+    runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<>::Create();
+    runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<>::Create();
+    runner_create.optimizer          = bb::OptimizerAdam<>::Create();
+    runner_create.max_run_size       = max_run_size;    // å®Ÿéš›ã®1å›ã®å®Ÿè¡Œã‚µã‚¤ã‚º
+    runner_create.file_read          = file_read;       // å‰ã®è¨ˆç®—çµæœãŒã‚ã‚Œã°èª­ã¿è¾¼ã‚“ã§å†é–‹ã™ã‚‹ã‹
+    runner_create.file_write         = true;            // è¨ˆç®—çµæœã‚’ãƒ•ã‚¡ã‚¤ãƒ«ã«ä¿å­˜ã™ã‚‹ã‹
+    runner_create.print_progress     = true;            // é€”ä¸­çµæœã‚’è¡¨ç¤º
+    runner_create.initial_evaluation = false;//true;            // ãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã‚“ã å ´åˆã¯æœ€åˆã«è©•ä¾¡ã—ã¦ãŠã
+    auto runner = bb::Runner<float>::Create(runner_create);
+    runner->Fitting(td, epoch_size, mini_batch_size);
 }
 
 #endif
 
 
-#if 0
 
-// CNN with LUT networks
-void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bool binary_mode, bool file_read)
+#if 1
+
+// Dense CNN
+void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "Cifar10Sparse6Cnn";
-
+    std::string net_name = "Cifar10Sparse6Cnn_SparseLut";
+    
   // load cifar-10 data
 #ifdef _DEBUG
     auto td = bb::LoadCifar10<>::Load(1);
@@ -271,185 +493,137 @@ void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bo
     auto td = bb::LoadCifar10<>::Load();
 #endif
 
-    // create network
-    auto layer_cnv0_sl0 = bb::StochasticLutBn<6>::Create(192);
-    auto layer_cnv0_sl1 = bb::StochasticLutBn<6>::Create(32);
-    auto layer_cnv1_sl0 = bb::StochasticLutBn<6>::Create(192);
-    auto layer_cnv1_sl1 = bb::StochasticLutBn<6>::Create(32);
-    auto layer_cnv2_sl0 = bb::StochasticLutBn<6>::Create(384);
-    auto layer_cnv2_sl1 = bb::StochasticLutBn<6>::Create(64);
-    auto layer_cnv3_sl0 = bb::StochasticLutBn<6>::Create(384);
-    auto layer_cnv3_sl1 = bb::StochasticLutBn<6>::Create(64);
-    auto layer_sl4      = bb::StochasticLutBn<6>::Create(512);
-    auto layer_sl5      = bb::StochasticLutBn<6>::Create(360);
-    auto layer_sl6      = bb::StochasticLutBn<6>::Create(60);
-    auto layer_sl7      = bb::StochasticLutBn<6>::Create(10);
-
-    {
-        auto cnv0_sub = bb::Sequential::Create();
-        cnv0_sub->Add(layer_cnv0_sl0);
-        cnv0_sub->Add(layer_cnv0_sl1);
-
-        auto cnv1_sub = bb::Sequential::Create();
-        cnv1_sub->Add(layer_cnv1_sl0);
-        cnv1_sub->Add(layer_cnv1_sl1);
-
-        auto cnv2_sub = bb::Sequential::Create();
-        cnv2_sub->Add(layer_cnv2_sl0);
-        cnv2_sub->Add(layer_cnv2_sl1);
-
-        auto cnv3_sub = bb::Sequential::Create();
-        cnv3_sub->Add(layer_cnv3_sl0);
-        cnv3_sub->Add(layer_cnv3_sl1);
-        
-        auto net = bb::Sequential::Create();
-        net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
-        net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
-        net->Add(bb::MaxPooling<>::Create(2, 2));
-        net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
-        net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
-        net->Add(bb::MaxPooling<>::Create(2, 2));
-        net->Add(layer_sl4);
-        net->Add(layer_sl5);
-        net->Add(layer_sl6);
-        net->Add(layer_sl7);
-        net->SetInputShape(td.x_shape);
-
-        net->SendCommand("lut_binarize false");
-
-        // print model information
-        net->PrintInfo();
-
-        // run fitting
-        bb::Runner<float>::create_t runner_create;
-        runner_create.name               = net_name;
-        runner_create.net                = net;
-        runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
-        runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
-        runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
-//      runner_create.optimizer          = bb::OptimizerAdaGrad<float>::Create();
-        runner_create.max_run_size       = max_run_size;    // ÀÛ‚Ì1‰ñ‚ÌÀsƒTƒCƒY
-        runner_create.file_read          = file_read;       // ‘O‚ÌŒvZŒ‹‰Ê‚ª‚ ‚ê‚Î“Ç‚İ‚ñ‚ÅÄŠJ‚·‚é‚©
-        runner_create.file_write         = true;            // ŒvZŒ‹‰Ê‚ğƒtƒ@ƒCƒ‹‚É•Û‘¶‚·‚é‚©
-        runner_create.print_progress     = true;            // “r’†Œ‹‰Ê‚ğ•\¦
-        runner_create.initial_evaluation = false; // file_read;       // ƒtƒ@ƒCƒ‹‚ğ“Ç‚ñ‚¾ê‡‚ÍÅ‰‚É•]‰¿‚µ‚Ä‚¨‚­
-        auto runner = bb::Runner<float>::Create(runner_create);
-        runner->Fitting(td, epoch_size, mini_batch_size);
+    float bn_momentum = 0.9f;
+    if (binary_mode) {
+        bn_momentum = 0.0f;
     }
-}
-
-
-#endif
-
-
-void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bool binary_mode, bool file_read)
-{
-    std::string net_name = "Cifar10Sparse6Cnn";
-
-  // load cifar-10 data
-#ifdef _DEBUG
-    auto td = bb::LoadCifar10<>::Load(1);
-    std::cout << "!!! debug mode !!!" << std::endl;
+    
+    auto cnv0_sub = bb::Sequential::Create();
+#if 1
+    cnv0_sub->Add(bb::SparseLutN<6, bb::Bit>::Create(192));
+    cnv0_sub->Add(bb::SparseLutN<6, bb::Bit>::Create(32));
 #else
-    auto td = bb::LoadCifar10<>::Load();
+    cnv0_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
+    cnv0_sub->Add(bb::DenseAffine<>::Create(32));
+    cnv0_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    cnv0_sub->Add(bb::Binarize<bb::Bit>::Create());
 #endif
 
-    /*
+    auto cnv1_sub = bb::Sequential::Create();
+#if 1
+    cnv1_sub->Add(bb::SparseLutN<6, bb::Bit>::Create(1152));
+    cnv1_sub->Add(bb::SparseLutN<6, bb::Bit>::Create(192));
+    cnv1_sub->Add(bb::SparseLutN<6, bb::Bit>::Create(32));
+#else
+    cnv1_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
+    cnv1_sub->Add(bb::DenseAffine<>::Create(32));
+    cnv1_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    cnv1_sub->Add(bb::Binarize<bb::Bit>::Create());
+#endif
+
+    auto cnv2_sub = bb::Sequential::Create();
+#if 1
+    cnv2_sub->Add(bb::SparseLutN<6, bb::Bit>::Create(2304));
+    cnv2_sub->Add(bb::SparseLutN<6, bb::Bit>::Create(384));
+    cnv2_sub->Add(bb::SparseLutN<6, bb::Bit>::Create(64));
+#else
+    cnv2_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
+    cnv2_sub->Add(bb::DenseAffine<>::Create(64));
+    cnv2_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    cnv2_sub->Add(bb::Binarize<bb::Bit>::Create());
+#endif
+
+    auto cnv3_sub = bb::Sequential::Create();
+#if 1
+    cnv3_sub->Add(bb::SparseLutN<6, bb::Bit>::Create(2304));
+    cnv3_sub->Add(bb::SparseLutN<6, bb::Bit>::Create(384));
+    cnv3_sub->Add(bb::SparseLutN<6, bb::Bit>::Create(64));
+#else
+    cnv3_sub->Add(bb::BinaryToReal<bb::Bit>::Create());
+    cnv3_sub->Add(bb::DenseAffine<>::Create(64));
+    cnv3_sub->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    cnv3_sub->Add(bb::Binarize<bb::Bit>::Create());
+#endif
+
     // create network
-    auto layer_cnv0_sl0 = bb::StochasticLutBn<6>::Create(192);
-    auto layer_cnv0_sl1 = bb::StochasticLutBn<6>::Create(32);
-    auto layer_cnv1_sl0 = bb::StochasticLutBn<6>::Create(192);
-    auto layer_cnv1_sl1 = bb::StochasticLutBn<6>::Create(32);
-    auto layer_cnv2_sl0 = bb::StochasticLutBn<6>::Create(384);
-    auto layer_cnv2_sl1 = bb::StochasticLutBn<6>::Create(64);
-    auto layer_cnv3_sl0 = bb::StochasticLutBn<6>::Create(384);
-    auto layer_cnv3_sl1 = bb::StochasticLutBn<6>::Create(64);
-    auto layer_sl4      = bb::StochasticLutBn<6>::Create(512);
-    auto layer_sl5      = bb::StochasticLutBn<6>::Create(360);
-    auto layer_sl6      = bb::StochasticLutBn<6>::Create(60);
-    */
+    auto main_net = bb::Sequential::Create();
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3));
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3));
+    main_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
 
-    std::cout << "binary mode : " << binary_mode << std::endl;
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv2_sub, 3, 3));
+    main_net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3));
+    main_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
+    
+#if 1
+    main_net->Add(bb::SparseLutN<6, bb::Bit>::Create(18432));
+    main_net->Add(bb::SparseLutN<6, bb::Bit>::Create(3072));
+    main_net->Add(bb::SparseLutN<6, bb::Bit>::Create(512));
 
-    {
-        float bn_momentum = 0.01f;
+    main_net->Add(bb::SparseLutN<6, bb::Bit>::Create(2160));
+    main_net->Add(bb::SparseLutN<6, bb::Bit>::Create(360));
+    main_net->Add(bb::SparseLutN<6, bb::Bit>::Create(60));
+    main_net->Add(bb::SparseLutN<6, bb::Bit>::Create(10));
+#else
+    main_net->Add(bb::BinaryToReal<bb::Bit>::Create());
+    main_net->Add(bb::DenseAffine<>::Create(512));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::Binarize<bb::Bit>::Create());
 
-        auto cnv0_sub = bb::Sequential::Create();
-        cnv0_sub->Add(bb::StochasticLut6<>::Create(192));
-        cnv0_sub->Add(bb::StochasticBatchNormalization<>::Create(bn_momentum));
-        if ( binary_mode ) { cnv0_sub->Add(bb::Binarize<>::Create()); }
-        cnv0_sub->Add(bb::StochasticLut6<>::Create(32));
-        cnv0_sub->Add(bb::StochasticBatchNormalization<>::Create(bn_momentum));
-        if ( binary_mode ) { cnv0_sub->Add(bb::Binarize<>::Create()); }
+    main_net->Add(bb::BinaryToReal<bb::Bit>::Create());
+    main_net->Add(bb::DenseAffine<>::Create(10));
+    main_net->Add(bb::BatchNormalization<>::Create(bn_momentum));
+    main_net->Add(bb::Binarize<bb::Bit>::Create());
+#endif
 
-        auto cnv1_sub = bb::Sequential::Create();
-        cnv1_sub->Add(bb::StochasticLut6<>::Create(192));
-        cnv1_sub->Add(bb::StochasticBatchNormalization<>::Create(bn_momentum));
-        if ( binary_mode ) { cnv1_sub->Add(bb::Binarize<>::Create()); }
-        cnv1_sub->Add(bb::StochasticLut6<>::Create(32));
-        cnv1_sub->Add(bb::StochasticBatchNormalization<>::Create(bn_momentum));
-        if ( binary_mode ) { cnv1_sub->Add(bb::Binarize<>::Create()); }
+    // PWM
+#if 1
+    bb::BinaryModulation<bb::Bit, float>::create_t mod_create;
+    mod_create.layer                     = main_net;
+    mod_create.output_shape              = td.t_shape;
+    mod_create.training_modulation_size  = frame_mux_size;
+    mod_create.training_value_generator  = nullptr;
+    mod_create.inference_modulation_size = frame_mux_size;
+    mod_create.inference_value_generator = nullptr;
+    auto net = bb::BinaryModulation<bb::Bit, float>::Create(mod_create);
+#else
+    auto net = main_net;
+#endif
 
-        auto cnv2_sub = bb::Sequential::Create();
-        cnv2_sub->Add(bb::StochasticLut6<>::Create(384));
-        cnv2_sub->Add(bb::StochasticBatchNormalization<>::Create(bn_momentum));
-        if ( binary_mode ) { cnv2_sub->Add(bb::Binarize<>::Create()); }
-        cnv2_sub->Add(bb::StochasticLut6<>::Create(64));
-        cnv2_sub->Add(bb::StochasticBatchNormalization<>::Create(bn_momentum));
-        if ( binary_mode ) { cnv2_sub->Add(bb::Binarize<>::Create()); }
+    net->SetInputShape(td.x_shape);
 
-        auto cnv3_sub = bb::Sequential::Create();
-        cnv3_sub->Add(bb::StochasticLut6<>::Create(384));
-        cnv3_sub->Add(bb::StochasticBatchNormalization<>::Create(bn_momentum));
-        if ( binary_mode ) { cnv3_sub->Add(bb::Binarize<>::Create()); }
-        cnv3_sub->Add(bb::StochasticLut6<>::Create(64));
-        cnv3_sub->Add(bb::StochasticBatchNormalization<>::Create(bn_momentum));
-        if ( binary_mode ) { cnv3_sub->Add(bb::Binarize<>::Create()); }
-        
-        auto net = bb::Sequential::Create();
-        if ( binary_mode ) {  net->Add(bb::RealToBinary<>::Create(7)); }
-        net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
-        net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
-        net->Add(bb::MaxPooling<>::Create(2, 2));
-        net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
-        net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
-        net->Add(bb::MaxPooling<>::Create(2, 2));
-        net->Add(bb::StochasticLut6<>::Create(1024));
-        net->Add(bb::StochasticBatchNormalization<>::Create(bn_momentum));
-        if ( binary_mode ) { net->Add(bb::Binarize<>::Create()); }
-        net->Add(bb::StochasticLut6<>::Create(150));
-        net->Add(bb::StochasticBatchNormalization<>::Create(bn_momentum));
-        if ( binary_mode ) { net->Add(bb::Binarize<>::Create()); }
-        if ( binary_mode ) {
-            net->Add(bb::BinaryToReal<>::Create(td.t_shape, 7));
-        }
-        else {
-            net->Add(bb::Reduce<>::Create(td.t_shape));
-        }
-        net->SetInputShape(td.x_shape);
+    std::cout << "binary true" << std::endl;
+    net->SendCommand("binary true");
 
-        net->SendCommand("lut_binarize false");
 
-        // print model information
-        net->PrintInfo();
+    // print model information
+    net->PrintInfo();
 
-        // run fitting
-        bb::Runner<float>::create_t runner_create;
-        runner_create.name               = net_name;
-        runner_create.net                = net;
-        runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
-        runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
-        runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
-//      runner_create.optimizer          = bb::OptimizerAdaGrad<float>::Create();
-        runner_create.max_run_size       = max_run_size;    // ÀÛ‚Ì1‰ñ‚ÌÀsƒTƒCƒY
-        runner_create.file_read          = file_read;       // ‘O‚ÌŒvZŒ‹‰Ê‚ª‚ ‚ê‚Î“Ç‚İ‚ñ‚ÅÄŠJ‚·‚é‚©
-        runner_create.file_write         = true;            // ŒvZŒ‹‰Ê‚ğƒtƒ@ƒCƒ‹‚É•Û‘¶‚·‚é‚©
-        runner_create.print_progress     = true;            // “r’†Œ‹‰Ê‚ğ•\¦
-        runner_create.initial_evaluation = false; // file_read;       // ƒtƒ@ƒCƒ‹‚ğ“Ç‚ñ‚¾ê‡‚ÍÅ‰‚É•]‰¿‚µ‚Ä‚¨‚­
-        auto runner = bb::Runner<float>::Create(runner_create);
-        runner->Fitting(td, epoch_size, mini_batch_size);
-    }
+    std::cout << "-----------------------------------" << std::endl;
+    std::cout << "file_read          : " << file_read          << std::endl;
+    std::cout << "epoch_size         : " << epoch_size         << std::endl;
+    std::cout << "mini_batch_size    : " << mini_batch_size    << std::endl;
+    std::cout << "max_run_size       : " << max_run_size       << std::endl;
+    std::cout << "frame_mux_size     : " << frame_mux_size     << std::endl;
+    std::cout << "binary_mode        : " << binary_mode        << std::endl;
+
+    // run fitting
+    bb::Runner<float>::create_t runner_create;
+    runner_create.name               = net_name;
+    runner_create.net                = net;
+    runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<>::Create();
+    runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<>::Create();
+    runner_create.optimizer          = bb::OptimizerAdam<>::Create();
+    runner_create.max_run_size       = max_run_size;    // å®Ÿéš›ã®1å›ã®å®Ÿè¡Œã‚µã‚¤ã‚º
+    runner_create.file_read          = file_read;       // å‰ã®è¨ˆç®—çµæœãŒã‚ã‚Œã°èª­ã¿è¾¼ã‚“ã§å†é–‹ã™ã‚‹ã‹
+    runner_create.file_write         = true;            // è¨ˆç®—çµæœã‚’ãƒ•ã‚¡ã‚¤ãƒ«ã«ä¿å­˜ã™ã‚‹ã‹
+    runner_create.print_progress     = true;            // é€”ä¸­çµæœã‚’è¡¨ç¤º
+    runner_create.initial_evaluation = false;//true;            // ãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã‚“ã å ´åˆã¯æœ€åˆã«è©•ä¾¡ã—ã¦ãŠã
+    auto runner = bb::Runner<float>::Create(runner_create);
+    runner->Fitting(td, epoch_size, mini_batch_size);
 }
+
+#endif
 
 
 // end of file

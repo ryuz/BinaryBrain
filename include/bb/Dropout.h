@@ -65,7 +65,7 @@ public:
     
     
     // ノード単位でのForward計算
-    std::vector<FT> ForwardNode(index_t node, std::vector<FT> x_vec) const
+    std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
     {
         return x_vec;
     }

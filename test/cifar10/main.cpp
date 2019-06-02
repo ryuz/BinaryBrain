@@ -11,17 +11,19 @@
 #include <string.h>
 
 #ifdef BB_WITH_CUDA
-#include "bbcu/bbcu_util.h"
+#include "bbcu/bbcu.h"
 #endif
 
 
 void Cifar10DenseMlp(int epoch_size, int mini_batch_size, int max_run_size, bool binary_mode, bool file_read);
-void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, bool binary_mode, bool file_read);
+void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, bool binary_mode, bool file_read);
 void Cifar10StochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_size, int lut_frame_mux_size, bool binary_mode, bool file_read);
 void Cifar10StochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_size, int lut_frame_mux_size, bool binary_mode, bool file_read);
 void Cifar10MicroMlpLutMlp(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read);
 void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read);
-void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, bool binary_mode, bool file_read);
+void Cifar10Sparse6Cnn(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, bool binary_mode, bool file_read);
+
+void Cifar10DenseCnnTest(int epoch_size, int mini_batch_size, int max_run_size);
 
 
 // メイン関数
@@ -109,7 +111,6 @@ int main(int argc, char *argv[])
         max_run_size = mini_batch_size;
     }
 
-
     if ( netname == "All" || netname == "StochasticLutMlp" ) {
         Cifar10StochasticLut6Mlp(epoch_size, mini_batch_size, max_run_size, lut_frame_mux_size, binary_mode, file_read);
     }
@@ -131,12 +132,21 @@ int main(int argc, char *argv[])
     }
 
     if ( netname == "All" || netname == "DenseCnn" ) {
-        Cifar10DenseCnn(epoch_size, mini_batch_size, max_run_size, binary_mode, file_read);
+        Cifar10DenseCnn(epoch_size, mini_batch_size, max_run_size, frame_mux_size, binary_mode, file_read);
     }
 
     if ( netname == "All" || netname == "SparseCnn" ) {
-        Cifar10Sparse6Cnn(epoch_size, mini_batch_size, max_run_size, binary_mode, file_read);
+        Cifar10Sparse6Cnn(epoch_size, mini_batch_size, max_run_size, frame_mux_size, binary_mode, file_read);
     }
+
+    if ( netname == "All" || netname == "DenseCnnTest" ) {
+        Cifar10DenseCnnTest(epoch_size, mini_batch_size, max_run_size);
+    }
+
+
+#ifdef BB_WITH_CUDA
+    std::cout << "\nMaxAllocSize : " << bbcu::GetMaxAllocSize() << std::endl;
+#endif
 
     return 0;
 }

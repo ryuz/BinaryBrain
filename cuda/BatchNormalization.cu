@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <chrono>
 #include <algorithm>
 
@@ -23,7 +23,7 @@ __device__ __forceinline__ float device_fp32_LocalSum(float v, float *buf)
     buf[threadIdx.x] = v;
     __syncthreads();
 
-    // ƒXƒŒƒbƒhŠÔWŒv
+    // ã‚¹ãƒ¬ãƒƒãƒ‰é–“é›†è¨ˆ
     int comb = 1;
     while (comb < blockDim.x) {
         int next = comb * 2;
@@ -64,12 +64,12 @@ __global__ void kernal_fp32_BatchNormalization_ForwardTraining(
 {
     __shared__   float  buf[BBCU_BATCHNORM_FW_BLOCK_SIZE];
 
-    // ‰Šú‰»
+    // åˆæœŸåŒ–
     int const node    = blockIdx.x;
     int const id      = threadIdx.x;
     int const id_step = blockDim.x;
     
-    // ƒJƒnƒ“‚Ì‰ÁZƒAƒ‹ƒSƒŠƒYƒ€(Kahan summation algorithm)
+    // ã‚«ãƒãƒ³ã®åŠ ç®—ã‚¢ãƒ«ã‚´ãƒªã‚ºãƒ (Kahan summation algorithm)
     float s1 = 0, c1 = 0, y1, t1;
     float s2 = 0, c2 = 0, y2, t2;
     const float* x_ptr = &x_buf[frame_stride * node];
@@ -87,7 +87,7 @@ __global__ void kernal_fp32_BatchNormalization_ForwardTraining(
         s2 = t2;
     }
 
-    // WŒv
+    // é›†è¨ˆ
     s1 = device_fp32_LocalSum(s1, buf);
     s2 = device_fp32_LocalSum(s2, buf);
     float mean = s1 * reciprocal_frame_size;
@@ -101,7 +101,7 @@ __global__ void kernal_fp32_BatchNormalization_ForwardTraining(
         rstd_buf[node] = rstd;
     }
 
-    // ³‹K‰»
+    // æ­£è¦åŒ–
     float gamma = gamma_buf[node];
     float beta  = beta_buf[node];
     float* y_ptr = &y_buf[frame_stride * node];
@@ -154,6 +154,81 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_ForwardTraining
 
     return 0;
 }
+
+
+
+//////////////////////////////
+// ReForward
+//////////////////////////////
+
+__global__ void kernal_fp32_BatchNormalization_ReForward(
+            const float     *x_buf,
+            float           *y_buf,
+            float const     *gamma_buf,
+            float const     *beta_buf,
+            float const     *mean_buf,
+            float const     *rstd_buf,
+            int             frame_size,
+            int             frame_stride
+        )
+{
+    // åˆæœŸåŒ–
+    int const node    = blockIdx.x;
+    int const id      = threadIdx.x;
+    int const id_step = blockDim.x;
+
+    float mean  = mean_buf[node];
+    float rstd  = rstd_buf[node];
+    float gamma = gamma_buf[node];
+    float beta  = beta_buf[node];
+
+    float const *x_ptr = &x_buf[frame_stride * node];
+    float       *y_ptr = &y_buf[frame_stride * node];
+
+    for ( int frame = id; frame < frame_size; frame += id_step) {
+        float x = x_ptr[frame];
+        x = (x - mean) * rstd;
+        x = x * gamma + beta;
+        y_ptr[frame] = x;
+    }
+}
+
+
+BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_ReForward
+        (
+            float const     *dev_x_buf,
+            float           *dev_y_buf,
+            float const     *dev_gamma_buf,
+            float const     *dev_beta_buf,
+            float const     *dev_mean_buf,
+            float const     *dev_rstd_buf,
+            int             node_size,  
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId
+        )
+{
+    BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
+
+    dim3    grid(node_size);
+    dim3    block(BBCU_BATCHNORM_FW_BLOCK_SIZE);
+
+    kernal_fp32_BatchNormalization_ReForward<<<grid, block, 0, streamId>>>
+        (
+            dev_x_buf,
+            dev_y_buf,
+            dev_gamma_buf,
+            dev_beta_buf,
+            dev_mean_buf,
+            dev_rstd_buf,
+            frame_size,
+            frame_stride
+        );
+    BB_CUDA_CHECK_LAST_ERROR();
+
+    return 0;
+}
+
 
 
 //////////////////////////////
@@ -212,18 +287,26 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_ForwardInference
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
-    dim3    block;
-    dim3    grid;
+    unsigned int const THREAD_SIZE    = 1024;
+    unsigned int const MAX_FRAME_UNIT = 1024;
+    unsigned int const MAX_NODE_UNIT  = 1024;
 
-    block.x = std::min(frame_size, 1024);
-    block.y = std::min(node_size, 1024);
-    while (block.y > 1 && block.x * block.y > 1024) {
-        block.y = (block.y + 1) / 2;
-    }
-    grid.x = 1;
-    grid.y = (node_size  + (block.y - 1)) /  block.y;
+#if 1
+    dim3    block(MAX_FRAME_UNIT, THREAD_SIZE / MAX_FRAME_UNIT);
+    while ( (int)block.x / 2 >= frame_size ) { block.x /= 2; block.y *= 2; }
+    while ( (int)block.y / 2 >= node_size  ) { block.y /= 2; }
+#else
+    dim3    block(THREAD_SIZE / MAX_NODE_UNIT, MAX_NODE_UNIT);
+    while ( (int)block.y / 2 >= node_size  ) { block.y /= 2; block.x *= 2;}
+    while ( (int)block.x / 2 >= frame_size ) { block.x /= 2; }
+#endif
+
+    block.x = std::min(block.x, MAX_FRAME_UNIT);
+    block.y = std::min(block.y, MAX_NODE_UNIT);
+    dim3    grid(1, (node_size + (block.y - 1)) / block.y);
     
-    kernal_fp32_BatchNormalization_ForwardInference<<<grid, block, 0, streamId>>>(
+    kernal_fp32_BatchNormalization_ForwardInference<<<grid, block, 0, streamId>>>
+        (
             dev_x_buf,
             dev_y_buf,
             dev_gamma_buf,
@@ -263,7 +346,7 @@ __global__ void kernal_fp32_BatchNormalization_Backward
 {
     __shared__   float  buf[BBCU_BATCHNORM_BW_BLOCK_SIZE];
 
-    // ‰Šú‰»
+    // åˆæœŸåŒ–
     int const node    = blockIdx.x;
     int const id      = threadIdx.x;
     int const id_step = blockDim.x;

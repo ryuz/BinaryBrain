@@ -1,4 +1,4 @@
-
+﻿
 # target
 TARGET  = sample-cifar10
 SUB_TARGETS =
@@ -22,23 +22,29 @@ CC = g++
 #CC ?= clang++
 endif
 
-CFLAGS = -O2 -mavx2 -mfma -fopenmp -std=c++14
-#CFLAGS = -O1 -mavx2 -mfma -std=c++14
-CINCS  = -I../../include -I../../eigen
+CFLAGS = -mavx2 -mfma -fopenmp -std=c++14
+CINCS  = -I../../include
 CDEFS  = 
 
 SRCS   = main.cpp
-SRCS  += Cifar10StochasticLut6Cnn.cpp
-SRCS  += Cifar10StochasticLut6Mlp.cpp
+SRCS  += Cifar10StochasticLutCnn.cpp
+SRCS  += Cifar10StochasticLutMlp.cpp
+SRCS  += Cifar10SparseLutMlp.cpp
+SRCS  += Cifar10SparseLutCnn.cpp
 SRCS  += Cifar10MicroMlpLutMlp.cpp
 SRCS  += Cifar10MicroMlpLutCnn.cpp
 SRCS  += Cifar10DenseMlp.cpp
 SRCS  += Cifar10DenseCnn.cpp
-SRCS  += Cifar10Sparse6Cnn.cpp
 
 OBJS = $(addsuffix .o, $(basename $(SRCS)))
 
 LIBS = 
+
+ifeq ($(DEBUG),Yes)
+CFLAGS += -O0 -g
+else
+CFLAGS += -O2
+endif
 
 ifeq ($(WITH_CEREAL),Yes)
 CDEFS      += -DBB_WITH_CEREAL
@@ -76,6 +82,10 @@ $(TARGET): $(OBJS) $(LIBS)
 .cpp.o:
 	$(CC) $(CFLAGS) $(CINCS) $(CDEFS) -c $<
 
+depend: $(SRCS)
+	$(CC) -M $(CFLAGS) $(CINCS) $(CDEFS) $^ > $@
+
+include depend
 
 
 # cifar-10 binary data

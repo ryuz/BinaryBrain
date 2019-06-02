@@ -12,15 +12,14 @@
 
 
 #include "bb/Manager.h"
-#include "bb/Layer.h"
+#include "bb/Model.h"
 
 
 namespace bb {
 
 
 // Activation
-template <typename FT = float, typename BT = float>
-class Activation : public Layer<FT, BT>
+class Activation : public Model
 {
 protected:
     indices_t   m_shape;    //< 入出力の形状 

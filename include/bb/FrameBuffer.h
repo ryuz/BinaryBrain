@@ -45,7 +45,6 @@ namespace bb {
 //  の２種類があるので注意すること
 
 
-#if 1
 
 // -------------------------------------
 //  アクセス用ポインタクラス定義
@@ -174,6 +173,7 @@ protected:
 protected:
     inline void *GetNodeBaseAddr(index_t node)
     {
+        BB_DEBUG_ASSERT(node >= 0 && node < m_buf->GetNodeSize());
         auto addr = (std::uint8_t *)m_ptr.GetAddr();
         return addr + (m_buf->m_frame_stride * node);
     }
@@ -261,7 +261,6 @@ public:
         return Add(frame, GetNodeIndex(i2, i1, i0), value);
     }
 };
-#endif
 
 
 
@@ -353,7 +352,7 @@ public:
 
         return clone_buf;
     }
-    
+
     bool IsHostOnly(void) const
     {
         return m_tensor.IsHostOnly();
@@ -416,7 +415,104 @@ public:
     {
         Resize(buf.GetType(), buf.GetFrameSize(), buf.GetShape());
     }
+    
+    template <typename T>
+    void CopyTo_(FrameBuffer& dst, index_t frame_size = 0, index_t src_frame_offset = 0, index_t dst_frame_offset = 0,
+                    index_t node_size = 0, index_t src_node_offset = 0, index_t dst_node_offset = 0) const
+    {
+         auto dst_ptr = dst.Lock<T>();
+         auto src_ptr = LockConst<T>();
+         for ( index_t node = 0; node < node_size; ++node) {
+             for ( index_t frame = 0; frame < frame_size; ++frame) {
+                 dst_ptr.Set(frame + dst_frame_offset, node + dst_node_offset, src_ptr.Get(frame + src_frame_offset, node + src_node_offset));
+             }
+         }
+    }
 
+    /**
+     * @brief  コピー
+     * @detail コピーを行う
+     */
+    void CopyTo(FrameBuffer& dst, index_t frame_size = 0, index_t src_frame_offset=0, index_t dst_frame_offset=0,
+                index_t node_size = 0,index_t src_node_offset=0, index_t dst_node_offset=0) const
+    {
+        BB_ASSERT(dst.GetType() == GetType());
+
+        if ( node_size <= 0) {
+            node_size = std::min(dst.GetNodeSize() - dst_node_offset, GetFrameSize() - src_node_offset);
+        }
+        if ( frame_size <= 0) {
+            frame_size = std::min(dst.GetFrameSize() - dst_frame_offset, GetFrameSize() - dst_frame_offset);
+        }
+
+        BB_ASSERT(frame_size + src_frame_offset <= GetFrameSize());
+        BB_ASSERT(frame_size + dst_frame_offset <= dst.GetFrameSize());
+        BB_ASSERT(node_size + src_node_offset <= GetNodeSize());
+        BB_ASSERT(node_size + dst_node_offset <= dst.GetNodeSize());
+
+#ifdef BB_WITH_CUDA
+        if (dst.IsDeviceAvailable() && IsDeviceAvailable()) {
+            if ( DataType_GetBitSize(GetType()) == 32 ) {
+                auto dst_ptr = dst.LockDeviceMemory();
+                auto src_ptr = LockDeviceMemoryConst();
+                bbcu_int32_FrameBufferCopy
+                    (
+                        (int       *)dst_ptr.GetAddr(),
+                        (int const *)src_ptr.GetAddr(),
+                        (int        )node_size,
+                        (int        )dst_node_offset,
+                        (int        )src_node_offset,
+                        (int        )frame_size,
+                        (int        )dst_frame_offset,
+                        (int        )src_frame_offset,
+                        (int        )(dst.GetFrameStride() / 4),
+                        (int        )(GetFrameStride() / 4)
+                    );
+                return;
+            }
+
+            if ( DataType_GetBitSize(GetType()) == 1 ) {
+                BB_ASSERT(dst_frame_offset % 32 == 0);
+                BB_ASSERT(src_frame_offset % 32 == 0);
+                BB_ASSERT(frame_size % 32 == 0);
+
+                auto dst_ptr = dst.LockDeviceMemory();
+                auto src_ptr = LockDeviceMemoryConst();
+                bbcu_int32_FrameBufferCopy
+                    (
+                        (int       *)dst_ptr.GetAddr(),
+                        (int const *)src_ptr.GetAddr(),
+                        (int        )node_size,
+                        (int        )dst_node_offset,
+                        (int        )src_node_offset,
+                        (int        )(frame_size / 32),
+                        (int        )(dst_frame_offset / 32),
+                        (int        )(src_frame_offset / 32),
+                        (int        )(dst.GetFrameStride() / 4),
+                        (int        )(GetFrameStride() / 4)
+                    );
+                return;
+            }
+        }
+#endif
+
+        switch ( GetType() ) {
+        case BB_TYPE_BIT:    CopyTo_<Bit     >(dst, frame_size, src_frame_offset, dst_frame_offset, node_size, src_node_offset, dst_node_offset); return;
+        case BB_TYPE_FP32:   CopyTo_<float   >(dst, frame_size, src_frame_offset, dst_frame_offset, node_size, src_node_offset, dst_node_offset); return;
+        case BB_TYPE_FP64:   CopyTo_<double  >(dst, frame_size, src_frame_offset, dst_frame_offset, node_size, src_node_offset, dst_node_offset); return;
+        case BB_TYPE_INT8:   CopyTo_<int8_t  >(dst, frame_size, src_frame_offset, dst_frame_offset, node_size, src_node_offset, dst_node_offset); return;
+        case BB_TYPE_INT16:  CopyTo_<int16_t >(dst, frame_size, src_frame_offset, dst_frame_offset, node_size, src_node_offset, dst_node_offset); return;
+        case BB_TYPE_INT32:  CopyTo_<int32_t >(dst, frame_size, src_frame_offset, dst_frame_offset, node_size, src_node_offset, dst_node_offset); return;
+        case BB_TYPE_INT64:  CopyTo_<int64_t >(dst, frame_size, src_frame_offset, dst_frame_offset, node_size, src_node_offset, dst_node_offset); return;
+        case BB_TYPE_UINT8:  CopyTo_<uint8_t >(dst, frame_size, src_frame_offset, dst_frame_offset, node_size, src_node_offset, dst_node_offset); return;
+        case BB_TYPE_UINT16: CopyTo_<uint16_t>(dst, frame_size, src_frame_offset, dst_frame_offset, node_size, src_node_offset, dst_node_offset); return;
+        case BB_TYPE_UINT32: CopyTo_<uint32_t>(dst, frame_size, src_frame_offset, dst_frame_offset, node_size, src_node_offset, dst_node_offset); return;
+        case BB_TYPE_UINT64: CopyTo_<uint64_t>(dst, frame_size, src_frame_offset, dst_frame_offset, node_size, src_node_offset, dst_node_offset); return;
+        }
+        
+        // 他は必要なときに足す
+        BB_ASSERT(0);
+    }
 
 
     // -------------------------------------

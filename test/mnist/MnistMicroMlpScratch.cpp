@@ -136,7 +136,7 @@ public:
     {
         dy = m_affine3->Backward(dy);
         dy = m_activate2->Backward(dy);
-        dy = m_affine2->Backward(dy);
+        dy = m_affine2->Backward(dy); 
         dy = m_activate1->Backward(dy);
         dy = m_affine1->Backward(dy);
         dy = m_activate0->Backward(dy);

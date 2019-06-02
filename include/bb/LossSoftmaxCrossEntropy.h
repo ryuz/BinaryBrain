@@ -22,7 +22,7 @@ template <typename T = float>
 class LossSoftmaxCrossEntropy : public LossFunction
 {
 protected:
-    FrameBuffer m_dy;
+//    FrameBuffer m_dy;
     Tensor_<T>  m_loss_buf;
     Tensor_<T>  m_loss;
     index_t     m_frames = 0;
@@ -54,18 +54,19 @@ public:
         return (double)loss_ptr[0] / (double)m_frames;
     }
 
-    FrameBuffer CalculateLoss(FrameBuffer y, FrameBuffer t, index_t batch_size)
+    FrameBuffer CalculateLoss(FrameBuffer y_buf, FrameBuffer t_buf, index_t batch_size)
     {
-        m_dy.Resize(y.GetType(), y.GetFrameSize(), y.GetShape());
-        m_loss_buf.Resize(y.GetFrameSize());
+        FrameBuffer dy_buf(y_buf.GetType(), y_buf.GetFrameSize(), y_buf.GetShape());
+
+        m_loss_buf.Resize(y_buf.GetFrameSize());
 
 #ifdef BB_WITH_CUDA
         if ( DataType<T>::type == BB_TYPE_FP32
-                && y.IsDeviceAvailable() && m_dy.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+                && y_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
 
-            auto y_ptr        = y.LockDeviceMemoryConst();
-            auto t_ptr        = t.LockDeviceMemoryConst();
-            auto dy_ptr       = m_dy.LockDeviceMemory(true);
+            auto y_ptr        = y_buf.LockDeviceMemoryConst();
+            auto t_ptr        = t_buf.LockDeviceMemoryConst();
+            auto dy_ptr       = dy_buf.LockDeviceMemory(true);
             auto loss_buf_ptr = m_loss_buf.LockDeviceMemory(true);
             auto loss_ptr     = m_loss.LockDeviceMemory();
 
@@ -76,27 +77,28 @@ public:
                     (float       *)dy_ptr.GetAddr(),
                     (float       *)loss_buf_ptr.GetAddr(),
                     (float       *)loss_ptr.GetAddr(),
-                    (int          )y.GetNodeSize(),
-                    (int          )y.GetFrameSize(),
-                    (int          )(y.GetFrameStride() / sizeof(float)),
+                    (int          )y_buf.GetNodeSize(),
+                    (int          )y_buf.GetFrameSize(),
+                    (int          )(y_buf.GetFrameStride() / sizeof(float)),
                     (int          )batch_size
                 );
 
-            m_frames += y.GetFrameSize();
-            return m_dy;
+            m_frames += y_buf.GetFrameSize();
+
+            return dy_buf;
         }
 #endif
 
         {
-            index_t frame_size = y.GetFrameSize();
-            index_t node_size = y.GetNodeSize();
-            index_t stride_size = y.GetFrameStride() / sizeof(T);
+            index_t frame_size  = y_buf.GetFrameSize();
+            index_t node_size   = y_buf.GetNodeSize();
+            index_t stride_size = y_buf.GetFrameStride() / sizeof(T);
 
-            auto y_ptr = y.LockConst<T>();
-            auto t_ptr = t.LockConst<T>();
-            auto dy_ptr = m_dy.Lock<T>(true);
+            auto y_ptr  = y_buf.LockConst<T>();
+            auto t_ptr  = t_buf.LockConst<T>();
+            auto dy_ptr = dy_buf.Lock<T>(true);
             auto loss_buf_ptr = m_loss_buf.Lock(true);
-            auto loss_ptr = m_loss.Lock();
+            auto loss_ptr     = m_loss.Lock();
 
             #pragma omp parallel for
             for (index_t frame = 0; frame < frame_size; ++frame) {
@@ -137,7 +139,7 @@ public:
             loss_ptr[0] += -loss_sum;
             m_frames    += frame_size;
 
-            return m_dy;
+            return dy_buf;
         }
     }
 };

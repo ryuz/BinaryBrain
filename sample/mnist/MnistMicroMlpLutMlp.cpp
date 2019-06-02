@@ -7,31 +7,21 @@
 
 
 #include <iostream>
-#include <fstream>
-#include <numeric>
-#include <random>
-#include <chrono>
 
-#include "bb/RealToBinary.h"
-#include "bb/BinaryToReal.h"
+#include "bb/Sequential.h"
+#include "bb/BinaryModulation.h"
+#include "bb/Reduce.h"
 #include "bb/MicroMlp.h"
 #include "bb/BinaryLutN.h"
-#include "bb/BatchNormalization.h"
-#include "bb/ReLU.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
 #include "bb/MetricsCategoricalAccuracy.h"
 #include "bb/OptimizerAdam.h"
-#include "bb/OptimizerSgd.h"
-#include "bb/LoadMnist.h"
-#include "bb/ShuffleSet.h"
-#include "bb/Utility.h"
-#include "bb/Sequential.h"
 #include "bb/Runner.h"
+#include "bb/LoadMnist.h"
 #include "bb/ExportVerilog.h"
 
 
-// MNIST CNN with LUT networks
-void MnistMicroMlpLutMlp(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
+void MnistMicroMlpLutMlp(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
     std::string net_name = "MnistMicroMlpLutMlp";
 
@@ -40,28 +30,51 @@ void MnistMicroMlpLutMlp(int epoch_size, int mini_batch_size, int max_run_size, 
     auto td = bb::LoadMnist<>::Load(10, 64, 32);
     std::cout << "!!! debug mode !!!" << std::endl;
 #else
-    auto td = bb::LoadMnist<>::Load(10);
+    auto td = bb::LoadMnist<>::Load();
 #endif
 
-    auto layer_mm0 = bb::MicroMlp<>::Create({1024});
-    auto layer_mm1 = bb::MicroMlp<>::Create({480});
-    auto layer_mm2 = bb::MicroMlp<>::Create({70});
+    auto layer_mm0 = bb::MicroMlp<6, 16, float>::Create(1024);
+    auto layer_mm1 = bb::MicroMlp<6, 16, float>::Create(480);
+    auto layer_mm2 = bb::MicroMlp<6, 16, float>::Create(70);
 
     {
+        std::cout << "\n<Training>" << std::endl;
+
+        // main network
+        auto main_net = bb::Sequential::Create();
+        main_net->Add(layer_mm0);
+        main_net->Add(layer_mm1);
+        main_net->Add(layer_mm2);
+
+        // modulation wrapper
         auto net = bb::Sequential::Create();
-        net->Add(bb::RealToBinary<>::Create(frame_mux_size));
-        net->Add(layer_mm0);
-        net->Add(layer_mm1);
-        net->Add(layer_mm2);
-        net->Add(bb::BinaryToReal<float, float>::Create({10}, frame_mux_size));
+        net->Add(bb::BinaryModulation<float>::Create(main_net, train_modulation_size, test_modulation_size));
+        net->Add(bb::Reduce<float>::Create(td.t_shape));
+
+        // set input shape
         net->SetInputShape(td.x_shape);
 
+        // set binary mode
         if ( binary_mode ) {
             net->SendCommand("binary true");
-            std::cout << "binary mode" << std::endl;
+        }
+        else {
+            net->SendCommand("binary false");
         }
 
+        // print model information
         net->PrintInfo();
+
+        std::cout << "-----------------------------------" << std::endl;
+        std::cout << "epoch_size            : " << epoch_size            << std::endl;
+        std::cout << "mini_batch_size       : " << mini_batch_size       << std::endl;
+        if ( binary_mode ) {
+        std::cout << "train_modulation_size : " << train_modulation_size << std::endl;
+        std::cout << "test_modulation_size  : " << test_modulation_size  << std::endl;
+        }
+        std::cout << "binary_mode           : " << binary_mode           << std::endl;
+        std::cout << "file_read             : " << file_read             << std::endl;
+        std::cout << "-----------------------------------" << std::endl;
 
         // fitting
         bb::Runner<float>::create_t runner_create;
@@ -70,7 +83,6 @@ void MnistMicroMlpLutMlp(int epoch_size, int mini_batch_size, int max_run_size, 
         runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
         runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
-        runner_create.max_run_size       = max_run_size;    // 実際の1回の実行サイズ
         runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
         runner_create.file_write         = true;            // 計算結果をファイルに保存するか
         runner_create.print_progress     = true;            // 途中結果を表示
@@ -80,30 +92,38 @@ void MnistMicroMlpLutMlp(int epoch_size, int mini_batch_size, int max_run_size, 
     }
 
     {
+        std::cout << "\n<Evaluation binary LUT-Network>" << std::endl;
+
         // LUT-network
-        auto layer_lut0 = bb::BinaryLutN<>::Create(layer_mm0->GetOutputShape());
-        auto layer_lut1 = bb::BinaryLutN<>::Create(layer_mm1->GetOutputShape());
-        auto layer_lut2 = bb::BinaryLutN<>::Create(layer_mm2->GetOutputShape());
+        auto layer_bl0 = bb::BinaryLutN<>::Create(layer_mm0->GetOutputShape());
+        auto layer_bl1 = bb::BinaryLutN<>::Create(layer_mm1->GetOutputShape());
+        auto layer_bl2 = bb::BinaryLutN<>::Create(layer_mm2->GetOutputShape());
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
-        lut_net->Add(layer_lut0);
-        lut_net->Add(layer_lut1);
-        lut_net->Add(layer_lut2);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({10}, lut_frame_mux_size));
-        lut_net->SetInputShape(td.x_shape);
+        lut_net->Add(layer_bl0);
+        lut_net->Add(layer_bl1);
+        lut_net->Add(layer_bl2);
+
+        // evaluation network
+        auto eval_net = bb::Sequential::Create();
+        eval_net->Add(bb::BinaryModulation<bb::Bit>::Create(lut_net, test_modulation_size));
+        eval_net->Add(bb::Reduce<>::Create(td.t_shape));
+
+        // set input shape
+        eval_net->SetInputShape(td.x_shape);
 
         // テーブル化して取り込み(SetInputShape後に取り込みが必要)
-        std::cout << "parameter copy to LUT-Network" << std::endl;
-        layer_lut0->ImportLayer<float, float>(layer_mm0);
-        layer_lut1->ImportLayer<float, float>(layer_mm1);
-        layer_lut2->ImportLayer<float, float>(layer_mm2);
+        std::cout << "parameter copy to binary LUT-Network" << std::endl;
+        layer_bl0->ImportLayer(layer_mm0);
+        layer_bl1->ImportLayer(layer_mm1);
+        layer_bl2->ImportLayer(layer_mm2);
 
         // 評価
         if ( 1 ) {
+            std::cout << "test_modulation_size  : " << test_modulation_size  << std::endl;
             bb::Runner<float>::create_t lut_runner_create;
             lut_runner_create.name           = "Lut_" + net_name;
-            lut_runner_create.net            = lut_net;
+            lut_runner_create.net            = eval_net;
             lut_runner_create.lossFunc       = bb::LossSoftmaxCrossEntropy<float>::Create();
             lut_runner_create.metricsFunc    = bb::MetricsCategoricalAccuracy<float>::Create();
             lut_runner_create.optimizer      = bb::OptimizerAdam<float>::Create();

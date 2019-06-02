@@ -1,4 +1,4 @@
-#include <iostream>
+Ôªø#include <iostream>
 #include <chrono>
 #include <algorithm>
 
@@ -7,13 +7,14 @@
 
 #include "bbcu/bbcu.h"
 #include "bbcu/bbcu_util.h"
-
+#include "Common.cuh"
 
 
 #define BBCU_BATCHNORM_FW_BLOCK_SIZE   128
 #define BBCU_BATCHNORM_BW_BLOCK_SIZE   128
 
 
+/*
 //////////////////////////////
 // common
 //////////////////////////////
@@ -23,7 +24,7 @@ __device__ __forceinline__ float device_fp32_LocalSum(float v, float *buf)
     buf[threadIdx.x] = v;
     __syncthreads();
 
-    // ÉXÉåÉbÉhä‘èWåv
+    // „Çπ„É¨„ÉÉ„ÉâÈñìÈõÜË®à
     int comb = 1;
     while (comb < blockDim.x) {
         int next = comb * 2;
@@ -40,7 +41,7 @@ __device__ __forceinline__ float device_fp32_LocalSum(float v, float *buf)
     
     return sum;
 }
-
+*/
 
 
 //////////////////////////////
@@ -64,19 +65,19 @@ __global__ void kernal_fp32_StochasticBatchNormalization_ForwardTraining(
 {
     __shared__   float  buf[BBCU_BATCHNORM_FW_BLOCK_SIZE];
 
-    // èâä˙âª
+    // ÂàùÊúüÂåñ
     int const node    = blockIdx.x;
     int const id      = threadIdx.x;
     int const id_step = blockDim.x;
     
     const float* x_ptr = &x_buf[frame_stride * node];
 
-#if 1
-    // ÉJÉnÉìÇÃâ¡éZÉAÉãÉSÉäÉYÉÄ(Kahan summation algorithm)
+    // „Ç´„Éè„É≥„ÅÆÂä†ÁÆó„Ç¢„É´„Ç¥„É™„Ç∫„É†(Kahan summation algorithm)
     float s1 = 0, c1 = 0, y1, t1;
     float s2 = 0, c2 = 0, y2, t2;
     for ( int frame = id; frame < frame_size; frame += id_step) {
         float x = x_ptr[frame];
+//      printf("StochasticBatchNorm frame=%d node=%d x=%f\n", frame, node, x);
 
         y1 = x - c1;
         t1 = s1 + y1;
@@ -91,48 +92,33 @@ __global__ void kernal_fp32_StochasticBatchNormalization_ForwardTraining(
     s1 = device_fp32_LocalSum(s1, buf);
     s2 = device_fp32_LocalSum(s2, buf);
     float mean = s1 * reciprocal_frame_size;
-    float var = max(1.0e-7f, (s2 * reciprocal_frame_size) - (mean * mean));
-#else
-    // ïΩãœ
-    float mean = 0;
-    for ( int frame = id; frame < frame_size; frame += id_step) {
-        float x = x_ptr[frame];
-        mean += x;
-    }
-    mean = device_fp32_LocalSum(mean, buf);
-    mean *= reciprocal_frame_size;
-
-//  mean = 0.5; // ïΩãœÇ0.5Ç…å≈íËÇµÇƒÇ›ÇÈÉeÉXÉg Å® ÇæÇﬂ
-
-    // ï™éU
-    float var = 0;
-    for ( int frame = id; frame < frame_size; frame += id_step) {
-        float x = x_ptr[frame];
-        float xc = x - mean; 
-        var += xc * xc;
-    }
-    var = device_fp32_LocalSum(var, buf);
-    var *= reciprocal_frame_size;
-#endif
-//  var = 1.0*1.0;  // ïWèÄïŒç∑Ç1.0Ç…å≈íËÇµÇƒÇ›ÇÈÉeÉXÉg Å® ÇæÇﬂ
-
+    float var  = max(1.0e-5f, (s2 * reciprocal_frame_size) - (mean * mean));
     float rstd = rsqrt(var);
 
-    // èëÇ´çûÇ›
+//  if ( id == 0 ) {
+//      printf("[1] n=%3d s1=%10f s2=%10f mean=%10f var=%10f rstd=%10f\n", node, s1, s2, mean, var, rstd);
+//      printf("1\t%3d\t%.20e\t%.20e\t%.20e\t%.20e\t%.20e\n", node, s1, s2, mean, var, rstd);
+//  }
+
+    // Êõ∏„ÅçËæº„Åø
     if (id == 0) {
         running_mean_buf[node] = running_mean_buf[node] * momentum + mean * (1.0f - momentum);
-        running_var_buf[node] = running_var_buf[node] * momentum + var * (1.0f - momentum);
+        running_var_buf[node]  = running_var_buf[node]  * momentum + var  * (1.0f - momentum);
         mean_buf[node] = mean;
         rstd_buf[node] = rstd;
+
+//      printf("[StochasticBatchNormalization] node=%d mean=%f rstd=%f\n", node, mean, rstd);
     }
 
-    // ê≥ãKâª
+    // Ê≠£Ë¶èÂåñ
     float* y_ptr = &y_buf[frame_stride * node];
     for ( int frame = id; frame < frame_size; frame += id_step) {
         float x = x_ptr[frame];
         x = (x - mean) * rstd;
         x = x * gamma + beta;
         y_ptr[frame] = x;
+
+//      printf("[StochasticBatchNormalization] frame=%d node=%d y=%f\n", frame, node, x);
     }
 }
 
@@ -179,6 +165,79 @@ BBCU_DLL_EXPORT int bbcu_fp32_StochasticBatchNormalization_ForwardTraining
 }
 
 
+
+//////////////////////////////
+// ReForward
+//////////////////////////////
+
+__global__ void kernal_fp32_StochasticBatchNormalization_ReForward(
+            const float     *x_buf,
+            float           *y_buf,
+            float const     *mean_buf,
+            float const     *rstd_buf,
+            float           gamma,
+            float           beta,
+            int             frame_size,
+            int             frame_stride
+        )
+{
+    // ÂàùÊúüÂåñ
+    int const node    = blockIdx.x;
+    int const id      = threadIdx.x;
+    int const id_step = blockDim.x;
+
+    float mean  = mean_buf[node];
+    float rstd  = rstd_buf[node];
+
+    float const *x_ptr = &x_buf[frame_stride * node];
+    float       *y_ptr = &y_buf[frame_stride * node];
+
+    for ( int frame = id; frame < frame_size; frame += id_step) {
+        float x = x_ptr[frame];
+        x = (x - mean) * rstd;
+        x = x * gamma + beta;
+        y_ptr[frame] = x;
+    }
+}
+
+
+BBCU_DLL_EXPORT int bbcu_fp32_StochasticBatchNormalization_ReForward
+        (
+            float const     *dev_x_buf,
+            float           *dev_y_buf,
+            float const     *dev_mean_buf,
+            float const     *dev_rstd_buf,
+            float           gamma,
+            float           beta,
+            int             node_size,  
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId
+        )
+{
+    BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
+
+    dim3    grid(node_size);
+    dim3    block(BBCU_BATCHNORM_FW_BLOCK_SIZE);
+
+    kernal_fp32_StochasticBatchNormalization_ReForward<<<grid, block, 0, streamId>>>
+        (
+            dev_x_buf,
+            dev_y_buf,
+            dev_mean_buf,
+            dev_rstd_buf,
+            gamma,
+            beta,
+            frame_size,
+            frame_stride
+        );
+    BB_CUDA_CHECK_LAST_ERROR();
+
+    return 0;
+}
+
+
+
 //////////////////////////////
 // Forward Inference
 //////////////////////////////
@@ -206,13 +265,13 @@ __global__ void kernal_fp32_StochasticBatchNormalization_ForwardInference(
     float mean  = running_mean_buf[node];
     float var   = running_var_buf[node];
 
-    var = 1.0 / (sqrt(var) + 1.0e-7);
+    float rstd = 1.0 / (sqrt(var) + 1.0e-7);
 
     float const *x_ptr = &x_buf[frame_stride * node];
     float       *y_ptr = &y_buf[frame_stride * node];
     for ( int frame = id; frame < frame_size; frame += id_step )  {
         float x = x_ptr[frame];
-        y_ptr[frame] = ((x - mean) * var) * gamma + beta;
+        y_ptr[frame] = ((x - mean) * rstd) * gamma + beta;
     }
 }
 
@@ -277,12 +336,13 @@ __global__ void kernal_fp32_StochasticBatchNormalization_Backward
             float       gamma,
             float       reciprocal_frame_size,
             int         frame_size,
-            int         frame_stride
+            int         frame_stride,
+            int         x_frame_stride
         )
 {
     __shared__   float  buf[BBCU_BATCHNORM_BW_BLOCK_SIZE];
 
-    // èâä˙âª
+    // ÂàùÊúüÂåñ
     int const node    = blockIdx.x;
     int const id      = threadIdx.x;
     int const id_step = blockDim.x;
@@ -295,7 +355,7 @@ __global__ void kernal_fp32_StochasticBatchNormalization_Backward
     
     float rstd2 = rstd * rstd;
 
-    float const * const x_ptr  = &x_buf[node * frame_stride];
+    float const * const x_ptr  = &x_buf[node * x_frame_stride];
     float const * const dy_ptr = &dy_buf[node * frame_stride];
 
     for ( int frame = id; frame < frame_size; frame += id_step) {
@@ -305,8 +365,10 @@ __global__ void kernal_fp32_StochasticBatchNormalization_Backward
 //      float xn = xc * rstd;
 
         float dxn = gamma * dy;
-        dstd += -(dxn * xc * rstd2);
+        dstd   += -(dxn * xc * rstd2);
         dmeanx += -(dxn * rstd);
+
+//      printf("[StochasticBatchNormalization bw] frame=%d node=%d x=%f dy=%f\n", frame, node, x, dy);
     }
 
     dstd   = device_fp32_LocalSum(dstd, buf);
@@ -341,6 +403,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_StochasticBatchNormalization_Backward
             int             node_size,
             int             frame_size,
             int             frame_stride,
+            int             x_frame_stride,
             cudaStream_t    streamId
         )
 {
@@ -359,7 +422,8 @@ BBCU_DLL_EXPORT int bbcu_fp32_StochasticBatchNormalization_Backward
             gamma,
             reciprocal_frame_size,
             frame_size,
-            frame_stride
+            frame_stride,
+            x_frame_stride
         );
     BB_CUDA_CHECK_LAST_ERROR();
 

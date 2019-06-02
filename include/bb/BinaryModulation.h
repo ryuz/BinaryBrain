@@ -19,49 +19,97 @@
 namespace bb {
 
 
-template <typename FRT = float, typename FBT = float, typename BT = float>
+template <typename BinType = float, typename RealType = float>
 class BinaryModulation : public Model
 {
     using _super = Model;
 
 protected:
+    bool                                                m_binary_mode = true;
+    bool                                                m_training;
+    index_t                                             m_modulation_size = 1;
 
     // 3層で構成
-    std::shared_ptr< RealToBinary<FRT, FBT, BT> >   m_real2bin;
-    std::shared_ptr< Model                      >   m_layer;
-    std::shared_ptr< BinaryToReal<FBT, FRT, BT> >   m_bin2real;
+    std::shared_ptr< RealToBinary<BinType, RealType> >  m_real2bin;
+    std::shared_ptr< Model >                            m_layer;
+    std::shared_ptr< BinaryToReal<BinType, RealType> >  m_bin2real;
+
+    typename RealToBinary<BinType, RealType>::create_t  m_training_create;
+    typename RealToBinary<BinType, RealType>::create_t  m_inference_create;
     
+public:
+    struct create_t
+    {
+        std::shared_ptr<Model>                      layer;
+        indices_t                                   output_shape;
+        
+        index_t                                     training_modulation_size  = 1;
+        std::shared_ptr< ValueGenerator<RealType> > training_value_generator;
+        bool                                        training_framewise        = true;
+        RealType                                    training_input_range_lo   = (RealType)0.0;
+        RealType                                    training_input_range_hi   = (RealType)1.0;
+
+        index_t                                     inference_modulation_size = 1;
+        std::shared_ptr< ValueGenerator<RealType> > inference_value_generator; 
+        bool                                        inference_framewise       = true;
+        RealType                                    inference_input_range_lo  = (RealType)0.0;
+        RealType                                    inference_input_range_hi  = (RealType)1.0;
+    };
+
 protected:
-    BinaryModulation() {}
+    BinaryModulation(create_t const &create)
+    {
+        m_training_create.modulation_size  = create.training_modulation_size;
+        m_training_create.value_generator  = create.training_value_generator;
+        m_training_create.framewise        = create.training_framewise;
+        m_training_create.input_range_lo   = create.training_input_range_lo;
+        m_training_create.input_range_hi   = create.training_input_range_hi;
+
+        m_inference_create.modulation_size = create.inference_modulation_size;
+        m_inference_create.value_generator = create.inference_value_generator;
+        m_inference_create.framewise       = create.inference_framewise;
+        m_inference_create.input_range_lo  = create.inference_input_range_lo;
+        m_inference_create.input_range_hi  = create.inference_input_range_hi;
+
+        m_training = true;
+        m_modulation_size = create.training_modulation_size;
+        m_real2bin = RealToBinary<BinType, RealType>::Create(m_training_create);
+        m_layer    = create.layer;
+        m_bin2real = BinaryToReal<BinType, RealType>::Create(m_modulation_size, create.output_shape);
+    }
+
+
+    void CommandProc(std::vector<std::string> args)
+    {
+        // binary mode
+        if ( DataType<BinType>::type != BB_TYPE_BIT ) {
+            if ( args.size() == 2 && args[0] == "binary" )
+            {
+                m_binary_mode = EvalBool(args[1]);
+            }
+        }
+    }
 
 public:
     ~BinaryModulation() {}
 
-    struct create_t
-    {
-        std::shared_ptr<Model>  layer;
-    };
-
     static std::shared_ptr<BinaryModulation> Create(create_t const & create)
     {
-        auto self = std::shared_ptr<BinaryModulation>(new BinaryModulation);
-
-        self->m_real2bin = RealToBinary<FRT, FBT, BT>::Create();
-        self->m_layer    = create.layer;
-        self->m_bin2real =  BinaryToReal<FBT, FRT, BT>::Create();
-
-        return self;
+        return std::shared_ptr<BinaryModulation>(new BinaryModulation(create));
     }
 
-    static std::shared_ptr<BinaryModulation> Create(std::shared_ptr<Model> layer)
+    static std::shared_ptr<BinaryModulation> Create(std::shared_ptr<Model> layer, index_t train_modulation_size, index_t inference_modulation_size=0)
     {
-        auto self = std::shared_ptr<BinaryModulation>(new BinaryModulation);
+        BB_ASSERT(train_modulation_size > 0);
+        if ( inference_modulation_size <= 0 ) {
+            inference_modulation_size = train_modulation_size;
+        }
 
-        self->m_real2bin = RealToBinary<FRT, FBT, BT>::Create();
-        self->m_layer    = create.layer;
-        self->m_bin2real =  BinaryToReal<FBT, FRT, BT>::Create();
-
-        return self;
+        create_t create;
+        create.layer = layer;
+        create.training_modulation_size  = train_modulation_size;
+        create.inference_modulation_size = inference_modulation_size;
+        return Create(create);
     }
 
     std::string GetClassName(void) const { return "BinaryModulation"; }
@@ -160,12 +208,35 @@ public:
      * @param  train 学習時にtrueを指定
      * @return forward演算結果
      */
-    FrameBuffer Forward(FrameBuffer x, bool train = true)
+    FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-        x = m_real2bin->Forward(x, train);
-        x = m_layer->Forward(x, train);
-        x = m_bin2real->Forward(x, train);
-        return x;
+        // bypass
+        if ( !m_binary_mode ) {
+            return m_layer->Forward(x_buf, train);
+        }
+
+        // change mode
+        if (train && !m_training) {
+            m_training = true;
+            m_modulation_size = m_training_create.modulation_size;
+
+            m_real2bin->SetModulationSize(m_training_create.modulation_size);
+            m_real2bin->SetValueGenerator(m_training_create.value_generator);
+            m_bin2real->SetModulationSize(m_training_create.modulation_size);
+        }
+        else if (!train && m_training) {
+            m_training = false;
+            m_modulation_size = m_inference_create.modulation_size;
+
+            m_real2bin->SetModulationSize(m_inference_create.modulation_size);
+            m_real2bin->SetValueGenerator(m_inference_create.value_generator);
+            m_bin2real->SetModulationSize(m_inference_create.modulation_size);
+        }
+
+        x_buf = m_real2bin->Forward(x_buf, train);
+        x_buf = m_layer->Forward(x_buf, train);
+        x_buf = m_bin2real->Forward(x_buf, train);
+        return x_buf;
     }
 
    /**
@@ -174,12 +245,16 @@ public:
      *         
      * @return backward演算結果
      */
-    FrameBuffer Backward(FrameBuffer dy)
+    FrameBuffer Backward(FrameBuffer dy_buf)
     {
-        dy = m_bin2real->Backward(dy);
-        dy = m_layer->Backward(dy);
-        dy = m_real2bin->Backward(dy);
-        return dy; 
+        if ( !m_binary_mode ) {
+            return dy_buf = m_layer->Backward(dy_buf);
+        }
+
+        dy_buf = m_bin2real->Backward(dy_buf);
+        dy_buf = m_layer   ->Backward(dy_buf);
+        dy_buf = m_real2bin->Backward(dy_buf);
+        return dy_buf; 
     }
     
 protected:
@@ -197,9 +272,14 @@ protected:
         }
         else {
             // 子レイヤーの表示
-            m_real2bin->PrintInfo(depth, os, columns, nest+1);
-            m_layer->PrintInfo(depth, os, columns, nest+1);
-            m_bin2real->PrintInfo(depth, os, columns, nest+1);
+            if ( m_binary_mode ) {
+                m_real2bin->PrintInfo(depth, os, columns, nest+1);
+                m_layer->PrintInfo(depth, os, columns, nest+1);
+                m_bin2real->PrintInfo(depth, os, columns, nest+1);
+            }
+            else {
+                m_layer->PrintInfo(depth, os, columns, nest+1);
+            }
         }
     }
 

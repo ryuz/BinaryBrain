@@ -52,9 +52,6 @@
     <CudaCompile Include="Sigmoid.cu">
       <Filter>ソース ファイル</Filter>
     </CudaCompile>
-    <CudaCompile Include="StochasticLut6.cu">
-      <Filter>ソース ファイル</Filter>
-    </CudaCompile>
     <CudaCompile Include="BinaryLut6.cu">
       <Filter>ソース ファイル</Filter>
     </CudaCompile>
@@ -65,6 +62,24 @@
       <Filter>ソース ファイル</Filter>
     </CudaCompile>
     <CudaCompile Include="StochasticBatchNormalization.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+    <CudaCompile Include="LocalHeap.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+    <CudaCompile Include="ShuffleModulation.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+    <CudaCompile Include="RealToBinary.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+    <CudaCompile Include="FrameBufferCopy.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+    <CudaCompile Include="SparseLut.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
+    <CudaCompile Include="StochasticLut.cu">
       <Filter>ソース ファイル</Filter>
     </CudaCompile>
   </ItemGroup>
@@ -81,6 +96,15 @@
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
     <ClInclude Include="..\include\bbcu\bbcu_util.h">
+      <Filter>ヘッダファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Common.cuh">
+      <Filter>ヘッダファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bb\StochasticOperation.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="StochasticLut.cuh">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
   </ItemGroup>

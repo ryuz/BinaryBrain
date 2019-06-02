@@ -37,8 +37,6 @@ protected:
     indices_t           m_output_shape;
 
     FrameBuffer         m_x_buf;
-    FrameBuffer         m_y_buf;
-    FrameBuffer         m_dx_buf;
 
 protected:
     StochasticMaxPooling2x2() {}
@@ -147,23 +145,25 @@ public:
     {
         BB_ASSERT(x_buf.GetType() == DataType<FT>::type);
 
-        // backwardの為に保存
-        m_x_buf = x_buf;
-
         // SetInputShpaeされていなければ初回に設定
-        if (m_x_buf.GetShape() != m_input_shape) {
-            SetInputShape(m_x_buf.GetShape());
+        if (x_buf.GetShape() != m_input_shape) {
+            SetInputShape(x_buf.GetShape());
+        }
+
+        // backwardの為に保存
+        if ( train ) {
+            m_x_buf = x_buf;
         }
 
         // 出力を設定
-        m_y_buf.Resize(DataType<FT>::type, m_x_buf.GetFrameSize(), m_output_shape);
+        FrameBuffer y_buf(DataType<FT>::type, x_buf.GetFrameSize(), m_output_shape);
         
 
 #ifdef BB_WITH_CUDA
         // CUDA版
-        if ( DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && m_x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        if ( DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             auto ptr_x = x_buf.LockDeviceMemoryConst();
-            auto ptr_y = m_y_buf.LockDeviceMemory(true);
+            auto ptr_y = y_buf.LockDeviceMemory(true);
             bbcu_fp32_StochasticMaxPooling2x2_Forward
                 (
                     (float const *)ptr_x.GetAddr(),
@@ -173,21 +173,21 @@ public:
                     (int          )m_output_w_size,
                     (int          )m_output_h_size,
                     (int          )m_output_c_size,
-                    (int          )m_y_buf.GetFrameSize(),
-                    (int          )(m_y_buf.GetFrameStride() / sizeof(float))
+                    (int          )y_buf.GetFrameSize(),
+                    (int          )(y_buf.GetFrameStride() / sizeof(float))
                 );
 
-            return m_y_buf;
+            return y_buf;
         }
 #endif
      
 #if 0
         if ( DataType<FT>::type == BB_TYPE_BIT ) {
             // バイナリ用実装
-            auto x_ptr = m_x_buf.LockConst<FT>();
-            auto y_ptr = m_y_buf.Lock<FT>(true);
+            auto x_ptr = x_buf.LockConst<FT>();
+            auto y_ptr = y_buf.Lock<FT>(true);
 
-            index_t  m256_frame_size = (int)m_y.GetFrameStride() / 32;
+            index_t  m256_frame_size = (int)y.GetFrameStride() / 32;
 
             #pragma omp parallel for
             for (index_t c = 0; c < m_input_c_size; ++c) {
@@ -216,17 +216,17 @@ public:
                 }
             }
 
-            return m_y_buf;
+            return y_buf;
         }
 #endif
 
 #if 0
         // float用実装
         if ( DataType<FT>::type == BB_TYPE_FP32 ) {
-            auto x_ptr = m_x.LockConst<FT>();
-            auto y_ptr = m_y.Lock<FT>(true);
+            auto x_ptr = x_buf.LockConst<FT>();
+            auto y_ptr = y_buf.Lock<FT>(true);
 
-            index_t  m256_frame_size = (int)m_y.GetFrameStride() / sizeof(float);
+            index_t  m256_frame_size = (int)y_buf.GetFrameStride() / sizeof(float);
 
             #pragma omp parallel for
             for (index_t c = 0; c < m_input_c_size; ++c) {
@@ -255,16 +255,16 @@ public:
                 }
             }
 
-            return m_y;
+            return y_buf;
         }
 #endif
 
         // 汎用版実装
         {
-            auto x_ptr = m_x_buf.LockConst<FT>();
-            auto y_ptr = m_y_buf.Lock<FT>(true);
+            auto x_ptr = x_buf.LockConst<FT>();
+            auto y_ptr = y_buf.Lock<FT>(true);
 
-            auto frame_size = m_x_buf.GetFrameSize();
+            auto frame_size = x_buf.GetFrameSize();
 
             #pragma omp parallel for
             for (index_t c = 0; c < m_input_c_size; ++c) {
@@ -291,7 +291,7 @@ public:
                 }
             }
 
-            return m_y_buf;
+            return y_buf;
         }
     }
     
@@ -300,43 +300,46 @@ public:
         BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
         BB_ASSERT(dy_buf.GetShape().size() == 3);
 
-        m_dx_buf.Resize(DataType<BT>::type, dy_buf.GetFrameSize(), m_input_shape);
+        FrameBuffer dx_buf(DataType<BT>::type, dy_buf.GetFrameSize(), m_input_shape);
+
+        FrameBuffer x_buf = m_x_buf;
+        m_x_buf = FrameBuffer();
+
 
 #ifdef BB_WITH_CUDA
         if ( DataType<BT>::type == BB_TYPE_FP32 && DataType<FT>::type == BB_TYPE_FP32 && !m_host_only 
-                && m_x_buf.IsDeviceAvailable() && m_y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+                && x_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // CUDA版
-            auto ptr_x  = m_x_buf.LockDeviceMemoryConst();
-            auto ptr_y  = m_y_buf.LockDeviceMemoryConst();
+            auto ptr_x  = x_buf.LockDeviceMemoryConst();
             auto ptr_dy = dy_buf.LockDeviceMemoryConst();
-            auto ptr_dx = m_dx_buf.LockDeviceMemory(true);
+            auto ptr_dx = dx_buf.LockDeviceMemory(true);
             bbcu_fp32_StochasticMaxPooling2x2_Backward
                 (
                     (float const *)ptr_x.GetAddr(),
                     (float const *)ptr_dy.GetAddr(),
-                    (float*       )ptr_dx.GetAddr(),
+                    (float       *)ptr_dx.GetAddr(),
                     (int          )m_input_w_size,
                     (int          )m_input_h_size,
                     (int          )m_output_w_size,
                     (int          )m_output_h_size,
                     (int          )m_output_c_size,
-                    (int          )m_y_buf.GetFrameSize(),
-                    (int          )(m_y_buf.GetFrameStride() / sizeof(float))
+                    (int          )dy_buf.GetFrameSize(),
+                    (int          )(dy_buf.GetFrameStride() / sizeof(float))
                 );
 
-            return m_dx_buf;
+            return dx_buf;
         }
 #endif
 
 #if 0
         if ( DataType<BT>::type == BB_TYPE_FP32 && DataType<FT>::type == BB_TYPE_FP32 ) {
             // float用実装
-            index_t  m256_frame_size = m_dx.GetFrameStride() / sizeof(float);
+            index_t  m256_frame_size = dx_buf.GetFrameStride() / sizeof(float);
 
-            auto x_ptr  = m_x.LockConst<FT>();
-            auto y_ptr  = m_y.LockConst<FT>();
-            auto dy_ptr = dy.LockConst<BT>();
-            auto dx_ptr = m_dx.Lock<BT>(true);
+            auto x_ptr  = x_buf.LockConst<FT>();
+            auto y_ptr  = y_buf.LockConst<FT>();
+            auto dy_ptr = dy_buf.LockConst<BT>();
+            auto dx_ptr = dx_buf.Lock<BT>(true);
 
     #pragma omp parallel for
             for (index_t n = 0; n < m_input_c_size; ++n) {
@@ -369,18 +372,17 @@ public:
                 }
             }
 
-            return m_dx;
+            return dx_buf;
         }
 #endif
 
         // 汎用版実装
         {
-            auto x_ptr  = m_x_buf.LockConst<FT>();
-//          auto y_ptr  = m_y_buf.LockConst<FT>();
+            auto x_ptr  = x_buf.LockConst<FT>();
             auto dy_ptr = dy_buf.LockConst<BT>();
-            auto dx_ptr = m_dx_buf.Lock<BT>(true);
+            auto dx_ptr = dx_buf.Lock<BT>(true);
 
-            auto frame_size = m_x_buf.GetFrameSize();
+            auto frame_size = x_buf.GetFrameSize();
 
             #pragma omp parallel for
             for (index_t c = 0; c < m_input_c_size; ++c) {
@@ -421,7 +423,7 @@ public:
                 }
             }
 
-            return m_dx_buf;
+            return dx_buf;
         }
     }
 };

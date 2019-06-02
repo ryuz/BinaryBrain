@@ -10,10 +10,11 @@
 
 #pragma once
 
-
+#ifdef BB_WITH_CEREAL
 #include <cereal/archives/json.hpp>
 #include <cereal/types/vector.hpp>
 #include <cereal/types/array.hpp>
+#endif
 
 #include "bb/Manager.h"
 #include "bb/DataType.h"
@@ -33,9 +34,9 @@ namespace bb {
 
 // BatchNormalization
 template <typename FT = Bit, typename ST = float>
-class BinaryNormalization : public Activation<FT, FT>
+class BinaryScaling : public Activation
 {
-    using _super = Activation<FT, FT>;
+    using _super = Activation;
 
 protected:
     bool                        m_host_only = false;
@@ -51,7 +52,7 @@ protected:
     std::mt19937_64             m_mt;
 
 protected:
-    BinaryNormalization() {
+    BinaryScaling() {
     }
 
     void CommandProc(std::vector<std::string> args)
@@ -70,28 +71,28 @@ protected:
     }
 
 public:
-    ~BinaryNormalization() {}
+    ~BinaryScaling() {}
 
     struct create_t
     {
         std::uint64_t   seed = 1;
     };
 
-    static std::shared_ptr<BinaryNormalization> Create(create_t const &create)
+    static std::shared_ptr<BinaryScaling> Create(create_t const &create)
     {
-        auto self = std::shared_ptr<BinaryNormalization>(new BinaryNormalization);
+        auto self = std::shared_ptr<BinaryScaling>(new BinaryScaling);
         self->m_mt.seed(create.seed);
         return self;
     }
 
-    static std::shared_ptr<BinaryNormalization> Create(std::uint64_t seed = 1)
+    static std::shared_ptr<BinaryScaling> Create(std::uint64_t seed = 1)
     {
-        auto self = std::shared_ptr<BinaryNormalization>(new BinaryNormalization);
+        auto self = std::shared_ptr<BinaryScaling>(new BinaryScaling);
         self->m_mt.seed(seed);
         return self;
     }
 
-    std::string GetClassName(void) const { return "BinaryNormalization"; }
+    std::string GetClassName(void) const { return "BinaryScaling"; }
     
     // Serialize
     void Save(std::ostream &os) const 
@@ -202,6 +203,18 @@ public:
             a_ptr[node] = a;
             b_ptr[node] = b;
         }
+    }
+
+    void SetParameter(index_t node, ST gain, ST offset)
+    {
+        auto a_ptr = m_a.Lock();
+        auto b_ptr = m_b.Lock();
+        auto a = offset / (gain + offset);
+        auto b = gain + offset;
+//        BB_ASSERT(a >= (ST)0 && a <= (ST)1);
+//        BB_ASSERT(b >= (ST)0 && b <= (ST)1);
+        a_ptr[node] = offset / (gain + offset);
+        b_ptr[node] = gain + offset;
     }
 
     // ノード単位でのForward計算

@@ -10,8 +10,9 @@
 #pragma once
 
 #include <set>
+#include <algorithm>
 
-#include "bb/Layer.h"
+#include "bb/Model.h"
 #include "bb/ShuffleSet.h"
 #include "bb/Utility.h"
 
@@ -20,8 +21,7 @@ namespace bb {
 
 
 // 入力接続数に制限のあるネット
-template <typename FT = float, typename BT = float>
-class SparseLayer : public Layer<FT, BT>
+class SparseLayer : public Model
 {
 public:
     //ノードの 疎結合の管理
@@ -35,7 +35,7 @@ public:
     }
     void SetNodeInput(indices_t node, index_t input_index, indices_t input_node)
     {
-        return SetNodeInput(GetShapeIndex(node, this->GetOutputShape()), input_index, GetShapeIndex(node, this->GetInputShape()));
+        return SetNodeInput(GetShapeIndex(node, this->GetOutputShape()), input_index, GetShapeIndex(input_node, this->GetInputShape()));
     }
     void SetNodeInput(indices_t node, index_t input_index, index_t input_node)
     {
@@ -43,11 +43,47 @@ public:
     }
     indices_t GetNodeInput(indices_t node, index_t input_index) const
     {
-        index_t input_node = GetOutputShape(GetShapeIndex(node, this->GetOutputShape()), input_index);
+        index_t input_node = GetNodeInput(GetShapeIndex(node, this->GetOutputShape()), input_index);
         return GetShapeIndices(input_node, this->GetInputShape());
     }
 
 protected:
+
+    Tensor_<std::int32_t> MakeReverseIndexTable(Tensor_<std::int32_t> input_index, index_t input_node_size)
+    {
+        indices_t shape = input_index.GetShape();
+        index_t output_node_size = shape[1];
+        index_t input_index_size = shape[0];
+
+        auto input_index_ptr = input_index.LockConst();
+        std::vector<index_t> n(input_node_size, 0);
+        for ( index_t node = 0; node < output_node_size; ++node ) {
+            for ( index_t input = 0; input < input_index_size; ++input ) {
+                n[input_index_ptr(node, input)]++;
+            }
+        }
+
+        index_t max_n = 0;
+        for ( index_t node = 0; node < input_node_size; ++node ) {
+            max_n = std::max(max_n, n[node]);
+        }
+
+        Tensor_<std::int32_t> reverse_index(indices_t({max_n+1, input_node_size}));
+        reverse_index = 0;
+        auto reverse_index_ptr = reverse_index.Lock();
+        for ( index_t node = 0; node < output_node_size; ++node ) {
+            for ( index_t input = 0; input < input_index_size; ++input ) {
+                std::int32_t idx = input_index_ptr(node, input);
+                auto cnt = reverse_index_ptr(idx, 0) + 1;
+                reverse_index_ptr(idx, 0)   = cnt;
+                reverse_index_ptr(idx, cnt) = (std::int32_t)(node*input_index_size + input);
+            }
+        }
+
+        return reverse_index;
+    }
+
+
     void InitializeNodeInput(std::uint64_t seed, std::string connection = "")
     {
         auto input_shape  = this->GetInputShape();
@@ -73,7 +109,7 @@ protected:
                         index_t  input_size = GetNodeInputSize({x, y, c});
                         auto random_set = ss.GetRandomSet(input_size);
                         for (index_t i = 0; i < input_size; ++i) {
-                            SetNodeInput({x, y, x}, i, {x, y, random_set[i]});
+                            SetNodeInput({x, y, c}, i, {x, y, random_set[i]});
                         }
                     }
                 }

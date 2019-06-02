@@ -287,19 +287,19 @@ int bbcu_eva_MicroMlp6x16_Backward
 #endif
 
 
-float   x_buf[INPUT_NODE_SIZE*FRAME_SIZE];
-float   y_buf[OUTPUT_NODE_SIZE*FRAME_SIZE];
-float   dx_buf[INPUT_NODE_SIZE*FRAME_SIZE];
-float   dy_buf[OUTPUT_NODE_SIZE*FRAME_SIZE];
-int     input_index[INPUT_NODE_SIZE*N];
-float   hidden_W[OUTPUT_NODE_SIZE*M*N];
-float   hidden_b[OUTPUT_NODE_SIZE*M];
-float   output_W[OUTPUT_NODE_SIZE*M];
-float   output_b[OUTPUT_NODE_SIZE];
-float   hidden_dW[OUTPUT_NODE_SIZE*M*N];
-float   hidden_db[OUTPUT_NODE_SIZE*M];
-float   output_dW[OUTPUT_NODE_SIZE*M];
-float   output_db[OUTPUT_NODE_SIZE];
+static float   x_buf[INPUT_NODE_SIZE*FRAME_SIZE];
+static float   y_buf[OUTPUT_NODE_SIZE*FRAME_SIZE];
+static float   dx_buf[INPUT_NODE_SIZE*FRAME_SIZE];
+static float   dy_buf[OUTPUT_NODE_SIZE*FRAME_SIZE];
+static int     input_index[INPUT_NODE_SIZE*N];
+static float   hidden_W[OUTPUT_NODE_SIZE*M*N];
+static float   hidden_b[OUTPUT_NODE_SIZE*M];
+static float   output_W[OUTPUT_NODE_SIZE*M];
+static float   output_b[OUTPUT_NODE_SIZE];
+static float   hidden_dW[OUTPUT_NODE_SIZE*M*N];
+static float   hidden_db[OUTPUT_NODE_SIZE*M];
+static float   output_dW[OUTPUT_NODE_SIZE*M];
+static float   output_db[OUTPUT_NODE_SIZE];
 
 
 int Test_MicroMlp_Forward(void)

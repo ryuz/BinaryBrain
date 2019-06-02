@@ -16,23 +16,25 @@
 #include "bb/Model.h"
 #include "bb/MicroMlpAffine.h"
 #include "bb/BatchNormalization.h"
-#include "bb/ReLU.h"
+#include "bb/Binarize.h"
 
 
 namespace bb {
 
 
 // Sparce Mini-MLP(Multilayer perceptron) Layer [Affine-ReLU-Affine-BatchNorm-Binarize]
-template <int N = 6, int M = 16, typename T = float, class Activation = ReLU<T> >
-class MicroMlp : public SparseLayer<T, T>
+template <int N = 6, int M = 16, typename FT = float, typename T = float>
+class MicroMlp : public SparseLayer
 {
-    using _super = SparseLayer<T, T>;
+    using _super = SparseLayer;
 
 protected:
+    bool                                            m_memory_saving = true;
+
     // 3層で構成
-    std::shared_ptr< MicroMlpAffine<N, M, T> >  m_affine;
-    std::shared_ptr< BatchNormalization<T>   >  m_batch_norm;
-    std::shared_ptr< Activation              >  m_activation;
+    std::shared_ptr< MicroMlpAffine<N, M, FT, T> >  m_affine;
+    std::shared_ptr< BatchNormalization<T>       >  m_batch_norm;
+    std::shared_ptr< Binarize<FT, T>             >  m_activation;
 
 public:
     // 生成情報
@@ -55,13 +57,13 @@ protected:
     {
         this->SetName(create.name);
 
-        typename MicroMlpAffine<N, M, T>::create_t affine_create;
+        typename MicroMlpAffine<N, M, FT, T>::create_t affine_create;
         affine_create.output_shape   = create.output_shape;
         affine_create.connection     = create.connection;
         affine_create.initialize_std = create.initialize_std;
         affine_create.initializer    = create.initializer;
         affine_create.seed           = create.seed;
-        m_affine = MicroMlpAffine<N, M, T>::Create(affine_create);
+        m_affine = MicroMlpAffine<N, M, FT, T>::Create(affine_create);
 
         typename BatchNormalization<T>::create_t bn_create;
         bn_create.momentum  = create.momentum;
@@ -69,7 +71,15 @@ protected:
         bn_create.beta      = create.beta;
         m_batch_norm = BatchNormalization<T>::Create(bn_create);
         
-        m_activation = Activation::Create();
+        m_activation = Binarize<FT, T>::Create();
+    }
+
+    void CommandProc(std::vector<std::string> args)
+    {
+        if ( args.size() == 2 && args[0] == "memory_saving" )
+        {
+            m_memory_saving = EvalBool(args[1]);
+        }
     }
 
 public:
@@ -105,11 +115,22 @@ public:
      */   
     void SendCommand(std::string command, std::string send_to = "all")
     {
+        _super::SendCommand(command, send_to);
+
         m_affine    ->SendCommand(command, send_to);
         m_batch_norm->SendCommand(command, send_to);
         m_activation->SendCommand(command, send_to);
     }
-    
+
+    auto lock_W0(void)             { return m_affine->lock_W0(); }     
+    auto lock_W0_const(void) const { return m_affine->lock_W0_const(); }
+    auto lock_b0(void)             { return m_affine->lock_b0(); }      
+    auto lock_b0_const(void) const { return m_affine->lock_b0_const(); }
+    auto lock_W1(void)             { return m_affine->lock_W1(); }
+    auto lock_W1_const(void) const { return m_affine->lock_W1_const(); }
+    auto lock_b1(void)             { return m_affine->lock_b1(); }
+    auto lock_b1_const(void) const { return m_affine->lock_b1_const(); }
+
     /**
      * @brief  パラメータ取得
      * @detail パラメータを取得する
@@ -193,7 +214,7 @@ public:
         return m_affine->GetNodeInput(node, input_index);
     }
 
-    std::vector<T> ForwardNode(index_t node, std::vector<T> x_vec) const
+    std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
     {
         x_vec = m_affine    ->ForwardNode(node, x_vec);
         x_vec = m_batch_norm->ForwardNode(node, x_vec);
@@ -208,12 +229,15 @@ public:
      * @param  train 学習時にtrueを指定
      * @return forward演算結果
      */
-    FrameBuffer Forward(FrameBuffer x, bool train = true)
+    FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-        x = m_affine    ->Forward(x, train);
-        x = m_batch_norm->Forward(x, train);
-        x = m_activation->Forward(x, train);
-        return x;
+        x_buf = m_affine    ->Forward(x_buf, train);
+        x_buf = m_batch_norm->Forward(x_buf, train);
+        if (m_memory_saving || !train ) { m_batch_norm->SetFrameBufferX(FrameBuffer()); }
+        x_buf = m_activation->Forward(x_buf, train);
+        if (m_memory_saving || !train ) { m_activation->SetFrameBufferX(FrameBuffer()); }
+
+        return x_buf;
     }
 
    /**
@@ -222,13 +246,22 @@ public:
      *         
      * @return backward演算結果
      */
-    FrameBuffer Backward(FrameBuffer dy)
+    FrameBuffer Backward(FrameBuffer dy_buf)
     {
-        dy = m_activation->Backward(dy);
-        dy = m_batch_norm->Backward(dy);
-        dy = m_affine    ->Backward(dy);
-        return dy; 
+        if (m_memory_saving) {
+            // 再計算
+            FrameBuffer x_buf;
+            x_buf = m_affine    ->ReForward(m_affine->GetFrameBufferX());
+            x_buf = m_batch_norm->ReForward(x_buf);
+            m_activation->SetFrameBufferX(x_buf);
+        }
+
+        dy_buf = m_activation->Backward(dy_buf);
+        dy_buf = m_batch_norm->Backward(dy_buf);
+        dy_buf = m_affine    ->Backward(dy_buf);
+        return dy_buf; 
     }
+
 
 protected:
     /**

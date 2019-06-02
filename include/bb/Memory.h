@@ -17,7 +17,7 @@
 
 #ifdef BB_WITH_CUDA
 #include "cuda_runtime.h"
-#include "bbcu/bbcu_util.h"
+#include "bbcu/bbcu.h"
 #endif
 
 #include "bb/DataType.h"
@@ -283,11 +283,7 @@ protected:
         m_devAvailable = false;
 
         // デバイス設定
-        int dev_count = 0;
-        auto status = cudaGetDeviceCount(&dev_count);
-        if (status != cudaSuccess) {
-            dev_count = 0;
-        }
+        int dev_count = bbcu::GetDeviceCount();
 
         // デバイスがあれば有効化
         if ( dev_count > 0 && !m_hostOnly ) {

@@ -338,6 +338,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MicroMlp_Test.cpp" />
+    <ClCompile Include="StochasticLut6_Test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\bb\AccuracyCategoricalClassification.h" />

@@ -3,6 +3,7 @@
 
 *.o
 *.a
+*.tmp
 
 *.obj
 *.exe
@@ -28,6 +29,8 @@
 *.VC.opendb
 *.vspx
 
+depend
+
 # execute
 sample/mnist/sample-mnist
 sample/diabetes/sample-diabetes
@@ -35,14 +38,18 @@ sample/cifar10/sample-cifar10
 
 test/gtest/gtest
 test/mnist/test-mnist
-test/cifar-10/test-cifar10
+test/cifar10/test-cifar10
 test/diabetes/test-diabetes
 
 # generate file
 sample/mnist/verilog/mnist_train.txt
 sample/mnist/verilog/mnist_test.txt
-sample/mnist/verilog/MnistSimpleLutMlp.v
-sample/mnist/verilog/MnistSimpleLutCnn.v
+sample/mnist/verilog/MnistSparseLutMlp.v
+sample/mnist/verilog/MnistSparseLutCnn.v
+sample/mnist/verilog/MnistStochasticLutMlp.v
+sample/mnist/verilog/MnistStochasticLutCnn.v
+sample/mnist/verilog/MnistMicroMlpLutMlp.v
+sample/mnist/verilog/MnistMicroMlpLutCnn.v
 sample/diabetes/diabetes_data.txt
 sample/diabetes/diabetes_target.txt
 

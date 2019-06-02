@@ -326,7 +326,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BB_WITH_CEREAL;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\..\include;..\..\eigen;..\..\cereal\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
@@ -355,6 +355,7 @@
     <ClCompile Include="MnistMicroMlpLutCnn.cpp" />
     <ClCompile Include="MnistMicroMlpLutMlp.cpp" />
     <ClCompile Include="MnistMicroMlpScratch.cpp" />
+    <ClCompile Include="MnistSparseBinaryLutCnn.cpp" />
     <ClCompile Include="MnistStochasticLut4.cpp" />
     <ClCompile Include="MnistStochasticLut6Cnn.cpp" />
     <ClCompile Include="MnistStochasticLut6Mlp.cpp" />
@@ -412,13 +413,11 @@
     <ClInclude Include="..\..\include\bb\ShuffleSet.h" />
     <ClInclude Include="..\..\include\bb\Sigmoid.h" />
     <ClInclude Include="..\..\include\bb\SimdSupport.h" />
+    <ClInclude Include="..\..\include\bb\SparseBinaryLutN.h" />
     <ClInclude Include="..\..\include\bb\SparseLayer.h" />
+    <ClInclude Include="..\..\include\bb\SparseLutDiscrete.h" />
     <ClInclude Include="..\..\include\bb\StochasticBatchNormalization.h" />
     <ClInclude Include="..\..\include\bb\StochasticLut.h" />
-    <ClInclude Include="..\..\include\bb\StochasticLut2.h" />
-    <ClInclude Include="..\..\include\bb\StochasticLut4.h" />
-    <ClInclude Include="..\..\include\bb\StochasticLut6.h" />
-    <ClInclude Include="..\..\include\bb\StochasticLutBn.h" />
     <ClInclude Include="..\..\include\bb\StochasticMaxPooling.h" />
     <ClInclude Include="..\..\include\bb\StochasticMaxPooling2x2.h" />
     <ClInclude Include="..\..\include\bb\StochasticMinMaxNormalization.h" />

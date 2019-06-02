@@ -14,7 +14,7 @@
 
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
-#include "bb/StochasticLut6.h"
+#include "bb/StochasticLutN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/LoweringConvolution.h"
 #include "bb/BatchNormalization.h"
@@ -48,18 +48,18 @@ void MnistStochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_siz
 #endif
 
     // create network
-    auto layer_cnv0_sl0 = bb::StochasticLut6<>::Create(192);
-    auto layer_cnv0_sl1 = bb::StochasticLut6<>::Create(32);
-    auto layer_cnv1_sl0 = bb::StochasticLut6<>::Create(192);
-    auto layer_cnv1_sl1 = bb::StochasticLut6<>::Create(32);
-    auto layer_cnv2_sl0 = bb::StochasticLut6<>::Create(256);
-    auto layer_cnv2_sl1 = bb::StochasticLut6<>::Create(64);
-    auto layer_cnv3_sl0 = bb::StochasticLut6<>::Create(256);
-    auto layer_cnv3_sl1 = bb::StochasticLut6<>::Create(64);
-    auto layer_sl4 = bb::StochasticLut6<>::Create(1024);
-    auto layer_sl5 = bb::StochasticLut6<>::Create(360);
-    auto layer_sl6 = bb::StochasticLut6<>::Create(60);
-    auto layer_sl7 = bb::StochasticLut6<>::Create(10);
+    auto layer_cnv0_sl0 = bb::StochasticLutN<6>::Create(192);
+    auto layer_cnv0_sl1 = bb::StochasticLutN<6>::Create(32);
+    auto layer_cnv1_sl0 = bb::StochasticLutN<6>::Create(192);
+    auto layer_cnv1_sl1 = bb::StochasticLutN<6>::Create(32);
+    auto layer_cnv2_sl0 = bb::StochasticLutN<6>::Create(256);
+    auto layer_cnv2_sl1 = bb::StochasticLutN<6>::Create(64);
+    auto layer_cnv3_sl0 = bb::StochasticLutN<6>::Create(256);
+    auto layer_cnv3_sl1 = bb::StochasticLutN<6>::Create(64);
+    auto layer_sl4 = bb::StochasticLutN<6>::Create(1024);
+    auto layer_sl5 = bb::StochasticLutN<6>::Create(360);
+    auto layer_sl6 = bb::StochasticLutN<6>::Create(60);
+    auto layer_sl7 = bb::StochasticLutN<6>::Create(10);
 
     {
         auto cnv0_sub = bb::Sequential::Create();
@@ -170,7 +170,7 @@ void MnistStochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_siz
         auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 4, 4);
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
+        lut_net->Add(bb::RealToBinary<bb::Bit>::Create(lut_frame_mux_size));
         lut_net->Add(cnv0);
         lut_net->Add(cnv1);
         lut_net->Add(pol0);
@@ -178,24 +178,24 @@ void MnistStochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_siz
         lut_net->Add(cnv3);
         lut_net->Add(pol1);
         lut_net->Add(cnv4);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, lut_frame_mux_size));
+        lut_net->Add(bb::BinaryToReal<bb::Bit>::Create(lut_frame_mux_size, td.t_shape));
         lut_net->SetInputShape(td.x_shape);
 
 
         // テーブル化して取り込み(現状まだSetInputShape後の取り込みが必要)
         std::cout << "parameter copy to LUT-Network" << std::endl;
-        layer_cnv0_lut0->ImportLayer<float, float>(layer_cnv0_sl0);
-        layer_cnv0_lut1->ImportLayer<float, float>(layer_cnv0_sl1);
-        layer_cnv1_lut0->ImportLayer<float, float>(layer_cnv1_sl0);
-        layer_cnv1_lut1->ImportLayer<float, float>(layer_cnv1_sl1);
-        layer_cnv2_lut0->ImportLayer<float, float>(layer_cnv2_sl0);
-        layer_cnv2_lut1->ImportLayer<float, float>(layer_cnv2_sl1);
-        layer_cnv3_lut0->ImportLayer<float, float>(layer_cnv3_sl0);
-        layer_cnv3_lut1->ImportLayer<float, float>(layer_cnv3_sl1);
-        layer_lut4     ->ImportLayer<float, float>(layer_sl4);
-        layer_lut5     ->ImportLayer<float, float>(layer_sl5);
-        layer_lut6     ->ImportLayer<float, float>(layer_sl6);
-        layer_lut7     ->ImportLayer<float, float>(layer_sl7);
+        layer_cnv0_lut0->ImportLayer(layer_cnv0_sl0);
+        layer_cnv0_lut1->ImportLayer(layer_cnv0_sl1);
+        layer_cnv1_lut0->ImportLayer(layer_cnv1_sl0);
+        layer_cnv1_lut1->ImportLayer(layer_cnv1_sl1);
+        layer_cnv2_lut0->ImportLayer(layer_cnv2_sl0);
+        layer_cnv2_lut1->ImportLayer(layer_cnv2_sl1);
+        layer_cnv3_lut0->ImportLayer(layer_cnv3_sl0);
+        layer_cnv3_lut1->ImportLayer(layer_cnv3_sl1);
+        layer_lut4     ->ImportLayer(layer_sl4);
+        layer_lut5     ->ImportLayer(layer_sl5);
+        layer_lut6     ->ImportLayer(layer_sl6);
+        layer_lut7     ->ImportLayer(layer_sl7);
 
         // 評価
         if ( 1 ) {

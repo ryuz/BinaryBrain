@@ -4,6 +4,8 @@
 
 #include "gtest/gtest.h"
 
+#include "bb/MicroMlp.h"
+
 #include "bb/MicroMlpAffine.h"
 #include "bb/OptimizerAdam.h"
 #include "bb/OptimizerSgd.h"
@@ -83,8 +85,10 @@ public:
 
 TEST(MicroMlpAffineTest, testMicroMlpAffine)
 {
-    auto mlp = bb::MicroMlpAffine<4, 2>::Create(1);
+    auto mlpx = bb::MicroMlp<>::Create(1);
 
+    auto mlp = bb::MicroMlpAffine<4, 2>::Create(1);
+       
     bb::FrameBuffer x(BB_TYPE_FP32, 1, 6);
 
     auto x_ptr = x.Lock<float>();
@@ -324,10 +328,10 @@ TEST(MicroMlpAffineTest, testMicroMlpAffineCmp)
 {
     const int N = 6;
     const int M = 16;
-#if 0
+#if 1
     const int input_node_size = 360;
     const int output_node_size = 60;
-    const int frame_size = 64;
+    const int frame_size = 1024;
 #else
     const int input_node_size = 6;
     const int output_node_size = 1;
@@ -481,6 +485,236 @@ TEST(MicroMlpAffineTest, testMicroMlpAffineCmp)
 
         auto dx_cpu = mlp1->Backward(dy_cpu);
         auto dx_gpu = mlp2->Backward(dy_gpu);
+
+        for (int i = 0; i < frame_size; i++) {
+            for (int j = 0; j < input_node_size; j++) {
+                EXPECT_FLOAT_EQ(dx_cpu.GetFP32(i, j), dx_gpu.GetFP32(i, j));
+            }
+        }
+
+        {
+            auto p1_dW0 = mlp1->lock_dW0_const();
+            auto p1_db0 = mlp1->lock_db0_const();
+            auto p1_dW1 = mlp1->lock_dW1_const();
+            auto p1_db1 = mlp1->lock_db1_const();
+            auto p2_dW0 = mlp2->lock_dW0_const();
+            auto p2_db0 = mlp2->lock_db0_const();
+            auto p2_dW1 = mlp2->lock_dW1_const();
+            auto p2_db1 = mlp2->lock_db1_const();
+
+            for (int i = 0; i < output_node_size; i++) {
+                for (int j = 0; j < M; j++) {
+                    for (int k = 0; j < N; j++) {
+                        EXPECT_FLOAT_EQ(p1_dW0(i, j, k), p2_dW0(i, j, k));
+//                      std::cout << "dW0 : " << p1_dW0(i, j, k) << ", " << p2_dW0(i, j, k) << "\n";
+                    }
+                    EXPECT_FLOAT_EQ(p1_db0(i, j), p2_db0(i, j));
+//                  std::cout << "db0 : " << p1_db0(i, j) << ", " << p2_db0(i, j) << "\n";
+                }
+
+                for (int j = 0; j < M; j++) {
+                    EXPECT_FLOAT_EQ(p1_dW1(i, j), p2_dW1(i, j));
+//                  std::cout << "dW1 : " << p1_dW1(i, j) << ", " << p2_dW1(i, j) << "\n";
+                }
+
+                EXPECT_FLOAT_EQ(p1_db1(i), p2_db1(i));
+//              std::cout << "db1 : " << p1_db1(i) << ", " << p2_db1(i) << "\n";
+            }
+        }
+
+        opt1->Update();
+        opt2->Update();
+
+        {
+            auto p1_W0 = mlp1->lock_W0_const();
+            auto p1_b0 = mlp1->lock_b0_const();
+            auto p1_W1 = mlp1->lock_W1_const();
+            auto p1_b1 = mlp1->lock_b1_const();
+            auto p2_W0 = mlp2->lock_W0_const();
+            auto p2_b0 = mlp2->lock_b0_const();
+            auto p2_W1 = mlp2->lock_W1_const();
+            auto p2_b1 = mlp2->lock_b1_const();
+
+            for (int i = 0; i < output_node_size; i++) {
+                for (int j = 0; j < M; j++) {
+                    for (int k = 0; k < N; k++) {
+//                        EXPECT_FLOAT_EQ(p1_W0(i, j, k), p2_W0(i, j, k));
+
+                        float th = std::max(std::abs(p1_W0(i, j, k)) * 0.0001f, 0.0001f);
+                        EXPECT_NEAR(p1_W0(i, j, k), p2_W0(i, j, k), th);
+                    }
+
+                    EXPECT_FLOAT_EQ(p1_b0(i, j), p2_b0(i, j));
+                }
+
+                for (int j = 0; j < M; j++) {
+                    EXPECT_FLOAT_EQ(p1_W1(i, j), p2_W1(i, j));
+                }
+
+                EXPECT_FLOAT_EQ(p1_b1(i), p2_b1(i));
+            }
+        }
+    }
+}
+
+TEST(MicroMlpAffineTest, testMicroMlpAffine_CmpBit)
+{
+    const int N = 6;
+    const int M = 16;
+#if 1
+    const int input_node_size = 360;
+    const int output_node_size = 60;
+    const int frame_size = 1024;
+#else
+    const int input_node_size = 6;
+    const int output_node_size = 1;
+    const int frame_size = 8;
+#endif
+
+    float   W0[output_node_size][M][N];
+    float   b0[output_node_size][M];
+    float   W1[output_node_size][M];
+    float   b1[output_node_size];
+
+    std::mt19937_64                 mt(1);
+    std::normal_distribution<float> norm_dist(0.0f, 1.0f);
+
+    auto mlp1 = bb::MicroMlpAffine<N, M, float>::Create(output_node_size);
+    auto mlp2 = bb::MicroMlpAffine<N, M, bb::Bit>::Create(output_node_size);
+    
+    bb::FrameBuffer x_buf1(BB_TYPE_FP32, frame_size, input_node_size);
+    bb::FrameBuffer x_buf2(BB_TYPE_BIT,  frame_size, input_node_size);
+
+    mlp1->SetInputShape({input_node_size});
+    mlp2->SetInputShape({input_node_size});
+    
+    auto opt1 = bb::OptimizerSgd<float>::Create();
+    auto opt2 = bb::OptimizerSgd<float>::Create();
+    
+    opt1->SetVariables(mlp1->GetParameters(), mlp1->GetGradients());
+    opt2->SetVariables(mlp2->GetParameters(), mlp2->GetGradients());
+
+    bb::ShuffleSet<bb::index_t> ss(input_node_size, 1);
+    for (int i = 0; i < output_node_size; i++) {
+        auto s = ss.GetRandomSet(N);
+        for (int j = 0; j < N; j++) {
+            int idx = (int)s[j]; // mt() % input_node_size;
+//          mlp1->SetNodeInput(i, j, idx);
+//          mlp2->SetNodeInput(i, j, idx);
+            mlp2->SetNodeInput(i, j, mlp1->GetNodeInput(i, j));
+        }
+    }
+
+    {
+        auto p1_W0 = mlp1->lock_W0();
+        auto p1_b0 = mlp1->lock_b0();
+        auto p1_W1 = mlp1->lock_W1();
+        auto p1_b1 = mlp1->lock_b1();
+        auto p2_W0 = mlp2->lock_W0();
+        auto p2_b0 = mlp2->lock_b0();
+        auto p2_W1 = mlp2->lock_W1();
+        auto p2_b1 = mlp2->lock_b1();
+
+        for (int i = 0; i < output_node_size; i++) {
+            for (int j = 0; j < M; j++) {
+                for (int k = 0; k < N; k++) {
+                    int val = mt() % 100;
+                    W0[i][j][k] = (float)val;
+                    p1_W0(i, j, k) = (float)val;
+                    p2_W0(i, j, k) = (float)val;
+                }
+
+                int val = mt() % 100;
+                b0[i][j] = (float)val;
+                p1_b0(i, j) = (float)val;
+                p2_b0(i, j) = (float)val;
+            }
+
+            for (int j = 0; j < M; j++) {
+                int val = mt() % 100;
+                W1[i][j] = (float)val;
+                p1_W1(i, j) = (float)val;
+                p2_W1(i, j) = (float)val;
+            }
+
+            int val = mt() % 100;
+            b1[i] = (float)val;
+            p1_b1(i) = (float)val;
+            p2_b1(i) = (float)val;
+        }
+    }
+
+    {
+        auto p1_W0 = mlp1->lock_W0_const();
+        auto p1_b0 = mlp1->lock_b0_const();
+        auto p1_W1 = mlp1->lock_W1_const();
+        auto p1_b1 = mlp1->lock_b1_const();
+        auto p2_W0 = mlp2->lock_W0_const();
+        auto p2_b0 = mlp2->lock_b0_const();
+        auto p2_W1 = mlp2->lock_W1_const();
+        auto p2_b1 = mlp2->lock_b1_const();
+
+        for (int i = 0; i < output_node_size; i++) {
+            for (int j = 0; j < M; j++) {
+                for (int k = 0; k < N; k++) {
+                    EXPECT_FLOAT_EQ(W0[i][j][k], p1_W0(i, j, k));
+                    EXPECT_FLOAT_EQ(W0[i][j][k], p2_W0(i, j, k));
+                }
+
+                EXPECT_FLOAT_EQ(b0[i][j], p1_b0(i, j));
+                EXPECT_FLOAT_EQ(b0[i][j], p2_b0(i, j));
+            }
+
+            for (int j = 0; j < M; j++) {
+                EXPECT_FLOAT_EQ(W1[i][j], p1_W1(i, j));
+                EXPECT_FLOAT_EQ(W1[i][j], p2_W1(i, j));
+            }
+
+            EXPECT_FLOAT_EQ(b1[i], p1_b1(i));
+            EXPECT_FLOAT_EQ(b1[i], p2_b1(i));
+        }
+    }
+
+    for ( int loop = 0; loop < 2; ++loop ) {
+
+        for (int i = 0; i < frame_size; i++) {
+            for (int j = 0; j < input_node_size; j++) {
+                int val = mt() % 2;
+                x_buf1.SetFP32(i, j, (float)val);
+                x_buf2.SetBit(i, j, (bb::Bit)val);
+            }
+        }
+        
+        auto y_buf1 = mlp1->Forward(x_buf1);
+        auto y_buf2 = mlp2->Forward(x_buf2);
+
+        for (int i = 0; i < frame_size; i++) {
+            for ( int j = 0; j < output_node_size; ++j ) {
+                EXPECT_FLOAT_EQ(y_buf1.GetFP32(i, j), y_buf2.GetFP32(i, j));
+            }
+        }
+    
+
+        // backward
+        for (int i = 0; i < output_node_size; i++) {
+            for (int j = 0; j < N; j++) {
+                EXPECT_EQ(mlp1->GetNodeInput(i, j), mlp2->GetNodeInput(i, j));
+            }
+        }
+
+        bb::FrameBuffer dy_buf1(BB_TYPE_FP32, frame_size, output_node_size);
+        bb::FrameBuffer dy_buf2(BB_TYPE_FP32, frame_size, output_node_size);
+    
+        for (int i = 0; i < frame_size; i++) {
+            for (int j = 0; j < output_node_size; j++) {
+                int val = mt() % 1000;
+                dy_buf1.SetFP32(i, j, (float)val);
+                dy_buf2.SetFP32(i, j, (float)val);
+            }
+        }
+
+        auto dx_cpu = mlp1->Backward(dy_buf1);
+        auto dx_gpu = mlp2->Backward(dy_buf2);
 
         for (int i = 0; i < frame_size; i++) {
             for (int j = 0; j < input_node_size; j++) {

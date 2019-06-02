@@ -14,8 +14,8 @@
 
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
-#include "bb/StochasticLut6.h"
-#include "bb/StochasticMaxPooling2x2.h"
+//#include "bb/SparseBinaryLutN.h"
+#include "bb/SparseLutN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/LoweringConvolution.h"
 #include "bb/BatchNormalization.h"
@@ -29,81 +29,82 @@
 #include "bb/ShuffleSet.h"
 #include "bb/Utility.h"
 #include "bb/Sequential.h"
-#include "bb/NormalDistributionGenerator.h"
 #include "bb/Runner.h"
 #include "bb/ExportVerilog.h"
 
 
-
 // MNIST CNN with LUT networks
-void MnistStochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
+void MnistSparseBinaryLutCnn(int epoch_size, int mini_batch_size, int max_run_size, int frame_mux_size, int lut_frame_mux_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "MnistStochasticLut6Cnn";
+    std::string net_name = "MnistSparseBinaryLutCnn";
 
   // load MNIST data
 #ifdef _DEBUG
     auto td = bb::LoadMnist<>::Load(10, 512, 128);
     std::cout << "!!! debug mode !!!" << std::endl;
 #else
-    auto td = bb::LoadMnist<>::Load();
+    auto td = bb::LoadMnist<>::Load(10);
 #endif
 
     // create network
-    auto layer_cnv0_sl0 = bb::StochasticLut6<>::Create(192);
-    auto layer_cnv0_sl1 = bb::StochasticLut6<>::Create(32);
-    auto layer_cnv1_sl0 = bb::StochasticLut6<>::Create(192);
-    auto layer_cnv1_sl1 = bb::StochasticLut6<>::Create(32);
-    auto layer_cnv2_sl0 = bb::StochasticLut6<>::Create(256);
-    auto layer_cnv2_sl1 = bb::StochasticLut6<>::Create(64);
-    auto layer_cnv3_sl0 = bb::StochasticLut6<>::Create(256);
-    auto layer_cnv3_sl1 = bb::StochasticLut6<>::Create(64);
-    auto layer_sl4 = bb::StochasticLut6<>::Create(1024);
-    auto layer_sl5 = bb::StochasticLut6<>::Create(360);
-    auto layer_sl6 = bb::StochasticLut6<>::Create(60);
-    auto layer_sl7 = bb::StochasticLut6<>::Create(10);
+    auto layer_cnv0_sbl0 = bb::SparseLutN<6, bb::Bit>::Create(192);
+    auto layer_cnv0_sbl1 = bb::SparseLutN<6, bb::Bit>::Create(32);
+    auto layer_cnv1_sbl0 = bb::SparseLutN<6, bb::Bit>::Create(192);
+    auto layer_cnv1_sbl1 = bb::SparseLutN<6, bb::Bit>::Create(32);
+    auto layer_cnv2_sbl0 = bb::SparseLutN<6, bb::Bit>::Create(192);
+    auto layer_cnv2_sbl1 = bb::SparseLutN<6, bb::Bit>::Create(32);
+    auto layer_cnv3_sbl0 = bb::SparseLutN<6, bb::Bit>::Create(192);
+    auto layer_cnv3_sbl1 = bb::SparseLutN<6, bb::Bit>::Create(32);
+    auto layer_sbl4      = bb::SparseLutN<6, bb::Bit>::Create(420);
+    auto layer_sbl5      = bb::SparseLutN<6, bb::Bit>::Create(70);
 
     {
         auto cnv0_sub = bb::Sequential::Create();
-        cnv0_sub->Add(layer_cnv0_sl0);
-        cnv0_sub->Add(layer_cnv0_sl1);
+        cnv0_sub->Add(layer_cnv0_sbl0);
+        cnv0_sub->Add(layer_cnv0_sbl1);
 
         auto cnv1_sub = bb::Sequential::Create();
-        cnv1_sub->Add(layer_cnv1_sl0);
-        cnv1_sub->Add(layer_cnv1_sl1);
+        cnv1_sub->Add(layer_cnv1_sbl0);
+        cnv1_sub->Add(layer_cnv1_sbl1);
 
         auto cnv2_sub = bb::Sequential::Create();
-        cnv2_sub->Add(layer_cnv2_sl0);
-        cnv2_sub->Add(layer_cnv2_sl1);
+        cnv2_sub->Add(layer_cnv2_sbl0);
+        cnv2_sub->Add(layer_cnv2_sbl1);
 
         auto cnv3_sub = bb::Sequential::Create();
-        cnv3_sub->Add(layer_cnv3_sl0);
-        cnv3_sub->Add(layer_cnv3_sl1);
+        cnv3_sub->Add(layer_cnv3_sbl0);
+        cnv3_sub->Add(layer_cnv3_sbl1);
 
 
         auto net = bb::Sequential::Create();
-        net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
-        net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
-        net->Add(bb::StochasticMaxPooling2x2<>::Create());
-        net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
-        net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
-        net->Add(bb::StochasticMaxPooling2x2<>::Create());
-        net->Add(layer_sl4);
-        net->Add(layer_sl5);
-        net->Add(layer_sl6);
-        net->Add(layer_sl7);
+        net->Add(bb::RealToBinary<bb::Bit>::Create(frame_mux_size));
+        net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3));
+        net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3));
+        net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
+        net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv2_sub, 3, 3));
+        net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3));
+        net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
+        net->Add(layer_sbl4);
+        net->Add(layer_sbl5);
+        net->Add(bb::BinaryToReal<bb::Bit>::Create(frame_mux_size, td.t_shape));
+
         net->SetInputShape(td.x_shape);
 
         if ( binary_mode ) {
             std::cout << "binary mode" << std::endl;
             net->SendCommand("binary true");
         }
-        else {
-            std::cout << "real mode" << std::endl;
-            net->SendCommand("binary false");
-        }
 
         // print model information
-        net->PrintInfo(2);
+        net->PrintInfo();
+
+        std::cout << "epoch_size         : " << epoch_size         << std::endl;
+        std::cout << "mini_batch_size    : " << mini_batch_size    << std::endl;
+        std::cout << "max_run_size       : " << max_run_size       << std::endl;
+        std::cout << "frame_mux_size     : " << frame_mux_size     << std::endl;
+        std::cout << "lut_frame_mux_size : " << lut_frame_mux_size << std::endl;
+        std::cout << "binary_mode        : " << binary_mode        << std::endl;
+        std::cout << "file_read          : " << file_read          << std::endl;
 
         // run fitting
         bb::Runner<float>::create_t runner_create;
@@ -116,26 +117,24 @@ void MnistStochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_siz
         runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
         runner_create.file_write         = true;            // 計算結果をファイルに保存するか
         runner_create.print_progress     = true;            // 途中結果を表示
-        runner_create.initial_evaluation = file_read;       // ファイルを読んだ場合は最初に評価しておく
+        runner_create.initial_evaluation = false; // file_read;       // ファイルを読んだ場合は最初に評価しておく
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
 
-
+#if 0
     {
         // LUT-network
-        auto layer_cnv0_lut0 = bb::BinaryLutN<>::Create(layer_cnv0_sl0->GetOutputShape());
-        auto layer_cnv0_lut1 = bb::BinaryLutN<>::Create(layer_cnv0_sl1->GetOutputShape());
-        auto layer_cnv1_lut0 = bb::BinaryLutN<>::Create(layer_cnv1_sl0->GetOutputShape());
-        auto layer_cnv1_lut1 = bb::BinaryLutN<>::Create(layer_cnv1_sl1->GetOutputShape());
-        auto layer_cnv2_lut0 = bb::BinaryLutN<>::Create(layer_cnv2_sl0->GetOutputShape());
-        auto layer_cnv2_lut1 = bb::BinaryLutN<>::Create(layer_cnv2_sl1->GetOutputShape());
-        auto layer_cnv3_lut0 = bb::BinaryLutN<>::Create(layer_cnv3_sl0->GetOutputShape());
-        auto layer_cnv3_lut1 = bb::BinaryLutN<>::Create(layer_cnv3_sl1->GetOutputShape());
-        auto layer_lut4      = bb::BinaryLutN<>::Create(layer_sl4->GetOutputShape());
-        auto layer_lut5      = bb::BinaryLutN<>::Create(layer_sl5->GetOutputShape());
-        auto layer_lut6      = bb::BinaryLutN<>::Create(layer_sl6->GetOutputShape());
-        auto layer_lut7      = bb::BinaryLutN<>::Create(layer_sl7->GetOutputShape());
+        auto layer_cnv0_lut0 = bb::BinaryLutN<>::Create(layer_cnv0_mm0->GetOutputShape());
+        auto layer_cnv0_lut1 = bb::BinaryLutN<>::Create(layer_cnv0_mm1->GetOutputShape());
+        auto layer_cnv1_lut0 = bb::BinaryLutN<>::Create(layer_cnv1_mm0->GetOutputShape());
+        auto layer_cnv1_lut1 = bb::BinaryLutN<>::Create(layer_cnv1_mm1->GetOutputShape());
+        auto layer_cnv2_lut0 = bb::BinaryLutN<>::Create(layer_cnv2_mm0->GetOutputShape());
+        auto layer_cnv2_lut1 = bb::BinaryLutN<>::Create(layer_cnv2_mm1->GetOutputShape());
+        auto layer_cnv3_lut0 = bb::BinaryLutN<>::Create(layer_cnv3_mm0->GetOutputShape());
+        auto layer_cnv3_lut1 = bb::BinaryLutN<>::Create(layer_cnv3_mm1->GetOutputShape());
+        auto layer_lut4      = bb::BinaryLutN<>::Create(layer_mm4->GetOutputShape());
+        auto layer_lut5      = bb::BinaryLutN<>::Create(layer_mm5->GetOutputShape());
 
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_lut0);
@@ -156,19 +155,17 @@ void MnistStochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_siz
         auto cnv4_sub = bb::Sequential::Create();
         cnv4_sub->Add(layer_lut4);
         cnv4_sub->Add(layer_lut5);
-        cnv4_sub->Add(layer_lut6);
-        cnv4_sub->Add(layer_lut7);
 
-        auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3);
-        auto cnv1 = bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3);
+        auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3, 1, 1, "same");
+        auto cnv1 = bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3, 1, 1, "same");
         auto pol0 = bb::MaxPooling<bb::Bit>::Create(2, 2);
 
-        auto cnv2 = bb::LoweringConvolution<bb::Bit>::Create(cnv2_sub, 3, 3);
-        auto cnv3 = bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3);
+        auto cnv2 = bb::LoweringConvolution<bb::Bit>::Create(cnv2_sub, 3, 3, 1, 1, "same");
+        auto cnv3 = bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3, 1, 1, "same");
         auto pol1 = bb::MaxPooling<bb::Bit>::Create(2, 2);
 
         // 28x28 以外も入力できるように最終段も畳み込みに変換
-        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 4, 4);
+        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 7, 7);
 
         auto lut_net = bb::Sequential::Create();
         lut_net->Add(bb::RealToBinary<float, bb::Bit>::Create(lut_frame_mux_size));
@@ -179,24 +176,22 @@ void MnistStochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_siz
         lut_net->Add(cnv3);
         lut_net->Add(pol1);
         lut_net->Add(cnv4);
-        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create(td.t_shape, lut_frame_mux_size));
-        lut_net->SetInputShape(td.x_shape);
+        lut_net->Add(bb::BinaryToReal<bb::Bit, float>::Create({ 10 }, lut_frame_mux_size));
+        lut_net->SetInputShape({28, 28, 1});
 
 
         // テーブル化して取り込み(現状まだSetInputShape後の取り込みが必要)
         std::cout << "parameter copy to LUT-Network" << std::endl;
-        layer_cnv0_lut0->ImportLayer<float, float>(layer_cnv0_sl0);
-        layer_cnv0_lut1->ImportLayer<float, float>(layer_cnv0_sl1);
-        layer_cnv1_lut0->ImportLayer<float, float>(layer_cnv1_sl0);
-        layer_cnv1_lut1->ImportLayer<float, float>(layer_cnv1_sl1);
-        layer_cnv2_lut0->ImportLayer<float, float>(layer_cnv2_sl0);
-        layer_cnv2_lut1->ImportLayer<float, float>(layer_cnv2_sl1);
-        layer_cnv3_lut0->ImportLayer<float, float>(layer_cnv3_sl0);
-        layer_cnv3_lut1->ImportLayer<float, float>(layer_cnv3_sl1);
-        layer_lut4     ->ImportLayer<float, float>(layer_sl4);
-        layer_lut5     ->ImportLayer<float, float>(layer_sl5);
-        layer_lut6     ->ImportLayer<float, float>(layer_sl6);
-        layer_lut7     ->ImportLayer<float, float>(layer_sl7);
+        layer_cnv0_lut0->ImportLayer<float, float>(layer_cnv0_mm0);
+        layer_cnv0_lut1->ImportLayer<float, float>(layer_cnv0_mm1);
+        layer_cnv1_lut0->ImportLayer<float, float>(layer_cnv1_mm0);
+        layer_cnv1_lut1->ImportLayer<float, float>(layer_cnv1_mm1);
+        layer_cnv2_lut0->ImportLayer<float, float>(layer_cnv2_mm0);
+        layer_cnv2_lut1->ImportLayer<float, float>(layer_cnv2_mm1);
+        layer_cnv3_lut0->ImportLayer<float, float>(layer_cnv3_mm0);
+        layer_cnv3_lut1->ImportLayer<float, float>(layer_cnv3_mm1);
+        layer_lut4     ->ImportLayer<float, float>(layer_mm4);
+        layer_lut5     ->ImportLayer<float, float>(layer_mm5);
 
         // 評価
         if ( 1 ) {
@@ -240,6 +235,7 @@ void MnistStochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_siz
             bb::WriteTestDataImage<float>("verilog/mnist_test_640x480.ppm", 640, 480, td);
         }
     }
+#endif
 }
 
 

@@ -24,8 +24,8 @@
 #include "bb/Utility.h"
 
 
-// スクラッチでモデル構築する例
-class MnistSimpleMicroMlpNet : public bb::Model
+// 自分でモデル構築する例
+class MnistMyCustomModel : public bb::Model
 {
 protected:
     using Affine      = bb::MicroMlpAffine<6, 16, float>;
@@ -45,20 +45,20 @@ public:
 
 public:
 
-    MnistSimpleMicroMlpNet()
+    MnistMyCustomModel()
     {
-        m_affine0   = Affine::Create({1024});
+        m_affine0   = Affine::Create(1024);
         m_activate0 = Activate::Create();
-        m_affine1   = Affine::Create({360});
+        m_affine1   = Affine::Create(360);
         m_activate1 = Activate::Create();
-        m_affine2   = Affine::Create({60});
+        m_affine2   = Affine::Create(60);
         m_activate2 = Activate::Create();
-        m_affine3   = Affine::Create({10});
+        m_affine3   = Affine::Create(10);
     }
 
     std::string GetClassName(void) const
     {
-        return "MnistSimpleMicroMlpNet";
+        return "MnistMyCustomModel";
     }
 
     void SendCommand(std::string command, std::string send_to = "all")
@@ -146,8 +146,7 @@ public:
 };
 
 
-// MNIST CNN with LUT networks
-void MnistMicroMlpScratch(int epoch_size, int mini_batch_size, bool binary_mode)
+void MnistCustomModel(int epoch_size, int mini_batch_size, bool binary_mode)
 {
     // load MNIST data
 #ifdef _DEBUG
@@ -157,7 +156,7 @@ void MnistMicroMlpScratch(int epoch_size, int mini_batch_size, bool binary_mode)
     auto td = bb::LoadMnist<>::Load(10);
 #endif
     
-    MnistSimpleMicroMlpNet  net;
+    MnistMyCustomModel  net;
     net.SetInputShape(td.x_shape);
 
     auto lossFunc    = bb::LossSoftmaxCrossEntropy<float>::Create();
@@ -174,7 +173,11 @@ void MnistMicroMlpScratch(int epoch_size, int mini_batch_size, bool binary_mode)
     if ( binary_mode ) {
         net.SendCommand("binary true");
     }
+    else {
+        net.SendCommand("binary false");
+    }
 
+    // example not using bb::Runner class
     for ( bb::index_t epoch = 0; epoch < epoch_size; ++epoch ) {
         metricsFunc->Clear();
         for (bb::index_t i = 0; i < (bb::index_t)(td.x_train.size() - mini_batch_size); i += mini_batch_size)

@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <chrono>
 
 #include "cuda_runtime.h"
@@ -19,13 +19,13 @@ __global__ void kernel_fp32_MatrixColwiseMeanVar(
     extern __shared__   float   buf[];
     
 
-    // ‰Šú‰»
+    // åˆæœŸåŒ–
     int node  = blockIdx.x;
     int frame = threadIdx.x;
     int frame_step = blockDim.x;
     
     
-    // ƒJƒnƒ“‚Ì‰ÁZƒAƒ‹ƒSƒŠƒYƒ€(Kahan summation algorithm)
+    // ã‚«ãƒãƒ³ã®åŠ ç®—ã‚¢ãƒ«ã‚´ãƒªã‚ºãƒ (Kahan summation algorithm)
     float s1 = 0, c1 = 0, y1, t1;
     float s2 = 0, c2 = 0, y2, t2;
     const float* src_ptr = &src[frame_stride * node];
@@ -53,7 +53,7 @@ __global__ void kernel_fp32_MatrixColwiseMeanVar(
     
     __syncthreads();
 
-    // ƒXƒŒƒbƒhŠÔWŒv
+    // ã‚¹ãƒ¬ãƒƒãƒ‰é–“é›†è¨ˆ
     int comb = 1;
     while (comb < frame_step) {
         int next = comb * 2;

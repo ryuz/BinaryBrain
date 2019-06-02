@@ -83,16 +83,46 @@ void DumpDeviceMemory(std::string filename, T const *addr, int size)
 }
 
 
+inline int GetDeviceCount(void)
+{
+    int dev_count = 0;
+    auto status = cudaGetDeviceCount(&dev_count);
+    if (status != cudaSuccess) {
+        dev_count = 0;
+    }
+    return dev_count;
+}
+
+
+#define BB_USE_LOCAL_HEAP   1
 
 inline void Malloc(void **ptr, size_t size)
 {
+#if BB_USE_LOCAL_HEAP
+    *ptr = bbcu_LocalHeap_Malloc(size);
+#else
     BB_CUDA_SAFE_CALL(cudaMalloc(ptr, size));
+#endif
 }
 
 inline void Free(void *ptr)
 {
+#if BB_USE_LOCAL_HEAP
+    bbcu_LocalHeap_Free(ptr);
+#else
     BB_CUDA_SAFE_CALL(cudaFree(ptr));
+#endif
 }
+
+inline size_t GetMaxAllocSize(void)
+{
+#if BB_USE_LOCAL_HEAP
+    return bbcu_LocalHeap_GetMaxAllocSize();
+#else
+    return 0;
+#endif
+}
+
 
 inline void MallocHost(void **ptr, size_t size, unsigned int flags = 0)
 {
@@ -110,15 +140,10 @@ inline void Memcpy(void *dst, const void *src, size_t count, enum cudaMemcpyKind
 }
 
 
-
-
 inline void PrintDeviceProperties(void)
 {
-    int dev_count;
-
-    BB_CUDA_SAFE_CALL(cudaGetDeviceCount(&dev_count));
-    
-    if ( dev_count <= 0 ) {
+    int dev_count = GetDeviceCount();
+   if ( dev_count <= 0 ) {
         std::cout << "no CUDA" << std::endl;
         return;
     }

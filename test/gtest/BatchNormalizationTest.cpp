@@ -625,6 +625,7 @@ TEST(BatchNormalizationTest, testBatchNormalization_cmp)
 
     auto valgen = bb::NormalDistributionGenerator<float>::Create(1.2f, 3.3f, 1);
 
+
     for ( int loop = 0; loop < 4; ++ loop ) 
     {
         for ( int frame = 0; frame < frame_size; ++frame) {
@@ -652,7 +653,6 @@ TEST(BatchNormalizationTest, testBatchNormalization_cmp)
                 EXPECT_NEAR(val_cpu, val_gpu, 0.0001f);
             }
         }
-
 
         // backward
         bb::FrameBuffer dy_cpu(BB_TYPE_FP32, frame_size, node_size, true);
@@ -759,6 +759,10 @@ TEST(BatchNormalizationTest, testBatchNormalization_cmp)
             }
         }
     }
+}
+
+TEST(BatchNormalizationTest, testBatchNormalization_cmp2)
+{
 }
 
 #endif
