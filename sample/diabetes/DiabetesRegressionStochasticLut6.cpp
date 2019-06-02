@@ -1,8 +1,8 @@
 ﻿// --------------------------------------------------------------------------
 //  BinaryBrain  -- binary network evaluation platform
-//   MNIST sample
+//   diabetes regression sample
 //
-//                                     Copyright (C) 2018 by Ryuji Fuchikami
+//                                Copyright (C) 2018-2019 by Ryuji Fuchikami
 // --------------------------------------------------------------------------
 
 
@@ -37,12 +37,12 @@ void DiabetesRegressionStochasticLut6(int epoch_size, size_t mini_batch_size)
 
     bb::TrainDataNormalize(td);
 
-    auto layer_sl0 = bb::StochasticLutN<6>::Create({ 1024 });
-    auto layer_sl1 = bb::StochasticLutN<6>::Create({ 512 });
-    auto layer_sl2 = bb::StochasticLutN<6>::Create({ 216 });
-    auto layer_sl3 = bb::StochasticLutN<6>::Create({ 36 });
-    auto layer_sl4 = bb::StochasticLutN<6>::Create({ 6 });
-    auto layer_sl5 = bb::StochasticLutN<6>::Create({ 1 });
+    auto layer_sl0 = bb::StochasticLutN<6>::Create(1024);
+    auto layer_sl1 = bb::StochasticLutN<6>::Create(512);
+    auto layer_sl2 = bb::StochasticLutN<6>::Create(216);
+    auto layer_sl3 = bb::StochasticLutN<6>::Create(36);
+    auto layer_sl4 = bb::StochasticLutN<6>::Create(6);
+    auto layer_sl5 = bb::StochasticLutN<6>::Create(1);
 
     {
         // 確率的LUTで学習
@@ -53,6 +53,7 @@ void DiabetesRegressionStochasticLut6(int epoch_size, size_t mini_batch_size)
         net->Add(layer_sl3);
         net->Add(layer_sl4);
         net->Add(layer_sl5);
+
         net->SetInputShape({ 10 });
 
         bb::Runner<float>::create_t runner_create;
