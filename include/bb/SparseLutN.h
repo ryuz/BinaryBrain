@@ -32,7 +32,7 @@ protected:
     bool                    m_lut_binarize = true;
     bool                    m_binary_mode  = true;
 
-    RealType                m_unbinarize_bias = (RealType)0.2;
+    RealType                m_unbinarize_bias = (RealType)0.25;
 
     index_t                 m_max_tmp_mem_size = 256 * 1024 * 1024;
 
@@ -69,7 +69,7 @@ public:
         indices_t       output_shape;               //< 出力形状
         std::string     connection;                 //< 結線ルール
         RealType        momentum  = (RealType)0.0;
-        RealType        gamma     = (RealType)0.5;
+        RealType        gamma     = (RealType)0.3;
         RealType        beta      = (RealType)0.5;
         std::uint64_t   seed      = 1;              //< 乱数シード
     };

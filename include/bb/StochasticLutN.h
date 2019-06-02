@@ -38,7 +38,7 @@ protected:
 
     std::string             m_connection;
 
-    RealType                m_unbinarize_bias = (RealType)0.2;
+    RealType                m_unbinarize_bias = (RealType)0.25;
 
     indices_t               m_input_shape;
     indices_t               m_output_shape;
