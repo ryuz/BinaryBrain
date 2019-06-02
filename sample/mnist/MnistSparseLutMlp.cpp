@@ -10,6 +10,7 @@
 
 #include "bb/Sequential.h"
 #include "bb/SparseLutN.h"
+#include "bb/SparseLutDiscreteN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/Reduce.h"
 #include "bb/BinaryModulation.h"
@@ -33,9 +34,15 @@ void MnistSparseLutMlp(int epoch_size, int mini_batch_size, int train_modulation
     auto td = bb::LoadMnist<>::Load(10);
 #endif
 
+#ifdef BB_WITH_CUD
     auto layer_sl0 = bb::SparseLutN<6, float>::Create(1024);
     auto layer_sl1 = bb::SparseLutN<6, float>::Create(480);
     auto layer_sl2 = bb::SparseLutN<6, float>::Create(70);
+#else
+    auto layer_sl0 = bb::SparseLutDiscreteN<6, float>::Create(1024);
+    auto layer_sl1 = bb::SparseLutDiscreteN<6, float>::Create(480);
+    auto layer_sl2 = bb::SparseLutDiscreteN<6, float>::Create(70);
+#endif
 
     {
         std::cout << "\n<Training>" << std::endl;
