@@ -434,13 +434,6 @@ protected:
                 break;
             }
 
-            // 進捗表示
-            if ( print_progress ) {
-                index_t progress = index + mini_batch_size;
-                index_t rate = progress * 100 / frame_size;
-                std::cerr << "\r[" << rate << "% (" << progress << "/" << frame_size << ")]";
-            }
-
             index_t i = 0;
             while ( i < mini_batch_size ) {
                 index_t  run_size = mini_batch_size - i;
@@ -483,6 +476,10 @@ protected:
 
             // print progress
             if ( print_progress ) {
+                index_t progress = index + mini_batch_size;
+                index_t rate = progress * 100 / frame_size;
+                std::cerr << "\r[" << rate << "% (" << progress << "/" << frame_size << ")]";
+
                 if ( print_progress_loss && lossFunc != nullptr ) {
                     std::cerr << "  loss : " << lossFunc->GetLoss();
                 }
