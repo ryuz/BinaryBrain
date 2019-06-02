@@ -44,12 +44,12 @@ test/diabetes/test-diabetes
 # generate file
 sample/mnist/verilog/mnist_train.txt
 sample/mnist/verilog/mnist_test.txt
-sample/mnist/verilog/MnistSimpleLutMlp.v
-sample/mnist/verilog/MnistSimpleLutCnn.v
+sample/mnist/verilog/MnistSparseLutMlp.v
+sample/mnist/verilog/MnistSparseLutCnn.v
+sample/mnist/verilog/MnistStochasticLutMlp.v
+sample/mnist/verilog/MnistStochasticLutCnn.v
 sample/mnist/verilog/MnistMicroMlpLutMlp.v
 sample/mnist/verilog/MnistMicroMlpLutCnn.v
-sample/mnist/verilog/MnistStochasticLut6Mlp.v
-sample/mnist/verilog/MnistStochasticLut6Cnn.v
 sample/diabetes/diabetes_data.txt
 sample/diabetes/diabetes_target.txt
 
