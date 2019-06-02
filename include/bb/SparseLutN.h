@@ -29,7 +29,7 @@ class SparseLutN : public SparseLayer
 
 protected:
     bool                    m_host_only    = false;
-    bool                    m_lut_binarize = true;
+    bool                    m_lut_binarize = false;
     bool                    m_binary_mode  = true;
 
     RealType                m_unbinarize_bias = (RealType)0.25;
@@ -50,7 +50,7 @@ protected:
     std::shared_ptr<Tensor> m_W;
     std::shared_ptr<Tensor> m_dW;
 
-    RealType                m_momentum = (RealType)0.0;
+    RealType                m_momentum;
 
     RealType                m_gamma;
     RealType                m_beta;
