@@ -438,7 +438,7 @@ protected:
             if ( print_progress ) {
                 index_t progress = index + mini_batch_size;
                 index_t rate = progress * 100 / frame_size;
-                std::cout << "\r[" << rate << "% (" << progress << "/" << frame_size << ")]";
+                std::cerr << "\r[" << rate << "% (" << progress << "/" << frame_size << ")]";
             }
 
             index_t i = 0;
@@ -481,24 +481,27 @@ protected:
                 }
             }
 
-            // 進捗表示
+            // print progress
             if ( print_progress ) {
                 if ( print_progress_loss && lossFunc != nullptr ) {
-                    std::cout << "  loss : " << lossFunc->GetLoss();
+                    std::cerr << "  loss : " << lossFunc->GetLoss();
                 }
 
                 if ( print_progress_metrics && metricsFunc != nullptr ) {
-                    std::cout << "  " << metricsFunc->GetMetricsString() << " : " << metricsFunc->GetMetrics();
+                    std::cerr << "  " << metricsFunc->GetMetricsString() << " : " << metricsFunc->GetMetrics();
                 }
 
-                std::cout << "        " << std::flush;
+                std::cerr << "        " << std::flush;
             }
 
             // インデックスを進める
             index += mini_batch_size;
         }
 
-        std::cout << "\r                                                                               \r" << std::flush;
+        // clear progress
+        if ( print_progress ) {
+            std::cerr << "\r                                                                               \r" << std::flush;
+        }
 
         return metricsFunc->GetMetrics();
     }
