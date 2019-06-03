@@ -1,90 +1,94 @@
-// --------------------------------------------------------------------------
+ï»¿// --------------------------------------------------------------------------
 //  BinaryBrain  -- binary network evaluation platform
-//   CIFAR-10 sample
+//   MNIST sample
 //
 //                                Copyright (C) 2018-2019 by Ryuji Fuchikami
 // --------------------------------------------------------------------------
 
+
 #include <iostream>
 
 #include "bb/Sequential.h"
-#include "bb/BinaryModulation.h"
-#include "bb/Reduce.h"
-#include "bb/MicroMlp.h"
+#include "bb/SparseLutN.h"
+#include "bb/SparseLutDiscreteN.h"
 #include "bb/BinaryLutN.h"
-#include "bb/LoweringConvolution.h"
-#include "bb/MaxPooling.h"
+#include "bb/Reduce.h"
+#include "bb/BinaryModulation.h"
 #include "bb/OptimizerAdam.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
 #include "bb/MetricsCategoricalAccuracy.h"
 #include "bb/Runner.h"
-#include "bb/LoadCifar10.h"
+#include "bb/LoadMnist.h"
 #include "bb/ExportVerilog.h"
 
 
-void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void MnistSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "Cifar10MicroMlpLutCnn";
+    std::string net_name = "MnistSparseLutCnn";
 
-  // load cifar-10 data
+  // load MNIST data
 #ifdef _DEBUG
-    auto td = bb::LoadCifar10<>::Load(1);
+    auto td = bb::LoadMnist<>::Load(10, 64, 32);
     std::cout << "!!! debug mode !!!" << std::endl;
 #else
-    auto td = bb::LoadCifar10<>::Load();
+    auto td = bb::LoadMnist<>::Load();
 #endif
 
     // create network
-    auto layer_cnv0_mm0 = bb::MicroMlp<>::Create(256);
-    auto layer_cnv0_mm1 = bb::MicroMlp<>::Create(192);
-    auto layer_cnv0_mm2 = bb::MicroMlp<>::Create(32);
-    auto layer_cnv1_mm0 = bb::MicroMlp<>::Create(256);
-    auto layer_cnv1_mm1 = bb::MicroMlp<>::Create(192);
-    auto layer_cnv1_mm2 = bb::MicroMlp<>::Create(32);
-    auto layer_cnv2_mm0 = bb::MicroMlp<>::Create(512);
-    auto layer_cnv2_mm1 = bb::MicroMlp<>::Create(384);
-    auto layer_cnv2_mm2 = bb::MicroMlp<>::Create(64);
-    auto layer_cnv3_mm0 = bb::MicroMlp<>::Create(512);
-    auto layer_cnv3_mm1 = bb::MicroMlp<>::Create(384);
-    auto layer_cnv3_mm2 = bb::MicroMlp<>::Create(64);
-    auto layer_mm4      = bb::MicroMlp<>::Create(1024);
-    auto layer_mm5      = bb::MicroMlp<>::Create(420);
-    auto layer_mm6      = bb::MicroMlp<>::Create(70);
+#ifdef BB_WITH_CUDA
+    auto layer_cnv0_sl0 = bb::SparseLutN<6, float>::Create(192);
+    auto layer_cnv0_sl1 = bb::SparseLutN<6, float>::Create(32);
+    auto layer_cnv1_sl0 = bb::SparseLutN<6, float>::Create(192);
+    auto layer_cnv1_sl1 = bb::SparseLutN<6, float>::Create(32);
+    auto layer_cnv2_sl0 = bb::SparseLutN<6, float>::Create(192);
+    auto layer_cnv2_sl1 = bb::SparseLutN<6, float>::Create(32);
+    auto layer_cnv3_sl0 = bb::SparseLutN<6, float>::Create(192);
+    auto layer_cnv3_sl1 = bb::SparseLutN<6, float>::Create(32);
+    auto layer_sl4      = bb::SparseLutN<6, float>::Create(420);
+    auto layer_sl5      = bb::SparseLutN<6, float>::Create(70);
+#else
+    auto layer_cnv0_sl0 = bb::SparseLutDiscreteN<6, float>::Create(192);
+    auto layer_cnv0_sl1 = bb::SparseLutDiscreteN<6, float>::Create(32);
+    auto layer_cnv1_sl0 = bb::SparseLutDiscreteN<6, float>::Create(192);
+    auto layer_cnv1_sl1 = bb::SparseLutDiscreteN<6, float>::Create(32);
+    auto layer_cnv2_sl0 = bb::SparseLutDiscreteN<6, float>::Create(192);
+    auto layer_cnv2_sl1 = bb::SparseLutDiscreteN<6, float>::Create(32);
+    auto layer_cnv3_sl0 = bb::SparseLutDiscreteN<6, float>::Create(192);
+    auto layer_cnv3_sl1 = bb::SparseLutDiscreteN<6, float>::Create(32);
+    auto layer_sl4      = bb::SparseLutDiscreteN<6, float>::Create(420);
+    auto layer_sl5      = bb::SparseLutDiscreteN<6, float>::Create(70);
+#endif
 
     {
         std::cout << "\n<Training>" << std::endl;
 
+        // main network
         auto cnv0_sub = bb::Sequential::Create();
-        cnv0_sub->Add(layer_cnv0_mm0);
-        cnv0_sub->Add(layer_cnv0_mm1);
-        cnv0_sub->Add(layer_cnv0_mm2);
+        cnv0_sub->Add(layer_cnv0_sl0);
+        cnv0_sub->Add(layer_cnv0_sl1);
 
         auto cnv1_sub = bb::Sequential::Create();
-        cnv1_sub->Add(layer_cnv1_mm0);
-        cnv1_sub->Add(layer_cnv1_mm1);
-        cnv1_sub->Add(layer_cnv1_mm2);
+        cnv1_sub->Add(layer_cnv1_sl0);
+        cnv1_sub->Add(layer_cnv1_sl1);
 
         auto cnv2_sub = bb::Sequential::Create();
-        cnv2_sub->Add(layer_cnv2_mm0);
-        cnv2_sub->Add(layer_cnv2_mm1);
-        cnv2_sub->Add(layer_cnv2_mm2);
+        cnv2_sub->Add(layer_cnv2_sl0);
+        cnv2_sub->Add(layer_cnv2_sl1);
 
         auto cnv3_sub = bb::Sequential::Create();
-        cnv3_sub->Add(layer_cnv3_mm0);
-        cnv3_sub->Add(layer_cnv3_mm1);
-        cnv3_sub->Add(layer_cnv3_mm2);
+        cnv3_sub->Add(layer_cnv3_sl0);
+        cnv3_sub->Add(layer_cnv3_sl1);
         
         auto main_net = bb::Sequential::Create();
-        main_net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
-        main_net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
-        main_net->Add(bb::MaxPooling<>::Create(2, 2));
-        main_net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
-        main_net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
-        main_net->Add(bb::MaxPooling<>::Create(2, 2));
-        main_net->Add(layer_mm4);
-        main_net->Add(layer_mm5);
-        main_net->Add(layer_mm6);
-        
+        main_net->Add(bb::LoweringConvolution<float>::Create(cnv0_sub, 3, 3));
+        main_net->Add(bb::LoweringConvolution<float>::Create(cnv1_sub, 3, 3));
+        main_net->Add(bb::MaxPooling<float>::Create(2, 2));
+        main_net->Add(bb::LoweringConvolution<float>::Create(cnv2_sub, 3, 3));
+        main_net->Add(bb::LoweringConvolution<float>::Create(cnv3_sub, 3, 3));
+        main_net->Add(bb::MaxPooling<float>::Create(2, 2));
+        main_net->Add(layer_sl4);
+        main_net->Add(layer_sl5);
+
         // modulation wrapper
         auto net = bb::Sequential::Create();
         net->Add(bb::BinaryModulation<float>::Create(main_net, train_modulation_size, test_modulation_size));
@@ -115,66 +119,55 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int train_modula
         std::cout << "file_read             : " << file_read             << std::endl;
         std::cout << "-----------------------------------" << std::endl;
 
-        // run fitting
+        // fitting
         bb::Runner<float>::create_t runner_create;
         runner_create.name               = net_name;
         runner_create.net                = net;
         runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
         runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
-        runner_create.file_read          = file_read;       // ‘O‚ÌŒvZŒ‹‰Ê‚ª‚ ‚ê‚Î“Ç‚İ‚ñ‚ÅÄŠJ‚·‚é‚©
-        runner_create.file_write         = true;            // ŒvZŒ‹‰Ê‚ğƒtƒ@ƒCƒ‹‚É•Û‘¶‚·‚é‚©
-        runner_create.print_progress     = true;            // “r’†Œ‹‰Ê‚ğ•\¦
-        runner_create.initial_evaluation = file_read;       // ƒtƒ@ƒCƒ‹‚ğ“Ç‚ñ‚¾ê‡‚ÍÅ‰‚É•]‰¿‚µ‚Ä‚¨‚­
+        runner_create.file_read          = file_read;       // å‰ã®è¨ˆç®—çµæœãŒã‚ã‚Œã°èª­ã¿è¾¼ã‚“ã§å†é–‹ã™ã‚‹ã‹
+        runner_create.file_write         = true;            // è¨ˆç®—çµæœã‚’ãƒ•ã‚¡ã‚¤ãƒ«ã«ä¿å­˜ã™ã‚‹ã‹
+        runner_create.print_progress     = true;            // é€”ä¸­çµæœã‚’è¡¨ç¤º
+        runner_create.initial_evaluation = file_read;       // ãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã‚“ã å ´åˆã¯æœ€åˆã«è©•ä¾¡ã—ã¦ãŠã
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
-
 
     {
         std::cout << "\n<Evaluation binary LUT-Network>" << std::endl;
 
         // LUT-network
-        auto layer_cnv0_bl0 = bb::BinaryLutN<>::Create(layer_cnv0_mm0->GetOutputShape());
-        auto layer_cnv0_bl1 = bb::BinaryLutN<>::Create(layer_cnv0_mm1->GetOutputShape());
-        auto layer_cnv0_bl2 = bb::BinaryLutN<>::Create(layer_cnv0_mm2->GetOutputShape());
-        auto layer_cnv1_bl0 = bb::BinaryLutN<>::Create(layer_cnv1_mm0->GetOutputShape());
-        auto layer_cnv1_bl1 = bb::BinaryLutN<>::Create(layer_cnv1_mm1->GetOutputShape());
-        auto layer_cnv1_bl2 = bb::BinaryLutN<>::Create(layer_cnv1_mm2->GetOutputShape());
-        auto layer_cnv2_bl0 = bb::BinaryLutN<>::Create(layer_cnv2_mm0->GetOutputShape());
-        auto layer_cnv2_bl1 = bb::BinaryLutN<>::Create(layer_cnv2_mm1->GetOutputShape());
-        auto layer_cnv2_bl2 = bb::BinaryLutN<>::Create(layer_cnv2_mm2->GetOutputShape());
-        auto layer_cnv3_bl0 = bb::BinaryLutN<>::Create(layer_cnv3_mm0->GetOutputShape());
-        auto layer_cnv3_bl1 = bb::BinaryLutN<>::Create(layer_cnv3_mm1->GetOutputShape());
-        auto layer_cnv3_bl2 = bb::BinaryLutN<>::Create(layer_cnv3_mm2->GetOutputShape());
-        auto layer_bl4      = bb::BinaryLutN<>::Create(layer_mm4->GetOutputShape());
-        auto layer_bl5      = bb::BinaryLutN<>::Create(layer_mm5->GetOutputShape());
-        auto layer_bl6      = bb::BinaryLutN<>::Create(layer_mm6->GetOutputShape());
+        auto layer_cnv0_bl0 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv0_sl0->GetOutputShape());
+        auto layer_cnv0_bl1 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv0_sl1->GetOutputShape());
+        auto layer_cnv1_bl0 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv1_sl0->GetOutputShape());
+        auto layer_cnv1_bl1 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv1_sl1->GetOutputShape());
+        auto layer_cnv2_bl0 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv2_sl0->GetOutputShape());
+        auto layer_cnv2_bl1 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv2_sl1->GetOutputShape());
+        auto layer_cnv3_bl0 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv3_sl0->GetOutputShape());
+        auto layer_cnv3_bl1 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv3_sl1->GetOutputShape());
+        auto layer_bl4      = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl4->GetOutputShape());
+        auto layer_bl5      = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl5->GetOutputShape());
 
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_bl0);
         cnv0_sub->Add(layer_cnv0_bl1);
-        cnv0_sub->Add(layer_cnv0_bl2);
 
         auto cnv1_sub = bb::Sequential::Create();
         cnv1_sub->Add(layer_cnv1_bl0);
         cnv1_sub->Add(layer_cnv1_bl1);
-        cnv1_sub->Add(layer_cnv1_bl2);
 
         auto cnv2_sub = bb::Sequential::Create();
         cnv2_sub->Add(layer_cnv2_bl0);
         cnv2_sub->Add(layer_cnv2_bl1);
-        cnv2_sub->Add(layer_cnv2_bl2);
 
         auto cnv3_sub = bb::Sequential::Create();
         cnv3_sub->Add(layer_cnv3_bl0);
         cnv3_sub->Add(layer_cnv3_bl1);
-        cnv3_sub->Add(layer_cnv3_bl2);
 
         auto cnv4_sub = bb::Sequential::Create();
         cnv4_sub->Add(layer_bl4);
         cnv4_sub->Add(layer_bl5);
-        cnv4_sub->Add(layer_bl6);
 
         auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3);
         auto cnv1 = bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3);
@@ -184,8 +177,7 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int train_modula
         auto cnv3 = bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3);
         auto pol1 = bb::MaxPooling<bb::Bit>::Create(2, 2);
 
-        // 32x32 ˆÈŠO‚à“ü—Í‚Å‚«‚é‚æ‚¤‚ÉÅI’i‚àô‚İ‚İ‚É•ÏŠ·
-        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);
+        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 4, 4);
 
         auto lut_net = bb::Sequential::Create();
         lut_net->Add(cnv0);
@@ -203,27 +195,24 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int train_modula
 
         // set input shape
         eval_net->SetInputShape(td.x_shape);
-        
-        // ƒe[ƒuƒ‹‰»‚µ‚Äæ‚è‚İ(Œ»ó‚Ü‚¾SetInputShapeŒã‚Ìæ‚è‚İ‚ª•K—v)
-        std::cout << "parameter copy to LUT-Network" << std::endl;
-        layer_cnv0_bl0->ImportLayer(layer_cnv0_mm0);
-        layer_cnv0_bl1->ImportLayer(layer_cnv0_mm1);
-        layer_cnv0_bl2->ImportLayer(layer_cnv0_mm2);
-        layer_cnv1_bl0->ImportLayer(layer_cnv1_mm0);
-        layer_cnv1_bl1->ImportLayer(layer_cnv1_mm1);
-        layer_cnv1_bl2->ImportLayer(layer_cnv1_mm2);
-        layer_cnv2_bl0->ImportLayer(layer_cnv2_mm0);
-        layer_cnv2_bl1->ImportLayer(layer_cnv2_mm1);
-        layer_cnv2_bl2->ImportLayer(layer_cnv2_mm2);
-        layer_cnv3_bl0->ImportLayer(layer_cnv3_mm0);
-        layer_cnv3_bl1->ImportLayer(layer_cnv3_mm1);
-        layer_cnv3_bl2->ImportLayer(layer_cnv3_mm2);
-        layer_bl4     ->ImportLayer(layer_mm4);
-        layer_bl5     ->ImportLayer(layer_mm5);
-        layer_bl6     ->ImportLayer(layer_mm6);
 
-        // •]‰¿
+
+        // ãƒ†ãƒ¼ãƒ–ãƒ«åŒ–ã—ã¦å–ã‚Šè¾¼ã¿(ç¾çŠ¶ã¾ã SetInputShapeå¾Œã®å–ã‚Šè¾¼ã¿ãŒå¿…è¦)
+        std::cout << "parameter copy to binary LUT-Network" << std::endl;
+        layer_cnv0_bl0->ImportLayer(layer_cnv0_sl0);
+        layer_cnv0_bl1->ImportLayer(layer_cnv0_sl1);
+        layer_cnv1_bl0->ImportLayer(layer_cnv1_sl0);
+        layer_cnv1_bl1->ImportLayer(layer_cnv1_sl1);
+        layer_cnv2_bl0->ImportLayer(layer_cnv2_sl0);
+        layer_cnv2_bl1->ImportLayer(layer_cnv2_sl1);
+        layer_cnv3_bl0->ImportLayer(layer_cnv3_sl0);
+        layer_cnv3_bl1->ImportLayer(layer_cnv3_sl1);
+        layer_bl4     ->ImportLayer(layer_sl4);
+        layer_bl5     ->ImportLayer(layer_sl5);
+
+        // è©•ä¾¡
         if ( 1 ) {
+            std::cout << "test_modulation_size  : " << test_modulation_size  << std::endl;
             bb::Runner<float>::create_t lut_runner_create;
             lut_runner_create.name        = "Lut_" + net_name;
             lut_runner_create.net         = eval_net;
@@ -231,14 +220,14 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int train_modula
             lut_runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
             lut_runner_create.optimizer   = bb::OptimizerAdam<float>::Create();
             lut_runner_create.initial_evaluation = false;
-            lut_runner_create.print_progress = true;    // “r’†Œ‹‰Ê‚ğo—Í
+            lut_runner_create.print_progress = true;    // é€”ä¸­çµæœã‚’å‡ºåŠ›
             auto lut_runner = bb::Runner<float>::Create(lut_runner_create);
             auto lut_accuracy = lut_runner->Evaluation(td, mini_batch_size);
             std::cout << "lut_accuracy : " << lut_accuracy << std::endl;
         }
 
         {
-            // Verilog o—Í
+            // Verilog å‡ºåŠ›
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv0;
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv1;
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv2;
@@ -260,8 +249,8 @@ void Cifar10MicroMlpLutCnn(int epoch_size, int mini_batch_size, int train_modula
             std::cout << "export : " << filename << "\n" << std::endl;
             
             // write test image
-            bb::WriteTestDataImage<float>("verilog/cifar10_test_160x120.ppm", 160, 120, td);
-            bb::WriteTestDataImage<float>("verilog/cifar10_test_640x480.ppm", 640, 480, td);
+            bb::WriteTestDataImage<float>("verilog/mnist_test_160x120.ppm", 160, 120, td);
+            bb::WriteTestDataImage<float>("verilog/mnist_test_640x480.ppm", 640, 480, td);
         }
     }
 }

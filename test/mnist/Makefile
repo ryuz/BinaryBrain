@@ -1,4 +1,4 @@
-
+﻿
 # target
 TARGET  = test-mnist
 SUB_TARGETS =
@@ -22,24 +22,30 @@ CC = g++
 #CC ?= clang++
 endif
 
-CFLAGS = -O2 -mavx2 -mfma -fopenmp -std=c++14
-#CFLAGS = -O1 -mavx2 -mfma -std=c++14
-CINCS  = -I../../include -I../../eigen
+CFLAGS = -mavx2 -mfma -fopenmp -std=c++14
+CINCS  = -I../../include
 CDEFS  = 
 
 SRCS   = main.cpp
+SRCS  += MnistStochasticLutMlp.cpp
+SRCS  += MnistStochasticLutCnn.cpp
+SRCS  += MnistSparseLutMlp.cpp
+SRCS  += MnistSparseLutCnn.cpp
 SRCS  += MnistDenseMlp.cpp
 SRCS  += MnistDenseCnn.cpp
-SRCS  += MnistStochasticLut6Mlp.cpp
-SRCS  += MnistStochasticLut6Cnn.cpp
 SRCS  += MnistMicroMlpLutMlp.cpp
 SRCS  += MnistMicroMlpLutCnn.cpp
-SRCS  += MnistMicroMlpScratch.cpp
-SRCS  += MnistSparseBinaryLutCnn.cpp
+SRCS  += MnistCustomModel.cpp
 
 OBJS = $(addsuffix .o, $(basename $(SRCS)))
 
 LIBS = 
+
+ifeq ($(DEBUG),Yes)
+CFLAGS += -O0 -g
+else
+CFLAGS += -O2
+endif
 
 ifeq ($(WITH_CEREAL),Yes)
 CDEFS      += -DBB_WITH_CEREAL
@@ -77,11 +83,14 @@ $(TARGET): $(OBJS) $(LIBS)
 .cpp.o:
 	$(CC) $(CFLAGS) $(CINCS) $(CDEFS) -c $<
 
+depend: $(SRCS)
+	$(CC) -M $(CFLAGS) $(CINCS) $(CDEFS) $^ > $@
 
+include depend
 
 # mnist data
-.PHONY: dl_mnist
-dl_mnist: train-images-idx3-ubyte train-labels-idx1-ubyte t10k-images-idx3-ubyte t10k-labels-idx1-ubyte
+.PHONY: dl_data
+dl_data: train-images-idx3-ubyte train-labels-idx1-ubyte t10k-images-idx3-ubyte t10k-labels-idx1-ubyte
 
 train-images-idx3-ubyte: train-images-idx3-ubyte.gz
 	gzip -c -d train-images-idx3-ubyte.gz  > train-images-idx3-ubyte

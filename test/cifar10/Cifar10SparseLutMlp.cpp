@@ -1,6 +1,6 @@
-ï»¿// --------------------------------------------------------------------------
+// --------------------------------------------------------------------------
 //  BinaryBrain  -- binary network evaluation platform
-//   MNIST sample
+//   CIFAR-10 sample
 //
 //                                Copyright (C) 2018-2019 by Ryuji Fuchikami
 // --------------------------------------------------------------------------
@@ -9,47 +9,52 @@
 #include <iostream>
 
 #include "bb/Sequential.h"
-#include "bb/BinaryModulation.h"
-#include "bb/Reduce.h"
-#include "bb/MicroMlp.h"
+#include "bb/SparseLutN.h"
+#include "bb/SparseLutDiscreteN.h"
 #include "bb/BinaryLutN.h"
+#include "bb/Reduce.h"
+#include "bb/BinaryModulation.h"
+#include "bb/OptimizerAdam.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
 #include "bb/MetricsCategoricalAccuracy.h"
-#include "bb/OptimizerAdam.h"
 #include "bb/Runner.h"
-#include "bb/LoadMnist.h"
+#include "bb/LoadCifar10.h"
 #include "bb/ExportVerilog.h"
 
 
-void MnistMicroMlpLutMlp(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void Cifar10SparseLutMlp(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "MnistMicroMlpLutMlp";
-
-  // load MNIST data
+    std::string net_name = "Cifar10SparseLutMlp";
+     
+  // load cifar-10 data
 #ifdef _DEBUG
-    auto td = bb::LoadMnist<>::Load(10, 64, 32);
+    auto td = bb::LoadCifar10<>::Load(1);
     std::cout << "!!! debug mode !!!" << std::endl;
 #else
-    auto td = bb::LoadMnist<>::Load();
+    auto td = bb::LoadCifar10<>::Load();
 #endif
 
-    auto layer_mm0 = bb::MicroMlp<6, 16, float>::Create(1024);
-    auto layer_mm1 = bb::MicroMlp<6, 16, float>::Create(480);
-    auto layer_mm2 = bb::MicroMlp<6, 16, float>::Create(70);
+     // create network
+    auto layer_sl0 = bb::SparseLutN<6, float>::Create(3072);
+    auto layer_sl1 = bb::SparseLutN<6, float>::Create(512);
+    auto layer_sl2 = bb::SparseLutN<6, float>::Create(2160);
+    auto layer_sl3 = bb::SparseLutN<6, float>::Create(360);
+    auto layer_sl4 = bb::SparseLutN<6, float>::Create(60);
+    auto layer_sl5 = bb::SparseLutN<6, float>::Create(10);
 
     {
         std::cout << "\n<Training>" << std::endl;
-
-        // main network
+        
         auto main_net = bb::Sequential::Create();
-        main_net->Add(layer_mm0);
-        main_net->Add(layer_mm1);
-        main_net->Add(layer_mm2);
+        main_net->Add(layer_sl0);
+        main_net->Add(layer_sl1);
+        main_net->Add(layer_sl2);
+        main_net->Add(layer_sl3);
+        main_net->Add(layer_sl4);
+        main_net->Add(layer_sl5);
 
         // modulation wrapper
-        auto net = bb::Sequential::Create();
-        net->Add(bb::BinaryModulation<float>::Create(main_net, train_modulation_size, test_modulation_size));
-        net->Add(bb::Reduce<float>::Create(td.t_shape));
+        auto net = bb::BinaryModulation<float>::Create(main_net, train_modulation_size, test_modulation_size);
 
         // set input shape
         net->SetInputShape(td.x_shape);
@@ -83,10 +88,10 @@ void MnistMicroMlpLutMlp(int epoch_size, int mini_batch_size, int train_modulati
         runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
         runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
-        runner_create.file_read          = file_read;       // å‰ã®è¨ˆç®—çµæœãŒã‚ã‚Œã°èª­ã¿è¾¼ã‚“ã§å†é–‹ã™ã‚‹ã‹
-        runner_create.file_write         = true;            // è¨ˆç®—çµæœã‚’ãƒ•ã‚¡ã‚¤ãƒ«ã«ä¿å­˜ã™ã‚‹ã‹
-        runner_create.print_progress     = true;            // é€”ä¸­çµæœã‚’è¡¨ç¤º
-        runner_create.initial_evaluation = file_read;       // ãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã‚“ã å ´åˆã¯æœ€åˆã«è©•ä¾¡ã—ã¦ãŠã
+        runner_create.file_read          = file_read;       // ‘O‚ÌŒvZŒ‹‰Ê‚ª‚ ‚ê‚Î“Ç‚İ‚ñ‚ÅÄŠJ‚·‚é‚©
+        runner_create.file_write         = true;            // ŒvZŒ‹‰Ê‚ğƒtƒ@ƒCƒ‹‚É•Û‘¶‚·‚é‚©
+        runner_create.print_progress     = true;            // “r’†Œ‹‰Ê‚ğ•\¦
+        runner_create.initial_evaluation = file_read;       // ƒtƒ@ƒCƒ‹‚ğ“Ç‚ñ‚¾ê‡‚ÍÅ‰‚É•]‰¿‚µ‚Ä‚¨‚­
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
@@ -95,53 +100,62 @@ void MnistMicroMlpLutMlp(int epoch_size, int mini_batch_size, int train_modulati
         std::cout << "\n<Evaluation binary LUT-Network>" << std::endl;
 
         // LUT-network
-        auto layer_bl0 = bb::BinaryLutN<>::Create(layer_mm0->GetOutputShape());
-        auto layer_bl1 = bb::BinaryLutN<>::Create(layer_mm1->GetOutputShape());
-        auto layer_bl2 = bb::BinaryLutN<>::Create(layer_mm2->GetOutputShape());
+        auto layer_bl0 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl0->GetOutputShape());
+        auto layer_bl1 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl1->GetOutputShape());
+        auto layer_bl2 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl2->GetOutputShape());
+        auto layer_bl3 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl3->GetOutputShape());
+        auto layer_bl4 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl4->GetOutputShape());
+        auto layer_bl5 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl5->GetOutputShape());
 
         auto lut_net = bb::Sequential::Create();
         lut_net->Add(layer_bl0);
         lut_net->Add(layer_bl1);
         lut_net->Add(layer_bl2);
+        lut_net->Add(layer_bl3);
+        lut_net->Add(layer_bl4);
+        lut_net->Add(layer_bl5);
 
         // evaluation network
-        auto eval_net = bb::Sequential::Create();
-        eval_net->Add(bb::BinaryModulation<bb::Bit>::Create(lut_net, test_modulation_size));
-        eval_net->Add(bb::Reduce<>::Create(td.t_shape));
+        auto eval_net = bb::BinaryModulation<bb::Bit>::Create(lut_net, test_modulation_size);
 
         // set input shape
         eval_net->SetInputShape(td.x_shape);
 
-        // ãƒ†ãƒ¼ãƒ–ãƒ«åŒ–ã—ã¦å–ã‚Šè¾¼ã¿(SetInputShapeå¾Œã«å–ã‚Šè¾¼ã¿ãŒå¿…è¦)
-        std::cout << "parameter copy to binary LUT-Network" << std::endl;
-        layer_bl0->ImportLayer(layer_mm0);
-        layer_bl1->ImportLayer(layer_mm1);
-        layer_bl2->ImportLayer(layer_mm2);
 
-        // è©•ä¾¡
+        // ƒe[ƒuƒ‹‰»‚µ‚Äæ‚è‚İ(Œ»ó‚Ü‚¾SetInputShapeŒã‚Ìæ‚è‚İ‚ª•K—v)
+        std::cout << "parameter copy to binary LUT-Network" << std::endl;
+        layer_bl0->ImportLayer(layer_sl0);
+        layer_bl1->ImportLayer(layer_sl1);
+        layer_bl2->ImportLayer(layer_sl2);
+        layer_bl3->ImportLayer(layer_sl3);
+        layer_bl4->ImportLayer(layer_sl4);
+        layer_bl5->ImportLayer(layer_sl5);
+
+        // •]‰¿
         if ( 1 ) {
             std::cout << "test_modulation_size  : " << test_modulation_size  << std::endl;
             bb::Runner<float>::create_t lut_runner_create;
-            lut_runner_create.name           = "Lut_" + net_name;
-            lut_runner_create.net            = eval_net;
-            lut_runner_create.lossFunc       = bb::LossSoftmaxCrossEntropy<float>::Create();
-            lut_runner_create.metricsFunc    = bb::MetricsCategoricalAccuracy<float>::Create();
-            lut_runner_create.optimizer      = bb::OptimizerAdam<float>::Create();
-            lut_runner_create.print_progress = true;
+            lut_runner_create.name        = "Lut_" + net_name;
+            lut_runner_create.net         = eval_net;
+            lut_runner_create.lossFunc    = bb::LossSoftmaxCrossEntropy<float>::Create();
+            lut_runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
+            lut_runner_create.optimizer   = bb::OptimizerAdam<float>::Create();
+            lut_runner_create.initial_evaluation = false;
+            lut_runner_create.print_progress = true;    // “r’†Œ‹‰Ê‚ğo—Í
             auto lut_runner = bb::Runner<float>::Create(lut_runner_create);
             auto lut_accuracy = lut_runner->Evaluation(td, mini_batch_size);
             std::cout << "lut_accuracy : " << lut_accuracy << std::endl;
         }
 
         {
-            // Verilog å‡ºåŠ›
+            // Verilog o—Í
             std::string filename = "verilog/" + net_name + ".v";
             std::ofstream ofs(filename);
             ofs << "`timescale 1ns / 1ps\n\n";
             bb::ExportVerilog_LutLayers<>(ofs, net_name, lut_net);
             std::cout << "export : " << filename << "\n" << std::endl;
 
-            // RTL simulation ç”¨ãƒ‡ãƒ¼ã‚¿ã®å‡ºåŠ›
+            // RTL simulation —pƒf[ƒ^‚Ìo—Í
             bb::WriteTestDataBinTextFile<float>("verilog/mnist_train.txt", "verilog/mnist_test.txt", td);
         }
     }
