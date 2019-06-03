@@ -25,6 +25,8 @@ void MnistDenseMlp        (int epoch_size, int mini_batch_size, int train_modula
 void MnistDenseCnn        (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistCustomModel     (int epoch_size, int mini_batch_size,                                                      bool binary_mode                );
 
+void MnistSparseLutMlpAe(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+
 
 // メイン関数
 int main(int argc, char *argv[])
@@ -111,7 +113,8 @@ int main(int argc, char *argv[])
         bbcu::PrintDeviceProperties();
     }
 #endif
-
+    MnistSparseLutMlpAe(epoch_size, mini_batch_size, test_modulation_size, test_modulation_size, binary_mode, file_read);
+    return 0;
 
     if ( netname == "All" || netname == "StochasticLutMlp" ) {
         MnistStochasticLutMlp(epoch_size, mini_batch_size, test_modulation_size, binary_mode, file_read);
