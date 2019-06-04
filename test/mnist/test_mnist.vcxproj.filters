@@ -36,9 +36,6 @@
     <ClCompile Include="MnistCompare.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\sample\mnist\MnistSparseLutMlpAe.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="MnistCustomModel.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -52,6 +49,9 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="MnistStochasticLutMlp.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="MnistSparseLutMlpAe.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

@@ -58,20 +58,24 @@ void SparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size
     auto layer_cnv3_sl1 = bb::SparseLutN<6, T>::Create(384);
     auto layer_cnv3_sl2 = bb::SparseLutN<6, T>::Create(64);
 
-    auto layer_sl4      = bb::SparseLutN<6, T>::Create(18432);
-    auto layer_sl5      = bb::SparseLutN<6, T>::Create(3072);
-    auto layer_sl6      = bb::SparseLutN<6, T>::Create(512);
+    auto layer_cnv4_sl0 = bb::SparseLutN<6, T>::Create(4608);
+    auto layer_cnv4_sl1 = bb::SparseLutN<6, T>::Create(768);
+    auto layer_cnv4_sl2 = bb::SparseLutN<6, T>::Create(128);
 
-    auto layer_sl7      = bb::SparseLutN<6, T>::Create(2160);
-    auto layer_sl8      = bb::SparseLutN<6, T>::Create(360);
-    auto layer_sl9      = bb::SparseLutN<6, T>::Create(60);
-    auto layer_sl10     = bb::SparseLutN<6, T>::Create(10);
+    auto layer_cnv5_sl0 = bb::SparseLutN<6, T>::Create(4608);
+    auto layer_cnv5_sl1 = bb::SparseLutN<6, T>::Create(768);
+    auto layer_cnv5_sl2 = bb::SparseLutN<6, T>::Create(128);
+
+    auto layer_sl6      = bb::SparseLutN<6, T>::Create(2160);
+    auto layer_sl7      = bb::SparseLutN<6, T>::Create(360);
+    auto layer_sl8      = bb::SparseLutN<6, T>::Create(60);
+    auto layer_sl9      = bb::SparseLutN<6, T>::Create(10);
 
     {
         std::cout << "\n<Training>" << std::endl;
 
         auto cnv0_sub = bb::Sequential::Create();
-#if 0
+#if 1
         cnv0_sub->Add(layer_cnv0_sl0);
         cnv0_sub->Add(layer_cnv0_sl1);
 #else
@@ -94,7 +98,7 @@ void SparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size
 #endif
 
         auto cnv2_sub = bb::Sequential::Create();
-#if 0
+#if 1
         cnv2_sub->Add(layer_cnv2_sl0);
         cnv2_sub->Add(layer_cnv2_sl1);
         cnv2_sub->Add(layer_cnv2_sl2);
@@ -106,7 +110,7 @@ void SparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size
 #endif
 
         auto cnv3_sub = bb::Sequential::Create();
-#if 0
+#if 1
         cnv3_sub->Add(layer_cnv3_sl0);
         cnv3_sub->Add(layer_cnv3_sl1);
         cnv3_sub->Add(layer_cnv3_sl2);
@@ -117,6 +121,30 @@ void SparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size
         cnv3_sub->Add(bb::Binarize<T>::Create());
 #endif
         
+        auto cnv4_sub = bb::Sequential::Create();
+#if 1
+        cnv4_sub->Add(layer_cnv4_sl0);
+        cnv4_sub->Add(layer_cnv4_sl1);
+        cnv4_sub->Add(layer_cnv4_sl2);
+#else
+        cnv4_sub->Add(bb::BinaryToReal<T>::Create());
+        cnv4_sub->Add(bb::DenseAffine<>::Create(128));
+        cnv4_sub->Add(bb::BatchNormalization<>::Create(0));
+        cnv4_sub->Add(bb::Binarize<T>::Create());
+#endif
+
+        auto cnv5_sub = bb::Sequential::Create();
+#if 1
+        cnv5_sub->Add(layer_cnv5_sl0);
+        cnv5_sub->Add(layer_cnv5_sl1);
+        cnv5_sub->Add(layer_cnv5_sl2);
+#else
+        cnv4_sub->Add(bb::BinaryToReal<T>::Create());
+        cnv4_sub->Add(bb::DenseAffine<>::Create(128));
+        cnv4_sub->Add(bb::BatchNormalization<>::Create(0));
+        cnv4_sub->Add(bb::Binarize<T>::Create());
+#endif
+
         auto main_net = bb::Sequential::Create();
         main_net->Add(bb::LoweringConvolution<T>::Create(cnv0_sub, 3, 3));
         main_net->Add(bb::LoweringConvolution<T>::Create(cnv1_sub, 3, 3));
@@ -124,14 +152,13 @@ void SparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size
         main_net->Add(bb::LoweringConvolution<T>::Create(cnv2_sub, 3, 3));
         main_net->Add(bb::LoweringConvolution<T>::Create(cnv3_sub, 3, 3));
         main_net->Add(bb::MaxPooling<T>::Create(2, 2));
-#if 0
-        main_net->Add(layer_sl4);
-        main_net->Add(layer_sl5);
+        main_net->Add(bb::LoweringConvolution<T>::Create(cnv4_sub, 3, 3));
+        main_net->Add(bb::LoweringConvolution<T>::Create(cnv5_sub, 3, 3));
+#if 1
         main_net->Add(layer_sl6);
         main_net->Add(layer_sl7);
         main_net->Add(layer_sl8);
         main_net->Add(layer_sl9);
-        main_net->Add(layer_sl10);
 #else
         main_net->Add(bb::BinaryToReal<T>::Create());
         main_net->Add(bb::DenseAffine<>::Create(512));
@@ -187,6 +214,7 @@ void SparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
 
+#if 0
     {
         std::cout << "\n<Evaluation binary LUT-Network>" << std::endl;
 
@@ -330,6 +358,7 @@ void SparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size
             bb::WriteTestDataImage<float>("verilog/mnist_test_640x480.ppm", 640, 480, td);
         }
     }
+#endif
 }
 
 

@@ -69,7 +69,7 @@ public:
                 auto target = t_ptr.Get(frame, node);
                 auto grad = target - signal;
                 auto error = grad * grad;
-                m_accuracy += error;
+                m_accuracy += error / (double)node_size;
             }
             m_frames++;
         }
