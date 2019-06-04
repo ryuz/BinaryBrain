@@ -28,8 +28,8 @@ CINCS  = -I../../include
 CDEFS  = 
 
 SRCS  = main.cpp
-SRCS += Cifar10StochasticLut6Cnn.cpp
-SRCS += Cifar10StochasticLut6Mlp.cpp
+SRCS += Cifar10StochasticLutCnn.cpp
+SRCS += Cifar10StochasticLutMlp.cpp
 SRCS += Cifar10SparseLutMlp.cpp
 SRCS += Cifar10SparseLutCnn.cpp
 SRCS += Cifar10MicroMlpLutMlp.cpp
