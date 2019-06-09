@@ -3,6 +3,7 @@
 #include "gtest/gtest.h"
 
 #include "bb/UpSampling.h"
+#include "bb/UniformDistributionGenerator.h"
 
 
 
@@ -124,4 +125,123 @@ TEST(UpSamplingTest, testUpSampling_test)
     EXPECT_EQ(41+42+43+44+45+46, dx_buf.GetFP32(0, { 1, 1, 1 }));
     EXPECT_EQ(51+52+53+54+55+56, dx_buf.GetFP32(1, { 1, 2, 3 }));
 }
+
+
+
+
+#ifdef BB_WITH_CUDA
+
+template<typename FT = float, typename BT = float>
+void UpSamplingTest_cmp
+        (
+            int     frame_size,
+            int     input_w_size,
+            int     input_h_size, 
+            int     c_size,
+            int     filter_w_size,
+            int     filter_h_size,
+            bool    fill,
+            int     loop_num,
+            bool    host_only = true
+        )
+{
+    auto model0 = bb::UpSampling<FT, BT>::Create(filter_h_size, filter_w_size, fill);
+    auto model1 = bb::UpSampling<FT, BT>::Create(filter_h_size, filter_w_size, fill);
+
+    if ( host_only ) {
+        model1->SendCommand("host_only true");
+    }
+
+    bb::FrameBuffer x_buf0(bb::DataType<FT>::type, frame_size, {input_w_size, input_h_size, c_size}, false);
+    bb::FrameBuffer x_buf1(bb::DataType<FT>::type, frame_size, {input_w_size, input_h_size, c_size}, host_only);
+
+    bb::indices_t output_shape({input_w_size*filter_w_size, input_h_size*filter_h_size, c_size});
+
+    auto input_node_size  = x_buf0.GetNodeSize();
+    auto output_node_size = input_node_size * filter_w_size * filter_h_size;
+
+    model0->SetInputShape(x_buf0.GetShape());
+    model1->SetInputShape(x_buf1.GetShape());
+    
+    auto valgen = bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f, 1);
+
+    for ( int loop = 0; loop < loop_num; ++ loop ) 
+    {
+        {
+            auto x_ptr0 = x_buf0.Lock<FT>();
+            auto x_ptr1 = x_buf1.Lock<FT>();
+            for ( int frame = 0; frame < frame_size; ++frame) {
+                for ( int node = 0; node < input_node_size; ++node ) {
+                    if ( bb::DataType<FT>::type == BB_TYPE_BIT ) {
+                        bool val = (valgen->GetValue() > 0.5);
+                        x_ptr0.Set(frame, node, val);
+                        x_ptr1.Set(frame, node, val);
+                    }
+                    else {
+                        FT val = (FT)valgen->GetValue();
+                        x_ptr0.Set(frame, node, val);
+                        x_ptr1.Set(frame, node, val);
+                    }
+                }
+            }
+        }
+
+        auto y_buf0 = model0->Forward(x_buf0);
+        auto y_buf1 = model1->Forward(x_buf1);
+
+        EXPECT_EQ(output_node_size, y_buf0.GetNodeSize());
+        EXPECT_EQ(output_node_size, y_buf1.GetNodeSize());
+        EXPECT_EQ(frame_size, y_buf0.GetFrameSize());
+        EXPECT_EQ(frame_size, y_buf1.GetFrameSize());
+
+        {
+            auto y_ptr0 = y_buf0.LockConst<FT>();
+            auto y_ptr1 = y_buf1.LockConst<FT>();
+            for ( int frame = 0; frame < frame_size; ++frame) {
+                for ( int node = 0; node < output_node_size; ++node ) {
+                    FT val0 = y_ptr0.Get(frame, node);
+                    FT val1 = y_ptr1.Get(frame, node);
+                    EXPECT_EQ(val0, val1);
+                }
+            }
+        }
+
+        // backward
+        bb::FrameBuffer dy_buf0(BB_TYPE_FP32, frame_size, output_shape);
+        bb::FrameBuffer dy_buf1(BB_TYPE_FP32, frame_size, output_shape);
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < output_node_size; ++node ) {
+                float val = valgen->GetValue();
+                dy_buf0.SetFP32(frame, node, val);
+                dy_buf1.SetFP32(frame, node, val);
+            }
+        }
+
+        auto dx_buf0 = model0->Backward(dy_buf0);
+        auto dx_buf1 = model1->Backward(dy_buf1);
+
+        EXPECT_EQ(input_node_size, dx_buf0.GetNodeSize());
+        EXPECT_EQ(input_node_size, dx_buf1.GetNodeSize());
+        EXPECT_EQ(frame_size, dx_buf0.GetFrameSize());
+        EXPECT_EQ(frame_size, dx_buf1.GetFrameSize());
+
+        for ( int frame = 0; frame < frame_size; ++frame) {
+            for ( int node = 0; node < input_node_size; ++node ) {
+                auto val0 = dx_buf0.GetFP32(frame, node);
+                auto val1 = dx_buf1.GetFP32(frame, node);
+                EXPECT_NEAR(val0, val1, 0.001f);
+            }
+        }
+    }
+}
+
+
+TEST(UpSamplingTest, testUpSampling_cmp)
+{
+     UpSamplingTest_cmp<float>(32, 3, 4, 32, 2, 2, true, 2);
+     UpSamplingTest_cmp<bb::Bit>(32, 3, 4, 32, 2, 2, true, 2);
+}
+
+
+#endif
 

@@ -884,6 +884,59 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_MaxPooling_Backward
         );
 
 
+
+// -------------------------------------
+//  UpSampling
+// -------------------------------------
+
+BBCU_DLL_EXPORT int bbcu_fp32_UpSampling_Forward
+        (
+            float const     *dev_x_buf,
+            float           *dev_y_buf,
+            int             input_w_size,
+            int             input_h_size,
+            int             c_size,
+            int             filter_w_size,
+            int             filter_h_size,
+            int             fill,
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId=0
+        );
+
+BBCU_DLL_EXPORT int bbcu_bit_UpSampling_Forward
+        (
+            int const       *dev_x_buf,
+            int             *dev_y_buf,
+            int             input_w_size,
+            int             input_h_size,
+            int             c_size,
+            int             filter_w_size,
+            int             filter_h_size,
+            int             fill,
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId=0
+        );
+
+
+BBCU_DLL_EXPORT int bbcu_fp32_UpSampling_Backward
+        (
+            float const     *dev_dy_buf,
+            float           *dev_dx_buf,
+            int             input_w_size,
+            int             input_h_size,
+            int             c_size,
+            int             filter_w_size,
+            int             filter_h_size,
+            int             fill,          
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId=0
+        );
+
+
+
 // -------------------------------------
 //  Im2Col
 // -------------------------------------

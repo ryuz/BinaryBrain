@@ -135,7 +135,7 @@ public:
 
         FrameBuffer y_buf(DataType<FT>::type, x_buf.GetFrameSize(), GetOutputShape());
         
-#if 0 // #ifdef BB_WITH_CUDA
+#ifdef BB_WITH_CUDA
         if ( !m_host_only && DataType<FT>::type == BB_TYPE_FP32 && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // FP32 CUDA
             auto x_ptr = x_buf.LockDeviceMemoryConst();
@@ -144,9 +144,9 @@ public:
                 (
                     (float const *)x_ptr.GetAddr(),
                     (float       *)y_ptr.GetAddr(),
-                    (int          )m_w_size,
-                    (int          )m_h_size,
-                    (int          )m_c_size,
+                    (int          )m_input_shape[0],
+                    (int          )m_input_shape[1],
+                    (int          )m_input_shape[2],
                     (int          )m_filter_w_size,
                     (int          )m_filter_h_size,
                     (int          )(m_fill ? 1 : 0),
@@ -158,7 +158,7 @@ public:
         }
 #endif
 
-#if 0 // #ifdef BB_WITH_CUDA
+#ifdef BB_WITH_CUDA
         if ( !m_host_only && DataType<FT>::type == BB_TYPE_BIT && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // Bit CUDA
             auto x_ptr = x_buf.LockDeviceMemoryConst();
@@ -168,9 +168,9 @@ public:
                 (
                     (int const *)x_ptr.GetAddr(),
                     (int       *)y_ptr.GetAddr(),
-                    (int        )m_w_size,
-                    (int        )m_h_size,
-                    (int        )m_c_size,
+                    (int        )m_input_shape[0],
+                    (int        )m_input_shape[1],
+                    (int        )m_input_shape[2],
                     (int        )m_filter_w_size,
                     (int        )m_filter_h_size,
                     (int        )(m_fill ? 1 : 0),
@@ -234,20 +234,22 @@ public:
 
         FrameBuffer dx_buf(DataType<BT>::type, dy_buf.GetFrameSize(), GetInputShape());
 
-#if 0 // #ifdef BB_WITH_CUDA
+#ifdef BB_WITH_CUDA
         if ( !m_host_only && DataType<BT>::type == BB_TYPE_FP32 && dy_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() )
         {
             auto dy_ptr = dy_buf.LockDeviceMemoryConst();
             auto dx_ptr = dx_buf.LockDeviceMemory(true);
 
-            bbcu_fp32_Col2Im_Backward
+            bbcu_fp32_UpSampling_Backward
                 (
                     (float const *)dy_ptr.GetAddr(),
                     (float       *)dx_ptr.GetAddr(),
-                    (int          )m_w_size,
-                    (int          )m_h_size,
-                    (int          )m_c_size,
-                    (int          )(dx_buf.GetFrameStride() / sizeof(float)),
+                    (int          )m_input_shape[0],
+                    (int          )m_input_shape[1],
+                    (int          )m_input_shape[2],
+                    (int          )m_filter_w_size,
+                    (int          )m_filter_h_size,
+                    (int          )(m_fill ? 1 : 0),
                     (int          )dy_buf.GetFrameSize(),
                     (int          )(dy_buf.GetFrameStride() / sizeof(float))
                 );

@@ -45,6 +45,7 @@
     <CudaCompile Include="StochasticBatchNormalization.cu" />
     <CudaCompile Include="StochasticLut.cu" />
     <CudaCompile Include="StochasticMaxPooling.cu" />
+    <CudaCompile Include="UpSampling.cu" />
     <CudaCompile Include="Vector.cu" />
   </ItemGroup>
   <ItemGroup>

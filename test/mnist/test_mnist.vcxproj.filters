@@ -62,9 +62,6 @@
     <ClInclude Include="..\..\include\bb\StochasticBatchNormalization.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bb\StochasticLut.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\bb\StochasticMaxPooling.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>

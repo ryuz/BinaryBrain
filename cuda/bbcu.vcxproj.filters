@@ -82,6 +82,9 @@
     <CudaCompile Include="StochasticLut.cu">
       <Filter>ソース ファイル</Filter>
     </CudaCompile>
+    <CudaCompile Include="UpSampling.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ヘッダファイル">
