@@ -53,16 +53,18 @@ void MnistSparseLutMlpAe(int epoch_size, int mini_batch_size, int train_modulati
     td.t_train = td.x_train;
     td.t_test  = td.x_test;
 
-    auto enc_sl0 = bb::SparseLutN<6, float>::Create(6912);
-    auto enc_sl1 = bb::SparseLutN<6, float>::Create(1152);
-    auto enc_sl2 = bb::SparseLutN<6, float>::Create(192);
-    auto enc_sl3 = bb::SparseLutN<6, float>::Create(32);
+    auto enc_sl0 = bb::SparseLutN<6, bb::Bit>::Create(6912);
+    auto enc_sl1 = bb::SparseLutN<6, bb::Bit>::Create(1152);
+    auto enc_sl2 = bb::SparseLutN<6, bb::Bit>::Create(192);
+//    auto enc_sl3 = bb::SparseLutN<6, bb::Bit>::Create(32);
+    auto enc_sl3 = bb::StochasticLutN<6, bb::Bit>::Create(32);
+    auto enc_sl3b = bb::Binarize<bb::Bit>::Create(0.5f, 0.0f, 1.0f);
 
-    auto dec_sl0 = bb::SparseLutN<6, float>::Create(28*28*6*6);
-    auto dec_sl1 = bb::SparseLutN<6, float>::Create(28*28*6);
-    auto dec_sl2 = bb::SparseLutN<6, float>::Create(28*28);
-//    auto dec_sl2 = bb::StochasticLutN<6, float>::Create(28*28);
-//    auto dec_sl3 = bb::Binarize<float>::Create();
+    auto dec_sl0 = bb::SparseLutN<6, bb::Bit>::Create(28*28*6*6);
+    auto dec_sl1 = bb::SparseLutN<6, bb::Bit>::Create(28*28*6);
+//    auto dec_sl2 = bb::SparseLutN<6, bb::Bit>::Create(28*28);
+    auto dec_sl2 = bb::StochasticLutN<6, bb::Bit>::Create(28*28);
+    auto dec_sl2b = bb::Binarize<bb::Bit>::Create(0.5f, 0.0f, 1.0f);
 
     {
         std::cout << "\n<Training>" << std::endl;
@@ -73,14 +75,15 @@ void MnistSparseLutMlpAe(int epoch_size, int mini_batch_size, int train_modulati
         main_net->Add(enc_sl1);
         main_net->Add(enc_sl2);
         main_net->Add(enc_sl3);
+        main_net->Add(enc_sl3b);
         main_net->Add(dec_sl0);
         main_net->Add(dec_sl1);
         main_net->Add(dec_sl2);
-//        main_net->Add(dec_sl3);
+        main_net->Add(dec_sl2b);
 
         // modulation wrapper
         auto net = bb::Sequential::Create();
-        net->Add(bb::BinaryModulation<float>::Create(main_net, train_modulation_size, test_modulation_size));
+        net->Add(bb::BinaryModulation<bb::Bit>::Create(main_net, train_modulation_size, test_modulation_size));
 
         // set input shape
         net->SetInputShape(td.x_shape);

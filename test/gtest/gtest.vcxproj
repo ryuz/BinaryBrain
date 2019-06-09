@@ -61,6 +61,7 @@
     <ClCompile Include="SparseLutNTest.cpp" />
     <ClCompile Include="StochasticLutNTest.cpp" />
     <ClCompile Include="TensorTest.cpp" />
+    <ClCompile Include="UpSamplingTest.cpp" />
     <ClCompile Include="VariablesTest.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -130,6 +131,7 @@
     <ClInclude Include="..\..\include\bb\Tensor.h" />
     <ClInclude Include="..\..\include\bb\TensorOperator.h" />
     <ClInclude Include="..\..\include\bb\UniformDistributionGenerator.h" />
+    <ClInclude Include="..\..\include\bb\UpSampling.h" />
     <ClInclude Include="..\..\include\bb\Utility.h" />
     <ClInclude Include="..\..\include\bb\ValueGenerator.h" />
     <ClInclude Include="..\..\include\bb\Variables.h" />
