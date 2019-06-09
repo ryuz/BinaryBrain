@@ -270,12 +270,12 @@ void MnistAeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_modu
         dec_cnv0_sub->Add(dec_cnv0_bl3);
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::LoweringConvolution<T>::Create(enc_cnv0_sub, 3, 3, 1, 1, "same"));    // 28x28
-        lut_net->Add(bb::LoweringConvolution<T>::Create(enc_cnv1_sub, 3, 3, 1, 1, "same"));    // 28x28
-        lut_net->Add(bb::MaxPooling<float>::Create(2, 2));
-        lut_net->Add(bb::LoweringConvolution<T>::Create(enc_cnv2_sub, 3, 3, 1, 1, "same"));    // 14x14
-        lut_net->Add(bb::LoweringConvolution<T>::Create(enc_cnv3_sub, 3, 3, 1, 1, "same"));    // 14x14
-        lut_net->Add(bb::MaxPooling<float>::Create(2, 2));
+        lut_net->Add(bb::LoweringConvolution<bb::Bit>::Create(enc_cnv0_sub, 3, 3, 1, 1, "same"));    // 28x28
+        lut_net->Add(bb::LoweringConvolution<bb::Bit>::Create(enc_cnv1_sub, 3, 3, 1, 1, "same"));    // 28x28
+        lut_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
+        lut_net->Add(bb::LoweringConvolution<bb::Bit>::Create(enc_cnv2_sub, 3, 3, 1, 1, "same"));    // 14x14
+        lut_net->Add(bb::LoweringConvolution<bb::Bit>::Create(enc_cnv3_sub, 3, 3, 1, 1, "same"));    // 14x14
+        lut_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
         lut_net->Add(enc_bl4);
         lut_net->Add(enc_bl5);
         lut_net->Add(enc_bl6);
@@ -283,12 +283,12 @@ void MnistAeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_modu
         lut_net->Add(dec_bl6);
         lut_net->Add(dec_bl5);
         lut_net->Add(dec_bl4);
-        lut_net->Add(bb::UpSampling<T>::Create(2, 2));
-        lut_net->Add(bb::LoweringConvolution<T>::Create(dec_cnv3_sub, 3, 3, 1, 1, "same"));    // 14x14
-        lut_net->Add(bb::LoweringConvolution<T>::Create(dec_cnv2_sub, 3, 3, 1, 1, "same"));    // 14x14
-        lut_net->Add(bb::UpSampling<T>::Create(2, 2));
-        lut_net->Add(bb::LoweringConvolution<T>::Create(dec_cnv1_sub, 3, 3, 1, 1, "same"));    // 28x28
-        lut_net->Add(bb::LoweringConvolution<T>::Create(dec_cnv0_sub, 3, 3, 1, 1, "same"));    // 28x28
+        lut_net->Add(bb::UpSampling<bb::Bit>::Create(2, 2));
+        lut_net->Add(bb::LoweringConvolution<bb::Bit>::Create(dec_cnv3_sub, 3, 3, 1, 1, "same"));    // 14x14
+        lut_net->Add(bb::LoweringConvolution<bb::Bit>::Create(dec_cnv2_sub, 3, 3, 1, 1, "same"));    // 14x14
+        lut_net->Add(bb::UpSampling<bb::Bit>::Create(2, 2));
+        lut_net->Add(bb::LoweringConvolution<bb::Bit>::Create(dec_cnv1_sub, 3, 3, 1, 1, "same"));    // 28x28
+        lut_net->Add(bb::LoweringConvolution<bb::Bit>::Create(dec_cnv0_sub, 3, 3, 1, 1, "same"));    // 28x28
 
         // evaluation network
         auto eval_net = bb::Sequential::Create();
