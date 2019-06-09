@@ -22,23 +22,10 @@
 #include "bb/ExportVerilog.h"
 
 
-
-void WritePgm(std::string fname, bb::FrameBuffer buf, int frame)
-{
-    std::ofstream ofs(fname);
-    ofs << "P2\n";
-    ofs << "28 28 \n";
-    ofs << "255\n";
-    for ( int i = 0; i < 28*28; ++i ) {
-        ofs << (int)(buf.GetFP32(frame, i) * 255.0f) << "\n";
-    }
-}
-
-
 // AutoEncoder
-void MnistSparseLutMlpAe(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void MnistSparseLutAeMlp(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "MnistSparseLutMlpAe";
+    std::string net_name = "MnistSparseLutAeMlp";
 
   // load MNIST data
 #ifdef _DEBUG
@@ -53,18 +40,14 @@ void MnistSparseLutMlpAe(int epoch_size, int mini_batch_size, int train_modulati
     td.t_train = td.x_train;
     td.t_test  = td.x_test;
 
-    auto enc_sl0 = bb::SparseLutN<6, bb::Bit>::Create(6912);
-    auto enc_sl1 = bb::SparseLutN<6, bb::Bit>::Create(1152);
-    auto enc_sl2 = bb::SparseLutN<6, bb::Bit>::Create(192);
-//    auto enc_sl3 = bb::SparseLutN<6, bb::Bit>::Create(32);
-    auto enc_sl3 = bb::StochasticLutN<6, bb::Bit>::Create(32);
-    auto enc_sl3b = bb::Binarize<bb::Bit>::Create(0.5f, 0.0f, 1.0f);
+    auto enc_sl0 = bb::SparseLutN<6, float>::Create(6912);
+    auto enc_sl1 = bb::SparseLutN<6, float>::Create(1152);
+    auto enc_sl2 = bb::SparseLutN<6, float>::Create(192);
+    auto enc_sl3 = bb::SparseLutN<6, float>::Create(32);
 
-    auto dec_sl0 = bb::SparseLutN<6, bb::Bit>::Create(28*28*6*6);
-    auto dec_sl1 = bb::SparseLutN<6, bb::Bit>::Create(28*28*6);
-//    auto dec_sl2 = bb::SparseLutN<6, bb::Bit>::Create(28*28);
-    auto dec_sl2 = bb::StochasticLutN<6, bb::Bit>::Create(28*28);
-    auto dec_sl2b = bb::Binarize<bb::Bit>::Create(0.5f, 0.0f, 1.0f);
+    auto dec_sl0 = bb::SparseLutN<6, float>::Create(28*28*6*6);
+    auto dec_sl1 = bb::SparseLutN<6, float>::Create(28*28*6);
+    auto dec_sl2 = bb::SparseLutN<6, float>::Create(28*28);
 
     {
         std::cout << "\n<Training>" << std::endl;
@@ -75,15 +58,13 @@ void MnistSparseLutMlpAe(int epoch_size, int mini_batch_size, int train_modulati
         main_net->Add(enc_sl1);
         main_net->Add(enc_sl2);
         main_net->Add(enc_sl3);
-        main_net->Add(enc_sl3b);
         main_net->Add(dec_sl0);
         main_net->Add(dec_sl1);
         main_net->Add(dec_sl2);
-        main_net->Add(dec_sl2b);
 
         // modulation wrapper
         auto net = bb::Sequential::Create();
-        net->Add(bb::BinaryModulation<bb::Bit>::Create(main_net, train_modulation_size, test_modulation_size));
+        net->Add(bb::BinaryModulation<float>::Create(main_net, train_modulation_size, test_modulation_size));
 
         // set input shape
         net->SetInputShape(td.x_shape);
@@ -120,25 +101,9 @@ void MnistSparseLutMlpAe(int epoch_size, int mini_batch_size, int train_modulati
         runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
         runner_create.file_write         = true;            // 計算結果をファイルに保存するか
         runner_create.print_progress     = true;            // 途中結果を表示
-        runner_create.initial_evaluation = false; // file_read;       // ファイルを読んだ場合は最初に評価しておく
+        runner_create.initial_evaluation = file_read;       // ファイルを読んだ場合は最初に評価しておく
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
-
-        
-        bb::FrameBuffer x_buf(BB_TYPE_FP32, 32, {28, 28, 1});
-        x_buf.SetVector(td.x_test, 0);
-        auto y_buf = net->Forward(x_buf, false);
-
-        WritePgm("out_0x.pgm", x_buf, 0);
-        WritePgm("out_0y.pgm", y_buf, 0);
-        WritePgm("out_1x.pgm", x_buf, 1);
-        WritePgm("out_1y.pgm", y_buf, 1);
-        WritePgm("out_2x.pgm", x_buf, 2);
-        WritePgm("out_2y.pgm", y_buf, 2);
-        WritePgm("out_3x.pgm", x_buf, 3);
-        WritePgm("out_3y.pgm", y_buf, 3);
-        WritePgm("out_4x.pgm", x_buf, 4);
-        WritePgm("out_4y.pgm", y_buf, 4);
     }
 
 #if 0

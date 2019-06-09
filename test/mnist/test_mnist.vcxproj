@@ -349,6 +349,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MnistAeSparseLutCnn.cpp" />
+    <ClCompile Include="MnistAeSparseLutMlp.cpp" />
     <ClCompile Include="MnistCompare.cpp" />
     <ClCompile Include="MnistCustomModel.cpp" />
     <ClCompile Include="MnistDenseCnn.cpp" />
@@ -358,7 +360,6 @@
     <ClCompile Include="MnistMicroMlpScratch.cpp" />
     <ClCompile Include="MnistSparseLutCnn.cpp" />
     <ClCompile Include="MnistSparseLutMlp.cpp" />
-    <ClCompile Include="MnistSparseLutMlpAe.cpp" />
     <ClCompile Include="MnistStochasticLutCnn.cpp" />
     <ClCompile Include="MnistStochasticLutMlp.cpp" />
   </ItemGroup>

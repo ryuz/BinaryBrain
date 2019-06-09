@@ -25,7 +25,8 @@ void MnistDenseMlp        (int epoch_size, int mini_batch_size, int train_modula
 void MnistDenseCnn        (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistCustomModel     (int epoch_size, int mini_batch_size,                                                      bool binary_mode                );
 
-void MnistSparseLutMlpAe(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistAeSparseLutMlp(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistAeSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 
 
 // メイン関数
@@ -113,8 +114,6 @@ int main(int argc, char *argv[])
         bbcu::PrintDeviceProperties();
     }
 #endif
-    MnistSparseLutMlpAe(epoch_size, mini_batch_size, test_modulation_size, test_modulation_size, binary_mode, file_read);
-    return 0;
 
     if ( netname == "All" || netname == "StochasticLutMlp" ) {
         MnistStochasticLutMlp(epoch_size, mini_batch_size, test_modulation_size, binary_mode, file_read);
@@ -146,6 +145,14 @@ int main(int argc, char *argv[])
 
     if ( netname == "All" || netname == "DenseCnn" ) {
         MnistDenseCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    }
+
+    if ( netname == "All" || netname == "AeSparseLutMlp" ) {
+        MnistAeSparseLutMlp(epoch_size, mini_batch_size, test_modulation_size, test_modulation_size, binary_mode, file_read);
+    }
+
+    if ( netname == "All" || netname == "AeSparseLutCnn" ) {
+        MnistAeSparseLutCnn(epoch_size, mini_batch_size, test_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
     // (おまけ)レイヤー内部を自分で書く人向けサンプル
