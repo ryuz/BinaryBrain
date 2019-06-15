@@ -122,6 +122,7 @@
     <ClInclude Include="..\..\include\bb\SparseLayer.h" />
     <ClInclude Include="..\..\include\bb\SparseLutDiscreteN.h" />
     <ClInclude Include="..\..\include\bb\SparseLutN.h" />
+    <ClInclude Include="..\..\include\bb\SparseN.h" />
     <ClInclude Include="..\..\include\bb\StochasticBatchNormalization.h" />
     <ClInclude Include="..\..\include\bb\StochasticLutN.h" />
     <ClInclude Include="..\..\include\bb\StochasticLutSimd.h" />
