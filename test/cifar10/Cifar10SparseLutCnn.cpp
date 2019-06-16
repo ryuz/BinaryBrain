@@ -44,32 +44,32 @@ void SparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size
 
      // create network
     auto layer_cnv0_sl0 = bb::SparseLutN<6, T>::Create(192,  true);
-    auto layer_cnv0_sl1 = bb::SparseLutN<6, T>::Create(32,   true);
+    auto layer_cnv0_sl1 = bb::SparseLutN<6, T>::Create(32,   false);
 
     auto layer_cnv1_sl0 = bb::SparseLutN<6, T>::Create(1152, true);
     auto layer_cnv1_sl1 = bb::SparseLutN<6, T>::Create(192,  true);
-    auto layer_cnv1_sl2 = bb::SparseLutN<6, T>::Create(32,   true);
+    auto layer_cnv1_sl2 = bb::SparseLutN<6, T>::Create(32,   false);
 
     auto layer_cnv2_sl0 = bb::SparseLutN<6, T>::Create(2304, true);
     auto layer_cnv2_sl1 = bb::SparseLutN<6, T>::Create(384,  true);
-    auto layer_cnv2_sl2 = bb::SparseLutN<6, T>::Create(64,   true);
+    auto layer_cnv2_sl2 = bb::SparseLutN<6, T>::Create(64,   false);
 
     auto layer_cnv3_sl0 = bb::SparseLutN<6, T>::Create(2304, true);
     auto layer_cnv3_sl1 = bb::SparseLutN<6, T>::Create(384,  true);
-    auto layer_cnv3_sl2 = bb::SparseLutN<6, T>::Create(64,   true);
+    auto layer_cnv3_sl2 = bb::SparseLutN<6, T>::Create(64,   false);
 
     auto layer_cnv4_sl0 = bb::SparseLutN<6, T>::Create(4608, true);
     auto layer_cnv4_sl1 = bb::SparseLutN<6, T>::Create(768,  true);
-    auto layer_cnv4_sl2 = bb::SparseLutN<6, T>::Create(128,  true);
+    auto layer_cnv4_sl2 = bb::SparseLutN<6, T>::Create(128,  false);
 
     auto layer_cnv5_sl0 = bb::SparseLutN<6, T>::Create(4608, true);
     auto layer_cnv5_sl1 = bb::SparseLutN<6, T>::Create(768,  true);
-    auto layer_cnv5_sl2 = bb::SparseLutN<6, T>::Create(128,  true);
+    auto layer_cnv5_sl2 = bb::SparseLutN<6, T>::Create(128,  false);
 
     auto layer_sl6      = bb::SparseLutN<6, T>::Create(2160, true);
     auto layer_sl7      = bb::SparseLutN<6, T>::Create(360,  true);
     auto layer_sl8      = bb::SparseLutN<6, T>::Create(60,   true);
-    auto layer_sl9      = bb::SparseLutN<6, T>::Create(10,   true);
+    auto layer_sl9      = bb::SparseLutN<6, T>::Create(10,   false);
 
     {
         std::cout << "\n<Training>" << std::endl;
