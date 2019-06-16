@@ -75,6 +75,7 @@
     <ClInclude Include="..\..\include\bb\BinaryScaling.h" />
     <ClInclude Include="..\..\include\bb\BinaryToReal.h" />
     <ClInclude Include="..\..\include\bb\ConcatenateCoefficient.h" />
+    <ClInclude Include="..\..\include\bb\ConnectionTable.h" />
     <ClInclude Include="..\..\include\bb\ConvolutionCol2Im.h" />
     <ClInclude Include="..\..\include\bb\ConvolutionIm2Col.h" />
     <ClInclude Include="..\..\include\bb\CudaUtility.h" />
@@ -84,6 +85,7 @@
     <ClInclude Include="..\..\include\bb\Dropout.h" />
     <ClInclude Include="..\..\include\bb\ExportVerilog.h" />
     <ClInclude Include="..\..\include\bb\Filter2d.h" />
+    <ClInclude Include="..\..\include\bb\FixedSizeConnectionTable.h" />
     <ClInclude Include="..\..\include\bb\FrameBuffer.h" />
     <ClInclude Include="..\..\include\bb\HardTanh.h" />
     <ClInclude Include="..\..\include\bb\LoadCifar10.h" />

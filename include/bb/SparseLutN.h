@@ -13,8 +13,9 @@
 #include <cstdint>
 #include <random>
 
-#include "bb/SparseN.h"
+#include "bb/SparseLayer.h"
 #include "bb/Tensor.h"
+#include "bb/FixedSizeConnectionTable.h"
 #include "bb/StochasticOperation.h"
 
 
@@ -22,41 +23,46 @@ namespace bb {
 
 
 template <int N = 6, typename BinType = Bit, typename RealType = float>
-class SparseLutN : public SparseN<N>
+class SparseLutN : public SparseLayer
 {
-    using _super = SparseN<N>;
+    using _super = SparseLayer;
 
     static int const NN = (1 << N);
 
 protected:
-    bool                    m_host_only    = false;
-    bool                    m_lut_binarize = false;
-    bool                    m_binary_mode  = true;
-    bool                    m_batch_norm   = true;
+    bool                        m_host_only    = false;
+    bool                        m_lut_binarize = false;
+    bool                        m_binary_mode  = true;
+    bool                        m_batch_norm   = true;
 
-    RealType                m_unbinarize_bias = (RealType)0.25;
+    indices_t                   m_output_shape;
+    indices_t                   m_input_shape;
 
-    index_t                 m_max_tmp_mem_size = 256 * 1024 * 1024;
+    FixedSizeConnectionTable<N> m_connection_table;
 
-    std::string             m_connection;
+    RealType                    m_unbinarize_bias = (RealType)0.25;
 
-    FrameBuffer             m_x_buf;
+    index_t                     m_max_tmp_mem_size = 256 * 1024 * 1024;
 
-    std::shared_ptr<Tensor> m_W;
-    std::shared_ptr<Tensor> m_dW;
+    std::string                 m_connection;
 
-    RealType                m_momentum;
+    FrameBuffer                 m_x_buf;
 
-    RealType                m_gamma;
-    RealType                m_beta;
+    std::shared_ptr<Tensor>     m_W;
+    std::shared_ptr<Tensor>     m_dW;
+
+    RealType                    m_momentum;
+
+    RealType                    m_gamma;
+    RealType                    m_beta;
     
-    Tensor_<RealType>       m_mean;     // 平均値
-    Tensor_<RealType>       m_rstd;     // 標準偏差の逆数
+    Tensor_<RealType>           m_mean;     // 平均値
+    Tensor_<RealType>           m_rstd;     // 標準偏差の逆数
 
-    Tensor_<RealType>       m_running_mean;
-    Tensor_<RealType>       m_running_var;
+    Tensor_<RealType>           m_running_mean;
+    Tensor_<RealType>           m_running_var;
     
-    std::mt19937_64         m_mt;
+    std::mt19937_64             m_mt;
 
 public:
     struct create_t
@@ -74,8 +80,7 @@ protected:
     {
         BB_ASSERT(!create.output_shape.empty());
 
-        this->SetOutputShape(create.output_shape);
-
+        m_output_shape = create.output_shape;
         m_connection   = create.connection;
         m_momentum     = create.momentum;
         m_gamma        = create.gamma;
@@ -150,6 +155,10 @@ public:
     void Save(std::ostream &os) const 
     {
         _super::Save(os);
+
+        SaveIndices(os, m_input_shape);
+        SaveIndices(os, m_output_shape);
+        m_connection_table.Save(os);
         m_W->Save(os);
         bb::SaveValue(os, m_momentum);
         bb::SaveValue(os, m_gamma);
@@ -161,6 +170,9 @@ public:
     void Load(std::istream &is)
     {
         _super::Load(is);
+        m_input_shape  = LoadIndices(is);
+        m_output_shape = LoadIndices(is);
+        m_connection_table.Load(is);
         m_W->Load(is);
         bb::LoadValue(is, m_momentum);
         bb::LoadValue(is, m_gamma);
@@ -175,22 +187,28 @@ public:
     void save(Archive& archive, std::uint32_t const version) const
     {
         _super::save(archive, version);
-        archive(cereal::make_nvp("W",            *m_W));
-        archive(cereal::make_nvp("gamma",        m_gamma));
-        archive(cereal::make_nvp("beta",         m_beta));
-        archive(cereal::make_nvp("running_mean", m_running_mean));
-        archive(cereal::make_nvp("running_var",  m_running_var));
+        archive(cereal::make_nvp("input_shape",      m_input_shape));
+        archive(cereal::make_nvp("output_shape",     m_output_shape));
+        archive(cereal::make_nvp("connection_table", m_connection_table));
+        archive(cereal::make_nvp("W",                *m_W));
+        archive(cereal::make_nvp("gamma",            m_gamma));
+        archive(cereal::make_nvp("beta",             m_beta));
+        archive(cereal::make_nvp("running_mean",     m_running_mean));
+        archive(cereal::make_nvp("running_var",      m_running_var));
     }
 
     template <class Archive>
     void load(Archive& archive, std::uint32_t const version)
     {
         _super::load(archive, version);
-        archive(cereal::make_nvp("W",            *m_W));
-        archive(cereal::make_nvp("gamma",        m_gamma));
-        archive(cereal::make_nvp("beta",         m_beta));
-        archive(cereal::make_nvp("running_mean", m_running_mean));
-        archive(cereal::make_nvp("running_var",  m_running_var));
+        archive(cereal::make_nvp("input_shape",      m_input_shape));
+        archive(cereal::make_nvp("output_shape",     m_output_shape));
+        archive(cereal::make_nvp("connection_table", m_connection_table));
+        archive(cereal::make_nvp("W",                *m_W));
+        archive(cereal::make_nvp("gamma",            m_gamma));
+        archive(cereal::make_nvp("beta",             m_beta));
+        archive(cereal::make_nvp("running_mean",     m_running_mean));
+        archive(cereal::make_nvp("running_var",      m_running_var));
     }
 
     void Save(cereal::JSONOutputArchive& archive) const
@@ -211,9 +229,6 @@ public:
     Tensor       &dW(void)       { return *m_dW; }
     Tensor const &dW(void) const { return *m_dW; }
 
-//    auto lock_InputIndex(void)             { return m_input_index.Lock(); }
-//    auto lock_InputIndex_const(void) const { return m_input_index.LockConst(); }
-
     auto lock_W(void)              { return m_W->Lock<RealType>(); }
     auto lock_W_const(void) const  { return m_W->LockConst<RealType>(); }
     auto lock_dW(void)             { return m_dW->Lock<RealType>(); }
@@ -229,6 +244,43 @@ public:
     auto lock_tmp_rstd_const(void)   const { return m_rstd.LockConst(); }
 
 
+    /**
+     * @brief  出力形状取得
+     * @detail 出力形状を取得する
+     * @return 出力形状を返す
+     */
+    indices_t GetOutputShape(void) const
+    {
+        return m_output_shape;
+    }
+
+    /**
+     * @brief  入力形状取得
+     * @detail 入力形状を取得する
+     * @return 入力形状を返す
+     */
+    indices_t GetInputShape(void) const
+    {
+        return m_input_shape;
+    }
+    
+
+    // connection management
+    index_t GetNodeInputSize(index_t node) const
+    {
+        return m_connection_table.GetInputConnectionSize(node);
+    }
+
+    void SetNodeInput(index_t node, index_t input_index, index_t input_node)
+    {
+        m_connection_table.SetInputConnection(node, input_index, input_node);
+    }
+
+    index_t GetNodeInput(index_t node, index_t input_index) const
+    {
+        return m_connection_table.GetInputConnection(node, input_index);
+    }
+
 
    /**
      * @brief  入力のshape設定
@@ -239,22 +291,23 @@ public:
     indices_t SetInputShape(indices_t input_shape)
     {
         // 形状設定
-        auto output_shape = _super::SetInputShape(input_shape);
+        m_input_shape = input_shape;
         
         // 接続初期化
-        this->InitializeNodeInput(m_mt(), m_connection);
+        m_connection_table.SetShape(m_input_shape, m_output_shape);
+        m_connection_table.InitializeConnection(m_mt(), m_connection);
 
         // パラメータ初期化(結局初期値は何が良いのかまだよくわからない)
-        m_W->Resize(DataType<RealType>::type, this->GetOutputNodeSize(), NN);  m_W->InitNormalDistribution(0.5, 0.01, m_mt());
+        m_W->Resize(DataType<RealType>::type,  this->GetOutputNodeSize(), NN);  m_W->InitNormalDistribution(0.5, 0.01, m_mt());
         m_dW->Resize(DataType<RealType>::type, this->GetOutputNodeSize(), NN); m_dW->FillZero();
 
-        m_mean.Resize(output_shape);
-        m_rstd.Resize(output_shape);
+        m_mean.Resize(m_output_shape);
+        m_rstd.Resize(m_output_shape);
 
-        m_running_mean.Resize(output_shape); m_running_mean = (RealType)0.0;
-        m_running_var.Resize(output_shape);  m_running_var  = (RealType)1.0;
+        m_running_mean.Resize(m_output_shape); m_running_mean = (RealType)0.0;
+        m_running_var.Resize(m_output_shape);  m_running_var  = (RealType)1.0;
 
-        return output_shape;
+        return m_output_shape;
     }
     
     Variables GetParameters(void)
@@ -362,7 +415,7 @@ public:
                 if ( train ) {
                     auto x_ptr            = x_buf.LockDeviceMemoryConst();
                     auto y_ptr            = y_buf.LockDeviceMemory(true);
-                    auto input_index_ptr  = this->lockDeviceMem_InputIndex_const();
+                    auto input_table_ptr  = m_connection_table.LockDeviceMemConst_InputTable();
                     auto W_ptr            = m_W->LockDeviceMemoryConst();
                     auto mean_ptr         = m_mean.LockDeviceMemory(true);
                     auto rstd_ptr         = m_rstd.LockDeviceMemory(true);
@@ -373,7 +426,7 @@ public:
                         (
                             (float const *)x_ptr.GetAddr(),
                             (float       *)y_ptr.GetAddr(),
-                            (int   const *)input_index_ptr.GetAddr(),
+                            (int   const *)input_table_ptr.GetAddr(),
                             (float const *)W_ptr.GetAddr(),
                             (float       *)mean_ptr.GetAddr(),
                             (float       *)rstd_ptr.GetAddr(),
@@ -393,7 +446,7 @@ public:
                 else {
                     auto x_ptr            = x_buf.LockDeviceMemoryConst();
                     auto y_ptr            = y_buf.LockDeviceMemory(true);
-                    auto input_index_ptr  = this->lockDeviceMem_InputIndex_const();
+                    auto input_table_ptr  = m_connection_table.LockConst_InputTable();
                     auto W_ptr            = m_W->LockDeviceMemoryConst();
                     auto running_mean_ptr = m_running_mean.LockDeviceMemory();
                     auto running_var_ptr  = m_running_var.LockDeviceMemory();
@@ -402,7 +455,7 @@ public:
                         (
                             (float const *)x_ptr.GetAddr(),
                             (float       *)y_ptr.GetAddr(),
-                            (int   const *)input_index_ptr.GetAddr(),
+                            (int   const *)input_table_ptr.GetAddr(),
                             (float const *)W_ptr.GetAddr(),
                             (float       *)running_mean_ptr.GetAddr(),
                             (float       *)running_var_ptr.GetAddr(),
@@ -426,7 +479,7 @@ public:
                 if ( train ) {
                     auto x_ptr            = x_buf.LockDeviceMemoryConst();
                     auto y_ptr            = y_buf.LockDeviceMemory(true);
-                    auto input_index_ptr  = this->lockDeviceMem_InputIndex_const();
+                    auto input_table_ptr  = m_connection_table.LockDeviceMemConst_InputTable();
                     auto W_ptr            = m_W->LockDeviceMemoryConst();
                     auto mean_ptr         = m_mean.LockDeviceMemory(true);
                     auto rstd_ptr         = m_rstd.LockDeviceMemory(true);
@@ -437,7 +490,7 @@ public:
                         (
                             (int   const *)x_ptr.GetAddr(),
                             (int         *)y_ptr.GetAddr(),
-                            (int   const *)input_index_ptr.GetAddr(),
+                            (int   const *)input_table_ptr.GetAddr(),
                             (float const *)W_ptr.GetAddr(),
                             (float       *)mean_ptr.GetAddr(),
                             (float       *)rstd_ptr.GetAddr(),
@@ -456,7 +509,7 @@ public:
                 else {
                     auto x_ptr            = x_buf.LockDeviceMemoryConst();
                     auto y_ptr            = y_buf.LockDeviceMemory(true);
-                    auto input_index_ptr  = this->lockDeviceMem_InputIndex_const();
+                    auto input_table_ptr  = m_connection_table.LockDeviceMemConst_InputTable();
                     auto W_ptr            = m_W->LockDeviceMemoryConst();
                     auto running_mean_ptr = m_running_mean.LockDeviceMemoryConst();
                     auto running_var_ptr  = m_running_var.LockDeviceMemoryConst();
@@ -465,7 +518,7 @@ public:
                         (
                             (int   const *)x_ptr.GetAddr(),
                             (int         *)y_ptr.GetAddr(),
-                            (int   const *)input_index_ptr.GetAddr(),
+                            (int   const *)input_table_ptr.GetAddr(),
                             (float const *)W_ptr.GetAddr(),
                             (float const *)running_mean_ptr.GetAddr(),
                             (float const *)running_var_ptr.GetAddr(),
@@ -493,7 +546,7 @@ public:
                 if ( train ) {
                     auto x_ptr            = x_buf.LockConst<BinType>();
                     auto y_ptr            = y_buf.Lock<BinType>();
-                    auto input_index_ptr  = this->lock_InputIndex_const();
+                    auto input_table_ptr  = m_connection_table.LockConst_InputTable();
                     auto W_ptr            = lock_W_const();
                     auto mean_ptr         = m_mean.Lock(true);
                     auto rstd_ptr         = m_rstd.Lock(true);
@@ -516,7 +569,7 @@ public:
                         for ( index_t frame = 0; frame < frame_size; ++frame ) {
                             RealType   x[N];
                             for ( int i = 0; i < N; ++i) {
-                                x[i] = (RealType)x_ptr.Get(frame, input_index_ptr(node, i));
+                                x[i] = (RealType)x_ptr.Get(frame, input_table_ptr(node, i));
                                 if ( m_binary_mode ) {
                                     x[i] = (RealType)0.5 + ((x[i] > (RealType)0.5) ? +m_unbinarize_bias : -m_unbinarize_bias);
                                 }
@@ -555,7 +608,7 @@ public:
                             // Forward計算
                             RealType x[N];
                             for ( int i = 0; i < N; ++i) {
-                                x[i] = (RealType)x_ptr.Get(frame, input_index_ptr(node, i));
+                                x[i] = (RealType)x_ptr.Get(frame, input_table_ptr(node, i));
                                 if ( m_binary_mode ) {
                                     x[i] = (RealType)0.5 + ((x[i] > (RealType)0.5) ? +m_unbinarize_bias : -m_unbinarize_bias);
                                 }
@@ -587,7 +640,7 @@ public:
                 else {
                     auto x_ptr            = x_buf.LockConst<BinType>();
                     auto y_ptr            = y_buf.Lock<BinType>();
-                    auto input_index_ptr  = this->lock_InputIndex_const();
+                    auto input_table_ptr  = m_connection_table.LockConst_InputTable();
                     auto W_ptr            = lock_W_const();
                     auto running_mean_ptr = m_running_mean.LockConst();
                     auto running_var_ptr  = m_running_var.LockConst();
@@ -610,7 +663,7 @@ public:
                         for ( index_t frame = 0; frame < frame_size; ++frame ) {
                             RealType x[N];
                             for ( int i = 0; i < N; ++i) {
-                                x[i] = (RealType)x_ptr.Get(frame, input_index_ptr(node, i));
+                                x[i] = (RealType)x_ptr.Get(frame, input_table_ptr(node, i));
                                 if ( m_binary_mode ) {
                                     x[i] = (RealType)0.5 + ((x[i] > (RealType)0.5) ? +m_unbinarize_bias : -m_unbinarize_bias);
                                 }
@@ -652,13 +705,13 @@ public:
                 && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
                 auto x_ptr           = x_buf.LockDeviceMemoryConst();
                 auto y_ptr           = y_buf.LockDeviceMemory(true);
-                auto input_index_ptr = this->lockDeviceMem_InputIndex_const();
+                auto input_table_ptr = m_connection_table.LockDeviceMemConst_InputTable();
                 auto W_ptr           = m_W->LockDeviceMemoryConst();
                 
                 bbcu_fp32_StochasticLut6_Forward(
                         (float const *)x_ptr.GetAddr(),
                         (float       *)y_ptr.GetAddr(),
-                        (int   const *)input_index_ptr.GetAddr(),
+                        (int   const *)input_table_ptr.GetAddr(),
                         (float const *)W_ptr.GetAddr(),
                         (int          )y_buf.GetNodeSize(),
                         (int          )y_buf.GetFrameSize(),
@@ -676,13 +729,13 @@ public:
                     && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
                 auto x_ptr           = x_buf.LockDeviceMemoryConst();
                 auto y_ptr           = y_buf.LockDeviceMemory(true);
-                auto input_index_ptr = this->lockDeviceMem_InputIndex_const();
+                auto input_table_ptr = m_connection_table.LockDeviceMemConst_InputTable();
                 auto W_ptr           = m_W->LockDeviceMemoryConst();
                 
                 bbcu_bit_bit_fp32_StochasticLut6_Forward(
                         (int   const *)x_ptr.GetAddr(),
                         (int         *)y_ptr.GetAddr(),
-                        (int   const *)input_index_ptr.GetAddr(),
+                        (int   const *)input_table_ptr.GetAddr(),
                         (float const *)W_ptr.GetAddr(),
                         (int          )y_buf.GetNodeSize(),
                         (int          )y_buf.GetFrameSize(),
@@ -701,7 +754,7 @@ public:
                 auto frame_size       = y_buf.GetFrameSize();
                 auto x_ptr            = x_buf.LockConst<BinType>();
                 auto y_ptr            = y_buf.Lock<BinType>();
-                auto input_index_ptr  = this->lock_InputIndex_const();
+                auto input_table_ptr  = m_connection_table.LockConst_InputTable();
                 auto W_ptr            = lock_W_const();
 
                 #pragma omp parallel for
@@ -718,7 +771,7 @@ public:
                     for ( index_t frame = 0; frame < frame_size; ++frame ) {
                         RealType x[N];
                         for ( int i = 0; i < N; ++i) {
-                            x[i] = (RealType)x_ptr.Get(frame, input_index_ptr(node, i));
+                            x[i] = (RealType)x_ptr.Get(frame, input_table_ptr(node, i));
                             if ( m_binary_mode ) {
                                 x[i] = (RealType)0.5 + ((x[i] > (RealType)0.5) ? +m_unbinarize_bias : -m_unbinarize_bias);
                             }
@@ -783,8 +836,8 @@ public:
                 auto dy_ptr            = dy_buf.LockDeviceMemoryConst();
                 auto dx_ptr            = dx_buf.LockDeviceMemory(true);
                 auto tmp_ptr           = tmp_buf.LockDeviceMemory(true);
-                auto reverse_index_ptr = this->lockDeviceMem_ReverseIndex_const();
-                auto input_index_ptr   = this->lockDeviceMem_InputIndex_const();
+                auto reverse_table_ptr = m_connection_table.LockDeviceMemConst_ReverseTable();
+                auto input_table_ptr   = m_connection_table.LockDeviceMemConst_InputTable();
                 auto W_ptr             = m_W->LockDeviceMemoryConst();
                 auto dW_ptr            = m_dW->LockDeviceMemory();
                 auto mean_ptr          = m_mean.LockDeviceMemoryConst();
@@ -798,8 +851,8 @@ public:
                         (float const *)dy_ptr.GetAddr(),
                         (float       *)dx_ptr.GetAddr(),
                         (float       *)tmp_ptr.GetAddr(),
-                        (int   const *)input_index_ptr.GetAddr(),
-                        (int   const *)reverse_index_ptr.GetAddr(),
+                        (int   const *)input_table_ptr.GetAddr(),
+                        (int   const *)reverse_table_ptr.GetAddr(),
                         (float const *)W_ptr.GetAddr(),
                         (float       *)dW_ptr.GetAddr(),
                         (float const *)mean_ptr.GetAddr(),
@@ -809,7 +862,7 @@ public:
                         (float        )m_gamma,
                         (float        )m_beta,
                         (float        )m_unbinarize_bias,
-                        (int          )this->GetReverseIndexStride(),
+                        (int          )m_connection_table.GetReverseTableStride(),
                         (int          )dx_buf.GetNodeSize(),
                         (int          )dy_buf.GetNodeSize(),
                         (int          )dy_buf.GetFrameSize(),
@@ -834,8 +887,8 @@ public:
                 auto dy_ptr            = dy_buf.LockDeviceMemoryConst();
                 auto dx_ptr            = dx_buf.LockDeviceMemory(true);
                 auto tmp_ptr           = tmp_buf.LockDeviceMemory(true);
-                auto reverse_index_ptr = this->lockDeviceMem_ReverseIndex_const();
-                auto input_index_ptr   = this->lockDeviceMem_InputIndex_const();
+                auto reverse_table_ptr = m_connection_table.LockDeviceMemConst_ReverseTable();
+                auto input_table_ptr   = m_connection_table.LockDeviceMemConst_InputTable();
                 auto W_ptr             = m_W->LockDeviceMemoryConst();
                 auto dW_ptr            = m_dW->LockDeviceMemory();
                 auto mean_ptr          = m_mean.LockDeviceMemoryConst();
@@ -849,8 +902,8 @@ public:
                         (float const *)dy_ptr.GetAddr(),
                         (float       *)dx_ptr.GetAddr(),
                         (float       *)tmp_ptr.GetAddr(),
-                        (int   const *)input_index_ptr.GetAddr(),
-                        (int   const *)reverse_index_ptr.GetAddr(),
+                        (int   const *)input_table_ptr.GetAddr(),
+                        (int   const *)reverse_table_ptr.GetAddr(),
                         (float const *)W_ptr.GetAddr(),
                         (float       *)dW_ptr.GetAddr(),
                         (float const *)mean_ptr.GetAddr(),
@@ -860,7 +913,7 @@ public:
                         (float        )m_gamma,
                         (float        )m_beta,
                         (float        )m_unbinarize_bias,
-                        (int          )this->GetReverseIndexStride(),
+                        (int          )m_connection_table.GetReverseTableStride(),
                         (int          )dx_buf.GetNodeSize(),
                         (int          )dy_buf.GetNodeSize(),
                         (int          )dy_buf.GetFrameSize(),
@@ -882,14 +935,14 @@ public:
                 auto frame_size = dy_buf.GetFrameSize();
                 auto reciprocal_frame_size = (RealType)1.0 / (RealType)frame_size;
 
-                auto x_ptr             = x_buf.LockConst<BinType>();
-                auto dy_ptr            = dy_buf.LockConst<RealType>();
-                auto dx_ptr            = dx_buf.Lock<RealType>(true);
-                auto input_index_ptr   = this->lock_InputIndex_const();
-                auto W_ptr             = lock_W_const();
-                auto dW_ptr            = lock_dW();
-                auto mean_ptr          = m_mean.LockConst();
-                auto rstd_ptr          = m_rstd.LockConst();
+                auto x_ptr           = x_buf.LockConst<BinType>();
+                auto dy_ptr          = dy_buf.LockConst<RealType>();
+                auto dx_ptr          = dx_buf.Lock<RealType>(true);
+                auto input_table_ptr = m_connection_table.LockConst_InputTable();
+                auto W_ptr           = lock_W_const();
+                auto dW_ptr          = lock_dW();
+                auto mean_ptr        = m_mean.LockConst();
+                auto rstd_ptr        = m_rstd.LockConst();
 
                 for ( index_t node = 0; node < node_size; ++node ) {
                     RealType W[(1 << N)];
@@ -911,7 +964,7 @@ public:
                         // x を再計算
                         RealType   x_vec[N];
                         for ( int i = 0; i < N; ++i) {
-                            x_vec[i] = (RealType)x_ptr.Get(frame, input_index_ptr(node, i));
+                            x_vec[i] = (RealType)x_ptr.Get(frame, input_table_ptr(node, i));
                             if ( m_binary_mode ) {
                                 x_vec[i] = (RealType)0.5 + ((x_vec[i] > (RealType)0.5) ? +m_unbinarize_bias : -m_unbinarize_bias);
                             }
@@ -946,7 +999,7 @@ public:
                         // x を再計算
                         RealType   x_vec[N];
                         for ( int i = 0; i < N; ++i) {
-                            x_vec[i] = (RealType)x_ptr.Get(frame, input_index_ptr(node, i));
+                            x_vec[i] = (RealType)x_ptr.Get(frame, input_table_ptr(node, i));
                             if ( m_binary_mode ) {
                                 x_vec[i] = (RealType)0.5 + ((x_vec[i] > (RealType)0.5) ? +m_unbinarize_bias : -m_unbinarize_bias);
                             }
@@ -973,7 +1026,7 @@ public:
                         StochasticOperation_Lut_Backward<RealType>(x_vec, dx_vec, &dx, W, dW, N);
 
                         for ( int i = 0; i < N; ++i) {
-                            dx_ptr.Add(frame, input_index_ptr(node, i), dx_vec[i]);
+                            dx_ptr.Add(frame, input_table_ptr(node, i), dx_vec[i]);
                         }
                     }
 
@@ -993,7 +1046,7 @@ public:
                 auto x_ptr           = x_buf.LockDeviceMemoryConst();
                 auto dy_ptr          = dy_buf.LockDeviceMemoryConst();
                 auto dx_ptr          = dx_buf.LockDeviceMemory(true);
-                auto input_index_ptr = this->lockDeviceMem_InputIndex_const();
+                auto input_table_ptr = m_connection_table.LockDeviceMemConst_InputTable();
                 auto W_ptr           = m_W->LockDeviceMemoryConst();
                 auto dW_ptr          = m_dW->LockDeviceMemory();
                 auto tmp_ptr         = tmp_buf.LockDeviceMemory();
@@ -1003,7 +1056,7 @@ public:
                         (float const *)dy_ptr.GetAddr(),
                         (float       *)dx_ptr.GetAddr(),
                         (float       *)tmp_ptr.GetAddr(),
-                        (int   const *)input_index_ptr.GetAddr(),
+                        (int   const *)input_table_ptr.GetAddr(),
                         (float const *)W_ptr.GetAddr(),
                         (float       *)dW_ptr.GetAddr(),
                         (int          )dx_buf.GetNodeSize(),
@@ -1024,17 +1077,17 @@ public:
                 auto x_ptr           = x_buf.LockDeviceMemoryConst();
                 auto dy_ptr          = dy_buf.LockDeviceMemoryConst();
                 auto dx_ptr          = dx_buf.LockDeviceMemory(true);
-                auto input_index_ptr = this->lockDeviceMem_InputIndex_const();
+                auto input_table_ptr = m_connection_table.LockDeviceMemConst_InputTable();
                 auto W_ptr           = m_W->LockDeviceMemoryConst();
                 auto dW_ptr          = m_dW->LockDeviceMemory();
                 auto tmp_ptr         = tmp_buf.LockDeviceMemory();
-            
+                
                 bbcu_bit_fp32_StochasticLut6_Backward(
                         (int   const *)x_ptr.GetAddr(),
                         (float const *)dy_ptr.GetAddr(),
                         (float       *)dx_ptr.GetAddr(),
                         (float       *)tmp_ptr.GetAddr(),
-                        (int   const *)input_index_ptr.GetAddr(),
+                        (int   const *)input_table_ptr.GetAddr(),
                         (float const *)W_ptr.GetAddr(),
                         (float       *)dW_ptr.GetAddr(),
                         (int          )dx_buf.GetNodeSize(),
@@ -1058,12 +1111,12 @@ public:
                 auto frame_size = dy_buf.GetFrameSize();
                 auto reciprocal_frame_size = (RealType)1.0 / (RealType)frame_size;
 
-                auto x_ptr             = x_buf.LockConst<BinType>();
-                auto dy_ptr            = dy_buf.LockConst<RealType>();
-                auto dx_ptr            = dx_buf.Lock<RealType>(true);
-                auto input_index_ptr   = this->lock_InputIndex_const();
-                auto W_ptr             = lock_W_const();
-                auto dW_ptr            = lock_dW();
+                auto x_ptr           = x_buf.LockConst<BinType>();
+                auto dy_ptr          = dy_buf.LockConst<RealType>();
+                auto dx_ptr          = dx_buf.Lock<RealType>(true);
+                auto input_table_ptr = m_connection_table.LockConst_InputTable();
+                auto W_ptr           = lock_W_const();
+                auto dW_ptr          = lock_dW();
 
                 for ( index_t node = 0; node < node_size; ++node ) {
                     RealType W[(1 << N)];
@@ -1078,7 +1131,7 @@ public:
                     for ( index_t frame = 0; frame < frame_size; ++frame ) {
                         RealType   x_vec[N];
                         for ( int i = 0; i < N; ++i) {
-                            x_vec[i] = (RealType)x_ptr.Get(frame, input_index_ptr(node, i));
+                            x_vec[i] = (RealType)x_ptr.Get(frame, input_table_ptr(node, i));
                             if ( m_binary_mode ) {
                                 x_vec[i] = (RealType)0.5 + ((x_vec[i] > (RealType)0.5) ? +m_unbinarize_bias : -m_unbinarize_bias);
                             }
@@ -1093,7 +1146,7 @@ public:
                         StochasticOperation_Lut_Backward<RealType>(x_vec, dx_vec, &dy, W, dW, N);
 
                         for ( int i = 0; i < N; ++i) {
-                            dx_ptr.Add(frame, input_index_ptr(node, i), dx_vec[i]);
+                            dx_ptr.Add(frame, input_table_ptr(node, i), dx_vec[i]);
                         }
                     }
 
