@@ -69,10 +69,11 @@ public:
     {
         indices_t       output_shape;               //< 出力形状
         std::string     connection;                 //< 結線ルール
-        RealType        momentum  = (RealType)0.0;
-        RealType        gamma     = (RealType)0.3;
-        RealType        beta      = (RealType)0.5;
-        std::uint64_t   seed      = 1;              //< 乱数シード
+        bool            batch_norm = true;
+        RealType        momentum   = (RealType)0.0;
+        RealType        gamma      = (RealType)0.3;
+        RealType        beta       = (RealType)0.5;
+        std::uint64_t   seed       = 1;              //< 乱数シード
     };
 
 protected:
@@ -82,6 +83,7 @@ protected:
 
         m_output_shape = create.output_shape;
         m_connection   = create.connection;
+        m_batch_norm   = create.batch_norm;
         m_momentum     = create.momentum;
         m_gamma        = create.gamma;
         m_beta         = create.beta;
@@ -128,21 +130,23 @@ public:
         return std::shared_ptr<SparseLutN>(new SparseLutN(create));
     }
 
-    static std::shared_ptr<SparseLutN> Create(indices_t const &output_shape, std::string connection = "", std::uint64_t seed = 1)
+    static std::shared_ptr<SparseLutN> Create(indices_t const &output_shape, bool batch_norm = true, std::string connection = "", std::uint64_t seed = 1)
     {
         create_t create;
         create.output_shape = output_shape;
         create.connection   = connection;
+        create.batch_norm   = batch_norm;
         create.seed         = seed;
         return Create(create);
     }
 
-    static std::shared_ptr<SparseLutN> Create(index_t output_node_size, std::string connection = "", std::uint64_t seed = 1)
+    static std::shared_ptr<SparseLutN> Create(index_t output_node_size, bool batch_norm = true, std::string connection = "", std::uint64_t seed = 1)
     {
         create_t create;
         create.output_shape.resize(1);
         create.output_shape[0] = output_node_size;
         create.connection      = connection;
+        create.batch_norm   = batch_norm;
         create.seed            = seed;
         return Create(create);
     }
