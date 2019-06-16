@@ -77,9 +77,9 @@ void MnistAeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_modu
     auto dec_cnv1_sl0 = ModelType::Create(192);
     auto dec_cnv1_sl1 = ModelType::Create(32);
     auto dec_cnv0_sl0 = ModelType::Create(216);
-    auto dec_cnv0_sl1 = ModelType::Create(36);
-    auto dec_cnv0_sl2 = ModelType::Create(6);
-    auto dec_cnv0_sl3 = ModelType::Create(1);
+    auto dec_cnv0_sl1 = ModelType::Create(36, false);
+    auto dec_cnv0_sl2 = ModelType::Create(6, false);
+    auto dec_cnv0_sl3 = ModelType::Create(1, false);
 
 
     {
