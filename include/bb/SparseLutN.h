@@ -369,8 +369,10 @@ public:
         RealType y;
         StochasticOperation_Lut_Forward<RealType>(x, &y, W, N);
 
-        y = (y - mean) * rstd;
-        y = y * m_gamma + m_beta;
+        if ( m_batch_norm ) {
+            y = (y - mean) * rstd;
+            y = y * m_gamma + m_beta;
+        }
 
         if ( m_binary_mode ) {
             // binarize
