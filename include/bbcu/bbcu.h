@@ -624,6 +624,53 @@ BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut6_Backward
             float           *dev_dx_buf,
             float           *dev_dx_tmp,
             int   const     *dev_input_index,
+            int   const     *dev_reverse_index,
+            float const     *dev_W,
+            float           *dev_dW,
+            int             reverse_index_stride,
+            int             input_node_size,
+            int             output_node_size,
+            int             frame_size,
+            int             frame_stride,
+            int             tmp_frame_size,
+            int             tmp_frame_stride,
+            int             input_binary,
+            int             lut_binarize,
+            float           unbinarize_bias,
+            cudaStream_t    streamId = 0
+        );
+
+BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut6_Backward
+        (
+            int   const     *dev_x_buf,
+            float const     *dev_dy_buf,
+            float           *dev_dx_buf,
+            float           *dev_dx_tmp,
+            int   const     *dev_input_index,
+            int   const     *dev_reverse_index,
+            float const     *dev_W,
+            float           *dev_dW,
+            int             reverse_index_stride,
+            int             input_node_size,
+            int             output_node_size,
+            int             frame_size,
+            int             frame_stride,
+            int             bin_frame_stride,
+            int             tmp_frame_size,
+            int             tmp_frame_stride,
+            int             lut_binarize,
+            float           unbinarize_bias,
+            cudaStream_t    streamId = 0
+        );
+
+/*
+BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut6_Backward
+        (
+            float const     *dev_x_buf,
+            float const     *dev_dy_buf,
+            float           *dev_dx_buf,
+            float           *dev_dx_tmp,
+            int   const     *dev_input_index,
             float const     *dev_W,
             float           *dev_dW,
             int             input_node_size,
@@ -635,7 +682,9 @@ BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut6_Backward
             float           unbinarize_bias,
             cudaStream_t    streamId = 0
         );
+*/
 
+/*
 BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut6_Backward
         (
             int   const     *dev_x_buf,
@@ -654,7 +703,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut6_Backward
             float           unbinarize_bias,
             cudaStream_t    streamId = 0
         );
-
+*/
 
 // -------------------------------------
 //  StochasticMaxPooling

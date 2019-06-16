@@ -818,6 +818,7 @@ public:
 
         // tmp buffer
         index_t tmp_frame_size = m_max_tmp_mem_size / (sizeof(float) * output_node_size*N);
+        tmp_frame_size = std::max(tmp_frame_size, (index_t)32);
         tmp_frame_size = ((tmp_frame_size + 31) & ~0x1f);
         tmp_frame_size = std::min(tmp_frame_size, dy_buf.GetFrameSize());
         FrameBuffer tmp_buf(DataType<RealType>::type, tmp_frame_size, output_node_size*N);
@@ -1040,16 +1041,16 @@ public:
         }
         else {
 #ifdef BB_WITH_CUDA
-            // LUT6 FP32 CUDA
             if ( N == 6, DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
                     && dy_buf.IsDeviceAvailable() && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
-                auto x_ptr           = x_buf.LockDeviceMemoryConst();
-                auto dy_ptr          = dy_buf.LockDeviceMemoryConst();
-                auto dx_ptr          = dx_buf.LockDeviceMemory(true);
-                auto input_table_ptr = m_connection_table.LockDeviceMemConst_InputTable();
-                auto W_ptr           = m_W->LockDeviceMemoryConst();
-                auto dW_ptr          = m_dW->LockDeviceMemory();
-                auto tmp_ptr         = tmp_buf.LockDeviceMemory();
+                auto x_ptr             = x_buf.LockDeviceMemoryConst();
+                auto dy_ptr            = dy_buf.LockDeviceMemoryConst();
+                auto dx_ptr            = dx_buf.LockDeviceMemory(true);
+                auto reverse_table_ptr = m_connection_table.LockDeviceMemConst_ReverseTable();
+                auto input_table_ptr   = m_connection_table.LockDeviceMemConst_InputTable();
+                auto W_ptr             = m_W->LockDeviceMemoryConst();
+                auto dW_ptr            = m_dW->LockDeviceMemory();
+                auto tmp_ptr           = tmp_buf.LockDeviceMemory();
             
                 bbcu_fp32_StochasticLut6_Backward(
                         (float const *)x_ptr.GetAddr(),
@@ -1057,12 +1058,16 @@ public:
                         (float       *)dx_ptr.GetAddr(),
                         (float       *)tmp_ptr.GetAddr(),
                         (int   const *)input_table_ptr.GetAddr(),
+                        (int   const *)reverse_table_ptr.GetAddr(),
                         (float const *)W_ptr.GetAddr(),
                         (float       *)dW_ptr.GetAddr(),
+                        (int          )m_connection_table.GetReverseTableStride(),
                         (int          )dx_buf.GetNodeSize(),
                         (int          )dy_buf.GetNodeSize(),
                         (int          )dx_buf.GetFrameSize(),
                         (int          )(dx_buf.GetFrameStride() / sizeof(float)),
+                        (int          )tmp_buf.GetFrameSize(),
+                        (int          )(tmp_buf.GetFrameStride() / sizeof(float)),
                         (int          )(m_binary_mode  ? 1 : 0),
                         (int          )(m_lut_binarize ? 1 : 0),
                         (float        )m_unbinarize_bias
@@ -1074,27 +1079,32 @@ public:
             // LUT6 Bit CUDA
             if ( N == 6, DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
                     && dy_buf.IsDeviceAvailable() && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
-                auto x_ptr           = x_buf.LockDeviceMemoryConst();
-                auto dy_ptr          = dy_buf.LockDeviceMemoryConst();
-                auto dx_ptr          = dx_buf.LockDeviceMemory(true);
-                auto input_table_ptr = m_connection_table.LockDeviceMemConst_InputTable();
-                auto W_ptr           = m_W->LockDeviceMemoryConst();
-                auto dW_ptr          = m_dW->LockDeviceMemory();
-                auto tmp_ptr         = tmp_buf.LockDeviceMemory();
-                
+                auto x_ptr             = x_buf.LockDeviceMemoryConst();
+                auto dy_ptr            = dy_buf.LockDeviceMemoryConst();
+                auto dx_ptr            = dx_buf.LockDeviceMemory(true);
+                auto reverse_table_ptr = m_connection_table.LockDeviceMemConst_ReverseTable();
+                auto input_table_ptr   = m_connection_table.LockDeviceMemConst_InputTable();
+                auto W_ptr             = m_W->LockDeviceMemoryConst();
+                auto dW_ptr            = m_dW->LockDeviceMemory();
+                auto tmp_ptr           = tmp_buf.LockDeviceMemory();
+            
                 bbcu_bit_fp32_StochasticLut6_Backward(
                         (int   const *)x_ptr.GetAddr(),
                         (float const *)dy_ptr.GetAddr(),
                         (float       *)dx_ptr.GetAddr(),
                         (float       *)tmp_ptr.GetAddr(),
                         (int   const *)input_table_ptr.GetAddr(),
+                        (int   const *)reverse_table_ptr.GetAddr(),
                         (float const *)W_ptr.GetAddr(),
                         (float       *)dW_ptr.GetAddr(),
+                        (int          )m_connection_table.GetReverseTableStride(),
                         (int          )dx_buf.GetNodeSize(),
                         (int          )dy_buf.GetNodeSize(),
                         (int          )dx_buf.GetFrameSize(),
                         (int          )(dx_buf.GetFrameStride() / sizeof(float)),
                         (int          )(x_buf.GetFrameStride() / sizeof(int)),
+                        (int          )tmp_buf.GetFrameSize(),
+                        (int          )(tmp_buf.GetFrameStride() / sizeof(float)),
                         (int          )(m_lut_binarize ? 1 : 0),
                         (float        )m_unbinarize_bias
                     );
