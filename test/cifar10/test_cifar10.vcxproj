@@ -352,6 +352,7 @@
     <ClCompile Include="Cifar10DenseMlp.cpp" />
     <ClCompile Include="Cifar10MicroMlpLutCnn.cpp" />
     <ClCompile Include="Cifar10MicroMlpLutMlp.cpp" />
+    <ClCompile Include="Cifar10NrSparseLutCnn.cpp" />
     <ClCompile Include="Cifar10SparseLutCnn.cpp" />
     <ClCompile Include="Cifar10SparseLutMlp.cpp" />
     <ClCompile Include="Cifar10StochasticLutCnn.cpp" />
@@ -404,6 +405,7 @@
     <ClInclude Include="..\..\include\bb\OptimizerAdaGrad.h" />
     <ClInclude Include="..\..\include\bb\OptimizerAdam.h" />
     <ClInclude Include="..\..\include\bb\OptimizerSgd.h" />
+    <ClInclude Include="..\..\include\bb\PnmImage.h" />
     <ClInclude Include="..\..\include\bb\RealToBinary.h" />
     <ClInclude Include="..\..\include\bb\Reduce.h" />
     <ClInclude Include="..\..\include\bb\ReLU.h" />
