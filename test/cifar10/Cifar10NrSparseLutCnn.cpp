@@ -32,7 +32,7 @@
 template<typename T=bb::Bit>
 void NrSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "CifarNr10SparseLutCnn";
+    std::string net_name = "Cifar10NrSparseLutCnn";
 
     if ( bb::DataType<T>::type == BB_TYPE_BIT ) {
         binary_mode = true;
@@ -80,12 +80,14 @@ void NrSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_si
         bb::WritePpm("td1_x_test.ppm", x_buf, 32, 32, 1);
         bb::WritePpm("td2_x_test.ppm", x_buf, 32, 32, 2);
         bb::WritePpm("td3_x_test.ppm", x_buf, 32, 32, 3);
+        bb::WritePpm("td4_x_test.ppm", x_buf, 32, 32, 4);
 
         x_buf.SetVector(td.t_test, 0);
         bb::WritePpm("td0_t_test.ppm", x_buf, 32, 32, 0);
         bb::WritePpm("td1_t_test.ppm", x_buf, 32, 32, 1);
         bb::WritePpm("td2_t_test.ppm", x_buf, 32, 32, 2);
         bb::WritePpm("td3_t_test.ppm", x_buf, 32, 32, 3);
+        bb::WritePpm("td4_t_test.ppm", x_buf, 32, 32, 4);
     }
 
 
