@@ -46,12 +46,52 @@ void NrSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_si
     auto td = bb::LoadCifar10<>::Load();
 #endif
 
+#if 1
+    // 入力をバックアップ
+    auto org_train = td.x_train;
+    auto org_test  = td.x_test;
+
+     // 入力と出力を同じに
+    td.t_shape = td.x_shape;
+    td.t_train = td.x_train;
+    td.t_test  = td.x_test;
+
+    auto  noise_gen = bb::NormalDistributionGenerator<float>::Create(0.0f, 0.1f);
+
+    // 入力にノイズ付与
+    for ( auto& x : td.x_train ) {
+        for ( auto& v : x ) {
+            v += noise_gen->GetValue();
+            v = std::max(v, 0.0f);
+            v = std::min(v, 1.0f);
+        }
+    }
+    for ( auto& x : td.x_test ) {
+        for ( auto& v : x ) {
+            v += noise_gen->GetValue();
+            v = std::max(v, 0.0f);
+            v = std::min(v, 1.0f);
+        }
+    }
+
+    // 差分を期待値に
+    for ( size_t i = 0; i < td.t_train.size(); ++i ) {
+        for ( size_t j = 0; j < td.t_train[i].size(); ++j ) {
+            td.t_train[i][j] = 0.5 + td.x_train[i][j] - org_train[i][j];
+        }
+    }
+    for ( size_t i = 0; i < td.t_test.size(); ++i ) {
+        for ( size_t j = 0; j < td.t_test[i].size(); ++j ) {
+            td.t_test[i][j] = 0.5 + td.x_test[i][j] - org_test[i][j];
+        }
+    }
+
+#else
     // 入力と出力を同じに
     td.t_shape = td.x_shape;
     td.t_train = td.x_train;
     td.t_test  = td.x_test;
 
-#if 1
     auto  noise_gen = bb::NormalDistributionGenerator<float>::Create(0.0f, 0.1f);
 
     // ノイズ付与
@@ -88,6 +128,13 @@ void NrSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_si
         bb::WritePpm("td2_t_test.ppm", x_buf, 32, 32, 2);
         bb::WritePpm("td3_t_test.ppm", x_buf, 32, 32, 3);
         bb::WritePpm("td4_t_test.ppm", x_buf, 32, 32, 4);
+
+        x_buf.SetVector(org_test, 0);
+        bb::WritePpm("td0_o_test.ppm", x_buf, 32, 32, 0);
+        bb::WritePpm("td1_o_test.ppm", x_buf, 32, 32, 1);
+        bb::WritePpm("td2_o_test.ppm", x_buf, 32, 32, 2);
+        bb::WritePpm("td3_o_test.ppm", x_buf, 32, 32, 3);
+        bb::WritePpm("td4_o_test.ppm", x_buf, 32, 32, 4);
     }
 
 
@@ -95,15 +142,15 @@ void NrSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_si
     auto layer_cnv0_sl0 = bb::SparseLutN<6, T>::Create(192,  true);
     auto layer_cnv0_sl1 = bb::SparseLutN<6, T>::Create(32,   false);
 
-    auto layer_cnv1_sl0 = bb::SparseLutN<6, T>::Create(1152, true);
-    auto layer_cnv1_sl1 = bb::SparseLutN<6, T>::Create(192,  true);
-    auto layer_cnv1_sl2 = bb::SparseLutN<6, T>::Create(32,   false);
+//  auto layer_cnv1_sl0 = bb::SparseLutN<6, T>::Create(1152, true);
+//  auto layer_cnv1_sl1 = bb::SparseLutN<6, T>::Create(192,  true);
+//  auto layer_cnv1_sl2 = bb::SparseLutN<6, T>::Create(32,   false);
 
-    auto layer_cnv2_sl0 = bb::SparseLutN<6, T>::Create(1152, true);
-    auto layer_cnv2_sl1 = bb::SparseLutN<6, T>::Create(192,  true);
-    auto layer_cnv2_sl2 = bb::SparseLutN<6, T>::Create(32,   false);
+//  auto layer_cnv2_sl0 = bb::SparseLutN<6, T>::Create(1152, true);
+//  auto layer_cnv2_sl1 = bb::SparseLutN<6, T>::Create(192,  true);
+//  auto layer_cnv2_sl2 = bb::SparseLutN<6, T>::Create(32,   false);
 
-    auto layer_cnv3_sl0 = bb::SparseLutN<6, T>::Create(1152, true);
+//  auto layer_cnv3_sl0 = bb::SparseLutN<6, T>::Create(1152, true);
     auto layer_cnv3_sl1 = bb::SparseLutN<6, T>::Create(192,  true);
     auto layer_cnv3_sl2 = bb::SparseLutN<6, T>::Create(32,   false);
     auto layer_cnv3_sl3 = bb::SparseLutN<6, T>::Create(3,    false);
@@ -115,15 +162,15 @@ void NrSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_si
         cnv0_sub->Add(layer_cnv0_sl0);
         cnv0_sub->Add(layer_cnv0_sl1);
 
-        auto cnv1_sub = bb::Sequential::Create();
+//        auto cnv1_sub = bb::Sequential::Create();
 //        cnv1_sub->Add(layer_cnv1_sl0);
-        cnv1_sub->Add(layer_cnv1_sl1);
-        cnv1_sub->Add(layer_cnv1_sl2);
+//        cnv1_sub->Add(layer_cnv1_sl1);
+//        cnv1_sub->Add(layer_cnv1_sl2);
 
-        auto cnv2_sub = bb::Sequential::Create();
+//        auto cnv2_sub = bb::Sequential::Create();
 //        cnv2_sub->Add(layer_cnv2_sl0);
-        cnv2_sub->Add(layer_cnv2_sl1);
-        cnv2_sub->Add(layer_cnv2_sl2);
+//        cnv2_sub->Add(layer_cnv2_sl1);
+//        cnv2_sub->Add(layer_cnv2_sl2);
 
         auto cnv3_sub = bb::Sequential::Create();
 //        cnv3_sub->Add(layer_cnv3_sl0);
@@ -134,8 +181,8 @@ void NrSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_si
 
         auto main_net = bb::Sequential::Create();
         main_net->Add(bb::LoweringConvolution<T>::Create(cnv0_sub, 3, 3, 1, 1, "same"));
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv1_sub, 3, 3, 1, 1, "same"));
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv2_sub, 3, 3, 1, 1, "same"));
+//        main_net->Add(bb::LoweringConvolution<T>::Create(cnv1_sub, 3, 3, 1, 1, "same"));
+//        main_net->Add(bb::LoweringConvolution<T>::Create(cnv2_sub, 3, 3, 1, 1, "same"));
         main_net->Add(bb::LoweringConvolution<T>::Create(cnv3_sub, 3, 3, 1, 1, "same"));
 
         // modulation wrapper
@@ -177,7 +224,7 @@ void NrSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_si
         runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
         runner_create.file_write         = true;            // 計算結果をファイルに保存するか
         runner_create.print_progress     = true;            // 途中結果を表示
-        runner_create.initial_evaluation = file_read;       // ファイルを読んだ場合は最初に評価しておく
+        runner_create.initial_evaluation = false;// file_read;       // ファイルを読んだ場合は最初に評価しておく
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
 
@@ -195,6 +242,13 @@ void NrSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_si
         bb::WritePpm("out_3y.ppm", y_buf, 32, 32, 3);
         bb::WritePpm("out_4x.ppm", x_buf, 32, 32, 4);
         bb::WritePpm("out_4y.ppm", y_buf, 32, 32, 4);
+
+        auto z_buf = x_buf - y_buf + 0.5f;
+        bb::WritePpm("out_0z.ppm", z_buf, 32, 32, 0);
+        bb::WritePpm("out_1z.ppm", z_buf, 32, 32, 1);
+        bb::WritePpm("out_2z.ppm", z_buf, 32, 32, 2);
+        bb::WritePpm("out_3z.ppm", z_buf, 32, 32, 3);
+        bb::WritePpm("out_4z.ppm", z_buf, 32, 32, 4);
     }
 
 #if 0

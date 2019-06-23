@@ -26,7 +26,10 @@ inline void WritePgm(std::string fname, bb::FrameBuffer buf, int width, int heig
     ofs << width << " " <<  height << "\n";
     ofs << "255\n";
     for ( int i = 0; i < width*height; ++i ) {
-        ofs << (int)(buf.GetFP32(frame, i) * 255.0f) << "\n";
+        auto v = buf.GetFP32(frame, i);
+        v = std::max(v, 0.0f);
+        v = std::min(v, 1.0f);
+        ofs << (int)(v * 255.0f) << "\n";
     }
 }
 
@@ -38,7 +41,10 @@ inline void WritePpm(std::string fname, bb::FrameBuffer buf, int width, int heig
     ofs << "255\n";
     for ( int i = 0; i < width*height; ++i ) {
         for ( int c = 0; c < 3; ++c ) {
-            ofs << (int)(buf.GetFP32(frame, width*height*c + i) * 255.0f) << "\n";
+            auto v = buf.GetFP32(frame, width*height*c + i);
+            v = std::max(v, 0.0f);
+            v = std::min(v, 1.0f);
+            ofs << (int)(v * 255.0f) << "\n";
         }
         ofs << "\n";
     }
