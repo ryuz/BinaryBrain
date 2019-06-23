@@ -1022,6 +1022,8 @@ BBCU_DLL_EXPORT int bbcu_fp32_Im2Col_Forward
             int             output_frame_stride,
             int             filter_w_size,
             int             filter_h_size,
+            int             border_mode,
+            float           border_value,
             cudaStream_t    streamId = 0
         );
 
@@ -1043,6 +1045,7 @@ BBCU_DLL_EXPORT int bbcu_bit_Im2Col_Forward
             int             output_frame_stride,
             int             filter_w_size,
             int             filter_h_size,
+            int             border_mode,
             cudaStream_t    streamId = 0
         );
 
