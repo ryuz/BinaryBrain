@@ -77,12 +77,12 @@ void NrSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_si
     // ç∑ï™Çä˙ë“ílÇ…
     for ( size_t i = 0; i < td.t_train.size(); ++i ) {
         for ( size_t j = 0; j < td.t_train[i].size(); ++j ) {
-            td.t_train[i][j] = 0.5 + td.x_train[i][j] - org_train[i][j];
+            td.t_train[i][j] = 0.5f + td.x_train[i][j] - org_train[i][j];
         }
     }
     for ( size_t i = 0; i < td.t_test.size(); ++i ) {
         for ( size_t j = 0; j < td.t_test[i].size(); ++j ) {
-            td.t_test[i][j] = 0.5 + td.x_test[i][j] - org_test[i][j];
+            td.t_test[i][j] = 0.5f + td.x_test[i][j] - org_test[i][j];
         }
     }
 
@@ -249,6 +249,16 @@ void NrSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_si
         bb::WritePpm("out_2z.ppm", z_buf, 32, 32, 2);
         bb::WritePpm("out_3z.ppm", z_buf, 32, 32, 3);
         bb::WritePpm("out_4z.ppm", z_buf, 32, 32, 4);
+
+        bb::FrameBuffer t_buf(BB_TYPE_FP32, 8, {32, 32, 3});
+        t_buf.SetVector(td.t_test, 0);
+
+        z_buf = x_buf - t_buf + 0.5f;
+        bb::WritePpm("out_0zt.ppm", z_buf, 32, 32, 0);
+        bb::WritePpm("out_1zt.ppm", z_buf, 32, 32, 1);
+        bb::WritePpm("out_2zt.ppm", z_buf, 32, 32, 2);
+        bb::WritePpm("out_3zt.ppm", z_buf, 32, 32, 3);
+        bb::WritePpm("out_4zt.ppm", z_buf, 32, 32, 4);
     }
 
 #if 0
@@ -405,7 +415,7 @@ void Cifar10NrSparseLutCnn(int epoch_size, int mini_batch_size, int train_modula
         NrSparseLutCnn<bb::Bit>(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
     else {
-        NrSparseLutCnn<float>(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+//      NrSparseLutCnn<float>(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 }
 
