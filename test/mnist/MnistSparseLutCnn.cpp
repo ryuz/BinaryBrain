@@ -22,7 +22,8 @@
 #include "bb/ExportVerilog.h"
 
 
-void MnistSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+template<int N=6>
+void MnistSparseLutCnnN(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
     std::string net_name = "MnistSparseLutCnn";
 
@@ -36,27 +37,27 @@ void MnistSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation
 
     // create network
 #ifdef BB_WITH_CUDA
-    auto layer_cnv0_sl0 = bb::SparseLutN<6, float>::Create(192, true);
-    auto layer_cnv0_sl1 = bb::SparseLutN<6, float>::Create(32,  true);
-    auto layer_cnv1_sl0 = bb::SparseLutN<6, float>::Create(192, true);
-    auto layer_cnv1_sl1 = bb::SparseLutN<6, float>::Create(32,  true);
-    auto layer_cnv2_sl0 = bb::SparseLutN<6, float>::Create(192, true);
-    auto layer_cnv2_sl1 = bb::SparseLutN<6, float>::Create(32,  true);
-    auto layer_cnv3_sl0 = bb::SparseLutN<6, float>::Create(192, true);
-    auto layer_cnv3_sl1 = bb::SparseLutN<6, float>::Create(32,  true);
-    auto layer_sl4      = bb::SparseLutN<6, float>::Create(420, true);
-    auto layer_sl5      = bb::SparseLutN<6, float>::Create(70,  true);
+    auto layer_cnv0_sl0 = bb::SparseLutN<N, float>::Create(32*N, true);
+    auto layer_cnv0_sl1 = bb::SparseLutN<N, float>::Create(32,   true);
+    auto layer_cnv1_sl0 = bb::SparseLutN<N, float>::Create(32*N, true);
+    auto layer_cnv1_sl1 = bb::SparseLutN<N, float>::Create(32,   true);
+    auto layer_cnv2_sl0 = bb::SparseLutN<N, float>::Create(32*N, true);
+    auto layer_cnv2_sl1 = bb::SparseLutN<N, float>::Create(32,   true);
+    auto layer_cnv3_sl0 = bb::SparseLutN<N, float>::Create(32*N, true);
+    auto layer_cnv3_sl1 = bb::SparseLutN<N, float>::Create(32,   true);
+    auto layer_sl4      = bb::SparseLutN<N, float>::Create(70*N, true);
+    auto layer_sl5      = bb::SparseLutN<N, float>::Create(70,   true);
 #else
-    auto layer_cnv0_sl0 = bb::SparseLutDiscreteN<6, float>::Create(192);
-    auto layer_cnv0_sl1 = bb::SparseLutDiscreteN<6, float>::Create(32);
-    auto layer_cnv1_sl0 = bb::SparseLutDiscreteN<6, float>::Create(192);
-    auto layer_cnv1_sl1 = bb::SparseLutDiscreteN<6, float>::Create(32);
-    auto layer_cnv2_sl0 = bb::SparseLutDiscreteN<6, float>::Create(192);
-    auto layer_cnv2_sl1 = bb::SparseLutDiscreteN<6, float>::Create(32);
-    auto layer_cnv3_sl0 = bb::SparseLutDiscreteN<6, float>::Create(192);
-    auto layer_cnv3_sl1 = bb::SparseLutDiscreteN<6, float>::Create(32);
-    auto layer_sl4      = bb::SparseLutDiscreteN<6, float>::Create(420);
-    auto layer_sl5      = bb::SparseLutDiscreteN<6, float>::Create(70);
+    auto layer_cnv0_sl0 = bb::SparseLutDiscreteN<N, float>::Create(192);
+    auto layer_cnv0_sl1 = bb::SparseLutDiscreteN<N, float>::Create(32);
+    auto layer_cnv1_sl0 = bb::SparseLutDiscreteN<N, float>::Create(192);
+    auto layer_cnv1_sl1 = bb::SparseLutDiscreteN<N, float>::Create(32);
+    auto layer_cnv2_sl0 = bb::SparseLutDiscreteN<N, float>::Create(192);
+    auto layer_cnv2_sl1 = bb::SparseLutDiscreteN<N, float>::Create(32);
+    auto layer_cnv3_sl0 = bb::SparseLutDiscreteN<N, float>::Create(192);
+    auto layer_cnv3_sl1 = bb::SparseLutDiscreteN<N, float>::Create(32);
+    auto layer_sl4      = bb::SparseLutDiscreteN<N, float>::Create(420);
+    auto layer_sl5      = bb::SparseLutDiscreteN<N, float>::Create(70);
 #endif
 
     {
@@ -138,16 +139,16 @@ void MnistSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation
         std::cout << "\n<Evaluation binary LUT-Network>" << std::endl;
 
         // LUT-network
-        auto layer_cnv0_bl0 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv0_sl0->GetOutputShape());
-        auto layer_cnv0_bl1 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv0_sl1->GetOutputShape());
-        auto layer_cnv1_bl0 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv1_sl0->GetOutputShape());
-        auto layer_cnv1_bl1 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv1_sl1->GetOutputShape());
-        auto layer_cnv2_bl0 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv2_sl0->GetOutputShape());
-        auto layer_cnv2_bl1 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv2_sl1->GetOutputShape());
-        auto layer_cnv3_bl0 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv3_sl0->GetOutputShape());
-        auto layer_cnv3_bl1 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv3_sl1->GetOutputShape());
-        auto layer_bl4      = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl4->GetOutputShape());
-        auto layer_bl5      = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl5->GetOutputShape());
+        auto layer_cnv0_bl0 = bb::BinaryLutN<N, bb::Bit>::Create(layer_cnv0_sl0->GetOutputShape());
+        auto layer_cnv0_bl1 = bb::BinaryLutN<N, bb::Bit>::Create(layer_cnv0_sl1->GetOutputShape());
+        auto layer_cnv1_bl0 = bb::BinaryLutN<N, bb::Bit>::Create(layer_cnv1_sl0->GetOutputShape());
+        auto layer_cnv1_bl1 = bb::BinaryLutN<N, bb::Bit>::Create(layer_cnv1_sl1->GetOutputShape());
+        auto layer_cnv2_bl0 = bb::BinaryLutN<N, bb::Bit>::Create(layer_cnv2_sl0->GetOutputShape());
+        auto layer_cnv2_bl1 = bb::BinaryLutN<N, bb::Bit>::Create(layer_cnv2_sl1->GetOutputShape());
+        auto layer_cnv3_bl0 = bb::BinaryLutN<N, bb::Bit>::Create(layer_cnv3_sl0->GetOutputShape());
+        auto layer_cnv3_bl1 = bb::BinaryLutN<N, bb::Bit>::Create(layer_cnv3_sl1->GetOutputShape());
+        auto layer_bl4      = bb::BinaryLutN<N, bb::Bit>::Create(layer_sl4->GetOutputShape());
+        auto layer_bl5      = bb::BinaryLutN<N, bb::Bit>::Create(layer_sl5->GetOutputShape());
 
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_bl0);
@@ -253,6 +254,12 @@ void MnistSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation
             bb::WriteTestDataImage<float>("verilog/mnist_test_640x480.ppm", 640, 480, td);
         }
     }
+}
+
+
+void MnistSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+{
+    MnistSparseLutCnnN<4>(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
 }
 
 

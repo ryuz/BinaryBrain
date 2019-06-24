@@ -23,8 +23,8 @@
 #include "bb/ExportVerilog.h"
 
 
-
-void MnistStochasticLutCnn(int epoch_size, int mini_batch_size, int test_modulation_size, bool binary_mode, bool file_read)
+template <int N=6>
+void MnistStochasticLutCnnN(int epoch_size, int mini_batch_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
     std::string net_name = "MnistStochasticLutCnn";
 
@@ -37,18 +37,18 @@ void MnistStochasticLutCnn(int epoch_size, int mini_batch_size, int test_modulat
 #endif
 
     // create network
-    auto layer_cnv0_sl0 = bb::StochasticLutN<6>::Create(192);
-    auto layer_cnv0_sl1 = bb::StochasticLutN<6>::Create(32);
-    auto layer_cnv1_sl0 = bb::StochasticLutN<6>::Create(192);
-    auto layer_cnv1_sl1 = bb::StochasticLutN<6>::Create(32);
-    auto layer_cnv2_sl0 = bb::StochasticLutN<6>::Create(256);
-    auto layer_cnv2_sl1 = bb::StochasticLutN<6>::Create(64);
-    auto layer_cnv3_sl0 = bb::StochasticLutN<6>::Create(256);
-    auto layer_cnv3_sl1 = bb::StochasticLutN<6>::Create(64);
-    auto layer_sl4      = bb::StochasticLutN<6>::Create(1024);
-    auto layer_sl5      = bb::StochasticLutN<6>::Create(360);
-    auto layer_sl6      = bb::StochasticLutN<6>::Create(60);
-    auto layer_sl7      = bb::StochasticLutN<6>::Create(10);
+    auto layer_cnv0_sl0 = bb::StochasticLutN<N>::Create(32*N);
+    auto layer_cnv0_sl1 = bb::StochasticLutN<N>::Create(32);
+    auto layer_cnv1_sl0 = bb::StochasticLutN<N>::Create(32*N);
+    auto layer_cnv1_sl1 = bb::StochasticLutN<N>::Create(32);
+    auto layer_cnv2_sl0 = bb::StochasticLutN<N>::Create(64*N);
+    auto layer_cnv2_sl1 = bb::StochasticLutN<N>::Create(64);
+    auto layer_cnv3_sl0 = bb::StochasticLutN<N>::Create(64*N);
+    auto layer_cnv3_sl1 = bb::StochasticLutN<N>::Create(64);
+    auto layer_sl4      = bb::StochasticLutN<N>::Create(10*N*N*N);
+    auto layer_sl5      = bb::StochasticLutN<N>::Create(10*N*N);
+    auto layer_sl6      = bb::StochasticLutN<N>::Create(10*N);
+    auto layer_sl7      = bb::StochasticLutN<N>::Create(10);
 
     {
         std::cout << "\n<Training>" << std::endl;
@@ -123,18 +123,18 @@ void MnistStochasticLutCnn(int epoch_size, int mini_batch_size, int test_modulat
         std::cout << "\n<Evaluation binary LUT-Network>" << std::endl;
 
         // LUT-network
-        auto layer_cnv0_lut0 = bb::BinaryLutN<>::Create(layer_cnv0_sl0->GetOutputShape());
-        auto layer_cnv0_lut1 = bb::BinaryLutN<>::Create(layer_cnv0_sl1->GetOutputShape());
-        auto layer_cnv1_lut0 = bb::BinaryLutN<>::Create(layer_cnv1_sl0->GetOutputShape());
-        auto layer_cnv1_lut1 = bb::BinaryLutN<>::Create(layer_cnv1_sl1->GetOutputShape());
-        auto layer_cnv2_lut0 = bb::BinaryLutN<>::Create(layer_cnv2_sl0->GetOutputShape());
-        auto layer_cnv2_lut1 = bb::BinaryLutN<>::Create(layer_cnv2_sl1->GetOutputShape());
-        auto layer_cnv3_lut0 = bb::BinaryLutN<>::Create(layer_cnv3_sl0->GetOutputShape());
-        auto layer_cnv3_lut1 = bb::BinaryLutN<>::Create(layer_cnv3_sl1->GetOutputShape());
-        auto layer_lut4      = bb::BinaryLutN<>::Create(layer_sl4->GetOutputShape());
-        auto layer_lut5      = bb::BinaryLutN<>::Create(layer_sl5->GetOutputShape());
-        auto layer_lut6      = bb::BinaryLutN<>::Create(layer_sl6->GetOutputShape());
-        auto layer_lut7      = bb::BinaryLutN<>::Create(layer_sl7->GetOutputShape());
+        auto layer_cnv0_lut0 = bb::BinaryLutN<N>::Create(layer_cnv0_sl0->GetOutputShape());
+        auto layer_cnv0_lut1 = bb::BinaryLutN<N>::Create(layer_cnv0_sl1->GetOutputShape());
+        auto layer_cnv1_lut0 = bb::BinaryLutN<N>::Create(layer_cnv1_sl0->GetOutputShape());
+        auto layer_cnv1_lut1 = bb::BinaryLutN<N>::Create(layer_cnv1_sl1->GetOutputShape());
+        auto layer_cnv2_lut0 = bb::BinaryLutN<N>::Create(layer_cnv2_sl0->GetOutputShape());
+        auto layer_cnv2_lut1 = bb::BinaryLutN<N>::Create(layer_cnv2_sl1->GetOutputShape());
+        auto layer_cnv3_lut0 = bb::BinaryLutN<N>::Create(layer_cnv3_sl0->GetOutputShape());
+        auto layer_cnv3_lut1 = bb::BinaryLutN<N>::Create(layer_cnv3_sl1->GetOutputShape());
+        auto layer_lut4      = bb::BinaryLutN<N>::Create(layer_sl4->GetOutputShape());
+        auto layer_lut5      = bb::BinaryLutN<N>::Create(layer_sl5->GetOutputShape());
+        auto layer_lut6      = bb::BinaryLutN<N>::Create(layer_sl6->GetOutputShape());
+        auto layer_lut7      = bb::BinaryLutN<N>::Create(layer_sl7->GetOutputShape());
 
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_lut0);
@@ -244,5 +244,10 @@ void MnistStochasticLutCnn(int epoch_size, int mini_batch_size, int test_modulat
     }
 }
 
+
+void MnistStochasticLutCnn(int epoch_size, int mini_batch_size, int test_modulation_size, bool binary_mode, bool file_read)
+{
+    MnistStochasticLutCnnN<4>(epoch_size, mini_batch_size, test_modulation_size, binary_mode, file_read);
+}
 
 // end of file
