@@ -419,8 +419,9 @@ public:
 
         // LUT6 SIMD
         if ( N == 6 && DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && m_host_simd
-            && y_buf.GetFrameSize() % 8 == 0 ) {
-            simd_fp32_StochasticLut6_Forward(x_buf, y_buf, m_connection_table, m_W, m_binary_mode, m_lut_binarize, m_unbinarize_bias);
+                && y_buf.GetFrameSize() % 8 == 0 ) {
+            auto input_table_ptr = m_connection_table.LockConst_InputTable();
+            simd_fp32_StochasticLut6_Forward(x_buf, y_buf, input_table_ptr.GetAddr(), m_W, m_binary_mode, m_lut_binarize, m_unbinarize_bias);
             return y_buf;
         }
 
@@ -487,7 +488,7 @@ public:
 
 #ifdef BB_WITH_CUDA
         // LUT6 FP32 CUDA
-        if ( N == 6, DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
+        if ( N == 6 && DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
                 && dy_buf.IsDeviceAvailable() && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
 
             // tmp buffer
@@ -531,7 +532,7 @@ public:
         }
 
         // LUT6 Bit CUDA
-        if ( N == 6, DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
+        if ( N == 6 && DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
                 && dy_buf.IsDeviceAvailable() && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
 
             // tmp buffer
@@ -577,8 +578,9 @@ public:
 
         // LUT6 SIMD
         if ( N == 6 && DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && m_host_simd
-            && dy_buf.GetFrameSize() % 8 == 0 ) {
-            simd_fp32_StochasticLut6_Backward(x_buf, dy_buf, dx_buf, m_connection_table, m_W, m_dW, m_unbinarize_bias, m_binary_mode, m_lut_binarize);
+                && dy_buf.GetFrameSize() % 8 == 0 ) {
+            auto input_table_ptr = m_connection_table.LockConst_InputTable();
+            simd_fp32_StochasticLut6_Backward(x_buf, dy_buf, dx_buf, input_table_ptr.GetAddr(), m_W, m_dW, m_unbinarize_bias, m_binary_mode, m_lut_binarize);
             return dx_buf;
         }
 

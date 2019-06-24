@@ -26,7 +26,7 @@ inline void simd_fp32_StochasticLut6_Forward
     (
         FrameBuffer                         x_buf,
         FrameBuffer                         y_buf,
-        FixedSizeConnectionTable<6> const   &connection_table,
+        std::int32_t    const               *input_table,
         std::shared_ptr<Tensor>             W,
         bool                                binary_mode,
         bool                                lut_binarize,
@@ -35,7 +35,6 @@ inline void simd_fp32_StochasticLut6_Forward
 {
     auto x_ptr           = x_buf.LockConst<float>();
     auto y_ptr           = y_buf.Lock<float>(true);
-    auto input_table_ptr = connection_table.LockConst_InputTable();
     auto W_ptr           = W->LockConst<float>();
 
     auto node_size  = y_buf.GetNodeSize();
@@ -56,7 +55,7 @@ inline void simd_fp32_StochasticLut6_Forward
         // read input index
         float const  *x_addr[6];
         for ( int i = 0; i < 6; ++i ) {
-            x_addr[i] = x_ptr.GetAddr(input_table_ptr(node, i));
+            x_addr[i] = x_ptr.GetAddr(input_table[node*6 + i]);
         }
         float *y_addr = y_ptr.GetAddr(node);
 
@@ -169,7 +168,7 @@ inline void simd_fp32_StochasticLut6_Backward
         FrameBuffer                 x_buf,
         FrameBuffer                 dy_buf,
         FrameBuffer                 dx_buf,
-        FixedSizeConnectionTable<6> const &connection_table,
+        std::int32_t    const       *input_table,
         std::shared_ptr<Tensor>     W,
         std::shared_ptr<Tensor>     dW,
         float                       unbinarize_bias,
@@ -190,7 +189,6 @@ inline void simd_fp32_StochasticLut6_Backward
     auto dy_ptr          = dy_buf.LockConst<float>();
     auto dx_ptr          = dx_buf.Lock<float>(true);
     auto dx_tmp_ptr      = dx_tmp.Lock<float>();
-    auto input_table_ptr = connection_table.LockConst_InputTable();
     auto W_ptr           = W->LockConst<float>();
     auto dW_ptr          = dW->Lock<float>();
 
@@ -214,7 +212,7 @@ inline void simd_fp32_StochasticLut6_Backward
         // read input index
         float const  *x_addr[6];
         for ( int i = 0; i < 6; ++i ) {
-            x_addr[i] = x_ptr.GetAddr(input_table_ptr(node, i));
+            x_addr[i] = x_ptr.GetAddr(input_table[node*6+ i]);
         }
         
         float const *dy_addr = dy_ptr.GetAddr(node);
@@ -445,7 +443,7 @@ inline void simd_fp32_StochasticLut6_Backward
     for ( index_t frame = 0; frame < frame_size; frame += 8 ) {
         for ( index_t node = 0; node < output_node_size; ++node ) {
             for ( int i = 0; i < 6; ++i) {
-                float       *dx_addr     = dx_ptr.GetAddr(input_table_ptr(node, i));
+                float       *dx_addr     = dx_ptr.GetAddr(input_table[node*6+i]);
                 __m256 dx  = _mm256_load_ps(&dx_addr[frame]);
                 float const *dx_tmp_addr = dx_tmp_ptr.GetAddr(node*6 + i);
                 __m256 tmp = _mm256_load_ps(&dx_tmp_addr[frame]);

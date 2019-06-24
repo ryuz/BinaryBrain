@@ -833,7 +833,7 @@ public:
             // with BatchNormalization
     #ifdef BB_WITH_CUDA
             // CUDA float
-            if ( N == 6, DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
+            if ( N == 6 && DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
                     && x_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && tmp_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
 
                 Tensor_<RealType>   dmean(output_shape);
@@ -884,7 +884,7 @@ public:
             }
 
             // CUDA bit
-            if ( N == 6, DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
+            if ( N == 6 && DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
                     && x_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && tmp_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
 
                 Tensor_<RealType>   dmean(output_shape);
@@ -1047,7 +1047,7 @@ public:
         }
         else {
 #ifdef BB_WITH_CUDA
-            if ( N == 6, DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
+            if ( N == 6 && DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
                     && dy_buf.IsDeviceAvailable() && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
                 auto x_ptr             = x_buf.LockDeviceMemoryConst();
                 auto dy_ptr            = dy_buf.LockDeviceMemoryConst();
@@ -1083,7 +1083,7 @@ public:
             }
 
             // LUT6 Bit CUDA
-            if ( N == 6, DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
+            if ( N == 6 && DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
                     && dy_buf.IsDeviceAvailable() && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
                 auto x_ptr             = x_buf.LockDeviceMemoryConst();
                 auto dy_ptr            = dy_buf.LockDeviceMemoryConst();
