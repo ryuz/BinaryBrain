@@ -247,7 +247,7 @@ void MnistStochasticLutCnnN(int epoch_size, int mini_batch_size, int test_modula
 
 void MnistStochasticLutCnn(int epoch_size, int mini_batch_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    MnistStochasticLutCnnN<4>(epoch_size, mini_batch_size, test_modulation_size, binary_mode, file_read);
+    MnistStochasticLutCnnN<6>(epoch_size, mini_batch_size, test_modulation_size, binary_mode, file_read);
 }
 
 // end of file

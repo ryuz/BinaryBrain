@@ -23,6 +23,7 @@
 #include "bb/LoadCifar10.h"
 #include "bb/ExportVerilog.h"
 #include "bb/NormalDistributionGenerator.h"
+#include "bb/UniformDistributionGenerator.h"
 #include "bb/PnmImage.h"
 
 #include "bb/DenseAffine.h"
@@ -56,19 +57,24 @@ void NrSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_si
     td.t_train = td.x_train;
     td.t_test  = td.x_test;
 
-    auto  noise_gen = bb::NormalDistributionGenerator<float>::Create(0.0f, 0.1f);
+//  auto  noise_gen = bb::NormalDistributionGenerator<float>::Create(0.0f, 0.1f);
+    auto  noise_gen = bb::UniformDistributionGenerator<float>::Create(0.0f, 1.0f);
 
     // 入力にノイズ付与
     for ( auto& x : td.x_train ) {
         for ( auto& v : x ) {
-            v += noise_gen->GetValue();
+//            v += noise_gen->GetValue();
+//            v = 0.5f + noise_gen->GetValue();
+            v = noise_gen->GetValue();
             v = std::max(v, 0.0f);
             v = std::min(v, 1.0f);
         }
     }
     for ( auto& x : td.x_test ) {
         for ( auto& v : x ) {
-            v += noise_gen->GetValue();
+//          v += noise_gen->GetValue();
+//            v = 0.5f + noise_gen->GetValue();
+            v = noise_gen->GetValue();
             v = std::max(v, 0.0f);
             v = std::min(v, 1.0f);
         }
@@ -77,12 +83,12 @@ void NrSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_si
     // 差分を期待値に
     for ( size_t i = 0; i < td.t_train.size(); ++i ) {
         for ( size_t j = 0; j < td.t_train[i].size(); ++j ) {
-            td.t_train[i][j] = 0.5f + td.x_train[i][j] - org_train[i][j];
+            td.t_train[i][j] = 0.5f;// + td.x_train[i][j] - org_train[i][j];
         }
     }
     for ( size_t i = 0; i < td.t_test.size(); ++i ) {
         for ( size_t j = 0; j < td.t_test[i].size(); ++j ) {
-            td.t_test[i][j] = 0.5f + td.x_test[i][j] - org_test[i][j];
+            td.t_test[i][j] = 0.5f;// + td.x_test[i][j] - org_test[i][j];
         }
     }
 

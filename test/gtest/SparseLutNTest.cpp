@@ -365,6 +365,39 @@ TEST(SparseLutNTest, testSparseLutN_cmp_gpu)
 }
 
 
+
+
+
+TEST(SparseLutNTest, testSparseLut4_cmp_float)
+{
+    SparseLutNTest_cmp<4, float>(4,    1,       1, 2, true,  true);
+    SparseLutNTest_cmp<4, float>(4,    1,    32+7, 2, true,  true);
+    SparseLutNTest_cmp<4, float>(4,    1,      64, 2, true,  true);
+    SparseLutNTest_cmp<4, float>(4,    1,    1024, 2, true,  true);
+    SparseLutNTest_cmp<4, float>(4,    1024,    1, 2, true,  true);
+    SparseLutNTest_cmp<4, float>(4,    2,      32, 2, true,  true);
+    SparseLutNTest_cmp<4, float>(4,    1,       1, 2, false, true);
+    SparseLutNTest_cmp<4, float>(4,    1,    32+7, 2, false, true);
+    SparseLutNTest_cmp<4, float>(4,    1,      64, 2, false, true);
+
+//    SparseLutNTest_cmp<4, float>(4,    1,    1024, 2, false, true);
+//    SparseLutNTest_cmp<4, float>(4,    1024,    1, 2, false, true);
+//    SparseLutNTest_cmp<4, float>(4,    2,      32, 2, false, true);
+//    SparseLutNTest_cmp<4, float>(4,    1,       1, 2, true,  false);
+//    SparseLutNTest_cmp<4, float>(4,    1,    32+7, 2, true,  false);
+//    SparseLutNTest_cmp<4, float>(4,    1,      64, 2, true,  false);
+//    SparseLutNTest_cmp<4, float>(4,    1,    1024, 2, true,  false);
+//    SparseLutNTest_cmp<4, float>(4,    1024,    1, 2, true,  false);
+//    SparseLutNTest_cmp<4, float>(4,    2,      32, 2, true,  false);
+//    SparseLutNTest_cmp<4, float>(4,    1,       1, 2, false, false);
+//    SparseLutNTest_cmp<4, float>(4,    1,    32+7, 2, false, false);
+//    SparseLutNTest_cmp<4, float>(4,    1,      64, 2, false, false);
+//    SparseLutNTest_cmp<4, float>(4,    1,    1024, 2, false, false);
+//    SparseLutNTest_cmp<4, float>(4,    1024,    1, 2, false, false);
+//    SparseLutNTest_cmp<4, float>(4,    2,      32, 2, false, false);
+}
+
+
 #endif
 
 
