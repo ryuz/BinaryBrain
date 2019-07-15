@@ -12,6 +12,8 @@
 #include <chrono>
 #include <iostream>
 #include <iomanip>
+#include <string>
+#include <sstream>
 #include <fstream>
 #include <vector>
 #include <assert.h>
@@ -156,6 +158,47 @@ public:
         create.callback_proc      = callback_proc;
         create.callback_user      = callback_user;
 
+        return Create(create);
+    }
+
+
+    static std::shared_ptr<Runner> CreateEx
+            (
+                std::string                         name,
+                std::shared_ptr<Model>              net,
+                std::shared_ptr<LossFunction>       lossFunc,
+                std::shared_ptr<MetricsFunction>    metricsFunc,
+                std::shared_ptr<Optimizer>          optimizer,
+                index_t                             max_run_size = 0,
+                bool                                print_progress = true,
+                bool                                print_progress_loss = true,
+                bool                                print_progress_accuracy = true,
+                bool                                log_write = true,
+                bool                                log_append = true,
+                bool                                file_read = false,
+                bool                                file_write = false,
+                bool                                write_serial = false,
+                bool                                initial_evaluation = false,
+                std::int64_t                        seed = 1
+            )
+    {
+        create_t create;
+        create.name                    = name;
+        create.net                     = net;
+        create.lossFunc                = lossFunc;
+        create.metricsFunc             = metricsFunc;
+        create.optimizer               = optimizer;
+        create.max_run_size            = max_run_size;
+        create.print_progress          = print_progress;
+        create.print_progress_loss     = print_progress_loss;
+        create.print_progress_accuracy = print_progress_accuracy;
+        create.log_write               = log_write;
+        create.log_append              = log_append;
+        create.file_read               = file_read;
+        create.file_write              = file_write;
+        create.write_serial            = write_serial;
+        create.initial_evaluation      = initial_evaluation;
+        create.seed                    = seed;
         return Create(create);
     }
 

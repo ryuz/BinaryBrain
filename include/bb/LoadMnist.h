@@ -135,7 +135,7 @@ public:
     }
 
 
-    static bool Load(std::vector< std::vector<T> >& x_train, std::vector< std::vector<T> >& y_train,
+    static bool LoadData(std::vector< std::vector<T> >& x_train, std::vector< std::vector<T> >& y_train,
         std::vector< std::vector<T> >& x_test, std::vector< std::vector<T> >& y_test,
         int num_class = 10, int max_train=-1, int max_test = -1)
     {
@@ -151,7 +151,7 @@ public:
         TrainData<T>    td;
         td.x_shape = indices_t({28, 28, 1});
         td.t_shape = indices_t({10});
-        if (!Load(td.x_train, td.t_train, td.x_test, td.t_test, num_class, max_train, max_test)) {
+        if (!LoadData(td.x_train, td.t_train, td.x_test, td.t_test, num_class, max_train, max_test)) {
             td.clear();
         }
         return td;

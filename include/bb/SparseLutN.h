@@ -151,6 +151,16 @@ public:
         return Create(create);
     }
 
+    static std::shared_ptr<SparseLutN> CreateEx(indices_t const &output_shape, bool batch_norm = true, std::string connection = "", std::uint64_t seed = 1)
+    {
+        create_t create;
+        create.output_shape = output_shape;
+        create.connection   = connection;
+        create.batch_norm   = batch_norm;
+        create.seed         = seed;
+        return Create(create);
+    }
+
     std::string GetClassName(void) const { return "SparseLutN"; }
 
 
