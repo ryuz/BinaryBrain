@@ -111,6 +111,45 @@ public:
         create.inference_modulation_size = inference_modulation_size;
         return Create(create);
     }
+    
+    static std::shared_ptr<BinaryModulation> CreateEx(
+                std::shared_ptr<Model>                      layer,
+                indices_t                                   output_shape,
+        
+                index_t                                     training_modulation_size  = 1,
+                std::shared_ptr< ValueGenerator<RealType> > training_value_generator  = nullptr,
+                bool                                        training_framewise        = true,
+                RealType                                    training_input_range_lo   = (RealType)0.0,
+                RealType                                    training_input_range_hi   = (RealType)1.0,
+
+                index_t                                     inference_modulation_size = 1,
+                std::shared_ptr< ValueGenerator<RealType> > inference_value_generator = nullptr,
+                bool                                        inference_framewise       = true,
+                RealType                                    inference_input_range_lo  = (RealType)0.0,
+                RealType                                    inference_input_range_hi  = (RealType)1.0
+        )
+    {
+        BB_ASSERT(training_modulation_size > 0);
+        if ( inference_modulation_size <= 0 ) {
+            inference_modulation_size = training_modulation_size;
+        }
+
+        create_t create;
+        create.layer                     = layer;
+        create.output_shape              = output_shape;
+        create.training_modulation_size  = training_modulation_size;
+        create.training_value_generator  = training_value_generator;
+        create.training_framewise        = training_framewise;
+        create.training_input_range_lo   = training_input_range_lo;
+        create.training_input_range_hi   = training_input_range_hi;
+        create.inference_modulation_size = inference_modulation_size;
+        create.inference_value_generator = inference_value_generator;
+        create.inference_framewise       = inference_framewise;
+        create.inference_input_range_lo  = inference_input_range_lo;
+        create.inference_input_range_hi  = inference_input_range_hi;
+        return Create(create);
+    }
+
 
     std::string GetClassName(void) const { return "BinaryModulation"; }
 

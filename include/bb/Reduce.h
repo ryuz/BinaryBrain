@@ -70,6 +70,11 @@ public:
         return self;
     }
 
+    static std::shared_ptr<Reduce> Create(index_t output_node)
+    {
+        return Create(indices_t({output_node}));
+    }
+
     static std::shared_ptr<Reduce> Create(indices_t output_shape)
     {
         create_t create;
@@ -77,9 +82,11 @@ public:
         return Create(create);
     }
 
-    static std::shared_ptr<Reduce> Create(index_t output_node)
+    static std::shared_ptr<Reduce> CreateEx(indices_t output_shape)
     {
-        return Create(indices_t({output_node}));
+        create_t create;
+        create.output_shape = output_shape;
+        return Create(create);
     }
 
 
