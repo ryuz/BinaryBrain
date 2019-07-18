@@ -286,7 +286,7 @@ void MnistSparseLutCnnN(int epoch_size, int mini_batch_size, int train_modulatio
 
 void MnistSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    MnistSparseLutCnnN<4>(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    MnistSparseLutCnnN<6>(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
 }
 
 
