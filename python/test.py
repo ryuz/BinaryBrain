@@ -26,5 +26,5 @@ metrics   = bb.MetricsCategoricalAccuracy.Create()
 optimizer = bb.OptimizerAdam.Create()
 runner    = bb.Runner.Create("mnist-mlp-sparse-lut6", net, loss, metrics, optimizer)
 
-runner.Fitting(td, epoch_size=16, batch_size=16)
+runner.Fitting(td, epoch_size=4, batch_size=16)
 
