@@ -37,14 +37,14 @@ void MnistSparseLutCnnN(int epoch_size, int mini_batch_size, int train_modulatio
 
     // create network
 #ifdef BB_WITH_CUDA
-     auto layer_cnv0_sl0 = bb::SparseLutN<N, float>::Create(32*N,     true);
-     auto layer_cnv0_sl1 = bb::SparseLutN<N, float>::Create(32,       false);
-     auto layer_cnv1_sl0 = bb::SparseLutN<N, float>::Create(32*N,     true);
-     auto layer_cnv1_sl1 = bb::SparseLutN<N, float>::Create(32,       false);
-     auto layer_cnv2_sl0 = bb::SparseLutN<N, float>::Create(64*N,    true);
-     auto layer_cnv2_sl1 = bb::SparseLutN<N, float>::Create(64,      false);
-     auto layer_cnv3_sl0 = bb::SparseLutN<N, float>::Create(64*N,    true);
-     auto layer_cnv3_sl1 = bb::SparseLutN<N, float>::Create(64,      false);
+     auto layer_cnv0_sl0 = bb::SparseLutN<N, float>::Create(64*N,     true);
+     auto layer_cnv0_sl1 = bb::SparseLutN<N, float>::Create(64,       false);
+     auto layer_cnv1_sl0 = bb::SparseLutN<N, float>::Create(64*N,     true);
+     auto layer_cnv1_sl1 = bb::SparseLutN<N, float>::Create(64,       false);
+     auto layer_cnv2_sl0 = bb::SparseLutN<N, float>::Create(128*N,    true);
+     auto layer_cnv2_sl1 = bb::SparseLutN<N, float>::Create(128,      false);
+     auto layer_cnv3_sl0 = bb::SparseLutN<N, float>::Create(128*N,    true);
+     auto layer_cnv3_sl1 = bb::SparseLutN<N, float>::Create(128,      false);
      auto layer_sl4      = bb::SparseLutN<N, float>::Create(10*N*N*N, true);
      auto layer_sl5      = bb::SparseLutN<N, float>::Create(10*N*N,   false);
      auto layer_sl6      = bb::SparseLutN<N, float>::Create(10*N,     false);
