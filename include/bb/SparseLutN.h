@@ -120,6 +120,15 @@ protected:
             m_host_only = EvalBool(args[1]);
         }
     }
+    
+    virtual void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
+    {
+        _super::PrintInfoText(os, indent, columns, nest, depth);
+//      os << indent << " input  shape : " << GetInputShape();
+//      os << indent << " output shape : " << GetOutputShape();
+        os << indent << " binary : " << m_binary_mode;
+        os << indent << " batch_norm : " << m_batch_norm << std::endl;
+    }
 
 public:
     ~SparseLutN() {}
@@ -161,7 +170,9 @@ public:
         return Create(create);
     }
 
-    std::string GetClassName(void) const { return "SparseLutN"; }
+    std::string GetClassName(void) const {
+        return std::string("SparseLut") + std::to_string(N);
+    }
 
 
 public:

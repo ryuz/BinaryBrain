@@ -326,6 +326,14 @@ public:
             log_stream.add(std::cout);
             if (ofs_log.is_open()) { log_stream.add(ofs_log); }
             
+            if (ofs_log.is_open()) {
+                m_net->PrintInfo(0,  ofs_log);
+                ofs_log << "-----------------------------------"    << std::endl;
+                ofs_log << "epoch_size      : " << epoch_size       << std::endl;
+                ofs_log << "mini_batch_size : " << batch_size       << std::endl;
+                ofs_log << "-----------------------------------"    << std::endl;
+            }
+            
             // 以前の計算があれば読み込み
             if ( m_file_read ) {
 #ifdef BB_WITH_CEREAL

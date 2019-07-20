@@ -308,8 +308,13 @@ protected:
         // これ以上ネストしないなら自クラス概要
         if ( depth > 0 && (nest+1) >= depth ) {
             Model::PrintInfoText(os, indent, columns, nest, depth);
+            os << indent << " training  modulation size : " << m_training_create.modulation_size  << std::endl;
+            os << indent << " inference modulation size : " << m_inference_create.modulation_size << std::endl;
         }
         else {
+            os << indent << " training  modulation size : " << m_training_create.modulation_size  << std::endl;
+            os << indent << " inference modulation size : " << m_inference_create.modulation_size << std::endl;
+
             // 子レイヤーの表示
             if ( m_binary_mode ) {
                 m_real2bin->PrintInfo(depth, os, columns, nest+1);
