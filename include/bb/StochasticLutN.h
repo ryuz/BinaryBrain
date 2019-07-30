@@ -139,7 +139,7 @@ public:
         return Create(create);
     }
 
-    std::string GetClassName(void) const { return "StochasticLutN"; }
+    std::string GetClassName(void) const { return "StochasticLut" + std::to_string(N); }
 
 
 public:
