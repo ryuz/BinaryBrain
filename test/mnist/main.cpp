@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
         std::cout << "  -mini_batch <mini_batch size>           set mini batch size" << std::endl;
         std::cout << "  -modulation_size <modulation_size>      set train modulation size" << std::endl;
         std::cout << "  -test_modulation_size <modulation_size> set test modulation size" << std::endl;
-        std::cout << "  -binary <0|1>                           set binary mode" << std::endl;
+        std::cout << "  -binary_mode <0|1>                      set binary mode" << std::endl;
         std::cout << "  -read <0|1>                             file read" << std::endl;
         std::cout << "" << std::endl;
         std::cout << "netname" << std::endl;
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
     }
 
     if ( netname == "All" || netname == "StochasticLutCnn" ) {
-        MnistStochasticLutCnn(epoch_size, mini_batch_size,test_modulation_size, binary_mode, file_read);
+        MnistStochasticLutCnn(epoch_size, mini_batch_size, test_modulation_size, binary_mode, file_read);
     }
 
     if ( netname == "All" || netname == "SparseLutMlp" ) {

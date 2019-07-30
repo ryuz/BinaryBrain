@@ -419,7 +419,9 @@
     <ClInclude Include="..\..\include\bb\SparseBinaryLutN.h" />
     <ClInclude Include="..\..\include\bb\SparseLayer.h" />
     <ClInclude Include="..\..\include\bb\SparseLutDiscrete.h" />
+    <ClInclude Include="..\..\include\bb\SparseLutN.h" />
     <ClInclude Include="..\..\include\bb\StochasticBatchNormalization.h" />
+    <ClInclude Include="..\..\include\bb\StochasticLutN.h" />
     <ClInclude Include="..\..\include\bb\StochasticMaxPooling.h" />
     <ClInclude Include="..\..\include\bb\StochasticMaxPooling2x2.h" />
     <ClInclude Include="..\..\include\bb\StochasticMinMaxNormalization.h" />
