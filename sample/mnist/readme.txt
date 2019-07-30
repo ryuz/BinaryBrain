@@ -14,40 +14,42 @@
 
 
 【ファイル構成】
-  Makefile                           Linux用メイクファイル
-  get_nmist.bat                      NMISTダウンロード用(Windows+cygwinなど)
-  get_nmist.sh                       NMISTダウンロード用(Linux)
-  main.cpp                           main関数
-  MnistStochasticLutMlp.cpp          確率的LUT方式 Binary LUT-Network MLPサンプル
-  MnistStochasticLutCnn.cpp          確率的LUT方式 Binary LUT-Network CNNサンプル
-  MnistSparseLutMlp.cpp              疎結合LUT方式 Binary LUT-Network MLPサンプル
-  MnistSparseLutCnn.cpp              疎結合LUT方式 Binary LUT-Network CNNサンプル
-  MnistMicroMlpLutMlp.cpp            uMLP方式 Binary LUT-Network MLPサンプル
-  MnistMicroMlpLutCnn.cpp            uMLP方式 Binary LUT-Network CNNサンプル
-  MnistDenseMlp.cpp                  FP32の全結合DNNの MLPサンプル
-  MnistDenseCnn.cpp                  FP32の全結合CNNの CNNサンプル
-  MnistCustomModel.cpp               カスタムモデル作成用サンプル
-  readme.txt                         本ファイル
-  sample_mnist.sln                   Visual-C++ 2017用ソリューション
-  sample_mnist.vcxproj               Visual-C++ 2017用プロジェクト
-  sample_mnist.vcxproj.filters       Visual-C++ 2017用
-  sample_mnist.vcxproj.user          Visual-C++ 2017用
-  verilog/bb_lut.v                   LUT の Verilogモデル
-  verilog/tb_mnist_lut_mlp.v         MLP LUT-Network のテストベンチ
-  verilog/tb_mnist_lut_mlp.vtakprj   MLP LUT-Network のVeritakプロジェクト
-  verilog/iverilog_lut_mlp.bat       MLP LUT-Network のiverilog実行(Win)
-  verilog/iverilog_lut_mlp.sh        MLP LUT-Network のiverilog実行(Linux)
-  verilog/iverilog_lut_mlp_cmd.txt   MLP LUT-Network のiverilogコマンド
-  verilog/tb_mnist_lut_cnn.v         CNN LUT-Network のテストベンチ
-  verilog/tb_mnist_lut_cnn.vtakprj   CNN LUT-Network のVeritakプロジェクト
-  verilog/iverilog_lut_cnn.bat       CNN LUT-Network のiverilog実行(Win)
-  verilog/iverilog_lut_cnn.sh        CNN LUT-Network のiverilog実行(Linux)
-  verilog/iverilog_lut_cnn_cmd.txt   CNN LUT-Network のiverilogコマンド
-  verilog/video_mnist_cnn.v          CNNモジュール
-  verilog/video_mnist_cnn_core.v     CNNモジュールのコア
-  verilog/video_dnn_max_count.v      クラスタリング結果のカウンティング
-  verilog/video_mnist_color.v        結果着色モジュール
-  verilog/video_mnist_color_core.v   結果着色モジュールのコア
+  Makefile                              Linux用メイクファイル
+  get_nmist.bat                         NMISTダウンロード用(Windows+cygwinなど)
+  get_nmist.sh                          NMISTダウンロード用(Linux)
+  main.cpp                              main関数
+  MnistStochasticLutSimple.cpp          確率的LUT方式 Binary LUT-Network Simple DNNサンプル
+  MnistStochasticLutCnn.cpp             確率的LUT方式 Binary LUT-Network CNNサンプル
+  MnistSparseLutSimple.cpp              疎結合LUT方式 Binary LUT-Network Simple DNNサンプル
+  MnistSparseLutCnn.cpp                 疎結合LUT方式 Binary LUT-Network CNNサンプル
+  MnistMicroMlpLutSimple.cpp            uMLP方式 Binary LUT-Network Simple DNNサンプル
+  MnistMicroMlpLutCnn.cpp               uMLP方式 Binary LUT-Network CNNサンプル
+  MnistDenseSimple.cpp                  FP32の全結合DNNの MLPサンプル
+  MnistDenseCnn.cpp                     FP32の全結合CNNの CNNサンプル
+  MnistAeSparseLutSimple.cpp            AutoEncoder LUT-Network Simple DNNサンプル
+  MnistAeSparseLutCnn.cpp               AutoEncoder LUT-Network CNNサンプル
+  MnistCustomModel.cpp                  カスタムモデル作成用サンプル
+  readme.txt                            本ファイル
+  sample_mnist.sln                      Visual-C++ 2017用ソリューション
+  sample_mnist.vcxproj                  Visual-C++ 2017用プロジェクト
+  sample_mnist.vcxproj.filters          Visual-C++ 2017用
+  sample_mnist.vcxproj.user             Visual-C++ 2017用
+  verilog/bb_lut.v                      LUT の Verilogモデル
+  verilog/tb_mnist_lut_simple.v         Simple DNN LUT-Network のテストベンチ
+  verilog/tb_mnist_lut_simple.vtakprj   Simple DNN LUT-Network のVeritakプロジェクト
+  verilog/iverilog_lut_simple.bat       Simple DNN LUT-Network のiverilog実行(Win)
+  verilog/iverilog_lut_simple.sh        Simple DNN LUT-Network のiverilog実行(Linux)
+  verilog/iverilog_lut_simple_cmd.txt   Simple DNN LUT-Network のiverilogコマンド
+  verilog/tb_mnist_lut_cnn.v            CNN LUT-Network のテストベンチ
+  verilog/tb_mnist_lut_cnn.vtakprj      CNN LUT-Network のVeritakプロジェクト
+  verilog/iverilog_lut_cnn.bat          CNN LUT-Network のiverilog実行(Win)
+  verilog/iverilog_lut_cnn.sh           CNN LUT-Network のiverilog実行(Linux)
+  verilog/iverilog_lut_cnn_cmd.txt      CNN LUT-Network のiverilogコマンド
+  verilog/video_mnist_cnn.v             CNNモジュール
+  verilog/video_mnist_cnn_core.v        CNNモジュールのコア
+  verilog/video_dnn_max_count.v         クラスタリング結果のカウンティング
+  verilog/video_mnist_color.v           結果着色モジュール
+  verilog/video_mnist_color_core.v      結果着色モジュールのコア
 
 
 【ビルド方法】
@@ -72,14 +74,16 @@
 
   sample_mnist の引数は
 
-  StochasticLutMlp         確率的LUT-Networkの多層パーセプトロンを実行
+  StochasticLutSimple      確率的LUT-Networkの単純DNNを実行
   StochasticLutCnn         確率的LUT-NetworkのCNNを実行
-  SparseLutMlp             疎結合LUT-Networkの多層パーセプトロンを実行
+  SparseLutSimple          疎結合LUT-Networkの単純DNNを実行
   SparseLutCnn             疎結合LUT-NetworkのCNNを実行
-  MicroMlpLutMlp           μMLP方式のLUT-Networkの多層パーセプトロンを実行
+  MicroMlpLutSimple        μMLP方式のLUT-Networkの単純DNNを実行
   MicroMlpLutCnn           μMLP方式のLUT-NetworkのCNNを実行
-  DenseMlp                 全結合の多層パーセプトロンを実行
+  DenseMlp                 全結合の単純DNNを実行
   DenseCnn                 全結合のCNNを実行
+  AeSparseLutSimple        AutoEncoderを疎結合LUT-Networkの単純DNNで実行
+  AeSparseLutCnn           AutoEncoderを疎結合LUT-NetworkのCNNで実行
   All                      上のすべてを実行
 
   となっており、試したいモデルだけ実行することも可能です。
@@ -92,31 +96,31 @@
 
 
 
-【MLP の Verilog シミュレーションまで】
+【Simple DNN の Verilog シミュレーションまで】
 
-  ./sample-mnist SparseLutMlp
+  ./sample-mnist SparseLutSimple
 
   を実行すると、学習完了後 verilog ディレクトリの下に
 
   mnist_train.txt            トレーニングデータ
   mnist_test.txt             評価データ
-  MnistSparseLutMlp.v.v      学習済みの RTL
+  MnistSparseLutSimple.v     学習済みの RTL
 
   が出力されます。
 
   下記を、何らかのシミュレータでシミュレーション実行すると、
 学習結果が試せます。
 
-  tb_mnist_lut_mlp.v
+  tb_mnist_lut_simple.v
+  MnistSparseLutSimple.v
   bb_lut.v
-  MnistSparseLutMlp.v
 
-  Vivadoシミュレータ(xsim)を利用する場合は、xsim_lut_mlp.bat が利用可能です。
+  Vivadoシミュレータ(xsim)を利用する場合は、xsim_lut_simple.bat が利用可能です。
 
-  tb_mnist_lut_mlp.vtakprj が Veritak 用のプロジェクトとなっておりますので、
+  tb_mnist_lut_simple.vtakprj が Veritak 用のプロジェクトとなっておりますので、
 Windowsで Veritak ご利用のユーザーは活用ください。
 
-  iverilog(Icarus Verilog)用に iverilog_lut_mlp.sh というスクリプトも
+  iverilog(Icarus Verilog)用に iverilog_lut_simple.sh というスクリプトも
 用意しています(が、ネットワークの特性か結構遅いです)。
 
 

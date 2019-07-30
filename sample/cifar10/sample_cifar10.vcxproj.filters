@@ -21,16 +21,7 @@
     <ClCompile Include="Cifar10DenseCnn.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="Cifar10DenseMlp.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="Cifar10MicroMlpLutCnn.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Cifar10MicroMlpLutMlp.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Cifar10StochasticLutMlp.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="Cifar10SparseLutCnn.cpp">
@@ -39,7 +30,16 @@
     <ClCompile Include="Cifar10StochasticLutCnn.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="Cifar10SparseLutMlp.cpp">
+    <ClCompile Include="Cifar10DenseSimple.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Cifar10MicroMlpLutSimple.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Cifar10SparseLutSimple.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Cifar10StochasticLutSimple.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

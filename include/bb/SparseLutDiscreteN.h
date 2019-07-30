@@ -31,6 +31,7 @@ class SparseLutDiscreteN : public SparseLayer
 
 protected:
     bool                                                            m_memory_saving = false;
+    bool                                                            m_bn_enable = true;
 
     // 2層で構成
     std::shared_ptr< StochasticLutN<N, BinType, RealType> >         m_lut;
@@ -42,7 +43,11 @@ public:
     {
         indices_t       output_shape;
         std::string     connection;     //< 結線ルール
-        std::uint64_t   seed = 1;       //< 乱数シード
+        bool            batch_norm = true;
+        RealType        momentum   = (RealType)0.0;
+        RealType        gamma      = (RealType)0.3;
+        RealType        beta       = (RealType)0.5;
+        std::uint64_t   seed       = 1;       //< 乱数シード
     };
 
 protected:
@@ -54,7 +59,8 @@ protected:
         lut_create.seed         = create.seed;
         m_lut = StochasticLutN<N, BinType, RealType>::Create(lut_create);
 
-        m_batch_norm = StochasticBatchNormalization<RealType>::Create(0.00f);
+        m_bn_enable  = create.batch_norm;
+        m_batch_norm = StochasticBatchNormalization<RealType>::Create(create.momentum, create.gamma,  create.beta);
 
         m_activation = HardTanh<BinType, RealType>::Create((RealType)0, (RealType)1);
     }
@@ -82,17 +88,19 @@ public:
         return std::shared_ptr< SparseLutDiscreteN >(new SparseLutDiscreteN(create));
     }
 
-    static std::shared_ptr< SparseLutDiscreteN > Create(indices_t output_shape, std::string connection = "random", std::uint64_t seed = 1)
+    static std::shared_ptr< SparseLutDiscreteN > Create(indices_t const &output_shape, bool batch_norm = true, std::string connection = "", std::uint64_t seed = 1)
     {
         create_t create;
         create.output_shape = output_shape;
         create.connection   = connection;
+        create.batch_norm   = batch_norm;
+        create.seed         = seed;
         return Create(create);
     }
 
-    static std::shared_ptr< SparseLutDiscreteN > Create(index_t output_node_size, std::string connection = "random", std::uint64_t seed = 1)
+    static std::shared_ptr< SparseLutDiscreteN > Create(index_t output_node_size, bool batch_norm = true, std::string connection = "", std::uint64_t seed = 1)
     {
-        return Create(indices_t({output_node_size}), connection, seed);
+        return Create(indices_t({output_node_size}), batch_norm, connection, seed);
     }
 
     std::string GetClassName(void) const { return "SparseLutN"; }
@@ -212,7 +220,9 @@ public:
         BB_ASSERT(input_size == x_vec.size());
 
         x_vec = m_lut->ForwardNode(node, x_vec);
-        x_vec = m_batch_norm->ForwardNode(node, x_vec);
+        if ( m_bn_enable ) {
+            x_vec = m_batch_norm->ForwardNode(node, x_vec);
+        }
         x_vec = m_activation->ForwardNode(node, x_vec);
         return x_vec;
     }
@@ -227,7 +237,9 @@ public:
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
         x_buf = m_lut->Forward(x_buf, train);
-        x_buf = m_batch_norm->Forward(x_buf, train);
+        if ( m_bn_enable ) {
+            x_buf = m_batch_norm->Forward(x_buf, train);
+        }
         if (m_memory_saving || !train ) { m_batch_norm->SetFrameBufferX(FrameBuffer()); }
         x_buf = m_activation->Forward(x_buf, train);
         if (m_memory_saving || !train ) { m_activation->SetFrameBufferX(FrameBuffer()); }
@@ -247,7 +259,9 @@ public:
             // 再計算
             FrameBuffer x_buf;
             x_buf = m_lut       ->ReForward(m_lut->GetFrameBufferX());
-            x_buf = m_batch_norm->ReForward(x_buf);
+            if ( m_bn_enable ) {
+                x_buf = m_batch_norm->ReForward(x_buf);
+            }
             m_activation->SetFrameBufferX(x_buf);
         }
 
