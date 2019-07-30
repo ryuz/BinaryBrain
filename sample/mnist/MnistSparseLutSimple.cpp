@@ -9,20 +9,22 @@
 #include <iostream>
 
 #include "bb/Sequential.h"
-#include "bb/StochasticLutN.h"
+#include "bb/SparseLutN.h"
+#include "bb/SparseLutDiscreteN.h"
 #include "bb/BinaryLutN.h"
+#include "bb/Reduce.h"
 #include "bb/BinaryModulation.h"
+#include "bb/OptimizerAdam.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
 #include "bb/MetricsCategoricalAccuracy.h"
-#include "bb/OptimizerAdam.h"
 #include "bb/Runner.h"
 #include "bb/LoadMnist.h"
 #include "bb/ExportVerilog.h"
 
 
-void MnistStochasticLutMlp(int epoch_size, int mini_batch_size, int test_modulation_size, bool binary_mode, bool file_read)
+void MnistSparseLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "MnistStochasticLutMlp";
+    std::string net_name = "MnistSparseLutSimple";
 
   // load MNIST data
 #ifdef _DEBUG
@@ -32,32 +34,39 @@ void MnistStochasticLutMlp(int epoch_size, int mini_batch_size, int test_modulat
     auto td = bb::LoadMnist<>::Load(10);
 #endif
 
-    // layer objects
-    auto layer_sl0 = bb::StochasticLutN<6>::Create(1024);
-    auto layer_sl1 = bb::StochasticLutN<6>::Create(360);
-    auto layer_sl2 = bb::StochasticLutN<6>::Create(60);
-    auto layer_sl3 = bb::StochasticLutN<6>::Create(10);
+#ifdef BB_WITH_CUDA
+    auto layer_sl0 = bb::SparseLutN<6, float>::Create(1024);
+    auto layer_sl1 = bb::SparseLutN<6, float>::Create(480);
+    auto layer_sl2 = bb::SparseLutN<6, float>::Create(70);
+#else
+    auto layer_sl0 = bb::SparseLutDiscreteN<6, float>::Create(1024);
+    auto layer_sl1 = bb::SparseLutDiscreteN<6, float>::Create(480);
+    auto layer_sl2 = bb::SparseLutDiscreteN<6, float>::Create(70);
+#endif
 
     {
         std::cout << "\n<Training>" << std::endl;
 
-        // create network
+        // main network
+        auto main_net = bb::Sequential::Create();
+        main_net->Add(layer_sl0);
+        main_net->Add(layer_sl1);
+        main_net->Add(layer_sl2);
+
+        // modulation wrapper
         auto net = bb::Sequential::Create();
-        net->Add(layer_sl0);
-        net->Add(layer_sl1);
-        net->Add(layer_sl2);
-        net->Add(layer_sl3);
+        net->Add(bb::BinaryModulation<float>::Create(main_net, train_modulation_size, test_modulation_size));
+        net->Add(bb::Reduce<float>::Create(td.t_shape));
 
         // set input shape
         net->SetInputShape(td.x_shape);
 
         // set binary mode
-        net->SendCommand("binary false");
         if ( binary_mode ) {
-            net->SendCommand("lut_binarize true");
+            net->SendCommand("binary true");
         }
         else {
-            net->SendCommand("lut_binarize false");
+            net->SendCommand("binary false");
         }
 
         // print model information
@@ -66,7 +75,11 @@ void MnistStochasticLutMlp(int epoch_size, int mini_batch_size, int test_modulat
         std::cout << "-----------------------------------" << std::endl;
         std::cout << "epoch_size            : " << epoch_size            << std::endl;
         std::cout << "mini_batch_size       : " << mini_batch_size       << std::endl;
-        std::cout << "lut_binarize          : " << binary_mode           << std::endl;
+        if ( binary_mode ) {
+        std::cout << "train_modulation_size : " << train_modulation_size << std::endl;
+        std::cout << "test_modulation_size  : " << test_modulation_size  << std::endl;
+        }
+        std::cout << "binary_mode           : " << binary_mode           << std::endl;
         std::cout << "file_read             : " << file_read             << std::endl;
         std::cout << "-----------------------------------" << std::endl;
 
@@ -89,31 +102,30 @@ void MnistStochasticLutMlp(int epoch_size, int mini_batch_size, int test_modulat
         std::cout << "\n<Evaluation binary LUT-Network>" << std::endl;
 
         // LUT-network
-        auto layer_lut0 = bb::BinaryLutN<>::Create(layer_sl0->GetOutputShape());
-        auto layer_lut1 = bb::BinaryLutN<>::Create(layer_sl1->GetOutputShape());
-        auto layer_lut2 = bb::BinaryLutN<>::Create(layer_sl2->GetOutputShape());
-        auto layer_lut3 = bb::BinaryLutN<>::Create(layer_sl3->GetOutputShape());
+        auto layer_bl0 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl0->GetOutputShape());
+        auto layer_bl1 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl1->GetOutputShape());
+        auto layer_bl2 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl2->GetOutputShape());
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(layer_lut0);
-        lut_net->Add(layer_lut1);
-        lut_net->Add(layer_lut2);
-        lut_net->Add(layer_lut3);
+        lut_net->Add(layer_bl0);
+        lut_net->Add(layer_bl1);
+        lut_net->Add(layer_bl2);
 
         // evaluation network
-        auto eval_net = bb::BinaryModulation<bb::Bit>::Create(lut_net, test_modulation_size);
+        auto eval_net = bb::Sequential::Create();
+        eval_net->Add(bb::BinaryModulation<bb::Bit>::Create(lut_net, test_modulation_size));
+        eval_net->Add(bb::Reduce<>::Create(td.t_shape));
 
         // set input shape
         eval_net->SetInputShape(td.x_shape);
 
         // テーブル化して取り込み(SetInputShape後に取り込みが必要)
         std::cout << "parameter copy to binary LUT-Network" << std::endl;
-        layer_lut0->ImportLayer(layer_sl0);
-        layer_lut1->ImportLayer(layer_sl1);
-        layer_lut2->ImportLayer(layer_sl2);
-        layer_lut3->ImportLayer(layer_sl3);
+        layer_bl0->ImportLayer(layer_sl0);
+        layer_bl1->ImportLayer(layer_sl1);
+        layer_bl2->ImportLayer(layer_sl2);
 
-        // 評価
+        // evaluation
         if ( 1 ) {
             std::cout << "test_modulation_size  : " << test_modulation_size  << std::endl;
             bb::Runner<float>::create_t lut_runner_create;

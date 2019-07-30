@@ -55,7 +55,7 @@ module video_mnist_cnn_core
 		);
 	
 	localparam	L0_TDATA_WIDTH = 32;
-	localparam	L1_TDATA_WIDTH = 32;
+	localparam	L1_TDATA_WIDTH = 64;
 	localparam	L2_TDATA_WIDTH = M_TDATA_WIDTH;
 	
 	

@@ -15,16 +15,30 @@
 #include "bb/Reduce.h"
 #include "bb/BinaryModulation.h"
 #include "bb/OptimizerAdam.h"
-#include "bb/LossSoftmaxCrossEntropy.h"
-#include "bb/MetricsCategoricalAccuracy.h"
+#include "bb/LossMeanSquaredError.h"
+#include "bb/MetricsMeanSquaredError.h"
 #include "bb/Runner.h"
 #include "bb/LoadMnist.h"
 #include "bb/ExportVerilog.h"
 
 
-void MnistSparseLutMlp(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+
+static void WritePgm(std::string fname, bb::FrameBuffer buf, int frame)
 {
-    std::string net_name = "MnistSparseLutMlp";
+    std::ofstream ofs(fname);
+    ofs << "P2\n";
+    ofs << "28 28 \n";
+    ofs << "255\n";
+    for ( int i = 0; i < 28*28; ++i ) {
+        ofs << (int)(buf.GetFP32(frame, i) * 255.0f) << "\n";
+    }
+}
+
+
+// AutoEncoder
+void MnistAeSparseLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+{
+    std::string net_name = "MnistAeSparseLutSimple";
 
   // load MNIST data
 #ifdef _DEBUG
@@ -34,29 +48,42 @@ void MnistSparseLutMlp(int epoch_size, int mini_batch_size, int train_modulation
     auto td = bb::LoadMnist<>::Load(10);
 #endif
 
-#ifdef BB_WITH_CUDA
-    auto layer_sl0 = bb::SparseLutN<6, float>::Create(1024);
-    auto layer_sl1 = bb::SparseLutN<6, float>::Create(480);
-    auto layer_sl2 = bb::SparseLutN<6, float>::Create(70);
-#else
-    auto layer_sl0 = bb::SparseLutDiscreteN<6, float>::Create(1024);
-    auto layer_sl1 = bb::SparseLutDiscreteN<6, float>::Create(480);
-    auto layer_sl2 = bb::SparseLutDiscreteN<6, float>::Create(70);
-#endif
+    // 入力と出力を同じに
+    td.t_shape = td.x_shape;
+    td.t_train = td.x_train;
+    td.t_test  = td.x_test;
+
+    auto enc_sl0 = bb::SparseLutN<6, bb::Bit>::Create(6912);
+    auto enc_sl1 = bb::SparseLutN<6, bb::Bit>::Create(1152);
+    auto enc_sl2 = bb::SparseLutN<6, bb::Bit>::Create(192);
+    auto enc_sl3 = bb::SparseLutN<6, bb::Bit>::Create(32);
+//    auto enc_sl3 = bb::StochasticLutN<6, bb::Bit>::Create(32);
+//    auto enc_sl3b = bb::Binarize<bb::Bit>::Create(0.5f, 0.0f, 1.0f);
+
+    auto dec_sl0 = bb::SparseLutN<6, bb::Bit>::Create(28*28*6*6);
+    auto dec_sl1 = bb::SparseLutN<6, bb::Bit>::Create(28*28*6);
+    auto dec_sl2 = bb::SparseLutN<6, bb::Bit>::Create(28*28, false);
+//    auto dec_sl2 = bb::StochasticLutN<6, bb::Bit>::Create(28*28);
+//    auto dec_sl2b = bb::Binarize<bb::Bit>::Create(0.5f, 0.0f, 1.0f);
 
     {
         std::cout << "\n<Training>" << std::endl;
 
         // main network
         auto main_net = bb::Sequential::Create();
-        main_net->Add(layer_sl0);
-        main_net->Add(layer_sl1);
-        main_net->Add(layer_sl2);
+        main_net->Add(enc_sl0);
+        main_net->Add(enc_sl1);
+        main_net->Add(enc_sl2);
+        main_net->Add(enc_sl3);
+//        main_net->Add(enc_sl3b);
+        main_net->Add(dec_sl0);
+        main_net->Add(dec_sl1);
+        main_net->Add(dec_sl2);
+//        main_net->Add(dec_sl2b);
 
         // modulation wrapper
         auto net = bb::Sequential::Create();
-        net->Add(bb::BinaryModulation<float>::Create(main_net, train_modulation_size, test_modulation_size));
-        net->Add(bb::Reduce<float>::Create(td.t_shape));
+        net->Add(bb::BinaryModulation<bb::Bit>::Create(main_net, train_modulation_size, test_modulation_size));
 
         // set input shape
         net->SetInputShape(td.x_shape);
@@ -87,17 +114,34 @@ void MnistSparseLutMlp(int epoch_size, int mini_batch_size, int train_modulation
         bb::Runner<float>::create_t runner_create;
         runner_create.name               = net_name;
         runner_create.net                = net;
-        runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
-        runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
+        runner_create.lossFunc           = bb::LossMeanSquaredError<float>::Create();
+        runner_create.metricsFunc        = bb::MetricsMeanSquaredError<float>::Create();
         runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
         runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
         runner_create.file_write         = true;            // 計算結果をファイルに保存するか
         runner_create.print_progress     = true;            // 途中結果を表示
-        runner_create.initial_evaluation = file_read;       // ファイルを読んだ場合は最初に評価しておく
+        runner_create.initial_evaluation = false; // file_read;       // ファイルを読んだ場合は最初に評価しておく
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
+
+        
+        bb::FrameBuffer x_buf(BB_TYPE_FP32, 32, {28, 28, 1});
+        x_buf.SetVector(td.x_test, 0);
+        auto y_buf = net->Forward(x_buf, false);
+
+        WritePgm("out_0x.pgm", x_buf, 0);
+        WritePgm("out_0y.pgm", y_buf, 0);
+        WritePgm("out_1x.pgm", x_buf, 1);
+        WritePgm("out_1y.pgm", y_buf, 1);
+        WritePgm("out_2x.pgm", x_buf, 2);
+        WritePgm("out_2y.pgm", y_buf, 2);
+        WritePgm("out_3x.pgm", x_buf, 3);
+        WritePgm("out_3y.pgm", y_buf, 3);
+        WritePgm("out_4x.pgm", x_buf, 4);
+        WritePgm("out_4y.pgm", y_buf, 4);
     }
 
+#if 0
     {
         std::cout << "\n<Evaluation binary LUT-Network>" << std::endl;
 
@@ -152,6 +196,7 @@ void MnistSparseLutMlp(int epoch_size, int mini_batch_size, int train_modulation
             bb::WriteTestDataBinTextFile<float>("verilog/mnist_train.txt", "verilog/mnist_test.txt", td);
         }
     }
+#endif
 }
 
 

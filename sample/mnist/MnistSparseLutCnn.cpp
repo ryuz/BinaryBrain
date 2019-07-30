@@ -40,10 +40,10 @@ void MnistSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation
     auto layer_cnv0_sl1 = bb::SparseLutN<6, float>::Create(32);
     auto layer_cnv1_sl0 = bb::SparseLutN<6, float>::Create(192);
     auto layer_cnv1_sl1 = bb::SparseLutN<6, float>::Create(32);
-    auto layer_cnv2_sl0 = bb::SparseLutN<6, float>::Create(192);
-    auto layer_cnv2_sl1 = bb::SparseLutN<6, float>::Create(32);
-    auto layer_cnv3_sl0 = bb::SparseLutN<6, float>::Create(192);
-    auto layer_cnv3_sl1 = bb::SparseLutN<6, float>::Create(32);
+    auto layer_cnv2_sl0 = bb::SparseLutN<6, float>::Create(384);
+    auto layer_cnv2_sl1 = bb::SparseLutN<6, float>::Create(64);
+    auto layer_cnv3_sl0 = bb::SparseLutN<6, float>::Create(384);
+    auto layer_cnv3_sl1 = bb::SparseLutN<6, float>::Create(64);
     auto layer_sl4      = bb::SparseLutN<6, float>::Create(420);
     auto layer_sl5      = bb::SparseLutN<6, float>::Create(70);
 #else
@@ -51,10 +51,10 @@ void MnistSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation
     auto layer_cnv0_sl1 = bb::SparseLutDiscreteN<6, float>::Create(32);
     auto layer_cnv1_sl0 = bb::SparseLutDiscreteN<6, float>::Create(192);
     auto layer_cnv1_sl1 = bb::SparseLutDiscreteN<6, float>::Create(32);
-    auto layer_cnv2_sl0 = bb::SparseLutDiscreteN<6, float>::Create(192);
-    auto layer_cnv2_sl1 = bb::SparseLutDiscreteN<6, float>::Create(32);
-    auto layer_cnv3_sl0 = bb::SparseLutDiscreteN<6, float>::Create(192);
-    auto layer_cnv3_sl1 = bb::SparseLutDiscreteN<6, float>::Create(32);
+    auto layer_cnv2_sl0 = bb::SparseLutDiscreteN<6, float>::Create(384);
+    auto layer_cnv2_sl1 = bb::SparseLutDiscreteN<6, float>::Create(64);
+    auto layer_cnv3_sl0 = bb::SparseLutDiscreteN<6, float>::Create(384);
+    auto layer_cnv3_sl1 = bb::SparseLutDiscreteN<6, float>::Create(64);
     auto layer_sl4      = bb::SparseLutDiscreteN<6, float>::Create(420);
     auto layer_sl5      = bb::SparseLutDiscreteN<6, float>::Create(70);
 #endif

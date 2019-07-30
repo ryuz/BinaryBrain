@@ -349,15 +349,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MnistAeSparseLutCnn.cpp" />
+    <ClCompile Include="MnistAeSparseLutSimple.cpp" />
     <ClCompile Include="MnistCustomModel.cpp" />
     <ClCompile Include="MnistDenseCnn.cpp" />
-    <ClCompile Include="MnistDenseMlp.cpp" />
+    <ClCompile Include="MnistDenseSimple.cpp" />
     <ClCompile Include="MnistMicroMlpLutCnn.cpp" />
-    <ClCompile Include="MnistMicroMlpLutMlp.cpp" />
+    <ClCompile Include="MnistMicroMlpLutSimple.cpp" />
     <ClCompile Include="MnistSparseLutCnn.cpp" />
-    <ClCompile Include="MnistSparseLutMlp.cpp" />
+    <ClCompile Include="MnistSparseLutSimple.cpp" />
     <ClCompile Include="MnistStochasticLutCnn.cpp" />
-    <ClCompile Include="MnistStochasticLutMlp.cpp" />
+    <ClCompile Include="MnistStochasticLutSimple.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

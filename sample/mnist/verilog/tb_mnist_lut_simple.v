@@ -9,12 +9,12 @@
 `default_nettype none
 
 
-module tb_mnist_lut_mlp();
+module tb_mnist_lut_simple();
 	localparam RATE = 1000.0/300.0;
 	
 	initial begin
-		$dumpfile("tb_mnist_lut_mlp.vcd");
-		$dumpvars(2, tb_mnist_lut_mlp);
+		$dumpfile("tb_mnist_lut_simple.vcd");
+		$dumpvars(2, tb_mnist_lut_simple);
 
 	#1000000
 		$finish();
@@ -69,11 +69,11 @@ module tb_mnist_lut_mlp();
 	wire		[OUTPUT_WIDTH-1:0]		out_data;
 	wire								out_valid;
 	
-	MnistSparseLutMlp
+	MnistSparseLutSimple
 			#(
 				.USER_WIDTH		(1+USER_WIDTH)
 			)
-		i_mnist_lut_net
+		i_MnistSparseLutSimple
 			(
 				.reset			(reset),
 				.clk			(clk),
