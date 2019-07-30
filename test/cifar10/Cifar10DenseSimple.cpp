@@ -19,9 +19,9 @@
 #include "bb/LoadCifar10.h"
 
 
-void Cifar10DenseMlp(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void Cifar10DenseSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "Cifar10DenseMlp";
+    std::string net_name = "Cifar10DenseSimple";
 
   // load cifar-10 data
 #ifdef _DEBUG

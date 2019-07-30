@@ -21,9 +21,6 @@
 #include "bb/LoadCifar10.h"
 #include "bb/ExportVerilog.h"
 
-#include "bb/DenseAffine.h"
-#include "bb/BatchNormalization.h"
-
 
 template<typename T=bb::Bit>
 void SparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
@@ -43,108 +40,52 @@ void SparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size
 #endif
 
      // create network
-    auto layer_cnv0_sl0 = bb::SparseLutN<6, T>::Create(192,  true);
-    auto layer_cnv0_sl1 = bb::SparseLutN<6, T>::Create(32,   false);
+    auto layer_cnv0_sl0 = bb::SparseLutN<6, T>::Create(192);
+    auto layer_cnv0_sl1 = bb::SparseLutN<6, T>::Create(32);
 
-    auto layer_cnv1_sl0 = bb::SparseLutN<6, T>::Create(1152, true);
-    auto layer_cnv1_sl1 = bb::SparseLutN<6, T>::Create(192,  true);
-    auto layer_cnv1_sl2 = bb::SparseLutN<6, T>::Create(32,   false);
+    auto layer_cnv1_sl0 = bb::SparseLutN<6, T>::Create(1152);
+    auto layer_cnv1_sl1 = bb::SparseLutN<6, T>::Create(192);
+    auto layer_cnv1_sl2 = bb::SparseLutN<6, T>::Create(32);
 
-    auto layer_cnv2_sl0 = bb::SparseLutN<6, T>::Create(2304, true);
-    auto layer_cnv2_sl1 = bb::SparseLutN<6, T>::Create(384,  true);
-    auto layer_cnv2_sl2 = bb::SparseLutN<6, T>::Create(64,   false);
+    auto layer_cnv2_sl0 = bb::SparseLutN<6, T>::Create(2304);
+    auto layer_cnv2_sl1 = bb::SparseLutN<6, T>::Create(384);
+    auto layer_cnv2_sl2 = bb::SparseLutN<6, T>::Create(64);
 
-    auto layer_cnv3_sl0 = bb::SparseLutN<6, T>::Create(2304, true);
-    auto layer_cnv3_sl1 = bb::SparseLutN<6, T>::Create(384,  true);
-    auto layer_cnv3_sl2 = bb::SparseLutN<6, T>::Create(64,   false);
+    auto layer_cnv3_sl0 = bb::SparseLutN<6, T>::Create(2304);
+    auto layer_cnv3_sl1 = bb::SparseLutN<6, T>::Create(384);
+    auto layer_cnv3_sl2 = bb::SparseLutN<6, T>::Create(64);
 
-    auto layer_cnv4_sl0 = bb::SparseLutN<6, T>::Create(4608, true);
-    auto layer_cnv4_sl1 = bb::SparseLutN<6, T>::Create(768,  true);
-    auto layer_cnv4_sl2 = bb::SparseLutN<6, T>::Create(128,  false);
+    auto layer_sl4      = bb::SparseLutN<6, T>::Create(18432);
+    auto layer_sl5      = bb::SparseLutN<6, T>::Create(3072);
+    auto layer_sl6      = bb::SparseLutN<6, T>::Create(512);
 
-    auto layer_cnv5_sl0 = bb::SparseLutN<6, T>::Create(4608, true);
-    auto layer_cnv5_sl1 = bb::SparseLutN<6, T>::Create(768,  true);
-    auto layer_cnv5_sl2 = bb::SparseLutN<6, T>::Create(128,  false);
-
-    auto layer_sl6      = bb::SparseLutN<6, T>::Create(2160, true);
-    auto layer_sl7      = bb::SparseLutN<6, T>::Create(360,  true);
-    auto layer_sl8      = bb::SparseLutN<6, T>::Create(60,   true);
-    auto layer_sl9      = bb::SparseLutN<6, T>::Create(10,   false);
+    auto layer_sl7      = bb::SparseLutN<6, T>::Create(2160);
+    auto layer_sl8      = bb::SparseLutN<6, T>::Create(360);
+    auto layer_sl9      = bb::SparseLutN<6, T>::Create(60);
+    auto layer_sl10     = bb::SparseLutN<6, T>::Create(10);
 
     {
         std::cout << "\n<Training>" << std::endl;
 
         auto cnv0_sub = bb::Sequential::Create();
-#if 1
         cnv0_sub->Add(layer_cnv0_sl0);
         cnv0_sub->Add(layer_cnv0_sl1);
-#else
-        cnv0_sub->Add(bb::BinaryToReal<T>::Create());
-        cnv0_sub->Add(bb::DenseAffine<>::Create(32));
-        cnv0_sub->Add(bb::BatchNormalization<>::Create(0));
-        cnv0_sub->Add(bb::Binarize<T>::Create());
-#endif
 
         auto cnv1_sub = bb::Sequential::Create();
-#if 1
         cnv1_sub->Add(layer_cnv1_sl0);
         cnv1_sub->Add(layer_cnv1_sl1);
         cnv1_sub->Add(layer_cnv1_sl2);
-#else
-        cnv1_sub->Add(bb::BinaryToReal<T>::Create());
-        cnv1_sub->Add(bb::DenseAffine<>::Create(32));
-        cnv1_sub->Add(bb::BatchNormalization<>::Create(0));
-        cnv1_sub->Add(bb::Binarize<T>::Create());
-#endif
 
         auto cnv2_sub = bb::Sequential::Create();
-#if 1
         cnv2_sub->Add(layer_cnv2_sl0);
         cnv2_sub->Add(layer_cnv2_sl1);
         cnv2_sub->Add(layer_cnv2_sl2);
-#else
-        cnv2_sub->Add(bb::BinaryToReal<T>::Create());
-        cnv2_sub->Add(bb::DenseAffine<>::Create(64));
-        cnv2_sub->Add(bb::BatchNormalization<>::Create(0));
-        cnv2_sub->Add(bb::Binarize<T>::Create());
-#endif
 
         auto cnv3_sub = bb::Sequential::Create();
-#if 1
         cnv3_sub->Add(layer_cnv3_sl0);
         cnv3_sub->Add(layer_cnv3_sl1);
         cnv3_sub->Add(layer_cnv3_sl2);
-#else
-        cnv3_sub->Add(bb::BinaryToReal<T>::Create());
-        cnv3_sub->Add(bb::DenseAffine<>::Create(64));
-        cnv3_sub->Add(bb::BatchNormalization<>::Create(0));
-        cnv3_sub->Add(bb::Binarize<T>::Create());
-#endif
         
-        auto cnv4_sub = bb::Sequential::Create();
-#if 1
-        cnv4_sub->Add(layer_cnv4_sl0);
-        cnv4_sub->Add(layer_cnv4_sl1);
-        cnv4_sub->Add(layer_cnv4_sl2);
-#else
-        cnv4_sub->Add(bb::BinaryToReal<T>::Create());
-        cnv4_sub->Add(bb::DenseAffine<>::Create(128));
-        cnv4_sub->Add(bb::BatchNormalization<>::Create(0));
-        cnv4_sub->Add(bb::Binarize<T>::Create());
-#endif
-
-        auto cnv5_sub = bb::Sequential::Create();
-#if 1
-        cnv5_sub->Add(layer_cnv5_sl0);
-        cnv5_sub->Add(layer_cnv5_sl1);
-        cnv5_sub->Add(layer_cnv5_sl2);
-#else
-        cnv4_sub->Add(bb::BinaryToReal<T>::Create());
-        cnv4_sub->Add(bb::DenseAffine<>::Create(128));
-        cnv4_sub->Add(bb::BatchNormalization<>::Create(0));
-        cnv4_sub->Add(bb::Binarize<T>::Create());
-#endif
-
         auto main_net = bb::Sequential::Create();
         main_net->Add(bb::LoweringConvolution<T>::Create(cnv0_sub, 3, 3));
         main_net->Add(bb::LoweringConvolution<T>::Create(cnv1_sub, 3, 3));
@@ -152,22 +93,13 @@ void SparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size
         main_net->Add(bb::LoweringConvolution<T>::Create(cnv2_sub, 3, 3));
         main_net->Add(bb::LoweringConvolution<T>::Create(cnv3_sub, 3, 3));
         main_net->Add(bb::MaxPooling<T>::Create(2, 2));
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv4_sub, 3, 3));
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv5_sub, 3, 3));
-#if 1
+        main_net->Add(layer_sl4);
+        main_net->Add(layer_sl5);
         main_net->Add(layer_sl6);
         main_net->Add(layer_sl7);
         main_net->Add(layer_sl8);
         main_net->Add(layer_sl9);
-#else
-        main_net->Add(bb::BinaryToReal<T>::Create());
-        main_net->Add(bb::DenseAffine<>::Create(512));
-        main_net->Add(bb::BatchNormalization<>::Create(0));
-        main_net->Add(bb::Binarize<>::Create());
-        main_net->Add(bb::DenseAffine<>::Create(10));
-        main_net->Add(bb::BatchNormalization<>::Create(0));
-        main_net->Add(bb::Binarize<T>::Create());
-#endif
+        main_net->Add(layer_sl10);
 
         // modulation wrapper
         auto net = bb::Sequential::Create();
@@ -209,43 +141,33 @@ void SparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size
         runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
         runner_create.file_write         = true;            // 計算結果をファイルに保存するか
         runner_create.print_progress     = true;            // 途中結果を表示
-        runner_create.initial_evaluation = false;// file_read;       // ファイルを読んだ場合は最初に評価しておく
+        runner_create.initial_evaluation = file_read;       // ファイルを読んだ場合は最初に評価しておく
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
 
-#if 1
     {
         std::cout << "\n<Evaluation binary LUT-Network>" << std::endl;
 
         // LUT-network
         auto layer_cnv0_bl0 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv0_sl0->GetOutputShape());
         auto layer_cnv0_bl1 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv0_sl1->GetOutputShape());
-
         auto layer_cnv1_bl0 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv1_sl0->GetOutputShape());
         auto layer_cnv1_bl1 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv1_sl1->GetOutputShape());
         auto layer_cnv1_bl2 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv1_sl2->GetOutputShape());
-
         auto layer_cnv2_bl0 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv2_sl0->GetOutputShape());
         auto layer_cnv2_bl1 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv2_sl1->GetOutputShape());
         auto layer_cnv2_bl2 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv2_sl2->GetOutputShape());
-
         auto layer_cnv3_bl0 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv3_sl0->GetOutputShape());
         auto layer_cnv3_bl1 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv3_sl1->GetOutputShape());
         auto layer_cnv3_bl2 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv3_sl2->GetOutputShape());
-
-        auto layer_cnv4_bl0 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv4_sl0->GetOutputShape());
-        auto layer_cnv4_bl1 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv4_sl1->GetOutputShape());
-        auto layer_cnv4_bl2 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv4_sl2->GetOutputShape());
-
-        auto layer_cnv5_bl0 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv5_sl0->GetOutputShape());
-        auto layer_cnv5_bl1 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv5_sl1->GetOutputShape());
-        auto layer_cnv5_bl2 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv5_sl2->GetOutputShape());
-
+        auto layer_bl4      = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl4->GetOutputShape());
+        auto layer_bl5      = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl5->GetOutputShape());
         auto layer_bl6      = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl6->GetOutputShape());
         auto layer_bl7      = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl7->GetOutputShape());
         auto layer_bl8      = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl8->GetOutputShape());
         auto layer_bl9      = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl9->GetOutputShape());
+        auto layer_bl10     = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl10->GetOutputShape());
 
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_bl0);
@@ -267,30 +189,23 @@ void SparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size
         cnv3_sub->Add(layer_cnv3_bl2);
 
         auto cnv4_sub = bb::Sequential::Create();
-        cnv4_sub->Add(layer_cnv4_bl0);
-        cnv4_sub->Add(layer_cnv4_bl1);
-        cnv4_sub->Add(layer_cnv4_bl2);
-
-        auto cnv5_sub = bb::Sequential::Create();
-        cnv5_sub->Add(layer_cnv5_bl0);
-        cnv5_sub->Add(layer_cnv5_bl1);
-        cnv5_sub->Add(layer_cnv5_bl2);
-
-        auto cnv6_sub = bb::Sequential::Create();
-        cnv6_sub->Add(layer_bl6);
-        cnv6_sub->Add(layer_bl7);
-        cnv6_sub->Add(layer_bl8);
-        cnv6_sub->Add(layer_bl9);
+        cnv4_sub->Add(layer_bl4);
+        cnv4_sub->Add(layer_bl5);
+        cnv4_sub->Add(layer_bl6);
+        cnv4_sub->Add(layer_bl7);
+        cnv4_sub->Add(layer_bl8);
+        cnv4_sub->Add(layer_bl9);
+        cnv4_sub->Add(layer_bl10);
 
         auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3);
         auto cnv1 = bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3);
         auto pol0 = bb::MaxPooling<bb::Bit>::Create(2, 2);
+
         auto cnv2 = bb::LoweringConvolution<bb::Bit>::Create(cnv2_sub, 3, 3);
         auto cnv3 = bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3);
         auto pol1 = bb::MaxPooling<bb::Bit>::Create(2, 2);
-        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 3, 3);
-        auto cnv5 = bb::LoweringConvolution<bb::Bit>::Create(cnv5_sub, 3, 3);
-        auto cnv6 = bb::LoweringConvolution<bb::Bit>::Create(cnv6_sub, 1, 1);
+
+        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 4, 4);
 
         auto lut_net = bb::Sequential::Create();
         lut_net->Add(cnv0);
@@ -300,8 +215,6 @@ void SparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size
         lut_net->Add(cnv3);
         lut_net->Add(pol1);
         lut_net->Add(cnv4);
-        lut_net->Add(cnv5);
-        lut_net->Add(cnv6);
 
         // evaluation network
         auto eval_net = bb::Sequential::Create();
@@ -313,30 +226,25 @@ void SparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size
 
 
         // テーブル化して取り込み(現状まだSetInputShape後の取り込みが必要)
-        if ( 1 ) {
-            std::cout << "parameter copy to binary LUT-Network";
-            layer_cnv0_bl0->ImportLayer(layer_cnv0_sl0); std::cout << ".";
-            layer_cnv0_bl1->ImportLayer(layer_cnv0_sl1); std::cout << ".";
-            layer_cnv1_bl0->ImportLayer(layer_cnv1_sl0); std::cout << ".";
-            layer_cnv1_bl1->ImportLayer(layer_cnv1_sl1); std::cout << ".";
-            layer_cnv1_bl2->ImportLayer(layer_cnv1_sl2); std::cout << ".";
-            layer_cnv2_bl0->ImportLayer(layer_cnv2_sl0); std::cout << ".";
-            layer_cnv2_bl1->ImportLayer(layer_cnv2_sl1); std::cout << ".";
-            layer_cnv2_bl2->ImportLayer(layer_cnv2_sl2); std::cout << ".";
-            layer_cnv3_bl0->ImportLayer(layer_cnv3_sl0); std::cout << ".";
-            layer_cnv3_bl1->ImportLayer(layer_cnv3_sl1); std::cout << ".";
-            layer_cnv3_bl2->ImportLayer(layer_cnv3_sl2); std::cout << ".";
-            layer_cnv4_bl0->ImportLayer(layer_cnv4_sl0); std::cout << ".";
-            layer_cnv4_bl1->ImportLayer(layer_cnv4_sl1); std::cout << ".";
-            layer_cnv4_bl2->ImportLayer(layer_cnv4_sl2); std::cout << ".";
-            layer_cnv5_bl0->ImportLayer(layer_cnv5_sl0); std::cout << ".";
-            layer_cnv5_bl1->ImportLayer(layer_cnv5_sl1); std::cout << ".";
-            layer_cnv5_bl2->ImportLayer(layer_cnv5_sl2); std::cout << ".";
-            layer_bl6     ->ImportLayer(layer_sl6); std::cout << ".";
-            layer_bl7     ->ImportLayer(layer_sl7); std::cout << ".";
-            layer_bl8     ->ImportLayer(layer_sl8); std::cout << ".";
-            layer_bl9     ->ImportLayer(layer_sl9); std::cout << "." << std::endl;
-        }
+        std::cout << "parameter copy to binary LUT-Network" << std::endl;
+        layer_cnv0_bl0->ImportLayer(layer_cnv0_sl0);
+        layer_cnv0_bl1->ImportLayer(layer_cnv0_sl1);
+        layer_cnv1_bl2->ImportLayer(layer_cnv1_sl2);
+        layer_cnv1_bl1->ImportLayer(layer_cnv1_sl1);
+        layer_cnv1_bl2->ImportLayer(layer_cnv1_sl2);
+        layer_cnv2_bl0->ImportLayer(layer_cnv2_sl0);
+        layer_cnv2_bl1->ImportLayer(layer_cnv2_sl1);
+        layer_cnv2_bl2->ImportLayer(layer_cnv2_sl2);
+        layer_cnv3_bl0->ImportLayer(layer_cnv3_sl0);
+        layer_cnv3_bl1->ImportLayer(layer_cnv3_sl1);
+        layer_cnv3_bl2->ImportLayer(layer_cnv3_sl2);
+        layer_bl4     ->ImportLayer(layer_sl4);
+        layer_bl5     ->ImportLayer(layer_sl5);
+        layer_bl6     ->ImportLayer(layer_sl6);
+        layer_bl7     ->ImportLayer(layer_sl7);
+        layer_bl8     ->ImportLayer(layer_sl8);
+        layer_bl9     ->ImportLayer(layer_sl9);
+        layer_bl10    ->ImportLayer(layer_sl10);
 
         // 評価
         if ( 1 ) {
@@ -367,8 +275,6 @@ void SparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size
             vec_cnv1.push_back(cnv3);
             vec_cnv1.push_back(pol1);
             vec_cnv2.push_back(cnv4);
-            vec_cnv2.push_back(cnv5);
-            vec_cnv2.push_back(cnv6);
 
             std::string filename = "verilog/" + net_name + ".v";
             std::ofstream ofs(filename);
@@ -383,7 +289,6 @@ void SparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size
             bb::WriteTestDataImage<float>("verilog/mnist_test_640x480.ppm", 640, 480, td);
         }
     }
-#endif
 }
 
 

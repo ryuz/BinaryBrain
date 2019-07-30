@@ -359,7 +359,9 @@
     <ClCompile Include="MnistMicroMlpLutSimple.cpp" />
     <ClCompile Include="MnistMicroMlpScratch.cpp" />
     <ClCompile Include="MnistSparseLutCnn.cpp" />
+    <ClCompile Include="MnistSparseLutSimple.cpp" />
     <ClCompile Include="MnistStochasticLutCnn.cpp" />
+    <ClCompile Include="MnistStochasticLutSimple.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\bb\Activation.h" />

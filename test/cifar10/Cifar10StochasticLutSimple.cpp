@@ -22,9 +22,9 @@
 
 
 
-void Cifar10StochasticLutMlp(int epoch_size, int mini_batch_size, int test_modulation_size, bool binary_mode, bool file_read)
+void Cifar10StochasticLutSimple(int epoch_size, int mini_batch_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "Cifar10StochasticLutMlp";
+    std::string net_name = "Cifar10StochasticLutSimple";
 
   // load cifar-10 data
 #ifdef _DEBUG

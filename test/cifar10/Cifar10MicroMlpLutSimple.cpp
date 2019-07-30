@@ -21,9 +21,9 @@
 #include "bb/ExportVerilog.h"
 
 
-void Cifar10MicroMlpLutMlp(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void Cifar10MicroMlpLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "Cifar10MicroMlpLutMlp";
+    std::string net_name = "Cifar10MicroMlpLutSimple";
 
   // load cifar-10 data
 #ifdef _DEBUG

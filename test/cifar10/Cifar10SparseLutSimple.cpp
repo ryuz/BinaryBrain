@@ -22,9 +22,9 @@
 #include "bb/ExportVerilog.h"
 
 
-void Cifar10SparseLutMlp(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void Cifar10SparseLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "Cifar10SparseLutMlp";
+    std::string net_name = "Cifar10SparseLutSimple";
      
   // load cifar-10 data
 #ifdef _DEBUG
