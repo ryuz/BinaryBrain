@@ -33,14 +33,17 @@ public:
     {
         return GetNodeInputSize(GetShapeIndex(node, this->GetOutputShape()));
     }
+
     void SetNodeInput(indices_t node, index_t input_index, indices_t input_node)
     {
         return SetNodeInput(GetShapeIndex(node, this->GetOutputShape()), input_index, GetShapeIndex(input_node, this->GetInputShape()));
     }
+
     void SetNodeInput(indices_t node, index_t input_index, index_t input_node)
     {
         return SetNodeInput(GetShapeIndex(node, this->GetOutputShape()), input_index, input_node);
     }
+
     indices_t GetNodeInput(indices_t node, index_t input_index) const
     {
         index_t input_node = GetNodeInput(GetShapeIndex(node, this->GetOutputShape()), input_index);
@@ -48,7 +51,8 @@ public:
     }
 
 protected:
-
+    
+    /*
     Tensor_<std::int32_t> MakeReverseIndexTable(Tensor_<std::int32_t> input_index, index_t input_node_size)
     {
         indices_t shape = input_index.GetShape();
@@ -82,7 +86,7 @@ protected:
 
         return reverse_index;
     }
-
+    */
 
     void InitializeNodeInput(std::uint64_t seed, std::string connection = "")
     {
@@ -189,33 +193,6 @@ protected:
             return;
         }
 
-#if 0
-        if ( input_shape.size() == 3 && input_shape[2] > 3) {
-            index_t c = input_shape[2];
-            index_t h = input_shape[1];
-            index_t w = input_shape[0];
-            indices_t offset_shape({w, h, 3});
-
-            ShuffleSet<index_t> ss(3*h*w, seed);
-            indices_t idx({0, 0, 0});
-            for (index_t node = 0; node < output_node_size; ++node) {
-                index_t  input_size = GetNodeInputSize(node);
-
-                auto random_set = ss.GetRandomSet(input_size);
-                for (index_t i = 0; i < input_size; ++i) {
-                    indices_t offset_idx = GetShapeIndices(random_set[i], offset_shape);
-                    indices_t input_idx(3);
-                    input_idx[2] = (idx[2] + offset_idx[2]) % c;
-                    input_idx[1] = (idx[1] + offset_idx[1]) % h;
-                    input_idx[0] = (idx[0] + offset_idx[0]) % w;
-                    SetNodeInput(node, i, GetShapeIndex(input_idx, input_shape));
-                }
-
-                GetNextIndices(idx, input_shape);
-            }
-            return;
-        }
-#endif
         if ( argv.size() > 0 && argv[0] == "serial" ) {
             // 連番結線
             index_t input_node = 0;

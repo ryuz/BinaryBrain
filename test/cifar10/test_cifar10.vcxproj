@@ -349,12 +349,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Cifar10DenseCnn.cpp" />
-    <ClCompile Include="Cifar10DenseMlp.cpp" />
+    <ClCompile Include="Cifar10DenseSimple.cpp" />
     <ClCompile Include="Cifar10MicroMlpLutCnn.cpp" />
-    <ClCompile Include="Cifar10MicroMlpLutMlp.cpp" />
-    <ClCompile Include="Cifar10Sparse6Cnn.cpp" />
-    <ClCompile Include="Cifar10StochasticLut6Cnn.cpp" />
-    <ClCompile Include="Cifar10StochasticLut6Mlp.cpp" />
+    <ClCompile Include="Cifar10MicroMlpLutSimple.cpp" />
+    <ClCompile Include="Cifar10NrSparseLutCnn.cpp" />
+    <ClCompile Include="Cifar10SparseLutCnn.cpp" />
+    <ClCompile Include="Cifar10SparseLutSimple.cpp" />
+    <ClCompile Include="Cifar10StochasticLutCnn.cpp" />
+    <ClCompile Include="Cifar10StochasticLutSimple.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -403,6 +405,7 @@
     <ClInclude Include="..\..\include\bb\OptimizerAdaGrad.h" />
     <ClInclude Include="..\..\include\bb\OptimizerAdam.h" />
     <ClInclude Include="..\..\include\bb\OptimizerSgd.h" />
+    <ClInclude Include="..\..\include\bb\PnmImage.h" />
     <ClInclude Include="..\..\include\bb\RealToBinary.h" />
     <ClInclude Include="..\..\include\bb\Reduce.h" />
     <ClInclude Include="..\..\include\bb\ReLU.h" />

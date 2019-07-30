@@ -349,13 +349,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Cifar10DenseCnn.cpp" />
-    <ClCompile Include="Cifar10DenseMlp.cpp" />
+    <ClCompile Include="Cifar10DenseSimple.cpp" />
     <ClCompile Include="Cifar10MicroMlpLutCnn.cpp" />
-    <ClCompile Include="Cifar10MicroMlpLutMlp.cpp" />
+    <ClCompile Include="Cifar10MicroMlpLutSimple.cpp" />
     <ClCompile Include="Cifar10SparseLutCnn.cpp" />
-    <ClCompile Include="Cifar10SparseLutMlp.cpp" />
+    <ClCompile Include="Cifar10SparseLutSimple.cpp" />
     <ClCompile Include="Cifar10StochasticLutCnn.cpp" />
-    <ClCompile Include="Cifar10StochasticLutMlp.cpp" />
+    <ClCompile Include="Cifar10StochasticLutSimple.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -55,7 +55,7 @@ module video_mnist_cnn_core
 		);
 	
 	localparam	L0_TDATA_WIDTH = 32;
-	localparam	L1_TDATA_WIDTH = 32;
+	localparam	L1_TDATA_WIDTH = 64;
 	localparam	L2_TDATA_WIDTH = M_TDATA_WIDTH;
 	
 	
@@ -80,7 +80,7 @@ module video_mnist_cnn_core
 				.IMG_CKE_BUFG		(IMG_CKE_BUFG),
 				.DEVICE         	(DEVICE)
 			)
-		i_MnistMicroMlpLutCnnCnv0
+		i_MnistSparseLutCnnCnv0
 			(
 				.reset				(~aresetn),
 				.clk				(aclk),
@@ -122,7 +122,7 @@ module video_mnist_cnn_core
 				.IMG_CKE_BUFG		(IMG_CKE_BUFG),
 				.DEVICE         	(DEVICE)
 			)
-		i_MnistMicroMlpLutCnnCnv1
+		i_MnistSparseLutCnnCnv1
 			(
 				.reset				(~aresetn),
 				.clk				(aclk),
@@ -158,7 +158,7 @@ module video_mnist_cnn_core
 				.IMG_CKE_BUFG		(IMG_CKE_BUFG),
 				.DEVICE         	(DEVICE)
 			)
-		i_MnistMicroMlpLutCnnCnv2
+		i_MnistSparseLutCnnCnv2
 			(
 				.reset				(~aresetn),
 				.clk				(aclk),

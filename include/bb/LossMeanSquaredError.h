@@ -68,7 +68,7 @@ public:
                 auto error = grad * grad;
 
                 dy_ptr.Set(frame, node, grad / (T)batch_size);
-                m_loss += error;
+                m_loss += error / (double)node_size;
             }
         }
         m_frames += frame_size;

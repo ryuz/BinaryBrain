@@ -531,7 +531,7 @@ public:
 
 
 #ifdef BB_WITH_CUDA
-        if ( N == 6, DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
+        if ( N == 6 && DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
                 && x_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && tmp_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
 
             Tensor_<RealType>   dmean(m_output_shape);

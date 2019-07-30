@@ -34,12 +34,7 @@ protected:
     Variables       m_params;
     Variables       m_grads;
 
-protected:
-    OptimizerAdam() {}
-
 public:
-    ~OptimizerAdam() {}
-
     struct create_t
     {
         T learning_rate = (T)0.001;
@@ -47,35 +42,45 @@ public:
         T beta2         = (T)0.999;
     };
 
+
+protected:
+    OptimizerAdam(create_t const &create)
+    {
+        m_learning_rate = create.learning_rate;
+        m_beta1         = create.beta1;
+        m_beta2         = create.beta2;
+        m_iter          = 0;
+
+        m_b1            = m_beta1;
+        m_b2            = m_beta2;
+    }
+
+public:
+    ~OptimizerAdam() {}
+
     static std::shared_ptr<OptimizerAdam> Create(create_t const &create) 
     {
-        auto self = std::shared_ptr<OptimizerAdam>(new OptimizerAdam);
-
-        self->m_learning_rate = create.learning_rate;
-        self->m_beta1         = create.beta1;
-        self->m_beta2         = create.beta2;
-        self->m_iter          = 0;
-
-        self->m_b1            = self->m_beta1;
-        self->m_b2            = self->m_beta2;
-
-        return self;
+        return std::shared_ptr<OptimizerAdam>(new OptimizerAdam(create));
     }
 
     static std::shared_ptr<OptimizerAdam> Create(T learning_rate = (T)0.001, T beta1 = (T)0.9, T beta2 = (T)0.999) 
     {
-        auto self = std::shared_ptr<OptimizerAdam>(new OptimizerAdam);
-
-        self->m_learning_rate = learning_rate;
-        self->m_beta1         = beta1;
-        self->m_beta2         = beta2;
-        self->m_iter          = 0;
-
-        self->m_b1            = self->m_beta1;
-        self->m_b2            = self->m_beta2;
-
-        return self;
+        create_t create;
+        create.learning_rate = learning_rate;
+        create.beta1         = beta1;
+        create.beta2         = beta2;
+        return std::shared_ptr<OptimizerAdam>(new OptimizerAdam(create));
     }
+
+    static std::shared_ptr<OptimizerAdam> CreateEx(T learning_rate = (T)0.001, T beta1 = (T)0.9, T beta2 = (T)0.999) 
+    {
+        create_t create;
+        create.learning_rate = learning_rate;
+        create.beta1         = beta1;
+        create.beta2         = beta2;
+        return std::shared_ptr<OptimizerAdam>(new OptimizerAdam(create));
+    }
+
 
     OptimizerAdam(create_t const &create, Variables params, Variables grads) 
         : m_m(params.GetTypes(), params.GetShapes()), m_v(params.GetTypes(), params.GetShapes())

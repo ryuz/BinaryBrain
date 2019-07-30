@@ -10,10 +10,52 @@
 
 
 
-
 //////////////////////////////
 // forward
 //////////////////////////////
+
+#define IM2COL_BORDER_CONSTANT      0
+#define IM2COL_BORDER_REFLECT       1
+#define IM2COL_BORDER_REFLECT_101   2
+#define IM2COL_BORDER_REPLICATE     3
+#define IM2COL_BORDER_WRAP          4
+
+__device__ __forceinline__ bool device_Im2Col_Border(int mode, int &x, int &y, int w, int h)
+{
+    switch ( mode ) {
+    case IM2COL_BORDER_REFLECT:
+        if ( x < 0  ) { x = -x - 1; }
+        if ( y < 0  ) { y = -y - 1; }
+        if ( x >= w ) { x = (w - 1) - (x - w); }
+        if ( y >= h ) { y = (h - 1) - (y - h); }
+        return true;
+    
+    case IM2COL_BORDER_REFLECT_101:
+        if ( x < 0  ) { x = -x; }
+        if ( y < 0  ) { y = -y; }
+        if ( x >= w ) { x = (w - 2) - (x - w); }
+        if ( y >= h ) { y = (h - 2) - (y - h); }
+        return true;
+
+    case IM2COL_BORDER_REPLICATE:
+        if ( x < 0  ) { x = 0; }
+        if ( y < 0  ) { y = 0; }
+        if ( x >= w ) { x = w - 1; }
+        if ( y >= h ) { y = h - 1; }
+        return true;
+
+    case IM2COL_BORDER_WRAP:
+        if ( x < 0  ) { x += w; }
+        if ( y < 0  ) { y += h; }
+        if ( x >= w ) { x -= w; }
+        if ( y >= h ) { y -= h; }
+        return true;
+    }
+
+    return false;
+}
+
+
 
 __global__ void kernal_fp32_Im2Col_Forward(
             float const     *x_buf,
@@ -28,7 +70,9 @@ __global__ void kernal_fp32_Im2Col_Forward(
             int             output_frame_size,
             int             output_frame_stride,
             int             output_w_size,
-            int             output_size
+            int             output_size,
+            int             border_mode,
+            float           border_value
         )
 {
     int filter_w_size = blockDim.y;
@@ -46,10 +90,16 @@ __global__ void kernal_fp32_Im2Col_Forward(
         int iy = (f / output_w_size) * y_stride - y_offset + fy;
         int ix = (f % output_w_size) * x_stride - x_offset + fx;
 
-        float x = 0;
+        float x = border_value;
         if ( iy >= 0 && iy < input_h_size && ix >= 0 && ix < input_w_size ) {
             int input_node  = (c * input_h_size  + iy) * input_w_size  + ix;
             x = x_buf[input_node * input_frame_stride + input_frame];
+        }
+        else {
+            if ( device_Im2Col_Border(border_mode, ix, iy, input_w_size, input_h_size) ) {
+                int input_node  = (c * input_h_size  + iy) * input_w_size  + ix;
+                x = x_buf[input_node * input_frame_stride + input_frame];
+            }
         }
 
         int output_node = (c * filter_h_size + fy) * filter_w_size + fx;    
@@ -76,6 +126,8 @@ BBCU_DLL_EXPORT int bbcu_fp32_Im2Col_Forward
             int             output_frame_stride,
             int             filter_w_size,
             int             filter_h_size,
+            int             border_mode,
+            float           border_value,
             cudaStream_t    streamId
         )
 {
@@ -106,7 +158,9 @@ BBCU_DLL_EXPORT int bbcu_fp32_Im2Col_Forward
             output_frame_size,
             output_frame_stride,
             output_w_size,
-            output_size
+            output_size,
+            border_mode,
+            border_value
         );
     BB_CUDA_CHECK_LAST_ERROR();
 
@@ -127,8 +181,9 @@ __global__ void kernal_bit_Im2Col_Forward(
             int             output_frame_size,
             int             output_frame_stride,
             int             output_w_size,
-            int             output_size
-        )
+            int             output_size,
+            int             border_mode
+    )
 {
     int output_frame_unit = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -157,6 +212,14 @@ __global__ void kernal_bit_Im2Col_Forward(
                     int x = ((x_ptr[input_frame / 32] >> (input_frame % 32)) & 1);
                     y |= (x << i);
                 }
+                else {
+                    if ( device_Im2Col_Border(border_mode, ix, iy, input_w_size, input_h_size) ) {
+                        int input_node  = (c * input_h_size  + iy) * input_w_size  + ix;
+                        int const *x_ptr = &x_buf[input_node  * input_frame_stride];
+                        int x = ((x_ptr[input_frame / 32] >> (input_frame % 32)) & 1);
+                        y |= (x << i);
+                    }
+                }
             }
         }
 
@@ -183,6 +246,7 @@ BBCU_DLL_EXPORT int bbcu_bit_Im2Col_Forward
             int             output_frame_stride,
             int             filter_w_size,
             int             filter_h_size,
+            int             border_mode,
             cudaStream_t    streamId
         )
 {
@@ -211,7 +275,8 @@ BBCU_DLL_EXPORT int bbcu_bit_Im2Col_Forward
             output_frame_size,
             output_frame_stride,
             output_w_size,
-            output_size
+            output_size,
+            border_mode
         );
     BB_CUDA_CHECK_LAST_ERROR();
 
