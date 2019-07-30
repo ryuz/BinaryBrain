@@ -20,9 +20,9 @@
 #include "bb/ExportVerilog.h"
 
 
-void MnistStochasticLutMlp(int epoch_size, int mini_batch_size, int test_modulation_size, bool binary_mode, bool file_read)
+void MnistStochasticLutSimple(int epoch_size, int mini_batch_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "MnistStochasticLutMlp";
+    std::string net_name = "MnistStochasticLutSimple";
 
   // load MNIST data
 #ifdef _DEBUG

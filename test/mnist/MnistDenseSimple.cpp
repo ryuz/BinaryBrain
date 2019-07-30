@@ -21,9 +21,9 @@
 
 
 
-void MnistDenseMlp(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void MnistDenseSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "MnistDenseMlp";
+    std::string net_name = "MnistDenseSimple";
 
     // load MNIST data
 #ifdef _DEBUG

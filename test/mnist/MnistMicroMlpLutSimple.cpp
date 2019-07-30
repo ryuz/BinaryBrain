@@ -21,9 +21,9 @@
 #include "bb/ExportVerilog.h"
 
 
-void MnistMicroMlpLutMlp(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void MnistMicroMlpLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "MnistMicroMlpLutMlp";
+    std::string net_name = "MnistMicroMlpLutSimple";
 
   // load MNIST data
 #ifdef _DEBUG
