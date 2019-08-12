@@ -1,4 +1,4 @@
-﻿# target
+# target
 TARGET  = gtest
 
 # default flag

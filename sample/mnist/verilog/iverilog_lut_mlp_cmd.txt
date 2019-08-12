@@ -1,3 +1,0 @@
-tb_mnist_lut_mlp.v
-MnistSparseLutMlp.v
-bb_lut.v

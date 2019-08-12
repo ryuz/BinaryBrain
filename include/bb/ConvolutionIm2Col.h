@@ -25,6 +25,15 @@ namespace bb {
 template <typename FT = float, typename BT = float>
 class ConvolutionIm2Col : public Model
 {
+public:
+    using border_mode_t = enum {
+        BORDER_CONSTANT    = 0,
+        BORDER_REFLECT     = 1,
+        BORDER_REFLECT_101 = 2,
+        BORDER_REPLICATE   = 3,
+        BORDER_WRAP        = 4
+    };
+
 protected:
     bool            m_host_only = false;
     
@@ -44,6 +53,8 @@ protected:
     index_t         m_output_h_size;
     index_t         m_output_w_size;
     std::string     m_padding;
+    border_mode_t   m_border_mode  = BORDER_REFLECT_101;
+    FT              m_border_value = (FT)0;
 
 public:
     struct create_t
@@ -174,6 +185,43 @@ protected:
         return (c*m_filter_h_size + y)*m_filter_w_size + x;
     }
 
+
+    inline bool Border(border_mode_t mode, index_t &x, index_t &y, index_t w, index_t h)
+    {
+        switch ( mode ) {
+        case BORDER_REFLECT:
+            if ( x < 0  ) { x = -x - 1; }
+            if ( y < 0  ) { x = -y - 1; }
+            if ( x >= w ) { x = (w - 1) - (x - w); }
+            if ( y >= h ) { y = (h - 1) - (y - h); }
+            return true;
+    
+        case BORDER_REFLECT_101:
+            if ( x < 0  ) { x = -x; }
+            if ( y < 0  ) { x = -y; }
+            if ( x >= w ) { x = (w - 2) - (x - w); }
+            if ( y >= h ) { y = (h - 2) - (y - h); }
+            return true;
+
+        case BORDER_REPLICATE:
+            if ( x < 0  ) { x = 0; }
+            if ( y < 0  ) { x = 0; }
+            if ( x >= w ) { x = w - 1; }
+            if ( y >= h ) { y = h - 1; }
+            return true;
+
+        case BORDER_WRAP:
+            if ( x < 0  ) { x += w; }
+            if ( y < 0  ) { x += h; }
+            if ( x >= w ) { x -= w; }
+            if ( y >= h ) { y -= h; }
+            return true;
+        }
+
+        return false;
+    }
+
+
 public:
 
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
@@ -198,22 +246,25 @@ public:
             auto ptr_x = x_buf.LockDeviceMemoryConst();
             auto ptr_y = y_buf.LockDeviceMemory();
             bbcu_fp32_Im2Col_Forward(
-                (float const *)ptr_x.GetAddr(),
-                (float       *)ptr_y.GetAddr(),
-                (int          )m_x_stride,
-                (int          )m_y_stride,
-                (int          )m_x_offset,
-                (int          )m_y_offset,
-                (int          )m_input_frame_size,
-                (int          )x_buf.GetFrameStride() / sizeof(float),
-                (int          )m_input_w_size,
-                (int          )m_input_h_size,
-                (int          )m_input_c_size,
-                (int          )m_output_w_size,
-                (int          )m_output_h_size,
-                (int          )y_buf.GetFrameStride() / sizeof(float),
-                (int          )m_filter_w_size,
-                (int          )m_filter_h_size);
+                    (float const *)ptr_x.GetAddr(),
+                    (float       *)ptr_y.GetAddr(),
+                    (int          )m_x_stride,
+                    (int          )m_y_stride,
+                    (int          )m_x_offset,
+                    (int          )m_y_offset,
+                    (int          )m_input_frame_size,
+                    (int          )x_buf.GetFrameStride() / sizeof(float),
+                    (int          )m_input_w_size,
+                    (int          )m_input_h_size,
+                    (int          )m_input_c_size,
+                    (int          )m_output_w_size,
+                    (int          )m_output_h_size,
+                    (int          )y_buf.GetFrameStride() / sizeof(float),
+                    (int          )m_filter_w_size,
+                    (int          )m_filter_h_size,
+                    (int          )m_border_mode,
+                    (float        )m_border_value
+                );
             return y_buf;
         }
 #endif
@@ -224,22 +275,24 @@ public:
             auto ptr_x = x_buf.LockDeviceMemoryConst();
             auto ptr_y = y_buf.LockDeviceMemory();
             bbcu_bit_Im2Col_Forward(
-                (int const *)ptr_x.GetAddr(),
-                (int       *)ptr_y.GetAddr(),
-                (int        )m_x_stride,
-                (int        )m_y_stride,
-                (int        )m_x_offset,
-                (int        )m_y_offset,
-                (int        )m_input_frame_size,
-                (int        )x_buf.GetFrameStride() / sizeof(int),
-                (int        )m_input_w_size,
-                (int        )m_input_h_size,
-                (int        )m_input_c_size,
-                (int        )m_output_w_size,
-                (int        )m_output_h_size,
-                (int        )y_buf.GetFrameStride() / sizeof(int),
-                (int        )m_filter_w_size,
-                (int        )m_filter_h_size);
+                    (int const *)ptr_x.GetAddr(),
+                    (int       *)ptr_y.GetAddr(),
+                    (int        )m_x_stride,
+                    (int        )m_y_stride,
+                    (int        )m_x_offset,
+                    (int        )m_y_offset,
+                    (int        )m_input_frame_size,
+                    (int        )x_buf.GetFrameStride() / sizeof(int),
+                    (int        )m_input_w_size,
+                    (int        )m_input_h_size,
+                    (int        )m_input_c_size,
+                    (int        )m_output_w_size,
+                    (int        )m_output_h_size,
+                    (int        )y_buf.GetFrameStride() / sizeof(int),
+                    (int        )m_filter_w_size,
+                    (int        )m_filter_h_size,
+                    (int        )m_border_mode
+                );
             return y_buf;
         }
 #endif
@@ -263,10 +316,16 @@ public:
                             index_t iy = (f / m_output_w_size) * m_y_stride - m_y_offset + fy;
                             index_t ix = (f % m_output_w_size) * m_x_stride - m_x_offset + fx;
 
-                            FT in_sig = 0;
+                            FT in_sig = m_border_value;
                             if ( iy >= 0 && iy < m_input_h_size && ix >= 0 && ix < m_input_w_size ) {
                                 index_t input_node  = (c * m_input_h_size  + iy) * m_input_w_size  + ix;
                                 in_sig = x_ptr.Get(input_frame, input_node);
+                            }
+                            else {
+                                if ( Border(m_border_mode, ix, iy, m_input_w_size, m_input_h_size) ) {
+                                    index_t input_node = (c * m_input_h_size  + iy) * m_input_w_size  + ix;
+                                    in_sig = x_ptr.Get(input_frame, input_node);
+                                }
                             }
 
                             index_t output_node = (c * m_filter_h_size + fy) * m_filter_w_size + fx;    
@@ -309,46 +368,6 @@ public:
                 (int          )(dy_buf.GetFrameStride() / sizeof(float)),
                 (int          )m_filter_w_size,
                 (int          )m_filter_h_size);
-            return dx_buf;
-        }
-#endif
-
-#if 0
-        if ( 0 ) {
-            // 汎用版
-            dx_buf.FillZero();
-
-            auto dy_ptr = dy_buf.LockConst<BT>();
-            auto dx_ptr = dx_buf.Lock<BT>();
-
-            for (index_t c = 0; c < m_input_c_size; ++c) {
-                #pragma omp parallel for
-                for (index_t y = 0; y < m_input_h_size; ++y ) {
-                    #pragma omp parallel for
-                    for (index_t x = 0; x < m_input_w_size; ++x ) {
-                        index_t input_node = (c * m_input_h_size + y) * m_input_w_size + x;
-                        for ( index_t input_frame = 0; input_frame < m_input_frame_size; ++input_frame ) {
-                            BT dx = dx_ptr.Get(input_frame, input_node);
-                            float dy = 0;
-                            for (int fy = 0; fy < m_filter_h_size; ++fy) {
-                                index_t iy = y - fy;
-                                if ( iy >= 0 && iy < (m_input_h_size - m_filter_h_size + 1)) {
-                                    for (int fx = 0; fx < m_filter_w_size; ++fx) {
-                                        index_t ix = x - fx;
-                                        if (ix >= 0 && ix < (m_input_w_size - m_filter_w_size + 1)) {
-                                            index_t output_frame = (input_frame * m_output_h_size + iy) * m_output_w_size + ix;
-                                            index_t output_node  = (c * m_filter_h_size + fy) * m_filter_w_size + fx;
-                                            dy += dy_ptr.Get(output_frame, output_node);
-                                        }
-                                    }
-                                }
-                            }
-                            dx_ptr.Set(input_frame, input_node, dx + dy);
-                        }
-                    }
-                }
-            }
-
             return dx_buf;
         }
 #endif

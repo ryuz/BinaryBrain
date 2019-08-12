@@ -1,4 +1,4 @@
-ï»¿
+
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
@@ -259,8 +259,8 @@ int Test_StochasticLut6_Forward(void)
     for (int i = 0; i < sizeof(output_b)    / sizeof(float); ++i) { output_b[i]    = norm_rand(mt); }
 #endif
 
-    std::chrono::system_clock::time_point  start, end; // å‹ã¯ auto ã§å¯
-    start = std::chrono::system_clock::now(); // è¨ˆæ¸¬é–‹å§‹æ™‚é–“
+    std::chrono::system_clock::time_point  start, end; // Œ^‚Í auto ‚Å‰Â
+    start = std::chrono::system_clock::now(); // Œv‘ªŠJnŠÔ
 
     bbcu_eva_fp32_StochasticLut6_Forward
         (
@@ -275,8 +275,8 @@ int Test_StochasticLut6_Forward(void)
             1
         );
     
-    end = std::chrono::system_clock::now();  // è¨ˆæ¸¬çµ‚äº†æ™‚é–“
-    double elapsed = (double)std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //å‡¦ç†ã«è¦ã—ãŸæ™‚é–“ã‚’ãƒŸãƒªç§’ã«å¤‰æ›
+    end = std::chrono::system_clock::now();  // Œv‘ªI—¹ŠÔ
+    double elapsed = (double)std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //ˆ—‚É—v‚µ‚½ŠÔ‚ğƒ~ƒŠ•b‚É•ÏŠ·
     std::cout << "totel : " << elapsed << " [msec]" << std::endl;
 
     return 0;
@@ -316,8 +316,8 @@ int Test_StochasticLut6_Backward(void)
     for (int i = 0; i < sizeof(input_index) / sizeof(int); ++i) { input_index[i] = i % N; }
     for (int i = 0; i < sizeof(W) / sizeof(float); ++i)  { W[i] = 0; }
 
-    std::chrono::system_clock::time_point  start, end; // å‹ã¯ auto ã§å¯
-    start = std::chrono::system_clock::now(); // è¨ˆæ¸¬é–‹å§‹æ™‚é–“
+    std::chrono::system_clock::time_point  start, end; // Œ^‚Í auto ‚Å‰Â
+    start = std::chrono::system_clock::now(); // Œv‘ªŠJnŠÔ
 
     bbcu_eva_fp32_StochasticLut6_Backward
         (
@@ -349,8 +349,8 @@ int Test_StochasticLut6_Backward(void)
     std::cout << "in_err[2] : " << dx_buf[2] << std::endl;
     */
 
-    end = std::chrono::system_clock::now();  // è¨ˆæ¸¬çµ‚äº†æ™‚é–“
-    double elapsed = (double)std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //å‡¦ç†ã«è¦ã—ãŸæ™‚é–“ã‚’ãƒŸãƒªç§’ã«å¤‰æ›
+    end = std::chrono::system_clock::now();  // Œv‘ªI—¹ŠÔ
+    double elapsed = (double)std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //ˆ—‚É—v‚µ‚½ŠÔ‚ğƒ~ƒŠ•b‚É•ÏŠ·
     std::cout << "totel : " << elapsed << " [msec]" << std::endl;
 
     return 0;

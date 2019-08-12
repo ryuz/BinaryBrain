@@ -1,4 +1,4 @@
-ï»¿#include <stdio.h>
+#include <stdio.h>
 #include <random>
 #include <iostream>
 #include <fstream>
@@ -430,7 +430,7 @@ TEST(TensorTest, testTensorOp)
     bb::Tensor_<float> t2((bb::index_t)16);
 
 #if 0
-    // åŠ ç®—1-1
+    // ‰ÁŽZ1-1
     t0.Lock(); t1.Lock();
     for (int i = 0; i < N; ++i) { t0[i] = d0[i]; t1[i] = d1[i]; }
     t0.Unlock(); t1.Unlock();
@@ -444,7 +444,7 @@ TEST(TensorTest, testTensorOp)
     t0.Unlock();
 
 
-    // åŠ ç®—1-2
+    // ‰ÁŽZ1-2
     t0.Lock(); t1.Lock();
     for (int i = 0; i < N; ++i) { t0[i] = d0[i]; t1[i] = d1[i]; }
     t0.Unlock(); t1.Unlock();
@@ -459,7 +459,7 @@ TEST(TensorTest, testTensorOp)
 
 
 
-    // åŠ ç®—2-1
+    // ‰ÁŽZ2-1
     t0.Lock(); t1.Lock();
     for (int i = 0; i < N; ++i) { t0[i] = d0[i]; t1[i] = d1[i]; }
     t0.Unlock(); t1.Unlock();
@@ -473,7 +473,7 @@ TEST(TensorTest, testTensorOp)
     t2.Unlock();
 
 
-    // åŠ ç®—2-2
+    // ‰ÁŽZ2-2
     t0.Lock(); t1.Lock();
     for (int i = 0; i < N; ++i) { t0[i] = d0[i]; t1[i] = d1[i]; }
     t0.Unlock(); t1.Unlock();
@@ -487,7 +487,7 @@ TEST(TensorTest, testTensorOp)
     t2.Unlock();
     
 
-    // åŠ ç®—2-3
+    // ‰ÁŽZ2-3
     t0.Lock(); t1.Lock();
     for (int i = 0; i < N; ++i) { t0[i] = d0[i]; t1[i] = d1[i]; }
     t0.Unlock(); t1.Unlock();
@@ -503,7 +503,7 @@ TEST(TensorTest, testTensorOp)
 
     //////////////
 
-    // æ¸›ç®—1-1
+    // Œ¸ŽZ1-1
     t0.Lock(); t1.Lock();
     for (int i = 0; i < N; ++i) { t0[i] = d0[i]; t1[i] = d1[i]; }
     t0.Unlock(); t1.Unlock();
@@ -517,7 +517,7 @@ TEST(TensorTest, testTensorOp)
     t0.Unlock();
 
 
-    // æ¸›ç®—1-2
+    // Œ¸ŽZ1-2
     t0.Lock(); t1.Lock();
     for (int i = 0; i < N; ++i) { t0[i] = d0[i]; t1[i] = d1[i]; }
     t0.Unlock(); t1.Unlock();
@@ -532,7 +532,7 @@ TEST(TensorTest, testTensorOp)
 
 
 
-    // æ¸›ç®—2-1
+    // Œ¸ŽZ2-1
     t0.Lock(); t1.Lock();
     for (int i = 0; i < N; ++i) { t0[i] = d0[i]; t1[i] = d1[i]; }
     t0.Unlock(); t1.Unlock();
@@ -546,7 +546,7 @@ TEST(TensorTest, testTensorOp)
     t2.Unlock();
 
 
-    // æ¸›ç®—2-2
+    // Œ¸ŽZ2-2
     t0.Lock(); t1.Lock();
     for (int i = 0; i < N; ++i) { t0[i] = d0[i]; t1[i] = d1[i]; }
     t0.Unlock(); t1.Unlock();
@@ -560,7 +560,7 @@ TEST(TensorTest, testTensorOp)
     t2.Unlock();
     
 
-    // æ¸›ç®—2-3
+    // Œ¸ŽZ2-3
     t0.Lock(); t1.Lock();
     for (int i = 0; i < N; ++i) { t0[i] = d0[i]; t1[i] = d1[i]; }
     t0.Unlock(); t1.Unlock();
@@ -574,7 +574,7 @@ TEST(TensorTest, testTensorOp)
     t2.Unlock();
 #endif
 
-    // åŠ ç®—1-1
+    // ‰ÁŽZ1-1
     {
         auto ptr0 = t0.Lock();
         auto ptr1 = t1.Lock();
@@ -591,7 +591,7 @@ TEST(TensorTest, testTensorOp)
     }
 
 
-    // åŠ ç®—1-2
+    // ‰ÁŽZ1-2
     {
         auto ptr0 = t0.Lock();
         auto ptr1 = t1.Lock();
@@ -608,7 +608,7 @@ TEST(TensorTest, testTensorOp)
     }
 
 
-    // åŠ ç®—2-1
+    // ‰ÁŽZ2-1
     {
         auto ptr0 = t0.Lock();
         auto ptr1 = t1.Lock();
@@ -625,7 +625,7 @@ TEST(TensorTest, testTensorOp)
     }
 
 
-    // åŠ ç®—2-2
+    // ‰ÁŽZ2-2
     {
         auto ptr0 = t0.Lock();
         auto ptr1 = t1.Lock();
@@ -642,7 +642,7 @@ TEST(TensorTest, testTensorOp)
     }
 
 
-    // åŠ ç®—2-3
+    // ‰ÁŽZ2-3
     {
         auto ptr0 = t0.Lock();
         auto ptr1 = t1.Lock();
@@ -661,7 +661,7 @@ TEST(TensorTest, testTensorOp)
 
     //////////////
 
-    // æ¸›ç®—1-1
+    // Œ¸ŽZ1-1
     {
         auto ptr0 = t0.Lock();
         auto ptr1 = t1.Lock();
@@ -678,7 +678,7 @@ TEST(TensorTest, testTensorOp)
     }
 
 
-    // æ¸›ç®—1-2
+    // Œ¸ŽZ1-2
     {
         auto ptr0 = t0.Lock();
         auto ptr1 = t1.Lock();
@@ -696,7 +696,7 @@ TEST(TensorTest, testTensorOp)
 
 
 
-    // æ¸›ç®—2-1
+    // Œ¸ŽZ2-1
     {
         auto ptr0 = t0.Lock();
         auto ptr1 = t1.Lock();
@@ -713,7 +713,7 @@ TEST(TensorTest, testTensorOp)
     }
 
 
-    // æ¸›ç®—2-2
+    // Œ¸ŽZ2-2
     {
         auto ptr0 = t0.Lock();
         auto ptr1 = t1.Lock();
@@ -730,7 +730,7 @@ TEST(TensorTest, testTensorOp)
     }
     
 
-    // æ¸›ç®—2-3
+    // Œ¸ŽZ2-3
     {
         auto ptr0 = t0.Lock();
         auto ptr1 = t1.Lock();
@@ -841,7 +841,7 @@ void test_Operator(bb::indices_t shape)
     T scalar = (T)123.4;
 
     {
-        // ã‚¼ãƒ­é™¤ç®—å›žé¿
+        // ƒ[ƒœŽZ‰ñ”ð
         auto b_s1 = base_src1.Lock();
         for (bb::index_t i = 0; i < node_size; ++i) {
             if ( b_s1[i] == 0 ) {
@@ -1230,7 +1230,7 @@ void test_OperatorX(bb::indices_t shape)
     T scalar = (T)123.4;
     
     {
-        // ã‚¼ãƒ­é™¤ç®—å›žé¿
+        // ƒ[ƒœŽZ‰ñ”ð
         auto b_s1 = base_src1.Lock<T>();
         for (bb::index_t i = 0; i < node_size; ++i) {
             if ( b_s1[i] == 0 ) {

@@ -10,6 +10,8 @@
 #include "bb/UniformDistributionGenerator.h"
 
 
+#define MY_EXPECT_NEAR(a, b, th, rate)  EXPECT_NEAR((a), (b), (std::max((th), std::max(std::abs(a)*(rate), std::abs(b)*(rate)))))
+
 
 #ifdef BB_WITH_CUDA
 
@@ -167,7 +169,7 @@ void SparseLutNTest_cmp(int const input_node_size, int const output_node_size, i
             for (int node = 0; node < output_node_size; ++node) {
                 auto val0 = rstd_ptr0(node);
                 auto val1 = rstd_ptr1(node);
-                EXPECT_NEAR(val0, val1, 0.01f);
+                MY_EXPECT_NEAR(val0, val1, 0.005f, 0.005f);
             }
         }
 
@@ -253,11 +255,11 @@ void SparseLutNTest_cmp(int const input_node_size, int const output_node_size, i
                 for (int i = 0; i < (1 << N); ++i) {
                     auto val0 = dW_ptr0(node, i);
                     auto val1 = dW_ptr1(node, i);
-                    EXPECT_NEAR(val0, val1, 0.01f);
-                    if ( !(abs(val0 - val1) < 0.01f) ) {
-                        std::cout << node << std::endl;
+                    MY_EXPECT_NEAR(val0, val1, 0.005f, 0.005f);
+//                  if ( !(abs(val0 - val1) < 0.01f) ) {
+//                      std::cout << node << std::endl;
 //                      getchar();
-                    }
+//                  }
                 }
             }
         }
@@ -360,6 +362,39 @@ TEST(SparseLutNTest, testSparseLutN_cmp_gpu)
 
     SparseLutNTest_cmp<6, bb::Bit, bb::SparseLutN<6, bb::Bit>, bb::SparseLutN<6, bb::Bit>>(6,  16, 32, 2, true,  true, true);
     SparseLutNTest_cmp<6, bb::Bit, bb::SparseLutN<6, bb::Bit>, bb::SparseLutN<6, bb::Bit>>(6,  16, 32, 2, false, true, true);
+}
+
+
+
+
+
+TEST(SparseLutNTest, testSparseLut4_cmp_float)
+{
+    SparseLutNTest_cmp<4, float>(4,    1,       1, 2, true,  true);
+    SparseLutNTest_cmp<4, float>(4,    1,    32+7, 2, true,  true);
+    SparseLutNTest_cmp<4, float>(4,    1,      64, 2, true,  true);
+    SparseLutNTest_cmp<4, float>(4,    1,    1024, 2, true,  true);
+    SparseLutNTest_cmp<4, float>(4,    1024,    1, 2, true,  true);
+    SparseLutNTest_cmp<4, float>(4,    2,      32, 2, true,  true);
+    SparseLutNTest_cmp<4, float>(4,    1,       1, 2, false, true);
+    SparseLutNTest_cmp<4, float>(4,    1,    32+7, 2, false, true);
+    SparseLutNTest_cmp<4, float>(4,    1,      64, 2, false, true);
+
+//    SparseLutNTest_cmp<4, float>(4,    1,    1024, 2, false, true);
+//    SparseLutNTest_cmp<4, float>(4,    1024,    1, 2, false, true);
+//    SparseLutNTest_cmp<4, float>(4,    2,      32, 2, false, true);
+//    SparseLutNTest_cmp<4, float>(4,    1,       1, 2, true,  false);
+//    SparseLutNTest_cmp<4, float>(4,    1,    32+7, 2, true,  false);
+//    SparseLutNTest_cmp<4, float>(4,    1,      64, 2, true,  false);
+//    SparseLutNTest_cmp<4, float>(4,    1,    1024, 2, true,  false);
+//    SparseLutNTest_cmp<4, float>(4,    1024,    1, 2, true,  false);
+//    SparseLutNTest_cmp<4, float>(4,    2,      32, 2, true,  false);
+//    SparseLutNTest_cmp<4, float>(4,    1,       1, 2, false, false);
+//    SparseLutNTest_cmp<4, float>(4,    1,    32+7, 2, false, false);
+//    SparseLutNTest_cmp<4, float>(4,    1,      64, 2, false, false);
+//    SparseLutNTest_cmp<4, float>(4,    1,    1024, 2, false, false);
+//    SparseLutNTest_cmp<4, float>(4,    1024,    1, 2, false, false);
+//    SparseLutNTest_cmp<4, float>(4,    2,      32, 2, false, false);
 }
 
 

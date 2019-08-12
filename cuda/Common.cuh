@@ -9,6 +9,7 @@
 #include "bbcu/bbcu_util.h"
 
 
+
 template<typename T=float>
 __device__ __forceinline__ T device_LocalSumX(T v, T *sbuf)
 {

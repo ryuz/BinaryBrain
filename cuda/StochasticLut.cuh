@@ -437,4 +437,252 @@ struct StochasticLut<6, T, MAX_NODE_UNIT>
 };
 
 
+// LUT4
+template<typename T, int MAX_NODE_UNIT>
+struct StochasticLut<4, T, MAX_NODE_UNIT>
+{
+    static __device__ __forceinline__ T NodeForward
+            (
+                int             node_id,
+                T           xp[],
+                T   const   W[][MAX_NODE_UNIT]
+            )
+    {
+        T   xn[4];
+        for ( int i = 0; i < 4; ++i) {
+            xn[i] = 1.0 - xp[i];
+        }
+
+        T x0_00 = xn[1] * xn[0];
+        T x0_01 = xn[1] * xp[0];
+        T x0_10 = xp[1] * xn[0];
+        T x0_11 = xp[1] * xp[0];
+        T x1_00 = xn[3] * xn[2];
+        T x1_01 = xn[3] * xp[2];
+        T x1_10 = xp[3] * xn[2];
+        T x1_11 = xp[3] * xp[2];
+
+        T y = 0;
+        y += W[0 ][node_id] * x1_00 * x0_00;
+        y += W[1 ][node_id] * x1_00 * x0_01;
+        y += W[2 ][node_id] * x1_00 * x0_10;
+        y += W[3 ][node_id] * x1_00 * x0_11;
+        y += W[4 ][node_id] * x1_01 * x0_00;
+        y += W[5 ][node_id] * x1_01 * x0_01;
+        y += W[6 ][node_id] * x1_01 * x0_10;
+        y += W[7 ][node_id] * x1_01 * x0_11;
+        y += W[8 ][node_id] * x1_10 * x0_00;
+        y += W[9 ][node_id] * x1_10 * x0_01;
+        y += W[10][node_id] * x1_10 * x0_10;
+        y += W[11][node_id] * x1_10 * x0_11;
+        y += W[12][node_id] * x1_11 * x0_00;
+        y += W[13][node_id] * x1_11 * x0_01;
+        y += W[14][node_id] * x1_11 * x0_10;
+        y += W[15][node_id] * x1_11 * x0_11;
+
+        // clamp
+        y = max(0.0, y);
+        y = min(1.0, y);
+
+        return y;
+    }
+
+
+    static __device__ __forceinline__ void NodeBackward
+        (
+            int         node_id,
+            T   const   xp[],
+            T           dy,
+            T           *dx_ptr,
+            T   const   W[][MAX_NODE_UNIT],
+            T           dW[],
+            int             frame_stride
+        )
+    {
+        T   xn[4];
+        for (int i = 0; i < 4; ++i) {
+            xn[i] = 1.0 - xp[i];
+        }
+
+        T x0_00 = xn[1] * xn[0];
+        T x0_01 = xn[1] * xp[0];
+        T x0_10 = xp[1] * xn[0];
+        T x0_11 = xp[1] * xp[0];
+        T x1_00 = xn[3] * xn[2];
+        T x1_01 = xn[3] * xp[2];
+        T x1_10 = xp[3] * xn[2];
+        T x1_11 = xp[3] * xp[2];
+
+        dW[ 0] += x1_00 * x0_00 * dy;
+        dW[ 1] += x1_00 * x0_01 * dy;
+        dW[ 2] += x1_00 * x0_10 * dy;
+        dW[ 3] += x1_00 * x0_11 * dy;
+        dW[ 4] += x1_01 * x0_00 * dy;
+        dW[ 5] += x1_01 * x0_01 * dy;
+        dW[ 6] += x1_01 * x0_10 * dy;
+        dW[ 7] += x1_01 * x0_11 * dy;
+        dW[ 8] += x1_10 * x0_00 * dy;
+        dW[ 9] += x1_10 * x0_01 * dy;
+        dW[10] += x1_10 * x0_10 * dy;
+        dW[11] += x1_10 * x0_11 * dy;
+        dW[12] += x1_11 * x0_00 * dy;
+        dW[13] += x1_11 * x0_01 * dy;
+        dW[14] += x1_11 * x0_10 * dy;
+        dW[15] += x1_11 * x0_11 * dy;
+        
+        T dxi;
+        T dx0_00 = 0;
+        T dx0_01 = 0;
+        T dx0_10 = 0;
+        T dx0_11 = 0;
+        T dx1_00 = 0;
+        T dx1_01 = 0;
+        T dx1_10 = 0;
+        T dx1_11 = 0;
+        dxi = W[ 0][node_id];  dx0_00 += dxi * x1_00;  dx1_00 += dxi * x0_00;
+        dxi = W[ 1][node_id];  dx0_01 += dxi * x1_00;  dx1_00 += dxi * x0_01;
+        dxi = W[ 2][node_id];  dx0_10 += dxi * x1_00;  dx1_00 += dxi * x0_10;
+        dxi = W[ 3][node_id];  dx0_11 += dxi * x1_00;  dx1_00 += dxi * x0_11;
+        dxi = W[ 4][node_id];  dx0_00 += dxi * x1_01;  dx1_01 += dxi * x0_00;
+        dxi = W[ 5][node_id];  dx0_01 += dxi * x1_01;  dx1_01 += dxi * x0_01;
+        dxi = W[ 6][node_id];  dx0_10 += dxi * x1_01;  dx1_01 += dxi * x0_10;
+        dxi = W[ 7][node_id];  dx0_11 += dxi * x1_01;  dx1_01 += dxi * x0_11;
+        dxi = W[ 8][node_id];  dx0_00 += dxi * x1_10;  dx1_10 += dxi * x0_00;
+        dxi = W[ 9][node_id];  dx0_01 += dxi * x1_10;  dx1_10 += dxi * x0_01;
+        dxi = W[10][node_id];  dx0_10 += dxi * x1_10;  dx1_10 += dxi * x0_10;
+        dxi = W[11][node_id];  dx0_11 += dxi * x1_10;  dx1_10 += dxi * x0_11;
+        dxi = W[12][node_id];  dx0_00 += dxi * x1_11;  dx1_11 += dxi * x0_00;
+        dxi = W[13][node_id];  dx0_01 += dxi * x1_11;  dx1_11 += dxi * x0_01;
+        dxi = W[14][node_id];  dx0_10 += dxi * x1_11;  dx1_11 += dxi * x0_10;
+        dxi = W[15][node_id];  dx0_11 += dxi * x1_11;  dx1_11 += dxi * x0_11;
+    
+        T dxn;
+        T dxp;
+        T dx;
+        dxn  = dx0_00 * xn[1];    dxn += dx0_10 * xp[1];
+        dxp  = dx0_01 * xn[1];    dxp += dx0_11 * xp[1];
+        dx = (dxp - dxn) * dy;
+        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        dx_ptr[0 * frame_stride] = dx;
+
+        dxn  = dx0_00 * xn[0];
+        dxn += dx0_01 * xp[0];
+        dxp  = dx0_10 * xn[0];
+        dxp += dx0_11 * xp[0];
+        dx = (dxp - dxn) * dy;
+        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        dx_ptr[1 * frame_stride] = dx;
+
+        dxn  = dx1_00 * xn[3];     
+        dxp  = dx1_01 * xn[3];     
+        dxn += dx1_10 * xp[3];     
+        dxp += dx1_11 * xp[3];     
+        dx = (dxp - dxn) * dy;
+        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        dx_ptr[2 * frame_stride] = dx;
+
+        dxn  = dx1_00 * xn[2];
+        dxn += dx1_01 * xp[2];
+        dxp  = dx1_10 * xn[2];
+        dxp += dx1_11 * xp[2];
+        dx = (dxp - dxn) * dy;
+        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        dx_ptr[3 * frame_stride] = dx;
+    }
+};
+
+
+// LUT2
+template<typename T, int MAX_NODE_UNIT>
+struct StochasticLut<2, T, MAX_NODE_UNIT>
+{
+    static __device__ __forceinline__ T NodeForward
+            (
+                int             node_id,
+                T           xp[],
+                T   const   W[][MAX_NODE_UNIT]
+            )
+    {
+        T   xn[2];
+        for ( int i = 0; i < 2; ++i) {
+            xn[i] = 1.0 - xp[i];
+        }
+
+        T x00 = xn[1] * xn[0];
+        T x01 = xn[1] * xp[0];
+        T x10 = xp[1] * xn[0];
+        T x11 = xp[1] * xp[0];
+
+        T y = 0;
+        y += W[0][node_id] * x10 * x00;
+        y += W[1][node_id] * x10 * x01;
+        y += W[2][node_id] * x11 * x00;
+        y += W[3][node_id] * x11 * x01;
+
+        // clamp
+        y = max(0.0, y);
+        y = min(1.0, y);
+
+        return y;
+    }
+
+
+    static __device__ __forceinline__ void NodeBackward
+        (
+            int         node_id,
+            T   const   xp[],
+            T           dy,
+            T           *dx_ptr,
+            T   const   W[][MAX_NODE_UNIT],
+            T           dW[],
+            int             frame_stride
+        )
+    {
+        T   xn[2];
+        for (int i = 0; i < 2; ++i) {
+            xn[i] = 1.0 - xp[i];
+        }
+
+        T x00 = xn[1] * xn[0];
+        T x01 = xn[1] * xp[0];
+        T x10 = xp[1] * xn[0];
+        T x11 = xp[1] * xp[0];
+
+        dW[ 0] += x10 * x00 * dy;
+        dW[ 1] += x10 * x01 * dy;
+        dW[ 2] += x11 * x00 * dy;
+        dW[ 3] += x11 * x01 * dy;
+        
+        T dxi;
+        T dx00 = 0;
+        T dx01 = 0;
+        T dx10 = 0;
+        T dx11 = 0;
+        dxi = W[ 0][node_id];  dx00 += dxi * x10;  dx10 += dxi * x00;
+        dxi = W[ 1][node_id];  dx01 += dxi * x10;  dx10 += dxi * x01;
+        dxi = W[ 2][node_id];  dx00 += dxi * x11;  dx11 += dxi * x00;
+        dxi = W[ 3][node_id];  dx01 += dxi * x11;  dx11 += dxi * x01;
+    
+        T dxn;
+        T dxp;
+        T dx;
+        dxn  = dx00 * xn[1];
+        dxn += dx10 * xp[1];
+        dxp  = dx01 * xn[1];
+        dxp += dx11 * xp[1];
+        dx = (dxp - dxn) * dy;
+        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        dx_ptr[0 * frame_stride] = dx;
+
+        dxn  = dx00 * xn[0];
+        dxn += dx01 * xp[0];
+        dxp  = dx10 * xn[0];
+        dxp += dx11 * xp[0];
+        dx = (dxp - dxn) * dy;
+        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        dx_ptr[1 * frame_stride] = dx;
+    }
+};
+
+
 // end of file

@@ -15,14 +15,14 @@
 #endif
 
 
-void Cifar10StochasticLutMlp(int epoch_size, int mini_batch_size,                            int test_modulation_size, bool binary_mode, bool file_read);
-void Cifar10StochasticLutCnn(int epoch_size, int mini_batch_size,                            int test_modulation_size, bool binary_mode, bool file_read);
-void Cifar10SparseLutMlp    (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
-void Cifar10SparseLutCnn    (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
-void Cifar10MicroMlpLutMlp  (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
-void Cifar10MicroMlpLutCnn  (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
-void Cifar10DenseMlp        (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
-void Cifar10DenseCnn        (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void Cifar10StochasticLutSimple(int epoch_size, int mini_batch_size,                            int test_modulation_size, bool binary_mode, bool file_read);
+void Cifar10StochasticLutCnn   (int epoch_size, int mini_batch_size,                            int test_modulation_size, bool binary_mode, bool file_read);
+void Cifar10SparseLutSimple    (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void Cifar10SparseLutCnn       (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void Cifar10MicroMlpLutSimple  (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void Cifar10MicroMlpLutCnn     (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void Cifar10DenseSimple        (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void Cifar10DenseCnn           (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 
 
 // メイン関数
@@ -51,13 +51,13 @@ int main(int argc, char *argv[])
         std::cout << "  -read <0|1>                             file read" << std::endl;
         std::cout << "" << std::endl;
         std::cout << "netname" << std::endl;
-        std::cout << "  StochasticLutMlp Stochastic-Lut LUT-Network Simple Multi Layer Perceptron" << std::endl;
-        std::cout << "  StochasticLutCnn Stochastic-Lut LUT-Network CNN" << std::endl;
-        std::cout << "  SparseLutMlp     Sparse LUT-Network Simple Multi Layer Perceptron" << std::endl;
-        std::cout << "  SparseLutCnn     Sparse LUT-Network CNN" << std::endl;
-        std::cout << "  DenseMlp         Dense Simple Multi Layer Perceptron" << std::endl;
-        std::cout << "  DenseCnn         Dense Simple CNN" << std::endl;
-        std::cout << "  All              run all" << std::endl;
+        std::cout << "  StochasticLutSimple Stochastic-Lut LUT-Network Simple DNN" << std::endl;
+        std::cout << "  StochasticLutCnn    Stochastic-Lut LUT-Network CNN" << std::endl;
+        std::cout << "  SparseLutSimple     Sparse LUT-Network Simple DNN" << std::endl;
+        std::cout << "  SparseLutCnn        Sparse LUT-Network CNN" << std::endl;
+        std::cout << "  DenseMlp            Dense Simple DNN" << std::endl;
+        std::cout << "  DenseCnn            Dense CNN" << std::endl;
+        std::cout << "  All                 run all" << std::endl;
         return 1;
     }
 
@@ -112,32 +112,32 @@ int main(int argc, char *argv[])
     }
 #endif
 
-    if ( netname == "All" || netname == "StochasticLutMlp" ) {
-        Cifar10StochasticLutMlp(epoch_size, mini_batch_size, test_modulation_size, binary_mode, file_read);
+    if ( netname == "All" || netname == "StochasticLutSimple" ) {
+        Cifar10StochasticLutSimple(epoch_size, mini_batch_size, test_modulation_size, binary_mode, file_read);
     }
 
     if ( netname == "All" || netname == "StochasticLutCnn" ) {
         Cifar10StochasticLutCnn(epoch_size, mini_batch_size, test_modulation_size, binary_mode, file_read);
     }
 
-    if ( netname == "All" || netname == "SparseLutMlp" ) {
-        Cifar10SparseLutMlp(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    if ( netname == "All" || netname == "SparseLutSimple" ) {
+        Cifar10SparseLutSimple(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
     if ( netname == "All" || netname == "SparseLutCnn" ) {
         Cifar10SparseLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
-    if ( netname == "All" || netname == "MicroMlpLutMlp" ) {
-        Cifar10MicroMlpLutMlp(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    if ( netname == "All" || netname == "MicroMlpLutSimple" ) {
+        Cifar10MicroMlpLutSimple(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
     if ( netname == "All" || netname == "MicroMlpLuCnn" ) {
         Cifar10MicroMlpLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
-    if ( netname == "All" || netname == "DenseMlp" ) {
-        Cifar10DenseMlp(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    if ( netname == "All" || netname == "DenseSimple" ) {
+        Cifar10DenseSimple(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
     if ( netname == "All" || netname == "DenseCnn" ) {

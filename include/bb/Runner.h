@@ -12,6 +12,8 @@
 #include <chrono>
 #include <iostream>
 #include <iomanip>
+#include <string>
+#include <sstream>
 #include <fstream>
 #include <vector>
 #include <assert.h>
@@ -160,6 +162,47 @@ public:
     }
 
 
+    static std::shared_ptr<Runner> CreateEx
+            (
+                std::string                         name,
+                std::shared_ptr<Model>              net,
+                std::shared_ptr<LossFunction>       lossFunc,
+                std::shared_ptr<MetricsFunction>    metricsFunc,
+                std::shared_ptr<Optimizer>          optimizer,
+                index_t                             max_run_size = 0,
+                bool                                print_progress = true,
+                bool                                print_progress_loss = true,
+                bool                                print_progress_accuracy = true,
+                bool                                log_write = true,
+                bool                                log_append = true,
+                bool                                file_read = false,
+                bool                                file_write = false,
+                bool                                write_serial = false,
+                bool                                initial_evaluation = false,
+                std::int64_t                        seed = 1
+            )
+    {
+        create_t create;
+        create.name                    = name;
+        create.net                     = net;
+        create.lossFunc                = lossFunc;
+        create.metricsFunc             = metricsFunc;
+        create.optimizer               = optimizer;
+        create.max_run_size            = max_run_size;
+        create.print_progress          = print_progress;
+        create.print_progress_loss     = print_progress_loss;
+        create.print_progress_accuracy = print_progress_accuracy;
+        create.log_write               = log_write;
+        create.log_append              = log_append;
+        create.file_read               = file_read;
+        create.file_write              = file_write;
+        create.write_serial            = write_serial;
+        create.initial_evaluation      = initial_evaluation;
+        create.seed                    = seed;
+        return Create(create);
+    }
+
+
     // アクセサ
     void        SetName(std::string name) { m_name = name; }
     std::string GetName(void) const { return m_name; }
@@ -282,6 +325,14 @@ public:
             ostream_tee log_stream;
             log_stream.add(std::cout);
             if (ofs_log.is_open()) { log_stream.add(ofs_log); }
+            
+            if (ofs_log.is_open()) {
+                m_net->PrintInfo(0,  ofs_log);
+                ofs_log << "-----------------------------------"    << std::endl;
+                ofs_log << "epoch_size      : " << epoch_size       << std::endl;
+                ofs_log << "mini_batch_size : " << batch_size       << std::endl;
+                ofs_log << "-----------------------------------"    << std::endl;
+            }
             
             // 以前の計算があれば読み込み
             if ( m_file_read ) {

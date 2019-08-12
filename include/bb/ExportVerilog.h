@@ -610,7 +610,7 @@ void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module_name, 
 
     os << "\tlocalparam DATA0_WIDTH = " << in_c << ";\n";
     for ( int i = 0; i < layer_size; ++i ) {
-        os << "\tlocalparam DATA" << i+1 << "_WIDTH = " << out_c << ";\n";
+        os << "\tlocalparam DATA" << i+1 << "_WIDTH = " << layers[i]->GetOutputChannels() << ";\n";
     }
     os << "\t\n";
     

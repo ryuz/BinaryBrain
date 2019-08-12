@@ -27,14 +27,16 @@ CINCS  = -I../../include
 CDEFS  = 
 
 SRCS   = main.cpp
-SRCS  += MnistStochasticLutMlp.cpp
+SRCS  += MnistStochasticLutSimple.cpp
 SRCS  += MnistStochasticLutCnn.cpp
-SRCS  += MnistSparseLutMlp.cpp
+SRCS  += MnistSparseLutSimple.cpp
 SRCS  += MnistSparseLutCnn.cpp
-SRCS  += MnistDenseMlp.cpp
+SRCS  += MnistDenseSimple.cpp
 SRCS  += MnistDenseCnn.cpp
-SRCS  += MnistMicroMlpLutMlp.cpp
+SRCS  += MnistMicroMlpLutSimple.cpp
 SRCS  += MnistMicroMlpLutCnn.cpp
+SRCS  += MnistAeSparseLutSimple.cpp
+SRCS  += MnistAeSparseLutCnn.cpp
 SRCS  += MnistCustomModel.cpp
 
 OBJS = $(addsuffix .o, $(basename $(SRCS)))

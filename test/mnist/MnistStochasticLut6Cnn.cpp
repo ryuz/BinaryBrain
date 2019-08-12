@@ -1,4 +1,4 @@
-ï»¿// --------------------------------------------------------------------------
+// --------------------------------------------------------------------------
 //  BinaryBrain  -- binary network evaluation platform
 //   MNIST sample
 //
@@ -111,11 +111,11 @@ void MnistStochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_siz
         runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
         runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
-        runner_create.max_run_size       = max_run_size;    // å®Ÿéš›ã®1å›ã®å®Ÿè¡Œã‚µã‚¤ã‚º
-        runner_create.file_read          = file_read;       // å‰ã®è¨ˆç®—çµæœãŒã‚ã‚Œã°èª­ã¿è¾¼ã‚“ã§å†é–‹ã™ã‚‹ã‹
-        runner_create.file_write         = true;            // è¨ˆç®—çµæœã‚’ãƒ•ã‚¡ã‚¤ãƒ«ã«ä¿å­˜ã™ã‚‹ã‹
-        runner_create.print_progress     = true;            // é€”ä¸­çµæœã‚’è¡¨ç¤º
-        runner_create.initial_evaluation = file_read;       // ãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã‚“ã å ´åˆã¯æœ€åˆã«è©•ä¾¡ã—ã¦ãŠã
+        runner_create.max_run_size       = max_run_size;    // ÀÛ‚Ì1‰ñ‚ÌÀsƒTƒCƒY
+        runner_create.file_read          = file_read;       // ‘O‚ÌŒvZŒ‹‰Ê‚ª‚ ‚ê‚Î“Ç‚İ‚ñ‚ÅÄŠJ‚·‚é‚©
+        runner_create.file_write         = true;            // ŒvZŒ‹‰Ê‚ğƒtƒ@ƒCƒ‹‚É•Û‘¶‚·‚é‚©
+        runner_create.print_progress     = true;            // “r’†Œ‹‰Ê‚ğ•\¦
+        runner_create.initial_evaluation = file_read;       // ƒtƒ@ƒCƒ‹‚ğ“Ç‚ñ‚¾ê‡‚ÍÅ‰‚É•]‰¿‚µ‚Ä‚¨‚­
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
@@ -166,7 +166,7 @@ void MnistStochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_siz
         auto cnv3 = bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3);
         auto pol1 = bb::MaxPooling<bb::Bit>::Create(2, 2);
 
-        // 28x28 ä»¥å¤–ã‚‚å…¥åŠ›ã§ãã‚‹ã‚ˆã†ã«æœ€çµ‚æ®µã‚‚ç•³ã¿è¾¼ã¿ã«å¤‰æ›
+        // 28x28 ˆÈŠO‚à“ü—Í‚Å‚«‚é‚æ‚¤‚ÉÅI’i‚àô‚İ‚İ‚É•ÏŠ·
         auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 4, 4);
 
         auto lut_net = bb::Sequential::Create();
@@ -182,7 +182,7 @@ void MnistStochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_siz
         lut_net->SetInputShape(td.x_shape);
 
 
-        // ãƒ†ãƒ¼ãƒ–ãƒ«åŒ–ã—ã¦å–ã‚Šè¾¼ã¿(ç¾çŠ¶ã¾ã SetInputShapeå¾Œã®å–ã‚Šè¾¼ã¿ãŒå¿…è¦)
+        // ƒe[ƒuƒ‹‰»‚µ‚Äæ‚è‚İ(Œ»ó‚Ü‚¾SetInputShapeŒã‚Ìæ‚è‚İ‚ª•K—v)
         std::cout << "parameter copy to LUT-Network" << std::endl;
         layer_cnv0_lut0->ImportLayer(layer_cnv0_sl0);
         layer_cnv0_lut1->ImportLayer(layer_cnv0_sl1);
@@ -197,7 +197,7 @@ void MnistStochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_siz
         layer_lut6     ->ImportLayer(layer_sl6);
         layer_lut7     ->ImportLayer(layer_sl7);
 
-        // è©•ä¾¡
+        // •]‰¿
         if ( 1 ) {
             bb::Runner<float>::create_t lut_runner_create;
             lut_runner_create.name        = "Lut_" + net_name;
@@ -206,14 +206,14 @@ void MnistStochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_siz
             lut_runner_create.metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
             lut_runner_create.optimizer   = bb::OptimizerAdam<float>::Create();
             lut_runner_create.initial_evaluation = false;
-            lut_runner_create.print_progress = true;    // é€”ä¸­çµæœã‚’å‡ºåŠ›
+            lut_runner_create.print_progress = true;    // “r’†Œ‹‰Ê‚ğo—Í
             auto lut_runner = bb::Runner<float>::Create(lut_runner_create);
             auto lut_accuracy = lut_runner->Evaluation(td, mini_batch_size);
             std::cout << "lut_accuracy : " << lut_accuracy << std::endl;
         }
 
         {
-            // Verilog å‡ºåŠ›
+            // Verilog o—Í
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv0;
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv1;
             std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv2;

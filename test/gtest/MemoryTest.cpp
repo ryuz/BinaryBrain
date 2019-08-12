@@ -1,4 +1,4 @@
-﻿#include <stdio.h>
+#include <stdio.h>
 #include <random>
 #include <iostream>
 #include "gtest/gtest.h"

@@ -1,4 +1,4 @@
-ï»¿#include <stdio.h>
+#include <stdio.h>
 #include <iostream>
 #include <random>
 #include "gtest/gtest.h"
@@ -24,7 +24,7 @@ TEST(BinaryNormalizationTest, testBinaryNormalization)
     float offset[node_size];
     float exp[node_size];
 
-    // ãƒ†ã‚¹ãƒˆãƒ‘ã‚¿ãƒ¼ãƒ³
+    // ƒeƒXƒgƒpƒ^[ƒ“
     src[0] = 0.5f; gain[0] = 1.0f; offset[0] = +0.0f;
     src[1] = 0.4f; gain[1] = 1.0f; offset[1] = +0.2f;
     src[2] = 0.5f; gain[2] = 1.0f; offset[2] = -0.2f;
@@ -37,14 +37,14 @@ TEST(BinaryNormalizationTest, testBinaryNormalization)
         exp[i] = src[i] * gain[i] + offset[i];
     }
     
-    // å…¥åŠ›è¨­å®š
+    // “ü—Íİ’è
     for (int node = 0; node < node_size; ++node) {
         for (int frame = 0; frame < frame_size; ++frame) {
             x_buf.SetBit(frame, node, dist(mt) < src[node]);
         }
     }
 
-    // å…¥åŠ›é »åº¦è¨ˆæ¸¬
+    // “ü—Í•p“xŒv‘ª
     for (int node = 0; node < node_size; ++node) {
         int sum = 0;
         for (int frame = 0; frame < frame_size; ++frame) {
@@ -57,7 +57,7 @@ TEST(BinaryNormalizationTest, testBinaryNormalization)
         EXPECT_NEAR(src[node], mean, 0.01);
     }
 
-    // ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿è¨­å®š
+    // ƒpƒ‰ƒ[ƒ^İ’è
     for (int node = 0; node < node_size; ++node) {
         scale->SetParameter(node, gain[node], offset[node]);
     }
@@ -65,7 +65,7 @@ TEST(BinaryNormalizationTest, testBinaryNormalization)
     // forward
     auto y_buf = scale->Forward(x_buf);
 
-    // å‡ºåŠ›é »åº¦è¨ˆæ¸¬
+    // o—Í•p“xŒv‘ª
     for (int node = 0; node < node_size; ++node) {
         int sum = 0;
         for (int frame = 0; frame < frame_size; ++frame) {

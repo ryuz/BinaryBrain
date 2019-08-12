@@ -61,6 +61,7 @@
     <ClCompile Include="SparseLutNTest.cpp" />
     <ClCompile Include="StochasticLutNTest.cpp" />
     <ClCompile Include="TensorTest.cpp" />
+    <ClCompile Include="UpSamplingTest.cpp" />
     <ClCompile Include="VariablesTest.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -74,6 +75,7 @@
     <ClInclude Include="..\..\include\bb\BinaryScaling.h" />
     <ClInclude Include="..\..\include\bb\BinaryToReal.h" />
     <ClInclude Include="..\..\include\bb\ConcatenateCoefficient.h" />
+    <ClInclude Include="..\..\include\bb\ConnectionTable.h" />
     <ClInclude Include="..\..\include\bb\ConvolutionCol2Im.h" />
     <ClInclude Include="..\..\include\bb\ConvolutionIm2Col.h" />
     <ClInclude Include="..\..\include\bb\CudaUtility.h" />
@@ -83,6 +85,7 @@
     <ClInclude Include="..\..\include\bb\Dropout.h" />
     <ClInclude Include="..\..\include\bb\ExportVerilog.h" />
     <ClInclude Include="..\..\include\bb\Filter2d.h" />
+    <ClInclude Include="..\..\include\bb\FixedSizeConnectionTable.h" />
     <ClInclude Include="..\..\include\bb\FrameBuffer.h" />
     <ClInclude Include="..\..\include\bb\HardTanh.h" />
     <ClInclude Include="..\..\include\bb\LoadCifar10.h" />
@@ -121,6 +124,7 @@
     <ClInclude Include="..\..\include\bb\SparseLayer.h" />
     <ClInclude Include="..\..\include\bb\SparseLutDiscreteN.h" />
     <ClInclude Include="..\..\include\bb\SparseLutN.h" />
+    <ClInclude Include="..\..\include\bb\SparseN.h" />
     <ClInclude Include="..\..\include\bb\StochasticBatchNormalization.h" />
     <ClInclude Include="..\..\include\bb\StochasticLutN.h" />
     <ClInclude Include="..\..\include\bb\StochasticLutSimd.h" />
@@ -130,6 +134,7 @@
     <ClInclude Include="..\..\include\bb\Tensor.h" />
     <ClInclude Include="..\..\include\bb\TensorOperator.h" />
     <ClInclude Include="..\..\include\bb\UniformDistributionGenerator.h" />
+    <ClInclude Include="..\..\include\bb\UpSampling.h" />
     <ClInclude Include="..\..\include\bb\Utility.h" />
     <ClInclude Include="..\..\include\bb\ValueGenerator.h" />
     <ClInclude Include="..\..\include\bb\Variables.h" />
