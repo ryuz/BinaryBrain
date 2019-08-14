@@ -270,7 +270,8 @@ public:
 #endif
 
 #ifdef BB_WITH_CUDA
-        if ( DataType<FT>::type == BB_TYPE_BIT && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+        if ( m_filter_w_size * m_filter_h_size <= 1024 / 32
+            && DataType<FT>::type == BB_TYPE_BIT && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
             // bit CUDA
             auto ptr_x = x_buf.LockDeviceMemoryConst();
             auto ptr_y = y_buf.LockDeviceMemory();

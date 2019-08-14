@@ -19,6 +19,7 @@ void MnistStochasticLutSimple(int epoch_size, int mini_batch_size,              
 void MnistStochasticLutCnn   (int epoch_size, int mini_batch_size,                            int test_modulation_size, bool binary_mode, bool file_read);
 void MnistSparseLutSimple    (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistSparseLutCnn       (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistSparseLutCnnDa     (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistMicroMlpLutSimple  (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistMicroMlpLutCnn     (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistDenseSimple        (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
@@ -26,6 +27,9 @@ void MnistDenseCnn           (int epoch_size, int mini_batch_size, int train_mod
 void MnistCustomModel        (int epoch_size, int mini_batch_size,                                                      bool binary_mode                );
 void MnistAeSparseLutSimple  (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistAeSparseLutCnn     (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+
+void MnistValidationSparseLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistValidationSparseLutCnn   (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 
 
 // メイン関数
@@ -133,6 +137,10 @@ int main(int argc, char *argv[])
         MnistSparseLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
+    if ( netname == "SparseLutCnnDa" ) {
+        MnistSparseLutCnnDa(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    }
+
     if ( netname == "All" || netname == "MicroMlpLutSimple" ) {
         MnistMicroMlpLutSimple(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
@@ -160,6 +168,15 @@ int main(int argc, char *argv[])
     // (おまけ)レイヤー内部を自分で書く人向けサンプル
     if ( strcmp(argv[1], "Custom") == 0 ) {
         MnistCustomModel(epoch_size, mini_batch_size, binary_mode);
+    }
+
+
+    if ( netname == "ValidationSparseLutSimple" ) {
+        MnistValidationSparseLutSimple(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    }
+
+    if ( netname == "ValidationSparseLutCnn" ) {
+        MnistValidationSparseLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
     return 0;

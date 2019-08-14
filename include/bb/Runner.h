@@ -34,7 +34,8 @@ template <typename T>
 class Runner
 {
 protected:
-    using callback_proc_t = void (*)(std::shared_ptr< Model >, void*);
+    using callback_proc_t          = void (*)(std::shared_ptr< Model >, void*);
+    using data_augmentation_proc_t = void (*)(TrainData<T>&, std::uint64_t, void*);
 
     std::string                         m_name;
     std::shared_ptr<Model>              m_net;
@@ -60,6 +61,9 @@ protected:
     
     callback_proc_t                     m_callback_proc = nullptr;
     void                                *m_callback_user = 0;
+
+    data_augmentation_proc_t            m_data_augmentation_proc = nullptr;
+    void                                *m_data_augmentation_user = 0;
     
 public:
     struct create_t
@@ -82,6 +86,8 @@ public:
         std::int64_t                        seed = 1;                           //< 乱数初期値
         callback_proc_t                     callback_proc = nullptr;            //< コールバック関数
         void*                               callback_user = 0;                  //< コールバック関数のユーザーパラメータ
+        data_augmentation_proc_t            data_augmentation_proc = nullptr;   //< Data Augmentation用処理挿入
+        void*                               data_augmentation_user = 0;         //< コールバック関数のユーザーパラメータ
     };
 
 protected:
@@ -107,6 +113,8 @@ protected:
         m_initial_evaluation      = create.initial_evaluation;
         m_callback_proc           = create.callback_proc;
         m_callback_user           = create.callback_user;
+        m_data_augmentation_proc  = create.data_augmentation_proc;
+        m_data_augmentation_user  = create.data_augmentation_user;
         
         m_mt.seed(create.seed);
 
@@ -371,9 +379,14 @@ public:
             auto start_time = std::chrono::system_clock::now();
 
             for (int epoch = 0; epoch < epoch_size; ++epoch) {
+                auto td_work = td;
+                if ( m_data_augmentation_proc != nullptr ) {
+                    m_data_augmentation_proc(td_work, m_mt(), m_data_augmentation_user);
+                }
+
                 // 学習実施
                 m_epoch++;
-                auto train_accuracy = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, batch_size,
+                auto train_accuracy = Calculation(td_work.x_train, td_work.x_shape, td_work.t_train, td_work.t_shape, batch_size, batch_size,
                                         m_metricsFunc, m_lossFunc, m_optimizer, true, m_print_progress, m_print_progress_loss, m_print_progress_accuracy);
 
                 // ネット保存
@@ -410,8 +423,8 @@ public:
                 // 学習状況評価
                 {
                     double now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
-                    auto test_metrics  = Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
-                    auto train_metrics = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
+                    auto test_metrics  = Calculation(td_work.x_test,  td_work.x_shape, td_work.t_test,  td_work.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
+                    auto train_metrics = Calculation(td_work.x_train, td_work.x_shape, td_work.t_train, td_work.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
                     log_stream  << std::setw(10) << std::fixed << std::setprecision(2) << now_time << "s "
                                 << "epoch[" << std::setw(3) << m_epoch << "] "
                                 << "test "  << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << test_metrics  << " "

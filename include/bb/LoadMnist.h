@@ -156,6 +156,91 @@ public:
         }
         return td;
     }
+
+    
+    static void MakeValidationData(
+        std::vector< std::vector<T> > const &src_img,
+        std::vector< std::vector<T> >       &dst_img,
+        std::vector< std::vector<T> >       &dst_t,
+        int                                 size,
+        std::uint64_t                       seed=1,
+        int                                 unit=256,
+        int                                 xn=8,
+        int                                 yn=8)
+    {
+        int w = 28;
+        int h = 28;
+
+        std::mt19937_64 mt(seed);
+
+        int array_width  = w*(xn+1);
+        int array_height = h*(yn+1);
+        std::vector<T>  array_img(array_width*array_height, 0);
+
+        for ( int i = 0; i < size; ++i ) {
+            if ( i % unit == 0 ) {
+                // 画像作成
+                for ( int blk_y = 0; blk_y < xn; ++blk_y ) {
+                    for ( int blk_x = 0; blk_x < xn; ++blk_x) {
+                        int idx = (int)(mt() % src_img.size());
+                        for ( int y = 0; y < h; ++y ) {
+                            for ( int x = 0; x < w; ++x) {
+                                int xx = blk_x * w + x + (w/2);
+                                int yy = blk_y * h + y + (h/2);
+                                array_img[array_width*yy + xx] = src_img[idx][y*w+x];
+                            }
+                        }
+                    }
+                }
+            }
+
+            int base_x = (int)(mt() % (w * xn));
+            int base_y = (int)(mt() % (h * yn));
+
+            std::vector<T>  img(w*h);
+            std::vector<T>  t(1);
+            for ( int y = 0; y < h; ++y ) {
+                for ( int x = 0; x < w; ++x) {
+                    int xx = base_x + x;
+                    int yy = base_y + y;
+                    img[y*w+x] = array_img[array_width*yy + xx];
+                }
+            }
+            int off_x = base_x % w; 
+            int off_y = base_y % h;
+            t[0] = 0;
+            if ( off_x >= (w/2 - 3) && off_x < (w/2 + 3) && off_y >= (h/2 - 3) && off_y < (h/2 + 3) ) {
+                t[0] = (T)1.0;
+            }
+            else if ( off_x >= (w/2 - 5) && off_x < (w/2 + 5) && off_y >= (h/2 - 5) && off_y < (h/2 + 5) ) {
+                t[0] = (T)0.5;
+            }
+
+            // 追加
+            dst_img.push_back(img);
+            dst_t.push_back(t);
+        }
+    }
+
+
+    static TrainData<T> LoadValidation(int max_train = -1, int max_test = -1)
+    {
+        // load MNIST data
+        auto td_src = bb::LoadMnist<>::Load(10, max_train, max_test);
+
+        // make validation data
+        int train_size = (int)td_src.x_train.size();
+        int test_size  = (int)td_src.x_test.size();
+        bb::TrainData<T> td;
+        td.x_shape = bb::indices_t({28, 28, 1});
+        td.t_shape = bb::indices_t({1});
+        MakeValidationData(td_src.x_train, td.x_train, td.t_train, 60000, 1);
+        MakeValidationData(td_src.x_test,  td.x_test,  td.t_test,  10000, 2);
+
+        return td;
+    }
+
+
 };
 
 
