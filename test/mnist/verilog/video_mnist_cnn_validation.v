@@ -45,13 +45,14 @@ module video_mnist_cnn_validation
 			output	wire	[M_TNUMBER_WIDTH-1:0]		m_axi4s_tnumber,
 			output	wire	[M_TCOUNT_WIDTH-1:0]		m_axi4s_tcount,
 			output	wire	[M_CLUSTERING_WIDTH-1:0]	m_axi4s_tclustering,
+			output	wire	[0:0]						m_axi4s_tvalidation,
 			output	wire								m_axi4s_tvalid,
 			input	wire								m_axi4s_tready,
 			
-			output	wire	[TUSER_WIDTH-1:0]			m_axi4s_validation_tuser,
-			output	wire								m_axi4s_validation_tlast,
-			output	wire	[0:0]						m_axi4s_validation_tdata,
-			output	wire								m_axi4s_validation_tvalid,
+			output	wire	[TUSER_WIDTH-1:0]			m_axi4s_val_tuser,
+			output	wire								m_axi4s_val_tlast,
+			output	wire	[0:0]						m_axi4s_val_tdata,
+			output	wire								m_axi4s_val_tvalid,
 			
 			input	wire								s_wb_rst_i,
 			input	wire								s_wb_clk_i,
@@ -105,11 +106,11 @@ module video_mnist_cnn_validation
 	
 	
 	// DNN
-	wire	[TUSER_WIDTH-1:0]			axi4s_val_tuser;
-	wire								axi4s_val_tlast;
-	wire	[M_CLUSTERING_WIDTH-1:0]	axi4s_val_tclustering;
-	wire								axi4s_val_tvalid;
-	wire								axi4s_val_tready;
+	wire	[TUSER_WIDTH-1:0]			axi4s_vali_tuser;
+	wire								axi4s_vali_tlast;
+	wire	[0:0]						axi4s_vali_tdata;
+	wire								axi4s_vali_tvalid;
+	wire								axi4s_vali_tready;
 	
 	video_mnist_cnn_validation_core
 			#(
@@ -120,7 +121,7 @@ module video_mnist_cnn_validation
 				.IMG_Y_WIDTH		(IMG_Y_WIDTH),
 				
 				.S_TDATA_WIDTH		(1),
-				.M_TDATA_WIDTH		(M_CLUSTERING_WIDTH),
+				.M_TDATA_WIDTH		(1),
 				.TUSER_WIDTH		(TUSER_WIDTH),
 				
 				.DEVICE				(DEVICE)
@@ -138,11 +139,11 @@ module video_mnist_cnn_validation
 				.s_axi4s_tvalid		(axi4s_bin_tvalid & axi4s_bin_tready),
 				.s_axi4s_tready		(),
 				
-				.m_axi4s_tuser		(axi4s_val_tuser),
-				.m_axi4s_tlast		(axi4s_val_tlast),
-				.m_axi4s_tdata		(axi4s_val_tdata),
-				.m_axi4s_tvalid		(axi4s_val_tvalid),
-				.m_axi4s_tready		(axi4s_val_tready)
+				.m_axi4s_tuser		(axi4s_vali_tuser),
+				.m_axi4s_tlast		(axi4s_vali_tlast),
+				.m_axi4s_tdata		(axi4s_vali_tdata),
+				.m_axi4s_tvalid		(axi4s_vali_tvalid),
+				.m_axi4s_tready		(axi4s_vali_tready)
 			);
 	
 	
@@ -187,14 +188,14 @@ module video_mnist_cnn_validation
 				.m_axi4s_tready		(axi4s_dnn_tready)
 			);
 	
-	assign axi4s_val_tready = axi4s_dnn_tready;
+	assign axi4s_vali_tready = axi4s_dnn_tready;
 	
 	
 	video_dnn_max_count
 			#(
 				.NUM_CALSS			(NUM_CALSS),
 				.CHANNEL_WIDTH		(CHANNEL_WIDTH),
-				.TUSER_WIDTH		(TUSER_WIDTH),
+				.TUSER_WIDTH		(TUSER_WIDTH + 1),
 				.TNUMBER_WIDTH		(4),
 				.TCOUNT_WIDTH		(4)
 			)
@@ -203,13 +204,13 @@ module video_mnist_cnn_validation
 				.aresetn			(aresetn),
 				.aclk				(aclk),
 				
-				.s_axi4s_tuser		(axi4s_dnn_tuser),
+				.s_axi4s_tuser		({axi4s_dnn_tuser, axi4s_vali_tdata}),
 				.s_axi4s_tlast		(axi4s_dnn_tlast),
 				.s_axi4s_tdata		(axi4s_dnn_tclustering),
 				.s_axi4s_tvalid		(axi4s_dnn_tvalid),
 				.s_axi4s_tready		(axi4s_dnn_tready),
 				
-				.m_axi4s_tuser		(m_axi4s_tuser),
+				.m_axi4s_tuser		({m_axi4s_tuser, m_axi4s_tvalidation}),
 				.m_axi4s_tlast		(m_axi4s_tlast),
 				.m_axi4s_tnumber	(m_axi4s_tnumber),
 				.m_axi4s_tcount		(m_axi4s_tcount),

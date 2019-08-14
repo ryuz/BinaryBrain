@@ -9,15 +9,15 @@
 `default_nettype none
 
 
-module tb_mnist_lut_cnn_da();
+module tb_mnist_lut_cnn_validation();
 	localparam RATE = 1000.0/300.0;
 	
 	initial begin
-		$dumpfile("tb_mnist_lut_cnn_da.vcd");
-		$dumpvars(3, tb_mnist_lut_cnn_da);
-//		$dumpvars(0, tb_mnist_lut_cnn_da.i_video_mnist_color);
-//		$dumpvars(3, tb_mnist_lut_cnn_da.i_video_mnist);
-//		$dumpvars(4, tb_mnist_lut_cnn_da.i_video_mnist.i_video_mnist_core);
+		$dumpfile("tb_mnist_lut_cnn_validation.vcd");
+		$dumpvars(4, tb_mnist_lut_cnn_validation);
+//		$dumpvars(0, tb_mnist_lut_cnn_validation.i_video_mnist_color);
+//		$dumpvars(3, tb_mnist_lut_cnn_validation.i_video_mnist);
+//		$dumpvars(4, tb_mnist_lut_cnn_validation.i_video_mnist.i_video_mnist_core);
 		
 		
 	#20000000
@@ -40,9 +40,9 @@ module tb_mnist_lut_cnn_da();
 	
 	
 	localparam	DATA_WIDTH         = 8;
-	localparam	NUM_CALSS          = 11;
+	localparam	NUM_CALSS          = 10;
 	localparam	CHANNEL_WIDTH      = 7;
-			
+	
 	localparam	IMG_Y_WIDTH        = 12;
 	
 	localparam	TUSER_WIDTH        = 1;
@@ -50,7 +50,7 @@ module tb_mnist_lut_cnn_da();
 	
 	localparam	M_TNUMBER_WIDTH    = 4;
 	localparam	M_TCOUNT_WIDTH     = 4;
-	localparam	M_CLUSTERING_WIDTH = NUM_CALSS * CHANNEL_WIDTH;
+	localparam	M_CLUSTERING_WIDTH = 70;
 	
 	localparam	WB_ADR_WIDTH       = 8;
 	localparam	WB_DAT_WIDTH       = 32;
@@ -128,13 +128,9 @@ module tb_mnist_lut_cnn_da();
 	wire	[M_TNUMBER_WIDTH-1:0]		m_axi4s_tnumber;
 	wire	[M_TCOUNT_WIDTH-1:0]		m_axi4s_tcount;
 	wire	[M_CLUSTERING_WIDTH-1:0]	m_axi4s_tclustering;
+	wire	[0:0]						m_axi4s_tvalidation;
 	wire								m_axi4s_tvalid;
 	wire								m_axi4s_tready;
-	
-	wire	[TUSER_WIDTH-1:0]			axi4s_validation_tuser;
-	wire								axi4s_validation_tlast;
-	wire	[0:0]						axi4s_validation_tdata;
-	wire								axi4s_validation_tvalid;
 	
 	wire								s_wb_rst_i = reset;
 	wire								s_wb_clk_i = clk;
@@ -146,11 +142,11 @@ module tb_mnist_lut_cnn_da();
 	wire								s_wb_stb_i;
 	wire								s_wb_ack_o;
 	
-	video_mnist_cnn_da
+	video_mnist_cnn_validation
 			#(
+				.DATA_WIDTH				(DATA_WIDTH),
 				.NUM_CALSS				(NUM_CALSS),
 				.CHANNEL_WIDTH			(CHANNEL_WIDTH),
-				.DATA_WIDTH				(DATA_WIDTH),
 				.IMG_Y_NUM				(IMG_Y_NUM),
 				.IMG_Y_WIDTH			(IMG_Y_WIDTH),
 				.TUSER_WIDTH			(TUSER_WIDTH),
@@ -161,7 +157,7 @@ module tb_mnist_lut_cnn_da();
 				.INIT_PARAM_TH			(INIT_PARAM_TH),
 				.INIT_PARAM_INV			(INIT_PARAM_INV)
 			)
-		i_video_mnist_cnn_da
+		i_video_mnist_cnn_validation
 			(
 				.aresetn				(~reset),
 				.aclk					(clk),
@@ -177,13 +173,9 @@ module tb_mnist_lut_cnn_da();
 				.m_axi4s_tclustering	(m_axi4s_tclustering),
 				.m_axi4s_tnumber		(m_axi4s_tnumber),
 				.m_axi4s_tcount			(m_axi4s_tcount),
+				.m_axi4s_tvalidation	(m_axi4s_tvalidation),
 				.m_axi4s_tvalid			(m_axi4s_tvalid),
 				.m_axi4s_tready			(m_axi4s_tready),
-				
-				.m_axi4s_validation_tuser	(axi4s_validation_tuser),
-				.m_axi4s_validation_tlast	(axi4s_validation_tlast),
-				.m_axi4s_validation_tdata	(axi4s_validation_tdata),
-				.m_axi4s_validation_tvalid	(axi4s_validation_tvalid),
 				
 				.s_wb_rst_i				(s_wb_rst_i),
 				.s_wb_clk_i				(s_wb_clk_i),
@@ -208,7 +200,7 @@ module tb_mnist_lut_cnn_da();
 				.DATA_WIDTH			(DATA_WIDTH),
 				.TUSER_WIDTH		(1),
 				.INIT_PARAM_MODE	(2'b10),
-				.INIT_PARAM_TH		(1)
+				.INIT_PARAM_TH		(7)
 			)
 		i_video_mnist_color
 			(
@@ -222,6 +214,7 @@ module tb_mnist_lut_cnn_da();
 				.s_axi4s_tdata		(32'h00202020),		// (m_axi4s_tdata),
 				.s_axi4s_tbinary	(1'b0),				// (m_axi4s_tbinary),
 				.s_axi4s_tvalid		(m_axi4s_tvalid),
+				.s_axi4s_tvalidation(m_axi4s_tvalidation),
 				.s_axi4s_tready		(m_axi4s_tready),
 				
 				.m_axi4s_tuser		(axi4s_color_tuser),
@@ -241,36 +234,6 @@ module tb_mnist_lut_cnn_da();
 				.s_wb_ack_o			()
 		);
 	
-	
-	// 出力結果を保存 (サイズは 1/28 )
-	jelly_axi4s_slave_model
-			#(
-				.COMPONENT_NUM		(1),
-				.DATA_WIDTH			(1),
-				.INIT_FRAME_NUM		(0),
-				.FRAME_WIDTH		(32),
-				.X_WIDTH			(32),
-				.Y_WIDTH			(32),
-				.FILE_NAME			("val_%1d.pgm"),
-				.MAX_PATH			(64),
-				.BUSY_RATE			(0),
-				.RANDOM_SEED		(1234)
-			)
-		jelly_axi4s_slave_model_validation
-			(
-				.aresetn			(~reset),
-				.aclk				(clk),
-				.aclken				(1'b1),
-				
-				.param_width		(IMG_X_NUM),
-				.param_height		(IMG_Y_NUM),
-				
-				.s_axi4s_tuser		(axi4s_validation_tuser),
-				.s_axi4s_tlast		(axi4s_validation_tlast),
-				.s_axi4s_tdata		(axi4s_validation_tdata),
-				.s_axi4s_tvalid		(axi4s_validation_tvalid),
-				.s_axi4s_tready		()
-			);
 	
 	
 	// 出力結果を保存 (サイズは 1/28 )
@@ -301,6 +264,35 @@ module tb_mnist_lut_cnn_da();
 				.s_axi4s_tdata		({axi4s_color_tdata[7:0], axi4s_color_tdata[15:8], axi4s_color_tdata[23:16]}),
 				.s_axi4s_tvalid		(axi4s_color_tvalid),
 				.s_axi4s_tready		(axi4s_color_tready)
+			);
+	
+	jelly_axi4s_slave_model
+			#(
+				.COMPONENT_NUM		(1),
+				.DATA_WIDTH			(1),
+				.INIT_FRAME_NUM		(0),
+				.FRAME_WIDTH		(32),
+				.X_WIDTH			(32),
+				.Y_WIDTH			(32),
+				.FILE_NAME			("val_%1d.pgm"),
+				.MAX_PATH			(64),
+				.BUSY_RATE			(0),
+				.RANDOM_SEED		(1234)
+			)
+		jelly_axi4s_slave_model_validation
+			(
+				.aresetn			(~reset),
+				.aclk				(clk),
+				.aclken				(1'b1),
+				
+				.param_width		(IMG_X_NUM/4),
+				.param_height		(IMG_Y_NUM/4),
+				
+				.s_axi4s_tuser		(m_axi4s_tuser),
+				.s_axi4s_tlast		(m_axi4s_tlast),
+				.s_axi4s_tdata		(m_axi4s_tvalidation),
+				.s_axi4s_tvalid		(m_axi4s_tvalid & m_axi4s_tready),
+				.s_axi4s_tready		()
 			);
 	
 	

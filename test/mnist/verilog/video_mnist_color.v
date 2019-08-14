@@ -36,6 +36,7 @@ module video_mnist_color
 			input	wire	[TCOUNT_WIDTH-1:0]		s_axi4s_tcount,
 			input	wire	[TDATA_WIDTH-1:0]		s_axi4s_tdata,
 			input	wire	[0:0]					s_axi4s_tbinary,
+			input	wire	[0:0]					s_axi4s_tvalidation,
 			input	wire							s_axi4s_tvalid,
 			output	wire							s_axi4s_tready,
 			
@@ -57,7 +58,7 @@ module video_mnist_color
 		);
 	
 	
-	reg		[1:0]					reg_param_mode;
+	reg		[2:0]					reg_param_mode;
 	reg		[TCOUNT_WIDTH-1:0]		reg_param_th;
 	always @(posedge s_wb_clk_i) begin
 		if ( s_wb_rst_i ) begin
@@ -80,7 +81,7 @@ module video_mnist_color
 	assign s_wb_ack_o = s_wb_stb_i;
 	
 	
-	(* ASYNC_REG="true" *)	reg			[1:0]				ff0_param_mode, ff1_param_mode;
+	(* ASYNC_REG="true" *)	reg			[2:0]				ff0_param_mode, ff1_param_mode;
 	(* ASYNC_REG="true" *)	reg			[TCOUNT_WIDTH-1:0]	ff0_param_th,   ff1_param_th;
 	always @(posedge aclk) begin
 		ff0_param_mode <= reg_param_mode;
@@ -112,6 +113,7 @@ module video_mnist_color
 				.s_axi4s_tcount		(s_axi4s_tcount),
 				.s_axi4s_tdata		(s_axi4s_tdata),
 				.s_axi4s_tbinary	(s_axi4s_tbinary),
+				.s_axi4s_tvalidation(s_axi4s_tvalidation),
 				.s_axi4s_tvalid		(s_axi4s_tvalid),
 				.s_axi4s_tready		(s_axi4s_tready),
 				

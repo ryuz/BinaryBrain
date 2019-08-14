@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-module video_mnist_cnn_da_core
+module video_mnist_cnn_validation_core
 		#(
 			parameter	TUSER_WIDTH    = 1,
 			
@@ -25,7 +25,7 @@ module video_mnist_cnn_da_core
 			parameter	INIT_Y_NUM     = IMG_Y_NUM,
 			
 			parameter	S_TDATA_WIDTH  = 1,
-			parameter	M_TDATA_WIDTH  = 70,
+			parameter	M_TDATA_WIDTH  = 1,
 
 			parameter	RAM_TYPE       = "block",
 			parameter	FIFO_PTR_WIDTH = 9,
@@ -54,8 +54,8 @@ module video_mnist_cnn_da_core
 			input	wire						m_axi4s_tready
 		);
 	
-	localparam	L0_TDATA_WIDTH = 32;
-	localparam	L1_TDATA_WIDTH = 64;
+	localparam	L0_TDATA_WIDTH = 16;
+	localparam	L1_TDATA_WIDTH = 32;
 	localparam	L2_TDATA_WIDTH = M_TDATA_WIDTH;
 	
 	

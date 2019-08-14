@@ -109,7 +109,9 @@ void DataAugmentationProc(bb::TrainData<>& td, std::uint64_t seed, void *user)
 
 void MnistSparseLutCnnDa(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "MnistSparseLutCnnDa7";
+    int N = 7;
+
+    std::string net_name = "MnistSparseLutCnnDa" + std::to_string(N);
 
   // load MNIST data
 #ifdef _DEBUG
@@ -161,10 +163,10 @@ void MnistSparseLutCnnDa(int epoch_size, int mini_batch_size, int train_modulati
     auto layer_sl6      = bb::SparseLutN<6, bb::Bit>::Create(66);
     auto layer_sl7      = bb::SparseLutN<6, bb::Bit>::Create(11);
 #else
-    auto layer_sl4      = bb::SparseLutN<6, bb::Bit>::Create(1024);
-    auto layer_sl5      = bb::SparseLutN<6, bb::Bit>::Create(360*7);
-    auto layer_sl6      = bb::SparseLutN<6, bb::Bit>::Create(60*7);
-    auto layer_sl7      = bb::SparseLutN<6, bb::Bit>::Create(10*7);
+    auto layer_sl4      = bb::SparseLutN<6, bb::Bit>::Create(N*1024);
+    auto layer_sl5      = bb::SparseLutN<6, bb::Bit>::Create(N*360);
+    auto layer_sl6      = bb::SparseLutN<6, bb::Bit>::Create(N*60);
+    auto layer_sl7      = bb::SparseLutN<6, bb::Bit>::Create(N*10);
 #endif
 
     {

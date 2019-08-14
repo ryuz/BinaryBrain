@@ -23,7 +23,7 @@ module video_mnist_color_core
 			input	wire						aresetn,
 			input	wire						aclk,
 			
-			input	wire	[1:0]				param_mode,
+			input	wire	[2:0]				param_mode,
 			input	wire	[TCOUNT_WIDTH-1:0]	param_th,
 			
 			input	wire	[TUSER_WIDTH-1:0]	s_axi4s_tuser,
@@ -32,6 +32,7 @@ module video_mnist_color_core
 			input	wire	[TCOUNT_WIDTH-1:0]	s_axi4s_tcount,
 			input	wire	[TDATA_WIDTH-1:0]	s_axi4s_tdata,
 			input	wire	[0:0]				s_axi4s_tbinary,
+			input	wire	[0:0]				s_axi4s_tvalidation,
 			input	wire						s_axi4s_tvalid,
 			output	wire						s_axi4s_tready,
 			
@@ -73,7 +74,7 @@ module video_mnist_color_core
 			st0_user   <= s_axi4s_tuser;
 			st0_last   <= s_axi4s_tlast;
 			st0_data   <= param_mode[0] ? {TDATA_WIDTH{s_axi4s_tbinary}} : s_axi4s_tdata;
-			st0_en     <= (param_mode[1] && (s_axi4s_tcount >= param_th));
+			st0_en     <= (param_mode[1] && (s_axi4s_tcount >= param_th)) && (s_axi4s_tvalidation || param_mode[2]);
 			case ( s_axi4s_tnumber )
 			4'd0:		st0_color <= 24'h00_00_00;	// 黒
 			4'd1:		st0_color <= 24'h00_00_80;	// 茶
@@ -87,6 +88,7 @@ module video_mnist_color_core
 			4'd9:		st0_color <= 24'hff_ff_ff;	// 白
 			default:	st0_color <= {s_axi4s_tdata[7:0], s_axi4s_tdata[15:8], s_axi4s_tdata[23:16]};
 			endcase
+			
 			st0_valid  <= s_axi4s_tvalid;
 			
 			st1_user   <= st0_user;
