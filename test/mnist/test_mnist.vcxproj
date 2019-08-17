@@ -358,6 +358,7 @@
     <ClCompile Include="MnistMicroMlpScratch.cpp" />
     <ClCompile Include="MnistSparseLutCnn.cpp" />
     <ClCompile Include="MnistSparseLutCnnDa.cpp" />
+    <ClCompile Include="MnistSparseLutCnnDa2.cpp" />
     <ClCompile Include="MnistSparseLutSimple.cpp" />
     <ClCompile Include="MnistStochasticLutCnn.cpp" />
     <ClCompile Include="MnistStochasticLutSimple.cpp" />

@@ -33,8 +33,8 @@ void ImageAugmentation(std::vector<T>& img_src, std::mt19937_64& mt)
 //    std::normal_distribution<double>        norm_dist(0.0, 1.0);
     double angle   = uniform_dist(mt) * 10 - 5;
     double scale   = uniform_dist(mt) * 0.5 + 0.7;
-    double shift_x = uniform_dist(mt) * 6 - 3;
-    double shift_y = uniform_dist(mt) * 6 - 3;
+    double shift_x = uniform_dist(mt) * 12 - 6;
+    double shift_y = uniform_dist(mt) * 12 - 6;
 
     cv::Mat mat = cv::getRotationMatrix2D(cv::Point2f(width/2, height/2), angle, scale);
     mat.at<double>(0, 2) += shift_x;
@@ -163,9 +163,9 @@ void MnistSparseLutCnnDa(int epoch_size, int mini_batch_size, int train_modulati
     auto layer_sl6      = bb::SparseLutN<6, bb::Bit>::Create(66);
     auto layer_sl7      = bb::SparseLutN<6, bb::Bit>::Create(11);
 #else
-    auto layer_sl4      = bb::SparseLutN<6, bb::Bit>::Create(N*1024);
-    auto layer_sl5      = bb::SparseLutN<6, bb::Bit>::Create(N*360);
-    auto layer_sl6      = bb::SparseLutN<6, bb::Bit>::Create(N*60);
+    auto layer_sl4      = bb::SparseLutN<6, bb::Bit>::Create(512);
+    auto layer_sl5      = bb::SparseLutN<6, bb::Bit>::Create(N*10*6*6);
+    auto layer_sl6      = bb::SparseLutN<6, bb::Bit>::Create(N*10*6);
     auto layer_sl7      = bb::SparseLutN<6, bb::Bit>::Create(N*10);
 #endif
 
