@@ -10,7 +10,7 @@ EXT_SUFFIX   = $(shell $(PYTHON)-config --extension-suffix)
 
 # target
 TARGET_NAME = binarybrain
-TARGET = $(PACKAGE_PATH)$(TARGET_NAME)$(EXT_SUFFIX)
+TARGET = $(PACKAGE_PATH)/$(TARGET_NAME)$(EXT_SUFFIX)
 SUB_TARGETS =
 
 
@@ -70,7 +70,7 @@ all: $(SUB_TARGET) $(TARGET)
 
 .PHONY: clean
 clean:
-	rm -f $(TARGET) *.o
+	rm -f $(TARGET) $(OBJS)
 
 .PHONY: mostlyclean
 mostlyclean: clean
@@ -84,7 +84,7 @@ $(TARGET): $(OBJS)
 	$(CC) -o $(TARGET) $(CFLAGS) $(CINCS) $(CDEFS) $(OBJS) $(LIBS)
 
 .cpp.o:
-	$(CC) $(CFLAGS) $(CINCS) $(CDEFS) -c $<
+	$(CC) $(CFLAGS) $(CINCS) $(CDEFS) -c $< -o $@
 
 depend: $(SRCS)
 	$(CC) -M $(CFLAGS) $(CINCS) $(CDEFS) $^ > $@

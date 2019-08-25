@@ -1,4 +1,4 @@
-import binarybrain as bb
+from binarybrain import binarybrain as bb
 from tqdm import tqdm
 import time
 import numpy as np
@@ -16,7 +16,7 @@ layer_sl1 = bb.SparseLut6.Create([480])
 layer_sl2 = bb.SparseLut6.Create([70])
 
 # create network
-main_net = bb.Sequential.Create();
+main_net = bb.Sequential.Create()
 main_net.Add(layer_sl0)
 main_net.Add(layer_sl1)
 main_net.Add(layer_sl2)
@@ -45,12 +45,8 @@ if False:
     runner    = bb.Runner.Create("mnist-mlp-sparse-lut6", net, loss, metrics, optimizer)
     runner.Fitting(td, epoch_size=1, batch_size=16)
 
-#x_train = np.array(td.x_train)
-#t_train = np.array(td.t_train)
 x_train = td.x_train
 t_train = td.t_train
-print(type(td.x_train))
-print(type(x_train))
 
 x_buf = bb.FrameBuffer(bb.fp32, 16, td.x_shape, False)
 t_buf = bb.FrameBuffer(bb.fp32, 16, td.t_shape, False)
@@ -60,22 +56,18 @@ for epoch_number in range(epoch):
         mini_batch_size = min(mini_batch, batch_size-index)
         
         x_buf.Resize(bb.fp32, mini_batch_size, td.x_shape)
-#       x_buf.SetVector(list(x_train[index:index+mini_batch_size]))
         x_buf.SetVector(x_train[index:index+mini_batch_size])
         
-        y_buf = net.Forward(x_buf);
+        y_buf = net.Forward(x_buf)
         
         t_buf.Resize(bb.fp32, mini_batch_size, td.t_shape)
-#       t_buf.SetVector(list(t_train[index:index+mini_batch_size]))
         t_buf.SetVector(t_train[index:index+mini_batch_size])
         
         dy_buf = loss.CalculateLoss(y_buf, t_buf, mini_batch_size)
-        metrics.CalculateMetrics(y_buf, t_buf);
-        dx_buf = net.Backward(dy_buf);
+        metrics.CalculateMetrics(y_buf, t_buf)
+        dx_buf = net.Backward(dy_buf)
         
-        optimizer.Update();
+        optimizer.Update()
     
     print('loss =', loss.GetLoss())
     print('metrics =', metrics.GetMetrics())
-
-
