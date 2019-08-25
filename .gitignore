@@ -4,6 +4,7 @@
 *.o
 *.a
 *.tmp
+*.so
 
 *.obj
 *.exe
