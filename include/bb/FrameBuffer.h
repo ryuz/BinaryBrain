@@ -303,7 +303,7 @@ public:
      * @param shape      1フレームのノードを構成するshape
      * @param data_type  1ノードのデータ型
      */
-    explicit FrameBuffer(int data_type, index_t frame_size, std::vector<index_t> shape, bool hostOnly=false) : m_tensor(hostOnly)
+    explicit FrameBuffer(int data_type, index_t frame_size, indices_t shape, bool hostOnly=false) : m_tensor(hostOnly)
     {
         Resize(data_type, frame_size, shape);
     }
@@ -1029,7 +1029,7 @@ public:
     inline std::uint32_t GetUINT32(index_t frame, std::vector<index_t> const & indices) { return GetValue<std::uint32_t>(frame, indices); }
     inline std::uint64_t GetUINT64(index_t frame, std::vector<index_t> const & indices) { return GetValue<std::uint64_t>(frame, indices); }
 
-
+    
     template<typename Tp>
     void SetVector(index_t frame, std::vector<Tp> const &data)
     {
@@ -1054,7 +1054,7 @@ public:
     }
 
     template<typename Tp>
-    void SetVector(std::vector< std::vector<Tp> > const &data, index_t offset)
+    void SetVector(std::vector< std::vector<Tp> > const &data, index_t offset=0)
     {
         BB_ASSERT(GetType() == DataType<Tp>::type);
         BB_ASSERT(offset + m_frame_size <= (index_t)data.size() );

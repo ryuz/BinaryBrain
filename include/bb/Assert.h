@@ -42,7 +42,7 @@ namespace bb {
 #define BB_DEBUG_ASSERT(v)  \
     do {    \
         if(!(v)) {  \
-            BB_ASSERT_ACTION("BB_DEBUG_ASSERT(" #v ") at " __FILE__ " line " + std::to_string(__LINE__) );  \
+            BB_ASSERT_ACTION("BB_ASSERT(" #v ") at " __FILE__ " line " + std::to_string(__LINE__) );  \
         }   \
     } while(0)
 #else
