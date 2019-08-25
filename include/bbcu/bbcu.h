@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "cuda_runtime.h"
+#include "bb/Assert.h"
 
 
 
@@ -21,8 +22,12 @@
 extern "C" {
 
 
-#define BBCU_ASSERT(x)          do { if (!(x)) { std::cout << "assert"; getchar(); assert(x); } } while(0)
-#define BBCU_DEBUG_ASSERT(x)    do { if (!(x)) { std::cout << "assert"; getchar(); assert(x); } } while(0)
+// -------------------------------------
+//  Assert
+// -------------------------------------
+
+#define BBCU_ASSERT(x)          do { BB_ASSERT(x); } while(0)
+#define BBCU_DEBUG_ASSERT(x)    do { BB_DEBUG_ASSERT(x); } while(0)
 
 
 

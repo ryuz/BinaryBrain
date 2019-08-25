@@ -12,6 +12,7 @@
 #include <assert.h>
 #include <cstdint>
 
+#include "bb/Assert.h"
 #include "bb/SimdSupport.h"
 
 
@@ -42,29 +43,6 @@ namespace bb {
 #define BB_TYPE_UINT32      (0x0300 + 32)
 #define BB_TYPE_UINT64      (0x0300 + 64)
 
-
-
-#define BB_ASSERT(v)    \
-    do {    \
-        if(!(v)) {  \
-            std::cout << "\nBB_ASSERT(" << #v << ") at " << __FILE__ << " line " << __LINE__ << std::endl;  \
-            for(;;);    \
-        }   \
-    } while(0)
-
-#ifdef _DEBUG
-//#define BB_DEBUG_ASSERT(v)      do { if(!(v)) { std::cout << "assert" << std::endl; for(;;);} } while(0)
-#define BB_DEBUG_ASSERT(v)  \
-    do {    \
-        if(!(v)) {  \
-            std::cout << "\nBB_DEBUG_ASSERT(" << #v << ") at " << __FILE__ << " line " << __LINE__ << std::endl;  \
-            for(;;);    \
-        }   \
-    } while(0)
-
-#else
-#define BB_DEBUG_ASSERT(v)      do{}while(0)
-#endif
 
 
 using index_t   = std::intptr_t;            // 配列の添え字(符号付き size_t としての扱い)
