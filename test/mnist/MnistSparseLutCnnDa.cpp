@@ -115,7 +115,7 @@ void MnistSparseLutCnnDa(int epoch_size, int mini_batch_size, int train_modulati
 
   // load MNIST data
 #ifdef _DEBUG
-    auto td = bb::LoadMnist<>::Load(10, 64, 32);
+    auto td = bb::LoadMnist<>::Load(64, 32);
     std::cout << "!!! debug mode !!!" << std::endl;
 #else
     auto td = bb::LoadMnist<>::Load();

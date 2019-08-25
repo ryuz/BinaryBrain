@@ -28,10 +28,10 @@ void MnistSparseLutSimple(int epoch_size, int mini_batch_size, int train_modulat
 
   // load MNIST data
 #ifdef _DEBUG
-    auto td = bb::LoadMnist<>::Load(10, 64, 32);
+    auto td = bb::LoadMnist<>::Load(64, 32);
     std::cout << "!!! debug mode !!!" << std::endl;
 #else
-    auto td = bb::LoadMnist<>::Load(10);
+    auto td = bb::LoadMnist<>::Load();
 #endif
 
 #ifdef BB_WITH_CUDA

@@ -106,10 +106,10 @@ void MnistValidationSparseLutSimple(int epoch_size, int mini_batch_size, int tra
 #if 0
   // load MNIST data
 #ifdef _DEBUG
-    auto td_src = bb::LoadMnist<>::Load(10, 64, 32);
+    auto td_src = bb::LoadMnist<>::Load(64, 32);
     std::cout << "!!! debug mode !!!" << std::endl;
 #else
-    auto td_src = bb::LoadMnist<>::Load(10);
+    auto td_src = bb::LoadMnist<>::Load();
 #endif
 
     /*
@@ -127,10 +127,10 @@ void MnistValidationSparseLutSimple(int epoch_size, int mini_batch_size, int tra
 
   // load MNIST data
 #ifdef _DEBUG
-    auto td = bb::LoadMnist<>::LoadValidation(64, 32);
+    auto td = bb::LoadMnist<>::LoadDetection(64, 32);
     std::cout << "!!! debug mode !!!" << std::endl;
 #else
-    auto td = bb::LoadMnist<>::LoadValidation();
+    auto td = bb::LoadMnist<>::LoadDetection();
 #endif
 
     int N = 1;

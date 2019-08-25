@@ -41,10 +41,10 @@ void MnistCompareRun(std::string net_name, int epoch_size, size_t mini_batch_siz
 {
   // load MNIST data
 #ifdef _DEBUG
-    auto td = bb::LoadMnist<>::Load(10, 64, 32);
+    auto td = bb::LoadMnist<>::Load(64, 32);
     std::cout << "!!! debug mode !!!" << std::endl;
 #else
-    auto td = bb::LoadMnist<>::Load(10);
+    auto td = bb::LoadMnist<>::Load();
 #endif
 
     auto main_net = bb::Sequential::Create();

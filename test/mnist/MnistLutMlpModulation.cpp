@@ -40,10 +40,10 @@ void MnistLutMlpModulation(int epoch_size, size_t mini_batch_size, bool binary_m
 
   // load MNIST data
 #ifdef _DEBUG
-    auto td = bb::LoadMnist<>::Load(10, 64, 32);
+    auto td = bb::LoadMnist<>::Load(64, 32);
     std::cout << "!!! debug mode !!!" << std::endl;
 #else
-    auto td = bb::LoadMnist<>::Load(10);
+    auto td = bb::LoadMnist<>::Load();
 #endif
 
 #ifdef _DEBUG
@@ -170,7 +170,7 @@ static void WriteMnistDataFile(std::ostream& ofs, std::vector< std::vector<float
 static void WriteMnistDataFile(std::string train_file, std::string test_file, int train_size, int test_size)
 {
     // load MNIST data
-    auto td = bb::LoadMnist<>::Load(10, train_size, test_size);
+    auto td = bb::LoadMnist<>::Load(train_size, test_size);
 
     // write train data
     {

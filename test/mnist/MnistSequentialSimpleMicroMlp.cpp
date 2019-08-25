@@ -34,9 +34,9 @@ void MnistSequentialMicroMlp(int epoch_size, size_t mini_batch_size, bool binary
 {
   // load MNIST data
 #ifdef _DEBUG
-    auto td = bb::LoadMnist<>::Load(10, 512, 128);
+    auto td = bb::LoadMnist<>::Load(512, 128);
 #else
-    auto td = bb::LoadMnist<>::Load(10);
+    auto td = bb::LoadMnist<>::Load();
 #endif
 
     auto net = bb::Sequential::Create();

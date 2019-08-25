@@ -108,7 +108,7 @@ public:
         return true;
     }
     
-    static bool ReadLabelFile(std::istream& is, std::vector< std::vector<T> >& label, int num_class = 10, int max_size = -1)
+    static bool ReadLabelFile(std::istream& is, std::vector< std::vector<T> >& label, int max_size = -1, int num_class = 10)
     {
         std::vector<uint8_t> label_u8;
         if (!ReadLabelFile(is, label_u8, max_size)) { return false;  }
@@ -124,34 +124,34 @@ public:
     }
 
     template <typename Tp>
-    static bool ReadLabelFile(std::string filename, std::vector< std::vector<Tp> >& label, int num_class = 10, int max_size = -1)
+    static bool ReadLabelFile(std::string filename, std::vector< std::vector<Tp> >& label, int max_size = -1, int num_class = 10)
     {
         std::ifstream ifs(filename, std::ios::binary);
         if (!ifs.is_open()) { 
             std::cerr << "open error : " << filename << std::endl;
             return false;
         }
-        return ReadLabelFile(ifs, label, num_class, max_size);
+        return ReadLabelFile(ifs, label, max_size, num_class);
     }
 
 
     static bool LoadData(std::vector< std::vector<T> >& x_train, std::vector< std::vector<T> >& y_train,
         std::vector< std::vector<T> >& x_test, std::vector< std::vector<T> >& y_test,
-        int num_class = 10, int max_train=-1, int max_test = -1)
+        int max_train_size=-1, int max_test_size = -1, int num_class = 10)
     {
-        if (!ReadImageFile("train-images-idx3-ubyte", x_train, max_train)) { return false; }
-        if (!ReadLabelFile("train-labels-idx1-ubyte", y_train, 10, max_train)) { return false; }
-        if (!ReadImageFile("t10k-images-idx3-ubyte", x_test, max_test)) { return false; }
-        if (!ReadLabelFile("t10k-labels-idx1-ubyte", y_test, 10, max_test)) { return false; }
+        if (!ReadImageFile("train-images-idx3-ubyte", x_train, max_train_size)) { return false; }
+        if (!ReadLabelFile("train-labels-idx1-ubyte", y_train, max_train_size, num_class)) { return false; }
+        if (!ReadImageFile("t10k-images-idx3-ubyte", x_test, max_test_size)) { return false; }
+        if (!ReadLabelFile("t10k-labels-idx1-ubyte", y_test, max_test_size, num_class)) { return false; }
         return true;
     }
 
-    static TrainData<T> Load(int num_class = 10, int max_train = -1, int max_test = -1)
+    static TrainData<T> Load(int max_train_size = -1, int max_test_size = -1, int num_class = 10)
     {
         TrainData<T>    td;
         td.x_shape = indices_t({28, 28, 1});
         td.t_shape = indices_t({10});
-        if (!LoadData(td.x_train, td.t_train, td.x_test, td.t_test, num_class, max_train, max_test)) {
+        if (!LoadData(td.x_train, td.t_train, td.x_test, td.t_test, max_train_size, max_test_size, num_class)) {
             td.clear();
         }
         return td;
@@ -223,10 +223,11 @@ public:
     }
 
 
-    static TrainData<T> LoadValidation(int max_train = -1, int max_test = -1)
+    // 有無検知学習用データ取得
+    static TrainData<T> LoadDetection(int max_train_size = -1, int max_test_size = -1)
     {
         // load MNIST data
-        auto td_src = bb::LoadMnist<>::Load(10, max_train, max_test);
+        auto td_src = bb::LoadMnist<>::Load(max_train_size, max_test_size);
 
         // make validation data
         int train_size = (int)td_src.x_train.size();

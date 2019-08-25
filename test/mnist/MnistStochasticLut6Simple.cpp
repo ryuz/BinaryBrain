@@ -37,10 +37,10 @@ void MnistStochasticLut6Mlp(int epoch_size, int mini_batch_size, int max_run_siz
 
   // load MNIST data
 #ifdef _DEBUG
-    auto td = bb::LoadMnist<>::Load(10, 64, 32);
+    auto td = bb::LoadMnist<>::Load(64, 32);
     std::cout << "!!! debug mode !!!" << std::endl;
 #else
-    auto td = bb::LoadMnist<>::Load(10);
+    auto td = bb::LoadMnist<>::Load();
 #endif
 
     auto layer_sl0 = bb::StochasticLutN<6>::Create({1024});

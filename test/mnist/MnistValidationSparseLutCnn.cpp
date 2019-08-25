@@ -52,10 +52,10 @@ void MnistValidationSparseLutCnn(int epoch_size, int mini_batch_size, int train_
 
   // load MNIST data
 #ifdef _DEBUG
-    auto td = bb::LoadMnist<>::LoadValidation(64, 32);
+    auto td = bb::LoadMnist<>::LoadDetection(64, 32);
     std::cout << "!!! debug mode !!!" << std::endl;
 #else
-    auto td = bb::LoadMnist<>::LoadValidation();
+    auto td = bb::LoadMnist<>::LoadDetection();
 #endif
 
     int N = 1;
