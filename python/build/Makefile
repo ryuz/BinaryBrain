@@ -1,13 +1,16 @@
 ﻿
 # Environment
 PYTHON = python3
-BB_PATH = ..
-EXT_SUFFIX = $(shell $(PYTHON)-config --extension-suffix)
+BB_PATH      = ../..
+SRCE_PATH    = ../src
+PACKAGE_PATH = ../binarybrain
+
+EXT_SUFFIX   = $(shell $(PYTHON)-config --extension-suffix)
 
 
 # target
 TARGET_NAME = binarybrain
-TARGET = $(TARGET_NAME)$(EXT_SUFFIX)
+TARGET = $(PACKAGE_PATH)$(TARGET_NAME)$(EXT_SUFFIX)
 SUB_TARGETS =
 
 
@@ -34,9 +37,8 @@ CFLAGS = -mavx2 -mfma -fopenmp -std=c++14 -fPIC
 CINCS  = -I$(BB_PATH)/include $(shell $(PYTHON) -m pybind11 --includes)
 CDEFS  = 
 
-SRCS   = binarybrain.cpp
-
-OBJS = $(addsuffix .o, $(basename $(SRCS)))
+SRCS   = $(SRCE_PATH)/binarybrain.cpp
+OBJS   = $(addsuffix .o, $(basename $(SRCS)))
 
 LIBS = 
 

@@ -80,7 +80,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetExt>.pyd</TargetExt>
-    <OutDir>.\</OutDir>
+    <OutDir>..\binarybrain\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -88,7 +88,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\include;..\cereal\include;$(CUDA_PATH)\include;$(PYBIND11_DIR)\include;$(PYTHON36_DIR)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\include;..\cereal\include;$(CUDA_PATH)\include;$(PYBIND11_DIR)\include;$(PYTHON36_DIR)\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BB_WITH_CEREAL;BB_WITH_CUDA;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4819</DisableSpecificWarnings>
     </ClCompile>
@@ -103,7 +103,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\include;..\cereal\include;$(CUDA_PATH)\include;$(PYBIND11_DIR)\include;$(PYTHON36_DIR)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\include;..\cereal\include;$(CUDA_PATH)\include;$(PYBIND11_DIR)\include;$(PYTHON36_DIR)\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BB_WITH_CEREAL;BB_WITH_CUDA;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4819</DisableSpecificWarnings>
     </ClCompile>
@@ -120,7 +120,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\include;..\cereal\include;$(CUDA_PATH)\include;$(PYBIND11_DIR)\include;$(PYTHON36_DIR)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\include;..\..\cereal\include;$(CUDA_PATH)\include;$(PYBIND11_DIR)\include;$(PYTHON36_DIR)\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BB_WITH_CEREAL;BB_WITH_CUDA;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4819</DisableSpecificWarnings>
     </ClCompile>
@@ -139,7 +139,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\include;..\cereal\include;$(CUDA_PATH)\include;$(PYBIND11_DIR)\include;$(PYTHON36_DIR)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\include;..\..\cereal\include;$(CUDA_PATH)\include;$(PYBIND11_DIR)\include;$(PYTHON36_DIR)\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BB_WITH_CEREAL;BB_WITH_CUDA;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4819</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -148,88 +148,88 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(PYTHON36_DIR)\libs;$(CUDA_PATH)\lib\x64;..\cuda\x64\Release</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(PYTHON36_DIR)\libs;$(CUDA_PATH)\lib\x64;..\..\cuda\x64\Release</AdditionalLibraryDirectories>
       <AdditionalDependencies>python36.lib;bbcu.lib;cublas.lib;cuda.lib;cudart.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="binarybrain.cpp" />
+    <ClInclude Include="..\..\include\bb\Activation.h" />
+    <ClInclude Include="..\..\include\bb\Assert.h" />
+    <ClInclude Include="..\..\include\bb\AveragePooling.h" />
+    <ClInclude Include="..\..\include\bb\BackpropagatedBatchNormalization.h" />
+    <ClInclude Include="..\..\include\bb\BatchNormalization.h" />
+    <ClInclude Include="..\..\include\bb\Binarize.h" />
+    <ClInclude Include="..\..\include\bb\BinaryLutN.h" />
+    <ClInclude Include="..\..\include\bb\BinaryModulation.h" />
+    <ClInclude Include="..\..\include\bb\BinaryScaling.h" />
+    <ClInclude Include="..\..\include\bb\BinaryToReal.h" />
+    <ClInclude Include="..\..\include\bb\ConcatenateCoefficient.h" />
+    <ClInclude Include="..\..\include\bb\ConnectionTable.h" />
+    <ClInclude Include="..\..\include\bb\ConvolutionCol2Im.h" />
+    <ClInclude Include="..\..\include\bb\ConvolutionIm2Col.h" />
+    <ClInclude Include="..\..\include\bb\CudaUtility.h" />
+    <ClInclude Include="..\..\include\bb\DataAugmentationMnist.h" />
+    <ClInclude Include="..\..\include\bb\DataType.h" />
+    <ClInclude Include="..\..\include\bb\DenseAffine.h" />
+    <ClInclude Include="..\..\include\bb\Dropout.h" />
+    <ClInclude Include="..\..\include\bb\ExportVerilog.h" />
+    <ClInclude Include="..\..\include\bb\Filter2d.h" />
+    <ClInclude Include="..\..\include\bb\FixedSizeConnectionTable.h" />
+    <ClInclude Include="..\..\include\bb\FrameBuffer.h" />
+    <ClInclude Include="..\..\include\bb\HardTanh.h" />
+    <ClInclude Include="..\..\include\bb\LoadCifar10.h" />
+    <ClInclude Include="..\..\include\bb\LoadMnist.h" />
+    <ClInclude Include="..\..\include\bb\LoadXor.h" />
+    <ClInclude Include="..\..\include\bb\LossFunction.h" />
+    <ClInclude Include="..\..\include\bb\LossMeanSquaredError.h" />
+    <ClInclude Include="..\..\include\bb\LossSoftmaxCrossEntropy.h" />
+    <ClInclude Include="..\..\include\bb\LoweringConvolution.h" />
+    <ClInclude Include="..\..\include\bb\LutLayer.h" />
+    <ClInclude Include="..\..\include\bb\Manager.h" />
+    <ClInclude Include="..\..\include\bb\MaxPooling.h" />
+    <ClInclude Include="..\..\include\bb\Memory.h" />
+    <ClInclude Include="..\..\include\bb\MetricsBinaryAccuracy.h" />
+    <ClInclude Include="..\..\include\bb\MetricsCategoricalAccuracy.h" />
+    <ClInclude Include="..\..\include\bb\MetricsFunction.h" />
+    <ClInclude Include="..\..\include\bb\MetricsMeanSquaredError.h" />
+    <ClInclude Include="..\..\include\bb\MicroMlp.h" />
+    <ClInclude Include="..\..\include\bb\MicroMlpAffine.h" />
+    <ClInclude Include="..\..\include\bb\Model.h" />
+    <ClInclude Include="..\..\include\bb\NormalDistributionGenerator.h" />
+    <ClInclude Include="..\..\include\bb\Optimizer.h" />
+    <ClInclude Include="..\..\include\bb\OptimizerAdaGrad.h" />
+    <ClInclude Include="..\..\include\bb\OptimizerAdam.h" />
+    <ClInclude Include="..\..\include\bb\OptimizerSgd.h" />
+    <ClInclude Include="..\..\include\bb\PnmImage.h" />
+    <ClInclude Include="..\..\include\bb\RealToBinary.h" />
+    <ClInclude Include="..\..\include\bb\Reduce.h" />
+    <ClInclude Include="..\..\include\bb\ReLU.h" />
+    <ClInclude Include="..\..\include\bb\Runner.h" />
+    <ClInclude Include="..\..\include\bb\Sequential.h" />
+    <ClInclude Include="..\..\include\bb\ShuffleModulation.h" />
+    <ClInclude Include="..\..\include\bb\ShuffleSet.h" />
+    <ClInclude Include="..\..\include\bb\Sigmoid.h" />
+    <ClInclude Include="..\..\include\bb\SimdSupport.h" />
+    <ClInclude Include="..\..\include\bb\SparseBinaryLutN.h" />
+    <ClInclude Include="..\..\include\bb\SparseLayer.h" />
+    <ClInclude Include="..\..\include\bb\SparseLutDiscreteN.h" />
+    <ClInclude Include="..\..\include\bb\SparseLutN.h" />
+    <ClInclude Include="..\..\include\bb\StochasticBatchNormalization.h" />
+    <ClInclude Include="..\..\include\bb\StochasticLutN.h" />
+    <ClInclude Include="..\..\include\bb\StochasticLutSimd.h" />
+    <ClInclude Include="..\..\include\bb\StochasticMaxPooling.h" />
+    <ClInclude Include="..\..\include\bb\StochasticMaxPooling2x2.h" />
+    <ClInclude Include="..\..\include\bb\StochasticOperation.h" />
+    <ClInclude Include="..\..\include\bb\Tensor.h" />
+    <ClInclude Include="..\..\include\bb\TensorOperator.h" />
+    <ClInclude Include="..\..\include\bb\UniformDistributionGenerator.h" />
+    <ClInclude Include="..\..\include\bb\UpSampling.h" />
+    <ClInclude Include="..\..\include\bb\Utility.h" />
+    <ClInclude Include="..\..\include\bb\ValueGenerator.h" />
+    <ClInclude Include="..\..\include\bb\Variables.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\bb\Activation.h" />
-    <ClInclude Include="..\include\bb\Assert.h" />
-    <ClInclude Include="..\include\bb\AveragePooling.h" />
-    <ClInclude Include="..\include\bb\BackpropagatedBatchNormalization.h" />
-    <ClInclude Include="..\include\bb\BatchNormalization.h" />
-    <ClInclude Include="..\include\bb\Binarize.h" />
-    <ClInclude Include="..\include\bb\BinaryLutN.h" />
-    <ClInclude Include="..\include\bb\BinaryModulation.h" />
-    <ClInclude Include="..\include\bb\BinaryScaling.h" />
-    <ClInclude Include="..\include\bb\BinaryToReal.h" />
-    <ClInclude Include="..\include\bb\ConcatenateCoefficient.h" />
-    <ClInclude Include="..\include\bb\ConnectionTable.h" />
-    <ClInclude Include="..\include\bb\ConvolutionCol2Im.h" />
-    <ClInclude Include="..\include\bb\ConvolutionIm2Col.h" />
-    <ClInclude Include="..\include\bb\CudaUtility.h" />
-    <ClInclude Include="..\include\bb\DataAugmentationMnist.h" />
-    <ClInclude Include="..\include\bb\DataType.h" />
-    <ClInclude Include="..\include\bb\DenseAffine.h" />
-    <ClInclude Include="..\include\bb\Dropout.h" />
-    <ClInclude Include="..\include\bb\ExportVerilog.h" />
-    <ClInclude Include="..\include\bb\Filter2d.h" />
-    <ClInclude Include="..\include\bb\FixedSizeConnectionTable.h" />
-    <ClInclude Include="..\include\bb\FrameBuffer.h" />
-    <ClInclude Include="..\include\bb\HardTanh.h" />
-    <ClInclude Include="..\include\bb\LoadCifar10.h" />
-    <ClInclude Include="..\include\bb\LoadMnist.h" />
-    <ClInclude Include="..\include\bb\LoadXor.h" />
-    <ClInclude Include="..\include\bb\LossFunction.h" />
-    <ClInclude Include="..\include\bb\LossMeanSquaredError.h" />
-    <ClInclude Include="..\include\bb\LossSoftmaxCrossEntropy.h" />
-    <ClInclude Include="..\include\bb\LoweringConvolution.h" />
-    <ClInclude Include="..\include\bb\LutLayer.h" />
-    <ClInclude Include="..\include\bb\Manager.h" />
-    <ClInclude Include="..\include\bb\MaxPooling.h" />
-    <ClInclude Include="..\include\bb\Memory.h" />
-    <ClInclude Include="..\include\bb\MetricsBinaryAccuracy.h" />
-    <ClInclude Include="..\include\bb\MetricsCategoricalAccuracy.h" />
-    <ClInclude Include="..\include\bb\MetricsFunction.h" />
-    <ClInclude Include="..\include\bb\MetricsMeanSquaredError.h" />
-    <ClInclude Include="..\include\bb\MicroMlp.h" />
-    <ClInclude Include="..\include\bb\MicroMlpAffine.h" />
-    <ClInclude Include="..\include\bb\Model.h" />
-    <ClInclude Include="..\include\bb\NormalDistributionGenerator.h" />
-    <ClInclude Include="..\include\bb\Optimizer.h" />
-    <ClInclude Include="..\include\bb\OptimizerAdaGrad.h" />
-    <ClInclude Include="..\include\bb\OptimizerAdam.h" />
-    <ClInclude Include="..\include\bb\OptimizerSgd.h" />
-    <ClInclude Include="..\include\bb\PnmImage.h" />
-    <ClInclude Include="..\include\bb\RealToBinary.h" />
-    <ClInclude Include="..\include\bb\Reduce.h" />
-    <ClInclude Include="..\include\bb\ReLU.h" />
-    <ClInclude Include="..\include\bb\Runner.h" />
-    <ClInclude Include="..\include\bb\Sequential.h" />
-    <ClInclude Include="..\include\bb\ShuffleModulation.h" />
-    <ClInclude Include="..\include\bb\ShuffleSet.h" />
-    <ClInclude Include="..\include\bb\Sigmoid.h" />
-    <ClInclude Include="..\include\bb\SimdSupport.h" />
-    <ClInclude Include="..\include\bb\SparseBinaryLutN.h" />
-    <ClInclude Include="..\include\bb\SparseLayer.h" />
-    <ClInclude Include="..\include\bb\SparseLutDiscreteN.h" />
-    <ClInclude Include="..\include\bb\SparseLutN.h" />
-    <ClInclude Include="..\include\bb\StochasticBatchNormalization.h" />
-    <ClInclude Include="..\include\bb\StochasticLutN.h" />
-    <ClInclude Include="..\include\bb\StochasticLutSimd.h" />
-    <ClInclude Include="..\include\bb\StochasticMaxPooling.h" />
-    <ClInclude Include="..\include\bb\StochasticMaxPooling2x2.h" />
-    <ClInclude Include="..\include\bb\StochasticOperation.h" />
-    <ClInclude Include="..\include\bb\Tensor.h" />
-    <ClInclude Include="..\include\bb\TensorOperator.h" />
-    <ClInclude Include="..\include\bb\UniformDistributionGenerator.h" />
-    <ClInclude Include="..\include\bb\UpSampling.h" />
-    <ClInclude Include="..\include\bb\Utility.h" />
-    <ClInclude Include="..\include\bb\ValueGenerator.h" />
-    <ClInclude Include="..\include\bb\Variables.h" />
+    <ClCompile Include="..\src\binarybrain.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
