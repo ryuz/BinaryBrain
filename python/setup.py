@@ -1,17 +1,20 @@
 # -*- coding: utf-8 -*-
 
+import os
 import sys
 import subprocess
-
-res = subprocess.call(['make', '-C', 'build', 'clean', 'all'])
-#res = subprocess.call(['make', '-C', 'build'])
-
 from setuptools import setup, find_packages
+
+
+if not os.path.exists('binarybrain/binarybrain.pyd'):
+    res = subprocess.call(['make', '-C', 'build', 'clean', 'all'])
+    #res = subprocess.call(['make', '-C', 'build'])
+
 
 #with open('../readme.txt') as f:
 #    readme = f.read()
 
-with open('../license.txt') as f:
+with open('../license.txt','r', encoding="utf-8_sig") as f:
     license = f.read()
 
 setup(
