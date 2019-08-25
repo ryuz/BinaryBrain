@@ -92,7 +92,7 @@ public:
         {
             index_t frame_size  = y_buf.GetFrameSize();
             index_t node_size   = y_buf.GetNodeSize();
-            index_t stride_size = y_buf.GetFrameStride() / sizeof(T);
+//          index_t stride_size = y_buf.GetFrameStride() / sizeof(T);
 
             auto y_ptr  = y_buf.LockConst<T>();
             auto t_ptr  = t_buf.LockConst<T>();

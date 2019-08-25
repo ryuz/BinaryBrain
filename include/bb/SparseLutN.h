@@ -1502,7 +1502,7 @@ public:
 
                 auto node_size  = dy_buf.GetNodeSize();
                 auto frame_size = dy_buf.GetFrameSize();
-                auto reciprocal_frame_size = (RealType)1.0 / (RealType)frame_size;
+//              auto reciprocal_frame_size = (RealType)1.0 / (RealType)frame_size;
 
                 auto x_ptr           = x_buf.LockConst<BinType>();
                 auto dy_ptr          = dy_buf.LockConst<RealType>();

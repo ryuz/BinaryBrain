@@ -176,7 +176,7 @@ public:
 
             index_t mux_size          = input_node_size / output_node_size;
 
-            index_t node_size = std::max(input_node_size, output_node_size);
+//          index_t node_size = std::max(input_node_size, output_node_size);
 
             #pragma omp parallel for
             for (index_t output_node = 0; output_node < output_node_size; ++output_node) {
