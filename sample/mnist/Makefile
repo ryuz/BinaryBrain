@@ -56,10 +56,13 @@ endif
 
 ifeq ($(WITH_CUDA),Yes)
 CC          = nvcc
-CDEFS      += -DBB_WITH_CUDA
 CFLAGS     := -Xcompiler '$(CFLAGS)' -lcublas
+CDEFS      += -DBB_WITH_CUDA
 LIBS       += $(BBCU_LIB)
 SUB_TARGET += bbcu_build
+
+#CINCS      += -I/usr/local/cuda/include
+#LIBS       += -L/usr/local/cuda/lib64 -lcuda -lcudart -lcublas $(BBCU_LIB)
 endif
 
 .SUFFIXES: .c .o
@@ -71,6 +74,10 @@ all: $(SUB_TARGET) $(TARGET)
 clean:
 	rm -f $(TARGET) *.o
 
+.PHONY: mostlyclean
+mostlyclean: clean
+	make -C $(BBCU_PATH) clean
+
 .PHONY: run
 run: $(TARGET) train-images-idx3-ubyte train-labels-idx1-ubyte t10k-images-idx3-ubyte t10k-labels-idx1-ubyte
 	./$(TARGET) $(RUN_OPTION)
@@ -79,7 +86,7 @@ run: $(TARGET) train-images-idx3-ubyte train-labels-idx1-ubyte t10k-images-idx3-
 bbcu_build:
 	make -C $(BBCU_PATH)
 
-$(TARGET): $(OBJS) $(LIBS)
+$(TARGET): $(OBJS)
 	$(CC) -o $(TARGET) $(CFLAGS) $(CINCS) $(CDEFS) $(OBJS) $(LIBS)
 
 .cpp.o:
