@@ -3,8 +3,6 @@
 import sys
 import subprocess
 
-print('Hello')
-
 res = subprocess.call(['make', '-C', 'build', 'clean', 'all'])
 #res = subprocess.call(['make', '-C', 'build'])
 
