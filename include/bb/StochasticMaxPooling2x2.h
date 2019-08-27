@@ -156,7 +156,7 @@ public:
         }
 
         // 出力を設定
-        FrameBuffer y_buf(DataType<FT>::type, x_buf.GetFrameSize(), m_output_shape);
+        FrameBuffer y_buf(x_buf.GetFrameSize(), m_output_shape, DataType<FT>::type);
         
 
 #ifdef BB_WITH_CUDA
@@ -300,7 +300,7 @@ public:
         BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
         BB_ASSERT(dy_buf.GetShape().size() == 3);
 
-        FrameBuffer dx_buf(DataType<BT>::type, dy_buf.GetFrameSize(), m_input_shape);
+        FrameBuffer dx_buf(dy_buf.GetFrameSize(), m_input_shape, DataType<BT>::type);
 
         FrameBuffer x_buf = m_x_buf;
         m_x_buf = FrameBuffer();

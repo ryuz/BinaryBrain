@@ -9,7 +9,7 @@
 TEST(SigmoidTest, testSigmoid)
 {
     auto sigmoid = bb::Sigmoid<>::Create();
-    bb::FrameBuffer x_buf(BB_TYPE_FP32, 1, 2);
+    bb::FrameBuffer x_buf(1, {2}, BB_TYPE_FP32);
     sigmoid->SetInputShape(x_buf.GetShape());
 
     x_buf.SetFP32(0, 0, 1);
@@ -20,7 +20,7 @@ TEST(SigmoidTest, testSigmoid)
     EXPECT_FLOAT_EQ(1.0f / (1.0f + exp(-1.0f)), y_buf.GetFP32(0, 0));
     EXPECT_FLOAT_EQ(1.0f / (1.0f + exp(-2.0f)), y_buf.GetFP32(0, 1));
 
-    bb::FrameBuffer dy_buf(BB_TYPE_FP32, 1, 2);
+    bb::FrameBuffer dy_buf(1, {2}, BB_TYPE_FP32);
 
     dy_buf.SetFP32(0, 0, 2);
     dy_buf.SetFP32(0, 1, 3);
@@ -37,7 +37,7 @@ TEST(SigmoidTest, testSigmoidBatch)
     auto sigmoid = bb::Sigmoid<>::Create();
     
     // forward
-    bb::FrameBuffer x_buf(BB_TYPE_FP32, 2, 2);
+    bb::FrameBuffer x_buf(2, {2}, BB_TYPE_FP32);
     sigmoid->SetInputShape(x_buf.GetShape());
 
     x_buf.SetFP32(0, 0, 1);
@@ -55,7 +55,7 @@ TEST(SigmoidTest, testSigmoidBatch)
 
 
     // backward
-    bb::FrameBuffer dy_buf(BB_TYPE_FP32, 2, 2);
+    bb::FrameBuffer dy_buf(2, {2}, BB_TYPE_FP32);
 
     dy_buf.SetFP32(0, 0, 2);
     dy_buf.SetFP32(1, 0, 3);
@@ -83,8 +83,8 @@ void testSigmoid_cmp(int node_size, int frame_size, int loop_num = 3)
 
     act_cpu->SendCommand("host_only true");
 
-    bb::FrameBuffer x_cpu(BB_TYPE_FP32, frame_size, node_size, true);
-    bb::FrameBuffer x_gpu(BB_TYPE_FP32, frame_size, node_size);
+    bb::FrameBuffer x_cpu(frame_size, {node_size}, BB_TYPE_FP32, true);
+    bb::FrameBuffer x_gpu(frame_size, {node_size}, BB_TYPE_FP32);
     
     act_cpu->SetInputShape(x_cpu.GetShape());
     act_gpu->SetInputShape(x_gpu.GetShape());
@@ -120,8 +120,8 @@ void testSigmoid_cmp(int node_size, int frame_size, int loop_num = 3)
 
 
         // backward
-        bb::FrameBuffer dy_cpu(BB_TYPE_FP32, frame_size, node_size, true);
-        bb::FrameBuffer dy_gpu(BB_TYPE_FP32, frame_size, node_size);
+        bb::FrameBuffer dy_cpu(frame_size, {node_size}, BB_TYPE_FP32, true);
+        bb::FrameBuffer dy_gpu(frame_size, {node_size}, BB_TYPE_FP32);
         for ( int frame = 0; frame < frame_size; ++frame) {
             for ( int node = 0; node < node_size; ++node ) {
                 dy_cpu.SetFP32(frame, node, valgen->GetValue());

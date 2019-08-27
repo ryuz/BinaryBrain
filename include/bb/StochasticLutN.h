@@ -245,12 +245,12 @@ public:
 //        this->InitializeNodeInput(m_mt(), m_connection);
 
         // パラメータ初期化(結局初期値は何が良いのかまだよくわからない)
-//      m_W->Resize(DataType<RealType>::type, m_output_node_size, NN);  m_W->InitUniformDistribution(0.4, 0.6, m_mt());
-//      m_W->Resize(DataType<RealType>::type, m_output_node_size, NN);  m_W->InitUniformDistribution(0.0, 1.0, m_mt());
-//      m_W->Resize(DataType<RealType>::type, m_output_node_size, NN);  m_W->InitNormalDistribution(0.5, 0.001, m_mt());
-        m_W->Resize(DataType<RealType>::type, GetShapeSize(m_output_shape), NN);  m_W->InitNormalDistribution(0.5, 0.01, m_mt());
+//      m_W->Resize({NN, m_output_node_size}, DataType<RealType>::type);  m_W->InitUniformDistribution(0.4, 0.6, m_mt());
+//      m_W->Resize({NN, m_output_node_size}, DataType<RealType>::type);  m_W->InitUniformDistribution(0.0, 1.0, m_mt());
+//      m_W->Resize({NN, m_output_node_size}, DataType<RealType>::type);  m_W->InitNormalDistribution(0.5, 0.001, m_mt());
+        m_W->Resize({NN, GetShapeSize(m_output_shape)}, DataType<RealType>::type);  m_W->InitNormalDistribution(0.5, 0.01, m_mt());
 
-        m_dW->Resize(DataType<RealType>::type, GetShapeSize(m_output_shape), NN); m_dW->FillZero();
+        m_dW->Resize({NN, GetShapeSize(m_output_shape)}, DataType<RealType>::type); m_dW->FillZero();
 
         return m_output_shape;
     }
@@ -355,7 +355,7 @@ public:
         }
 
         // 出力を設定
-        FrameBuffer y_buf(DataType<RealType>::type, x_buf.GetFrameSize(), m_output_shape);
+        FrameBuffer y_buf(x_buf.GetFrameSize(), m_output_shape, DataType<RealType>::type);
 
         // backwardの為に保存
         if ( train ) {
@@ -483,7 +483,7 @@ public:
         FrameBuffer x_buf = m_x_buf;
         m_x_buf = FrameBuffer();
 
-        FrameBuffer dx_buf(DataType<RealType>::type, dy_buf.GetFrameSize(), m_input_shape);
+        FrameBuffer dx_buf(dy_buf.GetFrameSize(), m_input_shape, DataType<RealType>::type);
      
 
 #ifdef BB_WITH_CUDA
@@ -496,7 +496,7 @@ public:
             tmp_frame_size = std::max(tmp_frame_size, (index_t)32);
             tmp_frame_size = ((tmp_frame_size + 31) & ~0x1f);
             tmp_frame_size = std::min(tmp_frame_size, dy_buf.GetFrameSize());
-            FrameBuffer tmp_buf(DataType<RealType>::type, tmp_frame_size, this->GetOutputNodeSize()*N);
+            FrameBuffer tmp_buf(tmp_frame_size, {this->GetOutputNodeSize()*N}, DataType<RealType>::type);
 
             auto x_ptr             = x_buf.LockDeviceMemoryConst();
             auto dy_ptr            = dy_buf.LockDeviceMemoryConst();
@@ -540,7 +540,7 @@ public:
             tmp_frame_size = std::max(tmp_frame_size, (index_t)32);
             tmp_frame_size = ((tmp_frame_size + 31) & ~0x1f);
             tmp_frame_size = std::min(tmp_frame_size, dy_buf.GetFrameSize());
-            FrameBuffer tmp_buf(DataType<RealType>::type, tmp_frame_size, this->GetOutputNodeSize()*N);
+            FrameBuffer tmp_buf(tmp_frame_size, {this->GetOutputNodeSize()*N}, DataType<RealType>::type);
 
             auto x_ptr             = x_buf.LockDeviceMemoryConst();
             auto dy_ptr            = dy_buf.LockDeviceMemoryConst();
@@ -585,7 +585,7 @@ public:
         }
 
         {
-            FrameBuffer tmp_buf(DataType<RealType>::type, dy_buf.GetFrameSize(), GetShapeSize(m_output_shape)*N);
+            FrameBuffer tmp_buf(dy_buf.GetFrameSize(), {GetShapeSize(m_output_shape)*N}, DataType<RealType>::type);
 
             // generic
             dx_buf.FillZero();

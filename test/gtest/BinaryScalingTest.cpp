@@ -13,7 +13,7 @@ TEST(BinaryNormalizationTest, testBinaryNormalization)
     int const node_size  = 8;
 
     auto scale = bb::BinaryScaling<bb::Bit, float>::Create();
-    bb::FrameBuffer x_buf(BB_TYPE_BIT, frame_size, node_size);
+    bb::FrameBuffer x_buf(frame_size, {node_size}, BB_TYPE_BIT);
     scale->SetInputShape(x_buf.GetShape());
     
     std::mt19937_64                         mt(1);

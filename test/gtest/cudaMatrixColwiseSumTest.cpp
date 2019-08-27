@@ -20,8 +20,8 @@ TEST(cudaMatrixColwiseSumTest, test_cudaMatrixColwiseSum)
     int const node_size  = 2;
     int const frame_size = 3;
 
-    bb::FrameBuffer x_buf(BB_TYPE_FP32, frame_size, node_size);
-    bb::Tensor      y_buf(BB_TYPE_FP32, node_size);
+    bb::FrameBuffer x_buf(frame_size, {node_size}, BB_TYPE_FP32);
+    bb::Tensor      y_buf({node_size}, BB_TYPE_FP32);
 
     {
         x_buf.SetFP32(0, 0, 1);

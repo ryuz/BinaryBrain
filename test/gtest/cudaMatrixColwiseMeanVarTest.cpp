@@ -46,15 +46,15 @@ TEST(cudaMatrixColwiseMeanVarTest, test_MatrixColwiseMeanVar)
         arr2[i] = dist2(mt);
     }
 
-    bb::FrameBuffer x_buf(BB_TYPE_FP32, n, 3);
+    bb::FrameBuffer x_buf(n, {3}, BB_TYPE_FP32);
     for (int i = 0; i < n; ++i) {
         x_buf.SetFP32(i, 0, (float)arr0[i]);
         x_buf.SetFP32(i, 1, (float)arr1[i]);
         x_buf.SetFP32(i, 2, (float)arr2[i]);
     }
 
-    bb::Tensor m_buf(BB_TYPE_FP32, 3);
-    bb::Tensor v_buf(BB_TYPE_FP32, 3);
+    bb::Tensor m_buf({3}, BB_TYPE_FP32);
+    bb::Tensor v_buf({3}, BB_TYPE_FP32);
     {
         auto x_ptr = x_buf.LockDeviceMemoryConst();
         auto m_ptr = m_buf.LockDeviceMemory();

@@ -15,7 +15,7 @@ TEST(BinaryLutTest, testBinaryLut)
 {
     auto lut = bb::BinaryLutN<6>::Create(2);
     
-    bb::FrameBuffer x_buf(BB_TYPE_BIT, 1, 16);
+    bb::FrameBuffer x_buf(1, 16, BB_TYPE_BIT);
     
     lut->SetInputShape(x_buf.GetShape());
 
@@ -61,7 +61,7 @@ TEST(NeuralNetBinaryLut6, testNeuralNetBinaryLut6Batch)
 {
     auto lut = bb::BinaryLutN<6>::Create(2);
     
-    bb::FrameBuffer x_buf(BB_TYPE_BIT, 2, 16);
+    bb::FrameBuffer x_buf(2, 16, BB_TYPE_BIT);
     
     lut->SetInputShape(x_buf.GetShape());
 
@@ -126,8 +126,8 @@ void testBinaryLut6_cmpare(
     auto layer_cpu = bb::BinaryLutN<N, FT, BT>::Create(output_node_size);
     auto layer_gpu = bb::BinaryLutN<N, FT, BT>::Create(output_node_size);
 
-    bb::FrameBuffer x_cpu(bb::DataType<FT>::type, frame_size, input_node_size, true);
-    bb::FrameBuffer x_gpu(bb::DataType<FT>::type, frame_size, input_node_size);
+    bb::FrameBuffer x_cpu(frame_size, {input_node_size}, bb::DataType<FT>::type, true);
+    bb::FrameBuffer x_gpu(frame_size, {input_node_size}, bb::DataType<FT>::type);
     
     layer_cpu->SetInputShape(x_cpu.GetShape());
     layer_gpu->SetInputShape(x_gpu.GetShape());

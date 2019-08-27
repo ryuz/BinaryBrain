@@ -16,7 +16,7 @@
 
 TEST(FrameBufferTest, FrameBuffer_SetGet)
 {
-    bb::FrameBuffer buf(BB_TYPE_FP32, 2, 3);
+    bb::FrameBuffer buf(2, {3}, BB_TYPE_FP32);
 
     buf.Set<float, float>(0, 0, 1.0f);
     buf.Set<float, float>(0, 1, 2.0f);
@@ -94,8 +94,8 @@ TEST(FrameBufferTest, FrameBuffer_SetGet)
 
 TEST(FrameBufferTest, FrameBuffer_IsDeviceAvailable)
 {
-    bb::FrameBuffer buf_h(BB_TYPE_FP32, 2, 3, true);
-    bb::FrameBuffer buf_d(BB_TYPE_FP32, 2, 3, false);
+    bb::FrameBuffer buf_h(2, {3}, BB_TYPE_FP32, true);
+    bb::FrameBuffer buf_d(2, {3}, BB_TYPE_FP32, false);
 #if BB_WITH_CUDA
     int dev_count = 0;
     auto status = cudaGetDeviceCount(&dev_count);
@@ -119,7 +119,7 @@ TEST(FrameBufferTest, FrameBuffer_Range)
     bb::index_t const frame_size = 32;
     bb::index_t const node_size  = 3;
 
-    bb::FrameBuffer buf(BB_TYPE_INT32, frame_size, node_size);
+    bb::FrameBuffer buf(frame_size, {node_size}, BB_TYPE_INT32);
 
     for ( bb::index_t frame = 0; frame < frame_size; ++frame ) {
         for ( bb::index_t node = 0; node < node_size; ++node ) {
@@ -152,7 +152,7 @@ TEST(FrameBufferTest, FrameBuffer_SetGetTensor)
     bb::index_t const m = 4;
     bb::index_t const n = 5;
 
-    bb::FrameBuffer buf(BB_TYPE_INT64, frame_size, {l, m, n});
+    bb::FrameBuffer buf(frame_size, {l, m, n}, BB_TYPE_INT64);
 
     for ( bb::index_t frame = 0; frame < frame_size; ++frame ) {
         for ( bb::index_t i = 0; i < n; ++i ) {
@@ -183,7 +183,7 @@ TEST(FrameBufferTest, FrameBuffer_SetGetTensorBit)
     bb::index_t const m = 4;
     bb::index_t const n = 5;
 
-    bb::FrameBuffer buf(BB_TYPE_BIT, frame_size, {l, m, n});
+    bb::FrameBuffer buf(frame_size, {l, m, n}, BB_TYPE_BIT);
 
     for ( bb::index_t frame = 0; frame < frame_size; ++frame ) {
         for ( bb::index_t i = 0; i < n; ++i ) {
@@ -213,7 +213,7 @@ TEST(FrameBufferTest, FrameBuffer_SetVector)
     bb::index_t const frame_size = 32;
     bb::index_t const node_size = 12;
 
-    bb::FrameBuffer buf(BB_TYPE_FP32, frame_size, node_size);
+    bb::FrameBuffer buf(frame_size, {node_size}, BB_TYPE_FP32);
 
     std::vector< std::vector<float> > vec(frame_size, std::vector<float>(node_size));
     
@@ -249,7 +249,7 @@ TEST(FrameBufferTest, testFrameBuffer_Json)
 
     // save
     {
-        bb::FrameBuffer buf(BB_TYPE_FP32, frame_size, node_size);
+        bb::FrameBuffer buf(frame_size, {node_size}, BB_TYPE_FP32);
         buf.SetVector(vec);
         {
             std::ofstream ofs("FrameBufferTest.bin", std::ios::binary);
@@ -268,7 +268,7 @@ TEST(FrameBufferTest, testFrameBuffer_Json)
 
     // load
     {
-        bb::FrameBuffer buf(BB_TYPE_FP64, 1, 2);
+        bb::FrameBuffer buf(1, {2}, BB_TYPE_FP64);
         std::ifstream ifs("FrameBufferTest.bin", std::ios::binary);
         buf.Load(ifs);
 
@@ -281,7 +281,7 @@ TEST(FrameBufferTest, testFrameBuffer_Json)
 
 #ifdef BB_WITH_CEREAL
     {
-        bb::FrameBuffer buf(BB_TYPE_FP64, 1, 2);
+        bb::FrameBuffer buf(1, {2}, BB_TYPE_FP64);
         std::ifstream ifs("FrameBufferTest.json");
         cereal::JSONInputArchive ar(ifs);
         ar(cereal::make_nvp("FrameBuffer", buf));
@@ -302,14 +302,14 @@ TEST(FrameBufferTest, FrameBuffer_CopyTo_fp32)
 {
     int const src_frame_size = 5;
     int const src_node_size  = 7;
-    bb::FrameBuffer src_buf(BB_TYPE_FP32, src_frame_size, src_node_size);
+    bb::FrameBuffer src_buf(src_frame_size, {src_node_size}, BB_TYPE_FP32);
     for ( bb::index_t frame = 0; frame < src_frame_size; ++frame ) {
         for ( bb::index_t node = 0; node < src_node_size; ++node ) {
             src_buf.SetFP32(frame, node, (float)(frame*100 + node));
         }
     }
     
-    bb::FrameBuffer dst0_buf(BB_TYPE_FP32, 6, 5);
+    bb::FrameBuffer dst0_buf(6, {5}, BB_TYPE_FP32);
     for ( bb::index_t frame = 0; frame < 6; ++frame ) {
         for ( bb::index_t node = 0; node < 5; ++node ) {
             dst0_buf.SetFP32(frame, node, (float)(1000 + frame*100 + node));
@@ -348,7 +348,7 @@ TEST(FrameBufferTest, FrameBuffer_CopyTo_bit)
     std::mt19937_64 mt(1);
 
     bb::Bit src_tbl[src_frame_size][src_node_size];
-    bb::FrameBuffer src_buf(BB_TYPE_FP32, src_frame_size, src_node_size);
+    bb::FrameBuffer src_buf(src_frame_size, {src_node_size}, BB_TYPE_FP32);
     for ( bb::index_t frame = 0; frame < src_frame_size; ++frame ) {
         for ( bb::index_t node = 0; node < src_node_size; ++node ) {
             src_tbl[frame][node] = mt() % 2;
@@ -360,7 +360,7 @@ TEST(FrameBufferTest, FrameBuffer_CopyTo_bit)
     int const dst_node_size  = 8;
 
     bb::Bit dst_tbl[dst_frame_size][dst_node_size];
-    bb::FrameBuffer dst0_buf(BB_TYPE_FP32, dst_frame_size, dst_node_size);
+    bb::FrameBuffer dst0_buf(dst_frame_size, {dst_node_size}, BB_TYPE_FP32);
     for ( bb::index_t frame = 0; frame < dst_frame_size; ++frame ) {
         for ( bb::index_t node = 0; node < dst_node_size; ++node ) {
             dst_tbl[frame][node] = mt() % 2;

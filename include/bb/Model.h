@@ -10,8 +10,10 @@
 #pragma once
 
 #include <vector>
-#include <iostream>
+#include <string>
+#include <sstream>
 #include <fstream>
+#include <iostream>
 
 #if BB_WITH_CEREAL
 #include "cereal/types/array.hpp"

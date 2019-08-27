@@ -47,8 +47,8 @@ void SparseLutNTest_cmp(int const input_node_size, int const output_node_size, i
         lut1->SendCommand("lut_binarize false");
     }
 
-    bb::FrameBuffer x_buf0(bb::DataType<BinType>::type, frame_size, input_node_size);
-    bb::FrameBuffer x_buf1(bb::DataType<BinType>::type, frame_size, input_node_size);
+    bb::FrameBuffer x_buf0(frame_size, {input_node_size}, bb::DataType<BinType>::type);
+    bb::FrameBuffer x_buf1(frame_size, {input_node_size}, bb::DataType<BinType>::type);
     
     lut0->SetInputShape(x_buf0.GetShape());
     lut1->SetInputShape(x_buf1.GetShape());
@@ -192,8 +192,8 @@ void SparseLutNTest_cmp(int const input_node_size, int const output_node_size, i
         }
 
         // backward
-        bb::FrameBuffer dy_buf0(BB_TYPE_FP32, frame_size, output_node_size);
-        bb::FrameBuffer dy_buf1(BB_TYPE_FP32, frame_size, output_node_size);
+        bb::FrameBuffer dy_buf0(frame_size, {output_node_size}, BB_TYPE_FP32);
+        bb::FrameBuffer dy_buf1(frame_size, {output_node_size}, BB_TYPE_FP32);
         for ( int frame = 0; frame < frame_size; ++frame) {
             for ( int node = 0; node < output_node_size; ++node ) {
                 float val = valgen->GetValue();

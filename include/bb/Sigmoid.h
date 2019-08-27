@@ -109,7 +109,7 @@ public:
         BB_ASSERT(x_buf.GetType() == DataType<T>::type);
 
         // 戻り値のサイズ設定
-        FrameBuffer y_buf(x_buf.GetType(), x_buf.GetFrameSize(), x_buf.GetShape());
+        FrameBuffer y_buf(x_buf.GetFrameSize(), x_buf.GetShape(), x_buf.GetType());
 
         // ローカルに保存
         if ( train ) {
@@ -169,7 +169,7 @@ public:
         BB_ASSERT(dy_buf.GetType() == DataType<T>::type);
 
         // 戻り値のサイズ設定
-        FrameBuffer dx_buf(dy_buf.GetType(), dy_buf.GetFrameSize(), dy_buf.GetShape());
+        FrameBuffer dx_buf(dy_buf.GetFrameSize(), dy_buf.GetShape(), dy_buf.GetType());
 
         FrameBuffer y_buf = m_y_buf;
         m_y_buf = FrameBuffer();

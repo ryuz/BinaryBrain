@@ -10,7 +10,7 @@ TEST(ReduceTest, testReduce_test0)
 {
     auto reduce = bb::Reduce<>::Create(3);
     
-    bb::FrameBuffer x_buf(BB_TYPE_FP32, 2, 9);
+    bb::FrameBuffer x_buf(2, {9}, BB_TYPE_FP32);
     reduce->SetInputShape(x_buf.GetShape());
 
     x_buf.SetFP32(0, 0, 1);
@@ -43,7 +43,7 @@ TEST(ReduceTest, testReduce_test0)
     EXPECT_FLOAT_EQ((13 + 16 + 19)/3.0f, y_buf.GetFP32(1, 2));
 
     // backward
-    bb::FrameBuffer dy_buf(BB_TYPE_FP32, 2, 3);
+    bb::FrameBuffer dy_buf(2, {3}, BB_TYPE_FP32);
 
     dy_buf.SetFP32(0, 0, 1);
     dy_buf.SetFP32(0, 1, 2);

@@ -163,7 +163,7 @@ public:
         }
 
         // 戻り値の型を設定
-        FrameBuffer y_buf(DataType<BinType>::type, x_buf.GetFrameSize() * m_modulation_size, m_node_shape);
+        FrameBuffer y_buf(x_buf.GetFrameSize() * m_modulation_size, m_node_shape, DataType<BinType>::type);
 
         index_t node_size        = x_buf.GetNodeSize();
         index_t input_frame_size = x_buf.GetFrameSize();
@@ -220,7 +220,7 @@ public:
         BB_ASSERT(dy_buf.GetType() == DataType<RealType>::type);
 
         // 戻り値の型を設定
-        FrameBuffer dx_buf(DataType<RealType>::type, dy_buf.GetFrameSize() / m_modulation_size, m_node_shape);
+        FrameBuffer dx_buf(dy_buf.GetFrameSize() / m_modulation_size, m_node_shape, DataType<RealType>::type);
 
 #if 1   // 今のところ計算結果誰も使わないので一旦コメントアウト
         index_t node_size         = dy_buf.GetNodeSize();

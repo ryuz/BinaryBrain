@@ -13,8 +13,7 @@ TEST(DenseAffineTest, testAffine)
     affine->SetInputShape({2});
 
     // forward
-
-    bb::FrameBuffer x_buf(BB_TYPE_FP32, 1, 2);
+    bb::FrameBuffer x_buf(1, {2}, BB_TYPE_FP32);
 
     x_buf.SetFP32(0, 0, 1);
     x_buf.SetFP32(0, 1, 2);
@@ -44,7 +43,7 @@ TEST(DenseAffineTest, testAffine)
     
     // backward
     
-    bb::FrameBuffer dy_buf(BB_TYPE_FP32, 1, 3);
+    bb::FrameBuffer dy_buf(1, {3}, BB_TYPE_FP32);
 
     dy_buf.SetFP32(0, 0, 998);
     dy_buf.SetFP32(0, 1, 2042);
@@ -73,9 +72,9 @@ TEST(DenseAffineTest, testAffine_cudaBlas1)
     cublasHandle_t handle;
     BB_CUBLAS_SAFE_CALL(cublasCreate(&handle));
 
-    bb::FrameBuffer a(BB_TYPE_FP32, 2, 3);
-    bb::FrameBuffer b(BB_TYPE_FP32, 3, 2);
-    bb::FrameBuffer c(BB_TYPE_FP32, 2, 2);
+    bb::FrameBuffer a(2, {3}, BB_TYPE_FP32);
+    bb::FrameBuffer b(3, {2}, BB_TYPE_FP32);
+    bb::FrameBuffer c(2, {2}, BB_TYPE_FP32);
 
     a.SetFP32(0, 0, 1);
     a.SetFP32(0, 1, 2);
@@ -139,9 +138,9 @@ TEST(DenseAffineTest, testAffine_cudaBlas2)
     cublasHandle_t handle;
     BB_CUBLAS_SAFE_CALL(cublasCreate(&handle));
 
-    bb::FrameBuffer a(BB_TYPE_FP32, 2, 3);
-    bb::Tensor      b(BB_TYPE_FP32, {3, 2});
-    bb::FrameBuffer c(BB_TYPE_FP32, 2, 2);
+    bb::FrameBuffer a(2, {3}, BB_TYPE_FP32);
+    bb::Tensor      b({3, 2}, BB_TYPE_FP32);
+    bb::FrameBuffer c(2, {2}, BB_TYPE_FP32);
 
     a.SetFP32(0, 0, 1);
     a.SetFP32(0, 1, 2);

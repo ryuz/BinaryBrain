@@ -27,8 +27,8 @@ void StochasticLutN_cmp(int const input_node_size, int const output_node_size, i
     lut_gpu->SendCommand("lut_binarize true");
 
 
-    bb::FrameBuffer x_cpu(BB_TYPE_FP32, frame_size, input_node_size, true);
-    bb::FrameBuffer x_gpu(BB_TYPE_FP32, frame_size, input_node_size);
+    bb::FrameBuffer x_cpu(frame_size, {input_node_size}, BB_TYPE_FP32, true);
+    bb::FrameBuffer x_gpu(frame_size, {input_node_size}, BB_TYPE_FP32);
     
     lut_cpu->SetInputShape(x_cpu.GetShape());
     lut_gpu->SetInputShape(x_gpu.GetShape());
@@ -113,8 +113,8 @@ void StochasticLutN_cmp(int const input_node_size, int const output_node_size, i
 
 
         // backward
-        bb::FrameBuffer dy_cpu(BB_TYPE_FP32, frame_size, output_node_size, true);
-        bb::FrameBuffer dy_gpu(BB_TYPE_FP32, frame_size, output_node_size);
+        bb::FrameBuffer dy_cpu(frame_size, {output_node_size}, BB_TYPE_FP32, true);
+        bb::FrameBuffer dy_gpu(frame_size, {output_node_size}, BB_TYPE_FP32);
         for ( int frame = 0; frame < frame_size; ++frame) {
             for ( int node = 0; node < output_node_size; ++node ) {
                 dy_cpu.SetFP32(frame, node, valgen->GetValue());
@@ -266,8 +266,8 @@ void StochasticLutN_cmp_bit(int const input_node_size, int const output_node_siz
     lut1->SendCommand("lut_binarize true");
 
 
-    bb::FrameBuffer x_buf0(BB_TYPE_FP32, frame_size, input_node_size);
-    bb::FrameBuffer x_buf1(BB_TYPE_BIT,  frame_size, input_node_size);
+    bb::FrameBuffer x_buf0(frame_size, {input_node_size}, BB_TYPE_FP32);
+    bb::FrameBuffer x_buf1(frame_size, {input_node_size}, BB_TYPE_BIT);
     
     lut0->SetInputShape(x_buf0.GetShape());
     lut1->SetInputShape(x_buf1.GetShape());
@@ -350,8 +350,8 @@ void StochasticLutN_cmp_bit(int const input_node_size, int const output_node_siz
 
 
         // backward
-        bb::FrameBuffer dy_buf0(BB_TYPE_FP32, frame_size, output_node_size, true);
-        bb::FrameBuffer dy_buf1(BB_TYPE_FP32, frame_size, output_node_size);
+        bb::FrameBuffer dy_buf0(frame_size, {output_node_size}, BB_TYPE_FP32, true);
+        bb::FrameBuffer dy_buf1(frame_size, {output_node_size}, BB_TYPE_FP32);
         for ( int frame = 0; frame < frame_size; ++frame) {
             for ( int node = 0; node < output_node_size; ++node ) {
                 dy_buf0.SetFP32(frame, node, valgen->GetValue());

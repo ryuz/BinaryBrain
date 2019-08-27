@@ -291,10 +291,10 @@ public:
      * @param node_size  1フレームのノード数
      * @param data_type  1ノードのデータ型
      */
-    explicit FrameBuffer(int data_type, index_t frame_size, index_t node_size, bool hostOnly=false) : m_tensor(hostOnly)
-    {
-        Resize(data_type, frame_size, indices_t({node_size}));
-    }
+//    explicit FrameBuffer(index_t frame_size, index_t node_size, int data_type, bool hostOnly=false) : m_tensor(hostOnly)
+//    {
+//        Resize(frame_size, indices_t({node_size}), data_type);
+//    }
 
     /**
      * @brief  コンストラクタ
@@ -303,9 +303,9 @@ public:
      * @param shape      1フレームのノードを構成するshape
      * @param data_type  1ノードのデータ型
      */
-    explicit FrameBuffer(int data_type, index_t frame_size, indices_t shape, bool hostOnly=false) : m_tensor(hostOnly)
+    explicit FrameBuffer(index_t frame_size, indices_t shape, int data_type, bool hostOnly=false) : m_tensor(hostOnly)
     {
-        Resize(data_type, frame_size, shape);
+        Resize(frame_size, shape, data_type);
     }
 
     /**
@@ -377,7 +377,7 @@ public:
      * @param shape      1フレームのノードを構成するshape
      * @param data_type  1ノードのデータ型
      */
-    void Resize(int data_type, index_t frame_size, indices_t shape)
+    void Resize(index_t frame_size, indices_t shape, int data_type)
     {
         m_data_type    = data_type;
         m_frame_size   = frame_size;
@@ -402,7 +402,7 @@ public:
         }
 
         // メモリ確保
-        m_tensor.Resize(tensor_type, tensor_shape);
+        m_tensor.Resize(tensor_shape, tensor_type);
     }
 
 
@@ -413,7 +413,7 @@ public:
      */
     void ResizeLike(FrameBuffer const &buf)
     {
-        Resize(buf.GetType(), buf.GetFrameSize(), buf.GetShape());
+        Resize(buf.GetFrameSize(), buf.GetShape(), buf.GetType());
     }
     
     template <typename T>
@@ -568,12 +568,14 @@ public:
     // -------------------------------------
     //  Resize
     // -------------------------------------
- 
-    void Resize(int type, index_t frame_size, index_t i0)                                      { Resize(type, frame_size, indices_t({i0})); }
-    void Resize(int type, index_t frame_size, index_t i0, index_t i1)                          { Resize(type, frame_size, indices_t({i0, i1})); }
-    void Resize(int type, index_t frame_size, index_t i0, index_t i1, index_t i2)              { Resize(type, frame_size, indices_t({i0, i1, i2})); }
-    void Resize(int type, index_t frame_size, index_t i0, index_t i1, index_t i2, index_t i3)  { Resize(type, frame_size, indices_t({i0, i1, i2, i3})); }
     
+    /*
+    void Resize(index_t frame_size, index_t i0, int type)                                      { Resize(frame_size, indices_t({i0}), type); }
+    void Resize(index_t frame_size, index_t i0, index_t i1, int type)                          { Resize(frame_size, indices_t({i0, i1}), type); }
+    void Resize(index_t frame_size, index_t i0, index_t i1, index_t i2, int type)              { Resize(frame_size, indices_t({i0, i1, i2}), type); }
+    void Resize(index_t frame_size, index_t i0, index_t i1, index_t i2, index_t i3, int type)  { Resize(frame_size, indices_t({i0, i1, i2, i3}), type); }
+    */
+
     void Reshape(std::vector<index_t> shape)
     {
         index_t auto_index = -1;
@@ -1054,7 +1056,7 @@ public:
     }
 
     template<typename Tp>
-    void SetVector(std::vector< std::vector<Tp> > const &data, index_t offset=0)
+    void SetVector(std::vector< std::vector<Tp> > const &data, index_t offset)
     {
         BB_ASSERT(GetType() == DataType<Tp>::type);
         BB_ASSERT(offset + m_frame_size <= (index_t)data.size() );
@@ -1104,7 +1106,7 @@ public:
         BB_ASSERT(start >= 0 && start < m_frame_size);
         BB_ASSERT(size >= 0 &&  size < m_frame_size - start);
 
-        FrameBuffer buf(m_data_type, size, m_node_shape);
+        FrameBuffer buf(size, m_node_shape, m_data_type);
 
         auto src_ptr = m_tensor.LockMemoryConst();
         auto dst_ptr = buf.m_tensor.LockMemory(true);
@@ -1155,14 +1157,14 @@ public:
     
     FrameBuffer Sqrt(void)
     {
-        FrameBuffer dst(GetType(), GetFrameSize(), GetShape(), IsHostOnly());
+        FrameBuffer dst(GetFrameSize(), GetShape(), GetType(), IsHostOnly());
         dst.m_tensor = m_tensor.Sqrt();
         return dst;
     }
 
     FrameBuffer Exp(void)
     {
-        FrameBuffer dst(GetType(), GetFrameSize(), GetShape(), IsHostOnly());
+        FrameBuffer dst(GetFrameSize(), GetShape(), GetType(), IsHostOnly());
         dst.m_tensor = m_tensor.Exp();
         return dst;
     }
@@ -1199,21 +1201,21 @@ public:
 
 inline FrameBuffer operator+(FrameBuffer const &src0, FrameBuffer const &src1)
 {
-    FrameBuffer dst(src0.GetType(), src0.GetFrameSize(), src0.GetShape(), src0.IsHostOnly());
+    FrameBuffer dst(src0.GetFrameSize(), src0.GetShape(), src0.GetType(), src0.IsHostOnly());
     dst.m_tensor = src0.m_tensor + src1.m_tensor;
     return dst;
 }
 
 inline FrameBuffer operator+(FrameBuffer const &src0, double src1)
 {
-    FrameBuffer dst(src0.GetType(), src0.GetFrameSize(), src0.GetShape(), src0.IsHostOnly());
+    FrameBuffer dst(src0.GetFrameSize(), src0.GetShape(), src0.GetType(), src0.IsHostOnly());
     dst.m_tensor = src0.m_tensor + src1;
     return dst;
 }
 
 inline FrameBuffer operator+(double src0, FrameBuffer const &src1)
 {
-    FrameBuffer dst(src1.GetType(), src1.GetFrameSize(), src1.GetShape(), src1.IsHostOnly());
+    FrameBuffer dst(src1.GetFrameSize(), src1.GetShape(), src1.GetType(), src1.IsHostOnly());
     dst.m_tensor = src0 + src1.m_tensor;
     return dst;
 }
@@ -1221,21 +1223,21 @@ inline FrameBuffer operator+(double src0, FrameBuffer const &src1)
 
 inline FrameBuffer operator-(FrameBuffer const &src0, FrameBuffer const &src1)
 {
-    FrameBuffer dst(src0.GetType(), src0.GetFrameSize(), src0.GetShape(), src0.IsHostOnly());
+    FrameBuffer dst(src0.GetFrameSize(), src0.GetShape(), src0.GetType(), src0.IsHostOnly());
     dst.m_tensor = src0.m_tensor - src1.m_tensor;
     return dst;
 }
 
 inline FrameBuffer operator-(FrameBuffer const &src0, double src1)
 {
-    FrameBuffer dst(src0.GetType(), src0.GetFrameSize(), src0.GetShape(), src0.IsHostOnly());
+    FrameBuffer dst(src0.GetFrameSize(), src0.GetShape(), src0.GetType(), src0.IsHostOnly());
     dst.m_tensor = src0.m_tensor - src1;
     return dst;
 }
 
 inline FrameBuffer operator-(double src0, FrameBuffer const &src1)
 {
-    FrameBuffer dst(src1.GetType(), src1.GetFrameSize(), src1.GetShape(), src1.IsHostOnly());
+    FrameBuffer dst(src1.GetFrameSize(), src1.GetShape(), src1.GetType(), src1.IsHostOnly());
     dst.m_tensor = src0 - src1.m_tensor;
     return dst;
 }
@@ -1243,21 +1245,21 @@ inline FrameBuffer operator-(double src0, FrameBuffer const &src1)
 
 inline FrameBuffer operator*(FrameBuffer const &src0, FrameBuffer const &src1)
 {
-    FrameBuffer dst(src0.GetType(), src0.GetFrameSize(), src0.GetShape(), src0.IsHostOnly());
+    FrameBuffer dst(src0.GetFrameSize(), src0.GetShape(), src0.GetType(), src0.IsHostOnly());
     dst.m_tensor = src0.m_tensor * src1.m_tensor;
     return dst;
 }
 
 inline FrameBuffer operator*(FrameBuffer const &src0, double src1)
 {
-    FrameBuffer dst(src0.GetType(), src0.GetFrameSize(), src0.GetShape(), src0.IsHostOnly());
+    FrameBuffer dst(src0.GetFrameSize(), src0.GetShape(), src0.GetType(), src0.IsHostOnly());
     dst.m_tensor = src0.m_tensor * src1;
     return dst;
 }
 
 inline FrameBuffer operator*(double src0, FrameBuffer const &src1)
 {
-    FrameBuffer dst(src1.GetType(), src1.GetFrameSize(), src1.GetShape(), src1.IsHostOnly());
+    FrameBuffer dst(src1.GetFrameSize(), src1.GetShape(), src1.GetType(), src1.IsHostOnly());
     dst.m_tensor = src0 * src1.m_tensor;
     return dst;
 }
@@ -1265,35 +1267,35 @@ inline FrameBuffer operator*(double src0, FrameBuffer const &src1)
 
 inline FrameBuffer operator/(FrameBuffer const &src0, FrameBuffer const &src1)
 {
-    FrameBuffer dst(src0.GetType(), src0.GetFrameSize(), src0.GetShape(), src0.IsHostOnly());
+    FrameBuffer dst(src0.GetFrameSize(), src0.GetShape(), src0.GetType(), src0.IsHostOnly());
     dst.m_tensor = src0.m_tensor / src1.m_tensor;
     return dst;
 }
 
 inline FrameBuffer operator/(FrameBuffer const &src0, double src1)
 {
-    FrameBuffer dst(src0.GetType(), src0.GetFrameSize(), src0.GetShape(), src0.IsHostOnly());
+    FrameBuffer dst(src0.GetFrameSize(), src0.GetShape(), src0.GetType(), src0.IsHostOnly());
     dst.m_tensor = src0.m_tensor / src1;
     return dst;
 }
 
 inline FrameBuffer operator/(double src0, FrameBuffer const &src1)
 {
-    FrameBuffer dst(src1.GetType(), src1.GetFrameSize(), src1.GetShape(), src1.IsHostOnly());
+    FrameBuffer dst(src1.GetFrameSize(), src1.GetShape(), src1.GetType(), src1.IsHostOnly());
     dst.m_tensor = src0 / src1.m_tensor;
     return dst;
 }
 
 inline FrameBuffer Sqrt(FrameBuffer const &src)
 {
-    FrameBuffer dst(src.GetType(), src.GetFrameSize(), src.GetShape(), src.IsHostOnly());
+    FrameBuffer dst(src.GetFrameSize(), src.GetShape(), src.GetType(), src.IsHostOnly());
     dst.m_tensor = Sqrt(src.m_tensor);
     return dst;
 }
 
 inline FrameBuffer Exp(FrameBuffer const &src)
 {
-    FrameBuffer dst(src.GetType(), src.GetFrameSize(), src.GetShape(), src.IsHostOnly());
+    FrameBuffer dst(src.GetFrameSize(), src.GetShape(), src.GetType(), src.IsHostOnly());
     dst.m_tensor = Exp(src.m_tensor);
     return dst;
 }

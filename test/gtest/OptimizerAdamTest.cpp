@@ -50,8 +50,8 @@ TEST(NeuralNetOptimizerAdamTest, testNeuralNetOptimizerAdamTest)
     ModelAdam   model(learning_rate, beta1, beta2);
 
     auto opt_adam = bb::OptimizerAdam<float>::Create(learning_rate, beta1, beta2);
-    auto param_tensor = std::shared_ptr<bb::Tensor>(new bb::Tensor(BB_TYPE_FP32, 1));
-    auto grad_tensor  = std::shared_ptr<bb::Tensor>(new bb::Tensor(BB_TYPE_FP32, 1));
+    auto param_tensor = std::shared_ptr<bb::Tensor>(new bb::Tensor({1}, BB_TYPE_FP32));
+    auto grad_tensor  = std::shared_ptr<bb::Tensor>(new bb::Tensor({1}, BB_TYPE_FP32));
     bb::Variables param_var;
     bb::Variables grad_var;
     param_var.PushBack(param_tensor);
@@ -143,10 +143,10 @@ TEST(NeuralNetOptimizerAdamTest, testNeuralNetOptimizerAdam2)
 
 TEST(OptimizerAdamTest, testOptimizerAdam_Cmp)
 {
-    auto param_cpu = std::shared_ptr< bb::Tensor >(new bb::Tensor(BB_TYPE_FP32, {11, 33}, true));
-    auto param_gpu = std::shared_ptr< bb::Tensor >(new bb::Tensor(BB_TYPE_FP32, {11, 33}, false));
-    auto grad_cpu  = std::shared_ptr< bb::Tensor >(new bb::Tensor(BB_TYPE_FP32, {11, 33}, true));
-    auto grad_gpu  = std::shared_ptr< bb::Tensor >(new bb::Tensor(BB_TYPE_FP32, {11, 33}, false));
+    auto param_cpu = std::shared_ptr< bb::Tensor >(new bb::Tensor({11, 33}, BB_TYPE_FP32, true));
+    auto param_gpu = std::shared_ptr< bb::Tensor >(new bb::Tensor({11, 33}, BB_TYPE_FP32, false));
+    auto grad_cpu  = std::shared_ptr< bb::Tensor >(new bb::Tensor({11, 33}, BB_TYPE_FP32, true));
+    auto grad_gpu  = std::shared_ptr< bb::Tensor >(new bb::Tensor({11, 33}, BB_TYPE_FP32, false));
 
     std::mt19937_64 mt(1);
     std::normal_distribution<float> norm_dist(0.0f, 1.0f);

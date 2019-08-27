@@ -322,13 +322,13 @@ TEST(TensorTest, testTensorCpuGpu)
     bb::Tensor  t6(true);
 
     const int size = 256;
-    t0.Resize(BB_TYPE_FP32, size);
-    t1.Resize(BB_TYPE_FP32, size);
-    t2.Resize(BB_TYPE_FP32, size);
-    t3.Resize(BB_TYPE_FP32, size);
-    t4.Resize(BB_TYPE_FP32, size);
-    t5.Resize(BB_TYPE_FP32, size);
-    t6.Resize(BB_TYPE_FP32, size);
+    t0.Resize({size}, BB_TYPE_FP32);
+    t1.Resize({size}, BB_TYPE_FP32);
+    t2.Resize({size}, BB_TYPE_FP32);
+    t3.Resize({size}, BB_TYPE_FP32);
+    t4.Resize({size}, BB_TYPE_FP32);
+    t5.Resize({size}, BB_TYPE_FP32);
+    t6.Resize({size}, BB_TYPE_FP32);
 
     std::mt19937_64 mt(1);
     float data0[size];
@@ -1221,9 +1221,9 @@ void test_OperatorX(bb::indices_t shape)
 {
     auto node_size = bb::GetShapeSize(shape);
 
-    bb::Tensor  base_dst(bb::DataType<T>::type, shape);
-    bb::Tensor  base_src0(bb::DataType<T>::type, shape);
-    bb::Tensor  base_src1(bb::DataType<T>::type, shape);
+    bb::Tensor  base_dst (shape, bb::DataType<T>::type);
+    bb::Tensor  base_src0(shape, bb::DataType<T>::type);
+    bb::Tensor  base_src1(shape, bb::DataType<T>::type);
     base_dst.InitNormalDistribution(0, 1000, 1);
     base_src0.InitNormalDistribution(0, 1000, 2);
     base_src1.InitNormalDistribution(0, 1000, 3);

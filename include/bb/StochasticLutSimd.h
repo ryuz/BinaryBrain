@@ -183,7 +183,7 @@ inline void simd_fp32_StochasticLut6_Backward
     index_t frame_size       = dy_buf.GetFrameStride() / sizeof(float);
 
     // 並列化用tmpバッファ確保
-    FrameBuffer dx_tmp(BB_TYPE_FP32, dy_buf.GetFrameSize(), output_node_size * 6);
+    FrameBuffer dx_tmp(dy_buf.GetFrameSize(), {output_node_size * 6}, BB_TYPE_FP32);
 
     auto x_ptr           = x_buf.LockConst<float>();
     auto dy_ptr          = dy_buf.LockConst<float>();

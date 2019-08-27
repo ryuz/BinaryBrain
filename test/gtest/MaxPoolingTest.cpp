@@ -19,7 +19,7 @@ TEST(MaxPoolingTest, testMaxPoolingTest)
 
     auto maxpol = bb::MaxPooling<>::Create(filter_h_size, filter_w_size);
 
-    bb::FrameBuffer    x_buf(BB_TYPE_FP32, frame_size, {input_w_size, input_h_size, c_size});
+    bb::FrameBuffer    x_buf(frame_size, {input_w_size, input_h_size, c_size}, BB_TYPE_FP32);
 
     for (bb::index_t f = 0; f < frame_size; ++f) {
         for (bb::index_t c = 0; c < c_size; ++c) {
@@ -68,7 +68,7 @@ TEST(MaxPoolingTest, testMaxPoolingTest)
 
     // backward
 
-    bb::FrameBuffer dy_buf(BB_TYPE_FP32, frame_size, {output_w_size, output_h_size, c_size});
+    bb::FrameBuffer dy_buf(frame_size, {output_w_size, output_h_size, c_size}, BB_TYPE_FP32);
 
     for (bb::index_t f = 0; f < 2; ++f) {
         for (bb::index_t c = 0; c < 3; ++c) {
@@ -193,8 +193,8 @@ void MaxPoolingTest_Compare(
     auto maxpol_cpu = bb::MaxPooling<FT, BT>::Create(filter_h_size, filter_w_size);
     auto maxpol_gpu = bb::MaxPooling<FT, BT>::Create(filter_h_size, filter_w_size);
 
-    bb::FrameBuffer x_cpu(bb::DataType<FT>::type, frame_size, {input_w_size, input_h_size, c_size}, true);
-    bb::FrameBuffer x_gpu(bb::DataType<FT>::type, frame_size, {input_w_size, input_h_size, c_size});
+    bb::FrameBuffer x_cpu(frame_size, {input_w_size, input_h_size, c_size}, bb::DataType<FT>::type, true);
+    bb::FrameBuffer x_gpu(frame_size, {input_w_size, input_h_size, c_size}, bb::DataType<FT>::type);
 
     maxpol_cpu->SetInputShape(x_cpu.GetShape());
     maxpol_gpu->SetInputShape(x_gpu.GetShape());
@@ -238,8 +238,8 @@ void MaxPoolingTest_Compare(
 
 
     // backward
-    bb::FrameBuffer dy_cpu(bb::DataType<BT>::type, frame_size, {output_w_size, output_h_size, c_size}, true);
-    bb::FrameBuffer dy_gpu(bb::DataType<BT>::type, frame_size, {output_w_size, output_h_size, c_size});
+    bb::FrameBuffer dy_cpu(frame_size, {output_w_size, output_h_size, c_size}, bb::DataType<BT>::type, true);
+    bb::FrameBuffer dy_gpu(frame_size, {output_w_size, output_h_size, c_size}, bb::DataType<BT>::type);
     
     for (bb::index_t f = 0; f < frame_size; ++f) {
         for (bb::index_t c = 0; c < c_size; ++c) {

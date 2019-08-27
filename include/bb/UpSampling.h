@@ -133,7 +133,7 @@ public:
     {
         BB_ASSERT(x_buf.GetType() == DataType<FT>::type);
 
-        FrameBuffer y_buf(DataType<FT>::type, x_buf.GetFrameSize(), GetOutputShape());
+        FrameBuffer y_buf(x_buf.GetFrameSize(), GetOutputShape(), DataType<FT>::type);
         
 #ifdef BB_WITH_CUDA
         if ( !m_host_only && DataType<FT>::type == BB_TYPE_FP32 && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
@@ -232,7 +232,7 @@ public:
     {
         BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
 
-        FrameBuffer dx_buf(DataType<BT>::type, dy_buf.GetFrameSize(), GetInputShape());
+        FrameBuffer dx_buf(dy_buf.GetFrameSize(), GetInputShape(), DataType<BT>::type);
 
 #ifdef BB_WITH_CUDA
         if ( !m_host_only && DataType<BT>::type == BB_TYPE_FP32 && dy_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() )

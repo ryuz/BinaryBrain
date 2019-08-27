@@ -8,9 +8,9 @@
 
 TEST(VariablesTest, VariablesTest_Test)
 {
-    auto t0 = std::make_shared<bb::Tensor>(BB_TYPE_FP32,  bb::indices_t({2, 3, 4}));
-    auto t1 = std::make_shared<bb::Tensor>(BB_TYPE_FP64,  bb::indices_t({3, 2, 6}));
-    auto t2 = std::make_shared<bb::Tensor>(BB_TYPE_INT32, bb::indices_t({4, 1, 7}));
+    auto t0 = std::make_shared<bb::Tensor>(bb::indices_t({2, 3, 4}), BB_TYPE_FP32);
+    auto t1 = std::make_shared<bb::Tensor>(bb::indices_t({3, 2, 6}), BB_TYPE_FP64);
+    auto t2 = std::make_shared<bb::Tensor>(bb::indices_t({4, 1, 7}), BB_TYPE_INT32);
 
     bb::Variables   var1;
     var1.PushBack(t0);

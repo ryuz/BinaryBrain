@@ -15,7 +15,7 @@
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
 #include "bb/MicroMlpAffine.h"
-#include "bb/StochasticLut6.h"
+#include "bb/StochasticLutN.h"
 #include "bb/BatchNormalization.h"
 #include "bb/Sigmoid.h"
 #include "bb/ReLU.h"

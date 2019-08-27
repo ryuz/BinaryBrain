@@ -10,7 +10,7 @@ TEST(ConvolutionCol2ImTest, testConvolutionCol2ImTest)
 {
     auto cnvcol2im = bb::ConvolutionCol2Im<>::Create(3, 4);
 
-    bb::FrameBuffer x_buf(BB_TYPE_FP32, 2*(3*4), 2);
+    bb::FrameBuffer x_buf(2*(3*4), {2}, BB_TYPE_FP32);
     cnvcol2im->SetInputShape(x_buf.GetShape());
 
     {
@@ -90,7 +90,7 @@ TEST(ConvolutionCol2ImTest, testConvolutionCol2ImTest)
 
     
     // backward
-    bb::FrameBuffer dy_buf(BB_TYPE_FP32, 2, {4, 3, 2});
+    bb::FrameBuffer dy_buf(2, {4, 3, 2}, BB_TYPE_FP32);
 
     for (bb::index_t f = 0; f < 2; ++f) {
         for (bb::index_t c = 0; c < 2; ++c) {

@@ -14,7 +14,7 @@
 
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
-#include "bb/StochasticLut6.h"
+#include "bb/StochasticLutN.h"
 #include "bb/BatchNormalization.h"
 #include "bb/Sigmoid.h"
 #include "bb/ReLU.h"
@@ -44,7 +44,7 @@ void StochasticLut6(int epoch_size, bool binary_mode)
     */
 
     auto net = bb::Sequential::Create();
-    net->Add(bb::StochasticLut6<>::Create(td.t_shape));
+    net->Add(bb::StochasticLutN<6>::Create(td.t_shape));
     net->SetInputShape(td.x_shape);
 
     if ( binary_mode ) {

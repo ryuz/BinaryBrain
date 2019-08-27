@@ -317,7 +317,7 @@ TEST(BatchNormalizationTest, testBatchNormalization)
     bb::BatchNormalization<float>::create_t create;
     auto batch_norm = bb::BatchNormalization<float>::Create(create);
 
-    bb::FrameBuffer x(BB_TYPE_FP32, 8, 2);
+    bb::FrameBuffer x(8, {2}, BB_TYPE_FP32);
     
     batch_norm->SetInputShape({2});
 
@@ -400,7 +400,7 @@ TEST(BatchNormalizationTest, testBatchNormalization)
     EXPECT_NEAR(+0.78771776, y.GetFP32(6, 1), 0.000001);
     EXPECT_NEAR(-0.52019095, y.GetFP32(7, 1), 0.000001);
 
-    bb::FrameBuffer dy(BB_TYPE_FP32, 8, 2);
+    bb::FrameBuffer dy(8, {2}, BB_TYPE_FP32);
     
     for (int i = 0; i < 2; i++) {
         for (int j = 0; j < 8; j++) {
@@ -494,7 +494,7 @@ TEST(BatchNormalizationTest, testBatchNormalization_test02)
     bb::BatchNormalization<float>::create_t create;
     auto bn = bb::BatchNormalization<float>::Create(create);
 
-    bb::FrameBuffer x_buf(BB_TYPE_FP32, frame_size, node_size);
+    bb::FrameBuffer x_buf(frame_size, {node_size}, BB_TYPE_FP32);
     bn->SetInputShape(x_buf.GetShape());
 
     auto valgen = bb::NormalDistributionGenerator<float>::Create(1.2f, 3.3f, 1);
@@ -558,7 +558,7 @@ TEST(BatchNormalizationTest, testBatchNormalization_test02)
     }
 
     // backward
-    bb::FrameBuffer dy_buf(BB_TYPE_FP32,  frame_size, node_size);
+    bb::FrameBuffer dy_buf(frame_size, {node_size}, BB_TYPE_FP32);
     for ( int frame = 0; frame < frame_size; ++frame) {
         for ( int node = 0; node < node_size; ++node ) {
             dy_buf.SetFP32(frame, node, valgen->GetValue());
@@ -613,8 +613,8 @@ TEST(BatchNormalizationTest, testBatchNormalization_cmp)
 
     bn_cpu->SendCommand("host_only true");
 
-    bb::FrameBuffer x_cpu(BB_TYPE_FP32, frame_size, node_size, true);
-    bb::FrameBuffer x_gpu(BB_TYPE_FP32, frame_size, node_size);
+    bb::FrameBuffer x_cpu(frame_size, {node_size}, BB_TYPE_FP32, true);
+    bb::FrameBuffer x_gpu(frame_size, {node_size}, BB_TYPE_FP32);
     
     bn_cpu->SetInputShape(x_cpu.GetShape());
     bn_gpu->SetInputShape(x_gpu.GetShape());
@@ -655,8 +655,8 @@ TEST(BatchNormalizationTest, testBatchNormalization_cmp)
         }
 
         // backward
-        bb::FrameBuffer dy_cpu(BB_TYPE_FP32, frame_size, node_size, true);
-        bb::FrameBuffer dy_gpu(BB_TYPE_FP32, frame_size, node_size);
+        bb::FrameBuffer dy_cpu(frame_size, {node_size}, BB_TYPE_FP32, true);
+        bb::FrameBuffer dy_gpu(frame_size, {node_size}, BB_TYPE_FP32);
         for ( int frame = 0; frame < frame_size; ++frame) {
             for ( int node = 0; node < node_size; ++node ) {
                 dy_cpu.SetFP32(frame, node, valgen->GetValue());

@@ -20,8 +20,8 @@ void MicroMlp_cmp_bit(int const input_node_size, int const output_node_size, int
     auto opt0 = bb::OptimizerAdam<float>::Create();
     auto opt1 = bb::OptimizerAdam<float>::Create();
 
-    bb::FrameBuffer x_buf0(BB_TYPE_FP32, frame_size, input_node_size);
-    bb::FrameBuffer x_buf1(BB_TYPE_BIT,  frame_size, input_node_size);
+    bb::FrameBuffer x_buf0(frame_size, {input_node_size}, BB_TYPE_FP32);
+    bb::FrameBuffer x_buf1(frame_size, {input_node_size}, BB_TYPE_BIT);
     
     mlp0->SetInputShape(x_buf0.GetShape());
     mlp1->SetInputShape(x_buf1.GetShape());

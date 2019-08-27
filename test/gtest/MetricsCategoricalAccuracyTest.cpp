@@ -7,8 +7,8 @@
 
 TEST(MetricsCategoricalAccuracyTest, testMetricsCategoricalAccuracyTest)
 {
-    bb::FrameBuffer y_buf(BB_TYPE_FP32, 2, 3);
-    bb::FrameBuffer t_buf(BB_TYPE_FP32, 2, 3);
+    bb::FrameBuffer y_buf(2, {3}, BB_TYPE_FP32);
+    bb::FrameBuffer t_buf(2, {3}, BB_TYPE_FP32);
     
     y_buf.SetFP32(0, 0, 0.2f);
     y_buf.SetFP32(0, 1, 0.4f);

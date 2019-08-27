@@ -62,8 +62,8 @@ TEST(LossSoftmaxCrossEntropyTest, testLossSoftmaxCrossEntropy)
     }
     
 
-    bb::FrameBuffer y_buf(BB_TYPE_FP32, 5, 10);
-    bb::FrameBuffer t_buf(BB_TYPE_FP32, 5, 10);
+    bb::FrameBuffer y_buf(5, {10}, BB_TYPE_FP32);
+    bb::FrameBuffer t_buf(5, {10}, BB_TYPE_FP32);
     for (int i = 0; i < 5; i++) {
         for (int j = 0; j < 10; j++) {
             y_buf.SetFP32(i, j, x[i][j]);

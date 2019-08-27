@@ -187,7 +187,7 @@ void MnistAeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_modu
 
 
         // write pgm
-        bb::FrameBuffer x_buf(BB_TYPE_FP32, 8, {28, 28, 1});
+        bb::FrameBuffer x_buf(8, {28, 28, 1}, BB_TYPE_FP32);
         x_buf.SetVector(td.x_test, 0);
         auto y_buf = net->Forward(x_buf, false);
         WritePgm("out_0x.pgm", x_buf, 0);
@@ -342,7 +342,7 @@ void MnistAeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_modu
             std::cout << "lut_accuracy : " << lut_accuracy << std::endl;
 
             // write pgm
-            bb::FrameBuffer x_buf(BB_TYPE_FP32, 32, {28, 28, 1});
+            bb::FrameBuffer x_buf(32, {28, 28, 1}, BB_TYPE_FP32);
             x_buf.SetVector(td.x_test, 0);
             auto y_buf = eval_net->Forward(x_buf, false);
             WritePgm("lut_0x.pgm", x_buf, 0);

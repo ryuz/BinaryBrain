@@ -178,10 +178,10 @@ public:
         else if (m_initializer == "xavier" || m_initializer == "Xavier" ) {
             m_initialize_std = (T)1.0 / std::sqrt((T)m_input_node_size);
         }
-        m_W->Resize(DataType<T>::type, m_output_node_size, m_input_node_size);      m_W->InitNormalDistribution(0.0, m_initialize_std, m_mt());
-        m_b->Resize(DataType<T>::type, m_output_node_size);                         m_b->InitNormalDistribution(0.0, m_initialize_std, m_mt());
-        m_dW->Resize(DataType<T>::type, m_output_node_size, m_input_node_size);     m_dW->FillZero();
-        m_db->Resize(DataType<T>::type, m_output_node_size);                        m_db->FillZero();
+        m_W->Resize ({m_input_node_size, m_output_node_size}, DataType<T>::type);   m_W->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+        m_b->Resize ({m_output_node_size},                    DataType<T>::type);   m_b->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+        m_dW->Resize({m_input_node_size, m_output_node_size}, DataType<T>::type);   m_dW->FillZero();
+        m_db->Resize({m_output_node_size},                    DataType<T>::type);   m_db->FillZero();
 
         return m_output_shape;
     }
@@ -253,7 +253,7 @@ public:
         }
 
         // 出力を設定
-        FrameBuffer y_buf(DataType<T>::type, x_buf.GetFrameSize(), m_output_shape);
+        FrameBuffer y_buf(x_buf.GetFrameSize(), m_output_shape, DataType<T>::type);
 
 #ifdef BB_WITH_CUDA
         if (DataType<T>::type == BB_TYPE_FP32 && m_cublasEnable && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable())
@@ -329,7 +329,7 @@ public:
         FrameBuffer x_buf = m_x_buf;
         m_x_buf = FrameBuffer();
 
-        FrameBuffer dx_buf(DataType<T>::type, dy_buf.GetFrameSize(), m_input_node_size);
+        FrameBuffer dx_buf(dy_buf.GetFrameSize(), {m_input_node_size}, DataType<T>::type);
 
 
         #ifdef BB_WITH_CUDA

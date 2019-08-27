@@ -20,7 +20,7 @@ TEST(BinaryToRealTest, testBinaryToReal_Bit)
 //  bin2real.SetMuxSize(mux_size);
 //  bin2real.SetBatchSize(1);
 
-    bb::FrameBuffer x_buf(BB_TYPE_BIT, frame_size*mux_size, node_size);
+    bb::FrameBuffer x_buf(frame_size*mux_size, node_size, BB_TYPE_BIT);
 
     bin2real->SetInputShape(x_buf.GetShape());
 
@@ -45,7 +45,7 @@ TEST(BinaryToRealTest, testBinaryToReal_Bit)
 //  auto out_err = bin2real.GetOutputErrorBuffer();
 //  auto in_err = bin2real.GetInputErrorBuffer();
 
-    bb::FrameBuffer dy_buf(BB_TYPE_FP32, frame_size, node_size);
+    bb::FrameBuffer dy_buf(frame_size, node_size, BB_TYPE_FP32);
 
     dy_buf.SetFP32(0, 0, 0.0f);
     dy_buf.SetFP32(0, 1, 1.0f);
@@ -70,7 +70,7 @@ TEST(BinaryToRealTest, testBinaryToReal_fp32)
 
     auto bin2real = bb::BinaryToReal<float, float, float>::Create(bb::indices_t({node_size}), mux_size);
 
-    bb::FrameBuffer x_buf(BB_TYPE_FP32, frame_size*mux_size, node_size);
+    bb::FrameBuffer x_buf(frame_size*mux_size, node_size, BB_TYPE_FP32);
 
     bin2real->SetInputShape(x_buf.GetShape());
 
@@ -95,7 +95,7 @@ TEST(BinaryToRealTest, testBinaryToReal_fp32)
 //  auto out_err = bin2real.GetOutputErrorBuffer();
 //  auto in_err = bin2real.GetInputErrorBuffer();
 
-    bb::FrameBuffer dy_buf(BB_TYPE_FP32, frame_size, node_size);
+    bb::FrameBuffer dy_buf(frame_size, node_size, BB_TYPE_FP32);
 
     dy_buf.SetFP32(0, 0, 0.0f);
     dy_buf.SetFP32(0, 1, 1.0f);
@@ -130,8 +130,8 @@ TEST(BinaryToRealTest, testBinaryToRealTest_cmp)
     auto bin2real_cpu = bb::BinaryToReal<float, float>::Create(frame_mux_size, bb::indices_t({y_node_size}));
     auto bin2real_gpu = bb::BinaryToReal<float, float>::Create(frame_mux_size, bb::indices_t({y_node_size}));
 
-    bb::FrameBuffer x_cpu(BB_TYPE_FP32, x_frame_size, x_node_size, true);
-    bb::FrameBuffer x_gpu(BB_TYPE_FP32, x_frame_size, x_node_size);
+    bb::FrameBuffer x_cpu(x_frame_size, {x_node_size}, BB_TYPE_FP32, true);
+    bb::FrameBuffer x_gpu(x_frame_size, {x_node_size}, BB_TYPE_FP32);
     
     bin2real_cpu->SetInputShape(x_cpu.GetShape());
     bin2real_gpu->SetInputShape(x_gpu.GetShape());
@@ -170,8 +170,8 @@ TEST(BinaryToRealTest, testBinaryToRealTest_cmp)
 
 
         // backward
-        bb::FrameBuffer dy_cpu(BB_TYPE_FP32, y_frame_size, y_node_size, true);
-        bb::FrameBuffer dy_gpu(BB_TYPE_FP32, y_frame_size, y_node_size);
+        bb::FrameBuffer dy_cpu(y_frame_size, {y_node_size}, BB_TYPE_FP32, true);
+        bb::FrameBuffer dy_gpu(y_frame_size, {y_node_size}, BB_TYPE_FP32);
         for ( int frame = 0; frame < y_frame_size; ++frame) {
             for ( int node = 0; node < y_node_size; ++node ) {
                 dy_cpu.SetFP32(frame, node, valgen->GetValue());

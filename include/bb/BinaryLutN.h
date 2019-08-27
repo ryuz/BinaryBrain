@@ -271,7 +271,7 @@ public:
         }
         
         // 出力を設定
-        FrameBuffer y_buf(DataType<FT>::type, x_buf.GetFrameSize(), m_output_shape);
+        FrameBuffer y_buf(x_buf.GetFrameSize(), m_output_shape, DataType<FT>::type);
 
 #ifdef BB_WITH_CUDA
         if ( N == 6 && DataType<FT>::type == BB_TYPE_BIT && !m_host_only
@@ -443,7 +443,7 @@ public:
     // Backwardは存在しない
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
-        FrameBuffer dx_buf(DataType<BT>::type, dy_buf.GetFrameSize(), m_input_shape);
+        FrameBuffer dx_buf(dy_buf.GetFrameSize(), m_input_shape, DataType<BT>::type);
         return dx_buf;
     }
 };

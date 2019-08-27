@@ -147,7 +147,7 @@ public:
         }
 
         // 戻り値の型を設定
-        m_y_buf.Resize(DataType<FT>::type, x_buf.GetFrameSize(), m_node_shape);
+        m_y_buf.Resize(x_buf.GetFrameSize(), m_node_shape, DataType<FT>::type);
 
 #ifdef BB_WITH_CUDA
         if ( false && DataType<FT>::type == BB_TYPE_BIT && !m_host_only

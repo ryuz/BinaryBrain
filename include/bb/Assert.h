@@ -12,6 +12,7 @@
 #include <assert.h>
 #include <cstdint>
 #include <iostream>
+#include <string>
 
 
 namespace bb {

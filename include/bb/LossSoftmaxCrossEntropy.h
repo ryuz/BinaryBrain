@@ -56,7 +56,7 @@ public:
 
     FrameBuffer CalculateLoss(FrameBuffer y_buf, FrameBuffer t_buf, index_t batch_size)
     {
-        FrameBuffer dy_buf(y_buf.GetType(), y_buf.GetFrameSize(), y_buf.GetShape());
+        FrameBuffer dy_buf(y_buf.GetFrameSize(), y_buf.GetShape(), y_buf.GetType());
 
         m_loss_buf.Resize(y_buf.GetFrameSize());
 

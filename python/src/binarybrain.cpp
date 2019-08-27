@@ -104,12 +104,18 @@ PYBIND11_MODULE(binarybrain, m) {
     py::class_< Tensor >(m, "Tensor");
 
     py::class_< FrameBuffer >(m, "FrameBuffer")
-        .def(py::init<int, bb::index_t, bb::indices_t, bool>(),
+        .def(py::init< bool >(),
+            py::arg("hostOnly") = false)
+        .def(py::init< bb::index_t, bb::indices_t, int, bool>(),
             py::arg("data_type"),
             py::arg("frame_size"),
             py::arg("shape"),
             py::arg("hostOnly") = false)
-        .def("resize",    (void (FrameBuffer::*)(int, bb::index_t, bb::indices_t))&bb::FrameBuffer::Resize)
+        .def("resize",  (void (FrameBuffer::*)(bb::index_t, bb::indices_t, int))&bb::FrameBuffer::Resize,
+                "resize",
+                py::arg("frame_size"),
+                py::arg("shape"),
+                py::arg("data_type") = BB_TYPE_FP32)
         .def("get_range", &FrameBuffer::GetRange)
         .def("set_data",  (void (FrameBuffer::*)(std::vector< std::vector<float> > const &, bb::index_t))&FrameBuffer::SetVector<float>,
                 "set data",

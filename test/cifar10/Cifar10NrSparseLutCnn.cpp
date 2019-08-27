@@ -119,7 +119,7 @@ void NrSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_si
 
     {
         // write pgm
-        bb::FrameBuffer x_buf(BB_TYPE_FP32, 8, {32, 32, 3});
+        bb::FrameBuffer x_buf(8, {32, 32, 3}, BB_TYPE_FP32);
         x_buf.SetVector(td.x_test, 0);
 //      auto y_buf = net->Forward(x_buf, false);
         bb::WritePpm("td0_x_test.ppm", x_buf, 32, 32, 0);
@@ -235,7 +235,7 @@ void NrSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_si
         runner->Fitting(td, epoch_size, mini_batch_size);
 
         // write pgm
-        bb::FrameBuffer x_buf(BB_TYPE_FP32, 8, {32, 32, 3});
+        bb::FrameBuffer x_buf( 8, {32, 32, 3}, BB_TYPE_FP32);
         x_buf.SetVector(td.x_test, 0);
         auto y_buf = net->Forward(x_buf, false);
         bb::WritePpm("out_0x.ppm", x_buf, 32, 32, 0);
@@ -256,7 +256,7 @@ void NrSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_si
         bb::WritePpm("out_3z.ppm", z_buf, 32, 32, 3);
         bb::WritePpm("out_4z.ppm", z_buf, 32, 32, 4);
 
-        bb::FrameBuffer t_buf(BB_TYPE_FP32, 8, {32, 32, 3});
+        bb::FrameBuffer t_buf(8, {32, 32, 3}, BB_TYPE_FP32);
         t_buf.SetVector(td.t_test, 0);
 
         z_buf = x_buf - t_buf + 0.5f;

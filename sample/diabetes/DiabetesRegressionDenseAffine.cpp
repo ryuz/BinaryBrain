@@ -33,10 +33,10 @@ void DiabetesAffineRegression(int epoch_size, size_t mini_batch_size)
 	net->Add(bb::Sigmoid<>::Create());
 	net->Add(bb::DenseAffine<>::Create(1));
 //	net->Add(bb::Sigmoid<>::Create());
-	net->SetInputShape({ 10 });
+	net->SetInputShape({10});
 
-    bb::FrameBuffer x(BB_TYPE_FP32, mini_batch_size, 10);
-	bb::FrameBuffer t(BB_TYPE_FP32, mini_batch_size, 1);
+    bb::FrameBuffer x(mini_batch_size, {10}, BB_TYPE_FP32);
+    bb::FrameBuffer t(mini_batch_size, {1},  BB_TYPE_FP32);
 
     bb::Runner<float>::create_t runner_create;
     runner_create.name        = "DiabetesAffineRegression";

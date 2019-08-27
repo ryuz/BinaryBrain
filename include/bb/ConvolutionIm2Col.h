@@ -64,6 +64,7 @@ public:
         index_t         x_stride      = 1;
         index_t         y_stride      = 1;
         std::string     padding       = "valid";
+        border_mode_t   border_mode   = BORDER_REFLECT_101;
     };
 
 protected:
@@ -74,6 +75,7 @@ protected:
         m_x_stride      = create.x_stride;
         m_y_stride      = create.y_stride;
         m_padding       = create.padding;
+        m_border_mode   = create.border_mode;
     }
 
     /**
@@ -98,7 +100,8 @@ public:
         return std::shared_ptr<ConvolutionIm2Col>(new ConvolutionIm2Col(create));
     }
 
-    static std::shared_ptr<ConvolutionIm2Col> Create(index_t filter_h_size, index_t filter_w_size, index_t y_stride=1, index_t x_stride=1, std::string padding="valid")
+    static std::shared_ptr<ConvolutionIm2Col> Create(index_t filter_h_size, index_t filter_w_size, index_t y_stride=1, index_t x_stride=1,
+                                                std::string padding="valid", border_mode_t border_mode = BORDER_REFLECT_101)
     {
         create_t create;
         create.filter_h_size = filter_h_size;
@@ -106,6 +109,7 @@ public:
         create.y_stride      = y_stride;
         create.x_stride      = x_stride;
         create.padding       = padding;
+        create.border_mode   = border_mode;
         return Create(create);
     }
 
@@ -238,7 +242,7 @@ public:
         m_output_frame_size = m_input_frame_size * m_output_h_size * m_output_w_size;
 
         // 出力形状設定
-        FrameBuffer y_buf(x_buf.GetType(), m_output_frame_size, m_output_shape);
+        FrameBuffer y_buf(m_output_frame_size, m_output_shape, x_buf.GetType());
         
 #ifdef BB_WITH_CUDA
         if ( DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
@@ -346,7 +350,7 @@ public:
         BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
         
         // 出力設定
-        FrameBuffer dx_buf(DataType<BT>::type, m_input_frame_size, m_input_shape);
+        FrameBuffer dx_buf(m_input_frame_size, m_input_shape, DataType<BT>::type);
 
 #ifdef BB_WITH_CUDA
         if ( DataType<BT>::type == BB_TYPE_FP32 && !m_host_only && dy_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {

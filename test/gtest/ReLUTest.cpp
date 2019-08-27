@@ -10,7 +10,7 @@ TEST(ReLUTest, testReLU_test0)
 {
     auto relu = bb::ReLU<>::Create();
     
-    bb::FrameBuffer x(BB_TYPE_FP32, 2, 3);
+    bb::FrameBuffer x(2, {3}, BB_TYPE_FP32);
 
     x.SetFP32(0, 0, -1);
     x.SetFP32(0, 1, 0);
@@ -28,7 +28,7 @@ TEST(ReLUTest, testReLU_test0)
     EXPECT_EQ(0, y.GetFP32(1, 2));
 
     // backward
-    bb::FrameBuffer dy(BB_TYPE_FP32, 2, 3);
+    bb::FrameBuffer dy(2, {3}, BB_TYPE_FP32);
 
     dy.SetFP32(0, 0, 1);
     dy.SetFP32(0, 1, 2);
@@ -60,8 +60,8 @@ void testReLU_cmp(int node_size, int frame_size, int loop_num = 3)
 
     act_cpu->SendCommand("host_only true");
 
-    bb::FrameBuffer x_cpu(BB_TYPE_FP32, frame_size, node_size, true);
-    bb::FrameBuffer x_gpu(BB_TYPE_FP32, frame_size, node_size);
+    bb::FrameBuffer x_cpu(frame_size, {node_size}, BB_TYPE_FP32, true);
+    bb::FrameBuffer x_gpu(frame_size, {node_size}, BB_TYPE_FP32);
     
     act_cpu->SetInputShape(x_cpu.GetShape());
     act_gpu->SetInputShape(x_gpu.GetShape());
@@ -97,8 +97,8 @@ void testReLU_cmp(int node_size, int frame_size, int loop_num = 3)
 
 
         // backward
-        bb::FrameBuffer dy_cpu(BB_TYPE_FP32, frame_size, node_size, true);
-        bb::FrameBuffer dy_gpu(BB_TYPE_FP32, frame_size, node_size);
+        bb::FrameBuffer dy_cpu(frame_size, {node_size}, BB_TYPE_FP32, true);
+        bb::FrameBuffer dy_gpu(frame_size, {node_size}, BB_TYPE_FP32);
         for ( int frame = 0; frame < frame_size; ++frame) {
             for ( int node = 0; node < node_size; ++node ) {
                 dy_cpu.SetFP32(frame, node, valgen->GetValue());

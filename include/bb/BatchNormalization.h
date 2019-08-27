@@ -232,10 +232,10 @@ public:
         auto node_size = GetShapeSize(shape);
         
         // パラメータ初期化
-        m_gamma->Resize(DataType<T>::type, node_size);    *m_gamma  = m_init_gamma;
-        m_beta->Resize(DataType<T>::type, node_size);     *m_beta   = m_init_beta;
-        m_dgamma->Resize(DataType<T>::type, node_size);   *m_dgamma = (T)0.0;
-        m_dbeta->Resize(DataType<T>::type, node_size);    *m_dbeta  = (T)0.0;
+        m_gamma->Resize ({node_size}, DataType<T>::type); *m_gamma  = m_init_gamma;
+        m_beta->Resize  ({node_size}, DataType<T>::type); *m_beta   = m_init_beta;
+        m_dgamma->Resize({node_size}, DataType<T>::type); *m_dgamma = (T)0.0;
+        m_dbeta->Resize ({node_size}, DataType<T>::type); *m_dbeta  = (T)0.0;
 
         m_mean.Resize(node_size);
         m_rstd.Resize(node_size);
@@ -334,7 +334,7 @@ public:
         }
 
         // 出力設定
-        FrameBuffer y_buf(x_buf.GetType(), x_buf.GetFrameSize(), x_buf.GetShape());
+        FrameBuffer y_buf(x_buf.GetFrameSize(), x_buf.GetShape(), x_buf.GetType());
 
         // backwardの為に保存
         if ( train ) {
@@ -589,7 +589,7 @@ public:
         }
 
         // 出力設定
-        FrameBuffer y_buf(x_buf.GetType(), x_buf.GetFrameSize(), x_buf.GetShape());
+        FrameBuffer y_buf(x_buf.GetFrameSize(), x_buf.GetShape(), x_buf.GetType());
 
         // backwardの為に保存
         m_x_buf = x_buf;
@@ -672,7 +672,7 @@ public:
         }
 
         // 出力設定
-        FrameBuffer dx_buf(dy_buf.GetType(), dy_buf.GetFrameSize(), dy_buf.GetShape());
+        FrameBuffer dx_buf(dy_buf.GetFrameSize(), dy_buf.GetShape(), dy_buf.GetType());
 
         // forward時のxを取得
         FrameBuffer x_buf = m_x_buf;

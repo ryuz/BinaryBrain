@@ -506,14 +506,14 @@ protected:
                 }
 
                 // 学習データセット
-                x_buf.Resize(DataType<T>::type, run_size, x_shape);
+                x_buf.Resize(run_size, x_shape, DataType<T>::type);
                 x_buf.SetVector(x, index + i);
 
                 // Forward
                 auto y_buf = m_net->Forward(x_buf, train);
 
                 // 期待値データセット
-                t_buf.Resize(DataType<T>::type, run_size, t_shape);
+                t_buf.Resize(run_size, t_shape, DataType<T>::type);
                 t_buf.SetVector(t, index + i);
                 
                 FrameBuffer dy_buf;

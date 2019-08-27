@@ -11,7 +11,7 @@ TEST(UpSamplingTest, testUpSampling_call)
 {
     auto upsmp = bb::UpSampling<>::Create(2, 3);
 
-    bb::FrameBuffer x_buf(BB_TYPE_FP32, 16, {28, 28, 3});
+    bb::FrameBuffer x_buf(16, {28, 28, 3}, BB_TYPE_FP32);
     upsmp->SetInputShape(x_buf.GetShape());
 
     auto y_buf  = upsmp->Forward(x_buf);
@@ -23,7 +23,7 @@ TEST(UpSamplingTest, testUpSampling_test)
 {
     auto upsmp = bb::UpSampling<>::Create(2, 3);
     
-    bb::FrameBuffer x_buf(BB_TYPE_FP32, 2, {2, 3, 4});
+    bb::FrameBuffer x_buf(2, {2, 3, 4}, BB_TYPE_FP32);
     upsmp->SetInputShape(x_buf.GetShape());
 
     for ( bb::index_t f = 0; f < 2; ++f) {
@@ -77,7 +77,7 @@ TEST(UpSamplingTest, testUpSampling_test)
     EXPECT_EQ(1321,  y_buf.GetFP32(1, { 5, 5, 3 }));
 
     // backward
-    bb::FrameBuffer dy_buf(BB_TYPE_FP32, 2, {2*3, 3*2, 4});
+    bb::FrameBuffer dy_buf(2, {2*3, 3*2, 4}, BB_TYPE_FP32);
 
     dy_buf.SetFP32(0, { 0, 0, 0 }, 11);
     dy_buf.SetFP32(0, { 1, 0, 0 }, 12);
@@ -152,8 +152,8 @@ void UpSamplingTest_cmp
         model1->SendCommand("host_only true");
     }
 
-    bb::FrameBuffer x_buf0(bb::DataType<FT>::type, frame_size, {input_w_size, input_h_size, c_size}, false);
-    bb::FrameBuffer x_buf1(bb::DataType<FT>::type, frame_size, {input_w_size, input_h_size, c_size}, host_only);
+    bb::FrameBuffer x_buf0(frame_size, {input_w_size, input_h_size, c_size}, bb::DataType<FT>::type, false);
+    bb::FrameBuffer x_buf1(frame_size, {input_w_size, input_h_size, c_size}, bb::DataType<FT>::type, host_only);
 
     bb::indices_t output_shape({input_w_size*filter_w_size, input_h_size*filter_h_size, c_size});
 
@@ -207,8 +207,8 @@ void UpSamplingTest_cmp
         }
 
         // backward
-        bb::FrameBuffer dy_buf0(BB_TYPE_FP32, frame_size, output_shape);
-        bb::FrameBuffer dy_buf1(BB_TYPE_FP32, frame_size, output_shape);
+        bb::FrameBuffer dy_buf0(frame_size, output_shape, BB_TYPE_FP32);
+        bb::FrameBuffer dy_buf1(frame_size, output_shape, BB_TYPE_FP32);
         for ( int frame = 0; frame < frame_size; ++frame) {
             for ( int node = 0; node < output_node_size; ++node ) {
                 float val = valgen->GetValue();

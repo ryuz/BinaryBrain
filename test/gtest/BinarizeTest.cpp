@@ -9,7 +9,7 @@ TEST(BinarizeTest, testBinarize_test0)
 {
     auto bin = bb::Binarize<>::Create();
     
-    bb::FrameBuffer x_buf(BB_TYPE_FP32, 2, 3);
+    bb::FrameBuffer x_buf(2, {3}, BB_TYPE_FP32);
     bin->SetInputShape(x_buf.GetShape());
 
     x_buf.SetFP32(0, 0, -1.01f);
@@ -29,7 +29,7 @@ TEST(BinarizeTest, testBinarize_test0)
     EXPECT_EQ(1, y_buf.GetFP32(1, 2));
 
     // backward
-    bb::FrameBuffer dy_buf(BB_TYPE_FP32, 2, 3);
+    bb::FrameBuffer dy_buf(2, {3}, BB_TYPE_FP32);
     dy_buf.SetFP32(0, 0, 1);
     dy_buf.SetFP32(0, 1, 2);
     dy_buf.SetFP32(0, 2, 3);
@@ -52,7 +52,7 @@ TEST(BinarizeTest, testBinarize_bit_test)
 {
     auto bin = bb::Binarize<bb::Bit>::Create();
     
-    bb::FrameBuffer x_buf(BB_TYPE_FP32, 3, 2);
+    bb::FrameBuffer x_buf(3, {2}, BB_TYPE_FP32);
     bin->SetInputShape(x_buf.GetShape());
 
     x_buf.SetFP32(0, 0, -1.01f);
@@ -72,7 +72,7 @@ TEST(BinarizeTest, testBinarize_bit_test)
     EXPECT_EQ(1, (int)y_buf.GetBit(2, 1));
 
     // backward
-    bb::FrameBuffer dy_buf(BB_TYPE_FP32, 3, 2);
+    bb::FrameBuffer dy_buf(3, {2}, BB_TYPE_FP32);
     dy_buf.SetFP32(0, 0, 1);
     dy_buf.SetFP32(1, 0, 2);
     dy_buf.SetFP32(2, 0, 3);
@@ -102,8 +102,8 @@ TEST(BinarizeTest, testBinarize_comp)
     auto bin_cpu = bb::Binarize<>::Create();
     auto bin_gpu = bb::Binarize<>::Create();
     
-    bb::FrameBuffer x_cpu(BB_TYPE_FP32, 2, 3, true);
-    bb::FrameBuffer x_gpu(BB_TYPE_FP32, 2, 3);
+    bb::FrameBuffer x_cpu(2, 3, BB_TYPE_FP32, true);
+    bb::FrameBuffer x_gpu(2, 3, BB_TYPE_FP32, );
 
     x_cpu.SetFP32(0, 0, -1);    x_gpu.SetFP32(0, 0, -1);
     x_cpu.SetFP32(0, 1, 0);     x_gpu.SetFP32(0, 1, 0);
@@ -131,7 +131,7 @@ TEST(BinarizeTest, testBinarize_comp)
 
     /*
     // backward
-    bb::FrameBuffer dy_cpu(BB_TYPE_FP32, 2, 3);
+    bb::FrameBuffer dy_cpu(2, 3, BB_TYPE_FP32);
 
     dy_cpu.SetFP32(0, 0, 1);
     dy_cpu.SetFP32(0, 1, 2);

@@ -17,7 +17,7 @@ TEST(LoweringConvolutionTest, testLoweringConvolution)
 
     auto cnv = bb::LoweringConvolution<>::Create(sub_affine, 2, 2);
 
-    bb::FrameBuffer x_buf(BB_TYPE_FP32, 1, {3, 3, 1});
+    bb::FrameBuffer x_buf(1, {3, 3, 1}, BB_TYPE_FP32);
 
     cnv->SetInputShape({3, 3, 1});
 
@@ -121,8 +121,8 @@ void testLoweringConvolution_cmpare(
     auto layer_cpu = bb::LoweringConvolution<FT, BT>::Create(cnv_layer, f_h, f_w);
     auto layer_gpu = bb::LoweringConvolution<FT, BT>::Create(cnv_layer, f_h, f_w);
 
-    bb::FrameBuffer x_cpu(bb::DataType<FT>::type, frame_size, {x_w, x_h, x_c}, true);
-    bb::FrameBuffer x_gpu(bb::DataType<FT>::type, frame_size, {x_w, x_h, x_c});
+    bb::FrameBuffer x_cpu(frame_size, {x_w, x_h, x_c}, bb::DataType<FT>::type, true);
+    bb::FrameBuffer x_gpu(frame_size, {x_w, x_h, x_c}, bb::DataType<FT>::type);
     
     layer_cpu->SetInputShape(x_cpu.GetShape());
     layer_gpu->SetInputShape(x_gpu.GetShape());
@@ -163,8 +163,8 @@ void testLoweringConvolution_cmpare(
 
         if ( bb::DataType<FT>::type != BB_TYPE_BIT ) {
             // backward
-            bb::FrameBuffer dy_cpu(BB_TYPE_FP32, frame_size, {y_w, y_h, y_c}, true);
-            bb::FrameBuffer dy_gpu(BB_TYPE_FP32, frame_size, {y_w, y_h, y_c});
+            bb::FrameBuffer dy_cpu(frame_size, {y_w, y_h, y_c}, BB_TYPE_FP32, true);
+            bb::FrameBuffer dy_gpu(frame_size, {y_w, y_h, y_c}, BB_TYPE_FP32);
             for ( int frame = 0; frame < frame_size; ++frame) {
                 for ( int node = 0; node < dy_cpu.GetNodeSize(); ++node ) {
                     dy_cpu.SetFP32(frame, node, valgen->GetValue());

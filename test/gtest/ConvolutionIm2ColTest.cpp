@@ -10,7 +10,7 @@ TEST(ConvolutionIm2ColTest, testConvolutionIm2Col_xy)
 {
     auto cnvim2col = bb::ConvolutionIm2Col<>::Create(2, 3);
 
-    bb::FrameBuffer buf_x(BB_TYPE_FP32, 16, {28, 28, 3});
+    bb::FrameBuffer buf_x(16, {28, 28, 3}, BB_TYPE_FP32);
 //  cnvim2col->SetInputShape({28, 28, 3});
     bb::FrameBuffer buf_y = cnvim2col->Forward(buf_x);
 }
@@ -20,7 +20,7 @@ TEST(ConvolutionIm2ColTest, testConvolutionIm2Col)
 {
     auto cnvim2col = bb::ConvolutionIm2Col<>::Create(2, 3);
     
-    bb::FrameBuffer buf_x(BB_TYPE_FP32, 2, {4, 3, 2});
+    bb::FrameBuffer buf_x(2, {4, 3, 2}, BB_TYPE_FP32);
 
     for ( bb::index_t f = 0; f < 2; ++f) {
         for (bb::index_t c = 0; c < 2; ++c) {
@@ -114,7 +114,7 @@ TEST(ConvolutionIm2ColTest, testConvolutionIm2Col)
     EXPECT_EQ(1123, buf_y.GetFP32(7, { 2, 1, 1 }));
 
     // backward
-    bb::FrameBuffer buf_dy(BB_TYPE_FP32, 8, { 3, 2, 2 });
+    bb::FrameBuffer buf_dy(8, { 3, 2, 2 }, BB_TYPE_FP32);
     
     float dy_data[8][2][2][3];
 
@@ -195,7 +195,7 @@ TEST(ConvolutionIm2ColTest, testConvolutionIm2Col_float)
 {
     auto cnvim2col = bb::ConvolutionIm2Col<float>::Create(2, 2);
     
-    bb::FrameBuffer buf_x(BB_TYPE_FP32, 1, {3, 3, 1});
+    bb::FrameBuffer buf_x(1, {3, 3, 1}, BB_TYPE_FP32);
 
     // 0 1 1
     // 1 0 1
@@ -236,7 +236,7 @@ TEST(ConvolutionIm2ColTest, testConvolutionIm2Col_bit)
 {
     auto cnvim2col = bb::ConvolutionIm2Col<bb::Bit>::Create(2, 2);
     
-    bb::FrameBuffer buf_x(BB_TYPE_BIT, 2, {3, 3, 2});
+    bb::FrameBuffer buf_x(2, {3, 3, 2}, BB_TYPE_BIT);
 
     // 0 1 1
     // 1 0 1
@@ -389,7 +389,7 @@ TEST(ConvolutionIm2ColTest, testConvolutionIm2Col_stride)
 
     auto cnvim2col = bb::ConvolutionIm2Col<>::Create(3, 3, 2, 2);
     
-    bb::FrameBuffer x_buf(BB_TYPE_FP32, input_frame_size, {input_w_size, input_h_size, input_c_size});
+    bb::FrameBuffer x_buf(input_frame_size, {input_w_size, input_h_size, input_c_size}, BB_TYPE_FP32);
     cnvim2col->SetInputShape(x_buf.GetShape());
 
     for ( bb::index_t f = 0; f < input_frame_size; ++f) {
@@ -483,7 +483,7 @@ TEST(ConvolutionIm2ColTest, testConvolutionIm2Col_stride)
 
 
     // backward
-    bb::FrameBuffer dy_buf(BB_TYPE_FP32, 12, { 3, 3, 2 });
+    bb::FrameBuffer dy_buf(12, { 3, 3, 2 }, BB_TYPE_FP32);
     
     float dy_data[12][2][3][3];
 
@@ -610,9 +610,9 @@ TEST(ConvolutionIm2ColTest, testConvolutionIm2Col_same)
     bb::indices_t     input_shape({input_w_size, input_h_size, input_c_size});
     bb::indices_t     output_shape({output_w_size, output_h_size, output_c_size});
 
-    auto cnvim2col = bb::ConvolutionIm2Col<>::Create(filter_h_size, filter_w_size, 1, 1, "same");
+    auto cnvim2col = bb::ConvolutionIm2Col<>::Create(filter_h_size, filter_w_size, 1, 1, "same", bb::ConvolutionIm2Col<>::BORDER_CONSTANT);
     
-    bb::FrameBuffer x_buf(BB_TYPE_FP32, input_frame_size, input_shape);
+    bb::FrameBuffer x_buf(input_frame_size, input_shape, BB_TYPE_FP32);
     cnvim2col->SetInputShape(x_buf.GetShape());
 
     for ( bb::index_t f = 0; f < input_frame_size; ++f) {
@@ -758,7 +758,7 @@ TEST(ConvolutionIm2ColTest, testConvolutionIm2Col_same)
     EXPECT_EQ(    0, y_buf.GetFP32(11, { 2, 1, 1 }));
 
     // backward
-    bb::FrameBuffer dy_buf(BB_TYPE_FP32, output_frame_size, output_shape);
+    bb::FrameBuffer dy_buf(output_frame_size, output_shape, BB_TYPE_FP32);
     
     float dy_data[output_frame_size][output_c_size][output_h_size][output_w_size];
 

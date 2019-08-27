@@ -16,9 +16,9 @@ def calculation(net, x, x_shape, t, t_shape, max_batch_size, min_batch_size=1,
     
     batch_size = len(x)
     
-    x_buf = bb.FrameBuffer(bb.TYPE_FP32, 16, x_shape, False)
-    t_buf = bb.FrameBuffer(bb.TYPE_FP32, 16, t_shape, False)
-
+    x_buf = bb.FrameBuffer()
+    t_buf = bb.FrameBuffer()
+    
     for index in tqdm(range(0, batch_size, max_batch_size)):
         # calc mini_batch_size
         mini_batch_size = min(max_batch_size, batch_size-index)

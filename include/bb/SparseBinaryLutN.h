@@ -382,7 +382,7 @@ public:
         }
 
         // 出力を設定
-        FrameBuffer y_buf(DataType<BinType>::type, x_buf.GetFrameSize(), m_output_shape);
+        FrameBuffer y_buf(x_buf.GetFrameSize(), m_output_shape, DataType<BinType>::type);
 
         // backwardの為に保存
         if ( train ) {
@@ -515,7 +515,7 @@ public:
         FrameBuffer x_buf = m_x_buf;
         m_x_buf = FrameBuffer();
 
-        FrameBuffer dx_buf(DataType<RealType>::type, dy_buf.GetFrameSize(), m_input_shape);
+        FrameBuffer dx_buf(dy_buf.GetFrameSize(), m_input_shape, DataType<RealType>::type);
 
         // make reverse index table
         if ( m_reverse_index_dirty ) {
@@ -527,7 +527,7 @@ public:
         index_t tmp_frame_size = m_max_tmp_mem_size / (sizeof(float) * GetShapeSize(m_output_shape)*N);
         tmp_frame_size = ((tmp_frame_size + 31) & ~0x1f);
         tmp_frame_size = std::min(tmp_frame_size, dy_buf.GetFrameSize());
-        FrameBuffer tmp_buf(DataType<RealType>::type, tmp_frame_size, GetShapeSize(m_output_shape)*N);
+        FrameBuffer tmp_buf(tmp_frame_size, GetShapeSize(m_output_shape)*N, DataType<RealType>::type);
 
 
 #ifdef BB_WITH_CUDA

@@ -89,7 +89,7 @@ TEST(MicroMlpAffineTest, testMicroMlpAffine)
 
     auto mlp = bb::MicroMlpAffine<4, 2>::Create(1);
        
-    bb::FrameBuffer x(BB_TYPE_FP32, 1, 6);
+    bb::FrameBuffer x(1, {6}, BB_TYPE_FP32);
 
     auto x_ptr = x.Lock<float>();
     auto x_cptr = x.LockConst<float>();
@@ -216,7 +216,7 @@ TEST(MicroMlpAffineTest, testMicroMlpAffine)
 
     EXPECT_EQ(out_sig_val, y.GetFP32(0, 0));
 
-    bb::FrameBuffer dy(BB_TYPE_FP32, 1, 1);
+    bb::FrameBuffer dy(1, {1}, BB_TYPE_FP32);
     dy.SetFP32(0, 0, out_err_val);
 
     auto dx = mlp->Backward(dy);
@@ -349,8 +349,8 @@ TEST(MicroMlpAffineTest, testMicroMlpAffineCmp)
     auto mlp1 = bb::MicroMlpAffine<N, M>::Create(output_node_size);
     auto mlp2 = bb::MicroMlpAffine<N, M>::Create(output_node_size);
     
-    bb::FrameBuffer x_cpu(BB_TYPE_FP32, frame_size, input_node_size, true);
-    bb::FrameBuffer x_gpu(BB_TYPE_FP32, frame_size, input_node_size, false);
+    bb::FrameBuffer x_cpu(frame_size, {input_node_size}, BB_TYPE_FP32, true);
+    bb::FrameBuffer x_gpu(frame_size, {input_node_size}, BB_TYPE_FP32, false);
 
     mlp1->SetInputShape({input_node_size});
     mlp2->SetInputShape({input_node_size});
@@ -472,8 +472,8 @@ TEST(MicroMlpAffineTest, testMicroMlpAffineCmp)
             }
         }
 
-        bb::FrameBuffer dy_cpu(BB_TYPE_FP32, frame_size, output_node_size, true);
-        bb::FrameBuffer dy_gpu(BB_TYPE_FP32, frame_size, output_node_size, false);
+        bb::FrameBuffer dy_cpu(frame_size, {output_node_size}, BB_TYPE_FP32, true);
+        bb::FrameBuffer dy_gpu(frame_size, {output_node_size}, BB_TYPE_FP32, false);
     
         for (int i = 0; i < frame_size; i++) {
             for (int j = 0; j < output_node_size; j++) {
@@ -582,8 +582,8 @@ TEST(MicroMlpAffineTest, testMicroMlpAffine_CmpBit)
     auto mlp1 = bb::MicroMlpAffine<N, M, float>::Create(output_node_size);
     auto mlp2 = bb::MicroMlpAffine<N, M, bb::Bit>::Create(output_node_size);
     
-    bb::FrameBuffer x_buf1(BB_TYPE_FP32, frame_size, input_node_size);
-    bb::FrameBuffer x_buf2(BB_TYPE_BIT,  frame_size, input_node_size);
+    bb::FrameBuffer x_buf1(frame_size, {input_node_size}, BB_TYPE_FP32);
+    bb::FrameBuffer x_buf2(frame_size, {input_node_size}, BB_TYPE_BIT);
 
     mlp1->SetInputShape({input_node_size});
     mlp2->SetInputShape({input_node_size});
@@ -702,8 +702,8 @@ TEST(MicroMlpAffineTest, testMicroMlpAffine_CmpBit)
             }
         }
 
-        bb::FrameBuffer dy_buf1(BB_TYPE_FP32, frame_size, output_node_size);
-        bb::FrameBuffer dy_buf2(BB_TYPE_FP32, frame_size, output_node_size);
+        bb::FrameBuffer dy_buf1(frame_size, {output_node_size}, BB_TYPE_FP32);
+        bb::FrameBuffer dy_buf2(frame_size, {output_node_size}, BB_TYPE_FP32);
     
         for (int i = 0; i < frame_size; i++) {
             for (int j = 0; j < output_node_size; j++) {
