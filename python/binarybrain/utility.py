@@ -1,12 +1,12 @@
 ﻿
-
+from collections import OrderedDict
 from binarybrain import binarybrain as bb
 from tqdm import tqdm
 
 
 def calculation(net, x, x_shape, t, t_shape, max_batch_size, min_batch_size=1,
             metrics=None, loss=None, optimizer=None, train=False,
-            print_loss=True, print_metrics=True):
+            print_loss=True, print_metrics=True, leave=False):
     
     if metrics is not None:
         metrics.clear()
@@ -19,37 +19,47 @@ def calculation(net, x, x_shape, t, t_shape, max_batch_size, min_batch_size=1,
     x_buf = bb.FrameBuffer()
     t_buf = bb.FrameBuffer()
     
-    for index in tqdm(range(0, batch_size, max_batch_size)):
-        # calc mini_batch_size
-        mini_batch_size = min(max_batch_size, batch_size-index)
-        
-        # setup x
-        x_buf.resize(bb.TYPE_FP32, mini_batch_size, x_shape)
-        x_buf.set_data(x[index:index+mini_batch_size])
-        
-        # forward
-        y_buf = net.forward(x_buf, train)
-        
-        # setup t
-        t_buf.resize(bb.TYPE_FP32, mini_batch_size, t_shape)
-        t_buf.set_data(t[index:index+mini_batch_size])
-        
-        # calc loss
-        if loss is not None:
-            dy_buf = loss.calculate_loss(y_buf, t_buf, mini_batch_size)
+#   for index in tqdm(range(0, batch_size, max_batch_size)):
+    with tqdm(range(0, batch_size, max_batch_size), leave=leave) as pbar:
+        for index in pbar:
+            # calc mini_batch_size
+            mini_batch_size = min(max_batch_size, batch_size-index)
+            
+            # setup x
+            x_buf.resize(mini_batch_size, x_shape)
+            x_buf.set_data(x[index:index+mini_batch_size])
+            
+            # forward
+            y_buf = net.forward(x_buf, train)
+            
+            # setup t
+            t_buf.resize(mini_batch_size, t_shape)
+            t_buf.set_data(t[index:index+mini_batch_size])
+            
+            # calc loss
+            if loss is not None:
+                dy_buf = loss.calculate_loss(y_buf, t_buf, mini_batch_size)
 
-        # calc metrics
-        if metrics is not None:
-            metrics.calculate_metrics(y_buf, t_buf)
+            # calc metrics
+            if metrics is not None:
+                metrics.calculate_metrics(y_buf, t_buf)
 
-        # backward
-        if train and loss is not None:
-            net.backward(dy_buf)
+            # backward
+            if train and loss is not None:
+                net.backward(dy_buf)
 
-            # update
-            if  optimizer is not None:
-                optimizer.update()
-
+                # update
+                if  optimizer is not None:
+                    optimizer.update()
+            
+            # print progress
+            dict = OrderedDict()
+            if print_loss and loss is not None:
+                dict['loss'] = loss.get_loss()
+            if print_metrics and metrics is not None:
+                dict[metrics.get_metrics_string()] = metrics.get_metrics()
+            if len(dict) > 0:
+                pbar.set_postfix(dict)
 
 class Runner:
     def __init__(
@@ -94,5 +104,5 @@ class Runner:
 
             # evaluation
             calculation(self.net, td.x_test, td.x_shape, td.t_test, td.t_shape, mini_batch_size, 1, self.metrics, self.loss)
-            print('epoch=%d metrics=%f  loss=%f' % (epoch, self.metrics.get_metrics(), self.loss.get_loss()))
+            print('epoch=%d %s=%f loss=%f' % (epoch, self.metrics.get_metrics_string(), self.metrics.get_metrics(), self.loss.get_loss()))
 

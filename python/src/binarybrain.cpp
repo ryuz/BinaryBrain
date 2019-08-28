@@ -142,14 +142,10 @@ PYBIND11_MODULE(binarybrain, m) {
 
     py::class_< Sequential, Model, std::shared_ptr<Sequential> >(m, "Sequential")
         .def_static("create",   &Sequential::Create)
-//      .def("get_class_name",  &Sequential::GetClassName)
-//      .def("set_input_shape", &Sequential::SetInputShape)
         .def("add",             &Sequential::Add);
 
     py::class_< Reduce, Model, std::shared_ptr<Reduce> >(m, "Reduce")
         .def_static("create",   &Reduce::CreateEx)
-//      .def("get_class_name",  &Reduce::GetClassName)
-//      .def("set_input_shape", &Reduce::SetInputShape)
         ;
 
     py::class_< BinaryModulation, Model, std::shared_ptr<BinaryModulation> >(m, "BinaryModulation")
@@ -200,9 +196,10 @@ PYBIND11_MODULE(binarybrain, m) {
 
     // Metrics Functions
     py::class_< MetricsFunction, std::shared_ptr<MetricsFunction> >(m, "MetricsFunction")
-        .def("clear",            &MetricsFunction::Clear)
-        .def("get_metrics",       &MetricsFunction::GetMetrics)
-        .def("calculate_metrics", &MetricsFunction::CalculateMetrics);
+        .def("clear",              &MetricsFunction::Clear)
+        .def("get_metrics",        &MetricsFunction::GetMetrics)
+        .def("calculate_metrics",  &MetricsFunction::CalculateMetrics)
+        .def("get_metrics_string", &MetricsFunction::GetMetricsString);
 
     py::class_< MetricsCategoricalAccuracy, MetricsFunction, std::shared_ptr<MetricsCategoricalAccuracy> >(m, "MetricsCategoricalAccuracy")
         .def_static("create", &MetricsCategoricalAccuracy::Create);
