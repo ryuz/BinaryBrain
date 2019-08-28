@@ -38,6 +38,9 @@ SRCS  += MnistMicroMlpLutCnn.cpp
 SRCS  += MnistCustomModel.cpp
 SRCS  += MnistAeSparseLutSimple.cpp
 SRCS  += MnistAeSparseLutCnn.cpp
+SRCS  += MnistSparseLutCnnDa.cpp
+SRCS  += MnistValidationSparseLutSimple.cpp
+SRCS  += MnistValidationSparseLutCnn.cpp
 
 OBJS = $(addsuffix .o, $(basename $(SRCS)))
 

@@ -386,7 +386,7 @@ public:
 
                 // 学習実施
                 m_epoch++;
-                auto train_accuracy = Calculation(td_work.x_train, td_work.x_shape, td_work.t_train, td_work.t_shape, batch_size, batch_size,
+                Calculation(td_work.x_train, td_work.x_shape, td_work.t_train, td_work.t_shape, batch_size, batch_size,
                                         m_metricsFunc, m_lossFunc, m_optimizer, true, m_print_progress, m_print_progress_loss, m_print_progress_accuracy);
 
                 // ネット保存

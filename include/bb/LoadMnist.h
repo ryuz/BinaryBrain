@@ -38,7 +38,7 @@ public:
         std::uint8_t header[16];
         is.read((char*)&header[0], 16);
 
-        int magic = ReadWord(&header[0]);
+        /*int magic =*/ ReadWord(&header[0]);
         int num   = ReadWord(&header[4]);
         int rows  = ReadWord(&header[8]);
         int cols  = ReadWord(&header[12]);
@@ -95,7 +95,7 @@ public:
         std::uint8_t header[8];
         is.read((char *)header, 8);
 
-        int magic = ReadWord(&header[0]);
+        /* int magic =*/ ReadWord(&header[0]);
         int num = ReadWord(&header[4]);
 
         if (max_size > 0 && num > max_size) {

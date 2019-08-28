@@ -1019,7 +1019,7 @@ public:
 
         auto input_shape      = this->GetInputShape();
         auto output_shape     = this->GetOutputShape();
-        auto input_node_size  = this->GetInputNodeSize();
+    //  auto input_node_size  = this->GetInputNodeSize();
         auto output_node_size = this->GetOutputNodeSize();
 
         // tmp buffer
