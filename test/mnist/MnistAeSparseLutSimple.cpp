@@ -125,7 +125,7 @@ void MnistAeSparseLutSimple(int epoch_size, int mini_batch_size, int train_modul
         runner->Fitting(td, epoch_size, mini_batch_size);
 
         
-        bb::FrameBuffer x_buf(BB_TYPE_FP32, 32, {28, 28, 1});
+        bb::FrameBuffer x_buf(32, {28, 28, 1}, BB_TYPE_FP32);
         x_buf.SetVector(td.x_test, 0);
         auto y_buf = net->Forward(x_buf, false);
 

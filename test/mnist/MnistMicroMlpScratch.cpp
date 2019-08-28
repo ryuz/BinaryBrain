@@ -163,8 +163,8 @@ void MnistMicroMlpScratch(int epoch_size, int mini_batch_size, bool binary_mode)
     auto lossFunc    = bb::LossSoftmaxCrossEntropy<float>::Create();
     auto metricsFunc = bb::MetricsCategoricalAccuracy<float>::Create();
     
-    bb::FrameBuffer x(BB_TYPE_FP32, mini_batch_size, {28, 28, 1});
-    bb::FrameBuffer t(BB_TYPE_FP32, mini_batch_size, 10);
+    bb::FrameBuffer x(mini_batch_size, {28, 28, 1}, BB_TYPE_FP32);
+    bb::FrameBuffer t(mini_batch_size, {10},        BB_TYPE_FP32); 
     
     auto optimizer = bb::OptimizerAdam<float>::Create();
     optimizer->SetVariables(net.GetParameters(), net.GetGradients());
