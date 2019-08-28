@@ -178,7 +178,7 @@ inline void simd_fp32_StochasticLut6_Backward
 {
     dx_buf.FillZero();
 
-    index_t input_node_size  = x_buf.GetNodeSize();
+//  index_t input_node_size  = x_buf.GetNodeSize();
     index_t output_node_size = dy_buf.GetNodeSize();
     index_t frame_size       = dy_buf.GetFrameStride() / sizeof(float);
 

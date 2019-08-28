@@ -220,9 +220,10 @@ protected:
             if ( x >= w ) { x -= w; }
             if ( y >= h ) { y -= h; }
             return true;
-        }
 
-        return false;
+        default:
+            return false;
+        }
     }
 
 

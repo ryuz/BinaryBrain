@@ -400,7 +400,7 @@ public:
             // SIMD版
             auto node_size    = x_buf.GetNodeSize();
             auto frame_size   = x_buf.GetFrameSize();
-            auto frame_stride = x_buf.GetFrameStride() / sizeof(float);
+    //      auto frame_stride = x_buf.GetFrameStride() / sizeof(float);
         
             const int   mm256_frame_size = ((int)frame_size + 7) / 8 * 8;
 
@@ -433,12 +433,12 @@ public:
                         __m256 x = _mm256_load_ps(&x_addr[frame + 0]);
                         __m256 mean_y = _mm256_sub_ps(x, mean_c);
                         __m256 mean_t = _mm256_add_ps(mean_sum, mean_y);
-                        __m256 mean_c = _mm256_sub_ps(_mm256_sub_ps(mean_t, mean_sum), mean_y);
+                               mean_c = _mm256_sub_ps(_mm256_sub_ps(mean_t, mean_sum), mean_y);
                         mean_sum = mean_t;
 
                         __m256 var_y = _mm256_fmsub_ps(x, x, var_c);
                         __m256 var_t = _mm256_add_ps(var_sum, var_y);
-                        __m256 var_c = _mm256_sub_ps(_mm256_sub_ps(var_t, var_sum), var_y);
+                               var_c = _mm256_sub_ps(_mm256_sub_ps(var_t, var_sum), var_y);
                         var_sum = var_t;
                     }
                     __m256 mean = _mm256_mul_ps(bb_mm256_hsum_ps(mean_sum), reciprocal_frame_size);
@@ -711,7 +711,7 @@ public:
         if ( DataType<T>::type == BB_TYPE_FP32 && m_host_simd ) {
             auto node_size    = dy_buf.GetNodeSize();
             auto frame_size   = dy_buf.GetFrameSize();
-            auto frame_stride = dy_buf.GetFrameStride() / sizeof(float);
+    //      auto frame_stride = dy_buf.GetFrameStride() / sizeof(float);
             
             const int   mm256_frame_size = ((int)frame_size + 7) / 8 * 8;
             
@@ -790,9 +790,9 @@ public:
             // 汎用版
             auto node_size    = dy_buf.GetNodeSize();
             auto frame_size   = dy_buf.GetFrameSize();
-            auto frame_stride = dy_buf.GetFrameStride() / sizeof(float);
+    //      auto frame_stride = dy_buf.GetFrameStride() / sizeof(float);
             
-            const int   mm256_frame_size = ((int)frame_size + 7) / 8 * 8;
+    //      const int   mm256_frame_size = ((int)frame_size + 7) / 8 * 8;
             
             auto gamma_ptr        = lock_gamma_const();
     //      auto beta_ptr         = lock_beta_const();

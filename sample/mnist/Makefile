@@ -22,7 +22,7 @@ CC = g++
 #CC ?= clang++
 endif
 
-CFLAGS = -mavx2 -mfma -fopenmp -std=c++14
+CFLAGS = -mavx2 -mfma -fopenmp -std=c++14 -Wall
 CINCS  = -I../../include
 CDEFS  = 
 
