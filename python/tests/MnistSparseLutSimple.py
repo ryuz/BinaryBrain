@@ -6,10 +6,10 @@ import binarybrain as bb
 import numpy as np
 
 def main():
-    epoch                    = 0
-    mini_batch               = 32
-    training_modulation_size = 1
-    test_modulation_size     = 1
+    epoch                     = 1
+    mini_batch                = 32
+    training_modulation_size  = 1
+    inference_modulation_size = 1
     
     # load MNIST data
     td = bb.LoadMnist.load()
@@ -48,18 +48,18 @@ def main():
 
 
     # LUT-network
-    layer_bl0 = bb.BinaryLut6Bit.create(layer_sl0.get_output_shape())
-    layer_bl1 = bb.BinaryLut6Bit.create(layer_sl1.get_output_shape())
-    layer_bl2 = bb.BinaryLut6Bit.create(layer_sl2.get_output_shape())
+    layer_bl0 = bb.BinaryLut6.create(layer_sl0.get_output_shape())
+    layer_bl1 = bb.BinaryLut6.create(layer_sl1.get_output_shape())
+    layer_bl2 = bb.BinaryLut6.create(layer_sl2.get_output_shape())
     
     lut_net = bb.Sequential.create()
     lut_net.add(layer_bl0)
     lut_net.add(layer_bl1)
     lut_net.add(layer_bl2)
 
-    # evaluation network
+    # evaluate network
     eval_net = bb.Sequential.create()
-    eval_net.add(bb.BinaryModulationBit.create(lut_net, inference_modulation_size=test_modulation_size))
+    eval_net.add(bb.BinaryModulation.create(lut_net, inference_modulation_size=inference_modulation_size))
     eval_net.add(bb.Reduce.create(td.t_shape))
 
     # set input shape
@@ -77,10 +77,10 @@ def main():
                     bb.MetricsCategoricalAccuracy.create())
     lut_runner.evaluation(td, mini_batch_size=mini_batch)
 
-    # Verilog 出力
+    # write Verilog
     with open('MnistLutSimple.v', 'w') as f:
         f.write('`timescale 1ns / 1ps\n\n')
-        f.write(bb.get_verilog_from_lut_bit('MnistLutSimple', [layer_bl0, layer_bl1, layer_bl2]))
+        f.write(bb.get_verilog_from_lut('MnistLutSimple', [layer_bl0, layer_bl1, layer_bl2]))
 
 
 if __name__ == '__main__':

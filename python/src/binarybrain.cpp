@@ -108,6 +108,20 @@ std::string GetVerilog_FromLutBit(std::string module_name, std::vector< std::sha
 }
 
 
+std::string GetVerilogAxi4s_FromLutFilter2d(std::string module_name, std::vector< std::shared_ptr< bb::Filter2d<float, float> > > layers)
+{
+    std::stringstream ss;
+    bb::ExportVerilog_LutCnnLayersAxi4s(ss, module_name, layers);
+    return ss.str();
+}
+
+std::string GetVerilogAxi4s_FromLutFilter2dBit(std::string module_name, std::vector< std::shared_ptr< bb::Filter2d<bb::Bit, float> > > layers)
+{
+    std::stringstream ss;
+    bb::ExportVerilog_LutCnnLayersAxi4s(ss, module_name, layers);
+    return ss.str();
+}
+
 
 namespace py = pybind11;
 PYBIND11_MODULE(binarybrain, m) {
@@ -377,8 +391,11 @@ PYBIND11_MODULE(binarybrain, m) {
             py::arg("epoch_size"),
             py::arg("batch_size"));
 
-    m.def("get_verilog_from_lut",     &GetVerilog_FromLut);
+    // verilog
+    m.def("get_verilog_from_lut", &GetVerilog_FromLut);
     m.def("get_verilog_from_lut_bit", &GetVerilog_FromLutBit);
+    m.def("get_verilog_axi4s_from_lut_cnn", &GetVerilogAxi4s_FromLutFilter2d);
+    m.def("get_verilog_axi4s_from_lut_cnn_bit", &GetVerilogAxi4s_FromLutFilter2dBit);
 }
 
 
