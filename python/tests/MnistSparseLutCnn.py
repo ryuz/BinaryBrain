@@ -15,6 +15,10 @@ def main():
     # load MNIST data
     td = bb.LoadMnist.load()
     
+    batch_size = len(td.x_train)
+    print('batch_size =', batch_size)
+    
+    
     
     ############################
     # Learning
@@ -65,18 +69,18 @@ def main():
     net.add(bb.Reduce.create(td.t_shape))
     net.set_input_shape(td.x_shape)
     
+    # print model information
     print(net.get_info())
+    
+    
+    # learning
+    print('\n[learning]')
     
     loss      = bb.LossSoftmaxCrossEntropy.create()
     metrics   = bb.MetricsCategoricalAccuracy.create()
     optimizer = bb.OptimizerAdam.create()
-    
     optimizer.set_variables(net.get_parameters(), net.get_gradients())
     
-    batch_size = len(td.x_train)
-    print('batch_size =', batch_size)
-    
-    print('[learning]')
     runner = bb.Runner(net, "mnist-sparse-lut6-cnn", loss, metrics, optimizer)
     runner.fitting(td, epoch_size=epoch, mini_batch_size=mini_batch)
     
@@ -99,37 +103,37 @@ def main():
     layer_cnv3_bl1 = bb.BinaryLut6.create(layer_cnv3_sl1.get_output_shape())
     layer_bl4      = bb.BinaryLut6.create(layer_sl4.get_output_shape())
     layer_bl5      = bb.BinaryLut6.create(layer_sl5.get_output_shape())
-
+    
     cnv0_sub = bb.Sequential.create()
     cnv0_sub.add(layer_cnv0_bl0)
     cnv0_sub.add(layer_cnv0_bl1)
-
+    
     cnv1_sub = bb.Sequential.create()
     cnv1_sub.add(layer_cnv1_bl0)
     cnv1_sub.add(layer_cnv1_bl1)
-
+    
     cnv2_sub = bb.Sequential.create()
     cnv2_sub.add(layer_cnv2_bl0)
     cnv2_sub.add(layer_cnv2_bl1)
-
+    
     cnv3_sub = bb.Sequential.create()
     cnv3_sub.add(layer_cnv3_bl0)
     cnv3_sub.add(layer_cnv3_bl1)
-
+    
     cnv4_sub = bb.Sequential.create()
     cnv4_sub.add(layer_bl4)
     cnv4_sub.add(layer_bl5)
-
+    
     cnv0 = bb.LoweringConvolution.create(cnv0_sub, 3, 3)
     cnv1 = bb.LoweringConvolution.create(cnv1_sub, 3, 3)
     pol0 = bb.MaxPooling.create(2, 2)
-
+    
     cnv2 = bb.LoweringConvolution.create(cnv2_sub, 3, 3)
     cnv3 = bb.LoweringConvolution.create(cnv3_sub, 3, 3)
     pol1 = bb.MaxPooling.create(2, 2)
-
+    
     cnv4 = bb.LoweringConvolution.create(cnv4_sub, 4, 4)
-
+    
     lut_net = bb.Sequential.create()
     lut_net.add(cnv0)
     lut_net.add(cnv1)
@@ -138,7 +142,7 @@ def main():
     lut_net.add(cnv3)
     lut_net.add(pol1)
     lut_net.add(cnv4)
-
+    
     # evaluate network
     eval_net = bb.Sequential.create();
     eval_net.add(bb.BinaryModulation.create(lut_net, inference_modulation_size=inference_modulation_size))
