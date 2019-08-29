@@ -17,6 +17,7 @@
 #include "bb/SparseLutDiscreteN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/Reduce.h"
+#include "bb/LoweringConvolution.h"
 #include "bb/BinaryModulation.h"
 
 #include "bb/LossFunction.h"
@@ -61,6 +62,10 @@ using SparseLut6                   = bb::SparseLutN<6, float>;
 using Reduce                       = bb::Reduce<float, float>; 
 using BinaryModulation             = bb::BinaryModulation<float, float>;
 
+using Filter2d                     = bb::Filter2d<float, float>;
+using LoweringConvolution          = bb::LoweringConvolution<float, float>;
+using MaxPooling                   = bb::MaxPooling<float, float>;
+
 using LossFunction                 = bb::LossFunction;
 using LossMeanSquaredError         = bb::LossMeanSquaredError<float>;
 using LossSoftmaxCrossEntropy      = bb::LossSoftmaxCrossEntropy<float>;
@@ -100,6 +105,14 @@ PYBIND11_MODULE(binarybrain, m) {
     m.attr("TYPE_UINT16") = BB_TYPE_UINT16;
     m.attr("TYPE_UINT32") = BB_TYPE_UINT32;
     m.attr("TYPE_UINT64") = BB_TYPE_UINT64;
+
+    m.attr("BB_BORDER_CONSTANT")    = BB_BORDER_CONSTANT;
+    m.attr("BB_BORDER_CONSTANT")    = BB_BORDER_CONSTANT;
+    m.attr("BB_BORDER_REFLECT")     = BB_BORDER_REFLECT;
+    m.attr("BB_BORDER_REFLECT_101") = BB_BORDER_REFLECT_101;
+    m.attr("BB_BORDER_REPLICATE")   = BB_BORDER_REPLICATE;
+    m.attr("BB_BORDER_WRAP")        = BB_BORDER_WRAP;
+
 
     py::class_< Tensor >(m, "Tensor");
 
@@ -161,21 +174,33 @@ PYBIND11_MODULE(binarybrain, m) {
                 py::arg("inference_value_generator") = nullptr,
                 py::arg("inference_framewise")       = true,
                 py::arg("inference_input_range_lo")  = 0.0f,
-                py::arg("inference_input_range_hi")  = 1.0f)
-//      .def("GetClassName",  &BinaryModulation::GetClassName)
-//      .def("SetInputShape", &BinaryModulation::SetInputShape)
-        ;
+                py::arg("inference_input_range_hi")  = 1.0f);
 
     py::class_< SparseLut6, SparseLayer, std::shared_ptr<SparseLut6> >(m, "SparseLut6")
         .def_static("create", &SparseLut6::CreateEx, "create SparseLut6",
                 py::arg("output_shape"),
                 py::arg("batch_norm") = true,
                 py::arg("connection") = "",
-                py::arg("seed") = 1
-            )
-//      .def("GetClassName", &SparseLut6::GetClassName)
-//      .def("SetInputShape", &SparseLut6::SetInputShape)
-        ;
+                py::arg("seed") = 1);
+
+    
+    py::class_< Filter2d, Model, std::shared_ptr<Filter2d> >(m, "Filter2d");
+
+    py::class_< LoweringConvolution, Filter2d, std::shared_ptr<LoweringConvolution> >(m, "LoweringConvolution")
+        .def_static("create", &LoweringConvolution::CreateEx,
+                py::arg("layer"),
+                py::arg("filter_h_size"),
+                py::arg("filter_w_size"),
+                py::arg("y_stride")      = 1,
+                py::arg("x_stride")      = 1,
+                py::arg("padding")       = "valid",
+                py::arg("border_mode")   = BB_BORDER_REFLECT_101,
+                py::arg("border_value")  = 0.0f);
+
+    py::class_< MaxPooling, Filter2d, std::shared_ptr<MaxPooling> >(m, "MaxPooling")
+        .def_static("create", &MaxPooling::CreateEx,
+                py::arg("filter_h_size"),
+                py::arg("filter_w_size"));
 
 
     // Loss Functions

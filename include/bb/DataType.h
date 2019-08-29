@@ -25,23 +25,31 @@ namespace bb {
 // 将来整数をやる場合はいろいろ必要と思う
 
 
-//#define BB_TYPE_BOOL      (0x0000 + 1)
-#define BB_TYPE_BIT         (0x0000 + 1)
-#define BB_TYPE_BINARY      (0x0000 + 2)
+//#define BB_TYPE_BOOL          (0x0000 + 1)
+#define BB_TYPE_BIT             (0x0000 + 1)
+#define BB_TYPE_BINARY          (0x0000 + 2)
 
-#define BB_TYPE_FP16        (0x0100 + 16)
-#define BB_TYPE_FP32        (0x0100 + 32)
-#define BB_TYPE_FP64        (0x0100 + 64)
+#define BB_TYPE_FP16            (0x0100 + 16)
+#define BB_TYPE_FP32            (0x0100 + 32)
+#define BB_TYPE_FP64            (0x0100 + 64)
 
-#define BB_TYPE_INT8        (0x0200 + 8)
-#define BB_TYPE_INT16       (0x0200 + 16)
-#define BB_TYPE_INT32       (0x0200 + 32)
-#define BB_TYPE_INT64       (0x0200 + 64)
+#define BB_TYPE_INT8            (0x0200 + 8)
+#define BB_TYPE_INT16           (0x0200 + 16)
+#define BB_TYPE_INT32           (0x0200 + 32)
+#define BB_TYPE_INT64           (0x0200 + 64)
 
-#define BB_TYPE_UINT8       (0x0300 + 8)
-#define BB_TYPE_UINT16      (0x0300 + 16)
-#define BB_TYPE_UINT32      (0x0300 + 32)
-#define BB_TYPE_UINT64      (0x0300 + 64)
+#define BB_TYPE_UINT8           (0x0300 + 8)
+#define BB_TYPE_UINT16          (0x0300 + 16)
+#define BB_TYPE_UINT32          (0x0300 + 32)
+#define BB_TYPE_UINT64          (0x0300 + 64)
+
+
+// border_mode
+#define BB_BORDER_CONSTANT      0
+#define BB_BORDER_REFLECT       1
+#define BB_BORDER_REFLECT_101   2
+#define BB_BORDER_REPLICATE     3
+#define BB_BORDER_WRAP          4
 
 
 
