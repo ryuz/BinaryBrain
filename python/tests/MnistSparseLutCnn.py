@@ -1,12 +1,9 @@
-# coding: utf-8
+﻿# coding: utf-8
 import sys, os
 sys.path.append(os.pardir)
 
 import binarybrain as bb
-from tqdm import tqdm
-import time
 import numpy as np
-
 
 
 def main():
@@ -73,7 +70,7 @@ def main():
     batch_size = len(td.x_train)
     print('batch_size =', batch_size)
     
-    runner = bb.Runner(net, "mnist-mlp-sparse-lut6", loss, metrics, optimizer)
+    runner = bb.Runner(net, "mnist-sparse-lut6-cnn", loss, metrics, optimizer)
     runner.fitting(td, epoch_size=3, mini_batch_size=16)
 
 

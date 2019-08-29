@@ -42,15 +42,6 @@
 #include "bb/ExportVerilog.h"
 
 
-
-#include "bb/Sequential.h"
-#include "bb/SparseLutN.h"
-#include "bb/BinaryModulation.h"
-
-#include "bb/Runner.h"
-#include "bb/LoadMnist.h"
-
-
 using Tensor                       = bb::Tensor;
 using FrameBuffer                  = bb::FrameBuffer;
 using Variables                    = bb::Variables;
@@ -58,13 +49,26 @@ using Variables                    = bb::Variables;
 using Model                        = bb::Model;
 using SparseLayer                  = bb::SparseLayer;
 using Sequential                   = bb::Sequential;
-using SparseLut6                   = bb::SparseLutN<6, float>;
+using LutLayer                     = bb::LutLayer<float, float>;
+using LutLayerBit                  = bb::LutLayer<bb::Bit, float>;
+using BinaryLut6                   = bb::BinaryLutN<6, float, float>;
+using BinaryLut6Bit                = bb::BinaryLutN<6, bb::Bit, float>;
+using SparseLut2                   = bb::SparseLutN<2, float, float>;
+using SparseLut2Bit                = bb::SparseLutN<2, bb::Bit, float>;
+using SparseLut4                   = bb::SparseLutN<4, float, float>;
+using SparseLut4Bit                = bb::SparseLutN<4, bb::Bit, float>;
+using SparseLut6                   = bb::SparseLutN<6, float, float>;
+using SparseLut6Bit                = bb::SparseLutN<6, bb::Bit, float>;
 using Reduce                       = bb::Reduce<float, float>; 
 using BinaryModulation             = bb::BinaryModulation<float, float>;
+using BinaryModulationBit          = bb::BinaryModulation<bb::Bit, float>;
 
 using Filter2d                     = bb::Filter2d<float, float>;
+using Filter2dBit                  = bb::Filter2d<bb::Bit, float>;
 using LoweringConvolution          = bb::LoweringConvolution<float, float>;
+using LoweringConvolutionBit       = bb::LoweringConvolution<bb::Bit, float>;
 using MaxPooling                   = bb::MaxPooling<float, float>;
+using MaxPoolingBit                = bb::MaxPooling<bb::Bit, float>;
 
 using LossFunction                 = bb::LossFunction;
 using LossMeanSquaredError         = bb::LossMeanSquaredError<float>;
@@ -86,6 +90,23 @@ using UniformDistributionGenerator = bb::UniformDistributionGenerator<float>;
 using TrainData                    = bb::TrainData<float>;
 using Runner                       = bb::Runner<float>;
 using LoadMnist                    = bb::LoadMnist<float>;
+
+
+
+std::string GetVerilog_FromLut(std::string module_name, std::vector< std::shared_ptr< bb::LutLayer<float, float> > > layers)
+{
+    std::stringstream ss;
+    bb::ExportVerilog_LutLayers<float, float>(ss, module_name, layers);
+    return ss.str();
+}
+
+std::string GetVerilog_FromLutBit(std::string module_name, std::vector< std::shared_ptr< bb::LutLayer<bb::Bit, float> > > layers)
+{
+    std::stringstream ss;
+    bb::ExportVerilog_LutLayers<bb::Bit, float>(ss, module_name, layers);
+    return ss.str();
+}
+
 
 
 namespace py = pybind11;
@@ -144,6 +165,8 @@ PYBIND11_MODULE(binarybrain, m) {
                 py::arg("depth")    = 0,
                 py::arg("columns")  = 70,
                 py::arg("nest")     = 0)
+        .def("get_input_shape", &Model::GetInputShape)
+        .def("get_output_shape", &Model::GetOutputShape)
         .def("get_parameters", &Model::GetParameters)
         .def("get_gradients", &Model::GetGradients)
         .def("forward",  &Model::Forward, "Forward",
@@ -153,6 +176,12 @@ PYBIND11_MODULE(binarybrain, m) {
 
     py::class_< SparseLayer, Model, std::shared_ptr<SparseLayer> >(m, "SparseLayer");
 
+    py::class_< LutLayer, SparseLayer, std::shared_ptr<LutLayer> >(m, "LutLayer")
+        .def("import_parameter", &LutLayer::ImportLayer);
+
+    py::class_< LutLayerBit, SparseLayer, std::shared_ptr<LutLayerBit> >(m, "LutLayerBit")
+        .def("import_parameter", &LutLayerBit::ImportLayer);
+       
     py::class_< Sequential, Model, std::shared_ptr<Sequential> >(m, "Sequential")
         .def_static("create",   &Sequential::Create)
         .def("add",             &Sequential::Add);
@@ -176,6 +205,31 @@ PYBIND11_MODULE(binarybrain, m) {
                 py::arg("inference_input_range_lo")  = 0.0f,
                 py::arg("inference_input_range_hi")  = 1.0f);
 
+    py::class_< BinaryModulationBit, Model, std::shared_ptr<BinaryModulationBit> >(m, "BinaryModulationBit")
+        .def_static("create", &BinaryModulationBit::CreateEx,
+                py::arg("layer"),
+                py::arg("output_shape")              = bb::indices_t(),
+                py::arg("training_modulation_size")  = 1,
+                py::arg("training_value_generator")  = nullptr,
+                py::arg("training_framewise")        = true,
+                py::arg("training_input_range_lo")   = 0.0f,
+                py::arg("training_input_range_hi")   = 1.0f,
+                py::arg("inference_modulation_size") = -1,
+                py::arg("inference_value_generator") = nullptr,
+                py::arg("inference_framewise")       = true,
+                py::arg("inference_input_range_lo")  = 0.0f,
+                py::arg("inference_input_range_hi")  = 1.0f);
+
+    py::class_< BinaryLut6, LutLayer, std::shared_ptr<BinaryLut6> >(m, "BinaryLut6")
+        .def_static("create", &BinaryLut6::CreateEx, "create",
+                py::arg("output_shape"),
+                py::arg("seed") = 1);
+    
+    py::class_< BinaryLut6Bit, LutLayerBit, std::shared_ptr<BinaryLut6Bit> >(m, "BinaryLut6Bit")
+        .def_static("create", &BinaryLut6Bit::CreateEx, "create",
+                py::arg("output_shape"),
+                py::arg("seed") = 1);
+    
     py::class_< SparseLut6, SparseLayer, std::shared_ptr<SparseLut6> >(m, "SparseLut6")
         .def_static("create", &SparseLut6::CreateEx, "create SparseLut6",
                 py::arg("output_shape"),
@@ -185,6 +239,8 @@ PYBIND11_MODULE(binarybrain, m) {
 
     
     py::class_< Filter2d, Model, std::shared_ptr<Filter2d> >(m, "Filter2d");
+
+    py::class_< Filter2dBit, Model, std::shared_ptr<Filter2dBit> >(m, "Filter2dBit");
 
     py::class_< LoweringConvolution, Filter2d, std::shared_ptr<LoweringConvolution> >(m, "LoweringConvolution")
         .def_static("create", &LoweringConvolution::CreateEx,
@@ -197,6 +253,17 @@ PYBIND11_MODULE(binarybrain, m) {
                 py::arg("border_mode")   = BB_BORDER_REFLECT_101,
                 py::arg("border_value")  = 0.0f);
 
+    py::class_< LoweringConvolutionBit, Filter2dBit, std::shared_ptr<LoweringConvolutionBit> >(m, "LoweringConvolutionBit")
+        .def_static("create", &LoweringConvolutionBit::CreateEx,
+                py::arg("layer"),
+                py::arg("filter_h_size"),
+                py::arg("filter_w_size"),
+                py::arg("y_stride")      = 1,
+                py::arg("x_stride")      = 1,
+                py::arg("padding")       = "valid",
+                py::arg("border_mode")   = BB_BORDER_REFLECT_101,
+                py::arg("border_value")  = 0.0f);
+    
     py::class_< MaxPooling, Filter2d, std::shared_ptr<MaxPooling> >(m, "MaxPooling")
         .def_static("create", &MaxPooling::CreateEx,
                 py::arg("filter_h_size"),
@@ -310,6 +377,8 @@ PYBIND11_MODULE(binarybrain, m) {
             py::arg("epoch_size"),
             py::arg("batch_size"));
 
+    m.def("get_verilog_from_lut",     &GetVerilog_FromLut);
+    m.def("get_verilog_from_lut_bit", &GetVerilog_FromLutBit);
 }
 
 

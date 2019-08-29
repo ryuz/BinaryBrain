@@ -106,3 +106,6 @@ class Runner:
             calculation(self.net, td.x_test, td.x_shape, td.t_test, td.t_shape, mini_batch_size, 1, self.metrics, self.loss)
             print('epoch=%d %s=%f loss=%f' % (epoch, self.metrics.get_metrics_string(), self.metrics.get_metrics(), self.loss.get_loss()))
 
+    def evaluation(self, td, mini_batch_size=16):
+        calculation(self.net, td.x_test, td.x_shape, td.t_test, td.t_shape, mini_batch_size, 1, self.metrics, self.loss)
+        print('%s=%f loss=%f' % (self.metrics.get_metrics_string(), self.metrics.get_metrics(), self.loss.get_loss()))

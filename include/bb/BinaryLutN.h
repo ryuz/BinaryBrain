@@ -41,8 +41,22 @@ protected:
 
     std::mt19937_64         m_mt;
 
+public:
+    struct create_t
+    {
+        indices_t       output_shape;
+        std::uint64_t   seed = 1;
+    };
+
 protected:
-    BinaryLutN() {}
+    BinaryLutN(create_t const &create)
+    {
+        BB_ASSERT(!create.output_shape.empty());
+        m_mt.seed(create.seed);
+        m_output_shape = create.output_shape;
+        m_input_index.Resize(GetShapeSize(m_output_shape), (index_t)N);
+        m_table.Resize(GetShapeSize(m_output_shape), (index_t)m_table_unit);
+    }
 
     void CommandProc(std::vector<std::string> args)
     {
@@ -62,24 +76,9 @@ protected:
 public:
     ~BinaryLutN() {}
 
-    struct create_t
-    {
-        indices_t       output_shape;
-        std::uint64_t   seed = 1;
-    };
-
     static std::shared_ptr<BinaryLutN> Create(create_t const &create)
     {
-        auto self = std::shared_ptr<BinaryLutN>(new BinaryLutN);
-        BB_ASSERT(!create.output_shape.empty());
-
-        self->m_mt.seed(create.seed);
-
-        self->m_output_shape = create.output_shape;
-        self->m_input_index.Resize(GetShapeSize(self->m_output_shape), (index_t)N);
-        self->m_table.Resize(GetShapeSize(self->m_output_shape), (index_t)m_table_unit);
-
-        return self;
+        return std::shared_ptr<BinaryLutN>(new BinaryLutN(create));
     }
 
     static std::shared_ptr<BinaryLutN> Create(indices_t const &output_shape, std::uint64_t seed = 1)
@@ -96,6 +95,17 @@ public:
         create.output_shape.resize(1);
         create.output_shape[0] = output_node_size;
         create.seed            = seed;
+        return Create(create);
+    }
+
+    // python用
+    static std::shared_ptr<BinaryLutN> CreateEx(
+                indices_t       output_shape,
+                std::uint64_t   seed = 1)
+    {
+        create_t create;
+        create.output_shape = output_shape;
+        create.seed         = seed;
         return Create(create);
     }
 
