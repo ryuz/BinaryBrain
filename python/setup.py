@@ -26,5 +26,5 @@ setup(
     author_email='ryuji.fuchikami@nifty.com',
     url='https://github.com/ryuz/BinaryBrain',
     license=license,
-    packages=find_packages(exclude=('tests', 'docs'))
+    packages=find_packages(exclude=('tests', 'docs', 'samples'))
 )
