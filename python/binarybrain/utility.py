@@ -1,7 +1,13 @@
 ﻿
+import sys
 from collections import OrderedDict
 from binarybrain import binarybrain as bb
-from tqdm import tqdm
+
+
+if 'ipykernel' in sys.modules:
+   from tqdm import tqdm_notebook as tqdm
+else:
+   from tqdm import tqdm
 
 
 def calculation(net, x, x_shape, t, t_shape, max_batch_size, min_batch_size=1,

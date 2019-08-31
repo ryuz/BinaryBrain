@@ -81,6 +81,14 @@ public:
         return Create(create);
     }
 
+    static std::shared_ptr<Binarize> CreateEx(RealType binary_th = (RealType)0, RealType hardtanh_min = (RealType)-1, RealType hardtanh_max = (RealType)+1)
+    {
+        create_t create;
+        create.binary_th    = binary_th;
+        create.hardtanh_min = hardtanh_min;
+        create.hardtanh_max = hardtanh_max;
+        return Create(create);
+    }
 
     std::string GetClassName(void) const { return "Binarize"; }
     

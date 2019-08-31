@@ -46,8 +46,6 @@ protected:
     indices_t                   m_output_shape;
 
     FrameBuffer                 m_x_buf;
-//    FrameBuffer                 m_y_buf;
-//    FrameBuffer                 m_dx_buf;
 
     std::shared_ptr<Tensor>     m_W;
     std::shared_ptr<Tensor>     m_b;
@@ -59,8 +57,18 @@ protected:
     cublasHandle_t              m_cublasHandle;
 #endif
 
+public:
+    struct create_t
+    {
+        indices_t       output_shape;
+        T               initialize_std = (T)0.01;
+        std::string     initializer = "he";
+        std::uint64_t   seed = 1;
+    };
+
 protected:
-    DenseAffine() {
+    DenseAffine(create_t const &create)
+    {
         m_W = std::make_shared<Tensor>();
         m_b = std::make_shared<Tensor>();
         m_dW = std::make_shared<Tensor>();
@@ -71,6 +79,15 @@ protected:
             m_cublasEnable = true;
         }
 #endif
+
+        BB_ASSERT(!create.output_shape.empty());
+
+        m_initialize_std  = create.initialize_std;
+        m_initializer     = create.initializer;
+        m_mt.seed(create.seed);
+
+        m_output_shape     = create.output_shape;
+        m_output_node_size = GetShapeSize(m_output_shape);
     }
 
     void CommandProc(std::vector<std::string> args)
@@ -98,27 +115,9 @@ public:
 #endif
     }
 
-    struct create_t
-    {
-        indices_t       output_shape;
-        T               initialize_std = (T)0.01;
-        std::string     initializer = "he";
-        std::uint64_t   seed = 1;
-    };
-
     static std::shared_ptr<DenseAffine> Create(create_t const &create)
     {
-        auto self = std::shared_ptr<DenseAffine>(new DenseAffine);
-        BB_ASSERT(!create.output_shape.empty());
-
-        self->m_initialize_std = create.initialize_std;
-        self->m_initializer    = create.initializer;
-        self->m_mt.seed(create.seed);
-
-        self->m_output_shape = create.output_shape;
-        self->m_output_node_size = GetShapeSize(self->m_output_shape);
-
-        return self;
+        return std::shared_ptr<DenseAffine>(new DenseAffine(create));
     }
 
     static std::shared_ptr<DenseAffine> Create(indices_t const &output_shape)
@@ -135,6 +134,22 @@ public:
         create.output_shape[0] = output_node_size;
         return Create(create);
     }
+
+    static std::shared_ptr<DenseAffine> CreateEx(
+            indices_t       output_shape,
+            T               initialize_std = (T)0.01,
+            std::string     initializer = "he",
+            std::uint64_t   seed = 1
+        )
+    {
+        create_t create;
+        create.output_shape   = output_shape;
+        create.initialize_std = initialize_std;
+        create.initializer    = initializer;
+        create.seed           = seed;
+        return Create(create);
+    }
+
 
     std::string GetClassName(void) const { return "DenseAffine"; }
     

@@ -13,12 +13,16 @@
 #include "bb/Variables.h"
 
 #include "bb/Sequential.h"
+#include "bb/DenseAffine.h"
 #include "bb/SparseLutN.h"
 #include "bb/SparseLutDiscreteN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/Reduce.h"
 #include "bb/LoweringConvolution.h"
 #include "bb/BinaryModulation.h"
+#include "bb/Sigmoid.h"
+#include "bb/ReLU.h"
+#include "bb/BatchNormalization.h"
 
 #include "bb/LossFunction.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
@@ -49,6 +53,7 @@ using Variables                    = bb::Variables;
 using Model                        = bb::Model;
 using SparseLayer                  = bb::SparseLayer;
 using Sequential                   = bb::Sequential;
+using DenseAffine                  = bb::DenseAffine<float>;
 using LutLayer                     = bb::LutLayer<float, float>;
 using LutLayerBit                  = bb::LutLayer<bb::Bit, float>;
 using BinaryLut6                   = bb::BinaryLutN<6, float, float>;
@@ -69,6 +74,14 @@ using LoweringConvolution          = bb::LoweringConvolution<float, float>;
 using LoweringConvolutionBit       = bb::LoweringConvolution<bb::Bit, float>;
 using MaxPooling                   = bb::MaxPooling<float, float>;
 using MaxPoolingBit                = bb::MaxPooling<bb::Bit, float>;
+
+using Activation                   = bb::Activation;
+using Binarize                     = bb::Binarize<float, float>;
+using BinarizeBit                  = bb::Binarize<bb::Bit, float>;
+using Sigmoid                      = bb::Sigmoid<float>;
+using ReLU                         = bb::ReLU<float, float>;
+using ReLUBit                      = bb::ReLU<bb::Bit, float>;
+using BatchNormalization           = bb::BatchNormalization<float>;
 
 using LossFunction                 = bb::LossFunction;
 using LossMeanSquaredError         = bb::LossMeanSquaredError<float>;
@@ -186,8 +199,19 @@ PYBIND11_MODULE(binarybrain, m) {
         .def("forward",  &Model::Forward, "Forward",
                 py::arg("x_buf"),
                 py::arg("train") = true)
-        .def("backward", &Model::Backward, "Backward");
+        .def("backward", &Model::Backward, "Backward")
+        .def("send_command",  &Model::SendCommand, "SendCommand",
+                py::arg("command"),
+                py::arg("send_to") = "all");
 
+    // Layers
+    py::class_< DenseAffine, Model, std::shared_ptr<DenseAffine> >(m, "DenseAffine")
+        .def_static("create",   &DenseAffine::CreateEx, "create",
+            py::arg("output_shape"),
+            py::arg("initialize_std") = 0.01f,
+            py::arg("initializer")    = "he",
+            py::arg("seed")           = 1);
+            
     py::class_< SparseLayer, Model, std::shared_ptr<SparseLayer> >(m, "SparseLayer");
 
     py::class_< LutLayer, SparseLayer, std::shared_ptr<LutLayer> >(m, "LutLayer")
@@ -201,8 +225,7 @@ PYBIND11_MODULE(binarybrain, m) {
         .def("add",             &Sequential::Add);
 
     py::class_< Reduce, Model, std::shared_ptr<Reduce> >(m, "Reduce")
-        .def_static("create",   &Reduce::CreateEx)
-        ;
+        .def_static("create",   &Reduce::CreateEx);
 
     py::class_< BinaryModulation, Model, std::shared_ptr<BinaryModulation> >(m, "BinaryModulation")
         .def_static("create", &BinaryModulation::CreateEx,
@@ -252,6 +275,7 @@ PYBIND11_MODULE(binarybrain, m) {
                 py::arg("seed") = 1);
 
     
+    // filter
     py::class_< Filter2d, Model, std::shared_ptr<Filter2d> >(m, "Filter2d");
 
     py::class_< Filter2dBit, Model, std::shared_ptr<Filter2dBit> >(m, "Filter2dBit");
@@ -283,6 +307,38 @@ PYBIND11_MODULE(binarybrain, m) {
                 py::arg("filter_h_size"),
                 py::arg("filter_w_size"));
 
+
+    // activation
+    py::class_< Activation, Model, std::shared_ptr<Activation> >(m, "Activation");
+
+    py::class_< Binarize, Activation, std::shared_ptr<Binarize> >(m, "Binarize")
+        .def_static("create", &Binarize::CreateEx,
+                py::arg("binary_th")    =  0.0f,
+                py::arg("hardtanh_min") = -1.0f,
+                py::arg("hardtanh_max") = +1.0f);
+    
+    py::class_< BinarizeBit, Activation, std::shared_ptr<BinarizeBit> >(m, "BinarizeBit")
+        .def_static("create", &BinarizeBit::CreateEx,
+                py::arg("binary_th")    =  0.0f,
+                py::arg("hardtanh_min") = -1.0f,
+                py::arg("hardtanh_max") = +1.0f);
+
+    py::class_< Sigmoid, Binarize, std::shared_ptr<Sigmoid> >(m, "Sigmoid")
+        .def_static("create",   &Sigmoid::Create);
+
+    py::class_< ReLU, Binarize, std::shared_ptr<ReLU> >(m, "ReLU")
+        .def_static("create",   &ReLU::Create);
+
+    py::class_< ReLUBit, BinarizeBit, std::shared_ptr<ReLUBit> >(m, "ReLUBit")
+        .def_static("create",   &ReLUBit::Create);
+
+    py::class_< BatchNormalization, Activation, std::shared_ptr<BatchNormalization> >(m, "BatchNormalization")
+        .def_static("create", &BatchNormalization::CreateEx,
+                py::arg("momentum")  = 0.9f,
+                py::arg("gamma")     = 1.0f,
+                py::arg("beta")      = 0.0f,
+                py::arg("fix_gamma") = false,
+                py::arg("fix_beta")  = false);
 
     // Loss Functions
     py::class_< LossFunction, std::shared_ptr<LossFunction> >(m, "LossFunction")

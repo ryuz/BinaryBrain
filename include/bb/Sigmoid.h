@@ -19,13 +19,17 @@ namespace bb {
 
 
 // Sigmoid(活性化層)
-template <typename T = float>
-class Sigmoid : public Binarize<T, T>
+template <typename BinType = float, typename RealType = float>
+class Sigmoid : public Binarize<BinType, RealType>
 {
-protected:
-    using Binarize<T>::m_host_only;
+    using _super = Binarize<BinType, RealType>;
 
+protected:
     bool        m_binary_mode = false;
+
+    using _super::m_host_only;
+    using _super::m_x_buf;
+
     FrameBuffer m_y_buf;
 
 protected:
@@ -81,12 +85,12 @@ public:
     std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
     {
         if ( m_binary_mode ) {
-            return Binarize<T>::ForwardNode(node, x_vec);
+            return _super::ForwardNode(node, x_vec);
         }
 
         std::vector<double> y_vec;
         for ( auto x : x_vec ) {
-            y_vec.push_back((double)((T)1 / ((T)1 + std::exp(-(T)x)))); // Sigmoid
+            y_vec.push_back((double)((RealType)1 / ((RealType)1 + std::exp(-(RealType)x)))); // Sigmoid
         }
 
         return y_vec;
@@ -103,10 +107,10 @@ public:
     {
         // binaryモード
         if (m_binary_mode) {
-            return Binarize<T>::Forward(x_buf, train);
+            return _super::Forward(x_buf, train);
         }
 
-        BB_ASSERT(x_buf.GetType() == DataType<T>::type);
+        BB_ASSERT(x_buf.GetType() == DataType<RealType>::type);
 
         // 戻り値のサイズ設定
         FrameBuffer y_buf(x_buf.GetFrameSize(), x_buf.GetShape(), x_buf.GetType());
@@ -118,7 +122,7 @@ public:
 
 
 #ifdef BB_WITH_CUDA
-        if ( DataType<T>::type == BB_TYPE_FP32 && !this->m_host_only
+        if ( DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && !this->m_host_only
             && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // CUDA版
             auto ptr_x = x_buf.LockDeviceMemoryConst();
@@ -138,15 +142,15 @@ public:
             index_t frame_size = x_buf.GetFrameSize();
             index_t node_size = x_buf.GetNodeSize();
 
-            auto x_ptr = x_buf.template LockConst<T>();
-            auto y_ptr = y_buf.template Lock<T>();
+            auto x_ptr = x_buf.template LockConst<RealType>();
+            auto y_ptr = y_buf.template Lock<BinType>();
 
             // Sigmoid
     #pragma omp parallel for
             for (index_t node = 0; node < node_size; ++node) {
                 for (index_t frame = 0; frame < frame_size; ++frame) {
-                    T sig = x_ptr.Get(frame, node);
-                    y_ptr.Set(frame, node, (T)1 / ((T)1 + std::exp(-sig)));
+                    RealType sig = x_ptr.Get(frame, node);
+                    y_ptr.Set(frame, node, (BinType)((RealType)1 / ((RealType)1 + std::exp(-sig))));
                 }
             }
             return y_buf;
@@ -163,10 +167,10 @@ public:
     {
         // binaryモード
         if (m_binary_mode) {
-            return Binarize<T>::Backward(dy_buf);
+            return _super::Backward(dy_buf);
         }
 
-        BB_ASSERT(dy_buf.GetType() == DataType<T>::type);
+        BB_ASSERT(dy_buf.GetType() == DataType<RealType>::type);
 
         // 戻り値のサイズ設定
         FrameBuffer dx_buf(dy_buf.GetFrameSize(), dy_buf.GetShape(), dy_buf.GetType());
@@ -175,7 +179,7 @@ public:
         m_y_buf = FrameBuffer();
 
 #ifdef BB_WITH_CUDA
-        if (  DataType<T>::type == BB_TYPE_FP32 && !this->m_host_only
+        if (  DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32  && !this->m_host_only
             && y_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // GPU版
             auto ptr_y  = y_buf.LockDeviceMemoryConst();
@@ -197,9 +201,9 @@ public:
             index_t frame_size = dx_buf.GetFrameSize();
             index_t node_size = dx_buf.GetNodeSize();
 
-            auto y_ptr  = y_buf.template LockConst<T>();
-            auto dy_ptr = dy_buf.template LockConst<T>();
-            auto dx_ptr = dx_buf.template Lock<T>();
+            auto y_ptr  = y_buf.template LockConst<RealType>();
+            auto dy_ptr = dy_buf.template LockConst<RealType>();
+            auto dx_ptr = dx_buf.template Lock<RealType>();
 
             // Sigmoid
     #pragma omp parallel for
@@ -207,7 +211,7 @@ public:
                 for (index_t frame = 0; frame < frame_size; ++frame) {
                     auto sig  = y_ptr.Get(frame, node);
                     auto grad = dy_ptr.Get(frame, node);
-                    dx_ptr.Set(frame, node, grad * (-sig + (T)1) * sig);
+                    dx_ptr.Set(frame, node, grad * (-sig + (RealType)1) * sig);
                 }
             }
             return dx_buf;
