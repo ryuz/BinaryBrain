@@ -103,6 +103,14 @@ class Runner:
         self.initial_evaluation      = initial_evaluation
     
     def fitting(self, td, epoch_size, mini_batch_size=16):
+        """fitting
+        
+        Args:
+            td (TrainData)  : training data set
+            epoch_size (int): epoch size
+            mini_batch_size (int): mini batch size
+        """
+        
         for epoch in range(epoch_size):
             # train
             calculation(self.net, td.x_train, td.x_shape, td.t_train, td.t_shape, mini_batch_size, mini_batch_size,

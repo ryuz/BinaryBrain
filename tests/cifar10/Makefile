@@ -37,6 +37,8 @@ SRCS += Cifar10MicroMlpLutCnn.cpp
 SRCS += Cifar10DenseSimple.cpp
 SRCS += Cifar10DenseCnn.cpp
 SRCS += Cifar10NrSparseLutCnn.cpp
+SRCS += Cifar10AeSparseLutSimple.cpp
+SRCS += Cifar10AeSparseLutCnn.cpp
 
 OBJS = $(addsuffix .o, $(basename $(SRCS)))
 

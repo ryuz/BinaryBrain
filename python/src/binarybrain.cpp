@@ -258,7 +258,19 @@ PYBIND11_MODULE(binarybrain, m) {
                 py::arg("inference_input_range_hi")  = 1.0f);
 
     py::class_< BinaryLut6, LutLayer, std::shared_ptr<BinaryLut6> >(m, "BinaryLut6")
-        .def_static("create", &BinaryLut6::CreateEx, "create",
+        .def_static("create", &BinaryLut6::CreateEx,
+                "create object\n"
+                "\n"
+                "Parameters\n"
+                "----------\n"
+                "output_shape : List\n"
+                "  The shape of output\n"
+                "seed : int\n"
+                "  random seed\n"
+                "\n"
+                "Returns\n"
+                "-------\n"
+                " class object\n",
                 py::arg("output_shape"),
                 py::arg("seed") = 1);
     

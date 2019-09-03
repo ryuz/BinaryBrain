@@ -437,7 +437,7 @@ public:
                     int mask  = 1;
                     for (index_t i = 0; i < N; i++) {
                         index_t input_node = input_index_ptr(node, i);
-                        bool x = x_ptr.Get(frame, input_node);
+                        bool x = (x_ptr.Get(frame, input_node) != 0);
                         index |= x ? mask : 0;
                         mask <<= 1;
                     }
