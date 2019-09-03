@@ -348,7 +348,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\samples\cifar10\Cifar10AeSparseLutCnn.cpp" />
+    <ClCompile Include="Cifar10AeSparseLutCnn.cpp" />
+    <ClCompile Include="Cifar10AeSparseLutSimple.cpp" />
     <ClCompile Include="Cifar10DenseCnn.cpp" />
     <ClCompile Include="Cifar10DenseSimple.cpp" />
     <ClCompile Include="Cifar10MicroMlpLutCnn.cpp" />

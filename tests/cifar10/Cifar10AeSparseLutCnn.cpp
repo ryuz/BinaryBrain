@@ -73,9 +73,9 @@ void Cifar10AeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_mo
     auto dec_cnv1_sl0 = ModelType::Create(192);
     auto dec_cnv1_sl1 = ModelType::Create(32);
     auto dec_cnv0_sl0 = ModelType::Create(216);
-    auto dec_cnv0_sl1 = ModelType::Create(36, false);
-    auto dec_cnv0_sl2 = ModelType::Create(6, false);
-    auto dec_cnv0_sl3 = ModelType::Create(1, false);
+    auto dec_cnv0_sl1 = ModelType::Create(3*6*6, false);
+    auto dec_cnv0_sl2 = ModelType::Create(3*6, false);
+    auto dec_cnv0_sl3 = ModelType::Create(3, false);
 
 
     {
@@ -177,7 +177,7 @@ void Cifar10AeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_mo
 
 
         // write pgm
-        bb::FrameBuffer x_buf(8, {28, 28, 1}, BB_TYPE_FP32);
+        bb::FrameBuffer x_buf(8, {32, 32, 3}, BB_TYPE_FP32);
         x_buf.SetVector(td.x_test, 0);
         auto y_buf = net->Forward(x_buf, false);
         WritePpm("out_0x.ppm", x_buf, 0);
