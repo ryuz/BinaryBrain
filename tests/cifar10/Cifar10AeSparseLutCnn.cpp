@@ -65,7 +65,13 @@ void Cifar10AeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_mo
     auto enc_cnv2_sl1 = ModelType::Create(64);
     auto enc_cnv3_sl0 = ModelType::Create(384);
     auto enc_cnv3_sl1 = ModelType::Create(64);
+    auto enc_sl4      = ModelType::Create(1024*6);
+    auto enc_sl5      = ModelType::Create(1024);
+    auto enc_sl6      = ModelType::Create(512);
     
+    auto dec_sl6      = ModelType::Create(1024*6);
+    auto dec_sl5      = ModelType::Create(1024);
+    auto dec_sl4      = ModelType::Create({8, 8, 64});
     auto dec_cnv3_sl0 = ModelType::Create(384);
     auto dec_cnv3_sl1 = ModelType::Create(64);
     auto dec_cnv2_sl0 = ModelType::Create(384);
@@ -124,7 +130,13 @@ void Cifar10AeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_mo
         main_net->Add(bb::LoweringConvolution<T>::Create(enc_cnv2_sub, 3, 3, 1, 1, "same"));    // 16x16
         main_net->Add(bb::LoweringConvolution<T>::Create(enc_cnv3_sub, 3, 3, 1, 1, "same"));    // 16x16
         main_net->Add(bb::MaxPooling<float>::Create(2, 2));                                     // 8x8
+        main_net->Add(enc_sl4);
+        main_net->Add(enc_sl5);
+        main_net->Add(enc_sl6);
 
+        main_net->Add(dec_sl6);
+        main_net->Add(dec_sl5);
+        main_net->Add(dec_sl4);
         main_net->Add(bb::UpSampling<T>::Create(2, 2));
         main_net->Add(bb::LoweringConvolution<T>::Create(dec_cnv3_sub, 3, 3, 1, 1, "same"));    // 16x16
         main_net->Add(bb::LoweringConvolution<T>::Create(dec_cnv2_sub, 3, 3, 1, 1, "same"));    // 16x16
