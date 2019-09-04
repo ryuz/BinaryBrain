@@ -46,8 +46,6 @@ protected:
     indices_t                   m_output_shape;
 
     FrameBuffer                 m_x_buf;
-//    FrameBuffer                 m_y_buf;
-//    FrameBuffer                 m_dx_buf;
 
     std::shared_ptr<Tensor>     m_W;
     std::shared_ptr<Tensor>     m_b;
@@ -59,8 +57,18 @@ protected:
     cublasHandle_t              m_cublasHandle;
 #endif
 
+public:
+    struct create_t
+    {
+        indices_t       output_shape;
+        T               initialize_std = (T)0.01;
+        std::string     initializer = "he";
+        std::uint64_t   seed = 1;
+    };
+
 protected:
-    DenseAffine() {
+    DenseAffine(create_t const &create)
+    {
         m_W = std::make_shared<Tensor>();
         m_b = std::make_shared<Tensor>();
         m_dW = std::make_shared<Tensor>();
@@ -71,6 +79,15 @@ protected:
             m_cublasEnable = true;
         }
 #endif
+
+        BB_ASSERT(!create.output_shape.empty());
+
+        m_initialize_std  = create.initialize_std;
+        m_initializer     = create.initializer;
+        m_mt.seed(create.seed);
+
+        m_output_shape     = create.output_shape;
+        m_output_node_size = GetShapeSize(m_output_shape);
     }
 
     void CommandProc(std::vector<std::string> args)
@@ -98,27 +115,9 @@ public:
 #endif
     }
 
-    struct create_t
-    {
-        indices_t       output_shape;
-        T               initialize_std = (T)0.01;
-        std::string     initializer = "he";
-        std::uint64_t   seed = 1;
-    };
-
     static std::shared_ptr<DenseAffine> Create(create_t const &create)
     {
-        auto self = std::shared_ptr<DenseAffine>(new DenseAffine);
-        BB_ASSERT(!create.output_shape.empty());
-
-        self->m_initialize_std = create.initialize_std;
-        self->m_initializer    = create.initializer;
-        self->m_mt.seed(create.seed);
-
-        self->m_output_shape = create.output_shape;
-        self->m_output_node_size = GetShapeSize(self->m_output_shape);
-
-        return self;
+        return std::shared_ptr<DenseAffine>(new DenseAffine(create));
     }
 
     static std::shared_ptr<DenseAffine> Create(indices_t const &output_shape)
@@ -135,6 +134,22 @@ public:
         create.output_shape[0] = output_node_size;
         return Create(create);
     }
+
+    static std::shared_ptr<DenseAffine> CreateEx(
+            indices_t       output_shape,
+            T               initialize_std = (T)0.01,
+            std::string     initializer = "he",
+            std::uint64_t   seed = 1
+        )
+    {
+        create_t create;
+        create.output_shape   = output_shape;
+        create.initialize_std = initialize_std;
+        create.initializer    = initializer;
+        create.seed           = seed;
+        return Create(create);
+    }
+
 
     std::string GetClassName(void) const { return "DenseAffine"; }
     
@@ -178,10 +193,10 @@ public:
         else if (m_initializer == "xavier" || m_initializer == "Xavier" ) {
             m_initialize_std = (T)1.0 / std::sqrt((T)m_input_node_size);
         }
-        m_W->Resize(DataType<T>::type, m_output_node_size, m_input_node_size);      m_W->InitNormalDistribution(0.0, m_initialize_std, m_mt());
-        m_b->Resize(DataType<T>::type, m_output_node_size);                         m_b->InitNormalDistribution(0.0, m_initialize_std, m_mt());
-        m_dW->Resize(DataType<T>::type, m_output_node_size, m_input_node_size);     m_dW->FillZero();
-        m_db->Resize(DataType<T>::type, m_output_node_size);                        m_db->FillZero();
+        m_W->Resize ({m_input_node_size, m_output_node_size}, DataType<T>::type);   m_W->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+        m_b->Resize ({m_output_node_size},                    DataType<T>::type);   m_b->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+        m_dW->Resize({m_input_node_size, m_output_node_size}, DataType<T>::type);   m_dW->FillZero();
+        m_db->Resize({m_output_node_size},                    DataType<T>::type);   m_db->FillZero();
 
         return m_output_shape;
     }
@@ -253,7 +268,7 @@ public:
         }
 
         // 出力を設定
-        FrameBuffer y_buf(DataType<T>::type, x_buf.GetFrameSize(), m_output_shape);
+        FrameBuffer y_buf(x_buf.GetFrameSize(), m_output_shape, DataType<T>::type);
 
 #ifdef BB_WITH_CUDA
         if (DataType<T>::type == BB_TYPE_FP32 && m_cublasEnable && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable())
@@ -329,7 +344,7 @@ public:
         FrameBuffer x_buf = m_x_buf;
         m_x_buf = FrameBuffer();
 
-        FrameBuffer dx_buf(DataType<T>::type, dy_buf.GetFrameSize(), m_input_node_size);
+        FrameBuffer dx_buf(dy_buf.GetFrameSize(), {m_input_node_size}, DataType<T>::type);
 
 
         #ifdef BB_WITH_CUDA

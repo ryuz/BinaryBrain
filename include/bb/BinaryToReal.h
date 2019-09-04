@@ -156,7 +156,7 @@ public:
 
         // 戻り値の型を設定
         BB_ASSERT(x_buf.GetFrameSize() % m_modulation_size == 0);
-        FrameBuffer y_buf(DataType<RealType>::type, x_buf.GetFrameSize() / m_modulation_size, m_output_shape);
+        FrameBuffer y_buf(x_buf.GetFrameSize() / m_modulation_size, m_output_shape, DataType<RealType>::type);
 
 #ifdef BB_WITH_CUDA
         if ( DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
@@ -242,7 +242,7 @@ public:
         BB_ASSERT(dy_buf.GetType() == DataType<RealType>::type);
 
         // 戻り値の型を設定
-        FrameBuffer dx_buf(DataType<RealType>::type, dy_buf.GetFrameSize() * m_modulation_size, m_input_shape);
+        FrameBuffer dx_buf(dy_buf.GetFrameSize() * m_modulation_size, m_input_shape, DataType<RealType>::type);
 
 #ifdef BB_WITH_CUDA
         if ( DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only 

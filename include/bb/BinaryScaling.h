@@ -235,7 +235,7 @@ public:
     {
         BB_ASSERT(x_buf.GetType() == DataType<FT>::type);
 
-        m_y_buf.Resize(x_buf.GetType(), x_buf.GetFrameSize(), x_buf.GetShape());
+        m_y_buf.Resize(x_buf.GetFrameSize(), x_buf.GetShape(), x_buf.GetType());
 
         {
             auto node_size  = x_buf.GetNodeSize();

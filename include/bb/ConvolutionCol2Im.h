@@ -125,7 +125,7 @@ public:
         BB_ASSERT(input_frame_size % (m_h_size * m_w_size) == 0);
         index_t output_frame_size = input_frame_size / (m_h_size * m_w_size);
 
-        FrameBuffer y_buf(DataType<FT>::type, output_frame_size, indices_t({m_w_size, m_h_size, m_c_size}));
+        FrameBuffer y_buf(output_frame_size, indices_t({m_w_size, m_h_size, m_c_size}), DataType<FT>::type);
 
 
 #ifdef BB_WITH_CUDA
@@ -222,7 +222,7 @@ public:
         index_t output_frame_size = dy_buf.GetFrameSize();
         index_t input_frame_size  = output_frame_size *(m_h_size * m_w_size);
 
-        FrameBuffer dx_buf(DataType<BT>::type, input_frame_size, m_c_size);
+        FrameBuffer dx_buf(input_frame_size, {m_c_size}, DataType<BT>::type);
 
 #ifdef BB_WITH_CUDA
         if ( !m_host_only && DataType<BT>::type == BB_TYPE_FP32 && dy_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() )

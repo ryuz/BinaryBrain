@@ -38,7 +38,7 @@ public:
         std::uint8_t header[16];
         is.read((char*)&header[0], 16);
 
-        int magic = ReadWord(&header[0]);
+        /*int magic =*/ ReadWord(&header[0]);
         int num   = ReadWord(&header[4]);
         int rows  = ReadWord(&header[8]);
         int cols  = ReadWord(&header[12]);
@@ -95,7 +95,7 @@ public:
         std::uint8_t header[8];
         is.read((char *)header, 8);
 
-        int magic = ReadWord(&header[0]);
+        /* int magic =*/ ReadWord(&header[0]);
         int num = ReadWord(&header[4]);
 
         if (max_size > 0 && num > max_size) {
@@ -108,7 +108,7 @@ public:
         return true;
     }
     
-    static bool ReadLabelFile(std::istream& is, std::vector< std::vector<T> >& label, int num_class = 10, int max_size = -1)
+    static bool ReadLabelFile(std::istream& is, std::vector< std::vector<T> >& label, int max_size = -1, int num_class = 10)
     {
         std::vector<uint8_t> label_u8;
         if (!ReadLabelFile(is, label_u8, max_size)) { return false;  }
@@ -124,38 +124,124 @@ public:
     }
 
     template <typename Tp>
-    static bool ReadLabelFile(std::string filename, std::vector< std::vector<Tp> >& label, int num_class = 10, int max_size = -1)
+    static bool ReadLabelFile(std::string filename, std::vector< std::vector<Tp> >& label, int max_size = -1, int num_class = 10)
     {
         std::ifstream ifs(filename, std::ios::binary);
         if (!ifs.is_open()) { 
             std::cerr << "open error : " << filename << std::endl;
             return false;
         }
-        return ReadLabelFile(ifs, label, num_class, max_size);
+        return ReadLabelFile(ifs, label, max_size, num_class);
     }
 
 
     static bool LoadData(std::vector< std::vector<T> >& x_train, std::vector< std::vector<T> >& y_train,
         std::vector< std::vector<T> >& x_test, std::vector< std::vector<T> >& y_test,
-        int num_class = 10, int max_train=-1, int max_test = -1)
+        int max_train_size=-1, int max_test_size = -1, int num_class = 10)
     {
-        if (!ReadImageFile("train-images-idx3-ubyte", x_train, max_train)) { return false; }
-        if (!ReadLabelFile("train-labels-idx1-ubyte", y_train, 10, max_train)) { return false; }
-        if (!ReadImageFile("t10k-images-idx3-ubyte", x_test, max_test)) { return false; }
-        if (!ReadLabelFile("t10k-labels-idx1-ubyte", y_test, 10, max_test)) { return false; }
+        if (!ReadImageFile("train-images-idx3-ubyte", x_train, max_train_size)) { return false; }
+        if (!ReadLabelFile("train-labels-idx1-ubyte", y_train, max_train_size, num_class)) { return false; }
+        if (!ReadImageFile("t10k-images-idx3-ubyte", x_test, max_test_size)) { return false; }
+        if (!ReadLabelFile("t10k-labels-idx1-ubyte", y_test, max_test_size, num_class)) { return false; }
         return true;
     }
 
-    static TrainData<T> Load(int num_class = 10, int max_train = -1, int max_test = -1)
+    static TrainData<T> Load(int max_train_size = -1, int max_test_size = -1, int num_class = 10)
     {
         TrainData<T>    td;
         td.x_shape = indices_t({28, 28, 1});
         td.t_shape = indices_t({10});
-        if (!LoadData(td.x_train, td.t_train, td.x_test, td.t_test, num_class, max_train, max_test)) {
+        if (!LoadData(td.x_train, td.t_train, td.x_test, td.t_test, max_train_size, max_test_size, num_class)) {
             td.clear();
         }
         return td;
     }
+
+    
+    static void MakeValidationData(
+        std::vector< std::vector<T> > const &src_img,
+        std::vector< std::vector<T> >       &dst_img,
+        std::vector< std::vector<T> >       &dst_t,
+        int                                 size,
+        std::uint64_t                       seed=1,
+        int                                 unit=256,
+        int                                 xn=8,
+        int                                 yn=8)
+    {
+        int w = 28;
+        int h = 28;
+
+        std::mt19937_64 mt(seed);
+
+        int array_width  = w*(xn+1);
+        int array_height = h*(yn+1);
+        std::vector<T>  array_img(array_width*array_height, 0);
+
+        for ( int i = 0; i < size; ++i ) {
+            if ( i % unit == 0 ) {
+                // 画像作成
+                for ( int blk_y = 0; blk_y < xn; ++blk_y ) {
+                    for ( int blk_x = 0; blk_x < xn; ++blk_x) {
+                        int idx = (int)(mt() % src_img.size());
+                        for ( int y = 0; y < h; ++y ) {
+                            for ( int x = 0; x < w; ++x) {
+                                int xx = blk_x * w + x + (w/2);
+                                int yy = blk_y * h + y + (h/2);
+                                array_img[array_width*yy + xx] = src_img[idx][y*w+x];
+                            }
+                        }
+                    }
+                }
+            }
+
+            int base_x = (int)(mt() % (w * xn));
+            int base_y = (int)(mt() % (h * yn));
+
+            std::vector<T>  img(w*h);
+            std::vector<T>  t(1);
+            for ( int y = 0; y < h; ++y ) {
+                for ( int x = 0; x < w; ++x) {
+                    int xx = base_x + x;
+                    int yy = base_y + y;
+                    img[y*w+x] = array_img[array_width*yy + xx];
+                }
+            }
+            int off_x = base_x % w; 
+            int off_y = base_y % h;
+            t[0] = 0;
+            if ( off_x >= (w/2 - 3) && off_x < (w/2 + 3) && off_y >= (h/2 - 3) && off_y < (h/2 + 3) ) {
+                t[0] = (T)1.0;
+            }
+            else if ( off_x >= (w/2 - 5) && off_x < (w/2 + 5) && off_y >= (h/2 - 5) && off_y < (h/2 + 5) ) {
+                t[0] = (T)0.5;
+            }
+
+            // 追加
+            dst_img.push_back(img);
+            dst_t.push_back(t);
+        }
+    }
+
+
+    // 有無検知学習用データ取得
+    static TrainData<T> LoadDetection(int max_train_size = -1, int max_test_size = -1)
+    {
+        // load MNIST data
+        auto td_src = bb::LoadMnist<>::Load(max_train_size, max_test_size);
+
+        // make validation data
+        int train_size = (int)td_src.x_train.size();
+        int test_size  = (int)td_src.x_test.size();
+        bb::TrainData<T> td;
+        td.x_shape = bb::indices_t({28, 28, 1});
+        td.t_shape = bb::indices_t({1});
+        MakeValidationData(td_src.x_train, td.x_train, td.t_train, 60000, 1);
+        MakeValidationData(td_src.x_test,  td.x_test,  td.t_test,  10000, 2);
+
+        return td;
+    }
+
+
 };
 
 

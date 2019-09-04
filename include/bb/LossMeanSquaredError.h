@@ -54,7 +54,7 @@ public:
         index_t frame_size  = y.GetFrameSize();
         index_t node_size   = y.GetNodeSize();
 
-        m_dy.Resize(DataType<T>::type, y.GetFrameSize(), y.GetShape());
+        m_dy.Resize(y.GetFrameSize(), y.GetShape(), DataType<T>::type);
 
         auto y_ptr = y.LockConst<T>();
         auto t_ptr = t.LockConst<T>();

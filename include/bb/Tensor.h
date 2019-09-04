@@ -1417,17 +1417,17 @@ public:
         m_mem = Memory::Create(0, hostOnly);
     }
 
-    explicit Tensor(int type, std::vector<index_t> shape, bool hostOnly=false)
+    explicit Tensor(std::vector<index_t> shape, int type, bool hostOnly=false)
     {
         m_mem = Memory::Create(0, hostOnly);
-        Resize(type, shape);
+        Resize(shape, type);
     }
 
-    explicit Tensor(int type, index_t size, bool hostOnly=false)
-    {
-        m_mem = Memory::Create(0, hostOnly);
-        Resize(type, size);
-    }
+//    explicit Tensor(index_t size, int type, bool hostOnly=false)
+//    {
+//        m_mem = Memory::Create(0, hostOnly);
+//        Resize(size, type);
+//    }
     
     Tensor(const Tensor& tensor)
     {
@@ -1496,14 +1496,14 @@ public:
 
     Tensor Clone(void) const
     {
-        Tensor tensor(m_type, m_shape);
+        Tensor tensor(m_shape, m_type);
 
         auto src_ptr = m_mem->LockConst();
         auto dst_ptr = tensor.m_mem->Lock(true);
         memcpy(dst_ptr.GetAddr(), src_ptr.GetAddr(), m_mem->GetSize());
 
-        tensor.m_type = m_type;
-        tensor.m_size = m_size;
+        tensor.m_type   = m_type;
+        tensor.m_size   = m_size;
         tensor.m_shape  = m_shape;
         tensor.m_stride = m_stride;
 
@@ -1535,7 +1535,7 @@ public:
         return m_mem->IsDeviceAvailable();
     }
 
-    void Resize(int type, indices_t shape)
+    void Resize(indices_t shape, int type)
     {
         // 設定保存
         m_type = type;
@@ -1556,11 +1556,12 @@ public:
         m_mem->Resize(m_size * DataType_GetByteSize(type));
     }
 
-    void Resize(int type, index_t i0)                                        { Resize(type, indices_t({i0})); }
-    void Resize(int type, index_t i1, index_t i0)                            { Resize(type, indices_t({i0, i1})); }
-    void Resize(int type, index_t i2, index_t i1, index_t i0)                { Resize(type, indices_t({i0, i1, i2})); }
-    void Resize(int type, index_t i3, index_t i2, index_t i1, index_t i0)    { Resize(type, indices_t({i0, i1, i2, i3})); }
-
+    /*
+    void Resize(index_t i0, int type)                                       { Resize(indices_t({i0}), type); }
+    void Resize(index_t i1, index_t i0, int type)                           { Resize(indices_t({i0, i1}), type); }
+    void Resize(index_t i2, index_t i1, index_t i0, int type)               { Resize(indices_t({i0, i1, i2}), type); }
+    void Resize(index_t i3, index_t i2, index_t i1, index_t i0, int type)   { Resize(indices_t({i0, i1, i2, i3}), type); }
+    */
 
     void Reshape(indices_t shape)
     {

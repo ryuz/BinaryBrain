@@ -240,7 +240,7 @@ public:
         m_x_buf = FrameBuffer();
 
         // 出力設定
-        FrameBuffer dx_buf(dy_buf.GetType(), dy_buf.GetFrameSize(), dy_buf.GetShape());
+        FrameBuffer dx_buf(dy_buf.GetFrameSize(), dy_buf.GetShape(), dy_buf.GetType());
 
         {
             auto node_size  = dy_buf.GetNodeSize();

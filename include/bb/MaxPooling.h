@@ -42,8 +42,21 @@ protected:
     FrameBuffer         m_x_buf;
     FrameBuffer         m_y_buf;
 
+public:
+    struct create_t
+    {
+        index_t filter_h_size = 1;
+        index_t filter_w_size = 1;
+    };
+
+
 protected:
-    MaxPooling() {}
+    // コンストラクタ
+    MaxPooling(create_t const &create)
+    {
+        m_filter_h_size = create.filter_h_size;
+        m_filter_w_size = create.filter_w_size;
+    }
 
     /**
      * @brief  コマンド処理
@@ -61,17 +74,28 @@ protected:
 
 public:
     ~MaxPooling() {}
+
+    static std::shared_ptr<MaxPooling> Create(create_t const &create)
+    {
+         return std::shared_ptr<MaxPooling>(new MaxPooling(create));
+    }
     
     static std::shared_ptr<MaxPooling> Create(index_t filter_h_size, index_t filter_w_size)
     {
-        auto self = std::shared_ptr<MaxPooling>(new MaxPooling);
-
-        self->m_filter_h_size = filter_h_size;
-        self->m_filter_w_size = filter_w_size;
-
-        return self;
+        create_t create;
+        create.filter_h_size = filter_h_size;
+        create.filter_w_size = filter_w_size;
+        return Create(create);
     }
     
+    // 全パラメータを引数としたオーバーロード無しの生成関数(主にpython用)
+    static std::shared_ptr<MaxPooling> CreateEx(index_t filter_h_size, index_t filter_w_size)
+    {
+        create_t create;
+        create.filter_h_size = filter_h_size;
+        create.filter_w_size = filter_w_size;
+        return Create(create);
+    }
 
     std::string GetClassName(void) const { return "MaxPooling"; }
 
@@ -159,7 +183,7 @@ public:
         }
 
         // 出力を設定
-        FrameBuffer y_buf(DataType<FT>::type, x_buf.GetFrameSize(), m_output_shape);
+        FrameBuffer y_buf(x_buf.GetFrameSize(), m_output_shape, DataType<FT>::type);
         
         // backwardの為に保存
         if ( train ) {
@@ -326,7 +350,7 @@ public:
     {
         BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
 
-        FrameBuffer dx_buf(DataType<BT>::type, dy_buf.GetFrameSize(), m_input_shape);
+        FrameBuffer dx_buf(dy_buf.GetFrameSize(), m_input_shape, DataType<BT>::type);
 
         FrameBuffer x_buf = m_x_buf;
         FrameBuffer y_buf = m_y_buf;
