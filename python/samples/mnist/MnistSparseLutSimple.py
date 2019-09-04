@@ -1,6 +1,4 @@
 ﻿# coding: utf-8
-import sys, os
-sys.path.append(os.pardir)
 
 import binarybrain as bb
 import numpy as np

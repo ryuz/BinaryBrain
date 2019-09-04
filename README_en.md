@@ -66,16 +66,16 @@ You can build C++ source code from iPython Notebook.
 % # install
 % cd python
 % make -C build
-% python setup.py develop
+% python3 setup.py develop
 
 % # MNIST sample
 % cd samples/mnist
 % sh get_nmist.sh
-% python MnistSparseLutCnn.py
+% python3 MnistSparseLutCnn.py
 
 % # uninstall
 % cd ../..
-% python setup.py develop -u
+% python3 setup.py develop -u
 ```
 
 
