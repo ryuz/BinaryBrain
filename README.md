@@ -73,9 +73,14 @@ nvcc が利用可能な Google Colaboratory でも動作可能なようです。
 % make -C build
 % python3 setup.py develop
 
-% # MNIST sample
+% # MNIST data download
 % cd samples/mnist
 % sh get_nmist.sh
+
+% # Simple DNN sample
+% python3 MnistSparseLutSimple.py
+
+% # CNN sample
 % python3 MnistSparseLutCnn.py
 
 % # uninstall
