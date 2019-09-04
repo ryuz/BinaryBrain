@@ -73,6 +73,7 @@ void Cifar10AeSparseLutSimple(int epoch_size, int mini_batch_size, int train_mod
 
         // main network
         auto main_net = bb::Sequential::Create();
+#if 0
         main_net->Add(enc_sl0);
         main_net->Add(enc_sl1);
         main_net->Add(enc_sl2);
@@ -82,6 +83,7 @@ void Cifar10AeSparseLutSimple(int epoch_size, int mini_batch_size, int train_mod
         main_net->Add(dec_sl1);
         main_net->Add(dec_sl2);
 //        main_net->Add(dec_sl2b);
+#endif
 
         // modulation wrapper
         auto net = bb::Sequential::Create();

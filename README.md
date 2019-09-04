@@ -25,8 +25,8 @@ CUDA(Kepler以降)にも対応しています。
 1. install VisualStudio 2017 + CUDA 10.1
 2. git clone --recursive -b ver3_release https://github.com/ryuz/BinaryBrain.git 
 3. download MNIST from http://yann.lecun.com/exdb/mnist/
-4. decompress MNIST for "\sample\mnist"
-5. open VC++ solution "sample\mnist\sample_mnist.sln"
+4. decompress MNIST for "\samples\mnist"
+5. open VC++ solution "samples\mnist\sample_mnist.sln"
 6. build "x64 Release"
 7. run
 
@@ -38,12 +38,14 @@ CUDA(Kepler以降)にも対応しています。
 % sudo apt install git
 % sudo apt install make
 % sudo apt install g++
-% sudo apt install nvidia-cuda-toolkit
+% # sudo apt install nvidia-cuda-toolkit
+% wget http://developer.download.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.243_418.87.00_linux.run
+% sudo sh cuda_10.1.243_418.87.00_linux.run
 ```
 2. build and run
 ```
 % git clone --recursive -b ver3_release  https://github.com/ryuz/BinaryBrain.git
-% cd BinaryBrain/sample/mnist
+% cd BinaryBrain/samples/mnist
 % make
 % make dl_data
 % ./sample-mnist All
@@ -56,11 +58,31 @@ nvcc が利用可能な Google Colaboratory でも動作可能なようです。
 以下あくまで参考ですが、ランタイムのタイプをGPUに設定した上で
 ```
 !git clone --recursive -b ver3_release  https://github.com/ryuz/BinaryBrain.git
-%cd BinaryBrain/sample/mnist
+%cd BinaryBrain/samples/mnist
 !make all
 !make run
 ```
 のような操作で、ビルドして動作させることができます。
+
+
+### Python (α版)
+
+```
+% # install
+% cd python
+% make -C build
+% python setup.py develop
+
+% # MNIST sample
+% cd samples/mnist
+% sh get_nmist.sh
+% python MnistSparseLutCnn.py
+
+% # uninstall
+% cd ../..
+% python setup.py develop -u
+```
+
 
 ### githubからの取得
 現在 version3 は下記の branch で管理しています
