@@ -56,7 +56,7 @@ public:
 
     FrameBuffer CalculateLoss(FrameBuffer y_buf, FrameBuffer t_buf, index_t batch_size)
     {
-        FrameBuffer dy_buf(y_buf.GetType(), y_buf.GetFrameSize(), y_buf.GetShape());
+        FrameBuffer dy_buf(y_buf.GetFrameSize(), y_buf.GetShape(), y_buf.GetType());
 
         m_loss_buf.Resize(y_buf.GetFrameSize());
 
@@ -92,7 +92,7 @@ public:
         {
             index_t frame_size  = y_buf.GetFrameSize();
             index_t node_size   = y_buf.GetNodeSize();
-            index_t stride_size = y_buf.GetFrameStride() / sizeof(T);
+//          index_t stride_size = y_buf.GetFrameStride() / sizeof(T);
 
             auto y_ptr  = y_buf.LockConst<T>();
             auto t_ptr  = t_buf.LockConst<T>();

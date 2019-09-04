@@ -323,8 +323,8 @@ public:
         m_connection_table.InitializeConnection(m_mt(), m_connection);
 
         // パラメータ初期化(結局初期値は何が良いのかまだよくわからない)
-        m_W->Resize(DataType<RealType>::type,  this->GetOutputNodeSize(), NN);  m_W->InitNormalDistribution(0.5, 0.01, m_mt());
-        m_dW->Resize(DataType<RealType>::type, this->GetOutputNodeSize(), NN); m_dW->FillZero();
+        m_W->Resize ({NN, this->GetOutputNodeSize()}, DataType<RealType>::type);    m_W->InitNormalDistribution(0.5, 0.01, m_mt());
+        m_dW->Resize({NN, this->GetOutputNodeSize()}, DataType<RealType>::type);    m_dW->FillZero();
 
         m_mean.Resize(m_output_shape);
         m_rstd.Resize(m_output_shape);
@@ -422,7 +422,7 @@ public:
         }
 
         // 出力を設定
-        FrameBuffer y_buf(DataType<BinType>::type, x_buf.GetFrameSize(), this->GetOutputShape());
+        FrameBuffer y_buf(x_buf.GetFrameSize(), this->GetOutputShape(), DataType<BinType>::type);
 
         // backwardの為に保存
         if ( train ) {
@@ -1015,11 +1015,11 @@ public:
         FrameBuffer x_buf = m_x_buf;
         m_x_buf = FrameBuffer();
 
-        FrameBuffer dx_buf(DataType<RealType>::type, dy_buf.GetFrameSize(), this->GetInputShape());
+        FrameBuffer dx_buf(dy_buf.GetFrameSize(), this->GetInputShape(), DataType<RealType>::type);
 
         auto input_shape      = this->GetInputShape();
         auto output_shape     = this->GetOutputShape();
-        auto input_node_size  = this->GetInputNodeSize();
+    //  auto input_node_size  = this->GetInputNodeSize();
         auto output_node_size = this->GetOutputNodeSize();
 
         // tmp buffer
@@ -1027,7 +1027,7 @@ public:
         tmp_frame_size = std::max(tmp_frame_size, (index_t)32);
         tmp_frame_size = ((tmp_frame_size + 31) & ~0x1f);
         tmp_frame_size = std::min(tmp_frame_size, dy_buf.GetFrameSize());
-        FrameBuffer tmp_buf(DataType<RealType>::type, tmp_frame_size, output_node_size*N);
+        FrameBuffer tmp_buf(tmp_frame_size, {output_node_size*N}, DataType<RealType>::type);
 
         if ( m_batch_norm ) {
             // with BatchNormalization
@@ -1502,7 +1502,7 @@ public:
 
                 auto node_size  = dy_buf.GetNodeSize();
                 auto frame_size = dy_buf.GetFrameSize();
-                auto reciprocal_frame_size = (RealType)1.0 / (RealType)frame_size;
+//              auto reciprocal_frame_size = (RealType)1.0 / (RealType)frame_size;
 
                 auto x_ptr           = x_buf.LockConst<BinType>();
                 auto dy_ptr          = dy_buf.LockConst<RealType>();

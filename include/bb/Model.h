@@ -10,8 +10,10 @@
 #pragma once
 
 #include <vector>
-#include <iostream>
+#include <string>
+#include <sstream>
 #include <fstream>
+#include <iostream>
 
 #if BB_WITH_CEREAL
 #include "cereal/types/array.hpp"
@@ -198,6 +200,20 @@ public:
         }
     }
 
+    /**
+     * @brief  モデルの情報を表示
+     * @detail モデルの情報を表示する
+     * @param  depth    表示する深さ(0で全表示)
+     * @param  os       出力ストリーム
+     * @param  columns  表示幅
+     * @param  nest     深さ指定(通常は0)
+     */
+    virtual std::string GetInfoString(int depth=0, int columns=70, int nest=0)
+    {
+        std::stringstream ss;
+        PrintInfo(depth, ss, columns, nest);
+        return ss.str();
+    }
 
    /**
      * @brief  ノード単位でのForward計算

@@ -81,6 +81,14 @@ public:
         return Create(create);
     }
 
+    static std::shared_ptr<Binarize> CreateEx(RealType binary_th = (RealType)0, RealType hardtanh_min = (RealType)-1, RealType hardtanh_max = (RealType)+1)
+    {
+        create_t create;
+        create.binary_th    = binary_th;
+        create.hardtanh_min = hardtanh_min;
+        create.hardtanh_max = hardtanh_max;
+        return Create(create);
+    }
 
     std::string GetClassName(void) const { return "Binarize"; }
     
@@ -115,7 +123,7 @@ public:
         }
 
         // 戻り値のサイズ設定
-        FrameBuffer y_buf(DataType<BinType>::type, x_buf.GetFrameSize(), x_buf.GetShape());
+        FrameBuffer y_buf( x_buf.GetFrameSize(), x_buf.GetShape(), DataType<BinType>::type);
 
 #ifdef BB_WITH_CUDA
         if ( DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
@@ -187,7 +195,7 @@ public:
         BB_ASSERT(dy_buf.GetType() == DataType<RealType>::type);
 
         // 戻り値のサイズ設定
-        FrameBuffer dx_buf(dy_buf.GetType(), dy_buf.GetFrameSize(), dy_buf.GetShape());
+        FrameBuffer dx_buf(dy_buf.GetFrameSize(), dy_buf.GetShape(), dy_buf.GetType());
         
         FrameBuffer x_buf = m_x_buf;
         m_x_buf = FrameBuffer();

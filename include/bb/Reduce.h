@@ -141,7 +141,7 @@ public:
         }
 
         // 戻り値の型を設定
-        FrameBuffer y_buf(DataType<FT>::type, x_buf.GetFrameSize(), m_output_shape);
+        FrameBuffer y_buf(x_buf.GetFrameSize(), m_output_shape, DataType<FT>::type);
 
 #if 0 // #ifdef BB_WITH_CUDA
         if ( DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && DataType<FT>::type == BB_TYPE_FP32
@@ -176,7 +176,7 @@ public:
 
             index_t mux_size          = input_node_size / output_node_size;
 
-            index_t node_size = std::max(input_node_size, output_node_size);
+//          index_t node_size = std::max(input_node_size, output_node_size);
 
             #pragma omp parallel for
             for (index_t output_node = 0; output_node < output_node_size; ++output_node) {
@@ -198,7 +198,7 @@ public:
         BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
 
         // 戻り値の型を設定
-        FrameBuffer dx_buf(DataType<BT>::type, dy_buf.GetFrameSize(), m_input_shape);
+        FrameBuffer dx_buf(dy_buf.GetFrameSize(), m_input_shape, DataType<BT>::type);
 
 #if 0 // #ifdef BB_WITH_CUDA
         if ( DataType<BT>::type == BB_TYPE_FP32 && !m_host_only 

@@ -35,12 +35,15 @@ protected:
     index_t     m_output_h_size = 1;
     std::string m_padding = "valid";
 
-    // 3層で構成
-    std::shared_ptr< ConvolutionIm2Col<FT, BT> >    m_im2col;
-    std::shared_ptr< Model                     >    m_layer;
-    std::shared_ptr< ConvolutionCol2Im<FT, BT> >    m_col2im;
+    using Im2Col = ConvolutionIm2Col<FT, BT>;
+    using Col2Im = ConvolutionCol2Im<FT, BT>;
 
-public:    
+    // 3層で構成
+    std::shared_ptr< Im2Col >    m_im2col;
+    std::shared_ptr< Model  >    m_layer;
+    std::shared_ptr< Col2Im >    m_col2im;
+
+public:
     struct create_t
     {
         std::shared_ptr<Model>  layer;
@@ -49,6 +52,8 @@ public:
         index_t                 x_stride      = 1;
         index_t                 y_stride      = 1;
         std::string             padding       = "valid";
+        int                     border_mode   = BB_BORDER_REFLECT_101;
+        FT                      border_value  = (FT)0;
     };
     
 protected:
@@ -66,6 +71,8 @@ protected:
         im2col_create.x_stride      = create.x_stride;
         im2col_create.y_stride      = create.y_stride;
         im2col_create.padding       = create.padding;
+        im2col_create.border_mode   = create.border_mode;
+        im2col_create.border_value  = create.border_value;
         m_im2col = ConvolutionIm2Col<FT, BT>::Create(im2col_create);
         m_layer  = create.layer;
         // col2im の形状は入力形状確定時に決まる
@@ -89,6 +96,29 @@ public:
         create.y_stride      = y_stride;
         create.x_stride      = x_stride;
         create.padding       = padding;
+        return Create(create);
+    }
+
+    static std::shared_ptr<LoweringConvolution> CreateEx(
+            std::shared_ptr<Model>  layer,
+            index_t                 filter_h_size,
+            index_t                 filter_w_size,
+            index_t                 y_stride      = 1,
+            index_t                 x_stride      = 1,
+            std::string             padding       = "valid",
+            int                     border_mode   = BB_BORDER_REFLECT_101,
+            FT                      border_value  = (FT)0
+        )
+    {
+        create_t create;
+        create.layer         = layer;
+        create.filter_h_size = filter_h_size;
+        create.filter_w_size = filter_w_size;
+        create.y_stride      = y_stride;
+        create.x_stride      = x_stride;
+        create.padding       = padding;
+        create.border_mode   = border_mode;
+        create.border_value  = border_value;
         return Create(create);
     }
 
@@ -160,7 +190,7 @@ public:
 
         index_t input_w_size = shape[0];
         index_t input_h_size = shape[1];
-        index_t input_c_size = shape[2];
+//      index_t input_c_size = shape[2];
 
         // 出力サイズ計算
         if ( m_padding == "valid" ) {

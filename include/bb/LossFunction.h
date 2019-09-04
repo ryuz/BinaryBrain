@@ -44,7 +44,7 @@ public:
      * @param  t    期待値
      * @return backwardする誤差勾配を返す
      */
-    virtual FrameBuffer CalculateLoss(FrameBuffer y, FrameBuffer t, index_t batch_size) = 0;
+    virtual FrameBuffer CalculateLoss(FrameBuffer y_buf, FrameBuffer t_buf, index_t mini_batch_size) = 0;
 };
 
 

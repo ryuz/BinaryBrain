@@ -300,7 +300,7 @@ public:
     FrameBuffer Forward(FrameBuffer x_buf, bool train=true)
     {
         // 出力設定
-        FrameBuffer y_buf(x_buf.GetType(), x_buf.GetFrameSize(), x_buf.GetShape());
+        FrameBuffer y_buf(x_buf.GetFrameSize(), x_buf.GetShape(), x_buf.GetType());
 
         // backwardの為に保存
         if ( train ) {
@@ -564,7 +564,7 @@ public:
     FrameBuffer ReForward(FrameBuffer x_buf)
     {
         // 出力設定
-        FrameBuffer y_buf(x_buf.GetType(), x_buf.GetFrameSize(), x_buf.GetShape());
+        FrameBuffer y_buf( x_buf.GetFrameSize(), x_buf.GetShape(), x_buf.GetType());
 
         // backwardの為に保存
         m_x_buf = x_buf;
@@ -634,7 +634,7 @@ public:
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
         // 出力設定
-        FrameBuffer dx_buf(dy_buf.GetType(), dy_buf.GetFrameSize(), dy_buf.GetShape());
+        FrameBuffer dx_buf(dy_buf.GetFrameSize(), dy_buf.GetShape(), dy_buf.GetType());
 
         FrameBuffer x_buf = m_x_buf;
         m_x_buf = FrameBuffer();

@@ -1,0 +1,3 @@
+verilog work tb_mnist_lut_simple.v
+verilog work MnistSparseLutSimple.v
+verilog work bb_lut.v

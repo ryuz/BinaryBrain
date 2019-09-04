@@ -171,10 +171,10 @@ public:
         m_b0->Load(is);
         m_W1->Load(is);
         m_b1->Load(is);
-        m_dW0->Resize(m_W0->GetType(), m_W0->GetShape());
-        m_db0->Resize(m_b0->GetType(), m_b0->GetShape());
-        m_dW1->Resize(m_W1->GetType(), m_W1->GetShape());
-        m_db1->Resize(m_b1->GetType(), m_b1->GetShape());
+        m_dW0->Resize(m_W0->GetShape(), m_W0->GetType());
+        m_db0->Resize(m_b0->GetShape(), m_b0->GetType());
+        m_dW1->Resize(m_W1->GetShape(), m_W1->GetType());
+        m_db1->Resize(m_b1->GetShape(), m_b1->GetType());
     }
 
 
@@ -311,15 +311,15 @@ public:
         else if (m_initializer == "xavier" || m_initializer == "Xavier" ) {
             m_initialize_std = (T)1.0 / std::sqrt((T)N);
         }
-        m_W0->Resize(DataType<T>::type, m_output_node_size, M, N);  m_W0->InitNormalDistribution(0.0, m_initialize_std, m_mt());
-        m_b0->Resize(DataType<T>::type, m_output_node_size, M);     m_b0->InitNormalDistribution(0.0, m_initialize_std, m_mt());
-        m_W1->Resize(DataType<T>::type, m_output_node_size, M);     m_W1->InitNormalDistribution(0.0, m_initialize_std, m_mt());
-        m_b1->Resize(DataType<T>::type, m_output_node_size);        m_b1->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+        m_W0->Resize({N, M, m_output_node_size}, DataType<T>::type);    m_W0->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+        m_b0->Resize({M, m_output_node_size},    DataType<T>::type);    m_b0->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+        m_W1->Resize({M, m_output_node_size},    DataType<T>::type);    m_W1->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+        m_b1->Resize({m_output_node_size},       DataType<T>::type);    m_b1->InitNormalDistribution(0.0, m_initialize_std, m_mt());
 
-        m_dW0->Resize(DataType<T>::type, m_output_node_size, M, N); m_dW0->FillZero();
-        m_db0->Resize(DataType<T>::type, m_output_node_size, M);    m_db0->FillZero();
-        m_dW1->Resize(DataType<T>::type, m_output_node_size, M);    m_dW1->FillZero();
-        m_db1->Resize(DataType<T>::type, m_output_node_size);       m_db1->FillZero();
+        m_dW0->Resize({N, M, m_output_node_size}, DataType<T>::type);   m_dW0->FillZero();
+        m_db0->Resize({M, m_output_node_size},    DataType<T>::type);   m_db0->FillZero();
+        m_dW1->Resize({M, m_output_node_size},    DataType<T>::type);   m_dW1->FillZero();
+        m_db1->Resize({m_output_node_size},       DataType<T>::type);   m_db1->FillZero();
 
         return m_output_shape;
     }
@@ -440,7 +440,7 @@ public:
         
 
         // 出力を設定
-        FrameBuffer y_buf(DataType<T>::type, x_buf.GetFrameSize(), m_output_shape);
+        FrameBuffer y_buf(x_buf.GetFrameSize(), m_output_shape, DataType<T>::type);
 
         // バイナリモードならパラメータクリップ
         if (m_binary_mode) {
@@ -633,7 +633,7 @@ public:
         BB_ASSERT(x_buf.GetType() == DataType<FXT>::type);
 
         // 出力設定
-        FrameBuffer  dx_buf(DataType<T>::type, dy_buf.GetFrameSize(), m_input_shape);
+        FrameBuffer  dx_buf(dy_buf.GetFrameSize(), m_input_shape, DataType<T>::type);
 
         // CUDA版
 #ifdef BB_WITH_CUDA
@@ -653,7 +653,7 @@ public:
             auto dW1_ptr = m_dW1->LockDeviceMemory();
             auto db1_ptr = m_db1->LockDeviceMemory();
 
-            FrameBuffer dx_tmp(BB_TYPE_FP32, dy_buf.GetFrameSize(), m_output_node_size * N);
+            FrameBuffer dx_tmp(dy_buf.GetFrameSize(), {m_output_node_size * N}, BB_TYPE_FP32);
             auto dx_tmp_ptr = dx_tmp.LockDeviceMemory();
 
             bbcu_fp32_MicroMlp6x16_Backward
@@ -698,7 +698,7 @@ public:
             auto dW1_ptr = m_dW1->LockDeviceMemory();
             auto db1_ptr = m_db1->LockDeviceMemory();
 
-            FrameBuffer dx_tmp(BB_TYPE_FP32, dy_buf.GetFrameSize(), m_output_node_size * N);
+            FrameBuffer dx_tmp(dy_buf.GetFrameSize(), {m_output_node_size * N}, BB_TYPE_FP32);
             auto dx_tmp_ptr = dx_tmp.LockDeviceMemory();
 
             bbcu_bit_fp32_MicroMlp6x16_Backward
@@ -759,7 +759,7 @@ public:
 
             const __m256    zero = _mm256_set1_ps(0);
 
-            FrameBuffer dx_tmp(BB_TYPE_FP32, dy_buf.GetFrameSize(), m_output_node_size * N);
+            FrameBuffer dx_tmp(dy_buf.GetFrameSize(), {m_output_node_size * N}, BB_TYPE_FP32);
             auto dx_tmp_ptr = dx_tmp.Lock<float>();
             
             #pragma omp parallel for
@@ -895,7 +895,7 @@ public:
             auto dW1_ptr = lock_dW1();
             auto db1_ptr = lock_db1();
             
-//            FrameBuffer dx_tmp(BB_TYPE_FP32, dy_buf.GetFrameSize(), m_output_node_size * N);
+//            FrameBuffer dx_tmp(dy_buf.GetFrameSize(), m_output_node_size * N, BB_TYPE_FP32);
 //            auto dx_tmp_ptr = dx_tmp.Lock<float>();
             
 //          #pragma omp parallel for

@@ -329,7 +329,7 @@ inline void ExportVerilog_LutConvolutionModule(std::ostream& os, std::string mod
     
     os << R"(
     localparam  NC = (N-1) / 2;
-    localparam  MC = (M-1) / M;
+    localparam  MC = (M-1) / 2;
     
     
     wire                            img_blk_line_first;

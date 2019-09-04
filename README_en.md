@@ -22,8 +22,8 @@ It has the following features
 1. install VisualStudio 2017 + CUDA 10.1
 2. git clone --recursive -b ver3_release https://github.com/ryuz/BinaryBrain.git 
 3. download MNIST from http://yann.lecun.com/exdb/mnist/
-4. decompress MNIST for "\sample\mnist"
-5. open VC++ solution "sample\mnist\sample_mnist.sln"
+4. decompress MNIST for "\samples\mnist"
+5. open VC++ solution "samples\mnist\sample_mnist.sln"
 6. build "x64 Release"
 7. run
 
@@ -40,7 +40,7 @@ It has the following features
 2. build and run
 ```
 % git clone --recursive -b ver3_release  https://github.com/ryuz/BinaryBrain.git
-% cd BinaryBrain/sample/mnist
+% cd BinaryBrain/samples/mnist
 % make
 % make dl_data
 % ./sample-mnist All
@@ -53,11 +53,43 @@ Currently you can use nvcc on Google Colaboratory.
 Please select GPU runtime.
 ```
 !git clone --recursive -b ver3_release  https://github.com/ryuz/BinaryBrain.git
-%cd BinaryBrain/sample/mnist
+%cd BinaryBrain/samples/mnist
 !make all
 !make run
 ```
 You can build C++ source code from iPython Notebook.
+
+
+### Python (Alpha version)
+
+```
+% pip3 install setuptools
+% pip3 install pybind11
+% pip3 install numpy
+% pip3 install tqdm
+```
+
+
+```
+% # install
+% cd python
+% make -C build
+% python3 setup.py develop
+
+% # MNIST data download
+% cd samples/mnist
+% sh get_nmist.sh
+
+% # Simple DNN sample
+% python3 MnistSparseLutSimple.py
+
+% # CNN sample
+% python3 MnistSparseLutCnn.py
+
+% # uninstall
+% cd ../..
+% python3 setup.py develop -u
+```
 
 
 ## What is LUT networks?

@@ -21,6 +21,7 @@
 #include "bb/Manager.h"
 #include "bb/DataType.h"
 #include "bb/Model.h"
+#include "bb/Activation.h"
 #include "bb/FrameBuffer.h"
 #include "bb/SimdSupport.h"
 
@@ -35,9 +36,9 @@ namespace bb {
 
 // BatchNormalization
 template <typename T = float>
-class BatchNormalization : public Model
+class BatchNormalization : public Activation
 {
-    using _super = Model;
+    using _super = Activation;
 
 protected:
     bool                        m_bypass    = false;
@@ -46,7 +47,7 @@ protected:
     bool                        m_fix_gamma = false;
     bool                        m_fix_beta  = false;
 
-    indices_t                   m_node_shape;
+//  indices_t                   m_node_shape;
     
     FrameBuffer                 m_x_buf;
 
@@ -65,12 +66,29 @@ protected:
     T                           m_init_gamma;
     T                           m_init_beta;
 
+public:
+    struct create_t
+    {
+        T       momentum  = (T)0.9;
+        T       gamma     = (T)1.0;
+        T       beta      = (T)0.0;
+        bool    fix_gamma = false;
+        bool    fix_beta  = false;
+    };
+
 protected:
-    BatchNormalization() {
+    BatchNormalization(create_t const &create)
+    {
         m_gamma  = std::make_shared<Tensor>();
         m_beta   = std::make_shared<Tensor>();
         m_dgamma = std::make_shared<Tensor>();
         m_dbeta  = std::make_shared<Tensor>();
+
+        m_momentum   = create.momentum;
+        m_init_gamma = create.gamma;
+        m_init_beta  = create.beta;
+        m_fix_gamma  = create.fix_gamma;
+        m_fix_beta   = create.fix_beta;
     }
 
     void CommandProc(std::vector<std::string> args)
@@ -110,43 +128,45 @@ protected:
 public:
     ~BatchNormalization() {}
 
-    struct create_t
-    {
-        T       momentum  = (T)0.9;
-        T       gamma     = (T)1.0;
-        T       beta      = (T)0.0;
-        bool    fix_gamma = false;
-        bool    fix_beta  = false;
-    };
-
     static std::shared_ptr<BatchNormalization> Create(create_t const &create)
     {
-        auto self = std::shared_ptr<BatchNormalization>(new BatchNormalization);
-        self->m_momentum   = create.momentum;
-        self->m_init_gamma = create.gamma;
-        self->m_init_beta  = create.beta;
-        self->m_fix_gamma  = create.fix_gamma;
-        self->m_fix_beta   = create.fix_beta;
-        return self;
+        return std::shared_ptr<BatchNormalization>(new BatchNormalization(create));
     }
 
     static std::shared_ptr<BatchNormalization> Create(T momentum = (T)0.9, T gamma=(T)1.0, T beta=(T)0.0)
     {
-        auto self = std::shared_ptr<BatchNormalization>(new BatchNormalization);
-        self->m_momentum   = momentum;
-        self->m_init_gamma = gamma;
-        self->m_init_beta  = beta;
-        return self;
+        create_t create;
+        create.momentum = momentum;
+        create.gamma    = gamma;
+        create.beta     = beta;
+        return Create(create);
     }
 
+    // for python
+    static std::shared_ptr<BatchNormalization> CreateEx(
+            T       momentum  = (T)0.9,
+            T       gamma     = (T)1.0,
+            T       beta      = (T)0.0,
+            bool    fix_gamma = false,
+            bool    fix_beta  = false
+        )
+    {
+        create_t create;
+        create.momentum  = momentum;
+        create.gamma     = gamma;
+        create.beta      = beta;
+        create.fix_gamma = fix_gamma;
+        create.fix_beta  = fix_beta;
+        return Create(create);
+    }
+
+
     std::string GetClassName(void) const { return "BatchNormalization"; }
-
-
-
+    
     // Serialize
     void Save(std::ostream &os) const 
     {
-        SaveIndices(os, m_node_shape);
+        SaveIndices(os, _super::m_shape);
         bb::SaveValue(os, m_momentum);
         m_gamma->Save(os);
         m_beta->Save(os);
@@ -156,7 +176,7 @@ public:
 
     void Load(std::istream &is)
     {
-        m_node_shape = LoadIndices(is);
+        _super::m_shape = LoadIndices(is);
         bb::LoadValue(is, m_momentum);
         m_gamma->Load(is);
         m_beta->Load(is);
@@ -170,7 +190,7 @@ public:
     void save(Archive& archive, std::uint32_t const version) const
     {
         _super::save(archive, version);
-        archive(cereal::make_nvp("node_shepe",   m_node_shape));
+        archive(cereal::make_nvp("shepe",        _super::m_shape));
         archive(cereal::make_nvp("gamma",        *m_gamma));
         archive(cereal::make_nvp("beta",         *m_beta));
         archive(cereal::make_nvp("running_mean", m_running_mean));
@@ -181,7 +201,7 @@ public:
     void load(Archive& archive, std::uint32_t const version)
     {
         _super::load(archive, version);
-        archive(cereal::make_nvp("node_shape",   m_node_shape));
+        archive(cereal::make_nvp("shape",        _super::m_shape));
         archive(cereal::make_nvp("gamma",        *m_gamma));
         archive(cereal::make_nvp("beta",         *m_beta));
         archive(cereal::make_nvp("running_mean", m_running_mean));
@@ -227,15 +247,15 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
-        m_node_shape = shape;
+        _super::SetInputShape(shape);
 
         auto node_size = GetShapeSize(shape);
         
         // パラメータ初期化
-        m_gamma->Resize(DataType<T>::type, node_size);    *m_gamma  = m_init_gamma;
-        m_beta->Resize(DataType<T>::type, node_size);     *m_beta   = m_init_beta;
-        m_dgamma->Resize(DataType<T>::type, node_size);   *m_dgamma = (T)0.0;
-        m_dbeta->Resize(DataType<T>::type, node_size);    *m_dbeta  = (T)0.0;
+        m_gamma->Resize ({node_size}, DataType<T>::type); *m_gamma  = m_init_gamma;
+        m_beta->Resize  ({node_size}, DataType<T>::type); *m_beta   = m_init_beta;
+        m_dgamma->Resize({node_size}, DataType<T>::type); *m_dgamma = (T)0.0;
+        m_dbeta->Resize ({node_size}, DataType<T>::type); *m_dbeta  = (T)0.0;
 
         m_mean.Resize(node_size);
         m_rstd.Resize(node_size);
@@ -246,25 +266,6 @@ public:
         return shape;
     }
 
-    /**
-     * @brief  入力形状取得
-     * @detail 入力形状を取得する
-     * @return 入力形状を返す
-     */
-    indices_t GetInputShape(void) const
-    {
-        return m_node_shape;
-    }
-
-    /**
-     * @brief  出力形状取得
-     * @detail 出力形状を取得する
-     * @return 出力形状を返す
-     */
-    indices_t GetOutputShape(void) const
-    {
-        return m_node_shape;
-    }
 
 public:
    /**
@@ -299,7 +300,7 @@ public:
     // ノード単位でのForward計算
     std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
     {
-        BB_DEBUG_ASSERT(node >= 0 && node < GetShapeSize(m_node_shape));
+        BB_DEBUG_ASSERT(node >= 0 && node < GetShapeSize(_super::GetOutputShape()));
 
         auto gamma_ptr        = lock_gamma_const();
         auto beta_ptr         = lock_beta_const();
@@ -334,7 +335,7 @@ public:
         }
 
         // 出力設定
-        FrameBuffer y_buf(x_buf.GetType(), x_buf.GetFrameSize(), x_buf.GetShape());
+        FrameBuffer y_buf(x_buf.GetFrameSize(), x_buf.GetShape(), x_buf.GetType());
 
         // backwardの為に保存
         if ( train ) {
@@ -400,7 +401,7 @@ public:
             // SIMD版
             auto node_size    = x_buf.GetNodeSize();
             auto frame_size   = x_buf.GetFrameSize();
-            auto frame_stride = x_buf.GetFrameStride() / sizeof(float);
+    //      auto frame_stride = x_buf.GetFrameStride() / sizeof(float);
         
             const int   mm256_frame_size = ((int)frame_size + 7) / 8 * 8;
 
@@ -433,12 +434,12 @@ public:
                         __m256 x = _mm256_load_ps(&x_addr[frame + 0]);
                         __m256 mean_y = _mm256_sub_ps(x, mean_c);
                         __m256 mean_t = _mm256_add_ps(mean_sum, mean_y);
-                        __m256 mean_c = _mm256_sub_ps(_mm256_sub_ps(mean_t, mean_sum), mean_y);
+                               mean_c = _mm256_sub_ps(_mm256_sub_ps(mean_t, mean_sum), mean_y);
                         mean_sum = mean_t;
 
                         __m256 var_y = _mm256_fmsub_ps(x, x, var_c);
                         __m256 var_t = _mm256_add_ps(var_sum, var_y);
-                        __m256 var_c = _mm256_sub_ps(_mm256_sub_ps(var_t, var_sum), var_y);
+                               var_c = _mm256_sub_ps(_mm256_sub_ps(var_t, var_sum), var_y);
                         var_sum = var_t;
                     }
                     __m256 mean = _mm256_mul_ps(bb_mm256_hsum_ps(mean_sum), reciprocal_frame_size);
@@ -589,7 +590,7 @@ public:
         }
 
         // 出力設定
-        FrameBuffer y_buf(x_buf.GetType(), x_buf.GetFrameSize(), x_buf.GetShape());
+        FrameBuffer y_buf(x_buf.GetFrameSize(), x_buf.GetShape(), x_buf.GetType());
 
         // backwardの為に保存
         m_x_buf = x_buf;
@@ -672,7 +673,7 @@ public:
         }
 
         // 出力設定
-        FrameBuffer dx_buf(dy_buf.GetType(), dy_buf.GetFrameSize(), dy_buf.GetShape());
+        FrameBuffer dx_buf(dy_buf.GetFrameSize(), dy_buf.GetShape(), dy_buf.GetType());
 
         // forward時のxを取得
         FrameBuffer x_buf = m_x_buf;
@@ -711,7 +712,7 @@ public:
         if ( DataType<T>::type == BB_TYPE_FP32 && m_host_simd ) {
             auto node_size    = dy_buf.GetNodeSize();
             auto frame_size   = dy_buf.GetFrameSize();
-            auto frame_stride = dy_buf.GetFrameStride() / sizeof(float);
+    //      auto frame_stride = dy_buf.GetFrameStride() / sizeof(float);
             
             const int   mm256_frame_size = ((int)frame_size + 7) / 8 * 8;
             
@@ -790,9 +791,9 @@ public:
             // 汎用版
             auto node_size    = dy_buf.GetNodeSize();
             auto frame_size   = dy_buf.GetFrameSize();
-            auto frame_stride = dy_buf.GetFrameStride() / sizeof(float);
+    //      auto frame_stride = dy_buf.GetFrameStride() / sizeof(float);
             
-            const int   mm256_frame_size = ((int)frame_size + 7) / 8 * 8;
+    //      const int   mm256_frame_size = ((int)frame_size + 7) / 8 * 8;
             
             auto gamma_ptr        = lock_gamma_const();
     //      auto beta_ptr         = lock_beta_const();

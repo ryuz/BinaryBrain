@@ -25,15 +25,6 @@ namespace bb {
 template <typename FT = float, typename BT = float>
 class ConvolutionIm2Col : public Model
 {
-public:
-    using border_mode_t = enum {
-        BORDER_CONSTANT    = 0,
-        BORDER_REFLECT     = 1,
-        BORDER_REFLECT_101 = 2,
-        BORDER_REPLICATE   = 3,
-        BORDER_WRAP        = 4
-    };
-
 protected:
     bool            m_host_only = false;
     
@@ -53,7 +44,7 @@ protected:
     index_t         m_output_h_size;
     index_t         m_output_w_size;
     std::string     m_padding;
-    border_mode_t   m_border_mode  = BORDER_REFLECT_101;
+    int             m_border_mode  = BB_BORDER_REFLECT_101;
     FT              m_border_value = (FT)0;
 
 public:
@@ -64,6 +55,8 @@ public:
         index_t         x_stride      = 1;
         index_t         y_stride      = 1;
         std::string     padding       = "valid";
+        int             border_mode   = BB_BORDER_REFLECT_101;
+        FT              border_value  = (FT)0;
     };
 
 protected:
@@ -74,6 +67,8 @@ protected:
         m_x_stride      = create.x_stride;
         m_y_stride      = create.y_stride;
         m_padding       = create.padding;
+        m_border_mode   = create.border_mode;
+        m_border_value  = create.border_value;
     }
 
     /**
@@ -98,7 +93,8 @@ public:
         return std::shared_ptr<ConvolutionIm2Col>(new ConvolutionIm2Col(create));
     }
 
-    static std::shared_ptr<ConvolutionIm2Col> Create(index_t filter_h_size, index_t filter_w_size, index_t y_stride=1, index_t x_stride=1, std::string padding="valid")
+    static std::shared_ptr<ConvolutionIm2Col> Create(index_t filter_h_size, index_t filter_w_size, index_t y_stride=1, index_t x_stride=1,
+                                                std::string padding="valid", int border_mode = BB_BORDER_REFLECT_101)
     {
         create_t create;
         create.filter_h_size = filter_h_size;
@@ -106,6 +102,7 @@ public:
         create.y_stride      = y_stride;
         create.x_stride      = x_stride;
         create.padding       = padding;
+        create.border_mode   = border_mode;
         return Create(create);
     }
 
@@ -186,39 +183,40 @@ protected:
     }
 
 
-    inline bool Border(border_mode_t mode, index_t &x, index_t &y, index_t w, index_t h)
+    inline bool Border(int border_mode, index_t &x, index_t &y, index_t w, index_t h)
     {
-        switch ( mode ) {
-        case BORDER_REFLECT:
+        switch ( border_mode ) {
+        case BB_BORDER_REFLECT:
             if ( x < 0  ) { x = -x - 1; }
             if ( y < 0  ) { x = -y - 1; }
             if ( x >= w ) { x = (w - 1) - (x - w); }
             if ( y >= h ) { y = (h - 1) - (y - h); }
             return true;
     
-        case BORDER_REFLECT_101:
+        case BB_BORDER_REFLECT_101:
             if ( x < 0  ) { x = -x; }
             if ( y < 0  ) { x = -y; }
             if ( x >= w ) { x = (w - 2) - (x - w); }
             if ( y >= h ) { y = (h - 2) - (y - h); }
             return true;
 
-        case BORDER_REPLICATE:
+        case BB_BORDER_REPLICATE:
             if ( x < 0  ) { x = 0; }
             if ( y < 0  ) { x = 0; }
             if ( x >= w ) { x = w - 1; }
             if ( y >= h ) { y = h - 1; }
             return true;
 
-        case BORDER_WRAP:
+        case BB_BORDER_WRAP:
             if ( x < 0  ) { x += w; }
             if ( y < 0  ) { x += h; }
             if ( x >= w ) { x -= w; }
             if ( y >= h ) { y -= h; }
             return true;
-        }
 
-        return false;
+        default:
+            return false;
+        }
     }
 
 
@@ -238,7 +236,7 @@ public:
         m_output_frame_size = m_input_frame_size * m_output_h_size * m_output_w_size;
 
         // 出力形状設定
-        FrameBuffer y_buf(x_buf.GetType(), m_output_frame_size, m_output_shape);
+        FrameBuffer y_buf(m_output_frame_size, m_output_shape, x_buf.GetType());
         
 #ifdef BB_WITH_CUDA
         if ( DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
@@ -270,7 +268,8 @@ public:
 #endif
 
 #ifdef BB_WITH_CUDA
-        if ( DataType<FT>::type == BB_TYPE_BIT && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+        if ( m_filter_w_size * m_filter_h_size <= 1024 / 32
+            && DataType<FT>::type == BB_TYPE_BIT && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
             // bit CUDA
             auto ptr_x = x_buf.LockDeviceMemoryConst();
             auto ptr_y = y_buf.LockDeviceMemory();
@@ -345,7 +344,7 @@ public:
         BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
         
         // 出力設定
-        FrameBuffer dx_buf(DataType<BT>::type, m_input_frame_size, m_input_shape);
+        FrameBuffer dx_buf(m_input_frame_size, m_input_shape, DataType<BT>::type);
 
 #ifdef BB_WITH_CUDA
         if ( DataType<BT>::type == BB_TYPE_FP32 && !m_host_only && dy_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {

@@ -36,7 +36,7 @@ public:
         BB_ASSERT(shapes.size() == types.size());
 
         for ( size_t i = 0; i < shapes.size(); ++i ) {
-            m_tensors.push_back(std::make_shared<Tensor>(types[i], shapes[i]));
+            m_tensors.push_back(std::make_shared<Tensor>(shapes[i], types[i]));
         }
     }
 
