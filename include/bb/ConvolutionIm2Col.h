@@ -188,28 +188,28 @@ protected:
         switch ( border_mode ) {
         case BB_BORDER_REFLECT:
             if ( x < 0  ) { x = -x - 1; }
-            if ( y < 0  ) { x = -y - 1; }
+            if ( y < 0  ) { y = -y - 1; }
             if ( x >= w ) { x = (w - 1) - (x - w); }
             if ( y >= h ) { y = (h - 1) - (y - h); }
             return true;
     
         case BB_BORDER_REFLECT_101:
             if ( x < 0  ) { x = -x; }
-            if ( y < 0  ) { x = -y; }
+            if ( y < 0  ) { y = -y; }
             if ( x >= w ) { x = (w - 2) - (x - w); }
             if ( y >= h ) { y = (h - 2) - (y - h); }
             return true;
 
         case BB_BORDER_REPLICATE:
             if ( x < 0  ) { x = 0; }
-            if ( y < 0  ) { x = 0; }
+            if ( y < 0  ) { y = 0; }
             if ( x >= w ) { x = w - 1; }
             if ( y >= h ) { y = h - 1; }
             return true;
 
         case BB_BORDER_WRAP:
             if ( x < 0  ) { x += w; }
-            if ( y < 0  ) { x += h; }
+            if ( y < 0  ) { y += h; }
             if ( x >= w ) { x -= w; }
             if ( y >= h ) { y -= h; }
             return true;
@@ -321,7 +321,7 @@ public:
                                 in_sig = x_ptr.Get(input_frame, input_node);
                             }
                             else {
-                                if ( Border(m_border_mode, ix, iy, m_input_w_size, m_input_h_size) ) {
+                              if ( Border(m_border_mode, ix, iy, m_input_w_size, m_input_h_size) ) {
                                     index_t input_node = (c * m_input_h_size  + iy) * m_input_w_size  + ix;
                                     in_sig = x_ptr.Get(input_frame, input_node);
                                 }
