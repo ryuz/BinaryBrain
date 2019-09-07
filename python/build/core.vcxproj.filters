@@ -239,7 +239,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\binarybrain.cpp">
+    <ClCompile Include="..\src\core.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

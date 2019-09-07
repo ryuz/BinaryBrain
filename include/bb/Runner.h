@@ -29,6 +29,90 @@
 namespace bb {
 
 
+
+#ifdef BB_WITH_CEREAL
+// Pythonからの状態保存用にここだけ機能を切り出す
+struct RunStatus
+{
+    std::string             name;
+    index_t                 epoch = 0;
+    std::shared_ptr<Model>  net;
+
+    template <class Archive>
+    void save(Archive& archive, std::uint32_t const version) const
+    {
+        archive(cereal::make_nvp("name", name));
+        archive(cereal::make_nvp("epoch", epoch));
+        net->Save(archive);
+    }
+
+    template <class Archive>
+    void load(Archive& archive, std::uint32_t const version)
+    {
+        archive(cereal::make_nvp("name", name));
+        archive(cereal::make_nvp("epoch", epoch));
+        net->Load(archive);
+    }
+
+    bool SaveJson(std::ostream &os) const
+    {
+        cereal::JSONOutputArchive archive(os);
+        archive(cereal::make_nvp("runner", *this));
+        return true;
+    }
+
+    bool SaveJson(std::string filename)
+    {
+        std::ofstream ofs(filename);
+        if ( !ofs.is_open() ) {
+            return false;
+        }
+        return SaveJson(ofs);
+    }
+    
+
+    bool LoadJson(std::istream &is)
+    {
+        cereal::JSONInputArchive archive(is);
+        archive(cereal::make_nvp("runner", *this));
+        return true;
+    }
+
+    bool LoadJson(std::string filename)
+    {
+        std::ifstream ifs(filename);
+        if ( !ifs.is_open() ) {
+            return false;
+        }
+        return LoadJson(ifs);
+    }
+    
+    static bool WriteJson(std::string filename, std::shared_ptr<Model> net, std::string name, index_t epoch)
+    {
+        RunStatus rs;
+        rs.name  = name;
+        rs.epoch = epoch;
+        rs.net   = net;
+        return rs.SaveJson(filename);
+    }
+
+    static bool ReadJson(std::string filename, std::shared_ptr<Model> net, std::string &name, index_t &epoch)
+    {
+        RunStatus rs;
+        rs.net   = net;
+        if ( !rs.LoadJson(filename) ) {
+            return false;
+        }
+        name  = rs.name;
+        epoch = rs.epoch;
+        return true;
+    }
+};
+#endif
+
+
+
+
 // 実行アシストクラス
 template <typename T>
 class Runner
@@ -345,10 +429,11 @@ public:
             // 以前の計算があれば読み込み
             if ( m_file_read ) {
 #ifdef BB_WITH_CEREAL
-                std::ifstream ifs(net_file_name);
-                if (ifs.is_open()) {
-                    LoadJson(ifs);
+                if ( RunStatus::ReadJson(net_file_name, m_net, m_name, m_epoch) ) {
                     std::cout << "[load] " << net_file_name << std::endl;
+                }
+                else {
+                    std::cout << "[file not found] " << net_file_name << std::endl;
                 }
 #else
                 std::ifstream ifs(net_file_name, std::ios::binary);
@@ -395,14 +480,21 @@ public:
                     if ( m_write_serial ) {
                         std::stringstream fname;
                         fname << m_name << "_net_" << m_epoch << ".json";
-                        SaveJson(fname.str());
-                        std::cout << "[save] " << fname.str() << std::endl;
-            //          log_streamt << "[save] " << fname.str() << std::endl;
+                        if ( RunStatus::WriteJson(fname.str(), m_net, m_name, m_epoch) ) {
+                            std::cout << "[save] " << fname.str() << std::endl;
+                        }
+                        else {
+                            std::cout << "[write error] " << fname.str() << std::endl;
+                        }
                     }
 
                     {
-                        SaveJson(net_file_name);
-            //          log_stream << "[save] " << net_file_name << std::endl;
+                        if ( RunStatus::WriteJson(net_file_name, m_net, m_name, m_epoch) ) {
+                        //  std::cout << "[save] " << net_file_name << std::endl;
+                        }
+                        else {
+                            std::cout << "[write error] " << net_file_name << std::endl;
+                        }
                     }
 #else
                     if ( m_write_serial ) {

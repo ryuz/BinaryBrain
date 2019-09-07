@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.438
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "binarybrain", "binarybrain.vcxproj", "{9858ED85-D4FA-4923-BD79-A1547A34B630}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "core", "core.vcxproj", "{9858ED85-D4FA-4923-BD79-A1547A34B630}"
 	ProjectSection(ProjectDependencies) = postProject
 		{ACAFEE7F-E3FF-431C-AC93-E6591C0E358D} = {ACAFEE7F-E3FF-431C-AC93-E6591C0E358D}
 	EndProjectSection

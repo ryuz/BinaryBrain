@@ -51,7 +51,7 @@ def main():
     optimizer.set_variables(net.get_parameters(), net.get_gradients())
     
     runner = bb.Runner(net, "mnist-sparse-lut6-simple", loss, metrics, optimizer)
-    runner.fitting(td, epoch_size=epoch, mini_batch_size=mini_batch)
+    runner.fitting(td, epoch_size=epoch, mini_batch_size=mini_batch, file_read=True)
     
     
     ################################
