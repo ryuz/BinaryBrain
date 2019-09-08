@@ -35,6 +35,8 @@ protected:
     bool                        m_binary_mode  = true;
     bool                        m_batch_norm   = true;
 
+    bool                        m_flagClamp = false;
+
     indices_t                   m_output_shape;
     indices_t                   m_input_shape;
 
@@ -358,7 +360,10 @@ public:
         BB_ASSERT(input_value.size() == N);
 
         // パラメータクリップ
-        m_W->Clamp((RealType)0.0, (RealType)1.0);
+        if ( m_flagClamp ) {
+            m_W->Clamp((RealType)0.0, (RealType)1.0);
+            (const_cast<SparseLutN*>(this))->m_flagClamp = false;
+        }
 
         auto W_ptr            = lock_W_const();
         auto running_mean_ptr = m_running_mean.LockConst();
@@ -430,8 +435,11 @@ public:
         }
 
         // パラメータクリップ
-        m_W->Clamp((RealType)0.0, (RealType)1.0);
-
+        if ( m_flagClamp ) {
+            m_W->Clamp((RealType)0.0, (RealType)1.0);
+            m_flagClamp = false;
+        }
+        
         if ( m_batch_norm ) {
             // with BatchNormalization
 
@@ -1011,6 +1019,8 @@ public:
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
         BB_ASSERT(dy_buf.GetType() == DataType<RealType>::type);
+
+        m_flagClamp = true;
 
         FrameBuffer x_buf = m_x_buf;
         m_x_buf = FrameBuffer();
