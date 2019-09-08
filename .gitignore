@@ -75,6 +75,8 @@ RelCpu/
 
 *.egg-info/
 python/samples/mnist/*.v
+python/build/
+python/dist/
 
 *.gz
 *-ubyte
