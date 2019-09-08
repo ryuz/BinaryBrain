@@ -5,10 +5,10 @@ import numpy as np
 
 def main():
     # config
-    epoch                     = 4
+    epoch                     = 1 # 4
     mini_batch                = 32
-    training_modulation_size  = 3
-    inference_modulation_size = 3
+    training_modulation_size  = 1 # 3
+    inference_modulation_size = 1 # 3
     
     
     # load MNIST data
@@ -51,7 +51,7 @@ def main():
     optimizer.set_variables(net.get_parameters(), net.get_gradients())
     
     runner = bb.Runner(net, "mnist-sparse-lut6-simple", loss, metrics, optimizer)
-    runner.fitting(td, epoch_size=epoch, mini_batch_size=mini_batch)
+    runner.fitting(td, epoch_size=epoch, mini_batch_size=mini_batch, file_read=True, file_write=True)
     
     
     ################################

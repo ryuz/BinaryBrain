@@ -38,6 +38,29 @@ static void WritePpm(std::string fname, bb::FrameBuffer buf, int frame)
 }
 
 
+static void data_augmentation_proc(bb::TrainData<float>& td, std::uint64_t seed,  void *user)
+{
+    std::mt19937_64 mt(seed);
+
+    // ランダムに2値化
+    std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+
+    for ( size_t i = 0; i < td.x_train.size(); ++i ) {
+        for ( size_t j = 0; j < td.x_train[i].size(); ++j ) {
+            if ( td.x_train[i][j] > 0.5f ) {
+                td.x_train[i][j] = 1.0f;
+                td.t_train[i][j] = 1.0f;
+            }
+            else {
+                td.x_train[i][j] = 0.0f;
+                td.t_train[i][j] = 0.0f;
+            }
+        }
+    }
+}
+
+
+
 template < typename T=float, class ModelType=bb::SparseLutN<6, T> >
 void Cifar10AeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
@@ -57,14 +80,16 @@ void Cifar10AeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_mo
     td.t_test  = td.x_test;
 
     // create network
-    auto enc_cnv0_sl0 = ModelType::Create(192);
+    auto enc_cnv0_sl0 = ModelType::Create(32*6);
     auto enc_cnv0_sl1 = ModelType::Create(32);
-    auto enc_cnv1_sl0 = ModelType::Create(192);
+    auto enc_cnv1_sl0 = ModelType::Create(32*6);
     auto enc_cnv1_sl1 = ModelType::Create(32);
     auto enc_cnv2_sl0 = ModelType::Create(384);
     auto enc_cnv2_sl1 = ModelType::Create(64);
-    auto enc_cnv3_sl0 = ModelType::Create(384);
-    auto enc_cnv3_sl1 = ModelType::Create(64);
+    auto enc_cnv3_sl0 = ModelType::Create(32*6);
+    auto enc_cnv3_sl1 = ModelType::Create(32);
+
+#if 0
     auto enc_sl4      = ModelType::Create(1024*6);
     auto enc_sl5      = ModelType::Create(1024);
     auto enc_sl6      = ModelType::Create(512);
@@ -72,12 +97,15 @@ void Cifar10AeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_mo
     auto dec_sl6      = ModelType::Create(1024*6);
     auto dec_sl5      = ModelType::Create(1024);
     auto dec_sl4      = ModelType::Create({8, 8, 64});
+#endif
     auto dec_cnv3_sl0 = ModelType::Create(384);
     auto dec_cnv3_sl1 = ModelType::Create(64);
     auto dec_cnv2_sl0 = ModelType::Create(384);
     auto dec_cnv2_sl1 = ModelType::Create(64);
-    auto dec_cnv1_sl0 = ModelType::Create(192);
-    auto dec_cnv1_sl1 = ModelType::Create(32);
+
+    auto dec_cnv1_sl0 = ModelType::Create(256);
+    auto dec_cnv1_sl1 = ModelType::Create(192);
+    auto dec_cnv1_sl2 = ModelType::Create(32);
     auto dec_cnv0_sl0 = ModelType::Create(216);
     auto dec_cnv0_sl1 = ModelType::Create(3*6*6, false);
     auto dec_cnv0_sl2 = ModelType::Create(3*6, false);
@@ -116,6 +144,7 @@ void Cifar10AeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_mo
         auto dec_cnv1_sub = bb::Sequential::Create();
         dec_cnv1_sub->Add(dec_cnv1_sl0);
         dec_cnv1_sub->Add(dec_cnv1_sl1);
+        dec_cnv1_sub->Add(dec_cnv1_sl2);
 
         auto dec_cnv0_sub = bb::Sequential::Create();
         dec_cnv0_sub->Add(dec_cnv0_sl0);
@@ -127,9 +156,12 @@ void Cifar10AeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_mo
         main_net->Add(bb::LoweringConvolution<T>::Create(enc_cnv0_sub, 3, 3, 1, 1, "same"));    // 32x32
         main_net->Add(bb::LoweringConvolution<T>::Create(enc_cnv1_sub, 3, 3, 1, 1, "same"));    // 32x32
         main_net->Add(bb::MaxPooling<float>::Create(2, 2));
+
         main_net->Add(bb::LoweringConvolution<T>::Create(enc_cnv2_sub, 3, 3, 1, 1, "same"));    // 16x16
         main_net->Add(bb::LoweringConvolution<T>::Create(enc_cnv3_sub, 3, 3, 1, 1, "same"));    // 16x16
         main_net->Add(bb::MaxPooling<float>::Create(2, 2));                                     // 8x8
+
+#if 0
         main_net->Add(enc_sl4);
         main_net->Add(enc_sl5);
         main_net->Add(enc_sl6);
@@ -137,9 +169,12 @@ void Cifar10AeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_mo
         main_net->Add(dec_sl6);
         main_net->Add(dec_sl5);
         main_net->Add(dec_sl4);
+#endif
+
         main_net->Add(bb::UpSampling<T>::Create(2, 2));
         main_net->Add(bb::LoweringConvolution<T>::Create(dec_cnv3_sub, 3, 3, 1, 1, "same"));    // 16x16
         main_net->Add(bb::LoweringConvolution<T>::Create(dec_cnv2_sub, 3, 3, 1, 1, "same"));    // 16x16
+
         main_net->Add(bb::UpSampling<T>::Create(2, 2));
         main_net->Add(bb::LoweringConvolution<T>::Create(dec_cnv1_sub, 3, 3, 1, 1, "same"));    // 32x32
         main_net->Add(bb::LoweringConvolution<T>::Create(dec_cnv0_sub, 3, 3, 1, 1, "same"));    // 32x32
@@ -184,6 +219,7 @@ void Cifar10AeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_mo
         runner_create.file_write         = true;            // 計算結果をファイルに保存するか
         runner_create.print_progress     = true;            // 途中結果を表示
         runner_create.initial_evaluation = false; // file_read;       // ファイルを読んだ場合は最初に評価しておく
+        runner_create.data_augmentation_proc = train_modulation_size > 1 ? nullptr : data_augmentation_proc;
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
 
@@ -394,16 +430,16 @@ void Cifar10AeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_mo
 
 void Cifar10AeSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-#ifdef BB_WITH_CUDA
+//#ifdef BB_WITH_CUDA
     if ( binary_mode ) {
         Cifar10AeSparseLutCnn_Tmp< float, bb::SparseLutN<6, float> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
     else {
         Cifar10AeSparseLutCnn_Tmp< bb::Bit, bb::SparseLutN<6, bb::Bit> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
-#else
-    MnistAeSparseLutCnn_Tmp< float, bb::SparseLutDiscreteN<6, float> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
-#endif
+//#else
+//  Cifar10AeSparseLutCnn_Tmp< float, bb::SparseLutDiscreteN<6, float> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+//#endif
 }
 
 

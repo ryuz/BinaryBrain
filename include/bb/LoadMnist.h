@@ -158,7 +158,7 @@ public:
     }
 
     
-    static void MakeValidationData(
+    static void MakeDetectionData(
         std::vector< std::vector<T> > const &src_img,
         std::vector< std::vector<T> >       &dst_img,
         std::vector< std::vector<T> >       &dst_t,
@@ -229,14 +229,14 @@ public:
         // load MNIST data
         auto td_src = bb::LoadMnist<>::Load(max_train_size, max_test_size);
 
-        // make validation data
+        // make detection data
         int train_size = (int)td_src.x_train.size();
         int test_size  = (int)td_src.x_test.size();
         bb::TrainData<T> td;
         td.x_shape = bb::indices_t({28, 28, 1});
         td.t_shape = bb::indices_t({1});
-        MakeValidationData(td_src.x_train, td.x_train, td.t_train, 60000, 1);
-        MakeValidationData(td_src.x_test,  td.x_test,  td.t_test,  10000, 2);
+        MakeDetectionData(td_src.x_train, td.x_train, td.t_train, 60000, 1);
+        MakeDetectionData(td_src.x_test,  td.x_test,  td.t_test,  10000, 2);
 
         return td;
     }

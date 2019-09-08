@@ -1,8 +1,7 @@
 ﻿
 import sys
 from collections import OrderedDict
-from binarybrain import binarybrain as bb
-
+import binarybrain as bb
 
 if 'ipykernel' in sys.modules:
    from tqdm import tqdm_notebook as tqdm
@@ -81,10 +80,6 @@ class Runner:
             print_progress_accuracy=True,
             log_write=True,
             log_append=True,
-            file_read=False,
-            file_write=True,
-            write_serial=False,
-            initial_evaluation=False,
             seed=1):
         self.net                     = net
         self.name                    = name
@@ -97,12 +92,8 @@ class Runner:
         self.print_progress_accuracy = print_progress_accuracy
         self.log_write               = log_write
         self.log_append              = log_append
-        self.file_read               = file_read
-        self.file_write              = file_write
-        self.write_serial            = write_serial
-        self.initial_evaluation      = initial_evaluation
     
-    def fitting(self, td, epoch_size, mini_batch_size=16):
+    def fitting(self, td, epoch_size, mini_batch_size=16, file_read=False, file_write=False, write_serial=False, init_eval=False):
         """fitting
         
         Args:
@@ -111,15 +102,49 @@ class Runner:
             mini_batch_size (int): mini batch size
         """
         
-        for epoch in range(epoch_size):
+        log_file_name  = self.name + '_log.txt';
+        json_file_name = self.name + '_net.json';
+        epoch = 0
+        
+        # read
+        if file_read:
+            ret = bb.RunStatus.ReadJson(json_file_name, self.net, self.name, epoch)
+            if ret:
+                print('[load] %s'% json_file_name)
+            else:
+                print('[file not found] %s'% json_file_name)
+        
+        # initial evaluation
+        if init_eval:
+            calculation(self.net, td.x_test, td.x_shape, td.t_test, td.t_shape, mini_batch_size, 1, self.metrics, self.loss)
+            print('[initial] %s=%f loss=%f' % (self.metrics.get_metrics_string(), self.metrics.get_metrics(), self.loss.get_loss()))
+        
+        # loop
+        for epoch_counter in range(epoch_size):
+            # increment
+            epoch = epoch + 1
+            
             # train
             calculation(self.net, td.x_train, td.x_shape, td.t_train, td.t_shape, mini_batch_size, mini_batch_size,
                         self.metrics, self.loss, self.optimizer, train=True, print_loss=True, print_metrics=True)
-
+            
+            # write file
+            if file_write:
+                ret = bb.RunStatus.WriteJson(json_file_name, self.net, self.name, epoch)
+                if not ret:
+                    print('[write error] %s'% json_file_name)
+            
             # evaluation
             calculation(self.net, td.x_test, td.x_shape, td.t_test, td.t_shape, mini_batch_size, 1, self.metrics, self.loss)
             print('epoch=%d %s=%f loss=%f' % (epoch, self.metrics.get_metrics_string(), self.metrics.get_metrics(), self.loss.get_loss()))
 
     def evaluation(self, td, mini_batch_size=16):
+        """evaluation
+        
+        Args:
+            td (TrainData): data set
+            mini_batch_size (int): mini batch size
+        """
+        
         calculation(self.net, td.x_test, td.x_shape, td.t_test, td.t_shape, mini_batch_size, 1, self.metrics, self.loss)
         print('%s=%f loss=%f' % (self.metrics.get_metrics_string(), self.metrics.get_metrics(), self.loss.get_loss()))

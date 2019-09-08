@@ -43,6 +43,7 @@
 
 #include "bb/Runner.h"
 #include "bb/LoadMnist.h"
+#include "bb/LoadCifar10.h"
 #include "bb/ExportVerilog.h"
 
 
@@ -101,8 +102,10 @@ using NormalDistributionGenerator  = bb::NormalDistributionGenerator<float>;
 using UniformDistributionGenerator = bb::UniformDistributionGenerator<float>;
 
 using TrainData                    = bb::TrainData<float>;
-using Runner                       = bb::Runner<float>;
 using LoadMnist                    = bb::LoadMnist<float>;
+using LoadCifar10                  = bb::LoadCifar10<float>;
+using RunStatus                    = bb::RunStatus;
+using Runner                       = bb::Runner<float>;
 
 
 
@@ -137,7 +140,7 @@ std::string GetVerilogAxi4s_FromLutFilter2dBit(std::string module_name, std::vec
 
 
 namespace py = pybind11;
-PYBIND11_MODULE(binarybrain, m) {
+PYBIND11_MODULE(core, m) {
     m.doc() = "binarybrain plugin";
 
     m.attr("TYPE_BIT")    = BB_TYPE_BIT;
@@ -259,18 +262,19 @@ PYBIND11_MODULE(binarybrain, m) {
 
     py::class_< BinaryLut6, LutLayer, std::shared_ptr<BinaryLut6> >(m, "BinaryLut6")
         .def_static("create", &BinaryLut6::CreateEx,
-                "create object\n"
-                "\n"
-                "Parameters\n"
-                "----------\n"
-                "output_shape : List\n"
-                "  The shape of output\n"
-                "seed : int\n"
-                "  random seed\n"
-                "\n"
-                "Returns\n"
-                "-------\n"
-                " class object\n",
+R"(create object
+
+Parameters
+----------
+output_shape : List
+  The shape of output
+seed : int
+  random seed
+
+Returns
+-------
+ class object
+)",
                 py::arg("output_shape"),
                 py::arg("seed") = 1);
     
@@ -435,6 +439,18 @@ PYBIND11_MODULE(binarybrain, m) {
             py::arg("max_test")  = -1,
             py::arg("num_class") = 10);
     
+    // LoadCifar10
+    py::class_< LoadCifar10 >(m, "LoadCifar10")
+        .def_static("load", &LoadCifar10::Load,
+            py::arg("num") = 5);
+
+    
+    // RunStatus
+    py::class_< RunStatus >(m, "RunStatus")
+        .def_static("WriteJson", &RunStatus::WriteJson)
+        .def_static("ReadJson",  &RunStatus::ReadJson);
+
+
     // Runnner
     py::class_< Runner, std::shared_ptr<Runner> >(m, "CRunner")
         .def_static("create", &Runner::CreateEx,

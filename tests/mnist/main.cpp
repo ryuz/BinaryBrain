@@ -162,11 +162,11 @@ int main(int argc, char *argv[])
     }
     
     if ( netname == "All" || netname == "AeSparseLutSimple" ) {
-        MnistAeSparseLutSimple(epoch_size, mini_batch_size, test_modulation_size, test_modulation_size, binary_mode, file_read);
+        MnistAeSparseLutSimple(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
     if ( netname == "All" || netname == "AeSparseLutCnn" ) {
-        MnistAeSparseLutCnn(epoch_size, mini_batch_size, test_modulation_size, test_modulation_size, binary_mode, file_read);
+        MnistAeSparseLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
     // (おまけ)レイヤー内部を自分で書く人向けサンプル

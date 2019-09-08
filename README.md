@@ -67,15 +67,29 @@ nvcc が利用可能な Google Colaboratory でも動作可能なようです。
 
 ### Python (α版)
 
+
+```
+% pip3 install setuptools
+% pip3 install pybind11
+% pip3 install numpy
+% pip3 install tqdm
+```
+
+
 ```
 % # install
 % cd python
 % make -C build
 % python3 setup.py develop
 
-% # MNIST sample
+% # MNIST data download
 % cd samples/mnist
 % sh get_nmist.sh
+
+% # Simple DNN sample
+% python3 MnistSparseLutSimple.py
+
+% # CNN sample
 % python3 MnistSparseLutCnn.py
 
 % # uninstall
