@@ -82,7 +82,7 @@ class Runner:
             log_write=True,
             log_append=True,
             file_read=False,
-            file_write=False,
+            file_write=True,
             write_serial=False,
             initial_evaluation=False,
             seed=1):
