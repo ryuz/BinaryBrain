@@ -74,6 +74,7 @@ DbgCpu/
 RelCpu/
 
 *.egg-info/
+.eggs/
 python/samples/mnist/*.v
 python/build/
 python/dist/

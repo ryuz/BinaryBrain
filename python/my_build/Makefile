@@ -29,6 +29,7 @@ CEREAL_PATH = $(BB_PATH)/cereal
 
 ifeq ($(WITH_CUDA),Yes)
 else
+#CC = x86_64-linux-gnu-gcc
 CC = g++
 #CC ?= clang++
 endif
@@ -60,7 +61,7 @@ CDEFS      += -DBB_WITH_CUDA
 LIBS       += $(BBCU_LIB)
 SUB_TARGET += bbcu_build
 else
-CFLAGS     := -shared '$(CFLAGS)'
+CFLAGS     := -shared $(CFLAGS)
 endif
 
 .SUFFIXES: .c .o
