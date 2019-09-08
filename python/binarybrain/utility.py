@@ -114,30 +114,34 @@ class Runner:
             else:
                 print('[file not found] %s'% json_file_name)
         
-        # initial evaluation
-        if init_eval:
-            calculation(self.net, td.x_test, td.x_shape, td.t_test, td.t_shape, mini_batch_size, 1, self.metrics, self.loss)
-            print('[initial] %s=%f loss=%f' % (self.metrics.get_metrics_string(), self.metrics.get_metrics(), self.loss.get_loss()))
-        
-        # loop
-        for epoch_counter in range(epoch_size):
-            # increment
-            epoch = epoch + 1
+        # log start
+        with open(log_file_name, 'a') as logfile:
+            # initial evaluation
+            if init_eval:
+                calculation(self.net, td.x_test, td.x_shape, td.t_test, td.t_shape, mini_batch_size, 1, self.metrics, self.loss)
+                print('[initial] %s=%f loss=%f' % (self.metrics.get_metrics_string(), self.metrics.get_metrics(), self.loss.get_loss()))
             
-            # train
-            calculation(self.net, td.x_train, td.x_shape, td.t_train, td.t_shape, mini_batch_size, mini_batch_size,
-                        self.metrics, self.loss, self.optimizer, train=True, print_loss=True, print_metrics=True)
-            
-            # write file
-            if file_write:
-                ret = bb.RunStatus.WriteJson(json_file_name, self.net, self.name, epoch)
-                if not ret:
-                    print('[write error] %s'% json_file_name)
-            
-            # evaluation
-            calculation(self.net, td.x_test, td.x_shape, td.t_test, td.t_shape, mini_batch_size, 1, self.metrics, self.loss)
-            print('epoch=%d %s=%f loss=%f' % (epoch, self.metrics.get_metrics_string(), self.metrics.get_metrics(), self.loss.get_loss()))
-
+            # loop
+            for _ in range(epoch_size):
+                # increment
+                epoch = epoch + 1
+                
+                # train
+                calculation(self.net, td.x_train, td.x_shape, td.t_train, td.t_shape, mini_batch_size, mini_batch_size,
+                            self.metrics, self.loss, self.optimizer, train=True, print_loss=True, print_metrics=True)
+                
+                # write file
+                if file_write:
+                    ret = bb.RunStatus.WriteJson(json_file_name, self.net, self.name, epoch)
+                    if not ret:
+                        print('[write error] %s'% json_file_name)
+                
+                # evaluation
+                calculation(self.net, td.x_test, td.x_shape, td.t_test, td.t_shape, mini_batch_size, 1, self.metrics, self.loss)
+                output_text = 'epoch=%d %s=%f loss=%f' % (epoch, self.metrics.get_metrics_string(), self.metrics.get_metrics(), self.loss.get_loss())
+                print(output_text)
+                print(output_text, file=log_file)
+    
     def evaluation(self, td, mini_batch_size=16):
         """evaluation
         
