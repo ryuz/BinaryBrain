@@ -6,7 +6,7 @@
 
 #include "bbcu/bbcu.h"
 #include "bbcu/bbcu_util.h"
-
+#include "Common.cuh"
 
 
 // -------------------------------------------------
@@ -374,6 +374,7 @@ int bbcu_bit_fp32_MicroMlp6x16_Forward
 //  Backward
 // -------------------------------------------------
 
+#if 0
 __device__ __forceinline__ float device_fp32_LocalSum(float v, float *buf)
 {
     buf[threadIdx.x] = v;
@@ -396,6 +397,7 @@ __device__ __forceinline__ float device_fp32_LocalSum(float v, float *buf)
     
     return sum;
 }
+#endif
 
 
 // kernel

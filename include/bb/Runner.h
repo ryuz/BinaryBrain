@@ -30,7 +30,6 @@ namespace bb {
 
 
 
-#ifdef BB_WITH_CEREAL
 // Pythonからの状態保存用にここだけ機能を切り出す
 struct RunStatus
 {
@@ -38,6 +37,7 @@ struct RunStatus
     index_t                 epoch = 0;
     std::shared_ptr<Model>  net;
 
+#ifdef BB_WITH_CEREAL
     template <class Archive>
     void save(Archive& archive, std::uint32_t const version) const
     {
@@ -107,8 +107,8 @@ struct RunStatus
         epoch = rs.epoch;
         return true;
     }
-};
 #endif
+};
 
 
 

@@ -7,6 +7,7 @@
 
 #include "bbcu/bbcu.h"
 #include "bbcu/bbcu_util.h"
+#include "Common.cuh"
 
 
 
@@ -14,6 +15,7 @@
 #define BBCU_BATCHNORM_BW_BLOCK_SIZE   128
 
 
+#if 0
 //////////////////////////////
 // common
 //////////////////////////////
@@ -40,6 +42,7 @@ __device__ __forceinline__ float device_fp32_LocalSum(float v, float *buf)
     
     return sum;
 }
+#endif
 
 
 
