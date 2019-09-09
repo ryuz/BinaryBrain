@@ -64,7 +64,7 @@ static void data_augmentation_proc(bb::TrainData<float>& td, std::uint64_t seed,
 template < typename T=float, class ModelType=bb::SparseLutN<6, T> >
 void Cifar10AeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "Cifar10AeSparseLutCnn";
+    std::string net_name = "Cifar10AeSparseLutCnn2";
 
   // load cifar-10 data
 #ifdef _DEBUG
@@ -82,12 +82,18 @@ void Cifar10AeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_mo
     // create network
     auto enc_cnv0_sl0 = ModelType::Create(32*6);
     auto enc_cnv0_sl1 = ModelType::Create(32);
-    auto enc_cnv1_sl0 = ModelType::Create(32*6);
-    auto enc_cnv1_sl1 = ModelType::Create(32);
-    auto enc_cnv2_sl0 = ModelType::Create(384);
-    auto enc_cnv2_sl1 = ModelType::Create(64);
-    auto enc_cnv3_sl0 = ModelType::Create(32*6);
-    auto enc_cnv3_sl1 = ModelType::Create(32);
+
+    auto enc_cnv1_sl0 = ModelType::Create(32*6*6);
+    auto enc_cnv1_sl1 = ModelType::Create(32*6);
+    auto enc_cnv1_sl2 = ModelType::Create(32);
+
+    auto enc_cnv2_sl0 = ModelType::Create(64*6*6);
+    auto enc_cnv2_sl1 = ModelType::Create(64*6);
+    auto enc_cnv2_sl2 = ModelType::Create(64);
+
+    auto enc_cnv3_sl0 = ModelType::Create(32*6*6);
+    auto enc_cnv3_sl1 = ModelType::Create(32*6);
+    auto enc_cnv3_sl2 = ModelType::Create(32);
 
 #if 0
     auto enc_sl4      = ModelType::Create(1024*6);
@@ -98,16 +104,21 @@ void Cifar10AeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_mo
     auto dec_sl5      = ModelType::Create(1024);
     auto dec_sl4      = ModelType::Create({8, 8, 64});
 #endif
-    auto dec_cnv3_sl0 = ModelType::Create(384);
-    auto dec_cnv3_sl1 = ModelType::Create(64);
-    auto dec_cnv2_sl0 = ModelType::Create(384);
-    auto dec_cnv2_sl1 = ModelType::Create(64);
 
-    auto dec_cnv1_sl0 = ModelType::Create(256);
-    auto dec_cnv1_sl1 = ModelType::Create(192);
+    auto dec_cnv3_sl0 = ModelType::Create(64*6*6);
+    auto dec_cnv3_sl1 = ModelType::Create(64*6);
+    auto dec_cnv3_sl2 = ModelType::Create(64);
+
+    auto dec_cnv2_sl0 = ModelType::Create(64*6*6);
+    auto dec_cnv2_sl1 = ModelType::Create(64*6);
+    auto dec_cnv2_sl2 = ModelType::Create(64);
+
+    auto dec_cnv1_sl0 = ModelType::Create(32*6*6);
+    auto dec_cnv1_sl1 = ModelType::Create(32*6);
     auto dec_cnv1_sl2 = ModelType::Create(32);
-    auto dec_cnv0_sl0 = ModelType::Create(216);
-    auto dec_cnv0_sl1 = ModelType::Create(3*6*6, false);
+
+    auto dec_cnv0_sl0 = ModelType::Create(3*6*6*6);
+    auto dec_cnv0_sl1 = ModelType::Create(3*6*6);
     auto dec_cnv0_sl2 = ModelType::Create(3*6, false);
     auto dec_cnv0_sl3 = ModelType::Create(3, false);
 
@@ -123,23 +134,28 @@ void Cifar10AeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_mo
         auto enc_cnv1_sub = bb::Sequential::Create();
         enc_cnv1_sub->Add(enc_cnv1_sl0);
         enc_cnv1_sub->Add(enc_cnv1_sl1);
+        enc_cnv1_sub->Add(enc_cnv1_sl2);
 
         auto enc_cnv2_sub = bb::Sequential::Create();
         enc_cnv2_sub->Add(enc_cnv2_sl0);
         enc_cnv2_sub->Add(enc_cnv2_sl1);
+        enc_cnv2_sub->Add(enc_cnv2_sl2);
 
         auto enc_cnv3_sub = bb::Sequential::Create();
         enc_cnv3_sub->Add(enc_cnv3_sl0);
         enc_cnv3_sub->Add(enc_cnv3_sl1);
+        enc_cnv3_sub->Add(enc_cnv3_sl2);
 
 
         auto dec_cnv3_sub = bb::Sequential::Create();
         dec_cnv3_sub->Add(dec_cnv3_sl0);
         dec_cnv3_sub->Add(dec_cnv3_sl1);
+        dec_cnv3_sub->Add(dec_cnv3_sl2);
 
         auto dec_cnv2_sub = bb::Sequential::Create();
         dec_cnv2_sub->Add(dec_cnv2_sl0);
         dec_cnv2_sub->Add(dec_cnv2_sl1);
+        dec_cnv2_sub->Add(dec_cnv2_sl2);
 
         auto dec_cnv1_sub = bb::Sequential::Create();
         dec_cnv1_sub->Add(dec_cnv1_sl0);
