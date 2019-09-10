@@ -71,12 +71,13 @@ class BuildExt(build_ext):
     """A custom build extension for adding compiler-specific options."""
     c_opts = {
         'msvc': ['/EHsc'],
-        'unix': ['-mavx2', '-mfma', '-fopenmp'],
+        'unix': ['-mavx2', '-mfma', '-fopenmp'],  # '-shared-libgcc', '-fPIC'
     }
     l_opts = {
         'msvc': [],
-        'unix': [],
+        'unix': ['-fopenmp'],
     }
+    #'-mavx2', '-mfma', '-fopenmp', '-std=c++14', , '-lstdc++', '-lm'
 
     if sys.platform == 'darwin':
         darwin_opts = ['-stdlib=libc++', '-mmacosx-version-min=10.7']
