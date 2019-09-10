@@ -4,7 +4,7 @@
 `default_nettype none
 
 
-module video_mnist_cnn_validation
+module video_mnist_cnn_detection
 		#(
 			parameter	DATA_WIDTH         = 8,
 			parameter	MAX_X_NUM          = 1024,
@@ -45,7 +45,7 @@ module video_mnist_cnn_validation
 			output	wire	[M_TNUMBER_WIDTH-1:0]		m_axi4s_tnumber,
 			output	wire	[M_TCOUNT_WIDTH-1:0]		m_axi4s_tcount,
 			output	wire	[M_CLUSTERING_WIDTH-1:0]	m_axi4s_tclustering,
-			output	wire	[0:0]						m_axi4s_tvalidation,
+			output	wire	[0:0]						m_axi4s_tdetection,
 			output	wire								m_axi4s_tvalid,
 			input	wire								m_axi4s_tready,
 			
@@ -112,7 +112,7 @@ module video_mnist_cnn_validation
 	wire								axi4s_vali_tvalid;
 	wire								axi4s_vali_tready;
 	
-	video_mnist_cnn_validation_core
+	video_mnist_cnn_detection_core
 			#(
 				.MAX_X_NUM			(MAX_X_NUM),
 				.RAM_TYPE			(RAM_TYPE),
@@ -126,7 +126,7 @@ module video_mnist_cnn_validation
 				
 				.DEVICE				(DEVICE)
 			)
-		i_video_mnist_cnn_validation_core
+		i_video_mnist_cnn_detection_core
 			(
 				.aresetn			(aresetn),
 				.aclk				(aclk),
@@ -210,7 +210,7 @@ module video_mnist_cnn_validation
 				.s_axi4s_tvalid		(axi4s_dnn_tvalid),
 				.s_axi4s_tready		(axi4s_dnn_tready),
 				
-				.m_axi4s_tuser		({m_axi4s_tuser, m_axi4s_tvalidation}),
+				.m_axi4s_tuser		({m_axi4s_tuser, m_axi4s_tdetection}),
 				.m_axi4s_tlast		(m_axi4s_tlast),
 				.m_axi4s_tnumber	(m_axi4s_tnumber),
 				.m_axi4s_tcount		(m_axi4s_tcount),

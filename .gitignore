@@ -30,8 +30,17 @@
 *.VC.opendb
 *.vspx
 
+*.exp
+*.iobj
+*.ipdb
+*.lib
+*.pdb
+
 *.pyc
 *.pyd
+
+veritak_src_files.txt
+veritak_command.txt
 
 depend
 
@@ -48,19 +57,30 @@ tests/diabetes/test-diabetes
 # generate file
 samples/mnist/verilog/mnist_train.txt
 samples/mnist/verilog/mnist_test.txt
-samples/mnist/verilog/MnistSparseLutMlp.v
+samples/mnist/verilog/MnistSparseLutSimple.v
 samples/mnist/verilog/MnistSparseLutCnn.v
-samples/mnist/verilog/MnistStochasticLutMlp.v
+samples/mnist/verilog/MnistStochasticLutSimple.v
 samples/mnist/verilog/MnistStochasticLutCnn.v
-samples/mnist/verilog/MnistMicroMlpLutMlp.v
+samples/mnist/verilog/MnistMicroMlpLutSimple.v
 samples/mnist/verilog/MnistMicroMlpLutCnn.v
 samples/diabetes/diabetes_data.txt
 samples/diabetes/diabetes_target.txt
-
 samples/diabetes/DiabetesRegressionBinaryLut.v
 
+tests/mnist/verilog/mnist_train.txt
+tests/mnist/verilog/mnist_test.txt
+tests/mnist/verilog/MnistSparseLutSimple.v
+tests/mnist/verilog/MnistSparseLutCnn.v
+tests/mnist/verilog/MnistStochasticLutSimple.v
+tests/mnist/verilog/MnistStochasticLutCnn.v
+tests/mnist/verilog/MnistMicroMlpLutSimple.v
+tests/mnist/verilog/MnistMicroMlpLutCnn.v
 tests/diabetes/diabetes_data.txt
 tests/diabetes/diabetes_target.txt
+tests/diabetes/DiabetesRegressionBinaryLut.v
+tests/diabetes/diabetes_data.txt
+tests/diabetes/diabetes_target.txt
+tests/diabetes/DiabetesRegressionBinaryLut.v
 
 *.tar.gz
 cifar-10-batches-bin/
@@ -73,11 +93,13 @@ Release/
 DbgCpu/
 RelCpu/
 
+.ipynb_checkpoints/
 *.egg-info/
 .eggs/
 python/samples/mnist/*.v
 python/build/
 python/dist/
+
 
 *.gz
 *-ubyte

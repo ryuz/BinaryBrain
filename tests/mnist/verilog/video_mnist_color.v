@@ -36,7 +36,7 @@ module video_mnist_color
 			input	wire	[TCOUNT_WIDTH-1:0]		s_axi4s_tcount,
 			input	wire	[TDATA_WIDTH-1:0]		s_axi4s_tdata,
 			input	wire	[0:0]					s_axi4s_tbinary,
-			input	wire	[0:0]					s_axi4s_tvalidation,
+			input	wire	[0:0]					s_axi4s_tdetection,
 			input	wire							s_axi4s_tvalid,
 			output	wire							s_axi4s_tready,
 			
@@ -113,7 +113,7 @@ module video_mnist_color
 				.s_axi4s_tcount		(s_axi4s_tcount),
 				.s_axi4s_tdata		(s_axi4s_tdata),
 				.s_axi4s_tbinary	(s_axi4s_tbinary),
-				.s_axi4s_tvalidation(s_axi4s_tvalidation),
+				.s_axi4s_tdetection	(s_axi4s_tdetection),
 				.s_axi4s_tvalid		(s_axi4s_tvalid),
 				.s_axi4s_tready		(s_axi4s_tready),
 				

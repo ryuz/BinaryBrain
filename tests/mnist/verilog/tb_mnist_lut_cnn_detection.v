@@ -9,15 +9,15 @@
 `default_nettype none
 
 
-module tb_mnist_lut_cnn_validation();
+module tb_mnist_lut_cnn_detection();
 	localparam RATE = 1000.0/300.0;
 	
 	initial begin
-		$dumpfile("tb_mnist_lut_cnn_validation.vcd");
-		$dumpvars(4, tb_mnist_lut_cnn_validation);
-//		$dumpvars(0, tb_mnist_lut_cnn_validation.i_video_mnist_color);
-//		$dumpvars(3, tb_mnist_lut_cnn_validation.i_video_mnist);
-//		$dumpvars(4, tb_mnist_lut_cnn_validation.i_video_mnist.i_video_mnist_core);
+		$dumpfile("tb_mnist_lut_cnn_detection.vcd");
+		$dumpvars(4, tb_mnist_lut_cnn_detection);
+//		$dumpvars(0, tb_mnist_lut_cnn_detection.i_video_mnist_color);
+//		$dumpvars(3, tb_mnist_lut_cnn_detection.i_video_mnist);
+//		$dumpvars(4, tb_mnist_lut_cnn_detection.i_video_mnist.i_video_mnist_core);
 		
 		
 	#20000000
@@ -128,7 +128,7 @@ module tb_mnist_lut_cnn_validation();
 	wire	[M_TNUMBER_WIDTH-1:0]		m_axi4s_tnumber;
 	wire	[M_TCOUNT_WIDTH-1:0]		m_axi4s_tcount;
 	wire	[M_CLUSTERING_WIDTH-1:0]	m_axi4s_tclustering;
-	wire	[0:0]						m_axi4s_tvalidation;
+	wire	[0:0]						m_axi4s_tdetection;
 	wire								m_axi4s_tvalid;
 	wire								m_axi4s_tready;
 	
@@ -142,7 +142,7 @@ module tb_mnist_lut_cnn_validation();
 	wire								s_wb_stb_i;
 	wire								s_wb_ack_o;
 	
-	video_mnist_cnn_validation
+	video_mnist_cnn_detection
 			#(
 				.DATA_WIDTH				(DATA_WIDTH),
 				.NUM_CALSS				(NUM_CALSS),
@@ -157,7 +157,7 @@ module tb_mnist_lut_cnn_validation();
 				.INIT_PARAM_TH			(INIT_PARAM_TH),
 				.INIT_PARAM_INV			(INIT_PARAM_INV)
 			)
-		i_video_mnist_cnn_validation
+		i_video_mnist_cnn_detection
 			(
 				.aresetn				(~reset),
 				.aclk					(clk),
@@ -173,7 +173,7 @@ module tb_mnist_lut_cnn_validation();
 				.m_axi4s_tclustering	(m_axi4s_tclustering),
 				.m_axi4s_tnumber		(m_axi4s_tnumber),
 				.m_axi4s_tcount			(m_axi4s_tcount),
-				.m_axi4s_tvalidation	(m_axi4s_tvalidation),
+				.m_axi4s_tdetection		(m_axi4s_tdetection),
 				.m_axi4s_tvalid			(m_axi4s_tvalid),
 				.m_axi4s_tready			(m_axi4s_tready),
 				
@@ -214,7 +214,7 @@ module tb_mnist_lut_cnn_validation();
 				.s_axi4s_tdata		(32'h00202020),		// (m_axi4s_tdata),
 				.s_axi4s_tbinary	(1'b0),				// (m_axi4s_tbinary),
 				.s_axi4s_tvalid		(m_axi4s_tvalid),
-				.s_axi4s_tvalidation(m_axi4s_tvalidation),
+				.s_axi4s_tdetection	(m_axi4s_tdetection),
 				.s_axi4s_tready		(m_axi4s_tready),
 				
 				.m_axi4s_tuser		(axi4s_color_tuser),
@@ -274,12 +274,12 @@ module tb_mnist_lut_cnn_validation();
 				.FRAME_WIDTH		(32),
 				.X_WIDTH			(32),
 				.Y_WIDTH			(32),
-				.FILE_NAME			("val_%1d.pgm"),
+				.FILE_NAME			("det_%1d.pgm"),
 				.MAX_PATH			(64),
 				.BUSY_RATE			(0),
 				.RANDOM_SEED		(1234)
 			)
-		jelly_axi4s_slave_model_validation
+		jelly_axi4s_slave_model_detection
 			(
 				.aresetn			(~reset),
 				.aclk				(clk),
@@ -290,7 +290,7 @@ module tb_mnist_lut_cnn_validation();
 				
 				.s_axi4s_tuser		(m_axi4s_tuser),
 				.s_axi4s_tlast		(m_axi4s_tlast),
-				.s_axi4s_tdata		(m_axi4s_tvalidation),
+				.s_axi4s_tdata		(m_axi4s_tdetection),
 				.s_axi4s_tvalid		(m_axi4s_tvalid & m_axi4s_tready),
 				.s_axi4s_tready		()
 			);
