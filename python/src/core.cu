@@ -1,5 +1,6 @@
 
-#define BB_ASSERT_EXCEPTION
+
+// #define BB_ASSERT_EXCEPTION
 
 #include "Manager.cu"
 #include "LocalHeap.cu"
@@ -9,7 +10,7 @@
 #include "MatrixColwiseMeanVar.cu"
 #include "MatrixRowwiseSetVector.cu"
 #include "MicroMlp.cu"
-//#include "BinaryLut6.cu"
+#include "BinaryLut6.cu"
 #include "SparseLut.cu"
 #include "StochasticLut.cu"
 #include "StochasticMaxPooling.cu"
@@ -30,7 +31,7 @@
 #include "AccuracyCategoricalClassification.cu"
 
 
-#include "core.cpp"
+// #include "core.cpp"
 
 
 // end of file

@@ -34,6 +34,7 @@ CC = g++
 #CC ?= clang++
 endif
 
+# -pthread 
 CFLAGS = -mavx2 -mfma -fopenmp -std=c++14 -fPIC
 CINCS  = -I$(BB_PATH)/include $(shell $(PYTHON) -m pybind11 --includes)
 CDEFS  = 
@@ -41,7 +42,8 @@ CDEFS  =
 SRCS   = $(SRCE_PATH)/core.cpp
 OBJS   = $(addsuffix .o, $(basename $(SRCS)))
 
-LIBS = 
+LIBS = -lstdc++ -lm
+# -shared-libgcc
 
 ifeq ($(DEBUG),Yes)
 CFLAGS += -O0 -g
