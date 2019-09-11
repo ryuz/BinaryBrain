@@ -31,7 +31,5 @@
 #include "AccuracyCategoricalClassification.cu"
 
 
-// #include "core.cpp"
-
 
 // end of file

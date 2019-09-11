@@ -1,3 +1,5 @@
+import  os
+from os.path import join as pjoin
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 import sys
@@ -5,6 +7,40 @@ import setuptools
 from setuptools import setup, find_packages
 
 __version__ = '0.0.2'
+
+
+def find_in_path(name, path):
+    for dir in path.split(os.pathsep):
+        binpath = pjoin(dir, name)
+        if os.path.exists(binpath):
+            return os.path.abspath(binpath)
+    return None
+
+def search_cuda_path():
+    if sys.platform.startswith('win32') and 'CUDA_PATH' in os.environ:
+        cuda_home    = os.environ['CUDA_PATH']
+        cuda_bin     = pjoin(cuda_home, 'bin')
+        cuda_include = pjoin(cuda_home, 'include')
+        cuda_lib     = pjoin(cuda_home, 'lib', 'x64')
+        cuda_nvcc    = pjoin(cuda_bin, 'nvcc')
+    elif 'CUDAHOME' in os.environ:
+        cuda_home = os.environ['CUDAHOME']
+        cuda_bin     = pjoin(cuda_home, 'bin')
+        cuda_include = pjoin(cuda_home, 'include')
+        cuda_lib     = pjoin(cuda_home, 'lib64')
+        cuda_nvcc    = pjoin(cuda_bin, 'nvcc')
+    else:
+        cuda_nvcc = find_in_path('nvcc', os.environ['PATH'])
+        if cuda_nvcc is None:
+            return None
+        cuda_home = os.path.dirname(os.path.dirname(cuda_nvcc))
+        cuda_bin     = pjoin(cuda_home, 'bin')
+        cuda_include = pjoin(cuda_home, 'include')
+        cuda_lib     = pjoin(cuda_home, 'lib64')
+
+    return {'home':cuda_home, 'nvcc':cuda_nvcc, 'include': cuda_include, 'lib': cuda_lib}
+
+cuda_path = search_cuda_path()
 
 
 class get_pybind_include(object):
@@ -21,21 +57,47 @@ class get_pybind_include(object):
         return pybind11.get_include(self.user)
 
 
+
+# files
+sources       = ['src/core.cpp']
+define_macros = [('BB_WITH_CEREAL', '1')]
+include_dirs  = [get_pybind_include(), get_pybind_include(user=True), '../include', '../cereal/include']
+lib_dirs      = []
+
+if cuda_path is not None:
+    sources       += ['bbcu_thrust.cu']
+    define_macros += [('BB_WITH_CUDA', '1')]
+    include_dirs  += [cuda_path['include'], '../cuda']
+    lib_dirs      += [cuda_path['lib']]
+
+
 ext_modules = [
     Extension(
         'binarybrain.core',
-        ['src/core.cpp'],
-        define_macros = [('BB_WITH_CEREAL', '1')],
-        include_dirs=[
-            # Path to pybind11 headers
-            get_pybind_include(),
-            get_pybind_include(user=True),
-            '../include',
-            '../cereal/include'
-        ],
+        sources,
+        define_macros=define_macros,
+        include_dirs=include_dirs,
         language='c++'
     ),
 ]
+
+
+
+def customize_compiler_for_nvcc(self):
+    print('compiler_type =', self.compiler_type)
+    self.src_extensions.append('.cu')
+#   default_compiler_so = self.compiler_so
+    super = self._compile
+    def _compile(obj, src, ext, cc_args, extra_postargs, pp_opts):
+        if os.path.splitext(src)[1] == '.cu':
+            self.set_executable('compiler_so', cuda_path['nvcc'])
+            postargs = extra_postargs['nvcc']
+#        else:
+#            postargs = extra_postargs['gcc']
+        super(obj, src, ext, cc_args, postargs, pp_opts)
+#       self.compiler_so = default_compiler_so
+    self._compile = _compile
+
 
 
 # As of Python 3.6, CCompiler has a `has_flag` method.
@@ -70,7 +132,7 @@ def cpp_flag(compiler):
 class BuildExt(build_ext):
     """A custom build extension for adding compiler-specific options."""
     c_opts = {
-        'msvc': ['/EHsc'],
+        'msvc': ['/EHsc', '/arch:AVX2', '/openmp', '/std:c++14', '/wd\"4819\"'],
         'unix': ['-mavx2', '-mfma', '-fopenmp'],
     }
     l_opts = {
@@ -85,6 +147,7 @@ class BuildExt(build_ext):
         l_opts['unix'] += darwin_opts
 
     def build_extensions(self):
+        customize_compiler_for_nvcc(self.compiler)
         ct = self.compiler.compiler_type
         opts = self.c_opts.get(ct, [])
         link_opts = self.l_opts.get(ct, [])
