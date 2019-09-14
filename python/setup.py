@@ -1,3 +1,4 @@
+
 import  os
 from os.path import join as pjoin
 from setuptools import setup, Extension
@@ -6,7 +7,12 @@ import sys
 import setuptools
 from setuptools import setup, find_packages
 
-__version__ = '0.0.2'
+from distutils import ccompiler
+from distutils import unixccompiler
+from distutils import msvccompiler
+
+
+__version__ = '0.0.3'
 
 
 def find_in_path(name, path):
@@ -16,7 +22,8 @@ def find_in_path(name, path):
             return os.path.abspath(binpath)
     return None
 
-def search_cuda_path():
+
+def search_cuda():
     if sys.platform.startswith('win32') and 'CUDA_PATH' in os.environ:
         cuda_home    = os.environ['CUDA_PATH']
         cuda_bin     = pjoin(cuda_home, 'bin')
@@ -40,7 +47,8 @@ def search_cuda_path():
 
     return {'home':cuda_home, 'nvcc':cuda_nvcc, 'include': cuda_include, 'lib': cuda_lib}
 
-cuda_path = search_cuda_path()
+CUDA = search_cuda()
+#CUDA = None
 
 
 class get_pybind_include(object):
@@ -57,18 +65,17 @@ class get_pybind_include(object):
         return pybind11.get_include(self.user)
 
 
-
 # files
-sources       = ['src/core.cpp']
+sources       = ['src/core_main.cpp']
 define_macros = [('BB_WITH_CEREAL', '1')]
 include_dirs  = [get_pybind_include(), get_pybind_include(user=True), '../include', '../cereal/include']
 lib_dirs      = []
 
-if cuda_path is not None:
-    sources       += ['bbcu_thrust.cu']
+if CUDA is not None:
+    sources       += ['src/core_bbcu.cu']
     define_macros += [('BB_WITH_CUDA', '1')]
-    include_dirs  += [cuda_path['include'], '../cuda']
-    lib_dirs      += [cuda_path['lib']]
+    include_dirs  += [CUDA['include'], '../cuda']
+    lib_dirs      += [CUDA['lib']]
 
 
 ext_modules = [
@@ -82,85 +89,115 @@ ext_modules = [
 ]
 
 
+import subprocess
 
-def customize_compiler_for_nvcc(self):
-    print('compiler_type =', self.compiler_type)
+def hook_compiler(self):
     self.src_extensions.append('.cu')
-#   default_compiler_so = self.compiler_so
-    super = self._compile
+    super_compile = self._compile
+    super_link = self.link
+
     def _compile(obj, src, ext, cc_args, extra_postargs, pp_opts):
         if os.path.splitext(src)[1] == '.cu':
-            self.set_executable('compiler_so', cuda_path['nvcc'])
-            postargs = extra_postargs['nvcc']
-#        else:
-#            postargs = extra_postargs['gcc']
-        super(obj, src, ext, cc_args, postargs, pp_opts)
-#       self.compiler_so = default_compiler_so
+            postargs = extra_postargs['cu']
+        elif os.path.splitext(src)[1] == '.cpp':
+            postargs = extra_postargs['cc']
+        else:
+            postargs = []
+        super_compile(obj, src, ext, cc_args, postargs, pp_opts)
+    
+    def link(target_desc, objects,
+             output_filename, output_dir=None, libraries=None,
+             library_dirs=None, runtime_library_dirs=None,
+             export_symbols=None, debug=0, extra_preargs=None,
+             extra_postargs=None, build_temp=None, target_lang=None):
+
+
+        print('-----------------')
+        print('target_desc=', target_desc)
+        print('objects=', objects)
+        print('output_filename=', output_filename)
+        print('output_dir=', output_dir)
+        print('libraries=', libraries)
+        print('library_dirs=', library_dirs)
+        print('runtime_library_dirs=', runtime_library_dirs)
+        print('export_symbols=', export_symbols)
+        print('debug=', debug)
+        print('extra_preargs=', extra_preargs)
+        print('extra_postargs=', extra_postargs)
+        print('build_temp=', build_temp)
+        print('target_lang=', target_lang)
+        print('-----------------')
+
+        if CUDA is not None:
+            args = ['nvcc' , '-shared', '-o', output_filename] + objects + extra_postargs
+            print(args)
+            subprocess.call(args)
+        else:
+            super_link(target_desc, objects,
+                output_filename, output_dir=output_dir, libraries=libraries,
+                library_dirs=library_dirs, runtime_library_dirs=runtime_library_dirs,
+                export_symbols=export_symbols, debug=debug, extra_preargs=extra_preargs,
+                extra_postargs=extra_postargs, build_temp=build_temp, target_lang=target_lang)
+
     self._compile = _compile
-
-
-
-# As of Python 3.6, CCompiler has a `has_flag` method.
-# cf http://bugs.python.org/issue26689
-def has_flag(compiler, flagname):
-    """Return a boolean indicating whether a flag name is supported on
-    the specified compiler.
-    """
-    import tempfile
-    with tempfile.NamedTemporaryFile('w', suffix='.cpp') as f:
-        f.write('int main (int argc, char **argv) { return 0; }')
-        try:
-            compiler.compile([f.name], extra_postargs=[flagname])
-        except setuptools.distutils.errors.CompileError:
-            return False
-    return True
-
-
-def cpp_flag(compiler):
-    """Return the -std=c++[11/14/17] compiler flag.
-    The newer version is prefered over c++11 (when it is available).
-    """
-    flags = ['-std=c++17', '-std=c++14', '-std=c++11']
-
-    for flag in flags:
-        if has_flag(compiler, flag): return flag
-
-    raise RuntimeError('Unsupported compiler -- at least C++11 support '
-                       'is needed!')
+    self.link = link
 
 
 class BuildExt(build_ext):
     """A custom build extension for adding compiler-specific options."""
-    c_opts = {
-        'msvc': ['/EHsc', '/arch:AVX2', '/openmp', '/std:c++14', '/wd\"4819\"'],
-        'unix': ['-mavx2', '-mfma', '-fopenmp'],
-    }
-    l_opts = {
-        'msvc': [],
-        'unix': ['-fopenmp'],
-    }
-    
+    cc_args = {'unix':[], 'msvc':[]}
+    cu_args = {'unix':[], 'msvc':[]}
+    ar_args = {'unix':[], 'msvc':[]}
+    if CUDA is None:
+        # unix(cpu)
+        cc_args['unix'] += ['-mavx2', '-mfma', '-fopenmp', '-std=c++14']
+        ar_args['unix'] += ['-fopenmp', '-lstdc++', '-lm']
+
+        # windows(cpu)
+        cc_args['msvc'] += ['/EHsc', '/arch:AVX2', '/openmp', '/std:c++14']
+        ar_args['msvc'] += []
+    else:
+        # unix(gpu)
+        cc_args['unix'] += ['-gencode=arch=compute_35,code=sm_35',
+                            '-gencode=arch=compute_75,code=sm_75',
+                            '-Xcompiler', '-pthread',
+                            '-Xcompiler', '-mavx2',
+                            '-Xcompiler', '-mfma',
+                            '-Xcompiler', '-fopenmp',
+                            '-Xcompiler', '-std=c++14',
+                            '-Xcompiler', '-fPIC' ]
+        cu_args['unix'] += ['-gencode=arch=compute_35,code=sm_35',
+                            '-gencode=arch=compute_75,code=sm_75',
+                            '-std=c++11',
+                            '-Xcompiler', '-fPIC' ]
+        ar_args['unix'] += ['-Xcompiler', '-pthread',
+                            '-Xcompiler', '-fopenmp',
+                            '-lstdc++', '-lm', '-lcublas']
+
+        # windows(gpu)
+        cc_args['msvc'] += ['/EHsc', '/arch:AVX2', '/openmp', '/std:c++14', '/wd\"4819\"']
+        cu_args['msvc'] += ['-std=c++11',
+                            '-gencode=arch=compute_35,code=sm_35',
+                            '-gencode=arch=compute_75,code=sm_75']
+        ar_args['msvc'] += []
     
     if sys.platform == 'darwin':
-        darwin_opts = ['-stdlib=libc++', '-mmacosx-version-min=10.7']
-        c_opts['unix'] += darwin_opts
-        l_opts['unix'] += darwin_opts
+        darwin_args = ['-stdlib=libc++', '-mmacosx-version-min=10.7']
+        cc_args['unix'] += darwin_args
+        ar_args['unix'] += darwin_args
+
 
     def build_extensions(self):
-        customize_compiler_for_nvcc(self.compiler)
+        if CUDA is not None:
+            self.compiler.set_executable('compiler_so', CUDA['nvcc'])
+            self.compiler.set_executable('compiler_cxx', CUDA['nvcc'])
+        
+        hook_compiler(self.compiler)
+
         ct = self.compiler.compiler_type
-        opts = self.c_opts.get(ct, [])
-        link_opts = self.l_opts.get(ct, [])
-        if ct == 'unix':
-            opts.append('-DVERSION_INFO="%s"' % self.distribution.get_version())
-            opts.append(cpp_flag(self.compiler))
-            if has_flag(self.compiler, '-fvisibility=hidden'):
-                opts.append('-fvisibility=hidden')
-        elif ct == 'msvc':
-            opts.append('/DVERSION_INFO=\\"%s\\"' % self.distribution.get_version())
         for ext in self.extensions:
-            ext.extra_compile_args = opts
-            ext.extra_link_args = link_opts
+            ext.extra_compile_args = {'cc': self.cc_args[ct], 'cu': self.cu_args[ct]}
+            ext.extra_link_args = self.ar_args[ct]
         build_ext.build_extensions(self)
 
 setup(
@@ -172,9 +209,10 @@ setup(
     description='BinaryBrain for Python',
     long_description='',
     ext_modules=ext_modules,
-    install_requires=['pybind11>=2.3'],
+    install_requires=['pybind11>=2.3', 'tqdm'],
     setup_requires=['pybind11>=2.3'],
     cmdclass={'build_ext': BuildExt},
     zip_safe=False,
     packages=['binarybrain']
 )
+

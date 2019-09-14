@@ -27,9 +27,9 @@ WITH_CUDA   ?= Yes
 WITH_CEREAL ?= Yes
 
 # flags
-CFLAGS    = -mavx2 -mfma -fopenmp -std=c++14 -fPIC
+CFLAGS    = -pthread -mavx2 -mfma -fopenmp -std=c++14 -fPIC
 CUFLAGS   = -gencode=arch=compute_35,code=sm_35 -gencode=arch=compute_75,code=sm_75
-ARFLAGS   = -mavx2 -mfma -fopenmp -std=c++14 -fPIC -O3
+ARFLAGS   = -pthread -fopenmp -fPIC
 CINCS     = -I$(BB_PATH)/cuda -I$(BB_PATH)/include $(shell $(PYTHON) -m pybind11 --includes)
 CDEFS     = 
 
@@ -59,7 +59,7 @@ SRCS    += $(SRC_PATH)/core_bbcu.cu
 CC       = $(NVCC)
 AR       = $(NVCC)
 LIBS    += -lcublas
-CFLAGS  := $(CUFLAGS) -Xcompiler '$(ARFLAGS)'
+CFLAGS  := $(CUFLAGS) -Xcompiler '$(CFLAGS)'
 ARFLAGS := -Xcompiler '$(ARFLAGS)'
 CDEFS   += -DBB_WITH_CUDA
 endif
