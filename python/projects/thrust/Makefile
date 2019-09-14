@@ -11,9 +11,9 @@ RM      = rm
 DEPEND  = g++
 
 # path
-BB_PATH      = ../..
-SRC_PATH     = ../src
-PACKAGE_PATH = ../binarybrain
+BB_PATH      = ../../..
+PACKAGE_PATH = ../../binarybrain
+SRC_PATH     = $(PACKAGE_PATH)/src
 BBCU_PATH    = $(BB_PATH)/cuda
 CEREAL_PATH  = $(BB_PATH)/cereal
 

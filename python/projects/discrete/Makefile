@@ -1,9 +1,9 @@
 ﻿
 # Environment
 PYTHON       = python3
-BB_PATH      = ../..
-SRCE_PATH    = ../src
-PACKAGE_PATH = ../binarybrain
+BB_PATH      = ../../..
+PACKAGE_PATH = ../../binarybrain
+SRC_PATH     = $(PACKAGE_PATH)/src
 
 EXT_SUFFIX   = $(shell $(PYTHON)-config --extension-suffix)
 
@@ -39,7 +39,7 @@ CFLAGS = -mavx2 -mfma -fopenmp -std=c++14 -fPIC
 CINCS  = -I$(BB_PATH)/include $(shell $(PYTHON) -m pybind11 --includes)
 CDEFS  = 
 
-SRCS   = $(SRCE_PATH)/core_main.cpp
+SRCS   = $(SRC_PATH)/core_main.cpp
 OBJS   = $(addsuffix .o, $(basename $(SRCS)))
 
 LIBS = -lstdc++ -lm

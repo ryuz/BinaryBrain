@@ -19,6 +19,7 @@ __version__ = '0.0.3'
 
 
 
+# wget cereal
 with urllib.request.urlopen('https://github.com/USCiLab/cereal/archive/v1.2.2.tar.gz') as r:
     with open('cereal.tar.gz', 'wb') as f:
         f.write(r.read())
@@ -58,6 +59,8 @@ def search_cuda():
 
     return {'home':cuda_home, 'nvcc':cuda_nvcc, 'include': cuda_include, 'lib': cuda_lib}
 
+
+# search CUDA
 CUDA = search_cuda()
 
 
@@ -76,15 +79,15 @@ class get_pybind_include(object):
 
 
 # files
-sources       = ['src/core_main.cpp']
+sources       = ['binarybrain/src/core_main.cpp']
 define_macros = [('BB_WITH_CEREAL', '1')]
-include_dirs  = [get_pybind_include(), get_pybind_include(user=True), 'src/include', 'cereal-1.2.2/include']
+include_dirs  = [get_pybind_include(), get_pybind_include(user=True), 'binarybrain/include', 'cereal-1.2.2/include']
 lib_dirs      = []
 
 if CUDA is not None:
-    sources       += ['src/core_bbcu.cu']
+    sources       += ['binarybrain/src/core_bbcu.cu']
     define_macros += [('BB_WITH_CUDA', '1')]
-    include_dirs  += [CUDA['include'], 'src/cuda']
+    include_dirs  += [CUDA['include'], 'binarybrain/cuda']
     lib_dirs      += [CUDA['lib']]
 
 ext_modules = [
@@ -195,6 +198,7 @@ package_data = {
         'include/bb/*.h',
         'include/bbcu/*.h',
         'cuda/*.cu',
+        'cuda/*.cuh',
     ],
 }
 
