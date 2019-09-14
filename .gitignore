@@ -101,8 +101,8 @@ python/build/
 python/dist/
 
 python/cereal*/
-python/src/include/
-python/src/cuda/
+python/binarybrain/include/
+python/binarybrain/cuda/
 
 *.gz
 *-ubyte
