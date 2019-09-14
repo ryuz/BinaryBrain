@@ -9,12 +9,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="..\src\bbcu_thrust.cu">
+    <CudaCompile Include="..\..\binarybrain\src\core_bbcu.cu">
       <Filter>ソース ファイル</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\core.cpp">
+    <ClCompile Include="..\..\binarybrain\src\core_main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
