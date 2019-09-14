@@ -39,7 +39,7 @@ CFLAGS = -mavx2 -mfma -fopenmp -std=c++14 -fPIC
 CINCS  = -I$(BB_PATH)/include $(shell $(PYTHON) -m pybind11 --includes)
 CDEFS  = 
 
-SRCS   = $(SRCE_PATH)/core.cpp
+SRCS   = $(SRCE_PATH)/core_main.cpp
 OBJS   = $(addsuffix .o, $(basename $(SRCS)))
 
 LIBS = -lstdc++ -lm
@@ -84,7 +84,7 @@ bbcu_build:
 	make -C $(BBCU_PATH)
 
 $(TARGET): $(OBJS)
-	$(CC) -o $(TARGET) $(CFLAGS) $(CINCS) $(CDEFS) $(OBJS) $(LIBS)
+	$(CC) -o $(TARGET) $(CFLAGS) $(OBJS) $(LIBS)
 
 .cpp.o:
 	$(CC) $(CFLAGS) $(CINCS) $(CDEFS) -c $< -o $@
