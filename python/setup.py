@@ -6,13 +6,24 @@ from setuptools.command.build_ext import build_ext
 import sys
 import setuptools
 from setuptools import setup, find_packages
+import subprocess
+import urllib.request
+import tarfile
 
-from distutils import ccompiler
-from distutils import unixccompiler
-from distutils import msvccompiler
+#from distutils import ccompiler
+#from distutils import unixccompiler
+#from distutils import msvccompiler
 
 
 __version__ = '0.0.3'
+
+
+
+with urllib.request.urlopen('https://github.com/USCiLab/cereal/archive/v1.2.2.tar.gz') as r:
+    with open('cereal.tar.gz', 'wb') as f:
+        f.write(r.read())
+with tarfile.open('./cereal.tar.gz', 'r') as tar:
+    tar.extractall('.')
 
 
 def find_in_path(name, path):
@@ -48,7 +59,6 @@ def search_cuda():
     return {'home':cuda_home, 'nvcc':cuda_nvcc, 'include': cuda_include, 'lib': cuda_lib}
 
 CUDA = search_cuda()
-#CUDA = None
 
 
 class get_pybind_include(object):
@@ -68,15 +78,14 @@ class get_pybind_include(object):
 # files
 sources       = ['src/core_main.cpp']
 define_macros = [('BB_WITH_CEREAL', '1')]
-include_dirs  = [get_pybind_include(), get_pybind_include(user=True), '../include', '../cereal/include']
+include_dirs  = [get_pybind_include(), get_pybind_include(user=True), 'src/include', 'cereal-1.2.2/include']
 lib_dirs      = []
 
 if CUDA is not None:
     sources       += ['src/core_bbcu.cu']
     define_macros += [('BB_WITH_CUDA', '1')]
-    include_dirs  += [CUDA['include'], '../cuda']
+    include_dirs  += [CUDA['include'], 'src/cuda']
     lib_dirs      += [CUDA['lib']]
-
 
 ext_modules = [
     Extension(
@@ -88,8 +97,6 @@ ext_modules = [
     ),
 ]
 
-
-import subprocess
 
 def hook_compiler(self):
     self.src_extensions.append('.cu')
@@ -110,34 +117,16 @@ def hook_compiler(self):
              library_dirs=None, runtime_library_dirs=None,
              export_symbols=None, debug=0, extra_preargs=None,
              extra_postargs=None, build_temp=None, target_lang=None):
-
-
-        print('-----------------')
-        print('target_desc=', target_desc)
-        print('objects=', objects)
-        print('output_filename=', output_filename)
-        print('output_dir=', output_dir)
-        print('libraries=', libraries)
-        print('library_dirs=', library_dirs)
-        print('runtime_library_dirs=', runtime_library_dirs)
-        print('export_symbols=', export_symbols)
-        print('debug=', debug)
-        print('extra_preargs=', extra_preargs)
-        print('extra_postargs=', extra_postargs)
-        print('build_temp=', build_temp)
-        print('target_lang=', target_lang)
-        print('-----------------')
-
         if CUDA is not None:
-            args = ['nvcc' , '-shared', '-o', output_filename] + objects + extra_postargs
-            print(args)
+            args = [CUDA['nvcc'], '-shared', '-o', output_filename] + objects + extra_postargs
+            print(' '.join(args))
             subprocess.call(args)
         else:
             super_link(target_desc, objects,
-                output_filename, output_dir=output_dir, libraries=libraries,
-                library_dirs=library_dirs, runtime_library_dirs=runtime_library_dirs,
-                export_symbols=export_symbols, debug=debug, extra_preargs=extra_preargs,
-                extra_postargs=extra_postargs, build_temp=build_temp, target_lang=target_lang)
+                output_filename, output_dir, libraries,
+                library_dirs, runtime_library_dirs,
+                export_symbols, debug, extra_preargs,
+                extra_postargs, build_temp, target_lang)
 
     self._compile = _compile
     self.link = link
@@ -200,6 +189,118 @@ class BuildExt(build_ext):
             ext.extra_link_args = self.ar_args[ct]
         build_ext.build_extensions(self)
 
+
+package_data = {
+    'binarybrain': [       
+        'src/include/bb/Activation.h',
+        'src/include/bb/Assert.h',
+        'src/include/bb/AveragePooling.h',
+        'src/include/bb/BackpropagatedBatchNormalization.h',
+        'src/include/bb/BatchNormalization.h',
+        'src/include/bb/Binarize.h',
+        'src/include/bb/BinaryLutN.h',
+        'src/include/bb/BinaryModulation.h',
+        'src/include/bb/BinaryScaling.h',
+        'src/include/bb/BinaryToReal.h',
+        'src/include/bb/ConcatenateCoefficient.h',
+        'src/include/bb/ConnectionTable.h',
+        'src/include/bb/ConvolutionCol2Im.h',
+        'src/include/bb/ConvolutionIm2Col.h',
+        'src/include/bb/CudaUtility.h',
+        'src/include/bb/DataAugmentationMnist.h',
+        'src/include/bb/DataType.h',
+        'src/include/bb/DenseAffine.h',
+        'src/include/bb/Dropout.h',
+        'src/include/bb/ExportVerilog.h',
+        'src/include/bb/Filter2d.h',
+        'src/include/bb/FixedSizeConnectionTable.h',
+        'src/include/bb/FrameBuffer.h',
+        'src/include/bb/HardTanh.h',
+        'src/include/bb/LoadCifar10.h',
+        'src/include/bb/LoadMnist.h',
+        'src/include/bb/LoadXor.h',
+        'src/include/bb/LossFunction.h',
+        'src/include/bb/LossMeanSquaredError.h',
+        'src/include/bb/LossSoftmaxCrossEntropy.h',
+        'src/include/bb/LoweringConvolution.h',
+        'src/include/bb/LutLayer.h',
+        'src/include/bb/Manager.h',
+        'src/include/bb/MaxPooling.h',
+        'src/include/bb/Memory.h',
+        'src/include/bb/MetricsBinaryAccuracy.h',
+        'src/include/bb/MetricsCategoricalAccuracy.h',
+        'src/include/bb/MetricsFunction.h',
+        'src/include/bb/MetricsMeanSquaredError.h',
+        'src/include/bb/MicroMlpAffine.h',
+        'src/include/bb/MicroMlp.h',
+        'src/include/bb/Model.h',
+        'src/include/bb/NormalDistributionGenerator.h',
+        'src/include/bb/OptimizerAdaGrad.h',
+        'src/include/bb/OptimizerAdam.h',
+        'src/include/bb/Optimizer.h',
+        'src/include/bb/OptimizerSgd.h',
+        'src/include/bb/PnmImage.h',
+        'src/include/bb/RealToBinary.h',
+        'src/include/bb/Reduce.h',
+        'src/include/bb/ReLU.h',
+        'src/include/bb/Runner.h',
+        'src/include/bb/Sequential.h',
+        'src/include/bb/ShuffleModulation.h',
+        'src/include/bb/ShuffleSet.h',
+        'src/include/bb/Sigmoid.h',
+        'src/include/bb/SimdSupport.h',
+        'src/include/bb/SparseBinaryLutN.h',
+        'src/include/bb/SparseLayer.h',
+        'src/include/bb/SparseLutDiscreteN.h',
+        'src/include/bb/SparseLutN.h',
+        'src/include/bb/StochasticBatchNormalization.h',
+        'src/include/bb/StochasticLutN.h',
+        'src/include/bb/StochasticLutSimd.h',
+        'src/include/bb/StochasticMaxPooling2x2.h',
+        'src/include/bb/StochasticMaxPooling.h',
+        'src/include/bb/StochasticOperation.h',
+        'src/include/bb/Tensor.h',
+        'src/include/bb/TensorOperator.h',
+        'src/include/bb/UniformDistributionGenerator.h',
+        'src/include/bb/UpSampling.h',
+        'src/include/bb/Utility.h',
+        'src/include/bb/ValueGenerator.h',
+        'src/include/bb/Variables.h',
+
+        'src/include/bbcu/bbcu.h',
+        'src/include/bbcu/bbcu_util.h',
+
+        'src/cuda/AccuracyCategoricalClassification.cu',
+        'src/cuda/Adam.cu',
+        'src/cuda/BatchNormalization.cu',
+        'src/cuda/Binarize.cu',
+        'src/cuda/BinaryLut6.cu',
+        'src/cuda/BinaryToReal.cu',
+        'src/cuda/Col2Im.cu',
+        'src/cuda/FrameBufferCopy.cu',
+        'src/cuda/HardTanh.cu',
+        'src/cuda/Im2Col.cu',
+        'src/cuda/LocalHeap.cu',
+        'src/cuda/LossSoftmaxCrossEntropy.cu',
+        'src/cuda/Manager.cu',
+        'src/cuda/MatrixColwiseMeanVar.cu',
+        'src/cuda/MatrixColwiseSum.cu',
+        'src/cuda/MatrixRowwiseSetVector.cu',
+        'src/cuda/MaxPooling.cu',
+        'src/cuda/MicroMlp.cu',
+        'src/cuda/RealToBinary.cu',
+        'src/cuda/ReLU.cu',
+        'src/cuda/ShuffleModulation.cu',
+        'src/cuda/Sigmoid.cu',
+        'src/cuda/SparseLut.cu',
+        'src/cuda/StochasticBatchNormalization.cu',
+        'src/cuda/StochasticLut.cu',
+        'src/cuda/StochasticMaxPooling.cu',
+        'src/cuda/UpSampling.cu',
+        'src/cuda/Vector.cu',
+    ],
+}
+
 setup(
     name='binarybrain',
     version=__version__,
@@ -213,6 +314,7 @@ setup(
     setup_requires=['pybind11>=2.3'],
     cmdclass={'build_ext': BuildExt},
     zip_safe=False,
-    packages=['binarybrain']
+    packages=['binarybrain'],
+    package_data=package_data,
 )
 
