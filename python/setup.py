@@ -11,19 +11,39 @@ from setuptools.command.build_ext import build_ext
 import subprocess
 import urllib.request
 import tarfile
+import re
 
 # from distutils import ccompiler
 # from distutils import unixccompiler
 # from distutils import msvccompiler
 
 
-# version
-__version__ = '3.0.0'
-
 # build flags
 VERBOSE     = False
 WITH_CUDA   = True
 WITH_CEREAL = True
+
+
+# version
+major_version = 0
+minor_version = 0
+revision_number = 0
+with open('binarybrain/include/bb/Version.h', 'r', encoding="utf-8") as f:
+    for line in f.readlines():
+        m = re.match(r'\s*#\s*define\s+BB_MAJOR_VERSION\s+([0-9]+)', line)
+        if m:   major_version = int(m.group(1))
+        m = re.match(r'\s*#\s*define\s+BB_MINOR_VERSION\s+([0-9]+)', line)
+        if m:   minor_version = int(m.group(1))
+        m = re.match(r'\s*#\s*define\s+BB_REVISION_NUMBER\s+([0-9]+)', line)
+        if m:   revision_number = int(m.group(1))
+
+__version__ = str(major_version) + '.' + str(minor_version) + '.' + str(revision_number)
+
+if VERBOSE:
+    print('version = %s' % __version__)
+
+
+
 
 # wget cereal
 if WITH_CEREAL:
