@@ -5,10 +5,10 @@ import numpy as np
 
 def main():
     # config
-    epoch                     = 1 # 4
+    epoch                     = 4
     mini_batch                = 32
-    training_modulation_size  = 1 # 3
-    inference_modulation_size = 1 # 3
+    training_modulation_size  = 3
+    inference_modulation_size = 3
     
     # download mnist
     bb.download_mnist()
