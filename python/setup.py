@@ -228,12 +228,11 @@ def hook_compiler(self):
             libraries, library_dirs, runtime_library_dirs =\
                     self._fix_lib_args(libraries, library_dirs, runtime_library_dirs)
 
+            lib_dirs = []
             if self.compiler_type == 'msvc':
-                lib_dirs  = [] #['-L"' + PYTHON_LIB + '"']
                 lib_dirs += ['-L"' + str(libdir) + '"' for libdir in library_dirs]
             else:
-                lib_dirs = [] # ['-L' + PYTHON_LIB]
-                lib_dirs = ['-L' + str(libdir) for libdir in library_dirs]
+                lib_dirs += ['-L' + str(libdir) for libdir in library_dirs]
             
             args = [CUDA['nvcc'], '-shared', '-o', output_filename] + objects + lib_dirs + extra_postargs
             print(' '.join(args))
