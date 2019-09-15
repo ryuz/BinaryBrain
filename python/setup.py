@@ -10,9 +10,9 @@ import subprocess
 import urllib.request
 import tarfile
 
-#from distutils import ccompiler
-#from distutils import unixccompiler
-#from distutils import msvccompiler
+from distutils import ccompiler
+from distutils import unixccompiler
+from distutils import msvccompiler
 
 
 # version
@@ -26,7 +26,8 @@ WITH_CEREAL = True
 # python path
 PYTHON_INC = os.path.join(sys.prefix, 'include')
 PYTHON_LIB = os.path.join(sys.prefix, 'libs')
-
+print('PYTHON_INC=', PYTHON_INC)
+print('PYTHON_LIB=', PYTHON_LIB)
 
 # wget cereal
 with urllib.request.urlopen('https://github.com/USCiLab/cereal/archive/v1.2.2.tar.gz') as r:
@@ -118,6 +119,16 @@ def hook_compiler(self):
     super_link      = self.link
 
     def _compile(obj, src, ext, cc_args, extra_postargs, pp_opts):
+        if VERBOSE:
+            print('---------------------')
+            print('[_compile]')
+            print('obj =', obj)
+            print('src =', src)
+            print('ext =', ext)
+            print('cc_args =', cc_args)
+            print('extra_postargs =', extra_postargs)
+            print('pp_opts =', pp_opts)
+            print('---------------------')
         if os.path.splitext(src)[1] == '.cu':
             postargs = extra_postargs['cu']
         elif os.path.splitext(src)[1] == '.cpp':
@@ -129,6 +140,7 @@ def hook_compiler(self):
     def compile(sources,
                 output_dir=None, macros=None, include_dirs=None, debug=0,
                 extra_preargs=None, extra_postargs=None, depends=None):
+        
         if VERBOSE:
             print('---------------------')
             print('[compile]')
@@ -141,13 +153,12 @@ def hook_compiler(self):
             print('extra_postargs =', extra_postargs)
             print('---------------------')
 
-        postargs = []
-        if os.path.splitext(sources[0])[1] == '.cu':
-           postargs = extra_postargs['cu']
-        elif os.path.splitext(sources[0])[1] == '.cpp':
-            postargs = extra_postargs['cc']
-
         if CUDA is not None:
+            macros, objects, extra_postargs, pp_opts, build = \
+            self._setup_compile(output_dir, macros, include_dirs,
+                            sources, depends, extra_postargs)
+                                
+            include_dirs += self.include_dirs
             os.makedirs(output_dir, exist_ok=True)
             
             # macros
@@ -160,13 +171,21 @@ def hook_compiler(self):
 
             # includes
             if self.compiler_type == 'msvc':
-                incs = ['-I"' + str(inc) + '"' for inc in include_dirs]
+                incs  = ['-I"' + PYTHON_INC + '"']
+                incs += ['-I"' + str(inc) + '"' for inc in include_dirs]
             else:
-                incs = ['-I' + str(inc) for inc in include_dirs]
+                incs  = ['-I' + PYTHON_INC]
+                incs += ['-I' + str(inc) for inc in include_dirs]
             
             # compile
             objects = []
             for src in sources:
+                postargs = []
+                if os.path.splitext(sources[0])[1] == '.cu':
+                    postargs = extra_postargs['cu']
+                elif os.path.splitext(sources[0])[1] == '.cpp':
+                    postargs = extra_postargs['cc']
+
                 fname, _ = os.path.splitext(os.path.basename(src))
                 obj = os.path.join(output_dir, fname + self.obj_extension)
                 objects.append(obj)
@@ -179,7 +198,7 @@ def hook_compiler(self):
         else:
             return super_compile(sources,
                         output_dir, macros, include_dirs, debug,
-                        extra_preargs, postargs, depends)
+                        extra_preargs, extra_postargs['cc'], depends)
 
     def link(target_desc, objects,
              output_filename, output_dir=None, libraries=None,
@@ -222,7 +241,9 @@ def hook_compiler(self):
                 export_symbols, debug, extra_preargs,
                 extra_postargs, build_temp, target_lang)
 
-#    self._compile = _compile
+    # hook
+    if self.compiler_type == 'unix':
+        self._compile = _compile
     self.compile = compile
     self.link = link
 
