@@ -12,9 +12,9 @@ import subprocess
 import urllib.request
 import tarfile
 
-from distutils import ccompiler
-from distutils import unixccompiler
-from distutils import msvccompiler
+# from distutils import ccompiler
+# from distutils import unixccompiler
+# from distutils import msvccompiler
 
 
 # version
