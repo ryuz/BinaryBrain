@@ -1,11 +1,13 @@
+""" setup.py for Binary Brain
+"""
 
+import sys
 import  os
 from os.path import join as pjoin
-from setuptools import setup, Extension
-from setuptools.command.build_ext import build_ext
-import sys
 import setuptools
+from setuptools import setup, Extension
 from setuptools import setup, find_packages
+from setuptools.command.build_ext import build_ext
 import subprocess
 import urllib.request
 import tarfile
@@ -16,26 +18,20 @@ from distutils import msvccompiler
 
 
 # version
-__version__ = '0.0.3'
+__version__ = '0.0.4'
 
 # build flags
-VERBOSE     = True
+VERBOSE     = False
 WITH_CUDA   = True
 WITH_CEREAL = True
 
-# python path
-PYTHON_INC = os.path.join(sys.prefix, 'include')
-PYTHON_LIB = os.path.join(sys.prefix, 'libs')
-print('PYTHON_INC=', PYTHON_INC)
-print('PYTHON_LIB=', PYTHON_LIB)
-
 # wget cereal
-with urllib.request.urlopen('https://github.com/USCiLab/cereal/archive/v1.2.2.tar.gz') as r:
-    with open('cereal.tar.gz', 'wb') as f:
-        f.write(r.read())
-with tarfile.open('./cereal.tar.gz', 'r') as tar:
-    tar.extractall('.')
-
+if WITH_CEREAL:
+    with urllib.request.urlopen('https://github.com/USCiLab/cereal/archive/v1.2.2.tar.gz') as r:
+        with open('cereal.tar.gz', 'wb') as f:
+            f.write(r.read())
+    with tarfile.open('./cereal.tar.gz', 'r') as tar:
+        tar.extractall('.')
 
 # search CUDA
 def find_in_path(name, path):
@@ -91,9 +87,13 @@ class get_pybind_include(object):
 
 # files
 sources       = ['binarybrain/src/core_main.cpp']
-define_macros = [('BB_WITH_CEREAL', '1')]
-include_dirs  = [get_pybind_include(), get_pybind_include(user=True), 'binarybrain/include', 'cereal-1.2.2/include']
+define_macros = []
+include_dirs  = [get_pybind_include(), get_pybind_include(user=True), 'binarybrain/include']
 lib_dirs      = []
+
+if WITH_CEREAL:
+    define_macros += [('BB_WITH_CEREAL', '1')]
+    include_dirs  += ['cereal-1.2.2/include']
 
 if CUDA is not None:
     sources       += ['binarybrain/src/core_bbcu.cu']
@@ -154,12 +154,9 @@ def hook_compiler(self):
             print('---------------------')
 
         if CUDA is not None:
-            macros, objects, extra_postargs, pp_opts, build = \
+            macros, objects, extra_postargs, _, _ = \
             self._setup_compile(output_dir, macros, include_dirs,
                             sources, depends, extra_postargs)
-                                
-            include_dirs += self.include_dirs
-            os.makedirs(output_dir, exist_ok=True)
             
             # macros
             macs = []
@@ -170,11 +167,10 @@ def hook_compiler(self):
                     macs.append('-D' + mac[0])
 
             # includes
+            incs = []
             if self.compiler_type == 'msvc':
-                incs  = ['-I"' + PYTHON_INC + '"']
                 incs += ['-I"' + str(inc) + '"' for inc in include_dirs]
             else:
-                incs  = ['-I' + PYTHON_INC]
                 incs += ['-I' + str(inc) for inc in include_dirs]
             
             # compile
@@ -193,6 +189,7 @@ def hook_compiler(self):
                 args = [CUDA['nvcc'], '-c', '-o', obj] + incs + macs + [src] + postargs
                 print(' '.join(args))
                 subprocess.call(args)
+#               self.spawn(args)
 
             return objects
         else:
@@ -223,17 +220,20 @@ def hook_compiler(self):
             print('---------------------')
 
         if CUDA is not None:
-            # lib_dirs
+            libraries, library_dirs, runtime_library_dirs =\
+                    self._fix_lib_args(libraries, library_dirs, runtime_library_dirs)
+
             if self.compiler_type == 'msvc':
-                lib_dirs  = ['-L"' + PYTHON_LIB + '"']
+                lib_dirs  = [] #['-L"' + PYTHON_LIB + '"']
                 lib_dirs += ['-L"' + str(libdir) + '"' for libdir in library_dirs]
             else:
-                lib_dirs = ['-L' + PYTHON_LIB]
+                lib_dirs = [] # ['-L' + PYTHON_LIB]
                 lib_dirs = ['-L' + str(libdir) for libdir in library_dirs]
             
             args = [CUDA['nvcc'], '-shared', '-o', output_filename] + objects + lib_dirs + extra_postargs
             print(' '.join(args))
             subprocess.call(args)
+#           self.spawn(args)
         else:
             super_link(target_desc, objects,
                 output_filename, output_dir, libraries,
@@ -246,6 +246,7 @@ def hook_compiler(self):
         self._compile = _compile
     self.compile = compile
     self.link = link
+
 
 class BuildExt(build_ext):
     """A custom build extension for adding compiler-specific options."""
@@ -287,9 +288,7 @@ class BuildExt(build_ext):
         cu_args['msvc'] += ['-std=c++11',
                             '-gencode=arch=compute_35,code=sm_35',
                             '-gencode=arch=compute_75,code=sm_75']
-        ar_args['msvc'] += [
-#                           '-L"C:\\Users\\ryuji2\\AppData\\Local\\Programs\\Python\\Python37\\libs"',
-                            '-lcublas']
+        ar_args['msvc'] += ['-lcublas']
     
     if sys.platform == 'darwin':
         darwin_args = ['-stdlib=libc++', '-mmacosx-version-min=10.7']
@@ -307,7 +306,6 @@ class BuildExt(build_ext):
         ct = self.compiler.compiler_type
         for ext in self.extensions:
             ext.extra_compile_args = {'cc': self.cc_args[ct], 'cu': self.cu_args[ct]}
-#           ext.extra_compile_args = self.cc_args[ct]
             ext.extra_link_args = self.ar_args[ct]
         build_ext.build_extensions(self)
 
