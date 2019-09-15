@@ -15,8 +15,17 @@ import tarfile
 #from distutils import msvccompiler
 
 
+# version
 __version__ = '0.0.3'
 
+# build flags
+VERBOSE     = True
+WITH_CUDA   = True
+WITH_CEREAL = True
+
+# python path
+PYTHON_INC = os.path.join(sys.prefix, 'include')
+PYTHON_LIB = os.path.join(sys.prefix, 'libs')
 
 
 # wget cereal
@@ -27,13 +36,13 @@ with tarfile.open('./cereal.tar.gz', 'r') as tar:
     tar.extractall('.')
 
 
+# search CUDA
 def find_in_path(name, path):
     for dir in path.split(os.pathsep):
         binpath = pjoin(dir, name)
         if os.path.exists(binpath):
             return os.path.abspath(binpath)
     return None
-
 
 def search_cuda():
     if sys.platform.startswith('win32') and 'CUDA_PATH' in os.environ:
@@ -59,9 +68,10 @@ def search_cuda():
 
     return {'home':cuda_home, 'nvcc':cuda_nvcc, 'include': cuda_include, 'lib': cuda_lib}
 
-
-# search CUDA
-CUDA = search_cuda()
+if WITH_CUDA:
+    CUDA = search_cuda()
+else:
+    CUDA = None
 
 
 class get_pybind_include(object):
@@ -103,8 +113,9 @@ ext_modules = [
 
 def hook_compiler(self):
     self.src_extensions.append('.cu')
-    super_compile = self._compile
-    super_link = self.link
+    super_compile_  = self._compile
+    super_compile   = self.compile
+    super_link      = self.link
 
     def _compile(obj, src, ext, cc_args, extra_postargs, pp_opts):
         if os.path.splitext(src)[1] == '.cu':
@@ -113,15 +124,95 @@ def hook_compiler(self):
             postargs = extra_postargs['cc']
         else:
             postargs = []
-        super_compile(obj, src, ext, cc_args, postargs, pp_opts)
+        super_compile_(obj, src, ext, cc_args, postargs, pp_opts)
     
+    def compile(sources,
+                output_dir=None, macros=None, include_dirs=None, debug=0,
+                extra_preargs=None, extra_postargs=None, depends=None):
+        if VERBOSE:
+            print('---------------------')
+            print('[compile]')
+            print('sources =', sources)
+            print('output_dir =', output_dir)
+            print('macros =', macros)
+            print('include_dirs =', include_dirs)
+            print('debug =', debug)
+            print('extra_preargs =', extra_preargs)
+            print('extra_postargs =', extra_postargs)
+            print('---------------------')
+
+        postargs = []
+        if os.path.splitext(sources[0])[1] == '.cu':
+           postargs = extra_postargs['cu']
+        elif os.path.splitext(sources[0])[1] == '.cpp':
+            postargs = extra_postargs['cc']
+
+        if CUDA is not None:
+            os.makedirs(output_dir, exist_ok=True)
+            
+            # macros
+            macs = []
+            for mac in macros:
+                if len(mac) >= 2:
+                    macs.append('-D' + mac[0] + '=' + mac[1])
+                else:
+                    macs.append('-D' + mac[0])
+
+            # includes
+            if self.compiler_type == 'msvc':
+                incs = ['-I"' + str(inc) + '"' for inc in include_dirs]
+            else:
+                incs = ['-I' + str(inc) for inc in include_dirs]
+            
+            # compile
+            objects = []
+            for src in sources:
+                fname, _ = os.path.splitext(os.path.basename(src))
+                obj = os.path.join(output_dir, fname + self.obj_extension)
+                objects.append(obj)
+
+                args = [CUDA['nvcc'], '-c', '-o', obj] + incs + macs + [src] + postargs
+                print(' '.join(args))
+                subprocess.call(args)
+
+            return objects
+        else:
+            return super_compile(sources,
+                        output_dir, macros, include_dirs, debug,
+                        extra_preargs, postargs, depends)
+
     def link(target_desc, objects,
              output_filename, output_dir=None, libraries=None,
              library_dirs=None, runtime_library_dirs=None,
              export_symbols=None, debug=0, extra_preargs=None,
              extra_postargs=None, build_temp=None, target_lang=None):
+
+        if VERBOSE:
+            print('---------------------')
+            print('[link]')
+            print('target_desc =', target_desc)
+            print('objects =', objects)
+            print('libraries =', libraries)
+            print('library_dirs =', library_dirs)
+            print('runtime_library_dirs =', runtime_library_dirs)
+            print('export_symbols =', export_symbols)
+            print('debug =', debug)
+            print('extra_preargs =', extra_preargs)
+            print('extra_postargs =', extra_postargs)
+            print('build_temp =', build_temp)
+            print('target_lang =', target_lang)
+            print('---------------------')
+
         if CUDA is not None:
-            args = [CUDA['nvcc'], '-shared', '-o', output_filename] + objects + extra_postargs
+            # lib_dirs
+            if self.compiler_type == 'msvc':
+                lib_dirs  = ['-L"' + PYTHON_LIB + '"']
+                lib_dirs += ['-L"' + str(libdir) + '"' for libdir in library_dirs]
+            else:
+                lib_dirs = ['-L' + PYTHON_LIB]
+                lib_dirs = ['-L' + str(libdir) for libdir in library_dirs]
+            
+            args = [CUDA['nvcc'], '-shared', '-o', output_filename] + objects + lib_dirs + extra_postargs
             print(' '.join(args))
             subprocess.call(args)
         else:
@@ -131,9 +222,9 @@ def hook_compiler(self):
                 export_symbols, debug, extra_preargs,
                 extra_postargs, build_temp, target_lang)
 
-    self._compile = _compile
+#    self._compile = _compile
+    self.compile = compile
     self.link = link
-
 
 class BuildExt(build_ext):
     """A custom build extension for adding compiler-specific options."""
@@ -146,7 +237,7 @@ class BuildExt(build_ext):
         ar_args['unix'] += ['-fopenmp', '-lstdc++', '-lm']
 
         # windows(cpu)
-        cc_args['msvc'] += ['/EHsc', '/arch:AVX2', '/openmp', '/std:c++14']
+        cc_args['msvc'] += ['/EHsc', '/arch:AVX2', '/openmp', '/std:c++14', '/wd"4819"']
         ar_args['msvc'] += []
     else:
         # unix(gpu)
@@ -167,11 +258,17 @@ class BuildExt(build_ext):
                             '-lstdc++', '-lm', '-lcublas']
 
         # windows(gpu)
-        cc_args['msvc'] += ['/EHsc', '/arch:AVX2', '/openmp', '/std:c++14', '/wd\"4819\"']
+        cc_args['msvc'] += ['-Xcompiler', '/EHsc',
+                            '-Xcompiler', '/arch:AVX2',
+                            '-Xcompiler', '/openmp',
+                            '-Xcompiler', '/std:c++14',
+                            '-Xcompiler', '/wd\"4819\"']
         cu_args['msvc'] += ['-std=c++11',
                             '-gencode=arch=compute_35,code=sm_35',
                             '-gencode=arch=compute_75,code=sm_75']
-        ar_args['msvc'] += []
+        ar_args['msvc'] += [
+#                           '-L"C:\\Users\\ryuji2\\AppData\\Local\\Programs\\Python\\Python37\\libs"',
+                            '-lcublas']
     
     if sys.platform == 'darwin':
         darwin_args = ['-stdlib=libc++', '-mmacosx-version-min=10.7']
@@ -185,13 +282,13 @@ class BuildExt(build_ext):
             self.compiler.set_executable('compiler_cxx', CUDA['nvcc'])
         
         hook_compiler(self.compiler)
-
+        
         ct = self.compiler.compiler_type
         for ext in self.extensions:
             ext.extra_compile_args = {'cc': self.cc_args[ct], 'cu': self.cu_args[ct]}
+#           ext.extra_compile_args = self.cc_args[ct]
             ext.extra_link_args = self.ar_args[ct]
         build_ext.build_extensions(self)
-
 
 package_data = {
     'binarybrain': [
