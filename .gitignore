@@ -41,6 +41,7 @@
 
 veritak_src_files.txt
 veritak_command.txt
+p_temp*.txt
 
 depend
 
@@ -75,6 +76,7 @@ tests/mnist/verilog/MnistStochasticLutSimple.v
 tests/mnist/verilog/MnistStochasticLutCnn.v
 tests/mnist/verilog/MnistMicroMlpLutSimple.v
 tests/mnist/verilog/MnistMicroMlpLutCnn.v
+tests/cifar10/verilog/Cifar10SparseLutCnn.v
 tests/diabetes/diabetes_data.txt
 tests/diabetes/diabetes_target.txt
 tests/diabetes/DiabetesRegressionBinaryLut.v

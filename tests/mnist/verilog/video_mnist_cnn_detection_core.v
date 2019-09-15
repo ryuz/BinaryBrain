@@ -66,7 +66,7 @@ module video_mnist_cnn_detection_core
 	wire							axi4s_l0_tvalid;
 	wire							axi4s_l0_tready;
 	
-	MnistValidationSparseLutCnnCnv0
+	MnistDetectSparseLutCnnCnv0
 			#(
 				.TUSER_WIDTH		(TUSER_WIDTH),
 				.IMG_X_WIDTH		(IMG_X_WIDTH),
@@ -80,7 +80,7 @@ module video_mnist_cnn_detection_core
 				.IMG_CKE_BUFG		(IMG_CKE_BUFG),
 				.DEVICE         	(DEVICE)
 			)
-		i_MnistValidationSparseLutCnnCnv0
+		i_MnistDetectSparseLutCnnCnv0
 			(
 				.reset				(~aresetn),
 				.clk				(aclk),
@@ -108,7 +108,7 @@ module video_mnist_cnn_detection_core
 	wire							axi4s_l1_tvalid;
 	wire							axi4s_l1_tready;
 	
-	MnistValidationSparseLutCnnCnv1
+	MnistDetectSparseLutCnnCnv1
 			#(
 				.TUSER_WIDTH		(TUSER_WIDTH),
 				.IMG_X_WIDTH		(IMG_X_WIDTH),
@@ -122,7 +122,7 @@ module video_mnist_cnn_detection_core
 				.IMG_CKE_BUFG		(IMG_CKE_BUFG),
 				.DEVICE         	(DEVICE)
 			)
-		i_MnistValidationSparseLutCnnCnv1
+		i_MnistDetectSparseLutCnnCnv1
 			(
 				.reset				(~aresetn),
 				.clk				(aclk),
@@ -144,7 +144,7 @@ module video_mnist_cnn_detection_core
 	
 	
 	// L2
-	MnistValidationSparseLutCnnCnv2
+	MnistDetectSparseLutCnnCnv2
 			#(
 				.TUSER_WIDTH		(TUSER_WIDTH),
 				.IMG_X_WIDTH		(IMG_X_WIDTH),
@@ -158,7 +158,7 @@ module video_mnist_cnn_detection_core
 				.IMG_CKE_BUFG		(IMG_CKE_BUFG),
 				.DEVICE         	(DEVICE)
 			)
-		i_MnistValidationSparseLutCnnCnv2
+		i_MnistDetectSparseLutCnnCnv2
 			(
 				.reset				(~aresetn),
 				.clk				(aclk),

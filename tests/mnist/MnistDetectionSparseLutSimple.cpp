@@ -99,9 +99,9 @@ void MakeMnistValidationTrainData(
 #endif
 
 
-void MnistValidationSparseLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void MnistDetectionSparseLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "MnistValidationSparseLutSimple";
+    std::string net_name = "MnistDetectionSparseLutSimple";
 
 #if 0
   // load MNIST data

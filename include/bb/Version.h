@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <string>
+
 
 #define BB_MAJOR_VERSION        3
 #define BB_MINOR_VERSION        7
@@ -24,6 +26,12 @@ inline void GetVersion(int *major_version, int *minor_version=nullptr, int *revi
     if ( major_version   != nullptr ) { *major_version   = BB_MAJOR_VERSION; }
     if ( minor_version   != nullptr ) { *minor_version   = BB_MINOR_VERSION; }
     if ( revision_number != nullptr ) { *revision_number = BB_REVISION_NUMBER; }
+}
+
+// バージョン文字列取得
+inline std::string GetVersionString(int *major_version, int *minor_version=nullptr, int *revision_number=nullptr)
+{
+    return std::to_string(BB_MAJOR_VERSION) + "." + std::to_string(BB_MINOR_VERSION) + "." + std::to_string(BB_REVISION_NUMBER);
 }
 
 
