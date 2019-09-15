@@ -9,6 +9,7 @@
 
 
 // kernel
+template<int BUF_SIZE>
 __global__ void kernel_fp32_MatrixColwiseMeanVar(
     const float*    src,
     float*          mean,
@@ -16,7 +17,7 @@ __global__ void kernel_fp32_MatrixColwiseMeanVar(
     int             frame_size,
     int             frame_stride)
 {
-    extern __shared__   float   buf[];
+    __shared__   float   buf[BUF_SIZE];
     
 
     // 初期化
@@ -89,12 +90,12 @@ BBCU_DLL_EXPORT int bbcu_fp32_MatrixColwiseMeanVar
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
     
-    int     unit_x = 512;
+    int const   unit_x = 512;
     
     dim3    grid(node_size);
     dim3    block(unit_x);
     
-    kernel_fp32_MatrixColwiseMeanVar<< <grid, block, 2 * unit_x * sizeof(float), streamId >> > (
+    kernel_fp32_MatrixColwiseMeanVar<2 * unit_x><< <grid, block, 0, streamId >> > (
         dev_src,
         dev_mean,
         dev_variance,

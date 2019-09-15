@@ -634,10 +634,10 @@ public:
      */
     DevConstPtr LockDeviceConst(void) const
     {
+#ifdef BB_WITH_CUDA
         // 便宜上constをはずす
         auto self = const_cast<Memory *>(this);
 
-#ifdef BB_WITH_CUDA
         if ( m_devAvailable ) {
             if (m_devAddr == nullptr) {
                 // デバイス側メモリ未確保ならここで確保

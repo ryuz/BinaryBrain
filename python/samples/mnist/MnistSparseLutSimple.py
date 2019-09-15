@@ -10,6 +10,8 @@ def main():
     training_modulation_size  = 3
     inference_modulation_size = 3
     
+    # download mnist
+    bb.download_mnist()
     
     # load MNIST data
     td = bb.LoadMnist.load()
@@ -51,7 +53,7 @@ def main():
     optimizer.set_variables(net.get_parameters(), net.get_gradients())
     
     runner = bb.Runner(net, "mnist-sparse-lut6-simple", loss, metrics, optimizer)
-    runner.fitting(td, epoch_size=epoch, mini_batch_size=mini_batch)
+    runner.fitting(td, epoch_size=epoch, mini_batch_size=mini_batch, file_read=True, file_write=True)
     
     
     ################################

@@ -434,6 +434,7 @@
     <ClInclude Include="..\..\include\bb\Utility.h" />
     <ClInclude Include="..\..\include\bb\ValueGenerator.h" />
     <ClInclude Include="..\..\include\bb\Variables.h" />
+    <ClInclude Include="..\..\include\bb\Version.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

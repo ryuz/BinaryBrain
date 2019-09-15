@@ -147,11 +147,11 @@ int main(int argc, char *argv[])
     }
     
     if ( netname == "All" || netname == "AeSparseLutSimple" ) {
-        Cifar10AeSparseLutSimple(epoch_size, mini_batch_size, test_modulation_size, test_modulation_size, binary_mode, file_read);
+        Cifar10AeSparseLutSimple(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
     if ( netname == "All" || netname == "AeSparseLutCnn" ) {
-        Cifar10AeSparseLutCnn(epoch_size, mini_batch_size, test_modulation_size, test_modulation_size, binary_mode, file_read);
+        Cifar10AeSparseLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
     
     return 0;

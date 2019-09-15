@@ -6,7 +6,7 @@
 
 #include "bbcu/bbcu.h"
 #include "bbcu/bbcu_util.h"
-
+#include "Common.cuh"
 
 
 
@@ -84,6 +84,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_Binarize_Forward
 
 ////////////////
 
+#if 0
 __device__ __forceinline__ int device_int_LocalOr(int v, int id, int *sbuf)
 {
     sbuf[id] = v;
@@ -106,6 +107,7 @@ __device__ __forceinline__ int device_int_LocalOr(int v, int id, int *sbuf)
     
     return sum;
 }
+#endif
 
 
 __global__ void kernal_fp32_bit_Binarize_Forward(

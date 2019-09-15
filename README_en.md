@@ -60,8 +60,11 @@ Please select GPU runtime.
 You can build C++ source code from iPython Notebook.
 
 
-### Python (Alpha version)
+### Python (Beta version)
 
+#### Preparation
+
+Install packeges.
 ```
 % pip3 install setuptools
 % pip3 install pybind11
@@ -69,26 +72,35 @@ You can build C++ source code from iPython Notebook.
 % pip3 install tqdm
 ```
 
+When using Windows, 64-bit version of VisualStudio is required.
+('x64' option is important)
+
+```
+> "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
+```
+
+#### Install
 
 ```
 % # install
 % cd python
-% make -C build
-% python3 setup.py develop
+% python3 setup.py install
+```
 
-% # MNIST data download
-% cd samples/mnist
-% sh get_nmist.sh
+#### Run sample programs (MNIST)
 
+```
 % # Simple DNN sample
 % python3 MnistSparseLutSimple.py
 
 % # CNN sample
 % python3 MnistSparseLutCnn.py
+```
 
-% # uninstall
-% cd ../..
-% python3 setup.py develop -u
+
+#### Install with pip
+```
+% pip3 install binarybrain
 ```
 
 
