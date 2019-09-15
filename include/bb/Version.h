@@ -11,7 +11,7 @@
 
 
 #define BB_MAJOR_VERSION        3
-#define BB_MINOR_VERSION        6
+#define BB_MINOR_VERSION        7
 #define BB_REVISION_NUMBER      0
 
 

@@ -18,4 +18,9 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\include\bb\Version.h">
+      <Filter>ヘッダファイル</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>

@@ -1,10 +1,16 @@
+// --------------------------------------------------------------------------
+//  Binary Brain  -- binary neural net framework
+//
+//                                Copyright (C) 2018-2019 by Ryuji Fuchikami
+//                                https://github.com/ryuz
+//                                ryuji.fuchikami@nifty.com
+// --------------------------------------------------------------------------
 
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/operators.h>
 
-#define BB_ASSERT_EXCEPTION
 
 #include "bb/DataType.h"
 

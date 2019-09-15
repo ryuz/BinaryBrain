@@ -10,6 +10,7 @@
 #pragma once
 
 #include <assert.h>
+#include <stdio.h>
 #include <cstdint>
 #include <iostream>
 #include <string>
@@ -20,8 +21,8 @@ namespace bb {
 
 #ifndef BB_ASSERT_ACTION
 
-#if defined(BB_ASSERT_LOOP)
-#define BB_ASSERT_ACTION(text)   do { std::cout << "\n" << text << std::endl;  for(;;); } while(0)
+#if defined(BB_ASSERT_GETCHAR)
+#define BB_ASSERT_ACTION(text)   do { std::cout << "\n" << text << std::endl;  printf("\nplease press enter key to exit.\n"); getchar(); } while(0)
 #elif defined(BB_ASSERT_EXCEPTION)
 #define BB_ASSERT_ACTION(text)   do { std::cout << "\n" << text << std::endl;  throw text; } while(0)
 #else
@@ -29,6 +30,7 @@ namespace bb {
 #endif
 
 #endif
+
 
 // assert for always
 #define BB_ASSERT(v)    \

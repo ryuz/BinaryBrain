@@ -24,6 +24,9 @@
   <ItemGroup>
     <ClCompile Include="..\..\binarybrain\src\core_main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\include\bb\Version.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{ACAFEE7F-E3FF-431C-AC93-E6591C0E358D}</ProjectGuid>
     <RootNamespace>core</RootNamespace>
