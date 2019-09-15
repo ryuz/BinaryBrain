@@ -153,6 +153,11 @@ def hook_compiler(self):
             print('extra_postargs =', extra_postargs)
             print('---------------------')
 
+        if self.compiler_type == 'unix':
+            return super_compile(sources,
+                        output_dir, macros, include_dirs, debug,
+                        extra_preargs, extra_postargs, depends)
+
         if CUDA is not None:
             macros, objects, extra_postargs, _, _ = \
             self._setup_compile(output_dir, macros, include_dirs,
