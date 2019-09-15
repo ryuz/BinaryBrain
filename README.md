@@ -65,9 +65,10 @@ nvcc が利用可能な Google Colaboratory でも動作可能なようです。
 のような操作で、ビルドして動作させることができます。
 
 
-### Python (α版)
+### Python (β版)
 
-
+#### 事前準備
+必要なパッケージを事前にインストールください
 ```
 % pip3 install setuptools
 % pip3 install pybind11
@@ -75,26 +76,34 @@ nvcc が利用可能な Google Colaboratory でも動作可能なようです。
 % pip3 install tqdm
 ```
 
+Windows環境の場合、nvccのほかにも VisualStudio の 64bit 版がコマンドラインから利用できるようにしておく必要があります。
+例えば以下のように実行しておきます。 x64 の指定が重要です。
 
+```
+> "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
+```
+
+#### インストール
+下記のコマンドでインストール可能です。
 ```
 % # install
 % cd python
-% make -C build
-% python3 setup.py develop
+% python3 setup.py install
+```
 
-% # MNIST data download
-% cd samples/mnist
-% sh get_nmist.sh
-
+#### サンプルの実行
+```
 % # Simple DNN sample
 % python3 MnistSparseLutSimple.py
 
 % # CNN sample
 % python3 MnistSparseLutCnn.py
+```
 
-% # uninstall
-% cd ../..
-% python3 setup.py develop -u
+#### pip によるインストール
+いずれ下記のようにインストールできるようになるかもしれません
+```
+% pip3 install binarybrain
 ```
 
 
