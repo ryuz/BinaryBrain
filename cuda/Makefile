@@ -1,10 +1,17 @@
 ﻿
+# target
+TARGET = libbbcu.a
 
-TARGET=libbbcu.a
+# tools
+NVCC   = nvcc
+AR     = ar
+RM     = rm
 
-NVCC = nvcc
-CFLAGS = -I ../include -gencode=arch=compute_35,code=sm_35 -gencode=arch=compute_75,code=sm_75 -std=c++11 -Xcompiler -fPIC
+# flagas
+CUFLAGS = -I../include -gencode=arch=compute_35,code=sm_35 -gencode=arch=compute_75,code=sm_75 -std=c++11 -Xcompiler -fPIC
+ARFLAGS =
 
+# sources
 SRCS += Manager.cu
 SRCS += LocalHeap.cu
 SRCS += FrameBufferCopy.cu
@@ -49,9 +56,10 @@ clean:
 	$(RM) $(TARGET) $(OBJS)
 
 $(TARGET): $(OBJS)
-	$(AR) rcs $(TARGET) $(OBJS)
+	$(AR) $(ARFLAGS) rcs $(TARGET) $(OBJS)
 
 .cu.o:
-	$(NVCC) -c $(CFLAGS) $< -o $@
+	$(NVCC) -c $(CUFLAGS) $< -o $@
 
 $(OBJS): $(HDRS)
+

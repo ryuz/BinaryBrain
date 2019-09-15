@@ -61,7 +61,7 @@ public:
         return ReadFile(ifs, x, y);
     }
 
-    static bool Load(std::vector< std::vector<T> >& x_train, std::vector< std::vector<T> >& y_train,
+    static bool LoadData(std::vector< std::vector<T> >& x_train, std::vector< std::vector<T> >& y_train,
         std::vector< std::vector<T> >& x_test, std::vector< std::vector<T> >& y_test, int num = 5)
     {
         if (!ReadFile("cifar-10-batches-bin/test_batch.bin", x_test, y_test)) { return false; }
@@ -78,7 +78,7 @@ public:
         TrainData<T>    td;
         td.x_shape = indices_t({32, 32, 3});
         td.t_shape = indices_t({10});
-        if (!Load(td.x_train, td.t_train, td.x_test, td.t_test, num)) {
+        if ( !LoadData(td.x_train, td.t_train, td.x_test, td.t_test, num) ) {
             td.clear();
         }
         return td;
