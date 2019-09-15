@@ -139,8 +139,8 @@ class Runner:
             mini_batch_size (int): mini batch size
         """
         
-        log_file_name  = self.name + '_log.txt';
-        json_file_name = self.name + '_net.json';
+        log_file_name  = self.name + '_log.txt'
+        json_file_name = self.name + '_net.json'
         epoch = 0
         
         # read
