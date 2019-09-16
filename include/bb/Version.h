@@ -29,7 +29,7 @@ inline void GetVersion(int *major_version, int *minor_version=nullptr, int *revi
 }
 
 // バージョン文字列取得
-inline std::string GetVersionString(int *major_version, int *minor_version=nullptr, int *revision_number=nullptr)
+inline std::string GetVersionString(void)
 {
     return std::to_string(BB_MAJOR_VERSION) + "." + std::to_string(BB_MINOR_VERSION) + "." + std::to_string(BB_REVISION_NUMBER);
 }

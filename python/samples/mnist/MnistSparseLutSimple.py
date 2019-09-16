@@ -97,7 +97,7 @@ def main():
     print('write verilog file')
     with open('MnistLutSimple.v', 'w') as f:
         f.write('`timescale 1ns / 1ps\n\n')
-        f.write(bb.get_verilog_from_lut('MnistLutSimple', [layer_bl0, layer_bl1, layer_bl2]))
+        f.write(bb.make_verilog_from_lut('MnistLutSimple', [layer_bl0, layer_bl1, layer_bl2]))
 
 
 if __name__ == '__main__':
