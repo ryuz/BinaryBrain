@@ -16,8 +16,8 @@ def make_image_block(vec):
     return img
 
 def main():
-    epoch                    = 4
-    mini_batch               = 16
+    epoch                    = 8
+    mini_batch               = 32
     training_modulation_size = 7
     test_modulation_size     = 7
     
@@ -81,7 +81,7 @@ def main():
     t_test  = td.t_test
     x_buf = bb.FrameBuffer()
     t_buf = bb.FrameBuffer()
-    for _ in range(epoch):
+    for epoch_num in range(epoch):
         # train
         for index in tqdm(range(0, batch_size, mini_batch)):
             mini_batch_size = min(mini_batch, batch_size-index)
@@ -99,21 +99,24 @@ def main():
             dx_buf = net.backward(dy_buf)
             
             optimizer.update()
+            cv2.waitKey(1)
         
         print('loss =', loss.get_loss())
         print('metrics =', metrics.get_metrics())
-
+        
         # test
         x_buf.resize(16, td.x_shape, bb.TYPE_FP32)
         x_buf.set_data(x_test[0:16])
         y_buf = net.forward(x_buf)
         
         if result_img is None:
-            result_img = make_image_block(x_buf.get_data())
+            x_img = make_image_block(x_buf.get_data())
+            cv2.imwrite('mnist-autoencoder-sparse-lut6-simple_x.png', x_img*255)
+            result_img = x_img
 
         y_img = make_image_block(y_buf.get_data())
+        cv2.imwrite('mnist-autoencoder-sparse-lut6-simple_%d.png' % epoch_num, y_img*255)
         result_img = np.vstack((result_img, y_img))
-        cv2.imwrite("mnist-autoencoder-sparse-lut6-simple.png", result_img*255)
         cv2.imshow('result_img', result_img)
         cv2.waitKey(1)
 
