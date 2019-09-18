@@ -1,9 +1,13 @@
+// --------------------------------------------------------------------------
+//  Binary Brain  -- binary neural net framework
+//
+//                                Copyright (C) 2018-2019 by Ryuji Fuchikami
+//                                https://github.com/ryuz
+//                                ryuji.fuchikami@nifty.com
+// --------------------------------------------------------------------------
 
-
-// #define BB_ASSERT_EXCEPTION
 
 #include "Manager.cu"
-
 #include "LocalHeap.cu"
 #include "FrameBufferCopy.cu"
 #include "Vector.cu"
@@ -30,5 +34,6 @@
 #include "Adam.cu"
 #include "LossSoftmaxCrossEntropy.cu"
 #include "AccuracyCategoricalClassification.cu"
+
 
 // end of file

@@ -1,11 +1,18 @@
+// --------------------------------------------------------------------------
+//  Binary Brain  -- binary neural net framework
+//
+//                                Copyright (C) 2018-2019 by Ryuji Fuchikami
+//                                https://github.com/ryuz
+//                                ryuji.fuchikami@nifty.com
+// --------------------------------------------------------------------------
 
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/operators.h>
 
-#define BB_ASSERT_EXCEPTION
 
+#include "bb/Version.h"
 #include "bb/DataType.h"
 
 #include "bb/Tensor.h"
@@ -109,14 +116,14 @@ using Runner                       = bb::Runner<float>;
 
 
 
-std::string GetVerilog_FromLut(std::string module_name, std::vector< std::shared_ptr< bb::LutLayer<float, float> > > layers)
+std::string MakeVerilog_FromLut(std::string module_name, std::vector< std::shared_ptr< bb::LutLayer<float, float> > > layers)
 {
     std::stringstream ss;
     bb::ExportVerilog_LutLayers<float, float>(ss, module_name, layers);
     return ss.str();
 }
 
-std::string GetVerilog_FromLutBit(std::string module_name, std::vector< std::shared_ptr< bb::LutLayer<bb::Bit, float> > > layers)
+std::string MakeVerilog_FromLutBit(std::string module_name, std::vector< std::shared_ptr< bb::LutLayer<bb::Bit, float> > > layers)
 {
     std::stringstream ss;
     bb::ExportVerilog_LutLayers<bb::Bit, float>(ss, module_name, layers);
@@ -124,14 +131,14 @@ std::string GetVerilog_FromLutBit(std::string module_name, std::vector< std::sha
 }
 
 
-std::string GetVerilogAxi4s_FromLutFilter2d(std::string module_name, std::vector< std::shared_ptr< bb::Filter2d<float, float> > > layers)
+std::string MakeVerilogAxi4s_FromLutFilter2d(std::string module_name, std::vector< std::shared_ptr< bb::Filter2d<float, float> > > layers)
 {
     std::stringstream ss;
     bb::ExportVerilog_LutCnnLayersAxi4s(ss, module_name, layers);
     return ss.str();
 }
 
-std::string GetVerilogAxi4s_FromLutFilter2dBit(std::string module_name, std::vector< std::shared_ptr< bb::Filter2d<bb::Bit, float> > > layers)
+std::string MakeVerilogAxi4s_FromLutFilter2dBit(std::string module_name, std::vector< std::shared_ptr< bb::Filter2d<bb::Bit, float> > > layers)
 {
     std::stringstream ss;
     bb::ExportVerilog_LutCnnLayersAxi4s(ss, module_name, layers);
@@ -141,7 +148,7 @@ std::string GetVerilogAxi4s_FromLutFilter2dBit(std::string module_name, std::vec
 
 namespace py = pybind11;
 PYBIND11_MODULE(core, m) {
-    m.doc() = "binarybrain plugin";
+    m.doc() = "BinaryBrain ver " + bb::GetVersionString();
 
     m.attr("TYPE_BIT")    = BB_TYPE_BIT;
     m.attr("TYPE_BINARY") = BB_TYPE_BINARY;
@@ -168,30 +175,70 @@ PYBIND11_MODULE(core, m) {
     py::class_< Tensor >(m, "Tensor");
 
     py::class_< FrameBuffer >(m, "FrameBuffer")
-        .def(py::init< bool >(),
-            py::arg("hostOnly") = false)
         .def(py::init< bb::index_t, bb::indices_t, int, bool>(),
-            py::arg("data_type"),
-            py::arg("frame_size"),
-            py::arg("shape"),
-            py::arg("hostOnly") = false)
+R"(FrameBuffer object constructor
+
+Manegement frame memory on CPU or GPU
+
+Args:
+    frame_size(int): size of frames
+    shape(List[int]): shape of frame
+    data_type(int): frame type  TYPE_BIT or TYPE_FP32
+    host_only(bool): only use host(CPU) memory.
+)",
+            py::arg("frame_size") = 0,
+            py::arg("shape") = bb::indices_t(),
+            py::arg("data_type") = 0,
+            py::arg("host_only") = false)
         .def("resize",  (void (FrameBuffer::*)(bb::index_t, bb::indices_t, int))&bb::FrameBuffer::Resize,
                 "resize",
                 py::arg("frame_size"),
                 py::arg("shape"),
                 py::arg("data_type") = BB_TYPE_FP32)
         .def("get_range", &FrameBuffer::GetRange)
-        .def("set_data",  (void (FrameBuffer::*)(std::vector< std::vector<float> > const &, bb::index_t))&FrameBuffer::SetVector<float>,
-                "set data",
+
+        .def("set_data", &FrameBuffer::SetData<float>,
+R"(set data to frames
+
+    set data to frames
+
+Args:
+    data(List[List[float]]): data
+    offset(int): offset
+)",
                 py::arg("data"),
+                py::arg("offset") = 0)
+
+        .def("get_data", &FrameBuffer::GetData<float>,
+R"(get data from frames
+
+    set data to frames
+
+Args:
+    size(int): size (If you specify 0 or less, it will be the size to the end)
+    offset(int): offset
+)",
+                py::arg("size") = 0,
                 py::arg("offset") = 0);
+
+
 
     py::class_< Variables, std::shared_ptr<Variables> >(m, "Variables");
 
     // Models
     py::class_< Model, std::shared_ptr<Model> >(m, "Model")
         .def("set_input_shape", &Model::SetInputShape)
-        .def("get_info", &Model::GetInfoString, "get network information",
+        .def("get_info", &Model::GetInfoString,
+R"(get a information of model structure.
+
+get a information string of model network structure.
+
+Args:
+   depth(int): depth of network structure
+   columns(str): size of column 
+   nest(str): nest counter
+Returns:
+   str: strings of model information)",
                 py::arg("depth")    = 0,
                 py::arg("columns")  = 70,
                 py::arg("nest")     = 0)
@@ -262,18 +309,11 @@ PYBIND11_MODULE(core, m) {
 
     py::class_< BinaryLut6, LutLayer, std::shared_ptr<BinaryLut6> >(m, "BinaryLut6")
         .def_static("create", &BinaryLut6::CreateEx,
-R"(create object
+R"(create BinaryLut6 object
 
-Parameters
-----------
-output_shape : List
-  The shape of output
-seed : int
-  random seed
-
-Returns
--------
- class object
+    Args:
+        output_shape (List[int]): shape of output frame
+        seed (int): seed of random
 )",
                 py::arg("output_shape"),
                 py::arg("seed") = 1);
@@ -476,10 +516,10 @@ Returns
             py::arg("batch_size"));
 
     // verilog
-    m.def("get_verilog_from_lut", &GetVerilog_FromLut);
-    m.def("get_verilog_from_lut_bit", &GetVerilog_FromLutBit);
-    m.def("get_verilog_axi4s_from_lut_cnn", &GetVerilogAxi4s_FromLutFilter2d);
-    m.def("get_verilog_axi4s_from_lut_cnn_bit", &GetVerilogAxi4s_FromLutFilter2dBit);
+    m.def("make_verilog_from_lut", &MakeVerilog_FromLut);
+    m.def("make_verilog_from_lut_bit", &MakeVerilog_FromLutBit);
+    m.def("make_verilog_axi4s_from_lut_cnn", &MakeVerilogAxi4s_FromLutFilter2d);
+    m.def("make_verilog_axi4s_from_lut_cnn_bit", &MakeVerilogAxi4s_FromLutFilter2dBit);
 }
 
 

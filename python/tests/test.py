@@ -7,6 +7,7 @@ import binarybrain as bb
 from tqdm import tqdm
 import time
 import numpy as np
+import cv2
 
 
 epoch      = 3
@@ -15,6 +16,12 @@ mini_batch = 32
 
 # load MNIST data
 td = bb.LoadMnist.load()
+
+x_train = np.array(td.x_train)
+#x_train = x_train.reshape(-1, 28, 28)
+#cv2.imshow('img', x_train[0,:,:])
+#cv2.waitKey()
+
 
 # create layer
 layer_sl0 = bb.SparseLut6.create([1024])
@@ -44,11 +51,11 @@ optimizer.set_variables(net.get_parameters(), net.get_gradients())
 batch_size = len(td.x_train)
 print('batch_size =', batch_size)
 
+if False:
+    runner = bb.Runner(net, "mnist-mlp-sparse-lut6", loss, metrics, optimizer)
+    runner.fitting(td, epoch_size=3, mini_batch_size=16)
 
-runner = bb.Runner(net, "mnist-mlp-sparse-lut6", loss, metrics, optimizer)
-runner.fitting(td, epoch_size=3, mini_batch_size=16)
-
-sys.exit(0)
+    sys.exit(0)
 
 if False:
     runner = bb.CRunner.create("mnist-mlp-sparse-lut6", net, loss, metrics, optimizer)
@@ -60,19 +67,26 @@ metrics.clear()
 x_train = td.x_train
 t_train = td.t_train
 
-x_buf = bb.FrameBuffer(bb.TYPE_FP32, 16, td.x_shape, False)
-t_buf = bb.FrameBuffer(bb.TYPE_FP32, 16, td.t_shape, False)
+x_buf = bb.FrameBuffer()
+t_buf = bb.FrameBuffer()
 
 for epoch_number in range(epoch):
     for index in tqdm(range(0, batch_size, mini_batch)):
         mini_batch_size = min(mini_batch, batch_size-index)
         
-        x_buf.resize(bb.TYPE_FP32, mini_batch_size, td.x_shape)
+        x_buf.resize(mini_batch_size, td.x_shape, bb.TYPE_FP32)
         x_buf.set_data(x_train[index:index+mini_batch_size])
-        
+
+        x_tmp = x_buf.get_data(8)
+        imgs = np.array(x_tmp)
+        imgs = imgs.reshape(-1, 28)
+        cv2.imshow('imgs', imgs)
+        cv2.waitKey(10)
+
+
         y_buf = net.forward(x_buf)
         
-        t_buf.resize(bb.TYPE_FP32, mini_batch_size, td.t_shape)
+        t_buf.resize(mini_batch_size, td.t_shape, bb.TYPE_FP32)
         t_buf.set_data(t_train[index:index+mini_batch_size])
         
         dy_buf = loss.calculate_loss(y_buf, t_buf, mini_batch_size)

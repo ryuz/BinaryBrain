@@ -60,13 +60,13 @@
     <ClCompile Include="MnistSparseLutCnnDa.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="MnistValidationSparseLutSimple.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="MnistValidationSparseLutCnn.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="MnistSparseLutCnnDa2.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="MnistDetectionSparseLutCnn.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="MnistDetectionSparseLutSimple.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

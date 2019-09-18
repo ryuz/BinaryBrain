@@ -281,7 +281,7 @@ public:
       * @brief  デフォルトコンストラクタ
       * @detail デフォルトコンストラクタ
       */
-    explicit FrameBuffer(bool hostOnly=false) : m_tensor(hostOnly) {}
+//  explicit FrameBuffer(bool hostOnly=false) : m_tensor(hostOnly) {}
 
     /**
      * @brief  コンストラクタ
@@ -303,9 +303,11 @@ public:
      * @param shape      1フレームのノードを構成するshape
      * @param data_type  1ノードのデータ型
      */
-    explicit FrameBuffer(index_t frame_size, indices_t shape, int data_type, bool hostOnly=false) : m_tensor(hostOnly)
+    explicit FrameBuffer(index_t frame_size=0, indices_t shape=indices_t(), int data_type=BB_TYPE_FP32, bool hostOnly=false) : m_tensor(hostOnly)
     {
-        Resize(frame_size, shape, data_type);
+        if ( frame_size > 0 ) {
+            Resize(frame_size, shape, data_type);
+        }
     }
 
     /**
@@ -1069,6 +1071,49 @@ public:
             }
         }
     }
+
+
+    template<typename Tp>
+    void SetData(std::vector< std::vector<Tp> > const &data, index_t offset=0)
+    {
+        BB_ASSERT(GetType() == DataType<Tp>::type);
+        BB_ASSERT(offset + (index_t)data.size() <= m_frame_size);
+
+        index_t size = (index_t)data.size(); 
+        if ( size + offset > m_frame_size ) { size = m_frame_size - offset; }
+
+        auto ptr = Lock<Tp>();
+        for (index_t i = 0; i < size; ++i) {
+            index_t frame = i + offset;
+            BB_ASSERT(data[i].size() == (size_t)m_node_size);
+            for (index_t node = 0; node < m_node_size; ++node) {
+                ptr.Set(frame, node, data[i][node]);
+            }
+        }
+    }
+
+    template<typename Tp>
+    std::vector< std::vector<Tp> > GetData(index_t size=0, index_t offset=0)
+    {
+        if ( size <= 0 ) { size = m_frame_size - offset; }
+
+        BB_ASSERT(GetType() == DataType<Tp>::type);
+        BB_ASSERT(offset + size <= m_frame_size);
+
+        std::vector< std::vector<Tp> > data(size);
+
+        auto ptr = LockConst<Tp>();
+        for (index_t i = 0; i < size; ++i) {
+            data[i].resize(m_node_size);
+            index_t frame = i + offset;
+            for (index_t node = 0; node < m_node_size; ++node) {
+                data[i][node] = ptr.Get(frame, node);
+            }
+        }
+
+        return data;
+    }
+
 
     // テンソルの設定
 public:
