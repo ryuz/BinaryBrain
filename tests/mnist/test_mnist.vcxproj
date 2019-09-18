@@ -353,6 +353,8 @@
     <ClCompile Include="MnistCustomModel.cpp" />
     <ClCompile Include="MnistDenseCnn.cpp" />
     <ClCompile Include="MnistDenseSimple.cpp" />
+    <ClCompile Include="MnistDetectionSparseLutCnn.cpp" />
+    <ClCompile Include="MnistDetectionSparseLutSimple.cpp" />
     <ClCompile Include="MnistMicroMlpLutCnn.cpp" />
     <ClCompile Include="MnistMicroMlpLutSimple.cpp" />
     <ClCompile Include="MnistMicroMlpScratch.cpp" />
@@ -362,8 +364,6 @@
     <ClCompile Include="MnistSparseLutSimple.cpp" />
     <ClCompile Include="MnistStochasticLutCnn.cpp" />
     <ClCompile Include="MnistStochasticLutSimple.cpp" />
-    <ClCompile Include="MnistValidationSparseLutCnn.cpp" />
-    <ClCompile Include="MnistValidationSparseLutSimple.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\bb\Activation.h" />

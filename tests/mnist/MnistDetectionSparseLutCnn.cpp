@@ -46,9 +46,9 @@ static void DataAugmentationProc(bb::TrainData<>& td, std::uint64_t seed, void *
 }
 
 
-void MnistValidationSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void MnistDetectionSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "MnistValidationSparseLutCnn";
+    std::string net_name = "MnistDetectionSparseLutCnn";
 
   // load MNIST data
 #ifdef _DEBUG

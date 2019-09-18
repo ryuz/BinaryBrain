@@ -10,6 +10,9 @@ def main():
     training_modulation_size  = 1
     inference_modulation_size = 1
     
+    # download MNIST data
+    bb.download_mnist()
+    
     # load MNIST data
     td = bb.LoadMnist.load()
     
@@ -174,9 +177,9 @@ def main():
     print('write verilog file')
     with open('MnistLutCnn.v', 'w') as f:
         f.write('`timescale 1ns / 1ps\n\n')
-        f.write(bb.get_verilog_axi4s_from_lut_cnn('MnistLutCnnCnv0', [cnv0, cnv1, pol0]))
-        f.write(bb.get_verilog_axi4s_from_lut_cnn('MnistLutCnnCnv1', [cnv2, cnv3, pol1]))
-        f.write(bb.get_verilog_axi4s_from_lut_cnn('MnistLutCnnCnv2', [cnv4]))
+        f.write(bb.make_verilog_axi4s_from_lut_cnn('MnistLutCnnCnv0', [cnv0, cnv1, pol0]))
+        f.write(bb.make_verilog_axi4s_from_lut_cnn('MnistLutCnnCnv1', [cnv2, cnv3, pol1]))
+        f.write(bb.make_verilog_axi4s_from_lut_cnn('MnistLutCnnCnv2', [cnv4]))
 
 
 

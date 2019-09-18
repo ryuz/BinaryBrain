@@ -11,6 +11,8 @@ def main():
     training_modulation_size  = 3
     inference_modulation_size = 3
     
+    # download MNIST data
+    bb.download_mnist()
     
     # load MNIST data
     td = bb.LoadMnist.load()

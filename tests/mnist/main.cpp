@@ -10,6 +10,8 @@
 #include <iostream>
 #include <string.h>
 
+#include "bb/Version.h"
+
 #ifdef BB_WITH_CUDA
 #include "bbcu/bbcu.h"
 #endif
@@ -29,8 +31,8 @@ void MnistCustomModel        (int epoch_size, int mini_batch_size,              
 void MnistAeSparseLutSimple  (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistAeSparseLutCnn     (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 
-void MnistValidationSparseLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
-void MnistValidationSparseLutCnn   (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistDetectionSparseLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistDetectionSparseLutCnn   (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 
 
 // メイン関数
@@ -45,6 +47,8 @@ int main(int argc, char *argv[])
     bool        file_read             = false;
     bool        binary_mode           = true;
     bool        print_device          = false;
+
+    std::cout << "BinaryBrain version " << BB_MAJOR_VERSION << "." << BB_MINOR_VERSION << "." << BB_REVISION_NUMBER << std::endl;
 
     if ( argc < 2 ) {
         std::cout << "usage:" << std::endl;
@@ -175,12 +179,12 @@ int main(int argc, char *argv[])
     }
 
 
-    if ( netname == "ValidationSparseLutSimple" ) {
-        MnistValidationSparseLutSimple(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    if ( netname == "DetectionSparseLutSimple" ) {
+        MnistDetectionSparseLutSimple(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
-    if ( netname == "ValidationSparseLutCnn" ) {
-        MnistValidationSparseLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    if ( netname == "DetectionSparseLutCnn" ) {
+        MnistDetectionSparseLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
     return 0;
