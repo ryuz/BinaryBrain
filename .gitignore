@@ -41,6 +41,7 @@
 
 documents/sphinx/jp/build/
 documents/sphinx/en/build/
+documents/sphinx/tmp/
 
 
 veritak_src_files.txt
