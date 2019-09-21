@@ -13,7 +13,8 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('.'))
-import binarybrain
+#import binarybrain
+
 
 # -- Project information -----------------------------------------------------
 
@@ -22,7 +23,8 @@ copyright = '2019, Ryuji Fuchikami'
 author = 'Ryuji Fuchikami'
 
 # The full version, including alpha/beta/rc tags
-release = str(binarybrain.get_version())
+# release = str(binarybrain.get_version())
+release = '3.8.0' # str(binarybrain.get_version())
 
 
 # -- General configuration ---------------------------------------------------
