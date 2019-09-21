@@ -10,6 +10,12 @@ import numpy as np
 import cv2
 
 
+print(bb.TYPE_BIT)
+print(bb.get_version())
+print(bb.__version__)
+
+sys.exit()
+
 epoch      = 3
 mini_batch = 32
 

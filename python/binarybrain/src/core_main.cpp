@@ -150,6 +150,8 @@ namespace py = pybind11;
 PYBIND11_MODULE(core, m) {
     m.doc() = "BinaryBrain ver " + bb::GetVersionString();
 
+    m.attr("__version__") = py::cast(BB_VERSION); //   py::cast(bb::GetVersionString());
+
     m.attr("TYPE_BIT")    = BB_TYPE_BIT;
     m.attr("TYPE_BINARY") = BB_TYPE_BINARY;
     m.attr("TYPE_FP16")   = BB_TYPE_FP16;
@@ -195,7 +197,8 @@ Args:
                 py::arg("frame_size"),
                 py::arg("shape"),
                 py::arg("data_type") = BB_TYPE_FP32)
-        .def("get_range", &FrameBuffer::GetRange)
+        .def("range", &FrameBuffer::Range)
+        .def("concatenate", &FrameBuffer::Concatenate)
 
         .def("set_data", &FrameBuffer::SetData<float>,
 R"(set data to frames
@@ -520,6 +523,8 @@ R"(create BinaryLut6 object
     m.def("make_verilog_from_lut_bit", &MakeVerilog_FromLutBit);
     m.def("make_verilog_axi4s_from_lut_cnn", &MakeVerilogAxi4s_FromLutFilter2d);
     m.def("make_verilog_axi4s_from_lut_cnn_bit", &MakeVerilogAxi4s_FromLutFilter2dBit);
+
+    m.def("get_version", &bb::GetVersionString);
 }
 
 

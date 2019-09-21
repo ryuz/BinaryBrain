@@ -8,6 +8,7 @@ import tarfile
 import gzip
 import shutil
 
+
 if 'ipykernel' in sys.modules:
    from tqdm import tqdm_notebook as tqdm
 else:
