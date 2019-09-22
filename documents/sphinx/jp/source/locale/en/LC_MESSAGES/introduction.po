@@ -1,0 +1,241 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, Ryuji Fuchikami
+# This file is distributed under the same license as the BinaryBrain
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: BinaryBrain \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-09-22 08:35+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../source/introduction.rst:3
+msgid "はじめに"
+msgstr "introduction"
+
+#: ../../source/introduction.rst:7
+msgid "概要"
+msgstr "abstruct"
+
+#: ../../source/introduction.rst:9
+msgid ""
+"BinaryBrain は主に当サイトが研究中の LUT(Look-Up Table)-Networkを実験することを目的に作成した "
+"ディープラーニング用のプラットフォームです。"
+msgstr ""
+
+#: ../../source/introduction.rst:12
+msgid "LUT-Networkの評価を目的に作成しておりますが、それ以外の用途にも利用可能です。"
+msgstr ""
+
+#: ../../source/introduction.rst:14
+msgid "以下の特徴があります"
+msgstr ""
+
+#: ../../source/introduction.rst:16
+msgid "ニューラルネットのFPGA化をメインターゲットにしている"
+msgstr ""
+
+#: ../../source/introduction.rst:17
+msgid "バイナリネットであるも関わらず変調技術により回帰分析が可能"
+msgstr ""
+
+#: ../../source/introduction.rst:18
+msgid "独自の確率的LUTのモデルにより、高速に学習できる"
+msgstr ""
+
+#: ../../source/introduction.rst:19
+msgid "量子化＆疎行列のネットワークでパフォーマンスの良い学習が出来る環境を目指している"
+msgstr ""
+
+#: ../../source/introduction.rst:20
+msgid "C++で記述されている"
+msgstr ""
+
+#: ../../source/introduction.rst:21
+msgid "GPU(CUDA)に対応している"
+msgstr ""
+
+#: ../../source/introduction.rst:22
+msgid "高速でマニアックな自作レイヤーが作りやすい"
+msgstr ""
+
+#: ../../source/introduction.rst:27
+msgid "MNISTサンプルの動かし方"
+msgstr ""
+
+#: ../../source/introduction.rst:29
+msgid "AXV2以降の命令が使えるCPUと、Windows7以降の環境を想定しております。 CUDA(Kepler以降)にも対応しています。"
+msgstr ""
+
+#: ../../source/introduction.rst:33
+msgid "Windows"
+msgstr ""
+
+#: ../../source/introduction.rst:34
+msgid "install VisualStudio 2017 + CUDA 10.1"
+msgstr ""
+
+#: ../../source/introduction.rst:35
+msgid ""
+"git clone --recursive -b ver3_release "
+"https://github.com/ryuz/BinaryBrain.git"
+msgstr ""
+
+#: ../../source/introduction.rst:36
+msgid "download MNIST from http://yann.lecun.com/exdb/mnist/"
+msgstr ""
+
+#: ../../source/introduction.rst:37
+msgid "decompress MNIST for \"\\samples\\mnist\""
+msgstr ""
+
+#: ../../source/introduction.rst:38
+msgid "open VC++ solution \"samples\\mnist\\sample_mnist.sln\""
+msgstr ""
+
+#: ../../source/introduction.rst:39
+msgid "build \"x64 Release\""
+msgstr ""
+
+#: ../../source/introduction.rst:40
+msgid "run"
+msgstr ""
+
+#: ../../source/introduction.rst:43
+msgid "Linux(Ubuntu 18.04.1)"
+msgstr ""
+
+#: ../../source/introduction.rst:46
+msgid "install tools"
+msgstr ""
+
+#: ../../source/introduction.rst:60
+msgid "2. build and run"
+msgstr ""
+
+#: ../../source/introduction.rst:71
+msgid "GPUを使わない場合は make WITH_CUDA=No として下さい。"
+msgstr ""
+
+#: ../../source/introduction.rst:74
+msgid "Google Colaboratory"
+msgstr ""
+
+#: ../../source/introduction.rst:76
+msgid ""
+"nvcc が利用可能な Google Colaboratory でも動作可能なようです。 "
+"以下あくまで参考ですが、ランタイムのタイプをGPUに設定した上で"
+msgstr ""
+
+#: ../../source/introduction.rst:86
+msgid "のような操作で、ビルドして動作させることができます。"
+msgstr ""
+
+#: ../../source/introduction.rst:90
+msgid "Python (β版)"
+msgstr ""
+
+#: ../../source/introduction.rst:93
+msgid "事前準備"
+msgstr ""
+
+#: ../../source/introduction.rst:95
+msgid "必要なパッケージを事前にインストールください"
+msgstr ""
+
+#: ../../source/introduction.rst:104
+msgid ""
+"Windows環境の場合、nvccのほかにも VisualStudio の 64bit "
+"版がコマンドラインから利用できるようにしておく必要があります。 例えば以下のように実行しておきます。 x64 の指定が重要です。"
+msgstr ""
+
+#: ../../source/introduction.rst:112
+msgid "インストール"
+msgstr ""
+
+#: ../../source/introduction.rst:114
+msgid "下記のコマンドでインストール可能です。"
+msgstr ""
+
+#: ../../source/introduction.rst:124
+msgid "サンプルの実行"
+msgstr ""
+
+#: ../../source/introduction.rst:137
+msgid "pip によるインストール"
+msgstr ""
+
+#: ../../source/introduction.rst:139
+msgid "いずれ下記のようにインストールできるようになるかもしれません"
+msgstr ""
+
+#: ../../source/introduction.rst:147
+msgid "githubからの取得"
+msgstr ""
+
+#: ../../source/introduction.rst:149
+msgid "現在 version3 は下記の branch で管理しています"
+msgstr ""
+
+#: ../../source/introduction.rst:152
+msgid "ver3_develop"
+msgstr ""
+
+#: ../../source/introduction.rst:152
+msgid "著者の開発用。記録のためにビルド不能なものを入れることもあります。"
+msgstr ""
+
+#: ../../source/introduction.rst:154
+msgid "ver3_release"
+msgstr ""
+
+#: ../../source/introduction.rst:155
+msgid "リリース用。基本的な動作確認はしてからここにマージしています。"
+msgstr ""
+
+#: ../../source/introduction.rst:157
+msgid "master"
+msgstr ""
+
+#: ../../source/introduction.rst:157
+msgid "現在は ver3 のリリース版を反映。"
+msgstr ""
+
+#: ../../source/introduction.rst:159
+msgid ""
+"tag は 開発都合で ver3_build0001 のような形式で定期的に打っており、 "
+"リリースのタイミングでバージョン番号のタグを打つようにしております。 (以前はリリースごとにver3_release1 のような形で打つように "
+"していました)。"
+msgstr ""
+
+#: ../../source/introduction.rst:164
+msgid "まだ、開発初期で仕様が安定していませんので、再現性の確保などが 必要な際はタグを活用ください。"
+msgstr ""
+
+#: ../../source/introduction.rst:169
+msgid "基本的な使い方"
+msgstr ""
+
+#: ../../source/introduction.rst:171
+msgid "CPU版に関してはヘッダオンリーライブラリとなっているため、include 以下にある ヘッダファイルをインクルードするだけでご利用いただけます。"
+msgstr ""
+
+#: ../../source/introduction.rst:174
+msgid ""
+"GPUを使う場合は、ヘッダ読み込みの際に BB_WITH_CUDA マクロを定義した上で、cuda 以下にある "
+"ライブラリをビルドした上でリンクする必要があります。"
+msgstr ""
+
+#: ../../source/introduction.rst:177
+msgid "また、BB_WITH_CEREAL マクロを定義すると、途中経過を json 経由で保存可能となります。"
+msgstr ""
+

@@ -16,8 +16,6 @@ shutil.rmtree('binarybrain/cuda', ignore_errors=True)
 shutil.copytree('../include', 'binarybrain/include')
 shutil.copytree('../cuda',    'binarybrain/cuda')
 
-subprocess.check_call('gcc --version', shell=True)
-
 python_cmd = 'python3'
 try:
     subprocess.check_call('python3 -V', shell=True)
