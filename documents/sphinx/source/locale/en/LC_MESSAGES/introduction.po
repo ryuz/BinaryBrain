@@ -32,21 +32,22 @@ msgid ""
 "ディープラーニング用のプラットフォームです。"
 msgstr ""
 
+
 #: ../../source/introduction.rst:12
 msgid "LUT-Networkの評価を目的に作成しておりますが、それ以外の用途にも利用可能です。"
 msgstr ""
 
 #: ../../source/introduction.rst:14
 msgid "以下の特徴があります"
-msgstr ""
+msgstr "It has the following features"
 
 #: ../../source/introduction.rst:16
 msgid "ニューラルネットのFPGA化をメインターゲットにしている"
-msgstr ""
+msgstr "The main target is FPGA(field-programmable gate array)."
 
 #: ../../source/introduction.rst:17
 msgid "バイナリネットであるも関わらず変調技術により回帰分析が可能"
-msgstr ""
+msgstr "Regression analysis is possible though it is binary model."
 
 #: ../../source/introduction.rst:18
 msgid "独自の確率的LUTのモデルにより、高速に学習できる"
@@ -58,11 +59,11 @@ msgstr ""
 
 #: ../../source/introduction.rst:20
 msgid "C++で記述されている"
-msgstr ""
+msgstr "Developed in C++"
 
 #: ../../source/introduction.rst:21
 msgid "GPU(CUDA)に対応している"
-msgstr ""
+msgstr "Accelerated with GPU (CUDA)"
 
 #: ../../source/introduction.rst:22
 msgid "高速でマニアックな自作レイヤーが作りやすい"
@@ -70,25 +71,27 @@ msgstr ""
 
 #: ../../source/introduction.rst:27
 msgid "MNISTサンプルの動かし方"
-msgstr ""
+msgstr "How to use sample program (MNIST)"
 
 #: ../../source/introduction.rst:29
 msgid "AXV2以降の命令が使えるCPUと、Windows7以降の環境を想定しております。 CUDA(Kepler以降)にも対応しています。"
-msgstr ""
+msgstr " "
 
 #: ../../source/introduction.rst:33
 msgid "Windows"
-msgstr ""
+msgstr "Windows"
 
 #: ../../source/introduction.rst:34
 msgid "install VisualStudio 2017 + CUDA 10.1"
-msgstr ""
+msgstr "install VisualStudio 2017 + CUDA 10.1"
 
 #: ../../source/introduction.rst:35
 msgid ""
 "git clone --recursive -b ver3_release "
 "https://github.com/ryuz/BinaryBrain.git"
 msgstr ""
+"git clone --recursive -b ver3_release "
+"https://github.com/ryuz/BinaryBrain.git"
 
 #: ../../source/introduction.rst:36
 msgid "download MNIST from http://yann.lecun.com/exdb/mnist/"

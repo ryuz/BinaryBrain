@@ -39,9 +39,10 @@
 *.pyc
 *.pyd
 
-documents/sphinx/jp/build/
-documents/sphinx/en/build/
-documents/sphinx/tmp/
+*.mo
+
+documents/sphinx/build/
+documents/tmp/
 
 
 veritak_src_files.txt
