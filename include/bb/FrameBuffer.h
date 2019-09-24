@@ -1087,7 +1087,7 @@ public:
             index_t frame = i + offset;
             BB_ASSERT(data[i].size() == (size_t)m_node_size);
             for (index_t node = 0; node < m_node_size; ++node) {
-                ptr.Set(frame, node, data[i][node]);
+                ptr.Set(frame, node, (BufType)data[i][node]);
             }
         }
     }
@@ -1107,7 +1107,7 @@ public:
             data[i].resize(m_node_size);
             index_t frame = i + offset;
             for (index_t node = 0; node < m_node_size; ++node) {
-                data[i][node] = ptr.Get(frame, node);
+                data[i][node] = (VecType)ptr.Get(frame, node);
             }
         }
 

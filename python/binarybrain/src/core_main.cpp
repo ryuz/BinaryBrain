@@ -150,7 +150,7 @@ namespace py = pybind11;
 PYBIND11_MODULE(core, m) {
     m.doc() = "BinaryBrain ver " + bb::GetVersionString();
 
-    m.attr("__version__") = py::cast(BB_VERSION); //   py::cast(bb::GetVersionString());
+    m.attr("__version__") = py::cast(BB_VERSION);
 
     m.attr("TYPE_BIT")    = BB_TYPE_BIT;
     m.attr("TYPE_BINARY") = BB_TYPE_BINARY;
@@ -174,7 +174,43 @@ PYBIND11_MODULE(core, m) {
     m.attr("BB_BORDER_WRAP")        = BB_BORDER_WRAP;
 
 
-    py::class_< Tensor >(m, "Tensor");
+    py::class_< Tensor >(m, "Tensor")
+        .def("set_data", &Tensor::SetData<float>,
+R"(set data to tensor
+
+    set data to tensor
+
+Args:
+    data(List[List[float]]): data
+)"
+            )
+        .def("get_data", &Tensor::GetData<float>,
+R"(get data from tensor
+
+    set data to tensor
+
+Returns:
+    tensor data
+)"
+            )
+        .def("set_data_int32", &Tensor::SetData<int>,
+R"(set data to tensor
+
+    set data to tensor
+
+Args:
+    data(List[List[int]]): data
+)"
+            )
+        .def("get_data_int32", &Tensor::GetData<int>,
+R"(get data from tensor
+
+    set data to tensor
+
+Returns:
+    tensor data
+)"
+            );
 
     py::class_< FrameBuffer >(m, "FrameBuffer")
         .def(py::init< bb::index_t, bb::indices_t, int, bool>(),
@@ -263,7 +299,8 @@ Returns:
             py::arg("output_shape"),
             py::arg("initialize_std") = 0.01f,
             py::arg("initializer")    = "he",
-            py::arg("seed")           = 1);
+            py::arg("seed")           = 1)
+        .def("W", ((Tensor& (DenseAffine::*)())&DenseAffine::W));
             
     py::class_< SparseLayer, Model, std::shared_ptr<SparseLayer> >(m, "SparseLayer");
 
