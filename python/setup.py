@@ -18,9 +18,14 @@ import re
 # from distutils import msvccompiler
 
 
+# change directory
+src_path = os.path.dirname(os.path.abspath(sys.argv[0]))
+os.chdir(src_path)
+
+
 # build flags
 VERBOSE     = False
-WITH_CUDA   = True
+WITH_CUDA   = False
 WITH_CEREAL = True
 
 

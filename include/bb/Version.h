@@ -12,13 +12,15 @@
 #include <string>
 
 
-#define BB_MAJOR_VERSION        3
-#define BB_MINOR_VERSION        7
-#define BB_REVISION_NUMBER      0
-
-
 namespace bb
 {
+
+#define BB_MAJOR_VERSION        3
+#define BB_MINOR_VERSION        8
+#define BB_REVISION_NUMBER      0
+
+#define BB_VERSION              (std::to_string(BB_MAJOR_VERSION) + "." + std::to_string(BB_MINOR_VERSION) + "." + std::to_string(BB_REVISION_NUMBER))
+
 
 // バージョン取得
 inline void GetVersion(int *major_version, int *minor_version=nullptr, int *revision_number=nullptr)
@@ -31,7 +33,7 @@ inline void GetVersion(int *major_version, int *minor_version=nullptr, int *revi
 // バージョン文字列取得
 inline std::string GetVersionString(void)
 {
-    return std::to_string(BB_MAJOR_VERSION) + "." + std::to_string(BB_MINOR_VERSION) + "." + std::to_string(BB_REVISION_NUMBER);
+    return (std::to_string(BB_MAJOR_VERSION) + "." + std::to_string(BB_MINOR_VERSION) + "." + std::to_string(BB_REVISION_NUMBER));
 }
 
 

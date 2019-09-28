@@ -1,50 +1,16 @@
-﻿
+﻿# coding: utf-8
+
 import os
 import sys
 from collections import OrderedDict
 import binarybrain as bb
-import urllib.request
-import tarfile
-import gzip
-import shutil
+
 
 if 'ipykernel' in sys.modules:
    from tqdm import tqdm_notebook as tqdm
 else:
    from tqdm import tqdm
 
-
-def wget(url, filename):
-    with urllib.request.urlopen(url) as r:
-        with open(filename, 'wb') as f:
-            f.write(r.read())
-
-def tar_extractall(tar_filename, extract_path):
-    with tarfile.open(tar_filename, 'r') as f_tar:
-        f_tar.extractall(extract_path)
-
-def gzip_extractall(gz_filename, ext_filename):
-    with gzip.open(gz_filename, 'rb') as f_gz:
-        with open(ext_filename, 'wb') as f_ext:
-            shutil.copyfileobj(f_gz, f_ext)
-
-def gzip_download_and_extract(url, gz_filename, ext_filename):
-    if not os.path.exists(ext_filename):
-        if not os.path.exists(gz_filename):
-            wget(url, gz_filename)
-        gzip_extractall(gz_filename, ext_filename)
-
-def download_mnist(download_path='.'):
-    base_url = 'http://yann.lecun.com/exdb/mnist/'
-    names = [('train-images-idx3-ubyte.gz', 'train-images-idx3-ubyte'),
-             ('train-labels-idx1-ubyte.gz', 'train-labels-idx1-ubyte'),
-             ('t10k-images-idx3-ubyte.gz', 't10k-images-idx3-ubyte'),
-             ('t10k-labels-idx1-ubyte.gz', 't10k-labels-idx1-ubyte'),] 
-    for name in names:
-        url = base_url + name[0]
-        gz_filename = os.path.join(download_path, name[0])
-        ext_filename = os.path.join(download_path, name[1])
-        gzip_download_and_extract(url, gz_filename, ext_filename)
 
 def calculation(net, x, x_shape, t, t_shape, max_batch_size, min_batch_size=1,
             metrics=None, loss=None, optimizer=None, train=False,
@@ -189,3 +155,5 @@ class Runner:
         
         calculation(self.net, td.x_test, td.x_shape, td.t_test, td.t_shape, mini_batch_size, 1, self.metrics, self.loss)
         print('%s=%f loss=%f' % (self.metrics.get_metrics_string(), self.metrics.get_metrics(), self.loss.get_loss()))
+
+

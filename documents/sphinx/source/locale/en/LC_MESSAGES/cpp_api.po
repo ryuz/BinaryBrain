@@ -1,0 +1,471 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, Ryuji Fuchikami
+# This file is distributed under the same license as the BinaryBrain
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: BinaryBrain \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-09-22 08:35+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../source/cpp_api.rst:3
+msgid "C++ API"
+msgstr ""
+
+#: ../../source/cpp_api.rst:7
+msgid "概要"
+msgstr ""
+
+#: ../../source/cpp_api.rst:9
+msgid "本章ではC++のAPIについて触れます。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:11
+msgid "現時点では細かなドキュメントが用意できておらず、ソースを読み人のために 概要を掴む為の情報を記載します。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:14
+msgid "なお BinaryBrain のコードは namespace に bb という名称を持ちます。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:18
+msgid "モデルクラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:21
+msgid "基本クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:23
+msgid "すべてのレイヤーはModelクラスからの派生で生成されます。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:26
+msgid "Model(抽象クラス)"
+msgstr ""
+
+#: ../../source/cpp_api.rst:28
+msgid "抽象クラスは直接生成できませんが、各レイヤーの基礎となっており、操作を定義します。 以下のようなメソッドを備えます。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:39
+msgid "SendCommand()"
+msgstr ""
+
+#: ../../source/cpp_api.rst:33
+msgid ""
+"文字列によって汎用的に各レイヤーの属性変更などを行えます。 "
+"階層的にサブレイヤーに伝播させることを目的としておりますが、送信先クラス名を指定することで、 特定のレイヤにのみコマンドを送ることも出来ます。 "
+"現在の主な用途として \"binary true\" のようなコマンドで、バイナリ活性層を有効にしたり、 \"host_only\" "
+"コマンドで、部分的に動作をCPU版に切り替えたりできます。 "
+"将来的には、部分的に学習時のパラメータ学習を固定したりなど、いろいろな設定を追加していくことを考えています。 "
+"文字列なので、自作レイヤーに独自コマンドを追加することも簡単です。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:42
+msgid "GetClassName()"
+msgstr ""
+
+#: ../../source/cpp_api.rst:42
+msgid "クラス名を取得します。SendCommand() で、コマンド送付先をクラス名で指定することが出来ます。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:46
+msgid "SetName()"
+msgstr ""
+
+#: ../../source/cpp_api.rst:45
+msgid ""
+"クラス名とは別にインスタンス個別に自由に名前設定が出来ます。生成時に固有の名前をつけておけば、 後から SendCommand() "
+"で、個別に属性変更コマンドが送れます。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:50
+msgid "GetParameters()"
+msgstr ""
+
+#: ../../source/cpp_api.rst:49
+msgid "内部パラメータの参照を取得します。重み係数などが取得対象です。 内部パラメータを持った自作レイヤーを作成する場合に実装が必要になります。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:54
+msgid "GetGradients()"
+msgstr ""
+
+#: ../../source/cpp_api.rst:53
+msgid ""
+"内部パラメータの勾配への参照を取得します。Backward時に値が計算され、主に Optimizer が利用します。 "
+"内部パラメータを持った自作レイヤーを作成する場合に実装が必要になります。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:59
+msgid "SetInputShape()"
+msgstr ""
+
+#: ../../source/cpp_api.rst:57
+msgid ""
+"入力のデータ形状を指定します。戻り値は出力のデータ形状となります。 "
+"階層的にサブレイヤーに伝播させることを目的としており、各レイヤーを連結後に呼びさすことで内部パラメータのサイズが決定され初期化されます。 "
+"自作レイヤーを作成する場合には必ず実装が必要になります。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:63
+msgid "Forward()"
+msgstr ""
+
+#: ../../source/cpp_api.rst:62
+msgid "前方伝播を行います。階層的にサブレイヤーも実行することを想定しています。 自作レイヤーを作成する場合には必ず実装が必要になります。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:67
+msgid "Backward()"
+msgstr ""
+
+#: ../../source/cpp_api.rst:66
+msgid "誤差逆伝播を行います。階層的にサブレイヤーも実行することを想定しています。 自作レイヤーを作成する場合には必ず実装が必要になります。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:72
+msgid "PrintInfo()"
+msgstr ""
+
+#: ../../source/cpp_api.rst:70
+msgid "レイヤーの情報を表示します。 自作レイヤーを作成する場合に実装しておけば独自の情報を出力できます。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:75
+msgid "活性化層"
+msgstr ""
+
+#: ../../source/cpp_api.rst:78
+msgid "Binarize クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:79
+msgid ""
+"バイナライズ層です。 Forward では、0を閾値に出力を0と1に二値化します。 Backward では hard-tanh として動作します。"
+" バイナリネットワークの基礎となります。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:85
+msgid "ReLU クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:86
+msgid ""
+"普通のReLU です。 Binarize から派生しており、SendCommand() にて、\"binary true\" "
+"を送ることでBinarize層として動作します。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:90
+msgid "Sigmoid クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:91
+msgid ""
+"普通のSigmoid です。 Binarize から派生しており、SendCommand() にて、\"binary true\" "
+"を送ることでBinarize層として動作します。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:97
+msgid "演算層"
+msgstr ""
+
+#: ../../source/cpp_api.rst:101
+msgid "SparseLutN クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:103
+msgid ""
+"LUT-Network の LUT に相当する部分を独自のモデルで学習させるためのレイヤーです。 "
+"パーセプトロンと異なる独自のモデルを用いており、単体でXORパターンを含めたLUTで 表現可能な空間すべてを効率的に学習可能です。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:109
+msgid "StochasticLutN クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:111
+msgid ""
+"LUT-Network の LUT に相当する部分をStochasticモデルに基づいて学習させるためのレイヤーです。 "
+"StochasticバイナリデータがStochastic性を持っている対象への学習に限定されますが、 "
+"SparseLutもでるよりも高速に学習させることが可能です。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:117
+msgid "MicroMlp クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:119
+msgid ""
+"LUT-Network の LUT に相当する部分をパーセプトロンを用いて学習させるレイヤーです。 内部は MicroMlpAffine + "
+"BatchNormalization + 活性化層 の３層で構成されます。 活性化層 は デフォルトは ReLU "
+"ですが、テンプレート引数で変更可能です。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:125
+msgid "MicroMlpAffine クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:127
+msgid ""
+"MicroMlp の構成要素で、入力数を6などに限定した疎結合、且つ、内部に隠れ層を備えた 小さなMLP(Multi Layer "
+"Perceptron)の集合体です。 入力数や隠れ層の数テンプレート引数で変更可能です。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:133
+msgid "DenseAffine クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:135
+msgid "いわゆる普通の浮動小数点による全結合のニューラルネットです。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:139
+msgid "BatchNormalization クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:141
+msgid "BatchNormalization層です。 活性化層でバイナリ化を行う前段ほぼ必須となってくる層です。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:146
+msgid "MaxPooling クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:148
+msgid "MaxPooling層です。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:152
+msgid "LutLayer (抽象クラス)"
+msgstr ""
+
+#: ../../source/cpp_api.rst:154
+msgid ""
+"LUT-Network を記述する基本モデルです。 現在 ver2 の直接学習機能はまだ ver3 には未実装です。 MicroMlp "
+"などで逆伝播で学習した内容をテーブル化して写し取ることを目的としています。 テーブル化取り込みに ImportLayer() メソッドを備えます。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:161
+msgid "BinaryLutN クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:163
+msgid ""
+"各ノードの入力数を１つに固定したLUTモデルです。一般的なFPGAに適合します。 入力数はテンプレート引数で指定でき、FPGAでは 4 か 6 "
+"のものが一般的と思われます。 入力数を固定することで演算を高速化できますが、ver3 への移植はまだ行えていません。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:169
+msgid "補助層"
+msgstr ""
+
+#: ../../source/cpp_api.rst:172
+msgid "Sequential クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:174
+msgid "各種の層を直列に接続して１つの層として扱えるようにします。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:178
+msgid "LoweringConvolution クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:180
+msgid "Lowering を行い畳こみ演算を行います。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:182
+msgid ""
+"ConvolutionIm2Col + 引数で渡したモデル + ConvolutionCol2Im DenseAffine "
+"を渡すと、通常のCNNになり、MicroMlp を用いたサブネットワークを渡すことで、"
+msgstr ""
+
+#: ../../source/cpp_api.rst:185
+msgid "LUT-Network での畳込みが可能です。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:189
+msgid "ConvolutionIm2 クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:191
+msgid ""
+"畳み込みの為のLoweringを行います。通常、LoweringConvolutionクラス の中で利用されます。 "
+"Loweringされたデータに対して BatchNormalization するのも LUT-Network 学習時の特徴の一つかもしれません。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:195
+msgid "ConvolutionCol2Im クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:197
+msgid "畳み込みの為のLoweringの復元を行います。通常、LoweringConvolutionクラス の中で利用されます。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:201
+msgid "BinaryModulation クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:203
+msgid "内部でRealToBinary クラスとBinaryToRealクラスを組み合わせて、多値データをバイナリ化して学習するのに利用できます。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:207
+msgid "RealToBinary クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:209
+msgid ""
+"実数値をバイナライズします。 その際にframe方向に拡張して変調を掛ける(多重化)が可能です。 "
+"現在、PWM変調と、乱数での変調を実装しており、デフォルトでPWM変調となります(将来⊿Σなどの誤差蓄積機能も検討中です)。 "
+"変調を行うことで、入力値に対して確率的な0/1比率の値を生成できるため、出力も確率的なものとなります。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:216
+msgid "BinaryToReal クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:218
+msgid ""
+"多重化された確率的な0と1をカウンティングして実数値を生成します。 RealToBinary "
+"対応しますが、こちらは時間方向だけでなく、空間方向のカウントも可能です。 "
+"オーバーサンプリングによる十分な多重化数が確保できれば、回路規模を増加させること無く回帰などの実数値へのフィッティング可能性が出てきます。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:225
+msgid "モデル以外のクラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:228
+msgid "損失関数"
+msgstr ""
+
+#: ../../source/cpp_api.rst:231 ../../source/cpp_api.rst:237
+msgid "LossSoftmaxCrossEntropy クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:233
+msgid "普通のSoftmax-CrossEntropyクラスです。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:239
+msgid "最小二乗誤差を損失とするクラスです。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:243
+msgid "精度関数"
+msgstr ""
+
+#: ../../source/cpp_api.rst:246
+msgid "AccuracyCategoricalClassification クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:248
+msgid "Categorical Classification の精度を計算します。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:251
+msgid "最適化(Optimizer)"
+msgstr ""
+
+#: ../../source/cpp_api.rst:254
+msgid "OptimizerSgd クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:256
+msgid "普通のSGDです。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:260
+msgid "OptimizerAdam クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:262
+msgid "普通のAdamです。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:266
+msgid "実行補助"
+msgstr ""
+
+#: ../../source/cpp_api.rst:269
+msgid "Runner クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:271
+msgid "構築したモデルのフィッティングや評価などの実行を補助します。 論よりRUN。 Runner のソースが各種の使い方で、参考になるはずです。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:277
+msgid "データ保持"
+msgstr ""
+
+#: ../../source/cpp_api.rst:280
+msgid "Tensor クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:282
+msgid "多次元のデータを保持できるクラスで、演算も可能です。 名前に反してまだ Tensor演算は実装できていません。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:287
+msgid "Variables クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:289
+msgid ""
+"複数の Tensor を束ねる機能を持ったクラスです。 形状が同じなら Variables 間での演算も可能です。 "
+"主にOptimizerでの利用を想定しています。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:294
+msgid "FrameBuffer クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:296
+msgid ""
+"１つの Tensor を 1 frame として、複数frame を保持できるクラスです。 ただし、内部では、NCHW や NHWC "
+"ではなく、CHWN 形式になるように並び替えてデータを保持しています。 これは Lowering されて "
+"frame数が十分増やされた疎行列に特化して性能を出すための配置で、BinaryBrainの特徴の一つです。 "
+"一方で、一般的な算術ライブラリに適合しない(並び替えが必要)ので注意が必要です。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:303
+msgid "各種関数"
+msgstr ""
+
+#: ../../source/cpp_api.rst:306
+msgid "FPGAへのエクスポート"
+msgstr ""
+
+#: ../../source/cpp_api.rst:309
+msgid "ExportVerilog_LutLayers 関数"
+msgstr ""
+
+#: ../../source/cpp_api.rst:311
+msgid "LutLayer を Verilog-RTL で出力します。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:315
+msgid "ExportVerilog_LutCnnLayersAxi4s 関数"
+msgstr ""
+
+#: ../../source/cpp_api.rst:317
+msgid ""
+"畳み込み層を含む LutLayer を纏めて Verilog-RTL で出力します。 "
+"MaxPoolingなどの入出力でデータが不連続になる層は最後に1つだけ指定することができます。"
+msgstr ""
+

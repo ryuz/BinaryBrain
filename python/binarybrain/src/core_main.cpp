@@ -150,6 +150,8 @@ namespace py = pybind11;
 PYBIND11_MODULE(core, m) {
     m.doc() = "BinaryBrain ver " + bb::GetVersionString();
 
+    m.attr("__version__") = py::cast(BB_VERSION);
+
     m.attr("TYPE_BIT")    = BB_TYPE_BIT;
     m.attr("TYPE_BINARY") = BB_TYPE_BINARY;
     m.attr("TYPE_FP16")   = BB_TYPE_FP16;
@@ -172,7 +174,45 @@ PYBIND11_MODULE(core, m) {
     m.attr("BB_BORDER_WRAP")        = BB_BORDER_WRAP;
 
 
-    py::class_< Tensor >(m, "Tensor");
+    py::class_< Tensor >(m, "Tensor")
+        .def("get_type", &Tensor::GetType)
+        .def("get_shape", &Tensor::GetShape)
+        .def("set_data", &Tensor::SetData<float>,
+R"(set data to tensor
+
+    set data to tensor
+
+Args:
+    data(List[List[float]]): data
+)"
+            )
+        .def("get_data", &Tensor::GetData<float>,
+R"(get data from tensor
+
+    set data to tensor
+
+Returns:
+    tensor data
+)"
+            )
+        .def("set_data_int32", &Tensor::SetData<int>,
+R"(set data to tensor
+
+    set data to tensor
+
+Args:
+    data(List[List[int]]): data
+)"
+            )
+        .def("get_data_int32", &Tensor::GetData<int>,
+R"(get data from tensor
+
+    set data to tensor
+
+Returns:
+    tensor data
+)"
+            );
 
     py::class_< FrameBuffer >(m, "FrameBuffer")
         .def(py::init< bb::index_t, bb::indices_t, int, bool>(),
@@ -195,7 +235,12 @@ Args:
                 py::arg("frame_size"),
                 py::arg("shape"),
                 py::arg("data_type") = BB_TYPE_FP32)
-        .def("get_range", &FrameBuffer::GetRange)
+        .def("get_type", &FrameBuffer::GetType)
+        .def("get_frame_size", &FrameBuffer::GetFrameSize)
+        .def("get_node_size", &FrameBuffer::GetNodeSize)
+        .def("get_node_shape", &FrameBuffer::GetShape)
+        .def("range", &FrameBuffer::Range)
+        .def("concatenate", &FrameBuffer::Concatenate)
 
         .def("set_data", &FrameBuffer::SetData<float>,
 R"(set data to frames
@@ -246,6 +291,7 @@ Returns:
         .def("get_output_shape", &Model::GetOutputShape)
         .def("get_parameters", &Model::GetParameters)
         .def("get_gradients", &Model::GetGradients)
+        .def("forward_node",  &Model::ForwardNode)
         .def("forward",  &Model::Forward, "Forward",
                 py::arg("x_buf"),
                 py::arg("train") = true)
@@ -260,7 +306,11 @@ Returns:
             py::arg("output_shape"),
             py::arg("initialize_std") = 0.01f,
             py::arg("initializer")    = "he",
-            py::arg("seed")           = 1);
+            py::arg("seed")           = 1)
+        .def("W", ((Tensor& (DenseAffine::*)())&DenseAffine::W))
+        .def("b", ((Tensor& (DenseAffine::*)())&DenseAffine::b))
+        .def("dW", ((Tensor& (DenseAffine::*)())&DenseAffine::dW))
+        .def("db", ((Tensor& (DenseAffine::*)())&DenseAffine::db));
             
     py::class_< SparseLayer, Model, std::shared_ptr<SparseLayer> >(m, "SparseLayer");
 
@@ -520,6 +570,8 @@ R"(create BinaryLut6 object
     m.def("make_verilog_from_lut_bit", &MakeVerilog_FromLutBit);
     m.def("make_verilog_axi4s_from_lut_cnn", &MakeVerilogAxi4s_FromLutFilter2d);
     m.def("make_verilog_axi4s_from_lut_cnn_bit", &MakeVerilogAxi4s_FromLutFilter2dBit);
+
+    m.def("get_version", &bb::GetVersionString);
 }
 
 
