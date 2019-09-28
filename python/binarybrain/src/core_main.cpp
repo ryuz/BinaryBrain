@@ -175,6 +175,8 @@ PYBIND11_MODULE(core, m) {
 
 
     py::class_< Tensor >(m, "Tensor")
+        .def("get_type", &Tensor::GetType)
+        .def("get_shape", &Tensor::GetShape)
         .def("set_data", &Tensor::SetData<float>,
 R"(set data to tensor
 
@@ -233,6 +235,10 @@ Args:
                 py::arg("frame_size"),
                 py::arg("shape"),
                 py::arg("data_type") = BB_TYPE_FP32)
+        .def("get_type", &FrameBuffer::GetType)
+        .def("get_frame_size", &FrameBuffer::GetFrameSize)
+        .def("get_node_size", &FrameBuffer::GetNodeSize)
+        .def("get_node_shape", &FrameBuffer::GetShape)
         .def("range", &FrameBuffer::Range)
         .def("concatenate", &FrameBuffer::Concatenate)
 
@@ -285,6 +291,7 @@ Returns:
         .def("get_output_shape", &Model::GetOutputShape)
         .def("get_parameters", &Model::GetParameters)
         .def("get_gradients", &Model::GetGradients)
+        .def("forward_node",  &Model::ForwardNode)
         .def("forward",  &Model::Forward, "Forward",
                 py::arg("x_buf"),
                 py::arg("train") = true)
@@ -300,7 +307,10 @@ Returns:
             py::arg("initialize_std") = 0.01f,
             py::arg("initializer")    = "he",
             py::arg("seed")           = 1)
-        .def("W", ((Tensor& (DenseAffine::*)())&DenseAffine::W));
+        .def("W", ((Tensor& (DenseAffine::*)())&DenseAffine::W))
+        .def("b", ((Tensor& (DenseAffine::*)())&DenseAffine::b))
+        .def("dW", ((Tensor& (DenseAffine::*)())&DenseAffine::dW))
+        .def("db", ((Tensor& (DenseAffine::*)())&DenseAffine::db));
             
     py::class_< SparseLayer, Model, std::shared_ptr<SparseLayer> >(m, "SparseLayer");
 

@@ -12,7 +12,14 @@ import cv2
 
 print(bb.TYPE_BIT)
 print(bb.get_version())
-print(bb.__version__)
+#print(bb.__version__)
+
+layer_da = bb.DenseAffine.create([16])
+layer_da.set_input_shape([32])
+
+print(layer_da.W().get_type())
+W = layer_da.W().get_data()
+print(W)
 
 sys.exit()
 
