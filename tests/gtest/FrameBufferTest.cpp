@@ -114,7 +114,7 @@ TEST(FrameBufferTest, FrameBuffer_IsDeviceAvailable)
 }
 
 
-TEST(FrameBufferTest, FrameBuffer_Range)
+TEST(FrameBufferTest, FrameBuffer_FrameRange)
 {
     bb::index_t const frame_size = 32;
     bb::index_t const node_size  = 3;
@@ -134,8 +134,8 @@ TEST(FrameBufferTest, FrameBuffer_Range)
         }
     }
 
-    auto buf2 = buf.GetRange(4, 2);
-    EXPECT_EQ(buf2.GetFrameSize(), 2);
+    auto buf2 = buf.FrameRange(2, 4);
+    EXPECT_EQ(2, buf2.GetFrameSize());
     for ( bb::index_t frame = 0; frame < buf2.GetFrameSize(); ++frame ) {
         for ( bb::index_t node = 0; node < buf2.GetNodeSize(); ++node ) {
             EXPECT_EQ(buf2.GetINT32(frame, node), (int)((frame+4)*100 + node));
@@ -143,6 +143,72 @@ TEST(FrameBufferTest, FrameBuffer_Range)
     }
 }
 
+
+
+TEST(FrameBufferTest, FrameBuffer_Range)
+{
+    bb::index_t const frame_size = 32;
+    bb::index_t const node_size  = 5;
+
+    bb::FrameBuffer buf(frame_size, {node_size}, BB_TYPE_FP32);
+
+    for ( bb::index_t frame = 0; frame < frame_size; ++frame ) {
+        for ( bb::index_t node = 0; node < node_size; ++node ) {
+            buf.SetFP32(frame, node, (float)(frame*100 + node));
+        }
+    }
+
+    for ( bb::index_t frame = 0; frame < frame_size; ++frame ) {
+        for ( bb::index_t node = 0; node < node_size; ++node ) {
+            EXPECT_EQ(buf.GetFP32(frame, node), (float)(frame*100 + node));
+        }
+    }
+
+    auto buf2 = buf.Range(2, 1);
+    EXPECT_EQ(frame_size, buf2.GetFrameSize());
+    EXPECT_EQ(2, buf2.GetNodeSize());
+    for ( bb::index_t frame = 0; frame < frame_size; ++frame ) {
+        for ( bb::index_t node = 0; node < 2; ++node ) {
+            EXPECT_EQ(buf2.GetFP32(frame, node), (float)(frame*100 + (node+1)));
+        }
+    }
+}
+
+
+TEST(FrameBufferTest, FrameBuffer_Concatenate)
+{
+    bb::index_t const frame_size = 32;
+    bb::index_t const node_size0  = 5;
+    bb::index_t const node_size1  = 7;
+
+    bb::FrameBuffer buf0(frame_size, {node_size0}, BB_TYPE_FP32);
+    bb::FrameBuffer buf1(frame_size, {node_size1}, BB_TYPE_FP32);
+
+    for ( bb::index_t frame = 0; frame < frame_size; ++frame ) {
+        for ( bb::index_t node = 0; node < node_size0; ++node ) {
+            buf0.SetFP32(frame, node, (float)(1000 + frame*100 + node));
+        }
+    }
+
+    for ( bb::index_t frame = 0; frame < frame_size; ++frame ) {
+        for ( bb::index_t node = 0; node < node_size1; ++node ) {
+            buf1.SetFP32(frame, node, (float)(2000 + frame*100 + node));
+        }
+    }
+
+    auto buf2 = buf0.Concatenate(buf1);
+    EXPECT_EQ(frame_size, buf2.GetFrameSize());
+    EXPECT_EQ(node_size0 + node_size1, buf2.GetNodeSize());
+    for ( bb::index_t frame = 0; frame < frame_size; ++frame ) {
+        for ( bb::index_t node = 0; node < node_size0; ++node ) {
+            EXPECT_EQ(buf2.GetFP32(frame, node), (float)(1000 + frame*100 + node));
+        }
+        for ( bb::index_t node = 0; node < node_size1; ++node ) {
+            EXPECT_EQ(buf2.GetFP32(frame, node_size0 + node), (float)(2000 + frame*100 + node));
+        }
+
+    }
+}
 
 
 TEST(FrameBufferTest, FrameBuffer_SetGetTensor)

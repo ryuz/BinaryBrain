@@ -1782,7 +1782,75 @@ public:
         ptr.Lock(new_buf);
         return ptr;
     }
-        
+
+
+    // -------------------------------------
+    //  データアクセス
+    // -------------------------------------
+
+    template<typename BufType, typename VecType=float>
+    void SetData_(std::vector<VecType> const &data)
+    {
+        BB_ASSERT(GetType() == DataType<BufType>::type);
+        BB_ASSERT((index_t)data.size() == m_size);
+
+        auto ptr = Lock<BufType>();
+        for (index_t i = 0; i < m_size; ++i) {
+            ptr[i] = (BufType)data[i];
+        }
+    }
+
+    template<typename BufType, typename VecType=float>
+    std::vector<VecType> GetData_(void)
+    {
+        BB_ASSERT(GetType() == DataType<BufType>::type);
+
+        std::vector<VecType> data(m_size);
+
+        auto ptr = LockConst<BufType>();
+        for (index_t i = 0; i < m_size; ++i) {
+            data[i] = (VecType)ptr[i];
+        }
+
+        return data;
+    }
+    
+    template<typename VecType=float>
+    void SetData(std::vector<VecType> const &data)
+    {
+        switch (GetType()) {
+        case BB_TYPE_FP32:   SetData_<float,         VecType>(data);    break;
+        case BB_TYPE_FP64:   SetData_<double,        VecType>(data);    break;
+        case BB_TYPE_INT8:   SetData_<std::int8_t,   VecType>(data);    break;
+        case BB_TYPE_INT16:  SetData_<std::int16_t,  VecType>(data);    break;
+        case BB_TYPE_INT32:  SetData_<std::int32_t,  VecType>(data);    break;
+        case BB_TYPE_INT64:  SetData_<std::int64_t,  VecType>(data);    break;
+        case BB_TYPE_UINT8:  SetData_<std::uint8_t,  VecType>(data);    break;
+        case BB_TYPE_UINT16: SetData_<std::uint16_t, VecType>(data);    break;
+        case BB_TYPE_UINT32: SetData_<std::uint32_t, VecType>(data);    break;
+        case BB_TYPE_UINT64: SetData_<std::uint64_t, VecType>(data);    break;
+        default:   BB_ASSERT(0);
+        }
+    }
+
+    template<typename VecType=float>
+    std::vector<VecType> GetData(void)
+    {
+        switch (GetType()) {
+        case BB_TYPE_FP32:   return GetData_<float,         VecType>();
+        case BB_TYPE_FP64:   return GetData_<double,        VecType>();
+        case BB_TYPE_INT8:   return GetData_<std::int8_t,   VecType>();
+        case BB_TYPE_INT16:  return GetData_<std::int16_t,  VecType>();
+        case BB_TYPE_INT32:  return GetData_<std::int32_t,  VecType>();
+        case BB_TYPE_INT64:  return GetData_<std::int64_t,  VecType>();
+        case BB_TYPE_UINT8:  return GetData_<std::uint8_t,  VecType>();
+        case BB_TYPE_UINT16: return GetData_<std::uint16_t, VecType>();
+        case BB_TYPE_UINT32: return GetData_<std::uint32_t, VecType>();
+        case BB_TYPE_UINT64: return GetData_<std::uint64_t, VecType>();
+        default:   BB_ASSERT(0);
+        }
+        return std::vector<VecType>();
+    }
 
 
     // -------------------------------------

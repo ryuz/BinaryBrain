@@ -1073,45 +1073,84 @@ public:
     }
 
 
-    template<typename Tp>
-    void SetData(std::vector< std::vector<Tp> > const &data, index_t offset=0)
+    template<typename BufType, typename VecType=float>
+    void SetData_(std::vector< std::vector<VecType> > const &data, index_t offset=0)
     {
-        BB_ASSERT(GetType() == DataType<Tp>::type);
+        BB_ASSERT(GetType() == DataType<BufType>::type);
         BB_ASSERT(offset + (index_t)data.size() <= m_frame_size);
 
         index_t size = (index_t)data.size(); 
         if ( size + offset > m_frame_size ) { size = m_frame_size - offset; }
 
-        auto ptr = Lock<Tp>();
+        auto ptr = Lock<BufType>();
         for (index_t i = 0; i < size; ++i) {
             index_t frame = i + offset;
             BB_ASSERT(data[i].size() == (size_t)m_node_size);
             for (index_t node = 0; node < m_node_size; ++node) {
-                ptr.Set(frame, node, data[i][node]);
+                ptr.Set(frame, node, (BufType)data[i][node]);
             }
         }
     }
 
-    template<typename Tp>
-    std::vector< std::vector<Tp> > GetData(index_t size=0, index_t offset=0)
+    template<typename BufType, typename VecType=float>
+    std::vector< std::vector<VecType> > GetData_(index_t size=0, index_t offset=0)
     {
         if ( size <= 0 ) { size = m_frame_size - offset; }
 
-        BB_ASSERT(GetType() == DataType<Tp>::type);
+        BB_ASSERT(GetType() == DataType<BufType>::type);
         BB_ASSERT(offset + size <= m_frame_size);
 
-        std::vector< std::vector<Tp> > data(size);
+        std::vector< std::vector<VecType> > data(size);
 
-        auto ptr = LockConst<Tp>();
+        auto ptr = LockConst<BufType>();
         for (index_t i = 0; i < size; ++i) {
             data[i].resize(m_node_size);
             index_t frame = i + offset;
             for (index_t node = 0; node < m_node_size; ++node) {
-                data[i][node] = ptr.Get(frame, node);
+                data[i][node] = (VecType)ptr.Get(frame, node);
             }
         }
 
         return data;
+    }
+    
+    template<typename VecType=float>
+    void SetData(std::vector< std::vector<VecType> > const &data, index_t offset=0)
+    {
+        switch (GetType()) {
+        case BB_TYPE_BIT:    SetData_<bb::Bit,       VecType>(data, offset);    break;
+        case BB_TYPE_FP32:   SetData_<float,         VecType>(data, offset);    break;
+        case BB_TYPE_FP64:   SetData_<double,        VecType>(data, offset);    break;
+        case BB_TYPE_INT8:   SetData_<std::int8_t,   VecType>(data, offset);    break;
+        case BB_TYPE_INT16:  SetData_<std::int16_t,  VecType>(data, offset);    break;
+        case BB_TYPE_INT32:  SetData_<std::int32_t,  VecType>(data, offset);    break;
+        case BB_TYPE_INT64:  SetData_<std::int64_t,  VecType>(data, offset);    break;
+        case BB_TYPE_UINT8:  SetData_<std::uint8_t,  VecType>(data, offset);    break;
+        case BB_TYPE_UINT16: SetData_<std::uint16_t, VecType>(data, offset);    break;
+        case BB_TYPE_UINT32: SetData_<std::uint32_t, VecType>(data, offset);    break;
+        case BB_TYPE_UINT64: SetData_<std::uint64_t, VecType>(data, offset);    break;
+        default:   BB_ASSERT(0);
+        }
+    }
+
+    template<typename VecType=float>
+    std::vector< std::vector<VecType> > GetData(index_t size=0, index_t offset=0)
+    {
+        switch (GetType()) {
+        case BB_TYPE_BIT:    return GetData_<bb::Bit,       VecType>(size, offset);
+        case BB_TYPE_FP32:   return GetData_<float,         VecType>(size, offset);
+        case BB_TYPE_FP64:   return GetData_<double,        VecType>(size, offset);
+        case BB_TYPE_INT8:   return GetData_<std::int8_t,   VecType>(size, offset);
+        case BB_TYPE_INT16:  return GetData_<std::int16_t,  VecType>(size, offset);
+        case BB_TYPE_INT32:  return GetData_<std::int32_t,  VecType>(size, offset);
+        case BB_TYPE_INT64:  return GetData_<std::int64_t,  VecType>(size, offset);
+        case BB_TYPE_UINT8:  return GetData_<std::uint8_t,  VecType>(size, offset);
+        case BB_TYPE_UINT16: return GetData_<std::uint16_t, VecType>(size, offset);
+        case BB_TYPE_UINT32: return GetData_<std::uint32_t, VecType>(size, offset);
+        case BB_TYPE_UINT64: return GetData_<std::uint64_t, VecType>(size, offset);
+        default:   BB_ASSERT(0);
+        }
+        return std::vector< std::vector<VecType> >();
     }
 
 
@@ -1145,11 +1184,11 @@ public:
     }
 
 
-    // 部分切り出し
-    FrameBuffer GetRange(index_t start, index_t size)
+    // フレームの部分切り出し
+    FrameBuffer FrameRange(index_t size, index_t offset=0)
     {
-        BB_ASSERT(start >= 0 && start < m_frame_size);
-        BB_ASSERT(size >= 0 &&  size < m_frame_size - start);
+        BB_ASSERT(offset >= 0 && offset < m_frame_size);
+        BB_ASSERT(size >= 0 &&  size < m_frame_size - offset);
 
         FrameBuffer buf(size, m_node_shape, m_data_type);
 
@@ -1158,19 +1197,19 @@ public:
         auto src_addr = (std::int8_t const *)src_ptr.GetAddr();
         auto dst_addr = (std::int8_t       *)dst_ptr.GetAddr();
 
-        if (m_data_type == BB_TYPE_BIT && (start % 8) != 0 ) {
+        if (m_data_type == BB_TYPE_BIT && (offset % 8) != 0 ) {
             #pragma omp parallel for
             for (index_t node = 0; node < m_node_size; ++node)
             {
                 for (index_t frame = 0; frame < size; ++frame) {
-                    auto val = DataType_Read<Bit>(src_addr + m_frame_stride * node, frame + start);
+                    auto val = DataType_Read<Bit>(src_addr + m_frame_stride * node, frame + offset);
                     DataType_Write<Bit>(dst_addr + m_frame_stride * node, frame, val);
                 }
             }           
         }
         else {
             int     unit   = DataType_GetBitSize(m_data_type);
-            index_t byte_offset = (start * unit + 7) / 8;
+            index_t byte_offset = (offset * unit + 7) / 8;
             index_t byte_size   = (size * unit + 7) / 8;
 
             #pragma omp parallel for
@@ -1182,7 +1221,53 @@ public:
 
         return buf;
     }
+
     
+    FrameBuffer Range(index_t size, index_t offset=0)
+    {
+        BB_ASSERT(offset >= 0 && offset < m_node_size);
+        BB_ASSERT(size >= 0 &&  size < m_node_size - offset);
+
+        FrameBuffer buf(m_frame_size, {size}, m_data_type);
+
+        auto src_ptr = m_tensor.LockMemoryConst();
+        auto dst_ptr = buf.m_tensor.LockMemory(true);
+        auto src_addr = (std::int8_t const *)src_ptr.GetAddr();
+        auto dst_addr = (std::int8_t       *)dst_ptr.GetAddr();
+
+        index_t stride_size = GetFrameStride();
+        memcpy(dst_addr, src_addr + (m_frame_stride * offset), stride_size * size);
+
+        return buf;
+    }
+
+
+    FrameBuffer Concatenate(FrameBuffer const& buf)
+    {
+        BB_ASSERT(buf.GetType() == GetType());
+        BB_ASSERT(buf.m_frame_size == m_frame_size);
+        BB_ASSERT(buf.m_frame_stride == m_frame_stride);
+
+        FrameBuffer dst_buf(m_frame_size, {m_node_size + buf.m_node_size}, m_data_type);
+
+        auto dst_ptr  = dst_buf.m_tensor.LockMemory(true);
+        auto dst_addr = (std::int8_t *)dst_ptr.GetAddr();
+
+        {
+            auto src0_ptr  = m_tensor.LockMemoryConst();
+            auto src0_addr = (std::int8_t const *)src0_ptr.GetAddr();
+            memcpy(dst_addr, src0_addr, m_frame_stride * m_node_size);
+            dst_addr += m_frame_stride * m_node_size;
+        }
+
+        {
+            auto src1_ptr  = buf.m_tensor.LockMemoryConst();
+            auto src1_addr = (std::int8_t const *)src1_ptr.GetAddr();
+            memcpy(dst_addr, src1_addr, buf.m_frame_stride * buf.m_node_size);
+        }
+
+        return dst_buf;
+    }
 
 
 
