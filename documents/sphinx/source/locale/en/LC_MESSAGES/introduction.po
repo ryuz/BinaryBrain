@@ -50,7 +50,6 @@ msgid "ニューラルネットのFPGA化をメインターゲットにしてい
 msgstr "The main target is FPGA(field-programmable gate array)."
 
 #: ../../source/introduction.rst:17
-#, fuzzy
 msgid "バイナリネットであるも関わらず変調技術によりAutoencodeや回帰分析が可能"
 msgstr ""
 "Autoencode and regression analysis are possible with modulation "
@@ -64,7 +63,7 @@ msgstr ""
 
 #: ../../source/introduction.rst:19
 msgid "量子化＆疎行列のネットワークでパフォーマンスの良い学習が出来る環境を目指している"
-msgstr ""
+msgstr "Aiming to create an environment where high-performance learning is possible with a network of quantization and sparse matrix"
 
 #: ../../source/introduction.rst:20
 msgid "C++で記述されている"
@@ -76,11 +75,11 @@ msgstr "Accelerated with GPU (CUDA)"
 
 #: ../../source/introduction.rst:22
 msgid "高速でマニアックな自作レイヤーが作りやすい"
-msgstr ""
+msgstr "Easy to create high speed custom layers"
 
 #: ../../source/introduction.rst:23
 msgid "Pythonからの利用も可能"
-msgstr ""
+msgstr "Available from Python"
 
 #: ../../source/introduction.rst:27
 msgid "クイックスタート(C++)"
@@ -88,23 +87,26 @@ msgstr "Quick Start (C++)"
 
 #: ../../source/introduction.rst:29
 msgid "まずはじめに付属のMNISTサンプルを動かすまでを紹介します。"
-msgstr ""
+msgstr "First, introduce how to move the attached MNIST sample."
 
 #: ../../source/introduction.rst:31
 msgid ""
 "AXV2以降の命令が使えるCPUと、Windows7以降もしくは Linuxの環境を想定しております。 "
 "CUDAにも対応していまが、nvccが利用可能な環境でビルドする必要があります。"
-msgstr ""
+msgstr "It assumes a CPU that can use AXV2 or later instructions and a Windows7 or later or Linux environment."
+"Although it supports CUDA, it must be built in an environment where nvcc is available."
 
 #: ../../source/introduction.rst:34
 msgid ""
 "CUDAについてはNVIDIAのページを参考に事前にインストールください。 https://developer.nvidia.com/cuda-"
 "downloads"
 msgstr ""
+"please install CUDA."
+"https://developer.nvidia.com/cuda-downloads"
 
 #: ../../source/introduction.rst:37
 msgid "なお make 時に make WITH_CUDA=No と指定することで、GPUを使わないCPU版もビルド可能です。"
-msgstr ""
+msgstr "When don't use GPU, add option \"make WITH_CUDA=No\""
 
 #: ../../source/introduction.rst:41
 msgid "Windows"
@@ -161,6 +163,7 @@ msgid ""
 "nvcc が利用可能な Google Colaboratory でも動作可能なようです。 "
 "以下あくまで参考ですが、ランタイムのタイプをGPUに設定した上で"
 msgstr ""
+"Google Colaboratory"
 
 #: ../../source/introduction.rst:92
 msgid "のような操作で、ビルドして動作させることができます。"
