@@ -93,9 +93,10 @@ def search_cuda():
 if WITH_CUDA:
     CUDA = search_cuda()
 else:
-    print('CUDA is not found.')
     CUDA = None
 
+if CUDA is None:
+    print('CUDA is not found.')
 
 class get_pybind_include(object):
     """Helper class to determine the pybind11 include path
