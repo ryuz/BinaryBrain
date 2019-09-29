@@ -93,6 +93,7 @@ def search_cuda():
 if WITH_CUDA:
     CUDA = search_cuda()
 else:
+    print('CUDA is not found.')
     CUDA = None
 
 
@@ -253,7 +254,7 @@ def hook_compiler(self):
             libraries, library_dirs, runtime_library_dirs =\
                     self._fix_lib_args(libraries, library_dirs, runtime_library_dirs)
             
-            os.makedirs(output_dir, exist_ok=True)
+            os.makedirs(os.path.dirname(output_filename), exist_ok=True)
             
             lib_dirs = []
             if self.compiler_type == 'msvc':
