@@ -25,7 +25,7 @@ os.chdir(src_path)
 
 # build flags
 VERBOSE     = False
-WITH_CUDA   = False
+WITH_CUDA   = True
 WITH_CEREAL = True
 
 
