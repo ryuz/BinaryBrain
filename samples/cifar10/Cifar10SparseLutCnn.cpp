@@ -197,15 +197,15 @@ void SparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size
         cnv4_sub->Add(layer_bl9);
         cnv4_sub->Add(layer_bl10);
 
-        auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3);
-        auto cnv1 = bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3);
-        auto pol0 = bb::MaxPooling<bb::Bit>::Create(2, 2);
+        auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3);   // 32x32 -> 30x30
+        auto cnv1 = bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3);   // 30x30 -> 28x28  
+        auto pol0 = bb::MaxPooling<bb::Bit>::Create(2, 2);                      // 28x28 -> 14x14
 
-        auto cnv2 = bb::LoweringConvolution<bb::Bit>::Create(cnv2_sub, 3, 3);
-        auto cnv3 = bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3);
-        auto pol1 = bb::MaxPooling<bb::Bit>::Create(2, 2);
+        auto cnv2 = bb::LoweringConvolution<bb::Bit>::Create(cnv2_sub, 3, 3);   // 14x14 -> 12x12
+        auto cnv3 = bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3);   // 12x12 -> 10x10
+        auto pol1 = bb::MaxPooling<bb::Bit>::Create(2, 2);                      // 10x10 -> 5x5
 
-        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 4, 4);
+        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);   // 5x5 -> 1x1
 
         auto lut_net = bb::Sequential::Create();
         lut_net->Add(cnv0);
