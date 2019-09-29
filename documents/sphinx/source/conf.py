@@ -12,10 +12,10 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
+import re
+import os
+import sys
 # sys.path.insert(0, os.path.abspath('.'))
-
 
 # -- Project information -----------------------------------------------------
 
@@ -23,10 +23,25 @@ project = u'BinaryBrain'
 copyright = u'2019, Ryuji Fuchikami'
 author = u'Ryuji Fuchikami'
 
+
+# version
+major_version = 0
+minor_version = 0
+revision_number = 0
+with open('../../../include/bb/Version.h', 'r') as f:
+    for line in f.readlines():
+        m = re.match(r'\s*#\s*define\s+BB_MAJOR_VERSION\s+([0-9]+)', line)
+        if m:   major_version = int(m.group(1))
+        m = re.match(r'\s*#\s*define\s+BB_MINOR_VERSION\s+([0-9]+)', line)
+        if m:   minor_version = int(m.group(1))
+        m = re.match(r'\s*#\s*define\s+BB_REVISION_NUMBER\s+([0-9]+)', line)
+        if m:   revision_number = int(m.group(1))
+
 # The short X.Y version
-version = u''
+version = str(major_version) + u'.' + str(minor_version)
+
 # The full version, including alpha/beta/rc tags
-release = u'2.8.0'
+release = str(major_version) + u'.' + str(minor_version) + u'.' + str(revision_number)
 
 
 # -- General configuration ---------------------------------------------------
