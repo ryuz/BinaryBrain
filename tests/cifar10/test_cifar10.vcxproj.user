@@ -45,7 +45,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>AeSparseLutCnn -mini_batch 8 -modulation_size 1 -test_modulation_size 1 -epoch 1 -read 1 -num_threads 4</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>SparseLutCnn -mini_batch 8 -modulation_size 1 -test_modulation_size 1 -epoch 0 -read 1 -num_threads 4</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelCpu|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>

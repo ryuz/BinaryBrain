@@ -51,7 +51,7 @@ void ExportVerilog_LutLayer(std::ostream& os, std::string module_name, LutLayer<
 
 
     for (index_t node = 0; node < node_size; node++) {
-        index_t lut_input_size = lut.GetNodeInputSize(node);
+        index_t lut_input_size = lut.GetNodeConnectionSize(node);
         int     lut_table_size = lut.GetLutTableSize(node);
 
         if ( 0 && lut_input_size == 6 ) {
@@ -77,12 +77,12 @@ void ExportVerilog_LutLayer(std::ostream& os, std::string module_name, LutLayer<
                 "    i_lut6_" << node << "\n"
                 "        (\n"
                 "            .O  (lut_" << node << "_out),\n"
-                "            .I0 (in_data[" << lut.GetNodeInput(node, 0) << "]),\n"
-                "            .I1 (in_data[" << lut.GetNodeInput(node, 1) << "]),\n"
-                "            .I2 (in_data[" << lut.GetNodeInput(node, 2) << "]),\n"
-                "            .I3 (in_data[" << lut.GetNodeInput(node, 3) << "]),\n"
-                "            .I4 (in_data[" << lut.GetNodeInput(node, 4) << "]),\n"
-                "            .I5 (in_data[" << lut.GetNodeInput(node, 5) << "])\n";
+                "            .I0 (in_data[" << lut.GetNodeConnectionIndex(node, 0) << "]),\n"
+                "            .I1 (in_data[" << lut.GetNodeConnectionIndex(node, 1) << "]),\n"
+                "            .I2 (in_data[" << lut.GetNodeConnectionIndex(node, 2) << "]),\n"
+                "            .I3 (in_data[" << lut.GetNodeConnectionIndex(node, 3) << "]),\n"
+                "            .I4 (in_data[" << lut.GetNodeConnectionIndex(node, 4) << "]),\n"
+                "            .I5 (in_data[" << lut.GetNodeConnectionIndex(node, 5) << "])\n";
             os <<
                 "        );\n"
                 "\n";
@@ -115,10 +115,10 @@ void ExportVerilog_LutLayer(std::ostream& os, std::string module_name, LutLayer<
 
             for (index_t bit = lut_input_size - 1; bit >= 1; --bit) {
                 os <<
-                    "                         in_data[" << lut.GetNodeInput(node, bit) << "],\n";
+                    "                         in_data[" << lut.GetNodeConnectionIndex(node, bit) << "],\n";
             }
             os <<
-                "                         in_data[" << lut.GetNodeInput(node, 0) << "]\n"
+                "                         in_data[" << lut.GetNodeConnectionIndex(node, 0) << "]\n"
                 "                    }),\n"
                 "            .out_data(lut_" << node << "_out)\n"
                 "        );\n"

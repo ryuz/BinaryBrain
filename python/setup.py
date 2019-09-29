@@ -2,7 +2,7 @@
 """
 
 import sys
-import  os
+import os
 from os.path import join as pjoin
 import setuptools
 from setuptools import setup, Extension
@@ -25,7 +25,7 @@ os.chdir(src_path)
 
 # build flags
 VERBOSE     = False
-WITH_CUDA   = False
+WITH_CUDA   = True
 WITH_CEREAL = True
 
 
@@ -95,6 +95,8 @@ if WITH_CUDA:
 else:
     CUDA = None
 
+if CUDA is None:
+    print('CUDA is not found.')
 
 class get_pybind_include(object):
     """Helper class to determine the pybind11 include path
@@ -232,7 +234,7 @@ def hook_compiler(self):
              library_dirs=None, runtime_library_dirs=None,
              export_symbols=None, debug=0, extra_preargs=None,
              extra_postargs=None, build_temp=None, target_lang=None):
-
+        
         if VERBOSE:
             print('---------------------')
             print('[link]')
@@ -252,7 +254,9 @@ def hook_compiler(self):
         if CUDA is not None:
             libraries, library_dirs, runtime_library_dirs =\
                     self._fix_lib_args(libraries, library_dirs, runtime_library_dirs)
-
+            
+#           os.makedirs(os.path.dirname(output_filename), exist_ok=True)
+            
             lib_dirs = []
             if self.compiler_type == 'msvc':
                 lib_dirs += ['-L"' + str(libdir) + '"' for libdir in library_dirs]

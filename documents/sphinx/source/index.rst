@@ -7,10 +7,11 @@ Welcome to BinaryBrain's documentation!
 =======================================
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 4
    :caption: Contents:
 
    introduction
+   sample_rtl
    cpp_api
    python_api
 

@@ -29,7 +29,7 @@ void MicroMlp_cmp_bit(int const input_node_size, int const output_node_size, int
     // 接続を同一化
     for (int node = 0; node < output_node_size; ++node) {
         for (int i = 0; i < 6; ++i) {
-            mlp1->SetNodeInput(node, i, mlp0->GetNodeInput(node, i));
+            mlp1->SetNodeConnectionIndex(node, i, mlp0->GetNodeConnectionIndex(node, i));
         }
     }
 

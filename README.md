@@ -1,7 +1,9 @@
 ﻿
+[English version](README_en.md)
+
 # BinaryBrain Version 3<br> --binary neural networks platform for LUT-networks
 
-[English version](README_en.md)
+[詳細なドキュメントはこちら](https://binarybrain.readthedocs.io/ja/latest/)です。
 
 ## 概要
 BinaryBrain は主に当サイトが研究中の LUT(Look-up Table)-Networkを実験することを目的に作成したディープラーニング用のプラットフォームです。
@@ -16,6 +18,26 @@ LUT-Networkの評価を目的に作成しておりますが、それ以外の用
 - C++で記述されている
 - GPU(CUDA)に対応している
 - 高速でマニアックな自作レイヤーが作りやすい
+
+
+## 性能紹介
+
+フルバイナリネットワークで、遅延数ミリ秒(1000fps)での画像認識の例です。
+
+![fpga_environment.jpg](documents/images/fpga_environment.jpg "sample's photo image")
+![block_diagram.png](documents/images/block_diagram.jpg "sample's block diagram")
+
+
+下記のような微小リソース量で動作可能です。
+
+![fpga_resource.png](documents/images/fpga_resource.png "FPGA resource")
+
+パーセプトロンとは異なる下記のネットワークモデルが利用可能です。
+(もちろん従来のパーセプトロンモデルでの)
+
+![Sparse-LUT_model.png](documents/images/Sparse-LUT_model.png "Sparse-LUT model")
+
+
 
 ## MNISTサンプルの動かし方
 AXV2以降の命令が使えるCPUと、Windows7以降の環境を想定しております。

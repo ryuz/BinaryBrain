@@ -1,0 +1,40 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, Ryuji Fuchikami
+# This file is distributed under the same license as the BinaryBrain
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: BinaryBrain 3.9\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-09-29 19:33+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../source/sample_rtl.rst:3
+msgid "RTLの試し方"
+msgstr "Evaluation for FPGA"
+
+#: ../../source/sample_rtl.rst:7
+msgid "sampleの動かし方"
+msgstr "sample program"
+
+#: ../../source/sample_rtl.rst:9
+msgid "C++, Pythonともに Verilog RTL のソースファイルの出力が可能です。 出力したRTLの試し方は"
+msgstr ""
+
+#: ../../source/sample_rtl.rst:12
+msgid "https://github.com/ryuz/BinaryBrain/tree/master/samples/mnist/verilog"
+msgstr ""
+
+#: ../../source/sample_rtl.rst:15
+msgid "の readme.txt を参照ください。"
+msgstr ""
+
