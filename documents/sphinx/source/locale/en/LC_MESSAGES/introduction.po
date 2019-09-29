@@ -4,7 +4,6 @@
 # package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: BinaryBrain \n"
@@ -284,8 +283,8 @@ msgid ""
 "基本的には C++ や Python で、ネットワークを記述し、学習を行った後に その結果を verilog "
 "などで出力して、FPGA化することを目的に作成しています。"
 msgstr ""
-"Basically, the network is written in C ++ or Python, and after learning, "
-"the result is output in verilog etc. and created for FPGA."
+"Basically, you can design the network in C ++ or Python, and run learning and "
+"output verilog RTL for FPGA."
 
 #: ../../source/introduction.rst:185
 msgid ""
@@ -316,64 +315,4 @@ msgstr "If you use the Python version, just import binarybrain"
 #: ../../source/introduction.rst:198
 msgid "使い方はsampleなどを参考にしてください。"
 msgstr "Please refer to samples for usage."
-
-#~ msgid "また、BB_WITH_CEREAL マクロを定義すると、途中経過を json 経由で保存可能となります。"
-#~ msgstr ""
-
-#~ msgid "独自の確率的LUTのモデルにより、高速に学習できる"
-#~ msgstr ""
-
-#~ msgid "MNISTサンプルの動かし方"
-#~ msgstr "How to use sample program (MNIST)"
-
-#~ msgid "AXV2以降の命令が使えるCPUと、Windows7以降の環境を想定しております。 CUDA(Kepler以降)にも対応しています。"
-#~ msgstr ""
-#~ "It assumes a CPU that can use "
-#~ "AXV2 or later instructions, and an "
-#~ "environment of Windows 7 or later. "
-#~ "CUDA (Kepler or later) is also "
-#~ "supported."
-
-#~ msgid "GPUを使わない場合は make WITH_CUDA=No として下さい。"
-#~ msgstr "make WITH_CUDA=No if you don't use GPU."
-
-#~ msgid "Python (β版)"
-#~ msgstr ""
-
-#~ msgid "サンプルの実行"
-#~ msgstr ""
-
-#~ msgid "pip によるインストール"
-#~ msgstr ""
-
-#~ msgid "いずれ下記のようにインストールできるようになるかもしれません"
-#~ msgstr ""
-
-#~ msgid "githubからの取得"
-#~ msgstr ""
-
-#~ msgid "著者の開発用。記録のためにビルド不能なものを入れることもあります。"
-#~ msgstr ""
-
-#~ msgid "リリース用。基本的な動作確認はしてからここにマージしています。"
-#~ msgstr ""
-
-#~ msgid "現在は ver3 のリリース版を反映。"
-#~ msgstr ""
-
-#~ msgid ""
-#~ "CPU版に関してはヘッダオンリーライブラリとなっているため、include 以下にある "
-#~ "ヘッダファイルをインクルードするだけでご利用いただけます。"
-#~ msgstr ""
-
-#~ msgid ""
-#~ "GPUを使う場合は、ヘッダ読み込みの際に BB_WITH_CUDA マクロを定義した上で、cuda "
-#~ "以下にある ライブラリをビルドした上でリンクする必要があります。"
-#~ msgstr ""
-
-#~ msgid "のような操作で、ビルドして動作させることができます。"
-#~ msgstr ""
-
-#~ msgid "などを参照ください。"
-#~ msgstr " "
 
