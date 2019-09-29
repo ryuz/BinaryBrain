@@ -232,7 +232,7 @@ def hook_compiler(self):
              library_dirs=None, runtime_library_dirs=None,
              export_symbols=None, debug=0, extra_preargs=None,
              extra_postargs=None, build_temp=None, target_lang=None):
-
+        
         if VERBOSE:
             print('---------------------')
             print('[link]')
@@ -252,7 +252,9 @@ def hook_compiler(self):
         if CUDA is not None:
             libraries, library_dirs, runtime_library_dirs =\
                     self._fix_lib_args(libraries, library_dirs, runtime_library_dirs)
-
+            
+            os.makedirs(output_dir, exist_ok=True)
+            
             lib_dirs = []
             if self.compiler_type == 'msvc':
                 lib_dirs += ['-L"' + str(libdir) + '"' for libdir in library_dirs]
