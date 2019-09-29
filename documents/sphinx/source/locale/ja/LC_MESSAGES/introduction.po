@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BinaryBrain \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-29 19:33+0900\n"
+"POT-Creation-Date: 2019-09-29 21:55+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -149,145 +149,137 @@ msgstr ""
 #: ../../source/introduction.rst:82
 msgid ""
 "nvcc が利用可能な Google Colaboratory でも動作可能なようです。 "
-"以下あくまで参考ですが、ランタイムのタイプをGPUに設定した上で"
+"以下あくまで参考ですが、ランタイムのタイプをGPUに設定した上で、下記のような操作で、ビルドして動作させることができます。"
 msgstr ""
 
-#: ../../source/introduction.rst:92
-msgid "のような操作で、ビルドして動作させることができます。"
-msgstr ""
-
-#: ../../source/introduction.rst:96
+#: ../../source/introduction.rst:95
 msgid "クイックスタート(Python)"
 msgstr ""
 
-#: ../../source/introduction.rst:98
+#: ../../source/introduction.rst:97
 msgid "BinaryBrain は pybind11 を利用して Python からの呼び出しも可能にしています。 python3を前提としています。"
 msgstr ""
 
-#: ../../source/introduction.rst:102
+#: ../../source/introduction.rst:101
 msgid "pipでのインストール"
 msgstr ""
 
-#: ../../source/introduction.rst:104 ../../source/introduction.rst:147
+#: ../../source/introduction.rst:103 ../../source/introduction.rst:145
 msgid "下記のコマンドでインストール可能です。"
 msgstr ""
 
-#: ../../source/introduction.rst:110
+#: ../../source/introduction.rst:109
 msgid ""
 "Windowsなど環境によっては pip3 が存在せず、pip のみ場合は pip3 を pip に置き換えて実行ください。 "
 "インストール時にソースファイルがビルドされますので、コンパイラやCUDAなどの環境は事前に整えておく必要があります。 "
 "(Windows版はバイナリwheelが提供されるかもしれません)"
 msgstr ""
 
-#: ../../source/introduction.rst:114
-msgid "Python用のサンプルプログラムは"
+#: ../../source/introduction.rst:113
+msgid "Python用のサンプルプログラムは下記などを参照ください。"
 msgstr ""
 
-#: ../../source/introduction.rst:116
+#: ../../source/introduction.rst:115
 msgid "https://github.com/ryuz/BinaryBrain/tree/master/python/samples"
 msgstr ""
 
-#: ../../source/introduction.rst:118
-msgid "などを参照ください。"
-msgstr ""
-
-#: ../../source/introduction.rst:123
+#: ../../source/introduction.rst:121
 msgid "setup.py でのインストール"
 msgstr ""
 
-#: ../../source/introduction.rst:126
+#: ../../source/introduction.rst:124
 msgid "事前準備"
 msgstr ""
 
-#: ../../source/introduction.rst:127
+#: ../../source/introduction.rst:125
 msgid "必要なパッケージを事前にインストールください"
 msgstr ""
 
-#: ../../source/introduction.rst:137
+#: ../../source/introduction.rst:135
 msgid ""
 "Windows環境の場合、nvccのほかにも VisualStudio の 64bit "
 "版がコマンドラインから利用できるようにしておく必要があります。 例えば以下のように実行しておきます。 x64 の指定が重要です。"
 msgstr ""
 
-#: ../../source/introduction.rst:145
+#: ../../source/introduction.rst:143
 msgid "インストール"
 msgstr ""
 
-#: ../../source/introduction.rst:158
+#: ../../source/introduction.rst:156
 msgid "githubについて"
 msgstr ""
 
-#: ../../source/introduction.rst:160
+#: ../../source/introduction.rst:158
 msgid "現在 version3 は下記の branch で管理しています"
 msgstr ""
 
-#: ../../source/introduction.rst:164
+#: ../../source/introduction.rst:162
 msgid "ver3_develop"
 msgstr ""
 
-#: ../../source/introduction.rst:163
+#: ../../source/introduction.rst:161
 msgid "開発用ブランチです。ビルド不能な状態になることもあります。 最新のコードにアクセスしたい場合はここをご覧ください。"
 msgstr ""
 
-#: ../../source/introduction.rst:167
+#: ../../source/introduction.rst:165
 msgid "ver3_release"
 msgstr ""
 
-#: ../../source/introduction.rst:167
+#: ../../source/introduction.rst:165
 msgid "リリース作成用ブランチです。"
 msgstr ""
 
-#: ../../source/introduction.rst:170
+#: ../../source/introduction.rst:168
 msgid "master"
 msgstr ""
 
-#: ../../source/introduction.rst:170
+#: ../../source/introduction.rst:168
 msgid "リリースブランチで確認したものを反映。"
 msgstr ""
 
-#: ../../source/introduction.rst:172
+#: ../../source/introduction.rst:170
 msgid ""
 "tag は 開発都合で ver3_build0001 のような形式で定期的に打っており、 "
 "リリースのタイミングでバージョン番号のタグを打つようにしております。 (以前はリリースごとにver3_release1 のような形で打つように "
 "していました)。"
 msgstr ""
 
-#: ../../source/introduction.rst:177
+#: ../../source/introduction.rst:175
 msgid "まだ、開発初期で仕様が安定していませんので、再現性の確保などが 必要な際はタグを活用ください。"
 msgstr ""
 
-#: ../../source/introduction.rst:182
+#: ../../source/introduction.rst:180
 msgid "基本的な使い方"
 msgstr ""
 
-#: ../../source/introduction.rst:184
+#: ../../source/introduction.rst:182
 msgid ""
 "基本的には C++ や Python で、ネットワークを記述し、学習を行った後に その結果を verilog "
 "などで出力して、FPGA化することを目的に作成しています。"
 msgstr ""
 
-#: ../../source/introduction.rst:187
+#: ../../source/introduction.rst:185
 msgid ""
 "もちろんBinaryBrain自体は学習によってネットワークのパラメータも求めるまでが "
 "主体ですので、その結果を使ってC言語を出力するルーチンをユーザー側で開発することも 自由です。"
 msgstr ""
 
-#: ../../source/introduction.rst:191
+#: ../../source/introduction.rst:189
 msgid ""
 "C++用のCPU版に関してはヘッダオンリーライブラリとなっているため、include 以下にある "
 "ヘッダファイルをインクルードするだけでご利用いただけます。 GPUを使う場合は、ヘッダ読み込みの際に BB_WITH_CUDA "
 "マクロを定義した上で、cuda 以下にある ライブラリをビルドした上でリンクする必要があります。"
 msgstr ""
 
-#: ../../source/introduction.rst:196
+#: ../../source/introduction.rst:194
 msgid "また、BB_WITH_CEREAL マクロを定義すると、途中経過の保存形式に json が利用可能となります。"
 msgstr ""
 
-#: ../../source/introduction.rst:198
+#: ../../source/introduction.rst:196
 msgid "Python版を使う場合は、import するだけで利用可能です。"
 msgstr ""
 
-#: ../../source/introduction.rst:200
+#: ../../source/introduction.rst:198
 msgid "使い方はsampleなどを参考にしてください。"
 msgstr ""
 
@@ -335,5 +327,19 @@ msgstr ""
 #~ msgid ""
 #~ "GPUを使う場合は、ヘッダ読み込みの際に BB_WITH_CUDA マクロを定義した上で、cuda "
 #~ "以下にある ライブラリをビルドした上でリンクする必要があります。"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "nvcc が利用可能な Google Colaboratory でも動作可能なようです。"
+#~ " 以下あくまで参考ですが、ランタイムのタイプをGPUに設定した上で"
+#~ msgstr ""
+
+#~ msgid "のような操作で、ビルドして動作させることができます。"
+#~ msgstr ""
+
+#~ msgid "Python用のサンプルプログラムは"
+#~ msgstr ""
+
+#~ msgid "などを参照ください。"
 #~ msgstr ""
 

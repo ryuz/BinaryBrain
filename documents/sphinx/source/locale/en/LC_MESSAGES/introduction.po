@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BinaryBrain \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-29 19:33+0900\n"
+"POT-Creation-Date: 2019-09-29 21:55+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -63,7 +63,9 @@ msgstr ""
 
 #: ../../source/introduction.rst:19
 msgid "量子化＆疎行列のネットワークでパフォーマンスの良い学習が出来る環境を目指している"
-msgstr "Aiming to create an environment where high-performance learning is possible with a network of quantization and sparse matrix"
+msgstr ""
+"Aiming to create an environment where high-performance learning is "
+"possible with a network of quantization and sparse matrix"
 
 #: ../../source/introduction.rst:20
 msgid "C++で記述されている"
@@ -93,16 +95,16 @@ msgstr "First, introduce how to move the attached MNIST sample."
 msgid ""
 "AXV2以降の命令が使えるCPUと、Windows7以降もしくは Linuxの環境を想定しております。 "
 "CUDAにも対応していまが、nvccが利用可能な環境でビルドする必要があります。"
-msgstr "It assumes a CPU that can use AXV2 or later instructions and a Windows7 or later or Linux environment."
-"Although it supports CUDA, it must be built in an environment where nvcc is available."
+msgstr ""
+"It assumes a CPU that can use AXV2 or later instructions and a Windows7 "
+"or later or Linux environment.Although it supports CUDA, it must be built"
+" in an environment where nvcc is available."
 
 #: ../../source/introduction.rst:34
 msgid ""
 "CUDAについてはNVIDIAのページを参考に事前にインストールください。 https://developer.nvidia.com/cuda-"
 "downloads"
-msgstr ""
-"please install CUDA."
-"https://developer.nvidia.com/cuda-downloads"
+msgstr "please install CUDA.https://developer.nvidia.com/cuda-downloads"
 
 #: ../../source/introduction.rst:37
 msgid "なお make 時に make WITH_CUDA=No と指定することで、GPUを使わないCPU版もビルド可能です。"
@@ -161,148 +163,159 @@ msgstr ""
 #: ../../source/introduction.rst:82
 msgid ""
 "nvcc が利用可能な Google Colaboratory でも動作可能なようです。 "
-"以下あくまで参考ですが、ランタイムのタイプをGPUに設定した上で"
-msgstr ""
-"Google Colaboratory"
+"以下あくまで参考ですが、ランタイムのタイプをGPUに設定した上で、下記のような操作で、ビルドして動作させることができます。"
+msgstr "Google Colaboratory (runtime type is 'GPU')"
 
-#: ../../source/introduction.rst:92
-msgid "のような操作で、ビルドして動作させることができます。"
-msgstr ""
-
-#: ../../source/introduction.rst:96
+#: ../../source/introduction.rst:95
 msgid "クイックスタート(Python)"
 msgstr "Quick Start (Python)"
 
-#: ../../source/introduction.rst:98
+#: ../../source/introduction.rst:97
 msgid "BinaryBrain は pybind11 を利用して Python からの呼び出しも可能にしています。 python3を前提としています。"
 msgstr ""
+"BinaryBrain also enables calls from Python using pybind11. python3 is "
+"assumed."
 
-#: ../../source/introduction.rst:102
+#: ../../source/introduction.rst:101
 msgid "pipでのインストール"
 msgstr "install with pip"
 
-#: ../../source/introduction.rst:104 ../../source/introduction.rst:147
+#: ../../source/introduction.rst:103 ../../source/introduction.rst:145
 msgid "下記のコマンドでインストール可能です。"
-msgstr ""
+msgstr "It can be installed with the following command."
 
-#: ../../source/introduction.rst:110
+#: ../../source/introduction.rst:109
 msgid ""
 "Windowsなど環境によっては pip3 が存在せず、pip のみ場合は pip3 を pip に置き換えて実行ください。 "
 "インストール時にソースファイルがビルドされますので、コンパイラやCUDAなどの環境は事前に整えておく必要があります。 "
 "(Windows版はバイナリwheelが提供されるかもしれません)"
 msgstr ""
+"Depending on the environment such as Windows, pip3 does not exist. If "
+"only pip is used, replace pip3 with pip.Since the source file is built at"
+" the time of installation, it is necessary to prepare the environment "
+"such as compiler and CUDA beforehand.(Windows version may be provided "
+"with binary wheel)"
 
-#: ../../source/introduction.rst:114
-msgid "Python用のサンプルプログラムは"
-msgstr ""
+#: ../../source/introduction.rst:113
+msgid "Python用のサンプルプログラムは下記などを参照ください。"
+msgstr "Refer to the following for sample programs for Python."
 
-#: ../../source/introduction.rst:116
+#: ../../source/introduction.rst:115
 msgid "https://github.com/ryuz/BinaryBrain/tree/master/python/samples"
 msgstr ""
 
-#: ../../source/introduction.rst:118
-msgid "などを参照ください。"
-msgstr ""
-
-#: ../../source/introduction.rst:123
+#: ../../source/introduction.rst:121
 msgid "setup.py でのインストール"
 msgstr "install with setup.py"
 
-#: ../../source/introduction.rst:126
+#: ../../source/introduction.rst:124
 msgid "事前準備"
 msgstr "preparation"
 
-#: ../../source/introduction.rst:127
+#: ../../source/introduction.rst:125
 msgid "必要なパッケージを事前にインストールください"
-msgstr ""
+msgstr "Please install the following packages first"
 
-#: ../../source/introduction.rst:137
+#: ../../source/introduction.rst:135
 msgid ""
 "Windows環境の場合、nvccのほかにも VisualStudio の 64bit "
 "版がコマンドラインから利用できるようにしておく必要があります。 例えば以下のように実行しておきます。 x64 の指定が重要です。"
 msgstr ""
+"In Windows environment, in addition to nvcc, VisualStudio 64bit The "
+"version must be available from the command line. For example, run it as "
+"follows. The x64 specification is important."
 
-#: ../../source/introduction.rst:145
+#: ../../source/introduction.rst:143
 msgid "インストール"
 msgstr "install"
 
-#: ../../source/introduction.rst:158
+#: ../../source/introduction.rst:156
 msgid "githubについて"
 msgstr "About github"
 
-#: ../../source/introduction.rst:160
+#: ../../source/introduction.rst:158
 msgid "現在 version3 は下記の branch で管理しています"
-msgstr ""
+msgstr "Currently version3 is managed by the following branch"
 
-#: ../../source/introduction.rst:164
+#: ../../source/introduction.rst:162
 msgid "ver3_develop"
 msgstr ""
 
-#: ../../source/introduction.rst:163
+#: ../../source/introduction.rst:161
 msgid "開発用ブランチです。ビルド不能な状態になることもあります。 最新のコードにアクセスしたい場合はここをご覧ください。"
-msgstr ""
+msgstr "Development branch. It may be impossible to build. See here if you want to access the latest code."
 
-#: ../../source/introduction.rst:167
+#: ../../source/introduction.rst:165
 msgid "ver3_release"
 msgstr ""
 
-#: ../../source/introduction.rst:167
+#: ../../source/introduction.rst:165
 msgid "リリース作成用ブランチです。"
-msgstr ""
+msgstr "A branch for creating a release."
 
-#: ../../source/introduction.rst:170
+#: ../../source/introduction.rst:168
 msgid "master"
 msgstr ""
 
-#: ../../source/introduction.rst:170
+#: ../../source/introduction.rst:168
 msgid "リリースブランチで確認したものを反映。"
-msgstr ""
+msgstr "Reflect what was confirmed in the release branch."
 
-#: ../../source/introduction.rst:172
+#: ../../source/introduction.rst:170
 msgid ""
 "tag は 開発都合で ver3_build0001 のような形式で定期的に打っており、 "
 "リリースのタイミングでバージョン番号のタグを打つようにしております。 (以前はリリースごとにver3_release1 のような形で打つように "
 "していました)。"
 msgstr ""
+"The tag is typed regularly in the format ver3_build0001 for the convenience of development, "
+"and the version number tag is typed at the release timing. (In the past, "
+"I used to type in ver3_release1 for each release)."
 
-#: ../../source/introduction.rst:177
+#: ../../source/introduction.rst:175
 msgid "まだ、開発初期で仕様が安定していませんので、再現性の確保などが 必要な際はタグを活用ください。"
-msgstr ""
+msgstr "The specifications are not yet stable at the beginning of development, so use tags when you need to ensure reproducibility."
 
-#: ../../source/introduction.rst:182
+#: ../../source/introduction.rst:180
 msgid "基本的な使い方"
 msgstr "Basic usage"
 
-#: ../../source/introduction.rst:184
+#: ../../source/introduction.rst:182
 msgid ""
 "基本的には C++ や Python で、ネットワークを記述し、学習を行った後に その結果を verilog "
 "などで出力して、FPGA化することを目的に作成しています。"
 msgstr ""
+"Basically, the network is written in C ++ or Python, and after learning, "
+"the result is output in verilog etc. and created for FPGA."
 
-#: ../../source/introduction.rst:187
+#: ../../source/introduction.rst:185
 msgid ""
 "もちろんBinaryBrain自体は学習によってネットワークのパラメータも求めるまでが "
 "主体ですので、その結果を使ってC言語を出力するルーチンをユーザー側で開発することも 自由です。"
 msgstr ""
+"Of course, BinaryBrain itself is mainly up to learning network parameters by learning, "
+"so users can freely develop routines that output C language using the results."
 
-#: ../../source/introduction.rst:191
+#: ../../source/introduction.rst:189
 msgid ""
 "C++用のCPU版に関してはヘッダオンリーライブラリとなっているため、include 以下にある "
 "ヘッダファイルをインクルードするだけでご利用いただけます。 GPUを使う場合は、ヘッダ読み込みの際に BB_WITH_CUDA "
 "マクロを定義した上で、cuda 以下にある ライブラリをビルドした上でリンクする必要があります。"
 msgstr ""
+"The CPU version for C ++ is a header-only library, so you can use it just by including "
+"the header file under include. When using GPU, it is necessary to define the BB_WITH_CUDA macro "
+"when reading the header, and link after building the library under cuda."
+
+#: ../../source/introduction.rst:194
+msgid "また、BB_WITH_CEREAL マクロを定義すると、途中経過の保存形式に json が利用可能となります。"
+msgstr "If you define the BB_WITH_CEREAL macro, json can be used as a saving format in the middle."
 
 #: ../../source/introduction.rst:196
-msgid "また、BB_WITH_CEREAL マクロを定義すると、途中経過の保存形式に json が利用可能となります。"
-msgstr ""
+msgid "Python版を使う場合は、import するだけで利用可能です。"
+msgstr "If you use the Python version, just import binarybrain"
 
 #: ../../source/introduction.rst:198
-msgid "Python版を使う場合は、import するだけで利用可能です。"
-msgstr ""
-
-#: ../../source/introduction.rst:200
 msgid "使い方はsampleなどを参考にしてください。"
-msgstr ""
+msgstr "Please refer to samples for usage."
 
 #~ msgid "また、BB_WITH_CEREAL マクロを定義すると、途中経過を json 経由で保存可能となります。"
 #~ msgstr ""
@@ -357,4 +370,10 @@ msgstr ""
 #~ "GPUを使う場合は、ヘッダ読み込みの際に BB_WITH_CUDA マクロを定義した上で、cuda "
 #~ "以下にある ライブラリをビルドした上でリンクする必要があります。"
 #~ msgstr ""
+
+#~ msgid "のような操作で、ビルドして動作させることができます。"
+#~ msgstr ""
+
+#~ msgid "などを参照ください。"
+#~ msgstr " "
 
