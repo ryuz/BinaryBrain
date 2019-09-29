@@ -2,7 +2,7 @@
 """
 
 import sys
-import  os
+import os
 from os.path import join as pjoin
 import setuptools
 from setuptools import setup, Extension
