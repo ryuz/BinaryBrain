@@ -28,7 +28,7 @@ author = u'Ryuji Fuchikami'
 major_version = 0
 minor_version = 0
 revision_number = 0
-with open('../../../include/bb/Version.h', 'r') as f:
+with open('../../../include/bb/Version.h', 'r', encoding="utf-8") as f:
     for line in f.readlines():
         m = re.match(r'\s*#\s*define\s+BB_MAJOR_VERSION\s+([0-9]+)', line)
         if m:   major_version = int(m.group(1))
