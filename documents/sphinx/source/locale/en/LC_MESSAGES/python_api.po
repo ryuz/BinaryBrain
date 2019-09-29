@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BinaryBrain \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-22 08:35+0900\n"
+"POT-Creation-Date: 2019-09-29 19:33+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -24,5 +24,140 @@ msgstr ""
 
 #: ../../source/python_api.rst:6
 msgid "binarybrain module"
+msgstr ""
+
+#: ../../docstring binarybrain.core:1 of
+msgid "binarybrain plugin"
+msgstr ""
+
+#: ../../docstring binarybrain.core.Activation:1
+#: binarybrain.core.BinaryModulation:1 binarybrain.core.BinaryModulationBit:1
+#: binarybrain.core.DenseAffine:1 binarybrain.core.Filter2d:1
+#: binarybrain.core.Filter2dBit:1 binarybrain.core.Reduce:1
+#: binarybrain.core.Sequential:1 binarybrain.core.SparseLayer:1 of
+msgid "ベースクラス: :class:`binarybrain.core.Model`"
+msgstr ""
+
+#: ../../docstring binarybrain.core.BatchNormalization:1
+#: binarybrain.core.Binarize:1 binarybrain.core.BinarizeBit:1 of
+msgid "ベースクラス: :class:`binarybrain.core.Activation`"
+msgstr ""
+
+#: ../../docstring binarybrain.core.BinaryLut6:1 of
+msgid "ベースクラス: :class:`binarybrain.core.LutLayer`"
+msgstr ""
+
+#: ../../docstring binarybrain.core.BinaryLut6.create:1 of
+msgid "create object"
+msgstr ""
+
+#: ../../docstring binarybrain.core.BinaryLut6.create of
+msgid "パラメータ"
+msgstr ""
+
+#: ../../docstring binarybrain.core.BinaryLut6.create:3 of
+msgid "The shape of output"
+msgstr ""
+
+#: ../../docstring binarybrain.core.BinaryLut6.create:5 of
+msgid "random seed"
+msgstr ""
+
+#: ../../docstring binarybrain.core.BinaryLut6.create of
+msgid "戻り値"
+msgstr ""
+
+#: ../../docstring binarybrain.core.BinaryLut6.create of
+msgid "戻り値の型"
+msgstr ""
+
+#: ../../docstring binarybrain.core.BinaryLut6Bit:1 of
+msgid "ベースクラス: :class:`binarybrain.core.LutLayerBit`"
+msgstr ""
+
+#: ../../docstring binarybrain.core.BinaryLut6Bit.create:1
+#: binarybrain.core.DenseAffine.create:1 binarybrain.core.OptimizerSgd.create:1
+#: of
+msgid "create"
+msgstr ""
+
+#: ../../docstring binarybrain.core.CRunner:1 binarybrain.core.FrameBuffer:1
+#: binarybrain.core.LoadCifar10:1 binarybrain.core.LoadMnist:1
+#: binarybrain.core.LossFunction:1 binarybrain.core.MetricsFunction:1
+#: binarybrain.core.Model:1 binarybrain.core.Optimizer:1
+#: binarybrain.core.RunStatus:1 binarybrain.core.Tensor:1
+#: binarybrain.core.TrainData:1 binarybrain.core.ValueGenerator:1
+#: binarybrain.core.Variables:1 of
+msgid "ベースクラス: :class:`pybind11_builtins.pybind11_object`"
+msgstr ""
+
+#: ../../docstring binarybrain.core.FrameBuffer.resize:1 of
+msgid "resize"
+msgstr ""
+
+#: ../../docstring binarybrain.core.FrameBuffer.set_data:1 of
+msgid "set data"
+msgstr ""
+
+#: ../../docstring binarybrain.core.LossMeanSquaredError:1
+#: binarybrain.core.LossSoftmaxCrossEntropy:1 of
+msgid "ベースクラス: :class:`binarybrain.core.LossFunction`"
+msgstr ""
+
+#: ../../docstring binarybrain.core.LoweringConvolution:1
+#: binarybrain.core.MaxPooling:1 of
+msgid "ベースクラス: :class:`binarybrain.core.Filter2d`"
+msgstr ""
+
+#: ../../docstring binarybrain.core.LoweringConvolutionBit:1 of
+msgid "ベースクラス: :class:`binarybrain.core.Filter2dBit`"
+msgstr ""
+
+#: ../../docstring binarybrain.core.LutLayer:1 binarybrain.core.LutLayerBit:1
+#: binarybrain.core.SparseLut6:1 of
+msgid "ベースクラス: :class:`binarybrain.core.SparseLayer`"
+msgstr ""
+
+#: ../../docstring binarybrain.core.MetricsCategoricalAccuracy:1
+#: binarybrain.core.MetricsMeanSquaredError:1 of
+msgid "ベースクラス: :class:`binarybrain.core.MetricsFunction`"
+msgstr ""
+
+#: ../../docstring binarybrain.core.Model.backward:1 of
+msgid "Backward"
+msgstr ""
+
+#: ../../docstring binarybrain.core.Model.forward:1 of
+msgid "Forward"
+msgstr ""
+
+#: ../../docstring binarybrain.core.Model.get_info:1 of
+msgid "get network information"
+msgstr ""
+
+#: ../../docstring binarybrain.core.Model.send_command:1 of
+msgid "SendCommand"
+msgstr ""
+
+#: ../../docstring binarybrain.core.NormalDistributionGenerator:1
+#: binarybrain.core.UniformDistributionGenerator:1 of
+msgid "ベースクラス: :class:`binarybrain.core.ValueGenerator`"
+msgstr ""
+
+#: ../../docstring binarybrain.core.OptimizerAdaGrad:1
+#: binarybrain.core.OptimizerAdam:1 binarybrain.core.OptimizerSgd:1 of
+msgid "ベースクラス: :class:`binarybrain.core.Optimizer`"
+msgstr ""
+
+#: ../../docstring binarybrain.core.ReLU:1 binarybrain.core.Sigmoid:1 of
+msgid "ベースクラス: :class:`binarybrain.core.Binarize`"
+msgstr ""
+
+#: ../../docstring binarybrain.core.ReLUBit:1 of
+msgid "ベースクラス: :class:`binarybrain.core.BinarizeBit`"
+msgstr ""
+
+#: ../../docstring binarybrain.core.SparseLut6.create:1 of
+msgid "create SparseLut6"
 msgstr ""
 

@@ -24,7 +24,7 @@ msgstr ""
 
 #: ../../source/cpp_api.rst:7
 msgid "概要"
-msgstr ""
+msgstr "Abstruct"
 
 #: ../../source/cpp_api.rst:9
 msgid "本章ではC++のAPIについて触れます。"

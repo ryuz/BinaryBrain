@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BinaryBrain \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-22 20:16+0900\n"
+"POT-Creation-Date: 2019-09-29 19:33+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -68,177 +68,272 @@ msgstr ""
 msgid "高速でマニアックな自作レイヤーが作りやすい"
 msgstr ""
 
-#: ../../source/introduction.rst:26
-msgid "MNISTサンプルの動かし方"
+#: ../../source/introduction.rst:23
+msgid "Pythonからの利用も可能"
 msgstr ""
 
-#: ../../source/introduction.rst:28
-msgid "AXV2以降の命令が使えるCPUと、Windows7以降の環境を想定しております。 CUDA(Kepler以降)にも対応しています。"
+#: ../../source/introduction.rst:27
+msgid "クイックスタート(C++)"
 msgstr ""
 
-#: ../../source/introduction.rst:32
-msgid "Windows"
+#: ../../source/introduction.rst:29
+msgid "まずはじめに付属のMNISTサンプルを動かすまでを紹介します。"
 msgstr ""
 
-#: ../../source/introduction.rst:33
-msgid "install VisualStudio 2017 + CUDA 10.1"
+#: ../../source/introduction.rst:31
+msgid ""
+"AXV2以降の命令が使えるCPUと、Windows7以降もしくは Linuxの環境を想定しております。 "
+"CUDAにも対応していまが、nvccが利用可能な環境でビルドする必要があります。"
 msgstr ""
 
 #: ../../source/introduction.rst:34
+msgid ""
+"CUDAについてはNVIDIAのページを参考に事前にインストールください。 https://developer.nvidia.com/cuda-"
+"downloads"
+msgstr ""
+
+#: ../../source/introduction.rst:37
+msgid "なお make 時に make WITH_CUDA=No と指定することで、GPUを使わないCPU版もビルド可能です。"
+msgstr ""
+
+#: ../../source/introduction.rst:41
+msgid "Windows"
+msgstr ""
+
+#: ../../source/introduction.rst:42
+msgid "install VisualStudio 2017 + CUDA 10.1"
+msgstr "VisualStudio 2017 と CUDA 10.1　をインストールします"
+
+#: ../../source/introduction.rst:43
 msgid ""
 "git clone --recursive -b ver3_release "
 "https://github.com/ryuz/BinaryBrain.git"
 msgstr ""
 
-#: ../../source/introduction.rst:35
+#: ../../source/introduction.rst:44
 msgid "download MNIST from http://yann.lecun.com/exdb/mnist/"
-msgstr ""
+msgstr "http://yann.lecun.com/exdb/mnist/ からMNISTデータをダウンロードします"
 
-#: ../../source/introduction.rst:36
+#: ../../source/introduction.rst:45
 msgid "decompress MNIST for \"\\samples\\mnist\""
-msgstr ""
+msgstr "ダウンロードした　MNSIT　データを \"\\samples\\mnist\" に展開します"
 
-#: ../../source/introduction.rst:37
+#: ../../source/introduction.rst:46
 msgid "open VC++ solution \"samples\\mnist\\sample_mnist.sln\""
-msgstr ""
+msgstr "VisuaStudio にて \"samples\\mnist\\sample_mnist.sln\" を開きます"
 
-#: ../../source/introduction.rst:38
+#: ../../source/introduction.rst:47
 msgid "build \"x64 Release\""
-msgstr ""
+msgstr "\"x64 Release\"　のターゲットにてビルドします"
 
-#: ../../source/introduction.rst:39
+#: ../../source/introduction.rst:48
 msgid "run"
 msgstr ""
 
-#: ../../source/introduction.rst:42
+#: ../../source/introduction.rst:51
 msgid "Linux(Ubuntu 18.04.1)"
 msgstr ""
 
-#: ../../source/introduction.rst:45
+#: ../../source/introduction.rst:54
 msgid "install tools"
 msgstr ""
 
-#: ../../source/introduction.rst:59
+#: ../../source/introduction.rst:68
 msgid "2. build and run"
 msgstr ""
 
-#: ../../source/introduction.rst:70
-msgid "GPUを使わない場合は make WITH_CUDA=No として下さい。"
-msgstr ""
-
-#: ../../source/introduction.rst:73
+#: ../../source/introduction.rst:80
 msgid "Google Colaboratory"
 msgstr ""
 
-#: ../../source/introduction.rst:75
+#: ../../source/introduction.rst:82
 msgid ""
 "nvcc が利用可能な Google Colaboratory でも動作可能なようです。 "
 "以下あくまで参考ですが、ランタイムのタイプをGPUに設定した上で"
 msgstr ""
 
-#: ../../source/introduction.rst:85
+#: ../../source/introduction.rst:92
 msgid "のような操作で、ビルドして動作させることができます。"
 msgstr ""
 
-#: ../../source/introduction.rst:89
-msgid "Python (β版)"
+#: ../../source/introduction.rst:96
+msgid "クイックスタート(Python)"
 msgstr ""
 
-#: ../../source/introduction.rst:92
+#: ../../source/introduction.rst:98
+msgid "BinaryBrain は pybind11 を利用して Python からの呼び出しも可能にしています。 python3を前提としています。"
+msgstr ""
+
+#: ../../source/introduction.rst:102
+msgid "pipでのインストール"
+msgstr ""
+
+#: ../../source/introduction.rst:104 ../../source/introduction.rst:147
+msgid "下記のコマンドでインストール可能です。"
+msgstr ""
+
+#: ../../source/introduction.rst:110
+msgid ""
+"Windowsなど環境によっては pip3 が存在せず、pip のみ場合は pip3 を pip に置き換えて実行ください。 "
+"インストール時にソースファイルがビルドされますので、コンパイラやCUDAなどの環境は事前に整えておく必要があります。 "
+"(Windows版はバイナリwheelが提供されるかもしれません)"
+msgstr ""
+
+#: ../../source/introduction.rst:114
+msgid "Python用のサンプルプログラムは"
+msgstr ""
+
+#: ../../source/introduction.rst:116
+msgid "https://github.com/ryuz/BinaryBrain/tree/master/python/samples"
+msgstr ""
+
+#: ../../source/introduction.rst:118
+msgid "などを参照ください。"
+msgstr ""
+
+#: ../../source/introduction.rst:123
+msgid "setup.py でのインストール"
+msgstr ""
+
+#: ../../source/introduction.rst:126
 msgid "事前準備"
 msgstr ""
 
-#: ../../source/introduction.rst:94
+#: ../../source/introduction.rst:127
 msgid "必要なパッケージを事前にインストールください"
 msgstr ""
 
-#: ../../source/introduction.rst:103
+#: ../../source/introduction.rst:137
 msgid ""
 "Windows環境の場合、nvccのほかにも VisualStudio の 64bit "
 "版がコマンドラインから利用できるようにしておく必要があります。 例えば以下のように実行しておきます。 x64 の指定が重要です。"
 msgstr ""
 
-#: ../../source/introduction.rst:111
+#: ../../source/introduction.rst:145
 msgid "インストール"
 msgstr ""
 
-#: ../../source/introduction.rst:113
-msgid "下記のコマンドでインストール可能です。"
+#: ../../source/introduction.rst:158
+msgid "githubについて"
 msgstr ""
 
-#: ../../source/introduction.rst:123
-msgid "サンプルの実行"
-msgstr ""
-
-#: ../../source/introduction.rst:136
-msgid "pip によるインストール"
-msgstr ""
-
-#: ../../source/introduction.rst:138
-msgid "いずれ下記のようにインストールできるようになるかもしれません"
-msgstr ""
-
-#: ../../source/introduction.rst:146
-msgid "githubからの取得"
-msgstr ""
-
-#: ../../source/introduction.rst:148
+#: ../../source/introduction.rst:160
 msgid "現在 version3 は下記の branch で管理しています"
 msgstr ""
 
-#: ../../source/introduction.rst:151
+#: ../../source/introduction.rst:164
 msgid "ver3_develop"
 msgstr ""
 
-#: ../../source/introduction.rst:151
-msgid "著者の開発用。記録のためにビルド不能なものを入れることもあります。"
+#: ../../source/introduction.rst:163
+msgid "開発用ブランチです。ビルド不能な状態になることもあります。 最新のコードにアクセスしたい場合はここをご覧ください。"
 msgstr ""
 
-#: ../../source/introduction.rst:153
+#: ../../source/introduction.rst:167
 msgid "ver3_release"
 msgstr ""
 
-#: ../../source/introduction.rst:154
-msgid "リリース用。基本的な動作確認はしてからここにマージしています。"
+#: ../../source/introduction.rst:167
+msgid "リリース作成用ブランチです。"
 msgstr ""
 
-#: ../../source/introduction.rst:156
+#: ../../source/introduction.rst:170
 msgid "master"
 msgstr ""
 
-#: ../../source/introduction.rst:156
-msgid "現在は ver3 のリリース版を反映。"
+#: ../../source/introduction.rst:170
+msgid "リリースブランチで確認したものを反映。"
 msgstr ""
 
-#: ../../source/introduction.rst:158
+#: ../../source/introduction.rst:172
 msgid ""
 "tag は 開発都合で ver3_build0001 のような形式で定期的に打っており、 "
 "リリースのタイミングでバージョン番号のタグを打つようにしております。 (以前はリリースごとにver3_release1 のような形で打つように "
 "していました)。"
 msgstr ""
 
-#: ../../source/introduction.rst:163
+#: ../../source/introduction.rst:177
 msgid "まだ、開発初期で仕様が安定していませんので、再現性の確保などが 必要な際はタグを活用ください。"
 msgstr ""
 
-#: ../../source/introduction.rst:168
+#: ../../source/introduction.rst:182
 msgid "基本的な使い方"
 msgstr ""
 
-#: ../../source/introduction.rst:170
-msgid "CPU版に関してはヘッダオンリーライブラリとなっているため、include 以下にある ヘッダファイルをインクルードするだけでご利用いただけます。"
-msgstr ""
-
-#: ../../source/introduction.rst:173
+#: ../../source/introduction.rst:184
 msgid ""
-"GPUを使う場合は、ヘッダ読み込みの際に BB_WITH_CUDA マクロを定義した上で、cuda 以下にある "
-"ライブラリをビルドした上でリンクする必要があります。"
+"基本的には C++ や Python で、ネットワークを記述し、学習を行った後に その結果を verilog "
+"などで出力して、FPGA化することを目的に作成しています。"
 msgstr ""
 
-#: ../../source/introduction.rst:176
+#: ../../source/introduction.rst:187
+msgid ""
+"もちろんBinaryBrain自体は学習によってネットワークのパラメータも求めるまでが "
+"主体ですので、その結果を使ってC言語を出力するルーチンをユーザー側で開発することも 自由です。"
+msgstr ""
+
+#: ../../source/introduction.rst:191
+msgid ""
+"C++用のCPU版に関してはヘッダオンリーライブラリとなっているため、include 以下にある "
+"ヘッダファイルをインクルードするだけでご利用いただけます。 GPUを使う場合は、ヘッダ読み込みの際に BB_WITH_CUDA "
+"マクロを定義した上で、cuda 以下にある ライブラリをビルドした上でリンクする必要があります。"
+msgstr ""
+
+#: ../../source/introduction.rst:196
 msgid "また、BB_WITH_CEREAL マクロを定義すると、途中経過の保存形式に json が利用可能となります。"
 msgstr ""
 
+#: ../../source/introduction.rst:198
+msgid "Python版を使う場合は、import するだけで利用可能です。"
+msgstr ""
+
+#: ../../source/introduction.rst:200
+msgid "使い方はsampleなどを参考にしてください。"
+msgstr ""
+
 #~ msgid "独自の確率的LUTのモデルにより、高速に学習できる"
+#~ msgstr ""
+
+#~ msgid "MNISTサンプルの動かし方"
+#~ msgstr ""
+
+#~ msgid "AXV2以降の命令が使えるCPUと、Windows7以降の環境を想定しております。 CUDA(Kepler以降)にも対応しています。"
+#~ msgstr ""
+
+#~ msgid "GPUを使わない場合は make WITH_CUDA=No として下さい。"
+#~ msgstr ""
+
+#~ msgid "Python (β版)"
+#~ msgstr ""
+
+#~ msgid "サンプルの実行"
+#~ msgstr ""
+
+#~ msgid "pip によるインストール"
+#~ msgstr ""
+
+#~ msgid "いずれ下記のようにインストールできるようになるかもしれません"
+#~ msgstr ""
+
+#~ msgid "githubからの取得"
+#~ msgstr ""
+
+#~ msgid "著者の開発用。記録のためにビルド不能なものを入れることもあります。"
+#~ msgstr ""
+
+#~ msgid "リリース用。基本的な動作確認はしてからここにマージしています。"
+#~ msgstr ""
+
+#~ msgid "現在は ver3 のリリース版を反映。"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "CPU版に関してはヘッダオンリーライブラリとなっているため、include 以下にある "
+#~ "ヘッダファイルをインクルードするだけでご利用いただけます。"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "GPUを使う場合は、ヘッダ読み込みの際に BB_WITH_CUDA マクロを定義した上で、cuda "
+#~ "以下にある ライブラリをビルドした上でリンクする必要があります。"
 #~ msgstr ""
 
