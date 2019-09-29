@@ -135,7 +135,7 @@ void testBinaryLut6_cmpare(
     // パラメータ統一
     for ( int node = 0; node < output_node_size; ++node) {
         for ( int i = 0; i < N; ++i) {
-            layer_gpu->SetNodeInput(node, i, layer_cpu->GetNodeInput(node, i));
+            layer_gpu->SetNodeConnectionIndex(node, i, layer_cpu->GetNodeConnectionIndex(node, i));
         }
 
         for ( int i = 0; i < (1 << N); ++i) {

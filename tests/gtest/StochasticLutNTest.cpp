@@ -36,7 +36,7 @@ void StochasticLutN_cmp(int const input_node_size, int const output_node_size, i
     // 接続を同一化
     for (int node = 0; node < output_node_size; ++node) {
         for (int i = 0; i < 6; ++i) {
-            lut_gpu->SetNodeInput(node, i, lut_cpu->GetNodeInput(node, i));
+            lut_gpu->SetNodeConnectionIndex(node, i, lut_cpu->GetNodeConnectionIndex(node, i));
         }
     }
 
@@ -275,7 +275,7 @@ void StochasticLutN_cmp_bit(int const input_node_size, int const output_node_siz
     // 接続を同一化
     for (int node = 0; node < output_node_size; ++node) {
         for (int i = 0; i < 6; ++i) {
-            lut1->SetNodeInput(node, i, lut1->GetNodeInput(node, i));
+            lut1->SetNodeConnectionIndex(node, i, lut1->GetNodeConnectionIndex(node, i));
         }
     }
 

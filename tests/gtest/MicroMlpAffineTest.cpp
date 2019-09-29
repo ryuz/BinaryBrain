@@ -100,7 +100,7 @@ TEST(MicroMlpAffineTest, testMicroMlpAffine)
     
     for (int i = 0; i < 1; i++) {
         for (int j = 0; j < 4; j++) {
-            mlp->SetNodeInput(i, j, j);
+            mlp->SetNodeConnectionIndex(i, j, j);
         }
     }
     
@@ -366,9 +366,9 @@ TEST(MicroMlpAffineTest, testMicroMlpAffineCmp)
         auto s = ss.GetRandomSet(N);
         for (int j = 0; j < N; j++) {
             int idx = (int)s[j]; // mt() % input_node_size;
-//          mlp1->SetNodeInput(i, j, idx);
-//          mlp2->SetNodeInput(i, j, idx);
-            mlp2->SetNodeInput(i, j, mlp1->GetNodeInput(i, j));
+//          mlp1->SetNodeConnectionIndex(i, j, idx);
+//          mlp2->SetNodeConnectionIndex(i, j, idx);
+            mlp2->SetNodeConnectionIndex(i, j, mlp1->GetNodeConnectionIndex(i, j));
         }
     }
 
@@ -468,7 +468,7 @@ TEST(MicroMlpAffineTest, testMicroMlpAffineCmp)
         // backward
         for (int i = 0; i < output_node_size; i++) {
             for (int j = 0; j < N; j++) {
-                EXPECT_EQ(mlp1->GetNodeInput(i, j), mlp2->GetNodeInput(i, j));
+                EXPECT_EQ(mlp1->GetNodeConnectionIndex(i, j), mlp2->GetNodeConnectionIndex(i, j));
             }
         }
 
@@ -599,9 +599,9 @@ TEST(MicroMlpAffineTest, testMicroMlpAffine_CmpBit)
         auto s = ss.GetRandomSet(N);
         for (int j = 0; j < N; j++) {
             int idx = (int)s[j]; // mt() % input_node_size;
-//          mlp1->SetNodeInput(i, j, idx);
-//          mlp2->SetNodeInput(i, j, idx);
-            mlp2->SetNodeInput(i, j, mlp1->GetNodeInput(i, j));
+//          mlp1->SetNodeConnectionIndex(i, j, idx);
+//          mlp2->SetNodeConnectionIndex(i, j, idx);
+            mlp2->SetNodeConnectionIndex(i, j, mlp1->GetNodeConnectionIndex(i, j));
         }
     }
 
@@ -698,7 +698,7 @@ TEST(MicroMlpAffineTest, testMicroMlpAffine_CmpBit)
         // backward
         for (int i = 0; i < output_node_size; i++) {
             for (int j = 0; j < N; j++) {
-                EXPECT_EQ(mlp1->GetNodeInput(i, j), mlp2->GetNodeInput(i, j));
+                EXPECT_EQ(mlp1->GetNodeConnectionIndex(i, j), mlp2->GetNodeConnectionIndex(i, j));
             }
         }
 

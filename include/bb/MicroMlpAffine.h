@@ -270,18 +270,18 @@ public:
     auto lock_db1_const(void) const { return m_db1->LockConst<T>(); }
 
 
-    index_t GetNodeInputSize(index_t node) const
+    index_t GetNodeConnectionSize(index_t node) const
     {
         return N;
     }
 
-    void SetNodeInput(index_t node, index_t input_index, index_t input_node)
+    void SetNodeConnectionIndex(index_t node, index_t input_index, index_t input_node)
     {
         auto ptr = lock_InputIndex();
         ptr(node, input_index) = (std::int32_t)input_node;
     }
 
-    index_t GetNodeInput(index_t node, index_t input_index) const
+    index_t GetNodeConnectionIndex(index_t node, index_t input_index) const
     {
         auto ptr = lock_InputIndex_const();
         return (index_t)ptr(node, input_index);

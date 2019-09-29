@@ -1,7 +1,8 @@
-﻿
+﻿[Japanese version](README.md)
+
 # BinaryBrain Version 3<br> --binary neural networks platform for LUT-networks
 
-[Japanese version](README.md)
+[Detailed documentation](https://binarybrain.readthedocs.io/en/latest/)
 
 ## Overview
 BinaryBrain is a platform for deep learning. It can train to LUT(Look-up Table)-Network.
@@ -15,6 +16,26 @@ It has the following features
 - It can compute sparse matrix with high performance.
 - Developed in C++
 - Accelerated with GPU (CUDA)
+
+
+## Performance
+
+Fully-Binary deep neural network.
+1000fps Real-time recognition.
+
+![fpga_environment.jpg](documents/images/fpga_environment.jpg "sample's photo image")
+![block_diagram.png](documents/images/block_diagram.jpg "sample's block diagram")
+
+
+It can be implemented on a FPGA with a small amount of resources.
+
+![fpga_resource.png](documents/images/fpga_resource.png "FPGA resource")
+
+A unique network model is available.
+
+![Sparse-LUT_model.png](documents/images/Sparse-LUT_model.png "Sparse-LUT model")
+
+
 
 
 ## How to use sample program (MNIST)

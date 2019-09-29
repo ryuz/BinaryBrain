@@ -200,26 +200,24 @@ public:
     Tensor       &dW(void)       { return *m_dW; }
     Tensor const &dW(void) const { return *m_dW; }
 
-//    auto lock_InputIndex(void)             { return m_input_index.Lock(); }
-//    auto lock_InputIndex_const(void) const { return m_input_index.LockConst(); }
-
     auto lock_W(void)              { return m_W->Lock<RealType>(); }
     auto lock_W_const(void) const  { return m_W->LockConst<RealType>(); }
     auto lock_dW(void)             { return m_dW->Lock<RealType>(); }
     auto lock_dW_const(void) const { return m_dW->LockConst<RealType>(); }
 
 
-    index_t GetNodeInputSize(index_t node) const
+    // 接続管理
+    index_t GetNodeConnectionSize(index_t node) const
     {
         return m_connection_table.GetInputConnectionSize(node);
     }
 
-    void SetNodeInput(index_t node, index_t input_index, index_t input_node)
+    void SetNodeConnectionIndex(index_t node, index_t input_index, index_t input_node)
     {
         m_connection_table.SetInputConnection(node, input_index, input_node);
     }
 
-    index_t GetNodeInput(index_t node, index_t input_index) const
+    index_t GetNodeConnectionIndex(index_t node, index_t input_index) const
     {
         return m_connection_table.GetInputConnection(node, input_index);
     }

@@ -199,24 +199,24 @@ public:
         return m_activation->GetOutputShape();
     }
     
-    index_t GetNodeInputSize(index_t node) const
+    index_t GetNodeConnectionSize(index_t node) const
     {
-        return m_lut->GetNodeInputSize(node);
+        return m_lut->GetNodeConnectionSize(node);
     }
 
-    void SetNodeInput(index_t node, index_t input_index, index_t input_node)
+    void SetNodeConnectionIndex(index_t node, index_t input_index, index_t input_node)
     {
-        m_lut->SetNodeInput(node, input_index, input_node);
+        m_lut->SetNodeConnectionIndex(node, input_index, input_node);
     }
 
-    index_t GetNodeInput(index_t node, index_t input_index) const
+    index_t GetNodeConnectionIndex(index_t node, index_t input_index) const
     {
-        return m_lut->GetNodeInput(node, input_index);
+        return m_lut->GetNodeConnectionIndex(node, input_index);
     }
 
     std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
     {
-        index_t input_size = this->GetNodeInputSize(node);
+        index_t input_size = this->GetNodeConnectionSize(node);
         BB_ASSERT(input_size == x_vec.size());
 
         x_vec = m_lut->ForwardNode(node, x_vec);

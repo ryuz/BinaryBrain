@@ -4,7 +4,6 @@ import os
 import sys
 import subprocess
 import shutil
-#from distutils.dir_util import copy_tree
 
 # change directory
 src_path = os.path.dirname(os.path.abspath(sys.argv[0]))
