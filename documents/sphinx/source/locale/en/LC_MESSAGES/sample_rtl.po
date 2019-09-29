@@ -20,11 +20,11 @@ msgstr ""
 
 #: ../../source/sample_rtl.rst:3
 msgid "RTLの試し方"
-msgstr ""
+msgstr "Evaluation for FPGA"
 
 #: ../../source/sample_rtl.rst:7
 msgid "sampleの動かし方"
-msgstr ""
+msgstr "sample program"
 
 #: ../../source/sample_rtl.rst:9
 msgid "C++, Pythonともに Verilog RTL のソースファイルの出力が可能です。 出力したRTLの試し方は"

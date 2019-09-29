@@ -207,7 +207,7 @@ msgstr "install with setup.py"
 
 #: ../../source/introduction.rst:126
 msgid "事前準備"
-msgstr ""
+msgstr "preparation"
 
 #: ../../source/introduction.rst:127
 msgid "必要なパッケージを事前にインストールください"
@@ -268,7 +268,7 @@ msgstr ""
 
 #: ../../source/introduction.rst:182
 msgid "基本的な使い方"
-msgstr ""
+msgstr "Basic usage"
 
 #: ../../source/introduction.rst:184
 msgid ""

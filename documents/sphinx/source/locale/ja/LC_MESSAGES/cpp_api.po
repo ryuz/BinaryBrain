@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BinaryBrain \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-22 08:35+0900\n"
+"POT-Creation-Date: 2019-09-29 21:10+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -353,7 +353,7 @@ msgstr ""
 msgid "損失関数"
 msgstr ""
 
-#: ../../source/cpp_api.rst:231 ../../source/cpp_api.rst:237
+#: ../../source/cpp_api.rst:231
 msgid "LossSoftmaxCrossEntropy クラス"
 msgstr ""
 
@@ -361,81 +361,93 @@ msgstr ""
 msgid "普通のSoftmax-CrossEntropyクラスです。"
 msgstr ""
 
+#: ../../source/cpp_api.rst:237
+msgid "LossMeanSquaredError クラス"
+msgstr """
+
 #: ../../source/cpp_api.rst:239
-msgid "最小二乗誤差を損失とするクラスです。"
+msgid "平均二乗誤差を損失とするクラスです。"
 msgstr ""
 
 #: ../../source/cpp_api.rst:243
-msgid "精度関数"
+msgid "評価関数"
 msgstr ""
 
 #: ../../source/cpp_api.rst:246
-msgid "AccuracyCategoricalClassification クラス"
+msgid "MetricsCategoricalAccuracy クラス"
 msgstr ""
 
 #: ../../source/cpp_api.rst:248
-msgid "Categorical Classification の精度を計算します。"
+msgid "Categorical Classification の精度を評価値とするクラスです。"
 msgstr ""
 
 #: ../../source/cpp_api.rst:251
+msgid "MetricsMeanSquaredError クラス"
+msgstr ""
+
+#: ../../source/cpp_api.rst:253
+msgid "MSE(平均二乗誤差)を評価値とするクラスです。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:257
 msgid "最適化(Optimizer)"
 msgstr ""
 
-#: ../../source/cpp_api.rst:254
+#: ../../source/cpp_api.rst:260
 msgid "OptimizerSgd クラス"
 msgstr ""
 
-#: ../../source/cpp_api.rst:256
+#: ../../source/cpp_api.rst:262
 msgid "普通のSGDです。"
 msgstr ""
 
-#: ../../source/cpp_api.rst:260
+#: ../../source/cpp_api.rst:266
 msgid "OptimizerAdam クラス"
 msgstr ""
 
-#: ../../source/cpp_api.rst:262
+#: ../../source/cpp_api.rst:268
 msgid "普通のAdamです。"
 msgstr ""
 
-#: ../../source/cpp_api.rst:266
+#: ../../source/cpp_api.rst:272
 msgid "実行補助"
 msgstr ""
 
-#: ../../source/cpp_api.rst:269
+#: ../../source/cpp_api.rst:275
 msgid "Runner クラス"
 msgstr ""
 
-#: ../../source/cpp_api.rst:271
+#: ../../source/cpp_api.rst:277
 msgid "構築したモデルのフィッティングや評価などの実行を補助します。 論よりRUN。 Runner のソースが各種の使い方で、参考になるはずです。"
 msgstr ""
 
-#: ../../source/cpp_api.rst:277
+#: ../../source/cpp_api.rst:283
 msgid "データ保持"
 msgstr ""
 
-#: ../../source/cpp_api.rst:280
+#: ../../source/cpp_api.rst:286
 msgid "Tensor クラス"
 msgstr ""
 
-#: ../../source/cpp_api.rst:282
+#: ../../source/cpp_api.rst:288
 msgid "多次元のデータを保持できるクラスで、演算も可能です。 名前に反してまだ Tensor演算は実装できていません。"
 msgstr ""
 
-#: ../../source/cpp_api.rst:287
+#: ../../source/cpp_api.rst:293
 msgid "Variables クラス"
 msgstr ""
 
-#: ../../source/cpp_api.rst:289
+#: ../../source/cpp_api.rst:295
 msgid ""
 "複数の Tensor を束ねる機能を持ったクラスです。 形状が同じなら Variables 間での演算も可能です。 "
 "主にOptimizerでの利用を想定しています。"
 msgstr ""
 
-#: ../../source/cpp_api.rst:294
+#: ../../source/cpp_api.rst:300
 msgid "FrameBuffer クラス"
 msgstr ""
 
-#: ../../source/cpp_api.rst:296
+#: ../../source/cpp_api.rst:302
 msgid ""
 "１つの Tensor を 1 frame として、複数frame を保持できるクラスです。 ただし、内部では、NCHW や NHWC "
 "ではなく、CHWN 形式になるように並び替えてデータを保持しています。 これは Lowering されて "
@@ -443,29 +455,41 @@ msgid ""
 "一方で、一般的な算術ライブラリに適合しない(並び替えが必要)ので注意が必要です。"
 msgstr ""
 
-#: ../../source/cpp_api.rst:303
+#: ../../source/cpp_api.rst:309
 msgid "各種関数"
 msgstr ""
 
-#: ../../source/cpp_api.rst:306
+#: ../../source/cpp_api.rst:312
 msgid "FPGAへのエクスポート"
 msgstr ""
 
-#: ../../source/cpp_api.rst:309
+#: ../../source/cpp_api.rst:315
 msgid "ExportVerilog_LutLayers 関数"
 msgstr ""
 
-#: ../../source/cpp_api.rst:311
+#: ../../source/cpp_api.rst:317
 msgid "LutLayer を Verilog-RTL で出力します。"
 msgstr ""
 
-#: ../../source/cpp_api.rst:315
+#: ../../source/cpp_api.rst:321
 msgid "ExportVerilog_LutCnnLayersAxi4s 関数"
 msgstr ""
 
-#: ../../source/cpp_api.rst:317
+#: ../../source/cpp_api.rst:323
 msgid ""
 "畳み込み層を含む LutLayer を纏めて Verilog-RTL で出力します。 "
 "MaxPoolingなどの入出力でデータが不連続になる層は最後に1つだけ指定することができます。"
 msgstr ""
+
+#~ msgid "最小二乗誤差を損失とするクラスです。"
+#~ msgstr ""
+
+#~ msgid "精度関数"
+#~ msgstr ""
+
+#~ msgid "AccuracyCategoricalClassification クラス"
+#~ msgstr ""
+
+#~ msgid "Categorical Classification の精度を計算します。"
+#~ msgstr ""
 

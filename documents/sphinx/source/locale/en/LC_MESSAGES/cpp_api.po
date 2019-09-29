@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BinaryBrain \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-22 08:35+0900\n"
+"POT-Creation-Date: 2019-09-29 21:10+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -32,7 +32,9 @@ msgstr "This chapter describes the C++ API"
 
 #: ../../source/cpp_api.rst:11
 msgid "現時点では細かなドキュメントが用意できておらず、ソースを読み人のために 概要を掴む為の情報を記載します。"
-msgstr "There is no detailed documentation available at this time, and the information to get an overview for readers is provided."
+msgstr ""
+"There is no detailed documentation available at this time, and the "
+"information to get an overview for readers is provided."
 
 #: ../../source/cpp_api.rst:14
 msgid "なお BinaryBrain のコードは namespace に bb という名称を持ちます。"
@@ -56,7 +58,9 @@ msgstr "Model class"
 
 #: ../../source/cpp_api.rst:28
 msgid "抽象クラスは直接生成できませんが、各レイヤーの基礎となっており、操作を定義します。 以下のようなメソッドを備えます。"
-msgstr "Although abstract classes cannot be generated directly, they are the basis for each layer and define operations. It has the following methods."
+msgstr ""
+"Although abstract classes cannot be generated directly, they are the "
+"basis for each layer and define operations. It has the following methods."
 
 #: ../../source/cpp_api.rst:39
 msgid "SendCommand()"
@@ -152,7 +156,7 @@ msgid "Binarize クラス"
 msgstr "Binarize class"
 
 #: ../../source/cpp_api.rst:79
-msgid "This is Binarizer. When it run backward, it behaves as a hard-tanh."
+msgid ""
 "バイナライズ層です。 Forward では、0を閾値に出力を0と1に二値化します。 Backward では hard-tanh として動作します。"
 " バイナリネットワークの基礎となります。"
 msgstr ""
@@ -166,21 +170,21 @@ msgid ""
 "普通のReLU です。 Binarize から派生しており、SendCommand() にて、\"binary true\" "
 "を送ることでBinarize層として動作します。"
 msgstr ""
-"ReLU function."
-"If you call SendCommand with \"binary true\", it behaves as a Binarize layer"
-
+"ReLU function.If you call SendCommand with \"binary true\", it behaves as"
+" a Binarize layer"
 
 #: ../../source/cpp_api.rst:90
 msgid "Sigmoid クラス"
 msgstr "Sigmoid class"
 
 #: ../../source/cpp_api.rst:91
+#, fuzzy
 msgid ""
-"普通の Sigmoid です。 Binarize から派生しており、SendCommand() にて、\"binary true\" "
+"普通のSigmoid です。 Binarize から派生しており、SendCommand() にて、\"binary true\" "
 "を送ることでBinarize層として動作します。"
 msgstr ""
-"Sigmoid function."
-"If you call SendCommand with \"binary true\", it behaves as a Binarize layer"
+"Sigmoid function.If you call SendCommand with \"binary true\", it behaves"
+" as a Binarize layer"
 
 #: ../../source/cpp_api.rst:97
 msgid "演算層"
@@ -191,14 +195,15 @@ msgid "SparseLutN クラス"
 msgstr "SparseLutN class"
 
 #: ../../source/cpp_api.rst:103
-msgid "learning LUT "
+#, fuzzy
+msgid ""
 "LUT-Network の LUT に相当する部分を独自のモデルで学習させるためのレイヤーです。 "
 "パーセプトロンと異なる独自のモデルを用いており、単体でXORパターンを含めたLUTで 表現可能な空間すべてを効率的に学習可能です。"
 msgstr "Layer to learn LUT using original model"
 
 #: ../../source/cpp_api.rst:109
 msgid "StochasticLutN クラス"
-msgstr ""
+msgstr "StochasticLutN class"
 
 #: ../../source/cpp_api.rst:111
 msgid ""
@@ -209,7 +214,7 @@ msgstr ""
 
 #: ../../source/cpp_api.rst:117
 msgid "MicroMlp クラス"
-msgstr ""
+msgstr "MicroMlp class"
 
 #: ../../source/cpp_api.rst:119
 msgid ""
@@ -220,7 +225,7 @@ msgstr ""
 
 #: ../../source/cpp_api.rst:125
 msgid "MicroMlpAffine クラス"
-msgstr ""
+msgstr "MicroMlpAffine class"
 
 #: ../../source/cpp_api.rst:127
 msgid ""
@@ -230,7 +235,7 @@ msgstr ""
 
 #: ../../source/cpp_api.rst:133
 msgid "DenseAffine クラス"
-msgstr ""
+msgstr "DenseAffine class"
 
 #: ../../source/cpp_api.rst:135
 msgid "いわゆる普通の浮動小数点による全結合のニューラルネットです。"
@@ -238,7 +243,7 @@ msgstr ""
 
 #: ../../source/cpp_api.rst:139
 msgid "BatchNormalization クラス"
-msgstr ""
+msgstr "BatchNormalization class"
 
 #: ../../source/cpp_api.rst:141
 msgid "BatchNormalization層です。 活性化層でバイナリ化を行う前段ほぼ必須となってくる層です。"
@@ -246,15 +251,15 @@ msgstr ""
 
 #: ../../source/cpp_api.rst:146
 msgid "MaxPooling クラス"
-msgstr ""
+msgstr "MaxPooling class"
 
 #: ../../source/cpp_api.rst:148
 msgid "MaxPooling層です。"
-msgstr ""
+msgstr "MaxPooling layer"
 
 #: ../../source/cpp_api.rst:152
 msgid "LutLayer (抽象クラス)"
-msgstr ""
+msgstr "LutLayer class"
 
 #: ../../source/cpp_api.rst:154
 msgid ""
@@ -264,7 +269,7 @@ msgstr ""
 
 #: ../../source/cpp_api.rst:161
 msgid "BinaryLutN クラス"
-msgstr ""
+msgstr "BinaryLutN class"
 
 #: ../../source/cpp_api.rst:163
 msgid ""
@@ -274,11 +279,11 @@ msgstr ""
 
 #: ../../source/cpp_api.rst:169
 msgid "補助層"
-msgstr ""
+msgstr "Utility classes"
 
 #: ../../source/cpp_api.rst:172
 msgid "Sequential クラス"
-msgstr ""
+msgstr "Sequential class"
 
 #: ../../source/cpp_api.rst:174
 msgid "各種の層を直列に接続して１つの層として扱えるようにします。"
@@ -286,11 +291,11 @@ msgstr ""
 
 #: ../../source/cpp_api.rst:178
 msgid "LoweringConvolution クラス"
-msgstr ""
+msgstr "LoweringConvolution class"
 
 #: ../../source/cpp_api.rst:180
 msgid "Lowering を行い畳こみ演算を行います。"
-msgstr ""
+msgstr "Lowering layer"
 
 #: ../../source/cpp_api.rst:182
 msgid ""
@@ -304,7 +309,7 @@ msgstr ""
 
 #: ../../source/cpp_api.rst:189
 msgid "ConvolutionIm2 クラス"
-msgstr ""
+msgstr "ConvolutionIm2 class"
 
 #: ../../source/cpp_api.rst:191
 msgid ""
@@ -314,7 +319,7 @@ msgstr ""
 
 #: ../../source/cpp_api.rst:195
 msgid "ConvolutionCol2Im クラス"
-msgstr ""
+msgstr "ConvolutionCol2Im clas"
 
 #: ../../source/cpp_api.rst:197
 msgid "畳み込みの為のLoweringの復元を行います。通常、LoweringConvolutionクラス の中で利用されます。"
@@ -322,7 +327,7 @@ msgstr ""
 
 #: ../../source/cpp_api.rst:201
 msgid "BinaryModulation クラス"
-msgstr ""
+msgstr "BinaryModulation class"
 
 #: ../../source/cpp_api.rst:203
 msgid "内部でRealToBinary クラスとBinaryToRealクラスを組み合わせて、多値データをバイナリ化して学習するのに利用できます。"
@@ -330,7 +335,7 @@ msgstr ""
 
 #: ../../source/cpp_api.rst:207
 msgid "RealToBinary クラス"
-msgstr ""
+msgstr "RealToBinary class"
 
 #: ../../source/cpp_api.rst:209
 msgid ""
@@ -341,7 +346,7 @@ msgstr ""
 
 #: ../../source/cpp_api.rst:216
 msgid "BinaryToReal クラス"
-msgstr ""
+msgstr "BinaryToReal class"
 
 #: ../../source/cpp_api.rst:218
 msgid ""
@@ -352,95 +357,108 @@ msgstr ""
 
 #: ../../source/cpp_api.rst:225
 msgid "モデル以外のクラス"
-msgstr ""
+msgstr "Other classes"
 
 #: ../../source/cpp_api.rst:228
 msgid "損失関数"
 msgstr "Loss function classes"
 
-#: ../../source/cpp_api.rst:231 ../../source/cpp_api.rst:237
+#: ../../source/cpp_api.rst:231
 msgid "LossSoftmaxCrossEntropy クラス"
-msgstr ""
+msgstr "LossSoftmaxCrossEntropy class"
 
 #: ../../source/cpp_api.rst:233
 msgid "普通のSoftmax-CrossEntropyクラスです。"
 msgstr ""
 
+#: ../../source/cpp_api.rst:237
+msgid "LossMeanSquaredError クラス"
+msgstr "LossMeanSquaredError class"
+
 #: ../../source/cpp_api.rst:239
-msgid "最小二乗誤差を損失とするクラスです。"
+msgid "平均二乗誤差を損失とするクラスです。"
 msgstr ""
 
 #: ../../source/cpp_api.rst:243
-msgid "精度関数"
-msgstr "Metrics function classes"
+msgid "評価関数"
+msgstr "Metrics classes"
 
 #: ../../source/cpp_api.rst:246
-msgid "AccuracyCategoricalClassification クラス"
+msgid "MetricsCategoricalAccuracy クラス"
 msgstr "MetricsCategoricalAccuracy class"
 
 #: ../../source/cpp_api.rst:248
-msgid "Categorical Classification の精度を計算します。"
-msgstr ""
+#, fuzzy
+msgid "Categorical Classification の精度を評価値とするクラスです。"
+msgstr "MetricsCategoricalAccuracy class"
 
 #: ../../source/cpp_api.rst:251
+msgid "MetricsMeanSquaredError クラス"
+msgstr "MetricsMeanSquaredError class"
+
+#: ../../source/cpp_api.rst:253
+msgid "MSE(平均二乗誤差)を評価値とするクラスです。"
+msgstr ""
+
+#: ../../source/cpp_api.rst:257
 msgid "最適化(Optimizer)"
 msgstr "Optimizer"
 
-#: ../../source/cpp_api.rst:254
+#: ../../source/cpp_api.rst:260
 msgid "OptimizerSgd クラス"
 msgstr "OptimizerSgd class"
 
-#: ../../source/cpp_api.rst:256
+#: ../../source/cpp_api.rst:262
 msgid "普通のSGDです。"
 msgstr "stochastic gradient descent"
 
-#: ../../source/cpp_api.rst:260
+#: ../../source/cpp_api.rst:266
 msgid "OptimizerAdam クラス"
 msgstr "OptimizerAdam class"
 
-#: ../../source/cpp_api.rst:262
+#: ../../source/cpp_api.rst:268
 msgid "普通のAdamです。"
 msgstr "Adam"
 
-#: ../../source/cpp_api.rst:266
+#: ../../source/cpp_api.rst:272
 msgid "実行補助"
 msgstr "Assist for run"
 
-#: ../../source/cpp_api.rst:269
+#: ../../source/cpp_api.rst:275
 msgid "Runner クラス"
 msgstr "Runner class"
 
-#: ../../source/cpp_api.rst:271
+#: ../../source/cpp_api.rst:277
 msgid "構築したモデルのフィッティングや評価などの実行を補助します。 論よりRUN。 Runner のソースが各種の使い方で、参考になるはずです。"
 msgstr ""
 
-#: ../../source/cpp_api.rst:277
+#: ../../source/cpp_api.rst:283
 msgid "データ保持"
 msgstr "Containers"
 
-#: ../../source/cpp_api.rst:280
+#: ../../source/cpp_api.rst:286
 msgid "Tensor クラス"
 msgstr "Tensor class"
 
-#: ../../source/cpp_api.rst:282
+#: ../../source/cpp_api.rst:288
 msgid "多次元のデータを保持できるクラスで、演算も可能です。 名前に反してまだ Tensor演算は実装できていません。"
 msgstr ""
 
-#: ../../source/cpp_api.rst:287
+#: ../../source/cpp_api.rst:293
 msgid "Variables クラス"
 msgstr "Variables class"
 
-#: ../../source/cpp_api.rst:289
+#: ../../source/cpp_api.rst:295
 msgid ""
 "複数の Tensor を束ねる機能を持ったクラスです。 形状が同じなら Variables 間での演算も可能です。 "
 "主にOptimizerでの利用を想定しています。"
 msgstr ""
 
-#: ../../source/cpp_api.rst:294
+#: ../../source/cpp_api.rst:300
 msgid "FrameBuffer クラス"
 msgstr "FrameBuffer class"
 
-#: ../../source/cpp_api.rst:296
+#: ../../source/cpp_api.rst:302
 msgid ""
 "１つの Tensor を 1 frame として、複数frame を保持できるクラスです。 ただし、内部では、NCHW や NHWC "
 "ではなく、CHWN 形式になるように並び替えてデータを保持しています。 これは Lowering されて "
@@ -448,29 +466,46 @@ msgid ""
 "一方で、一般的な算術ライブラリに適合しない(並び替えが必要)ので注意が必要です。"
 msgstr ""
 
-#: ../../source/cpp_api.rst:303
+#: ../../source/cpp_api.rst:309
 msgid "各種関数"
 msgstr "functions"
 
-#: ../../source/cpp_api.rst:306
+#: ../../source/cpp_api.rst:312
 msgid "FPGAへのエクスポート"
-msgstr "export for FPGA"
+msgstr "export RTL for FPGA"
 
-#: ../../source/cpp_api.rst:309
+#: ../../source/cpp_api.rst:315
 msgid "ExportVerilog_LutLayers 関数"
-msgstr ""
+msgstr "ExportVerilog_LutLayers function"
 
-#: ../../source/cpp_api.rst:311
+#: ../../source/cpp_api.rst:317
 msgid "LutLayer を Verilog-RTL で出力します。"
 msgstr ""
 
-#: ../../source/cpp_api.rst:315
+#: ../../source/cpp_api.rst:321
 msgid "ExportVerilog_LutCnnLayersAxi4s 関数"
-msgstr ""
+msgstr "ExportVerilog_LutCnnLayersAxi4s function"
 
-#: ../../source/cpp_api.rst:317
+#: ../../source/cpp_api.rst:323
 msgid ""
 "畳み込み層を含む LutLayer を纏めて Verilog-RTL で出力します。 "
 "MaxPoolingなどの入出力でデータが不連続になる層は最後に1つだけ指定することができます。"
 msgstr ""
+
+#~ msgid ""
+#~ "This is Binarizer. When it run "
+#~ "backward, it behaves as a hard-"
+#~ "tanh.バイナライズ層です。 Forward では、0を閾値に出力を0と1に二値化します。 "
+#~ "Backward では hard-tanh として動作します。 "
+#~ "バイナリネットワークの基礎となります。"
+#~ msgstr ""
+
+#~ msgid "最小二乗誤差を損失とするクラスです。"
+#~ msgstr ""
+
+#~ msgid "精度関数"
+#~ msgstr "Metrics function classes"
+
+#~ msgid "Categorical Classification の精度を計算します。"
+#~ msgstr ""
 
