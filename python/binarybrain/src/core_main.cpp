@@ -174,6 +174,7 @@ PYBIND11_MODULE(core, m) {
     m.attr("BB_BORDER_WRAP")        = BB_BORDER_WRAP;
 
 
+    // Tensor
     py::class_< Tensor >(m, "Tensor")
         .def("get_type", &Tensor::GetType)
         .def("get_shape", &Tensor::GetShape)
@@ -214,6 +215,8 @@ Returns:
 )"
             );
 
+
+    // FrameBuffer
     py::class_< FrameBuffer >(m, "FrameBuffer")
         .def(py::init< bb::index_t, bb::indices_t, int, bool>(),
 R"(FrameBuffer object constructor
@@ -267,10 +270,16 @@ Args:
                 py::arg("offset") = 0);
 
 
-
+    // Variables
     py::class_< Variables, std::shared_ptr<Variables> >(m, "Variables");
 
-    // Models
+
+
+    // ------------------------------------
+    //  Models
+    // ------------------------------------
+    
+    // model
     py::class_< Model, std::shared_ptr<Model> >(m, "Model")
         .def("set_input_shape", &Model::SetInputShape)
         .def("get_info", &Model::GetInfoString,
@@ -300,7 +309,8 @@ Returns:
                 py::arg("command"),
                 py::arg("send_to") = "all");
 
-    // Layers
+
+    // DenseAffine
     py::class_< DenseAffine, Model, std::shared_ptr<DenseAffine> >(m, "DenseAffine")
         .def_static("create",   &DenseAffine::CreateEx, "create",
             py::arg("output_shape"),
@@ -311,8 +321,19 @@ Returns:
         .def("b", ((Tensor& (DenseAffine::*)())&DenseAffine::b))
         .def("dW", ((Tensor& (DenseAffine::*)())&DenseAffine::dW))
         .def("db", ((Tensor& (DenseAffine::*)())&DenseAffine::db));
-            
-    py::class_< SparseLayer, Model, std::shared_ptr<SparseLayer> >(m, "SparseLayer");
+    
+
+    // SparseLayer
+    py::class_< SparseLayer, Model, std::shared_ptr<SparseLayer> >(m, "SparseLayer")
+         .def("get_connection_size", &SparseLayer::GetConnectionSize)
+         .def("set_connection", &SparseLayer::SetConnectionIndices)
+         .def("get_connection", &SparseLayer::GetConnectionIndices)
+         .def("set_connection_index", &SparseLayer::SetConnectionIndex)
+         .def("get_connection_index", &SparseLayer::GetConnectionIndex)
+         .def("get_node_connection_size", &SparseLayer::GetNodeConnectionSize)
+         .def("set_node_connection_index", &SparseLayer::SetNodeConnectionIndex)
+         .def("get_node_connection_index", &SparseLayer::GetNodeConnectionIndex);
+
 
     py::class_< LutLayer, SparseLayer, std::shared_ptr<LutLayer> >(m, "LutLayer")
         .def("import_parameter", &LutLayer::ImportLayer);

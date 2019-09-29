@@ -115,12 +115,12 @@ public:
     auto lock_InputIndex_const(void) const { return m_input_index.LockConst(); }
 
     // 疎結合の管理
-    index_t GetNodeInputSize(index_t node) const
+    index_t GetNodeConnectionSize(index_t node) const
     {
         return N;
     }
 
-    void SetNodeInput(index_t node, index_t input_index, index_t input_node)
+    void SetNodeConnectionIndex(index_t node, index_t input_index, index_t input_node)
     {
         BB_ASSERT(node >= 0 && node < GetShapeSize(m_output_shape));
         BB_ASSERT(input_index >= 0 && input_index < N);
@@ -130,7 +130,7 @@ public:
         ptr(node, input_index) = (std::int32_t)input_node;
     }
 
-    index_t GetNodeInput(index_t node, index_t input_index) const
+    index_t GetNodeConnectionIndex(index_t node, index_t input_index) const
     {
         BB_ASSERT(node >= 0 && node < GetShapeSize(m_output_shape));
         BB_ASSERT(input_index >= 0 && input_index < N);

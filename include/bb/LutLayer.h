@@ -69,20 +69,20 @@ public:
         auto node_size  = GetShapeSize(this->GetOutputShape());
 
         for (index_t node = 0; node < node_size; ++node) {
-            auto input_size = this->GetNodeInputSize(node);
+            auto connection_size = this->GetNodeConnectionSize(node);
             auto table_size = this->GetLutTableSize(node);
             
-            BB_ASSERT(src->GetNodeInputSize(node) == input_size);
+            BB_ASSERT(src->GetNodeConnectionSize(node) == connection_size);
             
             // 入力をコピー
-            for (int input_index = 0; input_index < input_size; ++input_index) {
-                this->SetNodeInput(node, input_index, src->GetNodeInput(node, input_index));
+            for (int input_index = 0; input_index < connection_size; ++input_index) {
+                this->SetNodeConnectionIndex(node, input_index, src->GetNodeConnectionIndex(node, input_index));
             }
 
             // 係数をバイナリ化
-            std::vector<double> vec(input_size);
+            std::vector<double> vec(connection_size);
             for (int index = 0; index < table_size; ++index) {
-                for (int bit = 0; bit < input_size; ++bit) {
+                for (int bit = 0; bit < connection_size; ++bit) {
                     vec[bit] = (index & (1 << bit)) ? 1.0 : 0.0;
                 }
                 auto v = src->ForwardNode(node, vec);

@@ -293,19 +293,19 @@ public:
     
 
     // connection management
-    index_t GetNodeInputSize(index_t node) const
+    index_t GetNodeConnectionSize(index_t output_node) const
     {
-        return m_connection_table.GetInputConnectionSize(node);
+        return m_connection_table.GetInputConnectionSize(output_node);
     }
 
-    void SetNodeInput(index_t node, index_t input_index, index_t input_node)
+    void SetNodeConnectionIndex(index_t output_node, index_t input_index, index_t input_node)
     {
-        m_connection_table.SetInputConnection(node, input_index, input_node);
+        m_connection_table.SetInputConnection(output_node, input_index, input_node);
     }
 
-    index_t GetNodeInput(index_t node, index_t input_index) const
+    index_t GetNodeConnectionIndex(index_t output_node, index_t input_index) const
     {
-        return m_connection_table.GetInputConnection(node, input_index);
+        return m_connection_table.GetInputConnection(output_node, input_index);
     }
 
 
