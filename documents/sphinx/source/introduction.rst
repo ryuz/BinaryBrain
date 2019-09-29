@@ -80,7 +80,7 @@ Google Colaboratory
 ---------------------------
 
 nvcc が利用可能な Google Colaboratory でも動作可能なようです。
-以下あくまで参考ですが、ランタイムのタイプをGPUに設定した上で
+以下あくまで参考ですが、ランタイムのタイプをGPUに設定した上で、下記のような操作で、ビルドして動作させることができます。
 
 ::
 
@@ -89,7 +89,6 @@ nvcc が利用可能な Google Colaboratory でも動作可能なようです。
   !make all
   !make run
 
-のような操作で、ビルドして動作させることができます。
 
 
 クイックスタート(Python)
@@ -111,11 +110,10 @@ Windowsなど環境によっては pip3 が存在せず、pip のみ場合は pi
 インストール時にソースファイルがビルドされますので、コンパイラやCUDAなどの環境は事前に整えておく必要があります。
 (Windows版はバイナリwheelが提供されるかもしれません)
 
-Python用のサンプルプログラムは
+Python用のサンプルプログラムは下記などを参照ください。
 
 https://github.com/ryuz/BinaryBrain/tree/master/python/samples
 
-などを参照ください。
 
 
 
