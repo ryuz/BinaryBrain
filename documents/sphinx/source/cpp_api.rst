@@ -233,19 +233,25 @@ LossSoftmaxCrossEntropy クラス
 普通のSoftmax-CrossEntropyクラスです。
 
 
-LossSoftmaxCrossEntropy クラス
+LossMeanSquaredError クラス
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-最小二乗誤差を損失とするクラスです。
+平均二乗誤差を損失とするクラスです。
 
 
-精度関数
+評価関数
 --------------
 
-AccuracyCategoricalClassification クラス
+MetricsCategoricalAccuracy クラス
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Categorical Classification の精度を計算します。
+Categorical Classification の精度を評価値とするクラスです。
+
+MetricsMeanSquaredError クラス
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+MSE(平均二乗誤差)を評価値とするクラスです。
+
 
 最適化(Optimizer)
 -----------------------

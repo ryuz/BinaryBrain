@@ -356,7 +356,7 @@ msgstr ""
 
 #: ../../source/cpp_api.rst:228
 msgid "損失関数"
-msgstr ""
+msgstr "Loss function classes"
 
 #: ../../source/cpp_api.rst:231 ../../source/cpp_api.rst:237
 msgid "LossSoftmaxCrossEntropy クラス"
@@ -372,11 +372,11 @@ msgstr ""
 
 #: ../../source/cpp_api.rst:243
 msgid "精度関数"
-msgstr ""
+msgstr "Metrics function classes"
 
 #: ../../source/cpp_api.rst:246
 msgid "AccuracyCategoricalClassification クラス"
-msgstr ""
+msgstr "MetricsCategoricalAccuracy class"
 
 #: ../../source/cpp_api.rst:248
 msgid "Categorical Classification の精度を計算します。"
@@ -384,31 +384,31 @@ msgstr ""
 
 #: ../../source/cpp_api.rst:251
 msgid "最適化(Optimizer)"
-msgstr ""
+msgstr "Optimizer"
 
 #: ../../source/cpp_api.rst:254
 msgid "OptimizerSgd クラス"
-msgstr ""
+msgstr "OptimizerSgd class"
 
 #: ../../source/cpp_api.rst:256
 msgid "普通のSGDです。"
-msgstr ""
+msgstr "stochastic gradient descent"
 
 #: ../../source/cpp_api.rst:260
 msgid "OptimizerAdam クラス"
-msgstr ""
+msgstr "OptimizerAdam class"
 
 #: ../../source/cpp_api.rst:262
 msgid "普通のAdamです。"
-msgstr ""
+msgstr "Adam"
 
 #: ../../source/cpp_api.rst:266
 msgid "実行補助"
-msgstr ""
+msgstr "Assist for run"
 
 #: ../../source/cpp_api.rst:269
 msgid "Runner クラス"
-msgstr ""
+msgstr "Runner class"
 
 #: ../../source/cpp_api.rst:271
 msgid "構築したモデルのフィッティングや評価などの実行を補助します。 論よりRUN。 Runner のソースが各種の使い方で、参考になるはずです。"
@@ -416,11 +416,11 @@ msgstr ""
 
 #: ../../source/cpp_api.rst:277
 msgid "データ保持"
-msgstr ""
+msgstr "Containers"
 
 #: ../../source/cpp_api.rst:280
 msgid "Tensor クラス"
-msgstr ""
+msgstr "Tensor class"
 
 #: ../../source/cpp_api.rst:282
 msgid "多次元のデータを保持できるクラスで、演算も可能です。 名前に反してまだ Tensor演算は実装できていません。"
@@ -428,7 +428,7 @@ msgstr ""
 
 #: ../../source/cpp_api.rst:287
 msgid "Variables クラス"
-msgstr ""
+msgstr "Variables class"
 
 #: ../../source/cpp_api.rst:289
 msgid ""
@@ -438,7 +438,7 @@ msgstr ""
 
 #: ../../source/cpp_api.rst:294
 msgid "FrameBuffer クラス"
-msgstr ""
+msgstr "FrameBuffer class"
 
 #: ../../source/cpp_api.rst:296
 msgid ""
@@ -450,11 +450,11 @@ msgstr ""
 
 #: ../../source/cpp_api.rst:303
 msgid "各種関数"
-msgstr ""
+msgstr "functions"
 
 #: ../../source/cpp_api.rst:306
 msgid "FPGAへのエクスポート"
-msgstr ""
+msgstr "export for FPGA"
 
 #: ../../source/cpp_api.rst:309
 msgid "ExportVerilog_LutLayers 関数"

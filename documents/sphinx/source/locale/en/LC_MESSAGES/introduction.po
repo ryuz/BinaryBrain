@@ -84,7 +84,7 @@ msgstr ""
 
 #: ../../source/introduction.rst:27
 msgid "クイックスタート(C++)"
-msgstr ""
+msgstr "Quick Start (C++)"
 
 #: ../../source/introduction.rst:29
 msgid "まずはじめに付属のMNISTサンプルを動かすまでを紹介します。"
@@ -168,7 +168,7 @@ msgstr ""
 
 #: ../../source/introduction.rst:96
 msgid "クイックスタート(Python)"
-msgstr ""
+msgstr "Quick Start (Python)"
 
 #: ../../source/introduction.rst:98
 msgid "BinaryBrain は pybind11 を利用して Python からの呼び出しも可能にしています。 python3を前提としています。"
@@ -176,7 +176,7 @@ msgstr ""
 
 #: ../../source/introduction.rst:102
 msgid "pipでのインストール"
-msgstr ""
+msgstr "install with pip"
 
 #: ../../source/introduction.rst:104 ../../source/introduction.rst:147
 msgid "下記のコマンドでインストール可能です。"
@@ -203,7 +203,7 @@ msgstr ""
 
 #: ../../source/introduction.rst:123
 msgid "setup.py でのインストール"
-msgstr ""
+msgstr "install with setup.py"
 
 #: ../../source/introduction.rst:126
 msgid "事前準備"
@@ -221,11 +221,11 @@ msgstr ""
 
 #: ../../source/introduction.rst:145
 msgid "インストール"
-msgstr ""
+msgstr "install"
 
 #: ../../source/introduction.rst:158
 msgid "githubについて"
-msgstr ""
+msgstr "About github"
 
 #: ../../source/introduction.rst:160
 msgid "現在 version3 は下記の branch で管理しています"
