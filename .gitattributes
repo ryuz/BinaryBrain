@@ -1,0 +1,17 @@
+*           text=auto
+
+*.md  text
+*.txt text
+
+*.sh  text eol=lf
+
+*.rst text eol=lf
+*.po  text eol=lf
+
+*.jpg -text
+*.png -text
+
+*.sln               text eol=crlf
+*.vcproj            text eol=crlf
+*.vcproj.filters    text eol=crlf
+*.vcproj.user       text eol=crlf
