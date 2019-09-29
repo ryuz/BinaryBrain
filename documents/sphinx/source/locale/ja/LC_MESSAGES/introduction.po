@@ -20,45 +20,37 @@ msgstr ""
 
 #: ../../source/introduction.rst:3
 msgid "はじめに"
-msgstr "Introduction"
+msgstr ""
 
 #: ../../source/introduction.rst:7
 msgid "概要"
-msgstr "Abstruct"
+msgstr ""
 
 #: ../../source/introduction.rst:9
 msgid ""
 "BinaryBrain は主に当サイトが研究中の LUT(Look-Up Table)-Networkを実験することを目的に作成した "
 "ディープラーニング用のプラットフォームです。"
 msgstr ""
-"BinaryBrain is a deep learning platform created mainly for the purpose of"
-" experimenting with the LUT (Look-Up Table) -Network under study by this "
-"site."
 
 #: ../../source/introduction.rst:12
 msgid "LUT-Networkの評価を目的に作成しておりますが、それ以外の用途にも利用可能です。"
 msgstr ""
-"It is created for the purpose of LUT-Network evaluation, but it can also "
-"be used for other purposes."
 
 #: ../../source/introduction.rst:14
 msgid "以下の特徴があります"
-msgstr "It has the following features"
+msgstr ""
 
 #: ../../source/introduction.rst:16
 msgid "ニューラルネットのFPGA化をメインターゲットにしている"
-msgstr "The main target is FPGA(field-programmable gate array)."
+msgstr ""
 
 #: ../../source/introduction.rst:17
-#, fuzzy
 msgid "バイナリネットであるも関わらず変調技術によりAutoencodeや回帰分析が可能"
 msgstr ""
-"Autoencode and regression analysis are possible with modulation "
-"technology despite being a binary net."
 
 #: ../../source/introduction.rst:18
 msgid "独自のSparse-LUTモデルにより、LUTの性能を最大限引き出したが学習できる"
-msgstr "With the original Sparse-LUT model, the LUT performance can be maximized and learned."
+msgstr ""
 
 #: ../../source/introduction.rst:19
 msgid "量子化＆疎行列のネットワークでパフォーマンスの良い学習が出来る環境を目指している"
@@ -66,11 +58,11 @@ msgstr ""
 
 #: ../../source/introduction.rst:20
 msgid "C++で記述されている"
-msgstr "Developed in C++"
+msgstr ""
 
 #: ../../source/introduction.rst:21
 msgid "GPU(CUDA)に対応している"
-msgstr "Accelerated with GPU (CUDA)"
+msgstr ""
 
 #: ../../source/introduction.rst:22
 msgid "高速でマニアックな自作レイヤーが作りやすい"
@@ -78,14 +70,11 @@ msgstr ""
 
 #: ../../source/introduction.rst:26
 msgid "MNISTサンプルの動かし方"
-msgstr "How to use sample program (MNIST)"
+msgstr ""
 
 #: ../../source/introduction.rst:28
 msgid "AXV2以降の命令が使えるCPUと、Windows7以降の環境を想定しております。 CUDA(Kepler以降)にも対応しています。"
 msgstr ""
-"It assumes a CPU that can use AXV2 or later instructions, and an "
-"environment of Windows 7 or later. CUDA (Kepler or later) is also "
-"supported."
 
 #: ../../source/introduction.rst:32
 msgid "Windows"
@@ -135,7 +124,7 @@ msgstr ""
 
 #: ../../source/introduction.rst:70
 msgid "GPUを使わない場合は make WITH_CUDA=No として下さい。"
-msgstr "make WITH_CUDA=No if you don't use GPU."
+msgstr ""
 
 #: ../../source/introduction.rst:73
 msgid "Google Colaboratory"
@@ -249,9 +238,6 @@ msgstr ""
 #: ../../source/introduction.rst:176
 msgid "また、BB_WITH_CEREAL マクロを定義すると、途中経過の保存形式に json が利用可能となります。"
 msgstr ""
-
-#~ msgid "また、BB_WITH_CEREAL マクロを定義すると、途中経過を json 経由で保存可能となります。"
-#~ msgstr ""
 
 #~ msgid "独自の確率的LUTのモデルにより、高速に学習できる"
 #~ msgstr ""
