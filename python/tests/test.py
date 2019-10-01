@@ -9,6 +9,20 @@ import time
 import numpy as np
 import cv2
 
+print(bb.dataset_path)
+
+td = bb.load_mnist()
+print(td['x_train'].shape)
+print(td['t_train'].shape)
+print(td['x_test'].shape)
+print(td['t_test'].shape)
+
+for i in range(10):
+    print(td['t_train'][i])
+    cv2.imshow('img', td['x_train'][i].reshape(28, 28))
+    cv2.waitKey()
+
+sys.exit()
 
 print(bb.TYPE_BIT)
 print(bb.get_version())
