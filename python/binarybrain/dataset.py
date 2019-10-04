@@ -66,7 +66,9 @@ def read_mnist(path='.'):
     td['x_train'] = read_mnist_image_file(os.path.join(dataset_path, 'train-images-idx3-ubyte'))
     td['t_train'] = read_mnist_label_file(os.path.join(dataset_path, 'train-labels-idx1-ubyte'))
     td['x_test']  = read_mnist_image_file(os.path.join(dataset_path, 't10k-images-idx3-ubyte'))
-    td['t_test']  = read_mnist_label_file(os.path.join(dataset_path, 't10k-labels-idx1-ubyte') )
+    td['t_test']  = read_mnist_label_file(os.path.join(dataset_path, 't10k-labels-idx1-ubyte'))    
+    td['x_shape'] = [28, 28, 1]
+    td['t_shape'] = [10]
     return td
 
 def load_mnist():

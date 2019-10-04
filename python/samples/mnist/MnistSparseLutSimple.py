@@ -11,12 +11,13 @@ def main():
     inference_modulation_size = 3
     
     # download mnist
-    bb.download_mnist()
+#   bb.download_mnist()
     
     # load MNIST data
-    td = bb.LoadMnist.load()
-    
-    batch_size = len(td.x_train)
+#   td = bb.LoadMnist.load()
+    td = bb.load_mnist()
+
+    batch_size = len(td['x_train'])
     print('batch_size =', batch_size)
     
     
