@@ -25,7 +25,7 @@ LUT-Networkの評価を目的に作成しておりますが、それ以外の用
 フルバイナリネットワークで、遅延数ミリ秒(1000fps)での画像認識の例です。
 
 ![fpga_environment.jpg](documents/images/fpga_environment.jpg "sample's photo image")
-![block_diagram.png](documents/images/block_diagram.jpg "sample's block diagram")
+![block_diagram.png](documents/images/block_diagram.png "sample's block diagram")
 
 
 下記のような微小リソース量で動作可能です。
