@@ -72,10 +72,10 @@ def main():
     # evaluate network
     eval_net = bb.Sequential.create()
     eval_net.add(bb.BinaryModulation.create(lut_net, inference_modulation_size=inference_modulation_size))
-    eval_net.add(bb.Reduce.create(td.t_shape))
+    eval_net.add(bb.Reduce.create(td['t_shape']))
     
     # set input shape
-    eval_net.set_input_shape(td.x_shape)
+    eval_net.set_input_shape(td['x_shape'])
     
     # parameter copy
     print('parameter copy to binary LUT-Network')
