@@ -5,18 +5,15 @@ import numpy as np
 
 
 def main():
-    epoch                     = 1
+    epoch                     = 4
     mini_batch                = 32
-    training_modulation_size  = 1
-    inference_modulation_size = 1
-    
-    # download MNIST data
-    bb.download_mnist()
+    training_modulation_size  = 3
+    inference_modulation_size = 3
     
     # load MNIST data
-    td = bb.LoadMnist.load()
+    td = bb.load_mnist()
     
-    batch_size = len(td.x_train)
+    batch_size = len(td['x_train'])
     print('batch_size =', batch_size)
     
     
@@ -67,8 +64,8 @@ def main():
     # wrapping with binary modulator
     net = bb.Sequential.create()
     net.add(bb.BinaryModulation.create(main_net, training_modulation_size=training_modulation_size))
-    net.add(bb.Reduce.create(td.t_shape))
-    net.set_input_shape(td.x_shape)
+    net.add(bb.Reduce.create(td['t_shape']))
+    net.set_input_shape(td['x_shape'])
     
     # print model information
     print(net.get_info())
@@ -147,10 +144,10 @@ def main():
     # evaluate network
     eval_net = bb.Sequential.create();
     eval_net.add(bb.BinaryModulation.create(lut_net, inference_modulation_size=inference_modulation_size))
-    eval_net.add(bb.Reduce.create(td.t_shape))
+    eval_net.add(bb.Reduce.create(td['t_shape']))
     
     # set input shape
-    eval_net.set_input_shape(td.x_shape)
+    eval_net.set_input_shape(td['x_shape'])
     
     
     # parameter copy

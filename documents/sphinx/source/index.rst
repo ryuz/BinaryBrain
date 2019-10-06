@@ -11,9 +11,12 @@ Welcome to BinaryBrain's documentation!
    :caption: Contents:
 
    introduction
+   case_study
    sample_rtl
    cpp_api
    python_api
+   lut_network
+   binary_modulation
 
 
 Indices and tables

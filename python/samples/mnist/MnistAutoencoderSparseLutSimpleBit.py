@@ -21,16 +21,13 @@ def main():
     training_modulation_size = 7
     test_modulation_size     = 7
     
-    # download MNIST data
-    bb.download_mnist()
-    
     # load MNIST data
-    td = bb.LoadMnist.load()
+    td = bb.load_mnist()
 
     # set teaching signnal
-    td.t_shape = td.x_shape
-    td.t_train = td.x_train
-    td.t_test  = td.x_test
+    td['t_shape'] = td['x_shape']
+    td['t_train'] = td['x_train']
+    td['t_test']  = td['x_test']
 
     # create layer
     layer_enc_sl0 = bb.SparseLut6.create([32*6*6*6])
@@ -56,7 +53,7 @@ def main():
     # wrapping with binary modulator
     net = bb.Sequential.create()
     net.add(bb.BinaryModulation.create(main_net, training_modulation_size=training_modulation_size))
-    net.set_input_shape(td.x_shape)
+    net.set_input_shape(td['x_shape'])
 
     print(net.get_info())
 
@@ -66,7 +63,7 @@ def main():
 
     optimizer.set_variables(net.get_parameters(), net.get_gradients())
 
-    batch_size = len(td.x_train)
+    batch_size = len(td['x_train'])
     print('batch_size =', batch_size)
 
 
@@ -75,10 +72,10 @@ def main():
 
     result_img = None
 
-    x_train = td.x_train
-    t_train = td.t_train
-    x_test  = td.x_test
-    t_test  = td.t_test
+    x_train = td['x_train']
+    t_train = td['t_train']
+    x_test  = td['x_test']
+    t_test  = td['t_test']
     x_buf = bb.FrameBuffer()
     t_buf = bb.FrameBuffer()
     for epoch_num in range(epoch):
@@ -86,12 +83,12 @@ def main():
         for index in tqdm(range(0, batch_size, mini_batch)):
             mini_batch_size = min(mini_batch, batch_size-index)
             
-            x_buf.resize(mini_batch_size, td.x_shape, bb.TYPE_FP32)
+            x_buf.resize(mini_batch_size, td['x_shape'], bb.TYPE_FP32)
             x_buf.set_data(x_train[index:index+mini_batch_size])
 
             y_buf = net.forward(x_buf)
             
-            t_buf.resize(mini_batch_size, td.t_shape, bb.TYPE_FP32)
+            t_buf.resize(mini_batch_size, td['t_shape'], bb.TYPE_FP32)
             t_buf.set_data(t_train[index:index+mini_batch_size])
             
             dy_buf = loss.calculate_loss(y_buf, t_buf, mini_batch_size)
@@ -105,7 +102,7 @@ def main():
         print('metrics =', metrics.get_metrics())
         
         # test
-        x_buf.resize(16, td.x_shape, bb.TYPE_FP32)
+        x_buf.resize(16, td['x_shape'], bb.TYPE_FP32)
         x_buf.set_data(x_test[0:16])
         y_buf = net.forward(x_buf)
         
@@ -144,10 +141,10 @@ def main():
     # evaluation network
     eval_net = bb.Sequential.create()
     eval_net.add(bb.BinaryModulationBit.create(lut_net, inference_modulation_size=test_modulation_size))
-    eval_net.add(bb.Reduce.create(td.t_shape))
+    eval_net.add(bb.Reduce.create(td['t_shape']))
 
     # set input shape
-    eval_net.set_input_shape(td.x_shape)
+    eval_net.set_input_shape(td['x_shape'])
 
     # import table
     print('parameter copy to binary LUT-Network')
