@@ -11,11 +11,8 @@ def main():
     training_modulation_size = 7
     test_modulation_size     = 7
     
-    # download MNIST data
-    bb.download_mnist()
-    
     # load MNIST data
-    td = bb.LoadMnist.load()
+    td = bb.load_mnist()
 
     # create layer
     layer_sl0 = bb.SparseLut6.create([1024])
@@ -31,8 +28,8 @@ def main():
     # wrapping with binary modulator
     net = bb.Sequential.create()
     net.add(bb.BinaryModulation.create(main_net, training_modulation_size=training_modulation_size))
-    net.add(bb.Reduce.create(td.t_shape))
-    net.set_input_shape(td.x_shape)
+    net.add(bb.Reduce.create(td['t_shape']))
+    net.set_input_shape(td['x_shape'])
 
     print(net.get_info())
 
@@ -42,7 +39,7 @@ def main():
 
     optimizer.set_variables(net.get_parameters(), net.get_gradients())
 
-    batch_size = len(td.x_train)
+    batch_size = len(td['x_train'])
     print('batch_size =', batch_size)
 
     runner = bb.Runner(net, "mnist-sparse-lut6-simple", loss, metrics, optimizer)
@@ -63,10 +60,10 @@ def main():
     # evaluation network
     eval_net = bb.Sequential.create()
     eval_net.add(bb.BinaryModulationBit.create(lut_net, inference_modulation_size=test_modulation_size))
-    eval_net.add(bb.Reduce.create(td.t_shape))
+    eval_net.add(bb.Reduce.create(td['t_shape']))
 
     # set input shape
-    eval_net.set_input_shape(td.x_shape)
+    eval_net.set_input_shape(td['x_shape'])
 
     # import table
     print('parameter copy to binary LUT-Network')

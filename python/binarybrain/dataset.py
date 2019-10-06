@@ -10,7 +10,7 @@ import numpy as np
 
 
 dataset_path = os.path.join(os.path.expanduser('~'), '.binarybrain', 'dataset')
-mnsit_pickle = 'mnist.pickle'
+# mnsit_pickle = 'mnist.pickle'
 
 def wget(url, filename):
     with urllib.request.urlopen(url) as r:
@@ -50,7 +50,7 @@ def read_mnist_image_file(file_name):
         img = np.fromfile(f, np.uint8, -1, offset=16)
     img = img.astype(np.float32)
     img /= 255.0
-    img = img.reshape(-1, 28*28)
+    img = img.reshape(-1, 28*28*1)
     return img
 
 def read_mnist_label_file(file_name):
@@ -72,16 +72,8 @@ def read_mnist(path='.'):
     return td
 
 def load_mnist():
-    file_name = os.path.join(dataset_path, mnsit_pickle)
-    if not os.path.exists(file_name):
-        os.makedirs(dataset_path, exist_ok=True)
-        download_mnist(path=dataset_path)
-        td = read_mnist(path=dataset_path)
-        with open(file_name, 'wb') as f:
-            pickle.dump(td, f)
-        return td
-    
-    with open(file_name, 'rb') as f:
-        td = pickle.load(f)
+    os.makedirs(dataset_path, exist_ok=True)
+    download_mnist(path=dataset_path)
+    td = read_mnist(path=dataset_path)
     return td
 

@@ -11,13 +11,10 @@ def main():
     training_modulation_size  = 3
     inference_modulation_size = 3
     
-    # download MNIST data
-    bb.download_mnist()
-    
     # load MNIST data
-    td = bb.LoadMnist.load()
+    td = bb.load_mnist()
     
-    batch_size = len(td.x_train)
+    batch_size = len(td['x_train'])
     print('batch_size =', batch_size)
     
     
@@ -41,8 +38,8 @@ def main():
     # wrapping with binary modulator
     net = bb.Sequential.create()
     net.add(bb.BinaryModulation.create(main_net, training_modulation_size=training_modulation_size))
-    net.add(bb.Reduce.create(td.t_shape))
-    net.set_input_shape(td.x_shape)
+    net.add(bb.Reduce.create(td['t_shape']))
+    net.set_input_shape(td['x_shape'])
     
     # print model information
     print(net.get_info())
@@ -61,9 +58,9 @@ def main():
     optimizer = bb.OptimizerAdam.create()
     optimizer.set_variables(net.get_parameters(), net.get_gradients())
     
-    runner = bb.Runner(net, "mnist-sparse-lut6-simple", loss, metrics, optimizer)
+    runner = bb.Runner(net, "mnist-dense-simple", loss, metrics, optimizer)
     runner.fitting(td, epoch_size=epoch, mini_batch_size=mini_batch)
-
+    
 
 if __name__ == '__main__':
     main()

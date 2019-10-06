@@ -373,7 +373,7 @@ setup(
     description='BinaryBrain for Python',
     long_description='',
     ext_modules=ext_modules,
-    install_requires=['pybind11>=2.3', 'numpy', 'pickle', 'tqdm'],
+    install_requires=['pybind11>=2.3', 'numpy', 'tqdm'],
     setup_requires=['pybind11>=2.3'],
     cmdclass={'build_ext': BuildExt},
     zip_safe=False,
