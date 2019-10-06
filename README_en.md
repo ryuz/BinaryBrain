@@ -24,7 +24,7 @@ Fully-Binary deep neural network.
 1000fps Real-time recognition.
 
 ![fpga_environment.jpg](documents/images/fpga_environment.jpg "sample's photo image")
-![block_diagram.png](documents/images/block_diagram.jpg "sample's block diagram")
+![block_diagram.png](documents/images/block_diagram.png "sample's block diagram")
 
 
 It can be implemented on a FPGA with a small amount of resources.

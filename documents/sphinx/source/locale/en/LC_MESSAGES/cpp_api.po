@@ -86,7 +86,7 @@ msgstr "get class name"
 
 #: ../../source/cpp_api.rst:46
 msgid "SetName()"
-msgstr ""
+msgstr "set instance name."
 
 #: ../../source/cpp_api.rst:45
 msgid ""
@@ -160,6 +160,8 @@ msgid ""
 "バイナライズ層です。 Forward では、0を閾値に出力を0と1に二値化します。 Backward では hard-tanh として動作します。"
 " バイナリネットワークの基礎となります。"
 msgstr ""
+"forward operation is binarize."
+"backward operation is hard-tanh."
 
 #: ../../source/cpp_api.rst:85
 msgid "ReLU クラス"
@@ -178,7 +180,6 @@ msgid "Sigmoid クラス"
 msgstr "Sigmoid class"
 
 #: ../../source/cpp_api.rst:91
-#, fuzzy
 msgid ""
 "普通のSigmoid です。 Binarize から派生しており、SendCommand() にて、\"binary true\" "
 "を送ることでBinarize層として動作します。"
@@ -195,7 +196,6 @@ msgid "SparseLutN クラス"
 msgstr "SparseLutN class"
 
 #: ../../source/cpp_api.rst:103
-#, fuzzy
 msgid ""
 "LUT-Network の LUT に相当する部分を独自のモデルで学習させるためのレイヤーです。 "
 "パーセプトロンと異なる独自のモデルを用いており、単体でXORパターンを含めたLUTで 表現可能な空間すべてを効率的に学習可能です。"
@@ -211,6 +211,9 @@ msgid ""
 "StochasticバイナリデータがStochastic性を持っている対象への学習に限定されますが、 "
 "SparseLutもでるよりも高速に学習させることが可能です。"
 msgstr ""
+"This is a layer to train the part corresponding to LUT of LUT-Network based on Stochastic model."
+"Although Stochastic binary data is limited to learning to objects that have Stochastic properties, "
+"it is possible to train faster than SparseLut can."
 
 #: ../../source/cpp_api.rst:117
 msgid "MicroMlp クラス"
@@ -222,6 +225,9 @@ msgid ""
 "BatchNormalization + 活性化層 の３層で構成されます。 活性化層 は デフォルトは ReLU "
 "ですが、テンプレート引数で変更可能です。"
 msgstr ""
+"This is a layer that uses the perceptron to learn the part corresponding to the LUT of the LUT-Network. "
+"The interior consists of three layers: MicroMlpAffine + BatchNormalization + Activation layer. "
+"Activation layer defaults to ReLU However, it can be changed with the template argument."
 
 #: ../../source/cpp_api.rst:125
 msgid "MicroMlpAffine クラス"
@@ -232,6 +238,9 @@ msgid ""
 "MicroMlp の構成要素で、入力数を6などに限定した疎結合、且つ、内部に隠れ層を備えた 小さなMLP(Multi Layer "
 "Perceptron)の集合体です。 入力数や隠れ層の数テンプレート引数で変更可能です。"
 msgstr ""
+"It is a component of MicroMlp, a small MLP (Multi Layer Perceptron) aggregate with loose coupling "
+"with a limited number of inputs such as 6 and a hidden layer inside. "
+"The number of inputs and the number of hidden layers can be changed with template arguments."
 
 #: ../../source/cpp_api.rst:133
 msgid "DenseAffine クラス"
@@ -239,7 +248,7 @@ msgstr "DenseAffine class"
 
 #: ../../source/cpp_api.rst:135
 msgid "いわゆる普通の浮動小数点による全結合のニューラルネットです。"
-msgstr ""
+msgstr "Dense affine operation"
 
 #: ../../source/cpp_api.rst:139
 msgid "BatchNormalization クラス"
@@ -247,7 +256,7 @@ msgstr "BatchNormalization class"
 
 #: ../../source/cpp_api.rst:141
 msgid "BatchNormalization層です。 活性化層でバイナリ化を行う前段ほぼ必須となってくる層です。"
-msgstr ""
+msgstr "BatchNormalization operation"
 
 #: ../../source/cpp_api.rst:146
 msgid "MaxPooling クラス"
@@ -255,7 +264,7 @@ msgstr "MaxPooling class"
 
 #: ../../source/cpp_api.rst:148
 msgid "MaxPooling層です。"
-msgstr "MaxPooling layer"
+msgstr "MaxPooling operation"
 
 #: ../../source/cpp_api.rst:152
 msgid "LutLayer (抽象クラス)"
@@ -265,7 +274,7 @@ msgstr "LutLayer class"
 msgid ""
 "LUT-Network を記述する基本モデルです。 現在 ver2 の直接学習機能はまだ ver3 には未実装です。 MicroMlp "
 "などで逆伝播で学習した内容をテーブル化して写し取ることを目的としています。 テーブル化取り込みに ImportLayer() メソッドを備えます。"
-msgstr ""
+msgstr "LUT Layer"
 
 #: ../../source/cpp_api.rst:161
 msgid "BinaryLutN クラス"
@@ -275,7 +284,7 @@ msgstr "BinaryLutN class"
 msgid ""
 "各ノードの入力数を１つに固定したLUTモデルです。一般的なFPGAに適合します。 入力数はテンプレート引数で指定でき、FPGAでは 4 か 6 "
 "のものが一般的と思われます。 入力数を固定することで演算を高速化できますが、ver3 への移植はまだ行えていません。"
-msgstr ""
+msgstr "binary LUT operation (like FPGA)"
 
 #: ../../source/cpp_api.rst:169
 msgid "補助層"
@@ -287,7 +296,7 @@ msgstr "Sequential class"
 
 #: ../../source/cpp_api.rst:174
 msgid "各種の層を直列に接続して１つの層として扱えるようにします。"
-msgstr ""
+msgstr "constructer for sequential network"
 
 #: ../../source/cpp_api.rst:178
 msgid "LoweringConvolution クラス"
@@ -301,11 +310,11 @@ msgstr "Lowering layer"
 msgid ""
 "ConvolutionIm2Col + 引数で渡したモデル + ConvolutionCol2Im DenseAffine "
 "を渡すと、通常のCNNになり、MicroMlp を用いたサブネットワークを渡すことで、"
-msgstr ""
+msgstr "Lowering for convolution"
 
 #: ../../source/cpp_api.rst:185
 msgid "LUT-Network での畳込みが可能です。"
-msgstr ""
+msgstr "Lowering for convolution"
 
 #: ../../source/cpp_api.rst:189
 msgid "ConvolutionIm2 クラス"
@@ -315,15 +324,15 @@ msgstr "ConvolutionIm2 class"
 msgid ""
 "畳み込みの為のLoweringを行います。通常、LoweringConvolutionクラス の中で利用されます。 "
 "Loweringされたデータに対して BatchNormalization するのも LUT-Network 学習時の特徴の一つかもしれません。"
-msgstr ""
+msgstr "Im2Col operation layer"
 
 #: ../../source/cpp_api.rst:195
 msgid "ConvolutionCol2Im クラス"
-msgstr "ConvolutionCol2Im clas"
+msgstr "ConvolutionCol2Im class"
 
 #: ../../source/cpp_api.rst:197
 msgid "畳み込みの為のLoweringの復元を行います。通常、LoweringConvolutionクラス の中で利用されます。"
-msgstr ""
+msgstr "Col2Im operation layer"
 
 #: ../../source/cpp_api.rst:201
 msgid "BinaryModulation クラス"
@@ -331,7 +340,7 @@ msgstr "BinaryModulation class"
 
 #: ../../source/cpp_api.rst:203
 msgid "内部でRealToBinary クラスとBinaryToRealクラスを組み合わせて、多値データをバイナリ化して学習するのに利用できます。"
-msgstr ""
+msgstr "Binary modulation wrapper. (add RealToBinary(preprocess) and BinaryToReal(postprocess))"
 
 #: ../../source/cpp_api.rst:207
 msgid "RealToBinary クラス"
@@ -342,7 +351,7 @@ msgid ""
 "実数値をバイナライズします。 その際にframe方向に拡張して変調を掛ける(多重化)が可能です。 "
 "現在、PWM変調と、乱数での変調を実装しており、デフォルトでPWM変調となります(将来⊿Σなどの誤差蓄積機能も検討中です)。 "
 "変調を行うことで、入力値に対して確率的な0/1比率の値を生成できるため、出力も確率的なものとなります。"
-msgstr ""
+msgstr "Binarize with modulation."
 
 #: ../../source/cpp_api.rst:216
 msgid "BinaryToReal クラス"
@@ -354,6 +363,7 @@ msgid ""
 "対応しますが、こちらは時間方向だけでなく、空間方向のカウントも可能です。 "
 "オーバーサンプリングによる十分な多重化数が確保できれば、回路規模を増加させること無く回帰などの実数値へのフィッティング可能性が出てきます。"
 msgstr ""
+"Binary to Real with integration"
 
 #: ../../source/cpp_api.rst:225
 msgid "モデル以外のクラス"
@@ -369,7 +379,7 @@ msgstr "LossSoftmaxCrossEntropy class"
 
 #: ../../source/cpp_api.rst:233
 msgid "普通のSoftmax-CrossEntropyクラスです。"
-msgstr ""
+msgstr "Softmax-CrossEntropy operation"
 
 #: ../../source/cpp_api.rst:237
 msgid "LossMeanSquaredError クラス"
@@ -377,7 +387,7 @@ msgstr "LossMeanSquaredError class"
 
 #: ../../source/cpp_api.rst:239
 msgid "平均二乗誤差を損失とするクラスです。"
-msgstr ""
+msgstr "calclate Mean Squared Error"
 
 #: ../../source/cpp_api.rst:243
 msgid "評価関数"
@@ -388,9 +398,8 @@ msgid "MetricsCategoricalAccuracy クラス"
 msgstr "MetricsCategoricalAccuracy class"
 
 #: ../../source/cpp_api.rst:248
-#, fuzzy
 msgid "Categorical Classification の精度を評価値とするクラスです。"
-msgstr "MetricsCategoricalAccuracy class"
+msgstr "calcrate CategoricalAccuracy for Metrics."
 
 #: ../../source/cpp_api.rst:251
 msgid "MetricsMeanSquaredError クラス"
@@ -398,7 +407,7 @@ msgstr "MetricsMeanSquaredError class"
 
 #: ../../source/cpp_api.rst:253
 msgid "MSE(平均二乗誤差)を評価値とするクラスです。"
-msgstr ""
+msgstr "calclate Mean Squared Error"
 
 #: ../../source/cpp_api.rst:257
 msgid "最適化(Optimizer)"
@@ -430,7 +439,7 @@ msgstr "Runner class"
 
 #: ../../source/cpp_api.rst:277
 msgid "構築したモデルのフィッティングや評価などの実行を補助します。 論よりRUN。 Runner のソースが各種の使い方で、参考になるはずです。"
-msgstr ""
+msgstr "Assists in executing fitting and evaluation of the built model."
 
 #: ../../source/cpp_api.rst:283
 msgid "データ保持"
@@ -442,7 +451,7 @@ msgstr "Tensor class"
 
 #: ../../source/cpp_api.rst:288
 msgid "多次元のデータを保持できるクラスで、演算も可能です。 名前に反してまだ Tensor演算は実装できていません。"
-msgstr ""
+msgstr "Container for N-dimensional array"
 
 #: ../../source/cpp_api.rst:293
 msgid "Variables クラス"
@@ -452,7 +461,7 @@ msgstr "Variables class"
 msgid ""
 "複数の Tensor を束ねる機能を持ったクラスです。 形状が同じなら Variables 間での演算も可能です。 "
 "主にOptimizerでの利用を想定しています。"
-msgstr ""
+msgstr "Container for Tensors"
 
 #: ../../source/cpp_api.rst:300
 msgid "FrameBuffer クラス"
@@ -464,7 +473,7 @@ msgid ""
 "ではなく、CHWN 形式になるように並び替えてデータを保持しています。 これは Lowering されて "
 "frame数が十分増やされた疎行列に特化して性能を出すための配置で、BinaryBrainの特徴の一つです。 "
 "一方で、一般的な算術ライブラリに適合しない(並び替えが必要)ので注意が必要です。"
-msgstr ""
+msgstr "Container for Tensors with frames"
 
 #: ../../source/cpp_api.rst:309
 msgid "各種関数"
@@ -480,7 +489,7 @@ msgstr "ExportVerilog_LutLayers function"
 
 #: ../../source/cpp_api.rst:317
 msgid "LutLayer を Verilog-RTL で出力します。"
-msgstr ""
+msgstr "output verilog-RTL from LutLayer"
 
 #: ../../source/cpp_api.rst:321
 msgid "ExportVerilog_LutCnnLayersAxi4s 関数"
@@ -490,22 +499,5 @@ msgstr "ExportVerilog_LutCnnLayersAxi4s function"
 msgid ""
 "畳み込み層を含む LutLayer を纏めて Verilog-RTL で出力します。 "
 "MaxPoolingなどの入出力でデータが不連続になる層は最後に1つだけ指定することができます。"
-msgstr ""
-
-#~ msgid ""
-#~ "This is Binarizer. When it run "
-#~ "backward, it behaves as a hard-"
-#~ "tanh.バイナライズ層です。 Forward では、0を閾値に出力を0と1に二値化します。 "
-#~ "Backward では hard-tanh として動作します。 "
-#~ "バイナリネットワークの基礎となります。"
-#~ msgstr ""
-
-#~ msgid "最小二乗誤差を損失とするクラスです。"
-#~ msgstr ""
-
-#~ msgid "精度関数"
-#~ msgstr "Metrics function classes"
-
-#~ msgid "Categorical Classification の精度を計算します。"
-#~ msgstr ""
+msgstr "output verilog-RTL(AXI4-Stream I/F) from CNN-Layer""
 

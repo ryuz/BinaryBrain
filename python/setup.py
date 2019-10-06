@@ -292,7 +292,7 @@ class BuildExt(build_ext):
         ar_args['unix'] += ['-fopenmp', '-lstdc++', '-lm']
 
         # windows(cpu)
-        cc_args['msvc'] += ['/EHsc', '/arch:AVX2', '/openmp', '/std:c++14', '/wd"4819"']
+        cc_args['msvc'] += ['/EHsc', '/Oi', '/MT', '/arch:AVX2', '/openmp', '/std:c++14', '/wd"4819"']
         ar_args['msvc'] += []
     else:
         # unix(gpu)
@@ -313,14 +313,27 @@ class BuildExt(build_ext):
                             '-lstdc++', '-lm', '-lcublas']
 
         # windows(gpu)
-        cc_args['msvc'] += ['-Xcompiler', '/EHsc',
+        cc_args['msvc'] += ['-O3',
+                            '-Xcompiler', '/EHsc',
+                            '-Xcompiler', '/O2',
+                            '-Xcompiler', '/Oi',
+                            '-Xcompiler', '/FS',
+                            '-Xcompiler', '/Zi',
+                            '-Xcompiler', '/MT',
                             '-Xcompiler', '/arch:AVX2',
                             '-Xcompiler', '/openmp',
                             '-Xcompiler', '/std:c++14',
                             '-Xcompiler', '/wd\"4819\"']
-        cu_args['msvc'] += ['-std=c++11',
+        cu_args['msvc'] += ['-O3',
+                            '-std=c++11',
                             '-gencode=arch=compute_35,code=sm_35',
-                            '-gencode=arch=compute_75,code=sm_75']
+                            '-gencode=arch=compute_75,code=sm_75',
+                            '-Xcompiler', '/EHsc',
+                            '-Xcompiler', '/O2',
+                            '-Xcompiler', '/Oi',
+                            '-Xcompiler', '/FS',
+                            '-Xcompiler', '/Zi',
+                            '-Xcompiler', '/MT']
         ar_args['msvc'] += ['-lcublas']
     
     if sys.platform == 'darwin':
@@ -360,7 +373,7 @@ setup(
     description='BinaryBrain for Python',
     long_description='',
     ext_modules=ext_modules,
-    install_requires=['pybind11>=2.3', 'tqdm'],
+    install_requires=['pybind11>=2.3', 'numpy', 'tqdm'],
     setup_requires=['pybind11>=2.3'],
     cmdclass={'build_ext': BuildExt},
     zip_safe=False,
