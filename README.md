@@ -200,7 +200,7 @@ BinaryBrainではバイナリ変調したデジタル値を扱うことが出来
 バイナリ変調された信号は、stochastic演算を活用することが出来ます。
 次の図は、stochastic演算の例で、80%の確率で1が現れる入力と50%の確率で1が現れる入力のANDを取ることで40%の確率で1が現れる出力を得ている例です。
 
-![stochastic_operation.png](documents/images/stochastic_operation.png "stochastic operation")
+![stochastic_and.png](documents/images/stochastic_and.png "stochastic operation")
 
 たった1個のANDゲートで乗算が可能です。もちろん例えば4bit分の精度の信号を扱うのに15個のバイナリ値を通す必要があるので、必要な精度が増えると効率が悪くなるのですが、比較的低精度の領域においては効率よく演算が可能です。
 BinaryBrainではLUT-Networkを学習させるためにバイナリ確率変数を入力として、バイナリ確率変数を出力するLUTのモデルが利用可能です。

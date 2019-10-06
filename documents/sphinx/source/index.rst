@@ -14,6 +14,7 @@ Welcome to BinaryBrain's documentation!
    sample_rtl
    cpp_api
    python_api
+   lut_network
 
 
 Indices and tables

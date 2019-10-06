@@ -4,12 +4,6 @@ pushd %~dp0
 
 REM Command file for Sphinx documentation
 
-if "%1" == "livehtml" (
-        %SPHINXBUILD% -p 8000 -b html %SOURCEDIR% %BUILDDIR%/html
-        sphinx-autobuild -p 8000 -b html %SOURCEDIR% %BUILDDIR%/html
-        if errorlevel 1 exit /b 1
-        goto end
-)
 
 if "%SPHINXBUILD%" == "" (
 	set SPHINXBUILD=sphinx-build
@@ -18,6 +12,14 @@ set SOURCEDIR=source
 set BUILDDIR=build
 
 if "%1" == "" goto help
+
+if "%1" == "livehtml" (
+        %SPHINXBUILD% -p 8000 -b html %SOURCEDIR% %BUILDDIR%/html
+	start http://127.0.0.1:8000
+        sphinx-autobuild -p 8000 -b html %SOURCEDIR% %BUILDDIR%/html
+        if errorlevel 1 exit /b 1
+        goto end
+)
 
 %SPHINXBUILD% >NUL 2>NUL
 if errorlevel 9009 (

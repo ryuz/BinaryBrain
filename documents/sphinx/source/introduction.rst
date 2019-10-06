@@ -50,7 +50,7 @@ Windows
 Linux(Ubuntu 18.04.1)
 ----------------------
 
-install tools
+1. install tools
 ^^^^^^^^^^^^^^^^^
 
 ::
