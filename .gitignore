@@ -90,6 +90,12 @@ tests/diabetes/diabetes_data.txt
 tests/diabetes/diabetes_target.txt
 tests/diabetes/DiabetesRegressionBinaryLut.v
 
+python/samples/mnist/*.v
+python/samples/mnist/*.png
+
+python/test/*.v
+
+
 *.tar.gz
 cifar-10-batches-bin/
 
