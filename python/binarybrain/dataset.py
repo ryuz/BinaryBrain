@@ -47,7 +47,8 @@ def download_mnist(path='.'):
 
 def read_mnist_image_file(file_name):
     with open(file_name, 'rb') as f:
-        img = np.fromfile(f, np.uint8, -1, offset=16)
+        _   = np.fromfile(f, np.uint8, 16) # header
+        img = np.fromfile(f, np.uint8, -1) # data
     img = img.astype(np.float32)
     img /= 255.0
     img = img.reshape(-1, 28*28*1)
@@ -55,13 +56,14 @@ def read_mnist_image_file(file_name):
 
 def read_mnist_label_file(file_name):
     with open(file_name, 'rb') as f:
-        l = np.fromfile(f, np.uint8, -1, offset=8)
+        _ = np.fromfile(f, np.uint8, 8)  # header
+        l = np.fromfile(f, np.uint8, -1) # data
     labels = np.zeros((len(l), 10), np.float32)
     for i, j in enumerate(l):
         labels[i][j] = 1.0
     return labels
 
-def read_mnist(path='.'):
+def read_mnist(path=''):
     td = {}
     td['x_train'] = read_mnist_image_file(os.path.join(dataset_path, 'train-images-idx3-ubyte'))
     td['t_train'] = read_mnist_label_file(os.path.join(dataset_path, 'train-labels-idx1-ubyte'))
