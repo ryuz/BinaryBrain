@@ -13,6 +13,7 @@ dataset_path = os.path.join(os.path.expanduser('~'), '.binarybrain', 'dataset')
 # mnsit_pickle = 'mnist.pickle'
 
 def wget(url, filename):
+    print(url)
     with urllib.request.urlopen(url) as r:
         with open(filename, 'wb') as f:
             f.write(r.read())
@@ -33,7 +34,7 @@ def gzip_download_and_extract(url, gz_filename, ext_filename):
             wget(url, gz_filename)
         gzip_extractall(gz_filename, ext_filename)
 
-def download_mnist(path='.'):
+def download_mnist(path=''):
     base_url = 'http://yann.lecun.com/exdb/mnist/'
     names = [('train-images-idx3-ubyte.gz', 'train-images-idx3-ubyte'),
              ('train-labels-idx1-ubyte.gz', 'train-labels-idx1-ubyte'),
@@ -79,3 +80,58 @@ def load_mnist():
     td = read_mnist(path=dataset_path)
     return td
 
+
+def download_cifar10(path=''):
+    tgz_filename = os.path.join(path, 'cifar-10-python.tar.gz')
+    if not os.path.exists(tgz_filename):
+        url = 'https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz'
+        print('dwonload %s from %s' % (tgz_filename, url))
+        wget(url, tgz_filename)
+    if not os.path.exists(os.path.join(path, 'cifar-10-batches-py', 'data_batch_1'))  \
+            or not os.path.exists(os.path.join(path, 'cifar-10-batches-py', 'data_batch_2'))  \
+            or not os.path.exists(os.path.join(path, 'cifar-10-batches-py', 'data_batch_3'))  \
+            or not os.path.exists(os.path.join(path, 'cifar-10-batches-py', 'data_batch_4'))  \
+            or not os.path.exists(os.path.join(path, 'cifar-10-batches-py', 'data_batch_5'))  \
+            or not os.path.exists(os.path.join(path, 'cifar-10-batches-py', 'test_batch')):
+        tar_extractall(tgz_filename, path)
+
+def read_cifar10_pickle(filename):
+    with open(filename, 'rb') as f:
+        data = pickle.load(f, encoding='bytes')
+    return data
+
+def read_cifar10(path=''):
+    data_batch_1 = read_cifar10_pickle(os.path.join(path, 'cifar-10-batches-py', 'data_batch_1'))
+    data_batch_2 = read_cifar10_pickle(os.path.join(path, 'cifar-10-batches-py', 'data_batch_2'))
+    data_batch_3 = read_cifar10_pickle(os.path.join(path, 'cifar-10-batches-py', 'data_batch_3'))
+    data_batch_4 = read_cifar10_pickle(os.path.join(path, 'cifar-10-batches-py', 'data_batch_4'))
+    data_batch_5 = read_cifar10_pickle(os.path.join(path, 'cifar-10-batches-py', 'data_batch_5'))
+    test_batch   = read_cifar10_pickle(os.path.join(path, 'cifar-10-batches-py', 'test_batch'))
+
+    x_train = np.vstack((data_batch_1[b'data'], data_batch_2[b'data'], data_batch_3[b'data'], data_batch_4[b'data'], data_batch_5[b'data']))
+    l_train = data_batch_1[b'labels'] + data_batch_2[b'labels'] + data_batch_3[b'labels'] + data_batch_4[b'labels'] + data_batch_5[b'labels']
+    x_test  = test_batch[b'data']
+    l_test  = test_batch[b'labels']
+
+    t_train = np.ndarray((len(l_train), 10), dtype=np.float32)
+    for i, l in enumerate(l_train):
+        t_train[i][l] = 1.0
+    
+    t_test  = np.ndarray((len(l_test), 10), dtype=np.float32)
+    for i, l in enumerate(l_test):
+        t_test[i][l] = 1.0
+
+    td = {}
+    td['x_train'] = np.array(x_train).astype(np.float32) / 255.0
+    td['x_test']  = np.array(x_test).astype(np.float32)  / 255.0
+    td['x_shape'] = [32, 32, 3]
+    td['t_train'] = t_train
+    td['t_test']  = t_test
+    td['t_shape'] = [10]
+    return td
+
+def load_cifar10():
+    os.makedirs(dataset_path, exist_ok=True)
+    download_cifar10(path=dataset_path)
+    td = read_cifar10(path=dataset_path)
+    return td
