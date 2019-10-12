@@ -4,6 +4,7 @@ import os
 import sys
 from collections import OrderedDict
 import binarybrain as bb
+import numpy as np
 
 
 #if 'ipykernel' in sys.modules:
@@ -106,7 +107,7 @@ class Runner:
             epoch_size (int): epoch size
             mini_batch_size (int): mini batch size
         """
-        
+      
         log_file_name  = self.name + '_log.txt'
         json_file_name = self.name + '_net.json'
         epoch = 0
@@ -119,11 +120,18 @@ class Runner:
             else:
                 print('[file not found] %s'% json_file_name)
         
+        x_train  = np.array(td['x_train'])
+        t_train  = np.array(td['t_train'])
+        x_test   = np.array(td['x_test'])
+        t_test   = np.array(td['t_test'])
+        x_shape  = td['x_shape']
+        t_shape  = td['t_shape']
+
         # log start
         with open(log_file_name, 'a') as log_file:
             # initial evaluation
             if init_eval:
-                calculation(self.net, td['x_test'], td['x_shape'], td['t_test'], td['t_shape'], mini_batch_size, 1, self.metrics, self.loss)
+                calculation(self.net, x_test, x_shape, t_test, t_shape, mini_batch_size, 1, self.metrics, self.loss)
                 print('[initial] %s=%f loss=%f' % (self.metrics.get_metrics_string(), self.metrics.get_metrics(), self.loss.get_loss()))
             
             # loop
@@ -132,7 +140,7 @@ class Runner:
                 epoch = epoch + 1
                 
                 # train
-                calculation(self.net, td['x_test'], td['x_shape'], td['t_test'], td['t_shape'], mini_batch_size, mini_batch_size,
+                calculation(self.net, x_train, x_shape, t_train, t_shape, mini_batch_size, mini_batch_size,
                             self.metrics, self.loss, self.optimizer, train=True, print_loss=True, print_metrics=True)
                 
                 # write file
@@ -142,10 +150,15 @@ class Runner:
                         print('[write error] %s'% json_file_name)
                 
                 # evaluation
-                calculation(self.net, td['x_test'], td['x_shape'], td['t_test'], td['t_shape'], mini_batch_size, 1, self.metrics, self.loss)
+                calculation(self.net, x_test, x_shape, t_test, t_shape, mini_batch_size, 1, self.metrics, self.loss)
                 output_text = 'epoch=%d %s=%f loss=%f' % (epoch, self.metrics.get_metrics_string(), self.metrics.get_metrics(), self.loss.get_loss())
                 print(output_text)
                 print(output_text, file=log_file)
+
+                # shuffle
+                p = np.random.permutation(len(x_train))
+                x_train = x_train[p]
+                t_train = t_train[p]
     
     def evaluation(self, td, mini_batch_size=16):
         """evaluation

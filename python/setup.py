@@ -314,6 +314,7 @@ class BuildExt(build_ext):
 
         # windows(gpu)
         cc_args['msvc'] += ['-O3',
+                            '-Xcompiler', '/bigobj',
                             '-Xcompiler', '/EHsc',
                             '-Xcompiler', '/O2',
                             '-Xcompiler', '/Oi',

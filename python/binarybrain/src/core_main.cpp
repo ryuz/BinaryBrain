@@ -115,7 +115,6 @@ using RunStatus                    = bb::RunStatus;
 using Runner                       = bb::Runner<float>;
 
 
-
 std::string MakeVerilog_FromLut(std::string module_name, std::vector< std::shared_ptr< bb::LutLayer<float, float> > > layers)
 {
     std::stringstream ss;
@@ -401,6 +400,12 @@ R"(create BinaryLut6 object
                 py::arg("connection") = "",
                 py::arg("seed") = 1);
 
+    py::class_< SparseLut6Bit, SparseLayer, std::shared_ptr<SparseLut6Bit> >(m, "SparseLut6Bit")
+        .def_static("create", &SparseLut6Bit::CreateEx, "create SparseLut6Bit",
+                py::arg("output_shape"),
+                py::arg("batch_norm") = true,
+                py::arg("connection") = "",
+                py::arg("seed") = 1);
     
     // filter
     py::class_< Filter2d, Model, std::shared_ptr<Filter2d> >(m, "Filter2d");
@@ -416,7 +421,7 @@ R"(create BinaryLut6 object
                 py::arg("x_stride")      = 1,
                 py::arg("padding")       = "valid",
                 py::arg("border_mode")   = BB_BORDER_REFLECT_101,
-                py::arg("border_value")  = 0.0f);
+                py::arg("border_value")  = 0.0);
 
     py::class_< LoweringConvolutionBit, Filter2dBit, std::shared_ptr<LoweringConvolutionBit> >(m, "LoweringConvolutionBit")
         .def_static("create", &LoweringConvolutionBit::CreateEx,
@@ -427,13 +432,17 @@ R"(create BinaryLut6 object
                 py::arg("x_stride")      = 1,
                 py::arg("padding")       = "valid",
                 py::arg("border_mode")   = BB_BORDER_REFLECT_101,
-                py::arg("border_value")  = 0.0f);
+                py::arg("border_value")  = 0.0);
     
     py::class_< MaxPooling, Filter2d, std::shared_ptr<MaxPooling> >(m, "MaxPooling")
         .def_static("create", &MaxPooling::CreateEx,
                 py::arg("filter_h_size"),
                 py::arg("filter_w_size"));
-
+    
+    py::class_< MaxPoolingBit, Filter2dBit, std::shared_ptr<MaxPoolingBit> >(m, "MaxPoolingBit")
+        .def_static("create", &MaxPoolingBit::CreateEx,
+                py::arg("filter_h_size"),
+                py::arg("filter_w_size"));
 
     // activation
     py::class_< Activation, Model, std::shared_ptr<Activation> >(m, "Activation");
