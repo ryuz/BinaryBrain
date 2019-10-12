@@ -69,7 +69,7 @@ def read_mnist(path=''):
     td['x_train'] = read_mnist_image_file(os.path.join(dataset_path, 'train-images-idx3-ubyte'))
     td['t_train'] = read_mnist_label_file(os.path.join(dataset_path, 'train-labels-idx1-ubyte'))
     td['x_test']  = read_mnist_image_file(os.path.join(dataset_path, 't10k-images-idx3-ubyte'))
-    td['t_test']  = read_mnist_label_file(os.path.join(dataset_path, 't10k-labels-idx1-ubyte'))    
+    td['t_test']  = read_mnist_label_file(os.path.join(dataset_path, 't10k-labels-idx1-ubyte'))
     td['x_shape'] = [28, 28, 1]
     td['t_shape'] = [10]
     return td
@@ -113,11 +113,11 @@ def read_cifar10(path=''):
     x_test  = test_batch[b'data']
     l_test  = test_batch[b'labels']
 
-    t_train = np.ndarray((len(l_train), 10), dtype=np.float32)
+    t_train = np.zeros((len(l_train), 10), np.float32)
     for i, l in enumerate(l_train):
         t_train[i][l] = 1.0
     
-    t_test  = np.ndarray((len(l_test), 10), dtype=np.float32)
+    t_test = np.zeros((len(l_test), 10), np.float32)
     for i, l in enumerate(l_test):
         t_test[i][l] = 1.0
 
