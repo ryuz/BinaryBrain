@@ -6,7 +6,7 @@ import numpy as np
 
 def main():
     binary_mode               = False
-    epoch                     = 4
+    epoch                     = 8
     mini_batch                = 32
     training_modulation_size  = 3
     inference_modulation_size = 3

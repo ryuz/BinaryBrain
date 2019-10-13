@@ -130,7 +130,7 @@ class Runner:
         # log start
         with open(log_file_name, 'a') as log_file:
             # write network info
-            print(net.get_info(), file=log_file)
+            print(self.net.get_info(), file=log_file)
             
             # initial evaluation
             if init_eval:
