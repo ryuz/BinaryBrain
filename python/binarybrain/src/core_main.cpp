@@ -53,6 +53,11 @@
 #include "bb/LoadCifar10.h"
 #include "bb/ExportVerilog.h"
 
+#ifdef BB_WITH_CUDA
+#include "bbcu/bbcu.h"
+#include "bbcu/bbcu_util.h"
+#endif
+
 
 using Tensor                       = bb::Tensor;
 using FrameBuffer                  = bb::FrameBuffer;
@@ -594,6 +599,12 @@ R"(create BinaryLut6 object
             py::arg("td"),
             py::arg("epoch_size"),
             py::arg("batch_size"));
+
+
+    // CUDA device
+#ifdef BB_WITH_CUDA
+    m.def("get_device_properties", &bbcu::GetDevicePropertiesString);
+#endif
 
     // verilog
     m.def("make_verilog_from_lut", &MakeVerilog_FromLut);
