@@ -39,8 +39,11 @@ A unique network model is available.
 
 
 ## How to use sample program (MNIST)
+
+Please, read "main.cpp" for usage.
+
 ### windows
-1. install VisualStudio 2017 + CUDA 10.1
+1. install VisualStudio 2019 + CUDA 10.1
 2. git clone --recursive -b ver3_release https://github.com/ryuz/BinaryBrain.git 
 3. download MNIST from http://yann.lecun.com/exdb/mnist/
 4. decompress MNIST for "\samples\mnist"
@@ -97,7 +100,7 @@ When using Windows, 64-bit version of VisualStudio is required.
 ('x64' option is important)
 
 ```
-> "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
+> "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 ```
 
 #### Install
@@ -135,12 +138,6 @@ This platform let the LUT's table learn directly.
 
 ![LutNet_design_flow.png](documents/images/LutNet_design_flow.png "design flow")
 
-### Difference from other binary deep neural network
-Though LUT-Network is binary nwtwork, it has FP32 weight parameter.
-
-![difference_other_networks.png](documents/images/difference_other_networks.png "difference from other networks")
-
-high-performance prediction, and fast learning.
 
 ### Binary modulation model
 BinaryBrain can handle binary modulated models.
@@ -150,56 +147,6 @@ The binary modulation model is as follows.
 
 For example, PWM(Pulse Width Modulation), delta sigma modulation, and Digital amplifier are also a kind of binary modulation.
 
-### Stochastic-LUT model
-I invented Stochastic-LUT model to train LUT-Network.
-The Stochastic-LUT inputs binary stochastic variables and outputs binary stochastic variables.
-A stochastic variables are expressed in FP32.
-
-The model of 2 input LUT (table sizes is 4) is shown below as an example.
-
-![stochastic_lut2.png](documents/images/stochastic_lut2.png "stochastic_lut2")
-
-x0-x1 is input stochastic variables. W0-W3 is table value.
-
-- Probability that W0 is selected : (1 - x1) * (1 - x0)
-- Probability that W1 is selected : (1 - x1) * x0
-- Probability that W2 is selected : x1 * (1 - x0)
-- Probability that W3 is selected : x1 * x0
-
- and, output stochastic variables y is shown below.
-
-y =   W0 * (1 - x1) * (1 - x0)
-      + W1 * (1 - x1) * x0
-      + W2 * x1 * (1 - x0)
-      + W3 * x1 * x0
-
- Because this calculation tree is differentiable, it can be calculate back-propagation.
-The formula for the 6-input LUT is larger, but can be calculated in the same method.
-
-By using the Stochastic-LUT model, it is possible to perform learning much faster and with higher accuracy than the micro-MLP model described later.
-
-
-### micro-MLP model
-The micro-MLP model is a learning model of LUT using conventional perceptron.
-A single LUT can calcurate XOR. But a single perceptron node can't learn XOR.
-LUT-Network's one node has a hidden perceptrons.
-
-![LutNet_layer_model.png](documents/images/LutNet_layer_model.png "layer_model")
-
-### LUT node model
-One LUT's equivalent model is many perceptron that has hidden layer.
-
-![LutNet_lut_equivalent_model.png](documents/images/LutNet_lut_equivalent_model.png "LUT node model")
-
-Learning model of LUT-Network is shown below.
-![LutNet_lut_node_model.png](documents/images/LutNet_node_model.png "LUT node model")
-
-
-### Performance  estimations
-
-![performance.png](documents/images/performance.png "parformance")
-
-This estimate is when using a Stochastic-LUT.
 
 ## License
 This source code's license is MIT license.

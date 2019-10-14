@@ -88,6 +88,14 @@ public:
         return Create(create);
     }
 
+    static std::shared_ptr<HardTanh> CreateEx(double hardtanh_min = -1.0, double hardtanh_max = +1.0)
+    {
+        create_t create;
+        create.hardtanh_min = (RealType)hardtanh_min;
+        create.hardtanh_max = (RealType)hardtanh_max;
+        return Create(create);
+    }
+
     std::string GetClassName(void) const { return "HardTanh"; }
 
     void        SetFrameBufferX(FrameBuffer x) { m_x_buf = x; }

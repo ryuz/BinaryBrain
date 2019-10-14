@@ -27,21 +27,26 @@ def main():
     layer_cnv0_sl0 = bb.SparseLut6.create([192])
     layer_cnv0_sl1 = bb.SparseLut6.create([32])
     
-    layer_cnv1_sl0 = bb.SparseLut6.create([192])
-    layer_cnv1_sl1 = bb.SparseLut6.create([32])
+    layer_cnv1_sl0 = bb.SparseLut6.create([1152])
+    layer_cnv1_sl1 = bb.SparseLut6.create([192])
+    layer_cnv1_sl2 = bb.SparseLut6.create([32])
     
-    layer_cnv2_sl0 = bb.SparseLut6.create([384])
-    layer_cnv2_sl1 = bb.SparseLut6.create([64])
+    layer_cnv2_sl0 = bb.SparseLut6.create([2304])
+    layer_cnv2_sl1 = bb.SparseLut6.create([384])
+    layer_cnv2_sl2 = bb.SparseLut6.create([64])
     
-    layer_cnv3_sl0 = bb.SparseLut6.create([384])
-    layer_cnv3_sl1 = bb.SparseLut6.create([64])
+    layer_cnv3_sl0 = bb.SparseLut6.create([2304])
+    layer_cnv3_sl1 = bb.SparseLut6.create([384])
+    layer_cnv3_sl2 = bb.SparseLut6.create([64])
     
-    layer_sl4      = bb.SparseLut6.create([3072])
-    layer_sl5      = bb.SparseLut6.create([512])
+    layer_sl4      = bb.SparseLut6.create([18432])
+    layer_sl5      = bb.SparseLut6.create([3072])
+    layer_sl6      = bb.SparseLut6.create([512])
     
-    layer_sl6      = bb.SparseLut6.create([360])
-    layer_sl7      = bb.SparseLut6.create([60])
-    layer_sl8      = bb.SparseLut6.create([10])
+    layer_sl7      = bb.SparseLut6.create([2160])
+    layer_sl8      = bb.SparseLut6.create([360])
+    layer_sl9      = bb.SparseLut6.create([60])
+    layer_sl10     = bb.SparseLut6.create([10])
     
     # main network
     cnv0_sub = bb.Sequential.create()
@@ -51,14 +56,17 @@ def main():
     cnv1_sub = bb.Sequential.create()
     cnv1_sub.add(layer_cnv1_sl0)
     cnv1_sub.add(layer_cnv1_sl1)
+    cnv1_sub.add(layer_cnv1_sl2)
     
     cnv2_sub = bb.Sequential.create()
     cnv2_sub.add(layer_cnv2_sl0)
     cnv2_sub.add(layer_cnv2_sl1)
+    cnv2_sub.add(layer_cnv2_sl2)
     
     cnv3_sub = bb.Sequential.create()
     cnv3_sub.add(layer_cnv3_sl0)
     cnv3_sub.add(layer_cnv3_sl1)
+    cnv3_sub.add(layer_cnv3_sl2)
     
     main_net = bb.Sequential.create()
     main_net.add(bb.LoweringConvolution.create(cnv0_sub, 3, 3))
@@ -72,6 +80,8 @@ def main():
     main_net.add(layer_sl6)
     main_net.add(layer_sl7)
     main_net.add(layer_sl8)
+    main_net.add(layer_sl9)
+    main_net.add(layer_sl10)
     
     
     # wrapping with binary modulator

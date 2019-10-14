@@ -30,10 +30,10 @@
   MnistAeSparseLutCnn.cpp               AutoEncoder LUT-Network CNNサンプル
   MnistCustomModel.cpp                  カスタムモデル作成用サンプル
   readme.txt                            本ファイル
-  sample_mnist.sln                      Visual-C++ 2017用ソリューション
-  sample_mnist.vcxproj                  Visual-C++ 2017用プロジェクト
-  sample_mnist.vcxproj.filters          Visual-C++ 2017用
-  sample_mnist.vcxproj.user             Visual-C++ 2017用
+  sample_mnist.sln                      Visual-C++ 2019用ソリューション
+  sample_mnist.vcxproj                  Visual-C++ 2019用プロジェクト
+  sample_mnist.vcxproj.filters          Visual-C++ 2019用
+  sample_mnist.vcxproj.user             Visual-C++ 2019用
   verilog/bb_lut.v                      LUT の Verilogモデル
   verilog/tb_mnist_lut_simple.v         Simple DNN LUT-Network のテストベンチ
   verilog/tb_mnist_lut_simple.vtakprj   Simple DNN LUT-Network のVeritakプロジェクト
@@ -91,7 +91,7 @@
 
 
  [Windowsの場合]
-  Visual C++ 2017 でビルドできます。
+  Visual C++ 2019 でビルドできます。
   MNISTファイルなどは手動ダウンロードが必要です。
 
 

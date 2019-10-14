@@ -70,8 +70,8 @@ public:
     struct create_t
     {
         indices_t       output_shape;               //< 出力形状
-        std::string     connection;                 //< 結線ルール
         bool            batch_norm = true;
+        std::string     connection;                 //< 結線ルール
         RealType        momentum   = (RealType)0.0;
         RealType        gamma      = (RealType)0.3;
         RealType        beta       = (RealType)0.5;
@@ -121,6 +121,12 @@ protected:
         {
             m_host_only = EvalBool(args[1]);
         }
+
+        // HostOnlyモード設定
+        if (args.size() == 2 && args[0] == "momentum")
+        {
+            m_momentum = (RealType)EvalReal(args[1]);
+        }
     }
     
     virtual void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
@@ -141,33 +147,43 @@ public:
         return std::shared_ptr<SparseLutN>(new SparseLutN(create));
     }
 
-    static std::shared_ptr<SparseLutN> Create(indices_t const &output_shape, bool batch_norm = true, std::string connection = "", std::uint64_t seed = 1)
+    static std::shared_ptr<SparseLutN> Create(indices_t const &output_shape, bool batch_norm = true, std::string connection = "") //, std::uint64_t seed = 1)
     {
         create_t create;
         create.output_shape = output_shape;
         create.connection   = connection;
         create.batch_norm   = batch_norm;
-        create.seed         = seed;
+        create.seed         = 1; //seed;
         return Create(create);
     }
 
-    static std::shared_ptr<SparseLutN> Create(index_t output_node_size, bool batch_norm = true, std::string connection = "", std::uint64_t seed = 1)
+    static std::shared_ptr<SparseLutN> Create(index_t output_node_size, bool batch_norm = true, std::string connection = "") //, std::uint64_t seed = 1)
     {
         create_t create;
         create.output_shape.resize(1);
         create.output_shape[0] = output_node_size;
         create.connection      = connection;
-        create.batch_norm   = batch_norm;
-        create.seed            = seed;
+        create.batch_norm      = batch_norm;
+        create.seed            = 1; // seed;
         return Create(create);
     }
 
-    static std::shared_ptr<SparseLutN> CreateEx(indices_t const &output_shape, bool batch_norm = true, std::string connection = "", std::uint64_t seed = 1)
+    static std::shared_ptr<SparseLutN> CreateEx(
+                indices_t const &output_shape,
+                bool            batch_norm = true,
+                std::string     connection = "",
+                double          momentum   = 0.0,
+                double          gamma      = 0.3,
+                double          beta       = 0.5,
+                std::uint64_t   seed       = 1)
     {
         create_t create;
         create.output_shape = output_shape;
-        create.connection   = connection;
         create.batch_norm   = batch_norm;
+        create.connection   = connection;
+        create.momentum     = (RealType)momentum;
+        create.gamma        = (RealType)gamma;
+        create.beta         = (RealType)beta;
         create.seed         = seed;
         return Create(create);
     }

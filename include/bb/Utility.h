@@ -116,6 +116,11 @@ inline std::vector<std::string> SplitString(std::string text)
 }
 
 
+inline double EvalReal(std::string str)
+{
+    return std::stod(str);
+}
+
 inline std::int64_t EvalInt(std::string str)
 {
     return std::stoll(str);
