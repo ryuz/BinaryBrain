@@ -30,6 +30,7 @@
 #include "bb/Sigmoid.h"
 #include "bb/ReLU.h"
 #include "bb/HardTanh.h"
+#include "bb/Dropout.h"
 #include "bb/BatchNormalization.h"
 #include "bb/StochasticBatchNormalization.h"
 
@@ -111,6 +112,7 @@ using Sigmoid                      = bb::Sigmoid<float>;
 using ReLU                         = bb::ReLU<float, float>;
 using ReLUBit                      = bb::ReLU<bb::Bit, float>;
 using HardTanh                     = bb::HardTanh<float, float>;
+using Dropout                      = bb::Dropout<float, float>;
 using BatchNormalization           = bb::BatchNormalization<float>;
 using StochasticBatchNormalization = bb::StochasticBatchNormalization<float>;
 
@@ -571,6 +573,11 @@ R"(create BinaryLut6 object
                 py::arg("hardtanh_min") = -1.0,
                 py::arg("hardtanh_max") = +1.0);
 
+    
+    py::class_< Dropout, Activation, std::shared_ptr<Dropout> >(m, "Dropout")
+        .def_static("create", &Dropout::CreateEx,
+                py::arg("rate") = 0.5,
+                py::arg("seed") = 1);
 
     py::class_< BatchNormalization, Activation, std::shared_ptr<BatchNormalization> >(m, "BatchNormalization")
         .def_static("create", &BatchNormalization::CreateEx,
@@ -581,12 +588,10 @@ R"(create BinaryLut6 object
                 py::arg("fix_beta")  = false);
 
     py::class_< StochasticBatchNormalization, Activation, std::shared_ptr<StochasticBatchNormalization> >(m, "StochasticBatchNormalization")
-        .def_static("create", &BatchNormalization::CreateEx,
-                py::arg("momentum")  = 0.9f,
-                py::arg("gamma")     = 1.0f,
-                py::arg("beta")      = 0.0f,
-                py::arg("fix_gamma") = false,
-                py::arg("fix_beta")  = false);
+        .def_static("create", &StochasticBatchNormalization::CreateEx,
+                py::arg("momentum")  = 0.9,
+                py::arg("gamma")     = 0.3,
+                py::arg("beta")      = 0.5);
 
     // Loss Functions
     py::class_< LossFunction, std::shared_ptr<LossFunction> >(m, "LossFunction")
