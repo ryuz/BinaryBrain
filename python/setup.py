@@ -290,7 +290,7 @@ class BuildExt(build_ext):
         # unix(cpu)
         cc_args['unix'] += ['-mavx2', '-mfma', '-fopenmp', '-std=c++14']
         ar_args['unix'] += ['-fopenmp', '-lstdc++', '-lm']
-
+        
         # windows(cpu)
         cc_args['msvc'] += ['/EHsc', '/Oi', '/MT', '/arch:AVX2', '/openmp', '/std:c++14', '/wd"4819"']
         ar_args['msvc'] += []
@@ -307,13 +307,15 @@ class BuildExt(build_ext):
                             '-Xcompiler', '-std=c++14',
                             '-Xcompiler', '-fPIC' ]
         cu_args['unix'] += ['-gencode=arch=compute_35,code=sm_35',
+                            '-gencode=arch=compute_50,code=sm_50',
+                            '-gencode=arch=compute_61,code=sm_61',
                             '-gencode=arch=compute_75,code=sm_75',
                             '-std=c++11',
                             '-Xcompiler', '-fPIC' ]
         ar_args['unix'] += ['-Xcompiler', '-pthread',
                             '-Xcompiler', '-fopenmp',
                             '-lstdc++', '-lm', '-lcublas']
-
+        
         # windows(gpu)
         cc_args['msvc'] += ['-O3',
                             '-Xcompiler', '/bigobj',
@@ -345,8 +347,8 @@ class BuildExt(build_ext):
         darwin_args = ['-stdlib=libc++', '-mmacosx-version-min=10.7']
         cc_args['unix'] += darwin_args
         ar_args['unix'] += darwin_args
-
-
+    
+    
     def build_extensions(self):
         if CUDA is not None:
             self.compiler.set_executable('compiler_so', CUDA['nvcc'])
