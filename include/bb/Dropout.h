@@ -20,7 +20,7 @@ namespace bb {
 
 // Dropout
 template <typename FT = float, typename BT = float>
-class Dropout : public Activation<FT, BT>
+class Dropout : public Activation
 {
 protected:
     double                  m_rate = 0.5;
@@ -32,8 +32,18 @@ protected:
     FrameBuffer             m_y_buf;
     FrameBuffer             m_dx_buf;
 
+    struct create_t
+    {
+        double          rate = 0.5;
+        std::uint64_t   seed = 1;
+    };
+
 protected:
-    Dropout() {}
+    Dropout(create_t const &create)
+    {
+        m_rate = create.rate;
+        m_mt.seed(create.seed);
+    }
 
     /**
      * @brief  コマンド処理
@@ -49,17 +59,29 @@ protected:
         }
     }
 
-
 public:
-    static std::shared_ptr<Dropout> Create(double rate=0.5, std::uint64_t seed=1)
+    ~Dropout() {}
+
+    static std::shared_ptr<Dropout> Create(create_t const &create)
     {
-        auto self = std::shared_ptr<Dropout>(new Dropout);
-        self->m_rate = rate;
-        self->m_mt.seed(seed);
-        return self;
+        return std::shared_ptr<Dropout>(new Dropout(create));
     }
 
-    ~Dropout() {}
+    static std::shared_ptr<Dropout> Create(double rate=0.5, std::uint64_t seed=1)
+    {
+        create_t create;
+        create.rate = rate;
+        create.seed = seed;
+        return Create(&create);
+    }
+
+    static std::shared_ptr<Dropout> CreateEx(double rate=0.5, std::uint64_t seed=1)
+    {
+        create_t create;
+        create.rate = rate;
+        create.seed = seed;
+        return Create(create);
+    }
 
     std::string GetClassName(void) const { return "Dropout"; }
     

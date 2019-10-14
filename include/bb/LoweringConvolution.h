@@ -107,7 +107,7 @@ public:
             index_t                 x_stride      = 1,
             std::string             padding       = "valid",
             int                     border_mode   = BB_BORDER_REFLECT_101,
-            FT                      border_value  = (FT)0
+            double                  border_value  = 0
         )
     {
         create_t create;
@@ -118,7 +118,7 @@ public:
         create.x_stride      = x_stride;
         create.padding       = padding;
         create.border_mode   = border_mode;
-        create.border_value  = border_value;
+        create.border_value  = (FT)border_value;
         return Create(create);
     }
 

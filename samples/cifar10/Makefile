@@ -68,6 +68,10 @@ all: $(SUB_TARGET) $(TARGET)
 clean:
 	rm -f $(TARGET) *.o
 
+.PHONY: mostlyclean
+mostlyclean: clean
+	make -C $(BBCU_PATH) clean
+
 .PHONY: run
 run: $(TARGET) $(DATA_FILES)
 	./$(TARGET) $(RUN_OPTION)
@@ -103,5 +107,4 @@ dl_data: cifar-10-binary.tar.gz
 cifar-10-binary.tar.gz:
 	wget https://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz
 	tar zxvf cifar-10-binary.tar.gz
-
 

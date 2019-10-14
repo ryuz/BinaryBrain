@@ -37,10 +37,13 @@ int main(int argc, char *argv[])
     bool        file_read             = false;
     bool        binary_mode           = true;
     bool        print_device          = false;
+    
+    std::cout << "BinaryBrain version " << bb::GetVersionString();
+    std::cout << "  CIFAR-10 sample\n" << std::endl;
 
     if ( argc < 2 ) {
         std::cout << "usage:" << std::endl;
-        std::cout << argv[0] << " [options] <netname>" << std::endl;
+        std::cout << argv[0] << " [options] <sample name>" << std::endl;
         std::cout << "" << std::endl;
         std::cout << "options" << std::endl;
         std::cout << "  -epoch <epoch size>                     set epoch size" << std::endl;
@@ -50,7 +53,7 @@ int main(int argc, char *argv[])
         std::cout << "  -binary <0|1>                           set binary mode" << std::endl;
         std::cout << "  -read <0|1>                             file read" << std::endl;
         std::cout << "" << std::endl;
-        std::cout << "netname" << std::endl;
+        std::cout << "<sample name>" << std::endl;
         std::cout << "  StochasticLutSimple Stochastic-Lut LUT-Network Simple DNN" << std::endl;
         std::cout << "  StochasticLutCnn    Stochastic-Lut LUT-Network CNN" << std::endl;
         std::cout << "  SparseLutSimple     Sparse LUT-Network Simple DNN" << std::endl;

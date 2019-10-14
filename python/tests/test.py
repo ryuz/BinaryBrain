@@ -11,6 +11,23 @@ import cv2
 
 print(bb.dataset_path)
 
+td = bb.load_cifar10()
+
+print(td['x_train'].shape)
+print(td['t_train'].shape)
+print(td['x_test'].shape)
+print(td['t_test'].shape)
+
+for i in range(10):
+    print(td['t_test'][i])
+    img = td['x_test'][i].reshape(3, 32, 32)
+    img = cv2.merge((img[2], img[1], img[0]))
+    cv2.imshow('img', img)
+    cv2.waitKey()
+
+
+sys.exit()
+
 td = bb.load_mnist()
 print(len(td['x_train']))
 print(len(td['t_train']))

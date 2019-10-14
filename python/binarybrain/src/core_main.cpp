@@ -29,7 +29,10 @@
 #include "bb/BinaryModulation.h"
 #include "bb/Sigmoid.h"
 #include "bb/ReLU.h"
+#include "bb/HardTanh.h"
+#include "bb/Dropout.h"
 #include "bb/BatchNormalization.h"
+#include "bb/StochasticBatchNormalization.h"
 
 #include "bb/LossFunction.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
@@ -53,6 +56,11 @@
 #include "bb/LoadCifar10.h"
 #include "bb/ExportVerilog.h"
 
+#ifdef BB_WITH_CUDA
+#include "bbcu/bbcu.h"
+#include "bbcu/bbcu_util.h"
+#endif
+
 
 using Tensor                       = bb::Tensor;
 using FrameBuffer                  = bb::FrameBuffer;
@@ -64,14 +72,28 @@ using Sequential                   = bb::Sequential;
 using DenseAffine                  = bb::DenseAffine<float>;
 using LutLayer                     = bb::LutLayer<float, float>;
 using LutLayerBit                  = bb::LutLayer<bb::Bit, float>;
+
+using BinaryLut2                   = bb::BinaryLutN<2, float, float>;
+using BinaryLut2Bit                = bb::BinaryLutN<2, bb::Bit, float>;
+using BinaryLut4                   = bb::BinaryLutN<4, float, float>;
+using BinaryLut4Bit                = bb::BinaryLutN<4, bb::Bit, float>;
 using BinaryLut6                   = bb::BinaryLutN<6, float, float>;
 using BinaryLut6Bit                = bb::BinaryLutN<6, bb::Bit, float>;
+
 using SparseLut2                   = bb::SparseLutN<2, float, float>;
 using SparseLut2Bit                = bb::SparseLutN<2, bb::Bit, float>;
 using SparseLut4                   = bb::SparseLutN<4, float, float>;
 using SparseLut4Bit                = bb::SparseLutN<4, bb::Bit, float>;
 using SparseLut6                   = bb::SparseLutN<6, float, float>;
 using SparseLut6Bit                = bb::SparseLutN<6, bb::Bit, float>;
+
+using StochasticLut2               = bb::StochasticLutN<2, float, float>;
+using StochasticLut2Bit            = bb::StochasticLutN<2, bb::Bit, float>;
+using StochasticLut4               = bb::StochasticLutN<4, float, float>;
+using StochasticLut4Bit            = bb::StochasticLutN<4, bb::Bit, float>;
+using StochasticLut6               = bb::StochasticLutN<6, float, float>;
+using StochasticLut6Bit            = bb::StochasticLutN<6, bb::Bit, float>;
+
 using Reduce                       = bb::Reduce<float, float>; 
 using BinaryModulation             = bb::BinaryModulation<float, float>;
 using BinaryModulationBit          = bb::BinaryModulation<bb::Bit, float>;
@@ -89,7 +111,10 @@ using BinarizeBit                  = bb::Binarize<bb::Bit, float>;
 using Sigmoid                      = bb::Sigmoid<float>;
 using ReLU                         = bb::ReLU<float, float>;
 using ReLUBit                      = bb::ReLU<bb::Bit, float>;
+using HardTanh                     = bb::HardTanh<float, float>;
+using Dropout                      = bb::Dropout<float, float>;
 using BatchNormalization           = bb::BatchNormalization<float>;
+using StochasticBatchNormalization = bb::StochasticBatchNormalization<float>;
 
 using LossFunction                 = bb::LossFunction;
 using LossMeanSquaredError         = bb::LossMeanSquaredError<float>;
@@ -113,7 +138,6 @@ using LoadMnist                    = bb::LoadMnist<float>;
 using LoadCifar10                  = bb::LoadCifar10<float>;
 using RunStatus                    = bb::RunStatus;
 using Runner                       = bb::Runner<float>;
-
 
 
 std::string MakeVerilog_FromLut(std::string module_name, std::vector< std::shared_ptr< bb::LutLayer<float, float> > > layers)
@@ -146,6 +170,103 @@ std::string MakeVerilogAxi4s_FromLutFilter2dBit(std::string module_name, std::ve
 }
 
 
+
+//////////////////////////////////////]
+// docstrings
+//////////////////////////////////////]
+
+// Tensor
+const char* doc__Tensor__get_type =
+R"(get data type
+Returns:
+    int: data type
+)";
+
+const char* doc__Tensor__get_shape =
+R"(get shape
+Returns:
+    List[int]: shape
+)";
+
+const char* doc__Tensor__set_data =
+R"(set data to tensor
+
+    set data to tensor
+
+Args:
+    data(List[List[float]]): tensor data
+)";
+
+const char* doc__Tensor__get_data =
+R"(get data from tensor
+
+    set data to tensor
+
+Returns:
+    List[float]: tensor data
+)";
+
+
+const char* doc__Tensor__set_data_int32 =
+R"(set data to tensor
+
+    set data to tensor
+
+Args:
+    data(List[List[int]]): tensor data
+)";
+
+const char* doc__Tensor__get_data_int32 =
+R"(get data from tensor
+
+    set data to tensor
+
+Returns:
+    List[List[int]: tensor data
+)";
+
+
+// FrameBuffer
+const char* doc__FrameBuffer__init =
+R"(FrameBuffer object constructor
+
+Manegement frame memory on CPU or GPU
+
+Args:
+    frame_size(int): size of frames
+    shape(List[int]): shape of frame
+    data_type(int): frame type  TYPE_BIT or TYPE_FP32
+    host_only(bool): only use host(CPU) memory.
+)";
+
+
+const char* doc__FrameBuffer__resize =
+R"(resize FrameBuffer
+
+set new size to frame buffer.
+
+Args:
+    frame_size(int): size of frames
+    shape(List[int]): shape of frame
+    data_type(int): frame type  TYPE_BIT or TYPE_FP32
+)";
+
+const char* doc__FrameBuffer_get_type =
+R"(get data type
+
+get data type of frame buffer.
+
+Returns:
+    int: data type
+)";
+
+
+
+
+//////////////////////////////////////]
+// PyBind11 module
+//////////////////////////////////////]
+
 namespace py = pybind11;
 PYBIND11_MODULE(core, m) {
     m.doc() = "BinaryBrain ver " + bb::GetVersionString();
@@ -176,69 +297,27 @@ PYBIND11_MODULE(core, m) {
 
     // Tensor
     py::class_< Tensor >(m, "Tensor")
-        .def("get_type", &Tensor::GetType)
-        .def("get_shape", &Tensor::GetShape)
-        .def("set_data", &Tensor::SetData<float>,
-R"(set data to tensor
-
-    set data to tensor
-
-Args:
-    data(List[List[float]]): data
-)"
-            )
-        .def("get_data", &Tensor::GetData<float>,
-R"(get data from tensor
-
-    set data to tensor
-
-Returns:
-    tensor data
-)"
-            )
-        .def("set_data_int32", &Tensor::SetData<int>,
-R"(set data to tensor
-
-    set data to tensor
-
-Args:
-    data(List[List[int]]): data
-)"
-            )
-        .def("get_data_int32", &Tensor::GetData<int>,
-R"(get data from tensor
-
-    set data to tensor
-
-Returns:
-    tensor data
-)"
-            );
+        .def("get_type", &Tensor::GetType, doc__Tensor__get_type)
+        .def("get_shape", &Tensor::GetShape, doc__Tensor__get_shape)
+        .def("set_data", &Tensor::SetData<float>, doc__Tensor__set_data)
+        .def("get_data", &Tensor::GetData<float>, doc__Tensor__get_data)
+        .def("set_data_int32", &Tensor::SetData<int>, doc__Tensor__set_data_int32)
+        .def("get_data_int32", &Tensor::GetData<int>, doc__Tensor__get_data_int32);
 
 
     // FrameBuffer
     py::class_< FrameBuffer >(m, "FrameBuffer")
-        .def(py::init< bb::index_t, bb::indices_t, int, bool>(),
-R"(FrameBuffer object constructor
-
-Manegement frame memory on CPU or GPU
-
-Args:
-    frame_size(int): size of frames
-    shape(List[int]): shape of frame
-    data_type(int): frame type  TYPE_BIT or TYPE_FP32
-    host_only(bool): only use host(CPU) memory.
-)",
+        .def(py::init< bb::index_t, bb::indices_t, int, bool>(), doc__FrameBuffer__init,
             py::arg("frame_size") = 0,
             py::arg("shape") = bb::indices_t(),
             py::arg("data_type") = 0,
             py::arg("host_only") = false)
-        .def("resize",  (void (FrameBuffer::*)(bb::index_t, bb::indices_t, int))&bb::FrameBuffer::Resize,
+        .def("resize",  (void (FrameBuffer::*)(bb::index_t, bb::indices_t, int))&bb::FrameBuffer::Resize, doc__FrameBuffer__resize,
                 "resize",
                 py::arg("frame_size"),
                 py::arg("shape"),
                 py::arg("data_type") = BB_TYPE_FP32)
-        .def("get_type", &FrameBuffer::GetType)
+        .def("get_type", &FrameBuffer::GetType, doc__FrameBuffer_get_type)
         .def("get_frame_size", &FrameBuffer::GetFrameSize)
         .def("get_node_size", &FrameBuffer::GetNodeSize)
         .def("get_node_shape", &FrameBuffer::GetShape)
@@ -399,8 +478,34 @@ R"(create BinaryLut6 object
                 py::arg("output_shape"),
                 py::arg("batch_norm") = true,
                 py::arg("connection") = "",
-                py::arg("seed") = 1);
+                py::arg("momentum")   = 0.0,
+                py::arg("gamma")      = 0.3,
+                py::arg("beta")       = 0.5,
+                py::arg("seed")       = 1);
 
+    py::class_< SparseLut6Bit, SparseLayer, std::shared_ptr<SparseLut6Bit> >(m, "SparseLut6Bit")
+        .def_static("create", &SparseLut6Bit::CreateEx, "create SparseLut6Bit",
+                py::arg("output_shape"),
+                py::arg("batch_norm") = true,
+                py::arg("connection") = "",
+                py::arg("momentum")   = 0.0,
+                py::arg("gamma")      = 0.3,
+                py::arg("beta")       = 0.5,
+                py::arg("seed")       = 1);
+    
+    
+    py::class_< StochasticLut6, SparseLayer, std::shared_ptr<StochasticLut6> >(m, "StochasticLut6")
+        .def_static("create", &StochasticLut6::CreateEx, "create StochasticLut6",
+                py::arg("output_shape"),
+                py::arg("connection") = "",
+                py::arg("seed") = 1);
+    
+    py::class_< StochasticLut6Bit, SparseLayer, std::shared_ptr<StochasticLut6Bit> >(m, "StochasticLut6Bit")
+        .def_static("create", &StochasticLut6Bit::CreateEx, "create StochasticLut6Bit",
+                py::arg("output_shape"),
+                py::arg("connection") = "",
+                py::arg("seed") = 1);
+    
     
     // filter
     py::class_< Filter2d, Model, std::shared_ptr<Filter2d> >(m, "Filter2d");
@@ -416,7 +521,7 @@ R"(create BinaryLut6 object
                 py::arg("x_stride")      = 1,
                 py::arg("padding")       = "valid",
                 py::arg("border_mode")   = BB_BORDER_REFLECT_101,
-                py::arg("border_value")  = 0.0f);
+                py::arg("border_value")  = 0.0);
 
     py::class_< LoweringConvolutionBit, Filter2dBit, std::shared_ptr<LoweringConvolutionBit> >(m, "LoweringConvolutionBit")
         .def_static("create", &LoweringConvolutionBit::CreateEx,
@@ -427,13 +532,17 @@ R"(create BinaryLut6 object
                 py::arg("x_stride")      = 1,
                 py::arg("padding")       = "valid",
                 py::arg("border_mode")   = BB_BORDER_REFLECT_101,
-                py::arg("border_value")  = 0.0f);
+                py::arg("border_value")  = 0.0);
     
     py::class_< MaxPooling, Filter2d, std::shared_ptr<MaxPooling> >(m, "MaxPooling")
         .def_static("create", &MaxPooling::CreateEx,
                 py::arg("filter_h_size"),
                 py::arg("filter_w_size"));
-
+    
+    py::class_< MaxPoolingBit, Filter2dBit, std::shared_ptr<MaxPoolingBit> >(m, "MaxPoolingBit")
+        .def_static("create", &MaxPoolingBit::CreateEx,
+                py::arg("filter_h_size"),
+                py::arg("filter_w_size"));
 
     // activation
     py::class_< Activation, Model, std::shared_ptr<Activation> >(m, "Activation");
@@ -459,6 +568,17 @@ R"(create BinaryLut6 object
     py::class_< ReLUBit, BinarizeBit, std::shared_ptr<ReLUBit> >(m, "ReLUBit")
         .def_static("create",   &ReLUBit::Create);
 
+    py::class_< HardTanh, Binarize, std::shared_ptr<HardTanh> >(m, "HardTanh")
+        .def_static("create", &HardTanh::CreateEx,
+                py::arg("hardtanh_min") = -1.0,
+                py::arg("hardtanh_max") = +1.0);
+
+    
+    py::class_< Dropout, Activation, std::shared_ptr<Dropout> >(m, "Dropout")
+        .def_static("create", &Dropout::CreateEx,
+                py::arg("rate") = 0.5,
+                py::arg("seed") = 1);
+
     py::class_< BatchNormalization, Activation, std::shared_ptr<BatchNormalization> >(m, "BatchNormalization")
         .def_static("create", &BatchNormalization::CreateEx,
                 py::arg("momentum")  = 0.9f,
@@ -466,6 +586,12 @@ R"(create BinaryLut6 object
                 py::arg("beta")      = 0.0f,
                 py::arg("fix_gamma") = false,
                 py::arg("fix_beta")  = false);
+
+    py::class_< StochasticBatchNormalization, Activation, std::shared_ptr<StochasticBatchNormalization> >(m, "StochasticBatchNormalization")
+        .def_static("create", &StochasticBatchNormalization::CreateEx,
+                py::arg("momentum")  = 0.9,
+                py::arg("gamma")     = 0.3,
+                py::arg("beta")      = 0.5);
 
     // Loss Functions
     py::class_< LossFunction, std::shared_ptr<LossFunction> >(m, "LossFunction")
@@ -585,6 +711,12 @@ R"(create BinaryLut6 object
             py::arg("td"),
             py::arg("epoch_size"),
             py::arg("batch_size"));
+
+
+    // CUDA device
+#ifdef BB_WITH_CUDA
+    m.def("get_device_properties", &bbcu::GetDevicePropertiesString);
+#endif
 
     // verilog
     m.def("make_verilog_from_lut", &MakeVerilog_FromLut);

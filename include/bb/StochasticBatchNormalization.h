@@ -21,6 +21,7 @@
 #include "bb/Manager.h"
 #include "bb/DataType.h"
 #include "bb/Model.h"
+#include "bb/Activation.h"
 #include "bb/FrameBuffer.h"
 #include "bb/SimdSupport.h"
 
@@ -35,15 +36,13 @@ namespace bb {
 
 // BatchNormalization
 template <typename T = float>
-class StochasticBatchNormalization : public Model
+class StochasticBatchNormalization : public Activation
 {
-    using _super = Model;
+    using _super = Activation;
 
 protected:
     bool                        m_host_only = false;
     bool                        m_host_simd = false;
-
-    indices_t                   m_node_shape;
     
     FrameBuffer                 m_x_buf;
 
@@ -114,13 +113,22 @@ public:
         return Create(create);
     }
 
+    static std::shared_ptr<StochasticBatchNormalization> CreateEx(double momentum=0.9, double gamma=0.3, double beta=0.5)
+    {
+        create_t create;
+        create.momentum = (T)momentum;
+        create.gamma    = (T)gamma;
+        create.beta     = (T)beta;
+        return Create(create);
+    }
+
     std::string GetClassName(void) const { return "StochasticBatchNormalization"; }
 
 
     // Serialize
     void Save(std::ostream &os) const 
     {
-        SaveIndices(os, m_node_shape);
+        SaveIndices(os, this->m_shape);
         bb::SaveValue(os, m_momentum);
         bb::SaveValue(os, m_gamma);
         bb::SaveValue(os, m_beta);
@@ -130,7 +138,7 @@ public:
 
     void Load(std::istream &is)
     {
-        m_node_shape = LoadIndices(is);
+        this->m_shape = LoadIndices(is);
         bb::LoadValue(is, m_momentum);
         bb::LoadValue(is, m_gamma);
         bb::LoadValue(is, m_beta);
@@ -144,7 +152,7 @@ public:
     void save(Archive& archive, std::uint32_t const version) const
     {
         _super::save(archive, version);
-        archive(cereal::make_nvp("node_shape",   m_node_shape));
+        archive(cereal::make_nvp("node_shape",   this->m_shape));
         archive(cereal::make_nvp("gamma",        m_gamma));
         archive(cereal::make_nvp("beta",         m_beta));
         archive(cereal::make_nvp("running_mean", m_running_mean));
@@ -155,7 +163,7 @@ public:
     void load(Archive& archive, std::uint32_t const version)
     {
         _super::load(archive, version);
-        archive(cereal::make_nvp("node_shape",   m_node_shape));
+        archive(cereal::make_nvp("node_shape",   this->m_shape));
         archive(cereal::make_nvp("gamma",        m_gamma));
         archive(cereal::make_nvp("beta",         m_beta));
         archive(cereal::make_nvp("running_mean", m_running_mean));
@@ -192,38 +200,18 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
-        m_node_shape = shape;
+        _super::SetInputShape(shape);
         
         auto node_size = GetShapeSize(shape);
         
         // パラメータ初期化
-        m_mean.Resize(m_node_shape);
-        m_rstd.Resize(m_node_shape);
+        m_mean.Resize(this->m_shape);
+        m_rstd.Resize(this->m_shape);
 
-        m_running_mean.Resize(m_node_shape); m_running_mean = (T)0.0;
-        m_running_var.Resize(m_node_shape);  m_running_var  = (T)1.0;
+        m_running_mean.Resize(this->m_shape); m_running_mean = (T)0.0;
+        m_running_var.Resize(this->m_shape);  m_running_var  = (T)1.0;
 
         return shape;
-    }
-
-    /**
-     * @brief  入力形状取得
-     * @detail 入力形状を取得する
-     * @return 入力形状を返す
-     */
-    indices_t GetInputShape(void) const
-    {
-        return m_node_shape;
-    }
-
-    /**
-     * @brief  出力形状取得
-     * @detail 出力形状を取得する
-     * @return 出力形状を返す
-     */
-    indices_t GetOutputShape(void) const
-    {
-        return m_node_shape;
     }
 
 
