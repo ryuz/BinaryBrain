@@ -72,7 +72,7 @@ public:
         create_t create;
         create.rate = rate;
         create.seed = seed;
-        return Create(&create)
+        return Create(&create);
     }
 
     static std::shared_ptr<Dropout> CreateEx(double rate=0.5, std::uint64_t seed=1)
