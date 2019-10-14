@@ -48,21 +48,21 @@ int main(int argc, char *argv[])
     bool        binary_mode           = true;
     bool        print_device          = false;
 
-    std::cout << "BinaryBrain version " << BB_MAJOR_VERSION << "." << BB_MINOR_VERSION << "." << BB_REVISION_NUMBER << std::endl;
+    std::cout << "BinaryBrain version " << bb::GetVersionString() << std::endl;
 
     if ( argc < 2 ) {
         std::cout << "usage:" << std::endl;
-        std::cout << argv[0] << " [options] <netname>" << std::endl;
+        std::cout << argv[0] << " [options] <model name>" << std::endl;
         std::cout << "" << std::endl;
         std::cout << "options" << std::endl;
         std::cout << "  -epoch <epoch size>                     set epoch size" << std::endl;
         std::cout << "  -mini_batch <mini_batch size>           set mini batch size" << std::endl;
         std::cout << "  -modulation_size <modulation_size>      set train modulation size" << std::endl;
         std::cout << "  -test_modulation_size <modulation_size> set test modulation size" << std::endl;
-        std::cout << "  -binary_mode <0|1>                      set binary mode" << std::endl;
+        std::cout << "  -binary <0|1>                           set binary mode" << std::endl;
         std::cout << "  -read <0|1>                             file read" << std::endl;
         std::cout << "" << std::endl;
-        std::cout << "netname" << std::endl;
+        std::cout << "<model name>" << std::endl;
         std::cout << "  StochasticLutSimple Stochastic-Lut LUT-Network Simple DNN" << std::endl;
         std::cout << "  StochasticLutCnn    Stochastic-Lut LUT-Network CNN" << std::endl;
         std::cout << "  SparseLutSimple     Sparse LUT-Network Simple DNN" << std::endl;
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
             ++i;
             test_modulation_size = (int)strtoul(argv[i], NULL, 0);
         }
-        else if (strcmp(argv[i], "-binary_mode") == 0 && i + 1 < argc) {
+        else if (strcmp(argv[i], "-binary") == 0 && i + 1 < argc) {
             ++i;
             binary_mode = (strtoul(argv[i], NULL, 0) != 0);
         }
