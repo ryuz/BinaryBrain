@@ -26,6 +26,8 @@ void Cifar10DenseCnn           (int epoch_size, int mini_batch_size, int train_m
 void Cifar10AeSparseLutSimple  (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void Cifar10AeSparseLutCnn     (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 
+void Cifar10StochasticLutBnCnn(int epoch_size, int mini_batch_size, int test_modulation_size, bool binary_mode, bool file_read);
+
 
 // メイン関数
 int main(int argc, char *argv[])
@@ -120,6 +122,10 @@ int main(int argc, char *argv[])
 
     if ( netname == "All" || netname == "StochasticLutCnn" ) {
         Cifar10StochasticLutCnn(epoch_size, mini_batch_size, test_modulation_size, binary_mode, file_read);
+    }
+
+    if ( netname == "All" || netname == "StochasticLutBnCnn" ) {
+        Cifar10StochasticLutBnCnn(epoch_size, mini_batch_size, test_modulation_size, binary_mode, file_read);
     }
 
     if ( netname == "All" || netname == "SparseLutSimple" ) {

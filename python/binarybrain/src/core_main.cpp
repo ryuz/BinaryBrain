@@ -31,6 +31,7 @@
 #include "bb/ReLU.h"
 #include "bb/HardTanh.h"
 #include "bb/BatchNormalization.h"
+#include "bb/StochasticBatchNormalization.h"
 
 #include "bb/LossFunction.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
@@ -92,7 +93,6 @@ using StochasticLut4Bit            = bb::StochasticLutN<4, bb::Bit, float>;
 using StochasticLut6               = bb::StochasticLutN<6, float, float>;
 using StochasticLut6Bit            = bb::StochasticLutN<6, bb::Bit, float>;
 
-
 using Reduce                       = bb::Reduce<float, float>; 
 using BinaryModulation             = bb::BinaryModulation<float, float>;
 using BinaryModulationBit          = bb::BinaryModulation<bb::Bit, float>;
@@ -112,6 +112,7 @@ using ReLU                         = bb::ReLU<float, float>;
 using ReLUBit                      = bb::ReLU<bb::Bit, float>;
 using HardTanh                     = bb::HardTanh<float, float>;
 using BatchNormalization           = bb::BatchNormalization<float>;
+using StochasticBatchNormalization = bb::StochasticBatchNormalization<float>;
 
 using LossFunction                 = bb::LossFunction;
 using LossMeanSquaredError         = bb::LossMeanSquaredError<float>;
@@ -191,7 +192,7 @@ R"(set data to tensor
     set data to tensor
 
 Args:
-    data(List[List[float]]): data
+    data(List[List[float]]): tensor data
 )";
 
 const char* doc__Tensor__get_data =
@@ -210,7 +211,7 @@ R"(set data to tensor
     set data to tensor
 
 Args:
-    data(List[List[int]]): data
+    data(List[List[int]]): tensor data
 )";
 
 const char* doc__Tensor__get_data_int32 =
@@ -219,8 +220,44 @@ R"(get data from tensor
     set data to tensor
 
 Returns:
-    tensor data
+    List[List[int]: tensor data
 )";
+
+
+// FrameBuffer
+const char* doc__FrameBuffer__init =
+R"(FrameBuffer object constructor
+
+Manegement frame memory on CPU or GPU
+
+Args:
+    frame_size(int): size of frames
+    shape(List[int]): shape of frame
+    data_type(int): frame type  TYPE_BIT or TYPE_FP32
+    host_only(bool): only use host(CPU) memory.
+)";
+
+
+const char* doc__FrameBuffer__resize =
+R"(resize FrameBuffer
+
+set new size to frame buffer.
+
+Args:
+    frame_size(int): size of frames
+    shape(List[int]): shape of frame
+    data_type(int): frame type  TYPE_BIT or TYPE_FP32
+)";
+
+const char* doc__FrameBuffer_get_type =
+R"(get data type
+
+get data type of frame buffer.
+
+Returns:
+    int: data type
+)";
+
 
 
 
@@ -268,27 +305,17 @@ PYBIND11_MODULE(core, m) {
 
     // FrameBuffer
     py::class_< FrameBuffer >(m, "FrameBuffer")
-        .def(py::init< bb::index_t, bb::indices_t, int, bool>(),
-R"(FrameBuffer object constructor
-
-Manegement frame memory on CPU or GPU
-
-Args:
-    frame_size(int): size of frames
-    shape(List[int]): shape of frame
-    data_type(int): frame type  TYPE_BIT or TYPE_FP32
-    host_only(bool): only use host(CPU) memory.
-)",
+        .def(py::init< bb::index_t, bb::indices_t, int, bool>(), doc__FrameBuffer__init,
             py::arg("frame_size") = 0,
             py::arg("shape") = bb::indices_t(),
             py::arg("data_type") = 0,
             py::arg("host_only") = false)
-        .def("resize",  (void (FrameBuffer::*)(bb::index_t, bb::indices_t, int))&bb::FrameBuffer::Resize,
+        .def("resize",  (void (FrameBuffer::*)(bb::index_t, bb::indices_t, int))&bb::FrameBuffer::Resize, doc__FrameBuffer__resize,
                 "resize",
                 py::arg("frame_size"),
                 py::arg("shape"),
                 py::arg("data_type") = BB_TYPE_FP32)
-        .def("get_type", &FrameBuffer::GetType)
+        .def("get_type", &FrameBuffer::GetType, doc__FrameBuffer_get_type)
         .def("get_frame_size", &FrameBuffer::GetFrameSize)
         .def("get_node_size", &FrameBuffer::GetNodeSize)
         .def("get_node_shape", &FrameBuffer::GetShape)
@@ -546,6 +573,14 @@ R"(create BinaryLut6 object
 
 
     py::class_< BatchNormalization, Activation, std::shared_ptr<BatchNormalization> >(m, "BatchNormalization")
+        .def_static("create", &BatchNormalization::CreateEx,
+                py::arg("momentum")  = 0.9f,
+                py::arg("gamma")     = 1.0f,
+                py::arg("beta")      = 0.0f,
+                py::arg("fix_gamma") = false,
+                py::arg("fix_beta")  = false);
+
+    py::class_< StochasticBatchNormalization, Activation, std::shared_ptr<StochasticBatchNormalization> >(m, "StochasticBatchNormalization")
         .def_static("create", &BatchNormalization::CreateEx,
                 py::arg("momentum")  = 0.9f,
                 py::arg("gamma")     = 1.0f,
