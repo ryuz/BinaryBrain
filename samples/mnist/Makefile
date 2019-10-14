@@ -60,9 +60,6 @@ CFLAGS     := -Xcompiler '$(CFLAGS)' -lcublas
 CDEFS      += -DBB_WITH_CUDA
 LIBS       += $(BBCU_LIB)
 SUB_TARGET += bbcu_build
-
-#CINCS      += -I/usr/local/cuda/include
-#LIBS       += -L/usr/local/cuda/lib64 -lcuda -lcudart -lcublas $(BBCU_LIB)
 endif
 
 .SUFFIXES: .c .o

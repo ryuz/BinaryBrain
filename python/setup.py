@@ -297,6 +297,8 @@ class BuildExt(build_ext):
     else:
         # unix(gpu)
         cc_args['unix'] += ['-gencode=arch=compute_35,code=sm_35',
+                            '-gencode=arch=compute_50,code=sm_50',
+                            '-gencode=arch=compute_61,code=sm_61',
                             '-gencode=arch=compute_75,code=sm_75',
                             '-Xcompiler', '-pthread',
                             '-Xcompiler', '-mavx2',
@@ -328,6 +330,8 @@ class BuildExt(build_ext):
         cu_args['msvc'] += ['-O3',
                             '-std=c++11',
                             '-gencode=arch=compute_35,code=sm_35',
+                            '-gencode=arch=compute_50,code=sm_50',
+                            '-gencode=arch=compute_61,code=sm_61',
                             '-gencode=arch=compute_75,code=sm_75',
                             '-Xcompiler', '/EHsc',
                             '-Xcompiler', '/O2',

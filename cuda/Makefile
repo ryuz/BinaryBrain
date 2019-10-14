@@ -8,7 +8,7 @@ AR     = ar
 RM     = rm
 
 # flagas
-CUFLAGS = -I../include --generate-code=arch=compute_35,code=sm_35 --generate-code arch=compute_50,code=sm_50 --generate-code arch=compute_61,code=sm_61 --generate-code=arch=compute_75,code=sm_75 -std=c++11 -Xcompiler -fPIC
+CUFLAGS = -I../include -gencode=arch=compute_35,code=sm_35 -gencode=arch=compute_50,code=sm_50 -gencode=arch=compute_61,code=sm_61 -gencode=arch=compute_75,code=sm_75 -std=c++11 -Xcompiler -fPIC
 ARFLAGS =
 
 # sources
@@ -53,7 +53,7 @@ all: $(TARGET)
 
 .PHONY: clean
 clean:
-	$(RM) $(TARGET) $(OBJS)
+	$(RM) -f $(TARGET) $(OBJS) depend
 
 $(TARGET): $(OBJS)
 	$(AR) $(ARFLAGS) rcs $(TARGET) $(OBJS)
@@ -63,3 +63,7 @@ $(TARGET): $(OBJS)
 
 $(OBJS): $(HDRS)
 
+depend: $(SRCS)
+	$(NVCC) -M $(CUFLAGS) $^ > $@
+
+include depend
