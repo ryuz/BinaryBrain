@@ -138,7 +138,16 @@ public:
         create.seed            = seed;
         return Create(create);
     }
-
+    
+    static std::shared_ptr<StochasticLutN> CreateEx(indices_t const &output_shape, std::string connection = "", std::uint64_t seed = 1)
+    {
+        create_t create;
+        create.output_shape = output_shape;
+        create.connection   = connection;
+        create.seed         = seed;
+        return Create(create);
+    }
+	
     std::string GetClassName(void) const { return "StochasticLut" + std::to_string(N); }
 
 

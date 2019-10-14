@@ -112,9 +112,11 @@ void SparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size
         // set binary mode
         if ( binary_mode ) {
             net->SendCommand("binary true");
+            net->SendCommand("momentum 0.1");
         }
         else {
             net->SendCommand("binary false");
+            net->SendCommand("momentum 0.9");
         }
 
         // print model information
