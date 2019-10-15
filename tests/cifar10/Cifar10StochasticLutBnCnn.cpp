@@ -59,7 +59,7 @@ void Cifar10StochasticLutBnCnn(int epoch_size, int mini_batch_size, int test_mod
     auto layer_sl5      = bb::StochasticLutBn<6>::Create(1024);
     auto layer_sl6      = bb::StochasticLutBn<6>::Create(360);
     auto layer_sl7      = bb::StochasticLutBn<6>::Create(60);
-    auto layer_sl8      = bb::StochasticLutBn<6>::Create(10, false);
+    auto layer_sl8      = bb::StochasticLutBn<6>::Create(10);
 #else
     auto layer_cnv0_sl0 = bb::StochasticLutBn<6>::Create(192);
     auto layer_cnv0_sl1 = bb::StochasticLutBn<6>::Create(32);

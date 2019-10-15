@@ -590,7 +590,7 @@ R"(create BinaryLut6 object
     py::class_< StochasticBatchNormalization, Activation, std::shared_ptr<StochasticBatchNormalization> >(m, "StochasticBatchNormalization")
         .def_static("create", &StochasticBatchNormalization::CreateEx,
                 py::arg("momentum")  = 0.9,
-                py::arg("gamma")     = 0.3,
+                py::arg("gamma")     = 0.2,
                 py::arg("beta")      = 0.5);
 
     // Loss Functions

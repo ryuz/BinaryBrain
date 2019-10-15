@@ -61,7 +61,7 @@ public:
     struct create_t
     {
         T       momentum  = (T)0.9;
-        T       gamma     = (T)0.3;
+        T       gamma     = (T)0.2;
         T       beta      = (T)0.5;
     };
 
@@ -96,6 +96,14 @@ protected:
         }
     }
 
+    virtual void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
+    {
+        _super::PrintInfoText(os, indent, columns, nest, depth);
+        os << indent << " momentum : " << m_momentum
+           << "  "   << " gamma : " << m_gamma
+           << "  "   << " beta : " << m_beta << std::endl;
+    }
+
 public:
     ~StochasticBatchNormalization() {}
 
@@ -104,7 +112,7 @@ public:
         return std::shared_ptr<StochasticBatchNormalization>(new StochasticBatchNormalization(create));
     }
 
-    static std::shared_ptr<StochasticBatchNormalization> Create(T momentum = (T)0.9, T gamma=(T)0.3, T beta=(T)0.5)
+    static std::shared_ptr<StochasticBatchNormalization> Create(T momentum = (T)0.9, T gamma=(T)0.2, T beta=(T)0.5)
     {
         create_t create;
         create.momentum = momentum;
@@ -113,7 +121,7 @@ public:
         return Create(create);
     }
 
-    static std::shared_ptr<StochasticBatchNormalization> CreateEx(double momentum=0.9, double gamma=0.3, double beta=0.5)
+    static std::shared_ptr<StochasticBatchNormalization> CreateEx(double momentum=0.9, double gamma=0.2, double beta=0.5)
     {
         create_t create;
         create.momentum = (T)momentum;
