@@ -65,7 +65,7 @@ loss      = bb.LossSoftmaxCrossEntropy.create()
 metrics   = bb.MetricsCategoricalAccuracy.create()
 optimizer = bb.OptimizerAdam.create()
 optimizer.set_variables(net.get_parameters(), net.get_gradients())
-data_augmentation = bb.image_data_augmentation(shift_range=5.0, rotation_range=10.0, scale_range=0.1, rate=0.8)
+data_augmentation = bb.image_data_augmentation(shift_x_range=0.2, shift_y_range=0.2, rotation_range=5.0, flip_x_rate=0.5, scale_range=0.2, rate=0.8)
 
 runner = bb.Runner(net, "cifar10-fp32-dense-cnn", loss, metrics, optimizer, data_augmentation=data_augmentation)
 runner.fitting(td, epoch_size=epoch, mini_batch_size=mini_batch, file_read=file_read, file_write=file_write)
