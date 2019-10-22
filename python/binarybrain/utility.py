@@ -86,7 +86,8 @@ class Runner:
             print_progress_accuracy=True,
             log_write=True,
             log_append=True,
-            seed=1):
+            data_augmentation=None
+            ):
         self.net                     = net
         self.name                    = name
         self.loss                    = loss
@@ -98,6 +99,7 @@ class Runner:
         self.print_progress_accuracy = print_progress_accuracy
         self.log_write               = log_write
         self.log_append              = log_append
+        self.data_augmentation       = data_augmentation
     
     def fitting(self, td, epoch_size, mini_batch_size=16, file_read=False, file_write=False, write_serial=False, init_eval=False):
         """fitting
@@ -144,8 +146,13 @@ class Runner:
             # increment
             epoch = epoch + 1
             
+            if self.data_augmentation is not None:
+                x_train_tmp, t_train_tmp = self.data_augmentation(x_train.copy(), t_train.copy(), x_shape, t_shape)
+            else:
+                x_train_tmp, t_train_tmp = x_train, t_train
+
             # train
-            calculation(self.net, x_train, x_shape, t_train, t_shape, mini_batch_size, mini_batch_size,
+            calculation(self.net, x_train_tmp, x_shape, t_train_tmp, t_shape, mini_batch_size, mini_batch_size,
                         self.metrics, self.loss, self.optimizer, train=True, print_loss=True, print_metrics=True)
             
             # write file
@@ -167,8 +174,7 @@ class Runner:
             print(output_text)
             with open(log_file_name, 'a') as log_file:
                 print(output_text, file=log_file)
-            
-            
+                        
             # shuffle
             p = np.random.permutation(len(x_train))
             x_train = x_train[p]
@@ -187,3 +193,41 @@ class Runner:
         print('%s=%f loss=%f' % (self.metrics.get_metrics_string(), self.metrics.get_metrics(), self.loss.get_loss()))
 
 
+
+import cv2
+
+def image_data_augmentation(
+        shift_x_range=0.0,
+        shift_y_range=0.0,
+        flip_x_rate=0.0,
+        flip_y_rate=0.0,
+        rotation_range=0.0,
+        scale_range=0.0,
+        rate = 1.0,
+        ):
+    
+    def data_augmentation(x_vec, t_vec, x_shape, t_shape):
+        width  = x_shape[0]
+        height = x_shape[1]
+        np_shape = list(reversed(x_shape))
+        for i, x in enumerate(x_vec):
+            if np.random.rand() < rate:
+                x = x.reshape(np_shape)
+                shift_x = (np.random.rand() * 2.0 - 1.0) * shift_x_range * width
+                shift_y = (np.random.rand() * 2.0 - 1.0) * shift_y_range * height
+                flip_x  = np.random.rand() < flip_x_rate
+                flip_y  = np.random.rand() < flip_y_rate
+                angle   = (np.random.rand() * 2.0 - 1.0) * rotation_range
+                scale   = (np.random.rand() * 2.0 - 1.0) * scale_range + 1.0
+                mat = cv2.getRotationMatrix2D((x_shape[0]/2, x_shape[1]/2), angle , scale)
+                mat[0][2] += shift_x
+                mat[1][2] += shift_y
+                for j, p in enumerate(x):
+                    if flip_x:  p = cv2.flip(p, 1)
+                    if flip_y:  p = cv2.flip(p, 0)
+                    x[j] = cv2.warpAffine(p, mat, (x_shape[0], x_shape[1]), flags=cv2.INTER_NEAREST, borderMode=cv2.BORDER_REPLICATE)
+                x_vec[i] = x.reshape(-1)
+ 
+        return x_vec, t_vec
+    
+    return data_augmentation
