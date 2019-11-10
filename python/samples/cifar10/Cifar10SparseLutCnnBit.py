@@ -6,7 +6,7 @@ import numpy as np
 
 # options
 model_name                = 'cifar10-sparse-lut6-cnn-bit'
-epoch                     = 4
+epoch                     = 64
 mini_batch                = 8
 training_modulation_size  = 3
 inference_modulation_size = 3

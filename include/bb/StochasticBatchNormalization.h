@@ -265,7 +265,7 @@ public:
     // ノード単位でのForward計算
     std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
     {
-        BB_DEBUG_ASSERT(node >= 0 && node < GetShapeSize(m_node_shape));
+        BB_DEBUG_ASSERT(node >= 0 && node < GetShapeSize(this->m_shape));
 
         auto running_mean_ptr = m_running_mean.LockConst();
         auto running_var_ptr  = m_running_var.LockConst();

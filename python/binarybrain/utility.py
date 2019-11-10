@@ -203,6 +203,8 @@ def image_data_augmentation(
         flip_y_rate=0.0,
         rotation_range=0.0,
         scale_range=0.0,
+        neg_rate=0.0,
+        binarize=False,
         rate = 1.0,
         ):
     
@@ -217,15 +219,21 @@ def image_data_augmentation(
                 shift_y = (np.random.rand() * 2.0 - 1.0) * shift_y_range * height
                 flip_x  = np.random.rand() < flip_x_rate
                 flip_y  = np.random.rand() < flip_y_rate
+                neg     = np.random.rand() < neg_rate
                 angle   = (np.random.rand() * 2.0 - 1.0) * rotation_range
                 scale   = (np.random.rand() * 2.0 - 1.0) * scale_range + 1.0
                 mat = cv2.getRotationMatrix2D((x_shape[0]/2, x_shape[1]/2), angle , scale)
+                th  = np.random.rand()
                 mat[0][2] += shift_x
                 mat[1][2] += shift_y
                 for j, p in enumerate(x):
                     if flip_x:  p = cv2.flip(p, 1)
                     if flip_y:  p = cv2.flip(p, 0)
-                    x[j] = cv2.warpAffine(p, mat, (x_shape[0], x_shape[1]), flags=cv2.INTER_NEAREST, borderMode=cv2.BORDER_REPLICATE)
+                    if neg:     p = 1.0 - p
+                    p = cv2.warpAffine(p, mat, (x_shape[0], x_shape[1]), flags=cv2.INTER_NEAREST, borderMode=cv2.BORDER_REPLICATE)
+                    if binarize:
+                        _, p = cv2.threshold(p, th, 1.0, cv2.THRESH_BINARY)
+                    x[j] = p
                 x_vec[i] = x.reshape(-1)
  
         return x_vec, t_vec

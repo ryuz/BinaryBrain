@@ -330,6 +330,11 @@ TEST(SparseLutNTest, testSparseLutN_cmp_float)
     SparseLutNTest_cmp<6, float>(6,    2,      32, 2, false, false);
 }
 
+TEST(SparseLutNTest, testSparseLutN_cmp_bit_1)
+{
+    SparseLutNTest_cmp<6, bb::Bit>(6,  1,   32+7, 2, true);
+}
+
 
 TEST(SparseLutNTest, testSparseLutN_cmp_bit)
 {
