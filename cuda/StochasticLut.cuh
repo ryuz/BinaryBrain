@@ -16,11 +16,16 @@ struct StochasticLut
             T   const   W[][MAX_NODE_UNIT]
         )
     {
+        T xn[N];
+        for ( int i = 0; i < N; ++i) {
+            xn[i] = 1.0 - xp[i];
+        }
+
         T y = 0;
         for (int i = 0; i < (1 << N); ++i) {
             T w = W[i][node_id];
             for (int j = 0; j < N; ++j) {
-                w *= ((i >> j) & 1) ? xp[j] : ((T)1.0 - xp[j]);
+                w *= ((i >> j) & 1) ? xp[j] : xn[j];
             }
             y += w;
         }
@@ -39,6 +44,32 @@ struct StochasticLut
             int         frame_stride
         )
     {
+        T xn[N];
+        for ( int i = 0; i < N; ++i) {
+            xn[i] = 1.0 - xp[i];
+        }
+
+        for (int i = 0; i < (1 << N); ++i) {
+            T dw = dy;
+            for (int j = 0; j < N; ++j) {
+                dw *= ((i >> j) & 1) ? xp[j] : xn[j];
+            }
+            dW[i] += dw;
+        }
+
+        for (int i = 0; i < N; ++i) {
+            T dx = 0;
+            for (int j = 0; j < (1 << N); ++j) {
+                T w = ((j >> i) & 1) ? +W[j][node_id] : -W[j][node_id];
+                for (int k = 0; k < N; ++k) {
+                    if (i != k) {
+                        w *= ((j >> k) & 1) ? xp[k] : xn[k];
+                    }
+                }
+                dx += w;
+            }
+            dx_ptr[i * frame_stride] = dx * dy;
+        }
     }
 };
 
@@ -170,7 +201,7 @@ struct StochasticLut<6, T, MAX_NODE_UNIT>
             T           *dx_ptr,
             T   const   W[][MAX_NODE_UNIT],
             T           dW[],
-            int             frame_stride
+            int         frame_stride
         )
     {
         T   xn[6];
