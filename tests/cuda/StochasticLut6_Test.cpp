@@ -66,7 +66,9 @@ int bbcu_eva_fp32_StochasticLut6_Forward
             output_node_size,
             frame_size,
             frame_stride,
-            binary_mode
+            0,
+            binary_mode,
+            0.2
         );
 
     cudaDeviceSynchronize();
@@ -140,6 +142,7 @@ int bbcu_eva_fp32_StochasticLut6_Backward
     float* dev_dy_buf;
 
     int*   dev_input_index;
+    int*   dev_rev_index;
     float* dev_W;
     float* dev_dW;
 
@@ -148,6 +151,7 @@ int bbcu_eva_fp32_StochasticLut6_Backward
     BB_CUDA_SAFE_CALL(cudaMalloc((void**)&dev_dx_tmp,  output_node_size * N * frame_size * sizeof(float)));
     BB_CUDA_SAFE_CALL(cudaMalloc((void**)&dev_dy_buf,  output_node_size * frame_size * sizeof(float)));
     BB_CUDA_SAFE_CALL(cudaMalloc((void**)&dev_input_index, output_node_size * N * sizeof(int)));
+    BB_CUDA_SAFE_CALL(cudaMalloc((void**)&dev_rev_index, input_node_size * N * sizeof(int)));
     BB_CUDA_SAFE_CALL(cudaMalloc((void**)&dev_W, output_node_size * M * sizeof(float)));
     BB_CUDA_SAFE_CALL(cudaMalloc((void**)&dev_dW, output_node_size * M * sizeof(float)));
     
@@ -173,13 +177,19 @@ int bbcu_eva_fp32_StochasticLut6_Backward
             dev_dx_buf,
             dev_dx_tmp,
             dev_input_index,
+            dev_rev_index,
             dev_W,
             dev_dW,
+            N,
             input_node_size,
             output_node_size,
             frame_size,
             frame_stride,
-            binary_mode
+            frame_size,
+            frame_stride,
+            0,
+            binary_mode,
+            0.2
         );
 
     cudaDeviceSynchronize();

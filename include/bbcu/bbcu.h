@@ -794,6 +794,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLut4_Backward
 #endif
 
 
+#if 0
 // -------------------------------------
 //  SparseBinaryLut
 // -------------------------------------
@@ -865,6 +866,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_Backward
             int             lut_binarize,
             cudaStream_t    streamId=0
     );
+#endif
 
 
 
@@ -872,7 +874,8 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseBinaryLut6_Backward
 //  StochasticLut
 // -------------------------------------
 
-BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut6_Forward
+template <int N=6>
+BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut_Forward
         (
             const float     *dev_x_buf,
             float           *dev_y_buf,
@@ -887,7 +890,8 @@ BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut6_Forward
             cudaStream_t    streamId = 0
         );
 
-BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut6_Forward
+template <int N=6>
+BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut_Forward
         (
             int   const     *dev_x_buf,
             float           *dev_y_buf,
@@ -902,7 +906,8 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut6_Forward
             cudaStream_t    streamId = 0
         );
 
-BBCU_DLL_EXPORT int bbcu_bit_bit_fp32_StochasticLut6_Forward
+template <int N=6>
+BBCU_DLL_EXPORT int bbcu_bit_bit_fp32_StochasticLut_Forward
         (
             int   const     *dev_x_buf,
             int             *dev_y_buf,
@@ -917,7 +922,8 @@ BBCU_DLL_EXPORT int bbcu_bit_bit_fp32_StochasticLut6_Forward
         );
 
 
-BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut6_Backward
+template <int N=6>
+BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut_Backward
         (
             float const     *dev_x_buf,
             float const     *dev_dy_buf,
@@ -940,7 +946,8 @@ BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut6_Backward
             cudaStream_t    streamId = 0
         );
 
-BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut6_Backward
+template <int N=6>
+BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut_Backward
         (
             int   const     *dev_x_buf,
             float const     *dev_dy_buf,

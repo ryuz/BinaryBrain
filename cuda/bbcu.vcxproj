@@ -54,6 +54,7 @@
     <ClInclude Include="..\include\bb\StochasticOperation.h" />
     <ClInclude Include="Common.cuh" />
     <ClInclude Include="StochasticLut.cuh" />
+    <ClInclude Include="StochasticLutN.cuh" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{ACAFEE7F-E3FF-431C-AC93-E6591C0E358D}</ProjectGuid>

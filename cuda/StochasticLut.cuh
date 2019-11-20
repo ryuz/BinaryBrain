@@ -18,7 +18,7 @@ struct StochasticLut
     {
         T xn[N];
         for ( int i = 0; i < N; ++i) {
-            xn[i] = 1.0 - xp[i];
+            xn[i] = (T)1.0 - xp[i];
         }
 
         T y = 0;
@@ -46,7 +46,7 @@ struct StochasticLut
     {
         T xn[N];
         for ( int i = 0; i < N; ++i) {
-            xn[i] = 1.0 - xp[i];
+            xn[i] = (T)1.0 - xp[i];
         }
 
         for (int i = 0; i < (1 << N); ++i) {
@@ -87,7 +87,7 @@ struct StochasticLut<6, T, MAX_NODE_UNIT>
     {
         T   xn[6];
         for ( int i = 0; i < 6; ++i) {
-            xn[i] = 1.0 - xp[i];
+            xn[i] = (T)1.0 - xp[i];
         }
 
         T x0_00 = xn[1] * xn[0];
@@ -186,8 +186,8 @@ struct StochasticLut<6, T, MAX_NODE_UNIT>
         y += W[63][node_id] * x2_11_x1_11 * x0_11;
 
         // clamp
-        y = max(0.0, y);
-        y = min(1.0, y);
+        y = max((T)0.0, y);
+        y = min((T)1.0, y);
 
         return y;
     }
@@ -206,7 +206,7 @@ struct StochasticLut<6, T, MAX_NODE_UNIT>
     {
         T   xn[6];
         for (int i = 0; i < 6; ++i) {
-            xn[i] = 1.0 - xp[i];
+            xn[i] = (T)1.0 - xp[i];
         }
 
         T x0_00 = xn[1] * xn[0];
@@ -423,7 +423,7 @@ struct StochasticLut<6, T, MAX_NODE_UNIT>
         dxn  = dx0_00 * xn[1];    dxn += dx0_10 * xp[1];
         dxp  = dx0_01 * xn[1];    dxp += dx0_11 * xp[1];
         dx = (dxp - dxn) * dy;
-        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        if ( xp[0] == (T)0.0 || xp[0] == (T)1.0 ) { dx = 0; }
         dx_ptr[0 * frame_stride] = dx;
 
         dxn  = dx0_00 * xn[0];
@@ -431,7 +431,7 @@ struct StochasticLut<6, T, MAX_NODE_UNIT>
         dxp  = dx0_10 * xn[0];
         dxp += dx0_11 * xp[0];
         dx = (dxp - dxn) * dy;
-        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        if ( xp[0] == (T)0.0 || xp[0] == (T)1.0 ) { dx = 0; }
         dx_ptr[1 * frame_stride] = dx;
 
         dxn  = dx1_00 * xn[3];     
@@ -439,7 +439,7 @@ struct StochasticLut<6, T, MAX_NODE_UNIT>
         dxn += dx1_10 * xp[3];     
         dxp += dx1_11 * xp[3];     
         dx = (dxp - dxn) * dy;
-        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        if ( xp[0] == (T)0.0 || xp[0] == (T)1.0 ) { dx = 0; }
         dx_ptr[2 * frame_stride] = dx;
 
         dxn  = dx1_00 * xn[2];
@@ -447,7 +447,7 @@ struct StochasticLut<6, T, MAX_NODE_UNIT>
         dxp  = dx1_10 * xn[2];
         dxp += dx1_11 * xp[2];
         dx = (dxp - dxn) * dy;
-        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        if ( xp[0] == (T)0.0 || xp[0] == (T)1.0 ) { dx = 0; }
         dx_ptr[3 * frame_stride] = dx;
 
         dxn  = dx2_00 * xn[5];     
@@ -455,7 +455,7 @@ struct StochasticLut<6, T, MAX_NODE_UNIT>
         dxn += dx2_10 * xp[5];     
         dxp += dx2_11 * xp[5];     
         dx = (dxp - dxn) * dy;
-        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        if ( xp[0] == (T)0.0 || xp[0] == (T)1.0 ) { dx = 0; }
         dx_ptr[4 * frame_stride] = dx;
 
         dxn  = dx2_00 * xn[4];
@@ -463,7 +463,7 @@ struct StochasticLut<6, T, MAX_NODE_UNIT>
         dxp  = dx2_10 * xn[4];
         dxp += dx2_11 * xp[4];
         dx = (dxp - dxn) * dy;
-        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        if ( xp[0] == (T)0.0 || xp[0] == (T)1.0 ) { dx = 0; }
         dx_ptr[5 * frame_stride] = dx;
     }
 };
@@ -482,7 +482,7 @@ struct StochasticLut<4, T, MAX_NODE_UNIT>
     {
         T   xn[4];
         for ( int i = 0; i < 4; ++i) {
-            xn[i] = 1.0 - xp[i];
+            xn[i] = (T)1.0 - xp[i];
         }
 
         T x0_00 = xn[1] * xn[0];
@@ -513,8 +513,8 @@ struct StochasticLut<4, T, MAX_NODE_UNIT>
         y += W[15][node_id] * x1_11 * x0_11;
 
         // clamp
-        y = max(0.0, y);
-        y = min(1.0, y);
+        y = max((T)0.0, y);
+        y = min((T)1.0, y);
 
         return y;
     }
@@ -533,7 +533,7 @@ struct StochasticLut<4, T, MAX_NODE_UNIT>
     {
         T   xn[4];
         for (int i = 0; i < 4; ++i) {
-            xn[i] = 1.0 - xp[i];
+            xn[i] = (T)1.0 - xp[i];
         }
 
         T x0_00 = xn[1] * xn[0];
@@ -594,7 +594,7 @@ struct StochasticLut<4, T, MAX_NODE_UNIT>
         dxn  = dx0_00 * xn[1];    dxn += dx0_10 * xp[1];
         dxp  = dx0_01 * xn[1];    dxp += dx0_11 * xp[1];
         dx = (dxp - dxn) * dy;
-        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        if ( xp[0] == (T)0.0 || xp[0] == (T)1.0 ) { dx = 0; }
         dx_ptr[0 * frame_stride] = dx;
 
         dxn  = dx0_00 * xn[0];
@@ -602,7 +602,7 @@ struct StochasticLut<4, T, MAX_NODE_UNIT>
         dxp  = dx0_10 * xn[0];
         dxp += dx0_11 * xp[0];
         dx = (dxp - dxn) * dy;
-        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        if ( xp[0] == (T)0.0 || xp[0] == (T)1.0 ) { dx = 0; }
         dx_ptr[1 * frame_stride] = dx;
 
         dxn  = dx1_00 * xn[3];     
@@ -610,7 +610,7 @@ struct StochasticLut<4, T, MAX_NODE_UNIT>
         dxn += dx1_10 * xp[3];     
         dxp += dx1_11 * xp[3];     
         dx = (dxp - dxn) * dy;
-        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        if ( xp[0] == (T)0.0 || xp[0] == (T)1.0 ) { dx = 0; }
         dx_ptr[2 * frame_stride] = dx;
 
         dxn  = dx1_00 * xn[2];
@@ -618,7 +618,7 @@ struct StochasticLut<4, T, MAX_NODE_UNIT>
         dxp  = dx1_10 * xn[2];
         dxp += dx1_11 * xp[2];
         dx = (dxp - dxn) * dy;
-        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        if ( xp[0] == (T)0.0 || xp[0] == (T)1.0 ) { dx = 0; }
         dx_ptr[3 * frame_stride] = dx;
     }
 };
@@ -637,7 +637,7 @@ struct StochasticLut<2, T, MAX_NODE_UNIT>
     {
         T   xn[2];
         for ( int i = 0; i < 2; ++i) {
-            xn[i] = 1.0 - xp[i];
+            xn[i] = (T)1.0 - xp[i];
         }
 
         T x00 = xn[1] * xn[0];
@@ -652,8 +652,8 @@ struct StochasticLut<2, T, MAX_NODE_UNIT>
         y += W[3][node_id] * x11 * x01;
 
         // clamp
-        y = max(0.0, y);
-        y = min(1.0, y);
+        y = max((T)0.0, y);
+        y = min((T)1.0, y);
 
         return y;
     }
@@ -672,7 +672,7 @@ struct StochasticLut<2, T, MAX_NODE_UNIT>
     {
         T   xn[2];
         for (int i = 0; i < 2; ++i) {
-            xn[i] = 1.0 - xp[i];
+            xn[i] = (T)1.0 - xp[i];
         }
 
         T x00 = xn[1] * xn[0];
@@ -703,7 +703,7 @@ struct StochasticLut<2, T, MAX_NODE_UNIT>
         dxp  = dx01 * xn[1];
         dxp += dx11 * xp[1];
         dx = (dxp - dxn) * dy;
-        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        if ( xp[0] == (T)0.0 || xp[0] == (T)1.0 ) { dx = 0; }
         dx_ptr[0 * frame_stride] = dx;
 
         dxn  = dx00 * xn[0];
@@ -711,7 +711,7 @@ struct StochasticLut<2, T, MAX_NODE_UNIT>
         dxp  = dx10 * xn[0];
         dxp += dx11 * xp[0];
         dx = (dxp - dxn) * dy;
-        if ( xp[0] == 0.0 || xp[0] == 1.0 ) { dx = 0; }
+        if ( xp[0] == (T)0.0 || xp[0] == (T)1.0 ) { dx = 0; }
         dx_ptr[1 * frame_stride] = dx;
     }
 };

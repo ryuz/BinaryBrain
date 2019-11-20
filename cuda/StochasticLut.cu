@@ -84,7 +84,8 @@ __global__ void kernal_StochasticLut_Forward(
 }
 
 
-BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut6_Forward
+template <int N>
+BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut_Forward
         (
             const float     *dev_x_buf,
             float           *dev_y_buf,
@@ -119,7 +120,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut6_Forward
     block.y = std::min(block.y, MAX_NODE_UNIT);
     dim3    grid(1, (node_size + (block.y - 1)) / block.y);
     
-    kernal_StochasticLut_Forward<6, float, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
+    kernal_StochasticLut_Forward<N, float, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
             dev_x_buf,
             dev_y_buf,
             dev_input_index,
@@ -205,7 +206,8 @@ __global__ void kernal_bit_StochasticLut_Forward(
 }
 
 
-BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut6_Forward
+template <int N>
+BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut_Forward
         (
             int   const     *dev_x_buf,
             float           *dev_y_buf,
@@ -240,7 +242,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut6_Forward
     block.y = std::min(block.y, MAX_NODE_UNIT);
     dim3    grid(1, (node_size + (block.y - 1)) / block.y);
     
-    kernal_bit_StochasticLut_Forward<6, float, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
+    kernal_bit_StochasticLut_Forward<N, float, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
             dev_x_buf,
             dev_y_buf,
             dev_input_index,
@@ -338,7 +340,8 @@ __global__ void kernal_bit_bit_StochasticLut_Forward(
 }
 
 
-BBCU_DLL_EXPORT int bbcu_bit_bit_fp32_StochasticLut6_Forward
+template <int N>
+BBCU_DLL_EXPORT int bbcu_bit_bit_fp32_StochasticLut_Forward
         (
             int   const     *dev_x_buf,
             int             *dev_y_buf,
@@ -372,7 +375,7 @@ BBCU_DLL_EXPORT int bbcu_bit_bit_fp32_StochasticLut6_Forward
     block.y = std::min(block.y, MAX_NODE_UNIT);
     dim3    grid(1, (node_size + (block.y - 1)) / block.y);
     
-    kernal_bit_bit_StochasticLut_Forward<6, float, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
+    kernal_bit_bit_StochasticLut_Forward<N, float, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
             dev_x_buf,
             dev_y_buf,
             dev_input_index,
@@ -422,7 +425,7 @@ __global__ void kernal_StochasticLut_Backward
     __shared__  T       dW_prev[(1 << N)][MAX_NODE_UNIT];
     __shared__  T       W[(1 << N)][MAX_NODE_UNIT];
                 T       dW[(1 << N)];
-                T const *x_ptr[6];
+                T const *x_ptr[N];
                 T const *dy_ptr;
     
     // initialize dW
@@ -444,8 +447,8 @@ __global__ void kernal_StochasticLut_Backward
         }
     
         // init pointer
-        for ( int i = 0; i < 6; ++i ) {
-            int input_node = input_index[6*node + i];
+        for ( int i = 0; i < N; ++i ) {
+            int input_node = input_index[N*node + i];
             x_ptr[i]  = &x_buf[input_node * frame_stride];
         }
 
@@ -490,91 +493,9 @@ __global__ void kernal_StochasticLut_Backward
     }
 }
 
-#if 0
-BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut6_Backward
-        (
-            float const     *dev_x_buf,
-            float const     *dev_dy_buf,
-            float           *dev_dx_buf,
-            float           *dev_dx_tmp,
-            int   const     *dev_input_index,
-            float const     *dev_W,
-            float           *dev_dW,
-            int             input_node_size,
-            int             output_node_size,
-            int             frame_size,
-            int             frame_stride,
-            int             input_binary,
-            int             lut_binarize,
-            float           unbinarize_bias,
-            cudaStream_t    streamId
-        )
-{
-    BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
-    {
-        unsigned int const THREAD_SIZE    = 256;
-        unsigned int const MAX_FRAME_UNIT = 256;
-        unsigned int const MAX_NODE_UNIT  = 16;
-
-#if 0
-        dim3    block(MAX_FRAME_UNIT, THREAD_SIZE / MAX_FRAME_UNIT);
-        while ( (int)block.x / 2 >= frame_size )       { block.x /= 2; block.y *= 2; }
-        while ( (int)block.y / 2 >= output_node_size ) { block.y /= 2; }
-#else
-        dim3    block(THREAD_SIZE / MAX_NODE_UNIT, MAX_NODE_UNIT);
-        while ( (int)block.y / 2 >= output_node_size) { block.y /= 2; block.x *= 2;}
-        while ( (int)block.x / 2 >= frame_size      ) { block.x /= 2; }
-#endif
-
-        block.x = std::min(block.x, MAX_FRAME_UNIT);
-        block.y = std::min(block.y, MAX_NODE_UNIT);
-        dim3    grid(1, (output_node_size + (block.y - 1)) / block.y);
-
-        kernal_StochasticLut_Backward<6, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
-                dev_x_buf,
-                dev_dy_buf,
-                dev_dx_tmp,
-                dev_input_index,
-                dev_W,
-                dev_dW,
-                output_node_size,
-                frame_size,
-                frame_stride,
-                input_binary,
-                lut_binarize,
-                unbinarize_bias
-            );
-        BB_CUDA_CHECK_LAST_ERROR();
-    }
-    
-
-    {
-        BB_CUDA_SAFE_CALL(cudaMemset(dev_dx_buf, 0, input_node_size * frame_stride * sizeof(float)));
-
-        int block_x = frame_size;
-        while ( block_x > 1024 ) { block_x /= 2; }
-
-        dim3    grid((frame_size + block_x - 1) /block_x, 1);
-        dim3    block(block_x, 1, 1);
-
-        kernal_NodeIntegrate<6, float><<<grid, block>>>(
-                dev_dx_tmp,
-                dev_dx_buf,
-                dev_input_index,
-                output_node_size,
-                frame_size,
-                frame_stride,
-                frame_stride
-            );
-        BB_CUDA_CHECK_LAST_ERROR();
-    }
-
-    return 0;
-}
-#endif
-
-BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut6_Backward
+template <int N>
+BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut_Backward
         (
             float const     *dev_x_buf,
             float const     *dev_dy_buf,
@@ -625,7 +546,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut6_Backward
             block.y = std::min(block.y, MAX_NODE_UNIT);
             dim3    grid(1, (output_node_size + (block.y - 1)) / block.y);
 
-            kernal_StochasticLut_Backward<6, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
+            kernal_StochasticLut_Backward<N, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
                     dev_x_buf  + frame_offset,
                     dev_dy_buf + frame_offset,
                     dev_dx_tmp,
@@ -778,7 +699,8 @@ __global__ void kernal_bit_StochasticLut_Backward
 }
 
 
-BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut6_Backward
+template <int N>
+BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut_Backward
         (
             int   const     *dev_x_buf,
             float const     *dev_dy_buf,
@@ -829,7 +751,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut6_Backward
             block.y = std::min(block.y, MAX_NODE_UNIT);
             dim3    grid(1, (output_node_size + (block.y - 1)) / block.y);
 
-            kernal_bit_StochasticLut_Backward<6, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
+            kernal_bit_StochasticLut_Backward<N, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
                     dev_x_buf  + (frame_offset / 32),
                     dev_dy_buf + frame_offset,
                     dev_dx_tmp,
@@ -889,90 +811,37 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut6_Backward
 }
 
 
-#if 0
-BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut6_Backward
-        (
-            int   const     *dev_x_buf,
-            float const     *dev_dy_buf,
-            float           *dev_dx_buf,
-            float           *dev_dx_tmp,
-            int   const     *dev_input_index,
-            float const     *dev_W,
-            float           *dev_dW,
-            int             input_node_size,
-            int             output_node_size,
-            int             frame_size,
-            int             frame_stride,
-            int             bin_frame_stride,
-            int             lut_binarize,
-            float           unbinarize_bias,
-            cudaStream_t    streamId
-        )
-{
-    BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
-    {
-        unsigned int const THREAD_SIZE    = 256;
-        unsigned int const MAX_FRAME_UNIT = 256;
-        unsigned int const MAX_NODE_UNIT  = 16;
+// 実体化
+template BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut_Forward<6>(const float *dev_x_buf, float *dev_y_buf, int const *dev_input_index, float const *dev_W, int node_size, int frame_size, int frame_stride, int input_binary, int lut_binarize, float unbinarize_bias, cudaStream_t streamId);
+template BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut_Forward<5>(const float *dev_x_buf, float *dev_y_buf, int const *dev_input_index, float const *dev_W, int node_size, int frame_size, int frame_stride, int input_binary, int lut_binarize, float unbinarize_bias, cudaStream_t streamId);
+template BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut_Forward<4>(const float *dev_x_buf, float *dev_y_buf, int const *dev_input_index, float const *dev_W, int node_size, int frame_size, int frame_stride, int input_binary, int lut_binarize, float unbinarize_bias, cudaStream_t streamId);
+template BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut_Forward<3>(const float *dev_x_buf, float *dev_y_buf, int const *dev_input_index, float const *dev_W, int node_size, int frame_size, int frame_stride, int input_binary, int lut_binarize, float unbinarize_bias, cudaStream_t streamId);
+template BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut_Forward<2>(const float *dev_x_buf, float *dev_y_buf, int const *dev_input_index, float const *dev_W, int node_size, int frame_size, int frame_stride, int input_binary, int lut_binarize, float unbinarize_bias, cudaStream_t streamId);
 
-#if 0
-        dim3    block(MAX_FRAME_UNIT, THREAD_SIZE / MAX_FRAME_UNIT);
-        while ( (int)block.x / 2 >= frame_size )       { block.x /= 2; block.y *= 2; }
-        while ( (int)block.y / 2 >= output_node_size ) { block.y /= 2; }
-#else
-        dim3    block(THREAD_SIZE / MAX_NODE_UNIT, MAX_NODE_UNIT);
-        while ( (int)block.y / 2 >= output_node_size) { block.y /= 2; block.x *= 2;}
-        while ( (int)block.x / 2 >= frame_size      ) { block.x /= 2; }
-#endif
+template BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut_Forward<6>(int const *dev_x_buf, float *dev_y_buf, int const *dev_input_index, float const *dev_W, int node_size, int frame_size, int frame_stride, int bin_frame_stride, int lut_binarize, float unbinarize_bias, cudaStream_t streamId);
+template BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut_Forward<5>(int const *dev_x_buf, float *dev_y_buf, int const *dev_input_index, float const *dev_W, int node_size, int frame_size, int frame_stride, int bin_frame_stride, int lut_binarize, float unbinarize_bias, cudaStream_t streamId);
+template BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut_Forward<4>(int const *dev_x_buf, float *dev_y_buf, int const *dev_input_index, float const *dev_W, int node_size, int frame_size, int frame_stride, int bin_frame_stride, int lut_binarize, float unbinarize_bias, cudaStream_t streamId);
+template BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut_Forward<3>(int const *dev_x_buf, float *dev_y_buf, int const *dev_input_index, float const *dev_W, int node_size, int frame_size, int frame_stride, int bin_frame_stride, int lut_binarize, float unbinarize_bias, cudaStream_t streamId);
+template BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut_Forward<2>(int const *dev_x_buf, float *dev_y_buf, int const *dev_input_index, float const *dev_W, int node_size, int frame_size, int frame_stride, int bin_frame_stride, int lut_binarize, float unbinarize_bias, cudaStream_t streamId);
 
-        block.x = std::min(block.x, MAX_FRAME_UNIT);
-        block.y = std::min(block.y, MAX_NODE_UNIT);
-        dim3    grid(1, (output_node_size + (block.y - 1)) / block.y);
+template BBCU_DLL_EXPORT int bbcu_bit_bit_fp32_StochasticLut_Forward<6>(int const *dev_x_buf, int *dev_y_buf, int const *dev_input_index, float const *dev_W, int node_size, int frame_size, int frame_stride, int lut_binarize, float unbinarize_bias, cudaStream_t streamId);
+template BBCU_DLL_EXPORT int bbcu_bit_bit_fp32_StochasticLut_Forward<5>(int const *dev_x_buf, int *dev_y_buf, int const *dev_input_index, float const *dev_W, int node_size, int frame_size, int frame_stride, int lut_binarize, float unbinarize_bias, cudaStream_t streamId);
+template BBCU_DLL_EXPORT int bbcu_bit_bit_fp32_StochasticLut_Forward<4>(int const *dev_x_buf, int *dev_y_buf, int const *dev_input_index, float const *dev_W, int node_size, int frame_size, int frame_stride, int lut_binarize, float unbinarize_bias, cudaStream_t streamId);
+template BBCU_DLL_EXPORT int bbcu_bit_bit_fp32_StochasticLut_Forward<3>(int const *dev_x_buf, int *dev_y_buf, int const *dev_input_index, float const *dev_W, int node_size, int frame_size, int frame_stride, int lut_binarize, float unbinarize_bias, cudaStream_t streamId);
+template BBCU_DLL_EXPORT int bbcu_bit_bit_fp32_StochasticLut_Forward<2>(int const *dev_x_buf, int *dev_y_buf, int const *dev_input_index, float const *dev_W, int node_size, int frame_size, int frame_stride, int lut_binarize, float unbinarize_bias, cudaStream_t streamId);
 
-        kernal_bit_StochasticLut_Backward<6, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
-                dev_x_buf,
-                dev_dy_buf,
-                dev_dx_tmp,
-                dev_input_index,
-                dev_W,
-                dev_dW,
-                output_node_size,
-                frame_size,
-                frame_stride,
-                bin_frame_stride,
-                lut_binarize,
-                unbinarize_bias
-            );
-        BB_CUDA_CHECK_LAST_ERROR();
-    }
-    
+template BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut_Backward<6>(float const *dev_x_buf, float const *dev_dy_buf, float *dev_dx_buf, float *dev_dx_tmp, int const *dev_input_index, int const *dev_reverse_index, float const *dev_W, float *dev_dW, int reverse_index_stride, int input_node_size, int output_node_size, int frame_size, int frame_stride, int tmp_frame_size, int tmp_frame_stride, int input_binary, int lut_binarize, float unbinarize_bias, cudaStream_t streamId);
+template BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut_Backward<5>(float const *dev_x_buf, float const *dev_dy_buf, float *dev_dx_buf, float *dev_dx_tmp, int const *dev_input_index, int const *dev_reverse_index, float const *dev_W, float *dev_dW, int reverse_index_stride, int input_node_size, int output_node_size, int frame_size, int frame_stride, int tmp_frame_size, int tmp_frame_stride, int input_binary, int lut_binarize, float unbinarize_bias, cudaStream_t streamId);
+template BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut_Backward<4>(float const *dev_x_buf, float const *dev_dy_buf, float *dev_dx_buf, float *dev_dx_tmp, int const *dev_input_index, int const *dev_reverse_index, float const *dev_W, float *dev_dW, int reverse_index_stride, int input_node_size, int output_node_size, int frame_size, int frame_stride, int tmp_frame_size, int tmp_frame_stride, int input_binary, int lut_binarize, float unbinarize_bias, cudaStream_t streamId);
+template BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut_Backward<3>(float const *dev_x_buf, float const *dev_dy_buf, float *dev_dx_buf, float *dev_dx_tmp, int const *dev_input_index, int const *dev_reverse_index, float const *dev_W, float *dev_dW, int reverse_index_stride, int input_node_size, int output_node_size, int frame_size, int frame_stride, int tmp_frame_size, int tmp_frame_stride, int input_binary, int lut_binarize, float unbinarize_bias, cudaStream_t streamId);
+template BBCU_DLL_EXPORT int bbcu_fp32_StochasticLut_Backward<2>(float const *dev_x_buf, float const *dev_dy_buf, float *dev_dx_buf, float *dev_dx_tmp, int const *dev_input_index, int const *dev_reverse_index, float const *dev_W, float *dev_dW, int reverse_index_stride, int input_node_size, int output_node_size, int frame_size, int frame_stride, int tmp_frame_size, int tmp_frame_stride, int input_binary, int lut_binarize, float unbinarize_bias, cudaStream_t streamId);
 
-    {
-        BB_CUDA_SAFE_CALL(cudaMemset(dev_dx_buf, 0, input_node_size * frame_stride * sizeof(float)));
-
-        int block_x = frame_size;
-        while ( block_x > 1024 ) { block_x /= 2; }
-
-        dim3    grid((frame_size + block_x - 1) /block_x, 1);
-        dim3    block(block_x, 1, 1);
-        
-        kernal_NodeIntegrate<6, float><<<grid, block>>>(
-                dev_dx_tmp,
-                dev_dx_buf,
-                dev_input_index,
-                output_node_size,
-                frame_size,
-                frame_stride,
-                frame_stride
-            );
-        BB_CUDA_CHECK_LAST_ERROR();
-    }
-
-    return 0;
-}
-#endif
-
+template BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut_Backward<6>(int const *dev_x_buf, float const *dev_dy_buf, float *dev_dx_buf, float *dev_dx_tmp, int const *dev_input_index, int const *dev_reverse_index, float const *dev_W, float *dev_dW, int reverse_index_stride, int input_node_size, int output_node_size, int frame_size, int frame_stride, int bin_frame_stride, int tmp_frame_size, int tmp_frame_stride, int lut_binarize, float unbinarize_bias, cudaStream_t streamId);
+template BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut_Backward<5>(int const *dev_x_buf, float const *dev_dy_buf, float *dev_dx_buf, float *dev_dx_tmp, int const *dev_input_index, int const *dev_reverse_index, float const *dev_W, float *dev_dW, int reverse_index_stride, int input_node_size, int output_node_size, int frame_size, int frame_stride, int bin_frame_stride, int tmp_frame_size, int tmp_frame_stride, int lut_binarize, float unbinarize_bias, cudaStream_t streamId);
+template BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut_Backward<4>(int const *dev_x_buf, float const *dev_dy_buf, float *dev_dx_buf, float *dev_dx_tmp, int const *dev_input_index, int const *dev_reverse_index, float const *dev_W, float *dev_dW, int reverse_index_stride, int input_node_size, int output_node_size, int frame_size, int frame_stride, int bin_frame_stride, int tmp_frame_size, int tmp_frame_stride, int lut_binarize, float unbinarize_bias, cudaStream_t streamId);
+template BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut_Backward<3>(int const *dev_x_buf, float const *dev_dy_buf, float *dev_dx_buf, float *dev_dx_tmp, int const *dev_input_index, int const *dev_reverse_index, float const *dev_W, float *dev_dW, int reverse_index_stride, int input_node_size, int output_node_size, int frame_size, int frame_stride, int bin_frame_stride, int tmp_frame_size, int tmp_frame_stride, int lut_binarize, float unbinarize_bias, cudaStream_t streamId);
+template BBCU_DLL_EXPORT int bbcu_bit_fp32_StochasticLut_Backward<2>(int const *dev_x_buf, float const *dev_dy_buf, float *dev_dx_buf, float *dev_dx_tmp, int const *dev_input_index, int const *dev_reverse_index, float const *dev_W, float *dev_dW, int reverse_index_stride, int input_node_size, int output_node_size, int frame_size, int frame_stride, int bin_frame_stride, int tmp_frame_size, int tmp_frame_stride, int lut_binarize, float unbinarize_bias, cudaStream_t streamId);
 
 
 // end of file
