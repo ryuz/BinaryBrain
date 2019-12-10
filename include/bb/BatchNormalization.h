@@ -190,7 +190,7 @@ public:
     void save(Archive& archive, std::uint32_t const version) const
     {
         _super::save(archive, version);
-        archive(cereal::make_nvp("shepe",        _super::m_shape));
+        archive(cereal::make_nvp("shape",        _super::m_shape));
         archive(cereal::make_nvp("gamma",        *m_gamma));
         archive(cereal::make_nvp("beta",         *m_beta));
         archive(cereal::make_nvp("running_mean", m_running_mean));
