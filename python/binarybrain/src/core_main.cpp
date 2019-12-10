@@ -260,6 +260,19 @@ Returns:
     int: data type
 )";
 
+// model
+const char* doc__Model_get_info =
+R"(get a information of model structure.
+
+get a information string of model network structure.
+
+Args:
+   depth(int): depth of network structure
+   columns(str): size of column 
+   nest(str): nest counter
+Returns:
+   str: strings of model information
+)";
 
 
 
@@ -361,17 +374,7 @@ Args:
     // model
     py::class_< Model, std::shared_ptr<Model> >(m, "Model")
         .def("set_input_shape", &Model::SetInputShape)
-        .def("get_info", &Model::GetInfoString,
-R"(get a information of model structure.
-
-get a information string of model network structure.
-
-Args:
-   depth(int): depth of network structure
-   columns(str): size of column 
-   nest(str): nest counter
-Returns:
-   str: strings of model information)",
+        .def("get_info", &Model::GetInfoString, doc__Model_get_info,
                 py::arg("depth")    = 0,
                 py::arg("columns")  = 70,
                 py::arg("nest")     = 0)
@@ -386,9 +389,13 @@ Returns:
         .def("backward", &Model::Backward, "Backward")
         .def("send_command",  &Model::SendCommand, "SendCommand",
                 py::arg("command"),
-                py::arg("send_to") = "all");
-
-
+                py::arg("send_to") = "all")
+        .def("backward", &Model::Backward, "Backward")
+        .def("save_binary", &Model::SaveBinary)
+        .def("load_binary", &Model::LoadBinary)
+        .def("save_json", &Model::SaveJson)
+        .def("load_json", &Model::LoadJson);
+    
     // DenseAffine
     py::class_< DenseAffine, Model, std::shared_ptr<DenseAffine> >(m, "DenseAffine")
         .def_static("create",   &DenseAffine::CreateEx, "create",
