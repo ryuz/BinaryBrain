@@ -30,7 +30,7 @@ def main():
     main_net.add(bb.DenseAffine.create([512]))
     main_net.add(bb.BatchNormalization.create())
     main_net.add(bb.ReLU.create())
-    main_net.add(bb.DenseAffine.create(td.t_shape))
+    main_net.add(bb.DenseAffine.create(td['t_shape']))
     if binary_mode:
         main_net.add(bb.BatchNormalization.create())
         main_net.add(bb.ReLU.create())
