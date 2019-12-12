@@ -103,6 +103,22 @@ public:
         return Create(create);
     }
 
+    static std::shared_ptr<RealToBinary> CreateEx(
+                index_t                                     modulation_size = 1,
+                std::shared_ptr< ValueGenerator<RealType> > value_generator = nullptr,
+                bool                                        framewise       = false,
+                RealType                                    input_range_lo  = (RealType)0.0,
+                RealType                                    input_range_hi  = (RealType)1.0)
+    {
+        create_t create;
+        create.modulation_size  = modulation_size;
+        create.value_generator  = value_generator;
+        create.framewise        = framewise;
+        create.input_range_lo   = input_range_lo;
+        create.input_range_hi   = input_range_hi;
+        return Create(create);
+    }
+
     std::string GetClassName(void) const { return "RealToBinary"; }
 
     void SetModulationSize(index_t modulation_size)

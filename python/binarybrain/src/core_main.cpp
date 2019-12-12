@@ -97,6 +97,11 @@ using StochasticLut6Bit            = bb::StochasticLutN<6, bb::Bit, float>;
 using Reduce                       = bb::Reduce<float, float>; 
 using BinaryModulation             = bb::BinaryModulation<float, float>;
 using BinaryModulationBit          = bb::BinaryModulation<bb::Bit, float>;
+using RealToBinary                 = bb::RealToBinary<float, float>;
+using RealToBinaryBit              = bb::RealToBinary<bb::Bit, float>;
+using BinaryToReal                 = bb::BinaryToReal<float, float>;
+using BinaryToRealBit              = bb::BinaryToReal<bb::Bit, float>;
+
 
 using Filter2d                     = bb::Filter2d<float, float>;
 using Filter2dBit                  = bb::Filter2d<bb::Bit, float>;
@@ -463,6 +468,33 @@ Args:
                 py::arg("inference_framewise")       = true,
                 py::arg("inference_input_range_lo")  = 0.0f,
                 py::arg("inference_input_range_hi")  = 1.0f);
+
+    py::class_< RealToBinary, Model, std::shared_ptr<RealToBinary> >(m, "RealToBinary")
+        .def_static("create", &RealToBinary::CreateEx,
+                py::arg(" modulation_size") = 1,
+                py::arg("value_generator")  = nullptr,
+                py::arg("framewise")        = false,
+                py::arg("input_range_lo")   = 0.0f,
+                py::arg("input_range_hi")   = 1.0f);
+
+    py::class_< RealToBinaryBit, Model, std::shared_ptr<RealToBinaryBit> >(m, "RealToBinaryBit")
+        .def_static("create", &RealToBinaryBit::CreateEx,
+                py::arg(" modulation_size") = 1,
+                py::arg("value_generator")  = nullptr,
+                py::arg("framewise")        = false,
+                py::arg("input_range_lo")   = 0.0f,
+                py::arg("input_range_hi")   = 1.0f);
+
+    py::class_< BinaryToReal, Model, std::shared_ptr<BinaryToReal> >(m, "BinaryToReal")
+        .def_static("create", &BinaryToReal::CreateEx,
+                py::arg(" modulation_size") = 1,
+                py::arg("output_shape")     = bb::indices_t());
+
+    py::class_< BinaryToRealBit, Model, std::shared_ptr<BinaryToRealBit> >(m, "BinaryToRealBit")
+        .def_static("create", &BinaryToRealBit::CreateEx,
+                py::arg(" modulation_size") = 1,
+                py::arg("output_shape")     = bb::indices_t());
+
 
     py::class_< BinaryLut6, LutLayer, std::shared_ptr<BinaryLut6> >(m, "BinaryLut6")
         .def_static("create", &BinaryLut6::CreateEx,
