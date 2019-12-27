@@ -298,6 +298,7 @@ class BuildExt(build_ext):
         # unix(gpu)
         cc_args['unix'] += ['-gencode=arch=compute_35,code=sm_35',
                             '-gencode=arch=compute_50,code=sm_50',
+                            '-gencode=arch=compute_60,code=sm_60',
                             '-gencode=arch=compute_61,code=sm_61',
                             '-gencode=arch=compute_75,code=sm_75',
                             '-Xcompiler', '-pthread',
@@ -308,6 +309,7 @@ class BuildExt(build_ext):
                             '-Xcompiler', '-fPIC' ]
         cu_args['unix'] += ['-gencode=arch=compute_35,code=sm_35',
                             '-gencode=arch=compute_50,code=sm_50',
+                            '-gencode=arch=compute_60,code=sm_60',
                             '-gencode=arch=compute_61,code=sm_61',
                             '-gencode=arch=compute_75,code=sm_75',
                             '-std=c++11',
@@ -333,6 +335,7 @@ class BuildExt(build_ext):
                             '-std=c++11',
                             '-gencode=arch=compute_35,code=sm_35',
                             '-gencode=arch=compute_50,code=sm_50',
+                            '-gencode=arch=compute_60,code=sm_60',
                             '-gencode=arch=compute_61,code=sm_61',
                             '-gencode=arch=compute_75,code=sm_75',
                             '-Xcompiler', '/EHsc',
