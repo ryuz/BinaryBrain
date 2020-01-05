@@ -102,6 +102,8 @@ protected:
 
     void CommandProc(std::vector<std::string> args)
     {
+        _super::CommandProc(args);
+
         // バイナリモード設定
         if ( DataType<BinType>::type != BB_TYPE_BIT ) {
             if ( args.size() == 2 && args[0] == "binary" )
@@ -331,10 +333,15 @@ public:
      * @param shape 新しいshape
      * @return なし
      */
-    indices_t SetInputShape(indices_t input_shape)
+    indices_t SetInputShape(indices_t shape)
     {
+        // 設定済みなら何もしない
+        if ( shape == this->GetInputShape() ) {
+            return this->GetOutputShape();
+        }
+        
         // 形状設定
-        m_input_shape = input_shape;
+        m_input_shape = shape;
         
         // 接続初期化
         m_connection_table.SetShape(m_input_shape, m_output_shape);

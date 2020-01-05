@@ -208,6 +208,11 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
+        // 設定済みなら何もしない
+        if ( shape == this->GetInputShape() ) {
+            return this->GetOutputShape();
+        }
+        
         _super::SetInputShape(shape);
         
         auto node_size = GetShapeSize(shape);
