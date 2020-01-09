@@ -278,7 +278,7 @@ public:
         // 出力を設定
         FrameBuffer y_buf(x_buf.GetFrameSize(), m_output_shape, DataType<T>::type);
 
-#if 0 // #ifdef BB_WITH_CUDA
+#ifdef BB_WITH_CUDA
         if (DataType<T>::type == BB_TYPE_FP32 && m_cublasEnable && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable())
         {
             auto x_ptr = x_buf.LockDeviceMemoryConst();
@@ -295,26 +295,30 @@ public:
                     (int          )(y_buf.GetFrameStride() / sizeof(float))
                 );
 
+            int x_frame_stride = (int)(x_buf.GetFrameStride() / sizeof(float));
+            int y_frame_stride = (int)(y_buf.GetFrameStride() / sizeof(float));
             float alpha = 1.0f;
-            float beta = 1.0f;
-            BB_CUBLAS_SAFE_CALL(cublasSgemm
-                (
-                    m_cublasHandle,
-                    CUBLAS_OP_N,
-                    CUBLAS_OP_N,
-                    (int)y_buf.GetFrameSize(),
-                    (int)y_buf.GetNodeSize(),
-                    (int)x_buf.GetNodeSize(),
-                    &alpha,
-                    (const float *)x_ptr.GetAddr(),
-                    (int)(x_buf.GetFrameStride() / sizeof(float)),
-                    (const float *)W_ptr.GetAddr(),
-                    (int)x_buf.GetNodeSize(),
-                    &beta,
-                    (float *)y_ptr.GetAddr(),
-                    (int)(y_buf.GetFrameStride() / sizeof(float))
-                ));
-            
+            float beta  = 1.0f;
+            for (index_t output_node = 0; output_node < m_output_node_size; ++output_node) {
+                BB_CUBLAS_SAFE_CALL(cublasSgemm
+                    (
+                        m_cublasHandle,
+                        CUBLAS_OP_N,
+                        CUBLAS_OP_N,
+                        (int)y_buf.GetFrameSize(),
+                        (int)1, // y_buf.GetNodeSize(),
+                        (int)m_input_points_size, // x_buf.GetNodeSize(),
+                        &alpha,
+                        (const float *)x_ptr.GetAddr() + (output_node * m_input_points_size * x_frame_stride),
+                        (int)x_frame_stride,
+                        (const float *)W_ptr.GetAddr() + (output_node * m_input_points_size),
+                        (int)m_input_points_size, // x_buf.GetNodeSize(),
+                        &beta,
+                        (float *)y_ptr.GetAddr() + (output_node * y_frame_stride),
+                        (int)y_frame_stride
+                    ));
+            }
+
             return y_buf;
         }
 #endif
@@ -355,7 +359,7 @@ public:
         FrameBuffer dx_buf(dy_buf.GetFrameSize(), {m_input_node_size}, DataType<T>::type);
 
 
-#if 0 // #ifdef BB_WITH_CUDA
+#ifdef BB_WITH_CUDA
         if (DataType<T>::type == BB_TYPE_FP32 && m_cublasEnable && dy_buf.IsDeviceAvailable() && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable())
         {
             auto dy_ptr = dy_buf.LockDeviceMemoryConst();
@@ -375,44 +379,49 @@ public:
                     (int          )(dy_buf.GetFrameStride() / sizeof(float))
                 );
 
-            float alpha = 1.0f;
-            float beta = 0.0f;
-            BB_CUBLAS_SAFE_CALL(cublasSgemm
-                (
-                    m_cublasHandle,
-                    CUBLAS_OP_N,
-                    CUBLAS_OP_T,
-                    (int)dx_buf.GetFrameSize(),
-                    (int)dx_buf.GetNodeSize(),
-                    (int)dy_buf.GetNodeSize(),
-                    &alpha,
-                    (const float *)dy_ptr.GetAddr(),
-                    (int)(dy_buf.GetFrameStride() / sizeof(float)),
-                    (const float *)W_ptr.GetAddr(),
-                    (int)dx_buf.GetNodeSize(),
-                    &beta,
-                    (float *)dx_ptr.GetAddr(),
-                    (int)(dx_buf.GetFrameStride() / sizeof(float))
-                ));
+            int dx_frame_stride = (int)(dx_buf.GetFrameStride() / sizeof(float));
+            int dy_frame_stride = (int)(dy_buf.GetFrameStride() / sizeof(float));
+            for (index_t output_node = 0; output_node < m_output_node_size; ++output_node) {
+                float alpha = 1.0f;
+                float beta = 0.0f;
+
+                BB_CUBLAS_SAFE_CALL(cublasSgemm
+                    (
+                        m_cublasHandle,
+                        CUBLAS_OP_N,
+                        CUBLAS_OP_T,
+                        (int)dx_buf.GetFrameSize(),
+                        (int)m_input_points_size, // dx_buf.GetNodeSize(),
+                        (int)1, // dy_buf.GetNodeSize(),
+                        &alpha,
+                        (const float *)dy_ptr.GetAddr() + (output_node * dy_frame_stride),
+                        (int)dy_frame_stride,
+                        (const float *)W_ptr.GetAddr() + (output_node * m_input_points_size),
+                        (int)m_input_points_size, // dx_buf.GetNodeSize(),
+                        &beta,
+                        (float *)dx_ptr.GetAddr() + (output_node * m_input_points_size * dx_frame_stride),
+                        (int)dx_frame_stride
+                    ));
             
-            beta = 1.0f;
-            BB_CUBLAS_SAFE_CALL(cublasSgemm
-                (
-                    m_cublasHandle,
-                    CUBLAS_OP_T,
-                    CUBLAS_OP_N,
-                    (int)dx_buf.GetNodeSize(),
-                    (int)dy_buf.GetNodeSize(),
-                    (int)dx_buf.GetFrameSize(),
-                    &alpha,
-                    (const float *)x_ptr.GetAddr(),
-                    (int)(x_buf.GetFrameStride() / sizeof(float)),
-                    (const float *)dy_ptr.GetAddr(),
-                    (int)(dy_buf.GetFrameStride() / sizeof(float)),
-                    &beta,
-                    (float *)dW_ptr.GetAddr(),
-                    (int)dx_buf.GetNodeSize()
-                ));
+                beta = 1.0f;
+                BB_CUBLAS_SAFE_CALL(cublasSgemm
+                    (
+                        m_cublasHandle,
+                        CUBLAS_OP_T,
+                        CUBLAS_OP_N,
+                        (int)m_input_points_size, // dx_buf.GetNodeSize(),
+                        (int)1, // dy_buf.GetNodeSize(),
+                        (int)dx_buf.GetFrameSize(),
+                        &alpha,
+                        (const float *)x_ptr.GetAddr() + (output_node * m_input_points_size * dx_frame_stride),
+                        (int)dx_frame_stride,
+                        (const float *)dy_ptr.GetAddr() + (output_node * dy_frame_stride),
+                        (int)dy_frame_stride,
+                        &beta,
+                        (float *)dW_ptr.GetAddr() + (output_node * m_input_points_size),
+                        (int)m_input_points_size // dx_buf.GetNodeSize()
+                    ));
+            }
             
             return dx_buf;
         }

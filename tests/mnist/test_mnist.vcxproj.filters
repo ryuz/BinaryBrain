@@ -69,6 +69,9 @@
     <ClCompile Include="MnistDetectionSparseLutSimple.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="MnistMobileNet.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\bb\StochasticBatchNormalization.h">

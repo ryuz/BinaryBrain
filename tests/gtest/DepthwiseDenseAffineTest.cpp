@@ -51,29 +51,39 @@ TEST(DepthwiseDenseAffineTest, testAffine)
 
     
     // backward
-#if 0    
     bb::FrameBuffer dy_buf(1, {3}, BB_TYPE_FP32);
 
-    dy_buf.SetFP32(0, 0, 998);
-    dy_buf.SetFP32(0, 1, 2042);
-    dy_buf.SetFP32(0, 2, 3491);
+    dy_buf.SetFP32(0, 0, 123);
+    dy_buf.SetFP32(0, 1, 456);
+    dy_buf.SetFP32(0, 2, 789);
 
     auto dx_buf = affine->Backward(dy_buf);
 
-    EXPECT_EQ(370518, dx_buf.GetFP32(0, 0));
-    EXPECT_EQ(741036, dx_buf.GetFP32(0, 1));
+    EXPECT_EQ(123 * 1, dx_buf.GetFP32(0, 0));
+    EXPECT_EQ(123 * 2, dx_buf.GetFP32(0, 1));
+    EXPECT_EQ(456 * 10, dx_buf.GetFP32(0, 2));
+    EXPECT_EQ(456 * 20, dx_buf.GetFP32(0, 3));
+    EXPECT_EQ(789 * 100, dx_buf.GetFP32(0, 4));
+    EXPECT_EQ(789 * 200, dx_buf.GetFP32(0, 5));
+
+    {
+        auto db = affine->lock_db_const();
+
+        EXPECT_EQ(123, db(0));
+        EXPECT_EQ(456, db(1));
+        EXPECT_EQ(789, db(2));
+    }
 
     {
         auto dW = affine->lock_dW_const();
 
-        EXPECT_EQ(998,  dW(0, 0));
-        EXPECT_EQ(2042, dW(1, 0));
-        EXPECT_EQ(3491, dW(2, 0));
-        EXPECT_EQ(1996, dW(0, 1));
-        EXPECT_EQ(4084, dW(1, 1));
-        EXPECT_EQ(6982, dW(2, 1));
+        EXPECT_EQ(1 * 123, dW(0, 0));
+        EXPECT_EQ(2 * 123, dW(0, 1));
+        EXPECT_EQ(3 * 456, dW(1, 0));
+        EXPECT_EQ(4 * 456, dW(1, 1));
+        EXPECT_EQ(5 * 789, dW(2, 0));
+        EXPECT_EQ(6 * 789, dW(2, 1));
     }
-#endif
 }
 
 #if 0

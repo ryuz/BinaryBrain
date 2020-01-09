@@ -358,6 +358,7 @@
     <ClCompile Include="MnistMicroMlpLutCnn.cpp" />
     <ClCompile Include="MnistMicroMlpLutSimple.cpp" />
     <ClCompile Include="MnistMicroMlpScratch.cpp" />
+    <ClCompile Include="MnistMobileNet.cpp" />
     <ClCompile Include="MnistSparseLutCnn.cpp" />
     <ClCompile Include="MnistSparseLutCnnDa.cpp" />
     <ClCompile Include="MnistSparseLutCnnDa2.cpp" />

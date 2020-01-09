@@ -34,6 +34,8 @@ void MnistAeSparseLutCnn     (int epoch_size, int mini_batch_size, int train_mod
 void MnistDetectionSparseLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistDetectionSparseLutCnn   (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 
+void MnistMobileNet          (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+
 
 // メイン関数
 int main(int argc, char *argv[])
@@ -171,6 +173,10 @@ int main(int argc, char *argv[])
 
     if ( netname == "All" || netname == "AeSparseLutCnn" ) {
         MnistAeSparseLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    }
+
+    if ( netname == "All" || netname == "MobileNet" ) {
+        MnistMobileNet(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
     // (おまけ)レイヤー内部を自分で書く人向けサンプル

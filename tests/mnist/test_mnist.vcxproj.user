@@ -45,7 +45,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>All -mini_batch 32 -modulation_size 3 -read 0 -epoch 8 -print_device -num_threads 4</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>MobileNet -mini_batch 32 -modulation_size 4 -read 0 -epoch 8 -print_device -num_threads 4</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelCpu|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
