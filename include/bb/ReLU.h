@@ -54,6 +54,13 @@ protected:
         }
     }
 
+    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
+    {
+        if ( m_binary_mode ) {
+            os << indent << " binary : " << m_binary_mode << std::endl;
+        }
+        _super::PrintInfoText(os, indent, columns, nest, depth);
+    }
 
 public:
     static std::shared_ptr<ReLU> Create(void)
