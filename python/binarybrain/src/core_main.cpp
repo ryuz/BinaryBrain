@@ -21,6 +21,7 @@
 
 #include "bb/Sequential.h"
 #include "bb/DenseAffine.h"
+#include "bb/DepthwiseDenseAffine.h"
 #include "bb/SparseLutN.h"
 #include "bb/SparseLutDiscreteN.h"
 #include "bb/BinaryLutN.h"
@@ -70,6 +71,7 @@ using Model                        = bb::Model;
 using SparseLayer                  = bb::SparseLayer;
 using Sequential                   = bb::Sequential;
 using DenseAffine                  = bb::DenseAffine<float>;
+using DepthwiseDenseAffine         = bb::DepthwiseDenseAffine<float>;
 using LutLayer                     = bb::LutLayer<float, float>;
 using LutLayerBit                  = bb::LutLayer<bb::Bit, float>;
 
@@ -413,6 +415,17 @@ Args:
         .def("dW", ((Tensor& (DenseAffine::*)())&DenseAffine::dW))
         .def("db", ((Tensor& (DenseAffine::*)())&DenseAffine::db));
     
+    // DepthwiseDenseAffine
+    py::class_< DepthwiseDenseAffine, Model, std::shared_ptr<DepthwiseDenseAffine> >(m, "DepthwiseDenseAffine")
+        .def_static("create",   &DepthwiseDenseAffine::CreateEx, "create",
+            py::arg("output_shape"),
+            py::arg("initialize_std") = 0.01f,
+            py::arg("initializer")    = "he",
+            py::arg("seed")           = 1)
+        .def("W", ((Tensor& (DepthwiseDenseAffine::*)())&DepthwiseDenseAffine::W))
+        .def("b", ((Tensor& (DepthwiseDenseAffine::*)())&DepthwiseDenseAffine::b))
+        .def("dW", ((Tensor& (DepthwiseDenseAffine::*)())&DepthwiseDenseAffine::dW))
+        .def("db", ((Tensor& (DepthwiseDenseAffine::*)())&DepthwiseDenseAffine::db));
 
     // SparseLayer
     py::class_< SparseLayer, Model, std::shared_ptr<SparseLayer> >(m, "SparseLayer")
