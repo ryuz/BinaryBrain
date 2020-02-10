@@ -35,6 +35,8 @@ void MnistDetectionSparseLutSimple(int epoch_size, int mini_batch_size, int trai
 void MnistDetectionSparseLutCnn   (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 
 void MnistMobileNet          (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistSegmentationDenseCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+
 
 
 // メイン関数
@@ -192,6 +194,11 @@ int main(int argc, char *argv[])
     if ( netname == "DetectionSparseLutCnn" ) {
         MnistDetectionSparseLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
+
+    if ( netname == "SegmentationDenseCnn" ) {
+        MnistSegmentationDenseCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    }
+
 
     return 0;
 }

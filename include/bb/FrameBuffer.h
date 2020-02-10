@@ -1038,7 +1038,7 @@ public:
     void SetVector(index_t frame, std::vector<Tp> const &data)
     {
         BB_ASSERT(data.size() == (size_t)m_node_size);
-        BB_ASSERT(frame > 0 && frame < m_frame_size);
+        BB_ASSERT(frame >= 0 && frame < m_frame_size);
 
         for (index_t node = 0; node < m_node_size; ++node) {
             SetValue<Tp>(frame, node, data[node]);
@@ -1070,6 +1070,19 @@ public:
                 ptr.Set(frame, node, data[frame + offset][node]);
             }
         }
+    }
+
+    template<typename Tp>
+    std::vector<Tp> GetVector(index_t frame) const
+    {
+        BB_ASSERT(frame >= 0 && frame < m_frame_size);
+
+        std::vector<Tp> data(m_node_size);
+        for (index_t node = 0; node < m_node_size; ++node) {
+            data[node] = GetValue<Tp>(frame, node);
+        }
+
+        return data;
     }
 
 
