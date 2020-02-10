@@ -16,7 +16,7 @@ __global__ void kernal_fp32_LossSoftmaxCrossEntropy(
             const float*    y_buf,
             const float*    t_buf,
             float*          dy_buf,
-            float*          loss_buf,
+            double*         loss_buf,
             float           reciprocal_frame_size,
             int             node_size,
             int             frame_size,
@@ -53,13 +53,13 @@ __global__ void kernal_fp32_LossSoftmaxCrossEntropy(
             loss_softmax = softmax;
         }
     }
-    loss_buf[frame] = log(loss_softmax + 1.0e-7);
+    loss_buf[frame] = log((double)loss_softmax + 1.0e-7);
 }
 
 
 __global__ void kernal_fp32_LossSoftmaxCrossEntropy_Sum(
-            float*          loss_buf,
-            float*          loss,
+            double*         loss_buf,
+            double*         loss,
             int             frame_size
         )
 {
@@ -76,8 +76,8 @@ BBCU_DLL_EXPORT int bbcu_fp32_LossSoftmaxCrossEntropy
             const float*    dev_y_buf,
             const float*    dev_t_buf,
             float*          dev_dy_buf,
-            float*          dev_loss_buf,
-            float*          dev_loss,
+            double*         dev_loss_buf,
+            double*         dev_loss,
             int             node_size,
             int             frame_size,
             int             frame_stride,

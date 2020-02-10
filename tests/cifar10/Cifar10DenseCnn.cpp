@@ -34,28 +34,30 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int train_modulation_s
     auto td = bb::LoadCifar10<>::Load();
 #endif
 
+    float momentam = 0.9;
+
     {
         std::cout << "\n<Training>" << std::endl;
 
         // create network
         auto cnv0_net = bb::Sequential::Create();
         cnv0_net->Add(bb::DenseAffine<>::Create(32));
-        cnv0_net->Add(bb::BatchNormalization<>::Create());
+        cnv0_net->Add(bb::BatchNormalization<>::Create(momentam));
         cnv0_net->Add(bb::ReLU<float>::Create());
 
         auto cnv1_net = bb::Sequential::Create();
         cnv1_net->Add(bb::DenseAffine<>::Create(32));
-        cnv1_net->Add(bb::BatchNormalization<>::Create());
+        cnv1_net->Add(bb::BatchNormalization<>::Create(momentam));
         cnv1_net->Add(bb::ReLU<float>::Create());
 
         auto cnv2_net = bb::Sequential::Create();
         cnv2_net->Add(bb::DenseAffine<>::Create(64));
-        cnv2_net->Add(bb::BatchNormalization<>::Create());
+        cnv2_net->Add(bb::BatchNormalization<>::Create(momentam));
         cnv2_net->Add(bb::ReLU<float>::Create());
 
         auto cnv3_net = bb::Sequential::Create();
         cnv3_net->Add(bb::DenseAffine<>::Create(64));
-        cnv3_net->Add(bb::BatchNormalization<>::Create());
+        cnv3_net->Add(bb::BatchNormalization<>::Create(momentam));
         cnv3_net->Add(bb::ReLU<float>::Create());
 
         auto main_net = bb::Sequential::Create();
@@ -74,7 +76,10 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int train_modulation_s
         }
 
         // modulation wrapper
-        auto net = bb::BinaryModulation<float>::Create(main_net, train_modulation_size, test_modulation_size);
+//      auto net = bb::BinaryModulation<float>::Create(main_net, train_modulation_size, test_modulation_size);
+        auto net = bb::Sequential::Create();
+        net->Add(main_net);
+        net->Add(bb::BinaryToReal<float>::Create());
 
       // set input shape
         net->SetInputShape(td.x_shape);

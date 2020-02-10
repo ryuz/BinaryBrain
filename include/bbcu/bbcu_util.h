@@ -99,6 +99,8 @@ inline int GetDeviceCount(void)
 
 inline void Malloc(void **ptr, size_t size)
 {
+    if ( size == 0 ) { size = 4; }
+
 #if BB_USE_LOCAL_HEAP
     *ptr = bbcu_LocalHeap_Malloc(size);
 #else
@@ -137,7 +139,9 @@ inline void FreeHost(void *ptr)
 
 inline void Memcpy(void *dst, const void *src, size_t count, enum cudaMemcpyKind kind)
 {
-    BB_CUDA_SAFE_CALL(cudaMemcpy(dst, src, count, kind));
+    if ( count > 0 ) {
+        BB_CUDA_SAFE_CALL(cudaMemcpy(dst, src, count, kind));
+    }
 }
 
 

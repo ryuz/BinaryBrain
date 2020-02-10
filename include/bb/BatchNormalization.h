@@ -93,6 +93,8 @@ protected:
 
     void CommandProc(std::vector<std::string> args)
     {
+        _super::CommandProc(args);
+
         // HostOnlyモード設定
         if (args.size() == 2 && args[0] == "bypass")
         {
@@ -282,8 +284,10 @@ public:
     Variables GetParameters(void)
     {
         Variables parameters;
-        if ( !m_fix_gamma ) { parameters.PushBack(m_gamma); }
-        if ( !m_fix_beta  ) { parameters.PushBack(m_beta);  }
+        if ( !this->m_parameter_lock ) {
+            if ( !m_fix_gamma ) { parameters.PushBack(m_gamma); }
+            if ( !m_fix_beta  ) { parameters.PushBack(m_beta);  }
+        }
         return parameters;
     }
 
@@ -296,8 +300,10 @@ public:
     Variables GetGradients(void)
     {
         Variables gradients;
-        if ( !m_fix_gamma ) { gradients.PushBack(m_dgamma); }
-        if ( !m_fix_beta  ) { gradients.PushBack(m_dbeta);  }
+        if ( !this->m_parameter_lock ) {
+            if ( !m_fix_gamma ) { gradients.PushBack(m_dgamma); }
+            if ( !m_fix_beta  ) { gradients.PushBack(m_dbeta);  }
+        }
         return gradients;
     }
     

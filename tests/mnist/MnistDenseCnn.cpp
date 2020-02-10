@@ -87,6 +87,8 @@ void MnistDenseCnn(int epoch_size, int mini_batch_size, int train_modulation_siz
             net->SendCommand("binary false");
         }
 
+//      net->SendCommand("parameter_lock true");
+
         // print model information
         net->PrintInfo();
 

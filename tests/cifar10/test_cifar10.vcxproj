@@ -354,6 +354,7 @@
     <ClCompile Include="Cifar10DenseSimple.cpp" />
     <ClCompile Include="Cifar10MicroMlpLutCnn.cpp" />
     <ClCompile Include="Cifar10MicroMlpLutSimple.cpp" />
+    <ClCompile Include="Cifar10MobileNet.cpp" />
     <ClCompile Include="Cifar10NrSparseLutCnn.cpp" />
     <ClCompile Include="Cifar10SparseLutCnn.cpp" />
     <ClCompile Include="Cifar10SparseLutSimple.cpp" />

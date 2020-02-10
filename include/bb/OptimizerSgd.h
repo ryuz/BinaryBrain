@@ -62,6 +62,10 @@ public:
     
     void Update(void)
     {
+        if ( m_params.IsEmpty() ) {
+            return;
+        }
+
         m_params -= m_learning_rate * m_grads;
         m_grads   = 0;
     }

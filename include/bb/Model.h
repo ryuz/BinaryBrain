@@ -34,14 +34,20 @@ class Model
 {
 protected:
     std::string     m_name;
+    bool            m_parameter_lock = false;
 
     /**
      * @brief  コマンドを処理
      * @detail レイヤーの動作をカスタマイズ
-     *         そのうち特定のレイヤだけとか、活性化だけとか選べるのも作るかも
-     *         文字列にしておけば何でも出来るかな？
      */
-    virtual void CommandProc(std::vector<std::string> args) {}
+    virtual void CommandProc(std::vector<std::string> args)
+    {
+        // パラメータのロック
+        if ( args.size() == 2 && args[0] == "parameter_lock" )
+        {
+            m_parameter_lock = EvalBool(args[1]);
+        }
+    }
     
 public:
     /**
@@ -302,15 +308,25 @@ public:
         is.read((char*)&m_name[0], size);
     }
 
-    void SaveBinary(std::string filename) const
+    bool SaveBinary(std::string filename) const
     {
         std::ofstream ofs(filename, std::ios::binary);
-         Save(ofs);
+        if ( !ofs.is_open() ) {
+            std::cerr << "file open error : " << filename << std::endl;
+            return false;
+        }
+
+        Save(ofs);
     }
 
-    void LoadBinary(std::string filename)
+    bool LoadBinary(std::string filename)
     {
         std::ifstream ifs(filename, std::ios::binary);
+        if ( !ifs.is_open() ) {
+            std::cerr << "file open error : " << filename << std::endl;
+            return false;
+        }
+
         Load(ifs);
     }
 
@@ -338,22 +354,35 @@ public:
     {
         archive(cereal::make_nvp("Model", *this));
     }
-
-    void SaveJson(std::string filename) const
-    {
-        std::ofstream ofs(filename);
-        cereal::JSONOutputArchive archive(ofs);
-        Save(archive);
-    }
-
-    void LoadJson(std::string filename)
-    {
-        std::ifstream ifs(filename);
-        cereal::JSONInputArchive archive(ifs);
-        Load(archive);
-    }
 #endif
 
+    bool SaveJson(std::string filename) const
+    {
+#if BB_WITH_CEREAL
+        std::ofstream ofs(filename);
+        if ( !ofs.is_open() ) {
+            std::cerr << "file open error : " << filename << std::endl;
+            return false;
+        }
+
+        cereal::JSONOutputArchive archive(ofs);
+        Save(archive);
+#endif
+    }
+
+    bool LoadJson(std::string filename)
+    {
+#if BB_WITH_CEREAL
+        std::ifstream ifs(filename);
+        if ( !ifs.is_open() ) {
+            std::cerr << "file open error : " << filename << std::endl;
+            return false;
+        }
+
+        cereal::JSONInputArchive archive(ifs);
+        Load(archive);
+#endif
+    }
 
 };
 

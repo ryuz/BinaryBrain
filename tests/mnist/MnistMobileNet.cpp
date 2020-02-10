@@ -44,24 +44,22 @@ void MnistMobileNet(int epoch_size, int mini_batch_size, int train_modulation_si
         cnv0_net->Add(bb::DenseAffine<>::Create(32));
         cnv0_net->Add(bb::BatchNormalization<>::Create());
         cnv0_net->Add(bb::ReLU<float>::Create());
-
+        
         auto cnv10_net = bb::Sequential::Create();
         cnv10_net->Add(bb::DepthwiseDenseAffine<>::Create(32));
         cnv10_net->Add(bb::BatchNormalization<>::Create());
         cnv10_net->Add(bb::ReLU<float>::Create());
-
         auto cnv11_net = bb::Sequential::Create();
         cnv11_net->Add(bb::DenseAffine<>::Create(32));
         cnv11_net->Add(bb::BatchNormalization<>::Create());
         cnv11_net->Add(bb::ReLU<float>::Create());
 
         auto cnv20_net = bb::Sequential::Create();
-        cnv20_net->Add(bb::DenseAffine<>::Create(64));
+        cnv20_net->Add(bb::DepthwiseDenseAffine<>::Create(32));
         cnv20_net->Add(bb::BatchNormalization<>::Create());
         cnv20_net->Add(bb::ReLU<float>::Create());
-
         auto cnv21_net = bb::Sequential::Create();
-        cnv21_net->Add(bb::DepthwiseDenseAffine<>::Create(64));
+        cnv21_net->Add(bb::DenseAffine<>::Create(64));
         cnv21_net->Add(bb::BatchNormalization<>::Create());
         cnv21_net->Add(bb::ReLU<float>::Create());
 
@@ -69,7 +67,6 @@ void MnistMobileNet(int epoch_size, int mini_batch_size, int train_modulation_si
         cnv30_net->Add(bb::DepthwiseDenseAffine<>::Create(64));
         cnv30_net->Add(bb::BatchNormalization<>::Create());
         cnv30_net->Add(bb::ReLU<float>::Create());
-
         auto cnv31_net = bb::Sequential::Create();
         cnv31_net->Add(bb::DenseAffine<>::Create(64));
         cnv31_net->Add(bb::BatchNormalization<>::Create());
@@ -79,7 +76,6 @@ void MnistMobileNet(int epoch_size, int mini_batch_size, int train_modulation_si
         cnv40_net->Add(bb::DepthwiseDenseAffine<>::Create(64));
         cnv40_net->Add(bb::BatchNormalization<>::Create());
         cnv40_net->Add(bb::ReLU<float>::Create());
-
         auto cnv41_net = bb::Sequential::Create();
         cnv41_net->Add(bb::DenseAffine<>::Create(128));
         cnv41_net->Add(bb::BatchNormalization<>::Create());
@@ -89,7 +85,6 @@ void MnistMobileNet(int epoch_size, int mini_batch_size, int train_modulation_si
         cnv50_net->Add(bb::DepthwiseDenseAffine<>::Create(128));
         cnv50_net->Add(bb::BatchNormalization<>::Create());
         cnv50_net->Add(bb::ReLU<float>::Create());
-
         auto cnv51_net = bb::Sequential::Create();
         cnv51_net->Add(bb::DenseAffine<>::Create(10));
         cnv51_net->Add(bb::BatchNormalization<>::Create());

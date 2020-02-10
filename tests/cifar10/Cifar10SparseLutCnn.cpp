@@ -126,7 +126,7 @@ void SparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size
         main_net->Add(layer_sl10);
         main_net->Add(layer_sl11);
         main_net->Add(layer_sl12);
-        main_net->Add(layer_sl13);zenn
+        main_net->Add(layer_sl13);
         main_net->Add(layer_sl14);
         main_net->Add(layer_sl15);
 

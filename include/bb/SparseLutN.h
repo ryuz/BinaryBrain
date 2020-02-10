@@ -363,14 +363,18 @@ public:
     Variables GetParameters(void)
     {
         Variables parameters;
-        parameters.PushBack(m_W);
+        if ( !this->m_parameter_lock ) {
+            parameters.PushBack(m_W);
+        }
         return parameters;
     }
 
     Variables GetGradients(void)
     {
         Variables gradients;
-        gradients.PushBack(m_dW);
+        if ( !this->m_parameter_lock ) {
+            gradients.PushBack(m_dW);
+        }
         return gradients;
     }
     

@@ -23,9 +23,9 @@ class LossSoftmaxCrossEntropy : public LossFunction
 {
 protected:
 //    FrameBuffer m_dy;
-    Tensor_<T>  m_loss_buf;
-    Tensor_<T>  m_loss;
-    index_t     m_frames = 0;
+    Tensor_<double>  m_loss_buf;
+    Tensor_<double>  m_loss;
+    index_t          m_frames = 0;
 
 protected:
     LossSoftmaxCrossEntropy() {
@@ -51,7 +51,7 @@ public:
     double GetLoss(void) const 
     {
         auto loss_ptr = m_loss.LockConst();
-        return (double)loss_ptr[0] / (double)m_frames;
+        return loss_ptr[0] / (double)m_frames;
     }
 
     FrameBuffer CalculateLoss(FrameBuffer y_buf, FrameBuffer t_buf, index_t batch_size)
@@ -75,8 +75,8 @@ public:
                     (float const *)y_ptr.GetAddr(),
                     (float const *)t_ptr.GetAddr(),
                     (float       *)dy_ptr.GetAddr(),
-                    (float       *)loss_buf_ptr.GetAddr(),
-                    (float       *)loss_ptr.GetAddr(),
+                    (double      *)loss_buf_ptr.GetAddr(),
+                    (double      *)loss_ptr.GetAddr(),
                     (int          )y_buf.GetNodeSize(),
                     (int          )y_buf.GetFrameSize(),
                     (int          )(y_buf.GetFrameStride() / sizeof(float)),
@@ -131,7 +131,7 @@ public:
                 }
             }
 
-            T loss_sum = 0;
+            double loss_sum = 0;
             for ( index_t frame = 0; frame < frame_size; ++frame ) {
                 loss_sum += loss_buf_ptr[frame];
             }

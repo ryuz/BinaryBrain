@@ -136,7 +136,11 @@ class Runner:
         # initial evaluation
         if init_eval:
             calculation(self.net, x_test, x_shape, t_test, t_shape, mini_batch_size, 1, self.metrics, self.loss)
-            output_text = '[initial] %s=%f loss=%f' % (self.metrics.get_metrics_string(), self.metrics.get_metrics(), self.loss.get_loss())
+            output_text = '[initial] test_%s=%f test_loss=%f' % (self.metrics.get_metrics_string(), self.metrics.get_metrics(), self.loss.get_loss())
+            
+            calculation(self.net, x_train, x_shape, t_train, t_shape, mini_batch_size, 1, self.metrics, self.loss)
+            output_text += ' train_%s=%f train_loss=%f' % (self.metrics.get_metrics_string(), self.metrics.get_metrics(), self.loss.get_loss())
+            
             print(output_text)
             with open(log_file_name, 'a') as log_file:
                 print(output_text, file=log_file)

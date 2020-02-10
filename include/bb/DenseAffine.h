@@ -92,6 +92,8 @@ protected:
 
     void CommandProc(std::vector<std::string> args)
     {
+        _super::CommandProc(args);
+
         // バイナリモード設定
         if ( args.size() == 2 && args[0] == "binary" )
         {
@@ -243,16 +245,20 @@ public:
     Variables GetParameters(void)
     {
         Variables parameters;
-        parameters.PushBack(m_W);
-        parameters.PushBack(m_b);
+        if ( !this->m_parameter_lock ) {
+            parameters.PushBack(m_W);
+            parameters.PushBack(m_b);
+        }
         return parameters;
     }
 
     Variables GetGradients(void)
     {
         Variables gradients;
-        gradients.PushBack(m_dW);
-        gradients.PushBack(m_db);
+        if ( !this->m_parameter_lock ) {
+            gradients.PushBack(m_dW);
+            gradients.PushBack(m_db);
+        }
         return gradients;
     }
 
