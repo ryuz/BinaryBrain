@@ -148,10 +148,10 @@ int main(int argc, char *argv[])
     }
 
     if ( netname == "SparseLutCnnDa" ) {
-        MnistSparseLutCnnDa(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+//        MnistSparseLutCnnDa(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
     if ( netname == "SparseLutCnnDa2" ) {
-        MnistSparseLutCnnDa2(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+//        MnistSparseLutCnnDa2(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
     if ( netname == "All" || netname == "MicroMlpLutSimple" ) {
