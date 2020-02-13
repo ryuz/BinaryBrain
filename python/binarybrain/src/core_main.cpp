@@ -6,6 +6,7 @@
 //                                ryuji.fuchikami@nifty.com
 // --------------------------------------------------------------------------
 
+#include <omp.h>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -380,13 +381,17 @@ Args:
     
     // model
     py::class_< Model, std::shared_ptr<Model> >(m, "Model")
-        .def("set_input_shape", &Model::SetInputShape)
+        .def("get_name", &Model::GetName)
+        .def("get_class_name", &Model::GetClassName)
         .def("get_info", &Model::GetInfoString, doc__Model_get_info,
                 py::arg("depth")    = 0,
                 py::arg("columns")  = 70,
                 py::arg("nest")     = 0)
         .def("get_input_shape", &Model::GetInputShape)
+        .def("set_input_shape", &Model::SetInputShape)
         .def("get_output_shape", &Model::GetOutputShape)
+        .def("get_input_node_size", &Model::GetInputNodeSize)
+        .def("get_output_node_size", &Model::GetOutputNodeSize)
         .def("get_parameters", &Model::GetParameters)
         .def("get_gradients", &Model::GetGradients)
         .def("forward_node",  &Model::ForwardNode)
@@ -764,6 +769,8 @@ R"(create BinaryLut6 object
             py::arg("epoch_size"),
             py::arg("batch_size"));
 
+
+    m.def("omp_set_num_threads", &omp_set_num_threads);
 
     // CUDA device
 #ifdef BB_WITH_CUDA

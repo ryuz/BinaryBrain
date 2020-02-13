@@ -360,6 +360,7 @@
     <ClCompile Include="MnistMicroMlpScratch.cpp" />
     <ClCompile Include="MnistMobileNet.cpp" />
     <ClCompile Include="MnistSegmentationDenseCnn.cpp" />
+    <ClCompile Include="MnistSegmentationMobileNet.cpp" />
     <ClCompile Include="MnistSegmentationSparseLutCnn.cpp" />
     <ClCompile Include="MnistSparseLutCnn.cpp" />
     <ClCompile Include="MnistSparseLutCnnDa.cpp" />
@@ -386,6 +387,7 @@
     <ClInclude Include="..\..\include\bb\DataAugmentationMnist.h" />
     <ClInclude Include="..\..\include\bb\DataType.h" />
     <ClInclude Include="..\..\include\bb\DenseAffine.h" />
+    <ClInclude Include="..\..\include\bb\DepthwiseDenseAffine.h" />
     <ClInclude Include="..\..\include\bb\Dropout.h" />
     <ClInclude Include="..\..\include\bb\ExportVerilog.h" />
     <ClInclude Include="..\..\include\bb\Filter2d.h" />

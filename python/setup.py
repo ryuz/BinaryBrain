@@ -292,7 +292,8 @@ class BuildExt(build_ext):
         ar_args['unix'] += ['-fopenmp', '-lstdc++', '-lm']
         
         # windows(cpu)
-        cc_args['msvc'] += ['/EHsc', '/Oi', '/MT', '/arch:AVX2', '/openmp', '/std:c++14', '/wd"4819"']
+        cc_args['msvc'] += ['/EHsc', '/Oi', '/MT', '/arch:AVX2', '/openmp', '/std:c++14', '/wd"4819"',
+                            '/D \"BB_ASSERT_EXCEPTION\"']
         ar_args['msvc'] += []
     else:
         # unix(gpu)
@@ -330,7 +331,8 @@ class BuildExt(build_ext):
                             '-Xcompiler', '/arch:AVX2',
                             '-Xcompiler', '/openmp',
                             '-Xcompiler', '/std:c++14',
-                            '-Xcompiler', '/wd\"4819\"']
+                            '-Xcompiler', '/wd\"4819\"',
+                            '-DBB_ASSERT_EXCEPTION']
         cu_args['msvc'] += ['-O3',
                             '-std=c++11',
                             '-gencode=arch=compute_35,code=sm_35',
@@ -343,7 +345,8 @@ class BuildExt(build_ext):
                             '-Xcompiler', '/Oi',
                             '-Xcompiler', '/FS',
                             '-Xcompiler', '/Zi',
-                            '-Xcompiler', '/MT']
+                            '-Xcompiler', '/MT',
+                            '-DBB_ASSERT_EXCEPTION']
         ar_args['msvc'] += ['-lcublas']
     
     if sys.platform == 'darwin':

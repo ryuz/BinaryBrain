@@ -10,9 +10,9 @@
 
 #include "bb/Sequential.h"
 #include "bb/DenseAffine.h"
+#include "bb/DepthwiseDenseAffine.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
-#include "bb/SparseLutN.h"
 #include "bb/LoweringConvolution.h"
 #include "bb/MaxPooling.h"
 #include "bb/BinaryModulation.h"
@@ -65,7 +65,7 @@ static int argmax_img(std::vector<float> const &img, int pix, int pix_size=56*56
     float max_val = 0;
     int   max_c   = 0;
     for ( int c = 0; c < ch_size; c++ ) {
-        auto val = img[pix_size*c + pix];
+        auto val = img[pix_size * c + pix];
         if ( val > max_val ) {
             max_val = val;
             max_c   = c;
@@ -132,43 +132,46 @@ static void make_td(std::vector< std::vector<float> > &src_x, std::vector< std::
 }
 
 
+
 static std::shared_ptr<bb::Model> make_cnv(int ch_size)
 {
     auto cnv_net = bb::Sequential::Create();
-    cnv_net->Add(bb::SparseLutN<6, bb::Bit>::Create(ch_size*6));
-    cnv_net->Add(bb::SparseLutN<6, bb::Bit>::Create(ch_size, true, "serial"));
-    return bb::LoweringConvolution<bb::Bit>::Create(cnv_net, 3, 3, 1, 1, "same");
+    cnv_net->Add(bb::DenseAffine<>::Create(ch_size));
+    cnv_net->Add(bb::BatchNormalization<>::Create());
+    cnv_net->Add(bb::ReLU<float>::Create());
+    return bb::LoweringConvolution<>::Create(cnv_net, 3, 3, 1, 1, "same");
 }
 
 
 static std::shared_ptr<bb::Model> make_mobile_cnv(int in_ch_size, int out_ch_size)
 {
     auto net = bb::Sequential::Create();
-
-    // depthwise
+    
     {
         auto cnv0_net = bb::Sequential::Create();
-        cnv0_net->Add(bb::SparseLutN<6, bb::Bit>::Create({6, 1, in_ch_size}, true, "depthwise"));
-        cnv0_net->Add(bb::SparseLutN<6, bb::Bit>::Create({1, 1, in_ch_size}, true, "depthwise"));
-        net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv0_net, 3, 3, 1, 1, "same"));
+        cnv0_net->Add(bb::DepthwiseDenseAffine<>::Create(in_ch_size));
+        cnv0_net->Add(bb::BatchNormalization<>::Create());
+        cnv0_net->Add(bb::ReLU<float>::Create());
+        net->Add(bb::LoweringConvolution<>::Create(cnv0_net, 3, 3, 1, 1, "same"));
     }
 
-    // pointwise
     {
         auto cnv1_net = bb::Sequential::Create();
-        cnv1_net->Add(bb::SparseLutN<6, bb::Bit>::Create({1, 1, out_ch_size*6}, true, "random"));
-        cnv1_net->Add(bb::SparseLutN<6, bb::Bit>::Create({1, 1, out_ch_size}, true, "serial"));
-        net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv1_net, 1, 1));
+        cnv1_net->Add(bb::DenseAffine<>::Create(out_ch_size));
+        cnv1_net->Add(bb::BatchNormalization<>::Create());
+        cnv1_net->Add(bb::ReLU<float>::Create());
+        net->Add(bb::LoweringConvolution<>::Create(cnv1_net, 1, 1));
     }
-    
+
     return net;
 }
 
 
 
-void MnistSegmentationSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+
+void MnistSegmentationMobileNet(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "MnistSegmentationDenseCnn";
+    std::string net_name = "MnistSegmentationMobileNet";
 
     // load MNIST data
 #ifdef _DEBUG
@@ -206,14 +209,20 @@ void MnistSegmentationSparseLutCnn(int epoch_size, int mini_batch_size, int trai
 
     // create network
     auto main_net = bb::Sequential::Create();
-    for ( int i = 0; i < 26; ++i ) {
-        main_net->Add(make_cnv(36));
+    main_net->Add(make_cnv(36));
+    for ( int i = 0; i < 25; ++i ) {
+        main_net->Add(make_mobile_cnv(36, 36));
     }
-    main_net->Add(make_cnv(11));
+    main_net->Add(make_mobile_cnv(36, 11));
 
     // modulation wrapper
-    auto net = bb::BinaryModulation<bb::Bit>::Create(main_net, train_modulation_size, test_modulation_size);
-//    auto net = main_net;
+    auto net = bb::Sequential::Create();
+    if ( binary_mode ) {
+        net->Add(bb::BinaryModulation<float>::Create(main_net, train_modulation_size, test_modulation_size));
+    }
+    else {
+        net->Add(main_net);
+    }
 
     // set input shape
     net->SetInputShape(td.x_shape);

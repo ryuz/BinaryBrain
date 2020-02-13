@@ -41,8 +41,14 @@ public:
     // destructor
     ~bbcuLocalHeap()
     {
-        BBCU_ASSERT(m_allocated_map.empty());
-        BBCU_ASSERT(m_allocated_size == 0);
+//      BBCU_ASSERT(m_allocated_map.empty());
+//      BBCU_ASSERT(m_allocated_size == 0);
+        if ( !m_allocated_map.empty() ) {
+            fprintf(stderr, "[Error] 'm_allocated_map is not empty.' at %s line %d\n", __FILE__, __LINE__);
+        }
+        if ( m_allocated_size != 0 ) {
+            fprintf(stderr, "[Error] 'm_allocated_size is not zero.' at %s line %d\n", __FILE__, __LINE__);
+        }
 
         for (auto& heap : m_reserve_vec) {
             m_reserve_size -= heap.size;
@@ -52,11 +58,14 @@ public:
             if ( err == 29 ) { return; }     // driver shutting down
 
             if (err != cudaSuccess) {
-                fprintf(stderr, "[Error] %s (error code: %d) at %s line %d\n", cudaGetErrorString(err), err, __FILE__, __LINE__); \
+                fprintf(stderr, "[Error] %s (error code: %d) at %s line %d\n", cudaGetErrorString(err), err, __FILE__, __LINE__);
             }
         }
 
-        BBCU_ASSERT(m_reserve_size == 0);
+//      BBCU_ASSERT(m_reserve_size == 0);
+        if ( m_reserve_size != 0 ) {
+            fprintf(stderr, "[Error] 'm_reserve_size is not zero.' at %s line %d\n", __FILE__, __LINE__);
+        }
     }
 
 protected:

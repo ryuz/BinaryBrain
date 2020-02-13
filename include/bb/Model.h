@@ -317,6 +317,7 @@ public:
         }
 
         Save(ofs);
+        return true;
     }
 
     bool LoadBinary(std::string filename)
@@ -328,6 +329,7 @@ public:
         }
 
         Load(ifs);
+        return true;
     }
 
 
