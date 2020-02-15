@@ -42,6 +42,10 @@ extern "C" {
 //  Maneger
 // -------------------------------------
 
+BBCU_DLL_EXPORT int  bbcu_GetDeviceCount(void); 
+BBCU_DLL_EXPORT int  bbcu_GetDevice(void); 
+BBCU_DLL_EXPORT void bbcu_SetDevice(int device);
+
 BBCU_DLL_EXPORT void bbcu_SetHostOnly(bool hostOnly);
 BBCU_DLL_EXPORT bool bbcu_IsHostOnly(void);
 BBCU_DLL_EXPORT bool bbcu_IsDeviceAvailable(void);
@@ -69,6 +73,7 @@ BBCU_DLL_EXPORT size_t bbcu_LocalHeap_GetMaxAllocSize(void);
 #if defined(__cplusplus) && defined(BBCU_DLL)
 extern "C" {
 #endif
+
 
 
 // -------------------------------------

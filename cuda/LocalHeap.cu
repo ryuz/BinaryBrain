@@ -15,8 +15,8 @@ class bbcuLocalHeap
 protected:
     struct heap_t
     {
-        void    *ptr;
-        size_t  size;
+        void    *ptr = nullptr;
+        size_t  size = 0;
 
         heap_t(){}
         heap_t(void *p, size_t sz) { ptr = p; size = sz; }
@@ -130,6 +130,7 @@ public:
 
         m_allocated_size -= size;
 
+        std::cout << "Out of memory error (devide : " << bbcu_GetDevice() << ")" << std::endl;
         BBCU_ASSERT(0);
 
         return nullptr;

@@ -283,11 +283,12 @@ protected:
         m_devAvailable = false;
 
         // デバイス設定
-        int dev_count = bbcu::GetDeviceCount();
+        int dev_count = bbcu_GetDeviceCount();
 
         // デバイスがあれば有効化
         if ( dev_count > 0 && !m_hostOnly ) {
             m_devAvailable = true;
+            m_device = bbcu_GetDevice();
         }
 
         // デバイスが使えなければここでホストメモリ確保
