@@ -46,6 +46,7 @@ int main(int argc, char *argv[])
 {
     // set default parameter
     std::string netname               = "All";
+    int         device                = 0;
     int         epoch_size            = 8;
     int         mini_batch_size       = 32;
     int         train_modulation_size = 7;
@@ -113,6 +114,10 @@ int main(int argc, char *argv[])
             ++i;
             file_read = (strtoul(argv[i], NULL, 0) != 0);
         }
+        else if (strcmp(argv[i], "-device") == 0 && i + 1 < argc) {
+            ++i;
+            device = (strtoul(argv[i], NULL, 0) != 0);
+        }
         else if (strcmp(argv[i], "-print_device") == 0 ) {
             print_device = true;
         }
@@ -125,9 +130,13 @@ int main(int argc, char *argv[])
         test_modulation_size = train_modulation_size;
     }
 
+
 #ifdef BB_WITH_CUDA
+    bbcu_SetDevice(device);
+    std::cout << " devide : " << bbcu_GetDevice() << std::endl;
+
     if ( print_device ) {
-        bbcu::PrintDeviceProperties();
+        bbcu::PrintDeviceProperties(device);
     }
 #endif
 

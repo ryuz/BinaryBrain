@@ -156,8 +156,8 @@ static std::shared_ptr<bb::Model> make_mobile_cnv(int in_ch_size, int out_ch_siz
     // pointwise
     {
         auto cnv1_net = bb::Sequential::Create();
-        cnv1_net->Add(bb::SparseLutN<6, bb::Bit>::Create({1, 1, out_ch_size*6}, true, "random"));
-        cnv1_net->Add(bb::SparseLutN<6, bb::Bit>::Create({1, 1, out_ch_size}, true, "serial"));
+        cnv1_net->Add(bb::SparseLutN<6, bb::Bit>::Create({1, 1, out_ch_size*6}, true));
+        cnv1_net->Add(bb::SparseLutN<6, bb::Bit>::Create({1, 1, out_ch_size}, true));
         net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv1_net, 1, 1));
     }
     

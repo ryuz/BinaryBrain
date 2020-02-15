@@ -148,6 +148,31 @@ using RunStatus                    = bb::RunStatus;
 using Runner                       = bb::Runner<float>;
 
 
+int GetDeviceCount(int device)
+{
+#if BB_WITH_CUDA
+    return bbcu_GetDeviceCount();
+#else
+    return 0;
+#endif
+}
+
+void SetDevice(int device)
+{
+#if BB_WITH_CUDA
+    bbcu_SetDevice(device);
+#endif
+}
+
+std::string GetDevicePropertiesString(void)
+{
+#if BB_WITH_CUDA
+    return bbcu::GetDevicePropertiesString();
+#else
+    return "host only\n"
+#endif
+}
+
 std::string MakeVerilog_FromLut(std::string module_name, std::vector< std::shared_ptr< bb::LutLayer<float, float> > > layers)
 {
     std::stringstream ss;
@@ -769,13 +794,14 @@ R"(create BinaryLut6 object
             py::arg("epoch_size"),
             py::arg("batch_size"));
 
-
+    
+    // OpenMP
     m.def("omp_set_num_threads", &omp_set_num_threads);
 
     // CUDA device
-#ifdef BB_WITH_CUDA
-    m.def("get_device_properties", &bbcu::GetDevicePropertiesString);
-#endif
+    m.def("get_device_count", &GetDeviceCount);
+    m.def("set_device", &SetDevice);
+    m.def("get_device_properties", &GetDevicePropertiesString);
 
     // verilog
     m.def("make_verilog_from_lut", &MakeVerilog_FromLut);
