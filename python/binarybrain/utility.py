@@ -178,7 +178,7 @@ class Runner:
             print(output_text)
             with open(log_file_name, 'a') as log_file:
                 print(output_text, file=log_file)
-                        
+            
             # shuffle
             p = np.random.permutation(len(x_train))
             x_train = x_train[p]

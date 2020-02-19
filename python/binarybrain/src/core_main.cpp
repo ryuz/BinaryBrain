@@ -148,7 +148,7 @@ using RunStatus                    = bb::RunStatus;
 using Runner                       = bb::Runner<float>;
 
 
-int GetDeviceCount(int device)
+int GetDeviceCount(void)
 {
 #if BB_WITH_CUDA
     return bbcu_GetDeviceCount();
@@ -164,10 +164,10 @@ void SetDevice(int device)
 #endif
 }
 
-std::string GetDevicePropertiesString(void)
+std::string GetDevicePropertiesString(int device)
 {
 #if BB_WITH_CUDA
-    return bbcu::GetDevicePropertiesString();
+    return bbcu::GetDevicePropertiesString(device);
 #else
     return "host only\n"
 #endif
