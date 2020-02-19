@@ -12,6 +12,7 @@
 #include "bb/DenseAffine.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
+#include "bb/Reduce.h"
 #include "bb/SparseLutN.h"
 #include "bb/LoweringConvolution.h"
 #include "bb/MaxPooling.h"
@@ -100,6 +101,9 @@ static void make_td(std::vector< std::vector<float> > &src_x, std::vector< std::
     std::vector< std::vector<float> > dst_x;
     std::vector< std::vector<float> > dst_t;
 
+    std::mt19937_64 mt(1);
+    std::uniform_int_distribution<int> dist(0, 10);
+
     for ( int i = 0; i < (int)src_x.size(); i += 4 ) {
         std::vector<float> x_vec(1*56*56);
         std::vector<float> t_vec(11*56*56);
@@ -108,15 +112,15 @@ static void make_td(std::vector< std::vector<float> > &src_x, std::vector< std::
                 int idx = i + yy*2 + xx;
                 for ( int y = 0; y < 28; ++y ) {
                     for ( int x = 0; x < 28; ++x ) {
-                        int pix = (yy*28 + y) * 56 + (xx*28 + x);
-                        x_vec[pix] = src_x[idx][y*28 + x];
+                        int pix = (yy*28 + y) * 56 + (xx * 28 + x);
+                        x_vec[pix] = src_x[idx][y * 28 + x];
                         for ( int c = 0; c < 11; ++c ) {
                             int node = c*56*56 + pix;
                             if ( c < 10 ) {
                                 t_vec[node] = (x_vec[pix] > 0.5) ? src_t[idx][c] : 0.0f;
                             }
                             else {
-                                t_vec[node] = (x_vec[pix] <= 0.5) ? 1.0f : 0.0f;
+                                t_vec[node] = (dist(mt) == 0 && x_vec[pix] <= 0.5) ? 1.0f : 0.0f;
                             }
                         }
                     }
@@ -132,11 +136,30 @@ static void make_td(std::vector< std::vector<float> > &src_x, std::vector< std::
 }
 
 
-static std::shared_ptr<bb::Model> make_cnv(int ch_size)
+static std::shared_ptr<bb::Model> make_dense_cnv(int ch_size)
+{
+    auto cnv_net = bb::Sequential::Create();
+    cnv_net->Add(bb::BinaryToReal<bb::Bit>::Create());
+    cnv_net->Add(bb::DenseAffine<float>::Create(ch_size));
+    cnv_net->Add(bb::BatchNormalization<float>::Create());
+    cnv_net->Add(bb::Binarize<bb::Bit>::Create());
+    return bb::LoweringConvolution<bb::Bit>::Create(cnv_net, 3, 3, 1, 1, "same");
+}
+
+static std::shared_ptr<bb::Model> make_lut_cnv2(int ch_size, int w=3, int h=3)
 {
     auto cnv_net = bb::Sequential::Create();
     cnv_net->Add(bb::SparseLutN<6, bb::Bit>::Create(ch_size*6));
     cnv_net->Add(bb::SparseLutN<6, bb::Bit>::Create(ch_size, true, "serial"));
+    return bb::LoweringConvolution<bb::Bit>::Create(cnv_net, w, h, 1, 1, "same");
+}
+
+static std::shared_ptr<bb::Model> make_lut_cnv3(int ch_size)
+{
+    auto cnv_net = bb::Sequential::Create();
+    cnv_net->Add(bb::SparseLutN<6, bb::Bit>::Create(ch_size*6*6, true));
+    cnv_net->Add(bb::SparseLutN<6, bb::Bit>::Create(ch_size*6, true));
+    cnv_net->Add(bb::SparseLutN<6, bb::Bit>::Create(ch_size, true));
     return bb::LoweringConvolution<bb::Bit>::Create(cnv_net, 3, 3, 1, 1, "same");
 }
 
@@ -160,9 +183,10 @@ static std::shared_ptr<bb::Model> make_mobile_cnv(int in_ch_size, int out_ch_siz
         cnv1_net->Add(bb::SparseLutN<6, bb::Bit>::Create({1, 1, out_ch_size}, true));
         net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv1_net, 1, 1));
     }
-    
+
     return net;
 }
+
 
 
 
@@ -206,13 +230,17 @@ void MnistSegmentationSparseLutCnn(int epoch_size, int mini_batch_size, int trai
 
     // create network
     auto main_net = bb::Sequential::Create();
-    for ( int i = 0; i < 26; ++i ) {
-        main_net->Add(make_cnv(36));
+    main_net->Add(make_lut_cnv2(32));
+    for ( int i = 0; i < 27; ++i ) {
+        main_net->Add(make_lut_cnv2(32, 3, 3));
     }
-    main_net->Add(make_cnv(11));
+    main_net->Add(make_lut_cnv2(36, 1, 1));
+    main_net->Add(make_lut_cnv2(77, 1, 1));
 
     // modulation wrapper
-    auto net = bb::BinaryModulation<bb::Bit>::Create(main_net, train_modulation_size, test_modulation_size);
+    auto net = bb::Sequential::Create();
+    net->Add(bb::BinaryModulation<bb::Bit>::Create(main_net, train_modulation_size, test_modulation_size));
+    net->Add(bb::Reduce<>::Create(td.t_shape));
 //    auto net = main_net;
 
     // set input shape
@@ -241,43 +269,45 @@ void MnistSegmentationSparseLutCnn(int epoch_size, int mini_batch_size, int trai
     std::cout << "binary_mode           : " << binary_mode           << std::endl;
     std::cout << "file_read             : " << file_read             << std::endl;
 
-    // run fitting
-    bb::Runner<float>::create_t runner_create;
-    runner_create.name               = net_name;
-    runner_create.net                = net;
-    runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
-    runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
-    runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
-    runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
-    runner_create.file_write         = true;            // 計算結果をファイルに保存するか
-    runner_create.print_progress     = true;            // 途中結果を表示
-    runner_create.initial_evaluation = false;//file_read;       // ファイルを読んだ場合は最初に評価しておく 
-    auto runner = bb::Runner<float>::Create(runner_create);
-    runner->Fitting(td, epoch_size, mini_batch_size);
+    for ( int epoch = 0; epoch < epoch_size; ++epoch ) {
+        // run fitting
+        bb::Runner<float>::create_t runner_create;
+        runner_create.name               = net_name;
+        runner_create.net                = net;
+        runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
+        runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
+        runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
+        runner_create.file_read          = (epoch == 0 && file_read);       // 前の計算結果があれば読み込んで再開するか
+        runner_create.file_write         = true;            // 計算結果をファイルに保存するか
+        runner_create.print_progress     = true;            // 途中結果を表示
+        runner_create.initial_evaluation = false;//file_read;       // ファイルを読んだ場合は最初に評価しておく 
+        auto runner = bb::Runner<float>::Create(runner_create);
+//      runner->Fitting(td, epoch_size, mini_batch_size);
+        runner->Fitting(td, 1, mini_batch_size);
 
-
-    // write pgm
-    {
-        bb::FrameBuffer x_buf(32, {28*2, 28*2, 1}, BB_TYPE_FP32);
-        x_buf.SetVector(td.x_test, 0);
-        auto y_buf = net->Forward(x_buf, false);
-        write_ppm("seg_0.ppm", y_buf, 0);
-        write_ppm("seg_1.ppm", y_buf, 1);
-        write_ppm("seg_2.ppm", y_buf, 2);
-        write_ppm("seg_3.ppm", y_buf, 3);
-        write_ppm("seg_4.ppm", y_buf, 4);
-        write_ppm("seg_5.ppm", y_buf, 5);
-        write_ppm("seg_6.ppm", y_buf, 6);
-        write_ppm("seg_7.ppm", y_buf, 7);
-        write_ppm("seg_8.ppm", y_buf, 8);
-        write_ppm("seg_9.ppm", y_buf, 9);
-        write_ppm("seg_10.ppm", y_buf, 10);
-        write_ppm("seg_11.ppm", y_buf, 11);
-        write_ppm("seg_12.ppm", y_buf, 12);
-        write_ppm("seg_13.ppm", y_buf, 13);
-        write_ppm("seg_14.ppm", y_buf, 14);
-        write_ppm("seg_15.ppm", y_buf, 15);
-        write_ppm("seg_16.ppm", y_buf, 16);
+        // write pgm
+        {
+            bb::FrameBuffer x_buf(32, {28*2, 28*2, 1}, BB_TYPE_FP32);
+            x_buf.SetVector(td.x_test, 0);
+            auto y_buf = net->Forward(x_buf, false);
+            write_ppm("seg_0.ppm", y_buf, 0);
+            write_ppm("seg_1.ppm", y_buf, 1);
+            write_ppm("seg_2.ppm", y_buf, 2);
+            write_ppm("seg_3.ppm", y_buf, 3);
+            write_ppm("seg_4.ppm", y_buf, 4);
+            write_ppm("seg_5.ppm", y_buf, 5);
+            write_ppm("seg_6.ppm", y_buf, 6);
+            write_ppm("seg_7.ppm", y_buf, 7);
+            write_ppm("seg_8.ppm", y_buf, 8);
+            write_ppm("seg_9.ppm", y_buf, 9);
+            write_ppm("seg_10.ppm", y_buf, 10);
+            write_ppm("seg_11.ppm", y_buf, 11);
+            write_ppm("seg_12.ppm", y_buf, 12);
+            write_ppm("seg_13.ppm", y_buf, 13);
+            write_ppm("seg_14.ppm", y_buf, 14);
+            write_ppm("seg_15.ppm", y_buf, 15);
+            write_ppm("seg_16.ppm", y_buf, 16);
+        }
     }
 }
 

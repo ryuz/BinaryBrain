@@ -27,6 +27,7 @@ void MnistMicroMlpLutSimple  (int epoch_size, int mini_batch_size, int train_mod
 void MnistMicroMlpLutCnn     (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistDenseSimple        (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistDenseCnn           (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistDenseCnnBin        (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistCustomModel        (int epoch_size, int mini_batch_size,                                                      bool binary_mode                );
 void MnistAeSparseLutSimple  (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistAeSparseLutCnn     (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
@@ -179,7 +180,11 @@ int main(int argc, char *argv[])
     if ( netname == "All" || netname == "DenseCnn" ) {
         MnistDenseCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
-    
+
+    if ( netname == "All" || netname == "DenseCnnBin" ) {
+        MnistDenseCnnBin(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    }
+
     if ( netname == "All" || netname == "AeSparseLutSimple" ) {
         MnistAeSparseLutSimple(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }

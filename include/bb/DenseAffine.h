@@ -265,9 +265,34 @@ public:
 
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
+#ifdef BB_WITH_CUDA
+        if ( DataType<T>::type == BB_TYPE_FP32 && x_buf.GetType() == BB_TYPE_BIT ) {
+            FrameBuffer tmp_buf(x_buf.GetFrameSize(), x_buf.GetShape(), BB_TYPE_FP32);
+
+            {
+                auto x_ptr   = x_buf.LockDeviceMemoryConst();
+                auto tmp_ptr = tmp_buf.LockDeviceMemory(true);
+            
+                bbcu_ConvBitToReal<float>(
+                        (int const *)x_ptr.GetAddr(),
+                        (float     *)tmp_ptr.GetAddr(),
+                        0.0f,
+                        1.0f,
+                        (int)x_buf.GetNodeSize(),
+                        (int)x_buf.GetFrameSize(),
+                        (int)(x_buf.GetFrameStride() / sizeof(int)),
+                        (int)(tmp_buf.GetFrameStride() / sizeof(float))
+                    );
+            }
+
+            x_buf = tmp_buf;
+        }
+#endif
+
+
         BB_ASSERT(x_buf.GetType() == DataType<T>::type);
         BB_ASSERT(x_buf.GetNodeSize() == m_input_node_size);
-
+        
         // backwardの為に保存
         if ( train ) {
             m_x_buf = x_buf;

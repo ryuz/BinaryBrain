@@ -235,6 +235,25 @@ BBCU_DLL_EXPORT int bbcu_fp32_MatrixRowwiseSetVector
 
 
 // -------------------------------------
+//  Convert Type
+// -------------------------------------
+
+template<typename T=float>
+BBCU_DLL_EXPORT int bbcu_ConvBitToReal
+        (
+            int   const     *dev_x_buf,
+            T               *dev_y_buf,
+            T               value0,
+            T               value1,
+            int             node_size,
+            int             frame_size,
+            int             x_frame_stride,
+            int             y_frame_stride,
+            cudaStream_t    streamId=0
+        );
+
+
+// -------------------------------------
 //  FrameBufferCopy
 // -------------------------------------
 

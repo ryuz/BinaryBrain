@@ -369,6 +369,10 @@ public:
 
         cereal::JSONOutputArchive archive(ofs);
         Save(archive);
+
+        return true;
+#else
+        return false;
 #endif
     }
 
@@ -383,6 +387,9 @@ public:
 
         cereal::JSONInputArchive archive(ifs);
         Load(archive);
+        return true;
+#else
+        return false;
 #endif
     }
 

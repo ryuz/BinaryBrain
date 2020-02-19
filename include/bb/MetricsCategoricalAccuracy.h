@@ -101,23 +101,31 @@ public:
             for (index_t frame = 0; frame < frame_size; ++frame) {
                 for (index_t pix = 0; pix < pix_size; ++pix) {
                     index_t max_ch  = 0;
-                    T       max_sig = y_ptr.Get(frame, 0);
-                    for (index_t ch = 0; ch < ch_size; ++ch) {
+                    T       max_y   = y_ptr.Get(frame, pix);
+                    T       max_t   = t_ptr.Get(frame, pix);
+                    bool    max_val = (max_t > 0);
+                    for (index_t ch = 1; ch < ch_size; ++ch) {
                         auto node = ch * pix_size + pix;
-                        T   sig = y_ptr.Get(frame, node);
-                        if (sig > max_sig) {
-                            max_ch  = ch;
-                            max_sig = sig;
+                        T   y = y_ptr.Get(frame, node);
+                        T   t = t_ptr.Get(frame, node);
+                        if (y > max_y) {
+                            max_ch = ch;
+                            max_y  = y;
+                            max_t  = t;
+                        }
+                        if ( t > 0 ) {
+                            max_val = true;
                         }
                     }
-                    auto max_node = max_ch * pix_size + pix;
-                    if ( t_ptr.Get(frame, max_node) > 0) {
+
+                    if ( max_t > 0) {
                         acc_ptr[0] += 1;
+                    }
+                    if ( max_val ) {
+                        m_category_count += 1;
                     }
                 }
             }
-
-            m_category_count += frame_size * pix_size;
 
 //            std::ofstream ofs("acc_log.txt", std::ios::app);
 //            ofs << m_category_count << ", " << acc_ptr[0] << ", " << ((double)acc_ptr[0] / (double)m_category_count) << std::endl;

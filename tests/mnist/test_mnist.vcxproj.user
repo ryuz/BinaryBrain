@@ -31,12 +31,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>SparseLutCnn -device 1 -binary 1 -mini_batch 32 -modulation_size 8 -read 0 -epoch 4 -print_device -num_threads 4</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>SegmentationSparseLutCnn -device 1 -binary 1 -mini_batch 16 -modulation_size 4 -read 0 -epoch 8 -print_device -num_threads 4</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DbgCpu|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>SparseLutCnn -device 1 -binary 1 -mini_batch 32 -modulation_size 8 -read 0 -epoch 4 -print_device -num_threads 4</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>SegmentationSparseLutCnn -device 1 -binary 1 -mini_batch 16 -modulation_size 4 -read 1 -epoch 8 -print_device -num_threads 4</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugCpu|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
@@ -45,12 +45,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>SparseLutCnn -device 1 -binary 1 -mini_batch 32 -modulation_size 8 -read 0 -epoch 4 -print_device -num_threads 4</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>DenseCnnBin -device 0 -binary 1 -mini_batch 32 -modulation_size 3 -read 0 -epoch 32 -print_device -num_threads 4</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelCpu|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>SparseLutCnn -device 1 -binary 1 -mini_batch 32 -modulation_size 8 -read 0 -epoch 4 -print_device -num_threads 4</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>SegmentationSparseLutCnn -device 1 -binary 1 -mini_batch 16 -modulation_size 4 -read 1 -epoch 8 -print_device -num_threads 4</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseCpu|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>

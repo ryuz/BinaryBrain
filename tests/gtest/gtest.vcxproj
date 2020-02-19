@@ -40,6 +40,7 @@
     <ClCompile Include="BinaryLutTest.cpp" />
     <ClCompile Include="BinaryScalingTest.cpp" />
     <ClCompile Include="BinaryToRealTest.cpp" />
+    <ClCompile Include="ConvBitToRealTest.cpp" />
     <ClCompile Include="ConvolutionCol2ImTest.cpp" />
     <ClCompile Include="ConvolutionIm2ColTest.cpp" />
     <ClCompile Include="cudaMatrixColwiseMeanVarTest.cpp" />
