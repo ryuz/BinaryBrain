@@ -114,7 +114,7 @@ class get_pybind_include(object):
 
 # files
 sources       = ['binarybrain/src/core_main.cpp']
-define_macros = []
+define_macros = [('BB_ASSERT_EXCEPTION', '1')]
 include_dirs  = [get_pybind_include(), get_pybind_include(user=True), 'binarybrain/include']
 lib_dirs      = []
 
@@ -292,8 +292,7 @@ class BuildExt(build_ext):
         ar_args['unix'] += ['-fopenmp', '-lstdc++', '-lm']
         
         # windows(cpu)
-        cc_args['msvc'] += ['/EHsc', '/Oi', '/MT', '/arch:AVX2', '/openmp', '/std:c++14', '/wd"4819"',
-                            '/D \"BB_ASSERT_EXCEPTION\"']
+        cc_args['msvc'] += ['/EHsc', '/Oi', '/MT', '/arch:AVX2', '/openmp', '/std:c++14', '/wd"4819"']
         ar_args['msvc'] += []
     else:
         # unix(gpu)
@@ -331,8 +330,7 @@ class BuildExt(build_ext):
                             '-Xcompiler', '/arch:AVX2',
                             '-Xcompiler', '/openmp',
                             '-Xcompiler', '/std:c++14',
-                            '-Xcompiler', '/wd\"4819\"',
-                            '-DBB_ASSERT_EXCEPTION']
+                            '-Xcompiler', '/wd\"4819\"']
         cu_args['msvc'] += ['-O3',
                             '-std=c++11',
                             '-gencode=arch=compute_35,code=sm_35',
@@ -345,8 +343,7 @@ class BuildExt(build_ext):
                             '-Xcompiler', '/Oi',
                             '-Xcompiler', '/FS',
                             '-Xcompiler', '/Zi',
-                            '-Xcompiler', '/MT',
-                            '-DBB_ASSERT_EXCEPTION']
+                            '-Xcompiler', '/MT']
         ar_args['msvc'] += ['-lcublas']
     
     if sys.platform == 'darwin':
