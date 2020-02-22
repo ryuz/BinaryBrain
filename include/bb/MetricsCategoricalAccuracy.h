@@ -64,8 +64,14 @@ public:
         BB_ASSERT(y_buf.GetNodeSize()  == t_buf.GetNodeSize());
         BB_ASSERT(y_buf.GetFrameSize() == t_buf.GetFrameSize());
 
-#if 0 // #ifdef BB_WITH_CUDA
-        if ( DataType<T>::type == BB_TYPE_FP32 && y_buf.IsDeviceAvailable() && t_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        index_t frame_size  = t_buf.GetFrameSize();
+        index_t node_size   = t_buf.GetNodeSize();
+        auto shape          = t_buf.GetShape();
+        auto ch_size        = shape.size() > 1 ? shape[shape.size()-1] : 1;
+        auto pix_size       = node_size / ch_size;
+
+#ifdef BB_WITH_CUDA
+        if ( DataType<T>::type == BB_TYPE_FP32 && ch_size == 1 && y_buf.IsDeviceAvailable() && t_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             auto y_ptr   = y_buf.LockDeviceMemoryConst();
             auto t_ptr   = t_buf.LockDeviceMemoryConst();
             auto acc_ptr = m_accuracy.LockDeviceMemory();
@@ -87,12 +93,6 @@ public:
 #endif
 
         {
-            index_t frame_size  = t_buf.GetFrameSize();
-            index_t node_size   = t_buf.GetNodeSize();
-            auto shape          = t_buf.GetShape();
-            auto ch_size        = shape[shape.size()-1];
-            auto pix_size       = node_size / ch_size;
-
             auto acc_ptr = m_accuracy.Lock();
 
             auto y_ptr  = y_buf.LockConst<T>();
@@ -126,9 +126,6 @@ public:
                     }
                 }
             }
-
-//            std::ofstream ofs("acc_log.txt", std::ios::app);
-//            ofs << m_category_count << ", " << acc_ptr[0] << ", " << ((double)acc_ptr[0] / (double)m_category_count) << std::endl;
         }
     }
 };

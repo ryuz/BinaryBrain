@@ -69,8 +69,17 @@ public:
 
         m_loss_buf.Resize(y_buf.GetFrameSize());
 
-#if 0 // #ifdef BB_WITH_CUDA
-        if ( DataType<T>::type == BB_TYPE_FP32
+        
+        index_t frame_size  = t_buf.GetFrameSize();
+        index_t node_size   = t_buf.GetNodeSize();
+//      index_t stride_size = t_buf.GetFrameStride() / sizeof(T);
+
+        auto shape    = t_buf.GetShape();
+        auto ch_size  = shape.size() > 1 ? shape[shape.size()-1] : 1;
+        auto pix_size = node_size / ch_size;
+        
+#ifdef BB_WITH_CUDA
+        if ( DataType<T>::type == BB_TYPE_FP32 && ch_size == 1
                 && y_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
 
             auto y_ptr        = y_buf.LockDeviceMemoryConst();
@@ -92,7 +101,7 @@ public:
                     (int          )batch_size
                 );
 
-            m_frames += y_buf.GetFrameSize();
+            m_frame_count += y_buf.GetFrameSize();
 
             return dy_buf;
         }
@@ -100,14 +109,6 @@ public:
 
         {
             m_loss_buf = 0;
-
-            index_t frame_size  = t_buf.GetFrameSize();
-            index_t node_size   = t_buf.GetNodeSize();
-//          index_t stride_size = t_buf.GetFrameStride() / sizeof(T);
-
-            auto shape    = t_buf.GetShape();
-            auto ch_size  = shape[shape.size()-1];
-            auto pix_size = node_size / ch_size;
 
             auto y_ptr  = y_buf.LockConst<T>();
             auto t_ptr  = t_buf.LockConst<T>();
