@@ -25,7 +25,7 @@ class Sigmoid : public Binarize<BinType, RealType>
     using _super = Binarize<BinType, RealType>;
 
 protected:
-    bool        m_binary_mode = false;
+    bool        m_binary_mode;
 
     using _super::m_host_only;
     using _super::m_x_buf;
@@ -33,7 +33,9 @@ protected:
     FrameBuffer m_y_buf;
 
 protected:
-    Sigmoid() {}
+    Sigmoid() {
+        m_binary_mode = (DataType<BinType>::type == BB_TYPE_BIT);
+    }
 
     /**
      * @brief  コマンド処理
@@ -45,7 +47,9 @@ protected:
         // バイナリモード設定
         if ( args.size() == 2 && args[0] == "binary" )
         {
-            m_binary_mode = EvalBool(args[1]);
+            if ( DataType<BinType>::type != BB_TYPE_BIT ) {
+                m_binary_mode = EvalBool(args[1]);
+            }
         }
 
         // HostOnlyモード設定
@@ -84,7 +88,7 @@ public:
     // 1ノードのみForward計算
     std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
     {
-        if ( m_binary_mode ) {
+        if ( DataType<BinType>::type == BB_TYPE_BIT || m_binary_mode ) {
             return _super::ForwardNode(node, x_vec);
         }
 
@@ -106,7 +110,7 @@ public:
     inline FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
         // binaryモード
-        if (m_binary_mode) {
+        if ( DataType<BinType>::type == BB_TYPE_BIT || m_binary_mode) {
             return _super::Forward(x_buf, train);
         }
 
@@ -166,7 +170,7 @@ public:
     inline FrameBuffer Backward(FrameBuffer dy_buf)
     {
         // binaryモード
-        if (m_binary_mode) {
+        if ( DataType<BinType>::type == BB_TYPE_BIT || m_binary_mode) {
             return _super::Backward(dy_buf);
         }
 
