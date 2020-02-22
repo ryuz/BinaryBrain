@@ -209,9 +209,9 @@ def hook_compiler(self):
             objects = []
             for src in sources:
                 postargs = []
-                if os.path.splitext(sources[0])[1] == '.cu':
+                if os.path.splitext(src)[1] == '.cu':
                     postargs = extra_postargs['cu']
-                elif os.path.splitext(sources[0])[1] == '.cpp':
+                elif os.path.splitext(src)[1] == '.cpp':
                     postargs = extra_postargs['cc']
 
                 fname, _ = os.path.splitext(os.path.basename(src))
@@ -338,12 +338,14 @@ class BuildExt(build_ext):
                             '-gencode=arch=compute_60,code=sm_60',
                             '-gencode=arch=compute_61,code=sm_61',
                             '-gencode=arch=compute_75,code=sm_75',
+                            '-Xcompiler', '/bigobj',
                             '-Xcompiler', '/EHsc',
                             '-Xcompiler', '/O2',
                             '-Xcompiler', '/Oi',
                             '-Xcompiler', '/FS',
                             '-Xcompiler', '/Zi',
-                            '-Xcompiler', '/MT']
+                            '-Xcompiler', '/MT',
+                            '-Xcompiler', '/wd\"4819\"']
         ar_args['msvc'] += ['-lcublas']
     
     if sys.platform == 'darwin':
