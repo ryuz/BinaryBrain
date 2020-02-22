@@ -11,6 +11,7 @@
 
 
 #include <vector>
+#include <cmath>
 
 
 #include "bb/LossFunction.h"
@@ -68,7 +69,7 @@ public:
                 auto error = grad * grad;
 
                 dy_ptr.Set(frame, node, grad / (T)batch_size);
-                if ( !isnan(error) ) {
+                if ( !std::isnan(error) ) {
                     m_loss += error / (double)node_size;
                 }
             }
