@@ -270,29 +270,10 @@ public:
             m_x_buf = x_buf;
         }
 
-#ifdef BB_WITH_CUDA
-        if ( DataType<T>::type == BB_TYPE_FP32 && x_buf.GetType() == BB_TYPE_BIT ) {
-            FrameBuffer tmp_buf(x_buf.GetFrameSize(), x_buf.GetShape(), BB_TYPE_FP32);
-
-            {
-                auto x_ptr   = x_buf.LockDeviceMemoryConst();
-                auto tmp_ptr = tmp_buf.LockDeviceMemory(true);
-            
-                bbcu_ConvBitToReal<float>(
-                        (int const *)x_ptr.GetAddr(),
-                        (float     *)tmp_ptr.GetAddr(),
-                        0.0f,
-                        1.0f,
-                        (int)x_buf.GetNodeSize(),
-                        (int)x_buf.GetFrameSize(),
-                        (int)(x_buf.GetFrameStride() / sizeof(int)),
-                        (int)(tmp_buf.GetFrameStride() / sizeof(float))
-                    );
-            }
-
-            x_buf = tmp_buf;
+        // 型合わせ
+        if ( x_buf.GetType() != DataType<T>::type ) {
+             x_buf = x_buf.ConvertTo(DataType<T>::type);
         }
-#endif
         
         BB_ASSERT(x_buf.GetType() == DataType<T>::type);
         BB_ASSERT(x_buf.GetNodeSize() == m_input_node_size);
@@ -376,33 +357,15 @@ public:
         // フレーム数
         auto frame_size = dy_buf.GetFrameSize();
 
+        // forward時保存破棄
         FrameBuffer x_buf = m_x_buf;
         m_x_buf = FrameBuffer();
 
-#ifdef BB_WITH_CUDA
-        if ( DataType<T>::type == BB_TYPE_FP32 && x_buf.GetType() == BB_TYPE_BIT ) {
-            FrameBuffer tmp_buf(x_buf.GetFrameSize(), x_buf.GetShape(), BB_TYPE_FP32);
-
-            {
-                auto x_ptr   = x_buf.LockDeviceMemoryConst();
-                auto tmp_ptr = tmp_buf.LockDeviceMemory(true);
-            
-                bbcu_ConvBitToReal<float>(
-                        (int const *)x_ptr.GetAddr(),
-                        (float     *)tmp_ptr.GetAddr(),
-                        0.0f,
-                        1.0f,
-                        (int)x_buf.GetNodeSize(),
-                        (int)x_buf.GetFrameSize(),
-                        (int)(x_buf.GetFrameStride() / sizeof(int)),
-                        (int)(tmp_buf.GetFrameStride() / sizeof(float))
-                    );
-            }
-
-            x_buf = tmp_buf;
+        // 型合わせ
+        if ( x_buf.GetType() != DataType<T>::type ) {
+             x_buf = x_buf.ConvertTo(DataType<T>::type);
         }
-#endif
-
+        
         FrameBuffer dx_buf(dy_buf.GetFrameSize(), {m_input_node_size}, DataType<T>::type);
 
 

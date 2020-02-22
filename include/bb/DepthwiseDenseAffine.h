@@ -268,13 +268,18 @@ public:
 
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-        BB_ASSERT(x_buf.GetType() == DataType<T>::type);
-        BB_ASSERT(x_buf.GetNodeSize() == m_input_node_size);
-
         // backwardの為に保存
         if ( train ) {
             m_x_buf = x_buf;
         }
+
+        // 型合わせ
+        if ( x_buf.GetType() != DataType<T>::type ) {
+             x_buf = x_buf.ConvertTo(DataType<T>::type);
+        }
+
+        BB_ASSERT(x_buf.GetType() == DataType<T>::type);
+        BB_ASSERT(x_buf.GetNodeSize() == m_input_node_size);
 
         // SetInputShpaeされていなければ初回に設定
         if (x_buf.GetNodeSize() != m_input_node_size) {
@@ -361,6 +366,11 @@ public:
 
         FrameBuffer x_buf = m_x_buf;
         m_x_buf = FrameBuffer();
+
+        // 型合わせ
+        if ( x_buf.GetType() != DataType<T>::type ) {
+             x_buf = x_buf.ConvertTo(DataType<T>::type);
+        }
 
         FrameBuffer dx_buf(dy_buf.GetFrameSize(), {m_input_node_size}, DataType<T>::type);
 
