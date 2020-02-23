@@ -197,6 +197,23 @@ BinaryBrainではバイナリ変調したデジタル値を扱うことが出来
 現在MITライセンスを採用しています。lisense.txtを参照ください。
 ただし、本ソースコードは CEREAL を利用しているので、それらに関しては個別に各ライセンスに従ってください。
 
+
+## ICCE2019(Berlin)にて
+2019 IEEE 9th International Conference on Consumer Electronics (ICCE-Berlin) <br>
+https://edas.info/showManuscript.php?m=1570577657&ext=pdf&random=1730268675&type=stamped <br>
+https://edas.info/p25749#S1569571697 <br>
+
+
+## 作者情報
+渕上 竜司(Ryuji Fuchikami)
+- github : https://github.com/ryuz
+- blog : http://ryuz.txt-nifty.com
+- twitter : https://twitter.com/ryuz88
+- facebook : https://www.facebook.com/ryuji.fuchikami
+- web-site : http://ryuz.my.coocan.jp/
+- e-mail : ryuji.fuchikami@nifty.com
+
+
 ## 参考
 - BinaryConnect: Training Deep Neural Networks with binary weights during propagations<br>
 https://arxiv.org/pdf/1511.00363.pdf
@@ -212,14 +229,3 @@ https://arxiv.org/abs/1603.05279
 
 - Xilinx UltraScale Architecture Configurable Logic Block User Guide<br>
 https://japan.xilinx.com/support/documentation/user_guides/ug574-ultrascale-clb.pdf
-
-
-## 作者情報
-渕上 竜司(Ryuji Fuchikami)
-- github : https://github.com/ryuz
-- blog : http://ryuz.txt-nifty.com
-- twitter : https://twitter.com/ryuz88
-- facebook : https://www.facebook.com/ryuji.fuchikami
-- web-site : http://ryuz.my.coocan.jp/
-- e-mail : ryuji.fuchikami@nifty.com
-
