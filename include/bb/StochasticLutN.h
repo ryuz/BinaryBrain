@@ -240,6 +240,11 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
+        // 設定済みなら何もしない
+        if ( shape == this->GetInputShape() ) {
+            return this->GetOutputShape();
+        }
+        
         // 形状設定
         m_input_shape = shape;
         
@@ -376,14 +381,14 @@ public:
 
 #ifdef BB_WITH_CUDA
         // LUT6 FP32 CUDA
-        if ( N == 6 && DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
+        if ( DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
                 && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
             auto x_ptr           = x_buf.LockDeviceMemoryConst();
             auto y_ptr           = y_buf.LockDeviceMemory(true);
             auto input_table_ptr = m_connection_table.LockDeviceMemConst_InputTable();
             auto W_ptr           = m_W->LockDeviceMemoryConst();
                
-            bbcu_fp32_StochasticLut6_Forward(
+            bbcu_fp32_StochasticLut_Forward<N>(
                     (float const *)x_ptr.GetAddr(),
                     (float       *)y_ptr.GetAddr(),
                     (int   const *)input_table_ptr.GetAddr(),
@@ -400,14 +405,14 @@ public:
         }
 
         // LUT6 Bit CUDA
-        if ( N == 6 && DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
+        if ( DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
                 && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
             auto x_ptr           = x_buf.LockDeviceMemoryConst();
             auto y_ptr           = y_buf.LockDeviceMemory(true);
             auto input_table_ptr = m_connection_table.LockDeviceMemConst_InputTable();
             auto W_ptr           = m_W->LockDeviceMemoryConst();
             
-            bbcu_bit_fp32_StochasticLut6_Forward(
+            bbcu_bit_fp32_StochasticLut_Forward<N>(
                     (int   const *)x_ptr.GetAddr(),
                     (float       *)y_ptr.GetAddr(),
                     (int   const *)input_table_ptr.GetAddr(),
@@ -425,7 +430,7 @@ public:
 #endif
 
         // LUT6 SIMD
-        if ( N == 6 && DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && m_host_simd
+        if ( DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && m_host_simd
                 && y_buf.GetFrameSize() % 8 == 0 ) {
             auto input_table_ptr = m_connection_table.LockConst_InputTable();
             simd_fp32_StochasticLut6_Forward(x_buf, y_buf, input_table_ptr.GetAddr(), m_W, m_binary_mode, m_lut_binarize, m_unbinarize_bias);
@@ -495,7 +500,7 @@ public:
 
 #ifdef BB_WITH_CUDA
         // LUT6 FP32 CUDA
-        if ( N == 6 && DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
+        if ( DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
                 && dy_buf.IsDeviceAvailable() && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
 
             // tmp buffer
@@ -514,7 +519,7 @@ public:
             auto dW_ptr            = m_dW->LockDeviceMemory();
             auto tmp_ptr           = tmp_buf.LockDeviceMemory();
             
-            bbcu_fp32_StochasticLut6_Backward(
+            bbcu_fp32_StochasticLut_Backward<N>(
                     (float const *)x_ptr.GetAddr(),
                     (float const *)dy_ptr.GetAddr(),
                     (float       *)dx_ptr.GetAddr(),
@@ -539,7 +544,7 @@ public:
         }
 
         // LUT6 Bit CUDA
-        if ( N == 6 && DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
+        if ( DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
                 && dy_buf.IsDeviceAvailable() && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
 
             // tmp buffer
@@ -558,7 +563,7 @@ public:
             auto dW_ptr            = m_dW->LockDeviceMemory();
             auto tmp_ptr           = tmp_buf.LockDeviceMemory();
             
-            bbcu_bit_fp32_StochasticLut6_Backward(
+            bbcu_bit_fp32_StochasticLut_Backward<N>(
                     (int   const *)x_ptr.GetAddr(),
                     (float const *)dy_ptr.GetAddr(),
                     (float       *)dx_ptr.GetAddr(),

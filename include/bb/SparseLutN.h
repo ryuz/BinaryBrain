@@ -102,6 +102,8 @@ protected:
 
     void CommandProc(std::vector<std::string> args)
     {
+        _super::CommandProc(args);
+
         // バイナリモード設定
         if ( DataType<BinType>::type != BB_TYPE_BIT ) {
             if ( args.size() == 2 && args[0] == "binary" )
@@ -331,10 +333,15 @@ public:
      * @param shape 新しいshape
      * @return なし
      */
-    indices_t SetInputShape(indices_t input_shape)
+    indices_t SetInputShape(indices_t shape)
     {
+        // 設定済みなら何もしない
+        if ( shape == this->GetInputShape() ) {
+            return this->GetOutputShape();
+        }
+        
         // 形状設定
-        m_input_shape = input_shape;
+        m_input_shape = shape;
         
         // 接続初期化
         m_connection_table.SetShape(m_input_shape, m_output_shape);
@@ -356,14 +363,18 @@ public:
     Variables GetParameters(void)
     {
         Variables parameters;
-        parameters.PushBack(m_W);
+        if ( !this->m_parameter_lock ) {
+            parameters.PushBack(m_W);
+        }
         return parameters;
     }
 
     Variables GetGradients(void)
     {
         Variables gradients;
-        gradients.PushBack(m_dW);
+        if ( !this->m_parameter_lock ) {
+            gradients.PushBack(m_dW);
+        }
         return gradients;
     }
     
@@ -752,14 +763,14 @@ public:
 
 #ifdef BB_WITH_CUDA
             // CUDA float
-            if ( N == 6 && DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
+            if ( N >= 2 && N <= 6 && DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
                 && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
                 auto x_ptr           = x_buf.LockDeviceMemoryConst();
                 auto y_ptr           = y_buf.LockDeviceMemory(true);
                 auto input_table_ptr = m_connection_table.LockDeviceMemConst_InputTable();
                 auto W_ptr           = m_W->LockDeviceMemoryConst();
                 
-                bbcu_fp32_StochasticLut6_Forward(
+                bbcu_fp32_StochasticLut_Forward<N>(
                         (float const *)x_ptr.GetAddr(),
                         (float       *)y_ptr.GetAddr(),
                         (int   const *)input_table_ptr.GetAddr(),
@@ -775,41 +786,15 @@ public:
                 return y_buf;
             }
 
-            // CUDA float
-#if 0
-            if ( N == 4 && DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
-                && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
-                auto x_ptr           = x_buf.LockDeviceMemoryConst();
-                auto y_ptr           = y_buf.LockDeviceMemory(true);
-                auto input_table_ptr = m_connection_table.LockDeviceMemConst_InputTable();
-                auto W_ptr           = m_W->LockDeviceMemoryConst();
-                
-                bbcu_fp32_StochasticLut4_Forward(
-                        (float const *)x_ptr.GetAddr(),
-                        (float       *)y_ptr.GetAddr(),
-                        (int   const *)input_table_ptr.GetAddr(),
-                        (float const *)W_ptr.GetAddr(),
-                        (int          )y_buf.GetNodeSize(),
-                        (int          )y_buf.GetFrameSize(),
-                        (int          )(y_buf.GetFrameStride() / sizeof(float)),
-                        (int          )(m_binary_mode  ? 1 : 0),
-                        (int          )(m_lut_binarize ? 1 : 0),
-                        (float        )m_unbinarize_bias
-                    );
-
-                return y_buf;
-            }
-#endif
-
             // CUDA Bit->bit
-            if ( N == 6 && DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
+            if ( N >= 2 && N <= 6 && DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
                     && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
                 auto x_ptr           = x_buf.LockDeviceMemoryConst();
                 auto y_ptr           = y_buf.LockDeviceMemory(true);
                 auto input_table_ptr = m_connection_table.LockDeviceMemConst_InputTable();
                 auto W_ptr           = m_W->LockDeviceMemoryConst();
                 
-                bbcu_bit_bit_fp32_StochasticLut6_Forward(
+                bbcu_bit_bit_fp32_StochasticLut_Forward<N>(
                         (int   const *)x_ptr.GetAddr(),
                         (int         *)y_ptr.GetAddr(),
                         (int   const *)input_table_ptr.GetAddr(),
@@ -823,31 +808,6 @@ public:
 
                 return y_buf;
             }
-
-            // CUDA Bit->bit
-#if 0
-            if ( N == 4 && DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
-                    && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
-                auto x_ptr           = x_buf.LockDeviceMemoryConst();
-                auto y_ptr           = y_buf.LockDeviceMemory(true);
-                auto input_table_ptr = m_connection_table.LockDeviceMemConst_InputTable();
-                auto W_ptr           = m_W->LockDeviceMemoryConst();
-                
-                bbcu_bit_bit_fp32_StochasticLut4_Forward(
-                        (int   const *)x_ptr.GetAddr(),
-                        (int         *)y_ptr.GetAddr(),
-                        (int   const *)input_table_ptr.GetAddr(),
-                        (float const *)W_ptr.GetAddr(),
-                        (int          )y_buf.GetNodeSize(),
-                        (int          )y_buf.GetFrameSize(),
-                        (int          )(y_buf.GetFrameStride() / sizeof(int)),
-                        (int          )(m_lut_binarize ? 1 : 0),
-                        (float        )m_unbinarize_bias
-                    );
-
-                return y_buf;
-            }
-#endif
 #endif
 
             {
@@ -1144,7 +1104,7 @@ public:
         }
         else {
 #ifdef BB_WITH_CUDA
-            if ( N == 6 && DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
+            if ( N >= 2 && N <= 6 && DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
                     && dy_buf.IsDeviceAvailable() && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
                 auto x_ptr             = x_buf.LockDeviceMemoryConst();
                 auto dy_ptr            = dy_buf.LockDeviceMemoryConst();
@@ -1155,7 +1115,7 @@ public:
                 auto dW_ptr            = m_dW->LockDeviceMemory();
                 auto tmp_ptr           = tmp_buf.LockDeviceMemory();
             
-                bbcu_fp32_StochasticLut6_Backward(
+                bbcu_fp32_StochasticLut_Backward<N>(
                         (float const *)x_ptr.GetAddr(),
                         (float const *)dy_ptr.GetAddr(),
                         (float       *)dx_ptr.GetAddr(),
@@ -1178,46 +1138,9 @@ public:
             
                 return dx_buf;
             }
-
-#if 0
-            if ( N == 4 && DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
-                    && dy_buf.IsDeviceAvailable() && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
-                auto x_ptr             = x_buf.LockDeviceMemoryConst();
-                auto dy_ptr            = dy_buf.LockDeviceMemoryConst();
-                auto dx_ptr            = dx_buf.LockDeviceMemory(true);
-                auto reverse_table_ptr = m_connection_table.LockDeviceMemConst_ReverseTable();
-                auto input_table_ptr   = m_connection_table.LockDeviceMemConst_InputTable();
-                auto W_ptr             = m_W->LockDeviceMemoryConst();
-                auto dW_ptr            = m_dW->LockDeviceMemory();
-                auto tmp_ptr           = tmp_buf.LockDeviceMemory();
-            
-                bbcu_fp32_StochasticLut4_Backward(
-                        (float const *)x_ptr.GetAddr(),
-                        (float const *)dy_ptr.GetAddr(),
-                        (float       *)dx_ptr.GetAddr(),
-                        (float       *)tmp_ptr.GetAddr(),
-                        (int   const *)input_table_ptr.GetAddr(),
-                        (int   const *)reverse_table_ptr.GetAddr(),
-                        (float const *)W_ptr.GetAddr(),
-                        (float       *)dW_ptr.GetAddr(),
-                        (int          )m_connection_table.GetReverseTableStride(),
-                        (int          )dx_buf.GetNodeSize(),
-                        (int          )dy_buf.GetNodeSize(),
-                        (int          )dx_buf.GetFrameSize(),
-                        (int          )(dx_buf.GetFrameStride() / sizeof(float)),
-                        (int          )tmp_buf.GetFrameSize(),
-                        (int          )(tmp_buf.GetFrameStride() / sizeof(float)),
-                        (int          )(m_binary_mode  ? 1 : 0),
-                        (int          )(m_lut_binarize ? 1 : 0),
-                        (float        )m_unbinarize_bias
-                    );
-            
-                return dx_buf;
-            }
-#endif
 
             // LUT6 Bit CUDA
-            if ( N == 6 && DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
+            if ( N == 6 && N >= 2 && N <= 6 && DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
                     && dy_buf.IsDeviceAvailable() && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
                 auto x_ptr             = x_buf.LockDeviceMemoryConst();
                 auto dy_ptr            = dy_buf.LockDeviceMemoryConst();
@@ -1228,7 +1151,7 @@ public:
                 auto dW_ptr            = m_dW->LockDeviceMemory();
                 auto tmp_ptr           = tmp_buf.LockDeviceMemory();
             
-                bbcu_bit_fp32_StochasticLut6_Backward(
+                bbcu_bit_fp32_StochasticLut_Backward<N>(
                         (int   const *)x_ptr.GetAddr(),
                         (float const *)dy_ptr.GetAddr(),
                         (float       *)dx_ptr.GetAddr(),
@@ -1251,44 +1174,6 @@ public:
             
                 return dx_buf;
             }
-
-#if 0
-            // LUT4 Bit CUDA
-            if ( N == 4 && DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
-                    && dy_buf.IsDeviceAvailable() && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
-                auto x_ptr             = x_buf.LockDeviceMemoryConst();
-                auto dy_ptr            = dy_buf.LockDeviceMemoryConst();
-                auto dx_ptr            = dx_buf.LockDeviceMemory(true);
-                auto reverse_table_ptr = m_connection_table.LockDeviceMemConst_ReverseTable();
-                auto input_table_ptr   = m_connection_table.LockDeviceMemConst_InputTable();
-                auto W_ptr             = m_W->LockDeviceMemoryConst();
-                auto dW_ptr            = m_dW->LockDeviceMemory();
-                auto tmp_ptr           = tmp_buf.LockDeviceMemory();
-            
-                bbcu_bit_fp32_StochasticLut4_Backward(
-                        (int   const *)x_ptr.GetAddr(),
-                        (float const *)dy_ptr.GetAddr(),
-                        (float       *)dx_ptr.GetAddr(),
-                        (float       *)tmp_ptr.GetAddr(),
-                        (int   const *)input_table_ptr.GetAddr(),
-                        (int   const *)reverse_table_ptr.GetAddr(),
-                        (float const *)W_ptr.GetAddr(),
-                        (float       *)dW_ptr.GetAddr(),
-                        (int          )m_connection_table.GetReverseTableStride(),
-                        (int          )dx_buf.GetNodeSize(),
-                        (int          )dy_buf.GetNodeSize(),
-                        (int          )dx_buf.GetFrameSize(),
-                        (int          )(dx_buf.GetFrameStride() / sizeof(float)),
-                        (int          )(x_buf.GetFrameStride() / sizeof(int)),
-                        (int          )tmp_buf.GetFrameSize(),
-                        (int          )(tmp_buf.GetFrameStride() / sizeof(float)),
-                        (int          )(m_lut_binarize ? 1 : 0),
-                        (float        )m_unbinarize_bias
-                    );
-            
-                return dx_buf;
-            }
-#endif
 #endif
 
             {

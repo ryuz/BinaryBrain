@@ -35,8 +35,29 @@ protected:
 
     bool                                                    m_bn_enable = true;
 
+
+public:
+    struct create_t
+    {
+        indices_t  output_shape;
+        bool       bn_enable = true;
+        T          momentum = (T)0.9;
+        T          gamma    = (T)0.2;
+        T          beta     = (T)0.5;
+    };
+
 protected:
-    StochasticLutBn() {}
+    StochasticLutBn(create_t const &create)
+    {
+        m_lut = StochasticLutN<N, T>::Create(create.output_shape);
+        m_bn_enable = create.bn_enable;
+
+        typename StochasticBatchNormalization<T>::create_t bn_create;
+        bn_create.momentum  = create.momentum;
+        bn_create.gamma     = create.gamma; 
+        bn_create.beta      = create.beta;
+        m_norm = StochasticBatchNormalization<T>::Create(bn_create);
+    }
 
     /**
      * @brief  コマンド処理
@@ -55,28 +76,9 @@ protected:
 public:
     ~StochasticLutBn() {}
 
-    struct create_t
-    {
-        indices_t  output_shape;
-        bool       bn_enable = true;
-        T          momentum = (T)0.9;
-        T          gamma    = (T)0.2;
-        T          beta     = (T)0.5;
-        bool       fix_gamma = true;
-        bool       fix_beta = true;
-    };
-
     static std::shared_ptr< StochasticLutBn > Create(create_t const &create)
     {
-        auto self = std::shared_ptr<StochasticLutBn>(new StochasticLutBn);
-        self->m_lut = StochasticLutN<N, T>::Create(create.output_shape);
-
-        typename StochasticBatchNormalization<T>::create_t bn_create;
-        bn_create.momentum  = create.momentum;
-        bn_create.gamma     = create.gamma; 
-        bn_create.beta      = create.beta;
-        self->m_norm = StochasticBatchNormalization<T>::Create(bn_create);
-        return self;
+        return std::shared_ptr<StochasticLutBn>(new StochasticLutBn(create));
     }
 
     static std::shared_ptr< StochasticLutBn > Create(indices_t output_shape, bool bn_enable = true, T momentum = (T)0.9, T gamma = (T)0.2, T beta = (T)0.5)
@@ -100,6 +102,23 @@ public:
         create.beta         = beta;
         return Create(create);
     }
+
+    static std::shared_ptr< StochasticLutBn > CreateEx(
+                indices_t   output_shape,
+                bool        bn_enable = true,
+                double      momentum = 0.9,
+                double      gamma = 0.2,
+                double      beta = 0.5)
+    {
+        create_t create;
+        create.output_shape = indices_t({output_node_size});
+        create.bn_enable    = bn_enable;
+        create.momentum     = (T)momentum;
+        create.gamma        = (T)gamma;
+        create.beta         = (T)beta;
+        return Create(create);
+    }
+
 
     std::string GetClassName(void) const { return "StochasticLutBn"; }
 

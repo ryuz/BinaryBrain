@@ -147,6 +147,11 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
+        // 設定済みなら何もしない
+        if ( shape == this->GetInputShape() ) {
+            return this->GetOutputShape();
+        }
+
         m_node_shape = shape;
         return shape;
     }

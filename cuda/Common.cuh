@@ -95,6 +95,18 @@ __device__ __forceinline__ int device_int_ShuffleOr(int v)
 }
 
 
+template<typename T = float>
+__device__ __forceinline__ T device_ShuffleSum(T v)
+{
+    v += __shfl_xor_sync(0xffffffff, v,  1, 32);
+    v += __shfl_xor_sync(0xffffffff, v,  2, 32);
+    v += __shfl_xor_sync(0xffffffff, v,  4, 32);
+    v += __shfl_xor_sync(0xffffffff, v,  8, 32);
+    v += __shfl_xor_sync(0xffffffff, v, 16, 32);    
+    return v;
+}
+
+
 
 template<int N=6, typename T = float>
 __global__ void kernal_NodeIntegrate(

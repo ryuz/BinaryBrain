@@ -186,6 +186,11 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
+        // 設定済みなら何もしない
+        if ( shape == this->GetInputShape() ) {
+            return this->GetOutputShape();
+        }
+
         BB_ASSERT(shape.size() == 3);
 
         index_t input_w_size = shape[0];

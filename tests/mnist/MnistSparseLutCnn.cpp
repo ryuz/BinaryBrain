@@ -44,8 +44,10 @@ void MnistSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation
     auto layer_cnv2_sl1 = bb::SparseLutN<6, float>::Create(64);
     auto layer_cnv3_sl0 = bb::SparseLutN<6, float>::Create(384);
     auto layer_cnv3_sl1 = bb::SparseLutN<6, float>::Create(64);
-    auto layer_sl4      = bb::SparseLutN<6, float>::Create(420);
-    auto layer_sl5      = bb::SparseLutN<6, float>::Create(70);
+    auto layer_sl4      = bb::SparseLutN<6, float>::Create(10*6*6*6);
+    auto layer_sl5      = bb::SparseLutN<6, float>::Create(10*6*6);
+    auto layer_sl6      = bb::SparseLutN<6, float>::Create(10*6);
+    auto layer_sl7      = bb::SparseLutN<6, float>::Create(10);
 #else
     auto layer_cnv0_sl0 = bb::SparseLutDiscreteN<6, float>::Create(192);
     auto layer_cnv0_sl1 = bb::SparseLutDiscreteN<6, float>::Create(32);
@@ -88,11 +90,14 @@ void MnistSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation
         main_net->Add(bb::MaxPooling<float>::Create(2, 2));
         main_net->Add(layer_sl4);
         main_net->Add(layer_sl5);
+        main_net->Add(layer_sl6);
+        main_net->Add(layer_sl7);
 
         // modulation wrapper
         auto net = bb::Sequential::Create();
-        net->Add(bb::BinaryModulation<float>::Create(main_net, train_modulation_size, test_modulation_size));
-        net->Add(bb::Reduce<float>::Create(td.t_shape));
+//        net->Add(bb::BinaryModulation<float>::Create(main_net, train_modulation_size, test_modulation_size));
+//        net->Add(bb::Reduce<float>::Create(td.t_shape));
+        net->Add(main_net);
 
         // set input shape
         net->SetInputShape(td.x_shape);

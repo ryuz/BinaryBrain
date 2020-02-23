@@ -25,14 +25,16 @@ class ReLU : public Binarize<BinType, RealType>
     using _super = Binarize<BinType, RealType>;
 
 protected:
-    bool        m_binary_mode = false;
+    bool        m_binary_mode;
 
     using _super::m_host_only;
     using _super::m_x_buf;
     FrameBuffer m_y_buf;
 
 protected:
-    ReLU() {}
+    ReLU() {
+        m_binary_mode = (DataType<BinType>::type == BB_TYPE_BIT);
+    }
 
     /**
      * @brief  コマンド処理
@@ -44,7 +46,9 @@ protected:
         // バイナリモード設定
         if ( args.size() == 2 && args[0] == "binary" )
         {
-            m_binary_mode = EvalBool(args[1]);
+            if ( DataType<BinType>::type != BB_TYPE_BIT ) {
+                m_binary_mode = EvalBool(args[1]);
+                }
         }
 
         // HostOnlyモード設定
@@ -54,6 +58,13 @@ protected:
         }
     }
 
+    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
+    {
+        if ( m_binary_mode ) {
+            os << indent << " binary : " << m_binary_mode << std::endl;
+        }
+        _super::PrintInfoText(os, indent, columns, nest, depth);
+    }
 
 public:
     static std::shared_ptr<ReLU> Create(void)
@@ -177,7 +188,7 @@ public:
     inline FrameBuffer Backward(FrameBuffer dy_buf)
     {
         // binaryモード
-        if (m_binary_mode) {
+        if ( DataType<BinType>::type == BB_TYPE_BIT || m_binary_mode) {
             return _super::Backward(dy_buf);
         }
 

@@ -752,6 +752,87 @@ public:
 
 
 protected:
+    template <typename DT, typename ST>
+    FrameBuffer ConvertTo__(void)
+    {
+        BB_ASSERT(GetType() == DataType<ST>::type);
+
+        FrameBuffer dst_buf(GetFrameSize(), GetShape(), DataType<DT>::type);
+
+#ifdef BB_WITH_CUDA
+        if ( DataType<ST>::type == BB_TYPE_BIT && DataType<DT>::type == BB_TYPE_FP32 && this->IsDeviceAvailable() && dst_buf.IsDeviceAvailable() ) {
+            auto src_ptr = this->LockDeviceMemoryConst();
+            auto dst_ptr = dst_buf.LockDeviceMemory(true);
+            
+            bbcu_ConvBitToReal<float>(
+                    (int const *)src_ptr.GetAddr(),
+                    (float     *)dst_ptr.GetAddr(),
+                    0.0f,
+                    1.0f,
+                    (int)this->GetNodeSize(),
+                    (int)this->GetFrameSize(),
+                    (int)(this->GetFrameStride() / sizeof(int)),
+                    (int)(dst_buf.GetFrameStride() / sizeof(float))
+                );
+
+            return dst_buf;
+        }
+#endif
+
+        auto src_ptr = this->LockConst<ST>();
+        auto dst_ptr = dst_buf.Lock<DT>();
+
+        #pragma omp parallel for
+        for (index_t node = 0; node < m_node_size; ++node) {
+            for (index_t frame = 0; frame < m_frame_size; ++frame) {
+                dst_ptr.Set(frame, node, (DT)src_ptr.Get(frame, node));
+            }
+        }
+
+        return dst_buf;
+    }
+
+    template <typename ST>
+    FrameBuffer ConvertTo_(int type)
+    {
+        switch (type) {
+        case BB_TYPE_BIT:    return ConvertTo__<Bit,          ST>();
+        case BB_TYPE_FP32:   return ConvertTo__<float,        ST>();
+        case BB_TYPE_FP64:   return ConvertTo__<double,       ST>();
+        case BB_TYPE_INT8:   return ConvertTo__<std::int8_t,  ST>();
+        case BB_TYPE_INT16:  return ConvertTo__<std::int16_t, ST>();
+        case BB_TYPE_INT32:  return ConvertTo__<std::int32_t, ST>();
+        case BB_TYPE_INT64:  return ConvertTo__<std::int64_t, ST>();
+        case BB_TYPE_UINT8:  return ConvertTo__<std::int8_t,  ST>();
+        case BB_TYPE_UINT16: return ConvertTo__<std::int16_t, ST>();
+        case BB_TYPE_UINT32: return ConvertTo__<std::int32_t, ST>();
+        case BB_TYPE_UINT64: return ConvertTo__<std::int64_t, ST>();
+        default:   BB_ASSERT(0);
+        }
+        return FrameBuffer();
+    }
+
+public:
+    FrameBuffer ConvertTo(int type)
+    {
+        switch (m_data_type) {
+        case BB_TYPE_BIT:    return ConvertTo_<Bit>(type);
+        case BB_TYPE_FP32:   return ConvertTo_<float>(type);
+        case BB_TYPE_FP64:   return ConvertTo_<double>(type);
+        case BB_TYPE_INT8:   return ConvertTo_<std::int8_t >(type);
+        case BB_TYPE_INT16:  return ConvertTo_<std::int16_t>(type);
+        case BB_TYPE_INT32:  return ConvertTo_<std::int32_t>(type);
+        case BB_TYPE_INT64:  return ConvertTo_<std::int64_t>(type);
+        case BB_TYPE_UINT8:  return ConvertTo_<std::int8_t>(type);
+        case BB_TYPE_UINT16: return ConvertTo_<std::int16_t>(type);
+        case BB_TYPE_UINT32: return ConvertTo_<std::int32_t>(type);
+        case BB_TYPE_UINT64: return ConvertTo_<std::int64_t>(type);
+        default:   BB_ASSERT(0);
+        }
+        return FrameBuffer();
+    }
+
+protected:
     // ---------------------------------
     //  アクセス用
     // ---------------------------------
@@ -1038,7 +1119,7 @@ public:
     void SetVector(index_t frame, std::vector<Tp> const &data)
     {
         BB_ASSERT(data.size() == (size_t)m_node_size);
-        BB_ASSERT(frame > 0 && frame < m_frame_size);
+        BB_ASSERT(frame >= 0 && frame < m_frame_size);
 
         for (index_t node = 0; node < m_node_size; ++node) {
             SetValue<Tp>(frame, node, data[node]);
@@ -1070,6 +1151,19 @@ public:
                 ptr.Set(frame, node, data[frame + offset][node]);
             }
         }
+    }
+
+    template<typename Tp>
+    std::vector<Tp> GetVector(index_t frame) const
+    {
+        BB_ASSERT(frame >= 0 && frame < m_frame_size);
+
+        std::vector<Tp> data(m_node_size);
+        for (index_t node = 0; node < m_node_size; ++node) {
+            data[node] = GetValue<Tp>(frame, node);
+        }
+
+        return data;
     }
 
 

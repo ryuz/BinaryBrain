@@ -11,6 +11,7 @@
 
 
 #include <vector>
+#include <cmath>
 
 
 #include "bb/LossFunction.h"
@@ -23,8 +24,8 @@ class LossMeanSquaredError : public LossFunction
 {
 protected:
     FrameBuffer m_dy;
-    double      m_loss;
-    double      m_frames;
+    double      m_loss = 0;
+    double      m_frames = 0;
 
 protected:
     LossMeanSquaredError() {}
@@ -68,7 +69,9 @@ public:
                 auto error = grad * grad;
 
                 dy_ptr.Set(frame, node, grad / (T)batch_size);
-                m_loss += error / (double)node_size;
+                if ( !std::isnan(error) ) {
+                    m_loss += error / (double)node_size;
+                }
             }
         }
         m_frames += frame_size;

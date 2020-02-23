@@ -114,7 +114,7 @@ class get_pybind_include(object):
 
 # files
 sources       = ['binarybrain/src/core_main.cpp']
-define_macros = []
+define_macros = [('BB_ASSERT_EXCEPTION', '1')]
 include_dirs  = [get_pybind_include(), get_pybind_include(user=True), 'binarybrain/include']
 lib_dirs      = []
 
@@ -209,9 +209,9 @@ def hook_compiler(self):
             objects = []
             for src in sources:
                 postargs = []
-                if os.path.splitext(sources[0])[1] == '.cu':
+                if os.path.splitext(src)[1] == '.cu':
                     postargs = extra_postargs['cu']
-                elif os.path.splitext(sources[0])[1] == '.cpp':
+                elif os.path.splitext(src)[1] == '.cpp':
                     postargs = extra_postargs['cc']
 
                 fname, _ = os.path.splitext(os.path.basename(src))
@@ -298,6 +298,7 @@ class BuildExt(build_ext):
         # unix(gpu)
         cc_args['unix'] += ['-gencode=arch=compute_35,code=sm_35',
                             '-gencode=arch=compute_50,code=sm_50',
+                            '-gencode=arch=compute_60,code=sm_60',
                             '-gencode=arch=compute_61,code=sm_61',
                             '-gencode=arch=compute_75,code=sm_75',
                             '-Xcompiler', '-pthread',
@@ -308,6 +309,7 @@ class BuildExt(build_ext):
                             '-Xcompiler', '-fPIC' ]
         cu_args['unix'] += ['-gencode=arch=compute_35,code=sm_35',
                             '-gencode=arch=compute_50,code=sm_50',
+                            '-gencode=arch=compute_60,code=sm_60',
                             '-gencode=arch=compute_61,code=sm_61',
                             '-gencode=arch=compute_75,code=sm_75',
                             '-std=c++11',
@@ -333,14 +335,17 @@ class BuildExt(build_ext):
                             '-std=c++11',
                             '-gencode=arch=compute_35,code=sm_35',
                             '-gencode=arch=compute_50,code=sm_50',
+                            '-gencode=arch=compute_60,code=sm_60',
                             '-gencode=arch=compute_61,code=sm_61',
                             '-gencode=arch=compute_75,code=sm_75',
+                            '-Xcompiler', '/bigobj',
                             '-Xcompiler', '/EHsc',
                             '-Xcompiler', '/O2',
                             '-Xcompiler', '/Oi',
                             '-Xcompiler', '/FS',
                             '-Xcompiler', '/Zi',
-                            '-Xcompiler', '/MT']
+                            '-Xcompiler', '/MT',
+                            '-Xcompiler', '/wd\"4819\"']
         ar_args['msvc'] += ['-lcublas']
     
     if sys.platform == 'darwin':

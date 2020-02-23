@@ -171,6 +171,11 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
+        // 設定済みなら何もしない
+        if ( shape == this->GetInputShape() ) {
+            return this->GetOutputShape();
+        }
+
         shape = m_affine    ->SetInputShape(shape);
         shape = m_batch_norm->SetInputShape(shape);
         shape = m_activation->SetInputShape(shape);

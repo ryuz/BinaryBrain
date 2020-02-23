@@ -84,21 +84,12 @@ void DumpDeviceMemory(std::string filename, T const *addr, int size)
 }
 
 
-inline int GetDeviceCount(void)
-{
-    int dev_count = 0;
-    auto status = cudaGetDeviceCount(&dev_count);
-    if (status != cudaSuccess) {
-        dev_count = 0;
-    }
-    return dev_count;
-}
-
-
 #define BB_USE_LOCAL_HEAP   1
 
 inline void Malloc(void **ptr, size_t size)
 {
+    if ( size == 0 ) { size = 4; }
+
 #if BB_USE_LOCAL_HEAP
     *ptr = bbcu_LocalHeap_Malloc(size);
 #else
@@ -137,19 +128,21 @@ inline void FreeHost(void *ptr)
 
 inline void Memcpy(void *dst, const void *src, size_t count, enum cudaMemcpyKind kind)
 {
-    BB_CUDA_SAFE_CALL(cudaMemcpy(dst, src, count, kind));
+    if ( count > 0 ) {
+        BB_CUDA_SAFE_CALL(cudaMemcpy(dst, src, count, kind));
+    }
 }
 
 
-inline void OutputDeviceProperties(std::ostream& os)
+inline void OutputDeviceProperties(std::ostream& os, int device=0)
 {
-    int dev_count = GetDeviceCount();
+    int dev_count = bbcu_GetDeviceCount();
     if ( dev_count <= 0 ) {
         os << "no CUDA" << std::endl;
     }
 
     cudaDeviceProp dev_prop;
-    BB_CUDA_SAFE_CALL(cudaGetDeviceProperties(&dev_prop, 0));
+    BB_CUDA_SAFE_CALL(cudaGetDeviceProperties(&dev_prop, device));
  
     os << std::endl;
     os << "name                     : " << dev_prop.name                     << std::endl;
@@ -180,16 +173,16 @@ inline void OutputDeviceProperties(std::ostream& os)
 }
 
 
-inline void PrintDeviceProperties(void)
+inline void PrintDeviceProperties(int device = 0)
 {
-    OutputDeviceProperties(std::cout);
+    OutputDeviceProperties(std::cout, device);
 }
 
 
-inline std::string GetDevicePropertiesString(void)
+inline std::string GetDevicePropertiesString(int device = 0)
 {
     std::stringstream ss;
-    OutputDeviceProperties(ss);
+    OutputDeviceProperties(ss, device);
 
     return ss.str();
 }

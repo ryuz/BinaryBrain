@@ -503,3 +503,35 @@ TEST(FrameBufferTest, FrameBuffer_CopyTo_bit)
     EXPECT_EQ(dst_tbl[32*1+98][3], dst0_buf.GetBit(32+98, 3));
     EXPECT_EQ(dst_tbl[32*1+99][3], dst0_buf.GetBit(32+99, 3));
 }
+
+
+
+TEST(FrameBufferTest, testConvertTo_BitToFP32)
+{
+    int frame_size = 1234;
+    int node_size  = 3456;
+
+    bb::FrameBuffer buf_bit (frame_size, {node_size}, BB_TYPE_BIT);
+    
+    std::mt19937_64 mt(1);
+    std::uniform_int_distribution<int> dist(0, 1);
+    for (int frame = 0; frame < frame_size; ++frame ) {
+        for (int node = 0; node < node_size; ++node ) {
+            buf_bit.SetBit(frame, node, dist(mt) == 1);
+        }
+    }
+
+    auto buf_fp32 = buf_bit.ConvertTo(BB_TYPE_FP32);
+
+    for (int frame = 0; frame < frame_size; ++frame ) {
+        for (int node = 0; node < node_size; ++node ) {
+            bool  x = buf_bit.GetBit(frame, node);
+            float y = buf_fp32.GetFP32(frame, node);
+            EXPECT_EQ(x ? 1.0f : 0.0f, y);
+        }
+    }
+}
+
+
+
+// end of file

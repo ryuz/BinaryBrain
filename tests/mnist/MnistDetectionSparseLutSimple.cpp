@@ -23,7 +23,7 @@
 
 
 
-#include "opencv2/opencv.hpp"
+// #include "opencv2/opencv.hpp"
 
 #if 0
 template <typename T=float, int w=28, int h=28>

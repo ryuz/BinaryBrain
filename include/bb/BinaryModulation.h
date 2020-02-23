@@ -211,6 +211,11 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
+        // 設定済みなら何もしない
+        if ( shape == this->GetInputShape() ) {
+            return this->GetOutputShape();
+        }
+
         shape = m_real2bin->SetInputShape(shape);
         shape = m_layer->SetInputShape(shape);
         shape = m_bin2real->SetInputShape(shape);
