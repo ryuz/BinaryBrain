@@ -15,6 +15,7 @@ ARFLAGS =
 SRCS += Manager.cu
 SRCS += LocalHeap.cu
 SRCS += FrameBufferCopy.cu
+SRCS += ConvBitToReal.cu
 SRCS += Vector.cu
 SRCS += MatrixColwiseSum.cu
 SRCS += MatrixColwiseMeanVar.cu
