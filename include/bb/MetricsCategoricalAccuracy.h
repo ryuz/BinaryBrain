@@ -67,11 +67,11 @@ public:
         index_t frame_size  = t_buf.GetFrameSize();
         index_t node_size   = t_buf.GetNodeSize();
         auto shape          = t_buf.GetShape();
-        auto ch_size        = shape.size() > 1 ? shape[shape.size()-1] : 1;
+        auto ch_size        = shape[shape.size()-1];
         auto pix_size       = node_size / ch_size;
 
 #ifdef BB_WITH_CUDA
-        if ( DataType<T>::type == BB_TYPE_FP32 && ch_size == 1 && y_buf.IsDeviceAvailable() && t_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        if ( DataType<T>::type == BB_TYPE_FP32 && pix_size == 1 && y_buf.IsDeviceAvailable() && t_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             auto y_ptr   = y_buf.LockDeviceMemoryConst();
             auto t_ptr   = t_buf.LockDeviceMemoryConst();
             auto acc_ptr = m_accuracy.LockDeviceMemory();
