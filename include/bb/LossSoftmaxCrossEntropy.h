@@ -75,11 +75,11 @@ public:
 //      index_t stride_size = t_buf.GetFrameStride() / sizeof(T);
 
         auto shape    = t_buf.GetShape();
-        auto ch_size  = shape.size() > 1 ? shape[shape.size()-1] : 1;
+        auto ch_size  = shape[shape.size()-1];
         auto pix_size = node_size / ch_size;
         
 #ifdef BB_WITH_CUDA
-        if ( DataType<T>::type == BB_TYPE_FP32 && ch_size == 1
+        if ( DataType<T>::type == BB_TYPE_FP32 && pix_size == 1
                 && y_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
 
             auto y_ptr        = y_buf.LockDeviceMemoryConst();
@@ -130,15 +130,17 @@ public:
                     }
 
                     // sum(exp(y - c))
-                    T sum = 0;
+                    T y_sum = 0;
+                    T t_sum = 0;
                     for (index_t ch = 0; ch < ch_size; ++ch) {
                         auto node = ch * pix_size + pix;
-                        sum += std::exp(y_ptr.Get(frame, node) - c);
+                        y_sum += std::exp(y_ptr.Get(frame, node) - c);
+                        t_sum += t_ptr.Get(frame, node);
                     }
 
                     for (index_t ch = 0; ch < ch_size; ++ch) {
                         auto node = ch * pix_size + pix;
-                        T softmax = std::exp(y_ptr.Get(frame, node) - c) / sum;
+                        T softmax = std::exp(y_ptr.Get(frame, node) - c) / y_sum;
                         if (t_ptr.Get(frame, node) > 0) {
                             loss_buf_ptr[frame] += std::log(softmax + (T)1.0e-7);
                         }
@@ -147,7 +149,7 @@ public:
                             std::cout << "loss dy : nan" << std::endl;
                         }
 
-                        dy_ptr.Set(frame, node, dy);
+                        dy_ptr.Set(frame, node, dy * t_sum);
                     }
                 }
             }
