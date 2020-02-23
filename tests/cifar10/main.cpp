@@ -27,6 +27,7 @@ void Cifar10AeSparseLutSimple  (int epoch_size, int mini_batch_size, int train_m
 void Cifar10AeSparseLutCnn     (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 
 void Cifar10StochasticLutBnCnn(int epoch_size, int mini_batch_size, int test_modulation_size, bool binary_mode, bool file_read);
+void Cifar10MobileNet(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 
 
 // メイン関数
@@ -158,6 +159,10 @@ int main(int argc, char *argv[])
 
     if ( netname == "All" || netname == "AeSparseLutCnn" ) {
         Cifar10AeSparseLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    }
+
+    if ( netname == "All" || netname == "MobileNet" ) {
+        Cifar10MobileNet(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
     
     return 0;

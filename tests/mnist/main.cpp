@@ -34,12 +34,19 @@ void MnistAeSparseLutCnn     (int epoch_size, int mini_batch_size, int train_mod
 void MnistDetectionSparseLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistDetectionSparseLutCnn   (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 
+void MnistMobileNet          (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistSegmentationDenseCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistSegmentationSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistSegmentationMobileNet(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+
+
 
 // メイン関数
 int main(int argc, char *argv[])
 {
     // set default parameter
     std::string netname               = "All";
+    int         device                = 0;
     int         epoch_size            = 8;
     int         mini_batch_size       = 32;
     int         train_modulation_size = 7;
@@ -107,6 +114,10 @@ int main(int argc, char *argv[])
             ++i;
             file_read = (strtoul(argv[i], NULL, 0) != 0);
         }
+        else if (strcmp(argv[i], "-device") == 0 && i + 1 < argc) {
+            ++i;
+            device = (strtoul(argv[i], NULL, 0) != 0);
+        }
         else if (strcmp(argv[i], "-print_device") == 0 ) {
             print_device = true;
         }
@@ -119,9 +130,13 @@ int main(int argc, char *argv[])
         test_modulation_size = train_modulation_size;
     }
 
+
 #ifdef BB_WITH_CUDA
+    bbcu_SetDevice(device);
+    std::cout << " devide : " << bbcu_GetDevice() << std::endl;
+
     if ( print_device ) {
-        bbcu::PrintDeviceProperties();
+        bbcu::PrintDeviceProperties(device);
     }
 #endif
 
@@ -143,10 +158,10 @@ int main(int argc, char *argv[])
     }
 
     if ( netname == "SparseLutCnnDa" ) {
-        MnistSparseLutCnnDa(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+//        MnistSparseLutCnnDa(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
     if ( netname == "SparseLutCnnDa2" ) {
-        MnistSparseLutCnnDa2(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+//        MnistSparseLutCnnDa2(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
     if ( netname == "All" || netname == "MicroMlpLutSimple" ) {
@@ -164,13 +179,17 @@ int main(int argc, char *argv[])
     if ( netname == "All" || netname == "DenseCnn" ) {
         MnistDenseCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
-    
+
     if ( netname == "All" || netname == "AeSparseLutSimple" ) {
         MnistAeSparseLutSimple(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
     if ( netname == "All" || netname == "AeSparseLutCnn" ) {
         MnistAeSparseLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    }
+
+    if ( netname == "All" || netname == "MobileNet" ) {
+        MnistMobileNet(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
     // (おまけ)レイヤー内部を自分で書く人向けサンプル
@@ -185,6 +204,18 @@ int main(int argc, char *argv[])
 
     if ( netname == "DetectionSparseLutCnn" ) {
         MnistDetectionSparseLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    }
+
+    if ( netname == "SegmentationDenseCnn" ) {
+        MnistSegmentationDenseCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    }
+
+    if ( netname == "SegmentationSparseLutCnn" ) {
+        MnistSegmentationSparseLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    }
+
+    if ( netname == "SegmentationMobileNet" ) {
+        MnistSegmentationMobileNet(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
     return 0;

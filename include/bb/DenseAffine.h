@@ -92,6 +92,8 @@ protected:
 
     void CommandProc(std::vector<std::string> args)
     {
+        _super::CommandProc(args);
+
         // バイナリモード設定
         if ( args.size() == 2 && args[0] == "binary" )
         {
@@ -182,6 +184,11 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
+        // 設定済みなら何もしない
+        if ( shape == this->GetInputShape() ) {
+            return this->GetOutputShape();
+        }
+
         // 形状設定
         m_input_shape = shape;
         m_input_node_size = GetShapeSize(shape);
@@ -238,30 +245,39 @@ public:
     Variables GetParameters(void)
     {
         Variables parameters;
-        parameters.PushBack(m_W);
-        parameters.PushBack(m_b);
+        if ( !this->m_parameter_lock ) {
+            parameters.PushBack(m_W);
+            parameters.PushBack(m_b);
+        }
         return parameters;
     }
 
     Variables GetGradients(void)
     {
         Variables gradients;
-        gradients.PushBack(m_dW);
-        gradients.PushBack(m_db);
+        if ( !this->m_parameter_lock ) {
+            gradients.PushBack(m_dW);
+            gradients.PushBack(m_db);
+        }
         return gradients;
     }
 
 
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-        BB_ASSERT(x_buf.GetType() == DataType<T>::type);
-        BB_ASSERT(x_buf.GetNodeSize() == m_input_node_size);
-
         // backwardの為に保存
         if ( train ) {
             m_x_buf = x_buf;
         }
 
+        // 型合わせ
+        if ( x_buf.GetType() != DataType<T>::type ) {
+             x_buf = x_buf.ConvertTo(DataType<T>::type);
+        }
+        
+        BB_ASSERT(x_buf.GetType() == DataType<T>::type);
+        BB_ASSERT(x_buf.GetNodeSize() == m_input_node_size);
+        
         // SetInputShpaeされていなければ初回に設定
         if (x_buf.GetNodeSize() != m_input_node_size) {
             SetInputShape(x_buf.GetShape());
@@ -341,9 +357,15 @@ public:
         // フレーム数
         auto frame_size = dy_buf.GetFrameSize();
 
+        // forward時保存破棄
         FrameBuffer x_buf = m_x_buf;
         m_x_buf = FrameBuffer();
 
+        // 型合わせ
+        if ( x_buf.GetType() != DataType<T>::type ) {
+             x_buf = x_buf.ConvertTo(DataType<T>::type);
+        }
+        
         FrameBuffer dx_buf(dy_buf.GetFrameSize(), {m_input_node_size}, DataType<T>::type);
 
 

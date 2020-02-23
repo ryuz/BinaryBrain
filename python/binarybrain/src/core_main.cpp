@@ -6,6 +6,7 @@
 //                                ryuji.fuchikami@nifty.com
 // --------------------------------------------------------------------------
 
+#include <omp.h>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -21,6 +22,7 @@
 
 #include "bb/Sequential.h"
 #include "bb/DenseAffine.h"
+#include "bb/DepthwiseDenseAffine.h"
 #include "bb/SparseLutN.h"
 #include "bb/SparseLutDiscreteN.h"
 #include "bb/BinaryLutN.h"
@@ -70,6 +72,7 @@ using Model                        = bb::Model;
 using SparseLayer                  = bb::SparseLayer;
 using Sequential                   = bb::Sequential;
 using DenseAffine                  = bb::DenseAffine<float>;
+using DepthwiseDenseAffine         = bb::DepthwiseDenseAffine<float>;
 using LutLayer                     = bb::LutLayer<float, float>;
 using LutLayerBit                  = bb::LutLayer<bb::Bit, float>;
 
@@ -97,6 +100,11 @@ using StochasticLut6Bit            = bb::StochasticLutN<6, bb::Bit, float>;
 using Reduce                       = bb::Reduce<float, float>; 
 using BinaryModulation             = bb::BinaryModulation<float, float>;
 using BinaryModulationBit          = bb::BinaryModulation<bb::Bit, float>;
+using RealToBinary                 = bb::RealToBinary<float, float>;
+using RealToBinaryBit              = bb::RealToBinary<bb::Bit, float>;
+using BinaryToReal                 = bb::BinaryToReal<float, float>;
+using BinaryToRealBit              = bb::BinaryToReal<bb::Bit, float>;
+
 
 using Filter2d                     = bb::Filter2d<float, float>;
 using Filter2dBit                  = bb::Filter2d<bb::Bit, float>;
@@ -139,6 +147,31 @@ using LoadCifar10                  = bb::LoadCifar10<float>;
 using RunStatus                    = bb::RunStatus;
 using Runner                       = bb::Runner<float>;
 
+
+int GetDeviceCount(void)
+{
+#if BB_WITH_CUDA
+    return bbcu_GetDeviceCount();
+#else
+    return 0;
+#endif
+}
+
+void SetDevice(int device)
+{
+#if BB_WITH_CUDA
+    bbcu_SetDevice(device);
+#endif
+}
+
+std::string GetDevicePropertiesString(int device)
+{
+#if BB_WITH_CUDA
+    return bbcu::GetDevicePropertiesString(device);
+#else
+    return "host only\n"
+#endif
+}
 
 std::string MakeVerilog_FromLut(std::string module_name, std::vector< std::shared_ptr< bb::LutLayer<float, float> > > layers)
 {
@@ -260,6 +293,19 @@ Returns:
     int: data type
 )";
 
+// model
+const char* doc__Model_get_info =
+R"(get a information of model structure.
+
+get a information string of model network structure.
+
+Args:
+   depth(int): depth of network structure
+   columns(str): size of column 
+   nest(str): nest counter
+Returns:
+   str: strings of model information
+)";
 
 
 
@@ -360,23 +406,17 @@ Args:
     
     // model
     py::class_< Model, std::shared_ptr<Model> >(m, "Model")
-        .def("set_input_shape", &Model::SetInputShape)
-        .def("get_info", &Model::GetInfoString,
-R"(get a information of model structure.
-
-get a information string of model network structure.
-
-Args:
-   depth(int): depth of network structure
-   columns(str): size of column 
-   nest(str): nest counter
-Returns:
-   str: strings of model information)",
+        .def("get_name", &Model::GetName)
+        .def("get_class_name", &Model::GetClassName)
+        .def("get_info", &Model::GetInfoString, doc__Model_get_info,
                 py::arg("depth")    = 0,
                 py::arg("columns")  = 70,
                 py::arg("nest")     = 0)
         .def("get_input_shape", &Model::GetInputShape)
+        .def("set_input_shape", &Model::SetInputShape)
         .def("get_output_shape", &Model::GetOutputShape)
+        .def("get_input_node_size", &Model::GetInputNodeSize)
+        .def("get_output_node_size", &Model::GetOutputNodeSize)
         .def("get_parameters", &Model::GetParameters)
         .def("get_gradients", &Model::GetGradients)
         .def("forward_node",  &Model::ForwardNode)
@@ -386,9 +426,13 @@ Returns:
         .def("backward", &Model::Backward, "Backward")
         .def("send_command",  &Model::SendCommand, "SendCommand",
                 py::arg("command"),
-                py::arg("send_to") = "all");
-
-
+                py::arg("send_to") = "all")
+        .def("backward", &Model::Backward, "Backward")
+        .def("save_binary", &Model::SaveBinary)
+        .def("load_binary", &Model::LoadBinary)
+        .def("save_json", &Model::SaveJson)
+        .def("load_json", &Model::LoadJson);
+    
     // DenseAffine
     py::class_< DenseAffine, Model, std::shared_ptr<DenseAffine> >(m, "DenseAffine")
         .def_static("create",   &DenseAffine::CreateEx, "create",
@@ -401,6 +445,17 @@ Returns:
         .def("dW", ((Tensor& (DenseAffine::*)())&DenseAffine::dW))
         .def("db", ((Tensor& (DenseAffine::*)())&DenseAffine::db));
     
+    // DepthwiseDenseAffine
+    py::class_< DepthwiseDenseAffine, Model, std::shared_ptr<DepthwiseDenseAffine> >(m, "DepthwiseDenseAffine")
+        .def_static("create",   &DepthwiseDenseAffine::CreateEx, "create",
+            py::arg("output_shape"),
+            py::arg("initialize_std") = 0.01f,
+            py::arg("initializer")    = "he",
+            py::arg("seed")           = 1)
+        .def("W", ((Tensor& (DepthwiseDenseAffine::*)())&DepthwiseDenseAffine::W))
+        .def("b", ((Tensor& (DepthwiseDenseAffine::*)())&DepthwiseDenseAffine::b))
+        .def("dW", ((Tensor& (DepthwiseDenseAffine::*)())&DepthwiseDenseAffine::dW))
+        .def("db", ((Tensor& (DepthwiseDenseAffine::*)())&DepthwiseDenseAffine::db));
 
     // SparseLayer
     py::class_< SparseLayer, Model, std::shared_ptr<SparseLayer> >(m, "SparseLayer")
@@ -456,6 +511,33 @@ Returns:
                 py::arg("inference_framewise")       = true,
                 py::arg("inference_input_range_lo")  = 0.0f,
                 py::arg("inference_input_range_hi")  = 1.0f);
+
+    py::class_< RealToBinary, Model, std::shared_ptr<RealToBinary> >(m, "RealToBinary")
+        .def_static("create", &RealToBinary::CreateEx,
+                py::arg(" modulation_size") = 1,
+                py::arg("value_generator")  = nullptr,
+                py::arg("framewise")        = false,
+                py::arg("input_range_lo")   = 0.0f,
+                py::arg("input_range_hi")   = 1.0f);
+
+    py::class_< RealToBinaryBit, Model, std::shared_ptr<RealToBinaryBit> >(m, "RealToBinaryBit")
+        .def_static("create", &RealToBinaryBit::CreateEx,
+                py::arg(" modulation_size") = 1,
+                py::arg("value_generator")  = nullptr,
+                py::arg("framewise")        = false,
+                py::arg("input_range_lo")   = 0.0f,
+                py::arg("input_range_hi")   = 1.0f);
+
+    py::class_< BinaryToReal, Model, std::shared_ptr<BinaryToReal> >(m, "BinaryToReal")
+        .def_static("create", &BinaryToReal::CreateEx,
+                py::arg(" modulation_size") = 1,
+                py::arg("output_shape")     = bb::indices_t());
+
+    py::class_< BinaryToRealBit, Model, std::shared_ptr<BinaryToRealBit> >(m, "BinaryToRealBit")
+        .def_static("create", &BinaryToRealBit::CreateEx,
+                py::arg(" modulation_size") = 1,
+                py::arg("output_shape")     = bb::indices_t());
+
 
     py::class_< BinaryLut6, LutLayer, std::shared_ptr<BinaryLut6> >(m, "BinaryLut6")
         .def_static("create", &BinaryLut6::CreateEx,
@@ -590,7 +672,7 @@ R"(create BinaryLut6 object
     py::class_< StochasticBatchNormalization, Activation, std::shared_ptr<StochasticBatchNormalization> >(m, "StochasticBatchNormalization")
         .def_static("create", &StochasticBatchNormalization::CreateEx,
                 py::arg("momentum")  = 0.9,
-                py::arg("gamma")     = 0.3,
+                py::arg("gamma")     = 0.2,
                 py::arg("beta")      = 0.5);
 
     // Loss Functions
@@ -712,11 +794,14 @@ R"(create BinaryLut6 object
             py::arg("epoch_size"),
             py::arg("batch_size"));
 
+    
+    // OpenMP
+    m.def("omp_set_num_threads", &omp_set_num_threads);
 
     // CUDA device
-#ifdef BB_WITH_CUDA
-    m.def("get_device_properties", &bbcu::GetDevicePropertiesString);
-#endif
+    m.def("get_device_count", &GetDeviceCount);
+    m.def("set_device", &SetDevice);
+    m.def("get_device_properties", &GetDevicePropertiesString);
 
     // verilog
     m.def("make_verilog_from_lut", &MakeVerilog_FromLut);

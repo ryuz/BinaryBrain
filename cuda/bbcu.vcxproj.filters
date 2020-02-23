@@ -85,6 +85,9 @@
     <CudaCompile Include="UpSampling.cu">
       <Filter>ソース ファイル</Filter>
     </CudaCompile>
+    <CudaCompile Include="ConvBitToReal.cu">
+      <Filter>ソース ファイル</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ヘッダファイル">
@@ -108,6 +111,9 @@
       <Filter>ソース ファイル</Filter>
     </ClInclude>
     <ClInclude Include="StochasticLut.cuh">
+      <Filter>ヘッダファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="StochasticLutN.cuh">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
   </ItemGroup>

@@ -90,6 +90,14 @@ public:
         return Create(create);
     }
 
+    static std::shared_ptr<BinaryToReal> CreateEx(index_t modulation_size=1, indices_t output_shape = indices_t())
+    {
+        create_t create;
+        create.output_shape    = output_shape;
+        create.modulation_size = modulation_size;
+        return Create(create);
+    }
+
     std::string GetClassName(void) const { return "BinaryToReal"; }
 
     
@@ -106,6 +114,11 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
+        // 設定済みなら何もしない
+        if ( shape == this->GetInputShape() ) {
+            return this->GetOutputShape();
+        }
+
         // 形状設定
         m_input_shape = shape;
 

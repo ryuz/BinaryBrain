@@ -98,6 +98,11 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
+        // 設定済みなら何もしない
+        if ( shape == this->GetInputShape() ) {
+            return this->GetOutputShape();
+        }
+
         BB_ASSERT(shape.size() > 0);
 
         // 形状設定

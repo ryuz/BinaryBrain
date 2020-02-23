@@ -9,6 +9,12 @@ import time
 import numpy as np
 import cv2
 
+try:
+    import hoge
+except  ModuleNotFoundError:
+    pass
+
+
 print(bb.dataset_path)
 
 td = bb.load_cifar10()

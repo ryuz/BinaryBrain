@@ -22,9 +22,14 @@
 #include "bb/LoadMnist.h"
 
 
-void MnistDenseCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+template <typename T>
+void MnistDenseCnn_(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
+    // Network name
     std::string net_name = "MnistDenseCnn";
+    if ( binary_mode ) {
+        net_name += "Bit";
+    }
 
     // load MNIST data
 #ifdef _DEBUG
@@ -41,43 +46,43 @@ void MnistDenseCnn(int epoch_size, int mini_batch_size, int train_modulation_siz
         auto cnv0_net = bb::Sequential::Create();
         cnv0_net->Add(bb::DenseAffine<>::Create(32));
         cnv0_net->Add(bb::BatchNormalization<>::Create());
-        cnv0_net->Add(bb::ReLU<float>::Create());
+        cnv0_net->Add(bb::ReLU<T>::Create());
 
         auto cnv1_net = bb::Sequential::Create();
         cnv1_net->Add(bb::DenseAffine<>::Create(32));
         cnv1_net->Add(bb::BatchNormalization<>::Create());
-        cnv1_net->Add(bb::ReLU<float>::Create());
+        cnv1_net->Add(bb::ReLU<T>::Create());
 
         auto cnv2_net = bb::Sequential::Create();
         cnv2_net->Add(bb::DenseAffine<>::Create(64));
         cnv2_net->Add(bb::BatchNormalization<>::Create());
-        cnv2_net->Add(bb::ReLU<float>::Create());
+        cnv2_net->Add(bb::ReLU<T>::Create());
 
         auto cnv3_net = bb::Sequential::Create();
         cnv3_net->Add(bb::DenseAffine<>::Create(64));
         cnv3_net->Add(bb::BatchNormalization<>::Create());
-        cnv3_net->Add(bb::ReLU<float>::Create());
+        cnv3_net->Add(bb::ReLU<T>::Create());
 
         auto main_net = bb::Sequential::Create();
-        main_net->Add(bb::LoweringConvolution<>::Create(cnv0_net, 3, 3));   // Conv3x3 x 32
-        main_net->Add(bb::LoweringConvolution<>::Create(cnv1_net, 3, 3));   // Conv3x3 x 32
-        main_net->Add(bb::MaxPooling<>::Create(2, 2));
-        main_net->Add(bb::LoweringConvolution<>::Create(cnv2_net, 3, 3));   // Conv3x3 x 64
-        main_net->Add(bb::LoweringConvolution<>::Create(cnv3_net, 3, 3));   // Conv3x3 x 64
-        main_net->Add(bb::MaxPooling<>::Create(2, 2));
-        main_net->Add(bb::DenseAffine<float>::Create(256));
-        main_net->Add(bb::ReLU<float>::Create());
-        main_net->Add(bb::DenseAffine<float>::Create(td.t_shape));
+        main_net->Add(bb::LoweringConvolution<T>::Create(cnv0_net, 3, 3));   // Conv3x3 x 32
+        main_net->Add(bb::LoweringConvolution<T>::Create(cnv1_net, 3, 3));   // Conv3x3 x 32
+        main_net->Add(bb::MaxPooling<T>::Create(2, 2));
+        main_net->Add(bb::LoweringConvolution<T>::Create(cnv2_net, 3, 3));   // Conv3x3 x 64
+        main_net->Add(bb::LoweringConvolution<T>::Create(cnv3_net, 3, 3));   // Conv3x3 x 64
+        main_net->Add(bb::MaxPooling<T>::Create(2, 2));
+        main_net->Add(bb::DenseAffine<>::Create(256));
+        main_net->Add(bb::ReLU<T>::Create());
+        main_net->Add(bb::DenseAffine<>::Create(td.t_shape));
         if ( binary_mode ) {
-            main_net->Add(bb::BatchNormalization<float>::Create());
-            main_net->Add(bb::ReLU<float>::Create());
+            main_net->Add(bb::BatchNormalization<>::Create());
+            main_net->Add(bb::ReLU<T>::Create());
         }
 
         // modulation wrapper
-        auto net = bb::BinaryModulation<float>::Create(main_net, train_modulation_size, test_modulation_size);
+        auto net = bb::BinaryModulation<T>::Create(main_net, train_modulation_size, test_modulation_size);
 
-      // set input shape
-        net->SetInputShape(td.x_shape);
+        // set input shape
+        (void)net->SetInputShape(td.x_shape);
 
         // set binary mode
         if ( binary_mode ) {
@@ -115,6 +120,18 @@ void MnistDenseCnn(int epoch_size, int mini_batch_size, int train_modulation_siz
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
 }
+
+
+void MnistDenseCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+{
+    if ( binary_mode ) {
+        MnistDenseCnn_<bb::Bit>(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    }
+    else {
+        MnistDenseCnn_<float>(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    }
+}
+
 
 
 // end of file

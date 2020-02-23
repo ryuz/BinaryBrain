@@ -567,7 +567,7 @@ protected:
     {
         BB_ASSERT(x.size() == t.size());
 
-        if ( metricsFunc  != nullptr ) {
+        if ( metricsFunc != nullptr ) {
             metricsFunc->Clear();
         }
         if ( lossFunc != nullptr ) {

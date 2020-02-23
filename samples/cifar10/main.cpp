@@ -10,6 +10,7 @@
 #include <iostream>
 #include <string.h>
 
+#include "bb/Version.h"
 #ifdef BB_WITH_CUDA
 #include "bbcu/bbcu.h"
 #endif

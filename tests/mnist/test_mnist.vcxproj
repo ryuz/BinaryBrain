@@ -358,6 +358,10 @@
     <ClCompile Include="MnistMicroMlpLutCnn.cpp" />
     <ClCompile Include="MnistMicroMlpLutSimple.cpp" />
     <ClCompile Include="MnistMicroMlpScratch.cpp" />
+    <ClCompile Include="MnistMobileNet.cpp" />
+    <ClCompile Include="MnistSegmentationDenseCnn.cpp" />
+    <ClCompile Include="MnistSegmentationMobileNet.cpp" />
+    <ClCompile Include="MnistSegmentationSparseLutCnn.cpp" />
     <ClCompile Include="MnistSparseLutCnn.cpp" />
     <ClCompile Include="MnistSparseLutCnnDa.cpp" />
     <ClCompile Include="MnistSparseLutCnnDa2.cpp" />
@@ -376,12 +380,14 @@
     <ClInclude Include="..\..\include\bb\BinaryModulation.h" />
     <ClInclude Include="..\..\include\bb\BinaryNormalization.h" />
     <ClInclude Include="..\..\include\bb\BinaryToReal.h" />
+    <ClInclude Include="..\..\include\bb\ConnectionTable.h" />
     <ClInclude Include="..\..\include\bb\ConvolutionCol2Im.h" />
     <ClInclude Include="..\..\include\bb\ConvolutionIm2Col.h" />
     <ClInclude Include="..\..\include\bb\CudaUtility.h" />
     <ClInclude Include="..\..\include\bb\DataAugmentationMnist.h" />
     <ClInclude Include="..\..\include\bb\DataType.h" />
     <ClInclude Include="..\..\include\bb\DenseAffine.h" />
+    <ClInclude Include="..\..\include\bb\DepthwiseDenseAffine.h" />
     <ClInclude Include="..\..\include\bb\Dropout.h" />
     <ClInclude Include="..\..\include\bb\ExportVerilog.h" />
     <ClInclude Include="..\..\include\bb\Filter2d.h" />

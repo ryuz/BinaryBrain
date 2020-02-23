@@ -61,7 +61,7 @@ public:
     struct create_t
     {
         T       momentum  = (T)0.9;
-        T       gamma     = (T)0.3;
+        T       gamma     = (T)0.2;
         T       beta      = (T)0.5;
     };
 
@@ -96,6 +96,14 @@ protected:
         }
     }
 
+    virtual void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
+    {
+        _super::PrintInfoText(os, indent, columns, nest, depth);
+        os << indent << " momentum : " << m_momentum
+           << "  "   << " gamma : " << m_gamma
+           << "  "   << " beta : " << m_beta << std::endl;
+    }
+
 public:
     ~StochasticBatchNormalization() {}
 
@@ -104,7 +112,7 @@ public:
         return std::shared_ptr<StochasticBatchNormalization>(new StochasticBatchNormalization(create));
     }
 
-    static std::shared_ptr<StochasticBatchNormalization> Create(T momentum = (T)0.9, T gamma=(T)0.3, T beta=(T)0.5)
+    static std::shared_ptr<StochasticBatchNormalization> Create(T momentum = (T)0.9, T gamma=(T)0.2, T beta=(T)0.5)
     {
         create_t create;
         create.momentum = momentum;
@@ -113,7 +121,7 @@ public:
         return Create(create);
     }
 
-    static std::shared_ptr<StochasticBatchNormalization> CreateEx(double momentum=0.9, double gamma=0.3, double beta=0.5)
+    static std::shared_ptr<StochasticBatchNormalization> CreateEx(double momentum=0.9, double gamma=0.2, double beta=0.5)
     {
         create_t create;
         create.momentum = (T)momentum;
@@ -200,6 +208,11 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
+        // 設定済みなら何もしない
+        if ( shape == this->GetInputShape() ) {
+            return this->GetOutputShape();
+        }
+        
         _super::SetInputShape(shape);
         
         auto node_size = GetShapeSize(shape);
@@ -257,7 +270,7 @@ public:
     // ノード単位でのForward計算
     std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
     {
-        BB_DEBUG_ASSERT(node >= 0 && node < GetShapeSize(m_node_shape));
+        BB_DEBUG_ASSERT(node >= 0 && node < GetShapeSize(this->m_shape));
 
         auto running_mean_ptr = m_running_mean.LockConst();
         auto running_var_ptr  = m_running_var.LockConst();

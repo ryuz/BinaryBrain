@@ -10,6 +10,7 @@
 #include "Manager.cu"
 #include "LocalHeap.cu"
 #include "FrameBufferCopy.cu"
+#include "ConvBitToReal.cu"
 #include "Vector.cu"
 #include "MatrixColwiseSum.cu"
 #include "MatrixColwiseMeanVar.cu"

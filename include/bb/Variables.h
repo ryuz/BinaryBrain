@@ -64,6 +64,11 @@ public:
         return true;
     }
 
+    bool IsEmpty(void) const
+    {
+        return m_tensors.empty();
+    }
+
 
 #ifdef BB_WITH_CUDA
     // デバイス側にサイズテーブルを確保してポインタ取得
@@ -86,11 +91,13 @@ public:
             size_table[i] = (int)m_tensors[i]->GetSize();
         }
 
-        // デバイスメモリ確保
-        bbcu::Malloc(&m_dev_size_table, sizeof(int) * size);
+        if ( size > 0 ) {
+            // デバイスメモリ確保
+            bbcu::Malloc(&m_dev_size_table, sizeof(int) * size);
 
-        // 転送
-        bbcu::Memcpy(m_dev_size_table, &size_table[0],  sizeof(int) * size, cudaMemcpyHostToDevice);
+            // 転送
+            bbcu::Memcpy(m_dev_size_table, &size_table[0],  sizeof(int) * size, cudaMemcpyHostToDevice);
+        }
 
         // dirtyフラグクリア
         m_size_table_dirty = false;
@@ -122,11 +129,13 @@ public:
             addr_table[i] = ptr.GetAddr();
         }
 
-        // デバイスメモリ確保
-        bbcu::Malloc(&m_dev_addr_table, sizeof(void *) * size);
+        if ( size > 0 ) {
+            // デバイスメモリ確保
+            bbcu::Malloc(&m_dev_addr_table, sizeof(void *) * size);
 
-        // 転送
-        bbcu::Memcpy(m_dev_addr_table, &addr_table[0],  sizeof(void*) * size, cudaMemcpyHostToDevice);
+            // 転送
+            bbcu::Memcpy(m_dev_addr_table, &addr_table[0],  sizeof(void*) * size, cudaMemcpyHostToDevice);
+        }
 
         // dirtyフラグクリア
         m_addr_table_dirty = false;

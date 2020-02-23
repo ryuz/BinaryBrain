@@ -217,7 +217,7 @@ public:
     std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
     {
         index_t input_size = this->GetNodeConnectionSize(node);
-        BB_ASSERT(input_size == x_vec.size());
+        BB_ASSERT(input_size == (index_t)x_vec.size());
 
         x_vec = m_lut->ForwardNode(node, x_vec);
         if ( m_bn_enable ) {

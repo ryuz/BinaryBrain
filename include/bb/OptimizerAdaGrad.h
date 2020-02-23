@@ -70,6 +70,9 @@ public:
 
     void Update(void)
     {
+        if ( m_params.IsEmpty() ) {
+            return;
+        }
 
 #if 0 // #ifdef BB_WITH_CUDA
         if ( m_params.IsDeviceAvailable() && m_grads.IsDeviceAvailable() && m_m.IsDeviceAvailable() && m_v.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {

@@ -23,6 +23,8 @@ namespace bb {
 template <typename FT = float, typename BT = float>
 class AveragePooling : public Filter2d<FT, BT>
 {
+    using _super = Filter2d<FT, BT>;
+
 protected:
     bool                m_host_only;
 
@@ -53,6 +55,8 @@ protected:
      */
     void CommandProc(std::vector<std::string> args)
     {
+        _super::CommandProc(args);
+
         // HostOnlyモード設定
         if (args.size() == 2 && args[0] == "host_only")
         {
@@ -89,6 +93,11 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
+        // 設定済みなら何もしない
+        if ( shape == this->GetInputShape() ) {
+            return this->GetOutputShape();
+        }
+        
         BB_ASSERT(shape.size() == 3);
 
         m_input_w_size = shape[0];

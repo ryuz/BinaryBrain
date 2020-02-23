@@ -22,8 +22,8 @@ template <typename T = float>
 class MetricsCategoricalAccuracy : public MetricsFunction
 {
 protected:
-    index_t         m_frames = 0;
     Tensor_<int>    m_accuracy;
+    index_t         m_category_count = 0;
 
 protected:
     MetricsCategoricalAccuracy() : m_accuracy(1)
@@ -42,27 +42,38 @@ public:
     
     void Clear(void)
     {
-        m_accuracy = 0;
-        m_frames   = 0;
+        m_accuracy       = 0;
+        m_category_count = 0;
     }
 
 
     double GetMetrics(void) const
     {
+        if ( m_category_count == 0 ) {
+            return 0;
+        }
         auto ptr = m_accuracy.LockConst();
         auto acc = ptr[0];
-        return (double)acc / (double)m_frames;
+        return (double)acc / (double)m_category_count;
     }
 
-    void CalculateMetrics(FrameBuffer y, FrameBuffer t)
+    void CalculateMetrics(FrameBuffer y_buf, FrameBuffer t_buf)
     {
-        BB_ASSERT(y.GetType() == DataType<T>::type);
-        BB_ASSERT(t.GetType() == DataType<T>::type);
+        BB_ASSERT(y_buf.GetType() == DataType<T>::type);
+        BB_ASSERT(t_buf.GetType() == DataType<T>::type);
+        BB_ASSERT(y_buf.GetNodeSize()  == t_buf.GetNodeSize());
+        BB_ASSERT(y_buf.GetFrameSize() == t_buf.GetFrameSize());
+
+        index_t frame_size  = t_buf.GetFrameSize();
+        index_t node_size   = t_buf.GetNodeSize();
+        auto shape          = t_buf.GetShape();
+        auto ch_size        = shape.size() > 1 ? shape[shape.size()-1] : 1;
+        auto pix_size       = node_size / ch_size;
 
 #ifdef BB_WITH_CUDA
-        if ( DataType<T>::type == BB_TYPE_FP32 && y.IsDeviceAvailable() && t.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
-            auto y_ptr   = y.LockDeviceMemoryConst();
-            auto t_ptr   = t.LockDeviceMemoryConst();
+        if ( DataType<T>::type == BB_TYPE_FP32 && ch_size == 1 && y_buf.IsDeviceAvailable() && t_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            auto y_ptr   = y_buf.LockDeviceMemoryConst();
+            auto t_ptr   = t_buf.LockDeviceMemoryConst();
             auto acc_ptr = m_accuracy.LockDeviceMemory();
 
             bbcu_fp32_AccuracyCategoricalClassification
@@ -70,39 +81,49 @@ public:
                     (float const *)y_ptr.GetAddr(),
                     (float const *)t_ptr.GetAddr(),
                     (int         *)acc_ptr.GetAddr(),
-                    (int          )y.GetNodeSize(),
-                    (int          )y.GetFrameSize(),
-                    (int          )(y.GetFrameStride() / sizeof(float))
+                    (int          )y_buf.GetNodeSize(),
+                    (int          )y_buf.GetFrameSize(),
+                    (int          )(y_buf.GetFrameStride() / sizeof(float))
                 );
 
-            m_frames += y.GetFrameSize();
+            m_category_count += y_buf.GetFrameSize();
 
             return;
         }
 #endif
 
         {
-            index_t frame_size = y.GetFrameSize();
-            index_t node_size = y.GetNodeSize();
             auto acc_ptr = m_accuracy.Lock();
 
-            m_frames += frame_size;
-
-            auto y_ptr  = y.LockConst<T>();
-            auto t_ptr  = t.LockConst<T>();
+            auto y_ptr  = y_buf.LockConst<T>();
+            auto t_ptr  = t_buf.LockConst<T>();
  
             for (index_t frame = 0; frame < frame_size; ++frame) {
-                index_t max_node   = 0;
-                T       max_signal = y_ptr.Get(frame, 0);
-                for (index_t node = 1; node < node_size; ++node) {
-                    T   sig = y_ptr.Get(frame, node);
-                    if (sig > max_signal) {
-                        max_node   = node;
-                        max_signal = sig;
+                for (index_t pix = 0; pix < pix_size; ++pix) {
+                    index_t max_ch  = 0;
+                    T       max_y   = y_ptr.Get(frame, pix);
+                    T       max_t   = t_ptr.Get(frame, pix);
+                    bool    max_val = (max_t > 0);
+                    for (index_t ch = 1; ch < ch_size; ++ch) {
+                        auto node = ch * pix_size + pix;
+                        T   y = y_ptr.Get(frame, node);
+                        T   t = t_ptr.Get(frame, node);
+                        if (y > max_y) {
+                            max_ch = ch;
+                            max_y  = y;
+                            max_t  = t;
+                        }
+                        if ( t > 0 ) {
+                            max_val = true;
+                        }
                     }
-                }
-                if ( t_ptr.Get(frame, max_node) > 0) {
-                    acc_ptr[0] += 1;
+
+                    if ( max_t > 0) {
+                        acc_ptr[0] += 1;
+                    }
+                    if ( max_val ) {
+                        m_category_count += 1;
+                    }
                 }
             }
         }

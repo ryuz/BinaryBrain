@@ -153,6 +153,8 @@ public:
         td.t_shape = indices_t({10});
         if (!LoadData(td.x_train, td.t_train, td.x_test, td.t_test, max_train_size, max_test_size, num_class)) {
             td.clear();
+            std::cout << "download failed." << std::endl;
+            BB_ASSERT(0);
         }
         return td;
     }
