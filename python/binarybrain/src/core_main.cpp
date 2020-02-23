@@ -799,9 +799,9 @@ R"(create BinaryLut6 object
     m.def("omp_set_num_threads", &omp_set_num_threads);
 
     // CUDA device
-    m.def("get_device_count", &GetDeviceCount);
-    m.def("set_device", &SetDevice);
-    m.def("get_device_properties", &GetDevicePropertiesString);
+    m.def("get_device_count",      &GetDeviceCount);
+    m.def("set_device",            &SetDevice,                 py::arg("device") = 0);
+    m.def("get_device_properties", &GetDevicePropertiesString, py::arg("device") = 0);
 
     // verilog
     m.def("make_verilog_from_lut", &MakeVerilog_FromLut);

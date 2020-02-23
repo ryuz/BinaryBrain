@@ -17,7 +17,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>All -device 1 -binary 1 -mini_batch 32 -modulation_size 3 -read 0 -epoch 4 -print_device -num_threads 4</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>SegmentationDenseCnn -device 1 -binary 1 -mini_batch 8 -modulation_size 1 -read 0 -epoch 4 -print_device -num_threads 4</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelCpu|Win32'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
@@ -45,7 +45,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>All -device 1 -binary 1 -mini_batch 32 -modulation_size 3 -read 0 -epoch 4 -print_device -num_threads 4</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>SegmentationDenseCnn -device 1 -binary 1 -mini_batch 8 -modulation_size 1 -read 0 -epoch 4 -print_device -num_threads 4</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelCpu|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
