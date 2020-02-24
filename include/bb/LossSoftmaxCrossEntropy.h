@@ -140,11 +140,14 @@ public:
 
                     for (index_t ch = 0; ch < ch_size; ++ch) {
                         auto node = ch * pix_size + pix;
-                        T softmax = std::exp(y_ptr.Get(frame, node) - c) / y_sum;
-                        if (t_ptr.Get(frame, node) > 0) {
+                        T y = y_ptr.Get(frame, node);
+                        T t = t_ptr.Get(frame, node);
+                        T softmax = std::exp(y - c) / y_sum;
+                        if ( t > 0) {
                             loss_buf_ptr[frame] += std::log(softmax + (T)1.0e-7);
+                            t = (T)1.0;
                         }
-                        T dy = (softmax - t_ptr.Get(frame, node)) / (T)batch_size;
+                        T dy = (softmax - t) / (T)batch_size;
                         if (!Real_IsValid(dy)) {
                             std::cout << "loss dy : nan" << std::endl;
                         }
