@@ -117,7 +117,7 @@ public:
                     }
 
                     if ( max_t > 0) {
-                        acc_ptr[0] += sum_t;
+                        acc_ptr[0] += (int)sum_t;
                     }
                     m_category_count += sum_t;
                 }
