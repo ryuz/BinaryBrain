@@ -300,8 +300,8 @@ static std::shared_ptr<bb::Model> make_lut_pointwise_cnv(int ch_size, int lut_si
 
 void MnistSegmentationSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    conv_to_rtl();
-    return;
+//    conv_to_rtl();
+//    return;
 
     std::string net_name = "MnistSegmentationSparseLutCnn";
 

@@ -1566,6 +1566,42 @@ BBCU_DLL_EXPORT int bbcu_fp32_ReLU_Backward
 //  RealToBinary
 // -------------------------------------
 
+template<typename T=float>
+BBCU_DLL_EXPORT int bbcu_RealToBinary_Forward
+        (
+            T   const       *dev_x_buf,
+            T               *dev_y_buf,
+            unsigned int    depth_modulation_size,
+            unsigned int    frame_modulation_size,
+            T               input_range_lo,
+            T               input_range_hi,
+            unsigned int    point_size,
+            unsigned int    x_depth_size,
+            unsigned int    x_frame_size,
+            unsigned int    x_frame_stride,
+            unsigned int    y_frame_stride,
+            bool            binarize,
+            cudaStream_t    streamId=0
+        );
+
+template<typename T=float>
+BBCU_DLL_EXPORT int bbcu_bit_RealToBinary_Forward
+        (
+            T   const       *dev_x_buf,
+            int             *dev_y_buf,
+            unsigned int    depth_modulation_size,
+            unsigned int    frame_modulation_size,
+            T               input_range_lo,
+            T               input_range_hi,
+            unsigned int    point_size,
+            unsigned int    x_depth_size,
+            unsigned int    x_frame_size,
+            unsigned int    x_frame_stride,
+            unsigned int    y_frame_stride,
+            cudaStream_t    streamId=0
+        );
+
+/*
 BBCU_DLL_EXPORT int bbcu_fp32_RealToBinary_Forward
         (
             float const     *dev_x_buf,
@@ -1592,7 +1628,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_bit_no_modulation_RealToBinary_Forward
             int             y_frame_stride,
             cudaStream_t    streamId = 0
         );
-
+*/
 
 // -------------------------------------
 //  BinaryToReal

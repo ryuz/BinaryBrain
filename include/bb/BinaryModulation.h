@@ -59,17 +59,17 @@ public:
 protected:
     BinaryModulation(create_t const &create)
     {
-        m_training_create.modulation_size  = create.training_modulation_size;
-        m_training_create.value_generator  = create.training_value_generator;
-        m_training_create.framewise        = create.training_framewise;
-        m_training_create.input_range_lo   = create.training_input_range_lo;
-        m_training_create.input_range_hi   = create.training_input_range_hi;
+        m_training_create.frame_modulation_size = create.training_modulation_size;
+        m_training_create.value_generator       = create.training_value_generator;
+        m_training_create.framewise             = create.training_framewise;
+        m_training_create.input_range_lo        = create.training_input_range_lo;
+        m_training_create.input_range_hi        = create.training_input_range_hi;
 
-        m_inference_create.modulation_size = create.inference_modulation_size;
-        m_inference_create.value_generator = create.inference_value_generator;
-        m_inference_create.framewise       = create.inference_framewise;
-        m_inference_create.input_range_lo  = create.inference_input_range_lo;
-        m_inference_create.input_range_hi  = create.inference_input_range_hi;
+        m_inference_create.frame_modulation_size = create.inference_modulation_size;
+        m_inference_create.value_generator       = create.inference_value_generator;
+        m_inference_create.framewise             = create.inference_framewise;
+        m_inference_create.input_range_lo        = create.inference_input_range_lo;
+        m_inference_create.input_range_hi        = create.inference_input_range_hi;
 
         m_training = true;
         m_modulation_size = create.training_modulation_size;
@@ -262,19 +262,19 @@ public:
         // change mode
         if (train && !m_training) {
             m_training = true;
-            m_modulation_size = m_training_create.modulation_size;
+            m_modulation_size = m_training_create.frame_modulation_size;
 
-            m_real2bin->SetModulationSize(m_training_create.modulation_size);
+            m_real2bin->SetModulationSize(m_training_create.frame_modulation_size);
             m_real2bin->SetValueGenerator(m_training_create.value_generator);
-            m_bin2real->SetModulationSize(m_training_create.modulation_size);
+            m_bin2real->SetModulationSize(m_training_create.frame_modulation_size);
         }
         else if (!train && m_training) {
             m_training = false;
-            m_modulation_size = m_inference_create.modulation_size;
+            m_modulation_size = m_inference_create.frame_modulation_size;
 
-            m_real2bin->SetModulationSize(m_inference_create.modulation_size);
+            m_real2bin->SetModulationSize(m_inference_create.frame_modulation_size);
             m_real2bin->SetValueGenerator(m_inference_create.value_generator);
-            m_bin2real->SetModulationSize(m_inference_create.modulation_size);
+            m_bin2real->SetModulationSize(m_inference_create.frame_modulation_size);
         }
 
         x_buf = m_real2bin->Forward(x_buf, train);
@@ -313,12 +313,12 @@ protected:
         // これ以上ネストしないなら自クラス概要
         if ( depth > 0 && (nest+1) >= depth ) {
             Model::PrintInfoText(os, indent, columns, nest, depth);
-            os << indent << " training  modulation size : " << m_training_create.modulation_size  << std::endl;
-            os << indent << " inference modulation size : " << m_inference_create.modulation_size << std::endl;
+            os << indent << " training  modulation size : " << m_training_create.frame_modulation_size  << std::endl;
+            os << indent << " inference modulation size : " << m_inference_create.frame_modulation_size << std::endl;
         }
         else {
-            os << indent << " training  modulation size : " << m_training_create.modulation_size  << std::endl;
-            os << indent << " inference modulation size : " << m_inference_create.modulation_size << std::endl;
+            os << indent << " training  modulation size : " << m_training_create.frame_modulation_size  << std::endl;
+            os << indent << " inference modulation size : " << m_inference_create.frame_modulation_size << std::endl;
 
             // 子レイヤーの表示
             if ( m_binary_mode ) {
