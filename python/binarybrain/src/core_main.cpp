@@ -514,7 +514,8 @@ Args:
 
     py::class_< RealToBinary, Model, std::shared_ptr<RealToBinary> >(m, "RealToBinary")
         .def_static("create", &RealToBinary::CreateEx,
-                py::arg(" modulation_size") = 1,
+                py::arg("frame_modulation_size") = 1,
+                py::arg("depth_modulation_size") = 1,
                 py::arg("value_generator")  = nullptr,
                 py::arg("framewise")        = false,
                 py::arg("input_range_lo")   = 0.0f,
@@ -522,7 +523,8 @@ Args:
 
     py::class_< RealToBinaryBit, Model, std::shared_ptr<RealToBinaryBit> >(m, "RealToBinaryBit")
         .def_static("create", &RealToBinaryBit::CreateEx,
-                py::arg(" modulation_size") = 1,
+                py::arg("frame_modulation_size") = 1,
+                py::arg("depth_modulation_size") = 1,
                 py::arg("value_generator")  = nullptr,
                 py::arg("framewise")        = false,
                 py::arg("input_range_lo")   = 0.0f,
