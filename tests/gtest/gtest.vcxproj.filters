@@ -329,5 +329,8 @@
     <ClInclude Include="..\..\include\bb\DepthwiseDenseAffine.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bb\Reshape.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

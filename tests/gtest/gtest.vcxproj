@@ -117,6 +117,7 @@
     <ClInclude Include="..\..\include\bb\RealToBinary.h" />
     <ClInclude Include="..\..\include\bb\Reduce.h" />
     <ClInclude Include="..\..\include\bb\ReLU.h" />
+    <ClInclude Include="..\..\include\bb\Reshape.h" />
     <ClInclude Include="..\..\include\bb\Runner.h" />
     <ClInclude Include="..\..\include\bb\Sequential.h" />
     <ClInclude Include="..\..\include\bb\ShuffleModulation.h" />

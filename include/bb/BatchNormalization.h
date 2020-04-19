@@ -113,6 +113,9 @@ protected:
             m_host_simd = EvalBool(args[1]);
         }
 
+        if (args.size() == 2 && args[0] == "set_momentum") {
+            m_momentum = (T)std::atof(args[1].c_str());
+        }
         if (args.size() == 2 && args[0] == "fix_gamma") {
             m_fix_gamma = EvalBool(args[1]);
         }
@@ -125,6 +128,12 @@ protected:
         if (args.size() == 2 && args[0] == "set_beta") {
             *m_beta  = (T)std::atof(args[1].c_str());
         }
+    }
+    
+    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
+    {
+        _super::PrintInfoText(os, indent, columns, nest, depth);
+        os << indent << " momentum : " << m_momentum << std::endl;
     }
 
 public:

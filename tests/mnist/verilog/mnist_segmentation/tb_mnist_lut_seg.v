@@ -33,10 +33,10 @@ module tb_mnist_lut_seg();
 	wire	cke = 1'b1;
 	
 	
-	localparam IMG_X_NUM = 640;
-	localparam IMG_Y_NUM = 480;
-//	localparam IMG_X_NUM = 640 / 4;
-//	localparam IMG_Y_NUM = 480 / 4;
+//	localparam IMG_X_NUM = 640;
+//	localparam IMG_Y_NUM = 480;
+	localparam IMG_X_NUM = 640 / 4;
+	localparam IMG_Y_NUM = 480 / 4;
 	
 	
 	localparam	DATA_WIDTH         = 8;
@@ -76,8 +76,8 @@ module tb_mnist_lut_seg();
 				.AXI4S_DATA_WIDTH	(24),
 				.X_NUM				(IMG_X_NUM),
 				.Y_NUM				(IMG_Y_NUM),
-				.PPM_FILE			("mnist_test_640x480.ppm"),
-		//		.PPM_FILE			("mnist_test_160x120.ppm"),
+		//		.PPM_FILE			("mnist_test_640x480.ppm"),
+				.PPM_FILE			("mnist_test_160x120r.ppm"),
 				.BUSY_RATE			(0), // (5),
 				.RANDOM_SEED		(776),
 				.INTERVAL			(1000)
