@@ -155,8 +155,7 @@ This source code's license is MIT license.
 
 ## ICCE2019(Berlin)
 2019 IEEE 9th International Conference on Consumer Electronics (ICCE-Berlin) <br>
-https://edas.info/showManuscript.php?m=1570577657&ext=pdf&random=1730268675&type=stamped <br>
-https://edas.info/p25749#S1569571697 <br>
+https://ieeexplore.ieee.org/document/8966187 <br>
 
 
 ## Author's information
