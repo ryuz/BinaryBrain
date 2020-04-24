@@ -198,10 +198,9 @@ BinaryBrainではバイナリ変調したデジタル値を扱うことが出来
 ただし、本ソースコードは CEREAL を利用しているので、それらに関しては個別に各ライセンスに従ってください。
 
 
-## ICCE2019(Berlin)にて
+## ICCE2019(Berlin)にて発表しています
 2019 IEEE 9th International Conference on Consumer Electronics (ICCE-Berlin) <br>
-https://edas.info/showManuscript.php?m=1570577657&ext=pdf&random=1730268675&type=stamped <br>
-https://edas.info/p25749#S1569571697 <br>
+https://ieeexplore.ieee.org/document/8966187 <br>
 
 
 ## 作者情報
