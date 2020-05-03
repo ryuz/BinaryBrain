@@ -347,7 +347,8 @@ BBCU_DLL_EXPORT int bbcu_bit_RealToBinary_Forward
     T               frame_modulation_step = (T)1.0 / (T)frame_modulation_size;
     unsigned int    y_unit_size = (y_frame_size + 31) / 32;
     
-    dim3    block(32, 32, 1);
+//  dim3    block(32, 32, 1);
+    dim3    block(32, 16, 1);  // 1024スレッド作るにはレジスタが足りない模様
     while ( block.x / 2 >= y_unit_size  && block.x > MIN_FRAME_UNIT ){ block.x /= 2; block.y *= 2; }
     while ( block.y / 2 >= y_depth_size && block.y > MIN_DEPTH_UNIT ){ block.y /= 2; block.z *= 2; }
     block.x = std::min(block.x, y_unit_size);
