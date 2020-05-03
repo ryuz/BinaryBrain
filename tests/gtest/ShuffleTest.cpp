@@ -8,7 +8,7 @@
 
 TEST(SuffleTest, testSuffle_test0)
 {
-    auto shuffle = bb::Shuffle::Create({6}, 3);
+    auto shuffle = bb::Shuffle::Create(3);
     
     bb::FrameBuffer x(2, {6}, BB_TYPE_FP32);
     shuffle->SetInputShape(x.GetShape());

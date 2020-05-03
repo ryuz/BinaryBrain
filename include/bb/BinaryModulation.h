@@ -42,7 +42,8 @@ public:
     {
         std::shared_ptr<Model>                      layer;
         indices_t                                   output_shape;
-        
+        index_t                                     depth_modulation_size = 1;
+
         index_t                                     training_modulation_size  = 1;
         std::shared_ptr< ValueGenerator<RealType> > training_value_generator;
         bool                                        training_framewise        = true;
@@ -59,12 +60,14 @@ public:
 protected:
     BinaryModulation(create_t const &create)
     {
+        m_training_create.depth_modulation_size = create.depth_modulation_size;
         m_training_create.frame_modulation_size = create.training_modulation_size;
         m_training_create.value_generator       = create.training_value_generator;
         m_training_create.framewise             = create.training_framewise;
         m_training_create.input_range_lo        = create.training_input_range_lo;
         m_training_create.input_range_hi        = create.training_input_range_hi;
 
+        m_inference_create.depth_modulation_size = create.depth_modulation_size;
         m_inference_create.frame_modulation_size = create.inference_modulation_size;
         m_inference_create.value_generator       = create.inference_value_generator;
         m_inference_create.framewise             = create.inference_framewise;
@@ -98,7 +101,7 @@ public:
         return std::shared_ptr<BinaryModulation>(new BinaryModulation(create));
     }
 
-    static std::shared_ptr<BinaryModulation> Create(std::shared_ptr<Model> layer, index_t train_modulation_size, index_t inference_modulation_size=0)
+    static std::shared_ptr<BinaryModulation> Create(std::shared_ptr<Model> layer, index_t train_modulation_size, index_t inference_modulation_size=0, index_t depth_modulation_size=1)
     {
         BB_ASSERT(train_modulation_size > 0);
         if ( inference_modulation_size <= 0 ) {
@@ -109,13 +112,15 @@ public:
         create.layer = layer;
         create.training_modulation_size  = train_modulation_size;
         create.inference_modulation_size = inference_modulation_size;
+        create.depth_modulation_size       = depth_modulation_size;
         return Create(create);
     }
     
     static std::shared_ptr<BinaryModulation> CreateEx(
                 std::shared_ptr<Model>                      layer,
                 indices_t                                   output_shape,
-        
+                index_t                                     depth_modulation_size  = 1,
+                
                 index_t                                     training_modulation_size  = 1,
                 std::shared_ptr< ValueGenerator<RealType> > training_value_generator  = nullptr,
                 bool                                        training_framewise        = true,

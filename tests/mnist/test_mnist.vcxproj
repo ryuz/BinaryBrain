@@ -422,6 +422,7 @@
     <ClInclude Include="..\..\include\bb\ReLU.h" />
     <ClInclude Include="..\..\include\bb\Runner.h" />
     <ClInclude Include="..\..\include\bb\Sequential.h" />
+    <ClInclude Include="..\..\include\bb\Shuffle.h" />
     <ClInclude Include="..\..\include\bb\ShuffleSet.h" />
     <ClInclude Include="..\..\include\bb\Sigmoid.h" />
     <ClInclude Include="..\..\include\bb\SimdSupport.h" />

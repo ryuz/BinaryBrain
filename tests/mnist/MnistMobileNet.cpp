@@ -89,7 +89,7 @@ void MnistMobileNet_(int epoch_size, int mini_batch_size, int train_modulation_s
         cnv50_net->Add(bb::BatchNormalization<>::Create());
         cnv50_net->Add(bb::ReLU<T>::Create());
         auto cnv51_net = bb::Sequential::Create();
-        cnv51_net->Add(bb::DenseAffine<>::Create(10));
+        cnv51_net->Add(bb::DenseAffine<>::Create(256));
         cnv51_net->Add(bb::BatchNormalization<>::Create());
         cnv51_net->Add(bb::ReLU<T>::Create());
 
@@ -105,22 +105,22 @@ void MnistMobileNet_(int epoch_size, int mini_batch_size, int train_modulation_s
         main_net->Add(bb::MaxPooling<T>::Create(2, 2));                       //                         [4x4]
         main_net->Add(bb::LoweringConvolution<T>::Create(cnv40_net, 3, 3));   // depthwise Conv3x3 x 64  [2x2]
         main_net->Add(bb::LoweringConvolution<T>::Create(cnv41_net, 1, 1));   // pointwise Conv1x1 x 64
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv50_net, 2, 2));   // depthwise Conv3x3 x 64  [1x1]
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv51_net, 1, 1));   // pointwise Conv1x1 x 64
+        main_net->Add(bb::LoweringConvolution<T>::Create(cnv50_net, 2, 2));   // depthwise Conv2x2 x 128 [1x1]
+        main_net->Add(bb::LoweringConvolution<T>::Create(cnv51_net, 1, 1));   // pointwise Conv1x1 x 128
 
-//        main_net->Add(bb::DenseAffine<float>::Create(512));
-//        main_net->Add(bb::BatchNormalization<float>::Create());
-//        main_net->Add(bb::ReLU<float>::Create());
-//        main_net->Add(bb::DenseAffine<float>::Create(td.t_shape));
-//        if ( binary_mode ) {
-//            main_net->Add(bb::BatchNormalization<float>::Create());
-//            main_net->Add(bb::ReLU<float>::Create());
- //       }
+        main_net->Add(bb::DenseAffine<>::Create(256));
+        main_net->Add(bb::BatchNormalization<>::Create());
+        main_net->Add(bb::ReLU<T>::Create());
+        main_net->Add(bb::DenseAffine<>::Create(td.t_shape));
+        if ( binary_mode ) {
+            main_net->Add(bb::BatchNormalization<>::Create());
+            main_net->Add(bb::ReLU<T>::Create());
+        }
 
         // modulation wrapper
-        auto net = bb::BinaryModulation<T>::Create(main_net, train_modulation_size, test_modulation_size);
+        auto net = bb::BinaryModulation<T>::Create(main_net, train_modulation_size, test_modulation_size, 8);
 
-      // set input shape
+        // set input shape
         net->SetInputShape(td.x_shape);
 
         // set binary mode

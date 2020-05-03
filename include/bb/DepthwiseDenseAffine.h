@@ -41,10 +41,10 @@ protected:
     std::mt19937_64             m_mt;
 
     indices_t                   m_input_shape;
-    index_t                     m_input_points_size = 0;
+    index_t                     m_input_point_size = 0;
     index_t                     m_input_node_size = 0;
     indices_t                   m_output_shape;
-    index_t                     m_output_points_size = 0;
+    index_t                     m_output_point_size = 0;
     index_t                     m_output_node_size = 0;
     index_t                     m_depth_size = 0;
 
@@ -64,6 +64,7 @@ public:
     struct create_t
     {
         indices_t       output_shape;
+        index_t         output_point_size = 0;
         index_t         depth_size = 0;
         T               initialize_std = (T)0.01;
         std::string     initializer = "he";
@@ -93,13 +94,20 @@ protected:
         m_output_shape     = create.output_shape;
         m_output_node_size = GetShapeSize(m_output_shape);
         if ( create.depth_size > 0 ) {
-            BB_ASSERT(m_output_node_size % create.depth_size == 0);
             m_depth_size = create.depth_size;
         }
-        else {
-            m_depth_size =  create.output_shape[create.output_shape.size() - 1];
+        else if ( create.output_point_size > 0 ) {
+            m_depth_size = m_output_node_size / create.output_point_size;
         }
-        m_output_points_size = m_output_node_size / m_depth_size;
+        else
+        {
+            m_depth_size = m_output_shape[m_output_shape.size() - 1];
+        }
+
+        BB_ASSERT(m_output_node_size > 0);
+        BB_ASSERT(m_depth_size > 0);
+        BB_ASSERT(m_output_node_size % m_depth_size == 0);
+        m_output_point_size = m_output_node_size / m_depth_size;
     }
 
     void CommandProc(std::vector<std::string> args)
@@ -134,33 +142,39 @@ public:
         return std::shared_ptr<DepthwiseDenseAffine>(new DepthwiseDenseAffine(create));
     }
 
-    static std::shared_ptr<DepthwiseDenseAffine> Create(indices_t const &output_shape)
+    static std::shared_ptr<DepthwiseDenseAffine> Create(indices_t const &output_shape, index_t output_point_size=0, index_t depth_size=0)
     {
         create_t create;
-        create.output_shape = output_shape;
+        create.output_shape      = output_shape;
+        create.output_point_size = output_point_size;
+        create.depth_size        = depth_size;
         return Create(create);
     }
 
-    static std::shared_ptr<DepthwiseDenseAffine> Create(index_t output_node_size)
+    static std::shared_ptr<DepthwiseDenseAffine> Create(index_t output_node_size, index_t output_point_size=0, index_t depth_size=0)
     {
         create_t create;
         create.output_shape.resize(1);
         create.output_shape[0] = output_node_size;
-        return Create(create);
+        return Create(indices_t({output_node_size}), output_point_size, depth_size);
     }
 
     static std::shared_ptr<DepthwiseDenseAffine> CreateEx(
             indices_t       output_shape,
+            index_t         output_point_size = 0,
+            index_t         depth_size = 0,
             T               initialize_std = (T)0.01,
             std::string     initializer = "he",
             std::uint64_t   seed = 1
         )
     {
         create_t create;
-        create.output_shape   = output_shape;
-        create.initialize_std = initialize_std;
-        create.initializer    = initializer;
-        create.seed           = seed;
+        create.output_shape      = output_shape;
+        create.output_point_size = output_point_size;
+        create.depth_size        = depth_size;
+        create.initialize_std    = initialize_std;
+        create.initializer       = initializer;
+        create.seed              = seed;
         return Create(create);
     }
 
@@ -205,7 +219,7 @@ public:
         m_input_shape   = shape;
         m_input_node_size = GetShapeSize(shape);
         BB_ASSERT(m_input_node_size % m_depth_size == 0);
-        m_input_points_size = m_input_node_size / m_depth_size;
+        m_input_point_size = m_input_node_size / m_depth_size;
 
         // パラメータ初期化
         if (m_initializer == "he" || m_initializer == "He") {
@@ -214,10 +228,10 @@ public:
         else if (m_initializer == "xavier" || m_initializer == "Xavier" ) {
             m_initialize_std = (T)1.0 / std::sqrt((T)m_input_node_size);
         }
-        m_W->Resize ({m_input_points_size, m_output_points_size, m_depth_size}, DataType<T>::type);   m_W->InitNormalDistribution(0.0, m_initialize_std, m_mt());
-        m_b->Resize ({m_output_points_size, m_depth_size},                      DataType<T>::type);   m_b->InitNormalDistribution(0.0, m_initialize_std, m_mt());
-        m_dW->Resize({m_input_points_size, m_output_points_size, m_depth_size}, DataType<T>::type);   m_dW->FillZero();
-        m_db->Resize({m_output_points_size, m_depth_size},                      DataType<T>::type);   m_db->FillZero();
+        m_W->Resize ({m_input_point_size, m_output_point_size, m_depth_size}, DataType<T>::type);   m_W->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+        m_b->Resize ({m_output_point_size, m_depth_size},                      DataType<T>::type);   m_b->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+        m_dW->Resize({m_input_point_size, m_output_point_size, m_depth_size}, DataType<T>::type);   m_dW->FillZero();
+        m_db->Resize({m_output_point_size, m_depth_size},                      DataType<T>::type);   m_db->FillZero();
 
         return m_output_shape;
     }
@@ -328,15 +342,15 @@ public:
                         CUBLAS_OP_N,
                         CUBLAS_OP_N,
                         (int)y_buf.GetFrameSize(),
-                        (int)m_output_points_size, // y_buf.GetNodeSize(),
-                        (int)m_input_points_size,  // x_buf.GetNodeSize(),
+                        (int)m_output_point_size, // y_buf.GetNodeSize(),
+                        (int)m_input_point_size,  // x_buf.GetNodeSize(),
                         &alpha,
-                        (const float *)x_ptr.GetAddr() + (depth * m_input_points_size * x_frame_stride),
+                        (const float *)x_ptr.GetAddr() + (depth * m_input_point_size * x_frame_stride),
                         (int)x_frame_stride,
-                        (const float *)W_ptr.GetAddr() + (depth * m_input_points_size * m_output_points_size),
-                        (int)m_input_points_size, // x_buf.GetNodeSize(),
+                        (const float *)W_ptr.GetAddr() + (depth * m_input_point_size * m_output_point_size),
+                        (int)m_input_point_size, // x_buf.GetNodeSize(),
                         &beta,
-                        (float *)y_ptr.GetAddr() + (depth * m_output_points_size * y_frame_stride),
+                        (float *)y_ptr.GetAddr() + (depth * m_output_point_size * y_frame_stride),
                         (int)y_frame_stride
                     ));
             }
@@ -356,11 +370,11 @@ public:
             #pragma omp parallel for
             for (index_t frame = 0; frame < frame_size; ++frame) {
                 for (index_t depth = 0; depth < m_depth_size; ++depth) {
-                    for (index_t output_point = 0; output_point < m_output_points_size; ++output_point) {
-                        index_t output_node = m_output_points_size * depth + output_point;
+                    for (index_t output_point = 0; output_point < m_output_point_size; ++output_point) {
+                        index_t output_node = m_output_point_size * depth + output_point;
                         y_ptr.Set(frame, output_node, b_ptr(depth, output_point));
-                        for (index_t input_point = 0; input_point < m_input_points_size; ++input_point) {
-                            y_ptr.Add(frame, output_node, x_ptr.Get(frame, depth * m_input_points_size + input_point) * W_ptr(depth, output_point, input_point));
+                        for (index_t input_point = 0; input_point < m_input_point_size; ++input_point) {
+                            y_ptr.Add(frame, output_node, x_ptr.Get(frame, depth * m_input_point_size + input_point) * W_ptr(depth, output_point, input_point));
                         }
                     }
                 }
@@ -421,15 +435,15 @@ public:
                         CUBLAS_OP_N,
                         CUBLAS_OP_T,
                         (int)dx_buf.GetFrameSize(),
-                        (int)m_input_points_size, // dx_buf.GetNodeSize(),
-                        (int)m_output_points_size, // dy_buf.GetNodeSize(),
+                        (int)m_input_point_size, // dx_buf.GetNodeSize(),
+                        (int)m_output_point_size, // dy_buf.GetNodeSize(),
                         &alpha,
-                        (const float *)dy_ptr.GetAddr() + (depth * m_output_points_size * dy_frame_stride),
+                        (const float *)dy_ptr.GetAddr() + (depth * m_output_point_size * dy_frame_stride),
                         (int)dy_frame_stride,
-                        (const float *)W_ptr.GetAddr() + (depth * m_output_points_size * m_input_points_size),
-                        (int)m_input_points_size, // dx_buf.GetNodeSize(),
+                        (const float *)W_ptr.GetAddr() + (depth * m_output_point_size * m_input_point_size),
+                        (int)m_input_point_size, // dx_buf.GetNodeSize(),
                         &beta,
-                        (float *)dx_ptr.GetAddr() + (depth * m_input_points_size * dx_frame_stride),
+                        (float *)dx_ptr.GetAddr() + (depth * m_input_point_size * dx_frame_stride),
                         (int)dx_frame_stride
                     ));
                 
@@ -439,17 +453,17 @@ public:
                         m_cublasHandle,
                         CUBLAS_OP_T,
                         CUBLAS_OP_N,
-                        (int)m_input_points_size, // dx_buf.GetNodeSize(),
-                        (int)m_output_points_size, // dy_buf.GetNodeSize(),
+                        (int)m_input_point_size, // dx_buf.GetNodeSize(),
+                        (int)m_output_point_size, // dy_buf.GetNodeSize(),
                         (int)dx_buf.GetFrameSize(),
                         &alpha,
-                        (const float *)x_ptr.GetAddr() + (depth * m_input_points_size * dx_frame_stride),
+                        (const float *)x_ptr.GetAddr() + (depth * m_input_point_size * dx_frame_stride),
                         (int)dx_frame_stride,
-                        (const float *)dy_ptr.GetAddr() + (depth * m_output_points_size * dy_frame_stride),
+                        (const float *)dy_ptr.GetAddr() + (depth * m_output_point_size * dy_frame_stride),
                         (int)dy_frame_stride,
                         &beta,
-                        (float *)dW_ptr.GetAddr() + (depth * m_output_points_size * m_input_points_size),
-                        (int)m_input_points_size // dx_buf.GetNodeSize()
+                        (float *)dW_ptr.GetAddr() + (depth * m_output_point_size * m_input_point_size),
+                        (int)m_input_point_size // dx_buf.GetNodeSize()
                     ));
             }
             
@@ -471,13 +485,13 @@ public:
             #pragma omp parallel for
             for (index_t frame = 0; frame < frame_size; ++frame) {
                 for (index_t depth = 0; depth < m_depth_size; ++depth) {
-                    for (index_t output_point = 0; output_point < m_output_points_size; ++output_point) {
-                        auto output_node = depth * m_output_points_size + output_point;
+                    for (index_t output_point = 0; output_point < m_output_point_size; ++output_point) {
+                        auto output_node = depth * m_output_point_size + output_point;
                         auto grad = dy_ptr.Get(frame, output_node);
                         db_ptr(depth, output_point) += grad;
-                        for (index_t input_point = 0; input_point < m_input_points_size; ++input_point) {
-                            dx_ptr.Add(frame, depth * m_input_points_size + input_point, grad * W_ptr(depth, output_point, input_point));
-                            dW_ptr(depth, output_point, input_point) += grad * x_ptr.Get(frame, depth * m_input_points_size + input_point);
+                        for (index_t input_point = 0; input_point < m_input_point_size; ++input_point) {
+                            dx_ptr.Add(frame, depth * m_input_point_size + input_point, grad * W_ptr(depth, output_point, input_point));
+                            dW_ptr(depth, output_point, input_point) += grad * x_ptr.Get(frame, depth * m_input_point_size + input_point);
                         }
                     }
                 }

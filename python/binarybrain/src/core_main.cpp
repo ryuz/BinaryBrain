@@ -451,6 +451,8 @@ Args:
     py::class_< DepthwiseDenseAffine, Model, std::shared_ptr<DepthwiseDenseAffine> >(m, "DepthwiseDenseAffine")
         .def_static("create",   &DepthwiseDenseAffine::CreateEx, "create",
             py::arg("output_shape"),
+            py::arg("point_size")=0,
+            py::arg("depth_size")=0,
             py::arg("initialize_std") = 0.01f,
             py::arg("initializer")    = "he",
             py::arg("seed")           = 1)
@@ -488,6 +490,7 @@ Args:
         .def_static("create", &BinaryModulation::CreateEx,
                 py::arg("layer"),
                 py::arg("output_shape")              = bb::indices_t(),
+                py::arg("depth_modulation_size")     = 1,
                 py::arg("training_modulation_size")  = 1,
                 py::arg("training_value_generator")  = nullptr,
                 py::arg("training_framewise")        = true,
@@ -503,6 +506,7 @@ Args:
         .def_static("create", &BinaryModulationBit::CreateEx,
                 py::arg("layer"),
                 py::arg("output_shape")              = bb::indices_t(),
+                py::arg("depth_modulation_size")     = 1,
                 py::arg("training_modulation_size")  = 1,
                 py::arg("training_value_generator")  = nullptr,
                 py::arg("training_framewise")        = true,
@@ -595,8 +599,8 @@ R"(create BinaryLut6 object
     
     py::class_< Shuffle, Model, std::shared_ptr<Shuffle> >(m, "Shuffle")
         .def_static("create", &Shuffle::CreateEx,
-                py::arg("output_shape"),
-                py::arg("shuffle_unit")  = 1);
+                py::arg("shuffle_unit"),
+                py::arg("output_shape") = bb::indices_t());
 
 
     // filter

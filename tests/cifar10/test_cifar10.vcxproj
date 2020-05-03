@@ -197,7 +197,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>BB_WITH_CUDA;BB_WITH_CEREAL;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BB_ASSERT_LOOP;BB_WITH_CUDA;BB_WITH_CEREAL;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\..\include;..\..\eigen;..\..\cereal\include;$(CUDA_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
@@ -356,6 +356,7 @@
     <ClCompile Include="Cifar10MicroMlpLutSimple.cpp" />
     <ClCompile Include="Cifar10MobileNet.cpp" />
     <ClCompile Include="Cifar10NrSparseLutCnn.cpp" />
+    <ClCompile Include="Cifar10ShuffleNet.cpp" />
     <ClCompile Include="Cifar10SparseLutCnn.cpp" />
     <ClCompile Include="Cifar10SparseLutSimple.cpp" />
     <ClCompile Include="Cifar10StochasticLutBnCnn.cpp" />
@@ -380,6 +381,7 @@
     <ClInclude Include="..\..\include\bb\DataAugmentationMnist.h" />
     <ClInclude Include="..\..\include\bb\DataType.h" />
     <ClInclude Include="..\..\include\bb\DenseAffine.h" />
+    <ClInclude Include="..\..\include\bb\DepthwiseDenseAffine.h" />
     <ClInclude Include="..\..\include\bb\Dropout.h" />
     <ClInclude Include="..\..\include\bb\ExportVerilog.h" />
     <ClInclude Include="..\..\include\bb\Filter2d.h" />
@@ -415,6 +417,7 @@
     <ClInclude Include="..\..\include\bb\ReLU.h" />
     <ClInclude Include="..\..\include\bb\Runner.h" />
     <ClInclude Include="..\..\include\bb\Sequential.h" />
+    <ClInclude Include="..\..\include\bb\Shuffle.h" />
     <ClInclude Include="..\..\include\bb\ShuffleModulation.h" />
     <ClInclude Include="..\..\include\bb\ShuffleSet.h" />
     <ClInclude Include="..\..\include\bb\Sigmoid.h" />

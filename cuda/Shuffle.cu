@@ -24,14 +24,14 @@ __global__ void kernal_Shuffle_Copy(
             unsigned int    y_unit_size,
             unsigned int    y_group_size,
             unsigned int    node_size,
-            unsigned int    frame_size,
+//          unsigned int    frame_size,
             unsigned int    frame_stride
         )
 {
     unsigned int    frame  = blockDim.x * blockIdx.x + threadIdx.x;
     unsigned int    y_node = blockDim.y * blockIdx.y + threadIdx.y;
 
-    if ( frame < frame_size && y_node < node_size ) {
+    if ( frame < frame_stride && y_node < node_size ) {
         unsigned int    unit  = y_node % y_unit_size;
         unsigned int    group = y_node / y_unit_size; 
         unsigned int    x_node = y_group_size * unit + group;
@@ -74,7 +74,7 @@ BBCU_DLL_EXPORT int bbcu_Shuffle_Forward
             y_unit_size,
             node_size / y_unit_size,
             node_size,
-            frame_size,
+//          frame_size,
             frame_stride
         );
     BB_CUDA_CHECK_LAST_ERROR();
@@ -113,7 +113,7 @@ BBCU_DLL_EXPORT int bbcu_Shuffle_Backward
             node_size / y_unit_size,
             y_unit_size,
             node_size,
-            frame_size,
+//          frame_size,
             frame_stride
         );
     BB_CUDA_CHECK_LAST_ERROR();

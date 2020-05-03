@@ -26,14 +26,14 @@ protected:
 
     indices_t   m_input_shape;
     indices_t   m_output_shape;
-    index_t     m_shuffle_unit;
+    index_t     m_shuffle_unit = 0;
 
 public:
     // 生成情報
     struct create_t
     {
+        index_t     shuffle_unit = 0;
         indices_t   output_shape;
-        index_t     shuffle_unit;
     };
     
 protected:
@@ -44,7 +44,7 @@ protected:
         m_output_shape = create.output_shape;
         m_shuffle_unit = create.shuffle_unit;
     }
-
+    
     /**
      * @brief  コマンド処理
      * @detail コマンド処理
@@ -67,27 +67,24 @@ public:
         return std::shared_ptr<Shuffle>(new Shuffle(create));
     }
 
-    static std::shared_ptr<Shuffle> Create(indices_t output_shape, index_t shuffle_unit)
+    static std::shared_ptr<Shuffle> Create(index_t shuffle_unit, indices_t output_shape=indices_t())
     {
         create_t create;
-        create.output_shape = output_shape;
         create.shuffle_unit = shuffle_unit;
+        create.output_shape = output_shape;
         return Create(create);
     }
 
-    static std::shared_ptr<Shuffle> Create(index_t output_node_size, index_t shuffle_unit)
+    static std::shared_ptr<Shuffle> Create(index_t shuffle_unit, index_t output_node_size)
     {
-        create_t create;
-        create.output_shape = indices_t({output_node_size});
-        create.shuffle_unit = shuffle_unit;
-        return Create(create);
+        return Create(shuffle_unit, indices_t({output_node_size}));
     }
 
-    static std::shared_ptr<Shuffle> CreateEx(indices_t output_shape, index_t shuffle_unit)
+    static std::shared_ptr<Shuffle> CreateEx(index_t shuffle_unit, indices_t output_shape=indices_t())
     {
         create_t create;
-        create.output_shape = output_shape;
         create.shuffle_unit = shuffle_unit;
+        create.output_shape = output_shape;
         return Create(create);
     }
 
@@ -103,14 +100,14 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
-        BB_ASSERT(GetShapeSize(shape) == GetShapeSize(m_output_shape));
+        m_input_shape = shape;
 
-        // 設定済みなら何もしない
-        if ( shape == this->GetInputShape() ) {
-            return this->GetOutputShape();
+        if ( m_output_shape.empty() || GetShapeSize(shape) != GetShapeSize(m_output_shape) ) {
+            m_output_shape = m_input_shape;
         }
 
-        m_input_shape = shape;
+        BB_ASSERT(GetShapeSize(m_output_shape) % m_shuffle_unit == 0);
+
         return m_output_shape;
     }
 
