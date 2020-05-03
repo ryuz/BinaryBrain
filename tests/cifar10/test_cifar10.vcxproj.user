@@ -31,7 +31,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>ShuffleNet -read 0 -mini_batch 32 -modulation_size 1 -epoch 256 -num_threads 4 -binary 1 -print_device</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>ShuffleNet -read 0 -mini_batch 128 -modulation_size 1 -epoch 256 -num_threads 4 -binary 1 -print_device</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DbgCpu|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>

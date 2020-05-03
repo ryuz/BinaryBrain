@@ -21,6 +21,8 @@ namespace bb {
 // Shuffle
 class Shuffle : public Model
 {
+    using _super = Model;
+
 protected:
     bool        m_host_only = false;
 
@@ -58,7 +60,15 @@ protected:
             m_host_only = EvalBool(args[1]);
         }
     }
-    
+
+    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
+    {
+        _super::PrintInfoText(os, indent, columns, nest, depth);
+//      os << indent << " input  shape : " << GetInputShape();
+//      os << indent << " output shape : " << GetOutputShape();
+        os << indent << " shuffle_unit : " << m_shuffle_unit << std::endl;
+    }
+
 public:
     ~Shuffle() {}
 

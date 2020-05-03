@@ -8,7 +8,7 @@
 
 TEST(DepthwiseDenseAffineTest, testAffine)
 {
-    auto affine = bb::DepthwiseDenseAffine<>::Create(3);
+    auto affine = bb::DepthwiseDenseAffine<>::Create({3});
     
     affine->SetInputShape({2, 3});
 

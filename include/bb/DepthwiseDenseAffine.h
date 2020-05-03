@@ -31,7 +31,6 @@ class DepthwiseDenseAffine : public Model
 {
     using _super = Model;
 
-
 protected:
     bool                        m_binary_mode = false;
     bool                        m_host_only = false;
@@ -64,7 +63,7 @@ public:
     struct create_t
     {
         indices_t       output_shape;
-        index_t         output_point_size = 0;
+        index_t         input_point_size = 0;
         index_t         depth_size = 0;
         T               initialize_std = (T)0.01;
         std::string     initializer = "he";
@@ -93,21 +92,7 @@ protected:
 
         m_output_shape     = create.output_shape;
         m_output_node_size = GetShapeSize(m_output_shape);
-        if ( create.depth_size > 0 ) {
-            m_depth_size = create.depth_size;
-        }
-        else if ( create.output_point_size > 0 ) {
-            m_depth_size = m_output_node_size / create.output_point_size;
-        }
-        else
-        {
-            m_depth_size = m_output_shape[m_output_shape.size() - 1];
-        }
-
-        BB_ASSERT(m_output_node_size > 0);
-        BB_ASSERT(m_depth_size > 0);
-        BB_ASSERT(m_output_node_size % m_depth_size == 0);
-        m_output_point_size = m_output_node_size / m_depth_size;
+        m_input_point_size = create.input_point_size;
     }
 
     void CommandProc(std::vector<std::string> args)
@@ -127,6 +112,14 @@ protected:
         }
     }
 
+    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
+    {
+        _super::PrintInfoText(os, indent, columns, nest, depth);
+//      os << indent << " input  shape : " << GetInputShape();
+//      os << indent << " output shape : " << GetOutputShape();
+        os << indent << " input(" << m_input_point_size << ", " << m_depth_size << ")"
+                     << " output(" << m_output_point_size << ", " << m_depth_size << ")" << std::endl;
+    }
 
 public:
     ~DepthwiseDenseAffine() {
@@ -142,21 +135,21 @@ public:
         return std::shared_ptr<DepthwiseDenseAffine>(new DepthwiseDenseAffine(create));
     }
 
-    static std::shared_ptr<DepthwiseDenseAffine> Create(indices_t const &output_shape, index_t output_point_size=0, index_t depth_size=0)
+    static std::shared_ptr<DepthwiseDenseAffine> Create(indices_t const &output_shape, index_t input_point_size=0, index_t depth_size=0)
     {
         create_t create;
-        create.output_shape      = output_shape;
-        create.output_point_size = output_point_size;
-        create.depth_size        = depth_size;
+        create.output_shape     = output_shape;
+        create.input_point_size = input_point_size;
+        create.depth_size       = depth_size;
         return Create(create);
     }
 
-    static std::shared_ptr<DepthwiseDenseAffine> Create(index_t output_node_size, index_t output_point_size=0, index_t depth_size=0)
+    static std::shared_ptr<DepthwiseDenseAffine> Create(index_t output_node_size, index_t input_point_size=0, index_t depth_size=0)
     {
         create_t create;
         create.output_shape.resize(1);
         create.output_shape[0] = output_node_size;
-        return Create(indices_t({output_node_size}), output_point_size, depth_size);
+        return Create(indices_t({output_node_size}), input_point_size, depth_size);
     }
 
     static std::shared_ptr<DepthwiseDenseAffine> CreateEx(
@@ -218,8 +211,24 @@ public:
         // 形状設定
         m_input_shape   = shape;
         m_input_node_size = GetShapeSize(shape);
+
+        if ( m_depth_size <= 0 ) {
+            if ( m_input_point_size > 0 ) {
+                m_depth_size = m_input_node_size / m_input_point_size;
+            }
+            else
+            {
+                m_depth_size = m_output_shape[m_output_shape.size() - 1];
+            }
+        }
+
+        BB_ASSERT(m_output_node_size > 0);
+        BB_ASSERT(m_depth_size > 0);
+        BB_ASSERT(m_output_node_size % m_depth_size == 0);
         BB_ASSERT(m_input_node_size % m_depth_size == 0);
-        m_input_point_size = m_input_node_size / m_depth_size;
+        m_input_point_size  = m_input_node_size / m_depth_size;
+        m_output_point_size = m_output_node_size / m_depth_size;
+
 
         // パラメータ初期化
         if (m_initializer == "he" || m_initializer == "He") {
