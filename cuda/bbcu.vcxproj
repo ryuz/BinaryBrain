@@ -40,6 +40,7 @@
     <CudaCompile Include="MicroMlp.cu" />
     <CudaCompile Include="RealToBinary.cu" />
     <CudaCompile Include="ReLU.cu" />
+    <CudaCompile Include="Shuffle.cu" />
     <CudaCompile Include="ShuffleModulation.cu" />
     <CudaCompile Include="Sigmoid.cu" />
     <CudaCompile Include="SparseLut.cu" />

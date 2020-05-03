@@ -28,6 +28,7 @@
 #include "bb/BinaryLutN.h"
 #include "bb/Reduce.h"
 #include "bb/LoweringConvolution.h"
+#include "bb/Shuffle.h"
 #include "bb/BinaryModulation.h"
 #include "bb/Sigmoid.h"
 #include "bb/ReLU.h"
@@ -105,6 +106,7 @@ using RealToBinaryBit              = bb::RealToBinary<bb::Bit, float>;
 using BinaryToReal                 = bb::BinaryToReal<float, float>;
 using BinaryToRealBit              = bb::BinaryToReal<bb::Bit, float>;
 
+using Shuffle                      = bb::Shuffle;
 
 using Filter2d                     = bb::Filter2d<float, float>;
 using Filter2dBit                  = bb::Filter2d<bb::Bit, float>;
@@ -591,6 +593,12 @@ R"(create BinaryLut6 object
                 py::arg("seed") = 1);
     
     
+    py::class_< Shuffle, Model, std::shared_ptr<Shuffle> >(m, "Shuffle")
+        .def_static("create", &Shuffle::CreateEx,
+                py::arg("output_shape"),
+                py::arg("shuffle_unit")  = 1);
+
+
     // filter
     py::class_< Filter2d, Model, std::shared_ptr<Filter2d> >(m, "Filter2d");
 

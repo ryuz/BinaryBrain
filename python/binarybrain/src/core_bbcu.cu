@@ -22,6 +22,7 @@
 #include "StochasticMaxPooling.cu"
 #include "StochasticBatchNormalization.cu"
 #include "ShuffleModulation.cu"
+#include "Shuffle.cu"
 #include "RealToBinary.cu"
 #include "BinaryToReal.cu"
 #include "Im2Col.cu"
