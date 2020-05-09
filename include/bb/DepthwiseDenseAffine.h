@@ -154,7 +154,7 @@ public:
 
     static std::shared_ptr<DepthwiseDenseAffine> CreateEx(
             indices_t       output_shape,
-            index_t         output_point_size = 0,
+            index_t         input_point_size = 0,
             index_t         depth_size = 0,
             T               initialize_std = (T)0.01,
             std::string     initializer = "he",
@@ -163,7 +163,7 @@ public:
     {
         create_t create;
         create.output_shape      = output_shape;
-        create.output_point_size = output_point_size;
+        create.input_point_size  = input_point_size;
         create.depth_size        = depth_size;
         create.initialize_std    = initialize_std;
         create.initializer       = initializer;

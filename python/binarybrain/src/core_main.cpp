@@ -451,7 +451,7 @@ Args:
     py::class_< DepthwiseDenseAffine, Model, std::shared_ptr<DepthwiseDenseAffine> >(m, "DepthwiseDenseAffine")
         .def_static("create",   &DepthwiseDenseAffine::CreateEx, "create",
             py::arg("output_shape"),
-            py::arg("point_size")=0,
+            py::arg("input_point_size")=0,
             py::arg("depth_size")=0,
             py::arg("initialize_std") = 0.01f,
             py::arg("initializer")    = "he",

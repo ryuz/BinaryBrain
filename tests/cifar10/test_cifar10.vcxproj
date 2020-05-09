@@ -350,6 +350,7 @@
   <ItemGroup>
     <ClCompile Include="Cifar10AeSparseLutCnn.cpp" />
     <ClCompile Include="Cifar10AeSparseLutSimple.cpp" />
+    <ClCompile Include="Cifar10BinarizeTest.cpp" />
     <ClCompile Include="Cifar10DenseCnn.cpp" />
     <ClCompile Include="Cifar10DenseSimple.cpp" />
     <ClCompile Include="Cifar10MicroMlpLutCnn.cpp" />

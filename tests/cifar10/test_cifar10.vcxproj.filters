@@ -60,6 +60,9 @@
     <ClCompile Include="Cifar10ShuffleNet.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="Cifar10BinarizeTest.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\bb\StochasticBatchNormalization.h">
