@@ -179,16 +179,19 @@ void Cifar10BinarizeTest(void)
     int epoch_size      = 256;
     int mini_batch_size = 32*4;
 
-//    Cifar10BinarizeTest_<float>(epoch_size, mini_batch_size, 1, 1, false);  // Full FP32 CNN
+    // Conventional
+    Cifar10BinarizeTest_<float>(epoch_size, mini_batch_size, 1, 1, false);  // Full FP32 CNN
     Cifar10BinarizeTest_<float>(epoch_size, mini_batch_size, 0, 0, true);   // binary (input FP32)
 
+    // frame modulation
     Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  1,  1, true);
     Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  1,  2, true);
     Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  1,  4, true);
     Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  1,  8, true);
-//    Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  1, 16, true);
-//    Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  1, 32, true);
+//  Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  1, 16, true);
+//  Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  1, 32, true);
 
+    // depth modulation
     Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  2, 1, true);
     Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  4, 1, true);
     Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  8, 1, true);
@@ -196,8 +199,17 @@ void Cifar10BinarizeTest(void)
     Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size, 32, 1, true);
 //  Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size, 64, 1, true);
 
+    // frame and depth modulation
+    Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  4, 4, true);
+    Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  8, 4, true);
+
+    // quantize test
     Cifar10BinarizeTest_<float>(epoch_size, mini_batch_size, 1, 1, false, 4);  // Full FP32 CNN 4bit
-//  Cifar10BinarizeTest_<float>(epoch_size, mini_batch_size, 1, 1, false, 2);  // Full FP32 CNN 4bit
+    Cifar10BinarizeTest_<float>(epoch_size, mini_batch_size, 1, 1, false, 5);  // Full FP32 CNN 4bit
+    Cifar10BinarizeTest_<float>(epoch_size, mini_batch_size, 1, 1, false, 6);  // Full FP32 CNN 4bit
+//  Cifar10BinarizeTest_<float>(epoch_size, mini_batch_size, 1, 1, false, 7);  // Full FP32 CNN 2bit
+//  Cifar10BinarizeTest_<float>(epoch_size, mini_batch_size, 1, 1, false, 3);  // Full FP32 CNN 1bit
+//  Cifar10BinarizeTest_<float>(epoch_size, mini_batch_size, 1, 1, false, 2);  // Full FP32 CNN 1bit
 //  Cifar10BinarizeTest_<float>(epoch_size, mini_batch_size, 1, 1, false, 1);  // Full FP32 CNN 1bit
 }
 
