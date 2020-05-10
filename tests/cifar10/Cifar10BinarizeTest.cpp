@@ -168,8 +168,12 @@ void Cifar10BinarizeTest(void)
 {
     int epoch_size      = 256;
     int mini_batch_size = 32*4;
- //   Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size, 64, 1, true);
-//    Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size, 32, 1, true);
+
+    Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  4, 4, true);
+    Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size, 32, 1, true);
+    Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size, 64, 1, true);
+
+/*
     Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size, 16, 1, true);
     Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  8, 1, true);
     Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  4, 1, true);
@@ -183,6 +187,7 @@ void Cifar10BinarizeTest(void)
     Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  1, 32, true);
 
     Cifar10BinarizeTest_<float>(epoch_size, mini_batch_size, 1, 1, false);
+*/
 }
 
 
