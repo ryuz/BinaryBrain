@@ -24,7 +24,7 @@
 
 
 template<typename T>
-void Cifar10BinarizeTest_(int epoch_size, int mini_batch_size, int depth_modulation_size, int frame_modulation_size, bool binary_mode)
+void Cifar10BinarizeTest_(int epoch_size, int mini_batch_size, int depth_modulation_size, int frame_modulation_size, bool binary_mode, int bit_size=8)
 {
     std::string net_name = "Cifar10BinarizeTest";
     if ( binary_mode ) {
@@ -42,10 +42,29 @@ void Cifar10BinarizeTest_(int epoch_size, int mini_batch_size, int depth_modulat
     auto td = bb::LoadCifar10<>::Load();
 #endif
 
+    // quantize input data
+    if ( bit_size != 8 ) {
+        int mask = (1 << bit_size) - 1;
+
+        for ( auto& xx : td.x_train ) {
+            for ( auto& x : xx ) {
+                x = (((int)(x * 255.0f)) >> 5) / (float)mask;
+            }
+        }
+        for ( auto& xx : td.x_test ) {
+            for ( auto& x : xx ) {
+                x = (((int)(x * 255.0f)) >> 5) / (float)mask;
+            }
+        }
+        net_name += "_bit" + std::to_string(bit_size);
+    }
+
+    // set BN momentum
     float momentam = 0.9f;
 //  if ( binary_mode ) {
 //      momentam = 0.1f;
 //  }
+
 
     {
         std::cout << "\n<Training>" << std::endl;
@@ -81,17 +100,8 @@ void Cifar10BinarizeTest_(int epoch_size, int mini_batch_size, int depth_modulat
         cnv5_net->Add(bb::BatchNormalization<>::Create(momentam));
         cnv5_net->Add(bb::ReLU<T>::Create());
 
-        auto main_net = bb::Sequential::Create();
 
-#if 0
-        if ( depth_modulation_size > 1 ) {
-            auto cnv_net = bb::Sequential::Create();
-            cnv_net->Add(bb::DenseAffine<>::Create(32));
-            cnv_net->Add(bb::BatchNormalization<>::Create(momentam));
-            cnv_net->Add(bb::ReLU<T>::Create());
-            main_net->Add(bb::LoweringConvolution<T>::Create(cnv_net, 1, 1));// 32x32
-        }
-#endif
+        auto main_net = bb::Sequential::Create();
 
         main_net->Add(bb::LoweringConvolution<T>::Create(cnv0_net, 3, 3));   // 30x30
         main_net->Add(bb::LoweringConvolution<T>::Create(cnv1_net, 3, 3));   // 28x28
@@ -102,10 +112,12 @@ void Cifar10BinarizeTest_(int epoch_size, int mini_batch_size, int depth_modulat
         main_net->Add(bb::LoweringConvolution<T>::Create(cnv4_net, 3, 3));   // 3x3
         main_net->Add(bb::LoweringConvolution<T>::Create(cnv5_net, 3, 3));   // 1x1
         
+        // Conv1x1
         main_net->Add(bb::DenseAffine<>::Create(512));
         main_net->Add(bb::BatchNormalization<>::Create(momentam));
         main_net->Add(bb::ReLU<T>::Create());
 
+        // Conv1x1
         main_net->Add(bb::DenseAffine<>::Create(td.t_shape));
         if ( binary_mode ) {
             main_net->Add(bb::BatchNormalization<>::Create());
@@ -114,11 +126,8 @@ void Cifar10BinarizeTest_(int epoch_size, int mini_batch_size, int depth_modulat
 
         // modulation wrapper
         auto net = bb::Sequential::Create();
-        if ( binary_mode ) {
+        if ( binary_mode && frame_modulation_size > 0 && depth_modulation_size > 0 ) {
             net->Add(bb::BinaryModulation<T>::Create(main_net, frame_modulation_size, frame_modulation_size, depth_modulation_size));
-//          net->Add(bb::RealToBinary<T>::Create(frame_modulation_size, depth_modulation_size));
-//          net->Add(main_net);
-//          net->Add(bb::BinaryToReal<T>::Create(frame_modulation_size));
         }
         else {
             net->Add(main_net);
@@ -129,6 +138,7 @@ void Cifar10BinarizeTest_(int epoch_size, int mini_batch_size, int depth_modulat
 
         // set binary mode
         if ( binary_mode ) {
+            // binary true ‚·‚é‚Æ ReLU ‚Í Binarizer ‚É‚È‚é
             net->SendCommand("binary true");
         }
         else {
@@ -168,21 +178,27 @@ void Cifar10BinarizeTest(void)
 {
     int epoch_size      = 256;
     int mini_batch_size = 32*4;
- //   Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size, 64, 1, true);
-//    Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size, 32, 1, true);
-    Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size, 16, 1, true);
-    Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  8, 1, true);
-    Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  4, 1, true);
-    Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  2, 1, true);
+
+//    Cifar10BinarizeTest_<float>(epoch_size, mini_batch_size, 1, 1, false);  // Full FP32 CNN
+    Cifar10BinarizeTest_<float>(epoch_size, mini_batch_size, 0, 0, true);   // binary (input FP32)
 
     Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  1,  1, true);
     Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  1,  2, true);
     Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  1,  4, true);
     Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  1,  8, true);
-    Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  1, 16, true);
-    Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  1, 32, true);
+//    Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  1, 16, true);
+//    Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  1, 32, true);
 
-    Cifar10BinarizeTest_<float>(epoch_size, mini_batch_size, 1, 1, false);
+    Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  2, 1, true);
+    Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  4, 1, true);
+    Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size,  8, 1, true);
+    Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size, 16, 1, true);
+    Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size, 32, 1, true);
+//  Cifar10BinarizeTest_<bb::Bit>(epoch_size, mini_batch_size, 64, 1, true);
+
+    Cifar10BinarizeTest_<float>(epoch_size, mini_batch_size, 1, 1, false, 4);  // Full FP32 CNN 4bit
+//  Cifar10BinarizeTest_<float>(epoch_size, mini_batch_size, 1, 1, false, 2);  // Full FP32 CNN 4bit
+//  Cifar10BinarizeTest_<float>(epoch_size, mini_batch_size, 1, 1, false, 1);  // Full FP32 CNN 1bit
 }
 
 

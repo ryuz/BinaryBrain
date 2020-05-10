@@ -27,7 +27,6 @@
     <CudaCompile Include="BinaryToReal.cu" />
     <CudaCompile Include="Col2Im.cu" />
     <CudaCompile Include="ConvBitToReal.cu" />
-    <CudaCompile Include="DepthwiseDenseAffine.cu" />
     <CudaCompile Include="FrameBufferCopy.cu" />
     <CudaCompile Include="HardTanh.cu" />
     <CudaCompile Include="Im2Col.cu" />
