@@ -40,6 +40,7 @@
     <ClCompile Include="BinaryLutTest.cpp" />
     <ClCompile Include="BinaryScalingTest.cpp" />
     <ClCompile Include="BinaryToRealTest.cpp" />
+    <ClCompile Include="BitEncodeTest.cpp" />
     <ClCompile Include="ConvBitToRealTest.cpp" />
     <ClCompile Include="ConvolutionCol2ImTest.cpp" />
     <ClCompile Include="ConvolutionIm2ColTest.cpp" />
@@ -77,6 +78,7 @@
     <ClInclude Include="..\..\include\bb\BinaryModulation.h" />
     <ClInclude Include="..\..\include\bb\BinaryScaling.h" />
     <ClInclude Include="..\..\include\bb\BinaryToReal.h" />
+    <ClInclude Include="..\..\include\bb\BitEncode.h" />
     <ClInclude Include="..\..\include\bb\ConcatenateCoefficient.h" />
     <ClInclude Include="..\..\include\bb\ConnectionTable.h" />
     <ClInclude Include="..\..\include\bb\ConvolutionCol2Im.h" />

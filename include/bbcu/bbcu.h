@@ -1280,6 +1280,27 @@ BBCU_DLL_EXPORT int bbcu_fp32_BinaryToReal_Backward
 
 
 
+// -------------------------------------
+//  BitEncode
+// -------------------------------------
+
+template<typename T>
+BBCU_DLL_EXPORT int bbcu_bit_BitEncode
+        (
+            T const         *dev_x_buf,
+            int             *dev_y_buf,
+            unsigned int    bit_size,
+            T               clip_min,
+            T               clip_max,
+            T               scale,
+            T               offset,
+            unsigned int    x_node_size,
+            unsigned int    frame_size,
+            unsigned int    x_frame_stride,
+            unsigned int    y_frame_stride,
+            cudaStream_t    streamId=0
+        );
+
 
 // -------------------------------------
 //  LossSoftmaxCrossEntropy

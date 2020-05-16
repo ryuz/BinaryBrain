@@ -25,6 +25,7 @@
     <CudaCompile Include="Binarize.cu" />
     <CudaCompile Include="BinaryLut6.cu" />
     <CudaCompile Include="BinaryToReal.cu" />
+    <CudaCompile Include="BitEncode.cu" />
     <CudaCompile Include="Col2Im.cu" />
     <CudaCompile Include="ConvBitToReal.cu" />
     <CudaCompile Include="FrameBufferCopy.cu" />
