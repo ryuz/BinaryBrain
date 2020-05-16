@@ -1294,7 +1294,7 @@ BBCU_DLL_EXPORT int bbcu_bit_BitEncode
             T               clip_max,
             T               scale,
             T               offset,
-            unsigned int    x_node_size,
+            unsigned int    node_size,
             unsigned int    frame_size,
             unsigned int    x_frame_stride,
             unsigned int    y_frame_stride,

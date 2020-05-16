@@ -107,9 +107,9 @@ public:
     {
         m_input_shape = shape;
 
-        if ( m_output_shape.empty() || GetShapeSize(shape) != GetShapeSize(m_output_shape) ) {
+        if ( m_output_shape.empty() || GetShapeSize(shape)*m_bit_size != GetShapeSize(m_output_shape) ) {
             m_output_shape = m_input_shape;
-            m_output_shape[0] *= m_bit_size;
+            m_output_shape[m_output_shape.size()-1] *= m_bit_size;
         }
 
         BB_ASSERT(GetShapeSize(m_output_shape) % m_bit_size == 0);
@@ -148,7 +148,7 @@ public:
     inline FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
         // 戻り値のサイズ設定
-        FrameBuffer y_buf( x_buf.GetFrameSize(), m_output_shape, x_buf.GetType());
+        FrameBuffer y_buf( x_buf.GetFrameSize(), m_output_shape, DataType<BinType>::type);
 
 #ifdef BB_WITH_CUDA
         if ( !m_host_only && DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32 && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
@@ -186,10 +186,10 @@ public:
                     int x = (int)(x_ptr.Get(frame, node) * ((1 << m_bit_size) - 1));
                     for ( int bit = 0; bit < m_bit_size; ++bit ) {
                         if ( x & (1 << bit) ) {
-                            y_ptr.Set(frame, node*m_bit_size + bit, 1);
+                            y_ptr.Set(frame, node_size*bit + node, 1);
                         }
                         else {
-                            y_ptr.Set(frame, node*m_bit_size + bit, 0);
+                            y_ptr.Set(frame, node_size*bit + node, 0);
                         }
                     }
                 }
@@ -209,7 +209,7 @@ public:
     inline FrameBuffer Backward(FrameBuffer dy_buf)
     {
         // 戻り値のサイズ設定
-        FrameBuffer dx_buf(dy_buf.GetFrameSize(), m_input_shape, dy_buf.GetType());
+        FrameBuffer dx_buf(dy_buf.GetFrameSize(), m_input_shape, DataType<RealType>::type);
         dx_buf.FillZero();
         return dx_buf;
     }

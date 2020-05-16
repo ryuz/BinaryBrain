@@ -29,6 +29,9 @@
 #include "bb/Reduce.h"
 #include "bb/LoweringConvolution.h"
 #include "bb/Shuffle.h"
+#include "bb/BitEncode.h"
+#include "bb/RealToBinary.h"
+#include "bb/BinaryToReal.h"
 #include "bb/BinaryModulation.h"
 #include "bb/Sigmoid.h"
 #include "bb/ReLU.h"
@@ -106,6 +109,8 @@ using RealToBinaryBit              = bb::RealToBinary<bb::Bit, float>;
 using BinaryToReal                 = bb::BinaryToReal<float, float>;
 using BinaryToRealBit              = bb::BinaryToReal<bb::Bit, float>;
 
+using BitEncode                    = bb::BitEncode<float, float>;
+using BitEncodeBit                 = bb::BitEncode<bb::Bit, float>;
 using Shuffle                      = bb::Shuffle;
 
 using Filter2d                     = bb::Filter2d<float, float>;
@@ -596,7 +601,16 @@ R"(create BinaryLut6 object
                 py::arg("connection") = "",
                 py::arg("seed") = 1);
     
-    
+    py::class_< BitEncode, Model, std::shared_ptr<BitEncode> >(m, "BitEncode")
+        .def_static("create", &BitEncode::CreateEx,
+                py::arg("bit_size")=1,
+                py::arg("output_shape") = bb::indices_t());
+
+    py::class_< BitEncodeBit, Model, std::shared_ptr<BitEncodeBit> >(m, "BitEncodeBit")
+        .def_static("create", &BitEncodeBit::CreateEx,
+                py::arg("bit_size")=1,
+                py::arg("output_shape") = bb::indices_t());
+
     py::class_< Shuffle, Model, std::shared_ptr<Shuffle> >(m, "Shuffle")
         .def_static("create", &Shuffle::CreateEx,
                 py::arg("shuffle_unit"),

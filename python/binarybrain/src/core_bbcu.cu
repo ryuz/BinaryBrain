@@ -25,6 +25,7 @@
 #include "Shuffle.cu"
 #include "RealToBinary.cu"
 #include "BinaryToReal.cu"
+#include "BitEncode.cu"
 #include "Im2Col.cu"
 #include "Col2Im.cu"
 #include "MaxPooling.cu"

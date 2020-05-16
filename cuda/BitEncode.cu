@@ -25,18 +25,17 @@ __global__ void kernal_bit_BitEncode(
             T               clip_max,
             T               scale,
             T               offset,
-            unsigned int    x_node_size,
+            unsigned int    node_size,
             unsigned int    frame_size,
             unsigned int    x_frame_stride,
             unsigned int    y_frame_stride
         )
 {
     unsigned int    frame_unit = blockDim.x * blockIdx.x + threadIdx.x;
-    unsigned int    x_node     = blockDim.y * blockIdx.y + threadIdx.y;
-    unsigned int    y_node     = x_node * bit_size;
+    unsigned int    node       = blockDim.y * blockIdx.y + threadIdx.y;
 
-    T const *x_ptr = &x_buf[(x_frame_stride * x_node)];
-    int     *y_ptr = &y_buf[(y_frame_stride * y_node)];
+    T const *x_ptr = &x_buf[(x_frame_stride * node)];
+    int     *y_ptr = &y_buf[(y_frame_stride * node)];
 
     unsigned int y[32];
     for ( int bit = 0; bit < bit_size; ++bit ) {
@@ -45,7 +44,7 @@ __global__ void kernal_bit_BitEncode(
 
     unsigned int y_mask = 1;
     for ( int i = 0; i < 32; ++i ) {
-        unsigned int frame = frame_unit * 32;
+        unsigned int frame = frame_unit * 32 + i;
         if ( frame < frame_size ) {
             int x = (int)(min(clip_max, max(clip_min, x_ptr[frame])) * scale + offset);
             int x_mask = 1;
@@ -57,11 +56,10 @@ __global__ void kernal_bit_BitEncode(
             }
         }
         y_mask <<= 1;
-        ++frame;
     }
 
     for ( int bit = 0; bit < bit_size; ++bit ) {
-        y_ptr[y_frame_stride * bit + frame_unit] = y[bit];
+        y_ptr[y_frame_stride * node_size * bit + frame_unit] = y[bit];
     }
 }
 
@@ -77,7 +75,7 @@ BBCU_DLL_EXPORT int bbcu_bit_BitEncode
             T               clip_max,
             T               scale,
             T               offset,
-            unsigned int    x_node_size,
+            unsigned int    node_size,
             unsigned int    frame_size,
             unsigned int    x_frame_stride,
             unsigned int    y_frame_stride,
@@ -94,10 +92,10 @@ BBCU_DLL_EXPORT int bbcu_bit_BitEncode
     while ( block.x / 2 >= frame_unit_size && block.x > MIN_FRAME_UNIT ){ block.x /= 2; block.y *= 2; }
 
     block.x = std::min(block.x, frame_unit_size);
-    block.y = std::min(block.y, x_node_size);
+    block.y = std::min(block.y, node_size);
     dim3    grid;
     grid.x = (frame_unit_size + (block.x - 1)) / block.x;
-    grid.y = (x_node_size     + (block.y - 1)) / block.y;
+    grid.y = (node_size       + (block.y - 1)) / block.y;
     
     kernal_bit_BitEncode<T><<<grid, block, 0, streamId>>>
                 (
@@ -108,7 +106,7 @@ BBCU_DLL_EXPORT int bbcu_bit_BitEncode
                     clip_max,
                     scale,
                     offset,
-                    x_node_size,
+                    node_size,
                     frame_size,
                     x_frame_stride,
                     y_frame_stride
@@ -129,7 +127,7 @@ template BBCU_DLL_EXPORT int bbcu_bit_BitEncode<float>(
             float           clip_max,
             float           scale,
             float           offset,
-            unsigned int    x_node_size,
+            unsigned int    node_size,
             unsigned int    frame_size,
             unsigned int    x_frame_stride,
             unsigned int    y_frame_stride,
