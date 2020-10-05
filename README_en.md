@@ -6,6 +6,8 @@
 
 ## Overview
 BinaryBrain is a platform for deep learning. It can train to LUT(Look-up Table)-Network.
+
+My goal is to train FPGAs with high density by directly training FPGA LUTs with Stochastic-derived differentiable circuit description.
 LUT-Network is one of binary neural networks.
 
 It has the following features
@@ -16,6 +18,20 @@ It has the following features
 - It can compute sparse matrix with high performance.
 - Developed in C++
 - Accelerated with GPU (CUDA)
+
+
+## differentiable circuit description
+
+Digital circuits can only take values of 0 or 1 under normal circumstances, and they cannot be differentiated under normal circumstances.
+
+On the other hand, there is a technique that treats inputs and outputs as probability values rather than 0 or 1, which is called Stochastic computation.
+Fortunately, Neural Networks deal with the likelihood of many objects in learning, so this idea is a good fit.
+
+With Stochastic computation, for example, an AND gate behaves as a multiplier of probabilities, i.e., the probability that both inputs are equal to 1 at the same time. Thus, all digital circuits can be replaced with Stochastic calculations.
+
+A device called an FPGA is a collection of small memories, called LUTs, and a selection of this memory, which can be rewritten to provide a programmable circuit description by rewriting the memory. The LUT-Network is a network in which the LUT circuit is replaced with a differentiable circuit description and the weight coefficients to be learned are placed in the part corresponding to the memory.
+
+BinaryBrain is a platform designed to demonstrate the learning potential of LUT-networks.
 
 
 ## Performance
