@@ -387,7 +387,7 @@ public:
             auto y_ptr           = y_buf.LockDeviceMemory(true);
             auto input_table_ptr = m_connection_table.LockDeviceMemConst_InputTable();
             auto W_ptr           = m_W->LockDeviceMemoryConst();
-               
+            
             bbcu_fp32_StochasticLut_Forward<N>(
                     (float const *)x_ptr.GetAddr(),
                     (float       *)y_ptr.GetAddr(),

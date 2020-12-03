@@ -23,7 +23,7 @@ class MetricsCategoricalAccuracy : public MetricsFunction
 {
 protected:
     Tensor_<int>    m_accuracy;
-    index_t         m_category_count = 0;
+    double          m_category_count = 0;
 
 protected:
     MetricsCategoricalAccuracy() : m_accuracy(1)
@@ -54,7 +54,7 @@ public:
         }
         auto ptr = m_accuracy.LockConst();
         auto acc = ptr[0];
-        return (double)acc / (double)m_category_count;
+        return (double)acc / m_category_count;
     }
 
     void CalculateMetrics(FrameBuffer y_buf, FrameBuffer t_buf)
@@ -67,11 +67,11 @@ public:
         index_t frame_size  = t_buf.GetFrameSize();
         index_t node_size   = t_buf.GetNodeSize();
         auto shape          = t_buf.GetShape();
-        auto ch_size        = shape.size() > 1 ? shape[shape.size()-1] : 1;
+        auto ch_size        = shape[shape.size()-1];
         auto pix_size       = node_size / ch_size;
 
 #ifdef BB_WITH_CUDA
-        if ( DataType<T>::type == BB_TYPE_FP32 && ch_size == 1 && y_buf.IsDeviceAvailable() && t_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        if ( DataType<T>::type == BB_TYPE_FP32 && pix_size == 1 && y_buf.IsDeviceAvailable() && t_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             auto y_ptr   = y_buf.LockDeviceMemoryConst();
             auto t_ptr   = t_buf.LockDeviceMemoryConst();
             auto acc_ptr = m_accuracy.LockDeviceMemory();
@@ -103,27 +103,23 @@ public:
                     index_t max_ch  = 0;
                     T       max_y   = y_ptr.Get(frame, pix);
                     T       max_t   = t_ptr.Get(frame, pix);
-                    bool    max_val = (max_t > 0);
+                    T       sum_t   = max_t;
                     for (index_t ch = 1; ch < ch_size; ++ch) {
                         auto node = ch * pix_size + pix;
                         T   y = y_ptr.Get(frame, node);
                         T   t = t_ptr.Get(frame, node);
+                        sum_t += t;
                         if (y > max_y) {
                             max_ch = ch;
                             max_y  = y;
                             max_t  = t;
                         }
-                        if ( t > 0 ) {
-                            max_val = true;
-                        }
                     }
 
                     if ( max_t > 0) {
-                        acc_ptr[0] += 1;
+                        acc_ptr[0] += (int)sum_t;
                     }
-                    if ( max_val ) {
-                        m_category_count += 1;
-                    }
+                    m_category_count += sum_t;
                 }
             }
         }

@@ -34,7 +34,7 @@ static std::vector< std::vector<float> > make_t(std::vector< std::vector<float> 
             }
         }
         for ( int k = 0; k < 28*28; ++k ) {
-            t_vec[10*28*28 + k] = (x[i][k] <= 0.5) ? 1.0f : 0.0f;
+            t_vec[10*28*28 + k] = (x[i][k] <= 0.5) ? 0.1f : 0.0f;
         }
         t_img.push_back(t_vec);
     }
@@ -115,7 +115,7 @@ static void make_td(std::vector< std::vector<float> > &src_x, std::vector< std::
                                 t_vec[node] = (x_vec[pix] > 0.5) ? src_t[idx][c] : 0.0f;
                             }
                             else {
-                                t_vec[node] = (x_vec[pix] <= 0.5) ? 1.0f : 0.0f;
+                                t_vec[node] = (x_vec[pix] <= 0.5) ? 0.0f : 0.0f;
                             }
                         }
                     }

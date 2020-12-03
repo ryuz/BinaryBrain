@@ -1,18 +1,24 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.438
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29613.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bbcu", "bbcu.vcxproj", "{ACAFEE7F-E3FF-431C-AC93-E6591C0E358D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		DbgCpu|x64 = DbgCpu|x64
 		Debug|x64 = Debug|x64
+		RelCpu|x64 = RelCpu|x64
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ACAFEE7F-E3FF-431C-AC93-E6591C0E358D}.DbgCpu|x64.ActiveCfg = DbgCpu|x64
+		{ACAFEE7F-E3FF-431C-AC93-E6591C0E358D}.DbgCpu|x64.Build.0 = DbgCpu|x64
 		{ACAFEE7F-E3FF-431C-AC93-E6591C0E358D}.Debug|x64.ActiveCfg = Debug|x64
 		{ACAFEE7F-E3FF-431C-AC93-E6591C0E358D}.Debug|x64.Build.0 = Debug|x64
+		{ACAFEE7F-E3FF-431C-AC93-E6591C0E358D}.RelCpu|x64.ActiveCfg = RelCpu|x64
+		{ACAFEE7F-E3FF-431C-AC93-E6591C0E358D}.RelCpu|x64.Build.0 = RelCpu|x64
 		{ACAFEE7F-E3FF-431C-AC93-E6591C0E358D}.Release|x64.ActiveCfg = Release|x64
 		{ACAFEE7F-E3FF-431C-AC93-E6591C0E358D}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
@@ -20,6 +26,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {2C10458D-2E46-4D6D-AB03-166526A12BF9}
+		SolutionGuid = {91B036E8-6ED3-49A3-BB9C-CD93F784E4C8}
 	EndGlobalSection
 EndGlobal

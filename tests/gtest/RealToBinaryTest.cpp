@@ -1,11 +1,191 @@
 ﻿#include <stdio.h>
 #include <iostream>
+#include <chrono>
 #include "gtest/gtest.h"
 #include "bb/RealToBinary.h"
 #include "bb/UniformDistributionGenerator.h"
 
 
 #define USE_BACKWARD    0
+
+
+/*
+TEST(RealToBinaryTest, testRealToBinaryTime)
+{
+    const int frame_size = 32;
+    const int point_size = 1024;
+    const int depth_size = 36;
+    const int frame_modulation_size = 7;
+    const int depth_modulation_size = 8;
+    auto real2bin = bb::RealToBinary<float>::Create(frame_modulation_size, depth_modulation_size);
+
+    bb::FrameBuffer x_buf(frame_size, {point_size, depth_size}, BB_TYPE_FP32);
+    (void)real2bin->SetInputShape(x_buf.GetShape());
+
+    auto y_buf = real2bin->Forward(x_buf);
+    y_buf = real2bin->Forward(x_buf);
+    y_buf = real2bin->Forward(x_buf);
+
+    for ( int j = 0; j < 16; ++j ) {
+        auto start = std::chrono::system_clock::now(); // 計測開始時間
+        for ( int i = 0; i < 16; ++i ) {
+            auto y_buf = real2bin->Forward(x_buf);
+        }
+        auto end = std::chrono::system_clock::now();  // 計測終了時間
+        std::cout << "time: " << std::chrono::duration_cast<std::chrono::microseconds>(end-start).count() << std::endl;
+    }
+}
+*/
+
+
+TEST(RealToBinaryTest, testRealToBinaryDepth)
+{
+    const int frame_size = 1;
+    const int point_size = 3;
+    const int depth_size = 2;
+    const int frame_modulation_size = 2;
+    const int depth_modulation_size = 3;
+
+    auto real2bin = bb::RealToBinary<float>::Create(frame_modulation_size, depth_modulation_size);
+
+    // forward
+    bb::FrameBuffer x_buf(frame_size, {point_size, depth_size}, BB_TYPE_FP32);
+    (void)real2bin->SetInputShape(x_buf.GetShape());
+
+    x_buf.SetFP32(0, {0, 0}, 0.1f);
+    x_buf.SetFP32(0, {1, 0}, 0.2f);
+    x_buf.SetFP32(0, {2, 0}, 0.5f);
+    x_buf.SetFP32(0, {0, 1}, 1.0f);
+    x_buf.SetFP32(0, {1, 1}, 0.0f);
+    x_buf.SetFP32(0, {2, 1}, 0.9f);
+    
+    {
+        real2bin->SendCommand("binary false");
+        auto y_buf = real2bin->Forward(x_buf);
+
+        auto y_shape = y_buf.GetShape();
+        EXPECT_EQ(y_shape.size(), 2);
+        EXPECT_EQ(y_shape[0], point_size);
+        EXPECT_EQ(y_shape[1], depth_size*depth_modulation_size);
+
+        EXPECT_EQ(frame_size,                       x_buf.GetFrameSize());
+        EXPECT_EQ(frame_size*frame_modulation_size, y_buf.GetFrameSize());
+
+        float abs_err = 1.0e-6f;
+
+        // 0.1 --(x3)-> 0.3 --(x2)-> 0.6
+        EXPECT_NEAR(0.6f, y_buf.GetFP32(0, {0, 0}), abs_err);
+        EXPECT_NEAR(0.0f, y_buf.GetFP32(1, {0, 0}), abs_err);
+        EXPECT_NEAR(0.0f, y_buf.GetFP32(0, {0, 1}), abs_err);
+        EXPECT_NEAR(0.0f, y_buf.GetFP32(1, {0, 1}), abs_err);
+        EXPECT_NEAR(0.0f, y_buf.GetFP32(0, {0, 2}), abs_err);
+        EXPECT_NEAR(0.0f, y_buf.GetFP32(1, {0, 2}), abs_err);
+
+        // 0.2 --(x3)-> 0.6 --(x2)-> 1.2
+        EXPECT_NEAR(1.0f, y_buf.GetFP32(0, {1, 0}), abs_err);
+        EXPECT_NEAR(0.2f, y_buf.GetFP32(1, {1, 0}), abs_err);
+        EXPECT_NEAR(0.0f, y_buf.GetFP32(0, {1, 1}), abs_err);
+        EXPECT_NEAR(0.0f, y_buf.GetFP32(1, {1, 1}), abs_err);
+        EXPECT_NEAR(0.0f, y_buf.GetFP32(0, {1, 2}), abs_err);
+        EXPECT_NEAR(0.0f, y_buf.GetFP32(1, {1, 2}), abs_err);
+
+        // 0.5 --(x3)-> 1.5 --(x2)-> 3.0
+        EXPECT_NEAR(1.0f, y_buf.GetFP32(0, {2, 0}), abs_err);
+        EXPECT_NEAR(1.0f, y_buf.GetFP32(1, {2, 0}), abs_err);
+        EXPECT_NEAR(1.0f, y_buf.GetFP32(0, {2, 1}), abs_err);
+        EXPECT_NEAR(0.0f, y_buf.GetFP32(1, {2, 1}), abs_err);
+        EXPECT_NEAR(0.0f, y_buf.GetFP32(0, {2, 2}), abs_err);
+        EXPECT_NEAR(0.0f, y_buf.GetFP32(1, {2, 2}), abs_err);
+
+        // 1.0
+        EXPECT_NEAR(1.0f, y_buf.GetFP32(0, {0, 3}), abs_err);
+        EXPECT_NEAR(1.0f, y_buf.GetFP32(1, {0, 3}), abs_err);
+        EXPECT_NEAR(1.0f, y_buf.GetFP32(0, {0, 4}), abs_err);
+        EXPECT_NEAR(1.0f, y_buf.GetFP32(1, {0, 4}), abs_err);
+        EXPECT_NEAR(1.0f, y_buf.GetFP32(0, {0, 5}), abs_err);
+        EXPECT_NEAR(1.0f, y_buf.GetFP32(1, {0, 5}), abs_err);
+
+        // 0.0
+        EXPECT_NEAR(0.0f, y_buf.GetFP32(0, {1, 3}), abs_err);
+        EXPECT_NEAR(0.0f, y_buf.GetFP32(1, {1, 3}), abs_err);
+        EXPECT_NEAR(0.0f, y_buf.GetFP32(0, {1, 4}), abs_err);
+        EXPECT_NEAR(0.0f, y_buf.GetFP32(1, {1, 4}), abs_err);
+        EXPECT_NEAR(0.0f, y_buf.GetFP32(0, {1, 5}), abs_err);
+        EXPECT_NEAR(0.0f, y_buf.GetFP32(1, {1, 5}), abs_err);
+
+        // 0.9
+        EXPECT_NEAR(1.0f, y_buf.GetFP32(0, {2, 3}), abs_err);
+        EXPECT_NEAR(1.0f, y_buf.GetFP32(1, {2, 3}), abs_err);
+        EXPECT_NEAR(1.0f, y_buf.GetFP32(0, {2, 4}), abs_err);
+        EXPECT_NEAR(1.0f, y_buf.GetFP32(1, {2, 4}), abs_err);
+        EXPECT_NEAR(1.0f, y_buf.GetFP32(0, {2, 5}), abs_err);
+        EXPECT_NEAR(0.4f, y_buf.GetFP32(1, {2, 5}), abs_err);
+    }
+
+
+    {
+        // binarize
+        real2bin->SendCommand("binary true");
+        auto y_buf = real2bin->Forward(x_buf);
+
+        auto y_shape = y_buf.GetShape();
+        EXPECT_EQ(y_shape.size(), 2);
+        EXPECT_EQ(y_shape[0], point_size);
+        EXPECT_EQ(y_shape[1], depth_size*depth_modulation_size);
+
+        EXPECT_EQ(frame_size,                       x_buf.GetFrameSize());
+        EXPECT_EQ(frame_size*frame_modulation_size, y_buf.GetFrameSize());
+
+        // 0.1 --(x3)-> 0.3 --(x2)-> 0.6
+        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(0, {0, 0}));
+        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(1, {0, 0}));
+        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(0, {0, 1}));
+        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(1, {0, 1}));
+        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(0, {0, 2}));
+        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(1, {0, 2}));
+
+        // 0.2 --(x3)-> 0.6 --(x2)-> 1.2
+        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(0, {1, 0}));
+        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(1, {1, 0}));
+        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(0, {1, 1}));
+        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(1, {1, 1}));
+        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(0, {1, 2}));
+        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(1, {1, 2}));
+
+        // 0.5 --(x3)-> 1.5 --(x2)-> 3.0
+        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(0, {2, 0}));
+        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(1, {2, 0}));
+        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(0, {2, 1}));
+        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(1, {2, 1}));
+        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(0, {2, 2}));
+        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(1, {2, 2}));
+
+        // 1.0
+        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(0, {0, 3}));
+        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(1, {0, 3}));
+        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(0, {0, 4}));
+        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(1, {0, 4}));
+        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(0, {0, 5}));
+        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(1, {0, 5}));
+
+        // 0.0
+        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(0, {1, 3}));
+        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(1, {1, 3}));
+        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(0, {1, 4}));
+        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(1, {1, 4}));
+        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(0, {1, 5}));
+        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(1, {1, 5}));
+
+        // 0.9
+        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(0, {2, 3}));
+        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(1, {2, 3}));
+        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(0, {2, 4}));
+        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(1, {2, 4}));
+        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(0, {2, 5}));
+        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(1, {2, 5}));
+    }
+}
+
 
 TEST(RealToBinaryTest, testRealToBinary)
 {

@@ -6,6 +6,8 @@
 
 ## Overview
 BinaryBrain is a platform for deep learning. It can train to LUT(Look-up Table)-Network.
+
+My goal is to train FPGAs with high density by directly training FPGA LUTs with Stochastic-derived differentiable circuit description.
 LUT-Network is one of binary neural networks.
 
 It has the following features
@@ -16,6 +18,20 @@ It has the following features
 - It can compute sparse matrix with high performance.
 - Developed in C++
 - Accelerated with GPU (CUDA)
+
+
+## differentiable circuit description
+
+Digital circuits can only take values of 0 or 1 under normal circumstances, and they cannot be differentiated under normal circumstances.
+
+On the other hand, there is a technique that treats inputs and outputs as probability values rather than 0 or 1, which is called Stochastic computation.
+Fortunately, Neural Networks deal with the likelihood of many objects in learning, so this idea is a good fit.
+
+With Stochastic computation, for example, an AND gate behaves as a multiplier of probabilities, i.e., the probability that both inputs are equal to 1 at the same time. Thus, all digital circuits can be replaced with Stochastic calculations.
+
+A device called an FPGA is a collection of small memories, called LUTs, and a selection of this memory, which can be rewritten to provide a programmable circuit description by rewriting the memory. The LUT-Network is a network in which the LUT circuit is replaced with a differentiable circuit description and the weight coefficients to be learned are placed in the part corresponding to the memory.
+
+BinaryBrain is a platform designed to demonstrate the learning potential of LUT-networks.
 
 
 ## Performance
@@ -153,6 +169,21 @@ This source code's license is MIT license.
 
 (Note : This program using CEREAL)
 
+## ICCE2019(Berlin)
+2019 IEEE 9th International Conference on Consumer Electronics (ICCE-Berlin) <br>
+https://ieeexplore.ieee.org/document/8966187 <br>
+
+
+## Author's information
+Ryuji Fuchikami
+- github : https://github.com/ryuz
+- blog : http://ryuz.txt-nifty.com
+- twitter : https://twitter.com/ryuz88
+- facebook : https://www.facebook.com/ryuji.fuchikami
+- web-site : http://ryuz.my.coocan.jp/
+- e-mail : ryuji.fuchikami@nifty.com
+
+
 ## Reference
 - BinaryConnect: Training Deep Neural Networks with binary weights during propagations<br>
 https://arxiv.org/pdf/1511.00363.pdf
@@ -168,15 +199,4 @@ https://arxiv.org/abs/1603.05279
 
 - Xilinx UltraScale Architecture Configurable Logic Block User Guide<br>
 https://japan.xilinx.com/support/documentation/user_guides/ug574-ultrascale-clb.pdf
-
-
-## Author's information
-Ryuji Fuchikami
-- github : https://github.com/ryuz
-- blog : http://ryuz.txt-nifty.com
-- twitter : https://twitter.com/ryuz88
-- facebook : https://www.facebook.com/ryuji.fuchikami
-- web-site : http://ryuz.my.coocan.jp/
-- e-mail : ryuji.fuchikami@nifty.com
-
 

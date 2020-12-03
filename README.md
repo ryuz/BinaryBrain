@@ -6,18 +6,36 @@
 [詳細なドキュメントはこちら](https://binarybrain.readthedocs.io/ja/latest/)です。
 
 ## 概要
+
 BinaryBrain は主に当サイトが研究中の LUT(Look-up Table)-Networkを実験することを目的に作成したディープラーニング用のプラットフォームです。
+
+FPGAのLUTをStochastic計算由来の微分可能回路記述(differentiable circuit description)にて直接的に学習させることで高い密度でのFPGA学習を目指しています。
+
 LUT-Networkの評価を目的に作成しておりますが、それ以外の用途にも利用可能です。
 
 以下の特徴があります
 
 - ニューラルネットのFPGA化をメインターゲットにしている
-- バイナリネットであるも関わらず変調技術により回帰分析が可能
+- バイナリネットであるも関わらずStochastic計算により回帰分析が可能
 - 独自の確率的LUTのモデルにより、高速に学習できる
 - 量子化＆疎行列のネットワークでパフォーマンスの良い学習が出来る環境を目指している
 - C++で記述されている
 - GPU(CUDA)に対応している
 - 高速でマニアックな自作レイヤーが作りやすい
+
+
+## 微分可能回路記述(differentiable circuit description)
+
+デジタル回路は通常では0か1の値しかとらないた通常であれば微分することはできません。
+
+一方で、入出力を0や1ではなく「1になる確率」としてアナログ的に扱う手法があり、Stochastic計算と呼ばれます。
+幸いな事に Neural Network は、学習において多くの対象の尤度を取り扱う為この考え方は相性のよい考え方です。
+
+Stochastic計算を用いると、例えばANDゲートは二つの入力の両方が同時に1になる確率、すなわち確率の乗算器として振舞います。このようにすべてのデジタル回路をStochastic計算に置き換えることが可能です。
+
+FPGAというデバイスは、LUTと呼ばれる小さなメモリとこのメモリを選択する集合体で、メモリを書き換えることでプログラマブルな回路記述を実現します。このLUT回路を微分可能回路記述に置き換えたのちに、メモリに相当する部分に学習対象の重み係数を置いて学習を行うネットワークが LUT-Network です。
+
+BinaryBrain は LUT-Network の学習可能性を実証するために作られたプラットフォームです。
 
 
 ## 性能紹介
@@ -197,6 +215,22 @@ BinaryBrainではバイナリ変調したデジタル値を扱うことが出来
 現在MITライセンスを採用しています。lisense.txtを参照ください。
 ただし、本ソースコードは CEREAL を利用しているので、それらに関しては個別に各ライセンスに従ってください。
 
+
+## ICCE2019(Berlin)にて発表しています
+2019 IEEE 9th International Conference on Consumer Electronics (ICCE-Berlin) <br>
+https://ieeexplore.ieee.org/document/8966187 <br>
+
+
+## 作者情報
+渕上 竜司(Ryuji Fuchikami)
+- github : https://github.com/ryuz
+- blog : http://ryuz.txt-nifty.com
+- twitter : https://twitter.com/ryuz88
+- facebook : https://www.facebook.com/ryuji.fuchikami
+- web-site : http://ryuz.my.coocan.jp/
+- e-mail : ryuji.fuchikami@nifty.com
+
+
 ## 参考
 - BinaryConnect: Training Deep Neural Networks with binary weights during propagations<br>
 https://arxiv.org/pdf/1511.00363.pdf
@@ -212,14 +246,3 @@ https://arxiv.org/abs/1603.05279
 
 - Xilinx UltraScale Architecture Configurable Logic Block User Guide<br>
 https://japan.xilinx.com/support/documentation/user_guides/ug574-ultrascale-clb.pdf
-
-
-## 作者情報
-渕上 竜司(Ryuji Fuchikami)
-- github : https://github.com/ryuz
-- blog : http://ryuz.txt-nifty.com
-- twitter : https://twitter.com/ryuz88
-- facebook : https://www.facebook.com/ryuji.fuchikami
-- web-site : http://ryuz.my.coocan.jp/
-- e-mail : ryuji.fuchikami@nifty.com
-

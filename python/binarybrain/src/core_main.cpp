@@ -28,6 +28,10 @@
 #include "bb/BinaryLutN.h"
 #include "bb/Reduce.h"
 #include "bb/LoweringConvolution.h"
+#include "bb/Shuffle.h"
+#include "bb/BitEncode.h"
+#include "bb/RealToBinary.h"
+#include "bb/BinaryToReal.h"
 #include "bb/BinaryModulation.h"
 #include "bb/Sigmoid.h"
 #include "bb/ReLU.h"
@@ -105,6 +109,9 @@ using RealToBinaryBit              = bb::RealToBinary<bb::Bit, float>;
 using BinaryToReal                 = bb::BinaryToReal<float, float>;
 using BinaryToRealBit              = bb::BinaryToReal<bb::Bit, float>;
 
+using BitEncode                    = bb::BitEncode<float, float>;
+using BitEncodeBit                 = bb::BitEncode<bb::Bit, float>;
+using Shuffle                      = bb::Shuffle;
 
 using Filter2d                     = bb::Filter2d<float, float>;
 using Filter2dBit                  = bb::Filter2d<bb::Bit, float>;
@@ -449,6 +456,8 @@ Args:
     py::class_< DepthwiseDenseAffine, Model, std::shared_ptr<DepthwiseDenseAffine> >(m, "DepthwiseDenseAffine")
         .def_static("create",   &DepthwiseDenseAffine::CreateEx, "create",
             py::arg("output_shape"),
+            py::arg("input_point_size")=0,
+            py::arg("depth_size")=0,
             py::arg("initialize_std") = 0.01f,
             py::arg("initializer")    = "he",
             py::arg("seed")           = 1)
@@ -486,6 +495,7 @@ Args:
         .def_static("create", &BinaryModulation::CreateEx,
                 py::arg("layer"),
                 py::arg("output_shape")              = bb::indices_t(),
+                py::arg("depth_modulation_size")     = 1,
                 py::arg("training_modulation_size")  = 1,
                 py::arg("training_value_generator")  = nullptr,
                 py::arg("training_framewise")        = true,
@@ -501,6 +511,7 @@ Args:
         .def_static("create", &BinaryModulationBit::CreateEx,
                 py::arg("layer"),
                 py::arg("output_shape")              = bb::indices_t(),
+                py::arg("depth_modulation_size")     = 1,
                 py::arg("training_modulation_size")  = 1,
                 py::arg("training_value_generator")  = nullptr,
                 py::arg("training_framewise")        = true,
@@ -514,7 +525,8 @@ Args:
 
     py::class_< RealToBinary, Model, std::shared_ptr<RealToBinary> >(m, "RealToBinary")
         .def_static("create", &RealToBinary::CreateEx,
-                py::arg(" modulation_size") = 1,
+                py::arg("frame_modulation_size") = 1,
+                py::arg("depth_modulation_size") = 1,
                 py::arg("value_generator")  = nullptr,
                 py::arg("framewise")        = false,
                 py::arg("input_range_lo")   = 0.0f,
@@ -522,7 +534,8 @@ Args:
 
     py::class_< RealToBinaryBit, Model, std::shared_ptr<RealToBinaryBit> >(m, "RealToBinaryBit")
         .def_static("create", &RealToBinaryBit::CreateEx,
-                py::arg(" modulation_size") = 1,
+                py::arg("frame_modulation_size") = 1,
+                py::arg("depth_modulation_size") = 1,
                 py::arg("value_generator")  = nullptr,
                 py::arg("framewise")        = false,
                 py::arg("input_range_lo")   = 0.0f,
@@ -588,7 +601,22 @@ R"(create BinaryLut6 object
                 py::arg("connection") = "",
                 py::arg("seed") = 1);
     
-    
+    py::class_< BitEncode, Model, std::shared_ptr<BitEncode> >(m, "BitEncode")
+        .def_static("create", &BitEncode::CreateEx,
+                py::arg("bit_size")=1,
+                py::arg("output_shape") = bb::indices_t());
+
+    py::class_< BitEncodeBit, Model, std::shared_ptr<BitEncodeBit> >(m, "BitEncodeBit")
+        .def_static("create", &BitEncodeBit::CreateEx,
+                py::arg("bit_size")=1,
+                py::arg("output_shape") = bb::indices_t());
+
+    py::class_< Shuffle, Model, std::shared_ptr<Shuffle> >(m, "Shuffle")
+        .def_static("create", &Shuffle::CreateEx,
+                py::arg("shuffle_unit"),
+                py::arg("output_shape") = bb::indices_t());
+
+
     // filter
     py::class_< Filter2d, Model, std::shared_ptr<Filter2d> >(m, "Filter2d");
 
@@ -799,9 +827,9 @@ R"(create BinaryLut6 object
     m.def("omp_set_num_threads", &omp_set_num_threads);
 
     // CUDA device
-    m.def("get_device_count", &GetDeviceCount);
-    m.def("set_device", &SetDevice);
-    m.def("get_device_properties", &GetDevicePropertiesString);
+    m.def("get_device_count",      &GetDeviceCount);
+    m.def("set_device",            &SetDevice,                 py::arg("device") = 0);
+    m.def("get_device_properties", &GetDevicePropertiesString, py::arg("device") = 0);
 
     // verilog
     m.def("make_verilog_from_lut", &MakeVerilog_FromLut);

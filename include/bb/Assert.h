@@ -24,7 +24,7 @@ namespace bb {
 #ifndef BB_ASSERT_ACTION
 
 #if defined(BB_ASSERT_GETCHAR)
-#define BB_ASSERT_ACTION(text)   do { std::cout << "\n" << text << std::endl;  printf("\nplease press enter key to exit.\n"); (void)getchar(); } while(0)
+#define BB_ASSERT_ACTION(text)   do { std::cout << "\n" << text << std::endl;  printf("\nplease press enter key to exit.\n"); (void)getchar(); exit(1); } while(0)
 #elif defined(BB_ASSERT_EXCEPTION)
 #define BB_ASSERT_ACTION(text)   do { std::cout << "\n" << text << std::endl;  throw std::runtime_error(text); } while(0)
 #elif defined(BB_ASSERT_LOOP)

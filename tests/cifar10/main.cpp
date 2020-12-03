@@ -28,13 +28,15 @@ void Cifar10AeSparseLutCnn     (int epoch_size, int mini_batch_size, int train_m
 
 void Cifar10StochasticLutBnCnn(int epoch_size, int mini_batch_size, int test_modulation_size, bool binary_mode, bool file_read);
 void Cifar10MobileNet(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
-
+void Cifar10ShuffleNet(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void Cifar10BinarizeTest(void);
 
 // メイン関数
 int main(int argc, char *argv[])
 {
     // set default parameter
     std::string netname               = "All";
+    int         device                = 0;
     int         epoch_size            = 8;
     int         mini_batch_size       = 32;
     int         train_modulation_size = 7;
@@ -98,6 +100,10 @@ int main(int argc, char *argv[])
             ++i;
             file_read = (strtoul(argv[i], NULL, 0) != 0);
         }
+        else if (strcmp(argv[i], "-device") == 0 && i + 1 < argc) {
+            ++i;
+            device = (strtoul(argv[i], NULL, 0) != 0);
+        }
         else if (strcmp(argv[i], "-print_device") == 0 ) {
             print_device = true;
         }
@@ -112,10 +118,14 @@ int main(int argc, char *argv[])
 
 
 #ifdef BB_WITH_CUDA
+    bbcu_SetDevice(device);
+    std::cout << " devide : " << bbcu_GetDevice() << std::endl;
+
     if ( print_device ) {
-        bbcu::PrintDeviceProperties();
+        bbcu::PrintDeviceProperties(device);
     }
 #endif
+    
 
     if ( netname == "All" || netname == "StochasticLutSimple" ) {
         Cifar10StochasticLutSimple(epoch_size, mini_batch_size, test_modulation_size, binary_mode, file_read);
@@ -165,6 +175,14 @@ int main(int argc, char *argv[])
         Cifar10MobileNet(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
     
+    if ( netname == "All" || netname == "ShuffleNet" ) {
+        Cifar10ShuffleNet(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    }
+
+    if ( netname == "All" || netname == "BinarizeTest" ) {
+        Cifar10BinarizeTest();
+    }
+
     return 0;
 }
 
