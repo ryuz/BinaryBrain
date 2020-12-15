@@ -1,31 +1,25 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
-VisualStudioVersion = 16.0.29613.14
+VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bbcu", "bbcu.vcxproj", "{ACAFEE7F-E3FF-431C-AC93-E6591C0E358D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bbcu", "bbcu.vcxproj", "{FEADE517-59B9-4551-AD9D-D181A1442EA7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		DbgCpu|x64 = DbgCpu|x64
 		Debug|x64 = Debug|x64
-		RelCpu|x64 = RelCpu|x64
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{ACAFEE7F-E3FF-431C-AC93-E6591C0E358D}.DbgCpu|x64.ActiveCfg = DbgCpu|x64
-		{ACAFEE7F-E3FF-431C-AC93-E6591C0E358D}.DbgCpu|x64.Build.0 = DbgCpu|x64
-		{ACAFEE7F-E3FF-431C-AC93-E6591C0E358D}.Debug|x64.ActiveCfg = Debug|x64
-		{ACAFEE7F-E3FF-431C-AC93-E6591C0E358D}.Debug|x64.Build.0 = Debug|x64
-		{ACAFEE7F-E3FF-431C-AC93-E6591C0E358D}.RelCpu|x64.ActiveCfg = RelCpu|x64
-		{ACAFEE7F-E3FF-431C-AC93-E6591C0E358D}.RelCpu|x64.Build.0 = RelCpu|x64
-		{ACAFEE7F-E3FF-431C-AC93-E6591C0E358D}.Release|x64.ActiveCfg = Release|x64
-		{ACAFEE7F-E3FF-431C-AC93-E6591C0E358D}.Release|x64.Build.0 = Release|x64
+		{FEADE517-59B9-4551-AD9D-D181A1442EA7}.Debug|x64.ActiveCfg = Debug|x64
+		{FEADE517-59B9-4551-AD9D-D181A1442EA7}.Debug|x64.Build.0 = Debug|x64
+		{FEADE517-59B9-4551-AD9D-D181A1442EA7}.Release|x64.ActiveCfg = Release|x64
+		{FEADE517-59B9-4551-AD9D-D181A1442EA7}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {91B036E8-6ED3-49A3-BB9C-CD93F784E4C8}
+		SolutionGuid = {56D6E4AE-53BE-4FB9-BD80-EA2017C0BAAA}
 	EndGlobalSection
 EndGlobal

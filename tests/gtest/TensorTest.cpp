@@ -25,7 +25,7 @@ TEST(TensorTest, testTensor_Transpose)
 
     float   data[L][M][N];
 
-    bb::Tensor_<float> t({N, M, L});
+    bb::Tensor_<float> t({L, M, N});
 
     {
         auto ptr = t.Lock();
@@ -44,7 +44,7 @@ TEST(TensorTest, testTensor_Transpose)
         for ( int i = 0; i < L; ++i ) {
             for ( int j = 0; j < M; ++j ) {
                 for ( int k = 0; k < N; ++k ) {
-                    EXPECT_EQ(ptr({k, j, i}), data[i][j][k]);
+                    EXPECT_EQ(ptr({i, j, k}), data[i][j][k]);
                     EXPECT_EQ(ptr(i, j, k), data[i][j][k]);
                     EXPECT_EQ(ptr[(i*M+j)*N+k], data[i][j][k]);
                 }
@@ -52,14 +52,14 @@ TEST(TensorTest, testTensor_Transpose)
         }
     }
 
-    t.Transpose({1, 2, 0});
+    t.Transpose({2, 0, 1});
 
     {
         auto ptr = t.LockConst();
         for ( int i = 0; i < L; ++i ) {
             for ( int j = 0; j < M; ++j ) {
                 for ( int k = 0; k < N; ++k ) {
-                    EXPECT_EQ(ptr({j, i, k}), data[i][j][k]);
+                    EXPECT_EQ(ptr({k, i, j}), data[i][j][k]);
                     EXPECT_EQ(ptr(k, i, j), data[i][j][k]);
                     EXPECT_EQ(ptr[(i*M+j)*N+k], data[i][j][k]);
                 }
@@ -75,7 +75,6 @@ TEST(TensorTest, testTensor_Transpose)
 }
 
 
-
 TEST(TensorTest, testTensor_SaveLoad)
 {
     const int L = 4;
@@ -84,7 +83,7 @@ TEST(TensorTest, testTensor_SaveLoad)
 
     float   data[L][M][N];
 
-    bb::Tensor_<float> t({N, M, L});
+    bb::Tensor_<float> t({L, M, N});
 
     {
         auto ptr = t.Lock();
@@ -103,7 +102,7 @@ TEST(TensorTest, testTensor_SaveLoad)
         for ( int i = 0; i < L; ++i ) {
             for ( int j = 0; j < M; ++j ) {
                 for ( int k = 0; k < N; ++k ) {
-                    EXPECT_EQ(ptr({k, j, i}), data[i][j][k]);
+                    EXPECT_EQ(ptr({i, j, k}), data[i][j][k]);
                     EXPECT_EQ(ptr(i, j, k), data[i][j][k]);
                     EXPECT_EQ(ptr[(i*M+j)*N+k], data[i][j][k]);
                 }
@@ -111,14 +110,14 @@ TEST(TensorTest, testTensor_SaveLoad)
         }
     }
 
-    t.Transpose({1, 2, 0});
+    t.Transpose({2, 0, 1});
 
     {
         auto ptr = t.LockConst();
         for ( int i = 0; i < L; ++i ) {
             for ( int j = 0; j < M; ++j ) {
                 for ( int k = 0; k < N; ++k ) {
-                    EXPECT_EQ(ptr({j, i, k}), data[i][j][k]);
+                    EXPECT_EQ(ptr({k, i, j}), data[i][j][k]);
                     EXPECT_EQ(ptr(k, i, j), data[i][j][k]);
                     EXPECT_EQ(ptr[(i*M+j)*N+k], data[i][j][k]);
                 }
@@ -141,7 +140,7 @@ TEST(TensorTest, testTensor_SaveLoad)
         for ( int i = 0; i < L; ++i ) {
             for ( int j = 0; j < M; ++j ) {
                 for ( int k = 0; k < N; ++k ) {
-                    EXPECT_EQ(ptr({j, i, k}), data[i][j][k]);
+                    EXPECT_EQ(ptr({k, i, j}), data[i][j][k]);
                     EXPECT_EQ(ptr(k, i, j), data[i][j][k]);
                     EXPECT_EQ(ptr[(i*M+j)*N+k], data[i][j][k]);
                 }
@@ -150,6 +149,8 @@ TEST(TensorTest, testTensor_SaveLoad)
     }
 
 }
+
+
 
 
 #if BB_WITH_CEREAL
@@ -161,7 +162,7 @@ TEST(TensorTest, testTensor_Json)
 
     float   data[L][M][N];
 
-    bb::Tensor_<float> t({N, M, L});
+    bb::Tensor_<float> t({L, M, N});
 
     {
         auto ptr = t.Lock();
@@ -180,7 +181,7 @@ TEST(TensorTest, testTensor_Json)
         for ( int i = 0; i < L; ++i ) {
             for ( int j = 0; j < M; ++j ) {
                 for ( int k = 0; k < N; ++k ) {
-                    EXPECT_EQ(ptr({k, j, i}), data[i][j][k]);
+                    EXPECT_EQ(ptr({i, j, k}), data[i][j][k]);
                     EXPECT_EQ(ptr(i, j, k), data[i][j][k]);
                     EXPECT_EQ(ptr[(i*M+j)*N+k], data[i][j][k]);
                 }
@@ -188,14 +189,14 @@ TEST(TensorTest, testTensor_Json)
         }
     }
 
-    t.Transpose({1, 2, 0});
+    t.Transpose({2, 0, 1});
 
     {
         auto ptr = t.LockConst();
         for ( int i = 0; i < L; ++i ) {
             for ( int j = 0; j < M; ++j ) {
                 for ( int k = 0; k < N; ++k ) {
-                    EXPECT_EQ(ptr({j, i, k}), data[i][j][k]);
+                    EXPECT_EQ(ptr({k, i, j}), data[i][j][k]);
                     EXPECT_EQ(ptr(k, i, j), data[i][j][k]);
                     EXPECT_EQ(ptr[(i*M+j)*N+k], data[i][j][k]);
                 }
@@ -220,7 +221,7 @@ TEST(TensorTest, testTensor_Json)
         for ( int i = 0; i < L; ++i ) {
             for ( int j = 0; j < M; ++j ) {
                 for ( int k = 0; k < N; ++k ) {
-                    EXPECT_EQ(ptr({j, i, k}), data[i][j][k]);
+                    EXPECT_EQ(ptr({k, i, j}), data[i][j][k]);
                     EXPECT_EQ(ptr(k, i, j), data[i][j][k]);
                     EXPECT_EQ(ptr[(i*M+j)*N+k], data[i][j][k]);
                 }
@@ -232,13 +233,12 @@ TEST(TensorTest, testTensor_Json)
 #endif
 
 
-
 TEST(TensorTest, testTensor_Reshape)
 {
     const int L = 3;
     const int M = 1;
     const int N = 2;
-    bb::Tensor_<float> t({N, M, L});
+    bb::Tensor_<float> t({L, M, N});
 
 
     {
@@ -247,7 +247,7 @@ TEST(TensorTest, testTensor_Reshape)
         for ( int i = 0; i < L; ++i ) {
             for ( int j = 0; j < M; ++j ) {
                 for ( int k = 0; k < N; ++k ) {
-                    ptr({k, j, i}) = index++; 
+                    ptr({i, j, k}) = index++; 
                 }
             }
         }
@@ -266,24 +266,25 @@ TEST(TensorTest, testTensor_Reshape)
     {
         auto ptr = t.LockConst();
         EXPECT_EQ(ptr({0, 0, 0}), 1);
-        EXPECT_EQ(ptr({1, 0, 0}), 2);
-        EXPECT_EQ(ptr({0, 0, 1}), 3);
+        EXPECT_EQ(ptr({0, 0, 1}), 2);
+        EXPECT_EQ(ptr({1, 0, 0}), 3);
         EXPECT_EQ(ptr({1, 0, 1}), 4);
-        EXPECT_EQ(ptr({0, 0, 2}), 5);
-        EXPECT_EQ(ptr({1, 0, 2}), 6);
+        EXPECT_EQ(ptr({2, 0, 0}), 5);
+        EXPECT_EQ(ptr({2, 0, 1}), 6);
     }
 
-    t.Reshape({3, -1});
+    t.Reshape({-1, 3});
 
    {
         auto ptr = t.LockConst();
         EXPECT_EQ(ptr({0, 0}), 1);
-        EXPECT_EQ(ptr({1, 0}), 2);
-        EXPECT_EQ(ptr({2, 0}), 3);
-        EXPECT_EQ(ptr({0, 1}), 4);
+        EXPECT_EQ(ptr({0, 1}), 2);
+        EXPECT_EQ(ptr({0, 2}), 3);
+        EXPECT_EQ(ptr({1, 0}), 4);
         EXPECT_EQ(ptr({1, 1}), 5);
-        EXPECT_EQ(ptr({2, 1}), 6);
+        EXPECT_EQ(ptr({1, 2}), 6);
     }
+
 
 
     // clone
@@ -302,13 +303,15 @@ TEST(TensorTest, testTensor_Reshape)
     {
         auto ptr = t1.Lock();
         EXPECT_EQ(ptr({0, 0}), 1);
-        EXPECT_EQ(ptr({1, 0}), 2);
-        EXPECT_EQ(ptr({2, 0}), 3);
-        EXPECT_EQ(ptr({0, 1}), 4);
+        EXPECT_EQ(ptr({0, 1}), 2);
+        EXPECT_EQ(ptr({0, 2}), 3);
+        EXPECT_EQ(ptr({1, 0}), 4);
         EXPECT_EQ(ptr({1, 1}), 5);
-        EXPECT_EQ(ptr({2, 1}), 6);
+        EXPECT_EQ(ptr({1, 2}), 6);
     }
 }
+
+
 
 
 TEST(TensorTest, testTensorCpuGpu)
@@ -408,7 +411,6 @@ TEST(TensorTest, testTensorCpuGpu)
         }
     }
 }
-
 
 
 TEST(TensorTest, testTensorOp)
@@ -826,7 +828,6 @@ TEST(TensorTest, testTensor_cast)
 
 
 
-
 template <typename T>
 void test_Operator(bb::indices_t shape)
 {
@@ -1200,6 +1201,7 @@ void test_Operator(bb::indices_t shape)
 }
 
 
+
 TEST(TensorTest, testTensor_Operator)
 {
     test_Operator<float>({2, 3, 4});
@@ -1213,7 +1215,6 @@ TEST(TensorTest, testTensor_Operator)
     test_Operator<std::uint32_t>({7, 2, 5});
     test_Operator<std::uint64_t>({7, 2, 5});
 }
-
 
 
 template <typename T>
@@ -1620,3 +1621,5 @@ TEST(TensorTest, testTensorX_Operator)
     test_OperatorX<std::uint32_t>({1, 2, 3, 7});
 //    test_OperatorX<std::uint64_t>({1, 2, 3});
 }
+
+

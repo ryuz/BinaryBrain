@@ -35,38 +35,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BatchNormalizationTest.cpp" />
-    <ClCompile Include="BinarizeTest.cpp" />
-    <ClCompile Include="BinaryLutTest.cpp" />
-    <ClCompile Include="BinaryScalingTest.cpp" />
-    <ClCompile Include="BinaryToRealTest.cpp" />
-    <ClCompile Include="BitEncodeTest.cpp" />
-    <ClCompile Include="ConvBitToRealTest.cpp" />
-    <ClCompile Include="ConvolutionCol2ImTest.cpp" />
-    <ClCompile Include="ConvolutionIm2ColTest.cpp" />
-    <ClCompile Include="cudaMatrixColwiseMeanVarTest.cpp" />
-    <ClCompile Include="cudaMatrixColwiseSumTest.cpp" />
-    <ClCompile Include="DenseAffineTest.cpp" />
-    <ClCompile Include="DepthwiseDenseAffineTest.cpp" />
-    <ClCompile Include="FrameBufferTest.cpp" />
-    <ClCompile Include="LossSoftmaxCrossEntropyTest.cpp" />
-    <ClCompile Include="LoweringConvolutionTest.cpp" />
-    <ClCompile Include="MaxPoolingTest.cpp" />
-    <ClCompile Include="MemoryTest.cpp" />
-    <ClCompile Include="MetricsCategoricalAccuracyTest.cpp" />
-    <ClCompile Include="MicroMlpAffineTest.cpp" />
-    <ClCompile Include="MicroMlpTest.cpp" />
-    <ClCompile Include="OptimizerAdamTest.cpp" />
-    <ClCompile Include="RealToBinaryTest.cpp" />
-    <ClCompile Include="ReduceTest.cpp" />
-    <ClCompile Include="ReLUTest.cpp" />
-    <ClCompile Include="ShuffleTest.cpp" />
-    <ClCompile Include="SigmoidTest.cpp" />
-    <ClCompile Include="SparseLutNTest.cpp" />
-    <ClCompile Include="StochasticLutNTest.cpp" />
     <ClCompile Include="TensorTest.cpp" />
-    <ClCompile Include="UpSamplingTest.cpp" />
-    <ClCompile Include="VariablesTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\bb\Activation.h" />
@@ -409,7 +378,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(OPENCV2_4_13_DIR)\x64\vc14\staticlib;$(CUDA_PATH)\lib\x64;$(GTEST_DIR)\vc14\x64\Release;..\..\cuda\x64\Release</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(OPENCV2_4_13_DIR)\x64\vc14\staticlib;$(CUDA_PATH)\lib\x64;$(GTEST_DIR)\vc14\x64\Release;x64\Release</AdditionalLibraryDirectories>
       <AdditionalDependencies>bbcu.lib;gtest.lib;gtest_main.lib;cublas.lib;cuda.lib;cudart.lib;IlmImf.lib;libjasper.lib;libjpeg.lib;libpng.lib;libtiff.lib;opencv_calib3d2413.lib;opencv_contrib2413.lib;opencv_core2413.lib;opencv_features2d2413.lib;opencv_flann2413.lib;opencv_gpu2413.lib;opencv_highgui2413.lib;opencv_imgproc2413.lib;opencv_legacy2413.lib;opencv_ml2413.lib;opencv_nonfree2413.lib;opencv_objdetect2413.lib;opencv_ocl2413.lib;opencv_photo2413.lib;opencv_stitching2413.lib;opencv_superres2413.lib;opencv_ts2413.lib;opencv_video2413.lib;opencv_videostab2413.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

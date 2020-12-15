@@ -6,11 +6,16 @@
 //                                ryuji.fuchikami@nifty.com
 // --------------------------------------------------------------------------
 
+
+#define BB_PYBIND11
+
+
 #include <omp.h>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/operators.h>
+#include <pybind11/numpy.h>
 
 
 #include "bb/Version.h"
@@ -153,6 +158,7 @@ using LoadMnist                    = bb::LoadMnist<float>;
 using LoadCifar10                  = bb::LoadCifar10<float>;
 using RunStatus                    = bb::RunStatus;
 using Runner                       = bb::Runner<float>;
+
 
 
 int GetDeviceCount(void)
@@ -350,12 +356,37 @@ PYBIND11_MODULE(core, m) {
 
     // Tensor
     py::class_< Tensor >(m, "Tensor")
+        .def(py::init< bb::indices_t, int, bool >(),
+            py::arg("shape"),
+            py::arg("type")=BB_TYPE_FP32,
+            py::arg("host_only")=false)
         .def("get_type", &Tensor::GetType, doc__Tensor__get_type)
         .def("get_shape", &Tensor::GetShape, doc__Tensor__get_shape)
         .def("set_data", &Tensor::SetData<float>, doc__Tensor__set_data)
         .def("get_data", &Tensor::GetData<float>, doc__Tensor__get_data)
         .def("set_data_int32", &Tensor::SetData<int>, doc__Tensor__set_data_int32)
-        .def("get_data_int32", &Tensor::GetData<int>, doc__Tensor__get_data_int32);
+        .def("get_data_int32", &Tensor::GetData<int>, doc__Tensor__get_data_int32)
+        .def("numpy_int8",   &Tensor::Numpy<std::int8_t>)
+        .def("numpy_int16",  &Tensor::Numpy<std::int16_t>)
+        .def("numpy_int32",  &Tensor::Numpy<std::int32_t>)
+        .def("numpy_int64",  &Tensor::Numpy<std::int64_t>)
+        .def("numpy_uint8",  &Tensor::Numpy<std::int8_t>)
+        .def("numpy_uint16", &Tensor::Numpy<std::uint16_t>)
+        .def("numpy_uint32", &Tensor::Numpy<std::uint32_t>)
+        .def("numpy_uint64", &Tensor::Numpy<std::uint64_t>)
+        .def("numpy_fp32",   &Tensor::Numpy<float>)
+        .def("numpy_fp64",   &Tensor::Numpy<double>)
+        .def_static("from_numpy_int8",   &Tensor::FromNumpy<std::int8_t>)
+        .def_static("from_numpy_int16",  &Tensor::FromNumpy<std::int16_t>)
+        .def_static("from_numpy_int32",  &Tensor::FromNumpy<std::int32_t>)
+        .def_static("from_numpy_int64",  &Tensor::FromNumpy<std::int64_t>)
+        .def_static("from_numpy_uint8",  &Tensor::FromNumpy<std::uint8_t>)
+        .def_static("from_numpy_uint16", &Tensor::FromNumpy<std::uint16_t>)
+        .def_static("from_numpy_uint32", &Tensor::FromNumpy<std::uint32_t>)
+        .def_static("from_numpy_uint64", &Tensor::FromNumpy<std::uint64_t>)
+        .def_static("from_numpy_fp32",   &Tensor::FromNumpy<float>)
+        .def_static("from_numpy_fp64",   &Tensor::FromNumpy<double>)
+        ;
 
 
     // FrameBuffer
