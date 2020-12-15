@@ -103,3 +103,95 @@ class Tensor():
         return tensor
 
 
+    def __add__(self, x):
+        tensor = Tensor(shape=None)
+        if type(x) == Tensor:
+            tensor.tensor = self.tensor + x.tensor
+        else:
+            tensor.tensor = self.tensor + float(x)
+        return tensor
+
+    def __sub__(self, x):
+        tensor = Tensor(shape=None)
+        if type(x) == Tensor:
+            tensor.tensor = self.tensor - x.tensor
+        else:
+            tensor.tensor = self.tensor - float(x)
+        return tensor
+
+    def __mul__(self, x):
+        tensor = Tensor(shape=None)
+        if type(x) == Tensor:
+            tensor.tensor = self.tensor * x.tensor
+        else:
+            tensor.tensor = self.tensor * float(x)
+        return tensor
+
+    def __truediv__(self, x):
+        tensor = Tensor(shape=None)
+        if type(x) == Tensor:
+            tensor.tensor = self.tensor / x.tensor
+        else:
+            tensor.tensor = self.tensor / float(x)
+        return tensor
+
+    def __radd__(self, x):
+        tensor = Tensor(shape=None)
+        if type(x) == Tensor:
+            tensor.tensor = x.tensor + self.tensor 
+        else:
+            tensor.tensor = float(x) + self.tensor
+        return tensor
+
+    def __rsub__(self, x):
+        tensor = Tensor(shape=None)
+        if type(x) == Tensor:
+            tensor.tensor = x.tensor - self.tensor 
+        else:
+            tensor.tensor = float(x) - self.tensor
+        return tensor
+
+    def __rmul__(self, x):
+        tensor = Tensor(shape=None)
+        if type(x) == Tensor:
+            tensor.tensor = x.tensor * self.tensor 
+        else:
+            tensor.tensor = float(x) * self.tensor
+        return tensor
+
+    def __rtruediv__(self, x):
+        tensor = Tensor(shape=None)
+        if type(x) == Tensor:
+            tensor.tensor = x.tensor / self.tensor 
+        else:
+            tensor.tensor = float(x) / self.tensor
+        return tensor
+    
+    def __iadd__(self, x):
+        if type(x) == Tensor:
+            self.tensor += x.tensor 
+        else:
+            self.tensor += float(x)
+        return self
+    
+    def __isub__(self, x):
+        if type(x) == Tensor:
+            self.tensor -= x.tensor 
+        else:
+            self.tensor -= float(x)
+        return self
+    
+    def __imul__(self, x):
+        if type(x) == Tensor:
+            self.tensor *= x.tensor 
+        else:
+            self.tensor *= float(x)
+        return self
+    
+    def __itruediv__(self, x):
+        if type(x) == Tensor:
+            self.tensor /= x.tensor 
+        else:
+            self.tensor /= float(x)
+        return self
+    
