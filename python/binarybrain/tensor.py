@@ -6,11 +6,44 @@ import numpy as np
 from typing import List
 
 class Tensor():
+    """Tensor class
+    """
+    
     def __init__(self, shape: List[int], dtype: int = core.TYPE_FP32, host_only=False):
+        """Constructor
+        Args:
+            shape (list[int]):  Shape of created array
+            dtype (int): Data type
+            host_only (bool): flag of host only
+        """
         if shape is not None:
             self.tensor = core.Tensor(shape, dtype, host_only)
     
+    def get_type(self) -> int:
+        """get data type.
+        
+        Returns:
+            data type.
+        """
+        return self.tensor.get_type()
+    
+    def get_shape(self) -> List[int]:
+        """get shape.
+        
+        Returns:
+            shape
+        """
+        return self.tensor.get_shape()
+        
+    
     def numpy(self) -> np.ndarray:
+        """Convert to NumPy
+        
+        Args:
+            shape (list[int]):  Shape of created array
+            dtype (int): Data type
+            host_only (bool): flag of host only
+        """
         dtype = self.tensor.get_type()
         if dtype == core.TYPE_FP32:
             return self.tensor.numpy_fp32()
@@ -35,6 +68,13 @@ class Tensor():
     
     @staticmethod
     def from_numpy(ndarray: np.ndarray, host_only=False):
+        """Create from NumPy
+        
+        Args:
+            ndarray (np.ndarray): array of NumPy
+            host_only (bool): flag of host only
+        """
+        
         if not ndarray.flags['C_CONTIGUOUS']:
             ndarray = ndarray.copy(order='C')
         tensor = Tensor(shape=None)

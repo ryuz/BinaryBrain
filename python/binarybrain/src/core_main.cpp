@@ -217,6 +217,96 @@ std::string MakeVerilogAxi4s_FromLutFilter2dBit(std::string module_name, std::ve
 
 
 
+
+
+
+//////////////////////////////////////]
+// PyBind11 module
+//////////////////////////////////////]
+
+namespace py = pybind11;
+PYBIND11_MODULE(core, m) {
+    m.doc() = "BinaryBrain ver " + bb::GetVersionString();
+
+    m.attr("__version__") = py::cast(BB_VERSION);
+
+    m.attr("TYPE_BIT")    = BB_TYPE_BIT;
+    m.attr("TYPE_BINARY") = BB_TYPE_BINARY;
+    m.attr("TYPE_FP16")   = BB_TYPE_FP16;
+    m.attr("TYPE_FP32")   = BB_TYPE_FP32;
+    m.attr("TYPE_FP64")   = BB_TYPE_FP64;
+    m.attr("TYPE_INT8")   = BB_TYPE_INT8;
+    m.attr("TYPE_INT16")  = BB_TYPE_INT16;
+    m.attr("TYPE_INT32")  = BB_TYPE_INT32;
+    m.attr("TYPE_INT64")  = BB_TYPE_INT64;
+    m.attr("TYPE_UINT8")  = BB_TYPE_UINT8;
+    m.attr("TYPE_UINT16") = BB_TYPE_UINT16;
+    m.attr("TYPE_UINT32") = BB_TYPE_UINT32;
+    m.attr("TYPE_UINT64") = BB_TYPE_UINT64;
+
+    m.attr("BB_BORDER_CONSTANT")    = BB_BORDER_CONSTANT;
+    m.attr("BB_BORDER_CONSTANT")    = BB_BORDER_CONSTANT;
+    m.attr("BB_BORDER_REFLECT")     = BB_BORDER_REFLECT;
+    m.attr("BB_BORDER_REFLECT_101") = BB_BORDER_REFLECT_101;
+    m.attr("BB_BORDER_REPLICATE")   = BB_BORDER_REPLICATE;
+    m.attr("BB_BORDER_WRAP")        = BB_BORDER_WRAP;
+
+
+    // Tensor
+    py::class_< Tensor >(m, "Tensor")
+        .def(py::init< bb::indices_t, int, bool >(),
+            py::arg("shape"),
+            py::arg("type")=BB_TYPE_FP32,
+            py::arg("host_only")=false)
+        .def("get_type", &Tensor::GetType)
+        .def("get_shape", &Tensor::GetShape)
+        .def("numpy_int8",   &Tensor::Numpy<std::int8_t>)
+        .def("numpy_int16",  &Tensor::Numpy<std::int16_t>)
+        .def("numpy_int32",  &Tensor::Numpy<std::int32_t>)
+        .def("numpy_int64",  &Tensor::Numpy<std::int64_t>)
+        .def("numpy_uint8",  &Tensor::Numpy<std::int8_t>)
+        .def("numpy_uint16", &Tensor::Numpy<std::uint16_t>)
+        .def("numpy_uint32", &Tensor::Numpy<std::uint32_t>)
+        .def("numpy_uint64", &Tensor::Numpy<std::uint64_t>)
+        .def("numpy_fp32",   &Tensor::Numpy<float>)
+        .def("numpy_fp64",   &Tensor::Numpy<double>)
+        .def_static("from_numpy_int8",   &Tensor::FromNumpy<std::int8_t>)
+        .def_static("from_numpy_int16",  &Tensor::FromNumpy<std::int16_t>)
+        .def_static("from_numpy_int32",  &Tensor::FromNumpy<std::int32_t>)
+        .def_static("from_numpy_int64",  &Tensor::FromNumpy<std::int64_t>)
+        .def_static("from_numpy_uint8",  &Tensor::FromNumpy<std::uint8_t>)
+        .def_static("from_numpy_uint16", &Tensor::FromNumpy<std::uint16_t>)
+        .def_static("from_numpy_uint32", &Tensor::FromNumpy<std::uint32_t>)
+        .def_static("from_numpy_uint64", &Tensor::FromNumpy<std::uint64_t>)
+        .def_static("from_numpy_fp32",   &Tensor::FromNumpy<float>)
+        .def_static("from_numpy_fp64",   &Tensor::FromNumpy<double>)
+        ;
+
+
+    // OpenMP
+    m.def("omp_set_num_threads", &omp_set_num_threads);
+
+    // CUDA device
+    m.def("get_device_count",      &GetDeviceCount);
+    m.def("set_device",            &SetDevice,                 py::arg("device") = 0);
+    m.def("get_device_properties", &GetDevicePropertiesString, py::arg("device") = 0);
+
+    // verilog
+    m.def("make_verilog_from_lut", &MakeVerilog_FromLut);
+    m.def("make_verilog_from_lut_bit", &MakeVerilog_FromLutBit);
+    m.def("make_verilog_axi4s_from_lut_cnn", &MakeVerilogAxi4s_FromLutFilter2d);
+    m.def("make_verilog_axi4s_from_lut_cnn_bit", &MakeVerilogAxi4s_FromLutFilter2dBit);
+
+    m.def("get_version", &bb::GetVersionString);
+}
+
+
+
+
+
+
+#if 0
+
 //////////////////////////////////////]
 // docstrings
 //////////////////////////////////////]
@@ -870,6 +960,8 @@ R"(create BinaryLut6 object
 
     m.def("get_version", &bb::GetVersionString);
 }
+
+#endif
 
 
 // end of file
