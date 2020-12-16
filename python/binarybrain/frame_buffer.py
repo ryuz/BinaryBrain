@@ -35,6 +35,14 @@ class FrameBuffer():
             frame size.
         """
         return self.buf.get_frame_size()
+    
+    def get_frame_stride(self) -> int:
+        """get stride of frame.
+        
+        Returns:
+            frame stride.
+        """
+        return self.buf.get_frame_stride()
         
     def get_node_size(self) -> int:
         """get size of node.
@@ -87,13 +95,13 @@ class FrameBuffer():
             ndarray =  self.buf.numpy_uint64()
         else:
             raise TypeError("unexpected dtype")
-        
+
         tran = [ndarray.ndim-1] + list(range(0, ndarray.ndim-1))
         ndarray = ndarray.transpose(tran)
         if dtype != core.TYPE_BIT:
-            shape = ndarray.shape
+            shape = list(ndarray.shape)
             shape[0] = self.buf.get_frame_size()
-            ndarray = ndarray.resize(shape)
+            ndarray = np.resize(ndarray, shape)
         
         return ndarray
     
@@ -111,7 +119,8 @@ class FrameBuffer():
         frame_size   = shape[0]
         frame_stride = core.FrameBuffer.calc_frame_stride(bb_dtype, frame_size) 
         shape[0] = frame_stride // core.dtype_get_byte_size(bb_dtype)
-        ndarray.resize(shape, refcheck=False)
+#       ndarray.resize(shape, refcheck=False)
+        ndarray = np.resize(ndarray, shape)
         
         tran = list(range(1, ndarray.ndim)) + [0]
         ndarray = ndarray.transpose(tran)

@@ -319,6 +319,7 @@ PYBIND11_MODULE(core, m) {
                 py::arg("data_type") = BB_TYPE_FP32)
         .def("get_type", &FrameBuffer::GetType)
         .def("get_frame_size", &FrameBuffer::GetFrameSize)
+        .def("get_frame_stride", &FrameBuffer::GetFrameStride)
         .def("get_node_size", &FrameBuffer::GetNodeSize)
         .def("get_node_shape", &FrameBuffer::GetShape)
         .def("range", &FrameBuffer::Range)
