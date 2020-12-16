@@ -115,7 +115,7 @@ public:
         self->m_mt.seed(create.seed);
 
         self->m_output_shape = create.output_shape;
-        self->m_output_node_size = GetShapeSize(self->m_output_shape);
+        self->m_output_node_size = CalcShapeSize(self->m_output_shape);
         self->m_connection = create.connection;
 
         return self;
@@ -303,7 +303,7 @@ public:
 
         // 形状設定
         m_input_shape = shape;
-        m_input_node_size = GetShapeSize(shape);
+        m_input_node_size = CalcShapeSize(shape);
         
         // 接続初期化
         m_input_index.Resize(m_output_node_size, N);
@@ -338,7 +338,7 @@ public:
      */
     void SetOutputShape(indices_t const &shape)
     {
-        BB_ASSERT(GetShapeSize(shape) == m_output_node_size);
+        BB_ASSERT(CalcShapeSize(shape) == m_output_node_size);
         m_output_shape = shape;
     }
 

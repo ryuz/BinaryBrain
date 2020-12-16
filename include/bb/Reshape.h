@@ -100,7 +100,7 @@ public:
      */
     inline FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-        BB_ASSERT(x_buf.GetNodeSize() == GetShapeSize(m_output_shape));
+        BB_ASSERT(x_buf.GetNodeSize() == CalcShapeSize(m_output_shape));
 
         m_input_shape = x_buf.GetShape();
         x_buf.Reshape(m_output_shape);
@@ -117,7 +117,7 @@ public:
      */
     inline FrameBuffer Backward(FrameBuffer dy_buf)
     {
-        BB_ASSERT(dy_buf.GetNodeSize() == GetShapeSize(m_input_shape));
+        BB_ASSERT(dy_buf.GetNodeSize() == CalcShapeSize(m_input_shape));
 
         dy_buf.Reshape(m_input_shape);
 

@@ -112,11 +112,11 @@ public:
     {
         m_input_shape = shape;
 
-        if ( m_output_shape.empty() || GetShapeSize(shape) != GetShapeSize(m_output_shape) ) {
+        if ( m_output_shape.empty() || CalcShapeSize(shape) != CalcShapeSize(m_output_shape) ) {
             m_output_shape = m_input_shape;
         }
 
-        BB_ASSERT(GetShapeSize(m_output_shape) % m_shuffle_unit == 0);
+        BB_ASSERT(CalcShapeSize(m_output_shape) % m_shuffle_unit == 0);
 
         return m_output_shape;
     }

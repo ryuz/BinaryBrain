@@ -109,8 +109,8 @@ public:
         m_input_shape = shape;
 
         // 整数倍の縮退のみ許容
-        BB_ASSERT(GetShapeSize(m_input_shape) >= GetShapeSize(m_output_shape));
-        BB_ASSERT(GetShapeSize(m_input_shape) % GetShapeSize(m_output_shape) == 0);
+        BB_ASSERT(CalcShapeSize(m_input_shape) >= CalcShapeSize(m_output_shape));
+        BB_ASSERT(CalcShapeSize(m_input_shape) % CalcShapeSize(m_output_shape) == 0);
 
         return m_output_shape;
     }
@@ -158,7 +158,7 @@ public:
                 (
                     (float const *)x_ptr.GetAddr(),
                     (float       *)y_ptr.GetAddr(),
-                    (int          )(GetShapeSize(m_input_shape) / GetShapeSize(m_output_shape)),
+                    (int          )(CalcShapeSize(m_input_shape) / CalcShapeSize(m_output_shape)),
                     (int          )m_frame_mux_size,
                     (int          )GetOutputNodeSize(),
                     (int          )(x.GetFrameStride() / sizeof(float)),
@@ -216,7 +216,7 @@ public:
                 (
                     (float const *)dy_ptr.GetAddr(),
                     (float       *)dx_ptr.GetAddr(),
-                    (int          )(GetShapeSize(m_input_shape) / GetShapeSize(m_output_shape)),
+                    (int          )(CalcShapeSize(m_input_shape) / CalcShapeSize(m_output_shape)),
                     (int          )m_frame_mux_size,
                     (int          )GetOutputNodeSize(),
                     (int          )(dx_buf.GetFrameStride() / sizeof(float)),

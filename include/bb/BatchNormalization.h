@@ -265,7 +265,7 @@ public:
 
         _super::SetInputShape(shape);
 
-        auto node_size = GetShapeSize(shape);
+        auto node_size = CalcShapeSize(shape);
         
         // パラメータ初期化
         m_gamma->Resize ({node_size}, DataType<T>::type); *m_gamma  = m_init_gamma;
@@ -320,7 +320,7 @@ public:
     // ノード単位でのForward計算
     std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
     {
-        BB_DEBUG_ASSERT(node >= 0 && node < GetShapeSize(_super::GetOutputShape()));
+        BB_DEBUG_ASSERT(node >= 0 && node < CalcShapeSize(_super::GetOutputShape()));
 
         auto gamma_ptr        = lock_gamma_const();
         auto beta_ptr         = lock_beta_const();

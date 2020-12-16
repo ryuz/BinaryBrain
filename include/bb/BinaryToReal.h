@@ -127,8 +127,8 @@ public:
         }
 
         // 整数倍の多重化のみ許容
-        BB_ASSERT(GetShapeSize(m_input_shape) >= GetShapeSize(m_output_shape));
-        BB_ASSERT(GetShapeSize(m_input_shape) % GetShapeSize(m_output_shape) == 0);
+        BB_ASSERT(CalcShapeSize(m_input_shape) >= CalcShapeSize(m_output_shape));
+        BB_ASSERT(CalcShapeSize(m_input_shape) % CalcShapeSize(m_output_shape) == 0);
 
         return m_output_shape;
     }
@@ -181,7 +181,7 @@ public:
                 (
                     (float const *)x_ptr.GetAddr(),
                     (float       *)y_ptr.GetAddr(),
-                    (int          )(GetShapeSize(m_input_shape) / GetShapeSize(m_output_shape)),
+                    (int          )(CalcShapeSize(m_input_shape) / CalcShapeSize(m_output_shape)),
                     (int          )m_modulation_size,
                     (int          )GetOutputNodeSize(),
                     (int          )(x_buf.GetFrameStride() / sizeof(float)),
@@ -201,7 +201,7 @@ public:
                 (
                     (int   const *)x_ptr.GetAddr(),
                     (float       *)y_ptr.GetAddr(),
-                    (int          )(GetShapeSize(m_input_shape) / GetShapeSize(m_output_shape)),
+                    (int          )(CalcShapeSize(m_input_shape) / CalcShapeSize(m_output_shape)),
                     (int          )m_modulation_size,
                     (int          )GetOutputNodeSize(),
                     (int          )(x_buf.GetFrameStride() / sizeof(int)),
@@ -268,7 +268,7 @@ public:
                 (
                     (float const *)dy_ptr.GetAddr(),
                     (float       *)dx_ptr.GetAddr(),
-                    (int          )(GetShapeSize(m_input_shape) / GetShapeSize(m_output_shape)),
+                    (int          )(CalcShapeSize(m_input_shape) / CalcShapeSize(m_output_shape)),
                     (int          )m_modulation_size,
                     (int          )GetOutputNodeSize(),
                     (int          )(dx_buf.GetFrameStride() / sizeof(float)),

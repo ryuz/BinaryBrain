@@ -48,7 +48,7 @@ protected:
         std::mt19937_64                     mt(seed);
         std::uniform_int_distribution<int>  rand(0, 1);
         
-        index_t node_size = GetShapeSize(this->GetOutputShape());
+        index_t node_size = CalcShapeSize(this->GetOutputShape());
 
         // LUTテーブルをランダムに初期化
         for ( index_t node = 0; node < node_size; ++node) {
@@ -63,10 +63,10 @@ public:
     // 形状が同一のSparceLayerをテーブル化して取り込む
     void ImportLayer(std::shared_ptr< SparseLayer > src)
     {
-        BB_ASSERT(GetShapeSize(src->GetInputShape())  == GetShapeSize(this->GetInputShape()));
-        BB_ASSERT(GetShapeSize(src->GetOutputShape()) == GetShapeSize(this->GetOutputShape()));
+        BB_ASSERT(CalcShapeSize(src->GetInputShape())  == CalcShapeSize(this->GetInputShape()));
+        BB_ASSERT(CalcShapeSize(src->GetOutputShape()) == CalcShapeSize(this->GetOutputShape()));
         
-        auto node_size  = GetShapeSize(this->GetOutputShape());
+        auto node_size  = CalcShapeSize(this->GetOutputShape());
 
         for (index_t node = 0; node < node_size; ++node) {
             auto connection_size = this->GetNodeConnectionSize(node);
@@ -95,10 +95,10 @@ public:
     template <class T>
     void Import(std::shared_ptr<T> src)
     {
-        BB_ASSERT(GetShapeSize(src->GetInputShape())  == GetShapeSize(this->GetInputShape()));
-        BB_ASSERT(GetShapeSize(src->GetOutputShape()) == GetShapeSize(this->GetOutputShape()));
+        BB_ASSERT(CalcShapeSize(src->GetInputShape())  == CalcShapeSize(this->GetInputShape()));
+        BB_ASSERT(CalcShapeSize(src->GetOutputShape()) == CalcShapeSize(this->GetOutputShape()));
         
-        auto node_size  = GetShapeSize(this->GetOutputShape());
+        auto node_size  = CalcShapeSize(this->GetOutputShape());
 
         auto input_index_ptr = src->lock_InputIndex_const();
         auto W_ptr           = src->lock_W_const();

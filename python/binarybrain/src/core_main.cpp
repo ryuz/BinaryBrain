@@ -251,6 +251,10 @@ PYBIND11_MODULE(core, m) {
     m.attr("BB_BORDER_REPLICATE")   = BB_BORDER_REPLICATE;
     m.attr("BB_BORDER_WRAP")        = BB_BORDER_WRAP;
 
+    
+    m.def("dtype_get_bit_size", &bb::DataType_GetBitSize);
+    m.def("dtype_get_byte_size", &bb::DataType_GetByteSize);
+    
 
     // Tensor
     py::class_< Tensor >(m, "Tensor")
@@ -302,6 +306,66 @@ PYBIND11_MODULE(core, m) {
         .def_static("from_numpy_fp64",   &Tensor::FromNumpy<double>)
         ;
 
+    // FrameBuffer
+    py::class_< FrameBuffer >(m, "FrameBuffer")
+        .def(py::init< bb::index_t, bb::indices_t, int, bool>(),
+            py::arg("frame_size") = 0,
+            py::arg("shape") = bb::indices_t(),
+            py::arg("data_type") = 0,
+            py::arg("host_only") = false)
+        .def("resize",  (void (FrameBuffer::*)(bb::index_t, bb::indices_t, int))&bb::FrameBuffer::Resize,
+                py::arg("frame_size"),
+                py::arg("shape"),
+                py::arg("data_type") = BB_TYPE_FP32)
+        .def("get_type", &FrameBuffer::GetType)
+        .def("get_frame_size", &FrameBuffer::GetFrameSize)
+        .def("get_node_size", &FrameBuffer::GetNodeSize)
+        .def("get_node_shape", &FrameBuffer::GetShape)
+        .def("range", &FrameBuffer::Range)
+        .def("concatenate", &FrameBuffer::Concatenate)
+        .def(py::self + py::self)
+        .def(py::self + double())
+        .def(double() + py::self)
+        .def(py::self - py::self)
+        .def(py::self - double())
+        .def(double() - py::self)
+        .def(py::self * py::self)
+        .def(py::self * double())
+        .def(double() * py::self)
+        .def(py::self / py::self)
+        .def(py::self / double())
+        .def(double() / py::self)
+        .def(py::self += py::self)
+        .def(py::self += double())
+        .def(py::self -= py::self)
+        .def(py::self -= double())
+        .def(py::self *= py::self)
+        .def(py::self *= double())
+        .def(py::self /= py::self)
+        .def(py::self /= double())
+        .def("numpy_int8",   &FrameBuffer::Numpy<std::int8_t>)
+        .def("numpy_int16",  &FrameBuffer::Numpy<std::int16_t>)
+        .def("numpy_int32",  &FrameBuffer::Numpy<std::int32_t>)
+        .def("numpy_int64",  &FrameBuffer::Numpy<std::int64_t>)
+        .def("numpy_uint8",  &FrameBuffer::Numpy<std::int8_t>)
+        .def("numpy_uint16", &FrameBuffer::Numpy<std::uint16_t>)
+        .def("numpy_uint32", &FrameBuffer::Numpy<std::uint32_t>)
+        .def("numpy_uint64", &FrameBuffer::Numpy<std::uint64_t>)
+        .def("numpy_fp32",   &FrameBuffer::Numpy<float>)
+        .def("numpy_fp64",   &FrameBuffer::Numpy<double>)
+        .def_static("from_numpy_int8",   &FrameBuffer::FromNumpy<std::int8_t>)
+        .def_static("from_numpy_int16",  &FrameBuffer::FromNumpy<std::int16_t>)
+        .def_static("from_numpy_int32",  &FrameBuffer::FromNumpy<std::int32_t>)
+        .def_static("from_numpy_int64",  &FrameBuffer::FromNumpy<std::int64_t>)
+        .def_static("from_numpy_uint8",  &FrameBuffer::FromNumpy<std::uint8_t>)
+        .def_static("from_numpy_uint16", &FrameBuffer::FromNumpy<std::uint16_t>)
+        .def_static("from_numpy_uint32", &FrameBuffer::FromNumpy<std::uint32_t>)
+        .def_static("from_numpy_uint64", &FrameBuffer::FromNumpy<std::uint64_t>)
+        .def_static("from_numpy_fp32",   &FrameBuffer::FromNumpy<float>)
+        .def_static("from_numpy_fp64",   &FrameBuffer::FromNumpy<double>)
+        .def_static("calc_frame_stride", &FrameBuffer::CalcFrameStride)
+        ;
+    
 
     // OpenMP
     m.def("omp_set_num_threads", &omp_set_num_threads);

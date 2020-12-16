@@ -141,7 +141,7 @@ public:
      */
     index_t GetInputNodeSize(void) const
     {
-        return GetShapeSize(GetInputShape());
+        return CalcShapeSize(GetInputShape());
     }
 
     /**
@@ -158,7 +158,7 @@ public:
      */
     index_t GetOutputNodeSize(void) const
     {
-        return GetShapeSize(GetOutputShape());
+        return CalcShapeSize(GetOutputShape());
     }
 
 

@@ -54,8 +54,8 @@ protected:
         BB_ASSERT(!create.output_shape.empty());
         m_mt.seed(create.seed);
         m_output_shape = create.output_shape;
-        m_input_index.Resize(GetShapeSize(m_output_shape), (index_t)N);
-        m_table.Resize(GetShapeSize(m_output_shape), (index_t)m_table_unit);
+        m_input_index.Resize(CalcShapeSize(m_output_shape), (index_t)N);
+        m_table.Resize(CalcShapeSize(m_output_shape), (index_t)m_table_unit);
     }
 
     void CommandProc(std::vector<std::string> args)
@@ -122,7 +122,7 @@ public:
 
     void SetNodeConnectionIndex(index_t node, index_t input_index, index_t input_node)
     {
-        BB_ASSERT(node >= 0 && node < GetShapeSize(m_output_shape));
+        BB_ASSERT(node >= 0 && node < CalcShapeSize(m_output_shape));
         BB_ASSERT(input_index >= 0 && input_index < N);
         BB_DEBUG_ASSERT(input_node >= 0 && input_node < GetInputNodeSize());
 
@@ -132,7 +132,7 @@ public:
 
     index_t GetNodeConnectionIndex(index_t node, index_t input_index) const
     {
-        BB_ASSERT(node >= 0 && node < GetShapeSize(m_output_shape));
+        BB_ASSERT(node >= 0 && node < CalcShapeSize(m_output_shape));
         BB_ASSERT(input_index >= 0 && input_index < N);
         
         auto ptr = lock_InputIndex_const();
@@ -147,7 +147,7 @@ public:
 
     void SetLutTable(index_t node, int bitpos, bool value)
     {
-        BB_ASSERT(node >= 0 && node < GetShapeSize(m_output_shape));
+        BB_ASSERT(node >= 0 && node < CalcShapeSize(m_output_shape));
         BB_ASSERT(bitpos >= 0 && bitpos < m_table_size);
 
         int idx = bitpos / m_table_bits;
@@ -164,7 +164,7 @@ public:
 
     bool GetLutTable(index_t node, int bitpos) const
     {
-        BB_ASSERT(node >= 0 && node < GetShapeSize(m_output_shape));
+        BB_ASSERT(node >= 0 && node < CalcShapeSize(m_output_shape));
         BB_ASSERT(bitpos >= 0 && bitpos < (1 << N));
 
         int idx = bitpos / m_table_bits;
@@ -218,7 +218,7 @@ public:
      */
     void SetOutputShape(indices_t const &shape)
     {
-        BB_ASSERT(GetShapeSize(shape) == this->m_output_node_size);
+        BB_ASSERT(CalcShapeSize(shape) == this->m_output_node_size);
         m_output_shape = shape;
     }
 

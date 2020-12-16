@@ -252,7 +252,7 @@ public:
         m_connection_table.SetShape(m_input_shape, m_output_shape);
         m_connection_table.InitializeConnection(m_mt(), m_connection);
 
-//        auto output_node_size = GetShapeSize(m_output_shape);
+//        auto output_node_size = CalcShapeSize(m_output_shape);
 //        m_input_index.Resize(output_node_size, N);
 //        this->InitializeNodeInput(m_mt(), m_connection);
 
@@ -260,9 +260,9 @@ public:
 //      m_W->Resize({NN, m_output_node_size}, DataType<RealType>::type);  m_W->InitUniformDistribution(0.4, 0.6, m_mt());
 //      m_W->Resize({NN, m_output_node_size}, DataType<RealType>::type);  m_W->InitUniformDistribution(0.0, 1.0, m_mt());
 //      m_W->Resize({NN, m_output_node_size}, DataType<RealType>::type);  m_W->InitNormalDistribution(0.5, 0.001, m_mt());
-        m_W->Resize({NN, GetShapeSize(m_output_shape)}, DataType<RealType>::type);  m_W->InitNormalDistribution(0.5, 0.01, m_mt());
+        m_W->Resize({NN, CalcShapeSize(m_output_shape)}, DataType<RealType>::type);  m_W->InitNormalDistribution(0.5, 0.01, m_mt());
 
-        m_dW->Resize({NN, GetShapeSize(m_output_shape)}, DataType<RealType>::type); m_dW->FillZero();
+        m_dW->Resize({NN, CalcShapeSize(m_output_shape)}, DataType<RealType>::type); m_dW->FillZero();
 
         return m_output_shape;
     }
@@ -597,7 +597,7 @@ public:
         }
 
         {
-            FrameBuffer tmp_buf(dy_buf.GetFrameSize(), {GetShapeSize(m_output_shape)*N}, DataType<RealType>::type);
+            FrameBuffer tmp_buf(dy_buf.GetFrameSize(), {CalcShapeSize(m_output_shape)*N}, DataType<RealType>::type);
 
             // generic
             dx_buf.FillZero();

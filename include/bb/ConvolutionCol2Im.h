@@ -97,7 +97,7 @@ public:
 
  //      BB_ASSERT(shape.size() == 1);
         m_input_shape  = shape;
-        m_c_size = GetShapeSize(shape);
+        m_c_size = CalcShapeSize(shape);
         return indices_t({m_w_size, m_h_size, m_c_size});
     }
 

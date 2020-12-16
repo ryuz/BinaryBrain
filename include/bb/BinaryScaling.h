@@ -189,7 +189,7 @@ public:
         auto a_ptr = m_a.Lock();
         auto b_ptr = m_b.Lock();
 
-        auto node_size  = GetShapeSize(m_shape);
+        auto node_size  = CalcShapeSize(m_shape);
 
 //      std::ofstream ofs("bn.txt", std::ios::app);
 

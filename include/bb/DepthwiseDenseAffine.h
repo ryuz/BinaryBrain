@@ -91,7 +91,7 @@ protected:
         m_mt.seed(create.seed);
 
         m_output_shape     = create.output_shape;
-        m_output_node_size = GetShapeSize(m_output_shape);
+        m_output_node_size = CalcShapeSize(m_output_shape);
         m_input_point_size = create.input_point_size;
     }
 
@@ -210,7 +210,7 @@ public:
 
         // 形状設定
         m_input_shape   = shape;
-        m_input_node_size = GetShapeSize(shape);
+        m_input_node_size = CalcShapeSize(shape);
 
         if ( m_depth_size <= 0 ) {
             if ( m_input_point_size > 0 ) {
@@ -254,7 +254,7 @@ public:
      */
     void SetOutputShape(indices_t const &shape)
     {
-        BB_ASSERT(GetShapeSize(shape) == GetShapeSize(m_output_shape));
+        BB_ASSERT(CalcShapeSize(shape) == CalcShapeSize(m_output_shape));
         m_output_shape = shape;
     }
     
@@ -552,8 +552,8 @@ public:
         archive(cereal::make_nvp("input_shape",      m_input_shape));
         archive(cereal::make_nvp("output_shape",     m_output_shape));
 
-        m_input_node_size  = GetShapeSize(m_input_shape);
-        m_output_node_size = GetShapeSize(m_output_shape);
+        m_input_node_size  = CalcShapeSize(m_input_shape);
+        m_output_node_size = CalcShapeSize(m_output_shape);
 
         archive(cereal::make_nvp("W",                *m_W));
         archive(cereal::make_nvp("b",                *m_b));

@@ -264,14 +264,14 @@ public:
         m_input_shape = shape;
         
         // 接続初期化
-        auto output_node_size = GetShapeSize(m_output_shape);
+        auto output_node_size = CalcShapeSize(m_output_shape);
         m_input_index.Resize(output_node_size, N);
         this->InitializeNodeInput(m_mt(), m_connection);
         m_reverse_index_dirty = true;
 
         // パラメータ初期化(結局初期値は何が良いのかまだよくわからない)
-        m_W->Resize(DataType<RealType>::type, GetShapeSize(m_output_shape), NN);  m_W->InitNormalDistribution(0.5, 0.01, m_mt());
-        m_dW->Resize(DataType<RealType>::type, GetShapeSize(m_output_shape), NN); m_dW->FillZero();
+        m_W->Resize(DataType<RealType>::type, CalcShapeSize(m_output_shape), NN);  m_W->InitNormalDistribution(0.5, 0.01, m_mt());
+        m_dW->Resize(DataType<RealType>::type, CalcShapeSize(m_output_shape), NN); m_dW->FillZero();
 
         m_mean.Resize(m_output_shape);
         m_rstd.Resize(m_output_shape);
@@ -524,15 +524,15 @@ public:
 
         // make reverse index table
         if ( m_reverse_index_dirty ) {
-            m_reverse_index = this->MakeReverseIndexTable(m_input_index, GetShapeSize(m_input_shape));
+            m_reverse_index = this->MakeReverseIndexTable(m_input_index, CalcShapeSize(m_input_shape));
             m_reverse_index_dirty = false;
         }
 
         // tmp buffer
-        index_t tmp_frame_size = m_max_tmp_mem_size / (sizeof(float) * GetShapeSize(m_output_shape)*N);
+        index_t tmp_frame_size = m_max_tmp_mem_size / (sizeof(float) * CalcShapeSize(m_output_shape)*N);
         tmp_frame_size = ((tmp_frame_size + 31) & ~0x1f);
         tmp_frame_size = std::min(tmp_frame_size, dy_buf.GetFrameSize());
-        FrameBuffer tmp_buf(tmp_frame_size, GetShapeSize(m_output_shape)*N, DataType<RealType>::type);
+        FrameBuffer tmp_buf(tmp_frame_size, CalcShapeSize(m_output_shape)*N, DataType<RealType>::type);
 
 
 #ifdef BB_WITH_CUDA

@@ -195,8 +195,8 @@ void ShuffleDataSet(std::uint64_t seed, std::vector<T0>& data0, std::vector<T1>&
 template<typename T=float>
 void TrainDataNormalize(TrainData<T> &td)
 {
-    auto x_size = GetShapeSize(td.x_shape);
-    auto t_size = GetShapeSize(td.t_shape);
+    auto x_size = CalcShapeSize(td.x_shape);
+    auto t_size = CalcShapeSize(td.t_shape);
 
     std::vector<T>  x_max(x_size, (T)1.0);
     std::vector<T>  x_min(x_size, (T)0.0);

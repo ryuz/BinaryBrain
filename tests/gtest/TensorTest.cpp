@@ -831,7 +831,7 @@ TEST(TensorTest, testTensor_cast)
 template <typename T>
 void test_Operator(bb::indices_t shape)
 {
-    auto node_size = bb::GetShapeSize(shape);
+    auto node_size = bb::CalcShapeSize(shape);
 
     bb::Tensor_<T>  base_dst(shape);
     bb::Tensor_<T>  base_src0(shape);
@@ -1220,7 +1220,7 @@ TEST(TensorTest, testTensor_Operator)
 template <typename T>
 void test_OperatorX(bb::indices_t shape)
 {
-    auto node_size = bb::GetShapeSize(shape);
+    auto node_size = bb::CalcShapeSize(shape);
 
     bb::Tensor  base_dst (shape, bb::DataType<T>::type);
     bb::Tensor  base_src0(shape, bb::DataType<T>::type);

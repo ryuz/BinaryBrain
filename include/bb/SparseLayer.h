@@ -31,28 +31,28 @@ public:
     
     index_t GetConnectionSize(indices_t output_indices) const
     {
-        return GetNodeConnectionSize(GetShapeIndex(output_indices, this->GetOutputShape()));
+        return GetNodeConnectionSize(ConvertIndicesToIndex(output_indices, this->GetOutputShape()));
     }
 
     void SetConnectionIndex(indices_t output_indices, index_t connection, index_t input_indices)
     {
-        return SetNodeConnectionIndex(GetShapeIndex(output_indices, this->GetOutputShape()), connection, input_indices);
+        return SetNodeConnectionIndex(ConvertIndicesToIndex(output_indices, this->GetOutputShape()), connection, input_indices);
     }
 
     void SetConnectionIndices(indices_t output_indices, index_t connection, indices_t input_indices)
     {
-        return SetNodeConnectionIndex(GetShapeIndex(output_indices, this->GetOutputShape()), connection, GetShapeIndex(input_indices, this->GetInputShape()));
+        return SetNodeConnectionIndex(ConvertIndicesToIndex(output_indices, this->GetOutputShape()), connection, ConvertIndicesToIndex(input_indices, this->GetInputShape()));
     }
 
     index_t GetConnectionIndex(indices_t output_indices, index_t connection) const
     {
-        return GetNodeConnectionIndex(GetShapeIndex(output_indices, this->GetOutputShape()), connection);
+        return GetNodeConnectionIndex(ConvertIndicesToIndex(output_indices, this->GetOutputShape()), connection);
     }
 
     indices_t GetConnectionIndices(indices_t output_indices, index_t connection) const
     {
-        index_t input_node = GetNodeConnectionIndex(GetShapeIndex(output_indices, this->GetOutputShape()), connection);
-        return GetShapeIndices(input_node, this->GetInputShape());
+        index_t input_node = GetNodeConnectionIndex(ConvertIndicesToIndex(output_indices, this->GetOutputShape()), connection);
+        return ConvertIndexToIndices(input_node, this->GetInputShape());
     }
     
 
@@ -63,8 +63,8 @@ protected:
         auto input_shape  = this->GetInputShape();
         auto output_shape = this->GetOutputShape();
 
-        auto input_node_size  = GetShapeSize(input_shape);
-        auto output_node_size = GetShapeSize(output_shape);
+        auto input_node_size  = CalcShapeSize(input_shape);
+        auto output_node_size = CalcShapeSize(output_shape);
 
         auto argv = SplitString(connection);
 
@@ -108,8 +108,8 @@ protected:
                             index_t iy = random_set[i] / input_shape[0];
                             index_t ix = random_set[i] % input_shape[0];
 
-                            index_t output_node = GetShapeIndex({x, y, c}, output_shape);
-                            index_t input_node  = GetShapeIndex({ix, iy, c}, input_shape);
+                            index_t output_node = ConvertIndicesToIndex({x, y, c}, output_shape);
+                            index_t input_node  = ConvertIndicesToIndex({ix, iy, c}, input_shape);
 
                             BB_ASSERT(output_node >= 0 && output_node < output_node_size);
                             BB_ASSERT(input_node  >= 0 && input_node  < input_node_size);
@@ -141,7 +141,7 @@ protected:
                     input_offset[i] = output_index[i] * step[i];
                 }
 
-                auto output_node = GetShapeIndex(output_index, output_shape);
+                auto output_node = ConvertIndicesToIndex(output_index, output_shape);
                 auto m = GetNodeConnectionSize(output_node);
                 std::set<index_t>   s;
                 std::vector<double> input_position(n);
@@ -151,7 +151,7 @@ protected:
                             input_position[j] = input_offset[j] + norm_dist(mt) * sigma[j];
                         }
                         auto input_index = RegurerlizeIndices(input_position, input_shape);
-                        auto input_node  = GetShapeIndex(input_index, input_shape);
+                        auto input_node  = ConvertIndicesToIndex(input_index, input_shape);
                         if ( s.count(input_node) == 0 ){
                             SetNodeConnectionIndex(output_node, i, input_node);
                             s.insert(input_node);
@@ -159,7 +159,7 @@ protected:
                         }
                     }
                 }
-            } while ( GetNextIndices(output_index, output_shape) );
+            } while ( CalcNextIndices(output_index, output_shape) );
             return;
         }
 
