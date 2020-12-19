@@ -15,7 +15,7 @@
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
 //#include "bb/SparseBinaryLutN.h"
-#include "bb/SparseLutN.h"
+#include "bb/DifferentiableLutN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/LoweringConvolution.h"
 #include "bb/BatchNormalization.h"
@@ -47,16 +47,16 @@ void MnistSparseBinaryLutCnn(int epoch_size, int mini_batch_size, int max_run_si
 #endif
 
     // create network
-    auto layer_cnv0_sbl0 = bb::SparseLutN<6, bb::Bit>::Create(192);
-    auto layer_cnv0_sbl1 = bb::SparseLutN<6, bb::Bit>::Create(32);
-    auto layer_cnv1_sbl0 = bb::SparseLutN<6, bb::Bit>::Create(192);
-    auto layer_cnv1_sbl1 = bb::SparseLutN<6, bb::Bit>::Create(32);
-    auto layer_cnv2_sbl0 = bb::SparseLutN<6, bb::Bit>::Create(192);
-    auto layer_cnv2_sbl1 = bb::SparseLutN<6, bb::Bit>::Create(32);
-    auto layer_cnv3_sbl0 = bb::SparseLutN<6, bb::Bit>::Create(192);
-    auto layer_cnv3_sbl1 = bb::SparseLutN<6, bb::Bit>::Create(32);
-    auto layer_sbl4      = bb::SparseLutN<6, bb::Bit>::Create(420);
-    auto layer_sbl5      = bb::SparseLutN<6, bb::Bit>::Create(70);
+    auto layer_cnv0_sbl0 = bb::DifferentiableLutN<6, bb::Bit>::Create(192);
+    auto layer_cnv0_sbl1 = bb::DifferentiableLutN<6, bb::Bit>::Create(32);
+    auto layer_cnv1_sbl0 = bb::DifferentiableLutN<6, bb::Bit>::Create(192);
+    auto layer_cnv1_sbl1 = bb::DifferentiableLutN<6, bb::Bit>::Create(32);
+    auto layer_cnv2_sbl0 = bb::DifferentiableLutN<6, bb::Bit>::Create(192);
+    auto layer_cnv2_sbl1 = bb::DifferentiableLutN<6, bb::Bit>::Create(32);
+    auto layer_cnv3_sbl0 = bb::DifferentiableLutN<6, bb::Bit>::Create(192);
+    auto layer_cnv3_sbl1 = bb::DifferentiableLutN<6, bb::Bit>::Create(32);
+    auto layer_sbl4      = bb::DifferentiableLutN<6, bb::Bit>::Create(420);
+    auto layer_sbl5      = bb::DifferentiableLutN<6, bb::Bit>::Create(70);
 
     {
         auto cnv0_sub = bb::Sequential::Create();

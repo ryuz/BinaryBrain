@@ -23,7 +23,7 @@ namespace bb {
 
 
 template <int N = 6, typename BinType = Bit, typename RealType = float>
-class SparseLutN : public SparseLayer
+class DifferentiableLutN : public SparseLayer
 {
     using _super = SparseLayer;
 
@@ -79,7 +79,7 @@ public:
     };
 
 protected:
-    SparseLutN(create_t const &create)
+    DifferentiableLutN(create_t const &create)
     {
         BB_ASSERT(!create.output_shape.empty());
 
@@ -141,15 +141,15 @@ protected:
     }
 
 public:
-    ~SparseLutN() {}
+    ~DifferentiableLutN() {}
 
 
-    static std::shared_ptr<SparseLutN> Create(create_t const &create)
+    static std::shared_ptr<DifferentiableLutN> Create(create_t const &create)
     {
-        return std::shared_ptr<SparseLutN>(new SparseLutN(create));
+        return std::shared_ptr<DifferentiableLutN>(new DifferentiableLutN(create));
     }
 
-    static std::shared_ptr<SparseLutN> Create(indices_t const &output_shape, bool batch_norm = true, std::string connection = "") //, std::uint64_t seed = 1)
+    static std::shared_ptr<DifferentiableLutN> Create(indices_t const &output_shape, bool batch_norm = true, std::string connection = "") //, std::uint64_t seed = 1)
     {
         create_t create;
         create.output_shape = output_shape;
@@ -159,7 +159,7 @@ public:
         return Create(create);
     }
 
-    static std::shared_ptr<SparseLutN> Create(index_t output_node_size, bool batch_norm = true, std::string connection = "") //, std::uint64_t seed = 1)
+    static std::shared_ptr<DifferentiableLutN> Create(index_t output_node_size, bool batch_norm = true, std::string connection = "") //, std::uint64_t seed = 1)
     {
         create_t create;
         create.output_shape.resize(1);
@@ -170,7 +170,7 @@ public:
         return Create(create);
     }
 
-    static std::shared_ptr<SparseLutN> CreateEx(
+    static std::shared_ptr<DifferentiableLutN> CreateEx(
                 indices_t const &output_shape,
                 bool            batch_norm = true,
                 std::string     connection = "",
@@ -191,7 +191,7 @@ public:
     }
 
     std::string GetClassName(void) const {
-        return std::string("SparseLut") + std::to_string(N);
+        return std::string("DifferentiableLut") + std::to_string(N);
     }
 
 
@@ -258,12 +258,12 @@ public:
 
     void Save(cereal::JSONOutputArchive& archive) const
     {
-        archive(cereal::make_nvp("SparseLutN", *this));
+        archive(cereal::make_nvp("DifferentiableLutN", *this));
     }
 
     void Load(cereal::JSONInputArchive& archive)
     {
-        archive(cereal::make_nvp("SparseLutN", *this));
+        archive(cereal::make_nvp("DifferentiableLutN", *this));
     }
 #endif
 
@@ -389,7 +389,7 @@ public:
         // パラメータクリップ
         if ( m_flagClamp ) {
             m_W->Clamp((RealType)0.0, (RealType)1.0);
-            (const_cast<SparseLutN*>(this))->m_flagClamp = false;
+            (const_cast<DifferentiableLutN*>(this))->m_flagClamp = false;
         }
 
         auto W_ptr            = lock_W_const();
@@ -484,7 +484,7 @@ public:
                     auto running_mean_ptr = m_running_mean.LockDeviceMemory();
                     auto running_var_ptr  = m_running_var.LockDeviceMemory();
 
-                    bbcu_fp32_SparseLutN_ForwardTraining<N>
+                    bbcu_fp32_DifferentiableLutN_ForwardTraining<N>
                         (
                             (float const *)x_ptr.GetAddr(),
                             (float       *)y_ptr.GetAddr(),
@@ -513,7 +513,7 @@ public:
                     auto running_mean_ptr = m_running_mean.LockDeviceMemory();
                     auto running_var_ptr  = m_running_var.LockDeviceMemory();
 
-                    bbcu_fp32_SparseLutN_ForwardInference<N>
+                    bbcu_fp32_DifferentiableLutN_ForwardInference<N>
                         (
                             (float const *)x_ptr.GetAddr(),
                             (float       *)y_ptr.GetAddr(),
@@ -548,7 +548,7 @@ public:
                     auto running_mean_ptr = m_running_mean.LockDeviceMemory();
                     auto running_var_ptr  = m_running_var.LockDeviceMemory();
 
-                    bbcu_bit_fp32_SparseLutN_ForwardTraining<N>
+                    bbcu_bit_fp32_DifferentiableLutN_ForwardTraining<N>
                         (
                             (int   const *)x_ptr.GetAddr(),
                             (int         *)y_ptr.GetAddr(),
@@ -576,7 +576,7 @@ public:
                     auto running_mean_ptr = m_running_mean.LockDeviceMemoryConst();
                     auto running_var_ptr  = m_running_var.LockDeviceMemoryConst();
 
-                    bbcu_bit_fp32_SparseLutN_ForwardInference<N>
+                    bbcu_bit_fp32_DifferentiableLutN_ForwardInference<N>
                         (
                             (int   const *)x_ptr.GetAddr(),
                             (int         *)y_ptr.GetAddr(),
@@ -909,7 +909,7 @@ public:
                 auto dmean_ptr         = dmean.LockDeviceMemory(true);
                 auto dvar_ptr          = dvar.LockDeviceMemory(true);
             
-                bbcu_fp32_SparseLutN_Backward<N>
+                bbcu_fp32_DifferentiableLutN_Backward<N>
                     (
                         (float const *)x_ptr.GetAddr(),
                         (float const *)dy_ptr.GetAddr(),
@@ -960,7 +960,7 @@ public:
                 auto dmean_ptr         = dmean.LockDeviceMemory(true);
                 auto dvar_ptr          = dvar.LockDeviceMemory(true);
             
-                bbcu_bit_fp32_SparseLutN_Backward<N>
+                bbcu_bit_fp32_DifferentiableLutN_Backward<N>
                     (
                         (int   const *)x_ptr.GetAddr(),
                         (float const *)dy_ptr.GetAddr(),

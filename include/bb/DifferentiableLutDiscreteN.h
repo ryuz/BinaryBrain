@@ -25,7 +25,7 @@ namespace bb {
 
 // Sparce LUT (Discrite version)
 template <int N = 6, typename BinType = float, typename RealType = float>
-class SparseLutDiscreteN : public SparseLayer
+class DifferentiableLutDiscreteN : public SparseLayer
 {
     using _super = SparseLayer;
 
@@ -51,7 +51,7 @@ public:
     };
 
 protected:
-    SparseLutDiscreteN(create_t const &create)
+    DifferentiableLutDiscreteN(create_t const &create)
     {
         typename StochasticLutN<N, BinType, RealType>::create_t lut_create;
         lut_create.output_shape = create.output_shape;
@@ -81,14 +81,14 @@ protected:
 
 
 public:
-    ~SparseLutDiscreteN() {}
+    ~DifferentiableLutDiscreteN() {}
 
-    static std::shared_ptr< SparseLutDiscreteN > Create(create_t const &create)
+    static std::shared_ptr< DifferentiableLutDiscreteN > Create(create_t const &create)
     {
-        return std::shared_ptr< SparseLutDiscreteN >(new SparseLutDiscreteN(create));
+        return std::shared_ptr< DifferentiableLutDiscreteN >(new DifferentiableLutDiscreteN(create));
     }
 
-    static std::shared_ptr< SparseLutDiscreteN > Create(indices_t const &output_shape, bool batch_norm = true, std::string connection = "", std::uint64_t seed = 1)
+    static std::shared_ptr< DifferentiableLutDiscreteN > Create(indices_t const &output_shape, bool batch_norm = true, std::string connection = "", std::uint64_t seed = 1)
     {
         create_t create;
         create.output_shape = output_shape;
@@ -98,12 +98,12 @@ public:
         return Create(create);
     }
 
-    static std::shared_ptr< SparseLutDiscreteN > Create(index_t output_node_size, bool batch_norm = true, std::string connection = "", std::uint64_t seed = 1)
+    static std::shared_ptr< DifferentiableLutDiscreteN > Create(index_t output_node_size, bool batch_norm = true, std::string connection = "", std::uint64_t seed = 1)
     {
         return Create(indices_t({output_node_size}), batch_norm, connection, seed);
     }
 
-    std::string GetClassName(void) const { return "SparseLutN"; }
+    std::string GetClassName(void) const { return "DifferentiableLutN"; }
 
     /**
      * @brief  コマンドを送る
@@ -324,7 +324,7 @@ public:
 
     void Save(cereal::JSONOutputArchive& archive) const
     {
-        archive(cereal::make_nvp("SparseLutN", *this));
+        archive(cereal::make_nvp("DifferentiableLutN", *this));
         m_lut       ->Save(archive);
         m_batch_norm->Save(archive);
         m_activation->Save(archive);
@@ -332,7 +332,7 @@ public:
 
     void Load(cereal::JSONInputArchive& archive)
     {
-        archive(cereal::make_nvp("SparseLutN", *this));
+        archive(cereal::make_nvp("DifferentiableLutN", *this));
         m_lut       ->Load(archive);
         m_batch_norm->Load(archive);
         m_activation->Load(archive);

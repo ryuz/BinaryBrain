@@ -19,26 +19,26 @@
 
 void MnistStochasticLutSimple(int epoch_size, int mini_batch_size,                            int test_modulation_size, bool binary_mode, bool file_read);
 void MnistStochasticLutCnn   (int epoch_size, int mini_batch_size,                            int test_modulation_size, bool binary_mode, bool file_read);
-void MnistSparseLutSimple    (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
-void MnistSparseLutCnn       (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
-void MnistSparseLutCnnDa     (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
-void MnistSparseLutCnnDa2    (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistDifferentiableLutSimple    (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistDifferentiableLutCnn       (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistDifferentiableLutCnnDa     (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistDifferentiableLutCnnDa2    (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistMicroMlpLutSimple  (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistMicroMlpLutCnn     (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistDenseSimple        (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistDenseCnn           (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistCustomModel        (int epoch_size, int mini_batch_size,                                                      bool binary_mode                );
-void MnistAeSparseLutSimple  (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
-void MnistAeSparseLutCnn     (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistAeDifferentiableLutSimple  (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistAeDifferentiableLutCnn     (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 
-void MnistDetectionSparseLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
-void MnistDetectionSparseLutCnn   (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistDetectionDifferentiableLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistDetectionDifferentiableLutCnn   (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 
 void MnistMobileNet          (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistShuffleNet         (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 
 void MnistSegmentationDenseCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
-void MnistSegmentationSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistSegmentationDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistSegmentationMobileNet(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 
 
@@ -74,12 +74,12 @@ int main(int argc, char *argv[])
         std::cout << "<model name>" << std::endl;
         std::cout << "  StochasticLutSimple Stochastic-Lut LUT-Network Simple DNN" << std::endl;
         std::cout << "  StochasticLutCnn    Stochastic-Lut LUT-Network CNN" << std::endl;
-        std::cout << "  SparseLutSimple     Sparse LUT-Network Simple DNN" << std::endl;
-        std::cout << "  SparseLutCnn        Sparse LUT-Network CNN" << std::endl;
+        std::cout << "  DifferentiableLutSimple     Sparse LUT-Network Simple DNN" << std::endl;
+        std::cout << "  DifferentiableLutCnn        Sparse LUT-Network CNN" << std::endl;
         std::cout << "  DenseSimple         Dense Simple DNN" << std::endl;
         std::cout << "  DenseCnn            Dense CNN" << std::endl;
-        std::cout << "  AeSparseLutSimple   AutoEncoder Simple DNN" << std::endl;
-        std::cout << "  AeSparseLutCnn      AutoEncoder CNN" << std::endl;
+        std::cout << "  AeDifferentiableLutSimple   AutoEncoder Simple DNN" << std::endl;
+        std::cout << "  AeDifferentiableLutCnn      AutoEncoder CNN" << std::endl;
         std::cout << "  All                 run all" << std::endl;
         return 1;
     }
@@ -151,19 +151,19 @@ int main(int argc, char *argv[])
         MnistStochasticLutCnn(epoch_size, mini_batch_size,test_modulation_size, binary_mode, file_read);
     }
 
-    if ( netname == "All" || netname == "SparseLutSimple" ) {
-        MnistSparseLutSimple(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    if ( netname == "All" || netname == "DifferentiableLutSimple" ) {
+        MnistDifferentiableLutSimple(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
-    if ( netname == "All" || netname == "SparseLutCnn" ) {
-        MnistSparseLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    if ( netname == "All" || netname == "DifferentiableLutCnn" ) {
+        MnistDifferentiableLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
-    if ( netname == "SparseLutCnnDa" ) {
-//        MnistSparseLutCnnDa(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    if ( netname == "DifferentiableLutCnnDa" ) {
+//        MnistDifferentiableLutCnnDa(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
-    if ( netname == "SparseLutCnnDa2" ) {
-//        MnistSparseLutCnnDa2(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    if ( netname == "DifferentiableLutCnnDa2" ) {
+//        MnistDifferentiableLutCnnDa2(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
     if ( netname == "All" || netname == "MicroMlpLutSimple" ) {
@@ -182,12 +182,12 @@ int main(int argc, char *argv[])
         MnistDenseCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
-    if ( netname == "All" || netname == "AeSparseLutSimple" ) {
-        MnistAeSparseLutSimple(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    if ( netname == "All" || netname == "AeDifferentiableLutSimple" ) {
+        MnistAeDifferentiableLutSimple(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
-    if ( netname == "All" || netname == "AeSparseLutCnn" ) {
-        MnistAeSparseLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    if ( netname == "All" || netname == "AeDifferentiableLutCnn" ) {
+        MnistAeDifferentiableLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
     if ( netname == "All" || netname == "MobileNet" ) {
@@ -204,20 +204,20 @@ int main(int argc, char *argv[])
     }
 
 
-    if ( netname == "DetectionSparseLutSimple" ) {
-        MnistDetectionSparseLutSimple(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    if ( netname == "DetectionDifferentiableLutSimple" ) {
+        MnistDetectionDifferentiableLutSimple(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
-    if ( netname == "DetectionSparseLutCnn" ) {
-        MnistDetectionSparseLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    if ( netname == "DetectionDifferentiableLutCnn" ) {
+        MnistDetectionDifferentiableLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
     if ( netname == "SegmentationDenseCnn" ) {
         MnistSegmentationDenseCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
-    if ( netname == "SegmentationSparseLutCnn" ) {
-        MnistSegmentationSparseLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    if ( netname == "SegmentationDifferentiableLutCnn" ) {
+        MnistSegmentationDifferentiableLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
     if ( netname == "SegmentationMobileNet" ) {

@@ -9,8 +9,8 @@
 #include <iostream>
 
 #include "bb/Sequential.h"
-#include "bb/SparseLutN.h"
-#include "bb/SparseLutDiscreteN.h"
+#include "bb/DifferentiableLutN.h"
+#include "bb/DifferentiableLutDiscreteN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/Reduce.h"
 #include "bb/BinaryModulation.h"
@@ -22,9 +22,9 @@
 #include "bb/ExportVerilog.h"
 
 
-void MnistSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void MnistDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "MnistSparseLutCnn";
+    std::string net_name = "MnistDifferentiableLutCnn";
 
   // load MNIST data
 #ifdef _DEBUG
@@ -35,55 +35,55 @@ void MnistSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation
 #endif
 
     // create network
-    auto layer_cnv0_sl0 = bb::SparseLutN<6, bb::Bit>::Create(36*6, true, "random");
-    auto layer_cnv0_sl1 = bb::SparseLutN<6, bb::Bit>::Create(36,   true, "serial");
+    auto layer_cnv0_sl0 = bb::DifferentiableLutN<6, bb::Bit>::Create(36*6, true, "random");
+    auto layer_cnv0_sl1 = bb::DifferentiableLutN<6, bb::Bit>::Create(36,   true, "serial");
 
-    auto layer_cnv1_sl0 = bb::SparseLutN<6, bb::Bit>::Create({ 36, 1,  6}, true, "depthwise");
-    auto layer_cnv1_sl1 = bb::SparseLutN<6, bb::Bit>::Create({ 36, 1,  6}, true, "random");
-    auto layer_cnv1_sl2 = bb::SparseLutN<6, bb::Bit>::Create({ 72, 1,  1}, true, "serial");
+    auto layer_cnv1_sl0 = bb::DifferentiableLutN<6, bb::Bit>::Create({ 36, 1,  6}, true, "depthwise");
+    auto layer_cnv1_sl1 = bb::DifferentiableLutN<6, bb::Bit>::Create({ 36, 1,  6}, true, "random");
+    auto layer_cnv1_sl2 = bb::DifferentiableLutN<6, bb::Bit>::Create({ 72, 1,  1}, true, "serial");
 
-    auto layer_cnv2_sl0 = bb::SparseLutN<6, bb::Bit>::Create({ 72, 1,  6}, true, "depthwise");
-    auto layer_cnv2_sl1 = bb::SparseLutN<6, bb::Bit>::Create({ 72, 1,  6}, true, "random");
-    auto layer_cnv2_sl2 = bb::SparseLutN<6, bb::Bit>::Create({ 72, 1,  1}, true, "serial");
-    auto layer_cnv3_sl0 = bb::SparseLutN<6, bb::Bit>::Create({ 72, 1,  6},  true, "depthwise");
-    auto layer_cnv3_sl1 = bb::SparseLutN<6, bb::Bit>::Create({ 72, 1,  6},  true, "random");
-    auto layer_cnv3_sl2 = bb::SparseLutN<6, bb::Bit>::Create({144, 1,  1}, true, "serial");
-    auto layer_cnv4_sl0 = bb::SparseLutN<6, bb::Bit>::Create({144, 1,  6},  true, "depthwise");
-    auto layer_cnv4_sl1 = bb::SparseLutN<6, bb::Bit>::Create({144, 1,  6},  true, "random");
-    auto layer_cnv4_sl2 = bb::SparseLutN<6, bb::Bit>::Create({144, 1,  1},  true, "serial");
-    auto layer_cnv5_sl0 = bb::SparseLutN<6, bb::Bit>::Create({144, 1,  6},  true, "depthwise");
-    auto layer_cnv5_sl1 = bb::SparseLutN<6, bb::Bit>::Create({144, 1,  6},  true, "random");
-    auto layer_cnv5_sl2 = bb::SparseLutN<6, bb::Bit>::Create({144, 1,  1},  true, "serial");
-    auto layer_cnv6_sl0 = bb::SparseLutN<6, bb::Bit>::Create({144, 1,  6}, true, "depthwise");
-    auto layer_cnv6_sl1 = bb::SparseLutN<6, bb::Bit>::Create({ 10, 1, 36},  true, "random");
-    auto layer_cnv6_sl2 = bb::SparseLutN<6, bb::Bit>::Create({ 10, 1,  6},  true, "serial");
-    auto layer_cnv6_sl3 = bb::SparseLutN<6, bb::Bit>::Create({ 10, 1,  1},  true, "serial");
+    auto layer_cnv2_sl0 = bb::DifferentiableLutN<6, bb::Bit>::Create({ 72, 1,  6}, true, "depthwise");
+    auto layer_cnv2_sl1 = bb::DifferentiableLutN<6, bb::Bit>::Create({ 72, 1,  6}, true, "random");
+    auto layer_cnv2_sl2 = bb::DifferentiableLutN<6, bb::Bit>::Create({ 72, 1,  1}, true, "serial");
+    auto layer_cnv3_sl0 = bb::DifferentiableLutN<6, bb::Bit>::Create({ 72, 1,  6},  true, "depthwise");
+    auto layer_cnv3_sl1 = bb::DifferentiableLutN<6, bb::Bit>::Create({ 72, 1,  6},  true, "random");
+    auto layer_cnv3_sl2 = bb::DifferentiableLutN<6, bb::Bit>::Create({144, 1,  1}, true, "serial");
+    auto layer_cnv4_sl0 = bb::DifferentiableLutN<6, bb::Bit>::Create({144, 1,  6},  true, "depthwise");
+    auto layer_cnv4_sl1 = bb::DifferentiableLutN<6, bb::Bit>::Create({144, 1,  6},  true, "random");
+    auto layer_cnv4_sl2 = bb::DifferentiableLutN<6, bb::Bit>::Create({144, 1,  1},  true, "serial");
+    auto layer_cnv5_sl0 = bb::DifferentiableLutN<6, bb::Bit>::Create({144, 1,  6},  true, "depthwise");
+    auto layer_cnv5_sl1 = bb::DifferentiableLutN<6, bb::Bit>::Create({144, 1,  6},  true, "random");
+    auto layer_cnv5_sl2 = bb::DifferentiableLutN<6, bb::Bit>::Create({144, 1,  1},  true, "serial");
+    auto layer_cnv6_sl0 = bb::DifferentiableLutN<6, bb::Bit>::Create({144, 1,  6}, true, "depthwise");
+    auto layer_cnv6_sl1 = bb::DifferentiableLutN<6, bb::Bit>::Create({ 10, 1, 36},  true, "random");
+    auto layer_cnv6_sl2 = bb::DifferentiableLutN<6, bb::Bit>::Create({ 10, 1,  6},  true, "serial");
+    auto layer_cnv6_sl3 = bb::DifferentiableLutN<6, bb::Bit>::Create({ 10, 1,  1},  true, "serial");
 
     /*
-    auto layer_cnv1_sl0 = bb::SparseLutN<6, bb::Bit>::Create({6, 1, 36}, true, "depthwise");
-    auto layer_cnv1_sl1 = bb::SparseLutN<6, bb::Bit>::Create({6, 1, 36}, true, "random");
-    auto layer_cnv1_sl2 = bb::SparseLutN<6, bb::Bit>::Create({1, 1, 72}, true, "serial");
+    auto layer_cnv1_sl0 = bb::DifferentiableLutN<6, bb::Bit>::Create({6, 1, 36}, true, "depthwise");
+    auto layer_cnv1_sl1 = bb::DifferentiableLutN<6, bb::Bit>::Create({6, 1, 36}, true, "random");
+    auto layer_cnv1_sl2 = bb::DifferentiableLutN<6, bb::Bit>::Create({1, 1, 72}, true, "serial");
 
-    auto layer_cnv2_sl0 = bb::SparseLutN<6, bb::Bit>::Create({6, 1, 72}, true, "depthwise");
-    auto layer_cnv2_sl1 = bb::SparseLutN<6, bb::Bit>::Create({6, 1, 72}, true, "random");
-    auto layer_cnv2_sl2 = bb::SparseLutN<6, bb::Bit>::Create({1, 1, 72}, true, "serial");
+    auto layer_cnv2_sl0 = bb::DifferentiableLutN<6, bb::Bit>::Create({6, 1, 72}, true, "depthwise");
+    auto layer_cnv2_sl1 = bb::DifferentiableLutN<6, bb::Bit>::Create({6, 1, 72}, true, "random");
+    auto layer_cnv2_sl2 = bb::DifferentiableLutN<6, bb::Bit>::Create({1, 1, 72}, true, "serial");
 
-    auto layer_cnv3_sl0 = bb::SparseLutN<6, bb::Bit>::Create({6, 1, 72},  true, "depthwise");
-    auto layer_cnv3_sl1 = bb::SparseLutN<6, bb::Bit>::Create({6, 1, 72},  true, "random");
-    auto layer_cnv3_sl2 = bb::SparseLutN<6, bb::Bit>::Create({1, 1, 144}, true, "serial");
+    auto layer_cnv3_sl0 = bb::DifferentiableLutN<6, bb::Bit>::Create({6, 1, 72},  true, "depthwise");
+    auto layer_cnv3_sl1 = bb::DifferentiableLutN<6, bb::Bit>::Create({6, 1, 72},  true, "random");
+    auto layer_cnv3_sl2 = bb::DifferentiableLutN<6, bb::Bit>::Create({1, 1, 144}, true, "serial");
 
-    auto layer_cnv4_sl0 = bb::SparseLutN<6, bb::Bit>::Create({6, 1, 144},  true, "depthwise");
-    auto layer_cnv4_sl1 = bb::SparseLutN<6, bb::Bit>::Create({6, 1, 144},  true, "random");
-    auto layer_cnv4_sl2 = bb::SparseLutN<6, bb::Bit>::Create({1, 1, 144},  true, "serial");
+    auto layer_cnv4_sl0 = bb::DifferentiableLutN<6, bb::Bit>::Create({6, 1, 144},  true, "depthwise");
+    auto layer_cnv4_sl1 = bb::DifferentiableLutN<6, bb::Bit>::Create({6, 1, 144},  true, "random");
+    auto layer_cnv4_sl2 = bb::DifferentiableLutN<6, bb::Bit>::Create({1, 1, 144},  true, "serial");
 
-    auto layer_cnv5_sl0 = bb::SparseLutN<6, bb::Bit>::Create({6, 1, 144},  true, "depthwise");
-    auto layer_cnv5_sl1 = bb::SparseLutN<6, bb::Bit>::Create({6, 1, 144},  true, "random");
-    auto layer_cnv5_sl2 = bb::SparseLutN<6, bb::Bit>::Create({1, 1, 144},  true, "serial");
+    auto layer_cnv5_sl0 = bb::DifferentiableLutN<6, bb::Bit>::Create({6, 1, 144},  true, "depthwise");
+    auto layer_cnv5_sl1 = bb::DifferentiableLutN<6, bb::Bit>::Create({6, 1, 144},  true, "random");
+    auto layer_cnv5_sl2 = bb::DifferentiableLutN<6, bb::Bit>::Create({1, 1, 144},  true, "serial");
 
-    auto layer_cnv6_sl0 = bb::SparseLutN<6, bb::Bit>::Create({6,  1, 144}, true, "depthwise");
-    auto layer_cnv6_sl1 = bb::SparseLutN<6, bb::Bit>::Create({36, 1, 10},  true, "random");
-    auto layer_cnv6_sl2 = bb::SparseLutN<6, bb::Bit>::Create({6,  1, 10},  true, "serial");
-    auto layer_cnv6_sl3 = bb::SparseLutN<6, bb::Bit>::Create({1,  1, 10},  true, "serial");
+    auto layer_cnv6_sl0 = bb::DifferentiableLutN<6, bb::Bit>::Create({6,  1, 144}, true, "depthwise");
+    auto layer_cnv6_sl1 = bb::DifferentiableLutN<6, bb::Bit>::Create({36, 1, 10},  true, "random");
+    auto layer_cnv6_sl2 = bb::DifferentiableLutN<6, bb::Bit>::Create({6,  1, 10},  true, "serial");
+    auto layer_cnv6_sl3 = bb::DifferentiableLutN<6, bb::Bit>::Create({1,  1, 10},  true, "serial");
     */
 
     {

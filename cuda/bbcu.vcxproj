@@ -21,6 +21,7 @@
     <CudaCompile Include="Col2Im.cu" />
     <CudaCompile Include="ConvBitToReal.cu" />
     <CudaCompile Include="DepthwiseDenseAffine.cu" />
+    <CudaCompile Include="DifferentiableLut.cu" />
     <CudaCompile Include="FrameBufferCopy.cu" />
     <CudaCompile Include="HardTanh.cu" />
     <CudaCompile Include="Im2Col.cu" />
@@ -37,7 +38,6 @@
     <CudaCompile Include="Shuffle.cu" />
     <CudaCompile Include="ShuffleModulation.cu" />
     <CudaCompile Include="Sigmoid.cu" />
-    <CudaCompile Include="SparseLut.cu" />
     <CudaCompile Include="StochasticBatchNormalization.cu" />
     <CudaCompile Include="StochasticLut.cu" />
     <CudaCompile Include="StochasticMaxPooling.cu" />

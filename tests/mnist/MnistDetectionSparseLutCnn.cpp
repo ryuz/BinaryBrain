@@ -9,8 +9,8 @@
 #include <iostream>
 
 #include "bb/Sequential.h"
-#include "bb/SparseLutN.h"
-#include "bb/SparseLutDiscreteN.h"
+#include "bb/DifferentiableLutN.h"
+#include "bb/DifferentiableLutDiscreteN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/Reduce.h"
 #include "bb/BinaryModulation.h"
@@ -46,9 +46,9 @@ static void DataAugmentationProc(bb::TrainData<>& td, std::uint64_t seed, void *
 }
 
 
-void MnistDetectionSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void MnistDetectionDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "MnistDetectionSparseLutCnn";
+    std::string net_name = "MnistDetectionDifferentiableLutCnn";
 
   // load MNIST data
 #ifdef _DEBUG
@@ -62,29 +62,29 @@ void MnistDetectionSparseLutCnn(int epoch_size, int mini_batch_size, int train_m
 
     // create network
 #ifdef BB_WITH_CUDA
-    auto layer_cnv0_sl0 = bb::SparseLutN<6, float>::Create(16*6);
-    auto layer_cnv0_sl1 = bb::SparseLutN<6, float>::Create(16);
-    auto layer_cnv1_sl0 = bb::SparseLutN<6, float>::Create(16*6);
-    auto layer_cnv1_sl1 = bb::SparseLutN<6, float>::Create(16);
-    auto layer_cnv2_sl0 = bb::SparseLutN<6, float>::Create(32*6);
-    auto layer_cnv2_sl1 = bb::SparseLutN<6, float>::Create(32);
-    auto layer_cnv3_sl0 = bb::SparseLutN<6, float>::Create(32*6);
-    auto layer_cnv3_sl1 = bb::SparseLutN<6, float>::Create(32);
-    auto layer_sl4      = bb::SparseLutN<6, float>::Create(N*6*6*6);
-    auto layer_sl5      = bb::SparseLutN<6, float>::Create(N*6*6);
-    auto layer_sl6      = bb::SparseLutN<6, float>::Create(N*6);
-    auto layer_sl7      = bb::SparseLutN<6, float>::Create(N*1);
+    auto layer_cnv0_sl0 = bb::DifferentiableLutN<6, float>::Create(16*6);
+    auto layer_cnv0_sl1 = bb::DifferentiableLutN<6, float>::Create(16);
+    auto layer_cnv1_sl0 = bb::DifferentiableLutN<6, float>::Create(16*6);
+    auto layer_cnv1_sl1 = bb::DifferentiableLutN<6, float>::Create(16);
+    auto layer_cnv2_sl0 = bb::DifferentiableLutN<6, float>::Create(32*6);
+    auto layer_cnv2_sl1 = bb::DifferentiableLutN<6, float>::Create(32);
+    auto layer_cnv3_sl0 = bb::DifferentiableLutN<6, float>::Create(32*6);
+    auto layer_cnv3_sl1 = bb::DifferentiableLutN<6, float>::Create(32);
+    auto layer_sl4      = bb::DifferentiableLutN<6, float>::Create(N*6*6*6);
+    auto layer_sl5      = bb::DifferentiableLutN<6, float>::Create(N*6*6);
+    auto layer_sl6      = bb::DifferentiableLutN<6, float>::Create(N*6);
+    auto layer_sl7      = bb::DifferentiableLutN<6, float>::Create(N*1);
 #else
-    auto layer_cnv0_sl0 = bb::SparseLutDiscreteN<6, float>::Create(192);
-    auto layer_cnv0_sl1 = bb::SparseLutDiscreteN<6, float>::Create(32);
-    auto layer_cnv1_sl0 = bb::SparseLutDiscreteN<6, float>::Create(192);
-    auto layer_cnv1_sl1 = bb::SparseLutDiscreteN<6, float>::Create(32);
-    auto layer_cnv2_sl0 = bb::SparseLutDiscreteN<6, float>::Create(384);
-    auto layer_cnv2_sl1 = bb::SparseLutDiscreteN<6, float>::Create(64);
-    auto layer_cnv3_sl0 = bb::SparseLutDiscreteN<6, float>::Create(384);
-    auto layer_cnv3_sl1 = bb::SparseLutDiscreteN<6, float>::Create(64);
-    auto layer_sl4      = bb::SparseLutDiscreteN<6, float>::Create(420);
-    auto layer_sl5      = bb::SparseLutDiscreteN<6, float>::Create(70);
+    auto layer_cnv0_sl0 = bb::DifferentiableLutDiscreteN<6, float>::Create(192);
+    auto layer_cnv0_sl1 = bb::DifferentiableLutDiscreteN<6, float>::Create(32);
+    auto layer_cnv1_sl0 = bb::DifferentiableLutDiscreteN<6, float>::Create(192);
+    auto layer_cnv1_sl1 = bb::DifferentiableLutDiscreteN<6, float>::Create(32);
+    auto layer_cnv2_sl0 = bb::DifferentiableLutDiscreteN<6, float>::Create(384);
+    auto layer_cnv2_sl1 = bb::DifferentiableLutDiscreteN<6, float>::Create(64);
+    auto layer_cnv3_sl0 = bb::DifferentiableLutDiscreteN<6, float>::Create(384);
+    auto layer_cnv3_sl1 = bb::DifferentiableLutDiscreteN<6, float>::Create(64);
+    auto layer_sl4      = bb::DifferentiableLutDiscreteN<6, float>::Create(420);
+    auto layer_sl5      = bb::DifferentiableLutDiscreteN<6, float>::Create(70);
 #endif
 
     {

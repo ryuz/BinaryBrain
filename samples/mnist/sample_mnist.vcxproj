@@ -349,15 +349,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="MnistAeSparseLutCnn.cpp" />
-    <ClCompile Include="MnistAeSparseLutSimple.cpp" />
+    <ClCompile Include="MnistAeDifferentiableLutCnn.cpp" />
+    <ClCompile Include="MnistAeDifferentiableLutSimple.cpp" />
     <ClCompile Include="MnistCustomModel.cpp" />
     <ClCompile Include="MnistDenseCnn.cpp" />
     <ClCompile Include="MnistDenseSimple.cpp" />
+    <ClCompile Include="MnistDifferentiableLutCnn.cpp" />
+    <ClCompile Include="MnistDifferentiableLutSimple.cpp" />
     <ClCompile Include="MnistMicroMlpLutCnn.cpp" />
     <ClCompile Include="MnistMicroMlpLutSimple.cpp" />
-    <ClCompile Include="MnistSparseLutCnn.cpp" />
-    <ClCompile Include="MnistSparseLutSimple.cpp" />
     <ClCompile Include="MnistStochasticLutCnn.cpp" />
     <ClCompile Include="MnistStochasticLutSimple.cpp" />
   </ItemGroup>

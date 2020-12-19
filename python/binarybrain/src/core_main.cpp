@@ -28,8 +28,8 @@
 #include "bb/Sequential.h"
 #include "bb/DenseAffine.h"
 #include "bb/DepthwiseDenseAffine.h"
-#include "bb/SparseLutN.h"
-#include "bb/SparseLutDiscreteN.h"
+#include "bb/DifferentiableLutN.h"
+#include "bb/DifferentiableLutDiscreteN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/Reduce.h"
 #include "bb/LoweringConvolution.h"
@@ -92,14 +92,14 @@ using BinaryLut4Bit                = bb::BinaryLutN<4, bb::Bit, float>;
 using BinaryLut6                   = bb::BinaryLutN<6, float, float>;
 using BinaryLut6Bit                = bb::BinaryLutN<6, bb::Bit, float>;
 
-using SparseLut2                   = bb::SparseLutN<2, float, float>;
-using SparseLut2Bit                = bb::SparseLutN<2, bb::Bit, float>;
-using SparseLut4                   = bb::SparseLutN<4, float, float>;
-using SparseLut4Bit                = bb::SparseLutN<4, bb::Bit, float>;
-using SparseLut5                   = bb::SparseLutN<5, float, float>;
-using SparseLut5Bit                = bb::SparseLutN<5, bb::Bit, float>;
-using SparseLut6                   = bb::SparseLutN<6, float, float>;
-using SparseLut6Bit                = bb::SparseLutN<6, bb::Bit, float>;
+using DifferentiableLut2           = bb::DifferentiableLutN<2, float, float>;
+using DifferentiableLut2Bit        = bb::DifferentiableLutN<2, bb::Bit, float>;
+using DifferentiableLut4           = bb::DifferentiableLutN<4, float, float>;
+using DifferentiableLut4Bit        = bb::DifferentiableLutN<4, bb::Bit, float>;
+using DifferentiableLut5           = bb::DifferentiableLutN<5, float, float>;
+using DifferentiableLut5Bit        = bb::DifferentiableLutN<5, bb::Bit, float>;
+using DifferentiableLut6           = bb::DifferentiableLutN<6, float, float>;
+using DifferentiableLut6Bit        = bb::DifferentiableLutN<6, bb::Bit, float>;
 
 using StochasticLut2               = bb::StochasticLutN<2, float, float>;
 using StochasticLut2Bit            = bb::StochasticLutN<2, bb::Bit, float>;
@@ -519,9 +519,9 @@ PYBIND11_MODULE(core, m) {
          .def("set_node_connection_index", &SparseLayer::SetNodeConnectionIndex)
          .def("get_node_connection_index", &SparseLayer::GetNodeConnectionIndex);
     
-    // SparseLut6
-    py::class_< SparseLut6, SparseLayer, std::shared_ptr<SparseLut6> >(m, "SparseLut6")
-        .def_static("create", &SparseLut6::CreateEx, "create SparseLut6",
+    // DifferentiableLut6
+    py::class_< DifferentiableLut6, SparseLayer, std::shared_ptr<DifferentiableLut6> >(m, "DifferentiableLut6")
+        .def_static("create", &DifferentiableLut6::CreateEx, "create DifferentiableLut6",
                 py::arg("output_shape"),
                 py::arg("batch_norm") = true,
                 py::arg("connection") = "",
@@ -999,8 +999,8 @@ R"(create BinaryLut6 object
                 py::arg("output_shape"),
                 py::arg("seed") = 1);
     
-    py::class_< SparseLut6, SparseLayer, std::shared_ptr<SparseLut6> >(m, "SparseLut6")
-        .def_static("create", &SparseLut6::CreateEx, "create SparseLut6",
+    py::class_< DifferentiableLut6, SparseLayer, std::shared_ptr<DifferentiableLut6> >(m, "DifferentiableLut6")
+        .def_static("create", &DifferentiableLut6::CreateEx, "create DifferentiableLut6",
                 py::arg("output_shape"),
                 py::arg("batch_norm") = true,
                 py::arg("connection") = "",
@@ -1009,8 +1009,8 @@ R"(create BinaryLut6 object
                 py::arg("beta")       = 0.5,
                 py::arg("seed")       = 1);
 
-    py::class_< SparseLut6Bit, SparseLayer, std::shared_ptr<SparseLut6Bit> >(m, "SparseLut6Bit")
-        .def_static("create", &SparseLut6Bit::CreateEx, "create SparseLut6Bit",
+    py::class_< DifferentiableLut6Bit, SparseLayer, std::shared_ptr<DifferentiableLut6Bit> >(m, "DifferentiableLut6Bit")
+        .def_static("create", &DifferentiableLut6Bit::CreateEx, "create DifferentiableLut6Bit",
                 py::arg("output_shape"),
                 py::arg("batch_norm") = true,
                 py::arg("connection") = "",

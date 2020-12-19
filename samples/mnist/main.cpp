@@ -19,15 +19,15 @@
 
 void MnistStochasticLutSimple(int epoch_size, int mini_batch_size,                            int test_modulation_size, bool binary_mode, bool file_read);
 void MnistStochasticLutCnn   (int epoch_size, int mini_batch_size,                            int test_modulation_size, bool binary_mode, bool file_read);
-void MnistSparseLutSimple    (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
-void MnistSparseLutCnn       (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistDifferentiableLutSimple    (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistDifferentiableLutCnn       (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistMicroMlpLutSimple  (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistMicroMlpLutCnn     (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistDenseSimple        (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistDenseCnn           (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistCustomModel        (int epoch_size, int mini_batch_size,                                                      bool binary_mode                );
-void MnistAeSparseLutSimple  (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
-void MnistAeSparseLutCnn     (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistAeDifferentiableLutSimple  (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistAeDifferentiableLutCnn     (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 
 
 // メイン関数
@@ -59,15 +59,15 @@ int main(int argc, char *argv[])
         std::cout << "  -read <0|1>                             file read" << std::endl;
         std::cout << "" << std::endl;
         std::cout << "<sample name>" << std::endl;
-        std::cout << "  StochasticLutSimple Stochastic-Lut LUT-Network Simple DNN" << std::endl;
-        std::cout << "  StochasticLutCnn    Stochastic-Lut LUT-Network CNN" << std::endl;
-        std::cout << "  SparseLutSimple     Sparse LUT-Network Simple DNN" << std::endl;
-        std::cout << "  SparseLutCnn        Sparse LUT-Network CNN" << std::endl;
-        std::cout << "  DenseSimple         Dense Simple DNN" << std::endl;
-        std::cout << "  DenseCnn            Dense CNN" << std::endl;
-        std::cout << "  AeSparseLutSimple   AutoEncoder Simple DNN" << std::endl;
-        std::cout << "  AeSparseLutCnn      AutoEncoder CNN" << std::endl;
-        std::cout << "  All                 run all" << std::endl;
+        std::cout << "  StochasticLutSimple       Stochastic LUT Network Simple DNN" << std::endl;
+        std::cout << "  StochasticLutCnn          Stochastic LUT Network CNN" << std::endl;
+        std::cout << "  DifferentiableLutSimple   Differentiable LUT Network Simple DNN" << std::endl;
+        std::cout << "  DifferentiableLutCnn      Differentiable LUT Network CNN" << std::endl;
+        std::cout << "  DenseSimple               Dense Simple DNN" << std::endl;
+        std::cout << "  DenseCnn                  Dense CNN" << std::endl;
+        std::cout << "  AeDifferentiableLutSimple AutoEncoder Simple DNN" << std::endl;
+        std::cout << "  AeDifferentiableLutCnn    AutoEncoder CNN" << std::endl;
+        std::cout << "  All                       run all" << std::endl;
         return 1;
     }
 
@@ -129,12 +129,12 @@ int main(int argc, char *argv[])
         MnistStochasticLutCnn(epoch_size, mini_batch_size,test_modulation_size, binary_mode, file_read);
     }
 
-    if ( netname == "All" || netname == "SparseLutSimple" ) {
-        MnistSparseLutSimple(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    if ( netname == "All" || netname == "DifferentiableLutSimple" ) {
+        MnistDifferentiableLutSimple(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
-    if ( netname == "All" || netname == "SparseLutCnn" ) {
-        MnistSparseLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    if ( netname == "All" || netname == "DifferentiableLutCnn" ) {
+        MnistDifferentiableLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
     
     if ( netname == "All" || netname == "MicroMlpLutSimple" ) {
@@ -153,11 +153,11 @@ int main(int argc, char *argv[])
         MnistDenseCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
     
-    if ( netname == "All" || netname == "AeSparseLutSimple" ) {
-        MnistAeSparseLutSimple(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    if ( netname == "All" || netname == "AeDifferentiableLutSimple" ) {
+        MnistAeDifferentiableLutSimple(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
-    if ( netname == "All" || netname == "AeSparseLutCnn" ) {
-        MnistAeSparseLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    if ( netname == "All" || netname == "AeDifferentiableLutCnn" ) {
+        MnistAeDifferentiableLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
     // (おまけ)レイヤー内部を自分で書く人向けサンプル

@@ -9,8 +9,8 @@
 #include <iostream>
 
 #include "bb/Sequential.h"
-#include "bb/SparseLutN.h"
-#include "bb/SparseLutDiscreteN.h"
+#include "bb/DifferentiableLutN.h"
+#include "bb/DifferentiableLutDiscreteN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/Reduce.h"
 #include "bb/BinaryModulation.h"
@@ -99,9 +99,9 @@ void MakeMnistValidationTrainData(
 #endif
 
 
-void MnistDetectionSparseLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void MnistDetectionDifferentiableLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "MnistDetectionSparseLutSimple";
+    std::string net_name = "MnistDetectionDifferentiableLutSimple";
 
 #if 0
   // load MNIST data
@@ -135,11 +135,11 @@ void MnistDetectionSparseLutSimple(int epoch_size, int mini_batch_size, int trai
 
     int N = 1;
 
-    auto layer_sl0 = bb::SparseLutN<6, float>::Create(N*6*6*6*6);
-    auto layer_sl1 = bb::SparseLutN<6, float>::Create(N*6*6*6);
-    auto layer_sl2 = bb::SparseLutN<6, float>::Create(N*6*6);
-    auto layer_sl3 = bb::SparseLutN<6, float>::Create(N*6);
-    auto layer_sl4 = bb::SparseLutN<6, float>::Create(N*1);
+    auto layer_sl0 = bb::DifferentiableLutN<6, float>::Create(N*6*6*6*6);
+    auto layer_sl1 = bb::DifferentiableLutN<6, float>::Create(N*6*6*6);
+    auto layer_sl2 = bb::DifferentiableLutN<6, float>::Create(N*6*6);
+    auto layer_sl3 = bb::DifferentiableLutN<6, float>::Create(N*6);
+    auto layer_sl4 = bb::DifferentiableLutN<6, float>::Create(N*1);
 
     {
         std::cout << "\n<Training>" << std::endl;

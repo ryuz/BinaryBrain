@@ -17,7 +17,7 @@
 #include "MatrixRowwiseSetVector.cu"
 #include "MicroMlp.cu"
 #include "BinaryLut6.cu"
-#include "SparseLut.cu"
+#include "DifferentiableLut.cu"
 #include "StochasticLut.cu"
 #include "StochasticMaxPooling.cu"
 #include "StochasticBatchNormalization.cu"

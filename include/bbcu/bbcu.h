@@ -393,11 +393,11 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_MicroMlp6x16_Backward
 
 
 // -------------------------------------
-//  SparseLut
+//  DifferentiableLut
 // -------------------------------------
 
 template <int N=6>
-BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_ForwardTraining
+BBCU_DLL_EXPORT int bbcu_fp32_DifferentiableLutN_ForwardTraining
         (
             float const     *dev_x_buf,
             float           *dev_y_buf,
@@ -420,7 +420,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_ForwardTraining
         );
 
 template <int N=6>
-BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_ForwardTraining
+BBCU_DLL_EXPORT int bbcu_bit_fp32_DifferentiableLutN_ForwardTraining
         (
             int   const     *dev_x_buf,
             int             *dev_y_buf,
@@ -442,7 +442,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_ForwardTraining
         );
 
 template <int N=6>
-BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_ForwardInference
+BBCU_DLL_EXPORT int bbcu_fp32_DifferentiableLutN_ForwardInference
         (
             float const     *dev_x_buf,
             float           *dev_y_buf,
@@ -462,7 +462,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_ForwardInference
         );
 
 template <int N=6>
-BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_ForwardInference
+BBCU_DLL_EXPORT int bbcu_bit_fp32_DifferentiableLutN_ForwardInference
         (
             int   const     *dev_x_buf,
             int             *dev_y_buf,
@@ -481,7 +481,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_ForwardInference
         );
 
 template <int N=6>
-BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_Backward
+BBCU_DLL_EXPORT int bbcu_fp32_DifferentiableLutN_Backward
         (
             float const     *dev_x_buf,
             float const     *dev_dy_buf,
@@ -511,7 +511,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_Backward
         );
 
 template <int N=6>
-BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_Backward
+BBCU_DLL_EXPORT int bbcu_bit_fp32_DifferentiableLutN_Backward
         (
             int   const     *dev_x_buf,
             float const     *dev_dy_buf,

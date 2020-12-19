@@ -9,8 +9,8 @@
 #include <iostream>
 
 #include "bb/Sequential.h"
-#include "bb/SparseLutN.h"
-#include "bb/SparseLutDiscreteN.h"
+#include "bb/DifferentiableLutN.h"
+#include "bb/DifferentiableLutDiscreteN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/Reduce.h"
 #include "bb/BinaryModulation.h"
@@ -22,9 +22,9 @@
 #include "bb/ExportVerilog.h"
 
 
-void MnistSparseLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void MnistDifferentiableLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "MnistSparseLutSimple";
+    std::string net_name = "MnistDifferentiableLutSimple";
 
   // load MNIST data
 #ifdef _DEBUG
@@ -35,13 +35,13 @@ void MnistSparseLutSimple(int epoch_size, int mini_batch_size, int train_modulat
 #endif
 
 #ifdef BB_WITH_CUDA
-    auto layer_sl0 = bb::SparseLutN<6, float>::Create(1024);
-    auto layer_sl1 = bb::SparseLutN<6, float>::Create(480);
-    auto layer_sl2 = bb::SparseLutN<6, float>::Create(70);
+    auto layer_sl0 = bb::DifferentiableLutN<6, float>::Create(1024);
+    auto layer_sl1 = bb::DifferentiableLutN<6, float>::Create(480);
+    auto layer_sl2 = bb::DifferentiableLutN<6, float>::Create(70);
 #else
-    auto layer_sl0 = bb::SparseLutDiscreteN<6, float>::Create(1024);
-    auto layer_sl1 = bb::SparseLutDiscreteN<6, float>::Create(480);
-    auto layer_sl2 = bb::SparseLutDiscreteN<6, float>::Create(70);
+    auto layer_sl0 = bb::DifferentiableLutDiscreteN<6, float>::Create(1024);
+    auto layer_sl1 = bb::DifferentiableLutDiscreteN<6, float>::Create(480);
+    auto layer_sl2 = bb::DifferentiableLutDiscreteN<6, float>::Create(70);
 #endif
 
     {

@@ -11,7 +11,7 @@
 #include "bb/Sequential.h"
 #include "bb/DenseAffine.h"
 #include "bb/DepthwiseDenseAffine.h"
-#include "bb/SparseLutN.h"
+#include "bb/DifferentiableLutN.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
 #include "bb/Shuffle.h"
@@ -57,7 +57,7 @@ std::shared_ptr<bb::Model> MakeDepthwiseLayer(bb::indices_t shape)
     net->Add(bb::ReLU<T>::Create());
     return net;
 #else
-    return bb::SparseLutN<6, T>::Create(shape, true, "depthwise");
+    return bb::DifferentiableLutN<6, T>::Create(shape, true, "depthwise");
 #endif
 }
 

@@ -9,8 +9,8 @@
 #include <iostream>
 
 #include "bb/Sequential.h"
-#include "bb/SparseLutN.h"
-#include "bb/SparseLutDiscreteN.h"
+#include "bb/DifferentiableLutN.h"
+#include "bb/DifferentiableLutDiscreteN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/MaxPooling.h"
 #include "bb/LoweringConvolution.h"
@@ -61,10 +61,10 @@ static void data_augmentation_proc(bb::TrainData<float>& td, std::uint64_t seed,
 
 
 
-template < typename T=float, class ModelType=bb::SparseLutN<6, T> >
-void Cifar10AeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+template < typename T=float, class ModelType=bb::DifferentiableLutN<6, T> >
+void Cifar10AeDifferentiableLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "Cifar10AeSparseLutCnn2";
+    std::string net_name = "Cifar10AeDifferentiableLutCnn2";
 
   // load cifar-10 data
 #ifdef _DEBUG
@@ -444,17 +444,17 @@ void Cifar10AeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_mo
 }
 
 
-void Cifar10AeSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void Cifar10AeDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
 //#ifdef BB_WITH_CUDA
     if ( binary_mode ) {
-        Cifar10AeSparseLutCnn_Tmp< float, bb::SparseLutN<6, float> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+        Cifar10AeDifferentiableLutCnn_Tmp< float, bb::DifferentiableLutN<6, float> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
     else {
-        Cifar10AeSparseLutCnn_Tmp< bb::Bit, bb::SparseLutN<6, bb::Bit> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+        Cifar10AeDifferentiableLutCnn_Tmp< bb::Bit, bb::DifferentiableLutN<6, bb::Bit> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 //#else
-//  Cifar10AeSparseLutCnn_Tmp< float, bb::SparseLutDiscreteN<6, float> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+//  Cifar10AeDifferentiableLutCnn_Tmp< float, bb::DifferentiableLutDiscreteN<6, float> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
 //#endif
 }
 

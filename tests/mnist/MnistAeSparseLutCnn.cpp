@@ -9,8 +9,8 @@
 #include <iostream>
 
 #include "bb/Sequential.h"
-#include "bb/SparseLutN.h"
-#include "bb/SparseLutDiscreteN.h"
+#include "bb/DifferentiableLutN.h"
+#include "bb/DifferentiableLutDiscreteN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/MaxPooling.h"
 #include "bb/LoweringConvolution.h"
@@ -36,10 +36,10 @@ static void WritePgm(std::string fname, bb::FrameBuffer buf, int frame)
 }
 
 
-template < typename T=float, class ModelType=bb::SparseLutN<6, T> >
-void MnistAeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+template < typename T=float, class ModelType=bb::DifferentiableLutN<6, T> >
+void MnistAeDifferentiableLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "MnistAeSparseLutCnn";
+    std::string net_name = "MnistAeDifferentiableLutCnn";
 
   // load MNIST data
 #ifdef _DEBUG
@@ -390,17 +390,17 @@ void MnistAeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_modu
 }
 
 
-void MnistAeSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void MnistAeDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
 #ifdef BB_WITH_CUDA
     if ( binary_mode ) {
-        MnistAeSparseLutCnn_Tmp< float, bb::SparseLutN<6, float> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+        MnistAeDifferentiableLutCnn_Tmp< float, bb::DifferentiableLutN<6, float> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
     else {
-        MnistAeSparseLutCnn_Tmp< bb::Bit, bb::SparseLutN<6, bb::Bit> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+        MnistAeDifferentiableLutCnn_Tmp< bb::Bit, bb::DifferentiableLutN<6, bb::Bit> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 #else
-    MnistAeSparseLutCnn_Tmp< float, bb::SparseLutDiscreteN<6, float> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    MnistAeDifferentiableLutCnn_Tmp< float, bb::DifferentiableLutDiscreteN<6, float> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
 #endif
 }
 

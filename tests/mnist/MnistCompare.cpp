@@ -13,7 +13,7 @@
 #include <chrono>
 
 #include "bb/BinaryModulation.h"
-#include "bb/SparseLutN.h"
+#include "bb/DifferentiableLutN.h"
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
 #include "bb/MicroMlp.h"
@@ -105,7 +105,7 @@ void MnistCompareRun(std::string net_name, int epoch_size, size_t mini_batch_siz
 void MnistCompare(int epoch_size, size_t mini_batch_size, bool binary_mode)
 {
     MnistCompareRun< bb::MicroMlp<6, 16, bb::Bit>      >("MicroMlp16",     epoch_size, mini_batch_size, binary_mode);
-    MnistCompareRun< bb::SparseLutN<6,   bb::Bit>     >("SparseLutN",     epoch_size, mini_batch_size, binary_mode);
+    MnistCompareRun< bb::DifferentiableLutN<6,   bb::Bit>     >("DifferentiableLutN",     epoch_size, mini_batch_size, binary_mode);
     MnistCompareRun< bb::StochasticLutN<6>, float >("StochasticLutN", epoch_size, mini_batch_size, false);
 
     MnistCompareRun< bb::MicroMlp<6, 32, bb::Bit>      >("MicroMlp32",     epoch_size, mini_batch_size, binary_mode);

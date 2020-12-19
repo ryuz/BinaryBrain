@@ -20,7 +20,7 @@
 
 // real type
 template<int N=6, typename T=float, int MAX_FRAME_UNIT=32, int MAX_NODE_UNIT=32>
-__global__ void kernal_SparseLut_ForwardTraining
+__global__ void kernal_DifferentiableLut_ForwardTraining
         (
             T   const   *x_buf,
             T           *y_buf,
@@ -160,7 +160,7 @@ __global__ void kernal_SparseLut_ForwardTraining
 
 
 template <int N>
-BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_ForwardTraining
+BBCU_DLL_EXPORT int bbcu_fp32_DifferentiableLutN_ForwardTraining
         (
             float const     *dev_x_buf,
             float           *dev_y_buf,
@@ -202,7 +202,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_ForwardTraining
     block.y = std::min(block.y, MAX_NODE_UNIT);
     dim3    grid(1, (node_size + (block.y - 1)) / block.y);
     
-    kernal_SparseLut_ForwardTraining<N, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
+    kernal_DifferentiableLut_ForwardTraining<N, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
             dev_x_buf,
             dev_y_buf,
             dev_input_index,
@@ -231,7 +231,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_ForwardTraining
 
 // bit packing binary
 template<int N=6, typename T=float, int MAX_FRAME_UNIT=32, int MAX_NODE_UNIT=32>
-__global__ void kernal_bit_SparseLut_ForwardTraining
+__global__ void kernal_bit_DifferentiableLut_ForwardTraining
         (
             int const   *x_buf,
             int         *y_buf,
@@ -368,7 +368,7 @@ __global__ void kernal_bit_SparseLut_ForwardTraining
 
 
 template <int N>
-BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_ForwardTraining
+BBCU_DLL_EXPORT int bbcu_bit_fp32_DifferentiableLutN_ForwardTraining
         (
             int   const     *dev_x_buf,
             int             *dev_y_buf,
@@ -409,7 +409,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_ForwardTraining
     block.y = std::min(block.y, MAX_NODE_UNIT);
     dim3    grid(1, (node_size + (block.y - 1)) / block.y);
     
-    kernal_bit_SparseLut_ForwardTraining<N, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
+    kernal_bit_DifferentiableLut_ForwardTraining<N, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
             dev_x_buf,
             dev_y_buf,
             dev_input_index,
@@ -441,7 +441,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_ForwardTraining
 
 // real type
 template<int N=6, typename T=float, int MAX_FRAME_UNIT=32, int MAX_NODE_UNIT=32>
-__global__ void kernal_SparseLut_ForwardInference
+__global__ void kernal_DifferentiableLut_ForwardInference
         (
             T   const   *x_buf,
             T           *y_buf,
@@ -521,7 +521,7 @@ __global__ void kernal_SparseLut_ForwardInference
 
 
 template <int N>
-BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_ForwardInference
+BBCU_DLL_EXPORT int bbcu_fp32_DifferentiableLutN_ForwardInference
         (
             float const     *dev_x_buf,
             float           *dev_y_buf,
@@ -560,7 +560,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_ForwardInference
     block.y = std::min(block.y, MAX_NODE_UNIT);
     dim3    grid(1, (node_size + (block.y - 1)) / block.y);
     
-    kernal_SparseLut_ForwardInference<N, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
+    kernal_DifferentiableLut_ForwardInference<N, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
             dev_x_buf,
             dev_y_buf,
             dev_input_index,
@@ -585,7 +585,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_ForwardInference
 
 // bit packing binary
 template<int N=6, typename T=float, int MAX_FRAME_UNIT=32, int MAX_NODE_UNIT=32>
-__global__ void kernal_bit_SparseLut_ForwardInference
+__global__ void kernal_bit_DifferentiableLut_ForwardInference
         (
             int const   *x_buf,
             int         *y_buf,
@@ -670,7 +670,7 @@ __global__ void kernal_bit_SparseLut_ForwardInference
 
 
 template <int N>
-BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_ForwardInference
+BBCU_DLL_EXPORT int bbcu_bit_fp32_DifferentiableLutN_ForwardInference
         (
             int   const     *dev_x_buf,
             int             *dev_y_buf,
@@ -708,7 +708,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_ForwardInference
     block.y = std::min(block.y, MAX_NODE_UNIT);
     dim3    grid(1, (node_size + (block.y - 1)) / block.y);
     
-    kernal_bit_SparseLut_ForwardInference<N, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
+    kernal_bit_DifferentiableLut_ForwardInference<N, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>(
             dev_x_buf,
             dev_y_buf,
             dev_input_index,
@@ -737,7 +737,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_ForwardInference
 
 // real type
 template<int N=6, typename T=float, int MAX_FRAME_UNIT=256, int MAX_NODE_UNIT=16>
-__global__ void kernal_SparseLut_BackwardPhase0
+__global__ void kernal_DifferentiableLut_BackwardPhase0
         (
             T   const   *x_buf,
             T   const   *dy_buf,
@@ -851,7 +851,7 @@ __global__ void kernal_SparseLut_BackwardPhase0
 
 
 template<int N=6, typename T=float, int MAX_FRAME_UNIT=256, int MAX_NODE_UNIT=16>
-__global__ void kernal_SparseLut_BackwardPhase1
+__global__ void kernal_DifferentiableLut_BackwardPhase1
         (
             T   const   *x_buf,
             T   const   *dy_buf,
@@ -970,7 +970,7 @@ __global__ void kernal_SparseLut_BackwardPhase1
 
 
 template <int N>
-BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_Backward
+BBCU_DLL_EXPORT int bbcu_fp32_DifferentiableLutN_Backward
         (
             float const     *dev_x_buf,
             float const     *dev_dy_buf,
@@ -1019,7 +1019,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_Backward
         block.x = std::min(block.x, MAX_FRAME_UNIT);
         block.y = std::min(block.y, MAX_NODE_UNIT);
         dim3    grid(1, (output_node_size + (block.y - 1)) / block.y);
-        kernal_SparseLut_BackwardPhase0<N, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>
+        kernal_DifferentiableLut_BackwardPhase0<N, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>
             (
                 dev_x_buf,
                 dev_dy_buf,
@@ -1068,7 +1068,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_Backward
             block.x = std::min(block.x, MAX_FRAME_UNIT);
             block.y = std::min(block.y, MAX_NODE_UNIT);
             dim3    grid(1, (output_node_size + (block.y - 1)) / block.y);
-            kernal_SparseLut_BackwardPhase1<N, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>
+            kernal_DifferentiableLut_BackwardPhase1<N, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>
                 (
                     dev_x_buf  + frame_offset,
                     dev_dy_buf + frame_offset,
@@ -1137,7 +1137,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_Backward
 
 // bit packing binary
 template<int N=6, typename T=float, int MAX_FRAME_UNIT=256, int MAX_NODE_UNIT=16>
-__global__ void kernal_bit_SparseLut_BackwardPhase0
+__global__ void kernal_bit_DifferentiableLut_BackwardPhase0
         (
             int const   *x_buf,
             T   const   *dy_buf,
@@ -1247,7 +1247,7 @@ __global__ void kernal_bit_SparseLut_BackwardPhase0
 
 
 template<int N=6, typename T=float, int MAX_FRAME_UNIT=256, int MAX_NODE_UNIT=16>
-__global__ void kernal_bit_SparseLut_BackwardPhase1
+__global__ void kernal_bit_DifferentiableLut_BackwardPhase1
         (
             int const   *x_buf,
             T   const   *dy_buf,
@@ -1363,7 +1363,7 @@ __global__ void kernal_bit_SparseLut_BackwardPhase1
 
 
 template <int N>
-BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_Backward
+BBCU_DLL_EXPORT int bbcu_bit_fp32_DifferentiableLutN_Backward
         (
             int   const     *dev_x_buf,
             float const     *dev_dy_buf,
@@ -1412,7 +1412,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_Backward
         block.x = std::min(block.x, MAX_FRAME_UNIT);
         block.y = std::min(block.y, MAX_NODE_UNIT);
         dim3    grid(1, (output_node_size + (block.y - 1)) / block.y);
-        kernal_bit_SparseLut_BackwardPhase0<N, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>
+        kernal_bit_DifferentiableLut_BackwardPhase0<N, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>
             (
                 dev_x_buf,
                 dev_dy_buf,
@@ -1461,7 +1461,7 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_Backward
             block.x = std::min(block.x, MAX_FRAME_UNIT);
             block.y = std::min(block.y, MAX_NODE_UNIT);
             dim3    grid(1, (output_node_size + (block.y - 1)) / block.y);
-            kernal_bit_SparseLut_BackwardPhase1<N, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>
+            kernal_bit_DifferentiableLut_BackwardPhase1<N, float, MAX_FRAME_UNIT, MAX_NODE_UNIT><<<grid, block, 0, streamId>>>
                 (
                     dev_x_buf  + (frame_offset / 32),
                     dev_dy_buf + frame_offset,
@@ -1529,41 +1529,41 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_Backward
 
 
 // 実体化
-template BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_ForwardTraining<6>(float const *, float *, int const *, float const *, float *, float *, float *, float *, float, float, float, float, int, int, int, int, int, cudaStream_t);
-template BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_ForwardTraining<5>(float const *, float *, int const *, float const *, float *, float *, float *, float *, float, float, float, float, int, int, int, int, int, cudaStream_t);
-template BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_ForwardTraining<4>(float const *, float *, int const *, float const *, float *, float *, float *, float *, float, float, float, float, int, int, int, int, int, cudaStream_t);
-template BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_ForwardTraining<3>(float const *, float *, int const *, float const *, float *, float *, float *, float *, float, float, float, float, int, int, int, int, int, cudaStream_t);
-template BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_ForwardTraining<2>(float const *, float *, int const *, float const *, float *, float *, float *, float *, float, float, float, float, int, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_fp32_DifferentiableLutN_ForwardTraining<6>(float const *, float *, int const *, float const *, float *, float *, float *, float *, float, float, float, float, int, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_fp32_DifferentiableLutN_ForwardTraining<5>(float const *, float *, int const *, float const *, float *, float *, float *, float *, float, float, float, float, int, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_fp32_DifferentiableLutN_ForwardTraining<4>(float const *, float *, int const *, float const *, float *, float *, float *, float *, float, float, float, float, int, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_fp32_DifferentiableLutN_ForwardTraining<3>(float const *, float *, int const *, float const *, float *, float *, float *, float *, float, float, float, float, int, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_fp32_DifferentiableLutN_ForwardTraining<2>(float const *, float *, int const *, float const *, float *, float *, float *, float *, float, float, float, float, int, int, int, int, int, cudaStream_t);
 
-template BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_ForwardTraining<6>(int const *, int *, int const *, float const *, float *, float *, float *, float *, float, float, float, float, int, int, int, int, cudaStream_t);
-template BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_ForwardTraining<5>(int const *, int *, int const *, float const *, float *, float *, float *, float *, float, float, float, float, int, int, int, int, cudaStream_t);
-template BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_ForwardTraining<4>(int const *, int *, int const *, float const *, float *, float *, float *, float *, float, float, float, float, int, int, int, int, cudaStream_t);
-template BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_ForwardTraining<3>(int const *, int *, int const *, float const *, float *, float *, float *, float *, float, float, float, float, int, int, int, int, cudaStream_t);
-template BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_ForwardTraining<2>(int const *, int *, int const *, float const *, float *, float *, float *, float *, float, float, float, float, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_bit_fp32_DifferentiableLutN_ForwardTraining<6>(int const *, int *, int const *, float const *, float *, float *, float *, float *, float, float, float, float, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_bit_fp32_DifferentiableLutN_ForwardTraining<5>(int const *, int *, int const *, float const *, float *, float *, float *, float *, float, float, float, float, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_bit_fp32_DifferentiableLutN_ForwardTraining<4>(int const *, int *, int const *, float const *, float *, float *, float *, float *, float, float, float, float, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_bit_fp32_DifferentiableLutN_ForwardTraining<3>(int const *, int *, int const *, float const *, float *, float *, float *, float *, float, float, float, float, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_bit_fp32_DifferentiableLutN_ForwardTraining<2>(int const *, int *, int const *, float const *, float *, float *, float *, float *, float, float, float, float, int, int, int, int, cudaStream_t);
 
-template BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_ForwardInference<6>(float const *, float *, int const *, float const *, float const *, float const *, float, float, float, int, int, int, int, int, cudaStream_t);
-template BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_ForwardInference<5>(float const *, float *, int const *, float const *, float const *, float const *, float, float, float, int, int, int, int, int, cudaStream_t);
-template BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_ForwardInference<4>(float const *, float *, int const *, float const *, float const *, float const *, float, float, float, int, int, int, int, int, cudaStream_t);
-template BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_ForwardInference<3>(float const *, float *, int const *, float const *, float const *, float const *, float, float, float, int, int, int, int, int, cudaStream_t);
-template BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_ForwardInference<2>(float const *, float *, int const *, float const *, float const *, float const *, float, float, float, int, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_fp32_DifferentiableLutN_ForwardInference<6>(float const *, float *, int const *, float const *, float const *, float const *, float, float, float, int, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_fp32_DifferentiableLutN_ForwardInference<5>(float const *, float *, int const *, float const *, float const *, float const *, float, float, float, int, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_fp32_DifferentiableLutN_ForwardInference<4>(float const *, float *, int const *, float const *, float const *, float const *, float, float, float, int, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_fp32_DifferentiableLutN_ForwardInference<3>(float const *, float *, int const *, float const *, float const *, float const *, float, float, float, int, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_fp32_DifferentiableLutN_ForwardInference<2>(float const *, float *, int const *, float const *, float const *, float const *, float, float, float, int, int, int, int, int, cudaStream_t);
 
-template BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_ForwardInference<6>(int const *, int *, int const *, float const *, float const *, float const *, float, float, float, int, int, int, int, cudaStream_t);
-template BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_ForwardInference<5>(int const *, int *, int const *, float const *, float const *, float const *, float, float, float, int, int, int, int, cudaStream_t);
-template BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_ForwardInference<4>(int const *, int *, int const *, float const *, float const *, float const *, float, float, float, int, int, int, int, cudaStream_t);
-template BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_ForwardInference<3>(int const *, int *, int const *, float const *, float const *, float const *, float, float, float, int, int, int, int, cudaStream_t);
-template BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_ForwardInference<2>(int const *, int *, int const *, float const *, float const *, float const *, float, float, float, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_bit_fp32_DifferentiableLutN_ForwardInference<6>(int const *, int *, int const *, float const *, float const *, float const *, float, float, float, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_bit_fp32_DifferentiableLutN_ForwardInference<5>(int const *, int *, int const *, float const *, float const *, float const *, float, float, float, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_bit_fp32_DifferentiableLutN_ForwardInference<4>(int const *, int *, int const *, float const *, float const *, float const *, float, float, float, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_bit_fp32_DifferentiableLutN_ForwardInference<3>(int const *, int *, int const *, float const *, float const *, float const *, float, float, float, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_bit_fp32_DifferentiableLutN_ForwardInference<2>(int const *, int *, int const *, float const *, float const *, float const *, float, float, float, int, int, int, int, cudaStream_t);
 
-template BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_Backward<6>(float const *, float const *, float *, float *, int const *, int const *, float const *, float *, float const *, float const *, float *, float *, float, float, float, int, int, int, int, int, int, int, int, int, cudaStream_t);
-template BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_Backward<5>(float const *, float const *, float *, float *, int const *, int const *, float const *, float *, float const *, float const *, float *, float *, float, float, float, int, int, int, int, int, int, int, int, int, cudaStream_t);
-template BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_Backward<4>(float const *, float const *, float *, float *, int const *, int const *, float const *, float *, float const *, float const *, float *, float *, float, float, float, int, int, int, int, int, int, int, int, int, cudaStream_t);
-template BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_Backward<3>(float const *, float const *, float *, float *, int const *, int const *, float const *, float *, float const *, float const *, float *, float *, float, float, float, int, int, int, int, int, int, int, int, int, cudaStream_t);
-template BBCU_DLL_EXPORT int bbcu_fp32_SparseLutN_Backward<2>(float const *, float const *, float *, float *, int const *, int const *, float const *, float *, float const *, float const *, float *, float *, float, float, float, int, int, int, int, int, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_fp32_DifferentiableLutN_Backward<6>(float const *, float const *, float *, float *, int const *, int const *, float const *, float *, float const *, float const *, float *, float *, float, float, float, int, int, int, int, int, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_fp32_DifferentiableLutN_Backward<5>(float const *, float const *, float *, float *, int const *, int const *, float const *, float *, float const *, float const *, float *, float *, float, float, float, int, int, int, int, int, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_fp32_DifferentiableLutN_Backward<4>(float const *, float const *, float *, float *, int const *, int const *, float const *, float *, float const *, float const *, float *, float *, float, float, float, int, int, int, int, int, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_fp32_DifferentiableLutN_Backward<3>(float const *, float const *, float *, float *, int const *, int const *, float const *, float *, float const *, float const *, float *, float *, float, float, float, int, int, int, int, int, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_fp32_DifferentiableLutN_Backward<2>(float const *, float const *, float *, float *, int const *, int const *, float const *, float *, float const *, float const *, float *, float *, float, float, float, int, int, int, int, int, int, int, int, int, cudaStream_t);
 
-template BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_Backward<6>(int const *, float const *, float *, float *, int const *, int const *, float const *, float *, float const *, float const *, float *, float *, float, float, float, int, int, int, int, int, int, int, int, int, cudaStream_t);
-template BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_Backward<5>(int const *, float const *, float *, float *, int const *, int const *, float const *, float *, float const *, float const *, float *, float *, float, float, float, int, int, int, int, int, int, int, int, int, cudaStream_t);
-template BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_Backward<4>(int const *, float const *, float *, float *, int const *, int const *, float const *, float *, float const *, float const *, float *, float *, float, float, float, int, int, int, int, int, int, int, int, int, cudaStream_t);
-template BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_Backward<3>(int const *, float const *, float *, float *, int const *, int const *, float const *, float *, float const *, float const *, float *, float *, float, float, float, int, int, int, int, int, int, int, int, int, cudaStream_t);
-template BBCU_DLL_EXPORT int bbcu_bit_fp32_SparseLutN_Backward<2>(int const *, float const *, float *, float *, int const *, int const *, float const *, float *, float const *, float const *, float *, float *, float, float, float, int, int, int, int, int, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_bit_fp32_DifferentiableLutN_Backward<6>(int const *, float const *, float *, float *, int const *, int const *, float const *, float *, float const *, float const *, float *, float *, float, float, float, int, int, int, int, int, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_bit_fp32_DifferentiableLutN_Backward<5>(int const *, float const *, float *, float *, int const *, int const *, float const *, float *, float const *, float const *, float *, float *, float, float, float, int, int, int, int, int, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_bit_fp32_DifferentiableLutN_Backward<4>(int const *, float const *, float *, float *, int const *, int const *, float const *, float *, float const *, float const *, float *, float *, float, float, float, int, int, int, int, int, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_bit_fp32_DifferentiableLutN_Backward<3>(int const *, float const *, float *, float *, int const *, int const *, float const *, float *, float const *, float const *, float *, float *, float, float, float, int, int, int, int, int, int, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_bit_fp32_DifferentiableLutN_Backward<2>(int const *, float const *, float *, float *, int const *, int const *, float const *, float *, float const *, float const *, float *, float *, float, float, float, int, int, int, int, int, int, int, int, int, cudaStream_t);
 
 
 // end of file

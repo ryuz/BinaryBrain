@@ -130,18 +130,18 @@ class DenseAffine(Model):
         self.model = core.DenseAffine.create(output_shape=output_shape, initialize_std=initialize_std, initializer=initializer, seed=seed)
 
 
-class DifferentialLut(Model):
-    """DifferentialLut class
+class DifferentiableLut(Model):
+    """DifferentiableLut class
        微分可能LUTモデル
        StocasticLUT + BatchNormalization + Binarize(HardTanh)
     """
 
     def __init__(self, output_shape, N=6, bin_dtype=core.TYPE_FP32, real_dtype=core.TYPE_FP32,
                     connection='random', binarize=True, batch_norm=True, momentum=0.0, gamma= 0.3, beta=0.5, seed=1):
-        super(DifferentialLut, self).__init__()
+        super(DifferentiableLut, self).__init__()
 
         if N==6 and bin_dtype==core.TYPE_FP32 and real_dtype==core.TYPE_FP32 and binarize and batch_norm:
-            self.model = core.SparseLut6.create(
+            self.model = core.DifferentiableLut6.create(
                             output_shape=output_shape,
                             batch_norm=batch_norm,
                             connection=connection,

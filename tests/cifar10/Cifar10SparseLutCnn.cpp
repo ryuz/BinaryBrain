@@ -9,8 +9,8 @@
 #include <iostream>
 
 #include "bb/Sequential.h"
-#include "bb/SparseLutN.h"
-#include "bb/SparseLutDiscreteN.h"
+#include "bb/DifferentiableLutN.h"
+#include "bb/DifferentiableLutDiscreteN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/Reduce.h"
 #include "bb/BinaryModulation.h"
@@ -23,9 +23,9 @@
 
 
 template<int N=6, typename T=bb::Bit>
-void SparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void DifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "Cifar10SparseLutCnn";
+    std::string net_name = "Cifar10DifferentiableLutCnn";
 
     if ( bb::DataType<T>::type == BB_TYPE_BIT ) {
         binary_mode = true;
@@ -43,42 +43,42 @@ void SparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size
     double gamma    = 0.3;
 
     // create network
-    auto layer_cnv0_sl0 = bb::SparseLutN<N, T>::CreateEx({32*N*N*N}, true, "",  momentam, gamma);
-    auto layer_cnv0_sl1 = bb::SparseLutN<N, T>::CreateEx({32*N*N}, true,  "",  momentam, gamma);
-    auto layer_cnv0_sl2 = bb::SparseLutN<N, T>::CreateEx({32*N}, true,  "",  momentam, gamma);
-    auto layer_cnv0_sl3 = bb::SparseLutN<N, T>::CreateEx({32}, true,  "",  momentam, gamma);
+    auto layer_cnv0_sl0 = bb::DifferentiableLutN<N, T>::CreateEx({32*N*N*N}, true, "",  momentam, gamma);
+    auto layer_cnv0_sl1 = bb::DifferentiableLutN<N, T>::CreateEx({32*N*N}, true,  "",  momentam, gamma);
+    auto layer_cnv0_sl2 = bb::DifferentiableLutN<N, T>::CreateEx({32*N}, true,  "",  momentam, gamma);
+    auto layer_cnv0_sl3 = bb::DifferentiableLutN<N, T>::CreateEx({32}, true,  "",  momentam, gamma);
 
-    auto layer_cnv1_sl0 = bb::SparseLutN<N, T>::CreateEx({32*N*N*N*N}, true,  "",  momentam, gamma);
-    auto layer_cnv1_sl1 = bb::SparseLutN<N, T>::CreateEx({32*N*N*N}, true,  "",  momentam, gamma);
-    auto layer_cnv1_sl2 = bb::SparseLutN<N, T>::CreateEx({32*N*N}, true,  "",  momentam, gamma);
-    auto layer_cnv1_sl3 = bb::SparseLutN<N, T>::CreateEx({32*N}, true,  "",  momentam, gamma);
-    auto layer_cnv1_sl4 = bb::SparseLutN<N, T>::CreateEx({32}, true,  "",  momentam, gamma);
+    auto layer_cnv1_sl0 = bb::DifferentiableLutN<N, T>::CreateEx({32*N*N*N*N}, true,  "",  momentam, gamma);
+    auto layer_cnv1_sl1 = bb::DifferentiableLutN<N, T>::CreateEx({32*N*N*N}, true,  "",  momentam, gamma);
+    auto layer_cnv1_sl2 = bb::DifferentiableLutN<N, T>::CreateEx({32*N*N}, true,  "",  momentam, gamma);
+    auto layer_cnv1_sl3 = bb::DifferentiableLutN<N, T>::CreateEx({32*N}, true,  "",  momentam, gamma);
+    auto layer_cnv1_sl4 = bb::DifferentiableLutN<N, T>::CreateEx({32}, true,  "",  momentam, gamma);
 
-    auto layer_cnv2_sl0 = bb::SparseLutN<N, T>::CreateEx({64*N*N*N*N}, true,  "", momentam, gamma);
-    auto layer_cnv2_sl1 = bb::SparseLutN<N, T>::CreateEx({64*N*N*N}, true,  "",  momentam, gamma);
-    auto layer_cnv2_sl2 = bb::SparseLutN<N, T>::CreateEx({64*N*N}, true,  "",  momentam, gamma);
-    auto layer_cnv2_sl3 = bb::SparseLutN<N, T>::CreateEx({64*N}, true,  "",  momentam, gamma);
-    auto layer_cnv2_sl4 = bb::SparseLutN<N, T>::CreateEx({64}, true,  "",  momentam, gamma);
+    auto layer_cnv2_sl0 = bb::DifferentiableLutN<N, T>::CreateEx({64*N*N*N*N}, true,  "", momentam, gamma);
+    auto layer_cnv2_sl1 = bb::DifferentiableLutN<N, T>::CreateEx({64*N*N*N}, true,  "",  momentam, gamma);
+    auto layer_cnv2_sl2 = bb::DifferentiableLutN<N, T>::CreateEx({64*N*N}, true,  "",  momentam, gamma);
+    auto layer_cnv2_sl3 = bb::DifferentiableLutN<N, T>::CreateEx({64*N}, true,  "",  momentam, gamma);
+    auto layer_cnv2_sl4 = bb::DifferentiableLutN<N, T>::CreateEx({64}, true,  "",  momentam, gamma);
 
-    auto layer_cnv3_sl0 = bb::SparseLutN<N, T>::CreateEx({64*N*N*N*N}, true,  "",  momentam, gamma);
-    auto layer_cnv3_sl1 = bb::SparseLutN<N, T>::CreateEx({64*N*N*N}, true,  "",  momentam, gamma);
-    auto layer_cnv3_sl2 = bb::SparseLutN<N, T>::CreateEx({64*N*N}, true,  "",  momentam, gamma);
-    auto layer_cnv3_sl3 = bb::SparseLutN<N, T>::CreateEx({64*N}, true,  "",  momentam, gamma);
-    auto layer_cnv3_sl4 = bb::SparseLutN<N, T>::CreateEx({64}, true,  "",  momentam, gamma);
+    auto layer_cnv3_sl0 = bb::DifferentiableLutN<N, T>::CreateEx({64*N*N*N*N}, true,  "",  momentam, gamma);
+    auto layer_cnv3_sl1 = bb::DifferentiableLutN<N, T>::CreateEx({64*N*N*N}, true,  "",  momentam, gamma);
+    auto layer_cnv3_sl2 = bb::DifferentiableLutN<N, T>::CreateEx({64*N*N}, true,  "",  momentam, gamma);
+    auto layer_cnv3_sl3 = bb::DifferentiableLutN<N, T>::CreateEx({64*N}, true,  "",  momentam, gamma);
+    auto layer_cnv3_sl4 = bb::DifferentiableLutN<N, T>::CreateEx({64}, true,  "",  momentam, gamma);
 
-    auto layer_sl4      = bb::SparseLutN<N, T>::CreateEx({512*N*N*N*N}, true,  "",  momentam, gamma);
-    auto layer_sl5      = bb::SparseLutN<N, T>::CreateEx({512*N*N*N}, true,  "",  momentam, gamma);
-    auto layer_sl6      = bb::SparseLutN<N, T>::CreateEx({512*N*N}, true,  "",  momentam, gamma);
-    auto layer_sl7      = bb::SparseLutN<N, T>::CreateEx({512*N}, true,  "",  momentam, gamma);
-    auto layer_sl8      = bb::SparseLutN<N, T>::CreateEx({512}, true,  "",  momentam, gamma);
+    auto layer_sl4      = bb::DifferentiableLutN<N, T>::CreateEx({512*N*N*N*N}, true,  "",  momentam, gamma);
+    auto layer_sl5      = bb::DifferentiableLutN<N, T>::CreateEx({512*N*N*N}, true,  "",  momentam, gamma);
+    auto layer_sl6      = bb::DifferentiableLutN<N, T>::CreateEx({512*N*N}, true,  "",  momentam, gamma);
+    auto layer_sl7      = bb::DifferentiableLutN<N, T>::CreateEx({512*N}, true,  "",  momentam, gamma);
+    auto layer_sl8      = bb::DifferentiableLutN<N, T>::CreateEx({512}, true,  "",  momentam, gamma);
 
-    auto layer_sl9      = bb::SparseLutN<N, T>::CreateEx({10*N*N*N*N*N*N}, true,  "",  momentam, gamma);
-    auto layer_sl10     = bb::SparseLutN<N, T>::CreateEx({10*N*N*N*N*N}, true,  "",  momentam, gamma);
-    auto layer_sl11     = bb::SparseLutN<N, T>::CreateEx({10*N*N*N*N}, true,  "",  momentam, gamma);
-    auto layer_sl12     = bb::SparseLutN<N, T>::CreateEx({10*N*N*N}, true,  "",  momentam, gamma);
-    auto layer_sl13     = bb::SparseLutN<N, T>::CreateEx({10*N*N}, true,  "",  momentam, gamma);
-    auto layer_sl14     = bb::SparseLutN<N, T>::CreateEx({10*N}, true,  "",  momentam, gamma);
-    auto layer_sl15     = bb::SparseLutN<N, T>::CreateEx({10}, true,  "",  momentam, gamma);
+    auto layer_sl9      = bb::DifferentiableLutN<N, T>::CreateEx({10*N*N*N*N*N*N}, true,  "",  momentam, gamma);
+    auto layer_sl10     = bb::DifferentiableLutN<N, T>::CreateEx({10*N*N*N*N*N}, true,  "",  momentam, gamma);
+    auto layer_sl11     = bb::DifferentiableLutN<N, T>::CreateEx({10*N*N*N*N}, true,  "",  momentam, gamma);
+    auto layer_sl12     = bb::DifferentiableLutN<N, T>::CreateEx({10*N*N*N}, true,  "",  momentam, gamma);
+    auto layer_sl13     = bb::DifferentiableLutN<N, T>::CreateEx({10*N*N}, true,  "",  momentam, gamma);
+    auto layer_sl14     = bb::DifferentiableLutN<N, T>::CreateEx({10*N}, true,  "",  momentam, gamma);
+    auto layer_sl15     = bb::DifferentiableLutN<N, T>::CreateEx({10}, true,  "",  momentam, gamma);
 
     {
         std::cout << "\n<Training>" << std::endl;
@@ -321,13 +321,13 @@ void SparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size
 }
 
 
-void Cifar10SparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void Cifar10DifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
     if ( binary_mode ) {
-        SparseLutCnn<2, bb::Bit>(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+        DifferentiableLutCnn<2, bb::Bit>(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
     else {
-        SparseLutCnn<2, float>(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+        DifferentiableLutCnn<2, float>(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 }
 

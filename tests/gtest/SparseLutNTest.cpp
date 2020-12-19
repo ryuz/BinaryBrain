@@ -4,8 +4,8 @@
 #include <random>
 #include "gtest/gtest.h"
 
-#include "bb/SparseLutN.h"
-#include "bb/SparseLutDiscreteN.h"
+#include "bb/DifferentiableLutN.h"
+#include "bb/DifferentiableLutDiscreteN.h"
 #include "bb/OptimizerAdam.h"
 #include "bb/UniformDistributionGenerator.h"
 
@@ -16,8 +16,8 @@
 #ifdef BB_WITH_CUDA
 
 
-template<int N, typename BinType, typename Model0=bb::SparseLutN<N, BinType>, typename Model1=bb::SparseLutDiscreteN<N, BinType> >
-void SparseLutNTest_cmp(int const input_node_size, int const output_node_size, int const frame_size, int loop_num, bool lut_binarize= true, bool binary_mode=true, bool host_only=false)
+template<int N, typename BinType, typename Model0=bb::DifferentiableLutN<N, BinType>, typename Model1=bb::DifferentiableLutDiscreteN<N, BinType> >
+void DifferentiableLutNTest_cmp(int const input_node_size, int const output_node_size, int const frame_size, int loop_num, bool lut_binarize= true, bool binary_mode=true, bool host_only=false)
 {
     auto lut0 = Model0::Create(output_node_size);
     auto lut1 = Model1::Create(output_node_size);
@@ -299,107 +299,107 @@ void SparseLutNTest_cmp(int const input_node_size, int const output_node_size, i
 }
 
 
-TEST(SparseLutNTest, testSparseLutN_cmp_float)
+TEST(DifferentiableLutNTest, testDifferentiableLutN_cmp_float)
 {
-    SparseLutNTest_cmp<6, float>(6,    1,       1, 2, true,  true);
-    SparseLutNTest_cmp<6, float>(6,    1,    32+7, 2, true,  true);
-    SparseLutNTest_cmp<6, float>(6,    1,      64, 2, true,  true);
-    SparseLutNTest_cmp<6, float>(6,    1,    1024, 2, true,  true);
-    SparseLutNTest_cmp<6, float>(6,    1024,    1, 2, true,  true);
-    SparseLutNTest_cmp<6, float>(6,    2,      32, 2, true,  true);
+    DifferentiableLutNTest_cmp<6, float>(6,    1,       1, 2, true,  true);
+    DifferentiableLutNTest_cmp<6, float>(6,    1,    32+7, 2, true,  true);
+    DifferentiableLutNTest_cmp<6, float>(6,    1,      64, 2, true,  true);
+    DifferentiableLutNTest_cmp<6, float>(6,    1,    1024, 2, true,  true);
+    DifferentiableLutNTest_cmp<6, float>(6,    1024,    1, 2, true,  true);
+    DifferentiableLutNTest_cmp<6, float>(6,    2,      32, 2, true,  true);
 
-    SparseLutNTest_cmp<6, float>(6,    1,       1, 2, false, true);
-    SparseLutNTest_cmp<6, float>(6,    1,    32+7, 2, false, true);
-    SparseLutNTest_cmp<6, float>(6,    1,      64, 2, false, true);
-    SparseLutNTest_cmp<6, float>(6,    1,    1024, 2, false, true);
-    SparseLutNTest_cmp<6, float>(6,    1024,    1, 2, false, true);
-    SparseLutNTest_cmp<6, float>(6,    2,      32, 2, false, true);
+    DifferentiableLutNTest_cmp<6, float>(6,    1,       1, 2, false, true);
+    DifferentiableLutNTest_cmp<6, float>(6,    1,    32+7, 2, false, true);
+    DifferentiableLutNTest_cmp<6, float>(6,    1,      64, 2, false, true);
+    DifferentiableLutNTest_cmp<6, float>(6,    1,    1024, 2, false, true);
+    DifferentiableLutNTest_cmp<6, float>(6,    1024,    1, 2, false, true);
+    DifferentiableLutNTest_cmp<6, float>(6,    2,      32, 2, false, true);
 
-    SparseLutNTest_cmp<6, float>(6,    1,       1, 2, true,  false);
-    SparseLutNTest_cmp<6, float>(6,    1,    32+7, 2, true,  false);
-    SparseLutNTest_cmp<6, float>(6,    1,      64, 2, true,  false);
-    SparseLutNTest_cmp<6, float>(6,    1,    1024, 2, true,  false);
-    SparseLutNTest_cmp<6, float>(6,    1024,    1, 2, true,  false);
-    SparseLutNTest_cmp<6, float>(6,    2,      32, 2, true,  false);
+    DifferentiableLutNTest_cmp<6, float>(6,    1,       1, 2, true,  false);
+    DifferentiableLutNTest_cmp<6, float>(6,    1,    32+7, 2, true,  false);
+    DifferentiableLutNTest_cmp<6, float>(6,    1,      64, 2, true,  false);
+    DifferentiableLutNTest_cmp<6, float>(6,    1,    1024, 2, true,  false);
+    DifferentiableLutNTest_cmp<6, float>(6,    1024,    1, 2, true,  false);
+    DifferentiableLutNTest_cmp<6, float>(6,    2,      32, 2, true,  false);
 
-    SparseLutNTest_cmp<6, float>(6,    1,       1, 2, false, false);
-    SparseLutNTest_cmp<6, float>(6,    1,    32+7, 2, false, false);
-    SparseLutNTest_cmp<6, float>(6,    1,      64, 2, false, false);
-    SparseLutNTest_cmp<6, float>(6,    1,    1024, 2, false, false);
-    SparseLutNTest_cmp<6, float>(6,    1024,    1, 2, false, false);
-    SparseLutNTest_cmp<6, float>(6,    2,      32, 2, false, false);
+    DifferentiableLutNTest_cmp<6, float>(6,    1,       1, 2, false, false);
+    DifferentiableLutNTest_cmp<6, float>(6,    1,    32+7, 2, false, false);
+    DifferentiableLutNTest_cmp<6, float>(6,    1,      64, 2, false, false);
+    DifferentiableLutNTest_cmp<6, float>(6,    1,    1024, 2, false, false);
+    DifferentiableLutNTest_cmp<6, float>(6,    1024,    1, 2, false, false);
+    DifferentiableLutNTest_cmp<6, float>(6,    2,      32, 2, false, false);
 }
 
-TEST(SparseLutNTest, testSparseLutN_cmp_bit_1)
+TEST(DifferentiableLutNTest, testDifferentiableLutN_cmp_bit_1)
 {
-    SparseLutNTest_cmp<6, bb::Bit>(6,  1,   32+7, 2, true);
+    DifferentiableLutNTest_cmp<6, bb::Bit>(6,  1,   32+7, 2, true);
 }
 
 
-TEST(SparseLutNTest, testSparseLutN_cmp_bit)
+TEST(DifferentiableLutNTest, testDifferentiableLutN_cmp_bit)
 {
-    SparseLutNTest_cmp<6, bb::Bit>(6,  1,   32+7, 2, true);
-    SparseLutNTest_cmp<6, bb::Bit>(6, 16,  128+3, 2, true);
-    SparseLutNTest_cmp<6, bb::Bit>(6, 1,      64, 2, true);
-    SparseLutNTest_cmp<6, bb::Bit>(6, 1,    1024, 2, true);
-    SparseLutNTest_cmp<6, bb::Bit>(6, 1024,    1, 2, true);
-    SparseLutNTest_cmp<6, bb::Bit>(6, 2,      32, 2, true);
+    DifferentiableLutNTest_cmp<6, bb::Bit>(6,  1,   32+7, 2, true);
+    DifferentiableLutNTest_cmp<6, bb::Bit>(6, 16,  128+3, 2, true);
+    DifferentiableLutNTest_cmp<6, bb::Bit>(6, 1,      64, 2, true);
+    DifferentiableLutNTest_cmp<6, bb::Bit>(6, 1,    1024, 2, true);
+    DifferentiableLutNTest_cmp<6, bb::Bit>(6, 1024,    1, 2, true);
+    DifferentiableLutNTest_cmp<6, bb::Bit>(6, 2,      32, 2, true);
     
-    SparseLutNTest_cmp<6, bb::Bit>(6,    1,   32+7, 2, false);
-    SparseLutNTest_cmp<6, bb::Bit>(6,   16,    128, 2, false);
-    SparseLutNTest_cmp<6, bb::Bit>(6,    1,     64, 2, false);
-    SparseLutNTest_cmp<6, bb::Bit>(6,    1,   1024, 2, false);
-    SparseLutNTest_cmp<6, bb::Bit>(6, 1024,      1, 2, false);
-    SparseLutNTest_cmp<6, bb::Bit>(6,    2,     32, 2, false);
+    DifferentiableLutNTest_cmp<6, bb::Bit>(6,    1,   32+7, 2, false);
+    DifferentiableLutNTest_cmp<6, bb::Bit>(6,   16,    128, 2, false);
+    DifferentiableLutNTest_cmp<6, bb::Bit>(6,    1,     64, 2, false);
+    DifferentiableLutNTest_cmp<6, bb::Bit>(6,    1,   1024, 2, false);
+    DifferentiableLutNTest_cmp<6, bb::Bit>(6, 1024,      1, 2, false);
+    DifferentiableLutNTest_cmp<6, bb::Bit>(6,    2,     32, 2, false);
 }
 
 
-TEST(SparseLutNTest, testSparseLutN_cmp_gpu)
+TEST(DifferentiableLutNTest, testDifferentiableLutN_cmp_gpu)
 {
-//  SparseLutNTest_cmp<6, float, bb::SparseLutN<6, float>, bb::SparseLutN<6, float>>(6,  1,  1, 2, true, true, true);
+//  DifferentiableLutNTest_cmp<6, float, bb::DifferentiableLutN<6, float>, bb::DifferentiableLutN<6, float>>(6,  1,  1, 2, true, true, true);
     
-    SparseLutNTest_cmp<6, float, bb::SparseLutN<6, float>, bb::SparseLutN<6, float>>(6, 16, 32, 2, true,  true,  true);
-    SparseLutNTest_cmp<6, float, bb::SparseLutN<6, float>, bb::SparseLutN<6, float>>(6, 16, 32, 2, false, true,  true);
-    SparseLutNTest_cmp<6, float, bb::SparseLutN<6, float>, bb::SparseLutN<6, float>>(6, 16, 32, 2, true,  false, true);
-//  SparseLutNTest_cmp<6, float, bb::SparseLutN<6, float>, bb::SparseLutN<6, float>>(6, 16, 32, 2, false, false, true);
+    DifferentiableLutNTest_cmp<6, float, bb::DifferentiableLutN<6, float>, bb::DifferentiableLutN<6, float>>(6, 16, 32, 2, true,  true,  true);
+    DifferentiableLutNTest_cmp<6, float, bb::DifferentiableLutN<6, float>, bb::DifferentiableLutN<6, float>>(6, 16, 32, 2, false, true,  true);
+    DifferentiableLutNTest_cmp<6, float, bb::DifferentiableLutN<6, float>, bb::DifferentiableLutN<6, float>>(6, 16, 32, 2, true,  false, true);
+//  DifferentiableLutNTest_cmp<6, float, bb::DifferentiableLutN<6, float>, bb::DifferentiableLutN<6, float>>(6, 16, 32, 2, false, false, true);
 
-//  SparseLutNTest_cmp<6, bb::Bit, bb::SparseLutN<6, bb::Bit>, bb::SparseLutN<6, bb::Bit>>(6,  1,   1, 2, true,  true, true);
+//  DifferentiableLutNTest_cmp<6, bb::Bit, bb::DifferentiableLutN<6, bb::Bit>, bb::DifferentiableLutN<6, bb::Bit>>(6,  1,   1, 2, true,  true, true);
 
-    SparseLutNTest_cmp<6, bb::Bit, bb::SparseLutN<6, bb::Bit>, bb::SparseLutN<6, bb::Bit>>(6,  16, 32, 2, true,  true, true);
-    SparseLutNTest_cmp<6, bb::Bit, bb::SparseLutN<6, bb::Bit>, bb::SparseLutN<6, bb::Bit>>(6,  16, 32, 2, false, true, true);
+    DifferentiableLutNTest_cmp<6, bb::Bit, bb::DifferentiableLutN<6, bb::Bit>, bb::DifferentiableLutN<6, bb::Bit>>(6,  16, 32, 2, true,  true, true);
+    DifferentiableLutNTest_cmp<6, bb::Bit, bb::DifferentiableLutN<6, bb::Bit>, bb::DifferentiableLutN<6, bb::Bit>>(6,  16, 32, 2, false, true, true);
 }
 
 
 
 
 
-TEST(SparseLutNTest, testSparseLut4_cmp_float)
+TEST(DifferentiableLutNTest, testDifferentiableLut4_cmp_float)
 {
-    SparseLutNTest_cmp<4, float>(4,    1,       1, 2, true,  true);
-    SparseLutNTest_cmp<4, float>(4,    1,    32+7, 2, true,  true);
-    SparseLutNTest_cmp<4, float>(4,    1,      64, 2, true,  true);
-    SparseLutNTest_cmp<4, float>(4,    1,    1024, 2, true,  true);
-    SparseLutNTest_cmp<4, float>(4,    1024,    1, 2, true,  true);
-    SparseLutNTest_cmp<4, float>(4,    2,      32, 2, true,  true);
-    SparseLutNTest_cmp<4, float>(4,    1,       1, 2, false, true);
-    SparseLutNTest_cmp<4, float>(4,    1,    32+7, 2, false, true);
-    SparseLutNTest_cmp<4, float>(4,    1,      64, 2, false, true);
+    DifferentiableLutNTest_cmp<4, float>(4,    1,       1, 2, true,  true);
+    DifferentiableLutNTest_cmp<4, float>(4,    1,    32+7, 2, true,  true);
+    DifferentiableLutNTest_cmp<4, float>(4,    1,      64, 2, true,  true);
+    DifferentiableLutNTest_cmp<4, float>(4,    1,    1024, 2, true,  true);
+    DifferentiableLutNTest_cmp<4, float>(4,    1024,    1, 2, true,  true);
+    DifferentiableLutNTest_cmp<4, float>(4,    2,      32, 2, true,  true);
+    DifferentiableLutNTest_cmp<4, float>(4,    1,       1, 2, false, true);
+    DifferentiableLutNTest_cmp<4, float>(4,    1,    32+7, 2, false, true);
+    DifferentiableLutNTest_cmp<4, float>(4,    1,      64, 2, false, true);
 
-//    SparseLutNTest_cmp<4, float>(4,    1,    1024, 2, false, true);
-//    SparseLutNTest_cmp<4, float>(4,    1024,    1, 2, false, true);
-//    SparseLutNTest_cmp<4, float>(4,    2,      32, 2, false, true);
-//    SparseLutNTest_cmp<4, float>(4,    1,       1, 2, true,  false);
-//    SparseLutNTest_cmp<4, float>(4,    1,    32+7, 2, true,  false);
-//    SparseLutNTest_cmp<4, float>(4,    1,      64, 2, true,  false);
-//    SparseLutNTest_cmp<4, float>(4,    1,    1024, 2, true,  false);
-//    SparseLutNTest_cmp<4, float>(4,    1024,    1, 2, true,  false);
-//    SparseLutNTest_cmp<4, float>(4,    2,      32, 2, true,  false);
-//    SparseLutNTest_cmp<4, float>(4,    1,       1, 2, false, false);
-//    SparseLutNTest_cmp<4, float>(4,    1,    32+7, 2, false, false);
-//    SparseLutNTest_cmp<4, float>(4,    1,      64, 2, false, false);
-//    SparseLutNTest_cmp<4, float>(4,    1,    1024, 2, false, false);
-//    SparseLutNTest_cmp<4, float>(4,    1024,    1, 2, false, false);
-//    SparseLutNTest_cmp<4, float>(4,    2,      32, 2, false, false);
+//    DifferentiableLutNTest_cmp<4, float>(4,    1,    1024, 2, false, true);
+//    DifferentiableLutNTest_cmp<4, float>(4,    1024,    1, 2, false, true);
+//    DifferentiableLutNTest_cmp<4, float>(4,    2,      32, 2, false, true);
+//    DifferentiableLutNTest_cmp<4, float>(4,    1,       1, 2, true,  false);
+//    DifferentiableLutNTest_cmp<4, float>(4,    1,    32+7, 2, true,  false);
+//    DifferentiableLutNTest_cmp<4, float>(4,    1,      64, 2, true,  false);
+//    DifferentiableLutNTest_cmp<4, float>(4,    1,    1024, 2, true,  false);
+//    DifferentiableLutNTest_cmp<4, float>(4,    1024,    1, 2, true,  false);
+//    DifferentiableLutNTest_cmp<4, float>(4,    2,      32, 2, true,  false);
+//    DifferentiableLutNTest_cmp<4, float>(4,    1,       1, 2, false, false);
+//    DifferentiableLutNTest_cmp<4, float>(4,    1,    32+7, 2, false, false);
+//    DifferentiableLutNTest_cmp<4, float>(4,    1,      64, 2, false, false);
+//    DifferentiableLutNTest_cmp<4, float>(4,    1,    1024, 2, false, false);
+//    DifferentiableLutNTest_cmp<4, float>(4,    1024,    1, 2, false, false);
+//    DifferentiableLutNTest_cmp<4, float>(4,    2,      32, 2, false, false);
 }
 
 

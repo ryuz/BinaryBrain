@@ -24,19 +24,10 @@
     <ClCompile Include="MnistMicroMlpLutCnn.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="MnistSparseLutCnn.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="MnistStochasticLutCnn.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="MnistCustomModel.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="MnistAeSparseLutCnn.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="MnistAeSparseLutSimple.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="MnistDenseSimple.cpp">
@@ -48,7 +39,16 @@
     <ClCompile Include="MnistStochasticLutSimple.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="MnistSparseLutSimple.cpp">
+    <ClCompile Include="MnistAeDifferentiableLutCnn.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="MnistAeDifferentiableLutSimple.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="MnistDifferentiableLutCnn.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="MnistDifferentiableLutSimple.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
