@@ -98,7 +98,7 @@ public:
  //      BB_ASSERT(shape.size() == 1);
         m_input_shape  = shape;
         m_c_size = CalcShapeSize(shape);
-        return indices_t({m_w_size, m_h_size, m_c_size});
+        return indices_t({m_c_size, m_h_size, m_w_size});
     }
 
     /**
@@ -118,7 +118,7 @@ public:
      */
     indices_t GetOutputShape(void) const
     {
-        return indices_t({m_w_size, m_h_size, m_c_size});
+        return indices_t({m_c_size, m_h_size, m_w_size});
     }
 
 
@@ -130,7 +130,7 @@ public:
         BB_ASSERT(input_frame_size % (m_h_size * m_w_size) == 0);
         index_t output_frame_size = input_frame_size / (m_h_size * m_w_size);
 
-        FrameBuffer y_buf(output_frame_size, indices_t({m_w_size, m_h_size, m_c_size}), DataType<FT>::type);
+        FrameBuffer y_buf(output_frame_size, indices_t({m_c_size, m_h_size, m_w_size}), DataType<FT>::type);
 
 
 #ifdef BB_WITH_CUDA

@@ -9,7 +9,6 @@ class FrameBuffer():
     """FrameBuffer class
     """
     
-    
     def __init__(self, frame_size: int = 0, shape: List[int] = [], dtype: int = 0, host_only: bool = False):
         """Constructor
         Args:
@@ -19,7 +18,16 @@ class FrameBuffer():
             host_only (bool): flag of host only
         """
         self.buf = core.FrameBuffer(frame_size, shape, dtype, host_only)
+
+    @staticmethod
+    def from_core(buf):
+        buf = FrameBuffer()
+        buf.buf = buf
+        return buf
     
+    def get_core(buf):
+        return buf.buf
+        
     def get_type(self) -> int:
         """get data type.
         
@@ -104,7 +112,7 @@ class FrameBuffer():
             ndarray = np.resize(ndarray, shape)
         
         return ndarray
-    
+        
     @staticmethod
     def from_numpy(ndarray: np.ndarray, host_only=False):
         """Create from NumPy

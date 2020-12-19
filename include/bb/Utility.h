@@ -383,9 +383,9 @@ void WriteTestDataImage(std::string filename, int width, int height, TrainData<T
     BB_ASSERT(td.x_shape.size() == 3);
 
     // イメージ作成
-    auto w_size = td.x_shape[0];
+    auto c_size = td.x_shape[0];
     auto h_size = td.x_shape[1];
-    auto c_size = td.x_shape[2];
+    auto w_size = td.x_shape[2];
     unsigned char* img = new unsigned char[height * width * 3];
     for (int c = 0; c < 3; ++c) {
         for (int y = 0; y < height; ++y) {

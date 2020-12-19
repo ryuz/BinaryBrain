@@ -165,7 +165,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\..\cuda\Debug;$(CUDA_PATH)\lib\x86</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CUDA_PATH)\lib\x86;$(SolutionDir)$(Configuration)</AdditionalLibraryDirectories>
       <AdditionalDependencies>bbcu.lib;cuda.lib;cudart.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -211,7 +211,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\..\cuda\x64\Debug;$(CUDA_PATH)\lib\x64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CUDA_PATH)\lib\x64;$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
       <AdditionalDependencies>bbcu.lib;cublas.lib;cuda.lib;cudart.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -314,7 +314,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\..\cuda\x64\Release;$(CUDA_PATH)\lib\x64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CUDA_PATH)\lib\x64;$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
       <AdditionalDependencies>bbcu.lib;cublas.lib;cuda.lib;cudart.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StackReserveSize>67108864</StackReserveSize>
     </Link>

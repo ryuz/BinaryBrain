@@ -35,10 +35,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="FrameBufferTest.cpp" />
-    <ClCompile Include="TensorTest.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="..\..\include\bb\Activation.h" />
     <ClInclude Include="..\..\include\bb\AveragePooling.h" />
     <ClInclude Include="..\..\include\bb\BackpropagatedBatchNormalization.h" />
@@ -116,6 +112,38 @@
     <ClInclude Include="..\..\include\bb\Utility.h" />
     <ClInclude Include="..\..\include\bb\ValueGenerator.h" />
     <ClInclude Include="..\..\include\bb\Variables.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="BatchNormalizationTest.cpp" />
+    <ClCompile Include="BinarizeTest.cpp" />
+    <ClCompile Include="BinaryLutTest.cpp" />
+    <ClCompile Include="BinaryScalingTest.cpp" />
+    <ClCompile Include="BinaryToRealTest.cpp" />
+    <ClCompile Include="BitEncodeTest.cpp" />
+    <ClCompile Include="ConvBitToRealTest.cpp" />
+    <ClCompile Include="ConvolutionCol2ImTest.cpp" />
+    <ClCompile Include="ConvolutionIm2ColTest.cpp" />
+    <ClCompile Include="DenseAffineTest.cpp" />
+    <ClCompile Include="DepthwiseDenseAffineTest.cpp" />
+    <ClCompile Include="FrameBufferTest.cpp" />
+    <ClCompile Include="LossSoftmaxCrossEntropyTest.cpp" />
+    <ClCompile Include="LoweringConvolutionTest.cpp" />
+    <ClCompile Include="MaxPoolingTest.cpp" />
+    <ClCompile Include="MemoryTest.cpp" />
+    <ClCompile Include="MetricsCategoricalAccuracyTest.cpp" />
+    <ClCompile Include="MicroMlpAffineTest.cpp" />
+    <ClCompile Include="MicroMlpTest.cpp" />
+    <ClCompile Include="OptimizerAdamTest.cpp" />
+    <ClCompile Include="RealToBinaryTest.cpp" />
+    <ClCompile Include="ReduceTest.cpp" />
+    <ClCompile Include="ReLUTest.cpp" />
+    <ClCompile Include="ShuffleTest.cpp" />
+    <ClCompile Include="SigmoidTest.cpp" />
+    <ClCompile Include="SparseLutNTest.cpp" />
+    <ClCompile Include="StochasticLutNTest.cpp" />
+    <ClCompile Include="TensorTest.cpp" />
+    <ClCompile Include="UpSamplingTest.cpp" />
+    <ClCompile Include="VariablesTest.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9A9C7AD9-1066-4DEA-A945-0D835BBF96E9}</ProjectGuid>

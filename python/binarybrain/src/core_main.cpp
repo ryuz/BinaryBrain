@@ -367,6 +367,75 @@ PYBIND11_MODULE(core, m) {
         .def_static("calc_frame_stride", &FrameBuffer::CalcFrameStride)
         ;
     
+    // Variables
+    py::class_< Variables, std::shared_ptr<Variables> >(m, "Variables");
+
+
+    // ------------------------------------
+    //  Models
+    // ------------------------------------
+    
+    // model
+    py::class_< Model, std::shared_ptr<Model> >(m, "Model")
+        .def("get_name", &Model::GetName)
+        .def("get_class_name", &Model::GetClassName)
+        .def("get_info", &Model::GetInfoString,
+                py::arg("depth")    = 0,
+                py::arg("columns")  = 70,
+                py::arg("nest")     = 0)
+        .def("get_input_shape", &Model::GetInputShape)
+        .def("set_input_shape", &Model::SetInputShape)
+        .def("get_output_shape", &Model::GetOutputShape)
+        .def("get_input_node_size", &Model::GetInputNodeSize)
+        .def("get_output_node_size", &Model::GetOutputNodeSize)
+        .def("get_parameters", &Model::GetParameters)
+        .def("get_gradients", &Model::GetGradients)
+        .def("forward_node",  &Model::ForwardNode)
+        .def("forward",  &Model::Forward, "Forward",
+                py::arg("x_buf"),
+                py::arg("train") = true)
+        .def("backward", &Model::Backward, "Backward")
+        .def("send_command",  &Model::SendCommand, "SendCommand",
+                py::arg("command"),
+                py::arg("send_to") = "all")
+        .def("backward", &Model::Backward, "Backward")
+        .def("save_binary", &Model::SaveBinary)
+        .def("load_binary", &Model::LoadBinary)
+        .def("save_json", &Model::SaveJson)
+        .def("load_json", &Model::LoadJson);
+    
+    
+    // DenseAffine
+    py::class_< DenseAffine, Model, std::shared_ptr<DenseAffine> >(m, "DenseAffine")
+        .def_static("create",   &DenseAffine::CreateEx, "create",
+            py::arg("output_shape"),
+            py::arg("initialize_std") = 0.01f,
+            py::arg("initializer")    = "he",
+            py::arg("seed")           = 1)
+        .def("W", ((Tensor& (DenseAffine::*)())&DenseAffine::W))
+        .def("b", ((Tensor& (DenseAffine::*)())&DenseAffine::b))
+        .def("dW", ((Tensor& (DenseAffine::*)())&DenseAffine::dW))
+        .def("db", ((Tensor& (DenseAffine::*)())&DenseAffine::db));
+    
+    // DepthwiseDenseAffine
+    py::class_< DepthwiseDenseAffine, Model, std::shared_ptr<DepthwiseDenseAffine> >(m, "DepthwiseDenseAffine")
+        .def_static("create",   &DepthwiseDenseAffine::CreateEx, "create",
+            py::arg("output_shape"),
+            py::arg("input_point_size")=0,
+            py::arg("depth_size")=0,
+            py::arg("initialize_std") = 0.01f,
+            py::arg("initializer")    = "he",
+            py::arg("seed")           = 1)
+        .def("W", ((Tensor& (DepthwiseDenseAffine::*)())&DepthwiseDenseAffine::W))
+        .def("b", ((Tensor& (DepthwiseDenseAffine::*)())&DepthwiseDenseAffine::b))
+        .def("dW", ((Tensor& (DepthwiseDenseAffine::*)())&DepthwiseDenseAffine::dW))
+        .def("db", ((Tensor& (DepthwiseDenseAffine::*)())&DepthwiseDenseAffine::db));
+
+
+
+    // ------------------------------------
+    //  Others
+    // ------------------------------------
 
     // OpenMP
     m.def("omp_set_num_threads", &omp_set_num_threads);
@@ -392,108 +461,6 @@ PYBIND11_MODULE(core, m) {
 
 #if 0
 
-//////////////////////////////////////]
-// docstrings
-//////////////////////////////////////]
-
-// Tensor
-const char* doc__Tensor__get_type =
-R"(get data type
-Returns:
-    int: data type
-)";
-
-const char* doc__Tensor__get_shape =
-R"(get shape
-Returns:
-    List[int]: shape
-)";
-
-const char* doc__Tensor__set_data =
-R"(set data to tensor
-
-    set data to tensor
-
-Args:
-    data(List[List[float]]): tensor data
-)";
-
-const char* doc__Tensor__get_data =
-R"(get data from tensor
-
-    set data to tensor
-
-Returns:
-    List[float]: tensor data
-)";
-
-
-const char* doc__Tensor__set_data_int32 =
-R"(set data to tensor
-
-    set data to tensor
-
-Args:
-    data(List[List[int]]): tensor data
-)";
-
-const char* doc__Tensor__get_data_int32 =
-R"(get data from tensor
-
-    set data to tensor
-
-Returns:
-    List[List[int]: tensor data
-)";
-
-
-// FrameBuffer
-const char* doc__FrameBuffer__init =
-R"(FrameBuffer object constructor
-
-Manegement frame memory on CPU or GPU
-
-Args:
-    frame_size(int): size of frames
-    shape(List[int]): shape of frame
-    data_type(int): frame type  TYPE_BIT or TYPE_FP32
-    host_only(bool): only use host(CPU) memory.
-)";
-
-
-const char* doc__FrameBuffer__resize =
-R"(resize FrameBuffer
-
-set new size to frame buffer.
-
-Args:
-    frame_size(int): size of frames
-    shape(List[int]): shape of frame
-    data_type(int): frame type  TYPE_BIT or TYPE_FP32
-)";
-
-const char* doc__FrameBuffer_get_type =
-R"(get data type
-
-get data type of frame buffer.
-
-Returns:
-    int: data type
-)";
-
-// model
-const char* doc__Model_get_info =
-R"(get a information of model structure.
-
-get a information string of model network structure.
-
-Args:
-   depth(int): depth of network structure
-   columns(str): size of column 
-   nest(str): nest counter
-Returns:
-   str: strings of model information
-)";
 
 
 

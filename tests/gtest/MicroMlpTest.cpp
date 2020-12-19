@@ -11,7 +11,6 @@
 #ifdef BB_WITH_CUDA
 
 
-
 void MicroMlp_cmp_bit(int const input_node_size, int const output_node_size, int const frame_size, int loop_num)
 {
     auto mlp0 = bb::MicroMlp<6, 16, float>::Create(output_node_size);

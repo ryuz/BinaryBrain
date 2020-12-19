@@ -4,6 +4,9 @@ from binarybrain.dtype        import *
 from binarybrain.tensor       import *
 from binarybrain.frame_buffer import *
 
+from binarybrain.model        import *
+from binarybrain.dense_affine import *
+
 
 #from binarybrain.core    import *
 #from binarybrain.utility import *

@@ -348,8 +348,8 @@ public:
         m_connection_table.InitializeConnection(m_mt(), m_connection);
 
         // パラメータ初期化(結局初期値は何が良いのかまだよくわからない)
-        m_W->Resize ({NN, this->GetOutputNodeSize()}, DataType<RealType>::type);    m_W->InitNormalDistribution(0.5, 0.01, m_mt());
-        m_dW->Resize({NN, this->GetOutputNodeSize()}, DataType<RealType>::type);    m_dW->FillZero();
+        m_W->Resize ({this->GetOutputNodeSize(), NN}, DataType<RealType>::type);    m_W->InitNormalDistribution(0.5, 0.01, m_mt());
+        m_dW->Resize({this->GetOutputNodeSize(), NN}, DataType<RealType>::type);    m_dW->FillZero();
 
         m_mean.Resize(m_output_shape);
         m_rstd.Resize(m_output_shape);

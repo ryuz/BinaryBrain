@@ -125,19 +125,19 @@ public:
         if (argv.size() > 0 && argv[0] == "pointwise") {
             BB_ASSERT(input_shape.size() == 3);
             BB_ASSERT(output_shape.size() == 3);
-            BB_ASSERT(input_shape[0] == output_shape[0]);
             BB_ASSERT(input_shape[1] == output_shape[1]);
+            BB_ASSERT(input_shape[2] == output_shape[2]);
             std::mt19937_64 mt(seed);
             for (index_t y = 0; y < output_shape[1]; ++y) {
-                for (index_t x = 0; x < output_shape[0]; ++x) {
+                for (index_t x = 0; x < output_shape[2]; ++x) {
                     // shuffle index
-                    ShuffleSet<index_t> ss(input_shape[2], mt());
-                    for (index_t c = 0; c < output_shape[2]; ++c) {
+                    ShuffleSet<index_t> ss(input_shape[0], mt());
+                    for (index_t c = 0; c < output_shape[0]; ++c) {
                         // random connection
-                        index_t  input_size = GetInputConnectionSize({x, y, c});
+                        index_t  input_size = GetInputConnectionSize({c, y, x});
                         auto random_set = ss.GetRandomSet(input_size);
                         for (index_t i = 0; i < input_size; ++i) {
-                            SetInputConnection({x, y, c}, i, {x, y, random_set[i]});
+                            SetInputConnection({c, y, x}, i, {random_set[i], y, x});
                         }
                     }
                 }
@@ -148,22 +148,22 @@ public:
         if (argv.size() > 0 && argv[0] == "depthwise") {
             BB_ASSERT(input_shape.size() == 3);
             BB_ASSERT(output_shape.size() == 3);
-            BB_ASSERT(input_shape[2] == output_shape[2]);
+            BB_ASSERT(input_shape[0] == output_shape[0]);
             std::mt19937_64 mt(seed);
-            for (index_t c = 0; c < output_shape[2]; ++c) {
+            for (index_t c = 0; c < output_shape[0]; ++c) {
                 // shuffle index
-                ShuffleSet<index_t> ss(input_shape[0] * input_shape[1], mt());
+                ShuffleSet<index_t> ss(input_shape[1] * input_shape[2], mt());
                 for (index_t y = 0; y < output_shape[1]; ++y) {
-                    for (index_t x = 0; x < output_shape[0]; ++x) {
+                    for (index_t x = 0; x < output_shape[2]; ++x) {
                         // random connection
-                        index_t  input_size = GetInputConnectionSize({x, y, c});
+                        index_t  input_size = GetInputConnectionSize({x, y, x});
                         auto random_set = ss.GetRandomSet(input_size);
                         for (index_t i = 0; i < input_size; ++i) {
-                            index_t iy = random_set[i] / input_shape[0];
-                            index_t ix = random_set[i] % input_shape[0];
+                            index_t iy = random_set[i] / input_shape[2];
+                            index_t ix = random_set[i] % input_shape[2];
 
-                            index_t output_node = ConvertIndicesToIndex({x, y, c}, output_shape);
-                            index_t input_node  = ConvertIndicesToIndex({ix, iy, c}, input_shape);
+                            index_t output_node = ConvertIndicesToIndex({c, y, x}, output_shape);
+                            index_t input_node  = ConvertIndicesToIndex({c, iy, ix}, input_shape);
 
                             BB_ASSERT(output_node >= 0 && output_node < output_node_size);
                             BB_ASSERT(input_node  >= 0 && input_node  < input_node_size);

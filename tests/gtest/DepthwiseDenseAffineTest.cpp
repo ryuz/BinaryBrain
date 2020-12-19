@@ -10,10 +10,10 @@ TEST(DepthwiseDenseAffineTest, testAffine)
 {
     auto affine = bb::DepthwiseDenseAffine<>::Create({3});
     
-    affine->SetInputShape({2, 3});
+    affine->SetInputShape({3, 2});
 
     // forward
-    bb::FrameBuffer x_buf(1, {2, 3}, BB_TYPE_FP32);
+    bb::FrameBuffer x_buf(1, {3, 2}, BB_TYPE_FP32);
 
     x_buf.SetFP32(0, 0, 1);
     x_buf.SetFP32(0, 1, 2);

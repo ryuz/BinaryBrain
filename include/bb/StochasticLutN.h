@@ -257,12 +257,12 @@ public:
 //        this->InitializeNodeInput(m_mt(), m_connection);
 
         // パラメータ初期化(結局初期値は何が良いのかまだよくわからない)
-//      m_W->Resize({NN, m_output_node_size}, DataType<RealType>::type);  m_W->InitUniformDistribution(0.4, 0.6, m_mt());
-//      m_W->Resize({NN, m_output_node_size}, DataType<RealType>::type);  m_W->InitUniformDistribution(0.0, 1.0, m_mt());
-//      m_W->Resize({NN, m_output_node_size}, DataType<RealType>::type);  m_W->InitNormalDistribution(0.5, 0.001, m_mt());
-        m_W->Resize({NN, CalcShapeSize(m_output_shape)}, DataType<RealType>::type);  m_W->InitNormalDistribution(0.5, 0.01, m_mt());
+//      m_W->Resize({m_output_node_size, NN}, DataType<RealType>::type);  m_W->InitUniformDistribution(0.4, 0.6, m_mt());
+//      m_W->Resize({m_output_node_size, NN}, DataType<RealType>::type);  m_W->InitUniformDistribution(0.0, 1.0, m_mt());
+//      m_W->Resize({m_output_node_size, NN}, DataType<RealType>::type);  m_W->InitNormalDistribution(0.5, 0.001, m_mt());
+        m_W->Resize({CalcShapeSize(m_output_shape), NN}, DataType<RealType>::type);  m_W->InitNormalDistribution(0.5, 0.01, m_mt());
 
-        m_dW->Resize({NN, CalcShapeSize(m_output_shape)}, DataType<RealType>::type); m_dW->FillZero();
+        m_dW->Resize({CalcShapeSize(m_output_shape), NN}, DataType<RealType>::type); m_dW->FillZero();
 
         return m_output_shape;
     }

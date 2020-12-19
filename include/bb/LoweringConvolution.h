@@ -193,9 +193,9 @@ public:
 
         BB_ASSERT(shape.size() == 3);
 
-        index_t input_w_size = shape[0];
+//      index_t input_c_size = shape[0];
         index_t input_h_size = shape[1];
-//      index_t input_c_size = shape[2];
+        index_t input_w_size = shape[2];
 
         // 出力サイズ計算
         if ( m_padding == "valid" ) {

@@ -87,15 +87,15 @@ public:
         
         BB_ASSERT(shape.size() == 3);
 
-        m_input_w_size = shape[0];
+        m_input_c_size = shape[0];
         m_input_h_size = shape[1];
-        m_input_c_size = shape[2];
+        m_input_w_size = shape[2];
         m_output_w_size = (m_input_w_size + 2 - 1) / 2;
         m_output_h_size = (m_input_h_size + 2 - 1) / 2;
         m_output_c_size = m_input_c_size;
 
         m_input_shape  = shape;
-        m_output_shape = indices_t({m_output_w_size, m_output_h_size, m_output_c_size});
+        m_output_shape = indices_t({m_output_c_size, m_output_h_size, m_output_w_size});
 
         return m_output_shape;
     }

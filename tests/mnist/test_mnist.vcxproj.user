@@ -31,12 +31,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>ShuffleNet -device 0 -read 0 -binary 1 -mini_batch 128 -modulation_size 1 -epoch 64 -print_device -num_threads 4</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>StochasticLutCnn -binary 1 -epoch 1 -print_device -num_threads 4</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DbgCpu|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>ShuffleNet -device 0 -read 0 -binary 1 -mini_batch 128 -modulation_size 1 -epoch 64 -print_device -num_threads 4</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>StochasticLutCnn -binary 1 -epoch 1 -print_device -num_threads 4</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugCpu|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
@@ -45,12 +45,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>ShuffleNet -device 0 -read 0 -binary 1 -mini_batch 128 -modulation_size 1 -epoch 64 -print_device -num_threads 4</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>SparseLutCnn -binary 1 -epoch 1 -print_device -num_threads 4</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelCpu|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>ShuffleNet -device 0 -read 0 -binary 1 -mini_batch 128 -modulation_size 1 -epoch 64 -print_device -num_threads 4</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>StochasticLutCnn -binary 1 -epoch 1 -print_device -num_threads 4</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseCpu|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>

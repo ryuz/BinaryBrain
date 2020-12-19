@@ -126,9 +126,9 @@ public:
         m_input_shape = shape;
         BB_ASSERT(m_input_shape.size() == 3);
 
-        m_input_w_size = m_input_shape[0];
+        m_input_c_size = m_input_shape[0];
         m_input_h_size = m_input_shape[1];
-        m_input_c_size = m_input_shape[2];
+        m_input_w_size = m_input_shape[2];
 
         // 出力サイズ計算
         if ( m_padding == "valid" ) {
@@ -148,9 +148,9 @@ public:
         }
 
         m_output_shape.resize(3);
-        m_output_shape[0] = m_filter_w_size;
+        m_output_shape[0] = m_input_c_size;
         m_output_shape[1] = m_filter_h_size;
-        m_output_shape[2] = m_input_c_size;
+        m_output_shape[2] = m_filter_w_size;
 
         return m_output_shape;
     }
