@@ -96,6 +96,8 @@ using SparseLut2                   = bb::SparseLutN<2, float, float>;
 using SparseLut2Bit                = bb::SparseLutN<2, bb::Bit, float>;
 using SparseLut4                   = bb::SparseLutN<4, float, float>;
 using SparseLut4Bit                = bb::SparseLutN<4, bb::Bit, float>;
+using SparseLut5                   = bb::SparseLutN<5, float, float>;
+using SparseLut5Bit                = bb::SparseLutN<5, bb::Bit, float>;
 using SparseLut6                   = bb::SparseLutN<6, float, float>;
 using SparseLut6Bit                = bb::SparseLutN<6, bb::Bit, float>;
 
@@ -103,6 +105,8 @@ using StochasticLut2               = bb::StochasticLutN<2, float, float>;
 using StochasticLut2Bit            = bb::StochasticLutN<2, bb::Bit, float>;
 using StochasticLut4               = bb::StochasticLutN<4, float, float>;
 using StochasticLut4Bit            = bb::StochasticLutN<4, bb::Bit, float>;
+using StochasticLut5               = bb::StochasticLutN<5, float, float>;
+using StochasticLut5Bit            = bb::StochasticLutN<5, bb::Bit, float>;
 using StochasticLut6               = bb::StochasticLutN<6, float, float>;
 using StochasticLut6Bit            = bb::StochasticLutN<6, bb::Bit, float>;
 
@@ -120,6 +124,10 @@ using Shuffle                      = bb::Shuffle;
 
 using Filter2d                     = bb::Filter2d<float, float>;
 using Filter2dBit                  = bb::Filter2d<bb::Bit, float>;
+using ConvolutionCol2Im            = bb::ConvolutionCol2Im <float, float>;
+using ConvolutionCol2ImBit         = bb::ConvolutionCol2Im <bb::Bit, float>;
+using ConvolutionIm2Col            = bb::ConvolutionIm2Col <float, float>;
+using ConvolutionIm2ColBit         = bb::ConvolutionIm2Col <bb::Bit, float>;
 using LoweringConvolution          = bb::LoweringConvolution<float, float>;
 using LoweringConvolutionBit       = bb::LoweringConvolution<bb::Bit, float>;
 using MaxPooling                   = bb::MaxPooling<float, float>;
@@ -409,6 +417,70 @@ PYBIND11_MODULE(core, m) {
         .def("load_json", &Model::LoadJson);
     
     
+    py::class_< Reduce, Model, std::shared_ptr<Reduce> >(m, "Reduce")
+        .def_static("create",   &Reduce::CreateEx);
+
+    py::class_< BinaryModulation, Model, std::shared_ptr<BinaryModulation> >(m, "BinaryModulation")
+        .def_static("create", &BinaryModulation::CreateEx,
+                py::arg("layer"),
+                py::arg("output_shape")              = bb::indices_t(),
+                py::arg("depth_modulation_size")     = 1,
+                py::arg("training_modulation_size")  = 1,
+                py::arg("training_value_generator")  = nullptr,
+                py::arg("training_framewise")        = true,
+                py::arg("training_input_range_lo")   = 0.0f,
+                py::arg("training_input_range_hi")   = 1.0f,
+                py::arg("inference_modulation_size") = -1,
+                py::arg("inference_value_generator") = nullptr,
+                py::arg("inference_framewise")       = true,
+                py::arg("inference_input_range_lo")  = 0.0f,
+                py::arg("inference_input_range_hi")  = 1.0f);
+
+    py::class_< BinaryModulationBit, Model, std::shared_ptr<BinaryModulationBit> >(m, "BinaryModulationBit")
+        .def_static("create", &BinaryModulationBit::CreateEx,
+                py::arg("layer"),
+                py::arg("output_shape")              = bb::indices_t(),
+                py::arg("depth_modulation_size")     = 1,
+                py::arg("training_modulation_size")  = 1,
+                py::arg("training_value_generator")  = nullptr,
+                py::arg("training_framewise")        = true,
+                py::arg("training_input_range_lo")   = 0.0f,
+                py::arg("training_input_range_hi")   = 1.0f,
+                py::arg("inference_modulation_size") = -1,
+                py::arg("inference_value_generator") = nullptr,
+                py::arg("inference_framewise")       = true,
+                py::arg("inference_input_range_lo")  = 0.0f,
+                py::arg("inference_input_range_hi")  = 1.0f);
+
+    py::class_< RealToBinary, Model, std::shared_ptr<RealToBinary> >(m, "RealToBinary")
+        .def_static("create", &RealToBinary::CreateEx,
+                py::arg("frame_modulation_size") = 1,
+                py::arg("depth_modulation_size") = 1,
+                py::arg("value_generator")  = nullptr,
+                py::arg("framewise")        = false,
+                py::arg("input_range_lo")   = 0.0f,
+                py::arg("input_range_hi")   = 1.0f);
+
+    py::class_< RealToBinaryBit, Model, std::shared_ptr<RealToBinaryBit> >(m, "RealToBinaryBit")
+        .def_static("create", &RealToBinaryBit::CreateEx,
+                py::arg("frame_modulation_size") = 1,
+                py::arg("depth_modulation_size") = 1,
+                py::arg("value_generator")  = nullptr,
+                py::arg("framewise")        = false,
+                py::arg("input_range_lo")   = 0.0f,
+                py::arg("input_range_hi")   = 1.0f);
+
+    py::class_< BinaryToReal, Model, std::shared_ptr<BinaryToReal> >(m, "BinaryToReal")
+        .def_static("create", &BinaryToReal::CreateEx,
+                py::arg("frame_modulation_size") = 1,
+                py::arg("output_shape")          = bb::indices_t());
+
+    py::class_< BinaryToRealBit, Model, std::shared_ptr<BinaryToRealBit> >(m, "BinaryToRealBit")
+        .def_static("create", &BinaryToRealBit::CreateEx,
+                py::arg("frame_modulation_size") = 1,
+                py::arg("output_shape")          = bb::indices_t());
+
+
     // DenseAffine
     py::class_< DenseAffine, Model, std::shared_ptr<DenseAffine> >(m, "DenseAffine")
         .def_static("create",   &DenseAffine::CreateEx, "create",
@@ -434,6 +506,74 @@ PYBIND11_MODULE(core, m) {
         .def("b", ((Tensor& (DepthwiseDenseAffine::*)())&DepthwiseDenseAffine::b))
         .def("dW", ((Tensor& (DepthwiseDenseAffine::*)())&DepthwiseDenseAffine::dW))
         .def("db", ((Tensor& (DepthwiseDenseAffine::*)())&DepthwiseDenseAffine::db));
+
+
+    // SparseLayer
+    py::class_< SparseLayer, Model, std::shared_ptr<SparseLayer> >(m, "SparseLayer")
+         .def("get_connection_size", &SparseLayer::GetConnectionSize)
+         .def("set_connection", &SparseLayer::SetConnectionIndices)
+         .def("get_connection", &SparseLayer::GetConnectionIndices)
+         .def("set_connection_index", &SparseLayer::SetConnectionIndex)
+         .def("get_connection_index", &SparseLayer::GetConnectionIndex)
+         .def("get_node_connection_size", &SparseLayer::GetNodeConnectionSize)
+         .def("set_node_connection_index", &SparseLayer::SetNodeConnectionIndex)
+         .def("get_node_connection_index", &SparseLayer::GetNodeConnectionIndex);
+    
+    // SparseLut6
+    py::class_< SparseLut6, SparseLayer, std::shared_ptr<SparseLut6> >(m, "SparseLut6")
+        .def_static("create", &SparseLut6::CreateEx, "create SparseLut6",
+                py::arg("output_shape"),
+                py::arg("batch_norm") = true,
+                py::arg("connection") = "",
+                py::arg("momentum")   = 0.0,
+                py::arg("gamma")      = 0.3,
+                py::arg("beta")       = 0.5,
+                py::arg("seed")       = 1)
+        ;
+
+
+    py::class_< StochasticLut6, SparseLayer, std::shared_ptr<StochasticLut6> >(m, "StochasticLut6")
+        .def_static("create", &StochasticLut6::CreateEx, "create StochasticLut6",
+                py::arg("output_shape"),
+                py::arg("connection") = "",
+                py::arg("seed") = 1);
+
+
+    // filter
+    py::class_< Filter2d, Model, std::shared_ptr<Filter2d> >(m, "Filter2d");
+
+
+    py::class_< ConvolutionIm2Col, Model, std::shared_ptr<ConvolutionIm2Col> >(m, "ConvolutionIm2Col")
+        .def_static("create", &ConvolutionIm2Col::CreateEx,
+                py::arg("filter_h_size")=1,
+                py::arg("filter_w_size")=1,
+                py::arg("y_stride")=1,
+                py::arg("x_stride")=1,
+                py::arg("padding")="valid",
+                py::arg("border_mode")=BB_BORDER_REFLECT_101)
+        ;
+
+    py::class_< ConvolutionIm2ColBit, Model, std::shared_ptr<ConvolutionIm2ColBit> >(m, "ConvolutionIm2ColBit")
+        .def_static("create", &ConvolutionIm2ColBit::CreateEx,
+                py::arg("filter_h_size")=1,
+                py::arg("filter_w_size")=1,
+                py::arg("y_stride")=1,
+                py::arg("x_stride")=1,
+                py::arg("padding")="valid",
+                py::arg("border_mode")=BB_BORDER_REFLECT_101)
+        ;
+
+    py::class_< ConvolutionCol2Im, Model, std::shared_ptr<ConvolutionCol2Im> >(m, "ConvolutionCol2Im")
+        .def_static("create", &ConvolutionCol2Im::CreateEx,
+                py::arg("h_size")=1,
+                py::arg("w_size")=1)
+        ;
+
+    py::class_< ConvolutionCol2ImBit, Model, std::shared_ptr<ConvolutionCol2ImBit> >(m, "ConvolutionCol2ImBit")
+        .def_static("create", &ConvolutionCol2Im::CreateEx,
+                py::arg("h_size")=1,
+                py::arg("w_size")=1)
+        ;
 
 
     // activation

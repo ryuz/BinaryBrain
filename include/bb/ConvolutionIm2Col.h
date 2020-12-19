@@ -106,6 +106,19 @@ public:
         return Create(create);
     }
 
+    static std::shared_ptr<ConvolutionIm2Col> CreateEx(index_t filter_h_size, index_t filter_w_size, index_t y_stride=1, index_t x_stride=1,
+                                                std::string padding="valid", int border_mode = BB_BORDER_REFLECT_101)
+    {
+        create_t create;
+        create.filter_h_size = filter_h_size;
+        create.filter_w_size = filter_w_size;
+        create.y_stride      = y_stride;
+        create.x_stride      = x_stride;
+        create.padding       = padding;
+        create.border_mode   = border_mode;
+        return Create(create);
+    }
+
     std::string GetClassName(void) const { return "ConvolutionIm2Col"; }
 
 

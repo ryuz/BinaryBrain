@@ -72,7 +72,15 @@ public:
         self->m_w_size = w_size;
         return self;
     }
-    
+
+    static std::shared_ptr<ConvolutionCol2Im> CreateEx(index_t h_size, index_t w_size)
+    {
+        auto self = std::shared_ptr<ConvolutionCol2Im>(new ConvolutionCol2Im);
+        self->m_h_size = h_size;
+        self->m_w_size = w_size;
+        return self;
+    }
+
     std::string GetClassName(void) const { return "ConvolutionCol2Im"; }
 
     int GetChannel(void) const { return m_c_size; }

@@ -1,67 +1,68 @@
-# coding: utf-8
+# -*- coding: utf-8 -*-
 
 import binarybrain as bb
 import numpy as np
 
+from matplotlib import pyplot as plt
+
+import torch
+import torchvision
+import torchvision.transforms as transforms
+
+from tqdm import tqdm
+
 def main():
-    # config
-    binary_mode               = True
-    epoch                     = 4
-    mini_batch                = 32
-    training_modulation_size  = 3
-    inference_modulation_size = 3
     
-    # load MNIST data
-    td = bb.load_mnist()
+    # dataset
+    dataset_train = torchvision.datasets.MNIST(root='./data/', train=True, transform=transforms.ToTensor(), download=True)
+    dataset_test  = torchvision.datasets.MNIST(root='./data/', train=False, transform=transforms.ToTensor(), download=True)
+    loader_train = torch.utils.data.DataLoader(dataset=dataset_train, batch_size=64, shuffle=True, num_workers=2)
+    loader_test  = torch.utils.data.DataLoader(dataset=dataset_test,  batch_size=64, shuffle=False, num_workers=2)
     
-    batch_size = len(td['x_train'])
-    print('batch_size =', batch_size)
-    
-    
-    ############################
-    # Learning
-    ############################
-        
-    # create network
-    main_net = bb.Sequential.create()
-    main_net.add(bb.DenseAffine.create(output_shape=[1024]))
-    main_net.add(bb.BatchNormalization.create())
-    main_net.add(bb.ReLU.create())
-    main_net.add(bb.DenseAffine.create([512]))
-    main_net.add(bb.BatchNormalization.create())
-    main_net.add(bb.ReLU.create())
-    main_net.add(bb.DenseAffine.create(td['t_shape']))
-    if binary_mode:
-        main_net.add(bb.BatchNormalization.create())
-        main_net.add(bb.ReLU.create())
-    
-    # wrapping with binary modulator
-    net = bb.Sequential.create()
-    net.add(bb.BinaryModulation.create(main_net, training_modulation_size=training_modulation_size))
-    net.add(bb.Reduce.create(td['t_shape']))
-    net.set_input_shape(td['x_shape'])
-    
-    # print model information
-    print(net.get_info())
-    
-    # set binary mode
-    if binary_mode:
-        net.send_command("binary true");
-    else:
-        net.send_command("binary false");
+    # define network
+    net = bb.Sequential([
+                bb.DenseAffine([1024]),
+                bb.ReLU(),
+                bb.DenseAffine([512]),
+                bb.ReLU(),
+                bb.DenseAffine([10]),
+            ])
+    net.set_input_shape([28, 28])
     
     
     # learning
-    print('\n[learning]')
-    loss      = bb.LossSoftmaxCrossEntropy.create()
-    metrics   = bb.MetricsCategoricalAccuracy.create()
-    optimizer = bb.OptimizerAdam.create()
+    loss      = bb.LossSoftmaxCrossEntropy()
+    metrics   = bb.MetricsCategoricalAccuracy()
+    optimizer = bb.OptimizerAdam()
+    
     optimizer.set_variables(net.get_parameters(), net.get_gradients())
     
-    runner = bb.Runner(net, "mnist-dense-simple", loss, metrics, optimizer)
-    runner.fitting(td, epoch_size=epoch, mini_batch_size=mini_batch)
-    
+    for epoch in range(8):
+        # learning
+        for images, labels in loader_train:
+            x_buf = bb.FrameBuffer.from_numpy(np.array(images).astype(np.float32))
+            t_buf = bb.FrameBuffer.from_numpy(np.identity(10)[np.array(labels)].astype(np.float32))
+            
+            y_buf = net.forward(x_buf, train=True)
+            
+            dy_buf = loss.calculate(y_buf, t_buf)
+            net.backward(dy_buf)
+            
+            optimizer.update()
+        
+        # test
+        for images, labels in loader_test:
+            x_buf = bb.FrameBuffer.from_numpy(np.array(images).astype(np.float32))
+            t_buf = bb.FrameBuffer.from_numpy(np.identity(10)[np.array(labels)].astype(np.float32))
+            
+            y_buf = net.forward(x_buf, train=False)
+            
+            loss.calculate(y_buf, t_buf)
+            metrics.calculate(y_buf, t_buf)
+        
+        print('epoch[%d] : loss=%f accuracy=%f' % (epoch, loss.get(), metrics.get()))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
 
