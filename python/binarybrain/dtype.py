@@ -5,45 +5,20 @@ import binarybrain.core as core
 import numpy as np
 
 # type
-fp32  = core.TYPE_FP32
-fp64  = core.TYPE_FP64
-int8  = core.TYPE_INT8
-int16 = core.TYPE_INT16
-int32 = core.TYPE_INT32
-int64 = core.TYPE_INT64
-int8  = core.TYPE_UINT8
-int16 = core.TYPE_UINT16
-int32 = core.TYPE_UINT32
-int64 = core.TYPE_UINT64
+dtype_bit   = core.TYPE_BIT
+dtype_fp32  = core.TYPE_FP32
+dtype_fp32  = core.TYPE_FP32
+dtype_fp64  = core.TYPE_FP64
+dtype_int8  = core.TYPE_INT8
+dtype_int16 = core.TYPE_INT16
+dtype_int32 = core.TYPE_INT32
+dtype_int64 = core.TYPE_INT64
+dtype_int8  = core.TYPE_UINT8
+dtype_int16 = core.TYPE_UINT16
+dtype_int32 = core.TYPE_UINT32
+dtype_int64 = core.TYPE_UINT64
 
 
-dict_dtype_numpy_to_bb = {
-    np.float32: core.TYPE_FP32,
-    np.float64: core.TYPE_FP64,
-    np.int8   : core.TYPE_INT8,
-    np.int16  : core.TYPE_INT16,
-    np.int32  : core.TYPE_INT32,
-    np.int64  : core.TYPE_INT64,
-    np.uint8  : core.TYPE_UINT8,
-    np.uint16 : core.TYPE_UINT16,
-    np.uint32 : core.TYPE_UINT32,
-    np.uint64 : core.TYPE_UINT64,
-    
-}
-
-dict_dtype_bb_to_numpy = {
-    core.TYPE_FP32:   np.float32,
-    core.TYPE_FP64:   np.float64,
-    core.TYPE_INT8:   np.int8,
-    core.TYPE_INT16:  np.int16,
-    core.TYPE_INT32:  np.int32,
-    core.TYPE_INT64:  np.int64,
-    core.TYPE_UINT8:  np.uint8,
-    core.TYPE_UINT16: np.uint16,
-    core.TYPE_UINT32: np.uint32,
-    core.TYPE_UINT64: np.uint64,
-}
-    
 def dtype_numpy_to_bb(dtype):
     if   dtype == np.float32: return core.TYPE_FP32
     elif dtype == np.float64: return core.TYPE_FP64
@@ -58,5 +33,15 @@ def dtype_numpy_to_bb(dtype):
     return None
 
 def dtype_bb_to_numpy(dtype):
-    return dict_dtype_bb_to_numpy[dtype]
+    if   dtype == core.TYPE_FP32:   return np.float32
+    elif dtype == core.TYPE_FP64:   return np.float64
+    elif dtype == core.TYPE_INT8:   return np.int8
+    elif dtype == core.TYPE_INT16:  return np.int16
+    elif dtype == core.TYPE_INT32:  return np.int32
+    elif dtype == core.TYPE_INT64:  return np.int64
+    elif dtype == core.TYPE_UINT8:  return np.uint8
+    elif dtype == core.TYPE_UINT16: return np.uint16
+    elif dtype == core.TYPE_UINT32: return np.uint32
+    elif dtype == core.TYPE_UINT64: return np.uint64
+    return None
 

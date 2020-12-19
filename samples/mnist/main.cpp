@@ -121,7 +121,6 @@ int main(int argc, char *argv[])
     }
 #endif
 
-    /*
     if ( netname == "All" || netname == "StochasticLutSimple" ) {
         MnistStochasticLutSimple(epoch_size, mini_batch_size, test_modulation_size, binary_mode, file_read);
     }
@@ -137,7 +136,7 @@ int main(int argc, char *argv[])
     if ( netname == "All" || netname == "SparseLutCnn" ) {
         MnistSparseLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
-    */
+    
     if ( netname == "All" || netname == "MicroMlpLutSimple" ) {
         MnistMicroMlpLutSimple(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
@@ -157,7 +156,6 @@ int main(int argc, char *argv[])
     if ( netname == "All" || netname == "AeSparseLutSimple" ) {
         MnistAeSparseLutSimple(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
-
     if ( netname == "All" || netname == "AeSparseLutCnn" ) {
         MnistAeSparseLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }

@@ -21,12 +21,12 @@ class FrameBuffer():
 
     @staticmethod
     def from_core(buf):
-        buf = FrameBuffer()
-        buf.buf = buf
-        return buf
+        new_buf = FrameBuffer()
+        new_buf.buf = buf
+        return new_buf
     
-    def get_core(buf):
-        return buf.buf
+    def get_core(self):
+        return self.buf
         
     def get_type(self) -> int:
         """get data type.
@@ -134,95 +134,95 @@ class FrameBuffer():
         ndarray = ndarray.transpose(tran)
         ndarray = ndarray.copy(order='C')
         
-        buf = FrameBuffer()
+        new_buf = FrameBuffer()
         if ndarray.dtype == np.float32:
-            buf.buf = bb.core.FrameBuffer.from_numpy_fp32(ndarray, bb_dtype, frame_size, frame_stride, shape[1:], host_only)
+            new_buf.buf = bb.core.FrameBuffer.from_numpy_fp32(ndarray, bb_dtype, frame_size, frame_stride, shape[1:], host_only)
         elif ndarray.dtype == np.float64:
-            buf.buf = bb.core.FrameBuffer.from_numpy_fp64(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            new_buf.buf = bb.core.FrameBuffer.from_numpy_fp64(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.int8:
-            buf.buf = bb.core.FrameBuffer.from_numpy_int8(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            new_buf.buf = bb.core.FrameBuffer.from_numpy_int8(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.int16:
-            buf.buf = bb.core.FrameBuffer.from_numpy_int16(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            new_buf.buf = bb.core.FrameBuffer.from_numpy_int16(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.int32:
-            buf.buf = bb.core.FrameBuffer.from_numpy_int32(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            new_buf.buf = bb.core.FrameBuffer.from_numpy_int32(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.int64:
-            buf.buf = bb.core.FrameBuffer.from_numpy_int64(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            new_buf.buf = bb.core.FrameBuffer.from_numpy_int64(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.uint8:
-            buf.buf = bb.core.FrameBuffer.from_numpy_uint8(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            new_buf.buf = bb.core.FrameBuffer.from_numpy_uint8(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.uint16:
-            buf.buf = bb.core.FrameBuffer.from_numpy_uint16(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            new_buf.buf = bb.core.FrameBuffer.from_numpy_uint16(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.uint32:
             buf.buf = bb.core.FrameBuffer.from_numpy_uint32(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.uint64:
-            buf.buf = bb.core.FrameBuffer.from_numpy_uint64(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            new_buf.buf = bb.core.FrameBuffer.from_numpy_uint64(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         else:
             raise TypeError("unsupported")
-        return buf
+        return new_buf
     
     
     def __add__(self, x):
-        buf = FrameBuffer()
+        new_buf = FrameBuffer()
         if type(x) == FrameBuffer:
-            buf.buf = self.buf + x.buf
+            new_buf.buf = self.buf + x.buf
         else:
-            buf.buf = self.buf + float(x)
-        return buf
+            new_buf.buf = self.buf + float(x)
+        return new_buf
 
     def __sub__(self, x):
-        buf = FrameBuffer()
+        new_buf = FrameBuffer()
         if type(x) == FrameBuffer:
-            buf.buf = self.buf - x.buf
+            new_buf.buf = self.buf - x.buf
         else:
-            buf.buf = self.buf - float(x)
-        return buf
+            new_buf.buf = self.buf - float(x)
+        return new_buf
 
     def __mul__(self, x):
-        buf = FrameBuffer()
+        new_buf = FrameBuffer()
         if type(x) == FrameBuffer:
-            buf.buf = self.buf * x.buf
+            new_buf.buf = self.buf * x.buf
         else:
-            buf.buf = self.buf * float(x)
-        return buf
+            new_buf.buf = self.buf * float(x)
+        return new_buf
 
     def __truediv__(self, x):
-        buf = FrameBuffer()
+        new_buf = FrameBuffer()
         if type(x) == FrameBuffer:
-            buf.buf = self.buf / x.buf
+            new_buf.buf = self.buf / x.buf
         else:
-            buf.buf = self.buf / float(x)
-        return buf
+            new_buf.buf = self.buf / float(x)
+        return new_buf
 
     def __radd__(self, x):
-        buf = FrameBuffer()
+        new_buf = FrameBuffer()
         if type(x) == FrameBuffer:
-            buf.buf = x.buf + self.buf 
+            new_buf.buf = x.buf + self.buf 
         else:
-            buf.buf = float(x) + self.buf
-        return buf
+            new_buf.buf = float(x) + self.buf
+        return new_buf
 
     def __rsub__(self, x):
-        buf = FrameBuffer()
+        new_buf = FrameBuffer()
         if type(x) == FrameBuffer:
-            buf.buf = x.buf - self.buf 
+            new_buf.buf = x.buf - self.buf 
         else:
-            buf.buf = float(x) - self.buf
-        return buf
+            new_buf.buf = float(x) - self.buf
+        return new_buf
 
     def __rmul__(self, x):
-        buf = FrameBuffer()
+        new_buf = FrameBuffer()
         if type(x) == FrameBuffer:
-            buf.buf = x.buf * self.buf 
+            new_buf.buf = x.buf * self.buf 
         else:
-            buf.buf = float(x) * self.buf
-        return buf
+            new_buf.buf = float(x) * self.buf
+        return new_buf
 
     def __rtruediv__(self, x):
-        buf = FrameBuffer()
+        new_buf = FrameBuffer()
         if type(x) == FrameBuffer:
-            buf.buf = x.buf / self.buf 
+            new_buf.buf = x.buf / self.buf 
         else:
-            buf.buf = float(x) / self.buf
-        return buf
+            new_buf.buf = float(x) / self.buf
+        return new_buf
     
     def __iadd__(self, x):
         if type(x) == FrameBuffer:

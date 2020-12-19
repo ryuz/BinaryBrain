@@ -368,7 +368,11 @@ PYBIND11_MODULE(core, m) {
         ;
     
     // Variables
-    py::class_< Variables, std::shared_ptr<Variables> >(m, "Variables");
+    py::class_< Variables, std::shared_ptr<Variables> >(m, "Variables")
+        .def(py::init<>())
+        .def("push_back", (void (Variables::*)(Variables const &))&Variables::PushBack)
+        ;
+
 
 
     // ------------------------------------
@@ -432,6 +436,120 @@ PYBIND11_MODULE(core, m) {
         .def("db", ((Tensor& (DepthwiseDenseAffine::*)())&DepthwiseDenseAffine::db));
 
 
+    // activation
+    py::class_< Activation, Model, std::shared_ptr<Activation> >(m, "Activation");
+
+    py::class_< Binarize, Activation, std::shared_ptr<Binarize> >(m, "Binarize")
+        .def_static("create", &Binarize::CreateEx,
+                py::arg("binary_th")    =  0.0f,
+                py::arg("hardtanh_min") = -1.0f,
+                py::arg("hardtanh_max") = +1.0f);
+    
+    py::class_< BinarizeBit, Activation, std::shared_ptr<BinarizeBit> >(m, "BinarizeBit")
+        .def_static("create", &BinarizeBit::CreateEx,
+                py::arg("binary_th")    =  0.0f,
+                py::arg("hardtanh_min") = -1.0f,
+                py::arg("hardtanh_max") = +1.0f);
+
+    py::class_< Sigmoid, Binarize, std::shared_ptr<Sigmoid> >(m, "Sigmoid")
+        .def_static("create",   &Sigmoid::Create);
+
+    py::class_< ReLU, Binarize, std::shared_ptr<ReLU> >(m, "ReLU")
+        .def_static("create",   &ReLU::Create);
+
+    py::class_< ReLUBit, BinarizeBit, std::shared_ptr<ReLUBit> >(m, "ReLUBit")
+        .def_static("create",   &ReLUBit::Create);
+
+    py::class_< HardTanh, Binarize, std::shared_ptr<HardTanh> >(m, "HardTanh")
+        .def_static("create", &HardTanh::CreateEx,
+                py::arg("hardtanh_min") = -1.0,
+                py::arg("hardtanh_max") = +1.0);
+
+    
+    py::class_< Dropout, Activation, std::shared_ptr<Dropout> >(m, "Dropout")
+        .def_static("create", &Dropout::CreateEx,
+                py::arg("rate") = 0.5,
+                py::arg("seed") = 1);
+
+    py::class_< BatchNormalization, Activation, std::shared_ptr<BatchNormalization> >(m, "BatchNormalization")
+        .def_static("create", &BatchNormalization::CreateEx,
+                py::arg("momentum")  = 0.9f,
+                py::arg("gamma")     = 1.0f,
+                py::arg("beta")      = 0.0f,
+                py::arg("fix_gamma") = false,
+                py::arg("fix_beta")  = false);
+
+    py::class_< StochasticBatchNormalization, Activation, std::shared_ptr<StochasticBatchNormalization> >(m, "StochasticBatchNormalization")
+        .def_static("create", &StochasticBatchNormalization::CreateEx,
+                py::arg("momentum")  = 0.9,
+                py::arg("gamma")     = 0.2,
+                py::arg("beta")      = 0.5);
+
+    // Loss Functions
+    py::class_< LossFunction, std::shared_ptr<LossFunction> >(m, "LossFunction")
+        .def("clear",          &LossFunction::Clear)
+        .def("get_loss",       &LossFunction::GetLoss)
+        .def("calculate_loss", &LossFunction::CalculateLoss,
+            py::arg("y_buf"),
+            py::arg("t_buf"),
+            py::arg("mini_batch_size"));
+
+    py::class_< LossSoftmaxCrossEntropy, LossFunction, std::shared_ptr<LossSoftmaxCrossEntropy> >(m, "LossSoftmaxCrossEntropy")
+        .def_static("create", &LossSoftmaxCrossEntropy::Create);
+
+    py::class_< LossMeanSquaredError, LossFunction, std::shared_ptr<LossMeanSquaredError> >(m, "LossMeanSquaredError")
+        .def_static("create", &LossMeanSquaredError::Create);
+
+
+    // Metrics Functions
+    py::class_< MetricsFunction, std::shared_ptr<MetricsFunction> >(m, "MetricsFunction")
+        .def("clear",              &MetricsFunction::Clear)
+        .def("get_metrics",        &MetricsFunction::GetMetrics)
+        .def("calculate_metrics",  &MetricsFunction::CalculateMetrics)
+        .def("get_metrics_string", &MetricsFunction::GetMetricsString);
+
+    py::class_< MetricsCategoricalAccuracy, MetricsFunction, std::shared_ptr<MetricsCategoricalAccuracy> >(m, "MetricsCategoricalAccuracy")
+        .def_static("create", &MetricsCategoricalAccuracy::Create);
+
+    py::class_< MetricsMeanSquaredError, MetricsFunction, std::shared_ptr<MetricsMeanSquaredError> >(m, "MetricsMeanSquaredError")
+        .def_static("create", &MetricsMeanSquaredError::Create);
+
+
+    // Optimizer
+    py::class_< Optimizer, std::shared_ptr<Optimizer> >(m, "Optimizer")
+        .def("set_variables", &Optimizer::SetVariables)
+        .def("update",        &Optimizer::Update);
+    
+    py::class_< OptimizerSgd, Optimizer, std::shared_ptr<OptimizerSgd> >(m, "OptimizerSgd")
+        .def_static("create", (std::shared_ptr<OptimizerSgd> (*)(float))&OptimizerSgd::Create, "create",
+            py::arg("learning_rate") = 0.01f);
+    
+    py::class_< OptimizerAdam, Optimizer, std::shared_ptr<OptimizerAdam> >(m, "OptimizerAdam")
+        .def_static("create", &OptimizerAdam::CreateEx,
+            py::arg("learning_rate") = 0.001f,
+            py::arg("beta1")         = 0.9f,
+            py::arg("beta2")         = 0.999f); 
+    
+    py::class_< OptimizerAdaGrad, Optimizer, std::shared_ptr<OptimizerAdaGrad> >(m, "OptimizerAdaGrad")
+        .def_static("Create", (std::shared_ptr<OptimizerAdaGrad> (*)(float))&OptimizerAdaGrad::Create,
+            py::arg("learning_rate") = 0.01f);
+
+
+    // ValueGenerator
+    py::class_< ValueGenerator, std::shared_ptr<ValueGenerator> >(m, "ValueGenerator");
+    
+    py::class_< NormalDistributionGenerator, ValueGenerator, std::shared_ptr<NormalDistributionGenerator> >(m, "NormalDistributionGenerator")
+        .def_static("create", &NormalDistributionGenerator::Create,
+            py::arg("mean")   = 0.0f,
+            py::arg("stddev") = 1.0f,
+            py::arg("seed")   = 1);
+    
+    py::class_< UniformDistributionGenerator, ValueGenerator, std::shared_ptr<UniformDistributionGenerator> >(m, "UniformDistributionGenerator")
+        .def_static("Create", &UniformDistributionGenerator::Create,
+            py::arg("a")    = 0.0f,
+            py::arg("b")    = 1.0f,
+            py::arg("seed") = 1);
+    
 
     // ------------------------------------
     //  Others
