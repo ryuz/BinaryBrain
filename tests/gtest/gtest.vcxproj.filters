@@ -326,9 +326,6 @@
     <ClCompile Include="SigmoidTest.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="SparseLutNTest.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="StochasticLutNTest.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>

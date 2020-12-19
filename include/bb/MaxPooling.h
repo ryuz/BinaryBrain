@@ -335,13 +335,13 @@ public:
                                     for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
                                         index_t ix = x*m_filter_w_size + fx;
                                         if ( ix < m_input_w_size ) {
-                                            FT in_sig = x_ptr.Get(frame, {ix, iy, c});
+                                            FT in_sig = x_ptr.Get(frame, {c, iy, ix});
                                             max_val = (max_val > in_sig) ? max_val : in_sig;
                                         }
                                     }
                                 }
                             }
-                            y_ptr.Set(frame, {x, y, c}, max_val);
+                            y_ptr.Set(frame, {c, y, x}, max_val);
                         }
                     }
                 }

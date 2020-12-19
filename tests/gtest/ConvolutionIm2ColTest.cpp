@@ -632,103 +632,121 @@ TEST(ConvolutionIm2ColTest, testConvolutionIm2Col_same)
     EXPECT_EQ(10001, y_buf.GetFP32(0,  { 0, 0, 2 }));
     EXPECT_EQ(    0, y_buf.GetFP32(0,  { 0, 1, 0 }));
     EXPECT_EQ(10010, y_buf.GetFP32(0,  { 0, 1, 1 }));
-    EXPECT_EQ(10011, y_buf.GetFP32(0,  { 0, 1, 2 }));;
+    EXPECT_EQ(10011, y_buf.GetFP32(0,  { 0, 1, 2 }));
+
     EXPECT_EQ(10000, y_buf.GetFP32(1,  { 0, 0, 0 }));
     EXPECT_EQ(10001, y_buf.GetFP32(1,  { 0, 0, 1 }));
     EXPECT_EQ(10002, y_buf.GetFP32(1,  { 0, 0, 2 }));
     EXPECT_EQ(10010, y_buf.GetFP32(1,  { 0, 1, 0 }));
     EXPECT_EQ(10011, y_buf.GetFP32(1,  { 0, 1, 1 }));
-    EXPECT_EQ(10012, y_buf.GetFP32(1,  { 0, 1, 2 }));;
+    EXPECT_EQ(10012, y_buf.GetFP32(1,  { 0, 1, 2 }));
+
     EXPECT_EQ(10001, y_buf.GetFP32(2,  { 0, 0, 0 }));
     EXPECT_EQ(10002, y_buf.GetFP32(2,  { 0, 0, 1 }));
     EXPECT_EQ(    0, y_buf.GetFP32(2,  { 0, 0, 2 }));
     EXPECT_EQ(10011, y_buf.GetFP32(2,  { 0, 1, 0 }));
     EXPECT_EQ(10012, y_buf.GetFP32(2,  { 0, 1, 1 }));
-    EXPECT_EQ(    0, y_buf.GetFP32(2,  { 0, 1, 2 }));;
+    EXPECT_EQ(    0, y_buf.GetFP32(2,  { 0, 1, 2 }));
+
     EXPECT_EQ(    0, y_buf.GetFP32(3,  { 0, 0, 0 }));
     EXPECT_EQ(10010, y_buf.GetFP32(3,  { 0, 0, 1 }));
     EXPECT_EQ(10011, y_buf.GetFP32(3,  { 0, 0, 2 }));
     EXPECT_EQ(    0, y_buf.GetFP32(3,  { 0, 1, 0 }));
     EXPECT_EQ(    0, y_buf.GetFP32(3,  { 0, 1, 1 }));
-    EXPECT_EQ(    0, y_buf.GetFP32(3,  { 0, 1, 2 }));;
+    EXPECT_EQ(    0, y_buf.GetFP32(3,  { 0, 1, 2 }));
+
     EXPECT_EQ(10010, y_buf.GetFP32(4,  { 0, 0, 0 }));
     EXPECT_EQ(10011, y_buf.GetFP32(4,  { 0, 0, 1 }));
     EXPECT_EQ(10012, y_buf.GetFP32(4,  { 0, 0, 2 }));
     EXPECT_EQ(    0, y_buf.GetFP32(4,  { 0, 1, 0 }));
     EXPECT_EQ(    0, y_buf.GetFP32(4,  { 0, 1, 1 }));
-    EXPECT_EQ(    0, y_buf.GetFP32(4,  { 0, 1, 2 }));;
+    EXPECT_EQ(    0, y_buf.GetFP32(4,  { 0, 1, 2 }));
+
     EXPECT_EQ(10011, y_buf.GetFP32(5,  { 0, 0, 0 }));
     EXPECT_EQ(10012, y_buf.GetFP32(5,  { 0, 0, 1 }));
     EXPECT_EQ(    0, y_buf.GetFP32(5,  { 0, 0, 2 }));
     EXPECT_EQ(    0, y_buf.GetFP32(5,  { 0, 1, 0 }));
     EXPECT_EQ(    0, y_buf.GetFP32(5,  { 0, 1, 1 }));
-    EXPECT_EQ(    0, y_buf.GetFP32(5,  { 0, 1, 2 }));;;
+    EXPECT_EQ(    0, y_buf.GetFP32(5,  { 0, 1, 2 }));
+
+
     EXPECT_EQ(    0, y_buf.GetFP32(6,  { 0, 0, 0 }));
     EXPECT_EQ(11000, y_buf.GetFP32(6,  { 0, 0, 1 }));
     EXPECT_EQ(11001, y_buf.GetFP32(6,  { 0, 0, 2 }));
     EXPECT_EQ(    0, y_buf.GetFP32(6,  { 0, 1, 0 }));
     EXPECT_EQ(11010, y_buf.GetFP32(6,  { 0, 1, 1 }));
-    EXPECT_EQ(11011, y_buf.GetFP32(6,  { 0, 1, 2 }));;
+    EXPECT_EQ(11011, y_buf.GetFP32(6,  { 0, 1, 2 }));
+
     EXPECT_EQ(11000, y_buf.GetFP32(7,  { 0, 0, 0 }));
     EXPECT_EQ(11001, y_buf.GetFP32(7,  { 0, 0, 1 }));
     EXPECT_EQ(11002, y_buf.GetFP32(7,  { 0, 0, 2 }));
     EXPECT_EQ(11010, y_buf.GetFP32(7,  { 0, 1, 0 }));
     EXPECT_EQ(11011, y_buf.GetFP32(7,  { 0, 1, 1 }));
-    EXPECT_EQ(11012, y_buf.GetFP32(7,  { 0, 1, 2 }));;
+    EXPECT_EQ(11012, y_buf.GetFP32(7,  { 0, 1, 2 }));
+
     EXPECT_EQ(11001, y_buf.GetFP32(8,  { 0, 0, 0 }));
     EXPECT_EQ(11002, y_buf.GetFP32(8,  { 0, 0, 1 }));
     EXPECT_EQ(    0, y_buf.GetFP32(8,  { 0, 0, 2 }));
     EXPECT_EQ(11011, y_buf.GetFP32(8,  { 0, 1, 0 }));
     EXPECT_EQ(11012, y_buf.GetFP32(8,  { 0, 1, 1 }));
-    EXPECT_EQ(    0, y_buf.GetFP32(8,  { 0, 1, 2 }));;
+    EXPECT_EQ(    0, y_buf.GetFP32(8,  { 0, 1, 2 }));
+
     EXPECT_EQ(    0, y_buf.GetFP32(9,  { 0, 0, 0 }));
     EXPECT_EQ(11010, y_buf.GetFP32(9,  { 0, 0, 1 }));
     EXPECT_EQ(11011, y_buf.GetFP32(9,  { 0, 0, 2 }));
     EXPECT_EQ(    0, y_buf.GetFP32(9,  { 0, 1, 0 }));
     EXPECT_EQ(    0, y_buf.GetFP32(9,  { 0, 1, 1 }));
-    EXPECT_EQ(    0, y_buf.GetFP32(9,  { 0, 1, 2 }));;
+    EXPECT_EQ(    0, y_buf.GetFP32(9,  { 0, 1, 2 }));
+
     EXPECT_EQ(11010, y_buf.GetFP32(10, { 0, 0, 0 }));
     EXPECT_EQ(11011, y_buf.GetFP32(10, { 0, 0, 1 }));
     EXPECT_EQ(11012, y_buf.GetFP32(10, { 0, 0, 2 }));
     EXPECT_EQ(    0, y_buf.GetFP32(10, { 0, 1, 0 }));
     EXPECT_EQ(    0, y_buf.GetFP32(10, { 0, 1, 1 }));
-    EXPECT_EQ(    0, y_buf.GetFP32(10, { 0, 1, 2 }));;
+    EXPECT_EQ(    0, y_buf.GetFP32(10, { 0, 1, 2 }));
+
     EXPECT_EQ(11011, y_buf.GetFP32(11, { 0, 0, 0 }));
     EXPECT_EQ(11012, y_buf.GetFP32(11, { 0, 0, 1 }));
     EXPECT_EQ(    0, y_buf.GetFP32(11, { 0, 0, 2 }));
     EXPECT_EQ(    0, y_buf.GetFP32(11, { 0, 1, 0 }));
     EXPECT_EQ(    0, y_buf.GetFP32(11, { 0, 1, 1 }));
-    EXPECT_EQ(    0, y_buf.GetFP32(11, { 0, 1, 2 }));;
+    EXPECT_EQ(    0, y_buf.GetFP32(11, { 0, 1, 2 }));
+
     EXPECT_EQ(    0, y_buf.GetFP32(6,  { 1, 0, 0 }));
     EXPECT_EQ(11100, y_buf.GetFP32(6,  { 1, 0, 1 }));
     EXPECT_EQ(11101, y_buf.GetFP32(6,  { 1, 0, 2 }));
     EXPECT_EQ(    0, y_buf.GetFP32(6,  { 1, 1, 0 }));
     EXPECT_EQ(11110, y_buf.GetFP32(6,  { 1, 1, 1 }));
-    EXPECT_EQ(11111, y_buf.GetFP32(6,  { 1, 1, 2 }));;
+    EXPECT_EQ(11111, y_buf.GetFP32(6,  { 1, 1, 2 }));
+
     EXPECT_EQ(11100, y_buf.GetFP32(7,  { 1, 0, 0 }));
     EXPECT_EQ(11101, y_buf.GetFP32(7,  { 1, 0, 1 }));
     EXPECT_EQ(11102, y_buf.GetFP32(7,  { 1, 0, 2 }));
     EXPECT_EQ(11110, y_buf.GetFP32(7,  { 1, 1, 0 }));
     EXPECT_EQ(11111, y_buf.GetFP32(7,  { 1, 1, 1 }));
-    EXPECT_EQ(11112, y_buf.GetFP32(7,  { 1, 1, 2 }));;
+    EXPECT_EQ(11112, y_buf.GetFP32(7,  { 1, 1, 2 }));
+
     EXPECT_EQ(11101, y_buf.GetFP32(8,  { 1, 0, 0 }));
     EXPECT_EQ(11102, y_buf.GetFP32(8,  { 1, 0, 1 }));
     EXPECT_EQ(    0, y_buf.GetFP32(8,  { 1, 0, 2 }));
     EXPECT_EQ(11111, y_buf.GetFP32(8,  { 1, 1, 0 }));
     EXPECT_EQ(11112, y_buf.GetFP32(8,  { 1, 1, 1 }));
-    EXPECT_EQ(    0, y_buf.GetFP32(8,  { 1, 1, 2 }));;
+    EXPECT_EQ(    0, y_buf.GetFP32(8,  { 1, 1, 2 }));
+
     EXPECT_EQ(    0, y_buf.GetFP32(9,  { 1, 0, 0 }));
     EXPECT_EQ(11110, y_buf.GetFP32(9,  { 1, 0, 1 }));
     EXPECT_EQ(11111, y_buf.GetFP32(9,  { 1, 0, 2 }));
     EXPECT_EQ(    0, y_buf.GetFP32(9,  { 1, 1, 0 }));
     EXPECT_EQ(    0, y_buf.GetFP32(9,  { 1, 1, 1 }));
-    EXPECT_EQ(    0, y_buf.GetFP32(9,  { 1, 1, 2 }));;
+    EXPECT_EQ(    0, y_buf.GetFP32(9,  { 1, 1, 2 }));
+
     EXPECT_EQ(11110, y_buf.GetFP32(10, { 1, 0, 0 }));
     EXPECT_EQ(11111, y_buf.GetFP32(10, { 1, 0, 1 }));
     EXPECT_EQ(11112, y_buf.GetFP32(10, { 1, 0, 2 }));
     EXPECT_EQ(    0, y_buf.GetFP32(10, { 1, 1, 0 }));
     EXPECT_EQ(    0, y_buf.GetFP32(10, { 1, 1, 1 }));
-    EXPECT_EQ(    0, y_buf.GetFP32(10, { 1, 1, 2 }));;
+    EXPECT_EQ(    0, y_buf.GetFP32(10, { 1, 1, 2 }));
+
     EXPECT_EQ(11111, y_buf.GetFP32(11, { 1, 0, 0 }));
     EXPECT_EQ(11112, y_buf.GetFP32(11, { 1, 0, 1 }));
     EXPECT_EQ(    0, y_buf.GetFP32(11, { 1, 0, 2 }));

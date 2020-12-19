@@ -17,9 +17,9 @@ TEST(LoweringConvolutionTest, testLoweringConvolution)
 
     auto cnv = bb::LoweringConvolution<>::Create(sub_affine, 2, 2);
 
-    bb::FrameBuffer x_buf(1, {3, 3, 1}, BB_TYPE_FP32);
+    bb::FrameBuffer x_buf(1, {1, 3, 3}, BB_TYPE_FP32);
 
-    cnv->SetInputShape({3, 3, 1});
+    cnv->SetInputShape({1, 3, 3});
 
 //  EXPECT_EQ(9, cnv.GetInputNodeSize());
 //  EXPECT_EQ(4, cnv.GetOutputNodeSize());
@@ -34,15 +34,15 @@ TEST(LoweringConvolutionTest, testLoweringConvolution)
     x_buf.SetFP32(0, 3 * 2 + 1, 0.8f);
     x_buf.SetFP32(0, 3 * 2 + 2, 0.9f);
 
-    EXPECT_EQ(0.1f, x_buf.GetFP32(0, { 0 , 0, 0 }));
-    EXPECT_EQ(0.2f, x_buf.GetFP32(0, { 1 , 0, 0 }));
-    EXPECT_EQ(0.3f, x_buf.GetFP32(0, { 2 , 0, 0 }));
-    EXPECT_EQ(0.4f, x_buf.GetFP32(0, { 0 , 1, 0 }));
-    EXPECT_EQ(0.5f, x_buf.GetFP32(0, { 1 , 1, 0 }));
-    EXPECT_EQ(0.6f, x_buf.GetFP32(0, { 2 , 1, 0 }));
-    EXPECT_EQ(0.7f, x_buf.GetFP32(0, { 0 , 2, 0 }));
-    EXPECT_EQ(0.8f, x_buf.GetFP32(0, { 1 , 2, 0 }));
-    EXPECT_EQ(0.9f, x_buf.GetFP32(0, { 2 , 2, 0 }));
+    EXPECT_EQ(0.1f, x_buf.GetFP32(0, { 0, 0, 0 }));
+    EXPECT_EQ(0.2f, x_buf.GetFP32(0, { 0, 0, 1 }));
+    EXPECT_EQ(0.3f, x_buf.GetFP32(0, { 0, 0, 2 }));
+    EXPECT_EQ(0.4f, x_buf.GetFP32(0, { 0, 1, 0 }));
+    EXPECT_EQ(0.5f, x_buf.GetFP32(0, { 0, 1, 1 }));
+    EXPECT_EQ(0.6f, x_buf.GetFP32(0, { 0, 1, 2 }));
+    EXPECT_EQ(0.7f, x_buf.GetFP32(0, { 0, 2, 0 }));
+    EXPECT_EQ(0.8f, x_buf.GetFP32(0, { 0, 2, 1 }));
+    EXPECT_EQ(0.9f, x_buf.GetFP32(0, { 0, 2, 2 }));
 
 //  cnv.W(0, 0, 0, 0) = 0.1f;
 //  cnv.W(0, 0, 0, 1) = 0.2f;
@@ -121,8 +121,8 @@ void testLoweringConvolution_cmpare(
     auto layer_cpu = bb::LoweringConvolution<FT, BT>::Create(cnv_layer, f_h, f_w);
     auto layer_gpu = bb::LoweringConvolution<FT, BT>::Create(cnv_layer, f_h, f_w);
 
-    bb::FrameBuffer x_cpu(frame_size, {x_w, x_h, x_c}, bb::DataType<FT>::type, true);
-    bb::FrameBuffer x_gpu(frame_size, {x_w, x_h, x_c}, bb::DataType<FT>::type);
+    bb::FrameBuffer x_cpu(frame_size, {x_c, x_h, x_w}, bb::DataType<FT>::type, true);
+    bb::FrameBuffer x_gpu(frame_size, {x_c, x_h, x_w}, bb::DataType<FT>::type);
     
     layer_cpu->SetInputShape(x_cpu.GetShape());
     layer_gpu->SetInputShape(x_gpu.GetShape());

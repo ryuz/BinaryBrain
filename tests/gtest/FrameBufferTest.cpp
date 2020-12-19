@@ -534,4 +534,95 @@ TEST(FrameBufferTest, testConvertTo_BitToFP32)
 
 
 
+template<typename T=float>
+void FrameBufferTest_testIndex3(void)
+{
+    int f_size = 10;
+    int c_size = 2;
+    int h_size = 1;
+    int w_size = 5;
+    bb::FrameBuffer buf (f_size, {c_size, h_size, w_size}, bb::DataType<T>::type);
+    
+    std::mt19937_64 mt(1);
+    std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
+    for (int f = 0; f < f_size; ++f ) {
+        for (int c = 0; c < c_size; ++c ) {
+            for (int y = 0; y < h_size; ++y ) {
+                for (int x = 0; x < w_size; ++x ) {
+                    T val = (T)dist(mt);
+                    buf.SetValue<T>(f, {c, y, x}, val);
+
+                    auto ptr = buf.LockConst<T>();
+                    EXPECT_EQ(val, buf.GetValue<T>(f, {c, y, x}));
+                    EXPECT_EQ(val, ptr.Get(f, c, y, x));
+                    EXPECT_EQ(val, ptr.Get(f, {c, y, x}));
+                }
+            }
+        }
+    }
+
+    for (int f = 0; f < f_size; ++f ) {
+        for (int c = 0; c < c_size; ++c ) {
+            for (int y = 0; y < h_size; ++y ) {
+                for (int x = 0; x < w_size; ++x ) {
+                    T val = buf.GetValue<T>(f, {c, y, x});
+                    auto ptr = buf.LockConst<T>();
+                    EXPECT_EQ(val, ptr.Get(f, c, y, x));
+                    EXPECT_EQ(val, ptr.Get(f, {c, y, x}));
+                }
+            }
+        }
+    }
+}
+
+template<typename T=float>
+void FrameBufferTest_testIndex2(void)
+{
+    int f_size = 10;
+    int h_size = 3;
+    int w_size = 5;
+    bb::FrameBuffer buf (f_size, {h_size, w_size}, bb::DataType<T>::type);
+    
+    std::mt19937_64 mt(1);
+    std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
+    for (int f = 0; f < f_size; ++f ) {
+        for (int y = 0; y < h_size; ++y ) {
+            for (int x = 0; x < w_size; ++x ) {
+                T val = (T)dist(mt);
+                buf.SetValue<T>(f, {y, x}, val);
+
+                auto ptr = buf.LockConst<T>();
+                EXPECT_EQ(val, buf.GetValue<T>(f, {y, x}));
+                EXPECT_EQ(val, ptr.Get(f, y, x));
+                EXPECT_EQ(val, ptr.Get(f, {y, x}));
+            }
+        }
+    }
+
+    for (int f = 0; f < f_size; ++f ) {
+        for (int y = 0; y < h_size; ++y ) {
+            for (int x = 0; x < w_size; ++x ) {
+                T val = buf.GetValue<T>(f, {y, x});
+                auto ptr = buf.LockConst<T>();
+                EXPECT_EQ(val, ptr.Get(f, y, x));
+                EXPECT_EQ(val, ptr.Get(f, {y, x}));
+            }
+        }
+    }
+}
+
+
+TEST(FrameBufferTest, testIndex)
+{
+    FrameBufferTest_testIndex3<float>();
+    FrameBufferTest_testIndex3<bb::Bit>();
+    FrameBufferTest_testIndex3<std::int8_t>();
+    FrameBufferTest_testIndex3<std::uint16_t>();
+
+    FrameBufferTest_testIndex2<float>();
+    FrameBufferTest_testIndex2<bb::Bit>();
+}
+
+
+
 // end of file

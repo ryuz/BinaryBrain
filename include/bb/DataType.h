@@ -159,7 +159,7 @@ inline index_t ConvertIndicesToIndex(index_t i0, index_t i1, indices_t const & s
     BB_DEBUG_ASSERT(i0 >= 0 && i0 <= shape[0]);
     BB_DEBUG_ASSERT(i1 >= 0 && i1 <= shape[1]);
 
-    return (i1 * shape[0]) + i0;
+    return (i0 * shape[1]) + i1;
 }
 
 inline index_t ConvertIndicesToIndex(index_t i0, index_t i1, index_t i2, indices_t const & shape)
@@ -169,7 +169,7 @@ inline index_t ConvertIndicesToIndex(index_t i0, index_t i1, index_t i2, indices
     BB_DEBUG_ASSERT(i1 >= 0 && i1 <= shape[1]);
     BB_DEBUG_ASSERT(i2 >= 0 && i2 <= shape[2]);
 
-    return ((i2 * shape[1] + i1) * shape[0]) + i0;
+    return ((i0 * shape[1] + i1) * shape[2]) + i2;
 }
 
 
