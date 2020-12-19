@@ -18,7 +18,7 @@
 
 #include "bb/Sequential.h"
 #include "bb/LutLayer.h"
-#include "bb/LoweringConvolution.h"
+#include "bb/Convolution2d.h"
 #include "bb/MaxPooling.h"
 
 
@@ -438,7 +438,7 @@ endmodule
 
 
 template <typename FT = Bit, typename BT = float>
-void ExportVerilog_LutConvolutionLayer(std::ostream& os, std::string module_name, std::shared_ptr< LoweringConvolution<FT, BT> > conv)
+void ExportVerilog_LutConvolutionLayer(std::ostream& os, std::string module_name, std::shared_ptr< Convolution2d<FT, BT> > conv)
 {
     // group取得
     auto net = std::dynamic_pointer_cast<Sequential>(conv->GetLayer());
@@ -631,7 +631,7 @@ void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module_name, 
         os << "\n\n";
 
         auto layer = layers[i];
-        auto cnv = std::dynamic_pointer_cast<LoweringConvolution<FT, BT> >(layer);
+        auto cnv = std::dynamic_pointer_cast<Convolution2d<FT, BT> >(layer);
         auto pol = std::dynamic_pointer_cast<MaxPooling<FT, BT> >(layer);
         if ( cnv ) {
             os << "\t" << module_name << "_l" << i << "\n";
@@ -712,7 +712,7 @@ void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module_name, 
 
     for ( int i = 0; i < layer_size; ++i ) {
         auto layer = layers[i];
-        auto cnv = std::dynamic_pointer_cast< LoweringConvolution<FT, BT> >(layer);
+        auto cnv = std::dynamic_pointer_cast< Convolution2d<FT, BT> >(layer);
         if ( cnv ) {
             std::stringstream ss;
             ss << module_name << "_l" << i;

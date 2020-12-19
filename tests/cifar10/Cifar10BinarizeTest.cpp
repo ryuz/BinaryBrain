@@ -12,7 +12,7 @@
 #include "bb/DenseAffine.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
-#include "bb/LoweringConvolution.h"
+#include "bb/Convolution2d.h"
 #include "bb/MaxPooling.h"
 #include "bb/BinaryModulation.h"
 #include "bb/OptimizerAdam.h"
@@ -119,14 +119,14 @@ void Cifar10BinarizeTest_(int epoch_size, int mini_batch_size, int depth_modulat
 
         auto main_net = bb::Sequential::Create();
 
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv0_net, 3, 3));   // 30x30
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv1_net, 3, 3));   // 28x28
+        main_net->Add(bb::Convolution2d<T>::Create(cnv0_net, 3, 3));   // 30x30
+        main_net->Add(bb::Convolution2d<T>::Create(cnv1_net, 3, 3));   // 28x28
         main_net->Add(bb::MaxPooling<T>::Create(2, 2));                      // 14x14
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv2_net, 3, 3));   // 12x12
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv3_net, 3, 3));   // 10x10
+        main_net->Add(bb::Convolution2d<T>::Create(cnv2_net, 3, 3));   // 12x12
+        main_net->Add(bb::Convolution2d<T>::Create(cnv3_net, 3, 3));   // 10x10
         main_net->Add(bb::MaxPooling<T>::Create(2, 2));                      // 5x5
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv4_net, 3, 3));   // 3x3
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv5_net, 3, 3));   // 1x1
+        main_net->Add(bb::Convolution2d<T>::Create(cnv4_net, 3, 3));   // 3x3
+        main_net->Add(bb::Convolution2d<T>::Create(cnv5_net, 3, 3));   // 1x1
         
         // Conv1x1
         main_net->Add(bb::DenseAffine<>::Create(512));

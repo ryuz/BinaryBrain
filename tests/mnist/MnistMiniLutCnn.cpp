@@ -16,7 +16,7 @@
 #include "bb/BinaryToReal.h"
 #include "bb/DenseAffine.h"
 #include "bb/MicroMlp.h"
-#include "bb/LoweringConvolution.h"
+#include "bb/Convolution2d.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
 #include "bb/MaxPooling.h"
@@ -63,11 +63,11 @@ void MnistMiniLutCnn(int epoch_size, size_t mini_batch_size, bool binary_mode)
 
     auto net = bb::Sequential::Create();
     net->Add(bb::RealToBinary<>::Create(mux_size));
-    net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
-    net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
+    net->Add(bb::Convolution2d<>::Create(cnv0_sub, 3, 3));
+    net->Add(bb::Convolution2d<>::Create(cnv1_sub, 3, 3));
     net->Add(bb::MaxPooling<>::Create(2, 2));
-    net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
-    net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
+    net->Add(bb::Convolution2d<>::Create(cnv2_sub, 3, 3));
+    net->Add(bb::Convolution2d<>::Create(cnv3_sub, 3, 3));
     net->Add(bb::MaxPooling<>::Create(2, 2));
     net->Add(bb::MicroMlp<>::Create({512}));
     net->Add(bb::MicroMlp<>::Create({420}));

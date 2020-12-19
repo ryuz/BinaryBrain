@@ -213,7 +213,7 @@ void MnistDetectionDifferentiableLutSimple(int epoch_size, int mini_batch_size, 
         cnv0_sub->Add(layer_bl2);
         cnv0_sub->Add(layer_bl3);
         cnv0_sub->Add(layer_bl4);
-        auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 28, 28);
+        auto cnv0 = bb::Convolution2d<bb::Bit>::Create(cnv0_sub, 28, 28);
 
         auto lut_net = bb::Sequential::Create();
         lut_net->Add(cnv0);

@@ -13,7 +13,7 @@
 #include "bb/DepthwiseDenseAffine.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
-#include "bb/LoweringConvolution.h"
+#include "bb/Convolution2d.h"
 #include "bb/MaxPooling.h"
 #include "bb/BinaryModulation.h"
 #include "bb/OptimizerAdam.h"
@@ -139,7 +139,7 @@ static std::shared_ptr<bb::Model> make_cnv(int ch_size)
     cnv_net->Add(bb::DenseAffine<>::Create(ch_size));
     cnv_net->Add(bb::BatchNormalization<>::Create());
     cnv_net->Add(bb::ReLU<float>::Create());
-    return bb::LoweringConvolution<>::Create(cnv_net, 3, 3, 1, 1, "same");
+    return bb::Convolution2d<>::Create(cnv_net, 3, 3, 1, 1, "same");
 }
 
 
@@ -152,7 +152,7 @@ static std::shared_ptr<bb::Model> make_mobile_cnv(int in_ch_size, int out_ch_siz
         cnv0_net->Add(bb::DepthwiseDenseAffine<>::Create(in_ch_size));
         cnv0_net->Add(bb::BatchNormalization<>::Create());
         cnv0_net->Add(bb::ReLU<float>::Create());
-        net->Add(bb::LoweringConvolution<>::Create(cnv0_net, 3, 3, 1, 1, "same"));
+        net->Add(bb::Convolution2d<>::Create(cnv0_net, 3, 3, 1, 1, "same"));
     }
 
     {
@@ -160,7 +160,7 @@ static std::shared_ptr<bb::Model> make_mobile_cnv(int in_ch_size, int out_ch_siz
         cnv1_net->Add(bb::DenseAffine<>::Create(out_ch_size));
         cnv1_net->Add(bb::BatchNormalization<>::Create());
         cnv1_net->Add(bb::ReLU<float>::Create());
-        net->Add(bb::LoweringConvolution<>::Create(cnv1_net, 1, 1));
+        net->Add(bb::Convolution2d<>::Create(cnv1_net, 1, 1));
     }
 
     return net;

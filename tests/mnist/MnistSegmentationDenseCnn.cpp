@@ -12,7 +12,7 @@
 #include "bb/DenseAffine.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
-#include "bb/LoweringConvolution.h"
+#include "bb/Convolution2d.h"
 #include "bb/MaxPooling.h"
 #include "bb/BinaryModulation.h"
 #include "bb/OptimizerAdam.h"
@@ -138,7 +138,7 @@ static std::shared_ptr<bb::Model> make_cnv(int ch_size)
     cnv_net->Add(bb::DenseAffine<>::Create(ch_size));
     cnv_net->Add(bb::BatchNormalization<>::Create());
     cnv_net->Add(bb::ReLU<float>::Create());
-    return bb::LoweringConvolution<>::Create(cnv_net, 3, 3, 1, 1, "same");
+    return bb::Convolution2d<>::Create(cnv_net, 3, 3, 1, 1, "same");
 }
 
 

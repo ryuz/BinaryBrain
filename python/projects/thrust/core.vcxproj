@@ -43,6 +43,8 @@
     <ClInclude Include="..\..\..\include\bb\DataAugmentationMnist.h" />
     <ClInclude Include="..\..\..\include\bb\DataType.h" />
     <ClInclude Include="..\..\..\include\bb\DenseAffine.h" />
+    <ClInclude Include="..\..\..\include\bb\DifferentiableLutDiscreteN.h" />
+    <ClInclude Include="..\..\..\include\bb\DifferentiableLutN.h" />
     <ClInclude Include="..\..\..\include\bb\Dropout.h" />
     <ClInclude Include="..\..\..\include\bb\ExportVerilog.h" />
     <ClInclude Include="..\..\..\include\bb\Filter2d.h" />
@@ -55,7 +57,6 @@
     <ClInclude Include="..\..\..\include\bb\LossFunction.h" />
     <ClInclude Include="..\..\..\include\bb\LossMeanSquaredError.h" />
     <ClInclude Include="..\..\..\include\bb\LossSoftmaxCrossEntropy.h" />
-    <ClInclude Include="..\..\..\include\bb\LoweringConvolution.h" />
     <ClInclude Include="..\..\..\include\bb\LutLayer.h" />
     <ClInclude Include="..\..\..\include\bb\Manager.h" />
     <ClInclude Include="..\..\..\include\bb\MaxPooling.h" />

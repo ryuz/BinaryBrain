@@ -12,7 +12,7 @@
 #include "bb/DenseAffine.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
-#include "bb/LoweringConvolution.h"
+#include "bb/Convolution2d.h"
 #include "bb/MaxPooling.h"
 #include "bb/BinaryModulation.h"
 #include "bb/OptimizerAdam.h"
@@ -107,11 +107,11 @@ void Cifar10DenseCnn(int epoch_size, int mini_batch_size, int train_modulation_s
         cnv3_net->Add(bb::ReLU<float>::Create());
 
         auto main_net = bb::Sequential::Create();
-        main_net->Add(bb::LoweringConvolution<>::Create(cnv0_net, 3, 3));   // Conv3x3 x 32
-        main_net->Add(bb::LoweringConvolution<>::Create(cnv1_net, 3, 3));   // Conv3x3 x 32
+        main_net->Add(bb::Convolution2d<>::Create(cnv0_net, 3, 3));   // Conv3x3 x 32
+        main_net->Add(bb::Convolution2d<>::Create(cnv1_net, 3, 3));   // Conv3x3 x 32
         main_net->Add(bb::MaxPooling<>::Create(2, 2));
-        main_net->Add(bb::LoweringConvolution<>::Create(cnv2_net, 3, 3));   // Conv3x3 x 64
-        main_net->Add(bb::LoweringConvolution<>::Create(cnv3_net, 3, 3));   // Conv3x3 x 64
+        main_net->Add(bb::Convolution2d<>::Create(cnv2_net, 3, 3));   // Conv3x3 x 64
+        main_net->Add(bb::Convolution2d<>::Create(cnv3_net, 3, 3));   // Conv3x3 x 64
         main_net->Add(bb::MaxPooling<>::Create(2, 2));
         main_net->Add(bb::DenseAffine<float>::Create(512));
         main_net->Add(bb::ReLU<float>::Create());

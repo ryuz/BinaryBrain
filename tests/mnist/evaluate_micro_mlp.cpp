@@ -56,7 +56,7 @@
 #include "bb/NeuralNetLossCrossEntropyWithSoftmax.h"
 #include "bb/NeuralNetAccuracyCategoricalClassification.h"
 
-#include "bb/NeuralNetLoweringConvolution.h"
+#include "bb/NeuralNetConvolution2d.h"
 
 #include "bb/ShuffleSet.h"
 

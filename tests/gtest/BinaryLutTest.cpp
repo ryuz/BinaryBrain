@@ -184,7 +184,7 @@ void testBinaryLut6_cmpare(
 
 
 
-TEST(NeuralNetBinaryLut6, testLoweringConvolution_cmp_bit)
+TEST(NeuralNetBinaryLut6, testConvolution2d_cmp_bit)
 {
     testBinaryLut6_cmpare<6, bb::Bit, float>(2, 16, 16, 32);
 }

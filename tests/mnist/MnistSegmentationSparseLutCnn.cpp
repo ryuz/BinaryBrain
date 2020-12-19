@@ -14,7 +14,7 @@
 #include "bb/ReLU.h"
 #include "bb/Reduce.h"
 #include "bb/DifferentiableLutN.h"
-#include "bb/LoweringConvolution.h"
+#include "bb/Convolution2d.h"
 #include "bb/MaxPooling.h"
 #include "bb/BinaryModulation.h"
 #include "bb/OptimizerAdam.h"
@@ -40,7 +40,7 @@ void conv_to_rtl(void)
         depthwise_list.push_back(depthwise_lut);
         auto depthwise_net = bb::Sequential::Create();
         depthwise_net->Add(depthwise_lut);
-        auto depthwise_cnv = bb::LoweringConvolution<bb::Bit>::Create(depthwise_net, 3, 3);
+        auto depthwise_cnv = bb::Convolution2d<bb::Bit>::Create(depthwise_net, 3, 3);
         layer_list.push_back(depthwise_cnv);
         net->Add(depthwise_cnv);
     }
@@ -53,7 +53,7 @@ void conv_to_rtl(void)
         auto pointwise_net = bb::Sequential::Create();
         pointwise_net->Add(pointwise_lut0);
         pointwise_net->Add(pointwise_lut1);
-        auto pointwise_cnv = bb::LoweringConvolution<bb::Bit>::Create(pointwise_net, 1, 1);
+        auto pointwise_cnv = bb::Convolution2d<bb::Bit>::Create(pointwise_net, 1, 1);
         layer_list.push_back(pointwise_cnv);
         net->Add(pointwise_cnv);
     }
@@ -64,7 +64,7 @@ void conv_to_rtl(void)
             depthwise_list.push_back(depthwise_lut);
             auto depthwise_net = bb::Sequential::Create();
             depthwise_net->Add(depthwise_lut);
-            auto depthwise_cnv = bb::LoweringConvolution<bb::Bit>::Create(depthwise_net, 3, 3);
+            auto depthwise_cnv = bb::Convolution2d<bb::Bit>::Create(depthwise_net, 3, 3);
             layer_list.push_back(depthwise_cnv);
             net->Add(depthwise_cnv);
         }
@@ -77,7 +77,7 @@ void conv_to_rtl(void)
             auto pointwise_net = bb::Sequential::Create();
             pointwise_net->Add(pointwise_lut0);
             pointwise_net->Add(pointwise_lut1);
-            auto pointwise_cnv = bb::LoweringConvolution<bb::Bit>::Create(pointwise_net, 1, 1);
+            auto pointwise_cnv = bb::Convolution2d<bb::Bit>::Create(pointwise_net, 1, 1);
             layer_list.push_back(pointwise_cnv);
             net->Add(pointwise_cnv);
         }
@@ -88,7 +88,7 @@ void conv_to_rtl(void)
         depthwise_list.push_back(depthwise_lut);
         auto depthwise_net = bb::Sequential::Create();
         depthwise_net->Add(depthwise_lut);
-        auto depthwise_cnv = bb::LoweringConvolution<bb::Bit>::Create(depthwise_net, 3, 3);
+        auto depthwise_cnv = bb::Convolution2d<bb::Bit>::Create(depthwise_net, 3, 3);
         layer_list.push_back(depthwise_cnv);
         net->Add(depthwise_cnv);
     }
@@ -101,7 +101,7 @@ void conv_to_rtl(void)
         auto pointwise_net = bb::Sequential::Create();
         pointwise_net->Add(pointwise_lut0);
         pointwise_net->Add(pointwise_lut1);
-        auto pointwise_cnv = bb::LoweringConvolution<bb::Bit>::Create(pointwise_net, 1, 1);
+        auto pointwise_cnv = bb::Convolution2d<bb::Bit>::Create(pointwise_net, 1, 1);
         layer_list.push_back(pointwise_cnv);
         net->Add(pointwise_cnv);
     }
@@ -114,7 +114,7 @@ void conv_to_rtl(void)
         auto pointwise_net = bb::Sequential::Create();
         pointwise_net->Add(pointwise_lut0);
         pointwise_net->Add(pointwise_lut1);
-        auto pointwise_cnv = bb::LoweringConvolution<bb::Bit>::Create(pointwise_net, 1, 1);
+        auto pointwise_cnv = bb::Convolution2d<bb::Bit>::Create(pointwise_net, 1, 1);
         layer_list.push_back(pointwise_cnv);
         net->Add(pointwise_cnv);
     }
@@ -127,7 +127,7 @@ void conv_to_rtl(void)
         auto pointwise_net = bb::Sequential::Create();
         pointwise_net->Add(pointwise_lut0);
         pointwise_net->Add(pointwise_lut1);
-        auto pointwise_cnv = bb::LoweringConvolution<bb::Bit>::Create(pointwise_net, 1, 1);
+        auto pointwise_cnv = bb::Convolution2d<bb::Bit>::Create(pointwise_net, 1, 1);
         layer_list.push_back(pointwise_cnv);
         net->Add(pointwise_cnv);
     }
@@ -277,14 +277,14 @@ static std::shared_ptr<bb::Model> make_dense_cnv(int ch_size)
     cnv_net->Add(bb::DenseAffine<float>::Create(ch_size));
     cnv_net->Add(bb::BatchNormalization<float>::Create());
     cnv_net->Add(bb::Binarize<bb::Bit>::Create());
-    return bb::LoweringConvolution<bb::Bit>::Create(cnv_net, 3, 3, 1, 1, "same");
+    return bb::Convolution2d<bb::Bit>::Create(cnv_net, 3, 3, 1, 1, "same");
 }
 
 static std::shared_ptr<bb::Model> make_lut_depthwise_cnv(bb::indices_t output_shape, int w=3, int h=3, bool bn=true)
 {
     auto cnv_net = bb::Sequential::Create();
     cnv_net->Add(bb::DifferentiableLutN<6, bb::Bit>::Create(output_shape, bn, "depthwise"));
-    return bb::LoweringConvolution<bb::Bit>::Create(cnv_net, w, h, 1, 1, "same");
+    return bb::Convolution2d<bb::Bit>::Create(cnv_net, w, h, 1, 1, "same");
 }
 
 static std::shared_ptr<bb::Model> make_lut_pointwise_cnv(int ch_size, int lut_size=2, bool bn=true)
@@ -293,7 +293,7 @@ static std::shared_ptr<bb::Model> make_lut_pointwise_cnv(int ch_size, int lut_si
     if ( lut_size >= 3) { cnv_net->Add(bb::DifferentiableLutN<6, bb::Bit>::Create(ch_size*6*6, bn, "random")); }
     if ( lut_size >= 2) { cnv_net->Add(bb::DifferentiableLutN<6, bb::Bit>::Create(ch_size*6,   bn, "random")); }
     if ( lut_size >= 1) { cnv_net->Add(bb::DifferentiableLutN<6, bb::Bit>::Create(ch_size,     bn, "serial")); }
-    return bb::LoweringConvolution<bb::Bit>::Create(cnv_net, 3, 3, 1, 1, "same");
+    return bb::Convolution2d<bb::Bit>::Create(cnv_net, 3, 3, 1, 1, "same");
 }
 
 

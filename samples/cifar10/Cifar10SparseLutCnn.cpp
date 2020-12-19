@@ -87,11 +87,11 @@ void DifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_modulat
         cnv3_sub->Add(layer_cnv3_sl2);
         
         auto main_net = bb::Sequential::Create();
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv0_sub, 3, 3));
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv1_sub, 3, 3));
+        main_net->Add(bb::Convolution2d<T>::Create(cnv0_sub, 3, 3));
+        main_net->Add(bb::Convolution2d<T>::Create(cnv1_sub, 3, 3));
         main_net->Add(bb::MaxPooling<T>::Create(2, 2));
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv2_sub, 3, 3));
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv3_sub, 3, 3));
+        main_net->Add(bb::Convolution2d<T>::Create(cnv2_sub, 3, 3));
+        main_net->Add(bb::Convolution2d<T>::Create(cnv3_sub, 3, 3));
         main_net->Add(bb::MaxPooling<T>::Create(2, 2));
         main_net->Add(layer_sl4);
         main_net->Add(layer_sl5);
@@ -199,15 +199,15 @@ void DifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_modulat
         cnv4_sub->Add(layer_bl9);
         cnv4_sub->Add(layer_bl10);
 
-        auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3);   // 32x32 -> 30x30
-        auto cnv1 = bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3);   // 30x30 -> 28x28  
+        auto cnv0 = bb::Convolution2d<bb::Bit>::Create(cnv0_sub, 3, 3);   // 32x32 -> 30x30
+        auto cnv1 = bb::Convolution2d<bb::Bit>::Create(cnv1_sub, 3, 3);   // 30x30 -> 28x28  
         auto pol0 = bb::MaxPooling<bb::Bit>::Create(2, 2);                      // 28x28 -> 14x14
 
-        auto cnv2 = bb::LoweringConvolution<bb::Bit>::Create(cnv2_sub, 3, 3);   // 14x14 -> 12x12
-        auto cnv3 = bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3);   // 12x12 -> 10x10
+        auto cnv2 = bb::Convolution2d<bb::Bit>::Create(cnv2_sub, 3, 3);   // 14x14 -> 12x12
+        auto cnv3 = bb::Convolution2d<bb::Bit>::Create(cnv3_sub, 3, 3);   // 12x12 -> 10x10
         auto pol1 = bb::MaxPooling<bb::Bit>::Create(2, 2);                      // 10x10 -> 5x5
 
-        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);   // 5x5 -> 1x1
+        auto cnv4 = bb::Convolution2d<bb::Bit>::Create(cnv4_sub, 5, 5);   // 5x5 -> 1x1
 
         auto lut_net = bb::Sequential::Create();
         lut_net->Add(cnv0);

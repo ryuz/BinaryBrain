@@ -103,6 +103,24 @@ public:
         return Create(indices_t({output_node_size}), batch_norm, connection, seed);
     }
 
+#ifdef BB_PYBIND11
+    static std::shared_ptr< DifferentiableLutDiscreteN > CreatePy(indices_t const &output_shape, bool batch_norm = true, std::string connection = "",
+                                                             RealType momentum = (RealType)0.0, RealType gamma = (RealType)0.3, RealType beta = (RealType)0.5,
+                                                             std::uint64_t seed = 1)
+    {
+        create_t create;
+        create.output_shape = output_shape;
+        create.connection   = connection;
+        create.batch_norm   = batch_norm;
+        create.momentum     = momentum;
+        create.gamma        = gamma;
+        create.beta         = beta;
+        create.seed         = seed;
+        return Create(create);
+    }
+#endif
+
+
     std::string GetClassName(void) const { return "DifferentiableLutN"; }
 
     /**

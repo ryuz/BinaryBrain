@@ -85,25 +85,36 @@ class RealToBinary(Model):
                         framewise=False, input_range_lo=0.0, input_range_hi=1.0):
         super(RealToBinary, self).__init__()
         
-        if bin_dtype==core.TYPE_FP32:
-            self.model = core.RealToBinary.create(
-                                frame_modulation_size=frame_modulation_size,
-                                depth_modulation_size=depth_modulation_size,
-                                value_generator=value_generator,
-                                framewise=framewise,
-                                input_range_lo=input_range_lo,
-                                input_range_hi=input_range_hi)
-        elif bin_dtype==core.TYPE_BIT:
-            self.model = core.RealToBinaryBit.create(
-                                frame_modulation_size=frame_modulation_size,
-                                depth_modulation_size=depth_modulation_size,
-                                value_generator=value_generator,
-                                framewise=framewise,
-                                input_range_lo=input_range_lo,
-                                input_range_hi=input_range_hi)
-        else:
-            raise ValueError("parameter error")
+        try:
+            creator = {
+                core.TYPE_FP32: core.RealToBinary_fp32.create,
+                core.TYPE_BIT:  core.RealToBinary_bit.create,
+            }[bin_dtype]
+        except:
+            raise TypeError("unsupported")
 
+        self.model = creator(frame_modulation_size, depth_modulation_size,
+                            value_generator, framewise, input_range_lo, input_range_hi)
+
+#        if bin_dtype==core.TYPE_FP32:
+#            self.model = core.RealToBinary_fp32.create(
+#                                frame_modulation_size=frame_modulation_size,
+#                                depth_modulation_size=depth_modulation_size,
+#                                value_generator=value_generator,
+#                                framewise=framewise,
+#                                input_range_lo=input_range_lo,
+#                                input_range_hi=input_range_hi)
+#        elif bin_dtype==core.TYPE_BIT:
+#            self.model = core.RealToBinary_bit.create(
+#                                frame_modulation_size=frame_modulation_size,
+#                                depth_modulation_size=depth_modulation_size,
+#                                value_generator=value_generator,
+#                                framewise=framewise,
+#                                input_range_lo=input_range_lo,
+#                                input_range_hi=input_range_hi)
+#        else:
+#            raise ValueError("parameter error")
+        
 
 class BinaryToReal(Model):
     """BinaryToReal class
@@ -113,9 +124,9 @@ class BinaryToReal(Model):
         super(BinaryToReal, self).__init__()
         
         if bin_dtype==core.TYPE_FP32:
-            self.model = core.BinaryToReal.create(frame_modulation_size=frame_modulation_size, output_shape=output_shape)
+            self.model = core.BinaryToReal_fp32.create(frame_modulation_size=frame_modulation_size, output_shape=output_shape)
         elif bin_dtype==core.TYPE_BIT:
-            self.model = core.BinaryToRealBit.create(frame_modulation_size=frame_modulation_size, output_shape=output_shape)
+            self.model = core.BinaryToRealBit_fp32.create(frame_modulation_size=frame_modulation_size, output_shape=output_shape)
         else:
             raise ValueError("parameter error")
 
@@ -139,23 +150,72 @@ class DifferentiableLut(Model):
     def __init__(self, output_shape, N=6, bin_dtype=core.TYPE_FP32, real_dtype=core.TYPE_FP32,
                     connection='random', binarize=True, batch_norm=True, momentum=0.0, gamma= 0.3, beta=0.5, seed=1):
         super(DifferentiableLut, self).__init__()
+        
+        if not binarize and not batch_norm:
+            # StochasticLut 演算のみ
+            try:
+                creator = {
+                    core.TYPE_FP32: {
+                        6: core.StochasticLut6_fp32.create,
+                        5: core.StochasticLut5_fp32.create,
+                        4: core.StochasticLut4_fp32.create,
+                        2: core.StochasticLut2_fp32.create,
+                    },
+                    core.TYPE_BIT: {
+                        6: core.StochasticLut6_bit.create,
+                        5: core.StochasticLut5_bit.create,
+                        4: core.StochasticLut4_bit.create,
+                        2: core.StochasticLut2_bit.create,
+                    },
+                }[bin_dtype][N]
+            except:
+                raise TypeError("unsupported")
 
-        if N==6 and bin_dtype==core.TYPE_FP32 and real_dtype==core.TYPE_FP32 and binarize and batch_norm:
-            self.model = core.DifferentiableLut6.create(
-                            output_shape=output_shape,
-                            batch_norm=batch_norm,
-                            connection=connection,
-                            momentum=momentum,
-                            gamma=gamma,
-                            beta=beta,
-                            seed=seed)
-        elif N==6 and bin_dtype==core.TYPE_FP32 and real_dtype==core.TYPE_FP32 and not binarize and not batch_norm:
-            self.model = core.StochasticLut6.create(
-                            output_shape=output_shape,
-                            connection=connection,
-                            seed=seed)
+                self.model = creator(output_shape, connection, seed)
+        
+        elif binarize and batch_norm:
+            # 条件が揃えば BatchNorm と 二値化を一括演算
+            try:
+                creator = {
+                    core.TYPE_FP32: {
+                        6: core.DifferentiableLut6_fp32.create,
+                        5: core.DifferentiableLut5_fp32.create,
+                        4: core.DifferentiableLut4_fp32.create,
+                        2: core.DifferentiableLut2_fp32.create,
+                    },
+                    core.TYPE_BIT: {
+                        6: core.DifferentiableLut6_bit.create,
+                        5: core.DifferentiableLut5_bit.create,
+                        4: core.DifferentiableLut4_bit.create,
+                        2: core.DifferentiableLut2_bit.create,
+                    },                    
+                }[bin_dtype][N]
+            except:
+                raise TypeError("unsupported")
+            
+            self.model = creator(output_shape, batch_norm, connection, momentum, gamma, beta, seed)
+        
         else:
-            raise TypeError("unsupported")
+            # 個別演算
+            try:
+                creator = {
+                    core.TYPE_FP32: {
+                        6: core.DifferentiableLutDiscrete6_fp32.create,
+                        5: core.DifferentiableLutDiscrete5_fp32.create,
+                        4: core.DifferentiableLutDiscrete4_fp32.create,
+                        2: core.DifferentiableLutDiscrete2_fp32.create,
+                    },
+                    core.TYPE_BIT: {
+                        6: core.DifferentiableLutDiscrete6_bit.create,
+                        5: core.DifferentiableLutDiscrete5_bit.create,
+                        4: core.DifferentiableLutDiscrete4_bit.create,
+                        2: core.DifferentiableLutDiscrete2_bit.create,
+                    },                    
+                }[bin_dtype][N]
+            except:
+                raise TypeError("unsupported")
+            
+            self.model = creator(output_shape, batch_norm, connection, momentum, gamma, beta, seed)
 
 
 class ConvolutionIm2Col(Model):

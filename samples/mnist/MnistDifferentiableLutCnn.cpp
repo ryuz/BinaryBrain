@@ -80,11 +80,11 @@ void MnistDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_mo
         cnv3_sub->Add(layer_cnv3_sl1);
         
         auto main_net = bb::Sequential::Create();
-        main_net->Add(bb::LoweringConvolution<float>::Create(cnv0_sub, 3, 3));
-        main_net->Add(bb::LoweringConvolution<float>::Create(cnv1_sub, 3, 3));
+        main_net->Add(bb::Convolution2d<float>::Create(cnv0_sub, 3, 3));
+        main_net->Add(bb::Convolution2d<float>::Create(cnv1_sub, 3, 3));
         main_net->Add(bb::MaxPooling<float>::Create(2, 2));
-        main_net->Add(bb::LoweringConvolution<float>::Create(cnv2_sub, 3, 3));
-        main_net->Add(bb::LoweringConvolution<float>::Create(cnv3_sub, 3, 3));
+        main_net->Add(bb::Convolution2d<float>::Create(cnv2_sub, 3, 3));
+        main_net->Add(bb::Convolution2d<float>::Create(cnv3_sub, 3, 3));
         main_net->Add(bb::MaxPooling<float>::Create(2, 2));
         main_net->Add(layer_sl4);
         main_net->Add(layer_sl5);
@@ -169,15 +169,15 @@ void MnistDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_mo
         cnv4_sub->Add(layer_bl4);
         cnv4_sub->Add(layer_bl5);
 
-        auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3);
-        auto cnv1 = bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3);
+        auto cnv0 = bb::Convolution2d<bb::Bit>::Create(cnv0_sub, 3, 3);
+        auto cnv1 = bb::Convolution2d<bb::Bit>::Create(cnv1_sub, 3, 3);
         auto pol0 = bb::MaxPooling<bb::Bit>::Create(2, 2);
 
-        auto cnv2 = bb::LoweringConvolution<bb::Bit>::Create(cnv2_sub, 3, 3);
-        auto cnv3 = bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3);
+        auto cnv2 = bb::Convolution2d<bb::Bit>::Create(cnv2_sub, 3, 3);
+        auto cnv3 = bb::Convolution2d<bb::Bit>::Create(cnv3_sub, 3, 3);
         auto pol1 = bb::MaxPooling<bb::Bit>::Create(2, 2);
 
-        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 4, 4);
+        auto cnv4 = bb::Convolution2d<bb::Bit>::Create(cnv4_sub, 4, 4);
 
         auto lut_net = bb::Sequential::Create();
         lut_net->Add(cnv0);

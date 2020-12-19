@@ -15,7 +15,7 @@
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
 #include "bb/Shuffle.h"
-#include "bb/LoweringConvolution.h"
+#include "bb/Convolution2d.h"
 #include "bb/MaxPooling.h"
 #include "bb/BinaryModulation.h"
 #include "bb/OptimizerAdam.h"
@@ -89,40 +89,40 @@ void Cifar10ShuffleNet_(int epoch_size, int mini_batch_size, int train_modulatio
         // create network
         auto main_net = bb::Sequential::Create();
 
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakePointwiseLayer<T>({1, 1,  36*w}, 36,           false), 1, 1));
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeDepthwiseLayer<T>({1, 1,  36*w}              ), 3, 3));  // 30x30
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakePointwiseLayer<T>({1, 1,  36  }, shuffle_unit, true), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakePointwiseLayer<T>({1, 1,  36*w}, 36,           false), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeDepthwiseLayer<T>({1, 1,  36*w}              ), 3, 3));  // 30x30
+        main_net->Add(bb::Convolution2d<T>::Create(MakePointwiseLayer<T>({1, 1,  36  }, shuffle_unit, true), 1, 1));
 
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakePointwiseLayer<T>({1, 1,  72*w}, shuffle_unit, false), 1, 1));
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeDepthwiseLayer<T>({1, 1,  72*w}              ), 3, 3));  // 28x28
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakePointwiseLayer<T>({1, 1,  72  }, shuffle_unit, true), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakePointwiseLayer<T>({1, 1,  72*w}, shuffle_unit, false), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeDepthwiseLayer<T>({1, 1,  72*w}              ), 3, 3));  // 28x28
+        main_net->Add(bb::Convolution2d<T>::Create(MakePointwiseLayer<T>({1, 1,  72  }, shuffle_unit, true), 1, 1));
 
         main_net->Add(bb::MaxPooling<T>::Create(2, 2));                                                               // 14x14
 
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakePointwiseLayer<T>({1, 1,  72*w}, shuffle_unit, false), 1, 1));
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeDepthwiseLayer<T>({1, 1,  72*w}              ), 3, 3));  // 12x12
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakePointwiseLayer<T>({1, 1,  72  }, shuffle_unit), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakePointwiseLayer<T>({1, 1,  72*w}, shuffle_unit, false), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeDepthwiseLayer<T>({1, 1,  72*w}              ), 3, 3));  // 12x12
+        main_net->Add(bb::Convolution2d<T>::Create(MakePointwiseLayer<T>({1, 1,  72  }, shuffle_unit), 1, 1));
 
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakePointwiseLayer<T>({1, 1, 144*w}, shuffle_unit, false), 1, 1));
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeDepthwiseLayer<T>({1, 1, 144*w}              ), 3, 3));  // 10x10
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakePointwiseLayer<T>({1, 1, 144  }, shuffle_unit, true), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakePointwiseLayer<T>({1, 1, 144*w}, shuffle_unit, false), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeDepthwiseLayer<T>({1, 1, 144*w}              ), 3, 3));  // 10x10
+        main_net->Add(bb::Convolution2d<T>::Create(MakePointwiseLayer<T>({1, 1, 144  }, shuffle_unit, true), 1, 1));
 
         main_net->Add(bb::MaxPooling<T>::Create(2, 2));                                                               // 5x5 
 
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakePointwiseLayer<T>({1, 1, 144*w}, shuffle_unit, false), 1, 1));
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeDepthwiseLayer<T>({1, 1, 144*w}              ), 3, 3));  // 3x3
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakePointwiseLayer<T>({1, 1, 144  }, shuffle_unit, true), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakePointwiseLayer<T>({1, 1, 144*w}, shuffle_unit, false), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeDepthwiseLayer<T>({1, 1, 144*w}              ), 3, 3));  // 3x3
+        main_net->Add(bb::Convolution2d<T>::Create(MakePointwiseLayer<T>({1, 1, 144  }, shuffle_unit, true), 1, 1));
 
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakePointwiseLayer<T>({1, 1, 288*w}, shuffle_unit, false), 1, 1));
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeDepthwiseLayer<T>({1, 1, 288*w}              ), 3, 3));  // 1x1
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakePointwiseLayer<T>({1, 1, 288  }, shuffle_unit, true), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakePointwiseLayer<T>({1, 1, 288*w}, shuffle_unit, false), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeDepthwiseLayer<T>({1, 1, 288*w}              ), 3, 3));  // 1x1
+        main_net->Add(bb::Convolution2d<T>::Create(MakePointwiseLayer<T>({1, 1, 288  }, shuffle_unit, true), 1, 1));
 
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakePointwiseLayer<T>({1, 1, 576}, shuffle_unit, true), 1, 1));
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakePointwiseLayer<T>({1, 1, 576}, shuffle_unit, true), 1, 1));
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakePointwiseLayer<T>({1, 1, 288}, shuffle_unit, true), 1, 1));
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakePointwiseLayer<T>({1, 1, 144}, shuffle_unit, true), 1, 1));
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakePointwiseLayer<T>({1, 1, 72}, shuffle_unit, true), 1, 1));
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakePointwiseLayer<T>({1, 1, 36}, shuffle_unit, true), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakePointwiseLayer<T>({1, 1, 576}, shuffle_unit, true), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakePointwiseLayer<T>({1, 1, 576}, shuffle_unit, true), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakePointwiseLayer<T>({1, 1, 288}, shuffle_unit, true), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakePointwiseLayer<T>({1, 1, 144}, shuffle_unit, true), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakePointwiseLayer<T>({1, 1, 72}, shuffle_unit, true), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakePointwiseLayer<T>({1, 1, 36}, shuffle_unit, true), 1, 1));
 
         main_net->Add(bb::DenseAffine<>::Create(td.t_shape));
         if ( binary_mode ) {
@@ -181,7 +181,7 @@ std::shared_ptr<bb::Model> MakeConvLayer(bb::indices_t shape, bb::index_t h, bb:
     net->Add(bb::DenseAffine<float>::Create(shape));
     net->Add(bb::BatchNormalization<float>::Create());
     net->Add(bb::ReLU<T>::Create());
-    return bb::LoweringConvolution<T>::Create(net, h, w);
+    return bb::Convolution2d<T>::Create(net, h, w);
 }
 
 template<typename T>
@@ -195,7 +195,7 @@ std::shared_ptr<bb::Model> MakePointwiseLayer(bb::indices_t shape, bool shuffle=
 //  net->Add(bb::DenseAffine<float>::Create(shape));
     net->Add(bb::BatchNormalization<float>::Create());
     net->Add(bb::ReLU<T>::Create());
-    return bb::LoweringConvolution<T>::Create(net, 1, 1);
+    return bb::Convolution2d<T>::Create(net, 1, 1);
 }
 
 template<typename T>
@@ -208,7 +208,7 @@ std::shared_ptr<bb::Model> MakeDepthwiseLayer(bb::indices_t shape, bb::index_t h
     net->Add(bb::ReLU<T>::Create());
     return net;
 #else
-    return bb::LoweringConvolution<T>::Create(bb::DifferentiableLutN<6, T>::Create(shape, true, "depthwise"), h, w);
+    return bb::Convolution2d<T>::Create(bb::DifferentiableLutN<6, T>::Create(shape, true, "depthwise"), h, w);
 #endif
 }
 

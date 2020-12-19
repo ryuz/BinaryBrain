@@ -22,7 +22,7 @@ namespace bb {
 
 // 入力数制限Affine Binary Connect版
 template <typename FT = float, typename BT = float>
-class LoweringConvolution : public Filter2d<FT, BT>
+class Convolution2d : public Filter2d<FT, BT>
 {
     using _super = Filter2d<FT, BT>;
 
@@ -57,7 +57,7 @@ public:
     };
     
 protected:
-    LoweringConvolution(create_t const & create)
+    Convolution2d(create_t const & create)
     {
         m_filter_w_size = create.filter_w_size;
         m_filter_h_size = create.filter_h_size;
@@ -79,14 +79,14 @@ protected:
     }
 
 public:
-    ~LoweringConvolution() {}
+    ~Convolution2d() {}
 
-    static std::shared_ptr<LoweringConvolution> Create(create_t const & create)
+    static std::shared_ptr<Convolution2d> Create(create_t const & create)
     {
-        return std::shared_ptr<LoweringConvolution>(new LoweringConvolution(create));
+        return std::shared_ptr<Convolution2d>(new Convolution2d(create));
     }
 
-    static std::shared_ptr<LoweringConvolution> Create(std::shared_ptr<Model> layer,
+    static std::shared_ptr<Convolution2d> Create(std::shared_ptr<Model> layer,
         index_t filter_h_size, index_t filter_w_size, index_t y_stride=1, index_t x_stride=1, std::string padding="valid")
     {
         create_t create;
@@ -99,7 +99,7 @@ public:
         return Create(create);
     }
 
-    static std::shared_ptr<LoweringConvolution> CreateEx(
+    static std::shared_ptr<Convolution2d> CreateEx(
             std::shared_ptr<Model>  layer,
             index_t                 filter_h_size,
             index_t                 filter_w_size,
@@ -122,7 +122,7 @@ public:
         return Create(create);
     }
 
-    std::string GetClassName(void) const { return "LoweringConvolution"; }
+    std::string GetClassName(void) const { return "Convolution2d"; }
 
     
     std::shared_ptr< Model > GetLayer(void)
@@ -331,7 +331,7 @@ public:
 
     void Save(cereal::JSONOutputArchive& archive) const
     {
-        archive(cereal::make_nvp("LoweringConvolution", *this));
+        archive(cereal::make_nvp("Convolution2d", *this));
         m_im2col->Save(archive);
         m_layer->Save(archive);
         m_col2im->Save(archive);
@@ -339,7 +339,7 @@ public:
 
     void Load(cereal::JSONInputArchive& archive)
     {
-        archive(cereal::make_nvp("LoweringConvolution", *this));
+        archive(cereal::make_nvp("Convolution2d", *this));
         m_im2col->Load(archive);
         m_layer->Load(archive);
         m_col2im->Load(archive);

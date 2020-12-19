@@ -115,9 +115,6 @@
     <ClInclude Include="..\..\..\include\bb\LossSoftmaxCrossEntropy.h">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\bb\LoweringConvolution.h">
-      <Filter>ヘッダファイル</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\bb\LutLayer.h">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
@@ -242,6 +239,12 @@
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\bb\ValueGenerator.h">
+      <Filter>ヘッダファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\bb\DifferentiableLutN.h">
+      <Filter>ヘッダファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\bb\DifferentiableLutDiscreteN.h">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
   </ItemGroup>

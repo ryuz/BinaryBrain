@@ -4,18 +4,18 @@
 
 #include "bb/NormalDistributionGenerator.h"
 #include "bb/UniformDistributionGenerator.h"
-#include "bb/LoweringConvolution.h"
+#include "bb/Convolution2d.h"
 #include "bb/DenseAffine.h"
 #include "bb/BinaryLutN.h"
 #include "bb/Sequential.h"
 
 
-TEST(LoweringConvolutionTest, testLoweringConvolution)
+TEST(Convolution2dTest, testConvolution2d)
 {
     auto sub_affine = bb::DenseAffine<float>::Create(1);
 //    1 * 2 * 2
 
-    auto cnv = bb::LoweringConvolution<>::Create(sub_affine, 2, 2);
+    auto cnv = bb::Convolution2d<>::Create(sub_affine, 2, 2);
 
     bb::FrameBuffer x_buf(1, {1, 3, 3}, BB_TYPE_FP32);
 
@@ -104,7 +104,7 @@ TEST(LoweringConvolutionTest, testLoweringConvolution)
 
 
 template<typename FT=float, typename BT=float>
-void testLoweringConvolution_cmpare(
+void testConvolution2d_cmpare(
         std::shared_ptr<bb::Model> cnv_layer,
         int loop_num,
         int frame_size,
@@ -118,8 +118,8 @@ void testLoweringConvolution_cmpare(
     int y_h = x_h - f_h + 1;
     int y_w = x_w - f_w + 1;
 
-    auto layer_cpu = bb::LoweringConvolution<FT, BT>::Create(cnv_layer, f_h, f_w);
-    auto layer_gpu = bb::LoweringConvolution<FT, BT>::Create(cnv_layer, f_h, f_w);
+    auto layer_cpu = bb::Convolution2d<FT, BT>::Create(cnv_layer, f_h, f_w);
+    auto layer_gpu = bb::Convolution2d<FT, BT>::Create(cnv_layer, f_h, f_w);
 
     bb::FrameBuffer x_cpu(frame_size, {x_c, x_h, x_w}, bb::DataType<FT>::type, true);
     bb::FrameBuffer x_gpu(frame_size, {x_c, x_h, x_w}, bb::DataType<FT>::type);
@@ -188,28 +188,28 @@ void testLoweringConvolution_cmpare(
 
 
 
-TEST(LoweringConvolutionTest, testLoweringConvolution_cmp_float)
+TEST(Convolution2dTest, testConvolution2d_cmp_float)
 {
-//  testLoweringConvolution_cmpare<float, float>(bb::DenseAffine<float>::Create(32), 2, 16, 32);
+//  testConvolution2d_cmpare<float, float>(bb::DenseAffine<float>::Create(32), 2, 16, 32);
 }
 
-TEST(LoweringConvolutionTest, testLoweringConvolution_cmp_bit)
+TEST(Convolution2dTest, testConvolution2d_cmp_bit)
 {
-//    testLoweringConvolution_cmpare<bb::Bit, float>(bb::BinaryLutN<6, bb::Bit>::Create(32), 2, 16, 32);
-//    testLoweringConvolution_cmpare<bb::Bit, float>(bb::BinaryLutN<6, bb::Bit>::Create(10), 4, 16*15, 10);
-    testLoweringConvolution_cmpare<bb::Bit, float>(bb::BinaryLutN<6, bb::Bit>::Create(32), 2, 8, 32);
-    testLoweringConvolution_cmpare<bb::Bit, float>(bb::BinaryLutN<6, bb::Bit>::Create(10), 2, 8, 10);
+//    testConvolution2d_cmpare<bb::Bit, float>(bb::BinaryLutN<6, bb::Bit>::Create(32), 2, 16, 32);
+//    testConvolution2d_cmpare<bb::Bit, float>(bb::BinaryLutN<6, bb::Bit>::Create(10), 4, 16*15, 10);
+    testConvolution2d_cmpare<bb::Bit, float>(bb::BinaryLutN<6, bb::Bit>::Create(32), 2, 8, 32);
+    testConvolution2d_cmpare<bb::Bit, float>(bb::BinaryLutN<6, bb::Bit>::Create(10), 2, 8, 10);
 }
 
 
 #if 0
 
-TEST(NeuralNetLoweringConvolutionTest, testNeuralNetLoweringConvolution2)
+TEST(NeuralNetConvolution2dTest, testNeuralNetConvolution2d2)
 {
     bb::NeuralNetDenseAffine<>  sub_affine(3 * 3 * 3, 2);
     bb::NeuralNetGroup<>        sub_net;
     sub_net.AddLayer(&sub_affine);
-    bb::NeuralNetLoweringConvolution<>  cnv(&sub_net, 3, 4, 5, 2, 3, 3);
+    bb::NeuralNetConvolution2d<>  cnv(&sub_net, 3, 4, 5, 2, 3, 3);
 
 //  bb::NeuralNetConvolution<> cnv(3, 4, 5, 2, 3, 3);
     cnv.SetBatchSize(2);
@@ -416,7 +416,7 @@ TEST(NeuralNetLoweringConvolutionTest, testNeuralNetLoweringConvolution2)
 
 #if 0
 
-TEST(NeuralNetLoweringConvolutionTest, testNeuralNetLoweringConvolutionCmp)
+TEST(NeuralNetConvolution2dTest, testNeuralNetConvolution2dCmp)
 {
 #if 0
     const int c_size = 31; // 2;
@@ -442,7 +442,7 @@ TEST(NeuralNetLoweringConvolutionTest, testNeuralNetLoweringConvolutionCmp)
     bb::NeuralNetDenseAffine<>          sub_affine(c_size * y_size * x_size, n_size);
     bb::NeuralNetGroup<>                sub_net;
     sub_net.AddLayer(&sub_affine);
-    bb::NeuralNetLoweringConvolution<>  cnv0(&sub_net, c_size, w_size, h_size, n_size, x_size, y_size);
+    bb::NeuralNetConvolution2d<>  cnv0(&sub_net, c_size, w_size, h_size, n_size, x_size, y_size);
     bb::NeuralNetDenseConvolution<>     cnv1(          c_size, w_size, h_size, n_size, x_size, y_size);
 
     cnv0.SetBatchSize(batch_size);

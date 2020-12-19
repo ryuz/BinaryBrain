@@ -14,7 +14,7 @@
 #include "bb/DifferentiableLutN.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
-#include "bb/LoweringConvolution.h"
+#include "bb/Convolution2d.h"
 #include "bb/MaxPooling.h"
 #include "bb/BinaryModulation.h"
 #include "bb/OptimizerAdam.h"
@@ -73,36 +73,36 @@ void Cifar10MobileNet_(int epoch_size, int mini_batch_size, int train_modulation
 
         main_net->Add(bb::RealToBinary<T>::Create(train_modulation_size, 12));
 
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeConvLayer<T>     ({1, 1,  32*w}), 1, 1));
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeDepthwiseLayer<T>({1, 1,  32*w}), 3, 3));  // 30x30
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeConvLayer<T>     ({1, 1,  32  }), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1,  32*w}), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeDepthwiseLayer<T>({1, 1,  32*w}), 3, 3));  // 30x30
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1,  32  }), 1, 1));
 
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeConvLayer<T>     ({1, 1,  64*w}), 1, 1));
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeDepthwiseLayer<T>({1, 1,  64*w}), 3, 3));  // 28x28
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeConvLayer<T>     ({1, 1,  64}), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1,  64*w}), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeDepthwiseLayer<T>({1, 1,  64*w}), 3, 3));  // 28x28
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1,  64}), 1, 1));
 
         main_net->Add(bb::MaxPooling<T>::Create(2, 2));                                            // 14x14
 
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeConvLayer<T>     ({1, 1,  64*w}), 1, 1));
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeDepthwiseLayer<T>({1, 1,  64*w}), 3, 3));  // 12x12
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeConvLayer<T>     ({1, 1,  64}), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1,  64*w}), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeDepthwiseLayer<T>({1, 1,  64*w}), 3, 3));  // 12x12
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1,  64}), 1, 1));
 
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeConvLayer<T>     ({1, 1, 128*w}), 1, 1));
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeDepthwiseLayer<T>({1, 1, 128*w}), 3, 3));  // 10x10
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeConvLayer<T>     ({1, 1, 128}), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1, 128*w}), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeDepthwiseLayer<T>({1, 1, 128*w}), 3, 3));  // 10x10
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1, 128}), 1, 1));
 
         main_net->Add(bb::MaxPooling<T>::Create(2, 2));                                            // 5x5 
 
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeConvLayer<T>     ({1, 1, 128*w}), 1, 1));
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeDepthwiseLayer<T>({1, 1, 128*w}), 3, 3));  // 3x3
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeConvLayer<T>     ({1, 1, 128}), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1, 128*w}), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeDepthwiseLayer<T>({1, 1, 128*w}), 3, 3));  // 3x3
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1, 128}), 1, 1));
 
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeConvLayer<T>     ({1, 1, 256*w}), 1, 1));
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeDepthwiseLayer<T>({1, 1, 256*w}), 3, 3));  // 1x1
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeConvLayer<T>     ({1, 1, 256}), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1, 256*w}), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeDepthwiseLayer<T>({1, 1, 256*w}), 3, 3));  // 1x1
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1, 256}), 1, 1));
 
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeConvLayer<T>     ({1, 1, 512}), 1, 1));
-        main_net->Add(bb::LoweringConvolution<T>::Create(MakeConvLayer<T>     ({1, 1, 10}), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1, 512}), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1, 10}), 1, 1));
 
         main_net->Add(bb::BinaryToReal<T>::Create(train_modulation_size));
 
