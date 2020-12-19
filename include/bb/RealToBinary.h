@@ -175,11 +175,11 @@ public:
         // 形状設定
         BB_ASSERT(shape.size() > 0);
         m_x_node_shape = shape;
-        m_x_depth_size = m_x_node_shape[m_x_node_shape.size()-1];
+        m_x_depth_size = m_x_node_shape[0];
         m_point_size   = CalcShapeSize(m_x_node_shape) / m_x_depth_size;
         m_y_depth_size = m_x_depth_size * m_depth_modulation_size;
         m_y_node_shape = m_x_node_shape;
-        m_y_node_shape[m_y_node_shape.size()-1] = m_y_depth_size;
+        m_y_node_shape[0] = m_y_depth_size;
 
         return m_y_node_shape;
     }

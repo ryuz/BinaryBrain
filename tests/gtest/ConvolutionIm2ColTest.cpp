@@ -405,9 +405,9 @@ TEST(ConvolutionIm2ColTest, testConvolutionIm2Col_stride)
 
     auto y_shape = y_buf.GetShape();
     EXPECT_EQ(3, y_shape.size());
-    EXPECT_EQ(3, y_shape[0]);
+    EXPECT_EQ(2, y_shape[0]);
     EXPECT_EQ(3, y_shape[1]);
-    EXPECT_EQ(2, y_shape[2]);
+    EXPECT_EQ(3, y_shape[2]);
 
     EXPECT_EQ( 0,   y_buf.GetFP32(0,  { 0, 0, 0 }));
     EXPECT_EQ( 1,   y_buf.GetFP32(0,  { 0, 0, 1 }));
@@ -525,28 +525,28 @@ TEST(ConvolutionIm2ColTest, testConvolutionIm2Col_stride)
                     dx_buf.GetFP32(f, { c, 0, 6 }));
 
 
-            EXPECT_EQ(dy_data[(f*6)+0][c][1][0 ],
+            EXPECT_EQ(dy_data[(f*6)+0][c][1][0],
                     dx_buf.GetFP32(f, { c, 1, 0 }));
 
             EXPECT_EQ(dy_data[(f*6)+0][c][1][1],
-                    dx_buf.GetFP32(f, { c, 1, 0 }));
+                    dx_buf.GetFP32(f, { c, 1, 1 }));
 
             EXPECT_EQ(dy_data[(f*6)+0][c][1][2]
                     + dy_data[(f*6)+1][c][1][0],
-                    dx_buf.GetFP32(f, { c, 1, 0 }));
+                    dx_buf.GetFP32(f, { c, 1, 2 }));
 
             EXPECT_EQ(dy_data[(f*6)+1][c][1][1],
-                    dx_buf.GetFP32(f, { c, 1, 0 }));
+                    dx_buf.GetFP32(f, { c, 1, 3 }));
 
             EXPECT_EQ(dy_data[(f*6)+1][c][1][2]
                     + dy_data[(f*6)+2][c][1][0],
-                    dx_buf.GetFP32(f, { c, 1, 0 }));
+                    dx_buf.GetFP32(f, { c, 1, 4 }));
 
             EXPECT_EQ(dy_data[(f*6)+2][c][1][1],
-                    dx_buf.GetFP32(f, { c, 1, 0 }));
+                    dx_buf.GetFP32(f, { c, 1, 5 }));
 
             EXPECT_EQ(dy_data[(f*6)+2][c][1][2],
-                    dx_buf.GetFP32(f, { c, 1, 0 }));
+                    dx_buf.GetFP32(f, { c, 1, 6 }));
 
 
             EXPECT_EQ(dy_data[(f*6)+0][c][2][0]
