@@ -96,7 +96,15 @@ void MnistDifferentiableLutSimple(int epoch_size, int mini_batch_size, int train
         runner_create.initial_evaluation = file_read;       // ファイルを読んだ場合は最初に評価しておく
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
+    
+        // Verilog 出力
+        std::string filename = "verilog/" + net_name + ".v";
+        std::ofstream ofs(filename);
+        ofs << "`timescale 1ns / 1ps\n\n";
+        bb::ExportVerilog_LutModels<>(ofs, net_name, main_net);
+        std::cout << "export : " << filename << "\n" << std::endl;
     }
+
 
     {
         std::cout << "\n<Evaluation binary LUT-Network>" << std::endl;
@@ -142,7 +150,7 @@ void MnistDifferentiableLutSimple(int epoch_size, int mini_batch_size, int train
 
         {
             // Verilog 出力
-            std::string filename = "verilog/" + net_name + ".v";
+            std::string filename = "verilog/" + net_name + "_2.v";
             std::ofstream ofs(filename);
             ofs << "`timescale 1ns / 1ps\n\n";
             bb::ExportVerilog_LutModels<>(ofs, net_name, lut_net);

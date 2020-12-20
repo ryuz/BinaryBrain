@@ -205,14 +205,14 @@ std::string GetDevicePropertiesString(int device)
 #endif
 }
 
-std::string MakeVerilog_FromLut(std::string module_name, std::vector< std::shared_ptr< bb::LutModel<float, float> > > layers)
+std::string MakeVerilog_FromLut(std::string module_name, std::vector< std::shared_ptr< bb::SparseModel > > layers)
 {
     std::stringstream ss;
     bb::ExportVerilog_LutModels<float, float>(ss, module_name, layers);
     return ss.str();
 }
 
-std::string MakeVerilog_FromLutBit(std::string module_name, std::vector< std::shared_ptr< bb::LutModel<bb::Bit, float> > > layers)
+std::string MakeVerilog_FromLutBit(std::string module_name, std::vector< std::shared_ptr< bb::SparseModel > > layers)
 {
     std::stringstream ss;
     bb::ExportVerilog_LutModels<bb::Bit, float>(ss, module_name, layers);

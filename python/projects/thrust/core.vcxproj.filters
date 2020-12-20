@@ -193,9 +193,6 @@
     <ClInclude Include="..\..\..\include\bb\SparseBinaryLutN.h">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\bb\SparseLayer.h">
-      <Filter>ヘッダファイル</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\bb\SparseLutDiscreteN.h">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>

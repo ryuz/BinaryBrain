@@ -17,7 +17,7 @@
 #include <sstream>
 
 #include "bb/Sequential.h"
-#include "bb/LutModel.h"
+#include "bb/SparseModel.h"
 #include "bb/Convolution2d.h"
 #include "bb/MaxPooling.h"
 
@@ -27,7 +27,7 @@ namespace bb {
 
 // LUT-Network 基本レイヤーのVerilog 出力
 template <typename FT = Bit, typename BT = float>
-void ExportVerilog_LutModel(std::ostream& os, std::string module_name, LutModel<FT, BT> const &lut)
+void ExportVerilog_LutModel(std::ostream& os, std::string module_name, SparseModel const &lut)
 {
     index_t node_size      = lut.GetOutputNodeSize();
     
@@ -153,7 +153,7 @@ void ExportVerilog_LutModel(std::ostream& os, std::string module_name, LutModel<
 
 // LUT-Network 基本レイヤーの直列接続を出力
 template <typename FT = Bit, typename BT = float>
-void ExportVerilog_LutModels(std::ostream& os, std::string module_name, std::vector< std::shared_ptr< LutModel<FT, BT> > > layers)
+void ExportVerilog_LutModels(std::ostream& os, std::string module_name, std::vector< std::shared_ptr< SparseModel > > layers)
 {
     int layer_size = (int)layers.size();
 
@@ -265,11 +265,11 @@ void ExportVerilog_LutModels(std::ostream& os, std::string module_name, std::vec
 template <typename FT = Bit, typename BT = float>
 void ExportVerilog_LutModels(std::ostream& os, std::string module_name, std::shared_ptr<bb::Sequential> net)
 {
-    std::vector< std::shared_ptr< LutModel<FT, BT> > > layers;
+    std::vector< std::shared_ptr< SparseModel > > layers;
 
     // LutModel だけを取り出し
     for (int i = 0; i < net->GetSize(); ++i) {
-        auto layer = std::dynamic_pointer_cast< LutModel<FT, BT> >(net->Get(i));
+        auto layer = std::dynamic_pointer_cast< SparseModel >(net->Get(i));
         if ( layer != nullptr ) {
             layers.push_back(layer);
         }

@@ -56,6 +56,29 @@ public:
     }
     
 
+    // LUTに見立て場合の値取得
+    virtual bool GetLutTable(index_t node, int bitpos) const
+    {
+        BB_DEBUG_ASSERT(node   >= 0 && node <= this->GetNodeSize());
+        BB_DEBUG_ASSERT(bitpos >= 0 && bitpos <= this->GetNodeConnectionSize());
+
+        auto connection_size = this->GetNodeConnectionSize(node);
+
+        // 係数をバイナリ化
+        std::vector<double> vec(connection_size);
+        for (int bit = 0; bit < connection_size; ++bit) {
+            vec[bit] = (bitpos & (1 << bit)) ? 1.0 : 0.0;
+        }
+        auto v = this->ForwardNode(node, vec);
+        return (v[0] >= 0.5);
+    }
+
+    virtual int GetLutTableSize(index_t node) const
+    {
+        return (int)(1 << this->GetNodeConnectionSize(node));
+    }
+
+
 protected:
 
     void InitializeNodeInput(std::uint64_t seed, std::string connection = "")

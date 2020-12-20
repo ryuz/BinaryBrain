@@ -25,9 +25,9 @@ class LutModel : public SparseModel
 {
 public:
     // LUT操作の定義
-    virtual int   GetLutTableSize(index_t node) const = 0;
+//  virtual int   GetLutTableSize(index_t node) const = 0;
+//  virtual bool  GetLutTable(index_t node, int bitpos) const = 0;
     virtual void  SetLutTable(index_t node, int bitpos, bool value) = 0;
-    virtual bool  GetLutTable(index_t node, int bitpos) const = 0;
 
     /*
     virtual bool  GetLutInput(index_t frame, index_t node, int bitpos) const = 0;
