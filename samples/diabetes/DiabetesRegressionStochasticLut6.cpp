@@ -119,7 +119,7 @@ void DiabetesRegressionStochasticLut6(int epoch_size, size_t mini_batch_size)
             std::string filename = "DiabetesRegressionBinaryLut.v";
             std::ofstream ofs(filename);
             ofs << "`timescale 1ns / 1ps\n\n";
-            bb::ExportVerilog_LutLayers<>(ofs, "DiabetesRegressionBinaryLut", lut_net);
+            bb::ExportVerilog_LutModels<>(ofs, "DiabetesRegressionBinaryLut", lut_net);
             std::cout << "export : " << filename << "\n" << std::endl;
         }
     }

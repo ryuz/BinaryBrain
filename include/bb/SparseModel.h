@@ -21,7 +21,7 @@ namespace bb {
 
 
 // 入力接続数に制限のあるネット
-class SparseLayer : public Model
+class SparseModel : public Model
 {
 public:
     //ノードの 疎結合の管理

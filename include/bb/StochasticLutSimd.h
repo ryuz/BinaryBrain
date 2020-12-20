@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <array>
 #include <vector>
-#include "bb/LutLayer.h"
+#include "bb/LutModel.h"
 #include "bb/FrameBuffer.h"
 #include "bb/FixedSizeConnectionTable.h"
 #include "bb/Tensor.h"

@@ -25,9 +25,9 @@ namespace bb {
 
 // Sparce LUT (Discrite version)
 template <int N = 6, typename BinType = float, typename RealType = float>
-class DifferentiableLutDiscreteN : public SparseLayer
+class DifferentiableLutDiscreteN : public SparseModel
 {
-    using _super = SparseLayer;
+    using _super = SparseModel;
 
 protected:
     bool                                                            m_memory_saving = false;

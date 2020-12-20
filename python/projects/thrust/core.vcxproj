@@ -57,7 +57,7 @@
     <ClInclude Include="..\..\..\include\bb\LossFunction.h" />
     <ClInclude Include="..\..\..\include\bb\LossMeanSquaredError.h" />
     <ClInclude Include="..\..\..\include\bb\LossSoftmaxCrossEntropy.h" />
-    <ClInclude Include="..\..\..\include\bb\LutLayer.h" />
+    <ClInclude Include="..\..\..\include\bb\LutModel.h" />
     <ClInclude Include="..\..\..\include\bb\Manager.h" />
     <ClInclude Include="..\..\..\include\bb\MaxPooling.h" />
     <ClInclude Include="..\..\..\include\bb\Memory.h" />
@@ -86,7 +86,7 @@
     <ClInclude Include="..\..\..\include\bb\SparseBinaryLutN.h" />
     <ClInclude Include="..\..\..\include\bb\SparseLayer.h" />
     <ClInclude Include="..\..\..\include\bb\SparseLutDiscreteN.h" />
-    <ClInclude Include="..\..\..\include\bb\SparseLutN.h" />
+    <ClInclude Include="..\..\..\include\bb\SparseModel.h" />
     <ClInclude Include="..\..\..\include\bb\StochasticBatchNormalization.h" />
     <ClInclude Include="..\..\..\include\bb\StochasticLutN.h" />
     <ClInclude Include="..\..\..\include\bb\StochasticLutSimd.h" />

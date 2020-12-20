@@ -13,7 +13,7 @@
 #include <cstdint>
 #include <random>
 
-#include "bb/SparseLayer.h"
+#include "bb/SparseModel.h"
 #include "bb/Tensor.h"
 
 
@@ -21,9 +21,9 @@ namespace bb {
 
 
 template <int N = 6, typename BinType = Bit, typename RealType = float>
-class SparseBinaryLutN : public SparseLayer
+class SparseBinaryLutN : public SparseModel
 {
-    using _super = SparseLayer;
+    using _super = SparseModel;
     static int const NN = (1 << N);
 
 protected:

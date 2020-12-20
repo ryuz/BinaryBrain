@@ -82,12 +82,12 @@ using FrameBuffer                       = bb::FrameBuffer;
 using Variables                         = bb::Variables;
                                         
 using Model                             = bb::Model;
-using SparseLayer                       = bb::SparseLayer;
+using SparseModel                       = bb::SparseModel;
 using Sequential                        = bb::Sequential;
 using DenseAffine                       = bb::DenseAffine<float>;
 using DepthwiseDenseAffine              = bb::DepthwiseDenseAffine<float>;
-using LutLayer_fp32                     = bb::LutLayer<float, float>;
-using LutLayer_bit                      = bb::LutLayer<bb::Bit, float>;
+using LutModel_fp32                     = bb::LutModel<float, float>;
+using LutModel_bit                      = bb::LutModel<bb::Bit, float>;
                                         
 using BinaryLut2_fp32                   = bb::BinaryLutN<2, float, float>;
 using BinaryLut2_bit                    = bb::BinaryLutN<2, bb::Bit, float>;
@@ -205,17 +205,17 @@ std::string GetDevicePropertiesString(int device)
 #endif
 }
 
-std::string MakeVerilog_FromLut(std::string module_name, std::vector< std::shared_ptr< bb::LutLayer<float, float> > > layers)
+std::string MakeVerilog_FromLut(std::string module_name, std::vector< std::shared_ptr< bb::LutModel<float, float> > > layers)
 {
     std::stringstream ss;
-    bb::ExportVerilog_LutLayers<float, float>(ss, module_name, layers);
+    bb::ExportVerilog_LutModels<float, float>(ss, module_name, layers);
     return ss.str();
 }
 
-std::string MakeVerilog_FromLutBit(std::string module_name, std::vector< std::shared_ptr< bb::LutLayer<bb::Bit, float> > > layers)
+std::string MakeVerilog_FromLutBit(std::string module_name, std::vector< std::shared_ptr< bb::LutModel<bb::Bit, float> > > layers)
 {
     std::stringstream ss;
-    bb::ExportVerilog_LutLayers<bb::Bit, float>(ss, module_name, layers);
+    bb::ExportVerilog_LutModels<bb::Bit, float>(ss, module_name, layers);
     return ss.str();
 }
 
@@ -527,74 +527,74 @@ PYBIND11_MODULE(core, m) {
         .def("db", ((Tensor& (DepthwiseDenseAffine::*)())&DepthwiseDenseAffine::db));
 
 
-    // SparseLayer
-    py::class_< SparseLayer, Model, std::shared_ptr<SparseLayer> >(m, "SparseLayer")
-         .def("get_connection_size", &SparseLayer::GetConnectionSize)
-         .def("set_connection", &SparseLayer::SetConnectionIndices)
-         .def("get_connection", &SparseLayer::GetConnectionIndices)
-         .def("set_connection_index", &SparseLayer::SetConnectionIndex)
-         .def("get_connection_index", &SparseLayer::GetConnectionIndex)
-         .def("get_node_connection_size", &SparseLayer::GetNodeConnectionSize)
-         .def("set_node_connection_index", &SparseLayer::SetNodeConnectionIndex)
-         .def("get_node_connection_index", &SparseLayer::GetNodeConnectionIndex);
+    // SparseModel
+    py::class_< SparseModel, Model, std::shared_ptr<SparseModel> >(m, "SparseModel")
+         .def("get_connection_size", &SparseModel::GetConnectionSize)
+         .def("set_connection", &SparseModel::SetConnectionIndices)
+         .def("get_connection", &SparseModel::GetConnectionIndices)
+         .def("set_connection_index", &SparseModel::SetConnectionIndex)
+         .def("get_connection_index", &SparseModel::GetConnectionIndex)
+         .def("get_node_connection_size", &SparseModel::GetNodeConnectionSize)
+         .def("set_node_connection_index", &SparseModel::SetNodeConnectionIndex)
+         .def("get_node_connection_index", &SparseModel::GetNodeConnectionIndex);
 
 
     // StochasticLut
-    py::class_< StochasticLut6_fp32, SparseLayer, std::shared_ptr<StochasticLut6_fp32> >(m, "StochasticLut6_fp32")
+    py::class_< StochasticLut6_fp32, SparseModel, std::shared_ptr<StochasticLut6_fp32> >(m, "StochasticLut6_fp32")
         .def_static("create", &StochasticLut6_fp32::CreateEx, "create StochasticLut6_fp32");
-    py::class_< StochasticLut5_fp32, SparseLayer, std::shared_ptr<StochasticLut5_fp32> >(m, "StochasticLut5_fp32")
+    py::class_< StochasticLut5_fp32, SparseModel, std::shared_ptr<StochasticLut5_fp32> >(m, "StochasticLut5_fp32")
         .def_static("create", &StochasticLut5_fp32::CreateEx, "create StochasticLut6_fp32");
-    py::class_< StochasticLut4_fp32, SparseLayer, std::shared_ptr<StochasticLut4_fp32> >(m, "StochasticLut4_fp32")
+    py::class_< StochasticLut4_fp32, SparseModel, std::shared_ptr<StochasticLut4_fp32> >(m, "StochasticLut4_fp32")
         .def_static("create", &StochasticLut4_fp32::CreateEx, "create StochasticLut6_fp32");
-    py::class_< StochasticLut2_fp32, SparseLayer, std::shared_ptr<StochasticLut2_fp32> >(m, "StochasticLut2_fp32")
+    py::class_< StochasticLut2_fp32, SparseModel, std::shared_ptr<StochasticLut2_fp32> >(m, "StochasticLut2_fp32")
         .def_static("create", &StochasticLut2_fp32::CreateEx, "create StochasticLut6_fp32");
 
-    py::class_< StochasticLut6_bit, SparseLayer, std::shared_ptr<StochasticLut6_bit> >(m, "StochasticLut6_bit")
+    py::class_< StochasticLut6_bit, SparseModel, std::shared_ptr<StochasticLut6_bit> >(m, "StochasticLut6_bit")
         .def_static("create", &StochasticLut6_bit::CreateEx, "create StochasticLut6_bit");
-    py::class_< StochasticLut5_bit, SparseLayer, std::shared_ptr<StochasticLut5_bit> >(m, "StochasticLut5_bit")
+    py::class_< StochasticLut5_bit, SparseModel, std::shared_ptr<StochasticLut5_bit> >(m, "StochasticLut5_bit")
         .def_static("create", &StochasticLut5_bit::CreateEx, "create StochasticLut6_bit");
-    py::class_< StochasticLut4_bit, SparseLayer, std::shared_ptr<StochasticLut4_bit> >(m, "StochasticLut4_bit")
+    py::class_< StochasticLut4_bit, SparseModel, std::shared_ptr<StochasticLut4_bit> >(m, "StochasticLut4_bit")
         .def_static("create", &StochasticLut4_bit::CreateEx, "create StochasticLut6_bit");
-    py::class_< StochasticLut2_bit, SparseLayer, std::shared_ptr<StochasticLut2_bit> >(m, "StochasticLut2_bit")
+    py::class_< StochasticLut2_bit, SparseModel, std::shared_ptr<StochasticLut2_bit> >(m, "StochasticLut2_bit")
         .def_static("create", &StochasticLut2_bit::CreateEx, "create StochasticLut6_bit");
 
 
     // DifferentiableLut
-    py::class_< DifferentiableLut6_fp32, SparseLayer, std::shared_ptr<DifferentiableLut6_fp32> >(m, "DifferentiableLut6_fp32")
+    py::class_< DifferentiableLut6_fp32, SparseModel, std::shared_ptr<DifferentiableLut6_fp32> >(m, "DifferentiableLut6_fp32")
         .def_static("create", &DifferentiableLut6_fp32::CreateEx, "create DifferentiableLut6_fp32");
-    py::class_< DifferentiableLut5_fp32, SparseLayer, std::shared_ptr<DifferentiableLut5_fp32> >(m, "DifferentiableLut5_fp32")
+    py::class_< DifferentiableLut5_fp32, SparseModel, std::shared_ptr<DifferentiableLut5_fp32> >(m, "DifferentiableLut5_fp32")
         .def_static("create", &DifferentiableLut5_fp32::CreateEx, "create DifferentiableLut5_fp32");
-    py::class_< DifferentiableLut4_fp32, SparseLayer, std::shared_ptr<DifferentiableLut4_fp32> >(m, "DifferentiableLut4_fp32")
+    py::class_< DifferentiableLut4_fp32, SparseModel, std::shared_ptr<DifferentiableLut4_fp32> >(m, "DifferentiableLut4_fp32")
         .def_static("create", &DifferentiableLut4_fp32::CreateEx, "create DifferentiableLut4_fp32");
-    py::class_< DifferentiableLut2_fp32, SparseLayer, std::shared_ptr<DifferentiableLut2_fp32> >(m, "DifferentiableLut2_fp32")
+    py::class_< DifferentiableLut2_fp32, SparseModel, std::shared_ptr<DifferentiableLut2_fp32> >(m, "DifferentiableLut2_fp32")
         .def_static("create", &DifferentiableLut2_fp32::CreateEx, "create DifferentiableLut2_fp32");
 
-    py::class_< DifferentiableLut6_bit, SparseLayer, std::shared_ptr<DifferentiableLut6_bit> >(m, "DifferentiableLut6_bit")
+    py::class_< DifferentiableLut6_bit, SparseModel, std::shared_ptr<DifferentiableLut6_bit> >(m, "DifferentiableLut6_bit")
         .def_static("create", &DifferentiableLut6_bit::CreateEx, "create DifferentiableLut6_bit");
-    py::class_< DifferentiableLut5_bit, SparseLayer, std::shared_ptr<DifferentiableLut5_bit> >(m, "DifferentiableLut5_bit")
+    py::class_< DifferentiableLut5_bit, SparseModel, std::shared_ptr<DifferentiableLut5_bit> >(m, "DifferentiableLut5_bit")
         .def_static("create", &DifferentiableLut5_bit::CreateEx, "create DifferentiableLut5_bit");
-    py::class_< DifferentiableLut4_bit, SparseLayer, std::shared_ptr<DifferentiableLut4_bit> >(m, "DifferentiableLut4_bit")
+    py::class_< DifferentiableLut4_bit, SparseModel, std::shared_ptr<DifferentiableLut4_bit> >(m, "DifferentiableLut4_bit")
         .def_static("create", &DifferentiableLut4_bit::CreateEx, "create DifferentiableLut4_bit");
-    py::class_< DifferentiableLut2_bit, SparseLayer, std::shared_ptr<DifferentiableLut2_bit> >(m, "DifferentiableLut2_bit")
+    py::class_< DifferentiableLut2_bit, SparseModel, std::shared_ptr<DifferentiableLut2_bit> >(m, "DifferentiableLut2_bit")
         .def_static("create", &DifferentiableLut2_bit::CreateEx, "create DifferentiableLut2_bit");
 
    // DifferentiableLutDiscrete
-    py::class_< DifferentiableLutDiscrete6_fp32, SparseLayer, std::shared_ptr<DifferentiableLutDiscrete6_fp32> >(m, "DifferentiableLutDiscrete6_fp32")
+    py::class_< DifferentiableLutDiscrete6_fp32, SparseModel, std::shared_ptr<DifferentiableLutDiscrete6_fp32> >(m, "DifferentiableLutDiscrete6_fp32")
         .def_static("create", &DifferentiableLutDiscrete6_fp32::CreatePy, "create DifferentiableLutDiscrete6_fp32");
-    py::class_< DifferentiableLutDiscrete5_fp32, SparseLayer, std::shared_ptr<DifferentiableLutDiscrete5_fp32> >(m, "DifferentiableLutDiscrete5_fp32")
+    py::class_< DifferentiableLutDiscrete5_fp32, SparseModel, std::shared_ptr<DifferentiableLutDiscrete5_fp32> >(m, "DifferentiableLutDiscrete5_fp32")
         .def_static("create", &DifferentiableLutDiscrete5_fp32::CreatePy, "create DifferentiableLutDiscrete5_fp32");
-    py::class_< DifferentiableLutDiscrete4_fp32, SparseLayer, std::shared_ptr<DifferentiableLutDiscrete4_fp32> >(m, "DifferentiableLutDiscrete4_fp32")
+    py::class_< DifferentiableLutDiscrete4_fp32, SparseModel, std::shared_ptr<DifferentiableLutDiscrete4_fp32> >(m, "DifferentiableLutDiscrete4_fp32")
         .def_static("create", &DifferentiableLutDiscrete4_fp32::CreatePy, "create DifferentiableLutDiscrete4_fp32");
-    py::class_< DifferentiableLutDiscrete2_fp32, SparseLayer, std::shared_ptr<DifferentiableLutDiscrete2_fp32> >(m, "DifferentiableLutDiscrete2_fp32")
+    py::class_< DifferentiableLutDiscrete2_fp32, SparseModel, std::shared_ptr<DifferentiableLutDiscrete2_fp32> >(m, "DifferentiableLutDiscrete2_fp32")
         .def_static("create", &DifferentiableLutDiscrete2_fp32::CreatePy, "create DifferentiableLutDiscrete2_fp32");
 
-    py::class_< DifferentiableLutDiscrete6_bit, SparseLayer, std::shared_ptr<DifferentiableLutDiscrete6_bit> >(m, "DifferentiableLutDiscrete6_bit")
+    py::class_< DifferentiableLutDiscrete6_bit, SparseModel, std::shared_ptr<DifferentiableLutDiscrete6_bit> >(m, "DifferentiableLutDiscrete6_bit")
         .def_static("create", &DifferentiableLutDiscrete6_bit::CreatePy, "create DifferentiableLutDiscrete6_bit");
-    py::class_< DifferentiableLutDiscrete5_bit, SparseLayer, std::shared_ptr<DifferentiableLutDiscrete5_bit> >(m, "DifferentiableLutDiscrete5_bit")
+    py::class_< DifferentiableLutDiscrete5_bit, SparseModel, std::shared_ptr<DifferentiableLutDiscrete5_bit> >(m, "DifferentiableLutDiscrete5_bit")
         .def_static("create", &DifferentiableLutDiscrete5_bit::CreatePy, "create DifferentiableLutDiscrete5_bit");
-    py::class_< DifferentiableLutDiscrete4_bit, SparseLayer, std::shared_ptr<DifferentiableLutDiscrete4_bit> >(m, "DifferentiableLutDiscrete4_bit")
+    py::class_< DifferentiableLutDiscrete4_bit, SparseModel, std::shared_ptr<DifferentiableLutDiscrete4_bit> >(m, "DifferentiableLutDiscrete4_bit")
         .def_static("create", &DifferentiableLutDiscrete4_bit::CreatePy, "create DifferentiableLutDiscrete4_bit");
-    py::class_< DifferentiableLutDiscrete2_bit, SparseLayer, std::shared_ptr<DifferentiableLutDiscrete2_bit> >(m, "DifferentiableLutDiscrete2_bit")
+    py::class_< DifferentiableLutDiscrete2_bit, SparseModel, std::shared_ptr<DifferentiableLutDiscrete2_bit> >(m, "DifferentiableLutDiscrete2_bit")
         .def_static("create", &DifferentiableLutDiscrete2_bit::CreatePy, "create DifferentiableLutDiscrete2_bit");
 
 
@@ -955,23 +955,23 @@ Args:
         .def("dW", ((Tensor& (DepthwiseDenseAffine::*)())&DepthwiseDenseAffine::dW))
         .def("db", ((Tensor& (DepthwiseDenseAffine::*)())&DepthwiseDenseAffine::db));
 
-    // SparseLayer
-    py::class_< SparseLayer, Model, std::shared_ptr<SparseLayer> >(m, "SparseLayer")
-         .def("get_connection_size", &SparseLayer::GetConnectionSize)
-         .def("set_connection", &SparseLayer::SetConnectionIndices)
-         .def("get_connection", &SparseLayer::GetConnectionIndices)
-         .def("set_connection_index", &SparseLayer::SetConnectionIndex)
-         .def("get_connection_index", &SparseLayer::GetConnectionIndex)
-         .def("get_node_connection_size", &SparseLayer::GetNodeConnectionSize)
-         .def("set_node_connection_index", &SparseLayer::SetNodeConnectionIndex)
-         .def("get_node_connection_index", &SparseLayer::GetNodeConnectionIndex);
+    // SparseModel
+    py::class_< SparseModel, Model, std::shared_ptr<SparseModel> >(m, "SparseModel")
+         .def("get_connection_size", &SparseModel::GetConnectionSize)
+         .def("set_connection", &SparseModel::SetConnectionIndices)
+         .def("get_connection", &SparseModel::GetConnectionIndices)
+         .def("set_connection_index", &SparseModel::SetConnectionIndex)
+         .def("get_connection_index", &SparseModel::GetConnectionIndex)
+         .def("get_node_connection_size", &SparseModel::GetNodeConnectionSize)
+         .def("set_node_connection_index", &SparseModel::SetNodeConnectionIndex)
+         .def("get_node_connection_index", &SparseModel::GetNodeConnectionIndex);
 
 
-    py::class_< LutLayer, SparseLayer, std::shared_ptr<LutLayer> >(m, "LutLayer")
-        .def("import_parameter", &LutLayer::ImportLayer);
+    py::class_< LutModel, SparseModel, std::shared_ptr<LutModel> >(m, "LutModel")
+        .def("import_parameter", &LutModel::ImportLayer);
 
-    py::class_< LutLayerBit, SparseLayer, std::shared_ptr<LutLayerBit> >(m, "LutLayerBit")
-        .def("import_parameter", &LutLayerBit::ImportLayer);
+    py::class_< LutModelBit, SparseModel, std::shared_ptr<LutModelBit> >(m, "LutModelBit")
+        .def("import_parameter", &LutModelBit::ImportLayer);
        
     py::class_< Sequential, Model, std::shared_ptr<Sequential> >(m, "Sequential")
         .def_static("create",   &Sequential::Create)
@@ -1041,7 +1041,7 @@ Args:
                 py::arg("output_shape")     = bb::indices_t());
 
 
-    py::class_< BinaryLut6, LutLayer, std::shared_ptr<BinaryLut6> >(m, "BinaryLut6")
+    py::class_< BinaryLut6, LutModel, std::shared_ptr<BinaryLut6> >(m, "BinaryLut6")
         .def_static("create", &BinaryLut6::CreateEx,
 R"(create BinaryLut6 object
 
@@ -1052,12 +1052,12 @@ R"(create BinaryLut6 object
                 py::arg("output_shape"),
                 py::arg("seed") = 1);
     
-    py::class_< BinaryLut6Bit, LutLayerBit, std::shared_ptr<BinaryLut6Bit> >(m, "BinaryLut6Bit")
+    py::class_< BinaryLut6Bit, LutModelBit, std::shared_ptr<BinaryLut6Bit> >(m, "BinaryLut6Bit")
         .def_static("create", &BinaryLut6Bit::CreateEx, "create",
                 py::arg("output_shape"),
                 py::arg("seed") = 1);
     
-    py::class_< DifferentiableLut6, SparseLayer, std::shared_ptr<DifferentiableLut6> >(m, "DifferentiableLut6")
+    py::class_< DifferentiableLut6, SparseModel, std::shared_ptr<DifferentiableLut6> >(m, "DifferentiableLut6")
         .def_static("create", &DifferentiableLut6::CreateEx, "create DifferentiableLut6",
                 py::arg("output_shape"),
                 py::arg("batch_norm") = true,
@@ -1067,7 +1067,7 @@ R"(create BinaryLut6 object
                 py::arg("beta")       = 0.5,
                 py::arg("seed")       = 1);
 
-    py::class_< DifferentiableLut6Bit, SparseLayer, std::shared_ptr<DifferentiableLut6Bit> >(m, "DifferentiableLut6Bit")
+    py::class_< DifferentiableLut6Bit, SparseModel, std::shared_ptr<DifferentiableLut6Bit> >(m, "DifferentiableLut6Bit")
         .def_static("create", &DifferentiableLut6Bit::CreateEx, "create DifferentiableLut6Bit",
                 py::arg("output_shape"),
                 py::arg("batch_norm") = true,
@@ -1078,13 +1078,13 @@ R"(create BinaryLut6 object
                 py::arg("seed")       = 1);
     
     
-    py::class_< StochasticLut6, SparseLayer, std::shared_ptr<StochasticLut6> >(m, "StochasticLut6")
+    py::class_< StochasticLut6, SparseModel, std::shared_ptr<StochasticLut6> >(m, "StochasticLut6")
         .def_static("create", &StochasticLut6::CreateEx, "create StochasticLut6",
                 py::arg("output_shape"),
                 py::arg("connection") = "",
                 py::arg("seed") = 1);
     
-    py::class_< StochasticLut6Bit, SparseLayer, std::shared_ptr<StochasticLut6Bit> >(m, "StochasticLut6Bit")
+    py::class_< StochasticLut6Bit, SparseModel, std::shared_ptr<StochasticLut6Bit> >(m, "StochasticLut6Bit")
         .def_static("create", &StochasticLut6Bit::CreateEx, "create StochasticLut6Bit",
                 py::arg("output_shape"),
                 py::arg("connection") = "",

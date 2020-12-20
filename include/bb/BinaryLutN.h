@@ -12,7 +12,7 @@
 
 #include <array>
 #include <vector>
-#include "bb/LutLayer.h"
+#include "bb/LutModel.h"
 
 
 namespace bb {
@@ -20,7 +20,7 @@ namespace bb {
 
 // テーブルサイズ固定LUT
 template <int N = 6, typename FT = Bit, typename BT = float>
-class BinaryLutN : public LutLayer<FT, BT>
+class BinaryLutN : public LutModel<FT, BT>
 {
 protected:
     bool                    m_host_only = false;

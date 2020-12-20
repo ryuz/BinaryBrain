@@ -13,7 +13,7 @@
 #include <array>
 #include <vector>
 
-#include "bb/SparseLayer.h"
+#include "bb/SparseModel.h"
 #include "bb/StochasticLutN.h"
 
 namespace bb {
@@ -21,7 +21,7 @@ namespace bb {
 
 // LUT方式基底クラス
 template <typename FT = Bit, typename BT = float>
-class LutLayer : public SparseLayer
+class LutModel : public SparseModel
 {
 public:
     // LUT操作の定義
@@ -61,7 +61,7 @@ protected:
     
 public:
     // 形状が同一のSparceLayerをテーブル化して取り込む
-    void ImportLayer(std::shared_ptr< SparseLayer > src)
+    void ImportLayer(std::shared_ptr< SparseModel > src)
     {
         BB_ASSERT(CalcShapeSize(src->GetInputShape())  == CalcShapeSize(this->GetInputShape()));
         BB_ASSERT(CalcShapeSize(src->GetOutputShape()) == CalcShapeSize(this->GetOutputShape()));

@@ -115,9 +115,6 @@
     <ClInclude Include="..\..\..\include\bb\LossSoftmaxCrossEntropy.h">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\bb\LutLayer.h">
-      <Filter>ヘッダファイル</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\bb\Manager.h">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
@@ -202,9 +199,6 @@
     <ClInclude Include="..\..\..\include\bb\SparseLutDiscreteN.h">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\bb\SparseLutN.h">
-      <Filter>ヘッダファイル</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\bb\StochasticBatchNormalization.h">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
@@ -245,6 +239,12 @@
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\bb\DifferentiableLutDiscreteN.h">
+      <Filter>ヘッダファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\bb\LutModel.h">
+      <Filter>ヘッダファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\bb\SparseModel.h">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
   </ItemGroup>

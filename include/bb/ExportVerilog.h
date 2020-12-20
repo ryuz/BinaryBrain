@@ -17,7 +17,7 @@
 #include <sstream>
 
 #include "bb/Sequential.h"
-#include "bb/LutLayer.h"
+#include "bb/LutModel.h"
 #include "bb/Convolution2d.h"
 #include "bb/MaxPooling.h"
 
@@ -27,7 +27,7 @@ namespace bb {
 
 // LUT-Network 基本レイヤーのVerilog 出力
 template <typename FT = Bit, typename BT = float>
-void ExportVerilog_LutLayer(std::ostream& os, std::string module_name, LutLayer<FT, BT> const &lut)
+void ExportVerilog_LutModel(std::ostream& os, std::string module_name, LutModel<FT, BT> const &lut)
 {
     index_t node_size      = lut.GetOutputNodeSize();
     
@@ -153,7 +153,7 @@ void ExportVerilog_LutLayer(std::ostream& os, std::string module_name, LutLayer<
 
 // LUT-Network 基本レイヤーの直列接続を出力
 template <typename FT = Bit, typename BT = float>
-void ExportVerilog_LutLayers(std::ostream& os, std::string module_name, std::vector< std::shared_ptr< LutLayer<FT, BT> > > layers)
+void ExportVerilog_LutModels(std::ostream& os, std::string module_name, std::vector< std::shared_ptr< LutModel<FT, BT> > > layers)
 {
     int layer_size = (int)layers.size();
 
@@ -256,26 +256,26 @@ void ExportVerilog_LutLayers(std::ostream& os, std::string module_name, std::vec
     // サブモジュール出力
     for (int i = 0; i < layer_size; ++i) {
         auto layer = layers[i];
-        ExportVerilog_LutLayer<FT, BT>(os, sub_modle_name[i], *layer);
+        ExportVerilog_LutModel<FT, BT>(os, sub_modle_name[i], *layer);
     }
 }
 
 
 // LUT-Network 基本レイヤーの直列接続を出力
 template <typename FT = Bit, typename BT = float>
-void ExportVerilog_LutLayers(std::ostream& os, std::string module_name, std::shared_ptr<bb::Sequential> net)
+void ExportVerilog_LutModels(std::ostream& os, std::string module_name, std::shared_ptr<bb::Sequential> net)
 {
-    std::vector< std::shared_ptr< LutLayer<FT, BT> > > layers;
+    std::vector< std::shared_ptr< LutModel<FT, BT> > > layers;
 
-    // LutLayer だけを取り出し
+    // LutModel だけを取り出し
     for (int i = 0; i < net->GetSize(); ++i) {
-        auto layer = std::dynamic_pointer_cast< LutLayer<FT, BT> >(net->Get(i));
+        auto layer = std::dynamic_pointer_cast< LutModel<FT, BT> >(net->Get(i));
         if ( layer != nullptr ) {
             layers.push_back(layer);
         }
     }
 
-    ExportVerilog_LutLayers<FT, BT>(os, module_name, layers);
+    ExportVerilog_LutModels<FT, BT>(os, module_name, layers);
 }
 
 
@@ -461,7 +461,7 @@ void ExportVerilog_LutConvolutionLayer(std::ostream& os, std::string module_name
     int m = (int)conv->GetFilterWidth();
 
     ExportVerilog_LutConvolutionModule(os, module_name, mlp_name, in_c, out_c, n, m);
-    ExportVerilog_LutLayers<FT, BT>(os, mlp_name, net);
+    ExportVerilog_LutModels<FT, BT>(os, mlp_name, net);
 }
 
 
