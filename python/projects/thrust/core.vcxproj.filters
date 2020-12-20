@@ -193,9 +193,6 @@
     <ClInclude Include="..\..\..\include\bb\SparseBinaryLutN.h">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\bb\SparseLutDiscreteN.h">
-      <Filter>ヘッダファイル</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\bb\StochasticBatchNormalization.h">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
@@ -245,6 +242,9 @@
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\bb\Convolution2d.h">
+      <Filter>ヘッダファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\bb\StochasticLutModel.h">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
   </ItemGroup>

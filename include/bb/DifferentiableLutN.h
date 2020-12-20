@@ -13,7 +13,7 @@
 #include <cstdint>
 #include <random>
 
-#include "bb/SparseModel.h"
+#include "bb/StochasticLutModel.h"
 #include "bb/Tensor.h"
 #include "bb/FixedSizeConnectionTable.h"
 #include "bb/StochasticOperation.h"
@@ -23,9 +23,9 @@ namespace bb {
 
 
 template <int N = 6, typename BinType = Bit, typename RealType = float>
-class DifferentiableLutN : public SparseModel
+class DifferentiableLutN : public StochasticLutModel
 {
-    using _super = SparseModel;
+    using _super = StochasticLutModel;
 
     static int const NN = (1 << N);
 

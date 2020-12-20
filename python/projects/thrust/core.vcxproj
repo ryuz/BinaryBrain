@@ -85,9 +85,9 @@
     <ClInclude Include="..\..\..\include\bb\Sigmoid.h" />
     <ClInclude Include="..\..\..\include\bb\SimdSupport.h" />
     <ClInclude Include="..\..\..\include\bb\SparseBinaryLutN.h" />
-    <ClInclude Include="..\..\..\include\bb\SparseLutDiscreteN.h" />
     <ClInclude Include="..\..\..\include\bb\SparseModel.h" />
     <ClInclude Include="..\..\..\include\bb\StochasticBatchNormalization.h" />
+    <ClInclude Include="..\..\..\include\bb\StochasticLutModel.h" />
     <ClInclude Include="..\..\..\include\bb\StochasticLutN.h" />
     <ClInclude Include="..\..\..\include\bb\StochasticLutSimd.h" />
     <ClInclude Include="..\..\..\include\bb\StochasticMaxPooling.h" />

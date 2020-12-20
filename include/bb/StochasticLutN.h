@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <array>
 #include <vector>
-#include "bb/LutModel.h"
+#include "bb/StochasticLutModel.h"
 #include "bb/FixedSizeConnectionTable.h"
 #include "bb/StochasticOperation.h"
 #include "bb/StochasticLutSimd.h"
@@ -24,9 +24,9 @@ namespace bb {
 
 // 確率的LUTの抽象レイヤー
 template <int N = 6, typename BinType = float, typename RealType = float>
-class StochasticLutN : public SparseModel
+class StochasticLutN : public StochasticLutModel
 {
-    using _super = SparseModel;
+    using _super = StochasticLutModel;
     static int const NN = (1 << N);
 
 protected:

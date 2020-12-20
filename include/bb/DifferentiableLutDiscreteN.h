@@ -13,7 +13,7 @@
 #include <cstdint>
 #include <random>
 
-#include "bb/Model.h"
+#include "bb/StochasticLutModel.h"
 #include "bb/StochasticLutN.h"
 #include "bb/StochasticBatchNormalization.h"
 #include "bb/BatchNormalization.h"
@@ -23,11 +23,11 @@
 namespace bb {
 
 
-// Sparce LUT (Discrite version)
+// Differentiable LUT (Discrite version)
 template <int N = 6, typename BinType = float, typename RealType = float>
-class DifferentiableLutDiscreteN : public SparseModel
+class DifferentiableLutDiscreteN : public StochasticLutModel
 {
-    using _super = SparseModel;
+    using _super =  StochasticLutModel;
 
 protected:
     bool                                                            m_memory_saving = false;
@@ -135,6 +135,11 @@ public:
         m_batch_norm->SendCommand(command, send_to);
         m_activation->SendCommand(command, send_to);
     }
+
+    Tensor       &W(void)        { return m_lut->W(); }
+    Tensor const &W(void) const  { return m_lut->W(); }
+    Tensor       &dW(void)       { return m_lut->dW(); }
+    Tensor const &dW(void) const { return m_lut->dW(); }
 
     auto lock_InputIndex(void)             { return m_lut->lock_InputIndex(); }
     auto lock_InputIndex_const(void) const { return m_lut->lock_InputIndex_const(); }

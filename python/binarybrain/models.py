@@ -230,7 +230,13 @@ class DifferentiableLut(Model):
 
         super(DifferentiableLut, self).__init__(core_model=core_model)
 
-            
+    def W(self):
+        return bb.Tensor.from_core(self.get_core_model().W())
+    
+    def dW(self):
+        return bb.Tensor.from_core(self.get_core_model().dW())
+
+    
 class ConvolutionIm2Col(Model):
     """ConvolutionIm2Col class
        畳み込みの lowering における im2col 層

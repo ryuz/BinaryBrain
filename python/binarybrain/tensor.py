@@ -9,7 +9,7 @@ class Tensor():
     """Tensor class
     """
     
-    def __init__(self, shape: List[int], dtype: int = core.TYPE_FP32, host_only=False):
+    def __init__(self, shape: List[int]=None, *, dtype: int = core.TYPE_FP32, host_only=False):
         """Constructor
         Args:
             shape (list[int]):  Shape of created array
@@ -17,16 +17,16 @@ class Tensor():
             host_only (bool): flag of host only
         """
         if shape is not None:
-            self.tensor = core.Tensor(shape, dtype, host_only)
+            self.core_tensor = core.Tensor(shape, dtype, host_only)
 
     @staticmethod
-    def from_core(tensor):
+    def from_core(core_tensor):
         new_tensor = Tensor(shape=None)
-        new_tensor.tensor = tensor
+        new_tensor.core_tensor = core_tensor
         return new_tensor
     
     def get_core(self):
-        return self.tensor
+        return self.core_tensor
         
     def get_type(self) -> int:
         """get data type.
@@ -34,7 +34,7 @@ class Tensor():
         Returns:
             data type.
         """
-        return self.tensor.get_type()
+        return self.core_tensor.get_type()
     
     def get_shape(self) -> List[int]:
         """get shape.
@@ -42,8 +42,7 @@ class Tensor():
         Returns:
             shape
         """
-        return self.tensor.get_shape()
-        
+        return self.core_tensor.get_shape()
     
     def numpy(self) -> np.ndarray:
         """Convert to NumPy
@@ -53,27 +52,27 @@ class Tensor():
             dtype (int): Data type
             host_only (bool): flag of host only
         """
-        dtype = self.tensor.get_type()
+        dtype = self.core_tensor.get_type()
         if dtype == core.TYPE_FP32:
-            return self.tensor.numpy_fp32()
+            return self.core_tensor.numpy_fp32()
         elif dtype == core.TYPE_FP64:
-            return self.tensor.numpy_fp64()
+            return self.core_tensor.numpy_fp64()
         elif dtype == core.TYPE_INT8:
-            return self.tensor.numpy_int8()
+            return self.core_tensor.numpy_int8()
         elif dtype == core.TYPE_INT16:
-            return self.tensor.numpy_int16()
+            return self.core_tensor.numpy_int16()
         elif dtype == core.TYPE_INT32:
-            return self.tensor.numpy_int32()
+            return self.core_tensor.numpy_int32()
         elif dtype == core.TYPE_INT64:
-            return self.tensor.numpy_int64()
+            return self.core_tensor.numpy_int64()
         elif dtype == core.TYPE_UINT8:
-            return self.tensor.numpy_uint8()
+            return self.core_tensor.numpy_uint8()
         elif dtype == core.TYPE_UINT16:
-            return self.tensor.numpy_uint16()
+            return self.core_tensor.numpy_uint16()
         elif dtype == core.TYPE_UINT32:
-            return self.tensor.numpy_uint32()
+            return self.core_tensor.numpy_uint32()
         elif dtype == core.TYPE_UINT64:
-            return self.tensor.numpy_uint64()
+            return self.core_tensor.numpy_uint64()
     
     @staticmethod
     def from_numpy(ndarray: np.ndarray, host_only=False):
@@ -88,25 +87,25 @@ class Tensor():
             ndarray = ndarray.copy(order='C')
         new_tensor = Tensor(shape=None)
         if ndarray.dtype == np.float32:
-            new_tensor.tensor = bb.core.Tensor.from_numpy_fp32(ndarray, host_only)
+            new_tensor.core_tensor = bb.core.Tensor.from_numpy_fp32(ndarray, host_only)
         elif ndarray.dtype == np.float64:
-            new_tensor.tensor = bb.core.Tensor.from_numpy_fp64(ndarray, host_only)
+            new_tensor.core_tensor = bb.core.Tensor.from_numpy_fp64(ndarray, host_only)
         elif ndarray.dtype == np.int8:
-            new_tensor.tensor = bb.core.Tensor.from_numpy_int8(ndarray, host_only)
+            new_tensor.core_tensor = bb.core.Tensor.from_numpy_int8(ndarray, host_only)
         elif ndarray.dtype == np.int16:
-            new_tensor.tensor = bb.core.Tensor.from_numpy_int16(ndarray, host_only)
+            new_tensor.core_tensor = bb.core.Tensor.from_numpy_int16(ndarray, host_only)
         elif ndarray.dtype == np.int32:
-            new_tensor.tensor = bb.core.Tensor.from_numpy_int32(ndarray, host_only)
+            new_tensor.core_tensor = bb.core.Tensor.from_numpy_int32(ndarray, host_only)
         elif ndarray.dtype == np.int64:
-            new_tensor.tensor = bb.core.Tensor.from_numpy_int64(ndarray, host_only)
+            new_tensor.core_tensor = bb.core.Tensor.from_numpy_int64(ndarray, host_only)
         elif ndarray.dtype == np.uint8:
-            new_tensor.tensor = bb.core.Tensor.from_numpy_uint8(ndarray, host_only)
+            new_tensor.core_tensor = bb.core.Tensor.from_numpy_uint8(ndarray, host_only)
         elif ndarray.dtype == np.uint16:
-            new_tensor.tensor = bb.core.Tensor.from_numpy_uint16(ndarray, host_only)
+            new_tensor.core_tensor = bb.core.Tensor.from_numpy_uint16(ndarray, host_only)
         elif ndarray.dtype == np.uint32:
-            new_tensor.tensor = bb.core.Tensor.from_numpy_uint32(ndarray, host_only)
+            new_tensor.core_tensor = bb.core.Tensor.from_numpy_uint32(ndarray, host_only)
         elif ndarray.dtype == np.uint64:
-            new_tensor.tensor = bb.core.Tensor.from_numpy_uint64(ndarray, host_only)
+            new_tensor.core_tensor = bb.core.Tensor.from_numpy_uint64(ndarray, host_only)
         else:
             raise TypeError("unsupported")
         return new_tensor
@@ -115,92 +114,92 @@ class Tensor():
     def __add__(self, x):
         new_tensor = Tensor(shape=None)
         if type(x) == Tensor:
-            new_tensor.tensor = self.tensor + x.tensor
+            new_tensor.core_tensor = self.core_tensor + x.core_tensor
         else:
-            new_tensor.tensor = self.tensor + float(x)
+            new_tensor.core_tensor = self.core_tensor + float(x)
         return new_tensor
 
     def __sub__(self, x):
         new_tensor = Tensor(shape=None)
         if type(x) == Tensor:
-            new_tensor.tensor = self.tensor - x.tensor
+            new_tensor.core_tensor = self.core_tensor - x.core_tensor
         else:
-            new_tensor.tensor = self.tensor - float(x)
+            new_tensor.core_tensor = self.core_tensor - float(x)
         return new_tensor
 
     def __mul__(self, x):
         new_tensor = Tensor(shape=None)
         if type(x) == Tensor:
-            new_tensor.tensor = self.tensor * x.tensor
+            new_tensor.core_tensor = self.core_tensor * x.core_tensor
         else:
-            new_tensor.tensor = self.tensor * float(x)
+            new_tensor.core_tensor = self.core_tensor * float(x)
         return new_tensor
 
     def __truediv__(self, x):
         new_tensor = Tensor(shape=None)
         if type(x) == Tensor:
-            new_tensor.tensor = self.tensor / x.tensor
+            new_tensor.core_tensor = self.core_tensor / x.core_tensor
         else:
-            new_tensor.tensor = self.tensor / float(x)
+            new_tensor.core_tensor = self.core_tensor / float(x)
         return new_tensor
 
     def __radd__(self, x):
         new_tensor = Tensor(shape=None)
         if type(x) == Tensor:
-            new_tensor.tensor = x.tensor + self.tensor 
+            new_tensor.core_tensor = x.core_tensor + self.core_tensor 
         else:
-            new_tensor.tensor = float(x) + self.tensor
+            new_tensor.core_tensor = float(x) + self.core_tensor
         return new_tensor
 
     def __rsub__(self, x):
         new_tensor = Tensor(shape=None)
         if type(x) == Tensor:
-            new_tensor.tensor = x.tensor - self.tensor 
+            new_tensor.core_tensor = x.core_tensor - self.core_tensor 
         else:
-            new_tensor.tensor = float(x) - self.tensor
+            new_tensor.core_tensor = float(x) - self.core_tensor
         return new_tensor
 
     def __rmul__(self, x):
         new_tensor = Tensor(shape=None)
         if type(x) == Tensor:
-            new_tensor.tensor = x.tensor * self.tensor 
+            new_tensor.core_tensor = x.core_tensor * self.core_tensor 
         else:
-            new_tensor.tensor = float(x) * self.tensor
+            new_tensor.core_tensor = float(x) * self.core_tensor
         return new_tensor
 
     def __rtruediv__(self, x):
         new_tensor = Tensor(shape=None)
         if type(x) == Tensor:
-            new_tensor.tensor = x.tensor / self.tensor 
+            new_tensor.core_tensor = x.core_tensor / self.core_tensor 
         else:
-            new_tensor.tensor = float(x) / self.tensor
+            new_tensor.core_tensor = float(x) / self.core_tensor
         return new_tensor
     
     def __iadd__(self, x):
         if type(x) == Tensor:
-            self.tensor += x.tensor 
+            self.core_tensor += x.core_tensor 
         else:
-            self.tensor += float(x)
+            self.core_tensor += float(x)
         return self
     
     def __isub__(self, x):
         if type(x) == Tensor:
-            self.tensor -= x.tensor 
+            self.core_tensor -= x.core_tensor 
         else:
-            self.tensor -= float(x)
+            self.core_tensor -= float(x)
         return self
     
     def __imul__(self, x):
         if type(x) == Tensor:
-            self.tensor *= x.tensor 
+            self.core_tensor *= x.core_tensor 
         else:
-            self.tensor *= float(x)
+            self.core_tensor *= float(x)
         return self
     
     def __itruediv__(self, x):
         if type(x) == Tensor:
-            self.tensor /= x.tensor 
+            self.core_tensor /= x.core_tensor 
         else:
-            self.tensor /= float(x)
+            self.core_tensor /= float(x)
         return self
     

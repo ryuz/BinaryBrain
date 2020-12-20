@@ -11,20 +11,20 @@ class Metrics():
     """Metrics class
     """
     
-    def __init__(self):
-        self.metrics = None
+    def __init__(self, core_metrics=None):
+        self.core_metrics = core_metrics
         
-    def clear(self, input_shape):
-        self.metrics.clear()
+    def clear(self):
+        self.core_metrics.clear()
     
     def get(self):
-        return self.metrics.get_metrics()
+        return self.core_metrics.get_metrics()
 
     def calculate(self, y_buf, t_buf):
-        return self.metrics.calculate_metrics(y_buf.get_core(), t_buf.get_core())
+        return self.core_metrics.calculate_metrics(y_buf.get_core(), t_buf.get_core())
 
     def get_metrics_string(self):
-        return self.metrics.get_metrics_string()
+        return self.core_metrics.get_metrics_string()
 
 
 class MetricsCategoricalAccuracy(Metrics):
@@ -32,8 +32,8 @@ class MetricsCategoricalAccuracy(Metrics):
     """
     
     def __init__(self):
-        super(MetricsCategoricalAccuracy, self).__init__()
-        self.metrics = core.MetricsCategoricalAccuracy.create()
+        core_metrics = core.MetricsCategoricalAccuracy.create()
+        super(MetricsCategoricalAccuracy, self).__init__(core_metrics=core_metrics)
 
 
 class MetricsMeanSquaredError(Metrics):
@@ -41,6 +41,6 @@ class MetricsMeanSquaredError(Metrics):
     """
     
     def __init__(self):
-        super(MetricsMeanSquaredError, self).__init__()
-        self.metrics = core.MetricsMeanSquaredError.create()
+        core_metrics = core.MetricsMeanSquaredError.create()
+        super(MetricsMeanSquaredError, self).__init__(core_metrics=core_metrics)
 
