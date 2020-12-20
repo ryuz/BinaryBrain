@@ -56,30 +56,48 @@ void MnistStochasticLutCnn(int epoch_size, int mini_batch_size, int test_modulat
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_sl0);
         cnv0_sub->Add(layer_cnv0_sl1);
+        auto cnv0 = bb::Convolution2d<>::Create(cnv0_sub, 3, 3);
 
         auto cnv1_sub = bb::Sequential::Create();
         cnv1_sub->Add(layer_cnv1_sl0);
         cnv1_sub->Add(layer_cnv1_sl1);
+        auto cnv1 = bb::Convolution2d<>::Create(cnv1_sub, 3, 3);
+
+        auto pol0 = bb::StochasticMaxPooling2x2<>::Create();
 
         auto cnv2_sub = bb::Sequential::Create();
         cnv2_sub->Add(layer_cnv2_sl0);
         cnv2_sub->Add(layer_cnv2_sl1);
+        auto cnv2 = bb::Convolution2d<>::Create(cnv2_sub, 3, 3);
 
         auto cnv3_sub = bb::Sequential::Create();
         cnv3_sub->Add(layer_cnv3_sl0);
         cnv3_sub->Add(layer_cnv3_sl1);
+        auto cnv3 = bb::Convolution2d<>::Create(cnv3_sub, 3, 3);
+
+        auto pol1 = bb::StochasticMaxPooling2x2<float, float>::Create();
+
+        auto cnv4_sub = bb::Sequential::Create();
+        cnv4_sub->Add(layer_sl4);
+        cnv4_sub->Add(layer_sl5);
+        cnv4_sub->Add(layer_sl6);
+        cnv4_sub->Add(layer_sl7);
+        auto cnv4 = bb::Convolution2d<>::Create(cnv4_sub, 4, 4);
+
 
         auto net = bb::Sequential::Create();
-        net->Add(bb::Convolution2d<>::Create(cnv0_sub, 3, 3));
-        net->Add(bb::Convolution2d<>::Create(cnv1_sub, 3, 3));
-        net->Add(bb::StochasticMaxPooling2x2<>::Create());
-        net->Add(bb::Convolution2d<>::Create(cnv2_sub, 3, 3));
-        net->Add(bb::Convolution2d<>::Create(cnv3_sub, 3, 3));
-        net->Add(bb::StochasticMaxPooling2x2<>::Create());
-        net->Add(layer_sl4);
-        net->Add(layer_sl5);
-        net->Add(layer_sl6);
-        net->Add(layer_sl7);
+        net->Add(cnv0);
+        net->Add(cnv1);
+        net->Add(pol0);
+        net->Add(cnv2);
+        net->Add(cnv3);
+        net->Add(pol1);
+        net->Add(cnv4);
+
+//        net->Add(layer_sl4);
+//        net->Add(layer_sl5);
+//        net->Add(layer_sl6);
+//        net->Add(layer_sl7);
 
         // set input shape
         net->SetInputShape(td.x_shape);
@@ -116,6 +134,29 @@ void MnistStochasticLutCnn(int epoch_size, int mini_batch_size, int test_modulat
         runner_create.initial_evaluation = file_read;       // ファイルを読んだ場合は最初に評価しておく
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
+    
+        {
+            // Verilog 出力
+            std::vector< std::shared_ptr< bb::Filter2d<float, float> > >  vec_cnv0;
+            std::vector< std::shared_ptr< bb::Filter2d<float, float> > >  vec_cnv1;
+            std::vector< std::shared_ptr< bb::Filter2d<float, float> > >  vec_cnv2;
+
+            vec_cnv0.push_back(cnv0);
+            vec_cnv0.push_back(cnv1);
+            vec_cnv0.push_back(pol0);
+            vec_cnv1.push_back(cnv2);
+            vec_cnv1.push_back(cnv3);
+            vec_cnv1.push_back(pol1);
+            vec_cnv2.push_back(cnv4);
+
+            std::string filename = "verilog/" + net_name + ".v";
+            std::ofstream ofs(filename);
+            ofs << "`timescale 1ns / 1ps\n\n";
+            bb::ExportVerilog_LutCnnLayersAxi4s(ofs, net_name + "Cnv0", vec_cnv0);
+            bb::ExportVerilog_LutCnnLayersAxi4s(ofs, net_name + "Cnv1", vec_cnv1);
+            bb::ExportVerilog_LutCnnLayersAxi4s(ofs, net_name + "Cnv2", vec_cnv2);
+            std::cout << "export : " << filename << "\n" << std::endl;
+        }
     }
 
 
@@ -229,7 +270,7 @@ void MnistStochasticLutCnn(int epoch_size, int mini_batch_size, int test_modulat
             vec_cnv1.push_back(pol1);
             vec_cnv2.push_back(cnv4);
 
-            std::string filename = "verilog/" + net_name + ".v";
+            std::string filename = "verilog/" + net_name + "_2.v";
             std::ofstream ofs(filename);
             ofs << "`timescale 1ns / 1ps\n\n";
             bb::ExportVerilog_LutCnnLayersAxi4s(ofs, net_name + "Cnv0", vec_cnv0);

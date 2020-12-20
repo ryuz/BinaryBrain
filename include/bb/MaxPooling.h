@@ -52,6 +52,8 @@ public:
 
 protected:
     // コンストラクタ
+    MaxPooling() {}
+
     MaxPooling(create_t const &create)
     {
         m_filter_h_size = create.filter_h_size;

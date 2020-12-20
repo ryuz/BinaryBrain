@@ -101,7 +101,7 @@ void MnistDifferentiableLutSimple(int epoch_size, int mini_batch_size, int train
         std::string filename = "verilog/" + net_name + ".v";
         std::ofstream ofs(filename);
         ofs << "`timescale 1ns / 1ps\n\n";
-        bb::ExportVerilog_LutModels<>(ofs, net_name, main_net);
+        bb::ExportVerilog_LutModels(ofs, net_name, main_net);
         std::cout << "export : " << filename << "\n" << std::endl;
     }
 
@@ -153,7 +153,7 @@ void MnistDifferentiableLutSimple(int epoch_size, int mini_batch_size, int train
             std::string filename = "verilog/" + net_name + "_2.v";
             std::ofstream ofs(filename);
             ofs << "`timescale 1ns / 1ps\n\n";
-            bb::ExportVerilog_LutModels<>(ofs, net_name, lut_net);
+            bb::ExportVerilog_LutModels(ofs, net_name, lut_net);
             std::cout << "export : " << filename << "\n" << std::endl;
 
             // RTL simulation 用データの出力

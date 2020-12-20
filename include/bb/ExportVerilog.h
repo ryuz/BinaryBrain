@@ -20,14 +20,14 @@
 #include "bb/SparseModel.h"
 #include "bb/Convolution2d.h"
 #include "bb/MaxPooling.h"
+#include "bb/StochasticMaxPooling2x2.h"
 
 
 namespace bb {
 
 
 // LUT-Network 基本レイヤーのVerilog 出力
-template <typename FT = Bit, typename BT = float>
-void ExportVerilog_LutModel(std::ostream& os, std::string module_name, SparseModel const &lut)
+inline void ExportVerilog_LutModel(std::ostream& os, std::string module_name, SparseModel const &lut)
 {
     index_t node_size      = lut.GetOutputNodeSize();
     
@@ -152,8 +152,7 @@ void ExportVerilog_LutModel(std::ostream& os, std::string module_name, SparseMod
 
 
 // LUT-Network 基本レイヤーの直列接続を出力
-template <typename FT = Bit, typename BT = float>
-void ExportVerilog_LutModels(std::ostream& os, std::string module_name, std::vector< std::shared_ptr< SparseModel > > layers)
+inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, std::vector< std::shared_ptr< SparseModel > > layers)
 {
     int layer_size = (int)layers.size();
 
@@ -256,14 +255,13 @@ void ExportVerilog_LutModels(std::ostream& os, std::string module_name, std::vec
     // サブモジュール出力
     for (int i = 0; i < layer_size; ++i) {
         auto layer = layers[i];
-        ExportVerilog_LutModel<FT, BT>(os, sub_modle_name[i], *layer);
+        ExportVerilog_LutModel(os, sub_modle_name[i], *layer);
     }
 }
 
 
 // LUT-Network 基本レイヤーの直列接続を出力
-template <typename FT = Bit, typename BT = float>
-void ExportVerilog_LutModels(std::ostream& os, std::string module_name, std::shared_ptr<bb::Sequential> net)
+inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, std::shared_ptr<bb::Sequential> net)
 {
     std::vector< std::shared_ptr< SparseModel > > layers;
 
@@ -275,7 +273,7 @@ void ExportVerilog_LutModels(std::ostream& os, std::string module_name, std::sha
         }
     }
 
-    ExportVerilog_LutModels<FT, BT>(os, module_name, layers);
+    ExportVerilog_LutModels(os, module_name, layers);
 }
 
 
@@ -461,7 +459,7 @@ void ExportVerilog_LutConvolutionLayer(std::ostream& os, std::string module_name
     int m = (int)conv->GetFilterWidth();
 
     ExportVerilog_LutConvolutionModule(os, module_name, mlp_name, in_c, out_c, n, m);
-    ExportVerilog_LutModels<FT, BT>(os, mlp_name, net);
+    ExportVerilog_LutModels(os, mlp_name, net);
 }
 
 
@@ -631,8 +629,9 @@ void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module_name, 
         os << "\n\n";
 
         auto layer = layers[i];
-        auto cnv = std::dynamic_pointer_cast<Convolution2d<FT, BT> >(layer);
-        auto pol = std::dynamic_pointer_cast<MaxPooling<FT, BT> >(layer);
+        auto cnv   = std::dynamic_pointer_cast<Convolution2d<FT, BT> >(layer);
+        auto pol   = std::dynamic_pointer_cast<MaxPooling<FT, BT> >(layer);
+//        auto pol_s = std::dynamic_pointer_cast< StochasticMaxPooling2x2<> >(layer);
         if ( cnv ) {
             os << "\t" << module_name << "_l" << i << "\n";
             os << "\t\t\t#(\n";
@@ -655,6 +654,19 @@ void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module_name, 
             os << "\t\t\t)\n";
             os << "\t\ti_" << "i_img_dnn_maxpol" << "_l" << i << "\n";
         }
+        /*
+        else if (pol_s) {
+            os << "\t" << "jelly_img_dnn_maxpol" << "\n";
+            os << "\t\t\t#(\n";
+            os << "\t\t\t\t.C                       (" << pol_s->GetOutputChannels() << "),\n";
+            os << "\t\t\t\t.N                       (" << pol_s->GetFilterWidth() << "),\n";
+            os << "\t\t\t\t.M                       (" << pol_s->GetFilterHeight() << "),\n";
+            os << "\t\t\t\t.USER_WIDTH              (USER_WIDTH),\n";
+            os << "\t\t\t\t.MAX_X_NUM               (MAX_X_NUM),\n";
+            os << "\t\t\t\t.RAM_TYPE                (RAM_TYPE)\n";
+            os << "\t\t\t)\n";
+            os << "\t\ti_" << "i_img_dnn_maxpol" << "_l" << i << "\n";
+        }*/
         else {
             std::cout << "error" << std::endl;
             BB_ASSERT(0);
@@ -663,26 +675,26 @@ void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module_name, 
 
         os << "\t\t\t(\n";
         os << "\t\t\t\t.reset                   (reset),\n";
-        os << "\t\t\t\t.clk                 (clk),\n";
-        os << "\t\t\t\t.cke                 (cke),\n";
+        os << "\t\t\t\t.clk                     (clk),\n";
+        os << "\t\t\t\t.cke                     (cke),\n";
         os << "\t\t\t\t\n";
         os << "\t\t\t\t.s_img_line_first        (img" << i << "_line_first),\n";
-        os << "\t\t\t\t.s_img_line_last     (img" << i << "_line_last),\n";
+        os << "\t\t\t\t.s_img_line_last         (img" << i << "_line_last),\n";
         os << "\t\t\t\t.s_img_pixel_first       (img" << i << "_pixel_first),\n";
         os << "\t\t\t\t.s_img_pixel_last        (img" << i << "_pixel_last),\n";
         os << "\t\t\t\t.s_img_de                (img" << i << "_de),\n";
         os << "\t\t\t\t.s_img_user              (img" << i << "_user),\n";
         os << "\t\t\t\t.s_img_data              (img" << i << "_data),\n";
-        os << "\t\t\t\t.s_img_valid         (img" << i << "_valid),\n";
+        os << "\t\t\t\t.s_img_valid             (img" << i << "_valid),\n";
         os << "\t\t\t\t\n";
         os << "\t\t\t\t.m_img_line_first        (img" << i+1 << "_line_first),\n";
-        os << "\t\t\t\t.m_img_line_last     (img" << i+1 << "_line_last),\n";
+        os << "\t\t\t\t.m_img_line_last         (img" << i+1 << "_line_last),\n";
         os << "\t\t\t\t.m_img_pixel_first       (img" << i+1 << "_pixel_first),\n";
         os << "\t\t\t\t.m_img_pixel_last        (img" << i+1 << "_pixel_last),\n";
         os << "\t\t\t\t.m_img_de                (img" << i+1 << "_de),\n";
         os << "\t\t\t\t.m_img_user              (img" << i+1 << "_user),\n";
         os << "\t\t\t\t.m_img_data              (img" << i+1 << "_data),\n";
-        os << "\t\t\t\t.m_img_valid         (img" << i+1 << "_valid)\n";
+        os << "\t\t\t\t.m_img_valid             (img" << i+1 << "_valid)\n";
         os << "\t\t\t);\n";
     }
 

@@ -14,14 +14,14 @@
 #include <vector>
 #include <random>
 
-#include "bb/Filter2d.h"
+#include "bb/MaxPooling.h"
 
 
 namespace bb {
 
 // MaxPoolingクラス
 template <typename FT = float, typename BT = float>
-class StochasticMaxPooling2x2 : public Filter2d<FT, BT>
+class StochasticMaxPooling2x2 : public MaxPooling<FT, BT>
 {
 protected:
     bool                m_host_only;
@@ -394,14 +394,14 @@ public:
                 for (index_t y = 0; y < m_output_h_size; ++y) {
                     for (index_t x = 0; x < m_output_w_size; ++x) {
                         for (index_t frame = 0; frame < frame_size; ++frame) {
-                            FT in_sig[2][2] = {{0, 0}, {0, 0}};
+                            BT in_sig[2][2] = {{0, 0}, {0, 0}};
                             for (index_t fy = 0; fy < 2; ++fy) {
                                 index_t iy = y*2 + fy;
                                 if ( iy < m_input_h_size ) {
                                     for (index_t fx = 0; fx < 2; ++fx) {
                                         index_t ix = x*2 + fx;
                                         if ( ix < m_input_w_size ) {
-                                            in_sig[fy][fx] = x_ptr.Get(frame, c, iy, ix);
+                                            in_sig[fy][fx] = (BT)x_ptr.Get(frame, c, iy, ix);
                                         }
                                     }
                                 }

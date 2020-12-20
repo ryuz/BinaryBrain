@@ -208,17 +208,9 @@ std::string GetDevicePropertiesString(int device)
 std::string MakeVerilog_FromLut(std::string module_name, std::vector< std::shared_ptr< bb::SparseModel > > layers)
 {
     std::stringstream ss;
-    bb::ExportVerilog_LutModels<float, float>(ss, module_name, layers);
+    bb::ExportVerilog_LutModels(ss, module_name, layers);
     return ss.str();
 }
-
-std::string MakeVerilog_FromLutBit(std::string module_name, std::vector< std::shared_ptr< bb::SparseModel > > layers)
-{
-    std::stringstream ss;
-    bb::ExportVerilog_LutModels<bb::Bit, float>(ss, module_name, layers);
-    return ss.str();
-}
-
 
 std::string MakeVerilogAxi4s_FromLutFilter2d(std::string module_name, std::vector< std::shared_ptr< bb::Filter2d<float, float> > > layers)
 {
@@ -227,7 +219,7 @@ std::string MakeVerilogAxi4s_FromLutFilter2d(std::string module_name, std::vecto
     return ss.str();
 }
 
-std::string MakeVerilogAxi4s_FromLutFilter2dBit(std::string module_name, std::vector< std::shared_ptr< bb::Filter2d<bb::Bit, float> > > layers)
+std::string MakeVerilogAxi4s_FromLutFilter2d_bit(std::string module_name, std::vector< std::shared_ptr< bb::Filter2d<bb::Bit, float> > > layers)
 {
     std::stringstream ss;
     bb::ExportVerilog_LutCnnLayersAxi4s(ss, module_name, layers);
@@ -763,9 +755,9 @@ PYBIND11_MODULE(core, m) {
 
     // verilog
     m.def("make_verilog_from_lut", &MakeVerilog_FromLut);
-    m.def("make_verilog_from_lut_bit", &MakeVerilog_FromLutBit);
+//  m.def("make_verilog_from_lut_bit", &MakeVerilog_FromLut);
     m.def("make_verilog_axi4s_from_lut_cnn", &MakeVerilogAxi4s_FromLutFilter2d);
-    m.def("make_verilog_axi4s_from_lut_cnn_bit", &MakeVerilogAxi4s_FromLutFilter2dBit);
+    m.def("make_verilog_axi4s_from_lut_cnn_bit", &MakeVerilogAxi4s_FromLutFilter2d_bit);
 
     m.def("get_version", &bb::GetVersionString);
 }
