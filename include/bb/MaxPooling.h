@@ -90,14 +90,16 @@ public:
         return Create(create);
     }
     
+#ifdef BB_PYBIND11
     // 全パラメータを引数としたオーバーロード無しの生成関数(主にpython用)
-    static std::shared_ptr<MaxPooling> CreateEx(index_t filter_h_size, index_t filter_w_size)
+    static std::shared_ptr<MaxPooling> CreatePy(index_t filter_h_size, index_t filter_w_size)
     {
         create_t create;
         create.filter_h_size = filter_h_size;
         create.filter_w_size = filter_w_size;
         return Create(create);
     }
+#endif
 
     std::string GetClassName(void) const { return "MaxPooling"; }
 

@@ -628,6 +628,35 @@ PYBIND11_MODULE(core, m) {
                 py::arg("w_size")=1)
         ;
 
+    py::class_< Convolution2d_fp32, Filter2d_fp32, std::shared_ptr<Convolution2d_fp32> >(m, "Convolution2d_fp32")
+        .def_static("create", &Convolution2d_fp32::CreatePy,
+                py::arg("layer"),
+                py::arg("filter_h_size"),
+                py::arg("filter_w_size"),
+                py::arg("y_stride")      = 1,
+                py::arg("x_stride")      = 1,
+                py::arg("padding")       = "valid",
+                py::arg("border_mode")   = BB_BORDER_REFLECT_101,
+                py::arg("border_value")  = 0.0);
+
+    py::class_< Convolution2d_bit, Filter2d_bit, std::shared_ptr<Convolution2d_bit> >(m, "Convolution2d_bit")
+        .def_static("create", &Convolution2d_bit::CreatePy,
+                py::arg("layer"),
+                py::arg("filter_h_size"),
+                py::arg("filter_w_size"),
+                py::arg("y_stride")      = 1,
+                py::arg("x_stride")      = 1,
+                py::arg("padding")       = "valid",
+                py::arg("border_mode")   = BB_BORDER_REFLECT_101,
+                py::arg("border_value")  = 0.0);
+    
+
+        
+    py::class_< MaxPooling_fp32, Filter2d_fp32, std::shared_ptr<MaxPooling_fp32> >(m, "MaxPooling_fp32")
+        .def_static("create", &MaxPooling_fp32::CreatePy);
+    py::class_< MaxPooling_bit, Filter2d_bit, std::shared_ptr<MaxPooling_bit> >(m, "MaxPooling_bit")
+        .def_static("create", &MaxPooling_bit::CreatePy);
+
 
     // activation
     py::class_< Activation, Model, std::shared_ptr<Activation> >(m, "Activation");

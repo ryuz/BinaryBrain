@@ -244,5 +244,8 @@
     <ClInclude Include="..\..\..\include\bb\SparseModel.h">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\bb\Convolution2d.h">
+      <Filter>ヘッダファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

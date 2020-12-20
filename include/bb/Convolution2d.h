@@ -99,7 +99,8 @@ public:
         return Create(create);
     }
 
-    static std::shared_ptr<Convolution2d> CreateEx(
+#ifdef BB_PYBIND11
+    static std::shared_ptr<Convolution2d> CreatePy(
             std::shared_ptr<Model>  layer,
             index_t                 filter_h_size,
             index_t                 filter_w_size,
@@ -121,6 +122,7 @@ public:
         create.border_value  = (FT)border_value;
         return Create(create);
     }
+#endif
 
     std::string GetClassName(void) const { return "Convolution2d"; }
 
