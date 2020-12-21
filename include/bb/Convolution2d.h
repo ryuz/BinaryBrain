@@ -287,7 +287,9 @@ protected:
         if ( depth == 0 || (nest+1) < depth ) {
             m_im2col->PrintInfo(depth, os, columns, nest+1);
             m_layer->PrintInfo(depth, os, columns, nest+1);
-            m_col2im->PrintInfo(depth, os, columns, nest+1);
+            if ( m_col2im ) {
+                m_col2im->PrintInfo(depth, os, columns, nest+1);
+            }
         }
     }
 

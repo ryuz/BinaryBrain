@@ -403,6 +403,7 @@ PYBIND11_MODULE(core, m) {
     // model
     py::class_< Model, std::shared_ptr<Model> >(m, "Model")
         .def("get_name", &Model::GetName)
+        .def("set_name", &Model::SetName)
         .def("get_class_name", &Model::GetClassName)
         .def("get_info", &Model::GetInfoString,
                 py::arg("depth")    = 0,
@@ -429,7 +430,11 @@ PYBIND11_MODULE(core, m) {
         .def("save_json", &Model::SaveJson)
         .def("load_json", &Model::LoadJson);
     
-    
+
+    py::class_< Sequential, Model, std::shared_ptr<Sequential> >(m, "Sequential")
+        .def_static("create",   &Sequential::Create)
+        .def("add",             &Sequential::Add);
+
     py::class_< Reduce, Model, std::shared_ptr<Reduce> >(m, "Reduce")
         .def_static("create",   &Reduce::CreateEx);
 
@@ -643,7 +648,9 @@ PYBIND11_MODULE(core, m) {
                 py::arg("x_stride")      = 1,
                 py::arg("padding")       = "valid",
                 py::arg("border_mode")   = BB_BORDER_REFLECT_101,
-                py::arg("border_value")  = 0.0);
+                py::arg("border_value")  = 0.0)
+        .def("get_layer", &Convolution2d_fp32::GetLayer)
+        ;
 
     py::class_< Convolution2d_bit, Filter2d_bit, std::shared_ptr<Convolution2d_bit> >(m, "Convolution2d_bit")
         .def_static("create", &Convolution2d_bit::CreatePy,
@@ -654,8 +661,9 @@ PYBIND11_MODULE(core, m) {
                 py::arg("x_stride")      = 1,
                 py::arg("padding")       = "valid",
                 py::arg("border_mode")   = BB_BORDER_REFLECT_101,
-                py::arg("border_value")  = 0.0);
-    
+                py::arg("border_value")  = 0.0)
+        .def("get_layer", &Convolution2d_bit::GetLayer)
+        ;
 
         
     py::class_< MaxPooling_fp32, Filter2d_fp32, std::shared_ptr<MaxPooling_fp32> >(m, "MaxPooling_fp32")
