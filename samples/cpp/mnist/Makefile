@@ -11,10 +11,10 @@ DEBUG       ?= No
 WITH_CUDA   ?= Yes
 WITH_CEREAL ?= Yes
 
-BBCU_PATH = ../../cuda
+BBCU_PATH = ../../../cuda
 BBCU_LIB  = $(BBCU_PATH)/libbbcu.a
 
-CEREAL_PATH = ../../cereal
+CEREAL_PATH = ../../../cereal
 
 ifeq ($(WITH_CUDA),Yes)
 else
@@ -22,21 +22,21 @@ CC = g++
 #CC ?= clang++
 endif
 
-CFLAGS = -mavx2 -mfma -fopenmp -std=c++14 -Wall
-CINCS  = -I../../include
+CFLAGS = -mavx2 -mfma -fopenmp -std=c++17 -Wall
+CINCS  = -I../../../include
 CDEFS  = 
 
 SRCS   = main.cpp
 SRCS  += MnistStochasticLutSimple.cpp
 SRCS  += MnistStochasticLutCnn.cpp
-SRCS  += MnistSparseLutSimple.cpp
-SRCS  += MnistSparseLutCnn.cpp
+SRCS  += MnistDifferentiableLutSimple.cpp
+SRCS  += MnistDifferentiableLutCnn.cpp
 SRCS  += MnistDenseSimple.cpp
 SRCS  += MnistDenseCnn.cpp
 SRCS  += MnistMicroMlpLutSimple.cpp
 SRCS  += MnistMicroMlpLutCnn.cpp
-SRCS  += MnistAeSparseLutSimple.cpp
-SRCS  += MnistAeSparseLutCnn.cpp
+SRCS  += MnistAeDifferentiableLutSimple.cpp
+SRCS  += MnistAeDifferentiableLutCnn.cpp
 SRCS  += MnistCustomModel.cpp
 
 OBJS = $(addsuffix .o, $(basename $(SRCS)))
