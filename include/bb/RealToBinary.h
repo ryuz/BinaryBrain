@@ -26,9 +26,8 @@ namespace bb {
  *          入力値に応じて 0と1 を確率的に発生させることを目的としている
  *          RealToBinary と組み合わせて使う想定
  * 
- * @tparam FXT  foward入力型 (x)
- * @tparam FXT  foward出力型 (y)
- * @tparam BT   backward型 (dy, dx)
+ * @tparam BinType  バイナリ型 (y)
+ * @tparam RealType 実数型 (x, dx, dy)
  */
 template <typename BinType = float, typename RealType = float>
 class RealToBinary : public Model
