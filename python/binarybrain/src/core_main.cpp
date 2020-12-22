@@ -404,11 +404,15 @@ PYBIND11_MODULE(core, m) {
     py::class_< Model, std::shared_ptr<Model> >(m, "Model")
         .def("get_name", &Model::GetName)
         .def("set_name", &Model::SetName)
+        .def("is_named", &Model::IsNamed)
         .def("get_class_name", &Model::GetClassName)
         .def("get_info", &Model::GetInfoString,
                 py::arg("depth")    = 0,
                 py::arg("columns")  = 70,
                 py::arg("nest")     = 0)
+        .def("send_command",  &Model::SendCommand, "SendCommand",
+                py::arg("command"),
+                py::arg("send_to") = "all")
         .def("get_input_shape", &Model::GetInputShape)
         .def("set_input_shape", &Model::SetInputShape)
         .def("get_output_shape", &Model::GetOutputShape)
@@ -417,14 +421,10 @@ PYBIND11_MODULE(core, m) {
         .def("get_parameters", &Model::GetParameters)
         .def("get_gradients", &Model::GetGradients)
         .def("forward_node",  &Model::ForwardNode)
-        .def("forward",  &Model::Forward, "Forward",
-                py::arg("x_buf"),
-                py::arg("train") = true)
-        .def("backward", &Model::Backward, "Backward")
-        .def("send_command",  &Model::SendCommand, "SendCommand",
-                py::arg("command"),
-                py::arg("send_to") = "all")
-        .def("backward", &Model::Backward, "Backward")
+        .def("forward",  &Model::Forward)
+        .def("backward", &Model::Backward)
+        .def("dump", &Model::DumpBytes)
+        .def("load", &Model::LoadBytes)
         .def("save_binary", &Model::SaveBinary)
         .def("load_binary", &Model::LoadBinary)
         .def("save_json", &Model::SaveJson)

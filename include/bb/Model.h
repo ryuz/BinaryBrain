@@ -22,6 +22,12 @@
 #include "cereal/archives/json.hpp"
 #endif
 
+#ifdef BB_PYBIND11 
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+#include <pybind11/operators.h>
+#endif
+
 #include "bb/FrameBuffer.h"
 #include "bb/Variables.h"
 
@@ -73,6 +79,10 @@ public:
         m_name = name;
     }
     
+    virtual bool IsNamed(void) const {
+        return !m_name.empty();
+    }
+
     /**
      * @brief  名前取得
      * @detail 名前取得
@@ -307,6 +317,29 @@ public:
         m_name.resize(size);
         is.read((char*)&m_name[0], size);
     }
+
+#ifdef BB_PYBIND11
+    pybind11::bytes DumpBytes(void)
+    {
+        std::ostringstream os(std::istringstream::binary);
+        Save(os);
+        auto str = os.str();
+        pybind11::bytes data(str);
+//        pybind11::bytes data(str.c_str(), str.size());
+//      memcpy(&data[0], os.str().data(), os.str().size());
+        return data;
+    }
+
+    bool LoadBytes(pybind11::bytes data)
+    {
+        pybind11::str str(data);
+        std::istringstream is(str, std::istringstream::binary);
+//      std::istringstream is(std::string(data.begin(), data.end()), std::istringstream::binary);
+        Load(is);
+        return true;
+    }
+#endif
+
 
     bool SaveBinary(std::string filename) const
     {

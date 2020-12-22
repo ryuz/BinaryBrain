@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import binarybrain      as bb
-import binarybrain.core as core
+import pickle
 import numpy as np
 from typing import List
+
+import binarybrain      as bb
+import binarybrain.core as core
 
 
 
@@ -13,11 +15,13 @@ class Model():
        C++で作成されたcoreモデルをラッピングするための基本機能を提供する
     """
     
-    def __init__(self, core_model=None, name=None):
+    def __init__(self, *, core_model=None, input_shape=None, name=None):
         if core_model is not None:
             self.core_model = core_model
             if name is not None:
                 self.core_model.set_name(name)
+            if input_shape is not None:
+                self.set_input_shape(input_shape)
     
     def get_core_model(self):
         return self.core_model
@@ -27,6 +31,9 @@ class Model():
     
     def set_name(self, name):
         return self.get_core_model().set_name(name)
+
+    def is_named(self):
+        return self.get_core_model().is_named()
     
     def get_class_name(self):
         return self.get_core_model().get_class_name()
@@ -51,23 +58,40 @@ class Model():
     
     def backward(self, dy_buf):
         return bb.FrameBuffer.from_core(self.get_core_model().backward(dy_buf.get_core()))
-
-
+    
+    def dump_bytes(self):
+        return self.get_core_model().dump()
+    
+    def load_bytes(self, data):
+        self.get_core_model().load(data)
+    
+    def dump(self, f):
+        pickle.dump(f, self.dump_bytes())
+    
+    def load(self, f):
+        self.load_bytes(pickle.load(f))
+    
+    
+    
+        
 class Sequential(Model):
     """Sequential class
        複数レイヤーを直列に接続してグルーピングするクラス
     """
     
-    def __init__(self, model_list=[]):
+    def __init__(self, model_list=[], *, input_shape=None, name=None):
         super(Sequential, self).__init__()
-        self.input_shape = None
         self.model_list  = model_list
+        self.input_shape = input_shape
+        self.name        = name
     
     def get_core_model(self):
         # C++のコアの同機能に渡してしまうと Python からの扱いが不便になるので普段はListで管理して必要な時のみ変換する       
         core_model = core.Sequential.create()
         for model in self.model_list:
             core_model.add(model.get_core_model())
+        if self.name is not None:
+            core_model.set_name(self.name)            
         if self.input_shape is not None:
             core_model.set_input_shape(self.input_shape)            
         return core_model
@@ -75,9 +99,20 @@ class Sequential(Model):
     def set_model_list(self, model_list):
         self.model_list = model_list
     
-    def get_model_list(self, model_list):
-        return self.model_list
-
+    def get_model_list(self, flatten=False):
+        if not flatten:
+            return self.model_list
+        
+        def flatten_list(in_list, out_list):
+            for model in in_list:
+                if type(model) == Sequential:
+                    flatten_list(model.model_list, out_list)
+                else:
+                    out_list.append(model)
+        out_list = []
+        flatten_list(self.model_list, out_list)
+        return out_list
+        
     def __len__(self):
         return len(self.model_list)
     
@@ -135,7 +170,7 @@ class RealToBinary(Model):
     """
     
     def __init__(self, *,
-                     frame_modulation_size=1, depth_modulation_size=1, value_generator=None,
+                     input_shape=None, frame_modulation_size=1, depth_modulation_size=1, value_generator=None,
                      framewise=False, input_range_lo=0.0, input_range_hi=1.0, name=None, bin_dtype=core.TYPE_FP32):
         try:
             core_creator = {
@@ -147,7 +182,7 @@ class RealToBinary(Model):
 
         core_model = core_creator(frame_modulation_size, depth_modulation_size,
                             value_generator, framewise, input_range_lo, input_range_hi)
-        super(RealToBinary, self).__init__(core_model=core_model, name=name)
+        super(RealToBinary, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
         
 class BinaryToReal(Model):
@@ -156,7 +191,7 @@ class BinaryToReal(Model):
         元に戻すことが可能である
     """
     
-    def __init__(self, *, frame_modulation_size=1, output_shape=[], name=None, bin_dtype=core.TYPE_FP32):
+    def __init__(self, *, frame_modulation_size=1, output_shape=[], input_shape=None, name=None, bin_dtype=core.TYPE_FP32):
         try:
             core_creator = {
                 core.TYPE_FP32: core.BinaryToReal_fp32.create,
@@ -167,7 +202,7 @@ class BinaryToReal(Model):
         
         core_model = core_creator(frame_modulation_size=frame_modulation_size, output_shape=output_shape)
         
-        super(BinaryToReal, self).__init__(core_model=core_model, name=name)
+        super(BinaryToReal, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
 
 class DenseAffine(Model):
@@ -175,12 +210,12 @@ class DenseAffine(Model):
        普通のDenseAffine
     """
     
-    def __init__(self, output_shape, *, initialize_std=0.01, initializer="he", seed=1, name=None):
+    def __init__(self, output_shape, *, input_shape=None, initialize_std=0.01, initializer="he", seed=1, name=None):
         core_creator = core.DenseAffine.create
         
         core_model = core_creator(output_shape=output_shape, initialize_std=initialize_std, initializer=initializer, seed=seed)
         
-        super(DenseAffine, self).__init__(core_model=core_model, name=name)
+        super(DenseAffine, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
 
 class DifferentiableLut(Model):
@@ -189,7 +224,7 @@ class DifferentiableLut(Model):
        StocasticLUT + BatchNormalization + Binarize(HardTanh)
     """
 
-    def __init__(self, output_shape, *,
+    def __init__(self, output_shape, *, input_shape=None,
                     connection='random', binarize=True, batch_norm=True, momentum=0.0, gamma= 0.3, beta=0.5, seed=1,
                     name=None, N=6, bin_dtype=core.TYPE_FP32, real_dtype=core.TYPE_FP32):
         
@@ -260,7 +295,7 @@ class DifferentiableLut(Model):
             
             core_model = core_creator(output_shape, batch_norm, connection, momentum, gamma, beta, seed)
 
-        super(DifferentiableLut, self).__init__(core_model=core_model, name=name)
+        super(DifferentiableLut, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
     def W(self):
         return bb.Tensor.from_core(self.get_core_model().W())
@@ -275,7 +310,7 @@ class ConvolutionIm2Col(Model):
     """
     def __init__(self, filter_size=(1, 1), stride=(1, 1), *,
                         padding='valid', border_mode=core.BB_BORDER_REFLECT_101, border_value=0.0,
-                        name=None, fw_dtype=core.TYPE_FP32, bw_dtype=core.TYPE_FP32):
+                        input_shape=None, name=None, fw_dtype=core.TYPE_FP32, bw_dtype=core.TYPE_FP32):
 
         try:
             core_creator = {
@@ -288,14 +323,14 @@ class ConvolutionIm2Col(Model):
         core_model = core_creator(filter_h_size=filter_size[0], filter_w_size=filter_size[1],
                                 y_stride=stride[0], x_stride=stride[1], padding=padding, border_mode=border_mode)
 
-        super(ConvolutionIm2Col, self).__init__(core_model=core_model, name=name)
+        super(ConvolutionIm2Col, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
 
 class ConvolutionCol2Im(Model):
     """ConvolutionCol2Im class
        畳み込みの lowering における col2im 層
     """
-    def __init__(self, output_size=(1, 1), *, name=None, fw_dtype=core.TYPE_FP32, bw_dtype=core.TYPE_FP32):
+    def __init__(self, output_size=(1, 1), *, input_shape=None, name=None, fw_dtype=core.TYPE_FP32, bw_dtype=core.TYPE_FP32):
         try:
             core_creator = {
                 core.TYPE_FP32: core.ConvolutionCol2Im_fp32.create,
@@ -306,14 +341,14 @@ class ConvolutionCol2Im(Model):
 
         core_model = core_creator(output_size[0], output_size[1])
         
-        super(ConvolutionCol2Im, self).__init__(core_model=core_model, name=name)
+        super(ConvolutionCol2Im, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
 
 class Convolution2d(Sequential):
     """Convolution class
        Lowering による畳み込み演算をパッキングするクラス
     """
-    def __init__(self, sub_layer, filter_size=(1, 1), stride=(1, 1), *,
+    def __init__(self, sub_layer, filter_size=(1, 1), stride=(1, 1), *, input_shape=None,
                         padding='valid', border_mode=core.BB_BORDER_REFLECT_101, border_value=0.0,
                         name=None, fw_dtype=core.TYPE_FP32, bw_dtype=core.TYPE_FP32):
         super(Convolution2d, self).__init__()
@@ -327,7 +362,7 @@ class Convolution2d(Sequential):
             raise TypeError("unsupported")
         
         self.name         = name
-        self.input_shape  = None
+        self.input_shape  = input_shape
         self.filter_size  = filter_size
         self.stride       = stride
         self.padding      = padding
@@ -391,7 +426,7 @@ class MaxPooling(Model):
     """MaxPooling class
     """
 
-    def __init__(self, filter_size=(2, 2), *, name=None, fw_dtype=core.TYPE_FP32, bw_dtype=core.TYPE_FP32):
+    def __init__(self, filter_size=(2, 2), *, input_shape=None, name=None, fw_dtype=core.TYPE_FP32, bw_dtype=core.TYPE_FP32):
 
         try:
             core_creator = {
@@ -403,14 +438,14 @@ class MaxPooling(Model):
 
         core_model = core_creator(filter_size[0], filter_size[1])
 
-        super(MaxPooling, self).__init__(core_model=core_model, name=name)
+        super(MaxPooling, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
 
 class ReLU(Model):
     """ReLU class
     """
 
-    def __init__(self, *, name=None, dtype=core.TYPE_FP32):
+    def __init__(self, *, input_shape=None, name=None, dtype=core.TYPE_FP32):
 
         try:
             core_creator = {
@@ -421,5 +456,5 @@ class ReLU(Model):
 
         core_model = core_creator()
 
-        super(ReLU, self).__init__(core_model=core_model, name=name)
+        super(ReLU, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
