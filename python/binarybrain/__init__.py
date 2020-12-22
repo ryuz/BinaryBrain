@@ -12,4 +12,5 @@ from binarybrain.losses       import *
 from binarybrain.metrics      import *
 from binarybrain.optimizer    import *
 
-from binarybrain.strage       import *
+from binarybrain.storage      import *
+

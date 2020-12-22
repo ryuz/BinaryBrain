@@ -223,4 +223,4 @@ def load_networks(path: str, net):
         return
     
     load_models(data_path, net)
-    
+    print('load : %s' data_path)

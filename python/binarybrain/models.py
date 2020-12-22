@@ -42,7 +42,7 @@ class Model():
         return self.get_core_model().get_info()
     
     def send_command(self, command, send_to="all"):
-        self.get_core_model().send_command(command=command, send_to=send_to)
+        self.get_core_model().send_command(command, send_to)
     
     def set_input_shape(self, input_shape):
         return self.get_core_model().set_input_shape(input_shape)
@@ -54,7 +54,7 @@ class Model():
         return bb.Variables.from_core(self.get_core_model().get_gradients())
     
     def forward(self, x_buf, train=True):
-        return bb.FrameBuffer.from_core(self.get_core_model().forward(x_buf=x_buf.get_core(), train=train))
+        return bb.FrameBuffer.from_core(self.get_core_model().forward(x_buf.get_core(), train))
     
     def backward(self, dy_buf):
         return bb.FrameBuffer.from_core(self.get_core_model().backward(dy_buf.get_core()))
