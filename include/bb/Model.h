@@ -325,16 +325,12 @@ public:
         Save(os);
         auto str = os.str();
         pybind11::bytes data(str);
-//        pybind11::bytes data(str.c_str(), str.size());
-//      memcpy(&data[0], os.str().data(), os.str().size());
         return data;
     }
 
     bool LoadBytes(pybind11::bytes data)
     {
-        pybind11::str str(data);
-        std::istringstream is(str, std::istringstream::binary);
-//      std::istringstream is(std::string(data.begin(), data.end()), std::istringstream::binary);
+        std::istringstream is((std::string)data, std::istringstream::binary);
         Load(is);
         return true;
     }
