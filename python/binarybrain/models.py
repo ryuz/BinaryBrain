@@ -348,6 +348,9 @@ class Convolution2d(Sequential):
     """Convolution class
        Lowering による畳み込み演算をパッキングするクラス
     """
+    
+    deny_flatten = True
+    
     def __init__(self, sub_layer, filter_size=(1, 1), stride=(1, 1), *, input_shape=None,
                         padding='valid', border_mode=core.BB_BORDER_REFLECT_101, border_value=0.0,
                         name=None, fw_dtype=core.TYPE_FP32, bw_dtype=core.TYPE_FP32):
@@ -479,7 +482,7 @@ def get_model_list(net, flatten:bool =False):
     
     def flatten_list(in_list, out_list):
         for model in in_list:
-            if hasattr(model, 'get_model_list'):
+            if hasattr(model, 'get_model_list') and not hasattr(model, 'deny_flatten'):
                 flatten_list(model.get_model_list(), out_list)
             else:
                 out_list.append(model)
