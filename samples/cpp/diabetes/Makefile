@@ -11,10 +11,10 @@ DEBUG       ?= No
 WITH_CUDA   ?= Yes
 WITH_CEREAL ?= Yes
 
-BBCU_PATH = ../../cuda
+BBCU_PATH = ../../../cuda
 BBCU_LIB  = $(BBCU_PATH)/libbbcu.a
 
-CEREAL_PATH = ../../cereal
+CEREAL_PATH = ../../../cereal
 
 ifeq ($(WITH_CUDA),Yes)
 else
@@ -23,8 +23,7 @@ CC = g++
 endif
 
 CFLAGS = -O2 -mavx2 -mfma -fopenmp -std=c++14
-#CFLAGS = -O1 -mavx2 -mfma -std=c++14
-CINCS  = -I../../include -I../../eigen
+CINCS  = -I../../../include
 CDEFS  = 
 
 SRCS   = main.cpp
@@ -85,5 +84,4 @@ DATA_FILES += diabetes_target.txt
 .PHONY: dl_data
 dl_data:
 	python3 diabets_data.py
-
 

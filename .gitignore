@@ -44,6 +44,7 @@
 documents/sphinx/build/
 documents/tmp/
 
+processed/
 
 veritak_src_files.txt
 veritak_command.txt
