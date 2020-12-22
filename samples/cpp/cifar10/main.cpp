@@ -16,14 +16,14 @@
 #endif
 
 
-void Cifar10StochasticLutSimple(int epoch_size, int mini_batch_size,                            int test_modulation_size, bool binary_mode, bool file_read);
-void Cifar10StochasticLutCnn   (int epoch_size, int mini_batch_size,                            int test_modulation_size, bool binary_mode, bool file_read);
-void Cifar10DifferentiableLutSimple    (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
-void Cifar10DifferentiableLutCnn       (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
-void Cifar10MicroMlpLutSimple  (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
-void Cifar10MicroMlpLutCnn     (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
-void Cifar10DenseSimple        (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
-void Cifar10DenseCnn           (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void Cifar10StochasticLutSimple    (int epoch_size, int mini_batch_size,                            int test_modulation_size, bool binary_mode, bool file_read);
+void Cifar10StochasticLutCnn       (int epoch_size, int mini_batch_size,                            int test_modulation_size, bool binary_mode, bool file_read);
+void Cifar10DifferentiableLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void Cifar10DifferentiableLutCnn   (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void Cifar10MicroMlpLutSimple      (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void Cifar10MicroMlpLutCnn         (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void Cifar10DenseSimple            (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void Cifar10DenseCnn               (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 
 
 // メイン関数
@@ -55,13 +55,13 @@ int main(int argc, char *argv[])
         std::cout << "  -read <0|1>                             file read" << std::endl;
         std::cout << "" << std::endl;
         std::cout << "<sample name>" << std::endl;
-        std::cout << "  StochasticLutSimple Stochastic-Lut LUT-Network Simple DNN" << std::endl;
-        std::cout << "  StochasticLutCnn    Stochastic-Lut LUT-Network CNN" << std::endl;
-        std::cout << "  DifferentiableLutSimple     Sparse LUT-Network Simple DNN" << std::endl;
-        std::cout << "  DifferentiableLutCnn        Sparse LUT-Network CNN" << std::endl;
-        std::cout << "  DenseMlp            Dense Simple DNN" << std::endl;
-        std::cout << "  DenseCnn            Dense CNN" << std::endl;
-        std::cout << "  All                 run all" << std::endl;
+        std::cout << "  StochasticLutSimple     Stochastic LUT Network Simple DNN" << std::endl;
+        std::cout << "  StochasticLutCnn        Stochastic LUT Network CNN" << std::endl;
+        std::cout << "  DifferentiableLutSimple Differentiable LUT Network Simple DNN" << std::endl;
+        std::cout << "  DifferentiableLutCnn    Differentiable LUT Network CNN" << std::endl;
+        std::cout << "  DenseMlp                Dense Simple DNN" << std::endl;
+        std::cout << "  DenseCnn                Dense CNN" << std::endl;
+        std::cout << "  All                     run all" << std::endl;
         return 1;
     }
 

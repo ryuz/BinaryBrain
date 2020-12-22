@@ -36,7 +36,9 @@ def main():
     net.set_input_shape([1, 28, 28])
 
     net.send_command("binary true")
-
+    
+    print(net.get_info())
+    
     bb.load_networks(data_path, net)
 
     # learning
@@ -77,7 +79,7 @@ def main():
         bb.save_networks(data_path, net, keep_olds=3)
     
     # export verilog
-    bb.export_verilog_lut_layers(network_name + '.v', network_name, net)
+    bb.export_verilog_lut_layers(net_name + '.v', net_name, net)
 
     
 if __name__ == "__main__":

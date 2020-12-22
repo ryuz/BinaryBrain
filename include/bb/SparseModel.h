@@ -59,8 +59,8 @@ public:
     // LUTに見立て場合の値取得
     virtual bool GetLutTable(index_t node, int bitpos) const
     {
-        BB_DEBUG_ASSERT(node   >= 0 && node <= this->GetNodeSize());
-        BB_DEBUG_ASSERT(bitpos >= 0 && bitpos <= this->GetNodeConnectionSize());
+        BB_DEBUG_ASSERT(node   >= 0 && node <= this->GetOutputNodeSize());
+        BB_DEBUG_ASSERT(bitpos >= 0 && bitpos <= this->GetNodeConnectionSize(node));
 
         auto connection_size = this->GetNodeConnectionSize(node);
 

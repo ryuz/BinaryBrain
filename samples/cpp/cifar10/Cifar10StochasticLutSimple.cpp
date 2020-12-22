@@ -9,10 +9,10 @@
 #include <iostream>
 
 #include "bb/Sequential.h"
-#include "bb/BinaryModulation.h"
-#include "bb/Reduce.h"
-#include "bb/MicroMlp.h"
+#include "bb/StochasticLutN.h"
 #include "bb/BinaryLutN.h"
+#include "bb/BinaryModulation.h"
+#include "bb/ShuffleModulation.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
 #include "bb/MetricsCategoricalAccuracy.h"
 #include "bb/OptimizerAdam.h"
@@ -21,9 +21,10 @@
 #include "bb/ExportVerilog.h"
 
 
-void Cifar10MicroMlpLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+
+void Cifar10StochasticLutSimple(int epoch_size, int mini_batch_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "Cifar10MicroMlpLutSimple";
+    std::string net_name = "Cifar10StochasticLutSimple";
 
   // load cifar-10 data
 #ifdef _DEBUG
@@ -32,38 +33,36 @@ void Cifar10MicroMlpLutSimple(int epoch_size, int mini_batch_size, int train_mod
 #else
     auto td = bb::LoadCifar10<>::Load();
 #endif
-    
-    auto layer_mm0 = bb::MicroMlp<>::Create(3072);
-    auto layer_mm1 = bb::MicroMlp<>::Create(512);
-    auto layer_mm2 = bb::MicroMlp<>::Create(2160);
-    auto layer_mm3 = bb::MicroMlp<>::Create(360);
-    auto layer_mm4 = bb::MicroMlp<>::Create(60);
-    auto layer_mm5 = bb::MicroMlp<>::Create(10);
+
+    auto layer_sl0 = bb::StochasticLutN<6>::Create(3072);
+    auto layer_sl1 = bb::StochasticLutN<6>::Create(512);
+    auto layer_sl2 = bb::StochasticLutN<6>::Create(2160);
+    auto layer_sl3 = bb::StochasticLutN<6>::Create(360);
+    auto layer_sl4 = bb::StochasticLutN<6>::Create(60);
+    auto layer_sl5 = bb::StochasticLutN<6>::Create(10);
 
     {
         std::cout << "\n<Training>" << std::endl;
 
-        // main network
-        auto main_net = bb::Sequential::Create();
-        main_net->Add(layer_mm0);
-        main_net->Add(layer_mm1);
-        main_net->Add(layer_mm2);
-        main_net->Add(layer_mm3);
-        main_net->Add(layer_mm4);
-        main_net->Add(layer_mm5);
-
-        // modulation wrapper
-        auto net = bb::BinaryModulation<float>::Create(main_net, train_modulation_size, test_modulation_size);
+        // create network
+        auto net = bb::Sequential::Create();
+        net->Add(layer_sl0);
+        net->Add(layer_sl1);
+        net->Add(layer_sl2);
+        net->Add(layer_sl3);
+        net->Add(layer_sl4);
+        net->Add(layer_sl5);
 
         // set input shape
         net->SetInputShape(td.x_shape);
 
         // set binary mode
+        net->SendCommand("binary false");
         if ( binary_mode ) {
-            net->SendCommand("binary true");
+            net->SendCommand("lut_binarize true");
         }
         else {
-            net->SendCommand("binary false");
+            net->SendCommand("lut_binarize false");
         }
 
         // print model information
@@ -72,11 +71,7 @@ void Cifar10MicroMlpLutSimple(int epoch_size, int mini_batch_size, int train_mod
         std::cout << "-----------------------------------" << std::endl;
         std::cout << "epoch_size            : " << epoch_size            << std::endl;
         std::cout << "mini_batch_size       : " << mini_batch_size       << std::endl;
-        if ( binary_mode ) {
-        std::cout << "train_modulation_size : " << train_modulation_size << std::endl;
-        std::cout << "test_modulation_size  : " << test_modulation_size  << std::endl;
-        }
-        std::cout << "binary_mode           : " << binary_mode           << std::endl;
+        std::cout << "lut_binarize          : " << binary_mode           << std::endl;
         std::cout << "file_read             : " << file_read             << std::endl;
         std::cout << "-----------------------------------" << std::endl;
 
@@ -97,22 +92,28 @@ void Cifar10MicroMlpLutSimple(int epoch_size, int mini_batch_size, int train_mod
 
     {
         std::cout << "\n<Evaluation binary LUT-Network>" << std::endl;
-
+        
         // LUT-network
-        auto layer_bl0 = bb::BinaryLutN<>::Create(layer_mm0->GetOutputShape());
-        auto layer_bl1 = bb::BinaryLutN<>::Create(layer_mm1->GetOutputShape());
-        auto layer_bl2 = bb::BinaryLutN<>::Create(layer_mm2->GetOutputShape());
-        auto layer_bl3 = bb::BinaryLutN<>::Create(layer_mm3->GetOutputShape());
-        auto layer_bl4 = bb::BinaryLutN<>::Create(layer_mm4->GetOutputShape());
-        auto layer_bl5 = bb::BinaryLutN<>::Create(layer_mm5->GetOutputShape());
+        auto layer_lut0 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl0->GetOutputShape());
+        auto layer_lut1 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl1->GetOutputShape());
+        auto layer_lut2 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl2->GetOutputShape());
+        auto layer_lut3 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl3->GetOutputShape());
+        auto layer_lut4 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl4->GetOutputShape());
+        auto layer_lut5 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl5->GetOutputShape());
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(layer_bl0);
-        lut_net->Add(layer_bl1);
-        lut_net->Add(layer_bl2);
-        lut_net->Add(layer_bl3);
-        lut_net->Add(layer_bl4);
-        lut_net->Add(layer_bl5);
+        lut_net->Add(bb::ShuffleModulation<bb::Bit>::Create(test_modulation_size, 1, 1));
+        lut_net->Add(layer_lut0);
+        lut_net->Add(bb::ShuffleModulation<bb::Bit>::Create(test_modulation_size, 1, 2));
+        lut_net->Add(layer_lut1);
+        lut_net->Add(bb::ShuffleModulation<bb::Bit>::Create(test_modulation_size, 1, 3));
+        lut_net->Add(layer_lut2);
+        lut_net->Add(bb::ShuffleModulation<bb::Bit>::Create(test_modulation_size, 1, 4));
+        lut_net->Add(layer_lut3);
+        lut_net->Add(bb::ShuffleModulation<bb::Bit>::Create(test_modulation_size, 1, 5));
+        lut_net->Add(layer_lut4);
+        lut_net->Add(bb::ShuffleModulation<bb::Bit>::Create(test_modulation_size, 1, 6));
+        lut_net->Add(layer_lut5);
 
         // evaluation network
         auto eval_net = bb::BinaryModulation<bb::Bit>::Create(lut_net, test_modulation_size);
@@ -122,16 +123,17 @@ void Cifar10MicroMlpLutSimple(int epoch_size, int mini_batch_size, int train_mod
 
         // テーブル化して取り込み(SetInputShape後に取り込みが必要)
         std::cout << "parameter copy to binary LUT-Network" << std::endl;
-        layer_bl0->ImportLayer(layer_mm0);
-        layer_bl1->ImportLayer(layer_mm1);
-        layer_bl2->ImportLayer(layer_mm2);
-        layer_bl3->ImportLayer(layer_mm3);
-        layer_bl4->ImportLayer(layer_mm4);
-        layer_bl5->ImportLayer(layer_mm5);
+        layer_lut0->ImportLayer(layer_sl0);
+        layer_lut1->ImportLayer(layer_sl1);
+        layer_lut2->ImportLayer(layer_sl2);
+        layer_lut3->ImportLayer(layer_sl3);
+        layer_lut4->ImportLayer(layer_sl4);
+        layer_lut5->ImportLayer(layer_sl5);
 
-        // 評価
         if ( 1 ) {
+            // 評価
             std::cout << "test_modulation_size  : " << test_modulation_size  << std::endl;
+
             bb::Runner<float>::create_t lut_runner_create;
             lut_runner_create.name           = "Lut_" + net_name;
             lut_runner_create.net            = eval_net;
@@ -149,15 +151,14 @@ void Cifar10MicroMlpLutSimple(int epoch_size, int mini_batch_size, int train_mod
             std::string filename = "verilog/" + net_name + ".v";
             std::ofstream ofs(filename);
             ofs << "`timescale 1ns / 1ps\n\n";
-            bb::ExportVerilog_LutModels<>(ofs, net_name, lut_net);
+            bb::ExportVerilog_LutModels(ofs, net_name, lut_net);
             std::cout << "export : " << filename << "\n" << std::endl;
 
             // RTL simulation 用データの出力
-            bb::WriteTestDataBinTextFile<float>("verilog/mnist_train.txt", "verilog/mnist_test.txt", td);
+            bb::WriteTestDataBinTextFile<float>("verilog/cifar10_train.txt", "verilog/cifar10_test.txt", td);
         }
     }
 }
 
 
 // end of file
-

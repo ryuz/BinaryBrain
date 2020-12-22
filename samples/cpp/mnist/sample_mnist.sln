@@ -8,7 +8,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sample_mnist", "sample_mnis
 		{FEADE517-59B9-4551-AD9D-D181A1442EA7} = {FEADE517-59B9-4551-AD9D-D181A1442EA7}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bbcu", "..\..\cuda\bbcu.vcxproj", "{FEADE517-59B9-4551-AD9D-D181A1442EA7}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bbcu", "..\..\..\cuda\bbcu.vcxproj", "{FEADE517-59B9-4551-AD9D-D181A1442EA7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
