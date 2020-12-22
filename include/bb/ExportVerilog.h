@@ -155,6 +155,7 @@ inline void ExportVerilog_LutModel(std::ostream& os, std::string module_name, Sp
 inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, std::vector< std::shared_ptr< SparseModel > > layers)
 {
     int layer_size = (int)layers.size();
+    BB_ASSERT(layer_size >= 1);
 
     std::vector<std::string> sub_modle_name;
     auto first_layer = layers[0];
@@ -275,6 +276,20 @@ inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, s
 
     ExportVerilog_LutModels(os, module_name, layers);
 }
+
+
+inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, std::vector< std::shared_ptr< Model > > layers)
+{
+    std::vector< std::shared_ptr< SparseModel > > sparse_layers;
+    for (auto model : layers) {
+        auto sparse_model = std::dynamic_pointer_cast< SparseModel >(model);
+        if (sparse_model) {
+            sparse_layers.push_back(sparse_model);
+        }
+    }
+    ExportVerilog_LutModels(os, module_name, sparse_layers);
+}
+
 
 
 
@@ -435,18 +450,22 @@ endmodule
 }
 
 
-template <typename FT = Bit, typename BT = float>
-void ExportVerilog_LutConvolutionLayer(std::ostream& os, std::string module_name, std::shared_ptr< Convolution2d<FT, BT> > conv)
+inline void ExportVerilog_LutConvolutionLayer(std::ostream& os, std::string module_name, std::shared_ptr< Filter2d > conv)
 {
-    // group取得
-    auto net = std::dynamic_pointer_cast<Sequential>(conv->GetLayer());
-    if ( !net ) {
-        std::cout << "error : std::dynamic_pinter_cast<Sequential>" << std::endl;
+    auto sub_layer = conv->GetSubLayer();
+    if ( !sub_layer ) {
+        std::cout << "error : Convolution2d don't have sub layer" << std::endl;
         BB_ASSERT(0);
         return;
     }
 
-    std::string mlp_name = module_name + "_mlp";
+    auto seq_model = std::dynamic_pointer_cast<Sequential>(sub_layer);
+    if ( !seq_model ) {
+        seq_model = Sequential::Create();
+        seq_model->Add(sub_layer);
+    }
+
+    std::string sub_name = module_name + "_sub";
 
     auto in_shape  = conv->GetInputShape();
     auto out_shape = conv->GetOutputShape();
@@ -458,15 +477,12 @@ void ExportVerilog_LutConvolutionLayer(std::ostream& os, std::string module_name
     int n = (int)conv->GetFilterHeight();
     int m = (int)conv->GetFilterWidth();
 
-    ExportVerilog_LutConvolutionModule(os, module_name, mlp_name, in_c, out_c, n, m);
-    ExportVerilog_LutModels(os, mlp_name, net);
+    ExportVerilog_LutConvolutionModule(os, module_name, sub_name, in_c, out_c, n, m);
+    ExportVerilog_LutModels(os, sub_name, seq_model);
 }
 
 
-
-
-template <typename FT = Bit, typename BT = float>
-void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module_name, std::vector< std::shared_ptr< Filter2d<FT, BT> > > layers)
+inline void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module_name, std::vector< std::shared_ptr< Filter2d > > layers)
 {
     int  layer_size = (int)layers.size();
     auto fisrt_layer = layers[0];
@@ -628,11 +644,12 @@ void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module_name, 
     for ( int i = 0; i < layer_size; ++i ) {
         os << "\n\n";
 
-        auto layer = layers[i];
-        auto cnv   = std::dynamic_pointer_cast<Convolution2d<FT, BT> >(layer);
-        auto pol   = std::dynamic_pointer_cast<MaxPooling<FT, BT> >(layer);
+        auto layer       = layers[i];
+        auto layer_class = layer->GetClassName();
+//        auto cnv   = std::dynamic_pointer_cast<Convolution2d<FT, BT> >(layer);
+//        auto pol   = std::dynamic_pointer_cast<MaxPooling<FT, BT> >(layer);
 //        auto pol_s = std::dynamic_pointer_cast< StochasticMaxPooling2x2<> >(layer);
-        if ( cnv ) {
+        if ( layer_class == "Convolution2d" ) {
             os << "\t" << module_name << "_l" << i << "\n";
             os << "\t\t\t#(\n";
             os << "\t\t\t\t.USER_WIDTH              (USER_WIDTH),\n";
@@ -642,33 +659,22 @@ void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module_name, 
             os << "\t\t\t)\n";
             os << "\t\ti_" << module_name << "_l" << i << "\n";
         }
-        else if (pol) {
+        else if ( layer_class == "MaxPooling"
+                    || layer_class == "StochasticMaxPooling"
+                    || layer_class == "StochasticMaxPooling2x2" ) {
             os << "\t" << "jelly_img_dnn_maxpol" << "\n";
             os << "\t\t\t#(\n";
-            os << "\t\t\t\t.C                       (" << pol->GetOutputChannels() << "),\n";
-            os << "\t\t\t\t.N                       (" << pol->GetFilterWidth() << "),\n";
-            os << "\t\t\t\t.M                       (" << pol->GetFilterHeight() << "),\n";
+            os << "\t\t\t\t.C                       (" << layer->GetOutputChannels() << "),\n";
+            os << "\t\t\t\t.N                       (" << layer->GetFilterWidth() << "),\n";
+            os << "\t\t\t\t.M                       (" << layer->GetFilterHeight() << "),\n";
             os << "\t\t\t\t.USER_WIDTH              (USER_WIDTH),\n";
             os << "\t\t\t\t.MAX_X_NUM               (MAX_X_NUM),\n";
             os << "\t\t\t\t.RAM_TYPE                (RAM_TYPE)\n";
             os << "\t\t\t)\n";
             os << "\t\ti_" << "i_img_dnn_maxpol" << "_l" << i << "\n";
         }
-        /*
-        else if (pol_s) {
-            os << "\t" << "jelly_img_dnn_maxpol" << "\n";
-            os << "\t\t\t#(\n";
-            os << "\t\t\t\t.C                       (" << pol_s->GetOutputChannels() << "),\n";
-            os << "\t\t\t\t.N                       (" << pol_s->GetFilterWidth() << "),\n";
-            os << "\t\t\t\t.M                       (" << pol_s->GetFilterHeight() << "),\n";
-            os << "\t\t\t\t.USER_WIDTH              (USER_WIDTH),\n";
-            os << "\t\t\t\t.MAX_X_NUM               (MAX_X_NUM),\n";
-            os << "\t\t\t\t.RAM_TYPE                (RAM_TYPE)\n";
-            os << "\t\t\t)\n";
-            os << "\t\ti_" << "i_img_dnn_maxpol" << "_l" << i << "\n";
-        }*/
         else {
-            std::cout << "error" << std::endl;
+            std::cout << "error : Unknown model" << layer_class << std::endl;
             BB_ASSERT(0);
             return;
         }
@@ -724,12 +730,27 @@ void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module_name, 
 
     for ( int i = 0; i < layer_size; ++i ) {
         auto layer = layers[i];
-        auto cnv = std::dynamic_pointer_cast< Convolution2d<FT, BT> >(layer);
-        if ( cnv ) {
+        if ( layer->GetClassName() == "Convolution2d" ) {
             std::stringstream ss;
             ss << module_name << "_l" << i;
-            ExportVerilog_LutConvolutionLayer(os, ss.str(), cnv);
+            ExportVerilog_LutConvolutionLayer(os, ss.str(), layer);
         }
+    }
+}
+
+
+inline void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module_name, std::vector< std::shared_ptr< Model > > layers)
+{
+    std::vector< std::shared_ptr< Filter2d > > filters;
+    for (auto model : layers) {
+        auto filter = std::dynamic_pointer_cast<Filter2d>(model);
+        if (filter) {
+            filters.push_back(filter);
+        }
+    }
+
+    if (filters.size() > 0) {
+        ExportVerilog_LutCnnLayersAxi4s(os, module_name, filters);
     }
 }
 

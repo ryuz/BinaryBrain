@@ -85,35 +85,6 @@ def remove_old(path: str, keep: int=-1):
     for t in targets:
         shutil.rmtree(os.path.join(path, t))
 
-    
-def get_model_list(net, flatten:bool =False):
-    ''' Get model list from networks
-        ネットから構成するモデルのリストを取り出す
-    
-        Args:
-            net     (Model): 検索するパス
-            flatten (bool): 階層をフラットにするかどうか
-        Returns:
-            list of models
-    '''
-    
-    if  type(net) is not list:
-        net = [net]
-    
-    if not flatten:
-        return net
-    
-    def flatten_list(in_list, out_list):
-        for model in in_list:
-            if hasattr(model, 'get_model_list'):
-                flatten_list(model.get_model_list(), out_list)
-            else:
-                out_list.append(model)
-    
-    out_list = []
-    flatten_list(net, out_list)
-    
-    return out_list
 
 def save_models(path: str, net):
     ''' save networks
@@ -128,7 +99,7 @@ def save_models(path: str, net):
     os.makedirs(path, exist_ok=True)
     
     # save models
-    models    = get_model_list(net, flatten=True)
+    models    = bb.get_model_list(net, flatten=True)
     fname_list = []  # 命名重複回避用
     for i, model in enumerate(models):
         name = model.get_name()
@@ -158,7 +129,7 @@ def load_models(path: str, net):
     '''
     
     # load models
-    models    = get_model_list(net, flatten=True)
+    models    = bb.get_model_list(net, flatten=True)
     fname_list = []
     for i, model in enumerate(models):
         name = model.get_name()
@@ -223,4 +194,4 @@ def load_networks(path: str, net):
         return
     
     load_models(data_path, net)
-    print('load : %s' data_path)
+    print('load : %s' % data_path)

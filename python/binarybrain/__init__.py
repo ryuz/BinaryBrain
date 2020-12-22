@@ -13,4 +13,5 @@ from binarybrain.metrics      import *
 from binarybrain.optimizer    import *
 
 from binarybrain.storage      import *
+from binarybrain.verilog      import *
 

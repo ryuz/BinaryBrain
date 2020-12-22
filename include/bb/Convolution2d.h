@@ -22,9 +22,9 @@ namespace bb {
 
 // 入力数制限Affine Binary Connect版
 template <typename FT = float, typename BT = float>
-class Convolution2d : public Filter2d<FT, BT>
+class Convolution2d : public Filter2d
 {
-    using _super = Filter2d<FT, BT>;
+    using _super = Filter2d;
 
 protected:
     index_t     m_filter_h_size = 1;
@@ -127,7 +127,7 @@ public:
     std::string GetClassName(void) const { return "Convolution2d"; }
 
     
-    std::shared_ptr< Model > GetLayer(void)
+    std::shared_ptr< Model > GetSubLayer(void)
     {
         return m_layer;
     }

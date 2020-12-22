@@ -21,7 +21,7 @@ namespace bb {
 
 // MaxPoolingクラス
 template <typename FT = float, typename BT = float>
-class MaxPooling : public Filter2d<FT, BT>
+class MaxPooling : public Filter2d
 {
 protected:
     bool                m_host_only;

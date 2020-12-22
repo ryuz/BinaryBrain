@@ -458,3 +458,33 @@ class ReLU(Model):
 
         super(ReLU, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
+
+        
+def get_model_list(net, flatten:bool =False):
+    ''' Get model list from networks
+        ネットから構成するモデルのリストを取り出す
+    
+        Args:
+            net     (Model): 検索するパス
+            flatten (bool): 階層をフラットにするかどうか
+        Returns:
+            list of models
+    '''
+    
+    if  type(net) is not list:
+        net = [net]
+    
+    if not flatten:
+        return net
+    
+    def flatten_list(in_list, out_list):
+        for model in in_list:
+            if hasattr(model, 'get_model_list'):
+                flatten_list(model.get_model_list(), out_list)
+            else:
+                out_list.append(model)
+    
+    out_list = []
+    flatten_list(net, out_list)
+    
+    return out_list

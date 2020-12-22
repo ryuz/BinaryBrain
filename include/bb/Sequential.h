@@ -10,7 +10,7 @@
 #pragma once
 
 #include <vector>
-
+#include <memory>
 
 #include "bb/Model.h"
 
@@ -65,7 +65,29 @@ public:
     {
         return m_layers[index];
     }
-    
+
+    /**
+     * @brief  保持するモデルリストを得る
+     * @detail 保持するモデルリストを得る
+     */
+    std::vector< std::shared_ptr<Model> >   GetList(bool flatten = true)
+    {
+        std::vector< std::shared_ptr<Model> >   layers;
+        for (auto model : m_layers)
+        {
+            auto seq = std::dynamic_pointer_cast<Sequential>(model);
+            if ( flatten && seq ) {
+                auto sub_layers = seq->GetList(true);
+                layers.insert(layers.end(), sub_layers.begin(), sub_layers.end());
+            }
+            else {
+                layers.push_back(model);
+            }
+        }
+        return layers;
+    }
+
+
     /**
      * @brief  コマンドを送る
      * @detail コマンドを送る

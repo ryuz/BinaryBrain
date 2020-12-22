@@ -228,9 +228,9 @@ void MnistDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_mo
 
         {
             // Verilog 出力
-            std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv0;
-            std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv1;
-            std::vector< std::shared_ptr< bb::Filter2d<bb::Bit> > >  vec_cnv2;
+            std::vector< std::shared_ptr< bb::Filter2d > >  vec_cnv0;
+            std::vector< std::shared_ptr< bb::Filter2d > >  vec_cnv1;
+            std::vector< std::shared_ptr< bb::Filter2d > >  vec_cnv2;
 
             vec_cnv0.push_back(cnv0);
             vec_cnv0.push_back(cnv1);

@@ -139,8 +139,7 @@ using BitEncode_fp32                    = bb::BitEncode<float, float>;
 using BitEncode_bit                     = bb::BitEncode<bb::Bit, float>;
 using Shuffle                           = bb::Shuffle;
                                         
-using Filter2d_fp32                     = bb::Filter2d<float, float>;
-using Filter2d_bit                      = bb::Filter2d<bb::Bit, float>;
+using Filter2d                          = bb::Filter2d;
 using ConvolutionCol2Im_fp32            = bb::ConvolutionCol2Im <float, float>;
 using ConvolutionCol2Im_bit             = bb::ConvolutionCol2Im <bb::Bit, float>;
 using ConvolutionIm2Col_fp32            = bb::ConvolutionIm2Col <float, float>;
@@ -149,7 +148,7 @@ using Convolution2d_fp32                = bb::Convolution2d<float, float>;
 using Convolution2d_bit                 = bb::Convolution2d<bb::Bit, float>;
 using MaxPooling_fp32                   = bb::MaxPooling<float, float>;
 using MaxPooling_bit                    = bb::MaxPooling<bb::Bit, float>;
-                                        
+
 using Activation                        = bb::Activation;
 using Binarize_fp32                     = bb::Binarize<float, float>;
 using Binarize_bit                      = bb::Binarize<bb::Bit, float>;
@@ -207,21 +206,16 @@ std::string GetDevicePropertiesString(int device)
 #endif
 }
 
-std::string MakeVerilog_FromLut(std::string module_name, std::vector< std::shared_ptr< bb::SparseModel > > layers)
+
+std::string MakeVerilog_LutLayers(std::string module_name, std::vector< std::shared_ptr< bb::Model > > layers)
 {
     std::stringstream ss;
     bb::ExportVerilog_LutModels(ss, module_name, layers);
     return ss.str();
 }
 
-std::string MakeVerilogAxi4s_FromLutFilter2d(std::string module_name, std::vector< std::shared_ptr< bb::Filter2d<float, float> > > layers)
-{
-    std::stringstream ss;
-    bb::ExportVerilog_LutCnnLayersAxi4s(ss, module_name, layers);
-    return ss.str();
-}
 
-std::string MakeVerilogAxi4s_FromLutFilter2d_bit(std::string module_name, std::vector< std::shared_ptr< bb::Filter2d<bb::Bit, float> > > layers)
+std::string MakeVerilog_LutConvLayers(std::string module_name, std::vector< std::shared_ptr< bb::Model > > layers)
 {
     std::stringstream ss;
     bb::ExportVerilog_LutCnnLayersAxi4s(ss, module_name, layers);
@@ -433,7 +427,8 @@ PYBIND11_MODULE(core, m) {
 
     py::class_< Sequential, Model, std::shared_ptr<Sequential> >(m, "Sequential")
         .def_static("create",   &Sequential::Create)
-        .def("add",             &Sequential::Add);
+        .def("add",             &Sequential::Add)
+        ;
 
     py::class_< Reduce, Model, std::shared_ptr<Reduce> >(m, "Reduce")
         .def_static("create",   &Reduce::CreateEx);
@@ -604,8 +599,7 @@ PYBIND11_MODULE(core, m) {
 
 
     // filter
-    py::class_< Filter2d_fp32, Model, std::shared_ptr<Filter2d_fp32> >(m, "Filter2d_fp32");
-    py::class_< Filter2d_bit, Model, std::shared_ptr<Filter2d_bit> >(m, "Filter2d_bit");
+    py::class_< Filter2d, Model, std::shared_ptr<Filter2d> >(m, "Filter2d");
 
     py::class_< ConvolutionIm2Col_fp32, Model, std::shared_ptr<ConvolutionIm2Col_fp32> >(m, "ConvolutionIm2Col_fp32")
         .def_static("create", &ConvolutionIm2Col_fp32::CreateEx,
@@ -639,7 +633,7 @@ PYBIND11_MODULE(core, m) {
                 py::arg("w_size")=1)
         ;
 
-    py::class_< Convolution2d_fp32, Filter2d_fp32, std::shared_ptr<Convolution2d_fp32> >(m, "Convolution2d_fp32")
+    py::class_< Convolution2d_fp32, Filter2d, std::shared_ptr<Convolution2d_fp32> >(m, "Convolution2d_fp32")
         .def_static("create", &Convolution2d_fp32::CreatePy,
                 py::arg("layer"),
                 py::arg("filter_h_size"),
@@ -649,10 +643,10 @@ PYBIND11_MODULE(core, m) {
                 py::arg("padding")       = "valid",
                 py::arg("border_mode")   = BB_BORDER_REFLECT_101,
                 py::arg("border_value")  = 0.0)
-        .def("get_layer", &Convolution2d_fp32::GetLayer)
+        .def("get_sub_layer", &Convolution2d_fp32::GetSubLayer)
         ;
 
-    py::class_< Convolution2d_bit, Filter2d_bit, std::shared_ptr<Convolution2d_bit> >(m, "Convolution2d_bit")
+    py::class_< Convolution2d_bit, Filter2d, std::shared_ptr<Convolution2d_bit> >(m, "Convolution2d_bit")
         .def_static("create", &Convolution2d_bit::CreatePy,
                 py::arg("layer"),
                 py::arg("filter_h_size"),
@@ -662,13 +656,13 @@ PYBIND11_MODULE(core, m) {
                 py::arg("padding")       = "valid",
                 py::arg("border_mode")   = BB_BORDER_REFLECT_101,
                 py::arg("border_value")  = 0.0)
-        .def("get_layer", &Convolution2d_bit::GetLayer)
+        .def("get_sub_layer", &Convolution2d_bit::GetSubLayer)
         ;
 
         
-    py::class_< MaxPooling_fp32, Filter2d_fp32, std::shared_ptr<MaxPooling_fp32> >(m, "MaxPooling_fp32")
+    py::class_< MaxPooling_fp32, Filter2d, std::shared_ptr<MaxPooling_fp32> >(m, "MaxPooling_fp32")
         .def_static("create", &MaxPooling_fp32::CreatePy);
-    py::class_< MaxPooling_bit, Filter2d_bit, std::shared_ptr<MaxPooling_bit> >(m, "MaxPooling_bit")
+    py::class_< MaxPooling_bit, Filter2d, std::shared_ptr<MaxPooling_bit> >(m, "MaxPooling_bit")
         .def_static("create", &MaxPooling_bit::CreatePy);
 
 
@@ -788,6 +782,13 @@ PYBIND11_MODULE(core, m) {
     //  Others
     // ------------------------------------
 
+    // version
+    m.def("get_version", &bb::GetVersionString);
+
+    // verilog
+    m.def("make_verilog_lut_layers",     &MakeVerilog_LutLayers);
+    m.def("make_verilog_lut_cnv_layers", &MakeVerilog_LutConvLayers);
+
     // OpenMP
     m.def("omp_set_num_threads", &omp_set_num_threads);
 
@@ -795,14 +796,6 @@ PYBIND11_MODULE(core, m) {
     m.def("get_device_count",      &GetDeviceCount);
     m.def("set_device",            &SetDevice,                 py::arg("device") = 0);
     m.def("get_device_properties", &GetDevicePropertiesString, py::arg("device") = 0);
-
-    // verilog
-    m.def("make_verilog_from_lut", &MakeVerilog_FromLut);
-//  m.def("make_verilog_from_lut_bit", &MakeVerilog_FromLut);
-    m.def("make_verilog_axi4s_from_lut_cnn", &MakeVerilogAxi4s_FromLutFilter2d);
-    m.def("make_verilog_axi4s_from_lut_cnn_bit", &MakeVerilogAxi4s_FromLutFilter2d_bit);
-
-    m.def("get_version", &bb::GetVersionString);
 }
 
 

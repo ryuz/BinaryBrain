@@ -17,7 +17,6 @@
 namespace bb {
 
 // 二次元フィルタの基本クラス
-template <typename FT = float, typename BT = float>
 class Filter2d : public Model
 {
 protected:
@@ -36,6 +35,11 @@ protected:
 public:
     virtual index_t GetFilterHeight(void) = 0;
     virtual index_t GetFilterWidth(void)  = 0;
+
+    virtual std::shared_ptr< Model > GetSubLayer(void)
+    {
+        return nullptr;
+    }
 
     index_t GetInputChannels(void)
     {
