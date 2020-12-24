@@ -3,27 +3,30 @@
 import binarybrain      as bb
 import binarybrain.core as core
 import numpy as np
+from enum import Enum
 
-# type
-dtype_bit   = core.TYPE_BIT
-dtype_fp32  = core.TYPE_FP32
-dtype_fp32  = core.TYPE_FP32
-dtype_fp64  = core.TYPE_FP64
-dtype_int8  = core.TYPE_INT8
-dtype_int16 = core.TYPE_INT16
-dtype_int32 = core.TYPE_INT32
-dtype_int64 = core.TYPE_INT64
-dtype_int8  = core.TYPE_UINT8
-dtype_int16 = core.TYPE_UINT16
-dtype_int32 = core.TYPE_UINT32
-dtype_int64 = core.TYPE_UINT64
 
-# border_mode
-border_constant   = core.BB_BORDER_CONSTANT
-border_reflect    = core.BB_BORDER_REFLECT
-border_reflect101 = core.BB_BORDER_REFLECT_101
-border_replicate  = core.BB_BORDER_REPLICATE
-border_wrap       = core.BB_BORDER_WRAP
+class DType(Enum):
+    BIT    = (0x0000 + 1)
+    BINARY = (0x0000 + 2)
+    FP16   = (0x0100 + 16)
+    FP32   = (0x0100 + 32)
+    FP64   = (0x0100 + 64)
+    INT8   = (0x0200 + 8)
+    INT16  = (0x0200 + 16)
+    INT32  = (0x0200 + 32)
+    INT64  = (0x0200 + 64)
+    UINT8  = (0x0300 + 8)
+    UINT16 = (0x0300 + 16)
+    UINT32 = (0x0300 + 32)
+    UINT64 = (0x0300 + 64)
+
+class Border(Enum):
+    BORDER_CONSTANT    = 0
+    BORDER_REFLECT     = 1
+    BORDER_REFLECT_101 = 2
+    BORDER_REPLICATE   = 3
+    BORDER_WRAP        = 4
 
 
 def dtype_numpy_to_bb(dtype):
