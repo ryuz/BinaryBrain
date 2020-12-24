@@ -309,7 +309,7 @@ class ConvolutionIm2Col(Model):
        畳み込みの lowering における im2col 層
     """
     def __init__(self, filter_size=(1, 1), stride=(1, 1), *,
-                        padding='valid', border_mode=core.BB_BORDER_REFLECT_101, border_value=0.0,
+                        padding='valid', border_mode=bb.Border.REFLECT_101, border_value=0.0,
                         input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
 
         try:
@@ -321,7 +321,7 @@ class ConvolutionIm2Col(Model):
             raise TypeError("unsupported")
 
         core_model = core_creator(filter_h_size=filter_size[0], filter_w_size=filter_size[1],
-                                y_stride=stride[0], x_stride=stride[1], padding=padding, border_mode=border_mode)
+                                y_stride=stride[0], x_stride=stride[1], padding=padding, border_mode=border_mode.value)
 
         super(ConvolutionIm2Col, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
@@ -352,7 +352,7 @@ class Convolution2d(Sequential):
     deny_flatten = True
     
     def __init__(self, sub_layer, filter_size=(1, 1), stride=(1, 1), *, input_shape=None,
-                        padding='valid', border_mode=core.BB_BORDER_REFLECT_101, border_value=0.0,
+                        padding='valid', border_mode=bb.Border.REFLECT_101, border_value=0.0,
                         name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
         super(Convolution2d, self).__init__()
         

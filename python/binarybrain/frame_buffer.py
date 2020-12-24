@@ -9,7 +9,7 @@ class FrameBuffer():
     """FrameBuffer class
     """
     
-    def __init__(self, frame_size: int = 0, shape: List[int] = [], dtype: int = 0, host_only: bool = False):
+    def __init__(self, frame_size: int = 0, shape: List[int] = [], dtype = bb.DType.FP32, host_only: bool = False):
         """Constructor
         Args:
             frame_size (int): size of frame
@@ -17,7 +17,7 @@ class FrameBuffer():
             dtype (int): Data type
             host_only (bool): flag of host only
         """
-        self.buf = core.FrameBuffer(frame_size, shape, dtype, host_only)
+        self.buf = core.FrameBuffer(frame_size, shape, dtype.value, host_only)
 
     @staticmethod
     def from_core(buf):
@@ -34,7 +34,7 @@ class FrameBuffer():
         Returns:
             data type.
         """
-        return self.buf.get_type()
+        return bb.DType(self.buf.get_type())
     
     def get_frame_size(self) -> int:
         """get size of frame.

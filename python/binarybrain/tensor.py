@@ -9,7 +9,7 @@ class Tensor():
     """Tensor class
     """
     
-    def __init__(self, shape: List[int]=None, *, dtype: int = bb.DType.FP32, host_only=False):
+    def __init__(self, shape: List[int]=None, *, dtype = bb.DType.FP32, host_only=False):
         """Constructor
         Args:
             shape (list[int]):  Shape of created array
@@ -17,7 +17,7 @@ class Tensor():
             host_only (bool): flag of host only
         """
         if shape is not None:
-            self.core_tensor = core.Tensor(shape, dtype, host_only)
+            self.core_tensor = core.Tensor(shape, dtype.value, host_only)
 
     @staticmethod
     def from_core(core_tensor):
@@ -34,7 +34,7 @@ class Tensor():
         Returns:
             data type.
         """
-        return self.core_tensor.get_type()
+        return bb.DType(self.core_tensor.get_type())
     
     def get_shape(self) -> List[int]:
         """get shape.

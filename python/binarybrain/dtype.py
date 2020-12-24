@@ -3,10 +3,10 @@
 import binarybrain      as bb
 import binarybrain.core as core
 import numpy as np
-from enum import Enum
+from enum import IntEnum
 
 
-class DType(Enum):
+class DType(IntEnum):
     BIT    = (0x0000 + 1)
     BINARY = (0x0000 + 2)
     FP16   = (0x0100 + 16)
@@ -21,12 +21,12 @@ class DType(Enum):
     UINT32 = (0x0300 + 32)
     UINT64 = (0x0300 + 64)
 
-class Border(Enum):
-    BORDER_CONSTANT    = 0
-    BORDER_REFLECT     = 1
-    BORDER_REFLECT_101 = 2
-    BORDER_REPLICATE   = 3
-    BORDER_WRAP        = 4
+class Border(IntEnum):
+    CONSTANT    = 0
+    REFLECT     = 1
+    REFLECT_101 = 2
+    REPLICATE   = 3
+    WRAP        = 4
 
 
 def dtype_numpy_to_bb(dtype):
