@@ -171,11 +171,11 @@ class RealToBinary(Model):
     
     def __init__(self, *,
                      input_shape=None, frame_modulation_size=1, depth_modulation_size=1, value_generator=None,
-                     framewise=False, input_range_lo=0.0, input_range_hi=1.0, name=None, bin_dtype=core.TYPE_FP32):
+                     framewise=False, input_range_lo=0.0, input_range_hi=1.0, name=None, bin_dtype=bb.DType.FP32):
         try:
             core_creator = {
-                core.TYPE_FP32: core.RealToBinary_fp32.create,
-                core.TYPE_BIT:  core.RealToBinary_bit.create,
+                bb.DType.FP32: core.RealToBinary_fp32.create,
+                bb.DType.BIT:  core.RealToBinary_bit.create,
             }[bin_dtype]
         except:
             raise TypeError("unsupported")
@@ -191,11 +191,11 @@ class BinaryToReal(Model):
         元に戻すことが可能である
     """
     
-    def __init__(self, *, frame_modulation_size=1, output_shape=[], input_shape=None, name=None, bin_dtype=core.TYPE_FP32):
+    def __init__(self, *, frame_modulation_size=1, output_shape=[], input_shape=None, name=None, bin_dtype=bb.DType.FP32):
         try:
             core_creator = {
-                core.TYPE_FP32: core.BinaryToReal_fp32.create,
-                core.TYPE_BIT:  core.BinaryToReal_bit.create,
+                bb.DType.FP32: core.BinaryToReal_fp32.create,
+                bb.DType.BIT:  core.BinaryToReal_bit.create,
             }[bin_dtype]
         except:
             raise TypeError("unsupported")
@@ -226,20 +226,20 @@ class DifferentiableLut(Model):
 
     def __init__(self, output_shape, *, input_shape=None,
                     connection='random', binarize=True, batch_norm=True, momentum=0.0, gamma= 0.3, beta=0.5, seed=1,
-                    name=None, N=6, bin_dtype=core.TYPE_FP32, real_dtype=core.TYPE_FP32):
+                    name=None, N=6, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32):
         
         # 設定に応じて機能をパッキングしたモデルが使える場合は自動選択する
         if not binarize and not batch_norm:
             # StochasticLut 演算のみ
             try:
                 core_creator = {
-                    core.TYPE_FP32: {
+                    bb.DType.FP32: {
                         6: core.StochasticLut6_fp32.create,
                         5: core.StochasticLut5_fp32.create,
                         4: core.StochasticLut4_fp32.create,
                         2: core.StochasticLut2_fp32.create,
                     },
-                    core.TYPE_BIT: {
+                    bb.DType.BIT: {
                         6: core.StochasticLut6_bit.create,
                         5: core.StochasticLut5_bit.create,
                         4: core.StochasticLut4_bit.create,
@@ -255,13 +255,13 @@ class DifferentiableLut(Model):
             # 条件が揃えば BatchNorm と 二値化を一括演算
             try:
                 core_creator = {
-                    core.TYPE_FP32: {
+                    bb.DType.FP32: {
                         6: core.DifferentiableLut6_fp32.create,
                         5: core.DifferentiableLut5_fp32.create,
                         4: core.DifferentiableLut4_fp32.create,
                         2: core.DifferentiableLut2_fp32.create,
                     },
-                    core.TYPE_BIT: {
+                    bb.DType.BIT: {
                         6: core.DifferentiableLut6_bit.create,
                         5: core.DifferentiableLut5_bit.create,
                         4: core.DifferentiableLut4_bit.create,
@@ -277,13 +277,13 @@ class DifferentiableLut(Model):
             # 個別演算
             try:
                 core_creator = {
-                    core.TYPE_FP32: {
+                    bb.DType.FP32: {
                         6: core.DifferentiableLutDiscrete6_fp32.create,
                         5: core.DifferentiableLutDiscrete5_fp32.create,
                         4: core.DifferentiableLutDiscrete4_fp32.create,
                         2: core.DifferentiableLutDiscrete2_fp32.create,
                     },
-                    core.TYPE_BIT: {
+                    bb.DType.BIT: {
                         6: core.DifferentiableLutDiscrete6_bit.create,
                         5: core.DifferentiableLutDiscrete5_bit.create,
                         4: core.DifferentiableLutDiscrete4_bit.create,
@@ -310,12 +310,12 @@ class ConvolutionIm2Col(Model):
     """
     def __init__(self, filter_size=(1, 1), stride=(1, 1), *,
                         padding='valid', border_mode=core.BB_BORDER_REFLECT_101, border_value=0.0,
-                        input_shape=None, name=None, fw_dtype=core.TYPE_FP32, bw_dtype=core.TYPE_FP32):
+                        input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
 
         try:
             core_creator = {
-                core.TYPE_FP32: core.ConvolutionIm2Col_fp32.create,
-                core.TYPE_BIT:  core.ConvolutionIm2Col_bit.create,
+                bb.DType.FP32: core.ConvolutionIm2Col_fp32.create,
+                bb.DType.BIT:  core.ConvolutionIm2Col_bit.create,
             }[fw_dtype]
         except:
             raise TypeError("unsupported")
@@ -330,11 +330,11 @@ class ConvolutionCol2Im(Model):
     """ConvolutionCol2Im class
        畳み込みの lowering における col2im 層
     """
-    def __init__(self, output_size=(1, 1), *, input_shape=None, name=None, fw_dtype=core.TYPE_FP32, bw_dtype=core.TYPE_FP32):
+    def __init__(self, output_size=(1, 1), *, input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
         try:
             core_creator = {
-                core.TYPE_FP32: core.ConvolutionCol2Im_fp32.create,
-                core.TYPE_BIT:  core.ConvolutionCol2Im_bit.create,
+                bb.DType.FP32: core.ConvolutionCol2Im_fp32.create,
+                bb.DType.BIT:  core.ConvolutionCol2Im_bit.create,
             }[fw_dtype]
         except KeyError:
             raise TypeError("unsupported")
@@ -353,13 +353,13 @@ class Convolution2d(Sequential):
     
     def __init__(self, sub_layer, filter_size=(1, 1), stride=(1, 1), *, input_shape=None,
                         padding='valid', border_mode=core.BB_BORDER_REFLECT_101, border_value=0.0,
-                        name=None, fw_dtype=core.TYPE_FP32, bw_dtype=core.TYPE_FP32):
+                        name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
         super(Convolution2d, self).__init__()
         
         try:
             self.core_creator = {
-                core.TYPE_FP32: core.Convolution2d_fp32.create,
-                core.TYPE_BIT:  core.Convolution2d_bit.create,
+                bb.DType.FP32: core.Convolution2d_fp32.create,
+                bb.DType.BIT:  core.Convolution2d_bit.create,
             }[fw_dtype]
         except KeyError:
             raise TypeError("unsupported")
@@ -429,12 +429,12 @@ class MaxPooling(Model):
     """MaxPooling class
     """
 
-    def __init__(self, filter_size=(2, 2), *, input_shape=None, name=None, fw_dtype=core.TYPE_FP32, bw_dtype=core.TYPE_FP32):
+    def __init__(self, filter_size=(2, 2), *, input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
 
         try:
             core_creator = {
-                core.TYPE_FP32: core.MaxPooling_fp32.create,
-                core.TYPE_BIT:  core.MaxPooling_bit.create,
+                bb.DType.FP32: core.MaxPooling_fp32.create,
+                bb.DType.BIT:  core.MaxPooling_bit.create,
             }[fw_dtype]
         except:
             raise TypeError("unsupported")
@@ -448,11 +448,11 @@ class ReLU(Model):
     """ReLU class
     """
 
-    def __init__(self, *, input_shape=None, name=None, dtype=core.TYPE_FP32):
+    def __init__(self, *, input_shape=None, name=None, dtype=bb.DType.FP32):
 
         try:
             core_creator = {
-                core.TYPE_FP32: core.ReLU.create,
+                bb.DType.FP32: core.ReLU.create,
             }[dtype]
         except:
             raise TypeError("unsupported")

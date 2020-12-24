@@ -77,36 +77,36 @@ class FrameBuffer():
             host_only (bool): flag of host only
         """
         dtype = self.buf.get_type()
-        if dtype == core.TYPE_BIT:
+        if dtype == bb.DType.BIT:
             ndarray = self.buf.numpy_uint8()
-        if dtype == core.TYPE_BINARY:
+        if dtype == bb.DType.BINARY:
             ndarray = self.buf.numpy_uint8()
-        elif dtype == core.TYPE_FP32:
+        elif dtype == bb.DType.FP32:
             ndarray = self.buf.numpy_fp32()
-        elif dtype == core.TYPE_FP64:
+        elif dtype == bb.DType.FP64:
             ndarray = self.buf.numpy_fp64()
-        elif dtype == core.TYPE_INT8:
+        elif dtype == bb.DType.INT8:
             ndarray =  self.buf.numpy_int8()
-        elif dtype == core.TYPE_INT16:
+        elif dtype == bb.DType.INT16:
             ndarray =  self.buf.numpy_int16()
-        elif dtype == core.TYPE_INT32:
+        elif dtype == bb.DType.INT32:
             ndarray =  self.buf.numpy_int32()
-        elif dtype == core.TYPE_INT64:
+        elif dtype == bb.DType.INT64:
             ndarray =  self.buf.numpy_int64()
-        elif dtype == core.TYPE_UINT8:
+        elif dtype == bb.DType.UINT8:
             ndarray =  self.buf.numpy_uint8()
-        elif dtype == core.TYPE_UINT16:
+        elif dtype == bb.DType.UINT16:
             ndarray =  self.buf.numpy_uint16()
-        elif dtype == core.TYPE_UINT32:
+        elif dtype == bb.DType.UINT32:
             ndarray =  self.buf.numpy_uint32()
-        elif dtype == core.TYPE_UINT64:
+        elif dtype == bb.DType.UINT64:
             ndarray =  self.buf.numpy_uint64()
         else:
             raise TypeError("unexpected dtype")
 
         tran = [ndarray.ndim-1] + list(range(0, ndarray.ndim-1))
         ndarray = ndarray.transpose(tran)
-        if dtype != core.TYPE_BIT:
+        if dtype != bb.DType.BIT:
             shape = list(ndarray.shape)
             shape[0] = self.buf.get_frame_size()
             ndarray = np.resize(ndarray, shape)

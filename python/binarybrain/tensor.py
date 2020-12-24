@@ -9,7 +9,7 @@ class Tensor():
     """Tensor class
     """
     
-    def __init__(self, shape: List[int]=None, *, dtype: int = core.TYPE_FP32, host_only=False):
+    def __init__(self, shape: List[int]=None, *, dtype: int = bb.DType.FP32, host_only=False):
         """Constructor
         Args:
             shape (list[int]):  Shape of created array
@@ -53,25 +53,25 @@ class Tensor():
             host_only (bool): flag of host only
         """
         dtype = self.core_tensor.get_type()
-        if dtype == core.TYPE_FP32:
+        if dtype == bb.DType.FP32:
             return self.core_tensor.numpy_fp32()
-        elif dtype == core.TYPE_FP64:
+        elif dtype == bb.DType.FP64:
             return self.core_tensor.numpy_fp64()
-        elif dtype == core.TYPE_INT8:
+        elif dtype == bb.DType.INT8:
             return self.core_tensor.numpy_int8()
-        elif dtype == core.TYPE_INT16:
+        elif dtype == bb.DType.INT16:
             return self.core_tensor.numpy_int16()
-        elif dtype == core.TYPE_INT32:
+        elif dtype == bb.DType.INT32:
             return self.core_tensor.numpy_int32()
-        elif dtype == core.TYPE_INT64:
+        elif dtype == bb.DType.INT64:
             return self.core_tensor.numpy_int64()
-        elif dtype == core.TYPE_UINT8:
+        elif dtype == bb.DType.UINT8:
             return self.core_tensor.numpy_uint8()
-        elif dtype == core.TYPE_UINT16:
+        elif dtype == bb.DType.UINT16:
             return self.core_tensor.numpy_uint16()
-        elif dtype == core.TYPE_UINT32:
+        elif dtype == bb.DType.UINT32:
             return self.core_tensor.numpy_uint32()
-        elif dtype == core.TYPE_UINT64:
+        elif dtype == bb.DType.UINT64:
             return self.core_tensor.numpy_uint64()
     
     @staticmethod
