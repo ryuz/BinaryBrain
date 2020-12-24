@@ -26,9 +26,8 @@ namespace bb {
  *          入力値に応じて 0と1 を確率的に発生させることを目的としている
  *          RealToBinary と組み合わせて使う想定
  * 
- * @tparam FXT  foward入力型 (x)
- * @tparam FXT  foward出力型 (y)
- * @tparam BT   backward型 (dy, dx)
+ * @tparam BinType  バイナリ型 (y)
+ * @tparam RealType 実数型 (x, dx, dy)
  */
 template <typename BinType = float, typename RealType = float>
 class RealToBinary : public Model
@@ -223,7 +222,7 @@ public:
 
 #ifdef BB_WITH_CUDA
         if ( m_value_generator == nullptr
-                && DataType<BinType>::type != BB_TYPE_BIT && DataType<BinType>::type == DataType<RealType>::type
+                && DataType<BinType>::type != BB_TYPE_BIT && (int)DataType<BinType>::type == (int)DataType<RealType>::type
                 && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
 
             auto x_ptr = x_buf.LockDeviceMemoryConst();
@@ -322,8 +321,8 @@ public:
             auto y_ptr = y_buf.Lock<BinType>();
             
             auto input_frame_size = x_buf.GetFrameSize();
-            auto frame_step       = (RealType)1.0 / (RealType)m_frame_modulation_size;
-            auto frame_step_recip = (RealType)m_frame_modulation_size;
+        //  auto frame_step       = (RealType)1.0 / (RealType)m_frame_modulation_size;
+        //  auto frame_step_recip = (RealType)m_frame_modulation_size;
             auto depth_step       = (RealType)1.0 / (RealType)m_depth_modulation_size;
             auto depth_step_recip = (RealType)m_depth_modulation_size;
             auto x_offset         = m_input_range_lo;

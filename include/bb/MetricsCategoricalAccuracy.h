@@ -100,7 +100,7 @@ public:
  
             for (index_t frame = 0; frame < frame_size; ++frame) {
                 for (index_t pix = 0; pix < pix_size; ++pix) {
-                    index_t max_ch  = 0;
+                //  index_t max_ch  = 0;
                     T       max_y   = y_ptr.Get(frame, pix);
                     T       max_t   = t_ptr.Get(frame, pix);
                     T       sum_t   = max_t;
@@ -110,7 +110,7 @@ public:
                         T   t = t_ptr.Get(frame, node);
                         sum_t += t;
                         if (y > max_y) {
-                            max_ch = ch;
+                        //  max_ch = ch;
                             max_y  = y;
                             max_t  = t;
                         }

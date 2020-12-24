@@ -11,10 +11,10 @@ DEBUG       ?= No
 WITH_CUDA   ?= Yes
 WITH_CEREAL ?= Yes
 
-BBCU_PATH = ../../cuda
+BBCU_PATH = ../../../cuda
 BBCU_LIB  = $(BBCU_PATH)/libbbcu.a
 
-CEREAL_PATH = ../../cereal
+CEREAL_PATH = ../../../cereal
 
 ifeq ($(WITH_CUDA),Yes)
 else
@@ -23,14 +23,14 @@ CC = g++
 endif
 
 CFLAGS = -mavx2 -mfma -fopenmp -std=c++14
-CINCS  = -I../../include
+CINCS  = -I../../../include
 CDEFS  = 
 
 SRCS   = main.cpp
 SRCS  += Cifar10StochasticLutSimple.cpp
 SRCS  += Cifar10StochasticLutCnn.cpp
-SRCS  += Cifar10SparseLutSimple.cpp
-SRCS  += Cifar10SparseLutCnn.cpp
+SRCS  += Cifar10DifferentiableLutSimple.cpp
+SRCS  += Cifar10DifferentiableLutCnn.cpp
 SRCS  += Cifar10MicroMlpLutSimple.cpp
 SRCS  += Cifar10MicroMlpLutCnn.cpp
 SRCS  += Cifar10DenseSimple.cpp
