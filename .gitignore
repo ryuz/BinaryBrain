@@ -41,6 +41,7 @@
 
 *.mo
 
+documents/sphinx/source/binarybrain/
 documents/sphinx/build/
 documents/tmp/
 

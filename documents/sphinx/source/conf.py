@@ -12,10 +12,26 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+
 import re
 import os
 import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import glob
+import shutil
+
+os.makedirs('./binarybrain', exist_ok=True)
+for file in glob.glob(r'../../../python/binarybrain/*.py'):
+    shutil.copy(file, './binarybrain')
+
+#shutil.rmtree('./binarybrain', ignore_errors=True)
+#shutil.copytree('../../../python/binarybrain', './binarybrain')
+
+
+sys.path.insert(0, os.path.abspath('.'))
+import binarybrain
+
+#sys.path.insert(0, os.path.abspath('../../python'))
+
 
 try:
     import binarybrain
@@ -27,7 +43,7 @@ except  ModuleNotFoundError:
 # -- Project information -----------------------------------------------------
 
 project = u'BinaryBrain'
-copyright = u'2019, Ryuji Fuchikami'
+copyright = u'2019-2020, Ryuji Fuchikami'
 author = u'Ryuji Fuchikami'
 
 

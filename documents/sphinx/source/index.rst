@@ -17,6 +17,7 @@ Welcome to BinaryBrain's documentation!
    python_api
    lut_network
    binary_modulation
+   binarybrain
 
 
 Indices and tables
