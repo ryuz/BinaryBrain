@@ -8,6 +8,7 @@ import binarybrain      as bb
 import binarybrain.core as core
 
 
+# ------- 基本モデル --------
 
 class Model():
     """Model class
@@ -303,6 +304,8 @@ class Sequential(Model):
         return dy_buf
 
 
+# ------- バイナリ変調 --------
+
 class RealToBinary(Model):
     """RealToBinary class
         実数値をバイナリ値に変換する。
@@ -381,31 +384,30 @@ class BitEncode(Model):
         super(BitEncode, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
 
-class Shuffle(Model):
-    """Shuffle class
-
-        所謂 ShuffleNet のようなシャッフルを行うモデル
-        入力ノードが shuffle_unit 個のグループに分割されるようにシャッフルする
-
+class Reduce(Model):
+    """Reduce class
+        多重化されている出力を折り返して積和する
 
     Args:
-        shuffle_unit (int): シャッフルする単位
+        output_shape ([int]): 出力のシェイプ
     """
 
-    def __init__(self, shuffle_unit, *, output_shape=[], input_shape=None, name=None, bit_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32):
+    def __init__(self, output_shape, *, input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
 
         try:
             core_creator = {
-                bb.DType.FP32: core.Shuffle.create,
-                bb.DType.BIT:  core.Shuffle.create,
-            }[bit_dtype]
+                bb.DType.FP32: core.Reduce_fp32.create,
+                bb.DType.BIT:  core.Reduce_bit.create,
+            }[fw_dtype]
         except:
             raise TypeError("unsupported")
         
-        core_model = core_creator(shuffle_unit, output_shape)
+        core_model = core_creator(output_shape)
 
-        super(Shuffle, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+        super(Reduce, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
+
+# ------- 演算 --------
 
 class DenseAffine(Model):
     """DenseAffine class
@@ -548,7 +550,11 @@ class DifferentiableLut(Model):
     def dW(self):
         return bb.Tensor.from_core(self.get_core_model().dW())
 
-    
+
+
+# ------- フィルタ --------
+
+
 class ConvolutionIm2Col(Model):
     """ConvolutionIm2Col class
        畳み込みの lowering における im2col 層
@@ -717,7 +723,7 @@ class StochasticMaxPooling(Model):
     """
 
     def __init__(self, filter_size=(2, 2), *, input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
-        assert(filter_size[0]==2 and filter_size[1]==0)
+        assert(filter_size[0]==2 and filter_size[1]==2)
 
         try:
             core_creator = {
@@ -732,6 +738,33 @@ class StochasticMaxPooling(Model):
         super(StochasticMaxPooling, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
 
+class UpSampling(Model):
+    """UpSampling class
+
+        畳み込みの逆方向にアップサンプリングを行うモデル
+
+    Args:
+        filter_size ((int, int)): 2次元のタプルでフィルタサイズを指定する(現在2x2のみ)
+        fw_dtype (DType)): forwarする型を bb.DType.FP32 と bb.DType.BIT から指定
+    """
+
+    def __init__(self, filter_size=(2, 2), *, fill=True, input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
+
+        try:
+            core_creator = {
+                bb.DType.FP32: core.UpSampling_fp32.create,
+                bb.DType.BIT:  core.UpSampling_bit.create,
+            }[fw_dtype]
+        except:
+            raise TypeError("unsupported")
+        
+        core_model = core_creator(filter_size[0], filter_size[1], fill)
+
+        super(UpSampling, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+
+
+# ------- 活性化 --------
 
 class Binarize(Model):
     """Binarize class
@@ -822,6 +855,9 @@ class HardTanh(Model):
         super(HardTanh, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
 
+
+# ------- 補助モデル --------
+
 class BatchNormalization(Model):
     """BatchNormalization class
 
@@ -869,6 +905,36 @@ class Dropout(Model):
         core_model = core_creator(rate, seed)
 
         super(Dropout, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+
+class Shuffle(Model):
+    """Shuffle class
+
+        所謂 ShuffleNet のようなシャッフルを行うモデル
+        入力ノードが shuffle_unit 個のグループに分割されるようにシャッフルする
+
+
+    Args:
+        shuffle_unit (int): シャッフルする単位
+    """
+
+    def __init__(self, shuffle_unit, *, output_shape=[], input_shape=None, name=None, bit_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32):
+
+        try:
+            core_creator = {
+                bb.DType.FP32: core.Shuffle.create,
+                bb.DType.BIT:  core.Shuffle.create,
+            }[bit_dtype]
+        except:
+            raise TypeError("unsupported")
+        
+        core_model = core_creator(shuffle_unit, output_shape)
+
+        super(Shuffle, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+
+
+# ------- その他 --------
 
 
 def get_model_list(net, flatten:bool =False):

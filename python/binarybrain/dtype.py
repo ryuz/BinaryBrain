@@ -7,6 +7,9 @@ from enum import IntEnum
 
 
 class DType(IntEnum):
+    """データ型定義
+    """
+
     BIT    = (0x0000 + 1)
     BINARY = (0x0000 + 2)
     FP16   = (0x0100 + 16)
@@ -20,6 +23,7 @@ class DType(IntEnum):
     UINT16 = (0x0300 + 16)
     UINT32 = (0x0300 + 32)
     UINT64 = (0x0300 + 64)
+
 
 class Border(IntEnum):
     CONSTANT    = 0

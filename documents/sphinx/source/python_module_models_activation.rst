@@ -1,11 +1,11 @@
-活性化(models module)
+活性化(Activation)
 ======================================
 
 
 models モジュールの 活性化層(Activation層()を作るためのモデルです。
 
 
-Binarize class
+Binarize クラス
 ----------------------------
 
 .. autoclass:: binarybrain.models.Binarize
@@ -13,7 +13,7 @@ Binarize class
    :show-inheritance:
 
 
-Sigmoid class
+Sigmoid クラス
 ----------------------------
 
 .. autoclass:: binarybrain.models.Sigmoid
@@ -21,14 +21,14 @@ Sigmoid class
    :show-inheritance:
 
 
-ReLU class
+ReLU クラス
 ----------------------------
 
 .. autoclass:: binarybrain.models.ReLU
    :members:
    :show-inheritance:
 
-HardTanh class
+HardTanh クラス
 ----------------------------
 
 .. autoclass:: binarybrain.models.HardTanh

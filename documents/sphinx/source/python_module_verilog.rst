@@ -1,4 +1,4 @@
-binarybrain.verilog module
+Verilog 変換
 ==========================
 
 .. automodule:: binarybrain.verilog

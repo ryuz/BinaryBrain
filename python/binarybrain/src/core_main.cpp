@@ -32,9 +32,12 @@
 #include "bb/DifferentiableLutDiscreteN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/Reduce.h"
+
 #include "bb/Convolution2d.h"
 #include "bb/MaxPooling.h"
 #include "bb/StochasticMaxPooling2x2.h"
+#include "bb/UpSampling.h"
+
 #include "bb/Shuffle.h"
 #include "bb/BitEncode.h"
 #include "bb/RealToBinary.h"
@@ -129,17 +132,16 @@ using DifferentiableLutDiscrete5_bit    = bb::DifferentiableLutDiscreteN<5, bb::
 using DifferentiableLutDiscrete6_fp32   = bb::DifferentiableLutDiscreteN<6, float, float>;
 using DifferentiableLutDiscrete6_bit    = bb::DifferentiableLutDiscreteN<6, bb::Bit, float>;
 
-using Reduce                            = bb::Reduce<float, float>; 
 using BinaryModulation_fp32             = bb::BinaryModulation<float, float>;
 using BinaryModulation_bit              = bb::BinaryModulation<bb::Bit, float>;
 using RealToBinary_fp32                 = bb::RealToBinary<float, float>;
 using RealToBinary_bit                  = bb::RealToBinary<bb::Bit, float>;
 using BinaryToReal_fp32                 = bb::BinaryToReal<float, float>;
 using BinaryToReal_bit                  = bb::BinaryToReal<bb::Bit, float>;
-                                        
 using BitEncode_fp32                    = bb::BitEncode<float, float>;
 using BitEncode_bit                     = bb::BitEncode<bb::Bit, float>;
-using Shuffle                           = bb::Shuffle;
+using Reduce_fp32                       = bb::Reduce<float, float>; 
+using Reduce_bit                        = bb::Reduce<bb::Bit, float>; 
                                         
 using Filter2d                          = bb::Filter2d;
 using ConvolutionCol2Im_fp32            = bb::ConvolutionCol2Im <float, float>;
@@ -152,6 +154,8 @@ using MaxPooling_fp32                   = bb::MaxPooling<float, float>;
 using MaxPooling_bit                    = bb::MaxPooling<bb::Bit, float>;
 using StochasticMaxPooling2x2_fp32      = bb::StochasticMaxPooling2x2<float, float>;
 using StochasticMaxPooling2x2_bit       = bb::StochasticMaxPooling2x2<bb::Bit, float>;
+using UpSampling_fp32                   = bb::UpSampling<float, float>;
+using UpSampling_bit                    = bb::UpSampling<bb::Bit, float>;
 
 using Activation                        = bb::Activation;
 using Binarize_fp32                     = bb::Binarize<float, float>;
@@ -159,10 +163,12 @@ using Binarize_bit                      = bb::Binarize<bb::Bit, float>;
 using Sigmoid                           = bb::Sigmoid<float>;
 using ReLU                              = bb::ReLU<float, float>;
 using HardTanh                          = bb::HardTanh<float, float>;
+
 using Dropout_fp32                      = bb::Dropout<float, float>;
 using Dropout_bit                       = bb::Dropout<bb::Bit, float>;
 using BatchNormalization                = bb::BatchNormalization<float>;
 using StochasticBatchNormalization      = bb::StochasticBatchNormalization<float>;
+using Shuffle                           = bb::Shuffle;
                                         
 using LossFunction                      = bb::LossFunction;
 using LossMeanSquaredError              = bb::LossMeanSquaredError<float>;
@@ -435,9 +441,6 @@ PYBIND11_MODULE(core, m) {
         .def("add",             &Sequential::Add)
         ;
 
-    py::class_< Reduce, Model, std::shared_ptr<Reduce> >(m, "Reduce")
-        .def_static("create",   &Reduce::CreateEx);
-
 
     py::class_< BitEncode_fp32, Model, std::shared_ptr<BitEncode_fp32> >(m, "BitEncode_fp32")
         .def_static("create",   &BitEncode_fp32::CreateEx);
@@ -508,6 +511,10 @@ PYBIND11_MODULE(core, m) {
                 py::arg("frame_modulation_size") = 1,
                 py::arg("output_shape")          = bb::indices_t());
 
+    py::class_< Reduce_fp32, Model, std::shared_ptr<Reduce_fp32> >(m, "Reduce_fp32")
+        .def_static("create",   &Reduce_fp32::CreateEx);
+    py::class_< Reduce_bit, Model, std::shared_ptr<Reduce_bit> >(m, "Reduce_bit")
+        .def_static("create",   &Reduce_bit::CreateEx);
 
     // DenseAffine
     py::class_< DenseAffine, Model, std::shared_ptr<DenseAffine> >(m, "DenseAffine")
@@ -685,6 +692,11 @@ PYBIND11_MODULE(core, m) {
     py::class_< StochasticMaxPooling2x2_bit, Filter2d, std::shared_ptr<StochasticMaxPooling2x2_bit> >(m, "StochasticMaxPooling2x2_bit")
         .def_static("create", &StochasticMaxPooling2x2_bit::Create);
 
+    py::class_< UpSampling_fp32, Model, std::shared_ptr<UpSampling_fp32> >(m, "UpSampling_fp32")
+        .def_static("create", &UpSampling_fp32::CreatePy);
+    py::class_< UpSampling_bit, Model, std::shared_ptr<UpSampling_bit> >(m, "UpSampling_bit")
+        .def_static("create", &UpSampling_bit::CreatePy);
+
 
     // activation
     py::class_< Activation, Model, std::shared_ptr<Activation> >(m, "Activation");
@@ -776,17 +788,17 @@ PYBIND11_MODULE(core, m) {
         .def_static("create", (std::shared_ptr<OptimizerSgd> (*)(float))&OptimizerSgd::Create, "create",
             py::arg("learning_rate") = 0.01f);
     
+    py::class_< OptimizerAdaGrad, Optimizer, std::shared_ptr<OptimizerAdaGrad> >(m, "OptimizerAdaGrad")
+        .def_static("Create", (std::shared_ptr<OptimizerAdaGrad> (*)(float))&OptimizerAdaGrad::Create,
+            py::arg("learning_rate") = 0.01f);
+
     py::class_< OptimizerAdam, Optimizer, std::shared_ptr<OptimizerAdam> >(m, "OptimizerAdam")
         .def_static("create", &OptimizerAdam::CreateEx,
             py::arg("learning_rate") = 0.001f,
             py::arg("beta1")         = 0.9f,
             py::arg("beta2")         = 0.999f); 
     
-    py::class_< OptimizerAdaGrad, Optimizer, std::shared_ptr<OptimizerAdaGrad> >(m, "OptimizerAdaGrad")
-        .def_static("Create", (std::shared_ptr<OptimizerAdaGrad> (*)(float))&OptimizerAdaGrad::Create,
-            py::arg("learning_rate") = 0.01f);
-
-
+    
     // ValueGenerator
     py::class_< ValueGenerator, std::shared_ptr<ValueGenerator> >(m, "ValueGenerator");
     

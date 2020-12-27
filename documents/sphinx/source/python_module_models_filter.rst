@@ -1,18 +1,18 @@
-models モジュール (畳み込み関連)
-======================================
+畳み込み/プーリング(Convolution and Pooling)
+================================================
 
 
 models モジュールの、畳み込みやプーリングなどのフィルタ演算を行うモデルです。
 
 
-Convolution2d class
+Convolution2d クラス
 ----------------------------
 
 .. autoclass:: binarybrain.models.Convolution2d
    :members:
    :show-inheritance:
 
-MaxPooling class
+MaxPooling クラス
 ----------------------------
 
 .. autoclass:: binarybrain.models.MaxPooling
@@ -20,10 +20,18 @@ MaxPooling class
    :show-inheritance:
 
 
-StochasticMaxPooling class
+StochasticMaxPooling クラス
 ----------------------------
 
 .. autoclass:: binarybrain.models.StochasticMaxPooling
+   :members:
+   :show-inheritance:
+
+
+UpSampling クラス
+----------------------------
+
+.. autoclass:: binarybrain.models.UpSampling
    :members:
    :show-inheritance:
 

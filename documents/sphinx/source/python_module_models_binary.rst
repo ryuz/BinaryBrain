@@ -1,4 +1,4 @@
-バイナリ変調モデル (models module)
+バイナリ変調モデル (Binary modulation)
 ======================================
 
 models モジュールのうち、バイナリネットを構成する変調にかかわるモデルです。
@@ -27,4 +27,11 @@ BitEncode class
    :members:
    :show-inheritance:
 
+
+Reduce class
+----------------------------
+
+.. autoclass:: binarybrain.models.Reduce
+   :members:
+   :show-inheritance:
 

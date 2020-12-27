@@ -83,7 +83,19 @@ public:
         create.fill   = fill;
         return Create(create);
     }
+
     
+    #ifdef BB_PYBIND11
+    static std::shared_ptr<UpSampling> CreatePy(index_t filter_h_size, index_t filter_w_size, bool fill=true)
+    {
+        create_t create;
+        create.filter_h_size = filter_h_size;
+        create.filter_w_size = filter_w_size;
+        create.fill   = fill;
+        return Create(create);
+    }
+#endif
+
     std::string GetClassName(void) const { return "UpSampling"; }
 
 public:

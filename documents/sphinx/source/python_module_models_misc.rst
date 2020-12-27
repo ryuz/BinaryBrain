@@ -1,11 +1,11 @@
-models モジュール (その他)
+補助モデル
 ======================================
 
 
-models モジュールには、ネットワークを構成するための各種演算モデルがあります。
+models モジュールのその他のモデルです。
 
 
-BatchNormalization class
+BatchNormalization クラス
 ----------------------------
 
 .. autoclass:: binarybrain.models.BatchNormalization
@@ -13,7 +13,7 @@ BatchNormalization class
    :show-inheritance:
 
 
-Dropout class
+Dropout クラス
 ----------------------------
 
 .. autoclass:: binarybrain.models.Dropout
@@ -21,7 +21,7 @@ Dropout class
    :show-inheritance:
 
 
-Shuffle class
+Shuffle クラス
 ----------------------------
 
 .. autoclass:: binarybrain.models.Shuffle

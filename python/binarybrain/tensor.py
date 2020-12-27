@@ -7,15 +7,16 @@ from typing import List
 
 class Tensor():
     """Tensor class
+
+        多次元データ構造。
+
+    Args:
+        shape (list[int]):  Shape of created array
+        dtype (int): Data type
+        host_only (bool): flag of host only
     """
     
     def __init__(self, shape: List[int]=None, *, dtype = bb.DType.FP32, host_only=False):
-        """Constructor
-        Args:
-            shape (list[int]):  Shape of created array
-            dtype (int): Data type
-            host_only (bool): flag of host only
-        """
         if shape is not None:
             self.core_tensor = core.Tensor(shape, dtype.value, host_only)
 
@@ -29,7 +30,7 @@ class Tensor():
         return self.core_tensor
         
     def get_type(self) -> int:
-        """get data type.
+        """データ型取得
         
         Returns:
             data type.
@@ -37,7 +38,7 @@ class Tensor():
         return bb.DType(self.core_tensor.get_type())
     
     def get_shape(self) -> List[int]:
-        """get shape.
+        """データのシェイプ取得
         
         Returns:
             shape
@@ -45,13 +46,12 @@ class Tensor():
         return self.core_tensor.get_shape()
     
     def numpy(self) -> np.ndarray:
-        """Convert to NumPy
+        """NumPy の ndarray に変換
         
-        Args:
-            shape (list[int]):  Shape of created array
-            dtype (int): Data type
-            host_only (bool): flag of host only
+        Returns:
+            ndarray (array)
         """
+
         dtype = self.core_tensor.get_type()
         if dtype == bb.DType.FP32:
             return self.core_tensor.numpy_fp32()
@@ -76,10 +76,10 @@ class Tensor():
     
     @staticmethod
     def from_numpy(ndarray: np.ndarray, host_only=False):
-        """Create from NumPy
+        """NumPy から生成
         
         Args:
-            ndarray (np.ndarray): array of NumPy
+            ndarray (ndarray): array of NumPy
             host_only (bool): flag of host only
         """
         

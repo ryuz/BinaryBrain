@@ -45,10 +45,10 @@ class FrameBuffer():
         return self.buf
         
     def get_type(self) -> int:
-        """get data type.
+        """データ型取得
         
         Returns:
-            data type.
+            dtype (DType)
         """
         return bb.DType(self.buf.get_type())
     

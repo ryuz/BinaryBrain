@@ -1,10 +1,10 @@
-基本モデル (models module)
+基本モデル (Base models)
 ======================================
 
 models モジュールには、ネットワークを構成するための各種演算モデルがあります。
 
 
-Model class
+Model クラス
 ----------------------------
 
 .. autoclass:: binarybrain.models.Model
@@ -13,7 +13,7 @@ Model class
    :member-order: bysource
 
 
-Sequential class
+Sequential クラスs
 ----------------------------
 
 .. autoclass:: binarybrain.models.Sequential
