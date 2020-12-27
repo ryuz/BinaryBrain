@@ -3,7 +3,7 @@
 
 # BinaryBrain Version 4<br> --binary neural networks platform for LUT-networks
 
-[詳細なドキュメントはこちら](https://binarybrain.readthedocs.io/ja/latest/)です。
+[詳細なドキュメントはこちら](https://binarybrain.readthedocs.io/ja/ver4_develop)です。
 
 ## 概要
 
@@ -53,7 +53,7 @@ BinaryBrain は LUT-Network の学習可能性を実証するために作られ�
 パーセプトロンとは異なる下記のネットワークモデルが利用可能です。
 (もちろん従来のパーセプトロンモデルでの)
 
-![Sparse-LUT_model.png](documents/images/Sparse-LUT_model.png "Sparse-LUT model")
+![Differentiable-LUT_model.png](documents/images/differentiable-lut_model.png "Differentiable LUT model")
 
 
 
@@ -87,8 +87,8 @@ MNISTのサンプルの使い方は samples/mnist/readme.txt を参照くださ�
 ```
 2. build and run
 ```
-% git clone --recursive -b ver3_release  https://github.com/ryuz/BinaryBrain.git
-% cd BinaryBrain/samples/mnist
+% git clone --recursive -b ver4_develop  https://github.com/ryuz/BinaryBrain.git
+% cd BinaryBrain/samples/cpp/mnist
 % make
 % make dl_data
 % ./sample-mnist All
@@ -100,8 +100,8 @@ GPUを使わない場合は make WITH_CUDA=No として下さい。
 nvcc が利用可能な Google Colaboratory でも動作可能なようです。
 以下あくまで参考ですが、ランタイムのタイプをGPUに設定した上で
 ```
-!git clone --recursive -b ver3_release  https://github.com/ryuz/BinaryBrain.git
-%cd BinaryBrain/samples/mnist
+!git clone --recursive -b ver4_develop  https://github.com/ryuz/BinaryBrain.git
+%cd BinaryBrain/cpp/samples/mnist
 !make all
 !make run
 ```
@@ -109,6 +109,8 @@ nvcc が利用可能な Google Colaboratory でも動作可能なようです。
 
 
 ### Python
+
+作者は現在 Python 3.7 にて開発しています。
 
 #### 事前準備
 必要なパッケージを事前にインストールください
@@ -136,34 +138,38 @@ Windows環境の場合、nvccのほかにも VisualStudio の 64bit 版がコマ
 
 #### サンプルの実行
 ```
+% cd samples/python/mnist
+
 % # Simple DNN sample
-% python3 MnistSparseLutSimple.py
+% python3 MnistDifferentiableLutSimple.py
 
 % # CNN sample
-% python3 MnistSparseLutCnn.py
+% python3 MnistDifferentiableLutCnn.py
 ```
 
+<!-- 
 #### pip によるインストール
 現在下記でもインストールできるようにしていますが、まだ開発が安定していないので github になるものとバージョンの対応にご注意ください。
 
 ```
 % pip3 install binarybrain
 ```
-
+-->
 
 ### githubからの取得
-現在 version3 は下記の branch で管理しています
+現在 version4 は下記の branch で管理しています
 
-- ver3_develop 
+- ver4_develop 
  著者の開発用。記録のためにビルド不能なものを入れることもあります。
 - ver3_release 
  リリース用。基本的な動作確認はしてからここにマージしています。
 - master 
  現在は ver3 のリリース版を反映。
 
+<!-- 
 tag は 開発都合で ver3_build0001 のような形式で定期的に打っており、特に動作確認などのタイミングでなるべく安定していそうなところで ver3_release1 のような形で打つようにはしています。
 まだ、開発速度が早い状況ですので、再現性の確保などで必要な際はタグを活用ください。
-
+-->
 
 ## 基本的な使い方
 CPU版に関してはヘッダオンリーライブラリとなっているため、include 以下にあるヘッダファイルをインクルードするだけでご利用いただけます。
@@ -171,12 +177,6 @@ CPU版に関してはヘッダオンリーライブラリとなっているた�
 GPUを使う場合は、ヘッダ読み込みの際に BB_WITH_CUDA マクロを定義した上で、cuda 以下にあるライブラリをビルドした上でリンクする必要があります。
 
 また、BB_WITH_CEREAL マクロを定義すると、途中経過を json 経由で保存可能となります。
-
-
-
-## 学習ネットの作り方
-順次記述予定ですが、現じてでは基本的にはソースを解読ください。<br>
-こちらに手がかり程度に[APIの概要](documents/class.md)を記載しています。
 
 
 ## LUT-Networkとは?
@@ -216,7 +216,9 @@ BinaryBrainではバイナリ変調したデジタル値を扱うことが出来
 ただし、本ソースコードは CEREAL を利用しているので、それらに関しては個別に各ライセンスに従ってください。
 
 
-## ICCE2019(Berlin)にて発表しています
+## ICCE2019(Berlin)にて発表頂いております
+[@FIssiki](https://twitter.com/fissiki)様の多大なるご協力のもと、ICCE2019(Berlin)にて発表頂いております
+
 2019 IEEE 9th International Conference on Consumer Electronics (ICCE-Berlin) <br>
 https://ieeexplore.ieee.org/document/8966187 <br>
 
@@ -231,7 +233,10 @@ https://ieeexplore.ieee.org/document/8966187 <br>
 - e-mail : ryuji.fuchikami@nifty.com
 
 
-## 参考
+## 参考にさせて頂いた情報
+- バイナリニューラルネットとハードウェアの関係<br>
+ https://www.slideshare.net/kentotajiri/ss-77136469
+
 - BinaryConnect: Training Deep Neural Networks with binary weights during propagations<br>
 https://arxiv.org/pdf/1511.00363.pdf
 
