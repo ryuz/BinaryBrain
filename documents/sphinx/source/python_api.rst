@@ -14,14 +14,14 @@ Submodules
 
 .. toctree::
 
-   binarybrain.dtype
-   binarybrain.models
-   binarybrain.tensor
-   binarybrain.frame_buffer
-   binarybrain.variables
-   binarybrain.optimizer
-   binarybrain.losses
-   binarybrain.metrics
-   binarybrain.storage
-   binarybrain.verilog
+   python_module_dtype
+   python_module_models
+   python_module_tensor
+   python_module_frame_buffer
+   python_module_variables
+   python_module_optimizer
+   python_module_losses
+   python_module_metrics
+   python_module_storage
+   python_module_verilog
 

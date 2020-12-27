@@ -155,7 +155,7 @@ using Binarize_bit                      = bb::Binarize<bb::Bit, float>;
 using Sigmoid                           = bb::Sigmoid<float>;
 using ReLU                              = bb::ReLU<float, float>;
 using HardTanh                          = bb::HardTanh<float, float>;
-using Dropout                           = bb::Dropout<float, float>;
+using Dropout_fp32                      = bb::Dropout<float, float>;
 using BatchNormalization                = bb::BatchNormalization<float>;
 using StochasticBatchNormalization      = bb::StochasticBatchNormalization<float>;
                                         
@@ -693,8 +693,8 @@ PYBIND11_MODULE(core, m) {
                 py::arg("hardtanh_max") = +1.0);
 
     
-    py::class_< Dropout, Activation, std::shared_ptr<Dropout> >(m, "Dropout")
-        .def_static("create", &Dropout::CreateEx,
+    py::class_< Dropout_fp32, Activation, std::shared_ptr<Dropout_fp32> >(m, "Dropout_fp32")
+        .def_static("create", &Dropout_fp32::CreateEx,
                 py::arg("rate") = 0.5,
                 py::arg("seed") = 1);
 

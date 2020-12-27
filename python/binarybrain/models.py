@@ -212,15 +212,12 @@ class Sequential(Model):
        また send_command の子レイヤーへのブロードキャストや、
        get_parameters, get_gradients の統合を行うことで複数のレイヤーを
        １つのレイヤーとして操作できる
+
+    Args:
+        model_list (List[Model]): モデルのリスト
     """
     
     def __init__(self, model_list=[], *, input_shape=None, name=None):
-        """Constructor
-       
-        Args:
-            model_list (List[Model]): モデルのリスト
-        """
-
         super(Sequential, self).__init__()
         self.model_list  = model_list
         self.input_shape = input_shape
@@ -312,6 +309,12 @@ class RealToBinary(Model):
         バイナリ変調機能も有しており、フレーム方向に変調した場合フレーム数(=ミニバッチサイズ)が
         増える。
         またここでビットパッキングが可能であり、32フレームのbitをint32に詰め込みメモリ節約可能である
+
+    Args:
+        frame_modulation_size (int): フレーム方向への変調数(フレーム数が増える)
+        depth_modulation_size (int): Depth方向への変調数(チャンネル数が増える)
+        framewise (bool): Trueで変調閾値をフレーム単位とする(Falseでピクセル単位)
+        bin_dtype (DType): 出力の型を bb.DType.FP32 もしくは bb.DType.BIT で指定可能
     """
     
     def __init__(self, *,
@@ -337,6 +340,14 @@ class BinaryToReal(Model):
     """
     
     def __init__(self, *, frame_modulation_size=1, output_shape=[], input_shape=None, name=None, bin_dtype=bb.DType.FP32):
+        """Constructor
+        
+        Args:
+            frame_modulation_size (int): フレーム方向への変調数(フレーム分積算)
+            output_shape (List[int]): 出力のシェイプ(必要に応じて積算)
+            bin_dtype (DType): 入力の型を bb.DType.FP32 もしくは bb.DType.BIT で指定可能
+        """
+
         try:
             core_creator = {
                 bb.DType.FP32: core.BinaryToReal_fp32.create,
@@ -353,9 +364,14 @@ class BinaryToReal(Model):
 class DenseAffine(Model):
     """DenseAffine class
        普通のDenseAffine
+
+    Args:
+        output_shape (List[int]): 出力のシェイプ
+        initializer (str): 変数の初期化アルゴリズム選択。今のところ 'he' のみ
+        seed (int): 変数初期値などの乱数シード
     """
     
-    def __init__(self, output_shape, *, input_shape=None, initialize_std=0.01, initializer="he", seed=1, name=None):
+    def __init__(self, output_shape, *, input_shape=None, initialize_std=0.01, initializer='he', seed=1, name=None):
         core_creator = core.DenseAffine.create
         
         core_model = core_creator(output_shape=output_shape, initialize_std=initialize_std, initializer=initializer, seed=seed)
@@ -367,8 +383,23 @@ class DifferentiableLut(Model):
     """DifferentiableLut class
        微分可能LUTモデル
        StocasticLUT + BatchNormalization + Binarize(HardTanh)
-    """
 
+        FPGA合成するためのFPGAのテーブルを学習することが可能
+        純粋な Stochastic 演算のみを行いたい場合は binarize と batch_norm の両方を Flase にすればよい。
+        
+    Args:
+        output_shape (List[int]): 出力のシェイプ
+        connection(str): 結線ルールを 'random', 'serial', 'depthwise' から指定可能
+        binarize (bool): Binarize を有効にするか
+        batch_norm (bool): BatchNormalization を有効にするか
+        momentum (float): BatchNormalization を有効にするか
+        gamma (float): BatchNormalization を有効にするか
+        beta (float): BatchNormalization を有効にするか
+        N (int): LUTの入力数
+        seed (int): 変数初期値などの乱数シード
+        bin_dtype (DType)): バイナリ出力の型を bb.DType.FP32 と bb.DType.BIT から指定(bb.DType.BIT は binarize=True 時のみ)
+    """
+    
     def __init__(self, output_shape, *, input_shape=None,
                     connection='random', binarize=True, batch_norm=True, momentum=0.0, gamma= 0.3, beta=0.5, seed=1,
                     name=None, N=6, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32):
@@ -453,6 +484,7 @@ class ConvolutionIm2Col(Model):
     """ConvolutionIm2Col class
        畳み込みの lowering における im2col 層
     """
+
     def __init__(self, filter_size=(1, 1), stride=(1, 1), *,
                         padding='valid', border_mode=bb.Border.REFLECT_101, border_value=0.0,
                         input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
@@ -475,6 +507,7 @@ class ConvolutionCol2Im(Model):
     """ConvolutionCol2Im class
        畳み込みの lowering における col2im 層
     """
+
     def __init__(self, output_size=(1, 1), *, input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
         try:
             core_creator = {
@@ -491,9 +524,27 @@ class ConvolutionCol2Im(Model):
 
 class Convolution2d(Sequential):
     """Convolution class
-       Lowering による畳み込み演算をパッキングするクラス
+        Lowering による畳み込み演算をパッキングするクラス
+
+        sub_layer で指定した演算レイヤーを畳み込み計算するためのモデル
+        例えば sub_layer に DenseAffineレイヤーを指定すると一般的なCNN用の畳み込み層となるが、
+        BinaryBrain ではここに DifferentiableLut モデルを組み合わせて作った複合レイヤーを
+        指定することでFPGA化に適した畳み込み層を学習させることができる。
+
+        sub_layer で指定したサブレイヤーが im2col と col2im で挟み込まれ、一般に
+        Lowering と呼ばれる方法で畳み込み演算が実行される
+
+    Args:
+        sub_layer (Model): 畳み込みを行うサブレイヤー(このレイヤが im2col と col2im で挟み込まれる)
+        filter_size ((int, int)): 2次元のタプルでフィルタサイズを指定する
+        stride ((int, int)): 2次元のタプルでストライドサイズを指定する
+        batch_norm (bool): BatchNormalization を有効にするか
+        padding (str)): パディングの方法を 'valid' と 'same' で指定する
+        border_mode (Border)): 'same' 時のボーダー処理を指定する
+        border_value (float): 'same' 時のボーダー処理が CONSTANT の場合にパディング値を指定する
+        fw_dtype (DType)): forwarする型を bb.DType.FP32 と bb.DType.BIT から指定
     """
-        
+
     def __init__(self, sub_layer, filter_size=(1, 1), stride=(1, 1), *, input_shape=None,
                         padding='valid', border_mode=bb.Border.REFLECT_101, border_value=0.0,
                         name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
@@ -572,10 +623,13 @@ class Convolution2d(Sequential):
 
 class MaxPooling(Model):
     """MaxPooling class
+
+    Args:
+        filter_size ((int, int)): 2次元のタプルでフィルタサイズを指定する
+        fw_dtype (DType)): forwarする型を bb.DType.FP32 と bb.DType.BIT から指定
     """
 
     def __init__(self, filter_size=(2, 2), *, input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
-
         try:
             core_creator = {
                 bb.DType.FP32: core.MaxPooling_fp32.create,
@@ -589,10 +643,60 @@ class MaxPooling(Model):
         super(MaxPooling, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
 
-class ReLU(Model):
-    """ReLU class
+class Binarize(Model):
+    """Binarize class
+
+    2値化(活性化層)
+    backward は hard-tanh となる
+
+    Args:
+        bin_dtype (DType)): バイナリ型を bb.DType.FP32 と bb.DType.BIT から指定
     """
 
+
+    def __init__(self, *, input_shape=None, name=None, bin_dtype=bb.DType.FP32):
+        try:
+            core_creator = {
+                bb.DType.FP32: core.Binarize_fp32.create,
+                bb.DType.BIT:  core.Binarize_bit.create,
+            }[bin_dtype]
+        except:
+            raise TypeError("unsupported")
+
+        core_model = core_creator()
+
+        super(Binarize, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+
+
+class Sigmoid(Model):
+    """Sigmoid class
+
+       Sigmoid 活性化層
+       send_command で "binary true" とすることで、Binarize に切り替わる
+       多値で学習を進めて、途中から Binarize に切り替える実験などが可能である
+    """
+    def __init__(self, *, input_shape=None, name=None, dtype=bb.DType.FP32):
+
+        try:
+            core_creator = {
+                bb.DType.FP32: core.Sigmoid.create,
+            }[dtype]
+        except:
+            raise TypeError("unsupported")
+
+        core_model = core_creator()
+
+        super(Sigmoid, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+
+class ReLU(Model):
+    """ReLU class
+
+       ReLU 活性化層
+       send_command で "binary true" とすることで、Binarize に切り替わる
+       多値で学習を進めて、途中から Binarize に切り替える実験などが可能である
+    """
     def __init__(self, *, input_shape=None, name=None, dtype=bb.DType.FP32):
 
         try:
@@ -607,7 +711,53 @@ class ReLU(Model):
         super(ReLU, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
 
-        
+class HardTanh(Model):
+    """HardTanh class
+
+       HardTanh 活性化層
+       send_command で "binary true" とすることで、Binarize に切り替わる
+       多値で学習を進めて、途中から Binarize に切り替える実験などが可能である
+    """
+    def __init__(self, *, input_shape=None, name=None, dtype=bb.DType.FP32):
+
+        try:
+            core_creator = {
+                bb.DType.FP32: core.HardTanh.create,
+            }[dtype]
+        except:
+            raise TypeError("unsupported")
+
+        core_model = core_creator()
+
+        super(HardTanh, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+
+class BatchNormalization(Model):
+    """BatchNormalization class
+
+    Args:
+        momentum (float): 学習モーメント
+        gamma (float): gamma 初期値
+        beta (float): beta 初期値
+        fix_gamma (bool): gamma を固定する(学習させない)
+        fix_beta (bool): beta を固定する(学習させない)
+        bin_dtype (DType)): バイナリ型を bb.DType.FP32 と bb.DType.BIT から指定
+    """
+
+    def __init__(self, *, input_shape=None, momentum=0.9, gamma=1.0, beta=0.0,
+                        fix_gamma=False, fix_beta=False, name=None, dtype=bb.DType.FP32):
+        try:
+            core_creator = {
+                bb.DType.FP32: core.BatchNormalization.create,
+            }[dtype]
+        except:
+            raise TypeError("unsupported")
+
+        core_model = core_creator(momentum, gamma, beta, fix_gamma, fix_beta)
+
+        super(BatchNormalization, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+
 def get_model_list(net, flatten:bool =False):
     ''' Get model list from networks
         ネットから構成するモデルのリストを取り出す
