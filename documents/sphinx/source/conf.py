@@ -19,24 +19,19 @@ import sys
 import glob
 import shutil
 
-os.makedirs('./binarybrain', exist_ok=True)
+# copy python cource
+bb_clone_path = '../binarybrain'
+os.makedirs(bb_clone_path, exist_ok=True)
 for file in glob.glob(r'../../../python/binarybrain/*.py'):
-    shutil.copy(file, './binarybrain')
+    shutil.copy(file, bb_clone_path)
 
-#shutil.rmtree('./binarybrain', ignore_errors=True)
-#shutil.copytree('../../../python/binarybrain', './binarybrain')
+# make dummy
+with open(os.path.join(bb_clone_path, 'core.py'), 'w') as f:
+    pass
 
-
+# import source
 sys.path.insert(0, os.path.abspath('.'))
 import binarybrain
-
-#sys.path.insert(0, os.path.abspath('../../python'))
-
-
-try:
-    import binarybrain
-except  ModuleNotFoundError:
-    pass
 
 
 
@@ -45,7 +40,6 @@ except  ModuleNotFoundError:
 project = u'BinaryBrain'
 copyright = u'2019-2020, Ryuji Fuchikami'
 author = u'Ryuji Fuchikami'
-
 
 # version
 major_version = 0
@@ -220,3 +214,5 @@ epub_exclude_files = ['search.html']
 
 locale_dirs = ['locale/']   # path is example but recommended.
 gettext_compact = False     # optional.
+
+html_style = "css/my_theme.css"

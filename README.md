@@ -1,7 +1,7 @@
 ﻿
 [English version](README_en.md)
 
-# BinaryBrain Version 3<br> --binary neural networks platform for LUT-networks
+# BinaryBrain Version 4<br> --binary neural networks platform for LUT-networks
 
 [詳細なドキュメントはこちら](https://binarybrain.readthedocs.io/ja/latest/)です。
 

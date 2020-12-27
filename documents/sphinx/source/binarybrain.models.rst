@@ -1,10 +1,19 @@
-binarybrain.models module
-=========================
+models module
+===========================
+
+
+Model class
+--------------------
 
 .. autoclass:: binarybrain.models.Model
-   :members:
+   :members: set_name, get_name, is_named, get_class_name, get_info,
+             send_command, set_input_shape, get_parameters, get_gradients
    :undoc-members:
    :show-inheritance:
+
+
+Convolution2d class
+--------------------
 
 .. autoclass:: binarybrain.models.Convolution2d
    :members:

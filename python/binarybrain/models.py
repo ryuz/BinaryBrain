@@ -12,7 +12,11 @@ import binarybrain.core as core
 class Model():
     """Model class
        ネットワーク各層の演算モデルの基底クラス
-       C++で作成されたcoreモデルをラッピングするための基本機能を提供する
+       すべてのモデルはこのクラスを基本クラスに持つ
+
+       BinaryBrain では、モデルを実際にインスタンスとして生成して組み合わせることで
+       学習ネットワークを構成する。特にネットワーク内のインスタンス化された
+       モデルをレイヤーという呼び方をする場合がある。
     """
     
     def __init__(self, *, core_model=None, input_shape=None, name=None):
@@ -26,31 +30,113 @@ class Model():
     def get_core_model(self):
         return self.core_model
     
-    def get_name(self):
-        return self.get_core_model().get_name()
-    
-    def set_name(self, name):
+    def set_name(self, name: str):
+        """インスタンス名の設定
+
+           生成したモデルには任意の名前を付けることが可能であり、表示や
+           保存時のファイル名などに利用することが可能である
+
+        Args:
+            name (str): 新しいインスタンス名
+        """
         return self.get_core_model().set_name(name)
 
+    def get_name(self):
+        """インスタンス名の取得
+
+           インスタンス名を取得する。名称が設定されていない場合はクラス名が返される
+
+        Returns:
+            name (str)
+        """
+        return self.get_core_model().get_name()
+
     def is_named(self):
+        """インスタンス名の設定確認
+
+           インスタンス名が設定されているかどうか確認する
+
+        Returns:
+            named (bool)
+        """
         return self.get_core_model().is_named()
     
     def get_class_name(self):
+        """クラス名の取得
+
+           クラス名(=モデル名)を取得する。
+
+        Returns:
+            class name (str)
+        """
         return self.get_core_model().get_class_name()
     
     def get_info(self):
+        """モデル情報取得
+
+           モデルの情報表示用の文字列を取得する
+           そのまま表示やログに利用することを想定している
+
+        Returns:
+            info (str)
+        """
         return self.get_core_model().get_info()
     
-    def send_command(self, command, send_to="all"):
+    def send_command(self, command, send_to='all'):
+        """コマンドの送信
+
+           モデルごとにコマンド文字列で設定を行う
+           コマンド文字列の定義はモデルごとに自由である
+           Sequentialクラスなどは、保有する下位のモデルに再帰的にコマンドを
+           伝搬させるので、複数の層に一括した設定が可能である
+           受取先は send_to で送り先はインスタンス名やクラス名で制限でき 'all' を指定すると
+           フィルタリングされない
+
+        Args:
+            command (str): コマンド文字列
+            send_to (str): 送信先
+        """
         self.get_core_model().send_command(command, send_to)
     
-    def set_input_shape(self, input_shape):
+    def set_input_shape(self, input_shape: [int]):
+        """入力シェイプ設定
+
+           BinaryBarainではモデル生成時に入力のシェイプを決定する必要はなく
+           ネットワーク構築後に、ネットワークを構成する各モデルの
+           set_input_shape を順に呼び出して形状を伝搬させることで
+           各モデルの形状の設定を簡易化できる
+
+           set_input_shape が呼ばれるとそれまでの各層で保有する情報は
+           保証されない。ネットワーク構築後に一度だけ呼び出すことを想定している
+        
+        Args:
+            input_shape (List[int]): 出力シェイプ
+
+        Returns:
+            output_shape (List[int]): 出力シェイプ
+        """
         return self.get_core_model().set_input_shape(input_shape)
     
     def get_parameters(self):
+        """パラメータ変数取得
+
+           学習対象とするパラメータ群を Variables として返す
+           主に最適化(Optimizer)に渡すことを目的としている
+
+        Returns:
+            parameters (Variables): パラメータ変数
+        """
         return bb.Variables.from_core(self.get_core_model().get_parameters())
     
     def get_gradients(self):
+        """勾配変数取得
+
+           get_parameters と対になる勾配変数を Variables として返す
+           主に最適化(Optimizer)に渡すことを目的としている
+
+        Returns:
+            gradients (Variables): 勾配変数
+        """
         return bb.Variables.from_core(self.get_core_model().get_gradients())
     
     def forward(self, x_buf, train=True):
@@ -99,20 +185,9 @@ class Sequential(Model):
     def set_model_list(self, model_list):
         self.model_list = model_list
     
-    def get_model_list(self, flatten=False):
-        if not flatten:
-            return self.model_list
-        
-        def flatten_list(in_list, out_list):
-            for model in in_list:
-                if type(model) == Sequential:
-                    flatten_list(model.model_list, out_list)
-                else:
-                    out_list.append(model)
-        out_list = []
-        flatten_list(self.model_list, out_list)
-        return out_list
-        
+    def get_model_list(self):
+        return self.model_list
+    
     def __len__(self):
         return len(self.model_list)
     
@@ -348,9 +423,7 @@ class Convolution2d(Sequential):
     """Convolution class
        Lowering による畳み込み演算をパッキングするクラス
     """
-    
-    deny_flatten = True
-    
+        
     def __init__(self, sub_layer, filter_size=(1, 1), stride=(1, 1), *, input_shape=None,
                         padding='valid', border_mode=bb.Border.REFLECT_101, border_value=0.0,
                         name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
@@ -364,6 +437,7 @@ class Convolution2d(Sequential):
         except KeyError:
             raise TypeError("unsupported")
         
+        self.deny_flatten = True
         self.name         = name
         self.input_shape  = input_shape
         self.filter_size  = filter_size
@@ -423,6 +497,7 @@ class Convolution2d(Sequential):
 #        shape = self.sub_layer.set_input_shape(shape)
 #        shape = self.col2im.set_input_shape(shape)
 #        return shape
+
 
 
 class MaxPooling(Model):
