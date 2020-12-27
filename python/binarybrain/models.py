@@ -207,9 +207,20 @@ class Model():
 class Sequential(Model):
     """Sequential class
        複数レイヤーを直列に接続してグルーピングするクラス
+
+       リストの順番で set_input_shape, forward, backward などを実行する
+       また send_command の子レイヤーへのブロードキャストや、
+       get_parameters, get_gradients の統合を行うことで複数のレイヤーを
+       １つのレイヤーとして操作できる
     """
     
     def __init__(self, model_list=[], *, input_shape=None, name=None):
+        """Constructor
+       
+        Args:
+            model_list (List[Model]): モデルのリスト
+        """
+
         super(Sequential, self).__init__()
         self.model_list  = model_list
         self.input_shape = input_shape
@@ -227,9 +238,19 @@ class Sequential(Model):
         return core_model
     
     def set_model_list(self, model_list):
+        """モデルリストの設定
+       
+        Args:
+            model_list (List[Model]): モデルのリスト
+        """
         self.model_list = model_list
     
     def get_model_list(self):
+        """モデルリストの取得
+       
+        Returns:
+            model_list (List[Model]): モデルのリスト
+        """
         return self.model_list
     
     def __len__(self):
@@ -245,6 +266,11 @@ class Sequential(Model):
         self.model_list[item] = model
     
     def append(self, model):
+        """モデルリストの追加
+       
+        Returns:
+            model (Model): リストに追加するモデル
+        """
         self.model_list.append(model)
     
     def send_command(self, command, send_to="all"):
