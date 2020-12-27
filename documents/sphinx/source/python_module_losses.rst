@@ -1,5 +1,5 @@
-binarybrain.losses module
-=========================
+損失関数(Loss functions)
+==================================
 
 .. automodule:: binarybrain.losses
    :members:
