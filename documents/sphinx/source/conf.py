@@ -20,17 +20,18 @@ import glob
 import shutil
 
 # copy python cource
-bb_clone_path = '../binarybrain'
-os.makedirs(bb_clone_path, exist_ok=True)
+bb_module_path = '..'
+bb_binarybrain_path = os.path.join(bb_module_path, 'binarybrain')
+os.makedirs(bb_binarybrain_path, exist_ok=True)
 for file in glob.glob(r'../../../python/binarybrain/*.py'):
-    shutil.copy(file, bb_clone_path)
+    shutil.copy(file, bb_binarybrain_path)
 
 # make dummy
-with open(os.path.join(bb_clone_path, 'core.py'), 'w') as f:
+with open(os.path.join(bb_binarybrain_path, 'core.py'), 'w') as f:
     pass
 
 # import source
-sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath(bb_module_path))
 import binarybrain
 
 

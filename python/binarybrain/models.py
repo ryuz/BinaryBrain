@@ -123,6 +123,10 @@ class Model():
            学習対象とするパラメータ群を Variables として返す
            主に最適化(Optimizer)に渡すことを目的としている
 
+           モデル側を自作する際には、このメソッドで戻す変数の中に
+           含めなかったパラメータは学習対象から外すことができる為
+           パラメータを凍結したい場合などに利用できる
+
         Returns:
             parameters (Variables): パラメータ変数
         """
@@ -140,15 +144,55 @@ class Model():
         return bb.Variables.from_core(self.get_core_model().get_gradients())
     
     def forward(self, x_buf, train=True):
+        """Forward
+
+           モデルは学習および推論の為に forward メソッドを持つ
+            train 変数を
+        
+        Args:
+            x_buf (FrameBuffer): 入力データ
+            train (bool) : Trueで学習、Falseで推論
+
+        Returns:
+            y_buf (FrameBuffer): 出力データ
+        """
         return bb.FrameBuffer.from_core(self.get_core_model().forward(x_buf.get_core(), train))
     
     def backward(self, dy_buf):
+        """Backward
+
+           モデルは学習の為に backword メソッドを持つ
+           必ず forwad と対で呼び出す必要があり、直前の forward 結果に対する
+           勾配計算を行いながら逆伝搬する
+
+           BinaryBrain は自動微分の機能を備えないので、backword の実装は必須である
+        
+        Args:
+            dy_buf (FrameBuffer): 入力データ
+
+        Returns:
+            dx_buf (FrameBuffer): 出力データ
+        """
         return bb.FrameBuffer.from_core(self.get_core_model().backward(dy_buf.get_core()))
     
     def dump_bytes(self):
+        """バイトデータにシリアライズ
+
+           モデルのデータをシリアライズして保存するためのバイト配列を生成
+        
+        Returns:
+            data (bytes): Serialize data
+        """
         return self.get_core_model().dump()
     
     def load_bytes(self, data):
+        """バイトデータをロード
+
+           モデルのデータをシリアライズして復帰のバイト配列ロード
+        
+        Args:
+            data (bytes): Serialize data
+        """
         self.get_core_model().load(data)
     
     def dump(self, f):
