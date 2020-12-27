@@ -33,6 +33,8 @@
 #include "bb/BinaryLutN.h"
 #include "bb/Reduce.h"
 #include "bb/Convolution2d.h"
+#include "bb/MaxPooling.h"
+#include "bb/StochasticMaxPooling2x2.h"
 #include "bb/Shuffle.h"
 #include "bb/BitEncode.h"
 #include "bb/RealToBinary.h"
@@ -148,6 +150,8 @@ using Convolution2d_fp32                = bb::Convolution2d<float, float>;
 using Convolution2d_bit                 = bb::Convolution2d<bb::Bit, float>;
 using MaxPooling_fp32                   = bb::MaxPooling<float, float>;
 using MaxPooling_bit                    = bb::MaxPooling<bb::Bit, float>;
+using StochasticMaxPooling2x2_fp32      = bb::StochasticMaxPooling2x2<float, float>;
+using StochasticMaxPooling2x2_bit       = bb::StochasticMaxPooling2x2<bb::Bit, float>;
 
 using Activation                        = bb::Activation;
 using Binarize_fp32                     = bb::Binarize<float, float>;
@@ -156,6 +160,7 @@ using Sigmoid                           = bb::Sigmoid<float>;
 using ReLU                              = bb::ReLU<float, float>;
 using HardTanh                          = bb::HardTanh<float, float>;
 using Dropout_fp32                      = bb::Dropout<float, float>;
+using Dropout_bit                       = bb::Dropout<bb::Bit, float>;
 using BatchNormalization                = bb::BatchNormalization<float>;
 using StochasticBatchNormalization      = bb::StochasticBatchNormalization<float>;
                                         
@@ -433,6 +438,16 @@ PYBIND11_MODULE(core, m) {
     py::class_< Reduce, Model, std::shared_ptr<Reduce> >(m, "Reduce")
         .def_static("create",   &Reduce::CreateEx);
 
+
+    py::class_< BitEncode_fp32, Model, std::shared_ptr<BitEncode_fp32> >(m, "BitEncode_fp32")
+        .def_static("create",   &BitEncode_fp32::CreateEx);
+    py::class_< BitEncode_bit, Model, std::shared_ptr<BitEncode_bit> >(m, "BitEncode_bit")
+        .def_static("create",   &BitEncode_fp32::CreateEx);
+    
+
+    py::class_< Shuffle, Model, std::shared_ptr<Shuffle> >(m, "Shuffle")
+        .def_static("create",   &Shuffle::CreateEx);
+    
     py::class_< BinaryModulation_fp32, Model, std::shared_ptr<BinaryModulation_fp32> >(m, "BinaryModulation_fp32")
         .def_static("create", &BinaryModulation_fp32::CreateEx,
                 py::arg("layer"),
@@ -665,6 +680,11 @@ PYBIND11_MODULE(core, m) {
     py::class_< MaxPooling_bit, Filter2d, std::shared_ptr<MaxPooling_bit> >(m, "MaxPooling_bit")
         .def_static("create", &MaxPooling_bit::CreatePy);
 
+    py::class_< StochasticMaxPooling2x2_fp32, Filter2d, std::shared_ptr<StochasticMaxPooling2x2_fp32> >(m, "StochasticMaxPooling2x2_fp32")
+        .def_static("create", &StochasticMaxPooling2x2_fp32::Create);
+    py::class_< StochasticMaxPooling2x2_bit, Filter2d, std::shared_ptr<StochasticMaxPooling2x2_bit> >(m, "StochasticMaxPooling2x2_bit")
+        .def_static("create", &StochasticMaxPooling2x2_bit::Create);
+
 
     // activation
     py::class_< Activation, Model, std::shared_ptr<Activation> >(m, "Activation");
@@ -695,6 +715,11 @@ PYBIND11_MODULE(core, m) {
     
     py::class_< Dropout_fp32, Activation, std::shared_ptr<Dropout_fp32> >(m, "Dropout_fp32")
         .def_static("create", &Dropout_fp32::CreateEx,
+                py::arg("rate") = 0.5,
+                py::arg("seed") = 1);
+
+    py::class_< Dropout_bit, Activation, std::shared_ptr<Dropout_bit> >(m, "Dropout_bit")
+        .def_static("create", &Dropout_bit::CreateEx,
                 py::arg("rate") = 0.5,
                 py::arg("seed") = 1);
 

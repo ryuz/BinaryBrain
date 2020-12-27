@@ -1,7 +1,11 @@
-binarybrain.frame\_buffer module
+frame_buffer モジュール
 ================================
 
-.. automodule:: binarybrain.frame_buffer
+
+FrameBuffer class
+----------------------------
+
+.. autoclass:: binarybrain.frame_buffer.FrameBuffer
    :members:
-   :undoc-members:
    :show-inheritance:
+

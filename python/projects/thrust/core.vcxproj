@@ -44,6 +44,7 @@
     <ClInclude Include="..\..\..\include\bb\DataAugmentationMnist.h" />
     <ClInclude Include="..\..\..\include\bb\DataType.h" />
     <ClInclude Include="..\..\..\include\bb\DenseAffine.h" />
+    <ClInclude Include="..\..\..\include\bb\DepthwiseDenseAffine.h" />
     <ClInclude Include="..\..\..\include\bb\DifferentiableLutDiscreteN.h" />
     <ClInclude Include="..\..\..\include\bb\DifferentiableLutN.h" />
     <ClInclude Include="..\..\..\include\bb\Dropout.h" />
@@ -80,6 +81,7 @@
     <ClInclude Include="..\..\..\include\bb\ReLU.h" />
     <ClInclude Include="..\..\..\include\bb\Runner.h" />
     <ClInclude Include="..\..\..\include\bb\Sequential.h" />
+    <ClInclude Include="..\..\..\include\bb\Shuffle.h" />
     <ClInclude Include="..\..\..\include\bb\ShuffleModulation.h" />
     <ClInclude Include="..\..\..\include\bb\ShuffleSet.h" />
     <ClInclude Include="..\..\..\include\bb\Sigmoid.h" />

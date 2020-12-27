@@ -277,7 +277,7 @@ public:
                     for (index_t x = 0; x < m_output_w_size; ++x) {
                         for (index_t frame = 0; frame < frame_size; ++frame) {
                             // OR演算を実施(反転してANDを取って、出力反転)
-                            FT out_sig = (FT)1.0;
+                            BT out_sig = (BT)1.0;
                             for (index_t fy = 0; fy < 2; ++fy) {
                                 index_t iy = y*2 + fy;
                                 if ( iy < m_input_h_size ) {
@@ -285,12 +285,12 @@ public:
                                         index_t ix = x*2 + fx;
                                         if ( ix < m_input_w_size ) {
                                             FT in_sig = x_ptr.Get(frame, {ix, iy, c});
-                                            out_sig *= ((FT)1.0 - in_sig);
+                                            out_sig *= ((BT)1.0 - (BT)in_sig);
                                         }
                                     }
                                 }
                             }
-                            y_ptr.Set(frame, {x, y, c}, ((FT)1.0 - out_sig));
+                            y_ptr.Set(frame, {x, y, c}, (FT)((BT)1.0 - out_sig));
                         }
                     }
                 }

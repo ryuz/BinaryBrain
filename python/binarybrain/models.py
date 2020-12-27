@@ -337,17 +337,14 @@ class BinaryToReal(Model):
     """BinaryToReal class
         バイナリ値を実数値に戻す。その際にフレーム方向に変調されたデータを積算して
         元に戻すことが可能である
+
+    Args:
+        frame_modulation_size (int): フレーム方向への変調数(フレーム分積算)
+        output_shape (List[int]): 出力のシェイプ(必要に応じて積算)
+        bin_dtype (DType): 入力の型を bb.DType.FP32 もしくは bb.DType.BIT で指定可能
     """
     
     def __init__(self, *, frame_modulation_size=1, output_shape=[], input_shape=None, name=None, bin_dtype=bb.DType.FP32):
-        """Constructor
-        
-        Args:
-            frame_modulation_size (int): フレーム方向への変調数(フレーム分積算)
-            output_shape (List[int]): 出力のシェイプ(必要に応じて積算)
-            bin_dtype (DType): 入力の型を bb.DType.FP32 もしくは bb.DType.BIT で指定可能
-        """
-
         try:
             core_creator = {
                 bb.DType.FP32: core.BinaryToReal_fp32.create,
@@ -361,12 +358,62 @@ class BinaryToReal(Model):
         super(BinaryToReal, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
 
+class BitEncode(Model):
+    """BitEncode class
+        実数値をバイナリ表現としてdepth方向に展開する
+
+    Args:
+        bit_size (int): エンコードするbit数
+    """
+
+    def __init__(self, bit_size=1, *, output_shape=[], input_shape=None, name=None, bit_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32):
+
+        try:
+            core_creator = {
+                bb.DType.FP32: core.BitEncode_fp32.create,
+                bb.DType.BIT:  core.BitEncode_bit.create,
+            }[bit_dtype]
+        except:
+            raise TypeError("unsupported")
+        
+        core_model = core_creator(bit_size, output_shape)
+
+        super(BitEncode, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+
+class Shuffle(Model):
+    """Shuffle class
+
+        所謂 ShuffleNet のようなシャッフルを行うモデル
+        入力ノードが shuffle_unit 個のグループに分割されるようにシャッフルする
+
+
+    Args:
+        shuffle_unit (int): シャッフルする単位
+    """
+
+    def __init__(self, shuffle_unit, *, output_shape=[], input_shape=None, name=None, bit_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32):
+
+        try:
+            core_creator = {
+                bb.DType.FP32: core.Shuffle.create,
+                bb.DType.BIT:  core.Shuffle.create,
+            }[bit_dtype]
+        except:
+            raise TypeError("unsupported")
+        
+        core_model = core_creator(shuffle_unit, output_shape)
+
+        super(Shuffle, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+
 class DenseAffine(Model):
     """DenseAffine class
        普通のDenseAffine
 
     Args:
         output_shape (List[int]): 出力のシェイプ
+        initialize_std (float) : 重み初期化乱数の標準偏差
         initializer (str): 変数の初期化アルゴリズム選択。今のところ 'he' のみ
         seed (int): 変数初期値などの乱数シード
     """
@@ -377,6 +424,28 @@ class DenseAffine(Model):
         core_model = core_creator(output_shape=output_shape, initialize_std=initialize_std, initializer=initializer, seed=seed)
         
         super(DenseAffine, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+
+class DepthwiseDenseAffine(Model):
+    """DepthwiseDenseAffine class
+
+       Convolution2d と組み合わせて、普通の Depthwise Convolution を作るためのクラス
+
+    Args:
+        output_shape (List[int]): 出力のシェイプ
+        input_point_size (int): 入力のpoint数
+        depth_size (int): depthサイズ
+        initialize_std (float) : 重み初期化乱数の標準偏差
+        initializer (str): 変数の初期化アルゴリズム選択。今のところ 'he' のみ
+        seed (int): 変数初期値などの乱数シード
+    """
+    
+    def __init__(self, output_shape, *, input_shape=None, input_point_size=0, depth_size=0, initialize_std=0.01, initializer='he', seed=1, name=None):
+        core_creator = core.DepthwiseDenseAffine.create
+        
+        core_model = core_creator(output_shape=output_shape, initialize_std=initialize_std, initializer=initializer, seed=seed)
+        
+        super(DepthwiseDenseAffine, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
 
 class DifferentiableLut(Model):
@@ -613,12 +682,6 @@ class Convolution2d(Sequential):
         super(Convolution2d, self).set_model_list([self.im2col, self.sub_layer, self.col2im])
         
         return super(Convolution2d, self).set_input_shape(shape)
-        
-#        shape = self.im2col.set_input_shape(shape)
-#        shape = self.sub_layer.set_input_shape(shape)
-#        shape = self.col2im.set_input_shape(shape)
-#        return shape
-
 
 
 class MaxPooling(Model):
@@ -641,6 +704,33 @@ class MaxPooling(Model):
         core_model = core_creator(filter_size[0], filter_size[1])
 
         super(MaxPooling, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+
+class StochasticMaxPooling(Model):
+    """StochasticMaxPooling class
+
+        Stochastic 演算として OR 演算で Pooling 層を構成するモデル
+
+    Args:
+        filter_size ((int, int)): 2次元のタプルでフィルタサイズを指定する(現在2x2のみ)
+        fw_dtype (DType)): forwarする型を bb.DType.FP32 と bb.DType.BIT から指定
+    """
+
+    def __init__(self, filter_size=(2, 2), *, input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
+        assert(filter_size[0]==2 and filter_size[1]==0)
+
+        try:
+            core_creator = {
+                bb.DType.FP32: core.StochasticMaxPooling2x2_fp32.create,
+                bb.DType.BIT:  core.StochasticMaxPooling2x2_bit.create,
+            }[fw_dtype]
+        except:
+            raise TypeError("unsupported")
+        
+        core_model = core_creator(filter_size[0], filter_size[1])
+
+        super(StochasticMaxPooling, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
 
 
 class Binarize(Model):
@@ -756,6 +846,29 @@ class BatchNormalization(Model):
         core_model = core_creator(momentum, gamma, beta, fix_gamma, fix_beta)
 
         super(BatchNormalization, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+
+class Dropout(Model):
+    """Dropout class
+
+    Args:
+        rate (float): Drop率
+        seed (int): 乱数シード
+        fw_dtype (DType): forwardの型を bb.DType.FP32 と bb.DType.BIT から指定
+    """
+
+    def __init__(self, *, rate=0.5, input_shape=None, seed=1, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
+        try:
+            core_creator = {
+                bb.DType.FP32: core.Dropout.create,
+                bb.DType.FP32: core.Dropout.create,
+            }[fw_dtype]
+        except:
+            raise TypeError("unsupported")
+
+        core_model = core_creator(rate, seed)
+
+        super(Dropout, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
 
 def get_model_list(net, flatten:bool =False):

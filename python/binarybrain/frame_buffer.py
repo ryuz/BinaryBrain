@@ -7,16 +7,32 @@ from typing import List
 
 class FrameBuffer():
     """FrameBuffer class
+       
+        BinaryBrainでの学習データを格納する特別な型である
+        バッチと対応する 1次元のframe項と、各レイヤーの入出力ノードに対応する
+        多次元のnode項を有している
+        numpy の ndarray に変換する際は axis=0 が frame 項となり、以降が
+        node項となる
+
+        Tensor と異なり、frame 項に対して reshape を行うことはできず、
+        node 項に対しても transpose することはできない。
+
+        node に関しては 2次元以上の shape も持ちうるが、実際のレイヤー間接続に
+        際しては、畳み込みなどの次元に意味を持つノード以外では、ノード数さえ
+        あっていれば接続できるものが殆どである(多くの処理系で必要とする
+        flatten が省略できる)。
+
+        host_only フラグを指定すると device(GPU側) が利用可能であっても
+        host(CPU側) のみにメモリを確保する
+
+    Args:
+        frame_size (int): frame サイズ
+        shape (list[int]):  node シェイプ
+        dtype (int): Data type
+        host_only (bool): flag of host only
     """
     
     def __init__(self, frame_size: int = 0, shape: List[int] = [], dtype = bb.DType.FP32, host_only: bool = False):
-        """Constructor
-        Args:
-            frame_size (int): size of frame
-            shape (list[int]):  Shape of created array
-            dtype (int): Data type
-            host_only (bool): flag of host only
-        """
         self.buf = core.FrameBuffer(frame_size, shape, dtype.value, host_only)
 
     @staticmethod
@@ -152,7 +168,7 @@ class FrameBuffer():
         elif ndarray.dtype == np.uint16:
             new_buf.buf = bb.core.FrameBuffer.from_numpy_uint16(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.uint32:
-            buf.buf = bb.core.FrameBuffer.from_numpy_uint32(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            new_buf.buf = bb.core.FrameBuffer.from_numpy_uint32(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.uint64:
             new_buf.buf = bb.core.FrameBuffer.from_numpy_uint64(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         else:

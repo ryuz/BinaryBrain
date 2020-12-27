@@ -90,7 +90,7 @@ BinaryBrain の備える DifferentiableLUT クラスは下記の３つの使い�
 
 
 Differentiable-LUTモデルによるFPGA化
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Differentiable-LUT を、Stochastic演算用や、Fully-Binary 用に利用した場合には、FPGAに
 1個に割り当て可能なモデルとして学習させることができます。

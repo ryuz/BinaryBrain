@@ -1,7 +1,7 @@
-binarybrain.optimizer module
+最適化 (optimizer module)
 ============================
 
 .. automodule:: binarybrain.optimizer
    :members:
-   :undoc-members:
    :show-inheritance:
+
