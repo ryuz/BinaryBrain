@@ -1,2 +1,3 @@
-pybind11
+numpy
 tqdm
+pybind11
