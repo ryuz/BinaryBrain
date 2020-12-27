@@ -23,8 +23,4 @@ Convolution2d class
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: binarybrain.models
-   :members:
-   :undoc-members:
-   :show-inheritance:
 

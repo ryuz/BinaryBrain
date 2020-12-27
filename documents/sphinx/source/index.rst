@@ -15,7 +15,6 @@ Welcome to BinaryBrain's documentation!
    sample_rtl
    lut_network
    binary_modulation
-   binarybrain
    cpp_api
    python_api
 
