@@ -2,11 +2,12 @@
 ==================================
 
 
-DType 型
+DType クラス(Enum定義)
 ----------------------------
 
 .. autoclass:: binarybrain.dtype.DType
    :members:
+   :undoc-members:
    :show-inheritance:
 
 

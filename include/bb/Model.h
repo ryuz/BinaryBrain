@@ -314,8 +314,13 @@ public:
     {
         int size;
         is.read((char*)&size, sizeof(size));
-        m_name.resize(size);
-        is.read((char*)&m_name[0], size);
+
+        std::string name;
+        name.resize(size);
+        is.read((char*)&name[0], size);
+        if (!IsNamed()) {   // 既に命名されていたら上書きしない
+            m_name = name;
+        }
     }
 
 #ifdef BB_PYBIND11
@@ -373,7 +378,11 @@ public:
     template <class Archive>
     void load(Archive& archive, std::uint32_t const version)
     {
-        archive(cereal::make_nvp("name", m_name));
+        std::string name;
+        archive(cereal::make_nvp("name", name));
+        if (!IsNamed()) {   // 既に命名されていたら上書きしない
+            m_name = name;
+        }
     }
 
     virtual void Save(cereal::JSONOutputArchive& archive) const

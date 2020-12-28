@@ -63,7 +63,7 @@ void MnistStochasticLutCnn(int epoch_size, int mini_batch_size, int test_modulat
         cnv1_sub->Add(layer_cnv1_sl1);
         auto cnv1 = bb::Convolution2d<>::Create(cnv1_sub, 3, 3);
 
-        auto pol0 = bb::StochasticMaxPooling2x2<>::Create();
+        auto pol0 = bb::StochasticMaxPooling2x2<float, float>::Create();
 
         auto cnv2_sub = bb::Sequential::Create();
         cnv2_sub->Add(layer_cnv2_sl0);

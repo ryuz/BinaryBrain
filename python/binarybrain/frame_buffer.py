@@ -33,24 +33,27 @@ class FrameBuffer():
     """
     
     def __init__(self, frame_size: int = 0, shape: List[int] = [], dtype = bb.DType.FP32, host_only: bool = False):
-        self.buf = core.FrameBuffer(frame_size, shape, dtype.value, host_only)
+        self.core_buf = core.FrameBuffer(frame_size, shape, dtype.value, host_only)
 
     @staticmethod
-    def from_core(buf):
+    def from_core(core_buf):
         new_buf = FrameBuffer()
-        new_buf.buf = buf
+        new_buf.core_buf = core_buf
         return new_buf
     
     def get_core(self):
-        return self.buf
-        
+        return self.core_buf
+
+    def is_host_only(self) -> bool:
+        return self.get_core().is_host_only()
+
     def get_type(self) -> int:
         """データ型取得
         
         Returns:
             dtype (DType)
         """
-        return bb.DType(self.buf.get_type())
+        return bb.DType(self.get_core().get_type())
     
     def get_frame_size(self) -> int:
         """get size of frame.
@@ -58,7 +61,7 @@ class FrameBuffer():
         Returns:
             frame size.
         """
-        return self.buf.get_frame_size()
+        return self.get_core().get_frame_size()
     
     def get_frame_stride(self) -> int:
         """get stride of frame.
@@ -66,7 +69,7 @@ class FrameBuffer():
         Returns:
             frame stride.
         """
-        return self.buf.get_frame_stride()
+        return self.get_core().get_frame_stride()
         
     def get_node_size(self) -> int:
         """get size of node.
@@ -74,7 +77,7 @@ class FrameBuffer():
         Returns:
             node size.
         """
-        return self.buf.get_node_size()
+        return self.get_core().get_node_size()
     
     def get_node_shape(self) -> List[int]:
         """get shape of node.
@@ -82,7 +85,7 @@ class FrameBuffer():
         Returns:
             shape
         """
-        return self.buf.get_node_shape()
+        return self.get_core().get_node_shape()
     
     def numpy(self) -> np.ndarray:
         """Convert to NumPy
@@ -92,7 +95,7 @@ class FrameBuffer():
             dtype (int): Data type
             host_only (bool): flag of host only
         """
-        dtype = self.buf.get_type()
+        dtype = self.get_type()
         if dtype == bb.DType.BIT:
             ndarray = self.buf.numpy_uint8()
         if dtype == bb.DType.BINARY:
@@ -139,11 +142,11 @@ class FrameBuffer():
         """
         
         shape = list(ndarray.shape)
+        assert(len(shape) >= 2)
         bb_dtype = bb.dtype_numpy_to_bb(ndarray.dtype)
         frame_size   = shape[0]
         frame_stride = core.FrameBuffer.calc_frame_stride(bb_dtype, frame_size) 
         shape[0] = frame_stride // core.dtype_get_byte_size(bb_dtype)
-#       ndarray.resize(shape, refcheck=False)
         ndarray = np.resize(ndarray, shape)
         
         tran = list(range(1, ndarray.ndim)) + [0]
@@ -152,25 +155,25 @@ class FrameBuffer():
         
         new_buf = FrameBuffer()
         if ndarray.dtype == np.float32:
-            new_buf.buf = bb.core.FrameBuffer.from_numpy_fp32(ndarray, bb_dtype, frame_size, frame_stride, shape[1:], host_only)
+            new_buf.core_buf = bb.core.FrameBuffer.from_numpy_fp32(ndarray, bb_dtype, frame_size, frame_stride, shape[1:], host_only)
         elif ndarray.dtype == np.float64:
-            new_buf.buf = bb.core.FrameBuffer.from_numpy_fp64(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            new_buf.core_buf = bb.core.FrameBuffer.from_numpy_fp64(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.int8:
-            new_buf.buf = bb.core.FrameBuffer.from_numpy_int8(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            new_buf.core_buf = bb.core.FrameBuffer.from_numpy_int8(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.int16:
-            new_buf.buf = bb.core.FrameBuffer.from_numpy_int16(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            new_buf.core_buf = bb.core.FrameBuffer.from_numpy_int16(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.int32:
-            new_buf.buf = bb.core.FrameBuffer.from_numpy_int32(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            new_buf.core_buf = bb.core.FrameBuffer.from_numpy_int32(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.int64:
-            new_buf.buf = bb.core.FrameBuffer.from_numpy_int64(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            new_buf.core_buf = bb.core.FrameBuffer.from_numpy_int64(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.uint8:
-            new_buf.buf = bb.core.FrameBuffer.from_numpy_uint8(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            new_buf.core_buf = bb.core.FrameBuffer.from_numpy_uint8(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.uint16:
-            new_buf.buf = bb.core.FrameBuffer.from_numpy_uint16(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            new_buf.core_buf = bb.core.FrameBuffer.from_numpy_uint16(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.uint32:
-            new_buf.buf = bb.core.FrameBuffer.from_numpy_uint32(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            new_buf.core_buf = bb.core.FrameBuffer.from_numpy_uint32(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.uint64:
-            new_buf.buf = bb.core.FrameBuffer.from_numpy_uint64(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            new_buf.core_buf = bb.core.FrameBuffer.from_numpy_uint64(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         else:
             raise TypeError("unsupported")
         return new_buf

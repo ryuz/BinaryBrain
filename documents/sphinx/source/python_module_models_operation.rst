@@ -5,7 +5,7 @@
 models モジュールには、ネットワークを構成するための各種演算モデルがあります。
 
 
-DifferentiableLut class
+DifferentiableLut クラス
 ----------------------------
 
 .. autoclass:: binarybrain.models.DifferentiableLut
@@ -13,7 +13,7 @@ DifferentiableLut class
    :show-inheritance:
 
 
-DenseAffine class
+DenseAffine クラス
 ----------------------------
 
 .. autoclass:: binarybrain.models.DenseAffine
@@ -21,7 +21,7 @@ DenseAffine class
    :show-inheritance:
 
 
-DepthwiseDenseAffine class
+DepthwiseDenseAffine クラス
 ----------------------------
 
 .. autoclass:: binarybrain.models.DepthwiseDenseAffine

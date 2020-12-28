@@ -52,11 +52,15 @@ public:
         index_t                 x_stride      = 1;
         index_t                 y_stride      = 1;
         std::string             padding       = "valid";
-        int                     border_mode   = BB_BORDER_REFLECT_101;
+        std::string             border_mode   = "reflect_101";
         FT                      border_value  = (FT)0;
     };
     
 protected:
+    Convolution2d()
+    {
+    }
+
     Convolution2d(create_t const & create)
     {
         m_filter_w_size = create.filter_w_size;
@@ -87,29 +91,8 @@ public:
     }
 
     static std::shared_ptr<Convolution2d> Create(std::shared_ptr<Model> layer,
-        index_t filter_h_size, index_t filter_w_size, index_t y_stride=1, index_t x_stride=1, std::string padding="valid")
-    {
-        create_t create;
-        create.layer         = layer;
-        create.filter_h_size = filter_h_size;
-        create.filter_w_size = filter_w_size;
-        create.y_stride      = y_stride;
-        create.x_stride      = x_stride;
-        create.padding       = padding;
-        return Create(create);
-    }
-
-#ifdef BB_PYBIND11
-    static std::shared_ptr<Convolution2d> CreatePy(
-            std::shared_ptr<Model>  layer,
-            index_t                 filter_h_size,
-            index_t                 filter_w_size,
-            index_t                 y_stride      = 1,
-            index_t                 x_stride      = 1,
-            std::string             padding       = "valid",
-            int                     border_mode   = BB_BORDER_REFLECT_101,
-            double                  border_value  = 0
-        )
+        index_t filter_h_size, index_t filter_w_size, index_t y_stride=1, index_t x_stride=1,
+                     std::string padding="valid", std::string border_mode = "reflect_101", FT border_value = (FT)0)
     {
         create_t create;
         create.layer         = layer;
@@ -119,8 +102,34 @@ public:
         create.x_stride      = x_stride;
         create.padding       = padding;
         create.border_mode   = border_mode;
-        create.border_value  = (FT)border_value;
+        create.border_value  = border_value;
         return Create(create);
+    }
+
+#ifdef BB_PYBIND11
+    static std::shared_ptr<Convolution2d> CreatePy(
+            std::shared_ptr<Im2Col> im2col,
+            std::shared_ptr<Model>  layer,
+            std::shared_ptr<Col2Im> col2im
+        )
+    {
+        auto self = std::shared_ptr<Convolution2d>(new Convolution2d());
+        self->m_im2col        = im2col;
+        self->m_layer         = layer;
+        self->m_col2im        = col2im;
+        self->m_filter_w_size = im2col->GetFilterSizeH();
+        self->m_filter_h_size = im2col->GetFilterSizeW();
+        self->m_x_stride      = im2col->GetStrideX();
+        self->m_y_stride      = im2col->GetStrideY();
+        self->m_padding       = im2col->GetPadding();
+        if (self->m_col2im) {
+            auto shape = self->m_col2im->GetOutputShape();
+            auto dim   = shape.size(); 
+            BB_ASSERT(dim > 2);
+            self->m_output_w_size = shape[dim-1];
+            self->m_output_h_size = shape[dim-2];
+        }
+        return self;
     }
 #endif
 

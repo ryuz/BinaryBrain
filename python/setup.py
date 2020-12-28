@@ -385,7 +385,7 @@ setup(
     description='BinaryBrain for Python',
     long_description='',
     ext_modules=ext_modules,
-    install_requires=['pybind11>=2.4', 'numpy', 'tqdm'],
+    install_requires=['pybind11>=2.4', 'numpy'],
     setup_requires=['pybind11>=2.4'],
     cmdclass={'build_ext': BuildExt},
     zip_safe=False,

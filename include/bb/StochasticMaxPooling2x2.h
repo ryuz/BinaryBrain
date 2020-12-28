@@ -24,7 +24,7 @@ template <typename FT = float, typename BT = float>
 class StochasticMaxPooling2x2 : public MaxPooling<FT, BT>
 {
 protected:
-    bool                m_host_only;
+    bool                m_host_only = false;
 
     index_t             m_input_w_size;
     index_t             m_input_h_size;
@@ -163,7 +163,6 @@ public:
         // 出力を設定
         FrameBuffer y_buf(x_buf.GetFrameSize(), m_output_shape, DataType<FT>::type);
         
-
 #ifdef BB_WITH_CUDA
         // CUDA版
         if ( DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
@@ -185,7 +184,8 @@ public:
             return y_buf;
         }
 #endif
-     
+        
+
 #if 0
         if ( DataType<FT>::type == BB_TYPE_BIT ) {
             // バイナリ用実装
@@ -335,6 +335,7 @@ public:
             return dx_buf;
         }
 #endif
+
 
 #if 0
         if ( DataType<BT>::type == BB_TYPE_FP32 && DataType<FT>::type == BB_TYPE_FP32 ) {

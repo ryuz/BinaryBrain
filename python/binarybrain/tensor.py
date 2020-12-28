@@ -29,13 +29,16 @@ class Tensor():
     def get_core(self):
         return self.core_tensor
         
+    def is_host_only(self) -> bool:
+        return self.get_core().is_host_only()
+
     def get_type(self) -> int:
         """データ型取得
         
         Returns:
             data type.
         """
-        return bb.DType(self.core_tensor.get_type())
+        return bb.DType(self.get_core().get_type())
     
     def get_shape(self) -> List[int]:
         """データのシェイプ取得
@@ -43,7 +46,7 @@ class Tensor():
         Returns:
             shape
         """
-        return self.core_tensor.get_shape()
+        return self.get_core().get_shape()
     
     def numpy(self) -> np.ndarray:
         """NumPy の ndarray に変換
@@ -52,28 +55,34 @@ class Tensor():
             ndarray (array)
         """
 
-        dtype = self.core_tensor.get_type()
+        dtype = self.get_core().get_type()
         if dtype == bb.DType.FP32:
-            return self.core_tensor.numpy_fp32()
+            return self.get_core().numpy_fp32()
         elif dtype == bb.DType.FP64:
-            return self.core_tensor.numpy_fp64()
+            return self.get_core().numpy_fp64()
         elif dtype == bb.DType.INT8:
-            return self.core_tensor.numpy_int8()
+            return self.get_core().numpy_int8()
         elif dtype == bb.DType.INT16:
-            return self.core_tensor.numpy_int16()
+            return self.get_core().numpy_int16()
         elif dtype == bb.DType.INT32:
-            return self.core_tensor.numpy_int32()
+            return self.get_core().numpy_int32()
         elif dtype == bb.DType.INT64:
-            return self.core_tensor.numpy_int64()
+            return self.get_core().numpy_int64()
         elif dtype == bb.DType.UINT8:
-            return self.core_tensor.numpy_uint8()
+            return self.get_core().numpy_uint8()
         elif dtype == bb.DType.UINT16:
-            return self.core_tensor.numpy_uint16()
+            return self.get_core().numpy_uint16()
         elif dtype == bb.DType.UINT32:
-            return self.core_tensor.numpy_uint32()
+            return self.get_core().numpy_uint32()
         elif dtype == bb.DType.UINT64:
-            return self.core_tensor.numpy_uint64()
-    
+            return self.get_core().numpy_uint64()
+
+    def set_numpy(self, ndarray: np.ndarray):
+        dtype = self.get_core().get_type()
+        assert(bb.dtype_numpy_to_bb(ndarray.dtype) == dtype)
+        assert(darray.shspe == self.get_shape)
+
+
     @staticmethod
     def from_numpy(ndarray: np.ndarray, host_only=False):
         """NumPy から生成

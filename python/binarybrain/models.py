@@ -28,7 +28,7 @@ class Model():
             if input_shape is not None:
                 self.set_input_shape(input_shape)
     
-    def get_core_model(self):
+    def get_core(self):
         return self.core_model
     
     def set_name(self, name: str):
@@ -40,7 +40,7 @@ class Model():
         Args:
             name (str): 新しいインスタンス名
         """
-        return self.get_core_model().set_name(name)
+        return self.get_core().set_name(name)
 
     def get_name(self):
         """インスタンス名の取得
@@ -50,7 +50,7 @@ class Model():
         Returns:
             name (str)
         """
-        return self.get_core_model().get_name()
+        return self.get_core().get_name()
 
     def is_named(self):
         """インスタンス名の設定確認
@@ -60,7 +60,7 @@ class Model():
         Returns:
             named (bool)
         """
-        return self.get_core_model().is_named()
+        return self.get_core().is_named()
     
     def get_class_name(self):
         """クラス名の取得
@@ -70,7 +70,7 @@ class Model():
         Returns:
             class name (str)
         """
-        return self.get_core_model().get_class_name()
+        return self.get_core().get_class_name()
     
     def get_info(self):
         """モデル情報取得
@@ -81,7 +81,7 @@ class Model():
         Returns:
             info (str)
         """
-        return self.get_core_model().get_info()
+        return self.get_core().get_info()
     
     def send_command(self, command, send_to='all'):
         """コマンドの送信
@@ -97,7 +97,7 @@ class Model():
             command (str): コマンド文字列
             send_to (str): 送信先
         """
-        self.get_core_model().send_command(command, send_to)
+        self.get_core().send_command(command, send_to)
     
     def set_input_shape(self, input_shape: [int]):
         """入力シェイプ設定
@@ -116,7 +116,7 @@ class Model():
         Returns:
             output_shape (List[int]): 出力シェイプ
         """
-        return self.get_core_model().set_input_shape(input_shape)
+        return self.get_core().set_input_shape(input_shape)
     
     def get_parameters(self):
         """パラメータ変数取得
@@ -131,7 +131,7 @@ class Model():
         Returns:
             parameters (Variables): パラメータ変数
         """
-        return bb.Variables.from_core(self.get_core_model().get_parameters())
+        return bb.Variables.from_core(self.get_core().get_parameters())
     
     def get_gradients(self):
         """勾配変数取得
@@ -142,7 +142,7 @@ class Model():
         Returns:
             gradients (Variables): 勾配変数
         """
-        return bb.Variables.from_core(self.get_core_model().get_gradients())
+        return bb.Variables.from_core(self.get_core().get_gradients())
     
     def forward(self, x_buf, train=True):
         """Forward
@@ -157,7 +157,7 @@ class Model():
         Returns:
             y_buf (FrameBuffer): 出力データ
         """
-        return bb.FrameBuffer.from_core(self.get_core_model().forward(x_buf.get_core(), train))
+        return bb.FrameBuffer.from_core(self.get_core().forward(x_buf.get_core(), train))
     
     def backward(self, dy_buf):
         """Backward
@@ -174,7 +174,7 @@ class Model():
         Returns:
             dx_buf (FrameBuffer): 出力データ
         """
-        return bb.FrameBuffer.from_core(self.get_core_model().backward(dy_buf.get_core()))
+        return bb.FrameBuffer.from_core(self.get_core().backward(dy_buf.get_core()))
     
     def dump_bytes(self):
         """バイトデータにシリアライズ
@@ -184,7 +184,7 @@ class Model():
         Returns:
             data (bytes): Serialize data
         """
-        return self.get_core_model().dump()
+        return self.get_core().dump()
     
     def load_bytes(self, data):
         """バイトデータをロード
@@ -194,7 +194,7 @@ class Model():
         Args:
             data (bytes): Serialize data
         """
-        self.get_core_model().load(data)
+        self.get_core().load(data)
     
     def dump(self, f):
         pickle.dump(f, self.dump_bytes())
@@ -218,21 +218,18 @@ class Sequential(Model):
         model_list (List[Model]): モデルのリスト
     """
     
-    def __init__(self, model_list=[], *, input_shape=None, name=None):
+    def __init__(self, model_list=[], *, name=None):
         super(Sequential, self).__init__()
         self.model_list  = model_list
-        self.input_shape = input_shape
         self.name        = name
-    
-    def get_core_model(self):
+
+    def get_core(self):
         # C++のコアの同機能に渡してしまうと Python からの扱いが不便になるので普段はListで管理して必要な時のみ変換する       
         core_model = core.Sequential.create()
         for model in self.model_list:
-            core_model.add(model.get_core_model())
+            core_model.add(model.get_core())
         if self.name is not None:
             core_model.set_name(self.name)            
-        if self.input_shape is not None:
-            core_model.set_input_shape(self.input_shape)            
         return core_model
     
     def set_model_list(self, model_list):
@@ -328,7 +325,7 @@ class RealToBinary(Model):
                 bb.DType.FP32: core.RealToBinary_fp32.create,
                 bb.DType.BIT:  core.RealToBinary_bit.create,
             }[bin_dtype]
-        except:
+        except KeyError:
             raise TypeError("unsupported")
 
         core_model = core_creator(frame_modulation_size, depth_modulation_size,
@@ -353,7 +350,7 @@ class BinaryToReal(Model):
                 bb.DType.FP32: core.BinaryToReal_fp32.create,
                 bb.DType.BIT:  core.BinaryToReal_bit.create,
             }[bin_dtype]
-        except:
+        except KeyError:
             raise TypeError("unsupported")
         
         core_model = core_creator(frame_modulation_size=frame_modulation_size, output_shape=output_shape)
@@ -376,7 +373,7 @@ class BitEncode(Model):
                 bb.DType.FP32: core.BitEncode_fp32.create,
                 bb.DType.BIT:  core.BitEncode_bit.create,
             }[bit_dtype]
-        except:
+        except KeyError:
             raise TypeError("unsupported")
         
         core_model = core_creator(bit_size, output_shape)
@@ -399,7 +396,7 @@ class Reduce(Model):
                 bb.DType.FP32: core.Reduce_fp32.create,
                 bb.DType.BIT:  core.Reduce_bit.create,
             }[fw_dtype]
-        except:
+        except KeyError:
             raise TypeError("unsupported")
         
         core_model = core_creator(output_shape)
@@ -493,7 +490,7 @@ class DifferentiableLut(Model):
                         2: core.StochasticLut2_bit.create,
                     },
                 }[bin_dtype][N]
-            except:
+            except KeyError:
                 raise TypeError("unsupported")
 
             core_model  = core_creator(output_shape, connection, seed)
@@ -515,7 +512,7 @@ class DifferentiableLut(Model):
                         2: core.DifferentiableLut2_bit.create,
                     },                    
                 }[bin_dtype][N]
-            except:
+            except KeyError:
                 raise TypeError("unsupported")
             
             core_model = core_creator(output_shape, batch_norm, connection, momentum, gamma, beta, seed)
@@ -537,7 +534,7 @@ class DifferentiableLut(Model):
                         2: core.DifferentiableLutDiscrete2_bit.create,
                     },                    
                 }[bin_dtype][N]
-            except:
+            except KeyError:
                 raise TypeError("unsupported")
             
             core_model = core_creator(output_shape, batch_norm, connection, momentum, gamma, beta, seed)
@@ -545,10 +542,24 @@ class DifferentiableLut(Model):
         super(DifferentiableLut, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
     def W(self):
-        return bb.Tensor.from_core(self.get_core_model().W())
+        """重み行列取得
+        
+            コピーではなくスライス参照を得ており、本体の値を書き換え可能
+
+        Returns:
+            W (Tensor): 重み行列を指すTensor
+        """
+        return bb.Tensor.from_core(self.get_core().W())
     
     def dW(self):
-        return bb.Tensor.from_core(self.get_core_model().dW())
+        """重みの勾配行列取得
+
+            コピーではなくスライス参照を得ており、本体の値を書き換え可能
+
+        Returns:
+            W (Tensor): 重みの勾配を指すTensor
+        """
+        return bb.Tensor.from_core(self.get_core().dW())
 
 
 
@@ -561,7 +572,7 @@ class ConvolutionIm2Col(Model):
     """
 
     def __init__(self, filter_size=(1, 1), stride=(1, 1), *,
-                        padding='valid', border_mode=bb.Border.REFLECT_101, border_value=0.0,
+                        padding='valid', border_mode='reflect_101', border_value=0.0,
                         input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
 
         try:
@@ -569,12 +580,11 @@ class ConvolutionIm2Col(Model):
                 bb.DType.FP32: core.ConvolutionIm2Col_fp32.create,
                 bb.DType.BIT:  core.ConvolutionIm2Col_bit.create,
             }[fw_dtype]
-        except:
+        except KeyError:
             raise TypeError("unsupported")
 
-        core_model = core_creator(filter_h_size=filter_size[0], filter_w_size=filter_size[1],
-                                y_stride=stride[0], x_stride=stride[1], padding=padding, border_mode=border_mode.value)
-
+        core_model = core_creator(filter_size[0], filter_size[1], stride[0], stride[1], padding, border_mode)
+        
         super(ConvolutionIm2Col, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
 
@@ -621,7 +631,7 @@ class Convolution2d(Sequential):
     """
 
     def __init__(self, sub_layer, filter_size=(1, 1), stride=(1, 1), *, input_shape=None,
-                        padding='valid', border_mode=bb.Border.REFLECT_101, border_value=0.0,
+                        padding='valid', border_mode='reflect_101', border_value=0.0,
                         name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
         super(Convolution2d, self).__init__()
         
@@ -655,13 +665,10 @@ class Convolution2d(Sequential):
         self.sub_layer.send_command(command=command, send_to=send_to)
         self.col2im.send_command(command=command, send_to=send_to)
     
-    def get_core_model(self):
-        core_model = self.core_creator(self.sub_layer.get_core_model(), self.filter_size[0], self.filter_size[1],
-                                           self.stride[0], self.stride[1], self.padding, self.border_mode, self.border_value)
+    def get_core(self):
+        core_model = self.core_creator(self.im2col.get_core(), self.sub_layer.get_core(), self.col2im.get_core())
         if self.name is not None:
             core_model.set_name(self.name)
-        if self.input_shape is not None:
-            core_model.set_input_shape(self.input_shape)
         return core_model
     
     def get_sub_layer(self):
@@ -704,7 +711,7 @@ class MaxPooling(Model):
                 bb.DType.FP32: core.MaxPooling_fp32.create,
                 bb.DType.BIT:  core.MaxPooling_bit.create,
             }[fw_dtype]
-        except:
+        except KeyError:
             raise TypeError("unsupported")
 
         core_model = core_creator(filter_size[0], filter_size[1])
@@ -730,10 +737,10 @@ class StochasticMaxPooling(Model):
                 bb.DType.FP32: core.StochasticMaxPooling2x2_fp32.create,
                 bb.DType.BIT:  core.StochasticMaxPooling2x2_bit.create,
             }[fw_dtype]
-        except:
+        except KeyError:
             raise TypeError("unsupported")
         
-        core_model = core_creator(filter_size[0], filter_size[1])
+        core_model = core_creator()
 
         super(StochasticMaxPooling, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
@@ -755,7 +762,7 @@ class UpSampling(Model):
                 bb.DType.FP32: core.UpSampling_fp32.create,
                 bb.DType.BIT:  core.UpSampling_bit.create,
             }[fw_dtype]
-        except:
+        except KeyError:
             raise TypeError("unsupported")
         
         core_model = core_creator(filter_size[0], filter_size[1], fill)
@@ -783,7 +790,7 @@ class Binarize(Model):
                 bb.DType.FP32: core.Binarize_fp32.create,
                 bb.DType.BIT:  core.Binarize_bit.create,
             }[bin_dtype]
-        except:
+        except KeyError:
             raise TypeError("unsupported")
 
         core_model = core_creator()
@@ -805,7 +812,7 @@ class Sigmoid(Model):
             core_creator = {
                 bb.DType.FP32: core.Sigmoid.create,
             }[dtype]
-        except:
+        except KeyError:
             raise TypeError("unsupported")
 
         core_model = core_creator()
@@ -826,7 +833,7 @@ class ReLU(Model):
             core_creator = {
                 bb.DType.FP32: core.ReLU.create,
             }[dtype]
-        except:
+        except KeyError:
             raise TypeError("unsupported")
 
         core_model = core_creator()
@@ -847,7 +854,7 @@ class HardTanh(Model):
             core_creator = {
                 bb.DType.FP32: core.HardTanh.create,
             }[dtype]
-        except:
+        except KeyError:
             raise TypeError("unsupported")
 
         core_model = core_creator()
@@ -876,7 +883,7 @@ class BatchNormalization(Model):
             core_creator = {
                 bb.DType.FP32: core.BatchNormalization.create,
             }[dtype]
-        except:
+        except KeyError:
             raise TypeError("unsupported")
 
         core_model = core_creator(momentum, gamma, beta, fix_gamma, fix_beta)
@@ -899,7 +906,7 @@ class Dropout(Model):
                 bb.DType.FP32: core.Dropout.create,
                 bb.DType.FP32: core.Dropout.create,
             }[fw_dtype]
-        except:
+        except KeyError:
             raise TypeError("unsupported")
 
         core_model = core_creator(rate, seed)
@@ -925,7 +932,7 @@ class Shuffle(Model):
                 bb.DType.FP32: core.Shuffle.create,
                 bb.DType.BIT:  core.Shuffle.create,
             }[bit_dtype]
-        except:
+        except KeyError:
             raise TypeError("unsupported")
         
         core_model = core_creator(shuffle_unit, output_shape)

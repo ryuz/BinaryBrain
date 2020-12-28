@@ -36,7 +36,6 @@ def make_verilog_lut_cnv_layers(module_name: str, net):
     core_layers = []
     for layer in layers:
         core_layers.append(layer.get_core_model())
-    print(core_layers)
     return core.make_verilog_lut_cnv_layers(module_name, core_layers)
 
 

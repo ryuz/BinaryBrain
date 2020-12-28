@@ -349,19 +349,6 @@ public:
     
 
 #ifdef BB_PYBIND11
-    static Tensor_<T> FromNumpy(pybind11::array_t<T> a, bool hostOnly=false)
-    {
-        const auto &info = a.request();
-        indices_t shape;
-        for (auto len : info.shape) {
-            shape.push_back((index_t)len);
-        }
-        Tensor_<T> tensor(shape, hostOnly);
-        auto ptr = tensor.m_mem->Lock(true);
-        memcpy(ptr.GetAddr(), info.ptr, tensor.m_size * sizeof(T));
-        return tensor;
-    }
-    
     pybind11::array_t<T> Numpy(void)
     {
         std::vector<pybind11::ssize_t> shape;
@@ -373,6 +360,32 @@ public:
         auto ptr = m_mem->LockConst();
         memcpy(info.ptr, ptr.GetAddr(), m_size * sizeof(T));
         return a;
+    }
+
+    void SetNumpy(pybind11::array_t<T> a)
+    {
+        const auto &info = a.request();
+        
+        BB_ASSERT(info.shpe.size() == m_shape.size())
+        for ( size_t i = 0; i < (int)m_shape.size(); ++i ) {
+            BB_ASSERT(info.shpe[i] == m_shape[i]);
+        }
+
+        auto ptr = m_mem->Lock(true);
+        memcpy(ptr.GetAddr(), info.ptr, m_size * sizeof(T));
+    }
+
+    static Tensor_<T> FromNumpy(pybind11::array_t<T> a, bool hostOnly=false)
+    {
+        const auto &info = a.request();
+        indices_t shape;
+        for (auto len : info.shape) {
+            shape.push_back((index_t)len);
+        }
+        Tensor_<T> tensor(shape, hostOnly);
+        auto ptr = tensor.m_mem->Lock(true);
+        memcpy(ptr.GetAddr(), info.ptr, tensor.m_size * sizeof(T));
+        return tensor;
     }
 #endif
 
@@ -1556,15 +1569,21 @@ public:
 
 #ifdef BB_PYBIND11
     template<typename Tp>
-    static Tensor FromNumpy(pybind11::array_t<Tp> a, bool hostOnly=false)
-    {
-        return Tensor_<Tp>::FromNumpy(a, hostOnly);
-    }
-
-    template<typename Tp>
     pybind11::array_t<Tp> Numpy(void)
     {
         return ((Tensor_<Tp>)*this).Numpy();
+    }
+
+    template<typename Tp>
+    void SetNumpy(pybind11::array_t<Tp> a)
+    {
+        ((Tensor_<Tp>)*this).SetNumpy(a);
+    }
+
+    template<typename Tp>
+    static Tensor FromNumpy(pybind11::array_t<Tp> a, bool hostOnly=false)
+    {
+        return Tensor_<Tp>::FromNumpy(a, hostOnly);
     }
 #endif
 

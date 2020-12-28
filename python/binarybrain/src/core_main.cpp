@@ -288,6 +288,7 @@ PYBIND11_MODULE(core, m) {
             py::arg("shape"),
             py::arg("type")=BB_TYPE_FP32,
             py::arg("host_only")=false)
+        .def("is_host_only", &Tensor::IsHostOnly)
         .def("get_type", &Tensor::GetType)
         .def("get_shape", &Tensor::GetShape)
         .def(py::self + py::self)
@@ -339,10 +340,12 @@ PYBIND11_MODULE(core, m) {
             py::arg("shape") = bb::indices_t(),
             py::arg("data_type") = 0,
             py::arg("host_only") = false)
+    
         .def("resize",  (void (FrameBuffer::*)(bb::index_t, bb::indices_t, int))&bb::FrameBuffer::Resize,
                 py::arg("frame_size"),
                 py::arg("shape"),
                 py::arg("data_type") = BB_TYPE_FP32)
+        .def("is_host_only", &FrameBuffer::IsHostOnly)
         .def("get_type", &FrameBuffer::GetType)
         .def("get_frame_size", &FrameBuffer::GetFrameSize)
         .def("get_frame_stride", &FrameBuffer::GetFrameStride)
@@ -624,64 +627,31 @@ PYBIND11_MODULE(core, m) {
     py::class_< Filter2d, Model, std::shared_ptr<Filter2d> >(m, "Filter2d");
 
     py::class_< ConvolutionIm2Col_fp32, Model, std::shared_ptr<ConvolutionIm2Col_fp32> >(m, "ConvolutionIm2Col_fp32")
-        .def_static("create", &ConvolutionIm2Col_fp32::CreateEx,
-                py::arg("filter_h_size")=1,
-                py::arg("filter_w_size")=1,
-                py::arg("y_stride")=1,
-                py::arg("x_stride")=1,
-                py::arg("padding")="valid",
-                py::arg("border_mode")=BB_BORDER_REFLECT_101)
+        .def_static("create", &ConvolutionIm2Col_fp32::CreateEx)
         ;
 
     py::class_< ConvolutionIm2Col_bit, Model, std::shared_ptr<ConvolutionIm2Col_bit> >(m, "ConvolutionIm2Col_bit")
-        .def_static("create", &ConvolutionIm2Col_bit::CreateEx,
-                py::arg("filter_h_size")=1,
-                py::arg("filter_w_size")=1,
-                py::arg("y_stride")=1,
-                py::arg("x_stride")=1,
-                py::arg("padding")="valid",
-                py::arg("border_mode")=BB_BORDER_REFLECT_101)
+        .def_static("create", &ConvolutionIm2Col_bit::CreateEx)
         ;
 
     py::class_< ConvolutionCol2Im_fp32, Model, std::shared_ptr<ConvolutionCol2Im_fp32> >(m, "ConvolutionCol2Im_fp32")
-        .def_static("create", &ConvolutionCol2Im_fp32::CreateEx,
-                py::arg("h_size")=1,
-                py::arg("w_size")=1)
+        .def_static("create", &ConvolutionCol2Im_fp32::CreateEx)
         ;
 
     py::class_< ConvolutionCol2Im_bit, Model, std::shared_ptr<ConvolutionCol2Im_bit> >(m, "ConvolutionCol2Im_bit")
-        .def_static("create", &ConvolutionCol2Im_bit::CreateEx,
-                py::arg("h_size")=1,
-                py::arg("w_size")=1)
+        .def_static("create", &ConvolutionCol2Im_bit::CreateEx)
         ;
 
     py::class_< Convolution2d_fp32, Filter2d, std::shared_ptr<Convolution2d_fp32> >(m, "Convolution2d_fp32")
-        .def_static("create", &Convolution2d_fp32::CreatePy,
-                py::arg("layer"),
-                py::arg("filter_h_size"),
-                py::arg("filter_w_size"),
-                py::arg("y_stride")      = 1,
-                py::arg("x_stride")      = 1,
-                py::arg("padding")       = "valid",
-                py::arg("border_mode")   = BB_BORDER_REFLECT_101,
-                py::arg("border_value")  = 0.0)
+        .def_static("create", &Convolution2d_fp32::CreatePy)
         .def("get_sub_layer", &Convolution2d_fp32::GetSubLayer)
         ;
 
     py::class_< Convolution2d_bit, Filter2d, std::shared_ptr<Convolution2d_bit> >(m, "Convolution2d_bit")
-        .def_static("create", &Convolution2d_bit::CreatePy,
-                py::arg("layer"),
-                py::arg("filter_h_size"),
-                py::arg("filter_w_size"),
-                py::arg("y_stride")      = 1,
-                py::arg("x_stride")      = 1,
-                py::arg("padding")       = "valid",
-                py::arg("border_mode")   = BB_BORDER_REFLECT_101,
-                py::arg("border_value")  = 0.0)
+        .def_static("create", &Convolution2d_bit::CreatePy)
         .def("get_sub_layer", &Convolution2d_bit::GetSubLayer)
         ;
 
-        
     py::class_< MaxPooling_fp32, Filter2d, std::shared_ptr<MaxPooling_fp32> >(m, "MaxPooling_fp32")
         .def_static("create", &MaxPooling_fp32::CreatePy);
     py::class_< MaxPooling_bit, Filter2d, std::shared_ptr<MaxPooling_bit> >(m, "MaxPooling_bit")
