@@ -57,14 +57,14 @@ inline void ExportVerilog_LutModel(std::ostream& os, std::string module_name, Sp
         if ( 0 && lut_input_size == 6 ) {
             // LUT 出力(Xilinx)
             os <<
-                "\n"
-                "// LUT : " << node << "\n"
-                "\n"
-                "wire lut_" << node << "_out;\n"
-                "\n"
-                "LUT6\n"
-                "        #(\n"
-                "            .INIT(" << lut_table_size << "'b";
+                "    \n"
+                "    // LUT : " << node << "\n"
+                "    \n"
+                "    wire lut_" << node << "_out;\n"
+                "    \n"
+                "    LUT6\n"
+                "            #(\n"
+                "                .INIT(" << lut_table_size << "'b";
 
             for (int bit = lut_table_size - 1; bit >= 0; --bit ) {
                 os << (lut.GetLutTable(node, bit) ? "1" : "0");
@@ -73,75 +73,75 @@ inline void ExportVerilog_LutModel(std::ostream& os, std::string module_name, Sp
                 ")\n";
 
             os <<
-                "        )\n"
-                "    i_lut6_" << node << "\n"
-                "        (\n"
-                "            .O  (lut_" << node << "_out),\n"
-                "            .I0 (in_data[" << lut.GetNodeConnectionIndex(node, 0) << "]),\n"
-                "            .I1 (in_data[" << lut.GetNodeConnectionIndex(node, 1) << "]),\n"
-                "            .I2 (in_data[" << lut.GetNodeConnectionIndex(node, 2) << "]),\n"
-                "            .I3 (in_data[" << lut.GetNodeConnectionIndex(node, 3) << "]),\n"
-                "            .I4 (in_data[" << lut.GetNodeConnectionIndex(node, 4) << "]),\n"
-                "            .I5 (in_data[" << lut.GetNodeConnectionIndex(node, 5) << "])\n";
+                "            )\n"
+                "        i_lut6_" << node << "\n"
+                "            (\n"
+                "                .O  (lut_" << node << "_out),\n"
+                "                .I0 (in_data[" << lut.GetNodeConnectionIndex(node, 0) << "]),\n"
+                "                .I1 (in_data[" << lut.GetNodeConnectionIndex(node, 1) << "]),\n"
+                "                .I2 (in_data[" << lut.GetNodeConnectionIndex(node, 2) << "]),\n"
+                "                .I3 (in_data[" << lut.GetNodeConnectionIndex(node, 3) << "]),\n"
+                "                .I4 (in_data[" << lut.GetNodeConnectionIndex(node, 4) << "]),\n"
+                "                .I5 (in_data[" << lut.GetNodeConnectionIndex(node, 5) << "])\n";
             os <<
-                "        );\n"
+                "            );\n"
                 "\n";
         }
         else {
             // LUT 出力
             os <<
-                "\n"
-                "// LUT : " << node << "\n"
-                "\n"
-                "wire lut_" << node << "_out;\n"
-                "\n"
-                "bb_lut\n"
-                "        #(\n"
-                "            .N(" << lut_input_size << "),\n"
-                "            .INIT(" << lut_table_size << "'b";
+                "    \n"
+                "    // LUT : " << node << "\n"
+                "    \n"
+                "    wire lut_" << node << "_out;\n"
+                "    \n"
+                "    bb_lut\n"
+                "            #(\n"
+                "                .N(" << lut_input_size << "),\n"
+                "                .INIT(" << lut_table_size << "'b";
 
             for (int bit = lut_table_size - 1; bit >= 0; --bit ) {
                 os << (lut.GetLutTable(node, bit) ? "1" : "0");
             }
             os <<
                 "),\n"
-                "            .DEVICE(DEVICE)\n";
+                "                .DEVICE(DEVICE)\n";
 
             os <<
-                "        )\n"
-                "    i_lut_" << node << "\n"
-                "        (\n"
-                "            .in_data({\n";
+                "            )\n"
+                "        i_lut_" << node << "\n"
+                "            (\n"
+                "                .in_data({\n";
 
             for (index_t bit = lut_input_size - 1; bit >= 1; --bit) {
                 os <<
-                    "                         in_data[" << lut.GetNodeConnectionIndex(node, bit) << "],\n";
+                    "                             in_data[" << lut.GetNodeConnectionIndex(node, bit) << "],\n";
             }
             os <<
-                "                         in_data[" << lut.GetNodeConnectionIndex(node, 0) << "]\n"
-                "                    }),\n"
-                "            .out_data(lut_" << node << "_out)\n"
-                "        );\n"
-                "\n";
+                "                             in_data[" << lut.GetNodeConnectionIndex(node, 0) << "]\n"
+                "                        }),\n"
+                "                .out_data(lut_" << node << "_out)\n"
+                "            );\n"
+                "    \n";
         }
 
         os <<
-            "reg   lut_" << node << "_ff;\n"
-            "always @(posedge clk) begin\n"
-            "    if ( reset ) begin\n"
-            "        lut_" << node << "_ff <= 1'b0;\n"
+            "    reg   lut_" << node << "_ff;\n"
+            "    always @(posedge clk) begin\n"
+            "        if ( reset ) begin\n"
+            "            lut_" << node << "_ff <= 1'b0;\n"
+            "        end\n"
+            "        else if ( cke ) begin\n"
+            "            lut_" << node << "_ff <= lut_" << node << "_out;\n"
+            "        end\n"
             "    end\n"
-            "    else if ( cke ) begin\n"
-            "        lut_" << node << "_ff <= lut_" << node << "_out;\n"
-            "    end\n"
-            "end\n"
-            "\n"
-            "assign out_data[" << node << "] = lut_" << node << "_ff;\n"
-        "\n";
+            "    \n"
+            "    assign out_data[" << node << "] = lut_" << node << "_ff;\n"
+            "    \n";
 
         os <<
-            "\n"
-            "\n";
+            "    \n"
+            "    \n";
     }
 
     os <<
@@ -198,57 +198,57 @@ inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, s
         auto layer = layers[i];
 
         os
-            << "reg   [USER_BITS-1:0]  layer" << i << "_user;\n"
-            << "wire  [" << std::setw(9) << layer->GetOutputNodeSize() << "-1:0]  layer" << i << "_data;\n"
-            << "reg                    layer" << i << "_valid;\n"
+            << "    reg   [USER_BITS-1:0]  layer" << i << "_user;\n"
+            << "    wire  [" << std::setw(9) << layer->GetOutputNodeSize() << "-1:0]  layer" << i << "_data;\n"
+            << "    reg                    layer" << i << "_valid;\n"
             << "\n"
             << sub_modle_name[i] << "\n"
-            << "        #(\n"
-            << "            .DEVICE     (DEVICE)\n"
-            << "        )\n"
-            << "    i_" << sub_modle_name[i] << "\n"
-            << "        (\n"
-            << "            .reset      (reset),\n"
-            << "            .clk        (clk),\n"
-            << "            .cke        (cke),\n"
-            << "            \n";
+            << "            #(\n"
+            << "                .DEVICE     (DEVICE)\n"
+            << "            )\n"
+            << "        i_" << sub_modle_name[i] << "\n"
+            << "            (\n"
+            << "                .reset      (reset),\n"
+            << "                .clk        (clk),\n"
+            << "                .cke        (cke),\n"
+            << "                \n";
         if (i == 0) {
-            os << "            .in_data    (in_data),\n";
+            os << "                .in_data    (in_data),\n";
         }
         else {
-            os << "            .in_data    (layer" << (i - 1) << "_data),\n";
+            os << "                .in_data    (layer" << (i - 1) << "_data),\n";
         }
         os
-            << "            .out_data   (layer" << i << "_data)\n"
-            << "         );\n"
-            << "\n"
-            << "always @(posedge clk) begin\n"
-            << "    if ( reset ) begin\n"
-            << "        layer" << i << "_user  <= {USER_BITS{1'bx}};\n"
-            << "        layer" << i << "_valid <= 1'b0;\n"
-            << "    end\n"
-            << "    else if ( cke ) begin\n";
+            << "                .out_data   (layer" << i << "_data)\n"
+            << "             );\n"
+            << "    \n"
+            << "    always @(posedge clk) begin\n"
+            << "        if ( reset ) begin\n"
+            << "            layer" << i << "_user  <= {USER_BITS{1'bx}};\n"
+            << "            layer" << i << "_valid <= 1'b0;\n"
+            << "        end\n"
+            << "        else if ( cke ) begin\n";
         if (i == 0) {
             os
-                << "        layer" << i << "_user  <= in_user;\n"
-                << "        layer" << i << "_valid <= in_valid;\n";
+                << "            layer" << i << "_user  <= in_user;\n"
+                << "            layer" << i << "_valid <= in_valid;\n";
         }
         else {
             os
-                << "        layer" << i << "_user  <= layer" << (i - 1) << "_user;\n"
-                << "        layer" << i << "_valid <= layer" << (i - 1) << "_valid;\n";
+                << "            layer" << i << "_user  <= layer" << (i - 1) << "_user;\n"
+                << "            layer" << i << "_valid <= layer" << (i - 1) << "_valid;\n";
         }
         os
+            << "        end\n"
             << "    end\n"
-            << "end\n"
-            << "\n\n";
+            << "    \n    \n";
     }
 
     os
-        << "assign out_data  = layer" << (layer_size - 1) << "_data;\n"
-        << "assign out_user  = layer" << (layer_size - 1) << "_user;\n"
-        << "assign out_valid = layer" << (layer_size - 1) << "_valid;\n"
-        << "\n"
+        << "    assign out_data  = layer" << (layer_size - 1) << "_data;\n"
+        << "    assign out_user  = layer" << (layer_size - 1) << "_user;\n"
+        << "    assign out_valid = layer" << (layer_size - 1) << "_valid;\n"
+        << "    \n"
         << "endmodule\n"
         << "\n\n";
     
@@ -299,20 +299,18 @@ inline void ExportVerilog_LutConvolutionModule(std::ostream& os, std::string mod
     os << "\n\n\n";
     os << "module " << module_name << "\n";
 
-    os << R"(
-        #(
+    os << R"(        #(
             parameter   USER_WIDTH = 0,
             parameter   MAX_X_NUM  = 1024,
             parameter   RAM_TYPE   = "block",
             parameter   DEVICE     = "rtl",
 )";
-    os << "         parameter   S_C  = " << in_c << ",\n";
-    os << "         parameter   M_C  = " << out_c << ",\n";
-    os << "         parameter   N  = " << n << ",\n";
-    os << "         parameter   M  = " << m << ",\n";
+    os << "            parameter   S_C  = " << in_c << ",\n";
+    os << "            parameter   M_C  = " << out_c << ",\n";
+    os << "            parameter   N  = " << n << ",\n";
+    os << "            parameter   M  = " << m << ",\n";
             
-    os << R"(
-            parameter   USER_BITS  = USER_WIDTH > 0 ? USER_WIDTH : 1
+    os << R"(            parameter   USER_BITS  = USER_WIDTH > 0 ? USER_WIDTH : 1
         )
         (
             input   wire                            reset,
@@ -407,7 +405,7 @@ inline void ExportVerilog_LutConvolutionModule(std::ostream& os, std::string mod
 )";
 
     os << "\n\n";
-    os << "\t" << mlp_name << "\n";
+    os << "    " << mlp_name << "\n";
     os << R"(
             #(
                 .USER_WIDTH (USER_BITS + 5),
@@ -513,8 +511,8 @@ inline void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module
             parameter   DEVICE         = "rtl",
 )";
 
-    os << "           parameter   S_TDATA_WIDTH  = " << in_c << ",\n";
-    os << "           parameter   M_TDATA_WIDTH  = " << out_c;
+    os << "            parameter   S_TDATA_WIDTH  = " << in_c << ",\n";
+    os << "            parameter   M_TDATA_WIDTH  = " << out_c;
 
     os << R"(
         )
@@ -622,22 +620,22 @@ inline void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module
     
 )";
 
-    os << "\tlocalparam DATA0_WIDTH = " << in_c << ";\n";
+    os << "    localparam DATA0_WIDTH = " << in_c << ";\n";
     for ( int i = 0; i < layer_size; ++i ) {
-        os << "\tlocalparam DATA" << i+1 << "_WIDTH = " << layers[i]->GetOutputChannels() << ";\n";
+        os << "    localparam DATA" << i+1 << "_WIDTH = " << layers[i]->GetOutputChannels() << ";\n";
     }
-    os << "\t\n";
+    os << "    \n";
     
     for ( int i = 0; i < layer_size+1; ++i ) {
-        os << "\t\n";
-        os << "\twire                           img" << i << "_line_first;\n";
-        os << "\twire                           img" << i << "_line_last;\n";
-        os << "\twire                           img" << i << "_pixel_first;\n";
-        os << "\twire                           img" << i << "_pixel_last;\n";
-        os << "\twire                           img" << i << "_de;\n";
-        os << "\twire   [USER_WIDTH-1:0]        img" << i << "_user;\n";
-        os << "\twire   [DATA" << i << "_WIDTH-1:0]     img" << i << "_data;\n";
-        os << "\twire                           img" << i << "_valid;\n";
+        os << "    \n";
+        os << "    wire                           img" << i << "_line_first;\n";
+        os << "    wire                           img" << i << "_line_last;\n";
+        os << "    wire                           img" << i << "_pixel_first;\n";
+        os << "    wire                           img" << i << "_pixel_last;\n";
+        os << "    wire                           img" << i << "_de;\n";
+        os << "    wire   [USER_WIDTH-1:0]        img" << i << "_user;\n";
+        os << "    wire   [DATA" << i << "_WIDTH-1:0]       img" << i << "_data;\n";
+        os << "    wire                           img" << i << "_valid;\n";
     }
 
 
@@ -650,28 +648,28 @@ inline void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module
 //        auto pol   = std::dynamic_pointer_cast<MaxPooling<FT, BT> >(layer);
 //        auto pol_s = std::dynamic_pointer_cast< StochasticMaxPooling2x2<> >(layer);
         if ( layer_class == "Convolution2d" ) {
-            os << "\t" << module_name << "_l" << i << "\n";
-            os << "\t\t\t#(\n";
-            os << "\t\t\t\t.USER_WIDTH              (USER_WIDTH),\n";
-            os << "\t\t\t\t.MAX_X_NUM               (MAX_X_NUM),\n";
-            os << "\t\t\t\t.RAM_TYPE                (RAM_TYPE),\n";
-            os << "\t\t\t\t.DEVICE                  (DEVICE)\n";
-            os << "\t\t\t)\n";
-            os << "\t\ti_" << module_name << "_l" << i << "\n";
+            os << "    " << module_name << "_l" << i << "\n";
+            os << "            #(\n";
+            os << "                .USER_WIDTH              (USER_WIDTH),\n";
+            os << "                .MAX_X_NUM               (MAX_X_NUM),\n";
+            os << "                .RAM_TYPE                (RAM_TYPE),\n";
+            os << "                .DEVICE                  (DEVICE)\n";
+            os << "            )\n";
+            os << "        i_" << module_name << "_l" << i << "\n";
         }
         else if ( layer_class == "MaxPooling"
                     || layer_class == "StochasticMaxPooling"
                     || layer_class == "StochasticMaxPooling2x2" ) {
-            os << "\t" << "jelly_img_dnn_maxpol" << "\n";
-            os << "\t\t\t#(\n";
-            os << "\t\t\t\t.C                       (" << layer->GetOutputChannels() << "),\n";
-            os << "\t\t\t\t.N                       (" << layer->GetFilterWidth() << "),\n";
-            os << "\t\t\t\t.M                       (" << layer->GetFilterHeight() << "),\n";
-            os << "\t\t\t\t.USER_WIDTH              (USER_WIDTH),\n";
-            os << "\t\t\t\t.MAX_X_NUM               (MAX_X_NUM),\n";
-            os << "\t\t\t\t.RAM_TYPE                (RAM_TYPE)\n";
-            os << "\t\t\t)\n";
-            os << "\t\ti_" << "i_img_dnn_maxpol" << "_l" << i << "\n";
+            os << "    " << "jelly_img_dnn_maxpol" << "\n";
+            os << "            #(\n";
+            os << "                .C                       (" << layer->GetOutputChannels() << "),\n";
+            os << "                .N                       (" << layer->GetFilterWidth() << "),\n";
+            os << "                .M                       (" << layer->GetFilterHeight() << "),\n";
+            os << "                .USER_WIDTH              (USER_WIDTH),\n";
+            os << "                .MAX_X_NUM               (MAX_X_NUM),\n";
+            os << "                .RAM_TYPE                (RAM_TYPE)\n";
+            os << "            )\n";
+            os << "        i_" << "i_img_dnn_maxpol" << "_l" << i << "\n";
         }
         else {
             std::cout << "error : Unknown model" << layer_class << std::endl;
@@ -679,53 +677,53 @@ inline void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module
             return;
         }
 
-        os << "\t\t\t(\n";
-        os << "\t\t\t\t.reset                   (reset),\n";
-        os << "\t\t\t\t.clk                     (clk),\n";
-        os << "\t\t\t\t.cke                     (cke),\n";
-        os << "\t\t\t\t\n";
-        os << "\t\t\t\t.s_img_line_first        (img" << i << "_line_first),\n";
-        os << "\t\t\t\t.s_img_line_last         (img" << i << "_line_last),\n";
-        os << "\t\t\t\t.s_img_pixel_first       (img" << i << "_pixel_first),\n";
-        os << "\t\t\t\t.s_img_pixel_last        (img" << i << "_pixel_last),\n";
-        os << "\t\t\t\t.s_img_de                (img" << i << "_de),\n";
-        os << "\t\t\t\t.s_img_user              (img" << i << "_user),\n";
-        os << "\t\t\t\t.s_img_data              (img" << i << "_data),\n";
-        os << "\t\t\t\t.s_img_valid             (img" << i << "_valid),\n";
-        os << "\t\t\t\t\n";
-        os << "\t\t\t\t.m_img_line_first        (img" << i+1 << "_line_first),\n";
-        os << "\t\t\t\t.m_img_line_last         (img" << i+1 << "_line_last),\n";
-        os << "\t\t\t\t.m_img_pixel_first       (img" << i+1 << "_pixel_first),\n";
-        os << "\t\t\t\t.m_img_pixel_last        (img" << i+1 << "_pixel_last),\n";
-        os << "\t\t\t\t.m_img_de                (img" << i+1 << "_de),\n";
-        os << "\t\t\t\t.m_img_user              (img" << i+1 << "_user),\n";
-        os << "\t\t\t\t.m_img_data              (img" << i+1 << "_data),\n";
-        os << "\t\t\t\t.m_img_valid             (img" << i+1 << "_valid)\n";
-        os << "\t\t\t);\n";
+        os << "            (\n";
+        os << "                .reset                   (reset),\n";
+        os << "                .clk                     (clk),\n";
+        os << "                .cke                     (cke),\n";
+        os << "                \n";
+        os << "                .s_img_line_first        (img" << i << "_line_first),\n";
+        os << "                .s_img_line_last         (img" << i << "_line_last),\n";
+        os << "                .s_img_pixel_first       (img" << i << "_pixel_first),\n";
+        os << "                .s_img_pixel_last        (img" << i << "_pixel_last),\n";
+        os << "                .s_img_de                (img" << i << "_de),\n";
+        os << "                .s_img_user              (img" << i << "_user),\n";
+        os << "                .s_img_data              (img" << i << "_data),\n";
+        os << "                .s_img_valid             (img" << i << "_valid),\n";
+        os << "                \n";
+        os << "                .m_img_line_first        (img" << i+1 << "_line_first),\n";
+        os << "                .m_img_line_last         (img" << i+1 << "_line_last),\n";
+        os << "                .m_img_pixel_first       (img" << i+1 << "_pixel_first),\n";
+        os << "                .m_img_pixel_last        (img" << i+1 << "_pixel_last),\n";
+        os << "                .m_img_de                (img" << i+1 << "_de),\n";
+        os << "                .m_img_user              (img" << i+1 << "_user),\n";
+        os << "                .m_img_data              (img" << i+1 << "_data),\n";
+        os << "                .m_img_valid             (img" << i+1 << "_valid)\n";
+        os << "            );\n";
     }
 
-    os << "\t\n";
-    os << "\t\n";
-    os << "\tassign img" << 0 << "_line_first  = src_img_line_first;\n";
-    os << "\tassign img" << 0 << "_line_last   = src_img_line_last;\n";
-    os << "\tassign img" << 0 << "_pixel_first = src_img_pixel_first;\n";
-    os << "\tassign img" << 0 << "_pixel_last  = src_img_pixel_last;\n";
-    os << "\tassign img" << 0 << "_de          = src_img_de;\n";
-    os << "\tassign img" << 0 << "_user        = src_img_user;\n";
-    os << "\tassign img" << 0 << "_data        = src_img_data;\n";
-    os << "\tassign img" << 0 << "_valid       = src_img_valid;\n";
-    os << "\t\n";
-    os << "\tassign sink_img_line_first  = img" << layer_size << "_line_first;\n";
-    os << "\tassign sink_img_line_last   = img" << layer_size << "_line_last;\n";
-    os << "\tassign sink_img_pixel_first = img" << layer_size << "_pixel_first;\n";
-    os << "\tassign sink_img_pixel_last  = img" << layer_size << "_pixel_last;\n";
-    os << "\tassign sink_img_de          = img" << layer_size << "_de;\n";
-    os << "\tassign sink_img_user        = img" << layer_size << "_user;\n";
-    os << "\tassign sink_img_data        = img" << layer_size << "_data;\n";
-    os << "\tassign sink_img_valid       = img" << layer_size << "_valid;\n";
+    os << "    \n";
+    os << "    \n";
+    os << "    assign img" << 0 << "_line_first  = src_img_line_first;\n";
+    os << "    assign img" << 0 << "_line_last   = src_img_line_last;\n";
+    os << "    assign img" << 0 << "_pixel_first = src_img_pixel_first;\n";
+    os << "    assign img" << 0 << "_pixel_last  = src_img_pixel_last;\n";
+    os << "    assign img" << 0 << "_de          = src_img_de;\n";
+    os << "    assign img" << 0 << "_user        = src_img_user;\n";
+    os << "    assign img" << 0 << "_data        = src_img_data;\n";
+    os << "    assign img" << 0 << "_valid       = src_img_valid;\n";
+    os << "    \n";
+    os << "    assign sink_img_line_first  = img" << layer_size << "_line_first;\n";
+    os << "    assign sink_img_line_last   = img" << layer_size << "_line_last;\n";
+    os << "    assign sink_img_pixel_first = img" << layer_size << "_pixel_first;\n";
+    os << "    assign sink_img_pixel_last  = img" << layer_size << "_pixel_last;\n";
+    os << "    assign sink_img_de          = img" << layer_size << "_de;\n";
+    os << "    assign sink_img_user        = img" << layer_size << "_user;\n";
+    os << "    assign sink_img_data        = img" << layer_size << "_data;\n";
+    os << "    assign sink_img_valid       = img" << layer_size << "_valid;\n";
 
-    os << "\t\n";
-    os << "\t\n";
+    os << "    \n";
+    os << "    \n";
     os << "endmodule\n\n";
 
     for ( int i = 0; i < layer_size; ++i ) {
