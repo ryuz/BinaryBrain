@@ -31,7 +31,8 @@ class DifferentiableLutDiscreteN : public StochasticLutModel
 
 protected:
     bool                                                            m_memory_saving = false;
-    bool                                                            m_bn_enable = true;
+    bool                                                            m_bn_enable  = true;
+    bool                                                            m_act_enable = true;
 
     // 2層で構成
     std::shared_ptr< StochasticLutN<N, BinType, RealType> >         m_lut;
@@ -44,6 +45,7 @@ public:
         indices_t       output_shape;
         std::string     connection;     //< 結線ルール
         bool            batch_norm = true;
+        bool            activation = true;
         RealType        momentum   = (RealType)0.0;
         RealType        gamma      = (RealType)0.3;
         RealType        beta       = (RealType)0.5;
@@ -62,6 +64,7 @@ protected:
         m_bn_enable  = create.batch_norm;
         m_batch_norm = StochasticBatchNormalization<RealType>::Create(create.momentum, create.gamma,  create.beta);
 
+        m_act_enable = create.activation;
         m_activation = HardTanh<BinType, RealType>::Create((RealType)0, (RealType)1);
     }
 
@@ -104,7 +107,7 @@ public:
     }
 
 #ifdef BB_PYBIND11
-    static std::shared_ptr< DifferentiableLutDiscreteN > CreatePy(indices_t const &output_shape, bool batch_norm = true, std::string connection = "",
+    static std::shared_ptr< DifferentiableLutDiscreteN > CreatePy(indices_t const &output_shape, bool batch_norm = true, bool activation = true, std::string connection = "",
                                                              RealType momentum = (RealType)0.0, RealType gamma = (RealType)0.3, RealType beta = (RealType)0.5,
                                                              std::uint64_t seed = 1)
     {
@@ -112,6 +115,7 @@ public:
         create.output_shape = output_shape;
         create.connection   = connection;
         create.batch_norm   = batch_norm;
+        create.activation   = activation;
         create.momentum     = momentum;
         create.gamma        = gamma;
         create.beta         = beta;
@@ -196,9 +200,9 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
-        shape = m_lut       ->SetInputShape(shape);
-        shape = m_batch_norm->SetInputShape(shape);
-        shape = m_activation->SetInputShape(shape);
+        shape = m_lut->SetInputShape(shape);
+        if ( m_bn_enable )  { shape = m_batch_norm->SetInputShape(shape); }
+        if ( m_act_enable ) { shape = m_activation->SetInputShape(shape); }
         return shape;
     }
 
@@ -243,10 +247,8 @@ public:
         BB_ASSERT(input_size == (index_t)x_vec.size());
 
         x_vec = m_lut->ForwardNode(node, x_vec);
-        if ( m_bn_enable ) {
-            x_vec = m_batch_norm->ForwardNode(node, x_vec);
-        }
-        x_vec = m_activation->ForwardNode(node, x_vec);
+        if ( m_bn_enable )   { x_vec = m_batch_norm->ForwardNode(node, x_vec); }
+        if ( m_act_enable )  { x_vec = m_activation->ForwardNode(node, x_vec); }
         return x_vec;
     }
 
@@ -262,10 +264,13 @@ public:
         x_buf = m_lut->Forward(x_buf, train);
         if ( m_bn_enable ) {
             x_buf = m_batch_norm->Forward(x_buf, train);
+            if (m_memory_saving || !train ) { m_batch_norm->SetFrameBufferX(FrameBuffer()); }
         }
-        if (m_memory_saving || !train ) { m_batch_norm->SetFrameBufferX(FrameBuffer()); }
-        x_buf = m_activation->Forward(x_buf, train);
-        if (m_memory_saving || !train ) { m_activation->SetFrameBufferX(FrameBuffer()); }
+        
+        if ( m_act_enable ) {
+            x_buf = m_activation->Forward(x_buf, train);
+            if (m_memory_saving || !train ) { m_activation->SetFrameBufferX(FrameBuffer()); }
+        }
 
         return x_buf;
     }
@@ -278,19 +283,21 @@ public:
      */
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
-        if (m_memory_saving) {
+        if ( m_memory_saving && (m_bn_enable || m_act_enable) ) {
             // 再計算
             FrameBuffer x_buf;
-            x_buf = m_lut       ->ReForward(m_lut->GetFrameBufferX());
+            x_buf = m_lut->ReForward(m_lut->GetFrameBufferX());
             if ( m_bn_enable ) {
                 x_buf = m_batch_norm->ReForward(x_buf);
             }
-            m_activation->SetFrameBufferX(x_buf);
+            if ( m_act_enable ) {
+                m_activation->SetFrameBufferX(x_buf);
+            }
         }
 
-        dy_buf = m_activation->Backward(dy_buf);
-        dy_buf = m_batch_norm->Backward(dy_buf);
-        dy_buf = m_lut       ->Backward(dy_buf);
+        if ( m_act_enable ) { dy_buf = m_activation->Backward(dy_buf); }
+        if ( m_bn_enable )  { dy_buf = m_batch_norm->Backward(dy_buf); }
+        dy_buf = m_lut->Backward(dy_buf);
         return dy_buf; 
     }
 
@@ -309,9 +316,9 @@ protected:
         }
         else {
             // 子レイヤーの表示
-            m_lut       ->PrintInfo(depth, os, columns, nest+1);
-            m_batch_norm->PrintInfo(depth, os, columns, nest+1);
-            m_activation->PrintInfo(depth, os, columns, nest+1);
+            m_lut->PrintInfo(depth, os, columns, nest+1);
+            if ( m_bn_enable )  { m_batch_norm->PrintInfo(depth, os, columns, nest+1); }
+            if ( m_bn_enable )  { m_activation->PrintInfo(depth, os, columns, nest+1); }
         }
     }
 
@@ -319,16 +326,24 @@ public:
     // Serialize
     void Save(std::ostream &os) const 
     {
-        m_lut       ->Save(os);
-        m_batch_norm->Save(os);
-        m_activation->Save(os);
+        bb::SaveValue(os, m_memory_saving);
+        bb::SaveValue(os, m_bn_enable);
+        bb::SaveValue(os, m_act_enable);
+
+        m_lut->Save(os);
+        if ( m_bn_enable )  { m_batch_norm->Save(os); }
+        if ( m_act_enable ) { m_activation->Save(os); }
     }
 
     void Load(std::istream &is)
     {
-        m_lut       ->Load(is);
-        m_batch_norm->Load(is);
-        m_activation->Load(is);
+        bb::LoadValue(is, m_memory_saving);
+        bb::LoadValue(is, m_bn_enable);
+        bb::LoadValue(is, m_act_enable);
+
+        m_lut->Load(is);
+        if ( m_bn_enable )  { m_batch_norm->Load(is); }
+        if ( m_act_enable ) { m_activation->Load(is); }
     }
 
 

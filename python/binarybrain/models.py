@@ -72,7 +72,7 @@ class Model():
         """
         return self.get_core().get_class_name()
     
-    def get_info(self):
+    def get_info(self, depth=0, *, columns=70, nest=0):
         """モデル情報取得
 
            モデルの情報表示用の文字列を取得する
@@ -81,7 +81,7 @@ class Model():
         Returns:
             info (str)
         """
-        return self.get_core().get_info()
+        return self.get_core().get_info(depth, columns, nest)
     
     def send_command(self, command, send_to='all'):
         """コマンドの送信
@@ -552,7 +552,7 @@ class DifferentiableLut(SparseModel):
     """DifferentiableLut class
         微分可能LUTモデル
 
-        内部的には StocasticLUT + BatchNormalization + Binarize(HardTanh) で構成される
+        内部計算的には StocasticLUT + BatchNormalization + Binarize(HardTanh) で構成される
 
         FPGA合成するためのルックアップテーブル型のモデルを学習することができる
         純粋な Stochastic 演算のみを行いたい場合は binarize と batch_norm の両方を False にすればよい。
@@ -560,7 +560,6 @@ class DifferentiableLut(SparseModel):
     Args:
         output_shape (List[int]): 出力のシェイプ
         connection(str): 結線ルールを 'random', 'serial', 'depthwise' から指定可能
-        binarize (bool): Binarize を有効にするか
         batch_norm (bool): BatchNormalization を有効にするか
         momentum (float): BatchNormalization を有効にするか
         gamma (float): BatchNormalization を有効にするか
@@ -597,7 +596,7 @@ class DifferentiableLut(SparseModel):
 
             core_model  = core_creator(output_shape, connection, seed)
         
-        elif binarize and batch_norm:
+        elif binarize:
             # 条件が揃えば BatchNorm と 二値化を一括演算
             try:
                 core_creator = {
@@ -639,7 +638,7 @@ class DifferentiableLut(SparseModel):
             except KeyError:
                 raise TypeError("unsupported")
             
-            core_model = core_creator(output_shape, batch_norm, connection, momentum, gamma, beta, seed)
+            core_model = core_creator(output_shape, batch_norm, binarize, connection, momentum, gamma, beta, seed)
 
         super(DifferentiableLut, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
