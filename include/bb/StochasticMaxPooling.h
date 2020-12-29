@@ -320,6 +320,8 @@ public:
         }
 
         // 汎用版実装(未着手：下記は MaxPooling のまま)
+        BB_ASSERT(0);
+#if 0
         {
             auto x_ptr  = x_buf.LockConst<FT>();
             auto y_ptr  = m_y_buf.LockConst<FT>();
@@ -354,6 +356,7 @@ public:
 
             return dx_buf;
         }
+#endif
     }
 };
 

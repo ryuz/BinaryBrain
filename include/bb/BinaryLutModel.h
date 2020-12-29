@@ -103,7 +103,7 @@ public:
         auto W_ptr           = src->lock_W_const();
 
         for (index_t node = 0; node < node_size; ++node) {
-            auto input_size = this->GetNodeInputSize(node);
+            auto input_size = this->GetNodeConnectionSize(node);
             auto table_size = this->GetLutTableSize(node);
             
 //            BB_ASSERT(input_size == N);
@@ -111,7 +111,7 @@ public:
             
             // 入力をコピー
             for (int input_index = 0; input_index < input_size; ++input_index) {
-                this->SetNodeInput(node, input_index, input_index_ptr(node, input_index));
+                this->SetNodeConnectionIndex(node, input_index, input_index_ptr(node, input_index));
             }
 
             // 係数をコピー
