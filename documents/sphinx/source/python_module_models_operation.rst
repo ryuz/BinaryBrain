@@ -12,6 +12,13 @@ DifferentiableLut クラス
    :members:
    :show-inheritance:
 
+BinaryLut クラス
+----------------------------
+
+.. autoclass:: binarybrain.models.BinaryLut
+   :members:
+   :show-inheritance:
+
 
 DenseAffine クラス
 ----------------------------

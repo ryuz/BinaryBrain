@@ -551,14 +551,17 @@ PYBIND11_MODULE(core, m) {
 
     // SparseModel
     py::class_< SparseModel, Model, std::shared_ptr<SparseModel> >(m, "SparseModel")
-         .def("get_connection_size", &SparseModel::GetConnectionSize)
-         .def("set_connection", &SparseModel::SetConnectionIndices)
-         .def("get_connection", &SparseModel::GetConnectionIndices)
-         .def("set_connection_index", &SparseModel::SetConnectionIndex)
-         .def("get_connection_index", &SparseModel::GetConnectionIndex)
-         .def("get_node_connection_size", &SparseModel::GetNodeConnectionSize)
-         .def("set_node_connection_index", &SparseModel::SetNodeConnectionIndex)
-         .def("get_node_connection_index", &SparseModel::GetNodeConnectionIndex);
+        .def("get_connection_size", &SparseModel::GetConnectionSize)
+        .def("set_connection", &SparseModel::SetConnectionIndices)
+        .def("get_connection", &SparseModel::GetConnectionIndices)
+        .def("set_connection_index", &SparseModel::SetConnectionIndex)
+        .def("get_connection_index", &SparseModel::GetConnectionIndex)
+        .def("get_node_connection_size", &SparseModel::GetNodeConnectionSize)
+        .def("set_node_connection_index", &SparseModel::SetNodeConnectionIndex)
+        .def("get_node_connection_index", &SparseModel::GetNodeConnectionIndex)
+        .def("get_lut_table_size", &SparseModel::GetLutTableSize)
+        .def("get_lut_table", &SparseModel::GetLutTable)
+        ;
 
 
     py::class_< BinaryLutModel, SparseModel, std::shared_ptr<BinaryLutModel> >(m, "BinaryLutModel")

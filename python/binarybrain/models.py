@@ -134,6 +134,12 @@ class Model():
         """
         return self.get_core().get_output_shape()
 
+    def get_input_node_size(self) -> int:
+        return self.get_core().get_input_node_size()
+
+    def get_output_node_size(self) -> int:
+        return self.get_core().get_output_node_size()
+
     def get_parameters(self):
         """パラメータ変数取得
 
@@ -463,7 +469,86 @@ class DepthwiseDenseAffine(Model):
         super(DepthwiseDenseAffine, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
 
-class DifferentiableLut(Model):
+class SparseModel(Model):
+    """疎結合の基底モデル
+    """
+
+    def get_node_connection_size(self, output_node):
+        return self.get_core().get_node_connection_size(output_node)
+
+    def set_node_connection_index(self, output_node, connection, input_node):
+        self.get_core().set_node_connection_index(output_node, connection, input_node)
+
+    def get_node_connection_index(self, output_node, connection):
+        return self.get_core().get_node_connection_index(output_node, connection)
+
+    def get_lut_table_size(self, node):
+        return self.get_core().get_lut_table_size(node)
+
+    def get_lut_table(self, node, bitpos):
+        return self.get_core().get_lut_table(node, bitpos)
+
+
+    def get_connection_list(self):
+        """接続リスト取得
+            
+            各出力ノードの入力に対する接続を二次元リストで返す
+            入出力のシェイプにかかわらず両者が flatten された状態で処理される
+
+        Returns:
+            connection_list (List[List[int]]) : 接続リスト
+        """
+
+        connection_list = []
+        rows = self.get_output_node_size()
+        for i in range(rows):
+            node_list = []
+            cols = self.get_node_connection_size(i)
+            for j in range(cols):
+                node_list.append(self.get_node_connection_index(i, j))
+            connection_list.append(node_list)
+        return connection_list
+
+    def set_connection_list(self, connection_list):
+        """接続行列設定
+            
+            各出力ノードの入力に対する接続を二次元リストで設定する
+            入出力のシェイプにかかわらず両者が flatten された状態で2次元リストとする
+
+        Args:
+            connection_list (List[List[int]]) : 接続リスト
+        """
+
+        input_node_size = self.get_input_node_size()
+        rows = self.get_output_node_size()
+        assert(len(connection_list) == rows)
+        for i in range(rows):
+            cols = self.get_node_connection_size(i)
+            assert(len(connection_list[i]) == cols)
+            for j in range(cols):
+                index = int(connection_list[i][j])
+                assert(index>= 0 and index < input_node_size)
+                self.set_node_connection_index(i, j, index)
+
+    def get_lut_table_list(self):
+        """LUTテーブルのリスト取得
+
+        Returns:
+            lut_list (List[List[int]]) : 接続行列
+        """
+
+        lut_list = []
+        rows = self.get_output_node_size()
+        for i in range(rows):
+            bit_list = []
+            cols = self.get_lut_table_size(i)
+            for j in range(cols):
+                bit_list.append(self.get_lut_table(i, j))
+            lut_list.append(bit_list)
+        return lut_list
+
+
+class DifferentiableLut(SparseModel):
     """DifferentiableLut class
        微分可能LUTモデル
        StocasticLUT + BatchNormalization + Binarize(HardTanh)
@@ -578,7 +663,7 @@ class DifferentiableLut(Model):
         return bb.Tensor.from_core(self.get_core().dW())
 
 
-class BinaryLut(Model):
+class BinaryLut(SparseModel):
     """バイナリLUTモデル
 
        一般的なFPGAのLUTと同等の機能をするモデル。
@@ -622,6 +707,7 @@ class BinaryLut(Model):
 
             インポート元は入出力が同じ形状をしている必要があり、デジタル値の入力に対して
             出力を 0.5 を閾値として、バイナリテーブルを構成して取り込む
+
         Args:
             leyaer (Model): インポート元のモデル
         """
@@ -633,6 +719,7 @@ class BinaryLut(Model):
 
             インポート元は入出力が同じ形状をしている必要があり、デジタル値の入力に対して
             出力を 0.5 を閾値として、バイナリテーブルを構成して取り込む
+
         Args:
             leyaer (Model): インポート元のモデル
         """
