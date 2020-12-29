@@ -20,13 +20,12 @@ namespace bb {
 
 
 // LUT方式基底クラス
-template <typename FT = Bit, typename BT = float>
-class LutModel : public SparseModel
+class BinaryLutModel : public SparseModel
 {
 public:
     // LUT操作の定義
-//  virtual int   GetLutTableSize(index_t node) const = 0;
-//  virtual bool  GetLutTable(index_t node, int bitpos) const = 0;
+    virtual int   GetLutTableSize(index_t node) const = 0;
+    virtual bool  GetLutTable(index_t node, int bitpos) const = 0;
     virtual void  SetLutTable(index_t node, int bitpos, bool value) = 0;
 
     /*

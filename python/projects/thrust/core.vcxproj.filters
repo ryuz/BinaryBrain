@@ -253,5 +253,8 @@
     <ClInclude Include="..\..\..\include\bb\DepthwiseDenseAffine.h">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\bb\BinaryLutModel.h">
+      <Filter>ヘッダファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

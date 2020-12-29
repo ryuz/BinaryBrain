@@ -111,13 +111,29 @@ class Model():
            保証されない。ネットワーク構築後に一度だけ呼び出すことを想定している
         
         Args:
-            input_shape (List[int]): 出力シェイプ
+            input_shape (List[int]): 入力シェイプ
 
         Returns:
             output_shape (List[int]): 出力シェイプ
         """
         return self.get_core().set_input_shape(input_shape)
-    
+
+    def get_input_shape(self) -> [int]:
+        """入力シェイプ取得
+
+        Returns:
+            input_shape (List[int]): 入力シェイプ
+        """
+        return self.get_core().get_input_shape()
+
+    def get_output_shape(self) -> [int]:
+        """出力シェイプ取得
+
+        Returns:
+            output_shape (List[int]): 出力シェイプ
+        """
+        return self.get_core().get_output_shape()
+
     def get_parameters(self):
         """パラメータ変数取得
 
@@ -562,6 +578,69 @@ class DifferentiableLut(Model):
         return bb.Tensor.from_core(self.get_core().dW())
 
 
+class BinaryLut(Model):
+    """バイナリLUTモデル
+
+       一般的なFPGAのLUTと同等の機能をするモデル。
+       学習能力はなく、他のモデルで学習した結果をインポートしてモデル評価を行うためのもの
+        
+    Args:
+        output_shape (List[int]): 出力のシェイプ
+        connection(str): 結線ルールを 'random', 'serial', 'depthwise' から指定可能(未実装)
+        N (int): LUTの入力数
+        seed (int): 変数初期値などの乱数シード
+        fw_dtype (DType)): forwardの型を bb.DType.FP32 と bb.DType.BIT から指定
+    """
+    
+    def __init__(self, output_shape, *, input_shape=None,
+                    connection='random', seed=1, name=None, N=6, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
+        
+        try:
+            core_creator = {
+                bb.DType.FP32: {
+                    6: core.BinaryLut6_fp32.create,
+                    5: core.BinaryLut5_fp32.create,
+                    4: core.BinaryLut4_fp32.create,
+                    2: core.BinaryLut2_fp32.create,
+                },
+                bb.DType.BIT: {
+                    6: core.BinaryLut6_bit.create,
+                    5: core.BinaryLut5_bit.create,
+                    4: core.BinaryLut4_bit.create,
+                    2: core.BinaryLut2_bit.create,
+                },
+            }[fw_dtype][N]
+        except KeyError:
+            raise TypeError("unsupported")
+
+        core_model  = core_creator(output_shape, connection, seed)
+        
+        super(BinaryLut, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+    def import_layer(self, leyaer):
+        """他のモデルからからインポート
+
+            インポート元は入出力が同じ形状をしている必要があり、デジタル値の入力に対して
+            出力を 0.5 を閾値として、バイナリテーブルを構成して取り込む
+        Args:
+            leyaer (Model): インポート元のモデル
+        """
+        self.get_core().import_layer(leyaer.get_core())
+
+    @staticmethod
+    def from_sparse_model(layer, *, fw_dtype=bb.DType.FP32):
+        """他のモデルを元に生成
+
+            インポート元は入出力が同じ形状をしている必要があり、デジタル値の入力に対して
+            出力を 0.5 を閾値として、バイナリテーブルを構成して取り込む
+        Args:
+            leyaer (Model): インポート元のモデル
+        """
+        N = layer.get_core().get_node_connection_size(0)
+        new_model = BinaryLut(output_shape=layer.get_output_shape(), input_shape=layer.get_input_shape(),
+                                 N=N, fw_dtype=fw_dtype)
+        new_model.import_layer(layer)
+        return new_model
 
 # ------- フィルタ --------
 
@@ -730,17 +809,28 @@ class StochasticMaxPooling(Model):
     """
 
     def __init__(self, filter_size=(2, 2), *, input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
-        assert(filter_size[0]==2 and filter_size[1]==2)
+        assert(len(filter_size)==2)
 
-        try:
-            core_creator = {
-                bb.DType.FP32: core.StochasticMaxPooling2x2_fp32.create,
-                bb.DType.BIT:  core.StochasticMaxPooling2x2_bit.create,
-            }[fw_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-        
-        core_model = core_creator()
+        if  filter_size[0]==2 and filter_size[1]==2:
+            try:
+                core_creator = {
+                    bb.DType.FP32: core.StochasticMaxPooling2x2_fp32.create,
+                    bb.DType.BIT:  core.StochasticMaxPooling2x2_bit.create,
+                }[fw_dtype]
+            except KeyError:
+                raise TypeError("unsupported")
+            
+            core_model = core_creator()
+        else:
+            try:
+                core_creator = {
+                    bb.DType.FP32: core.StochasticMaxPooling_fp32.create,
+                    bb.DType.BIT:  core.StochasticMaxPooling_bit.create,
+                }[fw_dtype]
+            except KeyError:
+                raise TypeError("unsupported")
+            
+            core_model = core_creator(filter_size[0], filter_size[1])
 
         super(StochasticMaxPooling, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 

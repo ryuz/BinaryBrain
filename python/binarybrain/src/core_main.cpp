@@ -35,6 +35,7 @@
 
 #include "bb/Convolution2d.h"
 #include "bb/MaxPooling.h"
+//#include "bb/StochasticMaxPooling.h"
 #include "bb/StochasticMaxPooling2x2.h"
 #include "bb/UpSampling.h"
 
@@ -91,15 +92,15 @@ using SparseModel                       = bb::SparseModel;
 using Sequential                        = bb::Sequential;
 using DenseAffine                       = bb::DenseAffine<float>;
 using DepthwiseDenseAffine              = bb::DepthwiseDenseAffine<float>;
-using LutModel_fp32                     = bb::LutModel<float, float>;
-using LutModel_bit                      = bb::LutModel<bb::Bit, float>;
+
+using BinaryLutModel                    = bb::BinaryLutModel;
                                         
 using BinaryLut2_fp32                   = bb::BinaryLutN<2, float, float>;
 using BinaryLut2_bit                    = bb::BinaryLutN<2, bb::Bit, float>;
 using BinaryLut4_fp32                   = bb::BinaryLutN<4, float, float>;
 using BinaryLut4_bit                    = bb::BinaryLutN<4, bb::Bit, float>;
-using BinaryLut6_fp32                   = bb::BinaryLutN<6, float, float>;
-using BinaryLut6_bit                    = bb::BinaryLutN<6, bb::Bit, float>;
+using BinaryLut5_fp32                   = bb::BinaryLutN<5, float, float>;
+using BinaryLut5_bit                    = bb::BinaryLutN<5, bb::Bit, float>;
 using BinaryLut6_fp32                   = bb::BinaryLutN<6, float, float>;
 using BinaryLut6_bit                    = bb::BinaryLutN<6, bb::Bit, float>;
                                         
@@ -152,6 +153,8 @@ using Convolution2d_fp32                = bb::Convolution2d<float, float>;
 using Convolution2d_bit                 = bb::Convolution2d<bb::Bit, float>;
 using MaxPooling_fp32                   = bb::MaxPooling<float, float>;
 using MaxPooling_bit                    = bb::MaxPooling<bb::Bit, float>;
+//using StochasticMaxPooling_fp32         = bb::StochasticMaxPooling<float, float>;
+//using StochasticMaxPooling_bit          = bb::StochasticMaxPooling<bb::Bit, float>;
 using StochasticMaxPooling2x2_fp32      = bb::StochasticMaxPooling2x2<float, float>;
 using StochasticMaxPooling2x2_bit       = bb::StochasticMaxPooling2x2<bb::Bit, float>;
 using UpSampling_fp32                   = bb::UpSampling<float, float>;
@@ -558,6 +561,30 @@ PYBIND11_MODULE(core, m) {
          .def("get_node_connection_index", &SparseModel::GetNodeConnectionIndex);
 
 
+    py::class_< BinaryLutModel, SparseModel, std::shared_ptr<BinaryLutModel> >(m, "BinaryLutModel")
+        .def("get_lut_table_size", &BinaryLutModel::GetLutTableSize)
+        .def("get_lut_table", &BinaryLutModel::GetLutTable)
+        .def("set_lut_table", &BinaryLutModel::SetLutTable)
+        .def("import_layer", &BinaryLutModel::ImportLayer);
+
+    py::class_< BinaryLut6_fp32, BinaryLutModel, std::shared_ptr<BinaryLut6_fp32> >(m, "BinaryLut6_fp32")
+        .def_static("create", &BinaryLut6_fp32::CreatePy);
+    py::class_< BinaryLut5_fp32, BinaryLutModel, std::shared_ptr<BinaryLut5_fp32> >(m, "BinaryLut5_fp32")
+        .def_static("create", &BinaryLut5_fp32::CreatePy);
+    py::class_< BinaryLut4_fp32, BinaryLutModel, std::shared_ptr<BinaryLut4_fp32> >(m, "BinaryLut4_fp32")
+        .def_static("create", &BinaryLut4_fp32::CreatePy);
+    py::class_< BinaryLut2_fp32, BinaryLutModel, std::shared_ptr<BinaryLut2_fp32> >(m, "BinaryLut2_fp32")
+        .def_static("create", &BinaryLut2_fp32::CreatePy);
+    py::class_< BinaryLut6_bit, BinaryLutModel, std::shared_ptr<BinaryLut6_bit> >(m, "BinaryLut6_bit")
+        .def_static("create", &BinaryLut6_bit::CreatePy);
+    py::class_< BinaryLut5_bit, BinaryLutModel, std::shared_ptr<BinaryLut5_bit> >(m, "BinaryLut5_bit")
+        .def_static("create", &BinaryLut5_bit::CreatePy);
+    py::class_< BinaryLut4_bit, BinaryLutModel, std::shared_ptr<BinaryLut4_bit> >(m, "BinaryLut4_bit")
+        .def_static("create", &BinaryLut4_bit::CreatePy);
+    py::class_< BinaryLut2_bit, BinaryLutModel, std::shared_ptr<BinaryLut2_bit> >(m, "BinaryLut2_bit")
+        .def_static("create", &BinaryLut2_bit::CreatePy);
+
+
     // StochasticLutModel
     py::class_< StochasticLutModel, SparseModel, std::shared_ptr<StochasticLutModel> >(m, "StochasticLutModel")
         .def("W",  ((Tensor& (StochasticLutModel::*)())&StochasticLutModel::W))
@@ -656,6 +683,11 @@ PYBIND11_MODULE(core, m) {
         .def_static("create", &MaxPooling_fp32::CreatePy);
     py::class_< MaxPooling_bit, Filter2d, std::shared_ptr<MaxPooling_bit> >(m, "MaxPooling_bit")
         .def_static("create", &MaxPooling_bit::CreatePy);
+
+//    py::class_< StochasticMaxPooling_fp32, Filter2d, std::shared_ptr<StochasticMaxPooling_fp32> >(m, "StochasticMaxPooling_fp32")
+//        .def_static("create", &StochasticMaxPooling_fp32::Create);
+//    py::class_< StochasticMaxPooling_bit, Filter2d, std::shared_ptr<StochasticMaxPooling_bit> >(m, "StochasticMaxPooling_bit")
+//        .def_static("create", &StochasticMaxPooling_bit::Create);
 
     py::class_< StochasticMaxPooling2x2_fp32, Filter2d, std::shared_ptr<StochasticMaxPooling2x2_fp32> >(m, "StochasticMaxPooling2x2_fp32")
         .def_static("create", &StochasticMaxPooling2x2_fp32::Create);

@@ -21,7 +21,7 @@ namespace bb {
 
 // MaxPoolingクラス
 template <typename FT = float, typename BT = float>
-class StochasticMaxPooling : public Filter2d<FT, BT>
+class StochasticMaxPooling : public Filter2d
 {
 protected:
     bool                m_host_only = false;
@@ -157,7 +157,7 @@ protected:
 public:
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-        BB_ASSERT(x.GetType() == DataType<FT>::type);
+        BB_ASSERT(x_buf.GetType() == DataType<FT>::type);
 
         // backwardの為に保存
         m_x_buf = x_buf;
@@ -212,7 +212,7 @@ public:
     {
         BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
 
-        m_dx_buf.Resize(DataType<BT>::type, dy_buf.GetFrameSize(), m_input_shape);
+        m_dx_buf.Resize(dy_buf.GetFrameSize(), m_input_shape, DataType<BT>::type);
 
         // 汎用版実装
         {
@@ -247,7 +247,7 @@ public:
                 }
             }
 
-            return m_dx;
+            return m_dx_buf;
         }
     }
 };
