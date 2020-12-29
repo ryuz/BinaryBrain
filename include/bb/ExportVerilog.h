@@ -472,8 +472,8 @@ inline void ExportVerilog_LutConvolutionLayer(std::ostream& os, std::string modu
     BB_ASSERT(in_shape.size() == 3);
     BB_ASSERT(out_shape.size() == 3);
 
-    int in_c  = (int)in_shape[2];
-    int out_c = (int)out_shape[2];
+    int in_c  = (int)in_shape[0];
+    int out_c = (int)out_shape[0];
     int n = (int)conv->GetFilterHeight();
     int m = (int)conv->GetFilterWidth();
 
@@ -492,8 +492,8 @@ inline void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module
     auto out_shape = last_layer->GetOutputShape();
     BB_ASSERT(in_shape.size() == 3);
     BB_ASSERT(out_shape.size() == 3);
-    int in_c  = (int)in_shape[2];
-    int out_c = (int)out_shape[2];
+    int in_c  = (int)in_shape[0];
+    int out_c = (int)out_shape[0];
 
 
     os << "module " << module_name << "\n"; 

@@ -1,12 +1,12 @@
 tb_mnist_lut_cnn.v
-MnistSparseLutCnn.v
+MnistDifferentiableLutCnn.v
 video_dnn_max_count.v
 video_mnist_cnn.v
 video_mnist_cnn_core.v
 video_mnist_color.v
 video_mnist_color_core.v
 bb_lut.v
--y ../../../jelly/rtl/library
--y ../../../jelly/rtl/image
--y ../../../jelly/rtl/model
--y ../../../jelly/rtl/video
+-y ../../../../jelly/rtl/library
+-y ../../../../jelly/rtl/image
+-y ../../../../jelly/rtl/model
+-y ../../../../jelly/rtl/video

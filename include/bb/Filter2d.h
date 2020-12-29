@@ -45,7 +45,7 @@ public:
     {
         auto shape = this->GetInputShape();
         BB_ASSERT(shape.size() == 3);
-        return shape[2];
+        return shape[0];
     }
 
     index_t GetInputHeight(void)
@@ -59,14 +59,14 @@ public:
     {
         auto shape = this->GetInputShape();
         BB_ASSERT(shape.size() == 3);
-        return shape[0];
+        return shape[2];
     }
 
     index_t GetOutputChannels(void)
     {
         auto shape = this->GetOutputShape();
         BB_ASSERT(shape.size() == 3);
-        return shape[2];
+        return shape[0];
     }
 
     index_t GetOutputHeight(void)
@@ -80,7 +80,7 @@ public:
     {
         auto shape = this->GetOutputShape();
         BB_ASSERT(shape.size() == 3);
-        return shape[0];
+        return shape[2];
     }
 };
 
