@@ -97,29 +97,29 @@ class FrameBuffer():
         """
         dtype = self.get_type()
         if dtype == bb.DType.BIT:
-            ndarray = self.buf.numpy_uint8()
+            ndarray = self.get_core().numpy_uint8()
         if dtype == bb.DType.BINARY:
-            ndarray = self.buf.numpy_uint8()
+            ndarray = self.get_core().numpy_uint8()
         elif dtype == bb.DType.FP32:
-            ndarray = self.buf.numpy_fp32()
+            ndarray = self.get_core().numpy_fp32()
         elif dtype == bb.DType.FP64:
-            ndarray = self.buf.numpy_fp64()
+            ndarray = self.get_core().numpy_fp64()
         elif dtype == bb.DType.INT8:
-            ndarray =  self.buf.numpy_int8()
+            ndarray =  self.get_core().numpy_int8()
         elif dtype == bb.DType.INT16:
-            ndarray =  self.buf.numpy_int16()
+            ndarray =  self.get_core().numpy_int16()
         elif dtype == bb.DType.INT32:
-            ndarray =  self.buf.numpy_int32()
+            ndarray =  self.get_core().numpy_int32()
         elif dtype == bb.DType.INT64:
-            ndarray =  self.buf.numpy_int64()
+            ndarray =  self.get_core().numpy_int64()
         elif dtype == bb.DType.UINT8:
-            ndarray =  self.buf.numpy_uint8()
+            ndarray =  self.get_core().numpy_uint8()
         elif dtype == bb.DType.UINT16:
-            ndarray =  self.buf.numpy_uint16()
+            ndarray =  self.get_core().numpy_uint16()
         elif dtype == bb.DType.UINT32:
-            ndarray =  self.buf.numpy_uint32()
+            ndarray =  self.get_core().numpy_uint32()
         elif dtype == bb.DType.UINT64:
-            ndarray =  self.buf.numpy_uint64()
+            ndarray =  self.get_core().numpy_uint64()
         else:
             raise TypeError("unexpected dtype")
 
@@ -127,7 +127,7 @@ class FrameBuffer():
         ndarray = ndarray.transpose(tran)
         if dtype != bb.DType.BIT:
             shape = list(ndarray.shape)
-            shape[0] = self.buf.get_frame_size()
+            shape[0] = self.get_core().get_frame_size()
             ndarray = np.resize(ndarray, shape)
         
         return ndarray
