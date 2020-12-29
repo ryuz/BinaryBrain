@@ -35,7 +35,7 @@
 
 #include "bb/Convolution2d.h"
 #include "bb/MaxPooling.h"
-//#include "bb/StochasticMaxPooling.h"
+#include "bb/StochasticMaxPooling.h"
 #include "bb/StochasticMaxPooling2x2.h"
 #include "bb/UpSampling.h"
 
@@ -153,8 +153,8 @@ using Convolution2d_fp32                = bb::Convolution2d<float, float>;
 using Convolution2d_bit                 = bb::Convolution2d<bb::Bit, float>;
 using MaxPooling_fp32                   = bb::MaxPooling<float, float>;
 using MaxPooling_bit                    = bb::MaxPooling<bb::Bit, float>;
-//using StochasticMaxPooling_fp32         = bb::StochasticMaxPooling<float, float>;
-//using StochasticMaxPooling_bit          = bb::StochasticMaxPooling<bb::Bit, float>;
+using StochasticMaxPooling_fp32         = bb::StochasticMaxPooling<float, float>;
+using StochasticMaxPooling_bit          = bb::StochasticMaxPooling<bb::Bit, float>;
 using StochasticMaxPooling2x2_fp32      = bb::StochasticMaxPooling2x2<float, float>;
 using StochasticMaxPooling2x2_bit       = bb::StochasticMaxPooling2x2<bb::Bit, float>;
 using UpSampling_fp32                   = bb::UpSampling<float, float>;
@@ -687,10 +687,10 @@ PYBIND11_MODULE(core, m) {
     py::class_< MaxPooling_bit, Filter2d, std::shared_ptr<MaxPooling_bit> >(m, "MaxPooling_bit")
         .def_static("create", &MaxPooling_bit::CreatePy);
 
-//    py::class_< StochasticMaxPooling_fp32, Filter2d, std::shared_ptr<StochasticMaxPooling_fp32> >(m, "StochasticMaxPooling_fp32")
-//        .def_static("create", &StochasticMaxPooling_fp32::Create);
-//    py::class_< StochasticMaxPooling_bit, Filter2d, std::shared_ptr<StochasticMaxPooling_bit> >(m, "StochasticMaxPooling_bit")
-//        .def_static("create", &StochasticMaxPooling_bit::Create);
+    py::class_< StochasticMaxPooling_fp32, Filter2d, std::shared_ptr<StochasticMaxPooling_fp32> >(m, "StochasticMaxPooling_fp32")
+        .def_static("create", &StochasticMaxPooling_fp32::Create);
+    py::class_< StochasticMaxPooling_bit, Filter2d, std::shared_ptr<StochasticMaxPooling_bit> >(m, "StochasticMaxPooling_bit")
+        .def_static("create", &StochasticMaxPooling_bit::Create);
 
     py::class_< StochasticMaxPooling2x2_fp32, Filter2d, std::shared_ptr<StochasticMaxPooling2x2_fp32> >(m, "StochasticMaxPooling2x2_fp32")
         .def_static("create", &StochasticMaxPooling2x2_fp32::Create);

@@ -550,11 +550,12 @@ class SparseModel(Model):
 
 class DifferentiableLut(SparseModel):
     """DifferentiableLut class
-       微分可能LUTモデル
-       StocasticLUT + BatchNormalization + Binarize(HardTanh)
+        微分可能LUTモデル
 
-        FPGA合成するためのFPGAのテーブルを学習することが可能
-        純粋な Stochastic 演算のみを行いたい場合は binarize と batch_norm の両方を Flase にすればよい。
+        内部的には StocasticLUT + BatchNormalization + Binarize(HardTanh) で構成される
+
+        FPGA合成するためのルックアップテーブル型のモデルを学習することができる
+        純粋な Stochastic 演算のみを行いたい場合は binarize と batch_norm の両方を False にすればよい。
         
     Args:
         output_shape (List[int]): 出力のシェイプ
