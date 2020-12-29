@@ -186,84 +186,6 @@ public:
 #endif
         
 
-#if 0
-        if ( DataType<FT>::type == BB_TYPE_BIT ) {
-            // バイナリ用実装
-            auto x_ptr = x_buf.LockConst<FT>();
-            auto y_ptr = y_buf.Lock<FT>(true);
-
-            index_t  m256_frame_size = (int)y.GetFrameStride() / 32;
-
-            #pragma omp parallel for
-            for (index_t c = 0; c < m_input_c_size; ++c) {
-                for (index_t y = 0; y < m_output_h_size; ++y) {
-                    for (index_t x = 0; x < m_output_w_size; ++x) {
-                        __m256i *y_addr = (__m256i *)y_ptr.GetAddr(GetOutputNode(c, y, x));
-
-                        for (index_t frame = 0; frame < m256_frame_size; ++frame) {
-                            __m256i max_val = _mm256_set1_epi8(0);
-                            for (index_t fy = 0; fy < 2; ++fy) {
-                                index_t iy = y*2 + fy;
-                                if ( iy < m_input_h_size ) {
-                                    for (index_t fx = 0; fx < 2; ++fx) {
-                                        index_t ix = x*2 + fx;
-                                        if ( ix < m_input_w_size ) {
-                                            __m256i const *x_addr = (__m256i const *)x_ptr.GetAddr(GetInputNode(c, iy, ix));
-                                            __m256i in_sig = _mm256_load_si256(&x_addr[frame]);
-                                            max_val = _mm256_or_si256(max_val, in_sig);
-                                        }
-                                    }
-                                }
-                            }
-                            _mm256_store_si256(&y_addr[frame], max_val);
-                        }
-                    }
-                }
-            }
-
-            return y_buf;
-        }
-#endif
-
-#if 0
-        // float用実装
-        if ( DataType<FT>::type == BB_TYPE_FP32 ) {
-            auto x_ptr = x_buf.LockConst<FT>();
-            auto y_ptr = y_buf.Lock<FT>(true);
-
-            index_t  m256_frame_size = (int)y_buf.GetFrameStride() / sizeof(float);
-
-            #pragma omp parallel for
-            for (index_t c = 0; c < m_input_c_size; ++c) {
-                for (index_t y = 0; y < m_output_h_size; ++y) {
-                    for (index_t x = 0; x < m_output_w_size; ++x) {
-                        float *y_addr = (float *)y_ptr.GetAddr(GetOutputNode(c, y, x));
-
-                        for (index_t frame = 0; frame < m256_frame_size; frame += 8) {
-                            __m256  max_val = _mm256_set1_ps(-1.0e7f);  // 前段に活性化入れるから0がminだよね？
-                            for (index_t fy = 0; fy < 2; ++fy) {
-                                index_t iy = y*2 + fy;
-                                if ( iy < m_input_h_size ) {
-                                    for (index_t fx = 0; fx < 2; ++fx) {
-                                        index_t ix = x*2 + fx;
-                                        if ( ix < m_input_w_size ) {
-                                            float const *x_addr = (float const *)x_ptr.GetAddr(GetInputNode(c, iy, ix));
-                                            __m256 in_sig = _mm256_load_ps(&x_addr[frame]);
-                                            max_val = _mm256_max_ps(max_val, in_sig);
-                                        }
-                                    }
-                                }
-                            }
-                            _mm256_store_ps(&y_addr[frame], max_val);
-                        }
-                    }
-                }
-            }
-
-            return y_buf;
-        }
-#endif
-
         // 汎用版実装
         {
             auto x_ptr = x_buf.LockConst<FT>();
@@ -284,13 +206,13 @@ public:
                                     for (index_t fx = 0; fx < 2; ++fx) {
                                         index_t ix = x*2 + fx;
                                         if ( ix < m_input_w_size ) {
-                                            FT in_sig = x_ptr.Get(frame, {ix, iy, c});
+                                            FT in_sig = x_ptr.Get(frame, {c, iy, ix});
                                             out_sig *= ((BT)1.0 - (BT)in_sig);
                                         }
                                     }
                                 }
                             }
-                            y_ptr.Set(frame, {x, y, c}, (FT)((BT)1.0 - out_sig));
+                            y_ptr.Set(frame, {c, y, x}, (FT)((BT)1.0 - out_sig));
                         }
                     }
                 }
@@ -336,51 +258,6 @@ public:
         }
 #endif
 
-
-#if 0
-        if ( DataType<BT>::type == BB_TYPE_FP32 && DataType<FT>::type == BB_TYPE_FP32 ) {
-            // float用実装
-            index_t  m256_frame_size = dx_buf.GetFrameStride() / sizeof(float);
-
-            auto x_ptr  = x_buf.LockConst<FT>();
-            auto y_ptr  = y_buf.LockConst<FT>();
-            auto dy_ptr = dy_buf.LockConst<BT>();
-            auto dx_ptr = dx_buf.Lock<BT>(true);
-
-    #pragma omp parallel for
-            for (index_t n = 0; n < m_input_c_size; ++n) {
-                for (index_t y = 0; y < m_output_h_size; ++y) {
-                    for (index_t x = 0; x < m_output_w_size; ++x) {
-                        float const * y_addr  = (float const *)y_ptr.GetAddr(GetOutputNode(n, y, x));
-                        float const * dy_addr = (float const *)dy_ptr.GetAddr(GetOutputNode(n, y, x));
-
-                        for (index_t frame = 0; frame < m256_frame_size; frame += 8) {
-                            __m256 out_sig  = _mm256_load_ps(&y_addr[frame]);
-                            __m256 out_grad = _mm256_load_ps(&dy_addr[frame]);
-                            for (index_t fy = 0; fy < 2; ++fy) {
-                                index_t iy = y*2 + fy;
-                                if ( iy < m_input_h_size ) {
-                                    for (index_t fx = 0; fx < 2; ++fx) {
-                                        index_t ix = x*2 + fx;
-                                        if ( ix < m_input_w_size ) {
-                                            float const *x_addr  = (float const *)x_ptr.GetAddr(GetInputNode(n, iy, ix));
-                                            float       *dx_addr = (float       *)dx_ptr.GetAddr(GetInputNode(n, iy, ix));
-                                            __m256 in_sig  = _mm256_load_ps(&x_addr[frame]);
-                                            __m256 mask    = _mm256_cmp_ps(in_sig, out_sig, _CMP_EQ_OQ);
-                                            __m256 in_grad = _mm256_and_ps(mask, out_grad);
-                                            _mm256_store_ps(&dx_addr[frame], in_grad);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            return dx_buf;
-        }
-#endif
 
         // 汎用版実装
         {
