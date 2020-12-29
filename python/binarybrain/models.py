@@ -574,7 +574,7 @@ class DifferentiableLut(SparseModel):
                     name=None, N=6, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32):
         
         # 設定に応じて機能をパッキングしたモデルが使える場合は自動選択する
-        if not binarize and not batch_norm:
+        if False:
             # StochasticLut 演算のみ
             try:
                 core_creator = {
@@ -596,7 +596,7 @@ class DifferentiableLut(SparseModel):
 
             core_model  = core_creator(output_shape, connection, seed)
         
-        elif binarize:
+        elif True:
             # 条件が揃えば BatchNorm と 二値化を一括演算
             try:
                 core_creator = {
@@ -616,7 +616,7 @@ class DifferentiableLut(SparseModel):
             except KeyError:
                 raise TypeError("unsupported")
             
-            core_model = core_creator(output_shape, batch_norm, connection, momentum, gamma, beta, seed)
+            core_model = core_creator(output_shape, batch_norm, binarize, connection, momentum, gamma, beta, seed)
         
         else:
             # 個別演算

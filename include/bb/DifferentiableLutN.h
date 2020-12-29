@@ -71,6 +71,7 @@ public:
     {
         indices_t       output_shape;               //< 出力形状
         bool            batch_norm = true;
+        bool            binary     = true;
         std::string     connection;                 //< 結線ルール
         RealType        momentum   = (RealType)0.0;
         RealType        gamma      = (RealType)0.3;
@@ -86,6 +87,7 @@ protected:
         m_output_shape = create.output_shape;
         m_connection   = create.connection;
         m_batch_norm   = create.batch_norm;
+        m_binary_mode  = create.binary;
         m_momentum     = create.momentum;
         m_gamma        = create.gamma;
         m_beta         = create.beta;
@@ -170,9 +172,11 @@ public:
         return Create(create);
     }
 
-    static std::shared_ptr<DifferentiableLutN> CreateEx(
+#ifdef BB_PYBIND11
+    static std::shared_ptr<DifferentiableLutN> CreatePy(
                 indices_t const &output_shape,
                 bool            batch_norm = true,
+                bool            binary     = true,
                 std::string     connection = "",
                 double          momentum   = 0.0,
                 double          gamma      = 0.3,
@@ -182,6 +186,7 @@ public:
         create_t create;
         create.output_shape = output_shape;
         create.batch_norm   = batch_norm;
+        create.binary       = binary;
         create.connection   = connection;
         create.momentum     = (RealType)momentum;
         create.gamma        = (RealType)gamma;
@@ -189,6 +194,7 @@ public:
         create.seed         = seed;
         return Create(create);
     }
+#endif
 
     std::string GetClassName(void) const {
         return std::string("DifferentiableLut") + std::to_string(N);

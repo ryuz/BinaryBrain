@@ -615,22 +615,22 @@ PYBIND11_MODULE(core, m) {
 
     // DifferentiableLut
     py::class_< DifferentiableLut6_fp32, StochasticLutModel, std::shared_ptr<DifferentiableLut6_fp32> >(m, "DifferentiableLut6_fp32")
-        .def_static("create", &DifferentiableLut6_fp32::CreateEx, "create DifferentiableLut6_fp32");
+        .def_static("create", &DifferentiableLut6_fp32::CreatePy, "create DifferentiableLut6_fp32");
     py::class_< DifferentiableLut5_fp32, StochasticLutModel, std::shared_ptr<DifferentiableLut5_fp32> >(m, "DifferentiableLut5_fp32")
-        .def_static("create", &DifferentiableLut5_fp32::CreateEx, "create DifferentiableLut5_fp32");
+        .def_static("create", &DifferentiableLut5_fp32::CreatePy, "create DifferentiableLut5_fp32");
     py::class_< DifferentiableLut4_fp32, StochasticLutModel, std::shared_ptr<DifferentiableLut4_fp32> >(m, "DifferentiableLut4_fp32")
-        .def_static("create", &DifferentiableLut4_fp32::CreateEx, "create DifferentiableLut4_fp32");
+        .def_static("create", &DifferentiableLut4_fp32::CreatePy, "create DifferentiableLut4_fp32");
     py::class_< DifferentiableLut2_fp32, StochasticLutModel, std::shared_ptr<DifferentiableLut2_fp32> >(m, "DifferentiableLut2_fp32")
-        .def_static("create", &DifferentiableLut2_fp32::CreateEx, "create DifferentiableLut2_fp32");
+        .def_static("create", &DifferentiableLut2_fp32::CreatePy, "create DifferentiableLut2_fp32");
 
     py::class_< DifferentiableLut6_bit, StochasticLutModel, std::shared_ptr<DifferentiableLut6_bit> >(m, "DifferentiableLut6_bit")
-        .def_static("create", &DifferentiableLut6_bit::CreateEx, "create DifferentiableLut6_bit");
+        .def_static("create", &DifferentiableLut6_bit::CreatePy, "create DifferentiableLut6_bit");
     py::class_< DifferentiableLut5_bit, StochasticLutModel, std::shared_ptr<DifferentiableLut5_bit> >(m, "DifferentiableLut5_bit")
-        .def_static("create", &DifferentiableLut5_bit::CreateEx, "create DifferentiableLut5_bit");
+        .def_static("create", &DifferentiableLut5_bit::CreatePy, "create DifferentiableLut5_bit");
     py::class_< DifferentiableLut4_bit, StochasticLutModel, std::shared_ptr<DifferentiableLut4_bit> >(m, "DifferentiableLut4_bit")
-        .def_static("create", &DifferentiableLut4_bit::CreateEx, "create DifferentiableLut4_bit");
+        .def_static("create", &DifferentiableLut4_bit::CreatePy, "create DifferentiableLut4_bit");
     py::class_< DifferentiableLut2_bit, StochasticLutModel, std::shared_ptr<DifferentiableLut2_bit> >(m, "DifferentiableLut2_bit")
-        .def_static("create", &DifferentiableLut2_bit::CreateEx, "create DifferentiableLut2_bit");
+        .def_static("create", &DifferentiableLut2_bit::CreatePy, "create DifferentiableLut2_bit");
 
    // DifferentiableLutDiscrete
     py::class_< DifferentiableLutDiscrete6_fp32, StochasticLutModel, std::shared_ptr<DifferentiableLutDiscrete6_fp32> >(m, "DifferentiableLutDiscrete6_fp32")
