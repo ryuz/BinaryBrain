@@ -133,7 +133,9 @@ public:
         std::cout << "Out of memory error (devide : " << bbcu_GetDevice() << ")" << std::endl;
         BBCU_ASSERT(0);
 
+#if !defined(BB_ASSERT_EXCEPTION)
         return nullptr;
+#endif
     }
 
 
