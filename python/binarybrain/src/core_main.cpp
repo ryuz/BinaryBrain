@@ -221,8 +221,8 @@ using TrainData                         = bb::TrainData<float>;
 using LoadMnist                         = bb::LoadMnist<float>;
 using LoadCifar10                       = bb::LoadCifar10<float>;
 
-using RunStatus                         = bb::RunStatus;
-using Runner                            = bb::Runner<float>;
+//using RunStatus                         = bb::RunStatus;
+//using Runner                            = bb::Runner<float>;
 
 
 
@@ -853,25 +853,7 @@ PYBIND11_MODULE(core, m) {
             py::arg("beta1")         = 0.9f,
             py::arg("beta2")         = 0.999f); 
     
-    
-    // ValueGenerator
-    py::class_< ValueGenerator, std::shared_ptr<ValueGenerator> >(m, "ValueGenerator");
-    
-    py::class_< NormalDistributionGenerator, ValueGenerator, std::shared_ptr<NormalDistributionGenerator> >(m, "NormalDistributionGenerator")
-        .def_static("create", &NormalDistributionGenerator::Create,
-            py::arg("mean")   = 0.0f,
-            py::arg("stddev") = 1.0f,
-            py::arg("seed")   = 1);
-    
-    py::class_< UniformDistributionGenerator, ValueGenerator, std::shared_ptr<UniformDistributionGenerator> >(m, "UniformDistributionGenerator")
-        .def_static("Create", &UniformDistributionGenerator::Create,
-            py::arg("a")    = 0.0f,
-            py::arg("b")    = 1.0f,
-            py::arg("seed") = 1);
-    
-
-
-    
+        
     // ValueGenerator
     py::class_< ValueGenerator, std::shared_ptr<ValueGenerator> >(m, "ValueGenerator");
     
@@ -910,7 +892,7 @@ PYBIND11_MODULE(core, m) {
         .def_static("load", &LoadCifar10::Load,
             py::arg("num") = 5);
 
-    
+    /*
     // RunStatus
     py::class_< RunStatus >(m, "RunStatus")
         .def_static("WriteJson", &RunStatus::WriteJson)
@@ -940,7 +922,7 @@ PYBIND11_MODULE(core, m) {
             py::arg("td"),
             py::arg("epoch_size"),
             py::arg("batch_size"));
-
+    */
 
 
     // ------------------------------------

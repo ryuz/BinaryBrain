@@ -26,11 +26,11 @@ def omp_set_num_threads(threads: int):
     core.omp_set_num_threads(threads)
 
 
-def is_host_only():
-    """ホスト(CPU)のみで、デバイス(GPU)未使用かの確認
+def is_device_available():
+    """デバイス(GPU)が有効かの確認
 
     Returns:
-        host_only (bool) : ホストのみの場合 True を返す
+        device_available (bool) : デバイス(GPU)が利用可能なら True を返す
     """
     return core.Manager.is_device_available()
 
@@ -61,9 +61,16 @@ def set_device(device_id):
     """
     core.set_device(device_id)
 
-def get_device_properties_string():
+def get_device_properties_string(device_id):
     """現在のデバイス(GPU)の情報を入れた文字列を取得
+
+    Args:
+        device_id (int) : 情報を取得するデバイス番号を指定
 
     Returns:
         device_properties_string (str) : 現在のデバイス(GPU)の情報を入れた文字列を返す
     """
+    return core.get_device_properties_string(device_id)
+
+
+

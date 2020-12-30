@@ -144,7 +144,6 @@ inline void OutputDeviceProperties(std::ostream& os, int device=0)
     cudaDeviceProp dev_prop;
     BB_CUDA_SAFE_CALL(cudaGetDeviceProperties(&dev_prop, device));
  
-    os << std::endl;
     os << "name                     : " << dev_prop.name                     << std::endl;
     os << "totalGlobalMem           : " << dev_prop.totalGlobalMem           << std::endl;
     os << "sharedMemPerBlock        : " << dev_prop.sharedMemPerBlock        << std::endl;
@@ -169,13 +168,14 @@ inline void OutputDeviceProperties(std::ostream& os, int device=0)
     os << "integrated               : " << dev_prop.integrated               << std::endl;
     os << "canMapHostMemory         : " << dev_prop.canMapHostMemory         << std::endl;
     os << "computeMode              : " << dev_prop.computeMode              << std::endl;
-    os << std::endl;
 }
 
 
 inline void PrintDeviceProperties(int device = 0)
 {
+    os << std::endl;
     OutputDeviceProperties(std::cout, device);
+    os << std::endl;
 }
 
 
