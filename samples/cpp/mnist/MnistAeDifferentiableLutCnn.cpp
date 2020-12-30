@@ -39,7 +39,7 @@ static void WritePgm(std::string fname, bb::FrameBuffer buf, int frame)
 template < typename T=float, class ModelType=bb::DifferentiableLutN<6, T> >
 void MnistAeDifferentiableLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "MnistAeDifferentiableLutCnn";
+    std::string net_name       = "MnistAeDifferentiableLutCnn";
 
   // load MNIST data
 #ifdef _DEBUG

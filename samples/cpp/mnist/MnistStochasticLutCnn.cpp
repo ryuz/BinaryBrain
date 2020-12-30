@@ -26,7 +26,9 @@
 
 void MnistStochasticLutCnn(int epoch_size, int mini_batch_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "MnistStochasticLutCnn";
+    std::string net_name       = "MnistStochasticLutCnn";
+    std::string velilog_path   = "../../verilog/mnist/";
+    std::string velilog_module = "MnistLutCnn";
 
   // load MNIST data
 #ifdef _DEBUG
@@ -270,17 +272,17 @@ void MnistStochasticLutCnn(int epoch_size, int mini_batch_size, int test_modulat
             vec_cnv1.push_back(pol1);
             vec_cnv2.push_back(cnv4);
 
-            std::string filename = "verilog/" + net_name + "_2.v";
+            std::string filename = velilog_path + velilog_module + "_2.v";
             std::ofstream ofs(filename);
             ofs << "`timescale 1ns / 1ps\n\n";
-            bb::ExportVerilog_LutCnnLayersAxi4s(ofs, net_name + "Cnv0", vec_cnv0);
-            bb::ExportVerilog_LutCnnLayersAxi4s(ofs, net_name + "Cnv1", vec_cnv1);
-            bb::ExportVerilog_LutCnnLayersAxi4s(ofs, net_name + "Cnv2", vec_cnv2);
+            bb::ExportVerilog_LutCnnLayersAxi4s(ofs, velilog_module + "Cnv0", vec_cnv0);
+            bb::ExportVerilog_LutCnnLayersAxi4s(ofs, velilog_module + "Cnv1", vec_cnv1);
+            bb::ExportVerilog_LutCnnLayersAxi4s(ofs, velilog_module + "Cnv2", vec_cnv2);
             std::cout << "export : " << filename << "\n" << std::endl;
             
             // write test image
-            bb::WriteTestDataImage<float>("verilog/mnist_test_160x120.ppm", 160, 120, td);
-            bb::WriteTestDataImage<float>("verilog/mnist_test_640x480.ppm", 640, 480, td);
+            bb::WriteTestDataImage<float>(velilog_path + "mnist_test_160x120.ppm", 160, 120, td);
+            bb::WriteTestDataImage<float>(velilog_path + "mnist_test_640x480.ppm", 640, 480, td);
         }
     }
 }

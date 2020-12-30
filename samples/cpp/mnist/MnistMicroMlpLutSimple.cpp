@@ -23,7 +23,9 @@
 
 void MnistMicroMlpLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "MnistMicroMlpLutSimple";
+    std::string net_name       = "MnistMicroMlpLutSimple";
+    std::string velilog_path   = "../../verilog/mnist/";
+    std::string velilog_module = "MnistLutSimple";
 
   // load MNIST data
 #ifdef _DEBUG
@@ -34,7 +36,7 @@ void MnistMicroMlpLutSimple(int epoch_size, int mini_batch_size, int train_modul
 #endif
 
     auto layer_mm0 = bb::MicroMlp<6, 16, float>::Create(1024);
-    auto layer_mm1 = bb::MicroMlp<6, 16, float>::Create(480);
+    auto layer_mm1 = bb::MicroMlp<6, 16, float>::Create(420);
     auto layer_mm2 = bb::MicroMlp<6, 16, float>::Create(70);
 
     {
@@ -135,14 +137,14 @@ void MnistMicroMlpLutSimple(int epoch_size, int mini_batch_size, int train_modul
 
         {
             // Verilog 出力
-            std::string filename = "verilog/" + net_name + ".v";
+            std::string filename = velilog_path + velilog_module + ".v";
             std::ofstream ofs(filename);
             ofs << "`timescale 1ns / 1ps\n\n";
-            bb::ExportVerilog_LutModels(ofs, net_name, lut_net);
+            bb::ExportVerilog_LutModels(ofs, velilog_module, lut_net);
             std::cout << "export : " << filename << "\n" << std::endl;
 
             // RTL simulation 用データの出力
-            bb::WriteTestDataBinTextFile<float>("verilog/mnist_train.txt", "verilog/mnist_test.txt", td);
+            bb::WriteTestDataBinTextFile<float>(velilog_path + "mnist_train.txt", velilog_path + "mnist_test.txt", td);
         }
     }
 }
