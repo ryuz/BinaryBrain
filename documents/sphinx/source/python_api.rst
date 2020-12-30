@@ -28,4 +28,5 @@ binarybarin には以下のモジュールが含まれています。
    python_module_metrics
    python_module_storage
    python_module_verilog
+   python_module_system
 

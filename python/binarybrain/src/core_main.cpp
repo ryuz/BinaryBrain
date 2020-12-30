@@ -1,7 +1,7 @@
 // --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
-//                                Copyright (C) 2018-2019 by Ryuji Fuchikami
+//                                Copyright (C) 2018-2020 by Ryuji Fuchikami
 //                                https://github.com/ryuz
 //                                ryuji.fuchikami@nifty.com
 // --------------------------------------------------------------------------
@@ -25,13 +25,19 @@
 #include "bb/FrameBuffer.h"
 #include "bb/Variables.h"
 
+#include "bb/RealToBinary.h"
+#include "bb/BinaryToReal.h"
+#include "bb/BinaryModulation.h"
+#include "bb/BitEncode.h"
+#include "bb/Reduce.h"
+
 #include "bb/Sequential.h"
 #include "bb/DenseAffine.h"
 #include "bb/DepthwiseDenseAffine.h"
 #include "bb/DifferentiableLutN.h"
 #include "bb/DifferentiableLutDiscreteN.h"
+#include "bb/MicroMlp.h"
 #include "bb/BinaryLutN.h"
-#include "bb/Reduce.h"
 
 #include "bb/Convolution2d.h"
 #include "bb/MaxPooling.h"
@@ -39,17 +45,15 @@
 #include "bb/StochasticMaxPooling2x2.h"
 #include "bb/UpSampling.h"
 
-#include "bb/Shuffle.h"
-#include "bb/BitEncode.h"
-#include "bb/RealToBinary.h"
-#include "bb/BinaryToReal.h"
-#include "bb/BinaryModulation.h"
+#include "bb/Binarize.h"
 #include "bb/Sigmoid.h"
 #include "bb/ReLU.h"
 #include "bb/HardTanh.h"
-#include "bb/Dropout.h"
+
 #include "bb/BatchNormalization.h"
 #include "bb/StochasticBatchNormalization.h"
+#include "bb/Dropout.h"
+#include "bb/Shuffle.h"
 
 #include "bb/LossFunction.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
@@ -64,6 +68,9 @@
 #include "bb/OptimizerAdam.h"
 #include "bb/OptimizerAdaGrad.h"
 
+#include "bb/ExportVerilog.h"
+
+
 #include "bb/ValueGenerator.h"
 #include "bb/NormalDistributionGenerator.h"
 #include "bb/UniformDistributionGenerator.h"
@@ -71,7 +78,8 @@
 #include "bb/Runner.h"
 #include "bb/LoadMnist.h"
 #include "bb/LoadCifar10.h"
-#include "bb/ExportVerilog.h"
+
+
 
 #ifdef BB_WITH_CUDA
 #include "bbcu/bbcu.h"
@@ -79,22 +87,40 @@
 #endif
 
 
+
 // ---------------------------------
 //  type definition
 // ---------------------------------
 
+
+// container
 using Tensor                            = bb::Tensor;
 using FrameBuffer                       = bb::FrameBuffer;
 using Variables                         = bb::Variables;
-                                        
+
+
+// model
 using Model                             = bb::Model;
-using SparseModel                       = bb::SparseModel;
 using Sequential                        = bb::Sequential;
+
+using BinaryModulation_fp32             = bb::BinaryModulation<float, float>;
+using BinaryModulation_bit              = bb::BinaryModulation<bb::Bit, float>;
+using RealToBinary_fp32                 = bb::RealToBinary<float, float>;
+using RealToBinary_bit                  = bb::RealToBinary<bb::Bit, float>;
+using BinaryToReal_fp32                 = bb::BinaryToReal<float, float>;
+using BinaryToReal_bit                  = bb::BinaryToReal<bb::Bit, float>;
+using BitEncode_fp32                    = bb::BitEncode<float, float>;
+using BitEncode_bit                     = bb::BitEncode<bb::Bit, float>;
+using Reduce_fp32                       = bb::Reduce<float, float>; 
+using Reduce_bit                        = bb::Reduce<bb::Bit, float>; 
+
 using DenseAffine                       = bb::DenseAffine<float>;
 using DepthwiseDenseAffine              = bb::DepthwiseDenseAffine<float>;
 
+using SparseModel                       = bb::SparseModel;
+
 using BinaryLutModel                    = bb::BinaryLutModel;
-                                        
+                                       
 using BinaryLut2_fp32                   = bb::BinaryLutN<2, float, float>;
 using BinaryLut2_bit                    = bb::BinaryLutN<2, bb::Bit, float>;
 using BinaryLut4_fp32                   = bb::BinaryLutN<4, float, float>;
@@ -132,31 +158,32 @@ using DifferentiableLutDiscrete5_fp32   = bb::DifferentiableLutDiscreteN<5, floa
 using DifferentiableLutDiscrete5_bit    = bb::DifferentiableLutDiscreteN<5, bb::Bit, float>;
 using DifferentiableLutDiscrete6_fp32   = bb::DifferentiableLutDiscreteN<6, float, float>;
 using DifferentiableLutDiscrete6_bit    = bb::DifferentiableLutDiscreteN<6, bb::Bit, float>;
+                                     
+using MicroMlp4_16_fp32                 = bb::MicroMlp<4, 16, float, float>;
+using MicroMlp4_16_bit                  = bb::MicroMlp<4, 16, bb::Bit, float>;
+using MicroMlp5_16_fp32                 = bb::MicroMlp<5, 16, float, float>;
+using MicroMlp5_16_bit                  = bb::MicroMlp<5, 16, bb::Bit, float>;
+using MicroMlp6_16_fp32                 = bb::MicroMlp<6, 16, float, float>;
+using MicroMlp6_16_bit                  = bb::MicroMlp<6, 16, bb::Bit, float>;
 
-using BinaryModulation_fp32             = bb::BinaryModulation<float, float>;
-using BinaryModulation_bit              = bb::BinaryModulation<bb::Bit, float>;
-using RealToBinary_fp32                 = bb::RealToBinary<float, float>;
-using RealToBinary_bit                  = bb::RealToBinary<bb::Bit, float>;
-using BinaryToReal_fp32                 = bb::BinaryToReal<float, float>;
-using BinaryToReal_bit                  = bb::BinaryToReal<bb::Bit, float>;
-using BitEncode_fp32                    = bb::BitEncode<float, float>;
-using BitEncode_bit                     = bb::BitEncode<bb::Bit, float>;
-using Reduce_fp32                       = bb::Reduce<float, float>; 
-using Reduce_bit                        = bb::Reduce<bb::Bit, float>; 
-                                        
+
 using Filter2d                          = bb::Filter2d;
+
 using ConvolutionCol2Im_fp32            = bb::ConvolutionCol2Im <float, float>;
 using ConvolutionCol2Im_bit             = bb::ConvolutionCol2Im <bb::Bit, float>;
 using ConvolutionIm2Col_fp32            = bb::ConvolutionIm2Col <float, float>;
 using ConvolutionIm2Col_bit             = bb::ConvolutionIm2Col <bb::Bit, float>;
 using Convolution2d_fp32                = bb::Convolution2d<float, float>;
 using Convolution2d_bit                 = bb::Convolution2d<bb::Bit, float>;
+
 using MaxPooling_fp32                   = bb::MaxPooling<float, float>;
 using MaxPooling_bit                    = bb::MaxPooling<bb::Bit, float>;
+
 using StochasticMaxPooling_fp32         = bb::StochasticMaxPooling<float, float>;
 using StochasticMaxPooling_bit          = bb::StochasticMaxPooling<bb::Bit, float>;
 using StochasticMaxPooling2x2_fp32      = bb::StochasticMaxPooling2x2<float, float>;
 using StochasticMaxPooling2x2_bit       = bb::StochasticMaxPooling2x2<bb::Bit, float>;
+
 using UpSampling_fp32                   = bb::UpSampling<float, float>;
 using UpSampling_bit                    = bb::UpSampling<bb::Bit, float>;
 
@@ -167,10 +194,10 @@ using Sigmoid                           = bb::Sigmoid<float>;
 using ReLU                              = bb::ReLU<float, float>;
 using HardTanh                          = bb::HardTanh<float, float>;
 
-using Dropout_fp32                      = bb::Dropout<float, float>;
-using Dropout_bit                       = bb::Dropout<bb::Bit, float>;
 using BatchNormalization                = bb::BatchNormalization<float>;
 using StochasticBatchNormalization      = bb::StochasticBatchNormalization<float>;
+using Dropout_fp32                      = bb::Dropout<float, float>;
+using Dropout_bit                       = bb::Dropout<bb::Bit, float>;
 using Shuffle                           = bb::Shuffle;
                                         
 using LossFunction                      = bb::LossFunction;
@@ -189,6 +216,14 @@ using OptimizerAdaGrad                  = bb::OptimizerAdaGrad<float>;
 using ValueGenerator                    = bb::ValueGenerator<float>;
 using NormalDistributionGenerator       = bb::NormalDistributionGenerator<float>;
 using UniformDistributionGenerator      = bb::UniformDistributionGenerator<float>;
+
+using TrainData                         = bb::TrainData<float>;
+using LoadMnist                         = bb::LoadMnist<float>;
+using LoadCifar10                       = bb::LoadCifar10<float>;
+
+using RunStatus                         = bb::RunStatus;
+using Runner                            = bb::Runner<float>;
+
 
 
 // ---------------------------------
@@ -269,13 +304,14 @@ PYBIND11_MODULE(core, m) {
     m.attr("TYPE_UINT32") = BB_TYPE_UINT32;
     m.attr("TYPE_UINT64") = BB_TYPE_UINT64;
 
+    /*
     m.attr("BB_BORDER_CONSTANT")    = BB_BORDER_CONSTANT;
     m.attr("BB_BORDER_CONSTANT")    = BB_BORDER_CONSTANT;
     m.attr("BB_BORDER_REFLECT")     = BB_BORDER_REFLECT;
     m.attr("BB_BORDER_REFLECT_101") = BB_BORDER_REFLECT_101;
     m.attr("BB_BORDER_REPLICATE")   = BB_BORDER_REPLICATE;
     m.attr("BB_BORDER_WRAP")        = BB_BORDER_WRAP;
-
+    */
     
     m.def("dtype_get_bit_size", &bb::DataType_GetBitSize);
     m.def("dtype_get_byte_size", &bb::DataType_GetByteSize);
@@ -563,7 +599,7 @@ PYBIND11_MODULE(core, m) {
         .def("get_lut_table", &SparseModel::GetLutTable)
         ;
 
-
+    // BinaryLUT
     py::class_< BinaryLutModel, SparseModel, std::shared_ptr<BinaryLutModel> >(m, "BinaryLutModel")
         .def("get_lut_table_size", &BinaryLutModel::GetLutTableSize)
         .def("get_lut_table", &BinaryLutModel::GetLutTable)
@@ -651,6 +687,20 @@ PYBIND11_MODULE(core, m) {
     py::class_< DifferentiableLutDiscrete2_bit, StochasticLutModel, std::shared_ptr<DifferentiableLutDiscrete2_bit> >(m, "DifferentiableLutDiscrete2_bit")
         .def_static("create", &DifferentiableLutDiscrete2_bit::CreatePy, "create DifferentiableLutDiscrete2_bit");
 
+    // MicroMlp
+    py::class_< MicroMlp6_16_fp32, SparseModel, std::shared_ptr<MicroMlp6_16_fp32> >(m, "MicroMlp6_16_fp32")
+        .def_static("create", &MicroMlp6_16_fp32::CreatePy, "create MicroMlp6_16_fp32");
+    py::class_< MicroMlp5_16_fp32, SparseModel, std::shared_ptr<MicroMlp5_16_fp32> >(m, "MicroMlp5_16_fp32")
+        .def_static("create", &MicroMlp5_16_fp32::CreatePy, "create MicroMlp5_16_fp32");
+    py::class_< MicroMlp4_16_fp32, SparseModel, std::shared_ptr<MicroMlp4_16_fp32> >(m, "MicroMlp4_16_fp32")
+        .def_static("create", &MicroMlp4_16_fp32::CreatePy, "create MicroMlp4_16_fp32");
+
+    py::class_< MicroMlp6_16_bit, SparseModel, std::shared_ptr<MicroMlp6_16_bit> >(m, "MicroMlp6_16_bit")
+        .def_static("create", &MicroMlp6_16_bit::CreatePy, "create MicroMlp6_16_bit");
+    py::class_< MicroMlp5_16_bit, SparseModel, std::shared_ptr<MicroMlp5_16_bit> >(m, "MicroMlp5_16_bit")
+        .def_static("create", &MicroMlp5_16_bit::CreatePy, "create MicroMlp5_16_bit");
+    py::class_< MicroMlp4_16_bit, SparseModel, std::shared_ptr<MicroMlp4_16_bit> >(m, "MicroMlp4_16_bit")
+        .def_static("create", &MicroMlp4_16_bit::CreatePy, "create MicroMlp4_16_bit");
 
 
     // filter
@@ -820,498 +870,8 @@ PYBIND11_MODULE(core, m) {
             py::arg("seed") = 1);
     
 
-    // ------------------------------------
-    //  Others
-    // ------------------------------------
-
-    // version
-    m.def("get_version", &bb::GetVersionString);
-
-    // verilog
-    m.def("make_verilog_lut_layers",     &MakeVerilog_LutLayers);
-    m.def("make_verilog_lut_cnv_layers", &MakeVerilog_LutConvLayers);
-
-    // OpenMP
-    m.def("omp_set_num_threads", &omp_set_num_threads);
-
-    // CUDA device
-    m.def("get_device_count",      &GetDeviceCount);
-    m.def("set_device",            &SetDevice,                 py::arg("device") = 0);
-    m.def("get_device_properties", &GetDevicePropertiesString, py::arg("device") = 0);
-}
-
-
-
-
-
-
-#if 0
-
-
-
-
-//////////////////////////////////////]
-// PyBind11 module
-//////////////////////////////////////]
-
-namespace py = pybind11;
-PYBIND11_MODULE(core, m) {
-    m.doc() = "BinaryBrain ver " + bb::GetVersionString();
-
-    m.attr("__version__") = py::cast(BB_VERSION);
-
-    m.attr("TYPE_BIT")    = BB_TYPE_BIT;
-    m.attr("TYPE_BINARY") = BB_TYPE_BINARY;
-    m.attr("TYPE_FP16")   = BB_TYPE_FP16;
-    m.attr("TYPE_FP32")   = BB_TYPE_FP32;
-    m.attr("TYPE_FP64")   = BB_TYPE_FP64;
-    m.attr("TYPE_INT8")   = BB_TYPE_INT8;
-    m.attr("TYPE_INT16")  = BB_TYPE_INT16;
-    m.attr("TYPE_INT32")  = BB_TYPE_INT32;
-    m.attr("TYPE_INT64")  = BB_TYPE_INT64;
-    m.attr("TYPE_UINT8")  = BB_TYPE_UINT8;
-    m.attr("TYPE_UINT16") = BB_TYPE_UINT16;
-    m.attr("TYPE_UINT32") = BB_TYPE_UINT32;
-    m.attr("TYPE_UINT64") = BB_TYPE_UINT64;
-
-    m.attr("BB_BORDER_CONSTANT")    = BB_BORDER_CONSTANT;
-    m.attr("BB_BORDER_CONSTANT")    = BB_BORDER_CONSTANT;
-    m.attr("BB_BORDER_REFLECT")     = BB_BORDER_REFLECT;
-    m.attr("BB_BORDER_REFLECT_101") = BB_BORDER_REFLECT_101;
-    m.attr("BB_BORDER_REPLICATE")   = BB_BORDER_REPLICATE;
-    m.attr("BB_BORDER_WRAP")        = BB_BORDER_WRAP;
-
-
-    // Tensor
-    py::class_< Tensor >(m, "Tensor")
-        .def(py::init< bb::indices_t, int, bool >(),
-            py::arg("shape"),
-            py::arg("type")=BB_TYPE_FP32,
-            py::arg("host_only")=false)
-        .def("get_type", &Tensor::GetType, doc__Tensor__get_type)
-        .def("get_shape", &Tensor::GetShape, doc__Tensor__get_shape)
-        .def("set_data", &Tensor::SetData<float>, doc__Tensor__set_data)
-        .def("get_data", &Tensor::GetData<float>, doc__Tensor__get_data)
-        .def("set_data_int32", &Tensor::SetData<int>, doc__Tensor__set_data_int32)
-        .def("get_data_int32", &Tensor::GetData<int>, doc__Tensor__get_data_int32)
-        .def("numpy_int8",   &Tensor::Numpy<std::int8_t>)
-        .def("numpy_int16",  &Tensor::Numpy<std::int16_t>)
-        .def("numpy_int32",  &Tensor::Numpy<std::int32_t>)
-        .def("numpy_int64",  &Tensor::Numpy<std::int64_t>)
-        .def("numpy_uint8",  &Tensor::Numpy<std::int8_t>)
-        .def("numpy_uint16", &Tensor::Numpy<std::uint16_t>)
-        .def("numpy_uint32", &Tensor::Numpy<std::uint32_t>)
-        .def("numpy_uint64", &Tensor::Numpy<std::uint64_t>)
-        .def("numpy_fp32",   &Tensor::Numpy<float>)
-        .def("numpy_fp64",   &Tensor::Numpy<double>)
-        .def_static("from_numpy_int8",   &Tensor::FromNumpy<std::int8_t>)
-        .def_static("from_numpy_int16",  &Tensor::FromNumpy<std::int16_t>)
-        .def_static("from_numpy_int32",  &Tensor::FromNumpy<std::int32_t>)
-        .def_static("from_numpy_int64",  &Tensor::FromNumpy<std::int64_t>)
-        .def_static("from_numpy_uint8",  &Tensor::FromNumpy<std::uint8_t>)
-        .def_static("from_numpy_uint16", &Tensor::FromNumpy<std::uint16_t>)
-        .def_static("from_numpy_uint32", &Tensor::FromNumpy<std::uint32_t>)
-        .def_static("from_numpy_uint64", &Tensor::FromNumpy<std::uint64_t>)
-        .def_static("from_numpy_fp32",   &Tensor::FromNumpy<float>)
-        .def_static("from_numpy_fp64",   &Tensor::FromNumpy<double>)
-        ;
-
-
-    // FrameBuffer
-    py::class_< FrameBuffer >(m, "FrameBuffer")
-        .def(py::init< bb::index_t, bb::indices_t, int, bool>(), doc__FrameBuffer__init,
-            py::arg("frame_size") = 0,
-            py::arg("shape") = bb::indices_t(),
-            py::arg("data_type") = 0,
-            py::arg("host_only") = false)
-        .def("resize",  (void (FrameBuffer::*)(bb::index_t, bb::indices_t, int))&bb::FrameBuffer::Resize, doc__FrameBuffer__resize,
-                "resize",
-                py::arg("frame_size"),
-                py::arg("shape"),
-                py::arg("data_type") = BB_TYPE_FP32)
-        .def("get_type", &FrameBuffer::GetType, doc__FrameBuffer_get_type)
-        .def("get_frame_size", &FrameBuffer::GetFrameSize)
-        .def("get_node_size", &FrameBuffer::GetNodeSize)
-        .def("get_node_shape", &FrameBuffer::GetShape)
-        .def("range", &FrameBuffer::Range)
-        .def("concatenate", &FrameBuffer::Concatenate)
-
-        .def("set_data", &FrameBuffer::SetData<float>,
-R"(set data to frames
-
-    set data to frames
-
-Args:
-    data(List[List[float]]): data
-    offset(int): offset
-)",
-                py::arg("data"),
-                py::arg("offset") = 0)
-
-        .def("get_data", &FrameBuffer::GetData<float>,
-R"(get data from frames
-
-    set data to frames
-
-Args:
-    size(int): size (If you specify 0 or less, it will be the size to the end)
-    offset(int): offset
-)",
-                py::arg("size") = 0,
-                py::arg("offset") = 0);
-
-
-    // Variables
-    py::class_< Variables, std::shared_ptr<Variables> >(m, "Variables");
-
-
-
-    // ------------------------------------
-    //  Models
-    // ------------------------------------
-    
-    // model
-    py::class_< Model, std::shared_ptr<Model> >(m, "Model")
-        .def("get_name", &Model::GetName)
-        .def("get_class_name", &Model::GetClassName)
-        .def("get_info", &Model::GetInfoString, doc__Model_get_info,
-                py::arg("depth")    = 0,
-                py::arg("columns")  = 70,
-                py::arg("nest")     = 0)
-        .def("get_input_shape", &Model::GetInputShape)
-        .def("set_input_shape", &Model::SetInputShape)
-        .def("get_output_shape", &Model::GetOutputShape)
-        .def("get_input_node_size", &Model::GetInputNodeSize)
-        .def("get_output_node_size", &Model::GetOutputNodeSize)
-        .def("get_parameters", &Model::GetParameters)
-        .def("get_gradients", &Model::GetGradients)
-        .def("forward_node",  &Model::ForwardNode)
-        .def("forward",  &Model::Forward, "Forward",
-                py::arg("x_buf"),
-                py::arg("train") = true)
-        .def("backward", &Model::Backward, "Backward")
-        .def("send_command",  &Model::SendCommand, "SendCommand",
-                py::arg("command"),
-                py::arg("send_to") = "all")
-        .def("backward", &Model::Backward, "Backward")
-        .def("save_binary", &Model::SaveBinary)
-        .def("load_binary", &Model::LoadBinary)
-        .def("save_json", &Model::SaveJson)
-        .def("load_json", &Model::LoadJson);
-    
-    // DenseAffine
-    py::class_< DenseAffine, Model, std::shared_ptr<DenseAffine> >(m, "DenseAffine")
-        .def_static("create",   &DenseAffine::CreateEx, "create",
-            py::arg("output_shape"),
-            py::arg("initialize_std") = 0.01f,
-            py::arg("initializer")    = "he",
-            py::arg("seed")           = 1)
-        .def("W", ((Tensor& (DenseAffine::*)())&DenseAffine::W))
-        .def("b", ((Tensor& (DenseAffine::*)())&DenseAffine::b))
-        .def("dW", ((Tensor& (DenseAffine::*)())&DenseAffine::dW))
-        .def("db", ((Tensor& (DenseAffine::*)())&DenseAffine::db));
-    
-    // DepthwiseDenseAffine
-    py::class_< DepthwiseDenseAffine, Model, std::shared_ptr<DepthwiseDenseAffine> >(m, "DepthwiseDenseAffine")
-        .def_static("create",   &DepthwiseDenseAffine::CreateEx, "create",
-            py::arg("output_shape"),
-            py::arg("input_point_size")=0,
-            py::arg("depth_size")=0,
-            py::arg("initialize_std") = 0.01f,
-            py::arg("initializer")    = "he",
-            py::arg("seed")           = 1)
-        .def("W", ((Tensor& (DepthwiseDenseAffine::*)())&DepthwiseDenseAffine::W))
-        .def("b", ((Tensor& (DepthwiseDenseAffine::*)())&DepthwiseDenseAffine::b))
-        .def("dW", ((Tensor& (DepthwiseDenseAffine::*)())&DepthwiseDenseAffine::dW))
-        .def("db", ((Tensor& (DepthwiseDenseAffine::*)())&DepthwiseDenseAffine::db));
-
-    // SparseModel
-    py::class_< SparseModel, Model, std::shared_ptr<SparseModel> >(m, "SparseModel")
-         .def("get_connection_size", &SparseModel::GetConnectionSize)
-         .def("set_connection", &SparseModel::SetConnectionIndices)
-         .def("get_connection", &SparseModel::GetConnectionIndices)
-         .def("set_connection_index", &SparseModel::SetConnectionIndex)
-         .def("get_connection_index", &SparseModel::GetConnectionIndex)
-         .def("get_node_connection_size", &SparseModel::GetNodeConnectionSize)
-         .def("set_node_connection_index", &SparseModel::SetNodeConnectionIndex)
-         .def("get_node_connection_index", &SparseModel::GetNodeConnectionIndex);
-
-
-    py::class_< LutModel, SparseModel, std::shared_ptr<LutModel> >(m, "LutModel")
-        .def("import_parameter", &LutModel::ImportLayer);
-
-    py::class_< LutModelBit, SparseModel, std::shared_ptr<LutModelBit> >(m, "LutModelBit")
-        .def("import_parameter", &LutModelBit::ImportLayer);
-       
-    py::class_< Sequential, Model, std::shared_ptr<Sequential> >(m, "Sequential")
-        .def_static("create",   &Sequential::Create)
-        .def("add",             &Sequential::Add);
-
-    py::class_< Reduce, Model, std::shared_ptr<Reduce> >(m, "Reduce")
-        .def_static("create",   &Reduce::CreateEx);
-
-    py::class_< BinaryModulation, Model, std::shared_ptr<BinaryModulation> >(m, "BinaryModulation")
-        .def_static("create", &BinaryModulation::CreateEx,
-                py::arg("layer"),
-                py::arg("output_shape")              = bb::indices_t(),
-                py::arg("depth_modulation_size")     = 1,
-                py::arg("training_modulation_size")  = 1,
-                py::arg("training_value_generator")  = nullptr,
-                py::arg("training_framewise")        = true,
-                py::arg("training_input_range_lo")   = 0.0f,
-                py::arg("training_input_range_hi")   = 1.0f,
-                py::arg("inference_modulation_size") = -1,
-                py::arg("inference_value_generator") = nullptr,
-                py::arg("inference_framewise")       = true,
-                py::arg("inference_input_range_lo")  = 0.0f,
-                py::arg("inference_input_range_hi")  = 1.0f);
-
-    py::class_< BinaryModulationBit, Model, std::shared_ptr<BinaryModulationBit> >(m, "BinaryModulationBit")
-        .def_static("create", &BinaryModulationBit::CreateEx,
-                py::arg("layer"),
-                py::arg("output_shape")              = bb::indices_t(),
-                py::arg("depth_modulation_size")     = 1,
-                py::arg("training_modulation_size")  = 1,
-                py::arg("training_value_generator")  = nullptr,
-                py::arg("training_framewise")        = true,
-                py::arg("training_input_range_lo")   = 0.0f,
-                py::arg("training_input_range_hi")   = 1.0f,
-                py::arg("inference_modulation_size") = -1,
-                py::arg("inference_value_generator") = nullptr,
-                py::arg("inference_framewise")       = true,
-                py::arg("inference_input_range_lo")  = 0.0f,
-                py::arg("inference_input_range_hi")  = 1.0f);
-
-    py::class_< RealToBinary, Model, std::shared_ptr<RealToBinary> >(m, "RealToBinary")
-        .def_static("create", &RealToBinary::CreateEx,
-                py::arg("frame_modulation_size") = 1,
-                py::arg("depth_modulation_size") = 1,
-                py::arg("value_generator")  = nullptr,
-                py::arg("framewise")        = false,
-                py::arg("input_range_lo")   = 0.0f,
-                py::arg("input_range_hi")   = 1.0f);
-
-    py::class_< RealToBinaryBit, Model, std::shared_ptr<RealToBinaryBit> >(m, "RealToBinaryBit")
-        .def_static("create", &RealToBinaryBit::CreateEx,
-                py::arg("frame_modulation_size") = 1,
-                py::arg("depth_modulation_size") = 1,
-                py::arg("value_generator")  = nullptr,
-                py::arg("framewise")        = false,
-                py::arg("input_range_lo")   = 0.0f,
-                py::arg("input_range_hi")   = 1.0f);
-
-    py::class_< BinaryToReal, Model, std::shared_ptr<BinaryToReal> >(m, "BinaryToReal")
-        .def_static("create", &BinaryToReal::CreateEx,
-                py::arg(" modulation_size") = 1,
-                py::arg("output_shape")     = bb::indices_t());
-
-    py::class_< BinaryToRealBit, Model, std::shared_ptr<BinaryToRealBit> >(m, "BinaryToRealBit")
-        .def_static("create", &BinaryToRealBit::CreateEx,
-                py::arg(" modulation_size") = 1,
-                py::arg("output_shape")     = bb::indices_t());
-
-
-    py::class_< BinaryLut6, LutModel, std::shared_ptr<BinaryLut6> >(m, "BinaryLut6")
-        .def_static("create", &BinaryLut6::CreateEx,
-R"(create BinaryLut6 object
-
-    Args:
-        output_shape (List[int]): shape of output frame
-        seed (int): seed of random
-)",
-                py::arg("output_shape"),
-                py::arg("seed") = 1);
-    
-    py::class_< BinaryLut6Bit, LutModelBit, std::shared_ptr<BinaryLut6Bit> >(m, "BinaryLut6Bit")
-        .def_static("create", &BinaryLut6Bit::CreateEx, "create",
-                py::arg("output_shape"),
-                py::arg("seed") = 1);
-    
-    py::class_< DifferentiableLut6, SparseModel, std::shared_ptr<DifferentiableLut6> >(m, "DifferentiableLut6")
-        .def_static("create", &DifferentiableLut6::CreateEx, "create DifferentiableLut6",
-                py::arg("output_shape"),
-                py::arg("batch_norm") = true,
-                py::arg("connection") = "",
-                py::arg("momentum")   = 0.0,
-                py::arg("gamma")      = 0.3,
-                py::arg("beta")       = 0.5,
-                py::arg("seed")       = 1);
-
-    py::class_< DifferentiableLut6Bit, SparseModel, std::shared_ptr<DifferentiableLut6Bit> >(m, "DifferentiableLut6Bit")
-        .def_static("create", &DifferentiableLut6Bit::CreateEx, "create DifferentiableLut6Bit",
-                py::arg("output_shape"),
-                py::arg("batch_norm") = true,
-                py::arg("connection") = "",
-                py::arg("momentum")   = 0.0,
-                py::arg("gamma")      = 0.3,
-                py::arg("beta")       = 0.5,
-                py::arg("seed")       = 1);
-    
-    
-    py::class_< StochasticLut6, SparseModel, std::shared_ptr<StochasticLut6> >(m, "StochasticLut6")
-        .def_static("create", &StochasticLut6::CreateEx, "create StochasticLut6",
-                py::arg("output_shape"),
-                py::arg("connection") = "",
-                py::arg("seed") = 1);
-    
-    py::class_< StochasticLut6Bit, SparseModel, std::shared_ptr<StochasticLut6Bit> >(m, "StochasticLut6Bit")
-        .def_static("create", &StochasticLut6Bit::CreateEx, "create StochasticLut6Bit",
-                py::arg("output_shape"),
-                py::arg("connection") = "",
-                py::arg("seed") = 1);
-    
-    py::class_< BitEncode, Model, std::shared_ptr<BitEncode> >(m, "BitEncode")
-        .def_static("create", &BitEncode::CreateEx,
-                py::arg("bit_size")=1,
-                py::arg("output_shape") = bb::indices_t());
-
-    py::class_< BitEncodeBit, Model, std::shared_ptr<BitEncodeBit> >(m, "BitEncodeBit")
-        .def_static("create", &BitEncodeBit::CreateEx,
-                py::arg("bit_size")=1,
-                py::arg("output_shape") = bb::indices_t());
-
-    py::class_< Shuffle, Model, std::shared_ptr<Shuffle> >(m, "Shuffle")
-        .def_static("create", &Shuffle::CreateEx,
-                py::arg("shuffle_unit"),
-                py::arg("output_shape") = bb::indices_t());
-
-
-    // filter
-    py::class_< Filter2d, Model, std::shared_ptr<Filter2d> >(m, "Filter2d");
-
-    py::class_< Filter2dBit, Model, std::shared_ptr<Filter2dBit> >(m, "Filter2dBit");
-
-    py::class_< Convolution2d, Filter2d, std::shared_ptr<Convolution2d> >(m, "Convolution2d")
-        .def_static("create", &Convolution2d::CreateEx,
-                py::arg("layer"),
-                py::arg("filter_h_size"),
-                py::arg("filter_w_size"),
-                py::arg("y_stride")      = 1,
-                py::arg("x_stride")      = 1,
-                py::arg("padding")       = "valid",
-                py::arg("border_mode")   = BB_BORDER_REFLECT_101,
-                py::arg("border_value")  = 0.0);
-
-    py::class_< Convolution2dBit, Filter2dBit, std::shared_ptr<Convolution2dBit> >(m, "Convolution2dBit")
-        .def_static("create", &Convolution2dBit::CreateEx,
-                py::arg("layer"),
-                py::arg("filter_h_size"),
-                py::arg("filter_w_size"),
-                py::arg("y_stride")      = 1,
-                py::arg("x_stride")      = 1,
-                py::arg("padding")       = "valid",
-                py::arg("border_mode")   = BB_BORDER_REFLECT_101,
-                py::arg("border_value")  = 0.0);
-    
-    py::class_< MaxPooling, Filter2d, std::shared_ptr<MaxPooling> >(m, "MaxPooling")
-        .def_static("create", &MaxPooling::CreateEx,
-                py::arg("filter_h_size"),
-                py::arg("filter_w_size"));
-    
-    py::class_< MaxPoolingBit, Filter2dBit, std::shared_ptr<MaxPoolingBit> >(m, "MaxPoolingBit")
-        .def_static("create", &MaxPoolingBit::CreateEx,
-                py::arg("filter_h_size"),
-                py::arg("filter_w_size"));
-
-    // activation
-    py::class_< Activation, Model, std::shared_ptr<Activation> >(m, "Activation");
-
-    py::class_< Binarize, Activation, std::shared_ptr<Binarize> >(m, "Binarize")
-        .def_static("create", &Binarize::CreateEx,
-                py::arg("binary_th")    =  0.0f,
-                py::arg("hardtanh_min") = -1.0f,
-                py::arg("hardtanh_max") = +1.0f);
-    
-    py::class_< BinarizeBit, Activation, std::shared_ptr<BinarizeBit> >(m, "BinarizeBit")
-        .def_static("create", &BinarizeBit::CreateEx,
-                py::arg("binary_th")    =  0.0f,
-                py::arg("hardtanh_min") = -1.0f,
-                py::arg("hardtanh_max") = +1.0f);
-
-    py::class_< Sigmoid, Binarize, std::shared_ptr<Sigmoid> >(m, "Sigmoid")
-        .def_static("create",   &Sigmoid::Create);
-
-    py::class_< ReLU, Binarize, std::shared_ptr<ReLU> >(m, "ReLU")
-        .def_static("create",   &ReLU::Create);
-
-    py::class_< ReLUBit, BinarizeBit, std::shared_ptr<ReLUBit> >(m, "ReLUBit")
-        .def_static("create",   &ReLUBit::Create);
-
-    py::class_< HardTanh, Binarize, std::shared_ptr<HardTanh> >(m, "HardTanh")
-        .def_static("create", &HardTanh::CreateEx,
-                py::arg("hardtanh_min") = -1.0,
-                py::arg("hardtanh_max") = +1.0);
 
     
-    py::class_< Dropout, Activation, std::shared_ptr<Dropout> >(m, "Dropout")
-        .def_static("create", &Dropout::CreateEx,
-                py::arg("rate") = 0.5,
-                py::arg("seed") = 1);
-
-    py::class_< BatchNormalization, Activation, std::shared_ptr<BatchNormalization> >(m, "BatchNormalization")
-        .def_static("create", &BatchNormalization::CreateEx,
-                py::arg("momentum")  = 0.9f,
-                py::arg("gamma")     = 1.0f,
-                py::arg("beta")      = 0.0f,
-                py::arg("fix_gamma") = false,
-                py::arg("fix_beta")  = false);
-
-    py::class_< StochasticBatchNormalization, Activation, std::shared_ptr<StochasticBatchNormalization> >(m, "StochasticBatchNormalization")
-        .def_static("create", &StochasticBatchNormalization::CreateEx,
-                py::arg("momentum")  = 0.9,
-                py::arg("gamma")     = 0.2,
-                py::arg("beta")      = 0.5);
-
-    // Loss Functions
-    py::class_< LossFunction, std::shared_ptr<LossFunction> >(m, "LossFunction")
-        .def("clear",          &LossFunction::Clear)
-        .def("get_loss",       &LossFunction::GetLoss)
-        .def("calculate_loss", &LossFunction::CalculateLoss,
-            py::arg("y_buf"),
-            py::arg("t_buf"),
-            py::arg("mini_batch_size"));
-
-    py::class_< LossSoftmaxCrossEntropy, LossFunction, std::shared_ptr<LossSoftmaxCrossEntropy> >(m, "LossSoftmaxCrossEntropy")
-        .def_static("create", &LossSoftmaxCrossEntropy::Create);
-
-    py::class_< LossMeanSquaredError, LossFunction, std::shared_ptr<LossMeanSquaredError> >(m, "LossMeanSquaredError")
-        .def_static("create", &LossMeanSquaredError::Create);
-
-
-    // Metrics Functions
-    py::class_< MetricsFunction, std::shared_ptr<MetricsFunction> >(m, "MetricsFunction")
-        .def("clear",              &MetricsFunction::Clear)
-        .def("get_metrics",        &MetricsFunction::GetMetrics)
-        .def("calculate_metrics",  &MetricsFunction::CalculateMetrics)
-        .def("get_metrics_string", &MetricsFunction::GetMetricsString);
-
-    py::class_< MetricsCategoricalAccuracy, MetricsFunction, std::shared_ptr<MetricsCategoricalAccuracy> >(m, "MetricsCategoricalAccuracy")
-        .def_static("create", &MetricsCategoricalAccuracy::Create);
-
-    py::class_< MetricsMeanSquaredError, MetricsFunction, std::shared_ptr<MetricsMeanSquaredError> >(m, "MetricsMeanSquaredError")
-        .def_static("create", &MetricsMeanSquaredError::Create);
-
-
-    // Optimizer
-    py::class_< Optimizer, std::shared_ptr<Optimizer> >(m, "Optimizer")
-        .def("set_variables", &Optimizer::SetVariables)
-        .def("update",        &Optimizer::Update);
-    
-    py::class_< OptimizerSgd, Optimizer, std::shared_ptr<OptimizerSgd> >(m, "OptimizerSgd")
-        .def_static("create", (std::shared_ptr<OptimizerSgd> (*)(float))&OptimizerSgd::Create, "create",
-            py::arg("learning_rate") = 0.01f);
-    
-    py::class_< OptimizerAdam, Optimizer, std::shared_ptr<OptimizerAdam> >(m, "OptimizerAdam")
-        .def_static("create", &OptimizerAdam::CreateEx,
-            py::arg("learning_rate") = 0.001f,
-            py::arg("beta1")         = 0.9f,
-            py::arg("beta2")         = 0.999f); 
-    
-    py::class_< OptimizerAdaGrad, Optimizer, std::shared_ptr<OptimizerAdaGrad> >(m, "OptimizerAdaGrad")
-        .def_static("Create", (std::shared_ptr<OptimizerAdaGrad> (*)(float))&OptimizerAdaGrad::Create,
-            py::arg("learning_rate") = 0.01f);
-
-
     // ValueGenerator
     py::class_< ValueGenerator, std::shared_ptr<ValueGenerator> >(m, "ValueGenerator");
     
@@ -1358,7 +918,7 @@ R"(create BinaryLut6 object
 
 
     // Runnner
-    py::class_< Runner, std::shared_ptr<Runner> >(m, "CRunner")
+    py::class_< Runner, std::shared_ptr<Runner> >(m, "Runner")
         .def_static("create", &Runner::CreateEx,
             py::arg("name"),
             py::arg("net"),
@@ -1381,25 +941,32 @@ R"(create BinaryLut6 object
             py::arg("epoch_size"),
             py::arg("batch_size"));
 
-    
+
+
+    // ------------------------------------
+    //  Others
+    // ------------------------------------
+
+    // version
+    m.def("get_version_string", &bb::GetVersionString);
+
+    // verilog
+    m.def("make_verilog_lut_layers",     &MakeVerilog_LutLayers);
+    m.def("make_verilog_lut_cnv_layers", &MakeVerilog_LutConvLayers);
+
     // OpenMP
     m.def("omp_set_num_threads", &omp_set_num_threads);
 
     // CUDA device
-    m.def("get_device_count",      &GetDeviceCount);
-    m.def("set_device",            &SetDevice,                 py::arg("device") = 0);
-    m.def("get_device_properties", &GetDevicePropertiesString, py::arg("device") = 0);
+    py::class_< bb::Manager >(m, "Manager")
+        .def_static("is_device_available", &bb::Manager::IsDeviceAvailable)
+        .def_static("set_host_only", &bb::Manager::SetHostOnly);
 
-    // verilog
-    m.def("make_verilog_from_lut", &MakeVerilog_FromLut);
-    m.def("make_verilog_from_lut_bit", &MakeVerilog_FromLutBit);
-    m.def("make_verilog_axi4s_from_lut_cnn", &MakeVerilogAxi4s_FromLutFilter2d);
-    m.def("make_verilog_axi4s_from_lut_cnn_bit", &MakeVerilogAxi4s_FromLutFilter2dBit);
-
-    m.def("get_version", &bb::GetVersionString);
+    m.def("get_device_count",             &GetDeviceCount);
+    m.def("set_device",                   &SetDevice,                 py::arg("device") = 0);
+    m.def("get_device_properties_string", &GetDevicePropertiesString, py::arg("device") = 0);
 }
 
-#endif
 
 
 // end of file

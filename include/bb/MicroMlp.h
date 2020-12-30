@@ -105,7 +105,13 @@ public:
     {
         return Create(indices_t({output_node_size}), connection, momentum);
     }
-    
+
+#ifdef BB_PYBIND11
+    static std::shared_ptr< MicroMlp > CreatePy(index_t output_node_size, std::string connection = "", T momentum = (T)0.0)
+    {
+        return Create(indices_t({output_node_size}), connection, momentum);
+    }
+#endif
 
     std::string GetClassName(void) const { return "MicroMlp"; }
 

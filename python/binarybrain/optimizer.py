@@ -30,8 +30,8 @@ class Optimizer():
     def update(self):
         """パラメータ更新
 
-        set_variablesで設定された勾配変数に基づいた学習をset_variablesで
-        設定されたパラメータ変数に適用する
+            set_variablesで設定された勾配変数に基づいた学習をset_variablesで
+            設定されたパラメータ変数に適用する
         """
 
         return self.get_core_optimizer().update()
@@ -47,15 +47,18 @@ class OptimizerSgd(Optimizer):
         core_optimizer = core.OptimizerSgd.create(learning_rate)
         super(OptimizerSgd, self).__init__(core_optimizer=core_optimizer)
 
+
 class OptimizerAdaGrad(Optimizer):
     """AdaGrad 最適化クラス
 
     Args:
         learning_rate (float): 学習率
     """
+
     def __init__(self, learning_rate=0.01):
         core_optimizer = core.OptimizerAdaGrad.create(learning_rate)
         super(OptimizerAdaGrad, self).__init__(core_optimizer=core_optimizer)
+
 
 class OptimizerAdam(Optimizer):
     """Adam 最適化クラス
@@ -65,6 +68,7 @@ class OptimizerAdam(Optimizer):
         beta1 (float): beta1
         beta2 (float): beta2
     """
+
     def __init__(self, learning_rate=0.001, beta1=0.9, beta2=0.999):
         core_optimizer = core.OptimizerAdam.create(learning_rate, beta1, beta2)
         super(OptimizerAdam, self).__init__(core_optimizer=core_optimizer)

@@ -33,4 +33,3 @@ OptimizerAdam クラス
    :members:
    :show-inheritance:
 
-

@@ -1,5 +1,5 @@
-binarybrain.storage module
-==========================
+保存／復帰(Serialize)
+=============================
 
 .. automodule:: binarybrain.storage
    :members:
