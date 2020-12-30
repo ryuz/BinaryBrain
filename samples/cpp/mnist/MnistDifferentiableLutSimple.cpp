@@ -24,7 +24,10 @@
 
 void MnistDifferentiableLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "MnistDifferentiableLutSimple";
+    std::string net_name       = "MnistDifferentiableLutSimple";
+    std::string velilog_path   = "../../verilog/mnist/";
+    std::string velilog_module = "MnistLutSimple";
+
 
   // load MNIST data
 #ifdef _DEBUG
@@ -36,11 +39,11 @@ void MnistDifferentiableLutSimple(int epoch_size, int mini_batch_size, int train
 
 #ifdef BB_WITH_CUDA
     auto layer_sl0 = bb::DifferentiableLutN<6, float>::Create(1024);
-    auto layer_sl1 = bb::DifferentiableLutN<6, float>::Create(480);
+    auto layer_sl1 = bb::DifferentiableLutN<6, float>::Create(420);
     auto layer_sl2 = bb::DifferentiableLutN<6, float>::Create(70);
 #else
     auto layer_sl0 = bb::DifferentiableLutDiscreteN<6, float>::Create(1024);
-    auto layer_sl1 = bb::DifferentiableLutDiscreteN<6, float>::Create(480);
+    auto layer_sl1 = bb::DifferentiableLutDiscreteN<6, float>::Create(420);
     auto layer_sl2 = bb::DifferentiableLutDiscreteN<6, float>::Create(70);
 #endif
 
@@ -98,10 +101,10 @@ void MnistDifferentiableLutSimple(int epoch_size, int mini_batch_size, int train
         runner->Fitting(td, epoch_size, mini_batch_size);
     
         // Verilog 出力
-        std::string filename = "verilog/" + net_name + ".v";
+        std::string filename = velilog_path + net_name + ".v";
         std::ofstream ofs(filename);
         ofs << "`timescale 1ns / 1ps\n\n";
-        bb::ExportVerilog_LutModels(ofs, net_name, main_net);
+        bb::ExportVerilog_LutModels(ofs, velilog_module, main_net);
         std::cout << "export : " << filename << "\n" << std::endl;
     }
 
@@ -150,14 +153,14 @@ void MnistDifferentiableLutSimple(int epoch_size, int mini_batch_size, int train
 
         {
             // Verilog 出力
-            std::string filename = "verilog/" + net_name + "_2.v";
+            std::string filename = velilog_path + net_name + "_2.v";
             std::ofstream ofs(filename);
             ofs << "`timescale 1ns / 1ps\n\n";
-            bb::ExportVerilog_LutModels(ofs, net_name, lut_net);
+            bb::ExportVerilog_LutModels(ofs, velilog_module, lut_net);
             std::cout << "export : " << filename << "\n" << std::endl;
 
             // RTL simulation 用データの出力
-            bb::WriteTestDataBinTextFile<float>("verilog/mnist_train.txt", "verilog/mnist_test.txt", td);
+            bb::WriteTestDataBinTextFile<float>(velilog_path + "mnist_train.txt", velilog_path + "mnist_test.txt", td);
         }
     }
 }

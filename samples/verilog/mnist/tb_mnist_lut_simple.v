@@ -69,11 +69,11 @@ module tb_mnist_lut_simple();
     wire        [OUTPUT_WIDTH-1:0]      out_data;
     wire                                out_valid;
     
-    MnistSparseLutSimple
+    MnistLutSimple
             #(
                 .USER_WIDTH     (1+USER_WIDTH)
             )
-        i_MnistSparseLutSimple
+        i_MnistLutSimple
             (
                 .reset          (reset),
                 .clk            (clk),
