@@ -173,9 +173,9 @@ inline void OutputDeviceProperties(std::ostream& os, int device=0)
 
 inline void PrintDeviceProperties(int device = 0)
 {
-    os << std::endl;
+    std::cout << std::endl;
     OutputDeviceProperties(std::cout, device);
-    os << std::endl;
+    std::cout << std::endl;
 }
 
 
