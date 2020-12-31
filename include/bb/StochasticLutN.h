@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <array>
 #include <vector>
-#include "bb/LutLayer.h"
+#include "bb/StochasticLutModel.h"
 #include "bb/FixedSizeConnectionTable.h"
 #include "bb/StochasticOperation.h"
 #include "bb/StochasticLutSimd.h"
@@ -24,9 +24,9 @@ namespace bb {
 
 // 確率的LUTの抽象レイヤー
 template <int N = 6, typename BinType = float, typename RealType = float>
-class StochasticLutN : public SparseLayer
+class StochasticLutN : public StochasticLutModel
 {
-    using _super = SparseLayer;
+    using _super = StochasticLutModel;
     static int const NN = (1 << N);
 
 protected:
@@ -252,17 +252,17 @@ public:
         m_connection_table.SetShape(m_input_shape, m_output_shape);
         m_connection_table.InitializeConnection(m_mt(), m_connection);
 
-//        auto output_node_size = GetShapeSize(m_output_shape);
+//        auto output_node_size = CalcShapeSize(m_output_shape);
 //        m_input_index.Resize(output_node_size, N);
 //        this->InitializeNodeInput(m_mt(), m_connection);
 
         // パラメータ初期化(結局初期値は何が良いのかまだよくわからない)
-//      m_W->Resize({NN, m_output_node_size}, DataType<RealType>::type);  m_W->InitUniformDistribution(0.4, 0.6, m_mt());
-//      m_W->Resize({NN, m_output_node_size}, DataType<RealType>::type);  m_W->InitUniformDistribution(0.0, 1.0, m_mt());
-//      m_W->Resize({NN, m_output_node_size}, DataType<RealType>::type);  m_W->InitNormalDistribution(0.5, 0.001, m_mt());
-        m_W->Resize({NN, GetShapeSize(m_output_shape)}, DataType<RealType>::type);  m_W->InitNormalDistribution(0.5, 0.01, m_mt());
+//      m_W->Resize({m_output_node_size, NN}, DataType<RealType>::type);  m_W->InitUniformDistribution(0.4, 0.6, m_mt());
+//      m_W->Resize({m_output_node_size, NN}, DataType<RealType>::type);  m_W->InitUniformDistribution(0.0, 1.0, m_mt());
+//      m_W->Resize({m_output_node_size, NN}, DataType<RealType>::type);  m_W->InitNormalDistribution(0.5, 0.001, m_mt());
+        m_W->Resize({CalcShapeSize(m_output_shape), NN}, DataType<RealType>::type);  m_W->InitNormalDistribution(0.5, 0.01, m_mt());
 
-        m_dW->Resize({NN, GetShapeSize(m_output_shape)}, DataType<RealType>::type); m_dW->FillZero();
+        m_dW->Resize({CalcShapeSize(m_output_shape), NN}, DataType<RealType>::type); m_dW->FillZero();
 
         return m_output_shape;
     }
@@ -387,7 +387,7 @@ public:
             auto y_ptr           = y_buf.LockDeviceMemory(true);
             auto input_table_ptr = m_connection_table.LockDeviceMemConst_InputTable();
             auto W_ptr           = m_W->LockDeviceMemoryConst();
-               
+            
             bbcu_fp32_StochasticLut_Forward<N>(
                     (float const *)x_ptr.GetAddr(),
                     (float       *)y_ptr.GetAddr(),
@@ -597,7 +597,7 @@ public:
         }
 
         {
-            FrameBuffer tmp_buf(dy_buf.GetFrameSize(), {GetShapeSize(m_output_shape)*N}, DataType<RealType>::type);
+            FrameBuffer tmp_buf(dy_buf.GetFrameSize(), {CalcShapeSize(m_output_shape)*N}, DataType<RealType>::type);
 
             // generic
             dx_buf.FillZero();

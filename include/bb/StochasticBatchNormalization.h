@@ -215,7 +215,7 @@ public:
         
         _super::SetInputShape(shape);
         
-        auto node_size = GetShapeSize(shape);
+        auto node_size = CalcShapeSize(shape);
         
         // パラメータ初期化
         m_mean.Resize(this->m_shape);
@@ -270,7 +270,7 @@ public:
     // ノード単位でのForward計算
     std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
     {
-        BB_DEBUG_ASSERT(node >= 0 && node < GetShapeSize(this->m_shape));
+        BB_DEBUG_ASSERT(node >= 0 && node < CalcShapeSize(this->m_shape));
 
         auto running_mean_ptr = m_running_mean.LockConst();
         auto running_var_ptr  = m_running_var.LockConst();

@@ -24,10 +24,10 @@ namespace bb {
  *          出力に対して入力は frame_mux_size 倍のフレーム数を必要とする
  *          BinaryToReal と組み合わせて使う想定
  * 
- * @tparam FT   foward入力型 (x, y)
- * @tparam BT   backward型 (dy, dx)
+ * @tparam BinType  バイナリ型 (x)
+ * @tparam RealType 実数型 (y, dy, dx)
  */
-template <typename FT = float, typename BT = float>
+template <typename BinType = float, typename RealType = float>
 class Reduce : public Model
 {
 protected:
@@ -109,8 +109,8 @@ public:
         m_input_shape = shape;
 
         // 整数倍の縮退のみ許容
-        BB_ASSERT(GetShapeSize(m_input_shape) >= GetShapeSize(m_output_shape));
-        BB_ASSERT(GetShapeSize(m_input_shape) % GetShapeSize(m_output_shape) == 0);
+        BB_ASSERT(CalcShapeSize(m_input_shape) >= CalcShapeSize(m_output_shape));
+        BB_ASSERT(CalcShapeSize(m_input_shape) % CalcShapeSize(m_output_shape) == 0);
 
         return m_output_shape;
     }
@@ -138,7 +138,7 @@ public:
 
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-        BB_ASSERT(x_buf.GetType() == DataType<FT>::type);
+        BB_ASSERT(x_buf.GetType() == DataType<BinType>::type);
 
         // SetInputShpaeされていなければ初回に設定
         if (x_buf.GetShape() != m_input_shape) {
@@ -146,10 +146,10 @@ public:
         }
 
         // 戻り値の型を設定
-        FrameBuffer y_buf(x_buf.GetFrameSize(), m_output_shape, DataType<FT>::type);
+        FrameBuffer y_buf(x_buf.GetFrameSize(), m_output_shape, DataType<RealType>::type);
 
 #if 0 // #ifdef BB_WITH_CUDA
-        if ( DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && DataType<FT>::type == BB_TYPE_FP32
+        if ( DataType<BinType>::type == BB_TYPE_FP32 && !m_host_only && DataType<RealType>::type == BB_TYPE_FP32
             && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             auto x_ptr = x_buf.LockDeviceMemoryConst();
             auto y_ptr = y_buf.LockDeviceMemory(true);
@@ -158,7 +158,7 @@ public:
                 (
                     (float const *)x_ptr.GetAddr(),
                     (float       *)y_ptr.GetAddr(),
-                    (int          )(GetShapeSize(m_input_shape) / GetShapeSize(m_output_shape)),
+                    (int          )(CalcShapeSize(m_input_shape) / CalcShapeSize(m_output_shape)),
                     (int          )m_frame_mux_size,
                     (int          )GetOutputNodeSize(),
                     (int          )(x.GetFrameStride() / sizeof(float)),
@@ -172,8 +172,8 @@ public:
 
         {
             // 汎用版
-            auto x_ptr = x_buf.LockConst<FT>();
-            auto y_ptr = y_buf.Lock<FT>(true);
+            auto x_ptr = x_buf.LockConst<BinType>();
+            auto y_ptr = y_buf.Lock<RealType>(true);
 
             index_t input_node_size   = GetInputNodeSize();
             index_t output_node_size  = GetOutputNodeSize();
@@ -186,11 +186,11 @@ public:
             #pragma omp parallel for
             for (index_t output_node = 0; output_node < output_node_size; ++output_node) {
                 for (index_t frame = 0; frame < frame_size; ++frame) {
-                    FT sum = 0;
+                    RealType sum = 0;
                     for (index_t i = 0; i < mux_size; ++i) {
-                        sum += x_ptr.Get(frame, output_node_size * i + output_node);
+                        sum += (RealType)x_ptr.Get(frame, output_node_size * i + output_node);
                     }
-                    y_ptr.Set(frame, output_node, sum / (FT)mux_size);
+                    y_ptr.Set(frame, output_node, sum / (RealType)mux_size);
                 }
             }
 
@@ -200,10 +200,10 @@ public:
 
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
-        BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
+        BB_ASSERT(dy_buf.GetType() == DataType<RealType>::type);
 
         // 戻り値の型を設定
-        FrameBuffer dx_buf(dy_buf.GetFrameSize(), m_input_shape, DataType<BT>::type);
+        FrameBuffer dx_buf(dy_buf.GetFrameSize(), m_input_shape, DataType<RealType>::type);
 
 #if 0 // #ifdef BB_WITH_CUDA
         if ( DataType<BT>::type == BB_TYPE_FP32 && !m_host_only 
@@ -216,7 +216,7 @@ public:
                 (
                     (float const *)dy_ptr.GetAddr(),
                     (float       *)dx_ptr.GetAddr(),
-                    (int          )(GetShapeSize(m_input_shape) / GetShapeSize(m_output_shape)),
+                    (int          )(CalcShapeSize(m_input_shape) / CalcShapeSize(m_output_shape)),
                     (int          )m_frame_mux_size,
                     (int          )GetOutputNodeSize(),
                     (int          )(dx_buf.GetFrameStride() / sizeof(float)),
@@ -236,14 +236,14 @@ public:
 
             index_t mux_size          = input_node_size / output_node_size;
 
-            auto dy_ptr = dy_buf.LockConst<BT>();
-            auto dx_ptr = dx_buf.Lock<BT>();
+            auto dy_ptr = dy_buf.LockConst<RealType>();
+            auto dx_ptr = dx_buf.Lock<RealType>();
 
             #pragma omp parallel for
             for (index_t output_node = 0; output_node < output_node_size; ++output_node) {
                 for (index_t frame = 0; frame < frame_size; ++frame) {
-                    BT dy = dy_ptr.Get(frame, output_node);
-                    BT dx = dy / (BT)mux_size;
+                    RealType dy = dy_ptr.Get(frame, output_node);
+                    RealType dx = dy / (RealType)mux_size;
                     for (index_t i = 0; i < mux_size; i++) {
                         dx_ptr.Set(frame, output_node_size * i + output_node, dx);
                     }

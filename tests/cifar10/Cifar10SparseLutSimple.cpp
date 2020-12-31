@@ -9,8 +9,8 @@
 #include <iostream>
 
 #include "bb/Sequential.h"
-#include "bb/SparseLutN.h"
-#include "bb/SparseLutDiscreteN.h"
+#include "bb/DifferentiableLutN.h"
+#include "bb/DifferentiableLutDiscreteN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/Reduce.h"
 #include "bb/BinaryModulation.h"
@@ -22,9 +22,9 @@
 #include "bb/ExportVerilog.h"
 
 
-void Cifar10SparseLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void Cifar10DifferentiableLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "Cifar10SparseLutSimple";
+    std::string net_name = "Cifar10DifferentiableLutSimple";
      
   // load cifar-10 data
 #ifdef _DEBUG
@@ -35,12 +35,12 @@ void Cifar10SparseLutSimple(int epoch_size, int mini_batch_size, int train_modul
 #endif
 
      // create network
-    auto layer_sl0 = bb::SparseLutN<6, float>::Create(3072);
-    auto layer_sl1 = bb::SparseLutN<6, float>::Create(512);
-    auto layer_sl2 = bb::SparseLutN<6, float>::Create(2160);
-    auto layer_sl3 = bb::SparseLutN<6, float>::Create(360);
-    auto layer_sl4 = bb::SparseLutN<6, float>::Create(60);
-    auto layer_sl5 = bb::SparseLutN<6, float>::Create(10);
+    auto layer_sl0 = bb::DifferentiableLutN<6, float>::Create(3072);
+    auto layer_sl1 = bb::DifferentiableLutN<6, float>::Create(512);
+    auto layer_sl2 = bb::DifferentiableLutN<6, float>::Create(2160);
+    auto layer_sl3 = bb::DifferentiableLutN<6, float>::Create(360);
+    auto layer_sl4 = bb::DifferentiableLutN<6, float>::Create(60);
+    auto layer_sl5 = bb::DifferentiableLutN<6, float>::Create(10);
 
     {
         std::cout << "\n<Training>" << std::endl;
@@ -152,7 +152,7 @@ void Cifar10SparseLutSimple(int epoch_size, int mini_batch_size, int train_modul
             std::string filename = "verilog/" + net_name + ".v";
             std::ofstream ofs(filename);
             ofs << "`timescale 1ns / 1ps\n\n";
-            bb::ExportVerilog_LutLayers<>(ofs, net_name, lut_net);
+            bb::ExportVerilog_LutModels<>(ofs, net_name, lut_net);
             std::cout << "export : " << filename << "\n" << std::endl;
 
             // RTL simulation 用データの出力

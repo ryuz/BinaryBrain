@@ -9,8 +9,8 @@
 #include <iostream>
 
 #include "bb/Sequential.h"
-#include "bb/SparseLutN.h"
-#include "bb/SparseLutDiscreteN.h"
+#include "bb/DifferentiableLutN.h"
+#include "bb/DifferentiableLutDiscreteN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/Reduce.h"
 #include "bb/BinaryModulation.h"
@@ -99,9 +99,9 @@ void MakeMnistValidationTrainData(
 #endif
 
 
-void MnistDetectionSparseLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void MnistDetectionDifferentiableLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "MnistDetectionSparseLutSimple";
+    std::string net_name = "MnistDetectionDifferentiableLutSimple";
 
 #if 0
   // load MNIST data
@@ -135,11 +135,11 @@ void MnistDetectionSparseLutSimple(int epoch_size, int mini_batch_size, int trai
 
     int N = 1;
 
-    auto layer_sl0 = bb::SparseLutN<6, float>::Create(N*6*6*6*6);
-    auto layer_sl1 = bb::SparseLutN<6, float>::Create(N*6*6*6);
-    auto layer_sl2 = bb::SparseLutN<6, float>::Create(N*6*6);
-    auto layer_sl3 = bb::SparseLutN<6, float>::Create(N*6);
-    auto layer_sl4 = bb::SparseLutN<6, float>::Create(N*1);
+    auto layer_sl0 = bb::DifferentiableLutN<6, float>::Create(N*6*6*6*6);
+    auto layer_sl1 = bb::DifferentiableLutN<6, float>::Create(N*6*6*6);
+    auto layer_sl2 = bb::DifferentiableLutN<6, float>::Create(N*6*6);
+    auto layer_sl3 = bb::DifferentiableLutN<6, float>::Create(N*6);
+    auto layer_sl4 = bb::DifferentiableLutN<6, float>::Create(N*1);
 
     {
         std::cout << "\n<Training>" << std::endl;
@@ -213,7 +213,7 @@ void MnistDetectionSparseLutSimple(int epoch_size, int mini_batch_size, int trai
         cnv0_sub->Add(layer_bl2);
         cnv0_sub->Add(layer_bl3);
         cnv0_sub->Add(layer_bl4);
-        auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 28, 28);
+        auto cnv0 = bb::Convolution2d<bb::Bit>::Create(cnv0_sub, 28, 28);
 
         auto lut_net = bb::Sequential::Create();
         lut_net->Add(cnv0);
@@ -271,7 +271,7 @@ void MnistDetectionSparseLutSimple(int epoch_size, int mini_batch_size, int trai
             std::string filename = "verilog/" + net_name + ".v";
             std::ofstream ofs(filename);
             ofs << "`timescale 1ns / 1ps\n\n";
-            bb::ExportVerilog_LutLayers<>(ofs, net_name, lut_net);
+            bb::ExportVerilog_LutModels<>(ofs, net_name, lut_net);
             std::cout << "export : " << filename << "\n" << std::endl;
 
             // RTL simulation 用データの出力

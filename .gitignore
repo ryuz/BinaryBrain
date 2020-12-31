@@ -41,9 +41,21 @@
 
 *.mo
 
+*_.*
+*_
+*_/
+
+
+documents/sphinx/binarybrain/
 documents/sphinx/build/
 documents/tmp/
 
+data/
+processed/
+
+back/
+
+Untitled.*
 
 veritak_src_files.txt
 veritak_command.txt
@@ -52,27 +64,38 @@ p_temp*.txt
 depend
 
 # execute
-samples/mnist/sample-mnist
-samples/diabetes/sample-diabetes
-samples/cifar10/sample-cifar10
+samples/cpp/mnist/sample-mnist
+samples/cpp/diabetes/sample-diabetes
+samples/cpp/cifar10/sample-cifar10
 
 tests/gtest/gtest
 tests/mnist/test-mnist
 tests/cifar10/test-cifar10
 tests/diabetes/test-diabetes
 
+
+
 # generate file
-samples/mnist/verilog/mnist_train.txt
-samples/mnist/verilog/mnist_test.txt
-samples/mnist/verilog/MnistSparseLutSimple.v
-samples/mnist/verilog/MnistSparseLutCnn.v
-samples/mnist/verilog/MnistStochasticLutSimple.v
-samples/mnist/verilog/MnistStochasticLutCnn.v
-samples/mnist/verilog/MnistMicroMlpLutSimple.v
-samples/mnist/verilog/MnistMicroMlpLutCnn.v
-samples/diabetes/diabetes_data.txt
-samples/diabetes/diabetes_target.txt
-samples/diabetes/DiabetesRegressionBinaryLut.v
+samples/cpp/mnist/verilog/*.v
+samples/python/**/*.v
+
+MnistLutSimple.v
+MnistLutCnn.v
+
+mnist_train.txt
+mnist_test.txt
+
+samples/cpp/mnist/verilog/mnist_train.txt
+samples/cpp/mnist/verilog/mnist_test.txt
+samples/cpp/mnist/verilog/MnistSparseLutSimple.v
+samples/cpp/mnist/verilog/MnistSparseLutCnn.v
+samples/cpp/mnist/verilog/MnistStochasticLutSimple.v
+samples/cpp/mnist/verilog/MnistStochasticLutCnn.v
+samples/cpp/mnist/verilog/MnistMicroMlpLutSimple.v
+samples/cpp/mnist/verilog/MnistMicroMlpLutCnn.v
+samples/cpp/diabetes/diabetes_data.txt
+samples/cpp/diabetes/diabetes_target.txt
+samples/cpp/diabetes/DiabetesRegressionBinaryLut.v
 
 tests/mnist/verilog/mnist_train.txt
 tests/mnist/verilog/mnist_test.txt

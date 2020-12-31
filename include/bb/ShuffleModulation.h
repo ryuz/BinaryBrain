@@ -100,7 +100,7 @@ public:
         // 形状設定
         m_node_shape = shape;
 
-        auto node_size = GetShapeSize(shape);
+        auto node_size = CalcShapeSize(shape);
         m_table.Resize(node_size, m_shuffle_size);
 
         std::vector<int> table(m_shuffle_size);

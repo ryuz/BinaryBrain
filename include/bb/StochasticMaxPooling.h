@@ -14,17 +14,17 @@
 #include <vector>
 #include <random>
 
-#include "bb/Filter2d.h"
+#include "bb/MaxPooling.h"
 
 
 namespace bb {
 
 // MaxPoolingクラス
 template <typename FT = float, typename BT = float>
-class StochasticMaxPooling : public Filter2d<FT, BT>
+class StochasticMaxPooling : public MaxPooling<FT, BT>
 {
 protected:
-    bool                m_host_only;
+    bool                m_host_only = false;
 
     index_t             m_filter_h_size;
     index_t             m_filter_w_size;
@@ -40,11 +40,13 @@ protected:
     indices_t           m_output_shape;
 
     FrameBuffer         m_x_buf;
-    FrameBuffer         m_y_buf;
-    FrameBuffer         m_dx_buf;
 
 protected:
-    StochasticMaxPooling() {}
+    StochasticMaxPooling(index_t filter_h_size, index_t filter_w_size)
+    {
+        m_filter_h_size = filter_h_size;
+        m_filter_w_size = filter_w_size;
+    }
 
     /**
      * @brief  コマンド処理
@@ -65,11 +67,7 @@ public:
     
     static std::shared_ptr<StochasticMaxPooling> Create(index_t filter_h_size, index_t filter_w_size)
     {
-        auto self = std::shared_ptr<StochasticMaxPooling>(new StochasticMaxPooling);
-
-        self->m_filter_h_size = filter_h_size;
-        self->m_filter_w_size = filter_w_size;
-
+        auto self = std::shared_ptr<StochasticMaxPooling>(new StochasticMaxPooling(filter_h_size, filter_w_size));
         return self;
     }
     
@@ -96,15 +94,15 @@ public:
         
         BB_ASSERT(shape.size() == 3);
 
-        m_input_w_size = shape[0];
+        m_input_c_size = shape[0];
         m_input_h_size = shape[1];
-        m_input_c_size = shape[2];
+        m_input_w_size = shape[2];
         m_output_w_size = (m_input_w_size + m_filter_w_size - 1) / m_filter_w_size;
         m_output_h_size = (m_input_h_size + m_filter_h_size - 1) / m_filter_h_size;
         m_output_c_size = m_input_c_size;
 
         m_input_shape  = shape;
-        m_output_shape = indices_t({m_output_w_size, m_output_h_size, m_output_c_size});
+        m_output_shape = indices_t({m_output_c_size, m_output_h_size, m_output_w_size});
 
         return m_output_shape;
     }
@@ -157,128 +155,52 @@ protected:
 public:
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-        BB_ASSERT(x.GetType() == DataType<FT>::type);
-
-        // backwardの為に保存
-        m_x_buf = x_buf;
+        BB_ASSERT(x_buf.GetType() == DataType<FT>::type);
 
         // SetInputShpaeされていなければ初回に設定
-        if (m_x.GetShape() != m_input_shape) {
-            SetInputShape(m_x.GetShape());
+        if (x_buf.GetShape() != m_input_shape) {
+            SetInputShape(x_buf.GetShape());
+        }
+
+        // backwardの為に保存
+        if ( train ) {
+            m_x_buf = x_buf;
         }
 
         // 出力を設定
-        m_y_buf.Resize(DataType<FT>::type, m_x_buf.GetFrameSize(), m_output_shape);
+        FrameBuffer y_buf(x_buf.GetFrameSize(), m_output_shape, DataType<FT>::type);
         
-
-#if 0 // #ifdef BB_WITH_CUDA
+#ifdef BB_WITH_CUDA
         // CUDA版
-        if ( DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
-            auto ptr_x = x.LockDeviceMemoryConst();
-            auto ptr_y = m_y.LockDeviceMemory(true);
-            bbcu_fp32_MaxPooling_Forward
+        if ( DataType<FT>::type == BB_TYPE_FP32 && !m_host_only
+                && m_filter_h_size == 2 && m_filter_w_size == 2
+                && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            auto ptr_x = x_buf.LockDeviceMemoryConst();
+            auto ptr_y = y_buf.LockDeviceMemory(true);
+            bbcu_fp32_StochasticMaxPooling2x2_Forward
                 (
                     (float const *)ptr_x.GetAddr(),
                     (float*       )ptr_y.GetAddr(),
-                    (int          )m_filter_h_size,
-                    (int          )m_filter_w_size,
                     (int          )m_input_w_size,
                     (int          )m_input_h_size,
                     (int          )m_output_w_size,
                     (int          )m_output_h_size,
                     (int          )m_output_c_size,
-                    (int          )m_y.GetFrameSize(),
-                    (int          )(m_y.GetFrameStride() / sizeof(float))
+                    (int          )y_buf.GetFrameSize(),
+                    (int          )(y_buf.GetFrameStride() / sizeof(float))
                 );
 
-            return m_y;
+            return y_buf;
         }
 #endif
-     
-#if 0
-        if ( DataType<FT>::type == BB_TYPE_BIT ) {
-            // バイナリ用実装
-            auto x_ptr = m_x_buf.LockConst<FT>();
-            auto y_ptr = m_y_buf.Lock<FT>(true);
-
-            index_t  m256_frame_size = (int)m_y.GetFrameStride() / 32;
-
-            #pragma omp parallel for
-            for (index_t c = 0; c < m_input_c_size; ++c) {
-                for (index_t y = 0; y < m_output_h_size; ++y) {
-                    for (index_t x = 0; x < m_output_w_size; ++x) {
-                        __m256i *y_addr = (__m256i *)y_ptr.GetAddr(GetOutputNode(c, y, x));
-
-                        for (index_t frame = 0; frame < m256_frame_size; ++frame) {
-                            __m256i max_val = _mm256_set1_epi8(0);
-                            for (index_t fy = 0; fy < m_filter_h_size; ++fy) {
-                                index_t iy = y*m_filter_h_size + fy;
-                                if ( iy < m_input_h_size ) {
-                                    for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
-                                        index_t ix = x*m_filter_w_size + fx;
-                                        if ( ix < m_input_w_size ) {
-                                            __m256i const *x_addr = (__m256i const *)x_ptr.GetAddr(GetInputNode(c, iy, ix));
-                                            __m256i in_sig = _mm256_load_si256(&x_addr[frame]);
-                                            max_val = _mm256_or_si256(max_val, in_sig);
-                                        }
-                                    }
-                                }
-                            }
-                            _mm256_store_si256(&y_addr[frame], max_val);
-                        }
-                    }
-                }
-            }
-
-            return m_y_buf;
-        }
-#endif
-
-#if 0
-        // float用実装
-        if ( DataType<FT>::type == BB_TYPE_FP32 ) {
-            auto x_ptr = m_x.LockConst<FT>();
-            auto y_ptr = m_y.Lock<FT>(true);
-
-            index_t  m256_frame_size = (int)m_y.GetFrameStride() / sizeof(float);
-
-            #pragma omp parallel for
-            for (index_t c = 0; c < m_input_c_size; ++c) {
-                for (index_t y = 0; y < m_output_h_size; ++y) {
-                    for (index_t x = 0; x < m_output_w_size; ++x) {
-                        float *y_addr = (float *)y_ptr.GetAddr(GetOutputNode(c, y, x));
-
-                        for (index_t frame = 0; frame < m256_frame_size; frame += 8) {
-                            __m256  max_val = _mm256_set1_ps(-1.0e7f);  // 前段に活性化入れるから0がminだよね？
-                            for (index_t fy = 0; fy < m_filter_h_size; ++fy) {
-                                index_t iy = y*m_filter_h_size + fy;
-                                if ( iy < m_input_h_size ) {
-                                    for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
-                                        index_t ix = x*m_filter_w_size + fx;
-                                        if ( ix < m_input_w_size ) {
-                                            float const *x_addr = (float const *)x_ptr.GetAddr(GetInputNode(c, iy, ix));
-                                            __m256 in_sig = _mm256_load_ps(&x_addr[frame]);
-                                            max_val = _mm256_max_ps(max_val, in_sig);
-                                        }
-                                    }
-                                }
-                            }
-                            _mm256_store_ps(&y_addr[frame], max_val);
-                        }
-                    }
-                }
-            }
-
-            return m_y;
-        }
-#endif
+        
 
         // 汎用版実装
         {
-            auto x_ptr = m_x_buf.LockConst<FT>();
-            auto y_ptr = m_y_buf.Lock<FT>(true);
+            auto x_ptr = x_buf.LockConst<FT>();
+            auto y_ptr = y_buf.Lock<FT>(true);
 
-            auto frame_size = m_x.GetFrameSize();
+            auto frame_size = x_buf.GetFrameSize();
 
             #pragma omp parallel for
             for (index_t c = 0; c < m_input_c_size; ++c) {
@@ -286,96 +208,106 @@ public:
                     for (index_t x = 0; x < m_output_w_size; ++x) {
                         for (index_t frame = 0; frame < frame_size; ++frame) {
                             // OR演算を実施(反転してANDを取って、出力反転)
-                            FT out_sig = (FT)1.0;
+                            BT out_sig = (BT)1.0;
                             for (index_t fy = 0; fy < m_filter_h_size; ++fy) {
                                 index_t iy = y*m_filter_h_size + fy;
                                 if ( iy < m_input_h_size ) {
                                     for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
                                         index_t ix = x*m_filter_w_size + fx;
                                         if ( ix < m_input_w_size ) {
-                                            FT in_sig = x_ptr.Get(frame, {ix, iy, c});
-                                            out_sig *= ((FT)1.0 - in_sig);
+                                            FT in_sig = x_ptr.Get(frame, {c, iy, ix});
+                                            out_sig *= ((BT)1.0 - in_sig);
                                         }
                                     }
                                 }
                             }
-                            y_ptr.Set(frame, {x, y, c}, ((FT)1.0 - out_sig));
+                            y_ptr.Set(frame, {c, y, x}, (FT)((BT)1.0 - out_sig));
                         }
                     }
                 }
             }
 
-            return m_y;
+
+            return y_buf;
         }
     }
     
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
         BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
+        BB_ASSERT(dy_buf.GetShape().size() == 3);
 
-        m_dx_buf.Resize(DataType<BT>::type, dy_buf.GetFrameSize(), m_input_shape);
+        FrameBuffer dx_buf(dy_buf.GetFrameSize(), m_input_shape, DataType<BT>::type);
 
-#if 0 // #ifdef BB_WITH_CUDA
-        if ( DataType<BT>::type == BB_TYPE_FP32 && DataType<FT>::type == BB_TYPE_FP32 && !m_host_only 
-                && m_x.IsDeviceAvailable() && m_y.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        FrameBuffer x_buf = m_x_buf;
+        m_x_buf = FrameBuffer();
+
+
+#ifdef BB_WITH_CUDA
+        if ( DataType<BT>::type == BB_TYPE_FP32 && DataType<FT>::type == BB_TYPE_FP32 && !m_host_only
+                && m_filter_h_size == 2 && m_filter_w_size == 2
+                && x_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // CUDA版
-            auto ptr_x  = m_x.LockDeviceMemoryConst();
-            auto ptr_y  = m_y.LockDeviceMemoryConst();
-            auto ptr_dy = dy.LockDeviceMemoryConst();
-            auto ptr_dx = m_dx.LockDeviceMemory(true);
-            bbcu_fp32_MaxPooling_Backward
+            auto ptr_x  = x_buf.LockDeviceMemoryConst();
+            auto ptr_dy = dy_buf.LockDeviceMemoryConst();
+            auto ptr_dx = dx_buf.LockDeviceMemory(true);
+            bbcu_fp32_StochasticMaxPooling2x2_Backward
                 (
                     (float const *)ptr_x.GetAddr(),
-                    (float const *)ptr_y.GetAddr(),
                     (float const *)ptr_dy.GetAddr(),
-                    (float*       )ptr_dx.GetAddr(),
-                    (int          )m_filter_h_size,
-                    (int          )m_filter_w_size,
+                    (float       *)ptr_dx.GetAddr(),
                     (int          )m_input_w_size,
                     (int          )m_input_h_size,
                     (int          )m_output_w_size,
                     (int          )m_output_h_size,
                     (int          )m_output_c_size,
-                    (int          )m_y.GetFrameSize(),
-                    (int          )(m_y.GetFrameStride() / sizeof(float))
+                    (int          )dy_buf.GetFrameSize(),
+                    (int          )(dy_buf.GetFrameStride() / sizeof(float))
                 );
 
-            return m_dx;
+            return dx_buf;
         }
 #endif
 
-#if 0
-        if ( DataType<BT>::type == BB_TYPE_FP32 && DataType<FT>::type == BB_TYPE_FP32 ) {
-            // float用実装
-            index_t  m256_frame_size = m_dx.GetFrameStride() / sizeof(float);
 
-            auto x_ptr  = m_x.LockConst<FT>();
-            auto y_ptr  = m_y.LockConst<FT>();
-            auto dy_ptr = dy.LockConst<BT>();
-            auto dx_ptr = m_dx.Lock<BT>(true);
+        // 汎用版実装
+        if (  m_filter_h_size == 2 && m_filter_w_size == 2 ) {
+            auto x_ptr  = x_buf.LockConst<FT>();
+            auto dy_ptr = dy_buf.LockConst<BT>();
+            auto dx_ptr = dx_buf.Lock<BT>(true);
 
-    #pragma omp parallel for
-            for (index_t n = 0; n < m_input_c_size; ++n) {
+            auto frame_size = x_buf.GetFrameSize();
+
+            #pragma omp parallel for
+            for (index_t c = 0; c < m_input_c_size; ++c) {
                 for (index_t y = 0; y < m_output_h_size; ++y) {
                     for (index_t x = 0; x < m_output_w_size; ++x) {
-                        float const * y_addr  = (float const *)y_ptr.GetAddr(GetOutputNode(n, y, x));
-                        float const * dy_addr = (float const *)dy_ptr.GetAddr(GetOutputNode(n, y, x));
-
-                        for (index_t frame = 0; frame < m256_frame_size; frame += 8) {
-                            __m256 out_sig  = _mm256_load_ps(&y_addr[frame]);
-                            __m256 out_grad = _mm256_load_ps(&dy_addr[frame]);
-                            for (index_t fy = 0; fy < m_filter_h_size; ++fy) {
-                                index_t iy = y*m_filter_h_size + fy;
+                        for (index_t frame = 0; frame < frame_size; ++frame) {
+                            BT in_sig[2][2] = {{0, 0}, {0, 0}};
+                            for (index_t fy = 0; fy < 2; ++fy) {
+                                index_t iy = y*2 + fy;
                                 if ( iy < m_input_h_size ) {
-                                    for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
-                                        index_t ix = x*m_filter_w_size + fx;
+                                    for (index_t fx = 0; fx < 2; ++fx) {
+                                        index_t ix = x*2 + fx;
                                         if ( ix < m_input_w_size ) {
-                                            float const *x_addr  = (float const *)x_ptr.GetAddr(GetInputNode(n, iy, ix));
-                                            float       *dx_addr = (float       *)dx_ptr.GetAddr(GetInputNode(n, iy, ix));
-                                            __m256 in_sig  = _mm256_load_ps(&x_addr[frame]);
-                                            __m256 mask    = _mm256_cmp_ps(in_sig, out_sig, _CMP_EQ_OQ);
-                                            __m256 in_grad = _mm256_and_ps(mask, out_grad);
-                                            _mm256_store_ps(&dx_addr[frame], in_grad);
+                                            in_sig[fy][fx] = (BT)x_ptr.Get(frame, c, iy, ix);
+                                        }
+                                    }
+                                }
+                            }
+                            BT out_grad = dy_ptr.Get(frame, c, y, x);
+                            BT in_grad[2][2];
+                            in_grad[0][0] = (BT)(out_grad * (1.0 - in_sig[0][1]) * (1.0 - in_sig[1][0]) * (1.0 - in_sig[1][1]));
+                            in_grad[0][1] = (BT)(out_grad * (1.0 - in_sig[0][0]) * (1.0 - in_sig[1][0]) * (1.0 - in_sig[1][1]));
+                            in_grad[1][0] = (BT)(out_grad * (1.0 - in_sig[0][0]) * (1.0 - in_sig[0][1]) * (1.0 - in_sig[1][1]));
+                            in_grad[1][1] = (BT)(out_grad * (1.0 - in_sig[0][0]) * (1.0 - in_sig[0][1]) * (1.0 - in_sig[1][0]));
+                            for (index_t fy = 0; fy < 2; ++fy) {
+                                index_t iy = y*2 + fy;
+                                if ( iy < m_input_h_size ) {
+                                    for (index_t fx = 0; fx < 2; ++fx) {
+                                        index_t ix = x*2 + fx;
+                                        if ( ix < m_input_w_size ) {
+                                            dx_ptr.Set(frame, c, iy, ix, in_grad[fy][fx]);
                                         }
                                     }
                                 }
@@ -384,17 +316,17 @@ public:
                     }
                 }
             }
-
-            return m_dx;
+            return dx_buf;
         }
-#endif
 
-        // 汎用版実装
+        // 汎用版実装(未着手：下記は MaxPooling のまま)
+        BB_ASSERT(0);
+#if 0
         {
-            auto x_ptr  = m_x_buf.LockConst<FT>();
+            auto x_ptr  = x_buf.LockConst<FT>();
             auto y_ptr  = m_y_buf.LockConst<FT>();
             auto dy_ptr = dy_buf.LockConst<BT>();
-            auto dx_ptr = m_dx_buf.Lock<BT>(true);
+            auto dx_ptr = dx_buf.Lock<BT>(true);
 
             auto frame_size = m_x_buf.GetFrameSize();
 
@@ -422,8 +354,9 @@ public:
                 }
             }
 
-            return m_dx;
+            return dx_buf;
         }
+#endif
     }
 };
 

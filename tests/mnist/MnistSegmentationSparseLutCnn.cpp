@@ -13,8 +13,8 @@
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
 #include "bb/Reduce.h"
-#include "bb/SparseLutN.h"
-#include "bb/LoweringConvolution.h"
+#include "bb/DifferentiableLutN.h"
+#include "bb/Convolution2d.h"
 #include "bb/MaxPooling.h"
 #include "bb/BinaryModulation.h"
 #include "bb/OptimizerAdam.h"
@@ -22,6 +22,140 @@
 #include "bb/MetricsCategoricalAccuracy.h"
 #include "bb/Runner.h"
 #include "bb/LoadMnist.h"
+#include "bb/ExportVerilog.h"
+
+
+
+void conv_to_rtl(void)
+{
+    std::vector< std::shared_ptr< bb::Filter2d<bb::Bit, float> > > layer_list;
+    std::vector< std::shared_ptr< bb::DifferentiableLutN<6, bb::Bit> > > depthwise_list;
+    std::vector< std::shared_ptr< bb::DifferentiableLutN<6, bb::Bit> > > pointwise_list;
+    
+    // ネット構築
+    auto net = bb::Sequential::Create();
+
+    {
+        auto depthwise_lut = bb::DifferentiableLutN<6, bb::Bit>::Create({32, 1, 1});
+        depthwise_list.push_back(depthwise_lut);
+        auto depthwise_net = bb::Sequential::Create();
+        depthwise_net->Add(depthwise_lut);
+        auto depthwise_cnv = bb::Convolution2d<bb::Bit>::Create(depthwise_net, 3, 3);
+        layer_list.push_back(depthwise_cnv);
+        net->Add(depthwise_cnv);
+    }
+
+    {
+        auto pointwise_lut0 = bb::DifferentiableLutN<6, bb::Bit>::Create({32*6, 1, 1});
+        auto pointwise_lut1 = bb::DifferentiableLutN<6, bb::Bit>::Create({32,   1, 1});
+        pointwise_list.push_back(pointwise_lut0);
+        pointwise_list.push_back(pointwise_lut1);
+        auto pointwise_net = bb::Sequential::Create();
+        pointwise_net->Add(pointwise_lut0);
+        pointwise_net->Add(pointwise_lut1);
+        auto pointwise_cnv = bb::Convolution2d<bb::Bit>::Create(pointwise_net, 1, 1);
+        layer_list.push_back(pointwise_cnv);
+        net->Add(pointwise_cnv);
+    }
+
+    for (int i = 0; i < 25; ++i ) {
+        {
+            auto depthwise_lut = bb::DifferentiableLutN<6, bb::Bit>::Create({8, 1, 32});
+            depthwise_list.push_back(depthwise_lut);
+            auto depthwise_net = bb::Sequential::Create();
+            depthwise_net->Add(depthwise_lut);
+            auto depthwise_cnv = bb::Convolution2d<bb::Bit>::Create(depthwise_net, 3, 3);
+            layer_list.push_back(depthwise_cnv);
+            net->Add(depthwise_cnv);
+        }
+
+        {
+            auto pointwise_lut0 = bb::DifferentiableLutN<6, bb::Bit>::Create({32*6, 1, 1});
+            auto pointwise_lut1 = bb::DifferentiableLutN<6, bb::Bit>::Create({32,   1, 1});
+            pointwise_list.push_back(pointwise_lut0);
+            pointwise_list.push_back(pointwise_lut1);
+            auto pointwise_net = bb::Sequential::Create();
+            pointwise_net->Add(pointwise_lut0);
+            pointwise_net->Add(pointwise_lut1);
+            auto pointwise_cnv = bb::Convolution2d<bb::Bit>::Create(pointwise_net, 1, 1);
+            layer_list.push_back(pointwise_cnv);
+            net->Add(pointwise_cnv);
+        }
+    }
+
+    {
+        auto depthwise_lut = bb::DifferentiableLutN<6, bb::Bit>::Create({8, 1, 32});
+        depthwise_list.push_back(depthwise_lut);
+        auto depthwise_net = bb::Sequential::Create();
+        depthwise_net->Add(depthwise_lut);
+        auto depthwise_cnv = bb::Convolution2d<bb::Bit>::Create(depthwise_net, 3, 3);
+        layer_list.push_back(depthwise_cnv);
+        net->Add(depthwise_cnv);
+    }
+
+    {
+        auto pointwise_lut0 = bb::DifferentiableLutN<6, bb::Bit>::Create({64*6, 1, 1});
+        auto pointwise_lut1 = bb::DifferentiableLutN<6, bb::Bit>::Create({64,   1, 1});
+        pointwise_list.push_back(pointwise_lut0);
+        pointwise_list.push_back(pointwise_lut1);
+        auto pointwise_net = bb::Sequential::Create();
+        pointwise_net->Add(pointwise_lut0);
+        pointwise_net->Add(pointwise_lut1);
+        auto pointwise_cnv = bb::Convolution2d<bb::Bit>::Create(pointwise_net, 1, 1);
+        layer_list.push_back(pointwise_cnv);
+        net->Add(pointwise_cnv);
+    }
+
+    {
+        auto pointwise_lut0 = bb::DifferentiableLutN<6, bb::Bit>::Create({36*6, 1, 1});
+        auto pointwise_lut1 = bb::DifferentiableLutN<6, bb::Bit>::Create({36,   1, 1});
+        pointwise_list.push_back(pointwise_lut0);
+        pointwise_list.push_back(pointwise_lut1);
+        auto pointwise_net = bb::Sequential::Create();
+        pointwise_net->Add(pointwise_lut0);
+        pointwise_net->Add(pointwise_lut1);
+        auto pointwise_cnv = bb::Convolution2d<bb::Bit>::Create(pointwise_net, 1, 1);
+        layer_list.push_back(pointwise_cnv);
+        net->Add(pointwise_cnv);
+    }
+
+    {
+        auto pointwise_lut0 = bb::DifferentiableLutN<6, bb::Bit>::Create({11*6, 1, 1});
+        auto pointwise_lut1 = bb::DifferentiableLutN<6, bb::Bit>::Create({11,   1, 1});
+        pointwise_list.push_back(pointwise_lut0);
+        pointwise_list.push_back(pointwise_lut1);
+        auto pointwise_net = bb::Sequential::Create();
+        pointwise_net->Add(pointwise_lut0);
+        pointwise_net->Add(pointwise_lut1);
+        auto pointwise_cnv = bb::Convolution2d<bb::Bit>::Create(pointwise_net, 1, 1);
+        layer_list.push_back(pointwise_cnv);
+        net->Add(pointwise_cnv);
+    }
+    net->SetInputShape({110, 110, 1});
+
+#if 0
+    // 読み込み
+    for ( int i = 0; i < (int)depthwise_list.size(); ++i ) {
+        char finename[64];
+        sprintf_s<64>(finename, "mnist_seg/depthwise_cnv%d/sparse_lut.json", i);
+        if ( !depthwise_list[i]->LoadJson(finename) ) { printf("read error\n"); }
+    }
+
+    for ( int i = 0; i < (int)pointwise_list.size() / 2; ++i ) {
+        char finename[64];
+        sprintf_s<64>(finename, "mnist_seg/pointwise_cnv%d/sparse_lut_0.json", i);
+        if ( !pointwise_list[i*2+0]->LoadJson(finename) ) { printf("read error\n"); }
+        sprintf_s<64>(finename, "mnist_seg/pointwise_cnv%d/sparse_lut_1.json", i);
+        if ( !pointwise_list[i*2+1]->LoadJson(finename) ) { printf("read error\n"); }
+    }
+#endif
+
+    net->PrintInfo();
+
+    std::ofstream ofs("mnist_seg.v");
+    bb::ExportVerilog_LutCnnLayersAxi4s<bb::Bit>(ofs, "mnist_seg", layer_list);
+}
+
 
 
 static std::vector< std::vector<float> > make_t(std::vector< std::vector<float> > const &x, std::vector< std::vector<float> > const &t)
@@ -120,7 +254,7 @@ static void make_td(std::vector< std::vector<float> > &src_x, std::vector< std::
                                 t_vec[node] = (x_vec[pix] > 0.5) ? src_t[idx][c] : 0.0f;
                             }
                             else {
-                                t_vec[node] = (dist(mt) == 0 && x_vec[pix] <= 0.5) ? 1.0f : 0.0f;
+                                t_vec[node] = (dist(mt) == 0 && x_vec[pix] <= 0.5) ? 0.15f : 0.0f;
                             }
                         }
                     }
@@ -143,56 +277,33 @@ static std::shared_ptr<bb::Model> make_dense_cnv(int ch_size)
     cnv_net->Add(bb::DenseAffine<float>::Create(ch_size));
     cnv_net->Add(bb::BatchNormalization<float>::Create());
     cnv_net->Add(bb::Binarize<bb::Bit>::Create());
-    return bb::LoweringConvolution<bb::Bit>::Create(cnv_net, 3, 3, 1, 1, "same");
+    return bb::Convolution2d<bb::Bit>::Create(cnv_net, 3, 3, 1, 1, "same");
 }
 
-static std::shared_ptr<bb::Model> make_lut_cnv2(int ch_size, int w=3, int h=3)
+static std::shared_ptr<bb::Model> make_lut_depthwise_cnv(bb::indices_t output_shape, int w=3, int h=3, bool bn=true)
 {
     auto cnv_net = bb::Sequential::Create();
-    cnv_net->Add(bb::SparseLutN<6, bb::Bit>::Create(ch_size*6));
-    cnv_net->Add(bb::SparseLutN<6, bb::Bit>::Create(ch_size, true, "serial"));
-    return bb::LoweringConvolution<bb::Bit>::Create(cnv_net, w, h, 1, 1, "same");
+    cnv_net->Add(bb::DifferentiableLutN<6, bb::Bit>::Create(output_shape, bn, "depthwise"));
+    return bb::Convolution2d<bb::Bit>::Create(cnv_net, w, h, 1, 1, "same");
 }
 
-static std::shared_ptr<bb::Model> make_lut_cnv3(int ch_size)
+static std::shared_ptr<bb::Model> make_lut_pointwise_cnv(int ch_size, int lut_size=2, bool bn=true)
 {
     auto cnv_net = bb::Sequential::Create();
-    cnv_net->Add(bb::SparseLutN<6, bb::Bit>::Create(ch_size*6*6, true));
-    cnv_net->Add(bb::SparseLutN<6, bb::Bit>::Create(ch_size*6, true));
-    cnv_net->Add(bb::SparseLutN<6, bb::Bit>::Create(ch_size, true));
-    return bb::LoweringConvolution<bb::Bit>::Create(cnv_net, 3, 3, 1, 1, "same");
-}
-
-
-static std::shared_ptr<bb::Model> make_mobile_cnv(int in_ch_size, int out_ch_size)
-{
-    auto net = bb::Sequential::Create();
-
-    // depthwise
-    {
-        auto cnv0_net = bb::Sequential::Create();
-        cnv0_net->Add(bb::SparseLutN<6, bb::Bit>::Create({6, 1, in_ch_size}, true, "depthwise"));
-        cnv0_net->Add(bb::SparseLutN<6, bb::Bit>::Create({1, 1, in_ch_size}, true, "depthwise"));
-        net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv0_net, 3, 3, 1, 1, "same"));
-    }
-
-    // pointwise
-    {
-        auto cnv1_net = bb::Sequential::Create();
-        cnv1_net->Add(bb::SparseLutN<6, bb::Bit>::Create({1, 1, out_ch_size*6}, true));
-        cnv1_net->Add(bb::SparseLutN<6, bb::Bit>::Create({1, 1, out_ch_size}, true));
-        net->Add(bb::LoweringConvolution<bb::Bit>::Create(cnv1_net, 1, 1));
-    }
-
-    return net;
+    if ( lut_size >= 3) { cnv_net->Add(bb::DifferentiableLutN<6, bb::Bit>::Create(ch_size*6*6, bn, "random")); }
+    if ( lut_size >= 2) { cnv_net->Add(bb::DifferentiableLutN<6, bb::Bit>::Create(ch_size*6,   bn, "random")); }
+    if ( lut_size >= 1) { cnv_net->Add(bb::DifferentiableLutN<6, bb::Bit>::Create(ch_size,     bn, "serial")); }
+    return bb::Convolution2d<bb::Bit>::Create(cnv_net, 3, 3, 1, 1, "same");
 }
 
 
 
-
-void MnistSegmentationSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void MnistSegmentationDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "MnistSegmentationDenseCnn";
+//    conv_to_rtl();
+//    return;
+
+    std::string net_name = "MnistSegmentationDifferentiableLutCnn";
 
     // load MNIST data
 #ifdef _DEBUG
@@ -230,12 +341,16 @@ void MnistSegmentationSparseLutCnn(int epoch_size, int mini_batch_size, int trai
 
     // create network
     auto main_net = bb::Sequential::Create();
-    main_net->Add(make_lut_cnv2(32));
+    main_net->Add(make_lut_depthwise_cnv({36, 1, 1}, 3, 3));
+    main_net->Add(make_lut_pointwise_cnv(36, 2, true));
     for ( int i = 0; i < 27; ++i ) {
-        main_net->Add(make_lut_cnv2(32, 3, 3));
+        main_net->Add(make_lut_depthwise_cnv({8, 1, 36}, 3, 3, true));
+        main_net->Add(make_lut_pointwise_cnv(36, 2, true));
     }
-    main_net->Add(make_lut_cnv2(36, 1, 1));
-    main_net->Add(make_lut_cnv2(77, 1, 1));
+    main_net->Add(make_lut_pointwise_cnv(128, 2, true));
+    main_net->Add(make_lut_pointwise_cnv(64, 2, true));
+    main_net->Add(make_lut_pointwise_cnv(36, 2, true));
+    main_net->Add(make_lut_pointwise_cnv(11, 2, false));
 
     // modulation wrapper
     auto net = bb::Sequential::Create();

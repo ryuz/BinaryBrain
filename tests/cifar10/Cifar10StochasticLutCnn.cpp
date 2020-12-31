@@ -13,7 +13,7 @@
 #include "bb/ShuffleModulation.h"
 #include "bb/StochasticLutN.h"
 #include "bb/BinaryLutN.h"
-#include "bb/LoweringConvolution.h"
+#include "bb/Convolution2d.h"
 #include "bb/BatchNormalization.h"
 #include "bb/BackpropagatedBatchNormalization.h"
 #include "bb/MaxPooling.h"
@@ -74,12 +74,12 @@ void Cifar10StochasticLutCnn(int epoch_size, int mini_batch_size, int test_modul
         cnv3_sub->Add(layer_cnv3_sl1);
         
         auto net = bb::Sequential::Create();
-        net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
-        net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
+        net->Add(bb::Convolution2d<>::Create(cnv0_sub, 3, 3));
+        net->Add(bb::Convolution2d<>::Create(cnv1_sub, 3, 3));
         net->Add(bb::MaxPooling<>::Create(2, 2));
         net->Add(bb::BackpropagatedBatchNormalization<>::Create());
-        net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
-        net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
+        net->Add(bb::Convolution2d<>::Create(cnv2_sub, 3, 3));
+        net->Add(bb::Convolution2d<>::Create(cnv3_sub, 3, 3));
         net->Add(bb::MaxPooling<>::Create(2, 2));
         net->Add(bb::BackpropagatedBatchNormalization<>::Create());
         net->Add(layer_sl4);
@@ -172,15 +172,15 @@ void Cifar10StochasticLutCnn(int epoch_size, int mini_batch_size, int test_modul
         cnv4_sub->Add(bb::ShuffleModulation<>::Create(test_modulation_size, 1*1, 11));
         cnv4_sub->Add(layer_bl6);
 
-        auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3);
-        auto cnv1 = bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3);
+        auto cnv0 = bb::Convolution2d<bb::Bit>::Create(cnv0_sub, 3, 3);
+        auto cnv1 = bb::Convolution2d<bb::Bit>::Create(cnv1_sub, 3, 3);
         auto pol0 = bb::MaxPooling<bb::Bit>::Create(2, 2);
 
-        auto cnv2 = bb::LoweringConvolution<bb::Bit>::Create(cnv2_sub, 3, 3);
-        auto cnv3 = bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3);
+        auto cnv2 = bb::Convolution2d<bb::Bit>::Create(cnv2_sub, 3, 3);
+        auto cnv3 = bb::Convolution2d<bb::Bit>::Create(cnv3_sub, 3, 3);
         auto pol1 = bb::MaxPooling<bb::Bit>::Create(2, 2);
 
-        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 5, 5);
+        auto cnv4 = bb::Convolution2d<bb::Bit>::Create(cnv4_sub, 5, 5);
 
         auto lut_net = bb::Sequential::Create();
         lut_net->Add(cnv0);

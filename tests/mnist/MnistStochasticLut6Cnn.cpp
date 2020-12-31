@@ -16,7 +16,7 @@
 #include "bb/BinaryToReal.h"
 #include "bb/StochasticLutN.h"
 #include "bb/BinaryLutN.h"
-#include "bb/LoweringConvolution.h"
+#include "bb/Convolution2d.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
 #include "bb/MaxPooling.h"
@@ -80,11 +80,11 @@ void MnistStochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_siz
 
 
         auto net = bb::Sequential::Create();
-        net->Add(bb::LoweringConvolution<>::Create(cnv0_sub, 3, 3));
-        net->Add(bb::LoweringConvolution<>::Create(cnv1_sub, 3, 3));
+        net->Add(bb::Convolution2d<>::Create(cnv0_sub, 3, 3));
+        net->Add(bb::Convolution2d<>::Create(cnv1_sub, 3, 3));
         net->Add(bb::StochasticMaxPooling2x2<>::Create());
-        net->Add(bb::LoweringConvolution<>::Create(cnv2_sub, 3, 3));
-        net->Add(bb::LoweringConvolution<>::Create(cnv3_sub, 3, 3));
+        net->Add(bb::Convolution2d<>::Create(cnv2_sub, 3, 3));
+        net->Add(bb::Convolution2d<>::Create(cnv3_sub, 3, 3));
         net->Add(bb::StochasticMaxPooling2x2<>::Create());
         net->Add(layer_sl4);
         net->Add(layer_sl5);
@@ -158,16 +158,16 @@ void MnistStochasticLut6Cnn(int epoch_size, int mini_batch_size, int max_run_siz
         cnv4_sub->Add(layer_lut6);
         cnv4_sub->Add(layer_lut7);
 
-        auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3);
-        auto cnv1 = bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3);
+        auto cnv0 = bb::Convolution2d<bb::Bit>::Create(cnv0_sub, 3, 3);
+        auto cnv1 = bb::Convolution2d<bb::Bit>::Create(cnv1_sub, 3, 3);
         auto pol0 = bb::MaxPooling<bb::Bit>::Create(2, 2);
 
-        auto cnv2 = bb::LoweringConvolution<bb::Bit>::Create(cnv2_sub, 3, 3);
-        auto cnv3 = bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3);
+        auto cnv2 = bb::Convolution2d<bb::Bit>::Create(cnv2_sub, 3, 3);
+        auto cnv3 = bb::Convolution2d<bb::Bit>::Create(cnv3_sub, 3, 3);
         auto pol1 = bb::MaxPooling<bb::Bit>::Create(2, 2);
 
         // 28x28 à»äOÇ‡ì¸óÕÇ≈Ç´ÇÈÇÊÇ§Ç…ç≈èIíiÇ‡èÙÇ›çûÇ›Ç…ïœä∑
-        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 4, 4);
+        auto cnv4 = bb::Convolution2d<bb::Bit>::Create(cnv4_sub, 4, 4);
 
         auto lut_net = bb::Sequential::Create();
         lut_net->Add(bb::RealToBinary<bb::Bit>::Create(lut_frame_mux_size));

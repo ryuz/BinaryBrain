@@ -11,9 +11,10 @@
 #include "bb/Sequential.h"
 #include "bb/DenseAffine.h"
 #include "bb/DepthwiseDenseAffine.h"
+#include "bb/DifferentiableLutN.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
-#include "bb/LoweringConvolution.h"
+#include "bb/Convolution2d.h"
 #include "bb/MaxPooling.h"
 #include "bb/BinaryModulation.h"
 #include "bb/OptimizerAdam.h"
@@ -21,6 +22,31 @@
 #include "bb/MetricsCategoricalAccuracy.h"
 #include "bb/Runner.h"
 #include "bb/LoadMnist.h"
+
+
+template<typename T>
+std::shared_ptr<bb::Model> MakeConvLayer(bb::indices_t shape)
+{
+    auto net = bb::Sequential::Create();
+    net->Add(bb::DenseAffine<float>::Create(shape));
+    net->Add(bb::BatchNormalization<float>::Create());
+    net->Add(bb::ReLU<T>::Create());
+    return net;
+}
+
+template<typename T>
+std::shared_ptr<bb::Model> MakeDepthwiseLayer(bb::indices_t shape)
+{
+#if 0
+    auto net = bb::Sequential::Create();
+    net->Add(bb::DepthwiseDenseAffine<float>::Create(shape));
+    net->Add(bb::BatchNormalization<float>::Create());
+    net->Add(bb::ReLU<T>::Create());
+    return net;
+#else
+    return bb::DifferentiableLutN<6, T>::Create(shape, true, "depthwise");
+#endif
+}
 
 
 template <typename T>
@@ -43,84 +69,50 @@ void MnistMobileNet_(int epoch_size, int mini_batch_size, int train_modulation_s
         std::cout << "\n<Training>" << std::endl;
 
         // create network
-        auto cnv0_net = bb::Sequential::Create();
-        cnv0_net->Add(bb::DenseAffine<>::Create(32));
-        cnv0_net->Add(bb::BatchNormalization<>::Create());
-        cnv0_net->Add(bb::ReLU<T>::Create());
-        
-        auto cnv10_net = bb::Sequential::Create();
-        cnv10_net->Add(bb::DepthwiseDenseAffine<>::Create(32));
-        cnv10_net->Add(bb::BatchNormalization<>::Create());
-        cnv10_net->Add(bb::ReLU<T>::Create());
-        auto cnv11_net = bb::Sequential::Create();
-        cnv11_net->Add(bb::DenseAffine<>::Create(32));
-        cnv11_net->Add(bb::BatchNormalization<>::Create());
-        cnv11_net->Add(bb::ReLU<T>::Create());
-
-        auto cnv20_net = bb::Sequential::Create();
-        cnv20_net->Add(bb::DepthwiseDenseAffine<>::Create(32));
-        cnv20_net->Add(bb::BatchNormalization<>::Create());
-        cnv20_net->Add(bb::ReLU<T>::Create());
-        auto cnv21_net = bb::Sequential::Create();
-        cnv21_net->Add(bb::DenseAffine<>::Create(64));
-        cnv21_net->Add(bb::BatchNormalization<>::Create());
-        cnv21_net->Add(bb::ReLU<T>::Create());
-
-        auto cnv30_net = bb::Sequential::Create();
-        cnv30_net->Add(bb::DepthwiseDenseAffine<>::Create(64));
-        cnv30_net->Add(bb::BatchNormalization<>::Create());
-        cnv30_net->Add(bb::ReLU<T>::Create());
-        auto cnv31_net = bb::Sequential::Create();
-        cnv31_net->Add(bb::DenseAffine<>::Create(64));
-        cnv31_net->Add(bb::BatchNormalization<>::Create());
-        cnv31_net->Add(bb::ReLU<T>::Create());
-
-        auto cnv40_net = bb::Sequential::Create();
-        cnv40_net->Add(bb::DepthwiseDenseAffine<>::Create(64));
-        cnv40_net->Add(bb::BatchNormalization<>::Create());
-        cnv40_net->Add(bb::ReLU<T>::Create());
-        auto cnv41_net = bb::Sequential::Create();
-        cnv41_net->Add(bb::DenseAffine<>::Create(128));
-        cnv41_net->Add(bb::BatchNormalization<>::Create());
-        cnv41_net->Add(bb::ReLU<T>::Create());
-
-        auto cnv50_net = bb::Sequential::Create();
-        cnv50_net->Add(bb::DepthwiseDenseAffine<>::Create(128));
-        cnv50_net->Add(bb::BatchNormalization<>::Create());
-        cnv50_net->Add(bb::ReLU<T>::Create());
-        auto cnv51_net = bb::Sequential::Create();
-        cnv51_net->Add(bb::DenseAffine<>::Create(10));
-        cnv51_net->Add(bb::BatchNormalization<>::Create());
-        cnv51_net->Add(bb::ReLU<T>::Create());
+        int w=4;
 
         auto main_net = bb::Sequential::Create();
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv0_net,  3, 3));   // Conv3x3 x 32            [26x26]
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv10_net, 3, 3));   // depthwise Conv3x3 x 32  [24x24]
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv11_net, 1, 1));   // pointwise Conv1x1 x 32
-        main_net->Add(bb::MaxPooling<T>::Create(2, 2));                       //                         [12x12]
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv20_net, 3, 3));   // depthwise Conv3x3 x 64  [10x10]
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv21_net, 1, 1));   // pointwise Conv1x1 x 64
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv30_net, 3, 3));   // depthwise Conv3x3 x 64  [8x8]
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv31_net, 1, 1));   // pointwise Conv1x1 x 64
-        main_net->Add(bb::MaxPooling<T>::Create(2, 2));                       //                         [4x4]
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv40_net, 3, 3));   // depthwise Conv3x3 x 64  [2x2]
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv41_net, 1, 1));   // pointwise Conv1x1 x 64
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv50_net, 2, 2));   // depthwise Conv3x3 x 64  [1x1]
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv51_net, 1, 1));   // pointwise Conv1x1 x 64
 
-//        main_net->Add(bb::DenseAffine<float>::Create(512));
-//        main_net->Add(bb::BatchNormalization<float>::Create());
-//        main_net->Add(bb::ReLU<float>::Create());
-//        main_net->Add(bb::DenseAffine<float>::Create(td.t_shape));
-//        if ( binary_mode ) {
-//            main_net->Add(bb::BatchNormalization<float>::Create());
-//            main_net->Add(bb::ReLU<float>::Create());
- //       }
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1,  32*w}), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeDepthwiseLayer<T>({1, 1,  32*w}), 3, 3));  // 26x26
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1,  32  }), 1, 1));
+
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1,  32*w}), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeDepthwiseLayer<T>({1, 1,  32*w}), 3, 3));  // 24x24
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1,  32  }), 1, 1));
+
+        main_net->Add(bb::MaxPooling<T>::Create(2, 2));                                                 // 12x12
+
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1,  64*w}), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeDepthwiseLayer<T>({1, 1,  64*w}), 3, 3));  // 10x10
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1,  64  }), 1, 1));
+
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1,  64*w}), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeDepthwiseLayer<T>({1, 1,  64*w}), 3, 3));  // 8x8
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1,  64  }), 1, 1));
+
+        main_net->Add(bb::MaxPooling<T>::Create(2, 2));                                                 // 4x4
+
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1,  128*w}), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeDepthwiseLayer<T>({1, 1,  128*w}), 3, 3));  // 2x2
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1,  128  }), 1, 1));
+
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1,  128*w}), 1, 1));
+        main_net->Add(bb::Convolution2d<T>::Create(MakeDepthwiseLayer<T>({1, 1,  128*w}), 2, 2));  // 1x1
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1,  128  }), 1, 1));
+
+        main_net->Add(bb::Convolution2d<T>::Create(MakeConvLayer<T>     ({1, 1,  256  }), 1, 1));
+
+        main_net->Add(bb::DenseAffine<>::Create(td.t_shape));
+        if ( binary_mode ) {
+            main_net->Add(bb::BatchNormalization<>::Create());
+            main_net->Add(bb::ReLU<T>::Create());
+        }
 
         // modulation wrapper
-        auto net = bb::BinaryModulation<T>::Create(main_net, train_modulation_size, test_modulation_size);
+        auto net = bb::BinaryModulation<T>::Create(main_net, train_modulation_size, test_modulation_size, 8);
 
-      // set input shape
+        // set input shape
         net->SetInputShape(td.x_shape);
 
         // set binary mode

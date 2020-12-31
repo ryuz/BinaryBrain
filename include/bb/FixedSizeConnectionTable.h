@@ -120,7 +120,7 @@ public:
 
     index_t GetReverseTableStride(void)
     {
-        return m_reverse_table.GetShape()[0];
+        return m_reverse_table.GetShape()[1];
     }
     
 
@@ -148,7 +148,7 @@ protected:
             max_n = std::max(max_n, n[node]);
         }
 
-        m_reverse_table.Resize(indices_t({max_n+1, input_node_size}));
+        m_reverse_table.Resize(indices_t({input_node_size, max_n+1}));
         m_reverse_table = 0;
 
         auto reverse_table_ptr = m_reverse_table.Lock();

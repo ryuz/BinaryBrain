@@ -9,8 +9,8 @@
 #include <iostream>
 
 #include "bb/Sequential.h"
-#include "bb/SparseLutN.h"
-#include "bb/SparseLutDiscreteN.h"
+#include "bb/DifferentiableLutN.h"
+#include "bb/DifferentiableLutDiscreteN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/Reduce.h"
 #include "bb/BinaryModulation.h"
@@ -36,9 +36,9 @@ static void WritePgm(std::string fname, bb::FrameBuffer buf, int frame)
 
 
 // AutoEncoder
-void MnistAeSparseLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void MnistAeDifferentiableLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "MnistAeSparseLutSimple";
+    std::string net_name = "MnistAeDifferentiableLutSimple";
 
   // load MNIST data
 #ifdef _DEBUG
@@ -53,16 +53,16 @@ void MnistAeSparseLutSimple(int epoch_size, int mini_batch_size, int train_modul
     td.t_train = td.x_train;
     td.t_test  = td.x_test;
 
-    auto enc_sl0 = bb::SparseLutN<6, bb::Bit>::Create(6912);
-    auto enc_sl1 = bb::SparseLutN<6, bb::Bit>::Create(1152);
-    auto enc_sl2 = bb::SparseLutN<6, bb::Bit>::Create(192);
-    auto enc_sl3 = bb::SparseLutN<6, bb::Bit>::Create(32);
+    auto enc_sl0 = bb::DifferentiableLutN<6, bb::Bit>::Create(6912);
+    auto enc_sl1 = bb::DifferentiableLutN<6, bb::Bit>::Create(1152);
+    auto enc_sl2 = bb::DifferentiableLutN<6, bb::Bit>::Create(192);
+    auto enc_sl3 = bb::DifferentiableLutN<6, bb::Bit>::Create(32);
 //    auto enc_sl3 = bb::StochasticLutN<6, bb::Bit>::Create(32);
 //    auto enc_sl3b = bb::Binarize<bb::Bit>::Create(0.5f, 0.0f, 1.0f);
 
-    auto dec_sl0 = bb::SparseLutN<6, bb::Bit>::Create(28*28*6*6);
-    auto dec_sl1 = bb::SparseLutN<6, bb::Bit>::Create(28*28*6);
-    auto dec_sl2 = bb::SparseLutN<6, bb::Bit>::Create(28*28, false);
+    auto dec_sl0 = bb::DifferentiableLutN<6, bb::Bit>::Create(28*28*6*6);
+    auto dec_sl1 = bb::DifferentiableLutN<6, bb::Bit>::Create(28*28*6);
+    auto dec_sl2 = bb::DifferentiableLutN<6, bb::Bit>::Create(28*28, false);
 //    auto dec_sl2 = bb::StochasticLutN<6, bb::Bit>::Create(28*28);
 //    auto dec_sl2b = bb::Binarize<bb::Bit>::Create(0.5f, 0.0f, 1.0f);
 
@@ -189,7 +189,7 @@ void MnistAeSparseLutSimple(int epoch_size, int mini_batch_size, int train_modul
             std::string filename = "verilog/" + net_name + ".v";
             std::ofstream ofs(filename);
             ofs << "`timescale 1ns / 1ps\n\n";
-            bb::ExportVerilog_LutLayers<>(ofs, net_name, lut_net);
+            bb::ExportVerilog_LutModels<>(ofs, net_name, lut_net);
             std::cout << "export : " << filename << "\n" << std::endl;
 
             // RTL simulation 用データの出力

@@ -55,7 +55,7 @@ public:
         index_t         x_stride      = 1;
         index_t         y_stride      = 1;
         std::string     padding       = "valid";
-        int             border_mode   = BB_BORDER_REFLECT_101;
+        std::string     border_mode   = "reflect_101";
         FT              border_value  = (FT)0;
     };
 
@@ -67,7 +67,7 @@ protected:
         m_x_stride      = create.x_stride;
         m_y_stride      = create.y_stride;
         m_padding       = create.padding;
-        m_border_mode   = create.border_mode;
+        m_border_mode   = BorderConv(create.border_mode);
         m_border_value  = create.border_value;
     }
 
@@ -94,7 +94,20 @@ public:
     }
 
     static std::shared_ptr<ConvolutionIm2Col> Create(index_t filter_h_size, index_t filter_w_size, index_t y_stride=1, index_t x_stride=1,
-                                                std::string padding="valid", int border_mode = BB_BORDER_REFLECT_101)
+                                                std::string padding="valid", std::string  border_mode = "reflect_101")
+    {
+        create_t create;
+        create.filter_h_size = filter_h_size;
+        create.filter_w_size = filter_w_size;
+        create.y_stride      = y_stride;
+        create.x_stride      = x_stride;
+        create.padding       = padding;
+        create.border_mode   = border_mode;
+        return Create(create);
+    }
+
+    static std::shared_ptr<ConvolutionIm2Col> CreateEx(index_t filter_h_size, index_t filter_w_size, index_t y_stride=1, index_t x_stride=1,
+                                                std::string padding="valid", std::string  border_mode = "reflect_101")
     {
         create_t create;
         create.filter_h_size = filter_h_size;
@@ -107,6 +120,14 @@ public:
     }
 
     std::string GetClassName(void) const { return "ConvolutionIm2Col"; }
+
+    index_t     GetFilterSizeH(void) const { return m_filter_h_size; }
+    index_t     GetFilterSizeW(void) const { return m_filter_w_size; }
+    index_t     GetStrideX(void) const     { return m_x_stride; }
+    index_t     GetStrideY(void) const     { return m_y_stride; }
+    std::string GetPadding(void) const     { return m_padding; }
+    int         GetBorderMode(void) const  { return m_border_mode; }
+    FT          GetBorderValue(void) const { return m_border_value; }
 
 
     /**
@@ -126,9 +147,9 @@ public:
         m_input_shape = shape;
         BB_ASSERT(m_input_shape.size() == 3);
 
-        m_input_w_size = m_input_shape[0];
+        m_input_c_size = m_input_shape[0];
         m_input_h_size = m_input_shape[1];
-        m_input_c_size = m_input_shape[2];
+        m_input_w_size = m_input_shape[2];
 
         // 出力サイズ計算
         if ( m_padding == "valid" ) {
@@ -148,9 +169,9 @@ public:
         }
 
         m_output_shape.resize(3);
-        m_output_shape[0] = m_filter_w_size;
+        m_output_shape[0] = m_input_c_size;
         m_output_shape[1] = m_filter_h_size;
-        m_output_shape[2] = m_input_c_size;
+        m_output_shape[2] = m_filter_w_size;
 
         return m_output_shape;
     }
@@ -187,6 +208,17 @@ protected:
         return (c*m_filter_h_size + y)*m_filter_w_size + x;
     }
 
+
+    inline int BorderConv(std::string const& mode)
+    {
+        if ( mode == "constant" )    { return BB_BORDER_CONSTANT; }
+        if ( mode == "reflect" )     { return BB_BORDER_REFLECT  ; }
+        if ( mode == "reflect_101" ) { return BB_BORDER_REFLECT_101; }
+        if ( mode == "replicate" )   { return BB_BORDER_REPLICATE; }
+        if ( mode == "wrap" )        { return BB_BORDER_WRAP; }
+        BB_DEBUG_ASSERT(0);
+        return BB_BORDER_CONSTANT;
+    }
 
     inline bool Border(int border_mode, index_t &x, index_t &y, index_t w, index_t h)
     {
@@ -243,6 +275,7 @@ public:
         // 出力形状設定
         FrameBuffer y_buf(m_output_frame_size, m_output_shape, x_buf.GetType());
         
+
 #ifdef BB_WITH_CUDA
         if ( DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
             // FP32 CUDA

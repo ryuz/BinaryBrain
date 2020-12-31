@@ -9,11 +9,11 @@
 #include <iostream>
 
 #include "bb/Sequential.h"
-#include "bb/SparseLutN.h"
-#include "bb/SparseLutDiscreteN.h"
+#include "bb/DifferentiableLutN.h"
+#include "bb/DifferentiableLutDiscreteN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/MaxPooling.h"
-#include "bb/LoweringConvolution.h"
+#include "bb/Convolution2d.h"
 #include "bb/UpSampling.h"
 #include "bb/BinaryModulation.h"
 #include "bb/OptimizerAdam.h"
@@ -36,10 +36,10 @@ static void WritePgm(std::string fname, bb::FrameBuffer buf, int frame)
 }
 
 
-template < typename T=float, class ModelType=bb::SparseLutN<6, T> >
-void MnistAeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+template < typename T=float, class ModelType=bb::DifferentiableLutN<6, T> >
+void MnistAeDifferentiableLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "MnistAeSparseLutCnn";
+    std::string net_name = "MnistAeDifferentiableLutCnn";
 
   // load MNIST data
 #ifdef _DEBUG
@@ -122,11 +122,11 @@ void MnistAeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_modu
         dec_cnv0_sub->Add(dec_cnv0_sl3);
 
         auto main_net = bb::Sequential::Create();
-        main_net->Add(bb::LoweringConvolution<T>::Create(enc_cnv0_sub, 3, 3, 1, 1, "same"));    // 28x28
-        main_net->Add(bb::LoweringConvolution<T>::Create(enc_cnv1_sub, 3, 3, 1, 1, "same"));    // 28x28
+        main_net->Add(bb::Convolution2d<T>::Create(enc_cnv0_sub, 3, 3, 1, 1, "same"));    // 28x28
+        main_net->Add(bb::Convolution2d<T>::Create(enc_cnv1_sub, 3, 3, 1, 1, "same"));    // 28x28
         main_net->Add(bb::MaxPooling<float>::Create(2, 2));
-        main_net->Add(bb::LoweringConvolution<T>::Create(enc_cnv2_sub, 3, 3, 1, 1, "same"));    // 14x14
-        main_net->Add(bb::LoweringConvolution<T>::Create(enc_cnv3_sub, 3, 3, 1, 1, "same"));    // 14x14
+        main_net->Add(bb::Convolution2d<T>::Create(enc_cnv2_sub, 3, 3, 1, 1, "same"));    // 14x14
+        main_net->Add(bb::Convolution2d<T>::Create(enc_cnv3_sub, 3, 3, 1, 1, "same"));    // 14x14
         main_net->Add(bb::MaxPooling<float>::Create(2, 2));
         main_net->Add(enc_sl4);
         main_net->Add(enc_sl5);
@@ -136,11 +136,11 @@ void MnistAeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_modu
         main_net->Add(dec_sl5);
         main_net->Add(dec_sl4);
         main_net->Add(bb::UpSampling<T>::Create(2, 2));
-        main_net->Add(bb::LoweringConvolution<T>::Create(dec_cnv3_sub, 3, 3, 1, 1, "same"));    // 14x14
-        main_net->Add(bb::LoweringConvolution<T>::Create(dec_cnv2_sub, 3, 3, 1, 1, "same"));    // 14x14
+        main_net->Add(bb::Convolution2d<T>::Create(dec_cnv3_sub, 3, 3, 1, 1, "same"));    // 14x14
+        main_net->Add(bb::Convolution2d<T>::Create(dec_cnv2_sub, 3, 3, 1, 1, "same"));    // 14x14
         main_net->Add(bb::UpSampling<T>::Create(2, 2));
-        main_net->Add(bb::LoweringConvolution<T>::Create(dec_cnv1_sub, 3, 3, 1, 1, "same"));    // 28x28
-        main_net->Add(bb::LoweringConvolution<T>::Create(dec_cnv0_sub, 3, 3, 1, 1, "same"));    // 28x28
+        main_net->Add(bb::Convolution2d<T>::Create(dec_cnv1_sub, 3, 3, 1, 1, "same"));    // 28x28
+        main_net->Add(bb::Convolution2d<T>::Create(dec_cnv0_sub, 3, 3, 1, 1, "same"));    // 28x28
 
         // modulation wrapper
         auto net = bb::Sequential::Create();
@@ -270,11 +270,11 @@ void MnistAeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_modu
         dec_cnv0_sub->Add(dec_cnv0_bl3);
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::LoweringConvolution<bb::Bit>::Create(enc_cnv0_sub, 3, 3, 1, 1, "same"));    // 28x28
-        lut_net->Add(bb::LoweringConvolution<bb::Bit>::Create(enc_cnv1_sub, 3, 3, 1, 1, "same"));    // 28x28
+        lut_net->Add(bb::Convolution2d<bb::Bit>::Create(enc_cnv0_sub, 3, 3, 1, 1, "same"));    // 28x28
+        lut_net->Add(bb::Convolution2d<bb::Bit>::Create(enc_cnv1_sub, 3, 3, 1, 1, "same"));    // 28x28
         lut_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
-        lut_net->Add(bb::LoweringConvolution<bb::Bit>::Create(enc_cnv2_sub, 3, 3, 1, 1, "same"));    // 14x14
-        lut_net->Add(bb::LoweringConvolution<bb::Bit>::Create(enc_cnv3_sub, 3, 3, 1, 1, "same"));    // 14x14
+        lut_net->Add(bb::Convolution2d<bb::Bit>::Create(enc_cnv2_sub, 3, 3, 1, 1, "same"));    // 14x14
+        lut_net->Add(bb::Convolution2d<bb::Bit>::Create(enc_cnv3_sub, 3, 3, 1, 1, "same"));    // 14x14
         lut_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
         lut_net->Add(enc_bl4);
         lut_net->Add(enc_bl5);
@@ -284,11 +284,11 @@ void MnistAeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_modu
         lut_net->Add(dec_bl5);
         lut_net->Add(dec_bl4);
         lut_net->Add(bb::UpSampling<bb::Bit>::Create(2, 2));
-        lut_net->Add(bb::LoweringConvolution<bb::Bit>::Create(dec_cnv3_sub, 3, 3, 1, 1, "same"));    // 14x14
-        lut_net->Add(bb::LoweringConvolution<bb::Bit>::Create(dec_cnv2_sub, 3, 3, 1, 1, "same"));    // 14x14
+        lut_net->Add(bb::Convolution2d<bb::Bit>::Create(dec_cnv3_sub, 3, 3, 1, 1, "same"));    // 14x14
+        lut_net->Add(bb::Convolution2d<bb::Bit>::Create(dec_cnv2_sub, 3, 3, 1, 1, "same"));    // 14x14
         lut_net->Add(bb::UpSampling<bb::Bit>::Create(2, 2));
-        lut_net->Add(bb::LoweringConvolution<bb::Bit>::Create(dec_cnv1_sub, 3, 3, 1, 1, "same"));    // 28x28
-        lut_net->Add(bb::LoweringConvolution<bb::Bit>::Create(dec_cnv0_sub, 3, 3, 1, 1, "same"));    // 28x28
+        lut_net->Add(bb::Convolution2d<bb::Bit>::Create(dec_cnv1_sub, 3, 3, 1, 1, "same"));    // 28x28
+        lut_net->Add(bb::Convolution2d<bb::Bit>::Create(dec_cnv0_sub, 3, 3, 1, 1, "same"));    // 28x28
 
         // evaluation network
         auto eval_net = bb::Sequential::Create();
@@ -390,17 +390,17 @@ void MnistAeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_modu
 }
 
 
-void MnistAeSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void MnistAeDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
 #ifdef BB_WITH_CUDA
     if ( binary_mode ) {
-        MnistAeSparseLutCnn_Tmp< float, bb::SparseLutN<6, float> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+        MnistAeDifferentiableLutCnn_Tmp< float, bb::DifferentiableLutN<6, float> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
     else {
-        MnistAeSparseLutCnn_Tmp< bb::Bit, bb::SparseLutN<6, bb::Bit> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+        MnistAeDifferentiableLutCnn_Tmp< bb::Bit, bb::DifferentiableLutN<6, bb::Bit> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 #else
-    MnistAeSparseLutCnn_Tmp< float, bb::SparseLutDiscreteN<6, float> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    MnistAeDifferentiableLutCnn_Tmp< float, bb::DifferentiableLutDiscreteN<6, float> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
 #endif
 }
 

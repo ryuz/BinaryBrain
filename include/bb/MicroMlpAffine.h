@@ -14,7 +14,7 @@
 #include <random>
 
 #include "bb/Manager.h"
-#include "bb/SparseLayer.h"
+#include "bb/SparseModel.h"
 #include "bb/ShuffleSet.h"
 
 namespace bb {
@@ -22,9 +22,9 @@ namespace bb {
 
 // Mini-MLP (SparseAffine - ReLU - SparseAffine)
 template <int N = 6, int M = 16, typename FXT = float, typename T = float>
-class MicroMlpAffine : public SparseLayer
+class MicroMlpAffine : public SparseModel
 {
-    using _super = SparseLayer;
+    using _super = SparseModel;
 
 protected:
 public:   // debug
@@ -115,7 +115,7 @@ public:
         self->m_mt.seed(create.seed);
 
         self->m_output_shape = create.output_shape;
-        self->m_output_node_size = GetShapeSize(self->m_output_shape);
+        self->m_output_node_size = CalcShapeSize(self->m_output_shape);
         self->m_connection = create.connection;
 
         return self;
@@ -303,7 +303,7 @@ public:
 
         // 形状設定
         m_input_shape = shape;
-        m_input_node_size = GetShapeSize(shape);
+        m_input_node_size = CalcShapeSize(shape);
         
         // 接続初期化
         m_input_index.Resize(m_output_node_size, N);
@@ -316,14 +316,14 @@ public:
         else if (m_initializer == "xavier" || m_initializer == "Xavier" ) {
             m_initialize_std = (T)1.0 / std::sqrt((T)N);
         }
-        m_W0->Resize({N, M, m_output_node_size}, DataType<T>::type);    m_W0->InitNormalDistribution(0.0, m_initialize_std, m_mt());
-        m_b0->Resize({M, m_output_node_size},    DataType<T>::type);    m_b0->InitNormalDistribution(0.0, m_initialize_std, m_mt());
-        m_W1->Resize({M, m_output_node_size},    DataType<T>::type);    m_W1->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+        m_W0->Resize({m_output_node_size, M, N}, DataType<T>::type);    m_W0->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+        m_b0->Resize({m_output_node_size, M},    DataType<T>::type);    m_b0->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+        m_W1->Resize({m_output_node_size, M},    DataType<T>::type);    m_W1->InitNormalDistribution(0.0, m_initialize_std, m_mt());
         m_b1->Resize({m_output_node_size},       DataType<T>::type);    m_b1->InitNormalDistribution(0.0, m_initialize_std, m_mt());
 
-        m_dW0->Resize({N, M, m_output_node_size}, DataType<T>::type);   m_dW0->FillZero();
-        m_db0->Resize({M, m_output_node_size},    DataType<T>::type);   m_db0->FillZero();
-        m_dW1->Resize({M, m_output_node_size},    DataType<T>::type);   m_dW1->FillZero();
+        m_dW0->Resize({m_output_node_size, M, N}, DataType<T>::type);   m_dW0->FillZero();
+        m_db0->Resize({m_output_node_size, M},    DataType<T>::type);   m_db0->FillZero();
+        m_dW1->Resize({m_output_node_size, M},    DataType<T>::type);   m_dW1->FillZero();
         m_db1->Resize({m_output_node_size},       DataType<T>::type);   m_db1->FillZero();
 
         return m_output_shape;
@@ -338,7 +338,7 @@ public:
      */
     void SetOutputShape(indices_t const &shape)
     {
-        BB_ASSERT(GetShapeSize(shape) == m_output_node_size);
+        BB_ASSERT(CalcShapeSize(shape) == m_output_node_size);
         m_output_shape = shape;
     }
 

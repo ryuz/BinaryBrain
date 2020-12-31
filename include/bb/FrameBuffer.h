@@ -90,22 +90,22 @@ protected:
 
     inline index_t GetNodeIndex(indices_t const & indices) const
     {
-        return GetShapeIndex(indices, m_buf->GetShape());
+        return ConvertIndicesToIndex(indices, m_buf->GetShape());
     }
 
     inline index_t GetNodeIndex(index_t i0) const
     {
-        return GetShapeIndex(i0, m_buf->GetShape());
+        return ConvertIndicesToIndex(i0, m_buf->GetShape());
     }
 
-    inline index_t GetNodeIndex(index_t i1, index_t i0) const
+    inline index_t GetNodeIndex(index_t i0, index_t i1) const
     {
-        return GetShapeIndex(i1, i0, m_buf->GetShape());
+        return ConvertIndicesToIndex(i0, i1, m_buf->GetShape());
     }
 
-    inline index_t GetNodeIndex(index_t i2, index_t i1, index_t i0) const
+    inline index_t GetNodeIndex(index_t i0, index_t i1, index_t i2) const
     {
-        return GetShapeIndex(i2, i1, i0, m_buf->GetShape());
+        return ConvertIndicesToIndex(i0, i1, i2, m_buf->GetShape());
     }
 
     inline Tp ReadValue(void const *base, index_t frame) const
@@ -140,14 +140,14 @@ public:
         return Get(frame, GetNodeIndex(indices));
     }
 
-    inline Tp Get(index_t frame, index_t i1, index_t i0) const
+    inline Tp Get(index_t frame, index_t i0, index_t i1) const
     {
-        return Get(frame, GetNodeIndex(i1, i0));
+        return Get(frame, GetNodeIndex(i0, i1));
     }
 
-    inline Tp Get(index_t frame, index_t i2, index_t i1, index_t i0) const
+    inline Tp Get(index_t frame, index_t i0, index_t i1, index_t i2) const
     {
-        return Get(frame, GetNodeIndex(i2, i1, i0));
+        return Get(frame, GetNodeIndex(i0, i1, i2));
     }
 };
 
@@ -180,22 +180,22 @@ protected:
 
     inline index_t GetNodeIndex(indices_t const & indices)
     {
-        return GetShapeIndex(indices, m_buf->m_node_shape);
+        return ConvertIndicesToIndex(indices, m_buf->m_node_shape);
     }
 
     inline index_t GetNodeIndex(index_t i0)
     {
-        return GetShapeIndex(i0, m_buf->m_node_shape);
+        return ConvertIndicesToIndex(i0, m_buf->m_node_shape);
     }
 
-    inline index_t GetNodeIndex(index_t i1, index_t i0)
+    inline index_t GetNodeIndex(index_t i0, index_t i1)
     {
-        return GetShapeIndex(i1, i0, m_buf->m_node_shape);
+        return ConvertIndicesToIndex(i0, i1, m_buf->m_node_shape);
     }
 
-    inline index_t GetNodeIndex(index_t i2, index_t i1, index_t i0)
+    inline index_t GetNodeIndex(index_t i0, index_t i1, index_t i2)
     {
-        return GetShapeIndex(i2, i1, i0, m_buf->m_node_shape);
+        return ConvertIndicesToIndex(i0, i1, i2, m_buf->m_node_shape);
     }
 
     inline void WriteValue(void *base, index_t frame, Tp value)
@@ -230,14 +230,14 @@ public:
         return Set(frame, GetNodeIndex(indices), value);
     }
 
-    inline void Set(index_t frame, index_t i1, index_t i0, Tp value)
+    inline void Set(index_t frame, index_t i0, index_t i1, Tp value)
     {
-        return Set(frame, GetNodeIndex(i1, i0), value);
+        return Set(frame, GetNodeIndex(i0, i1), value);
     }
 
-    inline void Set(index_t frame, index_t i2, index_t i1, index_t i0, Tp value)
+    inline void Set(index_t frame, index_t i0, index_t i1, index_t i2, Tp value)
     {
-        return Set(frame, GetNodeIndex(i2, i1, i0), value);
+        return Set(frame, GetNodeIndex(i0, i1, i2), value);
     }
 
 
@@ -251,14 +251,14 @@ public:
         return Add(frame, GetNodeIndex(indices), value);
     }
 
-    inline void Add(index_t frame, index_t i1, index_t i0, Tp value)
+    inline void Add(index_t frame, index_t i0, index_t i1, Tp value)
     {
-        return Add(frame, GetNodeIndex(i1, i0), value);
+        return Add(frame, GetNodeIndex(i0, i1), value);
     }
 
-    inline void Add(index_t frame, index_t i2, index_t i1, index_t i0, Tp value)
+    inline void Add(index_t frame, index_t i0, index_t i1, index_t i2, Tp value)
     {
-        return Add(frame, GetNodeIndex(i2, i1, i0), value);
+        return Add(frame, GetNodeIndex(i0, i1, i2), value);
     }
 };
 
@@ -274,14 +274,14 @@ protected:
     index_t                 m_frame_size = 0;
     index_t                 m_frame_stride = 0;
     index_t                 m_node_size = 0;
-    std::vector<index_t>    m_node_shape;
+    indices_t               m_node_shape;
 
 public:
     /**
       * @brief  デフォルトコンストラクタ
       * @detail デフォルトコンストラクタ
       */
-//  explicit FrameBuffer(bool hostOnly=false) : m_tensor(hostOnly) {}
+//  explicit FrameBuffer(bool host_only=false) : m_tensor(host_only) {}
 
     /**
      * @brief  コンストラクタ
@@ -291,7 +291,7 @@ public:
      * @param node_size  1フレームのノード数
      * @param data_type  1ノードのデータ型
      */
-//    explicit FrameBuffer(index_t frame_size, index_t node_size, int data_type, bool hostOnly=false) : m_tensor(hostOnly)
+//    explicit FrameBuffer(index_t frame_size, index_t node_size, int data_type, bool host_only=false) : m_tensor(host_only)
 //    {
 //        Resize(frame_size, indices_t({node_size}), data_type);
 //    }
@@ -303,7 +303,7 @@ public:
      * @param shape      1フレームのノードを構成するshape
      * @param data_type  1ノードのデータ型
      */
-    explicit FrameBuffer(index_t frame_size=0, indices_t shape=indices_t(), int data_type=BB_TYPE_FP32, bool hostOnly=false) : m_tensor(hostOnly)
+    explicit FrameBuffer(index_t frame_size=0, indices_t shape=indices_t(), int data_type=BB_TYPE_FP32, bool host_only=false) : m_tensor(host_only)
     {
         if ( frame_size > 0 ) {
             Resize(frame_size, shape, data_type);
@@ -335,6 +335,27 @@ public:
 
         return *this;
     }
+
+#ifdef BB_PYBIND11
+    template<typename Tp>
+    static FrameBuffer FromNumpy(pybind11::array_t<Tp> ndarray, int data_type, index_t frame_size, index_t frame_stride, indices_t node_shape, bool host_only=false)
+    {
+        FrameBuffer buf;
+        buf.m_tensor       = Tensor_<Tp>::FromNumpy(ndarray, host_only);
+        buf.m_data_type    = data_type;
+        buf.m_frame_size   = frame_size;
+        buf.m_frame_stride = frame_stride;
+        buf.m_node_shape   = node_shape;
+        buf.m_node_size    = CalcShapeSize(node_shape);
+        return buf;
+    }
+
+    template<typename Tp>
+    pybind11::array_t<Tp> Numpy(void)
+    {
+        return m_tensor.Numpy<Tp>();
+    }
+#endif
 
     /**
      * @brief  クローン
@@ -371,6 +392,17 @@ public:
         return m_tensor.IsDeviceAvailable();
     }
 
+    /**
+     * @brief  サイズ設定
+     * @detail サイズ設定
+     * @param frame_size フレーム数
+     * @param shape      1フレームのノードを構成するshape
+     * @param data_type  1ノードのデータ型
+     */
+    static index_t CalcFrameStride(int data_type, index_t frame_size)
+    {
+        return ((frame_size * DataType_GetBitSize(data_type) + 255) / 256) * (256 / 8);        // frame軸は256bit境界にあわせる(SIMD命令用)
+    }
 
     /**
      * @brief  サイズ設定
@@ -383,25 +415,24 @@ public:
     {
         m_data_type    = data_type;
         m_frame_size   = frame_size;
-        m_frame_stride = ((frame_size * DataType_GetBitSize(data_type) + 255) / 256) * (256 / 8);        // frame軸は256bit境界にあわせる(SIMD命令用)
+        m_frame_stride = CalcFrameStride(data_type, frame_size);    // frame軸は256bit境界にあわせる(SIMD命令用)
         m_node_shape   = shape;
 
 
         // Bit型は内部 UINT8 で扱う
         int tensor_type = data_type;
-        if ( data_type == BB_TYPE_BIT )
-        {
+        if ( data_type == BB_TYPE_BIT || data_type == BB_TYPE_BINARY ) {
             tensor_type = BB_TYPE_UINT8;
         }
 
         // サイズ計算
         m_node_size = 1;
         std::vector<index_t>    tensor_shape;
-        tensor_shape.push_back(m_frame_stride / DataType_GetByteSize(tensor_type));
         for ( auto size : shape ) {
             tensor_shape.push_back(size);
             m_node_size *= size;
         }
+        tensor_shape.push_back(m_frame_stride / DataType_GetByteSize(tensor_type));
 
         // メモリ確保
         m_tensor.Resize(tensor_shape, tensor_type);
@@ -582,8 +613,7 @@ public:
     {
         index_t auto_index = -1;
         index_t total = 1;
-        for (index_t i = 0; i < (index_t)shape.size(); ++i)
-        {
+        for (index_t i = (index_t)shape.size()-1; i >= 0;--i) {
             if (shape[i] < 0) {
                 auto_index = i;
             }
@@ -605,10 +635,10 @@ public:
         m_node_shape = shape;
         
         std::vector<index_t> tensor_shape;
-        tensor_shape.push_back(-1);
         for ( auto size : shape ) {
             tensor_shape.push_back(size);
         }
+        tensor_shape.push_back(-1);
 
         m_tensor.Reshape(tensor_shape);
     }
@@ -857,7 +887,7 @@ protected:
 
         index_t stride = 1;
         index_t index = 0;
-        for ( index_t i = 0; i < (index_t)m_node_shape.size(); ++i ) {
+        for ( index_t i = (index_t)m_node_shape.size()-1; i>= 0; --i ) {
             BB_DEBUG_ASSERT(indices[i] >= 0 && indices[i] < m_node_shape[i]);
             index += stride * indices[i];
             stride *= m_node_shape[i];
@@ -1250,6 +1280,7 @@ public:
 
     // テンソルの設定
 public:
+    /*
     template<typename Tp>
     void SetTensor(index_t frame, Tensor const &tensor)
     {
@@ -1258,7 +1289,7 @@ public:
         BB_ASSERT(tensor.GetShape() == m_tensor.GetShape());
         
         int dim = tensor.GetDim();
-        std::vector<index_t> indices(tensor.GetDim(), 0);
+        indices_t indices(tensor.GetDim(), 0);
         for ( ; ; ) {
 //            m_tensor.template At<Tp>(indices) = tensor.template At<Tp>(indices);
 
@@ -1276,7 +1307,7 @@ public:
             }
         }
     }
-
+    */
 
     // フレームの部分切り出し
     FrameBuffer FrameRange(index_t size, index_t offset=0)

@@ -26,9 +26,8 @@ namespace bb {
  *          入力値に応じて 0と1 を確率的に発生させることを目的としている
  *          RealToBinary と組み合わせて使う想定
  * 
- * @tparam FXT  foward入力型 (x)
- * @tparam FXT  foward出力型 (y)
- * @tparam BT   backward型 (dy, dx)
+ * @tparam BinType  バイナリ型 (y)
+ * @tparam RealType 実数型 (x, dx, dy)
  */
 template <typename BinType = float, typename RealType = float>
 class RealToBinary : public Model
@@ -36,8 +35,14 @@ class RealToBinary : public Model
 protected:
     bool                                        m_binary_mode = true;
 
-    indices_t                                   m_node_shape;
-    index_t                                     m_modulation_size;
+    indices_t                                   m_x_node_shape;
+    indices_t                                   m_y_node_shape;
+    index_t                                     m_point_size = 0;
+    index_t                                     m_x_depth_size = 0;
+    index_t                                     m_y_depth_size = 0;
+
+    index_t                                     m_frame_modulation_size;
+    index_t                                     m_depth_modulation_size;
     std::shared_ptr< ValueGenerator<RealType> > m_value_generator;
     bool                                        m_framewise;
     RealType                                    m_input_range_lo;
@@ -47,21 +52,23 @@ protected:
 public:
     struct create_t
     {
-        index_t                                     modulation_size = 1;        //< 変調するフレームの単位
-        std::shared_ptr< ValueGenerator<RealType> > value_generator;            //< 閾値のジェネレーター
-        bool                                        framewise = false;          //< true でフレーム単位で閾値、falseでデータ単位
-        RealType                                    input_range_lo = (RealType)0.0;  //< 入力データの下限値
-        RealType                                    input_range_hi = (RealType)1.0;  //< 入力データの上限値
+        index_t                                     frame_modulation_size = 1;      //< フレーム方向へ変調するサイズ
+        index_t                                     depth_modulation_size = 1;      //< 深さ方向へ変調するサイズ
+        std::shared_ptr< ValueGenerator<RealType> > value_generator;                //< 閾値のジェネレーター
+        bool                                        framewise = false;              //< true でフレーム単位で閾値、falseでデータ単位
+        RealType                                    input_range_lo = (RealType)0.0; //< 入力データの下限値
+        RealType                                    input_range_hi = (RealType)1.0; //< 入力データの上限値
     };
 
 protected:
     RealToBinary(create_t const &create)
     {
-        m_modulation_size = create.modulation_size;
-        m_value_generator = create.value_generator;
-        m_framewise       = create.framewise;
-        m_input_range_lo  = create.input_range_lo;
-        m_input_range_hi  = create.input_range_hi;
+        m_frame_modulation_size = create.frame_modulation_size;
+        m_depth_modulation_size = create.depth_modulation_size;
+        m_value_generator       = create.value_generator;
+        m_framewise             = create.framewise;
+        m_input_range_lo        = create.input_range_lo;
+        m_input_range_hi        = create.input_range_hi;
     }
 
     /**
@@ -88,34 +95,54 @@ public:
     }
 
     static std::shared_ptr<RealToBinary> Create(
-                index_t                                     modulation_size = 1,
+                index_t                                     frame_modulation_size = 1,
                 std::shared_ptr< ValueGenerator<RealType> > value_generator = nullptr,
                 bool                                        framewise       = false,
                 RealType                                    input_range_lo  = (RealType)0.0,
                 RealType                                    input_range_hi  = (RealType)1.0)
     {
         create_t create;
-        create.modulation_size  = modulation_size;
-        create.value_generator  = value_generator;
-        create.framewise        = framewise;
-        create.input_range_lo   = input_range_lo;
-        create.input_range_hi   = input_range_hi;
+        create.frame_modulation_size = frame_modulation_size;
+        create.value_generator       = value_generator;
+        create.framewise             = framewise;
+        create.input_range_lo        = input_range_lo;
+        create.input_range_hi        = input_range_hi;
+        return Create(create);
+    }
+
+    static std::shared_ptr<RealToBinary> Create(
+                index_t                                     frame_modulation_size,
+                index_t                                     depth_modulation_size,
+                std::shared_ptr< ValueGenerator<RealType> > value_generator = nullptr,
+                bool                                        framewise       = false,
+                RealType                                    input_range_lo  = (RealType)0.0,
+                RealType                                    input_range_hi  = (RealType)1.0)
+    {
+        create_t create;
+        create.frame_modulation_size = frame_modulation_size;
+        create.depth_modulation_size = depth_modulation_size;
+        create.value_generator       = value_generator;
+        create.framewise             = framewise;
+        create.input_range_lo        = input_range_lo;
+        create.input_range_hi        = input_range_hi;
         return Create(create);
     }
 
     static std::shared_ptr<RealToBinary> CreateEx(
-                index_t                                     modulation_size = 1,
+                index_t                                     frame_modulation_size = 1,
+                index_t                                     depth_modulation_size = 1,
                 std::shared_ptr< ValueGenerator<RealType> > value_generator = nullptr,
                 bool                                        framewise       = false,
                 RealType                                    input_range_lo  = (RealType)0.0,
                 RealType                                    input_range_hi  = (RealType)1.0)
     {
         create_t create;
-        create.modulation_size  = modulation_size;
-        create.value_generator  = value_generator;
-        create.framewise        = framewise;
-        create.input_range_lo   = input_range_lo;
-        create.input_range_hi   = input_range_hi;
+        create.frame_modulation_size = frame_modulation_size;
+        create.depth_modulation_size = depth_modulation_size;
+        create.value_generator       = value_generator;
+        create.framewise             = framewise;
+        create.input_range_lo        = input_range_lo;
+        create.input_range_hi        = input_range_hi;
         return Create(create);
     }
 
@@ -123,7 +150,7 @@ public:
 
     void SetModulationSize(index_t modulation_size)
     {
-        m_modulation_size = modulation_size;
+        m_frame_modulation_size = modulation_size;
     }
 
     void SetValueGenerator(std::shared_ptr< ValueGenerator<RealType> > value_generator)
@@ -145,8 +172,15 @@ public:
         }
 
         // 形状設定
-        m_node_shape = shape;
-        return m_node_shape;
+        BB_ASSERT(shape.size() > 0);
+        m_x_node_shape = shape;
+        m_x_depth_size = m_x_node_shape[0];
+        m_point_size   = CalcShapeSize(m_x_node_shape) / m_x_depth_size;
+        m_y_depth_size = m_x_depth_size * m_depth_modulation_size;
+        m_y_node_shape = m_x_node_shape;
+        m_y_node_shape[0] = m_y_depth_size;
+
+        return m_y_node_shape;
     }
 
     /**
@@ -156,7 +190,7 @@ public:
      */
     indices_t GetInputShape(void) const
     {
-        return m_node_shape;
+        return m_x_node_shape;
     }
 
     /**
@@ -166,25 +200,168 @@ public:
      */
     indices_t GetOutputShape(void) const
     {
-        return m_node_shape;
+        return m_y_node_shape;
     }
     
 
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-        if (!m_binary_mode) {
+        if ( !m_binary_mode && m_depth_modulation_size == 1 ) {
             return x_buf;
         }
 
         BB_ASSERT(x_buf.GetType() == DataType<RealType>::type);
 
         // SetInputShpaeされていなければ初回に設定
-        if (x_buf.GetShape() != m_node_shape) {
-            SetInputShape(x_buf.GetShape());
+        if (x_buf.GetShape() != m_x_node_shape) {
+            (void)SetInputShape(x_buf.GetShape());
         }
 
         // 戻り値の型を設定
-        FrameBuffer y_buf(x_buf.GetFrameSize() * m_modulation_size, m_node_shape, DataType<BinType>::type);
+        FrameBuffer y_buf(x_buf.GetFrameSize() * m_frame_modulation_size, m_y_node_shape, DataType<BinType>::type);
+
+#ifdef BB_WITH_CUDA
+        if ( m_value_generator == nullptr
+                && DataType<BinType>::type != BB_TYPE_BIT && (int)DataType<BinType>::type == (int)DataType<RealType>::type
+                && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+
+            auto x_ptr = x_buf.LockDeviceMemoryConst();
+            auto y_ptr = y_buf.LockDeviceMemory(true);
+            bbcu_RealToBinary_Forward<RealType>(
+                    (RealType const *)x_ptr.GetAddr(),
+                    (RealType       *)y_ptr.GetAddr(),
+                    (unsigned int    )m_depth_modulation_size,
+                    (unsigned int    )m_frame_modulation_size,
+                    (RealType        )m_input_range_lo,
+                    (RealType        )m_input_range_hi,
+                    (unsigned int    )m_point_size,
+                    (unsigned int    )m_x_depth_size,
+                    (unsigned int    )x_buf.GetFrameSize(),
+                    (unsigned int    )(x_buf.GetFrameStride() / sizeof(RealType)),
+                    (unsigned int    )(y_buf.GetFrameStride() / sizeof(RealType)),
+                    (bool            )m_binary_mode
+                );
+
+            return y_buf;
+        }
+
+        if ( m_value_generator == nullptr
+                && DataType<BinType>::type == BB_TYPE_BIT
+                && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+
+            auto x_ptr = x_buf.LockDeviceMemoryConst();
+            auto y_ptr = y_buf.LockDeviceMemory(true);
+            bbcu_bit_RealToBinary_Forward<RealType>(
+                    (RealType const *)x_ptr.GetAddr(),
+                    (int            *)y_ptr.GetAddr(),
+                    (unsigned int    )m_depth_modulation_size,
+                    (unsigned int    )m_frame_modulation_size,
+                    (RealType        )m_input_range_lo,
+                    (RealType        )m_input_range_hi,
+                    (unsigned int    )m_point_size,
+                    (unsigned int    )m_x_depth_size,
+                    (unsigned int    )x_buf.GetFrameSize(),
+                    (unsigned int    )(x_buf.GetFrameStride() / sizeof(RealType)),
+                    (unsigned int    )(y_buf.GetFrameStride() / sizeof(int))
+                );
+
+            return y_buf;
+        }
+#endif
+
+        if ( m_value_generator == nullptr ) {
+            auto x_ptr = x_buf.LockConst<RealType>();
+            auto y_ptr = y_buf.Lock<BinType>();
+            
+            auto input_frame_size = x_buf.GetFrameSize();
+            auto frame_step       = (RealType)1.0 / (RealType)(m_frame_modulation_size);
+            auto frame_step_recip = (RealType)m_frame_modulation_size;
+            auto depth_step       = (RealType)1.0 / (RealType)m_depth_modulation_size;
+            auto depth_step_recip = (RealType)m_depth_modulation_size;
+            auto x_offset         = m_input_range_lo;
+            auto x_scale          = (RealType)1.0 / (m_input_range_hi - m_input_range_lo);
+
+            for ( index_t input_frame = 0; input_frame < input_frame_size; ++input_frame) {
+                for ( index_t f = 0; f < m_frame_modulation_size; ++f ) {
+                    auto output_frame = input_frame * m_frame_modulation_size + f;
+                    for ( index_t input_depth = 0; input_depth < m_x_depth_size; ++input_depth ) {
+                        for ( index_t p = 0; p < m_point_size; ++p ) {
+                            auto input_node = input_depth * m_point_size + p;
+                            auto x = (x_ptr.Get(input_frame, input_node) - x_offset) * x_scale;
+
+                            for ( index_t d = 0; d < m_depth_modulation_size; ++d ) {
+                                auto output_depth = input_depth * m_depth_modulation_size + d;
+                                auto output_node  = output_depth * m_point_size + p;
+                                auto y = x;
+
+                                // modulation for depth
+                                y = (y - (RealType)(d * depth_step)) * depth_step_recip;
+
+                                // modulation for frame
+                                y = (y - (RealType)(f * frame_step)) * frame_step_recip;
+
+                                // clamp
+                                y = std::max((RealType)0.0, std::min((RealType)1.0, y));
+
+                                if ( m_binary_mode ) {
+                                    y = (y > (RealType)0.5) ? (RealType)1.0 : (RealType)0.0;
+                                }
+                                y_ptr.Set(output_frame, output_node, (BinType)y);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return y_buf;
+        }
+        
+        if ( m_value_generator != nullptr ) {
+            auto x_ptr = x_buf.LockConst<RealType>();
+            auto y_ptr = y_buf.Lock<BinType>();
+            
+            auto input_frame_size = x_buf.GetFrameSize();
+        //  auto frame_step       = (RealType)1.0 / (RealType)m_frame_modulation_size;
+        //  auto frame_step_recip = (RealType)m_frame_modulation_size;
+            auto depth_step       = (RealType)1.0 / (RealType)m_depth_modulation_size;
+            auto depth_step_recip = (RealType)m_depth_modulation_size;
+            auto x_offset         = m_input_range_lo;
+            auto x_scale          = (RealType)1.0 / (m_input_range_hi - m_input_range_lo);
+
+            for ( index_t input_frame = 0; input_frame < input_frame_size; ++input_frame) {
+                for ( index_t f = 0; f < m_frame_modulation_size; ++f ) {
+                    auto output_frame = input_frame * m_frame_modulation_size + f;
+                    RealType th = m_value_generator->GetValue();
+
+                    for ( index_t input_depth = 0; input_depth < m_x_depth_size; ++input_depth ) {
+                        for ( index_t p = 0; p < m_point_size; ++p ) {
+                            auto input_node = input_depth * m_point_size + p;
+                            auto x = (x_ptr.Get(input_frame, input_node) - x_offset) * x_scale;
+
+                            for ( index_t d = 0; d < m_depth_modulation_size; ++d ) {
+                                auto output_depth = input_depth * m_depth_modulation_size + d;
+                                auto output_node  = output_depth * m_point_size + p;
+                                auto y = x;
+
+                                // modulation for depth
+                                y = (y - (RealType)(d * depth_step)) * depth_step_recip;
+
+                                // binarize for frame
+                                y = (y > th) ? (RealType)1.0 : (RealType)0.0;
+
+                                y_ptr.Set(output_frame, output_node, (BinType)y);
+                            }
+
+                            if ( !m_framewise ) {
+                                th = m_value_generator->GetValue();
+                            }
+                        }
+                    }
+                }
+            }
+
+            return y_buf;
+        }
 
         index_t node_size        = x_buf.GetNodeSize();
         index_t input_frame_size = x_buf.GetFrameSize();
@@ -192,11 +369,10 @@ public:
         auto x_ptr = x_buf.LockConst<RealType>();
         auto y_ptr = y_buf.Lock<BinType>();
 
-        RealType th_step = (m_input_range_hi - m_input_range_lo) / (RealType)(m_modulation_size + 1);
+        RealType th_step = (m_input_range_hi - m_input_range_lo) / (RealType)(m_frame_modulation_size + 1);
         for ( index_t input_frame = 0; input_frame < input_frame_size; ++input_frame) {
-            for ( index_t i = 0; i < m_modulation_size; ++i ) {
-                index_t output_frame = input_frame * m_modulation_size + i;
-
+            for ( index_t i = 0; i < m_frame_modulation_size; ++i ) {
+                index_t output_frame = input_frame * m_frame_modulation_size + i;
                 if ( m_framewise || m_value_generator == nullptr ) {
                     // frame毎に閾値変調
                     RealType th;
@@ -234,16 +410,16 @@ public:
 
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
-        if (!m_binary_mode || m_modulation_size == 1) {
+        if ( m_depth_modulation_size == 1 && (!m_binary_mode || m_frame_modulation_size == 1) ) {
             return dy_buf;
         }
 
         BB_ASSERT(dy_buf.GetType() == DataType<RealType>::type);
 
         // 戻り値の型を設定
-        FrameBuffer dx_buf(dy_buf.GetFrameSize() / m_modulation_size, m_node_shape, DataType<RealType>::type);
+        FrameBuffer dx_buf(dy_buf.GetFrameSize() / m_frame_modulation_size, m_x_node_shape, DataType<RealType>::type);
 
-#if 1   // 今のところ計算結果誰も使わないので一旦コメントアウト
+#if 0   // 今のところ計算結果誰も使わないので一旦コメントアウト
         index_t node_size         = dy_buf.GetNodeSize();
         index_t output_frame_size = dy_buf.GetFrameSize();
 
@@ -255,7 +431,7 @@ public:
         #pragma omp parallel for
         for (index_t node = 0; node < node_size; node++) {
             for (index_t output_frame = 0; output_frame < output_frame_size; ++output_frame) {
-                index_t input_frame = output_frame / m_modulation_size;
+                index_t input_frame = output_frame / m_frame_modulation_size;
 
                 RealType dy = dy_ptr.Get(output_frame, node);
                 dx_ptr.Add(input_frame, node, dy);

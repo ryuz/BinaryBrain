@@ -8,7 +8,12 @@ AR     = ar
 RM     = rm
 
 # flagas
-CUFLAGS = -I../include -gencode=arch=compute_35,code=sm_35 -gencode=arch=compute_50,code=sm_50 -gencode=arch=compute_61,code=sm_61 -gencode=arch=compute_75,code=sm_75 -std=c++11 -Xcompiler -fPIC
+CUFLAGS = -I../include -std=c++11 -Xcompiler -fPIC \
+           -gencode=arch=compute_30,code=sm_30 \
+           -gencode=arch=compute_35,code=sm_35 \
+		   -gencode=arch=compute_50,code=sm_50 \
+           -gencode=arch=compute_61,code=sm_61 \
+		   -gencode=arch=compute_75,code=sm_75
 ARFLAGS =
 
 # sources
@@ -22,15 +27,16 @@ SRCS += MatrixColwiseMeanVar.cu
 SRCS += MatrixRowwiseSetVector.cu
 SRCS += MicroMlp.cu
 SRCS += BinaryLut6.cu
-SRCS += SparseLut.cu
+SRCS += DifferentiableLut.cu
 SRCS += StochasticLut.cu
-SRCS += StochasticMaxPooling.cu
 SRCS += StochasticBatchNormalization.cu
 SRCS += ShuffleModulation.cu
+SRCS += RealToBinary.cu
 SRCS += BinaryToReal.cu
 SRCS += Im2Col.cu
 SRCS += Col2Im.cu
 SRCS += MaxPooling.cu
+SRCS += StochasticMaxPooling.cu
 SRCS += UpSampling.cu
 SRCS += BatchNormalization.cu
 SRCS += ReLU.cu

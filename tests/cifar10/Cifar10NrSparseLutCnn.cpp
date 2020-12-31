@@ -9,8 +9,8 @@
 #include <iostream>
 
 #include "bb/Sequential.h"
-#include "bb/SparseLutN.h"
-#include "bb/SparseLutDiscreteN.h"
+#include "bb/DifferentiableLutN.h"
+#include "bb/DifferentiableLutDiscreteN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/Reduce.h"
 #include "bb/BinaryModulation.h"
@@ -31,9 +31,9 @@
 
 
 template<typename T=bb::Bit>
-void NrSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void NrDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "Cifar10NrSparseLutCnn";
+    std::string net_name = "Cifar10NrDifferentiableLutCnn";
 
     if ( bb::DataType<T>::type == BB_TYPE_BIT ) {
         binary_mode = true;
@@ -145,21 +145,21 @@ void NrSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_si
 
 
     // create network
-    auto layer_cnv0_sl0 = bb::SparseLutN<6, T>::Create(192,  true);
-    auto layer_cnv0_sl1 = bb::SparseLutN<6, T>::Create(32,   false);
+    auto layer_cnv0_sl0 = bb::DifferentiableLutN<6, T>::Create(192,  true);
+    auto layer_cnv0_sl1 = bb::DifferentiableLutN<6, T>::Create(32,   false);
 
-//  auto layer_cnv1_sl0 = bb::SparseLutN<6, T>::Create(1152, true);
-//  auto layer_cnv1_sl1 = bb::SparseLutN<6, T>::Create(192,  true);
-//  auto layer_cnv1_sl2 = bb::SparseLutN<6, T>::Create(32,   false);
+//  auto layer_cnv1_sl0 = bb::DifferentiableLutN<6, T>::Create(1152, true);
+//  auto layer_cnv1_sl1 = bb::DifferentiableLutN<6, T>::Create(192,  true);
+//  auto layer_cnv1_sl2 = bb::DifferentiableLutN<6, T>::Create(32,   false);
 
-//  auto layer_cnv2_sl0 = bb::SparseLutN<6, T>::Create(1152, true);
-//  auto layer_cnv2_sl1 = bb::SparseLutN<6, T>::Create(192,  true);
-//  auto layer_cnv2_sl2 = bb::SparseLutN<6, T>::Create(32,   false);
+//  auto layer_cnv2_sl0 = bb::DifferentiableLutN<6, T>::Create(1152, true);
+//  auto layer_cnv2_sl1 = bb::DifferentiableLutN<6, T>::Create(192,  true);
+//  auto layer_cnv2_sl2 = bb::DifferentiableLutN<6, T>::Create(32,   false);
 
-//  auto layer_cnv3_sl0 = bb::SparseLutN<6, T>::Create(1152, true);
-    auto layer_cnv3_sl1 = bb::SparseLutN<6, T>::Create(192,  true);
-    auto layer_cnv3_sl2 = bb::SparseLutN<6, T>::Create(32,   false);
-    auto layer_cnv3_sl3 = bb::SparseLutN<6, T>::Create(3,    false);
+//  auto layer_cnv3_sl0 = bb::DifferentiableLutN<6, T>::Create(1152, true);
+    auto layer_cnv3_sl1 = bb::DifferentiableLutN<6, T>::Create(192,  true);
+    auto layer_cnv3_sl2 = bb::DifferentiableLutN<6, T>::Create(32,   false);
+    auto layer_cnv3_sl3 = bb::DifferentiableLutN<6, T>::Create(3,    false);
 
     {
         std::cout << "\n<Training>" << std::endl;
@@ -186,10 +186,10 @@ void NrSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_si
 
 
         auto main_net = bb::Sequential::Create();
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv0_sub, 3, 3, 1, 1, "same"));
-//        main_net->Add(bb::LoweringConvolution<T>::Create(cnv1_sub, 3, 3, 1, 1, "same"));
-//        main_net->Add(bb::LoweringConvolution<T>::Create(cnv2_sub, 3, 3, 1, 1, "same"));
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv3_sub, 3, 3, 1, 1, "same"));
+        main_net->Add(bb::Convolution2d<T>::Create(cnv0_sub, 3, 3, 1, 1, "same"));
+//        main_net->Add(bb::Convolution2d<T>::Create(cnv1_sub, 3, 3, 1, 1, "same"));
+//        main_net->Add(bb::Convolution2d<T>::Create(cnv2_sub, 3, 3, 1, 1, "same"));
+        main_net->Add(bb::Convolution2d<T>::Create(cnv3_sub, 3, 3, 1, 1, "same"));
 
         // modulation wrapper
         auto net = bb::Sequential::Create();
@@ -319,15 +319,15 @@ void NrSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_si
         cnv4_sub->Add(layer_bl9);
         cnv4_sub->Add(layer_bl10);
 
-        auto cnv0 = bb::LoweringConvolution<bb::Bit>::Create(cnv0_sub, 3, 3);
-        auto cnv1 = bb::LoweringConvolution<bb::Bit>::Create(cnv1_sub, 3, 3);
+        auto cnv0 = bb::Convolution2d<bb::Bit>::Create(cnv0_sub, 3, 3);
+        auto cnv1 = bb::Convolution2d<bb::Bit>::Create(cnv1_sub, 3, 3);
         auto pol0 = bb::MaxPooling<bb::Bit>::Create(2, 2);
 
-        auto cnv2 = bb::LoweringConvolution<bb::Bit>::Create(cnv2_sub, 3, 3);
-        auto cnv3 = bb::LoweringConvolution<bb::Bit>::Create(cnv3_sub, 3, 3);
+        auto cnv2 = bb::Convolution2d<bb::Bit>::Create(cnv2_sub, 3, 3);
+        auto cnv3 = bb::Convolution2d<bb::Bit>::Create(cnv3_sub, 3, 3);
         auto pol1 = bb::MaxPooling<bb::Bit>::Create(2, 2);
 
-        auto cnv4 = bb::LoweringConvolution<bb::Bit>::Create(cnv4_sub, 4, 4);
+        auto cnv4 = bb::Convolution2d<bb::Bit>::Create(cnv4_sub, 4, 4);
 
         auto lut_net = bb::Sequential::Create();
         lut_net->Add(cnv0);
@@ -415,13 +415,13 @@ void NrSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_si
 }
 
 
-void Cifar10NrSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void Cifar10NrDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
     if ( binary_mode ) {
-        NrSparseLutCnn<bb::Bit>(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+        NrDifferentiableLutCnn<bb::Bit>(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
     else {
-//      NrSparseLutCnn<float>(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+//      NrDifferentiableLutCnn<float>(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 }
 

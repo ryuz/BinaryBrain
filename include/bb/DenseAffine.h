@@ -87,7 +87,7 @@ protected:
         m_mt.seed(create.seed);
 
         m_output_shape     = create.output_shape;
-        m_output_node_size = GetShapeSize(m_output_shape);
+        m_output_node_size = CalcShapeSize(m_output_shape);
     }
 
     void CommandProc(std::vector<std::string> args)
@@ -191,7 +191,7 @@ public:
 
         // 形状設定
         m_input_shape = shape;
-        m_input_node_size = GetShapeSize(shape);
+        m_input_node_size = CalcShapeSize(shape);
 
         // パラメータ初期化
         if (m_initializer == "he" || m_initializer == "He") {
@@ -200,9 +200,9 @@ public:
         else if (m_initializer == "xavier" || m_initializer == "Xavier" ) {
             m_initialize_std = (T)1.0 / std::sqrt((T)m_input_node_size);
         }
-        m_W->Resize ({m_input_node_size, m_output_node_size}, DataType<T>::type);   m_W->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+        m_W->Resize ({m_output_node_size, m_input_node_size}, DataType<T>::type);   m_W->InitNormalDistribution(0.0, m_initialize_std, m_mt());
         m_b->Resize ({m_output_node_size},                    DataType<T>::type);   m_b->InitNormalDistribution(0.0, m_initialize_std, m_mt());
-        m_dW->Resize({m_input_node_size, m_output_node_size}, DataType<T>::type);   m_dW->FillZero();
+        m_dW->Resize({m_output_node_size, m_input_node_size}, DataType<T>::type);   m_dW->FillZero();
         m_db->Resize({m_output_node_size},                    DataType<T>::type);   m_db->FillZero();
 
         return m_output_shape;
@@ -217,7 +217,7 @@ public:
      */
     void SetOutputShape(indices_t const &shape)
     {
-        BB_ASSERT(GetShapeSize(shape) == m_input_node_size);
+        BB_ASSERT(CalcShapeSize(shape) == m_input_node_size);
         m_output_shape = shape;
     }
     
@@ -501,8 +501,8 @@ public:
         archive(cereal::make_nvp("input_shape",      m_input_shape));
         archive(cereal::make_nvp("output_shape",     m_output_shape));
 
-        m_input_node_size  = GetShapeSize(m_input_shape);
-        m_output_node_size = GetShapeSize(m_output_shape);
+        m_input_node_size  = CalcShapeSize(m_input_shape);
+        m_output_node_size = CalcShapeSize(m_output_shape);
 
         archive(cereal::make_nvp("W",                *m_W));
         archive(cereal::make_nvp("b",                *m_b));

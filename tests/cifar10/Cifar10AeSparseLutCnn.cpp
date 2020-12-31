@@ -9,11 +9,11 @@
 #include <iostream>
 
 #include "bb/Sequential.h"
-#include "bb/SparseLutN.h"
-#include "bb/SparseLutDiscreteN.h"
+#include "bb/DifferentiableLutN.h"
+#include "bb/DifferentiableLutDiscreteN.h"
 #include "bb/BinaryLutN.h"
 #include "bb/MaxPooling.h"
-#include "bb/LoweringConvolution.h"
+#include "bb/Convolution2d.h"
 #include "bb/UpSampling.h"
 #include "bb/BinaryModulation.h"
 #include "bb/OptimizerAdam.h"
@@ -61,10 +61,10 @@ static void data_augmentation_proc(bb::TrainData<float>& td, std::uint64_t seed,
 
 
 
-template < typename T=float, class ModelType=bb::SparseLutN<6, T> >
-void Cifar10AeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+template < typename T=float, class ModelType=bb::DifferentiableLutN<6, T> >
+void Cifar10AeDifferentiableLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "Cifar10AeSparseLutCnn2";
+    std::string net_name = "Cifar10AeDifferentiableLutCnn2";
 
   // load cifar-10 data
 #ifdef _DEBUG
@@ -169,12 +169,12 @@ void Cifar10AeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_mo
         dec_cnv0_sub->Add(dec_cnv0_sl3);
 
         auto main_net = bb::Sequential::Create();
-        main_net->Add(bb::LoweringConvolution<T>::Create(enc_cnv0_sub, 3, 3, 1, 1, "same"));    // 32x32
-        main_net->Add(bb::LoweringConvolution<T>::Create(enc_cnv1_sub, 3, 3, 1, 1, "same"));    // 32x32
+        main_net->Add(bb::Convolution2d<T>::Create(enc_cnv0_sub, 3, 3, 1, 1, "same"));    // 32x32
+        main_net->Add(bb::Convolution2d<T>::Create(enc_cnv1_sub, 3, 3, 1, 1, "same"));    // 32x32
         main_net->Add(bb::MaxPooling<float>::Create(2, 2));
 
-        main_net->Add(bb::LoweringConvolution<T>::Create(enc_cnv2_sub, 3, 3, 1, 1, "same"));    // 16x16
-        main_net->Add(bb::LoweringConvolution<T>::Create(enc_cnv3_sub, 3, 3, 1, 1, "same"));    // 16x16
+        main_net->Add(bb::Convolution2d<T>::Create(enc_cnv2_sub, 3, 3, 1, 1, "same"));    // 16x16
+        main_net->Add(bb::Convolution2d<T>::Create(enc_cnv3_sub, 3, 3, 1, 1, "same"));    // 16x16
         main_net->Add(bb::MaxPooling<float>::Create(2, 2));                                     // 8x8
 
 #if 0
@@ -188,12 +188,12 @@ void Cifar10AeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_mo
 #endif
 
         main_net->Add(bb::UpSampling<T>::Create(2, 2));
-        main_net->Add(bb::LoweringConvolution<T>::Create(dec_cnv3_sub, 3, 3, 1, 1, "same"));    // 16x16
-        main_net->Add(bb::LoweringConvolution<T>::Create(dec_cnv2_sub, 3, 3, 1, 1, "same"));    // 16x16
+        main_net->Add(bb::Convolution2d<T>::Create(dec_cnv3_sub, 3, 3, 1, 1, "same"));    // 16x16
+        main_net->Add(bb::Convolution2d<T>::Create(dec_cnv2_sub, 3, 3, 1, 1, "same"));    // 16x16
 
         main_net->Add(bb::UpSampling<T>::Create(2, 2));
-        main_net->Add(bb::LoweringConvolution<T>::Create(dec_cnv1_sub, 3, 3, 1, 1, "same"));    // 32x32
-        main_net->Add(bb::LoweringConvolution<T>::Create(dec_cnv0_sub, 3, 3, 1, 1, "same"));    // 32x32
+        main_net->Add(bb::Convolution2d<T>::Create(dec_cnv1_sub, 3, 3, 1, 1, "same"));    // 32x32
+        main_net->Add(bb::Convolution2d<T>::Create(dec_cnv0_sub, 3, 3, 1, 1, "same"));    // 32x32
 
         // modulation wrapper
         auto net = bb::Sequential::Create();
@@ -324,11 +324,11 @@ void Cifar10AeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_mo
         dec_cnv0_sub->Add(dec_cnv0_bl3);
 
         auto lut_net = bb::Sequential::Create();
-        lut_net->Add(bb::LoweringConvolution<bb::Bit>::Create(enc_cnv0_sub, 3, 3, 1, 1, "same"));    // 28x28
-        lut_net->Add(bb::LoweringConvolution<bb::Bit>::Create(enc_cnv1_sub, 3, 3, 1, 1, "same"));    // 28x28
+        lut_net->Add(bb::Convolution2d<bb::Bit>::Create(enc_cnv0_sub, 3, 3, 1, 1, "same"));    // 28x28
+        lut_net->Add(bb::Convolution2d<bb::Bit>::Create(enc_cnv1_sub, 3, 3, 1, 1, "same"));    // 28x28
         lut_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
-        lut_net->Add(bb::LoweringConvolution<bb::Bit>::Create(enc_cnv2_sub, 3, 3, 1, 1, "same"));    // 14x14
-        lut_net->Add(bb::LoweringConvolution<bb::Bit>::Create(enc_cnv3_sub, 3, 3, 1, 1, "same"));    // 14x14
+        lut_net->Add(bb::Convolution2d<bb::Bit>::Create(enc_cnv2_sub, 3, 3, 1, 1, "same"));    // 14x14
+        lut_net->Add(bb::Convolution2d<bb::Bit>::Create(enc_cnv3_sub, 3, 3, 1, 1, "same"));    // 14x14
         lut_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
         lut_net->Add(enc_bl4);
         lut_net->Add(enc_bl5);
@@ -338,11 +338,11 @@ void Cifar10AeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_mo
         lut_net->Add(dec_bl5);
         lut_net->Add(dec_bl4);
         lut_net->Add(bb::UpSampling<bb::Bit>::Create(2, 2));
-        lut_net->Add(bb::LoweringConvolution<bb::Bit>::Create(dec_cnv3_sub, 3, 3, 1, 1, "same"));    // 14x14
-        lut_net->Add(bb::LoweringConvolution<bb::Bit>::Create(dec_cnv2_sub, 3, 3, 1, 1, "same"));    // 14x14
+        lut_net->Add(bb::Convolution2d<bb::Bit>::Create(dec_cnv3_sub, 3, 3, 1, 1, "same"));    // 14x14
+        lut_net->Add(bb::Convolution2d<bb::Bit>::Create(dec_cnv2_sub, 3, 3, 1, 1, "same"));    // 14x14
         lut_net->Add(bb::UpSampling<bb::Bit>::Create(2, 2));
-        lut_net->Add(bb::LoweringConvolution<bb::Bit>::Create(dec_cnv1_sub, 3, 3, 1, 1, "same"));    // 28x28
-        lut_net->Add(bb::LoweringConvolution<bb::Bit>::Create(dec_cnv0_sub, 3, 3, 1, 1, "same"));    // 28x28
+        lut_net->Add(bb::Convolution2d<bb::Bit>::Create(dec_cnv1_sub, 3, 3, 1, 1, "same"));    // 28x28
+        lut_net->Add(bb::Convolution2d<bb::Bit>::Create(dec_cnv0_sub, 3, 3, 1, 1, "same"));    // 28x28
 
         // evaluation network
         auto eval_net = bb::Sequential::Create();
@@ -444,17 +444,17 @@ void Cifar10AeSparseLutCnn_Tmp(int epoch_size, int mini_batch_size, int train_mo
 }
 
 
-void Cifar10AeSparseLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
+void Cifar10AeDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
 //#ifdef BB_WITH_CUDA
     if ( binary_mode ) {
-        Cifar10AeSparseLutCnn_Tmp< float, bb::SparseLutN<6, float> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+        Cifar10AeDifferentiableLutCnn_Tmp< float, bb::DifferentiableLutN<6, float> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
     else {
-        Cifar10AeSparseLutCnn_Tmp< bb::Bit, bb::SparseLutN<6, bb::Bit> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+        Cifar10AeDifferentiableLutCnn_Tmp< bb::Bit, bb::DifferentiableLutN<6, bb::Bit> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 //#else
-//  Cifar10AeSparseLutCnn_Tmp< float, bb::SparseLutDiscreteN<6, float> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+//  Cifar10AeDifferentiableLutCnn_Tmp< float, bb::DifferentiableLutDiscreteN<6, float> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
 //#endif
 }
 

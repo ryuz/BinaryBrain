@@ -26,7 +26,7 @@ os.chdir(src_path)
 # build flags
 VERBOSE     = False
 WITH_CUDA   = True
-WITH_CEREAL = True
+WITH_CEREAL = False
 
 
 # version
@@ -332,7 +332,7 @@ class BuildExt(build_ext):
                             '-Xcompiler', '/std:c++14',
                             '-Xcompiler', '/wd\"4819\"']
         cu_args['msvc'] += ['-O3',
-                            '-std=c++11',
+                            '-std=c++14',
                             '-gencode=arch=compute_35,code=sm_35',
                             '-gencode=arch=compute_50,code=sm_50',
                             '-gencode=arch=compute_60,code=sm_60',
@@ -385,8 +385,8 @@ setup(
     description='BinaryBrain for Python',
     long_description='',
     ext_modules=ext_modules,
-    install_requires=['pybind11>=2.3', 'numpy', 'tqdm'],
-    setup_requires=['pybind11>=2.3'],
+    install_requires=['pybind11>=2.4', 'numpy'],
+    setup_requires=['pybind11>=2.4'],
     cmdclass={'build_ext': BuildExt},
     zip_safe=False,
     packages=['binarybrain'],

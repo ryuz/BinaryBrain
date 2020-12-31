@@ -139,7 +139,7 @@ TEST(DenseAffineTest, testAffine_cudaBlas2)
     BB_CUBLAS_SAFE_CALL(cublasCreate(&handle));
 
     bb::FrameBuffer a(2, {3}, BB_TYPE_FP32);
-    bb::Tensor      b({3, 2}, BB_TYPE_FP32);
+    bb::Tensor      b({2, 3}, BB_TYPE_FP32);
     bb::FrameBuffer c(2, {2}, BB_TYPE_FP32);
 
     a.SetFP32(0, 0, 1);

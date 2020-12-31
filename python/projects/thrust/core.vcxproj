@@ -31,18 +31,23 @@
     <ClInclude Include="..\..\..\include\bb\BackpropagatedBatchNormalization.h" />
     <ClInclude Include="..\..\..\include\bb\BatchNormalization.h" />
     <ClInclude Include="..\..\..\include\bb\Binarize.h" />
+    <ClInclude Include="..\..\..\include\bb\BinaryLutModel.h" />
     <ClInclude Include="..\..\..\include\bb\BinaryLutN.h" />
     <ClInclude Include="..\..\..\include\bb\BinaryModulation.h" />
     <ClInclude Include="..\..\..\include\bb\BinaryScaling.h" />
     <ClInclude Include="..\..\..\include\bb\BinaryToReal.h" />
     <ClInclude Include="..\..\..\include\bb\ConcatenateCoefficient.h" />
     <ClInclude Include="..\..\..\include\bb\ConnectionTable.h" />
+    <ClInclude Include="..\..\..\include\bb\Convolution2d.h" />
     <ClInclude Include="..\..\..\include\bb\ConvolutionCol2Im.h" />
     <ClInclude Include="..\..\..\include\bb\ConvolutionIm2Col.h" />
     <ClInclude Include="..\..\..\include\bb\CudaUtility.h" />
     <ClInclude Include="..\..\..\include\bb\DataAugmentationMnist.h" />
     <ClInclude Include="..\..\..\include\bb\DataType.h" />
     <ClInclude Include="..\..\..\include\bb\DenseAffine.h" />
+    <ClInclude Include="..\..\..\include\bb\DepthwiseDenseAffine.h" />
+    <ClInclude Include="..\..\..\include\bb\DifferentiableLutDiscreteN.h" />
+    <ClInclude Include="..\..\..\include\bb\DifferentiableLutN.h" />
     <ClInclude Include="..\..\..\include\bb\Dropout.h" />
     <ClInclude Include="..\..\..\include\bb\ExportVerilog.h" />
     <ClInclude Include="..\..\..\include\bb\Filter2d.h" />
@@ -55,8 +60,7 @@
     <ClInclude Include="..\..\..\include\bb\LossFunction.h" />
     <ClInclude Include="..\..\..\include\bb\LossMeanSquaredError.h" />
     <ClInclude Include="..\..\..\include\bb\LossSoftmaxCrossEntropy.h" />
-    <ClInclude Include="..\..\..\include\bb\LoweringConvolution.h" />
-    <ClInclude Include="..\..\..\include\bb\LutLayer.h" />
+    <ClInclude Include="..\..\..\include\bb\LutModel.h" />
     <ClInclude Include="..\..\..\include\bb\Manager.h" />
     <ClInclude Include="..\..\..\include\bb\MaxPooling.h" />
     <ClInclude Include="..\..\..\include\bb\Memory.h" />
@@ -78,15 +82,15 @@
     <ClInclude Include="..\..\..\include\bb\ReLU.h" />
     <ClInclude Include="..\..\..\include\bb\Runner.h" />
     <ClInclude Include="..\..\..\include\bb\Sequential.h" />
+    <ClInclude Include="..\..\..\include\bb\Shuffle.h" />
     <ClInclude Include="..\..\..\include\bb\ShuffleModulation.h" />
     <ClInclude Include="..\..\..\include\bb\ShuffleSet.h" />
     <ClInclude Include="..\..\..\include\bb\Sigmoid.h" />
     <ClInclude Include="..\..\..\include\bb\SimdSupport.h" />
     <ClInclude Include="..\..\..\include\bb\SparseBinaryLutN.h" />
-    <ClInclude Include="..\..\..\include\bb\SparseLayer.h" />
-    <ClInclude Include="..\..\..\include\bb\SparseLutDiscreteN.h" />
-    <ClInclude Include="..\..\..\include\bb\SparseLutN.h" />
+    <ClInclude Include="..\..\..\include\bb\SparseModel.h" />
     <ClInclude Include="..\..\..\include\bb\StochasticBatchNormalization.h" />
+    <ClInclude Include="..\..\..\include\bb\StochasticLutModel.h" />
     <ClInclude Include="..\..\..\include\bb\StochasticLutN.h" />
     <ClInclude Include="..\..\..\include\bb\StochasticLutSimd.h" />
     <ClInclude Include="..\..\..\include\bb\StochasticMaxPooling.h" />
@@ -177,6 +181,7 @@
       <DisableSpecificWarnings>4819</DisableSpecificWarnings>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <OpenMPSupport>true</OpenMPSupport>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -221,7 +226,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>BB_ASSERT_EXCEPTION;BB_WITH_CEREAL;BB_WITH_CUDA;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BB_ASSERT_EXCEPTION;BB_WITH_CUDA;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\include;..\..\..\cereal\include;$(CUDA_PATH)\include;$(PYTHON3_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4819</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

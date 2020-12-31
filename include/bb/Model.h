@@ -22,6 +22,12 @@
 #include "cereal/archives/json.hpp"
 #endif
 
+#ifdef BB_PYBIND11 
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+#include <pybind11/operators.h>
+#endif
+
 #include "bb/FrameBuffer.h"
 #include "bb/Variables.h"
 
@@ -73,6 +79,10 @@ public:
         m_name = name;
     }
     
+    virtual bool IsNamed(void) const {
+        return !m_name.empty();
+    }
+
     /**
      * @brief  名前取得
      * @detail 名前取得
@@ -141,7 +151,7 @@ public:
      */
     index_t GetInputNodeSize(void) const
     {
-        return GetShapeSize(GetInputShape());
+        return CalcShapeSize(GetInputShape());
     }
 
     /**
@@ -158,7 +168,7 @@ public:
      */
     index_t GetOutputNodeSize(void) const
     {
-        return GetShapeSize(GetOutputShape());
+        return CalcShapeSize(GetOutputShape());
     }
 
 
@@ -304,9 +314,33 @@ public:
     {
         int size;
         is.read((char*)&size, sizeof(size));
-        m_name.resize(size);
-        is.read((char*)&m_name[0], size);
+
+        std::string name;
+        name.resize(size);
+        is.read((char*)&name[0], size);
+        if (!IsNamed()) {   // 既に命名されていたら上書きしない
+            m_name = name;
+        }
     }
+
+#ifdef BB_PYBIND11
+    pybind11::bytes DumpBytes(void)
+    {
+        std::ostringstream os(std::istringstream::binary);
+        Save(os);
+        auto str = os.str();
+        pybind11::bytes data(str);
+        return data;
+    }
+
+    bool LoadBytes(pybind11::bytes data)
+    {
+        std::istringstream is((std::string)data, std::istringstream::binary);
+        Load(is);
+        return true;
+    }
+#endif
+
 
     bool SaveBinary(std::string filename) const
     {
@@ -344,7 +378,11 @@ public:
     template <class Archive>
     void load(Archive& archive, std::uint32_t const version)
     {
-        archive(cereal::make_nvp("name", m_name));
+        std::string name;
+        archive(cereal::make_nvp("name", name));
+        if (!IsNamed()) {   // 既に命名されていたら上書きしない
+            m_name = name;
+        }
     }
 
     virtual void Save(cereal::JSONOutputArchive& archive) const

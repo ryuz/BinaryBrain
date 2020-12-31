@@ -21,10 +21,10 @@ namespace bb {
 
 // MaxPoolingクラス
 template <typename FT = float, typename BT = float>
-class MaxPooling : public Filter2d<FT, BT>
+class MaxPooling : public Filter2d
 {
 protected:
-    bool                m_host_only;
+    bool                m_host_only = false;
 
     index_t             m_filter_h_size;
     index_t             m_filter_w_size;
@@ -52,6 +52,8 @@ public:
 
 protected:
     // コンストラクタ
+    MaxPooling() {}
+
     MaxPooling(create_t const &create)
     {
         m_filter_h_size = create.filter_h_size;
@@ -88,14 +90,16 @@ public:
         return Create(create);
     }
     
+#ifdef BB_PYBIND11
     // 全パラメータを引数としたオーバーロード無しの生成関数(主にpython用)
-    static std::shared_ptr<MaxPooling> CreateEx(index_t filter_h_size, index_t filter_w_size)
+    static std::shared_ptr<MaxPooling> CreatePy(index_t filter_h_size, index_t filter_w_size)
     {
         create_t create;
         create.filter_h_size = filter_h_size;
         create.filter_w_size = filter_w_size;
         return Create(create);
     }
+#endif
 
     std::string GetClassName(void) const { return "MaxPooling"; }
 
@@ -119,15 +123,15 @@ public:
 
         BB_ASSERT(shape.size() == 3);
 
-        m_input_w_size = shape[0];
+        m_input_c_size = shape[0];
         m_input_h_size = shape[1];
-        m_input_c_size = shape[2];
+        m_input_w_size = shape[2];
         m_output_w_size = (m_input_w_size + m_filter_w_size - 1) / m_filter_w_size;
         m_output_h_size = (m_input_h_size + m_filter_h_size - 1) / m_filter_h_size;
         m_output_c_size = m_input_c_size;
 
         m_input_shape  = shape;
-        m_output_shape = indices_t({m_output_w_size, m_output_h_size, m_output_c_size});
+        m_output_shape = indices_t({m_output_c_size, m_output_h_size, m_output_w_size});
 
         return m_output_shape;
     }
@@ -335,13 +339,13 @@ public:
                                     for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
                                         index_t ix = x*m_filter_w_size + fx;
                                         if ( ix < m_input_w_size ) {
-                                            FT in_sig = x_ptr.Get(frame, {ix, iy, c});
+                                            FT in_sig = x_ptr.Get(frame, {c, iy, ix});
                                             max_val = (max_val > in_sig) ? max_val : in_sig;
                                         }
                                     }
                                 }
                             }
-                            y_ptr.Set(frame, {x, y, c}, max_val);
+                            y_ptr.Set(frame, {c, y, x}, max_val);
                         }
                     }
                 }

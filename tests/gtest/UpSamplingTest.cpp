@@ -11,7 +11,7 @@ TEST(UpSamplingTest, testUpSampling_call)
 {
     auto upsmp = bb::UpSampling<>::Create(2, 3);
 
-    bb::FrameBuffer x_buf(16, {28, 28, 3}, BB_TYPE_FP32);
+    bb::FrameBuffer x_buf(16, {3, 28, 28}, BB_TYPE_FP32);
     upsmp->SetInputShape(x_buf.GetShape());
 
     auto y_buf  = upsmp->Forward(x_buf);
@@ -23,14 +23,14 @@ TEST(UpSamplingTest, testUpSampling_test)
 {
     auto upsmp = bb::UpSampling<>::Create(2, 3);
     
-    bb::FrameBuffer x_buf(2, {2, 3, 4}, BB_TYPE_FP32);
+    bb::FrameBuffer x_buf(2, {4, 3, 2}, BB_TYPE_FP32);
     upsmp->SetInputShape(x_buf.GetShape());
 
     for ( bb::index_t f = 0; f < 2; ++f) {
         for (bb::index_t c = 0; c < 4; ++c) {
             for (bb::index_t y = 0; y < 3; ++y) {
                 for (bb::index_t x = 0; x < 2; ++x) {
-                    x_buf.SetFP32(f, { x, y, c }, (float)(1000 * f + 100 * c + 10 * y + x));
+                    x_buf.SetFP32(f, { c, y, x }, (float)(1000 * f + 100 * c + 10 * y + x));
                 }
             }
         }
@@ -38,81 +38,81 @@ TEST(UpSamplingTest, testUpSampling_test)
 
     auto y_buf = upsmp->Forward(x_buf);
 
-    EXPECT_EQ(bb::indices_t({2*3, 3*2, 4}), y_buf.GetShape());
+    EXPECT_EQ(bb::indices_t({4, 3*2, 2*3}), y_buf.GetShape());
     EXPECT_EQ(2, y_buf.GetFrameSize());
     
     EXPECT_EQ(0,     y_buf.GetFP32(0, { 0, 0, 0 }));
-    EXPECT_EQ(0,     y_buf.GetFP32(0, { 1, 0, 0 }));
-    EXPECT_EQ(0,     y_buf.GetFP32(0, { 2, 0, 0 }));
+    EXPECT_EQ(0,     y_buf.GetFP32(0, { 0, 0, 1 }));
+    EXPECT_EQ(0,     y_buf.GetFP32(0, { 0, 0, 2 }));
     EXPECT_EQ(0,     y_buf.GetFP32(0, { 0, 1, 0 }));
-    EXPECT_EQ(0,     y_buf.GetFP32(0, { 1, 1, 0 }));
-    EXPECT_EQ(0,     y_buf.GetFP32(0, { 2, 1, 0 }));
-                     
-    EXPECT_EQ(1,     y_buf.GetFP32(0, { 3, 0, 0 }));
-    EXPECT_EQ(1,     y_buf.GetFP32(0, { 4, 0, 0 }));
-    EXPECT_EQ(1,     y_buf.GetFP32(0, { 5, 0, 0 }));
-    EXPECT_EQ(1,     y_buf.GetFP32(0, { 3, 1, 0 }));
-    EXPECT_EQ(1,     y_buf.GetFP32(0, { 4, 1, 0 }));
-    EXPECT_EQ(1,     y_buf.GetFP32(0, { 5, 1, 0 }));
-                     
-    EXPECT_EQ(11,    y_buf.GetFP32(0, { 3, 2, 0 }));
-    EXPECT_EQ(11,    y_buf.GetFP32(0, { 4, 2, 0 }));
-    EXPECT_EQ(11,    y_buf.GetFP32(0, { 5, 2, 0 }));
-    EXPECT_EQ(11,    y_buf.GetFP32(0, { 3, 3, 0 }));
-    EXPECT_EQ(11,    y_buf.GetFP32(0, { 4, 3, 0 }));
-    EXPECT_EQ(11,    y_buf.GetFP32(0, { 5, 3, 0 }));
+    EXPECT_EQ(0,     y_buf.GetFP32(0, { 0, 1, 1 }));
+    EXPECT_EQ(0,     y_buf.GetFP32(0, { 0, 1, 2 }));
 
-    EXPECT_EQ(111,   y_buf.GetFP32(0, { 3, 2, 1 }));
-    EXPECT_EQ(111,   y_buf.GetFP32(0, { 4, 2, 1 }));
-    EXPECT_EQ(111,   y_buf.GetFP32(0, { 5, 2, 1 }));
-    EXPECT_EQ(111,   y_buf.GetFP32(0, { 3, 3, 1 }));
-    EXPECT_EQ(111,   y_buf.GetFP32(0, { 4, 3, 1 }));
-    EXPECT_EQ(111,   y_buf.GetFP32(0, { 5, 3, 1 }));
+    EXPECT_EQ(1,     y_buf.GetFP32(0, { 0, 0, 3 }));
+    EXPECT_EQ(1,     y_buf.GetFP32(0, { 0, 0, 4 }));
+    EXPECT_EQ(1,     y_buf.GetFP32(0, { 0, 0, 5 }));
+    EXPECT_EQ(1,     y_buf.GetFP32(0, { 0, 1, 3 }));
+    EXPECT_EQ(1,     y_buf.GetFP32(0, { 0, 1, 4 }));
+    EXPECT_EQ(1,     y_buf.GetFP32(0, { 0, 1, 5 }));
+
+    EXPECT_EQ(11,    y_buf.GetFP32(0, { 0, 2, 3 }));
+    EXPECT_EQ(11,    y_buf.GetFP32(0, { 0, 2, 4 }));
+    EXPECT_EQ(11,    y_buf.GetFP32(0, { 0, 2, 5 }));
+    EXPECT_EQ(11,    y_buf.GetFP32(0, { 0, 3, 3 }));
+    EXPECT_EQ(11,    y_buf.GetFP32(0, { 0, 3, 4 }));
+    EXPECT_EQ(11,    y_buf.GetFP32(0, { 0, 3, 5 }));
+
+    EXPECT_EQ(111,   y_buf.GetFP32(0, { 1, 2, 3 }));
+    EXPECT_EQ(111,   y_buf.GetFP32(0, { 1, 2, 4 }));
+    EXPECT_EQ(111,   y_buf.GetFP32(0, { 1, 2, 5 }));
+    EXPECT_EQ(111,   y_buf.GetFP32(0, { 1, 3, 3 }));
+    EXPECT_EQ(111,   y_buf.GetFP32(0, { 1, 3, 4 }));
+    EXPECT_EQ(111,   y_buf.GetFP32(0, { 1, 3, 5 }));
 
     EXPECT_EQ(1321,  y_buf.GetFP32(1, { 3, 4, 3 }));
-    EXPECT_EQ(1321,  y_buf.GetFP32(1, { 4, 4, 3 }));
-    EXPECT_EQ(1321,  y_buf.GetFP32(1, { 5, 4, 3 }));
+    EXPECT_EQ(1321,  y_buf.GetFP32(1, { 3, 4, 4 }));
+    EXPECT_EQ(1321,  y_buf.GetFP32(1, { 3, 4, 5 }));
     EXPECT_EQ(1321,  y_buf.GetFP32(1, { 3, 5, 3 }));
-    EXPECT_EQ(1321,  y_buf.GetFP32(1, { 4, 5, 3 }));
-    EXPECT_EQ(1321,  y_buf.GetFP32(1, { 5, 5, 3 }));
+    EXPECT_EQ(1321,  y_buf.GetFP32(1, { 3, 5, 4 }));
+    EXPECT_EQ(1321,  y_buf.GetFP32(1, { 3, 5, 5 }));
 
     // backward
-    bb::FrameBuffer dy_buf(2, {2*3, 3*2, 4}, BB_TYPE_FP32);
+    bb::FrameBuffer dy_buf(2, {4, 3*2, 2*3}, BB_TYPE_FP32);
 
     dy_buf.SetFP32(0, { 0, 0, 0 }, 11);
-    dy_buf.SetFP32(0, { 1, 0, 0 }, 12);
-    dy_buf.SetFP32(0, { 2, 0, 0 }, 13);
+    dy_buf.SetFP32(0, { 0, 0, 1 }, 12);
+    dy_buf.SetFP32(0, { 0, 0, 2 }, 13);
     dy_buf.SetFP32(0, { 0, 1, 0 }, 14);
-    dy_buf.SetFP32(0, { 1, 1, 0 }, 15);
-    dy_buf.SetFP32(0, { 2, 1, 0 }, 16);
+    dy_buf.SetFP32(0, { 0, 1, 1 }, 15);
+    dy_buf.SetFP32(0, { 0, 1, 2 }, 16);
 
-    dy_buf.SetFP32(0, { 3, 0, 0 }, 21);
-    dy_buf.SetFP32(0, { 4, 0, 0 }, 22);
-    dy_buf.SetFP32(0, { 5, 0, 0 }, 23);
-    dy_buf.SetFP32(0, { 3, 1, 0 }, 24);
-    dy_buf.SetFP32(0, { 4, 1, 0 }, 25);
-    dy_buf.SetFP32(0, { 5, 1, 0 }, 26);
+    dy_buf.SetFP32(0, { 0, 0, 3 }, 21);
+    dy_buf.SetFP32(0, { 0, 0, 4 }, 22);
+    dy_buf.SetFP32(0, { 0, 0, 5 }, 23);
+    dy_buf.SetFP32(0, { 0, 1, 3 }, 24);
+    dy_buf.SetFP32(0, { 0, 1, 4 }, 25);
+    dy_buf.SetFP32(0, { 0, 1, 5 }, 26);
 
-    dy_buf.SetFP32(0, { 3, 2, 0 }, 31);
-    dy_buf.SetFP32(0, { 4, 2, 0 }, 32);
-    dy_buf.SetFP32(0, { 5, 2, 0 }, 33);
-    dy_buf.SetFP32(0, { 3, 3, 0 }, 34);
-    dy_buf.SetFP32(0, { 4, 3, 0 }, 35);
-    dy_buf.SetFP32(0, { 5, 3, 0 }, 36);
+    dy_buf.SetFP32(0, { 0, 2, 3 }, 31);
+    dy_buf.SetFP32(0, { 0, 2, 4 }, 32);
+    dy_buf.SetFP32(0, { 0, 2, 5 }, 33);
+    dy_buf.SetFP32(0, { 0, 3, 3 }, 34);
+    dy_buf.SetFP32(0, { 0, 3, 4 }, 35);
+    dy_buf.SetFP32(0, { 0, 3, 5 }, 36);
 
-    dy_buf.SetFP32(0, { 3, 2, 1 }, 41);
-    dy_buf.SetFP32(0, { 4, 2, 1 }, 42);
-    dy_buf.SetFP32(0, { 5, 2, 1 }, 43);
-    dy_buf.SetFP32(0, { 3, 3, 1 }, 44);
-    dy_buf.SetFP32(0, { 4, 3, 1 }, 45);
-    dy_buf.SetFP32(0, { 5, 3, 1 }, 46);
+    dy_buf.SetFP32(0, { 1, 2, 3 }, 41);
+    dy_buf.SetFP32(0, { 1, 2, 4 }, 42);
+    dy_buf.SetFP32(0, { 1, 2, 5 }, 43);
+    dy_buf.SetFP32(0, { 1, 3, 3 }, 44);
+    dy_buf.SetFP32(0, { 1, 3, 4 }, 45);
+    dy_buf.SetFP32(0, { 1, 3, 5 }, 46);
 
     dy_buf.SetFP32(1, { 3, 4, 3 }, 51);
-    dy_buf.SetFP32(1, { 4, 4, 3 }, 52);
-    dy_buf.SetFP32(1, { 5, 4, 3 }, 53);
+    dy_buf.SetFP32(1, { 3, 4, 4 }, 52);
+    dy_buf.SetFP32(1, { 3, 4, 5 }, 53);
     dy_buf.SetFP32(1, { 3, 5, 3 }, 54);
-    dy_buf.SetFP32(1, { 4, 5, 3 }, 55);
-    dy_buf.SetFP32(1, { 5, 5, 3 }, 56);
+    dy_buf.SetFP32(1, { 3, 5, 4 }, 55);
+    dy_buf.SetFP32(1, { 3, 5, 5 }, 56);
 
 
     auto dx_buf = upsmp->Backward(dy_buf);
@@ -120,12 +120,11 @@ TEST(UpSamplingTest, testUpSampling_test)
     EXPECT_EQ(x_buf.GetFrameSize(), dx_buf.GetFrameSize());
 
     EXPECT_EQ(11+12+13+14+15+16, dx_buf.GetFP32(0, { 0, 0, 0 }));
-    EXPECT_EQ(21+22+23+24+25+26, dx_buf.GetFP32(0, { 1, 0, 0 }));                    
-    EXPECT_EQ(31+32+33+34+35+36, dx_buf.GetFP32(0, { 1, 1, 0 }));
+    EXPECT_EQ(21+22+23+24+25+26, dx_buf.GetFP32(0, { 0, 0, 1 }));                    
+    EXPECT_EQ(31+32+33+34+35+36, dx_buf.GetFP32(0, { 0, 1, 1 }));
     EXPECT_EQ(41+42+43+44+45+46, dx_buf.GetFP32(0, { 1, 1, 1 }));
-    EXPECT_EQ(51+52+53+54+55+56, dx_buf.GetFP32(1, { 1, 2, 3 }));
+    EXPECT_EQ(51+52+53+54+55+56, dx_buf.GetFP32(1, { 3, 2, 1 }));
 }
-
 
 
 
@@ -152,10 +151,10 @@ void UpSamplingTest_cmp
         model1->SendCommand("host_only true");
     }
 
-    bb::FrameBuffer x_buf0(frame_size, {input_w_size, input_h_size, c_size}, bb::DataType<FT>::type, false);
-    bb::FrameBuffer x_buf1(frame_size, {input_w_size, input_h_size, c_size}, bb::DataType<FT>::type, host_only);
+    bb::FrameBuffer x_buf0(frame_size, {c_size, input_h_size, input_w_size}, bb::DataType<FT>::type, false);
+    bb::FrameBuffer x_buf1(frame_size, {c_size, input_h_size, input_w_size}, bb::DataType<FT>::type, host_only);
 
-    bb::indices_t output_shape({input_w_size*filter_w_size, input_h_size*filter_h_size, c_size});
+    bb::indices_t output_shape({c_size, input_h_size*filter_h_size, input_w_size*filter_w_size});
 
     auto input_node_size  = x_buf0.GetNodeSize();
     auto output_node_size = input_node_size * filter_w_size * filter_h_size;
@@ -242,6 +241,7 @@ TEST(UpSamplingTest, testUpSampling_cmp)
      UpSamplingTest_cmp<bb::Bit>(32, 3, 4, 32, 2, 2, true, 2);
 }
 
-
 #endif
+
+
 

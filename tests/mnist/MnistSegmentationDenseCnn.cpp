@@ -12,7 +12,7 @@
 #include "bb/DenseAffine.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
-#include "bb/LoweringConvolution.h"
+#include "bb/Convolution2d.h"
 #include "bb/MaxPooling.h"
 #include "bb/BinaryModulation.h"
 #include "bb/OptimizerAdam.h"
@@ -34,7 +34,7 @@ static std::vector< std::vector<float> > make_t(std::vector< std::vector<float> 
             }
         }
         for ( int k = 0; k < 28*28; ++k ) {
-            t_vec[10*28*28 + k] = (x[i][k] <= 0.5) ? 0.2f : 0.0f;
+            t_vec[10*28*28 + k] = (x[i][k] <= 0.5) ? 0.1f : 0.0f;
         }
         t_img.push_back(t_vec);
     }
@@ -138,7 +138,7 @@ static std::shared_ptr<bb::Model> make_cnv(int ch_size)
     cnv_net->Add(bb::DenseAffine<>::Create(ch_size));
     cnv_net->Add(bb::BatchNormalization<>::Create());
     cnv_net->Add(bb::ReLU<float>::Create());
-    return bb::LoweringConvolution<>::Create(cnv_net, 3, 3, 1, 1, "same");
+    return bb::Convolution2d<>::Create(cnv_net, 3, 3, 1, 1, "same");
 }
 
 

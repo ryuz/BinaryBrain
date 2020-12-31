@@ -23,7 +23,7 @@ class MetricsCategoricalAccuracy : public MetricsFunction
 {
 protected:
     Tensor_<int>    m_accuracy;
-    index_t         m_category_count = 0;
+    double          m_category_count = 0;
 
 protected:
     MetricsCategoricalAccuracy() : m_accuracy(1)
@@ -54,7 +54,7 @@ public:
         }
         auto ptr = m_accuracy.LockConst();
         auto acc = ptr[0];
-        return (double)acc / (double)m_category_count;
+        return (double)acc / m_category_count;
     }
 
     void CalculateMetrics(FrameBuffer y_buf, FrameBuffer t_buf)
@@ -100,30 +100,26 @@ public:
  
             for (index_t frame = 0; frame < frame_size; ++frame) {
                 for (index_t pix = 0; pix < pix_size; ++pix) {
-                    index_t max_ch  = 0;
+                //  index_t max_ch  = 0;
                     T       max_y   = y_ptr.Get(frame, pix);
                     T       max_t   = t_ptr.Get(frame, pix);
-                    bool    max_val = (max_t > 0);
+                    T       sum_t   = max_t;
                     for (index_t ch = 1; ch < ch_size; ++ch) {
                         auto node = ch * pix_size + pix;
                         T   y = y_ptr.Get(frame, node);
                         T   t = t_ptr.Get(frame, node);
+                        sum_t += t;
                         if (y > max_y) {
-                            max_ch = ch;
+                        //  max_ch = ch;
                             max_y  = y;
                             max_t  = t;
-                        }
-                        if ( t > 0 ) {
-                            max_val = true;
                         }
                     }
 
                     if ( max_t > 0) {
-                        acc_ptr[0] += 1;
+                        acc_ptr[0] += (int)sum_t;
                     }
-                    if ( max_val ) {
-                        m_category_count += 1;
-                    }
+                    m_category_count += sum_t;
                 }
             }
         }

@@ -26,7 +26,7 @@ class AveragePooling : public Filter2d<FT, BT>
     using _super = Filter2d<FT, BT>;
 
 protected:
-    bool                m_host_only;
+    bool                m_host_only = false;
 
     index_t             m_filter_h_size;
     index_t             m_filter_w_size;

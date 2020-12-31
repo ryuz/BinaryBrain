@@ -12,24 +12,35 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+
 import re
 import os
 import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import glob
+import shutil
 
-try:
-    import binarybrain
-except  ModuleNotFoundError:
+# copy python cource
+bb_module_path = '..'
+bb_binarybrain_path = os.path.join(bb_module_path, 'binarybrain')
+os.makedirs(bb_binarybrain_path, exist_ok=True)
+for file in glob.glob(r'../../../python/binarybrain/*.py'):
+    shutil.copy(file, bb_binarybrain_path)
+
+# make dummy
+with open(os.path.join(bb_binarybrain_path, 'core.py'), 'w') as f:
     pass
+
+# import source
+sys.path.insert(0, os.path.abspath(bb_module_path))
+import binarybrain
 
 
 
 # -- Project information -----------------------------------------------------
 
 project = u'BinaryBrain'
-copyright = u'2019, Ryuji Fuchikami'
+copyright = u'2019-2020, Ryuji Fuchikami'
 author = u'Ryuji Fuchikami'
-
 
 # version
 major_version = 0
@@ -204,3 +215,5 @@ epub_exclude_files = ['search.html']
 
 locale_dirs = ['locale/']   # path is example but recommended.
 gettext_compact = False     # optional.
+
+html_style = "css/my_theme.css"

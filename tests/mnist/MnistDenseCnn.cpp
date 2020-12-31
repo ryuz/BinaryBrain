@@ -12,7 +12,8 @@
 #include "bb/DenseAffine.h"
 #include "bb/BatchNormalization.h"
 #include "bb/ReLU.h"
-#include "bb/LoweringConvolution.h"
+#include "bb/Shuffle.h"
+#include "bb/Convolution2d.h"
 #include "bb/MaxPooling.h"
 #include "bb/BinaryModulation.h"
 #include "bb/OptimizerAdam.h"
@@ -64,12 +65,12 @@ void MnistDenseCnn_(int epoch_size, int mini_batch_size, int train_modulation_si
         cnv3_net->Add(bb::ReLU<T>::Create());
 
         auto main_net = bb::Sequential::Create();
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv0_net, 3, 3));   // Conv3x3 x 32
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv1_net, 3, 3));   // Conv3x3 x 32
-        main_net->Add(bb::MaxPooling<T>::Create(2, 2));
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv2_net, 3, 3));   // Conv3x3 x 64
-        main_net->Add(bb::LoweringConvolution<T>::Create(cnv3_net, 3, 3));   // Conv3x3 x 64
-        main_net->Add(bb::MaxPooling<T>::Create(2, 2));
+        main_net->Add(bb::Convolution2d<T>::Create(cnv0_net, 3, 3));   // Conv3x3 x 32 [26x26]
+        main_net->Add(bb::Convolution2d<T>::Create(cnv1_net, 3, 3));   // Conv3x3 x 32 [24x24]
+        main_net->Add(bb::MaxPooling<T>::Create(2, 2));                      //              [12x12]
+        main_net->Add(bb::Convolution2d<T>::Create(cnv2_net, 3, 3));   // Conv3x3 x 64 [10x10]
+        main_net->Add(bb::Convolution2d<T>::Create(cnv3_net, 3, 3));   // Conv3x3 x 64 [8x8]
+        main_net->Add(bb::MaxPooling<T>::Create(2, 2));                      // Conv3x3 x 64 [4x4]
         main_net->Add(bb::DenseAffine<>::Create(256));
         main_net->Add(bb::ReLU<T>::Create());
         main_net->Add(bb::DenseAffine<>::Create(td.t_shape));

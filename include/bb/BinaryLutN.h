@@ -12,7 +12,7 @@
 
 #include <array>
 #include <vector>
-#include "bb/LutLayer.h"
+#include "bb/BinaryLutModel.h"
 
 
 namespace bb {
@@ -20,11 +20,13 @@ namespace bb {
 
 // テーブルサイズ固定LUT
 template <int N = 6, typename FT = Bit, typename BT = float>
-class BinaryLutN : public LutLayer<FT, BT>
+class BinaryLutN : public BinaryLutModel
 {
 protected:
     bool                    m_host_only = false;
     bool                    m_host_simd = true;
+
+    std::string             m_connection;
 
     indices_t               m_input_shape;
     indices_t               m_output_shape;
@@ -45,6 +47,7 @@ public:
     struct create_t
     {
         indices_t       output_shape;
+        std::string     connection="";
         std::uint64_t   seed = 1;
     };
 
@@ -54,8 +57,9 @@ protected:
         BB_ASSERT(!create.output_shape.empty());
         m_mt.seed(create.seed);
         m_output_shape = create.output_shape;
-        m_input_index.Resize(GetShapeSize(m_output_shape), (index_t)N);
-        m_table.Resize(GetShapeSize(m_output_shape), (index_t)m_table_unit);
+        m_connection   = create.connection;
+        m_input_index.Resize(CalcShapeSize(m_output_shape), (index_t)N);
+        m_table.Resize(CalcShapeSize(m_output_shape), (index_t)m_table_unit);
     }
 
     void CommandProc(std::vector<std::string> args)
@@ -98,16 +102,19 @@ public:
         return Create(create);
     }
 
-    // python用
-    static std::shared_ptr<BinaryLutN> CreateEx(
+#ifdef BB_PYBIND11    // python用
+    static std::shared_ptr<BinaryLutN> CreatePy(
                 indices_t       output_shape,
+                std::string     connection="",
                 std::uint64_t   seed = 1)
     {
         create_t create;
         create.output_shape = output_shape;
+        create.connection   = connection;
         create.seed         = seed;
         return Create(create);
     }
+#endif
 
     std::string GetClassName(void) const { return "BinaryLutN"; }
 
@@ -122,7 +129,7 @@ public:
 
     void SetNodeConnectionIndex(index_t node, index_t input_index, index_t input_node)
     {
-        BB_ASSERT(node >= 0 && node < GetShapeSize(m_output_shape));
+        BB_ASSERT(node >= 0 && node < CalcShapeSize(m_output_shape));
         BB_ASSERT(input_index >= 0 && input_index < N);
         BB_DEBUG_ASSERT(input_node >= 0 && input_node < GetInputNodeSize());
 
@@ -132,7 +139,7 @@ public:
 
     index_t GetNodeConnectionIndex(index_t node, index_t input_index) const
     {
-        BB_ASSERT(node >= 0 && node < GetShapeSize(m_output_shape));
+        BB_ASSERT(node >= 0 && node < CalcShapeSize(m_output_shape));
         BB_ASSERT(input_index >= 0 && input_index < N);
         
         auto ptr = lock_InputIndex_const();
@@ -147,7 +154,7 @@ public:
 
     void SetLutTable(index_t node, int bitpos, bool value)
     {
-        BB_ASSERT(node >= 0 && node < GetShapeSize(m_output_shape));
+        BB_ASSERT(node >= 0 && node < CalcShapeSize(m_output_shape));
         BB_ASSERT(bitpos >= 0 && bitpos < m_table_size);
 
         int idx = bitpos / m_table_bits;
@@ -164,7 +171,7 @@ public:
 
     bool GetLutTable(index_t node, int bitpos) const
     {
-        BB_ASSERT(node >= 0 && node < GetShapeSize(m_output_shape));
+        BB_ASSERT(node >= 0 && node < CalcShapeSize(m_output_shape));
         BB_ASSERT(bitpos >= 0 && bitpos < (1 << N));
 
         int idx = bitpos / m_table_bits;
@@ -201,7 +208,7 @@ public:
         m_input_shape = shape;
 
         // 接続初期化
-        this->InitializeNodeInput(m_mt());
+        this->InitializeNodeInput(m_mt(), m_connection);
 
         // テーブル初期化
         this->InitializeLutTable(m_mt());
@@ -218,7 +225,7 @@ public:
      */
     void SetOutputShape(indices_t const &shape)
     {
-        BB_ASSERT(GetShapeSize(shape) == this->m_output_node_size);
+        BB_ASSERT(CalcShapeSize(shape) == this->m_output_node_size);
         m_output_shape = shape;
     }
 

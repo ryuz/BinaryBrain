@@ -133,7 +133,7 @@ void MnistStochasticLutSimple(int epoch_size, int mini_batch_size, int test_modu
             std::string filename = "verilog/" + net_name + ".v";
             std::ofstream ofs(filename);
             ofs << "`timescale 1ns / 1ps\n\n";
-            bb::ExportVerilog_LutLayers<>(ofs, net_name, lut_net);
+            bb::ExportVerilog_LutModels<>(ofs, net_name, lut_net);
             std::cout << "export : " << filename << "\n" << std::endl;
 
             // RTL simulation 用データの出力

@@ -56,7 +56,7 @@
 #include "bb/NeuralNetLossCrossEntropyWithSoftmax.h"
 #include "bb/NeuralNetAccuracyCategoricalClassification.h"
 
-#include "bb/NeuralNetLoweringConvolution.h"
+#include "bb/NeuralNetConvolution2d.h"
 
 #include "bb/ShuffleSet.h"
 
@@ -336,7 +336,7 @@ int evaluate_micro_mlp(void)
 {
     omp_set_num_threads(4);
 
-    MnistSparseAffine(16, 128, true, "MnistSparseLut");
+    MnistSparseAffine(16, 128, true, "MnistDifferentiableLut");
     getchar();
 
     MnistMlpLutN<1> (16, 128, true, "MnistMlpLutN_1");

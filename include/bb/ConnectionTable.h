@@ -74,27 +74,27 @@ public:
     // Flatten
     index_t GetInputConnectionSize(indices_t output_node) const
     {
-        return GetInputConnectionSize(GetShapeIndex(output_node, m_output_shape));
+        return GetInputConnectionSize(ConvertIndicesToIndex(output_node, m_output_shape));
     }
 
     index_t GetInputConnection(indices_t output_node, index_t connection_index) const
     {
-        return GetInputConnection(GetShapeIndex(output_node, m_output_shape), connection_index);
+        return GetInputConnection(ConvertIndicesToIndex(output_node, m_output_shape), connection_index);
     }
 
     void SetInputTable(indices_t output_node, index_t connection_index, index_t input_node) 
     {
-        SetInputConnection(GetShapeIndex(output_node, m_output_shape), connection_index, input_node);
+        SetInputConnection(ConvertIndicesToIndex(output_node, m_output_shape), connection_index, input_node);
     }
 
     void SetInputTable(index_t output_node, index_t connection_index, indices_t input_node) 
     {
-        SetInputConnection(output_node, connection_index, GetShapeIndex(input_node, m_input_shape));
+        SetInputConnection(output_node, connection_index, ConvertIndicesToIndex(input_node, m_input_shape));
     }
 
     void SetInputConnection(indices_t output_node, index_t connection_index, indices_t input_node) 
     {
-        SetInputConnection(GetShapeIndex(output_node, m_output_shape), connection_index, GetShapeIndex(input_node, m_input_shape));
+        SetInputConnection(ConvertIndicesToIndex(output_node, m_output_shape), connection_index, ConvertIndicesToIndex(input_node, m_input_shape));
     }
 
 public:
@@ -108,8 +108,8 @@ public:
     // accessor
     indices_t GetInputShape(void)  const { return m_input_shape;  }
     indices_t GetOutputShape(void) const { return m_output_shape; }
-    index_t   GetInputNodeSize(void)  const { return GetShapeSize(GetInputShape());  }
-    index_t   GetOutputNodeSize(void) const { return GetShapeSize(GetOutputShape());  }
+    index_t   GetInputNodeSize(void)  const { return CalcShapeSize(GetInputShape());  }
+    index_t   GetOutputNodeSize(void) const { return CalcShapeSize(GetOutputShape());  }
 
     // Initialize connection
     void InitializeConnection(std::uint64_t seed, std::string connection = "")
@@ -117,27 +117,27 @@ public:
         auto input_shape  = this->GetInputShape();
         auto output_shape = this->GetOutputShape();
 
-        auto input_node_size  = GetShapeSize(input_shape);
-        auto output_node_size = GetShapeSize(output_shape);
+        auto input_node_size  = CalcShapeSize(input_shape);
+        auto output_node_size = CalcShapeSize(output_shape);
 
         auto argv = SplitString(connection);
 
         if (argv.size() > 0 && argv[0] == "pointwise") {
             BB_ASSERT(input_shape.size() == 3);
             BB_ASSERT(output_shape.size() == 3);
-            BB_ASSERT(input_shape[0] == output_shape[0]);
             BB_ASSERT(input_shape[1] == output_shape[1]);
+            BB_ASSERT(input_shape[2] == output_shape[2]);
             std::mt19937_64 mt(seed);
             for (index_t y = 0; y < output_shape[1]; ++y) {
-                for (index_t x = 0; x < output_shape[0]; ++x) {
+                for (index_t x = 0; x < output_shape[2]; ++x) {
                     // shuffle index
-                    ShuffleSet<index_t> ss(input_shape[2], mt());
-                    for (index_t c = 0; c < output_shape[2]; ++c) {
+                    ShuffleSet<index_t> ss(input_shape[0], mt());
+                    for (index_t c = 0; c < output_shape[0]; ++c) {
                         // random connection
-                        index_t  input_size = GetInputConnectionSize({x, y, c});
+                        index_t  input_size = GetInputConnectionSize({c, y, x});
                         auto random_set = ss.GetRandomSet(input_size);
                         for (index_t i = 0; i < input_size; ++i) {
-                            SetInputConnection({x, y, c}, i, {x, y, random_set[i]});
+                            SetInputConnection({c, y, x}, i, {random_set[i], y, x});
                         }
                     }
                 }
@@ -148,22 +148,22 @@ public:
         if (argv.size() > 0 && argv[0] == "depthwise") {
             BB_ASSERT(input_shape.size() == 3);
             BB_ASSERT(output_shape.size() == 3);
-            BB_ASSERT(input_shape[2] == output_shape[2]);
+            BB_ASSERT(input_shape[0] == output_shape[0]);
             std::mt19937_64 mt(seed);
-            for (index_t c = 0; c < output_shape[2]; ++c) {
+            for (index_t c = 0; c < output_shape[0]; ++c) {
                 // shuffle index
-                ShuffleSet<index_t> ss(input_shape[0] * input_shape[1], mt());
+                ShuffleSet<index_t> ss(input_shape[1] * input_shape[2], mt());
                 for (index_t y = 0; y < output_shape[1]; ++y) {
-                    for (index_t x = 0; x < output_shape[0]; ++x) {
+                    for (index_t x = 0; x < output_shape[2]; ++x) {
                         // random connection
-                        index_t  input_size = GetInputConnectionSize({x, y, c});
+                        index_t  input_size = GetInputConnectionSize({x, y, x});
                         auto random_set = ss.GetRandomSet(input_size);
                         for (index_t i = 0; i < input_size; ++i) {
-                            index_t iy = random_set[i] / input_shape[0];
-                            index_t ix = random_set[i] % input_shape[0];
+                            index_t iy = random_set[i] / input_shape[2];
+                            index_t ix = random_set[i] % input_shape[2];
 
-                            index_t output_node = GetShapeIndex({x, y, c}, output_shape);
-                            index_t input_node  = GetShapeIndex({ix, iy, c}, input_shape);
+                            index_t output_node = ConvertIndicesToIndex({c, y, x}, output_shape);
+                            index_t input_node  = ConvertIndicesToIndex({c, iy, ix}, input_shape);
 
                             BB_ASSERT(output_node >= 0 && output_node < output_node_size);
                             BB_ASSERT(input_node  >= 0 && input_node  < input_node_size);
@@ -195,7 +195,7 @@ public:
                     input_offset[i] = output_index[i] * step[i];
                 }
 
-                auto output_node = GetShapeIndex(output_index, output_shape);
+                auto output_node = ConvertIndicesToIndex(output_index, output_shape);
                 auto m = GetInputConnectionSize(output_node);
                 std::set<index_t>   s;
                 std::vector<double> input_position(n);
@@ -205,7 +205,7 @@ public:
                             input_position[j] = input_offset[j] + norm_dist(mt) * sigma[j];
                         }
                         auto input_index = RegurerlizeIndices(input_position, input_shape);
-                        auto input_node  = GetShapeIndex(input_index, input_shape);
+                        auto input_node  = ConvertIndicesToIndex(input_index, input_shape);
                         if ( s.count(input_node) == 0 ){
                             SetInputConnection(output_node, i, input_node);
                             s.insert(input_node);
@@ -213,7 +213,7 @@ public:
                         }
                     }
                 }
-            } while ( GetNextIndices(output_index, output_shape) );
+            } while ( CalcNextIndices(output_index, output_shape) );
             return;
         }
 

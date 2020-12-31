@@ -83,7 +83,19 @@ public:
         create.fill   = fill;
         return Create(create);
     }
+
     
+    #ifdef BB_PYBIND11
+    static std::shared_ptr<UpSampling> CreatePy(index_t filter_h_size, index_t filter_w_size, bool fill=true)
+    {
+        create_t create;
+        create.filter_h_size = filter_h_size;
+        create.filter_w_size = filter_w_size;
+        create.fill   = fill;
+        return Create(create);
+    }
+#endif
+
     std::string GetClassName(void) const { return "UpSampling"; }
 
 public:
@@ -104,10 +116,10 @@ public:
         BB_ASSERT(shape.size() == 3);
 
         m_input_shape  = shape;
-        index_t w_size = m_input_shape[0] * m_filter_w_size;
+        index_t c_size = m_input_shape[0];
         index_t h_size = m_input_shape[1] * m_filter_h_size;
-        index_t c_size = m_input_shape[2];
-        return indices_t({w_size, h_size, c_size});
+        index_t w_size = m_input_shape[2] * m_filter_w_size;
+        return indices_t({c_size, h_size, w_size});
     }
 
     /**
@@ -127,10 +139,10 @@ public:
      */
     indices_t GetOutputShape(void) const
     {
-        index_t w_size = m_input_shape[0] * m_filter_w_size;
+        index_t c_size = m_input_shape[0];
         index_t h_size = m_input_shape[1] * m_filter_h_size;
-        index_t c_size = m_input_shape[2];
-        return indices_t({w_size, h_size, c_size});
+        index_t w_size = m_input_shape[2] * m_filter_w_size;
+        return indices_t({c_size, h_size, w_size});
     }
 
 
@@ -149,9 +161,9 @@ public:
                 (
                     (float const *)x_ptr.GetAddr(),
                     (float       *)y_ptr.GetAddr(),
-                    (int          )m_input_shape[0],
-                    (int          )m_input_shape[1],
                     (int          )m_input_shape[2],
+                    (int          )m_input_shape[1],
+                    (int          )m_input_shape[0],
                     (int          )m_filter_w_size,
                     (int          )m_filter_h_size,
                     (int          )(m_fill ? 1 : 0),
@@ -173,9 +185,9 @@ public:
                 (
                     (int const *)x_ptr.GetAddr(),
                     (int       *)y_ptr.GetAddr(),
-                    (int        )m_input_shape[0],
-                    (int        )m_input_shape[1],
                     (int        )m_input_shape[2],
+                    (int        )m_input_shape[1],
+                    (int        )m_input_shape[0],
                     (int        )m_filter_w_size,
                     (int        )m_filter_h_size,
                     (int        )(m_fill ? 1 : 0),
@@ -193,9 +205,9 @@ public:
             auto y_ptr = y_buf.Lock<FT>(true);
 
             index_t frame_size    = x_buf.GetFrameSize();
-            index_t c_size        = m_input_shape[2];
+            index_t c_size        = m_input_shape[0];
             index_t input_h_size  = m_input_shape[1];
-            index_t input_w_size  = m_input_shape[0];
+            index_t input_w_size  = m_input_shape[2];
             index_t output_h_size = input_h_size * m_filter_h_size;
             index_t output_w_size = input_w_size * m_filter_w_size;
 
@@ -249,9 +261,9 @@ public:
                 (
                     (float const *)dy_ptr.GetAddr(),
                     (float       *)dx_ptr.GetAddr(),
-                    (int          )m_input_shape[0],
-                    (int          )m_input_shape[1],
                     (int          )m_input_shape[2],
+                    (int          )m_input_shape[1],
+                    (int          )m_input_shape[0],
                     (int          )m_filter_w_size,
                     (int          )m_filter_h_size,
                     (int          )(m_fill ? 1 : 0),
@@ -269,9 +281,9 @@ public:
             auto dx_ptr = dx_buf.Lock<BT>(true);
             
             index_t frame_size    = dy_buf.GetFrameSize();
-            index_t c_size        = m_input_shape[2];
+            index_t c_size        = m_input_shape[0];
             index_t input_h_size  = m_input_shape[1];
-            index_t input_w_size  = m_input_shape[0];
+            index_t input_w_size  = m_input_shape[2];
             index_t output_h_size = input_h_size * m_filter_h_size;
             index_t output_w_size = input_w_size * m_filter_w_size;
 

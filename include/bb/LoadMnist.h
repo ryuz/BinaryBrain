@@ -149,7 +149,7 @@ public:
     static TrainData<T> Load(int max_train_size = -1, int max_test_size = -1, int num_class = 10)
     {
         TrainData<T>    td;
-        td.x_shape = indices_t({28, 28, 1});
+        td.x_shape = indices_t({1, 28, 28});
         td.t_shape = indices_t({10});
         if (!LoadData(td.x_train, td.t_train, td.x_test, td.t_test, max_train_size, max_test_size, num_class)) {
             td.clear();
@@ -235,7 +235,7 @@ public:
         int train_size = (int)td_src.x_train.size();
         int test_size  = (int)td_src.x_test.size();
         bb::TrainData<T> td;
-        td.x_shape = bb::indices_t({28, 28, 1});
+        td.x_shape = bb::indices_t({1, 28, 28});
         td.t_shape = bb::indices_t({1});
         MakeDetectionData(td_src.x_train, td.x_train, td.t_train, 60000, 1);
         MakeDetectionData(td_src.x_test,  td.x_test,  td.t_test,  10000, 2);

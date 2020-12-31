@@ -96,21 +96,36 @@ Sigmoid クラス
 演算層
 ----------------------
 
-
-SparseLutN クラス
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-LUT-Network の LUT に相当する部分を独自のモデルで学習させるためのレイヤーです。
-パーセプトロンと異なる独自のモデルを用いており、単体でXORパターンを含めたLUTで
-表現可能な空間すべてを効率的に学習可能です。
-
-
 StochasticLutN クラス
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 LUT-Network の LUT に相当する部分をStochasticモデルに基づいて学習させるためのレイヤーです。
+Stochastic計算に基づいてFPGAのLUTロジックを微分可能記述に直して、テーブル内容の逆伝搬学習を可能としています。
 StochasticバイナリデータがStochastic性を持っている対象への学習に限定されますが、
-SparseLutもでるよりも高速に学習させることが可能です。
+DifferentiableLutN モデルよりも高速に学習させることが可能です。
+
+このモデルは１層でXORパターンを含めたLUTで表現可能な空間すべてを学習可能です。
+
+
+DifferentiableLutN クラス
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LUT-Network の LUT に相当する部分を独自のモデルで学習させるためのレイヤーです。
+StochasticLutN クラスにさらに BatchNormalization と hard-tanh によるバイナリ化を
+統合しています。
+Stochastic性を持たない一般的なデータに対してバイナリネットワークとしての学習能力を持ちます。
+
+このモデルも StochasticLutN 同様に1層でXORパターンを含めたLUTで表現可能な空間すべてを学習可能です。
+
+一方で１つのノードの接続数がFPGA同様に6個などに限定されるため、疎結合網となり、ネットワークの構築には工夫が必要です。
+
+
+MicroMlpAffine クラス
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+MicroMlp の構成要素で、入力数を6などに限定した疎結合、且つ、内部に隠れ層を備えた
+小さなMLP(Multi Layer Perceptron)の集合体です。
+入力数や隠れ層の数テンプレート引数で変更可能です。
 
 
 MicroMlp クラス
@@ -120,13 +135,6 @@ LUT-Network の LUT に相当する部分をパーセプトロンを用いて学
 内部は MicroMlpAffine + BatchNormalization + 活性化層 の３層で構成されます。
 活性化層 は デフォルトは ReLU ですが、テンプレート引数で変更可能です。
 
-
-MicroMlpAffine クラス
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-MicroMlp の構成要素で、入力数を6などに限定した疎結合、且つ、内部に隠れ層を備えた
-小さなMLP(Multi Layer Perceptron)の集合体です。
-入力数や隠れ層の数テンプレート引数で変更可能です。
 
 
 DenseAffine クラス
@@ -174,7 +182,7 @@ Sequential クラス
 各種の層を直列に接続して１つの層として扱えるようにします。
 
 
-LoweringConvolution クラス
+Convolution2d クラス
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Lowering を行い畳こみ演算を行います。
@@ -188,13 +196,13 @@ LUT-Network での畳込みが可能です。
 ConvolutionIm2 クラス
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-畳み込みの為のLoweringを行います。通常、LoweringConvolutionクラス の中で利用されます。
+畳み込みの為のLoweringを行います。通常、 Convolution2d クラス の中で利用されます。
 Loweringされたデータに対して BatchNormalization するのも LUT-Network 学習時の特徴の一つかもしれません。
 
 ConvolutionCol2Im クラス
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-畳み込みの為のLoweringの復元を行います。通常、LoweringConvolutionクラス の中で利用されます。
+畳み込みの為のLoweringの復元を行います。通常、 Convolution2d クラス の中で利用されます。
 
 
 BinaryModulation クラス
