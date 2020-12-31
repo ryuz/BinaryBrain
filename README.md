@@ -217,8 +217,11 @@ BinaryBrainではバイナリ変調したデジタル値を扱うことが出来
 
 
 ## ICCE2019(Berlin)にて発表しています
+(というか、していただきましたですが)
 2019 IEEE 9th International Conference on Consumer Electronics (ICCE-Berlin) <br>
 https://ieeexplore.ieee.org/document/8966187 <br>
+<br>
+[@FIssiki](https://twitter.com/fissiki)さま有難うございました m(_ _)m
 
 
 ## 作者情報
