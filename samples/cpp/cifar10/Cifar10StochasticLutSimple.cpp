@@ -24,7 +24,9 @@
 
 void Cifar10StochasticLutSimple(int epoch_size, int mini_batch_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
-    std::string net_name = "Cifar10StochasticLutSimple";
+    std::string net_name       = "Cifar10StochasticLutSimple";
+    std::string velilog_path   = "../../verilog/cifar10/";
+    std::string velilog_module = "Cifar10LutSimple";
 
   // load cifar-10 data
 #ifdef _DEBUG
@@ -148,14 +150,14 @@ void Cifar10StochasticLutSimple(int epoch_size, int mini_batch_size, int test_mo
 
         {
             // Verilog 出力
-            std::string filename = "verilog/" + net_name + ".v";
+            std::string filename = velilog_path + velilog_module + ".v";
             std::ofstream ofs(filename);
             ofs << "`timescale 1ns / 1ps\n\n";
             bb::ExportVerilog_LutModels(ofs, net_name, lut_net);
-            std::cout << "export : " << filename << "\n" << std::endl;
+            std::cout << "export : " << velilog_module << "\n" << std::endl;
 
             // RTL simulation 用データの出力
-            bb::WriteTestDataBinTextFile<float>("verilog/cifar10_train.txt", "verilog/cifar10_test.txt", td);
+            bb::WriteTestDataBinTextFile<float>(velilog_path + "cifar10_train.txt", velilog_path + "cifar10_test.txt", td);
         }
     }
 }
