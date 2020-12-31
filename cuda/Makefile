@@ -36,6 +36,7 @@ SRCS += BinaryToReal.cu
 SRCS += Im2Col.cu
 SRCS += Col2Im.cu
 SRCS += MaxPooling.cu
+SRCS += StochasticMaxPooling.cu
 SRCS += UpSampling.cu
 SRCS += BatchNormalization.cu
 SRCS += ReLU.cu
