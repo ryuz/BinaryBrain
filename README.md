@@ -152,6 +152,19 @@ Windows環境の場合、nvccのほかにも VisualStudio の 64bit 版がコマ
 % python3 MnistDifferentiableLutCnn.py
 ```
 
+
+### Google Colaboratory
+
+Google Colaboratory で利用する場合は、ランタイムのタイプを「GPU」にして、下記を実行した後にランタイムの再起動を行えば利用できるようになるはずです。
+
+```
+!pip install pybind11
+!git clone -b ver4_release  https://github.com/ryuz/BinaryBrain.git
+%cd BinaryBrain
+!python3 setup.py install --user
+```
+
+
 <!-- 
 #### pip によるインストール
 現在下記でもインストールできるようにしていますが、まだ開発が安定していないので github になるものとバージョンの対応にご注意ください。
@@ -160,6 +173,7 @@ Windows環境の場合、nvccのほかにも VisualStudio の 64bit 版がコマ
 % pip3 install binarybrain
 ```
 -->
+
 
 ## githubからの取得
 現在 version4 は下記の branch で管理しています
