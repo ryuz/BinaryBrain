@@ -4,17 +4,19 @@
    contain the root `toctree` directive.
 
 Welcome to BinaryBrain's documentation!
-=======================================
+=============================================
+
+本書は `BinaryBrain Ver4`: https://github.com/ryuz/BinaryBrain/tree/ver4_release のドキュメントです。
+
 
 .. toctree::
    :maxdepth: 4
    :caption: Contents:
 
    introduction
-   case_study
-   sample_rtl
-   lut_network
-   binary_modulation
+   quick_start_cpp
+   quick_start_python
+   quick_start_verilog
    cpp_api
    python_api
 
