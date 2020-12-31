@@ -104,7 +104,7 @@ pipでのインストール
 
 ::
 
-  % pip3 install binarybrain
+  % pip3 install binarybrain==3.13.*
 
 Windowsなど環境によっては pip3 が存在せず、pip のみ場合は pip3 を pip に置き換えて実行ください。
 インストール時にソースファイルがビルドされますので、コンパイラやCUDAなどの環境は事前に整えておく必要があります。

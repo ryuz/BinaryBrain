@@ -25,6 +25,7 @@
     <CudaCompile Include="Binarize.cu" />
     <CudaCompile Include="BinaryLut6.cu" />
     <CudaCompile Include="BinaryToReal.cu" />
+    <CudaCompile Include="BitEncode.cu" />
     <CudaCompile Include="Col2Im.cu" />
     <CudaCompile Include="ConvBitToReal.cu" />
     <CudaCompile Include="FrameBufferCopy.cu" />
@@ -40,6 +41,7 @@
     <CudaCompile Include="MicroMlp.cu" />
     <CudaCompile Include="RealToBinary.cu" />
     <CudaCompile Include="ReLU.cu" />
+    <CudaCompile Include="Shuffle.cu" />
     <CudaCompile Include="ShuffleModulation.cu" />
     <CudaCompile Include="Sigmoid.cu" />
     <CudaCompile Include="SparseLut.cu" />

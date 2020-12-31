@@ -453,11 +453,15 @@ public:
 
             // 初期評価
             if (m_initial_evaluation) {
-                auto test_metrics  = Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
-                auto train_metrics = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
+                auto test_metrics  = Calculation(td.x_test,  td.x_shape, td.t_test,  td.t_shape, batch_size, 0, m_metricsFunc, m_lossFunc, nullptr, false, m_print_progress);
+                auto test_loss     = m_lossFunc->GetLoss();
+                auto train_metrics = Calculation(td.x_train, td.x_shape, td.t_train, td.t_shape, batch_size, 0, m_metricsFunc, m_lossFunc, nullptr, false, m_print_progress);
+                auto train_loss    = m_lossFunc->GetLoss();
                 log_stream << "[initial] "
-                    << "test " << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << test_metrics  << " "
-                    << "train " << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << train_metrics << std::endl;
+                    << "test "  << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << test_metrics  << "  "
+                    << "test loss : "                                         << std::setw(6) << std::fixed << std::setprecision(4) << test_loss     << "  "
+                    << "train " << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << train_metrics << "  "
+                    << "train loss : "                                        << std::setw(6) << std::fixed << std::setprecision(4) << train_loss    << std::endl;
             }
 
             // 開始時間記録
@@ -515,12 +519,24 @@ public:
                 // 学習状況評価
                 {
                     double now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count() / 1000.0;
-                    auto test_metrics  = Calculation(td_work.x_test,  td_work.x_shape, td_work.t_test,  td_work.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
-                    auto train_metrics = Calculation(td_work.x_train, td_work.x_shape, td_work.t_train, td_work.t_shape, batch_size, 0, m_metricsFunc, nullptr, nullptr, false, m_print_progress);
-                    log_stream  << std::setw(10) << std::fixed << std::setprecision(2) << now_time << "s "
-                                << "epoch[" << std::setw(3) << m_epoch << "] "
-                                << "test "  << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << test_metrics  << " "
-                                << "train " << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << train_metrics << std::endl;
+                    auto test_metrics  = Calculation(td_work.x_test,  td_work.x_shape, td_work.t_test,  td_work.t_shape, batch_size, 0, m_metricsFunc, m_lossFunc, nullptr, false, m_print_progress);
+                    auto test_loss     = m_lossFunc->GetLoss();
+                    auto train_metrics = Calculation(td_work.x_train, td_work.x_shape, td_work.t_train, td_work.t_shape, batch_size, 0, m_metricsFunc, m_lossFunc, nullptr, false, m_print_progress);
+                    auto train_loss    = m_lossFunc->GetLoss();
+                    if ( m_metricsFunc ) {
+                        log_stream  << std::setw(10) << std::fixed << std::setprecision(2) << now_time << "s "
+                                    << "epoch[" << std::setw(3) << m_epoch << "] "
+                                    << "test "  << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << test_metrics  << "  "
+                                    << "test loss : "                                         << std::setw(6) << std::fixed << std::setprecision(4) << test_loss     << "  "
+                                    << "train " << m_metricsFunc->GetMetricsString() << " : " << std::setw(6) << std::fixed << std::setprecision(4) << train_metrics << "  "
+                                    << "train loss : "                                        << std::setw(6) << std::fixed << std::setprecision(4) << train_loss    << std::endl;
+                    }
+                    else {
+                        log_stream  << std::setw(10) << std::fixed << std::setprecision(2) << now_time << "s "
+                                    << "epoch[" << std::setw(3) << m_epoch << "] "
+                                    << "test loss : "                                         << std::setw(6) << std::fixed << std::setprecision(4) << test_loss     << "  "
+                                    << "train loss : "                                        << std::setw(6) << std::fixed << std::setprecision(4) << train_loss    << std::endl;
+                    }
                 }
 
                 // callback
@@ -659,7 +675,15 @@ protected:
             std::cerr << "\r                                                                               \r" << std::flush;
         }
 
-        return metricsFunc->GetMetrics();
+        if ( metricsFunc ) {
+            return metricsFunc->GetMetrics();
+        }
+        else if ( lossFunc ) {
+            return lossFunc->GetLoss();
+        }
+        else {
+            return 0;
+        }
     }
 
 };

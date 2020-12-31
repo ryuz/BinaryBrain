@@ -499,8 +499,8 @@ void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module_name, 
             parameter   DEVICE         = "rtl",
 )";
 
-    os << "         parameter   S_TDATA_WIDTH  = " << in_c << ",\n";
-    os << "         parameter   M_TDATA_WIDTH  = " << out_c;
+    os << "           parameter   S_TDATA_WIDTH  = " << in_c << ",\n";
+    os << "           parameter   M_TDATA_WIDTH  = " << out_c;
 
     os << R"(
         )

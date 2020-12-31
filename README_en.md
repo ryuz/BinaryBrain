@@ -123,7 +123,7 @@ When using Windows, 64-bit version of VisualStudio is required.
 
 ```
 % # install
-% cd python
+% cd python==3.13.*
 % python3 setup.py install
 ```
 
@@ -140,7 +140,7 @@ When using Windows, 64-bit version of VisualStudio is required.
 
 #### Install with pip
 ```
-% pip3 install binarybrain
+% pip3 install binarybrain==3.13.*
 ```
 
 

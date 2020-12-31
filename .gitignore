@@ -15,6 +15,13 @@
 
 *.ppm
 *.pgm
+*.png
+
+*.json
+*.pickle
+*.mat
+*.tgz
+*.gz
 
 *.vvp
 *.vcd

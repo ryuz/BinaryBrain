@@ -3,12 +3,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>SparseLutCnn -read 0 -mini_batch 16 -epoch 64 -num_threads 4 -binary 0</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>BinarizeTest -read 0 -device 0 -mini_batch 96 -modulation_size 1 -epoch 256 -num_threads 4 -binary 1 -print_device</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DbgCpu|Win32'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>SparseLutCnn -read 0 -mini_batch 16 -epoch 64 -num_threads 4 -binary 0</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>BinarizeTest -read 0 -device 0 -mini_batch 96 -modulation_size 1 -epoch 256 -num_threads 4 -binary 1 -print_device</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugCpu|Win32'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
@@ -17,12 +17,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>SparseLutCnn -read 0 -mini_batch 16 -epoch 64 -num_threads 4 -binary 0</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>BinarizeTest -read 0 -device 0 -mini_batch 96 -modulation_size 1 -epoch 256 -num_threads 4 -binary 1 -print_device</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelCpu|Win32'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>SparseLutCnn -read 0 -mini_batch 16 -epoch 64 -num_threads 4 -binary 0</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>BinarizeTest -read 0 -device 0 -mini_batch 96 -modulation_size 1 -epoch 256 -num_threads 4 -binary 1 -print_device</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseCpu|Win32'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
@@ -31,12 +31,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>SparseLutCnn -read 0 -mini_batch 16 -epoch 64 -num_threads 4 -binary 0</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>BinarizeTest -read 0 -device 0 -mini_batch 96 -modulation_size 1 -epoch 256 -num_threads 4 -binary 1 -print_device</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DbgCpu|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>SparseLutCnn -read 0 -mini_batch 16 -epoch 64 -num_threads 4 -binary 0</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>BinarizeTest -read 0 -device 0 -mini_batch 96 -modulation_size 1 -epoch 256 -num_threads 4 -binary 1 -print_device</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugCpu|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
@@ -45,12 +45,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>DenseCnn -read 1 -mini_batch 64 -modulation_size 6 -epoch 64 -num_threads 4 -binary 1</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>BinarizeTest -read 0 -device 0 -mini_batch 96 -modulation_size 1 -epoch 256 -num_threads 4 -binary 1 -print_device</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelCpu|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>SparseLutCnn -read 0 -mini_batch 16 -epoch 64 -num_threads 4 -binary 0</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>BinarizeTest -read 0 -device 0 -mini_batch 96 -modulation_size 1 -epoch 256 -num_threads 4 -binary 1 -print_device</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseCpu|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>

@@ -24,7 +24,7 @@ template <typename FT = float, typename BT = float>
 class StochasticMaxPooling : public Filter2d<FT, BT>
 {
 protected:
-    bool                m_host_only;
+    bool                m_host_only = false;
 
     index_t             m_filter_h_size;
     index_t             m_filter_w_size;

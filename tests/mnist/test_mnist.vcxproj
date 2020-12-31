@@ -362,6 +362,7 @@
     <ClCompile Include="MnistSegmentationDenseCnn.cpp" />
     <ClCompile Include="MnistSegmentationMobileNet.cpp" />
     <ClCompile Include="MnistSegmentationSparseLutCnn.cpp" />
+    <ClCompile Include="MnistShuffleNet.cpp" />
     <ClCompile Include="MnistSparseLutCnn.cpp" />
     <ClCompile Include="MnistSparseLutCnnDa.cpp" />
     <ClCompile Include="MnistSparseLutCnnDa2.cpp" />
@@ -422,6 +423,7 @@
     <ClInclude Include="..\..\include\bb\ReLU.h" />
     <ClInclude Include="..\..\include\bb\Runner.h" />
     <ClInclude Include="..\..\include\bb\Sequential.h" />
+    <ClInclude Include="..\..\include\bb\Shuffle.h" />
     <ClInclude Include="..\..\include\bb\ShuffleSet.h" />
     <ClInclude Include="..\..\include\bb\Sigmoid.h" />
     <ClInclude Include="..\..\include\bb\SimdSupport.h" />
