@@ -50,7 +50,12 @@ documents/sphinx/binarybrain/
 documents/sphinx/build/
 documents/tmp/
 
+data/
 processed/
+
+back/
+
+Untitled.*
 
 veritak_src_files.txt
 veritak_command.txt
@@ -69,12 +74,16 @@ tests/cifar10/test-cifar10
 tests/diabetes/test-diabetes
 
 
-*.ipynb
-*.v
 
 # generate file
 samples/cpp/mnist/verilog/*.v
 samples/python/**/*.v
+
+MnistLutSimple.v
+MnistLutCnn.v
+
+mnist_train.txt
+mnist_test.txt
 
 samples/cpp/mnist/verilog/mnist_train.txt
 samples/cpp/mnist/verilog/mnist_test.txt

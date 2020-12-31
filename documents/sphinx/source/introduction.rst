@@ -39,11 +39,11 @@ https://developer.nvidia.com/cuda-downloads
 
 Windows
 -----------
-1. install VisualStudio 2017 + CUDA 10.1
-2. git clone --recursive -b ver3_release https://github.com/ryuz/BinaryBrain.git
+1. install VisualStudio 2019 + CUDA 10.1
+2. git clone --recursive -b ver4_release https://github.com/ryuz/BinaryBrain.git
 3. download MNIST from http://yann.lecun.com/exdb/mnist/
-4. decompress MNIST for "\samples\mnist"
-5. open VC++ solution "samples\mnist\sample_mnist.sln"
+4. decompress MNIST for "\samples\cpp\mnist"
+5. open VC++ solution "samples\cpp\mnist\sample_mnist.sln"
 6. build "x64 Release"
 7. run
 
@@ -69,11 +69,20 @@ Linux(Ubuntu 18.04.1)
 
 ::
 
-  % git clone --recursive -b ver3_release  https://github.com/ryuz/BinaryBrain.git
-  % cd BinaryBrain/samples/mnist
+  % git clone --recursive -b ver4_release  https://github.com/ryuz/BinaryBrain.git
+  % cd BinaryBrain/samples/cpp/mnist
   % make
   % make dl_data
   % ./sample-mnist All
+
+
+ここで単に
+
+::
+
+  % ./sample-mnist
+
+と打ち込むと、使い方が表示されます。
 
 
 Google Colaboratory
@@ -84,7 +93,7 @@ nvcc が利用可能な Google Colaboratory でも動作可能なようです。
 
 ::
 
-  !git clone --recursive -b ver3_release  https://github.com/ryuz/BinaryBrain.git
+  !git clone --recursive -b ver4_release  https://github.com/ryuz/BinaryBrain.git
   %cd BinaryBrain/samples/mnist
   !make all
   !make run
@@ -100,13 +109,13 @@ python3を前提としています。
 pipでのインストール
 ------------------------
 
-下記のコマンドでインストール可能です。
+下記のコマンドでインストール可能(になる予定)です。
 
 ::
 
   % pip3 install binarybrain
 
-Windowsなど環境によっては pip3 が存在せず、pip のみ場合は pip3 を pip に置き換えて実行ください。
+Python2 との共存環境の場合など必要に応じて pip3 を実行ください。そうでなければ pip に読み替えてください。BinaryBrainは python3 専用です。
 インストール時にソースファイルがビルドされますので、コンパイラやCUDAなどの環境は事前に整えておく必要があります。
 (Windows版はバイナリwheelが提供されるかもしれません)
 
@@ -114,7 +123,7 @@ Python用のサンプルプログラムは下記などを参照ください。
 
 https://github.com/ryuz/BinaryBrain/tree/master/python/samples
 
-
+（ipynb 形式ですので、Jupyter Notebook、Jupyter Lab、VS code、PyCharm、GoogleColab など、読める環境を準備ください。）
 
 
 setup.py でのインストール
@@ -122,7 +131,11 @@ setup.py でのインストール
 
 事前準備
 ^^^^^^^^^^^^^^
-必要なパッケージを事前にインストールください
+
+Python版は各種データセットに PyTorch を利用しています。
+事前にインストールください。
+
+またその他必要なパッケージを事前にインストールください。pybind11 などが必須です。
 
 ::
 
@@ -155,36 +168,29 @@ Windows環境の場合、nvccのほかにも VisualStudio の 64bit 版がコマ
 githubについて
 ============================
 
-現在 version3 は下記の branch で管理しています
+現在 version4 は下記の branch で管理しています
 
-ver3_develop
+ver4_develop
   開発用ブランチです。ビルド不能な状態になることもあります。
   最新のコードにアクセスしたい場合はここをご覧ください。
 
-ver3_release
+ver4_release
   リリース作成用ブランチです。
 
 master
   リリースブランチで確認したものを反映。
 
-tag は 開発都合で ver3_build0001 のような形式で定期的に打っており、
-リリースのタイミングでバージョン番号のタグを打つようにしております。
-(以前はリリースごとにver3_release1 のような形で打つように
-していました)。
+tag は リリースのタイミングでバージョン番号のタグを打つようにしております。
+また、開発都合で ver4_build0001 のような形式でリリースと無関係にビルドタグを打つ場合があります。
 
-まだ、開発初期で仕様が安定していませんので、再現性の確保などが
-必要な際はタグを活用ください。
+まだ、開発初期で仕様が安定していませんので、再現性の確保などが必要な際はタグを活用ください。
 
 
 基本的な使い方
 =================
 
 基本的には C++ や Python で、ネットワークを記述し、学習を行った後に
-その結果を verilog などで出力して、FPGA化することを目的に作成しています。
-
-もちろんBinaryBrain自体は学習によってネットワークのパラメータも求めるまでが
-主体ですので、その結果を使ってC言語を出力するルーチンをユーザー側で開発することも
-自由です。
+その結果を verilog などに埋め込んで、FPGA化することを目的に作成しています。
 
 C++用のCPU版に関してはヘッダオンリーライブラリとなっているため、include 以下にある
 ヘッダファイルをインクルードするだけでご利用いただけます。
@@ -193,7 +199,7 @@ GPUを使う場合は、ヘッダ読み込みの際に BB_WITH_CUDA マクロを
 
 また、BB_WITH_CEREAL マクロを定義すると、途中経過の保存形式に json が利用可能となります。
 
-Python版を使う場合は、import するだけで利用可能です。
+Python版を使う場合は、一旦ビルドに成功すれば import するだけで利用可能です。
 
-使い方はsampleなどを参考にしてください。
+使い方はsamplesなどを参考にしてください。
 
