@@ -1,8 +1,8 @@
 ﻿[Japanese version](README.md)
 
-# BinaryBrain Version 3<br> --binary neural networks platform for LUT-networks
+# BinaryBrain Version 4<br> --binary neural networks platform for LUT-networks
 
-[Detailed documentation](https://binarybrain.readthedocs.io/en/latest/)
+[Detailed documentation](https://binarybrain.readthedocs.io/ja/ver4_release/)
 
 ## Overview
 BinaryBrain is a platform for deep learning. It can train to LUT(Look-up Table)-Network.
@@ -54,20 +54,20 @@ A unique network model is available.
 
 
 
-## How to use sample program (MNIST)
+## How to use MNIST sample program (C++)
 
 Please, read "main.cpp" for usage.
 
 ### windows
 1. install VisualStudio 2019 + CUDA 10.1
-2. git clone --recursive -b ver3_release https://github.com/ryuz/BinaryBrain.git 
+2. git clone --recursive -b ver4_release https://github.com/ryuz/BinaryBrain.git 
 3. download MNIST from http://yann.lecun.com/exdb/mnist/
-4. decompress MNIST for "\samples\mnist"
-5. open VC++ solution "samples\mnist\sample_mnist.sln"
+4. decompress MNIST for "\samples\cpp\mnist"
+5. open VC++ solution "samples\cpp\mnist\sample_mnist.sln"
 6. build "x64 Release"
 7. run
 
-### Linux(Ubuntu 18.04.1)
+### Linux(Ubuntu 18.04)
 1. install tools 
 ```
 % sudo apt update
@@ -80,7 +80,7 @@ Please, read "main.cpp" for usage.
 2. build and run
 ```
 % git clone --recursive -b ver3_release  https://github.com/ryuz/BinaryBrain.git
-% cd BinaryBrain/samples/mnist
+% cd BinaryBrain/samples/cpp/mnist
 % make
 % make dl_data
 % ./sample-mnist All
@@ -92,17 +92,17 @@ If you don't use GPU, please add "WITH_CUDA=No" option to make.
 Currently you can use nvcc on Google Colaboratory.
 Please select GPU runtime.
 ```
-!git clone --recursive -b ver3_release  https://github.com/ryuz/BinaryBrain.git
-%cd BinaryBrain/samples/mnist
+!git clone --recursive -b ver4_release  https://github.com/ryuz/BinaryBrain.git
+%cd BinaryBrain/samples/cpp/mnist
 !make all
 !make run
 ```
 You can build C++ source code from iPython Notebook.
 
 
-### Python (Beta version)
+## How to use MNIST sample program (Python)
 
-#### Preparation
+### Preparation
 
 Install packeges.
 ```
@@ -112,6 +112,8 @@ Install packeges.
 % pip3 install tqdm
 ```
 
+Please install [PyTorch](https://pytorch.org)
+
 When using Windows, 64-bit version of VisualStudio is required.
 ('x64' option is important)
 
@@ -119,28 +121,42 @@ When using Windows, 64-bit version of VisualStudio is required.
 > "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 ```
 
-#### Install
+### Install
 
 ```
 % # install
 % cd python
-% python3 setup.py install
+% python3 setup.py install --user
 ```
 
-#### Run sample programs (MNIST)
+### Run sample programs (MNIST)
 
 ```
+% cd samples/python/mnist
+
 % # Simple DNN sample
-% python3 MnistSparseLutSimple.py
+% python3 MnistDifferentiableLutSimple.py
 
 % # CNN sample
-% python3 MnistSparseLutCnn.py
+% python3 MnistDifferentiableLutCnn.py
 ```
 
-
-#### Install with pip
+<!--
+### Install with pip
 ```
 % pip3 install binarybrain
+```
+-->
+
+### Google Colaboratory
+
+Install and reboot runtime.
+
+```
+!pip install pybind11
+!git clone -b ver4_release  https://github.com/ryuz/BinaryBrain.git
+%cd BinaryBrain
+!python3 setup.py install --user
 ```
 
 
