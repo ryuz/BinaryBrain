@@ -15,6 +15,7 @@ def make_verilog_lut_layers(module_name: str, net):
         core_layers.append(layer.get_core())
     return core.make_verilog_lut_layers(module_name, core_layers)
 
+
 def dump_verilog_lut_layers(f, module_name: str, net):
     ''' make verilog source of LUT layers
         変換できないモデルは影響ない層とみなして無視するので注意
@@ -43,6 +44,7 @@ def make_verilog_lut_cnv_layers(module_name: str, net):
     for layer in layers:
         core_layers.append(layer.get_core())
     return core.make_verilog_lut_cnv_layers(module_name, core_layers)
+
 
 def dump_verilog_lut_cnv_layers(f, module_name: str, net):
     ''' dump verilog source of Convolutional LUT layers

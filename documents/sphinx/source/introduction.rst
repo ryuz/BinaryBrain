@@ -4,9 +4,9 @@
 
 .. toctree::
 
-   features
-   case_study
-   about_lut_network
-   binary_modulation
-   informations
+   introduction_features
+   introduction_case_study
+   introduction_lut_network
+   introduction_binary_modulation
+
 

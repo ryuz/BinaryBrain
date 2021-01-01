@@ -5,6 +5,7 @@
 
 .. automodule:: binarybrain.system
    :members:
-   :undoc-members:
    :show-inheritance:
+
+.. :undoc-members:
 

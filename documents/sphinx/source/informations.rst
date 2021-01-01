@@ -26,3 +26,46 @@ tag は リリースのタイミングでバージョン番号のタグを打つ
 
 
 
+
+作者情報
+============================
+
+渕上 竜司(Ryuji Fuchikami)
+
+- github : https://github.com/ryuz
+- blog : http://ryuz.txt-nifty.com
+- twitter : https://twitter.com/ryuz88
+- facebook : https://www.facebook.com/ryuji.fuchikami
+- web-site : http://ryuz.my.coocan.jp/
+- e-mail : ryuji.fuchikami@nifty.com
+
+
+参考にさせて頂いた情報
+============================
+
+- | バイナリニューラルネットとハードウェアの関係
+  | https://www.slideshare.net/kentotajiri/ss-77136469
+
+- | BinaryConnect: Training Deep Neural Networks with binary weights during propagations
+  | https://arxiv.org/pdf/1511.00363.pdf
+
+- | Binarized Neural Networks
+  | https://arxiv.org/abs/1602.02505
+
+- | Binarized Neural Networks: Training Deep Neural Networks with Weights and Activations Constrained to +1 or -1
+  | https://arxiv.org/abs/1602.02830
+
+- | XNOR-Net: ImageNet Classification Using Binary Convolutional Neural Networks
+  | https://arxiv.org/abs/1603.05279
+
+- | Xilinx UltraScale Architecture Configurable Logic Block User Guide
+  | https://japan.xilinx.com/support/documentation/user_guides/ug574-ultrascale-clb.pdf
+
+
+
+参考にした書籍
+============================
+
+- | ゼロから作るDeep Learning ―Pythonで学ぶディープラーニングの理論と実装 
+  | https://www.oreilly.co.jp/books/9784873117584/
+

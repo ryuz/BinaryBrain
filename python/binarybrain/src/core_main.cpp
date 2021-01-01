@@ -190,9 +190,12 @@ using UpSampling_bit                    = bb::UpSampling<bb::Bit, float>;
 using Activation                        = bb::Activation;
 using Binarize_fp32                     = bb::Binarize<float, float>;
 using Binarize_bit                      = bb::Binarize<bb::Bit, float>;
-using Sigmoid                           = bb::Sigmoid<float>;
-using ReLU                              = bb::ReLU<float, float>;
-using HardTanh                          = bb::HardTanh<float, float>;
+using Sigmoid_fp32                      = bb::Sigmoid<float, float>;
+using Sigmoid_bit                       = bb::Sigmoid<bb::Bit, float>;
+using ReLU_fp32                         = bb::ReLU<float, float>;
+using ReLU_bit                          = bb::ReLU<bb::Bit, float>;
+using HardTanh_fp32                     = bb::HardTanh<float, float>;
+using HardTanh_bit                      = bb::HardTanh<bb::Bit, float>;
 
 using BatchNormalization                = bb::BatchNormalization<float>;
 using StochasticBatchNormalization      = bb::StochasticBatchNormalization<float>;
@@ -756,7 +759,7 @@ PYBIND11_MODULE(core, m) {
     // activation
     py::class_< Activation, Model, std::shared_ptr<Activation> >(m, "Activation");
 
-    py::class_< Binarize_fp32, Activation, std::shared_ptr<Binarize_fp32> >(m, "Binarize")
+    py::class_< Binarize_fp32, Activation, std::shared_ptr<Binarize_fp32> >(m, "Binarize_fp32")
         .def_static("create", &Binarize_fp32::CreateEx,
                 py::arg("binary_th")    =  0.0f,
                 py::arg("hardtanh_min") = -1.0f,
@@ -768,16 +771,20 @@ PYBIND11_MODULE(core, m) {
                 py::arg("hardtanh_min") = -1.0f,
                 py::arg("hardtanh_max") = +1.0f);
 
-    py::class_< Sigmoid, Binarize_fp32, std::shared_ptr<Sigmoid> >(m, "Sigmoid")
-        .def_static("create",   &Sigmoid::Create);
+    py::class_< Sigmoid_fp32, Binarize_fp32, std::shared_ptr<Sigmoid_fp32> >(m, "Sigmoid_fp32")
+        .def_static("create",   &Sigmoid_fp32::Create);
+    py::class_< Sigmoid_bit, Binarize_bit, std::shared_ptr<Sigmoid_bit> >(m, "Sigmoid_bit")
+        .def_static("create",   &Sigmoid_bit::Create);
 
-    py::class_< ReLU, Binarize_fp32, std::shared_ptr<ReLU> >(m, "ReLU")
-        .def_static("create",   &ReLU::Create);
+    py::class_< ReLU_fp32, Binarize_fp32, std::shared_ptr<ReLU_fp32> >(m, "ReLU_fp32")
+        .def_static("create",   &ReLU_fp32::Create);
+    py::class_< ReLU_bit, Binarize_bit, std::shared_ptr<ReLU_bit> >(m, "ReLU_bit")
+        .def_static("create",   &ReLU_bit::Create);
 
-    py::class_< HardTanh, Binarize_fp32, std::shared_ptr<HardTanh> >(m, "HardTanh")
-        .def_static("create", &HardTanh::CreateEx,
-                py::arg("hardtanh_min") = -1.0,
-                py::arg("hardtanh_max") = +1.0);
+    py::class_< HardTanh_fp32, Binarize_fp32, std::shared_ptr<HardTanh_fp32> >(m, "HardTanh_fp32")
+        .def_static("create", &HardTanh_fp32::CreateEx);
+    py::class_< HardTanh_bit, Binarize_bit, std::shared_ptr<HardTanh_bit> >(m, "HardTanh_bit")
+        .def_static("create", &HardTanh_bit::CreateEx);
 
     
     py::class_< Dropout_fp32, Activation, std::shared_ptr<Dropout_fp32> >(m, "Dropout_fp32")

@@ -14,19 +14,33 @@ pipでのインストール
 
   % pip3 install binarybrain
 
-Python2 との共存環境の場合など必要に応じて pip3 を実行ください。そうでなければ pip に読み替えてください。BinaryBrainは python3 専用です。
+Google Colaboratory からも
+
+::
+
+  !pip install binarybrain
+
+とすることでインストール可能です。
+
+
+BinaryBrainは python3 専用です。Python2 との共存環境の場合など必要に応じて pip3 を実行ください。そうでなければ pip に読み替えてください。
 インストール時にソースファイルがビルドされますので、コンパイラやCUDAなどの環境は事前に整えておく必要があります。
-(Windows版はバイナリwheelが提供されるかもしれません)
+
+(Windows版はバイナリwheelが提供されるかもしれません。作者環境は ver4.0.1 現在、Python 3.7.4(Windows10)、Python 3.6.9(Ubuntu 18) です)
+
 
 Python用のサンプルプログラムは下記などを参照ください。
 
-https://github.com/ryuz/BinaryBrain/tree/master/python/samples
+https://github.com/ryuz/BinaryBrain/tree/ver4_release/samples/python
 
 （ipynb 形式ですので、Jupyter Notebook、Jupyter Lab、VS code、PyCharm、GoogleColab など、読める環境を準備ください。）
 
 
 setup.py でのインストール
 ---------------------------
+
+pip でのインストールがうまくいかない場合や、github上の最新版を試したい場合などは setup.py でのインストールも可能です。
+
 
 事前準備
 ^^^^^^^^^^^^^^
@@ -82,8 +96,8 @@ Windows環境の場合、nvccのほかにも VisualStudio の 64bit 版がコマ
 その他のサンプルは ipynb 形式で samples/python フォルダの中にあるので Jupyter Notebook などで参照ください。
 
 
-Google Colaboratory
-^^^^^^^^^^^^^^^^^^^^^^
+Google Colaboratory での setup.py
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Google Colaboratory で利用する場合は、ランタイムのタイプを「GPU」にして、下記を実行した後にランタイムの再起動を行えば利用できるようになるはずです。
 
