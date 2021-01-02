@@ -67,7 +67,7 @@ public:
         index_t frame_size  = t_buf.GetFrameSize();
         index_t node_size   = t_buf.GetNodeSize();
         auto shape          = t_buf.GetShape();
-        auto ch_size        = shape[shape.size()-1];
+        auto ch_size        = shape[0];
         auto pix_size       = node_size / ch_size;
 
 #ifdef BB_WITH_CUDA
