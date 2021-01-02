@@ -8,6 +8,7 @@ import setuptools
 from setuptools import setup, Extension
 from setuptools import setup, find_packages
 from setuptools.command.build_ext import build_ext
+import distutils
 import subprocess
 import urllib.request
 import tarfile
@@ -115,7 +116,7 @@ class get_pybind_include(object):
 # files
 sources       = ['binarybrain/src/core_main.cpp']
 define_macros = [('BB_ASSERT_EXCEPTION', '1')]
-include_dirs  = [get_pybind_include(), get_pybind_include(user=True), 'binarybrain/include']
+include_dirs  = [distutils.sysconfig.get_python_inc(), get_pybind_include(), get_pybind_include(user=True), 'binarybrain/include']
 lib_dirs      = []
 
 if WITH_CEREAL:
