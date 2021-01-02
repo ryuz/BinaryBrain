@@ -983,12 +983,13 @@ class Sigmoid(Model):
        send_command で "binary true" とすることで、Binarize に切り替わる
        多値で学習を進めて、途中から Binarize に切り替える実験などが可能である
     """
-    def __init__(self, *, input_shape=None, name=None, dtype=bb.DType.FP32):
+    def __init__(self, *, input_shape=None, name=None, bin_dtype=bb.DType.FP32):
 
         try:
             core_creator = {
-                bb.DType.FP32: core.Sigmoid.create,
-            }[dtype]
+                bb.DType.FP32: core.Sigmoid_fp32.create,
+                bb.DType.BIT:  core.Sigmoid_bit.create,
+            }[bin_dtype]
         except KeyError:
             raise TypeError("unsupported")
 
@@ -1004,12 +1005,13 @@ class ReLU(Model):
        send_command で "binary true" とすることで、Binarize に切り替わる
        多値で学習を進めて、途中から Binarize に切り替える実験などが可能である
     """
-    def __init__(self, *, input_shape=None, name=None, dtype=bb.DType.FP32):
+    def __init__(self, *, input_shape=None, name=None, bin_dtype=bb.DType.FP32):
 
         try:
             core_creator = {
-                bb.DType.FP32: core.ReLU.create,
-            }[dtype]
+                bb.DType.FP32: core.ReLU_fp32.create,
+                bb.DType.BIT:  core.ReLU_bit.create,
+            }[bin_dtype]
         except KeyError:
             raise TypeError("unsupported")
 
@@ -1025,12 +1027,13 @@ class HardTanh(Model):
        send_command で "binary true" とすることで、Binarize に切り替わる
        多値で学習を進めて、途中から Binarize に切り替える実験などが可能である
     """
-    def __init__(self, *, input_shape=None, name=None, dtype=bb.DType.FP32):
+    def __init__(self, *, input_shape=None, name=None, bin_dtype=bb.DType.FP32):
 
         try:
             core_creator = {
-                bb.DType.FP32: core.HardTanh.create,
-            }[dtype]
+                bb.DType.FP32: core.HardTanh_fp32.create,
+                bb.DType.BIT:  core.HardTanh_bit.create,
+            }[bin_dtype]
         except KeyError:
             raise TypeError("unsupported")
 

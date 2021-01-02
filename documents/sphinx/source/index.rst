@@ -19,6 +19,7 @@ Welcome to BinaryBrain's documentation!
    quick_start_verilog
    cpp_api
    python_api
+   informations
 
 
 Indices and tables

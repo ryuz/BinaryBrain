@@ -1,4 +1,9 @@
 @echo off
+
+echo 何かキーを押すと git pull を開始します
+pause
+git pull
+
 echo 何かキーを押すとアップロード準備を開始します
 pause
 
