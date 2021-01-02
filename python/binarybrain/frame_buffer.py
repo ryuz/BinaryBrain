@@ -182,92 +182,92 @@ class FrameBuffer():
     def __add__(self, x):
         new_buf = FrameBuffer()
         if type(x) == FrameBuffer:
-            new_buf.buf = self.buf + x.buf
+            new_buf.core_buf = self.core_buf + x.core_buf
         else:
-            new_buf.buf = self.buf + float(x)
+            new_buf.core_buf = self.core_buf + float(x)
         return new_buf
 
     def __sub__(self, x):
         new_buf = FrameBuffer()
         if type(x) == FrameBuffer:
-            new_buf.buf = self.buf - x.buf
+            new_buf.core_buf = self.core_buf - x.core_buf
         else:
-            new_buf.buf = self.buf - float(x)
+            new_buf.core_buf = self.core_buf - float(x)
         return new_buf
 
     def __mul__(self, x):
         new_buf = FrameBuffer()
         if type(x) == FrameBuffer:
-            new_buf.buf = self.buf * x.buf
+            new_buf.core_buf = self.core_buf * x.core_buf
         else:
-            new_buf.buf = self.buf * float(x)
+            new_buf.core_buf = self.core_buf * float(x)
         return new_buf
 
     def __truediv__(self, x):
         new_buf = FrameBuffer()
         if type(x) == FrameBuffer:
-            new_buf.buf = self.buf / x.buf
+            new_buf.core_buf = self.core_buf / x.core_buf
         else:
-            new_buf.buf = self.buf / float(x)
+            new_buf.core_buf = self.core_buf / float(x)
         return new_buf
 
     def __radd__(self, x):
         new_buf = FrameBuffer()
         if type(x) == FrameBuffer:
-            new_buf.buf = x.buf + self.buf 
+            new_buf.core_buf = x.core_buf + self.core_buf 
         else:
-            new_buf.buf = float(x) + self.buf
+            new_buf.core_buf = float(x) + self.core_buf
         return new_buf
 
     def __rsub__(self, x):
         new_buf = FrameBuffer()
         if type(x) == FrameBuffer:
-            new_buf.buf = x.buf - self.buf 
+            new_buf.core_buf = x.core_buf - self.core_buf 
         else:
-            new_buf.buf = float(x) - self.buf
+            new_buf.core_buf = float(x) - self.core_buf
         return new_buf
 
     def __rmul__(self, x):
         new_buf = FrameBuffer()
         if type(x) == FrameBuffer:
-            new_buf.buf = x.buf * self.buf 
+            new_buf.core_buf = x.core_buf * self.core_buf 
         else:
-            new_buf.buf = float(x) * self.buf
+            new_buf.core_buf = float(x) * self.core_buf
         return new_buf
 
     def __rtruediv__(self, x):
         new_buf = FrameBuffer()
         if type(x) == FrameBuffer:
-            new_buf.buf = x.buf / self.buf 
+            new_buf.core_buf = x.core_buf / self.core_buf 
         else:
-            new_buf.buf = float(x) / self.buf
+            new_buf.core_buf = float(x) / self.core_buf
         return new_buf
     
     def __iadd__(self, x):
         if type(x) == FrameBuffer:
-            self.buf += x.buf 
+            self.core_buf += x.core_buf 
         else:
-            self.buf += float(x)
+            self.core_buf += float(x)
         return self
     
     def __isub__(self, x):
         if type(x) == FrameBuffer:
-            self.buf -= x.buf 
+            self.core_buf -= x.core_buf 
         else:
-            self.buf -= float(x)
+            self.core_buf -= float(x)
         return self
     
     def __imul__(self, x):
         if type(x) == FrameBuffer:
-            self.buf *= x.buf 
+            self.core_buf *= x.core_buf 
         else:
-            self.buf *= float(x)
+            self.core_buf *= float(x)
         return self
     
     def __itruediv__(self, x):
         if type(x) == FrameBuffer:
-            self.buf /= x.buf 
+            self.core_buf /= x.core_buf 
         else:
-            self.buf /= float(x)
+            self.core_buf /= float(x)
         return self
 
