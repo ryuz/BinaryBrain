@@ -52,6 +52,9 @@ public:
 
     FrameBuffer CalculateLoss(FrameBuffer y, FrameBuffer t, index_t batch_size)
     {
+        BB_ASSERT(y.GetFrameSize() == t.GetFrameSize());
+        BB_ASSERT(y.GetNodeSize()  == t.GetNodeSize());
+
         index_t frame_size  = y.GetFrameSize();
         index_t node_size   = y.GetNodeSize();
 
