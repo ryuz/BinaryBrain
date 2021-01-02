@@ -1,5 +1,7 @@
 #!/bin/bash
 
+git pull
+
 ./clean.sh
 ./copy_src.sh
 
