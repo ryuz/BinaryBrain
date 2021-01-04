@@ -161,7 +161,7 @@ class Model():
         Returns:
             output_shape (List[int]): 出力シェイプ
         """
-        self.set_input_shape = input_shape
+        self.input_shape = input_shape
 
         core_model = self.get_core()
         if core_model is not None:
@@ -327,10 +327,9 @@ class Sequential(Model):
         model_list (List[Model]): モデルのリスト
     """
     
-    def __init__(self, model_list=[], *, name=None):
-        super(Sequential, self).__init__()
+    def __init__(self, model_list=[], *, input_shape=None, name=None):
         self.model_list  = model_list
-        self.name        = name
+        super(Sequential, self).__init__(input_shape=input_shape, name=name)
 
     def get_core(self):
         # C++のコアの同機能に渡してしまうと Python からの扱いが不便になるので普段はListで管理して必要な時のみ変換する       
