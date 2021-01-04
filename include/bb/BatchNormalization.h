@@ -193,6 +193,12 @@ public:
         m_beta->Load(is);
         m_running_mean.Load(is);
         m_running_var.Load(is);
+
+        auto node_size = CalcShapeSize(_super::m_shape);
+        m_dgamma->Resize({node_size}, DataType<T>::type); *m_dgamma = (T)0.0;
+        m_dbeta->Resize ({node_size}, DataType<T>::type); *m_dbeta  = (T)0.0;
+        m_mean.Resize(node_size);
+        m_rstd.Resize(node_size);
     }
 
 
