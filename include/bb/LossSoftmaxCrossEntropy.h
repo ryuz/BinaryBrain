@@ -127,6 +127,7 @@ public:
                     }
                     if (!Real_IsValid(c)) {
                         std::cout << "loss c : nan" << std::endl;
+                        c = 0;
                     }
 
                     // sum(exp(y - c))
@@ -137,6 +138,8 @@ public:
                         y_sum += std::exp(y_ptr.Get(frame, node) - c);
                         t_sum += t_ptr.Get(frame, node);
                     }
+                    
+                    if (y_sum == 0) { y_sum = (T)1.0e-7; }
 
                     for (index_t ch = 0; ch < ch_size; ++ch) {
                         auto node = ch * pix_size + pix;
@@ -150,6 +153,7 @@ public:
                         T dy = (softmax - t) / (T)batch_size;
                         if (!Real_IsValid(dy)) {
                             std::cout << "loss dy : nan" << std::endl;
+                            dy = 0;
                         }
 
                         dy_ptr.Set(frame, node, dy * t_sum);

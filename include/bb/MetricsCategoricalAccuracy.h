@@ -117,9 +117,9 @@ public:
                     }
 
                     if ( max_t > 0) {
-                        acc_ptr[0] += (int)sum_t;
+                        acc_ptr[0] += 1; // (int)sum_t;
                     }
-                    m_category_count += sum_t;
+                    m_category_count += 1; // sum_t;
                 }
             }
         }
