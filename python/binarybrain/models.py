@@ -21,8 +21,10 @@ class Model():
     """
     
     def __init__(self, *, core_model=None, input_shape=None, name=None):
+        self.core_model = core_model
+        self.input_shape = input_shape
+        self.name = name
         if core_model is not None:
-            self.core_model = core_model
             if name is not None:
                 self.core_model.set_name(name)
             if input_shape is not None:
@@ -40,7 +42,10 @@ class Model():
         Args:
             name (str): 新しいインスタンス名
         """
-        return self.get_core().set_name(name)
+        self.name = name
+        core_model = self.get_core()
+        if core_model is not None:
+            core_model.set_name(name)
 
     def get_name(self):
         """インスタンス名の取得
@@ -50,7 +55,14 @@ class Model():
         Returns:
             name (str)
         """
-        return self.get_core().get_name()
+        core_model = self.get_core()
+        if core_model is not None:
+            return core_model.get_name()
+        else:
+            if self.name:
+                return self.name
+            else:
+                return self.get_class_name()
 
     def is_named(self):
         """インスタンス名の設定確認
@@ -60,7 +72,11 @@ class Model():
         Returns:
             named (bool)
         """
-        return self.get_core().is_named()
+        core_model = self.get_core()
+        if core_model is not None:
+            return core_model.is_named()
+        else:
+            return self.name is not None
     
     def get_class_name(self):
         """クラス名の取得
@@ -70,9 +86,13 @@ class Model():
         Returns:
             class name (str)
         """
-        return self.get_core().get_class_name()
+        core_model = self.get_core()
+        if core_model is not None:
+            return core_model.get_class_name()
+        else:
+            return self.__class__.__name__
     
-    def get_info(self, depth=0, *, columns=70, nest=0):
+    def get_info(self, depth :int=0, *, columns: int=70, nest: int=0) -> str:
         """モデル情報取得
 
            モデルの情報表示用の文字列を取得する
@@ -81,8 +101,31 @@ class Model():
         Returns:
             info (str)
         """
-        return self.get_core().get_info(depth, columns, nest)
-    
+        core_model = self.get_core()
+        if core_model is not None:
+            return core_model.get_info(depth, columns, nest)
+
+        # セパレータとインデント文字列生成
+        indent    = ' ' * (nest*2)
+        separetor = '-' * (columns - len(indent))
+        name      = self.name
+        if name is None:
+            name = ''
+
+        # モデルタイトル
+        text  = indent + separetor + '\n'
+        text += indent + '[' + self.get_class_name() + '] ' + m_name + '\n'
+
+        # 内容
+        text += indent + ' input  shape : ' + str(self.get_input_shape())
+        text += indent + ' output shape : ' + str(self.get_output_shape()) + '\n'
+
+        # 最上段なら末尾セパレータ追加
+        if nest == 0:
+            text +=  indent + separetor + '\n'
+        
+        return text
+
     def send_command(self, command, send_to='all'):
         """コマンドの送信
 
@@ -97,7 +140,9 @@ class Model():
             command (str): コマンド文字列
             send_to (str): 送信先
         """
-        self.get_core().send_command(command, send_to)
+        core_model = self.get_core()
+        if core_model is not None:
+            self.get_core().send_command(command, send_to)
     
     def set_input_shape(self, input_shape: [int]):
         """入力シェイプ設定
@@ -116,7 +161,13 @@ class Model():
         Returns:
             output_shape (List[int]): 出力シェイプ
         """
-        return self.get_core().set_input_shape(input_shape)
+        self.set_input_shape = input_shape
+
+        core_model = self.get_core()
+        if core_model is not None:
+            return self.get_core().set_input_shape(input_shape)
+
+        return self.input_shape
 
     def get_input_shape(self) -> [int]:
         """入力シェイプ取得
@@ -124,7 +175,12 @@ class Model():
         Returns:
             input_shape (List[int]): 入力シェイプ
         """
-        return self.get_core().get_input_shape()
+
+        core_model = self.get_core()
+        if core_model is not None:
+            return core_model.get_input_shape()
+        
+        return self.input_shape
 
     def get_output_shape(self) -> [int]:
         """出力シェイプ取得
@@ -132,13 +188,27 @@ class Model():
         Returns:
             output_shape (List[int]): 出力シェイプ
         """
-        return self.get_core().get_output_shape()
+        core_model = self.get_core()
+        if core_model is not None:
+            return core_model.get_output_shape()
+        
+        return self.input_shape
 
     def get_input_node_size(self) -> int:
-        return self.get_core().get_input_node_size()
+        core_model = self.get_core()
+        if core_model is not None:
+            return core_model.get_input_node_size()
+        shape = self.get_input_shape()
+        size = 1
+        for s in shape:
+            size *= s
+        return size
 
     def get_output_node_size(self) -> int:
-        return self.get_core().get_output_node_size()
+        core_model = self.get_core()
+        if core_model is not None:
+            return core_model.get_output_node_size()
+        return self.get_input_node_size()
 
     def get_parameters(self):
         """パラメータ変数取得
@@ -153,8 +223,11 @@ class Model():
         Returns:
             parameters (Variables): パラメータ変数
         """
-        return bb.Variables.from_core(self.get_core().get_parameters())
-    
+        core_model = self.get_core()
+        if core_model is not None:
+            return bb.Variables.from_core(core_model.get_parameters())
+        return bb.Variables()
+
     def get_gradients(self):
         """勾配変数取得
 
@@ -164,7 +237,10 @@ class Model():
         Returns:
             gradients (Variables): 勾配変数
         """
-        return bb.Variables.from_core(self.get_core().get_gradients())
+        core_model = self.get_core()
+        if core_model is not None:
+            return bb.Variables.from_core(core_model.get_gradients())
+        return bb.Variables()
     
     def forward(self, x_buf, train=True):
         """Forward
@@ -179,8 +255,11 @@ class Model():
         Returns:
             y_buf (FrameBuffer): 出力データ
         """
-        return bb.FrameBuffer.from_core(self.get_core().forward(x_buf.get_core(), train))
-    
+        core_model = self.get_core()
+        if core_model is not None:
+            return bb.FrameBuffer.from_core(core_model.forward(x_buf.get_core(), train))
+        return x_buf
+
     def backward(self, dy_buf):
         """Backward
 
@@ -196,8 +275,11 @@ class Model():
         Returns:
             dx_buf (FrameBuffer): 出力データ
         """
-        return bb.FrameBuffer.from_core(self.get_core().backward(dy_buf.get_core()))
-    
+        core_model = self.get_core()
+        if core_model is not None:
+            return bb.FrameBuffer.from_core(core_model.backward(dy_buf.get_core()))
+        return dy_buf
+
     def dump_bytes(self):
         """バイトデータにシリアライズ
 
@@ -206,8 +288,11 @@ class Model():
         Returns:
             data (bytes): Serialize data
         """
-        return self.get_core().dump()
-    
+        core_model = self.get_core()
+        if core_model is not None:
+            return core_model.dump()
+        return b''
+
     def load_bytes(self, data):
         """バイトデータをロード
 
@@ -216,7 +301,9 @@ class Model():
         Args:
             data (bytes): Serialize data
         """
-        self.get_core().load(data)
+        core_model = self.get_core()
+        if core_model is not None:
+            core_model.load(data)
     
     def dump(self, f):
         pickle.dump(f, self.dump_bytes())
@@ -290,6 +377,17 @@ class Sequential(Model):
         """
         self.model_list.append(model)
     
+    def get_info(self, depth=0, *, columns=70, nest=0):
+        # これ以上ネストしないなら自クラス概要
+        if depth > 0 and (nest+1) >= depth:
+            return super(Sequential, self).get_info(depth=depth, columns=columns, nest=nest)
+        else:
+            # 子レイヤー
+            info = ''
+            for model in self.model_list:
+                info += model.get_info(depth=depth, columns=columns, nest=nest+1)
+            return info
+
     def send_command(self, command, send_to="all"):
         for model in self.model_list:
             model.send_command(command=command, send_to=send_to)
@@ -1124,7 +1222,7 @@ class Shuffle(Model):
 # ------- その他 --------
 
 
-def get_model_list(net, flatten:bool =False):
+def get_model_list(net, flatten:bool =False, force_flatten:bool=False):
     ''' Get model list from networks
         ネットから構成するモデルのリストを取り出す
     
@@ -1143,7 +1241,7 @@ def get_model_list(net, flatten:bool =False):
     
     def flatten_list(in_list, out_list):
         for model in in_list:
-            if hasattr(model, 'get_model_list') and not hasattr(model, 'deny_flatten'):
+            if hasattr(model, 'get_model_list') and (force_flatten or not hasattr(model, 'deny_flatten')):
                 flatten_list(model.get_model_list(), out_list)
             else:
                 out_list.append(model)
