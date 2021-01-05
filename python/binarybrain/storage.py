@@ -77,15 +77,15 @@ def remove_old(path: str, keep: int=-1):
     targets = []
     for d in dirs:
         if is_date_string(d):
-            targets.append(d)
+            no_delete_file = os.path.join(path, d, '__no_delete__')
+            if not os.path.exists(no_delete_file):
+                targets.append(d)
     
     targets.sort(reverse=True)
     del targets[:keep]
     
     for t in targets:
-        no_delete_file = os.path.join(path, t, '__no_delete__')
-        if not os.path.exists(no_delete_file):
-            shutil.rmtree(os.path.join(path, t))
+        shutil.rmtree(os.path.join(path, t))
 
 
 def save_models(path: str, net, *, write_layers=True, force_flatten=False):
