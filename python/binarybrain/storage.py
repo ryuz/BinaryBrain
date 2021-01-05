@@ -83,7 +83,9 @@ def remove_old(path: str, keep: int=-1):
     del targets[:keep]
     
     for t in targets:
-        shutil.rmtree(os.path.join(path, t))
+        no_delete_file = os.path.join(path, t, '__no_delete__')
+        if not os.path.exists(no_delete_file):
+            shutil.rmtree(os.path.join(path, t))
 
 
 def save_models(path: str, net, *, write_layers=True, force_flatten=False):
@@ -101,7 +103,8 @@ def save_models(path: str, net, *, write_layers=True, force_flatten=False):
     
     # save
     net_name = net.get_name()
-    with open(os.path.join(path, net_name + '.bin'), 'wb') as f:
+    net_file_name = os.path.join(path, net_name + '.bin')
+    with open(net_file_name, 'wb') as f:
         f.write(net.dump_bytes())
 
     # save flatten models
@@ -138,11 +141,12 @@ def load_models(path: str, net, *, read_layers: bool=True, force_flatten=False):
 
     # load
     net_name = net.get_name()
-    if not read_layers:
-        with open(os.path.join(path, net_name + '.bin'), 'rb') as f:
+    net_file_name = os.path.join(path, net_name + '.bin')
+    if not read_layers and os.path.exists(net_file_name):
+        with open(net_file_name, 'rb') as f:
             dat = f.read()
             net.load_bytes(dat)
-            return
+        return
 
     # load models
     models    = bb.get_model_list(net, flatten=True, force_flatten=force_flatten)
@@ -160,13 +164,12 @@ def load_models(path: str, net, *, read_layers: bool=True, force_flatten=False):
         fname_list.append(fname)
         
         file_path = os.path.join(path, fname)
-        
-        try:
+        if os.path.exists(file_path):
             with open(file_path, 'rb') as f:
                 dat = f.read()
                 model.load_bytes(dat)
-        except:
-            print('read error : %s' % file_path)
+        else:
+            print('file not found : %s' % file_path)
             
 def save_networks(path: str, net, *, keep_olds: int=3, write_layers: bool=True, force_flatten: bool=False):
     ''' save networks
