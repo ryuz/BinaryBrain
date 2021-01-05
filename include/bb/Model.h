@@ -333,11 +333,11 @@ public:
         return data;
     }
 
-    bool LoadBytes(pybind11::bytes data)
+    std::size_t LoadBytes(pybind11::bytes data)
     {
         std::istringstream is((std::string)data, std::istringstream::binary);
         Load(is);
-        return true;
+        return (std::size_t)is.tellg();
     }
 #endif
 
