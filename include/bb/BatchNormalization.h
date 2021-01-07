@@ -196,10 +196,11 @@ protected:
         // メンバ
         SaveIndices(os, _super::m_shape);
         bb::SaveValue(os, m_momentum);
-        m_gamma->Save(os);
-        m_beta->Save(os);
-        m_running_mean.Save(os);
-        m_running_var.Save(os);
+
+        m_gamma->DumpObject(os);
+        m_beta->DumpObject(os);
+        m_running_mean.DumpObject(os);
+        m_running_var.DumpObject(os);
     }
 
     void LoadObjectData(std::istream &is)
@@ -211,13 +212,16 @@ protected:
         std::int64_t ver;
         bb::LoadValue(is, ver);
 
+        BB_ASSERT(ver == 1);
+
         // メンバ
         this->m_shape = LoadIndices(is);
         bb::LoadValue(is, m_momentum);
-        m_gamma->Load(is);
-        m_beta->Load(is);
-        m_running_mean.Load(is);
-        m_running_var.Load(is);
+
+        m_gamma->LoadObject(is);
+        m_beta->LoadObject(is);
+        m_running_mean.LoadObject(is);
+        m_running_var.LoadObject(is);
         
         // 再構築
         auto node_size = CalcShapeSize(_super::m_shape);

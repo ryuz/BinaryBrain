@@ -31,7 +31,7 @@ public:
     Object(){}
     virtual ~Object() {}
 
-    virtual std::string GetObjectName(void) = 0;
+    virtual std::string GetObjectName(void) const = 0;
 
     void DumpObject(std::ostream& os)
     {
@@ -41,7 +41,8 @@ public:
 
     void LoadObject(std::istream& is)
     {
-        ReadHeader(is);
+        auto object_name = ReadHeader(is);
+        BB_ASSERT(object_name == GetObjectName());
         LoadObjectData(is);
     }
 
@@ -65,8 +66,8 @@ public:
 
 
 protected:
-    virtual void DumpObjectData(std::ostream &os) = 0;
-    virtual void LoadObjectData(std::istream &is) = 0;
+    virtual void DumpObjectData(std::ostream &os) {} // = 0;
+    virtual void LoadObjectData(std::istream &is) {} // = 0;
 
 
 private:
@@ -77,7 +78,7 @@ private:
         
         // バージョン
         std::int64_t ver = 1;
-        os.write((char*)ver, sizeof(ver));
+        os.write((char*)&ver, sizeof(ver));
 
         // オブジェクト名
         auto name = GetObjectName();

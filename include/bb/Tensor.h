@@ -18,6 +18,7 @@
 #include <memory>
 #include <malloc.h>
 
+#include "bb/Object.h"
 #include "bb/Manager.h"
 #include "bb/DataType.h"
 #include "bb/Utility.h"
@@ -300,8 +301,14 @@ template<typename T>    Tensor_<T> operator/(T src0, Tensor_<T> const &src1);
 class Tensor;
 
 template<typename T>
-class Tensor_
+class Tensor_ : public Object
 {
+    using _super = Object;
+
+public:
+    static inline std::string ObjectName(void){ return "Tensor_" + DataType<T>::Name(); }
+    std::string GetObjectName(void) const { return ObjectName(); }
+
 public:
     using ConstPtr = TensorConstPtr_<T, Tensor_<T> const, Memory::ConstPtr>;
     using Ptr      = TensorPtr_<T, Tensor_<T>, Memory::Ptr>;
@@ -570,7 +577,50 @@ public:
     // -------------------------------------
     //  シリアライズ
     // -------------------------------------
+    
+    void DumpObjectData(std::ostream &os)
+    {
+        // 親クラス
+        _super::DumpObjectData(os);
 
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // メンバ
+        SaveValue(os, m_offset);
+        SaveValue(os, m_size);
+        SaveIndices(os, m_shape);
+        SaveIndices(os, m_stride);
+        auto ptr = m_mem->LockConst();
+        os.write((char const *)ptr.GetAddr(), m_size * DataType<T>::size);
+    }
+
+    void LoadObjectData(std::istream &is)
+    {
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // メンバ
+        LoadValue(is, m_offset);
+        LoadValue(is, m_size);
+        m_shape  = LoadIndices(is);
+        Resize(m_shape);
+        m_stride = LoadIndices(is);
+        auto ptr = m_mem->Lock(true);
+        is.read((char *)ptr.GetAddr(), m_size * DataType<T>::size);
+    }
+    
+
+    // -------------------------------------
+    //  シリアライズ(旧)
+    // -------------------------------------
     
     void Save(std::ostream& os) const
     {
@@ -1431,8 +1481,10 @@ inline Tensor_<float> Clamp(Tensor_<float> const &src, float a, float b)
 // -------------------------------------
 
 // Tensor
-class Tensor
+class Tensor : public Object
 {
+    using _super = Object;
+
     friend TensorConstPtr_<float,         Tensor const, Memory::ConstPtr>;
     friend TensorConstPtr_<double,        Tensor const, Memory::ConstPtr>;
     friend TensorConstPtr_<std::int8_t,   Tensor const, Memory::ConstPtr>;
@@ -1454,6 +1506,10 @@ class Tensor
     friend TensorPtr_<std::uint16_t, Tensor, Memory::Ptr>;
     friend TensorPtr_<std::uint32_t, Tensor, Memory::Ptr>;
     friend TensorPtr_<std::uint64_t, Tensor, Memory::Ptr>;
+
+public:
+    static inline std::string ObjectName(void){ return "Tensor"; }
+    std::string GetObjectName(void) const { return ObjectName(); }
 
 protected:
     int                         m_type   = 0;
@@ -1759,8 +1815,70 @@ public:
     }
 
 
+       // -------------------------------------
+    //  シリアライズ
     // -------------------------------------
-    //  Serialize
+    
+    void DumpObjectData(std::ostream &os)
+    {
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // メンバ
+        bb::SaveValue(os, m_type);
+
+        switch (m_type) {
+        case BB_TYPE_FP32:   Tensor_<float        >(*this).DumpObjectData(os);  break;
+        case BB_TYPE_FP64:   Tensor_<double       >(*this).DumpObjectData(os);  break;
+        case BB_TYPE_INT8:   Tensor_<std::int8_t  >(*this).DumpObjectData(os);  break;
+        case BB_TYPE_INT16:  Tensor_<std::int16_t >(*this).DumpObjectData(os);  break;
+        case BB_TYPE_INT32:  Tensor_<std::int32_t >(*this).DumpObjectData(os);  break;
+        case BB_TYPE_INT64:  Tensor_<std::int64_t >(*this).DumpObjectData(os);  break;
+        case BB_TYPE_UINT8:  Tensor_<std::uint8_t >(*this).DumpObjectData(os);  break;
+        case BB_TYPE_UINT16: Tensor_<std::uint16_t>(*this).DumpObjectData(os);  break;
+        case BB_TYPE_UINT32: Tensor_<std::uint32_t>(*this).DumpObjectData(os);  break;
+        case BB_TYPE_UINT64: Tensor_<std::uint64_t>(*this).DumpObjectData(os);  break;
+        default:    break;  // 空も許す
+        }
+    }
+
+    void LoadObjectData(std::istream &is)
+    {
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // メンバ
+        LoadValue(is, m_type);
+
+        switch (m_type) {
+        case BB_TYPE_FP32:   { Tensor_<float        > t; t.LoadObjectData(is); *this = t; break; }
+        case BB_TYPE_FP64:   { Tensor_<double       > t; t.LoadObjectData(is); *this = t; break; }
+        case BB_TYPE_INT8:   { Tensor_<std::int8_t  > t; t.LoadObjectData(is); *this = t; break; }
+        case BB_TYPE_INT16:  { Tensor_<std::int16_t > t; t.LoadObjectData(is); *this = t; break; }
+        case BB_TYPE_INT32:  { Tensor_<std::int32_t > t; t.LoadObjectData(is); *this = t; break; }
+        case BB_TYPE_INT64:  { Tensor_<std::int64_t > t; t.LoadObjectData(is); *this = t; break; }
+        case BB_TYPE_UINT8:  { Tensor_<std::uint8_t > t; t.LoadObjectData(is); *this = t; break; }
+        case BB_TYPE_UINT16: { Tensor_<std::uint16_t> t; t.LoadObjectData(is); *this = t; break; }
+        case BB_TYPE_UINT32: { Tensor_<std::uint32_t> t; t.LoadObjectData(is); *this = t; break; }
+        case BB_TYPE_UINT64: { Tensor_<std::uint64_t> t; t.LoadObjectData(is); *this = t; break; }
+        default:    break;
+        }
+    }
+    
+
+
+    // -------------------------------------
+    //  Serialize(旧)
     // -------------------------------------
 
     void Save(std::ostream& os) const
