@@ -24,6 +24,12 @@
 
 void MnistDenseCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
+    // test
+    auto bn = bb::BatchNormalization<>::Create();
+    auto obj_name = bn->GetObjectName();
+    std::cout << obj_name << std::endl;
+
+
     std::string net_name = "MnistDenseCnn";
 
     // load MNIST data

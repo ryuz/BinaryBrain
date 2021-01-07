@@ -24,6 +24,13 @@ class BinaryModulation : public Model
 {
     using _super = Model;
 
+public:
+    static inline std::string ClassName(void) { return "BinaryModulation"; }
+    static inline std::string ObjectName(void){ return ClassName() + "_" + DataType<BinType>::Name() + "_" + DataType<RealType>::Name(); }
+
+    std::string GetClassName(void)  const { return ClassName(); }
+    std::string GetObjectName(void) const { return ObjectName(); }
+
 protected:
     bool                                                m_binary_mode = true;
     bool                                                m_training;
@@ -154,9 +161,6 @@ public:
         create.inference_input_range_hi  = inference_input_range_hi;
         return Create(create);
     }
-
-
-    std::string GetClassName(void) const { return "BinaryModulation"; }
 
     
     std::shared_ptr< Model > GetLayer(void)

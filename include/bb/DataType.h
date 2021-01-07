@@ -417,13 +417,14 @@ public:
         type = 0,
         bit_size = 0
     };
+    static inline std::string Name(void) { return "Unknown"; }
 };
 
 /*
 template<> class DataType<bool>
 {
 public:
-    typedef float value_type;
+    typedef bool value_type;
     enum {
         type = BB_TYPE_BOOL,
         bit_size = 1,
@@ -434,111 +435,121 @@ public:
 template<> class DataType<Bit>
 {
 public:
-    typedef float value_type;
+    typedef bool value_type;
     enum {
         type = BB_TYPE_BIT,
         size = 1,
         bit_size = 1,
     };
+    static inline std::string Name(void) { return "bit"; }
 };
 
 template<> class DataType<Binary>
 {
 public:
-    typedef float value_type;
+    typedef bool value_type;
     enum {
         type = BB_TYPE_BINARY,
         size = 1,
         bit_size = 8,
     };
+    static inline std::string Name(void) { return "bin"; }
 };
 
 template<> class DataType<std::int8_t>
 {
 public:
-    typedef float value_type;
+    typedef std::int8_t value_type;
     enum {
         type = BB_TYPE_INT8,
         size = 1,
         bit_size = 8,
     };
+    static inline std::string Name(void) { return "int8"; }
 };
 
 template<> class DataType<std::int16_t>
 {
 public:
-    typedef float value_type;
+    typedef std::int16_t value_type;
     enum {
         type = BB_TYPE_INT16,
         size = 2,
         bit_size = 16,
     };
+    static inline std::string Name(void) { return "int16"; }
 };
 
 template<> class DataType<std::int32_t>
 {
 public:
-    typedef float value_type;
+    typedef std::int32_t value_type;
     enum {
         type = BB_TYPE_INT32,
         size = 4,
         bit_size = 32,
     };
+    static inline std::string Name(void) { return "int32"; }
 };
 
 template<> class DataType<std::int64_t>
 {
 public:
-    typedef float value_type;
+    typedef std::int64_t value_type;
     enum {
         type = BB_TYPE_INT64,
         size = 8,
         bit_size = 64,
     };
+    static inline std::string Name(void) { return "int64"; }
 };
 
 template<> class DataType<std::uint8_t>
 {
 public:
-    typedef float value_type;
+    typedef std::uint8_t value_type;
     enum {
         type = BB_TYPE_UINT8,
         size = 1,
         bit_size = 8,
     };
+    static inline std::string Name(void) { return "uint8"; }
 };
 
 template<> class DataType<std::uint16_t>
 {
 public:
-    typedef float value_type;
+    typedef std::uint16_t value_type;
     enum {
         type = BB_TYPE_UINT16,
         size = 2,
         bit_size = 16,
     };
+    static inline std::string Name(void) { return "uint16"; }
 };
 
 template<> class DataType<std::uint32_t>
 {
 public:
-    typedef float value_type;
+    typedef std::uint32_t value_type;
     enum {
         type = BB_TYPE_UINT32,
         size = 4,
         bit_size = 32,
     };
+    static inline std::string Name(void) { return "uint32"; }
 };
 
 template<> class DataType<std::uint64_t>
 {
 public:
-    typedef float value_type;
+    typedef std::uint64_t value_type;
     enum {
         type = BB_TYPE_UINT64,
         size = 8,
         bit_size = 64,
     };
+    static inline std::string Name(void) { return "uint64"; }
 };
 
 template<> class DataType<float>
@@ -550,17 +561,19 @@ public:
         size = 4,
         bit_size = 32,
     };
+    static inline std::string Name(void) { return "fp32"; }
 };
 
 template<> class DataType<double>
 {
 public:
-    typedef float value_type;
+    typedef double value_type;
     enum {
         type = BB_TYPE_FP64,
         size = 8,
-        bit_size = 32,
+        bit_size = 64,
     };
+    static inline std::string Name(void) { return "fp64"; }
 };
 
 

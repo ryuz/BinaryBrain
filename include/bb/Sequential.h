@@ -14,6 +14,8 @@
 
 #include "bb/Model.h"
 
+#include "bb/ObjectReconstructor.h"
+
 
 namespace bb {
 
@@ -21,6 +23,8 @@ namespace bb {
 //! layer class
 class Sequential : public Model
 {
+    using _super = Model;
+
 protected:
     std::vector< std::shared_ptr<Model> > m_layers;
 
@@ -215,6 +219,46 @@ protected:
             for (auto layer : m_layers) {
                 layer->PrintInfo(depth, os, columns, nest+1);
             }
+        }
+    }
+
+
+protected:
+    void DumpObjectData(std::ostream &os)
+    {
+        // 親クラス
+        _super::DumpObjectData(os);    
+        
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // メンバ
+        std::int64_t layer_size = (std::int64_t)m_layers.size();
+        bb::SaveValue(os, layer_size);
+        for (auto& layer : m_layers) {
+            layer->DumpObject(os);
+        }
+    }
+
+    void LoadObjectData(std::istream &is)
+    {
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        // メンバ
+        std::int64_t layer_size;
+        bb::LoadValue(is, layer_size);
+
+        m_layers.clear();
+        for (std::int64_t i = 0; i < layer_size; ++i) {
+            auto layer = std::dynamic_pointer_cast<Model>(Object_Reconstrutor(is));
+            BB_ASSERT(layer);
+            m_layers.push_back(layer);
         }
     }
 

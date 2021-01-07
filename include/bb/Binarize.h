@@ -22,6 +22,15 @@ namespace bb {
 template <typename BinType = float, typename RealType = float>
 class Binarize : public Activation
 {
+    using _super = Activation;
+
+public:
+    static inline std::string ClassName(void) { return "Binarize"; }
+    static inline std::string ObjectName(void){ return ClassName() + "_" + DataType<BinType>::Name() + "_" + DataType<RealType>::Name(); }
+
+    std::string GetClassName(void)  const { return ClassName(); }
+    std::string GetObjectName(void) const { return ObjectName(); }
+
 protected:
     RealType    m_binary_th    = (RealType)0;
     RealType    m_hardtanh_min = (RealType)-1;
@@ -89,9 +98,6 @@ public:
         create.hardtanh_max = hardtanh_max;
         return Create(create);
     }
-
-    std::string GetClassName(void) const { return "Binarize"; }
-    
     
     // ノード単位でのForward計算
     std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const

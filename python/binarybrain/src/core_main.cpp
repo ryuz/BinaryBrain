@@ -17,6 +17,7 @@
 #include <pybind11/operators.h>
 #include <pybind11/numpy.h>
 
+#include "bb/Object.h"
 
 #include "bb/Version.h"
 #include "bb/DataType.h"
@@ -92,6 +93,8 @@
 //  type definition
 // ---------------------------------
 
+// Object
+using Object                            = bb::Object;
 
 // container
 using Tensor                            = bb::Tensor;
@@ -259,6 +262,7 @@ std::string GetDevicePropertiesString(int device)
 }
 
 
+
 std::string MakeVerilog_LutLayers(std::string module_name, std::vector< std::shared_ptr< bb::Model > > layers)
 {
     std::stringstream ss;
@@ -319,6 +323,19 @@ PYBIND11_MODULE(core, m) {
     m.def("dtype_get_bit_size", &bb::DataType_GetBitSize);
     m.def("dtype_get_byte_size", &bb::DataType_GetByteSize);
     
+
+
+    // ------------------------------------
+    //  Object
+    // ------------------------------------
+
+
+    py::class_< Object, std::shared_ptr<Object> >(m, "Object")
+        .def("get_object_name", &Object::GetObjectName)
+        .def("dump_object", &Object::DumpObjectBytes)
+        .def("loda_object", &Object::LoadObjectBytes)
+        ;
+
 
     // ------------------------------------
     //  Container
@@ -451,7 +468,7 @@ PYBIND11_MODULE(core, m) {
     // ------------------------------------
     
     // model
-    py::class_< Model, std::shared_ptr<Model> >(m, "Model")
+    py::class_< Model, Object, std::shared_ptr<Model> >(m, "Model")
         .def("get_name", &Model::GetName)
         .def("set_name", &Model::SetName)
         .def("is_named", &Model::IsNamed)

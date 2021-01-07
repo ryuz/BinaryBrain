@@ -28,6 +28,7 @@
 #include <pybind11/operators.h>
 #endif
 
+#include "bb/Object.h"
 #include "bb/FrameBuffer.h"
 #include "bb/Variables.h"
 
@@ -36,7 +37,7 @@ namespace bb {
 
 
 //! model class
-class Model
+class Model : public Object
 {
 protected:
     std::string     m_name;
@@ -301,6 +302,14 @@ public:
     }
     
     
+public:
+    std::string GetObjectName(void) { return ""; }
+
+protected:
+    void DumpObjectData(std::ostream &os) {}
+    void LoadObjectData(std::istream &is) {}
+
+
 public:
     // Serialize
     virtual void Save(std::ostream &os) const

@@ -22,6 +22,15 @@ namespace bb {
 template <int N = 6, typename FT = Bit, typename BT = float>
 class BinaryLutN : public BinaryLutModel
 {
+    using _super = BinaryLutModel;
+
+public:
+    static inline std::string ClassName(void) { return "BinaryLut" + std::to_string(N); }
+    static inline std::string ObjectName(void){ return ClassName() + "_" + DataType<FT>::Name() + "_" + DataType<BT>::Name(); }
+
+    std::string GetClassName(void)  const { return ClassName(); }
+    std::string GetObjectName(void) const { return ObjectName(); }
+
 protected:
     bool                    m_host_only = false;
     bool                    m_host_simd = true;
@@ -115,8 +124,6 @@ public:
         return Create(create);
     }
 #endif
-
-    std::string GetClassName(void) const { return "BinaryLutN"; }
 
     auto lock_InputIndex(void)             { return m_input_index.Lock(); }
     auto lock_InputIndex_const(void) const { return m_input_index.LockConst(); }

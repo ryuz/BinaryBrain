@@ -40,14 +40,20 @@ class BatchNormalization : public Activation
 {
     using _super = Activation;
 
+public:
+    static inline std::string ClassName(void) { return "BatchNormalization"; }
+    static inline std::string ObjectName(void){ return ClassName() + "_" + DataType<T>::Name(); }
+
+    std::string GetClassName(void)  const { return ClassName(); }
+    std::string GetObjectName(void) const { return ObjectName(); }
+
+
 protected:
     bool                        m_bypass    = false;
     bool                        m_host_only = false;
     bool                        m_host_simd = true;
     bool                        m_fix_gamma = false;
     bool                        m_fix_beta  = false;
-
-//  indices_t                   m_node_shape;
     
     FrameBuffer                 m_x_buf;
 
@@ -139,6 +145,11 @@ protected:
 public:
     ~BatchNormalization() {}
 
+//    static std::shared_ptr<BatchNormalization> Create(void)
+//    {
+//        return std::shared_ptr<BatchNormalization>(new BatchNormalization(create_t()));
+//    }
+
     static std::shared_ptr<BatchNormalization> Create(create_t const &create)
     {
         return std::shared_ptr<BatchNormalization>(new BatchNormalization(create));
@@ -170,11 +181,55 @@ public:
         create.fix_beta  = fix_beta;
         return Create(create);
     }
-
-
-    std::string GetClassName(void) const { return "BatchNormalization"; }
     
-    // Serialize
+protected:
+
+    void DumpObjectData(std::ostream &os)
+    {
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // メンバ
+        SaveIndices(os, _super::m_shape);
+        bb::SaveValue(os, m_momentum);
+        m_gamma->Save(os);
+        m_beta->Save(os);
+        m_running_mean.Save(os);
+        m_running_var.Save(os);
+    }
+
+    void LoadObjectData(std::istream &is)
+    {
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        // メンバ
+        this->m_shape = LoadIndices(is);
+        bb::LoadValue(is, m_momentum);
+        m_gamma->Load(is);
+        m_beta->Load(is);
+        m_running_mean.Load(is);
+        m_running_var.Load(is);
+        
+        // 再構築
+        auto node_size = CalcShapeSize(_super::m_shape);
+        m_dgamma->Resize({node_size}, DataType<T>::type); *m_dgamma = (T)0.0;
+        m_dbeta->Resize ({node_size}, DataType<T>::type); *m_dbeta  = (T)0.0;
+        m_mean.Resize(node_size);
+        m_rstd.Resize(node_size);
+    }
+
+
+public:
+    // Serialize(旧バージョン)
     void Save(std::ostream &os) const 
     {
         SaveIndices(os, _super::m_shape);
@@ -187,7 +242,7 @@ public:
 
     void Load(std::istream &is)
     {
-        _super::m_shape = LoadIndices(is);
+        this->m_shape = LoadIndices(is);
         bb::LoadValue(is, m_momentum);
         m_gamma->Load(is);
         m_beta->Load(is);

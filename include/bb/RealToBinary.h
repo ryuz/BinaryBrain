@@ -32,6 +32,15 @@ namespace bb {
 template <typename BinType = float, typename RealType = float>
 class RealToBinary : public Model
 {
+    using _super = Model;
+
+public:
+    static inline std::string ClassName(void) { return "RealToBinary"; }
+    static inline std::string ObjectName(void){ return ClassName() + "_" + DataType<BinType>::Name() + "_" + DataType<RealType>::Name(); }
+
+    std::string GetClassName(void)  const { return ClassName(); }
+    std::string GetObjectName(void) const { return ObjectName(); }
+
 protected:
     bool                                        m_binary_mode = true;
 
@@ -145,8 +154,6 @@ public:
         create.input_range_hi        = input_range_hi;
         return Create(create);
     }
-
-    std::string GetClassName(void) const { return "RealToBinary"; }
 
     void SetModulationSize(index_t modulation_size)
     {
