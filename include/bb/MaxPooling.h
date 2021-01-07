@@ -101,7 +101,7 @@ public:
     }
 #endif
 
-    std::string GetClassName(void) const { return "MaxPooling"; }
+    std::string GetModelName(void) const { return "MaxPooling"; }
 
     index_t GetFilterHeight(void) { return m_filter_h_size; }
     index_t GetFilterWidth(void)  { return m_filter_w_size; }

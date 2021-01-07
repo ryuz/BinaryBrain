@@ -81,7 +81,7 @@ public:
         return self;
     }
 
-    std::string GetClassName(void) const { return "ConvolutionCol2Im"; }
+    std::string GetModelName(void) const { return "ConvolutionCol2Im"; }
 
     int GetChannel(void) const { return m_c_size; }
     int GetHeight(void)  const { return m_h_size; }

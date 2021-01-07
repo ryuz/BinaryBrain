@@ -98,7 +98,7 @@ public:
         return Create(create);
     }
 
-    std::string GetClassName(void) const { return "Shuffle"; }
+    std::string GetModelName(void) const { return "Shuffle"; }
     
     /**
      * @brief  入力形状設定

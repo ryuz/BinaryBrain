@@ -75,7 +75,7 @@ public:
 
     ~ReLU() {}
 
-    std::string GetClassName(void) const { return "ReLU"; }
+    std::string GetModelName(void) const { return "ReLU"; }
 
 
     // 1ノードのみForward計算

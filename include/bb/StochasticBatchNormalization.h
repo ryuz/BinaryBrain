@@ -130,7 +130,7 @@ public:
         return Create(create);
     }
 
-    std::string GetClassName(void) const { return "StochasticBatchNormalization"; }
+    std::string GetModelName(void) const { return "StochasticBatchNormalization"; }
 
 
     // Serialize

@@ -50,7 +50,7 @@ public:
      *         シリアライズ時などの便宜上、クラス名を返すようにする
      * @return クラス名
      */
-    std::string GetClassName(void) const
+    std::string GetModelName(void) const
     {
         return "Sequential";
     }

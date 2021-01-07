@@ -69,7 +69,7 @@ public:
 
     ~Sigmoid() {}
 
-    std::string GetClassName(void) const { return "Sigmoid"; }
+    std::string GetModelName(void) const { return "Sigmoid"; }
 
 
     /**

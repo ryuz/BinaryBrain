@@ -643,7 +643,7 @@ inline void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module
         os << "\n\n";
 
         auto layer       = layers[i];
-        auto layer_class = layer->GetClassName();
+        auto layer_class = layer->GetModelName();
 //        auto cnv   = std::dynamic_pointer_cast<Convolution2d<FT, BT> >(layer);
 //        auto pol   = std::dynamic_pointer_cast<MaxPooling<FT, BT> >(layer);
 //        auto pol_s = std::dynamic_pointer_cast< StochasticMaxPooling2x2<> >(layer);
@@ -728,7 +728,7 @@ inline void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module
 
     for ( int i = 0; i < layer_size; ++i ) {
         auto layer = layers[i];
-        if ( layer->GetClassName() == "Convolution2d" ) {
+        if ( layer->GetModelName() == "Convolution2d" ) {
             std::stringstream ss;
             ss << module_name << "_l" << i;
             ExportVerilog_LutConvolutionLayer(os, ss.str(), layer);

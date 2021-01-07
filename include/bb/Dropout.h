@@ -83,7 +83,7 @@ public:
         return Create(create);
     }
 
-    std::string GetClassName(void) const { return "Dropout"; }
+    std::string GetModelName(void) const { return "Dropout"; }
     
     
     // ノード単位でのForward計算

@@ -133,7 +133,7 @@ public:
     }
 #endif
 
-    std::string GetClassName(void) const { return "Convolution2d"; }
+    std::string GetModelName(void) const { return "Convolution2d"; }
 
     
     std::shared_ptr< Model > GetSubLayer(void)

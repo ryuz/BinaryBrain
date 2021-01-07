@@ -90,7 +90,7 @@ public:
     }
 
 
-    std::string GetClassName(void) const { return "Reduce"; }
+    std::string GetModelName(void) const { return "Reduce"; }
 
     /**
      * @brief  入力のshape設定

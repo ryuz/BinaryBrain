@@ -88,7 +88,7 @@ public:
         return Create(create);
     }
 
-    std::string GetClassName(void) const { return "BackpropagatedBatchNormalization"; }
+    std::string GetModelName(void) const { return "BackpropagatedBatchNormalization"; }
     
     // Serialize
     void Save(std::ostream &os) const 

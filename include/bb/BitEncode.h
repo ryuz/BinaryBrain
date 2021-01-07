@@ -93,7 +93,7 @@ public:
         return Create(create);
     }
 
-    std::string GetClassName(void) const { return "BitEncode"; }
+    std::string GetModelName(void) const { return "BitEncode"; }
     
     /**
      * @brief  入力形状設定

@@ -28,7 +28,7 @@ public:
     static inline std::string ClassName(void) { return "BinaryLut" + std::to_string(N); }
     static inline std::string ObjectName(void){ return ClassName() + "_" + DataType<FT>::Name() + "_" + DataType<BT>::Name(); }
 
-    std::string GetClassName(void)  const { return ClassName(); }
+    std::string GetModelName(void)  const { return ClassName(); }
     std::string GetObjectName(void) const { return ObjectName(); }
 
 protected:

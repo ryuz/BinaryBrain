@@ -41,10 +41,10 @@ class BatchNormalization : public Activation
     using _super = Activation;
 
 public:
-    static inline std::string ClassName(void) { return "BatchNormalization"; }
-    static inline std::string ObjectName(void){ return ClassName() + "_" + DataType<T>::Name(); }
+    static inline std::string ModelName(void) { return "BatchNormalization"; }
+    static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<T>::Name(); }
 
-    std::string GetClassName(void)  const { return ClassName(); }
+    std::string GetModelName(void)  const { return ModelName(); }
     std::string GetObjectName(void) const { return ObjectName(); }
 
 

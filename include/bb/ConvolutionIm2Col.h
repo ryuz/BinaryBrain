@@ -119,7 +119,7 @@ public:
         return Create(create);
     }
 
-    std::string GetClassName(void) const { return "ConvolutionIm2Col"; }
+    std::string GetModelName(void) const { return "ConvolutionIm2Col"; }
 
     index_t     GetFilterSizeH(void) const { return m_filter_h_size; }
     index_t     GetFilterSizeW(void) const { return m_filter_w_size; }

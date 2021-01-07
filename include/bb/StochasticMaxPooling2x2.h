@@ -65,7 +65,7 @@ public:
     }
     
 
-    std::string GetClassName(void) const { return "StochasticMaxPooling2x2"; }
+    std::string GetModelName(void) const { return "StochasticMaxPooling2x2"; }
 
     index_t GetFilterHeight(void) { return 2; }
     index_t GetFilterWidth(void)  { return 2; }

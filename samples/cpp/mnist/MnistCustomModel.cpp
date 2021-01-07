@@ -56,7 +56,7 @@ public:
         m_affine3   = Affine::Create(10);
     }
 
-    std::string GetClassName(void) const
+    std::string GetModelName(void) const
     {
         return "MnistMyCustomModel";
     }

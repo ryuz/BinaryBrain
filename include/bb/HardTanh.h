@@ -96,7 +96,7 @@ public:
         return Create(create);
     }
 
-    std::string GetClassName(void) const { return "HardTanh"; }
+    std::string GetModelName(void) const { return "HardTanh"; }
 
     void        SetFrameBufferX(FrameBuffer x) { m_x_buf = x; }
     FrameBuffer GetFrameBufferX(void)          { return m_x_buf; }

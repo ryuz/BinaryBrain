@@ -64,12 +64,12 @@ public:
     virtual ~Model() {}
 
     /**
-     * @brief  クラス名取得
-     * @detail クラス名取得
-     *         シリアライズ時などの便宜上、クラス名を返すようにする
-     * @return クラス名
+     * @brief  モデル名取得
+     * @detail モデル名取得
+     * 
+     * @return モデル名
      */
-    virtual std::string GetClassName(void) const = 0;
+    virtual std::string GetModelName(void) const = 0;
 
     /**
      * @brief  名前設定
@@ -93,7 +93,7 @@ public:
     virtual std::string GetName(void) const
     {
         if (m_name.empty()) {
-            return GetClassName();
+            return GetModelName();
         }
         return m_name;
     }
@@ -105,7 +105,7 @@ public:
      */
     virtual void SendCommand(std::string command, std::string send_to = "all")
     {
-        if ( send_to == "all" || send_to == GetClassName() || send_to == GetName() ) {
+        if ( send_to == "all" || send_to == GetModelName() || send_to == GetName() ) {
             CommandProc(SplitString(command));
         }
     }
@@ -206,7 +206,7 @@ public:
 
         // モデルタイトル表示
         os << indent << separetor << std::endl;
-        os << indent << "[" << GetClassName() << "] "  << m_name << std::endl;
+        os << indent << "[" << GetModelName() << "] "  << m_name << std::endl;
 
         // 内容表示
         PrintInfoText(os ,indent, columns, nest, depth);

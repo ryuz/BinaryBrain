@@ -472,7 +472,7 @@ PYBIND11_MODULE(core, m) {
         .def("get_name", &Model::GetName)
         .def("set_name", &Model::SetName)
         .def("is_named", &Model::IsNamed)
-        .def("get_class_name", &Model::GetClassName)
+        .def("get_model_name", &Model::GetModelName)
         .def("get_info", &Model::GetInfoString,
                 py::arg("depth")    = 0,
                 py::arg("columns")  = 70,

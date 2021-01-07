@@ -125,7 +125,7 @@ public:
 #endif
 
 
-    std::string GetClassName(void) const { return "DifferentiableLutN"; }
+    std::string GetModelName(void) const { return "DifferentiableLutN"; }
 
     /**
      * @brief  コマンドを送る

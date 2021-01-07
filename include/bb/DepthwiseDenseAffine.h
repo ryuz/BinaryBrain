@@ -172,7 +172,7 @@ public:
     }
 
 
-    std::string GetClassName(void) const { return "DepthwiseDenseAffine"; }
+    std::string GetModelName(void) const { return "DepthwiseDenseAffine"; }
     
     Tensor       &W(void)       { return *m_W; }
     Tensor const &W(void) const { return *m_W; }

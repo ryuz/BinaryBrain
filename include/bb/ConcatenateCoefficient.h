@@ -88,7 +88,7 @@ public:
         return std::shared_ptr<ConcatenateCoefficient>(new ConcatenateCoefficient(create));
     }
     
-    std::string GetClassName(void) const { return "ConcatenateCoefficient"; }
+    std::string GetModelName(void) const { return "ConcatenateCoefficient"; }
 
     /**
      * @brief  入力のshape設定

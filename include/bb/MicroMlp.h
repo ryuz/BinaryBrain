@@ -113,7 +113,7 @@ public:
     }
 #endif
 
-    std::string GetClassName(void) const { return "MicroMlp"; }
+    std::string GetModelName(void) const { return "MicroMlp"; }
 
     /**
      * @brief  コマンドを送る

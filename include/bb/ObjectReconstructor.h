@@ -25,7 +25,8 @@
 
 namespace bb {
 
-#define BB_OBJECT_CREATOR_BUILD_CLASS(object_class) \
+
+#define BB_OBJECT_CREATOR_BUILD_MODEL(object_class) \
     do { \
         if ( object_name == object_class::ObjectName() ) { return object_class::Create(); } \
     } while(0)
@@ -33,11 +34,11 @@ namespace bb {
 
 inline std::shared_ptr<Object> Object_Creator(std::string object_name)
 {
-    BB_OBJECT_CREATOR_BUILD_CLASS(BatchNormalization<float>);
-    BB_OBJECT_CREATOR_BUILD_CLASS(RealToBinary<float>);
-    BB_OBJECT_CREATOR_BUILD_CLASS(RealToBinary<bb::Bit>);
-    BB_OBJECT_CREATOR_BUILD_CLASS(BinaryToReal<float>);
-    BB_OBJECT_CREATOR_BUILD_CLASS(BinaryToReal<bb::Bit>);
+    BB_OBJECT_CREATOR_BUILD_MODEL(BatchNormalization<float>);
+    BB_OBJECT_CREATOR_BUILD_MODEL(RealToBinary<float>);
+    BB_OBJECT_CREATOR_BUILD_MODEL(RealToBinary<bb::Bit>);
+    BB_OBJECT_CREATOR_BUILD_MODEL(BinaryToReal<float>);
+    BB_OBJECT_CREATOR_BUILD_MODEL(BinaryToReal<bb::Bit>);
     
     return std::shared_ptr<Object>();
 }

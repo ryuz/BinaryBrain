@@ -96,7 +96,7 @@ public:
     }
 #endif
 
-    std::string GetClassName(void) const { return "UpSampling"; }
+    std::string GetModelName(void) const { return "UpSampling"; }
 
 public:
 

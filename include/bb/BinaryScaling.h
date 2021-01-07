@@ -92,7 +92,7 @@ public:
         return self;
     }
 
-    std::string GetClassName(void) const { return "BinaryScaling"; }
+    std::string GetModelName(void) const { return "BinaryScaling"; }
     
     // Serialize
     void Save(std::ostream &os) const 

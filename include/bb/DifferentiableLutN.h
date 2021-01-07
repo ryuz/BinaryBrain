@@ -196,7 +196,7 @@ public:
     }
 #endif
 
-    std::string GetClassName(void) const {
+    std::string GetModelName(void) const {
         return std::string("DifferentiableLut") + std::to_string(N);
     }
 

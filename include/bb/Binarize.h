@@ -28,7 +28,7 @@ public:
     static inline std::string ClassName(void) { return "Binarize"; }
     static inline std::string ObjectName(void){ return ClassName() + "_" + DataType<BinType>::Name() + "_" + DataType<RealType>::Name(); }
 
-    std::string GetClassName(void)  const { return ClassName(); }
+    std::string GetModelName(void)  const { return ClassName(); }
     std::string GetObjectName(void) const { return ObjectName(); }
 
 protected:

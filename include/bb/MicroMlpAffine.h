@@ -141,7 +141,7 @@ public:
     }
     
 
-    std::string GetClassName(void) const { return "MicroMlpAffine"; }
+    std::string GetModelName(void) const { return "MicroMlpAffine"; }
 
 
     
