@@ -183,18 +183,16 @@ public:
     }
     
 protected:
-
     void DumpObjectData(std::ostream &os)
     {
-        // 親クラス
-        _super::DumpObjectData(os);
-
         // バージョン
         std::int64_t ver = 1;
         bb::SaveValue(os, ver);
 
+        // 親クラス
+        _super::DumpObjectData(os);
+
         // メンバ
-        SaveIndices(os, _super::m_shape);
         bb::SaveValue(os, m_momentum);
 
         m_gamma->DumpObject(os);
@@ -205,17 +203,16 @@ protected:
 
     void LoadObjectData(std::istream &is)
     {
-        // 親クラス
-        _super::LoadObjectData(is);
-
         // バージョン
         std::int64_t ver;
         bb::LoadValue(is, ver);
 
         BB_ASSERT(ver == 1);
 
+        // 親クラス
+        _super::LoadObjectData(is);
+
         // メンバ
-        this->m_shape = LoadIndices(is);
         bb::LoadValue(is, m_momentum);
 
         m_gamma->LoadObject(is);

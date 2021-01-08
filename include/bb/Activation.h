@@ -21,6 +21,8 @@ namespace bb {
 // Activation
 class Activation : public Model
 {
+    using _super = Model;
+
 protected:
     indices_t   m_shape;    //< 入出力の形状 
 
@@ -63,6 +65,38 @@ public:
     {
         return m_shape;
     }
+
+
+protected:
+
+    void DumpObjectData(std::ostream &os)
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveIndices(os, m_shape);
+    }
+
+    void LoadObjectData(std::istream &is)
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        m_shape = LoadIndices(is);
+    }
+
 };
 
 

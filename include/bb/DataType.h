@@ -53,9 +53,54 @@ namespace bb {
 
 
 
+// 実装依存でサイズの変わるものを固定する
+
+inline void SaveBool(std::ostream &os, bool value)
+{
+    std::int64_t val64 = (std::int64_t)value;
+    os.write((const char*)&val64, sizeof(val64));
+}
+
+inline bool LoadeBool(std::istream &is)
+{
+    std::int64_t val64;
+    is.read((char*)&val64, sizeof(val64));
+
+    return (bool)val64;
+}
+
+inline void SaveInt(std::ostream &os, int value)
+{
+    std::int64_t val64 = (std::int64_t)value;
+    os.write((const char*)&val64, sizeof(val64));
+}
+
+inline int LoadeInt(std::istream &is)
+{
+    std::int64_t val64;
+    is.read((char*)&val64, sizeof(val64));
+
+    return (int)val64;
+}
+
+inline void SaveUInt(std::ostream &os, unsigned int value)
+{
+    std::uint64_t val64 = (std::uint64_t)value;
+    os.write((const char*)&val64, sizeof(val64));
+}
+
+inline unsigned int LoadeUInt(std::istream &is)
+{
+    std::uint64_t val64;
+    is.read((char*)&val64, sizeof(val64));
+
+    return (unsigned int)val64;
+}
+
+
+
 using index_t   = std::intptr_t;            // 配列の添え字(符号付き size_t としての扱い)
 using indices_t = std::vector<index_t>;     // Tensorなどの多次元配列の添え字
-
 
 inline void SaveIndex(std::ostream &os, index_t index)
 {
@@ -235,40 +280,6 @@ inline indices_t LoadIndices(std::istream &is)
     return indices;
 }
 
-
-/*
-class shape_t
-{
-protected:
-    std::vector<index_t>  m_shape;
-
-public:
-    shape_t() {}
-    shape_t(shape_t const &shape) { m_shape = shape.m_shape; }
-    shape_t(indices_t const &indices) { m_shape = indices; }
-    
-    shape_t& operator=(shape_t const &shape) { m_shape = shape.m_shape; return *this; }
-    shape_t& operator=(indices_t const &indices) { m_shape = indices;   return *this; } 
-
-    operator std::vector<index_t> () { return m_shape; }
-
-    auto size()  const { return m_shape.size(); }
-    auto begin() const { return m_shape.begin(); }
-    auto end()   const { return m_shape.end(); }
-    index_t &operator[](index_t i) { return m_shape[i]; }
-    index_t const & operator[](index_t i) const { return m_shape[i]; }
-
-
-    index_t CalcShapeSize(void)
-    {
-        index_t size = 1;
-        for (auto s : m_shape) {
-            size *= s;
-        }
-        return size;
-    }
-};
-*/
 
 
 template <typename T = float>
@@ -735,6 +746,70 @@ inline void LoadValue(std::istream &is, std::string &str)
     str.resize(size);
     is.read((char *)&str[0], size*sizeof(str[0]));
 }
+
+
+#if 1
+template<typename T>
+inline void SaveValue(std::ostream &os, bool const &val)
+{
+    SaveBool(os, val)
+}
+
+template<typename T>
+inline void LoadValue(std::istream &is, bool &val)
+{
+    val = LoadInt(is);
+}
+
+template<typename T>
+inline void SaveValue(std::ostream &os, int const &val)
+{
+    SaveInt(os, val)
+}
+
+template<typename T>
+inline void LoadValue(std::istream &is, int &val)
+{
+    val = LoadInt(is);
+}
+
+template<typename T>
+inline void SaveValue(std::ostream &os, unsigned int const &val)
+{
+    SaveUInt(os, val)
+}
+
+template<typename T>
+inline void LoadValue(std::istream &is, unsigned int &val)
+{
+    val = LoadUInt(is);
+}
+
+template<typename T>
+inline void SaveValue(std::ostream &os, index_t const &val)
+{
+    SaveIndex(os, val)
+}
+
+template<typename T>
+inline void LoadValue(std::istream &is, index_t &val)
+{
+    val = LoadIndex(is);
+}
+
+template<typename T>
+inline void SaveValue(std::ostream &os, indices_t const &val)
+{
+    SaveIndices(os, val)
+}
+
+template<typename T>
+inline void LoadValue(std::istream &is, indices_t &val)
+{
+    val = LoadIndices(is);
+}
+
+#endif
 
 
 }

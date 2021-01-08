@@ -226,13 +226,13 @@ protected:
 protected:
     void DumpObjectData(std::ostream &os)
     {
-        // 親クラス
-        _super::DumpObjectData(os);    
-        
         // バージョン
         std::int64_t ver = 1;
         bb::SaveValue(os, ver);
 
+        // 親クラス
+        _super::DumpObjectData(os);    
+        
         // メンバ
         std::int64_t layer_size = (std::int64_t)m_layers.size();
         bb::SaveValue(os, layer_size);
@@ -243,22 +243,33 @@ protected:
 
     void LoadObjectData(std::istream &is)
     {
-        // 親クラス
-        _super::LoadObjectData(is);
-
         // バージョン
         std::int64_t ver;
         bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
 
         // メンバ
         std::int64_t layer_size;
         bb::LoadValue(is, layer_size);
 
-        m_layers.clear();
-        for (std::int64_t i = 0; i < layer_size; ++i) {
-            auto layer = std::dynamic_pointer_cast<Model>(Object_Reconstrutor(is));
-            BB_ASSERT(layer);
-            m_layers.push_back(layer);
+#ifndef BB_NO_OBJECT_RECONSTRUCTION
+        if ( m_layers.empty() ) {
+            for (std::int64_t i = 0; i < layer_size; ++i) {
+                auto layer = std::dynamic_pointer_cast<Model>(Object_Reconstruct(is));
+                BB_ASSERT(layer);
+                m_layers.push_back(layer);
+            }
+            return;
+        }
+#endif
+
+        BB_ASSERT(layer_size == (std::int64_t)m_layers.size());
+        for (auto& layer : m_layers) {
+            layer->LoadObject(is);
         }
     }
 

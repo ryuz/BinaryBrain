@@ -580,12 +580,12 @@ public:
     
     void DumpObjectData(std::ostream &os)
     {
-        // 親クラス
-        _super::DumpObjectData(os);
-
         // バージョン
         std::int64_t ver = 1;
         bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
 
         // メンバ
         SaveValue(os, m_offset);
@@ -598,14 +598,14 @@ public:
 
     void LoadObjectData(std::istream &is)
     {
-        // 親クラス
-        _super::LoadObjectData(is);
-
         // バージョン
         std::int64_t ver;
         bb::LoadValue(is, ver);
 
         BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
 
         // メンバ
         LoadValue(is, m_offset);
@@ -1815,18 +1815,18 @@ public:
     }
 
 
-       // -------------------------------------
+    // -------------------------------------
     //  シリアライズ
     // -------------------------------------
     
     void DumpObjectData(std::ostream &os)
     {
-        // 親クラス
-        _super::DumpObjectData(os);
-
         // バージョン
         std::int64_t ver = 1;
         bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
 
         // メンバ
         bb::SaveValue(os, m_type);
@@ -1848,14 +1848,13 @@ public:
 
     void LoadObjectData(std::istream &is)
     {
-        // 親クラス
-        _super::LoadObjectData(is);
-
         // バージョン
         std::int64_t ver;
         bb::LoadValue(is, ver);
-
         BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
 
         // メンバ
         LoadValue(is, m_type);

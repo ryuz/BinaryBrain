@@ -25,7 +25,7 @@ namespace bb {
 
 class Object
 {
-    friend inline std::shared_ptr<Object> Object_Reconstrutor(std::istream &is);
+    friend inline std::shared_ptr<Object> Object_Reconstruct(std::istream &is);
 
 public:
     Object(){}

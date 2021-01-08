@@ -12,6 +12,7 @@
 #include <set>
 #include <algorithm>
 
+#include "bb/Object.h"
 #include "bb/ShuffleSet.h"
 #include "bb/Utility.h"
 
@@ -27,8 +28,10 @@
 namespace bb {
 
 // 接続テーブル
-class ConnectionTable
+class ConnectionTable : public Object
 {
+    using _super = Object;
+
 public:
     // Table management
     virtual index_t GetInputConnectionSize(index_t output_node) const = 0;
@@ -39,8 +42,40 @@ protected:
     indices_t   m_input_shape;
     indices_t   m_output_shape;
 
+
+protected:
+    void DumpObjectData(std::ostream &os)
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveIndices(os, m_input_shape);
+        bb::SaveIndices(os, m_output_shape);
+    }
+
+    void LoadObjectData(std::istream &is)
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        m_input_shape  = bb::LoadIndices(is);
+        m_output_shape = bb::LoadIndices(is);
+    }
+
 public:
-    // Serialize
+    // Serialize(旧)
     void Save(std::ostream &os) const 
     {
         SaveIndices(os, m_input_shape);
