@@ -306,7 +306,7 @@ public:
     std::string GetObjectName(void)  const { return ""; }   // 暫定
 
 protected:
-    void DumpObjectData(std::ostream &os) {}   // 暫定
+    void DumpObjectData(std::ostream &os) const {}   // 暫定
     void LoadObjectData(std::istream &is) {}   // 暫定
 
 

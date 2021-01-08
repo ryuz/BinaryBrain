@@ -69,7 +69,7 @@ public:
 
 protected:
 
-    void DumpObjectData(std::ostream &os)
+    void DumpObjectData(std::ostream &os) const
     {
         // バージョン
         std::int64_t ver = 1;

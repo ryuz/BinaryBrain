@@ -31,10 +31,17 @@ class DenseAffine : public Model
 {
     using _super = Model;
 
+public:
+    static inline std::string ModelName(void) { return "DenseAffine"; }
+    static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<T>::Name(); }
+
+    std::string GetModelName(void)  const { return ModelName(); }
+    std::string GetObjectName(void) const { return ObjectName(); }
+
 
 protected:
-    bool                        m_binary_mode = false;
     bool                        m_host_only = false;
+    bool                        m_binary_mode = false;
 
     T                           m_initialize_std = (T)0.01;
     std::string                 m_initializer = "he";
@@ -151,9 +158,6 @@ public:
         create.seed           = seed;
         return Create(create);
     }
-
-
-    std::string GetModelName(void) const { return "DenseAffine"; }
     
     Tensor       &W(void)       { return *m_W; }
     Tensor const &W(void) const { return *m_W; }
@@ -458,13 +462,61 @@ public:
             return dx_buf;
         }
     }
-    
+
+
+protected:
+    void DumpObjectData(std::ostream &os) const
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_host_only);
+        bb::SaveValue(os, m_binary_mode);
+        SaveIndices(os, m_input_shape);
+        SaveIndices(os, m_output_shape);
+        m_W->DumpObject(os);
+        m_b->DumpObject(os);
+    }
+
+    void LoadObjectData(std::istream &is)
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_host_only);
+        bb::LoadValue(is, m_binary_mode);
+        m_input_shape  = bb::LoadIndices(is);
+        m_output_shape = bb::LoadIndices(is);
+        m_W->LoadObject(is);
+        m_b->LoadObject(is);
+        
+        // 再構築
+        m_input_node_size = CalcShapeSize(m_input_shape);
+        m_output_node_size = CalcShapeSize(m_output_shape);
+        m_dW->Resize({m_output_node_size, m_input_node_size}, DataType<T>::type);   m_dW->FillZero();
+        m_db->Resize({m_output_node_size},                    DataType<T>::type);   m_db->FillZero();
+    }
+
 
 public:
-    // Serialize
+    // Serialize(旧)
     void Save(std::ostream &os) const 
     {
-        SaveValue(os, m_binary_mode);
+//      SaveValue(os, m_binary_mode);
+        os.write((const char*)&m_binary_mode, sizeof(m_binary_mode));   // バグに対する後方互換性
+
         SaveIndices(os, m_input_shape);
         SaveIndices(os, m_output_shape);
         m_W->Save(os);
@@ -473,7 +525,9 @@ public:
 
     void Load(std::istream &is)
     {
-        bb::LoadValue(is, m_binary_mode);
+//      bb::LoadValue(is, m_binary_mode);
+        is.read((char*)&m_binary_mode, sizeof(m_binary_mode));   // バグに対する後方互換性
+
         m_input_shape  = bb::LoadIndices(is);
         m_output_shape = bb::LoadIndices(is);
         m_W->Load(is);

@@ -53,60 +53,17 @@ namespace bb {
 
 
 
-// 実装依存でサイズの変わるものを固定する
+// Index型 (配列等の添え字用、符号付き size_t としての扱い)
+using index_t   = std::int64_t;                // 以前は std::intptr_t だったがデータ互換性上ややこしくなるので64bitに固定(ver4.1.0)
+using indices_t = std::vector<index_t>;        // Tensorなどの多次元配列の添え字、shape用
 
-inline void SaveBool(std::ostream &os, bool value)
-{
-    std::int64_t val64 = (std::int64_t)value;
-    os.write((const char*)&val64, sizeof(val64));
-}
-
-inline bool LoadBool(std::istream &is)
-{
-    std::int64_t val64;
-    is.read((char*)&val64, sizeof(val64));
-
-    return (bool)val64;
-}
-
-inline void SaveInt(std::ostream &os, int value)
-{
-    std::int64_t val64 = (std::int64_t)value;
-    os.write((const char*)&val64, sizeof(val64));
-}
-
-inline int LoadInt(std::istream &is)
-{
-    std::int64_t val64;
-    is.read((char*)&val64, sizeof(val64));
-
-    return (int)val64;
-}
-
-inline void SaveUInt(std::ostream &os, unsigned int value)
-{
-    std::uint64_t val64 = (std::uint64_t)value;
-    os.write((const char*)&val64, sizeof(val64));
-}
-
-inline unsigned int LoadUInt(std::istream &is)
-{
-    std::uint64_t val64;
-    is.read((char*)&val64, sizeof(val64));
-
-    return (unsigned int)val64;
-}
-
-
-
-using index_t   = std::intptr_t;            // 配列の添え字(符号付き size_t としての扱い)
-using indices_t = std::vector<index_t>;     // Tensorなどの多次元配列の添え字
 
 inline void SaveIndex(std::ostream &os, index_t index)
 {
     std::int64_t index64 = index;
     os.write((const char*)&index64, sizeof(index64));
 }
+
 
 inline index_t LoadIndex(std::istream &is)
 {
@@ -699,7 +656,7 @@ inline void DataType_Add<Bit>(void* base, index_t index, Bit value)
 
 
 
-// シリアライズ
+// シリアライズ用
 template<typename T>
 inline void SaveValue(std::ostream &os, T const &val)
 {
@@ -711,6 +668,7 @@ inline void LoadValue(std::istream &is, T &val)
 {
     is.read((char *)&val, sizeof(T));
 }
+
 
 template<typename T>
 inline void SaveValue(std::ostream &os, std::vector<T> const &vec)
@@ -730,7 +688,7 @@ inline void LoadValue(std::istream &is, std::vector<T>  &vec)
 }
 
 
-template<typename T>
+template<>
 inline void SaveValue(std::ostream &os, std::string const &str)
 {
     std::uint64_t size = (std::uint64_t)str.size();
@@ -738,7 +696,7 @@ inline void SaveValue(std::ostream &os, std::string const &str)
     os.write((char const *)&str[0], size*sizeof(str[0]));
 }
 
-template<typename T>
+template<>
 inline void LoadValue(std::istream &is, std::string &str)
 {
     std::uint64_t size;
@@ -748,68 +706,20 @@ inline void LoadValue(std::istream &is, std::string &str)
 }
 
 
-#if 1
-template<typename T>
+template<>
 inline void SaveValue(std::ostream &os, bool const &val)
 {
-    SaveBool(os, val);
+    std::int8_t val8 = (std::int8_t)val;
+    os.write((const char*)&val8, sizeof(val8));
 }
 
-template<typename T>
+template<>
 inline void LoadValue(std::istream &is, bool &val)
 {
-    val = LoadBool(is);
+    std::int8_t val8;
+    is.read((char*)&val8, sizeof(val8));
+    val = val8;
 }
-
-template<typename T>
-inline void SaveValue(std::ostream &os, int const &val)
-{
-    SaveInt(os, val);
-}
-
-template<typename T>
-inline void LoadValue(std::istream &is, int &val)
-{
-    val = LoadInt(is);
-}
-
-template<typename T>
-inline void SaveValue(std::ostream &os, unsigned int const &val)
-{
-    SaveUInt(os, val);
-}
-
-template<typename T>
-inline void LoadValue(std::istream &is, unsigned int &val)
-{
-    val = LoadUInt(is);
-}
-
-template<typename T>
-inline void SaveValue(std::ostream &os, index_t const &val)
-{
-    SaveIndex(os, val);
-}
-
-template<typename T>
-inline void LoadValue(std::istream &is, index_t &val)
-{
-    val = LoadIndex(is);
-}
-
-template<typename T>
-inline void SaveValue(std::ostream &os, indices_t const &val)
-{
-    SaveIndices(os, val);
-}
-
-template<typename T>
-inline void LoadValue(std::istream &is, indices_t &val)
-{
-    val = LoadIndices(is);
-}
-
-#endif
 
 
 }

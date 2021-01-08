@@ -578,7 +578,7 @@ public:
     //  シリアライズ
     // -------------------------------------
     
-    void DumpObjectData(std::ostream &os)
+    void DumpObjectData(std::ostream &os) const
     {
         // バージョン
         std::int64_t ver = 1;
@@ -1818,8 +1818,8 @@ public:
     // -------------------------------------
     //  シリアライズ
     // -------------------------------------
-    
-    void DumpObjectData(std::ostream &os)
+protected:
+    void DumpObjectData(std::ostream &os) const
     {
         // バージョン
         std::int64_t ver = 1;
@@ -1879,7 +1879,7 @@ public:
     // -------------------------------------
     //  Serialize(旧)
     // -------------------------------------
-
+public:
     void Save(std::ostream& os) const
     {
         os.write((char const *)&m_type, sizeof(m_type));

@@ -17,7 +17,6 @@
 
 
 #include "bb/Assert.h"
-#include "bb/DataType.h"
 
 
 namespace bb {
@@ -33,7 +32,7 @@ public:
 
     virtual std::string GetObjectName(void) const = 0;
 
-    void DumpObject(std::ostream& os)
+    void DumpObject(std::ostream& os) const
     {
         WriteHeader(os);
         DumpObjectData(os);
@@ -66,12 +65,12 @@ public:
 
 
 protected:
-    virtual void DumpObjectData(std::ostream &os) {} // = 0;
+    virtual void DumpObjectData(std::ostream &os) const {} // = 0;
     virtual void LoadObjectData(std::istream &is) {} // = 0;
 
 
 private:
-    void WriteHeader(std::ostream &os)
+    void WriteHeader(std::ostream &os)  const
     {
         // É^ÉO
         os.write("BB_OBJ", 6);

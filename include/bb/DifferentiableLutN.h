@@ -89,7 +89,7 @@ public:
 protected:
     DifferentiableLutN(create_t const &create)
     {
-        BB_ASSERT(!create.output_shape.empty());
+//      BB_ASSERT(!create.output_shape.empty());
 
         m_output_shape = create.output_shape;
         m_connection   = create.connection;
@@ -210,7 +210,7 @@ public:
 
 protected:
     // Serialize
-    void DumpObjectData(std::ostream &os)
+    void DumpObjectData(std::ostream &os) const
     {
         // バージョン
         std::int64_t ver = 1;
@@ -220,23 +220,23 @@ protected:
         _super::DumpObjectData(os);
 
         // メンバ
-        bb::SaveValue(os, m_host_only);
-        bb::SaveValue(os, m_lut_binarize);
-        bb::SaveValue(os, m_binary_mode);
-        bb::SaveValue(os, m_batch_norm);
-        bb::SaveValue(os, m_flagClamp);
+        SaveValue(os, m_host_only);
+        SaveValue(os, m_lut_binarize);
+        SaveValue(os, m_binary_mode);
+        SaveValue(os, m_batch_norm);
+        SaveValue(os, m_flagClamp);
 
-        SaveIndices(os, m_input_shape);
-        SaveIndices(os, m_output_shape);
+        SaveValue(os, m_input_shape);
+        SaveValue(os, m_output_shape);
 
         m_connection_table.DumpObject(os);
         m_W->DumpObject(os);
 
-        bb::SaveValue(os, m_unbinarize_bias);
-
-        bb::SaveValue(os, m_momentum);
-        bb::SaveValue(os, m_gamma);
-        bb::SaveValue(os, m_beta);
+        SaveValue(os, m_unbinarize_bias);
+        
+        SaveValue(os, m_momentum);
+        SaveValue(os, m_gamma);
+        SaveValue(os, m_beta);
         m_running_mean.DumpObject(os);
         m_running_var.DumpObject(os);
     }
@@ -253,23 +253,23 @@ protected:
         _super::LoadObjectData(is);
 
         // メンバ
-        bb::LoadValue(is, m_host_only);
-        bb::LoadValue(is, m_lut_binarize);
-        bb::LoadValue(is, m_binary_mode);
-        bb::LoadValue(is, m_batch_norm);
-        bb::LoadValue(is, m_flagClamp);
+        LoadValue(is, m_host_only);
+        LoadValue(is, m_lut_binarize);
+        LoadValue(is, m_binary_mode);
+        LoadValue(is, m_batch_norm);
+        LoadValue(is, m_flagClamp);
 
-        m_input_shape  = LoadIndices(is);
-        m_output_shape = LoadIndices(is);
-
+        LoadValue(is, m_input_shape);
+        LoadValue(is, m_output_shape);
+        
         m_connection_table.LoadObject(is);
         m_W->LoadObject(is);
 
-        bb::LoadValue(is, m_unbinarize_bias);
+        LoadValue(is, m_unbinarize_bias);
 
-        bb::LoadValue(is, m_momentum);
-        bb::LoadValue(is, m_gamma);
-        bb::LoadValue(is, m_beta);
+        LoadValue(is, m_momentum);
+        LoadValue(is, m_gamma);
+        LoadValue(is, m_beta);
         m_running_mean.LoadObject(is);
         m_running_var.LoadObject(is);
 
