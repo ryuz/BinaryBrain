@@ -61,7 +61,7 @@ inline void SaveBool(std::ostream &os, bool value)
     os.write((const char*)&val64, sizeof(val64));
 }
 
-inline bool LoadeBool(std::istream &is)
+inline bool LoadBool(std::istream &is)
 {
     std::int64_t val64;
     is.read((char*)&val64, sizeof(val64));
@@ -75,7 +75,7 @@ inline void SaveInt(std::ostream &os, int value)
     os.write((const char*)&val64, sizeof(val64));
 }
 
-inline int LoadeInt(std::istream &is)
+inline int LoadInt(std::istream &is)
 {
     std::int64_t val64;
     is.read((char*)&val64, sizeof(val64));
@@ -89,7 +89,7 @@ inline void SaveUInt(std::ostream &os, unsigned int value)
     os.write((const char*)&val64, sizeof(val64));
 }
 
-inline unsigned int LoadeUInt(std::istream &is)
+inline unsigned int LoadUInt(std::istream &is)
 {
     std::uint64_t val64;
     is.read((char*)&val64, sizeof(val64));
@@ -752,19 +752,19 @@ inline void LoadValue(std::istream &is, std::string &str)
 template<typename T>
 inline void SaveValue(std::ostream &os, bool const &val)
 {
-    SaveBool(os, val)
+    SaveBool(os, val);
 }
 
 template<typename T>
 inline void LoadValue(std::istream &is, bool &val)
 {
-    val = LoadInt(is);
+    val = LoadBool(is);
 }
 
 template<typename T>
 inline void SaveValue(std::ostream &os, int const &val)
 {
-    SaveInt(os, val)
+    SaveInt(os, val);
 }
 
 template<typename T>
@@ -776,7 +776,7 @@ inline void LoadValue(std::istream &is, int &val)
 template<typename T>
 inline void SaveValue(std::ostream &os, unsigned int const &val)
 {
-    SaveUInt(os, val)
+    SaveUInt(os, val);
 }
 
 template<typename T>
@@ -788,7 +788,7 @@ inline void LoadValue(std::istream &is, unsigned int &val)
 template<typename T>
 inline void SaveValue(std::ostream &os, index_t const &val)
 {
-    SaveIndex(os, val)
+    SaveIndex(os, val);
 }
 
 template<typename T>
@@ -800,7 +800,7 @@ inline void LoadValue(std::istream &is, index_t &val)
 template<typename T>
 inline void SaveValue(std::ostream &os, indices_t const &val)
 {
-    SaveIndices(os, val)
+    SaveIndices(os, val);
 }
 
 template<typename T>
