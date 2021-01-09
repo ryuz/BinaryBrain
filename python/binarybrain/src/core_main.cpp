@@ -353,6 +353,14 @@ std::string MakeVerilog_LutConvLayers(std::string module_name, std::vector< std:
 // PyBind11 module
 //////////////////////////////////////]
 
+
+#define DEF_CAST_FROM_OBJECT(class_name)    .def("cast_from_object", [](std::shared_ptr<Object> obj) { return std::dynamic_pointer_cast<class_name>(obj); })
+
+#define DEF_OBJECT_PICKLE(class_name)   \
+        .def(py::pickle( \
+                [](const class_name &obj) { return py::make_tuple(obj.DumpObjectBytes()); }, \
+                [](py::tuple t) { return std::dynamic_pointer_cast<class_name>(bb::Object_CreatePy(t[0].cast<py::bytes>())); }))
+
 namespace py = pybind11;
 PYBIND11_MODULE(core, m) {
     m.doc() = "BinaryBrain ver " + bb::GetVersionString();
@@ -639,6 +647,7 @@ PYBIND11_MODULE(core, m) {
                 py::arg("input_range_hi")   = 1.0f);
 
     py::class_< BinaryToReal_fp32, Model, std::shared_ptr<BinaryToReal_fp32> >(m, "BinaryToReal_fp32")
+        DEF_CAST_FROM_OBJECT(BinaryToReal_fp32)
         .def_static("create", &BinaryToReal_fp32::CreateEx,
                 py::arg("frame_modulation_size") = 1,
                 py::arg("output_shape")          = bb::indices_t());
@@ -663,7 +672,16 @@ PYBIND11_MODULE(core, m) {
         .def("W", ((Tensor& (DenseAffine::*)())&DenseAffine::W))
         .def("b", ((Tensor& (DenseAffine::*)())&DenseAffine::b))
         .def("dW", ((Tensor& (DenseAffine::*)())&DenseAffine::dW))
-        .def("db", ((Tensor& (DenseAffine::*)())&DenseAffine::db));
+        .def("db", ((Tensor& (DenseAffine::*)())&DenseAffine::db))
+        .def_static("cast_from_object", [](std::shared_ptr<Object> obj) { return std::dynamic_pointer_cast<DenseAffine>(obj); })
+        .def(py::pickle(
+                [](const DenseAffine &obj) { // __getstate__
+                    return py::make_tuple(obj.DumpObjectBytes());
+                },
+                [](py::tuple t) { // __setstate__
+                    return std::dynamic_pointer_cast<DenseAffine>(bb::Object_CreatePy(t[0].cast<py::bytes>()));
+                }))
+        ;
     
     // DepthwiseDenseAffine
     py::class_< DepthwiseDenseAffine, Model, std::shared_ptr<DepthwiseDenseAffine> >(m, "DepthwiseDenseAffine")

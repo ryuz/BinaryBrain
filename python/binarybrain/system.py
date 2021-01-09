@@ -73,4 +73,10 @@ def get_device_properties_string(device_id):
     return core.get_device_properties_string(device_id)
 
 
+def get_device_properties(device_id):
+    return core.get_device_properties(device_id)
+
+def get_device_name(device_id):
+    return core.get_device_name(device_id)
+
 
