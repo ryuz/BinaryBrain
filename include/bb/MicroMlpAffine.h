@@ -20,11 +20,18 @@
 namespace bb {
 
 
-// Mini-MLP (SparseAffine - ReLU - SparseAffine)
+// Mini-MLP Affine
 template <int N = 6, int M = 16, typename FXT = float, typename T = float>
 class MicroMlpAffine : public SparseModel
 {
     using _super = SparseModel;
+        
+public:
+    static inline std::string ModelName(void) { return "MicroMlpAffine" + std::to_string(N) + "_" + std::to_string(M); }
+    static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<FXT>::Name() + "_" + DataType<T>::Name(); }
+
+    std::string GetModelName(void)  const override { return ModelName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
 
 protected:
 public:   // debug
@@ -140,13 +147,78 @@ public:
         return Create(create);
     }
     
+    static std::shared_ptr<MicroMlpAffine> Create(void)
+    {
+        return Create(create_t());
+    }
 
-    std::string GetModelName(void) const { return "MicroMlpAffine"; }
 
+
+    // シリアライズ
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_binary_mode);
+        bb::SaveValue(os, m_host_simd);
+        bb::SaveValue(os, m_host_only);
+        bb::SaveValue(os, m_connection);
+        bb::SaveValue(os, m_initialize_std);
+        bb::SaveValue(os, m_initializer);
+        bb::SaveValue(os, m_input_shape);
+        bb::SaveValue(os, m_output_shape);
+        m_input_index.DumpObject(os);
+        m_W0->DumpObject(os);
+        m_b0->DumpObject(os);
+        m_W1->DumpObject(os);
+        m_b1->DumpObject(os);
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_binary_mode);
+        bb::LoadValue(is, m_host_simd);
+        bb::LoadValue(is, m_host_only);
+        bb::LoadValue(is, m_connection);
+        bb::LoadValue(is, m_initialize_std);
+        bb::LoadValue(is, m_initializer);
+        bb::LoadValue(is, m_input_shape);
+        bb::LoadValue(is, m_output_shape);
+        m_input_index.LoadObject(is);
+        m_W0->LoadObject(is);
+        m_b0->LoadObject(is);
+        m_W1->LoadObject(is);
+        m_b1->LoadObject(is);
+        
+        // 再構築
+        m_input_node_size = CalcShapeSize(m_input_shape);
+        m_output_node_size = CalcShapeSize(m_output_shape);
+        m_dW0->Resize(m_W0->GetShape(), m_W0->GetType());
+        m_db0->Resize(m_b0->GetShape(), m_b0->GetType());
+        m_dW1->Resize(m_W1->GetShape(), m_W1->GetType());
+        m_db1->Resize(m_b1->GetShape(), m_b1->GetType());
+    }
 
     
 public:
-    // Serialize
+    // Serialize(旧)
     void Save(std::ostream &os) const 
     {
         SaveIndex(os, m_input_node_size);

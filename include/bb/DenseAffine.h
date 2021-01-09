@@ -144,6 +144,12 @@ public:
         return Create(create);
     }
 
+    static std::shared_ptr<DenseAffine> Create(void)
+    {
+        return Create(create_t());
+    }
+
+#ifdef BB_PYBIND11
     static std::shared_ptr<DenseAffine> CreateEx(
             indices_t       output_shape,
             T               initialize_std = (T)0.01,
@@ -158,7 +164,8 @@ public:
         create.seed           = seed;
         return Create(create);
     }
-    
+#endif
+
     Tensor       &W(void)       { return *m_W; }
     Tensor const &W(void) const { return *m_W; }
     Tensor       &b(void)       { return *m_b; }
@@ -463,7 +470,7 @@ public:
         }
     }
 
-
+    // シリアライズ
 protected:
     void DumpObjectData(std::ostream &os) const override
     {

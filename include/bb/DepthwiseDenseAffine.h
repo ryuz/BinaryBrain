@@ -31,9 +31,16 @@ class DepthwiseDenseAffine : public Model
 {
     using _super = Model;
 
+public:
+    static inline std::string ModelName(void) { return "DepthwiseDenseAffine"; }
+    static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<T>::Name(); }
+
+    std::string GetModelName(void)  const override { return ModelName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
 protected:
-    bool                        m_binary_mode = false;
     bool                        m_host_only = false;
+    bool                        m_binary_mode = false;
 
     T                           m_initialize_std = (T)0.01;
     std::string                 m_initializer = "he";
@@ -92,10 +99,11 @@ protected:
 
         m_output_shape     = create.output_shape;
         m_output_node_size = CalcShapeSize(m_output_shape);
+        m_depth_size       = create.depth_size;
         m_input_point_size = create.input_point_size;
     }
 
-    void CommandProc(std::vector<std::string> args)
+    void CommandProc(std::vector<std::string> args) override
     {
         _super::CommandProc(args);
 
@@ -152,7 +160,13 @@ public:
         return Create(indices_t({output_node_size}), input_point_size, depth_size);
     }
 
-    static std::shared_ptr<DepthwiseDenseAffine> CreateEx(
+    static std::shared_ptr<DepthwiseDenseAffine> Create(void)
+    {
+        return Create(create_t());
+    }
+
+#ifdef BB_PYBIND11
+    static std::shared_ptr<DepthwiseDenseAffine> CreatePy(
             indices_t       output_shape,
             index_t         input_point_size = 0,
             index_t         depth_size = 0,
@@ -170,10 +184,9 @@ public:
         create.seed              = seed;
         return Create(create);
     }
+#endif
 
 
-    std::string GetModelName(void) const { return "DepthwiseDenseAffine"; }
-    
     Tensor       &W(void)       { return *m_W; }
     Tensor const &W(void) const { return *m_W; }
     Tensor       &b(void)       { return *m_b; }
@@ -510,9 +523,78 @@ public:
         }
     }
     
+        // シリアライズ
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_host_only);
+        bb::SaveValue(os, m_binary_mode);
+        bb::SaveValue(os, m_initialize_std);
+        bb::SaveValue(os, m_initializer);
+        bb::SaveValue(os, m_input_shape);
+        bb::SaveValue(os, m_output_shape);
+        bb::SaveValue(os, m_input_point_size);
+        bb::SaveValue(os, m_depth_size);
+        m_W->DumpObject(os);
+        m_b->DumpObject(os);
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_host_only);
+        bb::LoadValue(is, m_binary_mode);
+        bb::LoadValue(is, m_initialize_std);
+        bb::LoadValue(is, m_initializer);
+        bb::LoadValue(is, m_input_shape);
+        bb::LoadValue(is, m_output_shape);
+        bb::LoadValue(is, m_input_point_size);
+        bb::LoadValue(is, m_depth_size);
+        m_W->LoadObject(is);
+        m_b->LoadObject(is);
+        
+        // 再構築
+        m_input_node_size = CalcShapeSize(m_input_shape);
+        m_output_node_size = CalcShapeSize(m_output_shape);
+        if ( m_input_node_size > 0 ) {
+            if ( m_depth_size <= 0 ) {
+                if ( m_input_point_size > 0 ) {
+                    m_depth_size = m_input_node_size / m_input_point_size;
+                }
+                else
+                {
+                    m_depth_size = m_output_shape[m_output_shape.size() - 1];
+                }
+            }
+
+            m_input_point_size  = m_input_node_size / m_depth_size;
+            m_output_point_size = m_output_node_size / m_depth_size;
+
+            m_dW->Resize({m_output_node_size, m_input_node_size}, DataType<T>::type);   m_dW->FillZero();
+            m_db->Resize({m_output_node_size},                    DataType<T>::type);   m_db->FillZero();
+        }
+    }
+
 
 public:
-    // Serialize
+    // Serialize(旧)
     void Save(std::ostream &os) const 
     {
         SaveValue(os, m_binary_mode);

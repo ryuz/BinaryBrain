@@ -30,7 +30,13 @@
 #include "bb/BinaryToReal.h" 
 #include "bb/BitEncode.h"
 
+#include "bb/BinaryLutN.h"
 #include "bb/DifferentiableLutN.h"
+#include "bb/MicroMlpAffine.h"
+#include "bb/MicroMlp.h"
+
+#include "bb/DenseAffine.h"
+#include "bb/DepthwiseDenseAffine.h"
 
 #include "bb/Convolution2d.h"
 #include "bb/ConvolutionCol2Im.h"
@@ -38,6 +44,12 @@
 
 #include "bb/MaxPooling.h"
 #include "bb/StochasticMaxPooling2x2.h"
+
+#include "bb/Binarize.h"
+#include "bb/Sigmoid.h"
+#include "bb/ReLU.h"
+#include "bb/HardTanh.h"
+
 
 #include "bb/BatchNormalization.h" 
 
@@ -100,6 +112,42 @@ inline std::shared_ptr<Object> Object_Creator(std::string object_name)
     BB_OBJECT_CREATE_MODEL(DifferentiableLutN<2, float, float>);
     BB_OBJECT_CREATE_MODEL(DifferentiableLutN<2, Bit, float>);
     
+    BB_OBJECT_CREATE_MODEL(BinaryLutN<6, float, float>);
+    BB_OBJECT_CREATE_MODEL(BinaryLutN<6, Bit, float>);
+    BB_OBJECT_CREATE_MODEL(BinaryLutN<5, float, float>);
+    BB_OBJECT_CREATE_MODEL(BinaryLutN<5, Bit, float>);
+    BB_OBJECT_CREATE_MODEL(BinaryLutN<4, float, float>);
+    BB_OBJECT_CREATE_MODEL(BinaryLutN<4, Bit, float>);
+    BB_OBJECT_CREATE_MODEL(BinaryLutN<3, float, float>);
+    BB_OBJECT_CREATE_MODEL(BinaryLutN<3, Bit, float>);
+    BB_OBJECT_CREATE_MODEL(BinaryLutN<2, float, float>);
+    BB_OBJECT_CREATE_MODEL(BinaryLutN<2, Bit, float>);
+    
+    BB_OBJECT_CREATE_MODEL(MicroMlpAffine<6, 16, float, float>);
+    BB_OBJECT_CREATE_MODEL(MicroMlpAffine<6, 16, Bit, float>);
+    BB_OBJECT_CREATE_MODEL(MicroMlpAffine<5, 16, float, float>);
+    BB_OBJECT_CREATE_MODEL(MicroMlpAffine<5, 16, Bit, float>);
+    BB_OBJECT_CREATE_MODEL(MicroMlpAffine<4, 16, float, float>);
+    BB_OBJECT_CREATE_MODEL(MicroMlpAffine<4, 16, Bit, float>);
+    BB_OBJECT_CREATE_MODEL(MicroMlpAffine<3, 16, float, float>);
+    BB_OBJECT_CREATE_MODEL(MicroMlpAffine<3, 16, Bit, float>);
+    BB_OBJECT_CREATE_MODEL(MicroMlpAffine<2, 16, float, float>);
+    BB_OBJECT_CREATE_MODEL(MicroMlpAffine<2, 16, Bit, float>);
+
+    BB_OBJECT_CREATE_MODEL(MicroMlp<6, 16, float, float>);
+    BB_OBJECT_CREATE_MODEL(MicroMlp<6, 16, Bit, float>);
+    BB_OBJECT_CREATE_MODEL(MicroMlp<5, 16, float, float>);
+    BB_OBJECT_CREATE_MODEL(MicroMlp<5, 16, Bit, float>);
+    BB_OBJECT_CREATE_MODEL(MicroMlp<4, 16, float, float>);
+    BB_OBJECT_CREATE_MODEL(MicroMlp<4, 16, Bit, float>);
+    BB_OBJECT_CREATE_MODEL(MicroMlp<3, 16, float, float>);
+    BB_OBJECT_CREATE_MODEL(MicroMlp<3, 16, Bit, float>);
+    BB_OBJECT_CREATE_MODEL(MicroMlp<2, 16, float, float>);
+    BB_OBJECT_CREATE_MODEL(MicroMlp<2, 16, Bit, float>);
+
+    BB_OBJECT_CREATE_MODEL(DenseAffine<float>);
+    BB_OBJECT_CREATE_MODEL(DepthwiseDenseAffine<float>);
+
     BB_OBJECT_CREATE_MODEL(Convolution2d<float, float>);
     BB_OBJECT_CREATE_MODEL(Convolution2d<Bit, float>);
     BB_OBJECT_CREATE_MODEL(ConvolutionCol2Im<float, float>);
@@ -112,6 +160,15 @@ inline std::shared_ptr<Object> Object_Creator(std::string object_name)
     BB_OBJECT_CREATE_MODEL(StochasticMaxPooling2x2<float, float>);
     BB_OBJECT_CREATE_MODEL(StochasticMaxPooling2x2<Bit, float>);
     
+    BB_OBJECT_CREATE_MODEL(Binarize<Bit, float>);
+    BB_OBJECT_CREATE_MODEL(Binarize<float, float>);
+    BB_OBJECT_CREATE_MODEL(Sigmoid<Bit, float>);
+    BB_OBJECT_CREATE_MODEL(Sigmoid<float, float>);
+    BB_OBJECT_CREATE_MODEL(ReLU<Bit, float>);
+    BB_OBJECT_CREATE_MODEL(ReLU<float, float>);
+    BB_OBJECT_CREATE_MODEL(HardTanh<Bit, float>);
+    BB_OBJECT_CREATE_MODEL(HardTanh<float, float>);
+
     BB_OBJECT_CREATE_MODEL(BatchNormalization<float>);
 
     BB_OBJECT_CREATE_MODEL(Shuffle);

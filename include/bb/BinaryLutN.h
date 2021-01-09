@@ -28,8 +28,8 @@ public:
     static inline std::string ClassName(void) { return "BinaryLut" + std::to_string(N); }
     static inline std::string ObjectName(void){ return ClassName() + "_" + DataType<FT>::Name() + "_" + DataType<BT>::Name(); }
 
-    std::string GetModelName(void)  const { return ClassName(); }
-    std::string GetObjectName(void) const { return ObjectName(); }
+    std::string GetModelName(void)  const override { return ClassName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
 
 protected:
     bool                    m_host_only = false;
@@ -71,7 +71,7 @@ protected:
         m_table.Resize(CalcShapeSize(m_output_shape), (index_t)m_table_unit);
     }
 
-    void CommandProc(std::vector<std::string> args)
+    void CommandProc(std::vector<std::string> args) override
     {
         // HostOnlyモード設定
         if (args.size() == 2 && args[0] == "host_only")
@@ -111,6 +111,12 @@ public:
         return Create(create);
     }
 
+    static std::shared_ptr<BinaryLutN> Create(void)
+    {
+        return Create(create_t());
+    }
+
+
 #ifdef BB_PYBIND11    // python用
     static std::shared_ptr<BinaryLutN> CreatePy(
                 indices_t       output_shape,
@@ -129,12 +135,12 @@ public:
     auto lock_InputIndex_const(void) const { return m_input_index.LockConst(); }
 
     // 疎結合の管理
-    index_t GetNodeConnectionSize(index_t node) const
+    index_t GetNodeConnectionSize(index_t node) const override
     {
         return N;
     }
 
-    void SetNodeConnectionIndex(index_t node, index_t input_index, index_t input_node)
+    void SetNodeConnectionIndex(index_t node, index_t input_index, index_t input_node) override
     {
         BB_ASSERT(node >= 0 && node < CalcShapeSize(m_output_shape));
         BB_ASSERT(input_index >= 0 && input_index < N);
@@ -144,7 +150,7 @@ public:
         ptr(node, input_index) = (std::int32_t)input_node;
     }
 
-    index_t GetNodeConnectionIndex(index_t node, index_t input_index) const
+    index_t GetNodeConnectionIndex(index_t node, index_t input_index) const override
     {
         BB_ASSERT(node >= 0 && node < CalcShapeSize(m_output_shape));
         BB_ASSERT(input_index >= 0 && input_index < N);
@@ -159,7 +165,7 @@ public:
         return m_table_size;
     }
 
-    void SetLutTable(index_t node, int bitpos, bool value)
+    void SetLutTable(index_t node, int bitpos, bool value) override
     {
         BB_ASSERT(node >= 0 && node < CalcShapeSize(m_output_shape));
         BB_ASSERT(bitpos >= 0 && bitpos < m_table_size);
@@ -176,7 +182,7 @@ public:
         }
     }
 
-    bool GetLutTable(index_t node, int bitpos) const
+    bool GetLutTable(index_t node, int bitpos) const override
     {
         BB_ASSERT(node >= 0 && node < CalcShapeSize(m_output_shape));
         BB_ASSERT(bitpos >= 0 && bitpos < (1 << N));
@@ -204,7 +210,7 @@ public:
      * @param shape 新しいshape
      * @return なし
      */
-    indices_t SetInputShape(indices_t shape)
+    indices_t SetInputShape(indices_t shape) override
     {
         // 設定済みなら何もしない
         if ( shape == this->GetInputShape() ) {
@@ -242,7 +248,7 @@ public:
      * @detail 入力形状を取得する
      * @return 入力形状を返す
      */
-    indices_t GetInputShape(void) const
+    indices_t GetInputShape(void) const override
     {
         return m_input_shape;
     }
@@ -252,7 +258,7 @@ public:
      * @detail 出力形状を取得する
      * @return 出力形状を返す
      */
-    indices_t GetOutputShape(void) const
+    indices_t GetOutputShape(void) const override
     {
         return m_output_shape;
     }
@@ -290,7 +296,7 @@ private:
     }
 
 public:
-    FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
+    FrameBuffer Forward(FrameBuffer x_buf, bool train = true) override
     {
         BB_ASSERT(x_buf.GetType() == DataType<FT>::type);
 
@@ -470,11 +476,56 @@ public:
     }
 
     // Backwardは存在しない
-    FrameBuffer Backward(FrameBuffer dy_buf)
+    FrameBuffer Backward(FrameBuffer dy_buf) override
     {
         FrameBuffer dx_buf(dy_buf.GetFrameSize(), m_input_shape, DataType<BT>::type);
         return dx_buf;
     }
+
+
+
+    // シリアライズ
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_host_only);
+        bb::SaveValue(os, m_host_simd);
+        bb::SaveValue(os, m_connection);
+        bb::SaveValue(os, m_input_shape);
+        bb::SaveValue(os, m_output_shape);
+        m_table.DumpObject(os);
+        m_input_index.DumpObject(os);
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_host_only);
+        bb::LoadValue(is, m_host_simd);
+        bb::LoadValue(is, m_connection);
+        bb::LoadValue(is, m_input_shape);
+        bb::LoadValue(is, m_output_shape);
+        m_table.LoadObject(is);
+        m_input_index.LoadObject(is);
+    }
+
 };
 
 

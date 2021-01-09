@@ -169,6 +169,10 @@ using DifferentiableLutDiscrete5_bit    = bb::DifferentiableLutDiscreteN<5, bb::
 using DifferentiableLutDiscrete6_fp32   = bb::DifferentiableLutDiscreteN<6, float, float>;
 using DifferentiableLutDiscrete6_bit    = bb::DifferentiableLutDiscreteN<6, bb::Bit, float>;
                                      
+using MicroMlp2_16_fp32                 = bb::MicroMlp<2, 16, float, float>;
+using MicroMlp2_16_bit                  = bb::MicroMlp<2, 16, bb::Bit, float>;
+using MicroMlp3_16_fp32                 = bb::MicroMlp<3, 16, float, float>;
+using MicroMlp3_16_bit                  = bb::MicroMlp<3, 16, bb::Bit, float>;
 using MicroMlp4_16_fp32                 = bb::MicroMlp<4, 16, float, float>;
 using MicroMlp4_16_bit                  = bb::MicroMlp<4, 16, bb::Bit, float>;
 using MicroMlp5_16_fp32                 = bb::MicroMlp<5, 16, float, float>;
@@ -599,7 +603,7 @@ PYBIND11_MODULE(core, m) {
     
     // DepthwiseDenseAffine
     py::class_< DepthwiseDenseAffine, Model, std::shared_ptr<DepthwiseDenseAffine> >(m, "DepthwiseDenseAffine")
-        .def_static("create",   &DepthwiseDenseAffine::CreateEx, "create",
+        .def_static("create",   &DepthwiseDenseAffine::CreatePy, "create",
             py::arg("output_shape"),
             py::arg("input_point_size")=0,
             py::arg("depth_size")=0,
@@ -775,13 +779,13 @@ PYBIND11_MODULE(core, m) {
     py::class_< Activation, Model, std::shared_ptr<Activation> >(m, "Activation");
 
     py::class_< Binarize_fp32, Activation, std::shared_ptr<Binarize_fp32> >(m, "Binarize_fp32")
-        .def_static("create", &Binarize_fp32::CreateEx,
+        .def_static("create", &Binarize_fp32::CreatePy,
                 py::arg("binary_th")    =  0.0f,
                 py::arg("hardtanh_min") = -1.0f,
                 py::arg("hardtanh_max") = +1.0f);
     
     py::class_< Binarize_bit, Activation, std::shared_ptr<Binarize_bit> >(m, "Binarize_bit")
-        .def_static("create", &Binarize_bit::CreateEx,
+        .def_static("create", &Binarize_bit::CreatePy,
                 py::arg("binary_th")    =  0.0f,
                 py::arg("hardtanh_min") = -1.0f,
                 py::arg("hardtanh_max") = +1.0f);
@@ -797,9 +801,9 @@ PYBIND11_MODULE(core, m) {
         .def_static("create",   &ReLU_bit::Create);
 
     py::class_< HardTanh_fp32, Binarize_fp32, std::shared_ptr<HardTanh_fp32> >(m, "HardTanh_fp32")
-        .def_static("create", &HardTanh_fp32::CreateEx);
+        .def_static("create", &HardTanh_fp32::CreatePy);
     py::class_< HardTanh_bit, Binarize_bit, std::shared_ptr<HardTanh_bit> >(m, "HardTanh_bit")
-        .def_static("create", &HardTanh_bit::CreateEx);
+        .def_static("create", &HardTanh_bit::CreatePy);
 
     
     py::class_< Dropout_fp32, Activation, std::shared_ptr<Dropout_fp32> >(m, "Dropout_fp32")

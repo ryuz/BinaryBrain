@@ -32,13 +32,14 @@ public:
     std::string GetObjectName(void) const { return ObjectName(); }
 
 protected:
+    bool        m_host_only = false;
+
     RealType    m_binary_th    = (RealType)0;
     RealType    m_hardtanh_min = (RealType)-1;
     RealType    m_hardtanh_max = (RealType)+1;
 
     FrameBuffer m_x_buf;
 
-    bool        m_host_only = false;
 
 public:
     // 生成情報
@@ -64,7 +65,7 @@ protected:
      * @detail コマンド処理
      * @param  args   コマンド
      */
-    void CommandProc(std::vector<std::string> args)
+    void CommandProc(std::vector<std::string> args) override
     {
         // HostOnlyモード設定
         if (args.size() == 2 && args[0] == "host_only")
@@ -90,7 +91,8 @@ public:
         return Create(create);
     }
 
-    static std::shared_ptr<Binarize> CreateEx(RealType binary_th = (RealType)0, RealType hardtanh_min = (RealType)-1, RealType hardtanh_max = (RealType)+1)
+#ifdef BB_PYBIND11
+    static std::shared_ptr<Binarize> CreatePy(RealType binary_th = (RealType)0, RealType hardtanh_min = (RealType)-1, RealType hardtanh_max = (RealType)+1)
     {
         create_t create;
         create.binary_th    = binary_th;
@@ -98,9 +100,10 @@ public:
         create.hardtanh_max = hardtanh_max;
         return Create(create);
     }
-    
+#endif
+
     // ノード単位でのForward計算
-    std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
+    std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const override
     {
         std::vector<double> y_vec;
         for ( auto x : x_vec ) {
@@ -119,7 +122,7 @@ public:
      * @param  train 学習時にtrueを指定
      * @return forward演算結果
      */
-    inline FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
+    inline FrameBuffer Forward(FrameBuffer x_buf, bool train = true) override
     {
         BB_ASSERT(x_buf.GetType() == DataType<RealType>::type);
 
@@ -196,7 +199,7 @@ public:
      *         
      * @return backward演算結果
      */
-    inline FrameBuffer Backward(FrameBuffer dy_buf)
+    inline FrameBuffer Backward(FrameBuffer dy_buf) override
     {
         BB_ASSERT(dy_buf.GetType() == DataType<RealType>::type);
 
@@ -248,6 +251,42 @@ public:
 
             return dx_buf;
         }
+    }
+
+    // シリアライズ
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_host_only);
+        bb::SaveValue(os, m_binary_th);
+        bb::SaveValue(os, m_hardtanh_min);
+        bb::SaveValue(os, m_hardtanh_max);
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_host_only);
+        bb::LoadValue(is, m_binary_th);
+        bb::LoadValue(is, m_hardtanh_min);
+        bb::LoadValue(is, m_hardtanh_max);
     }
 };
 

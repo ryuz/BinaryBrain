@@ -75,20 +75,20 @@ protected:
     {
         // バージョン
         std::int64_t ver = 1;
-        SaveValue(os, ver);
+        bb::SaveValue(os, ver);
 
         // 親クラス
         _super::DumpObjectData(os);
 
         // メンバ
-        SaveIndices(os, m_shape);
+        bb::SaveValue(os, m_shape);
     }
 
     void LoadObjectData(std::istream &is) override
     {
         // バージョン
         std::int64_t ver;
-        LoadValue(is, ver);
+        bb::LoadValue(is, ver);
 
         BB_ASSERT(ver == 1);
 
@@ -96,7 +96,7 @@ protected:
         _super::LoadObjectData(is);
 
         // メンバ
-        m_shape = LoadIndices(is);
+        bb::LoadValue(is, m_shape);
     }
 
 };
