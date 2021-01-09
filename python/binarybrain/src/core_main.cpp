@@ -344,7 +344,9 @@ PYBIND11_MODULE(core, m) {
     py::class_< Object, std::shared_ptr<Object> >(m, "Object")
         .def("get_object_name", &Object::GetObjectName)
         .def("dump_object", &Object::DumpObjectBytes)
-        .def("loda_object", &Object::LoadObjectBytes)
+        .def("load_object", &Object::LoadObjectBytes)
+        .def_static("write_header", &Object::WriteHeaderPy)
+        .def_static("read_header", &Object::ReadHeaderPy)
         ;
 
 

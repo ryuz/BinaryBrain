@@ -5,6 +5,8 @@ from binarybrain.system       import *
 
 from binarybrain.dtype        import *
 
+from binarybrain.object       import *
+
 from binarybrain.tensor       import *
 from binarybrain.frame_buffer import *
 from binarybrain.variables    import *

@@ -230,7 +230,7 @@ protected:
         SaveValue(os, ver);
 
         // 親クラス
-        _super::DumpObjectData(os);    
+//      _super::DumpObjectData(os);
         
         // メンバ
         std::int64_t layer_size = (std::int64_t)m_layers.size();
@@ -249,7 +249,7 @@ protected:
         BB_ASSERT(ver == 1);
 
         // 親クラス
-        _super::LoadObjectData(is);
+//      _super::LoadObjectData(is);
 
         // メンバ
         std::int64_t layer_size;

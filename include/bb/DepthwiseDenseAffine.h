@@ -91,7 +91,7 @@ protected:
         }
 #endif
 
-        BB_ASSERT(!create.output_shape.empty());
+//      BB_ASSERT(!create.output_shape.empty());
 
         m_initialize_std  = create.initialize_std;
         m_initializer     = create.initializer;
@@ -216,6 +216,8 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
+        BB_ASSERT(!shape.empty());
+
         // 設定済みなら何もしない
         if ( shape == this->GetInputShape() ) {
             return this->GetOutputShape();
@@ -231,7 +233,7 @@ public:
             }
             else
             {
-                m_depth_size = m_output_shape[m_output_shape.size() - 1];
+                m_depth_size = m_output_shape[0];
             }
         }
 
@@ -573,14 +575,14 @@ protected:
         // 再構築
         m_input_node_size = CalcShapeSize(m_input_shape);
         m_output_node_size = CalcShapeSize(m_output_shape);
-        if ( m_input_node_size > 0 ) {
+        if ( !m_input_shape.empty() ) {
             if ( m_depth_size <= 0 ) {
                 if ( m_input_point_size > 0 ) {
                     m_depth_size = m_input_node_size / m_input_point_size;
                 }
                 else
                 {
-                    m_depth_size = m_output_shape[m_output_shape.size() - 1];
+                    m_depth_size = m_output_shape[0];
                 }
             }
 

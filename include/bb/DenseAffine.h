@@ -87,7 +87,7 @@ protected:
         }
 #endif
 
-        BB_ASSERT(!create.output_shape.empty());
+//      BB_ASSERT(!create.output_shape.empty());
 
         m_initialize_std  = create.initialize_std;
         m_initializer     = create.initializer;

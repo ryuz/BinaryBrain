@@ -34,7 +34,7 @@ public:
 
     void DumpObject(std::ostream& os) const
     {
-        WriteHeader(os);
+        WriteHeader(os, GetObjectName());
         DumpObjectData(os);
     }
 
@@ -61,6 +61,23 @@ public:
         LoadObject(is);
         return (std::size_t)is.tellg();
     }
+
+    static pybind11::bytes WriteHeaderPy(std::string name)
+    {
+        std::ostringstream os(std::istringstream::binary);
+        WriteHeader(os, name);
+        auto str = os.str();
+        pybind11::bytes data(str);
+        return data;
+    }
+
+    static pybind11::tuple ReadHeaderPy(pybind11::bytes data)
+    {
+        std::istringstream is((std::string)data, std::istringstream::binary);
+        auto name = ReadHeader(is);
+        return pybind11::make_tuple((std::size_t)is.tellg(), name);
+    }
+
 #endif
 
 
@@ -82,7 +99,7 @@ protected:
 
 
 private:
-    void WriteHeader(std::ostream &os)  const
+    static void WriteHeader(std::ostream &os, std::string const &name)
     {
         // タグ
         os.write("BB_OBJ", 6);
@@ -92,7 +109,6 @@ private:
         os.write((char const *)&ver, sizeof(ver));
 
         // オブジェクト名
-        auto name = GetObjectName();
         std::uint64_t size = (std::uint64_t)name.size();
         os.write((char const *)&size, sizeof(size));
         os.write((char const *)&name[0], size*sizeof(name[0]));

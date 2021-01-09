@@ -10,7 +10,7 @@ import binarybrain.core as core
 
 # ------- 基本モデル --------
 
-class Model():
+class Model(bb.Object):
     """Model class
        ネットワーク各層の演算モデルの基底クラス
        すべてのモデルはこのクラスを基本クラスに持つ
@@ -21,17 +21,15 @@ class Model():
     """
     
     def __init__(self, *, core_model=None, input_shape=None, name=None):
-        self.core_model = core_model
+        super(Model, self).__init__(core_object=core_model)
+
         self.input_shape = input_shape
         self.name = name
         if core_model is not None:
             if name is not None:
-                self.core_model.set_name(name)
+                self.set_name(name)
             if input_shape is not None:
                 self.set_input_shape(input_shape)
-    
-    def get_core(self):
-        return self.core_model
     
     def set_name(self, name: str):
         """インスタンス名の設定
@@ -303,13 +301,15 @@ class Model():
         """
         core_model = self.get_core()
         if core_model is not None:
-            core_model.load(data)
+            size = core_model.load(data)
+            return data[size:]
+        return data
+
+#    def dump(self, f):
+#        pickle.dump(f, self.dump_bytes())
     
-    def dump(self, f):
-        pickle.dump(f, self.dump_bytes())
-    
-    def load(self, f):
-        self.load_bytes(pickle.load(f))
+#    def load(self, f):
+#        self.load_bytes(pickle.load(f))
     
     
     
@@ -418,6 +418,34 @@ class Sequential(Model):
         for model in reversed(self.model_list):
             dy_buf = model.backward(dy_buf)
         return dy_buf
+
+
+    # シリアライズはC++版とフォーマット互換にする
+#   def dumps(self):
+#       return self.get_core().dump_object()
+
+    def loads(self, data):
+        # ヘッダ
+        load_size, name = core.Object.read_header(data)
+        data = data[load_size:]
+        assert(name == 'Sequential')
+        
+        # バージョン
+        ver = int.from_bytes(data[0:8], 'little')
+        data = data[8:]
+        assert(ver == 1)
+        
+        # レイヤ数
+        layer_size = int.from_bytes(data[0:8], 'little')
+        data = data[8:]
+        if len(self.model_list) > 0:
+            assert(layer_size == len(self.model_list))
+            for model in self.model_list:
+                data = model.loads(data)
+        else:
+            assert(False)
+        
+        return data
 
 
 # ------- バイナリ変調 --------

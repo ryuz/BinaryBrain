@@ -35,6 +35,16 @@ TEST(ObjectTest, SerializeModel)
     src_net->Add(bb::DifferentiableLutN<2, float, float>::Create());
     src_net->Add(bb::DifferentiableLutN<2, bb::Bit, float>::Create());
     src_net->Add(bb::BatchNormalization<float>::Create());
+    src_net->Add(bb::DenseAffine<float>::Create());
+    src_net->Add(bb::DepthwiseDenseAffine<float>::Create());
+    src_net->Add(bb::Binarize<bb::Bit, float>::Create());
+    src_net->Add(bb::Binarize<float, float>::Create());
+    src_net->Add(bb::Sigmoid<bb::Bit, float>::Create());
+    src_net->Add(bb::Sigmoid<float, float>::Create());
+    src_net->Add(bb::ReLU<bb::Bit, float>::Create());
+    src_net->Add(bb::ReLU<float, float>::Create());
+    src_net->Add(bb::HardTanh<bb::Bit, float>::Create());
+    src_net->Add(bb::HardTanh<float, float>::Create());
 
     {
         std::ofstream ofs("test_obj.bin", std::ios::binary);
@@ -67,6 +77,18 @@ TEST(ObjectTest, SerializeModel)
         EXPECT_EQ(dst_net->Get(15)->GetModelName(), "DifferentiableLut2");
 
         EXPECT_EQ(dst_net->Get(16)->GetModelName(), "BatchNormalization");
+
+        EXPECT_EQ(dst_net->Get(17)->GetModelName(), "DenseAffine");
+        EXPECT_EQ(dst_net->Get(18)->GetModelName(), "DepthwiseDenseAffine");
+
+        EXPECT_EQ(dst_net->Get(19)->GetModelName(), "Binarize");
+        EXPECT_EQ(dst_net->Get(20)->GetModelName(), "Binarize");
+        EXPECT_EQ(dst_net->Get(21)->GetModelName(), "Sigmoid");
+        EXPECT_EQ(dst_net->Get(22)->GetModelName(), "Sigmoid");
+        EXPECT_EQ(dst_net->Get(23)->GetModelName(), "ReLU");
+        EXPECT_EQ(dst_net->Get(24)->GetModelName(), "ReLU");
+        EXPECT_EQ(dst_net->Get(25)->GetModelName(), "HardTanh");
+        EXPECT_EQ(dst_net->Get(26)->GetModelName(), "HardTanh");
     }
 }
 
