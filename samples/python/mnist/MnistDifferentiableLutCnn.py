@@ -103,10 +103,9 @@ def main():
     optimizer.set_variables(net.get_parameters(), net.get_gradients())
     
     for epoch in range(epochs):
+        # training
         loss.clear()
         metrics.clear()
-
-        # training
         with tqdm(loader_train) as t:
             for images, labels in t:
                 x_buf = bb.FrameBuffer.from_numpy(np.array(images).astype(np.float32))

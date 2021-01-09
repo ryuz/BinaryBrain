@@ -58,6 +58,7 @@ def main():
 
     for epoch in range(epochs):
         # training
+        loss.clear()
         with tqdm(loader_train) as t:
             for images, labels in t:
                 x_buf = bb.FrameBuffer.from_numpy(np.array(images).astype(np.float32))
@@ -73,6 +74,8 @@ def main():
                 t.set_postfix(loss=loss.get(), acc=metrics.get())
         
         # test
+        loss.clear()
+        metrics.clear()
         for images, labels in loader_test:
             x_buf = bb.FrameBuffer.from_numpy(np.array(images).astype(np.float32))
             t_buf = bb.FrameBuffer.from_numpy(np.identity(10)[np.array(labels)].astype(np.float32))
