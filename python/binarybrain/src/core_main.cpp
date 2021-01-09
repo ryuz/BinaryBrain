@@ -7,7 +7,14 @@
 // --------------------------------------------------------------------------
 
 
+
+#ifndef BB_PYBIND11
 #define BB_PYBIND11
+#endif
+
+#ifndef BB_OBJECT_RECONSTRUCTION
+#define BB_OBJECT_RECONSTRUCTION
+#endif
 
 
 #include <omp.h>
@@ -511,7 +518,7 @@ PYBIND11_MODULE(core, m) {
     
 
     py::class_< Shuffle, Model, std::shared_ptr<Shuffle> >(m, "Shuffle")
-        .def_static("create",   &Shuffle::CreateEx);
+        .def_static("create",   &Shuffle::CreatePy);
     
     py::class_< BinaryModulation_fp32, Model, std::shared_ptr<BinaryModulation_fp32> >(m, "BinaryModulation_fp32")
         .def_static("create", &BinaryModulation_fp32::CreateEx,
@@ -727,30 +734,21 @@ PYBIND11_MODULE(core, m) {
     py::class_< Filter2d, Model, std::shared_ptr<Filter2d> >(m, "Filter2d");
 
     py::class_< ConvolutionIm2Col_fp32, Model, std::shared_ptr<ConvolutionIm2Col_fp32> >(m, "ConvolutionIm2Col_fp32")
-        .def_static("create", &ConvolutionIm2Col_fp32::CreateEx)
-        ;
-
+        .def_static("create", &ConvolutionIm2Col_fp32::CreatePy);
     py::class_< ConvolutionIm2Col_bit, Model, std::shared_ptr<ConvolutionIm2Col_bit> >(m, "ConvolutionIm2Col_bit")
-        .def_static("create", &ConvolutionIm2Col_bit::CreateEx)
-        ;
+        .def_static("create", &ConvolutionIm2Col_bit::CreatePy);
 
     py::class_< ConvolutionCol2Im_fp32, Model, std::shared_ptr<ConvolutionCol2Im_fp32> >(m, "ConvolutionCol2Im_fp32")
-        .def_static("create", &ConvolutionCol2Im_fp32::CreateEx)
-        ;
-
+        .def_static("create", &ConvolutionCol2Im_fp32::CreatePy);
     py::class_< ConvolutionCol2Im_bit, Model, std::shared_ptr<ConvolutionCol2Im_bit> >(m, "ConvolutionCol2Im_bit")
-        .def_static("create", &ConvolutionCol2Im_bit::CreateEx)
-        ;
+        .def_static("create", &ConvolutionCol2Im_bit::CreatePy);
 
     py::class_< Convolution2d_fp32, Filter2d, std::shared_ptr<Convolution2d_fp32> >(m, "Convolution2d_fp32")
         .def_static("create", &Convolution2d_fp32::CreatePy)
-        .def("get_sub_layer", &Convolution2d_fp32::GetSubLayer)
-        ;
-
+        .def("get_sub_layer", &Convolution2d_fp32::GetSubLayer);
     py::class_< Convolution2d_bit, Filter2d, std::shared_ptr<Convolution2d_bit> >(m, "Convolution2d_bit")
         .def_static("create", &Convolution2d_bit::CreatePy)
-        .def("get_sub_layer", &Convolution2d_bit::GetSubLayer)
-        ;
+        .def("get_sub_layer", &Convolution2d_bit::GetSubLayer);
 
     py::class_< MaxPooling_fp32, Filter2d, std::shared_ptr<MaxPooling_fp32> >(m, "MaxPooling_fp32")
         .def_static("create", &MaxPooling_fp32::CreatePy);
@@ -815,7 +813,7 @@ PYBIND11_MODULE(core, m) {
                 py::arg("seed") = 1);
 
     py::class_< BatchNormalization, Activation, std::shared_ptr<BatchNormalization> >(m, "BatchNormalization")
-        .def_static("create", &BatchNormalization::CreateEx,
+        .def_static("create", &BatchNormalization::CreatePy,
                 py::arg("momentum")  = 0.9f,
                 py::arg("gamma")     = 1.0f,
                 py::arg("beta")      = 0.0f,

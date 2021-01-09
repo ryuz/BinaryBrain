@@ -9,6 +9,10 @@
 
 #pragma once
 
+
+#ifdef BB_OBJECT_RECONSTRUCTION
+
+
 #include <iostream>
 #include <memory>
 #include <string>
@@ -28,7 +32,16 @@
 
 #include "bb/DifferentiableLutN.h"
 
+#include "bb/Convolution2d.h"
+#include "bb/ConvolutionCol2Im.h"
+#include "bb/ConvolutionIm2Col.h"
+
+#include "bb/MaxPooling.h"
+#include "bb/StochasticMaxPooling2x2.h"
+
 #include "bb/BatchNormalization.h" 
+
+#include "bb/Shuffle.h"
 
 
 namespace bb {
@@ -36,23 +49,16 @@ namespace bb {
 
 // ファイルからのオブジェクトの再構築
 // なお、再構築サポートするとすべてのオブジェクトのコードをリンクすることになるので
-// 必要ない場合は BB_NO_OBJECT_RECONSTRUCTION を定義することで取り外せるようにしておく
+// BB_OBJECT_RECONSTRUCTION を定義したときのみ有効になる
 
 
 
 // 再構築の対象にしたいものはひとまず手動で足すこととする
 
-#define BB_OBJECT_CREATE(object_class) \
+#define BB_OBJECT_CREATE(...) \
     do { \
-        if ( object_name == object_class::ObjectName() ) { return std::shared_ptr<object_class>(new object_class); } \
+        if ( object_name == __VA_ARGS__::ObjectName() ) { return std::shared_ptr<__VA_ARGS__>(new __VA_ARGS__); } \
     } while(0)
-
-/*
-#define BB_OBJECT_CREATE_MODEL(object_class) \
-    do { \
-        if ( object_name == object_class::ObjectName() ) { return object_class::Create(); } \
-    } while(0)
-*/
 
 #define BB_OBJECT_CREATE_MODEL(...) \
     do { \
@@ -62,21 +68,6 @@ namespace bb {
 
 inline std::shared_ptr<Object> Object_Creator(std::string object_name)
 {
-#ifndef BB_NO_OBJECT_RECONSTRUCTION
-    /*
-    using t_Tensor        = Tensor;
-    using t_Tensor_fp32   = Tensor_<float>;
-    using t_Tensor_fp64   = Tensor_<double>;
-    using t_Tensor_int8   = Tensor_<std::int8_t>;
-    using t_Tensor_int16  = Tensor_<std::int16_t>;
-    using t_Tensor_int32  = Tensor_<std::int32_t>;
-    using t_Tensor_int64  = Tensor_<std::int64_t>;
-    using t_Tensor_uint8  = Tensor_<std::uint8_t>;
-    using t_Tensor_uint16 = Tensor_<std::uint16_t>;
-    using t_Tensor_uint32 = Tensor_<std::uint32_t>;
-    using t_Tensor_uint64 = Tensor_<std::uint64_t>;
-    */
-
     BB_OBJECT_CREATE(Tensor);
     BB_OBJECT_CREATE(Tensor_<float>);
     BB_OBJECT_CREATE(Tensor_<double>);
@@ -108,10 +99,22 @@ inline std::shared_ptr<Object> Object_Creator(std::string object_name)
     BB_OBJECT_CREATE_MODEL(DifferentiableLutN<3, Bit, float>);
     BB_OBJECT_CREATE_MODEL(DifferentiableLutN<2, float, float>);
     BB_OBJECT_CREATE_MODEL(DifferentiableLutN<2, Bit, float>);
-
+    
+    BB_OBJECT_CREATE_MODEL(Convolution2d<float, float>);
+    BB_OBJECT_CREATE_MODEL(Convolution2d<Bit, float>);
+    BB_OBJECT_CREATE_MODEL(ConvolutionCol2Im<float, float>);
+    BB_OBJECT_CREATE_MODEL(ConvolutionCol2Im<Bit, float>);
+    BB_OBJECT_CREATE_MODEL(ConvolutionIm2Col<float, float>);
+    BB_OBJECT_CREATE_MODEL(ConvolutionIm2Col<Bit, float>);
+    
+    BB_OBJECT_CREATE_MODEL(MaxPooling<float, float>);
+    BB_OBJECT_CREATE_MODEL(MaxPooling<Bit, float>);
+    BB_OBJECT_CREATE_MODEL(StochasticMaxPooling2x2<float, float>);
+    BB_OBJECT_CREATE_MODEL(StochasticMaxPooling2x2<Bit, float>);
+    
     BB_OBJECT_CREATE_MODEL(BatchNormalization<float>);
 
-#endif
+    BB_OBJECT_CREATE_MODEL(Shuffle);
 
     return std::shared_ptr<Object>();
 }
@@ -119,7 +122,6 @@ inline std::shared_ptr<Object> Object_Creator(std::string object_name)
 
 inline std::shared_ptr<Object> Object_Reconstruct(std::istream &is)
 {
-#ifndef BB_NO_OBJECT_RECONSTRUCTION
     auto object_name = Object::ReadHeader(is);
     BB_ASSERT(object_name.size() > 0);
 
@@ -129,14 +131,28 @@ inline std::shared_ptr<Object> Object_Reconstruct(std::istream &is)
     obj_ptr->LoadObjectData(is);
 
     return obj_ptr;
-#else
+}
+
+}
+
+
+#else   // BB_OBJECT_RECONSTRUCTION
+
+
+#include "bb/Object.h"
+
+namespace bb {
+
+inline std::shared_ptr<Object> Object_Reconstruct(std::istream &is)
+{
     return std::shared_ptr<Object>();
-#endif
+}
+
 }
 
 
-}
+#endif   // BB_OBJECT_RECONSTRUCTION
+
 
 
 // end of file
-

@@ -383,6 +383,7 @@ void WriteTestDataImage(std::string filename, int width, int height, TrainData<T
     BB_ASSERT(td.x_shape.size() == 3);
 
     // イメージ作成
+    auto f_size = td.x_test.size();
     auto c_size = td.x_shape[0];
     auto h_size = td.x_shape[1];
     auto w_size = td.x_shape[2];
@@ -390,7 +391,7 @@ void WriteTestDataImage(std::string filename, int width, int height, TrainData<T
     for (int c = 0; c < 3; ++c) {
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
-                auto idx = (y / h_size) * (width / w_size) + (x / w_size);
+                auto idx = ((y / h_size) * (width / w_size) + (x / w_size)) % f_size;
                 auto xx = x % w_size;
                 auto yy = y % h_size;
                 auto cc = c % c_size;

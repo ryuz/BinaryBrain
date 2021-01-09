@@ -255,7 +255,7 @@ protected:
         std::int64_t layer_size;
         LoadValue(is, layer_size);
 
-#ifndef BB_NO_OBJECT_RECONSTRUCTION
+#ifdef BB_OBJECT_RECONSTRUCTION
         if ( m_layers.empty() ) {
             for (std::int64_t i = 0; i < layer_size; ++i) {
                 auto layer = std::dynamic_pointer_cast<Model>(Object_Reconstruct(is));

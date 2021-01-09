@@ -7,6 +7,15 @@
 // --------------------------------------------------------------------------
 
 
+#ifndef BB_PYBIND11
+#define BB_PYBIND11
+#endif
+
+#ifndef BB_OBJECT_RECONSTRUCTION
+#define BB_OBJECT_RECONSTRUCTION
+#endif
+
+
 #include "Manager.cu"
 #include "LocalHeap.cu"
 #include "FrameBufferCopy.cu"

@@ -262,11 +262,11 @@ protected:
         if ( m_output_shape.empty() && !m_input_shape.empty() ) {
             m_output_shape = m_input_shape;
             m_output_shape[0] *= m_bit_size;
-        }
 
-        BB_ASSERT(m_bit_size != 0);
-        BB_ASSERT(CalcShapeSize(m_output_shape) % m_bit_size == 0);
-        BB_ASSERT(CalcShapeSize(m_output_shape) / m_bit_size == CalcShapeSize(m_input_shape));
+            BB_ASSERT(m_bit_size != 0);
+            BB_ASSERT(CalcShapeSize(m_output_shape) % m_bit_size == 0);
+            BB_ASSERT(CalcShapeSize(m_output_shape) / m_bit_size == CalcShapeSize(m_input_shape));
+        }
     }
 };
 

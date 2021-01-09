@@ -65,8 +65,20 @@ public:
 
 
 protected:
-    virtual void DumpObjectData(std::ostream &os) const {} //= 0;
-    virtual void LoadObjectData(std::istream &is) {} // = 0;
+    virtual void DumpObjectData(std::ostream &os) const
+    {
+        // override されていない場合は ver=0 でマークする(将来0以外で分岐すれば追加できる)
+        std::int64_t ver = 0;
+        os.write((char const *)&ver, sizeof(ver));
+    }
+    
+    virtual void LoadObjectData(std::istream &is)
+    {
+        // override されていない場合は常に 0 を期待する
+        std::int64_t ver;
+        is.read((char *)&ver, sizeof(ver));
+        BB_ASSERT(ver == 0);
+    }
 
 
 private:
@@ -77,7 +89,7 @@ private:
         
         // バージョン
         std::int64_t ver = 1;
-        os.write((char*)&ver, sizeof(ver));
+        os.write((char const *)&ver, sizeof(ver));
 
         // オブジェクト名
         auto name = GetObjectName();

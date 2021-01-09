@@ -35,8 +35,8 @@ public:
     static inline std::string ModelName(void) { return "DenseAffine"; }
     static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<T>::Name(); }
 
-    std::string GetModelName(void)  const { return ModelName(); }
-    std::string GetObjectName(void) const { return ObjectName(); }
+    std::string GetModelName(void)  const override { return ModelName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
 
 
 protected:
@@ -465,7 +465,7 @@ public:
 
 
 protected:
-    void DumpObjectData(std::ostream &os) const
+    void DumpObjectData(std::ostream &os) const override
     {
         // バージョン
         std::int64_t ver = 1;
@@ -477,13 +477,16 @@ protected:
         // メンバ
         bb::SaveValue(os, m_host_only);
         bb::SaveValue(os, m_binary_mode);
-        SaveIndices(os, m_input_shape);
-        SaveIndices(os, m_output_shape);
+        bb::SaveValue(os, m_initialize_std);
+        bb::SaveValue(os, m_initializer);
+        bb::SaveValue(os, m_input_shape);
+        bb::SaveValue(os, m_output_shape);
+
         m_W->DumpObject(os);
         m_b->DumpObject(os);
     }
 
-    void LoadObjectData(std::istream &is)
+    void LoadObjectData(std::istream &is) override
     {
         // バージョン
         std::int64_t ver;
@@ -497,8 +500,10 @@ protected:
         // メンバ
         bb::LoadValue(is, m_host_only);
         bb::LoadValue(is, m_binary_mode);
-        m_input_shape  = bb::LoadIndices(is);
-        m_output_shape = bb::LoadIndices(is);
+        bb::LoadValue(is, m_initialize_std);
+        bb::LoadValue(is, m_initializer);
+        bb::LoadValue(is, m_input_shape);
+        bb::LoadValue(is, m_output_shape);
         m_W->LoadObject(is);
         m_b->LoadObject(is);
         
