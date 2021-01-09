@@ -24,7 +24,7 @@ namespace bb {
 
 class Object
 {
-    friend inline std::shared_ptr<Object> Object_Reconstruct(std::istream &is);
+    friend std::shared_ptr<Object> Object_Reconstruct(std::istream &is);
 
 public:
     Object(){}
@@ -65,7 +65,7 @@ public:
 
 
 protected:
-    virtual void DumpObjectData(std::ostream &os) const {} // = 0;
+    virtual void DumpObjectData(std::ostream &os) const {} //= 0;
     virtual void LoadObjectData(std::istream &is) {} // = 0;
 
 

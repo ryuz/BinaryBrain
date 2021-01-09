@@ -67,8 +67,8 @@ public:
 
     std::string GetModelName(void) const { return "StochasticMaxPooling2x2"; }
 
-    index_t GetFilterHeight(void) { return 2; }
-    index_t GetFilterWidth(void)  { return 2; }
+    index_t GetFilterHeight(void) const override { return 2; }
+    index_t GetFilterWidth(void) const override { return 2; }
 
     /**
      * @brief  入力形状設定
@@ -78,7 +78,7 @@ public:
      * @param  shape      1フレームのノードを構成するshape
      * @return 出力形状を返す
      */
-    indices_t SetInputShape(indices_t shape)
+    indices_t SetInputShape(indices_t shape) override
     {
         // 設定済みなら何もしない
         if ( shape == this->GetInputShape() ) {

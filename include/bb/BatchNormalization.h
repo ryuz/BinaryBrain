@@ -44,8 +44,8 @@ public:
     static inline std::string ModelName(void) { return "BatchNormalization"; }
     static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<T>::Name(); }
 
-    std::string GetModelName(void)  const { return ModelName(); }
-    std::string GetObjectName(void) const { return ObjectName(); }
+    std::string GetModelName(void)  const override { return ModelName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
 
 
 protected:
@@ -97,7 +97,7 @@ protected:
         m_fix_beta   = create.fix_beta;
     }
 
-    void CommandProc(std::vector<std::string> args)
+    void CommandProc(std::vector<std::string> args) override
     {
         _super::CommandProc(args);
 
@@ -136,7 +136,7 @@ protected:
         }
     }
     
-    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
+    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth) const override
     {
         _super::PrintInfoText(os, indent, columns, nest, depth);
         os << indent << " momentum : " << m_momentum << std::endl;
@@ -144,11 +144,6 @@ protected:
 
 public:
     ~BatchNormalization() {}
-
-//    static std::shared_ptr<BatchNormalization> Create(void)
-//    {
-//        return std::shared_ptr<BatchNormalization>(new BatchNormalization(create_t()));
-//    }
 
     static std::shared_ptr<BatchNormalization> Create(create_t const &create)
     {
@@ -164,8 +159,8 @@ public:
         return Create(create);
     }
 
-    // for python
-    static std::shared_ptr<BatchNormalization> CreateEx(
+#ifdef BB_PYBIND11 // for python
+    static std::shared_ptr<BatchNormalization> CreatePy(
             T       momentum  = (T)0.9,
             T       gamma     = (T)1.0,
             T       beta      = (T)0.0,
@@ -181,9 +176,10 @@ public:
         create.fix_beta  = fix_beta;
         return Create(create);
     }
-    
+#endif
+
 protected:
-    void DumpObjectData(std::ostream &os) const
+    void DumpObjectData(std::ostream &os) const override
     {
         // バージョン
         std::int64_t ver = 1;
@@ -201,7 +197,7 @@ protected:
         m_running_var.DumpObject(os);
     }
 
-    void LoadObjectData(std::istream &is)
+    void LoadObjectData(std::istream &is) override
     {
         // バージョン
         std::int64_t ver;
@@ -231,7 +227,7 @@ protected:
 
 public:
     // Serialize(旧バージョン)
-    void Save(std::ostream &os) const 
+    void Save(std::ostream &os) const override
     {
         SaveIndices(os, _super::m_shape);
         bb::SaveValue(os, m_momentum);
@@ -241,7 +237,7 @@ public:
         m_running_var.Save(os);
     }
 
-    void Load(std::istream &is)
+    void Load(std::istream &is) override
     {
         this->m_shape = LoadIndices(is);
         bb::LoadValue(is, m_momentum);
@@ -352,7 +348,7 @@ public:
      *         Optimizerでの利用を想定
      * @return パラメータを返す
      */
-    Variables GetParameters(void)
+    Variables GetParameters(void) override
     {
         Variables parameters;
         if ( !this->m_parameter_lock ) {
@@ -368,7 +364,7 @@ public:
      *         Optimizerでの利用を想定
      * @return パラメータを返す
      */
-    Variables GetGradients(void)
+    Variables GetGradients(void) override
     {
         Variables gradients;
         if ( !this->m_parameter_lock ) {
@@ -380,7 +376,7 @@ public:
     
 
     // ノード単位でのForward計算
-    std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
+    std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const override
     {
         BB_DEBUG_ASSERT(node >= 0 && node < CalcShapeSize(_super::GetOutputShape()));
 
@@ -409,7 +405,7 @@ public:
      * @param  train 学習時にtrueを指定
      * @return forward演算結果
      */
-    FrameBuffer Forward(FrameBuffer x_buf, bool train=true)
+    FrameBuffer Forward(FrameBuffer x_buf, bool train=true) override
     {
         // bypass
         if (m_bypass) {
@@ -664,7 +660,7 @@ public:
 
 
     // forward 再計算
-    FrameBuffer ReForward(FrameBuffer x_buf)
+    FrameBuffer ReForward(FrameBuffer x_buf) override
     {
         // bypass
         if (m_bypass) {
@@ -748,7 +744,7 @@ public:
      *         
      * @return backward演算結果
      */
-    FrameBuffer Backward(FrameBuffer dy_buf)
+    FrameBuffer Backward(FrameBuffer dy_buf) override
     {
         if (m_bypass) {
             return dy_buf;

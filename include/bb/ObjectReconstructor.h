@@ -20,8 +20,11 @@
 
 #include "bb/Tensor.h" 
 
+#include "bb/Sequential.h"
+
 #include "bb/RealToBinary.h" 
 #include "bb/BinaryToReal.h" 
+#include "bb/BitEncode.h"
 
 #include "bb/DifferentiableLutN.h"
 
@@ -56,6 +59,7 @@ namespace bb {
         if ( object_name == __VA_ARGS__::ObjectName() ) { return __VA_ARGS__::Create(); } \
     } while(0)
 
+
 inline std::shared_ptr<Object> Object_Creator(std::string object_name)
 {
 #ifndef BB_NO_OBJECT_RECONSTRUCTION
@@ -85,21 +89,25 @@ inline std::shared_ptr<Object> Object_Creator(std::string object_name)
     BB_OBJECT_CREATE(Tensor_<std::uint32_t>);
     BB_OBJECT_CREATE(Tensor_<std::uint64_t>);
 
-    BB_OBJECT_CREATE_MODEL(RealToBinary<float>);
-    BB_OBJECT_CREATE_MODEL(RealToBinary<bb::Bit>);
-    BB_OBJECT_CREATE_MODEL(BinaryToReal<float>);
-    BB_OBJECT_CREATE_MODEL(BinaryToReal<bb::Bit>);
+    BB_OBJECT_CREATE_MODEL(Sequential);
+
+    BB_OBJECT_CREATE_MODEL(RealToBinary<float, float>);
+    BB_OBJECT_CREATE_MODEL(RealToBinary<Bit, float>);
+    BB_OBJECT_CREATE_MODEL(BinaryToReal<float, float>);
+    BB_OBJECT_CREATE_MODEL(BinaryToReal<Bit, float>);
+    BB_OBJECT_CREATE_MODEL(BitEncode<float, float>);
+    BB_OBJECT_CREATE_MODEL(BitEncode<Bit, float>);
 
     BB_OBJECT_CREATE_MODEL(DifferentiableLutN<6, float, float>);
-    BB_OBJECT_CREATE_MODEL(DifferentiableLutN<6, bb::Bit, float>);
+    BB_OBJECT_CREATE_MODEL(DifferentiableLutN<6, Bit, float>);
     BB_OBJECT_CREATE_MODEL(DifferentiableLutN<5, float, float>);
-    BB_OBJECT_CREATE_MODEL(DifferentiableLutN<5, bb::Bit, float>);
+    BB_OBJECT_CREATE_MODEL(DifferentiableLutN<5, Bit, float>);
     BB_OBJECT_CREATE_MODEL(DifferentiableLutN<4, float, float>);
-    BB_OBJECT_CREATE_MODEL(DifferentiableLutN<4, bb::Bit, float>);
+    BB_OBJECT_CREATE_MODEL(DifferentiableLutN<4, Bit, float>);
     BB_OBJECT_CREATE_MODEL(DifferentiableLutN<3, float, float>);
-    BB_OBJECT_CREATE_MODEL(DifferentiableLutN<3, bb::Bit, float>);
+    BB_OBJECT_CREATE_MODEL(DifferentiableLutN<3, Bit, float>);
     BB_OBJECT_CREATE_MODEL(DifferentiableLutN<2, float, float>);
-    BB_OBJECT_CREATE_MODEL(DifferentiableLutN<2, bb::Bit, float>);
+    BB_OBJECT_CREATE_MODEL(DifferentiableLutN<2, Bit, float>);
 
     BB_OBJECT_CREATE_MODEL(BatchNormalization<float>);
 

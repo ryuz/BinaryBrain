@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <memory>
 #include <vector>
 #include <string>
 #include <sstream>
@@ -28,6 +29,7 @@
 #include <pybind11/operators.h>
 #endif
 
+#include "bb/DataType.h"
 #include "bb/Object.h"
 #include "bb/FrameBuffer.h"
 #include "bb/Variables.h"
@@ -183,7 +185,7 @@ protected:
      * @param  nest    ネストカウンタ
      * @param  depth   表示したい深さ
      */
-    virtual void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
+    virtual void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth) const
     {
         os << indent << " input  shape : " << GetInputShape();
         os << indent << " output shape : " << GetOutputShape() << std::endl;
@@ -198,7 +200,7 @@ public:
      * @param  columns  表示幅
      * @param  nest     深さ指定(通常は0)
      */
-    virtual void PrintInfo(int depth=0, std::ostream& os=std::cout, int columns=70, int nest=0)
+    virtual void PrintInfo(int depth=0, std::ostream& os=std::cout, int columns=70, int nest=0) const
     {
         // セパレータとインデント文字列生成
         std::string indent    = std::string(nest*2, ' ');
@@ -225,7 +227,7 @@ public:
      * @param  columns  表示幅
      * @param  nest     深さ指定(通常は0)
      */
-    virtual std::string GetInfoString(int depth=0, int columns=70, int nest=0)
+    virtual std::string GetInfoString(int depth=0, int columns=70, int nest=0) const
     {
         std::stringstream ss;
         PrintInfo(depth, ss, columns, nest);
@@ -306,8 +308,8 @@ public:
     std::string GetObjectName(void)  const { return ""; }   // 暫定
 
 protected:
-    void DumpObjectData(std::ostream &os) const {}   // 暫定
-    void LoadObjectData(std::istream &is) {}   // 暫定
+//  void DumpObjectData(std::ostream &os) const {}   // 暫定
+//  void LoadObjectData(std::istream &is) {}   // 暫定
 
 
 public:

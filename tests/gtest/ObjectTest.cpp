@@ -14,6 +14,69 @@ TEST(ObjectTest, testObject_test0)
 #include "bb/ObjectReconstructor.h"
 
 
+TEST(ObjectTest, SerializeModel)
+{
+    auto src_net = bb::Sequential::Create();
+
+    src_net->Add(bb::RealToBinary<float, float>::Create());
+    src_net->Add(bb::RealToBinary<bb::Bit, float>::Create());
+    src_net->Add(bb::BinaryToReal<float, float>::Create());
+    src_net->Add(bb::BinaryToReal<bb::Bit, float>::Create());
+    src_net->Add(bb::BitEncode<float, float>::Create());
+    src_net->Add(bb::BitEncode<bb::Bit, float>::Create());
+    src_net->Add(bb::DifferentiableLutN<6, float, float>::Create());
+    src_net->Add(bb::DifferentiableLutN<6, bb::Bit, float>::Create());
+    src_net->Add(bb::DifferentiableLutN<5, float, float>::Create());
+    src_net->Add(bb::DifferentiableLutN<5, bb::Bit, float>::Create());
+    src_net->Add(bb::DifferentiableLutN<4, float, float>::Create());
+    src_net->Add(bb::DifferentiableLutN<4, bb::Bit, float>::Create());
+    src_net->Add(bb::DifferentiableLutN<3, float, float>::Create());
+    src_net->Add(bb::DifferentiableLutN<3, bb::Bit, float>::Create());
+    src_net->Add(bb::DifferentiableLutN<2, float, float>::Create());
+    src_net->Add(bb::DifferentiableLutN<2, bb::Bit, float>::Create());
+    src_net->Add(bb::BatchNormalization<float>::Create());
+
+    {
+        std::ofstream ofs("test_obj.bin", std::ios::binary);
+        src_net->DumpObject(ofs);
+    }
+
+    {
+        std::ifstream ifs("test_obj.bin", std::ios::binary);
+        auto dst_net = std::dynamic_pointer_cast<bb::Sequential>(bb::Object_Reconstruct(ifs));
+        EXPECT_TRUE(dst_net);
+        
+        EXPECT_EQ(dst_net->Get(0)->GetModelName(), "RealToBinary");
+        EXPECT_EQ(dst_net->Get(1)->GetModelName(), "RealToBinary");
+        EXPECT_EQ(dst_net->Get(2)->GetModelName(), "BinaryToReal");
+        EXPECT_EQ(dst_net->Get(3)->GetModelName(), "BinaryToReal");
+
+        EXPECT_EQ(dst_net->Get(4)->GetModelName(), "BitEncode");
+        EXPECT_EQ(dst_net->Get(5)->GetModelName(), "BitEncode");
+        EXPECT_EQ(dst_net->Get(5)->GetObjectName(), "BitEncode_bit_fp32");
+
+        EXPECT_EQ(dst_net->Get(6)->GetModelName(), "DifferentiableLut6");
+        EXPECT_EQ(dst_net->Get(7)->GetModelName(), "DifferentiableLut6");
+        EXPECT_EQ(dst_net->Get(8)->GetModelName(), "DifferentiableLut5");
+        EXPECT_EQ(dst_net->Get(9)->GetModelName(), "DifferentiableLut5");
+        EXPECT_EQ(dst_net->Get(10)->GetModelName(), "DifferentiableLut4");
+        EXPECT_EQ(dst_net->Get(11)->GetModelName(), "DifferentiableLut4");
+        EXPECT_EQ(dst_net->Get(12)->GetModelName(), "DifferentiableLut3");
+        EXPECT_EQ(dst_net->Get(13)->GetModelName(), "DifferentiableLut3");
+        EXPECT_EQ(dst_net->Get(14)->GetModelName(), "DifferentiableLut2");
+        EXPECT_EQ(dst_net->Get(15)->GetModelName(), "DifferentiableLut2");
+
+        EXPECT_EQ(dst_net->Get(16)->GetModelName(), "BatchNormalization");
+    }
+}
+
+
+
+
+
+
+
+
 TEST(ObjectTest, Resonstruct_Tensor)
 {
     // test

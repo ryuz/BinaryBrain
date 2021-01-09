@@ -140,7 +140,7 @@ protected:
         }
     }
     
-    virtual void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
+    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth) const override
     {
         _super::PrintInfoText(os, indent, columns, nest, depth);
 //      os << indent << " input  shape : " << GetInputShape();

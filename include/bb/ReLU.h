@@ -58,7 +58,7 @@ protected:
         }
     }
 
-    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
+    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth) const override
     {
         if ( m_binary_mode ) {
             os << indent << " binary : " << m_binary_mode << std::endl;

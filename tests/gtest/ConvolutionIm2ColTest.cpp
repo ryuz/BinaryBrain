@@ -607,7 +607,7 @@ TEST(ConvolutionIm2ColTest, testConvolutionIm2Col_same)
     bb::indices_t     input_shape({input_c_size, input_h_size, input_w_size});
     bb::indices_t     output_shape({output_c_size, output_h_size, output_w_size});
 
-    auto cnvim2col = bb::ConvolutionIm2Col<>::Create(filter_h_size, filter_w_size, 1, 1, "same", BB_BORDER_CONSTANT);
+    auto cnvim2col = bb::ConvolutionIm2Col<>::Create(filter_h_size, filter_w_size, 1, 1, "same", "constant");
     
     bb::FrameBuffer x_buf(input_frame_size, input_shape, BB_TYPE_FP32);
     cnvim2col->SetInputShape(x_buf.GetShape());

@@ -9,8 +9,9 @@
 
 #pragma once
 
-#include <assert.h>
+#include <memory>
 #include <cstdint>
+#include <iostream>
 
 #include "bb/Assert.h"
 #include "bb/SimdSupport.h"
@@ -43,13 +44,6 @@ namespace bb {
 #define BB_TYPE_UINT32          (0x0300 + 32)
 #define BB_TYPE_UINT64          (0x0300 + 64)
 
-
-// border_mode
-#define BB_BORDER_CONSTANT      0
-#define BB_BORDER_REFLECT       1
-#define BB_BORDER_REFLECT_101   2
-#define BB_BORDER_REPLICATE     3
-#define BB_BORDER_WRAP          4
 
 
 
@@ -675,7 +669,9 @@ inline void SaveValue(std::ostream &os, std::vector<T> const &vec)
 {
     std::uint64_t size = (std::uint64_t)vec.size();
     os.write((char const *)&size, sizeof(size));
-    os.write((char const *)&vec[0], size*sizeof(T));
+    if ( size > 0 ) {
+        os.write((char const *)&vec[0], size*sizeof(T));
+    }
 }
 
 template<typename T>
@@ -684,7 +680,9 @@ inline void LoadValue(std::istream &is, std::vector<T>  &vec)
     std::uint64_t size;
     is.read((char *)&size, sizeof(size));
     vec.resize(size);
-    is.read((char *)&vec[0], size*sizeof(T));
+    if ( size > 0 ) {
+        is.read((char *)&vec[0], size*sizeof(T));
+    }
 }
 
 
@@ -693,7 +691,9 @@ inline void SaveValue(std::ostream &os, std::string const &str)
 {
     std::uint64_t size = (std::uint64_t)str.size();
     os.write((char const *)&size, sizeof(size));
-    os.write((char const *)&str[0], size*sizeof(str[0]));
+    if ( size > 0 ) {
+        os.write((char const *)&str[0], size*sizeof(str[0]));
+    }
 }
 
 template<>
@@ -702,7 +702,9 @@ inline void LoadValue(std::istream &is, std::string &str)
     std::uint64_t size;
     is.read((char *)&size, sizeof(size));
     str.resize(size);
-    is.read((char *)&str[0], size*sizeof(str[0]));
+    if ( size > 0 ) {
+        is.read((char *)&str[0], size*sizeof(str[0]));
+    }
 }
 
 
@@ -724,3 +726,4 @@ inline void LoadValue(std::istream &is, bool &val)
 
 }
 
+// end of file

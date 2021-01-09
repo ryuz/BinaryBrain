@@ -136,14 +136,14 @@ public:
     std::string GetModelName(void) const { return "Convolution2d"; }
 
     
-    std::shared_ptr< Model > GetSubLayer(void)
+    std::shared_ptr< Model > GetSubLayer(void) const override 
     {
         return m_layer;
     }
 
 
-    index_t GetFilterHeight(void) { return m_filter_h_size; }
-    index_t GetFilterWidth(void)  { return m_filter_w_size; }
+    index_t GetFilterHeight(void) const override { return m_filter_h_size; }
+    index_t GetFilterWidth(void) const override { return m_filter_w_size; }
 
 
     /**
@@ -288,7 +288,7 @@ protected:
      * @param  os     出力ストリーム
      * @param  indent インデント文字列
      */
-    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
+    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth) const override
     {
         _super::PrintInfoText(os, indent, columns, nest, depth);
 

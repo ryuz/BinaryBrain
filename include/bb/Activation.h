@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <iostream>
+#include <memory>
 
 #include "bb/Manager.h"
 #include "bb/Model.h"
@@ -35,7 +37,7 @@ public:
      * @param  shape      1フレームのノードを構成するshape
      * @return 出力形状を返す
      */
-    indices_t SetInputShape(indices_t shape)
+    indices_t SetInputShape(indices_t shape) override
     {
         // 設定済みなら何もしない
         if ( shape == this->GetInputShape() ) {
@@ -51,7 +53,7 @@ public:
      * @detail 入力形状を取得する
      * @return 入力形状を返す
      */
-    indices_t GetInputShape(void) const
+    indices_t GetInputShape(void) const override
     {
         return m_shape;
     }
@@ -61,7 +63,7 @@ public:
      * @detail 出力形状を取得する
      * @return 出力形状を返す
      */
-    indices_t GetOutputShape(void) const
+    indices_t GetOutputShape(void) const override
     {
         return m_shape;
     }
@@ -69,24 +71,24 @@ public:
 
 protected:
 
-    void DumpObjectData(std::ostream &os) const
+    void DumpObjectData(std::ostream &os) const override
     {
         // バージョン
         std::int64_t ver = 1;
-        bb::SaveValue(os, ver);
+        SaveValue(os, ver);
 
         // 親クラス
         _super::DumpObjectData(os);
 
         // メンバ
-        bb::SaveIndices(os, m_shape);
+        SaveIndices(os, m_shape);
     }
 
-    void LoadObjectData(std::istream &is)
+    void LoadObjectData(std::istream &is) override
     {
         // バージョン
         std::int64_t ver;
-        bb::LoadValue(is, ver);
+        LoadValue(is, ver);
 
         BB_ASSERT(ver == 1);
 
