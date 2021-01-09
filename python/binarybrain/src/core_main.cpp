@@ -272,6 +272,61 @@ std::string GetDevicePropertiesString(int device)
 #endif
 }
 
+inline std::string GetDevicePropertiesName(int device=0)
+{
+    std::map<std::string, std::int64_t> prop;
+
+#if BB_WITH_CUDA
+    int dev_count = bbcu_GetDeviceCount();
+    if ( device < dev_count ) {
+        cudaDeviceProp dev_prop;
+        BB_CUDA_SAFE_CALL(cudaGetDeviceProperties(&dev_prop, device));
+        return dev_prop.name;
+    }
+#endif
+
+    return "no CUDA";
+}
+
+inline std::map<std::string, std::int64_t> GetDeviceProperties(int device=0)
+{
+    std::map<std::string, std::int64_t> prop;
+
+#if BB_WITH_CUDA
+    int dev_count = bbcu_GetDeviceCount();
+    if ( device < dev_count ) {
+        cudaDeviceProp dev_prop;
+        BB_CUDA_SAFE_CALL(cudaGetDeviceProperties(&dev_prop, device));
+    
+        prop["totalGlobalMem"]           = (std::int64_t)dev_prop.totalGlobalMem          ;
+        prop["sharedMemPerBlock"]        = (std::int64_t)dev_prop.sharedMemPerBlock       ;
+        prop["regsPerBlock"]             = (std::int64_t)dev_prop.regsPerBlock            ;
+        prop["warpSize"]                 = (std::int64_t)dev_prop.warpSize                ;
+        prop["memPitch"]                 = (std::int64_t)dev_prop.memPitch                ;
+        prop["maxThreadsPerBlock"]       = (std::int64_t)dev_prop.maxThreadsPerBlock      ;
+        prop["maxThreadsDim[0]"]         = (std::int64_t)dev_prop.maxThreadsDim[0]        ;
+        prop["maxThreadsDim[1]"]         = (std::int64_t)dev_prop.maxThreadsDim[1]        ;
+        prop["maxThreadsDim[2]"]         = (std::int64_t)dev_prop.maxThreadsDim[2]        ;
+        prop["maxGridSize[0]"]           = (std::int64_t)dev_prop.maxGridSize[0]          ;
+        prop["maxGridSize[1]"]           = (std::int64_t)dev_prop.maxGridSize[1]          ;
+        prop["maxGridSize[2]"]           = (std::int64_t)dev_prop.maxGridSize[2]          ;
+        prop["clockRate"]                = (std::int64_t)dev_prop.clockRate               ;
+        prop["totalConstMem"]            = (std::int64_t)dev_prop.totalConstMem           ;
+        prop["major"]                    = (std::int64_t)dev_prop.major                   ;
+        prop["minor"]                    = (std::int64_t)dev_prop.minor                   ;
+        prop["textureAlignment"]         = (std::int64_t)dev_prop.textureAlignment        ;
+        prop["deviceOverlap"]            = (std::int64_t)dev_prop.deviceOverlap           ;
+        prop["multiProcessorCount"]      = (std::int64_t)dev_prop.multiProcessorCount     ;
+        prop["kernelExecTimeoutEnabled"] = (std::int64_t)dev_prop.kernelExecTimeoutEnabled;
+        prop["integrated"]               = (std::int64_t)dev_prop.integrated              ;
+        prop["canMapHostMemory"]         = (std::int64_t)dev_prop.canMapHostMemory        ;
+        prop["computeMode"]              = (std::int64_t)dev_prop.computeMode             ;
+    }
+#endif
+    return prop;
+}
+
+
 
 
 std::string MakeVerilog_LutLayers(std::string module_name, std::vector< std::shared_ptr< bb::Model > > layers)
@@ -347,6 +402,13 @@ PYBIND11_MODULE(core, m) {
         .def("load_object", &Object::LoadObjectBytes)
         .def_static("write_header", &Object::WriteHeaderPy)
         .def_static("read_header", &Object::ReadHeaderPy)
+        .def(py::pickle(
+                [](const Object &obj) { // __getstate__
+                    return py::make_tuple(obj.DumpObjectBytes());
+                },
+                [](py::tuple t) { // __setstate__
+                    return bb::Object_CreatePy(t[0].cast<py::bytes>());
+                }))
         ;
 
 
@@ -960,6 +1022,8 @@ PYBIND11_MODULE(core, m) {
     // version
     m.def("get_version_string", &bb::GetVersionString);
 
+    m.def("object_reconstruct", &bb::Object_ReconstructPy);
+
     // verilog
     m.def("make_verilog_lut_layers",     &MakeVerilog_LutLayers);
     m.def("make_verilog_lut_cnv_layers", &MakeVerilog_LutConvLayers);
@@ -974,6 +1038,8 @@ PYBIND11_MODULE(core, m) {
 
     m.def("get_device_count",             &GetDeviceCount);
     m.def("set_device",                   &SetDevice,                 py::arg("device") = 0);
+    m.def("get_device_name",              &GetDevicePropertiesName,   py::arg("device") = 0);
+    m.def("get_device_properties",        &GetDeviceProperties,       py::arg("device") = 0);
     m.def("get_device_properties_string", &GetDevicePropertiesString, py::arg("device") = 0);
 }
 

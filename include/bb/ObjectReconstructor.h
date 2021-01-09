@@ -190,6 +190,22 @@ inline std::shared_ptr<Object> Object_Reconstruct(std::istream &is)
     return obj_ptr;
 }
 
+#ifdef BB_PYBIND11
+inline pybind11::tuple Object_ReconstructPy(pybind11::bytes data)
+{
+    std::istringstream is((std::string)data, std::istringstream::binary);
+    auto obj = Object_Reconstruct(is);
+    return pybind11::make_tuple((std::size_t)is.tellg(), obj);
+}
+
+inline std::shared_ptr<Object> Object_CreatePy(pybind11::bytes data)
+{
+    std::istringstream is((std::string)data, std::istringstream::binary);
+    return Object_Reconstruct(is);
+}
+#endif
+
+
 }
 
 

@@ -325,7 +325,7 @@ protected:
         bb::SaveValue(os, ver);
 
         // 親クラス
-        _super::DumpObjectData(os);
+//      _super::DumpObjectData(os);
 
         // メンバ
         m_im2col->DumpObject(os);
@@ -346,7 +346,7 @@ protected:
         BB_ASSERT(ver == 1);
 
         // 親クラス
-        _super::LoadObjectData(is);
+//      _super::LoadObjectData(is);
 
         // メンバ
         m_im2col->LoadObject(is);

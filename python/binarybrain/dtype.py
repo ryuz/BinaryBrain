@@ -59,3 +59,30 @@ def dtype_bb_to_numpy(dtype):
     elif dtype == core.TYPE_UINT64: return np.uint64
     return None
 
+def dtype_to_name(dtype):
+    if   dtype == core.TYPE_BIT:    return 'bit'
+    elif dtype == core.TYPE_FP32:   return 'fp32'
+    elif dtype == core.TYPE_FP64:   return 'fp64'
+    elif dtype == core.TYPE_INT8:   return 'int8'
+    elif dtype == core.TYPE_INT16:  return 'int16'
+    elif dtype == core.TYPE_INT32:  return 'int32'
+    elif dtype == core.TYPE_INT64:  return 'int64'
+    elif dtype == core.TYPE_UINT8:  return 'uint8'
+    elif dtype == core.TYPE_UINT16: return 'uint16'
+    elif dtype == core.TYPE_UINT32: return 'uint32'
+    elif dtype == core.TYPE_UINT64: return 'uint64'
+    return None
+
+def dtype_from_name(name):
+    if   name == 'bit':    return core.TYPE_BIT
+    elif name == 'fp32':   return core.TYPE_FP32
+    elif name == 'fp64':   return core.TYPE_FP64
+    elif name == 'int8':   return core.TYPE_INT8
+    elif name == 'int16':  return core.TYPE_INT16
+    elif name == 'int32':  return core.TYPE_INT32
+    elif name == 'int64':  return core.TYPE_INT64
+    elif name == 'uint8':  return core.TYPE_UINT8
+    elif name == 'uint16': return core.TYPE_UINT16
+    elif name == 'uint32': return core.TYPE_UINT32
+    elif name == 'uint64': return core.TYPE_UINT64 
+    return None

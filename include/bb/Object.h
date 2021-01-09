@@ -24,7 +24,7 @@ namespace bb {
 
 class Object
 {
-    friend std::shared_ptr<Object> Object_Reconstruct(std::istream &is);
+    friend inline std::shared_ptr<Object> Object_Reconstruct(std::istream &is);
 
 public:
     Object(){}
@@ -46,7 +46,7 @@ public:
     }
 
 #ifdef BB_PYBIND11
-    pybind11::bytes DumpObjectBytes(void)
+    pybind11::bytes DumpObjectBytes(void) const
     {
         std::ostringstream os(std::istringstream::binary);
         DumpObject(os);

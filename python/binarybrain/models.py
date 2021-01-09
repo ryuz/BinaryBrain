@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import re
 import pickle
 import numpy as np
 from typing import List
@@ -421,8 +422,24 @@ class Sequential(Model):
 
 
     # シリアライズはC++版とフォーマット互換にする
-#   def dumps(self):
-#       return self.get_core().dump_object()
+    def dumps(self):
+        # ヘッダ
+        data = b''
+        data += core.Object.write_header('Sequential')
+
+        # バージョン
+        ver = 1
+        data += ver.to_bytes(8, 'little')
+        
+        # レイヤ数
+        layer_size = len(self.model_list)
+        data +=  layer_size.to_bytes(8, 'little')
+
+        # レイヤ本体
+        for model in self.model_list:
+            data += model.dumps()
+
+        return data
 
     def loads(self, data):
         # ヘッダ
@@ -438,11 +455,18 @@ class Sequential(Model):
         # レイヤ数
         layer_size = int.from_bytes(data[0:8], 'little')
         data = data[8:]
+
+        # レイヤ本体
         if len(self.model_list) > 0:
             assert(layer_size == len(self.model_list))
             for model in self.model_list:
                 data = model.loads(data)
         else:
+            for _ in range(layer_size):
+                pass
+#               data, model = bb.model_reconstruct(data)
+#               self.model_list.append(model)
+
             assert(False)
         
         return data
@@ -986,6 +1010,67 @@ class Convolution2d(Sequential):
         super(Convolution2d, self).set_model_list([self.im2col, self.sub_layer, self.col2im])
         
         return super(Convolution2d, self).set_input_shape(shape)
+    
+    def get_object_name(self):
+        return 'Convolution2d_' + bb.dtype_to_name(self.fw_dtype) + '_' + bb.dtype_to_name(self.bw_dtype)
+
+    # シリアライズはC++版とフォーマット互換にする
+    def dumps(self):
+        # ヘッダ
+        data = b''
+        data += core.Object.write_header(self.get_object_name())
+
+        # バージョン
+        ver = 1
+        data += ver.to_bytes(8, 'little')
+        
+        # メンバ
+        data += self.im2col.dumps()
+        data += self.col2im.dumps()
+        
+        # 子レイヤー
+        if self.sub_layer:
+            has_layer = 1
+            data += has_layer.to_bytes(1, 'little')
+            data += self.sub_layer.dumps()
+        else:
+            has_layer = 0
+            data += has_layer.to_bytes(1, 'little')
+
+        return data
+    
+    def loads(self, data):
+        # ヘッダ
+        load_size, name = core.Object.read_header(data)
+        data = data[load_size:]
+        type_names = re.match('Convolution2d_(.+)_(.+)', name)
+        assert(type_names)
+        self.fw_dtype = bb.dtype_from_name(type_names[1])
+        self.bw_dtype = bb.dtype_from_name(type_names[2])
+        
+        # バージョン
+        ver = int.from_bytes(data[0:8], 'little')
+        data = data[8:]
+        assert(ver == 1)
+
+        # メンバ
+        data = self.im2col.loads(data)
+        data = self.col2im.loads(data)
+        
+        # 子レイヤー
+        has_layer = int.from_bytes(data[0:1], 'little')
+        data = data[1:]
+
+        # レイヤ本体
+        if has_layer:
+            if self.sub_layer:
+                data = self.sub_layer.loads(data)
+            else:
+                pass
+#               data, model = bb.model_reconstruct(data)
+#               self.sub_layer = model
+
+        return data
 
 
 class MaxPooling(Model):
