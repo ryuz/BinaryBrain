@@ -58,8 +58,9 @@ class LossSoftmaxCrossEntropy(LossFunction):
        利用に際しては最終段にSoftmaxが挿入されるので注意すること。
     """
     
-    def __init__(self):
-        core_loss = core.LossSoftmaxCrossEntropy.create()
+    def __init__(self, dtype=bb.DType.FP32):
+        core_loss = bb.search_core_class('LossSoftmaxCrossEntropy', [dtype]).create()
+#       core_loss = core.LossSoftmaxCrossEntropy_fp32.create()
         super(LossSoftmaxCrossEntropy, self).__init__(core_loss=core_loss)
 
 
@@ -69,7 +70,8 @@ class LossMeanSquaredError(LossFunction):
         平均二乗誤差(MSE)を計算して誤差として戻す
     """
     
-    def __init__(self):
-        core_loss = core.LossMeanSquaredError.create()
+    def __init__(self, dtype=bb.DType.FP32):
+        core_loss = bb.search_core_class('LossSoftmaxCrossEntropy', [dtype]).create()
+#       core_loss = core.LossMeanSquaredError_fp32.create()
         super(LossMeanSquaredError, self).__init__(core_loss=core_loss)
 

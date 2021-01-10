@@ -9,6 +9,16 @@ import binarybrain      as bb
 import binarybrain.core as core
 
 
+# ------- モデルリスト --------
+
+core_model_list = bb.get_core_subclass_dict(core.Model)
+core_model_dict = bb.get_core_subclass_dict(core.Model)
+
+def search_core_model(class_name, dtypes=[]):
+    return bb.search_core_class(class_name, dtypes, class_dict=core_model_dict)
+
+
+
 # ------- 基本モデル --------
 
 class Model(bb.Object):
@@ -490,15 +500,9 @@ class RealToBinary(Model):
     
     def __init__(self, *,
                      input_shape=None, frame_modulation_size=1, depth_modulation_size=1, value_generator=None,
-                     framewise=False, input_range_lo=0.0, input_range_hi=1.0, name=None, bin_dtype=bb.DType.FP32):
-        try:
-            core_creator = {
-                bb.DType.FP32: core.RealToBinary_fp32.create,
-                bb.DType.BIT:  core.RealToBinary_bit.create,
-            }[bin_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-
+                     framewise=False, input_range_lo=0.0, input_range_hi=1.0, name=None,
+                     bin_dtype=bb.DType.FP32, real_type=bb.DType.FP32):
+        core_creator = search_core_model('RealToBinary', [bin_dtype, real_type]).create
         core_model = core_creator(frame_modulation_size, depth_modulation_size,
                             value_generator, framewise, input_range_lo, input_range_hi)
         super(RealToBinary, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
@@ -515,15 +519,9 @@ class BinaryToReal(Model):
         bin_dtype (DType): 入力の型を bb.DType.FP32 もしくは bb.DType.BIT で指定可能
     """
     
-    def __init__(self, *, frame_modulation_size=1, output_shape=[], input_shape=None, name=None, bin_dtype=bb.DType.FP32):
-        try:
-            core_creator = {
-                bb.DType.FP32: core.BinaryToReal_fp32.create,
-                bb.DType.BIT:  core.BinaryToReal_bit.create,
-            }[bin_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-        
+    def __init__(self, *, frame_modulation_size=1, output_shape=[], input_shape=None, name=None,
+                                                    bin_dtype=bb.DType.FP32, real_type=bb.DType.FP32):
+        core_creator = search_core_model('BinaryToReal', [bin_dtype, real_type]).create
         core_model = core_creator(frame_modulation_size=frame_modulation_size, output_shape=output_shape)
         
         super(BinaryToReal, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
@@ -539,14 +537,7 @@ class BitEncode(Model):
 
     def __init__(self, bit_size=1, *, output_shape=[], input_shape=None, name=None, bit_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32):
 
-        try:
-            core_creator = {
-                bb.DType.FP32: core.BitEncode_fp32.create,
-                bb.DType.BIT:  core.BitEncode_bit.create,
-            }[bit_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-        
+        core_creator = search_core_model('BitEncode', [bin_dtype, real_type]).create
         core_model = core_creator(bit_size, output_shape)
 
         super(BitEncode, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
@@ -561,15 +552,7 @@ class Reduce(Model):
     """
 
     def __init__(self, output_shape, *, input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
-
-        try:
-            core_creator = {
-                bb.DType.FP32: core.Reduce_fp32.create,
-                bb.DType.BIT:  core.Reduce_bit.create,
-            }[fw_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-        
+        core_creator = search_core_model('Reduce', [fw_dtype, bw_dtype]).create
         core_model = core_creator(output_shape)
 
         super(Reduce, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
@@ -588,9 +571,8 @@ class DenseAffine(Model):
         seed (int): 変数初期値などの乱数シード
     """
     
-    def __init__(self, output_shape, *, input_shape=None, initialize_std=0.01, initializer='he', seed=1, name=None):
-        core_creator = core.DenseAffine.create
-        
+    def __init__(self, output_shape, *, input_shape=None, initialize_std=0.01, initializer='he', seed=1, name=None, dtype=bb.DType.FP32):
+        core_creator = search_core_model('DenseAffine', [dtype]).create
         core_model = core_creator(output_shape=output_shape, initialize_std=initialize_std, initializer=initializer, seed=seed)
         
         super(DenseAffine, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
@@ -610,9 +592,9 @@ class DepthwiseDenseAffine(Model):
         seed (int): 変数初期値などの乱数シード
     """
     
-    def __init__(self, output_shape, *, input_shape=None, input_point_size=0, depth_size=0, initialize_std=0.01, initializer='he', seed=1, name=None):
-        core_creator = core.DepthwiseDenseAffine.create
-        
+    def __init__(self, output_shape, *, input_shape=None, input_point_size=0, depth_size=0,
+                            initialize_std=0.01, initializer='he', seed=1, name=None, dtype=bb.DType.FP32):
+        core_creator = search_core_model('DepthwiseDenseAffine', [dtype]).create
         core_model = core_creator(output_shape=output_shape, initialize_std=initialize_std, initializer=initializer, seed=seed)
         
         super(DepthwiseDenseAffine, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
@@ -721,73 +703,8 @@ class DifferentiableLut(SparseModel):
     def __init__(self, output_shape, *, input_shape=None,
                     connection='random', binarize=True, batch_norm=True, momentum=0.0, gamma= 0.3, beta=0.5, seed=1,
                     name=None, N=6, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32):
-        
-        # 設定に応じて機能をパッキングしたモデルが使える場合は自動選択する
-        if False:
-            # StochasticLut 演算のみ
-            try:
-                core_creator = {
-                    bb.DType.FP32: {
-                        6: core.StochasticLut6_fp32.create,
-                        5: core.StochasticLut5_fp32.create,
-                        4: core.StochasticLut4_fp32.create,
-                        2: core.StochasticLut2_fp32.create,
-                    },
-                    bb.DType.BIT: {
-                        6: core.StochasticLut6_bit.create,
-                        5: core.StochasticLut5_bit.create,
-                        4: core.StochasticLut4_bit.create,
-                        2: core.StochasticLut2_bit.create,
-                    },
-                }[bin_dtype][N]
-            except KeyError:
-                raise TypeError("unsupported")
-
-            core_model  = core_creator(output_shape, connection, seed)
-        
-        elif True:
-            # 条件が揃えば BatchNorm と 二値化を一括演算
-            try:
-                core_creator = {
-                    bb.DType.FP32: {
-                        6: core.DifferentiableLut6_fp32.create,
-                        5: core.DifferentiableLut5_fp32.create,
-                        4: core.DifferentiableLut4_fp32.create,
-                        2: core.DifferentiableLut2_fp32.create,
-                    },
-                    bb.DType.BIT: {
-                        6: core.DifferentiableLut6_bit.create,
-                        5: core.DifferentiableLut5_bit.create,
-                        4: core.DifferentiableLut4_bit.create,
-                        2: core.DifferentiableLut2_bit.create,
-                    },                    
-                }[bin_dtype][N]
-            except KeyError:
-                raise TypeError("unsupported")
-            
-            core_model = core_creator(output_shape, batch_norm, binarize, connection, momentum, gamma, beta, seed)
-        
-        else:
-            # 個別演算
-            try:
-                core_creator = {
-                    bb.DType.FP32: {
-                        6: core.DifferentiableLutDiscrete6_fp32.create,
-                        5: core.DifferentiableLutDiscrete5_fp32.create,
-                        4: core.DifferentiableLutDiscrete4_fp32.create,
-                        2: core.DifferentiableLutDiscrete2_fp32.create,
-                    },
-                    bb.DType.BIT: {
-                        6: core.DifferentiableLutDiscrete6_bit.create,
-                        5: core.DifferentiableLutDiscrete5_bit.create,
-                        4: core.DifferentiableLutDiscrete4_bit.create,
-                        2: core.DifferentiableLutDiscrete2_bit.create,
-                    },                    
-                }[bin_dtype][N]
-            except KeyError:
-                raise TypeError("unsupported")
-            
-            core_model = core_creator(output_shape, batch_norm, binarize, connection, momentum, gamma, beta, seed)
+        core_creator = search_core_model('DifferentiableLut' + str(N), [bin_dtype, real_dtype]).create
+        core_model = core_creator(output_shape, batch_norm, binarize, connection, momentum, gamma, beta, seed)
 
         super(DifferentiableLut, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
@@ -829,24 +746,7 @@ class BinaryLut(SparseModel):
     def __init__(self, output_shape, *, input_shape=None,
                     connection='random', seed=1, name=None, N=6, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
         
-        try:
-            core_creator = {
-                bb.DType.FP32: {
-                    6: core.BinaryLut6_fp32.create,
-                    5: core.BinaryLut5_fp32.create,
-                    4: core.BinaryLut4_fp32.create,
-                    2: core.BinaryLut2_fp32.create,
-                },
-                bb.DType.BIT: {
-                    6: core.BinaryLut6_bit.create,
-                    5: core.BinaryLut5_bit.create,
-                    4: core.BinaryLut4_bit.create,
-                    2: core.BinaryLut2_bit.create,
-                },
-            }[fw_dtype][N]
-        except KeyError:
-            raise TypeError("unsupported")
-
+        core_creator = search_core_model('BinaryLut' + str(N), [fw_dtype, bw_dtype]).create
         core_model  = core_creator(output_shape, connection, seed)
         
         super(BinaryLut, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
@@ -890,14 +790,7 @@ class ConvolutionIm2Col(Model):
                         padding='valid', border_mode='reflect_101', border_value=0.0,
                         input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
 
-        try:
-            core_creator = {
-                bb.DType.FP32: core.ConvolutionIm2Col_fp32.create,
-                bb.DType.BIT:  core.ConvolutionIm2Col_bit.create,
-            }[fw_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-
+        core_creator = search_core_model('ConvolutionIm2Col', [fw_dtype, bw_dtype]).create
         core_model = core_creator(filter_size[0], filter_size[1], stride[0], stride[1], padding, border_mode)
         
         super(ConvolutionIm2Col, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
@@ -909,14 +802,7 @@ class ConvolutionCol2Im(Model):
     """
 
     def __init__(self, output_size=(1, 1), *, input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
-        try:
-            core_creator = {
-                bb.DType.FP32: core.ConvolutionCol2Im_fp32.create,
-                bb.DType.BIT:  core.ConvolutionCol2Im_bit.create,
-            }[fw_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-
+        core_creator = search_core_model('ConvolutionCol2Im', [fw_dtype, bw_dtype]).create
         core_model = core_creator(output_size[0], output_size[1])
         
         super(ConvolutionCol2Im, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
@@ -950,14 +836,7 @@ class Convolution2d(Sequential):
                         name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
         super(Convolution2d, self).__init__()
         
-        try:
-            self.core_creator = {
-                bb.DType.FP32: core.Convolution2d_fp32.create,
-                bb.DType.BIT:  core.Convolution2d_bit.create,
-            }[fw_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-        
+        self.core_creator = search_core_model('Convolution2d', [fw_dtype, bw_dtype]).create
         self.deny_flatten = True
         self.name         = name
         self.input_shape  = input_shape
@@ -1082,14 +961,7 @@ class MaxPooling(Model):
     """
 
     def __init__(self, filter_size=(2, 2), *, input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
-        try:
-            core_creator = {
-                bb.DType.FP32: core.MaxPooling_fp32.create,
-                bb.DType.BIT:  core.MaxPooling_bit.create,
-            }[fw_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-
+        core_creator = search_core_model('MaxPooling', [fw_dtype, bw_dtype]).create
         core_model = core_creator(filter_size[0], filter_size[1])
 
         super(MaxPooling, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
@@ -1109,24 +981,10 @@ class StochasticMaxPooling(Model):
         assert(len(filter_size)==2)
 
         if  filter_size[0]==2 and filter_size[1]==2:
-            try:
-                core_creator = {
-                    bb.DType.FP32: core.StochasticMaxPooling2x2_fp32.create,
-                    bb.DType.BIT:  core.StochasticMaxPooling2x2_bit.create,
-                }[fw_dtype]
-            except KeyError:
-                raise TypeError("unsupported")
-            
+            core_creator = search_core_model('StochasticMaxPooling2x2', [fw_dtype, bw_dtype]).create
             core_model = core_creator()
         else:
-            try:
-                core_creator = {
-                    bb.DType.FP32: core.StochasticMaxPooling_fp32.create,
-                    bb.DType.BIT:  core.StochasticMaxPooling_bit.create,
-                }[fw_dtype]
-            except KeyError:
-                raise TypeError("unsupported")
-            
+            core_creator = search_core_model('StochasticMaxPooling', [fw_dtype, bw_dtype]).create
             core_model = core_creator(filter_size[0], filter_size[1])
 
         super(StochasticMaxPooling, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
@@ -1144,14 +1002,7 @@ class UpSampling(Model):
 
     def __init__(self, filter_size=(2, 2), *, fill=True, input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
 
-        try:
-            core_creator = {
-                bb.DType.FP32: core.UpSampling_fp32.create,
-                bb.DType.BIT:  core.UpSampling_bit.create,
-            }[fw_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-        
+        core_creator = search_core_model('UpSampling', [fw_dtype, bw_dtype]).create
         core_model = core_creator(filter_size[0], filter_size[1], fill)
 
         super(UpSampling, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
@@ -1171,15 +1022,8 @@ class Binarize(Model):
     """
 
 
-    def __init__(self, *, input_shape=None, name=None, bin_dtype=bb.DType.FP32):
-        try:
-            core_creator = {
-                bb.DType.FP32: core.Binarize_fp32.create,
-                bb.DType.BIT:  core.Binarize_bit.create,
-            }[bin_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-
+    def __init__(self, *, input_shape=None, name=None, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32):
+        core_creator = search_core_model('Binarize', [bin_dtype, real_dtype]).create
         core_model = core_creator()
 
         super(Binarize, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
@@ -1193,16 +1037,8 @@ class Sigmoid(Model):
        send_command で "binary true" とすることで、Binarize に切り替わる
        多値で学習を進めて、途中から Binarize に切り替える実験などが可能である
     """
-    def __init__(self, *, input_shape=None, name=None, bin_dtype=bb.DType.FP32):
-
-        try:
-            core_creator = {
-                bb.DType.FP32: core.Sigmoid_fp32.create,
-                bb.DType.BIT:  core.Sigmoid_bit.create,
-            }[bin_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-
+    def __init__(self, *, input_shape=None, name=None, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32):
+        core_creator = search_core_model('Sigmoid', [bin_dtype, real_dtype]).create
         core_model = core_creator()
 
         super(Sigmoid, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
@@ -1215,16 +1051,8 @@ class ReLU(Model):
        send_command で "binary true" とすることで、Binarize に切り替わる
        多値で学習を進めて、途中から Binarize に切り替える実験などが可能である
     """
-    def __init__(self, *, input_shape=None, name=None, bin_dtype=bb.DType.FP32):
-
-        try:
-            core_creator = {
-                bb.DType.FP32: core.ReLU_fp32.create,
-                bb.DType.BIT:  core.ReLU_bit.create,
-            }[bin_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-
+    def __init__(self, *, input_shape=None, name=None, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32):
+        core_creator = search_core_model('ReLU', [bin_dtype, real_dtype]).create
         core_model = core_creator()
 
         super(ReLU, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
@@ -1237,16 +1065,8 @@ class HardTanh(Model):
        send_command で "binary true" とすることで、Binarize に切り替わる
        多値で学習を進めて、途中から Binarize に切り替える実験などが可能である
     """
-    def __init__(self, *, input_shape=None, name=None, bin_dtype=bb.DType.FP32):
-
-        try:
-            core_creator = {
-                bb.DType.FP32: core.HardTanh_fp32.create,
-                bb.DType.BIT:  core.HardTanh_bit.create,
-            }[bin_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-
+    def __init__(self, *, input_shape=None, name=None, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32):
+        core_creator = search_core_model('HardTanh', [bin_dtype, real_dtype]).create
         core_model = core_creator()
 
         super(HardTanh, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
@@ -1269,13 +1089,7 @@ class BatchNormalization(Model):
 
     def __init__(self, *, input_shape=None, momentum=0.9, gamma=1.0, beta=0.0,
                         fix_gamma=False, fix_beta=False, name=None, dtype=bb.DType.FP32):
-        try:
-            core_creator = {
-                bb.DType.FP32: core.BatchNormalization.create,
-            }[dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-
+        core_creator = search_core_model('BatchNormalization', [dtype]).create
         core_model = core_creator(momentum, gamma, beta, fix_gamma, fix_beta)
 
         super(BatchNormalization, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
@@ -1291,14 +1105,7 @@ class Dropout(Model):
     """
 
     def __init__(self, *, rate=0.5, input_shape=None, seed=1, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
-        try:
-            core_creator = {
-                bb.DType.FP32: core.Dropout.create,
-                bb.DType.FP32: core.Dropout.create,
-            }[fw_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-
+        core_creator = search_core_model('Dropout', [fw_dtype, bw_dtype]).create
         core_model = core_creator(rate, seed)
 
         super(Dropout, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
@@ -1315,16 +1122,8 @@ class Shuffle(Model):
         shuffle_unit (int): シャッフルする単位
     """
 
-    def __init__(self, shuffle_unit, *, output_shape=[], input_shape=None, name=None, bit_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32):
-
-        try:
-            core_creator = {
-                bb.DType.FP32: core.Shuffle.create,
-                bb.DType.BIT:  core.Shuffle.create,
-            }[bit_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-        
+    def __init__(self, shuffle_unit, *, output_shape=[], input_shape=None, name=None):
+        core_creator = search_core_model('Shuffle', []).create
         core_model = core_creator(shuffle_unit, output_shape)
 
         super(Shuffle, self).__init__(core_model=core_model, input_shape=input_shape, name=name)

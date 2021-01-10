@@ -59,8 +59,9 @@ class MetricsCategoricalAccuracy(Metrics):
        一致率を accuracy として計算する
     """
     
-    def __init__(self):
-        core_metrics = core.MetricsCategoricalAccuracy.create()
+    def __init__(self, dtype=bb.DType.FP32):
+        core_metrics = bb.search_core_class('MetricsCategoricalAccuracy', [dtype]).create()
+#       core_metrics = core.MetricsCategoricalAccuracy_fp32.create()
         super(MetricsCategoricalAccuracy, self).__init__(core_metrics=core_metrics)
 
 
@@ -71,7 +72,8 @@ class MetricsMeanSquaredError(Metrics):
        教師信号との平均二乗誤差を計算する
     """
     
-    def __init__(self):
-        core_metrics = core.MetricsMeanSquaredError.create()
+    def __init__(self, dtype=bb.DType.FP32):
+        core_metrics = bb.search_core_class('MetricsMeanSquaredError', [dtype]).create()
+#       core_metrics = core.MetricsMeanSquaredError.create()
         super(MetricsMeanSquaredError, self).__init__(core_metrics=core_metrics)
 
