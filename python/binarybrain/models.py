@@ -482,6 +482,114 @@ class Sequential(Model):
         return data
 
 
+class Switcher(Model):
+    """モデル切り替え用基底クラス
+    
+      主に蒸留や転移学習などでレイヤー差し替えに用いる
+      send_command から 'switch_model [name]' でも切り替え可能
+
+    Args:
+        model_dict (Dict{str: Model}): 切り替えるモデルの辞書
+        init_model_name (str): 初期選択するモデルの名前
+    """
+    
+    def __init__(self, model_dict=None, init_model_name=None, *, input_shape=None, name=None):
+        self.model_dict = model_dict
+        self.current_model_name = None
+        self.current_model = None
+        super(SwitchModel, self).__init__(input_shape=input_shape, name=name)
+        self.switch_model(init_model_name)
+    
+    def switch_model(self, model_name: str):
+        """モデルを切り替える
+        
+        Args:
+            model_dict (Dict{str: Model}): 切り替えるモデルの辞書
+        """
+        if self.model_dict is not None and model_name is not None:
+            if model_name in self.model_dict:
+                self.current_model_name = model_name
+                self.current_model      = self.model_dict[model_name]
+    
+    def get_model_list(self):
+        return self.model_dict.values()
+    
+    def get_current_model(self):
+        return self.current_model
+
+    def get_current_model_name(self):
+        return self.current_model_name
+    
+    def get_core(self):
+        current_model = self.get_current_model()
+        if current_model is not None:
+            return current_model.get_core()
+        return None
+
+    def get_info(self, depth :int=0, *, columns: int=70, nest: int=0) -> str:
+        current_model = self.get_current_model()
+        if current_model is not None:
+            return current_model.get_info(depth=depth, columns=columns, nest=nest)
+        return ''
+    
+    def send_command(self, command, send_to='all'):
+        # 自分宛なら解釈
+        if send_to == 'all' or send_to == self.get_name() or send_to == self.get_class_name():
+            args = command.split()
+            if len(args) == 2 and args[0] == 'switch_model':
+                self.switch_model(args[1])
+        
+        # 子にも伝搬
+        current_model = self.get_current_model()
+        if current_model is not None:
+            return current_model.send_command(command=command, send_to=send_to)
+
+    def set_input_shape(self, input_shape: [int]):
+        output_shape = None
+        for name in self.model_dict:
+            shape = self.model_dict[name].set_input_shape(input_shape)
+            assert(output_shape is None or shape == output_shape) # すべて同じでなければNG
+            output_shape = shape
+        return output_shape
+    
+    def get_input_shape(self) -> [int]:
+        return self.get_current_model().get_input_shape()
+
+    def get_output_shape(self) -> [int]:
+        return self.get_current_model().get_output_shape()
+
+    def get_input_node_size(self) -> int:
+        return self.get_current_model().get_input_node_size()
+
+    def get_output_node_size(self) -> int:
+        return self.get_current_model().get_output_node_size()
+
+    def get_parameters(self):
+        return self.get_current_model().get_parameters()
+
+    def get_gradients(self):
+        return self.get_current_model().get_gradients()
+
+    def forward(self, x_buf, train=True):
+        return self.get_current_model().forward(x_buf=x_buf, train=train)
+    
+    def backward(self, dy_buf):
+        return self.get_current_model().backward(dy_buf=dy_buf)
+    
+    def dump_bytes(self):
+        bytes_dict = {}
+        for name in self.model_dict:
+            bytes_dict[name] = self.model_dict[name].dump_bytes()
+        return pickle.dumps(bytes_dict)
+        
+    def load_bytes(self, data):
+        bytes_dict = pickle.loads(data)
+        for name in self.model_dict:
+            if name in bytes_dict:
+                self.model_dict[name].load_bytes(bytes_dict[name])            
+
+
+
 # ------- バイナリ変調 --------
 
 class RealToBinary(Model):
