@@ -189,7 +189,14 @@ protected:
         _super::DumpObjectData(os);
 
         // メンバ
+        bb::SaveValue(os, m_bypass);
+        bb::SaveValue(os, m_host_only);
+        bb::SaveValue(os, m_host_simd);
+        bb::SaveValue(os, m_fix_gamma);
+        bb::SaveValue(os, m_fix_beta);
         bb::SaveValue(os, m_momentum);
+        bb::SaveValue(os, m_init_gamma);
+        bb::SaveValue(os, m_init_beta);
 
         m_gamma->DumpObject(os);
         m_beta->DumpObject(os);
@@ -209,7 +216,14 @@ protected:
         _super::LoadObjectData(is);
 
         // メンバ
+        bb::LoadValue(is, m_bypass);
+        bb::LoadValue(is, m_host_only);
+        bb::LoadValue(is, m_host_simd);
+        bb::LoadValue(is, m_fix_gamma);
+        bb::LoadValue(is, m_fix_beta);
         bb::LoadValue(is, m_momentum);
+        bb::LoadValue(is, m_init_gamma);
+        bb::LoadValue(is, m_init_beta);
 
         m_gamma->LoadObject(is);
         m_beta->LoadObject(is);

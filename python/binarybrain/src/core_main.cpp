@@ -428,7 +428,7 @@ PYBIND11_MODULE(core, m) {
 
     // Tensor
     py::class_< Tensor, Object, std::shared_ptr<Tensor> >(m, "Tensor")
-//      DEF_OBJECT_PICKLE(Tensor)
+        DEF_OBJECT_PICKLE(Tensor)
         .def(py::init< bb::indices_t, int, bool >(),
             py::arg("shape"),
             py::arg("type")=BB_TYPE_FP32,
@@ -479,7 +479,8 @@ PYBIND11_MODULE(core, m) {
         ;
 
     // FrameBuffer
-    py::class_< FrameBuffer >(m, "FrameBuffer")
+    py::class_< FrameBuffer, Object, std::shared_ptr<FrameBuffer> >(m, "FrameBuffer")
+        DEF_OBJECT_PICKLE(FrameBuffer)
         .def(py::init< bb::index_t, bb::indices_t, int, bool>(),
             py::arg("frame_size") = 0,
             py::arg("shape") = bb::indices_t(),
@@ -744,26 +745,26 @@ PYBIND11_MODULE(core, m) {
 
     // StochasticLut
     PYCLASS_MODEL(StochasticLut6_fp32_fp32, StochasticLutModel)
-        .def_static("create", &StochasticLut6_fp32_fp32::CreateEx);
+        .def_static("create", &StochasticLut6_fp32_fp32::CreatePy);
     PYCLASS_MODEL(StochasticLut5_fp32_fp32, StochasticLutModel)
-        .def_static("create", &StochasticLut5_fp32_fp32::CreateEx);
+        .def_static("create", &StochasticLut5_fp32_fp32::CreatePy);
     PYCLASS_MODEL(StochasticLut4_fp32_fp32, StochasticLutModel)
-        .def_static("create", &StochasticLut4_fp32_fp32::CreateEx);
+        .def_static("create", &StochasticLut4_fp32_fp32::CreatePy);
     PYCLASS_MODEL(StochasticLut3_fp32_fp32, StochasticLutModel)
-        .def_static("create", &StochasticLut3_fp32_fp32::CreateEx);
+        .def_static("create", &StochasticLut3_fp32_fp32::CreatePy);
     PYCLASS_MODEL(StochasticLut2_fp32_fp32, StochasticLutModel)
-        .def_static("create", &StochasticLut2_fp32_fp32::CreateEx);
+        .def_static("create", &StochasticLut2_fp32_fp32::CreatePy);
 
     PYCLASS_MODEL(StochasticLut6_bit_fp32, StochasticLutModel)
-        .def_static("create", &StochasticLut6_bit_fp32::CreateEx);
+        .def_static("create", &StochasticLut6_bit_fp32::CreatePy);
     PYCLASS_MODEL(StochasticLut5_bit_fp32, StochasticLutModel)
-        .def_static("create", &StochasticLut5_bit_fp32::CreateEx);
+        .def_static("create", &StochasticLut5_bit_fp32::CreatePy);
     PYCLASS_MODEL(StochasticLut4_bit_fp32, StochasticLutModel)
-        .def_static("create", &StochasticLut4_bit_fp32::CreateEx);
+        .def_static("create", &StochasticLut4_bit_fp32::CreatePy);
     PYCLASS_MODEL(StochasticLut3_bit_fp32, StochasticLutModel)
-        .def_static("create", &StochasticLut3_bit_fp32::CreateEx);
+        .def_static("create", &StochasticLut3_bit_fp32::CreatePy);
     PYCLASS_MODEL(StochasticLut2_bit_fp32, StochasticLutModel)
-        .def_static("create", &StochasticLut2_bit_fp32::CreateEx);
+        .def_static("create", &StochasticLut2_bit_fp32::CreatePy);
 
 
 
@@ -815,110 +816,114 @@ PYBIND11_MODULE(core, m) {
         .def_static("create", &DifferentiableLutDiscrete2_bit_fp32::CreatePy);
 
     // MicroMlp
-    py::class_< MicroMlp6_16_fp32_fp32, SparseModel, std::shared_ptr<MicroMlp6_16_fp32_fp32> >(m, "MicroMlp6_16_fp32_fp32")
-        DEF_OBJECT_PICKLE(MicroMlp6_16_fp32_fp32)
-        .def_static("create", &MicroMlp6_16_fp32_fp32::CreatePy, "create MicroMlp6_16_fp32_fp32");
-    py::class_< MicroMlp5_16_fp32_fp32, SparseModel, std::shared_ptr<MicroMlp5_16_fp32_fp32> >(m, "MicroMlp5_16_fp32_fp32")
-        DEF_OBJECT_PICKLE(MicroMlp5_16_fp32_fp32)
-        .def_static("create", &MicroMlp5_16_fp32_fp32::CreatePy, "create MicroMlp5_16_fp32_fp32");
-    py::class_< MicroMlp4_16_fp32_fp32, SparseModel, std::shared_ptr<MicroMlp4_16_fp32_fp32> >(m, "MicroMlp4_16_fp32_fp32")
-        DEF_OBJECT_PICKLE(MicroMlp4_16_fp32_fp32)
-        .def_static("create", &MicroMlp4_16_fp32_fp32::CreatePy, "create MicroMlp4_16_fp32_fp32");
+    PYCLASS_MODEL(MicroMlp6_16_fp32_fp32, SparseModel)
+        .def_static("create", &MicroMlp6_16_fp32_fp32::CreatePy);
+    PYCLASS_MODEL(MicroMlp5_16_fp32_fp32, SparseModel)
+        .def_static("create", &MicroMlp5_16_fp32_fp32::CreatePy);
+    PYCLASS_MODEL(MicroMlp4_16_fp32_fp32, SparseModel)
+        .def_static("create", &MicroMlp4_16_fp32_fp32::CreatePy);
+    PYCLASS_MODEL(MicroMlp3_16_fp32_fp32, SparseModel)
+        .def_static("create", &MicroMlp3_16_fp32_fp32::CreatePy);
+    PYCLASS_MODEL(MicroMlp2_16_fp32_fp32, SparseModel)
+        .def_static("create", &MicroMlp2_16_fp32_fp32::CreatePy);
 
-    py::class_< MicroMlp6_16_bit_fp32, SparseModel, std::shared_ptr<MicroMlp6_16_bit_fp32> >(m, "MicroMlp6_16_bit_fp32")
-        DEF_OBJECT_PICKLE(MicroMlp6_16_bit_fp32)
-        .def_static("create", &MicroMlp6_16_bit_fp32::CreatePy, "create MicroMlp6_16_bit_fp32");
-    py::class_< MicroMlp5_16_bit_fp32, SparseModel, std::shared_ptr<MicroMlp5_16_bit_fp32> >(m, "MicroMlp5_16_bit_fp32")
-        DEF_OBJECT_PICKLE(MicroMlp5_16_bit_fp32)
-        .def_static("create", &MicroMlp5_16_bit_fp32::CreatePy, "create MicroMlp5_16_bit_fp32");
-    py::class_< MicroMlp4_16_bit_fp32, SparseModel, std::shared_ptr<MicroMlp4_16_bit_fp32> >(m, "MicroMlp4_16_bit_fp32")
-        DEF_OBJECT_PICKLE(MicroMlp4_16_bit_fp32)
-        .def_static("create", &MicroMlp4_16_bit_fp32::CreatePy, "create MicroMlp4_16_bit_fp32");
+    PYCLASS_MODEL(MicroMlp6_16_bit_fp32, SparseModel)
+        .def_static("create", &MicroMlp6_16_bit_fp32::CreatePy);
+    PYCLASS_MODEL(MicroMlp5_16_bit_fp32, SparseModel)
+        .def_static("create", &MicroMlp5_16_bit_fp32::CreatePy);
+    PYCLASS_MODEL(MicroMlp4_16_bit_fp32, SparseModel)
+        .def_static("create", &MicroMlp4_16_bit_fp32::CreatePy);
+    PYCLASS_MODEL(MicroMlp3_16_bit_fp32, SparseModel)
+        .def_static("create", &MicroMlp3_16_bit_fp32::CreatePy);
+    PYCLASS_MODEL(MicroMlp2_16_bit_fp32, SparseModel)
+        .def_static("create", &MicroMlp2_16_bit_fp32::CreatePy);
 
 
     // filter
-    py::class_< Filter2d, Model, std::shared_ptr<Filter2d> >(m, "Filter2d");
+    PYCLASS_MODEL(Filter2d, Model)
+        ;
 
-    py::class_< ConvolutionIm2Col_fp32_fp32, Model, std::shared_ptr<ConvolutionIm2Col_fp32_fp32> >(m, "ConvolutionIm2Col_fp32_fp32")
+    PYCLASS_MODEL(ConvolutionIm2Col_fp32_fp32, Model)
         .def_static("create", &ConvolutionIm2Col_fp32_fp32::CreatePy);
-    py::class_< ConvolutionIm2Col_bit_fp32, Model, std::shared_ptr<ConvolutionIm2Col_bit_fp32> >(m, "ConvolutionIm2Col_bit_fp32")
+    PYCLASS_MODEL(ConvolutionIm2Col_bit_fp32, Model)
         .def_static("create", &ConvolutionIm2Col_bit_fp32::CreatePy);
 
-    py::class_< ConvolutionCol2Im_fp32_fp32, Model, std::shared_ptr<ConvolutionCol2Im_fp32_fp32> >(m, "ConvolutionCol2Im_fp32_fp32")
-        .def_static("create", &ConvolutionCol2Im_fp32_fp32::CreatePy);
-    py::class_< ConvolutionCol2Im_bit_fp32, Model, std::shared_ptr<ConvolutionCol2Im_bit_fp32> >(m, "ConvolutionCol2Im_bit_fp32")
-        .def_static("create", &ConvolutionCol2Im_bit_fp32::CreatePy);
+    PYCLASS_MODEL(ConvolutionCol2Im_fp32_fp32, Model)
+        .def_static("create", &ConvolutionCol2Im_fp32_fp32::CreatePy)
+        .def("set_output_size", &ConvolutionCol2Im_fp32_fp32::SetOutputSize);
+    PYCLASS_MODEL(ConvolutionCol2Im_bit_fp32, Model)
+        .def_static("create", &ConvolutionCol2Im_bit_fp32::CreatePy)
+        .def("set_output_size", &ConvolutionCol2Im_bit_fp32::SetOutputSize);
 
-    py::class_< Convolution2d_fp32_fp32, Filter2d, std::shared_ptr<Convolution2d_fp32_fp32> >(m, "Convolution2d_fp32_fp32")
+    PYCLASS_MODEL(Convolution2d_fp32_fp32, Filter2d)
         .def_static("create", &Convolution2d_fp32_fp32::CreatePy)
         .def("get_sub_layer", &Convolution2d_fp32_fp32::GetSubLayer);
-    py::class_< Convolution2d_bit_fp32, Filter2d, std::shared_ptr<Convolution2d_bit_fp32> >(m, "Convolution2d_bit_fp32")
+    PYCLASS_MODEL(Convolution2d_bit_fp32, Filter2d)
         .def_static("create", &Convolution2d_bit_fp32::CreatePy)
         .def("get_sub_layer", &Convolution2d_bit_fp32::GetSubLayer);
 
-    py::class_< MaxPooling_fp32_fp32, Filter2d, std::shared_ptr<MaxPooling_fp32_fp32> >(m, "MaxPooling_fp32_fp32")
+    PYCLASS_MODEL(MaxPooling_fp32_fp32, Filter2d)
         .def_static("create", &MaxPooling_fp32_fp32::CreatePy);
-    py::class_< MaxPooling_bit_fp32, Filter2d, std::shared_ptr<MaxPooling_bit_fp32> >(m, "MaxPooling_bit_fp32")
+    PYCLASS_MODEL(MaxPooling_bit_fp32, Filter2d)
         .def_static("create", &MaxPooling_bit_fp32::CreatePy);
 
-    py::class_< StochasticMaxPooling_fp32_fp32, Filter2d, std::shared_ptr<StochasticMaxPooling_fp32_fp32> >(m, "StochasticMaxPooling_fp32_fp32")
+    PYCLASS_MODEL(StochasticMaxPooling_fp32_fp32, Filter2d)
         .def_static("create", &StochasticMaxPooling_fp32_fp32::Create);
-    py::class_< StochasticMaxPooling_bit_fp32, Filter2d, std::shared_ptr<StochasticMaxPooling_bit_fp32> >(m, "StochasticMaxPooling_bit_fp32")
+    PYCLASS_MODEL(StochasticMaxPooling_bit_fp32, Filter2d)
         .def_static("create", &StochasticMaxPooling_bit_fp32::Create);
 
-    py::class_< StochasticMaxPooling2x2_fp32_fp32, Filter2d, std::shared_ptr<StochasticMaxPooling2x2_fp32_fp32> >(m, "StochasticMaxPooling2x2_fp32_fp32")
+    PYCLASS_MODEL(StochasticMaxPooling2x2_fp32_fp32, Filter2d)
         .def_static("create", &StochasticMaxPooling2x2_fp32_fp32::Create);
-    py::class_< StochasticMaxPooling2x2_bit_fp32, Filter2d, std::shared_ptr<StochasticMaxPooling2x2_bit_fp32> >(m, "StochasticMaxPooling2x2_bit_fp32")
+    PYCLASS_MODEL(StochasticMaxPooling2x2_bit_fp32, Filter2d)
         .def_static("create", &StochasticMaxPooling2x2_bit_fp32::Create);
 
-    py::class_< UpSampling_fp32_fp32, Model, std::shared_ptr<UpSampling_fp32_fp32> >(m, "UpSampling_fp32_fp32")
+    PYCLASS_MODEL(UpSampling_fp32_fp32, Model)
         .def_static("create", &UpSampling_fp32_fp32::CreatePy);
-    py::class_< UpSampling_bit_fp32, Model, std::shared_ptr<UpSampling_bit_fp32> >(m, "UpSampling_bit_fp32")
+    PYCLASS_MODEL(UpSampling_bit_fp32, Model)
         .def_static("create", &UpSampling_bit_fp32::CreatePy);
-
-
+    
+    
     // activation
-    py::class_< Activation, Model, std::shared_ptr<Activation> >(m, "Activation");
+    PYCLASS_MODEL(Activation, Model)
+        ;
 
-    py::class_< Binarize_fp32_fp32, Activation, std::shared_ptr<Binarize_fp32_fp32> >(m, "Binarize_fp32_fp32")
+    PYCLASS_MODEL(Binarize_fp32_fp32, Activation)
         .def_static("create", &Binarize_fp32_fp32::CreatePy,
                 py::arg("binary_th")    =  0.0f,
                 py::arg("hardtanh_min") = -1.0f,
-                py::arg("hardtanh_max") = +1.0f);
-    
-    py::class_< Binarize_bit_fp32, Activation, std::shared_ptr<Binarize_bit_fp32> >(m, "Binarize_bit_fp32")
+                py::arg("hardtanh_max") = +1.0f);    
+    PYCLASS_MODEL(Binarize_bit_fp32, Activation)
         .def_static("create", &Binarize_bit_fp32::CreatePy,
                 py::arg("binary_th")    =  0.0f,
                 py::arg("hardtanh_min") = -1.0f,
                 py::arg("hardtanh_max") = +1.0f);
 
-    py::class_< Sigmoid_fp32_fp32, Binarize_fp32_fp32, std::shared_ptr<Sigmoid_fp32_fp32> >(m, "Sigmoid_fp32_fp32")
+    PYCLASS_MODEL(Sigmoid_fp32_fp32, Binarize_fp32_fp32)
         .def_static("create",   &Sigmoid_fp32_fp32::Create);
-    py::class_< Sigmoid_bit_fp32, Binarize_bit_fp32, std::shared_ptr<Sigmoid_bit_fp32> >(m, "Sigmoid_bit_fp32")
+    PYCLASS_MODEL(Sigmoid_bit_fp32, Binarize_bit_fp32)
         .def_static("create",   &Sigmoid_bit_fp32::Create);
 
-    py::class_< ReLU_fp32_fp32, Binarize_fp32_fp32, std::shared_ptr<ReLU_fp32_fp32> >(m, "ReLU_fp32_fp32")
+    PYCLASS_MODEL(ReLU_fp32_fp32, Binarize_fp32_fp32)
         .def_static("create",   &ReLU_fp32_fp32::Create);
-    py::class_< ReLU_bit_fp32, Binarize_bit_fp32, std::shared_ptr<ReLU_bit_fp32> >(m, "ReLU_bit_fp32")
+    PYCLASS_MODEL(ReLU_bit_fp32, Binarize_bit_fp32)
         .def_static("create",   &ReLU_bit_fp32::Create);
 
-    py::class_< HardTanh_fp32_fp32, Binarize_fp32_fp32, std::shared_ptr<HardTanh_fp32_fp32> >(m, "HardTanh_fp32_fp32")
+    PYCLASS_MODEL(HardTanh_fp32_fp32, Binarize_fp32_fp32)
         .def_static("create", &HardTanh_fp32_fp32::CreatePy);
-    py::class_< HardTanh_bit_fp32, Binarize_bit_fp32, std::shared_ptr<HardTanh_bit_fp32> >(m, "HardTanh_bit_fp32")
+    PYCLASS_MODEL(HardTanh_bit_fp32, Binarize_bit_fp32)
         .def_static("create", &HardTanh_bit_fp32::CreatePy);
 
     
-    py::class_< Dropout_fp32_fp32, Activation, std::shared_ptr<Dropout_fp32_fp32> >(m, "Dropout_fp32_fp32")
-        .def_static("create", &Dropout_fp32_fp32::CreateEx,
+    PYCLASS_MODEL(Dropout_fp32_fp32, Activation)
+        .def_static("create", &Dropout_fp32_fp32::CreatePy,
+                py::arg("rate") = 0.5,
+                py::arg("seed") = 1);
+    PYCLASS_MODEL(Dropout_bit_fp32, Activation)
+        .def_static("create", &Dropout_bit_fp32::CreatePy,
                 py::arg("rate") = 0.5,
                 py::arg("seed") = 1);
 
-    py::class_< Dropout_bit_fp32, Activation, std::shared_ptr<Dropout_bit_fp32> >(m, "Dropout_bit_fp32")
-        .def_static("create", &Dropout_bit_fp32::CreateEx,
-                py::arg("rate") = 0.5,
-                py::arg("seed") = 1);
-
-    py::class_< BatchNormalization_fp32, Activation, std::shared_ptr<BatchNormalization_fp32> >(m, "BatchNormalization_fp32")
+    PYCLASS_MODEL(BatchNormalization_fp32, Activation)
         .def_static("create", &BatchNormalization_fp32::CreatePy,
                 py::arg("momentum")  = 0.9f,
                 py::arg("gamma")     = 1.0f,
@@ -926,13 +931,18 @@ PYBIND11_MODULE(core, m) {
                 py::arg("fix_gamma") = false,
                 py::arg("fix_beta")  = false);
 
-    py::class_< StochasticBatchNormalization_fp32, Activation, std::shared_ptr<StochasticBatchNormalization_fp32> >(m, "StochasticBatchNormalization_fp32")
+    PYCLASS_MODEL(StochasticBatchNormalization_fp32, Activation)
         .def_static("create", &StochasticBatchNormalization_fp32::CreateEx,
                 py::arg("momentum")  = 0.9,
                 py::arg("gamma")     = 0.2,
                 py::arg("beta")      = 0.5);
 
-    // Loss Functions
+
+
+    // ------------------------------------
+    //  Loss Functions
+    // ------------------------------------
+
     py::class_< LossFunction, std::shared_ptr<LossFunction> >(m, "LossFunction")
         .def("clear",          &LossFunction::Clear)
         .def("get_loss",       &LossFunction::GetLoss)
@@ -948,7 +958,11 @@ PYBIND11_MODULE(core, m) {
         .def_static("create", &LossMeanSquaredError_fp32::Create);
 
 
-    // Metrics Functions
+
+    // ------------------------------------
+    //  Metrics Functions
+    // ------------------------------------
+
     py::class_< MetricsFunction, std::shared_ptr<MetricsFunction> >(m, "MetricsFunction")
         .def("clear",              &MetricsFunction::Clear)
         .def("get_metrics",        &MetricsFunction::GetMetrics)
@@ -962,27 +976,36 @@ PYBIND11_MODULE(core, m) {
         .def_static("create", &MetricsMeanSquaredError_fp32::Create);
 
 
-    // Optimizer
-    py::class_< Optimizer, std::shared_ptr<Optimizer> >(m, "Optimizer")
+    // ------------------------------------
+    //  Optimizer
+    // ------------------------------------
+
+#define PYCLASS_OPTIMIZER(class_name, superclass_name)  PYCLASS_OBJECT(class_name, superclass_name)
+
+    PYCLASS_OPTIMIZER(Optimizer, Object)
         .def("set_variables", &Optimizer::SetVariables)
         .def("update",        &Optimizer::Update);
-    
-    py::class_< OptimizerSgd_fp32, Optimizer, std::shared_ptr<OptimizerSgd_fp32> >(m, "OptimizerSgd_fp32")
+  
+    PYCLASS_OPTIMIZER(OptimizerSgd_fp32, Optimizer)
         .def_static("create", (std::shared_ptr<OptimizerSgd_fp32> (*)(float))&OptimizerSgd_fp32::Create, "create",
             py::arg("learning_rate") = 0.01f);
     
-    py::class_< OptimizerAdaGrad_fp32, Optimizer, std::shared_ptr<OptimizerAdaGrad_fp32> >(m, "OptimizerAdaGrad_fp32")
+    PYCLASS_OPTIMIZER(OptimizerAdaGrad_fp32, Optimizer)
         .def_static("Create", (std::shared_ptr<OptimizerAdaGrad_fp32> (*)(float))&OptimizerAdaGrad_fp32::Create,
             py::arg("learning_rate") = 0.01f);
 
-    py::class_< OptimizerAdam_fp32, Optimizer, std::shared_ptr<OptimizerAdam_fp32> >(m, "OptimizerAdam_fp32")
+    PYCLASS_OPTIMIZER(OptimizerAdam_fp32, Optimizer)
         .def_static("create", &OptimizerAdam_fp32::CreateEx,
             py::arg("learning_rate") = 0.001f,
             py::arg("beta1")         = 0.9f,
-            py::arg("beta2")         = 0.999f); 
+            py::arg("beta2")         = 0.999f);
     
-        
-    // ValueGenerator
+    
+
+    // ------------------------------------
+    //  ValueGenerator
+    // ------------------------------------
+
     py::class_< ValueGenerator_fp32, std::shared_ptr<ValueGenerator_fp32> >(m, "ValueGenerator_fp32");
     
     py::class_< NormalDistributionGenerator_fp32, ValueGenerator_fp32, std::shared_ptr<NormalDistributionGenerator_fp32> >(m, "NormalDistributionGenerator_fp32")

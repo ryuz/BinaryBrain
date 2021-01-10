@@ -9,17 +9,21 @@
 
 #pragma once
 
+
+#include "bb/Object.h"
 #include "bb/Variables.h"
 
 
 namespace bb {
 
-class Optimizer
+class Optimizer : public Object
 {
 public:
     virtual ~Optimizer() {}
 
 public:
+    virtual std::string GetOptimizerName(void) const = 0;
+
     virtual void SetVariables(Variables params, Variables grads) = 0;
     virtual void Update(void) = 0;
 };

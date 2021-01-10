@@ -40,6 +40,14 @@ class StochasticBatchNormalization : public Activation
 {
     using _super = Activation;
 
+public:
+    static inline std::string ModelName(void) { return "StochasticBatchNormalization"; }
+    static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<T>::Name(); }
+
+    std::string GetModelName(void)  const override { return ModelName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
+
 protected:
     bool                        m_host_only = false;
     bool                        m_host_simd = false;
@@ -130,10 +138,59 @@ public:
         return Create(create);
     }
 
-    std::string GetModelName(void) const { return "StochasticBatchNormalization"; }
+
+    // シリアライズ
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_host_only);
+        bb::SaveValue(os, m_host_simd);
+        bb::SaveValue(os, m_gamma);
+        bb::SaveValue(os, m_beta);
+        bb::SaveValue(os, m_momentum);
+
+        m_running_mean.DumpObject(os);
+        m_running_var.DumpObject(os);
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_host_only);
+        bb::LoadValue(is, m_host_simd);
+        bb::LoadValue(is, m_gamma);
+        bb::LoadValue(is, m_beta);
+        bb::LoadValue(is, m_momentum);
+
+        m_running_mean.LoadObject(is);
+        m_running_var.LoadObject(is);
+        
+        // 再構築
+        auto node_size = CalcShapeSize(_super::m_shape);
+        m_mean.Resize(node_size);
+        m_rstd.Resize(node_size);
+    }
 
 
-    // Serialize
+public:
+    // Serialize(旧)
     void Save(std::ostream &os) const 
     {
         SaveIndices(os, this->m_shape);

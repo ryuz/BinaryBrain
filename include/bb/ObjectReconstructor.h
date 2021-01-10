@@ -19,10 +19,12 @@
 #include <array>
 #include <map>
 
+#include "bb/DataType.h"
 
 #include "bb/Object.h"
 
 #include "bb/Tensor.h" 
+#include "bb/FrameBuffer.h"
 
 #include "bb/Sequential.h"
 
@@ -32,7 +34,9 @@
 #include "bb/Reduce.h"
 
 #include "bb/BinaryLutN.h"
+#include "bb/StochasticLutN.h"
 #include "bb/DifferentiableLutN.h"
+#include "bb/DifferentiableLutDiscreteN.h"
 #include "bb/MicroMlpAffine.h"
 #include "bb/MicroMlp.h"
 
@@ -45,6 +49,7 @@
 
 #include "bb/MaxPooling.h"
 #include "bb/StochasticMaxPooling2x2.h"
+#include "bb/UpSampling.h"
 
 #include "bb/Binarize.h"
 #include "bb/Sigmoid.h"
@@ -52,8 +57,13 @@
 #include "bb/HardTanh.h"
 
 #include "bb/BatchNormalization.h" 
-
+#include "bb/Dropout.h"
 #include "bb/Shuffle.h"
+
+
+#include "bb/OptimizerSgd.h"
+#include "bb/OptimizerAdaGrad.h"
+#include "bb/OptimizerAdam.h"
 
 
 namespace bb {
@@ -67,12 +77,12 @@ namespace bb {
 
 // 再構築の対象にしたいものはひとまず手動で足すこととする
 
-#define BB_OBJECT_CREATE(...) \
+#define BB_OBJECT_NEW(...) \
     do { \
         if ( object_name == __VA_ARGS__::ObjectName() ) { return std::shared_ptr<__VA_ARGS__>(new __VA_ARGS__); } \
     } while(0)
 
-#define BB_OBJECT_CREATE_MODEL(...) \
+#define BB_OBJECT_CREATE(...) \
     do { \
         if ( object_name == __VA_ARGS__::ObjectName() ) { return __VA_ARGS__::Create(); } \
     } while(0)
@@ -80,106 +90,142 @@ namespace bb {
 
 inline std::shared_ptr<Object> Object_Creator(std::string object_name)
 {
-    BB_OBJECT_CREATE(Tensor);
-    BB_OBJECT_CREATE(Tensor_<float>);
-    BB_OBJECT_CREATE(Tensor_<double>);
-    BB_OBJECT_CREATE(Tensor_<std::int8_t>);
-    BB_OBJECT_CREATE(Tensor_<std::int16_t>);
-    BB_OBJECT_CREATE(Tensor_<std::int32_t>);
-    BB_OBJECT_CREATE(Tensor_<std::int64_t>);
-    BB_OBJECT_CREATE(Tensor_<std::uint8_t>);
-    BB_OBJECT_CREATE(Tensor_<std::uint16_t>);
-    BB_OBJECT_CREATE(Tensor_<std::uint32_t>);
-    BB_OBJECT_CREATE(Tensor_<std::uint64_t>);
-
-    BB_OBJECT_CREATE_MODEL(Sequential);
-
-    BB_OBJECT_CREATE_MODEL(RealToBinary<float, float>);
-    BB_OBJECT_CREATE_MODEL(RealToBinary<Bit, float>);
-    BB_OBJECT_CREATE_MODEL(BinaryToReal<float, float>);
-    BB_OBJECT_CREATE_MODEL(BinaryToReal<Bit, float>);
-    BB_OBJECT_CREATE_MODEL(BitEncode<float, float>);
-    BB_OBJECT_CREATE_MODEL(BitEncode<Bit, float>);
-    BB_OBJECT_CREATE_MODEL(Reduce<float, float>);
-    BB_OBJECT_CREATE_MODEL(Reduce<Bit, float>);
+    BB_OBJECT_NEW(Tensor);
+    BB_OBJECT_NEW(Tensor_<float>);
+    BB_OBJECT_NEW(Tensor_<double>);
+    BB_OBJECT_NEW(Tensor_<std::int8_t>);
+    BB_OBJECT_NEW(Tensor_<std::int16_t>);
+    BB_OBJECT_NEW(Tensor_<std::int32_t>);
+    BB_OBJECT_NEW(Tensor_<std::int64_t>);
+    BB_OBJECT_NEW(Tensor_<std::uint8_t>);
+    BB_OBJECT_NEW(Tensor_<std::uint16_t>);
+    BB_OBJECT_NEW(Tensor_<std::uint32_t>);
+    BB_OBJECT_NEW(Tensor_<std::uint64_t>);
+    
+    BB_OBJECT_NEW(FrameBuffer);
     
 
-    BB_OBJECT_CREATE_MODEL(DifferentiableLutN<6, float, float>);
-    BB_OBJECT_CREATE_MODEL(DifferentiableLutN<6, Bit, float>);
-    BB_OBJECT_CREATE_MODEL(DifferentiableLutN<5, float, float>);
-    BB_OBJECT_CREATE_MODEL(DifferentiableLutN<5, Bit, float>);
-    BB_OBJECT_CREATE_MODEL(DifferentiableLutN<4, float, float>);
-    BB_OBJECT_CREATE_MODEL(DifferentiableLutN<4, Bit, float>);
-    BB_OBJECT_CREATE_MODEL(DifferentiableLutN<3, float, float>);
-    BB_OBJECT_CREATE_MODEL(DifferentiableLutN<3, Bit, float>);
-    BB_OBJECT_CREATE_MODEL(DifferentiableLutN<2, float, float>);
-    BB_OBJECT_CREATE_MODEL(DifferentiableLutN<2, Bit, float>);
+    BB_OBJECT_CREATE(Sequential);
+
+    BB_OBJECT_CREATE(RealToBinary<float, float>);
+    BB_OBJECT_CREATE(RealToBinary<bb::Bit, float>);
+    BB_OBJECT_CREATE(BinaryToReal<float, float>);
+    BB_OBJECT_CREATE(BinaryToReal<bb::Bit, float>);
+    BB_OBJECT_CREATE(BitEncode<float, float>);
+    BB_OBJECT_CREATE(BitEncode<bb::Bit, float>);
+    BB_OBJECT_CREATE(Reduce<float, float>);
+    BB_OBJECT_CREATE(Reduce<bb::Bit, float>);
     
-    BB_OBJECT_CREATE_MODEL(BinaryLutN<6, float, float>);
-    BB_OBJECT_CREATE_MODEL(BinaryLutN<6, Bit, float>);
-    BB_OBJECT_CREATE_MODEL(BinaryLutN<5, float, float>);
-    BB_OBJECT_CREATE_MODEL(BinaryLutN<5, Bit, float>);
-    BB_OBJECT_CREATE_MODEL(BinaryLutN<4, float, float>);
-    BB_OBJECT_CREATE_MODEL(BinaryLutN<4, Bit, float>);
-    BB_OBJECT_CREATE_MODEL(BinaryLutN<3, float, float>);
-    BB_OBJECT_CREATE_MODEL(BinaryLutN<3, Bit, float>);
-    BB_OBJECT_CREATE_MODEL(BinaryLutN<2, float, float>);
-    BB_OBJECT_CREATE_MODEL(BinaryLutN<2, Bit, float>);
+    BB_OBJECT_CREATE(BinaryLutN<6, float, float>);
+    BB_OBJECT_CREATE(BinaryLutN<6, bb::Bit, float>);
+    BB_OBJECT_CREATE(BinaryLutN<5, float, float>);
+    BB_OBJECT_CREATE(BinaryLutN<5, bb::Bit, float>);
+    BB_OBJECT_CREATE(BinaryLutN<4, float, float>);
+    BB_OBJECT_CREATE(BinaryLutN<4, bb::Bit, float>);
+    BB_OBJECT_CREATE(BinaryLutN<3, float, float>);
+    BB_OBJECT_CREATE(BinaryLutN<3, bb::Bit, float>);
+    BB_OBJECT_CREATE(BinaryLutN<2, float, float>);
+    BB_OBJECT_CREATE(BinaryLutN<2, bb::Bit, float>);
+
+    BB_OBJECT_CREATE(StochasticLutN<6, float, float>);
+    BB_OBJECT_CREATE(StochasticLutN<6, bb::Bit, float>);
+    BB_OBJECT_CREATE(StochasticLutN<5, float, float>);
+    BB_OBJECT_CREATE(StochasticLutN<5, bb::Bit, float>);
+    BB_OBJECT_CREATE(StochasticLutN<4, float, float>);
+    BB_OBJECT_CREATE(StochasticLutN<4, bb::Bit, float>);
+    BB_OBJECT_CREATE(StochasticLutN<3, float, float>);
+    BB_OBJECT_CREATE(StochasticLutN<3, bb::Bit, float>);
+    BB_OBJECT_CREATE(StochasticLutN<2, float, float>);
+    BB_OBJECT_CREATE(StochasticLutN<2, bb::Bit, float>);
+
+    BB_OBJECT_CREATE(DifferentiableLutN<6, float, float>);
+    BB_OBJECT_CREATE(DifferentiableLutN<6, bb::Bit, float>);
+    BB_OBJECT_CREATE(DifferentiableLutN<5, float, float>);
+    BB_OBJECT_CREATE(DifferentiableLutN<5, bb::Bit, float>);
+    BB_OBJECT_CREATE(DifferentiableLutN<4, float, float>);
+    BB_OBJECT_CREATE(DifferentiableLutN<4, bb::Bit, float>);
+    BB_OBJECT_CREATE(DifferentiableLutN<3, float, float>);
+    BB_OBJECT_CREATE(DifferentiableLutN<3, bb::Bit, float>);
+    BB_OBJECT_CREATE(DifferentiableLutN<2, float, float>);
+    BB_OBJECT_CREATE(DifferentiableLutN<2, bb::Bit, float>);
     
-    BB_OBJECT_CREATE_MODEL(MicroMlpAffine<6, 16, float, float>);
-    BB_OBJECT_CREATE_MODEL(MicroMlpAffine<6, 16, Bit, float>);
-    BB_OBJECT_CREATE_MODEL(MicroMlpAffine<5, 16, float, float>);
-    BB_OBJECT_CREATE_MODEL(MicroMlpAffine<5, 16, Bit, float>);
-    BB_OBJECT_CREATE_MODEL(MicroMlpAffine<4, 16, float, float>);
-    BB_OBJECT_CREATE_MODEL(MicroMlpAffine<4, 16, Bit, float>);
-    BB_OBJECT_CREATE_MODEL(MicroMlpAffine<3, 16, float, float>);
-    BB_OBJECT_CREATE_MODEL(MicroMlpAffine<3, 16, Bit, float>);
-    BB_OBJECT_CREATE_MODEL(MicroMlpAffine<2, 16, float, float>);
-    BB_OBJECT_CREATE_MODEL(MicroMlpAffine<2, 16, Bit, float>);
-
-    BB_OBJECT_CREATE_MODEL(MicroMlp<6, 16, float, float>);
-    BB_OBJECT_CREATE_MODEL(MicroMlp<6, 16, Bit, float>);
-    BB_OBJECT_CREATE_MODEL(MicroMlp<5, 16, float, float>);
-    BB_OBJECT_CREATE_MODEL(MicroMlp<5, 16, Bit, float>);
-    BB_OBJECT_CREATE_MODEL(MicroMlp<4, 16, float, float>);
-    BB_OBJECT_CREATE_MODEL(MicroMlp<4, 16, Bit, float>);
-    BB_OBJECT_CREATE_MODEL(MicroMlp<3, 16, float, float>);
-    BB_OBJECT_CREATE_MODEL(MicroMlp<3, 16, Bit, float>);
-    BB_OBJECT_CREATE_MODEL(MicroMlp<2, 16, float, float>);
-    BB_OBJECT_CREATE_MODEL(MicroMlp<2, 16, Bit, float>);
-
-    BB_OBJECT_CREATE_MODEL(DenseAffine<float>);
-    BB_OBJECT_CREATE_MODEL(DepthwiseDenseAffine<float>);
-
-    BB_OBJECT_CREATE_MODEL(Convolution2d<float, float>);
-    BB_OBJECT_CREATE_MODEL(Convolution2d<Bit, float>);
-    BB_OBJECT_CREATE_MODEL(ConvolutionCol2Im<float, float>);
-    BB_OBJECT_CREATE_MODEL(ConvolutionCol2Im<Bit, float>);
-    BB_OBJECT_CREATE_MODEL(ConvolutionIm2Col<float, float>);
-    BB_OBJECT_CREATE_MODEL(ConvolutionIm2Col<Bit, float>);
+    BB_OBJECT_CREATE(DifferentiableLutDiscreteN<6, float, float>);
+    BB_OBJECT_CREATE(DifferentiableLutDiscreteN<6, bb::Bit, float>);
+    BB_OBJECT_CREATE(DifferentiableLutDiscreteN<5, float, float>);
+    BB_OBJECT_CREATE(DifferentiableLutDiscreteN<5, bb::Bit, float>);
+    BB_OBJECT_CREATE(DifferentiableLutDiscreteN<4, float, float>);
+    BB_OBJECT_CREATE(DifferentiableLutDiscreteN<4, bb::Bit, float>);
+    BB_OBJECT_CREATE(DifferentiableLutDiscreteN<3, float, float>);
+    BB_OBJECT_CREATE(DifferentiableLutDiscreteN<3, bb::Bit, float>);
+    BB_OBJECT_CREATE(DifferentiableLutDiscreteN<2, float, float>);
+    BB_OBJECT_CREATE(DifferentiableLutDiscreteN<2, bb::Bit, float>);
     
-    BB_OBJECT_CREATE_MODEL(MaxPooling<float, float>);
-    BB_OBJECT_CREATE_MODEL(MaxPooling<Bit, float>);
-    BB_OBJECT_CREATE_MODEL(StochasticMaxPooling2x2<float, float>);
-    BB_OBJECT_CREATE_MODEL(StochasticMaxPooling2x2<Bit, float>);
+    BB_OBJECT_CREATE(MicroMlpAffine<6, 16, float, float>);
+    BB_OBJECT_CREATE(MicroMlpAffine<6, 16, bb::Bit, float>);
+    BB_OBJECT_CREATE(MicroMlpAffine<5, 16, float, float>);
+    BB_OBJECT_CREATE(MicroMlpAffine<5, 16, bb::Bit, float>);
+    BB_OBJECT_CREATE(MicroMlpAffine<4, 16, float, float>);
+    BB_OBJECT_CREATE(MicroMlpAffine<4, 16, bb::Bit, float>);
+    BB_OBJECT_CREATE(MicroMlpAffine<3, 16, float, float>);
+    BB_OBJECT_CREATE(MicroMlpAffine<3, 16, bb::Bit, float>);
+    BB_OBJECT_CREATE(MicroMlpAffine<2, 16, float, float>);
+    BB_OBJECT_CREATE(MicroMlpAffine<2, 16, bb::Bit, float>);
+
+    BB_OBJECT_CREATE(MicroMlp<6, 16, float, float>);
+    BB_OBJECT_CREATE(MicroMlp<6, 16, bb::Bit, float>);
+    BB_OBJECT_CREATE(MicroMlp<5, 16, float, float>);
+    BB_OBJECT_CREATE(MicroMlp<5, 16, bb::Bit, float>);
+    BB_OBJECT_CREATE(MicroMlp<4, 16, float, float>);
+    BB_OBJECT_CREATE(MicroMlp<4, 16, bb::Bit, float>);
+    BB_OBJECT_CREATE(MicroMlp<3, 16, float, float>);
+    BB_OBJECT_CREATE(MicroMlp<3, 16, bb::Bit, float>);
+    BB_OBJECT_CREATE(MicroMlp<2, 16, float, float>);
+    BB_OBJECT_CREATE(MicroMlp<2, 16, bb::Bit, float>);
+
+    BB_OBJECT_CREATE(DenseAffine<float>);
+    BB_OBJECT_CREATE(DepthwiseDenseAffine<float>);
+
+    BB_OBJECT_CREATE(Convolution2d<float, float>);
+    BB_OBJECT_CREATE(Convolution2d<bb::Bit, float>);
+    BB_OBJECT_CREATE(ConvolutionCol2Im<float, float>);
+    BB_OBJECT_CREATE(ConvolutionCol2Im<bb::Bit, float>);
+    BB_OBJECT_CREATE(ConvolutionIm2Col<float, float>);
+    BB_OBJECT_CREATE(ConvolutionIm2Col<bb::Bit, float>);
     
-    BB_OBJECT_CREATE_MODEL(Binarize<Bit, float>);
-    BB_OBJECT_CREATE_MODEL(Binarize<float, float>);
-    BB_OBJECT_CREATE_MODEL(Sigmoid<Bit, float>);
-    BB_OBJECT_CREATE_MODEL(Sigmoid<float, float>);
-    BB_OBJECT_CREATE_MODEL(ReLU<Bit, float>);
-    BB_OBJECT_CREATE_MODEL(ReLU<float, float>);
-    BB_OBJECT_CREATE_MODEL(HardTanh<Bit, float>);
-    BB_OBJECT_CREATE_MODEL(HardTanh<float, float>);
+    BB_OBJECT_CREATE(MaxPooling<float, float>);
+    BB_OBJECT_CREATE(MaxPooling<bb::Bit, float>);
+    BB_OBJECT_CREATE(StochasticMaxPooling2x2<float, float>);
+    BB_OBJECT_CREATE(StochasticMaxPooling2x2<Bit, float>);
+    BB_OBJECT_CREATE(UpSampling<float, float>);
+    BB_OBJECT_CREATE(UpSampling<bb::Bit, float>);
 
-    BB_OBJECT_CREATE_MODEL(BatchNormalization<float>);
+    BB_OBJECT_CREATE(Binarize<bb::Bit, float>);
+    BB_OBJECT_CREATE(Binarize<float, float>);
+    BB_OBJECT_CREATE(Sigmoid<bb::Bit, float>);
+    BB_OBJECT_CREATE(Sigmoid<float, float>);
+    BB_OBJECT_CREATE(ReLU<bb::Bit, float>);
+    BB_OBJECT_CREATE(ReLU<float, float>);
+    BB_OBJECT_CREATE(HardTanh<bb::Bit, float>);
+    BB_OBJECT_CREATE(HardTanh<float, float>);
 
-    BB_OBJECT_CREATE_MODEL(Shuffle);
+    BB_OBJECT_CREATE(BatchNormalization<float>);
+
+    BB_OBJECT_CREATE(Dropout<float, float>);
+    BB_OBJECT_CREATE(Dropout<bb::Bit, float>);
+    
+    BB_OBJECT_CREATE(Shuffle);
+
+
+    BB_OBJECT_CREATE(OptimizerSgd<float>);
+    BB_OBJECT_CREATE(OptimizerAdaGrad<float>);
+    BB_OBJECT_CREATE(OptimizerAdam<float>);
+
 
     return std::shared_ptr<Object>();
 }
 
 
+// ストリームからオブジェクトを再構成
 inline std::shared_ptr<Object> Object_Reconstruct(std::istream &is)
 {
     auto object_name = Object::ReadHeader(is);

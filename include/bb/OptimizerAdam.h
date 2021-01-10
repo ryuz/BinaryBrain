@@ -20,6 +20,15 @@ namespace bb {
 template <typename T = float>
 class OptimizerAdam : public Optimizer
 {
+    using _super = Optimizer;
+
+public:
+    static inline std::string OptimizerName(void) { return "OptimizerAdam"; }
+    static inline std::string ObjectName(void){ return OptimizerName() + "_" + DataType<T>::Name(); }
+    
+    std::string GetOptimizerName(void) const override { return OptimizerName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
 protected:
     T               m_learning_rate;
     T               m_beta1;
@@ -157,6 +166,48 @@ public:
             m_b2 *= m_beta2;
         }
     }
+
+
+    // シリアライズ
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_learning_rate);
+        bb::SaveValue(os, m_beta1);
+        bb::SaveValue(os, m_beta2);
+        bb::SaveValue(os, m_iter);
+        bb::SaveValue(os, m_b1);
+        bb::SaveValue(os, m_b2);
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_learning_rate);
+        bb::LoadValue(is, m_beta1);
+        bb::LoadValue(is, m_beta2);
+        bb::LoadValue(is, m_iter);
+        bb::LoadValue(is, m_b1);
+        bb::LoadValue(is, m_b2);
+    }
+
 };
 
 

@@ -305,7 +305,7 @@ public:
     
     
 public:
-    std::string GetObjectName(void)  const { return ""; }   // 暫定
+//  std::string GetObjectName(void)  const { return ""; }   // 暫定
 
 protected:
 //  void DumpObjectData(std::ostream &os) const {}   // 暫定

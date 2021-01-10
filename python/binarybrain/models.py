@@ -123,7 +123,7 @@ class Model(bb.Object):
 
         # モデルタイトル
         text  = indent + separetor + '\n'
-        text += indent + '[' + self.get_class_name() + '] ' + m_name + '\n'
+        text += indent + '[' + self.get_class_name() + '] ' + name + '\n'
 
         # 内容
         text += indent + ' input  shape : ' + str(self.get_input_shape())
@@ -535,9 +535,9 @@ class BitEncode(Model):
         bit_size (int): エンコードするbit数
     """
 
-    def __init__(self, bit_size=1, *, output_shape=[], input_shape=None, name=None, bit_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32):
+    def __init__(self, bit_size=1, *, output_shape=[], input_shape=None, name=None, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32):
 
-        core_creator = search_core_model('BitEncode', [bin_dtype, real_type]).create
+        core_creator = search_core_model('BitEncode', [bin_dtype, real_dtype]).create
         core_model = core_creator(bit_size, output_shape)
 
         super(BitEncode, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
@@ -551,10 +551,10 @@ class Reduce(Model):
         output_shape ([int]): 出力のシェイプ
     """
 
-    def __init__(self, output_shape=None, integrate_size=0, *, input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
+    def __init__(self, output_shape=[], integrate_size=0, *, input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
         core_creator = search_core_model('Reduce', [fw_dtype, bw_dtype]).create
         core_model = core_creator(output_shape, integrate_size)
-
+        
         super(Reduce, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
 
@@ -807,6 +807,9 @@ class ConvolutionCol2Im(Model):
         
         super(ConvolutionCol2Im, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
+    def set_output_size(self, output_size):
+        self.get_core().set_output_size(output_size[0], output_size[1])
+
 
 class Convolution2d(Sequential):
     """Convolution class
@@ -834,9 +837,8 @@ class Convolution2d(Sequential):
     def __init__(self, sub_layer, filter_size=(1, 1), stride=(1, 1), *, input_shape=None,
                         padding='valid', border_mode='reflect_101', border_value=0.0,
                         name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
-        super(Convolution2d, self).__init__()
+        super(Convolution2d, self).__init__(model_list=[])
         
-        self.core_creator = search_core_model('Convolution2d', [fw_dtype, bw_dtype]).create
         self.deny_flatten = True
         self.name         = name
         self.input_shape  = input_shape
@@ -852,19 +854,20 @@ class Convolution2d(Sequential):
                                 padding=padding, border_mode=border_mode, border_value=border_value,
                                 fw_dtype=fw_dtype, bw_dtype=bw_dtype)
         self.sub_layer    = sub_layer
-        self.col2im       = None  # 後で決定
-    
+        self.col2im       = ConvolutionCol2Im(fw_dtype=self.fw_dtype, bw_dtype=self.bw_dtype)
+
     def send_command(self, command, send_to="all"):
         self.im2col.send_command(command=command, send_to=send_to)
         self.sub_layer.send_command(command=command, send_to=send_to)
         self.col2im.send_command(command=command, send_to=send_to)
     
     def get_core(self):
-        core_model = self.core_creator(self.im2col.get_core(), self.sub_layer.get_core(), self.col2im.get_core())
+        core_creator = search_core_model('Convolution2d', [self.fw_dtype, self.bw_dtype]).create
+        core_model = core_creator(self.im2col.get_core(), self.sub_layer.get_core(), self.col2im.get_core())
         if self.name is not None:
             core_model.set_name(self.name)
         return core_model
-    
+
     def get_sub_layer(self):
         return self.sub_layer
     
@@ -872,7 +875,7 @@ class Convolution2d(Sequential):
         self.input_shape = shape
         
         # 出力サイズ計算
-        input_c_size = shape[0]
+        # input_c_size = shape[0]
         input_h_size = shape[1]
         input_w_size = shape[2]
         if self.padding == "valid":
@@ -884,7 +887,7 @@ class Convolution2d(Sequential):
         else:
             raise ValueError("illegal padding value")
         
-        self.col2im = ConvolutionCol2Im(output_size=[output_h_size, output_w_size], fw_dtype=self.fw_dtype, bw_dtype=self.bw_dtype)
+        self.col2im.set_output_size(output_size=[output_h_size, output_w_size])
         
         super(Convolution2d, self).set_model_list([self.im2col, self.sub_layer, self.col2im])
         
