@@ -59,10 +59,11 @@ protected:
     std::shared_ptr<Tensor>     m_dW;
     std::shared_ptr<Tensor>     m_db;
     
-#ifdef BB_WITH_CUDA
     bool                        m_cublasEnable = false;
+#ifdef BB_WITH_CUDA
     cublasHandle_t              m_cublasHandle;
 #endif
+
 
 public:
     struct create_t
@@ -488,7 +489,7 @@ protected:
         bb::SaveValue(os, m_initializer);
         bb::SaveValue(os, m_input_shape);
         bb::SaveValue(os, m_output_shape);
-
+        bb::SaveValue(os, m_cublasEnable);
         m_W->DumpObject(os);
         m_b->DumpObject(os);
     }
@@ -511,10 +512,19 @@ protected:
         bb::LoadValue(is, m_initializer);
         bb::LoadValue(is, m_input_shape);
         bb::LoadValue(is, m_output_shape);
+        bb::LoadValue(is, m_cublasEnable);
         m_W->LoadObject(is);
         m_b->LoadObject(is);
         
         // 再構築
+#ifdef BB_WITH_CUDA
+        if ( m_cublasEnable ) {
+           if ( cublasCreate(&m_cublasHandle) != CUBLAS_STATUS_SUCCESS ) {
+                m_cublasEnable = false;
+            }
+        }
+#endif
+
         m_input_node_size = CalcShapeSize(m_input_shape);
         m_output_node_size = CalcShapeSize(m_output_shape);
         m_dW->Resize({m_output_node_size, m_input_node_size}, DataType<T>::type);   m_dW->FillZero();

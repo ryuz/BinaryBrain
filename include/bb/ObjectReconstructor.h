@@ -29,6 +29,7 @@
 #include "bb/RealToBinary.h" 
 #include "bb/BinaryToReal.h" 
 #include "bb/BitEncode.h"
+#include "bb/Reduce.h"
 
 #include "bb/BinaryLutN.h"
 #include "bb/DifferentiableLutN.h"
@@ -49,7 +50,6 @@
 #include "bb/Sigmoid.h"
 #include "bb/ReLU.h"
 #include "bb/HardTanh.h"
-
 
 #include "bb/BatchNormalization.h" 
 
@@ -100,6 +100,9 @@ inline std::shared_ptr<Object> Object_Creator(std::string object_name)
     BB_OBJECT_CREATE_MODEL(BinaryToReal<Bit, float>);
     BB_OBJECT_CREATE_MODEL(BitEncode<float, float>);
     BB_OBJECT_CREATE_MODEL(BitEncode<Bit, float>);
+    BB_OBJECT_CREATE_MODEL(Reduce<float, float>);
+    BB_OBJECT_CREATE_MODEL(Reduce<Bit, float>);
+    
 
     BB_OBJECT_CREATE_MODEL(DifferentiableLutN<6, float, float>);
     BB_OBJECT_CREATE_MODEL(DifferentiableLutN<6, Bit, float>);

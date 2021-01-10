@@ -551,9 +551,9 @@ class Reduce(Model):
         output_shape ([int]): 出力のシェイプ
     """
 
-    def __init__(self, output_shape, *, input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
+    def __init__(self, output_shape=None, integrate_size=0, *, input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
         core_creator = search_core_model('Reduce', [fw_dtype, bw_dtype]).create
-        core_model = core_creator(output_shape)
+        core_model = core_creator(output_shape, integrate_size)
 
         super(Reduce, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
