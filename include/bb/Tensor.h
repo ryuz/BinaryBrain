@@ -307,7 +307,7 @@ class Tensor_ : public Object
 
 public:
     static inline std::string ObjectName(void){ return "Tensor_" + DataType<T>::Name(); }
-    std::string GetObjectName(void) const { return ObjectName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
 
 public:
     using ConstPtr = TensorConstPtr_<T, Tensor_<T> const, Memory::ConstPtr>;
@@ -578,7 +578,7 @@ public:
     //  シリアライズ
     // -------------------------------------
     
-    void DumpObjectData(std::ostream &os) const
+    void DumpObjectData(std::ostream &os) const override 
     {
         // バージョン
         std::int64_t ver = 1;
@@ -596,7 +596,7 @@ public:
         os.write((char const *)ptr.GetAddr(), m_size * DataType<T>::size);
     }
 
-    void LoadObjectData(std::istream &is)
+    void LoadObjectData(std::istream &is) override 
     {
         // バージョン
         std::int64_t ver;
@@ -1509,7 +1509,7 @@ class Tensor : public Object
 
 public:
     static inline std::string ObjectName(void){ return "Tensor"; }
-    std::string GetObjectName(void) const { return ObjectName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
 
 protected:
     int                         m_type   = 0;
@@ -1819,7 +1819,7 @@ public:
     //  シリアライズ
     // -------------------------------------
 protected:
-    void DumpObjectData(std::ostream &os) const
+    void DumpObjectData(std::ostream &os) const override
     {
         // バージョン
         std::int64_t ver = 1;
@@ -1846,7 +1846,7 @@ protected:
         }
     }
 
-    void LoadObjectData(std::istream &is)
+    void LoadObjectData(std::istream &is) override
     {
         // バージョン
         std::int64_t ver;

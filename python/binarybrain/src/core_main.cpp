@@ -354,12 +354,19 @@ std::string MakeVerilog_LutConvLayers(std::string module_name, std::vector< std:
 //////////////////////////////////////]
 
 
-#define DEF_CAST_FROM_OBJECT(class_name)    .def("cast_from_object", [](std::shared_ptr<Object> obj) { return std::dynamic_pointer_cast<class_name>(obj); })
+#define DEF_CAST_FROM_OBJECT(class_name)    \
+        .def("cast_from_object", [](std::shared_ptr<Object> obj) { return std::dynamic_pointer_cast<class_name>(obj); })
 
 #define DEF_OBJECT_PICKLE(class_name)   \
         .def(py::pickle( \
                 [](const class_name &obj) { return py::make_tuple(obj.DumpObjectBytes()); }, \
                 [](py::tuple t) { return std::dynamic_pointer_cast<class_name>(bb::Object_CreatePy(t[0].cast<py::bytes>())); }))
+
+#define PYCLASS_OBJECT(class_name, superclass_name) \
+                py::class_< class_name, superclass_name, std::shared_ptr<class_name> >(m, #class_name) \
+                    DEF_CAST_FROM_OBJECT(class_name) \
+                    DEF_OBJECT_PICKLE(class_name)
+
 
 namespace py = pybind11;
 PYBIND11_MODULE(core, m) {
@@ -396,18 +403,12 @@ PYBIND11_MODULE(core, m) {
 
 
     py::class_< Object, std::shared_ptr<Object> >(m, "Object")
+        DEF_OBJECT_PICKLE(Object)
         .def("get_object_name", &Object::GetObjectName)
         .def("dump_object", &Object::DumpObjectBytes)
         .def("load_object", &Object::LoadObjectBytes)
         .def_static("write_header", &Object::WriteHeaderPy)
         .def_static("read_header", &Object::ReadHeaderPy)
-        .def(py::pickle(
-                [](const Object &obj) { // __getstate__
-                    return py::make_tuple(obj.DumpObjectBytes());
-                },
-                [](py::tuple t) { // __setstate__
-                    return bb::Object_CreatePy(t[0].cast<py::bytes>());
-                }))
         ;
 
 
@@ -416,7 +417,8 @@ PYBIND11_MODULE(core, m) {
     // ------------------------------------
 
     // Tensor
-    py::class_< Tensor >(m, "Tensor")
+    py::class_< Tensor, Object, std::shared_ptr<Tensor> >(m, "Tensor")
+//      DEF_OBJECT_PICKLE(Tensor)
         .def(py::init< bb::indices_t, int, bool >(),
             py::arg("shape"),
             py::arg("type")=BB_TYPE_FP32,
@@ -541,8 +543,11 @@ PYBIND11_MODULE(core, m) {
     //  Models
     // ------------------------------------
     
+#define PYCLASS_MODEL(class_name, superclass_name)  PYCLASS_OBJECT(class_name, superclass_name)
+
     // model
-    py::class_< Model, Object, std::shared_ptr<Model> >(m, "Model")
+//  py::class_< Model, Object, std::shared_ptr<Model> >(m, "Model")
+    PYCLASS_MODEL(Model, Object)
         .def("get_name", &Model::GetName)
         .def("set_name", &Model::SetName)
         .def("is_named", &Model::IsNamed)
@@ -572,22 +577,28 @@ PYBIND11_MODULE(core, m) {
         .def("load_json", &Model::LoadJson);
     
 
-    py::class_< Sequential, Model, std::shared_ptr<Sequential> >(m, "Sequential")
+//  py::class_< Sequential, Model, std::shared_ptr<Sequential> >(m, "Sequential")
+    PYCLASS_MODEL(Sequential, Model)
         .def_static("create",   &Sequential::Create)
         .def("add",             &Sequential::Add)
         ;
 
 
-    py::class_< BitEncode_fp32_fp32, Model, std::shared_ptr<BitEncode_fp32_fp32> >(m, "BitEncode_fp32_fp32")
+//    py::class_< BitEncode_fp32_fp32, Model, std::shared_ptr<BitEncode_fp32_fp32> >(m, "BitEncode_fp32_fp32")
+//       DEF_OBJECT_PICKLE(BitEncode_fp32_fp32)
+    PYCLASS_MODEL(BitEncode_fp32_fp32, Model)
         .def_static("create",   &BitEncode_fp32_fp32::CreateEx);
     py::class_< BitEncode_bit_fp32, Model, std::shared_ptr<BitEncode_bit_fp32> >(m, "BitEncode_bit_fp32")
+        DEF_OBJECT_PICKLE(BitEncode_bit_fp32)
         .def_static("create",   &BitEncode_fp32_fp32::CreateEx);
     
 
     py::class_< Shuffle, Model, std::shared_ptr<Shuffle> >(m, "Shuffle")
+        DEF_OBJECT_PICKLE(Shuffle)
         .def_static("create",   &Shuffle::CreatePy);
     
     py::class_< BinaryModulation_fp32_fp32, Model, std::shared_ptr<BinaryModulation_fp32_fp32> >(m, "BinaryModulation_fp32_fp32")
+        DEF_OBJECT_PICKLE(BinaryModulation_fp32_fp32)
         .def_static("create", &BinaryModulation_fp32_fp32::CreateEx,
                 py::arg("layer"),
                 py::arg("output_shape")              = bb::indices_t(),
@@ -604,6 +615,7 @@ PYBIND11_MODULE(core, m) {
                 py::arg("inference_input_range_hi")  = 1.0f);
 
     py::class_< BinaryModulation_bit_fp32, Model, std::shared_ptr<BinaryModulation_bit_fp32> >(m, "BinaryModulation_bit_fp32")
+        DEF_OBJECT_PICKLE(BinaryModulation_bit_fp32)
         .def_static("create", &BinaryModulation_bit_fp32::CreateEx,
                 py::arg("layer"),
                 py::arg("output_shape")              = bb::indices_t(),
@@ -620,6 +632,7 @@ PYBIND11_MODULE(core, m) {
                 py::arg("inference_input_range_hi")  = 1.0f);
 
     py::class_< RealToBinary_fp32_fp32, Model, std::shared_ptr<RealToBinary_fp32_fp32> >(m, "RealToBinary_fp32_fp32")
+        DEF_OBJECT_PICKLE(RealToBinary_fp32_fp32)
         .def_static("create", &RealToBinary_fp32_fp32::CreateEx,
                 py::arg("frame_modulation_size") = 1,
                 py::arg("depth_modulation_size") = 1,
@@ -629,6 +642,7 @@ PYBIND11_MODULE(core, m) {
                 py::arg("input_range_hi")   = 1.0f);
 
     py::class_< RealToBinary_bit_fp32, Model, std::shared_ptr<RealToBinary_bit_fp32> >(m, "RealToBinary_bit_fp32")
+        DEF_OBJECT_PICKLE(RealToBinary_bit_fp32)
         .def_static("create", &RealToBinary_bit_fp32::CreateEx,
                 py::arg("frame_modulation_size") = 1,
                 py::arg("depth_modulation_size") = 1,
@@ -638,23 +652,27 @@ PYBIND11_MODULE(core, m) {
                 py::arg("input_range_hi")   = 1.0f);
 
     py::class_< BinaryToReal_fp32_fp32, Model, std::shared_ptr<BinaryToReal_fp32_fp32> >(m, "BinaryToReal_fp32_fp32")
-        DEF_CAST_FROM_OBJECT(BinaryToReal_fp32_fp32)
+        DEF_OBJECT_PICKLE(BinaryToReal_fp32_fp32)
         .def_static("create", &BinaryToReal_fp32_fp32::CreateEx,
                 py::arg("frame_modulation_size") = 1,
                 py::arg("output_shape")          = bb::indices_t());
 
     py::class_< BinaryToReal_bit_fp32, Model, std::shared_ptr<BinaryToReal_bit_fp32> >(m, "BinaryToReal_bit_fp32")
+        DEF_OBJECT_PICKLE(BinaryToReal_bit_fp32)
         .def_static("create", &BinaryToReal_bit_fp32::CreateEx,
                 py::arg("frame_modulation_size") = 1,
                 py::arg("output_shape")          = bb::indices_t());
 
     py::class_< Reduce_fp32_fp32, Model, std::shared_ptr<Reduce_fp32_fp32> >(m, "Reduce_fp32_fp32")
+        DEF_OBJECT_PICKLE(Reduce_fp32_fp32)
         .def_static("create",   &Reduce_fp32_fp32::CreateEx);
     py::class_< Reduce_bit_fp32, Model, std::shared_ptr<Reduce_bit_fp32> >(m, "Reduce_bit_fp32")
+        DEF_OBJECT_PICKLE(Reduce_bit_fp32)
         .def_static("create",   &Reduce_bit_fp32::CreateEx);
 
     // DenseAffine
     py::class_< DenseAffine_fp32, Model, std::shared_ptr<DenseAffine_fp32> >(m, "DenseAffine_fp32")
+        DEF_OBJECT_PICKLE(DenseAffine_fp32)
         .def_static("create",   &DenseAffine_fp32::CreateEx, "create",
             py::arg("output_shape"),
             py::arg("initialize_std") = 0.01f,
@@ -676,6 +694,7 @@ PYBIND11_MODULE(core, m) {
     
     // DepthwiseDenseAffine
     py::class_< DepthwiseDenseAffine_fp32, Model, std::shared_ptr<DepthwiseDenseAffine_fp32> >(m, "DepthwiseDenseAffine_fp32")
+        DEF_OBJECT_PICKLE(DepthwiseDenseAffine_fp32)
         .def_static("create",   &DepthwiseDenseAffine_fp32::CreatePy, "create",
             py::arg("output_shape"),
             py::arg("input_point_size")=0,
@@ -691,8 +710,6 @@ PYBIND11_MODULE(core, m) {
 
     // SparseModel
     py::class_< SparseModel, Model, std::shared_ptr<SparseModel> >(m, "SparseModel")
-        DEF_CAST_FROM_OBJECT(SparseModel)
-        DEF_OBJECT_PICKLE(SparseModel)
         .def("get_connection_size", &SparseModel::GetConnectionSize)
         .def("set_connection", &SparseModel::SetConnectionIndices)
         .def("get_connection", &SparseModel::GetConnectionIndices)
@@ -713,20 +730,28 @@ PYBIND11_MODULE(core, m) {
         .def("import_layer", &BinaryLutModel::ImportLayer);
 
     py::class_< BinaryLut6_fp32_fp32, BinaryLutModel, std::shared_ptr<BinaryLut6_fp32_fp32> >(m, "BinaryLut6_fp32_fp32")
+        DEF_OBJECT_PICKLE(BinaryLut6_fp32_fp32)
         .def_static("create", &BinaryLut6_fp32_fp32::CreatePy);
     py::class_< BinaryLut5_fp32_fp32, BinaryLutModel, std::shared_ptr<BinaryLut5_fp32_fp32> >(m, "BinaryLut5_fp32_fp32")
+        DEF_OBJECT_PICKLE(BinaryLut5_fp32_fp32)
         .def_static("create", &BinaryLut5_fp32_fp32::CreatePy);
     py::class_< BinaryLut4_fp32_fp32, BinaryLutModel, std::shared_ptr<BinaryLut4_fp32_fp32> >(m, "BinaryLut4_fp32_fp32")
+        DEF_OBJECT_PICKLE(BinaryLut4_fp32_fp32)
         .def_static("create", &BinaryLut4_fp32_fp32::CreatePy);
     py::class_< BinaryLut2_fp32_fp32, BinaryLutModel, std::shared_ptr<BinaryLut2_fp32_fp32> >(m, "BinaryLut2_fp32_fp32")
+        DEF_OBJECT_PICKLE(BinaryLut2_fp32_fp32)
         .def_static("create", &BinaryLut2_fp32_fp32::CreatePy);
     py::class_< BinaryLut6_bit_fp32, BinaryLutModel, std::shared_ptr<BinaryLut6_bit_fp32> >(m, "BinaryLut6_bit_fp32")
+        DEF_OBJECT_PICKLE(BinaryLut6_bit_fp32)
         .def_static("create", &BinaryLut6_bit_fp32::CreatePy);
     py::class_< BinaryLut5_bit_fp32, BinaryLutModel, std::shared_ptr<BinaryLut5_bit_fp32> >(m, "BinaryLut5_bit_fp32")
+        DEF_OBJECT_PICKLE(BinaryLut5_bit_fp32)
         .def_static("create", &BinaryLut5_bit_fp32::CreatePy);
     py::class_< BinaryLut4_bit_fp32, BinaryLutModel, std::shared_ptr<BinaryLut4_bit_fp32> >(m, "BinaryLut4_bit_fp32")
+        DEF_OBJECT_PICKLE(BinaryLut4_bit_fp32)
         .def_static("create", &BinaryLut4_bit_fp32::CreatePy);
     py::class_< BinaryLut2_bit_fp32, BinaryLutModel, std::shared_ptr<BinaryLut2_bit_fp32> >(m, "BinaryLut2_bit_fp32")
+        DEF_OBJECT_PICKLE(BinaryLut2_bit_fp32)
         .def_static("create", &BinaryLut2_bit_fp32::CreatePy);
 
 
@@ -737,77 +762,107 @@ PYBIND11_MODULE(core, m) {
 
     // StochasticLut
     py::class_< StochasticLut6_fp32_fp32, StochasticLutModel, std::shared_ptr<StochasticLut6_fp32_fp32> >(m, "StochasticLut6_fp32_fp32")
+        DEF_OBJECT_PICKLE(StochasticLut6_fp32_fp32)
         .def_static("create", &StochasticLut6_fp32_fp32::CreateEx, "create StochasticLut6_fp32_fp32");
     py::class_< StochasticLut5_fp32_fp32, StochasticLutModel, std::shared_ptr<StochasticLut5_fp32_fp32> >(m, "StochasticLut5_fp32_fp32")
+        DEF_OBJECT_PICKLE(StochasticLut5_fp32_fp32)
         .def_static("create", &StochasticLut5_fp32_fp32::CreateEx, "create StochasticLut6_fp32_fp32");
     py::class_< StochasticLut4_fp32_fp32, StochasticLutModel, std::shared_ptr<StochasticLut4_fp32_fp32> >(m, "StochasticLut4_fp32_fp32")
+        DEF_OBJECT_PICKLE(StochasticLut4_fp32_fp32)
         .def_static("create", &StochasticLut4_fp32_fp32::CreateEx, "create StochasticLut6_fp32_fp32");
     py::class_< StochasticLut2_fp32_fp32, StochasticLutModel, std::shared_ptr<StochasticLut2_fp32_fp32> >(m, "StochasticLut2_fp32_fp32")
+        DEF_OBJECT_PICKLE(StochasticLut2_fp32_fp32)
         .def_static("create", &StochasticLut2_fp32_fp32::CreateEx, "create StochasticLut6_fp32_fp32");
 
     py::class_< StochasticLut6_bit_fp32, StochasticLutModel, std::shared_ptr<StochasticLut6_bit_fp32> >(m, "StochasticLut6_bit_fp32")
+        DEF_OBJECT_PICKLE(StochasticLut6_bit_fp32)
         .def_static("create", &StochasticLut6_bit_fp32::CreateEx, "create StochasticLut6_bit_fp32");
     py::class_< StochasticLut5_bit_fp32, StochasticLutModel, std::shared_ptr<StochasticLut5_bit_fp32> >(m, "StochasticLut5_bit_fp32")
+        DEF_OBJECT_PICKLE(StochasticLut5_bit_fp32)
         .def_static("create", &StochasticLut5_bit_fp32::CreateEx, "create StochasticLut6_bit_fp32");
     py::class_< StochasticLut4_bit_fp32, StochasticLutModel, std::shared_ptr<StochasticLut4_bit_fp32> >(m, "StochasticLut4_bit_fp32")
+        DEF_OBJECT_PICKLE(StochasticLut4_bit_fp32)
         .def_static("create", &StochasticLut4_bit_fp32::CreateEx, "create StochasticLut6_bit_fp32");
     py::class_< StochasticLut2_bit_fp32, StochasticLutModel, std::shared_ptr<StochasticLut2_bit_fp32> >(m, "StochasticLut2_bit_fp32")
+        DEF_OBJECT_PICKLE(StochasticLut2_bit_fp32)
         .def_static("create", &StochasticLut2_bit_fp32::CreateEx, "create StochasticLut6_bit_fp32");
 
 
     // DifferentiableLut
-    py::class_< DifferentiableLut6_fp32_fp32, StochasticLutModel, std::shared_ptr<DifferentiableLut6_fp32_fp32> >(m, "DifferentiableLut6_fp32_fp32")
+//    py::class_< DifferentiableLut6_fp32_fp32, StochasticLutModel, std::shared_ptr<DifferentiableLut6_fp32_fp32> >(m, "DifferentiableLut6_fp32_fp32")
+//        DEF_OBJECT_PICKLE(DifferentiableLut6_fp32_fp32)
+    PYCLASS_MODEL(DifferentiableLut6_fp32_fp32, StochasticLutModel)
         .def_static("create", &DifferentiableLut6_fp32_fp32::CreatePy, "create DifferentiableLut6_fp32_fp32");
     py::class_< DifferentiableLut5_fp32_fp32, StochasticLutModel, std::shared_ptr<DifferentiableLut5_fp32_fp32> >(m, "DifferentiableLut5_fp32_fp32")
+        DEF_OBJECT_PICKLE(DifferentiableLut5_fp32_fp32)
         .def_static("create", &DifferentiableLut5_fp32_fp32::CreatePy, "create DifferentiableLut5_fp32_fp32");
     py::class_< DifferentiableLut4_fp32_fp32, StochasticLutModel, std::shared_ptr<DifferentiableLut4_fp32_fp32> >(m, "DifferentiableLut4_fp32_fp32")
+        DEF_OBJECT_PICKLE(DifferentiableLut4_fp32_fp32)
         .def_static("create", &DifferentiableLut4_fp32_fp32::CreatePy, "create DifferentiableLut4_fp32_fp32");
     py::class_< DifferentiableLut2_fp32_fp32, StochasticLutModel, std::shared_ptr<DifferentiableLut2_fp32_fp32> >(m, "DifferentiableLut2_fp32_fp32")
+        DEF_OBJECT_PICKLE(DifferentiableLut2_fp32_fp32)
         .def_static("create", &DifferentiableLut2_fp32_fp32::CreatePy, "create DifferentiableLut2_fp32_fp32");
 
-    py::class_< DifferentiableLut6_bit_fp32, StochasticLutModel, std::shared_ptr<DifferentiableLut6_bit_fp32> >(m, "DifferentiableLut6_bit_fp32")
-        DEF_CAST_FROM_OBJECT(DifferentiableLut6_bit_fp32)
-        DEF_OBJECT_PICKLE(DifferentiableLut6_bit_fp32)
+//    py::class_< DifferentiableLut6_bit_fp32, StochasticLutModel, std::shared_ptr<DifferentiableLut6_bit_fp32> >(m, "DifferentiableLut6_bit_fp32")
+//        DEF_OBJECT_PICKLE(DifferentiableLut6_bit_fp32)
+    PYCLASS_MODEL(DifferentiableLut6_bit_fp32, StochasticLutModel)
         .def_static("create", &DifferentiableLut6_bit_fp32::CreatePy, "create DifferentiableLut6_bit_fp32");
     py::class_< DifferentiableLut5_bit_fp32, StochasticLutModel, std::shared_ptr<DifferentiableLut5_bit_fp32> >(m, "DifferentiableLut5_bit_fp32")
+        DEF_OBJECT_PICKLE(DifferentiableLut5_bit_fp32)
         .def_static("create", &DifferentiableLut5_bit_fp32::CreatePy, "create DifferentiableLut5_bit_fp32");
     py::class_< DifferentiableLut4_bit_fp32, StochasticLutModel, std::shared_ptr<DifferentiableLut4_bit_fp32> >(m, "DifferentiableLut4_bit_fp32")
+        DEF_OBJECT_PICKLE(DifferentiableLut4_bit_fp32)
         .def_static("create", &DifferentiableLut4_bit_fp32::CreatePy, "create DifferentiableLut4_bit_fp32");
     py::class_< DifferentiableLut2_bit_fp32, StochasticLutModel, std::shared_ptr<DifferentiableLut2_bit_fp32> >(m, "DifferentiableLut2_bit_fp32")
+        DEF_OBJECT_PICKLE(DifferentiableLut2_bit_fp32)
         .def_static("create", &DifferentiableLut2_bit_fp32::CreatePy, "create DifferentiableLut2_bit_fp32");
 
-   // DifferentiableLutDiscrete
+    // DifferentiableLutDiscrete
     py::class_< DifferentiableLutDiscrete6_fp32_fp32, StochasticLutModel, std::shared_ptr<DifferentiableLutDiscrete6_fp32_fp32> >(m, "DifferentiableLutDiscrete6_fp32_fp32")
+        DEF_OBJECT_PICKLE(DifferentiableLutDiscrete6_fp32_fp32)
         .def_static("create", &DifferentiableLutDiscrete6_fp32_fp32::CreatePy, "create DifferentiableLutDiscrete6_fp32_fp32");
     py::class_< DifferentiableLutDiscrete5_fp32_fp32, StochasticLutModel, std::shared_ptr<DifferentiableLutDiscrete5_fp32_fp32> >(m, "DifferentiableLutDiscrete5_fp32_fp32")
+        DEF_OBJECT_PICKLE(DifferentiableLutDiscrete5_fp32_fp32)
         .def_static("create", &DifferentiableLutDiscrete5_fp32_fp32::CreatePy, "create DifferentiableLutDiscrete5_fp32_fp32");
     py::class_< DifferentiableLutDiscrete4_fp32_fp32, StochasticLutModel, std::shared_ptr<DifferentiableLutDiscrete4_fp32_fp32> >(m, "DifferentiableLutDiscrete4_fp32_fp32")
+        DEF_OBJECT_PICKLE(DifferentiableLutDiscrete4_fp32_fp32)
         .def_static("create", &DifferentiableLutDiscrete4_fp32_fp32::CreatePy, "create DifferentiableLutDiscrete4_fp32_fp32");
     py::class_< DifferentiableLutDiscrete2_fp32_fp32, StochasticLutModel, std::shared_ptr<DifferentiableLutDiscrete2_fp32_fp32> >(m, "DifferentiableLutDiscrete2_fp32_fp32")
+        DEF_OBJECT_PICKLE(DifferentiableLutDiscrete2_fp32_fp32)
         .def_static("create", &DifferentiableLutDiscrete2_fp32_fp32::CreatePy, "create DifferentiableLutDiscrete2_fp32_fp32");
 
     py::class_< DifferentiableLutDiscrete6_bit_fp32, StochasticLutModel, std::shared_ptr<DifferentiableLutDiscrete6_bit_fp32> >(m, "DifferentiableLutDiscrete6_bit_fp32")
+        DEF_OBJECT_PICKLE(DifferentiableLutDiscrete6_bit_fp32)
         .def_static("create", &DifferentiableLutDiscrete6_bit_fp32::CreatePy, "create DifferentiableLutDiscrete6_bit_fp32");
     py::class_< DifferentiableLutDiscrete5_bit_fp32, StochasticLutModel, std::shared_ptr<DifferentiableLutDiscrete5_bit_fp32> >(m, "DifferentiableLutDiscrete5_bit_fp32")
+        DEF_OBJECT_PICKLE(DifferentiableLutDiscrete5_bit_fp32)
         .def_static("create", &DifferentiableLutDiscrete5_bit_fp32::CreatePy, "create DifferentiableLutDiscrete5_bit_fp32");
     py::class_< DifferentiableLutDiscrete4_bit_fp32, StochasticLutModel, std::shared_ptr<DifferentiableLutDiscrete4_bit_fp32> >(m, "DifferentiableLutDiscrete4_bit_fp32")
+        DEF_OBJECT_PICKLE(DifferentiableLutDiscrete4_bit_fp32)
         .def_static("create", &DifferentiableLutDiscrete4_bit_fp32::CreatePy, "create DifferentiableLutDiscrete4_bit_fp32");
     py::class_< DifferentiableLutDiscrete2_bit_fp32, StochasticLutModel, std::shared_ptr<DifferentiableLutDiscrete2_bit_fp32> >(m, "DifferentiableLutDiscrete2_bit_fp32")
+        DEF_OBJECT_PICKLE(DifferentiableLutDiscrete2_bit_fp32)
         .def_static("create", &DifferentiableLutDiscrete2_bit_fp32::CreatePy, "create DifferentiableLutDiscrete2_bit_fp32");
 
     // MicroMlp
     py::class_< MicroMlp6_16_fp32_fp32, SparseModel, std::shared_ptr<MicroMlp6_16_fp32_fp32> >(m, "MicroMlp6_16_fp32_fp32")
+        DEF_OBJECT_PICKLE(MicroMlp6_16_fp32_fp32)
         .def_static("create", &MicroMlp6_16_fp32_fp32::CreatePy, "create MicroMlp6_16_fp32_fp32");
     py::class_< MicroMlp5_16_fp32_fp32, SparseModel, std::shared_ptr<MicroMlp5_16_fp32_fp32> >(m, "MicroMlp5_16_fp32_fp32")
+        DEF_OBJECT_PICKLE(MicroMlp5_16_fp32_fp32)
         .def_static("create", &MicroMlp5_16_fp32_fp32::CreatePy, "create MicroMlp5_16_fp32_fp32");
     py::class_< MicroMlp4_16_fp32_fp32, SparseModel, std::shared_ptr<MicroMlp4_16_fp32_fp32> >(m, "MicroMlp4_16_fp32_fp32")
+        DEF_OBJECT_PICKLE(MicroMlp4_16_fp32_fp32)
         .def_static("create", &MicroMlp4_16_fp32_fp32::CreatePy, "create MicroMlp4_16_fp32_fp32");
 
     py::class_< MicroMlp6_16_bit_fp32, SparseModel, std::shared_ptr<MicroMlp6_16_bit_fp32> >(m, "MicroMlp6_16_bit_fp32")
+        DEF_OBJECT_PICKLE(MicroMlp6_16_bit_fp32)
         .def_static("create", &MicroMlp6_16_bit_fp32::CreatePy, "create MicroMlp6_16_bit_fp32");
     py::class_< MicroMlp5_16_bit_fp32, SparseModel, std::shared_ptr<MicroMlp5_16_bit_fp32> >(m, "MicroMlp5_16_bit_fp32")
+        DEF_OBJECT_PICKLE(MicroMlp5_16_bit_fp32)
         .def_static("create", &MicroMlp5_16_bit_fp32::CreatePy, "create MicroMlp5_16_bit_fp32");
     py::class_< MicroMlp4_16_bit_fp32, SparseModel, std::shared_ptr<MicroMlp4_16_bit_fp32> >(m, "MicroMlp4_16_bit_fp32")
+        DEF_OBJECT_PICKLE(MicroMlp4_16_bit_fp32)
         .def_static("create", &MicroMlp4_16_bit_fp32::CreatePy, "create MicroMlp4_16_bit_fp32");
 
 
