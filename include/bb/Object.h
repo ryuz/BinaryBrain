@@ -41,6 +41,11 @@ public:
     void LoadObject(std::istream& is)
     {
         auto object_name = ReadHeader(is);
+        if (object_name != GetObjectName()) {
+            std::cerr << "read:" << object_name << std::endl;
+            std::cerr << "expect:" << GetObjectName() << std::endl;
+        }
+
         BB_ASSERT(object_name == GetObjectName());
         LoadObjectData(is);
     }
@@ -78,6 +83,22 @@ public:
         return pybind11::make_tuple((std::size_t)is.tellg(), name);
     }
 
+
+    pybind11::bytes DumpObjectDataBytes(void) const
+    {
+        std::ostringstream os(std::istringstream::binary);
+        DumpObjectData(os);
+        auto str = os.str();
+        pybind11::bytes data(str);
+        return data;
+    }
+
+    std::size_t LoadObjectDataBytes(pybind11::bytes data)
+    {
+        std::istringstream is((std::string)data, std::istringstream::binary);
+        LoadObjectData(is);
+        return (std::size_t)is.tellg();
+    }
 #endif
 
 

@@ -60,8 +60,7 @@ class MetricsCategoricalAccuracy(Metrics):
     """
     
     def __init__(self, dtype=bb.DType.FP32):
-        core_metrics = bb.search_core_class('MetricsCategoricalAccuracy', [dtype]).create()
-#       core_metrics = core.MetricsCategoricalAccuracy_fp32.create()
+        core_metrics = bb.search_core_object('MetricsCategoricalAccuracy', [dtype]).create()
         super(MetricsCategoricalAccuracy, self).__init__(core_metrics=core_metrics)
 
 
@@ -73,7 +72,6 @@ class MetricsMeanSquaredError(Metrics):
     """
     
     def __init__(self, dtype=bb.DType.FP32):
-        core_metrics = bb.search_core_class('MetricsMeanSquaredError', [dtype]).create()
-#       core_metrics = core.MetricsMeanSquaredError.create()
+        core_metrics = bb.search_core_object('MetricsMeanSquaredError', [dtype]).create()
         super(MetricsMeanSquaredError, self).__init__(core_metrics=core_metrics)
 

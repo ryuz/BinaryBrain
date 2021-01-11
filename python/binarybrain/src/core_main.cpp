@@ -423,7 +423,12 @@ PYBIND11_MODULE(core, m) {
         .def("load_object", &Object::LoadObjectBytes)
         .def_static("write_header", &Object::WriteHeaderPy)
         .def_static("read_header", &Object::ReadHeaderPy)
+//      .def("_dump_object_data", &Object::DumpObjectDataBytes)
+//      .def("_load_object_data", &Object::LoadObjectDataBytes)
         ;
+
+    m.def("object_reconstruct", &bb::Object_ReconstructPy);
+
 
 
     // ------------------------------------
@@ -857,9 +862,24 @@ PYBIND11_MODULE(core, m) {
         ;
 
     PYCLASS_MODEL(ConvolutionIm2Col_fp32_fp32, Model)
-        .def_static("create", &ConvolutionIm2Col_fp32_fp32::CreatePy);
+        .def_static("create", &ConvolutionIm2Col_fp32_fp32::CreatePy)
+        .def("get_filter_size_h", &ConvolutionIm2Col_fp32_fp32::GetFilterSizeH)
+        .def("get_filter_size_w", &ConvolutionIm2Col_fp32_fp32::GetFilterSizeW)
+        .def("get_stride_y",      &ConvolutionIm2Col_fp32_fp32::GetStrideY)
+        .def("get_stride_x",      &ConvolutionIm2Col_fp32_fp32::GetStrideX)
+        .def("get_padding",       &ConvolutionIm2Col_fp32_fp32::GetPadding)
+        .def("get_border_mode",   &ConvolutionIm2Col_fp32_fp32::GetBorderMode)
+        .def("get_border_value",  &ConvolutionIm2Col_fp32_fp32::GetBorderValue);
+
     PYCLASS_MODEL(ConvolutionIm2Col_bit_fp32, Model)
-        .def_static("create", &ConvolutionIm2Col_bit_fp32::CreatePy);
+        .def_static("create", &ConvolutionIm2Col_bit_fp32::CreatePy)
+        .def("get_filter_size_h", &ConvolutionIm2Col_bit_fp32::GetFilterSizeH)
+        .def("get_filter_size_w", &ConvolutionIm2Col_bit_fp32::GetFilterSizeW)
+        .def("get_stride_y",      &ConvolutionIm2Col_bit_fp32::GetStrideY)
+        .def("get_stride_x",      &ConvolutionIm2Col_bit_fp32::GetStrideX)
+        .def("get_padding",       &ConvolutionIm2Col_bit_fp32::GetPadding)
+        .def("get_border_mode",   &ConvolutionIm2Col_bit_fp32::GetBorderMode)
+        .def("get_border_value",  &ConvolutionIm2Col_bit_fp32::GetBorderValue);
 
     PYCLASS_MODEL(ConvolutionCol2Im_fp32_fp32, Model)
         .def_static("create", &ConvolutionCol2Im_fp32_fp32::CreatePy)
@@ -1109,8 +1129,6 @@ PYBIND11_MODULE(core, m) {
 
     // version
     m.def("get_version_string", &bb::GetVersionString);
-
-    m.def("object_reconstruct", &bb::Object_ReconstructPy);
 
     // verilog
     m.def("make_verilog_lut_layers",     &MakeVerilog_LutLayers);

@@ -330,6 +330,7 @@ protected:
         // メンバ
         m_im2col->DumpObject(os);
         m_col2im->DumpObject(os);
+
         bool has_layer = (bool)m_layer;
         bb::SaveValue(os, has_layer);
         if (has_layer) {

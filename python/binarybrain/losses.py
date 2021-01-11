@@ -59,8 +59,7 @@ class LossSoftmaxCrossEntropy(LossFunction):
     """
     
     def __init__(self, dtype=bb.DType.FP32):
-        core_loss = bb.search_core_class('LossSoftmaxCrossEntropy', [dtype]).create()
-#       core_loss = core.LossSoftmaxCrossEntropy_fp32.create()
+        core_loss = bb.search_core_object('LossSoftmaxCrossEntropy', [dtype]).create()
         super(LossSoftmaxCrossEntropy, self).__init__(core_loss=core_loss)
 
 
@@ -71,7 +70,6 @@ class LossMeanSquaredError(LossFunction):
     """
     
     def __init__(self, dtype=bb.DType.FP32):
-        core_loss = bb.search_core_class('LossSoftmaxCrossEntropy', [dtype]).create()
-#       core_loss = core.LossMeanSquaredError_fp32.create()
+        core_loss = bb.search_core_object('LossSoftmaxCrossEntropy', [dtype]).create()
         super(LossMeanSquaredError, self).__init__(core_loss=core_loss)
 

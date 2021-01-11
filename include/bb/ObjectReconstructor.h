@@ -246,9 +246,10 @@ inline std::shared_ptr<Object> Object_Reconstruct(std::istream &is)
     BB_ASSERT(object_name.size() > 0);
 
     auto obj_ptr = Object_Creator(object_name);
-    BB_ASSERT(obj_ptr);
 
-    obj_ptr->LoadObjectData(is);
+    if ( obj_ptr ) {
+        obj_ptr->LoadObjectData(is);
+    }
 
     return obj_ptr;
 }
