@@ -1162,8 +1162,9 @@ class Convolution2d(Sequential):
                                 fw_dtype=fw_dtype, bw_dtype=bw_dtype)
         self.sub_layer    = sub_layer
         self.col2im       = ConvolutionCol2Im(fw_dtype=fw_dtype, bw_dtype=bw_dtype)
-        
-        super(Convolution2d, self).__init__(model_list=[], name=name, input_shape=input_shape)
+        model_list = [self.im2col, self.sub_layer, self.col2im]
+
+        super(Convolution2d, self).__init__(model_list=model_list, name=name, input_shape=input_shape)
 
     def send_command(self, command, send_to="all"):
         self.im2col.send_command(command=command, send_to=send_to)
@@ -1258,6 +1259,9 @@ class Convolution2d(Sequential):
                 data, model = bb.object_reconstruct(data)
                 self.sub_layer = model
         
+        # 再構成
+        self.set_model_list([self.im2col, self.sub_layer, self.col2im])
+
         return data
 
     @classmethod
