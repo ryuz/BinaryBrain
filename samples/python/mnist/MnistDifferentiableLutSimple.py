@@ -40,7 +40,7 @@ def main():
                 bb.DifferentiableLut([420]),
                 bb.DifferentiableLut([70]),
                 bb.Reduce([10]),
-                bb.BinaryToReal(frame_modulation_size=frame_modulation_size)
+                bb.BinaryToReal(frame_integration_size=frame_modulation_size)
             ])
     net.set_input_shape([1, 28, 28])
 

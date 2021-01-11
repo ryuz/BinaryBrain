@@ -129,7 +129,8 @@ public:
         return Create(create);
     }
 
-    static std::shared_ptr<StochasticBatchNormalization> CreateEx(double momentum=0.9, double gamma=0.2, double beta=0.5)
+#ifdef BB_PYBIND11
+    static std::shared_ptr<StochasticBatchNormalization> CreatePy(double momentum=0.9, double gamma=0.2, double beta=0.5)
     {
         create_t create;
         create.momentum = (T)momentum;
@@ -137,7 +138,7 @@ public:
         create.beta     = (T)beta;
         return Create(create);
     }
-
+#endif
 
     // シリアライズ
 protected:

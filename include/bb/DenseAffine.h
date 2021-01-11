@@ -151,7 +151,7 @@ public:
     }
 
 #ifdef BB_PYBIND11
-    static std::shared_ptr<DenseAffine> CreateEx(
+    static std::shared_ptr<DenseAffine> CreatePy(
             indices_t       output_shape,
             T               initialize_std = (T)0.01,
             std::string     initializer = "he",

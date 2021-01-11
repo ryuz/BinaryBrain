@@ -81,7 +81,8 @@ public:
         return std::shared_ptr<OptimizerAdam>(new OptimizerAdam(create));
     }
 
-    static std::shared_ptr<OptimizerAdam> CreateEx(T learning_rate = (T)0.001, T beta1 = (T)0.9, T beta2 = (T)0.999) 
+#ifdef BB_PYBIND11
+    static std::shared_ptr<OptimizerAdam> CreatePy(T learning_rate = (T)0.001, T beta1 = (T)0.9, T beta2 = (T)0.999) 
     {
         create_t create;
         create.learning_rate = learning_rate;
@@ -89,7 +90,7 @@ public:
         create.beta2         = beta2;
         return std::shared_ptr<OptimizerAdam>(new OptimizerAdam(create));
     }
-
+#endif
 
     OptimizerAdam(create_t const &create, Variables params, Variables grads) 
         : m_m(params.GetTypes(), params.GetShapes()), m_v(params.GetTypes(), params.GetShapes())

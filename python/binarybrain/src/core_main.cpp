@@ -158,6 +158,8 @@ using StochasticLut4_bit_fp32                = bb::StochasticLutN<4, bb::Bit, fl
 using StochasticLut3_bit_fp32                = bb::StochasticLutN<3, bb::Bit, float>;
 using StochasticLut2_bit_fp32                = bb::StochasticLutN<2, bb::Bit, float>;
 
+using DifferentiableLutModel                 = bb::DifferentiableLutModel;
+
 using DifferentiableLut6_fp32_fp32           = bb::DifferentiableLutN<6, float, float>;
 using DifferentiableLut5_fp32_fp32           = bb::DifferentiableLutN<5, float, float>;
 using DifferentiableLut4_fp32_fp32           = bb::DifferentiableLutN<4, float, float>;
@@ -545,7 +547,8 @@ PYBIND11_MODULE(core, m) {
         ;
     
     // Variables
-    py::class_< Variables, std::shared_ptr<Variables> >(m, "Variables")
+    py::class_< Variables, Object, std::shared_ptr<Variables> >(m, "Variables")
+        DEF_OBJECT_PICKLE(Variables)
         .def(py::init<>())
         .def("push_back", (void (Variables::*)(Variables const &))&Variables::PushBack)
         ;
@@ -596,16 +599,16 @@ PYBIND11_MODULE(core, m) {
 
 
     PYCLASS_MODEL(BitEncode_fp32_fp32, Model)
-        .def_static("create",   &BitEncode_fp32_fp32::CreateEx);
+        .def_static("create",   &BitEncode_fp32_fp32::CreatePy);
     PYCLASS_MODEL(BitEncode_bit_fp32, Model)
-        .def_static("create",   &BitEncode_fp32_fp32::CreateEx);
+        .def_static("create",   &BitEncode_fp32_fp32::CreatePy);
     
 
     PYCLASS_MODEL(Shuffle, Model)
         .def_static("create",   &Shuffle::CreatePy);
     
     PYCLASS_MODEL(BinaryModulation_fp32_fp32, Model)
-        .def_static("create", &BinaryModulation_fp32_fp32::CreateEx,
+        .def_static("create", &BinaryModulation_fp32_fp32::CreatePy,
                 py::arg("layer"),
                 py::arg("output_shape")              = bb::indices_t(),
                 py::arg("depth_modulation_size")     = 1,
@@ -621,7 +624,7 @@ PYBIND11_MODULE(core, m) {
                 py::arg("inference_input_range_hi")  = 1.0f);
 
     PYCLASS_MODEL(BinaryModulation_bit_fp32, Model)
-        .def_static("create", &BinaryModulation_bit_fp32::CreateEx,
+        .def_static("create", &BinaryModulation_bit_fp32::CreatePy,
                 py::arg("layer"),
                 py::arg("output_shape")              = bb::indices_t(),
                 py::arg("depth_modulation_size")     = 1,
@@ -662,7 +665,7 @@ PYBIND11_MODULE(core, m) {
 
     PYCLASS_MODEL(BinaryToReal_bit_fp32, Model)
         .def_static("create", &BinaryToReal_bit_fp32::CreatePy,
-                py::arg("frame_modulation_size") = 1,
+                py::arg("frame_integration_size") = 1,
                 py::arg("depth_integration_size") = 0,
                 py::arg("output_shape")          = bb::indices_t());
 
@@ -674,7 +677,7 @@ PYBIND11_MODULE(core, m) {
 
     // DenseAffine
     PYCLASS_MODEL(DenseAffine_fp32, Model)
-        .def_static("create",   &DenseAffine_fp32::CreateEx, "create",
+        .def_static("create",   &DenseAffine_fp32::CreatePy, "create",
             py::arg("output_shape"),
             py::arg("initialize_std") = 0.01f,
             py::arg("initializer")    = "he",
@@ -771,28 +774,34 @@ PYBIND11_MODULE(core, m) {
         .def_static("create", &StochasticLut2_bit_fp32::CreatePy);
 
 
-
+    // DifferentiableModel
+    PYCLASS_MODEL(DifferentiableLutModel, StochasticLutModel)
+        .def("get_mean",  &DifferentiableLutModel::GetMean)
+        .def("get_var",   &DifferentiableLutModel::GetVar)
+        .def("get_gamma", &DifferentiableLutModel::GetGamma)
+        .def("get_beta",  &DifferentiableLutModel::GetBeta);
+    
     // DifferentiableLut
-    PYCLASS_MODEL(DifferentiableLut6_fp32_fp32, StochasticLutModel)
+    PYCLASS_MODEL(DifferentiableLut6_fp32_fp32, DifferentiableLutModel)
         .def_static("create", &DifferentiableLut6_fp32_fp32::CreatePy);
-    PYCLASS_MODEL(DifferentiableLut5_fp32_fp32, StochasticLutModel)
+    PYCLASS_MODEL(DifferentiableLut5_fp32_fp32, DifferentiableLutModel)
         .def_static("create", &DifferentiableLut5_fp32_fp32::CreatePy);
-    PYCLASS_MODEL(DifferentiableLut4_fp32_fp32, StochasticLutModel)
+    PYCLASS_MODEL(DifferentiableLut4_fp32_fp32, DifferentiableLutModel)
         .def_static("create", &DifferentiableLut4_fp32_fp32::CreatePy);
-    PYCLASS_MODEL(DifferentiableLut3_fp32_fp32, StochasticLutModel)
+    PYCLASS_MODEL(DifferentiableLut3_fp32_fp32, DifferentiableLutModel)
         .def_static("create", &DifferentiableLut3_fp32_fp32::CreatePy);
-    PYCLASS_MODEL(DifferentiableLut2_fp32_fp32, StochasticLutModel)
+    PYCLASS_MODEL(DifferentiableLut2_fp32_fp32, DifferentiableLutModel)
         .def_static("create", &DifferentiableLut2_fp32_fp32::CreatePy);
 
-    PYCLASS_MODEL(DifferentiableLut6_bit_fp32, StochasticLutModel)
+    PYCLASS_MODEL(DifferentiableLut6_bit_fp32, DifferentiableLutModel)
         .def_static("create", &DifferentiableLut6_bit_fp32::CreatePy);
-    PYCLASS_MODEL(DifferentiableLut5_bit_fp32, StochasticLutModel)
+    PYCLASS_MODEL(DifferentiableLut5_bit_fp32, DifferentiableLutModel)
         .def_static("create", &DifferentiableLut5_bit_fp32::CreatePy);
-    PYCLASS_MODEL(DifferentiableLut4_bit_fp32, StochasticLutModel)
+    PYCLASS_MODEL(DifferentiableLut4_bit_fp32, DifferentiableLutModel)
         .def_static("create", &DifferentiableLut4_bit_fp32::CreatePy);
-    PYCLASS_MODEL(DifferentiableLut3_bit_fp32, StochasticLutModel)
+    PYCLASS_MODEL(DifferentiableLut3_bit_fp32, DifferentiableLutModel)
         .def_static("create", &DifferentiableLut3_bit_fp32::CreatePy);
-    PYCLASS_MODEL(DifferentiableLut2_bit_fp32, StochasticLutModel)
+    PYCLASS_MODEL(DifferentiableLut2_bit_fp32, DifferentiableLutModel)
         .def_static("create", &DifferentiableLut2_bit_fp32::CreatePy);
 
 
@@ -936,7 +945,7 @@ PYBIND11_MODULE(core, m) {
                 py::arg("fix_beta")  = false);
 
     PYCLASS_MODEL(StochasticBatchNormalization_fp32, Activation)
-        .def_static("create", &StochasticBatchNormalization_fp32::CreateEx,
+        .def_static("create", &StochasticBatchNormalization_fp32::CreatePy,
                 py::arg("momentum")  = 0.9,
                 py::arg("gamma")     = 0.2,
                 py::arg("beta")      = 0.5);
@@ -950,7 +959,6 @@ PYBIND11_MODULE(core, m) {
 #define PYCLASS_LOSS(class_name, superclass_name)  PYCLASS_OBJECT(class_name, superclass_name)
 
     PYCLASS_LOSS(LossFunction, Object)
-//  py::class_< LossFunction, std::shared_ptr<LossFunction> >(m, "LossFunction")
         .def("clear",          &LossFunction::Clear)
         .def("get_loss",       &LossFunction::GetLoss)
         .def("calculate_loss", &LossFunction::CalculateLoss,
@@ -959,11 +967,9 @@ PYBIND11_MODULE(core, m) {
             py::arg("mini_batch_size"));
 
     PYCLASS_LOSS(LossSoftmaxCrossEntropy_fp32, LossFunction)
-//    py::class_< LossSoftmaxCrossEntropy_fp32, LossFunction, std::shared_ptr<LossSoftmaxCrossEntropy_fp32> >(m, "LossSoftmaxCrossEntropy_fp32")
         .def_static("create", &LossSoftmaxCrossEntropy_fp32::Create);
 
     PYCLASS_LOSS(LossMeanSquaredError_fp32, LossFunction)
-//    py::class_< LossMeanSquaredError_fp32, LossFunction, std::shared_ptr<LossMeanSquaredError_fp32> >(m, "LossMeanSquaredError_fp32")
         .def_static("create", &LossMeanSquaredError_fp32::Create);
 
 
@@ -1009,7 +1015,7 @@ PYBIND11_MODULE(core, m) {
             py::arg("learning_rate") = 0.01f);
 
     PYCLASS_OPTIMIZER(OptimizerAdam_fp32, Optimizer)
-        .def_static("create", &OptimizerAdam_fp32::CreateEx,
+        .def_static("create", &OptimizerAdam_fp32::CreatePy,
             py::arg("learning_rate") = 0.001f,
             py::arg("beta1")         = 0.9f,
             py::arg("beta2")         = 0.999f);

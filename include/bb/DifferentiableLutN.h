@@ -22,8 +22,18 @@
 namespace bb {
 
 
+class DifferentiableLutModel : public StochasticLutModel
+{
+public:
+    virtual Tensor GetMean(void) const = 0;
+    virtual Tensor GetVar(void) const = 0;
+    virtual double GetGamma(void) const = 0;
+    virtual double GetBeta(void) const = 0;
+};
+
+
 template <int N = 6, typename BinType = Bit, typename RealType = float>
-class DifferentiableLutN : public StochasticLutModel
+class DifferentiableLutN : public DifferentiableLutModel
 {
     using _super = StochasticLutModel;
     static int const NN = (1 << N);
@@ -354,11 +364,16 @@ public:
 #endif
 
 
-    Tensor       &W(void)       { return *m_W; }
-    Tensor const &W(void) const { return *m_W; }
+    Tensor       &W(void) override       { return *m_W; }
+    Tensor const &W(void) const override { return *m_W; }
     
-    Tensor       &dW(void)       { return *m_dW; }
-    Tensor const &dW(void) const { return *m_dW; }
+    Tensor       &dW(void) override       { return *m_dW; }
+    Tensor const &dW(void) const override { return *m_dW; }
+
+    Tensor       GetMean(void) const override { return (Tensor)m_running_mean; }
+    Tensor       GetVar(void) const override  { return (Tensor)m_running_var; }
+    double       GetGamma(void) const override { return (double)m_gamma; }
+    double       GetBeta(void) const override  { return (double)m_beta; }
 
     auto lock_W(void)              { return m_W->Lock<RealType>(); }
     auto lock_W_const(void) const  { return m_W->LockConst<RealType>(); }

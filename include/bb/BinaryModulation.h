@@ -124,7 +124,8 @@ public:
         return Create(create);
     }
     
-    static std::shared_ptr<BinaryModulation> CreateEx(
+#ifdef BB_PYBIND11
+    static std::shared_ptr<BinaryModulation> CreatePy(
                 std::shared_ptr<Model>                      layer,
                 indices_t                                   output_shape,
                 index_t                                     depth_modulation_size  = 1,
@@ -162,8 +163,9 @@ public:
         create.inference_input_range_hi  = inference_input_range_hi;
         return Create(create);
     }
-
+#endif
     
+
     std::shared_ptr< Model > GetLayer(void)
     {
         return m_layer;

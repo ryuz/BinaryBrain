@@ -97,14 +97,16 @@ public:
         return Create(create_t());
     }
 
-    static std::shared_ptr<BitEncode> CreateEx(index_t bit_size, indices_t output_shape=indices_t())
+#ifdef BB_PYBIND11
+    static std::shared_ptr<BitEncode> CreatePy(index_t bit_size, indices_t output_shape=indices_t())
     {
         create_t create;
         create.bit_size     = bit_size;
         create.output_shape = output_shape;
         return Create(create);
     }
-    
+#endif
+
     /**
      * @brief  入力形状設定
      * @detail 入力形状を設定する
