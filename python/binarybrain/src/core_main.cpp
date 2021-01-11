@@ -69,6 +69,7 @@
 
 #include "bb/MetricsFunction.h"
 #include "bb/MetricsCategoricalAccuracy.h"
+#include "bb/MetricsBinaryAccuracy.h"
 #include "bb/MetricsMeanSquaredError.h"
 
 #include "bb/Optimizer.h"
@@ -233,8 +234,9 @@ using LossSoftmaxCrossEntropy_fp32           = bb::LossSoftmaxCrossEntropy<float
                                         
 using MetricsFunction                        = bb::MetricsFunction;
 using MetricsCategoricalAccuracy_fp32        = bb::MetricsCategoricalAccuracy<float>;
+using MetricsBinaryAccuracy_fp32             = bb::MetricsBinaryAccuracy<float>;
 using MetricsMeanSquaredError_fp32           = bb::MetricsMeanSquaredError<float>;
-                                        
+
 using Optimizer                              = bb::Optimizer;
 using OptimizerSgd_fp32                      = bb::OptimizerSgd<float>;
 using OptimizerAdam_fp32                     = bb::OptimizerAdam<float>;
@@ -635,7 +637,7 @@ PYBIND11_MODULE(core, m) {
                 py::arg("inference_input_range_hi")  = 1.0f);
 
     PYCLASS_MODEL(RealToBinary_fp32_fp32, Model)
-        .def_static("create", &RealToBinary_fp32_fp32::CreateEx,
+        .def_static("create", &RealToBinary_fp32_fp32::CreatePy,
                 py::arg("frame_modulation_size") = 1,
                 py::arg("depth_modulation_size") = 1,
                 py::arg("value_generator")  = nullptr,
@@ -644,7 +646,7 @@ PYBIND11_MODULE(core, m) {
                 py::arg("input_range_hi")   = 1.0f);
 
     PYCLASS_MODEL(RealToBinary_bit_fp32, Model)
-        .def_static("create", &RealToBinary_bit_fp32::CreateEx,
+        .def_static("create", &RealToBinary_bit_fp32::CreatePy,
                 py::arg("frame_modulation_size") = 1,
                 py::arg("depth_modulation_size") = 1,
                 py::arg("value_generator")  = nullptr,
@@ -653,13 +655,15 @@ PYBIND11_MODULE(core, m) {
                 py::arg("input_range_hi")   = 1.0f);
 
     PYCLASS_MODEL(BinaryToReal_fp32_fp32, Model)
-        .def_static("create", &BinaryToReal_fp32_fp32::CreateEx,
-                py::arg("frame_modulation_size") = 1,
-                py::arg("output_shape")          = bb::indices_t());
+        .def_static("create", &BinaryToReal_fp32_fp32::CreatePy,
+                py::arg("frame_integration_size") = 1,
+                py::arg("depth_integration_size") = 0,
+                py::arg("output_shape")           = bb::indices_t());
 
     PYCLASS_MODEL(BinaryToReal_bit_fp32, Model)
-        .def_static("create", &BinaryToReal_bit_fp32::CreateEx,
+        .def_static("create", &BinaryToReal_bit_fp32::CreatePy,
                 py::arg("frame_modulation_size") = 1,
+                py::arg("depth_integration_size") = 0,
                 py::arg("output_shape")          = bb::indices_t());
 
     PYCLASS_MODEL(Reduce_fp32_fp32, Model)
@@ -943,7 +947,10 @@ PYBIND11_MODULE(core, m) {
     //  Loss Functions
     // ------------------------------------
 
-    py::class_< LossFunction, std::shared_ptr<LossFunction> >(m, "LossFunction")
+#define PYCLASS_LOSS(class_name, superclass_name)  PYCLASS_OBJECT(class_name, superclass_name)
+
+    PYCLASS_LOSS(LossFunction, Object)
+//  py::class_< LossFunction, std::shared_ptr<LossFunction> >(m, "LossFunction")
         .def("clear",          &LossFunction::Clear)
         .def("get_loss",       &LossFunction::GetLoss)
         .def("calculate_loss", &LossFunction::CalculateLoss,
@@ -951,10 +958,12 @@ PYBIND11_MODULE(core, m) {
             py::arg("t_buf"),
             py::arg("mini_batch_size"));
 
-    py::class_< LossSoftmaxCrossEntropy_fp32, LossFunction, std::shared_ptr<LossSoftmaxCrossEntropy_fp32> >(m, "LossSoftmaxCrossEntropy_fp32")
+    PYCLASS_LOSS(LossSoftmaxCrossEntropy_fp32, LossFunction)
+//    py::class_< LossSoftmaxCrossEntropy_fp32, LossFunction, std::shared_ptr<LossSoftmaxCrossEntropy_fp32> >(m, "LossSoftmaxCrossEntropy_fp32")
         .def_static("create", &LossSoftmaxCrossEntropy_fp32::Create);
 
-    py::class_< LossMeanSquaredError_fp32, LossFunction, std::shared_ptr<LossMeanSquaredError_fp32> >(m, "LossMeanSquaredError_fp32")
+    PYCLASS_LOSS(LossMeanSquaredError_fp32, LossFunction)
+//    py::class_< LossMeanSquaredError_fp32, LossFunction, std::shared_ptr<LossMeanSquaredError_fp32> >(m, "LossMeanSquaredError_fp32")
         .def_static("create", &LossMeanSquaredError_fp32::Create);
 
 
@@ -963,16 +972,21 @@ PYBIND11_MODULE(core, m) {
     //  Metrics Functions
     // ------------------------------------
 
-    py::class_< MetricsFunction, std::shared_ptr<MetricsFunction> >(m, "MetricsFunction")
+#define PYCLASS_METRICS(class_name, superclass_name)  PYCLASS_OBJECT(class_name, superclass_name)
+
+    PYCLASS_METRICS(MetricsFunction, Object)
         .def("clear",              &MetricsFunction::Clear)
         .def("get_metrics",        &MetricsFunction::GetMetrics)
         .def("calculate_metrics",  &MetricsFunction::CalculateMetrics)
         .def("get_metrics_string", &MetricsFunction::GetMetricsString);
 
-    py::class_< MetricsCategoricalAccuracy_fp32, MetricsFunction, std::shared_ptr<MetricsCategoricalAccuracy_fp32> >(m, "MetricsCategoricalAccuracy_fp32")
+    PYCLASS_METRICS(MetricsCategoricalAccuracy_fp32, MetricsFunction)
         .def_static("create", &MetricsCategoricalAccuracy_fp32::Create);
 
-    py::class_< MetricsMeanSquaredError_fp32, MetricsFunction, std::shared_ptr<MetricsMeanSquaredError_fp32> >(m, "MetricsMeanSquaredError_fp32")
+    PYCLASS_METRICS(MetricsBinaryAccuracy_fp32, MetricsFunction)
+        .def_static("create", &MetricsBinaryAccuracy_fp32::Create);
+
+    PYCLASS_METRICS(MetricsMeanSquaredError_fp32, MetricsFunction)
         .def_static("create", &MetricsMeanSquaredError_fp32::Create);
 
 
@@ -1006,20 +1020,27 @@ PYBIND11_MODULE(core, m) {
     //  ValueGenerator
     // ------------------------------------
 
-    py::class_< ValueGenerator_fp32, std::shared_ptr<ValueGenerator_fp32> >(m, "ValueGenerator_fp32");
+#define PYCLASS_VALUEGENERATOR(class_name, superclass_name)  PYCLASS_OBJECT(class_name, superclass_name)
+
+    PYCLASS_VALUEGENERATOR(ValueGenerator_fp32, Object);
     
-    py::class_< NormalDistributionGenerator_fp32, ValueGenerator_fp32, std::shared_ptr<NormalDistributionGenerator_fp32> >(m, "NormalDistributionGenerator_fp32")
+    PYCLASS_VALUEGENERATOR(NormalDistributionGenerator_fp32, ValueGenerator_fp32)
         .def_static("create", &NormalDistributionGenerator_fp32::Create,
             py::arg("mean")   = 0.0f,
             py::arg("stddev") = 1.0f,
             py::arg("seed")   = 1);
     
-    py::class_< UniformDistributionGenerator_fp32, ValueGenerator_fp32, std::shared_ptr<UniformDistributionGenerator_fp32> >(m, "UniformDistributionGenerator_fp32")
+    PYCLASS_VALUEGENERATOR(UniformDistributionGenerator_fp32, ValueGenerator_fp32)
         .def_static("Create", &UniformDistributionGenerator_fp32::Create,
             py::arg("a")    = 0.0f,
             py::arg("b")    = 1.0f,
             py::arg("seed") = 1);
 
+
+
+    // ------------------------------------
+    //  Dataset
+    // ------------------------------------
 
     // TrainData
     py::class_< TrainData_fp32 >(m, "TrainData_fp32")
@@ -1077,7 +1098,7 @@ PYBIND11_MODULE(core, m) {
 
 
     // ------------------------------------
-    //  Others
+    //  System
     // ------------------------------------
 
     // version

@@ -12,17 +12,21 @@
 #include <string>
 #include <vector>
 
+#include "bb/Object.h"
 #include "bb/FrameBuffer.h"
 
 
 namespace bb {
 
 
-class MetricsFunction
+class MetricsFunction : public Object
 {
+
 public:
     virtual ~MetricsFunction() {}
     
+    virtual std::string GetMetricsFunctionName(void) const = 0;
+
     virtual std::string GetMetricsString(void) { return "accuracy"; }
     
     virtual void        Clear(void) = 0;

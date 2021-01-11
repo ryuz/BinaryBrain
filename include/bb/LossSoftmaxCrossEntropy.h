@@ -21,6 +21,15 @@ namespace bb {
 template <typename T = float>
 class LossSoftmaxCrossEntropy : public LossFunction
 {
+    using _super = LossFunction;
+
+public:
+    static inline std::string LossFunctionName(void) { return "LossSoftmaxCrossEntropy"; }
+    static inline std::string ObjectName(void){ return LossFunctionName() + "_" + DataType<T>::Name(); }
+    
+    std::string GetLossFunctionName(void) const override { return LossFunctionName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
 protected:
 //    FrameBuffer m_dy;
     Tensor_<double>  m_loss_buf;

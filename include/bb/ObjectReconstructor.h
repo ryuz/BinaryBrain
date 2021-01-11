@@ -60,10 +60,17 @@
 #include "bb/Dropout.h"
 #include "bb/Shuffle.h"
 
-
 #include "bb/OptimizerSgd.h"
 #include "bb/OptimizerAdaGrad.h"
 #include "bb/OptimizerAdam.h"
+
+#include "bb/LossSoftmaxCrossEntropy.h"
+#include "bb/LossMeanSquaredError.h"
+
+#include "bb/MetricsCategoricalAccuracy.h"
+#include "bb/MetricsBinaryAccuracy.h"
+#include "bb/MetricsMeanSquaredError.h"
+
 
 
 namespace bb {
@@ -219,6 +226,13 @@ inline std::shared_ptr<Object> Object_Creator(std::string object_name)
     BB_OBJECT_CREATE(OptimizerSgd<float>);
     BB_OBJECT_CREATE(OptimizerAdaGrad<float>);
     BB_OBJECT_CREATE(OptimizerAdam<float>);
+
+    BB_OBJECT_CREATE(LossSoftmaxCrossEntropy<float>);
+    BB_OBJECT_CREATE(LossMeanSquaredError<float>);
+
+    BB_OBJECT_CREATE(MetricsCategoricalAccuracy<float>);
+    BB_OBJECT_CREATE(MetricsBinaryAccuracy<float>);
+    BB_OBJECT_CREATE(MetricsMeanSquaredError<float>);
 
 
     return std::shared_ptr<Object>();

@@ -21,6 +21,16 @@ namespace bb {
 template <typename T = float>
 class MetricsCategoricalAccuracy : public MetricsFunction
 {
+    using _super = MetricsFunction;
+
+public:
+    static inline std::string MetricsFunctionName(void) { return "MetricsCategoricalAccuracy"; }
+    static inline std::string ObjectName(void){ return MetricsFunctionName() + "_" + DataType<T>::Name(); }
+    
+    std::string GetMetricsFunctionName(void) const override { return MetricsFunctionName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
+
 protected:
     Tensor_<int>    m_accuracy;
     double          m_category_count = 0;

@@ -14,6 +14,7 @@
 #include "bb/Model.h"
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
+#include "bb/ObjectReconstructor.h"
 
 
 namespace bb {
@@ -36,14 +37,14 @@ protected:
     bool                                                m_training;
     index_t                                             m_modulation_size = 1;
 
+    typename RealToBinary<BinType, RealType>::create_t  m_training_create;
+    typename RealToBinary<BinType, RealType>::create_t  m_inference_create;
+
     // 3層で構成
     std::shared_ptr< RealToBinary<BinType, RealType> >  m_real2bin;
     std::shared_ptr< Model >                            m_layer;
     std::shared_ptr< BinaryToReal<BinType, RealType> >  m_bin2real;
 
-    typename RealToBinary<BinType, RealType>::create_t  m_training_create;
-    typename RealToBinary<BinType, RealType>::create_t  m_inference_create;
-    
 public:
     struct create_t
     {
@@ -275,7 +276,7 @@ public:
 
             m_real2bin->SetModulationSize(m_training_create.frame_modulation_size);
             m_real2bin->SetValueGenerator(m_training_create.value_generator);
-            m_bin2real->SetModulationSize(m_training_create.frame_modulation_size);
+            m_bin2real->SetFrameIntegrationSize(m_training_create.frame_modulation_size);
         }
         else if (!train && m_training) {
             m_training = false;
@@ -283,7 +284,7 @@ public:
 
             m_real2bin->SetModulationSize(m_inference_create.frame_modulation_size);
             m_real2bin->SetValueGenerator(m_inference_create.value_generator);
-            m_bin2real->SetModulationSize(m_inference_create.frame_modulation_size);
+            m_bin2real->SetFrameIntegrationSize(m_inference_create.frame_modulation_size);
         }
 
         x_buf = m_real2bin->Forward(x_buf, train);
@@ -341,8 +342,74 @@ protected:
         }
     }
 
+
+        // シリアライズ
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_binary_mode);
+        bb::SaveValue(os, m_training);
+        bb::SaveValue(os, m_modulation_size);
+        m_training_create.ObjectDump(os);
+        m_inference_create.ObjectDump(os);
+
+        m_real2bin->DumpObject(os);
+        m_bin2real->DumpObject(os);
+
+        bool has_layer = (bool)m_layer;
+        bb::SaveValue(os, has_layer);
+        if ( has_layer ) {
+            m_layer->DumpObject(os);
+        }
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_binary_mode);
+        bb::LoadValue(is, m_training);
+        bb::LoadValue(is, m_modulation_size);
+        m_training_create.ObjectLoad(is);
+        m_inference_create.ObjectLoad(is);
+
+        m_real2bin->LoadObject(is);
+        m_bin2real->LoadObject(is);
+
+        bool has_layer;
+        bb::LoadValue(is, has_layer);
+        if ( has_layer ) {
+            if ( m_layer ) {
+                m_layer->LoadObject(is);
+            }
+            else {
+#ifdef BB_OBJECT_RECONSTRUCTION
+                m_layer = std::dynamic_pointer_cast<BinaryModulation>(Object_Reconstruct(is));
+#endif
+            }
+            BB_ASSERT(m_layer);
+        }
+    }
+
+
 public:
-    // Serialize
+    // Serialize(旧)
     void Save(std::ostream &os) const 
     {
         m_real2bin->Save(os);

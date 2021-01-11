@@ -27,6 +27,9 @@
 // 自分でモデル構築する例
 class MnistMyCustomModel : public bb::Model
 {
+public:
+    std::string GetObjectName(void) const override { return "MnistMyCustomModel"; }
+
 protected:
     using Affine      = bb::MicroMlpAffine<6, 16, float>;
     using AffinePtr   = std::shared_ptr<Affine>;
@@ -91,7 +94,7 @@ public:
 
     bb::indices_t GetOutputShape(void) const
     {
-        return m_affine3->GetInputShape();
+        return m_affine3->GetOutputShape();
     }
 
     bb::Variables GetParameters(void)

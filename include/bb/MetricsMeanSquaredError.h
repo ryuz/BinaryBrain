@@ -21,6 +21,15 @@ namespace bb {
 template <typename T = float>
 class MetricsMeanSquaredError : public MetricsFunction
 {
+    using _super = MetricsFunction;
+
+public:
+    static inline std::string MetricsFunctionName(void) { return "MetricsMeanSquaredError"; }
+    static inline std::string ObjectName(void){ return MetricsFunctionName() + "_" + DataType<T>::Name(); }
+    
+    std::string GetMetricsFunctionName(void) const override { return MetricsFunctionName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
 protected:
     double  m_accuracy = 0;
     index_t m_frames;

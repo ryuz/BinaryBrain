@@ -22,6 +22,16 @@ namespace bb {
 template <typename T = float>
 class LossMeanSquaredError : public LossFunction
 {
+    using _super = LossFunction;
+
+public:
+    static inline std::string LossFunctionName(void) { return "LossMeanSquaredError"; }
+    static inline std::string ObjectName(void){ return LossFunctionName() + "_" + DataType<T>::Name(); }
+    
+    std::string GetLossFunctionName(void) const override { return LossFunctionName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
+
 protected:
     FrameBuffer m_dy;
     double      m_loss = 0;

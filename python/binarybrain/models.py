@@ -497,7 +497,7 @@ class Switcher(Model):
         self.model_dict = model_dict
         self.current_model_name = None
         self.current_model = None
-        super(SwitchModel, self).__init__(input_shape=input_shape, name=name)
+        super(Switcher, self).__init__(input_shape=input_shape, name=name)
         self.switch_model(init_model_name)
     
     def switch_model(self, model_name: str):
@@ -622,15 +622,16 @@ class BinaryToReal(Model):
         元に戻すことが可能である
 
     Args:
-        frame_modulation_size (int): フレーム方向への変調数(フレーム分積算)
-        output_shape (List[int]): 出力のシェイプ(必要に応じて積算)
+        frame_integration_size (int): フレーム方向の積算サイズ数(フレーム変調の統合)
+        depth_integration_size (int): チャンネル方向の積算サイズ(0の時はoutput_shape優先)
+        output_shape (List[int]): 出力のシェイプ(指定が無ければ入力と同じshape)
         bin_dtype (DType): 入力の型を bb.DType.FP32 もしくは bb.DType.BIT で指定可能
     """
     
-    def __init__(self, *, frame_modulation_size=1, output_shape=[], input_shape=None, name=None,
+    def __init__(self, *, frame_integration_size=1, depth_integration_size=1, output_shape=[], input_shape=None, name=None,
                                                     bin_dtype=bb.DType.FP32, real_type=bb.DType.FP32):
         core_creator = search_core_model('BinaryToReal', [bin_dtype, real_type]).create
-        core_model = core_creator(frame_modulation_size=frame_modulation_size, output_shape=output_shape)
+        core_model = core_creator(frame_integration_size=frame_integration_size, depth_integration_size=depth_integration_size, output_shape=output_shape)
         
         super(BinaryToReal, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
