@@ -86,3 +86,33 @@ def dtype_from_name(name):
     elif name == 'uint32': return core.TYPE_UINT32
     elif name == 'uint64': return core.TYPE_UINT64 
     return None
+
+
+
+# シリアライズ定義
+def int_to_bytes(value: int):
+    return value.to_bytes(8, 'little')
+
+def int_from_bytes(data: bytes) -> (bytes, int):
+    value = int.from_bytes(data[0:8], 'little')
+    return data[8:], value
+
+
+def bool_to_bytes(value: bool):
+    return value.to_bytes(1, 'little')
+
+def bool_from_bytes(data: bytes) -> (bytes, bool):
+    value = bool.from_bytes(data[0:1], 'little')
+    return data[1:], value
+
+
+def string_to_bytes(value: str):
+    value = value.encode(encoding='utf-8')
+    data = int_to_bytes(len(value))
+    data += value
+    return data
+
+def string_from_bytes(data: bytes) -> (bytes, str):
+    data, str_len = int_from_bytes(data)
+    value = data[0:str_len].decode(encoding='utf-8')
+    return data[str_len:], value

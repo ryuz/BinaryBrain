@@ -288,9 +288,37 @@ class Model(bb.Object):
         if core_model is not None:
             return bb.FrameBuffer.from_core(core_model.backward(dy_buf.get_core()))
         return dy_buf
+    
+    def dumps(self) -> bytes:
+        """バイトデータにシリアライズ
+
+           モデルのデータをシリアライズして保存するためのバイト配列を生成
+        
+        Returns:
+            data (bytes): Serialize data
+        """
+        core_model = self.get_core()
+        if core_model is not None:
+            return core_model.dump_object()
+        return b''
+        
+    def loads(self, data: bytes) -> bytes:
+        """バイトデータをロード
+
+           モデルのデータをシリアライズして復帰のバイト配列ロード
+        
+        Args:
+            data (bytes): Serialize data
+        """
+        core_model = self.get_core()
+        if core_model is not None:
+            size = core_model.load_object(data)
+            return data[size:]
+        return data
+
 
     def dump_bytes(self):
-        """バイトデータにシリアライズ
+        """バイトデータにシリアライズ(old format)
 
            モデルのデータをシリアライズして保存するためのバイト配列を生成
         
@@ -303,7 +331,7 @@ class Model(bb.Object):
         return b''
 
     def load_bytes(self, data):
-        """バイトデータをロード
+        """バイトデータをロード(old format)
 
            モデルのデータをシリアライズして復帰のバイト配列ロード
         
@@ -576,6 +604,61 @@ class Switcher(Model):
     def backward(self, dy_buf):
         return self.get_current_model().backward(dy_buf=dy_buf)
     
+
+    # シリアライズは将来C++版フォーマット互換にすることも考慮
+    def dumps(self):
+        # ヘッダ
+        data = b''
+        data += core.Object.write_header('Switcher')
+
+        # バージョン
+        ver = 1
+        data += bb.int_to_bytes(ver)
+        
+        # レイヤ数
+        layer_size = len(self.model_dict)
+        data += bb.int_to_bytes(layer_size)
+
+        # レイヤ本体
+        for name, model in self.model_dict.items():
+            data += bb.string_to_bytes(name)
+            data += model.dumps()
+
+        return data
+
+    def loads(self, data):
+        # ヘッダ
+        load_size, name = core.Object.read_header(data)
+        data = data[load_size:]
+        assert(name == 'Switcher')
+        
+        # バージョン
+        data, ver = bb.int_from_bytes(data)
+        assert(ver == 1)
+        
+        # レイヤ数
+        data, layer_size = bb.int_from_bytes(data)
+
+        # レイヤ本体
+        if len(self.model_dict) > 0:
+            assert(layer_size == len(self.model_dict))
+            for _ in range(layer_size):
+                data, name = bb.string_from_bytes(data)
+                assert(name in self.model_dict)
+                data = self.model_dict[name].loads(data)
+        else:
+            for _ in range(layer_size):
+                assert(0)
+#               data, name = bb.string_from_bytes(data)
+#               data, model = bb.model_reconstruct(data)
+#               self.model_dict[name] = model
+
+            assert(False)
+        
+        return data
+
+
+    # 旧フォーマットは適当に対応
     def dump_bytes(self):
         bytes_dict = {}
         for name in self.model_dict:
@@ -586,8 +669,7 @@ class Switcher(Model):
         bytes_dict = pickle.loads(data)
         for name in self.model_dict:
             if name in bytes_dict:
-                self.model_dict[name].load_bytes(bytes_dict[name])            
-
+                self.model_dict[name].load_bytes(bytes_dict[name])
 
 
 # ------- バイナリ変調 --------
