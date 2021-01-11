@@ -54,7 +54,7 @@ class Model(bb.Object):
 
     @classmethod
     def from_bytes(cls, data):
-        data, core_model = bb.core_object_reconstruct(data)
+        data, core_model = bb.core_object_reconstruct_loads(data)
         return data, cls(core_model=core_model)
 
     def set_name(self, name: str):
@@ -518,7 +518,7 @@ class Sequential(Model):
         else:
             self.model_list = []
             for _ in range(layer_size):
-                data, model = bb.object_reconstruct(data)
+                data, model = bb.object_reconstruct_loads(data)
                 self.model_list.append(model)
         
         return data
@@ -679,7 +679,7 @@ class Switcher(Model):
             self.model_dict = {}
             for _ in range(layer_size):
                 data, name = bb.string_from_bytes(data)
-                data, model = bb.object_reconstruct(data)
+                data, model = bb.object_reconstruct_loads(data)
                 self.model_dict[name] = model
         
         # 再構成
@@ -1256,7 +1256,7 @@ class Convolution2d(Sequential):
             if self.sub_layer:
                 data = self.sub_layer.loads(data)
             else:
-                data, model = bb.object_reconstruct(data)
+                data, model = bb.object_reconstruct_loads(data)
                 self.sub_layer = model
         
         # 再構成
