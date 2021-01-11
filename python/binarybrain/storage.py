@@ -90,7 +90,7 @@ def remove_old(path: str, keeps: int=-1):
 
 
 def _save_net_file(path: str, name: str, net, file_format=None):
-    if file_format == 'ver0' or file_format=='all':
+    if file_format == 'bin' or file_format=='all':
         # 旧バージョン
         net_file_name = os.path.join(path, name + '.bin')
         with open(net_file_name, 'wb') as f:
@@ -100,7 +100,7 @@ def _save_net_file(path: str, name: str, net, file_format=None):
         # pickle
         net_file_name = os.path.join(path, name + '.pickle')
         with open(net_file_name, 'wb') as f:
-            f.write(pickle.dump(net))
+            f.write(pickle.dumps(net))
     else:
         # デフォルトフォーマット
         net_file_name = os.path.join(path, name + '.bb_net')
@@ -117,7 +117,7 @@ def _load_net_file(path: str, name: str, net, file_format=None) -> bool:
             return True
     
     # 無ければ旧フォーマットを探してみる
-    if file_format is None or file_format == 'ver0':
+    if file_format is None or file_format == 'bin':
         net_file_name = os.path.join(path, name + '.bin')
         if os.path.exists(net_file_name):
             with open(net_file_name, 'rb') as f:
@@ -126,18 +126,18 @@ def _load_net_file(path: str, name: str, net, file_format=None) -> bool:
 
     # pickle 
     if file_format is None or file_format == 'pickle':
-        net_file_name = os.path.join(path, name + '.bb_net')
+        net_file_name = os.path.join(path, name + '.pickle')
         if os.path.exists(net_file_name):
             with open(net_file_name, 'rb') as f:
                 tmp_net = pickle.loads(f.read())
             # pickle はインスタンスが作り直されてしまうのでコピー
-            net.lodas(tmp_net.dumps())
+            net.loads(tmp_net.dumps())
             return True
 
     return False
 
 
-def save_models(path: str, net, *, write_layers=True, force_flatten=False, file_format=None):
+def save_models(path: str, net, *, write_layers=True, file_format=None):
     ''' save networks
         ネットを構成するモデルの保存
         
@@ -153,13 +153,6 @@ def save_models(path: str, net, *, write_layers=True, force_flatten=False, file_
     # save
     net_name = net.get_name()
     _save_net_file(path, net_name, net, file_format=file_format)
-
-    # save(old)
-#    if write_old_format:
-#        net_name = net.get_name()
-#        net_file_name = os.path.join(path, net_name + '.bin')
-#        with open(net_file_name, 'wb') as f:
-#            f.write(net.dump_bytes())
 
     # save flatten models
     if write_layers:
@@ -179,14 +172,9 @@ def save_models(path: str, net, *, write_layers=True, force_flatten=False, file_
             
             _save_net_file(path, fname, model, file_format=file_format)
             
-#            with open(file_path + '.bb_net', 'wb') as f:
-#                f.write(model.dumps())
-#            if write_old_format:
-#                with open(file_path + '.bin', 'wb') as f:
-#                    f.write(model.dump_bytes())
 
 
-def load_models(path: str, net, *, read_layers: bool=False, force_flatten=False, file_format=None):
+def load_models(path: str, net, *, read_layers: bool=False, file_format=None):
     ''' load networks
         ネットを構成するモデルの保存
         
@@ -200,25 +188,9 @@ def load_models(path: str, net, *, read_layers: bool=False, force_flatten=False,
     if not read_layers:
         net_name = net.get_name()
         res = _load_net_file(path, net_name, net, file_format=file_format)
-        if res:
-            return
-
-#   load
-#   net_file_name = os.path.join(path, net_name + '.bb_net')
-#   old_net_file_name = os.path.join(path, net_name + '.bin')
-#    if not read_layers and os.path.exists(net_file_name):
-#        with open(net_file_name, 'rb') as f:
-#            net.loads(f.read())
-#        return
-
-#   # load(old format)
-#   net_name = net.get_name()
-#   net_file_name = os.path.join(path, net_name + '.bin')
-#   if not read_layers and os.path.exists(net_file_name):
-#       with open(net_file_name, 'rb') as f:
-#           dat = f.read()
-#           net.load_bytes(dat)
-#       return
+        if not res:
+            print('file not found : %s'%os.path.join(path, net_name))
+        return
 
     # load models
     models    = bb.get_model_list(net, flatten=True)
@@ -238,15 +210,8 @@ def load_models(path: str, net, *, read_layers: bool=False, force_flatten=False,
         res = _load_net_file(path, fname, model, file_format=file_format)
         if not res:
             print('file not found : %s' % fname)
-        
-#       file_path = os.path.join(path, fname)
-#        if os.path.exists(file_path):
-#            with open(file_path, 'rb') as f:
-#                dat = f.read()
-#                model.load_bytes(dat)
-#        else:
-#            print('file not found : %s' % file_path)
-            
+
+
 def save_networks(path: str, net, *, backups: int=3, write_layers: bool=False, file_format=None):
     ''' save networks
         ネットを構成するモデルの保存
