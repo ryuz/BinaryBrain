@@ -186,7 +186,7 @@ def save_models(path: str, net, *, write_layers=True, force_flatten=False, file_
 #                    f.write(model.dump_bytes())
 
 
-def load_models(path: str, net, *, read_layers: bool=True, force_flatten=False, file_format=None):
+def load_models(path: str, net, *, read_layers: bool=False, force_flatten=False, file_format=None):
     ''' load networks
         ネットを構成するモデルの保存
         
@@ -247,7 +247,7 @@ def load_models(path: str, net, *, read_layers: bool=True, force_flatten=False, 
 #        else:
 #            print('file not found : %s' % file_path)
             
-def save_networks(path: str, net, *, backups: int=3, write_layers: bool=True, force_flatten: bool=False, file_format=None):
+def save_networks(path: str, net, *, backups: int=3, write_layers: bool=False, file_format=None):
     ''' save networks
         ネットを構成するモデルの保存
         
@@ -258,6 +258,7 @@ def save_networks(path: str, net, *, backups: int=3, write_layers: bool=True, fo
             path (str) : 保存するパス
             net (Model) : 保存するネット
             backups (int) : 残しておく古いデータ数
+            write_layers(bool) : レイヤー別に出力
     '''
     
     # make dir
@@ -272,7 +273,7 @@ def save_networks(path: str, net, *, backups: int=3, write_layers: bool=True, fo
     if backups >= 0:
         remove_old(path, keeps=backups)
 
-def load_networks(path: str, net, *, read_layers: bool=True, file_format=None):
+def load_networks(path: str, net, *, read_layers: bool=False, file_format=None):
     ''' load network
         ネットを構成するモデルの読み込み
         
