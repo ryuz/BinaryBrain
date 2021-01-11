@@ -467,11 +467,11 @@ class Sequential(Model):
 
         # バージョン
         ver = 1
-        data += ver.to_bytes(8, 'little')
+        data += bb.int_to_bytes(ver)
         
         # レイヤ数
         layer_size = len(self.model_list)
-        data +=  layer_size.to_bytes(8, 'little')
+        data += bb.int_to_bytes(layer_size)
 
         # レイヤ本体
         for model in self.model_list:
@@ -486,13 +486,11 @@ class Sequential(Model):
         assert(name == 'Sequential')
         
         # バージョン
-        ver = int.from_bytes(data[0:8], 'little')
-        data = data[8:]
+        data, ver = bb.int_from_bytes(data)
         assert(ver == 1)
         
         # レイヤ数
-        layer_size = int.from_bytes(data[0:8], 'little')
-        data = data[8:]
+        data, layer_size = bb.int_from_bytes(data)
 
         # レイヤ本体
         if len(self.model_list) > 0:
@@ -501,7 +499,7 @@ class Sequential(Model):
                 data = model.loads(data)
         else:
             for _ in range(layer_size):
-                pass
+                assert(0)
 #               data, model = bb.model_reconstruct(data)
 #               self.model_list.append(model)
 
@@ -1030,7 +1028,6 @@ class Convolution2d(Sequential):
                         name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
         super(Convolution2d, self).__init__(model_list=[])
         
-        self.deny_flatten = True
         self.name         = name
         self.input_shape  = input_shape
         self.filter_size  = filter_size
@@ -1327,7 +1324,7 @@ class Shuffle(Model):
 # ------- その他 --------
 
 
-def get_model_list(net, flatten:bool =False, force_flatten:bool=False):
+def get_model_list(net, flatten:bool =False):
     ''' Get model list from networks
         ネットから構成するモデルのリストを取り出す
     
@@ -1346,7 +1343,7 @@ def get_model_list(net, flatten:bool =False, force_flatten:bool=False):
     
     def flatten_list(in_list, out_list):
         for model in in_list:
-            if hasattr(model, 'get_model_list') and (force_flatten or not hasattr(model, 'deny_flatten')):
+            if hasattr(model, 'get_model_list'):
                 flatten_list(model.get_model_list(), out_list)
             else:
                 out_list.append(model)

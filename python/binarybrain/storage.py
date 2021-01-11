@@ -60,16 +60,16 @@ def get_latest_path(path: str) -> str:
     return os.path.join(path, targets[0])
 
 
-def remove_old(path: str, keep: int=-1):
+def remove_old(path: str, keeps: int=-1):
     ''' Get latest data path
         最新のデータ保存パスを取得
     
         Args:
             path (str): 検索するパス
-            keep (int): 削除せずに残す数
+            keeps (int): 削除せずに残す数
     '''
     
-    if keep < 0:
+    if keeps < 0:
         return
     
     files = os.listdir(path)
@@ -83,7 +83,7 @@ def remove_old(path: str, keep: int=-1):
                 targets.append(d)
     
     targets.sort(reverse=True)
-    del targets[:keep]
+    del targets[:keeps]
     
     for t in targets:
         shutil.rmtree(os.path.join(path, t))
@@ -163,7 +163,7 @@ def save_models(path: str, net, *, write_layers=True, force_flatten=False, file_
 
     # save flatten models
     if write_layers:
-        models = bb.get_model_list(net, flatten=True, force_flatten=force_flatten)
+        models = bb.get_model_list(net, flatten=True)
         fname_list = []  # 命名重複回避用
         for i, model in enumerate(models):
             name = model.get_name()
@@ -221,7 +221,7 @@ def load_models(path: str, net, *, read_layers: bool=True, force_flatten=False, 
 #       return
 
     # load models
-    models    = bb.get_model_list(net, flatten=True, force_flatten=force_flatten)
+    models    = bb.get_model_list(net, flatten=True)
     fname_list = []
     for i, model in enumerate(models):
         name = model.get_name()
@@ -247,7 +247,7 @@ def load_models(path: str, net, *, read_layers: bool=True, force_flatten=False, 
 #        else:
 #            print('file not found : %s' % file_path)
             
-def save_networks(path: str, net, *, keep_olds: int=3, write_layers: bool=True, force_flatten: bool=False, file_format=None):
+def save_networks(path: str, net, *, backups: int=3, write_layers: bool=True, force_flatten: bool=False, file_format=None):
     ''' save networks
         ネットを構成するモデルの保存
         
@@ -257,7 +257,7 @@ def save_networks(path: str, net, *, keep_olds: int=3, write_layers: bool=True, 
         Args:
             path (str) : 保存するパス
             net (Model) : 保存するネット
-            keep_olds (int) : 残しておく古いデータ数
+            backups (int) : 残しておく古いデータ数
     '''
     
     # make dir
@@ -267,12 +267,12 @@ def save_networks(path: str, net, *, keep_olds: int=3, write_layers: bool=True, 
     date_str = get_date_string()
     data_path = os.path.join(path, date_str)
     
-    save_models(data_path, net, write_layers=write_layers, force_flatten=force_flatten, file_format=file_format)
+    save_models(data_path, net, write_layers=write_layers, file_format=file_format)
     
-    if keep_olds >= 0:
-        remove_old(path, keep=keep_olds)
+    if backups >= 0:
+        remove_old(path, keeps=backups)
 
-def load_networks(path: str, net, *, read_layers: bool=True, force_flatten=False, file_format=None):
+def load_networks(path: str, net, *, read_layers: bool=True, file_format=None):
     ''' load network
         ネットを構成するモデルの読み込み
         
@@ -281,6 +281,7 @@ def load_networks(path: str, net, *, read_layers: bool=True, force_flatten=False
         Args:
             path (str) : 読み込むパス
             net (Model) : 読み込むネット
+            file_format (str) : 読み込む形式(Noneがデフォルト)
     '''
     
     data_path = get_latest_path(path)
@@ -288,6 +289,6 @@ def load_networks(path: str, net, *, read_layers: bool=True, force_flatten=False
         print('not loaded : file not found')
         return
     
-    load_models(data_path, net, read_layers=read_layers, force_flatten=force_flatten, file_format=None)
+    load_models(data_path, net, read_layers=read_layers, file_format=None)
     print('load : %s' % data_path)
 
