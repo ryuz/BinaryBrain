@@ -139,10 +139,10 @@ inline std::shared_ptr<Object> Object_Creator(std::string object_name)
 
 
     // Model
-//    using BinaryModulation_fp32_fp32 = bb::BinaryModulation<float, float>;
-//    using BinaryModulation_bit_fp32  = bb::BinaryModulation<bb::Bit, float>;
-//    BB_OBJECT_CREATE(BinaryModulation_fp32_fp32);
-//    BB_OBJECT_CREATE(BinaryModulation_bit_fp32);
+    using BinaryModulation_fp32_fp32 = bb::BinaryModulation<float, float>;
+    using BinaryModulation_bit_fp32  = bb::BinaryModulation<bb::Bit, float>;
+    BB_OBJECT_CREATE(BinaryModulation_fp32_fp32);
+    BB_OBJECT_CREATE(BinaryModulation_bit_fp32);
 
     using RealToBinary_fp32_fp32 = bb::RealToBinary<float, float>;
     using RealToBinary_bit_fp32  = bb::RealToBinary<bb::Bit, float>;
@@ -317,10 +317,10 @@ inline std::shared_ptr<Object> Object_Creator(std::string object_name)
     BB_OBJECT_CREATE(MaxPooling_fp32_fp32);
     BB_OBJECT_CREATE(MaxPooling_bit_fp32);
 
-//   using StochasticMaxPooling_fp32_fp32 = bb::StochasticMaxPooling<float, float>;
-//   using StochasticMaxPooling_bit_fp32  = bb::StochasticMaxPooling<bb::Bit, float>;
-//   BB_OBJECT_CREATE(StochasticMaxPooling_fp32_fp32);
-//   BB_OBJECT_CREATE(StochasticMaxPooling_bit_fp32);
+    using StochasticMaxPooling_fp32_fp32 = bb::StochasticMaxPooling<float, float>;
+    using StochasticMaxPooling_bit_fp32  = bb::StochasticMaxPooling<bb::Bit, float>;
+    BB_OBJECT_CREATE(StochasticMaxPooling_fp32_fp32);
+    BB_OBJECT_CREATE(StochasticMaxPooling_bit_fp32);
 
     using StochasticMaxPooling2x2_fp32_fp32 = bb::StochasticMaxPooling2x2<float, float>;
     using StochasticMaxPooling2x2_bit_fp32  = bb::StochasticMaxPooling2x2<bb::Bit, float>;

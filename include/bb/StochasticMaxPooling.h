@@ -23,6 +23,15 @@ namespace bb {
 template <typename FT = float, typename BT = float>
 class StochasticMaxPooling : public MaxPooling<FT, BT>
 {
+    using _super = MaxPooling<FT, BT>;
+
+public:
+    static inline std::string ModelName(void) { return "StochasticMaxPooling"; }
+    static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<FT>::Name() + "_" + DataType<BT>::Name(); }
+
+    std::string GetModelName(void)  const override { return ModelName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
 protected:
     bool                m_host_only = false;
 
@@ -65,7 +74,7 @@ protected:
 public:
     ~StochasticMaxPooling() {}
     
-    static std::shared_ptr<StochasticMaxPooling> Create(index_t filter_h_size, index_t filter_w_size)
+    static std::shared_ptr<StochasticMaxPooling> Create(index_t filter_h_size=1, index_t filter_w_size=1)
     {
         auto self = std::shared_ptr<StochasticMaxPooling>(new StochasticMaxPooling(filter_h_size, filter_w_size));
         return self;
