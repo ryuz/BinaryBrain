@@ -23,6 +23,10 @@
 namespace bb {
 
 
+class Object;
+inline std::shared_ptr<Object> Object_Reconstruct(std::istream &is);
+
+
 class Object
 {
     friend inline std::shared_ptr<Object> Object_Reconstruct(std::istream &is);
