@@ -19,7 +19,7 @@
 namespace bb {
 
 
-inline std::shared_ptr<Object> Object_Reconstruct(std::istream &is);
+inline std::shared_ptr<Object> Object_Load(std::istream &is);
 
 
 //! layer class
@@ -255,10 +255,10 @@ protected:
         std::int64_t layer_size;
         LoadValue(is, layer_size);
 
-#ifdef BB_OBJECT_RECONSTRUCTION
+#ifdef BB_OBJECT_LOADER
         if ( m_layers.empty() ) {
             for (std::int64_t i = 0; i < layer_size; ++i) {
-                auto layer = std::dynamic_pointer_cast<Model>(Object_Reconstruct(is));
+                auto layer = std::dynamic_pointer_cast<Model>(Object_Load(is));
                 BB_ASSERT(layer);
                 m_layers.push_back(layer);
             }
@@ -309,7 +309,7 @@ public:
 }
 
 
-#include "bb/ObjectReconstructor.h"
+#include "bb/ObjectLoader.h"
 
 
 // end of file

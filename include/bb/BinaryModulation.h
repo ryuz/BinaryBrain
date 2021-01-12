@@ -406,8 +406,8 @@ protected:
                 m_layer->LoadObject(is);
             }
             else {
-#ifdef BB_OBJECT_RECONSTRUCTION
-                m_layer = std::dynamic_pointer_cast<Model>(Object_Reconstruct(is));
+#ifdef BB_OBJECT_LOADER
+                m_layer = std::dynamic_pointer_cast<Model>(Object_Load(is));
 #endif
             }
             BB_ASSERT(m_layer);
@@ -467,7 +467,7 @@ public:
 }
 
 
-#include "bb/ObjectReconstructor.h"
+#include "bb/ObjectLoader.h"
 
 
 // end of file

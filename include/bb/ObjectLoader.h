@@ -10,7 +10,7 @@
 #pragma once
 
 
-#ifdef BB_OBJECT_RECONSTRUCTION
+#ifdef BB_OBJECT_LOADER
 
 
 #include <iostream>
@@ -83,7 +83,7 @@ namespace bb {
 
 // ファイルからのオブジェクトの再構築
 // なお、再構築サポートするとすべてのオブジェクトのコードをリンクすることになるので
-// BB_OBJECT_RECONSTRUCTION を定義したときのみ有効になる
+// BB_OBJECT_LOADER を定義したときのみ有効になる
 
 
 
@@ -404,7 +404,7 @@ inline std::shared_ptr<Object> Object_Creator(std::string object_name)
 
 
 // ストリームからオブジェクトを再構成
-inline std::shared_ptr<Object> Object_Reconstruct(std::istream &is)
+inline std::shared_ptr<Object> Object_Load(std::istream &is)
 {
     auto object_name = Object::ReadHeader(is);
     BB_ASSERT(object_name.size() > 0);
@@ -422,38 +422,21 @@ inline std::shared_ptr<Object> Object_LoadFromFile(std::string filename)
 {
     std::ifstream ifs(filename, std::ios::binary);
     if ( !ifs.is_open() ) { return nullptr; }
-    return Object_Reconstruct(ifs);
+    return Object_Load(ifs);
 }
-
-
-
-#ifdef BB_PYBIND11
-inline pybind11::tuple Object_ReconstructPy(pybind11::bytes data)
-{
-    std::istringstream is((std::string)data, std::istringstream::binary);
-    auto obj = Object_Reconstruct(is);
-    return pybind11::make_tuple((std::size_t)is.tellg(), obj);
-}
-
-inline std::shared_ptr<Object> Object_CreatePy(pybind11::bytes data)
-{
-    std::istringstream is((std::string)data, std::istringstream::binary);
-    return Object_Reconstruct(is);
-}
-#endif
 
 
 }
 
 
-#else   // BB_OBJECT_RECONSTRUCTION
+#else   // BB_OBJECT_LOADER
 
 
 #include "bb/Object.h"
 
 namespace bb {
 
-inline std::shared_ptr<Object> Object_Reconstruct(std::istream &is)
+inline std::shared_ptr<Object> Object_Load(std::istream &is)
 {
     return std::shared_ptr<Object>();
 }
@@ -466,7 +449,29 @@ inline std::shared_ptr<Object> Object_LoadFromFile(std::string filename)
 }
 
 
-#endif   // BB_OBJECT_RECONSTRUCTION
+#endif   // BB_OBJECT_LOADER
+
+
+
+#ifdef BB_PYBIND11
+namespace bb {
+
+inline pybind11::tuple Object_LoadPy(pybind11::bytes data)
+{
+    std::istringstream is((std::string)data, std::istringstream::binary);
+    auto obj = Object_Load(is);
+    return pybind11::make_tuple((std::size_t)is.tellg(), obj);
+}
+
+inline std::shared_ptr<Object> Object_CreatePy(pybind11::bytes data)
+{
+    std::istringstream is((std::string)data, std::istringstream::binary);
+    return Object_Load(is);
+}
+
+}
+#endif
+
 
 
 // end of file

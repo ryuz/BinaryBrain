@@ -262,7 +262,7 @@
     <ClInclude Include="..\..\..\include\bb\BitEncode.h">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\bb\ObjectReconstructor.h">
+    <ClInclude Include="..\..\..\include\bb\ObjectLoader.h">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
   </ItemGroup>

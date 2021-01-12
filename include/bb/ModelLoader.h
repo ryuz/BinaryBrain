@@ -12,7 +12,7 @@
 #include <memory>
 
 #include "bb/Model.h"
-#include "bb/ObjectReconstructor.h"
+#include "bb/ObjectLoader.h"
 
 
 namespace bb

@@ -12,8 +12,8 @@
 #define BB_PYBIND11
 #endif
 
-#ifndef BB_OBJECT_RECONSTRUCTION
-#define BB_OBJECT_RECONSTRUCTION
+#ifndef BB_OBJECT_LOADER
+#define BB_OBJECT_LOADER
 #endif
 
 
@@ -427,7 +427,7 @@ PYBIND11_MODULE(core, m) {
 //      .def("_load_object_data", &Object::LoadObjectDataBytes)
         ;
 
-    m.def("object_reconstruct", &bb::Object_ReconstructPy);
+    m.def("object_reconstruct", &bb::Object_LoadPy);
 
 
 
