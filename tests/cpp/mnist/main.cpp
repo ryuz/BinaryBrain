@@ -25,10 +25,10 @@ void MnistMicroMlpLutSimple        (int epoch_size, int mini_batch_size, int tra
 void MnistMicroMlpLutCnn           (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistDenseSimple              (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistDenseCnn                 (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
-void MnistCustomModel              (int epoch_size, int mini_batch_size,                                                      bool binary_mode                );
 void MnistAeDifferentiableLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistAeDifferentiableLutCnn   (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
-
+void MnistCustomModel              (int epoch_size, int mini_batch_size,                                                      bool binary_mode                );
+void MnistLoadNet                  (int epoch_size, int mini_batch_size, std::string filename);
 
 // メイン関数
 int main(int argc, char *argv[])
@@ -163,6 +163,9 @@ int main(int argc, char *argv[])
     // (おまけ)レイヤー内部を自分で書く人向けサンプル
     if ( strcmp(argv[1], "Custom") == 0 ) {
         MnistCustomModel(epoch_size, mini_batch_size, binary_mode);
+    }
+    if ( strcmp(argv[1], "LoadNetFile") == 0 ) {
+        MnistLoadNet(epoch_size, mini_batch_size, "MnistDifferentiableLutSimple.bb_net");
     }
 
     return 0;

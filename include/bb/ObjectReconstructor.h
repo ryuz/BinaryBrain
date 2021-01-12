@@ -28,6 +28,7 @@
 
 #include "bb/Sequential.h"
 
+#include "bb/BinaryModulation.h"
 #include "bb/RealToBinary.h" 
 #include "bb/BinaryToReal.h" 
 #include "bb/BitEncode.h"
@@ -114,6 +115,8 @@ inline std::shared_ptr<Object> Object_Creator(std::string object_name)
 
     BB_OBJECT_CREATE(Sequential);
 
+    BB_OBJECT_CREATE(BinaryModulation<float, float>);
+    BB_OBJECT_CREATE(BinaryModulation<bb::Bit, float>);
     BB_OBJECT_CREATE(RealToBinary<float, float>);
     BB_OBJECT_CREATE(RealToBinary<bb::Bit, float>);
     BB_OBJECT_CREATE(BinaryToReal<float, float>);

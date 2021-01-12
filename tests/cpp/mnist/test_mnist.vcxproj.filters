@@ -51,6 +51,9 @@
     <ClCompile Include="MnistDifferentiableLutSimple.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="MnistLoadNet.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\bb\ConvolutionCol2Im.h">

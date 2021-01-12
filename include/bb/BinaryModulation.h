@@ -123,7 +123,13 @@ public:
         create.depth_modulation_size       = depth_modulation_size;
         return Create(create);
     }
+
+    static std::shared_ptr<BinaryModulation> Create(void)
+    {
+        return Create(create_t());
+    }
     
+
 #ifdef BB_PYBIND11
     static std::shared_ptr<BinaryModulation> CreatePy(
                 std::shared_ptr<Model>                      layer,
@@ -345,7 +351,7 @@ protected:
     }
 
 
-        // シリアライズ
+    // シリアライズ
 protected:
     void DumpObjectData(std::ostream &os) const override
     {
@@ -402,7 +408,7 @@ protected:
             }
             else {
 #ifdef BB_OBJECT_RECONSTRUCTION
-                m_layer = std::dynamic_pointer_cast<BinaryModulation>(Object_Reconstruct(is));
+                m_layer = std::dynamic_pointer_cast<Model>(Object_Reconstruct(is));
 #endif
             }
             BB_ASSERT(m_layer);
