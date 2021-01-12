@@ -7,20 +7,20 @@ from typing import List
 
 
 
-class Metrics():
+class Metrics(bb.Object):
     """Metrics class
         評価関数の基底クラス
     """
     
     def __init__(self, core_metrics=None):
-        self.core_metrics = core_metrics
+        super(Metrics, self).__init__(core_object=core_metrics)
         
     def clear(self):
         """値のクリア
 
            集計をクリアする。通常 epoch の単位でクリアして再集計を行う
         """
-        self.core_metrics.clear()
+        self.get_core().clear()
     
     def get(self):
         """値の取得
@@ -28,7 +28,7 @@ class Metrics():
         Returns:
             metrics(float) : 現在までの損失値を返す
         """
-        return self.core_metrics.get_metrics()
+        return self.get_core().get_metrics()
 
     def calculate(self, y_buf, t_buf):
         """評価の計算
@@ -37,7 +37,7 @@ class Metrics():
             y_buf (FrameBuffer): forward演算結果
             t_buf (FrameBuffer): 教師データ
         """
-        return self.core_metrics.calculate_metrics(y_buf.get_core(), t_buf.get_core())
+        return self.get_core().calculate_metrics(y_buf.get_core(), t_buf.get_core())
 
     def get_metrics_string(self):
         """評価対象の文字列取得

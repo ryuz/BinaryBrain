@@ -7,16 +7,13 @@ from typing import List
 
 
 
-class Optimizer():
+class Optimizer(bb.Object):
     """Optimizer の基本クラス
     """
     
     def __init__(self, core_optimizer=None):
-        self.core_optimizer = core_optimizer
+        super(Optimizer, self).__init__(core_object=core_optimizer)
     
-    def get_core_optimizer(self):
-        return self.core_optimizer
-
     def set_variables(self, params, grads):
         """変数設定
 
@@ -25,7 +22,7 @@ class Optimizer():
             grads (Variables): paramsに対応する勾配変数
         """
 
-        self.get_core_optimizer().set_variables(params.get_core(), grads.get_core())
+        self.get_core().set_variables(params.get_core(), grads.get_core())
     
     def update(self):
         """パラメータ更新
@@ -34,7 +31,7 @@ class Optimizer():
             設定されたパラメータ変数に適用する
         """
 
-        return self.get_core_optimizer().update()
+        return self.get_core().update()
 
 
 class OptimizerSgd(Optimizer):
@@ -45,7 +42,6 @@ class OptimizerSgd(Optimizer):
     """
     def __init__(self, learning_rate=0.01, dtype=bb.DType.FP32):
         core_optimizer = bb.search_core_object('OptimizerSgd', [dtype]).create()
-#       core_optimizer = core.OptimizerSgd.create(learning_rate)
         super(OptimizerSgd, self).__init__(core_optimizer=core_optimizer)
 
 
@@ -58,7 +54,6 @@ class OptimizerAdaGrad(Optimizer):
 
     def __init__(self, learning_rate=0.01, dtype=bb.DType.FP32):
         core_optimizer = bb.search_core_object('OptimizerAdaGrad', [dtype]).create()
-#       core_optimizer = core.OptimizerAdaGrad.create(learning_rate)
         super(OptimizerAdaGrad, self).__init__(core_optimizer=core_optimizer)
 
 
@@ -73,7 +68,6 @@ class OptimizerAdam(Optimizer):
 
     def __init__(self, learning_rate=0.001, beta1=0.9, beta2=0.999, dtype=bb.DType.FP32):
         core_optimizer = bb.search_core_object('OptimizerAdam', [dtype]).create()
-#       core_optimizer = core.OptimizerAdam.create(learning_rate, beta1, beta2)
         super(OptimizerAdam, self).__init__(core_optimizer=core_optimizer)
 
 
