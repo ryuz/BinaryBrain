@@ -16,6 +16,7 @@ binarybarin には以下のモジュールが含まれています。
 
 .. toctree::
 
+   python_module_object
    python_module_container
    python_module_models_base
    python_module_models_binary

@@ -11,9 +11,7 @@ import binarybrain as bb
 
 
 def get_date_string():
-    ''' Get date strings for save path
-        データ保存パス用の日付文字列を生成
-    '''
+    # データ保存パス用の日付文字列を生成
     return datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
 
 def is_date_string(text: str):

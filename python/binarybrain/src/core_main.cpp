@@ -427,7 +427,7 @@ PYBIND11_MODULE(core, m) {
 //      .def("_load_object_data", &Object::LoadObjectDataBytes)
         ;
 
-    m.def("object_reconstruct", &bb::Object_LoadPy);
+    m.def("object_load", &bb::Object_LoadPy);
 
 
 

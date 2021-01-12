@@ -28,7 +28,7 @@ for file in glob.glob(r'../../../python/binarybrain/*.py'):
 
 # make dummy
 with open(os.path.join(bb_binarybrain_path, 'core.py'), 'w') as f:
-    pass
+    f.write('class Object:\n    pass\n')
 
 # import source
 sys.path.insert(0, os.path.abspath(bb_module_path))

@@ -76,13 +76,13 @@ def get_core_subclass_dict(superclass):
 # ---- core.Object ----
 
 def make_core_object_name(object_name, dtypes):
-    """core側のオブジェクト名を生成 (オジェクト名＋テンプレート型)"""
+    # core側のオブジェクト名を生成 (オジェクト名＋テンプレート型)
     for dtype in dtypes:
         object_name = object_name + '_' + bb.dtype_to_name(dtype)
     return object_name
 
 def split_core_object_name(core_object_name):
-    """core側のオブジェクト名を分解"""
+    # core側のオブジェクト名を分解
     args = core_object_name.split('_')
     dtypes = []
     for dtype_name in args[1:]:
@@ -108,8 +108,8 @@ def search_core_object(object_name, dtypes):
 
 # ---- core.Object 再生成 ----
 
-def core_object_reconstruct_loads(data):
-    load_size, core_object = core.object_reconstruct(data)
+def core_object_loads(data):
+    load_size, core_object = core.object_load(data)
     return data[load_size:], core_object
 
 
@@ -119,7 +119,16 @@ def object_creator_regist(creator):
     _object_creator_list.append(creator)
 
 
-def object_reconstruct_loads(data: bytes):
+def object_loads(data: bytes):
+    """バイト列からオブジェクトを再構築する
+
+    Args:
+        data(bytes): バイト列
+    
+    Returns:
+        obj (Object): 再構築したオブジェクト
+    """
+    
     # ヘッダ読み込み
     _, object_name = core.Object.read_header(data)
     split_name = object_name.split('_')
@@ -135,28 +144,13 @@ def object_reconstruct_loads(data: bytes):
             return data, obj
     
     # core を探索
-    load_size, obj = core.object_reconstruct_loads(data)
+    load_size, obj = core.object_load(data)
     if obj is not None:
         return data[load_size:], obj
     
-    print('object_reconstruct not object found : %s'%object_name)
+    print('object_loads not object found : %s'%object_name)
     return data, None
 
-
-def object_loads(data: bytes):
-    """バイト列からオブジェクトを再構築する
-
-    Args:
-        data(bytes): バイト列
-    
-    Returns:
-        obj (Object): 再構築したオブジェクト
-    """
-
-    data, obj = bb.object_reconstruct_loads(data)
-    if data != b'':
-        print('[object_loads] warrning: data is too long')
-    return obj
 
 
 def object_load(filename: str):
@@ -169,12 +163,21 @@ def object_load(filename: str):
         obj (Object): 再構築したオブジェクト
     """
     with open(filename, 'rb') as f:
-        return object_loads(f.read())
+        data, obj = bb.object_loads(f.read())
+        if data != b'':
+            print('[object_loads] warrning: data is too long')
+        return obj
 
 
 # ---- Objectクラス ----
 
 class Object():
+    """各クラスの基底クラス
+       
+       本クラスから派生する各種のクラスにはシリアライズの機能がサポートされる
+
+    """
+
     def __init__(self, core_object=None):
         self.core_object = core_object
 
@@ -187,16 +190,58 @@ class Object():
             return core_object.get_object_name()
         return ''
 
-    def dumps(self):
-        core_object = self.get_core()
-        if core_object is not None:
-            return core_object.dump_object()
+    def dumps(self) -> bytes:
+        """バイトデータにシリアライズ
+
+           モデルのデータをシリアライズして保存するためのバイト配列を生成
+        
+        Returns:
+            data (bytes): Serialize data
+        """
+        core_model = self.get_core()
+        if core_model is not None:
+            return core_model.dump_object()
         return b''
-    
-    def loads(self, data):
-        core_object = self.get_core()
-        if core_object is not None:
-            load_size = core_object.load_object(data)
-            return data[load_size:]
+        
+    def loads(self, data: bytes) -> bytes:
+        """バイトデータをロード
+
+           モデルのデータをシリアライズして復帰のバイト配列ロード
+        
+        Args:
+            data (bytes): Serialize data
+        """
+        core_model = self.get_core()
+        if core_model is not None:
+            size = core_model.load_object(data)
+            return data[size:]
         return data
+
+    def dump(self, filename: str):
+        """ファイルに保存
+
+           モデルのデータをシリアライズしてファイルに保存
+        
+        Args:
+            filename (str): ファイル名
+        """
+        with open(filename, 'wb') as f:
+            f.write(self.dumps())
+
+
+    def load(self, filename: str):
+        """ファイルからロード
+
+           ファイルからロード
+        
+        Args:
+            filename (str): ファイル名
+        """
+        with open(filename, 'rb') as f:
+            data, obj = self.loads(f.read())
+            if data != b'':
+                print('[Model.loads] warrning: data is too long')
+            return obj
+
+
 

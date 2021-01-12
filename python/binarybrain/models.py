@@ -54,7 +54,7 @@ class Model(bb.Object):
 
     @classmethod
     def from_bytes(cls, data):
-        data, core_model = bb.core_object_reconstruct_loads(data)
+        data, core_model = bb.core_object_loads(data)
         return data, cls(core_model=core_model)
 
     def set_name(self, name: str):
@@ -309,6 +309,7 @@ class Model(bb.Object):
             return bb.FrameBuffer.from_core(core_model.backward(dy_buf.get_core()))
         return dy_buf
     
+    ''' objectクラスに移管
     def dumps(self) -> bytes:
         """バイトデータにシリアライズ
 
@@ -336,39 +337,49 @@ class Model(bb.Object):
             return data[size:]
         return data
 
+    def dump(self, filename: str):
+        """ファイルに保存
+
+           モデルのデータをシリアライズしてファイルに保存
+        
+        Args:
+            filename (str): ファイル名
+        """
+        with open(filename, 'wb') as f:
+            f.write(self.dumps())
+
+
+    def load(self, filename: str):
+        """ファイルからロード
+
+           ファイルからロード
+        
+        Args:
+            filename (str): ファイル名
+        """
+        with open(filename, 'rb') as f:
+            data, obj = self.loads(f.read())
+            if data != b'':
+                print('[Model.loads] warrning: data is too long')
+            return obj
+    '''
 
     def dump_bytes(self):
-        """バイトデータにシリアライズ(old format)
-
-           モデルのデータをシリアライズして保存するためのバイト配列を生成
-        
-        Returns:
-            data (bytes): Serialize data
-        """
+        # バイトデータにシリアライズ(old format)
         core_model = self.get_core()
         if core_model is not None:
             return core_model.dump()
         return b''
 
     def load_bytes(self, data):
-        """バイトデータをロード(old format)
-
-           モデルのデータをシリアライズして復帰のバイト配列ロード
-        
-        Args:
-            data (bytes): Serialize data
-        """
+        #バイトデータをロード(old format)
         core_model = self.get_core()
         if core_model is not None:
             size = core_model.load(data)
             return data[size:]
         return data
 
-#    def dump(self, f):
-#        pickle.dump(f, self.dump_bytes())
-    
-#    def load(self, f):
-#        self.load_bytes(pickle.load(f))
+
     
     
     
@@ -518,7 +529,7 @@ class Sequential(Model):
         else:
             self.model_list = []
             for _ in range(layer_size):
-                data, model = bb.object_reconstruct_loads(data)
+                data, model = bb.object_loads(data)
                 self.model_list.append(model)
         
         return data
@@ -679,7 +690,7 @@ class Switcher(Model):
             self.model_dict = {}
             for _ in range(layer_size):
                 data, name = bb.string_from_bytes(data)
-                data, model = bb.object_reconstruct_loads(data)
+                data, model = bb.object_loads(data)
                 self.model_dict[name] = model
         
         # 再構成
@@ -1256,7 +1267,7 @@ class Convolution2d(Sequential):
             if self.sub_layer:
                 data = self.sub_layer.loads(data)
             else:
-                data, model = bb.object_reconstruct_loads(data)
+                data, model = bb.object_loads(data)
                 self.sub_layer = model
         
         # 再構成
