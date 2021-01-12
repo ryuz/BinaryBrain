@@ -49,6 +49,7 @@
 #include "bb/ConvolutionIm2Col.h"
 
 #include "bb/MaxPooling.h"
+#include "bb/StochasticMaxPooling.h"
 #include "bb/StochasticMaxPooling2x2.h"
 #include "bb/UpSampling.h"
 

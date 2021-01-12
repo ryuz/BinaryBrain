@@ -14,7 +14,6 @@
 #include "bb/Model.h"
 #include "bb/RealToBinary.h"
 #include "bb/BinaryToReal.h"
-#include "bb/ObjectReconstructor.h"
 
 
 namespace bb {
@@ -467,3 +466,8 @@ public:
 
 }
 
+
+#include "bb/ObjectReconstructor.h"
+
+
+// end of file
