@@ -171,7 +171,7 @@ def object_load(filename: str):
 
 # ---- Objectクラス ----
 
-class Object():
+class Object:
     """各クラスの基底クラス
        
        本クラスから派生する各種のクラスにはシリアライズの機能がサポートされる
@@ -179,6 +179,9 @@ class Object():
     """
 
     def __init__(self, core_object=None):
+        self.core_object = core_object
+
+    def set_core(self, core_object):
         self.core_object = core_object
 
     def get_core(self):
