@@ -299,10 +299,8 @@
     <ClInclude Include="..\..\..\include\bb\ObjectReconstructor.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\..\include\bb\Model - コピー.h_">
+    <ClInclude Include="..\..\..\include\bb\ModelLoader.h">
       <Filter>ヘッダー ファイル</Filter>
-    </None>
+    </ClInclude>
   </ItemGroup>
 </Project>

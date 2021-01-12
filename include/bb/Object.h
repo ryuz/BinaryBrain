@@ -10,6 +10,7 @@
 #pragma once
 
 #include <iostream>
+#include <fstream>
 #include <memory>
 #include <string>
 #include <array>
@@ -49,6 +50,23 @@ public:
         BB_ASSERT(object_name == GetObjectName());
         LoadObjectData(is);
     }
+
+    bool DumpToFile(std::string filename) const
+    {
+        std::ofstream ofs(filename, std::ios::binary);
+        if ( !ofs.is_open() ) { return false; }
+        DumpObject(ofs);
+        return true;
+    }
+
+    bool LoadFromFile(std::string filename)
+    {
+        std::ifstream ifs(filename, std::ios::binary);
+        if ( !ifs.is_open() ) { return false; }
+        LoadObject(ifs);
+        return true;
+    }
+
 
 #ifdef BB_PYBIND11
     pybind11::bytes DumpObjectBytes(void) const

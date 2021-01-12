@@ -418,6 +418,15 @@ inline std::shared_ptr<Object> Object_Reconstruct(std::istream &is)
     return obj_ptr;
 }
 
+inline std::shared_ptr<Object> Object_LoadFromFile(std::string filename)
+{
+    std::ifstream ifs(filename, std::ios::binary);
+    if ( !ifs.is_open() ) { return nullptr; }
+    return Object_Reconstruct(ifs);
+}
+
+
+
 #ifdef BB_PYBIND11
 inline pybind11::tuple Object_ReconstructPy(pybind11::bytes data)
 {
@@ -449,11 +458,15 @@ inline std::shared_ptr<Object> Object_Reconstruct(std::istream &is)
     return std::shared_ptr<Object>();
 }
 
+inline std::shared_ptr<Object> Object_LoadFromFile(std::string filename)
+{
+    return nullptr;
+}
+
 }
 
 
 #endif   // BB_OBJECT_RECONSTRUCTION
-
 
 
 // end of file

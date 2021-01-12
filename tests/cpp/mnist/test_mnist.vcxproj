@@ -409,6 +409,7 @@
     <ClInclude Include="..\..\..\include\bb\MicroMlp.h" />
     <ClInclude Include="..\..\..\include\bb\MicroMlpAffine.h" />
     <ClInclude Include="..\..\..\include\bb\Model.h" />
+    <ClInclude Include="..\..\..\include\bb\ModelLoader.h" />
     <ClInclude Include="..\..\..\include\bb\NormalDistributionGenerator.h" />
     <ClInclude Include="..\..\..\include\bb\Object.h" />
     <ClInclude Include="..\..\..\include\bb\ObjectReconstructor.h" />
@@ -444,9 +445,6 @@
     <ClInclude Include="..\..\..\include\bb\ValueGenerator.h" />
     <ClInclude Include="..\..\..\include\bb\Variables.h" />
     <ClInclude Include="..\..\..\include\bb\Version.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\..\include\bb\Model - コピー.h_" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
