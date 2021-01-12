@@ -5,7 +5,7 @@ import binarybrain.core as core
 import numpy as np
 from typing import List
 
-class FrameBuffer():
+class FrameBuffer(bb.Object):
     """FrameBuffer class
        
         BinaryBrainでの学習データを格納する特別な型である
@@ -32,17 +32,14 @@ class FrameBuffer():
         host_only (bool): flag of host only
     """
     
-    def __init__(self, frame_size: int = 0, shape: List[int] = [], dtype = bb.DType.FP32, host_only: bool = False):
-        self.core_buf = core.FrameBuffer(frame_size, shape, dtype.value, host_only)
+    def __init__(self, frame_size: int = 0, shape: List[int] = [], dtype = bb.DType.FP32, host_only: bool = False, core_buf=None):
+        if core_buf is None:
+            core_buf = core.FrameBuffer(frame_size, shape, dtype.value, host_only)
+        super(FrameBuffer, self).__init__(core_object=core_buf)
 
     @staticmethod
     def from_core(core_buf):
-        new_buf = FrameBuffer()
-        new_buf.core_buf = core_buf
-        return new_buf
-    
-    def get_core(self):
-        return self.core_buf
+        return FrameBuffer(core_buf=core_buf)
 
     def is_host_only(self) -> bool:
         return self.get_core().is_host_only()
@@ -153,121 +150,117 @@ class FrameBuffer():
         ndarray = ndarray.transpose(tran)
         ndarray = ndarray.copy(order='C')
         
-        new_buf = FrameBuffer()
         if ndarray.dtype == np.float32:
-            new_buf.core_buf = bb.core.FrameBuffer.from_numpy_fp32(ndarray, bb_dtype, frame_size, frame_stride, shape[1:], host_only)
+            core_buf = bb.core.FrameBuffer.from_numpy_fp32(ndarray, bb_dtype, frame_size, frame_stride, shape[1:], host_only)
         elif ndarray.dtype == np.float64:
-            new_buf.core_buf = bb.core.FrameBuffer.from_numpy_fp64(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            core_buf = bb.core.FrameBuffer.from_numpy_fp64(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.int8:
-            new_buf.core_buf = bb.core.FrameBuffer.from_numpy_int8(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            core_buf = bb.core.FrameBuffer.from_numpy_int8(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.int16:
-            new_buf.core_buf = bb.core.FrameBuffer.from_numpy_int16(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            core_buf = bb.core.FrameBuffer.from_numpy_int16(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.int32:
-            new_buf.core_buf = bb.core.FrameBuffer.from_numpy_int32(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            core_buf = bb.core.FrameBuffer.from_numpy_int32(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.int64:
-            new_buf.core_buf = bb.core.FrameBuffer.from_numpy_int64(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            core_buf = bb.core.FrameBuffer.from_numpy_int64(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.uint8:
-            new_buf.core_buf = bb.core.FrameBuffer.from_numpy_uint8(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            core_buf = bb.core.FrameBuffer.from_numpy_uint8(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.uint16:
-            new_buf.core_buf = bb.core.FrameBuffer.from_numpy_uint16(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            core_buf = bb.core.FrameBuffer.from_numpy_uint16(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.uint32:
-            new_buf.core_buf = bb.core.FrameBuffer.from_numpy_uint32(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            core_buf = bb.core.FrameBuffer.from_numpy_uint32(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         elif ndarray.dtype == np.uint64:
-            new_buf.core_buf = bb.core.FrameBuffer.from_numpy_uint64(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
+            core_buf = bb.core.FrameBuffer.from_numpy_uint64(ndarray, bb_dtype, frame_size, frame_stride, shape[1:],host_only)
         else:
+            core_buf = None
             raise TypeError("unsupported")
-        return new_buf
+        return FrameBuffer(core_buf=core_buf)
     
     
     def __add__(self, x):
-        new_buf = FrameBuffer()
         if type(x) == FrameBuffer:
-            new_buf.core_buf = self.core_buf + x.core_buf
+            core_buf = self.get_core() + x.get_core()
         else:
-            new_buf.core_buf = self.core_buf + float(x)
-        return new_buf
+            core_buf = self.get_core() + float(x)
+        return FrameBuffer(core_buf=core_buf)
 
     def __sub__(self, x):
-        new_buf = FrameBuffer()
         if type(x) == FrameBuffer:
-            new_buf.core_buf = self.core_buf - x.core_buf
+            core_buf = self.get_core() - x.get_core()
         else:
-            new_buf.core_buf = self.core_buf - float(x)
-        return new_buf
+            core_buf = self.get_core() - float(x)
+        return FrameBuffer(core_buf=core_buf)
 
     def __mul__(self, x):
-        new_buf = FrameBuffer()
         if type(x) == FrameBuffer:
-            new_buf.core_buf = self.core_buf * x.core_buf
+            core_buf = self.get_core() * x.get_core()
         else:
-            new_buf.core_buf = self.core_buf * float(x)
-        return new_buf
+            core_buf = self.get_core() * float(x)
+        return FrameBuffer(core_buf=core_buf)
 
     def __truediv__(self, x):
-        new_buf = FrameBuffer()
         if type(x) == FrameBuffer:
-            new_buf.core_buf = self.core_buf / x.core_buf
+            core_buf = self.get_core() / x.get_core()
         else:
-            new_buf.core_buf = self.core_buf / float(x)
-        return new_buf
+            core_buf = self.get_core() / float(x)
+        return FrameBuffer(core_buf=core_buf)
 
     def __radd__(self, x):
-        new_buf = FrameBuffer()
         if type(x) == FrameBuffer:
-            new_buf.core_buf = x.core_buf + self.core_buf 
+            core_buf = x.get_core() + self.get_core() 
         else:
-            new_buf.core_buf = float(x) + self.core_buf
-        return new_buf
+            core_buf = float(x) + self.get_core()
+        return FrameBuffer(core_buf=core_buf)
 
     def __rsub__(self, x):
-        new_buf = FrameBuffer()
         if type(x) == FrameBuffer:
-            new_buf.core_buf = x.core_buf - self.core_buf 
+            core_buf = x.get_core() - self.get_core() 
         else:
-            new_buf.core_buf = float(x) - self.core_buf
-        return new_buf
+            core_buf = float(x) - self.get_core()
+        return FrameBuffer(core_buf=core_buf)
 
     def __rmul__(self, x):
-        new_buf = FrameBuffer()
         if type(x) == FrameBuffer:
-            new_buf.core_buf = x.core_buf * self.core_buf 
+            core_buf = x.get_core() * self.get_core() 
         else:
-            new_buf.core_buf = float(x) * self.core_buf
-        return new_buf
+            core_buf = float(x) * self.get_core()
+        return FrameBuffer(core_buf=core_buf)
 
     def __rtruediv__(self, x):
-        new_buf = FrameBuffer()
         if type(x) == FrameBuffer:
-            new_buf.core_buf = x.core_buf / self.core_buf 
+            core_buf = x.get_core() / self.get_core() 
         else:
-            new_buf.core_buf = float(x) / self.core_buf
-        return new_buf
+            core_buf = float(x) / self.get_core()
+        return FrameBuffer(core_buf=core_buf)
     
     def __iadd__(self, x):
+        core_buf = self.get_core()
         if type(x) == FrameBuffer:
-            self.core_buf += x.core_buf 
+            core_buf += x.get_core() 
         else:
-            self.core_buf += float(x)
+            core_buf += float(x)
         return self
     
     def __isub__(self, x):
+        core_buf = self.get_core()
         if type(x) == FrameBuffer:
-            self.core_buf -= x.core_buf 
+            core_buf -= x.get_core() 
         else:
-            self.core_buf -= float(x)
+            core_buf -= float(x)
         return self
     
     def __imul__(self, x):
+        core_buf = self.get_core()
         if type(x) == FrameBuffer:
-            self.core_buf *= x.core_buf 
+            core_buf *= x.get_core() 
         else:
-            self.core_buf *= float(x)
+            core_buf *= float(x)
         return self
     
     def __itruediv__(self, x):
+        core_buf = self.get_core()
         if type(x) == FrameBuffer:
-            self.core_buf /= x.core_buf 
+            core_buf /= x.get_core() 
         else:
-            self.core_buf /= float(x)
+            core_buf /= float(x)
         return self
 

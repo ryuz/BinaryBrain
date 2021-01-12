@@ -49,7 +49,7 @@ class Metrics(bb.Object):
         Args:
             metrics_string (str): 評価対象の文字列取得
         """
-        return self.core_metrics.get_metrics_string()
+        return self.get_core().get_metrics_string()
 
 
 class MetricsCategoricalAccuracy(Metrics):

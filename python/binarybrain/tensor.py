@@ -17,7 +17,7 @@ class Tensor(bb.Object):
     """
     
     def __init__(self, shape: List[int]=None, *, dtype = bb.DType.FP32, host_only=False, core_tensor=None):
-        if core_tensor is not None:
+        if core_tensor is None:
             if shape is not None:
                 core_tensor = core.Tensor(shape, dtype.value, host_only)
         super(Tensor, self).__init__(core_object=core_tensor)
@@ -127,7 +127,6 @@ class Tensor(bb.Object):
         return Tensor(core_tensor=core_tensor)
 
     def __sub__(self, x):
-        new_tensor = Tensor(shape=None)
         if type(x) == Tensor:
             core_tensor = self.get_core() - x.get_core()
         else:
@@ -135,7 +134,6 @@ class Tensor(bb.Object):
         return Tensor(core_tensor=core_tensor)
 
     def __mul__(self, x):
-        new_tensor = Tensor(shape=None)
         if type(x) == Tensor:
             core_tensor = self.get_core() * x.get_core()
         else:
@@ -143,7 +141,6 @@ class Tensor(bb.Object):
         return Tensor(core_tensor=core_tensor)
 
     def __truediv__(self, x):
-        new_tensor = Tensor(shape=None)
         if type(x) == Tensor:
             core_tensor = self.get_core() / x.get_core()
         else:
@@ -151,7 +148,6 @@ class Tensor(bb.Object):
         return Tensor(core_tensor=core_tensor)
 
     def __radd__(self, x):
-        new_tensor = Tensor(shape=None)
         if type(x) == Tensor:
             core_tensor = x.get_core() + self.get_core() 
         else:
@@ -159,7 +155,6 @@ class Tensor(bb.Object):
         return Tensor(core_tensor=core_tensor)
 
     def __rsub__(self, x):
-        new_tensor = Tensor(shape=None)
         if type(x) == Tensor:
             core_tensor = x.get_core() - self.get_core() 
         else:
@@ -167,7 +162,6 @@ class Tensor(bb.Object):
         return Tensor(core_tensor=core_tensor)
 
     def __rmul__(self, x):
-        new_tensor = Tensor(shape=None)
         if type(x) == Tensor:
             core_tensor = x.get_core() * self.get_core() 
         else:
@@ -175,7 +169,6 @@ class Tensor(bb.Object):
         return Tensor(core_tensor=core_tensor)
 
     def __rtruediv__(self, x):
-        new_tensor = Tensor(shape=None)
         if type(x) == Tensor:
             core_tensor = x.get_core() / self.get_core() 
         else:
