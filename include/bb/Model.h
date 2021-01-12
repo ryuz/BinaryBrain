@@ -41,6 +41,10 @@ namespace bb {
 //! model class
 class Model : public Object
 {
+public:
+    // デフォルトでモデル名を返す
+    std::string GetObjectName(void) const override { return GetModelName(); }
+
 protected:
     std::string     m_name;
     bool            m_parameter_lock = false;
