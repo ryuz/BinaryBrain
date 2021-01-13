@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     bool        file_read             = false;
     bool        binary_mode           = true;
     bool        print_device          = false;
-    std::string load_net_file         = "MnistCustomModel.bb_net";
+    std::string load_net_file         = "MnistDifferentiableLutSimple.bb_net";
 
     std::cout << "BinaryBrain version " << bb::GetVersionString();
     std::cout << "  MNIST sample\n" << std::endl;

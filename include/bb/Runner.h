@@ -132,7 +132,7 @@ protected:
     std::shared_ptr<MetricsFunction>    m_metricsFunc;
     std::shared_ptr<LossFunction>       m_lossFunc;
     std::shared_ptr<Optimizer>          m_optimizer;
-
+    
     bool                                m_print_progress          = true;
     bool                                m_print_progress_loss     = true;     //< 途中経過で損失を表示するか
     bool                                m_print_progress_accuracy = true;     //< 途中経過で精度を表示するか
@@ -141,6 +141,7 @@ protected:
     bool                                m_file_read               = false;
     bool                                m_file_write              = false;
     bool                                m_write_serial            = false;
+    std::string                         m_file_format             = "bb_net";
     bool                                m_initial_evaluation      = false;
     
     callback_proc_t                     m_callback_proc = nullptr;
@@ -161,11 +162,12 @@ public:
         bool                                print_progress = true;              //< 途中経過を表示するか
         bool                                print_progress_loss = true;         //< 途中経過で損失を表示するか
         bool                                print_progress_accuracy = true;     //< 途中経過で精度を表示するか
-        bool                                log_write               = true;     //< ログを書き込むか
-        bool                                log_append              = true;     //< ログを追記モードにするか
+        bool                                log_write = true;                   //< ログを書き込むか
+        bool                                log_append = true;                  //< ログを追記モードにするか
         bool                                file_read = false;                  //< 以前の計算があれば読み込むか
         bool                                file_write = false;                 //< 計算結果を保存するか
         bool                                write_serial = false;               //< EPOC単位で計算結果を連番で保存するか
+        std::string                         file_format             = "bb_net"; //< 保存形式
         bool                                initial_evaluation = false;         //< 初期評価を行うか
         std::int64_t                        seed = 1;                           //< 乱数初期値
         callback_proc_t                     callback_proc = nullptr;            //< コールバック関数
@@ -194,6 +196,7 @@ protected:
         m_file_read               = create.file_read;
         m_file_write              = create.file_write;
         m_write_serial            = create.write_serial;
+        m_file_format             = create.file_format;
         m_initial_evaluation      = create.initial_evaluation;
         m_callback_proc           = create.callback_proc;
         m_callback_user           = create.callback_user;
@@ -231,7 +234,8 @@ public:
                 bool                                initial_evaluation = false,
                 std::int64_t                        seed = 1,
                 callback_proc_t                     callback_proc = nullptr,
-                void*                               callback_user = 0
+                void*                               callback_user = 0,
+                std::string                         file_format = ""
         )
     {
         create_t create;
@@ -245,6 +249,7 @@ public:
         create.file_read          = file_read;
         create.file_write         = file_write;
         create.write_serial       = write_serial;
+        create.file_format        = file_format;
         create.initial_evaluation = initial_evaluation;
         create.seed               = seed;
         create.callback_proc      = callback_proc;
@@ -253,8 +258,8 @@ public:
         return Create(create);
     }
 
-
-    static std::shared_ptr<Runner> CreateEx
+#ifdef BB_PYBIND11
+    static std::shared_ptr<Runner> CreatePy
             (
                 std::string                         name,
                 std::shared_ptr<Model>              net,
@@ -269,6 +274,7 @@ public:
                 bool                                log_append = true,
                 bool                                file_read = false,
                 bool                                file_write = false,
+                std::string                         file_format = "",
                 bool                                write_serial = false,
                 bool                                initial_evaluation = false,
                 std::int64_t                        seed = 1
@@ -289,10 +295,12 @@ public:
         create.file_read               = file_read;
         create.file_write              = file_write;
         create.write_serial            = write_serial;
+        create.file_format             = file_format;
         create.initial_evaluation      = initial_evaluation;
         create.seed                    = seed;
         return Create(create);
     }
+#endif
 
 
     // アクセサ
@@ -400,12 +408,14 @@ public:
     {
         std::string csv_file_name = m_name + "_metrics.txt";
         std::string log_file_name = m_name + "_log.txt";
-#ifdef BB_WITH_CEREAL
-        std::string net_file_name = m_name + "_net.json";
-#else
-        std::string net_file_name = m_name + "_net.bin";
-#endif
+        std::string net_file_name = m_name + ".bb_net";
 
+#ifdef BB_WITH_CEREAL
+        if ( m_file_format == "json" ) {
+            std::string net_file_name = m_name + "_net.json";
+        }
+#endif
+        
         // ログファイルオープン
         std::ofstream ofs_log;
         if ( m_log_write ) {
@@ -429,19 +439,19 @@ public:
             // 以前の計算があれば読み込み
             if ( m_file_read ) {
 #ifdef BB_WITH_CEREAL
-                if ( RunStatus::ReadJson(net_file_name, m_net, m_name, m_epoch) ) {
-                    std::cout << "[load] " << net_file_name << std::endl;
-                }
-                else {
-                    std::cout << "[file not found] " << net_file_name << std::endl;
+                if ( m_file_format == "json" ) {
+                    if ( !RunStatus::ReadJson(net_file_name, m_net, m_name, m_epoch) ) {
+                        std::cout << "[file not found] " << net_file_name << std::endl;
+                    }
                 }
 #else
-                std::ifstream ifs(net_file_name, std::ios::binary);
-                if (ifs.is_open()) {
-                    Load(ifs);
-                    std::cout << "[load] " << net_file_name << std::endl;
-                }
+                if ( false ) {}
 #endif
+                else {
+                    if ( !m_net->LoadFromFile(net_file_name) ) {
+                        std::cout << "[file not found] " << net_file_name << std::endl;
+                    }
+                }
             }
             
 
@@ -481,40 +491,31 @@ public:
                 // ネット保存
                 if (m_file_write) {
 #ifdef BB_WITH_CEREAL
-                    if ( m_write_serial ) {
-                        std::stringstream fname;
-                        fname << m_name << "_net_" << m_epoch << ".json";
-                        if ( RunStatus::WriteJson(fname.str(), m_net, m_name, m_epoch) ) {
-                            std::cout << "[save] " << fname.str() << std::endl;
+                    // 互換性の為しばらくjsonも残しておく
+                    if ( m_file_format == "json" ) {
+                        if ( m_write_serial ) {
+                            std::stringstream fname;
+                            fname << m_name << "_net_" << m_epoch << ".json";
+                            RunStatus::WriteJson(fname.str(), m_net, m_name, m_epoch);
                         }
-                        else {
-                            std::cout << "[write error] " << fname.str() << std::endl;
-                        }
-                    }
 
-                    {
-                        if ( RunStatus::WriteJson(net_file_name, m_net, m_name, m_epoch) ) {
-                        //  std::cout << "[save] " << net_file_name << std::endl;
-                        }
-                        else {
-                            std::cout << "[write error] " << net_file_name << std::endl;
-                        }
+                        RunStatus::WriteJson(net_file_name, m_net, m_name, m_epoch);
                     }
 #else
-                    if ( m_write_serial ) {
-                        std::stringstream fname;
-                        fname << m_name << "_net_" << m_epoch << ".bin";
-                        SaveBinary(fname.str());
-                        std::cout << "[save] " << fname.str() << std::endl;
-            //          log_streamt << "[save] " << fname.str() << std::endl;
-                    }
-
-                    {
-                        SaveBinary(net_file_name);
-            //          log_stream << "[save] " << net_file_name << std::endl;
-                    }
+                    if ( false ) { }
 #endif
+                    else {
+                        // 保存
+                        if ( m_write_serial ) {
+                            std::stringstream fname;
+                            fname << m_name << "_" << m_epoch << ".bb_net";
+                            m_net->DumpToFile(fname.str());
+                        }
+                    
+                        m_net->DumpToFile(net_file_name);
+                    }
                 }
+
 
                 // 学習状況評価
                 {
@@ -669,7 +670,6 @@ protected:
 
         return metricsFunc->GetMetrics();
     }
-
 };
 
 

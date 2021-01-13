@@ -36,14 +36,10 @@ void MnistLoadNet(int epoch_size, int mini_batch_size, std::string filename)
 
     // ネット読み込み
     auto net = bb::Model_LoadFromFile(filename);
-
-    /*
-    std::shared_ptr<bb::Model> net;
-    {
-        auto obj = bb::Object_LoadFromFile(filename);
-        net = std::dynamic_pointer_cast<bb::Model>(obj);
+    if (!net) {
+        std::cerr << "file read error : " << filename << std::endl;
+        return;
     }
-    */
 
     // set input shape
 //  net->SetInputShape(td.x_shape);
