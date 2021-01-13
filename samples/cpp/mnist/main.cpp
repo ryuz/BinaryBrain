@@ -17,6 +17,10 @@
 #endif
 
 
+//  サンプルごとにプログラムを分けると特にVisualStudioでメンテナンスが面倒なので
+// 1個のプロジェクトに複数サンプルを統合して引数で呼び分けています。
+
+
 void MnistStochasticLutSimple      (int epoch_size, int mini_batch_size,                            int test_modulation_size, bool binary_mode, bool file_read);
 void MnistStochasticLutCnn         (int epoch_size, int mini_batch_size,                            int test_modulation_size, bool binary_mode, bool file_read);
 void MnistDifferentiableLutSimple  (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
@@ -25,9 +29,10 @@ void MnistMicroMlpLutSimple        (int epoch_size, int mini_batch_size, int tra
 void MnistMicroMlpLutCnn           (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistDenseSimple              (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistDenseCnn                 (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
-void MnistCustomModel              (int epoch_size, int mini_batch_size,                                                      bool binary_mode                );
 void MnistAeDifferentiableLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistAeDifferentiableLutCnn   (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistCustomModel              (int epoch_size, int mini_batch_size,                                                      bool binary_mode, bool file_read);
+void MnistLoadNet                  (int epoch_size, int mini_batch_size, std::string filename);
 
 
 // メイン関数
@@ -42,6 +47,7 @@ int main(int argc, char *argv[])
     bool        file_read             = false;
     bool        binary_mode           = true;
     bool        print_device          = false;
+    std::string load_net_file         = "MnistDifferentiableLutSimple.bb_net";
 
     std::cout << "BinaryBrain version " << bb::GetVersionString();
     std::cout << "  MNIST sample\n" << std::endl;
@@ -67,6 +73,7 @@ int main(int argc, char *argv[])
         std::cout << "  DenseCnn                  Dense CNN" << std::endl;
         std::cout << "  AeDifferentiableLutSimple AutoEncoder Simple DNN" << std::endl;
         std::cout << "  AeDifferentiableLutCnn    AutoEncoder CNN" << std::endl;
+        std::cout << "  Custom                    Custum mode" << std::endl;
         std::cout << "  All                       run all" << std::endl;
         return 1;
     }
@@ -105,6 +112,10 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(argv[i], "-print_device") == 0 ) {
             print_device = true;
+        }
+        else if (strcmp(argv[i], "-load_net") == 0 && i + 1 < argc) {
+            ++i;
+            load_net_file = argv[i];
         }
         else {
             netname = argv[i];
@@ -160,10 +171,17 @@ int main(int argc, char *argv[])
         MnistAeDifferentiableLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
-    // (おまけ)レイヤー内部を自分で書く人向けサンプル
-    if ( strcmp(argv[1], "Custom") == 0 ) {
-        MnistCustomModel(epoch_size, mini_batch_size, binary_mode);
+    // カスタムモデルを自分で書く場合のサンプル
+    if ( netname == "All" || strcmp(argv[1], "Custom") == 0 ) {
+        MnistCustomModel(epoch_size, mini_batch_size, binary_mode, file_read);
     }
+
+#ifdef BB_OBJECT_LOADER
+    // 他で作ったネットの読み込み確認
+    if ( strcmp(argv[1], "LoadNetFile") == 0 ) {
+        MnistLoadNet(epoch_size, mini_batch_size, load_net_file);
+    }
+#endif
 
     return 0;
 }

@@ -99,7 +99,13 @@ void MnistDifferentiableLutSimple(int epoch_size, int mini_batch_size, int train
         runner_create.initial_evaluation = file_read;       // ファイルを読んだ場合は最初に評価しておく
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
-    
+        
+        // 結果保存
+        {
+            std::ofstream os(net_name + ".bb_net", std::ios::binary);
+            net->DumpObject(os);
+        }
+
         // Verilog 出力
         std::string filename = velilog_path + net_name + ".v";
         std::ofstream ofs(filename);
