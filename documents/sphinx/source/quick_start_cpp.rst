@@ -71,7 +71,7 @@ nvcc が利用可能な Google Colaboratory でも動作可能なようです。
 ::
 
   !git clone --recursive -b ver4_release  https://github.com/ryuz/BinaryBrain.git
-  %cd BinaryBrain/samples/mnist
+  %cd BinaryBrain/samples/cpp/mnist
   !make all
   !make run
 
