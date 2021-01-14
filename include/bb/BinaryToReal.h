@@ -95,11 +95,20 @@ public:
         return std::shared_ptr<BinaryToReal>(new BinaryToReal(create));
     }
 
-    static std::shared_ptr<BinaryToReal> Create(index_t frame_integration_size=1, indices_t output_shape = indices_t())
+    static std::shared_ptr<BinaryToReal> Create(index_t frame_integration_size, indices_t output_shape = indices_t())
     {
         create_t create;
         create.output_shape    = output_shape;
         create.frame_integration_size = frame_integration_size;
+        return Create(create);
+    }
+
+    static std::shared_ptr<BinaryToReal> Create(index_t frame_integration_size=1, index_t depth_integration_size=0, indices_t output_shape = indices_t())
+    {
+        create_t create;
+        create.output_shape    = output_shape;
+        create.frame_integration_size = frame_integration_size;
+        create.depth_integration_size = depth_integration_size;
         return Create(create);
     }
 
@@ -109,6 +118,7 @@ public:
         create_t create;
         create.output_shape    = output_shape;
         create.frame_integration_size = frame_integration_size;
+        create.depth_integration_size = depth_integration_size;
         return Create(create);
     }
 #endif

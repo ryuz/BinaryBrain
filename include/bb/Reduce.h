@@ -45,20 +45,20 @@ protected:
 
     indices_t           m_input_shape;
     indices_t           m_output_shape;
-    index_t             m_integrate_size = 0;
+    index_t             m_integration_size = 0;
 
 public:
     struct create_t
     {
         indices_t       output_shape;
-        index_t         integrate_size = 0;
+        index_t         integration_size = 0;
     };
 
 protected:
     Reduce(create_t const &create)
     {
-        m_output_shape   = create.output_shape;
-        m_integrate_size = create.integrate_size;
+        m_output_shape     = create.output_shape;
+        m_integration_size = create.integration_size;
     }
 
     /**
@@ -83,7 +83,7 @@ public:
         return std::shared_ptr<Reduce>(new Reduce(create));
     }
 
-    static std::shared_ptr<Reduce> Create(index_t output_node, index_t integrate_size=0)
+    static std::shared_ptr<Reduce> Create(index_t output_node, index_t integration_size=0)
     {
         create_t create;
         create.output_shape   = indices_t({output_node});
@@ -91,7 +91,7 @@ public:
         return Create(create);
     }
 
-    static std::shared_ptr<Reduce> Create(indices_t output_shape, index_t integrate_size=0)
+    static std::shared_ptr<Reduce> Create(indices_t output_shape, index_t integration_size=0)
     {
         create_t create;
         create.output_shape   = output_shape;
@@ -105,11 +105,11 @@ public:
     }
 
 #ifdef BB_PYBIND11
-    static std::shared_ptr<Reduce> CreatePy(indices_t output_shape,  index_t integrate_size=0)
+    static std::shared_ptr<Reduce> CreatePy(indices_t output_shape,  index_t integration_size=0)
     {
         create_t create;
         create.output_shape   = output_shape;
-        create.integrate_size = integrate_size;
+        create.integration_size = integration_size;
         return Create(create);
     }
 #endif
@@ -131,10 +131,10 @@ public:
         m_input_shape = shape;
 
         // 倍率指定があるなら従う
-        if ( m_integrate_size > 0 ) {
+        if ( m_integration_size > 0 ) {
             m_output_shape = shape;
-            BB_ASSERT(m_output_shape[0] % m_integrate_size == 0);
-            m_output_shape[0] /= m_integrate_size;
+            BB_ASSERT(m_output_shape[0] % m_integration_size == 0);
+            m_output_shape[0] /= m_integration_size;
         }
 
         // 整数倍の縮退のみ許容
@@ -299,7 +299,7 @@ protected:
         bb::SaveValue(os, m_host_only);
         bb::SaveValue(os, m_input_shape);
         bb::SaveValue(os, m_output_shape);
-        bb::SaveValue(os, m_integrate_size);
+        bb::SaveValue(os, m_integration_size);
     }
 
     void LoadObjectData(std::istream &is) override
@@ -317,7 +317,7 @@ protected:
         bb::LoadValue(is, m_host_only);
         bb::LoadValue(is, m_input_shape);
         bb::LoadValue(is, m_output_shape);
-        bb::LoadValue(is, m_integrate_size);
+        bb::LoadValue(is, m_integration_size);
     }
 
 };
