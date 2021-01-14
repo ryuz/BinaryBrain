@@ -87,7 +87,7 @@ public:
     {
         create_t create;
         create.output_shape   = indices_t({output_node});
-        create.integrate_size = integrate_size;
+        create.integrate_size = integration_size;
         return Create(create);
     }
 
@@ -95,7 +95,7 @@ public:
     {
         create_t create;
         create.output_shape   = output_shape;
-        create.integrate_size = integrate_size;
+        create.integrate_size = integration_size;
         return Create(create);
     }
 
