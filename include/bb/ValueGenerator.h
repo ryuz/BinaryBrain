@@ -9,12 +9,18 @@
 
 #pragma once
 
+
+#include "bb/Object.h"
+
+
 namespace bb {
 
 template <typename T>
-class ValueGenerator
+class ValueGenerator : public Object
 {
 public:
+    virtual std::string GetValueGeneratorName(void) const = 0;
+
     virtual ~ValueGenerator(){}
     virtual void Reset(void)    = 0;
     virtual T    GetValue(void) = 0;

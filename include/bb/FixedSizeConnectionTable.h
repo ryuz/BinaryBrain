@@ -26,13 +26,52 @@ class FixedSizeConnectionTable : public ConnectionTable
 {
     using _super = ConnectionTable;
 
+public:
+    static inline std::string ObjectName(void){ return std::string("FixedSizeConnectionTable") + std::to_string(N) + "_" + DataType<IndexType>::Name(); }
+    std::string GetObjectName(void) const { return ObjectName(); }
+
+
 protected:
     Tensor_<IndexType>   m_input_table;
     Tensor_<IndexType>   m_reverse_table;
     bool                 m_reverse_table_dirty = true;
 
+
+protected:
+    void DumpObjectData(std::ostream &os) const
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        m_input_table.DumpObject(os);
+    }
+
+    void LoadObjectData(std::istream &is)
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        m_input_table.LoadObject(is);
+
+        // 再構築
+        m_reverse_table_dirty = true;
+    }
+
+
 public:
-    // Serialize
+    // Serialize(旧)
     void Save(std::ostream &os) const 
     {
         _super::Save(os);
@@ -43,6 +82,7 @@ public:
     {
         _super::Load(is);
         m_input_table.Load(is);
+        m_reverse_table_dirty = true;
     }
 
 #ifdef BB_WITH_CEREAL

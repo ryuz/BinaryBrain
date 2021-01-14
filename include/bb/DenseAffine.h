@@ -31,10 +31,17 @@ class DenseAffine : public Model
 {
     using _super = Model;
 
+public:
+    static inline std::string ModelName(void) { return "DenseAffine"; }
+    static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<T>::Name(); }
+
+    std::string GetModelName(void)  const override { return ModelName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
 
 protected:
-    bool                        m_binary_mode = false;
     bool                        m_host_only = false;
+    bool                        m_binary_mode = false;
 
     T                           m_initialize_std = (T)0.01;
     std::string                 m_initializer = "he";
@@ -52,10 +59,11 @@ protected:
     std::shared_ptr<Tensor>     m_dW;
     std::shared_ptr<Tensor>     m_db;
     
-#ifdef BB_WITH_CUDA
     bool                        m_cublasEnable = false;
+#ifdef BB_WITH_CUDA
     cublasHandle_t              m_cublasHandle;
 #endif
+
 
 public:
     struct create_t
@@ -80,7 +88,7 @@ protected:
         }
 #endif
 
-        BB_ASSERT(!create.output_shape.empty());
+//      BB_ASSERT(!create.output_shape.empty());
 
         m_initialize_std  = create.initialize_std;
         m_initializer     = create.initializer;
@@ -137,7 +145,13 @@ public:
         return Create(create);
     }
 
-    static std::shared_ptr<DenseAffine> CreateEx(
+    static std::shared_ptr<DenseAffine> Create(void)
+    {
+        return Create(create_t());
+    }
+
+#ifdef BB_PYBIND11
+    static std::shared_ptr<DenseAffine> CreatePy(
             indices_t       output_shape,
             T               initialize_std = (T)0.01,
             std::string     initializer = "he",
@@ -151,10 +165,8 @@ public:
         create.seed           = seed;
         return Create(create);
     }
+#endif
 
-
-    std::string GetClassName(void) const { return "DenseAffine"; }
-    
     Tensor       &W(void)       { return *m_W; }
     Tensor const &W(void) const { return *m_W; }
     Tensor       &b(void)       { return *m_b; }
@@ -458,13 +470,75 @@ public:
             return dx_buf;
         }
     }
-    
+
+    // シリアライズ
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_host_only);
+        bb::SaveValue(os, m_binary_mode);
+        bb::SaveValue(os, m_initialize_std);
+        bb::SaveValue(os, m_initializer);
+        bb::SaveValue(os, m_input_shape);
+        bb::SaveValue(os, m_output_shape);
+        bb::SaveValue(os, m_cublasEnable);
+        m_W->DumpObject(os);
+        m_b->DumpObject(os);
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_host_only);
+        bb::LoadValue(is, m_binary_mode);
+        bb::LoadValue(is, m_initialize_std);
+        bb::LoadValue(is, m_initializer);
+        bb::LoadValue(is, m_input_shape);
+        bb::LoadValue(is, m_output_shape);
+        bb::LoadValue(is, m_cublasEnable);
+        m_W->LoadObject(is);
+        m_b->LoadObject(is);
+        
+        // 再構築
+#ifdef BB_WITH_CUDA
+        if ( m_cublasEnable ) {
+           if ( cublasCreate(&m_cublasHandle) != CUBLAS_STATUS_SUCCESS ) {
+                m_cublasEnable = false;
+            }
+        }
+#endif
+
+        m_input_node_size = CalcShapeSize(m_input_shape);
+        m_output_node_size = CalcShapeSize(m_output_shape);
+        m_dW->Resize({m_output_node_size, m_input_node_size}, DataType<T>::type);   m_dW->FillZero();
+        m_db->Resize({m_output_node_size},                    DataType<T>::type);   m_db->FillZero();
+    }
+
 
 public:
-    // Serialize
+    // Serialize(旧)
     void Save(std::ostream &os) const 
     {
-        SaveValue(os, m_binary_mode);
+//      SaveValue(os, m_binary_mode);
+        os.write((const char*)&m_binary_mode, sizeof(m_binary_mode));   // バグに対する後方互換性
+
         SaveIndices(os, m_input_shape);
         SaveIndices(os, m_output_shape);
         m_W->Save(os);
@@ -473,7 +547,9 @@ public:
 
     void Load(std::istream &is)
     {
-        bb::LoadValue(is, m_binary_mode);
+//      bb::LoadValue(is, m_binary_mode);
+        is.read((char*)&m_binary_mode, sizeof(m_binary_mode));   // バグに対する後方互換性
+
         m_input_shape  = bb::LoadIndices(is);
         m_output_shape = bb::LoadIndices(is);
         m_W->Load(is);

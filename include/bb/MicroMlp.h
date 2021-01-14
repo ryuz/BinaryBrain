@@ -27,6 +27,13 @@ template <int N = 6, int M = 16, typename FT = float, typename T = float>
 class MicroMlp : public SparseModel
 {
     using _super = SparseModel;
+    
+public:
+    static inline std::string ModelName(void) { return "MicroMlp" + std::to_string(N) + "_" + std::to_string(M); }
+    static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<FT>::Name() + "_" + DataType<T>::Name(); }
+
+    std::string GetModelName(void)  const override { return ModelName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
 
 protected:
     bool                                            m_memory_saving = false;// true;
@@ -106,14 +113,17 @@ public:
         return Create(indices_t({output_node_size}), connection, momentum);
     }
 
+    static std::shared_ptr<MicroMlp> Create(void)
+    {
+        return Create(create_t());
+    }
+
 #ifdef BB_PYBIND11
     static std::shared_ptr< MicroMlp > CreatePy(index_t output_node_size, std::string connection = "", T momentum = (T)0.0)
     {
         return Create(indices_t({output_node_size}), connection, momentum);
     }
 #endif
-
-    std::string GetClassName(void) const { return "MicroMlp"; }
 
     /**
      * @brief  コマンドを送る
@@ -281,7 +291,7 @@ protected:
      * @param  os     出力ストリーム
      * @param  indent インデント文字列
      */
-    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
+    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth) const override
     {
         // これ以上ネストしないなら自クラス概要
         if ( depth > 0 && (nest+1) >= depth ) {
@@ -295,8 +305,45 @@ protected:
         }
     }
 
+    // シリアライズ
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_memory_saving);
+        m_affine->DumpObject(os);
+        m_batch_norm->DumpObject(os);
+        m_activation->DumpObject(os);
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_memory_saving);
+        m_affine->LoadObject(is);
+        m_batch_norm->LoadObject(is);
+        m_activation->LoadObject(is);
+    }
+
+
 public:
-    // Serialize
+    // Serialize(旧)
     void Save(std::ostream &os) const 
     {
         m_affine->Save(os);

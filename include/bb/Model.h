@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <memory>
 #include <vector>
 #include <string>
 #include <sstream>
@@ -28,6 +29,8 @@
 #include <pybind11/operators.h>
 #endif
 
+#include "bb/DataType.h"
+#include "bb/Object.h"
 #include "bb/FrameBuffer.h"
 #include "bb/Variables.h"
 
@@ -36,8 +39,12 @@ namespace bb {
 
 
 //! model class
-class Model
+class Model : public Object
 {
+public:
+    // デフォルトでモデル名を返す
+    std::string GetObjectName(void) const override { return GetModelName(); }
+
 protected:
     std::string     m_name;
     bool            m_parameter_lock = false;
@@ -63,12 +70,12 @@ public:
     virtual ~Model() {}
 
     /**
-     * @brief  クラス名取得
-     * @detail クラス名取得
-     *         シリアライズ時などの便宜上、クラス名を返すようにする
-     * @return クラス名
+     * @brief  モデル名取得
+     * @detail モデル名取得
+     * 
+     * @return モデル名
      */
-    virtual std::string GetClassName(void) const = 0;
+    virtual std::string GetModelName(void) const = 0;
 
     /**
      * @brief  名前設定
@@ -92,7 +99,7 @@ public:
     virtual std::string GetName(void) const
     {
         if (m_name.empty()) {
-            return GetClassName();
+            return GetModelName();
         }
         return m_name;
     }
@@ -104,7 +111,7 @@ public:
      */
     virtual void SendCommand(std::string command, std::string send_to = "all")
     {
-        if ( send_to == "all" || send_to == GetClassName() || send_to == GetName() ) {
+        if ( send_to == "all" || send_to == GetModelName() || send_to == GetName() ) {
             CommandProc(SplitString(command));
         }
     }
@@ -182,7 +189,7 @@ protected:
      * @param  nest    ネストカウンタ
      * @param  depth   表示したい深さ
      */
-    virtual void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
+    virtual void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth) const
     {
         os << indent << " input  shape : " << GetInputShape();
         os << indent << " output shape : " << GetOutputShape() << std::endl;
@@ -197,7 +204,7 @@ public:
      * @param  columns  表示幅
      * @param  nest     深さ指定(通常は0)
      */
-    virtual void PrintInfo(int depth=0, std::ostream& os=std::cout, int columns=70, int nest=0)
+    virtual void PrintInfo(int depth=0, std::ostream& os=std::cout, int columns=70, int nest=0) const
     {
         // セパレータとインデント文字列生成
         std::string indent    = std::string(nest*2, ' ');
@@ -205,7 +212,7 @@ public:
 
         // モデルタイトル表示
         os << indent << separetor << std::endl;
-        os << indent << "[" << GetClassName() << "] "  << m_name << std::endl;
+        os << indent << "[" << GetModelName() << "] "  << m_name << std::endl;
 
         // 内容表示
         PrintInfoText(os ,indent, columns, nest, depth);
@@ -224,7 +231,7 @@ public:
      * @param  columns  表示幅
      * @param  nest     深さ指定(通常は0)
      */
-    virtual std::string GetInfoString(int depth=0, int columns=70, int nest=0)
+    virtual std::string GetInfoString(int depth=0, int columns=70, int nest=0) const
     {
         std::stringstream ss;
         PrintInfo(depth, ss, columns, nest);
@@ -302,6 +309,14 @@ public:
     
     
 public:
+//  std::string GetObjectName(void)  const { return ""; }   // 暫定
+
+protected:
+//  void DumpObjectData(std::ostream &os) const {}   // 暫定
+//  void LoadObjectData(std::istream &is) {}   // 暫定
+
+
+public:
     // Serialize
     virtual void Save(std::ostream &os) const
     {
@@ -333,11 +348,11 @@ public:
         return data;
     }
 
-    bool LoadBytes(pybind11::bytes data)
+    std::size_t LoadBytes(pybind11::bytes data)
     {
         std::istringstream is((std::string)data, std::istringstream::binary);
         Load(is);
-        return true;
+        return (std::size_t)is.tellg();
     }
 #endif
 
@@ -432,6 +447,8 @@ public:
     }
 
 };
+
+
 
 
 

@@ -13,10 +13,18 @@ Model クラス
    :member-order: bysource
 
 
-Sequential クラスs
+Sequential クラス
 ----------------------------
 
 .. autoclass:: binarybrain.models.Sequential
    :members: set_model_list, get_model_list, append
+   :show-inheritance:
+
+
+Switcher クラス
+----------------------------
+
+.. autoclass:: binarybrain.models.Switcher
+   :members: 
    :show-inheritance:
 

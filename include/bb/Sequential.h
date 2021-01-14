@@ -9,18 +9,32 @@
 
 #pragma once
 
+#include <iostream>
 #include <vector>
 #include <memory>
 
+#include "bb/Object.h"
 #include "bb/Model.h"
 
-
 namespace bb {
+
+
+inline std::shared_ptr<Object> Object_Load(std::istream &is);
 
 
 //! layer class
 class Sequential : public Model
 {
+    using _super = Model;
+
+public:
+    static inline std::string ModelName(void) { return "Sequential"; }
+    static inline std::string ObjectName(void){ return ModelName(); }
+
+    std::string GetModelName(void)  const override { return ModelName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
+
 protected:
     std::vector< std::shared_ptr<Model> > m_layers;
 
@@ -40,28 +54,17 @@ public:
         return self;
     }
 
-    /**
-     * @brief  クラス名取得
-     * @detail クラス名取得
-     *         シリアライズ時などの便宜上、クラス名を返すようにする
-     * @return クラス名
-     */
-    std::string GetClassName(void) const
-    {
-        return "Sequential";
-    }
-
     void Add(std::shared_ptr<Model> layer)
     {
         m_layers.push_back(layer);
     }
 
-    int GetSize(void)
+    int GetSize(void) const
     {
         return (int)m_layers.size();
     }
 
-    std::shared_ptr<Model> Get(int index)
+    std::shared_ptr<Model> Get(int index) const
     {
         return m_layers[index];
     }
@@ -70,7 +73,7 @@ public:
      * @brief  保持するモデルリストを得る
      * @detail 保持するモデルリストを得る
      */
-    std::vector< std::shared_ptr<Model> >   GetList(bool flatten = true)
+    std::vector< std::shared_ptr<Model> > GetList(bool flatten = true) const
     {
         std::vector< std::shared_ptr<Model> >   layers;
         for (auto model : m_layers)
@@ -92,7 +95,7 @@ public:
      * @brief  コマンドを送る
      * @detail コマンドを送る
      */   
-    void SendCommand(std::string command, std::string send_to = "all")
+    void SendCommand(std::string command, std::string send_to = "all") override
     {
         for (auto layer : m_layers) {
             layer->SendCommand(command, send_to);
@@ -105,7 +108,7 @@ public:
      *         Optimizerでの利用を想定
      * @return パラメータを返す
      */
-    Variables GetParameters(void)
+    Variables GetParameters(void) override
     {
         Variables parameters;
         for (auto layer : m_layers) {
@@ -120,7 +123,7 @@ public:
      *         Optimizerでの利用を想定
      * @return パラメータを返す
      */
-    virtual Variables GetGradients(void)
+    virtual Variables GetGradients(void) override
     {
         Variables gradients;
         for (auto layer : m_layers) {
@@ -137,7 +140,7 @@ public:
      * @param  shape      1フレームのノードを構成するshape
      * @return 出力形状を返す
      */
-    indices_t SetInputShape(indices_t shape)
+    indices_t SetInputShape(indices_t shape) override
     {
         for (auto layer : m_layers) {
             shape = layer->SetInputShape(shape);
@@ -150,7 +153,7 @@ public:
      * @detail 入力形状を取得する
      * @return 入力形状を返す
      */
-    indices_t GetInputShape(void) const
+    indices_t GetInputShape(void) const override
     {
         if ( m_layers.empty() ) { return indices_t(); }
         return m_layers.front()->GetInputShape();
@@ -161,7 +164,7 @@ public:
      * @detail 出力形状を取得する
      * @return 出力形状を返す
      */
-    indices_t GetOutputShape(void) const
+    indices_t GetOutputShape(void) const override
     {
         if ( m_layers.empty() ) { return indices_t(); }
         return m_layers.back()->GetInputShape();
@@ -175,7 +178,7 @@ public:
      * @param  train 学習時にtrueを指定
      * @return forward演算結果
      */
-    FrameBuffer Forward(FrameBuffer x, bool train = true)
+    FrameBuffer Forward(FrameBuffer x, bool train = true) override
     {
         for (auto layer : m_layers) {
             x = layer->Forward(x, train);
@@ -189,7 +192,7 @@ public:
      *         
      * @return backward演算結果
      */
-    FrameBuffer Backward(FrameBuffer dy)
+    FrameBuffer Backward(FrameBuffer dy) override
     {
         for (auto it = m_layers.rbegin(); it != m_layers.rend(); ++it) {
             dy = (*it)->Backward(dy);
@@ -204,7 +207,7 @@ protected:
      * @param  os     出力ストリーム
      * @param  indent インデント文字列
      */
-    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
+    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth) const override
     {
         // これ以上ネストしないなら自クラス概要
         if ( depth > 0 && (nest+1) >= depth ) {
@@ -215,6 +218,57 @@ protected:
             for (auto layer : m_layers) {
                 layer->PrintInfo(depth, os, columns, nest+1);
             }
+        }
+    }
+
+
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        SaveValue(os, ver);
+
+        // 親クラス
+//      _super::DumpObjectData(os);
+        
+        // メンバ
+        std::int64_t layer_size = (std::int64_t)m_layers.size();
+        SaveValue(os, layer_size);
+        for (auto& layer : m_layers) {
+            layer->DumpObject(os);
+        }
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+//      _super::LoadObjectData(is);
+
+        // メンバ
+        std::int64_t layer_size;
+        LoadValue(is, layer_size);
+
+#ifdef BB_OBJECT_LOADER
+        if ( m_layers.empty() ) {
+            for (std::int64_t i = 0; i < layer_size; ++i) {
+                auto layer = std::dynamic_pointer_cast<Model>(Object_Load(is));
+                BB_ASSERT(layer);
+                m_layers.push_back(layer);
+            }
+            return;
+        }
+#endif
+
+        BB_ASSERT(layer_size == (std::int64_t)m_layers.size());
+        for (auto& layer : m_layers) {
+            layer->LoadObject(is);
         }
     }
 
@@ -252,5 +306,10 @@ public:
 #endif
 };
 
-
 }
+
+
+#include "bb/ObjectLoader.h"
+
+
+// end of file

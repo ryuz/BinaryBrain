@@ -2,6 +2,7 @@
 #include <iostream>
 #include "gtest/gtest.h"
 
+#include "bb/DataType.h"
 #include "bb/NormalDistributionGenerator.h"
 #include "bb/UniformDistributionGenerator.h"
 #include "bb/Convolution2d.h"

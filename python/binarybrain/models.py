@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import re
 import pickle
 import numpy as np
 from typing import List
@@ -8,9 +9,29 @@ import binarybrain      as bb
 import binarybrain.core as core
 
 
+# ------- モデルリスト --------
+
+#core_model_list = bb.get_core_subclass_dict(core.Model)
+#core_model_dict = bb.get_core_subclass_dict(core.Model)
+
+def search_core_model(model_name, dtypes=[]):
+    return bb.search_core_object(model_name, dtypes)
+
+_model_creator_list = {}
+def model_creator_regist(model_name, creator):
+    _model_creator_list[model_name] = creator
+
+def model_creator(data, name, dtypes):
+    if name in  _model_creator_list:
+        return _model_creator_list[name](data)
+    return data, None
+
+bb.object_creator_regist(model_creator)
+
+
 # ------- 基本モデル --------
 
-class Model():
+class Model(bb.Object):
     """Model class
        ネットワーク各層の演算モデルの基底クラス
        すべてのモデルはこのクラスを基本クラスに持つ
@@ -21,16 +42,21 @@ class Model():
     """
     
     def __init__(self, *, core_model=None, input_shape=None, name=None):
+        super(Model, self).__init__(core_object=core_model)
+
+        self.input_shape = input_shape
+        self.name = name
         if core_model is not None:
-            self.core_model = core_model
             if name is not None:
-                self.core_model.set_name(name)
+                self.set_name(name)
             if input_shape is not None:
                 self.set_input_shape(input_shape)
-    
-    def get_core(self):
-        return self.core_model
-    
+
+    @classmethod
+    def from_bytes(cls, data):
+        data, core_model = bb.core_object_loads(data)
+        return data, cls(core_model=core_model)
+
     def set_name(self, name: str):
         """インスタンス名の設定
 
@@ -40,7 +66,10 @@ class Model():
         Args:
             name (str): 新しいインスタンス名
         """
-        return self.get_core().set_name(name)
+        self.name = name
+        core_model = self.get_core()
+        if core_model is not None:
+            core_model.set_name(name)
 
     def get_name(self):
         """インスタンス名の取得
@@ -50,7 +79,14 @@ class Model():
         Returns:
             name (str)
         """
-        return self.get_core().get_name()
+        core_model = self.get_core()
+        if core_model is not None:
+            return core_model.get_name()
+        else:
+            if self.name:
+                return self.name
+            else:
+                return self.get_model_name()
 
     def is_named(self):
         """インスタンス名の設定確認
@@ -60,19 +96,27 @@ class Model():
         Returns:
             named (bool)
         """
-        return self.get_core().is_named()
+        core_model = self.get_core()
+        if core_model is not None:
+            return core_model.is_named()
+        else:
+            return self.name is not None
     
-    def get_class_name(self):
-        """クラス名の取得
+    def get_model_name(self):
+        """モデル名の取得
 
-           クラス名(=モデル名)を取得する。
+           モデル名を取得する。
 
         Returns:
-            class name (str)
+            model name (str)
         """
-        return self.get_core().get_class_name()
+        core_model = self.get_core()
+        if core_model is not None:
+            return core_model.get_model_name()
+        else:
+            return self.__class__.__name__
     
-    def get_info(self, depth=0, *, columns=70, nest=0):
+    def get_info(self, depth :int=0, *, columns: int=70, nest: int=0) -> str:
         """モデル情報取得
 
            モデルの情報表示用の文字列を取得する
@@ -81,8 +125,31 @@ class Model():
         Returns:
             info (str)
         """
-        return self.get_core().get_info(depth, columns, nest)
-    
+        core_model = self.get_core()
+        if core_model is not None:
+            return core_model.get_info(depth, columns, nest)
+
+        # セパレータとインデント文字列生成
+        indent    = ' ' * (nest*2)
+        separetor = '-' * (columns - len(indent))
+        name      = self.name
+        if name is None:
+            name = ''
+
+        # モデルタイトル
+        text  = indent + separetor + '\n'
+        text += indent + '[' + self.get_model_name() + '] ' + name + '\n'
+
+        # 内容
+        text += indent + ' input  shape : ' + str(self.get_input_shape())
+        text += indent + ' output shape : ' + str(self.get_output_shape()) + '\n'
+
+        # 最上段なら末尾セパレータ追加
+        if nest == 0:
+            text +=  indent + separetor + '\n'
+        
+        return text
+
     def send_command(self, command, send_to='all'):
         """コマンドの送信
 
@@ -97,7 +164,9 @@ class Model():
             command (str): コマンド文字列
             send_to (str): 送信先
         """
-        self.get_core().send_command(command, send_to)
+        core_model = self.get_core()
+        if core_model is not None:
+            self.get_core().send_command(command, send_to)
     
     def set_input_shape(self, input_shape: [int]):
         """入力シェイプ設定
@@ -116,7 +185,18 @@ class Model():
         Returns:
             output_shape (List[int]): 出力シェイプ
         """
-        return self.get_core().set_input_shape(input_shape)
+#        print('set_input_shape:', self.get_model_name())
+#        print('input_shape:', input_shape)
+
+        self.input_shape = input_shape
+
+        core_model = self.get_core()
+        if core_model is not None:
+            output_shape = self.get_core().set_input_shape(input_shape)
+#            print('output_shape:', output_shape)
+            return output_shape
+
+        return self.input_shape
 
     def get_input_shape(self) -> [int]:
         """入力シェイプ取得
@@ -124,7 +204,12 @@ class Model():
         Returns:
             input_shape (List[int]): 入力シェイプ
         """
-        return self.get_core().get_input_shape()
+
+        core_model = self.get_core()
+        if core_model is not None:
+            return core_model.get_input_shape()
+        
+        return self.input_shape
 
     def get_output_shape(self) -> [int]:
         """出力シェイプ取得
@@ -132,13 +217,27 @@ class Model():
         Returns:
             output_shape (List[int]): 出力シェイプ
         """
-        return self.get_core().get_output_shape()
+        core_model = self.get_core()
+        if core_model is not None:
+            return core_model.get_output_shape()
+        
+        return self.input_shape
 
     def get_input_node_size(self) -> int:
-        return self.get_core().get_input_node_size()
+        core_model = self.get_core()
+        if core_model is not None:
+            return core_model.get_input_node_size()
+        shape = self.get_input_shape()
+        size = 1
+        for s in shape:
+            size *= s
+        return size
 
     def get_output_node_size(self) -> int:
-        return self.get_core().get_output_node_size()
+        core_model = self.get_core()
+        if core_model is not None:
+            return core_model.get_output_node_size()
+        return self.get_input_node_size()
 
     def get_parameters(self):
         """パラメータ変数取得
@@ -153,8 +252,11 @@ class Model():
         Returns:
             parameters (Variables): パラメータ変数
         """
-        return bb.Variables.from_core(self.get_core().get_parameters())
-    
+        core_model = self.get_core()
+        if core_model is not None:
+            return bb.Variables.from_core(core_model.get_parameters())
+        return bb.Variables()
+
     def get_gradients(self):
         """勾配変数取得
 
@@ -164,7 +266,10 @@ class Model():
         Returns:
             gradients (Variables): 勾配変数
         """
-        return bb.Variables.from_core(self.get_core().get_gradients())
+        core_model = self.get_core()
+        if core_model is not None:
+            return bb.Variables.from_core(core_model.get_gradients())
+        return bb.Variables()
     
     def forward(self, x_buf, train=True):
         """Forward
@@ -179,8 +284,11 @@ class Model():
         Returns:
             y_buf (FrameBuffer): 出力データ
         """
-        return bb.FrameBuffer.from_core(self.get_core().forward(x_buf.get_core(), train))
-    
+        core_model = self.get_core()
+        if core_model is not None:
+            return bb.FrameBuffer.from_core(core_model.forward(x_buf.get_core(), train))
+        return x_buf
+
     def backward(self, dy_buf):
         """Backward
 
@@ -196,9 +304,13 @@ class Model():
         Returns:
             dx_buf (FrameBuffer): 出力データ
         """
-        return bb.FrameBuffer.from_core(self.get_core().backward(dy_buf.get_core()))
+        core_model = self.get_core()
+        if core_model is not None:
+            return bb.FrameBuffer.from_core(core_model.backward(dy_buf.get_core()))
+        return dy_buf
     
-    def dump_bytes(self):
+    ''' objectクラスに移管
+    def dumps(self) -> bytes:
         """バイトデータにシリアライズ
 
            モデルのデータをシリアライズして保存するためのバイト配列を生成
@@ -206,9 +318,12 @@ class Model():
         Returns:
             data (bytes): Serialize data
         """
-        return self.get_core().dump()
-    
-    def load_bytes(self, data):
+        core_model = self.get_core()
+        if core_model is not None:
+            return core_model.dump_object()
+        return b''
+        
+    def loads(self, data: bytes) -> bytes:
         """バイトデータをロード
 
            モデルのデータをシリアライズして復帰のバイト配列ロード
@@ -216,13 +331,55 @@ class Model():
         Args:
             data (bytes): Serialize data
         """
-        self.get_core().load(data)
-    
-    def dump(self, f):
-        pickle.dump(f, self.dump_bytes())
-    
-    def load(self, f):
-        self.load_bytes(pickle.load(f))
+        core_model = self.get_core()
+        if core_model is not None:
+            size = core_model.load_object(data)
+            return data[size:]
+        return data
+
+    def dump(self, filename: str):
+        """ファイルに保存
+
+           モデルのデータをシリアライズしてファイルに保存
+        
+        Args:
+            filename (str): ファイル名
+        """
+        with open(filename, 'wb') as f:
+            f.write(self.dumps())
+
+
+    def load(self, filename: str):
+        """ファイルからロード
+
+           ファイルからロード
+        
+        Args:
+            filename (str): ファイル名
+        """
+        with open(filename, 'rb') as f:
+            data, obj = self.loads(f.read())
+            if data != b'':
+                print('[Model.loads] warrning: data is too long')
+            return obj
+    '''
+
+    def dump_bytes(self):
+        # バイトデータにシリアライズ(old format)
+        core_model = self.get_core()
+        if core_model is not None:
+            return core_model.dump()
+        return b''
+
+    def load_bytes(self, data):
+        #バイトデータをロード(old format)
+        core_model = self.get_core()
+        if core_model is not None:
+            size = core_model.load(data)
+            return data[size:]
+        return data
+
+
     
     
     
@@ -240,10 +397,9 @@ class Sequential(Model):
         model_list (List[Model]): モデルのリスト
     """
     
-    def __init__(self, model_list=[], *, name=None):
-        super(Sequential, self).__init__()
-        self.model_list  = model_list
-        self.name        = name
+    def __init__(self, model_list=[], *, input_shape=None, name=None):
+        self.model_list = model_list
+        super(Sequential, self).__init__(input_shape=input_shape, name=name)
 
     def get_core(self):
         # C++のコアの同機能に渡してしまうと Python からの扱いが不便になるので普段はListで管理して必要な時のみ変換する       
@@ -290,6 +446,17 @@ class Sequential(Model):
         """
         self.model_list.append(model)
     
+    def get_info(self, depth=0, *, columns=70, nest=0):
+        # これ以上ネストしないなら自クラス概要
+        if depth > 0 and (nest+1) >= depth:
+            return super(Sequential, self).get_info(depth=depth, columns=columns, nest=nest)
+        else:
+            # 子レイヤー
+            info = ''
+            for model in self.model_list:
+                info += model.get_info(depth=depth, columns=columns, nest=nest+1)
+            return info
+
     def send_command(self, command, send_to="all"):
         for model in self.model_list:
             model.send_command(command=command, send_to=send_to)
@@ -323,6 +490,238 @@ class Sequential(Model):
         return dy_buf
 
 
+    # シリアライズはC++版とフォーマット互換にする
+    def dumps(self):
+        # ヘッダ
+        data = bb.dump_object_header('Sequential')
+        
+        # バージョン
+        ver = 1
+        data += bb.int_to_bytes(ver)
+        
+        # レイヤ数
+        layer_size = len(self.model_list)
+        data += bb.int_to_bytes(layer_size)
+
+        # レイヤ本体
+        for model in self.model_list:
+            data += model.dumps()
+
+        return data
+
+    def loads(self, data):
+        # ヘッダ
+        data, name = bb.load_object_header(data)
+        assert(name == 'Sequential')
+        
+        # バージョン
+        data, ver = bb.int_from_bytes(data)
+        assert(ver == 1)
+        
+        # レイヤ数
+        data, layer_size = bb.int_from_bytes(data)
+
+        # レイヤ本体
+        if self.model_list is not None:
+            assert(layer_size == len(self.model_list))
+            for model in self.model_list:
+                data = model.loads(data)
+        else:
+            self.model_list = []
+            for _ in range(layer_size):
+                data, model = bb.object_loads(data)
+                self.model_list.append(model)
+        
+        return data
+
+    @classmethod
+    def from_bytes(cls, data):
+        new_model = cls(model_list=None)
+        data = new_model.loads(data)
+        return data, new_model
+
+model_creator_regist('Sequential', Sequential.from_bytes)
+
+
+
+class Switcher(Model):
+    """モデル切り替え用基底クラス
+    
+      主に蒸留や転移学習などでレイヤー差し替えに用いる
+      send_command から 'switch_model [name]' でも切り替え可能
+
+    Args:
+        model_dict (Dict{str: Model}): 切り替えるモデルの辞書
+        init_model_name (str): 初期選択するモデルの名前
+    """
+    
+    def __init__(self, model_dict={}, init_model_name=None, *, input_shape=None, name=None):
+        self.model_dict = model_dict
+        self.current_model_name = None
+        self.current_model = None
+        super(Switcher, self).__init__(input_shape=input_shape, name=name)
+        self.switch_model(init_model_name)
+    
+    def switch_model(self, model_name: str):
+        """モデルを切り替える
+        
+        Args:
+            model_dict (Dict{str: Model}): 切り替えるモデルの辞書
+        """
+        if self.model_dict is not None and model_name is not None:
+            if model_name in self.model_dict:
+                self.current_model_name = model_name
+                self.current_model      = self.model_dict[model_name]
+    
+    def get_model_list(self):
+        return self.model_dict.values()
+    
+    def get_current_model(self):
+        return self.current_model
+
+    def get_current_model_name(self):
+        return self.current_model_name
+    
+    def get_core(self):
+        current_model = self.get_current_model()
+        if current_model is not None:
+            return current_model.get_core()
+        return None
+
+    def get_info(self, depth :int=0, *, columns: int=70, nest: int=0) -> str:
+        current_model = self.get_current_model()
+        if current_model is not None:
+            return current_model.get_info(depth=depth, columns=columns, nest=nest)
+        return ''
+    
+    def send_command(self, command, send_to='all'):
+        # 自分宛なら解釈
+        if send_to == 'all' or send_to == self.get_name() or send_to == self.get_model_name():
+            args = command.split()
+            if len(args) == 2 and args[0] == 'switch_model':
+                self.switch_model(args[1])
+        
+        # 子にも伝搬
+        current_model = self.get_current_model()
+        if current_model is not None:
+            return current_model.send_command(command=command, send_to=send_to)
+
+    def set_input_shape(self, input_shape: [int]):
+        output_shape = None
+        for name in self.model_dict:
+            shape = self.model_dict[name].set_input_shape(input_shape)
+            assert(output_shape is None or shape == output_shape) # すべて同じでなければNG
+            output_shape = shape
+        return output_shape
+    
+    def get_input_shape(self) -> [int]:
+        return self.get_current_model().get_input_shape()
+
+    def get_output_shape(self) -> [int]:
+        return self.get_current_model().get_output_shape()
+
+    def get_input_node_size(self) -> int:
+        return self.get_current_model().get_input_node_size()
+
+    def get_output_node_size(self) -> int:
+        return self.get_current_model().get_output_node_size()
+
+    def get_parameters(self):
+        return self.get_current_model().get_parameters()
+
+    def get_gradients(self):
+        return self.get_current_model().get_gradients()
+
+    def forward(self, x_buf, train=True):
+        return self.get_current_model().forward(x_buf=x_buf, train=train)
+    
+    def backward(self, dy_buf):
+        return self.get_current_model().backward(dy_buf=dy_buf)
+    
+
+    # シリアライズは将来C++版フォーマット互換にすることも考慮
+    def dumps(self):
+        # ヘッダ
+        data = b''
+        data += core.Object.write_header('Switcher')
+
+        # バージョン
+        ver = 1
+        data += bb.int_to_bytes(ver)
+        
+        # 現在のモデル
+        data += bb.string_to_bytes(self.current_model_name)
+
+        # レイヤ数
+        layer_size = len(self.model_dict)
+        data += bb.int_to_bytes(layer_size)
+
+        # レイヤ本体
+        for name, model in self.model_dict.items():
+            data += bb.string_to_bytes(name)
+            data += model.dumps()
+
+        return data
+
+    def loads(self, data):
+        # ヘッダ
+        load_size, name = core.Object.read_header(data)
+        data = data[load_size:]
+        assert(name == 'Switcher')
+        
+        # バージョン
+        data, ver = bb.int_from_bytes(data)
+        assert(ver == 1)
+
+        # 現在のモデル
+        data, model_name = bb.string_from_bytes(data)
+
+        # レイヤ数
+        data, layer_size = bb.int_from_bytes(data)
+
+        # レイヤ本体
+        if self.model_dict is not None:
+            assert(layer_size == len(self.model_dict))
+            for _ in range(layer_size):
+                data, name = bb.string_from_bytes(data)
+                assert(name in self.model_dict)
+                data = self.model_dict[name].loads(data)
+        else:
+            self.model_dict = {}
+            for _ in range(layer_size):
+                data, name = bb.string_from_bytes(data)
+                data, model = bb.object_loads(data)
+                self.model_dict[name] = model
+        
+        # 再構成
+        self.switch_model(model_name)
+
+        return data
+
+
+    # 旧フォーマットは適当に対応
+    def dump_bytes(self):
+        bytes_dict = {}
+        for name in self.model_dict:
+            bytes_dict[name] = self.model_dict[name].dump_bytes()
+        return pickle.dumps(bytes_dict)
+        
+    def load_bytes(self, data):
+        bytes_dict = pickle.loads(data)
+        for name in self.model_dict:
+            if name in bytes_dict:
+                self.model_dict[name].load_bytes(bytes_dict[name])
+
+    @classmethod
+    def from_bytes(cls, data):
+        new_model = cls(model_dict=None)
+        data = new_model.loads(data)
+        return data, new_model
+
+model_creator_regist('Switcher', Switcher.from_bytes)
+
+
+
 # ------- バイナリ変調 --------
 
 class RealToBinary(Model):
@@ -341,43 +740,40 @@ class RealToBinary(Model):
     
     def __init__(self, *,
                      input_shape=None, frame_modulation_size=1, depth_modulation_size=1, value_generator=None,
-                     framewise=False, input_range_lo=0.0, input_range_hi=1.0, name=None, bin_dtype=bb.DType.FP32):
-        try:
-            core_creator = {
-                bb.DType.FP32: core.RealToBinary_fp32.create,
-                bb.DType.BIT:  core.RealToBinary_bit.create,
-            }[bin_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-
-        core_model = core_creator(frame_modulation_size, depth_modulation_size,
-                            value_generator, framewise, input_range_lo, input_range_hi)
+                     framewise=False, input_range_lo=0.0, input_range_hi=1.0, name=None,
+                     bin_dtype=bb.DType.FP32, real_type=bb.DType.FP32, core_model=None):
+        if core_model is None:
+            core_creator = search_core_model('RealToBinary', [bin_dtype, real_type]).create
+            core_model = core_creator(frame_modulation_size, depth_modulation_size,
+                                value_generator, framewise, input_range_lo, input_range_hi)
         super(RealToBinary, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+    
 
-        
+model_creator_regist('RealToBinary', RealToBinary.from_bytes)
+
+
 class BinaryToReal(Model):
     """BinaryToReal class
         バイナリ値を実数値に戻す。その際にフレーム方向に変調されたデータを積算して
         元に戻すことが可能である
 
     Args:
-        frame_modulation_size (int): フレーム方向への変調数(フレーム分積算)
-        output_shape (List[int]): 出力のシェイプ(必要に応じて積算)
+        frame_integration_size (int): フレーム方向の積算サイズ数(フレーム変調の統合)
+        depth_integration_size (int): チャンネル方向の積算サイズ(0の時はoutput_shape優先)
+        output_shape (List[int]): 出力のシェイプ(指定が無ければ入力と同じshape)
         bin_dtype (DType): 入力の型を bb.DType.FP32 もしくは bb.DType.BIT で指定可能
     """
     
-    def __init__(self, *, frame_modulation_size=1, output_shape=[], input_shape=None, name=None, bin_dtype=bb.DType.FP32):
-        try:
-            core_creator = {
-                bb.DType.FP32: core.BinaryToReal_fp32.create,
-                bb.DType.BIT:  core.BinaryToReal_bit.create,
-            }[bin_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-        
-        core_model = core_creator(frame_modulation_size=frame_modulation_size, output_shape=output_shape)
+    def __init__(self, *, frame_integration_size=1, depth_integration_size=1, output_shape=[], input_shape=None, name=None,
+                                                    bin_dtype=bb.DType.FP32, real_type=bb.DType.FP32, core_model=None):
+        if core_model is None:
+            core_creator = search_core_model('BinaryToReal', [bin_dtype, real_type]).create
+            core_model = core_creator(frame_integration_size=frame_integration_size, depth_integration_size=depth_integration_size, output_shape=output_shape)
         
         super(BinaryToReal, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+model_creator_regist('BinaryToReal', BinaryToReal.from_bytes)
+
 
 
 class BitEncode(Model):
@@ -388,19 +784,16 @@ class BitEncode(Model):
         bit_size (int): エンコードするbit数
     """
 
-    def __init__(self, bit_size=1, *, output_shape=[], input_shape=None, name=None, bit_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32):
-
-        try:
-            core_creator = {
-                bb.DType.FP32: core.BitEncode_fp32.create,
-                bb.DType.BIT:  core.BitEncode_bit.create,
-            }[bit_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
+    def __init__(self, bit_size=1, *, output_shape=[], input_shape=None, name=None,
+                        bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32, core_model=None):
+        if core_model is None:
+            core_creator = search_core_model('BitEncode', [bin_dtype, real_dtype]).create
+            core_model = core_creator(bit_size, output_shape)
         
-        core_model = core_creator(bit_size, output_shape)
-
         super(BitEncode, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+model_creator_regist('BitEncode', BitEncode.from_bytes)
+
 
 
 class Reduce(Model):
@@ -411,19 +804,16 @@ class Reduce(Model):
         output_shape ([int]): 出力のシェイプ
     """
 
-    def __init__(self, output_shape, *, input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
-
-        try:
-            core_creator = {
-                bb.DType.FP32: core.Reduce_fp32.create,
-                bb.DType.BIT:  core.Reduce_bit.create,
-            }[fw_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
+    def __init__(self, output_shape=[], integrate_size=0, *, input_shape=None, name=None,
+                        fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32, core_model=None):
+        if core_model is None:
+            core_creator = search_core_model('Reduce', [fw_dtype, bw_dtype]).create
+            core_model = core_creator(output_shape, integrate_size)
         
-        core_model = core_creator(output_shape)
-
         super(Reduce, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+model_creator_regist('Reduce', Reduce.from_bytes)
+
 
 
 # ------- 演算 --------
@@ -439,12 +829,15 @@ class DenseAffine(Model):
         seed (int): 変数初期値などの乱数シード
     """
     
-    def __init__(self, output_shape, *, input_shape=None, initialize_std=0.01, initializer='he', seed=1, name=None):
-        core_creator = core.DenseAffine.create
-        
-        core_model = core_creator(output_shape=output_shape, initialize_std=initialize_std, initializer=initializer, seed=seed)
+    def __init__(self, output_shape=[], *, input_shape=None, initialize_std=0.01, initializer='he', seed=1, name=None,
+                        dtype=bb.DType.FP32, core_model=None):
+        if core_model is None:
+            core_creator = search_core_model('DenseAffine', [dtype]).create
+            core_model = core_creator(output_shape=output_shape, initialize_std=initialize_std, initializer=initializer, seed=seed)
         
         super(DenseAffine, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+model_creator_regist('DenseAffine', DenseAffine.from_bytes)
 
 
 class DepthwiseDenseAffine(Model):
@@ -461,12 +854,15 @@ class DepthwiseDenseAffine(Model):
         seed (int): 変数初期値などの乱数シード
     """
     
-    def __init__(self, output_shape, *, input_shape=None, input_point_size=0, depth_size=0, initialize_std=0.01, initializer='he', seed=1, name=None):
-        core_creator = core.DepthwiseDenseAffine.create
-        
-        core_model = core_creator(output_shape=output_shape, initialize_std=initialize_std, initializer=initializer, seed=seed)
+    def __init__(self, output_shape=[], *, input_shape=None, input_point_size=0, depth_size=0,
+                            initialize_std=0.01, initializer='he', seed=1, name=None, dtype=bb.DType.FP32, core_model=None):
+        if core_model is None:
+            core_creator = search_core_model('DepthwiseDenseAffine', [dtype]).create
+            core_model = core_creator(output_shape=output_shape, initialize_std=initialize_std, initializer=initializer, seed=seed)
         
         super(DepthwiseDenseAffine, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+model_creator_regist('DepthwiseDenseAffine', DepthwiseDenseAffine.from_bytes)
 
 
 class SparseModel(Model):
@@ -569,75 +965,11 @@ class DifferentiableLut(SparseModel):
         bin_dtype (DType)): バイナリ出力の型を bb.DType.FP32 と bb.DType.BIT から指定(bb.DType.BIT は binarize=True 時のみ)
     """
     
-    def __init__(self, output_shape, *, input_shape=None,
+    def __init__(self, output_shape=[], *, input_shape=None,
                     connection='random', binarize=True, batch_norm=True, momentum=0.0, gamma= 0.3, beta=0.5, seed=1,
-                    name=None, N=6, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32):
-        
-        # 設定に応じて機能をパッキングしたモデルが使える場合は自動選択する
-        if False:
-            # StochasticLut 演算のみ
-            try:
-                core_creator = {
-                    bb.DType.FP32: {
-                        6: core.StochasticLut6_fp32.create,
-                        5: core.StochasticLut5_fp32.create,
-                        4: core.StochasticLut4_fp32.create,
-                        2: core.StochasticLut2_fp32.create,
-                    },
-                    bb.DType.BIT: {
-                        6: core.StochasticLut6_bit.create,
-                        5: core.StochasticLut5_bit.create,
-                        4: core.StochasticLut4_bit.create,
-                        2: core.StochasticLut2_bit.create,
-                    },
-                }[bin_dtype][N]
-            except KeyError:
-                raise TypeError("unsupported")
-
-            core_model  = core_creator(output_shape, connection, seed)
-        
-        elif True:
-            # 条件が揃えば BatchNorm と 二値化を一括演算
-            try:
-                core_creator = {
-                    bb.DType.FP32: {
-                        6: core.DifferentiableLut6_fp32.create,
-                        5: core.DifferentiableLut5_fp32.create,
-                        4: core.DifferentiableLut4_fp32.create,
-                        2: core.DifferentiableLut2_fp32.create,
-                    },
-                    bb.DType.BIT: {
-                        6: core.DifferentiableLut6_bit.create,
-                        5: core.DifferentiableLut5_bit.create,
-                        4: core.DifferentiableLut4_bit.create,
-                        2: core.DifferentiableLut2_bit.create,
-                    },                    
-                }[bin_dtype][N]
-            except KeyError:
-                raise TypeError("unsupported")
-            
-            core_model = core_creator(output_shape, batch_norm, binarize, connection, momentum, gamma, beta, seed)
-        
-        else:
-            # 個別演算
-            try:
-                core_creator = {
-                    bb.DType.FP32: {
-                        6: core.DifferentiableLutDiscrete6_fp32.create,
-                        5: core.DifferentiableLutDiscrete5_fp32.create,
-                        4: core.DifferentiableLutDiscrete4_fp32.create,
-                        2: core.DifferentiableLutDiscrete2_fp32.create,
-                    },
-                    bb.DType.BIT: {
-                        6: core.DifferentiableLutDiscrete6_bit.create,
-                        5: core.DifferentiableLutDiscrete5_bit.create,
-                        4: core.DifferentiableLutDiscrete4_bit.create,
-                        2: core.DifferentiableLutDiscrete2_bit.create,
-                    },                    
-                }[bin_dtype][N]
-            except KeyError:
-                raise TypeError("unsupported")
-            
+                    name=None, N=6, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32, core_model=None):
+        if core_model is None:
+            core_creator = search_core_model('DifferentiableLut' + str(N), [bin_dtype, real_dtype]).create
             core_model = core_creator(output_shape, batch_norm, binarize, connection, momentum, gamma, beta, seed)
 
         super(DifferentiableLut, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
@@ -662,6 +994,25 @@ class DifferentiableLut(SparseModel):
         """
         return bb.Tensor.from_core(self.get_core().dW())
 
+    def get_mean(self):
+        return bb.Tensor.from_core(self.get_core().get_mean())
+    
+    def get_var(self):
+        return bb.Tensor.from_core(self.get_core().get_var())
+    
+    def get_gamma(self):
+        return self.get_core().get_gamma()
+    
+    def get_beta(self):
+        return self.get_core().get_beta()
+
+model_creator_regist('DifferentiableLut6', DifferentiableLut.from_bytes)
+model_creator_regist('DifferentiableLut5', DifferentiableLut.from_bytes)
+model_creator_regist('DifferentiableLut4', DifferentiableLut.from_bytes)
+model_creator_regist('DifferentiableLut3', DifferentiableLut.from_bytes)
+model_creator_regist('DifferentiableLut2', DifferentiableLut.from_bytes)
+
+
 
 class BinaryLut(SparseModel):
     """バイナリLUTモデル
@@ -677,28 +1028,11 @@ class BinaryLut(SparseModel):
         fw_dtype (DType)): forwardの型を bb.DType.FP32 と bb.DType.BIT から指定
     """
     
-    def __init__(self, output_shape, *, input_shape=None,
-                    connection='random', seed=1, name=None, N=6, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
-        
-        try:
-            core_creator = {
-                bb.DType.FP32: {
-                    6: core.BinaryLut6_fp32.create,
-                    5: core.BinaryLut5_fp32.create,
-                    4: core.BinaryLut4_fp32.create,
-                    2: core.BinaryLut2_fp32.create,
-                },
-                bb.DType.BIT: {
-                    6: core.BinaryLut6_bit.create,
-                    5: core.BinaryLut5_bit.create,
-                    4: core.BinaryLut4_bit.create,
-                    2: core.BinaryLut2_bit.create,
-                },
-            }[fw_dtype][N]
-        except KeyError:
-            raise TypeError("unsupported")
-
-        core_model  = core_creator(output_shape, connection, seed)
+    def __init__(self, output_shape=[], *, input_shape=None,
+                    connection='random', seed=1, name=None, N=6, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32, core_model=None):
+        if core_model is None:
+            core_creator = search_core_model('BinaryLut' + str(N), [fw_dtype, bw_dtype]).create
+            core_model  = core_creator(output_shape, connection, seed)
         
         super(BinaryLut, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
@@ -729,6 +1063,16 @@ class BinaryLut(SparseModel):
         new_model.import_layer(layer)
         return new_model
 
+
+model_creator_regist('BinaryLut6', BinaryLut.from_bytes)
+model_creator_regist('BinaryLut5', BinaryLut.from_bytes)
+model_creator_regist('BinaryLut4', BinaryLut.from_bytes)
+model_creator_regist('BinaryLut3', BinaryLut.from_bytes)
+model_creator_regist('BinaryLut2', BinaryLut.from_bytes)
+model_creator_regist('BinaryLut1', BinaryLut.from_bytes)
+
+
+
 # ------- フィルタ --------
 
 
@@ -739,19 +1083,32 @@ class ConvolutionIm2Col(Model):
 
     def __init__(self, filter_size=(1, 1), stride=(1, 1), *,
                         padding='valid', border_mode='reflect_101', border_value=0.0,
-                        input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
-
-        try:
-            core_creator = {
-                bb.DType.FP32: core.ConvolutionIm2Col_fp32.create,
-                bb.DType.BIT:  core.ConvolutionIm2Col_bit.create,
-            }[fw_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-
-        core_model = core_creator(filter_size[0], filter_size[1], stride[0], stride[1], padding, border_mode)
-        
+                        input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32, core_model=None):
+        if core_model is None:
+            core_creator = search_core_model('ConvolutionIm2Col', [fw_dtype, bw_dtype]).create
+            core_model = core_creator(filter_size[0], filter_size[1], stride[0], stride[1], padding, border_mode)
+            
         super(ConvolutionIm2Col, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+    def get_filter_size(self):
+        core_model = self.get_core()
+        return [core_model.get_filter_size_h(), core_model.get_filter_size_w()]
+
+    def get_stride(self):
+        core_model = self.get_core()
+        return [core_model.get_stride_y(), core_model.get_stride_x()]
+
+    def get_padding(self):
+        return self.get_core().get_padding()
+
+    def get_border_mode(self):
+        return self.get_core().get_border_mode()
+
+    def get_border_value(self):
+        return self.get_core().get_border_value()
+
+model_creator_regist('ConvolutionIm2Col', ConvolutionIm2Col.from_bytes)
+
 
 
 class ConvolutionCol2Im(Model):
@@ -759,18 +1116,19 @@ class ConvolutionCol2Im(Model):
        畳み込みの lowering における col2im 層
     """
 
-    def __init__(self, output_size=(1, 1), *, input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
-        try:
-            core_creator = {
-                bb.DType.FP32: core.ConvolutionCol2Im_fp32.create,
-                bb.DType.BIT:  core.ConvolutionCol2Im_bit.create,
-            }[fw_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-
-        core_model = core_creator(output_size[0], output_size[1])
+    def __init__(self, output_size=(1, 1), *, input_shape=None, name=None,
+                    fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32, core_model=None):
+        if core_model is None:
+            core_creator = search_core_model('ConvolutionCol2Im', [fw_dtype, bw_dtype]).create
+            core_model = core_creator(output_size[0], output_size[1])
         
         super(ConvolutionCol2Im, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+    def set_output_size(self, output_size):
+        self.get_core().set_output_size(output_size[0], output_size[1])
+
+model_creator_regist('ConvolutionCol2Im', ConvolutionCol2Im.from_bytes)
+
 
 
 class Convolution2d(Sequential):
@@ -799,24 +1157,14 @@ class Convolution2d(Sequential):
     def __init__(self, sub_layer, filter_size=(1, 1), stride=(1, 1), *, input_shape=None,
                         padding='valid', border_mode='reflect_101', border_value=0.0,
                         name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
-        super(Convolution2d, self).__init__()
         
-        try:
-            self.core_creator = {
-                bb.DType.FP32: core.Convolution2d_fp32.create,
-                bb.DType.BIT:  core.Convolution2d_bit.create,
-            }[fw_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-        
-        self.deny_flatten = True
-        self.name         = name
-        self.input_shape  = input_shape
-        self.filter_size  = filter_size
-        self.stride       = stride
-        self.padding      = padding
-        self.border_mode  = border_mode
-        self.border_value = border_value
+#       self.name         = name
+#       self.input_shape  = input_shape
+#       self.filter_size  = filter_size
+#       self.stride       = stride
+#       self.padding      = padding
+#       self.border_mode  = border_mode
+#       self.border_value = border_value
         self.fw_dtype     = fw_dtype
         self.bw_dtype     = bw_dtype
         
@@ -824,19 +1172,23 @@ class Convolution2d(Sequential):
                                 padding=padding, border_mode=border_mode, border_value=border_value,
                                 fw_dtype=fw_dtype, bw_dtype=bw_dtype)
         self.sub_layer    = sub_layer
-        self.col2im       = None  # 後で決定
-    
+        self.col2im       = ConvolutionCol2Im(fw_dtype=fw_dtype, bw_dtype=bw_dtype)
+        model_list = [self.im2col, self.sub_layer, self.col2im]
+
+        super(Convolution2d, self).__init__(model_list=model_list, name=name, input_shape=input_shape)
+
     def send_command(self, command, send_to="all"):
         self.im2col.send_command(command=command, send_to=send_to)
         self.sub_layer.send_command(command=command, send_to=send_to)
         self.col2im.send_command(command=command, send_to=send_to)
     
     def get_core(self):
-        core_model = self.core_creator(self.im2col.get_core(), self.sub_layer.get_core(), self.col2im.get_core())
+        core_creator = search_core_model('Convolution2d', [self.fw_dtype, self.bw_dtype]).create
+        core_model = core_creator(self.im2col.get_core(), self.sub_layer.get_core(), self.col2im.get_core())
         if self.name is not None:
             core_model.set_name(self.name)
         return core_model
-    
+
     def get_sub_layer(self):
         return self.sub_layer
     
@@ -844,23 +1196,94 @@ class Convolution2d(Sequential):
         self.input_shape = shape
         
         # 出力サイズ計算
-        input_c_size = shape[0]
+        # input_c_size = shape[0]
         input_h_size = shape[1]
         input_w_size = shape[2]
-        if self.padding == "valid":
-            output_h_size = ((input_h_size - self.filter_size[0] + 1) + (self.stride[0] - 1)) // self.stride[0]
-            output_w_size = ((input_w_size - self.filter_size[1] + 1) + (self.stride[1] - 1)) // self.stride[1]
-        elif self.padding == "same":
-            output_h_size = (input_h_size + (self.stride[0] - 1)) // self.stride[0]
-            output_w_size = (input_w_size + (self.stride[1] - 1)) // self.stride[0]
+        padding     = self.im2col.get_padding()
+        filter_size = self.im2col.get_filter_size()
+        stride      = self.im2col.get_stride()
+        if padding == "valid":
+            output_h_size = ((input_h_size - filter_size[0] + 1) + (stride[0] - 1)) // stride[0]
+            output_w_size = ((input_w_size - filter_size[1] + 1) + (stride[1] - 1)) // stride[1]
+        elif padding == "same":
+            output_h_size = (input_h_size + (stride[0] - 1)) // stride[0]
+            output_w_size = (input_w_size + (stride[1] - 1)) // stride[0]
         else:
             raise ValueError("illegal padding value")
         
-        self.col2im = ConvolutionCol2Im(output_size=[output_h_size, output_w_size], fw_dtype=self.fw_dtype, bw_dtype=self.bw_dtype)
+        self.col2im.set_output_size(output_size=[output_h_size, output_w_size])
         
         super(Convolution2d, self).set_model_list([self.im2col, self.sub_layer, self.col2im])
         
         return super(Convolution2d, self).set_input_shape(shape)
+    
+    def get_object_name(self):
+        return 'Convolution2d_' + bb.dtype_to_name(self.fw_dtype) + '_' + bb.dtype_to_name(self.bw_dtype)
+
+    # シリアライズはC++版とフォーマット互換にする
+    def dumps(self):
+        # ヘッダ
+        data = b''
+        data += core.Object.write_header(self.get_object_name())
+
+        # バージョン
+        ver = 1
+        data += bb.int_to_bytes(ver)
+        
+        # メンバ
+        data += self.im2col.dumps()
+        data += self.col2im.dumps()
+        
+        # 子レイヤー
+        if self.sub_layer:
+            data += bb.bool_to_bytes(True)
+            data += self.sub_layer.dumps()
+        else:
+            data += bb.bool_to_bytes(False)
+
+        return data
+    
+    def loads(self, data):
+        # ヘッダ
+        data, name = bb.load_object_header(data)
+        type_names = re.match('Convolution2d_(.+)_(.+)', name)
+        assert(type_names)
+        self.fw_dtype = bb.dtype_from_name(type_names[1])
+        self.bw_dtype = bb.dtype_from_name(type_names[2])
+        
+        # バージョン
+        data, ver = bb.int_from_bytes(data)
+        assert(ver == 1)
+
+        # メンバ
+        data = self.im2col.loads(data)
+        data = self.col2im.loads(data)
+        
+        # 子レイヤー
+        data, has_layer = bb.bool_from_bytes(data)
+
+        # レイヤ本体
+        if has_layer:
+            if self.sub_layer:
+                data = self.sub_layer.loads(data)
+            else:
+                data, model = bb.object_loads(data)
+                self.sub_layer = model
+        
+        # 再構成
+        self.set_model_list([self.im2col, self.sub_layer, self.col2im])
+
+        return data
+
+    @classmethod
+    def from_bytes(cls, data):
+        _, object_name = bb.load_object_header(data)
+        dtypes = object_name.split('_')
+        new_model = cls(sub_layer=None, fw_dtype=bb.dtype_from_name(dtypes[1]), bw_dtype=bb.dtype_from_name(dtypes[2]))
+        data = new_model.loads(data)
+        return data, new_model
+
+model_creator_regist('Convolution2d', Convolution2d.from_bytes)
 
 
 class MaxPooling(Model):
@@ -871,18 +1294,16 @@ class MaxPooling(Model):
         fw_dtype (DType)): forwarする型を bb.DType.FP32 と bb.DType.BIT から指定
     """
 
-    def __init__(self, filter_size=(2, 2), *, input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
-        try:
-            core_creator = {
-                bb.DType.FP32: core.MaxPooling_fp32.create,
-                bb.DType.BIT:  core.MaxPooling_bit.create,
-            }[fw_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-
-        core_model = core_creator(filter_size[0], filter_size[1])
-
+    def __init__(self, filter_size=(2, 2), *, input_shape=None, name=None,
+                    fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32, core_model=None):
+        if core_model is None:
+            core_creator = search_core_model('MaxPooling', [fw_dtype, bw_dtype]).create
+            core_model = core_creator(filter_size[0], filter_size[1])
+        
         super(MaxPooling, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+model_creator_regist('MaxPooling', MaxPooling.from_bytes)
+
 
 
 class StochasticMaxPooling(Model):
@@ -895,31 +1316,22 @@ class StochasticMaxPooling(Model):
         fw_dtype (DType)): forwarする型を bb.DType.FP32 と bb.DType.BIT から指定
     """
 
-    def __init__(self, filter_size=(2, 2), *, input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
+    def __init__(self, filter_size=(2, 2), *, input_shape=None, name=None,
+                    fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32, core_model=None):
         assert(len(filter_size)==2)
 
-        if  filter_size[0]==2 and filter_size[1]==2:
-            try:
-                core_creator = {
-                    bb.DType.FP32: core.StochasticMaxPooling2x2_fp32.create,
-                    bb.DType.BIT:  core.StochasticMaxPooling2x2_bit.create,
-                }[fw_dtype]
-            except KeyError:
-                raise TypeError("unsupported")
-            
-            core_model = core_creator()
-        else:
-            try:
-                core_creator = {
-                    bb.DType.FP32: core.StochasticMaxPooling_fp32.create,
-                    bb.DType.BIT:  core.StochasticMaxPooling_bit.create,
-                }[fw_dtype]
-            except KeyError:
-                raise TypeError("unsupported")
-            
-            core_model = core_creator(filter_size[0], filter_size[1])
+        if core_model is None:
+            if  filter_size[0]==2 and filter_size[1]==2:
+                core_creator = search_core_model('StochasticMaxPooling2x2', [fw_dtype, bw_dtype]).create
+                core_model = core_creator()
+            else:
+                core_creator = search_core_model('StochasticMaxPooling', [fw_dtype, bw_dtype]).create
+                core_model = core_creator(filter_size[0], filter_size[1])
 
         super(StochasticMaxPooling, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+model_creator_regist('StochasticMaxPooling2x2', StochasticMaxPooling.from_bytes)
+model_creator_regist('StochasticMaxPooling', StochasticMaxPooling.from_bytes)
 
 
 class UpSampling(Model):
@@ -932,20 +1344,15 @@ class UpSampling(Model):
         fw_dtype (DType)): forwarする型を bb.DType.FP32 と bb.DType.BIT から指定
     """
 
-    def __init__(self, filter_size=(2, 2), *, fill=True, input_shape=None, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
-
-        try:
-            core_creator = {
-                bb.DType.FP32: core.UpSampling_fp32.create,
-                bb.DType.BIT:  core.UpSampling_bit.create,
-            }[fw_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-        
-        core_model = core_creator(filter_size[0], filter_size[1], fill)
+    def __init__(self, filter_size=(2, 2), *, fill=True, input_shape=None, name=None,
+                        fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32, core_model=None):
+        if core_model is None:
+            core_creator = search_core_model('UpSampling', [fw_dtype, bw_dtype]).create
+            core_model = core_creator(filter_size[0], filter_size[1], fill)
 
         super(UpSampling, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
+model_creator_regist('UpSampling', UpSampling.from_bytes)
 
 
 # ------- 活性化 --------
@@ -960,20 +1367,14 @@ class Binarize(Model):
         bin_dtype (DType)): バイナリ型を bb.DType.FP32 と bb.DType.BIT から指定
     """
 
-
-    def __init__(self, *, input_shape=None, name=None, bin_dtype=bb.DType.FP32):
-        try:
-            core_creator = {
-                bb.DType.FP32: core.Binarize_fp32.create,
-                bb.DType.BIT:  core.Binarize_bit.create,
-            }[bin_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-
-        core_model = core_creator()
+    def __init__(self, *, input_shape=None, name=None, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32, core_model=None):
+        if core_model is None:
+            core_creator = search_core_model('Binarize', [bin_dtype, real_dtype]).create
+            core_model = core_creator()
 
         super(Binarize, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
+model_creator_regist('Binarize', Binarize.from_bytes)
 
 
 class Sigmoid(Model):
@@ -983,19 +1384,14 @@ class Sigmoid(Model):
        send_command で "binary true" とすることで、Binarize に切り替わる
        多値で学習を進めて、途中から Binarize に切り替える実験などが可能である
     """
-    def __init__(self, *, input_shape=None, name=None, bin_dtype=bb.DType.FP32):
-
-        try:
-            core_creator = {
-                bb.DType.FP32: core.Sigmoid_fp32.create,
-                bb.DType.BIT:  core.Sigmoid_bit.create,
-            }[bin_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-
-        core_model = core_creator()
+    def __init__(self, *, input_shape=None, name=None, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32, core_model=None):
+        if core_model is None:
+            core_creator = search_core_model('Sigmoid', [bin_dtype, real_dtype]).create
+            core_model = core_creator()
 
         super(Sigmoid, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+model_creator_regist('Sigmoid', Sigmoid.from_bytes)
 
 
 class ReLU(Model):
@@ -1005,19 +1401,14 @@ class ReLU(Model):
        send_command で "binary true" とすることで、Binarize に切り替わる
        多値で学習を進めて、途中から Binarize に切り替える実験などが可能である
     """
-    def __init__(self, *, input_shape=None, name=None, bin_dtype=bb.DType.FP32):
-
-        try:
-            core_creator = {
-                bb.DType.FP32: core.ReLU_fp32.create,
-                bb.DType.BIT:  core.ReLU_bit.create,
-            }[bin_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-
-        core_model = core_creator()
+    def __init__(self, *, input_shape=None, name=None, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32, core_model=None):
+        if core_model is None:
+            core_creator = search_core_model('ReLU', [bin_dtype, real_dtype]).create
+            core_model = core_creator()
 
         super(ReLU, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+model_creator_regist('ReLU', ReLU.from_bytes)
 
 
 class HardTanh(Model):
@@ -1027,20 +1418,14 @@ class HardTanh(Model):
        send_command で "binary true" とすることで、Binarize に切り替わる
        多値で学習を進めて、途中から Binarize に切り替える実験などが可能である
     """
-    def __init__(self, *, input_shape=None, name=None, bin_dtype=bb.DType.FP32):
-
-        try:
-            core_creator = {
-                bb.DType.FP32: core.HardTanh_fp32.create,
-                bb.DType.BIT:  core.HardTanh_bit.create,
-            }[bin_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-
-        core_model = core_creator()
+    def __init__(self, *, input_shape=None, name=None, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32, core_model=None):
+        if core_model is None:
+            core_creator = search_core_model('HardTanh', [bin_dtype, real_dtype]).create
+            core_model = core_creator()
 
         super(HardTanh, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
+model_creator_regist('HardTanh', HardTanh.from_bytes)
 
 
 # ------- 補助モデル --------
@@ -1058,17 +1443,14 @@ class BatchNormalization(Model):
     """
 
     def __init__(self, *, input_shape=None, momentum=0.9, gamma=1.0, beta=0.0,
-                        fix_gamma=False, fix_beta=False, name=None, dtype=bb.DType.FP32):
-        try:
-            core_creator = {
-                bb.DType.FP32: core.BatchNormalization.create,
-            }[dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-
-        core_model = core_creator(momentum, gamma, beta, fix_gamma, fix_beta)
+                        fix_gamma=False, fix_beta=False, name=None, dtype=bb.DType.FP32, core_model=None):
+        if core_model is None:
+            core_creator = search_core_model('BatchNormalization', [dtype]).create
+            core_model = core_creator(momentum, gamma, beta, fix_gamma, fix_beta)
 
         super(BatchNormalization, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+model_creator_regist('BatchNormalization', BatchNormalization.from_bytes)
 
 
 class Dropout(Model):
@@ -1080,18 +1462,15 @@ class Dropout(Model):
         fw_dtype (DType): forwardの型を bb.DType.FP32 と bb.DType.BIT から指定
     """
 
-    def __init__(self, *, rate=0.5, input_shape=None, seed=1, name=None, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32):
-        try:
-            core_creator = {
-                bb.DType.FP32: core.Dropout.create,
-                bb.DType.FP32: core.Dropout.create,
-            }[fw_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-
-        core_model = core_creator(rate, seed)
+    def __init__(self, *, rate=0.5, input_shape=None, seed=1, name=None,
+                    fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32, core_model=None):
+        if core_model is None:
+            core_creator = search_core_model('Dropout', [fw_dtype, bw_dtype]).create
+            core_model = core_creator(rate, seed)
 
         super(Dropout, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+model_creator_regist('Dropout', Dropout.from_bytes)
 
 
 class Shuffle(Model):
@@ -1105,19 +1484,14 @@ class Shuffle(Model):
         shuffle_unit (int): シャッフルする単位
     """
 
-    def __init__(self, shuffle_unit, *, output_shape=[], input_shape=None, name=None, bit_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32):
-
-        try:
-            core_creator = {
-                bb.DType.FP32: core.Shuffle.create,
-                bb.DType.BIT:  core.Shuffle.create,
-            }[bit_dtype]
-        except KeyError:
-            raise TypeError("unsupported")
-        
-        core_model = core_creator(shuffle_unit, output_shape)
+    def __init__(self, shuffle_unit, *, output_shape=[], input_shape=None, name=None, core_model=None):
+        if core_model is None:
+            core_creator = search_core_model('Shuffle', []).create
+            core_model = core_creator(shuffle_unit, output_shape)
 
         super(Shuffle, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+model_creator_regist('Shuffle', Shuffle.from_bytes)
 
 
 
@@ -1143,7 +1517,7 @@ def get_model_list(net, flatten:bool =False):
     
     def flatten_list(in_list, out_list):
         for model in in_list:
-            if hasattr(model, 'get_model_list') and not hasattr(model, 'deny_flatten'):
+            if hasattr(model, 'get_model_list'):
                 flatten_list(model.get_model_list(), out_list)
             else:
                 out_list.append(model)

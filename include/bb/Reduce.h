@@ -30,14 +30,36 @@ namespace bb {
 template <typename BinType = float, typename RealType = float>
 class Reduce : public Model
 {
+    using _super = Model;
+
+public:
+    static inline std::string ModelName(void) { return "Reduce"; }
+    static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<BinType>::Name() + "_" + DataType<RealType>::Name(); }
+
+    std::string GetModelName(void)  const override { return ModelName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
+
 protected:
     bool                m_host_only = false;
 
     indices_t           m_input_shape;
     indices_t           m_output_shape;
+    index_t             m_integrate_size = 0;
+
+public:
+    struct create_t
+    {
+        indices_t       output_shape;
+        index_t         integrate_size = 0;
+    };
 
 protected:
-    Reduce() {}
+    Reduce(create_t const &create)
+    {
+        m_output_shape   = create.output_shape;
+        m_integrate_size = create.integrate_size;
+    }
 
     /**
      * @brief  コマンド処理
@@ -56,41 +78,41 @@ protected:
 public:
     ~Reduce() {}
 
-    struct create_t
-    {
-        indices_t       output_shape;   
-    };
-
     static std::shared_ptr<Reduce> Create(create_t const &create)
     {
-        auto self = std::shared_ptr<Reduce>(new Reduce);
-
-        self->m_output_shape   = create.output_shape;
-
-        return self;
+        return std::shared_ptr<Reduce>(new Reduce(create));
     }
 
-    static std::shared_ptr<Reduce> Create(index_t output_node)
-    {
-        return Create(indices_t({output_node}));
-    }
-
-    static std::shared_ptr<Reduce> Create(indices_t output_shape)
+    static std::shared_ptr<Reduce> Create(index_t output_node, index_t integrate_size=0)
     {
         create_t create;
-        create.output_shape = output_shape;
+        create.output_shape   = indices_t({output_node});
+        create.integrate_size = integrate_size;
         return Create(create);
     }
 
-    static std::shared_ptr<Reduce> CreateEx(indices_t output_shape)
+    static std::shared_ptr<Reduce> Create(indices_t output_shape, index_t integrate_size=0)
     {
         create_t create;
-        create.output_shape = output_shape;
+        create.output_shape   = output_shape;
+        create.integrate_size = integrate_size;
         return Create(create);
     }
 
+    static std::shared_ptr<Reduce> Create(void)
+    {
+        return Create(create_t());
+    }
 
-    std::string GetClassName(void) const { return "Reduce"; }
+#ifdef BB_PYBIND11
+    static std::shared_ptr<Reduce> CreatePy(indices_t output_shape,  index_t integrate_size=0)
+    {
+        create_t create;
+        create.output_shape   = output_shape;
+        create.integrate_size = integrate_size;
+        return Create(create);
+    }
+#endif
 
     /**
      * @brief  入力のshape設定
@@ -98,7 +120,7 @@ public:
      * @param shape 新しいshape
      * @return なし
      */
-    indices_t SetInputShape(indices_t shape)
+    indices_t SetInputShape(indices_t shape) override
     {
         // 設定済みなら何もしない
         if ( shape == this->GetInputShape() ) {
@@ -107,6 +129,13 @@ public:
 
         // 形状設定
         m_input_shape = shape;
+
+        // 倍率指定があるなら従う
+        if ( m_integrate_size > 0 ) {
+            m_output_shape = shape;
+            BB_ASSERT(m_output_shape[0] % m_integrate_size == 0);
+            m_output_shape[0] /= m_integrate_size;
+        }
 
         // 整数倍の縮退のみ許容
         BB_ASSERT(CalcShapeSize(m_input_shape) >= CalcShapeSize(m_output_shape));
@@ -120,7 +149,7 @@ public:
      * @detail 入力形状を取得する
      * @return 入力形状を返す
      */
-    indices_t GetInputShape(void) const
+    indices_t GetInputShape(void) const override
     {
         return m_input_shape;
     }
@@ -130,13 +159,13 @@ public:
      * @detail 出力形状を取得する
      * @return 出力形状を返す
      */
-    indices_t GetOutputShape(void) const
+    indices_t GetOutputShape(void) const override
     {
         return m_output_shape;
     }
     
 
-    FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
+    FrameBuffer Forward(FrameBuffer x_buf, bool train = true) override
     {
         BB_ASSERT(x_buf.GetType() == DataType<BinType>::type);
 
@@ -198,7 +227,7 @@ public:
         }
     }
 
-    FrameBuffer Backward(FrameBuffer dy_buf)
+    FrameBuffer Backward(FrameBuffer dy_buf) override
     {
         BB_ASSERT(dy_buf.GetType() == DataType<RealType>::type);
 
@@ -253,6 +282,44 @@ public:
             return dx_buf;
         }
     }
+
+
+    // シリアライズ
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_host_only);
+        bb::SaveValue(os, m_input_shape);
+        bb::SaveValue(os, m_output_shape);
+        bb::SaveValue(os, m_integrate_size);
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_host_only);
+        bb::LoadValue(is, m_input_shape);
+        bb::LoadValue(is, m_output_shape);
+        bb::LoadValue(is, m_integrate_size);
+    }
+
 };
 
 }

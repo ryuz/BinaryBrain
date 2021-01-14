@@ -13,15 +13,18 @@
 #include <vector>
 
 
+#include "bb/Object.h"
 #include "bb/FrameBuffer.h"
 
 
 namespace bb {
 
 
-class LossFunction
+class LossFunction : public Object
 {
 public:
+    virtual std::string GetLossFunctionName(void) const = 0;
+
     /**
      * @brief  積算していた損失をクリア
      * @detail 積算していた損失をクリアする

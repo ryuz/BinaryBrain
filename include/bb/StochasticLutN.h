@@ -29,13 +29,22 @@ class StochasticLutN : public StochasticLutModel
     using _super = StochasticLutModel;
     static int const NN = (1 << N);
 
+public:
+    static inline std::string ModelName(void) { return "StochasticLut" + std::to_string(N); }
+    static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<BinType>::Name() + "_" + DataType<RealType>::Name(); }
+
+    std::string GetModelName(void)  const override { return ModelName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
+
 protected:
+    bool                        m_host_only = false;
+    bool                        m_host_simd = true;
+
     bool                        m_binary_mode  = (DataType<BinType>::type == BB_TYPE_BIT);
     bool                        m_lut_binarize = true;
 
     bool                        m_y_binarize = false;
-    bool                        m_host_only = false;
-    bool                        m_host_simd = true;
 
     index_t                     m_max_tmp_mem_size = 256 * 1024 * 1024;
 
@@ -139,7 +148,13 @@ public:
         return Create(create);
     }
     
-    static std::shared_ptr<StochasticLutN> CreateEx(indices_t const &output_shape, std::string connection = "", std::uint64_t seed = 1)
+    static std::shared_ptr<StochasticLutN> Create(void)
+    {
+        return Create(create_t());
+    }
+
+#ifdef BB_PYBIND11
+    static std::shared_ptr<StochasticLutN> CreatePy(indices_t const &output_shape, std::string connection = "", std::uint64_t seed = 1)
     {
         create_t create;
         create.output_shape = output_shape;
@@ -147,13 +162,70 @@ public:
         create.seed         = seed;
         return Create(create);
     }
-	
-    std::string GetClassName(void) const { return "StochasticLut" + std::to_string(N); }
+#endif
+
+
+    // シリアライズ
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_host_only);
+        bb::SaveValue(os, m_host_simd);
+        bb::SaveValue(os, m_binary_mode);
+        bb::SaveValue(os, m_lut_binarize);
+        bb::SaveValue(os, m_y_binarize);
+        bb::SaveValue(os, m_max_tmp_mem_size);
+        bb::SaveValue(os, m_connection);
+        bb::SaveValue(os, m_unbinarize_bias);
+        bb::SaveValue(os, m_input_shape);
+        bb::SaveValue(os, m_output_shape);
+
+        m_connection_table.DumpObject(os);
+        m_W->DumpObject(os);
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_host_only);
+        bb::LoadValue(is, m_host_simd);
+        bb::LoadValue(is, m_binary_mode);
+        bb::LoadValue(is, m_lut_binarize);
+        bb::LoadValue(is, m_y_binarize);
+        bb::LoadValue(is, m_max_tmp_mem_size);
+        bb::LoadValue(is, m_connection);
+        bb::LoadValue(is, m_unbinarize_bias);
+        bb::LoadValue(is, m_input_shape);
+        bb::LoadValue(is, m_output_shape);
+
+        m_connection_table.LoadObject(is);
+        m_W->LoadObject(is);
+        
+        // 再構築
+        m_dW->Resize({CalcShapeSize(m_output_shape), NN}, DataType<RealType>::type); m_dW->FillZero();
+    }
 
 
 public:
-    // Serialize
-    void Save(std::ostream &os) const 
+    // Serialize(旧)
+    void Save(std::ostream &os) const  override
     {
         SaveIndices(os, m_input_shape);
         SaveIndices(os, m_output_shape);
@@ -161,7 +233,7 @@ public:
         m_W->Save(os);
     }
 
-    void Load(std::istream &is)
+    void Load(std::istream &is) override
     {
         m_input_shape  = LoadIndices(is);
         m_output_shape = LoadIndices(is);
@@ -216,17 +288,17 @@ public:
 
 
     // 接続管理
-    index_t GetNodeConnectionSize(index_t node) const
+    index_t GetNodeConnectionSize(index_t node) const override
     {
         return m_connection_table.GetInputConnectionSize(node);
     }
 
-    void SetNodeConnectionIndex(index_t node, index_t input_index, index_t input_node)
+    void SetNodeConnectionIndex(index_t node, index_t input_index, index_t input_node) override
     {
         m_connection_table.SetInputConnection(node, input_index, input_node);
     }
 
-    index_t GetNodeConnectionIndex(index_t node, index_t input_index) const
+    index_t GetNodeConnectionIndex(index_t node, index_t input_index) const override
     {
         return m_connection_table.GetInputConnection(node, input_index);
     }
@@ -238,7 +310,7 @@ public:
      * @param shape 新しいshape
      * @return なし
      */
-    indices_t SetInputShape(indices_t shape)
+    indices_t SetInputShape(indices_t shape) override
     {
         // 設定済みなら何もしない
         if ( shape == this->GetInputShape() ) {
@@ -273,7 +345,7 @@ public:
      * @detail 入力形状を取得する
      * @return 入力形状を返す
      */
-    indices_t GetInputShape(void) const
+    indices_t GetInputShape(void) const override
     {
         return m_input_shape;
     }
@@ -283,21 +355,21 @@ public:
      * @detail 出力形状を取得する
      * @return 出力形状を返す
      */
-    indices_t GetOutputShape(void) const
+    indices_t GetOutputShape(void) const override
     {
         return m_output_shape;
     }
     
     
     
-    Variables GetParameters(void)
+    Variables GetParameters(void) override
     {
         Variables parameters;
         parameters.PushBack(m_W);
         return parameters;
     }
 
-    Variables GetGradients(void)
+    Variables GetGradients(void) override
     {
         Variables gradients;
         gradients.PushBack(m_dW);
@@ -309,7 +381,7 @@ public:
     FrameBuffer GetFrameBufferX(void)          { return m_x_buf; }
 
     // ノード単位でのForward計算
-    std::vector<double> ForwardNode(index_t node, std::vector<double> input_value) const
+    std::vector<double> ForwardNode(index_t node, std::vector<double> input_value) const override
     {
         BB_ASSERT(input_value.size() == N);
 
@@ -357,7 +429,7 @@ public:
     }
 
 
-    FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
+    FrameBuffer Forward(FrameBuffer x_buf, bool train = true) override
     {
         BB_ASSERT(x_buf.GetType() == DataType<BinType>::type);
 
@@ -488,7 +560,7 @@ public:
     }
 
 
-    FrameBuffer Backward(FrameBuffer dy_buf)
+    FrameBuffer Backward(FrameBuffer dy_buf) override
     {
         BB_ASSERT(dy_buf.GetType() == DataType<RealType>::type);
 

@@ -21,6 +21,15 @@ namespace bb {
 template <typename T = float>
 class MetricsBinaryAccuracy : public MetricsFunction
 {
+    using _super = MetricsFunction;
+
+public:
+    static inline std::string MetricsFunctionName(void) { return "MetricsBinaryAccuracy"; }
+    static inline std::string ObjectName(void){ return MetricsFunctionName() + "_" + DataType<T>::Name(); }
+    
+    std::string GetMetricsFunctionName(void) const override { return MetricsFunctionName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
 protected:
     index_t     m_frames = 0;
     double      m_accuracy = 0;

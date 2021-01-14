@@ -20,11 +20,19 @@
 namespace bb {
 
 
-// 入力数制限Affine Binary Connect版
+// 
 template <typename FT = float, typename BT = float>
 class Convolution2d : public Filter2d
 {
     using _super = Filter2d;
+
+public:
+    static inline std::string ModelName(void) { return "Convolution2d"; }
+    static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<FT>::Name() + "_" + DataType<BT>::Name(); }
+
+    std::string GetModelName(void)  const override { return ModelName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
 
 protected:
     index_t     m_filter_h_size = 1;
@@ -79,7 +87,7 @@ protected:
         im2col_create.border_value  = create.border_value;
         m_im2col = ConvolutionIm2Col<FT, BT>::Create(im2col_create);
         m_layer  = create.layer;
-        // col2im の形状は入力形状確定時に決まる
+        m_col2im = ConvolutionCol2Im<FT, BT>::Create(); // col2im の形状は入力形状確定時に決まる
     }
 
 public:
@@ -105,6 +113,12 @@ public:
         create.border_value  = border_value;
         return Create(create);
     }
+
+    static std::shared_ptr<Convolution2d> Create(void)
+    {
+        return Create(create_t());
+    }
+
 
 #ifdef BB_PYBIND11
     static std::shared_ptr<Convolution2d> CreatePy(
@@ -133,17 +147,15 @@ public:
     }
 #endif
 
-    std::string GetClassName(void) const { return "Convolution2d"; }
-
     
-    std::shared_ptr< Model > GetSubLayer(void)
+    std::shared_ptr< Model > GetSubLayer(void) const override 
     {
         return m_layer;
     }
 
 
-    index_t GetFilterHeight(void) { return m_filter_h_size; }
-    index_t GetFilterWidth(void)  { return m_filter_w_size; }
+    index_t GetFilterHeight(void) const override { return m_filter_h_size; }
+    index_t GetFilterWidth(void) const override { return m_filter_w_size; }
 
 
     /**
@@ -221,7 +233,8 @@ public:
             BB_ASSERT(0);
         }
 
-        m_col2im = ConvolutionCol2Im<FT, BT>::Create(m_output_h_size, m_output_w_size);
+//      m_col2im = ConvolutionCol2Im<FT, BT>::Create(m_output_h_size, m_output_w_size);
+        m_col2im->SetOutputSize(m_output_h_size, m_output_w_size);
 
         shape = m_im2col->SetInputShape(shape);
         shape = m_layer->SetInputShape(shape);
@@ -288,7 +301,7 @@ protected:
      * @param  os     出力ストリーム
      * @param  indent インデント文字列
      */
-    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
+    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth) const override
     {
         _super::PrintInfoText(os, indent, columns, nest, depth);
 
@@ -302,8 +315,71 @@ protected:
         }
     }
 
+
+    // シリアライズ
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+//      _super::DumpObjectData(os);
+
+        // メンバ
+        m_im2col->DumpObject(os);
+        m_col2im->DumpObject(os);
+
+        bool has_layer = (bool)m_layer;
+        bb::SaveValue(os, has_layer);
+        if (has_layer) {
+            m_layer->DumpObject(os);
+        }
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+//      _super::LoadObjectData(is);
+
+        // メンバ
+        m_im2col->LoadObject(is);
+        m_col2im->LoadObject(is);
+
+        bool has_layer;
+        bb::LoadValue(is, has_layer);
+        if ( has_layer ) {
+            if ( m_layer ) {
+                m_layer->LoadObject(is);
+            }
+            else {
+#ifdef BB_OBJECT_LOADER
+                m_layer = std::dynamic_pointer_cast<bb::Model>(Object_Load(is));
+#endif
+                BB_ASSERT(m_layer);
+            }
+        }
+
+        // 再構築
+        m_filter_h_size = m_im2col->GetFilterSizeH();
+        m_filter_w_size = m_im2col->GetFilterSizeW();
+        m_y_stride      = m_im2col->GetStrideY();;
+        m_x_stride      = m_im2col->GetStrideX();
+        m_padding       = m_im2col->GetPadding();
+        m_output_h_size = m_col2im->GetHeight();
+        m_output_w_size = m_col2im->GetWidth();
+    }
+    
+    
 public:
-    // Serialize
+    // Serialize(旧)
     void Save(std::ostream &os) const 
     {
         SaveValue(os, m_filter_h_size);
@@ -362,3 +438,9 @@ public:
 
 
 }
+
+
+#include "bb/ObjectLoader.h"
+
+
+// end of file

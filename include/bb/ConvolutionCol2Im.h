@@ -22,17 +22,37 @@ namespace bb {
 template <typename FT = float, typename BT = float>
 class ConvolutionCol2Im : public Model
 {
-protected:
-    indices_t       m_input_shape;
+    using _super = Model;
 
+public:
+    static inline std::string ModelName(void) { return "ConvolutionCol2Im"; }
+    static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<FT>::Name() + "_" + DataType<BT>::Name(); }
+
+    std::string GetModelName(void)  const override { return ModelName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
+protected:
     bool            m_host_only = false;
+
+    indices_t       m_input_shape;
 
     index_t         m_c_size = 1;
     index_t         m_h_size = 1;
     index_t         m_w_size = 1;
-        
+
+public:
+    struct create_t
+    {
+        index_t h_size = 1;
+        index_t w_size = 1;
+    };
+    
 protected:
-    ConvolutionCol2Im() {}
+    ConvolutionCol2Im(create_t const & create)
+    {
+        m_h_size = create.h_size;
+        m_w_size = create.w_size;
+    }
 
     /**
      * @brief  コマンド処理
@@ -51,41 +71,38 @@ protected:
 public:
     ~ConvolutionCol2Im() {}
 
-    struct create_t
+    static std::shared_ptr<ConvolutionCol2Im> Create(create_t const &create)
     {
-        index_t h_size = 1;
-        index_t w_size = 1;
-    };
-
-    static std::shared_ptr<ConvolutionCol2Im> Create(create_t const & create)
-    {
-        auto self = std::shared_ptr<ConvolutionCol2Im>(new ConvolutionCol2Im);
-        self->m_h_size = create.h_size;
-        self->m_w_size = create.w_size;
-        return self;
+        return std::shared_ptr<ConvolutionCol2Im>(new ConvolutionCol2Im(create));
     }
 
-    static std::shared_ptr<ConvolutionCol2Im> Create(index_t h_size, index_t w_size)
+    static std::shared_ptr<ConvolutionCol2Im> Create(index_t h_size=1, index_t w_size=1)
     {
-        auto self = std::shared_ptr<ConvolutionCol2Im>(new ConvolutionCol2Im);
-        self->m_h_size = h_size;
-        self->m_w_size = w_size;
-        return self;
+        create_t create;
+        create.h_size = h_size;
+        create.w_size = w_size;
+        return Create(create);
     }
 
-    static std::shared_ptr<ConvolutionCol2Im> CreateEx(index_t h_size, index_t w_size)
+#ifdef BB_PYBIND11
+    static std::shared_ptr<ConvolutionCol2Im> CreatePy(index_t h_size, index_t w_size)
     {
-        auto self = std::shared_ptr<ConvolutionCol2Im>(new ConvolutionCol2Im);
-        self->m_h_size = h_size;
-        self->m_w_size = w_size;
-        return self;
+        create_t create;
+        create.h_size = h_size;
+        create.w_size = w_size;
+        return Create(create);
+    }
+#endif
+
+    void SetOutputSize(index_t h_size, index_t w_size)
+    {
+        m_h_size = h_size;
+        m_w_size = w_size;
     }
 
-    std::string GetClassName(void) const { return "ConvolutionCol2Im"; }
-
-    int GetChannel(void) const { return m_c_size; }
-    int GetHeight(void)  const { return m_h_size; }
-    int GetWidth(void)   const { return m_w_size; }
+    index_t GetChannel(void) const { return m_c_size; }
+    index_t GetHeight(void)  const { return m_h_size; }
+    index_t GetWidth(void)   const { return m_w_size; }
     
 
 public:
@@ -96,7 +113,7 @@ public:
      * @param shape 新しいshape
      * @return なし
      */
-    indices_t SetInputShape(indices_t shape)
+    indices_t SetInputShape(indices_t shape) override
     {
         // 設定済みなら何もしない
         if ( shape == this->GetInputShape() ) {
@@ -114,7 +131,7 @@ public:
      * @detail 入力形状を取得する
      * @return 入力形状を返す
      */
-    indices_t GetInputShape(void) const
+    indices_t GetInputShape(void) const override
     {
         return m_input_shape;
     }
@@ -124,13 +141,13 @@ public:
      * @detail 出力形状を取得する
      * @return 出力形状を返す
      */
-    indices_t GetOutputShape(void) const
+    indices_t GetOutputShape(void) const override
     {
         return indices_t({m_c_size, m_h_size, m_w_size});
     }
 
 
-    FrameBuffer Forward(FrameBuffer x_buf, bool train=true)
+    FrameBuffer Forward(FrameBuffer x_buf, bool train=true) override
     {
         BB_ASSERT(x_buf.GetType() == DataType<FT>::type);
 
@@ -228,7 +245,7 @@ public:
         }
     }
     
-    FrameBuffer Backward(FrameBuffer dy_buf)
+    FrameBuffer Backward(FrameBuffer dy_buf) override
     {
         BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
 
@@ -303,6 +320,46 @@ public:
             }
             return dx_buf;
         }
+    }
+
+
+
+
+    // シリアライズ
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_h_size);
+        bb::SaveValue(os, m_w_size);
+        bb::SaveValue(os, m_input_shape);
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_h_size);
+        bb::LoadValue(is, m_w_size);
+        bb::LoadValue(is, m_input_shape);
+        
+        // 再構築
+        m_c_size = CalcShapeSize(m_input_shape);
     }
 };
 

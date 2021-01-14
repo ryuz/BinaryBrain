@@ -78,10 +78,10 @@ public:
     }
     
 
-    std::string GetClassName(void) const { return "AveragePooling"; }
+    std::string GetModelName(void) const { return "AveragePooling"; }
 
-    index_t GetFilterHeight(void) { return m_filter_h_size; }
-    index_t GetFilterWidth(void)  { return m_filter_w_size; }
+    index_t GetFilterHeight(void) const override { return m_filter_h_size; }
+    index_t GetFilterWidth(void)  const override { return m_filter_w_size; }
 
     /**
      * @brief  入力形状設定

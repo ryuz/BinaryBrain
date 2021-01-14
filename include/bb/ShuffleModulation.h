@@ -81,7 +81,7 @@ public:
         return Create(create);
     }
 
-    std::string GetClassName(void) const { return "ShuffleModulation"; }
+    std::string GetModelName(void) const { return "ShuffleModulation"; }
 
 
     /**

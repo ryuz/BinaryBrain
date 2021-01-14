@@ -23,6 +23,13 @@ class Shuffle : public Model
 {
     using _super = Model;
 
+public:
+    static inline std::string ModelName(void) { return "Shuffle"; }
+    static inline std::string ObjectName(void){ return ModelName(); }
+
+    std::string GetModelName(void)  const override { return ModelName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
 protected:
     bool        m_host_only = false;
 
@@ -61,7 +68,7 @@ protected:
         }
     }
 
-    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
+    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth) const override
     {
         _super::PrintInfoText(os, indent, columns, nest, depth);
 //      os << indent << " input  shape : " << GetInputShape();
@@ -90,16 +97,21 @@ public:
         return Create(shuffle_unit, indices_t({output_node_size}));
     }
 
-    static std::shared_ptr<Shuffle> CreateEx(index_t shuffle_unit, indices_t output_shape=indices_t())
+    static std::shared_ptr<Shuffle> Create(void)
+    {
+        return Create(create_t());
+    }
+
+#ifdef BB_PYBIND11
+    static std::shared_ptr<Shuffle> CreatePy(index_t shuffle_unit, indices_t output_shape=indices_t())
     {
         create_t create;
         create.shuffle_unit = shuffle_unit;
         create.output_shape = output_shape;
         return Create(create);
     }
+#endif
 
-    std::string GetClassName(void) const { return "Shuffle"; }
-    
     /**
      * @brief  入力形状設定
      * @detail 入力形状を設定する
@@ -108,7 +120,7 @@ public:
      * @param  shape      1フレームのノードを構成するshape
      * @return 出力形状を返す
      */
-    indices_t SetInputShape(indices_t shape)
+    indices_t SetInputShape(indices_t shape) override
     {
         m_input_shape = shape;
 
@@ -126,7 +138,7 @@ public:
      * @detail 入力形状を取得する
      * @return 入力形状を返す
      */
-    indices_t GetInputShape(void) const
+    indices_t GetInputShape(void) const override
     {
         return m_input_shape;
     }
@@ -136,7 +148,7 @@ public:
      * @detail 出力形状を取得する
      * @return 出力形状を返す
      */
-    indices_t GetOutputShape(void) const
+    indices_t GetOutputShape(void) const override
     {
         return m_output_shape;
     }
@@ -148,7 +160,7 @@ public:
      * @param  train 学習時にtrueを指定
      * @return forward演算結果
      */
-    inline FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
+    inline FrameBuffer Forward(FrameBuffer x_buf, bool train = true) override
     {
         // 戻り値のサイズ設定
         FrameBuffer y_buf( x_buf.GetFrameSize(), m_output_shape, x_buf.GetType());
@@ -200,7 +212,7 @@ public:
      *         
      * @return backward演算結果
      */
-    inline FrameBuffer Backward(FrameBuffer dy_buf)
+    inline FrameBuffer Backward(FrameBuffer dy_buf) override
     {
         // 戻り値のサイズ設定
         FrameBuffer dx_buf(dy_buf.GetFrameSize(), m_input_shape, dy_buf.GetType());
@@ -244,6 +256,45 @@ public:
 
             return dx_buf;
         }
+    }
+
+
+    // シリアライズ
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_host_only);
+        bb::SaveValue(os, m_input_shape);
+        bb::SaveValue(os, m_output_shape);
+        bb::SaveValue(os, m_shuffle_unit);
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_host_only);
+        bb::LoadValue(is, m_input_shape);
+        bb::LoadValue(is, m_output_shape);
+        bb::LoadValue(is, m_shuffle_unit);
+                
+        // 再構築
     }
 };
 

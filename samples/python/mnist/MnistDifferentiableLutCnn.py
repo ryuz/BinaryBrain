@@ -30,8 +30,8 @@ def main():
     dataset_path = './data/'
     dataset_train = torchvision.datasets.MNIST(root=dataset_path, train=True, transform=transforms.ToTensor(), download=True)
     dataset_test  = torchvision.datasets.MNIST(root=dataset_path, train=False, transform=transforms.ToTensor(), download=True)
-    loader_train = torch.utils.data.DataLoader(dataset=dataset_train, batch_size=64, shuffle=True, num_workers=2)
-    loader_test  = torch.utils.data.DataLoader(dataset=dataset_test,  batch_size=64, shuffle=False, num_workers=2)
+    loader_train = torch.utils.data.DataLoader(dataset=dataset_train, batch_size=mini_batch_size, shuffle=True, num_workers=2)
+    loader_test  = torch.utils.data.DataLoader(dataset=dataset_test,  batch_size=mini_batch_size, shuffle=False, num_workers=2)
     
     # select Binary DataType
     bin_dtype = bb.DType.BIT if bin_mode else bb.DType.FP32
@@ -83,7 +83,7 @@ def main():
                         filter_size=(4, 4),
                         fw_dtype=bin_dtype),
                 ]),
-                bb.BinaryToReal(frame_modulation_size=frame_modulation_size, bin_dtype=bin_dtype)
+                bb.BinaryToReal(frame_integration_size=frame_modulation_size, bin_dtype=bin_dtype)
             ])
 
     net.set_input_shape([1, 28, 28])
@@ -103,10 +103,9 @@ def main():
     optimizer.set_variables(net.get_parameters(), net.get_gradients())
     
     for epoch in range(epochs):
+        # training
         loss.clear()
         metrics.clear()
-
-        # training
         with tqdm(loader_train) as t:
             for images, labels in t:
                 x_buf = bb.FrameBuffer.from_numpy(np.array(images).astype(np.float32))

@@ -23,18 +23,28 @@ namespace bb {
 template <typename FT = float, typename BT = float>
 class MaxPooling : public Filter2d
 {
+    using _super = Filter2d;
+
+public:
+    static inline std::string ModelName(void) { return "MaxPooling"; }
+    static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<FT>::Name() + "_" + DataType<BT>::Name(); }
+
+    std::string GetModelName(void)  const override { return ModelName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
+
 protected:
     bool                m_host_only = false;
 
     index_t             m_filter_h_size;
     index_t             m_filter_w_size;
 
-    index_t             m_input_w_size;
-    index_t             m_input_h_size;
     index_t             m_input_c_size;
-    index_t             m_output_w_size;
-    index_t             m_output_h_size;
+    index_t             m_input_h_size;
+    index_t             m_input_w_size;
     index_t             m_output_c_size;
+    index_t             m_output_h_size;
+    index_t             m_output_w_size;
 
     indices_t           m_input_shape;
     indices_t           m_output_shape;
@@ -82,14 +92,14 @@ public:
          return std::shared_ptr<MaxPooling>(new MaxPooling(create));
     }
     
-    static std::shared_ptr<MaxPooling> Create(index_t filter_h_size, index_t filter_w_size)
+    static std::shared_ptr<MaxPooling> Create(index_t filter_h_size=1, index_t filter_w_size=1)
     {
         create_t create;
         create.filter_h_size = filter_h_size;
         create.filter_w_size = filter_w_size;
         return Create(create);
     }
-    
+
 #ifdef BB_PYBIND11
     // 全パラメータを引数としたオーバーロード無しの生成関数(主にpython用)
     static std::shared_ptr<MaxPooling> CreatePy(index_t filter_h_size, index_t filter_w_size)
@@ -101,10 +111,9 @@ public:
     }
 #endif
 
-    std::string GetClassName(void) const { return "MaxPooling"; }
 
-    index_t GetFilterHeight(void) { return m_filter_h_size; }
-    index_t GetFilterWidth(void)  { return m_filter_w_size; }
+    index_t GetFilterHeight(void) const override  { return m_filter_h_size; }
+    index_t GetFilterWidth(void) const override  { return m_filter_w_size; }
 
     /**
      * @brief  入力形状設定
@@ -114,7 +123,7 @@ public:
      * @param  shape      1フレームのノードを構成するshape
      * @return 出力形状を返す
      */
-    indices_t SetInputShape(indices_t shape)
+    indices_t SetInputShape(indices_t shape) override
     {
         // 設定済みなら何もしない
         if ( shape == this->GetInputShape() ) {
@@ -182,7 +191,7 @@ protected:
     }
 
 public:
-    FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
+    FrameBuffer Forward(FrameBuffer x_buf, bool train = true) override
     {
         BB_ASSERT(x_buf.GetType() == DataType<FT>::type);
 
@@ -355,7 +364,7 @@ public:
         }
     }
     
-    FrameBuffer Backward(FrameBuffer dy_buf)
+    FrameBuffer Backward(FrameBuffer dy_buf) override
     {
         BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
 
@@ -506,6 +515,57 @@ public:
 
             return dx_buf;
         }
+    }
+
+
+    // シリアライズ
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_host_only);
+        bb::SaveValue(os, m_filter_h_size);
+        bb::SaveValue(os, m_filter_w_size);
+        bb::SaveValue(os, m_input_c_size);
+        bb::SaveValue(os, m_input_h_size);
+        bb::SaveValue(os, m_input_w_size);
+        bb::SaveValue(os, m_output_c_size);
+        bb::SaveValue(os, m_output_h_size);
+        bb::SaveValue(os, m_output_w_size);
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_host_only);
+        bb::LoadValue(is, m_filter_h_size);
+        bb::LoadValue(is, m_filter_w_size);
+        bb::LoadValue(is, m_input_c_size);
+        bb::LoadValue(is, m_input_h_size);
+        bb::LoadValue(is, m_input_w_size);
+        bb::LoadValue(is, m_output_c_size);
+        bb::LoadValue(is, m_output_h_size);
+        bb::LoadValue(is, m_output_w_size);
+        
+        // 再構築
+        m_input_shape  = indices_t({m_input_c_size, m_input_h_size, m_input_w_size});
+        m_output_shape = indices_t({m_output_c_size, m_output_h_size, m_output_w_size});
     }
 };
 

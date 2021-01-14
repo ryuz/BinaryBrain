@@ -18,6 +18,7 @@
 #include <malloc.h>
 
 #include "bb/DataType.h"
+#include "bb/Object.h"
 #include "bb/Tensor.h"
 
 
@@ -265,8 +266,14 @@ public:
 
 
 // NeuralNet用のバッファ
-class FrameBuffer
+class FrameBuffer : public Object
 {
+    using _super = Object;
+
+public:
+    static inline std::string ObjectName(void){ return "Tensor"; }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
 protected:
     Tensor                  m_tensor;
 
@@ -549,9 +556,53 @@ public:
 
 
     // -------------------------------------
-    //  Serialize
+    //  シリアライズ
     // -------------------------------------
-    
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_data_type);
+        bb::SaveValue(os, m_frame_size);
+        bb::SaveValue(os, m_frame_stride);
+        bb::SaveValue(os, m_node_shape);
+        m_tensor.DumpObject(os);
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_data_type);
+        bb::LoadValue(is, m_frame_size);
+        bb::LoadValue(is, m_frame_stride);
+        bb::LoadValue(is, m_node_shape);
+        m_tensor.LoadObject(is);
+        
+        // 再構築
+        m_node_size = CalcShapeSize(m_node_shape);
+    }
+
+
+    // -------------------------------------
+    //  Serialize(旧)
+    // -------------------------------------
+public:    
     void Save(std::ostream &os) const 
     {
         os.write((char const *)&m_data_type, sizeof(m_data_type));

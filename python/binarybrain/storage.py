@@ -5,14 +5,13 @@ import datetime
 import glob
 import re
 import shutil
+import pickle
 
 import binarybrain as bb
 
 
 def get_date_string():
-    ''' Get date strings for save path
-        データ保存パス用の日付文字列を生成
-    '''
+    # データ保存パス用の日付文字列を生成
     return datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
 
 def is_date_string(text: str):
@@ -59,16 +58,16 @@ def get_latest_path(path: str) -> str:
     return os.path.join(path, targets[0])
 
 
-def remove_old(path: str, keep: int=-1):
+def remove_old(path: str, keeps: int=-1):
     ''' Get latest data path
         最新のデータ保存パスを取得
     
         Args:
             path (str): 検索するパス
-            keep (int): 削除せずに残す数
+            keeps (int): 削除せずに残す数
     '''
     
-    if keep < 0:
+    if keeps < 0:
         return
     
     files = os.listdir(path)
@@ -77,57 +76,120 @@ def remove_old(path: str, keep: int=-1):
     targets = []
     for d in dirs:
         if is_date_string(d):
-            targets.append(d)
+            no_delete_file = os.path.join(path, d, '__no_delete__')
+            if not os.path.exists(no_delete_file):
+                targets.append(d)
     
     targets.sort(reverse=True)
-    del targets[:keep]
+    del targets[:keeps]
     
     for t in targets:
         shutil.rmtree(os.path.join(path, t))
 
 
-def save_models(path: str, net):
+def _save_net_file(path: str, name: str, net, file_format=None):
+    if file_format == 'bin' or file_format=='all':
+        # 旧バージョン
+        net_file_name = os.path.join(path, name + '.bin')
+        with open(net_file_name, 'wb') as f:
+            f.write(net.dump_bytes())
+    
+    elif file_format == 'pickle' or file_format=='all':
+        # pickle
+        net_file_name = os.path.join(path, name + '.pickle')
+        with open(net_file_name, 'wb') as f:
+            f.write(pickle.dumps(net))
+    else:
+        # デフォルトフォーマット
+        net_file_name = os.path.join(path, name + '.bb_net')
+        with open(net_file_name, 'wb') as f:
+            f.write(net.dumps())
+
+def _load_net_file(path: str, name: str, net, file_format=None) -> bool:
+    # デフォルトフォーマット
+    if file_format is None or file_format == 'bb_net':
+        net_file_name = os.path.join(path, name + '.bb_net')
+        if os.path.exists(net_file_name):
+            with open(net_file_name, 'rb') as f:
+                net.loads(f.read())
+            return True
+    
+    # 無ければ旧フォーマットを探してみる
+    if file_format is None or file_format == 'bin':
+        net_file_name = os.path.join(path, name + '.bin')
+        if os.path.exists(net_file_name):
+            with open(net_file_name, 'rb') as f:
+                net.load_bytes(f.read())
+            return True
+
+    # pickle 
+    if file_format is None or file_format == 'pickle':
+        net_file_name = os.path.join(path, name + '.pickle')
+        if os.path.exists(net_file_name):
+            with open(net_file_name, 'rb') as f:
+                tmp_net = pickle.loads(f.read())
+            # pickle はインスタンスが作り直されてしまうのでコピー
+            net.loads(tmp_net.dumps())
+            return True
+
+    return False
+
+
+def save_models(path: str, net, *, write_layers=True, file_format=None):
     ''' save networks
         ネットを構成するモデルの保存
         
         Args:
             path (str):  保存するパス
             net (Model): 保存するネット
+            write_layers (bool) : レイヤー別にも出力するかどうか
     '''
     
     # make dir
     os.makedirs(path, exist_ok=True)
     
-    # save models
-    models    = bb.get_model_list(net, flatten=True)
-    fname_list = []  # 命名重複回避用
-    for i, model in enumerate(models):
-        name = model.get_name()
-        if model.is_named():
-            if name in fname_list:
-                print('[warrning] duplicate model name : %s', name)
-                fname = '%04d_%s.bin' % (i, name)
+    # save
+    net_name = net.get_name()
+    _save_net_file(path, net_name, net, file_format=file_format)
+
+    # save flatten models
+    if write_layers:
+        models = bb.get_model_list(net, flatten=True)
+        fname_list = []  # 命名重複回避用
+        for i, model in enumerate(models):
+            name = model.get_name()
+            if model.is_named():
+                if name in fname_list:
+                    print('[warrning] duplicate model name : %s', name)
+                    fname = '%04d_%s' % (i, name)
+                else:
+                    fname = '%s' % (name)
             else:
-                fname = '%s.bin' % (name)
-        else:
-            fname = '%04d_%s.bin' % (i, name)
-        fname_list.append(fname)
-        
-        file_path = os.path.join(path, fname)
-        
-        with open(file_path, 'wb') as f:
-            f.write(model.dump_bytes())
+                fname = '%04d_%s' % (i, name)
+            fname_list.append(fname)
+            
+            _save_net_file(path, fname, model, file_format=file_format)
+            
 
 
-def load_models(path: str, net):
+def load_models(path: str, net, *, read_layers: bool=False, file_format=None):
     ''' load networks
         ネットを構成するモデルの保存
         
         Args:
             path (str):  読み出すパス
             net (Model): 読み込むネット
+            read_layers (bool) : レイヤー別に読み込むか
     '''
-    
+
+    # load
+    if not read_layers:
+        net_name = net.get_name()
+        res = _load_net_file(path, net_name, net, file_format=file_format)
+        if not res:
+            print('file not found : %s'%os.path.join(path, net_name))
+        return
+
     # load models
     models    = bb.get_model_list(net, flatten=True)
     fname_list = []
@@ -136,23 +198,19 @@ def load_models(path: str, net):
         if model.is_named():
             if name in fname_list:
                 print('[warrning] duplicate model name : %s', name)
-                fname = '%04d_%s.bin' % (i, name)
+                fname = '%04d_%s' % (i, name)
             else:
-                fname = '%s.bin' % (name)
+                fname = '%s' % (name)
         else:
-            fname = '%04d_%s.bin' % (i, name)
+            fname = '%04d_%s' % (i, name)
         fname_list.append(fname)
         
-        file_path = os.path.join(path, fname)
-        
-        try:
-            with open(file_path, 'rb') as f:
-                dat = f.read()
-                model.load_bytes(dat)
-        except:
-            print('read error : %s' % file_path)
-            
-def save_networks(path: str, net, keep_olds: int=-1):
+        res = _load_net_file(path, fname, model, file_format=file_format)
+        if not res:
+            print('file not found : %s' % fname)
+
+
+def save_networks(path: str, net, *, backups: int=3, write_layers: bool=False, file_format=None):
     ''' save networks
         ネットを構成するモデルの保存
         
@@ -162,7 +220,8 @@ def save_networks(path: str, net, keep_olds: int=-1):
         Args:
             path (str) : 保存するパス
             net (Model) : 保存するネット
-            keep_olds (int) : 残しておく古いデータ数
+            backups (int) : 残しておく古いデータ数
+            write_layers(bool) : レイヤー別に出力
     '''
     
     # make dir
@@ -172,12 +231,12 @@ def save_networks(path: str, net, keep_olds: int=-1):
     date_str = get_date_string()
     data_path = os.path.join(path, date_str)
     
-    save_models(data_path, net)
+    save_models(data_path, net, write_layers=write_layers, file_format=file_format)
     
-    if keep_olds >= 0:
-        remove_old(path, keep=keep_olds)
+    if backups >= 0:
+        remove_old(path, keeps=backups)
 
-def load_networks(path: str, net):
+def load_networks(path: str, net, *, read_layers: bool=False, file_format=None):
     ''' load network
         ネットを構成するモデルの読み込み
         
@@ -186,6 +245,7 @@ def load_networks(path: str, net):
         Args:
             path (str) : 読み込むパス
             net (Model) : 読み込むネット
+            file_format (str) : 読み込む形式(Noneがデフォルト)
     '''
     
     data_path = get_latest_path(path)
@@ -193,5 +253,6 @@ def load_networks(path: str, net):
         print('not loaded : file not found')
         return
     
-    load_models(data_path, net)
+    load_models(data_path, net, read_layers=read_layers, file_format=None)
     print('load : %s' % data_path)
+

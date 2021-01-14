@@ -32,6 +32,15 @@ namespace bb {
 template <typename BinType = float, typename RealType = float>
 class RealToBinary : public Model
 {
+    using _super = Model;
+
+public:
+    static inline std::string ClassName(void) { return "RealToBinary"; }
+    static inline std::string ObjectName(void){ return ClassName() + "_" + DataType<BinType>::Name() + "_" + DataType<RealType>::Name(); }
+
+    std::string GetModelName(void)  const { return ClassName(); }
+    std::string GetObjectName(void) const { return ObjectName(); }
+
 protected:
     bool                                        m_binary_mode = true;
 
@@ -58,6 +67,36 @@ public:
         bool                                        framewise = false;              //< true でフレーム単位で閾値、falseでデータ単位
         RealType                                    input_range_lo = (RealType)0.0; //< 入力データの下限値
         RealType                                    input_range_hi = (RealType)1.0; //< 入力データの上限値
+
+        void ObjectDump(std::ostream& os) const
+        {
+            bb::SaveValue(os, frame_modulation_size);
+            bb::SaveValue(os, depth_modulation_size);
+            bb::SaveValue(os, framewise);
+            bb::SaveValue(os, input_range_lo);
+            bb::SaveValue(os, input_range_hi);
+
+            bool has_value_generator = (bool)value_generator;
+            bb::SaveValue(os, has_value_generator);
+            if ( has_value_generator ) {
+                value_generator->DumpObject(os);
+            }
+        }
+
+        void ObjectLoad(std::istream& is)
+        {
+            bb::LoadValue(is, frame_modulation_size);
+            bb::LoadValue(is, depth_modulation_size);
+            bb::LoadValue(is, framewise);
+            bb::LoadValue(is, input_range_lo);
+            bb::LoadValue(is, input_range_hi);
+
+            bool has_value_generator;
+            bb::LoadValue(is, has_value_generator);
+            if ( has_value_generator ) {
+                value_generator->LoadObject(is);
+            }
+        }
     };
 
 protected:
@@ -128,7 +167,8 @@ public:
         return Create(create);
     }
 
-    static std::shared_ptr<RealToBinary> CreateEx(
+#ifdef BB_PYBIND11
+    static std::shared_ptr<RealToBinary> CreatePy(
                 index_t                                     frame_modulation_size = 1,
                 index_t                                     depth_modulation_size = 1,
                 std::shared_ptr< ValueGenerator<RealType> > value_generator = nullptr,
@@ -145,8 +185,7 @@ public:
         create.input_range_hi        = input_range_hi;
         return Create(create);
     }
-
-    std::string GetClassName(void) const { return "RealToBinary"; }
+#endif
 
     void SetModulationSize(index_t modulation_size)
     {
@@ -164,7 +203,7 @@ public:
      * @param shape 新しいshape
      * @return なし
      */
-    indices_t SetInputShape(indices_t shape)
+    indices_t SetInputShape(indices_t shape) override
     {
         // 設定済みなら何もしない
         if ( shape == this->GetInputShape() ) {
@@ -188,7 +227,7 @@ public:
      * @detail 入力形状を取得する
      * @return 入力形状を返す
      */
-    indices_t GetInputShape(void) const
+    indices_t GetInputShape(void) const override
     {
         return m_x_node_shape;
     }
@@ -440,6 +479,69 @@ public:
 #endif
 
         return dx_buf;
+    }
+
+
+    // シリアライズ
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_binary_mode);
+        bb::SaveValue(os, m_x_node_shape);
+        bb::SaveValue(os, m_y_node_shape);
+        bb::SaveValue(os, m_point_size);
+        bb::SaveValue(os, m_x_depth_size);
+        bb::SaveValue(os, m_y_depth_size);
+        bb::SaveValue(os, m_frame_modulation_size);
+        bb::SaveValue(os, m_depth_modulation_size);
+        bb::SaveValue(os, m_framewise);
+        bb::SaveValue(os, m_input_range_lo);
+        bb::SaveValue(os, m_input_range_hi);
+
+        bool    has_value_generator = (bool)m_value_generator;
+        bb::SaveValue(os, has_value_generator);
+        if ( has_value_generator ) {
+            m_value_generator->DumpObject(os);
+        }
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_binary_mode);
+        bb::LoadValue(is, m_x_node_shape);
+        bb::LoadValue(is, m_y_node_shape);
+        bb::LoadValue(is, m_point_size);
+        bb::LoadValue(is, m_x_depth_size);
+        bb::LoadValue(is, m_y_depth_size);
+        bb::LoadValue(is, m_frame_modulation_size);
+        bb::LoadValue(is, m_depth_modulation_size);
+        bb::LoadValue(is, m_framewise);
+        bb::LoadValue(is, m_input_range_lo);
+        bb::LoadValue(is, m_input_range_hi);
+
+        bool    has_value_generator;
+        bb::LoadValue(is, has_value_generator);
+        if ( has_value_generator ) {
+            m_value_generator->LoadObject(is);
+        }
     }
 };
 

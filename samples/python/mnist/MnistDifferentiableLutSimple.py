@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 import os
 import shutil
@@ -40,7 +40,7 @@ def main():
                 bb.DifferentiableLut([420]),
                 bb.DifferentiableLut([70]),
                 bb.Reduce([10]),
-                bb.BinaryToReal(frame_modulation_size=frame_modulation_size)
+                bb.BinaryToReal(frame_integration_size=frame_modulation_size)
             ])
     net.set_input_shape([1, 28, 28])
 
@@ -58,6 +58,7 @@ def main():
 
     for epoch in range(epochs):
         # training
+        loss.clear()
         with tqdm(loader_train) as t:
             for images, labels in t:
                 x_buf = bb.FrameBuffer.from_numpy(np.array(images).astype(np.float32))
@@ -73,6 +74,8 @@ def main():
                 t.set_postfix(loss=loss.get(), acc=metrics.get())
         
         # test
+        loss.clear()
+        metrics.clear()
         for images, labels in loader_test:
             x_buf = bb.FrameBuffer.from_numpy(np.array(images).astype(np.float32))
             t_buf = bb.FrameBuffer.from_numpy(np.identity(10)[np.array(labels)].astype(np.float32))

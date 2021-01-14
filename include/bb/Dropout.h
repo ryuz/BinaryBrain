@@ -22,15 +22,26 @@ namespace bb {
 template <typename FT = float, typename BT = float>
 class Dropout : public Activation
 {
+    using _super = Activation;
+
+public:
+    static inline std::string ModelName(void) { return "Dropout"; }
+    static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<FT>::Name() + "_" + DataType<BT>::Name(); }
+
+    std::string GetModelName(void)  const override { return ModelName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
+
 protected:
+    bool                    m_host_only = false;
+
     double                  m_rate = 0.5;
     std::mt19937_64         m_mt;
     Tensor_<std::int8_t>    m_mask;
     
-    bool                    m_host_only = false;
-
     FrameBuffer             m_y_buf;
     FrameBuffer             m_dx_buf;
+
 
     struct create_t
     {
@@ -50,7 +61,7 @@ protected:
      * @detail コマンド処理
      * @param  args   コマンド
      */
-    void CommandProc(std::vector<std::string> args)
+    void CommandProc(std::vector<std::string> args) override
     {
         // HostOnlyモード設定
         if (args.size() == 2 && args[0] == "host_only")
@@ -72,22 +83,22 @@ public:
         create_t create;
         create.rate = rate;
         create.seed = seed;
-        return Create(&create);
+        return Create(create);
     }
 
-    static std::shared_ptr<Dropout> CreateEx(double rate=0.5, std::uint64_t seed=1)
+#ifdef BB_PYBIND11
+    static std::shared_ptr<Dropout> CreatePy(double rate=0.5, std::uint64_t seed=1)
     {
         create_t create;
         create.rate = rate;
         create.seed = seed;
         return Create(create);
     }
-
-    std::string GetClassName(void) const { return "Dropout"; }
+#endif
     
     
     // ノード単位でのForward計算
-    std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
+    std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const override
     {
         return x_vec;
     }
@@ -100,7 +111,7 @@ public:
      * @param  train 学習時にtrueを指定
      * @return forward演算結果
      */
-    inline FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
+    inline FrameBuffer Forward(FrameBuffer x_buf, bool train = true) override
     {
         BB_ASSERT(x_buf.GetType() == DataType<FT>::type);
 
@@ -158,7 +169,7 @@ public:
      *         
      * @return backward演算結果
      */
-    inline FrameBuffer Backward(FrameBuffer dy_buf)
+    inline FrameBuffer Backward(FrameBuffer dy_buf) override
     {
         BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
 
@@ -190,6 +201,45 @@ public:
             return m_dx_buf;
         }
     }
+
+
+    // シリアライズ
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_host_only);
+        bb::SaveValue(os, m_rate);
+        m_mask.DumpObject(os);
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_host_only);
+        bb::LoadValue(is, m_rate);
+        m_mask.LoadObject(is);
+
+        
+        // 再構築
+    }
+
 };
 
 

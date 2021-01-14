@@ -40,14 +40,20 @@ class BatchNormalization : public Activation
 {
     using _super = Activation;
 
+public:
+    static inline std::string ModelName(void) { return "BatchNormalization"; }
+    static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<T>::Name(); }
+
+    std::string GetModelName(void)  const override { return ModelName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
+
 protected:
     bool                        m_bypass    = false;
     bool                        m_host_only = false;
     bool                        m_host_simd = true;
     bool                        m_fix_gamma = false;
     bool                        m_fix_beta  = false;
-
-//  indices_t                   m_node_shape;
     
     FrameBuffer                 m_x_buf;
 
@@ -91,7 +97,7 @@ protected:
         m_fix_beta   = create.fix_beta;
     }
 
-    void CommandProc(std::vector<std::string> args)
+    void CommandProc(std::vector<std::string> args) override
     {
         _super::CommandProc(args);
 
@@ -130,7 +136,7 @@ protected:
         }
     }
     
-    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
+    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth) const override
     {
         _super::PrintInfoText(os, indent, columns, nest, depth);
         os << indent << " momentum : " << m_momentum << std::endl;
@@ -153,8 +159,8 @@ public:
         return Create(create);
     }
 
-    // for python
-    static std::shared_ptr<BatchNormalization> CreateEx(
+#ifdef BB_PYBIND11 // for python
+    static std::shared_ptr<BatchNormalization> CreatePy(
             T       momentum  = (T)0.9,
             T       gamma     = (T)1.0,
             T       beta      = (T)0.0,
@@ -170,12 +176,72 @@ public:
         create.fix_beta  = fix_beta;
         return Create(create);
     }
+#endif
+
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_bypass);
+        bb::SaveValue(os, m_host_only);
+        bb::SaveValue(os, m_host_simd);
+        bb::SaveValue(os, m_fix_gamma);
+        bb::SaveValue(os, m_fix_beta);
+        bb::SaveValue(os, m_momentum);
+        bb::SaveValue(os, m_init_gamma);
+        bb::SaveValue(os, m_init_beta);
+
+        m_gamma->DumpObject(os);
+        m_beta->DumpObject(os);
+        m_running_mean.DumpObject(os);
+        m_running_var.DumpObject(os);
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_bypass);
+        bb::LoadValue(is, m_host_only);
+        bb::LoadValue(is, m_host_simd);
+        bb::LoadValue(is, m_fix_gamma);
+        bb::LoadValue(is, m_fix_beta);
+        bb::LoadValue(is, m_momentum);
+        bb::LoadValue(is, m_init_gamma);
+        bb::LoadValue(is, m_init_beta);
+
+        m_gamma->LoadObject(is);
+        m_beta->LoadObject(is);
+        m_running_mean.LoadObject(is);
+        m_running_var.LoadObject(is);
+        
+        // 再構築
+        auto node_size = CalcShapeSize(_super::m_shape);
+        m_dgamma->Resize({node_size}, DataType<T>::type); *m_dgamma = (T)0.0;
+        m_dbeta->Resize ({node_size}, DataType<T>::type); *m_dbeta  = (T)0.0;
+        m_mean.Resize(node_size);
+        m_rstd.Resize(node_size);
+    }
 
 
-    std::string GetClassName(void) const { return "BatchNormalization"; }
-    
-    // Serialize
-    void Save(std::ostream &os) const 
+public:
+    // Serialize(旧バージョン)
+    void Save(std::ostream &os) const override
     {
         SaveIndices(os, _super::m_shape);
         bb::SaveValue(os, m_momentum);
@@ -185,14 +251,20 @@ public:
         m_running_var.Save(os);
     }
 
-    void Load(std::istream &is)
+    void Load(std::istream &is) override
     {
-        _super::m_shape = LoadIndices(is);
+        this->m_shape = LoadIndices(is);
         bb::LoadValue(is, m_momentum);
         m_gamma->Load(is);
         m_beta->Load(is);
         m_running_mean.Load(is);
         m_running_var.Load(is);
+
+        auto node_size = CalcShapeSize(_super::m_shape);
+        m_dgamma->Resize({node_size}, DataType<T>::type); *m_dgamma = (T)0.0;
+        m_dbeta->Resize ({node_size}, DataType<T>::type); *m_dbeta  = (T)0.0;
+        m_mean.Resize(node_size);
+        m_rstd.Resize(node_size);
     }
 
 
@@ -290,7 +362,7 @@ public:
      *         Optimizerでの利用を想定
      * @return パラメータを返す
      */
-    Variables GetParameters(void)
+    Variables GetParameters(void) override
     {
         Variables parameters;
         if ( !this->m_parameter_lock ) {
@@ -306,7 +378,7 @@ public:
      *         Optimizerでの利用を想定
      * @return パラメータを返す
      */
-    Variables GetGradients(void)
+    Variables GetGradients(void) override
     {
         Variables gradients;
         if ( !this->m_parameter_lock ) {
@@ -318,7 +390,7 @@ public:
     
 
     // ノード単位でのForward計算
-    std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
+    std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const override
     {
         BB_DEBUG_ASSERT(node >= 0 && node < CalcShapeSize(_super::GetOutputShape()));
 
@@ -347,7 +419,7 @@ public:
      * @param  train 学習時にtrueを指定
      * @return forward演算結果
      */
-    FrameBuffer Forward(FrameBuffer x_buf, bool train=true)
+    FrameBuffer Forward(FrameBuffer x_buf, bool train=true) override
     {
         // bypass
         if (m_bypass) {
@@ -602,7 +674,7 @@ public:
 
 
     // forward 再計算
-    FrameBuffer ReForward(FrameBuffer x_buf)
+    FrameBuffer ReForward(FrameBuffer x_buf) override
     {
         // bypass
         if (m_bypass) {
@@ -686,7 +758,7 @@ public:
      *         
      * @return backward演算結果
      */
-    FrameBuffer Backward(FrameBuffer dy_buf)
+    FrameBuffer Backward(FrameBuffer dy_buf) override
     {
         if (m_bypass) {
             return dy_buf;

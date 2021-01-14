@@ -22,6 +22,15 @@ namespace bb {
 template <typename FT = float, typename BT = float>
 class UpSampling : public Model
 {
+    using _super = Model;
+
+public:
+    static inline std::string ModelName(void) { return "UpSampling"; }
+    static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<FT>::Name() + "_" + DataType<BT>::Name(); }
+
+    std::string GetModelName(void)  const override { return ModelName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
 protected:
     bool            m_host_only = false;
 
@@ -84,8 +93,12 @@ public:
         return Create(create);
     }
 
+    static std::shared_ptr<UpSampling> Create(void)
+    {
+        return Create(create_t());
+    }
     
-    #ifdef BB_PYBIND11
+#ifdef BB_PYBIND11
     static std::shared_ptr<UpSampling> CreatePy(index_t filter_h_size, index_t filter_w_size, bool fill=true)
     {
         create_t create;
@@ -96,7 +109,6 @@ public:
     }
 #endif
 
-    std::string GetClassName(void) const { return "UpSampling"; }
 
 public:
 
@@ -318,6 +330,46 @@ public:
             return dx_buf;
         }
     }
+
+
+    // シリアライズ
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_host_only);
+        bb::SaveValue(os, m_input_shape);
+        bb::SaveValue(os, m_filter_h_size);
+        bb::SaveValue(os, m_filter_w_size);
+        bb::SaveValue(os, m_fill);
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_host_only);
+        bb::LoadValue(is, m_input_shape);
+        bb::LoadValue(is, m_filter_h_size);
+        bb::LoadValue(is, m_filter_w_size);
+        bb::LoadValue(is, m_fill);
+    }
+
 };
 
 

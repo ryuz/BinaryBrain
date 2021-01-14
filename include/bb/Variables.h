@@ -10,14 +10,21 @@
 #pragma once
 
 #include "bb/DataType.h"
+#include "bb/Object.h"
 #include "bb/Tensor.h"
+
 
 namespace bb
 {
 
-
-class Variables
+class Variables : public Object
 {
+    using _super = Object;
+
+public:
+    static inline std::string ObjectName(void){ return "Variables"; }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
 protected:
     std::vector< std::shared_ptr<Tensor> >    m_tensors;
 
@@ -54,6 +61,34 @@ public:
 #endif
     }
 
+
+    // シリアライズ(現時点では保存すべきものはない)
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 0;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 0);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+    }
+
+
+    // 各種機能
+public:
     bool IsDeviceAvailable(void) const
     {
         for ( auto& t : m_tensors ) {

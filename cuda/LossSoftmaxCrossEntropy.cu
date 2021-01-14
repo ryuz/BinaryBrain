@@ -40,6 +40,8 @@ __global__ void kernal_fp32_LossSoftmaxCrossEntropy(
         sum += std::exp(y_buf[node * frame_stride + frame] - c);
     }
 
+    sum = max(sum, 1.0e-7f);
+
     float loss_softmax;
     for ( int node = 0; node < node_size; ++node) {
         float y = y_buf[node * frame_stride + frame];

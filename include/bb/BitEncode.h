@@ -23,6 +23,13 @@ class BitEncode : public Model
 {
     using _super = Model;
 
+public:
+    static inline std::string ModelName(void) { return "BitEncode"; }
+    static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<BinType>::Name() + "_" + DataType<RealType>::Name(); }
+
+    std::string GetModelName(void)  const override { return ModelName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
 protected:
     bool        m_host_only = false;
     
@@ -52,7 +59,7 @@ protected:
      * @detail コマンド処理
      * @param  args   コマンド
      */
-    void CommandProc(std::vector<std::string> args)
+    void CommandProc(std::vector<std::string> args) override
     {
         // HostOnlyモード設定
         if (args.size() == 2 && args[0] == "host_only")
@@ -61,7 +68,7 @@ protected:
         }
     }
 
-    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
+    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth) const override
     {
         _super::PrintInfoText(os, indent, columns, nest, depth);
 //      os << indent << " input  shape : " << GetInputShape();
@@ -85,16 +92,21 @@ public:
         return Create(create);
     }
 
-    static std::shared_ptr<BitEncode> CreateEx(index_t bit_size, indices_t output_shape=indices_t())
+    static std::shared_ptr<BitEncode> Create(void)
+    {
+        return Create(create_t());
+    }
+
+#ifdef BB_PYBIND11
+    static std::shared_ptr<BitEncode> CreatePy(index_t bit_size, indices_t output_shape=indices_t())
     {
         create_t create;
         create.bit_size     = bit_size;
         create.output_shape = output_shape;
         return Create(create);
     }
+#endif
 
-    std::string GetClassName(void) const { return "BitEncode"; }
-    
     /**
      * @brief  入力形状設定
      * @detail 入力形状を設定する
@@ -109,7 +121,7 @@ public:
 
         if ( m_output_shape.empty() || CalcShapeSize(shape)*m_bit_size != CalcShapeSize(m_output_shape) ) {
             m_output_shape = m_input_shape;
-            m_output_shape[m_output_shape.size()-1] *= m_bit_size;
+            m_output_shape[0] *= m_bit_size;
         }
 
         BB_ASSERT(CalcShapeSize(m_output_shape) % m_bit_size == 0);
@@ -212,6 +224,51 @@ public:
         FrameBuffer dx_buf(dy_buf.GetFrameSize(), m_input_shape, DataType<RealType>::type);
         dx_buf.FillZero();
         return dx_buf;
+    }
+
+
+    // シリアライズ
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_bit_size);
+        bb::SaveValue(os, m_input_shape);
+        bb::SaveValue(os, m_output_shape);
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_bit_size);
+        bb::LoadValue(is, m_input_shape);
+        bb::LoadValue(is, m_output_shape);
+        
+        // 再構築
+        if ( m_output_shape.empty() && !m_input_shape.empty() ) {
+            m_output_shape = m_input_shape;
+            m_output_shape[0] *= m_bit_size;
+
+            BB_ASSERT(m_bit_size != 0);
+            BB_ASSERT(CalcShapeSize(m_output_shape) % m_bit_size == 0);
+            BB_ASSERT(CalcShapeSize(m_output_shape) / m_bit_size == CalcShapeSize(m_input_shape));
+        }
     }
 };
 

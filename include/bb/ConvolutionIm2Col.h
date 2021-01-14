@@ -17,6 +17,7 @@
 #include "bb/Manager.h"
 #include "bb/Model.h"
 #include "bb/FrameBuffer.h"
+#include "bb/Filter2d.h"
 
 
 namespace bb {
@@ -25,25 +26,34 @@ namespace bb {
 template <typename FT = float, typename BT = float>
 class ConvolutionIm2Col : public Model
 {
+    using _super = Model;
+
+public:
+    static inline std::string ModelName(void) { return "ConvolutionIm2Col"; }
+    static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<FT>::Name() + "_" + DataType<BT>::Name(); }
+
+    std::string GetModelName(void)  const override { return ModelName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
 protected:
     bool            m_host_only = false;
     
     indices_t       m_input_shape;
     indices_t       m_output_shape;
-    index_t         m_input_frame_size;
-    index_t         m_output_frame_size;
-    index_t         m_input_h_size;
-    index_t         m_input_w_size;
-    index_t         m_input_c_size;
-    index_t         m_filter_h_size;
-    index_t         m_filter_w_size;
-    index_t         m_x_stride = 1;
+    index_t         m_input_frame_size = 1;
+    index_t         m_output_frame_size = 1;
+    index_t         m_input_c_size = 1;
+    index_t         m_input_h_size = 1;
+    index_t         m_input_w_size = 1;
+    index_t         m_filter_h_size = 1;
+    index_t         m_filter_w_size = 1;
     index_t         m_y_stride = 1;
+    index_t         m_x_stride = 1;
     index_t         m_y_offset = 0;
     index_t         m_x_offset = 0;
-    index_t         m_output_h_size;
-    index_t         m_output_w_size;
-    std::string     m_padding;
+    index_t         m_output_h_size = 1;
+    index_t         m_output_w_size = 1;
+    std::string     m_padding      = "valid";
     int             m_border_mode  = BB_BORDER_REFLECT_101;
     FT              m_border_value = (FT)0;
 
@@ -106,7 +116,13 @@ public:
         return Create(create);
     }
 
-    static std::shared_ptr<ConvolutionIm2Col> CreateEx(index_t filter_h_size, index_t filter_w_size, index_t y_stride=1, index_t x_stride=1,
+    static std::shared_ptr<ConvolutionIm2Col> Create(void)
+    {
+        return Create(create_t());
+    }
+
+#ifdef BB_PYBIND11
+    static std::shared_ptr<ConvolutionIm2Col> CreatePy(index_t filter_h_size, index_t filter_w_size, index_t y_stride=1, index_t x_stride=1,
                                                 std::string padding="valid", std::string  border_mode = "reflect_101")
     {
         create_t create;
@@ -118,16 +134,30 @@ public:
         create.border_mode   = border_mode;
         return Create(create);
     }
+#endif
 
-    std::string GetClassName(void) const { return "ConvolutionIm2Col"; }
 
     index_t     GetFilterSizeH(void) const { return m_filter_h_size; }
     index_t     GetFilterSizeW(void) const { return m_filter_w_size; }
     index_t     GetStrideX(void) const     { return m_x_stride; }
     index_t     GetStrideY(void) const     { return m_y_stride; }
+
     std::string GetPadding(void) const     { return m_padding; }
-    int         GetBorderMode(void) const  { return m_border_mode; }
+//  int         GetBorderMode(void) const  { return m_border_mode; }*/
+    std::string GetBorderMode(void) const
+    {
+        switch ( m_border_mode ) {
+        case BB_BORDER_CONSTANT:     return "constant";
+        case BB_BORDER_REFLECT:      return "reflect";
+        case BB_BORDER_REFLECT_101:  return "reflect_101";
+        case BB_BORDER_REPLICATE:    return "replicate";
+        case BB_BORDER_WRAP:         return "wrap";
+        }
+        BB_DEBUG_ASSERT(0);
+        return "";
+    }
     FT          GetBorderValue(void) const { return m_border_value; }
+
 
 
     /**
@@ -452,6 +482,80 @@ public:
             return dx_buf;
         }
     }
+
+    // シリアライズ
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_host_only);
+        bb::SaveValue(os, m_input_frame_size);
+        bb::SaveValue(os, m_output_frame_size);
+        bb::SaveValue(os, m_input_c_size);
+        bb::SaveValue(os, m_input_h_size);
+        bb::SaveValue(os, m_input_w_size);
+        bb::SaveValue(os, m_filter_h_size);
+        bb::SaveValue(os, m_filter_w_size);
+        bb::SaveValue(os, m_y_stride);
+        bb::SaveValue(os, m_x_stride);
+        bb::SaveValue(os, m_padding);
+        bb::SaveValue(os, m_border_mode);
+        bb::SaveValue(os, m_border_value);
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_host_only);
+        bb::LoadValue(is, m_input_frame_size);
+        bb::LoadValue(is, m_output_frame_size);
+        bb::LoadValue(is, m_input_c_size);
+        bb::LoadValue(is, m_input_h_size);
+        bb::LoadValue(is, m_input_w_size);
+        bb::LoadValue(is, m_filter_h_size);
+        bb::LoadValue(is, m_filter_w_size);
+        bb::LoadValue(is, m_y_stride);
+        bb::LoadValue(is, m_x_stride);
+        bb::LoadValue(is, m_padding);
+        bb::LoadValue(is, m_border_mode);
+        bb::LoadValue(is, m_border_value);
+        
+        // 再構築
+        m_input_shape  = bb::indices_t({m_input_c_size, m_input_h_size, m_input_w_size});
+        m_output_shape = bb::indices_t({m_input_c_size, m_filter_h_size, m_filter_w_size});
+        if ( m_padding == "valid" ) {
+            m_output_h_size = ((m_input_h_size - m_filter_h_size + 1) + (m_y_stride - 1)) / m_y_stride;
+            m_output_w_size = ((m_input_w_size - m_filter_w_size + 1) + (m_x_stride - 1)) / m_x_stride;
+            m_y_offset = 0;
+            m_x_offset = 0;
+        }
+        else if ( m_padding == "same" ) {
+            m_output_h_size = (m_input_h_size + (m_y_stride - 1)) / m_y_stride;
+            m_output_w_size = (m_input_w_size + (m_x_stride - 1)) / m_x_stride;
+            m_y_offset = (m_filter_h_size - 1) / 2;
+            m_x_offset = (m_filter_w_size - 1) / 2;
+        }
+        else {
+            BB_ASSERT(0);
+        }
+    }
+
 };
 
 

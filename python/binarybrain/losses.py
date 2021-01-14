@@ -7,20 +7,20 @@ from typing import List
 
 
 
-class LossFunction():
+class LossFunction(bb.Object):
     """LossFunction class
        損失関数の基底クラス
     """
     
     def __init__(self, core_loss=None):
-        self.core_loss = core_loss
+        super(LossFunction, self).__init__(core_object=core_loss)
         
     def clear(self):
         """値のクリア
 
            集計をクリアする。通常 epoch の単位でクリアして再集計を行う
         """
-        self.core_loss.clear()
+        self.get_core().clear()
     
     def get(self):
         """値の取得
@@ -28,7 +28,7 @@ class LossFunction():
         Returns:
             loss(float) : 現在までの損失値を返す
         """
-        return self.core_loss.get_loss()
+        return self.get_core().get_loss()
 
     def calculate(self, y_buf, t_buf, mini_batch_size=None):
         """損失の計算
@@ -45,7 +45,7 @@ class LossFunction():
         """
         if mini_batch_size is None:
             mini_batch_size = t_buf.get_frame_size()
-        return bb.FrameBuffer.from_core(self.core_loss.calculate_loss(y_buf.get_core(), t_buf.get_core(), mini_batch_size))
+        return bb.FrameBuffer.from_core(self.get_core().calculate_loss(y_buf.get_core(), t_buf.get_core(), mini_batch_size))
 
 
 
@@ -58,8 +58,8 @@ class LossSoftmaxCrossEntropy(LossFunction):
        利用に際しては最終段にSoftmaxが挿入されるので注意すること。
     """
     
-    def __init__(self):
-        core_loss = core.LossSoftmaxCrossEntropy.create()
+    def __init__(self, dtype=bb.DType.FP32):
+        core_loss = bb.search_core_object('LossSoftmaxCrossEntropy', [dtype]).create()
         super(LossSoftmaxCrossEntropy, self).__init__(core_loss=core_loss)
 
 
@@ -69,7 +69,7 @@ class LossMeanSquaredError(LossFunction):
         平均二乗誤差(MSE)を計算して誤差として戻す
     """
     
-    def __init__(self):
-        core_loss = core.LossMeanSquaredError.create()
+    def __init__(self, dtype=bb.DType.FP32):
+        core_loss = bb.search_core_object('LossSoftmaxCrossEntropy', [dtype]).create()
         super(LossMeanSquaredError, self).__init__(core_loss=core_loss)
 

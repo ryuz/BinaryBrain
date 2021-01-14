@@ -53,7 +53,7 @@ public:
 
     ~Reshape() {}
 
-    std::string GetClassName(void) const { return "Reshape"; }
+    std::string GetModelName(void) const { return "Reshape"; }
 
     
    /**

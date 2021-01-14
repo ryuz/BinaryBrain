@@ -24,19 +24,26 @@ class BinaryModulation : public Model
 {
     using _super = Model;
 
+public:
+    static inline std::string ClassName(void) { return "BinaryModulation"; }
+    static inline std::string ObjectName(void){ return ClassName() + "_" + DataType<BinType>::Name() + "_" + DataType<RealType>::Name(); }
+
+    std::string GetModelName(void)  const { return ClassName(); }
+    std::string GetObjectName(void) const { return ObjectName(); }
+
 protected:
     bool                                                m_binary_mode = true;
     bool                                                m_training;
     index_t                                             m_modulation_size = 1;
+
+    typename RealToBinary<BinType, RealType>::create_t  m_training_create;
+    typename RealToBinary<BinType, RealType>::create_t  m_inference_create;
 
     // 3層で構成
     std::shared_ptr< RealToBinary<BinType, RealType> >  m_real2bin;
     std::shared_ptr< Model >                            m_layer;
     std::shared_ptr< BinaryToReal<BinType, RealType> >  m_bin2real;
 
-    typename RealToBinary<BinType, RealType>::create_t  m_training_create;
-    typename RealToBinary<BinType, RealType>::create_t  m_inference_create;
-    
 public:
     struct create_t
     {
@@ -115,8 +122,15 @@ public:
         create.depth_modulation_size       = depth_modulation_size;
         return Create(create);
     }
+
+    static std::shared_ptr<BinaryModulation> Create(void)
+    {
+        return Create(create_t());
+    }
     
-    static std::shared_ptr<BinaryModulation> CreateEx(
+
+#ifdef BB_PYBIND11
+    static std::shared_ptr<BinaryModulation> CreatePy(
                 std::shared_ptr<Model>                      layer,
                 indices_t                                   output_shape,
                 index_t                                     depth_modulation_size  = 1,
@@ -154,11 +168,9 @@ public:
         create.inference_input_range_hi  = inference_input_range_hi;
         return Create(create);
     }
-
-
-    std::string GetClassName(void) const { return "BinaryModulation"; }
-
+#endif
     
+
     std::shared_ptr< Model > GetLayer(void)
     {
         return m_layer;
@@ -271,7 +283,7 @@ public:
 
             m_real2bin->SetModulationSize(m_training_create.frame_modulation_size);
             m_real2bin->SetValueGenerator(m_training_create.value_generator);
-            m_bin2real->SetModulationSize(m_training_create.frame_modulation_size);
+            m_bin2real->SetFrameIntegrationSize(m_training_create.frame_modulation_size);
         }
         else if (!train && m_training) {
             m_training = false;
@@ -279,7 +291,7 @@ public:
 
             m_real2bin->SetModulationSize(m_inference_create.frame_modulation_size);
             m_real2bin->SetValueGenerator(m_inference_create.value_generator);
-            m_bin2real->SetModulationSize(m_inference_create.frame_modulation_size);
+            m_bin2real->SetFrameIntegrationSize(m_inference_create.frame_modulation_size);
         }
 
         x_buf = m_real2bin->Forward(x_buf, train);
@@ -313,7 +325,7 @@ protected:
      * @param  os     出力ストリーム
      * @param  indent インデント文字列
      */
-    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
+    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth) const override
     {
         // これ以上ネストしないなら自クラス概要
         if ( depth > 0 && (nest+1) >= depth ) {
@@ -337,8 +349,74 @@ protected:
         }
     }
 
+
+    // シリアライズ
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_binary_mode);
+        bb::SaveValue(os, m_training);
+        bb::SaveValue(os, m_modulation_size);
+        m_training_create.ObjectDump(os);
+        m_inference_create.ObjectDump(os);
+
+        m_real2bin->DumpObject(os);
+        m_bin2real->DumpObject(os);
+
+        bool has_layer = (bool)m_layer;
+        bb::SaveValue(os, has_layer);
+        if ( has_layer ) {
+            m_layer->DumpObject(os);
+        }
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_binary_mode);
+        bb::LoadValue(is, m_training);
+        bb::LoadValue(is, m_modulation_size);
+        m_training_create.ObjectLoad(is);
+        m_inference_create.ObjectLoad(is);
+
+        m_real2bin->LoadObject(is);
+        m_bin2real->LoadObject(is);
+
+        bool has_layer;
+        bb::LoadValue(is, has_layer);
+        if ( has_layer ) {
+            if ( m_layer ) {
+                m_layer->LoadObject(is);
+            }
+            else {
+#ifdef BB_OBJECT_LOADER
+                m_layer = std::dynamic_pointer_cast<Model>(Object_Load(is));
+#endif
+            }
+            BB_ASSERT(m_layer);
+        }
+    }
+
+
 public:
-    // Serialize
+    // Serialize(旧)
     void Save(std::ostream &os) const 
     {
         m_real2bin->Save(os);
@@ -388,3 +466,8 @@ public:
 
 }
 
+
+#include "bb/ObjectLoader.h"
+
+
+// end of file

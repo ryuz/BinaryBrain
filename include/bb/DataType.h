@@ -9,8 +9,9 @@
 
 #pragma once
 
-#include <assert.h>
+#include <memory>
 #include <cstdint>
+#include <iostream>
 
 #include "bb/Assert.h"
 #include "bb/SimdSupport.h"
@@ -44,17 +45,11 @@ namespace bb {
 #define BB_TYPE_UINT64          (0x0300 + 64)
 
 
-// border_mode
-#define BB_BORDER_CONSTANT      0
-#define BB_BORDER_REFLECT       1
-#define BB_BORDER_REFLECT_101   2
-#define BB_BORDER_REPLICATE     3
-#define BB_BORDER_WRAP          4
 
 
-
-using index_t   = std::intptr_t;            // 配列の添え字(符号付き size_t としての扱い)
-using indices_t = std::vector<index_t>;     // Tensorなどの多次元配列の添え字
+// Index型 (配列等の添え字用、符号付き size_t としての扱い)
+using index_t   = std::int64_t;                // 以前は std::intptr_t だったがデータ互換性上ややこしくなるので64bitに固定(ver4.1.0)
+using indices_t = std::vector<index_t>;        // Tensorなどの多次元配列の添え字、shape用
 
 
 inline void SaveIndex(std::ostream &os, index_t index)
@@ -62,6 +57,7 @@ inline void SaveIndex(std::ostream &os, index_t index)
     std::int64_t index64 = index;
     os.write((const char*)&index64, sizeof(index64));
 }
+
 
 inline index_t LoadIndex(std::istream &is)
 {
@@ -236,40 +232,6 @@ inline indices_t LoadIndices(std::istream &is)
 }
 
 
-/*
-class shape_t
-{
-protected:
-    std::vector<index_t>  m_shape;
-
-public:
-    shape_t() {}
-    shape_t(shape_t const &shape) { m_shape = shape.m_shape; }
-    shape_t(indices_t const &indices) { m_shape = indices; }
-    
-    shape_t& operator=(shape_t const &shape) { m_shape = shape.m_shape; return *this; }
-    shape_t& operator=(indices_t const &indices) { m_shape = indices;   return *this; } 
-
-    operator std::vector<index_t> () { return m_shape; }
-
-    auto size()  const { return m_shape.size(); }
-    auto begin() const { return m_shape.begin(); }
-    auto end()   const { return m_shape.end(); }
-    index_t &operator[](index_t i) { return m_shape[i]; }
-    index_t const & operator[](index_t i) const { return m_shape[i]; }
-
-
-    index_t CalcShapeSize(void)
-    {
-        index_t size = 1;
-        for (auto s : m_shape) {
-            size *= s;
-        }
-        return size;
-    }
-};
-*/
-
 
 template <typename T = float>
 struct TrainData
@@ -417,13 +379,14 @@ public:
         type = 0,
         bit_size = 0
     };
+    static inline std::string Name(void) { return "Unknown"; }
 };
 
 /*
 template<> class DataType<bool>
 {
 public:
-    typedef float value_type;
+    typedef bool value_type;
     enum {
         type = BB_TYPE_BOOL,
         bit_size = 1,
@@ -434,111 +397,121 @@ public:
 template<> class DataType<Bit>
 {
 public:
-    typedef float value_type;
+    typedef bool value_type;
     enum {
         type = BB_TYPE_BIT,
         size = 1,
         bit_size = 1,
     };
+    static inline std::string Name(void) { return "bit"; }
 };
 
 template<> class DataType<Binary>
 {
 public:
-    typedef float value_type;
+    typedef bool value_type;
     enum {
         type = BB_TYPE_BINARY,
         size = 1,
         bit_size = 8,
     };
+    static inline std::string Name(void) { return "bin"; }
 };
 
 template<> class DataType<std::int8_t>
 {
 public:
-    typedef float value_type;
+    typedef std::int8_t value_type;
     enum {
         type = BB_TYPE_INT8,
         size = 1,
         bit_size = 8,
     };
+    static inline std::string Name(void) { return "int8"; }
 };
 
 template<> class DataType<std::int16_t>
 {
 public:
-    typedef float value_type;
+    typedef std::int16_t value_type;
     enum {
         type = BB_TYPE_INT16,
         size = 2,
         bit_size = 16,
     };
+    static inline std::string Name(void) { return "int16"; }
 };
 
 template<> class DataType<std::int32_t>
 {
 public:
-    typedef float value_type;
+    typedef std::int32_t value_type;
     enum {
         type = BB_TYPE_INT32,
         size = 4,
         bit_size = 32,
     };
+    static inline std::string Name(void) { return "int32"; }
 };
 
 template<> class DataType<std::int64_t>
 {
 public:
-    typedef float value_type;
+    typedef std::int64_t value_type;
     enum {
         type = BB_TYPE_INT64,
         size = 8,
         bit_size = 64,
     };
+    static inline std::string Name(void) { return "int64"; }
 };
 
 template<> class DataType<std::uint8_t>
 {
 public:
-    typedef float value_type;
+    typedef std::uint8_t value_type;
     enum {
         type = BB_TYPE_UINT8,
         size = 1,
         bit_size = 8,
     };
+    static inline std::string Name(void) { return "uint8"; }
 };
 
 template<> class DataType<std::uint16_t>
 {
 public:
-    typedef float value_type;
+    typedef std::uint16_t value_type;
     enum {
         type = BB_TYPE_UINT16,
         size = 2,
         bit_size = 16,
     };
+    static inline std::string Name(void) { return "uint16"; }
 };
 
 template<> class DataType<std::uint32_t>
 {
 public:
-    typedef float value_type;
+    typedef std::uint32_t value_type;
     enum {
         type = BB_TYPE_UINT32,
         size = 4,
         bit_size = 32,
     };
+    static inline std::string Name(void) { return "uint32"; }
 };
 
 template<> class DataType<std::uint64_t>
 {
 public:
-    typedef float value_type;
+    typedef std::uint64_t value_type;
     enum {
         type = BB_TYPE_UINT64,
         size = 8,
         bit_size = 64,
     };
+    static inline std::string Name(void) { return "uint64"; }
 };
 
 template<> class DataType<float>
@@ -550,17 +523,19 @@ public:
         size = 4,
         bit_size = 32,
     };
+    static inline std::string Name(void) { return "fp32"; }
 };
 
 template<> class DataType<double>
 {
 public:
-    typedef float value_type;
+    typedef double value_type;
     enum {
         type = BB_TYPE_FP64,
         size = 8,
-        bit_size = 32,
+        bit_size = 64,
     };
+    static inline std::string Name(void) { return "fp64"; }
 };
 
 
@@ -675,7 +650,7 @@ inline void DataType_Add<Bit>(void* base, index_t index, Bit value)
 
 
 
-// シリアライズ
+// シリアライズ用
 template<typename T>
 inline void SaveValue(std::ostream &os, T const &val)
 {
@@ -688,12 +663,15 @@ inline void LoadValue(std::istream &is, T &val)
     is.read((char *)&val, sizeof(T));
 }
 
+
 template<typename T>
 inline void SaveValue(std::ostream &os, std::vector<T> const &vec)
 {
     std::uint64_t size = (std::uint64_t)vec.size();
     os.write((char const *)&size, sizeof(size));
-    os.write((char const *)&vec[0], size*sizeof(T));
+    if ( size > 0 ) {
+        os.write((char const *)&vec[0], size*sizeof(T));
+    }
 }
 
 template<typename T>
@@ -702,27 +680,50 @@ inline void LoadValue(std::istream &is, std::vector<T>  &vec)
     std::uint64_t size;
     is.read((char *)&size, sizeof(size));
     vec.resize(size);
-    is.read((char *)&vec[0], size*sizeof(T));
+    if ( size > 0 ) {
+        is.read((char *)&vec[0], size*sizeof(T));
+    }
 }
 
 
-template<typename T>
+template<>
 inline void SaveValue(std::ostream &os, std::string const &str)
 {
     std::uint64_t size = (std::uint64_t)str.size();
     os.write((char const *)&size, sizeof(size));
-    os.write((char const *)&str[0], size*sizeof(str[0]));
+    if ( size > 0 ) {
+        os.write((char const *)&str[0], size*sizeof(str[0]));
+    }
 }
 
-template<typename T>
+template<>
 inline void LoadValue(std::istream &is, std::string &str)
 {
     std::uint64_t size;
     is.read((char *)&size, sizeof(size));
     str.resize(size);
-    is.read((char *)&str[0], size*sizeof(str[0]));
+    if ( size > 0 ) {
+        is.read((char *)&str[0], size*sizeof(str[0]));
+    }
+}
+
+
+template<>
+inline void SaveValue(std::ostream &os, bool const &val)
+{
+    std::int8_t val8 = (std::int8_t)val;
+    os.write((const char*)&val8, sizeof(val8));
+}
+
+template<>
+inline void LoadValue(std::istream &is, bool &val)
+{
+    std::int8_t val8;
+    is.read((char*)&val8, sizeof(val8));
+    val = val8;
 }
 
 
 }
 
+// end of file

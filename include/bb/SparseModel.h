@@ -1,7 +1,7 @@
 ﻿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
-//                                 Copyright (C) 2018-2019 by Ryuji Fuchikami
+//                                 Copyright (C) 2018-2021 by Ryuji Fuchikami
 //                                 https://github.com/ryuz
 //                                 ryuji.fuchikami@nifty.com
 // --------------------------------------------------------------------------

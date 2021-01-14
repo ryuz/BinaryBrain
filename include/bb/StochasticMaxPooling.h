@@ -23,6 +23,15 @@ namespace bb {
 template <typename FT = float, typename BT = float>
 class StochasticMaxPooling : public MaxPooling<FT, BT>
 {
+    using _super = MaxPooling<FT, BT>;
+
+public:
+    static inline std::string ModelName(void) { return "StochasticMaxPooling"; }
+    static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<FT>::Name() + "_" + DataType<BT>::Name(); }
+
+    std::string GetModelName(void)  const override { return ModelName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
 protected:
     bool                m_host_only = false;
 
@@ -65,17 +74,15 @@ protected:
 public:
     ~StochasticMaxPooling() {}
     
-    static std::shared_ptr<StochasticMaxPooling> Create(index_t filter_h_size, index_t filter_w_size)
+    static std::shared_ptr<StochasticMaxPooling> Create(index_t filter_h_size=1, index_t filter_w_size=1)
     {
         auto self = std::shared_ptr<StochasticMaxPooling>(new StochasticMaxPooling(filter_h_size, filter_w_size));
         return self;
     }
     
 
-    std::string GetClassName(void) const { return "StochasticMaxPooling"; }
-
-    index_t GetFilterHeight(void) { return m_filter_h_size; }
-    index_t GetFilterWidth(void)  { return m_filter_w_size; }
+    index_t GetFilterHeight(void) const override  { return m_filter_h_size; }
+    index_t GetFilterWidth(void) const override  { return m_filter_w_size; }
 
     /**
      * @brief  入力形状設定
@@ -358,6 +365,58 @@ public:
         }
 #endif
     }
+
+
+    // シリアライズ
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_host_only);
+        bb::SaveValue(os, m_filter_h_size);
+        bb::SaveValue(os, m_filter_w_size);
+        bb::SaveValue(os, m_input_w_size);
+        bb::SaveValue(os, m_input_h_size);
+        bb::SaveValue(os, m_input_c_size);
+        bb::SaveValue(os, m_output_w_size);
+        bb::SaveValue(os, m_output_h_size);
+        bb::SaveValue(os, m_output_c_size);
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_host_only);
+        bb::LoadValue(is, m_filter_h_size);
+        bb::LoadValue(is, m_filter_w_size);
+        bb::LoadValue(is, m_input_c_size);
+        bb::LoadValue(is, m_input_h_size);
+        bb::LoadValue(is, m_input_w_size);
+        bb::LoadValue(is, m_output_c_size);
+        bb::LoadValue(is, m_output_h_size);
+        bb::LoadValue(is, m_output_w_size);
+
+        // 再構築
+        m_input_shape  = indices_t({m_input_c_size, m_input_h_size, m_input_w_size});
+        m_output_shape = indices_t({m_output_c_size, m_output_h_size, m_output_w_size});
+    }
+
 };
 
 

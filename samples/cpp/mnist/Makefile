@@ -22,7 +22,7 @@ CC = g++
 #CC ?= clang++
 endif
 
-CFLAGS = -mavx2 -mfma -fopenmp -std=c++17 -Wall
+CFLAGS = -mavx2 -mfma -fopenmp -std=c++14 -Wall
 CINCS  = -I../../../include
 CDEFS  = 
 
@@ -38,6 +38,7 @@ SRCS  += MnistMicroMlpLutCnn.cpp
 SRCS  += MnistAeDifferentiableLutSimple.cpp
 SRCS  += MnistAeDifferentiableLutCnn.cpp
 SRCS  += MnistCustomModel.cpp
+SRCS  += MnistLoadNet.cpp
 
 OBJS = $(addsuffix .o, $(basename $(SRCS)))
 

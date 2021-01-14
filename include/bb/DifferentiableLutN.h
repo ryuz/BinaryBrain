@@ -22,12 +22,29 @@
 namespace bb {
 
 
+class DifferentiableLutModel : public StochasticLutModel
+{
+public:
+    virtual Tensor GetMean(void) const = 0;
+    virtual Tensor GetVar(void) const = 0;
+    virtual double GetGamma(void) const = 0;
+    virtual double GetBeta(void) const = 0;
+};
+
+
 template <int N = 6, typename BinType = Bit, typename RealType = float>
-class DifferentiableLutN : public StochasticLutModel
+class DifferentiableLutN : public DifferentiableLutModel
 {
     using _super = StochasticLutModel;
-
     static int const NN = (1 << N);
+
+public:
+    static inline std::string ModelName(void) { return "DifferentiableLut" + std::to_string(N); }
+    static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<BinType>::Name() + "_" + DataType<RealType>::Name(); }
+
+    std::string GetModelName(void)  const { return ModelName(); }
+    std::string GetObjectName(void) const { return ObjectName(); }
+
 
 protected:
     bool                        m_host_only    = false;
@@ -37,8 +54,8 @@ protected:
 
     bool                        m_flagClamp = false;
 
-    indices_t                   m_output_shape;
     indices_t                   m_input_shape;
+    indices_t                   m_output_shape;
 
     FixedSizeConnectionTable<N> m_connection_table;
 
@@ -82,7 +99,7 @@ public:
 protected:
     DifferentiableLutN(create_t const &create)
     {
-        BB_ASSERT(!create.output_shape.empty());
+//      BB_ASSERT(!create.output_shape.empty());
 
         m_output_shape = create.output_shape;
         m_connection   = create.connection;
@@ -133,7 +150,7 @@ protected:
         }
     }
     
-    virtual void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
+    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth) const override
     {
         _super::PrintInfoText(os, indent, columns, nest, depth);
 //      os << indent << " input  shape : " << GetInputShape();
@@ -144,7 +161,6 @@ protected:
 
 public:
     ~DifferentiableLutN() {}
-
 
     static std::shared_ptr<DifferentiableLutN> Create(create_t const &create)
     {
@@ -172,6 +188,11 @@ public:
         return Create(create);
     }
 
+    static std::shared_ptr<DifferentiableLutN> Create(void)
+    {
+        return Create(create_t());
+    }
+
 #ifdef BB_PYBIND11
     static std::shared_ptr<DifferentiableLutN> CreatePy(
                 indices_t const &output_shape,
@@ -196,13 +217,82 @@ public:
     }
 #endif
 
-    std::string GetClassName(void) const {
-        return std::string("DifferentiableLut") + std::to_string(N);
+
+protected:
+    // Serialize
+    void DumpObjectData(std::ostream &os) const
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        SaveValue(os, m_host_only);
+        SaveValue(os, m_lut_binarize);
+        SaveValue(os, m_binary_mode);
+        SaveValue(os, m_batch_norm);
+        SaveValue(os, m_flagClamp);
+
+        SaveValue(os, m_input_shape);
+        SaveValue(os, m_output_shape);
+
+        m_connection_table.DumpObject(os);
+        m_W->DumpObject(os);
+
+        SaveValue(os, m_unbinarize_bias);
+        
+        SaveValue(os, m_momentum);
+        SaveValue(os, m_gamma);
+        SaveValue(os, m_beta);
+        m_running_mean.DumpObject(os);
+        m_running_var.DumpObject(os);
+    }
+
+    void LoadObjectData(std::istream &is)
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        LoadValue(is, m_host_only);
+        LoadValue(is, m_lut_binarize);
+        LoadValue(is, m_binary_mode);
+        LoadValue(is, m_batch_norm);
+        LoadValue(is, m_flagClamp);
+
+        LoadValue(is, m_input_shape);
+        LoadValue(is, m_output_shape);
+        
+        m_connection_table.LoadObject(is);
+        m_W->LoadObject(is);
+
+        LoadValue(is, m_unbinarize_bias);
+
+        LoadValue(is, m_momentum);
+        LoadValue(is, m_gamma);
+        LoadValue(is, m_beta);
+        m_running_mean.LoadObject(is);
+        m_running_var.LoadObject(is);
+
+        // 再構築
+        m_dW->Resize(m_W->GetShape(), DataType<RealType>::type);
+        m_dW->FillZero();
+        m_mean.Resize(m_output_shape);
+        m_rstd.Resize(m_output_shape);
     }
 
 
 public:
-    // Serialize
+    // Serialize(旧)
     void Save(std::ostream &os) const 
     {
         _super::Save(os);
@@ -274,11 +364,16 @@ public:
 #endif
 
 
-    Tensor       &W(void)       { return *m_W; }
-    Tensor const &W(void) const { return *m_W; }
+    Tensor       &W(void) override       { return *m_W; }
+    Tensor const &W(void) const override { return *m_W; }
     
-    Tensor       &dW(void)       { return *m_dW; }
-    Tensor const &dW(void) const { return *m_dW; }
+    Tensor       &dW(void) override       { return *m_dW; }
+    Tensor const &dW(void) const override { return *m_dW; }
+
+    Tensor       GetMean(void) const override { return (Tensor)m_running_mean; }
+    Tensor       GetVar(void) const override  { return (Tensor)m_running_var; }
+    double       GetGamma(void) const override { return (double)m_gamma; }
+    double       GetBeta(void) const override  { return (double)m_beta; }
 
     auto lock_W(void)              { return m_W->Lock<RealType>(); }
     auto lock_W_const(void) const  { return m_W->LockConst<RealType>(); }

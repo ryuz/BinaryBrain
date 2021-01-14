@@ -29,6 +29,13 @@ class DifferentiableLutDiscreteN : public StochasticLutModel
 {
     using _super =  StochasticLutModel;
 
+public:
+    static inline std::string ModelName(void) { return "DifferentiableLutDiscrete" + std::to_string(N); }
+    static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<BinType>::Name() + "_" + DataType<RealType>::Name(); }
+
+    std::string GetModelName(void)  const override { return ModelName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
 protected:
     bool                                                            m_memory_saving = false;
     bool                                                            m_bn_enable  = true;
@@ -106,6 +113,11 @@ public:
         return Create(indices_t({output_node_size}), batch_norm, connection, seed);
     }
 
+    static std::shared_ptr<DifferentiableLutDiscreteN> Create(void)
+    {
+        return Create(create_t());
+    }
+
 #ifdef BB_PYBIND11
     static std::shared_ptr< DifferentiableLutDiscreteN > CreatePy(indices_t const &output_shape, bool batch_norm = true, bool activation = true, std::string connection = "",
                                                              RealType momentum = (RealType)0.0, RealType gamma = (RealType)0.3, RealType beta = (RealType)0.5,
@@ -123,9 +135,6 @@ public:
         return Create(create);
     }
 #endif
-
-
-    std::string GetClassName(void) const { return "DifferentiableLutN"; }
 
     /**
      * @brief  コマンドを送る
@@ -308,7 +317,7 @@ protected:
      * @param  os     出力ストリーム
      * @param  indent インデント文字列
      */
-    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth)
+    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth) const override
     {
         // これ以上ネストしないなら自クラス概要
         if ( depth > 0 && (nest+1) >= depth ) {
@@ -322,8 +331,50 @@ protected:
         }
     }
 
+
+    // シリアライズ
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_memory_saving);
+        bb::SaveValue(os, m_bn_enable);
+        bb::SaveValue(os, m_act_enable);
+        m_lut->DumpObject(os);
+        if ( m_bn_enable )  { m_batch_norm->DumpObject(os); }
+        if ( m_act_enable ) { m_activation->DumpObject(os); }
+
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_memory_saving);
+        bb::LoadValue(is, m_bn_enable);
+        bb::LoadValue(is, m_act_enable);
+        m_lut->LoadObject(is);
+        if ( m_bn_enable )  { m_batch_norm->LoadObject(is); }
+        if ( m_act_enable ) { m_activation->LoadObject(is); }
+    }
+
 public:
-    // Serialize
+    // Serialize(旧)
     void Save(std::ostream &os) const 
     {
         bb::SaveValue(os, m_memory_saving);

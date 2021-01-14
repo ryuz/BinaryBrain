@@ -24,11 +24,18 @@ class Sigmoid : public Binarize<BinType, RealType>
 {
     using _super = Binarize<BinType, RealType>;
 
-protected:
-    bool        m_binary_mode;
+public:
+    static inline std::string ModelName(void) { return "Sigmoid"; }
+    static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<BinType>::Name() + "_" + DataType<RealType>::Name(); }
 
+    std::string GetModelName(void)  const override { return ModelName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
+protected:
     using _super::m_host_only;
     using _super::m_x_buf;
+
+    bool        m_binary_mode;
 
     FrameBuffer m_y_buf;
 
@@ -42,7 +49,7 @@ protected:
      * @detail コマンド処理
      * @param  args   コマンド
      */
-    void CommandProc(std::vector<std::string> args)
+    void CommandProc(std::vector<std::string> args) override
     {
         // バイナリモード設定
         if ( args.size() == 2 && args[0] == "binary" )
@@ -68,9 +75,7 @@ public:
     }
 
     ~Sigmoid() {}
-
-    std::string GetClassName(void) const { return "Sigmoid"; }
-
+    
 
     /**
      * @brief  入力形状設定
@@ -80,7 +85,7 @@ public:
      * @param  shape      1フレームのノードを構成するshape
      * @return 出力形状を返す
      */
-    indices_t SetInputShape(indices_t shape)
+    indices_t SetInputShape(indices_t shape) override
     {
         return shape;
     }
@@ -107,7 +112,7 @@ public:
      * @param  train 学習時にtrueを指定
      * @return forward演算結果
      */
-    inline FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
+    inline FrameBuffer Forward(FrameBuffer x_buf, bool train = true) override
     {
         // binaryモード
         if ( DataType<BinType>::type == BB_TYPE_BIT || m_binary_mode) {
@@ -167,7 +172,7 @@ public:
      *         
      * @return backward演算結果
      */
-    inline FrameBuffer Backward(FrameBuffer dy_buf)
+    inline FrameBuffer Backward(FrameBuffer dy_buf) override
     {
         // binaryモード
         if ( DataType<BinType>::type == BB_TYPE_BIT || m_binary_mode) {
@@ -221,6 +226,40 @@ public:
             return dx_buf;
         }
     }
+
+    
+
+    // シリアライズ
+protected:
+    void DumpObjectData(std::ostream &os) const override
+    {
+        // バージョン
+        std::int64_t ver = 1;
+        bb::SaveValue(os, ver);
+
+        // 親クラス
+        _super::DumpObjectData(os);
+
+        // メンバ
+        bb::SaveValue(os, m_binary_mode);
+
+    }
+
+    void LoadObjectData(std::istream &is) override
+    {
+        // バージョン
+        std::int64_t ver;
+        bb::LoadValue(is, ver);
+
+        BB_ASSERT(ver == 1);
+
+        // 親クラス
+        _super::LoadObjectData(is);
+
+        // メンバ
+        bb::LoadValue(is, m_binary_mode);
+    }
+
 };
 
 

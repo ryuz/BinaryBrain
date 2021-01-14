@@ -21,6 +21,16 @@ namespace bb {
 template <typename T = float>
 class MetricsCategoricalAccuracy : public MetricsFunction
 {
+    using _super = MetricsFunction;
+
+public:
+    static inline std::string MetricsFunctionName(void) { return "MetricsCategoricalAccuracy"; }
+    static inline std::string ObjectName(void){ return MetricsFunctionName() + "_" + DataType<T>::Name(); }
+    
+    std::string GetMetricsFunctionName(void) const override { return MetricsFunctionName(); }
+    std::string GetObjectName(void) const override { return ObjectName(); }
+
+
 protected:
     Tensor_<int>    m_accuracy;
     double          m_category_count = 0;
@@ -67,7 +77,7 @@ public:
         index_t frame_size  = t_buf.GetFrameSize();
         index_t node_size   = t_buf.GetNodeSize();
         auto shape          = t_buf.GetShape();
-        auto ch_size        = shape[shape.size()-1];
+        auto ch_size        = shape[0];
         auto pix_size       = node_size / ch_size;
 
 #ifdef BB_WITH_CUDA
@@ -117,9 +127,9 @@ public:
                     }
 
                     if ( max_t > 0) {
-                        acc_ptr[0] += (int)sum_t;
+                        acc_ptr[0] += 1; // (int)sum_t;
                     }
-                    m_category_count += sum_t;
+                    m_category_count += 1; // sum_t;
                 }
             }
         }
