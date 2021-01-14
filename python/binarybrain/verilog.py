@@ -39,7 +39,7 @@ def export_verilog_lut_layers(file_name: str, module_name: str, net):
 # ----- Convolutional LUT Layer -----
 
 def make_verilog_lut_cnv_layers(module_name: str, net):
-    layers = bb.get_model_list(net, flatten=True)
+    layers = bb.get_model_list_for_rtl(net)
     core_layers = []
     for layer in layers:
         core_layers.append(layer.get_core())

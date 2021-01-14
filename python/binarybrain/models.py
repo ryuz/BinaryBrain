@@ -802,13 +802,14 @@ class Reduce(Model):
 
     Args:
         output_shape ([int]): 出力のシェイプ
+        integration_size (int): 積算するサイズ
     """
 
-    def __init__(self, output_shape=[], integrate_size=0, *, input_shape=None, name=None,
-                        fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32, core_model=None):
+    def __init__(self, output_shape=[], integration_size=0, *, input_shape=None, name=None,
+                        bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32, core_model=None):
         if core_model is None:
-            core_creator = search_core_model('Reduce', [fw_dtype, bw_dtype]).create
-            core_model = core_creator(output_shape, integrate_size)
+            core_creator = search_core_model('Reduce', [bin_dtype, real_dtype]).create
+            core_model = core_creator(output_shape, integration_size)
         
         super(Reduce, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
@@ -1518,6 +1519,25 @@ def get_model_list(net, flatten:bool =False):
     def flatten_list(in_list, out_list):
         for model in in_list:
             if hasattr(model, 'get_model_list'):
+                flatten_list(model.get_model_list(), out_list)
+            else:
+                out_list.append(model)
+    
+    out_list = []
+    flatten_list(net, out_list)
+    
+    return out_list
+
+
+def get_model_list_for_rtl(net):
+    # RTL化用リストを得る
+    
+    if  type(net) is not list:
+        net = [net]
+    
+    def flatten_list(in_list, out_list):
+        for model in in_list:
+            if type(model) != Convolution2d and hasattr(model, 'get_model_list'):
                 flatten_list(model.get_model_list(), out_list)
             else:
                 out_list.append(model)
