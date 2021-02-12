@@ -86,16 +86,16 @@ public:
     static std::shared_ptr<Reduce> Create(index_t output_node, index_t integration_size=0)
     {
         create_t create;
-        create.output_shape   = indices_t({output_node});
-        create.integrate_size = integration_size;
+        create.output_shape     = indices_t({output_node});
+        create.integration_size = integration_size;
         return Create(create);
     }
 
     static std::shared_ptr<Reduce> Create(indices_t output_shape, index_t integration_size=0)
     {
         create_t create;
-        create.output_shape   = output_shape;
-        create.integrate_size = integration_size;
+        create.output_shape     = output_shape;
+        create.integration_size = integration_size;
         return Create(create);
     }
 
