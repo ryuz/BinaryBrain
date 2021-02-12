@@ -439,24 +439,52 @@ class Sequential(Model):
         self.model_list[item] = model
     
     def append(self, model):
-        """モデルリストの追加
+        """リストへのモデル追加
        
-        Returns:
+        Args:
             model (Model): リストに追加するモデル
         """
         self.model_list.append(model)
     
+    def remove(self, model):
+        """リストへからモデル削除
+       
+        Args:
+            model (Model): リストから削除するモデル
+        """
+        self.model_list.remove(model)
+
+
     def get_info(self, depth=0, *, columns=70, nest=0):
         # これ以上ネストしないなら自クラス概要
         if depth > 0 and (nest+1) >= depth:
             return super(Sequential, self).get_info(depth=depth, columns=columns, nest=nest)
         else:
-            # 子レイヤー
-            info = ''
-            for model in self.model_list:
-                info += model.get_info(depth=depth, columns=columns, nest=nest+1)
-            return info
+        # セパレータとインデント文字列生成
+            indent    = ' ' * (nest*2)
+            separetor = '-' * (columns - len(indent))
+            name      = self.name
+            if name is None:
+                name = ''
 
+            # モデルタイトル
+            text  = indent + separetor + '\n'
+            text += indent + '[' + self.get_model_name() + '] ' + name + '\n'
+
+            # 内容
+            text += indent + ' input  shape : ' + str(self.get_input_shape())
+            text += indent + ' output shape : ' + str(self.get_output_shape()) + '\n'
+
+            # 子レイヤー
+            for model in self.model_list:
+                text += model.get_info(depth=depth, columns=columns, nest=nest+1)
+
+            # 最上段なら末尾セパレータ追加
+            if nest == 0:
+                text +=  indent + separetor + '\n'
+            return text
+
+    
     def send_command(self, command, send_to="all"):
         for model in self.model_list:
             model.send_command(command=command, send_to=send_to)
