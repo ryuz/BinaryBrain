@@ -226,11 +226,11 @@ protected:
     void DumpObjectData(std::ostream &os) const override
     {
         // バージョン
-        std::int64_t ver = 1;
+        std::int64_t ver = 2;
         SaveValue(os, ver);
 
         // 親クラス
-//      _super::DumpObjectData(os);
+        _super::DumpObjectData(os);
         
         // メンバ
         std::int64_t layer_size = (std::int64_t)m_layers.size();
@@ -246,10 +246,12 @@ protected:
         std::int64_t ver;
         LoadValue(is, ver);
 
-        BB_ASSERT(ver == 1);
+        BB_ASSERT(ver == 1 || ver == 2);
 
-        // 親クラス
-//      _super::LoadObjectData(is);
+        if ( ver == 2 ) {
+            // 親クラス
+            _super::LoadObjectData(is);
+        }
 
         // メンバ
         std::int64_t layer_size;
