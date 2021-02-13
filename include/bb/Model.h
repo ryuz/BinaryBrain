@@ -308,12 +308,43 @@ public:
     }
     
     
-public:
-//  std::string GetObjectName(void)  const { return ""; }   // 暫定
 
 protected:
-//  void DumpObjectData(std::ostream &os) const {}   // 暫定
-//  void LoadObjectData(std::istream &is) {}   // 暫定
+    void DumpObjectData(std::ostream &os) const
+    {
+        std::int64_t ver = 1;
+        os.write((char const *)&ver, sizeof(ver));
+
+        std::int64_t size = (int)m_name.size();
+        os.write((char const *)&size, sizeof(size));
+        os.write((char const *)&m_name[0], size);
+    }
+
+
+    void LoadObjectData(std::istream &is)
+    {
+        // override されていない場合は常に 0 を期待する
+        std::int64_t ver;
+        is.read((char *)&ver, sizeof(ver));
+
+        if ( ver == 0 ) {
+            // 何も無し
+        }
+        else if ( ver == 1 ) {
+            std::int64_t size;
+            is.read((char*)&size, sizeof(size));
+
+            std::string name;
+            name.resize(size);
+            is.read((char*)&name[0], size);
+            if (!IsNamed()) {   // 既に命名されていたら上書きしない
+                m_name = name;
+            }
+        }
+        else {
+            BB_ASSERT(0);
+        }
+    }
 
 
 public:

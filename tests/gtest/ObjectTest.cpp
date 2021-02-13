@@ -11,7 +11,7 @@ TEST(ObjectTest, testObject_test0)
 }
 
 
-#include "bb/ObjectReconstructor.h"
+#include "bb/ObjectLoader.h"
 
 
 TEST(ObjectTest, SerializeModel)

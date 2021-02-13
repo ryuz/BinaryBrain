@@ -6,6 +6,15 @@
 #include "bb/DenseAffine.h"
 
 
+TEST(DenseAffineTest, testDump)
+{
+    auto affine = bb::DenseAffine<>::Create(3);
+
+    affine.DumpToFile("hoge.bb_net");
+    affine.LoadFromFile("hoge.bb_net");
+}
+
+
 TEST(DenseAffineTest, testAffine)
 {
     auto affine = bb::DenseAffine<>::Create(3);
