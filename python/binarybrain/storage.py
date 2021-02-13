@@ -188,8 +188,8 @@ def load_models(path: str, net, *, read_layers: bool=False, file_format=None):
         res = _load_net_file(path, net_name, net, file_format=file_format)
         if not res:
             print('file not found : %s'%os.path.join(path, net_name))
-        return
-
+        return res
+    
     # load models
     models    = bb.get_model_list(net, flatten=True)
     fname_list = []
@@ -208,39 +208,50 @@ def load_models(path: str, net, *, read_layers: bool=False, file_format=None):
         res = _load_net_file(path, fname, model, file_format=file_format)
         if not res:
             print('file not found : %s' % fname)
+    
+    return True
 
 
-def save_networks(path: str, net, *, backups: int=3, write_layers: bool=False, file_format=None):
+def save_networks(path: str, net, name=None, *, backups: int=10, write_layers: bool=False, file_format=None):
     ''' save networks
         ネットを構成するモデルの保存
         
         指定したパスの下にさらに日付でディレクトリを作成して保存
         古いものから削除する機能あり
+        名前を指定すれば日付ではなく名前で記録可能
         
         Args:
             path (str) : 保存するパス
             net (Model) : 保存するネット
-            backups (int) : 残しておく古いデータ数
+            name (str)  : 保存名(指定しなければ日時で保存)
+            backups (int) : 残しておく古いデータ数(-1ですべて残す)
             write_layers(bool) : レイヤー別に出力
+        
+        Returns:
+            name (str) : 保存名を返す
     '''
     
     # make dir
     os.makedirs(path, exist_ok=True)
     
     # save with date
-    date_str = get_date_string()
-    data_path = os.path.join(path, date_str)
+    if name is None:
+        name = get_date_string()
+    data_path = os.path.join(path, name)
     
     save_models(data_path, net, write_layers=write_layers, file_format=file_format)
     
     if backups >= 0:
         remove_old(path, keeps=backups)
+    
+    return name
 
-def load_networks(path: str, net, *, read_layers: bool=False, file_format=None):
+def load_networks(path: str, net, name=None, *, read_layers: bool=False, file_format=None):
     ''' load network
         ネットを構成するモデルの読み込み
         
         最新のデータを探して読み込み
+        名前を指定した場合はそれを読み込み
         
         Args:
             path (str) : 読み込むパス
@@ -248,11 +259,16 @@ def load_networks(path: str, net, *, read_layers: bool=False, file_format=None):
             file_format (str) : 読み込む形式(Noneがデフォルト)
     '''
     
-    data_path = get_latest_path(path)
+    if name is None:
+        data_path = get_latest_path(path)
+    else:
+        data_path = os.path.join(path, name)
+    
     if data_path is None:
         print('not loaded : file not found')
-        return
+        return False
     
-    load_models(data_path, net, read_layers=read_layers, file_format=None)
-    print('load : %s' % data_path)
+    ret = load_models(data_path, net, read_layers=read_layers, file_format=None)
+#   print('load : %s' % data_path)
 
+    return ret

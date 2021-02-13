@@ -14,7 +14,9 @@ import binarybrain.core as core
 #core_model_list = bb.get_core_subclass_dict(core.Model)
 #core_model_dict = bb.get_core_subclass_dict(core.Model)
 
-def search_core_model(model_name, dtypes=[]):
+def search_core_model(model_name, dtypes=None):
+    if dtypes is None:
+        dtypes = []
     return bb.search_core_object(model_name, dtypes)
 
 _model_creator_list = {}
@@ -308,61 +310,6 @@ class Model(bb.Object):
         if core_model is not None:
             return bb.FrameBuffer.from_core(core_model.backward(dy_buf.get_core()))
         return dy_buf
-    
-    ''' objectクラスに移管
-    def dumps(self) -> bytes:
-        """バイトデータにシリアライズ
-
-           モデルのデータをシリアライズして保存するためのバイト配列を生成
-        
-        Returns:
-            data (bytes): Serialize data
-        """
-        core_model = self.get_core()
-        if core_model is not None:
-            return core_model.dump_object()
-        return b''
-        
-    def loads(self, data: bytes) -> bytes:
-        """バイトデータをロード
-
-           モデルのデータをシリアライズして復帰のバイト配列ロード
-        
-        Args:
-            data (bytes): Serialize data
-        """
-        core_model = self.get_core()
-        if core_model is not None:
-            size = core_model.load_object(data)
-            return data[size:]
-        return data
-
-    def dump(self, filename: str):
-        """ファイルに保存
-
-           モデルのデータをシリアライズしてファイルに保存
-        
-        Args:
-            filename (str): ファイル名
-        """
-        with open(filename, 'wb') as f:
-            f.write(self.dumps())
-
-
-    def load(self, filename: str):
-        """ファイルからロード
-
-           ファイルからロード
-        
-        Args:
-            filename (str): ファイル名
-        """
-        with open(filename, 'rb') as f:
-            data, obj = self.loads(f.read())
-            if data != b'':
-                print('[Model.loads] warrning: data is too long')
-            return obj
-    '''
 
     def dump_bytes(self):
         # バイトデータにシリアライズ(old format)
@@ -397,7 +344,10 @@ class Sequential(Model):
         model_list (List[Model]): モデルのリスト
     """
     
-    def __init__(self, model_list=[], *, input_shape=None, name=None):
+    def __init__(self, model_list=None, *, input_shape=None, name=None):
+        if model_list is None:
+            model_list = []
+        self.name = ''
         self.model_list = model_list
         super(Sequential, self).__init__(input_shape=input_shape, name=name)
 
@@ -410,6 +360,21 @@ class Sequential(Model):
             core_model.set_name(self.name)            
         return core_model
     
+    def set_name(self, name):
+        self.name = name
+
+    def get_name(self):
+        if self.name is None:
+            return self.get_model_name()
+        return self.name
+
+    def is_named(self):
+        if self.name is None:
+            return False
+        if len(self.name) == 0: 
+            return False
+        return True
+
     def set_model_list(self, model_list):
         """モデルリストの設定
        
@@ -524,9 +489,15 @@ class Sequential(Model):
         data = bb.dump_object_header('Sequential')
         
         # バージョン
-        ver = 1
+        ver = 2
         data += bb.int_to_bytes(ver)
         
+        # 名前
+        name = self.name
+        if name is None:
+            name = ''
+        data += bb.string_to_bytes(name)
+
         # レイヤ数
         layer_size = len(self.model_list)
         data += bb.int_to_bytes(layer_size)
@@ -544,8 +515,13 @@ class Sequential(Model):
         
         # バージョン
         data, ver = bb.int_from_bytes(data)
-        assert(ver == 1)
+        assert(ver == 1 or ver == 2)
         
+        if ver == 2:
+            data, name = bb.string_from_bytes(data)
+            if not self.is_named():
+                self.name = name
+
         # レイヤ数
         data, layer_size = bb.int_from_bytes(data)
 
@@ -564,7 +540,8 @@ class Sequential(Model):
 
     @classmethod
     def from_bytes(cls, data):
-        new_model = cls(model_list=None)
+        new_model = cls()
+        new_model.model_list=None
         data = new_model.loads(data)
         return data, new_model
 
@@ -583,7 +560,9 @@ class Switcher(Model):
         init_model_name (str): 初期選択するモデルの名前
     """
     
-    def __init__(self, model_dict={}, init_model_name=None, *, input_shape=None, name=None):
+    def __init__(self, model_dict=None, init_model_name=None, *, input_shape=None, name=None):
+        if model_dict is None:
+            model_dict = {}
         self.model_dict = model_dict
         self.current_model_name = None
         self.current_model = None
@@ -601,6 +580,12 @@ class Switcher(Model):
                 self.current_model_name = model_name
                 self.current_model      = self.model_dict[model_name]
     
+    def __getitem__(self, key):
+        return self.model_dict[key]
+
+    def __setitem__(self, key, value):
+        self.model_dict[key] = value
+
     def get_model_list(self):
         return self.model_dict.values()
     
@@ -742,7 +727,8 @@ class Switcher(Model):
 
     @classmethod
     def from_bytes(cls, data):
-        new_model = cls(model_dict=None)
+        new_model = cls()
+        new_model.model_dict=None
         data = new_model.loads(data)
         return data, new_model
 
@@ -792,8 +778,10 @@ class BinaryToReal(Model):
         bin_dtype (DType): 入力の型を bb.DType.FP32 もしくは bb.DType.BIT で指定可能
     """
     
-    def __init__(self, *, frame_integration_size=1, depth_integration_size=1, output_shape=[], input_shape=None, name=None,
+    def __init__(self, *, frame_integration_size=1, depth_integration_size=1, output_shape=None, input_shape=None, name=None,
                                                     bin_dtype=bb.DType.FP32, real_type=bb.DType.FP32, core_model=None):
+        if output_shape is None:
+            output_shape = []
         if core_model is None:
             core_creator = search_core_model('BinaryToReal', [bin_dtype, real_type]).create
             core_model = core_creator(frame_integration_size=frame_integration_size, depth_integration_size=depth_integration_size, output_shape=output_shape)
@@ -812,8 +800,10 @@ class BitEncode(Model):
         bit_size (int): エンコードするbit数
     """
 
-    def __init__(self, bit_size=1, *, output_shape=[], input_shape=None, name=None,
+    def __init__(self, bit_size=1, *, output_shape=None, input_shape=None, name=None,
                         bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32, core_model=None):
+        if output_shape is None:
+            output_shape = []
         if core_model is None:
             core_creator = search_core_model('BitEncode', [bin_dtype, real_dtype]).create
             core_model = core_creator(bit_size, output_shape)
@@ -833,8 +823,10 @@ class Reduce(Model):
         integration_size (int): 積算するサイズ
     """
 
-    def __init__(self, output_shape=[], integration_size=0, *, input_shape=None, name=None,
+    def __init__(self, output_shape=None, integration_size=0, *, input_shape=None, name=None,
                         bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32, core_model=None):
+        if output_shape is None:
+            output_shape = []
         if core_model is None:
             core_creator = search_core_model('Reduce', [bin_dtype, real_dtype]).create
             core_model = core_creator(output_shape, integration_size)
@@ -858,8 +850,10 @@ class DenseAffine(Model):
         seed (int): 変数初期値などの乱数シード
     """
     
-    def __init__(self, output_shape=[], *, input_shape=None, initialize_std=0.01, initializer='he', seed=1, name=None,
+    def __init__(self, output_shape=None, *, input_shape=None, initialize_std=0.01, initializer='he', seed=1, name=None,
                         dtype=bb.DType.FP32, core_model=None):
+        if output_shape is None:
+            output_shape = []
         if core_model is None:
             core_creator = search_core_model('DenseAffine', [dtype]).create
             core_model = core_creator(output_shape=output_shape, initialize_std=initialize_std, initializer=initializer, seed=seed)
@@ -883,8 +877,10 @@ class DepthwiseDenseAffine(Model):
         seed (int): 変数初期値などの乱数シード
     """
     
-    def __init__(self, output_shape=[], *, input_shape=None, input_point_size=0, depth_size=0,
+    def __init__(self, output_shape=None, *, input_shape=None, input_point_size=0, depth_size=0,
                             initialize_std=0.01, initializer='he', seed=1, name=None, dtype=bb.DType.FP32, core_model=None):
+        if output_shape is None:
+            output_shape = []
         if core_model is None:
             core_creator = search_core_model('DepthwiseDenseAffine', [dtype]).create
             core_model = core_creator(output_shape=output_shape, initialize_std=initialize_std, initializer=initializer, seed=seed)
@@ -994,9 +990,11 @@ class DifferentiableLut(SparseModel):
         bin_dtype (DType)): バイナリ出力の型を bb.DType.FP32 と bb.DType.BIT から指定(bb.DType.BIT は binarize=True 時のみ)
     """
     
-    def __init__(self, output_shape=[], *, input_shape=None,
+    def __init__(self, output_shape=None, *, input_shape=None,
                     connection='random', binarize=True, batch_norm=True, momentum=0.0, gamma= 0.3, beta=0.5, seed=1,
                     name=None, N=6, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32, core_model=None):
+        if output_shape is None:
+            output_shape = []
         if core_model is None:
             core_creator = search_core_model('DifferentiableLut' + str(N), [bin_dtype, real_dtype]).create
             core_model = core_creator(output_shape, batch_norm, binarize, connection, momentum, gamma, beta, seed)
@@ -1057,8 +1055,10 @@ class BinaryLut(SparseModel):
         fw_dtype (DType)): forwardの型を bb.DType.FP32 と bb.DType.BIT から指定
     """
     
-    def __init__(self, output_shape=[], *, input_shape=None,
+    def __init__(self, output_shape=None, *, input_shape=None,
                     connection='random', seed=1, name=None, N=6, fw_dtype=bb.DType.FP32, bw_dtype=bb.DType.FP32, core_model=None):
+        if output_shape is None:
+            output_shape = []
         if core_model is None:
             core_creator = search_core_model('BinaryLut' + str(N), [fw_dtype, bw_dtype]).create
             core_model  = core_creator(output_shape, connection, seed)
@@ -1513,7 +1513,9 @@ class Shuffle(Model):
         shuffle_unit (int): シャッフルする単位
     """
 
-    def __init__(self, shuffle_unit, *, output_shape=[], input_shape=None, name=None, core_model=None):
+    def __init__(self, shuffle_unit, *, output_shape=None, input_shape=None, name=None, core_model=None):
+        if output_shape is None:
+            output_shape = []
         if core_model is None:
             core_creator = search_core_model('Shuffle', []).create
             core_model = core_creator(shuffle_unit, output_shape)
@@ -1565,6 +1567,8 @@ def get_model_list_for_rtl(net):
     
     def flatten_list(in_list, out_list):
         for model in in_list:
+            if issubclass(type(model), Switcher):
+                model = model.get_current_model()
             if type(model) != Convolution2d and hasattr(model, 'get_model_list'):
                 flatten_list(model.get_model_list(), out_list)
             else:

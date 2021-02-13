@@ -17,7 +17,7 @@ namespace bb
 
 #define BB_MAJOR_VERSION        4
 #define BB_MINOR_VERSION        1
-#define BB_REVISION_NUMBER      2
+#define BB_REVISION_NUMBER      3
 
 #define BB_VERSION              (std::to_string(BB_MAJOR_VERSION) + "." + std::to_string(BB_MINOR_VERSION) + "." + std::to_string(BB_REVISION_NUMBER))
 
