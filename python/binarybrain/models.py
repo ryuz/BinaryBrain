@@ -1457,6 +1457,22 @@ class HardTanh(Model):
 model_creator_regist('HardTanh', HardTanh.from_bytes)
 
 
+
+class Softmax(Model):
+    """Softmax class
+
+       Softmax 活性化層
+    """
+    def __init__(self, *, input_shape=None, name=None, dtype=bb.DType.FP32, core_model=None):
+        if core_model is None:
+            core_creator = search_core_model('Softmax', [dtype]).create
+            core_model = core_creator()
+
+        super(Softmax, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+model_creator_regist('Softmax', Softmax.from_bytes)
+
+
 # ------- 補助モデル --------
 
 class BatchNormalization(Model):

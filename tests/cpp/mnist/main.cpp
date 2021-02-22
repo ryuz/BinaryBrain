@@ -34,6 +34,8 @@ void MnistAeDifferentiableLutCnn   (int epoch_size, int mini_batch_size, int tra
 void MnistCustomModel              (int epoch_size, int mini_batch_size,                                                      bool binary_mode, bool file_read);
 void MnistLoadNet                  (int epoch_size, int mini_batch_size, std::string filename);
 
+void MnistDenseBinary(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+
 
 // メイン関数
 int main(int argc, char *argv[])
@@ -131,6 +133,11 @@ int main(int argc, char *argv[])
         bbcu::PrintDeviceProperties();
     }
 #endif
+
+    
+    MnistDenseBinary(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    return 0;
+
 
     if ( netname == "All" || netname == "StochasticLutSimple" ) {
         MnistStochasticLutSimple(epoch_size, mini_batch_size, test_modulation_size, binary_mode, file_read);

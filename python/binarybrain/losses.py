@@ -48,6 +48,35 @@ class LossFunction(bb.Object):
         return bb.FrameBuffer.from_core(self.get_core().calculate_loss(y_buf.get_core(), t_buf.get_core(), mini_batch_size))
 
 
+class LossMeanSquaredError(LossFunction):
+    """LossMeanSquaredError class
+
+        平均二乗誤差(MSE)を計算して誤差として戻す
+    """
+    
+    def __init__(self, dtype=bb.DType.FP32):
+        core_loss = bb.search_core_object('LossSoftmaxCrossEntropy', [dtype]).create()
+        super(LossMeanSquaredError, self).__init__(core_loss=core_loss)
+
+
+
+class LossCrossEntropy(LossFunction):
+    """LossCrossEntropy class
+    """
+    
+    def __init__(self, dtype=bb.DType.FP32):
+        core_loss = bb.search_core_object('LossCrossEntropy', [dtype]).create()
+        super(LossCrossEntropy, self).__init__(core_loss=core_loss)
+
+
+class LossBinaryCrossEntropy(LossFunction):
+    """LossBinaryCrossEntropy class
+    """
+    
+    def __init__(self, dtype=bb.DType.FP32):
+        core_loss = bb.search_core_object('LossBinaryCrossEntropy', [dtype]).create()
+        super(LossBinaryCrossEntropy, self).__init__(core_loss=core_loss)
+
 
 class LossSoftmaxCrossEntropy(LossFunction):
     """LossSoftmaxCrossEntropy class
@@ -61,15 +90,4 @@ class LossSoftmaxCrossEntropy(LossFunction):
     def __init__(self, dtype=bb.DType.FP32):
         core_loss = bb.search_core_object('LossSoftmaxCrossEntropy', [dtype]).create()
         super(LossSoftmaxCrossEntropy, self).__init__(core_loss=core_loss)
-
-
-class LossMeanSquaredError(LossFunction):
-    """LossMeanSquaredError class
-
-        平均二乗誤差(MSE)を計算して誤差として戻す
-    """
-    
-    def __init__(self, dtype=bb.DType.FP32):
-        core_loss = bb.search_core_object('LossSoftmaxCrossEntropy', [dtype]).create()
-        super(LossMeanSquaredError, self).__init__(core_loss=core_loss)
 

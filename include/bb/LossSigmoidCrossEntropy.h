@@ -19,12 +19,12 @@
 namespace bb {
 
 template <typename T = float>
-class LossCrossEntropy : public LossFunction
+class LossSigmoidCrossEntropy : public LossFunction
 {
     using _super = LossFunction;
 
 public:
-    static inline std::string LossFunctionName(void) { return "LossCrossEntropy"; }
+    static inline std::string LossFunctionName(void) { return "LossSigmoidCrossEntropy"; }
     static inline std::string ObjectName(void){ return LossFunctionName() + "_" + DataType<T>::Name(); }
     
     std::string GetLossFunctionName(void) const override { return LossFunctionName(); }
@@ -35,16 +35,16 @@ protected:
     index_t          m_frame_count = 0;
 
 protected:
-    LossCrossEntropy() {
+    LossSigmoidCrossEntropy() {
         Clear();
     }
 
 public:
-    ~LossCrossEntropy() {}
+    ~LossSigmoidCrossEntropy() {}
     
-    static std::shared_ptr<LossCrossEntropy> Create(void)
+    static std::shared_ptr<LossSigmoidCrossEntropy> Create(void)
     {
-        auto self = std::shared_ptr<LossCrossEntropy>(new LossCrossEntropy);
+        auto self = std::shared_ptr<LossSigmoidCrossEntropy>(new LossSigmoidCrossEntropy);
         return self;
     }
 
@@ -83,12 +83,19 @@ public:
             for (index_t frame = 0; frame < frame_size; ++frame) {
                 for (index_t node = 0; node < node_size; ++node) {
                     auto y = y_ptr.Get(frame, node);
+
+                    // sigmoid
+                    y = (T)1 / ((T)1 + std::exp(-y));
+                    
                     auto t = t_ptr.Get(frame, node);
                     T   dy = 0;
                     if ( t > 0 ) {
                         m_loss -= (double)std::log(y);
-                        dy = (T)-1 / y;
-                        dy *= t;
+                        dy = y - (T)1;
+                    }
+                    else {
+                        m_loss -= (double)std::log((T)1 - y);
+                        dy = y;
                     }
                     dy_ptr.Set(frame, node, dy / batch_size);
                 }

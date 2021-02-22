@@ -35,3 +35,11 @@ HardTanh クラス
    :members:
    :show-inheritance:
 
+
+Softmax クラス
+----------------------------
+
+.. autoclass:: binarybrain.models.Softmax
+   :members:
+   :show-inheritance:
+

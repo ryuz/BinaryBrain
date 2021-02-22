@@ -57,6 +57,7 @@
 #include "bb/Sigmoid.h"
 #include "bb/ReLU.h"
 #include "bb/HardTanh.h"
+#include "bb/Softmax.h"
 
 #include "bb/BatchNormalization.h"
 #include "bb/StochasticBatchNormalization.h"
@@ -64,8 +65,10 @@
 #include "bb/Shuffle.h"
 
 #include "bb/LossFunction.h"
-#include "bb/LossSoftmaxCrossEntropy.h"
 #include "bb/LossMeanSquaredError.h"
+#include "bb/LossCrossEntropy.h"
+#include "bb/LossBinaryCrossEntropy.h"
+#include "bb/LossSoftmaxCrossEntropy.h"
 
 #include "bb/MetricsFunction.h"
 #include "bb/MetricsCategoricalAccuracy.h"
@@ -223,6 +226,7 @@ using ReLU_fp32_fp32                         = bb::ReLU<float, float>;
 using ReLU_bit_fp32                          = bb::ReLU<bb::Bit, float>;
 using HardTanh_fp32_fp32                     = bb::HardTanh<float, float>;
 using HardTanh_bit_fp32                      = bb::HardTanh<bb::Bit, float>;
+using Softmax_fp32                           = bb::Softmax<float>;
 
 using BatchNormalization_fp32                = bb::BatchNormalization<float>;
 using StochasticBatchNormalization_fp32      = bb::StochasticBatchNormalization<float>;
@@ -232,6 +236,8 @@ using Shuffle                                = bb::Shuffle;
                                         
 using LossFunction                           = bb::LossFunction;
 using LossMeanSquaredError_fp32              = bb::LossMeanSquaredError<float>;
+using LossCrossEntropy_fp32                  = bb::LossCrossEntropy<float>;
+using LossBinaryCrossEntropy_fp32            = bb::LossBinaryCrossEntropy<float>;
 using LossSoftmaxCrossEntropy_fp32           = bb::LossSoftmaxCrossEntropy<float>;
                                         
 using MetricsFunction                        = bb::MetricsFunction;
@@ -946,6 +952,8 @@ PYBIND11_MODULE(core, m) {
     PYCLASS_MODEL(HardTanh_bit_fp32, Binarize_bit_fp32)
         .def_static("create", &HardTanh_bit_fp32::CreatePy);
 
+    PYCLASS_MODEL(Softmax_fp32, Activation)
+        .def_static("create", &Softmax_fp32::Create);
     
     PYCLASS_MODEL(Dropout_fp32_fp32, Activation)
         .def_static("create", &Dropout_fp32_fp32::CreatePy,
@@ -986,12 +994,17 @@ PYBIND11_MODULE(core, m) {
             py::arg("t_buf"),
             py::arg("mini_batch_size"));
 
-    PYCLASS_LOSS(LossSoftmaxCrossEntropy_fp32, LossFunction)
-        .def_static("create", &LossSoftmaxCrossEntropy_fp32::Create);
-
     PYCLASS_LOSS(LossMeanSquaredError_fp32, LossFunction)
         .def_static("create", &LossMeanSquaredError_fp32::Create);
 
+    PYCLASS_LOSS(LossCrossEntropy_fp32, LossFunction)
+        .def_static("create", &LossCrossEntropy_fp32::Create);
+
+    PYCLASS_LOSS(LossBinaryCrossEntropy_fp32, LossFunction)
+        .def_static("create", &LossBinaryCrossEntropy_fp32::Create);
+
+    PYCLASS_LOSS(LossSoftmaxCrossEntropy_fp32, LossFunction)
+        .def_static("create", &LossSoftmaxCrossEntropy_fp32::Create);
 
 
     // ------------------------------------
