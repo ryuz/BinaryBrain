@@ -396,6 +396,7 @@
     <ClInclude Include="..\..\..\include\bb\LoadCifar10.h" />
     <ClInclude Include="..\..\..\include\bb\LoadMnist.h" />
     <ClInclude Include="..\..\..\include\bb\LoadXor.h" />
+    <ClInclude Include="..\..\..\include\bb\LossBinaryCrossEntropy.h" />
     <ClInclude Include="..\..\..\include\bb\LossFunction.h" />
     <ClInclude Include="..\..\..\include\bb\LossMeanSquaredError.h" />
     <ClInclude Include="..\..\..\include\bb\LossSoftmaxCrossEntropy.h" />

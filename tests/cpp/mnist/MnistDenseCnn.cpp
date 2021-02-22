@@ -21,6 +21,9 @@
 #include "bb/Runner.h"
 #include "bb/LoadMnist.h"
 
+#include "bb/Softmax.h"
+#include "bb/LossCrossEntropy.h"
+
 
 void MnistDenseCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
@@ -72,6 +75,8 @@ void MnistDenseCnn(int epoch_size, int mini_batch_size, int train_modulation_siz
             main_net->Add(bb::BatchNormalization<float>::Create());
             main_net->Add(bb::ReLU<float>::Create());
         }
+        main_net->Add(bb::Softmax<float>::Create());
+        
 
         // modulation wrapper
         auto net = bb::BinaryModulation<float>::Create(main_net, train_modulation_size, test_modulation_size);
@@ -104,7 +109,7 @@ void MnistDenseCnn(int epoch_size, int mini_batch_size, int train_modulation_siz
         bb::Runner<float>::create_t runner_create;
         runner_create.name               = net_name;
         runner_create.net                = net;
-        runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
+        runner_create.lossFunc           = bb::LossCrossEntropy<float>::Create();
         runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
         runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
         runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
