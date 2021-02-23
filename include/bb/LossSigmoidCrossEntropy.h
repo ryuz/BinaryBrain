@@ -86,22 +86,22 @@ public:
 
                     // sigmoid
                     y = (T)1 / ((T)1 + std::exp(-y));
-                    
+
                     auto t = t_ptr.Get(frame, node);
                     T   dy = 0;
                     if ( t > 0 ) {
-                        m_loss -= (double)std::log(y);
+                        m_loss -= (double)std::log(std::max((T)1.0e-7, y));
                         dy = y - (T)1;
                     }
                     else {
-                        m_loss -= (double)std::log((T)1 - y);
+                        m_loss -= (double)std::log(std::max((T)1.0e-7, (T)1 - y));
                         dy = y;
                     }
                     dy_ptr.Set(frame, node, dy / batch_size);
                 }
             }
 
-            m_frame_count += frame_size;
+            m_frame_count += frame_size*node_size;
 
             return dy_buf;
         }

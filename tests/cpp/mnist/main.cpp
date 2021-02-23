@@ -134,10 +134,7 @@ int main(int argc, char *argv[])
     }
 #endif
 
-    
-    MnistDenseBinary(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
-    return 0;
-
+   
 
     if ( netname == "All" || netname == "StochasticLutSimple" ) {
         MnistStochasticLutSimple(epoch_size, mini_batch_size, test_modulation_size, binary_mode, file_read);
@@ -169,6 +166,10 @@ int main(int argc, char *argv[])
 
     if ( netname == "All" || netname == "DenseCnn" ) {
         MnistDenseCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    }
+
+    if ( netname == "All" || netname == "DenseBinary" ) {
+       MnistDenseBinary(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
     
     if ( netname == "All" || netname == "AeDifferentiableLutSimple" ) {

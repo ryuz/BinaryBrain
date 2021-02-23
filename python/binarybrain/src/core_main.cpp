@@ -69,10 +69,11 @@
 #include "bb/LossCrossEntropy.h"
 #include "bb/LossBinaryCrossEntropy.h"
 #include "bb/LossSoftmaxCrossEntropy.h"
+#include "bb/LossSigmoidCrossEntropy.h"
 
 #include "bb/MetricsFunction.h"
 #include "bb/MetricsCategoricalAccuracy.h"
-#include "bb/MetricsBinaryAccuracy.h"
+#include "bb/MetricsBinaryCategoricalAccuracy.h"
 #include "bb/MetricsMeanSquaredError.h"
 
 #include "bb/Optimizer.h"
@@ -239,10 +240,11 @@ using LossMeanSquaredError_fp32              = bb::LossMeanSquaredError<float>;
 using LossCrossEntropy_fp32                  = bb::LossCrossEntropy<float>;
 using LossBinaryCrossEntropy_fp32            = bb::LossBinaryCrossEntropy<float>;
 using LossSoftmaxCrossEntropy_fp32           = bb::LossSoftmaxCrossEntropy<float>;
+using LossSigmoidCrossEntropy_fp32           = bb::LossSigmoidCrossEntropy<float>;
                                         
 using MetricsFunction                        = bb::MetricsFunction;
 using MetricsCategoricalAccuracy_fp32        = bb::MetricsCategoricalAccuracy<float>;
-using MetricsBinaryAccuracy_fp32             = bb::MetricsBinaryAccuracy<float>;
+using MetricsBinaryCategoricalAccuracy_fp32  = bb::MetricsBinaryCategoricalAccuracy<float>;
 using MetricsMeanSquaredError_fp32           = bb::MetricsMeanSquaredError<float>;
 
 using Optimizer                              = bb::Optimizer;
@@ -1006,6 +1008,9 @@ PYBIND11_MODULE(core, m) {
     PYCLASS_LOSS(LossSoftmaxCrossEntropy_fp32, LossFunction)
         .def_static("create", &LossSoftmaxCrossEntropy_fp32::Create);
 
+    PYCLASS_LOSS(LossSigmoidCrossEntropy_fp32, LossFunction)
+        .def_static("create", &LossSigmoidCrossEntropy_fp32::Create);
+
 
     // ------------------------------------
     //  Metrics Functions
@@ -1022,8 +1027,8 @@ PYBIND11_MODULE(core, m) {
     PYCLASS_METRICS(MetricsCategoricalAccuracy_fp32, MetricsFunction)
         .def_static("create", &MetricsCategoricalAccuracy_fp32::Create);
 
-    PYCLASS_METRICS(MetricsBinaryAccuracy_fp32, MetricsFunction)
-        .def_static("create", &MetricsBinaryAccuracy_fp32::Create);
+    PYCLASS_METRICS(MetricsBinaryCategoricalAccuracy_fp32, MetricsFunction)
+        .def_static("create", &MetricsBinaryCategoricalAccuracy_fp32::Create);
 
     PYCLASS_METRICS(MetricsMeanSquaredError_fp32, MetricsFunction)
         .def_static("create", &MetricsMeanSquaredError_fp32::Create);

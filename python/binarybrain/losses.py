@@ -84,10 +84,24 @@ class LossSoftmaxCrossEntropy(LossFunction):
        Softmax(活性化) と CrossEntropy(損失関数) の複合
        両者を統合すると計算が簡略化される。
        
-       利用に際しては最終段にSoftmaxが挿入されるので注意すること。
+       利用に際しては最終段に Softmax が挿入されたのと等価になるので注意すること。
     """
     
     def __init__(self, dtype=bb.DType.FP32):
         core_loss = bb.search_core_object('LossSoftmaxCrossEntropy', [dtype]).create()
         super(LossSoftmaxCrossEntropy, self).__init__(core_loss=core_loss)
+
+
+class LossSigmoidCrossEntropy(LossFunction):
+    """LossSigmoidCrossEntropy class
+
+       Sigmoid(活性化) と BinaryCrossEntropy(損失関数) の複合
+       両者を統合すると計算が簡略化される。
+       
+       利用に際しては最終段に Sigmoid が挿入されたのと等価になるので注意すること。
+    """
+    
+    def __init__(self, dtype=bb.DType.FP32):
+        core_loss = bb.search_core_object('LossSigmoidCrossEntropy', [dtype]).create()
+        super(LossSigmoidCrossEntropy, self).__init__(core_loss=core_loss)
 
