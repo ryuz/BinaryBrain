@@ -78,6 +78,8 @@ void MnistDenseCnn(int epoch_size, int mini_batch_size, int train_modulation_siz
         main_net->Add(bb::Convolution2d<bb::Bit>::Create(cnv2_net, 3, 3));   // Conv3x3 x 64
         main_net->Add(bb::Convolution2d<bb::Bit>::Create(cnv3_net, 3, 3));   // Conv3x3 x 64
         main_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
+
+#if 0
         main_net->Add(bb::DenseAffine<>::Create(256));
         main_net->Add(bb::ReLU<bb::Bit>::Create());
         main_net->Add(bb::DenseAffine<>::Create(td.t_shape));
@@ -85,6 +87,10 @@ void MnistDenseCnn(int epoch_size, int mini_batch_size, int train_modulation_siz
             main_net->Add(bb::BatchNormalization<>::Create());
             main_net->Add(bb::ReLU<bb::Bit>::Create());
         }
+#else
+        main_net->Add(bb::BinaryDenseAffine<bb::Bit>::Create({256}));
+        main_net->Add(bb::BinaryDenseAffine<bb::Bit>::Create(td.t_shape));
+#endif
 
         // modulation wrapper
         auto net = bb::BinaryModulation<bb::Bit>::Create(main_net, train_modulation_size, test_modulation_size);
@@ -99,6 +105,11 @@ void MnistDenseCnn(int epoch_size, int mini_batch_size, int train_modulation_siz
         else {
             net->SendCommand("binary false");
         }
+
+        net->SendCommand("parameter_lock false");
+//        cnv3_net->SendCommand("parameter_lock true");
+//        cnv1_net->SendCommand("parameter_lock false");
+//        cnv2_net->SendCommand("parameter_lock false");
 
         // print model information
         net->PrintInfo();
@@ -123,7 +134,7 @@ void MnistDenseCnn(int epoch_size, int mini_batch_size, int train_modulation_siz
         runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
         runner_create.file_write         = true;            // 計算結果をファイルに保存するか
         runner_create.print_progress     = true;            // 途中結果を表示
-        runner_create.initial_evaluation = file_read;       // ファイルを読んだ場合は最初に評価しておく 
+        runner_create.initial_evaluation = false;//file_read;       // ファイルを読んだ場合は最初に評価しておく 
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }

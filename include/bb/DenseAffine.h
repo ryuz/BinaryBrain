@@ -260,7 +260,7 @@ public:
     }
     
 
-    Variables GetParameters(void)
+    Variables GetParameters(void) override
     {
         Variables parameters;
         if ( !this->m_parameter_lock ) {
@@ -270,7 +270,7 @@ public:
         return parameters;
     }
 
-    Variables GetGradients(void)
+    Variables GetGradients(void) override
     {
         Variables gradients;
         if ( !this->m_parameter_lock ) {
@@ -280,8 +280,17 @@ public:
         return gradients;
     }
 
+    void SetFrameBufferX(FrameBuffer x_buf) override
+    {
+        m_x_buf = x_buf;
+    }
 
-    FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
+    FrameBuffer GetFrameBufferX(void)  override
+    {
+        return m_x_buf;
+    }
+
+    FrameBuffer Forward(FrameBuffer x_buf, bool train = true) override
     {
         // backwardの為に保存
         if ( train ) {
@@ -368,7 +377,7 @@ public:
     }
 
 
-    FrameBuffer Backward(FrameBuffer dy_buf)
+    FrameBuffer Backward(FrameBuffer dy_buf) override
     {
         if ( dy_buf.Empty() || m_backward_break ) {
             m_dW = 0;
