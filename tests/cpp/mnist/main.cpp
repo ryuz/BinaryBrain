@@ -128,9 +128,11 @@ int main(int argc, char *argv[])
         test_modulation_size = train_modulation_size;
     }
 
+    cudaSetDevice(1);
+
 #ifdef BB_WITH_CUDA
     if ( print_device ) {
-        bbcu::PrintDeviceProperties();
+        bbcu::PrintDeviceProperties(1);
     }
 #endif
 

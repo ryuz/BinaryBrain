@@ -562,6 +562,11 @@ public:
 
     FrameBuffer Backward(FrameBuffer dy_buf) override
     {
+        if (dy_buf.Empty()) {
+            m_dW = 0;
+            return FrameBuffer();
+        }
+
         BB_ASSERT(dy_buf.GetType() == DataType<RealType>::type);
 
         FrameBuffer x_buf = m_x_buf;

@@ -73,6 +73,7 @@
     <ClInclude Include="..\..\include\bb\BackpropagatedBatchNormalization.h" />
     <ClInclude Include="..\..\include\bb\BatchNormalization.h" />
     <ClInclude Include="..\..\include\bb\Binarize.h" />
+    <ClInclude Include="..\..\include\bb\BinaryDenseAffine.h" />
     <ClInclude Include="..\..\include\bb\BinaryLutModel.h" />
     <ClInclude Include="..\..\include\bb\BinaryLutN.h" />
     <ClInclude Include="..\..\include\bb\BinaryModulation.h" />

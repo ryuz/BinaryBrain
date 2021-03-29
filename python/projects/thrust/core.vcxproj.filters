@@ -265,5 +265,14 @@
     <ClInclude Include="..\..\..\include\bb\ObjectLoader.h">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\bb\LossBinaryCrossEntropy.h">
+      <Filter>ヘッダファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\bb\LossSigmoidCrossEntropy.h">
+      <Filter>ヘッダファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\bb\BinaryDenseAffine.h">
+      <Filter>ヘッダファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

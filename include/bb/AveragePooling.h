@@ -317,6 +317,10 @@ public:
     
     FrameBuffer Backward(FrameBuffer dy)
     {
+        if (dy_buf.Empty()) {
+            return dy_buf;
+        }
+
         BB_ASSERT(dy.GetType() == DataType<BT>::type);
 
         m_dx.Resize(DataType<BT>::type, dy.GetFrameSize(), m_input_shape);

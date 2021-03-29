@@ -409,6 +409,10 @@ public:
 
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
+        if (dy_buf.Empty()) {
+            return dy_buf;
+        }
+
         BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
         
         // 出力設定

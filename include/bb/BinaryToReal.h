@@ -279,6 +279,10 @@ public:
 
     FrameBuffer Backward(FrameBuffer dy_buf) override
     {
+        if (dy_buf.Empty()) {
+            return dy_buf;
+        }
+
         if ( !m_binary_mode || (m_frame_integration_size == 1 && m_input_shape == m_output_shape) ) {
             return dy_buf;
         }

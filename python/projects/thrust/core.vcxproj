@@ -31,6 +31,7 @@
     <ClInclude Include="..\..\..\include\bb\BackpropagatedBatchNormalization.h" />
     <ClInclude Include="..\..\..\include\bb\BatchNormalization.h" />
     <ClInclude Include="..\..\..\include\bb\Binarize.h" />
+    <ClInclude Include="..\..\..\include\bb\BinaryDenseAffine.h" />
     <ClInclude Include="..\..\..\include\bb\BinaryLutModel.h" />
     <ClInclude Include="..\..\..\include\bb\BinaryLutN.h" />
     <ClInclude Include="..\..\..\include\bb\BinaryModulation.h" />
@@ -58,8 +59,10 @@
     <ClInclude Include="..\..\..\include\bb\LoadCifar10.h" />
     <ClInclude Include="..\..\..\include\bb\LoadMnist.h" />
     <ClInclude Include="..\..\..\include\bb\LoadXor.h" />
+    <ClInclude Include="..\..\..\include\bb\LossBinaryCrossEntropy.h" />
     <ClInclude Include="..\..\..\include\bb\LossFunction.h" />
     <ClInclude Include="..\..\..\include\bb\LossMeanSquaredError.h" />
+    <ClInclude Include="..\..\..\include\bb\LossSigmoidCrossEntropy.h" />
     <ClInclude Include="..\..\..\include\bb\LossSoftmaxCrossEntropy.h" />
     <ClInclude Include="..\..\..\include\bb\LutModel.h" />
     <ClInclude Include="..\..\..\include\bb\Manager.h" />

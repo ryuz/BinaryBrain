@@ -421,6 +421,10 @@ public:
      */
     FrameBuffer Forward(FrameBuffer x_buf, bool train=true) override
     {
+        if ( this->m_parameter_lock ) {
+            train = false;
+        }
+
         // bypass
         if (m_bypass) {
             return x_buf;
@@ -760,6 +764,17 @@ public:
      */
     FrameBuffer Backward(FrameBuffer dy_buf) override
     {
+        if ( this->m_parameter_lock ) {
+            return BackwardLock(dy_buf);
+        }
+
+        if (dy_buf.Empty()) {
+            m_dgamma = 0;
+            m_dbeta = 0;
+            return dy_buf;
+        }
+
+
         if (m_bypass) {
             return dy_buf;
         }
@@ -942,6 +957,64 @@ public:
             return dx_buf;
         } 
     }
+
+
+    FrameBuffer BackwardLock(FrameBuffer dy_buf)
+    {
+        // 出力設定
+        FrameBuffer dx_buf(dy_buf.GetFrameSize(), dy_buf.GetShape(), dy_buf.GetType());
+
+#ifdef BB_WITH_CUDA
+        if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && dy_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            auto dev_dy_ptr          = dy_buf.LockDeviceMemoryConst();
+            auto dev_dx_ptr          = dx_buf.LockDeviceMemory(true);
+            auto dev_gamma_ptr       = m_gamma->LockDeviceMemoryConst();
+            auto dev_running_var_ptr = m_running_var.LockDeviceMemoryConst();
+            bbcu_fp32_BatchNormalization_BackwardLock
+                (
+                    (const float *)dev_dy_ptr.GetAddr(),
+                    (float       *)dev_dx_ptr.GetAddr(),
+                    (float const *)dev_gamma_ptr.GetAddr(),
+                    (float const *)dev_running_var_ptr.GetAddr(),
+                    (int          )dy_buf.GetNodeSize(),
+                    (int          )dy_buf.GetFrameSize(),
+                    (int          )dy_buf.GetFrameStride() / sizeof(float)
+                );
+
+            return dx_buf;
+        }
+#endif
+
+
+        {
+            // 汎用版
+            auto node_size    = dy_buf.GetNodeSize();
+            auto frame_size   = dy_buf.GetFrameSize();
+
+            auto gamma_ptr        = lock_gamma_const();
+            auto running_var_ptr  = m_running_var.Lock();
+            
+            auto dy_ptr = dy_buf.LockConst<T>();
+            auto dx_ptr = dx_buf.Lock<T>();
+
+            #pragma omp parallel for
+            for (index_t node = 0; node < node_size; ++node) {
+                T   var    = running_var_ptr[node];
+                T   gamma  = gamma_ptr[node];
+                T   rstd   = (T)1.0 / (std::sqrt(var) + (T)1.0e-7);
+                T   coeff  = gamma * rstd;
+
+                for ( index_t frame = 0; frame < frame_size; ++frame) {
+                    T dy = dy_ptr.Get(frame, node);
+                    T dx = dy * coeff;
+                    dx_ptr.Set(frame, node, dx);
+                }
+            }
+
+            return dx_buf;
+        } 
+    }
+
 };
 
 }

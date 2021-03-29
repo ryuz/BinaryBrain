@@ -214,6 +214,10 @@ public:
      */
     inline FrameBuffer Backward(FrameBuffer dy_buf) override
     {
+        if (dy_buf.Empty()) {
+            return FrameBuffer();
+        }
+        
         // 戻り値のサイズ設定
         FrameBuffer dx_buf(dy_buf.GetFrameSize(), m_input_shape, dy_buf.GetType());
         

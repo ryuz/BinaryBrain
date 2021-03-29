@@ -42,6 +42,7 @@ public:
 protected:
     bool                        m_host_only = false;
     bool                        m_binary_mode = false;
+    bool                        m_backward_break = false;
 
     T                           m_initialize_std = (T)0.01;
     std::string                 m_initializer = "he";
@@ -112,6 +113,11 @@ protected:
         if (args.size() == 2 && args[0] == "host_only")
         {
             m_host_only = EvalBool(args[1]);
+        }
+
+        if (args.size() == 2 && args[0] == "backward_break")
+        {
+            m_backward_break = EvalBool(args[1]);
         }
     }
 
@@ -364,6 +370,12 @@ public:
 
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
+        if ( dy_buf.Empty() || m_backward_break ) {
+            m_dW = 0;
+            m_db = 0;
+            return FrameBuffer();
+        }
+
         BB_ASSERT(dy_buf.GetType() == DataType<T>::type);
 
         // フレーム数

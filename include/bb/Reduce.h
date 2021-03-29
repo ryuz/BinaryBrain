@@ -229,6 +229,10 @@ public:
 
     FrameBuffer Backward(FrameBuffer dy_buf) override
     {
+        if (dy_buf.Empty()) {
+            return FrameBuffer();
+        }
+
         BB_ASSERT(dy_buf.GetType() == DataType<RealType>::type);
 
         // 戻り値の型を設定

@@ -247,6 +247,11 @@ public:
         return *m_tensors[index];
     }
 
+    Tensor At(index_t index)
+    {
+        BB_DEBUG_ASSERT(index >= 0 && index < GetSize());
+        return *m_tensors[index];
+    }
 
     // arithmetic operator
     Variables &operator=(Variables const &src)

@@ -454,3 +454,86 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Backward
     return 0;
 }
 
+
+
+// パラメータロック時のバックワード
+__global__ void kernal_fp32_BatchNormalization_BackwardLock(
+            const float     *dy_buf,
+            float           *dx_buf,
+            float const     *gamma_buf,
+            float const     *running_var_buf,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride
+        )
+{
+    int node    = blockDim.y * blockIdx.y + threadIdx.y;
+    int id      = threadIdx.x;
+    int id_step = blockDim.x;
+
+    if ( node >= node_size) {
+        return;
+    }
+
+    float gamma = gamma_buf[node];
+    float var   = running_var_buf[node];
+
+    float rstd  = 1.0 / (sqrt(var) + 1.0e-7);
+    float coeff = gamma * rstd;
+
+    float const *dy_ptr = &dy_buf[frame_stride * node];
+    float       *dx_ptr = &dx_buf[frame_stride * node];
+    for ( int frame = id; frame < frame_size; frame += id_step )  {
+        float dy = dy_ptr[frame];
+        dx_ptr[frame] = dy * coeff;
+    }
+}
+
+
+BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_BackwardLock
+        (
+            float const     *dev_dy_buf,
+            float           *dev_dx_buf,
+            float const     *dev_gamma_buf,
+            float const     *dev_running_var_buf,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId
+        )
+{
+    BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
+
+    unsigned int const THREAD_SIZE    = 1024;
+    unsigned int const MAX_FRAME_UNIT = 1024;
+    unsigned int const MAX_NODE_UNIT  = 1024;
+
+#if 1
+    dim3    block(MAX_FRAME_UNIT, THREAD_SIZE / MAX_FRAME_UNIT);
+    while ( (int)block.x / 2 >= frame_size ) { block.x /= 2; block.y *= 2; }
+    while ( (int)block.y / 2 >= node_size  ) { block.y /= 2; }
+#else
+    dim3    block(THREAD_SIZE / MAX_NODE_UNIT, MAX_NODE_UNIT);
+    while ( (int)block.y / 2 >= node_size  ) { block.y /= 2; block.x *= 2;}
+    while ( (int)block.x / 2 >= frame_size ) { block.x /= 2; }
+#endif
+
+    block.x = std::min(block.x, MAX_FRAME_UNIT);
+    block.y = std::min(block.y, MAX_NODE_UNIT);
+    dim3    grid(1, (node_size + (block.y - 1)) / block.y);
+    
+    kernal_fp32_BatchNormalization_BackwardLock<<<grid, block, 0, streamId>>>
+        (
+            dev_dy_buf,
+            dev_dx_buf,
+            dev_gamma_buf,
+            dev_running_var_buf,
+            node_size,
+            frame_size,
+            frame_stride
+        );
+    BB_CUDA_CHECK_LAST_ERROR();
+
+    return 0;
+}
+

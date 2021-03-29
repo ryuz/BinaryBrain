@@ -356,5 +356,8 @@
     <ClInclude Include="..\..\include\bb\Softmax.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bb\BinaryDenseAffine.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

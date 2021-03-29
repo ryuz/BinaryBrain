@@ -758,6 +758,17 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_Backward
             cudaStream_t    streamId = 0
         );
 
+BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_BackwardLock
+        (
+            float const     *dev_dy_buf,
+            float           *dev_dx_buf,
+            float const     *dev_gamma_buf,
+            float const     *dev_running_var_buf,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId = 0
+        );
 
 
 // -------------------------------------

@@ -51,6 +51,7 @@ protected:
     bool                        m_lut_binarize = false;
     bool                        m_binary_mode  = true;
     bool                        m_batch_norm   = true;
+    bool                        m_backward_break = false;
 
     bool                        m_flagClamp = false;
 
@@ -122,7 +123,7 @@ protected:
     void CommandProc(std::vector<std::string> args)
     {
         _super::CommandProc(args);
-
+        
         // バイナリモード設定
         if ( DataType<BinType>::type != BB_TYPE_BIT ) {
             if ( args.size() == 2 && args[0] == "binary" )
@@ -147,6 +148,12 @@ protected:
         if (args.size() == 2 && args[0] == "momentum")
         {
             m_momentum = (RealType)EvalReal(args[1]);
+        }
+
+        // backward_break
+        if (args.size() == 2 && args[0] == "backward_break")
+        {
+            m_backward_break = EvalBool(args[1]);
         }
     }
     
@@ -967,6 +974,11 @@ public:
 
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
+        if (m_backward_break || dy_buf.Empty()) {
+            m_dW = 0;
+            return FrameBuffer();
+        }
+
         BB_ASSERT(dy_buf.GetType() == DataType<RealType>::type);
 
         m_flagClamp = true;
@@ -988,6 +1000,14 @@ public:
         FrameBuffer tmp_buf(tmp_frame_size, {output_node_size*N}, DataType<RealType>::type);
 
         if ( m_batch_norm ) {
+            auto mean = m_mean;
+            auto rstd = m_rstd;
+
+            if ( this->m_parameter_lock ) {
+                mean = m_running_mean + 0;
+                rstd = (RealType)1.0 / (m_running_var + (RealType)1.0e-7).Sqrt();
+            }
+
             // with BatchNormalization
     #ifdef BB_WITH_CUDA
             // CUDA float
@@ -1005,11 +1025,11 @@ public:
                 auto input_table_ptr   = m_connection_table.LockDeviceMemConst_InputTable();
                 auto W_ptr             = m_W->LockDeviceMemoryConst();
                 auto dW_ptr            = m_dW->LockDeviceMemory();
-                auto mean_ptr          = m_mean.LockDeviceMemoryConst();
-                auto rstd_ptr          = m_rstd.LockDeviceMemoryConst();
+                auto mean_ptr          = mean.LockDeviceMemoryConst();
+                auto rstd_ptr          = rstd.LockDeviceMemoryConst();
                 auto dmean_ptr         = dmean.LockDeviceMemory(true);
                 auto dvar_ptr          = dvar.LockDeviceMemory(true);
-            
+                
                 bbcu_fp32_DifferentiableLutN_Backward<N>
                     (
                         (float const *)x_ptr.GetAddr(),

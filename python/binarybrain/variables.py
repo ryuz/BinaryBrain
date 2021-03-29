@@ -32,5 +32,16 @@ class Variables():
             variables (Variables) : 追加する変数
         """
         self.variables.push_back(variables.get_core())
+
+    def get_size(self):
+        return self.variables.get_size()
     
- 
+    def at(self, item):
+        return self.variables.at(item)
+    
+    def __len__(self):
+        return self.variables.get_size()
+        
+    def __getitem__(self, item):
+        return self.variables.at(item)
+    
