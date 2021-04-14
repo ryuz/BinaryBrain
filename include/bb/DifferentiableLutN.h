@@ -144,7 +144,13 @@ protected:
             m_host_only = EvalBool(args[1]);
         }
 
-        // HostOnlyモード設定
+        // batch_norm設定
+        if (args.size() == 2 && args[0] == "batch_norm")
+        {
+            m_batch_norm = EvalBool(args[1]);
+        }
+
+        // momentum設定
         if (args.size() == 2 && args[0] == "momentum")
         {
             m_momentum = (RealType)EvalReal(args[1]);

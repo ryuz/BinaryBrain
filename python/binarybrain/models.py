@@ -325,6 +325,9 @@ class Model(bb.Object):
             size = core_model.load(data)
             return data[size:]
         return data
+    
+    def __str__(self):
+        return self.get_info(1)
 
 
     
