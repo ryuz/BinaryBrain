@@ -1,0 +1,19 @@
+#--trace-fst --trace-params --trace-structs --trace-underscore
+#--public
+#--threads 2
+
+-Wno-WIDTH
+-Wno-UNSIGNED
+-Wno-PINMISSING
+-Wno-UNOPTFLAT
+#-Wno-UNOPTTHREADS
+-Wno-LITENDIAN
+
+-y ../..
+-y ../../../../../jelly/rtl/model
+-y ../../../../../jelly/rtl/library/
+-y ../../../../../jelly/rtl/bus
+-y ../../../../../jelly/rtl/image
+-y ../../../../../jelly/rtl/model
+-y ../../../../../jelly/rtl/video
+-y ../../../../../jelly/rtl/math
