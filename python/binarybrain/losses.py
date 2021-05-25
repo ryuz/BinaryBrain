@@ -55,7 +55,7 @@ class LossMeanSquaredError(LossFunction):
     """
     
     def __init__(self, dtype=bb.DType.FP32):
-        core_loss = bb.search_core_object('LossSoftmaxCrossEntropy', [dtype]).create()
+        core_loss = bb.search_core_object('LossMeanSquaredError', [dtype]).create()
         super(LossMeanSquaredError, self).__init__(core_loss=core_loss)
 
 
