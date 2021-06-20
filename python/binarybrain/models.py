@@ -367,7 +367,7 @@ class Sequential(Model):
         self.name = name
 
     def get_name(self):
-        if self.name is None:
+        if self.name is None or len(self.name) == 0:
             return self.get_model_name()
         return self.name
 
