@@ -95,7 +95,7 @@ class FrameBuffer(bb.Object):
         dtype = self.get_type()
         if dtype == bb.DType.BIT:
             ndarray = self.get_core().numpy_uint8()
-        if dtype == bb.DType.BINARY:
+        elif dtype == bb.DType.BINARY:
             ndarray = self.get_core().numpy_uint8()
         elif dtype == bb.DType.FP32:
             ndarray = self.get_core().numpy_fp32()
