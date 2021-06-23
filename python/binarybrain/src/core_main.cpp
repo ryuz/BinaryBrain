@@ -290,7 +290,7 @@ std::string GetDevicePropertiesString(int device)
 #if BB_WITH_CUDA
     return bbcu::GetDevicePropertiesString(device);
 #else
-    return "host only\n"
+    return "host only\n";
 #endif
 }
 
