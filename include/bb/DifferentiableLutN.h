@@ -91,7 +91,7 @@ public:
         bool            batch_norm = true;
         bool            binary     = true;
         std::string     connection;                 //< 結線ルール
-        RealType        momentum   = (RealType)0.0;
+        RealType        momentum   = (RealType)0.9;
         RealType        gamma      = (RealType)0.3;
         RealType        beta       = (RealType)0.5;
         std::uint64_t   seed       = 1;              //< 乱数シード
