@@ -39,18 +39,19 @@ void MnistStochasticLutCnn(int epoch_size, int mini_batch_size, int test_modulat
 #endif
 
     // create network
-    auto layer_cnv0_sl0 = bb::StochasticLutN<6>::Create(192);
-    auto layer_cnv0_sl1 = bb::StochasticLutN<6>::Create(32);
-    auto layer_cnv1_sl0 = bb::StochasticLutN<6>::Create(192);
-    auto layer_cnv1_sl1 = bb::StochasticLutN<6>::Create(32);
-    auto layer_cnv2_sl0 = bb::StochasticLutN<6>::Create(256);
-    auto layer_cnv2_sl1 = bb::StochasticLutN<6>::Create(64);
-    auto layer_cnv3_sl0 = bb::StochasticLutN<6>::Create(256);
-    auto layer_cnv3_sl1 = bb::StochasticLutN<6>::Create(64);
-    auto layer_sl4      = bb::StochasticLutN<6>::Create(1024);
-    auto layer_sl5      = bb::StochasticLutN<6>::Create(360);
-    auto layer_sl6      = bb::StochasticLutN<6>::Create(60);
-    auto layer_sl7      = bb::StochasticLutN<6>::Create(10);
+    auto layer_cnv0_sl0 = bb::StochasticLutN<6>::Create(6*36);
+    auto layer_cnv0_sl1 = bb::StochasticLutN<6>::Create(36);
+    auto layer_cnv1_sl0 = bb::StochasticLutN<6>::Create(6*2*36);
+    auto layer_cnv1_sl1 = bb::StochasticLutN<6>::Create(2*36);
+    auto layer_cnv2_sl0 = bb::StochasticLutN<6>::Create(6*2*36);
+    auto layer_cnv2_sl1 = bb::StochasticLutN<6>::Create(2*36);
+    auto layer_cnv3_sl0 = bb::StochasticLutN<6>::Create(6*4*36);
+    auto layer_cnv3_sl1 = bb::StochasticLutN<6>::Create(4*36);
+    auto layer_sl4      = bb::StochasticLutN<6>::Create(6*128);
+    auto layer_sl5      = bb::StochasticLutN<6>::Create(128);
+    auto layer_sl6      = bb::StochasticLutN<6>::Create(6*6*10);
+    auto layer_sl7      = bb::StochasticLutN<6>::Create(6*10);
+    auto layer_sl8      = bb::StochasticLutN<6>::Create(10);
 
     {
         std::cout << "\n<Training>" << std::endl;
@@ -84,6 +85,7 @@ void MnistStochasticLutCnn(int epoch_size, int mini_batch_size, int test_modulat
         cnv4_sub->Add(layer_sl5);
         cnv4_sub->Add(layer_sl6);
         cnv4_sub->Add(layer_sl7);
+        cnv4_sub->Add(layer_sl8);
         auto cnv4 = bb::Convolution2d<>::Create(cnv4_sub, 4, 4);
 
 
@@ -151,12 +153,12 @@ void MnistStochasticLutCnn(int epoch_size, int mini_batch_size, int test_modulat
             vec_cnv1.push_back(pol1);
             vec_cnv2.push_back(cnv4);
 
-            std::string filename = "verilog/" + net_name + ".v";
+            std::string filename = velilog_path + velilog_module + ".v";
             std::ofstream ofs(filename);
             ofs << "`timescale 1ns / 1ps\n\n";
-            bb::ExportVerilog_LutCnnLayersAxi4s(ofs, net_name + "Cnv0", vec_cnv0);
-            bb::ExportVerilog_LutCnnLayersAxi4s(ofs, net_name + "Cnv1", vec_cnv1);
-            bb::ExportVerilog_LutCnnLayersAxi4s(ofs, net_name + "Cnv2", vec_cnv2);
+            bb::ExportVerilog_LutCnnLayersAxi4s(ofs, velilog_module + "Cnv0", vec_cnv0);
+            bb::ExportVerilog_LutCnnLayersAxi4s(ofs, velilog_module + "Cnv1", vec_cnv1);
+            bb::ExportVerilog_LutCnnLayersAxi4s(ofs, velilog_module + "Cnv2", vec_cnv2);
             std::cout << "export : " << filename << "\n" << std::endl;
         }
     }
@@ -178,6 +180,7 @@ void MnistStochasticLutCnn(int epoch_size, int mini_batch_size, int test_modulat
         auto layer_lut5      = bb::BinaryLutN<>::Create(layer_sl5->GetOutputShape());
         auto layer_lut6      = bb::BinaryLutN<>::Create(layer_sl6->GetOutputShape());
         auto layer_lut7      = bb::BinaryLutN<>::Create(layer_sl7->GetOutputShape());
+        auto layer_lut8      = bb::BinaryLutN<>::Create(layer_sl8->GetOutputShape());
 
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_lut0);
@@ -200,6 +203,7 @@ void MnistStochasticLutCnn(int epoch_size, int mini_batch_size, int test_modulat
         cnv4_sub->Add(layer_lut5);
         cnv4_sub->Add(layer_lut6);
         cnv4_sub->Add(layer_lut7);
+        cnv4_sub->Add(layer_lut8);
 
         auto cnv0 = bb::Convolution2d<bb::Bit>::Create(cnv0_sub, 3, 3);
         auto cnv1 = bb::Convolution2d<bb::Bit>::Create(cnv1_sub, 3, 3);
@@ -241,6 +245,7 @@ void MnistStochasticLutCnn(int epoch_size, int mini_batch_size, int test_modulat
         layer_lut5     ->ImportLayer(layer_sl5);
         layer_lut6     ->ImportLayer(layer_sl6);
         layer_lut7     ->ImportLayer(layer_sl7);
+        layer_lut7     ->ImportLayer(layer_sl8);
 
         // 評価
         if ( 1 ) {

@@ -389,6 +389,7 @@
     <ClInclude Include="..\..\..\include\bb\DepthwiseDenseAffine.h" />
     <ClInclude Include="..\..\..\include\bb\DifferentiableLutDiscreteN.h" />
     <ClInclude Include="..\..\..\include\bb\DifferentiableLutN.h" />
+    <ClInclude Include="..\..\..\include\bb\DigitalToAnalog.h" />
     <ClInclude Include="..\..\..\include\bb\Dropout.h" />
     <ClInclude Include="..\..\..\include\bb\ExportVerilog.h" />
     <ClInclude Include="..\..\..\include\bb\Filter2d.h" />

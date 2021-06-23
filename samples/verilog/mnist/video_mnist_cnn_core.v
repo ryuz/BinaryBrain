@@ -52,8 +52,8 @@ module video_mnist_cnn_core
             input   wire                        m_axi4s_tready
         );
     
-    localparam  L0_TDATA_WIDTH = 32;
-    localparam  L1_TDATA_WIDTH = 64;
+    localparam  L0_TDATA_WIDTH = 2*36;
+    localparam  L1_TDATA_WIDTH = 4*36;
     localparam  L2_TDATA_WIDTH = M_TDATA_WIDTH;
     
     

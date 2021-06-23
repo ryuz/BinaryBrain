@@ -22,7 +22,7 @@ def main():
     output_velilog_file   = os.path.join(data_path, net_name + '.v')
     sim_velilog_file      = os.path.join(rtl_sim_path, rtl_module_name + '.v')
 
-    epochs                = 1
+    epochs                = 4
     mini_batch_size       = 64
     frame_modulation_size = 15
 
@@ -36,10 +36,12 @@ def main():
     # define network
     net = bb.Sequential([
                 bb.RealToBinary(frame_modulation_size=frame_modulation_size),
-                bb.DifferentiableLut([1024]),
-                bb.DifferentiableLut([420]),
-                bb.DifferentiableLut([70]),
-                bb.Reduce([10]),
+                bb.DifferentiableLut([6*6*64]),
+                bb.DifferentiableLut([6*64]),
+                bb.DifferentiableLut([64]),
+                bb.DifferentiableLut([6*6*10]),
+                bb.DifferentiableLut([6*10]),
+                bb.DifferentiableLut([10]),
                 bb.BinaryToReal(frame_integration_size=frame_modulation_size)
             ])
     net.set_input_shape([1, 28, 28])
@@ -87,7 +89,7 @@ def main():
 
         print('epoch[%d] : loss=%f accuracy=%f' % (epoch, loss.get(), metrics.get()))
 
-        bb.save_networks(data_path, net, keep_olds=3)
+        bb.save_networks(data_path, net)
     
     # write verilog
     print('write : %s'%output_velilog_file)

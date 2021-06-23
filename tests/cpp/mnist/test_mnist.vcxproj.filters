@@ -317,5 +317,8 @@
     <ClInclude Include="..\..\..\include\bb\BinaryDenseAffine.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\bb\DigitalToAnalog.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

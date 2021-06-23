@@ -38,27 +38,33 @@ void MnistDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_mo
 
     // create network
 #ifdef BB_WITH_CUDA
-    auto layer_cnv0_sl0 = bb::DifferentiableLutN<6, float>::Create(192);
-    auto layer_cnv0_sl1 = bb::DifferentiableLutN<6, float>::Create(32);
-    auto layer_cnv1_sl0 = bb::DifferentiableLutN<6, float>::Create(192);
-    auto layer_cnv1_sl1 = bb::DifferentiableLutN<6, float>::Create(32);
-    auto layer_cnv2_sl0 = bb::DifferentiableLutN<6, float>::Create(384);
-    auto layer_cnv2_sl1 = bb::DifferentiableLutN<6, float>::Create(64);
-    auto layer_cnv3_sl0 = bb::DifferentiableLutN<6, float>::Create(384);
-    auto layer_cnv3_sl1 = bb::DifferentiableLutN<6, float>::Create(64);
-    auto layer_sl4      = bb::DifferentiableLutN<6, float>::Create(420);
-    auto layer_sl5      = bb::DifferentiableLutN<6, float>::Create(70);
+    auto layer_cnv0_sl0 = bb::DifferentiableLutN<6, float>::Create(6*36);
+    auto layer_cnv0_sl1 = bb::DifferentiableLutN<6, float>::Create(36);
+    auto layer_cnv1_sl0 = bb::DifferentiableLutN<6, float>::Create(2*6*36);
+    auto layer_cnv1_sl1 = bb::DifferentiableLutN<6, float>::Create(2*36);
+    auto layer_cnv2_sl0 = bb::DifferentiableLutN<6, float>::Create(2*6*36);
+    auto layer_cnv2_sl1 = bb::DifferentiableLutN<6, float>::Create(2*36);
+    auto layer_cnv3_sl0 = bb::DifferentiableLutN<6, float>::Create(4*6*36);
+    auto layer_cnv3_sl1 = bb::DifferentiableLutN<6, float>::Create(4*36);
+    auto layer_sl4      = bb::DifferentiableLutN<6, float>::Create(6*128);
+    auto layer_sl5      = bb::DifferentiableLutN<6, float>::Create(128);
+    auto layer_sl6      = bb::DifferentiableLutN<6, float>::Create(6*6*10);
+    auto layer_sl7      = bb::DifferentiableLutN<6, float>::Create(6*10);
+    auto layer_sl8      = bb::DifferentiableLutN<6, float>::Create(10);
 #else
-    auto layer_cnv0_sl0 = bb::DifferentiableLutDiscreteN<6, float>::Create(192);
-    auto layer_cnv0_sl1 = bb::DifferentiableLutDiscreteN<6, float>::Create(32);
-    auto layer_cnv1_sl0 = bb::DifferentiableLutDiscreteN<6, float>::Create(192);
-    auto layer_cnv1_sl1 = bb::DifferentiableLutDiscreteN<6, float>::Create(32);
-    auto layer_cnv2_sl0 = bb::DifferentiableLutDiscreteN<6, float>::Create(384);
-    auto layer_cnv2_sl1 = bb::DifferentiableLutDiscreteN<6, float>::Create(64);
-    auto layer_cnv3_sl0 = bb::DifferentiableLutDiscreteN<6, float>::Create(384);
-    auto layer_cnv3_sl1 = bb::DifferentiableLutDiscreteN<6, float>::Create(64);
-    auto layer_sl4      = bb::DifferentiableLutDiscreteN<6, float>::Create(420);
-    auto layer_sl5      = bb::DifferentiableLutDiscreteN<6, float>::Create(70);
+    auto layer_cnv0_sl0 = bb::DifferentiableLutDiscreteN<6, float>::Create(6*36);
+    auto layer_cnv0_sl1 = bb::DifferentiableLutDiscreteN<6, float>::Create(36);
+    auto layer_cnv1_sl0 = bb::DifferentiableLutDiscreteN<6, float>::Create(2*6*36);
+    auto layer_cnv1_sl1 = bb::DifferentiableLutDiscreteN<6, float>::Create(2*36);
+    auto layer_cnv2_sl0 = bb::DifferentiableLutDiscreteN<6, float>::Create(2*6*36);
+    auto layer_cnv2_sl1 = bb::DifferentiableLutDiscreteN<6, float>::Create(2*36);
+    auto layer_cnv3_sl0 = bb::DifferentiableLutDiscreteN<6, float>::Create(4*6*36);
+    auto layer_cnv3_sl1 = bb::DifferentiableLutDiscreteN<6, float>::Create(4*36);
+    auto layer_sl4      = bb::DifferentiableLutDiscreteN<6, float>::Create(6*128);
+    auto layer_sl5      = bb::DifferentiableLutDiscreteN<6, float>::Create(128);
+    auto layer_sl6      = bb::DifferentiableLutDiscreteN<6, float>::Create(6*6*10);
+    auto layer_sl7      = bb::DifferentiableLutDiscreteN<6, float>::Create(6*10);
+    auto layer_sl8      = bb::DifferentiableLutDiscreteN<6, float>::Create(10);
 #endif
 
     {
@@ -90,6 +96,9 @@ void MnistDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_mo
         main_net->Add(bb::MaxPooling<float>::Create(2, 2));
         main_net->Add(layer_sl4);
         main_net->Add(layer_sl5);
+        main_net->Add(layer_sl6);
+        main_net->Add(layer_sl7);
+        main_net->Add(layer_sl8);
 
         // modulation wrapper
         auto net = bb::Sequential::Create();
@@ -150,6 +159,9 @@ void MnistDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_mo
         auto layer_cnv3_bl1 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv3_sl1->GetOutputShape());
         auto layer_bl4      = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl4->GetOutputShape());
         auto layer_bl5      = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl5->GetOutputShape());
+        auto layer_bl6      = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl6->GetOutputShape());
+        auto layer_bl7      = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl7->GetOutputShape());
+        auto layer_bl8      = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl8->GetOutputShape());
 
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_bl0);
@@ -170,6 +182,9 @@ void MnistDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_mo
         auto cnv4_sub = bb::Sequential::Create();
         cnv4_sub->Add(layer_bl4);
         cnv4_sub->Add(layer_bl5);
+        cnv4_sub->Add(layer_bl6);
+        cnv4_sub->Add(layer_bl7);
+        cnv4_sub->Add(layer_bl8);
 
         auto cnv0 = bb::Convolution2d<bb::Bit>::Create(cnv0_sub, 3, 3);
         auto cnv1 = bb::Convolution2d<bb::Bit>::Create(cnv1_sub, 3, 3);
@@ -211,6 +226,9 @@ void MnistDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_mo
         layer_cnv3_bl1->ImportLayer(layer_cnv3_sl1);
         layer_bl4     ->ImportLayer(layer_sl4);
         layer_bl5     ->ImportLayer(layer_sl5);
+        layer_bl6     ->ImportLayer(layer_sl6);
+        layer_bl7     ->ImportLayer(layer_sl7);
+        layer_bl8     ->ImportLayer(layer_sl8);
 
         // 評価
         if ( 1 ) {
