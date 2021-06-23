@@ -701,6 +701,10 @@ public:
 
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
+        if (dy_buf.Empty()) {
+            return FrameBuffer();
+        }
+
         BB_ASSERT(dy_buf.GetType() == DataType<T>::type);
 
         // forward時データ取り出し

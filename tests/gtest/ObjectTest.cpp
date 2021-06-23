@@ -6,6 +6,7 @@
 #include "bb/Object.h"
 
 
+
 TEST(ObjectTest, testObject_test0)
 {
 }
@@ -53,7 +54,7 @@ TEST(ObjectTest, SerializeModel)
 
     {
         std::ifstream ifs("test_obj.bin", std::ios::binary);
-        auto dst_net = std::dynamic_pointer_cast<bb::Sequential>(bb::Object_Reconstruct(ifs));
+        auto dst_net = std::dynamic_pointer_cast<bb::Sequential>(bb::Object_Load(ifs));
         EXPECT_TRUE(dst_net);
         
         EXPECT_EQ(dst_net->Get(0)->GetModelName(), "RealToBinary");
@@ -121,7 +122,7 @@ TEST(ObjectTest, Resonstruct_Tensor)
 
     {
         std::ifstream ifs("test_obj.bin", std::ios::binary);
-        auto test_obj = std::dynamic_pointer_cast<bb::Tensor>(bb::Object_Reconstruct(ifs));
+        auto test_obj = std::dynamic_pointer_cast<bb::Tensor>(bb::Object_Load(ifs));
         EXPECT_TRUE(test_obj);
 
         auto dst_t = *test_obj;
@@ -172,7 +173,7 @@ TEST(ObjectTest, Resonstruct_Tensor_int32)
 
     {
         std::ifstream ifs("test_obj.bin", std::ios::binary);
-        auto test_obj = std::dynamic_pointer_cast< bb::Tensor_<std::int32_t> >(bb::Object_Reconstruct(ifs));
+        auto test_obj = std::dynamic_pointer_cast< bb::Tensor_<std::int32_t> >(bb::Object_Load(ifs));
         EXPECT_TRUE(test_obj);
 
         auto dst_t = *test_obj;
@@ -203,7 +204,7 @@ TEST(ObjectTest, Resonstruct_DifferentiableLutN)
 
     {
         std::ifstream ifs("test_obj.bin", std::ios::binary);
-        auto test_obj = std::dynamic_pointer_cast< bb::DifferentiableLutN<6, bb::Bit, float> >(bb::Object_Reconstruct(ifs));
+        auto test_obj = std::dynamic_pointer_cast< bb::DifferentiableLutN<6, bb::Bit, float> >(bb::Object_Load(ifs));
         EXPECT_TRUE(test_obj);
 //      std::cout << test_obj->GetObjectName() << std::endl;
         EXPECT_EQ(test_obj->GetObjectName(), model->GetObjectName());
@@ -230,7 +231,7 @@ TEST(ObjectTest, Resonstruct_BatchNormalization)
 
     {
         std::ifstream ifs("test_obj.bin", std::ios::binary);
-        auto test_obj = bb::Object_Reconstruct(ifs);
+        auto test_obj = bb::Object_Load(ifs);
 //      std::cout << test_obj->GetObjectName() << std::endl;
         EXPECT_EQ(test_obj->GetObjectName(), bn->GetObjectName());
     }

@@ -10,6 +10,15 @@ Metrics クラス
    :show-inheritance:
 
 
+
+MetricsMeanSquaredError クラス
+-------------------------------------
+
+.. autoclass:: binarybrain.metrics.MetricsMeanSquaredError
+   :members:
+   :show-inheritance:
+
+
 MetricsCategoricalAccuracy クラス
 ------------------------------------
 
@@ -18,12 +27,13 @@ MetricsCategoricalAccuracy クラス
    :show-inheritance:
 
 
-MetricsMeanSquaredError クラス
--------------------------------------
+MetricsBinaryCategoricalAccuracy クラス
+----------------------------------------------
 
-.. autoclass:: binarybrain.metrics.MetricsMeanSquaredError
+.. autoclass:: binarybrain.metrics.MetricsBinaryCategoricalAccuracy
    :members:
    :show-inheritance:
+
 
 .. 
  .. automodule:: binarybrain.metrics

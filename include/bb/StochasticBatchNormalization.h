@@ -692,6 +692,10 @@ public:
      */
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
+        if (dy_buf.Empty()) {
+            return FrameBuffer();
+        }
+
         // 出力設定
         FrameBuffer dx_buf(dy_buf.GetFrameSize(), dy_buf.GetShape(), dy_buf.GetType());
 

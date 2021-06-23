@@ -231,6 +231,10 @@ public:
     
     FrameBuffer Backward(FrameBuffer dy_buf) override
     {
+        if (dy_buf.Empty()) {
+            return FrameBuffer();
+        }
+
         BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
         BB_ASSERT(dy_buf.GetShape().size() == 3);
 

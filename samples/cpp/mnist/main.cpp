@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
     bool        file_read             = false;
     bool        binary_mode           = true;
     bool        print_device          = false;
+    int         device                = 0;
     std::string load_net_file         = "MnistDifferentiableLutSimple.bb_net";
 
     std::cout << "BinaryBrain version " << bb::GetVersionString();
@@ -110,6 +111,10 @@ int main(int argc, char *argv[])
             ++i;
             file_read = (strtoul(argv[i], NULL, 0) != 0);
         }
+        else if (strcmp(argv[i], "-device") == 0 && i + 1 < argc) {
+            ++i;
+            device = (strtoul(argv[i], NULL, 0) != 0);
+        }
         else if (strcmp(argv[i], "-print_device") == 0 ) {
             print_device = true;
         }
@@ -128,8 +133,9 @@ int main(int argc, char *argv[])
 
 #ifdef BB_WITH_CUDA
     if ( print_device ) {
-        bbcu::PrintDeviceProperties();
+        bbcu::PrintDeviceProperties(device);
     }
+    cudaSetDevice(device);
 #endif
 
     if ( netname == "All" || netname == "StochasticLutSimple" ) {

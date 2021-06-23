@@ -34,6 +34,8 @@ void MnistAeDifferentiableLutCnn   (int epoch_size, int mini_batch_size, int tra
 void MnistCustomModel              (int epoch_size, int mini_batch_size,                                                      bool binary_mode, bool file_read);
 void MnistLoadNet                  (int epoch_size, int mini_batch_size, std::string filename);
 
+void MnistDenseBinary(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+
 
 // メイン関数
 int main(int argc, char *argv[])
@@ -126,11 +128,17 @@ int main(int argc, char *argv[])
         test_modulation_size = train_modulation_size;
     }
 
+    int device = 0;
+
+    cudaSetDevice(device);
+
 #ifdef BB_WITH_CUDA
     if ( print_device ) {
-        bbcu::PrintDeviceProperties();
+        bbcu::PrintDeviceProperties(device);
     }
 #endif
+
+   
 
     if ( netname == "All" || netname == "StochasticLutSimple" ) {
         MnistStochasticLutSimple(epoch_size, mini_batch_size, test_modulation_size, binary_mode, file_read);
@@ -162,6 +170,10 @@ int main(int argc, char *argv[])
 
     if ( netname == "All" || netname == "DenseCnn" ) {
         MnistDenseCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    }
+
+    if ( netname == "All" || netname == "DenseBinary" ) {
+       MnistDenseBinary(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
     
     if ( netname == "All" || netname == "AeDifferentiableLutSimple" ) {

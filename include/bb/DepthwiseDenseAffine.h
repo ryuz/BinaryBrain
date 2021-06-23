@@ -411,6 +411,13 @@ public:
 
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
+        if (dy_buf.Empty()) {
+            m_dW = 0;
+            m_db = 0;
+            return dy_buf;
+        }
+
+
         BB_ASSERT(dy_buf.GetType() == DataType<T>::type);
 
         // フレーム数

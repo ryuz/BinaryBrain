@@ -35,9 +35,12 @@ void MnistMicroMlpLutSimple(int epoch_size, int mini_batch_size, int train_modul
     auto td = bb::LoadMnist<>::Load();
 #endif
 
-    auto layer_mm0 = bb::MicroMlp<6, 16, float>::Create(1024);
-    auto layer_mm1 = bb::MicroMlp<6, 16, float>::Create(420);
-    auto layer_mm2 = bb::MicroMlp<6, 16, float>::Create(70);
+    auto layer_mm0 = bb::MicroMlp<6, 16, float>::Create(6*6*64);
+    auto layer_mm1 = bb::MicroMlp<6, 16, float>::Create(6*64);
+    auto layer_mm2 = bb::MicroMlp<6, 16, float>::Create(64);
+    auto layer_mm3 = bb::MicroMlp<6, 16, float>::Create(6*6*10);
+    auto layer_mm4 = bb::MicroMlp<6, 16, float>::Create(6*10);
+    auto layer_mm5 = bb::MicroMlp<6, 16, float>::Create(10);
 
     {
         std::cout << "\n<Training>" << std::endl;
@@ -47,6 +50,9 @@ void MnistMicroMlpLutSimple(int epoch_size, int mini_batch_size, int train_modul
         main_net->Add(layer_mm0);
         main_net->Add(layer_mm1);
         main_net->Add(layer_mm2);
+        main_net->Add(layer_mm3);
+        main_net->Add(layer_mm4);
+        main_net->Add(layer_mm5);
 
         // modulation wrapper
         auto net = bb::Sequential::Create();
@@ -100,11 +106,17 @@ void MnistMicroMlpLutSimple(int epoch_size, int mini_batch_size, int train_modul
         auto layer_bl0 = bb::BinaryLutN<>::Create(layer_mm0->GetOutputShape());
         auto layer_bl1 = bb::BinaryLutN<>::Create(layer_mm1->GetOutputShape());
         auto layer_bl2 = bb::BinaryLutN<>::Create(layer_mm2->GetOutputShape());
+        auto layer_bl3 = bb::BinaryLutN<>::Create(layer_mm3->GetOutputShape());
+        auto layer_bl4 = bb::BinaryLutN<>::Create(layer_mm4->GetOutputShape());
+        auto layer_bl5 = bb::BinaryLutN<>::Create(layer_mm5->GetOutputShape());
 
         auto lut_net = bb::Sequential::Create();
         lut_net->Add(layer_bl0);
         lut_net->Add(layer_bl1);
         lut_net->Add(layer_bl2);
+        lut_net->Add(layer_bl3);
+        lut_net->Add(layer_bl4);
+        lut_net->Add(layer_bl5);
 
         // evaluation network
         auto eval_net = bb::Sequential::Create();
@@ -119,6 +131,9 @@ void MnistMicroMlpLutSimple(int epoch_size, int mini_batch_size, int train_modul
         layer_bl0->ImportLayer(layer_mm0);
         layer_bl1->ImportLayer(layer_mm1);
         layer_bl2->ImportLayer(layer_mm2);
+        layer_bl3->ImportLayer(layer_mm3);
+        layer_bl4->ImportLayer(layer_mm4);
+        layer_bl5->ImportLayer(layer_mm5);
 
         // 評価
         if ( 1 ) {

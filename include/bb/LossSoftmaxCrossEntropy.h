@@ -176,7 +176,7 @@ public:
             }
 
             loss_ptr[0]   += -loss_sum;
-            m_frame_count += frame_size;
+            m_frame_count += frame_size * pix_size;
 
             return dy_buf;
         }

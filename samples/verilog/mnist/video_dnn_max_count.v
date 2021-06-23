@@ -1,9 +1,7 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- the soft-core processor system
-//   math
+//  MNIST sample
 //
-//                                 Copyright (C) 2008-2018 by Ryuji Fuchikami
-//                                 http://ryuz.my.coocan.jp/
+//                                 Copyright (C) 2008-2021 by Ryuji Fuchikami
 // ---------------------------------------------------------------------------
 
 

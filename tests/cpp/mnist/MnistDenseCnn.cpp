@@ -21,6 +21,12 @@
 #include "bb/Runner.h"
 #include "bb/LoadMnist.h"
 
+#include "bb/Softmax.h"
+#include "bb/LossCrossEntropy.h"
+
+#include "bb/BinaryDenseAffine.h"
+
+
 
 void MnistDenseCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
@@ -38,43 +44,56 @@ void MnistDenseCnn(int epoch_size, int mini_batch_size, int train_modulation_siz
         std::cout << "\n<Training>" << std::endl;
 
         // create network
+#if 0
         auto cnv0_net = bb::Sequential::Create();
         cnv0_net->Add(bb::DenseAffine<>::Create(32));
         cnv0_net->Add(bb::BatchNormalization<>::Create());
-        cnv0_net->Add(bb::ReLU<float>::Create());
+        cnv0_net->Add(bb::ReLU<bb::Bit>::Create());
 
         auto cnv1_net = bb::Sequential::Create();
         cnv1_net->Add(bb::DenseAffine<>::Create(32));
         cnv1_net->Add(bb::BatchNormalization<>::Create());
-        cnv1_net->Add(bb::ReLU<float>::Create());
+        cnv1_net->Add(bb::ReLU<bb::Bit>::Create());
 
         auto cnv2_net = bb::Sequential::Create();
         cnv2_net->Add(bb::DenseAffine<>::Create(64));
         cnv2_net->Add(bb::BatchNormalization<>::Create());
-        cnv2_net->Add(bb::ReLU<float>::Create());
+        cnv2_net->Add(bb::ReLU<bb::Bit>::Create());
 
         auto cnv3_net = bb::Sequential::Create();
         cnv3_net->Add(bb::DenseAffine<>::Create(64));
         cnv3_net->Add(bb::BatchNormalization<>::Create());
-        cnv3_net->Add(bb::ReLU<float>::Create());
+        cnv3_net->Add(bb::ReLU<bb::Bit>::Create());
+#else
+        auto cnv0_net = bb::BinaryDenseAffine<bb::Bit>::Create({32});
+        auto cnv1_net = bb::BinaryDenseAffine<bb::Bit>::Create({32});
+        auto cnv2_net = bb::BinaryDenseAffine<bb::Bit>::Create({64});
+        auto cnv3_net = bb::BinaryDenseAffine<bb::Bit>::Create({64});
+#endif
 
         auto main_net = bb::Sequential::Create();
-        main_net->Add(bb::Convolution2d<>::Create(cnv0_net, 3, 3));   // Conv3x3 x 32
-        main_net->Add(bb::Convolution2d<>::Create(cnv1_net, 3, 3));   // Conv3x3 x 32
-        main_net->Add(bb::MaxPooling<>::Create(2, 2));
-        main_net->Add(bb::Convolution2d<>::Create(cnv2_net, 3, 3));   // Conv3x3 x 64
-        main_net->Add(bb::Convolution2d<>::Create(cnv3_net, 3, 3));   // Conv3x3 x 64
-        main_net->Add(bb::MaxPooling<>::Create(2, 2));
-        main_net->Add(bb::DenseAffine<float>::Create(256));
-        main_net->Add(bb::ReLU<float>::Create());
-        main_net->Add(bb::DenseAffine<float>::Create(td.t_shape));
+        main_net->Add(bb::Convolution2d<bb::Bit>::Create(cnv0_net, 3, 3));   // Conv3x3 x 32
+        main_net->Add(bb::Convolution2d<bb::Bit>::Create(cnv1_net, 3, 3));   // Conv3x3 x 32
+        main_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
+        main_net->Add(bb::Convolution2d<bb::Bit>::Create(cnv2_net, 3, 3));   // Conv3x3 x 64
+        main_net->Add(bb::Convolution2d<bb::Bit>::Create(cnv3_net, 3, 3));   // Conv3x3 x 64
+        main_net->Add(bb::MaxPooling<bb::Bit>::Create(2, 2));
+
+#if 0
+        main_net->Add(bb::DenseAffine<>::Create(256));
+        main_net->Add(bb::ReLU<bb::Bit>::Create());
+        main_net->Add(bb::DenseAffine<>::Create(td.t_shape));
         if ( binary_mode ) {
-            main_net->Add(bb::BatchNormalization<float>::Create());
-            main_net->Add(bb::ReLU<float>::Create());
+            main_net->Add(bb::BatchNormalization<>::Create());
+            main_net->Add(bb::ReLU<bb::Bit>::Create());
         }
+#else
+        main_net->Add(bb::BinaryDenseAffine<bb::Bit>::Create({256}));
+        main_net->Add(bb::BinaryDenseAffine<bb::Bit>::Create(td.t_shape));
+#endif
 
         // modulation wrapper
-        auto net = bb::BinaryModulation<float>::Create(main_net, train_modulation_size, test_modulation_size);
+        auto net = bb::BinaryModulation<bb::Bit>::Create(main_net, train_modulation_size, test_modulation_size);
 
       // set input shape
         net->SetInputShape(td.x_shape);
@@ -86,6 +105,11 @@ void MnistDenseCnn(int epoch_size, int mini_batch_size, int train_modulation_siz
         else {
             net->SendCommand("binary false");
         }
+
+        net->SendCommand("parameter_lock false");
+//        cnv3_net->SendCommand("parameter_lock true");
+//        cnv1_net->SendCommand("parameter_lock false");
+//        cnv2_net->SendCommand("parameter_lock false");
 
         // print model information
         net->PrintInfo();
@@ -110,7 +134,7 @@ void MnistDenseCnn(int epoch_size, int mini_batch_size, int train_modulation_siz
         runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
         runner_create.file_write         = true;            // 計算結果をファイルに保存するか
         runner_create.print_progress     = true;            // 途中結果を表示
-        runner_create.initial_evaluation = file_read;       // ファイルを読んだ場合は最初に評価しておく 
+        runner_create.initial_evaluation = false;//file_read;       // ファイルを読んだ場合は最初に評価しておく 
         auto runner = bb::Runner<float>::Create(runner_create);
         runner->Fitting(td, epoch_size, mini_batch_size);
     }

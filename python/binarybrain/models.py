@@ -325,6 +325,9 @@ class Model(bb.Object):
             size = core_model.load(data)
             return data[size:]
         return data
+    
+    def __str__(self):
+        return self.get_info(1)
 
 
     
@@ -364,7 +367,7 @@ class Sequential(Model):
         self.name = name
 
     def get_name(self):
-        if self.name is None:
+        if self.name is None or len(self.name) == 0:
             return self.get_model_name()
         return self.name
 
@@ -1455,6 +1458,22 @@ class HardTanh(Model):
         super(HardTanh, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
 model_creator_regist('HardTanh', HardTanh.from_bytes)
+
+
+
+class Softmax(Model):
+    """Softmax class
+
+       Softmax 活性化層
+    """
+    def __init__(self, *, input_shape=None, name=None, dtype=bb.DType.FP32, core_model=None):
+        if core_model is None:
+            core_creator = search_core_model('Softmax', [dtype]).create
+            core_model = core_creator()
+
+        super(Softmax, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+model_creator_regist('Softmax', Softmax.from_bytes)
 
 
 # ------- 補助モデル --------

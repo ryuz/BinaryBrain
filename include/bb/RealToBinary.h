@@ -449,6 +449,10 @@ public:
 
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
+        if (dy_buf.Empty()) {
+            return FrameBuffer();
+        }
+
         if ( m_depth_modulation_size == 1 && (!m_binary_mode || m_frame_modulation_size == 1) ) {
             return dy_buf;
         }

@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
+//  MNIST sample
 //
-//                                 Copyright (C) 2015-2018 by Ryuji Fuchikami
-//                                 http://ryuz.my.coocan.jp/
+//                                 Copyright (C) 2008-2021 by Ryuji Fuchikami
 // ---------------------------------------------------------------------------
 
 
@@ -35,7 +35,7 @@ module tb_mnist_lut_simple();
     localparam  USER_WIDTH   = 8;
     localparam  INPUT_WIDTH  = 28*28;
     localparam  CLASS_NUM    = 10;
-    localparam  CHANNEL_NUM  = 7;       // チャネル方向(空間的に)多重
+    localparam  CHANNEL_NUM  = 1;       // チャネル方向(空間的に)多重
     localparam  OUTPUT_WIDTH = CLASS_NUM * CHANNEL_NUM;
     
     reg     [USER_WIDTH+INPUT_WIDTH-1:0]    mem     [0:DATA_SIZE-1];

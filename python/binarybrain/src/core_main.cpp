@@ -57,6 +57,7 @@
 #include "bb/Sigmoid.h"
 #include "bb/ReLU.h"
 #include "bb/HardTanh.h"
+#include "bb/Softmax.h"
 
 #include "bb/BatchNormalization.h"
 #include "bb/StochasticBatchNormalization.h"
@@ -64,12 +65,15 @@
 #include "bb/Shuffle.h"
 
 #include "bb/LossFunction.h"
-#include "bb/LossSoftmaxCrossEntropy.h"
 #include "bb/LossMeanSquaredError.h"
+#include "bb/LossCrossEntropy.h"
+#include "bb/LossBinaryCrossEntropy.h"
+#include "bb/LossSoftmaxCrossEntropy.h"
+#include "bb/LossSigmoidCrossEntropy.h"
 
 #include "bb/MetricsFunction.h"
 #include "bb/MetricsCategoricalAccuracy.h"
-#include "bb/MetricsBinaryAccuracy.h"
+#include "bb/MetricsBinaryCategoricalAccuracy.h"
 #include "bb/MetricsMeanSquaredError.h"
 
 #include "bb/Optimizer.h"
@@ -223,6 +227,7 @@ using ReLU_fp32_fp32                         = bb::ReLU<float, float>;
 using ReLU_bit_fp32                          = bb::ReLU<bb::Bit, float>;
 using HardTanh_fp32_fp32                     = bb::HardTanh<float, float>;
 using HardTanh_bit_fp32                      = bb::HardTanh<bb::Bit, float>;
+using Softmax_fp32                           = bb::Softmax<float>;
 
 using BatchNormalization_fp32                = bb::BatchNormalization<float>;
 using StochasticBatchNormalization_fp32      = bb::StochasticBatchNormalization<float>;
@@ -232,11 +237,14 @@ using Shuffle                                = bb::Shuffle;
                                         
 using LossFunction                           = bb::LossFunction;
 using LossMeanSquaredError_fp32              = bb::LossMeanSquaredError<float>;
+using LossCrossEntropy_fp32                  = bb::LossCrossEntropy<float>;
+using LossBinaryCrossEntropy_fp32            = bb::LossBinaryCrossEntropy<float>;
 using LossSoftmaxCrossEntropy_fp32           = bb::LossSoftmaxCrossEntropy<float>;
+using LossSigmoidCrossEntropy_fp32           = bb::LossSigmoidCrossEntropy<float>;
                                         
 using MetricsFunction                        = bb::MetricsFunction;
 using MetricsCategoricalAccuracy_fp32        = bb::MetricsCategoricalAccuracy<float>;
-using MetricsBinaryAccuracy_fp32             = bb::MetricsBinaryAccuracy<float>;
+using MetricsBinaryCategoricalAccuracy_fp32  = bb::MetricsBinaryCategoricalAccuracy<float>;
 using MetricsMeanSquaredError_fp32           = bb::MetricsMeanSquaredError<float>;
 
 using Optimizer                              = bb::Optimizer;
@@ -282,7 +290,7 @@ std::string GetDevicePropertiesString(int device)
 #if BB_WITH_CUDA
     return bbcu::GetDevicePropertiesString(device);
 #else
-    return "host only\n"
+    return "host only\n";
 #endif
 }
 
@@ -556,6 +564,8 @@ PYBIND11_MODULE(core, m) {
         DEF_OBJECT_PICKLE(Variables)
         .def(py::init<>())
         .def("push_back", (void (Variables::*)(Variables const &))&Variables::PushBack)
+        .def("get_size",  &Variables::GetSize)
+        .def("at",        &Variables::At)
         ;
 
 
@@ -946,6 +956,8 @@ PYBIND11_MODULE(core, m) {
     PYCLASS_MODEL(HardTanh_bit_fp32, Binarize_bit_fp32)
         .def_static("create", &HardTanh_bit_fp32::CreatePy);
 
+    PYCLASS_MODEL(Softmax_fp32, Activation)
+        .def_static("create", &Softmax_fp32::Create);
     
     PYCLASS_MODEL(Dropout_fp32_fp32, Activation)
         .def_static("create", &Dropout_fp32_fp32::CreatePy,
@@ -986,12 +998,20 @@ PYBIND11_MODULE(core, m) {
             py::arg("t_buf"),
             py::arg("mini_batch_size"));
 
-    PYCLASS_LOSS(LossSoftmaxCrossEntropy_fp32, LossFunction)
-        .def_static("create", &LossSoftmaxCrossEntropy_fp32::Create);
-
     PYCLASS_LOSS(LossMeanSquaredError_fp32, LossFunction)
         .def_static("create", &LossMeanSquaredError_fp32::Create);
 
+    PYCLASS_LOSS(LossCrossEntropy_fp32, LossFunction)
+        .def_static("create", &LossCrossEntropy_fp32::Create);
+
+    PYCLASS_LOSS(LossBinaryCrossEntropy_fp32, LossFunction)
+        .def_static("create", &LossBinaryCrossEntropy_fp32::Create);
+
+    PYCLASS_LOSS(LossSoftmaxCrossEntropy_fp32, LossFunction)
+        .def_static("create", &LossSoftmaxCrossEntropy_fp32::Create);
+
+    PYCLASS_LOSS(LossSigmoidCrossEntropy_fp32, LossFunction)
+        .def_static("create", &LossSigmoidCrossEntropy_fp32::Create);
 
 
     // ------------------------------------
@@ -1009,8 +1029,8 @@ PYBIND11_MODULE(core, m) {
     PYCLASS_METRICS(MetricsCategoricalAccuracy_fp32, MetricsFunction)
         .def_static("create", &MetricsCategoricalAccuracy_fp32::Create);
 
-    PYCLASS_METRICS(MetricsBinaryAccuracy_fp32, MetricsFunction)
-        .def_static("create", &MetricsBinaryAccuracy_fp32::Create);
+    PYCLASS_METRICS(MetricsBinaryCategoricalAccuracy_fp32, MetricsFunction)
+        .def_static("create", &MetricsBinaryCategoricalAccuracy_fp32::Create);
 
     PYCLASS_METRICS(MetricsMeanSquaredError_fp32, MetricsFunction)
         .def_static("create", &MetricsMeanSquaredError_fp32::Create);

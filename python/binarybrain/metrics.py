@@ -52,18 +52,6 @@ class Metrics(bb.Object):
         return self.get_core().get_metrics_string()
 
 
-class MetricsCategoricalAccuracy(Metrics):
-    """MetricsCategoricalAccuracy class
-
-       クラス分類用の評価関数
-       一致率を accuracy として計算する
-    """
-    
-    def __init__(self, dtype=bb.DType.FP32):
-        core_metrics = bb.search_core_object('MetricsCategoricalAccuracy', [dtype]).create()
-        super(MetricsCategoricalAccuracy, self).__init__(core_metrics=core_metrics)
-
-
 class MetricsMeanSquaredError(Metrics):
     """MetricsMeanSquaredError class
 
@@ -74,4 +62,28 @@ class MetricsMeanSquaredError(Metrics):
     def __init__(self, dtype=bb.DType.FP32):
         core_metrics = bb.search_core_object('MetricsMeanSquaredError', [dtype]).create()
         super(MetricsMeanSquaredError, self).__init__(core_metrics=core_metrics)
+
+
+class MetricsCategoricalAccuracy(Metrics):
+    """MetricsCategoricalAccuracy class
+
+       多クラス分類用の評価関数
+       一致率を accuracy として計算する
+    """
+    
+    def __init__(self, dtype=bb.DType.FP32):
+        core_metrics = bb.search_core_object('MetricsCategoricalAccuracy', [dtype]).create()
+        super(MetricsCategoricalAccuracy, self).__init__(core_metrics=core_metrics)
+
+
+class MetricsBinaryCategoricalAccuracy(Metrics):
+    """MetricsBinaryCategoricalAccuracy class
+
+       2クラス分類用の評価関数
+       一致率を accuracy として計算する
+    """
+    
+    def __init__(self, dtype=bb.DType.FP32):
+        core_metrics = bb.search_core_object('MetricsBinaryCategoricalAccuracy', [dtype]).create()
+        super(MetricsBinaryCategoricalAccuracy, self).__init__(core_metrics=core_metrics)
 

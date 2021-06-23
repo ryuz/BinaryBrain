@@ -23,7 +23,7 @@ def main():
 
     bin_mode              = True
     frame_modulation_size = 7
-    epochs                = 1
+    epochs                = 4
     mini_batch_size       = 64
 
     # dataset
@@ -59,8 +59,8 @@ def main():
                 bb.Sequential([
                     bb.Convolution2d(
                         bb.Sequential([
-                            bb.DifferentiableLut([4*36*6], bin_dtype=bin_dtype),
-                            bb.DifferentiableLut([4*36], bin_dtype=bin_dtype),
+                            bb.DifferentiableLut([2*36*6], bin_dtype=bin_dtype),
+                            bb.DifferentiableLut([2*36], bin_dtype=bin_dtype),
                         ]),
                         filter_size=(3, 3),
                         fw_dtype=bin_dtype),
@@ -76,6 +76,8 @@ def main():
                 bb.Sequential([
                     bb.Convolution2d(
                         bb.Sequential([
+                            bb.DifferentiableLut([6*128], bin_dtype=bin_dtype),
+                            bb.DifferentiableLut([128], bin_dtype=bin_dtype),
                             bb.DifferentiableLut([6*6*10], bin_dtype=bin_dtype),
                             bb.DifferentiableLut([6*10], bin_dtype=bin_dtype),
                             bb.DifferentiableLut([10], bin_dtype=bin_dtype),

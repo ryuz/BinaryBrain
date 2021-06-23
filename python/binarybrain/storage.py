@@ -160,7 +160,7 @@ def save_models(path: str, net, *, write_layers=True, file_format=None):
             name = model.get_name()
             if model.is_named():
                 if name in fname_list:
-                    print('[warrning] duplicate model name : %s', name)
+                    print('[warrning] duplicate model name : %s' % (name))
                     fname = '%04d_%s' % (i, name)
                 else:
                     fname = '%s' % (name)
@@ -197,7 +197,7 @@ def load_models(path: str, net, *, read_layers: bool=False, file_format=None):
         name = model.get_name()
         if model.is_named():
             if name in fname_list:
-                print('[warrning] duplicate model name : %s', name)
+                print('[warrning] duplicate model name : %s' % (name))
                 fname = '%04d_%s' % (i, name)
             else:
                 fname = '%s' % (name)
@@ -272,3 +272,11 @@ def load_networks(path: str, net, name=None, *, read_layers: bool=False, file_fo
 #   print('load : %s' % data_path)
 
     return ret
+
+
+def get_load_networks_path(path: str, net, name=None):
+    '''ネットワークをロードするパスを取得'''
+    if name is None:
+        return get_latest_path(path)
+    else:
+        return os.path.join(path, name)

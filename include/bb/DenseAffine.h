@@ -42,6 +42,7 @@ public:
 protected:
     bool                        m_host_only = false;
     bool                        m_binary_mode = false;
+    bool                        m_backward_break = false;
 
     T                           m_initialize_std = (T)0.01;
     std::string                 m_initializer = "he";
@@ -112,6 +113,11 @@ protected:
         if (args.size() == 2 && args[0] == "host_only")
         {
             m_host_only = EvalBool(args[1]);
+        }
+
+        if (args.size() == 2 && args[0] == "backward_break")
+        {
+            m_backward_break = EvalBool(args[1]);
         }
     }
 
@@ -254,7 +260,7 @@ public:
     }
     
 
-    Variables GetParameters(void)
+    Variables GetParameters(void) override
     {
         Variables parameters;
         if ( !this->m_parameter_lock ) {
@@ -264,7 +270,7 @@ public:
         return parameters;
     }
 
-    Variables GetGradients(void)
+    Variables GetGradients(void) override
     {
         Variables gradients;
         if ( !this->m_parameter_lock ) {
@@ -274,8 +280,17 @@ public:
         return gradients;
     }
 
+    void SetFrameBufferX(FrameBuffer x_buf) override
+    {
+        m_x_buf = x_buf;
+    }
 
-    FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
+    FrameBuffer GetFrameBufferX(void)  override
+    {
+        return m_x_buf;
+    }
+
+    FrameBuffer Forward(FrameBuffer x_buf, bool train = true) override
     {
         // backwardの為に保存
         if ( train ) {
@@ -362,8 +377,14 @@ public:
     }
 
 
-    FrameBuffer Backward(FrameBuffer dy_buf)
+    FrameBuffer Backward(FrameBuffer dy_buf) override
     {
+        if ( dy_buf.Empty() || m_backward_break ) {
+            m_dW = 0;
+            m_db = 0;
+            return FrameBuffer();
+        }
+
         BB_ASSERT(dy_buf.GetType() == DataType<T>::type);
 
         // フレーム数

@@ -236,6 +236,11 @@ public:
      */
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
+        if (dy_buf.Empty()) {
+
+            return dy_buf;
+        }
+
         // 無視できるゲインになったらバイパス
         if (m_gain <= (T)1.0e-14) {
             return dy_buf;

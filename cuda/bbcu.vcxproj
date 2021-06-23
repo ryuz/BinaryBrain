@@ -45,6 +45,8 @@
     <CudaCompile Include="Vector.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\bbcu\bbcu.h" />
+    <ClInclude Include="..\include\bbcu\bbcu_util.h" />
     <ClInclude Include="Common.cuh" />
     <ClInclude Include="StochasticLut.cuh" />
   </ItemGroup>

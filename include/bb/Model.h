@@ -191,8 +191,13 @@ protected:
      */
     virtual void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth) const
     {
-        os << indent << " input  shape : " << GetInputShape();
-        os << indent << " output shape : " << GetOutputShape() << std::endl;
+        os << indent;
+        os << " input  shape : " << GetInputShape();
+        os << " output shape : " << GetOutputShape();
+        if ( m_parameter_lock ) {
+            os << "  (parameter lock)";
+        }
+        os << std::endl;
     }
 
 public:

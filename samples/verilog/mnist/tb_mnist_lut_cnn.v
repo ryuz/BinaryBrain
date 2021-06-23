@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
+//  MNIST sample
 //
-//                                  Copyright (C) 2015-2018 by Ryuji Fuchikami
-//                                      http://ryuz.my.coocan.jp/
+//                                 Copyright (C) 2008-2021 by Ryuji Fuchikami
 // ---------------------------------------------------------------------------
 
 
@@ -48,7 +48,7 @@ module tb_mnist_lut_cnn();
     
     localparam  M_TNUMBER_WIDTH    = 4;
     localparam  M_TCOUNT_WIDTH     = 4;
-    localparam  M_CLUSTERING_WIDTH = 70;
+    localparam  M_CLUSTERING_WIDTH = 10;
     
     localparam  WB_ADR_WIDTH       = 8;
     localparam  WB_DAT_WIDTH       = 32;
@@ -194,7 +194,7 @@ module tb_mnist_lut_cnn();
                 .DATA_WIDTH         (DATA_WIDTH),
                 .TUSER_WIDTH        (1),
                 .INIT_PARAM_MODE    (2'b10),
-                .INIT_PARAM_TH      (7)
+                .INIT_PARAM_TH      (1) // (7)
             )
         i_video_mnist_color
             (

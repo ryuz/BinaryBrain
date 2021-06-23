@@ -388,6 +388,11 @@ public:
         return m_tensor.IsHostOnly();
     }
     
+    bool Empty(void) const
+    {
+        return (m_frame_size == 0);
+    }
+
 
    /**
      * @brief  デバイスが利用可能か問い合わせる

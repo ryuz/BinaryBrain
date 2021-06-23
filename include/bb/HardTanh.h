@@ -195,6 +195,10 @@ public:
      */
     inline FrameBuffer Backward(FrameBuffer dy_buf) override
     {
+        if (dy_buf.Empty()) {
+            return dy_buf;
+        }
+
         // binaryモード
         if ( DataType<BinType>::type == BB_TYPE_BIT || m_binary_mode) {
             return _super::Backward(dy_buf);

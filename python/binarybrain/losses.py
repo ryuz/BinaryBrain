@@ -48,21 +48,6 @@ class LossFunction(bb.Object):
         return bb.FrameBuffer.from_core(self.get_core().calculate_loss(y_buf.get_core(), t_buf.get_core(), mini_batch_size))
 
 
-
-class LossSoftmaxCrossEntropy(LossFunction):
-    """LossSoftmaxCrossEntropy class
-
-       Softmax(活性化) と CrossEntropy(損失関数) の複合
-       両者を統合すると計算が簡略化される。
-       
-       利用に際しては最終段にSoftmaxが挿入されるので注意すること。
-    """
-    
-    def __init__(self, dtype=bb.DType.FP32):
-        core_loss = bb.search_core_object('LossSoftmaxCrossEntropy', [dtype]).create()
-        super(LossSoftmaxCrossEntropy, self).__init__(core_loss=core_loss)
-
-
 class LossMeanSquaredError(LossFunction):
     """LossMeanSquaredError class
 
@@ -70,6 +55,53 @@ class LossMeanSquaredError(LossFunction):
     """
     
     def __init__(self, dtype=bb.DType.FP32):
-        core_loss = bb.search_core_object('LossSoftmaxCrossEntropy', [dtype]).create()
+        core_loss = bb.search_core_object('LossMeanSquaredError', [dtype]).create()
         super(LossMeanSquaredError, self).__init__(core_loss=core_loss)
+
+
+
+class LossCrossEntropy(LossFunction):
+    """LossCrossEntropy class
+    """
+    
+    def __init__(self, dtype=bb.DType.FP32):
+        core_loss = bb.search_core_object('LossCrossEntropy', [dtype]).create()
+        super(LossCrossEntropy, self).__init__(core_loss=core_loss)
+
+
+class LossBinaryCrossEntropy(LossFunction):
+    """LossBinaryCrossEntropy class
+    """
+    
+    def __init__(self, dtype=bb.DType.FP32):
+        core_loss = bb.search_core_object('LossBinaryCrossEntropy', [dtype]).create()
+        super(LossBinaryCrossEntropy, self).__init__(core_loss=core_loss)
+
+
+class LossSoftmaxCrossEntropy(LossFunction):
+    """LossSoftmaxCrossEntropy class
+
+       Softmax(活性化) と CrossEntropy(損失関数) の複合
+       両者を統合すると計算が簡略化される。
+       
+       利用に際しては最終段に Softmax が挿入されたのと等価になるので注意すること。
+    """
+    
+    def __init__(self, dtype=bb.DType.FP32):
+        core_loss = bb.search_core_object('LossSoftmaxCrossEntropy', [dtype]).create()
+        super(LossSoftmaxCrossEntropy, self).__init__(core_loss=core_loss)
+
+
+class LossSigmoidCrossEntropy(LossFunction):
+    """LossSigmoidCrossEntropy class
+
+       Sigmoid(活性化) と BinaryCrossEntropy(損失関数) の複合
+       両者を統合すると計算が簡略化される。
+       
+       利用に際しては最終段に Sigmoid が挿入されたのと等価になるので注意すること。
+    """
+    
+    def __init__(self, dtype=bb.DType.FP32):
+        core_loss = bb.search_core_object('LossSigmoidCrossEntropy', [dtype]).create()
+        super(LossSigmoidCrossEntropy, self).__init__(core_loss=core_loss)
 

@@ -478,6 +478,10 @@ public:
     // Backwardは存在しない
     FrameBuffer Backward(FrameBuffer dy_buf) override
     {
+        if (dy_buf.Empty()) {
+            return dy_buf;
+        }
+
         FrameBuffer dx_buf(dy_buf.GetFrameSize(), m_input_shape, DataType<BT>::type);
         return dx_buf;
     }

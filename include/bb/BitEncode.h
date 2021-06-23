@@ -220,6 +220,10 @@ public:
      */
     inline FrameBuffer Backward(FrameBuffer dy_buf)
     {
+        if (dy_buf.Empty()) {
+            return dy_buf;
+        }
+
         // 戻り値のサイズ設定
         FrameBuffer dx_buf(dy_buf.GetFrameSize(), m_input_shape, DataType<RealType>::type);
         dx_buf.FillZero();

@@ -1,9 +1,7 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- the soft-core processor system
-//   math
+//  MNIST sample
 //
-//                                 Copyright (C) 2008-2018 by Ryuji Fuchikami
-//                                 http://ryuz.my.coocan.jp/
+//                                 Copyright (C) 2008-2021 by Ryuji Fuchikami
 // ---------------------------------------------------------------------------
 
 
@@ -19,7 +17,7 @@ module video_mnist_cnn
             parameter   RAM_TYPE           = "block",
             
             parameter   NUM_CALSS          = 10,
-            parameter   CHANNEL_WIDTH      = 7,
+            parameter   CHANNEL_WIDTH      = 1,
             
             parameter   IMG_Y_NUM          = 480,
             parameter   IMG_Y_WIDTH        = 12,
