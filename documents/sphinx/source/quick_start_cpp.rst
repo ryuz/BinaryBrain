@@ -16,7 +16,7 @@ https://developer.nvidia.com/cuda-downloads
 
 Windows
 -----------
-1. install VisualStudio 2019 + CUDA 10.1
+1. install VisualStudio 2019 + CUDA 11.3
 2. git clone --recursive -b ver4_release https://github.com/ryuz/BinaryBrain.git
 3. download MNIST from http://yann.lecun.com/exdb/mnist/
 4. decompress MNIST for "\samples\cpp\mnist"
@@ -24,7 +24,7 @@ Windows
 6. build "x64 Release"
 7. run
 
-Linux(Ubuntu 18.04.1)
+Linux(Ubuntu 20.04)
 ----------------------
 
 1. install tools
@@ -37,9 +37,8 @@ Linux(Ubuntu 18.04.1)
   % sudo apt install git
   % sudo apt install make
   % sudo apt install g++
-  % # sudo apt install nvidia-cuda-toolkit
-  % wget http://developer.download.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.243_418.87.00_linux.run
-  % sudo sh cuda_10.1.243_418.87.00_linux.run
+  % wget https://developer.download.nvidia.com/compute/cuda/11.3.1/local_installers/cuda_11.3.1_465.19.01_linux.run
+  % sudo sh cuda_11.3.1_465.19.01_linux.run
 
 2. build and run
 ^^^^^^^^^^^^^^^^^

@@ -67,17 +67,30 @@ Please, read "main.cpp" for usage.
 6. build "x64 Release"
 7. run
 
-### Linux(Ubuntu 18.04)
+### Linux(Ubuntu 20.04)
+
 1. install tools 
+
 ```
 % sudo apt update
 % sudo apt upgrade
 % sudo apt install git
 % sudo apt install make
 % sudo apt install g++
-% sudo apt install nvidia-cuda-toolkit
+% wget https://developer.download.nvidia.com/compute/cuda/11.3.1/local_installers/cuda_11.3.1_465.19.01_linux.run
+% sudo sh cuda_11.3.1_465.19.01_linux.run
 ```
+
+append to .bashrc
+
+```
+export PATH="/usr/local/cuda/bin:$PATH"
+export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
+```
+
+
 2. build and run
+
 ```
 % git clone --recursive -b ver3_release  https://github.com/ryuz/BinaryBrain.git
 % cd BinaryBrain/samples/cpp/mnist
@@ -112,7 +125,7 @@ Install packeges.
 % pip3 install tqdm
 ```
 
-Please install [PyTorch](https://pytorch.org)
+Install [PyTorch](https://pytorch.org)
 
 When using Windows, 64-bit version of VisualStudio is required.
 ('x64' option is important)
@@ -121,7 +134,12 @@ When using Windows, 64-bit version of VisualStudio is required.
 > "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 ```
 
-### Install
+### Install with pip
+
+```
+% pip3 install binarybrain
+```
+### Install with setup.py
 
 ```
 % # install
@@ -141,12 +159,7 @@ When using Windows, 64-bit version of VisualStudio is required.
 % python3 MnistDifferentiableLutCnn.py
 ```
 
-<!--
-### Install with pip
-```
-% pip3 install binarybrain
-```
--->
+
 
 ### Google Colaboratory
 
