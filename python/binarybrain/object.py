@@ -241,10 +241,6 @@ class Object:
             filename (str): ファイル名
         """
         with open(filename, 'rb') as f:
-            data, obj = self.loads(f.read())
+            data = self.loads(f.read())
             if data != b'':
                 print('[Model.loads] warrning: data is too long')
-            return obj
-
-
-
