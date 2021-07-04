@@ -59,7 +59,8 @@ BBCU_DLL_EXPORT bool bbcu_IsDeviceAvailable(void);
 BBCU_DLL_EXPORT void  *bbcu_LocalHeap_Malloc(size_t size);
 BBCU_DLL_EXPORT void   bbcu_LocalHeap_Free(void* ptr);
 BBCU_DLL_EXPORT size_t bbcu_LocalHeap_GetMaxAllocSize(void);
-
+BBCU_DLL_EXPORT size_t bbcu_LocalHeap_GetAllocatedSize(void);
+BBCU_DLL_EXPORT void   bbcu_LocalHeap_GarbageCollect(void);
 
 #if defined(__cplusplus) && defined(BBCU_DLL)
 }
