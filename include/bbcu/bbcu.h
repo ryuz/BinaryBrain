@@ -1315,6 +1315,24 @@ BBCU_DLL_EXPORT int bbcu_bit_BitEncode
 
 
 // -------------------------------------
+//  LossMeanSquaredError
+// -------------------------------------
+
+BBCU_DLL_EXPORT int bbcu_fp32_LossMeanSquaredError
+        (
+            const float*    dev_y_buf,
+            const float*    dev_t_buf,
+            float*          dev_dy_buf,
+            double*         dev_loss_buf,
+            int             loss_buf_size,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride,
+            int             batch_size,
+            cudaStream_t    streamId = 0
+        );
+
+// -------------------------------------
 //  LossSoftmaxCrossEntropy
 // -------------------------------------
 

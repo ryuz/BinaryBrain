@@ -26,6 +26,7 @@
     <CudaCompile Include="HardTanh.cu" />
     <CudaCompile Include="Im2Col.cu" />
     <CudaCompile Include="LocalHeap.cu" />
+    <CudaCompile Include="LossMeanSquaredError.cu" />
     <CudaCompile Include="LossSoftmaxCrossEntropy.cu" />
     <CudaCompile Include="Manager.cu" />
     <CudaCompile Include="MatrixColwiseMeanVar.cu" />
