@@ -134,6 +134,7 @@ public:
 #ifdef BB_WITH_CUDA
         if ( m_cublasEnable ) {
             BB_CUBLAS_SAFE_CALL(cublasDestroy(m_cublasHandle));
+            m_cublasEnable = false;
         }
 #endif
     }
