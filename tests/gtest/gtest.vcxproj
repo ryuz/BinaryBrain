@@ -47,6 +47,7 @@
     <ClCompile Include="DenseAffineTest.cpp" />
     <ClCompile Include="DepthwiseDenseAffineTest.cpp" />
     <ClCompile Include="FrameBufferTest.cpp" />
+    <ClCompile Include="LossMeanSquaredErrorTest.cpp" />
     <ClCompile Include="LossSoftmaxCrossEntropyTest.cpp" />
     <ClCompile Include="LoweringConvolutionTest.cpp" />
     <ClCompile Include="MaxPoolingTest.cpp" />

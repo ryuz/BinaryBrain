@@ -128,6 +128,8 @@ void MnistDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_mo
         // print model information
         net->PrintInfo();
 
+
+
         std::cout << "-----------------------------------" << std::endl;
         std::cout << "epoch_size            : " << epoch_size            << std::endl;
         std::cout << "mini_batch_size       : " << mini_batch_size       << std::endl;
