@@ -57,6 +57,10 @@ BinaryBrain は LUT-Network の学習可能性を実証するために作られ�
 ![Differentiable-LUT_model.png](documents/images/differentiable-lut_model.png "Differentiable LUT model")
 
 
+下記のようなリアルタイムなセマンティックセグメンテーションも実現できています。
+
+[![セマンティックセグメンテーション](https://img.youtube.com/vi/f78qxm15XYA/0.jpg)](https://www.youtube.com/watch?v=f78qxm15XYA)
+
 
 ## MNISTサンプルの動かし方(C++)
 AXV2以降の命令が使えるCPUと、Windows7以降の環境を想定しております。
