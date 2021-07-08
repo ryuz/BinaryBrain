@@ -210,7 +210,8 @@ module tb_mnist_lut_semantic_segmentation(
     
     
     // 出力結果を保存
-    jelly_axi4s_slave_model
+    logic   [31:0]          frame_num;
+    jelly_axi4s_slave_dump
             #(
                 .COMPONENT_NUM      (3),
                 .DATA_WIDTH         (DATA_WIDTH),
@@ -218,8 +219,8 @@ module tb_mnist_lut_semantic_segmentation(
                 .FRAME_WIDTH        (32),
                 .X_WIDTH            (32),
                 .Y_WIDTH            (32),
-                .FILE_NAME          ("col_%1d.ppm"),
-                .MAX_PATH           (64),
+                .FILE_NAME          ("col_"),
+                .FILE_EXT           (".ppm"),
                 .BUSY_RATE          (0),
                 .RANDOM_SEED        (1234)
             )
@@ -231,7 +232,8 @@ module tb_mnist_lut_semantic_segmentation(
                 
                 .param_width        (IMG_X_NUM),
                 .param_height       (IMG_Y_NUM),
-                
+                .frame_num          (frame_num),
+
                 .s_axi4s_tuser      (axi4s_color_tuser),
                 .s_axi4s_tlast      (axi4s_color_tlast),
                 .s_axi4s_tdata      ({axi4s_color_tdata[7:0], axi4s_color_tdata[15:8], axi4s_color_tdata[23:16]}),
@@ -241,20 +243,13 @@ module tb_mnist_lut_semantic_segmentation(
     
     
     // 出力フレームカウント
-    integer output_frame = 0;
-    /*
     always @(posedge clk) begin
         if ( !reset ) begin
-            if ( axi4s_color_tvalid && axi4s_color_tready && axi4s_color_tuser[0] ) begin
-                output_frame <= output_frame + 1;
-            end
-            
-            if ( output_frame >= 2 ) begin
+            if ( frame_num >= 2 ) begin
                 $finish();
             end
         end
     end
-    */
     
     
 endmodule
