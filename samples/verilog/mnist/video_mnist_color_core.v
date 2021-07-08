@@ -83,7 +83,7 @@ module video_mnist_color_core
             4'd7:       st0_color <= 24'h80_00_80;  // 紫
             4'd8:       st0_color <= 24'h80_80_80;  // 灰
             4'd9:       st0_color <= 24'hff_ff_ff;  // 白
-            default:    st0_color <= 24'hxx_xx_xx;
+            default:    st0_color <= {s_axi4s_tdata[7:0], s_axi4s_tdata[15:8], s_axi4s_tdata[23:16]};
             endcase
             st0_valid  <= s_axi4s_tvalid;
             
