@@ -52,6 +52,9 @@ A unique network model is available.
 ![Sparse-LUT_model.png](documents/images/Sparse-LUT_model.png "Sparse-LUT model")
 
 
+This technology has also enabled real-time semantic segmentation.
+
+[![セマンティックセグメンテーション](https://img.youtube.com/vi/f78qxm15XYA/0.jpg)](https://www.youtube.com/watch?v=f78qxm15XYA)
 
 
 ## How to use MNIST sample program (C++)
