@@ -107,7 +107,7 @@ inline void ExportVerilog_LutModel(std::ostream& os, std::string module_name, Sp
             }
             os <<
                 "),\n"
-                "                .INIT_REG  (INIT_REG),\n";
+                "                .INIT_REG  (INIT_REG),\n"
                 "                .DEVICE    (DEVICE)\n";
 
             os <<
