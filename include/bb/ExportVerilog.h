@@ -37,7 +37,8 @@ inline void ExportVerilog_LutModel(std::ostream& os, std::string module_name, Sp
         "\n"
         "module " << module_name << "\n"
         "        #(\n"
-        "            parameter DEVICE = \"RTL\"\n"
+        "            parameter INIT_REG = 1'bx,\n"
+        "            parameter DEVICE   = \"RTL\"\n"
         "        )\n"
         "        (\n"
         "            input  wire         reset,\n"
@@ -47,7 +48,7 @@ inline void ExportVerilog_LutModel(std::ostream& os, std::string module_name, Sp
         "            input  wire [" << (lut.GetInputNodeSize() - 1) << ":0]  in_data,\n"
         "            output wire [" << (lut.GetOutputNodeSize() - 1) << ":0]  out_data\n"
         "        );\n"
-        "\n";
+        "    \n";
 
 
     for (index_t node = 0; node < node_size; node++) {
@@ -88,7 +89,7 @@ inline void ExportVerilog_LutModel(std::ostream& os, std::string module_name, Sp
                 "            );\n"
                 "\n";
         }
-        else {
+        else if ( device == "RTL" ) {
             // LUT 出力
             os <<
                 "    \n"
@@ -106,7 +107,8 @@ inline void ExportVerilog_LutModel(std::ostream& os, std::string module_name, Sp
             }
             os <<
                 "),\n"
-                "                .DEVICE(DEVICE)\n";
+                "                .INIT_REG  (INIT_REG),\n";
+                "                .DEVICE    (DEVICE)\n";
 
             os <<
                 "            )\n"
@@ -125,12 +127,36 @@ inline void ExportVerilog_LutModel(std::ostream& os, std::string module_name, Sp
                 "            );\n"
                 "    \n";
         }
-
-        os <<
+        else {
+            // LUT 出力
+            os <<
+                "    \n"
+                "    // LUT : " << node << "\n"
+                "    wire [" << lut_table_size-1 << ":0] lut_" << node << "_table = " << lut_table_size << "'b";
+            for (int bit = lut_table_size - 1; bit >= 0; --bit ) {
+                os << (lut.GetLutTable(node, bit) ? "1" : "0");
+            }
+            os <<
+                ";\n";
+            os <<
+                "    wire [" << lut_input_size-1 << ":0] lut_" << node << "_select = {\n";
+            for (index_t bit = lut_input_size - 1; bit >= 1; --bit) {
+                os <<
+                    "                             in_data[" << lut.GetNodeConnectionIndex(node, bit) << "],\n";
+            }
+            os <<
+                "                             in_data[" << lut.GetNodeConnectionIndex(node, 0) << "]};\n    \n";
+            
+            os <<
+                "    assign lut_" << node << "_out = lut_" << node << "_table[lut_" << node << "_select];\n";
+         }
+         
+         os <<
+            "    \n"
             "    reg   lut_" << node << "_ff;\n"
             "    always @(posedge clk) begin\n"
             "        if ( reset ) begin\n"
-            "            lut_" << node << "_ff <= 1'b0;\n"
+            "            lut_" << node << "_ff <= INIT_REG;\n"
             "        end\n"
             "        else if ( cke ) begin\n"
             "            lut_" << node << "_ff <= lut_" << node << "_out;\n"
@@ -141,7 +167,6 @@ inline void ExportVerilog_LutModel(std::ostream& os, std::string module_name, Sp
             "    \n";
 
         os <<
-            "    \n"
             "    \n";
     }
 
@@ -176,6 +201,7 @@ inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, s
         "module " << module_name << "\n"
         "        #(\n"
         "            parameter USER_WIDTH = 0,\n"
+        "            parameter INIT_REG   = 1'bx,\n"
         "            parameter DEVICE     = \"RTL\",\n"
         "            \n"
         "            parameter USER_BITS  = USER_WIDTH > 0 ? USER_WIDTH : 1\n"
@@ -193,7 +219,8 @@ inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, s
         "            output wire [" << std::setw(9) << last_layer->GetOutputNodeSize() << "-1:0]  out_data,\n"
         "            output wire                  out_valid\n"
         "        );\n"
-        "\n\n";
+        "    \n"
+        "    \n";
 
     for (int i = 0; i < layer_size; ++i) {
         auto layer = layers[i];
@@ -202,9 +229,10 @@ inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, s
             << "    reg   [USER_BITS-1:0]  layer" << i << "_user;\n"
             << "    wire  [" << std::setw(9) << layer->GetOutputNodeSize() << "-1:0]  layer" << i << "_data;\n"
             << "    reg                    layer" << i << "_valid;\n"
-            << "\n"
-            << sub_modle_name[i] << "\n"
+            << "    \n"
+            << "    " << sub_modle_name[i] << "\n"
             << "            #(\n"
+            << "                .INIT_REG   (INIT_REG),\n"
             << "                .DEVICE     (DEVICE)\n"
             << "            )\n"
             << "        i_" << sub_modle_name[i] << "\n"
@@ -304,6 +332,7 @@ inline void ExportVerilog_LutConvolutionModule(std::ostream& os, std::string mod
             parameter   USER_WIDTH = 0,
             parameter   MAX_X_NUM  = 1024,
             parameter   RAM_TYPE   = "block",
+            parameter   INIT_REG   = 1'bx,
             parameter   DEVICE     = "rtl",
 )";
     os << "            parameter   S_C  = " << in_c << ",\n";
@@ -410,6 +439,7 @@ inline void ExportVerilog_LutConvolutionModule(std::ostream& os, std::string mod
     os << R"(
             #(
                 .USER_WIDTH (USER_BITS + 5),
+                .INIT_REG   (INIT_REG),
                 .DEVICE     (DEVICE)
             )
         i_mlp
@@ -509,6 +539,7 @@ inline void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module
             parameter   FIFO_RAM_TYPE  = "block",
             parameter   RAM_TYPE       = "block",
             parameter   IMG_CKE_BUFG   = 0,
+            parameter   INIT_REG       = 1'bx,
             parameter   DEVICE         = "rtl",
 )";
 
@@ -654,6 +685,7 @@ inline void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module
             os << "                .USER_WIDTH              (USER_WIDTH),\n";
             os << "                .MAX_X_NUM               (MAX_X_NUM),\n";
             os << "                .RAM_TYPE                (RAM_TYPE),\n";
+            os << "                .INIT_REG                (INIT_REG),\n";
             os << "                .DEVICE                  (DEVICE)\n";
             os << "            )\n";
             os << "        i_" << module_name << "_l" << i << "\n";
