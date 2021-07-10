@@ -38,16 +38,19 @@ void MnistMicroMlpLutCnn(int epoch_size, int mini_batch_size, int train_modulati
 #endif
 
     // create network
-    auto layer_cnv0_mm0 = bb::MicroMlp<6, 16, float>::Create(192);
-    auto layer_cnv0_mm1 = bb::MicroMlp<6, 16, float>::Create(32);
-    auto layer_cnv1_mm0 = bb::MicroMlp<6, 16, float>::Create(192);
-    auto layer_cnv1_mm1 = bb::MicroMlp<6, 16, float>::Create(32);
-    auto layer_cnv2_mm0 = bb::MicroMlp<6, 16, float>::Create(192);
-    auto layer_cnv2_mm1 = bb::MicroMlp<6, 16, float>::Create(32);
-    auto layer_cnv3_mm0 = bb::MicroMlp<6, 16, float>::Create(192);
-    auto layer_cnv3_mm1 = bb::MicroMlp<6, 16, float>::Create(32);
-    auto layer_mm4      = bb::MicroMlp<6, 16, float>::Create(420);
-    auto layer_mm5      = bb::MicroMlp<6, 16, float>::Create(70);
+    auto layer_cnv0_mm0 = bb::MicroMlp<6, 16, float>::Create(6*36);
+    auto layer_cnv0_mm1 = bb::MicroMlp<6, 16, float>::Create(36);
+    auto layer_cnv1_mm0 = bb::MicroMlp<6, 16, float>::Create(6*2*36);
+    auto layer_cnv1_mm1 = bb::MicroMlp<6, 16, float>::Create(2*36);
+    auto layer_cnv2_mm0 = bb::MicroMlp<6, 16, float>::Create(2*6*36);
+    auto layer_cnv2_mm1 = bb::MicroMlp<6, 16, float>::Create(2*36);
+    auto layer_cnv3_mm0 = bb::MicroMlp<6, 16, float>::Create(4*6*36);
+    auto layer_cnv3_mm1 = bb::MicroMlp<6, 16, float>::Create(4*36);
+    auto layer_mm4      = bb::MicroMlp<6, 16, float>::Create(6*128);
+    auto layer_mm5      = bb::MicroMlp<6, 16, float>::Create(128);
+    auto layer_mm6      = bb::MicroMlp<6, 16, float>::Create(6*6*10);
+    auto layer_mm7      = bb::MicroMlp<6, 16, float>::Create(6*10);
+    auto layer_mm8      = bb::MicroMlp<6, 16, float>::Create(10);
 
     {
         std::cout << "\n<Training>" << std::endl;
@@ -77,6 +80,9 @@ void MnistMicroMlpLutCnn(int epoch_size, int mini_batch_size, int train_modulati
         main_net->Add(bb::MaxPooling<>::Create(2, 2));
         main_net->Add(layer_mm4);
         main_net->Add(layer_mm5);
+        main_net->Add(layer_mm6);
+        main_net->Add(layer_mm7);
+        main_net->Add(layer_mm8);
 
         // modulation wrapper
         auto net = bb::Sequential::Create();
@@ -141,6 +147,9 @@ void MnistMicroMlpLutCnn(int epoch_size, int mini_batch_size, int train_modulati
         auto layer_cnv3_bl1 = bb::BinaryLutN<>::Create(layer_cnv3_mm1->GetOutputShape());
         auto layer_bl4      = bb::BinaryLutN<>::Create(layer_mm4->GetOutputShape());
         auto layer_bl5      = bb::BinaryLutN<>::Create(layer_mm5->GetOutputShape());
+        auto layer_bl6      = bb::BinaryLutN<>::Create(layer_mm6->GetOutputShape());
+        auto layer_bl7      = bb::BinaryLutN<>::Create(layer_mm7->GetOutputShape());
+        auto layer_bl8      = bb::BinaryLutN<>::Create(layer_mm8->GetOutputShape());
 
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_bl0);
@@ -161,6 +170,9 @@ void MnistMicroMlpLutCnn(int epoch_size, int mini_batch_size, int train_modulati
         auto cnv4_sub = bb::Sequential::Create();
         cnv4_sub->Add(layer_bl4);
         cnv4_sub->Add(layer_bl5);
+        cnv4_sub->Add(layer_bl6);
+        cnv4_sub->Add(layer_bl7);
+        cnv4_sub->Add(layer_bl8);
 
         auto cnv0 = bb::Convolution2d<bb::Bit>::Create(cnv0_sub, 3, 3);
         auto cnv1 = bb::Convolution2d<bb::Bit>::Create(cnv1_sub, 3, 3);
@@ -202,6 +214,9 @@ void MnistMicroMlpLutCnn(int epoch_size, int mini_batch_size, int train_modulati
         layer_cnv3_bl1->ImportLayer(layer_cnv3_mm1);
         layer_bl4     ->ImportLayer(layer_mm4);
         layer_bl5     ->ImportLayer(layer_mm5);
+        layer_bl6     ->ImportLayer(layer_mm6);
+        layer_bl7     ->ImportLayer(layer_mm7);
+        layer_bl8     ->ImportLayer(layer_mm8);
 
         // 評価
         if ( 1 ) {

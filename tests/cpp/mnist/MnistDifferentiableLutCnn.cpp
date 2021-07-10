@@ -12,7 +12,6 @@
 #include "bb/DifferentiableLutN.h"
 #include "bb/DifferentiableLutDiscreteN.h"
 #include "bb/BinaryLutN.h"
-#include "bb/BinaryDenseAffine.h"
 #include "bb/Reduce.h"
 #include "bb/BinaryModulation.h"
 #include "bb/OptimizerAdam.h"
@@ -21,9 +20,6 @@
 #include "bb/Runner.h"
 #include "bb/LoadMnist.h"
 #include "bb/ExportVerilog.h"
-
-#include "bb/DigitalToAnalog.h"
-
 
 
 void MnistDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
@@ -42,33 +38,33 @@ void MnistDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_mo
 
     // create network
 #ifdef BB_WITH_CUDA
-    auto layer_cnv0_sl0 = bb::DifferentiableLutN<6, float>::Create(192);
-    auto layer_cnv0_sl1 = bb::DifferentiableLutN<6, float>::Create(32);
-    auto layer_cnv1_sl0 = bb::DifferentiableLutN<6, float>::Create(192);
-    auto layer_cnv1_sl1 = bb::DifferentiableLutN<6, float>::Create(32);
-    auto layer_cnv2_sl0 = bb::DifferentiableLutN<6, float>::Create(384);
-    auto layer_cnv2_sl1 = bb::DifferentiableLutN<6, float>::Create(64);
-    auto layer_cnv3_sl0 = bb::DifferentiableLutN<6, float>::Create(384);
-    auto layer_cnv3_sl1 = bb::DifferentiableLutN<6, float>::Create(64);
-    auto layer_sl4      = bb::DifferentiableLutN<6, float>::Create(128*6);
+    auto layer_cnv0_sl0 = bb::DifferentiableLutN<6, float>::Create(6*36);
+    auto layer_cnv0_sl1 = bb::DifferentiableLutN<6, float>::Create(36);
+    auto layer_cnv1_sl0 = bb::DifferentiableLutN<6, float>::Create(2*6*36);
+    auto layer_cnv1_sl1 = bb::DifferentiableLutN<6, float>::Create(2*36);
+    auto layer_cnv2_sl0 = bb::DifferentiableLutN<6, float>::Create(2*6*36);
+    auto layer_cnv2_sl1 = bb::DifferentiableLutN<6, float>::Create(2*36);
+    auto layer_cnv3_sl0 = bb::DifferentiableLutN<6, float>::Create(4*6*36);
+    auto layer_cnv3_sl1 = bb::DifferentiableLutN<6, float>::Create(4*36);
+    auto layer_sl4      = bb::DifferentiableLutN<6, float>::Create(6*128);
     auto layer_sl5      = bb::DifferentiableLutN<6, float>::Create(128);
-    auto layer_sl6      = bb::DifferentiableLutN<6, float>::Create(420);
-    auto layer_sl7      = bb::DifferentiableLutN<6, float>::Create(70);
-
-    auto layer_fc0      = bb::BinaryDenseAffine<float>::Create({128*6});
-    auto layer_fc1      = bb::BinaryDenseAffine<float>::Create({70});
-
+    auto layer_sl6      = bb::DifferentiableLutN<6, float>::Create(6*6*10);
+    auto layer_sl7      = bb::DifferentiableLutN<6, float>::Create(6*10);
+    auto layer_sl8      = bb::DifferentiableLutN<6, float>::Create(10);
 #else
-    auto layer_cnv0_sl0 = bb::DifferentiableLutDiscreteN<6, float>::Create(192);
-    auto layer_cnv0_sl1 = bb::DifferentiableLutDiscreteN<6, float>::Create(32);
-    auto layer_cnv1_sl0 = bb::DifferentiableLutDiscreteN<6, float>::Create(192);
-    auto layer_cnv1_sl1 = bb::DifferentiableLutDiscreteN<6, float>::Create(32);
-    auto layer_cnv2_sl0 = bb::DifferentiableLutDiscreteN<6, float>::Create(384);
-    auto layer_cnv2_sl1 = bb::DifferentiableLutDiscreteN<6, float>::Create(64);
-    auto layer_cnv3_sl0 = bb::DifferentiableLutDiscreteN<6, float>::Create(384);
-    auto layer_cnv3_sl1 = bb::DifferentiableLutDiscreteN<6, float>::Create(64);
-    auto layer_sl4      = bb::DifferentiableLutDiscreteN<6, float>::Create(420);
-    auto layer_sl5      = bb::DifferentiableLutDiscreteN<6, float>::Create(70);
+    auto layer_cnv0_sl0 = bb::DifferentiableLutDiscreteN<6, float>::Create(6*36);
+    auto layer_cnv0_sl1 = bb::DifferentiableLutDiscreteN<6, float>::Create(36);
+    auto layer_cnv1_sl0 = bb::DifferentiableLutDiscreteN<6, float>::Create(2*6*36);
+    auto layer_cnv1_sl1 = bb::DifferentiableLutDiscreteN<6, float>::Create(2*36);
+    auto layer_cnv2_sl0 = bb::DifferentiableLutDiscreteN<6, float>::Create(2*6*36);
+    auto layer_cnv2_sl1 = bb::DifferentiableLutDiscreteN<6, float>::Create(2*36);
+    auto layer_cnv3_sl0 = bb::DifferentiableLutDiscreteN<6, float>::Create(4*6*36);
+    auto layer_cnv3_sl1 = bb::DifferentiableLutDiscreteN<6, float>::Create(4*36);
+    auto layer_sl4      = bb::DifferentiableLutDiscreteN<6, float>::Create(6*128);
+    auto layer_sl5      = bb::DifferentiableLutDiscreteN<6, float>::Create(128);
+    auto layer_sl6      = bb::DifferentiableLutDiscreteN<6, float>::Create(6*6*10);
+    auto layer_sl7      = bb::DifferentiableLutDiscreteN<6, float>::Create(6*10);
+    auto layer_sl8      = bb::DifferentiableLutDiscreteN<6, float>::Create(10);
 #endif
 
     {
@@ -102,17 +98,12 @@ void MnistDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_mo
         main_net->Add(layer_sl5);
         main_net->Add(layer_sl6);
         main_net->Add(layer_sl7);
-//        main_net->Add(layer_fc0);
-//        main_net->Add(layer_fc1);
+        main_net->Add(layer_sl8);
 
         // modulation wrapper
         auto net = bb::Sequential::Create();
-        net->Add(bb::RealToBinary<float>::Create());
-        net->Add(main_net);
-//      net->Add(bb::BinaryModulation<float>::Create(main_net, train_modulation_size, test_modulation_size));
-
-        net->Add(bb::DigitalToAnalog<float>::Create(td.t_shape));
-//      net->Add(bb::Reduce<float>::Create(td.t_shape));
+        net->Add(bb::BinaryModulation<float>::Create(main_net, train_modulation_size, test_modulation_size));
+        net->Add(bb::Reduce<float>::Create(td.t_shape));
 
         // set input shape
         net->SetInputShape(td.x_shape);
@@ -127,8 +118,6 @@ void MnistDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_mo
 
         // print model information
         net->PrintInfo();
-
-
 
         std::cout << "-----------------------------------" << std::endl;
         std::cout << "epoch_size            : " << epoch_size            << std::endl;
@@ -147,7 +136,7 @@ void MnistDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_mo
         runner_create.net                = net;
         runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
         runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
-        runner_create.optimizer          = bb::OptimizerAdam<float>::Create(0.0001f);
+        runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
         runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
         runner_create.file_write         = true;            // 計算結果をファイルに保存するか
         runner_create.print_progress     = true;            // 途中結果を表示
@@ -170,6 +159,9 @@ void MnistDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_mo
         auto layer_cnv3_bl1 = bb::BinaryLutN<6, bb::Bit>::Create(layer_cnv3_sl1->GetOutputShape());
         auto layer_bl4      = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl4->GetOutputShape());
         auto layer_bl5      = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl5->GetOutputShape());
+        auto layer_bl6      = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl6->GetOutputShape());
+        auto layer_bl7      = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl7->GetOutputShape());
+        auto layer_bl8      = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl8->GetOutputShape());
 
         auto cnv0_sub = bb::Sequential::Create();
         cnv0_sub->Add(layer_cnv0_bl0);
@@ -190,6 +182,9 @@ void MnistDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_mo
         auto cnv4_sub = bb::Sequential::Create();
         cnv4_sub->Add(layer_bl4);
         cnv4_sub->Add(layer_bl5);
+        cnv4_sub->Add(layer_bl6);
+        cnv4_sub->Add(layer_bl7);
+        cnv4_sub->Add(layer_bl8);
 
         auto cnv0 = bb::Convolution2d<bb::Bit>::Create(cnv0_sub, 3, 3);
         auto cnv1 = bb::Convolution2d<bb::Bit>::Create(cnv1_sub, 3, 3);
@@ -213,7 +208,7 @@ void MnistDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_mo
         // evaluation network
         auto eval_net = bb::Sequential::Create();
         eval_net->Add(bb::BinaryModulation<bb::Bit>::Create(lut_net, test_modulation_size));
-        eval_net->Add(bb::DigitalToAnalog<>::Create(td.t_shape));
+        eval_net->Add(bb::Reduce<>::Create(td.t_shape));
 
         // set input shape
         eval_net->SetInputShape(td.x_shape);
@@ -231,6 +226,9 @@ void MnistDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_mo
         layer_cnv3_bl1->ImportLayer(layer_cnv3_sl1);
         layer_bl4     ->ImportLayer(layer_sl4);
         layer_bl5     ->ImportLayer(layer_sl5);
+        layer_bl6     ->ImportLayer(layer_sl6);
+        layer_bl7     ->ImportLayer(layer_sl7);
+        layer_bl8     ->ImportLayer(layer_sl8);
 
         // 評価
         if ( 1 ) {
