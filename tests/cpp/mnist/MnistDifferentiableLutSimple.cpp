@@ -38,13 +38,19 @@ void MnistDifferentiableLutSimple(int epoch_size, int mini_batch_size, int train
 #endif
 
 #ifdef BB_WITH_CUDA
-    auto layer_sl0 = bb::DifferentiableLutN<6, float>::Create(1024);
-    auto layer_sl1 = bb::DifferentiableLutN<6, float>::Create(420);
-    auto layer_sl2 = bb::DifferentiableLutN<6, float>::Create(70);
+    auto layer_sl0 = bb::DifferentiableLutN<6, float>::Create(6*6*64);
+    auto layer_sl1 = bb::DifferentiableLutN<6, float>::Create(6*64);
+    auto layer_sl2 = bb::DifferentiableLutN<6, float>::Create(64);
+    auto layer_sl3 = bb::DifferentiableLutN<6, float>::Create(6*6*10);
+    auto layer_sl4 = bb::DifferentiableLutN<6, float>::Create(6*10);
+    auto layer_sl5 = bb::DifferentiableLutN<6, float>::Create(10);
 #else
-    auto layer_sl0 = bb::DifferentiableLutDiscreteN<6, float>::Create(1024);
-    auto layer_sl1 = bb::DifferentiableLutDiscreteN<6, float>::Create(420);
-    auto layer_sl2 = bb::DifferentiableLutDiscreteN<6, float>::Create(70);
+    auto layer_sl0 = bb::DifferentiableLutDiscreteN<6, float>::Create(6*6*64);
+    auto layer_sl1 = bb::DifferentiableLutDiscreteN<6, float>::Create(6*64);
+    auto layer_sl2 = bb::DifferentiableLutDiscreteN<6, float>::Create(64);
+    auto layer_sl3 = bb::DifferentiableLutDiscreteN<6, float>::Create(6*6*10);
+    auto layer_sl4 = bb::DifferentiableLutDiscreteN<6, float>::Create(6*10);
+    auto layer_sl5 = bb::DifferentiableLutDiscreteN<6, float>::Create(10);
 #endif
 
     {
@@ -55,11 +61,13 @@ void MnistDifferentiableLutSimple(int epoch_size, int mini_batch_size, int train
         main_net->Add(layer_sl0);
         main_net->Add(layer_sl1);
         main_net->Add(layer_sl2);
+        main_net->Add(layer_sl3);
+        main_net->Add(layer_sl4);
+        main_net->Add(layer_sl5);
 
         // modulation wrapper
         auto net = bb::Sequential::Create();
         net->Add(bb::BinaryModulation<float>::Create(main_net, train_modulation_size, test_modulation_size));
-        net->Add(bb::Reduce<float>::Create(td.t_shape));
 
         // set input shape
         net->SetInputShape(td.x_shape);
@@ -107,7 +115,7 @@ void MnistDifferentiableLutSimple(int epoch_size, int mini_batch_size, int train
         }
 
         // Verilog 出力
-        std::string filename = velilog_path + net_name + ".v";
+        std::string filename = velilog_path + velilog_module + ".v";
         std::ofstream ofs(filename);
         ofs << "`timescale 1ns / 1ps\n\n";
         bb::ExportVerilog_LutModels(ofs, velilog_module, main_net);
@@ -122,11 +130,17 @@ void MnistDifferentiableLutSimple(int epoch_size, int mini_batch_size, int train
         auto layer_bl0 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl0->GetOutputShape());
         auto layer_bl1 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl1->GetOutputShape());
         auto layer_bl2 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl2->GetOutputShape());
+        auto layer_bl3 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl3->GetOutputShape());
+        auto layer_bl4 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl4->GetOutputShape());
+        auto layer_bl5 = bb::BinaryLutN<6, bb::Bit>::Create(layer_sl5->GetOutputShape());
 
         auto lut_net = bb::Sequential::Create();
         lut_net->Add(layer_bl0);
         lut_net->Add(layer_bl1);
         lut_net->Add(layer_bl2);
+        lut_net->Add(layer_bl3);
+        lut_net->Add(layer_bl4);
+        lut_net->Add(layer_bl5);
 
         // evaluation network
         auto eval_net = bb::Sequential::Create();
@@ -141,6 +155,9 @@ void MnistDifferentiableLutSimple(int epoch_size, int mini_batch_size, int train
         layer_bl0->ImportLayer(layer_sl0);
         layer_bl1->ImportLayer(layer_sl1);
         layer_bl2->ImportLayer(layer_sl2);
+        layer_bl3->ImportLayer(layer_sl3);
+        layer_bl4->ImportLayer(layer_sl4);
+        layer_bl5->ImportLayer(layer_sl5);
 
         // evaluation
         if ( 1 ) {

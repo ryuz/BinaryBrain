@@ -46,6 +46,7 @@
 #include "HardTanh.cu"
 #include "Adam.cu"
 #include "LossSoftmaxCrossEntropy.cu"
+#include "LossMeanSquaredError.cu"
 #include "AccuracyCategoricalClassification.cu"
 
 

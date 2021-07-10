@@ -48,6 +48,7 @@ SRCS += Binarize.cu
 SRCS += HardTanh.cu
 SRCS += Adam.cu
 SRCS += LossSoftmaxCrossEntropy.cu
+SRCS += LossMeanSquaredError.cu
 SRCS += AccuracyCategoricalClassification.cu
 
 HDRS  = ../include/bbcu/bbcu.h

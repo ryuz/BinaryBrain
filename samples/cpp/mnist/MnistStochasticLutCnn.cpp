@@ -98,11 +98,6 @@ void MnistStochasticLutCnn(int epoch_size, int mini_batch_size, int test_modulat
         net->Add(pol1);
         net->Add(cnv4);
 
-//        net->Add(layer_sl4);
-//        net->Add(layer_sl5);
-//        net->Add(layer_sl6);
-//        net->Add(layer_sl7);
-
         // set input shape
         net->SetInputShape(td.x_shape);
 
@@ -164,6 +159,8 @@ void MnistStochasticLutCnn(int epoch_size, int mini_batch_size, int test_modulat
     }
 
 
+    // ここまでで完結しているが、普通のFPGA的なLUTモデルも用意しているので、そちらに
+    // コピーしての推論も実行してみる
     {
         std::cout << "\n<Evaluation binary LUT-Network>" << std::endl;
 
@@ -245,7 +242,7 @@ void MnistStochasticLutCnn(int epoch_size, int mini_batch_size, int test_modulat
         layer_lut5     ->ImportLayer(layer_sl5);
         layer_lut6     ->ImportLayer(layer_sl6);
         layer_lut7     ->ImportLayer(layer_sl7);
-        layer_lut7     ->ImportLayer(layer_sl8);
+        layer_lut8     ->ImportLayer(layer_sl8);
 
         // 評価
         if ( 1 ) {

@@ -156,6 +156,18 @@ public:
     {
         return m_max_alloc_size;
     }
+
+    size_t GetAllocatedSize(void)
+    {
+        return m_allocated_size;
+    }
+
+    void GarbageCollect(void)
+    {
+        while ( !m_reserve_vec.empty() ) {
+            FreeGarbage();
+        }
+    }
 };
 
 
@@ -178,5 +190,16 @@ BBCU_DLL_EXPORT size_t bbcu_LocalHeap_GetMaxAllocSize(void)
 {
     return g_bbcu_local_heap.GetMaxAllocSize();
 }
+
+BBCU_DLL_EXPORT size_t bbcu_LocalHeap_GetAllocatedSize(void)
+{
+    return g_bbcu_local_heap.GetAllocatedSize();
+}
+
+BBCU_DLL_EXPORT void bbcu_LocalHeap_GarbageCollect(void)
+{
+    g_bbcu_local_heap.GarbageCollect();
+}
+
 
 // end of file

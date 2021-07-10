@@ -170,7 +170,7 @@ class Model(bb.Object):
         if core_model is not None:
             self.get_core().send_command(command, send_to)
     
-    def set_input_shape(self, input_shape: [int]):
+    def set_input_shape(self, input_shape: List[int]):
         """入力シェイプ設定
 
            BinaryBarainではモデル生成時に入力のシェイプを決定する必要はなく
@@ -200,7 +200,7 @@ class Model(bb.Object):
 
         return self.input_shape
 
-    def get_input_shape(self) -> [int]:
+    def get_input_shape(self) -> List[int]:
         """入力シェイプ取得
 
         Returns:
@@ -213,7 +213,7 @@ class Model(bb.Object):
         
         return self.input_shape
 
-    def get_output_shape(self) -> [int]:
+    def get_output_shape(self) -> List[int]:
         """出力シェイプ取得
 
         Returns:
@@ -329,6 +329,8 @@ class Model(bb.Object):
     def __str__(self):
         return self.get_info(1)
 
+    def __repr__(self):
+        return self.get_info(1)
 
     
     
@@ -622,7 +624,7 @@ class Switcher(Model):
         if current_model is not None:
             return current_model.send_command(command=command, send_to=send_to)
 
-    def set_input_shape(self, input_shape: [int]):
+    def set_input_shape(self, input_shape: List[int]):
         output_shape = None
         for name in self.model_dict:
             shape = self.model_dict[name].set_input_shape(input_shape)
@@ -630,10 +632,10 @@ class Switcher(Model):
             output_shape = shape
         return output_shape
     
-    def get_input_shape(self) -> [int]:
+    def get_input_shape(self) -> List[int]:
         return self.get_current_model().get_input_shape()
 
-    def get_output_shape(self) -> [int]:
+    def get_output_shape(self) -> List[int]:
         return self.get_current_model().get_output_shape()
 
     def get_input_node_size(self) -> int:

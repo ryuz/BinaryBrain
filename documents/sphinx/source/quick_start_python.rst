@@ -65,8 +65,19 @@ Windows環境の場合、nvccのほかにも VisualStudio の 64bit 版がコマ
 
   > "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 
-インストール
-^^^^^^^^^^^^^^
+
+インストール(pipを使う場合)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+下記のコマンドでインストール可能です。
+
+::
+
+  % pip install binarybrain
+
+
+インストール(setup.pyを使う場合)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 下記のコマンドでインストール可能です。
 

@@ -31,7 +31,6 @@ public:
     std::string GetObjectName(void) const override { return ObjectName(); }
 
 protected:
-//    FrameBuffer m_dy;
     Tensor_<double>  m_loss_buf;
     Tensor_<double>  m_loss;
     index_t          m_frame_count = 0;
@@ -81,7 +80,6 @@ public:
         
         index_t frame_size  = t_buf.GetFrameSize();
         index_t node_size   = t_buf.GetNodeSize();
-//      index_t stride_size = t_buf.GetFrameStride() / sizeof(T);
 
         auto shape    = t_buf.GetShape();
         auto ch_size  = shape[0];

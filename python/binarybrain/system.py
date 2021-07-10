@@ -80,3 +80,8 @@ def get_device_name(device_id):
     return core.get_device_name(device_id)
 
 
+def get_device_allocated_memory_size():
+    return core.get_device_allocated_memory_size()
+
+def garbage_collect_device_memory():
+    return core.garbage_collect_device_memory()

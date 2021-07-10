@@ -62,6 +62,8 @@ class LossMeanSquaredError(LossFunction):
 
 class LossCrossEntropy(LossFunction):
     """LossCrossEntropy class
+
+       交差エントロピー誤差を戻す
     """
     
     def __init__(self, dtype=bb.DType.FP32):
@@ -71,6 +73,8 @@ class LossCrossEntropy(LossFunction):
 
 class LossBinaryCrossEntropy(LossFunction):
     """LossBinaryCrossEntropy class
+       
+       2値の交差エントロピー誤差を戻す
     """
     
     def __init__(self, dtype=bb.DType.FP32):

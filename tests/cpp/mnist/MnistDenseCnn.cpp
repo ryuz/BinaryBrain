@@ -124,6 +124,11 @@ void MnistDenseCnn(int epoch_size, int mini_batch_size, int train_modulation_siz
         std::cout << "binary_mode           : " << binary_mode           << std::endl;
         std::cout << "file_read             : " << file_read             << std::endl;
 
+//        net->DumpToFile("hoge.bb_net");
+//        for (int i = 0; i < 100; ++i) {
+//            net->LoadFromFile("hoge.bb_net");
+//        }
+
         // run fitting
         bb::Runner<float>::create_t runner_create;
         runner_create.name               = net_name;

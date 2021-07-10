@@ -65,7 +65,7 @@ __global__ void kernal_fp32_LossSoftmaxCrossEntropy_Sum(
             int             frame_size
         )
 {
-    float sum = 0;
+    double sum = 0;
     for ( int frame = 0; frame < frame_size; ++frame) {
         sum += loss_buf[frame];
     }

@@ -57,6 +57,10 @@ BinaryBrain は LUT-Network の学習可能性を実証するために作られ�
 ![Differentiable-LUT_model.png](documents/images/differentiable-lut_model.png "Differentiable LUT model")
 
 
+下記のようなリアルタイムなセマンティックセグメンテーションも実現できています。
+
+[![セマンティックセグメンテーション](https://img.youtube.com/vi/f78qxm15XYA/0.jpg)](https://www.youtube.com/watch?v=f78qxm15XYA)
+
 
 ## MNISTサンプルの動かし方(C++)
 AXV2以降の命令が使えるCPUと、Windows7以降の環境を想定しております。
@@ -66,7 +70,7 @@ MNISTのサンプルの使い方は samples/mnist/readme.txt を参照くださ�
 以下は All オプションで内蔵するサンプルすべてを実行するものです。
 
 ### windows
-1. install VisualStudio 2019 + CUDA 10.1
+1. install VisualStudio 2019 + CUDA 11.3
 2. git clone --recursive -b ver4_release https://github.com/ryuz/BinaryBrain.git 
 3. download MNIST from http://yann.lecun.com/exdb/mnist/
 4. decompress MNIST for "\samples\mnist"
@@ -74,19 +78,30 @@ MNISTのサンプルの使い方は samples/mnist/readme.txt を参照くださ�
 6. build "x64 Release"
 7. run
 
-### Linux(Ubuntu 18.04)
+### Linux(Ubuntu 20.04)
+
 1. install tools 
+
 ```
 % sudo apt update
 % sudo apt upgrade
 % sudo apt install git
 % sudo apt install make
 % sudo apt install g++
-% # sudo apt install nvidia-cuda-toolkit
-% wget http://developer.download.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.243_418.87.00_linux.run
-% sudo sh cuda_10.1.243_418.87.00_linux.run
+% wget https://developer.download.nvidia.com/compute/cuda/11.3.1/local_installers/cuda_11.3.1_465.19.01_linux.run
+% sudo sh cuda_11.3.1_465.19.01_linux.run
 ```
+
+.bashrc に下記を追加
+
+```
+export PATH="/usr/local/cuda/bin:$PATH"
+export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
+```
+
+
 2. build and run
+
 ```
 % git clone --recursive -b ver4_develop  https://github.com/ryuz/BinaryBrain.git
 % cd BinaryBrain/samples/cpp/mnist
@@ -109,9 +124,12 @@ nvcc が利用可能な Google Colaboratory でも動作可能なようです。
 のような操作で、ビルドして動作させることができます。
 
 
-### Python
+## MNISTサンプルの動かし方(Python)
 
-#### 事前準備
+作者は現在 Python 3.6/3.7 にて開発しています。
+
+
+### 事前準備
 必要なパッケージを事前にインストールください
 ```
 % pip3 install setuptools
@@ -130,7 +148,15 @@ Windows環境の場合、nvccのほかにも VisualStudio の 64bit 版がコマ
 > "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 ```
 
-### インストール
+### インストール(pipを使う場合)
+
+下記のコマンドなどでインストール可能です。
+
+```
+% pip3 install binarybrain
+```
+
+### インストール(setup.pyを使う場合)
 下記のコマンドなどでインストール可能です。
 ```
 % # install
@@ -146,17 +172,20 @@ Windows環境の場合、nvccのほかにも VisualStudio の 64bit 版がコマ
 % python3 MnistDifferentiableLutSimple.py
 
 % # CNN sample
-% python3 MnistSparseLutCnn.py
+% python3 MnistDifferentiableLutCnn.py
 ```
 
-#### pip によるインストール
-現在下記でもインストールできるようにしていますが、まだ開発が安定していないので github になるものとバージョンの対応にご注意ください。
+
+### Google Colaboratory
+
+Google Colaboratory で利用する場合は、ランタイムのタイプを「GPU」にして、下記を実行した後にランタイムの再起動を行えば利用できるようになるはずです。
 
 ```
-% pip3 install binarybrain
+!pip install pybind11
+!git clone -b ver4_release  https://github.com/ryuz/BinaryBrain.git
+%cd BinaryBrain
+!python3 setup.py install --user
 ```
--->
-
 
 ## githubからの取得
 現在 version4 は下記の branch で管理しています
@@ -236,7 +265,10 @@ BinaryBrainではバイナリ変調したデジタル値を扱うことが出来
 ただし、本ソースコードは CEREAL を利用しているので、それらに関しては個別に各ライセンスに従ってください。
 
 
-## ICCE2019(Berlin)にて発表しています
+## ICCE2019(Berlin)にて発表頂いております
+
+[@FIssiki](https://twitter.com/fissiki)様の多大なるご協力のもと、ICCE2019(Berlin)にて発表頂いております
+
 2019 IEEE 9th International Conference on Consumer Electronics (ICCE-Berlin) <br>
 https://ieeexplore.ieee.org/document/8966187 <br>
 

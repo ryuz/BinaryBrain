@@ -127,6 +127,7 @@ public:
 #ifdef BB_WITH_CUDA
         if ( m_cublasEnable ) {
             BB_CUBLAS_SAFE_CALL(cublasDestroy(m_cublasHandle));
+            m_cublasEnable = false;
         }
 #endif
     }
@@ -517,6 +518,13 @@ protected:
 
     void LoadObjectData(std::istream &is) override
     {
+#ifdef BB_WITH_CUDA
+        if ( m_cublasEnable ) {
+            BB_CUBLAS_SAFE_CALL(cublasDestroy(m_cublasHandle));
+            m_cublasEnable = false;
+        }
+#endif
+
         // バージョン
         std::int64_t ver;
         bb::LoadValue(is, ver);

@@ -339,7 +339,7 @@ class BuildExt(build_ext):
                             '-Xcompiler', '/std:c++14',
                             '-Xcompiler', '/wd\"4819\"']
         cu_args['msvc'] += ['-O3',
-                            '-std=c++14',
+                            '-std=c++17',
                             '-gencode=arch=compute_52,code=sm_52',
                             '-gencode=arch=compute_53,code=sm_53',
                             '-gencode=arch=compute_60,code=sm_60',

@@ -348,21 +348,36 @@ inline std::map<std::string, std::int64_t> GetDeviceProperties(int device=0)
     return prop;
 }
 
+size_t GetDeviceAllocatedMemorySize(void)
+{
+#if BB_WITH_CUDA
+    return bbcu_LocalHeap_GetAllocatedSize();
+#else
+    return 0;
+#endif
+}
 
 
+void GarbageCollectDeviceMemory(void)
+{
+#if BB_WITH_CUDA
+    bbcu_LocalHeap_GarbageCollect();
+#endif
+}
 
-std::string MakeVerilog_LutLayers(std::string module_name, std::vector< std::shared_ptr< bb::Model > > layers)
+
+std::string MakeVerilog_LutLayers(std::string module_name, std::vector< std::shared_ptr< bb::Model > > layers, std::string device="")
 {
     std::stringstream ss;
-    bb::ExportVerilog_LutModels(ss, module_name, layers);
+    bb::ExportVerilog_LutModels(ss, module_name, layers, device);
     return ss.str();
 }
 
 
-std::string MakeVerilog_LutConvLayers(std::string module_name, std::vector< std::shared_ptr< bb::Model > > layers)
+std::string MakeVerilog_LutConvLayers(std::string module_name, std::vector< std::shared_ptr< bb::Model > > layers, std::string device="")
 {
     std::stringstream ss;
-    bb::ExportVerilog_LutCnnLayersAxi4s(ss, module_name, layers);
+    bb::ExportVerilog_LutCnnLayersAxi4s(ss, module_name, layers, device);
     return ss.str();
 }
 
@@ -1162,11 +1177,13 @@ PYBIND11_MODULE(core, m) {
         .def_static("is_device_available", &bb::Manager::IsDeviceAvailable)
         .def_static("set_host_only", &bb::Manager::SetHostOnly);
 
-    m.def("get_device_count",             &GetDeviceCount);
-    m.def("set_device",                   &SetDevice,                 py::arg("device") = 0);
-    m.def("get_device_name",              &GetDevicePropertiesName,   py::arg("device") = 0);
-    m.def("get_device_properties",        &GetDeviceProperties,       py::arg("device") = 0);
-    m.def("get_device_properties_string", &GetDevicePropertiesString, py::arg("device") = 0);
+    m.def("get_device_count",                 &GetDeviceCount);
+    m.def("set_device",                       &SetDevice,                  py::arg("device") = 0);
+    m.def("get_device_name",                  &GetDevicePropertiesName,    py::arg("device") = 0);
+    m.def("get_device_properties",            &GetDeviceProperties,        py::arg("device") = 0);
+    m.def("get_device_properties_string",     &GetDevicePropertiesString,  py::arg("device") = 0);
+    m.def("get_device_allocated_memory_size", &GetDeviceAllocatedMemorySize);
+    m.def("garbage_collect_device_memory",    &GarbageCollectDeviceMemory);
 }
 
 
