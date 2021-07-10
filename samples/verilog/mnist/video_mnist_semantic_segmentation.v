@@ -201,7 +201,7 @@ module video_mnist_semantic_segmentation
                 .s_axi4s_tlast      (axi4s_cnv_tlast),
                 .s_axi4s_tdata      (axi4s_cnv_tdata),
                 .s_axi4s_tvalid     (axi4s_cnv_tvalid),
-                .s_axi4s_tready     (axi4s_cnv_tready),
+                .s_axi4s_tready     (),
                 
                 .m_axi4s_tuser      (),
                 .m_axi4s_tlast      (),

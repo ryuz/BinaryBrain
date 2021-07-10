@@ -3,6 +3,8 @@
 #include <opencv2/opencv.hpp>
 #include "Vtb_verilator.h"
 #include "jelly/simulator/Manager.h"
+#include "jelly/simulator/ClockNode.h"
+#include "jelly/simulator/ResetNode.h"
 #include "jelly/simulator/VerilatorNode.h"
 #include "jelly/simulator/Axi4sImageLoadNode.h"
 #include "jelly/simulator/Axi4sImageDumpNode.h"
@@ -15,20 +17,6 @@ namespace jsim = jelly::simulator;
 #include <verilated_fst_c.h> 
 #include <verilated_vcd_c.h> 
 #endif
-
-
-// 画像の前処理
-cv::Mat PreProcImage(cv::Mat img, int frame_num)
-{
-    if ( img.empty() ) { return img; }
-
-    // 回転
-    auto center = cv::Point(img.cols/2, img.rows/2);
-    auto trans  = cv::getRotationMatrix2D(center, frame_num*10, 1);
-    cv::Mat img2;
-    cv::warpAffine(img, img2, trans, img.size());
-    return img2;
-}
 
 
 int main(int argc, char** argv)
@@ -91,9 +79,8 @@ int main(int argc, char** argv)
             };
 
     std::string s;
-    auto image_src_load = jsim::Axi4sImageLoadNode_Create(axi4s_src, "../BOAT.bmp", jsim::fmt_gray);
+    auto image_src_load = jsim::Axi4sImageLoadNode_Create(axi4s_src, "mnist_test_640x480.ppm", jsim::fmt_gray);
     auto image_dst_dump = jsim::Axi4sImageDumpNode_Create(axi4s_dst, "img_%04d.png", jsim::fmt_gray, 256, 256);
-    auto image_angle_dump = jsim::Axi4sImageDumpNode_Create(axi4s_angle, "angle_%04d.png", jsim::fmt_color, 256, 256);
 
     image_src_load->SetBlankX(64);
     image_src_load->SetBlankY((256 + 64) * 8);
@@ -108,10 +95,8 @@ int main(int argc, char** argv)
     mng->AddNode(image_dst_dump);
     mng->AddNode(image_angle_dump);
 
-    image_src_load->SetImagePreProc(PreProcImage);
     image_src_load->SetImageShow("sorce image");
-    image_angle_dump->SetImageShow("canny angle");
-    image_dst_dump->SetImageShow("canny edge");
+    image_dst_dump->SetImageShow("output image");
     mng->SetThreadEnable(true);
 
     mng->SetControlCvWindow("Simulation", 0x1b);
