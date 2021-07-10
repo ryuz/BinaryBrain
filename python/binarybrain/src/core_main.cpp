@@ -366,18 +366,18 @@ void GarbageCollectDeviceMemory(void)
 }
 
 
-std::string MakeVerilog_LutLayers(std::string module_name, std::vector< std::shared_ptr< bb::Model > > layers)
+std::string MakeVerilog_LutLayers(std::string module_name, std::vector< std::shared_ptr< bb::Model > > layers, std::string device="")
 {
     std::stringstream ss;
-    bb::ExportVerilog_LutModels(ss, module_name, layers);
+    bb::ExportVerilog_LutModels(ss, module_name, layers, device);
     return ss.str();
 }
 
 
-std::string MakeVerilog_LutConvLayers(std::string module_name, std::vector< std::shared_ptr< bb::Model > > layers)
+std::string MakeVerilog_LutConvLayers(std::string module_name, std::vector< std::shared_ptr< bb::Model > > layers, std::string device="")
 {
     std::stringstream ss;
-    bb::ExportVerilog_LutCnnLayersAxi4s(ss, module_name, layers);
+    bb::ExportVerilog_LutCnnLayersAxi4s(ss, module_name, layers, device);
     return ss.str();
 }
 
@@ -1184,7 +1184,6 @@ PYBIND11_MODULE(core, m) {
     m.def("get_device_properties_string",     &GetDevicePropertiesString,  py::arg("device") = 0);
     m.def("get_device_allocated_memory_size", &GetDeviceAllocatedMemorySize);
     m.def("garbage_collect_device_memory",    &GarbageCollectDeviceMemory);
-    
 }
 
 

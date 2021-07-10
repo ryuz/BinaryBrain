@@ -8,15 +8,15 @@ import binarybrain.core as core
 
 # ----- LUT Layer -----
 
-def make_verilog_lut_layers(module_name: str, net):
+def make_verilog_lut_layers(module_name: str, net, device=""):
     layers = bb.get_model_list(net, flatten=True)
     core_layers = []
     for layer in layers:
         core_layers.append(layer.get_core())
-    return core.make_verilog_lut_layers(module_name, core_layers)
+    return core.make_verilog_lut_layers(module_name, core_layers, device)
 
 
-def dump_verilog_lut_layers(f, module_name: str, net):
+def dump_verilog_lut_layers(f, module_name: str, net, device=""):
     ''' make verilog source of LUT layers
         変換できないモデルは影響ない層とみなして無視するので注意
     
@@ -28,7 +28,7 @@ def dump_verilog_lut_layers(f, module_name: str, net):
         Returns:
             Verilog source code (str)
     '''
-    f.write(make_verilog_lut_layers(module_name=module_name, net=net))
+    f.write(make_verilog_lut_layers(module_name=module_name, net=net, device=device))
 
 def export_verilog_lut_layers(file_name: str, module_name: str, net):
     with open(file_name, 'w') as f:
@@ -38,15 +38,15 @@ def export_verilog_lut_layers(file_name: str, module_name: str, net):
 
 # ----- Convolutional LUT Layer -----
 
-def make_verilog_lut_cnv_layers(module_name: str, net):
+def make_verilog_lut_cnv_layers(module_name: str, net, device=""):
     layers = bb.get_model_list_for_rtl(net)
     core_layers = []
     for layer in layers:
         core_layers.append(layer.get_core())
-    return core.make_verilog_lut_cnv_layers(module_name, core_layers)
+    return core.make_verilog_lut_cnv_layers(module_name, core_layers, device)
 
 
-def dump_verilog_lut_cnv_layers(f, module_name: str, net):
+def dump_verilog_lut_cnv_layers(f, module_name: str, net, device=""):
     ''' dump verilog source of Convolutional LUT layers
         
         畳み込み層を含むネットを AXI4 Stream Video 形式のVerilogソースコードして
@@ -58,11 +58,11 @@ def dump_verilog_lut_cnv_layers(f, module_name: str, net):
             module_name (str): モジュール名
             net (Model): 変換するネット
     '''
-    f.write(make_verilog_lut_cnv_layers(module_name, net))
+    f.write(make_verilog_lut_cnv_layers(module_name, net, device))
 
-def export_verilog_lut_cnv_layers(file_name: str, module_name: str, net):
+def export_verilog_lut_cnv_layers(file_name: str, module_name: str, net, device=""):
     with open(file_name, 'w') as f:
-        dump_verilog_lut_cnv_layers(f, module_name, net)
+        dump_verilog_lut_cnv_layers(f, module_name, net, device)
 
 
 
