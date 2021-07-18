@@ -80,9 +80,9 @@ inline index_t CalcShapeSize(indices_t const & shape)
 
 inline bool CalcNextIndices(indices_t& indices, indices_t const & shape)
 {
-    std::size_t size = (std::size_t)indices.size();
+    std::intptr_t size = (std::intptr_t)indices.size();
     BB_DEBUG_ASSERT(shape.size() == size);
-    for ( std::size_t i = size-1; i >= 0; --i) {
+    for ( std::intptr_t i = size-1; i >= 0; --i) {
         if ( ++indices[i] < shape[i] ) {
             return true;
         }
