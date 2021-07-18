@@ -275,12 +275,13 @@ https://ieeexplore.ieee.org/document/8966187 <br>
 
 ## 作者情報
 渕上 竜司(Ryuji Fuchikami)
+- e-mail : ryuji.fuchikami@nifty.com
 - github : https://github.com/ryuz
+- web-site : http://ryuz.my.coocan.jp/
+- tech-blog : https://ryuz.hatenablog.com/
 - blog : http://ryuz.txt-nifty.com
 - twitter : https://twitter.com/ryuz88
 - facebook : https://www.facebook.com/ryuji.fuchikami
-- web-site : http://ryuz.my.coocan.jp/
-- e-mail : ryuji.fuchikami@nifty.com
 
 
 ## 参考にさせて頂いた情報
