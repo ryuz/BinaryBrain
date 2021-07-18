@@ -176,7 +176,7 @@ protected:
         auto output_node_size = this->GetOutputNodeSize();
 
         auto input_table_ptr = m_input_table.LockConst();
-        std::vector<index_t> n(input_node_size, 0);
+        std::vector<index_t> n((std::size_t)input_node_size, 0);
         for ( index_t node = 0; node < output_node_size; ++node ) {
             for ( index_t input = 0; input < N; ++input ) {
                 n[input_table_ptr(node, input)]++;
@@ -185,7 +185,7 @@ protected:
 
         index_t max_n = 0;
         for ( index_t node = 0; node < input_node_size; ++node ) {
-            max_n = std::max(max_n, n[node]);
+            max_n = std::max(max_n, n[(std::size_t)node]);
         }
 
         m_reverse_table.Resize(indices_t({input_node_size, max_n+1}));

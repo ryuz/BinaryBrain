@@ -340,7 +340,7 @@ protected:
             is.read((char*)&size, sizeof(size));
 
             std::string name;
-            name.resize(size);
+            name.resize((std::size_t)size);
             is.read((char*)&name[0], size);
             if (!IsNamed()) {   // 既に命名されていたら上書きしない
                 m_name = name;

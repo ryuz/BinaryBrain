@@ -171,7 +171,7 @@ public:
                         // random connection
                         index_t  input_size = GetInputConnectionSize({c, y, x});
                         auto random_set = ss.GetRandomSet(input_size);
-                        for (index_t i = 0; i < input_size; ++i) {
+                        for (std::size_t i = 0; i < (std::size_t)input_size; ++i) {
                             SetInputConnection({c, y, x}, i, {random_set[i], y, x});
                         }
                     }
@@ -193,7 +193,7 @@ public:
                         // random connection
                         index_t  input_size = GetInputConnectionSize({x, y, x});
                         auto random_set = ss.GetRandomSet(input_size);
-                        for (index_t i = 0; i < input_size; ++i) {
+                        for ( std::size_t i = 0; i < (std::size_t)input_size; ++i) {
                             index_t iy = random_set[i] / input_shape[2];
                             index_t ix = random_set[i] % input_shape[2];
 
@@ -272,7 +272,7 @@ public:
                 // 入力をランダム接続
                 index_t  input_size = GetInputConnectionSize(node);
                 auto random_set = ss.GetRandomSet(input_size);
-                for (index_t i = 0; i < input_size; ++i) {
+                for ( std::size_t i = 0; i < (std::size_t)input_size; ++i) {
                     SetInputConnection(node, i, random_set[i]);
                 }
             }

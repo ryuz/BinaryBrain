@@ -80,9 +80,9 @@ inline index_t CalcShapeSize(indices_t const & shape)
 
 inline bool CalcNextIndices(indices_t& indices, indices_t const & shape)
 {
-    index_t size = indices.size();
+    std::size_t size = (std::size_t)indices.size();
     BB_DEBUG_ASSERT(shape.size() == size);
-    for ( index_t i = size-1; i >= 0; --i) {
+    for ( std::size_t i = size-1; i >= 0; --i) {
         if ( ++indices[i] < shape[i] ) {
             return true;
         }
@@ -98,14 +98,14 @@ inline indices_t RegurerlizeIndices(std::vector<T> indices, indices_t const &sha
     BB_ASSERT(indices.size() == shape.size());
 
     // 負数の折り返し
-    for ( index_t i = (index_t)indices.size()-1; i >= 0;  --i ) {
+    for ( std::intptr_t i = (std::intptr_t)indices.size()-1; i >= 0;  --i ) {
         while ( indices[i] < 0 ) {
             indices[i] += (T)shape[i];
         }
     }
 
     indices_t   reg_indices(indices.size());
-    for ( index_t i = (index_t)indices.size()-1; i >= 0;  --i ) {
+    for ( std::intptr_t i = (std::intptr_t)indices.size()-1; i >= 0;  --i ) {
         reg_indices[i] = (index_t)indices[i] % shape[i];
     }
 
@@ -118,7 +118,7 @@ inline indices_t ConvertIndexToIndices(index_t index, indices_t const & shape)
     indices_t indices(shape.size());
     BB_DEBUG_ASSERT(index >= 0 && index < CalcShapeSize(shape));
 
-    for ( index_t i = (index_t)shape.size()-1; i >= 0;  --i ) {
+    for ( std::intptr_t i = (std::intptr_t)shape.size()-1; i >= 0;  --i ) {
         indices[i] = index % shape[i];
         index /= shape[i];
     }
@@ -132,7 +132,7 @@ inline index_t ConvertIndicesToIndex(indices_t const & indices, indices_t const 
 
     index_t stride = 1;
     index_t index = 0;
-    for ( index_t i = (index_t)shape.size()-1; i >= 0;  --i ) {
+    for ( std::intptr_t i = (std::intptr_t)shape.size()-1; i >= 0;  --i ) {
         BB_DEBUG_ASSERT(indices[i] >= 0 && indices[i] < shape[i]);
         index += stride * indices[i];
         stride *= shape[i];
@@ -174,7 +174,7 @@ inline index_t CalcIndexWithStride(indices_t const & indices, indices_t const & 
     BB_DEBUG_ASSERT(indices.size() == stride.size());
 
     index_t index = 0;
-    for ( index_t i = (index_t)stride.size()-1; i >= 0;  --i ) {
+    for ( std::intptr_t i = (std::intptr_t)stride.size()-1; i >= 0;  --i ) {
         BB_DEBUG_ASSERT(indices[i] >= 0);
         index += stride[i] * indices[i];
     }
@@ -186,7 +186,7 @@ inline index_t CalcIndexWithStride(indices_t const & indices, indices_t const & 
     BB_DEBUG_ASSERT(indices.size() == shape.size());
 
     index_t index = 0;
-    for ( index_t i = 0; i < (index_t)shape.size(); ++i ) {
+    for ( std::intptr_t i = 0; i < (std::intptr_t)shape.size(); ++i ) {
         BB_DEBUG_ASSERT(indices[i] >= 0 && indices[i] < shape[i]);
         index += stride[i] * indices[i];
     }
@@ -213,7 +213,7 @@ inline void SaveIndices(std::ostream &os, indices_t const &indices)
 {
     auto size = (index_t)indices.size();
     SaveIndex(os, (index_t)indices.size());
-    for (index_t i = 0; i < size; ++i) {
+    for (std::intptr_t i = 0; i < (std::intptr_t)size; ++i) {
         SaveIndex(os, indices[i]);
     }
 }
@@ -679,7 +679,7 @@ inline void LoadValue(std::istream &is, std::vector<T>  &vec)
 {
     std::uint64_t size;
     is.read((char *)&size, sizeof(size));
-    vec.resize(size);
+    vec.resize((std::size_t)size);
     if ( size > 0 ) {
         is.read((char *)&vec[0], size*sizeof(T));
     }
@@ -701,7 +701,7 @@ inline void LoadValue(std::istream &is, std::string &str)
 {
     std::uint64_t size;
     is.read((char *)&size, sizeof(size));
-    str.resize(size);
+    str.resize((std::size_t)size);
     if ( size > 0 ) {
         is.read((char *)&str[0], size*sizeof(str[0]));
     }

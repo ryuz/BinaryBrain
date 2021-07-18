@@ -472,28 +472,28 @@ public:
 
         // affine0
         std::vector<T> value0(M);
-        for (index_t i = 0; i < M; ++i) {
+        for (std::size_t i = 0; i < M; ++i) {
             value0[i] = b0(node, i);
-            for (index_t j = 0; j < N; ++j) {
+            for (std::size_t j = 0; j < N; ++j) {
                 value0[i] += (T)input_value[j] * W0(node, i, j);
             }
         }
 
         // ReLU
-        for (index_t i = 0; i < M; ++i) {
+        for (std::size_t i = 0; i < M; ++i) {
             value0[i] = std::max(value0[i], (T)0.0);
         }
 
         // affine1
         std::vector<T> value1(1);
         value1[0] = b1(node);
-        for (index_t i = 0; i < M; ++i) {
+        for (std::size_t i = 0; i < M; ++i) {
             value1[0] = value1[0] + value0[i] * W1(node, i);
         }
 
         // 型変換
         std::vector<double> value2(M);
-        for (index_t i = 0; i < M; ++i) {
+        for (std::size_t i = 0; i < M; ++i) {
             value2[i] = (double)value1[i];
         }
 

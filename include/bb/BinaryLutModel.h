@@ -79,7 +79,7 @@ public:
             }
 
             // 係数をバイナリ化
-            std::vector<double> vec(connection_size);
+            std::vector<double> vec((std::size_t)connection_size);
             for (int index = 0; index < table_size; ++index) {
                 for (int bit = 0; bit < connection_size; ++bit) {
                     vec[bit] = (index & (1 << bit)) ? 1.0 : 0.0;

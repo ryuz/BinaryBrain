@@ -65,7 +65,7 @@ public:
         auto connection_size = this->GetNodeConnectionSize(node);
 
         // 係数をバイナリ化
-        std::vector<double> vec(connection_size);
+        std::vector<double> vec((std::size_t)connection_size);
         for (int bit = 0; bit < connection_size; ++bit) {
             vec[bit] = (bitpos & (1 << bit)) ? 1.0 : 0.0;
         }
@@ -106,7 +106,7 @@ protected:
                         index_t  connection_size = GetConnectionSize({x, y, c});
                         auto random_set = ss.GetRandomSet(connection_size);
                         for (index_t i = 0; i < connection_size; ++i) {
-                            SetConnectionIndices({x, y, c}, i, {x, y, random_set[i]});
+                            SetConnectionIndices({x, y, c}, i, {x, y, random_set[(std::size_t)i]});
                         }
                     }
                 }
@@ -127,7 +127,7 @@ protected:
                         // 入力をランダム接続
                         index_t  connection_size = GetConnectionSize({x, y, c});
                         auto random_set = ss.GetRandomSet(connection_size);
-                        for (index_t i = 0; i < connection_size; ++i) {
+                        for (std::size_t i = 0; i < (std::size_t)connection_size; ++i) {
                             index_t iy = random_set[i] / input_shape[0];
                             index_t ix = random_set[i] % input_shape[0];
 
@@ -206,7 +206,7 @@ protected:
                 // 入力をランダム接続
                 index_t  connection_size = GetNodeConnectionSize(node);
                 auto random_set = ss.GetRandomSet(connection_size);
-                for (index_t i = 0; i < connection_size; ++i) {
+                for (std::size_t i = 0; i < (std::size_t)connection_size; ++i) {
                     SetNodeConnectionIndex(node, i, random_set[i]);
                 }
             }

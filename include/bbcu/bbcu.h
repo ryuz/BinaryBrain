@@ -3,7 +3,10 @@
 
 #include <assert.h>
 
+#ifdef BB_WITH_CUDA
 #include "cuda_runtime.h"
+#endif
+
 #include "bb/Assert.h"
 
 

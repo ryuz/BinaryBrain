@@ -434,7 +434,7 @@ public:
         m_shape.resize(shape.size());
         m_stride.resize(shape.size());
         index_t total = 1;
-        for ( index_t i = (index_t)shape.size()-1; i >= 0; --i ) {
+        for ( std::intptr_t i = (std::intptr_t)shape.size()-1; i >= 0; --i ) {
             m_shape[i]  = shape[i];
             m_stride[i] = total;
             total *= shape[i];
@@ -443,7 +443,7 @@ public:
 
         // メモリ確保
 //      m_mem = Memory::Create(m_size * DataType<T>::size);
-        m_mem->Resize(m_size * DataType<T>::size);
+        m_mem->Resize((std::size_t)(m_size * DataType<T>::size));
     }
 
     void Resize(index_t i0)                                        { Resize(indices_t({i0})); }
@@ -1612,7 +1612,7 @@ public:
 
         auto src_ptr = m_mem->LockConst();
         auto dst_ptr = tensor.m_mem->Lock(true);
-        memcpy(dst_ptr.GetAddr(), src_ptr.GetAddr(), m_mem->GetSize());
+        memcpy(dst_ptr.GetAddr(), src_ptr.GetAddr(), (std::size_t)m_mem->GetSize());
 
         tensor.m_type   = m_type;
         tensor.m_offset = m_offset;
@@ -1684,7 +1684,7 @@ public:
         m_shape.resize(shape.size());
         m_stride.resize(shape.size());
         index_t total = 1;
-        for ( index_t i = shape.size()-1; i >= 0; --i ) {
+        for ( std::intptr_t i = (std::intptr_t)shape.size()-1; i >= 0; --i ) {
             BB_ASSERT(shape[i] > 0);
             m_shape[i]  = shape[i];
             m_stride[i] = total;
@@ -1694,7 +1694,7 @@ public:
 
         // メモリ確保
 //      m_mem = Memory::Create(m_size * DataType_GetByteSize(type));
-        m_mem->Resize(m_size * DataType_GetByteSize(type));
+        m_mem->Resize((std::size_t)(m_size * DataType_GetByteSize(type)));
     }
 
     /*
@@ -1706,9 +1706,9 @@ public:
 
     void Reshape(indices_t shape)
     {
-        index_t auto_index = -1;
-        index_t total = 1;
-        for (index_t i = 0; i < (index_t)shape.size(); ++i)
+        std::intptr_t   auto_index = -1;
+        index_t         total = 1;
+        for (std::intptr_t i = 0; i < (std::intptr_t)shape.size(); ++i)
         {
             if (shape[i] < 0) {
                 auto_index = i;
@@ -1725,7 +1725,7 @@ public:
         m_shape.resize(shape.size());
         m_stride.resize(shape.size());
         total = 1;
-        for (index_t i = shape.size()-1; i >= 0; --i) {
+        for (std::intptr_t i = shape.size()-1; i >= 0; --i) {
             m_shape[i]  = shape[i];
             m_stride[i] = total;
             total *= shape[i];
@@ -1755,11 +1755,11 @@ public:
 
         auto tmp_shape  = m_shape;
         auto tmp_stride = m_stride;
-        for (index_t i = 0; i < (index_t)m_shape.size(); ++i)
+        for (std::intptr_t i = 0; i < (std::intptr_t)m_shape.size(); ++i)
         {
             BB_ASSERT(axes[i] >= 0 && axes[i] < (index_t)m_shape.size());
-            m_shape[i]  = tmp_shape[axes[i]];
-            m_stride[i] = tmp_stride[axes[i]];
+            m_shape[i]  = tmp_shape[(std::size_t)axes[i]];
+            m_stride[i] = tmp_stride[(std::size_t)axes[i]];
         }
     }
 
@@ -1801,7 +1801,7 @@ public:
     {
 //        m_mem->FillZero();
           auto ptr = m_mem->Lock(true);
-          memset(ptr.GetAddr(), 0, m_mem->GetSize());
+          memset(ptr.GetAddr(), 0, (std::size_t)m_mem->GetSize());
     }
 
 
