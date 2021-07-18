@@ -213,6 +213,7 @@ module tb_mnist_lut_semantic_segmentation
     
     
     // 出力結果を保存
+    wire    [31:0]          output_frame;
     jelly_axi4s_slave_dump
             #(
                 .COMPONENT_NUM      (3),
@@ -234,6 +235,7 @@ module tb_mnist_lut_semantic_segmentation
                 
                 .param_width        (IMG_X_NUM),
                 .param_height       (IMG_Y_NUM),
+                .frame_num          (output_frame),
                 
                 .s_axi4s_tuser      (axi4s_color_tuser),
                 .s_axi4s_tlast      (axi4s_color_tlast),
@@ -244,20 +246,13 @@ module tb_mnist_lut_semantic_segmentation
     
     
     // 出力フレームカウント
-    integer output_frame = 0;
-    /*
     always @(posedge clk) begin
         if ( !reset ) begin
-            if ( axi4s_color_tvalid && axi4s_color_tready && axi4s_color_tuser[0] ) begin
-                output_frame <= output_frame + 1;
-            end
-            
             if ( output_frame >= 2 ) begin
                 $finish();
             end
         end
     end
-    */
     
     
 endmodule
