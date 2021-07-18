@@ -91,11 +91,11 @@ module video_mnist_semantic_segmentation
     // Convolution layers
     wire    [TUSER_WIDTH-1:0]   axi4s_cnv_tuser;
     wire                        axi4s_cnv_tlast;
-    wire    [36-1:0]            axi4s_cnv_tdata;
+    wire    [10:0]              axi4s_cnv_tdata;
     wire                        axi4s_cnv_tvalid;
     wire                        axi4s_cnv_tready;
     
-    MnistConv
+    MnistSemanticSegmentation
             #(
                 .TUSER_WIDTH        (TUSER_WIDTH),
                 .IMG_X_WIDTH        (IMG_X_WIDTH),
@@ -109,7 +109,7 @@ module video_mnist_semantic_segmentation
                 .RAM_TYPE           (RAM_TYPE),
                 .DEVICE             (DEVICE)
             )
-        i_MnistConv
+        i_MnistSemanticSegmentation
             (
                 .reset              (~aresetn),
                 .clk                (aclk),
@@ -130,104 +130,7 @@ module video_mnist_semantic_segmentation
             );
     
     
-    
-    // Classification layers
-    wire    [TUSER_WIDTH-1:0]   axi4s_cls_tuser;
-    wire                        axi4s_cls_tlast;
-    wire    [10-1:0]            axi4s_cls_tdata;
-    wire                        axi4s_cls_tvalid;
-    wire                        axi4s_cls_tready;
-    
-    MnistClassification
-            #(
-                .TUSER_WIDTH        (TUSER_WIDTH),
-                .IMG_X_WIDTH        (IMG_X_WIDTH),
-                .IMG_Y_WIDTH        (IMG_Y_WIDTH),
-                .IMG_Y_NUM          (IMG_Y_NUM),
-                .MAX_X_NUM          (MAX_X_NUM),
-                .BLANK_Y_WIDTH      (8),
-                .INIT_Y_NUM         (IMG_Y_NUM),
-                .FIFO_PTR_WIDTH     (9),
-                .FIFO_RAM_TYPE      ("block"),
-                .RAM_TYPE           (RAM_TYPE),
-                .DEVICE             (DEVICE)
-            )
-        i_MnistClassification
-            (
-                .reset              (~aresetn),
-                .clk                (aclk),
-                
-                .param_blank_num    (8'd0),
-                
-                .s_axi4s_tuser      (axi4s_cnv_tuser),
-                .s_axi4s_tlast      (axi4s_cnv_tlast),
-                .s_axi4s_tdata      (axi4s_cnv_tdata),
-                .s_axi4s_tvalid     (axi4s_cnv_tvalid),
-                .s_axi4s_tready     (axi4s_cnv_tready),
-                
-                .m_axi4s_tuser      (axi4s_cls_tuser),
-                .m_axi4s_tlast      (axi4s_cls_tlast),
-                .m_axi4s_tdata      (axi4s_cls_tdata),
-                .m_axi4s_tvalid     (axi4s_cls_tvalid),
-                .m_axi4s_tready     (axi4s_cls_tready)
-            );
-    
-    
-    // Segmentation layers
-    wire    [0:0]               axi4s_seg_tdata;
-    
-    MnistSegmentation
-            #(
-                .TUSER_WIDTH        (1),
-                .IMG_X_WIDTH        (IMG_X_WIDTH),
-                .IMG_Y_WIDTH        (IMG_Y_WIDTH),
-                .IMG_Y_NUM          (IMG_Y_NUM),
-                .MAX_X_NUM          (MAX_X_NUM),
-                .BLANK_Y_WIDTH      (8),
-                .INIT_Y_NUM         (IMG_Y_NUM),
-                .FIFO_PTR_WIDTH     (9),
-                .FIFO_RAM_TYPE      ("block"),
-                .RAM_TYPE           (RAM_TYPE),
-                .DEVICE             (DEVICE)
-            )
-        i_MnistSegmentation
-            (
-                .reset              (~aresetn),
-                .clk                (aclk),
-                
-                .param_blank_num    (8'd0),
-                
-                .s_axi4s_tuser      (1'b0),
-                .s_axi4s_tlast      (axi4s_cnv_tlast),
-                .s_axi4s_tdata      (axi4s_cnv_tdata),
-                .s_axi4s_tvalid     (axi4s_cnv_tvalid),
-                .s_axi4s_tready     (),
-                
-                .m_axi4s_tuser      (),
-                .m_axi4s_tlast      (),
-                .m_axi4s_tdata      (axi4s_seg_tdata),
-                .m_axi4s_tvalid     (),
-                .m_axi4s_tready     (axi4s_cls_tready)
-            );
-    
-    
-    // 11bit目に数字以外という分類を生成
-    wire    [TUSER_WIDTH-1:0]   axi4s_dnn_tuser;
-    wire                        axi4s_dnn_tlast;
-    wire    [9:0]               axi4s_dnn_tcls;
-    wire    [0:0]               axi4s_dnn_tseg;
-    wire                        axi4s_dnn_tvalid;
-    wire                        axi4s_dnn_tready;
-    
-    assign axi4s_dnn_tuser   = axi4s_cls_tuser;
-    assign axi4s_dnn_tlast   = axi4s_cls_tlast;
-    assign axi4s_dnn_tcls    = axi4s_seg_tdata ? axi4s_cls_tdata : 10'd0;
-    assign axi4s_dnn_tseg    = ~axi4s_seg_tdata;
-    assign axi4s_dnn_tvalid  = axi4s_cls_tvalid;
-    assign axi4s_cls_tready  = axi4s_dnn_tready;
-    
-    
-    // 
+    // ワンホット表現をクラスIDに変換
     video_dnn_max_count
             #(
                 .NUM_CALSS          (NUM_CALSS),
@@ -241,11 +144,11 @@ module video_mnist_semantic_segmentation
                 .aresetn            (aresetn),
                 .aclk               (aclk),
                 
-                .s_axi4s_tuser      (axi4s_dnn_tuser),
-                .s_axi4s_tlast      (axi4s_dnn_tlast),
-                .s_axi4s_tdata      ({axi4s_dnn_tseg, axi4s_dnn_tcls}),
-                .s_axi4s_tvalid     (axi4s_dnn_tvalid),
-                .s_axi4s_tready     (axi4s_dnn_tready),
+                .s_axi4s_tuser      (axi4s_cnv_tuser),
+                .s_axi4s_tlast      (axi4s_cnv_tlast),
+                .s_axi4s_tdata      (axi4s_cnv_tdata[10] ? 11'b10000000000 : axi4s_cnv_tdata),
+                .s_axi4s_tvalid     (axi4s_cnv_tvalid),
+                .s_axi4s_tready     (axi4s_cnv_tready),
                 
                 .m_axi4s_tuser      (m_axi4s_tuser),
                 .m_axi4s_tlast      (m_axi4s_tlast),

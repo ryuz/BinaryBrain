@@ -33,6 +33,8 @@ Verilogシミュレーションに先立って、Python もしくは C++ で学�
 
 シミュレーションツールには verilator、xsim(Xilinx)、veritak、iverilog の4種のスクリプトを用意しています。
 
+ただし iverilog は本システムのシミュレーションではかなり遅いようですのでお勧めしません。
+
 
 ### verilator の場合
 

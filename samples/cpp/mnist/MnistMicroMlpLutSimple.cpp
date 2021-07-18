@@ -24,7 +24,7 @@
 void MnistMicroMlpLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
     std::string net_name       = "MnistMicroMlpLutSimple";
-    std::string velilog_path   = "../../verilog/mnist/";
+    std::string velilog_path   = "../../verilog/mnist/tb_mnist_lut_simple/";
     std::string velilog_module = "MnistLutSimple";
 
   // load MNIST data

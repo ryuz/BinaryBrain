@@ -9,7 +9,13 @@
 `default_nettype none
 
 
-module tb_mnist_lut_semantic_segmentation();
+module tb_mnist_lut_semantic_segmentation
+        (
+            input   wire    reset,
+            input   wire    clk
+        );
+    
+    /*
     localparam RATE = 1000.0/300.0;
     
     initial begin
@@ -26,17 +32,18 @@ module tb_mnist_lut_semantic_segmentation();
     
     reg     clk = 1'b1;
     always #(RATE/2.0)  clk = ~clk;
+    */
     
     wire    cke = 1'b1;
     
     
-//  localparam PPM_FILE  = "../mnist_test_640x480.ppm";
-//  localparam IMG_X_NUM = 640;
-//  localparam IMG_Y_NUM = 480;
+    localparam PPM_FILE  = "../mnist_test_640x480.ppm";
+    localparam IMG_X_NUM = 640;
+    localparam IMG_Y_NUM = 480;
     
-    localparam PPM_FILE  = "../mnist_test_160x120.ppm";
-    localparam IMG_X_NUM = 160;
-    localparam IMG_Y_NUM = 120;
+//  localparam PPM_FILE  = "../mnist_test_160x120.ppm";
+//  localparam IMG_X_NUM = 160;
+//  localparam IMG_Y_NUM = 120;
     
     
     localparam  DATA_WIDTH         = 8;
@@ -206,7 +213,7 @@ module tb_mnist_lut_semantic_segmentation();
     
     
     // 出力結果を保存
-    jelly_axi4s_slave_model
+    jelly_axi4s_slave_dump
             #(
                 .COMPONENT_NUM      (3),
                 .DATA_WIDTH         (DATA_WIDTH),
@@ -214,8 +221,8 @@ module tb_mnist_lut_semantic_segmentation();
                 .FRAME_WIDTH        (32),
                 .X_WIDTH            (32),
                 .Y_WIDTH            (32),
-                .FILE_NAME          ("col_%1d.ppm"),
-                .MAX_PATH           (64),
+                .FILE_NAME          ("col_"),
+                .FILE_EXT           (".ppm"),
                 .BUSY_RATE          (0),
                 .RANDOM_SEED        (1234)
             )

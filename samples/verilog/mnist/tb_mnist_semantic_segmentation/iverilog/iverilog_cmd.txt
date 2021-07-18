@@ -1,0 +1,8 @@
+../tb_mnist_lut_semantic_segmentation.v
+../MnistSemanticSegmentation.v
+-y ..
+-y ../../common
+-y ../../../../../jelly/rtl/library
+-y ../../../../../jelly/rtl/image
+-y ../../../../../jelly/rtl/video
+-y ../../../../../jelly/rtl/model

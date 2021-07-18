@@ -16,15 +16,20 @@
 *.ppm
 *.pgm
 
-*.vvp
 *.vcd
+*.fst
 
+*.vvp
 *.sdb
 *.pb
 *.ipch
 *.rlx
 *.jou
 *.wdb
+*.xpr
+*.wdf
+
+
 
 *.VC.db
 *.VC.opendb
@@ -42,11 +47,14 @@
 *.mo
 
 *.bb_net
+*.pickle
 
 *_.*
 *_
 *_/
 
+*コピー*
+Untitled*.ipynb
 
 documents/sphinx/binarybrain/
 documents/sphinx/build/
@@ -54,6 +62,7 @@ documents/tmp/
 
 data/
 processed/
+build/
 
 back/
 
@@ -64,6 +73,16 @@ veritak_command.txt
 p_temp*.txt
 
 depend
+
+*.cache/
+*.hw/
+*.ip_user_files/
+*.runs/
+*.sim/
+*.srcs/
+*.jou
+*.log
+
 
 # execute
 samples/cpp/mnist/sample-mnist
