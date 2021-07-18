@@ -336,7 +336,7 @@ void DumpMemory(std::string filename, T const *addr, size_t size)
 template<typename T> 
 void WriteTestDataBinTextFile(std::ostream& ofs, std::vector< std::vector<T> > x, std::vector< std::vector<T> > y)
 {
-    for (std::size_t i = 0; i < (std::size_t)x.size(); ++i) {
+    for (std::intptr_t i = 0; i < (std::intptr_t)x.size(); ++i) {
         auto yi = argmax<>(y[i]);
 
         for (int j = 7; j >= 0; --j) {
@@ -344,7 +344,7 @@ void WriteTestDataBinTextFile(std::ostream& ofs, std::vector< std::vector<T> > x
         }
         ofs << "_";
 
-        for (std::size_t j = (std::size_t)x[i].size()-1; j >= 0; --j) {
+        for (std::intptr_t j = (std::intptr_t)x[i].size()-1; j >= 0; --j) {
             if (x[i][j] > (T)0.5) {
                 ofs << "1";
             }
