@@ -58,7 +58,7 @@ def get_latest_path(path: str) -> str:
     return os.path.join(path, targets[0])
 
 
-def remove_old(path: str, keeps: int=-1):
+def remove_backups(path: str, keeps: int=-1):
     ''' Get latest data path
         最新のデータ保存パスを取得
     
@@ -242,7 +242,7 @@ def save_networks(path: str, net, name=None, *, backups: int=10, write_layers: b
     save_models(data_path, net, write_layers=write_layers, file_format=file_format)
     
     if backups >= 0:
-        remove_old(path, keeps=backups)
+        remove_backups(path, keeps=backups)
     
     return name
 
@@ -280,3 +280,24 @@ def get_load_networks_path(path: str, net, name=None):
         return get_latest_path(path)
     else:
         return os.path.join(path, name)
+
+
+
+def copy_network_files(data_path, dst_name, src_name, wildcard='*', exist_ok=False, verbose=1):
+    '''ネットワークファイルのコピー'''
+    dst_path = os.path.join(data_path, dst_name)
+    src_name = os.path.join(data_path, src_name)
+    if os.path.exists(dst_path):
+        if not exist_ok:
+            print('already exists: %s'%dst_path)
+            return False            
+    else:
+        os.makedirs(dst_path, exist_ok=exist_ok)
+    
+    files = glob.glob(os.path.join(src_name, wildcard))
+    for file in files:
+        if verbose >= 1:
+            print(file)
+        shutil.copy(file, dst_path)
+    return True
+

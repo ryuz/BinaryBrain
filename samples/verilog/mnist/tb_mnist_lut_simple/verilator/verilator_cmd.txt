@@ -1,0 +1,13 @@
+#--trace-fst --trace-params --trace-structs --trace-underscore
+#--public
+#--threads 2
+
+-Wno-WIDTH
+-Wno-UNSIGNED
+-Wno-PINMISSING
+-Wno-UNOPTFLAT
+#-Wno-UNOPTTHREADS
+-Wno-LITENDIAN
+
+-y ..
+-y ../../common
