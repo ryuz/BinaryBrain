@@ -25,7 +25,7 @@
 void MnistDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
     std::string net_name       = "MnistDifferentiableLutCnn";
-    std::string velilog_path   = "../../verilog/mnist/";
+    std::string velilog_path   = "../../verilog/mnist/tb_mnist_lut_cnn/";
     std::string velilog_module = "MnistLutCnn";
 
   // load MNIST data

@@ -16,7 +16,7 @@ def main():
     # configuration
     net_name              = 'MnistDifferentiableLutCnn'
     data_path             = os.path.join('./data/', net_name)
-    rtl_sim_path          = '../../verilog/mnist'
+    rtl_sim_path          = '../../verilog/mnist/tb_mnist_lut_cnn'
     rtl_module_name       = 'MnistLutCnn'
     output_velilog_file   = os.path.join(data_path, rtl_module_name + '.v')
     sim_velilog_file      = os.path.join(rtl_sim_path, rtl_module_name + '.v')

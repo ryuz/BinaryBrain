@@ -119,7 +119,7 @@ void MnistAeDifferentiableLutSimple(int epoch_size, int mini_batch_size, int tra
         runner->Fitting(td, epoch_size, mini_batch_size);
 
         
-        bb::FrameBuffer x_buf(32, {28, 28, 1}, BB_TYPE_FP32);
+        bb::FrameBuffer x_buf(32, {1, 28, 28}, BB_TYPE_FP32);
         x_buf.SetVector(td.x_test, 0);
         auto y_buf = net->Forward(x_buf, false);
 

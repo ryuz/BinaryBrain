@@ -103,7 +103,7 @@ public:
         auto node_size = CalcShapeSize(shape);
         m_table.Resize(node_size, m_shuffle_size);
 
-        std::vector<int> table(m_shuffle_size);
+        std::vector<int> table((std::size_t)m_shuffle_size);
         for ( int i = 0; i < (int)m_shuffle_size; ++i ) {
             table[i] = i;
         }
@@ -111,7 +111,7 @@ public:
         auto table_ptr = m_table.Lock(true);
         for ( index_t node = 0; node < node_size; ++node) {
             std::shuffle(table.begin(), table.end(), m_mt);
-            for ( index_t i = 0; i < m_shuffle_size; ++i ) {
+            for ( std::size_t i = 0; i < (std::size_t)m_shuffle_size; ++i ) {
                 table_ptr(node, i) = table[i];
             }
         }

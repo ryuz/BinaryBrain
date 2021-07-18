@@ -669,7 +669,7 @@ public:
     {
         index_t auto_index = -1;
         index_t total = 1;
-        for (index_t i = (index_t)shape.size()-1; i >= 0;--i) {
+        for (std::intptr_t i = (std::intptr_t)shape.size()-1; i >= 0;--i) {
             if (shape[i] < 0) {
                 auto_index = i;
             }
@@ -678,7 +678,7 @@ public:
             }
         }
         if (auto_index >= 0) {
-            shape[auto_index] = m_node_size / total;
+            shape[(std::size_t)auto_index] = m_node_size / total;
         }
 
         // 再計算
@@ -943,7 +943,7 @@ protected:
 
         index_t stride = 1;
         index_t index = 0;
-        for ( index_t i = (index_t)m_node_shape.size()-1; i>= 0; --i ) {
+        for ( std::intptr_t i = (std::intptr_t)m_node_shape.size()-1; i>= 0; --i ) {
             BB_DEBUG_ASSERT(indices[i] >= 0 && indices[i] < m_node_shape[i]);
             index += stride * indices[i];
             stride *= m_node_shape[i];
@@ -1232,9 +1232,9 @@ public:
 
         auto ptr = Lock<Tp>();
         for (index_t frame = 0; frame < m_frame_size; ++frame) {
-            BB_ASSERT(data[frame].size() == (size_t)m_node_size);
+            BB_ASSERT(data[(size_t)frame].size() == (size_t)m_node_size);
             for (index_t node = 0; node < m_node_size; ++node) {
-                ptr.Set(frame, node, data[frame + offset][node]);
+                ptr.Set(frame, node, data[(size_t)(frame + offset)][(size_t)node]);
             }
         }
     }
@@ -1396,7 +1396,7 @@ public:
             #pragma omp parallel for
             for (index_t node = 0; node < m_node_size; ++node)
             {
-                memcpy(dst_addr + buf.m_frame_stride * node, src_addr + m_frame_stride * node + byte_offset, byte_size);
+                memcpy(dst_addr + buf.m_frame_stride * node, src_addr + m_frame_stride * node + byte_offset, (std::size_t)byte_size);
             }
         }
 
@@ -1417,7 +1417,7 @@ public:
         auto dst_addr = (std::int8_t       *)dst_ptr.GetAddr();
 
         index_t stride_size = GetFrameStride();
-        memcpy(dst_addr, src_addr + (m_frame_stride * offset), stride_size * size);
+        memcpy(dst_addr, src_addr + (m_frame_stride * offset), (std::size_t)(stride_size * size));
 
         return buf;
     }
@@ -1437,14 +1437,14 @@ public:
         {
             auto src0_ptr  = m_tensor.LockMemoryConst();
             auto src0_addr = (std::int8_t const *)src0_ptr.GetAddr();
-            memcpy(dst_addr, src0_addr, m_frame_stride * m_node_size);
+            memcpy(dst_addr, src0_addr, (std::size_t)(m_frame_stride * m_node_size));
             dst_addr += m_frame_stride * m_node_size;
         }
 
         {
             auto src1_ptr  = buf.m_tensor.LockMemoryConst();
             auto src1_addr = (std::int8_t const *)src1_ptr.GetAddr();
-            memcpy(dst_addr, src1_addr, buf.m_frame_stride * buf.m_node_size);
+            memcpy(dst_addr, src1_addr, (std::size_t)(buf.m_frame_stride * buf.m_node_size));
         }
 
         return dst_buf;

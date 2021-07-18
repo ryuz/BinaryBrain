@@ -254,21 +254,21 @@ public:
 
             index_t node_size = std::max(input_node_size, output_node_size);
 
-            std::vector<RealType>   vec_v(output_node_size, (RealType)0);
-            std::vector<int>        vec_n(output_node_size, 0);
+            std::vector<RealType>   vec_v((std::size_t)output_node_size, (RealType)0);
+            std::vector<int>        vec_n((std::size_t)output_node_size, 0);
             for (index_t frame = 0; frame < output_frame_size; ++frame) {
                 std::fill(vec_v.begin(), vec_v.end(), (RealType)0);
                 std::fill(vec_n.begin(), vec_n.end(), 0);
                 for (index_t node = 0; node < node_size; ++node) {
                     for (index_t i = 0; i < m_frame_integration_size; ++i) {
                         RealType bin_sig = (RealType)x_ptr.Get(frame*m_frame_integration_size + i, node);
-                        vec_v[node % output_node_size] += bin_sig;
-                        vec_n[node % output_node_size] += 1;
+                        vec_v[(std::size_t)(node % output_node_size)] += bin_sig;
+                        vec_n[(std::size_t)(node % output_node_size)] += 1;
                     }
                 }
 
                 for (index_t node = 0; node < output_node_size; ++node) {
-                    y_ptr.Set(frame, node, vec_v[node] / (RealType)vec_n[node]);
+                    y_ptr.Set(frame, node, vec_v[(std::size_t)node] / (RealType)vec_n[(std::size_t)node]);
                 }
             }
 

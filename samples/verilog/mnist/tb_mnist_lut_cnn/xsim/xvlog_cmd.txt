@@ -1,0 +1,13 @@
+-sv
+--sourcelibdir ..
+--sourcelibdir ../../common
+--sourcelibdir ../../../../../jelly/rtl/library
+--sourcelibdir ../../../../../jelly/rtl/image
+--sourcelibdir ../../../../../jelly/rtl/video
+--sourcelibdir ../../../../../jelly/rtl/model
+--sourcelibext .v
+--sourcelibext .sv
+
+../tb_mnist_lut_cnn.v
+../MnistLutCnn.v
+

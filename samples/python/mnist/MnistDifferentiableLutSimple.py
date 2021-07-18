@@ -17,7 +17,7 @@ def main():
     data_path             = './data/'
     net_name              = 'MnistDifferentiableLutSimple'
     data_path             = os.path.join('./data/', net_name)
-    rtl_sim_path          = '../../verilog/mnist'
+    rtl_sim_path          = '../../verilog/mnist/tb_mnist_lut_simple'
     rtl_module_name       = 'MnistLutSimple'
     output_velilog_file   = os.path.join(data_path, net_name + '.v')
     sim_velilog_file      = os.path.join(rtl_sim_path, rtl_module_name + '.v')

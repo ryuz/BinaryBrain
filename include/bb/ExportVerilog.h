@@ -148,7 +148,7 @@ inline void ExportVerilog_LutModel(std::ostream& os, std::string module_name, Sp
                 "                             in_data[" << lut.GetNodeConnectionIndex(node, 0) << "]};\n    \n";
             
             os <<
-                "    assign lut_" << node << "_out = lut_" << node << "_table[lut_" << node << "_select];\n";
+                "    wire lut_" << node << "_out = lut_" << node << "_table[lut_" << node << "_select];\n";
          }
          
          os <<

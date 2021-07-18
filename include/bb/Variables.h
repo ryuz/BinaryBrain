@@ -238,19 +238,19 @@ public:
     Tensor const &operator[](index_t index) const
     {
         BB_DEBUG_ASSERT(index >= 0 && index < GetSize());
-        return *m_tensors[index];
+        return *m_tensors[(std::size_t)index];
     }
 
     Tensor &operator[](index_t index)
     {
         BB_DEBUG_ASSERT(index >= 0 && index < GetSize());
-        return *m_tensors[index];
+        return *m_tensors[(std::size_t)index];
     }
 
     Tensor At(index_t index)
     {
         BB_DEBUG_ASSERT(index >= 0 && index < GetSize());
-        return *m_tensors[index];
+        return *m_tensors[(std::size_t)index];
     }
 
     // arithmetic operator

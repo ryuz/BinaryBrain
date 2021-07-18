@@ -49,8 +49,8 @@ public:
         m_reserve.clear();
 
         // シャッフル
-        std::vector<INDEX> heap(size);
-        for (INDEX i = 0; i < size; i++) {
+        std::vector<INDEX> heap((std::size_t)size);
+        for (std::size_t i = 0; i < (std::size_t)size; i++) {
             heap[i] = i;
         }
         std::shuffle(heap.begin(), heap.end(), m_mt);
