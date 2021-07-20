@@ -78,6 +78,7 @@ public:
         auto shape          = t_buf.GetShape();
         auto ch_size        = shape[0];
         auto pix_size       = node_size / ch_size;
+        
 
         /*
 #ifdef BB_WITH_CUDA
@@ -112,7 +113,7 @@ public:
                     T       max_y  = 0;
                     T       max_t  = 0;
                     bool    valid  = false;
-                    for (index_t ch = 1; ch < ch_size; ++ch) {
+                    for (index_t ch = 0; ch < ch_size; ++ch) {
                         auto node = ch * pix_size + pix;
                         auto    y = y_ptr.Get(frame, node);
                         auto    t = t_ptr.Get(frame, node);
