@@ -38,8 +38,6 @@ protected:
     RealType    m_hardtanh_min = (RealType)-1;
     RealType    m_hardtanh_max = (RealType)+1;
 
-    FrameBuffer m_x_buf;
-
 
 public:
     // 生成情報
@@ -112,8 +110,6 @@ public:
         return y_vec;
     }
     
-    void        SetFrameBufferX(FrameBuffer x_buf) { m_x_buf = x_buf; }
-    FrameBuffer GetFrameBufferX(void)              { return m_x_buf; }
 
     /**
      * @brief  forward演算
@@ -128,7 +124,7 @@ public:
 
         // backwardの為に保存
         if ( train ) {
-            m_x_buf = x_buf;
+            this->PushFrameBuffer(x_buf);
         }
 
         // 戻り値のサイズ設定
@@ -210,8 +206,7 @@ public:
         // 戻り値のサイズ設定
         FrameBuffer dx_buf(dy_buf.GetFrameSize(), dy_buf.GetShape(), dy_buf.GetType());
         
-        FrameBuffer x_buf = m_x_buf;
-        m_x_buf = FrameBuffer();
+        FrameBuffer x_buf = this->PopFrameBuffer();
 
 #ifdef BB_WITH_CUDA
         if ( DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {

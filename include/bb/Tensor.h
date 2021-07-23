@@ -519,6 +519,11 @@ public:
         memset(ptr.GetAddr(), 0, m_mem->GetSize());
     }
 
+    void Fill(double src)
+    {
+        *this = src;
+    }
+
     void InitNormalDistribution(double mean = 0.0, double stddev = 1.0, std::uint64_t seed=1)
     {
         auto ptr  = m_mem->Lock(true);
@@ -1804,6 +1809,10 @@ public:
           memset(ptr.GetAddr(), 0, (std::size_t)m_mem->GetSize());
     }
 
+    void Fill(double src)
+    {
+        *this = src;
+    }
 
     inline bool IsValidValue(void) const
     {

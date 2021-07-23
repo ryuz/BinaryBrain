@@ -175,6 +175,8 @@ class FrameBuffer(bb.Object):
             raise TypeError("unsupported")
         return FrameBuffer(core_buf=core_buf)
     
+    def fill_zero(self, x):
+        self.get_core().fill_zero()
     
     def __add__(self, x):
         if type(x) == FrameBuffer:

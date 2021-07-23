@@ -55,8 +55,6 @@ protected:
     bool                        m_fix_gamma = false;
     bool                        m_fix_beta  = false;
     
-    FrameBuffer                 m_x_buf;
-
     std::shared_ptr<Tensor>     m_gamma;
     std::shared_ptr<Tensor>     m_beta;
     std::shared_ptr<Tensor>     m_dgamma;
@@ -409,8 +407,6 @@ public:
         return y_vec;
     }
 
-    void        SetFrameBufferX(FrameBuffer x_buf) { m_x_buf = x_buf; }
-    FrameBuffer GetFrameBufferX(void)              { return m_x_buf; }
 
     /**
      * @brief  forward演算
@@ -435,7 +431,7 @@ public:
 
         // backwardの為に保存
         if ( train ) {
-            m_x_buf = x_buf;
+            PushFrameBuffer(x_buf);
         }
         
 #ifdef BB_WITH_CUDA
@@ -689,7 +685,7 @@ public:
         FrameBuffer y_buf(x_buf.GetFrameSize(), x_buf.GetShape(), x_buf.GetType());
 
         // backwardの為に保存
-        m_x_buf = x_buf;
+        PushFrameBuffer(x_buf);
 
         
 #ifdef BB_WITH_CUDA
@@ -768,12 +764,13 @@ public:
             return BackwardLock(dy_buf);
         }
 
+        /*
         if (dy_buf.Empty()) {
             m_dgamma = 0;
             m_dbeta = 0;
             return dy_buf;
         }
-
+        */
 
         if (m_bypass) {
             return dy_buf;
@@ -783,8 +780,7 @@ public:
         FrameBuffer dx_buf(dy_buf.GetFrameSize(), dy_buf.GetShape(), dy_buf.GetType());
 
         // forward時のxを取得
-        FrameBuffer x_buf = m_x_buf;
-        m_x_buf = FrameBuffer();
+        FrameBuffer x_buf = PopFrameBuffer();
 
 #ifdef BB_WITH_CUDA
         if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && dy_buf.IsDeviceAvailable() && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {

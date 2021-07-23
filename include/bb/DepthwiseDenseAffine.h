@@ -54,8 +54,6 @@ protected:
     index_t                     m_output_node_size = 0;
     index_t                     m_depth_size = 0;
 
-    FrameBuffer                 m_x_buf;
-
     std::shared_ptr<Tensor>     m_W;
     std::shared_ptr<Tensor>     m_b;
     std::shared_ptr<Tensor>     m_dW;
@@ -320,7 +318,7 @@ public:
     {
         // backwardの為に保存
         if ( train ) {
-            m_x_buf = x_buf;
+            this->PushFrameBuffer(x_buf);
         }
 
         // 型合わせ
@@ -424,8 +422,7 @@ public:
         // フレーム数
         auto frame_size = dy_buf.GetFrameSize();
 
-        FrameBuffer x_buf = m_x_buf;
-        m_x_buf = FrameBuffer();
+        FrameBuffer x_buf = this->PopFrameBuffer();
 
         // 型合わせ
         if ( x_buf.GetType() != DataType<T>::type ) {

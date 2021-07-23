@@ -40,9 +40,6 @@ protected:
     indices_t               m_input_shape;
     indices_t               m_output_shape;
 
-//    FrameBuffer             m_x_buf;
-//    FrameBuffer             m_y_buf;
-
     static int const        m_table_size = (1 << N);
     static int const        m_table_bits = sizeof(std::int32_t) * 8;
     static int const        m_table_unit = (m_table_size + (m_table_bits - 1)) / m_table_bits;
@@ -193,15 +190,6 @@ public:
         auto ptr = m_table.LockConst();
         return ((ptr(node, idx) & (1 << bit)) != 0);
     }
-
-    /*
-    bool GetLutInput(index_t frame, index_t node, int bitpos) const
-    {
-        auto input_node = GetNodeInput(node, (index_t)bitpos);
-        auto ptr = m_x_buf.LockConst<FT>();
-        return ptr.Get(frame, input_node);
-    }
-    */
 
 
    /**

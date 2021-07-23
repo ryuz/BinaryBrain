@@ -52,9 +52,7 @@ protected:
     indices_t                   m_input_shape;
     index_t                     m_output_node_size = 0;
     indices_t                   m_output_shape;
-
-    FrameBuffer                 m_x_buf;
-
+    
     std::shared_ptr<Tensor>     m_W;
     std::shared_ptr<Tensor>     m_b;
     std::shared_ptr<Tensor>     m_dW;
@@ -281,21 +279,11 @@ public:
         return gradients;
     }
 
-    void SetFrameBufferX(FrameBuffer x_buf) override
-    {
-        m_x_buf = x_buf;
-    }
-
-    FrameBuffer GetFrameBufferX(void)  override
-    {
-        return m_x_buf;
-    }
-
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true) override
     {
         // backwardの為に保存
         if ( train ) {
-            m_x_buf = x_buf;
+            this->PushFrameBuffer(x_buf);
         }
 
         // 型合わせ
@@ -392,8 +380,7 @@ public:
         auto frame_size = dy_buf.GetFrameSize();
 
         // forward時保存破棄
-        FrameBuffer x_buf = m_x_buf;
-        m_x_buf = FrameBuffer();
+        FrameBuffer x_buf = PopFrameBuffer();
 
         // 型合わせ
         if ( x_buf.GetType() != DataType<T>::type ) {

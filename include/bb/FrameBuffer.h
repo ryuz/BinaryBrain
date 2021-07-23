@@ -713,9 +713,10 @@ public:
         m_tensor.FillZero();
     }
 
-//  void FillZeroMargin(void)
-//  {
-//  }
+    void Fill(double value)
+    {
+        m_tensor = value;
+    }
     
 
     int     GetType(void)  const { return m_data_type; }
@@ -1456,6 +1457,7 @@ public:
     //  演算
     // -------------------------------------
 
+    inline FrameBuffer& operator=(double src)       { m_tensor  = src; return *this; }
     inline FrameBuffer& operator+=(FrameBuffer src) { m_tensor += src.m_tensor; return *this; }
     inline FrameBuffer& operator+=(double src)      { m_tensor += src; return *this; }
     inline FrameBuffer& operator-=(FrameBuffer src) { m_tensor -= src.m_tensor; return *this; }

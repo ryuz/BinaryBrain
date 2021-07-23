@@ -49,9 +49,6 @@ protected:
     indices_t           m_input_shape;
     indices_t           m_output_shape;
 
-    FrameBuffer         m_x_buf;
-    FrameBuffer         m_y_buf;
-
 public:
     struct create_t
     {
@@ -205,8 +202,8 @@ public:
         
         // backwardの為に保存
         if ( train ) {
-            m_x_buf = x_buf;
-            m_y_buf = y_buf;
+            this->PushFrameBuffer(x_buf);
+            this->PushFrameBuffer(y_buf);
         }
 
 #ifdef BB_WITH_CUDA
@@ -374,10 +371,8 @@ public:
 
         FrameBuffer dx_buf(dy_buf.GetFrameSize(), m_input_shape, DataType<BT>::type);
 
-        FrameBuffer x_buf = m_x_buf;
-        FrameBuffer y_buf = m_y_buf;
-        m_x_buf = FrameBuffer();
-        m_y_buf = FrameBuffer();
+        FrameBuffer y_buf = this->PopFrameBuffer();
+        FrameBuffer x_buf = this->PopFrameBuffer();
 
         BB_ASSERT(x_buf.GetType() == DataType<FT>::type);
         BB_ASSERT(y_buf.GetType() == DataType<FT>::type);

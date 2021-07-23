@@ -52,8 +52,6 @@ protected:
     bool                        m_host_only = false;
     bool                        m_host_simd = false;
     
-    FrameBuffer                 m_x_buf;
-
     T                           m_gamma;
     T                           m_beta;
 
@@ -325,8 +323,9 @@ public:
         return m_beta - (m_gamma * mean_ptr[node] / (sqrt(var_ptr[node]) + (T)1.0e-7));
     }
 
+
     // ノード単位でのForward計算
-    std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const
+    std::vector<double> ForwardNode(index_t node, std::vector<double> x_vec) const override
     {
         BB_DEBUG_ASSERT(node >= 0 && node < CalcShapeSize(this->m_shape));
 
@@ -356,14 +355,14 @@ public:
      * @param  train 学習時にtrueを指定
      * @return forward演算結果
      */
-    FrameBuffer Forward(FrameBuffer x_buf, bool train=true)
+    FrameBuffer Forward(FrameBuffer x_buf, bool train=true) override
     {
         // 出力設定
         FrameBuffer y_buf(x_buf.GetFrameSize(), x_buf.GetShape(), x_buf.GetType());
 
         // backwardの為に保存
         if ( train ) {
-            m_x_buf = x_buf;
+            this->PushFrameBuffer(x_buf);
         }
 
 #ifdef BB_WITH_CUDA
@@ -619,14 +618,14 @@ public:
  
     }
 
-// forward 再計算
-    FrameBuffer ReForward(FrameBuffer x_buf)
+    // forward 再計算
+    FrameBuffer ReForward(FrameBuffer x_buf) override
     {
         // 出力設定
         FrameBuffer y_buf( x_buf.GetFrameSize(), x_buf.GetShape(), x_buf.GetType());
 
         // backwardの為に保存
-        m_x_buf = x_buf;
+        this->PushFrameBuffer(x_buf);
 
         
 #ifdef BB_WITH_CUDA
@@ -699,8 +698,7 @@ public:
         // 出力設定
         FrameBuffer dx_buf(dy_buf.GetFrameSize(), dy_buf.GetShape(), dy_buf.GetType());
 
-        FrameBuffer x_buf = m_x_buf;
-        m_x_buf = FrameBuffer();
+        FrameBuffer x_buf = this->PopFrameBuffer();
         
 #ifdef BB_WITH_CUDA
         if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && dy_buf.IsDeviceAvailable() && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {

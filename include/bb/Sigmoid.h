@@ -33,11 +33,7 @@ public:
 
 protected:
     using _super::m_host_only;
-    using _super::m_x_buf;
-
     bool        m_binary_mode;
-
-    FrameBuffer m_y_buf;
 
 protected:
     Sigmoid() {
@@ -126,7 +122,7 @@ public:
 
         // ローカルに保存
         if ( train ) {
-            m_y_buf = y_buf;
+            this->PushFrameBuffer(y_buf);
         }
 
 
@@ -188,8 +184,7 @@ public:
         // 戻り値のサイズ設定
         FrameBuffer dx_buf(dy_buf.GetFrameSize(), dy_buf.GetShape(), dy_buf.GetType());
 
-        FrameBuffer y_buf = m_y_buf;
-        m_y_buf = FrameBuffer();
+        FrameBuffer y_buf = this->PopFrameBuffer();
 
 #ifdef BB_WITH_CUDA
         if (  DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32  && !this->m_host_only

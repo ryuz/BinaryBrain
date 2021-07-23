@@ -45,8 +45,6 @@ protected:
     indices_t           m_input_shape;
     indices_t           m_output_shape;
 
-    FrameBuffer         m_x_buf;
-
 protected:
     StochasticMaxPooling2x2() {}
 
@@ -164,7 +162,7 @@ public:
 
         // backwardの為に保存
         if ( train ) {
-            m_x_buf = x_buf;
+            this->PushFrameBuffer(x_buf);
         }
 
         // 出力を設定
@@ -240,8 +238,7 @@ public:
 
         FrameBuffer dx_buf(dy_buf.GetFrameSize(), m_input_shape, DataType<BT>::type);
 
-        FrameBuffer x_buf = m_x_buf;
-        m_x_buf = FrameBuffer();
+        FrameBuffer x_buf = this->PopFrameBuffer();
 
 
 #ifdef BB_WITH_CUDA

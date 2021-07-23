@@ -384,8 +384,6 @@ std::string MakeVerilog_LutConvLayers(std::string module_name, std::vector< std:
 
 
 
-
-
 //////////////////////////////////////]
 // PyBind11 module
 //////////////////////////////////////]
@@ -468,6 +466,8 @@ PYBIND11_MODULE(core, m) {
         .def("is_host_only", &Tensor::IsHostOnly)
         .def("get_type", &Tensor::GetType)
         .def("get_shape", &Tensor::GetShape)
+        .def("fill_zero", &Tensor::FillZero)
+        .def("fill", &Tensor::Fill)
         .def(py::self + py::self)
         .def(py::self + double())
         .def(double() + py::self)
@@ -531,6 +531,8 @@ PYBIND11_MODULE(core, m) {
         .def("get_node_shape", &FrameBuffer::GetShape)
         .def("range", &FrameBuffer::Range)
         .def("concatenate", &FrameBuffer::Concatenate)
+        .def("fill_zero", &FrameBuffer::FillZero)
+        .def("fill", &FrameBuffer::Fill)
         .def(py::self + py::self)
         .def(py::self + double())
         .def(double() + py::self)

@@ -35,8 +35,6 @@ protected:
     bool        m_binary_mode;
 
     using _super::m_host_only;
-    using _super::m_x_buf;
-    FrameBuffer m_y_buf;
 
 protected:
     ReLU() {
@@ -118,8 +116,8 @@ public:
 
         // backward用に保存
         if ( train ) {
-            m_x_buf = x_buf;
-            m_y_buf = y_buf;
+            this->PushFrameBuffer(x_buf);
+            this->PushFrameBuffer(y_buf);
         }
 
 
@@ -205,11 +203,9 @@ public:
         // 戻り値のサイズ設定
         FrameBuffer dx_buf(dy_buf.GetFrameSize(), dy_buf.GetShape(), dy_buf.GetType());
 
-        FrameBuffer x_buf = m_x_buf;
-        FrameBuffer y_buf = m_y_buf;
-        m_x_buf = FrameBuffer();
-        m_y_buf = FrameBuffer();
-
+        FrameBuffer y_buf = this->PopFrameBuffer();
+        FrameBuffer x_buf = this->PopFrameBuffer();
+        
 #ifdef BB_WITH_CUDA
         if ( DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
             && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
