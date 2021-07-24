@@ -358,6 +358,7 @@
     <ClCompile Include="MnistDifferentiableLutCnn.cpp" />
     <ClCompile Include="MnistDifferentiableLutSimple.cpp" />
     <ClCompile Include="MnistLoadNet.cpp" />
+    <ClCompile Include="MnistLoopModel.cpp" />
     <ClCompile Include="MnistMicroMlpLutCnn.cpp" />
     <ClCompile Include="MnistMicroMlpLutSimple.cpp" />
     <ClCompile Include="MnistStochasticLutCnn.cpp" />

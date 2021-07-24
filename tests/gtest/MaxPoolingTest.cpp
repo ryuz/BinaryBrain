@@ -323,5 +323,43 @@ TEST(MaxPoolingTest, testMaxPooling_cmp_fp32_fp32)
 }
 
 
+TEST(MaxPoolingTest, testMaxPooling_stack)
+{
+    int frame_size = 17;
+
+    bb::FrameBuffer x0(frame_size, {32, 32*2, 72*2}, BB_TYPE_BIT);
+    bb::FrameBuffer x1(frame_size, {32, 16*2, 24*2}, BB_TYPE_BIT);
+    bb::FrameBuffer x2(frame_size, {32,  8*2, 12*2}, BB_TYPE_BIT);
+    bb::FrameBuffer x3(frame_size, {32, 33*2, 17*2}, BB_TYPE_BIT);
+
+    bb::FrameBuffer dy0(frame_size, {32, 32, 72}, BB_TYPE_FP32);
+    bb::FrameBuffer dy1(frame_size, {32, 16, 24}, BB_TYPE_FP32);
+    bb::FrameBuffer dy2(frame_size, {32,  8, 12}, BB_TYPE_FP32);
+    bb::FrameBuffer dy3(frame_size, {32, 33, 17}, BB_TYPE_FP32);
+
+    auto pool = bb::MaxPooling<bb::Bit>::Create(2, 2);
+    pool->SetInputShape(x0.GetShape());
+    auto y0 = pool->Forward(x0);
+    auto y1 = pool->Forward(x1);
+    auto y2 = pool->Forward(x2);
+    auto y3 = pool->Forward(x3);
+
+    auto dx3 = pool->Backward(dy3);
+    auto dx2 = pool->Backward(dy2);
+    auto dx1 = pool->Backward(dy1);
+    auto dx0 = pool->Backward(dy0);
+
+    EXPECT_EQ(y0.GetShape(), dy0.GetShape());
+    EXPECT_EQ(y1.GetShape(), dy1.GetShape());
+    EXPECT_EQ(y2.GetShape(), dy2.GetShape());
+    EXPECT_EQ(y3.GetShape(), dy3.GetShape());
+    EXPECT_EQ(dx0.GetShape(), x0.GetShape());
+    EXPECT_EQ(dx1.GetShape(), x1.GetShape());
+    EXPECT_EQ(dx2.GetShape(), x2.GetShape());
+    EXPECT_EQ(dx3.GetShape(), x3.GetShape());
+}
+
+
+
 #endif
 

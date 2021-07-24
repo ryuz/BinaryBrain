@@ -761,8 +761,74 @@ TEST(BatchNormalizationTest, testBatchNormalization_cmp)
     }
 }
 
-TEST(BatchNormalizationTest, testBatchNormalization_cmp2)
+
+TEST(BatchNormalizationTest, testBatchNormalization_loop)
 {
+    int const node_size  = 3;
+    int const frame_size = 4;
+
+    bb::BatchNormalization<float>::create_t create;
+    create.momentum = 0;
+    auto bn = bb::BatchNormalization<float>::Create(create);
+
+    bb::FrameBuffer x_buf(frame_size, {node_size}, BB_TYPE_FP32);
+    bb::FrameBuffer dy_buf(frame_size, {node_size}, BB_TYPE_FP32);
+    bn->SetInputShape(x_buf.GetShape());
+    auto valgen = bb::NormalDistributionGenerator<float>::Create(0.0f, 3.3f, 1);
+
+    auto opt = bb::OptimizerAdam<float>::Create();
+    opt->SetVariables(bn->GetParameters(), bn->GetGradients());
+
+    for ( int frame = 0; frame < frame_size; ++frame) {
+        for ( int node = 0; node < node_size; ++node ) {
+            x_buf.SetFP32(frame, node, valgen->GetValue());
+            dy_buf.SetFP32(frame, node, valgen->GetValue());
+        }
+    }
+
+    for ( int loop=0; loop < 2; ++loop ) {
+        auto y_buf = bn->Forward(x_buf);
+        auto dx_buf = bn->Backward(dy_buf);
+        y_buf = bn->Forward(x_buf, false);
+
+        opt->Update();
+
+        {
+            printf("-------\n");
+            auto dgamma = bn->lock_dgamma_const();
+            for ( int node = 0; node < node_size; ++node ) {
+                printf("dgamma[%d] : %f\n", node, dgamma({node}));
+            }
+
+            auto dbeta = bn->lock_dbeta_const();
+            for ( int node = 0; node < node_size; ++node ) {
+                printf("dbeta[%d] : %f\n", node, dbeta({node}));
+            }
+
+            auto running_mean = bn->lock_mean_const();
+            for ( int node = 0; node < node_size; ++node ) {
+                printf("running_mean[%d] : %f\n", node, running_mean({node}));
+            }
+
+            auto running_var = bn->lock_var_const();
+            for ( int node = 0; node < node_size; ++node ) {
+                printf("running_var[%d] : %f\n", node, running_var({node}));
+            }
+
+            auto mean = bn->lock_tmp_mean_const();
+            for ( int node = 0; node < node_size; ++node ) {
+                printf("mean[%d] : %f\n", node, mean({node}));
+            }
+
+            auto rstd = bn->lock_tmp_rstd_const();
+            for ( int node = 0; node < node_size; ++node ) {
+                printf("rstd[%d] : %f %f\n", node, rstd({node}), 1.0/(rstd({node}) * rstd({node})));
+            }
+
+        }
+    }
+
+
 }
 
 #endif
