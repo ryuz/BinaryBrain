@@ -278,8 +278,10 @@ public:
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
         auto shape = x_buf.GetShape();
-        m_input_shapes.push(shape);
         SetInputShape(shape);
+        if ( train ) {
+            m_input_shapes.push(shape);
+        }
 
         x_buf = m_im2col->Forward(x_buf, train);
         x_buf = m_layer->Forward(x_buf, train);
@@ -313,15 +315,15 @@ public:
      * 
      * Backwardの為に内部にforward時のデータを保持していた場合はクリアする
      */
-    virtual void ClearFrameBuffer(void) override
+    virtual void Clear(void) override
     {
         while ( !m_input_shapes.empty() ) {
             m_input_shapes.pop();
         }
 
-        m_col2im->ClearFrameBuffer();
-        m_layer ->ClearFrameBuffer();
-        m_im2col->ClearFrameBuffer();
+        m_col2im->Clear();
+        m_layer ->Clear();
+        m_im2col->Clear();
     }
 
 protected:

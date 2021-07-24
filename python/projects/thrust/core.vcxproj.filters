@@ -274,5 +274,8 @@
     <ClInclude Include="..\..\..\include\bb\BinaryDenseAffine.h">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\bb\Concatenate.h">
+      <Filter>ヘッダファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -39,12 +39,12 @@ protected:
     index_t             m_filter_h_size;
     index_t             m_filter_w_size;
 
-    index_t             m_input_c_size;
-    index_t             m_input_h_size;
-    index_t             m_input_w_size;
-    index_t             m_output_c_size;
-    index_t             m_output_h_size;
-    index_t             m_output_w_size;
+    index_t             m_input_c_size = 0;
+    index_t             m_input_h_size = 0;
+    index_t             m_input_w_size = 0;
+    index_t             m_output_c_size = 0;
+    index_t             m_output_h_size = 0;
+    index_t             m_output_w_size = 0;
 
     indices_t           m_input_shape;
     indices_t           m_output_shape;
@@ -367,15 +367,16 @@ public:
             return dy_buf;
         }
 
-        BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
-
-        FrameBuffer dx_buf(dy_buf.GetFrameSize(), m_input_shape, DataType<BT>::type);
-
         FrameBuffer y_buf = this->PopFrameBuffer();
         FrameBuffer x_buf = this->PopFrameBuffer();
-
         BB_ASSERT(x_buf.GetType() == DataType<FT>::type);
         BB_ASSERT(y_buf.GetType() == DataType<FT>::type);
+        SetInputShape(x_buf.GetShape());
+
+        BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
+        BB_ASSERT(dy_buf.GetShape() == y_buf.GetShape());
+
+        FrameBuffer dx_buf(dy_buf.GetFrameSize(), m_input_shape, DataType<BT>::type);
 
 #ifdef BB_WITH_CUDA
         if ( DataType<BT>::type == BB_TYPE_FP32 && DataType<FT>::type == BB_TYPE_FP32 && !m_host_only 

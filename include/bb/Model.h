@@ -195,7 +195,7 @@ public:
     virtual indices_t GetOutputShape(void) const = 0;
 
     /**
-     * @brief  出力形状取得
+     * @brief  出力形状取得(複数入出力対応)
      * @detail 出力形状を取得する
      * @return 出力形状を返す
      */
@@ -353,13 +353,13 @@ public:
     
 public:
    /**
-     * @brief  バッファをクリアする
-     * @detail バッファをクリアする
+     * @brief  内部保留データをクリアする
+     * @detail 内部保留データをクリアする
      * 
      * Backwardの為に内部にforward時のデータを保持していた場合はクリアする
      * ReFoward による再計算前提にメモリ削減する場合や、中断時の復帰などで利用する想定
      */
-    virtual void ClearFrameBuffer(void)
+    virtual void Clear(void)
     {
         while ( !m_bufs.empty() ) {
             m_bufs.pop();

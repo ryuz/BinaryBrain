@@ -206,10 +206,10 @@ public:
      * 
      * Backwardの為に内部にforward時のデータを保持していた場合はクリアする
      */
-    virtual void ClearFrameBuffer(void) override
+    virtual void Clear(void) override
     {
          for (auto layer : m_layers) {
-            layer->ClearFrameBuffer();
+            layer->Clear();
         }
     }
 

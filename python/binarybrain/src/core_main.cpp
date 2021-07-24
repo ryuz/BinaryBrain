@@ -63,6 +63,7 @@
 #include "bb/StochasticBatchNormalization.h"
 #include "bb/Dropout.h"
 #include "bb/Shuffle.h"
+#include "bb/Concatenate.h"
 
 #include "bb/LossFunction.h"
 #include "bb/LossMeanSquaredError.h"
@@ -234,7 +235,8 @@ using StochasticBatchNormalization_fp32      = bb::StochasticBatchNormalization<
 using Dropout_fp32_fp32                      = bb::Dropout<float, float>;
 using Dropout_bit_fp32                       = bb::Dropout<bb::Bit, float>;
 using Shuffle                                = bb::Shuffle;
-                                        
+using Concatenate                            = bb::Concatenate;
+
 using LossFunction                           = bb::LossFunction;
 using LossMeanSquaredError_fp32              = bb::LossMeanSquaredError<float>;
 using LossCrossEntropy_fp32                  = bb::LossCrossEntropy<float>;
@@ -608,6 +610,7 @@ PYBIND11_MODULE(core, m) {
                 py::arg("send_to") = "all")
         .def("get_input_shape", &Model::GetInputShape)
         .def("set_input_shape", &Model::SetInputShape)
+        .def("set_input_shape_multi", &Model::SetInputShapeMulti)
         .def("get_output_shape", &Model::GetOutputShape)
         .def("get_input_node_size", &Model::GetInputNodeSize)
         .def("get_output_node_size", &Model::GetOutputNodeSize)
@@ -615,7 +618,10 @@ PYBIND11_MODULE(core, m) {
         .def("get_gradients", &Model::GetGradients)
         .def("forward_node",  &Model::ForwardNode)
         .def("forward",  &Model::Forward)
+        .def("forward_multi", &Model::ForwardMulti)
         .def("backward", &Model::Backward)
+        .def("backward_multi", &Model::BackwardMulti)
+        .def("clear", &Model::Clear)
         .def("dump", &Model::DumpBytes)
         .def("load", &Model::LoadBytes)
         .def("save_binary", &Model::SaveBinary)
@@ -638,6 +644,9 @@ PYBIND11_MODULE(core, m) {
 
     PYCLASS_MODEL(Shuffle, Model)
         .def_static("create",   &Shuffle::CreatePy);
+
+    PYCLASS_MODEL(Concatenate, Model)
+        .def_static("create",   &Concatenate::Create);
     
     PYCLASS_MODEL(BinaryModulation_fp32_fp32, Model)
         .def_static("create", &BinaryModulation_fp32_fp32::CreatePy,

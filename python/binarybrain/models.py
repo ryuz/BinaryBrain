@@ -170,7 +170,7 @@ class Model(bb.Object):
         if core_model is not None:
             self.get_core().send_command(command, send_to)
     
-    def set_input_shape(self, input_shape: List[int]):
+    def set_input_shape(self, input_shape):
         """入力シェイプ設定
 
            BinaryBarainではモデル生成時に入力のシェイプを決定する必要はなく
@@ -190,6 +190,12 @@ class Model(bb.Object):
 #        print('set_input_shape:', self.get_model_name())
 #        print('input_shape:', input_shape)
 
+        if type(input_shape) == list and len(input_shape) > 0 and type(input_shape[0]) == list:
+            output_shapes = self.set_input_shape_multi(input_shape)
+            if len(output_shapes) == 1:
+                return output_shapes[0]
+            return output_shapes
+
         self.input_shape = input_shape
 
         core_model = self.get_core()
@@ -199,6 +205,15 @@ class Model(bb.Object):
             return output_shape
 
         return self.input_shape
+
+    def set_input_shape_multi(self, input_shapes: List[List[int]]):
+        self.input_shape = input_shapes
+        core_model = self.get_core()
+        if core_model is not None:
+            output_shapes = self.get_core().set_input_shape_multi(input_shapes)
+            return output_shapes
+        return self.input_shape
+
 
     def get_input_shape(self) -> List[int]:
         """入力シェイプ取得
@@ -286,10 +301,30 @@ class Model(bb.Object):
         Returns:
             y_buf (FrameBuffer): 出力データ
         """
+
+        if type(x_buf) == list:
+            y_bufs = self.forward_multi(x_buf)
+            if len(y_bufs) == 1:
+                return y_bufs[0]
+            return y_bufs
+        
         core_model = self.get_core()
         if core_model is not None:
             return bb.FrameBuffer.from_core(core_model.forward(x_buf.get_core(), train))
         return x_buf
+
+    def forward_multi(self, x_bufs, train=True):
+        core_model = self.get_core()
+        if core_model is not None:
+            core_x_bufs = []
+            for x_buf in x_bufs:
+                core_x_bufs.append(x_buf.get_core())
+            core_y_bufs = core_model.forward_multi(core_x_bufs, train)
+            y_bufs = []
+            for core_y_buf in core_y_bufs:
+                y_bufs.append(bb.FrameBuffer.from_core(core_y_buf))
+            return y_bufs
+        return x_bufs
 
     def backward(self, dy_buf):
         """Backward
@@ -306,10 +341,39 @@ class Model(bb.Object):
         Returns:
             dx_buf (FrameBuffer): 出力データ
         """
+
+        if type(dy_buf) == list:
+            dx_bufs = self.backward_multi(dy_buf)
+            if len(dx_bufs) == 1:
+                return dx_bufs[0]
+            return dx_bufs
+        
         core_model = self.get_core()
         if core_model is not None:
             return bb.FrameBuffer.from_core(core_model.backward(dy_buf.get_core()))
         return dy_buf
+
+    def backward_multi(self, dy_bufs):
+        core_model = self.get_core()
+        if core_model is None:
+            return dy_bufs
+
+        if type(dy_bufs) != list:
+            dy_bufs = [dy_bufs]
+        
+        core_dy_bufs = []
+        for dy_buf in dy_bufs:
+            core_dy_bufs.append(dy_buf.get_core())
+        core_dx_bufs = core_model.backward_multi(core_dy_bufs)
+        dx_bufs = []
+        for core_dx_buf in core_dx_bufs:
+            dx_bufs.append(bb.FrameBuffer.from_core(core_dx_buf))
+        return dx_bufs
+    
+    def clear(self):
+        core_model = self.get_core()
+        if core_model is not None:
+            core_model.clear()
 
     def dump_bytes(self):
         # バイトデータにシリアライズ(old format)
@@ -487,7 +551,10 @@ class Sequential(Model):
             dy_buf = model.backward(dy_buf)
         return dy_buf
 
-
+    def clear(self):
+        for model in self.model_list:
+            model.clear()
+    
     # シリアライズはC++版とフォーマット互換にする
     def dumps(self):
         # ヘッダ
@@ -1214,6 +1281,8 @@ class Convolution2d(Sequential):
         self.fw_dtype     = fw_dtype
         self.bw_dtype     = bw_dtype
         
+        self.shapes       = []
+
         self.im2col       = ConvolutionIm2Col(filter_size=filter_size, stride=stride,
                                 padding=padding, border_mode=border_mode, border_value=border_value,
                                 fw_dtype=fw_dtype, bw_dtype=bw_dtype)
@@ -1258,11 +1327,28 @@ class Convolution2d(Sequential):
             raise ValueError("illegal padding value")
         
         self.col2im.set_output_size(output_size=[output_h_size, output_w_size])
-        
-        super(Convolution2d, self).set_model_list([self.im2col, self.sub_layer, self.col2im])
+         
+#       super(Convolution2d, self).set_model_list([self.im2col, self.sub_layer, self.col2im])
         
         return super(Convolution2d, self).set_input_shape(shape)
     
+    def forward(self, x, train=True):
+        shape = x.get_node_shape()
+        self.set_input_shape(shape)
+        if train:
+            self.shapes.append(shape)
+        return super(Convolution2d, self).forward(x, train=train)
+
+    def backward(self, dy):
+        shape = self.shapes.pop()
+        self.set_input_shape(shape)
+        return super(Convolution2d, self).backward(dy)
+
+    def clear(self):
+        self.shapes = []
+        return super(Convolution2d, self).clear()
+
+
     def get_object_name(self):
         return 'Convolution2d_' + bb.dtype_to_name(self.fw_dtype) + '_' + bb.dtype_to_name(self.bw_dtype)
 
@@ -1557,6 +1643,21 @@ class Shuffle(Model):
 
 model_creator_regist('Shuffle', Shuffle.from_bytes)
 
+
+class Concatenate(Model):
+    """Concatenate class
+
+        複数の入力をConcatenateするクラス
+    """
+
+    def __init__(self, *, input_shape=None, name=None, core_model=None):
+        if core_model is None:
+            core_creator = search_core_model('Concatenate', []).create
+            core_model = core_creator()
+
+        super(Concatenate, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+    
+model_creator_regist('Concatenate', Concatenate.from_bytes)
 
 
 # ------- その他 --------

@@ -118,8 +118,11 @@ class Tensor(bb.Object):
         
         return Tensor(core_tensor=core_tensor)
 
-    def fill_zero(self, x):
+    def fill_zero(self):
         self.get_core().fill_zero()
+    
+    def fill_zero(self, x):
+        self.get_core().fill(x)
 
     def __add__(self, x):
         if type(x) == Tensor:

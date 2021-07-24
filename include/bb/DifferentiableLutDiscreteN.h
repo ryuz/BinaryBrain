@@ -274,16 +274,16 @@ public:
             this->PushFrameBuffer(x_buf);
 
             x_buf = m_lut->Forward(x_buf, train);
-            m_lut->ClearFrameBuffer();
+            m_lut->Clear();
 
             if ( m_bn_enable ) {
                 x_buf = m_batch_norm->Forward(x_buf, train);
-                m_batch_norm->ClearFrameBuffer();
+                m_batch_norm->Clear();
             }
         
             if ( m_act_enable ) {
                 x_buf = m_activation->Forward(x_buf, train);
-                m_activation->ClearFrameBuffer();
+                m_activation->Clear();
             }
         }
         else {
