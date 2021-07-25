@@ -31,26 +31,56 @@ public:
     std::string GetLossFunctionName(void) const override { return LossFunctionName(); }
     std::string GetObjectName(void) const override { return ObjectName(); }
 
+public:
+    struct create_t
+    {
+        std::string reduction;
+    };
 
 protected:
 //  FrameBuffer     m_dy_buf;
 //  double          m_loss = 0;
     double          m_frames = 0;
     Tensor_<double> m_loss_buf;
+    bool            m_reduction_sum = false;
 
 protected:
-    LossMeanSquaredError() {
+    LossMeanSquaredError()
+    {
+        m_loss_buf.Resize(1024);
+    }
+
+    LossMeanSquaredError(create_t const &create) {
+        if (create.reduction == "sum") {
+            m_reduction_sum = true;
+        }
         m_loss_buf.Resize(1024);
     }
 
 public:
     ~LossMeanSquaredError() {}
     
-    static std::shared_ptr<LossMeanSquaredError> Create(void)
+    static std::shared_ptr<LossMeanSquaredError> Create(create_t const &create)
     {
-        auto self = std::shared_ptr<LossMeanSquaredError>(new LossMeanSquaredError);
+        auto self = std::shared_ptr<LossMeanSquaredError>(new LossMeanSquaredError(create));
         return self;
     }
+
+    static std::shared_ptr<LossMeanSquaredError> Create(std::string reduction = "")
+    {
+        create_t create;
+        create.reduction = reduction;
+        return Create(create);
+    }
+
+#ifdef BB_PYBIND11
+    static std::shared_ptr<LossMeanSquaredError> CreatePy(std::string reduction = "")
+    {
+        create_t create;
+        create.reduction = reduction;
+        return Create(create);
+    }
+#endif
 
     void Clear(void)
     {
@@ -66,6 +96,9 @@ public:
         for (int i = 0; i < 1024; ++i) {
             loss += loss_buf_ptr[i];
         }
+        if ( m_reduction_sum ) {
+            return loss;
+        }
         return loss / m_frames;
     }
 
@@ -78,6 +111,18 @@ public:
         index_t node_size   = y_buf.GetNodeSize();
 
         FrameBuffer dy_buf(y_buf.GetFrameSize(), y_buf.GetShape(), DataType<T>::type);
+
+        T       grad_reduction;
+        double  loss_reduction;
+        if ( m_reduction_sum ) {
+            grad_reduction = (T)1.0;
+            loss_reduction = 1.0;
+        }
+        else {
+            grad_reduction = (T)1.0 / (T)(node_size * batch_size);
+            loss_reduction = 1.0 / node_size;
+        }
+
 
 #ifdef BB_WITH_CUDA
         if ( DataType<T>::type == BB_TYPE_FP32
@@ -99,7 +144,8 @@ public:
                     (int          )y_buf.GetNodeSize(),
                     (int          )y_buf.GetFrameSize(),
                     (int          )(y_buf.GetFrameStride() / sizeof(float)),
-                    (int          )batch_size
+                    (float        )2 * grad_reduction,
+                    (double       )loss_reduction
                 );
             
             m_frames += frame_size;
@@ -120,9 +166,9 @@ public:
                     auto grad = signal - target;
                     auto error = grad * grad;
 
-                    dy_ptr.Set(frame, node, grad / (T)batch_size);
+                    dy_ptr.Set(frame, node, 2 * grad * grad_reduction);     // grad^2 を微分して 2*grad
                     if ( !std::isnan(error) ) {
-                        loss_buf_ptr[0] += error / (double)node_size;
+                        loss_buf_ptr[0] += error * loss_reduction;
                     }
                 }
             }

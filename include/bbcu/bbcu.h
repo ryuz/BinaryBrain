@@ -1331,7 +1331,8 @@ BBCU_DLL_EXPORT int bbcu_fp32_LossMeanSquaredError
             int             node_size,
             int             frame_size,
             int             frame_stride,
-            int             batch_size,
+            float           grad_reduction,
+            double          loss_reduction,
             cudaStream_t    streamId = 0
         );
 

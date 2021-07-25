@@ -490,6 +490,16 @@ PYBIND11_MODULE(core, m) {
         .def(py::self *= double())
         .def(py::self /= py::self)
         .def(py::self /= double())
+        .def("set_numpy_int8",   &Tensor::SetNumpy<std::int8_t>)
+        .def("set_numpy_int16",  &Tensor::SetNumpy<std::int16_t>)
+        .def("set_numpy_int32",  &Tensor::SetNumpy<std::int32_t>)
+        .def("set_numpy_int64",  &Tensor::SetNumpy<std::int64_t>)
+        .def("set_numpy_uint8",  &Tensor::SetNumpy<std::int8_t>)
+        .def("set_numpy_uint16", &Tensor::SetNumpy<std::uint16_t>)
+        .def("set_numpy_uint32", &Tensor::SetNumpy<std::uint32_t>)
+        .def("set_numpy_uint64", &Tensor::SetNumpy<std::uint64_t>)
+        .def("set_numpy_fp32",   &Tensor::SetNumpy<float>)
+        .def("set_numpy_fp64",   &Tensor::SetNumpy<double>)
         .def("numpy_int8",   &Tensor::Numpy<std::int8_t>)
         .def("numpy_int16",  &Tensor::Numpy<std::int16_t>)
         .def("numpy_int32",  &Tensor::Numpy<std::int32_t>)
@@ -1025,7 +1035,8 @@ PYBIND11_MODULE(core, m) {
             py::arg("mini_batch_size"));
 
     PYCLASS_LOSS(LossMeanSquaredError_fp32, LossFunction)
-        .def_static("create", &LossMeanSquaredError_fp32::Create);
+        .def_static("create", &LossMeanSquaredError_fp32::CreatePy,
+            py::arg("reduction")="mean");
 
     PYCLASS_LOSS(LossCrossEntropy_fp32, LossFunction)
         .def_static("create", &LossCrossEntropy_fp32::Create);

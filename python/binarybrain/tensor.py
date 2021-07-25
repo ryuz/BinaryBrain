@@ -78,9 +78,31 @@ class Tensor(bb.Object):
     def set_numpy(self, ndarray: np.ndarray):
         dtype = self.get_core().get_type()
         assert(bb.dtype_numpy_to_bb(ndarray.dtype) == dtype)
-        assert(ndarray.shspe == self.get_shape)
-        # 未実装
+        assert(ndarray.shape == tuple(self.get_shape()))
 
+        if dtype == bb.DType.FP32:
+            return self.get_core().set_numpy_fp32(ndarray)
+        elif dtype == bb.DType.FP64:
+            return self.get_core().set_numpy_fp64(ndarray)
+        elif dtype == bb.DType.INT8:
+            return self.get_core().set_numpy_int8(ndarray)
+        elif dtype == bb.DType.INT16:
+            return self.get_core().set_numpy_int16(ndarray)
+        elif dtype == bb.DType.INT32:
+            return self.get_core().set_numpy_int32(ndarray)
+        elif dtype == bb.DType.INT64:
+            return self.get_core().set_numpy_int64(ndarray)
+        elif dtype == bb.DType.UINT8:
+            return self.get_core().set_numpy_uint8(ndarray)
+        elif dtype == bb.DType.UINT16:
+            return self.get_core().set_numpy_uint16(ndarray)
+        elif dtype == bb.DType.UINT32:
+            return self.get_core().set_numpy_uint32(ndarray)
+        elif dtype == bb.DType.UINT64:
+            return self.get_core().set_numpy_uint64(ndarray)
+        else:
+            assert(0)
+    
     @staticmethod
     def from_numpy(ndarray: np.ndarray, host_only=False):
         """NumPy から生成

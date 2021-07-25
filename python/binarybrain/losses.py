@@ -54,8 +54,8 @@ class LossMeanSquaredError(LossFunction):
         平均二乗誤差(MSE)を計算して誤差として戻す
     """
     
-    def __init__(self, dtype=bb.DType.FP32):
-        core_loss = bb.search_core_object('LossMeanSquaredError', [dtype]).create()
+    def __init__(self, reduction="mean", dtype=bb.DType.FP32):
+        core_loss = bb.search_core_object('LossMeanSquaredError', [dtype]).create(reduction=reduction)
         super(LossMeanSquaredError, self).__init__(core_loss=core_loss)
 
 
