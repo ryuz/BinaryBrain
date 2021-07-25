@@ -373,9 +373,9 @@ public:
     {
         const auto &info = a.request();
         
-        BB_ASSERT(info.shpe.size() == m_shape.size());
+        BB_ASSERT(info.shape.size() == m_shape.size());
         for ( size_t i = 0; i < (int)m_shape.size(); ++i ) {
-            BB_ASSERT(info.shpe[i] == m_shape[i]);
+            BB_ASSERT(info.shape[i] == m_shape[i]);
         }
 
         auto ptr = m_mem->Lock(true);

@@ -15,7 +15,7 @@ __global__ void kernal_fp32_LossMeanSquaredError(
             const float*    t_buf,
             float*          dy_buf,
             double*         loss_buf,
-            float           reciprocal_batch_size,
+            float           reduction,
             double          reciprocal_node_size,
             int             node_size,
             int             frame_size,
@@ -36,7 +36,7 @@ __global__ void kernal_fp32_LossMeanSquaredError(
             float y     = y_buf[node * frame_stride + frame];
             float t     = t_buf[node * frame_stride + frame];
             float dy    = y - t;
-            dy_buf[node * frame_stride + frame] = dy * reciprocal_batch_size;
+            dy_buf[node * frame_stride + frame] = dy * reduction;
             loss += (double)(dy * dy) * reciprocal_node_size;
         }
     }
@@ -59,7 +59,8 @@ BBCU_DLL_EXPORT int bbcu_fp32_LossMeanSquaredError
             int             node_size,
             int             frame_size,
             int             frame_stride,
-            int             batch_size,
+            float           grad_reduction,
+            double          loss_reduction,
             cudaStream_t    streamId
         )
 {
@@ -74,8 +75,8 @@ BBCU_DLL_EXPORT int bbcu_fp32_LossMeanSquaredError
             dev_t_buf,
             dev_dy_buf,
             dev_loss_buf,
-            1.0f / (float)batch_size,
-            1.0 / (double)node_size,
+            grad_reduction,
+            loss_reduction,
             node_size,
             frame_size,
             frame_stride

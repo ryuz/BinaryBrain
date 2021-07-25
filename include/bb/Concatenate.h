@@ -139,7 +139,7 @@ public:
         for ( auto& x_buf : x_bufs ) {
             x_shapes.push_back(x_buf.GetShape());
         }
-            
+        
         auto y_shape = SetInputShapeMulti(x_shapes)[0];
 
         // backwardの為に保存
