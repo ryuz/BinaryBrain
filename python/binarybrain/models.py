@@ -1598,6 +1598,25 @@ class BatchNormalization(Model):
 
         super(BatchNormalization, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
+    def gamma(self):
+        return bb.Tensor(core_tensor=self.get_core().gamma())
+
+    def beta(self):
+        return bb.Tensor(core_tensor=self.get_core().beta())
+
+    def dgamma(self):
+        return bb.Tensor(core_tensor=self.get_core().dgamma())
+
+    def dbeta(self):
+        return bb.Tensor(core_tensor=self.get_core().dbeta())
+
+    def running_mean(self):
+        return bb.Tensor(core_tensor=self.get_core().running_mean())
+
+    def running_var(self):
+        return bb.Tensor(core_tensor=self.get_core().running_var())
+
+
 model_creator_regist('BatchNormalization', BatchNormalization.from_bytes)
 
 

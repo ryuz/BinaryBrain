@@ -300,23 +300,33 @@ public:
     }
 #endif
 
-
-    auto lock_gamma(void)              { return m_gamma->Lock<T>(); }
-    auto lock_gamma_const(void)  const { return m_gamma->LockConst<T>(); }
-    auto lock_beta(void)               { return m_beta->Lock<T>(); }
-    auto lock_beta_const(void)   const { return m_beta->LockConst<T>(); }
-    auto lock_dgamma(void)             { return m_dgamma->Lock<T>(); }
-    auto lock_dgamma_const(void) const { return m_dgamma->LockConst<T>(); }
-    auto lock_dbeta(void)              { return m_dbeta->Lock<T>(); }
-    auto lock_dbeta_const(void)  const { return m_dbeta->LockConst<T>(); }
-    auto lock_mean(void)               { return m_running_mean.Lock(); }
-    auto lock_mean_const(void)   const { return m_running_mean.LockConst(); }
-    auto lock_var(void)                { return m_running_var.Lock(); }
-    auto lock_var_const(void)    const { return m_running_var.LockConst(); }
+    Tensor       &gamma(void)                   { return *m_gamma; }
+    Tensor const &gamma(void) const             { return *m_gamma; }
+    Tensor       &beta(void)                    { return *m_beta; }
+    Tensor const &beta(void) const              { return *m_beta; }
+    Tensor       &dgamma(void)                  { return *m_dgamma; }
+    Tensor const &dgamma(void) const            { return *m_dgamma; }
+    Tensor       &dbeta(void)                   { return *m_dgamma; }
+    Tensor const &dbeta(void) const             { return *m_beta; }
+    Tensor        running_mean(void)            { return m_running_mean; }
+    Tensor        running_var(void)             { return m_running_var; }
+    
+    auto lock_gamma(void)                       { return m_gamma->Lock<T>(); }
+    auto lock_gamma_const(void)  const          { return m_gamma->LockConst<T>(); }
+    auto lock_beta(void)                        { return m_beta->Lock<T>(); }
+    auto lock_beta_const(void)   const          { return m_beta->LockConst<T>(); }
+    auto lock_dgamma(void)                      { return m_dgamma->Lock<T>(); }
+    auto lock_dgamma_const(void) const          { return m_dgamma->LockConst<T>(); }
+    auto lock_dbeta(void)                       { return m_dbeta->Lock<T>(); }
+    auto lock_dbeta_const(void)  const          { return m_dbeta->LockConst<T>(); }
+    auto lock_running_mean(void)                { return m_running_mean.Lock(); }
+    auto lock_running_mean_const(void) const    { return m_running_mean.LockConst(); }
+    auto lock_running_var(void)                 { return m_running_var.Lock(); }
+    auto lock_running_var_const(void) const     { return m_running_var.LockConst(); }
     
     // debug
-    auto lock_tmp_mean_const(void)   const { return m_mean.LockConst(); }
-    auto lock_tmp_rstd_const(void)   const { return m_rstd.LockConst(); }
+    auto lock_tmp_mean_const(void)   const      { return m_mean.LockConst(); }
+    auto lock_tmp_rstd_const(void)   const      { return m_rstd.LockConst(); }
 
     /**
      * @brief  入力形状設定

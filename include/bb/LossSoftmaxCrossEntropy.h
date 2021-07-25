@@ -133,7 +133,7 @@ public:
                         c = std::max(c, y_ptr.Get(frame, node));
                     }
                     if (!Real_IsValid(c)) {
-                        std::cout << "loss c : nan" << std::endl;
+//                      std::cout << "loss c : nan" << std::endl;
                         c = 0;
                     }
 
@@ -159,7 +159,7 @@ public:
                         }
                         T dy = (softmax - t) / (T)batch_size;
                         if (!Real_IsValid(dy)) {
-                            std::cout << "loss dy : nan" << std::endl;
+//                          std::cout << "loss dy : nan" << std::endl;
                             dy = 0;
                         }
 

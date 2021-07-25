@@ -1010,7 +1010,14 @@ PYBIND11_MODULE(core, m) {
                 py::arg("gamma")     = 1.0f,
                 py::arg("beta")      = 0.0f,
                 py::arg("fix_gamma") = false,
-                py::arg("fix_beta")  = false);
+                py::arg("fix_beta")  = false)
+        .def("gamma",        ((Tensor& (BatchNormalization_fp32::*)())&BatchNormalization_fp32::gamma))
+        .def("beta",         ((Tensor& (BatchNormalization_fp32::*)())&BatchNormalization_fp32::beta))
+        .def("dgamma",       ((Tensor& (BatchNormalization_fp32::*)())&BatchNormalization_fp32::dgamma))
+        .def("dbeta",        ((Tensor& (BatchNormalization_fp32::*)())&BatchNormalization_fp32::dbeta))
+        .def("running_mean", &BatchNormalization_fp32::running_mean)
+        .def("running_var",  &BatchNormalization_fp32::running_var);
+
 
     PYCLASS_MODEL(StochasticBatchNormalization_fp32, Activation)
         .def_static("create", &StochasticBatchNormalization_fp32::CreatePy,
