@@ -379,15 +379,16 @@ public:
         // フレーム数
         auto frame_size = dy_buf.GetFrameSize();
 
-        // forward時保存破棄
+        // forward時保存復帰
         FrameBuffer x_buf = PopFrameBuffer();
+        BB_ASSERT(x_buf.GetFrameSize() == dy_buf.GetFrameSize());
 
         // 型合わせ
         if ( x_buf.GetType() != DataType<T>::type ) {
              x_buf = x_buf.ConvertTo(DataType<T>::type);
         }
         
-        FrameBuffer dx_buf(dy_buf.GetFrameSize(), {m_input_node_size}, DataType<T>::type);
+        FrameBuffer dx_buf(x_buf.GetFrameSize(), x_buf.GetShape(), DataType<T>::type);
 
 
         #ifdef BB_WITH_CUDA

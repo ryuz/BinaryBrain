@@ -306,8 +306,8 @@ public:
     Tensor const &beta(void) const              { return *m_beta; }
     Tensor       &dgamma(void)                  { return *m_dgamma; }
     Tensor const &dgamma(void) const            { return *m_dgamma; }
-    Tensor       &dbeta(void)                   { return *m_dgamma; }
-    Tensor const &dbeta(void) const             { return *m_beta; }
+    Tensor       &dbeta(void)                   { return *m_dbeta; }
+    Tensor const &dbeta(void) const             { return *m_dbeta; }
     Tensor        running_mean(void)            { return m_running_mean; }
     Tensor        running_var(void)             { return m_running_var; }
     
@@ -550,6 +550,9 @@ public:
 
                     __m256 varx = _mm256_max_ps(var, epsilon);
                     __m256 rstd = _mm256_rsqrt_ps(varx);
+//                  __m256 half = _mm256_mul_ps(varx, _mm256_set1_ps(0.5f));
+//                  rstd = _mm256_mul_ps(rstd, _mm256_sub_ps(_mm256_set1_ps(1.5f), _mm256_mul_ps(_mm256_mul_ps(half, rstd), rstd)));
+//                  rstd = _mm256_mul_ps(rstd, _mm256_sub_ps(_mm256_set1_ps(1.5f), _mm256_mul_ps(_mm256_mul_ps(half, rstd), rstd)));
 
                     varx = _mm256_mul_ps(varx, _mm256_set1_ps(0.5f));
                     rstd = _mm256_mul_ps(rstd, _mm256_fnmadd_ps(varx, _mm256_mul_ps(rstd, rstd), _mm256_set1_ps(1.5f)));

@@ -33,7 +33,7 @@ public:
 protected:
     Tensor_<double>  m_loss_buf;
     Tensor_<double>  m_loss;
-    index_t          m_frame_count = 0;
+    double           m_frame_count = 0;
 
 protected:
     LossSoftmaxCrossEntropy() {
@@ -63,7 +63,7 @@ public:
         }
 
         auto loss_ptr = m_loss.LockConst();
-        return loss_ptr[0] / (double)m_frame_count;
+        return loss_ptr[0] / m_frame_count;
     }
 
     FrameBuffer CalculateLoss(FrameBuffer y_buf, FrameBuffer t_buf, index_t batch_size)
@@ -85,7 +85,8 @@ public:
         auto ch_size  = shape[0];
         auto pix_size = node_size / ch_size;
         
-#ifdef BB_WITH_CUDA
+//#ifdef BB_WITH_CUDA
+#if 0
         if ( DataType<T>::type == BB_TYPE_FP32 && pix_size == 1
                 && y_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
 
@@ -115,6 +116,8 @@ public:
 #endif
 
         {
+            T   eps = (T)1.0e-7;
+
             m_loss_buf = 0;
 
             auto y_ptr  = y_buf.LockConst<T>();
@@ -123,12 +126,20 @@ public:
             auto loss_buf_ptr = m_loss_buf.Lock(true);
             auto loss_ptr     = m_loss.Lock();
 
+            T t_sum = 0;
+            for (index_t frame = 0; frame < frame_size; ++frame) {
+                for (index_t node = 0; node < node_size; ++node) {
+                    t_sum += t_ptr.Get(frame, node);
+                }
+            }
+
+
             #pragma omp parallel for
             for (index_t frame = 0; frame < frame_size; ++frame) {
                 for (index_t pix = 0; pix < pix_size; ++pix) {
                     // max
                     auto c = y_ptr.Get(frame, 0);
-                    for (index_t ch = 0; ch < ch_size; ++ch) {
+                    for (index_t ch = 1; ch < ch_size; ++ch) {
                         auto node = ch * pix_size + pix;
                         c = std::max(c, y_ptr.Get(frame, node));
                     }
@@ -139,14 +150,15 @@ public:
 
                     // sum(exp(y - c))
                     T y_sum = 0;
-                    T t_sum = 0;
+                    T t_max = 0;
                     for (index_t ch = 0; ch < ch_size; ++ch) {
                         auto node = ch * pix_size + pix;
                         y_sum += std::exp(y_ptr.Get(frame, node) - c);
-                        t_sum += t_ptr.Get(frame, node);
+                        t_max += t_ptr.Get(frame, node);    // ワンホットなので足していけばそのチャネルのWeightが得られる
                     }
                     
-                    if (y_sum == 0) { y_sum = (T)1.0e-7; }
+                    // 0以下での除算回避
+                    if (y_sum <= eps) { y_sum = eps; }
 
                     for (index_t ch = 0; ch < ch_size; ++ch) {
                         auto node = ch * pix_size + pix;
@@ -154,16 +166,17 @@ public:
                         T t = t_ptr.Get(frame, node);
                         T softmax = std::exp(y - c) / y_sum;
                         if ( t > 0) {
-                            loss_buf_ptr[frame] += std::log(softmax + (T)1.0e-7);
-                            t = (T)1.0;
+                            loss_buf_ptr[frame] += std::log(softmax + eps)*t_max;
+//                          t = (T)1.0;
                         }
-                        T dy = (softmax - t) / (T)batch_size;
+
+                        T dy = (t_max * softmax - t) / (T)t_sum;
                         if (!Real_IsValid(dy)) {
 //                          std::cout << "loss dy : nan" << std::endl;
                             dy = 0;
                         }
 
-                        dy_ptr.Set(frame, node, dy * t_sum);
+                        dy_ptr.Set(frame, node, dy);
                     }
                 }
             }
@@ -174,7 +187,8 @@ public:
             }
 
             loss_ptr[0]   += -loss_sum;
-            m_frame_count += frame_size * pix_size;
+//          m_frame_count += frame_size * pix_size;
+            m_frame_count += t_sum;
 
             return dy_buf;
         }

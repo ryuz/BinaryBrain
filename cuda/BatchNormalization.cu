@@ -50,6 +50,8 @@ __device__ __forceinline__ float device_fp32_LocalSum(float v, float *buf)
 // forward training
 //////////////////////////////
 
+#if 1
+
 __global__ void kernal_fp32_BatchNormalization_ForwardTraining(
             const float     *x_buf,
             float           *y_buf,
@@ -95,7 +97,14 @@ __global__ void kernal_fp32_BatchNormalization_ForwardTraining(
     s2 = device_fp32_LocalSum(s2, buf);
     float mean = s1 * reciprocal_frame_size;
     float var = max(1.0e-7f, (s2 * reciprocal_frame_size) - (mean * mean));
+#if 1
     float rstd = rsqrt(var);
+    float half = var * 0.5f;
+    rstd *= (1.5f - (half * rstd * rstd));
+//    rstd *= (1.5f - (half * rstd * rstd));
+#else
+    float rstd = 1.0f / sqrt(var);
+#endif
 
     if (id == 0) {
         running_mean_buf[node] = (running_mean_buf[node] * momentum) + (mean * (1.0 - momentum));
@@ -115,6 +124,68 @@ __global__ void kernal_fp32_BatchNormalization_ForwardTraining(
         y_ptr[frame] = x;
     }
 }
+
+#else
+
+__global__ void kernal_fp32_BatchNormalization_ForwardTraining(
+            const float     *x_buf,
+            float           *y_buf,
+            float const     *gamma_buf,
+            float const     *beta_buf,
+            float           *mean_buf,
+            float           *rstd_buf,
+            float           *running_mean_buf,
+            float           *running_var_buf,
+            float           momentum,
+            float           reciprocal_frame_size,
+            int             frame_size,
+            int             frame_stride
+        )
+{
+    __shared__   double  buf[BBCU_BATCHNORM_FW_BLOCK_SIZE];
+
+    // 初期化
+    int const node    = blockIdx.x;
+    int const id      = threadIdx.x;
+    int const id_step = blockDim.x;
+    
+    // カハンの加算アルゴリズム(Kahan summation algorithm)
+    double s1 = 0;
+    double s2 = 0;
+    const float* x_ptr = &x_buf[frame_stride * node];
+    for ( int frame = id; frame < frame_size; frame += id_step) {
+        float x = x_ptr[frame];
+        s1 += (double)x;
+        s2 += (double)(x*x);
+    }
+
+    // 集計
+    s1 = device_LocalSumX<double>(s1, buf);
+    s2 = device_LocalSumX<double>(s2, buf);
+    float mean = s1 * reciprocal_frame_size;
+    float var = max(1.0e-7f, (s2 * reciprocal_frame_size) - (mean * mean));
+    float rstd = 1.0f / sqrt(var);
+
+    if (id == 0) {
+        running_mean_buf[node] = (running_mean_buf[node] * momentum) + (mean * (1.0 - momentum));
+        running_var_buf[node]  = (running_var_buf[node]  * momentum) + (var  * (1.0 - momentum));
+        mean_buf[node] = mean;
+        rstd_buf[node] = rstd;
+    }
+
+    // 正規化
+    float gamma = gamma_buf[node];
+    float beta  = beta_buf[node];
+    float* y_ptr = &y_buf[frame_stride * node];
+    for ( int frame = id; frame < frame_size; frame += id_step) {
+        float x = x_ptr[frame];
+        x = (x - mean) * rstd;
+        x = x * gamma + beta;
+        y_ptr[frame] = x;
+    }
+}
+
+#endif
 
 
 BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_ForwardTraining
