@@ -107,6 +107,29 @@ __device__ __forceinline__ T device_ShuffleSum(T v)
 }
 
 
+template<typename T = float>
+__device__ __forceinline__ T device_ShuffleMax(T v)
+{
+    v = max(v, __shfl_xor_sync(0xffffffff, v,  1, 32));
+    v = max(v, __shfl_xor_sync(0xffffffff, v,  2, 32));
+    v = max(v, __shfl_xor_sync(0xffffffff, v,  4, 32));
+    v = max(v, __shfl_xor_sync(0xffffffff, v,  8, 32));
+    v = max(v, __shfl_xor_sync(0xffffffff, v, 16, 32));
+    return v;
+}
+
+
+template<typename T = float>
+__device__ __forceinline__ T device_ShuffleMin(T v)
+{
+    v = min(v, __shfl_xor_sync(0xffffffff, v,  1, 32));
+    v = min(v, __shfl_xor_sync(0xffffffff, v,  2, 32));
+    v = min(v, __shfl_xor_sync(0xffffffff, v,  4, 32));
+    v = min(v, __shfl_xor_sync(0xffffffff, v,  8, 32));
+    v = min(v, __shfl_xor_sync(0xffffffff, v, 16, 32));
+    return v;
+}
+
 
 template<int N=6, typename T = float>
 __global__ void kernal_NodeIntegrate(

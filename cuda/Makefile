@@ -50,6 +50,7 @@ SRCS += Adam.cu
 SRCS += LossSoftmaxCrossEntropy.cu
 SRCS += LossMeanSquaredError.cu
 SRCS += AccuracyCategoricalClassification.cu
+SRCS += Utility.cu
 
 HDRS  = ../include/bbcu/bbcu.h
 HDRS += ../include/bbcu/bbcu_util.h

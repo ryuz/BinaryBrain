@@ -664,21 +664,6 @@ BBCU_DLL_EXPORT int bbcu_fp32_StochasticMaxPooling2x2_Forward
             cudaStream_t    streamId = 0
         );
 
-BBCU_DLL_EXPORT int bbcu_bit_MaxPooling_Forward
-        (
-            int const       *dev_x_buf,
-            int             *dev_y_buf,
-            int             filter_h_size,
-            int             filter_w_size,
-            int             input_w_size,
-            int             input_h_size,
-            int             output_w_size,
-            int             output_h_size,
-            int             c_size,
-            int             frame_size,
-            int             frame_stride,
-            cudaStream_t    streamId = 0
-        );
 
 BBCU_DLL_EXPORT int bbcu_fp32_StochasticMaxPooling2x2_Backward
         (
@@ -849,6 +834,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_MaxPooling_Forward
         (
             float const *   dev_x_buf,
             float*          dev_y_buf,
+            int*            dev_argmax_buf,
             int             filter_h_size,
             int             filter_w_size,
             int             input_w_size,
@@ -861,10 +847,26 @@ BBCU_DLL_EXPORT int bbcu_fp32_MaxPooling_Forward
             cudaStream_t    streamId = 0
         );
 
+BBCU_DLL_EXPORT int bbcu_bit_MaxPooling_Forward
+        (
+            int const       *dev_x_buf,
+            int             *dev_y_buf,
+            int             filter_h_size,
+            int             filter_w_size,
+            int             input_w_size,
+            int             input_h_size,
+            int             output_w_size,
+            int             output_h_size,
+            int             c_size,
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId = 0
+        );
+
+
 BBCU_DLL_EXPORT int bbcu_fp32_MaxPooling_Backward
         (
-            float const     *dev_x_buf,
-            float const     *dev_y_buf,
+            int   const     *dev_argmax_buf,
             float const     *dev_dy_buf,
             float           *dev_dx_buf,
             int             filter_h_size,
@@ -882,7 +884,6 @@ BBCU_DLL_EXPORT int bbcu_fp32_MaxPooling_Backward
 BBCU_DLL_EXPORT int bbcu_bit_fp32_MaxPooling_Backward
         (
             int   const     *dev_x_buf,
-            int   const     *dev_y_buf,
             float const     *dev_dy_buf,
             float           *dev_dx_buf,
             int             filter_h_size,
@@ -1386,6 +1387,76 @@ BBCU_DLL_EXPORT int bbcu_fp32_Adam
             float           beta1,
             float           beta2,
             cudaStream_t    streamId = 0
+        );
+
+
+
+// -------------------------------------
+//  Utility
+// -------------------------------------
+
+template<typename T>
+BBCU_DLL_EXPORT int bbcu_Tensor_IsnNan
+        (
+            int             *dev_result,
+            T   const       *dev_buf,
+            int             size,
+            cudaStream_t    streamId=0
+        );
+
+template<typename T>
+BBCU_DLL_EXPORT int bbcu_FrameBuf_IsnNan
+        (
+            int             *dev_result,
+            T   const       *dev_buf,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId=0
+        );
+
+
+template<typename T>
+BBCU_DLL_EXPORT int bbcu_Tensor_Min
+        (
+            T               *dev_result,
+            T   const       *dev_buf,
+            int             size,
+            cudaStream_t    streamId=0
+        );
+
+
+template<typename T>
+BBCU_DLL_EXPORT int bbcu_FrameBuf_Min
+        (
+            T               *dev_result,
+            T   const       *dev_buf,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId=0
+        );
+
+
+template<typename T>
+BBCU_DLL_EXPORT int bbcu_Tensor_Max
+        (
+            T               *dev_result,
+            T   const       *dev_buf,
+            int             size,
+            cudaStream_t    streamId=0
+        );
+
+
+template<typename T>
+BBCU_DLL_EXPORT int bbcu_FrameBuf_Max
+        (
+            T               *dev_result,
+            T   const       *dev_buf,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId=0
         );
 
 

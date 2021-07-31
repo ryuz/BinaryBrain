@@ -48,6 +48,7 @@
 #include "LossSoftmaxCrossEntropy.cu"
 #include "LossMeanSquaredError.cu"
 #include "AccuracyCategoricalClassification.cu"
+#include "Utility.cu"
 
 
 // end of file

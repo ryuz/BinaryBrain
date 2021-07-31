@@ -625,4 +625,36 @@ TEST(FrameBufferTest, testIndex)
 
 
 
+
+TEST(FrameBufferTest, FrameBuffer_MinMax)
+{
+    const int n = 33;
+    const int c = 7;
+    const int h = 3;
+    const int w = 2;
+
+    bb::FrameBuffer buf(n, {c, h, w}, BB_TYPE_FP32);
+
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < c; ++j) {
+            for (int k = 0; k < h; ++k) {
+                for (int l = 0; l < w; ++l) {
+                    buf.Set<float, float>(i, {j, k, l}, (float)(i+j+k+l));
+                }
+            }
+        }
+    }
+
+    buf.Set<float, float>( 7, {3, 2, 1}, -987654.0f);
+    buf.Set<float, float>(11, {4, 2, 1}, +999998.0f);
+    
+    double val0 = buf.Min();
+    double val1 = buf.Max();
+    EXPECT_EQ(val0, -987654.0f);
+    EXPECT_EQ(val1, +999998.0f);
+}
+
+
+
+
 // end of file
