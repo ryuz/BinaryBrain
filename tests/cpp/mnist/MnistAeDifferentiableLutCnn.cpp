@@ -124,10 +124,10 @@ void MnistAeDifferentiableLutCnn_Tmp(int epoch_size, int mini_batch_size, int tr
         auto main_net = bb::Sequential::Create();
         main_net->Add(bb::Convolution2d<T>::Create(enc_cnv0_sub, 3, 3, 1, 1, "same"));    // 28x28
         main_net->Add(bb::Convolution2d<T>::Create(enc_cnv1_sub, 3, 3, 1, 1, "same"));    // 28x28
-        main_net->Add(bb::MaxPooling<float>::Create(2, 2));
+        main_net->Add(bb::MaxPooling<T>::Create(2, 2));
         main_net->Add(bb::Convolution2d<T>::Create(enc_cnv2_sub, 3, 3, 1, 1, "same"));    // 14x14
         main_net->Add(bb::Convolution2d<T>::Create(enc_cnv3_sub, 3, 3, 1, 1, "same"));    // 14x14
-        main_net->Add(bb::MaxPooling<float>::Create(2, 2));
+        main_net->Add(bb::MaxPooling<T>::Create(2, 2));
         main_net->Add(enc_sl4);
         main_net->Add(enc_sl5);
         main_net->Add(enc_sl6);
@@ -394,10 +394,10 @@ void MnistAeDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_
 {
 #ifdef BB_WITH_CUDA
     if ( binary_mode ) {
-        MnistAeDifferentiableLutCnn_Tmp< float, bb::DifferentiableLutN<6, float> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+        MnistAeDifferentiableLutCnn_Tmp< bb::Bit, bb::DifferentiableLutN<6, bb::Bit> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
     else {
-        MnistAeDifferentiableLutCnn_Tmp< bb::Bit, bb::DifferentiableLutN<6, bb::Bit> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+        MnistAeDifferentiableLutCnn_Tmp< float, bb::DifferentiableLutN<6, float> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 #else
     MnistAeDifferentiableLutCnn_Tmp< float, bb::DifferentiableLutDiscreteN<6, float> >(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);

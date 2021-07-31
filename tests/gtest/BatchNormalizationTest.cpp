@@ -314,8 +314,12 @@ public:
 #if 1
 TEST(BatchNormalizationTest, testBatchNormalization)
 {
+
     bb::BatchNormalization<float>::create_t create;
     auto batch_norm = bb::BatchNormalization<float>::Create(create);
+
+    bb::Manager::SetHostOnly(true);
+//  batch_norm->SendCommand("host_simd false");
 
     bb::FrameBuffer x(8, {2}, BB_TYPE_FP32);
     
@@ -376,29 +380,32 @@ TEST(BatchNormalizationTest, testBatchNormalization)
     std::cout << out_sig.GetReal(7, 0) << std::endl;
 #endif
 
+    const double err_th = 1.0e-7;
+
     for (int i = 0; i < 8; i++) {
-        EXPECT_NEAR(exp_norm0.y[i], y.GetFP32(i, 0), 0.000001);
-        EXPECT_NEAR(exp_norm1.y[i], y.GetFP32(i, 1), 0.000001);
+        EXPECT_NEAR(exp_norm0.y[i], y.GetFP32(i, 0), err_th);
+        EXPECT_NEAR(exp_norm1.y[i], y.GetFP32(i, 1), err_th);
     }
 
-    // _mm256_rsqrt_ps を使っているので精度は悪い
-    EXPECT_NEAR(-1.52752510, y.GetFP32(0, 0), 0.000001);
-    EXPECT_NEAR(-1.09108940, y.GetFP32(1, 0), 0.000001);
-    EXPECT_NEAR(-0.65465360, y.GetFP32(2, 0), 0.000001);
-    EXPECT_NEAR(-0.21821786, y.GetFP32(3, 0), 0.000001);
-    EXPECT_NEAR(+0.21821786, y.GetFP32(4, 0), 0.000001);
-    EXPECT_NEAR(+0.65465360, y.GetFP32(5, 0), 0.000001);
-    EXPECT_NEAR(+1.09108940, y.GetFP32(6, 0), 0.000001);
-    EXPECT_NEAR(+1.52752510, y.GetFP32(7, 0), 0.000001);
 
-    EXPECT_NEAR(-1.23359570, y.GetFP32(0, 1), 0.000001);
-    EXPECT_NEAR(+1.14442010, y.GetFP32(1, 1), 0.000001);
-    EXPECT_NEAR(-0.04458780, y.GetFP32(2, 1), 0.000001);
-    EXPECT_NEAR(-0.63909180, y.GetFP32(3, 1), 0.000001);
-    EXPECT_NEAR(-1.11469500, y.GetFP32(4, 1), 0.000001);
-    EXPECT_NEAR(+1.62002340, y.GetFP32(5, 1), 0.000001);
-    EXPECT_NEAR(+0.78771776, y.GetFP32(6, 1), 0.000001);
-    EXPECT_NEAR(-0.52019095, y.GetFP32(7, 1), 0.000001);
+    // _mm256_rsqrt_ps を使っているので精度は悪い
+    EXPECT_NEAR(-1.52752510, y.GetFP32(0, 0), err_th);
+    EXPECT_NEAR(-1.09108940, y.GetFP32(1, 0), err_th);
+    EXPECT_NEAR(-0.65465360, y.GetFP32(2, 0), err_th);
+    EXPECT_NEAR(-0.21821786, y.GetFP32(3, 0), err_th);
+    EXPECT_NEAR(+0.21821786, y.GetFP32(4, 0), err_th);
+    EXPECT_NEAR(+0.65465360, y.GetFP32(5, 0), err_th);
+    EXPECT_NEAR(+1.09108940, y.GetFP32(6, 0), err_th);
+    EXPECT_NEAR(+1.52752510, y.GetFP32(7, 0), err_th);
+
+    EXPECT_NEAR(-1.23359570, y.GetFP32(0, 1), err_th);
+    EXPECT_NEAR(+1.14442010, y.GetFP32(1, 1), err_th);
+    EXPECT_NEAR(-0.04458780, y.GetFP32(2, 1), err_th);
+    EXPECT_NEAR(-0.63909180, y.GetFP32(3, 1), err_th);
+    EXPECT_NEAR(-1.11469500, y.GetFP32(4, 1), err_th);
+    EXPECT_NEAR(+1.62002340, y.GetFP32(5, 1), err_th);
+    EXPECT_NEAR(+0.78771776, y.GetFP32(6, 1), err_th);
+    EXPECT_NEAR(-0.52019095, y.GetFP32(7, 1), err_th);
 
     bb::FrameBuffer dy(8, {2}, BB_TYPE_FP32);
     
@@ -692,10 +699,10 @@ TEST(BatchNormalizationTest, testBatchNormalization_cmp)
                 EXPECT_NEAR(val_cpu, val_gpu, 0.001f);
             }
 
-            auto mean_cpu = bn_cpu->lock_mean_const();
-            auto mean_gpu = bn_gpu->lock_mean_const();
-            auto var_cpu  = bn_cpu->lock_var_const();
-            auto var_gpu  = bn_gpu->lock_var_const();
+            auto mean_cpu = bn_cpu->lock_running_mean_const();
+            auto mean_gpu = bn_gpu->lock_running_mean_const();
+            auto var_cpu  = bn_cpu->lock_running_var_const();
+            auto var_gpu  = bn_gpu->lock_running_var_const();
             auto tmp_mean_cpu = bn_cpu->lock_tmp_mean_const();
             auto tmp_mean_gpu = bn_gpu->lock_tmp_mean_const();
             auto tmp_rstd_cpu = bn_cpu->lock_tmp_rstd_const();
@@ -805,12 +812,12 @@ TEST(BatchNormalizationTest, testBatchNormalization_loop)
                 printf("dbeta[%d] : %f\n", node, dbeta({node}));
             }
 
-            auto running_mean = bn->lock_mean_const();
+            auto running_mean = bn->lock_running_mean_const();
             for ( int node = 0; node < node_size; ++node ) {
                 printf("running_mean[%d] : %f\n", node, running_mean({node}));
             }
 
-            auto running_var = bn->lock_var_const();
+            auto running_var = bn->lock_running_var_const();
             for ( int node = 0; node < node_size; ++node ) {
                 printf("running_var[%d] : %f\n", node, running_var({node}));
             }

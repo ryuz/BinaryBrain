@@ -1623,3 +1623,73 @@ TEST(TensorTest, testTensorX_Operator)
 }
 
 
+
+TEST(TensorTest, testTensor_Nan)
+{
+    const int L = 4099;
+    const int M = 4;
+    const int N = 5;
+    bb::Tensor_<float> t({L, M, N});
+
+    {
+        auto ptr = t.Lock();
+        for ( int i = 0; i < L; ++i ) {
+            for ( int j = 0; j < M; ++j ) {
+                for ( int k = 0; k < N; ++k ) {
+                    ptr(i, j, k) = (float)(i+j+k);
+                }
+            }
+        }
+    }
+    bool result0 = t.IsNan();
+    EXPECT_EQ(false, result0);
+    
+    {
+        auto ptr = t.Lock();
+        ptr(2, 3, 2) = std::numeric_limits<float>::quiet_NaN();
+    }
+
+    bool result1 = t.IsNan();
+    EXPECT_EQ(true, result1);
+
+
+    if (0){
+        auto ptr = t.Lock();
+        for ( int i = 0; i < L; ++i ) {
+            for ( int j = 0; j < M; ++j ) {
+                for ( int k = 0; k < N; ++k ) {
+                    std::cout << ptr(i, j, k) << " ";
+                }
+            }
+            std::cout << std::endl;
+        }
+    }
+}
+
+
+
+TEST(TensorTest, testTensor_MinMax)
+{
+    const int L = 4099;
+    const int M = 4;
+    const int N = 5;
+    bb::Tensor_<float> t({L, M, N});
+
+    {
+        auto ptr = t.Lock();
+        for ( int i = 0; i < L; ++i ) {
+            for ( int j = 0; j < M; ++j ) {
+                for ( int k = 0; k < N; ++k ) {
+                    ptr(i, j, k) = (float)(i+j+k);
+                }
+            }
+        }
+        ptr(2, 3, 2)   = +999999;
+        ptr(L-1, 3, 2) = -888888;
+    }
+
+    float val0 = t.Min();
+    float val1 = t.Max();
+    EXPECT_EQ(val0, -888888);
+    EXPECT_EQ(val1, +999999);
+}
