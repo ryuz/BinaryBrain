@@ -20,6 +20,7 @@
 __global__ void kernal_fp32_MaxPooling_Forward(
             float const *x_buf,
             float       *y_buf,
+            int         *argmax_buf,
             int         filter_h_size,
             int         filter_w_size,
             int         input_w_size,
@@ -43,7 +44,9 @@ __global__ void kernal_fp32_MaxPooling_Forward(
 
     for ( int frame = frame_base; frame < frame_size; frame += frame_step ) {
         // 最大値探索
-        float max_val = -1.0e7f;
+        float   max_val = FLT_MIN; // -1.0e7f;
+        int     arg = 0;
+        int     argmax = 0;
         for (int fy = 0; fy < filter_h_size; ++fy) {
             int iy = y * filter_h_size + fy;
             if ( iy < input_h_size ) {
@@ -51,7 +54,11 @@ __global__ void kernal_fp32_MaxPooling_Forward(
                     int ix = x * filter_w_size + fx;
                     if ( ix < input_w_size ) {
                         float sig = x_buf[((c * input_h_size + iy) * input_w_size + ix) * frame_stride + frame];
-                        max_val = max(max_val, sig);
+                        if ( sig > max_val ) {
+                            max_val = sig;
+                            argmax  = arg;
+                        }
+                        arg++;
                     }
                 }
             }
@@ -59,6 +66,7 @@ __global__ void kernal_fp32_MaxPooling_Forward(
 
         // 出力
         y_buf[((c * output_h_size + y) * output_w_size + x) * frame_stride + frame] = max_val;
+        argmax_buf[((c * output_h_size + y) * output_w_size + x) * frame_stride + frame] = argmax;
     }
 }
 
@@ -67,6 +75,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_MaxPooling_Forward
         (
             float const *   dev_x_buf,
             float*          dev_y_buf,
+            int*            dev_argmax_buf,
             int             filter_h_size,
             int             filter_w_size,
             int             input_w_size,
@@ -92,6 +101,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_MaxPooling_Forward
     kernal_fp32_MaxPooling_Forward<<<grid, block, 0, streamId>>>(
             dev_x_buf,
             dev_y_buf,
+            dev_argmax_buf,
             filter_h_size,
             filter_w_size,
             input_w_size,
@@ -218,8 +228,7 @@ BBCU_DLL_EXPORT int bbcu_bit_MaxPooling_Forward
 //////////////////////////////
 
 __global__ void kernal_fp32_MaxPooling_Backward(
-            float const *x_buf,
-            float const *y_buf,
+            int   const *argmax_buf,
             float const *dy_buf,
             float       *dx_buf,
             int         filter_h_size,
@@ -245,16 +254,17 @@ __global__ void kernal_fp32_MaxPooling_Backward(
     
     // 最大値箇所のみ伝播
     for ( int frame = frame_base; frame < frame_size; frame += frame_step ) {
-        float out_sig = y_buf[((c * output_h_size + y) * output_w_size + x) * frame_stride + frame];
-        float grad    = dy_buf[((c * output_h_size + y) * output_w_size + x) * frame_stride + frame];
+        int     arg    = 0;
+        int     argmax = argmax_buf[((c * output_h_size + y) * output_w_size + x) * frame_stride + frame];
+        float   grad   = dy_buf[((c * output_h_size + y) * output_w_size + x) * frame_stride + frame];
         for (int fy = 0; fy < filter_h_size; ++fy) {
             int iy = y * filter_h_size + fy;
             if ( iy < input_h_size ) {
                 for (int fx = 0; fx < filter_w_size; ++fx) {
                     int ix = x * filter_w_size + fx;
                     if ( ix < input_w_size ) {
-                        float in_sig  = x_buf[((c * input_h_size + iy) * input_w_size + ix) * frame_stride + frame];
-                        dx_buf[((c * input_h_size + iy) * input_w_size + ix) * frame_stride + frame] = (in_sig == out_sig) ? grad : 0;
+                        dx_buf[((c * input_h_size + iy) * input_w_size + ix) * frame_stride + frame] = (arg == argmax) ? grad : 0;
+                        arg++;
                     }
                 }
             }
@@ -265,8 +275,7 @@ __global__ void kernal_fp32_MaxPooling_Backward(
 
 BBCU_DLL_EXPORT int bbcu_fp32_MaxPooling_Backward
         (
-            float const     *dev_x_buf,
-            float const     *dev_y_buf,
+            int   const     *dev_argmax_buf,
             float const     *dev_dy_buf,
             float           *dev_dx_buf,
             int             filter_h_size,
@@ -292,8 +301,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_MaxPooling_Backward
     block.y = min(block.y, output_w_size);
 
     kernal_fp32_MaxPooling_Backward<<<grid, block, 0, streamId>>>(
-            dev_x_buf,
-            dev_y_buf,
+            dev_argmax_buf,
             dev_dy_buf,
             dev_dx_buf,
             filter_h_size,
@@ -318,7 +326,6 @@ BBCU_DLL_EXPORT int bbcu_fp32_MaxPooling_Backward
 
 __global__ void kernal_bit_fp32_MaxPooling_Backward(
             int   const *x_buf,
-            int   const *y_buf,
             float const *dy_buf,
             float       *dx_buf,
             int         filter_h_size,
@@ -345,7 +352,6 @@ __global__ void kernal_bit_fp32_MaxPooling_Backward(
             int bit  = (1 << (frame & 0x1f));
             int unit = (frame >> 5);
 
-            int   out_sig = (y_buf[((c * output_h_size + y) * output_w_size + x) * forward_frame_stride + unit] & bit);
             float grad    = dy_buf[((c * output_h_size + y) * output_w_size + x) * backward_frame_stride + frame];
             for (int fy = 0; fy < filter_h_size; ++fy) {
                 int iy = y * filter_h_size + fy;
@@ -354,7 +360,10 @@ __global__ void kernal_bit_fp32_MaxPooling_Backward(
                         int ix = x * filter_w_size + fx;
                         if ( ix < input_w_size ) {
                             float in_sig  = (x_buf[((c * input_h_size + iy) * input_w_size + ix) * forward_frame_stride + unit] & bit);
-                            dx_buf[((c * input_h_size + iy) * input_w_size + ix) * backward_frame_stride + frame] = (in_sig == out_sig) ? grad : 0;
+                            dx_buf[((c * input_h_size + iy) * input_w_size + ix) * backward_frame_stride + frame] = in_sig ? grad : 0;
+                            if ( in_sig ) {
+                                grad = 0;
+                            }
                         }
                     }
                 }
@@ -367,7 +376,6 @@ __global__ void kernal_bit_fp32_MaxPooling_Backward(
 BBCU_DLL_EXPORT int bbcu_bit_fp32_MaxPooling_Backward
         (
             int   const     *dev_x_buf,
-            int   const     *dev_y_buf,
             float const     *dev_dy_buf,
             float           *dev_dx_buf,
             int             filter_h_size,
@@ -395,7 +403,6 @@ BBCU_DLL_EXPORT int bbcu_bit_fp32_MaxPooling_Backward
 
     kernal_bit_fp32_MaxPooling_Backward<<<grid, block, 0, streamId>>>(
             dev_x_buf,
-            dev_y_buf,
             dev_dy_buf,
             dev_dx_buf,
             filter_h_size,
