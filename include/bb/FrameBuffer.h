@@ -271,7 +271,7 @@ class FrameBuffer : public Object
     using _super = Object;
 
 public:
-    static inline std::string ObjectName(void){ return "Tensor"; }
+    static inline std::string ObjectName(void){ return "FrameBuffer"; }
     std::string GetObjectName(void) const override { return ObjectName(); }
 
 protected:
