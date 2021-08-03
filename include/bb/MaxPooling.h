@@ -182,6 +182,7 @@ public:
 
     void Clear(void) override
     {
+        _super::Clear();
         while (!m_stack_shape.empty()) {
             m_stack_shape.pop();
         }

@@ -317,6 +317,8 @@ public:
      */
     virtual void Clear(void) override
     {
+        _super::Clear();
+
         while ( !m_input_shapes.empty() ) {
             m_input_shapes.pop();
         }

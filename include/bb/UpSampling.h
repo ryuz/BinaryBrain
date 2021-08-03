@@ -162,6 +162,7 @@ public:
 
     void Clear(void) override
     {
+        _super::Clear();
         while ( !m_shapes.empty() ) {
             m_shapes.pop();
         }
