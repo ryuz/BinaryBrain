@@ -366,7 +366,8 @@ public:
         }
     }
 
-protected:
+// protected:
+public:
     virtual FrameBuffer& TopFrameBuffer(void)
     {
         BB_ASSERT(!m_bufs.empty());
