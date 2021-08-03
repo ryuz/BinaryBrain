@@ -374,7 +374,22 @@ class Model(bb.Object):
         core_model = self.get_core()
         if core_model is not None:
             core_model.clear()
+    
+    def push(self, x):
+        core_model = self.get_core()
+        if core_model is not None:
+            core_model.push(x.get_core())
 
+    def pop(self):
+        core_model = self.get_core()
+        if core_model is not None:
+            return bb.FrameBuffer.from_core(core_model.pop())
+
+    def top(self):
+        core_model = self.get_core()
+        if core_model is not None:
+            return bb.FrameBuffer.from_core(core_model.top())
+    
     def dump_bytes(self):
         # バイトデータにシリアライズ(old format)
         core_model = self.get_core()
@@ -1610,6 +1625,12 @@ class BatchNormalization(Model):
     def dbeta(self):
         return bb.Tensor(core_tensor=self.get_core().dbeta())
 
+    def mean(self):
+        return bb.Tensor(core_tensor=self.get_core().mean())
+
+    def rstd(self):
+        return bb.Tensor(core_tensor=self.get_core().rstd())
+    
     def running_mean(self):
         return bb.Tensor(core_tensor=self.get_core().running_mean())
 

@@ -146,26 +146,35 @@ class Tensor(bb.Object):
     def fill(self, x):
         self.get_core().fill(x)
 
-    def clamp(self, a, b):
-        self.get_core().clamp(a, b)
-    
-    def sqrt(self):
-        self.get_core().sqrt()
+    def isnan(self):
+        return self.get_core().isnan()
 
-    def exp(self):
-        self.get_core().exp()
+    def min(self):
+        return self.get_core().min()
+
+    def max(self):
+        return self.get_core().max()
+
+    def clamp_inplace(self, a, b):
+        self.get_core().clamp_inplace(a, b)
+    
+    def sqrt_inplace(self):
+        self.get_core().sqrt_inplace()
+
+    def exp_inplace(self):
+        self.get_core().exp_inplace()
     
     def sum(self):
-        self.get_core().sum()
+        return self.get_core().sum()
 
     def mean(self):
-        self.get_core().mean()
+        return self.get_core().mean()
     
     def var(self):
-        self.get_core().var()
+        return self.get_core().var()
     
     def std(self):
-        self.get_core().std()
+        return self.get_core().std()
     
     def __add__(self, x):
         if type(x) == Tensor:

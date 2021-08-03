@@ -180,7 +180,16 @@ class FrameBuffer(bb.Object):
 
     def fill(self, x):
         self.get_core().fill(x)
-    
+
+    def isnan(self):
+        return self.get_core().isnan()
+
+    def min(self):
+        return self.get_core().min()
+
+    def max(self):
+        return self.get_core().max()
+
     def __add__(self, x):
         if type(x) == FrameBuffer:
             core_buf = self.get_core() + x.get_core()
@@ -268,4 +277,16 @@ class FrameBuffer(bb.Object):
         else:
             core_buf /= float(x)
         return self
+    
+    @classmethod
+    def from_bytes(cls, data):
+        new_buffer = cls()
+        data = new_buffer.loads(data)
+        return data, new_buffer
 
+def framebuffer_creator(data, name, dtypes):
+    if name == "FrameBuffer":
+        return FrameBuffer.from_bytes(data)
+    return data, None
+
+bb.object_creator_regist(framebuffer_creator)

@@ -558,6 +558,19 @@ PYBIND11_MODULE(core, m) {
         .def("concatenate", &FrameBuffer::Concatenate)
         .def("fill_zero", &FrameBuffer::FillZero)
         .def("fill", &FrameBuffer::Fill)
+//        .def("clamp_inplace", &FrameBuffer::Clamp_inplace)
+//        .def("sqrt_inplace",  &FrameBuffer::Sqrt_inplace)
+//        .def("exp_inplace",   &FrameBuffer::Exp_inplace)
+//        .def("clamp", &FrameBuffer::Clamp)
+        .def("sqrt",  &FrameBuffer::Sqrt)
+        .def("exp",   &FrameBuffer::Exp)
+        .def("sum",   &FrameBuffer::Sum)
+//        .def("mean",  &FrameBuffer::Mean)
+//        .def("var",   &FrameBuffer::Var)
+//        .def("std",   &FrameBuffer::Std)
+        .def("isnan", &FrameBuffer::IsNan)
+        .def("min",   &FrameBuffer::Min)
+        .def("max",   &FrameBuffer::Max)
         .def(py::self + py::self)
         .def(py::self + double())
         .def(double() + py::self)
@@ -650,7 +663,11 @@ PYBIND11_MODULE(core, m) {
         .def("save_binary", &Model::SaveBinary)
         .def("load_binary", &Model::LoadBinary)
         .def("save_json", &Model::SaveJson)
-        .def("load_json", &Model::LoadJson);
+        .def("load_json", &Model::LoadJson)
+        .def("top",  &Model::TopFrameBuffer)
+        .def("push", &Model::PushFrameBuffer)
+        .def("pop",  &Model::PopFrameBuffer)
+        ;
     
 
     PYCLASS_MODEL(Sequential, Model)
@@ -1028,8 +1045,11 @@ PYBIND11_MODULE(core, m) {
         .def("beta",         ((Tensor& (BatchNormalization_fp32::*)())&BatchNormalization_fp32::beta))
         .def("dgamma",       ((Tensor& (BatchNormalization_fp32::*)())&BatchNormalization_fp32::dgamma))
         .def("dbeta",        ((Tensor& (BatchNormalization_fp32::*)())&BatchNormalization_fp32::dbeta))
+        .def("mean",         &BatchNormalization_fp32::mean)
+        .def("rstd",         &BatchNormalization_fp32::rstd)
         .def("running_mean", &BatchNormalization_fp32::running_mean)
-        .def("running_var",  &BatchNormalization_fp32::running_var);
+        .def("running_var",  &BatchNormalization_fp32::running_var)
+        ;
 
 
     PYCLASS_MODEL(StochasticBatchNormalization_fp32, Activation)
