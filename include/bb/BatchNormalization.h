@@ -60,8 +60,10 @@ protected:
     std::shared_ptr<Tensor>     m_dgamma;
     std::shared_ptr<Tensor>     m_dbeta;
 
-    Tensor_<T>                  m_mean;     // 平均値
-    Tensor_<T>                  m_rstd;     // 標準偏差の逆数
+//  Tensor_<T>                  m_mean;     
+//  Tensor_<T>                  m_rstd;    
+    std::stack< Tensor_<T> >    m_stack_mean;   // 平均値
+    std::stack< Tensor_<T> >    m_stack_rstd;   // 標準偏差の逆数
 
     Tensor_<T>                  m_running_mean;
     Tensor_<T>                  m_running_var;
@@ -232,8 +234,8 @@ protected:
         auto node_size = CalcShapeSize(_super::m_shape);
         m_dgamma->Resize({node_size}, DataType<T>::type); *m_dgamma = (T)0.0;
         m_dbeta->Resize ({node_size}, DataType<T>::type); *m_dbeta  = (T)0.0;
-        m_mean.Resize(node_size);
-        m_rstd.Resize(node_size);
+//      m_mean.Resize(node_size);
+//      m_rstd.Resize(node_size);
     }
 
 
@@ -261,8 +263,8 @@ public:
         auto node_size = CalcShapeSize(_super::m_shape);
         m_dgamma->Resize({node_size}, DataType<T>::type); *m_dgamma = (T)0.0;
         m_dbeta->Resize ({node_size}, DataType<T>::type); *m_dbeta  = (T)0.0;
-        m_mean.Resize(node_size);
-        m_rstd.Resize(node_size);
+//        m_mean.Resize(node_size);
+//        m_rstd.Resize(node_size);
     }
 
 
@@ -308,6 +310,8 @@ public:
     Tensor const &dgamma(void) const            { return *m_dgamma; }
     Tensor       &dbeta(void)                   { return *m_dbeta; }
     Tensor const &dbeta(void) const             { return *m_dbeta; }
+    Tensor        mean(void)                    { return m_stack_mean.top(); }
+    Tensor        rstd(void)                    { return m_stack_rstd.top(); }
     Tensor        running_mean(void)            { return m_running_mean; }
     Tensor        running_var(void)             { return m_running_var; }
     
@@ -325,8 +329,8 @@ public:
     auto lock_running_var_const(void) const     { return m_running_var.LockConst(); }
     
     // debug
-    auto lock_tmp_mean_const(void)   const      { return m_mean.LockConst(); }
-    auto lock_tmp_rstd_const(void)   const      { return m_rstd.LockConst(); }
+    auto lock_tmp_mean_const(void)   const      { return m_stack_mean.top().LockConst(); }
+    auto lock_tmp_rstd_const(void)   const      { return m_stack_rstd.top().LockConst(); }
 
     /**
      * @brief  入力形状設定
@@ -353,8 +357,8 @@ public:
         m_dgamma->Resize({node_size}, DataType<T>::type); *m_dgamma = (T)0.0;
         m_dbeta->Resize ({node_size}, DataType<T>::type); *m_dbeta  = (T)0.0;
 
-        m_mean.Resize(node_size);
-        m_rstd.Resize(node_size);
+//        m_mean.Resize(node_size); m_mean = (T)0.0;
+//        m_rstd.Resize(node_size); m_rstd = (T)1.0;
 
         m_running_mean.Resize(node_size); m_running_mean = (T)0.0;
         m_running_var.Resize(node_size);  m_running_var  = (T)1.0;
@@ -418,6 +422,18 @@ public:
     }
 
 
+    void Clear(void) override
+    {
+        _super::Clear();
+        while (!m_stack_mean.empty()) {
+            m_stack_mean.pop();
+        }
+        while (!m_stack_rstd.empty()) {
+            m_stack_rstd.pop();
+        }
+    }
+
+
     /**
      * @brief  forward演算
      * @detail forward演算を行う
@@ -436,12 +452,22 @@ public:
             return x_buf;
         }
 
+        SetInputShape(x_buf.GetShape());
+
         // 出力設定
         FrameBuffer y_buf(x_buf.GetFrameSize(), x_buf.GetShape(), x_buf.GetType());
+        auto node_size = CalcShapeSize(this->m_shape);
+        Tensor_<T>  mean_tensor;     // 平均値
+        Tensor_<T>  rstd_tensor;     // 標準偏差の逆数
+        mean_tensor.Resize(node_size);
+        rstd_tensor.Resize(node_size);
+
 
         // backwardの為に保存
         if ( train ) {
             PushFrameBuffer(x_buf);
+            m_stack_mean.push(mean_tensor);
+            m_stack_rstd.push(rstd_tensor);
         }
         
 #ifdef BB_WITH_CUDA
@@ -451,8 +477,8 @@ public:
                 auto dev_y_ptr     = y_buf.LockDeviceMemory(true);
                 auto dev_gamma_ptr = m_gamma->LockDeviceMemoryConst();
                 auto dev_beta_ptr  = m_beta->LockDeviceMemoryConst();
-                auto dev_mean_ptr = m_mean.LockDeviceMemory(true);
-                auto dev_rstd_ptr = m_rstd.LockDeviceMemory(true);
+                auto dev_mean_ptr = mean_tensor.LockDeviceMemory(true);
+                auto dev_rstd_ptr = rstd_tensor.LockDeviceMemory(true);
                 auto dev_running_mean_ptr = m_running_mean.LockDeviceMemory();
                 auto dev_running_var_ptr = m_running_var.LockDeviceMemory();
 
@@ -513,8 +539,8 @@ public:
             auto gamma_ptr        = lock_gamma_const();
             auto beta_ptr         = lock_beta_const();
 
-            auto mean_ptr         = m_mean.Lock();
-            auto rstd_ptr         = m_rstd.Lock();        
+            auto mean_ptr         = mean_tensor.Lock(true);
+            auto rstd_ptr         = rstd_tensor.Lock(true);        
             auto running_mean_ptr = m_running_mean.Lock();
             auto running_var_ptr  = m_running_var.Lock();
 
@@ -614,8 +640,8 @@ public:
             auto gamma_ptr        = lock_gamma_const();
             auto beta_ptr         = lock_beta_const();
 
-            auto mean_ptr         = m_mean.Lock();
-            auto rstd_ptr         = m_rstd.Lock();        
+            auto mean_ptr         = mean_tensor.Lock(true);
+            auto rstd_ptr         = rstd_tensor.Lock(true);        
             auto running_mean_ptr = m_running_mean.Lock();
             auto running_var_ptr  = m_running_var.Lock();
 
@@ -682,7 +708,6 @@ public:
 
             return y_buf;
         }
- 
     }
 
 
@@ -696,9 +721,16 @@ public:
 
         // 出力設定
         FrameBuffer y_buf(x_buf.GetFrameSize(), x_buf.GetShape(), x_buf.GetType());
+         auto node_size = CalcShapeSize(this->m_shape);
+        Tensor_<T>  mean_tensor;     // 平均値
+        Tensor_<T>  rstd_tensor;     // 標準偏差の逆数
+        mean_tensor.Resize(node_size);
+        rstd_tensor.Resize(node_size);
 
         // backwardの為に保存
         PushFrameBuffer(x_buf);
+        m_stack_mean.push(mean_tensor);
+        m_stack_rstd.push(rstd_tensor);
 
         
 #ifdef BB_WITH_CUDA
@@ -708,8 +740,8 @@ public:
             auto dev_y_ptr     = y_buf.LockDeviceMemory(true);
             auto dev_gamma_ptr = m_gamma->LockDeviceMemoryConst();
             auto dev_beta_ptr  = m_beta->LockDeviceMemoryConst();
-            auto dev_mean_ptr  = m_mean.LockDeviceMemoryConst();
-            auto dev_rstd_ptr  = m_rstd.LockDeviceMemoryConst();
+            auto dev_mean_ptr  = mean_tensor.LockDeviceMemoryConst();
+            auto dev_rstd_ptr  = rstd_tensor.LockDeviceMemoryConst();
 
             bbcu_fp32_BatchNormalization_ReForward
                 (
@@ -738,8 +770,8 @@ public:
             auto gamma_ptr        = lock_gamma_const();
             auto beta_ptr         = lock_beta_const();
 
-            auto mean_ptr         = m_mean.Lock();
-            auto rstd_ptr         = m_rstd.Lock();        
+            auto mean_ptr         = mean_tensor.Lock(true);
+            auto rstd_ptr         = rstd_tensor.Lock(true);        
             auto running_mean_ptr = m_running_mean.Lock();
             auto running_var_ptr  = m_running_var.Lock();
 
@@ -789,11 +821,17 @@ public:
             return dy_buf;
         }
 
+        // forward時のxを取得
+        FrameBuffer x_buf = PopFrameBuffer();
+        BB_ASSERT(dy_buf.GetFrameSize() == x_buf.GetFrameSize());
+        BB_ASSERT(dy_buf.GetNodeSize() == x_buf.GetNodeSize());
+        BB_ASSERT(!m_stack_mean.empty()); auto mean_tensor = m_stack_mean.top(); m_stack_mean.pop();
+        BB_ASSERT(!m_stack_rstd.empty()); auto rstd_tensor = m_stack_rstd.top(); m_stack_rstd.pop();
+
+
         // 出力設定
         FrameBuffer dx_buf(dy_buf.GetFrameSize(), dy_buf.GetShape(), dy_buf.GetType());
 
-        // forward時のxを取得
-        FrameBuffer x_buf = PopFrameBuffer();
 
 #ifdef BB_WITH_CUDA
         if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && dy_buf.IsDeviceAvailable() && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
@@ -803,8 +841,8 @@ public:
             auto dev_gamma_ptr  = m_gamma->LockDeviceMemoryConst();
             auto dev_dgamma_ptr = m_dgamma->LockDeviceMemory();
             auto dev_dbeta_ptr  = m_dbeta->LockDeviceMemory();
-            auto dev_mean_ptr   = m_mean.LockDeviceMemoryConst();
-            auto dev_rstd_ptr   = m_rstd.LockDeviceMemoryConst();
+            auto dev_mean_ptr   = mean_tensor.LockDeviceMemoryConst();
+            auto dev_rstd_ptr   = rstd_tensor.LockDeviceMemoryConst();
             bbcu_fp32_BatchNormalization_Backward
                 (
                     (const float *)dev_x_ptr.GetAddr(),
@@ -837,8 +875,8 @@ public:
             auto dgamma_ptr       = lock_dgamma();
             auto dbeta_ptr        = lock_dbeta();
 
-            auto mean_ptr         = m_mean.LockConst();
-            auto rstd_ptr         = m_rstd.LockConst();
+            auto mean_ptr         = mean_tensor.LockConst();
+            auto rstd_ptr         = rstd_tensor.LockConst();
        
         
             // 逆数生成
@@ -916,8 +954,8 @@ public:
             auto dgamma_ptr       = lock_dgamma();
             auto dbeta_ptr        = lock_dbeta();
 
-            auto mean_ptr         = m_mean.LockConst();
-            auto rstd_ptr         = m_rstd.LockConst();
+            auto mean_ptr         = mean_tensor.LockConst();
+            auto rstd_ptr         = rstd_tensor.LockConst();
             
             auto x_ptr  = x_buf.LockConst<T>();
 //          auto y_ptr  = y_buf.LockConst<T>();
