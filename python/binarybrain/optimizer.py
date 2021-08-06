@@ -40,8 +40,8 @@ class OptimizerSgd(Optimizer):
     Args:
         learning_rate (float): 学習率
     """
-    def __init__(self, learning_rate=0.01, dtype=bb.DType.FP32):
-        core_optimizer = bb.search_core_object('OptimizerSgd', [dtype]).create()
+    def __init__(self, learning_rate=0.001, dtype=bb.DType.FP32):
+        core_optimizer = bb.search_core_object('OptimizerSgd', [dtype]).create(learning_rate=learning_rate)
         super(OptimizerSgd, self).__init__(core_optimizer=core_optimizer)
 
 
@@ -53,7 +53,7 @@ class OptimizerAdaGrad(Optimizer):
     """
 
     def __init__(self, learning_rate=0.01, dtype=bb.DType.FP32):
-        core_optimizer = bb.search_core_object('OptimizerAdaGrad', [dtype]).create()
+        core_optimizer = bb.search_core_object('OptimizerAdaGrad', [dtype]).create(learning_rate=learning_rate)
         super(OptimizerAdaGrad, self).__init__(core_optimizer=core_optimizer)
 
 
@@ -65,9 +65,9 @@ class OptimizerAdam(Optimizer):
         beta1 (float): beta1
         beta2 (float): beta2
     """
-
+    
     def __init__(self, learning_rate=0.001, beta1=0.9, beta2=0.999, dtype=bb.DType.FP32):
-        core_optimizer = bb.search_core_object('OptimizerAdam', [dtype]).create()
+        core_optimizer = bb.search_core_object('OptimizerAdam', [dtype]).create(learning_rate=learning_rate, beta1=beta1, beta2=beta2)
         super(OptimizerAdam, self).__init__(core_optimizer=core_optimizer)
 
 
