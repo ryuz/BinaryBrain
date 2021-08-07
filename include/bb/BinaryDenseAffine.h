@@ -139,7 +139,7 @@ public:
     }
 
 #ifdef BB_PYBIND11
-    static std::shared_ptr< DifferentiableLutDiscreteN > CreatePy(
+    static std::shared_ptr< BinaryDenseAffine > CreatePy(
                     indices_t const &output_shape,
                     bool            batch_norm     = true,
                     bool            activation     = true,
@@ -170,18 +170,39 @@ public:
         create.momentum       = momentum;
         create.gamma          = gamma;
         create.beta           = beta;
-        create.fix_gamma      = fix_gamma    
-        create.fix_beta       = fix_beta     
-        create.binary_th      = binary_th    
-        create.hardtanh_min   = hardtanh_min 
-        create.hardtanh_max   = hardtanh_max 
-        create.seed           = seed         
-        create.memory_saving  = memory_saving
-
+        create.fix_gamma      = fix_gamma;
+        create.fix_beta       = fix_beta;
+        create.binary_th      = binary_th;
+        create.hardtanh_min   = hardtanh_min;
+        create.hardtanh_max   = hardtanh_max;
+        create.seed           = seed;
+        create.memory_saving  = memory_saving;
 
         return Create(create);
     }
 #endif
+
+    Tensor       &W(void)       { return m_affine->W(); }
+    Tensor const &W(void) const { return m_affine->W(); }
+    Tensor       &b(void)       { return m_affine->b(); }
+    Tensor const &b(void) const { return m_affine->b(); }    
+    Tensor       &dW(void)       { return m_affine->dW(); }
+    Tensor const &dW(void) const { return m_affine->dW(); }
+    Tensor       &db(void)       { return m_affine->db(); }
+    Tensor const &db(void) const { return m_affine->db(); }
+    Tensor       &gamma(void)           { return m_batch_norm->gamma(); }
+    Tensor const &gamma(void) const     { return m_batch_norm->gamma(); }
+    Tensor       &beta(void)            { return m_batch_norm->beta(); }
+    Tensor const &beta(void) const      { return m_batch_norm->beta(); }
+    Tensor       &dgamma(void)          { return m_batch_norm->dgamma(); }
+    Tensor const &dgamma(void) const    { return m_batch_norm->dgamma(); }
+    Tensor       &dbeta(void)           { return m_batch_norm->dbeta(); }
+    Tensor const &dbeta(void) const     { return m_batch_norm->dbeta(); }
+    Tensor        mean(void)            { return m_batch_norm->mean(); }
+    Tensor        rstd(void)            { return m_batch_norm->rstd(); }
+    Tensor        running_mean(void)    { return m_batch_norm->running_mean(); }
+    Tensor        running_var(void)     { return m_batch_norm->running_var(); }
+
 
     /**
      * @brief  コマンドを送る
@@ -291,7 +312,7 @@ public:
             m_affine->Clear();
             if ( m_bn_enable ) {
                 x_buf = m_batch_norm->Forward(x_buf, train);
-                m_batch_norm->Clear();
+                m_batch_norm->ClearBuffer();
             }
             if ( m_act_enable ) {
                 x_buf = m_activation->Forward(x_buf, train);
@@ -327,14 +348,14 @@ public:
                 x_buf = m_batch_norm->ReForward(x_buf);
             }
             if ( m_act_enable ) {
-                m_activation->ReForward(x_buf);
+                x_buf = m_activation->ReForward(x_buf);
             }
         }
 
         if ( m_act_enable ) { dy_buf = m_activation->Backward(dy_buf); }
         if ( m_bn_enable )  { dy_buf = m_batch_norm->Backward(dy_buf); }
         dy_buf = m_affine->Backward(dy_buf);
-        return dy_buf; 
+        return dy_buf;
     }
 
 protected:

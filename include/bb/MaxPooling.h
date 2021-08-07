@@ -295,7 +295,7 @@ public:
                 for (index_t y = 0; y < m_output_h_size; ++y) {
                     for (index_t x = 0; x < m_output_w_size; ++x) {
                         for (index_t frame = 0; frame < frame_size; ++frame) {
-                            FT          max_val = std::numeric_limits<FT>::min();
+                            FT          max_val = std::numeric_limits<FT>::lowest();
                             argmax_t    argmax = 0;
                             argmax_t    arg = 0;
                             for (index_t fy = 0; fy < m_filter_h_size; ++fy) {

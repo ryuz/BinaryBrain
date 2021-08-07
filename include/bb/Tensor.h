@@ -799,7 +799,7 @@ public:
     {
         index_t size = this->GetSize();
         auto ptr = this->LockConst();
-        T value = std::numeric_limits<T>::min();
+        T value = std::numeric_limits<T>::lowest();
         for (index_t i=0; i < size; ++i ) {
             value = std::max(value, ptr[i]);
         }
@@ -1146,7 +1146,7 @@ inline float Tensor_<float>::Max(void)
     // CPU
     index_t size = this->GetSize();
     auto ptr = this->LockConst();
-    float value = std::numeric_limits<float>::min();
+    float value = std::numeric_limits<float>::lowest();
     for (index_t i=0; i < size; ++i ) {
         value = std::max(value, ptr[i]);
     }

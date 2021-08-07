@@ -38,8 +38,6 @@ public:
     };
 
 protected:
-//  FrameBuffer     m_dy_buf;
-//  double          m_loss = 0;
     double          m_frames = 0;
     Tensor_<double> m_loss_buf;
     bool            m_reduction_sum = false;
@@ -48,6 +46,7 @@ protected:
     LossMeanSquaredError()
     {
         m_loss_buf.Resize(1024);
+        m_loss_buf.FillZero();
     }
 
     LossMeanSquaredError(create_t const &create) {
@@ -55,6 +54,7 @@ protected:
             m_reduction_sum = true;
         }
         m_loss_buf.Resize(1024);
+        m_loss_buf.FillZero();
     }
 
 public:
@@ -84,7 +84,6 @@ public:
 
     void Clear(void)
     {
-//      m_loss = 0;
         m_loss_buf = 0;
         m_frames = 0;
     }
@@ -128,7 +127,6 @@ public:
         if ( DataType<T>::type == BB_TYPE_FP32
                     && y_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
 
-            // まだバグってる
             auto y_ptr        = y_buf.LockDeviceMemoryConst();
             auto t_ptr        = t_buf.LockDeviceMemoryConst();
             auto dy_ptr       = dy_buf.LockDeviceMemory(true);

@@ -51,7 +51,7 @@ public:
 protected:
     bool                        m_bypass    = false;
     bool                        m_host_only = false;
-    bool                        m_host_simd = true;
+    bool                        m_host_simd = false;
     bool                        m_fix_gamma = false;
     bool                        m_fix_beta  = false;
     
@@ -60,8 +60,6 @@ protected:
     std::shared_ptr<Tensor>     m_dgamma;
     std::shared_ptr<Tensor>     m_dbeta;
 
-//  Tensor_<T>                  m_mean;     
-//  Tensor_<T>                  m_rstd;    
     std::stack< Tensor_<T> >    m_stack_mean;   // 平均値
     std::stack< Tensor_<T> >    m_stack_rstd;   // 標準偏差の逆数
 
@@ -234,8 +232,6 @@ protected:
         auto node_size = CalcShapeSize(_super::m_shape);
         m_dgamma->Resize({node_size}, DataType<T>::type); *m_dgamma = (T)0.0;
         m_dbeta->Resize ({node_size}, DataType<T>::type); *m_dbeta  = (T)0.0;
-//      m_mean.Resize(node_size);
-//      m_rstd.Resize(node_size);
     }
 
 
@@ -263,8 +259,6 @@ public:
         auto node_size = CalcShapeSize(_super::m_shape);
         m_dgamma->Resize({node_size}, DataType<T>::type); *m_dgamma = (T)0.0;
         m_dbeta->Resize ({node_size}, DataType<T>::type); *m_dbeta  = (T)0.0;
-//        m_mean.Resize(node_size);
-//        m_rstd.Resize(node_size);
     }
 
 
@@ -357,9 +351,6 @@ public:
         m_dgamma->Resize({node_size}, DataType<T>::type); *m_dgamma = (T)0.0;
         m_dbeta->Resize ({node_size}, DataType<T>::type); *m_dbeta  = (T)0.0;
 
-//        m_mean.Resize(node_size); m_mean = (T)0.0;
-//        m_rstd.Resize(node_size); m_rstd = (T)1.0;
-
         m_running_mean.Resize(node_size); m_running_mean = (T)0.0;
         m_running_var.Resize(node_size);  m_running_var  = (T)1.0;
 
@@ -433,6 +424,11 @@ public:
         }
     }
 
+    // mean と rstd は残してクリア
+    void ClearBuffer(void) {
+        _super::Clear();
+    }
+    
 
     /**
      * @brief  forward演算
@@ -721,16 +717,18 @@ public:
 
         // 出力設定
         FrameBuffer y_buf(x_buf.GetFrameSize(), x_buf.GetShape(), x_buf.GetType());
-         auto node_size = CalcShapeSize(this->m_shape);
-        Tensor_<T>  mean_tensor;     // 平均値
-        Tensor_<T>  rstd_tensor;     // 標準偏差の逆数
-        mean_tensor.Resize(node_size);
-        rstd_tensor.Resize(node_size);
+        auto node_size = CalcShapeSize(this->m_shape);
+//        Tensor_<T>  mean_tensor;     // 平均値
+//        Tensor_<T>  rstd_tensor;     // 標準偏差の逆数
+//        mean_tensor.Resize(node_size);
+//        rstd_tensor.Resize(node_size);
 
         // backwardの為に保存
         PushFrameBuffer(x_buf);
-        m_stack_mean.push(mean_tensor);
-        m_stack_rstd.push(rstd_tensor);
+//      m_stack_mean.push(mean_tensor);
+//      m_stack_rstd.push(rstd_tensor);
+        BB_ASSERT(!m_stack_mean.empty()); auto mean_tensor = m_stack_mean.top();
+        BB_ASSERT(!m_stack_rstd.empty()); auto rstd_tensor = m_stack_rstd.top();
 
         
 #ifdef BB_WITH_CUDA

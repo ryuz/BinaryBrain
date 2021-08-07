@@ -842,9 +842,9 @@ class RealToBinary(Model):
     def __init__(self, *,
                      input_shape=None, frame_modulation_size=1, depth_modulation_size=1, value_generator=None,
                      framewise=False, input_range_lo=0.0, input_range_hi=1.0, name=None,
-                     bin_dtype=bb.DType.FP32, real_type=bb.DType.FP32, core_model=None):
+                     bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32, core_model=None):
         if core_model is None:
-            core_creator = search_core_model('RealToBinary', [bin_dtype, real_type]).create
+            core_creator = search_core_model('RealToBinary', [bin_dtype, real_dtype]).create
             core_model = core_creator(frame_modulation_size, depth_modulation_size,
                                 value_generator, framewise, input_range_lo, input_range_hi)
         super(RealToBinary, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
@@ -866,11 +866,11 @@ class BinaryToReal(Model):
     """
     
     def __init__(self, *, frame_integration_size=1, depth_integration_size=1, output_shape=None, input_shape=None, name=None,
-                                                    bin_dtype=bb.DType.FP32, real_type=bb.DType.FP32, core_model=None):
+                                                    bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32, core_model=None):
         if output_shape is None:
             output_shape = []
         if core_model is None:
-            core_creator = search_core_model('BinaryToReal', [bin_dtype, real_type]).create
+            core_creator = search_core_model('BinaryToReal', [bin_dtype, real_dtype]).create
             core_model = core_creator(frame_integration_size=frame_integration_size, depth_integration_size=depth_integration_size, output_shape=output_shape)
         
         super(BinaryToReal, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
@@ -987,6 +987,82 @@ class DepthwiseDenseAffine(Model):
         super(DepthwiseDenseAffine, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
 model_creator_regist('DepthwiseDenseAffine', DepthwiseDenseAffine.from_bytes)
+
+
+class BinaryDenseAffine(Model):
+    """Binary DenseAffine class
+       バイナリ出力なDenseAffine
+
+    Args:
+        output_shape (List[int]): 出力のシェイプ
+        initialize_std (float) : 重み初期化乱数の標準偏差
+        initializer (str): 変数の初期化アルゴリズム選択。今のところ 'he' のみ
+        momentum (float): 学習モーメント
+        gamma (float): gamma 初期値
+        beta (float): beta 初期値
+        fix_gamma (bool): gamma を固定する(学習させない)
+        fix_beta (bool): beta を固定する(学習させない)
+        bin_dtype (DType)): バイナリ型を bb.DType.FP32 と bb.DType.BIT から指定
+        seed (int): 変数初期値などの乱数シード
+        memory_saving (bool): メモリ節約するか
+    """
+    
+    def __init__(self, output_shape=None, *, input_shape=None,
+            batch_norm=True, activation=True,
+            initialize_std=0.01, initializer='he',
+            momentum=0.9, gamma=1.0, beta=0.0, fix_gamma=False, fix_beta=False,
+            binary_th=0.0, hardtanh_min=-1.0, hardtanh_max=+1.0,
+            seed=1, memory_saving=True,
+            name=None, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32, core_model=None):
+        if output_shape is None:
+            output_shape = []
+        if core_model is None:
+            core_creator = search_core_model('BinaryDenseAffine', [bin_dtype, real_dtype]).create
+            core_model = core_creator(output_shape=output_shape, batch_norm=batch_norm, activation=activation,
+                            initialize_std=initialize_std, initializer=initializer,
+                            momentum=momentum, gamma=gamma, beta=beta, fix_gamma=fix_gamma, fix_beta=fix_beta,
+                            binary_th=binary_th, hardtanh_min=hardtanh_min, hardtanh_max=hardtanh_max,
+                            seed=1, memory_saving=True)
+        
+        super(BinaryDenseAffine, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+    
+    def W(self):
+        return bb.Tensor(core_tensor=self.get_core().W())
+
+    def b(self):
+        return bb.Tensor(core_tensor=self.get_core().b())
+
+    def dW(self):
+        return bb.Tensor(core_tensor=self.get_core().dW())
+
+    def db(self):
+        return bb.Tensor(core_tensor=self.get_core().db())
+    
+    def gamma(self):
+        return bb.Tensor(core_tensor=self.get_core().gamma())
+
+    def beta(self):
+        return bb.Tensor(core_tensor=self.get_core().beta())
+
+    def dgamma(self):
+        return bb.Tensor(core_tensor=self.get_core().dgamma())
+
+    def dbeta(self):
+        return bb.Tensor(core_tensor=self.get_core().dbeta())
+
+    def mean(self):
+        return bb.Tensor(core_tensor=self.get_core().mean())
+
+    def rstd(self):
+        return bb.Tensor(core_tensor=self.get_core().rstd())
+    
+    def running_mean(self):
+        return bb.Tensor(core_tensor=self.get_core().running_mean())
+
+    def running_var(self):
+        return bb.Tensor(core_tensor=self.get_core().running_var())
+
+model_creator_regist('BinaryDenseAffine', BinaryDenseAffine.from_bytes)
 
 
 class SparseModel(Model):

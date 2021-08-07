@@ -262,7 +262,7 @@ public:
                 for (index_t node = 0; node < node_size; ++node) {
                     for (index_t i = 0; i < m_frame_integration_size; ++i) {
                         RealType bin_sig = (RealType)x_ptr.Get(frame*m_frame_integration_size + i, node);
-                        vec_v[(std::size_t)(node % output_node_size)] += bin_sig;
+                        vec_v[(std::size_t)(node % output_node_size)] += (bin_sig > 0) ? 1 : 0;
                         vec_n[(std::size_t)(node % output_node_size)] += 1;
                     }
                 }

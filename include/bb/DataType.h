@@ -292,8 +292,22 @@ public:
     bool operator<(Bit const &bit) { return ((int)m_value < (int)bit.m_value); }
     bool operator<=(Bit const &bit) { return ((int)m_value <= (int)bit.m_value); }
 
+#if 0
     template<typename Tp>
     operator Tp() { return m_value ? (Tp)1.0 : (Tp)0.0; }
+#else
+    explicit operator double()        const { return m_value ? +1.0  : -1.0; }
+    explicit operator float()         const { return m_value ? +1.0f : -1.0f; }
+    explicit operator std::int64_t()  const { return m_value ? +1    : -1; }
+    explicit operator std::int32_t()  const { return m_value ? +1    : -1; }
+    explicit operator std::int16_t()  const { return m_value ? +1    : -1; }
+    explicit operator std::int8_t()   const { return m_value ? +1    : -1; }
+    explicit operator std::uint64_t() const { return m_value ?  1    :  0; }
+    explicit operator std::uint32_t() const { return m_value ?  1    :  0; }
+    explicit operator std::uint16_t() const { return m_value ?  1    :  0; }
+    explicit operator std::uint8_t()  const { return m_value ?  1    :  0; }
+#endif
+
     operator bool() const { return m_value; }
 };
 

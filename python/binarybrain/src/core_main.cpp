@@ -42,6 +42,7 @@
 #include "bb/Sequential.h"
 #include "bb/DenseAffine.h"
 #include "bb/DepthwiseDenseAffine.h"
+#include "bb/BinaryDenseAffine.h"
 #include "bb/DifferentiableLutN.h"
 #include "bb/DifferentiableLutDiscreteN.h"
 #include "bb/MicroMlp.h"
@@ -132,6 +133,8 @@ using Reduce_bit_fp32                        = bb::Reduce<bb::Bit, float>;
 
 using DenseAffine_fp32                       = bb::DenseAffine<float>;
 using DepthwiseDenseAffine_fp32              = bb::DepthwiseDenseAffine<float>;
+using BinaryDenseAffine_fp32_fp32            = bb::BinaryDenseAffine<float, float>;
+using BinaryDenseAffine_bit_fp32             = bb::BinaryDenseAffine<bb::Bit, float>;
                                              
 using SparseModel                            = bb::SparseModel;
                                              
@@ -782,7 +785,70 @@ PYBIND11_MODULE(core, m) {
         .def("b", ((Tensor& (DepthwiseDenseAffine_fp32::*)())&DepthwiseDenseAffine_fp32::b))
         .def("dW", ((Tensor& (DepthwiseDenseAffine_fp32::*)())&DepthwiseDenseAffine_fp32::dW))
         .def("db", ((Tensor& (DepthwiseDenseAffine_fp32::*)())&DepthwiseDenseAffine_fp32::db));
+    
+    
+    // BinaryDenseAffine
+    PYCLASS_MODEL(BinaryDenseAffine_fp32_fp32, Model)
+        .def_static("create",   &BinaryDenseAffine_fp32_fp32::CreatePy, "create",
+            py::arg("output_shape"),
+            py::arg("batch_norm")     = true,
+            py::arg("activation")     = true,
+            py::arg("initialize_std") = 0.01f,
+            py::arg("initializer")    = "he",
+            py::arg("momentum")       = 0.9f,
+            py::arg("gamma")          = 1.0f,
+            py::arg("beta")           = 0.0f,
+            py::arg("fix_gamma")      = false,
+            py::arg("fix_beta")       = false,
+            py::arg("binary_th")      = 0.0f,
+            py::arg("hardtanh_min")   = -1.0f,
+            py::arg("hardtanh_max")   = +1.0f,
+            py::arg("seed")           = 1,
+            py::arg("memory_saving")  = true)
+        .def("W", ((Tensor& (BinaryDenseAffine_fp32_fp32::*)())&BinaryDenseAffine_fp32_fp32::W))
+        .def("b", ((Tensor& (BinaryDenseAffine_fp32_fp32::*)())&BinaryDenseAffine_fp32_fp32::b))
+        .def("dW", ((Tensor& (BinaryDenseAffine_fp32_fp32::*)())&BinaryDenseAffine_fp32_fp32::dW))
+        .def("db", ((Tensor& (BinaryDenseAffine_fp32_fp32::*)())&BinaryDenseAffine_fp32_fp32::db))
+        .def("gamma",        ((Tensor& (BinaryDenseAffine_fp32_fp32::*)())&BinaryDenseAffine_fp32_fp32::gamma))
+        .def("beta",         ((Tensor& (BinaryDenseAffine_fp32_fp32::*)())&BinaryDenseAffine_fp32_fp32::beta))
+        .def("dgamma",       ((Tensor& (BinaryDenseAffine_fp32_fp32::*)())&BinaryDenseAffine_fp32_fp32::dgamma))
+        .def("dbeta",        ((Tensor& (BinaryDenseAffine_fp32_fp32::*)())&BinaryDenseAffine_fp32_fp32::dbeta))
+        .def("mean",         &BinaryDenseAffine_fp32_fp32::mean)
+        .def("rstd",         &BinaryDenseAffine_fp32_fp32::rstd)
+        .def("running_mean", &BinaryDenseAffine_fp32_fp32::running_mean)
+        .def("running_var",  &BinaryDenseAffine_fp32_fp32::running_var)        
+        ;
 
+    PYCLASS_MODEL(BinaryDenseAffine_bit_fp32, Model)
+        .def_static("create",   &BinaryDenseAffine_bit_fp32::CreatePy, "create",
+            py::arg("output_shape"),
+            py::arg("batch_norm")     = true,
+            py::arg("activation")     = true,
+            py::arg("initialize_std") = 0.01f,
+            py::arg("initializer")    = "he",
+            py::arg("momentum")       = 0.9f,
+            py::arg("gamma")          = 1.0f,
+            py::arg("beta")           = 0.0f,
+            py::arg("fix_gamma")      = false,
+            py::arg("fix_beta")       = false,
+            py::arg("binary_th")      = 0.0f,
+            py::arg("hardtanh_min")   = -1.0f,
+            py::arg("hardtanh_max")   = +1.0f,
+            py::arg("seed")           = 1,
+            py::arg("memory_saving")  = true)
+        .def("W", ((Tensor& (BinaryDenseAffine_bit_fp32::*)())&BinaryDenseAffine_bit_fp32::W))
+        .def("b", ((Tensor& (BinaryDenseAffine_bit_fp32::*)())&BinaryDenseAffine_bit_fp32::b))
+        .def("dW", ((Tensor& (BinaryDenseAffine_bit_fp32::*)())&BinaryDenseAffine_bit_fp32::dW))
+        .def("db", ((Tensor& (BinaryDenseAffine_bit_fp32::*)())&BinaryDenseAffine_bit_fp32::db))
+        .def("gamma",        ((Tensor& (BinaryDenseAffine_bit_fp32::*)())&BinaryDenseAffine_bit_fp32::gamma))
+        .def("beta",         ((Tensor& (BinaryDenseAffine_bit_fp32::*)())&BinaryDenseAffine_bit_fp32::beta))
+        .def("dgamma",       ((Tensor& (BinaryDenseAffine_bit_fp32::*)())&BinaryDenseAffine_bit_fp32::dgamma))
+        .def("dbeta",        ((Tensor& (BinaryDenseAffine_bit_fp32::*)())&BinaryDenseAffine_bit_fp32::dbeta))
+        .def("mean",         &BinaryDenseAffine_bit_fp32::mean)
+        .def("rstd",         &BinaryDenseAffine_bit_fp32::rstd)
+        .def("running_mean", &BinaryDenseAffine_bit_fp32::running_mean)
+        .def("running_var",  &BinaryDenseAffine_bit_fp32::running_var)        
+        ;
 
     // SparseModel
     PYCLASS_MODEL(SparseModel, Model)
@@ -998,12 +1064,16 @@ PYBIND11_MODULE(core, m) {
 
     PYCLASS_MODEL(Binarize_fp32_fp32, Activation)
         .def_static("create", &Binarize_fp32_fp32::CreatePy,
-                py::arg("binary_th")    =  0.0f,
+                py::arg("binary_th")    = 0.0f,
+                py::arg("binary_low")   = -1.0f,
+                py::arg("binary_high")  = +1.0f,
                 py::arg("hardtanh_min") = -1.0f,
                 py::arg("hardtanh_max") = +1.0f);    
     PYCLASS_MODEL(Binarize_bit_fp32, Activation)
         .def_static("create", &Binarize_bit_fp32::CreatePy,
                 py::arg("binary_th")    =  0.0f,
+                py::arg("binary_low")   = -1.0f,
+                py::arg("binary_high")  = +1.0f,
                 py::arg("hardtanh_min") = -1.0f,
                 py::arg("hardtanh_max") = +1.0f);
 
@@ -1125,7 +1195,7 @@ PYBIND11_MODULE(core, m) {
   
     PYCLASS_OPTIMIZER(OptimizerSgd_fp32, Optimizer)
         .def_static("create", (std::shared_ptr<OptimizerSgd_fp32> (*)(float))&OptimizerSgd_fp32::Create, "create",
-            py::arg("learning_rate") = 0.01f);
+            py::arg("learning_rate") = 0.001f);
     
     PYCLASS_OPTIMIZER(OptimizerAdaGrad_fp32, Optimizer)
         .def_static("Create", (std::shared_ptr<OptimizerAdaGrad_fp32> (*)(float))&OptimizerAdaGrad_fp32::Create,

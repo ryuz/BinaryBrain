@@ -18,6 +18,8 @@ __global__ void kernal_fp32_Binarize_Forward(
             float const *x_buf,
             float       *y_buf,
             float       binary_th,
+            float       binary_low,
+            float       binary_high,
             int         node_size,
             int         frame_size,
             int         frame_stride
@@ -30,7 +32,7 @@ __global__ void kernal_fp32_Binarize_Forward(
     if ( node < node_size ) {
         for ( int frame = id; frame < frame_size; frame += id_step ) {
             float x = x_buf[frame_stride*node + frame];
-            x = (x > binary_th) ? 1 : 0;
+            x = (x > binary_th) ? binary_high : binary_low;
             y_buf[frame_stride*node + frame] = x;
         }
     }
@@ -42,6 +44,8 @@ BBCU_DLL_EXPORT int bbcu_fp32_Binarize_Forward
             float const *   dev_x_buf,
             float*          dev_y_buf,
             float           binary_th,
+            float           binary_low,
+            float           binary_high,
             int             node_size,
             int             frame_size,
             int             frame_stride,
@@ -72,6 +76,8 @@ BBCU_DLL_EXPORT int bbcu_fp32_Binarize_Forward
             dev_x_buf,
             dev_y_buf,
             binary_th,
+            binary_low,
+            binary_high,
             node_size,
             frame_size,
             frame_stride

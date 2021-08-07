@@ -39,7 +39,7 @@ __global__ void kernal_fp32_BinaryToReal_Forward(
         int x_node = y_node_size * node + y_node;
         for ( int frame = 0; frame < frame_mux_size; ++frame ) {
             float x = x_buf[x_node * x_frame_stride + x_frame + frame];
-            sum += x;
+            sum += (x > 0) ? 1 : 0;
         }
     }
     y_buf[y_node * y_frame_stride + y_frame] = sum * gain;

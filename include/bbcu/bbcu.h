@@ -1109,6 +1109,8 @@ BBCU_DLL_EXPORT int bbcu_fp32_Binarize_Forward
             const float*    dev_x_buf,
             float*          dev_y_buf,
             float           binary_th,
+            float           binary_low,
+            float           binary_high,
             int             node_size,
             int             frame_size,
             int             frame_stride,

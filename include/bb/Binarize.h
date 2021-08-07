@@ -35,8 +35,10 @@ protected:
     bool        m_host_only = false;
 
     RealType    m_binary_th    = (RealType)0;
-    RealType    m_hardtanh_min = (RealType)-1;
-    RealType    m_hardtanh_max = (RealType)+1;
+    BinType     m_binary_low   = (BinType)-1.0;
+    BinType     m_binary_high  = (BinType)+1.0;
+    RealType    m_hardtanh_min = (RealType)-1.0;
+    RealType    m_hardtanh_max = (RealType)+1.0;
 
 
 public:
@@ -44,8 +46,10 @@ public:
     struct create_t
     {
         RealType    binary_th    = (RealType)0;
-        RealType    hardtanh_min = (RealType)-1;
-        RealType    hardtanh_max = (RealType)+1;
+        BinType     binary_low   = (BinType)-1.0;
+        BinType     binary_high  = (BinType)+1.0;
+        RealType    hardtanh_min = (RealType)-1.0;
+        RealType    hardtanh_max = (RealType)+1.0;
     };
     
 protected:
@@ -54,6 +58,8 @@ protected:
     Binarize(create_t const &create)
     {
         m_binary_th    = create.binary_th;
+        m_binary_low   = create.binary_low; 
+        m_binary_high  = create.binary_high;
         m_hardtanh_min = create.hardtanh_min;
         m_hardtanh_max = create.hardtanh_max;
     }
@@ -80,20 +86,28 @@ public:
         return std::shared_ptr<Binarize>(new Binarize(create));
     }
 
-    static std::shared_ptr<Binarize> Create(RealType binary_th = (RealType)0, RealType hardtanh_min = (RealType)-1, RealType hardtanh_max = (RealType)+1)
+    static std::shared_ptr<Binarize> Create(RealType binary_th = (RealType)0.0,
+                                        BinType binary_low = (BinType)-1.0, BinType binary_high = (BinType)+1.0,
+                                        RealType hardtanh_min = (RealType)-1.0, RealType hardtanh_max = (RealType)+1.0)
     {
         create_t create;
         create.binary_th    = binary_th;
+        create.binary_low   = binary_low; 
+        create.binary_high  = binary_high; 
         create.hardtanh_min = hardtanh_min;
         create.hardtanh_max = hardtanh_max;
         return Create(create);
     }
 
 #ifdef BB_PYBIND11
-    static std::shared_ptr<Binarize> CreatePy(RealType binary_th = (RealType)0, RealType hardtanh_min = (RealType)-1, RealType hardtanh_max = (RealType)+1)
+    static std::shared_ptr<Binarize> CreatePy(RealType binary_th = (RealType)0.0,
+                                        BinType binary_low = (BinType)-1.0, BinType binary_high = (BinType)+1.0,
+                                        RealType hardtanh_min = (RealType)-1.0, RealType hardtanh_max = (RealType)+1.0)
     {
         create_t create;
         create.binary_th    = binary_th;
+        create.binary_low   = binary_low; 
+        create.binary_high  = binary_high; 
         create.hardtanh_min = hardtanh_min;
         create.hardtanh_max = hardtanh_max;
         return Create(create);
@@ -140,6 +154,8 @@ public:
                         (float const *)ptr_x.GetAddr(),
                         (float       *)ptr_y.GetAddr(),
                         (float        )m_binary_th,
+                        (float        )m_binary_low,
+                        (float        )m_binary_high,
                         (int          )y_buf.GetNodeSize(),
                         (int          )y_buf.GetFrameSize(),
                         (int          )(y_buf.GetFrameStride() / sizeof(float))
@@ -180,7 +196,7 @@ public:
             #pragma omp parallel for
             for (index_t node = 0; node < node_size; ++node) {
                 for (index_t frame = 0; frame < frame_size; ++frame) {
-                    y_ptr.Set(frame, node, x_ptr.Get(frame, node) > (RealType)0.0 ? (BinType)1.0 : (BinType)0.0);
+                    y_ptr.Set(frame, node, x_ptr.Get(frame, node) > m_binary_th ? m_binary_high : m_binary_low);
                 }
             }
 

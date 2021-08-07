@@ -854,8 +854,8 @@ protected:
             bbcu_ConvBitToReal<float>(
                     (int const *)src_ptr.GetAddr(),
                     (float     *)dst_ptr.GetAddr(),
-                    0.0f,
-                    1.0f,
+                    -1.0f,
+                    +1.0f,
                     (int)this->GetNodeSize(),
                     (int)this->GetFrameSize(),
                     (int)(this->GetFrameStride() / sizeof(int)),
@@ -1540,7 +1540,7 @@ protected:
     template<typename T> 
     double _Max(void)
     {
-        T   value = std::numeric_limits<T>::min();
+        T   value = std::numeric_limits<T>::lowest();
         auto ptr = LockConst<T>();
         for ( index_t node = 0; node < GetNodeSize(); ++node ) {
             for ( index_t frame = 0; frame < GetFrameSize(); ++frame ) {

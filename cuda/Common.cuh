@@ -1,12 +1,24 @@
 ﻿
 #pragma once
 
-
+#include <nppdefs.h>
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
 #include "bbcu/bbcu.h"
 #include "bbcu/bbcu_util.h"
+
+
+
+
+// データタイプ定義
+template<typename T>    __device__ __forceinline__   T      bb_type_lowest(void)         { return 0; }
+template<typename T>    __device__ __forceinline__   T      bb_type_max(void)            { return 0; }
+template<>              __device__ __forceinline__   double bb_type_lowest<double>(void) { return -NPP_MAXABS_64F; }
+template<>              __device__ __forceinline__   double bb_type_max   <double>(void) { return +NPP_MAXABS_64F; }
+template<>              __device__ __forceinline__   float  bb_type_lowest<float >(void) { return -NPP_MAXABS_32F; }
+template<>              __device__ __forceinline__   float  bb_type_max   <float >(void) { return +NPP_MAXABS_32F; }
+
 
 
 

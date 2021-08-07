@@ -117,7 +117,7 @@ public:
         // backward用に保存
         if ( train ) {
             this->PushFrameBuffer(x_buf);
-            this->PushFrameBuffer(y_buf);
+//          this->PushFrameBuffer(y_buf);
         }
 
 
@@ -203,7 +203,7 @@ public:
         // 戻り値のサイズ設定
         FrameBuffer dx_buf(dy_buf.GetFrameSize(), dy_buf.GetShape(), dy_buf.GetType());
 
-        FrameBuffer y_buf = this->PopFrameBuffer();
+//      FrameBuffer y_buf = this->PopFrameBuffer();
         FrameBuffer x_buf = this->PopFrameBuffer();
         
 #ifdef BB_WITH_CUDA
@@ -231,7 +231,7 @@ public:
             index_t node_size = dx_buf.GetNodeSize();
 
             auto x_ptr  = x_buf.template LockConst<float>();
-            auto y_ptr  = y_buf.template LockConst<float>();
+//          auto y_ptr  = y_buf.template LockConst<float>();
             auto dy_ptr = dy_buf.template LockConst<float>();
             auto dx_ptr = dx_buf.template Lock<float>(true);
 
@@ -239,13 +239,13 @@ public:
 
             __m256 zero = _mm256_set1_ps(0);
             for (index_t node = 0; node < node_size; ++node) {
-                auto y_addr  = (float *)y_ptr.GetAddr(node);
+                auto x_addr  = (float *)x_ptr.GetAddr(node);
                 auto dy_addr = (float *)dy_ptr.GetAddr(node);
                 auto dx_addr = (float *)dx_ptr.GetAddr(node);
                 for (index_t frame = 0; frame < m256_frame_size; frame += 8) {
-                    __m256 y    = _mm256_load_ps(&y_addr[frame]);
+                    __m256 x    = _mm256_load_ps(&x_addr[frame]);
                     __m256 dy   = _mm256_load_ps(&dy_addr[frame]);
-                    __m256 mask = _mm256_cmp_ps(y, zero, _CMP_GT_OS);
+                    __m256 mask = _mm256_cmp_ps(x, zero, _CMP_GT_OS);
                     __m256 dx   = _mm256_and_ps(dy, mask);
                     _mm256_store_ps(&dx_addr[frame], dx);
                 }
@@ -258,7 +258,7 @@ public:
             index_t frame_size = dx_buf.GetFrameSize();
             index_t node_size = dx_buf.GetNodeSize();
 
-            auto y_ptr  = y_buf.template LockConst<BinType>();
+            auto x_ptr  = x_buf.template LockConst<BinType>();
             auto dy_ptr = dy_buf.template LockConst<RealType>();
             auto dx_ptr = dx_buf.template Lock<RealType>();
 
@@ -266,9 +266,9 @@ public:
             #pragma omp parallel for
             for (index_t node = 0; node < node_size; ++node) {
                 for (index_t frame = 0; frame < frame_size; ++frame) {
-                    auto y  = y_ptr.Get(frame, node);
+                    auto x  = x_ptr.Get(frame, node);
                     auto dy = dy_ptr.Get(frame, node);
-                    dx_ptr.Set(frame, node, (y > (BinType)0) ? dy : (RealType)0);
+                    dx_ptr.Set(frame, node, (x > (BinType)0) ? dy : (RealType)0);
                 }
             }
 

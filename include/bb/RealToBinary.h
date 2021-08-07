@@ -386,7 +386,7 @@ public:
                                 y = (y - (RealType)(d * depth_step)) * depth_step_recip;
 
                                 // binarize for frame
-                                y = (y > th) ? (RealType)1.0 : (RealType)0.0;
+                                y = (y > th) ? (RealType)+1.0 : (RealType)-1.0;
 
                                 y_ptr.Set(output_frame, output_node, (BinType)y);
                             }

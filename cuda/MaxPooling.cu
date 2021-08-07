@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <chrono>
 
+#include <nppdefs.h>
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
@@ -44,7 +45,7 @@ __global__ void kernal_fp32_MaxPooling_Forward(
 
     for ( int frame = frame_base; frame < frame_size; frame += frame_step ) {
         // 最大値探索
-        float   max_val = FLT_MIN; // -1.0e7f;
+        float   max_val = -NPP_MAXABS_32F; // -1.0e7f;
         int     arg = 0;
         int     argmax = 0;
         for (int fy = 0; fy < filter_h_size; ++fy) {
