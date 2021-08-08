@@ -38,6 +38,12 @@ class FrameBuffer(bb.Object):
         super(FrameBuffer, self).__init__(core_object=core_buf)
 
     @staticmethod
+    def zeros(frame_size: int = 0, shape: List[int] = [], dtype = bb.DType.FP32, host_only: bool = False):
+        buf = FrameBuffer(frame_size=frame_size, shape=shape, dtype=dtype, host_only=host_only)
+        buf.fill_zero()
+        return buf
+
+    @staticmethod
     def from_core(core_buf):
         return FrameBuffer(core_buf=core_buf)
 
