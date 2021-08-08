@@ -361,5 +361,45 @@ TEST(MaxPoolingTest, testMaxPooling_stack)
 
 
 
+
+
+
+TEST(MaxPoolingTest, testMaxPooling_minus)
+{
+    bb::index_t const frame_size = 2;
+    bb::index_t const c_size = 3;
+    bb::index_t const input_h_size  = 4;
+    bb::index_t const input_w_size  = 6;
+    bb::index_t const filter_h_size = 2;
+    bb::index_t const filter_w_size = 3;
+    bb::index_t const output_h_size = input_h_size / filter_h_size;
+    bb::index_t const output_w_size = input_w_size / filter_w_size;
+
+    auto maxpol = bb::MaxPooling<>::Create(filter_h_size, filter_w_size);
+
+    bb::FrameBuffer    x_buf(frame_size, {c_size, input_h_size, input_w_size }, BB_TYPE_FP32);
+
+    for (bb::index_t f = 0; f < frame_size; ++f) {
+        for (bb::index_t c = 0; c < c_size; ++c) {
+            for (bb::index_t y = 0; y < input_h_size; ++y) {
+                for (bb::index_t x = 0; x < input_w_size; ++x) {
+                    x_buf.SetFP32(f, { c, y, x }, (float)-10);
+                }
+            }
+        }
+    }
+    x_buf.SetFP32(0, { 0, 0, 0 }, -3);
+
+    auto y_buf = maxpol->Forward(x_buf);
+    
+    EXPECT_EQ(bb::indices_t({3, 2, 2}), y_buf.GetShape());
+
+    EXPECT_EQ( -3,   y_buf.GetFP32(0, { 0, 0, 0 }));
+    EXPECT_EQ(-10,   y_buf.GetFP32(1, { 0, 0, 0 }));
+    EXPECT_EQ(-10,   y_buf.GetFP32(0, { 0, 0, 1 }));
+
+
+}
+
 #endif
 
