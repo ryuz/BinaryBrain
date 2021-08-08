@@ -382,21 +382,53 @@ public:
         this->InitializeNodeInput(m_mt(), m_connection);
 
         // パラメータ初期化
+        m_W0->Resize({m_output_node_size, M, N}, DataType<T>::type);
+        m_b0->Resize({m_output_node_size, M},    DataType<T>::type);
+        m_W1->Resize({m_output_node_size, M},    DataType<T>::type);
+        m_b1->Resize({m_output_node_size},       DataType<T>::type);
+        
+        m_dW0->Resize({m_output_node_size, M, N}, DataType<T>::type);
+        m_db0->Resize({m_output_node_size, M},    DataType<T>::type);
+        m_dW1->Resize({m_output_node_size, M},    DataType<T>::type);
+        m_db1->Resize({m_output_node_size},       DataType<T>::type);
         if (m_initializer == "he" || m_initializer == "He") {
-            m_initialize_std = (T)2.0 / std::sqrt((T)N);
+            m_initialize_std = (T)std::sqrt((double)2.0 / (double)N);
+            m_W0->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+            m_b0->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+            m_W1->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+            m_b1->InitNormalDistribution(0.0, m_initialize_std, m_mt());
         }
         else if (m_initializer == "xavier" || m_initializer == "Xavier" ) {
-            m_initialize_std = (T)1.0 / std::sqrt((T)N);
+            m_initialize_std = (T)std::sqrt((double)1.0 / (double)N);
+            m_W0->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+            m_b0->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+            m_W1->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+            m_b1->InitNormalDistribution(0.0, m_initialize_std, m_mt());
         }
-        m_W0->Resize({m_output_node_size, M, N}, DataType<T>::type);    m_W0->InitNormalDistribution(0.0, m_initialize_std, m_mt());
-        m_b0->Resize({m_output_node_size, M},    DataType<T>::type);    m_b0->InitNormalDistribution(0.0, m_initialize_std, m_mt());
-        m_W1->Resize({m_output_node_size, M},    DataType<T>::type);    m_W1->InitNormalDistribution(0.0, m_initialize_std, m_mt());
-        m_b1->Resize({m_output_node_size},       DataType<T>::type);    m_b1->InitNormalDistribution(0.0, m_initialize_std, m_mt());
-
-        m_dW0->Resize({m_output_node_size, M, N}, DataType<T>::type);   m_dW0->FillZero();
-        m_db0->Resize({m_output_node_size, M},    DataType<T>::type);   m_db0->FillZero();
-        m_dW1->Resize({m_output_node_size, M},    DataType<T>::type);   m_dW1->FillZero();
-        m_db1->Resize({m_output_node_size},       DataType<T>::type);   m_db1->FillZero();
+        else if (m_initializer == "normal" || m_initializer == "Normal" ) {
+            m_W0->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+            m_b0->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+            m_W1->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+            m_b1->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+        }
+        else if (m_initializer == "uniform" || m_initializer == "Uniform" ) {
+            double k = (double)m_initialize_std * std::sqrt(3.0);
+            m_W0->InitUniformDistribution(-k, +k, m_mt());
+            m_b0->InitUniformDistribution(-k, +k, m_mt());
+            m_W1->InitUniformDistribution(-k, +k, m_mt());
+            m_b1->InitUniformDistribution(-k, +k, m_mt());
+        }
+        else {
+            double k = std::sqrt(0.5 / (double)N);
+            m_W0->InitUniformDistribution(-k, +k, m_mt());
+            m_b0->InitUniformDistribution(-k, +k, m_mt());
+            m_W1->InitUniformDistribution(-k, +k, m_mt());
+            m_b1->InitUniformDistribution(-k, +k, m_mt());
+        }
+        m_dW0->FillZero();
+        m_db0->FillZero();
+        m_dW1->FillZero();
+        m_db1->FillZero();
 
         return m_output_shape;
     }

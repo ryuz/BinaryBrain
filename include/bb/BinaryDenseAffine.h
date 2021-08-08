@@ -55,7 +55,7 @@ public:
         bool            activation     = true;
         
         RealType        initialize_std = (RealType)0.01;
-        std::string     initializer    = "he";
+        std::string     initializer    = "";
         
         RealType        momentum       = (RealType)0.9;
         RealType        gamma          = (RealType)1.0;
@@ -145,7 +145,7 @@ public:
                     bool            activation     = true,
         
                     RealType        initialize_std = (RealType)0.01,
-                    std::string     initializer    = "he",
+                    std::string     initializer    = "",
         
                     RealType        momentum       = (RealType)0.9,
                     RealType        gamma          = (RealType)1.0,

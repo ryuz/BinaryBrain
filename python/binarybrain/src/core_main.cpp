@@ -764,7 +764,7 @@ PYBIND11_MODULE(core, m) {
         .def_static("create",   &DenseAffine_fp32::CreatePy, "create",
             py::arg("output_shape"),
             py::arg("initialize_std") = 0.01f,
-            py::arg("initializer")    = "he",
+            py::arg("initializer")    = "",
             py::arg("seed")           = 1)
         .def("W", ((Tensor& (DenseAffine_fp32::*)())&DenseAffine_fp32::W))
         .def("b", ((Tensor& (DenseAffine_fp32::*)())&DenseAffine_fp32::b))
@@ -779,7 +779,7 @@ PYBIND11_MODULE(core, m) {
             py::arg("input_point_size")=0,
             py::arg("depth_size")=0,
             py::arg("initialize_std")= 0.01f,
-            py::arg("initializer")="he",
+            py::arg("initializer")="",
             py::arg("seed")= 1)
         .def("W", ((Tensor& (DepthwiseDenseAffine_fp32::*)())&DepthwiseDenseAffine_fp32::W))
         .def("b", ((Tensor& (DepthwiseDenseAffine_fp32::*)())&DepthwiseDenseAffine_fp32::b))
@@ -794,7 +794,7 @@ PYBIND11_MODULE(core, m) {
             py::arg("batch_norm")     = true,
             py::arg("activation")     = true,
             py::arg("initialize_std") = 0.01f,
-            py::arg("initializer")    = "he",
+            py::arg("initializer")    = "",
             py::arg("momentum")       = 0.9f,
             py::arg("gamma")          = 1.0f,
             py::arg("beta")           = 0.0f,
@@ -825,7 +825,7 @@ PYBIND11_MODULE(core, m) {
             py::arg("batch_norm")     = true,
             py::arg("activation")     = true,
             py::arg("initialize_std") = 0.01f,
-            py::arg("initializer")    = "he",
+            py::arg("initializer")    = "",
             py::arg("momentum")       = 0.9f,
             py::arg("gamma")          = 1.0f,
             py::arg("beta")           = 0.0f,
@@ -1065,15 +1065,15 @@ PYBIND11_MODULE(core, m) {
     PYCLASS_MODEL(Binarize_fp32_fp32, Activation)
         .def_static("create", &Binarize_fp32_fp32::CreatePy,
                 py::arg("binary_th")    = 0.0f,
-                py::arg("binary_low")   = -1.0f,
-                py::arg("binary_high")  = +1.0f,
+                py::arg("binary_low")   = -1.0,
+                py::arg("binary_high")  = +1.0,
                 py::arg("hardtanh_min") = -1.0f,
                 py::arg("hardtanh_max") = +1.0f);    
     PYCLASS_MODEL(Binarize_bit_fp32, Activation)
         .def_static("create", &Binarize_bit_fp32::CreatePy,
                 py::arg("binary_th")    =  0.0f,
-                py::arg("binary_low")   = -1.0f,
-                py::arg("binary_high")  = +1.0f,
+                py::arg("binary_low")   = -1.0,
+                py::arg("binary_high")  = +1.0,
                 py::arg("hardtanh_min") = -1.0f,
                 py::arg("hardtanh_max") = +1.0f);
 
