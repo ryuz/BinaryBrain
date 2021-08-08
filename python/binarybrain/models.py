@@ -933,11 +933,11 @@ class DenseAffine(Model):
     Args:
         output_shape (List[int]): 出力のシェイプ
         initialize_std (float) : 重み初期化乱数の標準偏差
-        initializer (str): 変数の初期化アルゴリズム選択。今のところ 'he' のみ
+        initializer (str): 変数の初期化アルゴリズム選択(default/normal/uniform/He/Xavier)。
         seed (int): 変数初期値などの乱数シード
     """
     
-    def __init__(self, output_shape=None, *, input_shape=None, initialize_std=0.01, initializer='he', seed=1, name=None,
+    def __init__(self, output_shape=None, *, input_shape=None, initialize_std=0.01, initializer='', seed=1, name=None,
                         dtype=bb.DType.FP32, core_model=None):
         if output_shape is None:
             output_shape = []
@@ -972,12 +972,12 @@ class DepthwiseDenseAffine(Model):
         input_point_size (int): 入力のpoint数
         depth_size (int): depthサイズ
         initialize_std (float) : 重み初期化乱数の標準偏差
-        initializer (str): 変数の初期化アルゴリズム選択。今のところ 'he' のみ
+        initializer (str): 変数の初期化アルゴリズム選択(default/normal/uniform/He/Xavier)。
         seed (int): 変数初期値などの乱数シード
     """
     
     def __init__(self, output_shape=None, *, input_shape=None, input_point_size=0, depth_size=0,
-                            initialize_std=0.01, initializer='he', seed=1, name=None, dtype=bb.DType.FP32, core_model=None):
+                            initialize_std=0.01, initializer='', seed=1, name=None, dtype=bb.DType.FP32, core_model=None):
         if output_shape is None:
             output_shape = []
         if core_model is None:
@@ -996,7 +996,7 @@ class BinaryDenseAffine(Model):
     Args:
         output_shape (List[int]): 出力のシェイプ
         initialize_std (float) : 重み初期化乱数の標準偏差
-        initializer (str): 変数の初期化アルゴリズム選択。今のところ 'he' のみ
+        initializer (str): 変数の初期化アルゴリズム選択(default/normal/uniform/He/Xavier)。
         momentum (float): 学習モーメント
         gamma (float): gamma 初期値
         beta (float): beta 初期値
@@ -1009,7 +1009,7 @@ class BinaryDenseAffine(Model):
     
     def __init__(self, output_shape=None, *, input_shape=None,
             batch_norm=True, activation=True,
-            initialize_std=0.01, initializer='he',
+            initialize_std=0.01, initializer='',
             momentum=0.9, gamma=1.0, beta=0.0, fix_gamma=False, fix_beta=False,
             binary_th=0.0, hardtanh_min=-1.0, hardtanh_max=+1.0,
             seed=1, memory_saving=True,
