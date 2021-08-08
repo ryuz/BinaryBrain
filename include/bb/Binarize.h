@@ -46,8 +46,8 @@ public:
     struct create_t
     {
         RealType    binary_th    = (RealType)0;
-        BinType     binary_low   = (BinType)-1.0;
-        BinType     binary_high  = (BinType)+1.0;
+        double      binary_low   = -1.0;
+        double      binary_high  = +1.0;
         RealType    hardtanh_min = (RealType)-1.0;
         RealType    hardtanh_max = (RealType)+1.0;
     };
@@ -58,8 +58,8 @@ protected:
     Binarize(create_t const &create)
     {
         m_binary_th    = create.binary_th;
-        m_binary_low   = create.binary_low; 
-        m_binary_high  = create.binary_high;
+        m_binary_low   = (BinType)create.binary_low; 
+        m_binary_high  = (BinType)create.binary_high;
         m_hardtanh_min = create.hardtanh_min;
         m_hardtanh_max = create.hardtanh_max;
     }
@@ -87,7 +87,7 @@ public:
     }
 
     static std::shared_ptr<Binarize> Create(RealType binary_th = (RealType)0.0,
-                                        BinType binary_low = (BinType)-1.0, BinType binary_high = (BinType)+1.0,
+                                        double binary_low = -1.0, double binary_high = +1.0,
                                         RealType hardtanh_min = (RealType)-1.0, RealType hardtanh_max = (RealType)+1.0)
     {
         create_t create;
@@ -101,7 +101,7 @@ public:
 
 #ifdef BB_PYBIND11
     static std::shared_ptr<Binarize> CreatePy(RealType binary_th = (RealType)0.0,
-                                        BinType binary_low = (BinType)-1.0, BinType binary_high = (BinType)+1.0,
+                                        double binary_low = -1.0, double binary_high = +1.0,
                                         RealType hardtanh_min = (RealType)-1.0, RealType hardtanh_max = (RealType)+1.0)
     {
         create_t create;
