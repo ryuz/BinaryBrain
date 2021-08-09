@@ -937,8 +937,10 @@ class DenseAffine(Model):
         seed (int): 変数初期値などの乱数シード
     """
     
-    def __init__(self, output_shape=None, *, input_shape=None, initialize_std=0.01, initializer='', seed=1, name=None,
-                        dtype=bb.DType.FP32, core_model=None):
+    def __init__(self, output_shape=None, *, input_shape=None, 
+                    initialize_std=0.01, initializer='',
+                    seed=1, name=None,
+                    dtype=bb.DType.FP32, core_model=None):
         if output_shape is None:
             output_shape = []
         if core_model is None:
@@ -1011,7 +1013,7 @@ class BinaryDenseAffine(Model):
             batch_norm=True, activation=True,
             initialize_std=0.01, initializer='',
             momentum=0.9, gamma=1.0, beta=0.0, fix_gamma=False, fix_beta=False,
-            binary_th=0.0, hardtanh_min=-1.0, hardtanh_max=+1.0,
+            binary_th=0.0, binary_low=-1.0, binary_high=+1.0, hardtanh_min=-1.0, hardtanh_max=+1.0,
             seed=1, memory_saving=True,
             name=None, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32, core_model=None):
         if output_shape is None:
@@ -1021,8 +1023,8 @@ class BinaryDenseAffine(Model):
             core_model = core_creator(output_shape=output_shape, batch_norm=batch_norm, activation=activation,
                             initialize_std=initialize_std, initializer=initializer,
                             momentum=momentum, gamma=gamma, beta=beta, fix_gamma=fix_gamma, fix_beta=fix_beta,
-                            binary_th=binary_th, hardtanh_min=hardtanh_min, hardtanh_max=hardtanh_max,
-                            seed=1, memory_saving=True)
+                            binary_th=binary_th, binary_low=binary_low, binary_high=binary_high, hardtanh_min=hardtanh_min, hardtanh_max=hardtanh_max,
+                            seed=seed, memory_saving=memory_saving)
         
         super(BinaryDenseAffine, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
     
@@ -1590,10 +1592,13 @@ class Binarize(Model):
         bin_dtype (DType)): バイナリ型を bb.DType.FP32 と bb.DType.BIT から指定
     """
 
-    def __init__(self, *, input_shape=None, name=None, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32, core_model=None):
+    def __init__(self, *, input_shape=None,
+            binary_th=0.0, binary_low=-1.0, binary_high=+1.0,
+            hardtanh_min=-1.0, hardtanh_max=+1.0,
+            name=None, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32, core_model=None):
         if core_model is None:
             core_creator = search_core_model('Binarize', [bin_dtype, real_dtype]).create
-            core_model = core_creator()
+            core_model = core_creator(binary_th=binary_th, binary_low=binary_low, binary_high=binary_high, hardtanh_min=hardtanh_min, hardtanh_max=hardtanh_max)
 
         super(Binarize, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
@@ -1681,11 +1686,12 @@ class BatchNormalization(Model):
         bin_dtype (DType)): バイナリ型を bb.DType.FP32 と bb.DType.BIT から指定
     """
 
-    def __init__(self, *, input_shape=None, momentum=0.9, gamma=1.0, beta=0.0,
-                        fix_gamma=False, fix_beta=False, name=None, dtype=bb.DType.FP32, core_model=None):
+    def __init__(self, *, input_shape=None,
+                    momentum=0.9, gamma=1.0, beta=0.0, fix_gamma=False, fix_beta=False,
+                    name=None, dtype=bb.DType.FP32, core_model=None):
         if core_model is None:
             core_creator = search_core_model('BatchNormalization', [dtype]).create
-            core_model = core_creator(momentum, gamma, beta, fix_gamma, fix_beta)
+            core_model = core_creator(momentum=momentum, gamma=gamma, beta=beta, fix_gamma=fix_gamma, fix_beta=fix_beta)
 
         super(BatchNormalization, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
