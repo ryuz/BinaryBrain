@@ -64,6 +64,8 @@ public:
         bool            fix_beta       = false;
         
         RealType        binary_th      = (RealType)0;
+        double          binary_low     = -1.0;
+        double          binary_high    = +1.0;
         RealType        hardtanh_min   = (RealType)-1;
         RealType        hardtanh_max   = (RealType)+1;
         
@@ -96,6 +98,8 @@ protected:
 
         typename ActType::create_t act_create;
         act_create.binary_th    = create.binary_th;
+        act_create.binary_low   = create.binary_low;
+        act_create.binary_high  = create.binary_high;
         act_create.hardtanh_min = create.hardtanh_min;
         act_create.hardtanh_max = create.hardtanh_max;
         m_activation = ActType::Create(act_create);
@@ -152,11 +156,13 @@ public:
                     RealType        beta           = (RealType)0.0,
                     bool            fix_gamma      = false,
                     bool            fix_beta       = false,
-        
+                    
                     RealType        binary_th      = (RealType)0,
+                    double          binary_low     = -1.0,
+                    double          binary_high    = +1.0,
                     RealType        hardtanh_min   = (RealType)-1,
                     RealType        hardtanh_max   = (RealType)+1,
-        
+                    
                     std::uint64_t   seed           = 1,
                     bool            memory_saving  = true)
     {

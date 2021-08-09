@@ -103,6 +103,8 @@ public:
 
     FrameBuffer CalculateLoss(FrameBuffer y_buf, FrameBuffer t_buf, index_t batch_size)
     {
+        BB_ASSERT(t_buf.GetType() == DataType<T>::type);
+        BB_ASSERT(y_buf.GetType() == DataType<T>::type);
         BB_ASSERT(y_buf.GetFrameSize() == t_buf.GetFrameSize());
         BB_ASSERT(y_buf.GetNodeSize()  == t_buf.GetNodeSize());
 

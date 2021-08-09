@@ -49,7 +49,10 @@ class FrameBuffer(bb.Object):
 
     def is_host_only(self) -> bool:
         return self.get_core().is_host_only()
-
+    
+    def astype(self, dtype):
+        return FrameBuffer(core_buf=self.get_core().astype(dtype))
+    
     def get_type(self) -> int:
         """データ型取得
         

@@ -552,6 +552,7 @@ PYBIND11_MODULE(core, m) {
                 py::arg("shape"),
                 py::arg("data_type") = BB_TYPE_FP32)
         .def("is_host_only", &FrameBuffer::IsHostOnly)
+        .def("astype", &FrameBuffer::ConvertTo)
         .def("get_type", &FrameBuffer::GetType)
         .def("get_frame_size", &FrameBuffer::GetFrameSize)
         .def("get_frame_stride", &FrameBuffer::GetFrameStride)
@@ -801,6 +802,8 @@ PYBIND11_MODULE(core, m) {
             py::arg("fix_gamma")      = false,
             py::arg("fix_beta")       = false,
             py::arg("binary_th")      = 0.0f,
+            py::arg("binary_low")     = -1.0,
+            py::arg("binary_high")    = +1.0,
             py::arg("hardtanh_min")   = -1.0f,
             py::arg("hardtanh_max")   = +1.0f,
             py::arg("seed")           = 1,
@@ -832,6 +835,8 @@ PYBIND11_MODULE(core, m) {
             py::arg("fix_gamma")      = false,
             py::arg("fix_beta")       = false,
             py::arg("binary_th")      = 0.0f,
+            py::arg("binary_low")     = -1.0,
+            py::arg("binary_high")    = +1.0,
             py::arg("hardtanh_min")   = -1.0f,
             py::arg("hardtanh_max")   = +1.0f,
             py::arg("seed")           = 1,
