@@ -419,7 +419,7 @@ public:
             m_b1->InitUniformDistribution(-k, +k, m_mt());
         }
         else {
-            double k = std::sqrt(0.5 / (double)N);
+            double k = std::sqrt(1.0 / (double)N);
             m_W0->InitUniformDistribution(-k, +k, m_mt());
             m_b0->InitUniformDistribution(-k, +k, m_mt());
             m_W1->InitUniformDistribution(-k, +k, m_mt());

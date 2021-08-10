@@ -270,7 +270,7 @@ public:
             m_b->InitUniformDistribution(-k, +k, m_mt());
         }
         else {
-            double k = std::sqrt(0.5 / (double)m_input_node_size);
+            double k = std::sqrt(1.0 / (double)m_input_node_size);
             m_W->InitUniformDistribution(-k, +k, m_mt());
             m_b->InitUniformDistribution(-k, +k, m_mt());
         }
