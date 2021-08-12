@@ -406,7 +406,7 @@ public:
         for (size_t i = 0; i < x_vec.size(); ++i) {
             y_vec[i]  = x_vec[i];
             y_vec[i] -= (double)running_mean_ptr(node);
-            y_vec[i] /= sqrt((double)running_var_ptr(node)) + 1.0e-7;
+            y_vec[i] /= sqrt((double)running_var_ptr(node)+ 1.0e-7);
             y_vec[i]  = y_vec[i] * (double)gamma_ptr(node) + (double)beta_ptr(node);
         }
         return y_vec;
@@ -439,6 +439,8 @@ public:
      */
     FrameBuffer Forward(FrameBuffer x_buf, bool train=true) override
     {
+        bool update_running_param = true;
+
         if ( this->m_parameter_lock ) {
             train = false;
         }
@@ -491,7 +493,8 @@ public:
                         (float        )m_momentum,
                         (int          )x_buf.GetNodeSize(),
                         (int          )x_buf.GetFrameSize(),
-                        (int          )x_buf.GetFrameStride() / sizeof(float)
+                        (int          )x_buf.GetFrameStride() / sizeof(float),
+                        (bool         )update_running_param
                     );
                 return y_buf;
             }
@@ -580,9 +583,11 @@ public:
                     rstd = _mm256_mul_ps(rstd, _mm256_fnmadd_ps(varx, _mm256_mul_ps(rstd, rstd), _mm256_set1_ps(1.5f)));
                     rstd = _mm256_mul_ps(rstd, _mm256_fnmadd_ps(varx, _mm256_mul_ps(rstd, rstd), _mm256_set1_ps(1.5f)));
 
-                    // 実行時の mean と var 保存
-                    running_mean_ptr[node] = running_mean_ptr[node] * m_momentum + bb_mm256_cvtss_f32(mean) * (1.0f - m_momentum);
-                    running_var_ptr[node]  = running_var_ptr[node]  * m_momentum + bb_mm256_cvtss_f32(var)  * (1.0f - m_momentum);
+                    // 実行時の mean と var 更新
+                    if ( update_running_param ) {
+                        running_mean_ptr[node] = running_mean_ptr[node] * m_momentum + bb_mm256_cvtss_f32(mean) * (1.0f - m_momentum);
+                        running_var_ptr[node]  = running_var_ptr[node]  * m_momentum + bb_mm256_cvtss_f32(var)  * (1.0f - m_momentum);
+                    }
                     
                     // 結果の保存
                     mean_ptr[node] = bb_mm256_cvtss_f32(mean);
@@ -663,13 +668,16 @@ public:
 
                     // 集計
                     T mean = s1 / (T)frame_size;
-                    T var  = (s2 / (T)frame_size) - (mean * mean);
+                    T var1  = (s2 - (mean * mean)*(T)frame_size) / (T)(frame_size - 1);
+                    T var   = (s2 - (mean * mean)*(T)frame_size) / (T)frame_size;
                     var = std::max((T)0, var);  // 演算誤差で負にならないようにクリップ  // 演算誤差で負にならないようにクリップ
-                    T std  = std::sqrt(var);
-                    T rstd = (T)1.0 / (std + (T)1.0e-7);
+                    T std  = std::sqrt(var + (T)1.0e-7);
+                    T rstd = (T)1.0 / std;
 
-                    running_mean_ptr[node] = (running_mean_ptr[node] * m_momentum) + (mean * ((T)1.0 - m_momentum));
-                    running_var_ptr[node]  = (running_var_ptr[node]  * m_momentum) + (var *  ((T)1.0 - m_momentum));
+                    if ( update_running_param ) {
+                        running_mean_ptr[node] = (running_mean_ptr[node] * m_momentum) + (mean * ((T)1.0 - m_momentum));
+                        running_var_ptr[node]  = (running_var_ptr[node]  * m_momentum) + (var1 * ((T)1.0 - m_momentum));
+                    }
                     
                     mean_ptr[node] = mean;
                     rstd_ptr[node] = rstd;
@@ -693,7 +701,7 @@ public:
                     T   mean  = running_mean_ptr[node];
                     T   var   = running_var_ptr[node];
 
-                    T   rstd  = (T)1.0 / (std::sqrt(var) + (T)1.0e-7);
+                    T   rstd  = (T)1.0 / std::sqrt(var + (T)1.0e-7);
 
                     for ( index_t frame = 0; frame < frame_size; ++frame) {
                         T x = x_ptr.Get(frame, node);
@@ -1046,7 +1054,7 @@ public:
             for (index_t node = 0; node < node_size; ++node) {
                 T   var    = running_var_ptr[node];
                 T   gamma  = gamma_ptr[node];
-                T   rstd   = (T)1.0 / (std::sqrt(var) + (T)1.0e-7);
+                T   rstd   = (T)1.0 / std::sqrt(var+ (T)1.0e-7);
                 T   coeff  = gamma * rstd;
 
                 for ( index_t frame = 0; frame < frame_size; ++frame) {

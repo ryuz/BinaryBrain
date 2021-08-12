@@ -63,8 +63,10 @@ __global__ void kernal_fp32_BatchNormalization_ForwardTraining(
             float           *running_var_buf,
             float           momentum,
             float           reciprocal_frame_size,
+            float           reciprocal1_frame_size,
             int             frame_size,
-            int             frame_stride
+            int             frame_stride,
+            bool            update_running_param
         )
 {
     __shared__   float  buf[BBCU_BATCHNORM_FW_BLOCK_SIZE];
@@ -96,9 +98,11 @@ __global__ void kernal_fp32_BatchNormalization_ForwardTraining(
     s1 = device_fp32_LocalSum(s1, buf);
     s2 = device_fp32_LocalSum(s2, buf);
     float mean = s1 * reciprocal_frame_size;
-    float var = max(1.0e-7f, (s2 * reciprocal_frame_size) - (mean * mean));
+    float tmpv = max(0.0, (s2 - (mean * mean) * (float)frame_size));
+    float var  = tmpv * reciprocal_frame_size;
+    float var1 = tmpv * reciprocal1_frame_size;
 #if 1
-    float rstd = rsqrt(var);
+    float rstd = 1.0f / sqrt(var + 1.0e-7f);
     float half = var * 0.5f;
     rstd *= (1.5f - (half * rstd * rstd));
 //    rstd *= (1.5f - (half * rstd * rstd));
@@ -107,8 +111,10 @@ __global__ void kernal_fp32_BatchNormalization_ForwardTraining(
 #endif
 
     if (id == 0) {
-        running_mean_buf[node] = (running_mean_buf[node] * momentum) + (mean * (1.0 - momentum));
-        running_var_buf[node]  = (running_var_buf[node]  * momentum) + (var  * (1.0 - momentum));
+        if ( update_running_param ) {
+            running_mean_buf[node] = (running_mean_buf[node] * momentum) + (mean * (1.0 - momentum));
+            running_var_buf[node]  = (running_var_buf[node]  * momentum) + (var1 * (1.0 - momentum));
+        }
         mean_buf[node] = mean;
         rstd_buf[node] = rstd;
     }
@@ -202,6 +208,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_ForwardTraining
             int             node_size,  
             int             frame_size,
             int             frame_stride,
+            bool            update_running_param,
             cudaStream_t    streamId
         )
 {
@@ -220,9 +227,11 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_ForwardTraining
             dev_running_mean_buf,
             dev_running_var_buf,
             momentum,
-            1.0f/ frame_size,
+            1.0f / (float)frame_size,
+            1.0f / (float)(frame_size-1),
             frame_size,
-            frame_stride
+            frame_stride,
+            update_running_param
         );
     BB_CUDA_CHECK_LAST_ERROR();
 
@@ -334,7 +343,7 @@ __global__ void kernal_fp32_BatchNormalization_ForwardInference(
     float mean  = running_mean_buf[node];
     float var   = running_var_buf[node];
 
-    float rstd = 1.0 / (sqrt(var) + 1.0e-7);
+    float rstd = 1.0 / sqrt(var + 1.0e-7);
 
     float const *x_ptr = &x_buf[frame_stride * node];
     float       *y_ptr = &y_buf[frame_stride * node];
@@ -549,7 +558,7 @@ __global__ void kernal_fp32_BatchNormalization_BackwardLock(
     float gamma = gamma_buf[node];
     float var   = running_var_buf[node];
 
-    float rstd  = 1.0 / (sqrt(var) + 1.0e-7);
+    float rstd  = 1.0 / sqrt(var + 1.0e-7);
     float coeff = gamma * rstd;
 
     float const *dy_ptr = &dy_buf[frame_stride * node];
