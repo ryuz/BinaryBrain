@@ -37,6 +37,7 @@
   <ItemGroup>
     <ClCompile Include="BatchNormalizationTest.cpp" />
     <ClCompile Include="BinarizeTest.cpp" />
+    <ClCompile Include="BinaryDenseAffineTest.cpp" />
     <ClCompile Include="BinaryLutTest.cpp" />
     <ClCompile Include="BinaryScalingTest.cpp" />
     <ClCompile Include="BinaryToRealTest.cpp" />
@@ -109,6 +110,7 @@
     <ClInclude Include="..\..\include\bb\LossCrossEntropy.h" />
     <ClInclude Include="..\..\include\bb\LossFunction.h" />
     <ClInclude Include="..\..\include\bb\LossMeanSquaredError.h" />
+    <ClInclude Include="..\..\include\bb\LossSigmoidCrossEntropy.h" />
     <ClInclude Include="..\..\include\bb\LossSoftmaxCrossEntropy.h" />
     <ClInclude Include="..\..\include\bb\Manager.h" />
     <ClInclude Include="..\..\include\bb\MaxPooling.h" />

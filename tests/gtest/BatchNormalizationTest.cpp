@@ -64,14 +64,14 @@ public:
         for (int i = 0; i < n; ++i) {
             var += xc[i] * xc[i];
         }
-        var /= (T)n;
+        var  = var / (T)n;
 
         // 偏差
-        std = sqrt(var);
+        std = sqrt(var + (T)1.0e-7);
 
         // 正規化
         for (int i = 0; i < n; ++i) {
-            xn[i] = xc[i] / (std + (T)1.0e-7);
+            xn[i] = xc[i] / std;
         }
 
         // シフト
@@ -92,7 +92,7 @@ public:
         }
         mean /= (T)n;
         var = (var / (T)n) - (mean * mean);
-        std = sqrt(var);
+        std = sqrt(var + (T)1.0e-7);
 
         // 平均を引く
         for (int i = 0; i < n; ++i) {
@@ -101,7 +101,7 @@ public:
 
         // 正規化
         for (int i = 0; i < n; ++i) {
-            xn[i] = xc[i] / (std + (T)1.0e-7);
+            xn[i] = xc[i] / std;
         }
             // シフト
         for (int i = 0; i < n; ++i) {
@@ -121,14 +121,14 @@ public:
         }
         mean /= (T)n;
         var = (var / (T)n) - (mean * mean);
-        std = sqrt(var);
+        std = sqrt(var + (T)1.0e-7);
 
         for (int i = 0; i < n; ++i) {
             // 平均を引く
             xc[i] = x[i] - mean;
 
             // 正規化
-            xn[i] = xc[i] / (std + (T)1.0e-7);
+            xn[i] = xc[i] / std;
 
             // シフト
             y[i] = xn[i] * gamma + beta;
@@ -148,14 +148,14 @@ public:
         }
         mean /= (T)n;
         var = (var / (T)n) - (mean * mean);
-        std = sqrt(var);
+        std = sqrt(var + (T)1.0e-7);
 
         for (int i = 0; i < n; ++i) {
             // 平均を引く
             T _xc = x[i] - mean;
 
             // 正規化
-            T _xn = _xc / (std + (T)1.0e-7);
+            T _xn = _xc / std;
 
             // シフト
             y[i] = _xn * gamma + beta;
@@ -708,7 +708,7 @@ TEST(BatchNormalizationTest, testBatchNormalization_cmp)
             for ( int node = 0; node < node_size; ++node ) {
                 auto val_cpu = dbeta_cpu[node];
                 auto val_gpu = dbeta_gpu[node];
-                EXPECT_NEAR(val_cpu, val_gpu, 0.001f);
+                EXPECT_NEAR(val_cpu, val_gpu, 0.002f);
             }
 
             auto mean_cpu = bn_cpu->lock_running_mean_const();

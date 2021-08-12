@@ -245,7 +245,7 @@ void MnistStochasticLutCnn(int epoch_size, int mini_batch_size, int test_modulat
         layer_lut5     ->ImportLayer(layer_sl5);
         layer_lut6     ->ImportLayer(layer_sl6);
         layer_lut7     ->ImportLayer(layer_sl7);
-        layer_lut7     ->ImportLayer(layer_sl8);
+        layer_lut8     ->ImportLayer(layer_sl8);
 
         // 評価
         if ( 1 ) {
