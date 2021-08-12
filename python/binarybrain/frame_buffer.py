@@ -38,10 +38,22 @@ class FrameBuffer(bb.Object):
         super(FrameBuffer, self).__init__(core_object=core_buf)
 
     @staticmethod
-    def zeros(frame_size: int = 0, shape: List[int] = [], dtype = bb.DType.FP32, host_only: bool = False):
-        buf = FrameBuffer(frame_size=frame_size, shape=shape, dtype=dtype, host_only=host_only)
+    def zeros(frame_size: int = 0, node_shape: List[int] = [], dtype = bb.DType.FP32, host_only: bool = False):
+        buf = FrameBuffer(frame_size=frame_size, shape=node_shape, dtype=dtype, host_only=host_only)
         buf.fill_zero()
         return buf
+    
+    @staticmethod
+    def zeros_like(buf, *, frame_size: int = None, node_shape: List[int] = None, dtype = None, host_only: bool = None):
+        if frame_size is None:
+            frame_size = buf.get_frame_size()
+        if node_shape is None:
+            node_shape = buf.get_node_shape()
+        if dtype is None:
+            dtype = buf.get_type()
+        if host_only is None:
+            host_only = buf.is_host_only()
+        return FrameBuffer.zeros(frame_size=frame_size, node_shape=node_shape, dtype=dtype, host_only=host_only)
 
     @staticmethod
     def from_core(core_buf):
