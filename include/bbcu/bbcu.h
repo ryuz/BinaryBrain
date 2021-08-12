@@ -699,7 +699,8 @@ BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_ForwardTraining
             int             node_size,  
             int             frame_size,
             int             frame_stride,
-            cudaStream_t    streamId = 0
+            bool            update_running_param,
+            cudaStream_t    streamId=0
         );
 
 BBCU_DLL_EXPORT int bbcu_fp32_BatchNormalization_ReForward

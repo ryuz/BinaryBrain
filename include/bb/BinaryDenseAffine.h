@@ -116,8 +116,15 @@ protected:
         {
             m_memory_saving = EvalBool(args[1]);
         }
+        if ( args.size() == 2 && args[0] == "batch_norm" )
+        {
+            m_bn_enable = EvalBool(args[1]);
+        }
+        if ( args.size() == 2 && args[0] == "activation" )
+        {
+            m_act_enable = EvalBool(args[1]);
+        }
     }
-
 
 
 public:
@@ -418,9 +425,9 @@ protected:
         _super::LoadObjectData(is);
 
         // メンバ
+        bb::LoadValue(is, m_memory_saving);
         bb::LoadValue(is, m_bn_enable);
         bb::LoadValue(is, m_act_enable);
-        bb::LoadValue(is, m_memory_saving);
         m_affine->LoadObject(is);
         m_batch_norm->LoadObject(is);
         m_activation->LoadObject(is);

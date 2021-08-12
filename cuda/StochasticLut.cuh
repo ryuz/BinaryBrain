@@ -12,12 +12,13 @@ struct StochasticLut
     static __device__ __forceinline__ T NodeForward
         (
             int         node_id,
-            T           xp[],
+            T           xp_[],
             T   const   W[][MAX_NODE_UNIT]
         )
     {
-        T xn[N];
+        T xp[N], xn[N];
         for ( int i = 0; i < N; ++i) {
+            xp[i] = min((T)1, max((T)0, xp_[i]));
             xn[i] = (T)1.0 - xp[i];
         }
 
@@ -36,7 +37,7 @@ struct StochasticLut
     static __device__ __forceinline__ void NodeBackward
         (
             int         node_id,
-            T   const   xp[],
+            T   const   xp_[],
             T           dy,
             T           *dx_ptr,
             T   const   W[][MAX_NODE_UNIT],
@@ -44,8 +45,9 @@ struct StochasticLut
             int         frame_stride
         )
     {
-        T xn[N];
+        T xp[N], xn[N];
         for ( int i = 0; i < N; ++i) {
+            xp[i] = min((T)1, max((T)0, xp_[i]));
             xn[i] = (T)1.0 - xp[i];
         }
 
@@ -80,13 +82,14 @@ struct StochasticLut<6, T, MAX_NODE_UNIT>
 {
     static __device__ __forceinline__ T NodeForward
             (
-                int             node_id,
-                T           xp[],
+                int         node_id,
+                T           xp_[],
                 T   const   W[][MAX_NODE_UNIT]
             )
     {
-        T   xn[6];
+        T   xp[6], xn[6];
         for ( int i = 0; i < 6; ++i) {
+            xp[i] = min((T)1, max((T)0, xp_[i]));
             xn[i] = (T)1.0 - xp[i];
         }
 
@@ -196,7 +199,7 @@ struct StochasticLut<6, T, MAX_NODE_UNIT>
     static __device__ __forceinline__ void NodeBackward
         (
             int         node_id,
-            T   const   xp[],
+            T   const   xp_[],
             T           dy,
             T           *dx_ptr,
             T   const   W[][MAX_NODE_UNIT],
@@ -204,8 +207,9 @@ struct StochasticLut<6, T, MAX_NODE_UNIT>
             int         frame_stride
         )
     {
-        T   xn[6];
+        T   xp[6], xn[6];
         for (int i = 0; i < 6; ++i) {
+            xp[i] = min((T)1, max((T)0, xp_[i]));
             xn[i] = (T)1.0 - xp[i];
         }
 
@@ -476,12 +480,13 @@ struct StochasticLut<4, T, MAX_NODE_UNIT>
     static __device__ __forceinline__ T NodeForward
             (
                 int             node_id,
-                T           xp[],
+                T           xp_[],
                 T   const   W[][MAX_NODE_UNIT]
             )
     {
-        T   xn[4];
+        T   xp[4], xn[4];
         for ( int i = 0; i < 4; ++i) {
+            xp[i] = min((T)1, max((T)0, xp_[i]));
             xn[i] = (T)1.0 - xp[i];
         }
 
@@ -523,7 +528,7 @@ struct StochasticLut<4, T, MAX_NODE_UNIT>
     static __device__ __forceinline__ void NodeBackward
         (
             int         node_id,
-            T   const   xp[],
+            T   const   xp_[],
             T           dy,
             T           *dx_ptr,
             T   const   W[][MAX_NODE_UNIT],
@@ -531,8 +536,9 @@ struct StochasticLut<4, T, MAX_NODE_UNIT>
             int             frame_stride
         )
     {
-        T   xn[4];
+        T   xp[4], xn[4];
         for (int i = 0; i < 4; ++i) {
+            xp[i] = min((T)1, max((T)0, xp_[i]));
             xn[i] = (T)1.0 - xp[i];
         }
 
@@ -630,13 +636,14 @@ struct StochasticLut<2, T, MAX_NODE_UNIT>
 {
     static __device__ __forceinline__ T NodeForward
             (
-                int             node_id,
-                T           xp[],
+                int         node_id,
+                T           xp_[],
                 T   const   W[][MAX_NODE_UNIT]
             )
     {
-        T   xn[2];
+        T   xp[2], xn[2];
         for ( int i = 0; i < 2; ++i) {
+            xp[i] = min((T)1, max((T)0, xp_[i]));
             xn[i] = (T)1.0 - xp[i];
         }
 
@@ -662,7 +669,7 @@ struct StochasticLut<2, T, MAX_NODE_UNIT>
     static __device__ __forceinline__ void NodeBackward
         (
             int         node_id,
-            T   const   xp[],
+            T   const   xp_[],
             T           dy,
             T           *dx_ptr,
             T   const   W[][MAX_NODE_UNIT],
@@ -670,8 +677,9 @@ struct StochasticLut<2, T, MAX_NODE_UNIT>
             int             frame_stride
         )
     {
-        T   xn[2];
+        T   xp[2], xn[2];
         for (int i = 0; i < 2; ++i) {
+            xp[i] = min((T)1, max((T)0, xp_[i]));
             xn[i] = (T)1.0 - xp[i];
         }
 

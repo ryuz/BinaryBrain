@@ -182,7 +182,7 @@ __global__ void kernal_RealToBinary_Forward(
         
         // modulation for frame
         if ( binarize ) {
-            y = (y > (T)0.5) ? (T)1.0 : (T)0.0;
+            y = (y > (T)0.5) ? (T)1.0 : (T)-1.0;
         }
 
         *y_ptr = y;
