@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <vector>
 #include <memory>
 #include <cstdint>
 #include <iostream>
@@ -44,6 +45,9 @@ namespace bb {
 #define BB_TYPE_UINT32          (0x0300 + 32)
 #define BB_TYPE_UINT64          (0x0300 + 64)
 
+
+#define BB_BINARY_HI            (+1)
+#define BB_BINARY_LO            (-1)
 
 
 

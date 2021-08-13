@@ -8,6 +8,7 @@
 #endif
 
 #include "bb/Assert.h"
+#include "bb/DataType.h"
 
 
 #ifdef BBCU_DLL
@@ -1412,7 +1413,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_AccuracyCategoricalClassification
 //  Adam
 // -------------------------------------
 
-BBCU_DLL_EXPORT int bbcu_fp32_Adam
+BBCU_DLL_EXPORT int bbcu_fp32_OptimizerAdam
         (
             int             size,
             int     const   *dev_size_table,

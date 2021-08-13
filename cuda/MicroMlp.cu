@@ -257,9 +257,11 @@ __global__ void kernal_bit_fp32_MicroMlp_Forward(
             for ( int i = 0; i < M; ++i ) {
                 float sig0 = b0[i][node_id];
                 for ( int j = 0; j < N; ++j ) {
-                    if ( x[j] & bit ) {
-                        sig0 += W0[i][j][node_id];
-                    }
+                    float xx = (x[j] & bit) ? BB_BINARY_HI : BB_BINARY_LO;
+                    sig0 += W0[i][j][node_id] * xx;
+//                  if ( x[j] & bit ) {
+//                      sig0 += W0[i][j][node_id];
+//                  }
                 }
             
                 sig0 = fmaxf(sig0, 0);  // ReLU
@@ -851,9 +853,11 @@ __global__ void kernal_bit_fp32_MicroMlp_Backward
             for ( int i = 0; i < M; ++i ) {
                 float sig0 = b0[i][node_id];
                 for ( int j = 0; j < N; ++j ) {
-                    if ( x[j] & bit ) {
-                        sig0 += W0[i][j][node_id];
-                    }
+                      float xx = (x[j] & bit) ? BB_BINARY_HI : BB_BINARY_LO;
+                      sig0 += W0[i][j][node_id] * xx;
+//                    if ( x[j] & bit ) {
+//                        sig0 += W0[i][j][node_id];
+//                    }
                 }
             
                 sig0 = fmaxf(sig0, 0);  // ReLU
@@ -878,7 +882,9 @@ __global__ void kernal_bit_fp32_MicroMlp_Backward
             for ( int i = 0; i < M; ++i ) {
                 db0[i] += grad0[i];
                 for ( int j = 0; j < N; ++j ) {
-                    if ( x[j] & bit ) { dW0[i][j] += grad0[i]; }
+//                  if ( x[j] & bit ) { dW0[i][j] += grad0[i]; }
+                    float xx = (x[j] & bit) ? BB_BINARY_HI : BB_BINARY_LO;
+                    dW0[i][j] += grad0[i] * xx;
                     dx[j]     += grad0[i] * W0[i][j][node_id];
                 }
             }

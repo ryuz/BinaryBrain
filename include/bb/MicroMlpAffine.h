@@ -38,7 +38,7 @@ public:   // debug
 
     bool                    m_binary_mode = false;
     bool                    m_host_only   = false;
-    bool                    m_host_simd   = true;
+    bool                    m_host_simd   = false;
     
     std::string             m_connection;
 
@@ -705,7 +705,7 @@ public:
                 for (index_t frame = 0; frame < frame_size; ++frame ) {
                     T   in_sig[N];
                     for ( int i = 0; i < N; ++i) {
-                        in_sig[i] = x_ptr.Get(frame, in_idx[i]);
+                        in_sig[i] = (T)x_ptr.Get(frame, in_idx[i]);
                     }
 
                     T   sum1 = b1_ptr(node);

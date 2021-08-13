@@ -427,7 +427,7 @@ public:
                     #pragma omp parallel for
                     for (index_t node = 0; node < node_size; ++node) {
                         RealType x = x_ptr.Get(input_frame, node);
-                        BinType  y = (x > th) ? (BinType)+1 : (BinType)-1;
+                        BinType  y = (x > th) ? (BinType)BB_BINARY_HI : (BinType)BB_BINARY_LO;
                         y_ptr.Set(output_frame, node, y);
                     }
                 }
@@ -436,7 +436,7 @@ public:
                     for (index_t node = 0; node < node_size; ++node) {
                         RealType th = m_value_generator->GetValue();
                         RealType x = x_ptr.Get(input_frame, node);
-                        BinType  y  = (x > th) ? (BinType)+1 : (BinType)-1;
+                        BinType  y  = (x > th) ? (BinType)BB_BINARY_HI : (BinType)BB_BINARY_LO;
                         y_ptr.Set(output_frame, node, y);
                     }
                 }

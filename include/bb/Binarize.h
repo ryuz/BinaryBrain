@@ -35,8 +35,8 @@ protected:
     bool        m_host_only = false;
 
     RealType    m_binary_th    = (RealType)0;
-    BinType     m_binary_low   = (BinType)-1.0;
-    BinType     m_binary_high  = (BinType)+1.0;
+    BinType     m_binary_low   = (BinType)BB_BINARY_LO;
+    BinType     m_binary_high  = (BinType)BB_BINARY_HI;
     RealType    m_hardtanh_min = (RealType)-1.0;
     RealType    m_hardtanh_max = (RealType)+1.0;
 
@@ -46,8 +46,8 @@ public:
     struct create_t
     {
         RealType    binary_th    = (RealType)0;
-        double      binary_low   = -1.0;
-        double      binary_high  = +1.0;
+        double      binary_low   = (double)BB_BINARY_LO;
+        double      binary_high  = (double)BB_BINARY_HI;
         RealType    hardtanh_min = (RealType)-1.0;
         RealType    hardtanh_max = (RealType)+1.0;
     };
@@ -87,7 +87,7 @@ public:
     }
 
     static std::shared_ptr<Binarize> Create(RealType binary_th = (RealType)0.0,
-                                        double binary_low = -1.0, double binary_high = +1.0,
+                                        double binary_low = (double)BB_BINARY_LO, double binary_high = (double)BB_BINARY_HI,
                                         RealType hardtanh_min = (RealType)-1.0, RealType hardtanh_max = (RealType)+1.0)
     {
         create_t create;
