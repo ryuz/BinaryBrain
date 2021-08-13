@@ -1344,6 +1344,21 @@ BBCU_DLL_EXPORT int bbcu_fp32_LossMeanSquaredError
 //  LossSoftmaxCrossEntropy
 // -------------------------------------
 
+template<typename T>
+BBCU_DLL_EXPORT int bbcu_LossSoftmaxCrossEntropy
+        (
+            T   const       *dev_y_buf,
+            T   const       *dev_t_buf,
+            T               *dev_dy_buf,
+            double          *dev_loss_buf,
+            T               t_sum,
+            int             pix_size,
+            int             ch_size,
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId=0
+        );
+
 BBCU_DLL_EXPORT int bbcu_fp32_LossSoftmaxCrossEntropy
         (
             float const     *dev_y_buf,
@@ -1360,9 +1375,25 @@ BBCU_DLL_EXPORT int bbcu_fp32_LossSoftmaxCrossEntropy
 
 
 // -------------------------------------
-//  AccuracyCategoricalClassification
+//  MetricsCategoricalAccuracy
 // -------------------------------------
 
+template<typename T>
+BBCU_DLL_EXPORT int bbcu_MetricsCategoricalAccuracy
+        (
+            T   const       *dev_y_buf,
+            T   const       *dev_t_buf,
+            int             *dev_accuracy_buf,
+            int             *dev_category_buf,
+            int             pix_size,
+            int             ch_size,
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId=0
+        );
+
+
+/*
 BBCU_DLL_EXPORT int bbcu_fp32_AccuracyCategoricalClassification
         (
             float const     *dev_y_buf,
@@ -1373,6 +1404,9 @@ BBCU_DLL_EXPORT int bbcu_fp32_AccuracyCategoricalClassification
             int             frame_stride,
             cudaStream_t    streamId = 0
         );
+*/
+
+
 
 // -------------------------------------
 //  Adam

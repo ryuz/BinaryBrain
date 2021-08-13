@@ -31,13 +31,13 @@ public:
     std::string GetObjectName(void) const override { return ObjectName(); }
 
 protected:
-    Tensor_<double>  m_loss_buf;
-    Tensor_<double>  m_loss;
-    double           m_frame_count = 0;
+    Tensor_<double> m_loss_buf;
+    double          m_loss;
+    double          m_frame_count = 0;
 
 protected:
     LossSoftmaxCrossEntropy() {
-        m_loss.Resize(1);
+//      m_loss.Resize(1);
         Clear();
     }
 
@@ -61,9 +61,8 @@ public:
         if ( m_frame_count == 0 ) {
             return 0;
         }
-
-        auto loss_ptr = m_loss.LockConst();
-        return loss_ptr[0] / m_frame_count;
+        
+        return m_loss / m_frame_count;
     }
 
     FrameBuffer CalculateLoss(FrameBuffer y_buf, FrameBuffer t_buf, index_t batch_size)
@@ -85,7 +84,40 @@ public:
         auto ch_size  = shape[0];
         auto pix_size = node_size / ch_size;
         
-//#ifdef BB_WITH_CUDA
+#ifdef BB_WITH_CUDA
+        if ( DataType<T>::type == BB_TYPE_FP32 && pix_size == 1
+                && y_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+
+            T   t_sum = (T)t_buf.Sum();
+            
+            {
+                auto y_ptr        = y_buf.LockDeviceMemoryConst();
+                auto t_ptr        = t_buf.LockDeviceMemoryConst();
+                auto dy_ptr       = dy_buf.LockDeviceMemory(true);
+                auto loss_buf_ptr = m_loss_buf.LockDeviceMemory(true);
+
+                bbcu_LossSoftmaxCrossEntropy<T>
+                    (
+                        (T const *)y_ptr.GetAddr(),
+                        (T const *)t_ptr.GetAddr(),
+                        (T       *)dy_ptr.GetAddr(),
+                        (double  *)loss_buf_ptr.GetAddr(),
+                        (T        )t_sum,
+                        (int      )pix_size,
+                        (int      )ch_size,
+                        (int      )y_buf.GetFrameSize(),
+                        (int      )(y_buf.GetFrameStride() / sizeof(float))
+                    );
+            }
+
+            m_loss        += -m_loss_buf.Sum();
+            m_frame_count += t_sum;
+
+            return dy_buf;
+        }
+#endif
+
+        
 #if 0
         if ( DataType<T>::type == BB_TYPE_FP32 && pix_size == 1
                 && y_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
@@ -114,7 +146,6 @@ public:
             return dy_buf;
         }
 #endif
-
         {
             T   eps = (T)1.0e-7;
 
@@ -124,7 +155,6 @@ public:
             auto t_ptr  = t_buf.LockConst<T>();
             auto dy_ptr = dy_buf.Lock<T>(true);
             auto loss_buf_ptr = m_loss_buf.Lock(true);
-            auto loss_ptr     = m_loss.Lock();
 
             T t_sum = 0;
             for (index_t frame = 0; frame < frame_size; ++frame) {
@@ -138,15 +168,15 @@ public:
             for (index_t frame = 0; frame < frame_size; ++frame) {
                 for (index_t pix = 0; pix < pix_size; ++pix) {
                     // max
-                    auto c = y_ptr.Get(frame, 0);
-                    for (index_t ch = 1; ch < ch_size; ++ch) {
+                    T   c = std::numeric_limits<T>::lowest();
+                    for (index_t ch = 0; ch < ch_size; ++ch) {
                         auto node = ch * pix_size + pix;
                         c = std::max(c, y_ptr.Get(frame, node));
                     }
-                    if (!Real_IsValid(c)) {
-//                      std::cout << "loss c : nan" << std::endl;
-                        c = 0;
-                    }
+//                  if (!Real_IsValid(c)) {
+////                    std::cout << "loss c : nan" << std::endl;
+//                      c = 0;
+//                  }
 
                     // sum(exp(y - c))
                     T y_sum = 0;
@@ -171,10 +201,10 @@ public:
                         }
 
                         T dy = (t_max * softmax - t) / (T)t_sum;
-                        if (!Real_IsValid(dy)) {
-//                          std::cout << "loss dy : nan" << std::endl;
-                            dy = 0;
-                        }
+//                        if (!Real_IsValid(dy)) {
+////                          std::cout << "loss dy : nan" << std::endl;
+//                            dy = 0;
+//                        }
 
                         dy_ptr.Set(frame, node, dy);
                     }
@@ -186,8 +216,7 @@ public:
                 loss_sum += loss_buf_ptr[frame];
             }
 
-            loss_ptr[0]   += -loss_sum;
-//          m_frame_count += frame_size * pix_size;
+            m_loss        += -loss_sum;
             m_frame_count += t_sum;
 
             return dy_buf;
