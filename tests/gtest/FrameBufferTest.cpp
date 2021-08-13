@@ -527,7 +527,7 @@ TEST(FrameBufferTest, testConvertTo_BitToFP32)
         for (int node = 0; node < node_size; ++node ) {
             bool  x = buf_bit.GetBit(frame, node);
             float y = buf_fp32.GetFP32(frame, node);
-            EXPECT_EQ(x ? 1.0f : 0.0f, y);
+            EXPECT_EQ(x ? BB_BINARY_HI : BB_BINARY_LO, y);
         }
     }
 }

@@ -680,7 +680,7 @@ TEST(MicroMlpAffineTest, testMicroMlpAffine_CmpBit)
 
         for (int i = 0; i < frame_size; i++) {
             for (int j = 0; j < input_node_size; j++) {
-                int val = mt() % 2;
+                int val = (mt() % 2) ? BB_BINARY_HI : BB_BINARY_LO;
                 x_buf1.SetFP32(i, j, (float)val);
                 x_buf2.SetBit(i, j, (bb::Bit)val);
             }

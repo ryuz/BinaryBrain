@@ -21,12 +21,12 @@ TEST(BinarizeTest, testBinarize_test0)
 
     auto y_buf = bin->Forward(x_buf);
     
-    EXPECT_EQ(-1, y_buf.GetFP32(0, 0));
-    EXPECT_EQ(-1, y_buf.GetFP32(0, 1));
-    EXPECT_EQ(-1, y_buf.GetFP32(0, 2));
-    EXPECT_EQ(-1, y_buf.GetFP32(1, 0));
-    EXPECT_EQ(+1, y_buf.GetFP32(1, 1));
-    EXPECT_EQ(+1, y_buf.GetFP32(1, 2));
+    EXPECT_EQ(BB_BINARY_LO, y_buf.GetFP32(0, 0));
+    EXPECT_EQ(BB_BINARY_LO, y_buf.GetFP32(0, 1));
+    EXPECT_EQ(BB_BINARY_LO, y_buf.GetFP32(0, 2));
+    EXPECT_EQ(BB_BINARY_LO, y_buf.GetFP32(1, 0));
+    EXPECT_EQ(BB_BINARY_HI, y_buf.GetFP32(1, 1));
+    EXPECT_EQ(BB_BINARY_HI, y_buf.GetFP32(1, 2));
 
     // backward
     bb::FrameBuffer dy_buf(2, {3}, BB_TYPE_FP32);

@@ -25,36 +25,36 @@ TEST(BitEncodeTest, testBitEncode_test0)
     EXPECT_EQ(bb::DataType<bb::Bit>::type, y.GetType());
     EXPECT_EQ(12, y.GetNodeSize());
 
-    EXPECT_EQ(1, y.GetFP32(0, 3*0+0));
-    EXPECT_EQ(0, y.GetFP32(0, 3*1+0));
-    EXPECT_EQ(1, y.GetFP32(0, 3*2+0));
-    EXPECT_EQ(0, y.GetFP32(0, 3*3+0));
+    EXPECT_EQ(BB_BINARY_HI, y.GetFP32(0, 3*0+0));
+    EXPECT_EQ(BB_BINARY_LO, y.GetFP32(0, 3*1+0));
+    EXPECT_EQ(BB_BINARY_HI, y.GetFP32(0, 3*2+0));
+    EXPECT_EQ(BB_BINARY_LO, y.GetFP32(0, 3*3+0));
 
-    EXPECT_EQ(0, y.GetFP32(0, 3*0+1));
-    EXPECT_EQ(0, y.GetFP32(0, 3*1+1));
-    EXPECT_EQ(0, y.GetFP32(0, 3*2+1));
-    EXPECT_EQ(0, y.GetFP32(0, 3*3+1));
+    EXPECT_EQ(BB_BINARY_LO, y.GetFP32(0, 3*0+1));
+    EXPECT_EQ(BB_BINARY_LO, y.GetFP32(0, 3*1+1));
+    EXPECT_EQ(BB_BINARY_LO, y.GetFP32(0, 3*2+1));
+    EXPECT_EQ(BB_BINARY_LO, y.GetFP32(0, 3*3+1));
     
-    EXPECT_EQ(1, y.GetFP32(0, 3*3+2));
-    EXPECT_EQ(1, y.GetFP32(0, 3*3+2));
-    EXPECT_EQ(1, y.GetFP32(0, 3*3+2));
-    EXPECT_EQ(1, y.GetFP32(0, 3*3+2));
+    EXPECT_EQ(BB_BINARY_HI, y.GetFP32(0, 3*3+2));
+    EXPECT_EQ(BB_BINARY_HI, y.GetFP32(0, 3*3+2));
+    EXPECT_EQ(BB_BINARY_HI, y.GetFP32(0, 3*3+2));
+    EXPECT_EQ(BB_BINARY_HI, y.GetFP32(0, 3*3+2));
     
 
-    EXPECT_EQ(1, y.GetFP32(1, 3*0+0));
-    EXPECT_EQ(0, y.GetFP32(1, 3*1+0));
-    EXPECT_EQ(0, y.GetFP32(1, 3*2+0));
-    EXPECT_EQ(0, y.GetFP32(1, 3*3+0));
+    EXPECT_EQ(BB_BINARY_HI, y.GetFP32(1, 3*0+0));
+    EXPECT_EQ(BB_BINARY_LO, y.GetFP32(1, 3*1+0));
+    EXPECT_EQ(BB_BINARY_LO, y.GetFP32(1, 3*2+0));
+    EXPECT_EQ(BB_BINARY_LO, y.GetFP32(1, 3*3+0));
     
-    EXPECT_EQ(0, y.GetFP32(1, 3*0+1));
-    EXPECT_EQ(1, y.GetFP32(1, 3*1+1));
-    EXPECT_EQ(0, y.GetFP32(1, 3*2+1));
-    EXPECT_EQ(0, y.GetFP32(1, 3*3+1));
+    EXPECT_EQ(BB_BINARY_LO, y.GetFP32(1, 3*0+1));
+    EXPECT_EQ(BB_BINARY_HI, y.GetFP32(1, 3*1+1));
+    EXPECT_EQ(BB_BINARY_LO, y.GetFP32(1, 3*2+1));
+    EXPECT_EQ(BB_BINARY_LO, y.GetFP32(1, 3*3+1));
 
-    EXPECT_EQ(0, y.GetFP32(1, 3*0+2));
-    EXPECT_EQ(1, y.GetFP32(1, 3*1+2));
-    EXPECT_EQ(0, y.GetFP32(1, 3*2+2));
-    EXPECT_EQ(1, y.GetFP32(1, 3*3+2));
+    EXPECT_EQ(BB_BINARY_LO, y.GetFP32(1, 3*0+2));
+    EXPECT_EQ(BB_BINARY_HI, y.GetFP32(1, 3*1+2));
+    EXPECT_EQ(BB_BINARY_LO, y.GetFP32(1, 3*2+2));
+    EXPECT_EQ(BB_BINARY_HI, y.GetFP32(1, 3*3+2));
 }
 
 
