@@ -68,14 +68,23 @@ public:
         m_grads  = grads;
     }
     
-    void Update(void) override
+    void ZeroGrad(void) override
+    {
+        if ( m_grads.IsEmpty() ) {
+            return;
+        }
+
+        m_grads = 0;
+    }
+
+    void Step(void) override
     {
         if ( m_params.IsEmpty() ) {
             return;
         }
 
         m_params -= m_learning_rate * m_grads;
-        m_grads   = 0;
+//      m_grads   = 0;
     }
 
     // シリアライズ

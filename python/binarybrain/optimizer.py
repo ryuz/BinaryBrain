@@ -25,14 +25,30 @@ class Optimizer(bb.Object):
         self.get_core().set_variables(params.get_core(), grads.get_core())
     
     def update(self):
+        """パラメータ更新＆勾配ゼロクリア
+
+            set_variablesで設定された勾配変数に基づいた学習をset_variablesで
+            設定されたパラメータ変数に適用して、勾配をゼロクリアする
+        """
+
+        return self.get_core().update()
+
+    def zero_grad(self):
+        """勾配のゼロクリア
+
+            set_variablesで設定された勾配変数をゼロクリアする
+        """
+
+        return self.get_core().zero_grad()
+    
+    def step(self):
         """パラメータ更新
 
             set_variablesで設定された勾配変数に基づいた学習をset_variablesで
             設定されたパラメータ変数に適用する
         """
 
-        return self.get_core().update()
-
+        return self.get_core().step()
 
 class OptimizerSgd(Optimizer):
     """SGD 最適化クラス

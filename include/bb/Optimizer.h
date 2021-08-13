@@ -25,7 +25,14 @@ public:
     virtual std::string GetOptimizerName(void) const = 0;
 
     virtual void SetVariables(Variables params, Variables grads) = 0;
-    virtual void Update(void) = 0;
+    virtual void ZeroGrad(void) = 0;
+    virtual void Step(void) = 0;
+
+    virtual void Update(void)
+    {
+        this->Step();
+        this->ZeroGrad();
+    }
 };
 
 

@@ -1196,8 +1196,10 @@ PYBIND11_MODULE(core, m) {
 
     PYCLASS_OPTIMIZER(Optimizer, Object)
         .def("set_variables", &Optimizer::SetVariables)
+        .def("zero_grad",     &Optimizer::ZeroGrad)
+        .def("step",          &Optimizer::Step)
         .def("update",        &Optimizer::Update);
-  
+    
     PYCLASS_OPTIMIZER(OptimizerSgd_fp32, Optimizer)
         .def_static("create", (std::shared_ptr<OptimizerSgd_fp32> (*)(float))&OptimizerSgd_fp32::Create, "create",
             py::arg("learning_rate") = 0.001f);
