@@ -46,7 +46,7 @@ BBCU_DLL_EXPORT int bbcu_Tensor_IsnNan
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
-//  BB_CUDA_SAFE_CALL(cudaMemset(dev_result, 0, sizeof(int)));
+    BB_CUDA_SAFE_CALL(cudaMemset(dev_result, 0, sizeof(int)));
 
     dim3    block(1024);
     dim3    grid((size+1023)/1024);
@@ -84,7 +84,7 @@ __global__ void kernal_FrameBuf_IsnNan
     }
 
     if ( isnan(buf[frame_stride*node + frame]) ) {
-        *result = true;
+        *result = 1;
     }
 }
 
@@ -102,7 +102,7 @@ BBCU_DLL_EXPORT int bbcu_FrameBuf_IsnNan
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
-//  BB_CUDA_SAFE_CALL(cudaMemset(dev_result, 0, sizeof(int)));
+    BB_CUDA_SAFE_CALL(cudaMemset(dev_result, 0, sizeof(int)));
 
     dim3    block;
     dim3    grid;
