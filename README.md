@@ -267,10 +267,14 @@ BinaryBrainではバイナリ変調したデジタル値を扱うことが出来
 
 ## ICCE2019(Berlin)にて発表頂いております
 
-[@FIssiki](https://twitter.com/fissiki)様の多大なるご協力のもと、ICCE2019(Berlin)にて発表頂いております
+[@FIssiki](https://twitter.com/fissiki)様の多大なるご協力のもと、ICCE2019(Berlin)にて発表しております。
 
-2019 IEEE 9th International Conference on Consumer Electronics (ICCE-Berlin) <br>
-https://ieeexplore.ieee.org/document/8966187 <br>
+2019 IEEE 9th International Conference on Consumer Electronics (ICCE-Berlin) 
+<[slide](https://www.slideshare.net/ryuz88/fast-and-lightweight-binarized-neural-network-implemented-in-an-fpga-using-lutbased-signal-processing-and-its-timedomain-extension-for-multibit-processing)> <[pdf](https://edas.info/p25749#S1569571697)>
+
+https://ieeexplore.ieee.org/document/8966187 
+
+
 
 
 ## 作者情報
