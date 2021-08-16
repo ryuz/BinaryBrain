@@ -64,14 +64,14 @@ public:
         for (int i = 0; i < n; ++i) {
             var += xc[i] * xc[i];
         }
-        var /= (T)n;
+        var  = var / (T)n;
 
         // 偏差
-        std = sqrt(var);
+        std = sqrt(var + (T)1.0e-7);
 
         // 正規化
         for (int i = 0; i < n; ++i) {
-            xn[i] = xc[i] / (std + (T)1.0e-7);
+            xn[i] = xc[i] / std;
         }
 
         // シフト
@@ -92,7 +92,7 @@ public:
         }
         mean /= (T)n;
         var = (var / (T)n) - (mean * mean);
-        std = sqrt(var);
+        std = sqrt(var + (T)1.0e-7);
 
         // 平均を引く
         for (int i = 0; i < n; ++i) {
@@ -101,7 +101,7 @@ public:
 
         // 正規化
         for (int i = 0; i < n; ++i) {
-            xn[i] = xc[i] / (std + (T)1.0e-7);
+            xn[i] = xc[i] / std;
         }
             // シフト
         for (int i = 0; i < n; ++i) {
@@ -121,14 +121,14 @@ public:
         }
         mean /= (T)n;
         var = (var / (T)n) - (mean * mean);
-        std = sqrt(var);
+        std = sqrt(var + (T)1.0e-7);
 
         for (int i = 0; i < n; ++i) {
             // 平均を引く
             xc[i] = x[i] - mean;
 
             // 正規化
-            xn[i] = xc[i] / (std + (T)1.0e-7);
+            xn[i] = xc[i] / std;
 
             // シフト
             y[i] = xn[i] * gamma + beta;
@@ -148,14 +148,14 @@ public:
         }
         mean /= (T)n;
         var = (var / (T)n) - (mean * mean);
-        std = sqrt(var);
+        std = sqrt(var + (T)1.0e-7);
 
         for (int i = 0; i < n; ++i) {
             // 平均を引く
             T _xc = x[i] - mean;
 
             // 正規化
-            T _xn = _xc / (std + (T)1.0e-7);
+            T _xn = _xc / std;
 
             // シフト
             y[i] = _xn * gamma + beta;
@@ -314,8 +314,12 @@ public:
 #if 1
 TEST(BatchNormalizationTest, testBatchNormalization)
 {
+
     bb::BatchNormalization<float>::create_t create;
     auto batch_norm = bb::BatchNormalization<float>::Create(create);
+
+//  bb::Manager::SetHostOnly(true);
+//  batch_norm->SendCommand("host_simd false");
 
     bb::FrameBuffer x(8, {2}, BB_TYPE_FP32);
     
@@ -376,29 +380,32 @@ TEST(BatchNormalizationTest, testBatchNormalization)
     std::cout << out_sig.GetReal(7, 0) << std::endl;
 #endif
 
+    const double err_th = 1.0e-5;
+
     for (int i = 0; i < 8; i++) {
-        EXPECT_NEAR(exp_norm0.y[i], y.GetFP32(i, 0), 0.000001);
-        EXPECT_NEAR(exp_norm1.y[i], y.GetFP32(i, 1), 0.000001);
+        EXPECT_NEAR(exp_norm0.y[i], y.GetFP32(i, 0), err_th);
+        EXPECT_NEAR(exp_norm1.y[i], y.GetFP32(i, 1), err_th);
     }
 
-    // _mm256_rsqrt_ps を使っているので精度は悪い
-    EXPECT_NEAR(-1.52752510, y.GetFP32(0, 0), 0.000001);
-    EXPECT_NEAR(-1.09108940, y.GetFP32(1, 0), 0.000001);
-    EXPECT_NEAR(-0.65465360, y.GetFP32(2, 0), 0.000001);
-    EXPECT_NEAR(-0.21821786, y.GetFP32(3, 0), 0.000001);
-    EXPECT_NEAR(+0.21821786, y.GetFP32(4, 0), 0.000001);
-    EXPECT_NEAR(+0.65465360, y.GetFP32(5, 0), 0.000001);
-    EXPECT_NEAR(+1.09108940, y.GetFP32(6, 0), 0.000001);
-    EXPECT_NEAR(+1.52752510, y.GetFP32(7, 0), 0.000001);
 
-    EXPECT_NEAR(-1.23359570, y.GetFP32(0, 1), 0.000001);
-    EXPECT_NEAR(+1.14442010, y.GetFP32(1, 1), 0.000001);
-    EXPECT_NEAR(-0.04458780, y.GetFP32(2, 1), 0.000001);
-    EXPECT_NEAR(-0.63909180, y.GetFP32(3, 1), 0.000001);
-    EXPECT_NEAR(-1.11469500, y.GetFP32(4, 1), 0.000001);
-    EXPECT_NEAR(+1.62002340, y.GetFP32(5, 1), 0.000001);
-    EXPECT_NEAR(+0.78771776, y.GetFP32(6, 1), 0.000001);
-    EXPECT_NEAR(-0.52019095, y.GetFP32(7, 1), 0.000001);
+    // _mm256_rsqrt_ps を使っているので精度は悪い
+    EXPECT_NEAR(-1.52752510, y.GetFP32(0, 0), err_th);
+    EXPECT_NEAR(-1.09108940, y.GetFP32(1, 0), err_th);
+    EXPECT_NEAR(-0.65465360, y.GetFP32(2, 0), err_th);
+    EXPECT_NEAR(-0.21821786, y.GetFP32(3, 0), err_th);
+    EXPECT_NEAR(+0.21821786, y.GetFP32(4, 0), err_th);
+    EXPECT_NEAR(+0.65465360, y.GetFP32(5, 0), err_th);
+    EXPECT_NEAR(+1.09108940, y.GetFP32(6, 0), err_th);
+    EXPECT_NEAR(+1.52752510, y.GetFP32(7, 0), err_th);
+
+    EXPECT_NEAR(-1.23359570, y.GetFP32(0, 1), err_th);
+    EXPECT_NEAR(+1.14442010, y.GetFP32(1, 1), err_th);
+    EXPECT_NEAR(-0.04458780, y.GetFP32(2, 1), err_th);
+    EXPECT_NEAR(-0.63909180, y.GetFP32(3, 1), err_th);
+    EXPECT_NEAR(-1.11469500, y.GetFP32(4, 1), err_th);
+    EXPECT_NEAR(+1.62002340, y.GetFP32(5, 1), err_th);
+    EXPECT_NEAR(+0.78771776, y.GetFP32(6, 1), err_th);
+    EXPECT_NEAR(-0.52019095, y.GetFP32(7, 1), err_th);
 
     bb::FrameBuffer dy(8, {2}, BB_TYPE_FP32);
     
@@ -654,6 +661,18 @@ TEST(BatchNormalizationTest, testBatchNormalization_cmp)
             }
         }
 
+        {
+            //
+            auto tmp_mean_cpu = bn_cpu->lock_tmp_mean_const();
+            auto tmp_mean_gpu = bn_gpu->lock_tmp_mean_const();
+            auto tmp_rstd_cpu = bn_cpu->lock_tmp_rstd_const();
+            auto tmp_rstd_gpu = bn_gpu->lock_tmp_rstd_const();
+            for ( int node = 0; node < node_size; ++node ) {
+                EXPECT_NEAR(tmp_mean_cpu[node], tmp_mean_gpu[node], 0.001f);
+                EXPECT_NEAR(tmp_rstd_cpu[node], tmp_rstd_gpu[node], 0.001f);
+            }
+        }
+
         // backward
         bb::FrameBuffer dy_cpu(frame_size, {node_size}, BB_TYPE_FP32, true);
         bb::FrameBuffer dy_gpu(frame_size, {node_size}, BB_TYPE_FP32);
@@ -689,22 +708,16 @@ TEST(BatchNormalizationTest, testBatchNormalization_cmp)
             for ( int node = 0; node < node_size; ++node ) {
                 auto val_cpu = dbeta_cpu[node];
                 auto val_gpu = dbeta_gpu[node];
-                EXPECT_NEAR(val_cpu, val_gpu, 0.001f);
+                EXPECT_NEAR(val_cpu, val_gpu, 0.002f);
             }
 
-            auto mean_cpu = bn_cpu->lock_mean_const();
-            auto mean_gpu = bn_gpu->lock_mean_const();
-            auto var_cpu  = bn_cpu->lock_var_const();
-            auto var_gpu  = bn_gpu->lock_var_const();
-            auto tmp_mean_cpu = bn_cpu->lock_tmp_mean_const();
-            auto tmp_mean_gpu = bn_gpu->lock_tmp_mean_const();
-            auto tmp_rstd_cpu = bn_cpu->lock_tmp_rstd_const();
-            auto tmp_rstd_gpu = bn_gpu->lock_tmp_rstd_const();
+            auto mean_cpu = bn_cpu->lock_running_mean_const();
+            auto mean_gpu = bn_gpu->lock_running_mean_const();
+            auto var_cpu  = bn_cpu->lock_running_var_const();
+            auto var_gpu  = bn_gpu->lock_running_var_const();
             for ( int node = 0; node < node_size; ++node ) {
                 EXPECT_NEAR(mean_cpu[node], mean_gpu[node], 0.001f);
                 EXPECT_NEAR(var_cpu[node], var_gpu[node], 0.001f);
-                EXPECT_NEAR(tmp_mean_cpu[node], tmp_mean_gpu[node], 0.001f);
-                EXPECT_NEAR(tmp_rstd_cpu[node], tmp_rstd_gpu[node], 0.001f);
             }
         }
 
@@ -761,9 +774,106 @@ TEST(BatchNormalizationTest, testBatchNormalization_cmp)
     }
 }
 
-TEST(BatchNormalizationTest, testBatchNormalization_cmp2)
+
+TEST(BatchNormalizationTest, testBatchNormalization_loop)
 {
+    int const node_size  = 3;
+    int const frame_size = 4;
+
+    bb::BatchNormalization<float>::create_t create;
+    create.momentum = 0;
+    auto bn = bb::BatchNormalization<float>::Create(create);
+
+    bb::FrameBuffer x_buf(frame_size, {node_size}, BB_TYPE_FP32);
+    bb::FrameBuffer dy_buf(frame_size, {node_size}, BB_TYPE_FP32);
+    bn->SetInputShape(x_buf.GetShape());
+    auto valgen = bb::NormalDistributionGenerator<float>::Create(0.0f, 3.3f, 1);
+
+    auto opt = bb::OptimizerAdam<float>::Create();
+    opt->SetVariables(bn->GetParameters(), bn->GetGradients());
+
+    for ( int frame = 0; frame < frame_size; ++frame) {
+        for ( int node = 0; node < node_size; ++node ) {
+            x_buf.SetFP32(frame, node, valgen->GetValue());
+            dy_buf.SetFP32(frame, node, valgen->GetValue());
+        }
+    }
+
+    for ( int loop=0; loop < 2; ++loop ) {
+        auto y_buf = bn->Forward(x_buf);
+
+        {
+            auto mean = bn->lock_tmp_mean_const();
+            for ( int node = 0; node < node_size; ++node ) {
+                printf("mean[%d] : %f\n", node, mean({node}));
+            }
+
+            auto rstd = bn->lock_tmp_rstd_const();
+            for ( int node = 0; node < node_size; ++node ) {
+                printf("rstd[%d] : %f %f\n", node, rstd({node}), 1.0/(rstd({node}) * rstd({node})));
+            }
+        }
+
+        auto dx_buf = bn->Backward(dy_buf);
+        y_buf = bn->Forward(x_buf, false);
+
+        opt->Update();
+
+        {
+            printf("-------\n");
+            auto dgamma = bn->lock_dgamma_const();
+            for ( int node = 0; node < node_size; ++node ) {
+                printf("dgamma[%d] : %f\n", node, dgamma({node}));
+            }
+
+            auto dbeta = bn->lock_dbeta_const();
+            for ( int node = 0; node < node_size; ++node ) {
+                printf("dbeta[%d] : %f\n", node, dbeta({node}));
+            }
+
+            auto running_mean = bn->lock_running_mean_const();
+            for ( int node = 0; node < node_size; ++node ) {
+                printf("running_mean[%d] : %f\n", node, running_mean({node}));
+            }
+
+            auto running_var = bn->lock_running_var_const();
+            for ( int node = 0; node < node_size; ++node ) {
+                printf("running_var[%d] : %f\n", node, running_var({node}));
+            }
+
+
+        }
+    }
 }
+
+
+TEST(BatchNormalizationTest, testBatchNormalization_001)
+{
+    auto bn = bb::BatchNormalization<float>::Create();
+    bn->SendCommand("host_simd false");
+    bn->SendCommand("host_only true");
+
+    bb::FrameBuffer x0_buf;
+    bb::FrameBuffer x1_buf;
+    bb::FrameBuffer dy1_buf;
+    bb::FrameBuffer dy0_buf;
+    x0_buf.LoadFromFile("fw_x_0.bb_buf");
+    x1_buf.LoadFromFile("fw_x_1.bb_buf");
+    dy1_buf.LoadFromFile("bw_dy_1.bb_buf");
+    dy0_buf.LoadFromFile("bw_dy_0.bb_buf");
+
+    auto y0 = bn->Forward(x0_buf);
+    std::cout << y0.Min() << " " << y0.Max() << std::endl;
+    auto y1 = bn->Forward(x1_buf);
+    std::cout << y1.Min() << " " << y1.Max() << std::endl;
+
+    auto dx1 = bn->Backward(dy1_buf);
+    std::cout << dx1.Min() << " " << dx1.Max() << std::endl;
+    auto dx0 = bn->Backward(dy0_buf);
+    std::cout << dx0.Min() << " " << dx0.Max() << std::endl;
+
+}
+
 
 #endif
 

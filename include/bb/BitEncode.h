@@ -198,10 +198,10 @@ public:
                     int x = (int)(x_ptr.Get(frame, node) * ((1 << m_bit_size) - 1));
                     for ( int bit = 0; bit < m_bit_size; ++bit ) {
                         if ( x & (1 << bit) ) {
-                            y_ptr.Set(frame, node_size*bit + node, 1);
+                            y_ptr.Set(frame, node_size*bit + node, (BinType)BB_BINARY_HI);
                         }
                         else {
-                            y_ptr.Set(frame, node_size*bit + node, 0);
+                            y_ptr.Set(frame, node_size*bit + node, (BinType)BB_BINARY_LO);
                         }
                     }
                 }

@@ -55,7 +55,7 @@ public:
         bool            activation     = true;
         
         RealType        initialize_std = (RealType)0.01;
-        std::string     initializer    = "he";
+        std::string     initializer    = "";
         
         RealType        momentum       = (RealType)0.9;
         RealType        gamma          = (RealType)1.0;
@@ -64,6 +64,8 @@ public:
         bool            fix_beta       = false;
         
         RealType        binary_th      = (RealType)0;
+        double          binary_low     = -1.0;
+        double          binary_high    = +1.0;
         RealType        hardtanh_min   = (RealType)-1;
         RealType        hardtanh_max   = (RealType)+1;
         
@@ -96,6 +98,8 @@ protected:
 
         typename ActType::create_t act_create;
         act_create.binary_th    = create.binary_th;
+        act_create.binary_low   = create.binary_low;
+        act_create.binary_high  = create.binary_high;
         act_create.hardtanh_min = create.hardtanh_min;
         act_create.hardtanh_max = create.hardtanh_max;
         m_activation = ActType::Create(act_create);
@@ -112,8 +116,15 @@ protected:
         {
             m_memory_saving = EvalBool(args[1]);
         }
+        if ( args.size() == 2 && args[0] == "batch_norm" )
+        {
+            m_bn_enable = EvalBool(args[1]);
+        }
+        if ( args.size() == 2 && args[0] == "activation" )
+        {
+            m_act_enable = EvalBool(args[1]);
+        }
     }
-
 
 
 public:
@@ -139,24 +150,26 @@ public:
     }
 
 #ifdef BB_PYBIND11
-    static std::shared_ptr< DifferentiableLutDiscreteN > CreatePy(
+    static std::shared_ptr< BinaryDenseAffine > CreatePy(
                     indices_t const &output_shape,
                     bool            batch_norm     = true,
                     bool            activation     = true,
         
                     RealType        initialize_std = (RealType)0.01,
-                    std::string     initializer    = "he",
+                    std::string     initializer    = "",
         
                     RealType        momentum       = (RealType)0.9,
                     RealType        gamma          = (RealType)1.0,
                     RealType        beta           = (RealType)0.0,
                     bool            fix_gamma      = false,
                     bool            fix_beta       = false,
-        
+                    
                     RealType        binary_th      = (RealType)0,
+                    double          binary_low     = -1.0,
+                    double          binary_high    = +1.0,
                     RealType        hardtanh_min   = (RealType)-1,
                     RealType        hardtanh_max   = (RealType)+1,
-        
+                    
                     std::uint64_t   seed           = 1,
                     bool            memory_saving  = true)
     {
@@ -170,18 +183,39 @@ public:
         create.momentum       = momentum;
         create.gamma          = gamma;
         create.beta           = beta;
-        create.fix_gamma      = fix_gamma    
-        create.fix_beta       = fix_beta     
-        create.binary_th      = binary_th    
-        create.hardtanh_min   = hardtanh_min 
-        create.hardtanh_max   = hardtanh_max 
-        create.seed           = seed         
-        create.memory_saving  = memory_saving
-
+        create.fix_gamma      = fix_gamma;
+        create.fix_beta       = fix_beta;
+        create.binary_th      = binary_th;
+        create.hardtanh_min   = hardtanh_min;
+        create.hardtanh_max   = hardtanh_max;
+        create.seed           = seed;
+        create.memory_saving  = memory_saving;
 
         return Create(create);
     }
 #endif
+
+    Tensor       &W(void)       { return m_affine->W(); }
+    Tensor const &W(void) const { return m_affine->W(); }
+    Tensor       &b(void)       { return m_affine->b(); }
+    Tensor const &b(void) const { return m_affine->b(); }    
+    Tensor       &dW(void)       { return m_affine->dW(); }
+    Tensor const &dW(void) const { return m_affine->dW(); }
+    Tensor       &db(void)       { return m_affine->db(); }
+    Tensor const &db(void) const { return m_affine->db(); }
+    Tensor       &gamma(void)           { return m_batch_norm->gamma(); }
+    Tensor const &gamma(void) const     { return m_batch_norm->gamma(); }
+    Tensor       &beta(void)            { return m_batch_norm->beta(); }
+    Tensor const &beta(void) const      { return m_batch_norm->beta(); }
+    Tensor       &dgamma(void)          { return m_batch_norm->dgamma(); }
+    Tensor const &dgamma(void) const    { return m_batch_norm->dgamma(); }
+    Tensor       &dbeta(void)           { return m_batch_norm->dbeta(); }
+    Tensor const &dbeta(void) const     { return m_batch_norm->dbeta(); }
+    Tensor        mean(void)            { return m_batch_norm->mean(); }
+    Tensor        rstd(void)            { return m_batch_norm->rstd(); }
+    Tensor        running_mean(void)    { return m_batch_norm->running_mean(); }
+    Tensor        running_var(void)     { return m_batch_norm->running_var(); }
+
 
     /**
      * @brief  コマンドを送る
@@ -284,15 +318,28 @@ public:
      */
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-        x_buf = m_affine->Forward(x_buf, train);
-        if ( m_bn_enable ) {
-            x_buf = m_batch_norm->Forward(x_buf, train);
-            if (m_memory_saving || !train ) { m_batch_norm->SetFrameBufferX(FrameBuffer()); }
+        if ( m_memory_saving && train && (m_bn_enable || m_act_enable) ) {
+            this->PushFrameBuffer(x_buf);
+
+            x_buf = m_affine->Forward(x_buf, train);
+            m_affine->Clear();
+            if ( m_bn_enable ) {
+                x_buf = m_batch_norm->Forward(x_buf, train);
+                m_batch_norm->ClearBuffer();
+            }
+            if ( m_act_enable ) {
+                x_buf = m_activation->Forward(x_buf, train);
+                m_activation->Clear();
+            }
         }
-        
-        if ( m_act_enable ) {
-            x_buf = m_activation->Forward(x_buf, train);
-            if (m_memory_saving || !train ) { m_activation->SetFrameBufferX(FrameBuffer()); }
+        else {
+            x_buf = m_affine->Forward(x_buf, train);
+            if ( m_bn_enable ) {
+                x_buf = m_batch_norm->Forward(x_buf, train);
+            }
+            if ( m_act_enable ) {
+                x_buf = m_activation->Forward(x_buf, train);
+            }        
         }
 
         return x_buf;
@@ -308,20 +355,20 @@ public:
     {
         if ( m_memory_saving && (m_bn_enable || m_act_enable) ) {
             // 再計算
-            FrameBuffer x_buf;
-            x_buf = m_affine->ReForward(m_affine->GetFrameBufferX());
+            FrameBuffer x_buf = this->PopFrameBuffer();
+            x_buf = m_affine->ReForward(x_buf);
             if ( m_bn_enable ) {
                 x_buf = m_batch_norm->ReForward(x_buf);
             }
             if ( m_act_enable ) {
-                m_activation->SetFrameBufferX(x_buf);
+                x_buf = m_activation->ReForward(x_buf);
             }
         }
 
         if ( m_act_enable ) { dy_buf = m_activation->Backward(dy_buf); }
         if ( m_bn_enable )  { dy_buf = m_batch_norm->Backward(dy_buf); }
         dy_buf = m_affine->Backward(dy_buf);
-        return dy_buf; 
+        return dy_buf;
     }
 
 protected:
@@ -378,9 +425,9 @@ protected:
         _super::LoadObjectData(is);
 
         // メンバ
+        bb::LoadValue(is, m_memory_saving);
         bb::LoadValue(is, m_bn_enable);
         bb::LoadValue(is, m_act_enable);
-        bb::LoadValue(is, m_memory_saving);
         m_affine->LoadObject(is);
         m_batch_norm->LoadObject(is);
         m_activation->LoadObject(is);

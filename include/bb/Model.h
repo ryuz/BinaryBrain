@@ -11,6 +11,7 @@
 
 #include <memory>
 #include <vector>
+#include <stack>
 #include <string>
 #include <sstream>
 #include <fstream>
@@ -46,8 +47,10 @@ public:
     std::string GetObjectName(void) const override { return GetModelName(); }
 
 protected:
-    std::string     m_name;
-    bool            m_parameter_lock = false;
+    std::string             m_name;
+    bool                    m_parameter_lock = false;
+
+    std::stack<FrameBuffer> m_bufs;
 
     /**
      * @brief  コマンドを処理
@@ -143,6 +146,18 @@ public:
      */
     virtual indices_t SetInputShape(indices_t shape) { return shape; }
 
+    /**
+     * @brief  backward演算(複数入出力対応)
+     * @detail backward演算を行う
+     *         分岐や合流演算を可能とするために汎用版を定義しておく
+     * @return backward演算結果
+     */
+    virtual std::vector<indices_t> SetInputShapeMulti(std::vector<indices_t> vshape)
+    {
+        BB_ASSERT(vshape.size() == 1);
+        auto shape = SetInputShape(vshape[0]);
+        return {shape};
+    }
 
     /**
      * @brief  入力形状取得
@@ -152,11 +167,22 @@ public:
     virtual indices_t GetInputShape(void) const = 0;
 
     /**
+     * @brief  入力形状取得(複数入出力対応)
+     * @detail 入力形状を取得する
+     * @return 入力形状を返す
+     */
+    virtual std::vector<indices_t> GetInputShapeMulti(void) const
+    {
+        auto shape = GetInputShape();
+        return {shape};
+    }
+
+    /**
      * @brief  入力ノード数取得
      * @detail 入力ノード数取得
      * @return 入力ノード数を返す
      */
-    index_t GetInputNodeSize(void) const
+    virtual index_t GetInputNodeSize(void) const
     {
         return CalcShapeSize(GetInputShape());
     }
@@ -167,7 +193,18 @@ public:
      * @return 出力形状を返す
      */
     virtual indices_t GetOutputShape(void) const = 0;
-    
+
+    /**
+     * @brief  出力形状取得(複数入出力対応)
+     * @detail 出力形状を取得する
+     * @return 出力形状を返す
+     */
+    virtual std::vector<indices_t> GetOutputShapeMulti(void) const
+    {
+        auto shape = GetOutputShape();
+        return {shape};
+    }
+
     /**
      * @brief  出力ノード数取得
      * @detail 出力ノード数取得
@@ -199,6 +236,7 @@ protected:
         }
         os << std::endl;
     }
+
 
 public:
     /**
@@ -266,6 +304,17 @@ public:
     virtual FrameBuffer Forward(FrameBuffer x_buf, bool train=true) = 0;
 
    /**
+     * @brief  forward再演算
+     * @detail forwardの再演算を行う
+     * @param  x_buf 入力データ
+     * @return forward演算結果
+     */
+    virtual FrameBuffer ReForward(FrameBuffer x_buf)
+    {
+        return Forward(x_buf, true);
+    }
+
+   /**
      * @brief  forward演算(複数入力対応)
      * @detail forward演算を行う
      *         分岐や合流演算を可能とするために汎用版を定義しておく
@@ -278,17 +327,6 @@ public:
         return {y};
     }
 
-    virtual FrameBuffer ReForward(FrameBuffer x_buf)
-    {
-        return Forward(x_buf, false);
-    }
-
-    virtual void        SetFrameBufferX(FrameBuffer x_buf) {}
-    virtual FrameBuffer GetFrameBufferX(void) { return FrameBuffer(); }
-    
-
-
-    
 
    /**
      * @brief  backward演算
@@ -313,6 +351,42 @@ public:
     }
     
     
+public:
+   /**
+     * @brief  内部保留データをクリアする
+     * @detail 内部保留データをクリアする
+     * 
+     * Backwardの為に内部にforward時のデータを保持していた場合はクリアする
+     * ReFoward による再計算前提にメモリ削減する場合や、中断時の復帰などで利用する想定
+     */
+    virtual void Clear(void)
+    {
+        while ( !m_bufs.empty() ) {
+            m_bufs.pop();
+        }
+    }
+
+// protected:
+public:
+    virtual FrameBuffer& TopFrameBuffer(void)
+    {
+        BB_ASSERT(!m_bufs.empty());
+        return m_bufs.top();
+    }
+
+    virtual void PushFrameBuffer(FrameBuffer buf)
+    {
+        m_bufs.push(buf);
+    }
+
+    virtual FrameBuffer PopFrameBuffer(void)
+    {
+        BB_ASSERT(!m_bufs.empty());
+        FrameBuffer x_buf = m_bufs.top();
+        m_bufs.pop();
+        return x_buf;
+    }
+
 
 protected:
     void DumpObjectData(std::ostream &os) const

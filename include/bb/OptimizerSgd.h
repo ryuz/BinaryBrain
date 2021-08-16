@@ -29,37 +29,36 @@ public:
     std::string GetObjectName(void) const override { return ObjectName(); }
 
 protected:
-    T               m_learning_rate;
+    T               m_learning_rate = (T)0.001;
     Variables       m_params;
     Variables       m_grads;
 
+
+public:
+    struct create_t
+    {
+        T learning_rate = (T)0.001;
+    };
+
 protected:
-    OptimizerSgd() {}
+    OptimizerSgd(create_t const &create)
+    {
+        m_learning_rate = create.learning_rate;
+    }
 
 public:
     ~OptimizerSgd() {}
 
-    struct create_t
-    {
-        T learning_rate = (T)0.01;
-    };
-
     static std::shared_ptr<OptimizerSgd> Create(create_t const &create) 
     {
-        auto self = std::shared_ptr<OptimizerSgd>(new OptimizerSgd);
-
-        self->m_learning_rate = create.learning_rate;
-
-        return self;
+        return std::shared_ptr<OptimizerSgd>(new OptimizerSgd(create));
     }
-
+    
     static std::shared_ptr<OptimizerSgd> Create(T learning_rate=(T)0.01)
     {
-        auto self = std::shared_ptr<OptimizerSgd>(new OptimizerSgd);
-
-        self->m_learning_rate = learning_rate;
-
-        return self;
+        create_t create;
+        create.learning_rate = learning_rate;
+        return Create(create);
     }
 
     void SetVariables(Variables params, Variables grads) override
@@ -69,14 +68,23 @@ public:
         m_grads  = grads;
     }
     
-    void Update(void) override
+    void ZeroGrad(void) override
+    {
+        if ( m_grads.IsEmpty() ) {
+            return;
+        }
+
+        m_grads = 0;
+    }
+
+    void Step(void) override
     {
         if ( m_params.IsEmpty() ) {
             return;
         }
 
         m_params -= m_learning_rate * m_grads;
-        m_grads   = 0;
+//      m_grads   = 0;
     }
 
     // シリアライズ

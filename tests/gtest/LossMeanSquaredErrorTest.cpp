@@ -25,7 +25,7 @@ void testLossMeanSquaredError()
                 y[f][n] = dist(mt);
                 t[f][n] = dist(mt);
                 auto grad = y[f][n] - t[f][n]; 
-                dy[f][n] = grad / (T)frame_size;
+                dy[f][n] = 2 * grad / (T)(node_size * frame_size);
                 loss += grad*grad;
             }
         }

@@ -137,52 +137,52 @@ TEST(RealToBinaryTest, testRealToBinaryDepth)
         EXPECT_EQ(frame_size*frame_modulation_size, y_buf.GetFrameSize());
 
         // 0.1 --(x3)-> 0.3 --(x2)-> 0.6
-        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(0, {0, 0}));
-        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(1, {0, 0}));
-        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(0, {1, 0}));
-        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(1, {1, 0}));
-        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(0, {2, 0}));
-        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(1, {2, 0}));
+        EXPECT_FLOAT_EQ(BB_BINARY_HI, y_buf.GetFP32(0, {0, 0}));
+        EXPECT_FLOAT_EQ(BB_BINARY_LO, y_buf.GetFP32(1, {0, 0}));
+        EXPECT_FLOAT_EQ(BB_BINARY_LO, y_buf.GetFP32(0, {1, 0}));
+        EXPECT_FLOAT_EQ(BB_BINARY_LO, y_buf.GetFP32(1, {1, 0}));
+        EXPECT_FLOAT_EQ(BB_BINARY_LO, y_buf.GetFP32(0, {2, 0}));
+        EXPECT_FLOAT_EQ(BB_BINARY_LO, y_buf.GetFP32(1, {2, 0}));
 
         // 0.2 --(x3)-> 0.6 --(x2)-> 1.2
-        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(0, {0, 1}));
-        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(1, {0, 1}));
-        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(0, {1, 1}));
-        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(1, {1, 1}));
-        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(0, {2, 1}));
-        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(1, {2, 1}));
+        EXPECT_FLOAT_EQ(BB_BINARY_HI, y_buf.GetFP32(0, {0, 1}));
+        EXPECT_FLOAT_EQ(BB_BINARY_LO, y_buf.GetFP32(1, {0, 1}));
+        EXPECT_FLOAT_EQ(BB_BINARY_LO, y_buf.GetFP32(0, {1, 1}));
+        EXPECT_FLOAT_EQ(BB_BINARY_LO, y_buf.GetFP32(1, {1, 1}));
+        EXPECT_FLOAT_EQ(BB_BINARY_LO, y_buf.GetFP32(0, {2, 1}));
+        EXPECT_FLOAT_EQ(BB_BINARY_LO, y_buf.GetFP32(1, {2, 1}));
 
         // 0.5 --(x3)-> 1.5 --(x2)-> 3.0
-        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(0, {0, 2}));
-        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(1, {0, 2}));
-        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(0, {1, 2}));
-        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(1, {1, 2}));
-        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(0, {2, 2}));
-        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(1, {2, 2}));
+        EXPECT_FLOAT_EQ(BB_BINARY_HI, y_buf.GetFP32(0, {0, 2}));
+        EXPECT_FLOAT_EQ(BB_BINARY_HI, y_buf.GetFP32(1, {0, 2}));
+        EXPECT_FLOAT_EQ(BB_BINARY_HI, y_buf.GetFP32(0, {1, 2}));
+        EXPECT_FLOAT_EQ(BB_BINARY_LO, y_buf.GetFP32(1, {1, 2}));
+        EXPECT_FLOAT_EQ(BB_BINARY_LO, y_buf.GetFP32(0, {2, 2}));
+        EXPECT_FLOAT_EQ(BB_BINARY_LO, y_buf.GetFP32(1, {2, 2}));
 
         // 1.0
-        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(0, {3, 0}));
-        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(1, {3, 0}));
-        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(0, {4, 0}));
-        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(1, {4, 0}));
-        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(0, {5, 0}));
-        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(1, {5, 0}));
+        EXPECT_FLOAT_EQ(BB_BINARY_HI, y_buf.GetFP32(0, {3, 0}));
+        EXPECT_FLOAT_EQ(BB_BINARY_HI, y_buf.GetFP32(1, {3, 0}));
+        EXPECT_FLOAT_EQ(BB_BINARY_HI, y_buf.GetFP32(0, {4, 0}));
+        EXPECT_FLOAT_EQ(BB_BINARY_HI, y_buf.GetFP32(1, {4, 0}));
+        EXPECT_FLOAT_EQ(BB_BINARY_HI, y_buf.GetFP32(0, {5, 0}));
+        EXPECT_FLOAT_EQ(BB_BINARY_HI, y_buf.GetFP32(1, {5, 0}));
 
         // 0.0
-        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(0, {3, 1}));
-        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(1, {3, 1}));
-        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(0, {4, 1}));
-        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(1, {4, 1}));
-        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(0, {5, 1}));
-        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(1, {5, 1}));
+        EXPECT_FLOAT_EQ(BB_BINARY_LO, y_buf.GetFP32(0, {3, 1}));
+        EXPECT_FLOAT_EQ(BB_BINARY_LO, y_buf.GetFP32(1, {3, 1}));
+        EXPECT_FLOAT_EQ(BB_BINARY_LO, y_buf.GetFP32(0, {4, 1}));
+        EXPECT_FLOAT_EQ(BB_BINARY_LO, y_buf.GetFP32(1, {4, 1}));
+        EXPECT_FLOAT_EQ(BB_BINARY_LO, y_buf.GetFP32(0, {5, 1}));
+        EXPECT_FLOAT_EQ(BB_BINARY_LO, y_buf.GetFP32(1, {5, 1}));
 
         // 0.9
-        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(0, {3, 2}));
-        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(1, {3, 2}));
-        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(0, {4, 2}));
-        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(1, {4, 2}));
-        EXPECT_FLOAT_EQ(1.0f, y_buf.GetFP32(0, {5, 2}));
-        EXPECT_FLOAT_EQ(0.0f, y_buf.GetFP32(1, {5, 2}));
+        EXPECT_FLOAT_EQ(BB_BINARY_HI, y_buf.GetFP32(0, {3, 2}));
+        EXPECT_FLOAT_EQ(BB_BINARY_HI, y_buf.GetFP32(1, {3, 2}));
+        EXPECT_FLOAT_EQ(BB_BINARY_HI, y_buf.GetFP32(0, {4, 2}));
+        EXPECT_FLOAT_EQ(BB_BINARY_HI, y_buf.GetFP32(1, {4, 2}));
+        EXPECT_FLOAT_EQ(BB_BINARY_HI, y_buf.GetFP32(0, {5, 2}));
+        EXPECT_FLOAT_EQ(BB_BINARY_LO, y_buf.GetFP32(1, {5, 2}));
     }
 }
 

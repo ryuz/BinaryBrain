@@ -11,8 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="AccuracyCategoricalClassification.cu" />
-    <CudaCompile Include="Adam.cu" />
     <CudaCompile Include="BatchNormalization.cu" />
     <CudaCompile Include="Binarize.cu" />
     <CudaCompile Include="BinaryLut6.cu" />
@@ -33,7 +31,9 @@
     <CudaCompile Include="MatrixColwiseSum.cu" />
     <CudaCompile Include="MatrixRowwiseSetVector.cu" />
     <CudaCompile Include="MaxPooling.cu" />
+    <CudaCompile Include="MetricsCategoricalAccuracy.cu" />
     <CudaCompile Include="MicroMlp.cu" />
+    <CudaCompile Include="OptimizerAdam.cu" />
     <CudaCompile Include="RealToBinary.cu" />
     <CudaCompile Include="ReLU.cu" />
     <CudaCompile Include="Shuffle.cu" />
@@ -43,6 +43,7 @@
     <CudaCompile Include="StochasticLut.cu" />
     <CudaCompile Include="StochasticMaxPooling.cu" />
     <CudaCompile Include="UpSampling.cu" />
+    <CudaCompile Include="Utility.cu" />
     <CudaCompile Include="Vector.cu" />
   </ItemGroup>
   <ItemGroup>

@@ -1623,3 +1623,217 @@ TEST(TensorTest, testTensorX_Operator)
 }
 
 
+
+TEST(TensorTest, testTensor_Nan)
+{
+    const int L = 4099;
+    const int M = 4;
+    const int N = 5;
+    bb::Tensor_<float> t({L, M, N});
+
+    {
+        auto ptr = t.Lock();
+        for ( int i = 0; i < L; ++i ) {
+            for ( int j = 0; j < M; ++j ) {
+                for ( int k = 0; k < N; ++k ) {
+                    ptr(i, j, k) = (float)(i+j+k);
+                }
+            }
+        }
+    }
+    bool result0 = t.IsNan();
+    EXPECT_EQ(false, result0);
+    
+    {
+        auto ptr = t.Lock();
+        ptr(2, 3, 2) = std::numeric_limits<float>::quiet_NaN();
+    }
+
+    bool result1 = t.IsNan();
+    EXPECT_EQ(true, result1);
+
+
+    if (0){
+        auto ptr = t.Lock();
+        for ( int i = 0; i < L; ++i ) {
+            for ( int j = 0; j < M; ++j ) {
+                for ( int k = 0; k < N; ++k ) {
+                    std::cout << ptr(i, j, k) << " ";
+                }
+            }
+            std::cout << std::endl;
+        }
+    }
+}
+
+
+template<typename T>
+void TensorTest_MinMax_Value(T val)
+{
+    const int L = 143;
+    const int M = 4;
+    const int N = 5;
+    bb::Tensor_<T> t({L, M, N});
+
+    // 特定の値で埋めてその値になるかチェック
+    {
+        auto ptr = t.Lock();
+        for ( int i = 0; i < L; ++i ) {
+            for ( int j = 0; j < M; ++j ) {
+                for ( int k = 0; k < N; ++k ) {
+                    ptr(i, j, k) = val;
+                }
+            }
+        }
+    }
+    EXPECT_EQ(t.Min(), val);
+    EXPECT_EQ(t.Max(), val);
+}
+
+
+template<typename T>
+void TensorTest_MinMax_Rand(int a, int b, T min_val, T max_val)
+{
+    const int L = 77;
+    const int M = 4;
+    const int N = 5;
+    bb::Tensor_<T> t({L, M, N});
+
+    std::default_random_engine rnd(1);
+    std::uniform_int_distribution<int> dist(a, b);
+
+    {
+        auto ptr = t.Lock();
+        for ( int i = 0; i < L; ++i ) {
+            for ( int j = 0; j < M; ++j ) {
+                for ( int k = 0; k < N; ++k ) {
+                    ptr(i, j, k) = (T)dist(rnd);
+                }
+            }
+        }
+        ptr(67, 1, 3) = min_val;
+        ptr( 2, 3, 2) = max_val;
+    }
+    EXPECT_EQ(t.Min(), min_val);
+    EXPECT_EQ(t.Max(), max_val);
+}
+
+
+template<typename T>
+void TensorTest_MinMaxS(void)
+{
+    TensorTest_MinMax_Value<T>(0);
+    TensorTest_MinMax_Value<T>(std::numeric_limits<T>::lowest());
+    TensorTest_MinMax_Value<T>(std::numeric_limits<T>::max());
+
+    TensorTest_MinMax_Rand<T>(-10, +10, (T)-88, (T)+99);
+    TensorTest_MinMax_Rand<T>(-10, +10, std::numeric_limits<T>::lowest(), (T)std::numeric_limits<T>::max());
+}
+
+template<typename T>
+void TensorTest_MinMaxU(void)
+{
+    TensorTest_MinMax_Value<T>(0);
+    TensorTest_MinMax_Value<T>(std::numeric_limits<T>::lowest());
+    TensorTest_MinMax_Value<T>(std::numeric_limits<T>::max());
+
+    TensorTest_MinMax_Rand<T>(+10, +20, (T)+5, (T)+99);
+    TensorTest_MinMax_Rand<T>(+10, +20, 0, (T)std::numeric_limits<T>::max());
+    TensorTest_MinMax_Rand<T>(+10, +20, std::numeric_limits<T>::lowest(), (T)std::numeric_limits<T>::max());
+}
+
+
+
+TEST(TensorTest, testTensor_MinMax)
+{
+    TensorTest_MinMaxS<double>();
+    TensorTest_MinMaxS<float>();
+    TensorTest_MinMaxS<std::int64_t>();
+    TensorTest_MinMaxS<std::int32_t>();
+    TensorTest_MinMaxS<std::int16_t>();
+    TensorTest_MinMaxS<std::int8_t>();
+
+    TensorTest_MinMaxU<std::uint64_t>();
+    TensorTest_MinMaxU<std::uint32_t>();
+    TensorTest_MinMaxU<std::uint16_t>();
+    TensorTest_MinMaxU<std::uint8_t>();
+}
+
+
+
+
+
+#if 0
+
+
+TEST(TensorTest, testTensor_MinMax2)
+{
+    const int L = 4099;
+    const int M = 4;
+    const int N = 5;
+    bb::Tensor_<float> t({L, M, N});
+
+    {
+        auto ptr = t.Lock();
+        for ( int i = 0; i < L; ++i ) {
+            for ( int j = 0; j < M; ++j ) {
+                for ( int k = 0; k < N; ++k ) {
+                    ptr(i, j, k) = (float)(i+j+k);
+                }
+            }
+        }
+        ptr(2, 3, 2)   = +999999;
+        ptr(L-1, 3, 2) = -888888;
+    }
+
+    float val0 = t.Min();
+    float val1 = t.Max();
+    EXPECT_EQ(val0, -888888);
+    EXPECT_EQ(val1, +999999);
+}
+
+
+TEST(TensorTest, testTensor_MinMax3)
+{
+    const int L = 13;
+    const int M = 4;
+    const int N = 5;
+    bb::Tensor_<float> t({L, M, N});
+
+    {
+        auto ptr = t.Lock();
+        for ( int i = 0; i < L; ++i ) {
+            for ( int j = 0; j < M; ++j ) {
+                for ( int k = 0; k < N; ++k ) {
+                    ptr(i, j, k) = (float)-999;
+                }
+            }
+        }
+    }
+    {
+        float val0 = t.Min();
+        float val1 = t.Max();
+        EXPECT_EQ(val0, -999);
+        EXPECT_EQ(val1, -999);
+    }
+
+
+    {
+        auto ptr = t.Lock();
+        for ( int i = 0; i < L; ++i ) {
+            for ( int j = 0; j < M; ++j ) {
+                for ( int k = 0; k < N; ++k ) {
+                    ptr(i, j, k) = (float)+999;
+                }
+            }
+        }
+    }
+    {
+        float val0 = t.Min();
+        float val1 = t.Max();
+        EXPECT_EQ(val0, +999);
+        EXPECT_EQ(val1, +999);
+    }
+}
+
+#endif

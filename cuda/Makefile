@@ -46,10 +46,11 @@ SRCS += ReLU.cu
 SRCS += Sigmoid.cu
 SRCS += Binarize.cu
 SRCS += HardTanh.cu
-SRCS += Adam.cu
+SRCS += OptimizerAdam.cu
 SRCS += LossSoftmaxCrossEntropy.cu
 SRCS += LossMeanSquaredError.cu
-SRCS += AccuracyCategoricalClassification.cu
+SRCS += MetricsCategoricalAccuracy.cu
+SRCS += Utility.cu
 
 HDRS  = ../include/bbcu/bbcu.h
 HDRS += ../include/bbcu/bbcu_util.h

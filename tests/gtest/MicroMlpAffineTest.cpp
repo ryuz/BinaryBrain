@@ -548,7 +548,8 @@ TEST(MicroMlpAffineTest, testMicroMlpAffineCmp)
                 }
 
                 for (int j = 0; j < M; j++) {
-                    EXPECT_FLOAT_EQ(p1_W1(i, j), p2_W1(i, j));
+//                  EXPECT_FLOAT_EQ(p1_W1(i, j), p2_W1(i, j));
+                    EXPECT_NEAR(p1_W1(i, j), p2_W1(i, j), (std::abs(p2_W1(i, j))+1.0e-7)*1.0e-5);
                 }
 
                 EXPECT_FLOAT_EQ(p1_b1(i), p2_b1(i));
@@ -679,7 +680,7 @@ TEST(MicroMlpAffineTest, testMicroMlpAffine_CmpBit)
 
         for (int i = 0; i < frame_size; i++) {
             for (int j = 0; j < input_node_size; j++) {
-                int val = mt() % 2;
+                int val = (mt() % 2) ? BB_BINARY_HI : BB_BINARY_LO;
                 x_buf1.SetFP32(i, j, (float)val);
                 x_buf2.SetBit(i, j, (bb::Bit)val);
             }

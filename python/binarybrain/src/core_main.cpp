@@ -42,6 +42,7 @@
 #include "bb/Sequential.h"
 #include "bb/DenseAffine.h"
 #include "bb/DepthwiseDenseAffine.h"
+#include "bb/BinaryDenseAffine.h"
 #include "bb/DifferentiableLutN.h"
 #include "bb/DifferentiableLutDiscreteN.h"
 #include "bb/MicroMlp.h"
@@ -63,6 +64,7 @@
 #include "bb/StochasticBatchNormalization.h"
 #include "bb/Dropout.h"
 #include "bb/Shuffle.h"
+#include "bb/Concatenate.h"
 
 #include "bb/LossFunction.h"
 #include "bb/LossMeanSquaredError.h"
@@ -131,6 +133,8 @@ using Reduce_bit_fp32                        = bb::Reduce<bb::Bit, float>;
 
 using DenseAffine_fp32                       = bb::DenseAffine<float>;
 using DepthwiseDenseAffine_fp32              = bb::DepthwiseDenseAffine<float>;
+using BinaryDenseAffine_fp32_fp32            = bb::BinaryDenseAffine<float, float>;
+using BinaryDenseAffine_bit_fp32             = bb::BinaryDenseAffine<bb::Bit, float>;
                                              
 using SparseModel                            = bb::SparseModel;
                                              
@@ -234,7 +238,8 @@ using StochasticBatchNormalization_fp32      = bb::StochasticBatchNormalization<
 using Dropout_fp32_fp32                      = bb::Dropout<float, float>;
 using Dropout_bit_fp32                       = bb::Dropout<bb::Bit, float>;
 using Shuffle                                = bb::Shuffle;
-                                        
+using Concatenate                            = bb::Concatenate;
+
 using LossFunction                           = bb::LossFunction;
 using LossMeanSquaredError_fp32              = bb::LossMeanSquaredError<float>;
 using LossCrossEntropy_fp32                  = bb::LossCrossEntropy<float>;
@@ -384,8 +389,6 @@ std::string MakeVerilog_LutConvLayers(std::string module_name, std::vector< std:
 
 
 
-
-
 //////////////////////////////////////]
 // PyBind11 module
 //////////////////////////////////////]
@@ -468,6 +471,21 @@ PYBIND11_MODULE(core, m) {
         .def("is_host_only", &Tensor::IsHostOnly)
         .def("get_type", &Tensor::GetType)
         .def("get_shape", &Tensor::GetShape)
+        .def("fill_zero", &Tensor::FillZero)
+        .def("fill",  &Tensor::Fill)
+        .def("clamp_inplace", &Tensor::Clamp_inplace)
+        .def("sqrt_inplace",  &Tensor::Sqrt_inplace)
+        .def("exp_inplace",   &Tensor::Exp_inplace)
+        .def("clamp", &Tensor::Clamp)
+        .def("sqrt",  &Tensor::Sqrt)
+        .def("exp",   &Tensor::Exp)
+        .def("sum",   &Tensor::Sum)
+        .def("mean",   &Tensor::Mean)
+        .def("var",   &Tensor::Var)
+        .def("std",   &Tensor::Std)
+        .def("isnan", &Tensor::IsNan)
+        .def("min",   &Tensor::Min)
+        .def("max",   &Tensor::Max)
         .def(py::self + py::self)
         .def(py::self + double())
         .def(double() + py::self)
@@ -488,6 +506,16 @@ PYBIND11_MODULE(core, m) {
         .def(py::self *= double())
         .def(py::self /= py::self)
         .def(py::self /= double())
+        .def("set_numpy_int8",   &Tensor::SetNumpy<std::int8_t>)
+        .def("set_numpy_int16",  &Tensor::SetNumpy<std::int16_t>)
+        .def("set_numpy_int32",  &Tensor::SetNumpy<std::int32_t>)
+        .def("set_numpy_int64",  &Tensor::SetNumpy<std::int64_t>)
+        .def("set_numpy_uint8",  &Tensor::SetNumpy<std::int8_t>)
+        .def("set_numpy_uint16", &Tensor::SetNumpy<std::uint16_t>)
+        .def("set_numpy_uint32", &Tensor::SetNumpy<std::uint32_t>)
+        .def("set_numpy_uint64", &Tensor::SetNumpy<std::uint64_t>)
+        .def("set_numpy_fp32",   &Tensor::SetNumpy<float>)
+        .def("set_numpy_fp64",   &Tensor::SetNumpy<double>)
         .def("numpy_int8",   &Tensor::Numpy<std::int8_t>)
         .def("numpy_int16",  &Tensor::Numpy<std::int16_t>)
         .def("numpy_int32",  &Tensor::Numpy<std::int32_t>)
@@ -524,6 +552,7 @@ PYBIND11_MODULE(core, m) {
                 py::arg("shape"),
                 py::arg("data_type") = BB_TYPE_FP32)
         .def("is_host_only", &FrameBuffer::IsHostOnly)
+        .def("astype", &FrameBuffer::ConvertTo)
         .def("get_type", &FrameBuffer::GetType)
         .def("get_frame_size", &FrameBuffer::GetFrameSize)
         .def("get_frame_stride", &FrameBuffer::GetFrameStride)
@@ -531,6 +560,21 @@ PYBIND11_MODULE(core, m) {
         .def("get_node_shape", &FrameBuffer::GetShape)
         .def("range", &FrameBuffer::Range)
         .def("concatenate", &FrameBuffer::Concatenate)
+        .def("fill_zero", &FrameBuffer::FillZero)
+        .def("fill", &FrameBuffer::Fill)
+//        .def("clamp_inplace", &FrameBuffer::Clamp_inplace)
+//        .def("sqrt_inplace",  &FrameBuffer::Sqrt_inplace)
+//        .def("exp_inplace",   &FrameBuffer::Exp_inplace)
+//        .def("clamp", &FrameBuffer::Clamp)
+        .def("sqrt",  &FrameBuffer::Sqrt)
+        .def("exp",   &FrameBuffer::Exp)
+        .def("sum",   &FrameBuffer::Sum)
+//        .def("mean",  &FrameBuffer::Mean)
+//        .def("var",   &FrameBuffer::Var)
+//        .def("std",   &FrameBuffer::Std)
+        .def("isnan", &FrameBuffer::IsNan)
+        .def("min",   &FrameBuffer::Min)
+        .def("max",   &FrameBuffer::Max)
         .def(py::self + py::self)
         .def(py::self + double())
         .def(double() + py::self)
@@ -606,6 +650,7 @@ PYBIND11_MODULE(core, m) {
                 py::arg("send_to") = "all")
         .def("get_input_shape", &Model::GetInputShape)
         .def("set_input_shape", &Model::SetInputShape)
+        .def("set_input_shape_multi", &Model::SetInputShapeMulti)
         .def("get_output_shape", &Model::GetOutputShape)
         .def("get_input_node_size", &Model::GetInputNodeSize)
         .def("get_output_node_size", &Model::GetOutputNodeSize)
@@ -613,13 +658,20 @@ PYBIND11_MODULE(core, m) {
         .def("get_gradients", &Model::GetGradients)
         .def("forward_node",  &Model::ForwardNode)
         .def("forward",  &Model::Forward)
+        .def("forward_multi", &Model::ForwardMulti)
         .def("backward", &Model::Backward)
+        .def("backward_multi", &Model::BackwardMulti)
+        .def("clear", &Model::Clear)
         .def("dump", &Model::DumpBytes)
         .def("load", &Model::LoadBytes)
         .def("save_binary", &Model::SaveBinary)
         .def("load_binary", &Model::LoadBinary)
         .def("save_json", &Model::SaveJson)
-        .def("load_json", &Model::LoadJson);
+        .def("load_json", &Model::LoadJson)
+        .def("top",  &Model::TopFrameBuffer)
+        .def("push", &Model::PushFrameBuffer)
+        .def("pop",  &Model::PopFrameBuffer)
+        ;
     
 
     PYCLASS_MODEL(Sequential, Model)
@@ -636,6 +688,9 @@ PYBIND11_MODULE(core, m) {
 
     PYCLASS_MODEL(Shuffle, Model)
         .def_static("create",   &Shuffle::CreatePy);
+
+    PYCLASS_MODEL(Concatenate, Model)
+        .def_static("create",   &Concatenate::Create);
     
     PYCLASS_MODEL(BinaryModulation_fp32_fp32, Model)
         .def_static("create", &BinaryModulation_fp32_fp32::CreatePy,
@@ -710,7 +765,7 @@ PYBIND11_MODULE(core, m) {
         .def_static("create",   &DenseAffine_fp32::CreatePy, "create",
             py::arg("output_shape"),
             py::arg("initialize_std") = 0.01f,
-            py::arg("initializer")    = "he",
+            py::arg("initializer")    = "",
             py::arg("seed")           = 1)
         .def("W", ((Tensor& (DenseAffine_fp32::*)())&DenseAffine_fp32::W))
         .def("b", ((Tensor& (DenseAffine_fp32::*)())&DenseAffine_fp32::b))
@@ -725,13 +780,80 @@ PYBIND11_MODULE(core, m) {
             py::arg("input_point_size")=0,
             py::arg("depth_size")=0,
             py::arg("initialize_std")= 0.01f,
-            py::arg("initializer")="he",
+            py::arg("initializer")="",
             py::arg("seed")= 1)
         .def("W", ((Tensor& (DepthwiseDenseAffine_fp32::*)())&DepthwiseDenseAffine_fp32::W))
         .def("b", ((Tensor& (DepthwiseDenseAffine_fp32::*)())&DepthwiseDenseAffine_fp32::b))
         .def("dW", ((Tensor& (DepthwiseDenseAffine_fp32::*)())&DepthwiseDenseAffine_fp32::dW))
         .def("db", ((Tensor& (DepthwiseDenseAffine_fp32::*)())&DepthwiseDenseAffine_fp32::db));
+    
+    
+    // BinaryDenseAffine
+    PYCLASS_MODEL(BinaryDenseAffine_fp32_fp32, Model)
+        .def_static("create",   &BinaryDenseAffine_fp32_fp32::CreatePy, "create",
+            py::arg("output_shape"),
+            py::arg("batch_norm")     = true,
+            py::arg("activation")     = true,
+            py::arg("initialize_std") = 0.01f,
+            py::arg("initializer")    = "",
+            py::arg("momentum")       = 0.9f,
+            py::arg("gamma")          = 1.0f,
+            py::arg("beta")           = 0.0f,
+            py::arg("fix_gamma")      = false,
+            py::arg("fix_beta")       = false,
+            py::arg("binary_th")      = 0.0f,
+            py::arg("binary_low")     = -1.0,
+            py::arg("binary_high")    = +1.0,
+            py::arg("hardtanh_min")   = -1.0f,
+            py::arg("hardtanh_max")   = +1.0f,
+            py::arg("seed")           = 1,
+            py::arg("memory_saving")  = true)
+        .def("W", ((Tensor& (BinaryDenseAffine_fp32_fp32::*)())&BinaryDenseAffine_fp32_fp32::W))
+        .def("b", ((Tensor& (BinaryDenseAffine_fp32_fp32::*)())&BinaryDenseAffine_fp32_fp32::b))
+        .def("dW", ((Tensor& (BinaryDenseAffine_fp32_fp32::*)())&BinaryDenseAffine_fp32_fp32::dW))
+        .def("db", ((Tensor& (BinaryDenseAffine_fp32_fp32::*)())&BinaryDenseAffine_fp32_fp32::db))
+        .def("gamma",        ((Tensor& (BinaryDenseAffine_fp32_fp32::*)())&BinaryDenseAffine_fp32_fp32::gamma))
+        .def("beta",         ((Tensor& (BinaryDenseAffine_fp32_fp32::*)())&BinaryDenseAffine_fp32_fp32::beta))
+        .def("dgamma",       ((Tensor& (BinaryDenseAffine_fp32_fp32::*)())&BinaryDenseAffine_fp32_fp32::dgamma))
+        .def("dbeta",        ((Tensor& (BinaryDenseAffine_fp32_fp32::*)())&BinaryDenseAffine_fp32_fp32::dbeta))
+        .def("mean",         &BinaryDenseAffine_fp32_fp32::mean)
+        .def("rstd",         &BinaryDenseAffine_fp32_fp32::rstd)
+        .def("running_mean", &BinaryDenseAffine_fp32_fp32::running_mean)
+        .def("running_var",  &BinaryDenseAffine_fp32_fp32::running_var)        
+        ;
 
+    PYCLASS_MODEL(BinaryDenseAffine_bit_fp32, Model)
+        .def_static("create",   &BinaryDenseAffine_bit_fp32::CreatePy, "create",
+            py::arg("output_shape"),
+            py::arg("batch_norm")     = true,
+            py::arg("activation")     = true,
+            py::arg("initialize_std") = 0.01f,
+            py::arg("initializer")    = "",
+            py::arg("momentum")       = 0.9f,
+            py::arg("gamma")          = 1.0f,
+            py::arg("beta")           = 0.0f,
+            py::arg("fix_gamma")      = false,
+            py::arg("fix_beta")       = false,
+            py::arg("binary_th")      = 0.0f,
+            py::arg("binary_low")     = -1.0,
+            py::arg("binary_high")    = +1.0,
+            py::arg("hardtanh_min")   = -1.0f,
+            py::arg("hardtanh_max")   = +1.0f,
+            py::arg("seed")           = 1,
+            py::arg("memory_saving")  = true)
+        .def("W", ((Tensor& (BinaryDenseAffine_bit_fp32::*)())&BinaryDenseAffine_bit_fp32::W))
+        .def("b", ((Tensor& (BinaryDenseAffine_bit_fp32::*)())&BinaryDenseAffine_bit_fp32::b))
+        .def("dW", ((Tensor& (BinaryDenseAffine_bit_fp32::*)())&BinaryDenseAffine_bit_fp32::dW))
+        .def("db", ((Tensor& (BinaryDenseAffine_bit_fp32::*)())&BinaryDenseAffine_bit_fp32::db))
+        .def("gamma",        ((Tensor& (BinaryDenseAffine_bit_fp32::*)())&BinaryDenseAffine_bit_fp32::gamma))
+        .def("beta",         ((Tensor& (BinaryDenseAffine_bit_fp32::*)())&BinaryDenseAffine_bit_fp32::beta))
+        .def("dgamma",       ((Tensor& (BinaryDenseAffine_bit_fp32::*)())&BinaryDenseAffine_bit_fp32::dgamma))
+        .def("dbeta",        ((Tensor& (BinaryDenseAffine_bit_fp32::*)())&BinaryDenseAffine_bit_fp32::dbeta))
+        .def("mean",         &BinaryDenseAffine_bit_fp32::mean)
+        .def("rstd",         &BinaryDenseAffine_bit_fp32::rstd)
+        .def("running_mean", &BinaryDenseAffine_bit_fp32::running_mean)
+        .def("running_var",  &BinaryDenseAffine_bit_fp32::running_var)        
+        ;
 
     // SparseModel
     PYCLASS_MODEL(SparseModel, Model)
@@ -947,12 +1069,16 @@ PYBIND11_MODULE(core, m) {
 
     PYCLASS_MODEL(Binarize_fp32_fp32, Activation)
         .def_static("create", &Binarize_fp32_fp32::CreatePy,
-                py::arg("binary_th")    =  0.0f,
+                py::arg("binary_th")    = 0.0f,
+                py::arg("binary_low")   = -1.0,
+                py::arg("binary_high")  = +1.0,
                 py::arg("hardtanh_min") = -1.0f,
                 py::arg("hardtanh_max") = +1.0f);    
     PYCLASS_MODEL(Binarize_bit_fp32, Activation)
         .def_static("create", &Binarize_bit_fp32::CreatePy,
                 py::arg("binary_th")    =  0.0f,
+                py::arg("binary_low")   = -1.0,
+                py::arg("binary_high")  = +1.0,
                 py::arg("hardtanh_min") = -1.0f,
                 py::arg("hardtanh_max") = +1.0f);
 
@@ -989,7 +1115,17 @@ PYBIND11_MODULE(core, m) {
                 py::arg("gamma")     = 1.0f,
                 py::arg("beta")      = 0.0f,
                 py::arg("fix_gamma") = false,
-                py::arg("fix_beta")  = false);
+                py::arg("fix_beta")  = false)
+        .def("gamma",        ((Tensor& (BatchNormalization_fp32::*)())&BatchNormalization_fp32::gamma))
+        .def("beta",         ((Tensor& (BatchNormalization_fp32::*)())&BatchNormalization_fp32::beta))
+        .def("dgamma",       ((Tensor& (BatchNormalization_fp32::*)())&BatchNormalization_fp32::dgamma))
+        .def("dbeta",        ((Tensor& (BatchNormalization_fp32::*)())&BatchNormalization_fp32::dbeta))
+        .def("mean",         &BatchNormalization_fp32::mean)
+        .def("rstd",         &BatchNormalization_fp32::rstd)
+        .def("running_mean", &BatchNormalization_fp32::running_mean)
+        .def("running_var",  &BatchNormalization_fp32::running_var)
+        ;
+
 
     PYCLASS_MODEL(StochasticBatchNormalization_fp32, Activation)
         .def_static("create", &StochasticBatchNormalization_fp32::CreatePy,
@@ -1014,7 +1150,8 @@ PYBIND11_MODULE(core, m) {
             py::arg("mini_batch_size"));
 
     PYCLASS_LOSS(LossMeanSquaredError_fp32, LossFunction)
-        .def_static("create", &LossMeanSquaredError_fp32::Create);
+        .def_static("create", &LossMeanSquaredError_fp32::CreatePy,
+            py::arg("reduction")="mean");
 
     PYCLASS_LOSS(LossCrossEntropy_fp32, LossFunction)
         .def_static("create", &LossCrossEntropy_fp32::Create);
@@ -1059,11 +1196,13 @@ PYBIND11_MODULE(core, m) {
 
     PYCLASS_OPTIMIZER(Optimizer, Object)
         .def("set_variables", &Optimizer::SetVariables)
+        .def("zero_grad",     &Optimizer::ZeroGrad)
+        .def("step",          &Optimizer::Step)
         .def("update",        &Optimizer::Update);
-  
+    
     PYCLASS_OPTIMIZER(OptimizerSgd_fp32, Optimizer)
         .def_static("create", (std::shared_ptr<OptimizerSgd_fp32> (*)(float))&OptimizerSgd_fp32::Create, "create",
-            py::arg("learning_rate") = 0.01f);
+            py::arg("learning_rate") = 0.001f);
     
     PYCLASS_OPTIMIZER(OptimizerAdaGrad_fp32, Optimizer)
         .def_static("Create", (std::shared_ptr<OptimizerAdaGrad_fp32> (*)(float))&OptimizerAdaGrad_fp32::Create,

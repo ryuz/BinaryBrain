@@ -203,6 +203,124 @@ TEST(Convolution2dTest, testConvolution2d_cmp_bit)
 }
 
 
+
+
+
+TEST(Convolution2dTest, testConvolution2d_stack)
+{
+    int frame_size = 17;
+    int ch_size = 32;
+
+    bb::FrameBuffer x0(frame_size, {ch_size, 32, 72}, BB_TYPE_BIT);
+    bb::FrameBuffer x1(frame_size, {ch_size, 16, 24}, BB_TYPE_BIT);
+    bb::FrameBuffer x2(frame_size, {ch_size,  8, 12}, BB_TYPE_BIT);
+    bb::FrameBuffer x3(frame_size, {ch_size, 33, 17}, BB_TYPE_BIT);
+
+    bb::FrameBuffer dy0(frame_size, {ch_size, 32-2, 72-2}, BB_TYPE_FP32);
+    bb::FrameBuffer dy1(frame_size, {ch_size, 16-2, 24-2}, BB_TYPE_FP32);
+    bb::FrameBuffer dy2(frame_size, {ch_size,  8-2, 12-2}, BB_TYPE_FP32);
+    bb::FrameBuffer dy3(frame_size, {ch_size, 33-2, 17-2}, BB_TYPE_FP32);
+
+    auto layer = bb::Sequential::Create();
+    layer->Add(bb::DifferentiableLutN<6, bb::Bit>::Create({ch_size, 1, 1}));
+    auto cnv = bb::Convolution2d<bb::Bit>::Create(layer, 3, 3);
+
+    cnv->SetInputShape(x0.GetShape());
+    auto y0 = cnv->Forward(x0);
+    auto y1 = cnv->Forward(x1);
+    auto y2 = cnv->Forward(x2);
+    auto y3 = cnv->Forward(x3);
+
+    auto dx3 = cnv->Backward(dy3);
+    auto dx2 = cnv->Backward(dy2);
+    auto dx1 = cnv->Backward(dy1);
+    auto dx0 = cnv->Backward(dy0);
+
+    EXPECT_EQ(y0.GetShape(), dy0.GetShape());
+    EXPECT_EQ(y1.GetShape(), dy1.GetShape());
+    EXPECT_EQ(y2.GetShape(), dy2.GetShape());
+    EXPECT_EQ(y3.GetShape(), dy3.GetShape());
+    EXPECT_EQ(dx0.GetShape(), x0.GetShape());
+    EXPECT_EQ(dx1.GetShape(), x1.GetShape());
+    EXPECT_EQ(dx2.GetShape(), x2.GetShape());
+    EXPECT_EQ(dx3.GetShape(), x3.GetShape());
+
+    EXPECT_EQ(y0.GetFrameSize(), frame_size);
+    EXPECT_EQ(y1.GetFrameSize(), frame_size);
+    EXPECT_EQ(y2.GetFrameSize(), frame_size);
+    EXPECT_EQ(y3.GetFrameSize(), frame_size);
+    EXPECT_EQ(dx0.GetFrameSize(), frame_size);
+    EXPECT_EQ(dx1.GetFrameSize(), frame_size);
+    EXPECT_EQ(dx2.GetFrameSize(), frame_size);
+    EXPECT_EQ(dx3.GetFrameSize(), frame_size);
+}
+
+
+
+
+TEST(Convolution2dTest, testConvolution2d_stack2)
+{
+    int frame_size = 17;
+    int ch_size = 7;
+
+    bb::FrameBuffer x0(frame_size, {ch_size, 32, 72}, BB_TYPE_BIT);
+    bb::FrameBuffer x1(frame_size, {ch_size, 16, 24}, BB_TYPE_BIT);
+    bb::FrameBuffer x2(frame_size, {ch_size,  8, 12}, BB_TYPE_BIT);
+    bb::FrameBuffer x3(frame_size, {ch_size, 33, 17}, BB_TYPE_BIT);
+
+    bb::FrameBuffer dy0(frame_size, {ch_size, 32-2, 72-2}, BB_TYPE_FP32);
+    bb::FrameBuffer dy1(frame_size, {ch_size, 16-2, 24-2}, BB_TYPE_FP32);
+    bb::FrameBuffer dy2(frame_size, {ch_size,  8-2, 12-2}, BB_TYPE_FP32);
+    bb::FrameBuffer dy3(frame_size, {ch_size, 33-2, 17-2}, BB_TYPE_FP32);
+
+    auto layer = bb::Sequential::Create();
+    layer->Add(bb::DenseAffine<>::Create({ch_size, 1, 1}));
+    layer->Add(bb::BatchNormalization<>::Create());
+    layer->Add(bb::ReLU<bb::Bit>::Create());
+    auto cnv = bb::Convolution2d<bb::Bit>::Create(layer, 3, 3);
+
+    cnv->SetInputShape(x0.GetShape());
+    auto y0 = cnv->Forward(x0);
+    auto y1 = cnv->Forward(x1);
+    auto y2 = cnv->Forward(x2);
+    auto y3 = cnv->Forward(x3);
+    EXPECT_EQ(y0.GetShape(), dy0.GetShape());
+    EXPECT_EQ(y1.GetShape(), dy1.GetShape());
+    EXPECT_EQ(y2.GetShape(), dy2.GetShape());
+    EXPECT_EQ(y3.GetShape(), dy3.GetShape());
+    EXPECT_EQ(y0.GetFrameSize(), frame_size);
+    EXPECT_EQ(y1.GetFrameSize(), frame_size);
+    EXPECT_EQ(y2.GetFrameSize(), frame_size);
+    EXPECT_EQ(y3.GetFrameSize(), frame_size);
+
+    auto dx3 = cnv->Backward(dy3);
+    auto dx2 = cnv->Backward(dy2);
+    auto dx1 = cnv->Backward(dy1);
+    auto dx0 = cnv->Backward(dy0);
+
+    EXPECT_EQ(dx0.GetShape(), x0.GetShape());
+    EXPECT_EQ(dx1.GetShape(), x1.GetShape());
+    EXPECT_EQ(dx2.GetShape(), x2.GetShape());
+    EXPECT_EQ(dx3.GetShape(), x3.GetShape());
+
+    EXPECT_EQ(dx0.GetFrameSize(), frame_size);
+    EXPECT_EQ(dx1.GetFrameSize(), frame_size);
+    EXPECT_EQ(dx2.GetFrameSize(), frame_size);
+    EXPECT_EQ(dx3.GetFrameSize(), frame_size);
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
 #if 0
 
 TEST(NeuralNetConvolution2dTest, testNeuralNetConvolution2d2)

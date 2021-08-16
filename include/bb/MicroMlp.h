@@ -243,6 +243,7 @@ public:
         return x_vec;
     }
 
+
    /**
      * @brief  forward演算
      * @detail forward演算を行う
@@ -252,12 +253,24 @@ public:
      */
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-        x_buf = m_affine    ->Forward(x_buf, train);
-        x_buf = m_batch_norm->Forward(x_buf, train);
-        if (m_memory_saving || !train ) { m_batch_norm->SetFrameBufferX(FrameBuffer()); }
-        x_buf = m_activation->Forward(x_buf, train);
-        if (m_memory_saving || !train ) { m_activation->SetFrameBufferX(FrameBuffer()); }
+        if (m_memory_saving && train) {
+            this->PushFrameBuffer(x_buf);
 
+            x_buf = m_affine->Forward(x_buf, train);
+            m_affine->Clear();
+
+            x_buf = m_batch_norm->Forward(x_buf, train);
+            m_batch_norm->Clear();
+
+            x_buf = m_activation->Forward(x_buf, train);
+            m_activation->Clear();
+        }
+        else {
+            x_buf = m_affine->Forward(x_buf, train);
+            x_buf = m_batch_norm->Forward(x_buf, train);
+            x_buf = m_activation->Forward(x_buf, train);
+        }
+        
         return x_buf;
     }
 
@@ -271,10 +284,11 @@ public:
     {
         if (m_memory_saving) {
             // 再計算
-            FrameBuffer x_buf;
-            x_buf = m_affine    ->ReForward(m_affine->GetFrameBufferX());
+            FrameBuffer x_buf = this->PopFrameBuffer();
+
+            x_buf = m_affine    ->ReForward(x_buf);
             x_buf = m_batch_norm->ReForward(x_buf);
-            m_activation->SetFrameBufferX(x_buf);
+                    m_activation->ReForward(x_buf);
         }
 
         dy_buf = m_activation->Backward(dy_buf);

@@ -47,9 +47,10 @@ protected:
     using Col2Im = ConvolutionCol2Im<FT, BT>;
 
     // 3層で構成
-    std::shared_ptr< Im2Col >    m_im2col;
-    std::shared_ptr< Model  >    m_layer;
-    std::shared_ptr< Col2Im >    m_col2im;
+    std::shared_ptr< Im2Col >   m_im2col;
+    std::shared_ptr< Model  >   m_layer;
+    std::shared_ptr< Col2Im >   m_col2im;
+    std::stack<indices_t>       m_input_shapes;
 
 public:
     struct create_t
@@ -199,6 +200,8 @@ public:
         return gradients;
     }  
 
+    
+public:
     /**
      * @brief  入力形状設定
      * @detail 入力形状を設定する
@@ -209,7 +212,7 @@ public:
      */
     indices_t SetInputShape(indices_t shape)
     {
-        // 設定済みなら何もしない
+        // 変化が無いなら何もしない
         if ( shape == this->GetInputShape() ) {
             return this->GetOutputShape();
         }
@@ -274,6 +277,12 @@ public:
      */
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
+        auto shape = x_buf.GetShape();
+        SetInputShape(shape);
+        if ( train ) {
+            m_input_shapes.push(shape);
+        }
+
         x_buf = m_im2col->Forward(x_buf, train);
         x_buf = m_layer->Forward(x_buf, train);
         x_buf = m_col2im->Forward(x_buf, train);
@@ -288,12 +297,37 @@ public:
      */
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
+        BB_ASSERT(!m_input_shapes.empty());
+        indices_t shape = m_input_shapes.top();
+        m_input_shapes.pop();
+        SetInputShape(shape);
+
         dy_buf = m_col2im->Backward(dy_buf);
         dy_buf = m_layer->Backward(dy_buf);
         dy_buf = m_im2col->Backward(dy_buf);
         return dy_buf; 
     }
-    
+
+
+   /**
+     * @brief  バッファをクリアする
+     * @detail バッファをクリアする
+     * 
+     * Backwardの為に内部にforward時のデータを保持していた場合はクリアする
+     */
+    virtual void Clear(void) override
+    {
+        _super::Clear();
+
+        while ( !m_input_shapes.empty() ) {
+            m_input_shapes.pop();
+        }
+
+        m_col2im->Clear();
+        m_layer ->Clear();
+        m_im2col->Clear();
+    }
+
 protected:
     /**
      * @brief  モデルの情報を表示

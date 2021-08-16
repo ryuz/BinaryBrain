@@ -199,7 +199,20 @@ public:
         }
         return dy; 
     }
-    
+
+    /**
+     * @brief  バッファをクリアする
+     * @detail バッファをクリアする
+     * 
+     * Backwardの為に内部にforward時のデータを保持していた場合はクリアする
+     */
+    virtual void Clear(void) override
+    {
+         for (auto layer : m_layers) {
+            layer->Clear();
+        }
+    }
+
 protected:
     /**
      * @brief  モデルの情報を表示

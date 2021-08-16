@@ -270,15 +270,30 @@ public:
      */
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-        x_buf = m_lut->Forward(x_buf, train);
-        if ( m_bn_enable ) {
-            x_buf = m_batch_norm->Forward(x_buf, train);
-            if (m_memory_saving || !train ) { m_batch_norm->SetFrameBufferX(FrameBuffer()); }
-        }
+        if ( m_memory_saving && train && (m_bn_enable || m_act_enable ) ) {
+            this->PushFrameBuffer(x_buf);
+
+            x_buf = m_lut->Forward(x_buf, train);
+            m_lut->Clear();
+
+            if ( m_bn_enable ) {
+                x_buf = m_batch_norm->Forward(x_buf, train);
+                m_batch_norm->Clear();
+            }
         
-        if ( m_act_enable ) {
-            x_buf = m_activation->Forward(x_buf, train);
-            if (m_memory_saving || !train ) { m_activation->SetFrameBufferX(FrameBuffer()); }
+            if ( m_act_enable ) {
+                x_buf = m_activation->Forward(x_buf, train);
+                m_activation->Clear();
+            }
+        }
+        else {
+            x_buf = m_lut->Forward(x_buf, train);
+            if ( m_bn_enable ) {
+                x_buf = m_batch_norm->Forward(x_buf, train);
+            }
+            if ( m_act_enable ) {
+                x_buf = m_activation->Forward(x_buf, train);
+            }
         }
 
         return x_buf;
@@ -294,13 +309,13 @@ public:
     {
         if ( m_memory_saving && (m_bn_enable || m_act_enable) ) {
             // 再計算
-            FrameBuffer x_buf;
-            x_buf = m_lut->ReForward(m_lut->GetFrameBufferX());
+            FrameBuffer x_buf = this->PopFrameBuffer();
+            x_buf = m_lut->ReForward(x_buf);
             if ( m_bn_enable ) {
                 x_buf = m_batch_norm->ReForward(x_buf);
             }
             if ( m_act_enable ) {
-                m_activation->SetFrameBufferX(x_buf);
+                m_activation->ReForward(x_buf);
             }
         }
 

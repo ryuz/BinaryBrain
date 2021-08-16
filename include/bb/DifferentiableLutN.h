@@ -66,8 +66,6 @@ protected:
 
     std::string                 m_connection;
 
-    FrameBuffer                 m_x_buf;
-
     std::shared_ptr<Tensor>     m_W;
     std::shared_ptr<Tensor>     m_dW;
 
@@ -492,8 +490,6 @@ public:
         return gradients;
     }
     
-    void        SetFrameBufferX(FrameBuffer x) { m_x_buf = x; }
-    FrameBuffer GetFrameBufferX(void)          { return m_x_buf; }
 
     // ノード単位でのForward計算
     std::vector<double> ForwardNode(index_t node, std::vector<double> input_value) const
@@ -572,7 +568,7 @@ public:
 
         // backwardの為に保存
         if ( train ) {
-            m_x_buf = x_buf;
+            this->PushFrameBuffer(x_buf);
         }
 
         // パラメータクリップ
@@ -989,8 +985,7 @@ public:
 
         m_flagClamp = true;
 
-        FrameBuffer x_buf = m_x_buf;
-        m_x_buf = FrameBuffer();
+        FrameBuffer x_buf = this->PopFrameBuffer();
 
         FrameBuffer dx_buf(dy_buf.GetFrameSize(), this->GetInputShape(), DataType<RealType>::type);
 

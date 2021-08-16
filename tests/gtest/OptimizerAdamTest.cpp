@@ -27,7 +27,7 @@ public:
         float lr_t = m_lr * sqrt(1.0f - pow(m_beta2, m_iter)) / (1.0f - pow(m_beta1, m_iter));
 
         m_m += (1 - m_beta1) * (grads - m_m);
-        m_v += (1 - m_beta2) * (pow(grads, 2) - m_v);
+        m_v += (1 - m_beta2) * ((float)std::pow(grads, 2) - m_v);
 
 //       std::cout << "[model] lr_t = " << lr_t << std::endl;
 //       std::cout << "[model] m_m  = " << m_m << std::endl;

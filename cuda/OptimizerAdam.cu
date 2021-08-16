@@ -9,7 +9,7 @@
 
 
 
-__global__ void kernal_fp32_Adam(
+__global__ void kernal_fp32_OptimizerAdam(
             int     const   *size_table,
             float * const   *params_buf_table,
             float * const   *grads_buf_table,
@@ -44,12 +44,12 @@ __global__ void kernal_fp32_Adam(
         m_buf[n]      = m;
         v_buf[n]      = v;
         params_buf[n] = param;
-        grads_buf[n]  = 0;
+//      grads_buf[n]  = 0;
     }
 }
 
 
-BBCU_DLL_EXPORT int bbcu_fp32_Adam
+BBCU_DLL_EXPORT int bbcu_fp32_OptimizerAdam
         (
             int             size,
             int     const   *dev_size_table,
@@ -68,7 +68,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_Adam
     dim3    grid(1, size);
     dim3    block(192, 1);
     
-    kernal_fp32_Adam<<<grid, block, 0, streamId>>>(
+    kernal_fp32_OptimizerAdam<<<grid, block, 0, streamId>>>(
             dev_size_table,
             dev_params_buf_table,
             dev_grads_buf_table,

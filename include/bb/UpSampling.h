@@ -32,13 +32,15 @@ public:
     std::string GetObjectName(void) const override { return ObjectName(); }
 
 protected:
-    bool            m_host_only = false;
+    bool                    m_host_only = false;
 
-    indices_t       m_input_shape;
+    indices_t               m_input_shape;
+
+    std::stack<indices_t>   m_shapes;
     
-    index_t         m_filter_h_size;
-    index_t         m_filter_w_size;
-    bool            m_fill;
+    index_t                 m_filter_h_size;
+    index_t                 m_filter_w_size;
+    bool                    m_fill;
 
 public:
     struct create_t
@@ -118,7 +120,7 @@ public:
      * @param shape 新しいshape
      * @return なし
      */
-    indices_t SetInputShape(indices_t shape)
+    indices_t SetInputShape(indices_t shape) override
     {
         // 設定済みなら何もしない
         if ( shape == this->GetInputShape() ) {
@@ -139,7 +141,7 @@ public:
      * @detail 入力形状を取得する
      * @return 入力形状を返す
      */
-    indices_t GetInputShape(void) const
+    indices_t GetInputShape(void) const override
     {
         return m_input_shape;
     }
@@ -149,7 +151,7 @@ public:
      * @detail 出力形状を取得する
      * @return 出力形状を返す
      */
-    indices_t GetOutputShape(void) const
+    indices_t GetOutputShape(void) const override
     {
         index_t c_size = m_input_shape[0];
         index_t h_size = m_input_shape[1] * m_filter_h_size;
@@ -158,11 +160,27 @@ public:
     }
 
 
-    FrameBuffer Forward(FrameBuffer x_buf, bool train=true)
+    void Clear(void) override
+    {
+        _super::Clear();
+        while ( !m_shapes.empty() ) {
+            m_shapes.pop();
+        }
+    }
+
+    FrameBuffer Forward(FrameBuffer x_buf, bool train=true) override
     {
         BB_ASSERT(x_buf.GetType() == DataType<FT>::type);
 
-        FrameBuffer y_buf(x_buf.GetFrameSize(), GetOutputShape(), DataType<FT>::type);
+        auto input_shape = x_buf.GetShape();
+        BB_ASSERT(input_shape.size() == 3);
+        m_shapes.push(input_shape);
+//      m_input_shape = input_shape;
+
+        auto output_shape = input_shape;
+        output_shape[1] *= m_filter_h_size;
+        output_shape[2] *= m_filter_w_size;
+        FrameBuffer y_buf(x_buf.GetFrameSize(), output_shape, DataType<FT>::type);
         
 #ifdef BB_WITH_CUDA
         if ( !m_host_only && DataType<FT>::type == BB_TYPE_FP32 && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
@@ -173,9 +191,9 @@ public:
                 (
                     (float const *)x_ptr.GetAddr(),
                     (float       *)y_ptr.GetAddr(),
-                    (int          )m_input_shape[2],
-                    (int          )m_input_shape[1],
-                    (int          )m_input_shape[0],
+                    (int          )input_shape[2],
+                    (int          )input_shape[1],
+                    (int          )input_shape[0],
                     (int          )m_filter_w_size,
                     (int          )m_filter_h_size,
                     (int          )(m_fill ? 1 : 0),
@@ -197,9 +215,9 @@ public:
                 (
                     (int const *)x_ptr.GetAddr(),
                     (int       *)y_ptr.GetAddr(),
-                    (int        )m_input_shape[2],
-                    (int        )m_input_shape[1],
-                    (int        )m_input_shape[0],
+                    (int        )input_shape[2],
+                    (int        )input_shape[1],
+                    (int        )input_shape[0],
                     (int        )m_filter_w_size,
                     (int        )m_filter_h_size,
                     (int        )(m_fill ? 1 : 0),
@@ -217,9 +235,9 @@ public:
             auto y_ptr = y_buf.Lock<FT>(true);
 
             index_t frame_size    = x_buf.GetFrameSize();
-            index_t c_size        = m_input_shape[0];
-            index_t input_h_size  = m_input_shape[1];
-            index_t input_w_size  = m_input_shape[2];
+            index_t c_size        = input_shape[0];
+            index_t input_h_size  = input_shape[1];
+            index_t input_w_size  = input_shape[2];
             index_t output_h_size = input_h_size * m_filter_h_size;
             index_t output_w_size = input_w_size * m_filter_w_size;
 
@@ -263,9 +281,17 @@ public:
             return FrameBuffer();
         }
 
-        BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
+        BB_ASSERT(!m_shapes.empty());
+        auto input_shape = m_shapes.top();    m_shapes.pop();
+//      m_input_shape = input_shape;
 
-        FrameBuffer dx_buf(dy_buf.GetFrameSize(), GetInputShape(), DataType<BT>::type);
+        BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
+        BB_ASSERT(dy_buf.GetShape().size() == 3);
+        BB_ASSERT(dy_buf.GetShape()[0] == input_shape[0]);
+        BB_ASSERT(dy_buf.GetShape()[1] == input_shape[1]*m_filter_h_size);
+        BB_ASSERT(dy_buf.GetShape()[2] == input_shape[2]*m_filter_w_size);
+
+        FrameBuffer dx_buf(dy_buf.GetFrameSize(), input_shape, DataType<BT>::type);
 
 #ifdef BB_WITH_CUDA
         if ( !m_host_only && DataType<BT>::type == BB_TYPE_FP32 && dy_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() )
@@ -277,9 +303,9 @@ public:
                 (
                     (float const *)dy_ptr.GetAddr(),
                     (float       *)dx_ptr.GetAddr(),
-                    (int          )m_input_shape[2],
-                    (int          )m_input_shape[1],
-                    (int          )m_input_shape[0],
+                    (int          )input_shape[2],
+                    (int          )input_shape[1],
+                    (int          )input_shape[0],
                     (int          )m_filter_w_size,
                     (int          )m_filter_h_size,
                     (int          )(m_fill ? 1 : 0),
@@ -297,9 +323,9 @@ public:
             auto dx_ptr = dx_buf.Lock<BT>(true);
             
             index_t frame_size    = dy_buf.GetFrameSize();
-            index_t c_size        = m_input_shape[0];
-            index_t input_h_size  = m_input_shape[1];
-            index_t input_w_size  = m_input_shape[2];
+            index_t c_size        = input_shape[0];
+            index_t input_h_size  = input_shape[1];
+            index_t input_w_size  = input_shape[2];
             index_t output_h_size = input_h_size * m_filter_h_size;
             index_t output_w_size = input_w_size * m_filter_w_size;
 

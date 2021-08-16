@@ -37,9 +37,6 @@ protected:
     
     indices_t                   m_node_shape;
 
-    FrameBuffer                 m_x_buf;
-//  FrameBuffer                 m_dx_buf;
-
     T                           m_gain = (T)1.00;
     T                           m_beta = (T)0.99;
 
@@ -221,7 +218,7 @@ public:
     {
         // backwardの為に保存
         if ( train ) {
-            m_x_buf = x_buf;
+            this->PushFrameBuffer(x_buf);
         }
 
         return x_buf;
@@ -246,8 +243,7 @@ public:
             return dy_buf;
         }
         
-        FrameBuffer x_buf = m_x_buf;
-        m_x_buf = FrameBuffer();
+        FrameBuffer x_buf = this->PopFrameBuffer();
 
         // 出力設定
         FrameBuffer dx_buf(dy_buf.GetFrameSize(), dy_buf.GetShape(), dy_buf.GetType());

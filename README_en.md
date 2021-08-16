@@ -202,8 +202,11 @@ This source code's license is MIT license.
 (Note : This program using CEREAL)
 
 ## ICCE2019(Berlin)
-2019 IEEE 9th International Conference on Consumer Electronics (ICCE-Berlin) <br>
-https://ieeexplore.ieee.org/document/8966187 <br>
+2019 IEEE 9th International Conference on Consumer Electronics (ICCE-Berlin) 
+<[slide](https://www.slideshare.net/ryuz88/fast-and-lightweight-binarized-neural-network-implemented-in-an-fpga-using-lutbased-signal-processing-and-its-timedomain-extension-for-multibit-processing)> <[pdf](https://edas.info/p25749#S1569571697)>
+
+https://ieeexplore.ieee.org/document/8966187 
+
 
 
 ## Author's information

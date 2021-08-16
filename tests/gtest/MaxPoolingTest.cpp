@@ -323,5 +323,83 @@ TEST(MaxPoolingTest, testMaxPooling_cmp_fp32_fp32)
 }
 
 
+TEST(MaxPoolingTest, testMaxPooling_stack)
+{
+    int frame_size = 17;
+
+    bb::FrameBuffer x0(frame_size, {32, 32*2, 72*2}, BB_TYPE_BIT);
+    bb::FrameBuffer x1(frame_size, {32, 16*2, 24*2}, BB_TYPE_BIT);
+    bb::FrameBuffer x2(frame_size, {32,  8*2, 12*2}, BB_TYPE_BIT);
+    bb::FrameBuffer x3(frame_size, {32, 33*2, 17*2}, BB_TYPE_BIT);
+
+    bb::FrameBuffer dy0(frame_size, {32, 32, 72}, BB_TYPE_FP32);
+    bb::FrameBuffer dy1(frame_size, {32, 16, 24}, BB_TYPE_FP32);
+    bb::FrameBuffer dy2(frame_size, {32,  8, 12}, BB_TYPE_FP32);
+    bb::FrameBuffer dy3(frame_size, {32, 33, 17}, BB_TYPE_FP32);
+
+    auto pool = bb::MaxPooling<bb::Bit>::Create(2, 2);
+    pool->SetInputShape(x0.GetShape());
+    auto y0 = pool->Forward(x0);
+    auto y1 = pool->Forward(x1);
+    auto y2 = pool->Forward(x2);
+    auto y3 = pool->Forward(x3);
+
+    auto dx3 = pool->Backward(dy3);
+    auto dx2 = pool->Backward(dy2);
+    auto dx1 = pool->Backward(dy1);
+    auto dx0 = pool->Backward(dy0);
+
+    EXPECT_EQ(y0.GetShape(), dy0.GetShape());
+    EXPECT_EQ(y1.GetShape(), dy1.GetShape());
+    EXPECT_EQ(y2.GetShape(), dy2.GetShape());
+    EXPECT_EQ(y3.GetShape(), dy3.GetShape());
+    EXPECT_EQ(dx0.GetShape(), x0.GetShape());
+    EXPECT_EQ(dx1.GetShape(), x1.GetShape());
+    EXPECT_EQ(dx2.GetShape(), x2.GetShape());
+    EXPECT_EQ(dx3.GetShape(), x3.GetShape());
+}
+
+
+
+
+
+
+TEST(MaxPoolingTest, testMaxPooling_minus)
+{
+    bb::index_t const frame_size = 2;
+    bb::index_t const c_size = 3;
+    bb::index_t const input_h_size  = 4;
+    bb::index_t const input_w_size  = 6;
+    bb::index_t const filter_h_size = 2;
+    bb::index_t const filter_w_size = 3;
+    bb::index_t const output_h_size = input_h_size / filter_h_size;
+    bb::index_t const output_w_size = input_w_size / filter_w_size;
+
+    auto maxpol = bb::MaxPooling<>::Create(filter_h_size, filter_w_size);
+
+    bb::FrameBuffer    x_buf(frame_size, {c_size, input_h_size, input_w_size }, BB_TYPE_FP32);
+
+    for (bb::index_t f = 0; f < frame_size; ++f) {
+        for (bb::index_t c = 0; c < c_size; ++c) {
+            for (bb::index_t y = 0; y < input_h_size; ++y) {
+                for (bb::index_t x = 0; x < input_w_size; ++x) {
+                    x_buf.SetFP32(f, { c, y, x }, (float)-10);
+                }
+            }
+        }
+    }
+    x_buf.SetFP32(0, { 0, 0, 0 }, -3);
+
+    auto y_buf = maxpol->Forward(x_buf);
+    
+    EXPECT_EQ(bb::indices_t({3, 2, 2}), y_buf.GetShape());
+
+    EXPECT_EQ( -3,   y_buf.GetFP32(0, { 0, 0, 0 }));
+    EXPECT_EQ(-10,   y_buf.GetFP32(1, { 0, 0, 0 }));
+    EXPECT_EQ(-10,   y_buf.GetFP32(0, { 0, 0, 1 }));
+
+
+}
+
 #endif
 

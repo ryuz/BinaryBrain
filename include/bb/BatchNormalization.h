@@ -51,19 +51,17 @@ public:
 protected:
     bool                        m_bypass    = false;
     bool                        m_host_only = false;
-    bool                        m_host_simd = true;
+    bool                        m_host_simd = false;
     bool                        m_fix_gamma = false;
     bool                        m_fix_beta  = false;
     
-    FrameBuffer                 m_x_buf;
-
     std::shared_ptr<Tensor>     m_gamma;
     std::shared_ptr<Tensor>     m_beta;
     std::shared_ptr<Tensor>     m_dgamma;
     std::shared_ptr<Tensor>     m_dbeta;
 
-    Tensor_<T>                  m_mean;     // 平均値
-    Tensor_<T>                  m_rstd;     // 標準偏差の逆数
+    std::stack< Tensor_<T> >    m_stack_mean;   // 平均値
+    std::stack< Tensor_<T> >    m_stack_rstd;   // 標準偏差の逆数
 
     Tensor_<T>                  m_running_mean;
     Tensor_<T>                  m_running_var;
@@ -234,8 +232,6 @@ protected:
         auto node_size = CalcShapeSize(_super::m_shape);
         m_dgamma->Resize({node_size}, DataType<T>::type); *m_dgamma = (T)0.0;
         m_dbeta->Resize ({node_size}, DataType<T>::type); *m_dbeta  = (T)0.0;
-        m_mean.Resize(node_size);
-        m_rstd.Resize(node_size);
     }
 
 
@@ -263,8 +259,6 @@ public:
         auto node_size = CalcShapeSize(_super::m_shape);
         m_dgamma->Resize({node_size}, DataType<T>::type); *m_dgamma = (T)0.0;
         m_dbeta->Resize ({node_size}, DataType<T>::type); *m_dbeta  = (T)0.0;
-        m_mean.Resize(node_size);
-        m_rstd.Resize(node_size);
     }
 
 
@@ -302,23 +296,35 @@ public:
     }
 #endif
 
-
-    auto lock_gamma(void)              { return m_gamma->Lock<T>(); }
-    auto lock_gamma_const(void)  const { return m_gamma->LockConst<T>(); }
-    auto lock_beta(void)               { return m_beta->Lock<T>(); }
-    auto lock_beta_const(void)   const { return m_beta->LockConst<T>(); }
-    auto lock_dgamma(void)             { return m_dgamma->Lock<T>(); }
-    auto lock_dgamma_const(void) const { return m_dgamma->LockConst<T>(); }
-    auto lock_dbeta(void)              { return m_dbeta->Lock<T>(); }
-    auto lock_dbeta_const(void)  const { return m_dbeta->LockConst<T>(); }
-    auto lock_mean(void)               { return m_running_mean.Lock(); }
-    auto lock_mean_const(void)   const { return m_running_mean.LockConst(); }
-    auto lock_var(void)                { return m_running_var.Lock(); }
-    auto lock_var_const(void)    const { return m_running_var.LockConst(); }
+    Tensor       &gamma(void)                   { return *m_gamma; }
+    Tensor const &gamma(void) const             { return *m_gamma; }
+    Tensor       &beta(void)                    { return *m_beta; }
+    Tensor const &beta(void) const              { return *m_beta; }
+    Tensor       &dgamma(void)                  { return *m_dgamma; }
+    Tensor const &dgamma(void) const            { return *m_dgamma; }
+    Tensor       &dbeta(void)                   { return *m_dbeta; }
+    Tensor const &dbeta(void) const             { return *m_dbeta; }
+    Tensor        mean(void)                    { return m_stack_mean.top(); }
+    Tensor        rstd(void)                    { return m_stack_rstd.top(); }
+    Tensor        running_mean(void)            { return m_running_mean; }
+    Tensor        running_var(void)             { return m_running_var; }
+    
+    auto lock_gamma(void)                       { return m_gamma->Lock<T>(); }
+    auto lock_gamma_const(void)  const          { return m_gamma->LockConst<T>(); }
+    auto lock_beta(void)                        { return m_beta->Lock<T>(); }
+    auto lock_beta_const(void)   const          { return m_beta->LockConst<T>(); }
+    auto lock_dgamma(void)                      { return m_dgamma->Lock<T>(); }
+    auto lock_dgamma_const(void) const          { return m_dgamma->LockConst<T>(); }
+    auto lock_dbeta(void)                       { return m_dbeta->Lock<T>(); }
+    auto lock_dbeta_const(void)  const          { return m_dbeta->LockConst<T>(); }
+    auto lock_running_mean(void)                { return m_running_mean.Lock(); }
+    auto lock_running_mean_const(void) const    { return m_running_mean.LockConst(); }
+    auto lock_running_var(void)                 { return m_running_var.Lock(); }
+    auto lock_running_var_const(void) const     { return m_running_var.LockConst(); }
     
     // debug
-    auto lock_tmp_mean_const(void)   const { return m_mean.LockConst(); }
-    auto lock_tmp_rstd_const(void)   const { return m_rstd.LockConst(); }
+    auto lock_tmp_mean_const(void)   const      { return m_stack_mean.top().LockConst(); }
+    auto lock_tmp_rstd_const(void)   const      { return m_stack_rstd.top().LockConst(); }
 
     /**
      * @brief  入力形状設定
@@ -344,9 +350,6 @@ public:
         m_beta->Resize  ({node_size}, DataType<T>::type); *m_beta   = m_init_beta;
         m_dgamma->Resize({node_size}, DataType<T>::type); *m_dgamma = (T)0.0;
         m_dbeta->Resize ({node_size}, DataType<T>::type); *m_dbeta  = (T)0.0;
-
-        m_mean.Resize(node_size);
-        m_rstd.Resize(node_size);
 
         m_running_mean.Resize(node_size); m_running_mean = (T)0.0;
         m_running_var.Resize(node_size);  m_running_var  = (T)1.0;
@@ -403,14 +406,29 @@ public:
         for (size_t i = 0; i < x_vec.size(); ++i) {
             y_vec[i]  = x_vec[i];
             y_vec[i] -= (double)running_mean_ptr(node);
-            y_vec[i] /= sqrt((double)running_var_ptr(node)) + 1.0e-7;
+            y_vec[i] /= sqrt((double)running_var_ptr(node)+ 1.0e-7);
             y_vec[i]  = y_vec[i] * (double)gamma_ptr(node) + (double)beta_ptr(node);
         }
         return y_vec;
     }
 
-    void        SetFrameBufferX(FrameBuffer x_buf) { m_x_buf = x_buf; }
-    FrameBuffer GetFrameBufferX(void)              { return m_x_buf; }
+
+    void Clear(void) override
+    {
+        _super::Clear();
+        while (!m_stack_mean.empty()) {
+            m_stack_mean.pop();
+        }
+        while (!m_stack_rstd.empty()) {
+            m_stack_rstd.pop();
+        }
+    }
+
+    // mean と rstd は残してクリア
+    void ClearBuffer(void) {
+        _super::Clear();
+    }
+    
 
     /**
      * @brief  forward演算
@@ -421,6 +439,8 @@ public:
      */
     FrameBuffer Forward(FrameBuffer x_buf, bool train=true) override
     {
+        bool update_running_param = true;
+
         if ( this->m_parameter_lock ) {
             train = false;
         }
@@ -430,12 +450,22 @@ public:
             return x_buf;
         }
 
+        SetInputShape(x_buf.GetShape());
+
         // 出力設定
         FrameBuffer y_buf(x_buf.GetFrameSize(), x_buf.GetShape(), x_buf.GetType());
+        auto node_size = CalcShapeSize(this->m_shape);
+        Tensor_<T>  mean_tensor;     // 平均値
+        Tensor_<T>  rstd_tensor;     // 標準偏差の逆数
+        mean_tensor.Resize(node_size);
+        rstd_tensor.Resize(node_size);
+
 
         // backwardの為に保存
         if ( train ) {
-            m_x_buf = x_buf;
+            PushFrameBuffer(x_buf);
+            m_stack_mean.push(mean_tensor);
+            m_stack_rstd.push(rstd_tensor);
         }
         
 #ifdef BB_WITH_CUDA
@@ -445,8 +475,8 @@ public:
                 auto dev_y_ptr     = y_buf.LockDeviceMemory(true);
                 auto dev_gamma_ptr = m_gamma->LockDeviceMemoryConst();
                 auto dev_beta_ptr  = m_beta->LockDeviceMemoryConst();
-                auto dev_mean_ptr = m_mean.LockDeviceMemory(true);
-                auto dev_rstd_ptr = m_rstd.LockDeviceMemory(true);
+                auto dev_mean_ptr = mean_tensor.LockDeviceMemory(true);
+                auto dev_rstd_ptr = rstd_tensor.LockDeviceMemory(true);
                 auto dev_running_mean_ptr = m_running_mean.LockDeviceMemory();
                 auto dev_running_var_ptr = m_running_var.LockDeviceMemory();
 
@@ -463,7 +493,8 @@ public:
                         (float        )m_momentum,
                         (int          )x_buf.GetNodeSize(),
                         (int          )x_buf.GetFrameSize(),
-                        (int          )x_buf.GetFrameStride() / sizeof(float)
+                        (int          )x_buf.GetFrameStride() / sizeof(float),
+                        (bool         )update_running_param
                     );
                 return y_buf;
             }
@@ -507,8 +538,8 @@ public:
             auto gamma_ptr        = lock_gamma_const();
             auto beta_ptr         = lock_beta_const();
 
-            auto mean_ptr         = m_mean.Lock();
-            auto rstd_ptr         = m_rstd.Lock();        
+            auto mean_ptr         = mean_tensor.Lock(true);
+            auto rstd_ptr         = rstd_tensor.Lock(true);        
             auto running_mean_ptr = m_running_mean.Lock();
             auto running_var_ptr  = m_running_var.Lock();
 
@@ -544,14 +575,19 @@ public:
 
                     __m256 varx = _mm256_max_ps(var, epsilon);
                     __m256 rstd = _mm256_rsqrt_ps(varx);
+//                  __m256 half = _mm256_mul_ps(varx, _mm256_set1_ps(0.5f));
+//                  rstd = _mm256_mul_ps(rstd, _mm256_sub_ps(_mm256_set1_ps(1.5f), _mm256_mul_ps(_mm256_mul_ps(half, rstd), rstd)));
+//                  rstd = _mm256_mul_ps(rstd, _mm256_sub_ps(_mm256_set1_ps(1.5f), _mm256_mul_ps(_mm256_mul_ps(half, rstd), rstd)));
 
                     varx = _mm256_mul_ps(varx, _mm256_set1_ps(0.5f));
                     rstd = _mm256_mul_ps(rstd, _mm256_fnmadd_ps(varx, _mm256_mul_ps(rstd, rstd), _mm256_set1_ps(1.5f)));
                     rstd = _mm256_mul_ps(rstd, _mm256_fnmadd_ps(varx, _mm256_mul_ps(rstd, rstd), _mm256_set1_ps(1.5f)));
 
-                    // 実行時の mean と var 保存
-                    running_mean_ptr[node] = running_mean_ptr[node] * m_momentum + bb_mm256_cvtss_f32(mean) * (1.0f - m_momentum);
-                    running_var_ptr[node]  = running_var_ptr[node]  * m_momentum + bb_mm256_cvtss_f32(var)  * (1.0f - m_momentum);
+                    // 実行時の mean と var 更新
+                    if ( update_running_param ) {
+                        running_mean_ptr[node] = running_mean_ptr[node] * m_momentum + bb_mm256_cvtss_f32(mean) * (1.0f - m_momentum);
+                        running_var_ptr[node]  = running_var_ptr[node]  * m_momentum + bb_mm256_cvtss_f32(var)  * (1.0f - m_momentum);
+                    }
                     
                     // 結果の保存
                     mean_ptr[node] = bb_mm256_cvtss_f32(mean);
@@ -605,8 +641,8 @@ public:
             auto gamma_ptr        = lock_gamma_const();
             auto beta_ptr         = lock_beta_const();
 
-            auto mean_ptr         = m_mean.Lock();
-            auto rstd_ptr         = m_rstd.Lock();        
+            auto mean_ptr         = mean_tensor.Lock(true);
+            auto rstd_ptr         = rstd_tensor.Lock(true);        
             auto running_mean_ptr = m_running_mean.Lock();
             auto running_var_ptr  = m_running_var.Lock();
 
@@ -632,13 +668,16 @@ public:
 
                     // 集計
                     T mean = s1 / (T)frame_size;
-                    T var  = (s2 / (T)frame_size) - (mean * mean);
+                    T var1  = (s2 - (mean * mean)*(T)frame_size) / (T)(frame_size - 1);
+                    T var   = (s2 - (mean * mean)*(T)frame_size) / (T)frame_size;
                     var = std::max((T)0, var);  // 演算誤差で負にならないようにクリップ  // 演算誤差で負にならないようにクリップ
-                    T std  = std::sqrt(var);
-                    T rstd = (T)1.0 / (std + (T)1.0e-7);
+                    T std  = std::sqrt(var + (T)1.0e-7);
+                    T rstd = (T)1.0 / std;
 
-                    running_mean_ptr[node] = (running_mean_ptr[node] * m_momentum) + (mean * ((T)1.0 - m_momentum));
-                    running_var_ptr[node]  = (running_var_ptr[node]  * m_momentum) + (var *  ((T)1.0 - m_momentum));
+                    if ( update_running_param ) {
+                        running_mean_ptr[node] = (running_mean_ptr[node] * m_momentum) + (mean * ((T)1.0 - m_momentum));
+                        running_var_ptr[node]  = (running_var_ptr[node]  * m_momentum) + (var1 * ((T)1.0 - m_momentum));
+                    }
                     
                     mean_ptr[node] = mean;
                     rstd_ptr[node] = rstd;
@@ -662,7 +701,7 @@ public:
                     T   mean  = running_mean_ptr[node];
                     T   var   = running_var_ptr[node];
 
-                    T   rstd  = (T)1.0 / (std::sqrt(var) + (T)1.0e-7);
+                    T   rstd  = (T)1.0 / std::sqrt(var + (T)1.0e-7);
 
                     for ( index_t frame = 0; frame < frame_size; ++frame) {
                         T x = x_ptr.Get(frame, node);
@@ -673,7 +712,6 @@ public:
 
             return y_buf;
         }
- 
     }
 
 
@@ -687,9 +725,18 @@ public:
 
         // 出力設定
         FrameBuffer y_buf(x_buf.GetFrameSize(), x_buf.GetShape(), x_buf.GetType());
+//      auto node_size = CalcShapeSize(this->m_shape);
+//        Tensor_<T>  mean_tensor;     // 平均値
+//        Tensor_<T>  rstd_tensor;     // 標準偏差の逆数
+//        mean_tensor.Resize(node_size);
+//        rstd_tensor.Resize(node_size);
 
         // backwardの為に保存
-        m_x_buf = x_buf;
+        PushFrameBuffer(x_buf);
+//      m_stack_mean.push(mean_tensor);
+//      m_stack_rstd.push(rstd_tensor);
+        BB_ASSERT(!m_stack_mean.empty()); auto mean_tensor = m_stack_mean.top();
+        BB_ASSERT(!m_stack_rstd.empty()); auto rstd_tensor = m_stack_rstd.top();
 
         
 #ifdef BB_WITH_CUDA
@@ -699,8 +746,8 @@ public:
             auto dev_y_ptr     = y_buf.LockDeviceMemory(true);
             auto dev_gamma_ptr = m_gamma->LockDeviceMemoryConst();
             auto dev_beta_ptr  = m_beta->LockDeviceMemoryConst();
-            auto dev_mean_ptr  = m_mean.LockDeviceMemoryConst();
-            auto dev_rstd_ptr  = m_rstd.LockDeviceMemoryConst();
+            auto dev_mean_ptr  = mean_tensor.LockDeviceMemoryConst();
+            auto dev_rstd_ptr  = rstd_tensor.LockDeviceMemoryConst();
 
             bbcu_fp32_BatchNormalization_ReForward
                 (
@@ -729,8 +776,8 @@ public:
             auto gamma_ptr        = lock_gamma_const();
             auto beta_ptr         = lock_beta_const();
 
-            auto mean_ptr         = m_mean.Lock();
-            auto rstd_ptr         = m_rstd.Lock();        
+            auto mean_ptr         = mean_tensor.Lock(true);
+            auto rstd_ptr         = rstd_tensor.Lock(true);        
             auto running_mean_ptr = m_running_mean.Lock();
             auto running_var_ptr  = m_running_var.Lock();
 
@@ -768,23 +815,29 @@ public:
             return BackwardLock(dy_buf);
         }
 
+        /*
         if (dy_buf.Empty()) {
             m_dgamma = 0;
             m_dbeta = 0;
             return dy_buf;
         }
-
+        */
 
         if (m_bypass) {
             return dy_buf;
         }
 
+        // forward時のxを取得
+        FrameBuffer x_buf = PopFrameBuffer();
+        BB_ASSERT(dy_buf.GetFrameSize() == x_buf.GetFrameSize());
+        BB_ASSERT(dy_buf.GetNodeSize() == x_buf.GetNodeSize());
+        BB_ASSERT(!m_stack_mean.empty()); auto mean_tensor = m_stack_mean.top(); m_stack_mean.pop();
+        BB_ASSERT(!m_stack_rstd.empty()); auto rstd_tensor = m_stack_rstd.top(); m_stack_rstd.pop();
+
+
         // 出力設定
         FrameBuffer dx_buf(dy_buf.GetFrameSize(), dy_buf.GetShape(), dy_buf.GetType());
 
-        // forward時のxを取得
-        FrameBuffer x_buf = m_x_buf;
-        m_x_buf = FrameBuffer();
 
 #ifdef BB_WITH_CUDA
         if ( DataType<T>::type == BB_TYPE_FP32 && !m_host_only && dy_buf.IsDeviceAvailable() && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
@@ -794,8 +847,8 @@ public:
             auto dev_gamma_ptr  = m_gamma->LockDeviceMemoryConst();
             auto dev_dgamma_ptr = m_dgamma->LockDeviceMemory();
             auto dev_dbeta_ptr  = m_dbeta->LockDeviceMemory();
-            auto dev_mean_ptr   = m_mean.LockDeviceMemoryConst();
-            auto dev_rstd_ptr   = m_rstd.LockDeviceMemoryConst();
+            auto dev_mean_ptr   = mean_tensor.LockDeviceMemoryConst();
+            auto dev_rstd_ptr   = rstd_tensor.LockDeviceMemoryConst();
             bbcu_fp32_BatchNormalization_Backward
                 (
                     (const float *)dev_x_ptr.GetAddr(),
@@ -828,8 +881,8 @@ public:
             auto dgamma_ptr       = lock_dgamma();
             auto dbeta_ptr        = lock_dbeta();
 
-            auto mean_ptr         = m_mean.LockConst();
-            auto rstd_ptr         = m_rstd.LockConst();
+            auto mean_ptr         = mean_tensor.LockConst();
+            auto rstd_ptr         = rstd_tensor.LockConst();
        
         
             // 逆数生成
@@ -907,8 +960,8 @@ public:
             auto dgamma_ptr       = lock_dgamma();
             auto dbeta_ptr        = lock_dbeta();
 
-            auto mean_ptr         = m_mean.LockConst();
-            auto rstd_ptr         = m_rstd.LockConst();
+            auto mean_ptr         = mean_tensor.LockConst();
+            auto rstd_ptr         = rstd_tensor.LockConst();
             
             auto x_ptr  = x_buf.LockConst<T>();
 //          auto y_ptr  = y_buf.LockConst<T>();
@@ -1001,7 +1054,7 @@ public:
             for (index_t node = 0; node < node_size; ++node) {
                 T   var    = running_var_ptr[node];
                 T   gamma  = gamma_ptr[node];
-                T   rstd   = (T)1.0 / (std::sqrt(var) + (T)1.0e-7);
+                T   rstd   = (T)1.0 / std::sqrt(var+ (T)1.0e-7);
                 T   coeff  = gamma * rstd;
 
                 for ( index_t frame = 0; frame < frame_size; ++frame) {

@@ -38,12 +38,33 @@ class FrameBuffer(bb.Object):
         super(FrameBuffer, self).__init__(core_object=core_buf)
 
     @staticmethod
+    def zeros(frame_size: int = 0, node_shape: List[int] = [], dtype = bb.DType.FP32, host_only: bool = False):
+        buf = FrameBuffer(frame_size=frame_size, shape=node_shape, dtype=dtype, host_only=host_only)
+        buf.fill_zero()
+        return buf
+    
+    @staticmethod
+    def zeros_like(buf, *, frame_size: int = None, node_shape: List[int] = None, dtype = None, host_only: bool = None):
+        if frame_size is None:
+            frame_size = buf.get_frame_size()
+        if node_shape is None:
+            node_shape = buf.get_node_shape()
+        if dtype is None:
+            dtype = buf.get_type()
+        if host_only is None:
+            host_only = buf.is_host_only()
+        return FrameBuffer.zeros(frame_size=frame_size, node_shape=node_shape, dtype=dtype, host_only=host_only)
+
+    @staticmethod
     def from_core(core_buf):
         return FrameBuffer(core_buf=core_buf)
 
     def is_host_only(self) -> bool:
         return self.get_core().is_host_only()
-
+    
+    def astype(self, dtype):
+        return FrameBuffer(core_buf=self.get_core().astype(dtype))
+    
     def get_type(self) -> int:
         """データ型取得
         
@@ -175,7 +196,21 @@ class FrameBuffer(bb.Object):
             raise TypeError("unsupported")
         return FrameBuffer(core_buf=core_buf)
     
-    
+    def fill_zero(self):
+        self.get_core().fill_zero()
+
+    def fill(self, x):
+        self.get_core().fill(x)
+
+    def isnan(self):
+        return self.get_core().isnan()
+
+    def min(self):
+        return self.get_core().min()
+
+    def max(self):
+        return self.get_core().max()
+
     def __add__(self, x):
         if type(x) == FrameBuffer:
             core_buf = self.get_core() + x.get_core()
@@ -263,4 +298,16 @@ class FrameBuffer(bb.Object):
         else:
             core_buf /= float(x)
         return self
+    
+    @classmethod
+    def from_bytes(cls, data):
+        new_buffer = cls()
+        data = new_buffer.loads(data)
+        return data, new_buffer
 
+def framebuffer_creator(data, name, dtypes):
+    if name == "FrameBuffer":
+        return FrameBuffer.from_bytes(data)
+    return data, None
+
+bb.object_creator_regist(framebuffer_creator)

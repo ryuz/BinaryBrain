@@ -271,7 +271,7 @@ class FrameBuffer : public Object
     using _super = Object;
 
 public:
-    static inline std::string ObjectName(void){ return "Tensor"; }
+    static inline std::string ObjectName(void){ return "FrameBuffer"; }
     std::string GetObjectName(void) const override { return ObjectName(); }
 
 protected:
@@ -713,9 +713,10 @@ public:
         m_tensor.FillZero();
     }
 
-//  void FillZeroMargin(void)
-//  {
-//  }
+    void Fill(double value)
+    {
+        m_tensor = value;
+    }
     
 
     int     GetType(void)  const { return m_data_type; }
@@ -853,8 +854,8 @@ protected:
             bbcu_ConvBitToReal<float>(
                     (int const *)src_ptr.GetAddr(),
                     (float     *)dst_ptr.GetAddr(),
-                    0.0f,
-                    1.0f,
+                    -1.0f,
+                    +1.0f,
                     (int)this->GetNodeSize(),
                     (int)this->GetFrameSize(),
                     (int)(this->GetFrameStride() / sizeof(int)),
@@ -1456,6 +1457,130 @@ public:
     //  演算
     // -------------------------------------
 
+protected:
+    template<typename T> 
+    bool _IsNan(void)
+    {
+#ifdef BB_WITH_CUDA
+        if ( this->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            Tensor_<int> result(1);
+            {
+                auto ptr_buf    = this->LockDeviceMemoryConst();
+                auto ptr_result = result.LockDeviceMemory(true);
+                bbcu_FrameBuf_IsnNan
+                    (
+                        (int        *)ptr_result.GetAddr(),
+                        (T   const  *)ptr_buf.GetAddr(),
+                        (int         )this->GetNodeSize(),
+                        (int         )this->GetFrameSize(),
+                        (int         )(this->GetFrameStride() / sizeof(T))
+                    );
+            }
+            {
+                auto dst_ptr = result.LockConst();
+                return dst_ptr(0) != 0;
+            }
+        }
+#endif
+
+        auto ptr = LockConst<T>();
+        for ( index_t node = 0; node < GetNodeSize(); ++node ) {
+            for ( index_t frame = 0; frame < GetFrameSize(); ++frame ) {
+                if ( std::isnan(ptr.Get(frame, node)) ) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+
+    template<typename T> 
+    double _Min(void)
+    {
+        T   value = std::numeric_limits<T>::max();
+        auto ptr = LockConst<T>();
+        for ( index_t node = 0; node < GetNodeSize(); ++node ) {
+            for ( index_t frame = 0; frame < GetFrameSize(); ++frame ) {
+                value = std::min(value, ptr.Get(frame, node));
+            }
+        }
+        return (double)value;
+    }
+
+
+    template<typename T> 
+    double _MinFp(void)
+    {
+#ifdef BB_WITH_CUDA
+        if ( this->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            Tensor_<T> result(1);
+            {
+                auto ptr_buf    = this->LockDeviceMemoryConst();
+                auto ptr_result = result.LockDeviceMemory(true);
+                bbcu_FrameBuf_Min<T>
+                    (
+                        (T          *)ptr_result.GetAddr(),
+                        (T   const  *)ptr_buf.GetAddr(),
+                        (int         )this->GetNodeSize(),
+                        (int         )this->GetFrameSize(),
+                        (int         )(this->GetFrameStride() / sizeof(T))
+                    );
+            }
+            {
+                auto dst_ptr = result.LockConst();
+                return (double)dst_ptr(0);
+            }
+        }
+#endif
+        return _Min<T>();
+    }
+
+    
+    template<typename T> 
+    double _Max(void)
+    {
+        T   value = std::numeric_limits<T>::lowest();
+        auto ptr = LockConst<T>();
+        for ( index_t node = 0; node < GetNodeSize(); ++node ) {
+            for ( index_t frame = 0; frame < GetFrameSize(); ++frame ) {
+                value = std::max(value, ptr.Get(frame, node));
+            }
+        }
+        return (double)value;
+    }
+
+
+    template<typename T> 
+    double _MaxFp(void)
+    {
+#ifdef BB_WITH_CUDA
+        if ( this->IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            Tensor_<T> result(1);
+            {
+                auto ptr_buf    = this->LockDeviceMemoryConst();
+                auto ptr_result = result.LockDeviceMemory(true);
+                bbcu_FrameBuf_Max<T>
+                    (
+                        (T          *)ptr_result.GetAddr(),
+                        (T   const  *)ptr_buf.GetAddr(),
+                        (int         )this->GetNodeSize(),
+                        (int         )this->GetFrameSize(),
+                        (int         )(this->GetFrameStride() / sizeof(T))
+                    );
+            }
+            {
+                auto dst_ptr = result.LockConst();
+                return (double)dst_ptr(0);
+            }
+        }
+#endif
+        return _Max<T>();
+    }
+
+
+public:
+    inline FrameBuffer& operator=(double src)       { m_tensor  = src; return *this; }
     inline FrameBuffer& operator+=(FrameBuffer src) { m_tensor += src.m_tensor; return *this; }
     inline FrameBuffer& operator+=(double src)      { m_tensor += src; return *this; }
     inline FrameBuffer& operator-=(FrameBuffer src) { m_tensor -= src.m_tensor; return *this; }
@@ -1465,6 +1590,52 @@ public:
     inline FrameBuffer& operator/=(FrameBuffer src) { m_tensor /= src.m_tensor; return *this; }
     inline FrameBuffer& operator/=(double src)      { m_tensor /= src; return *this; }
 
+    bool IsNan(void)
+    {
+        switch ( GetType() ) {
+        case BB_TYPE_FP32: return _IsNan<float>();
+        case BB_TYPE_FP64: return _IsNan<double>();
+        }
+        return false;
+    }
+    
+    double Min(void)
+    {
+        switch ( GetType() ) {
+        case BB_TYPE_FP32:   return _MinFp<float >();
+        case BB_TYPE_FP64:   return _MinFp<double>();
+        case BB_TYPE_BIT:    return _Min<Bit     >();
+        case BB_TYPE_INT8:   return _Min<int8_t  >();
+        case BB_TYPE_INT16:  return _Min<int16_t >();
+        case BB_TYPE_INT32:  return _Min<int32_t >();
+        case BB_TYPE_INT64:  return _Min<int64_t >();
+        case BB_TYPE_UINT8:  return _Min<uint8_t >();
+        case BB_TYPE_UINT16: return _Min<uint16_t>();
+        case BB_TYPE_UINT32: return _Min<uint32_t>();
+        case BB_TYPE_UINT64: return _Min<uint64_t>();
+        default:   BB_ASSERT(0);
+        }
+        return 0;
+    }
+    
+    double Max(void)
+    {
+        switch ( GetType() ) {
+        case BB_TYPE_FP32:   return _MaxFp<float >();
+        case BB_TYPE_FP64:   return _MaxFp<double>();
+        case BB_TYPE_BIT:    return _Max<Bit     >();
+        case BB_TYPE_INT8:   return _Max<int8_t  >();
+        case BB_TYPE_INT16:  return _Max<int16_t >();
+        case BB_TYPE_INT32:  return _Max<int32_t >();
+        case BB_TYPE_INT64:  return _Max<int64_t >();
+        case BB_TYPE_UINT8:  return _Max<uint8_t >();
+        case BB_TYPE_UINT16: return _Max<uint16_t>();
+        case BB_TYPE_UINT32: return _Max<uint32_t>();
+        case BB_TYPE_UINT64: return _Max<uint64_t>();
+        default:   BB_ASSERT(0);
+        }
+        return 0;
+    }
     
     FrameBuffer Sqrt(void)
     {

@@ -44,10 +44,11 @@
 #include "Sigmoid.cu"
 #include "Binarize.cu"
 #include "HardTanh.cu"
-#include "Adam.cu"
+#include "OptimizerAdam.cu"
 #include "LossSoftmaxCrossEntropy.cu"
 #include "LossMeanSquaredError.cu"
-#include "AccuracyCategoricalClassification.cu"
+#include "MetricsCategoricalAccuracy.cu"
+#include "Utility.cu"
 
 
 // end of file

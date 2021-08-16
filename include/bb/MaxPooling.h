@@ -24,6 +24,7 @@ template <typename FT = float, typename BT = float>
 class MaxPooling : public Filter2d
 {
     using _super = Filter2d;
+    using argmax_t = std::int32_t;
 
 public:
     static inline std::string ModelName(void) { return "MaxPooling"; }
@@ -34,23 +35,22 @@ public:
 
 
 protected:
-    bool                m_host_only = false;
+    bool                    m_host_only = false;
 
-    index_t             m_filter_h_size;
-    index_t             m_filter_w_size;
+    index_t                 m_filter_h_size;
+    index_t                 m_filter_w_size;
 
-    index_t             m_input_c_size;
-    index_t             m_input_h_size;
-    index_t             m_input_w_size;
-    index_t             m_output_c_size;
-    index_t             m_output_h_size;
-    index_t             m_output_w_size;
+    index_t                 m_input_c_size = 0;
+    index_t                 m_input_h_size = 0;
+    index_t                 m_input_w_size = 0;
+    index_t                 m_output_c_size = 0;
+    index_t                 m_output_h_size = 0;
+    index_t                 m_output_w_size = 0;
 
-    indices_t           m_input_shape;
-    indices_t           m_output_shape;
+    indices_t               m_input_shape;
+    indices_t               m_output_shape;
 
-    FrameBuffer         m_x_buf;
-    FrameBuffer         m_y_buf;
+    std::stack<indices_t>   m_stack_shape;
 
 public:
     struct create_t
@@ -168,18 +168,6 @@ public:
     
 protected:
 
-    /*
-    inline void* GetInputPtr(NeuralNetBuffer<T>& buf, int c, int y, int x)
-    {
-        return buf.Lock((c*m_input_h_size + y)*m_input_w_size + x);
-    }
-
-    inline void* GetOutputPtr(NeuralNetBuffer<T>& buf, int c, int y, int x)
-    {
-        return buf.Lock((c*m_output_h_size + y)*m_output_w_size + x);
-    }
-    */
-
     inline index_t GetInputNode(index_t c, index_t y, index_t x)
     {
         return (c * m_input_h_size + y) * m_input_w_size + x;
@@ -191,6 +179,17 @@ protected:
     }
 
 public:
+
+    void Clear(void) override
+    {
+        _super::Clear();
+        while (!m_stack_shape.empty()) {
+            m_stack_shape.pop();
+        }
+        _super::Clear();
+    }
+
+
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true) override
     {
         BB_ASSERT(x_buf.GetType() == DataType<FT>::type);
@@ -200,24 +199,34 @@ public:
             SetInputShape(x_buf.GetShape());
         }
 
+        // bit版(maxargを残すよりx_bufを残す方が小さい)
+        if (DataType<FT>::type == BB_TYPE_BIT && m_filter_h_size * m_filter_w_size < 32) {
+            return Forward_bit(x_buf, train);
+        }
+
+
         // 出力を設定
         FrameBuffer y_buf(x_buf.GetFrameSize(), m_output_shape, DataType<FT>::type);
+        FrameBuffer argmax_buf(x_buf.GetFrameSize(), m_output_shape, DataType<argmax_t>::type);
         
         // backwardの為に保存
         if ( train ) {
-            m_x_buf = x_buf;
-            m_y_buf = y_buf;
+            this->m_stack_shape.push(x_buf.GetShape());
+            this->PushFrameBuffer(argmax_buf);
         }
 
+        
 #ifdef BB_WITH_CUDA
         // FP32 CUDA版
-        if ( DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        if ( DataType<FT>::type == BB_TYPE_FP32 && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && argmax_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             auto ptr_x = x_buf.LockDeviceMemoryConst();
             auto ptr_y = y_buf.LockDeviceMemory(true);
+            auto ptr_argmax = argmax_buf.LockDeviceMemory(true);
             bbcu_fp32_MaxPooling_Forward
                 (
                     (float const *)ptr_x.GetAddr(),
-                    (float*       )ptr_y.GetAddr(),
+                    (float       *)ptr_y.GetAddr(),
+                    (int         *)ptr_argmax.GetAddr(),
                     (int          )m_filter_h_size,
                     (int          )m_filter_w_size,
                     (int          )m_input_w_size,
@@ -231,8 +240,105 @@ public:
 
             return y_buf;
         }
+#endif
+
+        /*
+        // float用実装
+        if ( DataType<FT>::type == BB_TYPE_FP32 ) {
+            auto x_ptr = x_buf.LockConst<FT>();
+            auto y_ptr = y_buf.Lock<FT>(true);
+
+            index_t  m256_frame_size = (int)y_buf.GetFrameStride() / sizeof(float);
+
+            #pragma omp parallel for
+            for (index_t c = 0; c < m_input_c_size; ++c) {
+                for (index_t y = 0; y < m_output_h_size; ++y) {
+                    for (index_t x = 0; x < m_output_w_size; ++x) {
+                        float *y_addr = (float *)y_ptr.GetAddr(GetOutputNode(c, y, x));
+
+                        for (index_t frame = 0; frame < m256_frame_size; frame += 8) {
+                            __m256  max_val = _mm256_set1_ps(-1.0e7f);  // 前段に活性化入れるから0がminだよね？
+                            for (index_t fy = 0; fy < m_filter_h_size; ++fy) {
+                                index_t iy = y*m_filter_h_size + fy;
+                                if ( iy < m_input_h_size ) {
+                                    for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
+                                        index_t ix = x*m_filter_w_size + fx;
+                                        if ( ix < m_input_w_size ) {
+                                            float const *x_addr = (float const *)x_ptr.GetAddr(GetInputNode(c, iy, ix));
+                                            __m256 in_sig = _mm256_load_ps(&x_addr[frame]);
+                                            max_val = _mm256_max_ps(max_val, in_sig);
+                                        }
+                                    }
+                                }
+                            }
+                            _mm256_store_ps(&y_addr[frame], max_val);
+                        }
+                    }
+                }
+            }
+
+            return y_buf;
+        }
+        */
+
+
+        // 汎用版実装
+        {
+            auto x_ptr = x_buf.LockConst<FT>();
+            auto y_ptr = y_buf.Lock<FT>(true);
+            auto argmax_ptr = argmax_buf.Lock<argmax_t>(true);
+
+            auto frame_size = x_buf.GetFrameSize();
+
+            #pragma omp parallel for
+            for (index_t c = 0; c < m_input_c_size; ++c) {
+                for (index_t y = 0; y < m_output_h_size; ++y) {
+                    for (index_t x = 0; x < m_output_w_size; ++x) {
+                        for (index_t frame = 0; frame < frame_size; ++frame) {
+                            FT          max_val = std::numeric_limits<FT>::lowest();
+                            argmax_t    argmax = 0;
+                            argmax_t    arg = 0;
+                            for (index_t fy = 0; fy < m_filter_h_size; ++fy) {
+                                index_t iy = y*m_filter_h_size + fy;
+                                if ( iy < m_input_h_size ) {
+                                    for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
+                                        index_t ix = x*m_filter_w_size + fx;
+                                        if ( ix < m_input_w_size ) {
+                                            FT in_sig = x_ptr.Get(frame, {c, iy, ix});
+                                            if ( in_sig > max_val ) {
+                                                max_val = in_sig;
+                                                argmax = arg;
+                                            }
+                                            arg++;
+                                        }
+                                    }
+                                }
+                            }
+                            y_ptr.Set(frame, {c, y, x}, max_val);
+                            argmax_ptr.Set(frame, {c, y, x}, argmax);
+                        }
+                    }
+                }
+            }
+
+            return y_buf;
+        }
+    }
+    
+
+    
+    FrameBuffer Forward_bit(FrameBuffer x_buf, bool train = true)
+    {
+        // 出力を設定
+        FrameBuffer y_buf(x_buf.GetFrameSize(), m_output_shape, DataType<FT>::type);
         
+        // backwardの為に保存
+        if ( train ) {
+            this->PushFrameBuffer(x_buf);
+        }
+
         // Bit CUDA版
+#ifdef BB_WITH_CUDA
         if ( DataType<FT>::type == BB_TYPE_BIT && !m_host_only && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             auto ptr_x = x_buf.LockDeviceMemoryConst();
             auto ptr_y = y_buf.LockDeviceMemory(true);
@@ -254,7 +360,7 @@ public:
             return y_buf;
         }
 #endif
-     
+
         if ( DataType<FT>::type == BB_TYPE_BIT ) {
             // バイナリ用実装
             auto x_ptr = x_buf.LockConst<FT>();
@@ -292,43 +398,6 @@ public:
             return y_buf;
         }
 
-        // float用実装
-        if ( DataType<FT>::type == BB_TYPE_FP32 ) {
-            auto x_ptr = x_buf.LockConst<FT>();
-            auto y_ptr = y_buf.Lock<FT>(true);
-
-            index_t  m256_frame_size = (int)y_buf.GetFrameStride() / sizeof(float);
-
-            #pragma omp parallel for
-            for (index_t c = 0; c < m_input_c_size; ++c) {
-                for (index_t y = 0; y < m_output_h_size; ++y) {
-                    for (index_t x = 0; x < m_output_w_size; ++x) {
-                        float *y_addr = (float *)y_ptr.GetAddr(GetOutputNode(c, y, x));
-
-                        for (index_t frame = 0; frame < m256_frame_size; frame += 8) {
-                            __m256  max_val = _mm256_set1_ps(-1.0e7f);  // 前段に活性化入れるから0がminだよね？
-                            for (index_t fy = 0; fy < m_filter_h_size; ++fy) {
-                                index_t iy = y*m_filter_h_size + fy;
-                                if ( iy < m_input_h_size ) {
-                                    for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
-                                        index_t ix = x*m_filter_w_size + fx;
-                                        if ( ix < m_input_w_size ) {
-                                            float const *x_addr = (float const *)x_ptr.GetAddr(GetInputNode(c, iy, ix));
-                                            __m256 in_sig = _mm256_load_ps(&x_addr[frame]);
-                                            max_val = _mm256_max_ps(max_val, in_sig);
-                                        }
-                                    }
-                                }
-                            }
-                            _mm256_store_ps(&y_addr[frame], max_val);
-                        }
-                    }
-                }
-            }
-
-            return y_buf;
-        }
-
         // 汎用版実装
         {
             auto x_ptr = x_buf.LockConst<FT>();
@@ -341,7 +410,7 @@ public:
                 for (index_t y = 0; y < m_output_h_size; ++y) {
                     for (index_t x = 0; x < m_output_w_size; ++x) {
                         for (index_t frame = 0; frame < frame_size; ++frame) {
-                            FT max_val = 0;
+                            FT  max_val = 0;
                             for (index_t fy = 0; fy < m_filter_h_size; ++fy) {
                                 index_t iy = y*m_filter_h_size + fy;
                                 if ( iy < m_input_h_size ) {
@@ -349,7 +418,9 @@ public:
                                         index_t ix = x*m_filter_w_size + fx;
                                         if ( ix < m_input_w_size ) {
                                             FT in_sig = x_ptr.Get(frame, {c, iy, ix});
-                                            max_val = (max_val > in_sig) ? max_val : in_sig;
+                                            if ( in_sig ) {
+                                                max_val = in_sig;
+                                            }
                                         }
                                     }
                                 }
@@ -364,36 +435,45 @@ public:
         }
     }
     
+
+
+
     FrameBuffer Backward(FrameBuffer dy_buf) override
     {
         if (dy_buf.Empty()) {
             return dy_buf;
         }
 
+        // bit版(maxargを残すよりx_bufを残す方が小さい)
+        if (DataType<FT>::type == BB_TYPE_BIT && m_filter_h_size * m_filter_w_size < 32) {
+            return Backward_bit(dy_buf);
+        }
+
+//        FrameBuffer y_buf = this->PopFrameBuffer();
+//        FrameBuffer x_buf = this->PopFrameBuffer();
+//        BB_ASSERT(x_buf.GetType() == DataType<FT>::type);
+//        BB_ASSERT(y_buf.GetType() == DataType<FT>::type);
+        
+        auto input_shape = m_stack_shape.top();    m_stack_shape.pop();
+        FrameBuffer argmax_buf = this->PopFrameBuffer();
+
+        SetInputShape(input_shape);
         BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
+        BB_ASSERT(dy_buf.GetShape() == argmax_buf.GetShape());
 
-        FrameBuffer dx_buf(dy_buf.GetFrameSize(), m_input_shape, DataType<BT>::type);
+        FrameBuffer dx_buf(dy_buf.GetFrameSize(), input_shape, DataType<BT>::type);
 
-        FrameBuffer x_buf = m_x_buf;
-        FrameBuffer y_buf = m_y_buf;
-        m_x_buf = FrameBuffer();
-        m_y_buf = FrameBuffer();
-
-        BB_ASSERT(x_buf.GetType() == DataType<FT>::type);
-        BB_ASSERT(y_buf.GetType() == DataType<FT>::type);
-
+        
 #ifdef BB_WITH_CUDA
         if ( DataType<BT>::type == BB_TYPE_FP32 && DataType<FT>::type == BB_TYPE_FP32 && !m_host_only 
-                && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+                && argmax_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
             // CUDA版
-            auto ptr_x  = x_buf.LockDeviceMemoryConst();
-            auto ptr_y  = y_buf.LockDeviceMemoryConst();
-            auto ptr_dy = dy_buf.LockDeviceMemoryConst();
-            auto ptr_dx = dx_buf.LockDeviceMemory(true);
+            auto ptr_argmax = argmax_buf.LockDeviceMemoryConst();
+            auto ptr_dy     = dy_buf.LockDeviceMemoryConst();
+            auto ptr_dx     = dx_buf.LockDeviceMemory(true);
             bbcu_fp32_MaxPooling_Backward
                 (
-                    (float const *)ptr_x.GetAddr(),
-                    (float const *)ptr_y.GetAddr(),
+                    (int   const *)ptr_argmax.GetAddr(),
                     (float const *)ptr_dy.GetAddr(),
                     (float*       )ptr_dx.GetAddr(),
                     (int          )m_filter_h_size,
@@ -411,6 +491,7 @@ public:
         }
 #endif
 
+        /*
 #ifdef BB_WITH_CUDA
         if ( DataType<FT>::type == BB_TYPE_BIT && DataType<BT>::type == BB_TYPE_FP32 && !m_host_only 
                 && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
@@ -483,31 +564,33 @@ public:
 
             return dx_buf;
         }
-
+        */
+        
+        
         // 汎用版実装
         {
-            auto x_ptr  = x_buf.LockConst<FT>();
-            auto y_ptr  = y_buf.LockConst<FT>();
-            auto dy_ptr = dy_buf.LockConst<BT>();
-            auto dx_ptr = dx_buf.Lock<BT>(true);
+            auto argmax_ptr = argmax_buf.LockConst<argmax_t>();
+            auto dy_ptr     = dy_buf.LockConst<BT>();
+            auto dx_ptr     = dx_buf.Lock<BT>(true);
 
-            auto frame_size = x_buf.GetFrameSize();
+            auto frame_size = dy_buf.GetFrameSize();
 
             #pragma omp parallel for
             for (index_t c = 0; c < m_input_c_size; ++c) {
                 for (index_t y = 0; y < m_output_h_size; ++y) {
                     for (index_t x = 0; x < m_output_w_size; ++x) {
                         for (index_t frame = 0; frame < frame_size; ++frame) {
-                            FT out_sig = y_ptr.Get(frame, c, y, x);
-                            BT grad    = dy_ptr.Get(frame, c, y, x);
+                            argmax_t arg = 0;
+                            argmax_t argmax = argmax_ptr.Get(frame, c, y, x);
+                            BT      grad   = dy_ptr.Get(frame, c, y, x);
                             for (index_t fy = 0; fy < m_filter_h_size; ++fy) {
                                 index_t iy = y*m_filter_h_size + fy;
                                 if ( iy < m_input_h_size ) {
                                     for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
                                         index_t ix = x*m_filter_w_size + fx;
                                         if ( ix < m_input_w_size ) {
-                                            FT in_sig  = x_ptr.Get(frame, c, iy, ix);
-                                            dx_ptr.Set(frame, c, iy, ix, (in_sig == out_sig) ? grad : (BT)0);
+                                            dx_ptr.Set(frame, c, iy, ix, (arg == argmax) ? grad : (BT)0);
+                                            arg++;
                                         }
                                     }
                                 }
@@ -521,6 +604,88 @@ public:
         }
     }
 
+
+
+    FrameBuffer Backward_bit(FrameBuffer dy_buf)
+    {
+
+        FrameBuffer x_buf = this->PopFrameBuffer();
+        BB_ASSERT(x_buf.GetType() == DataType<FT>::type);
+
+        SetInputShape(x_buf.GetShape());
+        BB_ASSERT(dy_buf.GetType() == DataType<BT>::type);
+        BB_ASSERT(dy_buf.GetShape() == m_output_shape);
+
+        FrameBuffer dx_buf(dy_buf.GetFrameSize(), m_input_shape, DataType<BT>::type);
+
+        
+#ifdef BB_WITH_CUDA
+        if ( DataType<FT>::type == BB_TYPE_BIT && DataType<BT>::type == BB_TYPE_FP32 && !m_host_only 
+                && x_buf.IsDeviceAvailable() && dx_buf.IsDeviceAvailable() && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            // CUDA版
+            auto ptr_x  = x_buf.LockDeviceMemoryConst();
+            auto ptr_dy = dy_buf.LockDeviceMemoryConst();
+            auto ptr_dx = dx_buf.LockDeviceMemory(true);
+            bbcu_bit_fp32_MaxPooling_Backward
+                (
+                    (int   const *)ptr_x.GetAddr(),
+                    (float const *)ptr_dy.GetAddr(),
+                    (float*       )ptr_dx.GetAddr(),
+                    (int          )m_filter_h_size,
+                    (int          )m_filter_w_size,
+                    (int          )m_input_w_size,
+                    (int          )m_input_h_size,
+                    (int          )m_output_w_size,
+                    (int          )m_output_h_size,
+                    (int          )m_output_c_size,
+                    (int          )dy_buf.GetFrameSize(),
+                    (int          )(x_buf.GetFrameStride() / sizeof(int)),
+                    (int          )(dy_buf.GetFrameStride() / sizeof(float))
+                );
+
+            return dx_buf;
+        }
+#endif
+        
+
+        // 汎用版実装
+        {
+            auto x_ptr  = x_buf.LockConst<FT>();
+            auto dy_ptr = dy_buf.LockConst<BT>();
+            auto dx_ptr = dx_buf.Lock<BT>(true);
+
+            auto frame_size = dy_buf.GetFrameSize();
+
+            #pragma omp parallel for
+            for (index_t c = 0; c < m_input_c_size; ++c) {
+                for (index_t y = 0; y < m_output_h_size; ++y) {
+                    for (index_t x = 0; x < m_output_w_size; ++x) {
+                        for (index_t frame = 0; frame < frame_size; ++frame) {
+                            BT      grad   = dy_ptr.Get(frame, c, y, x);
+                            for (index_t fy = 0; fy < m_filter_h_size; ++fy) {
+                                index_t iy = y*m_filter_h_size + fy;
+                                if ( iy < m_input_h_size ) {
+                                    for (index_t fx = 0; fx < m_filter_w_size; ++fx) {
+                                        index_t ix = x*m_filter_w_size + fx;
+                                        if ( ix < m_input_w_size ) {
+                                            FT  in_sig = x_ptr.Get(frame, c, iy, ix);
+                                            dx_ptr.Set(frame, c, iy, ix, in_sig ? grad : (BT)0);
+                                            if ( in_sig ) {
+                                                grad = 0;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return dx_buf;
+        }
+    }
+    
 
     // シリアライズ
 protected:

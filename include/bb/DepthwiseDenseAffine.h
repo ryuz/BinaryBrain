@@ -43,7 +43,7 @@ protected:
     bool                        m_binary_mode = false;
 
     T                           m_initialize_std = (T)0.01;
-    std::string                 m_initializer = "he";
+    std::string                 m_initializer = "";
     std::mt19937_64             m_mt;
 
     indices_t                   m_input_shape;
@@ -53,8 +53,6 @@ protected:
     index_t                     m_output_point_size = 0;
     index_t                     m_output_node_size = 0;
     index_t                     m_depth_size = 0;
-
-    FrameBuffer                 m_x_buf;
 
     std::shared_ptr<Tensor>     m_W;
     std::shared_ptr<Tensor>     m_b;
@@ -73,7 +71,7 @@ public:
         index_t         input_point_size = 0;
         index_t         depth_size = 0;
         T               initialize_std = (T)0.01;
-        std::string     initializer = "he";
+        std::string     initializer = "";
         std::uint64_t   seed = 1;
     };
 
@@ -247,16 +245,37 @@ public:
 
 
         // パラメータ初期化
+        m_W->Resize ({m_depth_size, m_output_point_size, m_input_point_size}, DataType<T>::type);
+        m_b->Resize ({m_depth_size, m_output_point_size},                     DataType<T>::type);
+        m_dW->Resize({m_depth_size, m_output_point_size, m_input_point_size}, DataType<T>::type);
+        m_db->Resize({m_depth_size, m_output_point_size},                     DataType<T>::type);
+
         if (m_initializer == "he" || m_initializer == "He") {
-            m_initialize_std = (T)2.0 / std::sqrt((T)m_input_node_size);
+            m_initialize_std = (T)std::sqrt(2.0 / (double)m_input_node_size);
+            m_W->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+            m_b->InitNormalDistribution(0.0, m_initialize_std, m_mt());
         }
         else if (m_initializer == "xavier" || m_initializer == "Xavier" ) {
-            m_initialize_std = (T)1.0 / std::sqrt((T)m_input_node_size);
+            m_initialize_std = (T)std::sqrt(1.0 / (double)m_input_node_size);
+            m_W->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+            m_b->InitNormalDistribution(0.0, m_initialize_std, m_mt());
         }
-        m_W->Resize ({m_depth_size, m_output_point_size, m_input_point_size}, DataType<T>::type);   m_W->InitNormalDistribution(0.0, m_initialize_std, m_mt());
-        m_b->Resize ({m_depth_size, m_output_point_size},                     DataType<T>::type);   m_b->InitNormalDistribution(0.0, m_initialize_std, m_mt());
-        m_dW->Resize({m_depth_size, m_output_point_size, m_input_point_size}, DataType<T>::type);   m_dW->FillZero();
-        m_db->Resize({m_depth_size, m_output_point_size},                     DataType<T>::type);   m_db->FillZero();
+        else if (m_initializer == "normal" || m_initializer == "Normal" ) {
+            m_W->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+            m_b->InitNormalDistribution(0.0, m_initialize_std, m_mt());
+        }
+        else if (m_initializer == "uniform" || m_initializer == "Uniform" ) {
+            double k = m_initialize_std * std::sqrt(3);
+            m_W->InitUniformDistribution(-k, +k, m_mt());
+            m_b->InitUniformDistribution(-k, +k, m_mt());
+        }
+        else {
+            double k = std::sqrt(1.0 / (double)m_input_node_size);
+            m_W->InitUniformDistribution(-k, +k, m_mt());
+            m_b->InitUniformDistribution(-k, +k, m_mt());
+        }
+        m_dW->FillZero();
+        m_db->FillZero();
 
         return m_output_shape;
     }
@@ -320,7 +339,7 @@ public:
     {
         // backwardの為に保存
         if ( train ) {
-            m_x_buf = x_buf;
+            this->PushFrameBuffer(x_buf);
         }
 
         // 型合わせ
@@ -424,8 +443,7 @@ public:
         // フレーム数
         auto frame_size = dy_buf.GetFrameSize();
 
-        FrameBuffer x_buf = m_x_buf;
-        m_x_buf = FrameBuffer();
+        FrameBuffer x_buf = this->PopFrameBuffer();
 
         // 型合わせ
         if ( x_buf.GetType() != DataType<T>::type ) {

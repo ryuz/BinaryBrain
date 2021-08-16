@@ -36,6 +36,8 @@ void MnistLoadNet                  (int epoch_size, int mini_batch_size, std::st
 
 void MnistDenseBinary(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 
+void MnistLoopDenseCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+
 
 // メイン関数
 int main(int argc, char *argv[])
@@ -128,11 +130,11 @@ int main(int argc, char *argv[])
         test_modulation_size = train_modulation_size;
     }
 
-    int device = 0;
-
-    cudaSetDevice(device);
 
 #ifdef BB_WITH_CUDA
+    int device = 0;
+    cudaSetDevice(device);
+
     if ( print_device ) {
         bbcu::PrintDeviceProperties(device);
     }
@@ -182,6 +184,11 @@ int main(int argc, char *argv[])
     if ( netname == "All" || netname == "AeDifferentiableLutCnn" ) {
         MnistAeDifferentiableLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
+    
+    if ( netname == "All" || netname == "LoopDenseCnn" ) {
+        MnistLoopDenseCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    }
+    
 
     // カスタムモデルを自分で書く場合のサンプル
     if ( netname == "All" || strcmp(argv[1], "Custom") == 0 ) {

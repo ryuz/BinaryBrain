@@ -38,6 +38,7 @@
     <ClInclude Include="..\..\..\include\bb\BinaryScaling.h" />
     <ClInclude Include="..\..\..\include\bb\BinaryToReal.h" />
     <ClInclude Include="..\..\..\include\bb\BitEncode.h" />
+    <ClInclude Include="..\..\..\include\bb\Concatenate.h" />
     <ClInclude Include="..\..\..\include\bb\ConcatenateCoefficient.h" />
     <ClInclude Include="..\..\..\include\bb\ConnectionTable.h" />
     <ClInclude Include="..\..\..\include\bb\Convolution2d.h" />

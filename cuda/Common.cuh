@@ -1,12 +1,24 @@
 ﻿
 #pragma once
 
-
+#include <nppdefs.h>
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
 #include "bbcu/bbcu.h"
 #include "bbcu/bbcu_util.h"
+
+
+
+
+// データタイプ定義
+template<typename T>    __device__ __forceinline__   T      bb_type_lowest(void)         { return 0; }
+template<typename T>    __device__ __forceinline__   T      bb_type_max(void)            { return 0; }
+template<>              __device__ __forceinline__   double bb_type_lowest<double>(void) { return -NPP_MAXABS_64F; }
+template<>              __device__ __forceinline__   double bb_type_max   <double>(void) { return +NPP_MAXABS_64F; }
+template<>              __device__ __forceinline__   float  bb_type_lowest<float >(void) { return -NPP_MAXABS_32F; }
+template<>              __device__ __forceinline__   float  bb_type_max   <float >(void) { return +NPP_MAXABS_32F; }
+
 
 
 
@@ -106,6 +118,29 @@ __device__ __forceinline__ T device_ShuffleSum(T v)
     return v;
 }
 
+
+template<typename T = float>
+__device__ __forceinline__ T device_ShuffleMax(T v)
+{
+    v = max(v, __shfl_xor_sync(0xffffffff, v,  1, 32));
+    v = max(v, __shfl_xor_sync(0xffffffff, v,  2, 32));
+    v = max(v, __shfl_xor_sync(0xffffffff, v,  4, 32));
+    v = max(v, __shfl_xor_sync(0xffffffff, v,  8, 32));
+    v = max(v, __shfl_xor_sync(0xffffffff, v, 16, 32));
+    return v;
+}
+
+
+template<typename T = float>
+__device__ __forceinline__ T device_ShuffleMin(T v)
+{
+    v = min(v, __shfl_xor_sync(0xffffffff, v,  1, 32));
+    v = min(v, __shfl_xor_sync(0xffffffff, v,  2, 32));
+    v = min(v, __shfl_xor_sync(0xffffffff, v,  4, 32));
+    v = min(v, __shfl_xor_sync(0xffffffff, v,  8, 32));
+    v = min(v, __shfl_xor_sync(0xffffffff, v, 16, 32));
+    return v;
+}
 
 
 template<int N=6, typename T = float>

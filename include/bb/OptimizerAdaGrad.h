@@ -76,8 +76,16 @@ public:
         m_h = 0;
     }
     
+    void ZeroGrad(void) override
+    {
+        if ( m_grads.IsEmpty() ) {
+            return;
+        }
 
-    void Update(void) override
+        m_grads = 0;
+    }
+    
+    void Step(void) override
     {
         if ( m_params.IsEmpty() ) {
             return;
@@ -111,7 +119,7 @@ public:
             m_h += (m_grads * m_grads);
 
             m_params -= m_learning_rate * m_grads / (Sqrt(m_h) + (T)1e-7);
-            m_grads   = 0;
+//          m_grads   = 0;
         }
     }
 

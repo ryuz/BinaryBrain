@@ -343,7 +343,7 @@ public:
                                 y = std::max((RealType)0.0, std::min((RealType)1.0, y));
 
                                 if ( m_binary_mode ) {
-                                    y = (y > (RealType)0.5) ? (RealType)1.0 : (RealType)0.0;
+                                    y = (y > (RealType)0.5) ? (RealType)+1.0 : (RealType)-1.0;
                                 }
                                 y_ptr.Set(output_frame, output_node, (BinType)y);
                             }
@@ -386,7 +386,7 @@ public:
                                 y = (y - (RealType)(d * depth_step)) * depth_step_recip;
 
                                 // binarize for frame
-                                y = (y > th) ? (RealType)1.0 : (RealType)0.0;
+                                y = (y > th) ? (RealType)+1.0 : (RealType)-1.0;
 
                                 y_ptr.Set(output_frame, output_node, (BinType)y);
                             }
@@ -427,7 +427,7 @@ public:
                     #pragma omp parallel for
                     for (index_t node = 0; node < node_size; ++node) {
                         RealType x = x_ptr.Get(input_frame, node);
-                        BinType  y = (x > th) ? (BinType)1 : (BinType)0;
+                        BinType  y = (x > th) ? (BinType)BB_BINARY_HI : (BinType)BB_BINARY_LO;
                         y_ptr.Set(output_frame, node, y);
                     }
                 }
@@ -436,7 +436,7 @@ public:
                     for (index_t node = 0; node < node_size; ++node) {
                         RealType th = m_value_generator->GetValue();
                         RealType x = x_ptr.Get(input_frame, node);
-                        BinType  y  = (x > th) ? (BinType)1 : (BinType)0;
+                        BinType  y  = (x > th) ? (BinType)BB_BINARY_HI : (BinType)BB_BINARY_LO;
                         y_ptr.Set(output_frame, node, y);
                     }
                 }

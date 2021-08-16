@@ -9,12 +9,12 @@
 
 #pragma once
 
+#include <vector>
 #include <memory>
 #include <cstdint>
 #include <iostream>
 
 #include "bb/Assert.h"
-#include "bb/SimdSupport.h"
 
 
 namespace bb {
@@ -44,6 +44,9 @@ namespace bb {
 #define BB_TYPE_UINT32          (0x0300 + 32)
 #define BB_TYPE_UINT64          (0x0300 + 64)
 
+
+#define BB_BINARY_HI            (+1)
+#define BB_BINARY_LO            (-1)
 
 
 
@@ -292,8 +295,22 @@ public:
     bool operator<(Bit const &bit) { return ((int)m_value < (int)bit.m_value); }
     bool operator<=(Bit const &bit) { return ((int)m_value <= (int)bit.m_value); }
 
+#if 0
     template<typename Tp>
-    operator Tp() { return m_value ? (Tp)1.0 : (Tp)0.0; }
+    operator Tp() { return m_value ? (Tp)BB_BINARY_HI : (Tp)BB_BINARY_LO; }
+#else
+    explicit operator double()        const { return m_value ? (double      )BB_BINARY_HI : (double      )BB_BINARY_LO; }
+    explicit operator float()         const { return m_value ? (float       )BB_BINARY_HI : (float       )BB_BINARY_LO; }
+    explicit operator std::int64_t()  const { return m_value ? (std::int64_t)BB_BINARY_HI : (std::int64_t)BB_BINARY_LO; }
+    explicit operator std::int32_t()  const { return m_value ? (std::int32_t)BB_BINARY_HI : (std::int32_t)BB_BINARY_LO; }
+    explicit operator std::int16_t()  const { return m_value ? (std::int16_t)BB_BINARY_HI : (std::int16_t)BB_BINARY_LO; }
+    explicit operator std::int8_t()   const { return m_value ? (std::int8_t )BB_BINARY_HI : (std::int8_t )BB_BINARY_LO; }
+    explicit operator std::uint64_t() const { return m_value ? 1 : 0; }
+    explicit operator std::uint32_t() const { return m_value ? 1 : 0; }
+    explicit operator std::uint16_t() const { return m_value ? 1 : 0; }
+    explicit operator std::uint8_t()  const { return m_value ? 1 : 0; }
+#endif
+
     operator bool() const { return m_value; }
 };
 
