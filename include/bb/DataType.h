@@ -15,7 +15,6 @@
 #include <iostream>
 
 #include "bb/Assert.h"
-#include "bb/SimdSupport.h"
 
 
 namespace bb {
