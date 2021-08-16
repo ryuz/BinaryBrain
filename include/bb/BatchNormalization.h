@@ -725,7 +725,7 @@ public:
 
         // 出力設定
         FrameBuffer y_buf(x_buf.GetFrameSize(), x_buf.GetShape(), x_buf.GetType());
-        auto node_size = CalcShapeSize(this->m_shape);
+//      auto node_size = CalcShapeSize(this->m_shape);
 //        Tensor_<T>  mean_tensor;     // 平均値
 //        Tensor_<T>  rstd_tensor;     // 標準偏差の逆数
 //        mean_tensor.Resize(node_size);
