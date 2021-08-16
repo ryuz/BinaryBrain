@@ -106,7 +106,7 @@
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <Include>..\include</Include>
-      <CodeGeneration>compute_75,sm_75</CodeGeneration>
+      <CodeGeneration>compute_52,sm_52;compute_53,sm_53;compute_60,sm_60;compute_61,sm_61;compute_62,sm_62;compute_70,sm_70;compute_72,sm_72;compute_75,sm_75</CodeGeneration>
       <AdditionalCompilerOptions>/wd"4819"</AdditionalCompilerOptions>
       <Runtime>MTd</Runtime>
     </CudaCompile>
@@ -132,7 +132,7 @@
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <Include>..\include</Include>
-      <CodeGeneration>compute_75,sm_75</CodeGeneration>
+      <CodeGeneration>compute_52,sm_52;compute_53,sm_53;compute_60,sm_60;compute_61,sm_61;compute_62,sm_62;compute_70,sm_70;compute_72,sm_72;compute_75,sm_75</CodeGeneration>
       <Runtime>MT</Runtime>
       <AdditionalCompilerOptions>/wd"4819"</AdditionalCompilerOptions>
     </CudaCompile>
