@@ -24,6 +24,7 @@
 #include "bb/Utility.h"
 #include "bb/Memory.h"
 #include "bb/TensorOperator.h"
+#include "bb/SimdSupport.h"
 
 #ifdef BB_WITH_CUDA
 #include "bbcu/bbcu.h"
