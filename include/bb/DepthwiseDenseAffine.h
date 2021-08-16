@@ -615,8 +615,8 @@ protected:
             m_input_point_size  = m_input_node_size / m_depth_size;
             m_output_point_size = m_output_node_size / m_depth_size;
 
-            m_dW->Resize({m_output_node_size, m_input_node_size}, DataType<T>::type);   m_dW->FillZero();
-            m_db->Resize({m_output_node_size},                    DataType<T>::type);   m_db->FillZero();
+            m_dW->Resize({m_depth_size, m_output_point_size, m_input_point_size}, DataType<T>::type);   m_dW->FillZero();
+            m_db->Resize({m_depth_size, m_output_point_size},                     DataType<T>::type);   m_db->FillZero();
         }
     }
 
