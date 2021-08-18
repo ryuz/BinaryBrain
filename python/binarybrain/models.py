@@ -1171,9 +1171,9 @@ class DifferentiableLut(SparseModel):
         output_shape (List[int]): 出力のシェイプ
         connection(str): 結線ルールを 'random', 'serial', 'depthwise' から指定可能
         batch_norm (bool): BatchNormalization を有効にするか
-        momentum (float): BatchNormalization を有効にするか
-        gamma (float): BatchNormalization を有効にするか
-        beta (float): BatchNormalization を有効にするか
+        momentum (float): BatchNormalization の momentum
+        gamma (float): BatchNormalization の gamma
+        beta (float): BatchNormalization の beta
         N (int): LUTの入力数
         seed (int): 変数初期値などの乱数シード
         bin_dtype (DType)): バイナリ出力の型を bb.DType.FP32 と bb.DType.BIT から指定(bb.DType.BIT は binarize=True 時のみ)

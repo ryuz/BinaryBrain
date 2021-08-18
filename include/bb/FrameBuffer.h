@@ -1650,7 +1650,6 @@ public:
         dst.m_tensor = m_tensor.Exp();
         return dst;
     }
-    
 
     double Sum(void)
     {
@@ -1662,6 +1661,10 @@ public:
         return std::sqrt((*this * *this).Sum());
     }
 
+    void Clamp_inplace(double a, double b)
+    {
+        m_tensor.Clamp_inplace(a, b);
+    }
 
 
     friend  FrameBuffer operator+(FrameBuffer const &src0, FrameBuffer const &src1);
