@@ -988,6 +988,18 @@ class DepthwiseDenseAffine(Model):
         
         super(DepthwiseDenseAffine, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
+    def W(self):
+        return bb.Tensor(core_tensor=self.get_core().W())
+
+    def b(self):
+        return bb.Tensor(core_tensor=self.get_core().b())
+
+    def dW(self):
+        return bb.Tensor(core_tensor=self.get_core().dW())
+
+    def db(self):
+        return bb.Tensor(core_tensor=self.get_core().db())
+
 model_creator_regist('DepthwiseDenseAffine', DepthwiseDenseAffine.from_bytes)
 
 

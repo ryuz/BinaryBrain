@@ -622,9 +622,10 @@ PYBIND11_MODULE(core, m) {
     py::class_< Variables, Object, std::shared_ptr<Variables> >(m, "Variables")
         DEF_OBJECT_PICKLE(Variables)
         .def(py::init<>())
-        .def("push_back", (void (Variables::*)(Variables const &))&Variables::PushBack)
-        .def("get_size",  &Variables::GetSize)
-        .def("at",        &Variables::At)
+        .def("push_back",  (void (Variables::*)(Variables const &))&Variables::PushBack)
+        .def("get_size",   &Variables::GetSize)
+        .def("get_shapes", &Variables::GetShapes)
+        .def("at",         &Variables::At)
         ;
 
 
