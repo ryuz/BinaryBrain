@@ -475,6 +475,12 @@ class Sequential(Model):
         """
         return self.model_list
     
+    def get_input_shape(self):
+        return self.model_list[0].get_input_shape()
+
+    def get_output_shape(self):
+        return self.model_list[-1].get_output_shape()
+
     def __len__(self):
         return len(self.model_list)
     
@@ -924,6 +930,7 @@ model_creator_regist('Reduce', Reduce.from_bytes)
 
 
 
+
 # ------- 演算 --------
 
 class DenseAffine(Model):
@@ -1227,6 +1234,29 @@ model_creator_regist('DifferentiableLut5', DifferentiableLut.from_bytes)
 model_creator_regist('DifferentiableLut4', DifferentiableLut.from_bytes)
 model_creator_regist('DifferentiableLut3', DifferentiableLut.from_bytes)
 model_creator_regist('DifferentiableLut2', DifferentiableLut.from_bytes)
+
+
+
+class PopcountLutN(SparseModel):
+    """PopcountLutN class
+        入力bitをカウントして1の方が多ければ1を出力するテーブル固定のLUT型のモデル
+
+    Args:
+        output_shape ([int]): 出力のシェイプ
+        integration_size (int): 積算するサイズ
+    """
+
+    def __init__(self, n=6, output_shape=None, *, input_shape=None, name=None,
+                        connection='serial', seed=1, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32, core_model=None):
+        if output_shape is None:
+            output_shape = []
+        if core_model is None:
+            core_creator = search_core_model('PopcountLutN', [bin_dtype, real_dtype]).create
+            core_model = core_creator(n=n, output_shape=output_shape, connection=connection, seed=seed)
+        
+        super(PopcountLutN, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+model_creator_regist('PopcountLutN', PopcountLutN.from_bytes)
 
 
 

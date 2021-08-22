@@ -50,6 +50,12 @@ class Optimizer(bb.Object):
 
         return self.get_core().step()
 
+    def set_learning_rate(self, learning_rate):
+        """学習率設定
+        """
+        self.get_core().step(learning_rate)
+
+
 class OptimizerSgd(Optimizer):
     """SGD 最適化クラス
 

@@ -34,6 +34,7 @@
     <CudaCompile Include="MetricsCategoricalAccuracy.cu" />
     <CudaCompile Include="MicroMlp.cu" />
     <CudaCompile Include="OptimizerAdam.cu" />
+    <CudaCompile Include="PopcountLutN.cu" />
     <CudaCompile Include="RealToBinary.cu" />
     <CudaCompile Include="ReLU.cu" />
     <CudaCompile Include="Shuffle.cu" />

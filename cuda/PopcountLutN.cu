@@ -57,7 +57,7 @@ BBCU_DLL_EXPORT int bbcu_PopcountLutN_Forward
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
 
     dim3    block(1024, 1);
-    while (block.x / 2 <= (unsigned int)frame_size) {
+    while (block.x / 2 >= (unsigned int)frame_size) {
         block.x /= 2;
         block.y *= 2;
     }
@@ -134,7 +134,7 @@ BBCU_DLL_EXPORT int bbcu_bit_PopcountLutN_Forward
     frame_size = (frame_size + 31) / 32;
 
     dim3    block(1024, 1);
-    while (block.x / 2 <= (unsigned int)frame_size) {
+    while (block.x / 2 >= (unsigned int)frame_size) {
         block.x /= 2;
         block.y *= 2;
     }

@@ -34,7 +34,9 @@
     <ClInclude Include="..\..\..\include\bb\BinaryDenseAffine.h" />
     <ClInclude Include="..\..\..\include\bb\BinaryLutModel.h" />
     <ClInclude Include="..\..\..\include\bb\BinaryLutN.h" />
+    <ClInclude Include="..\..\..\include\bb\BinaryMean.h" />
     <ClInclude Include="..\..\..\include\bb\BinaryModulation.h" />
+    <ClInclude Include="..\..\..\include\bb\BinaryReduce.h" />
     <ClInclude Include="..\..\..\include\bb\BinaryScaling.h" />
     <ClInclude Include="..\..\..\include\bb\BinaryToReal.h" />
     <ClInclude Include="..\..\..\include\bb\BitEncode.h" />
@@ -84,6 +86,7 @@
     <ClInclude Include="..\..\..\include\bb\OptimizerAdam.h" />
     <ClInclude Include="..\..\..\include\bb\OptimizerSgd.h" />
     <ClInclude Include="..\..\..\include\bb\PnmImage.h" />
+    <ClInclude Include="..\..\..\include\bb\PopcountLutN.h" />
     <ClInclude Include="..\..\..\include\bb\RealToBinary.h" />
     <ClInclude Include="..\..\..\include\bb\Reduce.h" />
     <ClInclude Include="..\..\..\include\bb\ReLU.h" />

@@ -46,6 +46,7 @@
 #include "bb/DifferentiableLutN.h"
 #include "bb/DifferentiableLutDiscreteN.h"
 #include "bb/MicroMlp.h"
+#include "bb/PopcountLutN.h"
 #include "bb/BinaryLutN.h"
 
 #include "bb/Convolution2d.h"
@@ -152,6 +153,8 @@ using BinaryLut4_bit_fp32                    = bb::BinaryLutN<4, bb::Bit, float>
 using BinaryLut3_bit_fp32                    = bb::BinaryLutN<3, bb::Bit, float>;
 using BinaryLut2_bit_fp32                    = bb::BinaryLutN<2, bb::Bit, float>;
 
+using PopcountLutN_fp32_fp32                 = bb::PopcountLutN<float, float>;
+using PopcountLutN_bit_fp32                  = bb::PopcountLutN<bb::Bit, float>;
                                         
 using StochasticLutModel                     = bb::StochasticLutModel;
 
@@ -897,6 +900,20 @@ PYBIND11_MODULE(core, m) {
         .def_static("create", &BinaryLut3_bit_fp32::CreatePy);
     PYCLASS_MODEL(BinaryLut2_bit_fp32, BinaryLutModel)
         .def_static("create", &BinaryLut2_bit_fp32::CreatePy);
+    
+    // PopcountLutN
+    PYCLASS_MODEL(PopcountLutN_fp32_fp32, BinaryLutModel)
+        .def_static("create", &PopcountLutN_fp32_fp32::CreatePy,
+            py::arg("n")=6,
+            py::arg("output_shape"),
+            py::arg("connection")="random",
+            py::arg("seed")=1);
+    PYCLASS_MODEL(PopcountLutN_bit_fp32, BinaryLutModel)
+        .def_static("create", &PopcountLutN_bit_fp32::CreatePy,
+            py::arg("n")=6,
+            py::arg("output_shape"),
+            py::arg("connection")="random",
+            py::arg("seed")=1);
 
     // StochasticLutModel
     PYCLASS_MODEL(StochasticLutModel, SparseModel)
@@ -1196,11 +1213,13 @@ PYBIND11_MODULE(core, m) {
 #define PYCLASS_OPTIMIZER(class_name, superclass_name)  PYCLASS_OBJECT(class_name, superclass_name)
 
     PYCLASS_OPTIMIZER(Optimizer, Object)
-        .def("set_variables", &Optimizer::SetVariables)
-        .def("zero_grad",     &Optimizer::ZeroGrad)
-        .def("step",          &Optimizer::Step)
-        .def("update",        &Optimizer::Update);
-    
+        .def("set_variables",     &Optimizer::SetVariables)
+        .def("zero_grad",         &Optimizer::ZeroGrad)
+        .def("step",              &Optimizer::Step)
+        .def("update",            &Optimizer::Update)
+        .def("set_learning_rate", &Optimizer::SetLearningRate)
+        ;
+
     PYCLASS_OPTIMIZER(OptimizerSgd_fp32, Optimizer)
         .def_static("create", (std::shared_ptr<OptimizerSgd_fp32> (*)(float))&OptimizerSgd_fp32::Create, "create",
             py::arg("learning_rate") = 0.001f);

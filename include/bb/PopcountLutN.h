@@ -82,21 +82,23 @@ public:
         return std::shared_ptr<PopcountLutN>(new PopcountLutN(create));
     }
 
-    static std::shared_ptr<PopcountLutN> Create(int n, indices_t const &output_shape, std::uint64_t seed = 1)
+    static std::shared_ptr<PopcountLutN> Create(int n, indices_t const &output_shape, std::string connection = "", std::uint64_t seed = 1)
     {
         create_t create;
         create.n            = n;
         create.output_shape = output_shape;
+        create.connection   = connection;
         create.seed         = seed;
         return Create(create);
     }
 
-    static std::shared_ptr<PopcountLutN> Create(int n, index_t output_node_size, std::uint64_t seed = 1)
+    static std::shared_ptr<PopcountLutN> Create(int n, index_t output_node_size, std::string connection = "", std::uint64_t seed = 1)
     {
         create_t create;
         create.n               = n;
         create.output_shape.resize(1);
         create.output_shape[0] = output_node_size;
+        create.connection   = connection;
         create.seed            = seed;
         return Create(create);
     }
