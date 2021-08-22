@@ -249,7 +249,7 @@ public:
             auto y_ptr           = y_buf.LockDeviceMemory(true);
             auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
 
-            bbcu_bit_PopcountLutN_Forward<float>
+            bbcu_PopcountLutN_Forward<float>
                 (
                     (float  const   *)x_ptr.GetAddr(),
                     (float          *)y_ptr.GetAddr(),
@@ -261,6 +261,27 @@ public:
                 );
             return y_buf;
         }
+
+        
+        if ( DataType<BinType>::type == BB_TYPE_BIT && !m_host_only
+                && x_buf.IsDeviceAvailable() && y_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+            auto x_ptr           = x_buf.LockDeviceMemoryConst();
+            auto y_ptr           = y_buf.LockDeviceMemory(true);
+            auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
+
+            bbcu_bit_PopcountLutN_Forward
+                (
+                    (int    const   *)x_ptr.GetAddr(),
+                    (int            *)y_ptr.GetAddr(),
+                    (int    const   *)input_index_ptr.GetAddr(),
+                    (int             )m_n,
+                    (int             )y_buf.GetNodeSize(),
+                    (int             )y_buf.GetFrameSize(),
+                    (int             )(y_buf.GetFrameStride() / sizeof(int))
+                );
+            return y_buf;
+        }
+        
 #endif
         
         {
@@ -307,12 +328,13 @@ public:
             auto dx_ptr          = dx_buf.LockDeviceMemory(true);
             auto input_index_ptr = m_input_index.LockDeviceMemoryConst();
 
-            bbcu_bit_PopcountLutN_Forward<float>
+            bbcu_PopcountLutN_Backward<float>
                 (
                     (float  const   *)dy_ptr.GetAddr(),
                     (float          *)dx_ptr.GetAddr(),
                     (int    const   *)input_index_ptr.GetAddr(),
                     (int             )m_n,
+                    (int             )dx_buf.GetNodeSize(),
                     (int             )dy_buf.GetNodeSize(),
                     (int             )dy_buf.GetFrameSize(),
                     (int             )(dy_buf.GetFrameStride() / sizeof(float))
