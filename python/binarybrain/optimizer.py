@@ -53,7 +53,7 @@ class Optimizer(bb.Object):
     def set_learning_rate(self, learning_rate):
         """学習率設定
         """
-        self.get_core().step(learning_rate)
+        self.get_core().set_learning_rate(learning_rate)
 
 
 class OptimizerSgd(Optimizer):
