@@ -380,5 +380,8 @@
     <ClInclude Include="..\..\include\bb\LossSigmoidCrossEntropy.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bb\BinaryReduce.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
