@@ -33,6 +33,8 @@ public:
         this->Step();
         this->ZeroGrad();
     }
+
+    virtual void SetLearningRate(double learning_rate) = 0;
 };
 
 

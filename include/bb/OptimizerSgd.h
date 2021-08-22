@@ -60,6 +60,11 @@ public:
         create.learning_rate = learning_rate;
         return Create(create);
     }
+    
+    void SetLearningRate(double learning_rate) override
+    {
+        m_learning_rate = (T)learning_rate;
+    }
 
     void SetVariables(Variables params, Variables grads) override
     {
