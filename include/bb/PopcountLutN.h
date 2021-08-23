@@ -156,7 +156,7 @@ public:
     // LUT操作の定義
     int GetLutTableSize(index_t node) const
     {
-        return m_n;
+        return (1 << m_n);
     }
 
     void SetLutTable(index_t node, int bitpos, bool value) override
@@ -167,7 +167,7 @@ public:
     {
         int count = 0;
         for ( int i = 0; i < m_n; ++i ) {
-            count += (bitpos & 1) ? -1 : +1;
+            count += (bitpos & 1) ? +1 : -1;
             bitpos >>= 1;
         }
         return count > 0;
