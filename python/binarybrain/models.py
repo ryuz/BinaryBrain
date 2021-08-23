@@ -1467,17 +1467,17 @@ class Convolution2d(Sequential):
         
         return super(Convolution2d, self).set_input_shape(shape)
     
-    def forward(self, x, train=True):
-        shape = x.get_node_shape()
+    def forward(self, x_buf, train=True):
+        shape = x_buf.get_node_shape()
         self.set_input_shape(shape)
         if train:
             self.shapes.append(shape)
-        return super(Convolution2d, self).forward(x, train=train)
+        return super(Convolution2d, self).forward(x_buf, train=train)
 
-    def backward(self, dy):
+    def backward(self, dy_buf):
         shape = self.shapes.pop()
         self.set_input_shape(shape)
-        return super(Convolution2d, self).backward(dy)
+        return super(Convolution2d, self).backward(dy_buf)
 
     def clear(self):
         self.shapes = []
