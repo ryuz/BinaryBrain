@@ -47,7 +47,6 @@
 #include "bb/DifferentiableLutDiscreteN.h"
 #include "bb/MicroMlp.h"
 #include "bb/AverageLut.h"
-#include "bb/PopcountLutN.h"
 #include "bb/BinaryLutN.h"
 
 #include "bb/Convolution2d.h"
@@ -156,9 +155,6 @@ using BinaryLut2_bit_fp32                    = bb::BinaryLutN<2, bb::Bit, float>
 
 using AverageLut_fp32_fp32                   = bb::AverageLut<float, float>;
 using AverageLut_bit_fp32                    = bb::AverageLut<bb::Bit, float>;
-
-using PopcountLutN_fp32_fp32                 = bb::PopcountLutN<float, float>;
-using PopcountLutN_bit_fp32                  = bb::PopcountLutN<bb::Bit, float>;
                                         
 using StochasticLutModel                     = bb::StochasticLutModel;
 
@@ -923,20 +919,6 @@ PYBIND11_MODULE(core, m) {
             py::arg("binarize_input")=false,
             py::arg("seed")=1);
     
-    // PopcountLutN
-    PYCLASS_MODEL(PopcountLutN_fp32_fp32, BinaryLutModel)
-        .def_static("create", &PopcountLutN_fp32_fp32::CreatePy,
-            py::arg("n")=6,
-            py::arg("output_shape"),
-            py::arg("connection")="random",
-            py::arg("seed")=1);
-    PYCLASS_MODEL(PopcountLutN_bit_fp32, BinaryLutModel)
-        .def_static("create", &PopcountLutN_bit_fp32::CreatePy,
-            py::arg("n")=6,
-            py::arg("output_shape"),
-            py::arg("connection")="random",
-            py::arg("seed")=1);
-
     // StochasticLutModel
     PYCLASS_MODEL(StochasticLutModel, SparseModel)
         .def("W",  ((Tensor& (StochasticLutModel::*)())&StochasticLutModel::W))

@@ -1185,6 +1185,7 @@ class DifferentiableLut(SparseModel):
         output_shape (List[int]): 出力のシェイプ
         connection(str): 結線ルールを 'random', 'serial', 'depthwise' から指定可能
         batch_norm (bool): BatchNormalization を有効にするか
+        binarize (bool): 二値化出力を有効にするか
         momentum (float): BatchNormalization の momentum
         gamma (float): BatchNormalization の gamma
         beta (float): BatchNormalization の beta
@@ -1244,36 +1245,18 @@ model_creator_regist('DifferentiableLut2', DifferentiableLut.from_bytes)
 
 
 
-class PopcountLutN(SparseModel):
-    """PopcountLutN class
-        入力bitをカウントして1の方が多ければ1を出力するテーブル固定のLUT型のモデル
-
-    Args:
-        output_shape ([int]): 出力のシェイプ
-        integration_size (int): 積算するサイズ
-    """
-
-    def __init__(self, n=6, output_shape=None, *, input_shape=None, name=None, 
-                        connection='serial', seed=1, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32, core_model=None):
-        if output_shape is None:
-            output_shape = []
-        if core_model is None:
-            core_creator = search_core_model('PopcountLutN', [bin_dtype, real_dtype]).create
-            core_model = core_creator(n=n, output_shape=output_shape, connection=connection, seed=seed)
-        
-        super(PopcountLutN, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
-
-model_creator_regist('PopcountLutN', PopcountLutN.from_bytes)
-
-
-
 class AverageLut(SparseModel):
     """AverageLut class
         入力bitをカウントして1の方が多ければ1を出力するテーブル固定のLUT型のモデル
 
     Args:
         output_shape ([int]): 出力のシェイプ
-        integration_size (int): 積算するサイズ
+        connection(str): 結線ルールを 'random', 'serial', 'depthwise' から指定可能
+        binarize (bool): 二値化出力を有効にするか
+        binarize_input (bool): 入力を二値化してから使うようにするか
+        N (int): LUTの入力数
+        seed (int): 変数初期値などの乱数シード
+        bin_dtype (DType)): バイナリ出力の型を bb.DType.FP32 と bb.DType.BIT から指定(bb.DType.BIT は binarize=True 時のみ)
     """
 
     def __init__(self, output_shape=None, *, input_shape=None, name=None, N=6, 
@@ -1852,6 +1835,25 @@ class Concatenate(Model):
         super(Concatenate, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
     
 model_creator_regist('Concatenate', Concatenate.from_bytes)
+
+
+# ------- 補助層 --------
+class DifferentiableLutBlock(Sequential):
+    def __init__(self, output_shape, depth, name=None, batch_norm=True, binarize=True, bin_dtype=bb.DType.FP32):
+        self.layers = []
+        for i in range(depth):
+            if name is None:
+                layer_name = None
+            else:
+                layer_name = name + '_' + str(i)
+            
+            connection ='serial' if i < depth-1 else 'random'
+            if i == 0:
+                self.layers.insert(0, bb.AverageLut(output_shape, connection=connection, binarize=binarize, name=layer_name, bin_dtype=bin_dtype))
+            else:
+                self.layers.insert(0, bb.DifferentiableLut(output_shape, connection=connection, batch_norm=batch_norm, binarize=binarize, name=layer_name, bin_dtype=bin_dtype))
+            output_shape[0] *= 6
+        super(DifferentiableLutBlock, self).__init__(self.layers, name=name)
 
 
 # ------- その他 --------

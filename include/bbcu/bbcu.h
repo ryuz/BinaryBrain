@@ -313,6 +313,7 @@ BBCU_DLL_EXPORT int bbcu_bit_ShuffleModulation_Forward
         );
 
 
+
 // -------------------------------------
 //  AverageLut
 // -------------------------------------
@@ -358,50 +359,6 @@ BBCU_DLL_EXPORT int bbcu_AverageLut_Backward
             cudaStream_t    streamId=0
         );
 
-
-
-// -------------------------------------
-//  PopcountLutN
-// -------------------------------------
-
-template <typename T>
-BBCU_DLL_EXPORT int bbcu_PopcountLutN_Forward
-        (
-            T   const       *dev_x_buf,
-            T               *dev_y_buf,
-            int const       *dev_input_index,
-            int             n,
-            int             node_size,
-            int             frame_size,
-            int             frame_stride,
-            cudaStream_t    streamId = 0
-        );
-
-BBCU_DLL_EXPORT int bbcu_bit_PopcountLutN_Forward
-        (
-            int const       *dev_x_buf,
-            int             *dev_y_buf,
-            int const       *dev_input_index,
-            int             n,
-            int             node_size,
-            int             frame_size,
-            int             frame_stride,
-            cudaStream_t    streamId = 0
-        );
-
-template <typename T>
-BBCU_DLL_EXPORT int bbcu_PopcountLutN_Backward
-        (
-            T   const       *dev_dy_buf,
-            T               *dev_dx_buf,
-            int const       *dev_input_index,
-            int             n,
-            int             input_node_size,
-            int             output_node_size,
-            int             frame_size,
-            int             frame_stride,
-            cudaStream_t    streamId=0
-        );
 
 
 // -------------------------------------
@@ -1483,20 +1440,6 @@ BBCU_DLL_EXPORT int bbcu_MetricsCategoricalAccuracy
             int             frame_stride,
             cudaStream_t    streamId=0
         );
-
-
-/*
-BBCU_DLL_EXPORT int bbcu_fp32_AccuracyCategoricalClassification
-        (
-            float const     *dev_y_buf,
-            float const     *dev_t_buf,
-            int             *dev_accuracy,
-            int             node_size,
-            int             frame_size,
-            int             frame_stride,
-            cudaStream_t    streamId = 0
-        );
-*/
 
 
 
