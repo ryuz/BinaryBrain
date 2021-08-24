@@ -152,6 +152,13 @@ class Model(bb.Object):
         
         return text
 
+    def print_info(self, depth :int=0):
+        """モデル情報表示
+
+           モデルの情報を表示する
+        """
+        print(self.get_info(depth=depth, ))
+
     def send_command(self, command, send_to='all'):
         """コマンドの送信
 
@@ -1246,7 +1253,7 @@ class PopcountLutN(SparseModel):
         integration_size (int): 積算するサイズ
     """
 
-    def __init__(self, n=6, output_shape=None, *, input_shape=None, name=None,
+    def __init__(self, n=6, output_shape=None, *, input_shape=None, name=None, 
                         connection='serial', seed=1, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32, core_model=None):
         if output_shape is None:
             output_shape = []
@@ -1257,6 +1264,29 @@ class PopcountLutN(SparseModel):
         super(PopcountLutN, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
 model_creator_regist('PopcountLutN', PopcountLutN.from_bytes)
+
+
+
+class AverageLut(SparseModel):
+    """AverageLut class
+        入力bitをカウントして1の方が多ければ1を出力するテーブル固定のLUT型のモデル
+
+    Args:
+        output_shape ([int]): 出力のシェイプ
+        integration_size (int): 積算するサイズ
+    """
+
+    def __init__(self, output_shape=None, *, input_shape=None, name=None, N=6, 
+                        connection='serial', binarize=True, binarize_input=False, seed=1, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32, core_model=None):
+        if output_shape is None:
+            output_shape = []
+        if core_model is None:
+            core_creator = search_core_model('AverageLut', [bin_dtype, real_dtype]).create
+            core_model = core_creator(n=N, output_shape=output_shape, connection=connection, binarize=binarize, binarize_input=binarize_input, seed=seed)
+        
+        super(AverageLut, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+model_creator_regist('AverageLut', AverageLut.from_bytes)
 
 
 

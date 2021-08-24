@@ -286,5 +286,8 @@
     <ClInclude Include="..\..\..\include\bb\PopcountLutN.h">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\bb\AverageLut.h">
+      <Filter>ヘッダファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

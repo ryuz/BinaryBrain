@@ -313,6 +313,52 @@ BBCU_DLL_EXPORT int bbcu_bit_ShuffleModulation_Forward
         );
 
 
+// -------------------------------------
+//  AverageLut
+// -------------------------------------
+
+template <typename T>
+BBCU_DLL_EXPORT int bbcu_AverageLut_Forward
+        (
+            T   const       *dev_x_buf,
+            T               *dev_y_buf,
+            int const       *dev_input_index,
+            int             n,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride,
+            bool            binarize_input,
+            bool            binarize_output,
+            cudaStream_t    streamId=0
+        );
+
+BBCU_DLL_EXPORT int bbcu_bit_AverageLut_Forward
+        (
+            int const       *dev_x_buf,
+            int             *dev_y_buf,
+            int const       *dev_input_index,
+            int             n,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId=0
+        );
+
+template <typename T>
+BBCU_DLL_EXPORT int bbcu_AverageLut_Backward
+        (
+            T   const       *dev_dy_buf,
+            T               *dev_dx_buf,
+            int const       *dev_input_index,
+            int             n,
+            int             input_node_size,
+            int             output_node_size,
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId=0
+        );
+
+
 
 // -------------------------------------
 //  PopcountLutN

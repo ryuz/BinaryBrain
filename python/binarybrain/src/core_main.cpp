@@ -46,6 +46,7 @@
 #include "bb/DifferentiableLutN.h"
 #include "bb/DifferentiableLutDiscreteN.h"
 #include "bb/MicroMlp.h"
+#include "bb/AverageLut.h"
 #include "bb/PopcountLutN.h"
 #include "bb/BinaryLutN.h"
 
@@ -152,6 +153,9 @@ using BinaryLut5_bit_fp32                    = bb::BinaryLutN<5, bb::Bit, float>
 using BinaryLut4_bit_fp32                    = bb::BinaryLutN<4, bb::Bit, float>;
 using BinaryLut3_bit_fp32                    = bb::BinaryLutN<3, bb::Bit, float>;
 using BinaryLut2_bit_fp32                    = bb::BinaryLutN<2, bb::Bit, float>;
+
+using AverageLut_fp32_fp32                   = bb::AverageLut<float, float>;
+using AverageLut_bit_fp32                    = bb::AverageLut<bb::Bit, float>;
 
 using PopcountLutN_fp32_fp32                 = bb::PopcountLutN<float, float>;
 using PopcountLutN_bit_fp32                  = bb::PopcountLutN<bb::Bit, float>;
@@ -900,6 +904,24 @@ PYBIND11_MODULE(core, m) {
         .def_static("create", &BinaryLut3_bit_fp32::CreatePy);
     PYCLASS_MODEL(BinaryLut2_bit_fp32, BinaryLutModel)
         .def_static("create", &BinaryLut2_bit_fp32::CreatePy);
+
+    // AverageLut
+    PYCLASS_MODEL(AverageLut_fp32_fp32, BinaryLutModel)
+        .def_static("create", &AverageLut_fp32_fp32::CreatePy,
+            py::arg("n")=6,
+            py::arg("output_shape"),
+            py::arg("connection")="random",
+            py::arg("binarize")=true,
+            py::arg("binarize_input")=false,
+            py::arg("seed")=1);
+    PYCLASS_MODEL(AverageLut_bit_fp32, BinaryLutModel)
+        .def_static("create", &AverageLut_bit_fp32::CreatePy,
+            py::arg("n")=6,
+            py::arg("output_shape"),
+            py::arg("connection")="random",
+            py::arg("binarize")=true,
+            py::arg("binarize_input")=false,
+            py::arg("seed")=1);
     
     // PopcountLutN
     PYCLASS_MODEL(PopcountLutN_fp32_fp32, BinaryLutModel)
