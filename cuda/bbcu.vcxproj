@@ -15,7 +15,6 @@
     <CudaCompile Include="BatchNormalization.cu" />
     <CudaCompile Include="Binarize.cu" />
     <CudaCompile Include="BinaryLut6.cu" />
-    <CudaCompile Include="BinaryReduce.cu" />
     <CudaCompile Include="BinaryToReal.cu" />
     <CudaCompile Include="BitEncode.cu" />
     <CudaCompile Include="Col2Im.cu" />
@@ -32,6 +31,7 @@
     <CudaCompile Include="MatrixColwiseMeanVar.cu" />
     <CudaCompile Include="MatrixColwiseSum.cu" />
     <CudaCompile Include="MatrixRowwiseSetVector.cu" />
+    <CudaCompile Include="MaxLut.cu" />
     <CudaCompile Include="MaxPooling.cu" />
     <CudaCompile Include="MetricsCategoricalAccuracy.cu" />
     <CudaCompile Include="MicroMlp.cu" />
