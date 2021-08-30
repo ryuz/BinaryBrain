@@ -328,12 +328,19 @@ public:
             #pragma omp parallel for
             for (index_t node = 0; node < node_size; ++node) {
                 for (index_t frame = 0; frame < frame_size; ++frame) {
-                    int count = 0;
+                    RealType sum = 0;
                     for (index_t i = 0; i < m_n; i++) {
                         index_t input_node = input_index_ptr(node, i);
-                        count += ((RealType)x_ptr.Get(frame, input_node) > 0) ? +1 : -1;
+                        RealType val = (RealType)x_ptr.Get(frame, input_node);
+                        if (m_binarize_input) {
+                            val =  (val > 0) ? (RealType)BB_BINARY_HI : (RealType)BB_BINARY_LO;
+                        }
+                        sum += val;
                     }
-                    y_ptr.Set(frame, node, count > 0 ? (BinType)BB_BINARY_HI : (BinType)BB_BINARY_LO);
+                    if (m_binarize_output) {
+                        sum = (sum > 0) ? (RealType)BB_BINARY_HI : (RealType)BB_BINARY_LO;
+                    }
+                    y_ptr.Set(frame, node, (BinType)sum);
                 }
             }
 
@@ -377,6 +384,8 @@ public:
 
         {
             // 汎用版
+            dx_buf.FillZero();
+
             auto dy_ptr          = dy_buf.LockConst<RealType>();
             auto dx_ptr          = dx_buf.Lock<RealType>();
             auto input_index_ptr = m_input_index.LockConst();
@@ -390,7 +399,7 @@ public:
                     auto dx = dy_ptr.Get(frame, node) / m_n;
                     for (index_t i = 0; i < m_n; i++) {
                         index_t input_node = input_index_ptr(node, i);
-                        dx_ptr.Set(frame, input_node, dx);
+                        dx_ptr.Add(frame, input_node, dx);
                     }
                 }
             }

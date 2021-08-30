@@ -235,9 +235,6 @@
     <ClInclude Include="..\..\..\include\bb\DifferentiableLutDiscreteN.h">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\bb\LutModel.h">
-      <Filter>ヘッダファイル</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\bb\SparseModel.h">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
@@ -287,6 +284,9 @@
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\bb\AverageLut.h">
+      <Filter>ヘッダファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\bb\MaxLut.h">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
   </ItemGroup>

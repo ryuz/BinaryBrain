@@ -172,7 +172,7 @@ def save_models(path: str, net, *, write_layers=True, file_format=None):
             
 
 
-def load_models(path: str, net, *, read_layers: bool=False, file_format=None):
+def load_models(path: str, net, *, read_layers: bool=False, file_format=None, verbose=True):
     ''' load networks
         ネットを構成するモデルの保存
         
@@ -180,13 +180,14 @@ def load_models(path: str, net, *, read_layers: bool=False, file_format=None):
             path (str):  読み出すパス
             net (Model): 読み込むネット
             read_layers (bool) : レイヤー別に読み込むか
+            verbose (bool) : 詳しく表示する
     '''
 
     # load
     if not read_layers:
         net_name = net.get_name()
         res = _load_net_file(path, net_name, net, file_format=file_format)
-        if not res:
+        if not res and verbose:
             print('file not found : %s'%os.path.join(path, net_name))
         return res
     
@@ -206,7 +207,7 @@ def load_models(path: str, net, *, read_layers: bool=False, file_format=None):
         fname_list.append(fname)
         
         res = _load_net_file(path, fname, model, file_format=file_format)
-        if not res:
+        if not res and verbose:
             print('file not found : %s' % fname)
     
     return True
@@ -246,7 +247,7 @@ def save_networks(path: str, net, name=None, *, backups: int=10, write_layers: b
     
     return name
 
-def load_networks(path: str, net, name=None, *, read_layers: bool=False, file_format=None):
+def load_networks(path: str, net, name=None, *, read_layers: bool=False, file_format=None, verbose=True):
     ''' load network
         ネットを構成するモデルの読み込み
         
@@ -257,6 +258,7 @@ def load_networks(path: str, net, name=None, *, read_layers: bool=False, file_fo
             path (str) : 読み込むパス
             net (Model) : 読み込むネット
             file_format (str) : 読み込む形式(Noneがデフォルト)
+            verbose (bool) : 詳しく表示する
     '''
     
     if name is None:
@@ -268,7 +270,7 @@ def load_networks(path: str, net, name=None, *, read_layers: bool=False, file_fo
         print('not loaded : file not found')
         return False
     
-    ret = load_models(data_path, net, read_layers=read_layers, file_format=None)
+    ret = load_models(data_path, net, read_layers=read_layers, file_format=file_format, verbose=verbose)
 #   print('load : %s' % data_path)
 
     return ret

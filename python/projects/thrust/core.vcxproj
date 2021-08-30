@@ -68,8 +68,8 @@
     <ClInclude Include="..\..\..\include\bb\LossMeanSquaredError.h" />
     <ClInclude Include="..\..\..\include\bb\LossSigmoidCrossEntropy.h" />
     <ClInclude Include="..\..\..\include\bb\LossSoftmaxCrossEntropy.h" />
-    <ClInclude Include="..\..\..\include\bb\LutModel.h" />
     <ClInclude Include="..\..\..\include\bb\Manager.h" />
+    <ClInclude Include="..\..\..\include\bb\MaxLut.h" />
     <ClInclude Include="..\..\..\include\bb\MaxPooling.h" />
     <ClInclude Include="..\..\..\include\bb\Memory.h" />
     <ClInclude Include="..\..\..\include\bb\MetricsBinaryAccuracy.h" />

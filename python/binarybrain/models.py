@@ -1247,7 +1247,8 @@ model_creator_regist('DifferentiableLut2', DifferentiableLut.from_bytes)
 
 class AverageLut(SparseModel):
     """AverageLut class
-        入力bitをカウントして1の方が多ければ1を出力するテーブル固定のLUT型のモデル
+        入力値の平均を出力するLUT型のモデル
+        バイナリの場合、bitをカウントして1の方が多ければ1を出力するテーブル固定のLUTと考える事ができる
 
     Args:
         output_shape ([int]): 出力のシェイプ
@@ -1272,6 +1273,33 @@ class AverageLut(SparseModel):
 model_creator_regist('AverageLut', AverageLut.from_bytes)
 
 
+
+class MaxLut(SparseModel):
+    """MaxLut class
+        入力値の最大値を出力するLUT型のモデル
+        バイナリの場合、論理和をの形となるモデル
+
+    Args:
+        output_shape ([int]): 出力のシェイプ
+        connection(str): 結線ルールを 'random', 'serial', 'depthwise' から指定可能
+        binarize (bool): 二値化出力を有効にするか
+        binarize_input (bool): 入力を二値化してから使うようにするか
+        N (int): LUTの入力数
+        seed (int): 変数初期値などの乱数シード
+        bin_dtype (DType)): バイナリ出力の型を bb.DType.FP32 と bb.DType.BIT から指定(bb.DType.BIT は binarize=True 時のみ)
+    """
+
+    def __init__(self, output_shape=None, *, input_shape=None, name=None, N=6, 
+                        connection='serial', binarize=True, binarize_input=False, seed=1, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32, core_model=None):
+        if output_shape is None:
+            output_shape = []
+        if core_model is None:
+            core_creator = search_core_model('MaxLut', [bin_dtype, real_dtype]).create
+            core_model = core_creator(n=N, output_shape=output_shape, connection=connection, binarize=binarize, binarize_input=binarize_input, seed=seed)
+        
+        super(MaxLut, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+model_creator_regist('MaxLut', MaxLut.from_bytes)
 
 class BinaryLut(SparseModel):
     """バイナリLUTモデル
