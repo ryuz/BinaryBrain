@@ -289,6 +289,24 @@ inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, s
     }
 }
 
+// シーケンシャルモデル から LUTモデルのみを抽出
+inline void ExportVerilog_ExtractLutModels(std::vector< std::shared_ptr< SparseModel > > &layers, std::shared_ptr<bb::Sequential> net)
+{
+    for (int i = 0; i < net->GetSize(); ++i) {
+        // LutModel なら抽出
+        auto layer = std::dynamic_pointer_cast< SparseModel >(net->Get(i));
+        if ( layer != nullptr ) {
+            layers.push_back(layer);
+        }
+
+        // さらに階層があれば再帰探索
+        auto seq = std::dynamic_pointer_cast< Sequential >(net->Get(i));
+        if ( seq != nullptr ) {
+            ExportVerilog_ExtractLutModels(layers, seq);
+        }
+    }
+}
+
 
 // LUT-Network 基本レイヤーの直列接続を出力
 inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, std::shared_ptr<bb::Sequential> net, std::string device="")
@@ -296,12 +314,16 @@ inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, s
     std::vector< std::shared_ptr< SparseModel > > layers;
 
     // LutModel だけを取り出し
+    ExportVerilog_ExtractLutModels(layers, net);
+
+    /*
     for (int i = 0; i < net->GetSize(); ++i) {
         auto layer = std::dynamic_pointer_cast< SparseModel >(net->Get(i));
         if ( layer != nullptr ) {
             layers.push_back(layer);
         }
     }
+    */
 
     ExportVerilog_LutModels(os, module_name, layers, device);
 }
