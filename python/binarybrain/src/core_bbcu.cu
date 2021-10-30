@@ -25,6 +25,8 @@
 #include "MatrixColwiseMeanVar.cu"
 #include "MatrixRowwiseSetVector.cu"
 #include "MicroMlp.cu"
+#include "AverageLut.cu"
+#include "MaxLut.cu"
 #include "BinaryLut6.cu"
 #include "DifferentiableLut.cu"
 #include "StochasticLut.cu"

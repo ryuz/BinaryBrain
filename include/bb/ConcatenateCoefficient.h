@@ -185,7 +185,7 @@ public:
 
         // パラメータクリップ
         if ( m_binary_mode ) {
-            m_param->Clamp(0.0, 1.0);
+            m_param->Clamp_inplace(0.0, 1.0);
         }
 
         // 戻り値のサイズ設定

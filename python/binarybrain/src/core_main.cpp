@@ -46,6 +46,8 @@
 #include "bb/DifferentiableLutN.h"
 #include "bb/DifferentiableLutDiscreteN.h"
 #include "bb/MicroMlp.h"
+#include "bb/AverageLut.h"
+#include "bb/MaxLut.h"
 #include "bb/BinaryLutN.h"
 
 #include "bb/Convolution2d.h"
@@ -152,6 +154,11 @@ using BinaryLut4_bit_fp32                    = bb::BinaryLutN<4, bb::Bit, float>
 using BinaryLut3_bit_fp32                    = bb::BinaryLutN<3, bb::Bit, float>;
 using BinaryLut2_bit_fp32                    = bb::BinaryLutN<2, bb::Bit, float>;
 
+using AverageLut_fp32_fp32                   = bb::AverageLut<float, float>;
+using AverageLut_bit_fp32                    = bb::AverageLut<bb::Bit, float>;
+
+using MaxLut_fp32_fp32                       = bb::MaxLut<float, float>;
+using MaxLut_bit_fp32                        = bb::MaxLut<bb::Bit, float>;
                                         
 using StochasticLutModel                     = bb::StochasticLutModel;
 
@@ -622,9 +629,10 @@ PYBIND11_MODULE(core, m) {
     py::class_< Variables, Object, std::shared_ptr<Variables> >(m, "Variables")
         DEF_OBJECT_PICKLE(Variables)
         .def(py::init<>())
-        .def("push_back", (void (Variables::*)(Variables const &))&Variables::PushBack)
-        .def("get_size",  &Variables::GetSize)
-        .def("at",        &Variables::At)
+        .def("push_back",  (void (Variables::*)(Variables const &))&Variables::PushBack)
+        .def("get_size",   &Variables::GetSize)
+        .def("get_shapes", &Variables::GetShapes)
+        .def("at",         &Variables::At)
         ;
 
 
@@ -896,6 +904,42 @@ PYBIND11_MODULE(core, m) {
         .def_static("create", &BinaryLut3_bit_fp32::CreatePy);
     PYCLASS_MODEL(BinaryLut2_bit_fp32, BinaryLutModel)
         .def_static("create", &BinaryLut2_bit_fp32::CreatePy);
+
+    // AverageLut
+    PYCLASS_MODEL(AverageLut_fp32_fp32, BinaryLutModel)
+        .def_static("create", &AverageLut_fp32_fp32::CreatePy,
+            py::arg("n")=6,
+            py::arg("output_shape"),
+            py::arg("connection")="random",
+            py::arg("binarize")=true,
+            py::arg("binarize_input")=false,
+            py::arg("seed")=1);
+    PYCLASS_MODEL(AverageLut_bit_fp32, BinaryLutModel)
+        .def_static("create", &AverageLut_bit_fp32::CreatePy,
+            py::arg("n")=6,
+            py::arg("output_shape"),
+            py::arg("connection")="random",
+            py::arg("binarize")=true,
+            py::arg("binarize_input")=false,
+            py::arg("seed")=1);
+    
+    // MaxLut
+    PYCLASS_MODEL(MaxLut_fp32_fp32, BinaryLutModel)
+        .def_static("create", &MaxLut_fp32_fp32::CreatePy,
+            py::arg("n")=6,
+            py::arg("output_shape"),
+            py::arg("connection")="random",
+            py::arg("binarize")=true,
+            py::arg("binarize_input")=false,
+            py::arg("seed")=1);
+    PYCLASS_MODEL(MaxLut_bit_fp32, BinaryLutModel)
+        .def_static("create", &MaxLut_bit_fp32::CreatePy,
+            py::arg("n")=6,
+            py::arg("output_shape"),
+            py::arg("connection")="random",
+            py::arg("binarize")=true,
+            py::arg("binarize_input")=false,
+            py::arg("seed")=1);
 
     // StochasticLutModel
     PYCLASS_MODEL(StochasticLutModel, SparseModel)
@@ -1195,11 +1239,13 @@ PYBIND11_MODULE(core, m) {
 #define PYCLASS_OPTIMIZER(class_name, superclass_name)  PYCLASS_OBJECT(class_name, superclass_name)
 
     PYCLASS_OPTIMIZER(Optimizer, Object)
-        .def("set_variables", &Optimizer::SetVariables)
-        .def("zero_grad",     &Optimizer::ZeroGrad)
-        .def("step",          &Optimizer::Step)
-        .def("update",        &Optimizer::Update);
-    
+        .def("set_variables",     &Optimizer::SetVariables)
+        .def("zero_grad",         &Optimizer::ZeroGrad)
+        .def("step",              &Optimizer::Step)
+        .def("update",            &Optimizer::Update)
+        .def("set_learning_rate", &Optimizer::SetLearningRate)
+        ;
+
     PYCLASS_OPTIMIZER(OptimizerSgd_fp32, Optimizer)
         .def_static("create", (std::shared_ptr<OptimizerSgd_fp32> (*)(float))&OptimizerSgd_fp32::Create, "create",
             py::arg("learning_rate") = 0.001f);

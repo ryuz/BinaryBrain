@@ -33,6 +33,7 @@ SRCS += BinaryLut6.cu
 SRCS += DifferentiableLut.cu
 SRCS += StochasticLut.cu
 SRCS += StochasticBatchNormalization.cu
+SRCS += AverageLut.cu
 SRCS += ShuffleModulation.cu
 SRCS += RealToBinary.cu
 SRCS += BinaryToReal.cu

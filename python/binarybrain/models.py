@@ -152,6 +152,13 @@ class Model(bb.Object):
         
         return text
 
+    def print_info(self, depth :int=0):
+        """モデル情報表示
+
+           モデルの情報を表示する
+        """
+        print(self.get_info(depth=depth, ))
+
     def send_command(self, command, send_to='all'):
         """コマンドの送信
 
@@ -475,6 +482,12 @@ class Sequential(Model):
         """
         return self.model_list
     
+    def get_input_shape(self):
+        return self.model_list[0].get_input_shape()
+
+    def get_output_shape(self):
+        return self.model_list[-1].get_output_shape()
+
     def __len__(self):
         return len(self.model_list)
     
@@ -924,6 +937,7 @@ model_creator_regist('Reduce', Reduce.from_bytes)
 
 
 
+
 # ------- 演算 --------
 
 class DenseAffine(Model):
@@ -987,6 +1001,18 @@ class DepthwiseDenseAffine(Model):
             core_model = core_creator(output_shape=output_shape, initialize_std=initialize_std, initializer=initializer, seed=seed)
         
         super(DepthwiseDenseAffine, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+    def W(self):
+        return bb.Tensor(core_tensor=self.get_core().W())
+
+    def b(self):
+        return bb.Tensor(core_tensor=self.get_core().b())
+
+    def dW(self):
+        return bb.Tensor(core_tensor=self.get_core().dW())
+
+    def db(self):
+        return bb.Tensor(core_tensor=self.get_core().db())
 
 model_creator_regist('DepthwiseDenseAffine', DepthwiseDenseAffine.from_bytes)
 
@@ -1159,9 +1185,10 @@ class DifferentiableLut(SparseModel):
         output_shape (List[int]): 出力のシェイプ
         connection(str): 結線ルールを 'random', 'serial', 'depthwise' から指定可能
         batch_norm (bool): BatchNormalization を有効にするか
-        momentum (float): BatchNormalization を有効にするか
-        gamma (float): BatchNormalization を有効にするか
-        beta (float): BatchNormalization を有効にするか
+        binarize (bool): 二値化出力を有効にするか
+        momentum (float): BatchNormalization の momentum
+        gamma (float): BatchNormalization の gamma
+        beta (float): BatchNormalization の beta
         N (int): LUTの入力数
         seed (int): 変数初期値などの乱数シード
         bin_dtype (DType)): バイナリ出力の型を bb.DType.FP32 と bb.DType.BIT から指定(bb.DType.BIT は binarize=True 時のみ)
@@ -1217,6 +1244,62 @@ model_creator_regist('DifferentiableLut3', DifferentiableLut.from_bytes)
 model_creator_regist('DifferentiableLut2', DifferentiableLut.from_bytes)
 
 
+
+class AverageLut(SparseModel):
+    """AverageLut class
+        入力値の平均を出力するLUT型のモデル
+        バイナリの場合、bitをカウントして1の方が多ければ1を出力するテーブル固定のLUTと考える事ができる
+
+    Args:
+        output_shape ([int]): 出力のシェイプ
+        connection(str): 結線ルールを 'random', 'serial', 'depthwise' から指定可能
+        binarize (bool): 二値化出力を有効にするか
+        binarize_input (bool): 入力を二値化してから使うようにするか
+        N (int): LUTの入力数
+        seed (int): 変数初期値などの乱数シード
+        bin_dtype (DType)): バイナリ出力の型を bb.DType.FP32 と bb.DType.BIT から指定(bb.DType.BIT は binarize=True 時のみ)
+    """
+
+    def __init__(self, output_shape=None, *, input_shape=None, name=None, N=6, 
+                        connection='serial', binarize=True, binarize_input=False, seed=1, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32, core_model=None):
+        if output_shape is None:
+            output_shape = []
+        if core_model is None:
+            core_creator = search_core_model('AverageLut', [bin_dtype, real_dtype]).create
+            core_model = core_creator(n=N, output_shape=output_shape, connection=connection, binarize=binarize, binarize_input=binarize_input, seed=seed)
+        
+        super(AverageLut, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+model_creator_regist('AverageLut', AverageLut.from_bytes)
+
+
+
+class MaxLut(SparseModel):
+    """MaxLut class
+        入力値の最大値を出力するLUT型のモデル
+        バイナリの場合、論理和をの形となるモデル
+
+    Args:
+        output_shape ([int]): 出力のシェイプ
+        connection(str): 結線ルールを 'random', 'serial', 'depthwise' から指定可能
+        binarize (bool): 二値化出力を有効にするか
+        binarize_input (bool): 入力を二値化してから使うようにするか
+        N (int): LUTの入力数
+        seed (int): 変数初期値などの乱数シード
+        bin_dtype (DType)): バイナリ出力の型を bb.DType.FP32 と bb.DType.BIT から指定(bb.DType.BIT は binarize=True 時のみ)
+    """
+
+    def __init__(self, output_shape=None, *, input_shape=None, name=None, N=6, 
+                        connection='serial', binarize=True, binarize_input=False, seed=1, bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32, core_model=None):
+        if output_shape is None:
+            output_shape = []
+        if core_model is None:
+            core_creator = search_core_model('MaxLut', [bin_dtype, real_dtype]).create
+            core_model = core_creator(n=N, output_shape=output_shape, connection=connection, binarize=binarize, binarize_input=binarize_input, seed=seed)
+        
+        super(MaxLut, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+model_creator_regist('MaxLut', MaxLut.from_bytes)
 
 class BinaryLut(SparseModel):
     """バイナリLUTモデル
@@ -1425,17 +1508,17 @@ class Convolution2d(Sequential):
         
         return super(Convolution2d, self).set_input_shape(shape)
     
-    def forward(self, x, train=True):
-        shape = x.get_node_shape()
+    def forward(self, x_buf, train=True):
+        shape = x_buf.get_node_shape()
         self.set_input_shape(shape)
         if train:
             self.shapes.append(shape)
-        return super(Convolution2d, self).forward(x, train=train)
+        return super(Convolution2d, self).forward(x_buf, train=train)
 
-    def backward(self, dy):
+    def backward(self, dy_buf):
         shape = self.shapes.pop()
         self.set_input_shape(shape)
-        return super(Convolution2d, self).backward(dy)
+        return super(Convolution2d, self).backward(dy_buf)
 
     def clear(self):
         self.shapes = []
@@ -1780,6 +1863,25 @@ class Concatenate(Model):
         super(Concatenate, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
     
 model_creator_regist('Concatenate', Concatenate.from_bytes)
+
+
+# ------- 補助層 --------
+class DifferentiableLutBlock(Sequential):
+    def __init__(self, output_shape, depth, name=None, batch_norm=True, binarize=True, bin_dtype=bb.DType.FP32):
+        self.layers = []
+        for i in range(depth):
+            if name is None:
+                layer_name = None
+            else:
+                layer_name = name + '_' + str(i)
+            
+            connection ='serial' if i < depth-1 else 'random'
+            if i == 0:
+                self.layers.insert(0, bb.AverageLut(output_shape, connection=connection, binarize=binarize, name=layer_name, bin_dtype=bin_dtype))
+            else:
+                self.layers.insert(0, bb.DifferentiableLut(output_shape, connection=connection, batch_norm=batch_norm, binarize=binarize, name=layer_name, bin_dtype=bin_dtype))
+            output_shape[0] *= 6
+        super(DifferentiableLutBlock, self).__init__(self.layers, name=name)
 
 
 # ------- その他 --------

@@ -448,7 +448,7 @@ public:
 
 
         // パラメータクリップ
-        m_W->Clamp((RealType)0.0, (RealType)1.0);
+        m_W->Clamp_inplace((RealType)0.0, (RealType)1.0);
 
 
 #ifdef BB_WITH_CUDA

@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="AverageLut.cu" />
     <CudaCompile Include="BatchNormalization.cu" />
     <CudaCompile Include="Binarize.cu" />
     <CudaCompile Include="BinaryLut6.cu" />
@@ -30,6 +31,7 @@
     <CudaCompile Include="MatrixColwiseMeanVar.cu" />
     <CudaCompile Include="MatrixColwiseSum.cu" />
     <CudaCompile Include="MatrixRowwiseSetVector.cu" />
+    <CudaCompile Include="MaxLut.cu" />
     <CudaCompile Include="MaxPooling.cu" />
     <CudaCompile Include="MetricsCategoricalAccuracy.cu" />
     <CudaCompile Include="MicroMlp.cu" />

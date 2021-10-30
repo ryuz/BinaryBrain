@@ -367,6 +367,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\include\bb\Activation.h" />
     <ClInclude Include="..\..\..\include\bb\Assert.h" />
+    <ClInclude Include="..\..\..\include\bb\AverageLut.h" />
     <ClInclude Include="..\..\..\include\bb\AveragePooling.h" />
     <ClInclude Include="..\..\..\include\bb\BackpropagatedBatchNormalization.h" />
     <ClInclude Include="..\..\..\include\bb\BatchNormalization.h" />
@@ -425,6 +426,7 @@
     <ClInclude Include="..\..\..\include\bb\OptimizerAdam.h" />
     <ClInclude Include="..\..\..\include\bb\OptimizerSgd.h" />
     <ClInclude Include="..\..\..\include\bb\PnmImage.h" />
+    <ClInclude Include="..\..\..\include\bb\PopcountLutN.h" />
     <ClInclude Include="..\..\..\include\bb\RealToBinary.h" />
     <ClInclude Include="..\..\..\include\bb\Reduce.h" />
     <ClInclude Include="..\..\..\include\bb\ReLU.h" />

@@ -553,10 +553,10 @@ public:
 
         // バイナリモードならパラメータクリップ
         if (m_binary_mode) {
-            m_W0->Clamp(-1.0, +1.0);
-            m_b0->Clamp(-1.0, +1.0);
-            m_W1->Clamp(-1.0, +1.0);
-            m_b1->Clamp(-1.0, +1.0);
+            m_W0->Clamp_inplace(-1.0, +1.0);
+            m_b0->Clamp_inplace(-1.0, +1.0);
+            m_W1->Clamp_inplace(-1.0, +1.0);
+            m_b1->Clamp_inplace(-1.0, +1.0);
         }
 
 #ifdef BB_WITH_CUDA

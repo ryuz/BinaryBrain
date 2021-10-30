@@ -111,7 +111,13 @@ public:
         m_b2            = m_beta2;
     }
     
-    void SetVariables(Variables params, Variables grads)
+    void SetLearningRate(double learning_rate) override
+    {
+        m_learning_rate = (T)learning_rate;
+    }
+
+
+    void SetVariables(Variables params, Variables grads) override
     {
         BB_ASSERT(params.GetShapes() == grads.GetShapes());
         m_params = params;

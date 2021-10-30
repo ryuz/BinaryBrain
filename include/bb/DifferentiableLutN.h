@@ -498,7 +498,7 @@ public:
 
         // パラメータクリップ
         if ( m_flagClamp ) {
-            m_W->Clamp((RealType)0.0, (RealType)1.0);
+            m_W->Clamp_inplace((RealType)0.0, (RealType)1.0);
             (const_cast<DifferentiableLutN*>(this))->m_flagClamp = false;
         }
 
@@ -556,8 +556,6 @@ public:
 
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
-        BB_ASSERT(x_buf.GetType() == DataType<BinType>::type);
-
         // SetInputShpaeされていなければ初回に設定
         if (x_buf.GetShape() != this->GetInputShape()) {
             SetInputShape(x_buf.GetShape());
@@ -573,10 +571,16 @@ public:
 
         // パラメータクリップ
         if ( m_flagClamp ) {
-            m_W->Clamp((RealType)0.0, (RealType)1.0);
+            m_W->Clamp_inplace((RealType)0.0, (RealType)1.0);
             m_flagClamp = false;
         }
-        
+
+        if ( x_buf.GetType() != DataType<BinType>::type && x_buf.GetType() == BB_TYPE_BIT ) {
+            x_buf = x_buf.ConvertTo(DataType<BinType>::type);
+            x_buf.Clamp_inplace((BinType)0.0, (BinType)1.0);
+        }
+        BB_ASSERT(x_buf.GetType() == DataType<BinType>::type);
+
         if ( m_batch_norm ) {
             // with BatchNormalization
 
@@ -986,6 +990,11 @@ public:
         m_flagClamp = true;
 
         FrameBuffer x_buf = this->PopFrameBuffer();
+        if ( x_buf.GetType() != DataType<BinType>::type ) {
+            x_buf = x_buf.ConvertTo(DataType<BinType>::type);
+            x_buf.Clamp_inplace((BinType)0.0, (BinType)1.0);
+        }
+        BB_ASSERT(x_buf.GetType() == DataType<BinType>::type);
 
         FrameBuffer dx_buf(dy_buf.GetFrameSize(), this->GetInputShape(), DataType<RealType>::type);
 

@@ -10,6 +10,7 @@
 
 #include "bb/Sequential.h"
 #include "bb/BinaryModulation.h"
+#include "bb/AverageLut.h"
 #include "bb/StochasticLutN.h"
 #include "bb/StochasticMaxPooling2x2.h"
 #include "bb/BinaryLutN.h"
@@ -40,18 +41,18 @@ void MnistStochasticLutCnn(int epoch_size, int mini_batch_size, int test_modulat
 
     // create network
     auto layer_cnv0_sl0 = bb::StochasticLutN<6>::Create(6*36);
-    auto layer_cnv0_sl1 = bb::StochasticLutN<6>::Create(36);
+    auto layer_cnv0_sl1 = bb::AverageLut<>::Create(6, 36);
     auto layer_cnv1_sl0 = bb::StochasticLutN<6>::Create(6*2*36);
-    auto layer_cnv1_sl1 = bb::StochasticLutN<6>::Create(2*36);
+    auto layer_cnv1_sl1 = bb::AverageLut<>::Create(6, 2*36);
     auto layer_cnv2_sl0 = bb::StochasticLutN<6>::Create(6*2*36);
-    auto layer_cnv2_sl1 = bb::StochasticLutN<6>::Create(2*36);
+    auto layer_cnv2_sl1 = bb::AverageLut<>::Create(6, 2*36);
     auto layer_cnv3_sl0 = bb::StochasticLutN<6>::Create(6*4*36);
-    auto layer_cnv3_sl1 = bb::StochasticLutN<6>::Create(4*36);
+    auto layer_cnv3_sl1 = bb::AverageLut<>::Create(6, 4*36);
     auto layer_sl4      = bb::StochasticLutN<6>::Create(6*128);
     auto layer_sl5      = bb::StochasticLutN<6>::Create(128);
     auto layer_sl6      = bb::StochasticLutN<6>::Create(6*6*10);
     auto layer_sl7      = bb::StochasticLutN<6>::Create(6*10);
-    auto layer_sl8      = bb::StochasticLutN<6>::Create(10);
+    auto layer_sl8      = bb::AverageLut<>::Create(6, 10);
 
     {
         std::cout << "\n<Training>" << std::endl;
@@ -162,7 +163,7 @@ void MnistStochasticLutCnn(int epoch_size, int mini_batch_size, int test_modulat
             std::cout << "export : " << filename << "\n" << std::endl;
         }
     }
-
+    return;
 
     {
         std::cout << "\n<Evaluation binary LUT-Network>" << std::endl;

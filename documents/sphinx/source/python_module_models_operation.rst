@@ -12,6 +12,14 @@ DifferentiableLut クラス
    :members:
    :show-inheritance:
 
+
+AverageLut クラス
+----------------------------
+   
+   .. autoclass:: binarybrain.models.AverageLut
+      :members:
+      :show-inheritance:
+
 BinaryLut クラス
 ----------------------------
 
