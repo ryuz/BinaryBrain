@@ -23,7 +23,7 @@ def main():
 
     bin_mode              = True
     frame_modulation_size = 7
-    epochs                = 4
+    epochs                = 8
     mini_batch_size       = 64
 
     # dataset

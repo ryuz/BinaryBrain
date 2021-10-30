@@ -52,6 +52,7 @@
     <ClCompile Include="FrameBufferTest.cpp" />
     <ClCompile Include="LossMeanSquaredErrorTest.cpp" />
     <ClCompile Include="LossSoftmaxCrossEntropyTest.cpp" />
+    <ClCompile Include="MaxLutTest.cpp" />
     <ClCompile Include="MaxPoolingTest.cpp" />
     <ClCompile Include="MemoryTest.cpp" />
     <ClCompile Include="MetricsCategoricalAccuracyTest.cpp" />
@@ -74,6 +75,7 @@
     <ClInclude Include="..\..\include\bbcu\bbcu_util.h" />
     <ClInclude Include="..\..\include\bb\Activation.h" />
     <ClInclude Include="..\..\include\bb\Assert.h" />
+    <ClInclude Include="..\..\include\bb\AverageLut.h" />
     <ClInclude Include="..\..\include\bb\AveragePooling.h" />
     <ClInclude Include="..\..\include\bb\BackpropagatedBatchNormalization.h" />
     <ClInclude Include="..\..\include\bb\BatchNormalization.h" />
@@ -131,6 +133,7 @@
     <ClInclude Include="..\..\include\bb\OptimizerAdam.h" />
     <ClInclude Include="..\..\include\bb\OptimizerSgd.h" />
     <ClInclude Include="..\..\include\bb\PnmImage.h" />
+    <ClInclude Include="..\..\include\bb\PopcountLutN.h" />
     <ClInclude Include="..\..\include\bb\RealToBinary.h" />
     <ClInclude Include="..\..\include\bb\Reduce.h" />
     <ClInclude Include="..\..\include\bb\ReLU.h" />

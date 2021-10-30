@@ -11,7 +11,8 @@
 #include "bb/Sequential.h"
 #include "bb/DifferentiableLutN.h"
 #include "bb/DifferentiableLutDiscreteN.h"
-#include "bb/PopcountLutN.h"
+#include "bb/AverageLut.h"
+#include "bb/MaxLut.h"
 #include "bb/BinaryLutN.h"
 #include "bb/Reduce.h"
 #include "bb/BinaryModulation.h"
@@ -40,24 +41,46 @@ void MnistDifferentiableLutCnn_(int epoch_size, int mini_batch_size, int train_m
 
     // create network
 #ifdef BB_WITH_CUDA
+    /*
     auto layer_cnv0_sl0 = bb::DifferentiableLutN<6, T>::Create(36*6,   true, "random");
     auto layer_cnv0_sl1 = bb::DifferentiableLutN<6, T>::Create(36,     true, "serial");
     auto layer_cnv1_sl0 = bb::DifferentiableLutN<6, T>::Create(1*36*6, true, "random");
 //  auto layer_cnv1_sl1 = bb::DifferentiableLutN<6, T>::Create(1*36,   true, "serial");
-    auto layer_cnv1_sl1 = bb::PopcountLutN<T>::Create(6, {1*36}, "serial");
+    auto layer_cnv1_sl1 = bb::AverageLut<T>::Create(6, {1*36}, "serial");
     auto layer_cnv2_sl0 = bb::DifferentiableLutN<6, T>::Create(2*36*6, true, "random");
 //  auto layer_cnv2_sl1 = bb::DifferentiableLutN<6, T>::Create(2*36,   true, "serial");
-    auto layer_cnv2_sl1 = bb::PopcountLutN<T>::Create(6, {2*36}, "serial");
+    auto layer_cnv2_sl1 = bb::AverageLut<T>::Create(6, {2*36}, "serial");
     auto layer_cnv3_sl0 = bb::DifferentiableLutN<6, T>::Create(2*36*6, true, "random");
     auto layer_cnv3_sl1 = bb::DifferentiableLutN<6, T>::Create(2*36,   true, "serial");
     auto layer_sl4      = bb::DifferentiableLutN<6, T>::Create(64*6,  true, "random");
 //  auto layer_sl5      = bb::DifferentiableLutN<6, T>::Create(64,    true, "serial");
-    auto layer_sl5      = bb::PopcountLutN<T>::Create(6, {64}, "serial");
+    auto layer_sl5      = bb::AverageLut<T>::Create(6, {64}, "serial");
     auto layer_sl6      = bb::DifferentiableLutN<6, T>::Create(10*6*6, true, "random");
     auto layer_sl7      = bb::DifferentiableLutN<6, T>::Create(10*6,   true, "serial");
 //  auto layer_sl8      = bb::DifferentiableLutN<6, T>::Create(10,     true, "serial");
-    auto layer_sl8      = bb::PopcountLutN<T>::Create(6, {10}, "serial");
+    auto layer_sl8      = bb::AverageLut<T>::Create(6, {10}, "serial");
+    */
+
+    auto layer_cnv0_sl0 = bb::DifferentiableLutN<6, T>::Create(36*6,   true, "random");
+    auto layer_cnv0_sl1 = bb::MaxLut<T>::Create(6, 36, "serial");
     
+    auto layer_cnv1_sl0 = bb::DifferentiableLutN<6, T>::Create(1*36*6, true, "random");
+    auto layer_cnv1_sl1 = bb::AverageLut<T>::Create(6, {1*36}, "serial");
+    
+    auto layer_cnv2_sl0 = bb::DifferentiableLutN<6, T>::Create(2*36*6, true, "random");
+    auto layer_cnv2_sl1 = bb::AverageLut<T>::Create(6, {2*36}, "serial");
+
+    auto layer_cnv3_sl0 = bb::DifferentiableLutN<6, T>::Create(2*36*6, true, "random");
+    auto layer_cnv3_sl1 = bb::AverageLut<T>::Create(6, {2*36}, "serial");
+    
+    auto layer_sl4      = bb::DifferentiableLutN<6, T>::Create({64*6*6},  true, "random");
+//  auto layer_sl7      = bb::MaxLut<T>::Create(6,        {64*6}, "serial");
+    auto layer_sl5      = bb::AverageLut<T>::Create(6, {64}, "serial");
+
+    auto layer_sl6      = bb::DifferentiableLutN<6, T>::Create(10*6*6, true, "random");
+//  auto layer_sl7      = bb::MaxLut<T>::Create(6, {10*6},   "serial");
+    auto layer_sl7      = bb::DifferentiableLutN<6, T>::Create({10*6}, true, "random");
+    auto layer_sl8      = bb::AverageLut<T>::Create(6, {10}, "serial");
 
 #else
     auto layer_cnv0_sl0 = bb::DifferentiableLutDiscreteN<6, T>::Create(6*36);
@@ -287,8 +310,8 @@ void MnistDifferentiableLutCnn_(int epoch_size, int mini_batch_size, int train_m
 void MnistDifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
     if ( binary_mode ) {
-//        MnistDifferentiableLutCnn_<bb::Bit>(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
-        MnistDifferentiableLutCnn_<float>(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+        MnistDifferentiableLutCnn_<bb::Bit>(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+//      MnistDifferentiableLutCnn_<float>(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
     else {
         MnistDifferentiableLutCnn_<float>(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
