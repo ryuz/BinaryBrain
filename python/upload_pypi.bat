@@ -7,10 +7,12 @@ pause
 git pull
 
 
+call set_py37.bat
+python -V
+
 echo 何かキーを押すとpy37のビルドを開始します
 pause
 
-call set_py37.bat
 call clean.bat
 call copy_src.bat
 
@@ -31,10 +33,12 @@ twine upload --repository pypi dist/*
 
 
 
+call set_py36.bat
+python -V
+
 echo 何かキーを押すとpy36のビルドを開始します
 pause
 
-call set_py36.bat
 call clean.bat
 call copy_src.bat
 
@@ -55,10 +59,12 @@ twine upload --repository pypi dist/*
 
 
 
+call set_py38.bat
+python -V
+
 echo 何かキーを押すとpy38のビルドを開始します
 pause
 
-call set_py38.bat
 call clean.bat
 call copy_src.bat
 
