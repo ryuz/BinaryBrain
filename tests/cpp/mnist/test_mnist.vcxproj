@@ -367,6 +367,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\include\bb\Activation.h" />
     <ClInclude Include="..\..\..\include\bb\Assert.h" />
+    <ClInclude Include="..\..\..\include\bb\AverageLut.h" />
     <ClInclude Include="..\..\..\include\bb\AveragePooling.h" />
     <ClInclude Include="..\..\..\include\bb\BackpropagatedBatchNormalization.h" />
     <ClInclude Include="..\..\..\include\bb\BatchNormalization.h" />
