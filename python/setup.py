@@ -297,7 +297,8 @@ class BuildExt(build_ext):
         ar_args['msvc'] += []
     else:
         # unix(gpu)
-        cc_args['unix'] += ['-gencode=arch=compute_52,code=sm_52',
+        cc_args['unix'] += ['-gencode=arch=compute_37,code=sm_37',
+                            '-gencode=arch=compute_52,code=sm_52',
                             '-gencode=arch=compute_53,code=sm_53',
                             '-gencode=arch=compute_60,code=sm_60',
                             '-gencode=arch=compute_61,code=sm_61',
@@ -311,7 +312,8 @@ class BuildExt(build_ext):
                             '-Xcompiler', '-fopenmp',
                             '-Xcompiler', '-std=c++14',
                             '-Xcompiler', '-fPIC' ]
-        cu_args['unix'] += ['-gencode=arch=compute_52,code=sm_52',
+        cu_args['unix'] += ['-gencode=arch=compute_37,code=sm_37',
+                            '-gencode=arch=compute_52,code=sm_52',
                             '-gencode=arch=compute_53,code=sm_53',
                             '-gencode=arch=compute_60,code=sm_60',
                             '-gencode=arch=compute_61,code=sm_61',
@@ -340,6 +342,7 @@ class BuildExt(build_ext):
                             '-Xcompiler', '/wd\"4819\"']
         cu_args['msvc'] += ['-O3',
                             '-std=c++17',
+                            '-gencode=arch=compute_37,code=sm_37',
                             '-gencode=arch=compute_52,code=sm_52',
                             '-gencode=arch=compute_53,code=sm_53',
                             '-gencode=arch=compute_60,code=sm_60',
