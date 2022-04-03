@@ -691,7 +691,7 @@ PYBIND11_MODULE(core, m) {
     PYCLASS_MODEL(BitEncode_fp32_fp32, Model)
         .def_static("create",   &BitEncode_fp32_fp32::CreatePy);
     PYCLASS_MODEL(BitEncode_bit_fp32, Model)
-        .def_static("create",   &BitEncode_fp32_fp32::CreatePy);
+        .def_static("create",   &BitEncode_bit_fp32::CreatePy);
     
 
     PYCLASS_MODEL(Shuffle, Model)
