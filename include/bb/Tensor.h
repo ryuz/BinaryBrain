@@ -1081,6 +1081,26 @@ inline Tensor_<T> Clamp(Tensor_<T> const &src, T a, T b)
     return dst;
 }
 
+template<typename T>
+inline Tensor_<T> Quantize(Tensor_<T> const &src, int bits, T scale=0, int offset = 0)
+{
+    Tensor_<T>  dst(src.GetShape());
+    auto src_ptr = src.LockMemoryConst();
+    auto dst_ptr = dst.LockMemory(true);
+    Tensor_Vector_quantize_signed<T>((T *)dst_ptr.GetAddr(), (T const *)src_ptr.GetAddr(), bits, scale, offset, src.GetSize());
+    return dst;
+}
+
+template<typename T>
+inline Tensor_<T> QuantizeUnsigned(Tensor_<T> const &src, int bits, T scale=0, int offset = 0)
+{
+    Tensor_<T>  dst(src.GetShape());
+    auto src_ptr = src.LockMemoryConst();
+    auto dst_ptr = dst.LockMemory(true);
+    Tensor_Vector_quantize_unsigned<T>((T *)dst_ptr.GetAddr(), (T const *)src_ptr.GetAddr(), bits, scale, offset, src.GetSize());
+    return dst;
+}
+
 
 template<typename T>
 std::ostream& operator<<(std::ostream& os, const Tensor_<T>& t)
@@ -1673,6 +1693,54 @@ inline Tensor_<float> Clamp(Tensor_<float> const &src, float a, float b)
     Tensor_Vector_clamp<float>((float *)dst_ptr.GetAddr(), (float const *)src_ptr.GetAddr(), a, b, src.GetSize());
     return dst;
 }
+
+
+template<>
+inline Tensor_<float> Quantize(Tensor_<float> const &src, int bits, float scale, int offset)
+{
+    Tensor_<float>  dst(src.GetShape());
+
+    // CUDA
+    if ( dst.IsDeviceAvailable() && dst.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        auto src_ptr = src.LockDeviceMemoryConst();
+        auto dst_ptr = dst.LockDeviceMemory(true);
+        if ( scale <= 0 ) { scale = 1.0f / (float)(1 << (bits-1)); }
+        float   lo = int_to_real(int_min(bits), scale, offset);
+        float   hi = int_to_real(int_max(bits), scale, offset);
+        bbcu_Tensor_Quantize<float>((float *)dst_ptr.GetAddr(), (const float *)src_ptr.GetAddr(), lo, hi, scale, (int)src.GetSize());
+        return dst;
+    }
+    
+    // CPU
+    auto src_ptr = src.LockMemoryConst();
+    auto dst_ptr = dst.LockMemory(true);
+    Tensor_Vector_quantize_signed<float>((float *)dst_ptr.GetAddr(), (float const *)src_ptr.GetAddr(), bits, scale, offset, src.GetSize());
+    return dst;
+}
+
+template<>
+inline Tensor_<float> QuantizeUnsigned(Tensor_<float> const &src, int bits, float scale, int offset)
+{
+    Tensor_<float>  dst(src.GetShape());
+
+    // CUDA
+    if ( dst.IsDeviceAvailable() && dst.IsDeviceAvailable() && Manager::IsDeviceAvailable() ) {
+        auto src_ptr = src.LockDeviceMemoryConst();
+        auto dst_ptr = dst.LockDeviceMemory(true);
+        if ( scale <= 0 ) { scale = 1.0f / (float)(1 << (bits)); }
+        float   lo = int_to_real(uint_min(bits), scale, offset);
+        float   hi = int_to_real(uint_max(bits), scale, offset);
+        bbcu_Tensor_Quantize<float>((float *)dst_ptr.GetAddr(), (const float *)src_ptr.GetAddr(), lo, hi, scale, (int)src.GetSize());
+        return dst;
+    }
+    
+    // CPU
+    auto src_ptr = src.LockMemoryConst();
+    auto dst_ptr = dst.LockMemory(true);
+    Tensor_Vector_quantize_signed<float>((float *)dst_ptr.GetAddr(), (float const *)src_ptr.GetAddr(), bits, scale, offset, src.GetSize());
+    return dst;
+}
+
 
 #endif
 

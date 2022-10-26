@@ -1604,11 +1604,11 @@ BBCU_DLL_EXPORT int bbcu_Tensor_Quantize
         (
             T               *dev_result,
             T   const       *dev_buf,
-            int             bits,
+            T               lo,
+            T               hi,
             T               scale,
-            int             offset,
             int             size,
-            cudaStream_t    streamId
+            cudaStream_t    streamId=0
         );
 
 
@@ -1623,7 +1623,7 @@ BBCU_DLL_EXPORT int bbcu_FrameBuf_Quantize
             int             node_size,
             int             frame_size,
             int             frame_stride,
-            cudaStream_t    streamId
+            cudaStream_t    streamId=0
         );
 
 

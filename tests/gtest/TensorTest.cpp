@@ -1781,7 +1781,8 @@ TEST(TensorTest, testTensor_Quantize)
         }
     }
     
-    auto t1 = t0.Quantize(8);
+//    auto t1 = t0.Quantize(8);
+    auto t1 = bb::Quantize(t0, 8);
     {
         auto ptr0 = t0.LockConst();
         auto ptr1 = t1.LockConst();
