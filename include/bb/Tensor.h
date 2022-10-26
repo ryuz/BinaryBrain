@@ -855,6 +855,14 @@ public:
         return dst;
     }
 
+    inline Tensor_& Quantize_inplace(int bits, int q=-1)
+    {
+        auto ptr = LockMemory();
+        Tensor_Vector_quantize<T>((T *)ptr.GetAddr(), (const T *)ptr.GetAddr(), bits, q, m_size);
+        return *this;
+    }
+
+
     double Sum(void)
     {
         double sum = 0;

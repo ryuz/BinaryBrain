@@ -37,6 +37,69 @@ INDEX argmax(std::vector<T> vec)
 }
 
 
+// quantize
+template <typename T = float>
+T int_to_real(int int_val, T scale, int offset = 0)
+{
+    return (T)(int_val - offset) * scale;
+}
+
+template <typename T = float>
+int real_to_int(T real_val, T scale, int offset = 0)
+{
+    return (int)std::floor((real_val / scale + (T)0.5)) + offset;
+}
+
+inline int int_min(int bits)
+{
+    return -(1 << (bits-1));
+}
+
+inline int int_max(int bits)
+{
+    return (1 << (bits-1)) - 1;
+}
+
+inline int uint_min(int bits)
+{
+    return 0;
+}
+
+inline int uint_max(int bits)
+{
+    return (1 << bits) - 1;
+}
+
+
+template <typename T = float>
+T   quantize_signed(T real_val, int bits, T scale=0, int offset = 0)
+{
+    if ( scale <= 0 ) { scale = (T)1 / (T)(1 << (bits-1)); }
+
+    T   lo = int_to_real(int_min(bits), scale, offset);
+    T   hi = int_to_real(int_max(bits), scale, offset);
+    real_val    = std::max(real_val, lo);
+    real_val    = std::min(real_val, hi);
+    int int_val = real_to_int(real_val, scale, 0);
+    real_val    = int_to_real(int_val, scale, 0);
+    return real_val;
+}
+
+template <typename T = float>
+T   quantize_unsigned(T real_val, int bits, T scale=0, int offset = 0)
+{
+    if ( scale <= 0 ) { scale = (T)1 / (T)(1 << (bits)); }
+
+    T   lo = int_to_real(uint_min(bits), scale, offset);
+    T   hi = int_to_real(uint_max(bits), scale, offset);
+    real_val    = std::max(real_val, lo);
+    real_val    = std::min(real_val, hi);
+    int int_val = real_to_int(real_val, scale, offset);
+    real_val    = int_to_real(int_val, scale, offset);
+    return real_val;
+}
+
+
 // データ型を変換(uint8_t(0-255) -> float(0.0-1.0)への変換に使う想定)
 template <typename ST = std::uint8_t, typename DT = float, typename MT = float>
 std::vector<DT> DataTypeConvert(const std::vector<ST>& src, MT mul=(MT)1)

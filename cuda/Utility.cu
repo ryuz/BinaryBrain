@@ -380,6 +380,148 @@ template BBCU_DLL_EXPORT int bbcu_FrameBuf_Max<double>(double *, double const *,
 
 
 
+
+// -------------------------------------------------
+//  Quantize
+// -------------------------------------------------
+
+
+template<typename T>
+__global__ void kernal_Tensor_Quantize
+        (
+            T               *dst,
+            const T         *src,
+            T               lo,
+            T               hi,
+            T               scale,
+            T               scale_recip,
+            int             size
+        )
+{
+    int id   = threadIdx.x;
+    int step = blockDim.x;
+
+    for (int index = id; index < size; index += step) {
+        T   real_val = src[index];
+        real_val = max(real_val, lo);
+        real_val = min(real_val, hi);
+        int int_val = (int)floor(real_val * scale_recip + (T)0.5);
+        real_val = (T)int_val * scale;
+        dst[index] = real_val;
+    }
+}
+
+
+template<typename T>
+BBCU_DLL_EXPORT int bbcu_Tensor_Quantize
+        (
+            T               *dev_result,
+            T   const       *dev_buf,
+            T               lo,
+            T               hi,
+            T               scale,
+            int             size,
+            cudaStream_t    streamId
+        )
+{
+    BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
+
+//  BB_CUDA_SAFE_CALL(cudaMemset(dev_result, 0, sizeof(T)));
+
+    dim3    block(32);
+    dim3    grid(1);
+    
+    kernal_Tensor_Quantize<T><<<grid, block, 0, streamId>>>(
+            dev_result,
+            dev_buf,
+            lo,
+            hi,
+            scale,
+            (T)1 / scale,
+            size
+        );
+    BB_CUDA_CHECK_LAST_ERROR();
+
+    return 0;
+}
+
+template BBCU_DLL_EXPORT int bbcu_Tensor_Quantize<float> (float  *, float  const *, float,  float,  float,  int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_Tensor_Quantize<double>(double *, double const *, double, double, double, int, cudaStream_t);
+
+
+
+template<typename T>
+__global__ void kernal_FrameBuf_Quantize
+        (
+            T               *dst,
+            T   const       *src,
+            T               lo,
+            T               hi,
+            T               scale,
+            T               scale_recip,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride
+        )
+{
+    int id   = threadIdx.x;
+    int step = blockDim.x;
+    
+    for (int node = 0; node < node_size; node++) {
+        for (int frame = id; frame < frame_size; frame += step) {
+            T   real_val = src[node*frame_stride + frame];;
+            real_val = max(real_val, lo);
+            real_val = min(real_val, hi);
+            int int_val = (int)floor(real_val * scale_recip + (T)0.5);
+            real_val = (T)int_val * scale;
+            dst[node*frame_stride + frame] = real_val;
+        }
+    }
+}
+
+
+template<typename T>
+BBCU_DLL_EXPORT int bbcu_FrameBuf_Quantize
+        (
+            T               *dev_dst,
+            T   const       *dev_src,
+            T               lo,
+            T               hi,
+            T               scale,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId
+        )
+{
+    BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());
+
+    dim3    block(32);
+    dim3    grid(1);
+
+    kernal_FrameBuf_Quantize<T><<<grid, block, 0, streamId>>>(
+            dev_dst,
+            dev_src,
+            lo,
+            hi,
+            scale,
+            (T)1 / scale,
+            node_size,
+            frame_size,
+            frame_stride
+        );
+    BB_CUDA_CHECK_LAST_ERROR();
+
+    return 0;
+}
+
+template BBCU_DLL_EXPORT int bbcu_FrameBuf_Quantize<float> (float  *, float  const *, float,  float,  float, int, int, int, cudaStream_t);
+template BBCU_DLL_EXPORT int bbcu_FrameBuf_Quantize<double>(double *, double const *, double, double, double,int, int, int, cudaStream_t);
+
+
+
+
+
 // ---------------------------------
 //  momnet
 // ---------------------------------
@@ -564,6 +706,8 @@ BBCU_DLL_EXPORT int bbcu_FrameBuf_Moment
 
 template BBCU_DLL_EXPORT int bbcu_FrameBuf_Moment<float> (double *, float  const *, int, int, int, cudaStream_t);
 template BBCU_DLL_EXPORT int bbcu_FrameBuf_Moment<double>(double *, double const *, int, int, int, cudaStream_t);
+
+
 
 
 
