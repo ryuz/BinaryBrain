@@ -1773,20 +1773,24 @@ TEST(TensorTest, testTensor_Quantize)
     }
 #endif       
 
-    bb::Tensor_<float> t0({1, 1, 21});
+    bb::Tensor_<float> t0({1, 1, 25});
     {
         auto ptr0 = t0.Lock();
-        for ( int i = 0; i < 21; ++i ) {
+        for ( int i = 0; i < 25; ++i ) {
             ptr0(0, 0, i) = (i-10) * 0.1f;
         }
     }
     
+//    t0.Clamp_inplace(-1.0, +1.0);
 //    auto t1 = t0.Quantize(8);
-    auto t1 = bb::Quantize(t0, 8);
+//    auto t1 = t0.Quantize(8);
+      auto t1 = bb::Quantize(t0, 8);
+//      auto t1 = bb::QuantizeUnsigned(t0, 8);
+
     {
         auto ptr0 = t0.LockConst();
         auto ptr1 = t1.LockConst();
-        for ( int i = 0; i < 21; ++i ) {
+        for ( int i = 0; i < 25; ++i ) {
             std::cout << ptr0(0, 0, i) << " => " << ptr1(0, 0, i) << std::endl;
         }
     }

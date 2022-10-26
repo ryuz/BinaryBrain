@@ -405,7 +405,7 @@ __global__ void kernal_Tensor_Quantize
         T   real_val = src[index];
         real_val = max(real_val, lo);
         real_val = min(real_val, hi);
-        int int_val = (int)floor(real_val * scale_recip + (T)0.5);
+        int int_val = (int)(real_val * scale_recip + (T)0.5);
         real_val = (T)int_val * scale;
         dst[index] = real_val;
     }
@@ -472,7 +472,7 @@ __global__ void kernal_FrameBuf_Quantize
             T   real_val = src[node*frame_stride + frame];;
             real_val = max(real_val, lo);
             real_val = min(real_val, hi);
-            int int_val = (int)floor(real_val * scale_recip + (T)0.5);
+            int int_val = (int)(real_val * scale_recip + (T)0.5);
             real_val = (T)int_val * scale;
             dst[node*frame_stride + frame] = real_val;
         }

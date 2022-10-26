@@ -1661,11 +1661,37 @@ public:
         return std::sqrt((*this * *this).Sum());
     }
 
-    void Clamp_inplace(double a, double b)
+    FrameBuffer& Clamp_inplace(double a, double b)
     {
         m_tensor.Clamp_inplace(a, b);
+        return *this;
     }
 
+    FrameBuffer Quantize(int bits, double scale=0.0, int offset=0)
+    {
+        FrameBuffer dst(GetFrameSize(), GetShape(), GetType(), IsHostOnly());
+        dst.m_tensor = m_tensor.Quantize(bits, scale, offset);
+        return dst;
+    }
+
+    FrameBuffer& Quantize_inplace(int bits, float scale, int offset)
+    {
+        m_tensor.Quantize_inplace(bits, scale, offset);
+        return *this;
+    }
+
+    FrameBuffer QuantizeUnsigned(int bits, double scale=0.0, int offset=0)
+    {
+        FrameBuffer dst(GetFrameSize(), GetShape(), GetType(), IsHostOnly());
+        dst.m_tensor = m_tensor.QuantizeUnsigned(bits, scale, offset);
+        return dst;
+    }
+
+    FrameBuffer& QuantizeUnsigned_inplace(int bits, float scale, int offset)
+    {
+        m_tensor.QuantizeUnsigned_inplace(bits, scale, offset);
+        return *this;
+    }
 
     friend  FrameBuffer operator+(FrameBuffer const &src0, FrameBuffer const &src1);
     friend  FrameBuffer operator+(FrameBuffer const &src0, double src1);

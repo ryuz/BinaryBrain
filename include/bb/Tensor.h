@@ -1251,6 +1251,40 @@ inline Tensor_<float>& Tensor_<float>::Clamp_inplace(float a, float b)
 }
 
 template<>
+inline Tensor_<float>& Tensor_<float>::Quantize_inplace(int bits, float scale, int offset)
+{
+    if ( IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+        auto ptr = LockDeviceMemory();
+        if ( scale <= 0 ) { scale = 1.0f / (float)(1 << (bits-1)); }
+        float   lo = int_to_real(int_min(bits), scale, offset);
+        float   hi = int_to_real(int_max(bits), scale, offset);
+        bbcu_Tensor_Quantize<float>((float *)ptr.GetAddr(), (const float *)ptr.GetAddr(), lo, hi, scale, (int)m_size);
+        return *this;
+    }
+
+    auto ptr = LockMemory();
+    Tensor_Vector_quantize_signed<float>((float *)ptr.GetAddr(), (const float *)ptr.GetAddr(), bits, scale, offset, m_size);
+    return *this;
+}
+
+template<>
+inline Tensor_<float>& Tensor_<float>::QuantizeUnsigned_inplace(int bits, float scale, int offset)
+{
+    if ( IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+        auto ptr = LockDeviceMemory();
+        if ( scale <= 0 ) { scale = 1.0f / (float)(1 << bits); }
+        float   lo = int_to_real(uint_min(bits), scale, offset);
+        float   hi = int_to_real(uint_max(bits), scale, offset);
+        bbcu_Tensor_Quantize<float>((float *)ptr.GetAddr(), (const float *)ptr.GetAddr(), lo, hi, scale, (int)m_size);
+        return *this;
+    }
+
+    auto ptr = LockMemory();
+    Tensor_Vector_quantize_unsigned<float>((float *)ptr.GetAddr(), (const float *)ptr.GetAddr(), bits, scale, offset, m_size);
+    return *this;
+}
+
+template<>
 inline Tensor_<float> & Tensor_<float>::operator=(float src)
 {
     // CUDA
@@ -2720,8 +2754,8 @@ public:
     inline Tensor Quantize(int bits, double scale=0.0, int offset = 0) const
     {
         switch (m_type) {
-        case BB_TYPE_FP32:   return Tensor_<float >(*this).Quantize(bits, (float )scale, offset);   
-        case BB_TYPE_FP64:   return Tensor_<double>(*this).Quantize(bits, (double)scale, offset);  
+        case BB_TYPE_FP32:   return bb::Quantize(Tensor_<float >(*this), bits, (float )scale, offset);   
+        case BB_TYPE_FP64:   return bb::Quantize(Tensor_<double>(*this), bits, (double)scale, offset);  
         default:    BB_ASSERT(0);   break;
         }
         return *this;
@@ -2740,8 +2774,8 @@ public:
     inline Tensor QuantizeUnsigned(int bits, double scale=0.0, int offset = 0) const
     {
         switch (m_type) {
-        case BB_TYPE_FP32:   return Tensor_<float >(*this).QuantizeUnsigned(bits, (float )scale, offset);   
-        case BB_TYPE_FP64:   return Tensor_<double>(*this).QuantizeUnsigned(bits, (double)scale, offset);  
+        case BB_TYPE_FP32:   return bb::QuantizeUnsigned(Tensor_<float >(*this), bits, (float )scale, offset);   
+        case BB_TYPE_FP64:   return bb::QuantizeUnsigned(Tensor_<double>(*this), bits, (double)scale, offset);  
         default:    BB_ASSERT(0);   break;
         }
         return *this;
