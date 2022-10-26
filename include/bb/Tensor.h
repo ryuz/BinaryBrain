@@ -855,11 +855,36 @@ public:
         return dst;
     }
 
-    inline Tensor_& Quantize_inplace(int bits, int q=-1)
+    inline Tensor_& Quantize_inplace(int bits, T scale=0, int offset = 0)
     {
         auto ptr = LockMemory();
-        Tensor_Vector_quantize<T>((T *)ptr.GetAddr(), (const T *)ptr.GetAddr(), bits, q, m_size);
+        Tensor_Vector_quantize_signed<T>((T *)ptr.GetAddr(), (const T *)ptr.GetAddr(), bits, scale, offset, m_size);
         return *this;
+    }
+
+    inline Tensor_ Quantize(int bits, T scale=0, int offset = 0) const
+    {
+        Tensor_ dst(this->GetShape());
+        auto src_ptr = this->LockMemoryConst();
+        auto dst_ptr = dst.LockMemory(true);
+        Tensor_Vector_quantize_signed<T>((T *)dst_ptr.GetAddr(), (T const *)src_ptr.GetAddr(), bits, scale, offset, this->GetSize());
+        return dst;
+    }
+
+    inline Tensor_& QuantizeUnsigned_inplace(int bits, T scale=0, int offset = 0)
+    {
+        auto ptr = LockMemory();
+        Tensor_Vector_quantize_unsigned<T>((T *)ptr.GetAddr(), (const T *)ptr.GetAddr(), bits, scale, offset, m_size);
+        return *this;
+    }
+
+    inline Tensor_ QuantizeUnsigned(int bits, T scale=0, int offset = 0) const
+    {
+        Tensor_ dst(this->GetShape());
+        auto src_ptr = this->LockMemoryConst();
+        auto dst_ptr = dst.LockMemory(true);
+        Tensor_Vector_quantize_unsigned<T>((T *)dst_ptr.GetAddr(), (T const *)src_ptr.GetAddr(), bits, scale, offset, this->GetSize());
+        return dst;
     }
 
 
@@ -2611,6 +2636,47 @@ public:
     double Norm(void)
     {
         return std::sqrt((*this * *this).Sum());
+    }
+
+
+    inline Tensor& Quantize_inplace(int bits, double scale=0.0, int offset = 0)
+    {
+        switch (m_type) {
+        case BB_TYPE_FP32:   Tensor_<float >(*this).Quantize_inplace(bits, (float )scale, offset);   break;
+        case BB_TYPE_FP64:   Tensor_<double>(*this).Quantize_inplace(bits, (double)scale, offset);   break;
+        default:    BB_ASSERT(0);   break;
+        }
+        return *this;
+    }
+
+    inline Tensor Quantize(int bits, double scale=0.0, int offset = 0) const
+    {
+        switch (m_type) {
+        case BB_TYPE_FP32:   return Tensor_<float >(*this).Quantize(bits, (float )scale, offset);   
+        case BB_TYPE_FP64:   return Tensor_<double>(*this).Quantize(bits, (double)scale, offset);  
+        default:    BB_ASSERT(0);   break;
+        }
+        return *this;
+    }
+
+    inline Tensor& QuantizeUnsigned_inplace(int bits, double scale=0.0, int offset = 0)
+    {
+        switch (m_type) {
+        case BB_TYPE_FP32:   Tensor_<float >(*this).QuantizeUnsigned_inplace(bits, (float )scale, offset);   break;
+        case BB_TYPE_FP64:   Tensor_<double>(*this).QuantizeUnsigned_inplace(bits, (double)scale, offset);   break;
+        default:    BB_ASSERT(0);   break;
+        }
+        return *this;
+    }
+
+    inline Tensor QuantizeUnsigned(int bits, double scale=0.0, int offset = 0) const
+    {
+        switch (m_type) {
+        case BB_TYPE_FP32:   return Tensor_<float >(*this).QuantizeUnsigned(bits, (float )scale, offset);   
+        case BB_TYPE_FP64:   return Tensor_<double>(*this).QuantizeUnsigned(bits, (double)scale, offset);  
+        default:    BB_ASSERT(0);   break;
+        }
+        return *this;
     }
 
 

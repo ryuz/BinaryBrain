@@ -1763,6 +1763,36 @@ TEST(TensorTest, testTensor_MinMax)
 
 
 
+TEST(TensorTest, testTensor_Quantize)
+{
+#if 0
+    for ( int i = 0; i < 21; ++i ) {
+        float v  = (i-10) * 0.1f;
+        float vq = bb::quantize_signed<float>(v, 8);
+        std::cout << "test : " << v << " : " << vq << std::endl;
+    }
+#endif       
+
+    bb::Tensor_<float> t0({1, 1, 21});
+    {
+        auto ptr0 = t0.Lock();
+        for ( int i = 0; i < 21; ++i ) {
+            ptr0(0, 0, i) = (i-10) * 0.1f;
+        }
+    }
+    
+    auto t1 = t0.Quantize(8);
+    {
+        auto ptr0 = t0.LockConst();
+        auto ptr1 = t1.LockConst();
+        for ( int i = 0; i < 21; ++i ) {
+            std::cout << ptr0(0, 0, i) << " => " << ptr1(0, 0, i) << std::endl;
+        }
+    }
+}
+
+
+
 #if 0
 
 
