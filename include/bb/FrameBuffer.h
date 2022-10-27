@@ -1674,7 +1674,7 @@ public:
         return dst;
     }
 
-    FrameBuffer& Quantize_inplace(int bits, float scale, int offset)
+    FrameBuffer& Quantize_inplace(int bits, float scale=0.0f, int offset=0)
     {
         m_tensor.Quantize_inplace(bits, scale, offset);
         return *this;

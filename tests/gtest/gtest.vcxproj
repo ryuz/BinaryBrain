@@ -47,6 +47,7 @@
     <ClCompile Include="Convolution2dTest.cpp" />
     <ClCompile Include="ConvolutionCol2ImTest.cpp" />
     <ClCompile Include="ConvolutionIm2ColTest.cpp" />
+    <ClCompile Include="DenseAffineQuantizeTest.cpp" />
     <ClCompile Include="DenseAffineTest.cpp" />
     <ClCompile Include="DepthwiseDenseAffineTest.cpp" />
     <ClCompile Include="FrameBufferTest.cpp" />
@@ -98,6 +99,7 @@
     <ClInclude Include="..\..\include\bb\DataAugmentationMnist.h" />
     <ClInclude Include="..\..\include\bb\DataType.h" />
     <ClInclude Include="..\..\include\bb\DenseAffine.h" />
+    <ClInclude Include="..\..\include\bb\DenseAffineQuantize.h" />
     <ClInclude Include="..\..\include\bb\DepthwiseDenseAffine.h" />
     <ClInclude Include="..\..\include\bb\DifferentiableLutDiscreteN.h" />
     <ClInclude Include="..\..\include\bb\DifferentiableLutN.h" />

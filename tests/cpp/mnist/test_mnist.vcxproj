@@ -352,6 +352,7 @@
     <ClCompile Include="MnistAeDifferentiableLutCnn.cpp" />
     <ClCompile Include="MnistAeDifferentiableLutSimple.cpp" />
     <ClCompile Include="MnistCustomModel.cpp" />
+    <ClCompile Include="MnistDenseAffineQuantize.cpp" />
     <ClCompile Include="MnistDenseBinary.cpp" />
     <ClCompile Include="MnistDenseCnn.cpp" />
     <ClCompile Include="MnistDenseSimple.cpp" />
@@ -388,6 +389,7 @@
     <ClInclude Include="..\..\..\include\bb\DataAugmentationMnist.h" />
     <ClInclude Include="..\..\..\include\bb\DataType.h" />
     <ClInclude Include="..\..\..\include\bb\DenseAffine.h" />
+    <ClInclude Include="..\..\..\include\bb\DenseAffineQuantize.h" />
     <ClInclude Include="..\..\..\include\bb\DepthwiseDenseAffine.h" />
     <ClInclude Include="..\..\..\include\bb\DifferentiableLutDiscreteN.h" />
     <ClInclude Include="..\..\..\include\bb\DifferentiableLutN.h" />
