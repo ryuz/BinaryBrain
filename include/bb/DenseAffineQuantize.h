@@ -222,6 +222,9 @@ public:
         create.weight_bits    = weight_bits;
         create.output_bits    = output_bits;
         create.input_bits     = input_bits;
+        create.weight_scale   = weight_scale;
+        create.output_scale   = output_scale;
+        create.input_scale    = input_scale;
         create.initialize_std = initialize_std;
         create.initializer    = initializer;
         create.seed           = seed;

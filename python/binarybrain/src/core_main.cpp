@@ -495,6 +495,11 @@ PYBIND11_MODULE(core, m) {
         .def("isnan", &Tensor::IsNan)
         .def("min",   &Tensor::Min)
         .def("max",   &Tensor::Max)
+        .def("quantize", &Tensor::Max)
+        .def("quantize", &Tensor::Quantize,
+            py::arg("bits"),
+            py::arg("scale")  = 0,
+            py::arg("offset") = 0)
         .def(py::self + py::self)
         .def(py::self + double())
         .def(double() + py::self)
@@ -584,6 +589,10 @@ PYBIND11_MODULE(core, m) {
         .def("isnan", &FrameBuffer::IsNan)
         .def("min",   &FrameBuffer::Min)
         .def("max",   &FrameBuffer::Max)
+        .def("quantize", &FrameBuffer::Quantize,
+            py::arg("bits"),
+            py::arg("scale")  = 0,
+            py::arg("offset") = 0)
         .def(py::self + py::self)
         .def(py::self + double())
         .def(double() + py::self)
@@ -786,6 +795,13 @@ PYBIND11_MODULE(core, m) {
     PYCLASS_MODEL(DenseAffineQuantize_fp32, Model)
         .def_static("create",   &DenseAffineQuantize_fp32::CreatePy, "create",
             py::arg("output_shape"),
+            py::arg("quantize")       = true,
+            py::arg("weight_bits")    = 8,
+            py::arg("output_bits")    = 8,
+            py::arg("input_bits")     = 0,
+            py::arg("weight_scale")   = 0,
+            py::arg("output_scale")   = 0,
+            py::arg("input_scale")    = 0,
             py::arg("initialize_std") = 0.01f,
             py::arg("initializer")    = "",
             py::arg("seed")           = 1)
@@ -793,7 +809,7 @@ PYBIND11_MODULE(core, m) {
         .def("b",  ((Tensor& (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::b))
         .def("dW", ((Tensor& (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::dW))
         .def("db", ((Tensor& (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::db));
-    
+
     // DepthwiseDenseAffine
     PYCLASS_MODEL(DepthwiseDenseAffine_fp32, Model)
         .def_static("create",   &DepthwiseDenseAffine_fp32::CreatePy, "create",
