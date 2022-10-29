@@ -41,6 +41,7 @@
 
 #include "bb/Sequential.h"
 #include "bb/DenseAffine.h"
+#include "bb/DenseAffineQuantize.h"
 #include "bb/DepthwiseDenseAffine.h"
 #include "bb/BinaryDenseAffine.h"
 #include "bb/DifferentiableLutN.h"
@@ -134,6 +135,7 @@ using Reduce_fp32_fp32                       = bb::Reduce<float, float>;
 using Reduce_bit_fp32                        = bb::Reduce<bb::Bit, float>; 
 
 using DenseAffine_fp32                       = bb::DenseAffine<float>;
+using DenseAffineQuantize_fp32               = bb::DenseAffineQuantize<float>;
 using DepthwiseDenseAffine_fp32              = bb::DepthwiseDenseAffine<float>;
 using BinaryDenseAffine_fp32_fp32            = bb::BinaryDenseAffine<float, float>;
 using BinaryDenseAffine_bit_fp32             = bb::BinaryDenseAffine<bb::Bit, float>;
@@ -775,12 +777,23 @@ PYBIND11_MODULE(core, m) {
             py::arg("initialize_std") = 0.01f,
             py::arg("initializer")    = "",
             py::arg("seed")           = 1)
-        .def("W", ((Tensor& (DenseAffine_fp32::*)())&DenseAffine_fp32::W))
-        .def("b", ((Tensor& (DenseAffine_fp32::*)())&DenseAffine_fp32::b))
+        .def("W",  ((Tensor& (DenseAffine_fp32::*)())&DenseAffine_fp32::W))
+        .def("b",  ((Tensor& (DenseAffine_fp32::*)())&DenseAffine_fp32::b))
         .def("dW", ((Tensor& (DenseAffine_fp32::*)())&DenseAffine_fp32::dW))
         .def("db", ((Tensor& (DenseAffine_fp32::*)())&DenseAffine_fp32::db));
     
-
+    // DenseAffineQuantize
+    PYCLASS_MODEL(DenseAffineQuantize_fp32, Model)
+        .def_static("create",   &DenseAffineQuantize_fp32::CreatePy, "create",
+            py::arg("output_shape"),
+            py::arg("initialize_std") = 0.01f,
+            py::arg("initializer")    = "",
+            py::arg("seed")           = 1)
+        .def("W",  ((Tensor& (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::W))
+        .def("b",  ((Tensor& (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::b))
+        .def("dW", ((Tensor& (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::dW))
+        .def("db", ((Tensor& (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::db));
+    
     // DepthwiseDenseAffine
     PYCLASS_MODEL(DepthwiseDenseAffine_fp32, Model)
         .def_static("create",   &DepthwiseDenseAffine_fp32::CreatePy, "create",
