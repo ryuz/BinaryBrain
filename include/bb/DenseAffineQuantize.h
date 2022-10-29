@@ -41,7 +41,6 @@ public:
 
 protected:
     bool                        m_host_only = false;
-    bool                        m_binary_mode = false;
     bool                        m_backward_break = false;
 
     T                           m_initialize_std = (T)0.01;
@@ -61,6 +60,7 @@ protected:
     Tensor                      m_WQ;
     Tensor                      m_bQ;
 
+    bool                        m_quantize = true;
     int                         m_weight_bits  = 8;
     int                         m_output_bits  = 12;
     int                         m_input_bits   = 0;
@@ -78,6 +78,7 @@ public:
     struct create_t
     {
         indices_t       output_shape;
+        bool            quantize = true;
         int             weight_bits  = 8;
         int             output_bits  = 12;
         int             input_bits   = 0;
@@ -105,6 +106,7 @@ protected:
 
 //      BB_ASSERT(!create.output_shape.empty());
 
+        m_quantize     = create.quantize;
         m_weight_bits  = create.weight_bits;
         m_output_bits  = create.output_bits;
         m_input_bits   = create.input_bits;
@@ -127,10 +129,10 @@ protected:
     {
         _super::CommandProc(args);
 
-        // バイナリモード設定
-        if ( args.size() == 2 && args[0] == "binary" )
+        // 量子化モード設定
+        if ( args.size() == 2 && args[0] == "quantize" )
         {
-            m_binary_mode = EvalBool(args[1]);
+            m_quantize = EvalBool(args[1]);
         }
 
         // HostOnlyモード設定
@@ -161,12 +163,13 @@ public:
         return std::shared_ptr<DenseAffineQuantize>(new DenseAffineQuantize(create));
     }
 
-    static std::shared_ptr<DenseAffineQuantize> Create(indices_t const &output_shape,
+    static std::shared_ptr<DenseAffineQuantize> Create(indices_t const &output_shape, bool quantize=true,
                                                                     int weight_bits =8, int output_bits=12, int input_bits=0,
                                                                     T weight_scale=0, T output_scale=0, T input_scale= 0)
     {
         create_t create;
         create.output_shape = output_shape;
+        create.quantize     = quantize;
         create.weight_bits  = weight_bits;
         create.output_bits  = output_bits;
         create.input_bits   = input_bits;
@@ -176,13 +179,14 @@ public:
         return Create(create);
     }
 
-    static std::shared_ptr<DenseAffineQuantize> Create(index_t output_node_size,
+    static std::shared_ptr<DenseAffineQuantize> Create(index_t output_node_size,  bool quantize=true,
                                                                     int weight_bits=8, int output_bits=12, int input_bits=0,
                                                                     T weight_scale=0, T output_scale=0, T input_scale= 0)
     {
         create_t create;
         create.output_shape.resize(1);
         create.output_shape[0] = output_node_size;
+        create.quantize     = quantize;
         create.weight_bits  = weight_bits;
         create.output_bits  = output_bits;
         create.input_bits   = input_bits;
@@ -200,6 +204,7 @@ public:
 #ifdef BB_PYBIND11
     static std::shared_ptr<DenseAffineQuantize> CreatePy(
             indices_t       output_shape,
+            bool            quantize = true,
             int             weight_bits  = 8,
             int             output_bits  = 8,
             int             input_bits   = 0,
@@ -213,6 +218,7 @@ public:
     {
         create_t create;
         create.output_shape   = output_shape;
+        create.quantize       = quantize;
         create.weight_bits    = weight_bits;
         create.output_bits    = output_bits;
         create.input_bits     = input_bits;
@@ -355,11 +361,11 @@ public:
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true) override
     {
         // 量子化
-        if ( m_input_bits > 0 ) {
+        if ( m_quantize && m_input_bits > 0 ) {
             x_buf.Quantize_inplace(m_input_bits, m_input_scale);
         }
 
-        if ( m_weight_bits > 0 ) {
+        if ( m_quantize && m_weight_bits > 0 ) {
             m_WQ = m_W->Quantize(m_weight_bits, m_weight_scale);
             m_bQ = m_b->Quantize(m_weight_bits, m_weight_scale);
         }
@@ -427,7 +433,7 @@ public:
                     (int)(y_buf.GetFrameStride() / sizeof(float))
                 ));
             
-            if (m_output_bits > 0) {
+            if ( m_quantize && m_output_bits > 0 ) {
                 y_buf.Quantize_inplace(m_output_bits, m_output_scale);
             }
 
@@ -453,7 +459,7 @@ public:
                 }
             }
 
-            if (m_output_bits > 0) {
+            if ( m_quantize && m_output_bits > 0 ) {
                 y_buf.Quantize_inplace(m_output_bits, m_output_scale);
             }
 
@@ -590,12 +596,12 @@ protected:
 
         // メンバ
         bb::SaveValue(os, m_host_only);
-        bb::SaveValue(os, m_binary_mode);
         bb::SaveValue(os, m_initialize_std);
         bb::SaveValue(os, m_initializer);
         bb::SaveValue(os, m_input_shape);
         bb::SaveValue(os, m_output_shape);
         bb::SaveValue(os, m_cublasEnable);
+        bb::SaveValue(os, m_quantize);
         bb::SaveValue(os, m_weight_bits);
         bb::SaveValue(os, m_output_bits);
         bb::SaveValue(os, m_input_bits);
@@ -626,12 +632,12 @@ protected:
 
         // メンバ
         bb::LoadValue(is, m_host_only);
-        bb::LoadValue(is, m_binary_mode);
         bb::LoadValue(is, m_initialize_std);
         bb::LoadValue(is, m_initializer);
         bb::LoadValue(is, m_input_shape);
         bb::LoadValue(is, m_output_shape);
         bb::LoadValue(is, m_cublasEnable);
+        bb::LoadValue(is, m_quantize);
         bb::LoadValue(is, m_weight_bits);
         bb::LoadValue(is, m_output_bits);
         bb::LoadValue(is, m_input_bits);
@@ -661,9 +667,6 @@ public:
     // Serialize(旧)
     void Save(std::ostream &os) const 
     {
-//      SaveValue(os, m_binary_mode);
-        os.write((const char*)&m_binary_mode, sizeof(m_binary_mode));   // バグに対する後方互換性
-
         SaveIndices(os, m_input_shape);
         SaveIndices(os, m_output_shape);
         m_W->Save(os);
@@ -672,9 +675,6 @@ public:
 
     void Load(std::istream &is)
     {
-//      bb::LoadValue(is, m_binary_mode);
-        is.read((char*)&m_binary_mode, sizeof(m_binary_mode));   // バグに対する後方互換性
-
         m_input_shape  = bb::LoadIndices(is);
         m_output_shape = bb::LoadIndices(is);
         m_W->Load(is);
@@ -687,10 +687,10 @@ public:
     void save(Archive& archive, std::uint32_t const version) const
     {
         _super::save(archive, version);
-        archive(cereal::make_nvp("binary_mode",      m_binary_mode));
         archive(cereal::make_nvp("input_shape",      m_input_shape));
         archive(cereal::make_nvp("output_shape",     m_output_shape));
         archive(cereal::make_nvp("cublasEnable",     m_cublasEnable));
+        archive(cereal::make_nvp("quantize",         m_quantize));
         archive(cereal::make_nvp("weight_bits",      m_weight_bits));
         archive(cereal::make_nvp("output_bits",      m_output_bits));
         archive(cereal::make_nvp("input_bits",       m_input_bits));
@@ -705,10 +705,10 @@ public:
     void load(Archive& archive, std::uint32_t const version)
     {
         _super::load(archive, version);
-        archive(cereal::make_nvp("binary_mode",      m_binary_mode));
         archive(cereal::make_nvp("input_shape",      m_input_shape));
         archive(cereal::make_nvp("output_shape",     m_output_shape));
         archive(cereal::make_nvp("cublasEnable",     m_cublasEnable));
+        archive(cereal::make_nvp("quantize",         m_quantize));
         archive(cereal::make_nvp("weight_bits",      m_weight_bits));
         archive(cereal::make_nvp("output_bits",      m_output_bits));
         archive(cereal::make_nvp("input_bits",       m_input_bits));
