@@ -245,8 +245,8 @@ public:
         if( m_output_shape     != model.m_output_shape     ) { return false; }
         
         if( !m_connection_table.EqualityCheck(model.m_connection_table) ) { return false; }
-//        if( !m_W->EqualityCheck (model->m_W)  ) { return false; }
-//        if( !m_dW->EqualityCheck(model->m_dW) ) { return false; }
+        if( !m_W ->EqualityCheck(*model.m_W)  ) { return false; }
+        if( !m_dW->EqualityCheck(*model.m_dW) ) { return false; }
 
         if( m_momentum         != model.m_momentum     ) { return false; }
         if( m_gamma            != model.m_gamma        ) { return false; }
