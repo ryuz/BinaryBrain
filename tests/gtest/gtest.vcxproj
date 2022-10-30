@@ -50,6 +50,7 @@
     <ClCompile Include="DenseAffineQuantizeTest.cpp" />
     <ClCompile Include="DenseAffineTest.cpp" />
     <ClCompile Include="DepthwiseDenseAffineTest.cpp" />
+    <ClCompile Include="DifferentiableLutTest.cpp" />
     <ClCompile Include="FrameBufferTest.cpp" />
     <ClCompile Include="LossMeanSquaredErrorTest.cpp" />
     <ClCompile Include="LossSoftmaxCrossEntropyTest.cpp" />
