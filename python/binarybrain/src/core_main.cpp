@@ -1281,7 +1281,7 @@ PYBIND11_MODULE(core, m) {
             py::arg("learning_rate") = 0.001f);
     
     PYCLASS_OPTIMIZER(OptimizerAdaGrad_fp32, Optimizer)
-        .def_static("Create", (std::shared_ptr<OptimizerAdaGrad_fp32> (*)(float))&OptimizerAdaGrad_fp32::Create,
+        .def_static("create", (std::shared_ptr<OptimizerAdaGrad_fp32> (*)(float))&OptimizerAdaGrad_fp32::Create,
             py::arg("learning_rate") = 0.01f);
 
     PYCLASS_OPTIMIZER(OptimizerAdam_fp32, Optimizer)
