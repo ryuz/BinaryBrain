@@ -48,7 +48,7 @@ TEST(DifferentiableLutTest, test_001)
         }
     }
 
-
+    EXPECT_EQ(lut0->EqualityCheck(*lut1), true);
 
 }
 

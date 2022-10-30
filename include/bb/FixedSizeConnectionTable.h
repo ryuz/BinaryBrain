@@ -36,6 +36,15 @@ protected:
     Tensor_<IndexType>   m_reverse_table;
     bool                 m_reverse_table_dirty = true;
 
+public:
+    // デバッグ用同一性検査
+    inline bool EqualityCheck(const FixedSizeConnectionTable& tbl)
+    {
+        if ( !m_input_table  .EqualityCheck(tbl.m_input_table  )) { return false; }
+        if ( !m_reverse_table.EqualityCheck(tbl.m_reverse_table)) { return false; }
+        if ( m_reverse_table_dirty != tbl.m_reverse_table_dirty ) { return false; }
+        return true;
+    }
 
 protected:
     void DumpObjectData(std::ostream &os) const
@@ -67,6 +76,7 @@ protected:
 
         // 再構築
         m_reverse_table_dirty = true;
+        BuildReverseTable();
     }
 
 
@@ -170,7 +180,7 @@ protected:
         if ( !m_reverse_table_dirty ) {
             return;
         }
-        m_reverse_table_dirty = true;
+        m_reverse_table_dirty = false;
 
         auto input_node_size  = this->GetInputNodeSize();
         auto output_node_size = this->GetOutputNodeSize();
