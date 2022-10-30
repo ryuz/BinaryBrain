@@ -154,6 +154,9 @@ class Tensor(bb.Object):
 
     def max(self):
         return self.get_core().max()
+    
+    def quantize(self, bits, scale=0.0, offset=0):
+        return self.get_core().quantize(bits, scale, offset)
 
     def clamp_inplace(self, a, b):
         self.get_core().clamp_inplace(a, b)

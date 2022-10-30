@@ -211,6 +211,9 @@ class FrameBuffer(bb.Object):
     def max(self):
         return self.get_core().max()
 
+    def quantize(self, bits, scale=0.0, offset=0):
+        return self.get_core().quantize(bits, scale, offset)
+
     def __add__(self, x):
         if type(x) == FrameBuffer:
             core_buf = self.get_core() + x.get_core()
