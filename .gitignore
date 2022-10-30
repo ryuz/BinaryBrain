@@ -15,6 +15,7 @@
 *.dat
 *.hex
 *.out
+*.net
 
 *.ppm
 *.pgm

@@ -27,13 +27,13 @@ TEST(DifferentiableLutTest, test_001)
     lut0->Backward(dy_buf);
 
     {
-        std::ofstream ofs("DifferentiableLutTest001.net", std::ios::binary);
+        std::ofstream ofs("DifferentiableLutTest001.bb_net", std::ios::binary);
         lut0->DumpObject(ofs);
     }
 
     auto lut1 = bb::DifferentiableLutN<6, float>::Create(16);
     {
-        std::ifstream ifs("DifferentiableLutTest001.net", std::ios::binary);
+        std::ifstream ifs("DifferentiableLutTest001.bb_net", std::ios::binary);
         lut1->LoadObject(ifs);
     }
 
