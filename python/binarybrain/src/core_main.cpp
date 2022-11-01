@@ -797,11 +797,11 @@ PYBIND11_MODULE(core, m) {
             py::arg("output_shape"),
             py::arg("quantize")       = true,
             py::arg("weight_bits")    = 8,
-            py::arg("output_bits")    = 8,
+            py::arg("output_bits")    = 16,
             py::arg("input_bits")     = 0,
-            py::arg("weight_scale")   = 0,
-            py::arg("output_scale")   = 0,
-            py::arg("input_scale")    = 0,
+            py::arg("weight_scale")   = 1.0f/255.0f,
+            py::arg("output_scale")   = 1.0f/255.0f,
+            py::arg("input_scale")    = 1.0f/255.0f,
             py::arg("initialize_std") = 0.01f,
             py::arg("initializer")    = "",
             py::arg("seed")           = 1)
@@ -1008,8 +1008,7 @@ PYBIND11_MODULE(core, m) {
     
     // DifferentiableLut
     PYCLASS_MODEL(DifferentiableLut6_fp32_fp32, DifferentiableLutModel)
-        .def_static("create", &DifferentiableLut6_fp32_fp32::CreatePy)
-        .def("equality_check", &DifferentiableLut6_fp32_fp32::EqualityCheck);
+        .def_static("create", &DifferentiableLut6_fp32_fp32::CreatePy);
     PYCLASS_MODEL(DifferentiableLut5_fp32_fp32, DifferentiableLutModel)
         .def_static("create", &DifferentiableLut5_fp32_fp32::CreatePy);
     PYCLASS_MODEL(DifferentiableLut4_fp32_fp32, DifferentiableLutModel)
