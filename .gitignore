@@ -1,7 +1,12 @@
 ﻿
+_*
+*_.*
+*_
+
 .venv/
 .python-version
 
+*.bak
 *.log
 
 *.o
@@ -53,10 +58,6 @@
 *.bb_net
 *.pickle
 
-*_.*
-*_
-*_/
-*.bak
 
 *コピー*
 Untitled*.ipynb

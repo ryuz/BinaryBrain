@@ -997,8 +997,8 @@ class DenseAffineQuantize(Model):
     """
     
     def __init__(self, output_shape=None, *, input_shape=None, quantize = True,
-                    weight_bits = 8, output_bits = 16, input_bits = 0,
-                    weight_scale = 0, output_scale = 1.0/(1<<8), input_scale = 0,
+                    weight_bits  = 8, output_bits = 16, input_bits = 0,
+                    weight_scale = 1/(1<<8), output_scale = 1/(1<<8), input_scale = 1/(1<<8),
                     initialize_std=0.01, initializer='',
                     seed=1, name=None,
                     dtype=bb.DType.FP32, core_model=None):

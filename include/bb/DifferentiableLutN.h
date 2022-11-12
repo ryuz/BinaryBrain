@@ -265,7 +265,6 @@ protected:
     // Serialize
     void DumpObjectData(std::ostream &os) const
     {
-#if 0
         // バージョン
         std::int64_t ver = 1;
         bb::SaveValue(os, ver);
@@ -273,7 +272,7 @@ protected:
         // 親クラス
         _super::DumpObjectData(os);
 
-        // ver1
+        // メンバ
         SaveValue(os, m_host_only);
         SaveValue(os, m_lut_binarize);
         SaveValue(os, m_binary_mode);
@@ -291,43 +290,6 @@ protected:
         SaveValue(os, m_momentum);
         SaveValue(os, m_gamma);
         SaveValue(os, m_beta);
-        m_running_mean.DumpObject(os);
-        m_running_var.DumpObject(os);
-#endif
-
-        // バージョン
-        std::int64_t ver = 2;
-        bb::SaveValue(os, ver);
-
-        // 親クラス
-        _super::DumpObjectData(os);
-
-        // ver2
-        SaveValue(os, m_host_only);
-        SaveValue(os, m_lut_binarize);
-        SaveValue(os, m_binary_mode);
-        SaveValue(os, m_batch_norm);
-        SaveValue(os, m_backward_break);
-        SaveValue(os, m_flagClamp);
-        SaveValue(os, m_connection);
-        SaveValue(os, m_unbinarize_bias);
-        SaveValue(os, m_max_tmp_mem_size);
-
-        SaveValue(os, m_input_shape);
-        SaveValue(os, m_output_shape);
-        
-        m_connection_table.DumpObject(os);
-        m_W->DumpObject(os);
-        m_dW->DumpObject(os);
-
-        SaveValue(os, m_momentum);
-
-        SaveValue(os, m_gamma);
-        SaveValue(os, m_beta);
-
-        m_mean.DumpObject(os);
-        m_rstd.DumpObject(os);
-
         m_running_mean.DumpObject(os);
         m_running_var.DumpObject(os);
     }
@@ -338,71 +300,37 @@ protected:
         std::int64_t ver;
         bb::LoadValue(is, ver);
 
-        BB_ASSERT(ver >= 1 || ver <= 2);
+        BB_ASSERT(ver == 1);
 
         // 親クラス
         _super::LoadObjectData(is);
 
-        if ( ver == 1 ) {
-            // ver1
-            LoadValue(is, m_host_only);
-            LoadValue(is, m_lut_binarize);
-            LoadValue(is, m_binary_mode);
-            LoadValue(is, m_batch_norm);
-            LoadValue(is, m_flagClamp);
+        // メンバ
+        LoadValue(is, m_host_only);
+        LoadValue(is, m_lut_binarize);
+        LoadValue(is, m_binary_mode);
+        LoadValue(is, m_batch_norm);
+        LoadValue(is, m_flagClamp);
 
-            LoadValue(is, m_input_shape);
-            LoadValue(is, m_output_shape);
-            
-            m_connection_table.LoadObject(is);
-            m_W->LoadObject(is);
+        LoadValue(is, m_input_shape);
+        LoadValue(is, m_output_shape);
+        
+        m_connection_table.LoadObject(is);
+        m_W->LoadObject(is);
 
-            LoadValue(is, m_unbinarize_bias);
+        LoadValue(is, m_unbinarize_bias);
 
-            LoadValue(is, m_momentum);
-            LoadValue(is, m_gamma);
-            LoadValue(is, m_beta);
-            m_running_mean.LoadObject(is);
-            m_running_var.LoadObject(is);
+        LoadValue(is, m_momentum);
+        LoadValue(is, m_gamma);
+        LoadValue(is, m_beta);
+        m_running_mean.LoadObject(is);
+        m_running_var.LoadObject(is);
 
-            // 再構築
-            m_dW->Resize(m_W->GetShape(), DataType<RealType>::type);
-            m_dW->FillZero();
-            m_mean.Resize(m_output_shape);
-            m_rstd.Resize(m_output_shape);
-            m_mean.FillZero();
-            m_rstd.FillZero();
-        }
-        else if ( ver == 2 ) {
-            // ver2
-            LoadValue(is, m_host_only);
-            LoadValue(is, m_lut_binarize);
-            LoadValue(is, m_binary_mode);
-            LoadValue(is, m_batch_norm);
-            LoadValue(is, m_backward_break);
-            LoadValue(is, m_flagClamp);
-            LoadValue(is, m_connection);
-            LoadValue(is, m_unbinarize_bias);
-            LoadValue(is, m_max_tmp_mem_size);
-
-            LoadValue(is, m_input_shape);
-            LoadValue(is, m_output_shape);
-            
-            m_connection_table.LoadObject(is);
-            m_W->LoadObject(is);
-            m_dW->LoadObject(is);
-
-            LoadValue(is, m_momentum);
-
-            LoadValue(is, m_gamma);
-            LoadValue(is, m_beta);
-
-            m_mean.LoadObject(is);
-            m_rstd.LoadObject(is);
-
-            m_running_mean.LoadObject(is);
-            m_running_var.LoadObject(is);
-        }
+        // 再構築
+        m_dW->Resize(m_W->GetShape(), DataType<RealType>::type);
+        m_dW->FillZero();
+        m_mean.Resize(m_output_shape);
+        m_rstd.Resize(m_output_shape);
     }
 
 

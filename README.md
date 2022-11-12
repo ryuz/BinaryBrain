@@ -16,13 +16,12 @@ LUT-Networkの評価を目的に作成しておりますが、それ以外の用
 
 以下の特徴があります
 
-- ニューラルネットのFPGA化をメインターゲットにしている
+- FPGA回路のDeepLearning学習をメインターゲットにしている
+- パーセプトロンではなくFPGAの回路素子であるLUTモデルを直接学習できる
+- 極めて軽量で低遅延のFPGA用ソース(Verilog)を出力することができる
 - バイナリネットであるも関わらずStochastic計算により回帰分析が可能
-- 独自の確率的LUTのモデルにより、高速に学習できる
-- 量子化＆疎行列のネットワークでパフォーマンスの良い学習が出来る環境を目指している
-- C++で記述されている
-- GPU(CUDA)に対応している
-- 高速でマニアックな自作レイヤーが作りやすい
+- Python と C++ でネットの記述と学習ができる
+- GPU(CUDA)に対応しており高速に学習できる
 
 
 ## 微分可能回路記述(differentiable circuit description)
@@ -34,7 +33,7 @@ LUT-Networkの評価を目的に作成しておりますが、それ以外の用
 
 Stochastic計算を用いると、例えばANDゲートは二つの入力の両方が同時に1になる確率、すなわち確率の乗算器として振舞います。このようにすべてのデジタル回路をStochastic計算に置き換えることが可能です。
 
-FPGAというデバイスは、LUTと呼ばれる小さなメモリとこのメモリを選択する集合体で、メモリを書き換えることでプログラマブルな回路記述を実現します。このLUT回路を微分可能回路記述に置き換えたのちに、メモリに相当する部分に学習対象の重み係数を置いて学習を行うネットワークが LUT-Network です。
+FPGAというデバイスは、LUTと呼ばれる小さなメモリとこのメモリを選択する集合体で、メモリを書き換えることでプログラマブルな回路記述を実現します。このLUT回路を微分可能回路記述に置き換えたのちにメモリに相当する部分に学習対象の重み係数を置いて学習を行うネットワークが LUT-Network です。
 
 BinaryBrain は LUT-Network の学習可能性を実証するために作られたプラットフォームです。
 
@@ -265,7 +264,7 @@ BinaryBrainではバイナリ変調したデジタル値を扱うことが出来
 ただし、本ソースコードは CEREAL を利用しているので、それらに関しては個別に各ライセンスに従ってください。
 
 
-## ICCE2019(Berlin)にて発表頂いております
+## ICCE2019(Berlin)にて発表しております
 
 [@FIssiki](https://twitter.com/fissiki)様の多大なるご協力のもと、ICCE2019(Berlin)にて発表しております。
 
@@ -273,7 +272,6 @@ BinaryBrainではバイナリ変調したデジタル値を扱うことが出来
 <[slide](https://www.slideshare.net/ryuz88/fast-and-lightweight-binarized-neural-network-implemented-in-an-fpga-using-lutbased-signal-processing-and-its-timedomain-extension-for-multibit-processing)> <[pdf](https://edas.info/p25749#S1569571697)>
 
 https://ieeexplore.ieee.org/document/8966187 
-
 
 
 

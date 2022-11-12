@@ -1034,8 +1034,7 @@ PYBIND11_MODULE(core, m) {
     
     // DifferentiableLut
     PYCLASS_MODEL(DifferentiableLut6_fp32_fp32, DifferentiableLutModel)
-        .def_static("create", &DifferentiableLut6_fp32_fp32::CreatePy)
-        .def("equality_check", &DifferentiableLut6_fp32_fp32::EqualityCheck);
+        .def_static("create", &DifferentiableLut6_fp32_fp32::CreatePy);
     PYCLASS_MODEL(DifferentiableLut5_fp32_fp32, DifferentiableLutModel)
         .def_static("create", &DifferentiableLut5_fp32_fp32::CreatePy);
     PYCLASS_MODEL(DifferentiableLut4_fp32_fp32, DifferentiableLutModel)

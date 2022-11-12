@@ -60,7 +60,7 @@ protected:
     Tensor                      m_WQ;
     Tensor                      m_bQ;
 
-    bool                        m_quantize = true;
+    bool                        m_quantize     = true;
     int                         m_weight_bits  = 8;
     int                         m_output_bits  = 16;
     int                         m_input_bits   = 0;
@@ -147,6 +147,13 @@ protected:
         }
     }
 
+    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth) const override
+    {
+        _super::PrintInfoText(os, indent, columns, nest, depth);
+        if ( m_weight_bits > 0 ) { os << indent << " weight quantize : bis=" << m_weight_bits << " scale=" << m_weight_scale << std::endl; }
+        if ( m_output_bits > 0 ) { os << indent << " output quantize : bis=" << m_output_bits << " scale=" << m_output_scale << std::endl; }
+        if ( m_input_bits  > 0 ) { os << indent << " output quantize : bis=" << m_input_bits  << " scale=" << m_input_scale  << std::endl; }
+    }
 
 public:
     ~DenseAffineQuantize() {
@@ -181,7 +188,7 @@ public:
 
     static std::shared_ptr<DenseAffineQuantize> Create(index_t output_node_size,  bool quantize=true,
                                                                     int weight_bits=8, int output_bits=16, int input_bits=0,
-                                                                    T weight_scale=(T)1/(T)(1 << 8), T output_scale=(T)1/(T)(1 << 8), T input_scale= (T)1/(T)(1 << 8))
+                                                                    T weight_scale=(T)1/(T)(1 << 8), T output_scale=(T)1/(T)(1 << 8), T input_scale=(T)1/(T)(1 << 8))
     {
         create_t create;
         create.output_shape.resize(1);
