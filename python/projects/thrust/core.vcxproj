@@ -53,6 +53,7 @@
     <ClInclude Include="..\..\..\include\bb\DenseAffine.h" />
     <ClInclude Include="..\..\..\include\bb\DenseAffineQuantize.h" />
     <ClInclude Include="..\..\..\include\bb\DepthwiseDenseAffine.h" />
+    <ClInclude Include="..\..\..\include\bb\DepthwiseDenseAffineQuantize.h" />
     <ClInclude Include="..\..\..\include\bb\DifferentiableLutDiscreteN.h" />
     <ClInclude Include="..\..\..\include\bb\DifferentiableLutN.h" />
     <ClInclude Include="..\..\..\include\bb\Dropout.h" />
