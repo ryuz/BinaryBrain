@@ -19,4 +19,5 @@ from binarybrain.optimizer    import *
 
 from binarybrain.storage      import *
 from binarybrain.verilog      import *
+from binarybrain.hls          import *
 
