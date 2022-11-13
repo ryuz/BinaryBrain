@@ -354,7 +354,30 @@ public:
         m_stride = src.m_stride;
         return *this;
     }
-    
+
+    // デバッグ用同一性検査
+    bool EqualityCheck(const Tensor_ &t)
+    {
+        if ( m_offset != t.m_offset ) { return false; }
+        if ( m_size   != t.m_size )   { return false; }
+        if ( m_shape  != t.m_shape )  { return false; }
+        if ( m_stride != t.m_stride ) { return false; }
+
+        auto ptr0 = m_mem->LockConst();
+        auto ptr1 = t.m_mem->LockConst();
+        if (memcmp(ptr0.GetAddr(), ptr1.GetAddr(), (std::size_t)m_mem->GetSize()) != 0) {
+            return false;
+
+        }
+
+        return true;
+    }
+
+    bool operator==(const Tensor_ &t)
+    {
+        return EqualityCheck(t);    // 暫定
+    }
+
 
 #ifdef BB_PYBIND11
     pybind11::array_t<T> Numpy(void)
@@ -2548,6 +2571,30 @@ public:
         default:    BB_ASSERT(0);  break;
         }
         return *this;
+    }
+
+    // デバッグ用同一性検査
+    inline bool EqualityCheck(const Tensor& t)
+    {
+        if ( m_type   != t.m_type )   { return false; }
+        if ( m_offset != t.m_offset ) { return false; }
+        if ( m_size   != t.m_size )   { return false; }
+        if ( m_shape  != t.m_shape )  { return false; }
+        if ( m_stride != t.m_stride ) { return false; }
+
+        auto ptr0 = m_mem->LockConst();
+        auto ptr1 = t.m_mem->LockConst();
+        if (memcmp(ptr0.GetAddr(), ptr1.GetAddr(), (std::size_t)m_mem->GetSize()) != 0) {
+            return false;
+
+        }
+
+        return true;
+    }
+
+    inline bool operator==(const Tensor& t)
+    {
+        return EqualityCheck(t);    // 暫定
     }
 
     inline bool IsNan(void)

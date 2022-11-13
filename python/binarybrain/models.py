@@ -978,11 +978,66 @@ class DenseAffine(Model):
 model_creator_regist('DenseAffine', DenseAffine.from_bytes)
 
 
+class DenseAffineQuantize(Model):
+    """DenseAffineQuantize class
+       DenseAffine に量子化のサポートを付けたもの
+
+    Args:
+        output_shape (List[int]): 出力のシェイプ
+        initialize_std (float) : 重み初期化乱数の標準偏差
+        initializer (str): 変数の初期化アルゴリズム選択(default/normal/uniform/He/Xavier)。
+        quantize (bool): 量子化の有効状態の初期値
+        weight_bits(int): 重みの量子化bit数 (0で量子化しない)
+        output_bits(int): 入力の量子化bit数 (0で量子化しない)
+        input_bits(int):  出力の量子化bit数 (0で量子化しない)
+        weight_scale(float): 重みの量子化スケール(0でbit数に合わせる)
+        output_scale(float): 入力の量子化スケール(0でbit数に合わせる)
+        input_scale(float): 出力の量子化スケール(0でbit数に合わせる)
+        seed (int): 変数初期値などの乱数シード
+    """
+    
+    def __init__(self, output_shape=None, *, input_shape=None, quantize = True,
+                    weight_bits  = 8, output_bits = 16, input_bits = 0,
+                    weight_scale = 1/(1<<8), output_scale = 1/(1<<8), input_scale = 1/(1<<8),
+                    initialize_std=0.01, initializer='',
+                    seed=1, name=None,
+                    dtype=bb.DType.FP32, core_model=None):
+        if output_shape is None:
+            output_shape = []
+        if core_model is None:
+            core_creator = search_core_model('DenseAffineQuantize', [dtype]).create
+            core_model = core_creator(output_shape=output_shape, quantize=quantize,
+                                weight_bits=weight_bits, output_bits=output_bits, input_bits=input_bits,
+                                weight_scale=weight_scale, output_scale=output_scale, input_scale=input_scale,
+                                initialize_std=initialize_std, initializer=initializer, seed=seed)
+        
+        super(DenseAffineQuantize, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+    def W(self):
+        return bb.Tensor(core_tensor=self.get_core().W())
+
+    def b(self):
+        return bb.Tensor(core_tensor=self.get_core().b())
+
+    def dW(self):
+        return bb.Tensor(core_tensor=self.get_core().dW())
+
+    def db(self):
+        return bb.Tensor(core_tensor=self.get_core().db())
+
+    def WQ(self):
+        return bb.Tensor(core_tensor=self.get_core().WQ())
+
+    def bQ(self):
+        return bb.Tensor(core_tensor=self.get_core().bQ())
+
+model_creator_regist('DenseAffineQuantize', DenseAffineQuantize.from_bytes)
+
+
 class DepthwiseDenseAffine(Model):
     """DepthwiseDenseAffine class
-
-       Convolution2d と組み合わせて、普通の Depthwise Convolution を作るためのクラス
-
+       普通のDepthwiseDenseAffine
+    
     Args:
         output_shape (List[int]): 出力のシェイプ
         input_point_size (int): 入力のpoint数
@@ -998,7 +1053,7 @@ class DepthwiseDenseAffine(Model):
             output_shape = []
         if core_model is None:
             core_creator = search_core_model('DepthwiseDenseAffine', [dtype]).create
-            core_model = core_creator(output_shape=output_shape, initialize_std=initialize_std, initializer=initializer, seed=seed)
+            core_model = core_creator(output_shape=output_shape, input_point_size=input_point_size, depth_size=depth_size, initialize_std=initialize_std, initializer=initializer, seed=seed)
         
         super(DepthwiseDenseAffine, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
@@ -1015,6 +1070,61 @@ class DepthwiseDenseAffine(Model):
         return bb.Tensor(core_tensor=self.get_core().db())
 
 model_creator_regist('DepthwiseDenseAffine', DepthwiseDenseAffine.from_bytes)
+
+
+class DepthwiseDenseAffineQuantize(Model):
+    """DepthwiseDenseAffineQuantize class
+       DepthwiseDenseAffine に量子化のサポートを付けたもの
+
+    Args:
+        output_shape (List[int]): 出力のシェイプ
+        input_point_size (int): 入力のpoint数
+        depth_size (int): depthサイズ
+        weight_bits(int): 重みの量子化bit数 (0で量子化しない)
+        output_bits(int): 入力の量子化bit数 (0で量子化しない)
+        input_bits(int):  出力の量子化bit数 (0で量子化しない)
+        weight_scale(float): 重みの量子化スケール(0でbit数に合わせる)
+        output_scale(float): 入力の量子化スケール(0でbit数に合わせる)
+        input_scale(float): 出力の量子化スケール(0でbit数に合わせる)
+        initialize_std (float) : 重み初期化乱数の標準偏差
+        initializer (str): 変数の初期化アルゴリズム選択(default/normal/uniform/He/Xavier)。
+        seed (int): 変数初期値などの乱数シード
+    """
+    
+    def __init__(self, output_shape=None, *, input_shape=None, input_point_size=0, depth_size=0, quantize = True,
+                            weight_bits  = 8, output_bits = 16, input_bits = 0,
+                            weight_scale = 1/(1<<8), output_scale = 1/(1<<8), input_scale = 1/(1<<8),
+                            initialize_std=0.01, initializer='', seed=1, name=None, dtype=bb.DType.FP32, core_model=None):
+        if output_shape is None:
+            output_shape = []
+        if core_model is None:
+            core_creator = search_core_model('DepthwiseDenseAffineQuantize', [dtype]).create
+            core_model = core_creator(output_shape=output_shape,
+                                input_point_size=input_point_size, depth_size=depth_size, quantize=quantize,
+                                weight_bits=weight_bits, output_bits=output_bits, input_bits=input_bits,
+                                weight_scale=weight_scale, output_scale=output_scale, input_scale=input_scale,initialize_std=initialize_std, initializer=initializer, seed=seed)
+        
+        super(DepthwiseDenseAffineQuantize, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+    def W(self):
+        return bb.Tensor(core_tensor=self.get_core().W())
+
+    def b(self):
+        return bb.Tensor(core_tensor=self.get_core().b())
+
+    def dW(self):
+        return bb.Tensor(core_tensor=self.get_core().dW())
+
+    def db(self):
+        return bb.Tensor(core_tensor=self.get_core().db())
+
+    def WQ(self):
+        return bb.Tensor(core_tensor=self.get_core().WQ())
+
+    def bQ(self):
+        return bb.Tensor(core_tensor=self.get_core().bQ())
+
+model_creator_regist('DepthwiseDenseAffineQuantize', DepthwiseDenseAffineQuantize.from_bytes)
 
 
 class BinaryDenseAffine(Model):

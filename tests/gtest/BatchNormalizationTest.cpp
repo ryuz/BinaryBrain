@@ -846,7 +846,7 @@ TEST(BatchNormalizationTest, testBatchNormalization_loop)
     }
 }
 
-
+/*
 TEST(BatchNormalizationTest, testBatchNormalization_001)
 {
     auto bn = bb::BatchNormalization<float>::Create();
@@ -873,7 +873,7 @@ TEST(BatchNormalizationTest, testBatchNormalization_001)
     std::cout << dx0.Min() << " " << dx0.Max() << std::endl;
 
 }
-
+*/
 
 #endif
 

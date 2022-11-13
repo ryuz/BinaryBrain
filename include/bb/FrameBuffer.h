@@ -1590,6 +1590,22 @@ public:
     inline FrameBuffer& operator/=(FrameBuffer src) { m_tensor /= src.m_tensor; return *this; }
     inline FrameBuffer& operator/=(double src)      { m_tensor /= src; return *this; }
 
+    // デバッグ用同一性検査
+    inline bool EqualityCheck(const FrameBuffer& buf)
+    {
+        return (m_data_type    == buf.m_data_type   ) &&
+               (m_frame_size   == buf.m_frame_size  ) &&
+               (m_frame_stride == buf.m_frame_stride) &&
+               (m_node_size    == buf.m_node_size   ) &&
+               (m_node_shape   == buf.m_node_shape  ) &&
+               (m_tensor       == buf.m_tensor      );
+    }
+
+    inline bool operator==(const FrameBuffer& buf)
+    {
+        return EqualityCheck(buf);
+    }
+    
     bool IsNan(void)
     {
         switch ( GetType() ) {

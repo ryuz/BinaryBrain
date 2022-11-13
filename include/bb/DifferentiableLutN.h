@@ -229,6 +229,38 @@ public:
 #endif
 
 
+public:
+    inline bool EqualityCheck(const DifferentiableLutN& model)
+    {
+        if( m_host_only        != model.m_host_only        ) { return false; }
+        if( m_lut_binarize     != model.m_lut_binarize     ) { return false; }
+        if( m_binary_mode      != model.m_binary_mode      ) { return false; }
+        if( m_batch_norm       != model.m_batch_norm       ) { return false; }
+        if( m_backward_break   != model.m_backward_break   ) { return false; }
+        if( m_flagClamp        != model.m_flagClamp        ) { return false; }
+        if( m_connection       != model.m_connection       ) { return false; }
+        if( m_unbinarize_bias  != model.m_unbinarize_bias  ) { return false; }
+        if( m_max_tmp_mem_size != model.m_max_tmp_mem_size ) { return false; }
+        if( m_input_shape      != model.m_input_shape      ) { return false; }
+        if( m_output_shape     != model.m_output_shape     ) { return false; }
+        
+        if( !m_connection_table.EqualityCheck(model.m_connection_table) ) { return false; }
+        if( !m_W ->EqualityCheck(*model.m_W)  ) { return false; }
+        if( !m_dW->EqualityCheck(*model.m_dW) ) { return false; }
+
+        if( m_momentum         != model.m_momentum     ) { return false; }
+        if( m_gamma            != model.m_gamma        ) { return false; }
+        if( m_beta             != model.m_beta         ) { return false; }
+        
+        if( !m_mean        .EqualityCheck(m_mean        ) ) { return false; }
+        if( !m_rstd        .EqualityCheck(m_rstd        ) ) { return false; }
+        if( !m_running_mean.EqualityCheck(m_running_mean) ) { return false; }
+        if( !m_running_var .EqualityCheck(m_running_var ) ) { return false; }
+        
+        return true;
+    }
+
+
 protected:
     // Serialize
     void DumpObjectData(std::ostream &os) const
