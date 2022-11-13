@@ -127,14 +127,14 @@ public:
 protected:
     virtual void DumpObjectData(std::ostream &os) const
     {
-        // override ����Ă��Ȃ��ꍇ�� ver=0 �Ń}�[�N����(����0�ȊO�ŕ��򂷂�Βǉ��ł���)
+        // override されていない場合は ver=0 でマークする(将来0以外で分岐すれば追加できる)
         std::int64_t ver = 0;
         os.write((char const *)&ver, sizeof(ver));
     }
     
     virtual void LoadObjectData(std::istream &is)
     {
-        // override ����Ă��Ȃ��ꍇ�͏�� 0 �����҂���
+        // override されていない場合は常に 0 を期待する
         std::int64_t ver;
         is.read((char *)&ver, sizeof(ver));
         BB_ASSERT(ver == 0);
@@ -144,14 +144,14 @@ protected:
 private:
     static void WriteHeader(std::ostream &os, std::string const &name)
     {
-        // �^�O
+        // タグ
         os.write("BB_OBJ", 6);
         
-        // �o�[�W����
+        // バージョン
         std::int64_t ver = 1;
         os.write((char const *)&ver, sizeof(ver));
 
-        // �I�u�W�F�N�g��
+        // オブジェクト名
         std::uint64_t size = (std::uint64_t)name.size();
         os.write((char const *)&size, sizeof(size));
         os.write((char const *)&name[0], size*sizeof(name[0]));
@@ -159,16 +159,16 @@ private:
 
     static std::string ReadHeader(std::istream &is)
     {
-        // �^�O
+        // タグ
         char tag[6];
         is.read(&tag[0], 6);
         BB_ASSERT(tag[0] == 'B' && tag[1] == 'B' && tag[2] == '_' && tag[3] == 'O' && tag[4] == 'B' && tag[5] == 'J');
 
-        // �o�[�W����
+        // バージョン
         std::int64_t ver;
         is.read((char*)&ver, sizeof(ver));
         
-        // �I�u�W�F�N�g��
+        // オブジェクト名
         std::uint64_t size;
         is.read((char *)&size, sizeof(size));
         std::string name;

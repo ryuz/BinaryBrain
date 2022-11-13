@@ -1,4 +1,12 @@
 ﻿
+_*
+*_.*
+*_
+
+.venv/
+.python-version
+
+*.bak
 *.log
 
 *.o
@@ -12,6 +20,7 @@
 *.dat
 *.hex
 *.out
+*.net
 
 *.ppm
 *.pgm
@@ -49,10 +58,6 @@
 *.bb_net
 *.pickle
 
-*_.*
-*_
-*_/
-*.bak
 
 *コピー*
 Untitled*.ipynb

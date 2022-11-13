@@ -239,6 +239,59 @@ inline void Tensor_Vector_clamp(
     }
 }
 
+template<typename T>
+inline void Tensor_Vector_quantize_signed(
+    T       *dst,
+    T const *src,
+    int     bits,
+    T       scale,
+    int     offset,
+    index_t size
+)
+{
+    if ( scale <= 0 ) { scale = (T)1 / (T)(1 << (bits-1)); }
+
+    T   lo = int_to_real(int_min(bits), scale, offset);
+    T   hi = int_to_real(int_max(bits), scale, offset);
+    T   scale_recip = (T)1 / scale;
+
+    #pragma omp parallel for 
+    for (index_t i = 0; i < size; ++i) {
+        T real_val = src[i];
+        real_val    = std::max(real_val, lo);
+        real_val    = std::min(real_val, hi);
+        int int_val = real_to_int(real_val, scale, 0);
+        real_val    = int_to_real(int_val, scale, 0);
+        dst[i] = real_val;
+    }
+}
+
+template<typename T>
+inline void Tensor_Vector_quantize_unsigned(
+    T       *dst,
+    T const *src,
+    int     bits,
+    T       scale,
+    int     offset,
+    index_t size
+)
+{
+    if ( scale <= 0 ) { scale = (T)1 / (T)(1 << (bits-1)); }
+
+    T   lo = int_to_real(uint_min(bits), scale, offset);
+    T   hi = int_to_real(uint_max(bits), scale, offset);
+    T   scale_recip = (T)1 / scale;
+
+    #pragma omp parallel for 
+    for (index_t i = 0; i < size; ++i) {
+        T real_val = src[i];
+        real_val    = std::max(real_val, lo);
+        real_val    = std::min(real_val, hi);
+        int int_val = real_to_int(real_val, scale, 0);
+        real_val    = int_to_real(int_val, scale, 0);
+        dst[i] = real_val;
+    }
+}
 
 
 }

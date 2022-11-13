@@ -29,6 +29,7 @@ void MnistMicroMlpLutSimple        (int epoch_size, int mini_batch_size, int tra
 void MnistMicroMlpLutCnn           (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistDenseSimple              (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistDenseCnn                 (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
+void MnistDenseAffineQuantize      (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistAeDifferentiableLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistAeDifferentiableLutCnn   (int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read);
 void MnistCustomModel              (int epoch_size, int mini_batch_size,                                                      bool binary_mode, bool file_read);
@@ -168,6 +169,10 @@ int main(int argc, char *argv[])
 
     if ( netname == "All" || netname == "DenseSimple" ) {
         MnistDenseSimple(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+    }
+
+    if ( netname == "All" || netname == "DenseAffineQuantize" ) {
+        MnistDenseAffineQuantize(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
 
     if ( netname == "All" || netname == "DenseCnn" ) {

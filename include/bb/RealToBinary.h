@@ -544,7 +544,7 @@ protected:
         bool    has_value_generator;
         bb::LoadValue(is, has_value_generator);
         if ( has_value_generator ) {
-            m_value_generator->LoadObject(is);
+            m_value_generator = std::dynamic_pointer_cast< ValueGenerator<RealType> >(Object_Load(is));
         }
     }
 };

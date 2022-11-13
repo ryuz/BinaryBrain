@@ -257,6 +257,16 @@ public:
     Variables &operator=(Variables const &src)
     {
         m_tensors = src.m_tensors;
+
+#ifdef BB_WITH_CUDA
+        if (m_dev_size_table != nullptr) { bbcu::Free(m_dev_size_table); }
+        if (m_dev_addr_table != nullptr) { bbcu::Free(m_dev_addr_table); }
+        m_dev_size_table = nullptr;
+        m_dev_addr_table = nullptr;
+        m_size_table_dirty = true;
+        m_addr_table_dirty = true;
+#endif
+
         return *this;
     }
     

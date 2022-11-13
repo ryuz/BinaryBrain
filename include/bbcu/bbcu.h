@@ -1598,6 +1598,36 @@ BBCU_DLL_EXPORT int bbcu_FrameBuf_Max
         );
 
 
+
+template<typename T>
+BBCU_DLL_EXPORT int bbcu_Tensor_Quantize
+        (
+            T               *dev_result,
+            T   const       *dev_buf,
+            T               lo,
+            T               hi,
+            T               scale,
+            int             size,
+            cudaStream_t    streamId=0
+        );
+
+
+template<typename T>
+BBCU_DLL_EXPORT int bbcu_FrameBuf_Quantize
+        (
+            T               *dev_dst,
+            T   const       *dev_src,
+            T               lo,
+            T               hi,
+            T               scale,
+            int             node_size,
+            int             frame_size,
+            int             frame_stride,
+            cudaStream_t    streamId=0
+        );
+
+
+
 #if defined(__cplusplus) && defined(BBCU_DLL)
 }
 #endif

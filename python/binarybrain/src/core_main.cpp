@@ -41,7 +41,9 @@
 
 #include "bb/Sequential.h"
 #include "bb/DenseAffine.h"
+#include "bb/DenseAffineQuantize.h"
 #include "bb/DepthwiseDenseAffine.h"
+#include "bb/DepthwiseDenseAffineQuantize.h"
 #include "bb/BinaryDenseAffine.h"
 #include "bb/DifferentiableLutN.h"
 #include "bb/DifferentiableLutDiscreteN.h"
@@ -134,7 +136,9 @@ using Reduce_fp32_fp32                       = bb::Reduce<float, float>;
 using Reduce_bit_fp32                        = bb::Reduce<bb::Bit, float>; 
 
 using DenseAffine_fp32                       = bb::DenseAffine<float>;
+using DenseAffineQuantize_fp32               = bb::DenseAffineQuantize<float>;
 using DepthwiseDenseAffine_fp32              = bb::DepthwiseDenseAffine<float>;
+using DepthwiseDenseAffineQuantize_fp32      = bb::DepthwiseDenseAffineQuantize<float>;
 using BinaryDenseAffine_fp32_fp32            = bb::BinaryDenseAffine<float, float>;
 using BinaryDenseAffine_bit_fp32             = bb::BinaryDenseAffine<bb::Bit, float>;
                                              
@@ -493,6 +497,11 @@ PYBIND11_MODULE(core, m) {
         .def("isnan", &Tensor::IsNan)
         .def("min",   &Tensor::Min)
         .def("max",   &Tensor::Max)
+        .def("quantize", &Tensor::Max)
+        .def("quantize", &Tensor::Quantize,
+            py::arg("bits"),
+            py::arg("scale")  = 0,
+            py::arg("offset") = 0)
         .def(py::self + py::self)
         .def(py::self + double())
         .def(double() + py::self)
@@ -582,6 +591,10 @@ PYBIND11_MODULE(core, m) {
         .def("isnan", &FrameBuffer::IsNan)
         .def("min",   &FrameBuffer::Min)
         .def("max",   &FrameBuffer::Max)
+        .def("quantize", &FrameBuffer::Quantize,
+            py::arg("bits"),
+            py::arg("scale")  = 0,
+            py::arg("offset") = 0)
         .def(py::self + py::self)
         .def(py::self + double())
         .def(double() + py::self)
@@ -691,7 +704,7 @@ PYBIND11_MODULE(core, m) {
     PYCLASS_MODEL(BitEncode_fp32_fp32, Model)
         .def_static("create",   &BitEncode_fp32_fp32::CreatePy);
     PYCLASS_MODEL(BitEncode_bit_fp32, Model)
-        .def_static("create",   &BitEncode_fp32_fp32::CreatePy);
+        .def_static("create",   &BitEncode_bit_fp32::CreatePy);
     
 
     PYCLASS_MODEL(Shuffle, Model)
@@ -775,11 +788,31 @@ PYBIND11_MODULE(core, m) {
             py::arg("initialize_std") = 0.01f,
             py::arg("initializer")    = "",
             py::arg("seed")           = 1)
-        .def("W", ((Tensor& (DenseAffine_fp32::*)())&DenseAffine_fp32::W))
-        .def("b", ((Tensor& (DenseAffine_fp32::*)())&DenseAffine_fp32::b))
+        .def("W",  ((Tensor& (DenseAffine_fp32::*)())&DenseAffine_fp32::W))
+        .def("b",  ((Tensor& (DenseAffine_fp32::*)())&DenseAffine_fp32::b))
         .def("dW", ((Tensor& (DenseAffine_fp32::*)())&DenseAffine_fp32::dW))
         .def("db", ((Tensor& (DenseAffine_fp32::*)())&DenseAffine_fp32::db));
     
+    // DenseAffineQuantize
+    PYCLASS_MODEL(DenseAffineQuantize_fp32, Model)
+        .def_static("create",   &DenseAffineQuantize_fp32::CreatePy, "create",
+            py::arg("output_shape"),
+            py::arg("quantize")       = true,
+            py::arg("weight_bits")    = 8,
+            py::arg("output_bits")    = 16,
+            py::arg("input_bits")     = 0,
+            py::arg("weight_scale")   = 1.0f/256.0f,
+            py::arg("output_scale")   = 1.0f/256.0f,
+            py::arg("input_scale")    = 1.0f/256.0f,
+            py::arg("initialize_std") = 0.01f,
+            py::arg("initializer")    = "",
+            py::arg("seed")           = 1)
+        .def("W",  ((Tensor& (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::W))
+        .def("b",  ((Tensor& (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::b))
+        .def("dW", ((Tensor& (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::dW))
+        .def("db", ((Tensor& (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::db))
+        .def("WQ", ((Tensor& (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::WQ))
+        .def("bQ", ((Tensor& (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::bQ));
 
     // DepthwiseDenseAffine
     PYCLASS_MODEL(DepthwiseDenseAffine_fp32, Model)
@@ -794,8 +827,30 @@ PYBIND11_MODULE(core, m) {
         .def("b", ((Tensor& (DepthwiseDenseAffine_fp32::*)())&DepthwiseDenseAffine_fp32::b))
         .def("dW", ((Tensor& (DepthwiseDenseAffine_fp32::*)())&DepthwiseDenseAffine_fp32::dW))
         .def("db", ((Tensor& (DepthwiseDenseAffine_fp32::*)())&DepthwiseDenseAffine_fp32::db));
-    
-    
+  
+    // DepthwiseDenseAffineQuantize
+    PYCLASS_MODEL(DepthwiseDenseAffineQuantize_fp32, Model)
+        .def_static("create",   &DepthwiseDenseAffineQuantize_fp32::CreatePy, "create",
+            py::arg("output_shape"),
+            py::arg("input_point_size")=0,
+            py::arg("depth_size")      =0,
+            py::arg("quantize")        = true,
+            py::arg("weight_bits")     = 8,
+            py::arg("output_bits")     = 16,
+            py::arg("input_bits")      = 0,
+            py::arg("weight_scale")    = 1.0f/256.0f,
+            py::arg("output_scale")    = 1.0f/256.0f,
+            py::arg("input_scale")     = 1.0f/256.0f,
+            py::arg("initialize_std")  = 0.01f,
+            py::arg("initializer")     ="",
+            py::arg("seed")= 1)
+        .def("W", ((Tensor& (DepthwiseDenseAffineQuantize_fp32::*)())&DepthwiseDenseAffineQuantize_fp32::W))
+        .def("b", ((Tensor& (DepthwiseDenseAffineQuantize_fp32::*)())&DepthwiseDenseAffineQuantize_fp32::b))
+        .def("dW", ((Tensor& (DepthwiseDenseAffineQuantize_fp32::*)())&DepthwiseDenseAffineQuantize_fp32::dW))
+        .def("db", ((Tensor& (DepthwiseDenseAffineQuantize_fp32::*)())&DepthwiseDenseAffineQuantize_fp32::db))
+        .def("WQ", ((Tensor& (DepthwiseDenseAffineQuantize_fp32::*)())&DepthwiseDenseAffineQuantize_fp32::WQ))
+        .def("bQ", ((Tensor& (DepthwiseDenseAffineQuantize_fp32::*)())&DepthwiseDenseAffineQuantize_fp32::bQ));
+
     // BinaryDenseAffine
     PYCLASS_MODEL(BinaryDenseAffine_fp32_fp32, Model)
         .def_static("create",   &BinaryDenseAffine_fp32_fp32::CreatePy, "create",
@@ -1251,7 +1306,7 @@ PYBIND11_MODULE(core, m) {
             py::arg("learning_rate") = 0.001f);
     
     PYCLASS_OPTIMIZER(OptimizerAdaGrad_fp32, Optimizer)
-        .def_static("Create", (std::shared_ptr<OptimizerAdaGrad_fp32> (*)(float))&OptimizerAdaGrad_fp32::Create,
+        .def_static("create", (std::shared_ptr<OptimizerAdaGrad_fp32> (*)(float))&OptimizerAdaGrad_fp32::Create,
             py::arg("learning_rate") = 0.01f);
 
     PYCLASS_OPTIMIZER(OptimizerAdam_fp32, Optimizer)

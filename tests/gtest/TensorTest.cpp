@@ -1763,6 +1763,118 @@ TEST(TensorTest, testTensor_MinMax)
 
 
 
+TEST(TensorTest, testTensor_Quantize)
+{
+#if 0
+    for ( int i = 0; i < 21; ++i ) {
+        float v  = (i-10) * 0.1f;
+        float vq = bb::quantize_signed<float>(v, 8);
+        std::cout << "test : " << v << " : " << vq << std::endl;
+    }
+#endif       
+
+    bb::Tensor_<float> t0({1, 1, 25});
+    {
+        auto ptr0 = t0.Lock();
+        for ( int i = 0; i < 25; ++i ) {
+            ptr0(0, 0, i) = (i-10) * 0.1f;
+        }
+    }
+    
+//    t0.Clamp_inplace(-1.0, +1.0);
+//    auto t1 = t0.Quantize(8);
+//    auto t1 = t0.Quantize(8);
+      auto t1 = bb::Quantize(t0, 8);
+//      auto t1 = bb::QuantizeUnsigned(t0, 8);
+
+    {
+        auto ptr0 = t0.LockConst();
+        auto ptr1 = t1.LockConst();
+        for ( int i = 0; i < 25; ++i ) {
+            std::cout << ptr0(0, 0, i) << " => " << ptr1(0, 0, i) << std::endl;
+        }
+    }
+}
+
+TEST(TensorTest, testTensor_equal)
+{
+    bb::indices_t i0 { 1, 2, 3 };
+    bb::indices_t i1 { 1, 2, 3 };
+    bb::indices_t i2 { 1, 3, 3 };
+    EXPECT_EQ(i0 == i1, true);
+    EXPECT_EQ(i0 == i2, false);
+
+    const int L = 4;
+    const int M = 3;
+    const int N = 2;
+
+    float   data[L][M][N];
+
+    bb::Tensor t0({L, M, N}, BB_TYPE_FP32);
+    bb::Tensor t1({L, M, N}, BB_TYPE_FP32);
+
+    {
+        auto ptr0 = t0.Lock<float>();
+        auto ptr1 = t1.Lock<float>();
+        for ( int i = 0; i < L; ++i ) {
+            for ( int j = 0; j < M; ++j ) {
+                for ( int k = 0; k < N; ++k ) {
+                    data[i][j][k] = (float)((i+1)*10000 + (j+1) * 100 + (k+1)); 
+                    ptr0(i, j, k) = data[i][j][k];
+                    ptr1(i, j, k) = data[i][j][k];
+                }
+            }
+        }
+    }
+
+    EXPECT_EQ(t0 == t1, true);
+
+    {
+        auto ptr0 = t0.Lock<float>(); 
+        ptr0(1, 2, 1) = 33;
+    }
+
+    EXPECT_EQ(t0 == t1, false);
+}
+
+
+TEST(TensorTest, testTensor_equal2)
+{
+    const int L = 4;
+    const int M = 3;
+    const int N = 2;
+
+    float   data[L][M][N];
+
+    bb::Tensor_<float> t0({L, M, N});
+    bb::Tensor_<float> t1({L, M, N});
+
+    {
+        auto ptr0 = t0.Lock();
+        auto ptr1 = t1.Lock();
+        for ( int i = 0; i < L; ++i ) {
+            for ( int j = 0; j < M; ++j ) {
+                for ( int k = 0; k < N; ++k ) {
+                    data[i][j][k] = (float)((i+1)*10000 + (j+1) * 100 + (k+1)); 
+                    ptr0(i, j, k) = data[i][j][k];
+                    ptr1(i, j, k) = data[i][j][k];
+                }
+            }
+        }
+    }
+
+    EXPECT_EQ(t0 == t1, true);
+
+    {
+        auto ptr0 = t0.Lock(); 
+        ptr0(1, 2, 1) = 33;
+    }
+
+    EXPECT_EQ(t0 == t1, false);
+}
+
+
+
 #if 0
 
 

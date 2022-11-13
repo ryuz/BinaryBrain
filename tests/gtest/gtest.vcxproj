@@ -47,8 +47,10 @@
     <ClCompile Include="Convolution2dTest.cpp" />
     <ClCompile Include="ConvolutionCol2ImTest.cpp" />
     <ClCompile Include="ConvolutionIm2ColTest.cpp" />
+    <ClCompile Include="DenseAffineQuantizeTest.cpp" />
     <ClCompile Include="DenseAffineTest.cpp" />
     <ClCompile Include="DepthwiseDenseAffineTest.cpp" />
+    <ClCompile Include="DifferentiableLutTest.cpp" />
     <ClCompile Include="FrameBufferTest.cpp" />
     <ClCompile Include="LossMeanSquaredErrorTest.cpp" />
     <ClCompile Include="LossSoftmaxCrossEntropyTest.cpp" />
@@ -98,6 +100,7 @@
     <ClInclude Include="..\..\include\bb\DataAugmentationMnist.h" />
     <ClInclude Include="..\..\include\bb\DataType.h" />
     <ClInclude Include="..\..\include\bb\DenseAffine.h" />
+    <ClInclude Include="..\..\include\bb\DenseAffineQuantize.h" />
     <ClInclude Include="..\..\include\bb\DepthwiseDenseAffine.h" />
     <ClInclude Include="..\..\include\bb\DifferentiableLutDiscreteN.h" />
     <ClInclude Include="..\..\include\bb\DifferentiableLutN.h" />
@@ -167,7 +170,7 @@
     <ProjectGuid>{9A9C7AD9-1066-4DEA-A945-0D835BBF96E9}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>gtest</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -224,7 +227,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 10.1.props" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.6.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
@@ -326,7 +329,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>BB_OBJECT_LOADER;BB_ASSERT_LOOP;BB_WITH_CEREAL;BB_WITH_CUDA;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\include;..\..\cereal\include;$(GTEST_DIR)\include;$(CUDA_PATH)\include;$(OPENCV2_4_13_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\include;..\..\cereal\include;$(GTEST_DIR)\include;$(CUDA_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -337,7 +340,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OPENCV2_4_13_DIR)\x64\vc14\staticlib;$(CUDA_PATH)\lib\x64;$(GTEST_DIR)\vc14\x64\Debug;$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>bbcu.lib;gtest.lib;gtest_main.lib;cublas.lib;cuda.lib;cudart.lib;IlmImfd.lib;libjasperd.lib;libjpegd.lib;libpngd.lib;libtiffd.lib;opencv_calib3d2413d.lib;opencv_contrib2413d.lib;opencv_core2413d.lib;opencv_features2d2413d.lib;opencv_flann2413d.lib;opencv_gpu2413d.lib;opencv_highgui2413d.lib;opencv_imgproc2413d.lib;opencv_legacy2413d.lib;opencv_ml2413d.lib;opencv_nonfree2413d.lib;opencv_objdetect2413d.lib;opencv_ocl2413d.lib;opencv_photo2413d.lib;opencv_stitching2413d.lib;opencv_superres2413d.lib;opencv_ts2413d.lib;opencv_video2413d.lib;opencv_videostab2413d.lib;zlibd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>bbcu.lib;gtest.lib;gtest_main.lib;cublas.lib;cuda.lib;cudart.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DbgCpu|x64'">

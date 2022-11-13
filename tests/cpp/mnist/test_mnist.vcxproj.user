@@ -31,7 +31,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>StochasticLutCnn -num_threads 4 -print_device -epoch 0 -read 1 -binary 1 -modulation_size 3</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>DenseSimple -num_threads 4 -print_device -epoch 4 -read 0 -binary 1 -modulation_size 3</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DbgCpu|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
@@ -45,7 +45,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>StochasticLutCnn -num_threads 4 -print_device -epoch 0 -read 1 -binary 1 -modulation_size 3</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>DenseAffineQuantize -num_threads 4 -print_device -epoch 4 -read 0 -binary 1 -modulation_size 3 -mini_batch 64</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelCpu|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>

@@ -147,13 +147,20 @@ class Tensor(bb.Object):
         self.get_core().fill(x)
 
     def isnan(self):
-        return self.get_core().isnan()
+        core_tensor = self.get_core().isnan()
+        return Tensor(core_tensor=core_tensor)
 
     def min(self):
-        return self.get_core().min()
+        core_tensor = self.get_core().min()
+        return Tensor(core_tensor=core_tensor)
 
     def max(self):
-        return self.get_core().max()
+        core_tensor = self.get_core().max()
+        return Tensor(core_tensor=core_tensor)
+    
+    def quantize(self, bits, scale=0.0, offset=0):
+        core_tensor=self.get_core().quantize(bits, scale, offset)
+        return Tensor(core_tensor=core_tensor)
 
     def clamp_inplace(self, a, b):
         self.get_core().clamp_inplace(a, b)
@@ -165,16 +172,20 @@ class Tensor(bb.Object):
         self.get_core().exp_inplace()
     
     def sum(self):
-        return self.get_core().sum()
+        core_tensor = self.get_core().sum()
+        return Tensor(core_tensor=core_tensor)
 
     def mean(self):
-        return self.get_core().mean()
+        core_tensor = self.get_core().mean()
+        return Tensor(core_tensor=core_tensor)
     
     def var(self):
-        return self.get_core().var()
+        core_tensor = self.get_core().var()
+        return Tensor(core_tensor=core_tensor)
     
     def std(self):
-        return self.get_core().std()
+        core_tensor = self.get_core().std()
+        return Tensor(core_tensor=core_tensor)
     
     def __add__(self, x):
         if type(x) == Tensor:
