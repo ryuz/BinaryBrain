@@ -2,15 +2,16 @@
 
 call set_vc.bat
 
-echo 何かキーを押すと git pull を開始します
+python -V
 pause
+
+echo git switch ver4_release & git pull
+pause
+git switch ver4_release
 git pull
 
 
-call set_py37.bat
-python -V
-
-echo 何かキーを押すとpy37のビルドを開始します
+echo build
 pause
 
 call clean.bat
@@ -22,63 +23,11 @@ python setup.py sdist
 python setup.py bdist_wheel
 
 
-echo 何かキーを押すとpy37のTestPyPIへアップロードを開始します
+echo upload TestPyPI
 pause
 twine upload --repository testpypi dist/*
 
 
-echo 何かキーを押すとpy37のPyPIへアップロードを開始します
-pause
-twine upload --repository pypi dist/*
-
-
-
-call set_py36.bat
-python -V
-
-echo 何かキーを押すとpy36のビルドを開始します
-pause
-
-call clean.bat
-call copy_src.bat
-
-python setup.py build
-
-python setup.py sdist
-python setup.py bdist_wheel
-
-
-echo 何かキーを押すとpy36のTestPyPIへアップロードを開始します
-pause
-twine upload --repository testpypi dist/*
-
-
-echo 何かキーを押すとpy36のPyPIへアップロードを開始します
-pause
-twine upload --repository pypi dist/*
-
-
-
-call set_py38.bat
-python -V
-
-echo 何かキーを押すとpy38のビルドを開始します
-pause
-
-call clean.bat
-call copy_src.bat
-
-python setup.py build
-
-python setup.py sdist
-python setup.py bdist_wheel
-
-
-echo 何かキーを押すとpy38のTestPyPIへアップロードを開始します
-pause
-twine upload --repository testpypi dist/*
-
-
-echo 何かキーを押すとpy38のPyPIへアップロードを開始します
+echo upload py37
 pause
 twine upload --repository pypi dist/*
