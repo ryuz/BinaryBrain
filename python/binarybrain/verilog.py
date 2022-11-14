@@ -9,6 +9,16 @@ import binarybrain.core as core
 # ----- LUT Layer -----
 
 def make_verilog_lut_layers(module_name: str, net, device=""):
+    ''' make verilog source of LUT layers
+        変換できないモデルは影響ない層とみなして無視するので注意
+    
+        Args:
+            module_name (str): モジュール名
+            net (Model): 変換するネット
+            
+        Returns:
+            Verilog source code (str)
+    '''
     layers = bb.get_model_list(net, flatten=True)
     core_layers = []
     for layer in layers:
@@ -17,16 +27,13 @@ def make_verilog_lut_layers(module_name: str, net, device=""):
 
 
 def dump_verilog_lut_layers(f, module_name: str, net, device=""):
-    ''' make verilog source of LUT layers
+    ''' dump verilog source of LUT layers
         変換できないモデルは影響ない層とみなして無視するので注意
     
         Args:
             f (StreamIO) : 出力先ストリーム
             module_name (str): モジュール名
             net (Model): 変換するネット
-            
-        Returns:
-            Verilog source code (str)
     '''
     f.write(make_verilog_lut_layers(module_name=module_name, net=net, device=device))
 

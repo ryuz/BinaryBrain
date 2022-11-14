@@ -35,11 +35,27 @@ DenseAffine クラス
    :members:
    :show-inheritance:
 
+DenseAffineQuantize クラス
+-----------------------------
+
+.. autoclass:: binarybrain.models.DenseAffineQuantize
+   :members:
+   :show-inheritance:
+
+
 
 DepthwiseDenseAffine クラス
-----------------------------
+------------------------------
 
 .. autoclass:: binarybrain.models.DepthwiseDenseAffine
+   :members:
+   :show-inheritance:
+
+
+DepthwiseDenseAffineQuantize クラス
+--------------------------------------
+
+.. autoclass:: binarybrain.models.DepthwiseDenseAffineQuantize
    :members:
    :show-inheritance:
 
