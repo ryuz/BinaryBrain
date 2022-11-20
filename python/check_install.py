@@ -1,9 +1,10 @@
-#import sys
-import platform
-import binarybrain as bb
+import sys
+print(sys.version)
 
-#print("Python        : {}".format(sys.version))
+import platform
 print("Python        : {}".format(platform.python_version()))
+
+import binarybrain as bb
 print("BinaryBrain   : {}".format(bb.get_version_string()))
 
 device_available = bb.is_device_available()
