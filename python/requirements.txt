@@ -1,6 +1,8 @@
+wheel
 numpy
 tqdm
 pybind11
+twine
 Sphinx
 sphinx-autobuild
 sphinx-markdown-tables

@@ -1,5 +1,8 @@
 # coding: utf-8
 
+import os
+if os.name == 'nt':
+    os.add_dll_directory(os.path.join(os.environ['CUDA_PATH'], 'bin'))
 
 from binarybrain.system       import *
 
