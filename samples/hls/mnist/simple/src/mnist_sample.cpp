@@ -2,14 +2,14 @@
 #include "MnistDifferentiableLutHls.h"
 
 
-void MnistDepthwiseAffine_layer(ap_int<16> y[10], const ap_uint<10*DWA_DEPTH> x)
+void MnistDepthwiseAffine_layer(int y[10], const ap_uint<10*DWA_DEPTH> x)
 {
     for ( int i = 0; i < 10; ++i ) {
         #pragma HLS unroll
-        ap_int<16> sum = b_tbl[i];
+        int sum = (int)b_tbl[i];
         for ( int j = 0; j < DWA_DEPTH; ++j ) {
             #pragma HLS unroll
-            sum += x[i*DWA_DEPTH + j] * W_tbl[i][j];
+            sum += (int)x[i*DWA_DEPTH + j] * (int)W_tbl[i][j];
         }
         y[i] = sum;
     }
@@ -32,11 +32,11 @@ void mnist_sample(
     auto x3 = MnistLut_layer3(x2);
 
     // Depthwise Affine
-    ap_int<16> y[10];
+    int y[10];
     MnistDepthwiseAffine_layer(y, x3);
 
     // argmax
-    ap_int<16>  max_val = -32768;
+    int         max_val = -32768;
     ap_uint<4>  max_idx = 0;
     for ( int i = 0; i < 10; ++i ) {
         if ( y[i] > max_val ) {

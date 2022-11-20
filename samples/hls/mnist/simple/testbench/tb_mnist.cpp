@@ -12,7 +12,7 @@ int main()
         ap_uint<1>  in[28*28];
         for ( int y = 0; y < 28; ++y ) {
             for ( int x = 0; x < 28; ++x ) {
-                in[y*28+x] = test_images[i][y][27-x];
+                in[y*28+x] = test_images[i][y][x];
             }
         }
 
@@ -24,9 +24,9 @@ int main()
             ok++;
         }
 
-        printf("out[%d]=%d  exp:%d\n", i, (int)out[0], (int)test_labels[i]);
+        std::cout << "out[" << i << "]=" << (int)out[0] << " exp:"<< (int)test_labels[i] << "  " << (out[0] == test_labels[i]) << std::endl; 
     }
-    std::cout << "accuracy = " << ok "/" << n << std::endl; 
+    std::cout << "accuracy = " << ok << "/" << n << std::endl; 
     
     return 0;
 }
