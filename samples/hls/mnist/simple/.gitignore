@@ -1,1 +1,4 @@
 mnist_sample/
+
+MnistDifferentiableLutHls.h
+mnist_test_data.h

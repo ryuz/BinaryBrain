@@ -1,13 +1,32 @@
 
 #include "mnist_sample.h"
+#include "mnist_test_data.h"
 
 int main()
 {
     std::cout << "start testbench" << std::endl;
 
-    ap_uint<1>  in[28*28];
-    ap_uint<4>  out[0];
-    mnist_sample(in, out);
+    int n = 0;
+    int ok = 0;
+    for ( int i = 0; i < 20; ++i ) {
+        ap_uint<1>  in[28*28];
+        for ( int y = 0; y < 28; ++y ) {
+            for ( int x = 0; x < 28; ++x ) {
+                in[y*28+x] = test_images[i][y][27-x];
+            }
+        }
+
+        ap_uint<4>  out[0];
+        mnist_sample(in, out);
+
+        n++;
+        if ( out[0] == test_labels[i] ) {
+            ok++;
+        }
+
+        printf("out[%d]=%d  exp:%d\n", i, (int)out[0], (int)test_labels[i]);
+    }
+    std::cout << "accuracy = " << ok "/" << n << std::endl; 
     
     return 0;
 }
