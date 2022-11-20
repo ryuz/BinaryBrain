@@ -285,6 +285,17 @@ using LoadCifar10_fp32                       = bb::LoadCifar10<float>;
 //  functions
 // ---------------------------------
 
+int GetCudaDriverVersion(void)
+{
+#if BB_WITH_CUDA
+    int version;
+    if ( cudaDriverGetVersion(&version) == cudaSuccess ) {
+        return version;
+    }
+#endif
+    return 0;
+}
+
 int GetDeviceCount(void)
 {
 #if BB_WITH_CUDA
@@ -1417,6 +1428,7 @@ PYBIND11_MODULE(core, m) {
         .def_static("is_device_available", &bb::Manager::IsDeviceAvailable)
         .def_static("set_host_only", &bb::Manager::SetHostOnly);
 
+    m.def("get_cuda_driver_version",          &GetCudaDriverVersion);
     m.def("get_device_count",                 &GetDeviceCount);
     m.def("set_device",                       &SetDevice,                  py::arg("device") = 0);
     m.def("get_device_name",                  &GetDevicePropertiesName,    py::arg("device") = 0);
