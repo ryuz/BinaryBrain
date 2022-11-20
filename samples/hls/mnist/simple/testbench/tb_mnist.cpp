@@ -24,7 +24,7 @@ int main()
             ok++;
         }
 
-        std::cout << "out[" << i << "]=" << (int)out[0] << " exp:"<< (int)test_labels[i] << "  " << (out[0] == test_labels[i]) << std::endl; 
+        std::cout << "out[" << i << "]=" << (int)out[0] << " exp:"<< (int)test_labels[i] << "  " << (out[0] == test_labels[i] ? "ok" : "miss") << std::endl; 
     }
     std::cout << "accuracy = " << ok << "/" << n << std::endl; 
     

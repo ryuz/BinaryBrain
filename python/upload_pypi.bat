@@ -1,6 +1,6 @@
 @echo off
 
-call set_vc.bat
+rem call set_vc.bat
 
 python -V
 pause
