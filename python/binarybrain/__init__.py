@@ -1,7 +1,8 @@
 # coding: utf-8
 
 import os
-if os.name == 'nt':
+import sys
+if os.name == 'nt' and sys.version_info.major >= 3 and sys.version_info.minor >= 8:
     os.add_dll_directory(os.path.join(os.environ['CUDA_PATH'], 'bin'))
 
 from binarybrain.system       import *

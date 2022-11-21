@@ -45,6 +45,25 @@ def set_host_only(host_only: bool):
     """
     core.Manager.set_host_only(host_only)
 
+def get_cuda_driver_version():
+    """CUDAドライババージョンの取得
+
+    Returns:
+        driver_version (int) : CUDAドライババージョン
+    """
+    return core.get_cuda_driver_version()
+
+def get_cuda_driver_version_string():
+    """CUDAドライババージョン文字列の取得
+
+    Returns:
+        driver_version (str) : CUDAドライババージョン文字列
+    """
+    driver_version = get_cuda_driver_version()
+    major = driver_version // 1000
+    minor = driver_version % 1000 // 10
+    return '{}.{}'.format(major, minor)
+
 def get_device_count():
     """利用可能なデバイス(GPU)の個数を確認
 

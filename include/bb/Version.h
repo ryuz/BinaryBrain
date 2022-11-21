@@ -1,7 +1,7 @@
 ﻿// --------------------------------------------------------------------------
 //  Binary Brain  -- binary neural net framework
 //
-//                                Copyright (C) 2018-2019 by Ryuji Fuchikami
+//                                Copyright (C) 2018-2022 by Ryuji Fuchikami
 //                                https://github.com/ryuz
 //                                ryuji.fuchikami@nifty.com
 // --------------------------------------------------------------------------
@@ -17,7 +17,7 @@ namespace bb
 
 #define BB_MAJOR_VERSION        4
 #define BB_MINOR_VERSION        2
-#define BB_REVISION_NUMBER      3
+#define BB_REVISION_NUMBER      4
 
 #define BB_VERSION              (std::to_string(BB_MAJOR_VERSION) + "." + std::to_string(BB_MINOR_VERSION) + "." + std::to_string(BB_REVISION_NUMBER))
 
