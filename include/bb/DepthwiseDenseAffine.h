@@ -59,8 +59,8 @@ protected:
     std::shared_ptr<Tensor>     m_dW;
     std::shared_ptr<Tensor>     m_db;
     
-#ifdef BB_WITH_CUDA
     bool                        m_cublasEnable = false;
+#ifdef BB_WITH_CUDA
     cublasHandle_t              m_cublasHandle;
 #endif
 
@@ -556,7 +556,7 @@ protected:
     void DumpObjectData(std::ostream &os) const override
     {
         // バージョン
-        std::int64_t ver = 1;
+        std::int64_t ver = 2;
         bb::SaveValue(os, ver);
 
         // 親クラス
@@ -571,17 +571,25 @@ protected:
         bb::SaveValue(os, m_output_shape);
         bb::SaveValue(os, m_input_point_size);
         bb::SaveValue(os, m_depth_size);
+        bb::SaveValue(os, m_cublasEnable);  // add ver2
         m_W->DumpObject(os);
         m_b->DumpObject(os);
     }
 
     void LoadObjectData(std::istream &is) override
     {
+#ifdef BB_WITH_CUDA
+        if ( m_cublasEnable ) {
+            BB_CUBLAS_SAFE_CALL(cublasDestroy(m_cublasHandle));
+            m_cublasEnable = false;
+        }
+#endif
+
         // バージョン
         std::int64_t ver;
         bb::LoadValue(is, ver);
 
-        BB_ASSERT(ver == 1);
+        BB_ASSERT(ver == 1 || ver == 2);
 
         // 親クラス
         _super::LoadObjectData(is);
@@ -595,10 +603,21 @@ protected:
         bb::LoadValue(is, m_output_shape);
         bb::LoadValue(is, m_input_point_size);
         bb::LoadValue(is, m_depth_size);
+        if ( ver >= 2 ) {
+            bb::LoadValue(is, m_cublasEnable);
+        }
         m_W->LoadObject(is);
         m_b->LoadObject(is);
         
         // 再構築
+#ifdef BB_WITH_CUDA
+        if ( m_cublasEnable ) {
+           if ( cublasCreate(&m_cublasHandle) != CUBLAS_STATUS_SUCCESS ) {
+                m_cublasEnable = false;
+            }
+        }
+#endif
+        
         m_input_node_size = CalcShapeSize(m_input_shape);
         m_output_node_size = CalcShapeSize(m_output_shape);
         if ( !m_input_shape.empty() ) {

@@ -285,6 +285,17 @@ using LoadCifar10_fp32                       = bb::LoadCifar10<float>;
 //  functions
 // ---------------------------------
 
+int GetCudaDriverVersion(void)
+{
+#if BB_WITH_CUDA
+    int version;
+    if ( cudaDriverGetVersion(&version) == cudaSuccess ) {
+        return version;
+    }
+#endif
+    return 0;
+}
+
 int GetDeviceCount(void)
 {
 #if BB_WITH_CUDA
@@ -811,8 +822,8 @@ PYBIND11_MODULE(core, m) {
         .def("b",  ((Tensor& (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::b))
         .def("dW", ((Tensor& (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::dW))
         .def("db", ((Tensor& (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::db))
-        .def("WQ", ((Tensor& (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::WQ))
-        .def("bQ", ((Tensor& (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::bQ));
+        .def("WQ", ((Tensor (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::WQ))
+        .def("bQ", ((Tensor (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::bQ));
 
     // DepthwiseDenseAffine
     PYCLASS_MODEL(DepthwiseDenseAffine_fp32, Model)
@@ -848,8 +859,8 @@ PYBIND11_MODULE(core, m) {
         .def("b", ((Tensor& (DepthwiseDenseAffineQuantize_fp32::*)())&DepthwiseDenseAffineQuantize_fp32::b))
         .def("dW", ((Tensor& (DepthwiseDenseAffineQuantize_fp32::*)())&DepthwiseDenseAffineQuantize_fp32::dW))
         .def("db", ((Tensor& (DepthwiseDenseAffineQuantize_fp32::*)())&DepthwiseDenseAffineQuantize_fp32::db))
-        .def("WQ", ((Tensor& (DepthwiseDenseAffineQuantize_fp32::*)())&DepthwiseDenseAffineQuantize_fp32::WQ))
-        .def("bQ", ((Tensor& (DepthwiseDenseAffineQuantize_fp32::*)())&DepthwiseDenseAffineQuantize_fp32::bQ));
+        .def("WQ", ((Tensor (DepthwiseDenseAffineQuantize_fp32::*)())&DepthwiseDenseAffineQuantize_fp32::WQ))
+        .def("bQ", ((Tensor (DepthwiseDenseAffineQuantize_fp32::*)())&DepthwiseDenseAffineQuantize_fp32::bQ));
 
     // BinaryDenseAffine
     PYCLASS_MODEL(BinaryDenseAffine_fp32_fp32, Model)
@@ -1417,6 +1428,7 @@ PYBIND11_MODULE(core, m) {
         .def_static("is_device_available", &bb::Manager::IsDeviceAvailable)
         .def_static("set_host_only", &bb::Manager::SetHostOnly);
 
+    m.def("get_cuda_driver_version",          &GetCudaDriverVersion);
     m.def("get_device_count",                 &GetDeviceCount);
     m.def("set_device",                       &SetDevice,                  py::arg("device") = 0);
     m.def("get_device_name",                  &GetDevicePropertiesName,    py::arg("device") = 0);

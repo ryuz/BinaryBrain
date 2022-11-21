@@ -11,7 +11,7 @@ def make_lut_func_name(name, node):
     return "%s_lut_%d"%(name, node)
 
 
-def dump_hls_lut_node2(f, name, lut, node):
+def dump_hls_lut_node(f, name, lut, node):
     f.write("\ninline ap_uint<1> %s(\n"%(make_lut_func_name(name, node)))
     n = lut.get_node_connection_size(node)
     s = lut.get_lut_table_size(node)
@@ -47,7 +47,7 @@ def dump_hls_lut_layer(f, name, lut):
     ins  = lut.get_input_node_size()
     outs = lut.get_output_node_size()
     for node in range(outs):
-        dump_hls_lut_node2(f, name, lut, node)
+        dump_hls_lut_node(f, name, lut, node)
     
     f.write("\n")
     f.write("inline ap_uint<%d> %s(ap_uint<%d> in_data)\n"%(outs, name, ins))
@@ -78,5 +78,5 @@ def make_hls_lut_layer(name, lut):
     '''
     
     with io.StringIO() as f:
-        dump_hls_lut(f, name, lut)
+        dump_hls_lut_layer(f, name, lut)
         return f.getvalue()
