@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import sys
 print(sys.version)
 
@@ -6,6 +9,7 @@ print("Python        : {}".format(platform.python_version()))
 
 import binarybrain as bb
 print("BinaryBrain   : {}".format(bb.get_version_string()))
+print("CUDA version  : {}".format(bb.get_cuda_driver_version_string()))
 
 device_available = bb.is_device_available()
 print("GPU available : {}".format(device_available))

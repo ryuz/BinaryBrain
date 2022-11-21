@@ -32,7 +32,7 @@ class DepthwiseDenseAffineQuantize : public Model
     using _super = Model;
 
 public:
-    static inline std::string ModelName(void) { return "DepthwiseDenseAffine"; }
+    static inline std::string ModelName(void) { return "DepthwiseDenseAffineQuantize"; }
     static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<T>::Name(); }
 
     std::string GetModelName(void)  const override { return ModelName(); }
