@@ -822,8 +822,8 @@ PYBIND11_MODULE(core, m) {
         .def("b",  ((Tensor& (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::b))
         .def("dW", ((Tensor& (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::dW))
         .def("db", ((Tensor& (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::db))
-        .def("WQ", ((Tensor& (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::WQ))
-        .def("bQ", ((Tensor& (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::bQ));
+        .def("WQ", ((Tensor (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::WQ))
+        .def("bQ", ((Tensor (DenseAffineQuantize_fp32::*)())&DenseAffineQuantize_fp32::bQ));
 
     // DepthwiseDenseAffine
     PYCLASS_MODEL(DepthwiseDenseAffine_fp32, Model)
@@ -859,8 +859,8 @@ PYBIND11_MODULE(core, m) {
         .def("b", ((Tensor& (DepthwiseDenseAffineQuantize_fp32::*)())&DepthwiseDenseAffineQuantize_fp32::b))
         .def("dW", ((Tensor& (DepthwiseDenseAffineQuantize_fp32::*)())&DepthwiseDenseAffineQuantize_fp32::dW))
         .def("db", ((Tensor& (DepthwiseDenseAffineQuantize_fp32::*)())&DepthwiseDenseAffineQuantize_fp32::db))
-        .def("WQ", ((Tensor& (DepthwiseDenseAffineQuantize_fp32::*)())&DepthwiseDenseAffineQuantize_fp32::WQ))
-        .def("bQ", ((Tensor& (DepthwiseDenseAffineQuantize_fp32::*)())&DepthwiseDenseAffineQuantize_fp32::bQ));
+        .def("WQ", ((Tensor (DepthwiseDenseAffineQuantize_fp32::*)())&DepthwiseDenseAffineQuantize_fp32::WQ))
+        .def("bQ", ((Tensor (DepthwiseDenseAffineQuantize_fp32::*)())&DepthwiseDenseAffineQuantize_fp32::bQ));
 
     // BinaryDenseAffine
     PYCLASS_MODEL(BinaryDenseAffine_fp32_fp32, Model)
