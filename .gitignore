@@ -95,10 +95,11 @@ samples/cpp/mnist/sample-mnist
 samples/cpp/diabetes/sample-diabetes
 samples/cpp/cifar10/sample-cifar10
 
-tests/gtest/gtest
-tests/mnist/test-mnist
-tests/cifar10/test-cifar10
-tests/diabetes/test-diabetes
+tests/cpp/gtest/gtest
+tests/cpp/mnist/test-mnist
+tests/cpp/cifar10/test-cifar10
+tests/cpp/cifar10/sample-cifar10
+tests/cpp/diabetes/test-diabetes
 
 
 
