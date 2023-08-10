@@ -63,8 +63,8 @@ Please, read "main.cpp" for usage.
 
 ### windows
 
-1. install VisualStudio 2019 + CUDA 11.3
-2. git clone --recursive -b ver4_release https://github.com/ryuz/BinaryBrain.git 
+1. install VisualStudio 2022 + CUDA 11.8
+2. git clone --recursive https://github.com/ryuz/BinaryBrain.git 
 3. download MNIST from http://yann.lecun.com/exdb/mnist/
 4. decompress MNIST for "\samples\cpp\mnist"
 5. open VC++ solution "samples\cpp\mnist\sample_mnist.sln"
@@ -73,30 +73,13 @@ Please, read "main.cpp" for usage.
 
 ### Linux(Ubuntu 20.04)
 
-1. install tools 
-
-```
-% sudo apt update
-% sudo apt upgrade
-% sudo apt install git
-% sudo apt install make
-% sudo apt install g++
-% wget https://developer.download.nvidia.com/compute/cuda/11.3.1/local_installers/cuda_11.3.1_465.19.01_linux.run
-% sudo sh cuda_11.3.1_465.19.01_linux.run
-```
-
-Add the following to your .bashrc
-
-```
-export PATH="/usr/local/cuda/bin:$PATH"
-export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
-```
+1. install CUDA 11.8 
 
 
 2. build and run
 
 ```
-% git clone --recursive -b ver3_release  https://github.com/ryuz/BinaryBrain.git
+% git clone --recursive https://github.com/ryuz/BinaryBrain.git
 % cd BinaryBrain/samples/cpp/mnist
 % make
 % make dl_data
