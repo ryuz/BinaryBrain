@@ -76,7 +76,7 @@ public:
     static TrainData<T> Load(int num = 5)
     {
         TrainData<T>    td;
-        td.x_shape = indices_t({32, 32, 3});
+        td.x_shape = indices_t({3, 32, 32});
         td.t_shape = indices_t({10});
         if ( !LoadData(td.x_train, td.t_train, td.x_test, td.t_test, num) ) {
             td.clear();
