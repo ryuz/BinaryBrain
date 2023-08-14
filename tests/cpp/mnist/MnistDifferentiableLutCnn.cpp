@@ -93,12 +93,15 @@ void MnistDifferentiableLutCnn_(int epoch_size, int mini_batch_size, int train_m
         main_net->Add(bb::Convolution2d<T>::Create(cnv1_sub, 3, 3));
         main_net->Add(bb::Convolution2d<T>::Create(cnv0_sub, 3, 3));
         main_net->Add(bb::MaxPooling<T>::Create(2, 2));
+        main_net->Add(bb::InsertBitError<T>::Create(0.2));
         main_net->Add(layer_sl1_2);
-        main_net->Add(bb::InsertBitError<T>::Create(0.05));
+        main_net->Add(bb::InsertBitError<T>::Create(0.2));
         main_net->Add(layer_sl1_1);
+        main_net->Add(bb::InsertBitError<T>::Create(0.2));
         main_net->Add(layer_sl1_0);
-        main_net->Add(bb::InsertBitError<T>::Create(0.05));
+        main_net->Add(bb::InsertBitError<T>::Create(0.2));
         main_net->Add(layer_sl0_2);
+        main_net->Add(bb::InsertBitError<T>::Create(0.2));
         main_net->Add(layer_sl0_1);
         main_net->Add(layer_sl0_0);
 

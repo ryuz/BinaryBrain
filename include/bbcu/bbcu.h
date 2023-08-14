@@ -1440,10 +1440,11 @@ BBCU_DLL_EXPORT int bbcu_bit_BitEncode
 //  BitError
 // -------------------------------------
 
-BBCU_DLL_EXPORT int bbcu_BitError_RandUpdsate
+BBCU_DLL_EXPORT int bbcu_BitError_RandUpdate
 (
+    unsigned int    seed,
     unsigned int*   dev_rand_seed,
-    cudaStream_t    streamId =0
+    cudaStream_t    streamId=0
 );
 
 BBCU_DLL_EXPORT int bbcu_fp32_BitError_Forward

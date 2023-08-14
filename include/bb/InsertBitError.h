@@ -11,7 +11,7 @@
 #pragma once
 
 #include <random>
-
+#include <stack>
 #include "bb/Model.h"
 
 
@@ -34,11 +34,12 @@ public:
     std::string GetObjectName(void) const { return ObjectName(); }
 
 protected:
-    bool                m_host_only = false;
-    indices_t           m_shape;
-    double              m_error_rate;
-    std::minstd_rand    m_rand_engine;
-    Tensor_<std::uint32_t>  m_rand_seed;
+    bool                        m_host_only = false;
+    indices_t                   m_shape;
+    double                      m_error_rate;
+    std::mt19937                m_rand_engine;
+    Tensor_<std::uint32_t>      m_rand_seed;
+    std::stack<std::uint32_t>   m_seed_stack;
 
 public:
     struct create_t
@@ -81,6 +82,12 @@ protected:
         {
             m_host_only = EvalBool(args[1]);
         }
+
+        // error_rate設定
+        if (args.size() == 2 && args[0] == "error_rate")
+        {
+            m_error_rate = (double)EvalReal(args[1]);
+        }
     }
 
 public:
@@ -98,6 +105,19 @@ public:
         create.error_rate = error_rate;
         return Create(create);
     }
+
+#ifdef BB_PYBIND11
+    static std::shared_ptr<InsertBitError> CreatePy(double error_rate)
+    {
+        create_t create;
+        create.error_rate = error_rate;
+        return Create(create);
+    }
+#endif
+
+
+    Tensor GetRandomSeed(void) const { return (Tensor)m_rand_seed; }
+
 
     /**
      * @brief  入力のshape設定
@@ -154,6 +174,9 @@ public:
         index_t frame_size = x_buf.GetFrameSize();
         index_t node_size = x_buf.GetNodeSize();
 
+        std::uint32_t seed = m_rand_engine();
+        m_seed_stack.push(seed);
+
 
 #ifdef BB_WITH_CUDA
         if (!m_host_only && DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32
@@ -161,7 +184,7 @@ public:
 
             // CUDA版
             auto ptr_rand_seed = m_rand_seed.LockDeviceMemory();
-            bbcu_BitError_RandUpdsate((unsigned int *)ptr_rand_seed.GetAddr());
+            bbcu_BitError_RandUpdate(seed, (unsigned int *)ptr_rand_seed.GetAddr());
 
             auto ptr_x = x_buf.LockDeviceMemory();
             bbcu_fp32_BitError_Forward(
@@ -179,7 +202,7 @@ public:
 
             // CUDA版
             auto ptr_rand_seed = m_rand_seed.LockDeviceMemory();
-            bbcu_BitError_RandUpdsate((unsigned int*)ptr_rand_seed.GetAddr());
+            bbcu_BitError_RandUpdate(seed, (unsigned int*)ptr_rand_seed.GetAddr());
 
             auto ptr_x = x_buf.LockDeviceMemory();
             bbcu_bit_BitError_Forward(
@@ -194,43 +217,24 @@ public:
         }
 #endif
 
-        // 出力を設定
-        FrameBuffer y_buf(frame_size, this->GetOutputShape(), DataType<BinType>::type);
-
-        // エラーテーブルを生成
-        auto error_buf = FrameBuffer(frame_size, m_shape, BB_TYPE_BIT);
-        {
-            std::uniform_real_distribution<double> dist(0.0, 1.0);
-            auto err_ptr = error_buf.template Lock<Bit>();
-            for (index_t frame = 0; frame < frame_size; ++frame) {
-                for (index_t node = 0; node < node_size; ++node) {
-                    err_ptr.Set(frame, node, dist(m_rand_engine) < m_error_rate);
-                }
-            }
-        }
-        // backwardの為に保存
-        this->PushFrameBuffer(error_buf);
-
-
         {
             // 汎用版
-            auto err_ptr = error_buf.template LockConst<BinType>();
-            auto x_ptr   = x_buf.template LockConst<BinType>();
-            auto y_ptr   = y_buf.template Lock<BinType>();
+            std::minstd_rand                        rnd(seed);
+            std::uniform_real_distribution<double>  dist(0.0, 1.0);
 
-            #pragma omp parallel for
+            auto x_ptr   = x_buf.template Lock<BinType>();
             for (index_t frame = 0; frame < frame_size; ++frame) {
                 for (index_t node = 0; node < node_size; ++node) {
                     auto x = x_ptr.Get(frame, node);
-                    if (err_ptr.Get(frame, node)) {
-                        y_ptr.Set(frame, node, (BinType)1 - x);
+                    if ( dist(m_rand_engine) < m_error_rate ) {
+                        x_ptr.Set(frame, node, (BinType)1 - x);
                     }
                     else {
-                        y_ptr.Set(frame, node, x);
+                        x_ptr.Set(frame, node, x);
                     }
                 }
             }
-            return y_buf;
+            return x_buf;
         }
     }
     
@@ -242,12 +246,17 @@ public:
         index_t frame_size = dy_buf.GetFrameSize();
         index_t node_size = dy_buf.GetNodeSize();
 
+        auto seed = m_seed_stack.top();
+        m_seed_stack.pop();
+
 #ifdef BB_WITH_CUDA
         if (DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
             && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
             // GPU版
-            auto ptr_dy = dy_buf.LockDeviceMemory();
             auto ptr_rand_seed = m_rand_seed.LockDeviceMemory();
+            bbcu_BitError_RandUpdate(seed, (unsigned int*)ptr_rand_seed.GetAddr());
+
+            auto ptr_dy = dy_buf.LockDeviceMemory();
             bbcu_fp32_BitError_Backward(
                 (float *)ptr_dy.GetAddr(),
                 (const unsigned int*)ptr_rand_seed.GetAddr(),
@@ -262,38 +271,28 @@ public:
         }
 #endif
 
-
-        auto error_buf = this->PopFrameBuffer();
-
-        if (error_buf.Empty()) {
-            return FrameBuffer();
-        }
-
-
         // 戻り値の型を設定
         FrameBuffer dx_buf(frame_size, dy_buf.GetShape(), DataType<RealType>::type);
 
-
         {
             // 汎用版
-            auto err_ptr = error_buf.template LockConst<BinType>();
-            auto dy_ptr = dy_buf.template LockConst<RealType>();
-            auto dx_ptr = dx_buf.template Lock<RealType>();
+            std::minstd_rand                        rnd(seed);
+            std::uniform_real_distribution<double>  dist(0.0, 1.0);
 
-#pragma omp parallel for
+            auto dy_ptr = dy_buf.template Lock<RealType>();
             for (index_t frame = 0; frame < frame_size; ++frame) {
                 for (index_t node = 0; node < node_size; ++node) {
                     auto dy = dy_ptr.Get(frame, node);
-                    if (err_ptr.Get(frame, node)) {
-                        dx_ptr.Set(frame, node, -dy);
+                    if ( dist(m_rand_engine) < m_error_rate ) {
+                        dy_ptr.Set(frame, node, -dy);
                     }
                     else {
-                        dx_ptr.Set(frame, node, dy);
+                        dy_ptr.Set(frame, node, dy);
                     }
                 }
             }
 
-            return dx_buf;
+            return dy_buf;
         }
     }
 

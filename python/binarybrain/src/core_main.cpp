@@ -38,6 +38,7 @@
 #include "bb/BinaryModulation.h"
 #include "bb/BitEncode.h"
 #include "bb/Reduce.h"
+#include "bb/InsertBitError.h"
 
 #include "bb/Sequential.h"
 #include "bb/DenseAffine.h"
@@ -130,10 +131,12 @@ using RealToBinary_fp32_fp32                 = bb::RealToBinary<float, float>;
 using RealToBinary_bit_fp32                  = bb::RealToBinary<bb::Bit, float>;
 using BinaryToReal_fp32_fp32                 = bb::BinaryToReal<float, float>;
 using BinaryToReal_bit_fp32                  = bb::BinaryToReal<bb::Bit, float>;
+using Reduce_fp32_fp32                       = bb::Reduce<float, float>;
+using Reduce_bit_fp32                        = bb::Reduce<bb::Bit, float>;
 using BitEncode_fp32_fp32                    = bb::BitEncode<float, float>;
 using BitEncode_bit_fp32                     = bb::BitEncode<bb::Bit, float>;
-using Reduce_fp32_fp32                       = bb::Reduce<float, float>; 
-using Reduce_bit_fp32                        = bb::Reduce<bb::Bit, float>; 
+using InsertBitError_fp32_fp32               = bb::InsertBitError<float, float>;
+using InsertBitError_bit_fp32                = bb::InsertBitError<bb::Bit, float>;
 
 using DenseAffine_fp32                       = bb::DenseAffine<float>;
 using DenseAffineQuantize_fp32               = bb::DenseAffineQuantize<float>;
@@ -716,7 +719,12 @@ PYBIND11_MODULE(core, m) {
         .def_static("create",   &BitEncode_fp32_fp32::CreatePy);
     PYCLASS_MODEL(BitEncode_bit_fp32, Model)
         .def_static("create",   &BitEncode_bit_fp32::CreatePy);
-    
+
+    PYCLASS_MODEL(InsertBitError_fp32_fp32, Model)
+        .def_static("create",   &InsertBitError_fp32_fp32::CreatePy);
+    PYCLASS_MODEL(InsertBitError_bit_fp32, Model)
+        .def_static("create",   &InsertBitError_bit_fp32::CreatePy);
+
 
     PYCLASS_MODEL(Shuffle, Model)
         .def_static("create",   &Shuffle::CreatePy);

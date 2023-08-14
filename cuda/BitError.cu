@@ -14,20 +14,23 @@
 // update
 //////////////////////////////
 
-__global__ void kernal_BitError_RandUpdsate
+__global__ void kernal_BitError_RandUpdate
 (
+    unsigned int    seed,
     unsigned int*   rand_seed
 )
-{
-    int id = blockDim.x * threadIdx.y + threadIdx.x;
-
-    rand_seed[id] = (48271 * rand_seed[id]) % 0x7fffffff;
-
+{  
+    unsigned int r = seed;
+    for (int i = 0; i < 1024; ++i) {
+        r = (48271 * r) % 0x7fffffff;
+        rand_seed[i] = r;
+    }
 }
 
-BBCU_DLL_EXPORT int bbcu_BitError_RandUpdsate
+BBCU_DLL_EXPORT int bbcu_BitError_RandUpdate
 (
-    unsigned int* dev_rand_seed,
+    unsigned int    seed,
+    unsigned int*   dev_rand_seed,
     cudaStream_t    streamId
 )
 {
@@ -35,9 +38,9 @@ BBCU_DLL_EXPORT int bbcu_BitError_RandUpdsate
 
     dim3    grid;
     dim3    block;
-    block.x = 1024;
-    kernal_BitError_RandUpdsate << <grid, block, 0, streamId >> > (
-        dev_rand_seed
+    kernal_BitError_RandUpdate << <grid, block, 0, streamId >> > (
+            seed,
+            dev_rand_seed
         );
     BB_CUDA_CHECK_LAST_ERROR();
 
@@ -61,15 +64,15 @@ __global__ void kernal_fp32_BitError_Forward
         )
 {
     int id = blockDim.x * threadIdx.y + threadIdx.x;
-
     unsigned int r = rand_seed[id];
+
     for (int node = threadIdx.y; node < node_size; node += blockDim.y) {
         for (int frame = threadIdx.x; frame < frame_size; frame += blockDim.x) {
             for (int i = 0; i < 32; ++i) {
                 auto f = frame * 32 + i;
                 if (f < frame_size) {
                     r = 1103515245 * r + 12345;
-                    if (r < error_rate) {
+                    if ( (r & 0xffff) < error_rate) {
                         x_buf[frame_stride * node + f] = 1.0f - x_buf[frame_stride * node + f];
                     }
                 }
@@ -107,7 +110,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_BitError_Forward
     kernal_fp32_BitError_Forward << <grid, block, 0, streamId >> > (
         dev_x_buf,
         dev_rand_seed,
-        (unsigned int)(error_rate * 0xffffffff),
+        (unsigned int)(error_rate * 0x10000),
         node_size,
         frame_size,
         frame_stride
@@ -139,7 +142,7 @@ __global__ void kernal_bit_BitError_Forward
                 auto f = frame * 32 + i;
                 if (f < frame_size) {
                     r = 1103515245 * r + 12345;
-                    if (r < error_rate) {
+                    if ((r & 0xffff) < error_rate) {
                         v ^= bit;
                     }
                     bit <<= 1;
@@ -179,7 +182,7 @@ BBCU_DLL_EXPORT int bbcu_bit_BitError_Forward
     kernal_bit_BitError_Forward << <grid, block, 0, streamId >> > (
         dev_x_buf,
         dev_rand_seed,
-        (unsigned int)(error_rate * 0xffffffff),
+        (unsigned int)(error_rate * 0x10000),
         node_size,
         frame_size,
         frame_stride
@@ -217,7 +220,7 @@ __global__ void kernal_fp32_BitError_Backward
                 auto f = frame * 32 + i;
                 if (f < frame_size) {
                     r = 1103515245 * r + 12345;
-                    dy_buf[frame_stride * node + frame] *= (r < error_rate) ? weight1 : weight0;
+                    dy_buf[frame_stride * node + f] *= ((r & 0xffff) < error_rate) ? weight1 : weight0;
                 }
             }
         }
@@ -256,7 +259,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_BitError_Backward
     kernal_fp32_BitError_Backward << <grid, block, 0, streamId >> > (
         dev_dy_buf,
         dev_rand_seed,
-        (unsigned int)(error_rate * 0xffffffff),
+        (unsigned int)(error_rate * 0x10000),
         weight0,
         weight1,
         node_size,
