@@ -152,13 +152,13 @@ __global__ void kernal_bit_BitError_Forward
 
 BBCU_DLL_EXPORT int bbcu_bit_BitError_Forward
 (
-    int*            dev_x_buf,
-    unsigned int*   dev_rand_seed,
-    double          error_rate,
-    int             node_size,
-    int             frame_size,
-    int             frame_stride,
-    cudaStream_t    streamId
+    int*                dev_x_buf,
+    const unsigned int* dev_rand_seed,
+    double              error_rate,
+    int                 node_size,
+    int                 frame_size,
+    int                 frame_stride,
+    cudaStream_t        streamId
 )
 {
     BBCU_DEBUG_ASSERT(bbcu_IsDeviceAvailable());

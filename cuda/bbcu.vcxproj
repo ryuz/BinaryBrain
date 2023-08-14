@@ -17,6 +17,7 @@
     <CudaCompile Include="BinaryLut6.cu" />
     <CudaCompile Include="BinaryToReal.cu" />
     <CudaCompile Include="BitEncode.cu" />
+    <CudaCompile Include="BitError.cu" />
     <CudaCompile Include="Col2Im.cu" />
     <CudaCompile Include="ConvBitToReal.cu" />
     <CudaCompile Include="DepthwiseDenseAffine.cu" />

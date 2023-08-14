@@ -38,6 +38,7 @@ protected:
     indices_t           m_shape;
     double              m_error_rate;
     std::minstd_rand    m_rand_engine;
+    Tensor_<std::uint32_t>  m_rand_seed;
 
 public:
     struct create_t
@@ -60,6 +61,12 @@ protected:
     InsertBitError(create_t const &create)
     {
         m_error_rate = create.error_rate;
+
+        m_rand_seed = Tensor_<std::uint32_t>({ 1024 });
+        auto ptr = m_rand_seed.Lock();
+        for (int i = 0; i < 1024; ++i) {
+            ptr(i) = i;
+        }
     }
 
     /**
@@ -147,9 +154,48 @@ public:
         index_t frame_size = x_buf.GetFrameSize();
         index_t node_size = x_buf.GetNodeSize();
 
+
+#ifdef BB_WITH_CUDA
+        if (!m_host_only && DataType<BinType>::type == BB_TYPE_FP32 && DataType<RealType>::type == BB_TYPE_FP32
+            && x_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+
+            // CUDA版
+            auto ptr_rand_seed = m_rand_seed.LockDeviceMemory();
+            bbcu_BitError_RandUpdsate((unsigned int *)ptr_rand_seed.GetAddr());
+
+            auto ptr_x = x_buf.LockDeviceMemory();
+            bbcu_fp32_BitError_Forward(
+                (float *)ptr_x.GetAddr(),
+                (const unsigned int *)ptr_rand_seed.GetAddr(),
+                (double)m_error_rate,
+                (int)x_buf.GetNodeSize(),
+                (int)x_buf.GetFrameSize(),
+                (int)(x_buf.GetFrameStride() / sizeof(float))
+            );
+            return x_buf;
+        }
+        if (!m_host_only && DataType<BinType>::type == BB_TYPE_BIT && DataType<RealType>::type == BB_TYPE_FP32
+            && x_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+
+            // CUDA版
+            auto ptr_rand_seed = m_rand_seed.LockDeviceMemory();
+            bbcu_BitError_RandUpdsate((unsigned int*)ptr_rand_seed.GetAddr());
+
+            auto ptr_x = x_buf.LockDeviceMemory();
+            bbcu_bit_BitError_Forward(
+                (int*)ptr_x.GetAddr(),
+                (const unsigned int*)ptr_rand_seed.GetAddr(),
+                (double)m_error_rate,
+                (int)x_buf.GetNodeSize(),
+                (int)x_buf.GetFrameSize(),
+                (int)(x_buf.GetFrameStride() / sizeof(float))
+            );
+            return x_buf;
+        }
+#endif
+
         // 出力を設定
         FrameBuffer y_buf(frame_size, this->GetOutputShape(), DataType<BinType>::type);
-
 
         // エラーテーブルを生成
         auto error_buf = FrameBuffer(frame_size, m_shape, BB_TYPE_BIT);
@@ -187,21 +233,42 @@ public:
             return y_buf;
         }
     }
-
+    
 
     FrameBuffer Backward(FrameBuffer dy_buf)
     {
+        BB_ASSERT(dy_buf.GetType() == DataType<RealType>::type);
+
+        index_t frame_size = dy_buf.GetFrameSize();
+        index_t node_size = dy_buf.GetNodeSize();
+
+#ifdef BB_WITH_CUDA
+        if (DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
+            && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
+            // GPU版
+            auto ptr_dy = dy_buf.LockDeviceMemory();
+            auto ptr_rand_seed = m_rand_seed.LockDeviceMemory();
+            bbcu_fp32_BitError_Backward(
+                (float *)ptr_dy.GetAddr(),
+                (const unsigned int*)ptr_rand_seed.GetAddr(),
+                (double)m_error_rate,
+                +1.0f,
+                -1.0f,
+                (int)dy_buf.GetNodeSize(),
+                (int)dy_buf.GetFrameSize(),
+                (int)(dy_buf.GetFrameStride() / sizeof(float))
+            );
+            return dy_buf;
+        }
+#endif
+
+
         auto error_buf = this->PopFrameBuffer();
 
         if (error_buf.Empty()) {
             return FrameBuffer();
         }
 
-
-        BB_ASSERT(dy_buf.GetType() == DataType<RealType>::type);
-
-        index_t frame_size = dy_buf.GetFrameSize();
-        index_t node_size = dy_buf.GetNodeSize();
 
         // 戻り値の型を設定
         FrameBuffer dx_buf(frame_size, dy_buf.GetShape(), DataType<RealType>::type);

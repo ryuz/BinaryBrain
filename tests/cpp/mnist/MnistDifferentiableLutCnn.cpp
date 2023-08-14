@@ -23,6 +23,8 @@
 #include "bb/LoadMnist.h"
 #include "bb/ExportVerilog.h"
 
+#include "bb/InsertBitError.h"
+
 
 template<typename T=float>
 void MnistDifferentiableLutCnn_(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
@@ -40,96 +42,65 @@ void MnistDifferentiableLutCnn_(int epoch_size, int mini_batch_size, int train_m
 #endif
 
     // create network
-#ifdef BB_WITH_CUDA
-    /*
-    auto layer_cnv0_sl0 = bb::DifferentiableLutN<6, T>::Create(36*6,   true, "random");
-    auto layer_cnv0_sl1 = bb::DifferentiableLutN<6, T>::Create(36,     true, "serial");
-    auto layer_cnv1_sl0 = bb::DifferentiableLutN<6, T>::Create(1*36*6, true, "random");
-//  auto layer_cnv1_sl1 = bb::DifferentiableLutN<6, T>::Create(1*36,   true, "serial");
-    auto layer_cnv1_sl1 = bb::AverageLut<T>::Create(6, {1*36}, "serial");
-    auto layer_cnv2_sl0 = bb::DifferentiableLutN<6, T>::Create(2*36*6, true, "random");
-//  auto layer_cnv2_sl1 = bb::DifferentiableLutN<6, T>::Create(2*36,   true, "serial");
-    auto layer_cnv2_sl1 = bb::AverageLut<T>::Create(6, {2*36}, "serial");
-    auto layer_cnv3_sl0 = bb::DifferentiableLutN<6, T>::Create(2*36*6, true, "random");
-    auto layer_cnv3_sl1 = bb::DifferentiableLutN<6, T>::Create(2*36,   true, "serial");
-    auto layer_sl4      = bb::DifferentiableLutN<6, T>::Create(64*6,  true, "random");
-//  auto layer_sl5      = bb::DifferentiableLutN<6, T>::Create(64,    true, "serial");
-    auto layer_sl5      = bb::AverageLut<T>::Create(6, {64}, "serial");
-    auto layer_sl6      = bb::DifferentiableLutN<6, T>::Create(10*6*6, true, "random");
-    auto layer_sl7      = bb::DifferentiableLutN<6, T>::Create(10*6,   true, "serial");
-//  auto layer_sl8      = bb::DifferentiableLutN<6, T>::Create(10,     true, "serial");
-    auto layer_sl8      = bb::AverageLut<T>::Create(6, {10}, "serial");
-    */
 
-    auto layer_cnv0_sl0 = bb::DifferentiableLutN<6, T>::Create(36*6,   true, "random");
-    auto layer_cnv0_sl1 = bb::MaxLut<T>::Create(6, 36, "serial");
+    auto layer_cnv3_sl1 = bb::DifferentiableLutN<6, T>::Create(1 * 36 * 6, true, "random");
+    auto layer_cnv3_sl0 = bb::DifferentiableLutN<6, T>::Create(1 * 36,     true, "serial");
     
-    auto layer_cnv1_sl0 = bb::DifferentiableLutN<6, T>::Create(1*36*6, true, "random");
-    auto layer_cnv1_sl1 = bb::AverageLut<T>::Create(6, {1*36}, "serial");
+    auto layer_cnv2_sl1 = bb::DifferentiableLutN<6, T>::Create(2 * 36 * 6, true, "random");
+    auto layer_cnv2_sl0 = bb::DifferentiableLutN<6, T>::Create(2 * 36,     true, "serial");
     
-    auto layer_cnv2_sl0 = bb::DifferentiableLutN<6, T>::Create(2*36*6, true, "random");
-    auto layer_cnv2_sl1 = bb::AverageLut<T>::Create(6, {2*36}, "serial");
+    auto layer_cnv1_sl1 = bb::DifferentiableLutN<6, T>::Create(2 * 36 * 6, true, "random");
+    auto layer_cnv1_sl0 = bb::DifferentiableLutN<6, T>::Create(2 * 36,     true, "serial");
 
-    auto layer_cnv3_sl0 = bb::DifferentiableLutN<6, T>::Create(2*36*6, true, "random");
-    auto layer_cnv3_sl1 = bb::AverageLut<T>::Create(6, {2*36}, "serial");
+    auto layer_cnv0_sl1 = bb::DifferentiableLutN<6, T>::Create(4 * 36 * 6, true, "random");
+    auto layer_cnv0_sl0 = bb::DifferentiableLutN<6, T>::Create(4 * 36,     true, "serial");
     
-    auto layer_sl4      = bb::DifferentiableLutN<6, T>::Create({64*6*6},  true, "random");
-//  auto layer_sl7      = bb::MaxLut<T>::Create(6,        {64*6}, "serial");
-    auto layer_sl5      = bb::AverageLut<T>::Create(6, {64}, "serial");
+    auto layer_sl1_2 = bb::DifferentiableLutN<6, T>::Create({ 512 * 6 *6 }, true, "random");
+    auto layer_sl1_1 = bb::DifferentiableLutN<6, T>::Create({ 512 * 6    }, true, "serial");
+    auto layer_sl1_0 = bb::DifferentiableLutN<6, T>::Create({ 512        }, true, "serial");
 
-    auto layer_sl6      = bb::DifferentiableLutN<6, T>::Create(10*6*6, true, "random");
-//  auto layer_sl7      = bb::MaxLut<T>::Create(6, {10*6},   "serial");
-    auto layer_sl7      = bb::DifferentiableLutN<6, T>::Create({10*6}, true, "random");
-    auto layer_sl8      = bb::AverageLut<T>::Create(6, {10}, "serial");
+    auto layer_sl0_2 = bb::DifferentiableLutN<6, T>::Create({ 10 * 6 * 6 }, true, "random");
+    auto layer_sl0_1 = bb::DifferentiableLutN<6, T>::Create({ 10 * 6 },     true, "serial");
+    auto layer_sl0_0 = bb::AverageLut<T>::Create(6, {10}, "serial");
 
-#else
-    auto layer_cnv0_sl0 = bb::DifferentiableLutDiscreteN<6, T>::Create(6*36);
-    auto layer_cnv0_sl1 = bb::DifferentiableLutDiscreteN<6, T>::Create(36);
-    auto layer_cnv1_sl0 = bb::DifferentiableLutDiscreteN<6, T>::Create(2*6*36);
-    auto layer_cnv1_sl1 = bb::DifferentiableLutDiscreteN<6, T>::Create(2*36);
-    auto layer_cnv2_sl0 = bb::DifferentiableLutDiscreteN<6, T>::Create(2*6*36);
-    auto layer_cnv2_sl1 = bb::DifferentiableLutDiscreteN<6, T>::Create(2*36);
-    auto layer_cnv3_sl0 = bb::DifferentiableLutDiscreteN<6, T>::Create(4*6*36);
-    auto layer_cnv3_sl1 = bb::DifferentiableLutDiscreteN<6, T>::Create(4*36);
-    auto layer_sl4      = bb::DifferentiableLutDiscreteN<6, T>::Create(6*128);
-    auto layer_sl5      = bb::DifferentiableLutDiscreteN<6, T>::Create(128);
-    auto layer_sl6      = bb::DifferentiableLutDiscreteN<6, T>::Create(6*6*10);
-    auto layer_sl7      = bb::DifferentiableLutDiscreteN<6, T>::Create(6*10);
-    auto layer_sl8      = bb::DifferentiableLutDiscreteN<6, T>::Create(10);
-#endif
+
 
     {
         std::cout << "\n<Training>" << std::endl;
 
         // main network
-        auto cnv0_sub = bb::Sequential::Create();
-        cnv0_sub->Add(layer_cnv0_sl0);
-        cnv0_sub->Add(layer_cnv0_sl1);
-
-        auto cnv1_sub = bb::Sequential::Create();
-        cnv1_sub->Add(layer_cnv1_sl0);
-        cnv1_sub->Add(layer_cnv1_sl1);
+        auto cnv3_sub = bb::Sequential::Create();
+        cnv3_sub->Add(layer_cnv3_sl1);
+        cnv3_sub->Add(layer_cnv3_sl0);
 
         auto cnv2_sub = bb::Sequential::Create();
-        cnv2_sub->Add(layer_cnv2_sl0);
         cnv2_sub->Add(layer_cnv2_sl1);
+        cnv2_sub->Add(layer_cnv2_sl0);
 
-        auto cnv3_sub = bb::Sequential::Create();
-        cnv3_sub->Add(layer_cnv3_sl0);
-        cnv3_sub->Add(layer_cnv3_sl1);
+        auto cnv1_sub = bb::Sequential::Create();
+        cnv1_sub->Add(layer_cnv1_sl1);
+        cnv1_sub->Add(layer_cnv1_sl0);
+
+        auto cnv0_sub = bb::Sequential::Create();
+        cnv0_sub->Add(layer_cnv0_sl1);
+        cnv0_sub->Add(layer_cnv0_sl0);
         
         auto main_net = bb::Sequential::Create();
-        main_net->Add(bb::Convolution2d<T>::Create(cnv0_sub, 3, 3));
-        main_net->Add(bb::Convolution2d<T>::Create(cnv1_sub, 3, 3));
-        main_net->Add(bb::MaxPooling<T>::Create(2, 2));
-        main_net->Add(bb::Convolution2d<T>::Create(cnv2_sub, 3, 3));
         main_net->Add(bb::Convolution2d<T>::Create(cnv3_sub, 3, 3));
+        main_net->Add(bb::Convolution2d<T>::Create(cnv2_sub, 3, 3));
+//      main_net->Add(bb::InsertBitError<T>::Create(0.1));
         main_net->Add(bb::MaxPooling<T>::Create(2, 2));
-        main_net->Add(layer_sl4);
-        main_net->Add(layer_sl5);
-        main_net->Add(layer_sl6);
-        main_net->Add(layer_sl7);
-        main_net->Add(layer_sl8);
+        main_net->Add(bb::Convolution2d<T>::Create(cnv1_sub, 3, 3));
+        main_net->Add(bb::Convolution2d<T>::Create(cnv0_sub, 3, 3));
+        main_net->Add(bb::MaxPooling<T>::Create(2, 2));
+        main_net->Add(layer_sl1_2);
+        main_net->Add(bb::InsertBitError<T>::Create(0.05));
+        main_net->Add(layer_sl1_1);
+        main_net->Add(layer_sl1_0);
+        main_net->Add(bb::InsertBitError<T>::Create(0.05));
+        main_net->Add(layer_sl0_2);
+        main_net->Add(layer_sl0_1);
+        main_net->Add(layer_sl0_0);
 
         // modulation wrapper
         auto net = bb::Sequential::Create();
@@ -167,7 +138,7 @@ void MnistDifferentiableLutCnn_(int epoch_size, int mini_batch_size, int train_m
         runner_create.net                = net;
         runner_create.lossFunc           = bb::LossSoftmaxCrossEntropy<float>::Create();
         runner_create.metricsFunc        = bb::MetricsCategoricalAccuracy<float>::Create();
-        runner_create.optimizer          = bb::OptimizerAdam<float>::Create();
+        runner_create.optimizer          = bb::OptimizerAdam<float>::Create(0.001f);
         runner_create.file_read          = file_read;       // 前の計算結果があれば読み込んで再開するか
         runner_create.file_write         = true;            // 計算結果をファイルに保存するか
         runner_create.print_progress     = true;            // 途中結果を表示
@@ -176,6 +147,7 @@ void MnistDifferentiableLutCnn_(int epoch_size, int mini_batch_size, int train_m
         runner->Fitting(td, epoch_size, mini_batch_size);
     }
 
+#if 0
     {
         std::cout << "\n<Evaluation binary LUT-Network>" << std::endl;
 
@@ -304,6 +276,7 @@ void MnistDifferentiableLutCnn_(int epoch_size, int mini_batch_size, int train_m
             bb::WriteTestDataImage<float>(velilog_path + "mnist_test_640x480.ppm", 640, 480, td);
         }
     }
+#endif
 }
 
 
