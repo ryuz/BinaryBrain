@@ -345,6 +345,10 @@ public:
         *this = tensor;
     }
     
+    bool IsEmpty(void) {
+        return (m_size == 0);
+    }
+
     Tensor_& operator=(const Tensor_ &src)
     {
         m_mem    = src.m_mem;
@@ -1875,7 +1879,7 @@ public:
     {
         *this = tensor;
     }
-    
+
     Tensor& operator=(const Tensor &src)
     {
         m_mem    = src.m_mem;
@@ -1970,7 +1974,9 @@ public:
     }
 #endif
 
-
+    bool IsEmpty(void) {
+        return (m_size == 0);
+    }
 
     int GetType(void) const
     {
