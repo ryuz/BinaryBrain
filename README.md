@@ -17,16 +17,16 @@ LUT-Networkの評価を目的に作成しておりますが、それ以外の用
 以下の特徴があります
 
 - FPGA回路のDeepLearning学習をメインターゲットにしている
-- パーセプトロンではなくFPGAの回路素子であるLUTモデルを直接学習できる
+- 微分可能LUTモデルを用いてFPGAの回路素子であるLUTを直接学習できる
 - 極めて軽量で低遅延のFPGA用ソース(Verilog)を出力することができる
 - バイナリネットであるも関わらずStochastic計算により回帰分析が可能
-- Python と C++ でネットの記述と学習ができる
+- Python または C++ でネットの記述と学習ができる
 - GPU(CUDA)に対応しており高速に学習できる
 
 
 ## 微分可能回路記述(differentiable circuit description)
 
-デジタル回路は通常では0か1の値しかとらないた通常であれば微分することはできません。
+デジタル回路は通常では0か1の値しかとらないため、通常であれば微分することはできません。
 
 一方で、入出力を0や1ではなく「1になる確率」としてアナログ的に扱う手法があり、Stochastic計算と呼ばれます。
 幸いな事に Neural Network は、学習において多くの対象の尤度を取り扱う為この考え方は相性のよい考え方です。
@@ -62,6 +62,7 @@ BinaryBrain は LUT-Network の学習可能性を実証するために作られ�
 
 
 ## MNISTサンプルの動かし方(C++)
+
 AXV2以降の命令が使えるCPUと、Windows7以降の環境を想定しております。
 CUDA(Kepler以降)にも対応しています。
 
@@ -69,40 +70,23 @@ MNISTのサンプルの使い方は samples/mnist/readme.txt を参照くださ�
 以下は All オプションで内蔵するサンプルすべてを実行するものです。
 
 ### windows
-1. install VisualStudio 2019 + CUDA 11.3
-2. git clone --recursive -b ver4_release https://github.com/ryuz/BinaryBrain.git 
+
+1. install VisualStudio 2022 + CUDA 11.8
+2. git clone --recursive https://github.com/ryuz/BinaryBrain.git 
 3. download MNIST from http://yann.lecun.com/exdb/mnist/
 4. decompress MNIST for "\samples\mnist"
 5. open VC++ solution "samples\mnist\sample_mnist.sln"
 6. build "x64 Release"
 7. run
 
-### Linux(Ubuntu 20.04)
+### Linux(Ubuntu)
 
-1. install tools 
-
-```
-% sudo apt update
-% sudo apt upgrade
-% sudo apt install git
-% sudo apt install make
-% sudo apt install g++
-% wget https://developer.download.nvidia.com/compute/cuda/11.3.1/local_installers/cuda_11.3.1_465.19.01_linux.run
-% sudo sh cuda_11.3.1_465.19.01_linux.run
-```
-
-.bashrc に下記を追加
-
-```
-export PATH="/usr/local/cuda/bin:$PATH"
-export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
-```
-
+1. install CUDA 11.8 
 
 2. build and run
 
 ```
-% git clone --recursive -b ver4_develop  https://github.com/ryuz/BinaryBrain.git
+% git clone --recursive https://github.com/ryuz/BinaryBrain.git
 % cd BinaryBrain/samples/cpp/mnist
 % make
 % make dl_data
@@ -112,10 +96,11 @@ export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
 GPUを使わない場合は make WITH_CUDA=No として下さい。
 
 ### Google Colaboratory
+
 nvcc が利用可能な Google Colaboratory でも動作可能なようです。
 以下あくまで参考ですが、ランタイムのタイプをGPUに設定した上で
 ```
-!git clone --recursive -b ver4_release  https://github.com/ryuz/BinaryBrain.git
+!git clone --recursive https://github.com/ryuz/BinaryBrain.git
 %cd BinaryBrain/cpp/samples/mnist
 !make all
 !make run
@@ -129,12 +114,14 @@ nvcc が利用可能な Google Colaboratory でも動作可能なようです。
 
 
 ### 事前準備
+
 必要なパッケージを事前にインストールください
+
 ```
-% pip3 install setuptools
-% pip3 install pybind11
-% pip3 install numpy
-% pip3 install tqdm
+% pip install setuptools
+% pip install pybind11
+% pip install numpy
+% pip install tqdm
 ```
 
 
@@ -152,7 +139,7 @@ Windows環境の場合、nvccのほかにも VisualStudio の 64bit 版がコマ
 下記のコマンドなどでインストール可能です。
 
 ```
-% pip3 install binarybrain
+% pip install binarybrain
 ```
 
 ### インストール(setup.pyを使う場合)
@@ -160,7 +147,7 @@ Windows環境の場合、nvccのほかにも VisualStudio の 64bit 版がコマ
 ```
 % # install
 % cd python
-% python3 setup.py install --user
+% python setup.py install --user
 ```
 
 #### サンプルの実行
@@ -181,12 +168,13 @@ Google Colaboratory で利用する場合は、ランタイムのタイプを「
 
 ```
 !pip install pybind11
-!git clone -b ver4_release  https://github.com/ryuz/BinaryBrain.git
+!git clone --recursive https://github.com/ryuz/BinaryBrain.git
 %cd BinaryBrain
-!python3 setup.py install --user
+!python setup.py install --user
 ```
 
 ## githubからの取得
+
 現在 version4 は下記の branch で管理しています
 
 - ver4_develop 
@@ -202,6 +190,7 @@ tag は 開発都合で ver3_build0001 のような形式で定期的に打っ�
 -->
 
 ## 基本的な使い方
+
 CPU版に関してはヘッダオンリーライブラリとなっているため、include 以下にあるヘッダファイルをインクルードするだけでご利用いただけます。
 
 GPUを使う場合は、ヘッダ読み込みの際に BB_WITH_CUDA マクロを定義した上で、cuda 以下にあるライブラリをビルドした上でリンクする必要があります。
@@ -260,11 +249,15 @@ BinaryBrainではバイナリ変調したデジタル値を扱うことが出来
 
 
 ## ライセンス
+
 現在MITライセンスを採用しています。lisense.txtを参照ください。
-ただし、本ソースコードは CEREAL を利用しているので、それらに関しては個別に各ライセンスに従ってください。
 
 
-## ICCE2019(Berlin)にて発表しております
+## fpgax #11 ＋ TFUG ハード部：DNN専用ハードについて語る会(2019/02/02) にて発表させて頂きました
+
+https://fpgax.connpass.com/event/115446/
+
+## ICCE2019(Berlin)にて発表させて頂きました
 
 [@FIssiki](https://twitter.com/fissiki)様の多大なるご協力のもと、ICCE2019(Berlin)にて発表しております。
 
@@ -276,7 +269,9 @@ https://ieeexplore.ieee.org/document/8966187
 
 
 ## 作者情報
+
 渕上 竜司(Ryuji Fuchikami)
+
 - e-mail : ryuji.fuchikami@nifty.com
 - github : https://github.com/ryuz
 - web-site : http://ryuz.my.coocan.jp/
@@ -287,6 +282,7 @@ https://ieeexplore.ieee.org/document/8966187
 
 
 ## 参考にさせて頂いた情報
+
 - バイナリニューラルネットとハードウェアの関係<br>
  https://www.slideshare.net/kentotajiri/ss-77136469
 

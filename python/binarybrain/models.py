@@ -913,6 +913,25 @@ class BitEncode(Model):
 model_creator_regist('BitEncode', BitEncode.from_bytes)
 
 
+class InsertBitError(Model):
+    """InsertBitError class
+        ビットエラーを挿入する
+
+    Args:
+        error_rate (float): エラー率
+    """
+
+    def __init__(self, error_rate, *, input_shape=None, name=None,
+                        bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32, core_model=None):
+        if core_model is None:
+            core_creator = search_core_model('InsertBitError', [bin_dtype, real_dtype]).create
+            core_model = core_creator(error_rate)
+        
+        super(InsertBitError, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
+
+model_creator_regist('InsertBitError', InsertBitError.from_bytes)
+
+
 
 class Reduce(Model):
     """Reduce class

@@ -21,6 +21,8 @@
 #include "bb/LoadCifar10.h"
 #include "bb/ExportVerilog.h"
 
+#include "bb/InsertBitError.h"
+
 
 template<typename T=bb::Bit>
 void DifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
@@ -43,28 +45,28 @@ void DifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_modulat
 
      // create network
     auto layer_cnv0_sl0 = bb::DifferentiableLutN<6, T>::Create(192);
-    auto layer_cnv0_sl1 = bb::DifferentiableLutN<6, T>::Create(32);
+    auto layer_cnv0_sl1 = bb::DifferentiableLutN<6, T>::Create(32, true, "serial");
 
     auto layer_cnv1_sl0 = bb::DifferentiableLutN<6, T>::Create(1152);
-    auto layer_cnv1_sl1 = bb::DifferentiableLutN<6, T>::Create(192);
-    auto layer_cnv1_sl2 = bb::DifferentiableLutN<6, T>::Create(32);
+    auto layer_cnv1_sl1 = bb::DifferentiableLutN<6, T>::Create(192, true, "serial");
+    auto layer_cnv1_sl2 = bb::DifferentiableLutN<6, T>::Create(32, true, "serial");
 
     auto layer_cnv2_sl0 = bb::DifferentiableLutN<6, T>::Create(2304);
-    auto layer_cnv2_sl1 = bb::DifferentiableLutN<6, T>::Create(384);
-    auto layer_cnv2_sl2 = bb::DifferentiableLutN<6, T>::Create(64);
+    auto layer_cnv2_sl1 = bb::DifferentiableLutN<6, T>::Create(384, true, "serial");
+    auto layer_cnv2_sl2 = bb::DifferentiableLutN<6, T>::Create(64, true, "serial");
 
     auto layer_cnv3_sl0 = bb::DifferentiableLutN<6, T>::Create(2304);
-    auto layer_cnv3_sl1 = bb::DifferentiableLutN<6, T>::Create(384);
-    auto layer_cnv3_sl2 = bb::DifferentiableLutN<6, T>::Create(64);
+    auto layer_cnv3_sl1 = bb::DifferentiableLutN<6, T>::Create(384, true, "serial");
+    auto layer_cnv3_sl2 = bb::DifferentiableLutN<6, T>::Create(64, true, "serial");
 
-    auto layer_sl4      = bb::DifferentiableLutN<6, T>::Create(18432);
-    auto layer_sl5      = bb::DifferentiableLutN<6, T>::Create(3072);
-    auto layer_sl6      = bb::DifferentiableLutN<6, T>::Create(512);
+    auto layer_sl4      = bb::DifferentiableLutN<6, T>::Create(4096);
+    auto layer_sl5      = bb::DifferentiableLutN<6, T>::Create(256*6, true, "serial");
+    auto layer_sl6      = bb::DifferentiableLutN<6, T>::Create(256, true, "serial");
 
     auto layer_sl7      = bb::DifferentiableLutN<6, T>::Create(2160);
-    auto layer_sl8      = bb::DifferentiableLutN<6, T>::Create(360);
-    auto layer_sl9      = bb::DifferentiableLutN<6, T>::Create(60);
-    auto layer_sl10     = bb::DifferentiableLutN<6, T>::Create(10);
+    auto layer_sl8      = bb::DifferentiableLutN<6, T>::Create(360, true, "serial");
+    auto layer_sl9      = bb::DifferentiableLutN<6, T>::Create(60, true, "serial");
+    auto layer_sl10     = bb::DifferentiableLutN<6, T>::Create(10, false, "serial");
 
     {
         std::cout << "\n<Training>" << std::endl;
@@ -95,10 +97,14 @@ void DifferentiableLutCnn(int epoch_size, int mini_batch_size, int train_modulat
         main_net->Add(bb::Convolution2d<T>::Create(cnv2_sub, 3, 3));
         main_net->Add(bb::Convolution2d<T>::Create(cnv3_sub, 3, 3));
         main_net->Add(bb::MaxPooling<T>::Create(2, 2));
+        
         main_net->Add(layer_sl4);
+        main_net->Add(bb::InsertBitError<T>::Create(0.2));
         main_net->Add(layer_sl5);
         main_net->Add(layer_sl6);
+
         main_net->Add(layer_sl7);
+        main_net->Add(bb::InsertBitError<T>::Create(0.2));
         main_net->Add(layer_sl8);
         main_net->Add(layer_sl9);
         main_net->Add(layer_sl10);

@@ -130,8 +130,8 @@ BBCU_DLL_EXPORT int bbcu_bit_Col2Im_Forward
     // 32bit単位で処理
     int     output_frame_unit = (output_frame_size + 31) / 32 ;
 
-    dim3    block(32, 32, 1);
-    dim3    grid((output_frame_unit+31)/32, (hw_size+31)/32, c_size);
+    dim3    block(32, 16, 1);
+    dim3    grid((output_frame_unit+31)/32, (hw_size+15)/16, c_size);
     
     kernal_bit_Col2Im_Forward<<<grid, block, 0, streamId>>>(
             dev_x_buf,
