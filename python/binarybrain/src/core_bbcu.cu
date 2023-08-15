@@ -37,6 +37,7 @@
 #include "RealToBinary.cu"
 #include "BinaryToReal.cu"
 #include "BitEncode.cu"
+#include "BitError.cu"
 #include "Im2Col.cu"
 #include "Col2Im.cu"
 #include "MaxPooling.cu"

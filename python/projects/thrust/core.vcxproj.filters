@@ -295,5 +295,8 @@
     <ClInclude Include="..\..\..\include\bb\DepthwiseDenseAffineQuantize.h">
       <Filter>ヘッダファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\bb\InsertBitError.h">
+      <Filter>ヘッダファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

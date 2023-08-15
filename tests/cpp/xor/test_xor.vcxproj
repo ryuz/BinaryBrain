@@ -38,58 +38,58 @@
     <ProjectGuid>{4D95C63D-3452-42FF-97AC-7E51A32DBCAD}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>test_xor</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DbgCpu|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelCpu|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DbgCpu|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelCpu|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -154,7 +154,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>BB_WITH_CEREAL;BB_WITH_CUDA;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;$(CUDA_PATH)\include;..\..\cuda;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;$(CUDA_PATH)\include;..\..\..\cuda;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
@@ -175,7 +175,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>BB_WITH_CEREAL;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;$(CUDA_PATH)\include;..\..\cuda;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;$(CUDA_PATH)\include;..\..\..\cuda;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
@@ -196,7 +196,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>BB_WITH_CEREAL;BB_WITH_CUDA;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;$(CUDA_PATH)\include;..\..\cuda;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;$(CUDA_PATH)\include;..\..\..\cuda;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -218,7 +218,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>BB_WITH_CEREAL;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;$(CUDA_PATH)\include;..\..\cuda;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;$(CUDA_PATH)\include;..\..\..\cuda;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -242,7 +242,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>BB_WITH_CEREAL;BB_WITH_CUDA;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;$(CUDA_PATH)\include;..\..\cuda;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;$(CUDA_PATH)\include;..\..\..\cuda;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -267,7 +267,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>BB_WITH_CEREAL;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;$(CUDA_PATH)\include;..\..\cuda;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;$(CUDA_PATH)\include;..\..\..\cuda;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -292,7 +292,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>BB_WITH_CEREAL;BB_WITH_CUDA;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;$(CUDA_PATH)\include;..\..\cuda;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;$(CUDA_PATH)\include;..\..\..\cuda;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -318,7 +318,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>BB_WITH_CEREAL;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;$(CUDA_PATH)\include;..\..\cuda;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\include;$(EIGEN_DIR);$(CEREAL_DIR)\include;$(OPENCV2_4_13_DIR)\include;$(CUDA_PATH)\include;..\..\..\cuda;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

@@ -1437,6 +1437,48 @@ BBCU_DLL_EXPORT int bbcu_bit_BitEncode
 
 
 // -------------------------------------
+//  BitError
+// -------------------------------------
+
+
+BBCU_DLL_EXPORT int bbcu_fp32_BitError_Forward
+(
+    float*              dev_x_buf,
+    int                 seed,
+    double              error_rate,
+    int                 node_size,
+    int                 frame_size,
+    int                 frame_stride,
+    cudaStream_t        streamId=0
+);
+
+BBCU_DLL_EXPORT int bbcu_bit_BitError_Forward
+(
+    int*                dev_x_buf,
+    int                 seed,
+    double              error_rate,
+    int                 node_size,
+    int                 frame_size,
+    int                 frame_stride,
+    cudaStream_t        streamId=0
+);
+
+
+BBCU_DLL_EXPORT int bbcu_fp32_BitError_Backward
+(
+    float*              dev_dy_buf,
+    int                 seed,
+    double              error_rate,
+    float               weight0,
+    float               weight1,
+    int                 node_size,
+    int                 frame_size,
+    int                 frame_stride,
+    cudaStream_t        streamId=0
+);
+
+
+// -------------------------------------
 //  LossMeanSquaredError
 // -------------------------------------
 
