@@ -25,6 +25,7 @@ __global__ void kernal_fp32_BitError_Forward
             float*              x_buf,
             int                 seed,
             unsigned int        error_rate,
+            bool                mask_mode,
             int                 node_size,
             int                 frame_size,
             int                 frame_stride
@@ -39,7 +40,7 @@ __global__ void kernal_fp32_BitError_Forward
         int rnd = gen_rand(seed, node, frame, node_size, frame_size);
 
         if (rnd < error_rate) {
-            v = 1.0f - v;
+            v = mask_mode ? 0.0f : (1.0f - v);
         }
 
         x_buf[frame_stride * node + frame] = v;
@@ -52,6 +53,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_BitError_Forward
             float*              dev_x_buf,
             int                 seed,
             double              error_rate,
+            bool                mask_mode,
             int                 node_size,
             int                 frame_size,
             int                 frame_stride,
@@ -71,6 +73,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_BitError_Forward
         dev_x_buf,
         seed,
         (int)(error_rate * 0x10000),
+        mask_mode,
         node_size,
         frame_size,
         frame_stride
@@ -86,6 +89,7 @@ __global__ void kernal_bit_BitError_Forward
     int*                x_buf,
     int                 seed,
     unsigned int        error_rate,
+    bool                mask_mode,
     int                 node_size,
     int                 frame_size,
     int                 frame_stride
@@ -101,7 +105,12 @@ __global__ void kernal_bit_BitError_Forward
         for (int i = 0; i < 32; ++i) {
             int rnd = gen_rand(seed, node, frame + i, node_size, frame_size);
             if (rnd < error_rate) {
-                v ^= (1 << i);
+                if (mask_mode) {
+                    v &= ~(1 << i);
+                }
+                else {
+                    v ^= (1 << i);
+                }
             }
         }
         x_buf[index] = v;
@@ -114,6 +123,7 @@ BBCU_DLL_EXPORT int bbcu_bit_BitError_Forward
     int*                dev_x_buf,
     int                 seed,
     double              error_rate,
+    bool                mask_mode,
     int                 node_size,
     int                 frame_size,
     int                 frame_stride,
@@ -133,6 +143,7 @@ BBCU_DLL_EXPORT int bbcu_bit_BitError_Forward
         dev_x_buf,
         seed,
         (int)(error_rate * 0x10000),
+        mask_mode,
         node_size,
         frame_size,
         frame_stride
