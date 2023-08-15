@@ -109,8 +109,6 @@ public:
 #endif
 
 
-    Tensor GetRandomSeed(void) const { return (Tensor)m_rand_seed; }
-
 
     /**
      * @brief  入力のshape設定
