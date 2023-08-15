@@ -38,7 +38,6 @@ protected:
     indices_t                   m_shape;
     double                      m_error_rate;
     std::mt19937                m_rand_engine;
-    Tensor_<std::uint32_t>      m_rand_seed;
     std::stack<std::uint32_t>   m_seed_stack;
 
 public:
@@ -62,12 +61,6 @@ protected:
     InsertBitError(create_t const &create)
     {
         m_error_rate = create.error_rate;
-
-        m_rand_seed = Tensor_<std::uint32_t>({ 1024 });
-        auto ptr = m_rand_seed.Lock();
-        for (int i = 0; i < 1024; ++i) {
-            ptr(i) = i;
-        }
     }
 
     /**
@@ -157,7 +150,13 @@ public:
         return m_shape;
     }
     
+private:
+    int GenRand(int seed, index_t node, index_t frame, index_t node_size, index_t frame_size) {
+        seed += frame_size * node + frame;
+        return ((1103515245 * seed + 12345) & 0xffff);
+    }
 
+public:
     FrameBuffer Forward(FrameBuffer x_buf, bool train = true)
     {
         if (!train) {
@@ -174,7 +173,7 @@ public:
         index_t frame_size = x_buf.GetFrameSize();
         index_t node_size = x_buf.GetNodeSize();
 
-        std::uint32_t seed = m_rand_engine();
+        int seed = m_rand_engine();
         m_seed_stack.push(seed);
 
 
@@ -183,13 +182,10 @@ public:
             && x_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
 
             // CUDA版
-            auto ptr_rand_seed = m_rand_seed.LockDeviceMemory();
-            bbcu_BitError_RandUpdate(seed, (unsigned int *)ptr_rand_seed.GetAddr());
-
             auto ptr_x = x_buf.LockDeviceMemory();
             bbcu_fp32_BitError_Forward(
                 (float *)ptr_x.GetAddr(),
-                (const unsigned int *)ptr_rand_seed.GetAddr(),
+                (int)seed,
                 (double)m_error_rate,
                 (int)x_buf.GetNodeSize(),
                 (int)x_buf.GetFrameSize(),
@@ -201,13 +197,10 @@ public:
             && x_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
 
             // CUDA版
-            auto ptr_rand_seed = m_rand_seed.LockDeviceMemory();
-            bbcu_BitError_RandUpdate(seed, (unsigned int*)ptr_rand_seed.GetAddr());
-
             auto ptr_x = x_buf.LockDeviceMemory();
             bbcu_bit_BitError_Forward(
                 (int*)ptr_x.GetAddr(),
-                (const unsigned int*)ptr_rand_seed.GetAddr(),
+                (int)seed,
                 (double)m_error_rate,
                 (int)x_buf.GetNodeSize(),
                 (int)x_buf.GetFrameSize(),
@@ -219,18 +212,15 @@ public:
 
         {
             // 汎用版
-            std::minstd_rand                        rnd(seed);
-            std::uniform_real_distribution<double>  dist(0.0, 1.0);
-
+            int error_th = (int)(m_error_rate * 0x10000);
             auto x_ptr   = x_buf.template Lock<BinType>();
-            for (index_t frame = 0; frame < frame_size; ++frame) {
-                for (index_t node = 0; node < node_size; ++node) {
+#pragma omp parallel for
+            for (index_t node = 0; node < node_size; ++node) {
+                for (index_t frame = 0; frame < frame_size; ++frame) {
                     auto x = x_ptr.Get(frame, node);
-                    if ( dist(m_rand_engine) < m_error_rate ) {
+                    int rnd = GenRand(seed, node, frame, node_size, frame_size);
+                    if ( rnd < error_th ) {
                         x_ptr.Set(frame, node, (BinType)1 - x);
-                    }
-                    else {
-                        x_ptr.Set(frame, node, x);
                     }
                 }
             }
@@ -253,13 +243,10 @@ public:
         if (DataType<RealType>::type == BB_TYPE_FP32 && !m_host_only
             && dy_buf.IsDeviceAvailable() && Manager::IsDeviceAvailable()) {
             // GPU版
-            auto ptr_rand_seed = m_rand_seed.LockDeviceMemory();
-            bbcu_BitError_RandUpdate(seed, (unsigned int*)ptr_rand_seed.GetAddr());
-
             auto ptr_dy = dy_buf.LockDeviceMemory();
             bbcu_fp32_BitError_Backward(
                 (float *)ptr_dy.GetAddr(),
-                (const unsigned int*)ptr_rand_seed.GetAddr(),
+                (int)seed,
                 (double)m_error_rate,
                 +1.0f,
                 -1.0f,
@@ -271,23 +258,18 @@ public:
         }
 #endif
 
-        // 戻り値の型を設定
-        FrameBuffer dx_buf(frame_size, dy_buf.GetShape(), DataType<RealType>::type);
 
         {
             // 汎用版
-            std::minstd_rand                        rnd(seed);
-            std::uniform_real_distribution<double>  dist(0.0, 1.0);
-
+            int error_th = (int)(m_error_rate * 0x10000);
             auto dy_ptr = dy_buf.template Lock<RealType>();
+#pragma omp parallel for
             for (index_t frame = 0; frame < frame_size; ++frame) {
                 for (index_t node = 0; node < node_size; ++node) {
                     auto dy = dy_ptr.Get(frame, node);
-                    if ( dist(m_rand_engine) < m_error_rate ) {
+                    int rnd = GenRand(seed, node, frame, node_size, frame_size);
+                    if ( rnd < error_th ) {
                         dy_ptr.Set(frame, node, -dy);
-                    }
-                    else {
-                        dy_ptr.Set(frame, node, dy);
                     }
                 }
             }

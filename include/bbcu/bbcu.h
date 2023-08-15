@@ -1440,17 +1440,11 @@ BBCU_DLL_EXPORT int bbcu_bit_BitEncode
 //  BitError
 // -------------------------------------
 
-BBCU_DLL_EXPORT int bbcu_BitError_RandUpdate
-(
-    unsigned int    seed,
-    unsigned int*   dev_rand_seed,
-    cudaStream_t    streamId=0
-);
 
 BBCU_DLL_EXPORT int bbcu_fp32_BitError_Forward
 (
     float*              dev_x_buf,
-    const unsigned int* dev_rand_seed,
+    int                 seed,
     double              error_rate,
     int                 node_size,
     int                 frame_size,
@@ -1461,7 +1455,7 @@ BBCU_DLL_EXPORT int bbcu_fp32_BitError_Forward
 BBCU_DLL_EXPORT int bbcu_bit_BitError_Forward
 (
     int*                dev_x_buf,
-    const unsigned int* dev_rand_seed,
+    int                 seed,
     double              error_rate,
     int                 node_size,
     int                 frame_size,
@@ -1473,7 +1467,7 @@ BBCU_DLL_EXPORT int bbcu_bit_BitError_Forward
 BBCU_DLL_EXPORT int bbcu_fp32_BitError_Backward
 (
     float*              dev_dy_buf,
-    const unsigned int* dev_rand_seed,
+    int                 seed,
     double              error_rate,
     float               weight0,
     float               weight1,

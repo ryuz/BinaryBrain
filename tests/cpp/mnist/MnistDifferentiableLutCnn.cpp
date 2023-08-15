@@ -70,6 +70,7 @@ void MnistDifferentiableLutCnn_(int epoch_size, int mini_batch_size, int train_m
 
         // main network
         auto cnv3_sub = bb::Sequential::Create();
+        cnv3_sub->Add(bb::InsertBitError<T>::Create(0.2));
         cnv3_sub->Add(layer_cnv3_sl1);
         cnv3_sub->Add(layer_cnv3_sl0);
 
@@ -82,6 +83,7 @@ void MnistDifferentiableLutCnn_(int epoch_size, int mini_batch_size, int train_m
         cnv1_sub->Add(layer_cnv1_sl0);
 
         auto cnv0_sub = bb::Sequential::Create();
+        cnv0_sub->Add(bb::InsertBitError<T>::Create(0.2));
         cnv0_sub->Add(layer_cnv0_sl1);
         cnv0_sub->Add(layer_cnv0_sl0);
         
