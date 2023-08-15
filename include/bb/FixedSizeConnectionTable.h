@@ -76,7 +76,9 @@ protected:
 
         // 再構築
         m_reverse_table_dirty = true;
-        BuildReverseTable();
+        if (!m_input_table.IsEmpty()) {
+            BuildReverseTable();
+        }
     }
 
 

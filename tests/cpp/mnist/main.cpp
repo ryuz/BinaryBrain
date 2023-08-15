@@ -190,9 +190,9 @@ int main(int argc, char *argv[])
         MnistAeDifferentiableLutCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
     }
     
-    if ( netname == "All" || netname == "LoopDenseCnn" ) {
-        MnistLoopDenseCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
-    }
+//    if ( netname == "All" || netname == "LoopDenseCnn" ) {
+//       MnistLoopDenseCnn(epoch_size, mini_batch_size, train_modulation_size, test_modulation_size, binary_mode, file_read);
+//    }
     
 
     // カスタムモデルを自分で書く場合のサンプル

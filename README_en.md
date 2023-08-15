@@ -71,7 +71,7 @@ Please, read "main.cpp" for usage.
 6. build "x64 Release"
 7. run
 
-### Linux(Ubuntu 20.04)
+### Linux(Ubuntu)
 
 1. install CUDA 11.8 
 
@@ -93,7 +93,7 @@ If you don't use GPU, please add "WITH_CUDA=No" option to make.
 Currently you can use nvcc on Google Colaboratory.
 Please select GPU runtime.
 ```
-!git clone --recursive -b ver4_release  https://github.com/ryuz/BinaryBrain.git
+!git clone --recursive https://github.com/ryuz/BinaryBrain.git
 %cd BinaryBrain/samples/cpp/mnist
 !make all
 !make run
@@ -156,7 +156,7 @@ Install and reboot runtime.
 
 ```
 !pip install pybind11
-!git clone -b ver4_release  https://github.com/ryuz/BinaryBrain.git
+!git clone --recursive https://github.com/ryuz/BinaryBrain.git
 %cd BinaryBrain
 !python setup.py install --user
 ```

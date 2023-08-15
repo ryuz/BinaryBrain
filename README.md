@@ -72,14 +72,14 @@ MNISTのサンプルの使い方は samples/mnist/readme.txt を参照くださ�
 ### windows
 
 1. install VisualStudio 2022 + CUDA 11.8
-2. git clone --recursive -b ver4_release https://github.com/ryuz/BinaryBrain.git 
+2. git clone --recursive https://github.com/ryuz/BinaryBrain.git 
 3. download MNIST from http://yann.lecun.com/exdb/mnist/
 4. decompress MNIST for "\samples\mnist"
 5. open VC++ solution "samples\mnist\sample_mnist.sln"
 6. build "x64 Release"
 7. run
 
-### Linux(Ubuntu 20.04)
+### Linux(Ubuntu)
 
 1. install CUDA 11.8 
 
@@ -168,7 +168,7 @@ Google Colaboratory で利用する場合は、ランタイムのタイプを「
 
 ```
 !pip install pybind11
-!git clone -b ver4_release  https://github.com/ryuz/BinaryBrain.git
+!git clone --recursive https://github.com/ryuz/BinaryBrain.git
 %cd BinaryBrain
 !python setup.py install --user
 ```
