@@ -227,7 +227,7 @@ public:
                     auto x = x_ptr.Get(frame, node);
                     int rnd = GenRand(seed, node, frame, node_size, frame_size);
                     if ( rnd < error_th ) {
-                        x_ptr.Set(frame, node, m_mask_mode ? (BinType)0 : (BinType)1 - x);
+                        x_ptr.Set(frame, node, m_mask_mode ? (BinType)0 : (BinType)(1 - x));
                     }
                 }
             }
