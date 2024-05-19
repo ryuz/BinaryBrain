@@ -37,6 +37,7 @@ protected:
     bool                        m_host_only = false;
     indices_t                   m_shape;
     double                      m_error_rate;
+    bool                        m_mask_mode = false;
     std::mt19937                m_rand_engine;
     std::stack<std::uint32_t>   m_seed_stack;
 
@@ -44,16 +45,19 @@ public:
     struct create_t
     {
         double  error_rate;     // エラー率
+        bool    mask_mode = false;
 
 
         void ObjectDump(std::ostream& os) const
         {
             bb::SaveValue(os, error_rate);
+            bb::SaveValue(os, mask_mode);
         }
 
         void ObjectLoad(std::istream& is)
         {
             bb::LoadValue(is, error_rate);
+            bb::LoadValue(is, mask_mode);
         }
     };
 
@@ -61,6 +65,7 @@ protected:
     InsertBitError(create_t const &create)
     {
         m_error_rate = create.error_rate;
+        m_mask_mode = create.mask_mode;
     }
 
     /**
@@ -92,18 +97,20 @@ public:
         return std::shared_ptr<InsertBitError>(new InsertBitError(create));
     }
 
-    static std::shared_ptr<InsertBitError> Create(double error_rate)
+    static std::shared_ptr<InsertBitError> Create(double error_rate, bool mask_mode=false)
     {
         create_t create;
         create.error_rate = error_rate;
+        create.mask_mode = mask_mode;
         return Create(create);
     }
 
 #ifdef BB_PYBIND11
-    static std::shared_ptr<InsertBitError> CreatePy(double error_rate)
+    static std::shared_ptr<InsertBitError> CreatePy(double error_rate, bool mask_mode=false)
     {
         create_t create;
         create.error_rate = error_rate;
+        create.mask_mode = mask_mode;
         return Create(create);
     }
 #endif
@@ -185,6 +192,7 @@ public:
                 (float *)ptr_x.GetAddr(),
                 (int)seed,
                 (double)m_error_rate,
+                (bool)m_mask_mode,
                 (int)x_buf.GetNodeSize(),
                 (int)x_buf.GetFrameSize(),
                 (int)(x_buf.GetFrameStride() / sizeof(float))
@@ -200,6 +208,7 @@ public:
                 (int*)ptr_x.GetAddr(),
                 (int)seed,
                 (double)m_error_rate,
+                (bool)m_mask_mode,
                 (int)x_buf.GetNodeSize(),
                 (int)x_buf.GetFrameSize(),
                 (int)(x_buf.GetFrameStride() / sizeof(float))
@@ -218,7 +227,7 @@ public:
                     auto x = x_ptr.Get(frame, node);
                     int rnd = GenRand(seed, node, frame, node_size, frame_size);
                     if ( rnd < error_th ) {
-                        x_ptr.Set(frame, node, (BinType)1 - x);
+                        x_ptr.Set(frame, node, m_mask_mode ? (BinType)0 : (BinType)(1 - x));
                     }
                 }
             }
@@ -247,7 +256,7 @@ public:
                 (int)seed,
                 (double)m_error_rate,
                 +1.0f,
-                -1.0f,
+                m_mask_mode ? 0.0f : -1.0f,
                 (int)dy_buf.GetNodeSize(),
                 (int)dy_buf.GetFrameSize(),
                 (int)(dy_buf.GetFrameStride() / sizeof(float))
@@ -267,7 +276,7 @@ public:
                     auto dy = dy_ptr.Get(frame, node);
                     int rnd = GenRand(seed, node, frame, node_size, frame_size);
                     if ( rnd < error_th ) {
-                        dy_ptr.Set(frame, node, -dy);
+                        dy_ptr.Set(frame, node, m_mask_mode ? 0 : -dy);
                     }
                 }
             }

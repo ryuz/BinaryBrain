@@ -29,6 +29,15 @@ TEST(InsertBitErrorTest, InsertBitErrorTest_test0)
         err[4] = y.GetFP32(1, 1);
         err[5] = y.GetFP32(1, 2);
 
+#if 0
+        std::cout << "===== y =====" << std::endl;
+        std::cout << y.GetFP32(0, 0) << std::endl;
+        std::cout << y.GetFP32(0, 1) << std::endl;
+        std::cout << y.GetFP32(0, 2) << std::endl;
+        std::cout << y.GetFP32(1, 0) << std::endl;
+        std::cout << y.GetFP32(1, 1) << std::endl;
+        std::cout << y.GetFP32(1, 2) << std::endl;
+#endif
 
         bb::FrameBuffer dy(2, { 3 }, BB_TYPE_FP32);
         dy.SetFP32(0, 0, +1);
@@ -39,6 +48,17 @@ TEST(InsertBitErrorTest, InsertBitErrorTest_test0)
         dy.SetFP32(1, 2, +1);
 
         auto dx = biterr->Backward(dy);
+
+#if 0
+        std::cout << "===== dx =====" << std::endl;
+        std::cout << dx.GetFP32(0, 0) << std::endl;
+        std::cout << dx.GetFP32(0, 1) << std::endl;
+        std::cout << dx.GetFP32(0, 2) << std::endl;
+        std::cout << dx.GetFP32(1, 0) << std::endl;
+        std::cout << dx.GetFP32(1, 1) << std::endl;
+        std::cout << dx.GetFP32(1, 2) << std::endl;
+#endif
+
         EXPECT_EQ(dx.GetFP32(0, 0), err[0] ? -1 : +1);
         EXPECT_EQ(dx.GetFP32(0, 1), err[1] ? -1 : +1);
         EXPECT_EQ(dx.GetFP32(0, 2), err[2] ? -1 : +1);
