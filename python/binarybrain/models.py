@@ -925,7 +925,7 @@ class InsertBitError(Model):
                         bin_dtype=bb.DType.FP32, real_dtype=bb.DType.FP32, core_model=None):
         if core_model is None:
             core_creator = search_core_model('InsertBitError', [bin_dtype, real_dtype]).create
-            core_model = core_creator(error_rate)
+            core_model = core_creator(error_rate, mask_mode)
         
         super(InsertBitError, self).__init__(core_model=core_model, input_shape=input_shape, name=name)
 
