@@ -36,7 +36,7 @@ protected:
     bool                    m_binarize_input  = false;
     bool                    m_binarize_output = true;
 
-    std::string             m_connection;
+//  std::string             m_connection;
 
     int                     m_n = 6;
     indices_t               m_input_shape;
