@@ -14,7 +14,8 @@ while true;do
     case $answer in
         yes)
             echo "upload testpypi"
-            python3 setup.py sdist upload -r testpypi
+#           python3 setup.py sdist upload -r testpypi
+            twine upload -r testpypi dist/*
             break
             ;;
         no)
@@ -33,7 +34,8 @@ while true;do
     case $answer in
         yes)
             echo "upload pypi"
-            python3 setup.py sdist upload -r pypi
+#           python3 setup.py sdist upload -r pypi
+            twine upload -r pypi dist/*
             break
             ;;
         no)

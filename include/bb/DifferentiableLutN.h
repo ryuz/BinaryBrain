@@ -64,7 +64,7 @@ protected:
 
     index_t                     m_max_tmp_mem_size = 256 * 1024 * 1024;
 
-    std::string                 m_connection;
+//  std::string                 m_connection;
 
     std::shared_ptr<Tensor>     m_W;
     std::shared_ptr<Tensor>     m_dW;

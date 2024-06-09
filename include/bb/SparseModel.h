@@ -23,12 +23,25 @@ namespace bb {
 // 入力接続数に制限のあるネット
 class SparseModel : public Model
 {
+    using _super = Model;
+
+protected:
+    std::string     m_connection;
+
 public:
     //ノードの 疎結合の管理
     virtual index_t GetNodeConnectionSize(index_t output_node) const = 0;
     virtual void    SetNodeConnectionIndex(index_t output_node, index_t connection, index_t input_node) = 0;
     virtual index_t GetNodeConnectionIndex(index_t output_node, index_t connection) const = 0;
     
+    std::string GetConnectionPolicy(void) { return  m_connection; }
+
+    void PrintInfoText(std::ostream& os, std::string indent, int columns, int nest, int depth) const override
+    {
+        _super::PrintInfoText(os, indent, columns, nest, depth);
+        os << indent << " connection : " << m_connection << std::endl;;
+    }
+
     index_t GetConnectionSize(indices_t output_indices) const
     {
         return GetNodeConnectionSize(ConvertIndicesToIndex(output_indices, this->GetOutputShape()));
@@ -83,6 +96,8 @@ protected:
 
     void InitializeNodeInput(std::uint64_t seed, std::string connection = "")
     {
+        m_connection = connection;
+
         auto input_shape  = this->GetInputShape();
         auto output_shape = this->GetOutputShape();
 

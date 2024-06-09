@@ -40,7 +40,7 @@ public:   // debug
     bool                    m_host_only   = false;
     bool                    m_host_simd   = false;
     
-    std::string             m_connection;
+//  std::string             m_connection;
 
     T                       m_initialize_std = (T)0.01;
     std::string             m_initializer = "he";
