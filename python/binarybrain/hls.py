@@ -22,7 +22,7 @@ def dump_hls_lut_node(f, name, lut, node):
         else:
             f.write(")\n")
     f.write("{\n")
-#   f.write("#pragma HLS inline\n\n")
+    f.write("    #pragma HLS inline\n\n")
     f.write("    ap_uint<%d> index;\n"%(n))
     for i in range(n):
         f.write("    index[%d] = in_data%d;\n"%(i, i))
@@ -31,7 +31,7 @@ def dump_hls_lut_node(f, name, lut, node):
     for i in range(s):
         f.write("%d,"%(lut.get_lut_table(node ,i)))
     f.write("};\n")
-#   f.write("    #pragma HLS bind_storage variable=table type=ROM_1P impl=LUTRAM\n")
+    f.write("    #pragma HLS bind_storage variable=table type=ROM_1P impl=LUTRAM\n")
     f.write("    return table[index];\n")
     f.write("}\n\n")
 

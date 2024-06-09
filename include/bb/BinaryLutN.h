@@ -35,7 +35,7 @@ protected:
     bool                    m_host_only = false;
     bool                    m_host_simd = true;
 
-    std::string             m_connection;
+//  std::string             m_connection;
 
     indices_t               m_input_shape;
     indices_t               m_output_shape;

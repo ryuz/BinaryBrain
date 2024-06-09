@@ -55,6 +55,7 @@ TEST(ObjectTest, SerializeModel)
     {
         std::ifstream ifs("test_obj.bin", std::ios::binary);
         auto dst_net = std::dynamic_pointer_cast<bb::Sequential>(bb::Object_Load(ifs));
+
         EXPECT_TRUE(dst_net);
         
         EXPECT_EQ(dst_net->Get(0)->GetModelName(), "RealToBinary");
@@ -65,7 +66,6 @@ TEST(ObjectTest, SerializeModel)
         EXPECT_EQ(dst_net->Get(4)->GetModelName(), "BitEncode");
         EXPECT_EQ(dst_net->Get(5)->GetModelName(), "BitEncode");
         EXPECT_EQ(dst_net->Get(5)->GetObjectName(), "BitEncode_bit_fp32");
-
         EXPECT_EQ(dst_net->Get(6)->GetModelName(), "DifferentiableLut6");
         EXPECT_EQ(dst_net->Get(7)->GetModelName(), "DifferentiableLut6");
         EXPECT_EQ(dst_net->Get(8)->GetModelName(), "DifferentiableLut5");

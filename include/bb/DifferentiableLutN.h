@@ -39,8 +39,8 @@ class DifferentiableLutN : public DifferentiableLutModel
     static int const NN = (1 << N);
 
 public:
-    static inline std::string ModelName(void) { return "DifferentiableLut" + std::to_string(N); }
-    static inline std::string ObjectName(void){ return ModelName() + "_" + DataType<BinType>::Name() + "_" + DataType<RealType>::Name(); }
+    static inline std::string ModelName(void)  { return "DifferentiableLut" + std::to_string(N); }
+    static inline std::string ObjectName(void) { return ModelName() + "_" + DataType<BinType>::Name() + "_" + DataType<RealType>::Name(); }
 
     std::string GetModelName(void)  const { return ModelName(); }
     std::string GetObjectName(void) const { return ObjectName(); }
@@ -64,7 +64,7 @@ protected:
 
     index_t                     m_max_tmp_mem_size = 256 * 1024 * 1024;
 
-    std::string                 m_connection;
+//  std::string                 m_connection;
 
     std::shared_ptr<Tensor>     m_W;
     std::shared_ptr<Tensor>     m_dW;

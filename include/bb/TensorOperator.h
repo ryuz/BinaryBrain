@@ -253,7 +253,6 @@ inline void Tensor_Vector_quantize_signed(
 
     T   lo = int_to_real(int_min(bits), scale, offset);
     T   hi = int_to_real(int_max(bits), scale, offset);
-    T   scale_recip = (T)1 / scale;
 
     #pragma omp parallel for 
     for (index_t i = 0; i < size; ++i) {
@@ -280,7 +279,6 @@ inline void Tensor_Vector_quantize_unsigned(
 
     T   lo = int_to_real(uint_min(bits), scale, offset);
     T   hi = int_to_real(uint_max(bits), scale, offset);
-    T   scale_recip = (T)1 / scale;
 
     #pragma omp parallel for 
     for (index_t i = 0; i < size; ++i) {
