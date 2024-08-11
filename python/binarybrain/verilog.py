@@ -8,7 +8,7 @@ import binarybrain.core as core
 
 # ----- LUT Layer -----
 
-def make_verilog_lut_layers(module_name: str, net, device=""):
+def make_verilog_lut_layers(module_name: str, net, device="", ff=True):
     ''' make verilog source of LUT layers
         変換できないモデルは影響ない層とみなして無視するので注意
     
@@ -23,10 +23,10 @@ def make_verilog_lut_layers(module_name: str, net, device=""):
     core_layers = []
     for layer in layers:
         core_layers.append(layer.get_core())
-    return core.make_verilog_lut_layers(module_name, core_layers, device)
+    return core.make_verilog_lut_layers(module_name, core_layers, device, ff)
 
 
-def dump_verilog_lut_layers(f, module_name: str, net, device=""):
+def dump_verilog_lut_layers(f, module_name: str, net, device="", ff=True):
     ''' dump verilog source of LUT layers
         変換できないモデルは影響ない層とみなして無視するので注意
     
@@ -35,11 +35,11 @@ def dump_verilog_lut_layers(f, module_name: str, net, device=""):
             module_name (str): モジュール名
             net (Model): 変換するネット
     '''
-    f.write(make_verilog_lut_layers(module_name=module_name, net=net, device=device))
+    f.write(make_verilog_lut_layers(module_name=module_name, net=net, device=device, ff=ff))
 
-def export_verilog_lut_layers(file_name: str, module_name: str, net):
+def export_verilog_lut_layers(file_name: str, module_name: str, net, device="", ff=True):
     with open(file_name, 'w') as f:
-        dump_verilog_lut_layers(f, module_name, net)
+        dump_verilog_lut_layers(f, module_name, net, device=device, ff=ff)
 
 
 
