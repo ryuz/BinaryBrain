@@ -30,5 +30,5 @@ verilate(tb_verilator
 #   COVERAGE
 #   TRACE
     INCLUDE_DIRS "."
-    VERILATOR_ARGS -f verilator_cmd.txt -Os
+    VERILATOR_ARGS -f verilator_cmd.txt
     SOURCES ./tb_verilator.sv ../MnistLutSimple.v)

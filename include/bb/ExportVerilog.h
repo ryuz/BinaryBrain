@@ -27,7 +27,7 @@ namespace bb {
 
 
 // LUT-Network 基本レイヤーのVerilog 出力
-inline void ExportVerilog_LutModel(std::ostream& os, std::string module_name, SparseModel const &lut, std::string device="", bool ff=true)
+inline void ExportVerilog_LutModel(std::ostream& os, std::string module_name, SparseModel const &lut, std::string device="")
 {
     index_t node_size      = lut.GetOutputNodeSize();
     
@@ -37,6 +37,7 @@ inline void ExportVerilog_LutModel(std::ostream& os, std::string module_name, Sp
         "\n"
         "module " << module_name << "\n"
         "        #(\n"
+        "            parameter USE_REG  = 1,\n"
         "            parameter INIT_REG = 1'bx,\n"
         "            parameter DEVICE   = \"RTL\"\n"
         "        )\n"
@@ -151,31 +152,28 @@ inline void ExportVerilog_LutModel(std::ostream& os, std::string module_name, Sp
                 "    wire lut_" << node << "_out = lut_" << node << "_table[lut_" << node << "_select];\n";
         }
         
-        if ( ff ) {
-            os <<
-                "    \n"
-                "    reg   lut_" << node << "_ff;\n"
-                "    always @(posedge clk) begin\n"
-                "        if ( reset ) begin\n"
-                "            lut_" << node << "_ff <= INIT_REG;\n"
-                "        end\n"
-                "        else if ( cke ) begin\n"
-                "            lut_" << node << "_ff <= lut_" << node << "_out;\n"
-                "        end\n"
-                "    end\n"
-                "    \n"
-                "    assign out_data[" << node << "] = lut_" << node << "_ff;\n"
-                "    \n";
-        }
-        else {
-            os <<
-                "    \n"
-                "    assign out_data[" << node << "] = lut_" << node << "_out;\n"
-                "    \n";
-        }
-
-
+        // FF 出力
         os <<
+            "    \n"
+            "    generate\n"
+            "    if ( USE_REG ) begin : ff_" << node << "\n"
+            "        reg   lut_" << node << "_ff;\n"
+            "        always @(posedge clk) begin\n"
+            "            if ( reset ) begin\n"
+            "                lut_" << node << "_ff <= INIT_REG;\n"
+            "            end\n"
+            "            else if ( cke ) begin\n"
+            "                lut_" << node << "_ff <= lut_" << node << "_out;\n"
+            "            end\n"
+            "        end\n"
+            "        \n"
+            "        assign out_data[" << node << "] = lut_" << node << "_ff;\n"
+            "    end\n"
+            "    else begin : no_ff_" << node << "\n"
+            "        assign out_data[" << node << "] = lut_" << node << "_out;\n"
+            "    end\n"
+            "    endgenerate\n"
+            "    \n"
             "    \n";
     }
 
@@ -185,9 +183,86 @@ inline void ExportVerilog_LutModel(std::ostream& os, std::string module_name, Sp
 }
 
 
+// LUT-Network 基本レイヤーのVerilog 出力
+inline void ExportVerilog_LutModelStream(std::ostream& os, std::string module_name, SparseModel const &lut, std::string device="")
+{
+    // モジュール出力
+    os <<
+        "\n"
+        "\n"
+        "module " << module_name << "\n"
+        "        #(\n"
+        "            parameter USER_WIDTH = 0,\n"
+        "            parameter USE_REG    = 1,\n"
+        "            parameter INIT_REG   = 1'bx,\n"
+        "            parameter DEVICE     = \"RTL\",\n"
+        "            \n"
+        "            parameter USER_BITS  = USER_WIDTH > 0 ? USER_WIDTH : 1\n"
+        "        )\n"
+        "        (\n"
+        "            input  wire         reset,\n"
+        "            input  wire         clk,\n"
+        "            input  wire         cke,\n"
+        "            \n"
+        "            input  wire [USER_BITS-1:0]  in_user,\n"
+        "            input  wire [" << std::setw(11) << (lut.GetInputNodeSize() - 1) << ":0]  in_data,\n"
+        "            input  wire                  in_valid,\n"
+        "            \n"
+        "            output wire [USER_BITS-1:0]  out_user,\n"
+        "            output wire [" << std::setw(11) << (lut.GetOutputNodeSize() - 1) << ":0]  out_data,\n"
+        "            output wire                  out_valid\n"
+        "        );\n"
+        "    \n"
+        "    " << module_name << "_base\n"
+        "            #(\n"
+        "                .USE_REG   (USE_REG),\n"
+        "                .INIT_REG  (INIT_REG),\n"
+        "                .DEVICE    (DEVICE)\n"
+        "            )\n"
+        "        i_" << module_name << "_base\n"
+        "            (\n"
+        "                .reset     (reset),\n"
+        "                .clk       (clk),\n"
+        "                .cke       (cke),\n"
+        "                \n"
+        "                .in_data   (in_data),\n"
+        "                .out_data  (out_data)\n"
+        "            );\n"
+        "    \n"
+        "    generate\n"
+        "    if ( USE_REG ) begin : ff\n"
+        "        reg   [USER_BITS-1:0]  reg_out_user;\n"
+        "        reg                    reg_out_valid;\n"
+        "        always @(posedge clk) begin\n"
+        "            if ( reset ) begin\n"
+        "                reg_out_user  <= {USER_BITS{1'bx}};\n"
+        "                reg_out_valid <= 1'b0;\n"
+        "            end\n"
+        "            else if ( cke ) begin\n"
+        "                reg_out_user  <= in_user;\n"
+        "                reg_out_valid <= in_valid;\n"
+        "            end\n"
+        "        end\n"
+        "        assign out_user  = reg_out_user;\n"
+        "        assign out_valid = reg_out_valid;\n"
+        "    end\n"
+        "    else begin : no_ff\n"
+        "        assign out_user  = in_user;\n"
+        "        assign out_valid = in_valid;\n"
+        "    end\n"
+        "    endgenerate\n"
+        "    \n"
+        "    \n"
+        "endmodule\n"
+        "\n\n";
+    
+    // ベースモジュール出力
+    ExportVerilog_LutModel(os, module_name + "_base", lut, device);
+}
+
 
 // LUT-Network 基本レイヤーの直列接続を出力
-inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, std::vector< std::shared_ptr< SparseModel > > layers,  std::string device="", bool ff=true)
+inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, std::vector< std::shared_ptr< SparseModel > > layers,  std::string device="")
 {
     int layer_size = (int)layers.size();
     BB_ASSERT(layer_size >= 1);
@@ -210,6 +285,7 @@ inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, s
         "module " << module_name << "\n"
         "        #(\n"
         "            parameter USER_WIDTH = 0,\n"
+        "            parameter USE_REG    = 1,\n"
         "            parameter INIT_REG   = 1'bx,\n"
         "            parameter DEVICE     = \"RTL\",\n"
         "            \n"
@@ -234,21 +310,15 @@ inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, s
     for (int i = 0; i < layer_size; ++i) {
         auto layer = layers[i];
 
-        if ( ff ) {
-            os
-                << "    reg   [USER_BITS-1:0]  layer" << i << "_user;\n"
-                << "    wire  [" << std::setw(9) << layer->GetOutputNodeSize() << "-1:0]  layer" << i << "_data;\n"
-                << "    reg                    layer" << i << "_valid;\n";
-        }
-        else {
-            os
-                << "    wire  [USER_BITS-1:0]  layer" << i << "_user;\n"
-                << "    wire  [" << std::setw(9) << layer->GetOutputNodeSize() << "-1:0]  layer" << i << "_data;\n"
-                << "    wire                   layer" << i << "_valid;\n";
-        }
-        os  << "    \n"
+        os
+            << "    wire  [USER_BITS-1:0]  layer" << i << "_user;\n"
+            << "    wire  [" << std::setw(9) << layer->GetOutputNodeSize() << "-1:0]  layer" << i << "_data;\n"
+            << "    wire                   layer" << i << "_valid;\n"
+            << "    \n"
             << "    " << sub_modle_name[i] << "\n"
             << "            #(\n"
+            << "                .USER_WIDTH (USER_WIDTH),\n"
+            << "                .USE_REG    (USE_REG),\n"
             << "                .INIT_REG   (INIT_REG),\n"
             << "                .DEVICE     (DEVICE)\n"
             << "            )\n"
@@ -259,45 +329,22 @@ inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, s
             << "                .cke        (cke),\n"
             << "                \n";
         if (i == 0) {
-            os << "                .in_data    (in_data),\n";
+            os << "                .in_user    (in_user),\n"
+                  "                .in_data    (in_data),\n"
+                  "                .in_valid   (in_valid),\n";
         }
         else {
-            os << "                .in_data    (layer" << (i - 1) << "_data),\n";
+            os << "                .in_user    (layer" << (i - 1) << "_user),\n"
+                  "                .in_data    (layer" << (i - 1) << "_data),\n"
+                  "                .in_valid   (layer" << (i - 1) << "_valid),\n";
         }
         os
-            << "                .out_data   (layer" << i << "_data)\n"
+            << "                \n"
+            << "                .out_user   (layer" << i << "_user),\n"
+            << "                .out_data   (layer" << i << "_data),\n"
+            << "                .out_valid  (layer" << i << "_valid)\n"
             << "             );\n"
             << "    \n";
-        
-        if ( ff ) {
-            os  << "    always @(posedge clk) begin\n"
-                << "        if ( reset ) begin\n"
-                << "            layer" << i << "_user  <= {USER_BITS{1'bx}};\n"
-                << "            layer" << i << "_valid <= 1'b0;\n"
-                << "        end\n"
-                << "        else if ( cke ) begin\n";
-            if (i == 0) {
-                os
-                    << "            layer" << i << "_user  <= in_user;\n"
-                    << "            layer" << i << "_valid <= in_valid;\n";
-            }
-            else {
-                os
-                    << "            layer" << i << "_user  <= layer" << (i - 1) << "_user;\n"
-                    << "            layer" << i << "_valid <= layer" << (i - 1) << "_valid;\n";
-            }
-
-            os
-                << "        end\n"
-                << "    end\n"
-                << "    \n    \n";
-        }
-        else {
-                os
-                    << "    assign layer" << i << "_user  = in_user;\n"
-                    << "    assign layer" << i << "_valid = in_valid;\n"
-                    << "    \n    \n";
-        }
     }
 
     os
@@ -312,7 +359,7 @@ inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, s
     // サブモジュール出力
     for (int i = 0; i < layer_size; ++i) {
         auto layer = layers[i];
-        ExportVerilog_LutModel(os, sub_modle_name[i], *layer, device, ff);
+        ExportVerilog_LutModelStream(os, sub_modle_name[i], *layer, device);
     }
 }
 
@@ -336,7 +383,7 @@ inline void ExportVerilog_ExtractLutModels(std::vector< std::shared_ptr< SparseM
 
 
 // LUT-Network 基本レイヤーの直列接続を出力
-inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, std::shared_ptr<bb::Sequential> net, std::string device="", bool ff=true)
+inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, std::shared_ptr<bb::Sequential> net, std::string device="")
 {
     std::vector< std::shared_ptr< SparseModel > > layers;
 
@@ -352,11 +399,11 @@ inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, s
     }
     */
 
-    ExportVerilog_LutModels(os, module_name, layers, device, ff);
+    ExportVerilog_LutModels(os, module_name, layers, device);
 }
 
 
-inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, std::vector< std::shared_ptr< Model > > layers, std::string device="", bool ff=true)
+inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, std::vector< std::shared_ptr< Model > > layers, std::string device="")
 {
     std::vector< std::shared_ptr< SparseModel > > sparse_layers;
     for (auto model : layers) {
@@ -365,7 +412,7 @@ inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, s
             sparse_layers.push_back(sparse_model);
         }
     }
-    ExportVerilog_LutModels(os, module_name, sparse_layers, device, ff);
+    ExportVerilog_LutModels(os, module_name, sparse_layers, device);
 }
 
 
@@ -528,7 +575,7 @@ endmodule
 }
 
 
-inline void ExportVerilog_LutConvolutionLayer(std::ostream& os, std::string module_name, std::shared_ptr< Filter2d > conv, std::string device="", bool ff=true)
+inline void ExportVerilog_LutConvolutionLayer(std::ostream& os, std::string module_name, std::shared_ptr< Filter2d > conv, std::string device="")
 {
     auto sub_layer = conv->GetSubLayer();
     if ( !sub_layer ) {
@@ -556,11 +603,11 @@ inline void ExportVerilog_LutConvolutionLayer(std::ostream& os, std::string modu
     int m = (int)conv->GetFilterWidth();
 
     ExportVerilog_LutConvolutionModule(os, module_name, sub_name, in_c, out_c, n, m);
-    ExportVerilog_LutModels(os, sub_name, seq_model, device, ff);
+    ExportVerilog_LutModels(os, sub_name, seq_model, device);
 }
 
 
-inline void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module_name, std::vector< std::shared_ptr< Filter2d > > layers, std::string device="", bool ff=true)
+inline void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module_name, std::vector< std::shared_ptr< Filter2d > > layers, std::string device="")
 {
     int  layer_size = (int)layers.size();
     auto fisrt_layer = layers[0];
@@ -813,13 +860,13 @@ inline void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module
         if ( layer->GetModelName() == "Convolution2d" ) {
             std::stringstream ss;
             ss << module_name << "_l" << i;
-            ExportVerilog_LutConvolutionLayer(os, ss.str(), layer, device, ff);
+            ExportVerilog_LutConvolutionLayer(os, ss.str(), layer, device);
         }
     }
 }
 
 
-inline void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module_name, std::vector< std::shared_ptr< Model > > layers, std::string device="", bool ff=true)
+inline void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module_name, std::vector< std::shared_ptr< Model > > layers, std::string device="")
 {
     std::vector< std::shared_ptr< Filter2d > > filters;
     for (auto model : layers) {
@@ -830,7 +877,7 @@ inline void ExportVerilog_LutCnnLayersAxi4s(std::ostream& os, std::string module
     }
 
     if (filters.size() > 0) {
-        ExportVerilog_LutCnnLayersAxi4s(os, module_name, filters, device, ff);
+        ExportVerilog_LutCnnLayersAxi4s(os, module_name, filters, device);
     }
 }
 

@@ -25,7 +25,7 @@
 void MnistDifferentiableLutSimple(int epoch_size, int mini_batch_size, int train_modulation_size, int test_modulation_size, bool binary_mode, bool file_read)
 {
     std::string net_name       = "MnistDifferentiableLutSimple";
-    std::string velilog_path   = "../../verilog/mnist/tb_mnist_lut_simple";
+    std::string velilog_path   = "../../verilog/mnist/tb_mnist_lut_simple/";
     std::string velilog_module = "MnistLutSimple";
 
 
@@ -176,7 +176,7 @@ void MnistDifferentiableLutSimple(int epoch_size, int mini_batch_size, int train
 
         {
             // Verilog 出力
-            std::string filename = velilog_path + net_name + "_2.v";
+            std::string filename = velilog_path + velilog_module + ".v";
             std::ofstream ofs(filename);
             ofs << "`timescale 1ns / 1ps\n\n";
             bb::ExportVerilog_LutModels(ofs, velilog_module, lut_net);

@@ -396,18 +396,18 @@ void GarbageCollectDeviceMemory(void)
 }
 
 
-std::string MakeVerilog_LutLayers(std::string module_name, std::vector< std::shared_ptr< bb::Model > > layers, std::string device="", bool ff=true)
+std::string MakeVerilog_LutLayers(std::string module_name, std::vector< std::shared_ptr< bb::Model > > layers, std::string device="")
 {
     std::stringstream ss;
-    bb::ExportVerilog_LutModels(ss, module_name, layers, device, ff);
+    bb::ExportVerilog_LutModels(ss, module_name, layers, device);
     return ss.str();
 }
 
 
-std::string MakeVerilog_LutConvLayers(std::string module_name, std::vector< std::shared_ptr< bb::Model > > layers, std::string device="", bool ff=true)
+std::string MakeVerilog_LutConvLayers(std::string module_name, std::vector< std::shared_ptr< bb::Model > > layers, std::string device="")
 {
     std::stringstream ss;
-    bb::ExportVerilog_LutCnnLayersAxi4s(ss, module_name, layers, device, ff);
+    bb::ExportVerilog_LutCnnLayersAxi4s(ss, module_name, layers, device);
     return ss.str();
 }
 
