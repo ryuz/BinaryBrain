@@ -108,6 +108,7 @@ samples/cpp/mnist/verilog/*.v
 samples/python/**/*.v
 
 MnistLutSimple.v
+MnistLut4Simple.v
 MnistLutCnn.v
 
 mnist_train.txt

@@ -37,6 +37,7 @@ inline void ExportVerilog_LutModel(std::ostream& os, std::string module_name, Sp
         "\n"
         "module " << module_name << "\n"
         "        #(\n"
+        "            parameter USE_REG  = 1,\n"
         "            parameter INIT_REG = 1'bx,\n"
         "            parameter DEVICE   = \"RTL\"\n"
         "        )\n"
@@ -149,24 +150,30 @@ inline void ExportVerilog_LutModel(std::ostream& os, std::string module_name, Sp
             
             os <<
                 "    wire lut_" << node << "_out = lut_" << node << "_table[lut_" << node << "_select];\n";
-         }
-         
-         os <<
-            "    \n"
-            "    reg   lut_" << node << "_ff;\n"
-            "    always @(posedge clk) begin\n"
-            "        if ( reset ) begin\n"
-            "            lut_" << node << "_ff <= INIT_REG;\n"
-            "        end\n"
-            "        else if ( cke ) begin\n"
-            "            lut_" << node << "_ff <= lut_" << node << "_out;\n"
-            "        end\n"
-            "    end\n"
-            "    \n"
-            "    assign out_data[" << node << "] = lut_" << node << "_ff;\n"
-            "    \n";
-
+        }
+        
+        // FF 出力
         os <<
+            "    \n"
+            "    generate\n"
+            "    if ( USE_REG ) begin : ff_" << node << "\n"
+            "        reg   lut_" << node << "_ff;\n"
+            "        always @(posedge clk) begin\n"
+            "            if ( reset ) begin\n"
+            "                lut_" << node << "_ff <= INIT_REG;\n"
+            "            end\n"
+            "            else if ( cke ) begin\n"
+            "                lut_" << node << "_ff <= lut_" << node << "_out;\n"
+            "            end\n"
+            "        end\n"
+            "        \n"
+            "        assign out_data[" << node << "] = lut_" << node << "_ff;\n"
+            "    end\n"
+            "    else begin : no_ff_" << node << "\n"
+            "        assign out_data[" << node << "] = lut_" << node << "_out;\n"
+            "    end\n"
+            "    endgenerate\n"
+            "    \n"
             "    \n";
     }
 
@@ -175,6 +182,83 @@ inline void ExportVerilog_LutModel(std::ostream& os, std::string module_name, Sp
     os << std::endl;
 }
 
+
+// LUT-Network 基本レイヤーのVerilog 出力
+inline void ExportVerilog_LutModelStream(std::ostream& os, std::string module_name, SparseModel const &lut, std::string device="")
+{
+    // モジュール出力
+    os <<
+        "\n"
+        "\n"
+        "module " << module_name << "\n"
+        "        #(\n"
+        "            parameter USER_WIDTH = 0,\n"
+        "            parameter USE_REG    = 1,\n"
+        "            parameter INIT_REG   = 1'bx,\n"
+        "            parameter DEVICE     = \"RTL\",\n"
+        "            \n"
+        "            parameter USER_BITS  = USER_WIDTH > 0 ? USER_WIDTH : 1\n"
+        "        )\n"
+        "        (\n"
+        "            input  wire         reset,\n"
+        "            input  wire         clk,\n"
+        "            input  wire         cke,\n"
+        "            \n"
+        "            input  wire [USER_BITS-1:0]  in_user,\n"
+        "            input  wire [" << std::setw(11) << (lut.GetInputNodeSize() - 1) << ":0]  in_data,\n"
+        "            input  wire                  in_valid,\n"
+        "            \n"
+        "            output wire [USER_BITS-1:0]  out_user,\n"
+        "            output wire [" << std::setw(11) << (lut.GetOutputNodeSize() - 1) << ":0]  out_data,\n"
+        "            output wire                  out_valid\n"
+        "        );\n"
+        "    \n"
+        "    " << module_name << "_base\n"
+        "            #(\n"
+        "                .USE_REG   (USE_REG),\n"
+        "                .INIT_REG  (INIT_REG),\n"
+        "                .DEVICE    (DEVICE)\n"
+        "            )\n"
+        "        i_" << module_name << "_base\n"
+        "            (\n"
+        "                .reset     (reset),\n"
+        "                .clk       (clk),\n"
+        "                .cke       (cke),\n"
+        "                \n"
+        "                .in_data   (in_data),\n"
+        "                .out_data  (out_data)\n"
+        "            );\n"
+        "    \n"
+        "    generate\n"
+        "    if ( USE_REG ) begin : ff\n"
+        "        reg   [USER_BITS-1:0]  reg_out_user;\n"
+        "        reg                    reg_out_valid;\n"
+        "        always @(posedge clk) begin\n"
+        "            if ( reset ) begin\n"
+        "                reg_out_user  <= {USER_BITS{1'bx}};\n"
+        "                reg_out_valid <= 1'b0;\n"
+        "            end\n"
+        "            else if ( cke ) begin\n"
+        "                reg_out_user  <= in_user;\n"
+        "                reg_out_valid <= in_valid;\n"
+        "            end\n"
+        "        end\n"
+        "        assign out_user  = reg_out_user;\n"
+        "        assign out_valid = reg_out_valid;\n"
+        "    end\n"
+        "    else begin : no_ff\n"
+        "        assign out_user  = in_user;\n"
+        "        assign out_valid = in_valid;\n"
+        "    end\n"
+        "    endgenerate\n"
+        "    \n"
+        "    \n"
+        "endmodule\n"
+        "\n\n";
+    
+    // ベースモジュール出力
+    ExportVerilog_LutModel(os, module_name + "_base", lut, device);
+}
 
 
 // LUT-Network 基本レイヤーの直列接続を出力
@@ -201,6 +285,7 @@ inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, s
         "module " << module_name << "\n"
         "        #(\n"
         "            parameter USER_WIDTH = 0,\n"
+        "            parameter USE_REG    = 1,\n"
         "            parameter INIT_REG   = 1'bx,\n"
         "            parameter DEVICE     = \"RTL\",\n"
         "            \n"
@@ -226,12 +311,14 @@ inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, s
         auto layer = layers[i];
 
         os
-            << "    reg   [USER_BITS-1:0]  layer" << i << "_user;\n"
+            << "    wire  [USER_BITS-1:0]  layer" << i << "_user;\n"
             << "    wire  [" << std::setw(9) << layer->GetOutputNodeSize() << "-1:0]  layer" << i << "_data;\n"
-            << "    reg                    layer" << i << "_valid;\n"
+            << "    wire                   layer" << i << "_valid;\n"
             << "    \n"
             << "    " << sub_modle_name[i] << "\n"
             << "            #(\n"
+            << "                .USER_WIDTH (USER_WIDTH),\n"
+            << "                .USE_REG    (USE_REG),\n"
             << "                .INIT_REG   (INIT_REG),\n"
             << "                .DEVICE     (DEVICE)\n"
             << "            )\n"
@@ -242,35 +329,22 @@ inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, s
             << "                .cke        (cke),\n"
             << "                \n";
         if (i == 0) {
-            os << "                .in_data    (in_data),\n";
+            os << "                .in_user    (in_user),\n"
+                  "                .in_data    (in_data),\n"
+                  "                .in_valid   (in_valid),\n";
         }
         else {
-            os << "                .in_data    (layer" << (i - 1) << "_data),\n";
+            os << "                .in_user    (layer" << (i - 1) << "_user),\n"
+                  "                .in_data    (layer" << (i - 1) << "_data),\n"
+                  "                .in_valid   (layer" << (i - 1) << "_valid),\n";
         }
         os
-            << "                .out_data   (layer" << i << "_data)\n"
+            << "                \n"
+            << "                .out_user   (layer" << i << "_user),\n"
+            << "                .out_data   (layer" << i << "_data),\n"
+            << "                .out_valid  (layer" << i << "_valid)\n"
             << "             );\n"
-            << "    \n"
-            << "    always @(posedge clk) begin\n"
-            << "        if ( reset ) begin\n"
-            << "            layer" << i << "_user  <= {USER_BITS{1'bx}};\n"
-            << "            layer" << i << "_valid <= 1'b0;\n"
-            << "        end\n"
-            << "        else if ( cke ) begin\n";
-        if (i == 0) {
-            os
-                << "            layer" << i << "_user  <= in_user;\n"
-                << "            layer" << i << "_valid <= in_valid;\n";
-        }
-        else {
-            os
-                << "            layer" << i << "_user  <= layer" << (i - 1) << "_user;\n"
-                << "            layer" << i << "_valid <= layer" << (i - 1) << "_valid;\n";
-        }
-        os
-            << "        end\n"
-            << "    end\n"
-            << "    \n    \n";
+            << "    \n";
     }
 
     os
@@ -285,7 +359,7 @@ inline void ExportVerilog_LutModels(std::ostream& os, std::string module_name, s
     // サブモジュール出力
     for (int i = 0; i < layer_size; ++i) {
         auto layer = layers[i];
-        ExportVerilog_LutModel(os, sub_modle_name[i], *layer, device);
+        ExportVerilog_LutModelStream(os, sub_modle_name[i], *layer, device);
     }
 }
 

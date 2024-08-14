@@ -37,9 +37,9 @@ def dump_verilog_lut_layers(f, module_name: str, net, device=""):
     '''
     f.write(make_verilog_lut_layers(module_name=module_name, net=net, device=device))
 
-def export_verilog_lut_layers(file_name: str, module_name: str, net):
+def export_verilog_lut_layers(file_name: str, module_name: str, net, device=""):
     with open(file_name, 'w') as f:
-        dump_verilog_lut_layers(f, module_name, net)
+        dump_verilog_lut_layers(f, module_name, net, device=device)
 
 
 

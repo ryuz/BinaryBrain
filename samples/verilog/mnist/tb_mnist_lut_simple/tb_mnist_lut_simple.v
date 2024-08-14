@@ -71,6 +71,7 @@ module tb_mnist_lut_simple();
     
     MnistLutSimple
             #(
+                .USE_REG        (0),
                 .USER_WIDTH     (1+USER_WIDTH)
             )
         i_MnistLutSimple
