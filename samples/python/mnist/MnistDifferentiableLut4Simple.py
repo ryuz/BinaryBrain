@@ -1,3 +1,5 @@
+# Interface 2024年10月号 特別付録 FPGA マガジン No.3
+# GOWIN Tang Nano 4k 向けの学習サンプル
 
 #%%
 import numpy as np
@@ -98,4 +100,4 @@ print(W)
 lut_mat = np.array(layer0.get_lut_table_list())
 print(lut_mat.shape)
 print(lut_mat)
-# %%
+
