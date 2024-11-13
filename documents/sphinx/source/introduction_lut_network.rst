@@ -102,3 +102,30 @@ Differentiable-LUT を、Stochastic演算用や、Fully-Binary 用に利用し�
 ..   :height: 100px
 ..   :width: 200px
    :align: left
+
+
+
+
+BinaryBrain における LUT-Network の歴史
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+現在の Differentiable-LUT モデルに至るまでの、BinaryBrain の開発における LUT-Network の歴史を紹介します。
+
+活性化層をバイナリ化することで、FPGAに適したネットワークが作れますが、従来の全結合層(DenseAffine)を FPGA用に合成すると 下記のように複数の LUT にカスケードされた回路が生成されます。
+
+.. image:: ../../images/dense_affine.png
+
+それに対して、接続数を6に制約するなどの超疎結合なネットワークであれば、下記のように疎結合な LUT が生成されます。しかしこれでは例えば XOR は学習できないなど LUT の表現能力を使いきれません。
+
+.. image:: ../../images/sparse_affine.png
+
+そこで中間層を持つ多層パーセプトロンを一つのLUTの学習の為に使う事を思い付き、Micro-MLP(Multi Layer Perceptron)として実装しました。
+学習時の計算時間やメモリ消費は大きいものの、このあたりからLUTの性能を活かしたネットアークが作れるようになりました。Micro-MLPのモデルは今も BinaryBrain に含まれています。
+
+.. image:: ../../images/micro_mlp.png
+
+そして現在の微分可能(Differentiable)な LUT モデルの着想に至り、Micro-MLP に比べて省メモリで高速な学習が可能になりました。
+
+.. image:: ../../images/differentiable_lut.png
+
+このように BinaryBrain では、独自の LUT-Network の研究を進めることで、FPGAに適したネットワークを作るための技術を提供しつづけています。
