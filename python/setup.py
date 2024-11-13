@@ -74,8 +74,8 @@ def search_cuda():
         cuda_include = pjoin(cuda_home, 'include')
         cuda_lib     = pjoin(cuda_home, 'lib', 'x64')
         cuda_nvcc    = pjoin(cuda_bin, 'nvcc')
-    elif 'CUDAHOME' in os.environ:
-        cuda_home = os.environ['CUDAHOME']
+    elif 'CUDA_HOME' in os.environ:
+        cuda_home = os.environ['CUDA_HOME']
         cuda_bin     = pjoin(cuda_home, 'bin')
         cuda_include = pjoin(cuda_home, 'include')
         cuda_lib     = pjoin(cuda_home, 'lib64')
@@ -296,45 +296,33 @@ class BuildExt(build_ext):
         cc_args['msvc'] += ['/EHsc', '/Oi', '/MT', '/arch:AVX2', '/openmp', '/std:c++14', '/wd"4819"']
         ar_args['msvc'] += []
     else:
+        cuda_opts = [
+#                       '-gencode=arch=compute_35,code=sm_35',
+#                       '-gencode=arch=compute_37,code=sm_37',
+                        '-gencode=arch=compute_50,code=sm_50',
+                        '-gencode=arch=compute_52,code=sm_52',
+                        '-gencode=arch=compute_53,code=sm_53',
+                        '-gencode=arch=compute_60,code=sm_60',
+                        '-gencode=arch=compute_61,code=sm_61',
+                        '-gencode=arch=compute_62,code=sm_62',
+                        '-gencode=arch=compute_70,code=sm_70',
+                        '-gencode=arch=compute_72,code=sm_72',
+                        '-gencode=arch=compute_75,code=sm_75',
+                        '-gencode=arch=compute_80,code=sm_80',
+                        '-gencode=arch=compute_86,code=sm_86',
+                        '-gencode=arch=compute_87,code=sm_87',
+                        '-gencode=arch=compute_89,code=sm_89',
+                        '-gencode=arch=compute_90,code=sm_90',
+                    ]
         # unix(gpu)
-        cc_args['unix'] += ['-gencode=arch=compute_35,code=sm_35',
-                            '-gencode=arch=compute_37,code=sm_37',
-                            '-gencode=arch=compute_50,code=sm_50',
-                            '-gencode=arch=compute_52,code=sm_52',
-                            '-gencode=arch=compute_53,code=sm_53',
-                            '-gencode=arch=compute_60,code=sm_60',
-                            '-gencode=arch=compute_61,code=sm_61',
-                            '-gencode=arch=compute_62,code=sm_62',
-                            '-gencode=arch=compute_70,code=sm_70',
-                            '-gencode=arch=compute_72,code=sm_72',
-                            '-gencode=arch=compute_75,code=sm_75',
-                            '-gencode=arch=compute_80,code=sm_80',
-                            '-gencode=arch=compute_86,code=sm_86',
-                            '-gencode=arch=compute_87,code=sm_87',
-                            '-gencode=arch=compute_89,code=sm_89',
-                            '-gencode=arch=compute_90,code=sm_90',
+        cc_args['unix'] += cuda_opts + [
                             '-Xcompiler', '-pthread',
                             '-Xcompiler', '-mavx2',
                             '-Xcompiler', '-mfma',
                             '-Xcompiler', '-fopenmp',
                             '-Xcompiler', '-std=c++14',
                             '-Xcompiler', '-fPIC' ]
-        cu_args['unix'] += ['-gencode=arch=compute_35,code=sm_35',
-                            '-gencode=arch=compute_37,code=sm_37',
-                            '-gencode=arch=compute_50,code=sm_50',
-                            '-gencode=arch=compute_52,code=sm_52',
-                            '-gencode=arch=compute_53,code=sm_53',
-                            '-gencode=arch=compute_60,code=sm_60',
-                            '-gencode=arch=compute_61,code=sm_61',
-                            '-gencode=arch=compute_62,code=sm_62',
-                            '-gencode=arch=compute_70,code=sm_70',
-                            '-gencode=arch=compute_72,code=sm_72',
-                            '-gencode=arch=compute_75,code=sm_75',
-                            '-gencode=arch=compute_80,code=sm_80',
-                            '-gencode=arch=compute_86,code=sm_86',
-                            '-gencode=arch=compute_87,code=sm_87',
-                            '-gencode=arch=compute_89,code=sm_89',
-                            '-gencode=arch=compute_90,code=sm_90',
+        cu_args['unix'] += cuda_opts + [
                             '-std=c++11',
                             '-Xcompiler', '-fPIC' ]
         ar_args['unix'] += ['-Xcompiler', '-pthread',
@@ -356,22 +344,7 @@ class BuildExt(build_ext):
                             '-Xcompiler', '/wd\"4819\"']
         cu_args['msvc'] += ['-O3',
                             '-std=c++17',
-                            '-gencode=arch=compute_35,code=sm_35',
-                            '-gencode=arch=compute_37,code=sm_37',
-                            '-gencode=arch=compute_50,code=sm_50',
-                            '-gencode=arch=compute_52,code=sm_52',
-                            '-gencode=arch=compute_53,code=sm_53',
-                            '-gencode=arch=compute_60,code=sm_60',
-                            '-gencode=arch=compute_61,code=sm_61',
-                            '-gencode=arch=compute_62,code=sm_62',
-                            '-gencode=arch=compute_70,code=sm_70',
-                            '-gencode=arch=compute_72,code=sm_72',
-                            '-gencode=arch=compute_75,code=sm_75',
-                            '-gencode=arch=compute_80,code=sm_80',
-                            '-gencode=arch=compute_86,code=sm_86',
-                            '-gencode=arch=compute_87,code=sm_87',
-                            '-gencode=arch=compute_89,code=sm_89',
-                            '-gencode=arch=compute_90,code=sm_90',
+                           ] + cuda_opts + [
                             '-Xcompiler', '/bigobj',
                             '-Xcompiler', '/EHsc',
                             '-Xcompiler', '/O2',
