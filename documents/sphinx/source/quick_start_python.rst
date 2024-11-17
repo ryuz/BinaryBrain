@@ -26,8 +26,6 @@ Google Colaboratory からも
 BinaryBrainは python3 専用です。Python2 との共存環境の場合など必要に応じて pip3 を実行ください。そうでなければ pip に読み替えてください。
 インストール時にソースファイルがビルドされますので、コンパイラやCUDAなどの環境は事前に整えておく必要があります。
 
-(Windows版はバイナリwheelが提供されるかもしれません。作者環境は ver4.0.1 現在、Python 3.7.4(Windows10)、Python 3.6.9(Ubuntu 18) です)
-
 
 Python用のサンプルプログラムは下記などを参照ください。
 

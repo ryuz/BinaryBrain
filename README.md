@@ -110,7 +110,7 @@ nvcc が利用可能な Google Colaboratory でも動作可能なようです。
 
 ## MNISTサンプルの動かし方(Python)
 
-作者は現在 Python 3.6/3.7 にて開発しています。
+作者は現在 Python 3.9 にて開発しています。
 
 
 ### 事前準備
