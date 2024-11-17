@@ -71,7 +71,7 @@ MNISTのサンプルの使い方は samples/mnist/readme.txt を参照くださ�
 
 ### windows
 
-1. install VisualStudio 2022 + CUDA 11.8
+1. install VisualStudio 2022 + CUDA 12.6
 2. git clone --recursive https://github.com/ryuz/BinaryBrain.git 
 3. download MNIST from http://yann.lecun.com/exdb/mnist/
 4. decompress MNIST for "\samples\mnist"
