@@ -81,7 +81,7 @@ MNISTのサンプルの使い方は samples/mnist/readme.txt を参照くださ�
 
 ### Linux(Ubuntu)
 
-1. install CUDA 11.8 
+1. install CUDA 12.6 
 
 2. build and run
 

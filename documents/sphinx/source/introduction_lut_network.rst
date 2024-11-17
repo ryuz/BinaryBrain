@@ -106,7 +106,7 @@ Differentiable-LUT を、Stochastic演算用や、Fully-Binary 用に利用し�
 
 
 
-BinaryBrain における LUT-Network の歴史
+LUT-Network の歴史
 ---------------------------------------------
 
 現在の Differentiable-LUT モデルに至るまでの、BinaryBrain の開発における LUT-Network の歴史を紹介します。
