@@ -274,7 +274,7 @@ https://ieeexplore.ieee.org/document/8966187
 
 - e-mail : ryuji.fuchikami@nifty.com
 - github : https://github.com/ryuz
-- web-site : http://ryuz.my.coocan.jp/
+- web-site : https://rtc-lab.com/
 - tech-blog : https://ryuz.hatenablog.com/
 - blog : http://ryuz.txt-nifty.com
 - twitter : https://twitter.com/ryuz88

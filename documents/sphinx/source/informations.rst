@@ -36,7 +36,7 @@ tag は リリースのタイミングでバージョン番号のタグを打つ
 - blog : http://ryuz.txt-nifty.com
 - twitter : https://twitter.com/ryuz88
 - facebook : https://www.facebook.com/ryuji.fuchikami
-- web-site : http://ryuz.my.coocan.jp/
+- web-site : https://rtc-lab.com/
 - e-mail : ryuji.fuchikami@nifty.com
 
 
