@@ -237,11 +237,11 @@ Ryuji Fuchikami
 
 - e-mail : ryuji.fuchikami@nifty.com
 - github : https://github.com/ryuz
-- web-site : http://ryuz.my.coocan.jp/
-- tech-blog : https://ryuz.hatenablog.com/
-- blog : http://ryuz.txt-nifty.com
-- twitter : https://twitter.com/ryuz88
-- facebook : https://www.facebook.com/ryuji.fuchikami
+- web-site : https://rtc-lab.com/
+- blog : https://blog.rtc-lab.com/
+- X(twitter) : https://x.com/ryuz88/
+- facebook : https://www.facebook.com/ryuji.fuchikami/
+- linkedin : https://www.linkedin.com/in/ryujifuchikami/
 
 
 ## Reference
